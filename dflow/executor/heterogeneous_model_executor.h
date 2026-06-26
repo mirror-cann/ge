@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -91,17 +91,19 @@ class HeterogeneousModelExecutor {
 
   Status FetchFlowMsg(const std::vector<uint32_t> &indexes, std::vector<FlowMsgPtr> &outputs, int32_t timeout);
 
-  Status FeedRawData(const std::vector<RawData> &raw_data_list, uint32_t index,
-                     const DataFlowInfo &info, int32_t timeout);
+  Status FeedRawData(const std::vector<RawData> &raw_data_list, uint32_t index, const DataFlowInfo &info,
+                     int32_t timeout);
 
-  FlowModelPtr GetFlowModel() const { return flow_model_; }
+  FlowModelPtr GetFlowModel() const {
+    return flow_model_;
+  }
 
   static inline uint64_t Now() {
     static auto zero = std::chrono::system_clock::now();
-    auto us = std::chrono::duration_cast<std::chrono::nanoseconds>(
-      std::chrono::system_clock::now() - zero).count();
+    auto us = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now() - zero).count();
     return uint64_t(us);
   }
+
  private:
   struct RunAsyncRequest {
     RunAsyncCallback callback;
@@ -126,8 +128,7 @@ class HeterogeneousModelExecutor {
   Status ParseOutputTensorInfo();
   Status BuildInputTensorDescMapping(std::map<std::string, GeTensorDescPtr> &mapping);
   Status BuildOutputTensorDescMapping(std::map<std::string, GeTensorDescPtr> &mapping);
-  Status SetTensorInfo(std::map<std::string, GeTensorDescPtr> &mapping,
-                       const std::vector<std::string> &queue_names,
+  Status SetTensorInfo(std::map<std::string, GeTensorDescPtr> &mapping, const std::vector<std::string> &queue_names,
                        const bool is_input);
   static Status GetTimeoutFromOption(int32_t &timeout);
   Status EnqueueInputTensors(const std::vector<GeTensor> &inputs);
@@ -150,8 +151,7 @@ class HeterogeneousModelExecutor {
   bool FindGroupEntryIndexInSingleInstance(DeployPlan::DstGroupInfo &group_info,
                                            std::pair<int32_t, std::string> &group_entry_index_and_name);
   bool FindGroupEntryIndexFromCache(DeployPlan::DstGroupInfo &group_info,
-                                    std::pair<int32_t, std::string> &group_entry_index_and_name,
-                                    uint64_t trans_id,
+                                    std::pair<int32_t, std::string> &group_entry_index_and_name, uint64_t trans_id,
                                     uint32_t route_label);
   void UpdateQueueDefaultStatus(const DeployPlan::DstGroupInfo &group_info, int32_t device_id, int32_t device_type,
                                 uint32_t i);
@@ -162,11 +162,10 @@ class HeterogeneousModelExecutor {
   void UpdateAbnormalInstanceList(RootModelId2SubmodelName &abnormal_submodel_instances_name);
   void UpdateAbnormalInstanceForTrimmingModel(const uint32_t root_model_id, const std::string &abnormal_name);
   void AbnormalStatusCallbackInit();
-  template<typename T>
+  template <typename T>
   Status GetQueueInfoByDequeueMbuf(const int32_t device_id, const uint32_t queue_id, T &info,
                                    const int32_t time_out = 0) const;
-  Status DynamicSchedProc(const domi::FlowgwRequest &flowgw_request,
-                          int32_t queue_infos_index,
+  Status DynamicSchedProc(const domi::FlowgwRequest &flowgw_request, int32_t queue_infos_index,
                           domi::FlowgwResponse &flowgw_response);
   Status FlowgwResponseEnqueue(int32_t device_id, int32_t datagw_input_index, domi::FlowgwResponse &flowgw_response);
   void DynamicSchedDurationStart();
@@ -233,8 +232,9 @@ class HeterogeneousModelExecutor {
   std::string input_model_name_;
   std::map<std::string, ModelIndices> model_indices_;
   std::mutex output_mutex_;
-  std::map<int32_t, DeployQueueAttr> datagw_rqt_to_rsp_; // datagw input indice to sched app output queueid
-  std::map<int32_t, std::pair<QueueStatus, uint64_t>> queue_status_info_; // key:logic_queue_id;data:QueueStatus, 决策时间点
+  std::map<int32_t, DeployQueueAttr> datagw_rqt_to_rsp_;  // datagw input indice to sched app output queueid
+  std::map<int32_t, std::pair<QueueStatus, uint64_t>>
+      queue_status_info_;  // key:logic_queue_id;data:QueueStatus, 决策时间点
   // cache dynamic route trans id and route label, key=trans id, value route labels
   std::map<uint64_t, std::set<uint32_t>> cached_trans_ids_;
   // routelabel_cache_info_: transid routelabel, group size, group_entry_index
@@ -246,12 +246,12 @@ class HeterogeneousModelExecutor {
   thread_local static uint64_t duration_max_;
   thread_local static uint64_t duration_size_;
   thread_local static uint64_t call_;
-  std::vector<DeployQueueAttr> status_input_queue_attrs_; // 状态接受队列
-  std::vector<DeployQueueAttr> sched_input_queue_attrs_; // app datagw response 队列
-  std::vector<DeployQueueAttr> sched_output_queue_attrs_; // app datagw request 队列
-  std::map<int32_t, int32_t> sched_input_cnt_; // <app datagw response 队列index, 调度结果enqueue次数统计>
+  std::vector<DeployQueueAttr> status_input_queue_attrs_;  // 状态接受队列
+  std::vector<DeployQueueAttr> sched_input_queue_attrs_;   // app datagw response 队列
+  std::vector<DeployQueueAttr> sched_output_queue_attrs_;  // app datagw request 队列
+  std::map<int32_t, int32_t> sched_input_cnt_;             // <app datagw response 队列index, 调度结果enqueue次数统计>
   DeployPlan::DynamicSchedIndex model_index_info_;
-  std::map<int32_t, int32_t> datagw_request_bindings_; // app output 到datagw input 逻辑queue id 映射
+  std::map<int32_t, int32_t> datagw_request_bindings_;  // app output 到datagw input 逻辑queue id 映射
   bool is_dynamic_sched_ = false;
   bool is_exception_catch_ = false;
   bool contains_n_mapping_node_ = false;
@@ -260,7 +260,7 @@ class HeterogeneousModelExecutor {
   std::mutex queue_status_mu_;
   std::mutex abnormal_name_mu_;
   RootModelId2SubmodelName abnormal_submodel_instances_name_;
-  std::atomic<uint32_t> deploy_state_ {0U};
+  std::atomic<uint32_t> deploy_state_{0U};
   DeployPlan::AbnormalStatusCallbackInfo *abnormal_status_callback_info_ = nullptr;
   // 内层集合是同一个device上裁边场景具有连接关系的模型集合
   std::vector<std::unordered_set<std::string>> model_trimming_edges_model_instances_;

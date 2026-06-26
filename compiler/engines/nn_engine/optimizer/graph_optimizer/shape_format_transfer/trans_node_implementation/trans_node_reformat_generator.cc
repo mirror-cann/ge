@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,9 +34,9 @@ Status TransNodeReformatGenerator::AddTransNode(ge::ComputeGraph &fused_graph, T
    * we insert it with the input format as NCHW or NHWC or HWCN and the output
    * format as ND. */
   if ((trans_info_ptr_->src_out_primary_format == ge::FORMAT_ND &&
-      trans_info_ptr_->dst_in_primary_format == ge::FORMAT_FRACTAL_NZ) ||
+       trans_info_ptr_->dst_in_primary_format == ge::FORMAT_FRACTAL_NZ) ||
       (trans_info_ptr_->src_out_primary_format == ge::FORMAT_FRACTAL_NZ &&
-      trans_info_ptr_->dst_in_primary_format == ge::FORMAT_ND)) {
+       trans_info_ptr_->dst_in_primary_format == ge::FORMAT_ND)) {
     return SUCCESS;
   }
 
@@ -98,4 +98,4 @@ Status TransNodeReformatGenerator::AddOpAndNode(ge::ComputeGraph &fused_graph, c
 
   return SUCCESS;
 }
-}
+}  // namespace fe

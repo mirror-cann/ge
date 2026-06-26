@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,19 +32,14 @@ namespace ge {
 namespace {
 class MockExchangeService : public ExchangeService {
  public:
-  Status CreateQueue(const int32_t device_id,
-                     const string &name,
-                     const MemQueueAttr &mem_queue_attr,
+  Status CreateQueue(const int32_t device_id, const string &name, const MemQueueAttr &mem_queue_attr,
                      uint32_t &queue_id) override {
     return 0;
   }
   Status DestroyQueue(const int32_t device_id, const uint32_t queue_id) override {
     return 0;
   }
-  Status Enqueue(const int32_t device_id,
-                 const uint32_t queue_id,
-                 const void *const data,
-                 const size_t size,
+  Status Enqueue(const int32_t device_id, const uint32_t queue_id, const void *const data, const size_t size,
                  const ControlInfo &control_info) override {
     return 0;
   }
@@ -52,10 +47,7 @@ class MockExchangeService : public ExchangeService {
                  const ControlInfo &control_info) override {
     return 0;
   }
-  Status Enqueue(const int32_t device_id,
-                 const uint32_t queue_id,
-                 const size_t size,
-                 const FillFunc &fill_func,
+  Status Enqueue(const int32_t device_id, const uint32_t queue_id, const size_t size, const FillFunc &fill_func,
                  const ControlInfo &control_info) override {
     return 0;
   }
@@ -66,10 +58,7 @@ class MockExchangeService : public ExchangeService {
   Status EnqueueMbuf(int32_t device_id, uint32_t queue_id, rtMbufPtr_t m_buf, int32_t timeout) override {
     return 0;
   }
-  Status Dequeue(const int32_t device_id,
-                 const uint32_t queue_id,
-                 void *const data,
-                 const size_t size,
+  Status Dequeue(const int32_t device_id, const uint32_t queue_id, void *const data, const size_t size,
                  ControlInfo &control_info) override {
     return 0;
   }
@@ -77,9 +66,7 @@ class MockExchangeService : public ExchangeService {
                            const size_t size, ControlInfo &control_info) override {
     return 0;
   }
-  Status DequeueTensor(const int32_t device_id,
-                       const uint32_t queue_id,
-                       GeTensor &tensor,
+  Status DequeueTensor(const int32_t device_id, const uint32_t queue_id, GeTensor &tensor,
                        ControlInfo &control_info) override {
     return 0;
   }
@@ -93,8 +80,7 @@ class MockExchangeService : public ExchangeService {
 
 class MockModelDeployer : public ModelDeployer {
  public:
-  Status DeployModel(const FlowModelPtr &flow_model,
-                     DeployResult &deploy_result) override {
+  Status DeployModel(const FlowModelPtr &flow_model, DeployResult &deploy_result) override {
     return SUCCESS;
   }
   Status Undeploy(uint32_t model_id) override {
@@ -121,7 +107,7 @@ class MockExecutionRuntime : public ExecutionRuntime {
   MockModelDeployer model_deployer_;
   MockExchangeService exchange_service_;
 };
-}
+}  // namespace
 
 class ConvertBatchAttrToUdfPassTest : public testing::Test {
  protected:
@@ -293,7 +279,7 @@ TEST_F(ConvertBatchAttrToUdfPassTest, TimeBatch_CountBatch_with_deploy_info) {
   EXPECT_EQ(graph->GetDirectNode().size(), 6);
   auto node_node0_time_batch = graph->FindNode("Node0__BuiltIn_TimeBatch_0");
   ASSERT_NE(node_node0_time_batch, nullptr);
-  
+
   std::string logic_device_id;
   EXPECT_TRUE(AttrUtils::GetStr(node_node0_time_batch->GetOpDesc(), ATTR_NAME_LOGIC_DEV_ID, logic_device_id));
   EXPECT_EQ(logic_device_id, "0:0:1");

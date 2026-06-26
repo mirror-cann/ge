@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -135,10 +135,10 @@ Status MarkAgnosticPass::SetContinuousAttr(const NodePtr &node, const std::vecto
   for (auto index : indexes) {
     auto out = op_desc->MutableOutputDesc(index);
     if (out == nullptr) {
-      REPORT_INNER_ERR_MSG("E19999", "Op:%s(%s) output:%u desc is nullptr, check invalid",
-                         op_desc->GetName().c_str(), op_desc->GetType().c_str(), index);
-      GELOGE(FAILED, "[Check][Param]Op:%s(%s) output:%u desc is nullptr",
-             op_desc->GetName().c_str(), op_desc->GetType().c_str(), index);
+      REPORT_INNER_ERR_MSG("E19999", "Op:%s(%s) output:%u desc is nullptr, check invalid", op_desc->GetName().c_str(),
+                           op_desc->GetType().c_str(), index);
+      GELOGE(FAILED, "[Check][Param]Op:%s(%s) output:%u desc is nullptr", op_desc->GetName().c_str(),
+             op_desc->GetType().c_str(), index);
       return FAILED;
     }
     // This attr is for out's dtype and format continuous with it's peer input

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,7 +39,7 @@ TEST_F(GertTensorDataUT, SetSize_SetPlacement_SetAddr_success) {
 
 TEST_F(GertTensorDataUT, TensorDataWithoutManager_After_Free_GetAddr_success) {
   GertTensorData gert_tensor_data = GertTensorData();
-  void *addr = (void*)1;
+  void *addr = (void *)1;
   const_cast<TensorData *>(&gert_tensor_data.GetTensorData())->SetAddr(addr, nullptr);
   ASSERT_EQ(gert_tensor_data.FreeHoldAddr(), ge::GRAPH_SUCCESS);
   ASSERT_EQ(gert_tensor_data.GetAddr(), addr);

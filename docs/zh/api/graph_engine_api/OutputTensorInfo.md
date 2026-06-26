@@ -23,4 +23,3 @@ struct OutputTensorInfo {
   OutputTensorInfo &operator=(const OutputTensorInfo &)& = delete;
 };
 ```
-

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -43,9 +43,10 @@ class ExecutionOrder {
   // Thread-safe implementation, lock-free when next point exists.
   Status NextPoint(const ExecutionPoint &ep, const std::vector<GeTensor> &inputs, ExecutionPoint *&next_ep);
 
-  ExecutionPoint* GetFirstPoint();
+  ExecutionPoint *GetFirstPoint();
   const std::vector<gert::Tensor> &GetInputTensors(bool &is_unknown_input_shape);
   UserGraph GetUserGraph() const;
+
  private:
   bool HasNext(const ExecutionPoint &ep) const;
   Status AddNewSlice(const ComputeGraphPtr &graph, const std::vector<GeTensor> &inputs, ExecutionPoint *&new_ep);

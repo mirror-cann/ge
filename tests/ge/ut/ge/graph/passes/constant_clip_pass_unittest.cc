@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -35,7 +35,7 @@ constexpr float BF16_MIN_VALUE = -3.38E38;
 constexpr float FLOAT_DELTA = 1e-6F;
 
 class UtestGraphPassesConstantClipPass : public testing::Test {
-protected:
+ protected:
   void SetUp() {
     std::map<std::string, std::string> options{{"ge.is_weight_clip", "1"}};
     GetThreadLocalContext().SetGlobalOption(options);
@@ -72,10 +72,10 @@ ComputeGraphPtr BuildGraph1(DataType src_dt, DataType dst_dt, double value) {
   GeTensorPtr tensor = nullptr;
   if (src_dt == DT_DOUBLE) {
     double value_tmp = value;
-    tensor = std::make_shared<GeTensor>(weight_desc, (uint8_t *) (&value_tmp), sizeof(value_tmp));
+    tensor = std::make_shared<GeTensor>(weight_desc, (uint8_t *)(&value_tmp), sizeof(value_tmp));
   } else {
     float value_tmp = static_cast<float>(value);
-    tensor = std::make_shared<GeTensor>(weight_desc, (uint8_t *) (&value_tmp), sizeof(value_tmp));
+    tensor = std::make_shared<GeTensor>(weight_desc, (uint8_t *)(&value_tmp), sizeof(value_tmp));
   }
   OpDescUtils::SetWeights(const_node, {tensor});
 
@@ -106,7 +106,7 @@ TEST_F(UtestGraphPassesConstantClipPass, success_fp16_fp32_max_const_no_value) {
   ge::ComputeGraphPtr graph = BuildGraphConstNoValue(DT_FLOAT16, DT_FLOAT);
   EXPECT_EQ(graph->GetAllNodes().size(), 2);
 
-  names_to_pass.push_back( {"ConstantClipPass", new ConstantClipPass});
+  names_to_pass.push_back({"ConstantClipPass", new ConstantClipPass});
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
   EXPECT_EQ(graph->GetAllNodes().size(), 2);
@@ -117,7 +117,7 @@ TEST_F(UtestGraphPassesConstantClipPass, success_fp16_fp32_max) {
   ge::ComputeGraphPtr graph = BuildGraph1(DT_FLOAT16, DT_FLOAT, max_val);
   EXPECT_EQ(graph->GetAllNodes().size(), 2);
 
-  names_to_pass.push_back( {"ConstantClipPass", new ConstantClipPass});
+  names_to_pass.push_back({"ConstantClipPass", new ConstantClipPass});
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
   EXPECT_EQ(graph->GetAllNodes().size(), 2);
@@ -134,7 +134,7 @@ TEST_F(UtestGraphPassesConstantClipPass, success_FP32_int32_max) {
   ge::ComputeGraphPtr graph = BuildGraph1(DT_FLOAT, DT_INT32, max_val);
   EXPECT_EQ(graph->GetAllNodes().size(), 2);
 
-  names_to_pass.push_back( {"ConstantClipPass", new ConstantClipPass});
+  names_to_pass.push_back({"ConstantClipPass", new ConstantClipPass});
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
   EXPECT_EQ(graph->GetAllNodes().size(), 2);
@@ -144,7 +144,7 @@ TEST_F(UtestGraphPassesConstantClipPass, success_fp32_fp16_not_inf) {
   float max_val = 65503;
   ge::ComputeGraphPtr graph = BuildGraph1(DT_FLOAT, DT_FLOAT16, max_val);
   EXPECT_EQ(graph->GetAllNodes().size(), 2);
-  names_to_pass.push_back( {"ConstantClipPass", new ConstantClipPass});
+  names_to_pass.push_back({"ConstantClipPass", new ConstantClipPass});
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
   EXPECT_EQ(graph->GetAllNodes().size(), 2);
@@ -155,7 +155,7 @@ TEST_F(UtestGraphPassesConstantClipPass, success_fp32_fp16_not_inf) {
 TEST_F(UtestGraphPassesConstantClipPass, success_fp32_fp16_not_link_const) {
   ge::ComputeGraphPtr graph = BuildGraphNoConst(DT_FLOAT, DT_FLOAT16);
   EXPECT_EQ(graph->GetAllNodes().size(), 2);
-  names_to_pass.push_back( {"ConstantClipPass", new ConstantClipPass});
+  names_to_pass.push_back({"ConstantClipPass", new ConstantClipPass});
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
   EXPECT_EQ(graph->GetAllNodes().size(), 2);
@@ -205,7 +205,7 @@ TEST_F(UtestGraphPassesConstantClipPass, success_fp32_fp16_min) {
   float min_val = -65505;
   ge::ComputeGraphPtr graph = BuildGraph1(DT_FLOAT, DT_FLOAT16, min_val);
   EXPECT_EQ(graph->GetAllNodes().size(), 2);
-  names_to_pass.push_back( {"ConstantClipPass", new ConstantClipPass});
+  names_to_pass.push_back({"ConstantClipPass", new ConstantClipPass});
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
   EXPECT_EQ(graph->GetAllNodes().size(), 5);
@@ -243,7 +243,7 @@ TEST_F(UtestGraphPassesConstantClipPass, success_fp64_fp16_max) {
   float max_val = 65505;
   ge::ComputeGraphPtr graph = BuildGraph1(DT_DOUBLE, DT_FLOAT16, max_val);
   EXPECT_EQ(graph->GetAllNodes().size(), 2);
-  names_to_pass.push_back( {"ConstantClipPass", new ConstantClipPass});
+  names_to_pass.push_back({"ConstantClipPass", new ConstantClipPass});
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
   EXPECT_EQ(graph->GetAllNodes().size(), 5);
@@ -281,7 +281,7 @@ TEST_F(UtestGraphPassesConstantClipPass, success_fp64_fp16_min) {
   float min_val = -65505;
   ge::ComputeGraphPtr graph = BuildGraph1(DT_DOUBLE, DT_FLOAT16, min_val);
   EXPECT_EQ(graph->GetAllNodes().size(), 2);
-  names_to_pass.push_back( {"ConstantClipPass", new ConstantClipPass});
+  names_to_pass.push_back({"ConstantClipPass", new ConstantClipPass});
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
   EXPECT_EQ(graph->GetAllNodes().size(), 5);
@@ -319,7 +319,7 @@ TEST_F(UtestGraphPassesConstantClipPass, success_fp32_bf16_max) {
   float max_val = FLT_MAX;
   ge::ComputeGraphPtr graph = BuildGraph1(DT_FLOAT, DT_BF16, max_val);
   EXPECT_EQ(graph->GetAllNodes().size(), 2);
-  names_to_pass.push_back( {"ConstantClipPass", new ConstantClipPass});
+  names_to_pass.push_back({"ConstantClipPass", new ConstantClipPass});
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
   EXPECT_EQ(graph->GetAllNodes().size(), 5);
@@ -357,7 +357,7 @@ TEST_F(UtestGraphPassesConstantClipPass, success_fp32_bf16_min) {
   float min_val = -FLT_MAX;
   ge::ComputeGraphPtr graph = BuildGraph1(DT_FLOAT, DT_BF16, min_val);
   EXPECT_EQ(graph->GetAllNodes().size(), 2);
-  names_to_pass.push_back( {"ConstantClipPass", new ConstantClipPass});
+  names_to_pass.push_back({"ConstantClipPass", new ConstantClipPass});
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
   EXPECT_EQ(graph->GetAllNodes().size(), 5);
@@ -395,7 +395,7 @@ TEST_F(UtestGraphPassesConstantClipPass, success_fp64_fp32_max) {
   double max_val = DBL_MAX;
   ge::ComputeGraphPtr graph = BuildGraph1(DT_DOUBLE, DT_FLOAT, max_val);
   EXPECT_EQ(graph->GetAllNodes().size(), 2);
-  names_to_pass.push_back( {"ConstantClipPass", new ConstantClipPass});
+  names_to_pass.push_back({"ConstantClipPass", new ConstantClipPass});
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
   EXPECT_EQ(graph->GetAllNodes().size(), 5);
@@ -433,7 +433,7 @@ TEST_F(UtestGraphPassesConstantClipPass, success_fp64_fp32_min) {
   float min_val = -DBL_MAX;
   ge::ComputeGraphPtr graph = BuildGraph1(DT_DOUBLE, DT_FLOAT, min_val);
   EXPECT_EQ(graph->GetAllNodes().size(), 2);
-  names_to_pass.push_back( {"ConstantClipPass", new ConstantClipPass});
+  names_to_pass.push_back({"ConstantClipPass", new ConstantClipPass});
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
   EXPECT_EQ(graph->GetAllNodes().size(), 5);
@@ -466,4 +466,4 @@ TEST_F(UtestGraphPassesConstantClipPass, success_fp64_fp32_min) {
   bool max_equal = (fabsf(*max_data - FLT_MAX) <= FLOAT_DELTA);
   EXPECT_TRUE(max_equal);
 }
-}
+}  // namespace

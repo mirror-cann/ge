@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,9 +31,7 @@ std::vector<char> CreateStubBin() {
     std::cout << "file:" << op_bin_path << "does not exist or is unaccessible." << std::endl;
     return buf;
   }
-  GE_MAKE_GUARD(file_guard, [&file]() {
-    (void)file.close();
-  });
+  GE_MAKE_GUARD(file_guard, [&file]() { (void)file.close(); });
   const std::streampos begin = file.tellg();
   (void)file.seekg(0, std::ios::end);
   const std::streampos end = file.tellg();
@@ -44,10 +42,10 @@ std::vector<char> CreateStubBin() {
   std::cout << std::string(buf.data()) << std::endl;
   return buf;
 }
-}
+}  // namespace
 
-GeModelBuilder::GeModelBuilder(ge::ComputeGraphPtr compute_graph) : compute_graph_(compute_graph),
-                                                                    use_default_task_(true) {
+GeModelBuilder::GeModelBuilder(ge::ComputeGraphPtr compute_graph)
+    : compute_graph_(compute_graph), use_default_task_(true) {
   ge_model = std::make_shared<ge::GeModel>();
   ge_model->SetName(compute_graph->GetName());
   model_task_def = std::make_shared<domi::ModelTaskDef>();
@@ -140,7 +138,6 @@ void GeModelBuilder::FakeTbeBinToNodes() {
       ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATOMIC_ATTR_TVM_METADATA, "FakeAtomicMeta");
       ge::AttrUtils::SetStr(node->GetOpDesc(), node->GetName() + "_atomic_kernelname", name);
       ge::AttrUtils::SetStr(node->GetOpDesc(), ge::ATOMIC_ATTR_TBE_KERNEL_NAME, name);
-
     }
   }
 }
@@ -185,7 +182,6 @@ void GeModelBuilder::AddTbeKernelStore() {
   tbe_kernel_store.Build();
   ge_model->SetTBEKernelStore(tbe_kernel_store);
 }
-
 
 ge::TBEKernelStore GeModelBuilder::BuildKernelStoreFromNodes() const {
   ge::TBEKernelStore tbe_kernel_store;
@@ -287,7 +283,7 @@ ge::GeRootModelPtr GeModelBuilder::BuildGeRootModel() {
   ge::AttrUtils::SetStr(ge_model, ge::ATTR_MODEL_HOST_ENV_CPU, "x86_64");
   ge::AttrUtils::SetInt(ge_model, ge::ATTR_MODEL_STREAM_NUM, root_model_stream_num_);
   ge::AttrUtils::SetInt(ge_model, ge::ATTR_MODEL_EVENT_NUM, root_model_event_num_);
-  ge::AttrUtils::SetInt(ge_model, ge::ATTR_MODEL_VAR_SIZE, 512 *1024 * 1024);
+  ge::AttrUtils::SetInt(ge_model, ge::ATTR_MODEL_VAR_SIZE, 512 * 1024 * 1024);
   ge::AttrUtils::SetInt(ge_model, ge::ATTR_MODEL_TASK_GEN_VAR_ADDR, 137438953472);
   const auto root_graph = ge_model->GetGraph();
   if (root_graph != nullptr) {
@@ -339,8 +335,7 @@ GeModelBuilder &GeModelBuilder::AddDefaultTasks() {
     } else if (kernel_lib == ge::kEngineNameAiCpuTf) {
       faker = std::make_shared<AiCpuTfTaskDefFaker>();
     } else {
-      GELOGI("node[%s] appoint invalid engine type[%s], skip fake task.",
-             node->GetName().c_str(), kernel_lib.c_str());
+      GELOGI("node[%s] appoint invalid engine type[%s], skip fake task.", node->GetName().c_str(), kernel_lib.c_str());
       continue;
     }
     SetTaskDef(*faker, node->GetOpDesc()->GetId());
@@ -369,8 +364,7 @@ GeModelBuilder &GeModelBuilder::AddDefaultWeights() {
     ge::TensorUtils::SetWeightSize(tensor_desc, tensor_data.GetSize());
     ge::TensorUtils::SetDataOffset(tensor_desc, weight_buffer_.size());
     ge::TensorUtils::SetSize(*op_desc->MutableOutputDesc(0U), tensor_data.GetSize());
-    weight_buffer_.insert(weight_buffer_.end(), tensor_data.GetData(),
-                          tensor_data.GetData() + tensor_data.GetSize());
+    weight_buffer_.insert(weight_buffer_.end(), tensor_data.GetData(), tensor_data.GetData() + tensor_data.GetSize());
   }
   ge_model->SetWeight(ge::Buffer::CopyFrom((uint8_t *)weight_buffer_.data(), weight_buffer_.size()));
   GELOGI("model[%s], set weight size[%zu]", ge_model->GetName().c_str(), weight_buffer_.size());

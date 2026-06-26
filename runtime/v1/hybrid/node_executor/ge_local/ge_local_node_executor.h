@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,16 +20,14 @@ namespace ge {
 namespace hybrid {
 class RefInputTask : public NodeTask {
  public:
-  explicit RefInputTask(const NodePtr &node)
-      : NodeTask(), node_name_(node->GetName()),
-        node_type_(node->GetType()) {
-  }
+  explicit RefInputTask(const NodePtr &node) : NodeTask(), node_name_(node->GetName()), node_type_(node->GetType()) {}
 
   ~RefInputTask() override = default;
 
   Status UpdateArgs(TaskContext &context) override;
   Status ExecuteAsync(TaskContext &context, const std::function<void()> &done_callback) override;
   static bool IsBelong(const std::string &op_type);
+
  private:
   Status Execute(const TaskContext &context) const;
   Status RefOneByOne(const TaskContext &context) const;
@@ -46,19 +44,17 @@ class RefInputTask : public NodeTask {
 
 class DependInputShapeTask : public NodeTask {
  public:
-  explicit DependInputShapeTask(const NodePtr &node) : NodeTask(), node_(node) {
-  }
+  explicit DependInputShapeTask(const NodePtr &node) : NodeTask(), node_(node) {}
 
   ~DependInputShapeTask() override = default;
 
   Status UpdateArgs(TaskContext &context) override;
   Status ExecuteAsync(TaskContext &context, const std::function<void()> &done_callback) override;
   static bool IsBelong(const std::string &op_type);
+
  private:
   Status Execute(const TaskContext &context) const;
-  Status CopyDataToOutput(const size_t output_num,
-                          std::vector<GeTensorPtr> &outputs,
-                          const std::string &node_type,
+  Status CopyDataToOutput(const size_t output_num, std::vector<GeTensorPtr> &outputs, const std::string &node_type,
                           const TaskContext &context) const;
   const NodePtr node_;
 
@@ -68,7 +64,7 @@ class DependInputShapeTask : public NodeTask {
 
 class ConstantNodeTask : public NodeTask {
  public:
-  explicit ConstantNodeTask(const TensorValue * const tensor_in);
+  explicit ConstantNodeTask(const TensorValue *const tensor_in);
   ~ConstantNodeTask() override = default;
   Status UpdateArgs(TaskContext &context) override;
 
@@ -101,8 +97,10 @@ class DataFlowNodeTask : public NodeTask {
   Status UpdateArgs(TaskContext &context) override;
   Status ExecuteAsync(TaskContext &context, const std::function<void()> &done_callback) override;
   static bool IsBelong(const std::string &op_type);
+
  private:
   Status Execute(TaskContext &context) const;
+
  private:
   static const std::set<std::string> data_flow_ops_;
   std::string node_type_;
@@ -111,15 +109,13 @@ class DataFlowNodeTask : public NodeTask {
 
 class GeLocalNodeExecutor : public NodeExecutor {
  public:
-  GeLocalNodeExecutor() noexcept: NodeExecutor() {}
+  GeLocalNodeExecutor() noexcept : NodeExecutor() {}
   ~GeLocalNodeExecutor() override = default;
 
   Status PrepareTask(NodeTask &task, TaskContext &context) const override;
 
-  Status LoadTask(const HybridModel &model,
-                  const NodePtr &node,
-                  std::shared_ptr<NodeTask> &task) const override;
+  Status LoadTask(const HybridModel &model, const NodePtr &node, std::shared_ptr<NodeTask> &task) const override;
 };
 }  // namespace hybrid
 }  // namespace ge
-#endif // GE_HYBRID_KERNEL_GE_LOCAL_NODE_EXECUTOR_H_
+#endif  // GE_HYBRID_KERNEL_GE_LOCAL_NODE_EXECUTOR_H_

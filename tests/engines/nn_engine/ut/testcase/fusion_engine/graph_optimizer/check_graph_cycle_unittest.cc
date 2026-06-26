@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -44,13 +44,9 @@ using namespace ge;
 
 class UTEST_check_graph_cycle_unittest : public testing::Test {
  protected:
-  virtual void SetUp() {
+  virtual void SetUp() {}
 
-  }
-
-  virtual void TearDown() {
-
-  }
+  virtual void TearDown() {}
   void SetPattern(ge::OpDescPtr opdef, string optype) {
     auto key_pattern = "_pattern";
     ge::AttrUtils::SetStr(opdef, key_pattern, optype);
@@ -66,8 +62,8 @@ class UTEST_check_graph_cycle_unittest : public testing::Test {
     OpDescPtr addn = std::make_shared<OpDesc>("addn", "AddN");
     OpDescPtr elemwise = std::make_shared<OpDesc>("elem", "Eltwise");
     OpDescPtr relu = std::make_shared<OpDesc>("relu", "ReLU");
-    OpDescPtr relu1 = std::make_shared<OpDesc>("relu1","ReLU");
-    OpDescPtr relu2 = std::make_shared<OpDesc>("relu2","ReLU");
+    OpDescPtr relu1 = std::make_shared<OpDesc>("relu1", "ReLU");
+    OpDescPtr relu2 = std::make_shared<OpDesc>("relu2", "ReLU");
     SetPattern(addn, "ElemWise");
     SetPattern(elemwise, "ElemWise");
 
@@ -108,7 +104,7 @@ class UTEST_check_graph_cycle_unittest : public testing::Test {
     NodePtr relu1_node = graph->AddNode(relu1);
     NodePtr relu2_node = graph->AddNode(relu2);
     const char tbe_bin[] = "tbe_bin";
-    vector<char> buffer(tbe_bin, tbe_bin+strlen(tbe_bin));
+    vector<char> buffer(tbe_bin, tbe_bin + strlen(tbe_bin));
     ge::OpKernelBinPtr tbe_kernel_ptr = std::make_shared<ge::OpKernelBin>(addn_node->GetName(), std::move(buffer));
     addn_node->GetOpDesc()->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, tbe_kernel_ptr);
 
@@ -121,7 +117,6 @@ class UTEST_check_graph_cycle_unittest : public testing::Test {
     GraphUtils::AddEdge(relu1_node->GetOutDataAnchor(0), relu2_node->GetInDataAnchor(0));
     GraphUtils::AddEdge(relu2_node->GetOutDataAnchor(0), relu_node->GetInDataAnchor(1));
   }
-
 };
 
 TEST_F(UTEST_check_graph_cycle_unittest, check_graph_cycle_yes) {
@@ -177,10 +172,7 @@ TEST_F(UTEST_check_graph_cycle_unittest, report_cycle_after_pass_fusion) {
   config.Initialize(options);
   auto create_func = []() -> ::fe::GraphPass * { return new (std::nothrow) ConvWeightCompressFusionPass(); };
   FusionPassRegistry::PassDesc pass_desc = {4, create_func};
-  fe::FusionPassOrRule pass_or_rule("ConcatQuantFusionPass",
-                                    0, PASS_METHOD,
-                                    BUILT_IN_PASS_PRIORITY_MIN,
-                                    pass_desc);
+  fe::FusionPassOrRule pass_or_rule("ConcatQuantFusionPass", 0, PASS_METHOD, BUILT_IN_PASS_PRIORITY_MIN, pass_desc);
   graphFusion.ReportAfterCheckGraphCycle(*graph_out, pass_or_rule);
 }
 
@@ -197,10 +189,8 @@ TEST_F(UTEST_check_graph_cycle_unittest, report_cycle_after_rule_fusion) {
   config.Initialize(options);
   auto create_func = []() -> ::fe::GraphPass * { return new (std::nothrow) ConvWeightCompressFusionPass(); };
   FusionPassRegistry::PassDesc pass_desc = {0, create_func};
-  fe::FusionPassOrRule pass_or_rule("AdamApplyoneRuleCond2", 0, RULE_METHOD, BUILT_IN_RULE_PRIORITY_MIN,
-                                    pass_desc);
-  fe::FusionPassOrRule pass_or_rule_2("AdamApplyoneRuleCond2", 0, RULE_METHOD, BUILT_IN_RULE_PRIORITY_MIN,
-                                      pass_desc);
+  fe::FusionPassOrRule pass_or_rule("AdamApplyoneRuleCond2", 0, RULE_METHOD, BUILT_IN_RULE_PRIORITY_MIN, pass_desc);
+  fe::FusionPassOrRule pass_or_rule_2("AdamApplyoneRuleCond2", 0, RULE_METHOD, BUILT_IN_RULE_PRIORITY_MIN, pass_desc);
   graphFusion.ReportAfterCheckGraphCycle(*graph_out, pass_or_rule);
   graphFusion.ReportAfterCheckGraphCycle(*graph_out, pass_or_rule_2);
 }

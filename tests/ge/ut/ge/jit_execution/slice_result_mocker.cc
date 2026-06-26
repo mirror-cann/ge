@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -95,7 +95,7 @@ void CheckGuardFunc(const ComputeGraphPtr &gt_graph, const ComputeGraphPtr &test
   EXPECT_EQ(ge::AttrUtils::GetStr(test_graph, kGuardCheckSoDataResult, test_buffer), true);
   EXPECT_EQ(test_buffer.compare(gt_buffer), 0);
 }
-}
+}  // namespace ge
 
 std::vector<ComputeGraphPtr> SliceResultMocker::gt_graphs_with_pattern_;
 
@@ -104,9 +104,8 @@ std::unordered_map<std::string, uint32_t> SliceResultMocker::gep_graph_key_to_pa
 int64_t SliceResultMocker::instance_id_ = 0;
 
 SliceResultMocker::SliceResultMocker(const std::string &user_graph_key, uint32_t num_eps,
-  const std::vector<uint32_t> &num_geps)
-    : user_graph_key_(user_graph_key),
-      num_eps_(num_eps), num_geps_(num_geps) {
+                                     const std::vector<uint32_t> &num_geps)
+    : user_graph_key_(user_graph_key), num_eps_(num_eps), num_geps_(num_geps) {
   EXPECT_EQ(num_eps, num_geps.size());
 }
 
@@ -121,8 +120,8 @@ void SliceResultMocker::InitGtGraph() {
 ComputeGraphPtr SliceResultMocker::GenGraphWithGuard(const string &graph_name,
                                                      std::function<void(ShapeEnvAttr &attr)> func) {
   GuardCodegen codegen;
-  auto graph = std::unique_ptr<EsCGraphBuilder, void (*)(EsCGraphBuilder *)>(
-    EsCreateGraphBuilder(graph_name.c_str()), EsDestroyGraphBuilder);
+  auto graph = std::unique_ptr<EsCGraphBuilder, void (*)(EsCGraphBuilder *)>(EsCreateGraphBuilder(graph_name.c_str()),
+                                                                             EsDestroyGraphBuilder);
   auto ge_graph = std::unique_ptr<Graph>(static_cast<Graph *>(static_cast<void *>(EsBuildGraphAndReset(graph.get()))));
   auto compute_graph = GraphUtilsEx::GetComputeGraph(*ge_graph);
   auto attr = compute_graph->GetOrCreateAttrsGroup<ShapeEnvAttr>();
@@ -136,16 +135,16 @@ ComputeGraphPtr SliceResultMocker::GenGraphWithGuard(const string &graph_name,
 }
 
 ComputeGraphPtr SliceResultMocker::GenGraph(const string &graph_name) {
-  auto graph = std::unique_ptr<EsCGraphBuilder, void (*)(EsCGraphBuilder *)>(
-    EsCreateGraphBuilder(graph_name.c_str()), EsDestroyGraphBuilder);
+  auto graph = std::unique_ptr<EsCGraphBuilder, void (*)(EsCGraphBuilder *)>(EsCreateGraphBuilder(graph_name.c_str()),
+                                                                             EsDestroyGraphBuilder);
   auto ge_graph = std::unique_ptr<Graph>(static_cast<Graph *>(static_cast<void *>(EsBuildGraphAndReset(graph.get()))));
   return GraphUtilsEx::GetComputeGraph(*ge_graph);
 }
 
 GuardedExecutionPoint *SliceResultMocker::GenGEP(ExecutionPoint &ep, CompiledModelCache &cmc,
-	                                         const std::string &cache_dir, std::string user_graph_key) {
+                                                 const std::string &cache_dir, std::string user_graph_key) {
   auto *gep = new GuardedExecutionPoint(&ep);
-  uint32_t pattern = rand() % NUM_GUARD_PATTERNS; // 0-2
+  uint32_t pattern = rand() % NUM_GUARD_PATTERNS;  // 0-2
 
   const ComputeGraphPtr compiled_graph = gt_graphs_with_pattern_[pattern];
   gep->compiled_graph_ = compiled_graph;
@@ -156,13 +155,14 @@ GuardedExecutionPoint *SliceResultMocker::GenGEP(ExecutionPoint &ep, CompiledMod
   /* save the corresponding .om file */
   std::string gep_graph_key;
   EXPECT_EQ(cmc.GetGuardedExecutionPointGraphKey(gep, gep_graph_key), SUCCESS);
-  gep_graph_key_to_pattern_map_.emplace(gep_graph_key, pattern);;
+  gep_graph_key_to_pattern_map_.emplace(gep_graph_key, pattern);
+  ;
   GenOmFile(cache_dir, gep_graph_key, compiled_graph);
   return gep;
 }
 
-void SliceResultMocker::GenOmFile(const std::string &cache_dir,
-  const std::string &graph_key, const ComputeGraphPtr &graph) {
+void SliceResultMocker::GenOmFile(const std::string &cache_dir, const std::string &graph_key,
+                                  const ComputeGraphPtr &graph) {
   auto old_session_options = GetThreadLocalContext().GetAllSessionOptions();
   auto old_graph_options = GetThreadLocalContext().GetAllGraphOptions();
 
@@ -172,14 +172,13 @@ void SliceResultMocker::GenOmFile(const std::string &cache_dir,
   ModelBufferData model_buffer_data;
   bool is_unknown_shape = false;
   EXPECT_EQ(ge_root_model->CheckIsUnknownShape(is_unknown_shape), SUCCESS);
-  const auto model_save_helper =
-      ModelSaveHelperFactory::Instance().Create(OfflineModelFormat::OM_FORMAT_DEFAULT);
+  const auto model_save_helper = ModelSaveHelperFactory::Instance().Create(OfflineModelFormat::OM_FORMAT_DEFAULT);
   EXPECT_NE(model_save_helper, nullptr);
   model_save_helper->SetSaveMode(false);
   EXPECT_EQ(model_save_helper->SaveToOmRootModel(ge_root_model, "NoUse", model_buffer_data, is_unknown_shape), SUCCESS);
-  EXPECT_EQ(
-      FileSaver::SaveToFile(cache_dir + "/jit/" + graph_key + ".om", model_buffer_data.data.get(), model_buffer_data.
-        length), SUCCESS);
+  EXPECT_EQ(FileSaver::SaveToFile(cache_dir + "/jit/" + graph_key + ".om", model_buffer_data.data.get(),
+                                  model_buffer_data.length),
+            SUCCESS);
 
   /* restore the options */
   GetThreadLocalContext().SetSessionOption(old_session_options);
@@ -187,14 +186,17 @@ void SliceResultMocker::GenOmFile(const std::string &cache_dir,
 }
 
 std::unique_ptr<ExecutionPoint> SliceResultMocker::GenExecutionPoint(int64_t ep_idx, const uint32_t num_geps,
-  CompiledModelCache &cmc, const std::string &cache_dir, std::string user_graph_key, const bool hasRemGraph) {
+                                                                     CompiledModelCache &cmc,
+                                                                     const std::string &cache_dir,
+                                                                     std::string user_graph_key,
+                                                                     const bool hasRemGraph) {
   ComputeGraphPtr slice_graph = GenGraph("slice_graph");
   ComputeGraphPtr rem_graph = nullptr;
-  if (hasRemGraph) { // last ep's remaining graph should be nullptr
+  if (hasRemGraph) {  // last ep's remaining graph should be nullptr
     rem_graph = GenGraph("rem_graph");
   }
   std::map<std::string, std::string> graph_options;
-  auto ep =  MakeUnique<ExecutionPoint>(ep_idx, slice_graph, rem_graph, graph_options);
+  auto ep = MakeUnique<ExecutionPoint>(ep_idx, slice_graph, rem_graph, graph_options);
   for (uint32_t gep_idx = 0; gep_idx < num_geps; ++gep_idx) {
     auto gep = GenGEP(*ep, cmc, cache_dir, user_graph_key);
     ep->models_.cache_models_.emplace_back(gep);
@@ -202,30 +204,29 @@ std::unique_ptr<ExecutionPoint> SliceResultMocker::GenExecutionPoint(int64_t ep_
   return ep;
 }
 
-void SliceResultMocker::GenExecutionOrder(ExecutionOrder &order, CompiledModelCache &cmc,
-                                          const std::string &cache_dir, std::string user_graph_key) const {
-   for (int64_t ep_idx = 0; ep_idx < num_eps_; ++ep_idx) {
+void SliceResultMocker::GenExecutionOrder(ExecutionOrder &order, CompiledModelCache &cmc, const std::string &cache_dir,
+                                          std::string user_graph_key) const {
+  for (int64_t ep_idx = 0; ep_idx < num_eps_; ++ep_idx) {
     const bool hasRemGraph = (ep_idx != num_eps_ - 1);
     auto ep = GenExecutionPoint(ep_idx, num_geps_[ep_idx], cmc, cache_dir, user_graph_key, hasRemGraph);
     order.slice_graphs_.emplace_back(std::move(ep));
   }
 }
 
-void SliceResultMocker::GenSlicingResultFiles(const std::string &cache_dir, std::string user_graph_key, CompiledModelCache &cmc) {
-  map<std::string, std::string> global_options = {
-    {"ge.graph_compiler_cache_dir", cache_dir},
-    {"ge.graph_key", user_graph_key_}
-  };
+void SliceResultMocker::GenSlicingResultFiles(const std::string &cache_dir, std::string user_graph_key,
+                                              CompiledModelCache &cmc) {
+  map<std::string, std::string> global_options = {{"ge.graph_compiler_cache_dir", cache_dir},
+                                                  {"ge.graph_key", user_graph_key_}};
   ExecutionOrder order({12345u, GenGraph("user_graph")});
-  GenExecutionOrder(order, cmc, cache_dir, user_graph_key); // user cmc saver to generate files
+  GenExecutionOrder(order, cmc, cache_dir, user_graph_key);  // user cmc saver to generate files
   EXPECT_EQ(cmc.SaveCache(order), SUCCESS);
 }
 
 void SliceResultMocker::CheckFileGenResult(const ExecutionOrder &order, const std::string &user_graph_key,
-  const std::string &cache_dir) {
+                                           const std::string &cache_dir) {
   const std::string user_graph_base_dir = cache_dir + "/jit/slicing_hierarchy/" + user_graph_key + "/";
   const std::string slice_res_path = user_graph_base_dir + "slicing_result.json";
-  EXPECT_EQ(ModelCache::CheckFileExist(slice_res_path), true);      // check slicing_result.json
+  EXPECT_EQ(ModelCache::CheckFileExist(slice_res_path), true);  // check slicing_result.json
 
   const auto num_eps = order.slice_graphs_.size();
   for (uint32_t ep_idx = 0; ep_idx < num_eps; ++ep_idx) {
@@ -233,17 +234,17 @@ void SliceResultMocker::CheckFileGenResult(const ExecutionOrder &order, const st
     const std::string gep_list_path = slice_graph_bas_dir + "gep_list.json";
     const std::string slice_graph_pb_path = slice_graph_bas_dir + "slice_graph.pb";
     const std::string rem_graph_pb_path = slice_graph_bas_dir + "rem_graph.pb";
-    EXPECT_EQ(ModelCache::CheckFileExist(gep_list_path), true);         // check gep_list.json
-    EXPECT_EQ(ModelCache::CheckFileExist(slice_graph_pb_path), true);   // check slice_graph.pb
+    EXPECT_EQ(ModelCache::CheckFileExist(gep_list_path), true);        // check gep_list.json
+    EXPECT_EQ(ModelCache::CheckFileExist(slice_graph_pb_path), true);  // check slice_graph.pb
     if (ep_idx != num_eps - 1) {
-      EXPECT_EQ(ModelCache::CheckFileExist(rem_graph_pb_path), true);   // check rem_graph.pb
+      EXPECT_EQ(ModelCache::CheckFileExist(rem_graph_pb_path), true);  // check rem_graph.pb
     }
   }
 }
 
 void SliceResultMocker::CheckMemObjResult(const ExecutionOrder &order, CompiledModelCache &cmc) {
-  for (auto &ep: order.slice_graphs_) {
-    for (auto &gep: ep->models_.GetCache()) {
+  for (auto &ep : order.slice_graphs_) {
+    for (auto &gep : ep->models_.GetCache()) {
       std::string gep_graph_key;
       EXPECT_EQ(cmc.GetGuardedExecutionPointGraphKey(gep.get(), gep_graph_key), SUCCESS);
       auto iter = gep_graph_key_to_pattern_map_.find(gep_graph_key);

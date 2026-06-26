@@ -120,10 +120,10 @@ gen_esb \
 
 **简化思路**
 
-工程组通过定义一些全局的cmake变量, generate_es_package函数内部直接获取然后进行处理，无需generate_es_package新增一些参数； 
+工程组通过定义一些全局的cmake变量, generate_es_package函数内部直接获取然后进行处理，无需generate_es_package新增一些参数；
 
 这样的好处是：
-ops组件少一些感知，结合当前ops的分仓分包的背景，在generate_es_package函数内部处理可以避免各个分仓都要适配； 
+ops组件少一些感知，结合当前ops的分仓分包的背景，在generate_es_package函数内部处理可以避免各个分仓都要适配；
 
 
 **备选方案**
@@ -151,7 +151,7 @@ ops组件少一些感知，结合当前ops的分仓分包的背景，在generate
 
 以下信息如果需要显示传递的话，需要在gen_esb和generate_es_package内部处理对应的参数
 
-release_date：商发时刻，branch_name：分支名 
+release_date：商发时刻，branch_name：分支名
 
 ### 2.5 职责边界总结
 
@@ -184,7 +184,7 @@ release_date：商发时刻，branch_name：分支名
 
 具体来说：
 
-**商发版本初次构建时** 
+**商发版本初次构建时**
 
 工程组传递信息（编译宏的方式），告诉ge完成 1，2 两部分逻辑：
 

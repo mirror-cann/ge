@@ -51,4 +51,3 @@ ShapeAndType对象中的DataType。
 ## 约束说明<a name="zh-cn_topic_0000001312484745_section67791246114614"></a>
 
 无。
-

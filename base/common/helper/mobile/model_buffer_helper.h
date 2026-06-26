@@ -22,19 +22,16 @@
 namespace ge {
 
 class ModelBufferSaver {
-public:
-    Status SaveCompiledModelToBuffer(
-        const ge::GeModelPtr& ge_model,
-        const ge::mobile::proto::ModelDef& mobile_model_def,
-        const std::vector<ge::BaseBuffer>& weights_buffer,
-        const std::vector<ge::BaseBuffer>& all_compiled_targets,
-        const ge::BaseBuffer& weights_info_buffer,
-        ge::BaseBuffer& dst_buffer);
+ public:
+  Status SaveCompiledModelToBuffer(const ge::GeModelPtr &ge_model, const ge::mobile::proto::ModelDef &mobile_model_def,
+                                   const std::vector<ge::BaseBuffer> &weights_buffer,
+                                   const std::vector<ge::BaseBuffer> &all_compiled_targets,
+                                   const ge::BaseBuffer &weights_info_buffer, ge::BaseBuffer &dst_buffer);
 
-private:
-    std::vector<uint8_t> compiled_model_buffer_; 
+ private:
+  std::vector<uint8_t> compiled_model_buffer_;
 };
 
-} // namespace ge
+}  // namespace ge
 
-#endif // BASE_COMMON_HELPER_MOBILE_MODEL_BUFFER_HELPER_H
+#endif  // BASE_COMMON_HELPER_MOBILE_MODEL_BUFFER_HELPER_H

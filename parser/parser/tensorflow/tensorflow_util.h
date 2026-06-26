@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -121,27 +121,27 @@ extern const uint32_t TENSORFLOW_NORMAL_OUTPUT_TENSOR_FLAG;
 class TensorFlowUtil {
  public:
   /**
-  * @ingroup domi_omg
-  * @brief find the corresponding AttrValue in NodeDef
-  * @param [in] nodeDef      nodedef object to find
-  * @param [in] attr_name    attribute name
-  * @param [out] attr_value  attribute value
-  * @return true             attribute exists
-  * @return false            attribute does not exist
-  *
-  */
+   * @ingroup domi_omg
+   * @brief find the corresponding AttrValue in NodeDef
+   * @param [in] nodeDef      nodedef object to find
+   * @param [in] attr_name    attribute name
+   * @param [out] attr_value  attribute value
+   * @return true             attribute exists
+   * @return false            attribute does not exist
+   *
+   */
   static bool FindAttrValue(const domi::tensorflow::NodeDef *const node_def, const std::string &attr_name,
                             domi::tensorflow::AttrValue &attr_value);
 
   /**
-  * @ingroup domi_omg
-  * @brief Check the actual type and expected type of the AttrValue, int, float, list (int), list (bool), etc.
-  * @param [in]         attr_value  attrValue to check
-  * @param [in]         type  expected attribute type
-  * @return SUCCESS     success
-  * @return FAILED      failed
-  *
-  */
+   * @ingroup domi_omg
+   * @brief Check the actual type and expected type of the AttrValue, int, float, list (int), list (bool), etc.
+   * @param [in]         attr_value  attrValue to check
+   * @param [in]         type  expected attribute type
+   * @return SUCCESS     success
+   * @return FAILED      failed
+   *
+   */
   static domi::Status CheckAttrHasType(const domi::tensorflow::AttrValue &attr_value, const std::string &type);
 
   /**
@@ -154,8 +154,7 @@ class TensorFlowUtil {
    * @return FAILED            parsing failed
    *
    */
-  static domi::Status ParseDataType(const domi::tensorflow::NodeDef *node_src,
-                                    const std::string &attr_src,
+  static domi::Status ParseDataType(const domi::tensorflow::NodeDef *node_src, const std::string &attr_src,
                                     domi::tensorflow::DataType &data_type);
 
   /**
@@ -167,28 +166,23 @@ class TensorFlowUtil {
    * @return FAILED            conversion failed
    *
    */
-  static domi::Status TransTensorDescriptor(const domi::tensorflow::AttrValue &attr_value,
-                                            ParserOperator *const op,
-                                            const uint32_t io,
-                                            const std::string &type = "");
+  static domi::Status TransTensorDescriptor(const domi::tensorflow::AttrValue &attr_value, ParserOperator *const op,
+                                            const uint32_t io, const std::string &type = "");
   /*
-  * @brief 添加NodeDef属性
+   * @brief 添加NodeDef属性
    * @param [in] attr_name  attribute name
    * @param [in] attr_value  attribute Value Object
    * @param [out] node_def
    * @return void
    *
    */
-  static void AddNodeAttr(const std::string &attr_name,
-                          const domi::tensorflow::AttrValue &value,
+  static void AddNodeAttr(const std::string &attr_name, const domi::tensorflow::AttrValue &value,
                           domi::tensorflow::NodeDef *const node_def);
 
   static domi::Status ClearUnusedParam(ge::ComputeGraphPtr &graph);
 
-  static bool ParseFromAttrValueList(ge::GeTensorDesc &ge_desc,
-                                     const domi::tensorflow::AttrValue_ListValue &a_list,
-                                     int32_t i,
-                                     int32_t &tf_datatype);
+  static bool ParseFromAttrValueList(ge::GeTensorDesc &ge_desc, const domi::tensorflow::AttrValue_ListValue &a_list,
+                                     int32_t i, int32_t &tf_datatype);
 };
 }  // namespace ge
 #endif  // OMG_PARSER_TENSORFLOW_TENSORFLOW_UTIL_H_

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -147,14 +147,13 @@ TEST_F(CompileConfigJsonTest, ReadFunctionPpConfigFromJsonFile_buf_cfg) {
       {"heavy_load", true},
       {"func_list", {{{"func_name", "func1"}}}},
       {"cmakelist_path", "CMakeLists.txt"},
-      {"buf_cfg", 
-      {
-        {{"total_size", 2097152}, {"blk_size", 256}, {"max_buf_size", 8192}, {"page_type", "normal"}},
-        {{"total_size", 33554432}, {"blk_size", 8192}, {"max_buf_size", 8388608}, {"page_type", "normal"}},
-        {{"total_size", 2097152}, {"blk_size", 256}, {"max_buf_size", 8192}, {"page_type", "huge"}},
-        {{"total_size", 33554432}, {"blk_size", 8192}, {"max_buf_size", 8388608}, {"page_type", "huge"}},
-      }
-    },
+      {"buf_cfg",
+       {
+           {{"total_size", 2097152}, {"blk_size", 256}, {"max_buf_size", 8192}, {"page_type", "normal"}},
+           {{"total_size", 33554432}, {"blk_size", 8192}, {"max_buf_size", 8388608}, {"page_type", "normal"}},
+           {{"total_size", 2097152}, {"blk_size", 256}, {"max_buf_size", 8192}, {"page_type", "huge"}},
+           {{"total_size", 33554432}, {"blk_size", 8192}, {"max_buf_size", 8388608}, {"page_type", "huge"}},
+       }},
   };
   std::ofstream json_file("./func_pp_config.json");
   json_file << func_pp_cfg_json << std::endl;
@@ -179,9 +178,8 @@ TEST_F(CompileConfigJsonTest, ReadGraphPpConfigFromJsonFile_InvalidInputsTensorD
   remove("./graph_pp_config.json");
 }
 
-
 TEST_F(CompileConfigJsonTest, ReadModelPpConfigFromJsonFileWithoutFile) {
-  CompileConfigJson::ModelPpConfig  model_pp_config = {};
+  CompileConfigJson::ModelPpConfig model_pp_config = {};
   EXPECT_EQ(CompileConfigJson::ReadModelPpConfigFromJsonFile("", model_pp_config), SUCCESS);
 }
 
@@ -208,7 +206,7 @@ TEST_F(CompileConfigJsonTest, ReadDeployInfoFromJsonFile) {
   remove(file_name);
   EXPECT_EQ(deploy_config.deploy_info_list.size(), 2);
   EXPECT_TRUE(deploy_config.batch_deploy_info_list.empty());
-  for (const auto &deploy_info:deploy_config.deploy_info_list) {
+  for (const auto &deploy_info : deploy_config.deploy_info_list) {
     if (deploy_info.flow_node_name == "node1") {
       EXPECT_EQ(deploy_info.logic_device_id, "0:1:0,0:1:1");
     } else if (deploy_info.flow_node_name == "node2") {
@@ -252,9 +250,8 @@ TEST_F(CompileConfigJsonTest, ReadDeployInfoFromJsonFile_batch_config) {
   std::map<std::string, std::pair<std::string, std::string>> deploy_map;
   for (const auto &batch_deploy_info : deploy_config.batch_deploy_info_list) {
     for (const auto &flow_node : batch_deploy_info.flow_node_list) {
-      deploy_map.emplace(flow_node,
-        std::make_pair(batch_deploy_info.logic_device_list,
-                       batch_deploy_info.redundant_logic_device_list));
+      deploy_map.emplace(flow_node, std::make_pair(batch_deploy_info.logic_device_list,
+                                                   batch_deploy_info.redundant_logic_device_list));
     }
   }
   EXPECT_EQ(deploy_map.size(), 5);
@@ -322,7 +319,7 @@ TEST_F(CompileConfigJsonTest, ReadDeployInfoFromJsonFile_both_config) {
   EXPECT_EQ(deploy_config.deploy_info_list.size(), 2);
   EXPECT_EQ(deploy_config.batch_deploy_info_list.size(), 3);
   EXPECT_EQ(deploy_config.dynamic_schedule_enable, false);
-  for (const auto &deploy_info:deploy_config.deploy_info_list) {
+  for (const auto &deploy_info : deploy_config.deploy_info_list) {
     if (deploy_info.flow_node_name == "node1") {
       EXPECT_EQ(deploy_info.logic_device_id, "0:0:1:0,0:0:1:1");
     } else if (deploy_info.flow_node_name == "node2") {
@@ -447,7 +444,6 @@ TEST_F(CompileConfigJsonTest, ReadGraphPpConfigFromJsonFile_InvalidFormat) {
 }
 
 TEST_F(CompileConfigJsonTest, GetResourceTypeFromNumaConfig_Failed) {
-
   {
     auto &global_options_mutex = GetGlobalOptionsMutex();
     const std::lock_guard<std::mutex> lock(global_options_mutex);

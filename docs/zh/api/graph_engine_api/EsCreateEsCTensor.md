@@ -119,4 +119,3 @@ int64_t dims[] = {2};
 auto tmp = data.data();
 auto es_tensor = EsCreateEsCTensor(tmp, dims, 1, C_DT_FLOAT, C_FORMAT_ND);
 ```
-

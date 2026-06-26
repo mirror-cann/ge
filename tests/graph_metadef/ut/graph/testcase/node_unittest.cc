@@ -1,15 +1,14 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
 #include <gtest/gtest.h>
-
 
 #include "graph/node.h"
 #include "graph/normal_graph/node_impl.h"
@@ -32,15 +31,14 @@ class UtestNode : public testing::Test {
   void TearDown() {}
 };
 
-template<class T>
-std::shared_ptr<T> MakeNullptr(){
+template <class T>
+std::shared_ptr<T> MakeNullptr() {
   return nullptr;
 }
 
-Operator CreateOp(const AscendString& name){
+Operator CreateOp(const AscendString &name) {
   return Operator();
 }
-
 
 TEST_F(UtestNode, GetInDataAnchor) {
   ut::GraphBuilder builder = ut::GraphBuilder("graph");
@@ -196,7 +194,7 @@ TEST_F(UtestNode, GetCase) {
   EXPECT_EQ(data_node->NodeOutConnectsAreEqual(*attr_node), false);
   EXPECT_EQ(attr_node->NodeInConnectsAreEqual(*data_node), false);
   EXPECT_EQ(attr_node->NodeOutConnectsAreEqual(*data_node), false);
-  EXPECT_EQ((*data_node)==(*attr_node), false);
+  EXPECT_EQ((*data_node) == (*attr_node), false);
   std::unordered_set<Node *> us;
   us.insert(data_node.get());
   EXPECT_EQ(attr_node->IsAllInNodesSeen(us), true);
@@ -215,7 +213,7 @@ TEST_F(UtestNode, GetCase) {
   EXPECT_EQ(data_node->GetHostNode(), false);
   data_node->SetOrigNode(attr_node);
   EXPECT_NE(data_node->GetOrigNode(), nullptr);
-  OpDescPtr opd = std::make_shared<OpDesc>("Opdesc","OpdType");
+  OpDescPtr opd = std::make_shared<OpDesc>("Opdesc", "OpdType");
   EXPECT_EQ(data_node->UpdateOpDesc(opd), GRAPH_PARAM_INVALID);
 }
 
@@ -284,7 +282,8 @@ TEST_F(UtestNode, AddLink) {
   auto another_desc = data_node->GetOpDescBarePtr()->GetOutputDesc(0);
   EXPECT_EQ(odesc, another_desc);
   attr_node->impl_->op_->impl_->input_name_idx_["__input3"] = 20;
-  EXPECT_NE(attr_node->impl_->op_->impl_->input_name_idx_.find("__input3"), attr_node->impl_->op_->impl_->input_name_idx_.end());
+  EXPECT_NE(attr_node->impl_->op_->impl_->input_name_idx_.find("__input3"),
+            attr_node->impl_->op_->impl_->input_name_idx_.end());
   EXPECT_EQ(attr_node->impl_->op_->impl_->inputs_desc_.size(), 3);
   EXPECT_EQ(attr_node->AddLinkFrom(data_node), GRAPH_FAILED);
 }
@@ -301,13 +300,14 @@ TEST_F(UtestNode, AddLinkByIndex) {
   auto node3 = builder.AddNode("Data3", "Data3", 3, 3);
   InControlAnchorPtr inc_anch = std::make_shared<InControlAnchor>(node3, 33);
   EXPECT_EQ(out_anch->LinkTo(inc_anch), GRAPH_SUCCESS);
-  EXPECT_EQ(data_node->NodeAnchorIsEqual(out_anch, inc_anch, 1),false);
+  EXPECT_EQ(data_node->NodeAnchorIsEqual(out_anch, inc_anch, 1), false);
   EXPECT_EQ(attr_node->AddLinkFrom(data_node), GRAPH_SUCCESS);
   data_node->impl_->op_->impl_->input_name_idx_["input_name"] = 10;
   data_node->impl_->op_->impl_->outputs_desc_.push_back(MakeNullptr<GeTensorDesc>());
   auto odesc = data_node->GetOpDesc()->GetOutputDesc(0);
   attr_node->impl_->op_->impl_->input_name_idx_["__input3"] = 20;
-  EXPECT_NE(attr_node->impl_->op_->impl_->input_name_idx_.find("__input3"), attr_node->impl_->op_->impl_->input_name_idx_.end());
+  EXPECT_NE(attr_node->impl_->op_->impl_->input_name_idx_.find("__input3"),
+            attr_node->impl_->op_->impl_->input_name_idx_.end());
   EXPECT_EQ(attr_node->impl_->op_->impl_->inputs_desc_.size(), 3);
   EXPECT_EQ(attr_node->AddLinkFrom(11, data_node), GRAPH_FAILED);
 }
@@ -324,18 +324,20 @@ TEST_F(UtestNode, AddLinkByString) {
   auto node3 = builder.AddNode("Data3", "Data3", 3, 3);
   InControlAnchorPtr inc_anch = std::make_shared<InControlAnchor>(node3, 33);
   EXPECT_EQ(out_anch->LinkTo(inc_anch), GRAPH_SUCCESS);
-  EXPECT_EQ(data_node->NodeAnchorIsEqual(out_anch, inc_anch, 1),false);
+  EXPECT_EQ(data_node->NodeAnchorIsEqual(out_anch, inc_anch, 1), false);
   EXPECT_EQ(attr_node->AddLinkFrom(data_node), GRAPH_SUCCESS);
   data_node->impl_->op_->impl_->input_name_idx_["input_name"] = 10;
   data_node->impl_->op_->impl_->outputs_desc_.push_back(MakeNullptr<GeTensorDesc>());
   auto odesc = data_node->GetOpDesc()->GetOutputDesc(0);
   attr_node->impl_->op_->impl_->input_name_idx_["__input3"] = 20;
-  EXPECT_NE(attr_node->impl_->op_->impl_->input_name_idx_.find("__input3"), attr_node->impl_->op_->impl_->input_name_idx_.end());
+  EXPECT_NE(attr_node->impl_->op_->impl_->input_name_idx_.find("__input3"),
+            attr_node->impl_->op_->impl_->input_name_idx_.end());
   EXPECT_EQ(attr_node->impl_->op_->impl_->inputs_desc_.size(), 3);
   EXPECT_EQ(attr_node->AddLinkFrom("__input3", data_node), GRAPH_FAILED);
   attr_node->impl_->op_->impl_->input_name_idx_["__input_succ"] = 5;
   EXPECT_EQ(attr_node->impl_->op_->impl_->inputs_desc_.size(), 3);
-  EXPECT_NE(attr_node->impl_->op_->impl_->input_name_idx_.find("__input_succ"), attr_node->impl_->op_->impl_->input_name_idx_.end());
+  EXPECT_NE(attr_node->impl_->op_->impl_->input_name_idx_.find("__input_succ"),
+            attr_node->impl_->op_->impl_->input_name_idx_.end());
   EXPECT_EQ(attr_node->AddLinkFrom("__input_succ", data_node), GRAPH_FAILED);
 }
 
@@ -351,7 +353,7 @@ TEST_F(UtestNode, AddLinkByStringInputDescFailure) {
   auto node3 = builder.AddNode("Data3", "Data3", 3, 3);
   InControlAnchorPtr inc_anch = std::make_shared<InControlAnchor>(node3, 33);
   EXPECT_EQ(out_anch->LinkTo(inc_anch), GRAPH_SUCCESS);
-  EXPECT_EQ(data_node->NodeAnchorIsEqual(out_anch, inc_anch, 1),false);
+  EXPECT_EQ(data_node->NodeAnchorIsEqual(out_anch, inc_anch, 1), false);
   EXPECT_EQ(attr_node->AddLinkFrom(data_node), GRAPH_SUCCESS);
   data_node->impl_->op_->impl_->input_name_idx_["input_name"] = 10;
   data_node->impl_->op_->impl_->outputs_desc_.push_back(nullptr);
@@ -394,4 +396,4 @@ TEST_F(UtestNode, GetOutControlNodes) {
   EXPECT_EQ(data_node1->GetOutDataNodesSize(), 1);
   EXPECT_EQ(data_node1->GetOutNodesSize(), 2);
 }
-}
+}  // namespace ge

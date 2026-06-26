@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,8 +30,8 @@ using namespace fe;
 using namespace ge;
 
 using GenerateCMOTypeBasePtr = std::shared_ptr<GenerateCMOTypeBase>;
-class GenerateCmoTypeWritebackTest : public testing::Test{
-protected:
+class GenerateCmoTypeWritebackTest : public testing::Test {
+ protected:
   static void SetUpTestCase() {
     cout << "GenerateCmoTypeWritebackTest SetUp" << endl;
   }
@@ -39,21 +39,20 @@ protected:
   static void TearDownTestCase() {
     cout << "GenerateCmoTypeWritebackTest TearDwon" << endl;
   }
-  
+
   virtual void SetUp() {
     cmo_type_base_ = std::make_shared<GenerateCMOTypeWriteback>();
   }
 
-  virtual void TearDown() {
-  }
-  
-public:
+  virtual void TearDown() {}
+
+ public:
   GenerateCMOTypeBasePtr cmo_type_base_;
 };
 
 TEST_F(GenerateCmoTypeWritebackTest, GenerateTypeNoParent) {
   OpDescPtr op_desc_ptr = make_shared<OpDesc>("name", "type");
-  vector<int64_t> data_dims={2};
+  vector<int64_t> data_dims = {2};
   GeTensorDesc data_tensor_desc(GeShape(data_dims), FORMAT_NCHW, DT_FLOAT);
   op_desc_ptr->AddInputDesc("input1", data_tensor_desc);
 

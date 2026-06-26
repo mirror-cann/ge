@@ -42,8 +42,12 @@ class ProfilingProperties {
   bool ProfilingTrainingTraceOn() const {
     return is_training_trace_;
   }
-  void SetIfInited(const bool is_inited) { is_inited_.store(is_inited); }
-  bool ProfilingInited() const { return is_inited_.load(); }
+  void SetIfInited(const bool is_inited) {
+    is_inited_.store(is_inited);
+  }
+  bool ProfilingInited() const {
+    return is_inited_.load();
+  }
   void SetFpBpPoint(const std::string &fp_point, const std::string &bp_point);
   bool ProfilingOn() const {
     return is_load_profiling_ && is_execute_profiling_;
@@ -92,6 +96,7 @@ class ProfilingProperties {
     const std::lock_guard<std::mutex> lock(mutex_);
     return subscribe_graph_id_;
   }
+
  private:
   ProfilingProperties() noexcept {}
   ~ProfilingProperties() = default;
@@ -108,8 +113,8 @@ class ProfilingProperties {
   std::string fp_point_;
   std::string bp_point_;
   std::atomic<uint32_t> subscribe_count_{0U};
-  std::map<int32_t, uint64_t> device_id_module_map_; // key: device_id, value: profiling on module
-  std::map<uint32_t, DeviceSubsInfo> subs_dev_module_; // key: device_id, value: profiling on module
+  std::map<int32_t, uint64_t> device_id_module_map_;    // key: device_id, value: profiling on module
+  std::map<uint32_t, DeviceSubsInfo> subs_dev_module_;  // key: device_id, value: profiling on module
   ProfSubscribeInfo subscribe_info_{false, 0U, 0U};
   std::set<uint32_t> subscribe_graph_id_;
 };

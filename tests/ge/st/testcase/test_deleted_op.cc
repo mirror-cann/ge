@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,11 +22,9 @@
 
 namespace ge {
 class NoOpTest : public testing::Test {
-protected:
-  void SetUp() {
-  }
-  void TearDown() {
-  }
+ protected:
+  void SetUp() {}
+  void TearDown() {}
 };
 
 TEST_F(NoOpTest, Normal) {
@@ -51,7 +49,8 @@ TEST_F(NoOpTest, Shape) {
 TEST_F(NoOpTest, Shape_ConsantFoling_Off) {
   RunContext runContext;
   OpDescPtr opdesc = std::make_shared<OpDesc>("test", "Shape");
-  GetThreadLocalContext().GetOo().Initialize({{ge::OO_LEVEL, "O1"}, {ge::OO_CONSTANT_FOLDING, "false"}}, OptionRegistry::GetInstance().GetRegisteredOptTable());
+  GetThreadLocalContext().GetOo().Initialize({{ge::OO_LEVEL, "O1"}, {ge::OO_CONSTANT_FOLDING, "false"}},
+                                             OptionRegistry::GetInstance().GetRegisteredOptTable());
 
   ComputeGraphPtr graph;
   const NodePtr node = std::make_shared<Node>(opdesc, graph);
@@ -63,11 +62,12 @@ TEST_F(NoOpTest, Shape_ConsantFoling_Off) {
 TEST_F(NoOpTest, Shape_ConsantFoling_On) {
   RunContext runContext;
   OpDescPtr opdesc = std::make_shared<OpDesc>("test", "Shape");
-  GetThreadLocalContext().GetOo().Initialize({{ge::OO_LEVEL, "O3"}}, OptionRegistry::GetInstance().GetRegisteredOptTable());
+  GetThreadLocalContext().GetOo().Initialize({{ge::OO_LEVEL, "O3"}},
+                                             OptionRegistry::GetInstance().GetRegisteredOptTable());
   ComputeGraphPtr graph;
   const NodePtr node = std::make_shared<Node>(opdesc, graph);
   std::shared_ptr<ge_local::GeDeletedOp> op = std::make_shared<ge_local::GeDeletedOp>(*node, runContext);
   EXPECT_EQ(op->Run(), FAILED);
 }
 
-}
+}  // namespace ge

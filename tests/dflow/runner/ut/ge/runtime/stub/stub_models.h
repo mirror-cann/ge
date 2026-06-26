@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,7 +21,6 @@ using namespace std;
 namespace ge {
 class StubModels {
  public:
-
   static ComputeGraphPtr BuildSinglePartitionedCallGraph();
 
   /**
@@ -56,7 +55,7 @@ class StubModels {
    *   data1
    */
   static ComputeGraphPtr BuildParallelPartitionedCallGraph();
-  
+
   /**
    *   NetOutput
    *    /   \
@@ -80,7 +79,8 @@ class StubModels {
   static PneModelPtr BuildGraphModel(ComputeGraphPtr root_graph, const std::string &model_type = "");
   static PneModelPtr BuildRootModel(ComputeGraphPtr root_graph, bool pipeline_partitioned = true);
   static FlowModelPtr BuildFlowModel(ComputeGraphPtr root_graph, bool pipeline_partitioned = true);
-  static Status SaveGeRootModelToModelData(const GeRootModelPtr &ge_root_model, ModelData &model_data, ModelBufferData &model_buffer_data);
+  static Status SaveGeRootModelToModelData(const GeRootModelPtr &ge_root_model, ModelData &model_data,
+                                           ModelBufferData &model_buffer_data);
 
   /**
    *    NetOutput (4)       8->4(input_group)
@@ -99,4 +99,4 @@ class StubModels {
   static DeployPlan BuildSingleModelDeployPlanWithProxy(int32_t remote_node_id = 1);
 };
 }  // namespace ge
-#endif // GRAPHENGINE_TESTS_UT_GE_RUNTIME_DEPLOY_STUB_MODELS_H_
+#endif  // GRAPHENGINE_TESTS_UT_GE_RUNTIME_DEPLOY_STUB_MODELS_H_

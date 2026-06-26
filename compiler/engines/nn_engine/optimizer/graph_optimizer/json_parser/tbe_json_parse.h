@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,21 +33,21 @@ using NodeBaseInfo = struct tagNodeBaseInfo {
 
 class TbeJsonFileParse {
  public:
-  explicit TbeJsonFileParse(ge::Node& node);
+  explicit TbeJsonFileParse(ge::Node &node);
 
   ~TbeJsonFileParse() {};
 
   Status PackageTvmJsonInfo(const CompileResultInfo &compile_result);
 
  private:
-  ge::Node& node_;
+  ge::Node &node_;
   ge::OpDescPtr op_desc_;
   int32_t cube_ratio_{0};
   int32_t vector_ratio_{0};
   std::shared_ptr<std::vector<ge::NodePtr>> ffts_related_thread_nodes_;
   TbeJsonFileParseImplPtr json_parser_impl_;
   std::string attr_prefix_;
-  using ParseFunc = Status(TbeJsonFileParse::*)();
+  using ParseFunc = Status (TbeJsonFileParse::*)();
   std::vector<std::pair<std::string, ParseFunc>> parse_func_map_ = {
       {kKeyTaskRation, &TbeJsonFileParse::ParseTvmTaskRatio},
       {kKeyOldCoreType, &TbeJsonFileParse::ParseTvmOldCoreType},
@@ -81,10 +81,9 @@ class TbeJsonFileParse {
       {kKeyLocalMemSize, &TbeJsonFileParse::ParseLocalMemSize},
       {kRunInfo, &TbeJsonFileParse::ParseAndSetTilingInfo},
       {kSupportSuperKernel, &TbeJsonFileParse::ParseSuperKernelSupportFlag},
-      {kFatbinInfo, &TbeJsonFileParse::ParseFatbinInfo}
-  };
+      {kFatbinInfo, &TbeJsonFileParse::ParseFatbinInfo}};
   size_t total_param_size_{0};
-  TbeJsonFileParse& operator=(const TbeJsonFileParse& op) {
+  TbeJsonFileParse &operator=(const TbeJsonFileParse &op) {
     if (&op == this) {
       return *this;
     }
@@ -124,16 +123,14 @@ class TbeJsonFileParse {
   bool ParseAndSetTilingData(const std::string &tiling_data_str, RunInfoPtr &tiling_info);
   void HexDecode(const std::string &hex_str, std::vector<unsigned char> &bytes) const;
   void GetWorkspaceAtomicFlagAndOutputIndexFlag(const std::vector<int64_t> &parameters_index,
-                                                const NodeBaseInfo &node_info,
-                                                std::vector<int64_t> &output_index,
-                                                std::vector<int64_t> &workspace_index,
-                                                bool &workspace_atomic_flag, bool &output_index_flag) const;
+                                                const NodeBaseInfo &node_info, std::vector<int64_t> &output_index,
+                                                std::vector<int64_t> &workspace_index, bool &workspace_atomic_flag,
+                                                bool &output_index_flag) const;
 
   Status SetAtomicInfo(std::vector<int64_t> &parameters_index, AtomicInitInfo &atomic_init_info);
 
-  void SetAtomicInitInfo(const bool &output_index_flag, bool &workspace_atomic_flag,
-                         std::vector<int64_t> &output_index, std::vector<int64_t> &workspace_index,
-                         AtomicInitInfo &atomic_init_info);
+  void SetAtomicInitInfo(const bool &output_index_flag, bool &workspace_atomic_flag, std::vector<int64_t> &output_index,
+                         std::vector<int64_t> &workspace_index, AtomicInitInfo &atomic_init_info);
 
   Status ParseOptionalInputMode();
 
@@ -155,7 +152,7 @@ class TbeJsonFileParse {
   bool SetRelatedNodesListFloat(const string &attr_name, const std::vector<float> &value);
   void SetRelatedNodesWorkspace(const std::vector<int64_t> &tvm_workspace_sizes);
   bool ClearRelatedNodesStr(const string &attr_name);
-  template<class T>
+  template <class T>
   bool SetRelatedNodesExtAttr(const std::string &name, const T &value) {
     bool ret = op_desc_->SetExtAttr(name, value);
     if (ffts_related_thread_nodes_ != nullptr) {
@@ -169,7 +166,7 @@ class TbeJsonFileParse {
   bool IsDynamicTaskRatio() const;
   bool IsMixDynamicTaskRatio() const;
 
-  const std::string& GetAttrPrefix() const;
+  const std::string &GetAttrPrefix() const;
   Status ParseSuperKernelSupportFlag();
   Status ParseFatbinInfo();
 };

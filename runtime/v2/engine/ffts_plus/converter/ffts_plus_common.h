@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,8 +34,8 @@ inline bool IsFftsSubgraphNode(const ge::NodePtr &node) {
          node->GetOpDesc()->HasAttr(ge::ATTR_NAME_FFTS_PLUS_SUB_GRAPH);
 }
 inline bool IsNoNeedCalcSize(const ge::NodePtr &node) {
-  static std::unordered_set<std::string> no_need_calc_type = {"Data", "NetOutput", "Variable", "Const", "Constant",
-    "PhonyConcat", "StreamActive", "PhonyReduce", "Identity"};
+  static std::unordered_set<std::string> no_need_calc_type = {
+      "Data", "NetOutput", "Variable", "Const", "Constant", "PhonyConcat", "StreamActive", "PhonyReduce", "Identity"};
   bool no_need_flag = no_need_calc_type.find(node->GetType()) != no_need_calc_type.end();
   no_need_flag |= (node->GetOpDesc()->GetOpKernelLibName() == ge::kEngineNameGeLocal);
   no_need_flag &= (node->GetType() != "PartitionedCall");
@@ -52,8 +52,8 @@ struct MemPrePara {
   bg::ValueHolderPtr args_data{nullptr};
 };
 
-struct MemGuard{
-  void* guard_ptr{nullptr};
+struct MemGuard {
+  void *guard_ptr{nullptr};
   int64_t guard_val{0};
 };
 
@@ -72,7 +72,7 @@ inline uintptr_t AddrAlignBy128(const uintptr_t addr) {
 }
 
 inline void FFTSAddNodeMemPara(FFTSAllMemPara &all_mem_para, size_t mem_size, size_t pre_data_size,
-    std::unique_ptr<uint8_t[]> pre_data, std::string cfg_key = "") {
+                               std::unique_ptr<uint8_t[]> pre_data, std::string cfg_key = "") {
   MemPrePara node_para;
   node_para.size = mem_size;
   node_para.offset = all_mem_para.total_size;
@@ -87,32 +87,14 @@ inline void FFTSAddNodeMemPara(FFTSAllMemPara &all_mem_para, size_t mem_size, si
   all_mem_para.total_size += (mem_size + sizeof(int64_t));
   all_mem_para.node_to_args_para[cfg_key] = std::move(node_para);
 }
-enum class MemParaInKey {
-  PRE_PARA = 0,
-  PRE_DATA = 1,
-  DEV_ADDR = 2,
-  HOST_ADDR = 3,
-  kNUM
-};
-enum class MemParaOutKey {
-  NODE_PARA = 0,
-  MEM_GUARD = 1,
-  kNUM
-};
+enum class MemParaInKey { PRE_PARA = 0, PRE_DATA = 1, DEV_ADDR = 2, HOST_ADDR = 3, kNUM };
+enum class MemParaOutKey { NODE_PARA = 0, MEM_GUARD = 1, kNUM };
 FFTSNodeCalculaterRegistry::NodeCalculater GetNodeCalculater(const ge::NodePtr &node);
 ge::Status CreateMemoryGuard(FFTSAllMemPara &all_mem_para);
 bg::ValueHolderPtr CreateNodeMemParam(const ge::NodePtr &node, FFTSAllMemPara &all_mem_para, std::string key = "");
 
-enum class TaskPreOutKey {
-  NODE_PARA = 0,
-  TASK_INFO = 1,
-  kNUM
-};
-enum class TaskProcKey {
-  H2D_COPY = 0,
-  TASK_LAUNCH = 1,
-  kNUM
-};
+enum class TaskPreOutKey { NODE_PARA = 0, TASK_INFO = 1, kNUM };
+enum class TaskProcKey { H2D_COPY = 0, TASK_LAUNCH = 1, kNUM };
 
 struct FFTSLuanchArg {
   ge::NodePtr node;
@@ -124,7 +106,8 @@ struct FFTSLuanchArg {
 std::vector<bg::ValueHolderPtr> FFTSTaskAndArgsLaunch(FFTSLuanchArg launch_arg, FFTSAllMemPara &all_mem_para,
                                                       std::vector<bg::ValueHolderPtr> &task_info_vec);
 ge::Status LoweringGraphPostProc(const LowerResult *graph_result, const std::vector<bg::ValueHolderPtr> &task_ret,
-    const std::vector<bg::ValueHolderPtr> &free_vec, const std::vector<bg::ValueHolderPtr> &alloc_vec);
+                                 const std::vector<bg::ValueHolderPtr> &free_vec,
+                                 const std::vector<bg::ValueHolderPtr> &alloc_vec);
 std::vector<bg::ValueHolderPtr> RedirectLaunchArgs(const bg::ValueHolderPtr args_para);
-}
+}  // namespace gert
 #endif  // AIR_CXX_RUNTIME_V2_ENGINE_FFTS_PLUS_FFTS_PLUS_COMMON_H_

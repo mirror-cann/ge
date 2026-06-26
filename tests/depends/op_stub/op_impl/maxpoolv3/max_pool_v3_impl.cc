@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,22 +32,22 @@ constexpr int32_t TILING_MODE_6 = 6;
 constexpr int32_t TILING_MODE_7 = 7;
 constexpr int DEFAULT_PARAS_INPUT_SIZE = 1;
 
-#define CHECK(cond, log_func, expr)                                                                                    \
-  do {                                                                                                                 \
-    if (cond) {                                                                                                        \
-      log_func;                                                                                                        \
-      expr;                                                                                                            \
-    }                                                                                                                  \
+#define CHECK(cond, log_func, expr) \
+  do {                              \
+    if (cond) {                     \
+      log_func;                     \
+      expr;                         \
+    }                               \
   } while (0)
 
 static void SAMEUpdateDim(const int64_t &ksize, const int64_t &strides, int64_t &dim_size) {
-  // warning strides divisor cannnot be 0
+  // warning strides divisor cannot be 0
   dim_size = (dim_size - ksize + strides) / strides;
 }
 
 static void CALCULATEUpdateDim(const int64_t &ksize, const int64_t &strides, bool ceil_mode, int32_t pad_a,
                                int32_t pad_b, int64_t &dim_size) {
-  // warning strides divisor cannnot be 0
+  // warning strides divisor cannot be 0
   if (ceil_mode) {
     dim_size = (dim_size + pad_a + pad_b - ksize + strides + strides - 1) / strides;
   } else {
@@ -128,7 +128,7 @@ ge::graphStatus InferShapeForMaxPoolV3(InferShapeContext *context) {
 }
 
 static void CalCoreNum(MaxPoolV3Param *param, int32_t total_ele, int32_t core_num) {
-  CHECK(core_num == 0, GELOGE(ge::GRAPH_FAILED, "core_num = 0 is not support"), return );
+  CHECK(core_num == 0, GELOGE(ge::GRAPH_FAILED, "core_num = 0 is not support"), return);
   param->one_core_ele = (total_ele + core_num - 1) / core_num;
   param->act_core_num = total_ele / param->one_core_ele;
   if (total_ele % param->one_core_ele != 0) {
@@ -149,8 +149,8 @@ static void CalTilingParam(MaxPoolV3Param *param, const Shape &input_shape, cons
   int32_t pad_bottom = compile_info->pad_bottom;
   int32_t pad_left = compile_info->pad_left;
   int32_t pad_right = compile_info->pad_right;
-  CHECK(strides_h == 0, GELOGE(ge::GRAPH_FAILED, "strides_h = 0 is not support"), return );
-  CHECK(strides_w == 0, GELOGE(ge::GRAPH_FAILED, "strides_w = 0 is not support"), return );
+  CHECK(strides_h == 0, GELOGE(ge::GRAPH_FAILED, "strides_h = 0 is not support"), return);
+  CHECK(strides_w == 0, GELOGE(ge::GRAPH_FAILED, "strides_w = 0 is not support"), return);
   // calc output height and width, pad infos
   if (padding == 0) {
     param->output_h = (param->input_h + strides_h - 1) / strides_h;
@@ -216,7 +216,7 @@ static void CalTilingParam(MaxPoolV3Param *param, const Shape &input_shape, cons
     if (ub_ele >= (input_shape.GetDim(INDEX_2) * input_shape.GetDim(INDEX_3) * input_shape.GetDim(INDEX_4))) {
       param->tiling_mode = TILING_MODE_6;
     } else {
-      param->h_factor = ub_ele / input_shape.GetDim(INDEX_4);  // acutal is hw_factor
+      param->h_factor = ub_ele / input_shape.GetDim(INDEX_4);  // actual is hw_factor
       int32_t input_hw_num = param->input_h * param->input_w;
       param->one_core_loop_num = input_hw_num / param->h_factor;
       // dif from other tiling mode,this is used to tiling hw
@@ -231,7 +231,7 @@ static void CalTilingParam(MaxPoolV3Param *param, const Shape &input_shape, cons
     param->tiling_mode = 0;
     int32_t max_ele = ub_ele / input_shape.GetDim(INDEX_4);
     int32_t total_ele = input_shape.GetDim(INDEX_0) * input_shape.GetDim(INDEX_1) * input_shape.GetDim(INDEX_2) *
-        input_shape.GetDim(INDEX_3);
+                        input_shape.GetDim(INDEX_3);
     CalCoreNum(param, total_ele, core_num);
     param->one_core_loop_num = param->one_core_ele / max_ele;
     param->one_core_loop_left = param->one_core_ele % max_ele;
@@ -355,7 +355,7 @@ ge::graphStatus TilingForMaxPoolV3(TilingContext *context) {
   return ge::GRAPH_SUCCESS;
 }
 
-template<typename T>
+template <typename T>
 bool GetCompileValue(const nlohmann::json &all_vars, const char *name, T &value) {
   if (all_vars.count(name) == 0) {
     return false;
@@ -367,7 +367,7 @@ bool GetCompileValue(const nlohmann::json &all_vars, const char *name, T &value)
 
 #define GET_COMPILE_VALUE(vars, compile_info, name) GetCompileValue(vars, #name, (*compile_info).name)
 
-//TODO hardcode MaxPoolV3
+// TODO hardcode MaxPoolV3
 ge::graphStatus TilingPrepareForMaxPoolV3(KernelContext *context) {
   auto compile_info = context->GetOutputPointer<MaxPoolV3CompileInfo>(0);
   auto json_str = context->GetInputStrPointer(0);

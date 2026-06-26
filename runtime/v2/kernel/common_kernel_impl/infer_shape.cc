@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,7 +26,7 @@
 namespace gert {
 namespace kernel {
 namespace {
-using DfxInputSymbolInfo = ge::graphStatus(*)(const KernelContext *, char *, size_t);
+using DfxInputSymbolInfo = ge::graphStatus (*)(const KernelContext *, char *, size_t);
 const std::unordered_set<std::string> kAutofuseNodeSet = {"AscBackend", "FusedAscBackend", "AscBackendNoKernelOp"};
 void ShapeToStringStream(std::stringstream &ss, const Shape &shape) {
   ss << "[";
@@ -58,14 +58,14 @@ bool IsSymbolNode(const KernelContext *context) {
 
 std::string PrintInputSymbolInfo(const KernelContext *context) {
   auto input_data_num = context->GetInputValue<size_t>(0U);
-  auto all_sym_num = context->GetInputValue<size_t>(
-      input_data_num + static_cast<size_t>(SymbolInferShapeInput::kAllSymbolNum));
+  auto all_sym_num =
+      context->GetInputValue<size_t>(input_data_num + static_cast<size_t>(SymbolInferShapeInput::kAllSymbolNum));
   auto input_symbol_info_func = context->GetInputValue<DfxInputSymbolInfo>(
       input_data_num + static_cast<size_t>(SymbolInferShapeInput::kDfxInputSymbolInfoFunc));
   GE_ASSERT_NOTNULL(input_symbol_info_func);
   // 使用所有符号的数量预估字符串数量："s1234: 1234,"，每个符号预估长度约12，所以总长度是12乘以符号数量加上一个\0
   size_t size = 12 * all_sym_num + 1;
-  std::vector<char> out_symbol_info(size); 
+  std::vector<char> out_symbol_info(size);
   if (input_symbol_info_func(context, out_symbol_info.data(), size) != ge::GRAPH_SUCCESS) {
     return "Symbolic infos: Get symbol info failed.";
   }
@@ -133,7 +133,7 @@ ge::graphStatus LoadShapeRuleFromBinary(KernelContext *context) {
   handle->swap(rule);
   return ge::GRAPH_SUCCESS;
 }
-} // namespace
+}  // namespace
 
 std::string PrintNodeType(const KernelContext *context) {
   std::stringstream ss;
@@ -159,7 +159,7 @@ std::string PrintInputShapeInfo(const KernelContext *const context, const size_t
   if (context->GetInputNum() < input_shape_start_index) {
     original_ss << "Trace failed, input num < input_shape_start_index, "
                 << "context->GetInputNum:" << context->GetInputNum()
-                << ", input_shape_start_index:"<< input_shape_start_index;
+                << ", input_shape_start_index:" << input_shape_start_index;
     return original_ss.str();
   }
 
@@ -202,10 +202,8 @@ std::string PrintOutputShapeInfo(const KernelContext *const context) {
     if (storage_shape == nullptr) {
       return "The " + std::to_string(i) + "th's output storage shape is nullptr";
     }
-    PrintFormatDtypeShape(original_ss, td->GetOriginFormat(),
-                          td->GetDataType(), storage_shape->GetOriginShape());
-    PrintFormatDtypeShape(storage_ss, td->GetStorageFormat(),
-                          td->GetDataType(), storage_shape->GetStorageShape());
+    PrintFormatDtypeShape(original_ss, td->GetOriginFormat(), td->GetDataType(), storage_shape->GetOriginShape());
+    PrintFormatDtypeShape(storage_ss, td->GetStorageFormat(), td->GetDataType(), storage_shape->GetStorageShape());
     if (i + 1U < compute_node_info->GetOutputsNum()) {
       original_ss << ", ";
       storage_ss << ", ";
@@ -248,11 +246,8 @@ KernelRegistry::KernelFunc GetOpInferShapeFun(const KernelContext *const context
 }
 
 std::vector<std::string> InferShapeKernelTrace(const KernelContext *context) {
-  auto input_shape_info =
-      IsSymbolNode(context) ? PrintInputSymbolInfo(context) : PrintInputShapeInfo(context, 0U);
-  return {PrintNodeType(context),
-          input_shape_info,
-          PrintOutputShapeInfo(context)};
+  auto input_shape_info = IsSymbolNode(context) ? PrintInputSymbolInfo(context) : PrintInputShapeInfo(context, 0U);
+  return {PrintNodeType(context), input_shape_info, PrintOutputShapeInfo(context)};
 }
 
 ge::graphStatus InferShape(KernelContext *context) {
@@ -264,7 +259,7 @@ ge::graphStatus InferShape(KernelContext *context) {
   auto ret = op_infer_fun(context);
   if (ret != ge::GRAPH_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "InferShape failed, node type %s, name %s, error-code %u",
-                       extend_context->GetNodeType(), extend_context->GetNodeName(), ret);
+                         extend_context->GetNodeType(), extend_context->GetNodeName(), ret);
     KLOGE("InferShape failed, node type %s, name %s, error-code %u", extend_context->GetNodeType(),
           extend_context->GetNodeName(), ret);
     return ret;
@@ -278,7 +273,9 @@ ge::graphStatus InferShape(KernelContext *context) {
   return ge::GRAPH_SUCCESS;
 }
 
-REGISTER_KERNEL(InferShape).RunFunc(InferShape).OutputsCreator(BuildInferShapeOutputs)
+REGISTER_KERNEL(InferShape)
+    .RunFunc(InferShape)
+    .OutputsCreator(BuildInferShapeOutputs)
     .TracePrinter(InferShapeKernelTrace);
 
 inline ge::graphStatus BuildLoadShapeRuleOutputs(const ge::FastNode *node, KernelContext *context) {
@@ -288,15 +285,13 @@ inline ge::graphStatus BuildLoadShapeRuleOutputs(const ge::FastNode *node, Kerne
   return ge::GRAPH_SUCCESS;
 }
 
-REGISTER_KERNEL(LoadShapeRuleFromJson)
-    .RunFunc(LoadShapeRuleFromJson)
-    .OutputsCreator(BuildLoadShapeRuleOutputs);
+REGISTER_KERNEL(LoadShapeRuleFromJson).RunFunc(LoadShapeRuleFromJson).OutputsCreator(BuildLoadShapeRuleOutputs);
 
-REGISTER_KERNEL(LoadShapeRuleFromBinary)
-    .RunFunc(LoadShapeRuleFromBinary)
-    .OutputsCreator(BuildLoadShapeRuleOutputs);
+REGISTER_KERNEL(LoadShapeRuleFromBinary).RunFunc(LoadShapeRuleFromBinary).OutputsCreator(BuildLoadShapeRuleOutputs);
 
-REGISTER_KERNEL(InferShapeByRule).RunFunc(InferShapeByRule).OutputsCreator(BuildInferShapeOutputs)
+REGISTER_KERNEL(InferShapeByRule)
+    .RunFunc(InferShapeByRule)
+    .OutputsCreator(BuildInferShapeOutputs)
     .TracePrinter(InferShapeKernelTrace);
 }  // namespace kernel
 }  // namespace gert

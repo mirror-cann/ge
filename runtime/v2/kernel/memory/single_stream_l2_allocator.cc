@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,8 +20,7 @@ SingleStreamL2Allocator::SingleStreamL2Allocator(TensorPlacement placement, ge::
     : GertAllocator(0, placement),
       l1_allocator_(caching_mem_allocator),
       ms_block_pool_(),
-      ti_allocator_(*this, ms_block_pool_) {
-}
+      ti_allocator_(*this, ms_block_pool_) {}
 
 SingleStreamL2Allocator::~SingleStreamL2Allocator() noexcept {
   auto free_set = ms_block_pool_.GetFreeSet();
@@ -63,8 +62,7 @@ void SingleStreamL2Allocator::Free(GertMemBlock *gert_mem_block) {
       const int64_t free_size = static_cast<int64_t>(multi_stream_mem_block->GetSize()) * (-1);
       DeviceMemoryRecorder::SetRecorder(multi_stream_mem_block->GetAddr(), free_size);
     }
-    if (multi_stream_mem_block->GetCount(GetStreamId()) > 0U &&
-        multi_stream_mem_block->SubCount(GetStreamId()) == 0U) {
+    if (multi_stream_mem_block->GetCount(GetStreamId()) > 0U && multi_stream_mem_block->SubCount(GetStreamId()) == 0U) {
       BirthRecycle(multi_stream_mem_block);
     }
   }

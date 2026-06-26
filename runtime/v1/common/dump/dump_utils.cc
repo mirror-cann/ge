@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -74,7 +74,6 @@ static bool OpNeedAssertOrPrintf(const OpDescPtr &op_desc) {
   return (has_assert || has_printf);
 }
 
-
 Status ReportL0ExceptionDumpInfo(const OpDescPtr &op_desc, const std::vector<uint64_t> &l0_size_list) {
   bool need_assert_or_printf = OpNeedAssertOrPrintf(op_desc);
   GELOGD("op[%s], need_assert_or_printf[%d]", op_desc->GetName().c_str(), static_cast<int32_t>(need_assert_or_printf));
@@ -137,8 +136,8 @@ Status UpdateL0ExceptionDumpInfoSize(const OpDescPtr &op_desc, std::vector<uint6
   }
 
   const size_t nums = l0_size_list.size();
-  GE_ASSERT_TRUE(index < nums,
-    "op[%s] index[%zu] is greater than l0 list size:[%zu].", op_desc->GetNamePtr(), index, nums);
+  GE_ASSERT_TRUE(index < nums, "op[%s] index[%zu] is greater than l0 list size:[%zu].", op_desc->GetNamePtr(), index,
+                 nums);
   for (size_t i = 0U; i < index; ++i) {
     GELOGI("Node[%s] l0 size idx[%zu], val[%" PRIu64 "]", op_desc->GetNamePtr(), i, l0_size_list[i]);
   }
@@ -157,13 +156,13 @@ Status UpdateL0ExceptionDumpInfoSize(const OpDescPtr &op_desc, std::vector<uint6
       l0_size_list[i] = 0UL;
     } else if ((bit_flag == kCustomLevel2AddrFlag) || (bit_flag == kShapeLevel2AddrFlag) ||
                (bit_flag == kTilingDataAddrFlag)) {
-      GELOGI("Node[%s] l0 size idx[%zu], val[%" PRIu64 "], bit flag[%u]",
-        op_desc->GetNamePtr(), i, l0_size_list[i], bit_flag);
+      GELOGI("Node[%s] l0 size idx[%zu], val[%" PRIu64 "], bit flag[%u]", op_desc->GetNamePtr(), i, l0_size_list[i],
+             bit_flag);
       continue;
     } else {
       // level1 relevant idx
       GE_ASSERT_TRUE(cur_size < tensor_size_list.size(), "op[%s] relevant io idx[%zu] is greater than iow size[%zu].",
-                op_desc->GetNamePtr(), cur_size, tensor_size_list.size());
+                     op_desc->GetNamePtr(), cur_size, tensor_size_list.size());
       l0_size_list[i] = tensor_size_list[cur_size];
       if (need_assert_or_printf && (cur_size == input_size + output_size)) {
         GELOGI("dump op[%s] workspace for assert in static model scenario", op_desc->GetName().c_str());
@@ -192,19 +191,19 @@ Status SetL0ExceptionSizeInfo(const OpDescPtr &op_desc, const std::vector<uint64
   }
 
   rtArgsSizeInfo_t rt_args_size{};
-  rt_args_size.infoAddr = Adx::AdumpGetSizeInfoAddr(static_cast<uint32_t>(nums + Adx::ADUMP_ARGS_EXCEPTION_HEAD),
-                                                    rt_args_size.atomicIndex);
+  rt_args_size.infoAddr =
+      Adx::AdumpGetSizeInfoAddr(static_cast<uint32_t>(nums + Adx::ADUMP_ARGS_EXCEPTION_HEAD), rt_args_size.atomicIndex);
   GE_ASSERT_NOTNULL(rt_args_size.infoAddr);
   uint64_t *adump_addr = PtrToPtr<void, uint64_t>(rt_args_size.infoAddr);
   adump_addr[kAtomicIndex] = static_cast<uint64_t>(rt_args_size.atomicIndex);
   adump_addr[kSizeNumIndex] = static_cast<uint64_t>(nums);
 
   GELOGI("Node [%s] size info atomic index idx[%zu], val[%" PRIu64 "], size num idx[%zu], val[%" PRIu64 "]",
-    op_desc->GetNamePtr(), kAtomicIndex, adump_addr[kAtomicIndex], kSizeNumIndex, adump_addr[kSizeNumIndex]);
+         op_desc->GetNamePtr(), kAtomicIndex, adump_addr[kAtomicIndex], kSizeNumIndex, adump_addr[kSizeNumIndex]);
   for (size_t i = 0UL; i < nums; i++) {
     adump_addr[Adx::ADUMP_ARGS_EXCEPTION_HEAD + i] = l0_size_list[i];
-    GELOGI("Node [%s] size info idx[%zu], val[%" PRIu64 "]",
-      op_desc->GetNamePtr(), Adx::ADUMP_ARGS_EXCEPTION_HEAD + i, adump_addr[Adx::ADUMP_ARGS_EXCEPTION_HEAD + i]);
+    GELOGI("Node [%s] size info idx[%zu], val[%" PRIu64 "]", op_desc->GetNamePtr(), Adx::ADUMP_ARGS_EXCEPTION_HEAD + i,
+           adump_addr[Adx::ADUMP_ARGS_EXCEPTION_HEAD + i]);
   }
   GE_CHK_RT_RET(rtSetExceptionExtInfo(&rt_args_size));
   return SUCCESS;

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -143,7 +143,7 @@ TEST_F(StreamExecutorST, OneStream_ExecuteSuccess_Memcheck) {
   ge::AttrUtils::SetInt(op_desc, ge::ATTR_NAME_UNKNOWN_SHAPE_TYPE, 3);
   (void)ge::AttrUtils::SetStr(op_desc, "dynamicParamMode", "folded_with_desc");
   (void)ge::AttrUtils::SetListListInt(op_desc, "_dynamic_inputs_indexes", {{1}});
-  (void)ge::AttrUtils::SetListListInt(op_desc, "_dynamic_outputs_indexes", {{0}}); 
+  (void)ge::AttrUtils::SetListListInt(op_desc, "_dynamic_outputs_indexes", {{0}});
   add->GetOpDesc()->MutableAllInputName() = {{"x1", 0}, {"x20", 1}};
   add->GetOpDesc()->MutableAllOutputName() = {{"output0", 0}};
   op_desc->AppendIrInput("x1", ge::kIrInputRequired);
@@ -218,10 +218,13 @@ TEST_F(StreamExecutorST, OneStream_ExecuteSuccess_Memcheck_instance) {
   ge::OperatorFactoryImpl::RegisterInferShapeFunc("AddMemcheck", infer_fun);
 
   graph->TopologicalSorting();
-  auto ge_root_model = GeModelBuilder(graph)
-      .AddTaskDef("AddMemcheck", AiCoreTaskDefFaker("AddStubBin").WithHandle().ArgsFormat("{i_instance0}{i_instance1}{o_instance0}{ws0}{overflow_addr}"))
-      .FakeTbeBin({"AddMemcheck"})
-      .BuildGeRootModel();
+  auto ge_root_model =
+      GeModelBuilder(graph)
+          .AddTaskDef("AddMemcheck", AiCoreTaskDefFaker("AddStubBin")
+                                         .WithHandle()
+                                         .ArgsFormat("{i_instance0}{i_instance1}{o_instance0}{ws0}{overflow_addr}"))
+          .FakeTbeBin({"AddMemcheck"})
+          .BuildGeRootModel();
   auto model_data_holder = ModelDataFaker().GeRootModel(ge_root_model).BuildUnknownShape();
   ge::graphStatus error_code = ge::GRAPH_FAILED;
   auto stream_executor = LoadStreamExecutorFromModelData(model_data_holder.Get(), error_code);
@@ -363,9 +366,8 @@ TEST_F(StreamExecutorST, LoweringOption_TakeEffect) {
   auto model_data_holder = ModelDataFaker().GeRootModel(ge_root_model).BuildUnknownShape();
 
   ge::graphStatus error_code = ge::GRAPH_FAILED;
-  LoweringOption opiton{.trust_shape_on_out_tensor = true};
-  auto stream_executor =
-      LoadStreamExecutorFromModelData(model_data_holder.Get(), opiton, error_code);
+  LoweringOption option{.trust_shape_on_out_tensor = true};
+  auto stream_executor = LoadStreamExecutorFromModelData(model_data_holder.Get(), option, error_code);
   ASSERT_NE(stream_executor, nullptr);
   ASSERT_EQ(error_code, ge::GRAPH_SUCCESS);
 

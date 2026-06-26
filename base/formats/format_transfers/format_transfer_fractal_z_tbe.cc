@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,16 +17,14 @@
 namespace ge {
 namespace formats {
 namespace {
-enum class NdDimIndex {
-  k2dC, k2dN, k2dDimsNum
-};
+enum class NdDimIndex { k2dC, k2dN, k2dDimsNum };
 
 /**
  * FZ represents the weight of convolution,.
  * After the conversion to two-dimensional matrix, the memory arrangement is small n and large Z.
  * If 4D(eg.NCHW) is used to represent convolution kernel, N is width, HWC is height.
  *
- * frac_z axises: (C1*H*W, No, Ni, C0), which Ni = 16, C0 = 8/16/32, No = Ceil(N/Ni), C1 = Ceil(C/C0)
+ * frac_z axes: (C1*H*W, No, Ni, C0), which Ni = 16, C0 = 8/16/32, No = Ceil(N/Ni), C1 = Ceil(C/C0)
  * @return
  */
 Status TransShapeNdToFz(const std::vector<int64_t> &src_shape, const Format &dst_format,
@@ -88,13 +86,14 @@ Status TransFormatNdToFz(const TransArgs &args, TransResult &result) {
       for (int64_t c0i = 0; c0i < c0; ++c0i) {
         const int64_t dst_idx = (c1i * hwn1n0c0) + (n1n0i * c0) + c0i;
         const int64_t dst_offset = dst_idx * data_size;
-        const auto protected_size = ((dst_size - dst_offset) < static_cast<int64_t>(SECUREC_MEM_MAX_LEN)) ?
-                                    (dst_size - dst_offset) : static_cast<int64_t>(SECUREC_MEM_MAX_LEN);
+        const auto protected_size = ((dst_size - dst_offset) < static_cast<int64_t>(SECUREC_MEM_MAX_LEN))
+                                        ? (dst_size - dst_offset)
+                                        : static_cast<int64_t>(SECUREC_MEM_MAX_LEN);
         const bool pad_zero = (((c1i * c0) + c0i) >= c) || (n1n0i >= n);
         errno_t ret;
         if (pad_zero) {
-          ret = memset_s(dst.get() + dst_offset, static_cast<size_t>(protected_size), 0,
-                         static_cast<size_t>(data_size));
+          ret =
+              memset_s(dst.get() + dst_offset, static_cast<size_t>(protected_size), 0, static_cast<size_t>(data_size));
         } else {
           const int64_t src_idx = (((c1i * c0) + c0i) * n) + n1n0i;
           ret = memcpy_s(dst.get() + dst_offset, static_cast<size_t>(protected_size), args.data + (src_idx * data_size),

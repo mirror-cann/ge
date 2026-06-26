@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,28 +22,26 @@ struct CacheFileIndex {
   std::string cache_file_name;
 };
 
-
 struct CacheConfig {
   bool cache_manual_check = false;
   bool cache_debug_mode = false;
 };
 
 struct CacheCompileResult {
-  std::map<std::string, std::string> compile_bin_info;  // key:runnable_res_type, value: compile_release_path;
+  std::map<std::string, std::string> compile_bin_info;    // key:runnable_res_type, value: compile_release_path;
   std::map<std::string, int64_t> running_resources_info;  // key:res_type, value: res_num;
 };
 
 class FlowModelCache {
  public:
-   FlowModelCache() = default;
-   ~FlowModelCache();
+  FlowModelCache() = default;
+  ~FlowModelCache();
   /**
    * @brief Init submodel cache.
    * @return Status SUCCESS:init cache success.
    *                Other:failed.
    */
-  Status InitSubmodelCache(const ComputeGraphPtr &root_graph,
-                           const std::string &cache_dir,
+  Status InitSubmodelCache(const ComputeGraphPtr &root_graph, const std::string &cache_dir,
                            const std::string &graph_key);
 
   /**

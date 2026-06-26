@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -37,8 +37,7 @@ class AicpuOpsKernelBuilder : public ge::OpsKernelBuilder {
    * Initialize related resources of the aicpu kernelinfo store
    * @return status whether this operation success
    */
-  ge::Status Initialize(
-      const std::map<std::string, std::string> &options) override;
+  ge::Status Initialize(const std::map<std::string, std::string> &options) override;
 
   /**
    * Release related resources of the aicpu kernelinfo store
@@ -61,8 +60,7 @@ class AicpuOpsKernelBuilder : public ge::OpsKernelBuilder {
    * @param runContext Run context from Ge
    * @return task memsize in node
    */
-  ge::Status GenerateTask(const ge::Node &node, ge::RunContext &context,
-                          std::vector<domi::TaskDef> &tasks) override;
+  ge::Status GenerateTask(const ge::Node &node, ge::RunContext &context, std::vector<domi::TaskDef> &tasks) override;
   ge::Status UpdateTask(const ge::Node &node, std::vector<domi::TaskDef> &tasks) override;
   /**
    * Generate the task
@@ -71,9 +69,7 @@ class AicpuOpsKernelBuilder : public ge::OpsKernelBuilder {
    * @param task_info[out]
    * @return status whether this operation success
    */
-  ge::Status GenSingleOpRunTask(const ge::NodePtr &node,
-                                STR_FWK_OP_KERNEL &task,
-                                string &task_info) override;
+  ge::Status GenSingleOpRunTask(const ge::NodePtr &node, STR_FWK_OP_KERNEL &task, string &task_info) override;
 
   /**
    * Generate the task
@@ -82,8 +78,7 @@ class AicpuOpsKernelBuilder : public ge::OpsKernelBuilder {
    * @param task_info[out]
    * @return status whether this operation success
    */
-  ge::Status GenMemCopyTask(uint64_t count, STR_FWK_OP_KERNEL &task,
-                            string &task_info) override;
+  ge::Status GenMemCopyTask(uint64_t count, STR_FWK_OP_KERNEL &task, string &task_info) override;
 
   // Copy prohibited
   AicpuOpsKernelBuilder(const AicpuOpsKernelBuilder &aicpu_ops_kernel_builder) = delete;
@@ -92,12 +87,10 @@ class AicpuOpsKernelBuilder : public ge::OpsKernelBuilder {
   AicpuOpsKernelBuilder(const AicpuOpsKernelBuilder &&aicpu_ops_kernel_builder) = delete;
 
   // Copy prohibited
-  AicpuOpsKernelBuilder &operator=(
-      const AicpuOpsKernelBuilder &aicpu_ops_kernel_builder) = delete;
+  AicpuOpsKernelBuilder &operator=(const AicpuOpsKernelBuilder &aicpu_ops_kernel_builder) = delete;
 
   // Move prohibited
-  AicpuOpsKernelBuilder &operator=(
-      AicpuOpsKernelBuilder &&aicpu_ops_kernel_builder) = delete;
+  AicpuOpsKernelBuilder &operator=(AicpuOpsKernelBuilder &&aicpu_ops_kernel_builder) = delete;
 
  private:
   // Get internal kernel builder by op type
@@ -108,8 +101,7 @@ class AicpuOpsKernelBuilder : public ge::OpsKernelBuilder {
    * @param all_op_info store op information
    * @return status whether this operation success
    */
-  ge::Status GetOpsInfo(
-      std::map<std::string, aicpu::OpFullInfo> &all_op_info) const;
+  ge::Status GetOpsInfo(std::map<std::string, aicpu::OpFullInfo> &all_op_info) const;
 
  private:
   std::string engine_name_;

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,7 +25,7 @@ namespace ge {
 namespace {
 std::mutex check_support_cost_mutex;
 constexpr uint32_t kDefaultThreadNum = 16;
-}
+}  // namespace
 Status EnginePlacer::Check() const {
   if (compute_graph_ == nullptr) {
     REPORT_INNER_ERR_MSG("E19999", "compute_graph_ is nullptr, check invalid.");
@@ -48,8 +48,7 @@ Status EnginePlacer::SelectEngine(const NodePtr &node, const std::set<std::strin
   std::string engine_name;
   std::string kernel_name;
   // Check if this node has assigned engine
-  bool has_engine_attr =
-      AttrUtils::GetStr(op_desc, ATTR_NAME_ENGINE_NAME_FOR_LX, engine_name) && !engine_name.empty();
+  bool has_engine_attr = AttrUtils::GetStr(op_desc, ATTR_NAME_ENGINE_NAME_FOR_LX, engine_name) && !engine_name.empty();
   bool has_kernel_attr =
       AttrUtils::GetStr(op_desc, ATTR_NAME_KKERNEL_LIB_NAME_FOR_LX, kernel_name) && !kernel_name.empty();
 
@@ -63,9 +62,8 @@ Status EnginePlacer::SelectEngine(const NodePtr &node, const std::set<std::strin
       // If can't get op's engine name, keep check support finish and return failed
       if (selected_engine_name.empty()) {
         is_check_support_success = false;
-        REPORT_PREDEFINED_ERR_MSG(
-            "EZ3003", std::vector<const char *>({"opname", "optype"}),
-            std::vector<const char *>({op_desc->GetName().c_str(), op_desc->GetType().c_str()}));
+        REPORT_PREDEFINED_ERR_MSG("EZ3003", std::vector<const char *>({"opname", "optype"}),
+                                  std::vector<const char *>({op_desc->GetName().c_str(), op_desc->GetType().c_str()}));
         GELOGE(GE_GRAPH_ASSIGN_ENGINE_FAILED, "[Check][Param] Cannot find engine of op name %s type %s",
                op_desc->GetName().c_str(), op_desc->GetType().c_str());
         return FAILED;
@@ -142,8 +140,8 @@ Status EnginePlacer::Run(bool direct_node_flag) {
   std::map<NodePtr, OpInfo> nodes_op_infos;
   for (const auto &node_ptr : compute_graph_->GetNodes(direct_node_flag)) {
     GE_CHECK_NOTNULL(node_ptr);
-    auto fut = thread_pool.commit(
-        [this, node_ptr, &exclude_engines, &context, &err_msg_ctx, &nodes_op_infos]() -> Status {
+    auto fut =
+        thread_pool.commit([this, node_ptr, &exclude_engines, &context, &err_msg_ctx, &nodes_op_infos]() -> Status {
           error_message::SetErrMgrContext(err_msg_ctx);
           bool is_check_support_success = true;
           GetThreadLocalContext() = context;
@@ -165,7 +163,7 @@ Status EnginePlacer::Run(bool direct_node_flag) {
     // 多线程可能存在异常，增加try catch和相应的日志为了辅助定位
     try {
       ret = fut.get();
-    } catch(std::runtime_error &e) {
+    } catch (std::runtime_error &e) {
       GELOGE(INTERNAL_ERROR, "Got an exception, reason[%s].", e.what());
       ret = INTERNAL_ERROR;
     }
@@ -211,8 +209,7 @@ const NodeEngineMap &EnginePlacer::GetNodeEngineMap(bool is_composite_engine_mod
   return is_composite_engine_mode ? node_composite_engine_map_ : node_atomic_engine_map_;
 }
 
-Status EnginePlacer::RunSinglePass(const std::string &pass_name,
-                                   const std::shared_ptr<EngineReAssignPass> &pass) {
+Status EnginePlacer::RunSinglePass(const std::string &pass_name, const std::shared_ptr<EngineReAssignPass> &pass) {
   GE_CHECK_NOTNULL(pass);
   Status ret;
   {

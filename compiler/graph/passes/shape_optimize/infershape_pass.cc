@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -112,13 +112,12 @@ Status InferShapePass::Infer(NodePtr &node) {
     GE_CHECK_NOTNULL(graph);
     auto root_graph = ge::GraphUtils::FindRootGraph(graph);
     GE_CHECK_NOTNULL(root_graph);
-    analyzer::DataInfo analyze_info{root_graph->GetSessionID(), root_graph->GetGraphID(),
-                                    analyzer::INFER_SHAPE, node, "InferShapeFailed!"};
+    analyzer::DataInfo analyze_info{root_graph->GetSessionID(), root_graph->GetGraphID(), analyzer::INFER_SHAPE, node,
+                                    "InferShapeFailed!"};
     (void)Analyzer::GetInstance()->DoAnalyze(analyze_info);
-    (void)Analyzer::GetInstance()->SaveAnalyzerDataToFile(root_graph->GetSessionID(),
-                                                          root_graph->GetGraphID());
+    (void)Analyzer::GetInstance()->SaveAnalyzerDataToFile(root_graph->GetSessionID(), root_graph->GetGraphID());
     REPORT_INNER_ERR_MSG("EZ9999", "Call InferShapeAndType for node:%s(%s) failed", node->GetName().c_str(),
-                      node->GetType().c_str());
+                         node->GetType().c_str());
     GELOGE(GE_GRAPH_INFERSHAPE_FAILED, "[Call][InferShapeAndType] for node:%s(%s) failed", node->GetName().c_str(),
            node->GetType().c_str());
     GE_DUMP(root_graph, "InferShapeBlackBox");
@@ -166,15 +165,14 @@ graphStatus InferShapePass::InferShapeAndType(NodePtr &node) {
 
       GELOGD("[%s] after infershape. mark:%zu.", node->GetName().c_str(), marks.size());
       if (!ctx_after_infer->GetOutputHandleShapesAndTypes().empty() || !marks.empty()) {
-        GELOGD("[%s] set inference context after. mark:%zu", node->GetName().c_str(),
-               marks.size());
+        GELOGD("[%s] set inference context after. mark:%zu", node->GetName().c_str(), marks.size());
         ShapeRefiner::PushToContextMap(node, ctx_after_infer);
       }
       if (resource_op_access_ctrl_ != nullptr && resource_context_mgr_ != nullptr) {
         // if resource_shapes changed, need add nodes which relied on this resource to repass
         GE_ASSERT_SUCCESS(RepassReliedNodeIfResourceChanged(ctx_after_infer, node));
         // if node relied on some resource ,register to mgr
-        (void) RegisterNodesReliedOnResource(ctx_after_infer, node);
+        (void)RegisterNodesReliedOnResource(ctx_after_infer, node);
       }
     }
   }
@@ -207,8 +205,8 @@ void InferShapePass::UpdateCurNodeOutputDesc(const NodePtr &node) const {
     GE_IF_BOOL_EXEC(output_tensor->MutableShape().GetDims().empty(),
                     output_tensor->SetOriginShape(output_tensor->GetShape()));
 
-    ge::TensorUtils::SetRealDimCnt(*output_tensor, static_cast<uint32_t>(output_tensor->GetOriginShape().GetDims()
-      .size()));
+    ge::TensorUtils::SetRealDimCnt(*output_tensor,
+                                   static_cast<uint32_t>(output_tensor->GetOriginShape().GetDims().size()));
     output_tensor->SetOriginDataType(output_tensor->GetDataType());
     // set output origin shape range
     std::vector<std::pair<int64_t, int64_t>> range;
@@ -244,8 +242,8 @@ bool InferShapePass::SameTensorDesc(const GeTensorDescPtr &src, const GeTensorDe
   for (size_t i = 0; i < src_shape_range.size(); ++i) {
     if (src_shape_range[i].first != dst_shape_range[i].first ||
         src_shape_range[i].second != dst_shape_range[i].second) {
-      GELOGI("Current dim %zu. Src shape range is [%lu-%lu], dst shape range is [%lu-%lu], not same.",
-             i, src_shape_range[i].first, src_shape_range[i].second, dst_shape_range[i].first, dst_shape_range[i].second);
+      GELOGI("Current dim %zu. Src shape range is [%lu-%lu], dst shape range is [%lu-%lu], not same.", i,
+             src_shape_range[i].first, src_shape_range[i].second, dst_shape_range[i].first, dst_shape_range[i].second);
       return false;
     }
   }
@@ -253,8 +251,9 @@ bool InferShapePass::SameTensorDesc(const GeTensorDescPtr &src, const GeTensorDe
   // check shape
   auto src_shape = src->GetShape();
   auto dst_shape = dst->GetShape();
-  if (src_shape.GetDims() != dst_shape.GetDims() || src->GetOriginShape().GetDims() != dst->GetOriginShape().GetDims() ||
-      src->GetDataType() != dst->GetDataType() || src->GetOriginDataType() != dst->GetOriginDataType()) {
+  if (src_shape.GetDims() != dst_shape.GetDims() ||
+      src->GetOriginShape().GetDims() != dst->GetOriginShape().GetDims() || src->GetDataType() != dst->GetDataType() ||
+      src->GetOriginDataType() != dst->GetOriginDataType()) {
     GELOGD(
         "Src shape is %s, origin_shape is %s, data_type is %s, origin data_type is %s; "
         "Dst shape is %s, origin_shape is %s, data_type is %s, original data_type is %s, not same.",
@@ -313,7 +312,7 @@ graphStatus InferShapePass::UpdateOutputFromSubgraphs(const std::vector<GeTensor
   for (auto &tensor : src) {
     if (ref_out_tensor->GetDataType() != tensor->GetDataType()) {
       REPORT_INNER_ERR_MSG("E19999", "Does not support diff dtype among all ref output, shape:%s",
-                         ref_out_tensor_shape.ToString().c_str());
+                           ref_out_tensor_shape.ToString().c_str());
       GELOGE(GRAPH_FAILED, "[Check][Param] node does not support diff dtype output");
       return GRAPH_FAILED;
     }
@@ -361,9 +360,9 @@ graphStatus InferShapePass::UpdateOutputFromSubgraphsForMultiDims(const std::vec
     for (auto dim : shape.GetDims()) {
       if (dim < 0) {
         REPORT_INNER_ERR_MSG("E19999",
-                           "Multi-batch not support middle dynamic shape. CurrentShape: [%s]. Please "
-                           "check nodes in graph which cause dynamic shape.",
-                           shape.ToString().c_str());
+                             "Multi-batch not support middle dynamic shape. CurrentShape: [%s]. Please "
+                             "check nodes in graph which cause dynamic shape.",
+                             shape.ToString().c_str());
         GELOGE(PARAM_INVALID,
                "[Check][NotSupport] DynamicDims with multi-batch not support middle dynamic shape. CurrentShape: [%s]. "
                "Please check nodes in graph which cause dynamic shape.",
@@ -414,10 +413,10 @@ graphStatus InferShapePass::UpdateOutputFromSubgraphsForSubgraphMultiDims(const 
         int64_t dim = tensor->GetShape().GetDim(i);
         shape_range.emplace_back(dim, dim);
       } else {
-        shape_range[i].first = (shape_range[i].first < tensor->GetShape().GetDim(i)) ?
-                               shape_range[i].first : tensor->GetShape().GetDim(i);
-        shape_range[i].second = (shape_range[i].first > tensor->GetShape().GetDim(i)) ?
-                                shape_range[i].first : tensor->GetShape().GetDim(i);
+        shape_range[i].first =
+            (shape_range[i].first < tensor->GetShape().GetDim(i)) ? shape_range[i].first : tensor->GetShape().GetDim(i);
+        shape_range[i].second =
+            (shape_range[i].first > tensor->GetShape().GetDim(i)) ? shape_range[i].first : tensor->GetShape().GetDim(i);
       }
 
       // collect shape
@@ -489,10 +488,12 @@ Status InferShapePass::RepassReliedNodeIfResourceChanged(const InferenceContextP
           std::string parallel_option;
           (void)GetContext().GetOption(OPTION_ALLOW_MULTI_GRAPH_PARALLEL_COMPILE, parallel_option);
           if (parallel_option == "1") {
-            REPORT_INNER_ERR_MSG("E19999", "Graph %s has node %s relied on resource %s. Resource changes trigger graph"
+            REPORT_INNER_ERR_MSG("E19999",
+                                 "Graph %s has node %s relied on resource %s. Resource changes trigger graph"
                                  " rebuild, which is disabled when ge.AllowMultiGraphParallelCompile is set to \"1\".",
                                  graph_name.c_str(), node->GetName().c_str(), key.GetString());
-            GELOGE(UNSUPPORTED, "Graph %s has node %s relied on resource %s. Resource changes trigger graph rebuild,"
+            GELOGE(UNSUPPORTED,
+                   "Graph %s has node %s relied on resource %s. Resource changes trigger graph rebuild,"
                    " which is disabled when ge.AllowMultiGraphParallelCompile is set to \"1\".",
                    graph_name.c_str(), node->GetName().c_str(), key.GetString());
             return UNSUPPORTED;

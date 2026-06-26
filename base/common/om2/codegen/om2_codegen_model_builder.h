@@ -56,30 +56,25 @@ class Om2CodegenModelBuilder {
   Status AggregateArgsTable(const std::vector<TaskCodeBuilderPtr> &task_builders, Om2CodegenModel &codegen_model) const;
   Status BuildHostArgsOffsets(const std::multimap<uint64_t, uint64_t> &io_addr_offset_map,
                               Om2CodegenModel &codegen_model) const;
-  Status CollectConstInputsFromOp(const OpDescPtr &op_desc, Om2CodegenModel &codegen_model,
-                                  Om2ConstMetas &const_metas);
+  Status CollectConstInputsFromOp(const OpDescPtr &op_desc, Om2CodegenModel &codegen_model, Om2ConstMetas &const_metas);
   Status UpdateStreamFlag(const GeModelPtr &model, Om2CodegenModel &codegen_model) const;
   Status InitStreamActive(const OpDescPtr &op_desc, std::set<uint32_t> &active_stream_indication) const;
   Status InitStreamSwitch(const OpDescPtr &op_desc, std::set<uint32_t> &active_stream_indication) const;
   std::vector<MemInfo> GetAllMemoryTypeSize(const GeModelPtr &model) const;
-  static void ReportUnsupportedTask(TaskCodeBuilderPtr &task_builder,  domi::TaskDef *const task_def,
-                             std::unordered_map<int64_t, OpDescPtr> &op_desc_by_index, ModelTaskType task_type);
+  static void ReportUnsupportedTask(TaskCodeBuilderPtr &task_builder, domi::TaskDef *const task_def,
+                                    std::unordered_map<int64_t, OpDescPtr> &op_desc_by_index, ModelTaskType task_type);
   static Status BuildKernelRegistryForAicore(Om2CodegenModel &codegen_model, const OpDescPtr &op_desc,
                                              ModelTaskType task_type);
-  static Status BuildKernelRegistryForAicpu(Om2CodegenModel &codegen_model,
-                                    const domi::TaskDef &task_def,
-                                    const std::string &op_type,
-                                    const std::string &kernel_name,
-                                    const std::string &aicpu_kernel_sign) ;
-  static Status BuildKernelRegistryForCustAicpu(Om2CodegenModel &codegen_model,
-                                                 const OpDescPtr &op_desc,
-                                                 const std::string &op_type,
-                                                 const std::string &kernel_name,
-                                                 const std::string &kernel_sign);
+  static Status BuildKernelRegistryForAicpu(Om2CodegenModel &codegen_model, const domi::TaskDef &task_def,
+                                            const std::string &op_type, const std::string &kernel_name,
+                                            const std::string &aicpu_kernel_sign);
+  static Status BuildKernelRegistryForCustAicpu(Om2CodegenModel &codegen_model, const OpDescPtr &op_desc,
+                                                const std::string &op_type, const std::string &kernel_name,
+                                                const std::string &kernel_sign);
   static Status BuildKernelRegistryForTFAicpu(Om2CodegenModel &codegen_model, const std::string &op_type,
-                                                const std::string &tf_aicpu_kernel_sign);
+                                              const std::string &tf_aicpu_kernel_sign);
   static Status BuildKernelRegistryForTFAicpuSession(Om2CodegenModel &codegen_model, const std::string &op_type,
-                                             const std::string &tf_aicpu_kernel_sign);
+                                                     const std::string &tf_aicpu_kernel_sign);
   std::unordered_map<int64_t, OpDescPtr> op_desc_by_index_;
   std::unordered_map<int64_t, OpInputEdges> op_id_to_input_edges_;
   std::unordered_map<int64_t, std::string> weight_offset_to_varname_;

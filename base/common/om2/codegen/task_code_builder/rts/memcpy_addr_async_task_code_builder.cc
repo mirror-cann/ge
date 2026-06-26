@@ -20,8 +20,7 @@ constexpr uint64_t kAlignment = 64U;
 }
 
 namespace ge {
-void MemcpyAddrAsyncTaskCodeBuilder::AppendOrderedArgValue(const AddrSemantic &semantic,
-                                                           uint64_t current_host_offset) {
+void MemcpyAddrAsyncTaskCodeBuilder::AppendOrderedArgValue(const AddrSemantic &semantic, uint64_t current_host_offset) {
   if (semantic.memory_app == MemoryAppType::kModelIo) {
     io_addr_refresh_records_.push_back(
         IoAddrRefreshRecord{static_cast<uint64_t>(semantic.compile_state_io_addr_offset), current_host_offset});
@@ -40,9 +39,8 @@ Status MemcpyAddrAsyncTaskCodeBuilder::Contribute(TaskSemanticContributeContext 
 
   ResolveInternalIndex(context);
 
-  args_format_str_ = memcpy_async.args_format().empty() ?
-                      "{}{}{i_instance0*}{o_instance0*}" :
-                      memcpy_async.args_format();
+  args_format_str_ =
+      memcpy_async.args_format().empty() ? "{}{}{i_instance0*}{o_instance0*}" : memcpy_async.args_format();
   GE_ASSERT_SUCCESS(ArgsFormatDesc::Parse(context.op_desc, args_format_str_, arg_descs_));
 
   AddrSemantic src_addr_node;
@@ -51,20 +49,18 @@ Status MemcpyAddrAsyncTaskCodeBuilder::Contribute(TaskSemanticContributeContext 
          ", internal_index=%u, op_index=%u",
          context.op_desc->GetName().c_str(), static_cast<uint64_t>(memcpy_async.src()),
          static_cast<uint64_t>(memcpy_async.dst()), internal_index_, memcpy_async.op_index());
-  GE_ASSERT_SUCCESS(Om2ModelUtils::GetRtAddress(context, static_cast<uintptr_t>(memcpy_async.src()),
-                                                src_addr_node, true, internal_index_));
+  GE_ASSERT_SUCCESS(Om2ModelUtils::GetRtAddress(context, static_cast<uintptr_t>(memcpy_async.src()), src_addr_node,
+                                                true, internal_index_));
   GELOGI("[OM2][MemcpyAddrAsync] src resolved: kind=%d, memory_app=%d, symbol_hint=%s, mem_offset=%" PRId64
          ", is_reused=%d",
          static_cast<int32_t>(src_addr_node.kind), static_cast<int32_t>(src_addr_node.memory_app),
-         src_addr_node.symbol_hint.c_str(), src_addr_node.mem_offset,
-         src_addr_node.is_reused_from_upstream);
-  GE_ASSERT_SUCCESS(Om2ModelUtils::GetRtAddress(context, static_cast<uintptr_t>(memcpy_async.dst()),
-                                                dst_addr_node, false, internal_index_));
+         src_addr_node.symbol_hint.c_str(), src_addr_node.mem_offset, src_addr_node.is_reused_from_upstream);
+  GE_ASSERT_SUCCESS(Om2ModelUtils::GetRtAddress(context, static_cast<uintptr_t>(memcpy_async.dst()), dst_addr_node,
+                                                false, internal_index_));
   GELOGI("[OM2][MemcpyAddrAsync] dst resolved: kind=%d, memory_app=%d, symbol_hint=%s, mem_offset=%" PRId64
          ", is_reused=%d",
          static_cast<int32_t>(dst_addr_node.kind), static_cast<int32_t>(dst_addr_node.memory_app),
-         dst_addr_node.symbol_hint.c_str(), dst_addr_node.mem_offset,
-         dst_addr_node.is_reused_from_upstream);
+         dst_addr_node.symbol_hint.c_str(), dst_addr_node.mem_offset, dst_addr_node.is_reused_from_upstream);
 
   GE_ASSERT_SUCCESS(CalcArgSizes(context));
 
@@ -74,10 +70,9 @@ Status MemcpyAddrAsyncTaskCodeBuilder::Contribute(TaskSemanticContributeContext 
 
   GE_ASSERT_SUCCESS(BuildOrderedArgs(context, src_addr_node, dst_addr_node));
 
-  GE_ASSERT_TRUE(header_.stream_id < context.runtime->stream_num,
-                 "[OM2][Check][Param] stream list size:%u, cur:%u!", context.runtime->stream_num, header_.stream_id);
-  GELOGI("Memcpy Addr Async Task Codegen: op[%s], dst max[%" PRIu64 "], count[%" PRIu64
-         "], kind[%u], stream id[%u].",
+  GE_ASSERT_TRUE(header_.stream_id < context.runtime->stream_num, "[OM2][Check][Param] stream list size:%u, cur:%u!",
+                 context.runtime->stream_num, header_.stream_id);
+  GELOGI("Memcpy Addr Async Task Codegen: op[%s], dst max[%" PRIu64 "], count[%" PRIu64 "], kind[%u], stream id[%u].",
          context.op_desc->GetName().c_str(), dst_max_, count_, kind_, header_.stream_id);
   GELOGI("op_index %u, op_id %" PRId64, memcpy_async.op_index(), context.op_desc->GetId());
   return SUCCESS;
@@ -148,38 +143,44 @@ Status MemcpyAddrAsyncTaskCodeBuilder::BuildOrderedArgs(TaskSemanticContributeCo
 }
 
 Status MemcpyAddrAsyncTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &items) {
-  items.push_back(ast_.Comment("============================= " + header_.op_name + " ==============================="));
+  items.push_back(
+      ast_.Comment("============================= " + header_.op_name + " ==============================="));
 
   std::vector<Arg> args_vars;
   GE_ASSERT_SUCCESS(CollectIoAddrVars(items, args_vars));
 
-  const std::string ioaddr_var_name = "op" + std::to_string(header_.op_index) +
-                                      "_iow_addr" + std::to_string(internal_index_);
+  const std::string ioaddr_var_name =
+      "op" + std::to_string(header_.op_index) + "_iow_addr" + std::to_string(internal_index_);
   auto ioaddr_var = ast_.Var("std::vector<uint64_t>", ioaddr_var_name);
   (void)items.emplace_back(ast_.VarDecl(ioaddr_var, FlattenHostArgs(args_vars)));
-  items.push_back(ChkStatus(ast_.Call("KernelMemcpyAddrAsyncDistribute", {
-      ast_.Str(header_.op_name),
-      ast_.Call("ValueToPtr", {ast_.Call("PtrToValue",
-          {args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(entry_.table_index)).Arrow("dev_addr")}) +
-           ast_.UInt(align_offset_)}),
-      ast_.UInt(dst_max_),
-      ast_.UInt(count_),
-      ast_.StaticCast("rtMemcpyKind_t", static_cast<int64_t>(kind_)),
-      stream_list_[static_cast<int32_t>(header_.stream_id)],
-      0})));
+  items.push_back(ChkStatus(ast_.Call(
+      "KernelMemcpyAddrAsyncDistribute",
+      {ast_.Str(header_.op_name),
+       ast_.Call(
+           "ValueToPtr",
+           {ast_.Call("PtrToValue",
+                      {args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(entry_.table_index)).Arrow("dev_addr")}) +
+            ast_.UInt(align_offset_)}),
+       ast_.UInt(dst_max_), ast_.UInt(count_), ast_.StaticCast("rtMemcpyKind_t", static_cast<int64_t>(kind_)),
+       stream_list_[static_cast<int32_t>(header_.stream_id)], 0})));
   items.push_back(ChkStatus(AclrtMemcpy(
-      ast_.Call("ValueToPtr", {ast_.Call("PtrToValue",
-          {args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(entry_.table_index)).Arrow("host_addr")}) +
+      ast_.Call(
+          "ValueToPtr",
+          {ast_.Call("PtrToValue",
+                     {args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(entry_.table_index)).Arrow("host_addr")}) +
            ast_.UInt(align_offset_)}),
       args_size_,
-      ast_.Call("ValueToPtr", {ast_.Call("PtrToValue",
-          {args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(entry_.table_index)).Arrow("dev_addr")}) +
+      ast_.Call(
+          "ValueToPtr",
+          {ast_.Call("PtrToValue",
+                     {args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(entry_.table_index)).Arrow("dev_addr")}) +
            ast_.UInt(align_offset_)}),
-      args_size_,
-      "ACL_MEMCPY_DEVICE_TO_HOST")));
+      args_size_, "ACL_MEMCPY_DEVICE_TO_HOST")));
   items.push_back(ChkStatus(MemcpyS(
-      ast_.Call("ValueToPtr", {ast_.Call("PtrToValue",
-          {args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(entry_.table_index)).Arrow("host_addr")}) +
+      ast_.Call(
+          "ValueToPtr",
+          {ast_.Call("PtrToValue",
+                     {args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(entry_.table_index)).Arrow("host_addr")}) +
            ast_.UInt(aligned_io_offset_)}),
       args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(entry_.table_index)).Arrow("size") - aligned_io_offset_,
       ioaddr_var.Data(), ioaddr_var.Size() * ast_.Sizeof("uint64_t"))));
@@ -187,18 +188,16 @@ Status MemcpyAddrAsyncTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> 
   return SUCCESS;
 }
 
-Status MemcpyAddrAsyncTaskCodeBuilder::CollectIoAddrVars(std::vector<BodyItem> &items,
-                                                         std::vector<Arg> &args_vars) {
+Status MemcpyAddrAsyncTaskCodeBuilder::CollectIoAddrVars(std::vector<BodyItem> &items, std::vector<Arg> &args_vars) {
   for (const auto &semantic : ordered_arg_values_) {
     if (semantic.kind == AddrValueKind::kInputInstance || semantic.kind == AddrValueKind::kOutputInstance) {
-      auto &base_ptr = (semantic.memory_type == (kSessionScopeMemoryMask | RT_MEMORY_HBM))
-                           ? session_scope_mem_ptr_ : total_dev_mem_ptr_;
-      items.push_back(
-          ast_.VarDecl("auto", semantic.symbol_hint, GetAddr(base_ptr, semantic.mem_offset)));
+      auto &base_ptr = (semantic.memory_type == (kSessionScopeMemoryMask | RT_MEMORY_HBM)) ? session_scope_mem_ptr_
+                                                                                           : total_dev_mem_ptr_;
+      items.push_back(ast_.VarDecl("auto", semantic.symbol_hint, GetAddr(base_ptr, semantic.mem_offset)));
       args_vars.emplace_back(ast_.Var("auto", semantic.symbol_hint));
     } else if (semantic.kind == AddrValueKind::kConstTensor) {
-      items.push_back(ast_.VarDecl("auto", semantic.symbol_hint,
-          Arg(constants_[static_cast<int64_t>(*semantic.const_index)])));
+      items.push_back(
+          ast_.VarDecl("auto", semantic.symbol_hint, Arg(constants_[static_cast<int64_t>(*semantic.const_index)])));
       args_vars.emplace_back(ast_.Var("auto", semantic.symbol_hint));
     } else {
       GELOGE(FAILED, "[OM2] MemcpyAddrAsync unsupported addr kind %d.", static_cast<int32_t>(semantic.kind));
@@ -213,8 +212,10 @@ void MemcpyAddrAsyncTaskCodeBuilder::RenderCustomValueWriteback(std::vector<Body
   for (size_t i = 0; i < arg_descs_.size(); ++i) {
     if (arg_descs_[i].addr_type == AddrType::CUSTOM_VALUE) {
       const uint64_t value = *PtrToPtr<uint8_t, const uint64_t>(arg_descs_[i].reserved);
-      auto host_base_expr = ast_.Call("ValueToPtr", {ast_.Call("PtrToValue",
-          {args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(entry_.table_index)).Arrow("host_addr")}) +
+      auto host_base_expr = ast_.Call(
+          "ValueToPtr",
+          {ast_.Call("PtrToValue",
+                     {args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(entry_.table_index)).Arrow("host_addr")}) +
            ast_.UInt(host_offset)});
       if (arg_descs_[i].ir_idx == static_cast<int32_t>(ArgsFormatWidth::BIT32)) {
         auto target_ptr = ast_.ReinterpretCast("uint32_t *", host_base_expr);
@@ -236,16 +237,11 @@ Status MemcpyAddrAsyncTaskCodeBuilder::RenderDistHelper(std::vector<DeclNode *> 
   auto kind = ast_.Var("const rtMemcpyKind_t", "kind");
   auto stream = ast_.Var("aclrtStream &", "stream");
   auto qos_cfg = ast_.Var("const uint32_t", "qos_cfg");
-  items.push_back(ast_.DefineFunction("KernelMemcpyAddrAsyncDistribute",
-      {op_name, src_addr, dst_max, count, kind, stream, qos_cfg}, "aclError", {
+  items.push_back(ast_.DefineFunction(
+      "KernelMemcpyAddrAsyncDistribute", {op_name, src_addr, dst_max, count, kind, stream, qos_cfg}, "aclError",
+      {
           ChkRt(RtSetTaskTag(op_name)),
-          ChkRt(ast_.Call("rtMemcpyAsyncPtr", {
-              src_addr,
-              dst_max,
-              count,
-              kind,
-              stream,
-              qos_cfg})),
+          ChkRt(ast_.Call("rtMemcpyAsyncPtr", {src_addr, dst_max, count, kind, stream, qos_cfg})),
           ast_.Return("ACL_SUCCESS"),
       }));
   return SUCCESS;

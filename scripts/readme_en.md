@@ -38,10 +38,10 @@ GE toolchain corresponding scripts are under scripts, can execute according to f
 2. Execute `ge env` to automatically download container environment, and login to environment
 
     ```sh
-    $ ./ge.sh env 
+    $ ./ge.sh env
     ```
 
-3. Download and install external libraries required for building 
+3. Download and install external libraries required for building
 
     ```sh
     $ ge update
@@ -136,7 +136,7 @@ Options:
     -p, --password     Config password
     -h, --help
 
-Example: ge config -i=<ip-adress> -u=<username> -p=<password> (Need add escape character \ before special charactor $、#、!)
+Example: ge config -i=<ip-adress> -u=<username> -p=<password> (Need add escape character \ before special character $、#、!)
 ```
 
 Parameter detailed explanation:
@@ -187,7 +187,7 @@ Options:
     -c format of the files changed compared to last commit, default case
     -l format of the files changed in last commit
     -h Print usage
-``` 
+```
 
 Parameter detailed explanation:
 
@@ -250,7 +250,7 @@ Default: Execute increment coverage checking;
 Below command demonstrates how to check all code's increment coverage under ge directory:
 
 ```sh
-$ ge cov -d=ge 
+$ ge cov -d=ge
 ```
 
 ### `ge docs`
@@ -287,7 +287,7 @@ Usage: ge clean [OPTIONS]
 Options:
     -b, --build         Clean build dir
     -d, --docs          Clean generate docs
-    -i, --install       Clean dependenices
+    -i, --install       Clean dependencies
     -a, --all           Clean all
     -h, --help
 ```

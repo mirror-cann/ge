@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -48,10 +48,7 @@ Status InsertCustomGraphOptimizers(std::map<std::string, GraphOptimizerPtr> &gra
 }
 }  // namespace
 OpsKernelManager::OpsKernelManager()
-    : plugin_manager_(),
-      op_tiling_manager_(),
-      graph_optimize_utility_(),
-      init_flag_(false) {}
+    : plugin_manager_(), op_tiling_manager_(), graph_optimize_utility_(), init_flag_(false) {}
 
 OpsKernelManager::~OpsKernelManager() {
   graph_optimizers_.clear();
@@ -96,8 +93,9 @@ Status OpsKernelManager::Initialize(const std::map<std::string, std::string> &in
   GE_CHK_BOOL_RET_STATUS(ret == SUCCESS, ret, "OpsKernelManager::Initialize failed for not find any valid so file.");
   GE_INIT_TRACE_TIMESTAMP_END(LoadPluginManagerSo, "OpsKernelManager::LoadPluginManagerSo");
   initialize_ = options;
-  GE_CHK_BOOL_RET_STATUS((plugin_manager_.InvokeAll<std::map<std::string, std::string> &, Status>(kInitialize,
-      initialize_) == SUCCESS), GE_OPS_GET_NO_VALID_SO, "PluginManager InvokeAll failed.");
+  GE_CHK_BOOL_RET_STATUS(
+      (plugin_manager_.InvokeAll<std::map<std::string, std::string> &, Status>(kInitialize, initialize_) == SUCCESS),
+      GE_OPS_GET_NO_VALID_SO, "PluginManager InvokeAll failed.");
   if (plugin_manager_.InvokeAll<std::map<std::string, OpsKernelInfoStorePtr> &>(kGetOpsKernelInfoStores,
                                                                                 ops_kernel_store_) != SUCCESS) {
     GELOGW("Initialize OpsKernelInfo failed.");
@@ -108,9 +106,9 @@ Status OpsKernelManager::Initialize(const std::map<std::string, std::string> &in
   }
   GE_ASSERT_SUCCESS(InsertCustomOpsKernelInfoStores(ops_kernel_store_));
   GE_ASSERT_SUCCESS(InsertCustomGraphOptimizers(graph_optimizers_));
-  plugin_manager_.
-    OptionalInvokeAll<std::map<std::string, std::set<std::string>> &, std::map<std::string, std::string> &>(
-      kGetCompositeEngines, composite_engines_, composite_engine_kernel_lib_names_);
+  plugin_manager_
+      .OptionalInvokeAll<std::map<std::string, std::set<std::string>> &, std::map<std::string, std::string> &>(
+          kGetCompositeEngines, composite_engines_, composite_engine_kernel_lib_names_);
   plugin_manager_.OptionalInvokeAll<bool &>(kGetFftsEnableFlag, enable_ffts_flag_);
   GE_CHK_STATUS_RET_NOLOG(CheckPluginPtr());
   GE_CHK_STATUS_RET_NOLOG(InitOpKernelInfoStores(options));
@@ -122,7 +120,7 @@ Status OpsKernelManager::Initialize(const std::map<std::string, std::string> &in
 }
 
 void OpsKernelManager::GetExternalEnginePath(std::string &extern_engine_path,
-    const std::map<std::string, std::string>& options) const {
+                                             const std::map<std::string, std::string> &options) const {
   GELOGI("Enter get external engine so path schedule");
   const char_t *path_env = nullptr;
   MM_SYS_GET_ENV(MM_ENV_ASCEND_ENGINE_PATH, path_env);
@@ -173,8 +171,8 @@ Status OpsKernelManager::InitOpKernelInfoStores(const std::map<std::string, std:
     GEEVENT("[GEPERFTRACE] The time cost of InitOpKernelInfoStores::Initialize[%s] is [%lu] micro seconds.",
             (it.first.c_str()), (end - start));
     if (ret != SUCCESS) {
-      GELOGE(GE_OPS_KERNEL_STORE_INIT_FAILED,
-             "[Init][OpKernelLib]OpKernelInfoStore: %s initialize failed.", (it.first).c_str());
+      GELOGE(GE_OPS_KERNEL_STORE_INIT_FAILED, "[Init][OpKernelLib]OpKernelInfoStore: %s initialize failed.",
+             (it.first).c_str());
       REPORT_INNER_ERR_MSG("E19999", "OpKernelInfoStore: %s initialize failed.", (it.first).c_str());
       return GE_OPS_KERNEL_STORE_INIT_FAILED;
     }
@@ -261,8 +259,8 @@ Status OpsKernelManager::InitGraphOptimizers(const std::map<std::string, std::st
     }
     const uint64_t start = ge::GetCurrentTimestamp();
     if (it.second->Initialize(options, &graph_optimize_utility_) != SUCCESS) {
-      GELOGE(GE_OPS_GRAPH_OPTIMIZER_INIT_FAILED,
-             "[Init][GraphOptimizer] GraphOptimizer: %s initialize failed.", (it.first).c_str());
+      GELOGE(GE_OPS_GRAPH_OPTIMIZER_INIT_FAILED, "[Init][GraphOptimizer] GraphOptimizer: %s initialize failed.",
+             (it.first).c_str());
       REPORT_INNER_ERR_MSG("E19999", "InitGraphOptimizers failed. %s initialize failed.", (it.first).c_str());
       return GE_OPS_GRAPH_OPTIMIZER_INIT_FAILED;
     }

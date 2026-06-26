@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,25 +31,21 @@ const uint32_t kStartAdd = 1;
 const uint32_t kDoneAdded = 2;
 
 namespace fe_env {
-FeRunningEnv::FeRunningEnv() :
-    ops_kernel_info_(const_cast<std::map<std::string, std::vector<ge::OpInfo>>&>(
-        ge::OpsKernelManager::GetInstance().GetAllOpsKernelInfo())),
-    ops_kernel_info_stores_(const_cast<std::map<std::string, OpsKernelInfoStorePtr>&>(
-        ge::OpsKernelManager::GetInstance().GetAllOpsKernelInfoStores())),
-    ops_kernel_optimizers_(const_cast<std::map<std::string, GraphOptimizerPtr>&>(
-        ge::OpsKernelManager::GetInstance().GetAllGraphOptimizerObjs())),
-    atomic_first_optimizers_by_priority_(const_cast<std::vector<std::pair<std::string, GraphOptimizerPtr>>&>(
-        ge::OpsKernelManager::GetInstance().GetAllGraphOptimizerObjsByPriority())),
-    composite_engines_(const_cast<std::map<std::string, std::set<std::string>>&>(
-        ge::OpsKernelManager::GetInstance().GetCompositeEngines())),
-    composite_engine_kernel_lib_names_(const_cast<std::map<std::string, std::string>&>(
-        ge::OpsKernelManager::GetInstance().GetCompositeEngineKernelLibNames())) {
-
-}
+FeRunningEnv::FeRunningEnv()
+    : ops_kernel_info_(const_cast<std::map<std::string, std::vector<ge::OpInfo>> &>(
+          ge::OpsKernelManager::GetInstance().GetAllOpsKernelInfo())),
+      ops_kernel_info_stores_(const_cast<std::map<std::string, OpsKernelInfoStorePtr> &>(
+          ge::OpsKernelManager::GetInstance().GetAllOpsKernelInfoStores())),
+      ops_kernel_optimizers_(const_cast<std::map<std::string, GraphOptimizerPtr> &>(
+          ge::OpsKernelManager::GetInstance().GetAllGraphOptimizerObjs())),
+      atomic_first_optimizers_by_priority_(const_cast<std::vector<std::pair<std::string, GraphOptimizerPtr>> &>(
+          ge::OpsKernelManager::GetInstance().GetAllGraphOptimizerObjsByPriority())),
+      composite_engines_(const_cast<std::map<std::string, std::set<std::string>> &>(
+          ge::OpsKernelManager::GetInstance().GetCompositeEngines())),
+      composite_engine_kernel_lib_names_(const_cast<std::map<std::string, std::string> &>(
+          ge::OpsKernelManager::GetInstance().GetCompositeEngineKernelLibNames())) {}
 std::map<std::string, std::vector<domi::TaskDef>> FeRunningEnv::tasks_map;
-FeRunningEnv::~FeRunningEnv() {
-
-}
+FeRunningEnv::~FeRunningEnv() {}
 
 FeRunningEnv &FeRunningEnv::Instance() {
   static FeRunningEnv fe_env;
@@ -69,12 +65,12 @@ string FeRunningEnv::GetNetworkPath(const string &network_name) {
  * */
 std::map<string, void(*)> kDlsymFuncLibWsl = {
     // {"PreBuildTbeOp", (void*)te::PreBuildTbeOp},
-    {"TbeFinalize", (void*)te::TbeFinalize},
-    {"TbeInitialize", (void*)te::TbeInitialize},
-    {"TeFusion", (void*)te::TeFusion},
-    {"TeFusionV", (void*)te::TeFusionV},
+    {"TbeFinalize", (void *)te::TbeFinalize},
+    {"TbeInitialize", (void *)te::TbeInitialize},
+    {"TeFusion", (void *)te::TeFusion},
+    {"TeFusionV", (void *)te::TeFusionV},
     // {"FuzzBuildTbeOp", (void*)te::FuzzBuildTbeOp},
-    {"WaitAllFinished", (void*)te::WaitAllFinished},
+    {"WaitAllFinished", (void *)te::WaitAllFinished},
 };
 
 class MockMmpa : public fe::MmpaStubApi {
@@ -118,8 +114,9 @@ class MockMmpa : public fe::MmpaStubApi {
     info->dli_fname = plugin_path.c_str();
     return 1;
   }
-  private:
-    int32_t count = 0;
+
+ private:
+  int32_t count = 0;
 };
 
 void FeRunningEnv::InitBasicOptions(const std::map<string, string> &options) {
@@ -213,11 +210,11 @@ void FeRunningEnv::InjectFFTS() {
   // replace fftsplus_opskernel_builder to mock_fftsplus_opskernel_builder
   // to write file to disk
   std::shared_ptr<ge::OpsKernelBuilder> fftsplus_ops_kernel_builder_ptr =
-                                        std::make_shared<ffts::MockFFTSPlusOpsKernelBuilder>();
+      std::make_shared<ffts::MockFFTSPlusOpsKernelBuilder>();
   ge::OpsKernelBuilderRegistry::GetInstance().Unregister("ffts_plus");
   ge::OpsKernelBuilderRegistry::GetInstance().Register("ffts_plus", fftsplus_ops_kernel_builder_ptr);
   if (fftsplus_ops_kernel_builder_ptr->Initialize(options_) != ffts::SUCCESS) {
-    FE_LOGD("[FFTS_ST] MockFFTSPlusOpsKernelBuilder Initliaze failed");
+    FE_LOGD("[FFTS_ST] MockFFTSPlusOpsKernelBuilder Initialize failed");
     fftsplus_ops_kernel_builder_ptr->Finalize();
     return;
   }
@@ -233,7 +230,7 @@ void FeRunningEnv::RenameLibfe() {
   string libfe_path = ascend_path_ + "/compiler/lib64/plugin/opskernel/libfe.so";
   string new_libfe_path = ascend_path_ + "/compiler/lib64/plugin/opskernel/bk.libfe.so";
   if (std::rename(libfe_path.c_str(), new_libfe_path.c_str()) < 0) {
-    std::cout<< strerror(errno) << std::endl;
+    std::cout << strerror(errno) << std::endl;
   }
 }
 
@@ -245,7 +242,7 @@ void FeRunningEnv::RenameLibFFTS() {
   string libfe_path = ascend_path_ + "/compiler/lib64/plugin/opskernel/libffts.so";
   string new_libfe_path = ascend_path_ + "/compiler/lib64/plugin/opskernel/bk.libffts.so";
   if (std::rename(libfe_path.c_str(), new_libfe_path.c_str()) < 0) {
-    std::cout<< strerror(errno) << std::endl;
+    std::cout << strerror(errno) << std::endl;
   }
 }
 
@@ -256,7 +253,7 @@ void FeRunningEnv::ReStoreLibfe() {
   string libfe_path = ascend_path_ + "/compiler/lib64/plugin/opskernel/libfe.so";
   string new_libfe_path = ascend_path_ + "/compiler/lib64/plugin/opskernel/bk.libfe.so";
   if (std::rename(new_libfe_path.c_str(), libfe_path.c_str()) < 0) {
-    std::cout<< strerror(errno) << std::endl;
+    std::cout << strerror(errno) << std::endl;
   }
 }
 
@@ -268,10 +265,10 @@ void FeRunningEnv::ReStoreLibfeCfg() {
   string libfecfg_path = ascend_path_ + "/compiler/lib64/plugin/opskernel/fe_config/fe.ini";
   string bk_libfecfg_path = ascend_path_ + "/compiler/lib64/plugin/opskernel/fe_config/bk.fe.ini";
   if (std::remove(libfecfg_path.c_str()) < 0) {
-    std::cout<< strerror(errno) << std::endl;
+    std::cout << strerror(errno) << std::endl;
   }
   if (std::rename(bk_libfecfg_path.c_str(), libfecfg_path.c_str()) < 0) {
-    std::cout<< strerror(errno) << std::endl;
+    std::cout << strerror(errno) << std::endl;
   }
 }
 
@@ -282,7 +279,7 @@ void FeRunningEnv::ReStoreLibFFTS() {
   string libfe_path = ascend_path_ + "/compiler/lib64/plugin/opskernel/libffts.so";
   string new_libfe_path = ascend_path_ + "/compiler/lib64/plugin/opskernel/bk.libffts.so";
   if (std::rename(new_libfe_path.c_str(), libfe_path.c_str()) < 0) {
-    std::cout<< strerror(errno) << std::endl;
+    std::cout << strerror(errno) << std::endl;
   }
 }
 
@@ -373,7 +370,6 @@ void UpdateTensors(ge::NodePtr &node, bool need_update_name) {
     standard_op_desc = ge::OpDescUtils::GetOpDescFromOperator(standard_op);
   }
 
-
   auto op = node->GetOpDesc();
   for (size_t i = 0; i < op->GetAllInputsSize(); i++) {
     auto input = op->MutableInputDesc(i);
@@ -406,8 +402,7 @@ void UpdateTensors(ge::NodePtr &node, bool need_update_name) {
   }
 }
 
-void FillConst(const ge::NodePtr &node, const size_t &shape_size,
-               unique_ptr<uint8_t[]> &value) {
+void FillConst(const ge::NodePtr &node, const size_t &shape_size, unique_ptr<uint8_t[]> &value) {
   auto out_nodes = node->GetOutDataNodes();
   if (out_nodes.empty()) {
     return;
@@ -424,7 +419,7 @@ void FillConst(const ge::NodePtr &node, const size_t &shape_size,
       auto output_dims = output_desc->GetShape().GetDims();
       for (size_t i = 0; i < shape_size; i++) {
         FE_LOGD("node %s output dims %ld", out_node->GetName().c_str(), output_dims[i]);
-        *(((int32_t*)(value.get())) + i) = (int32_t)output_dims[i];
+        *(((int32_t *)(value.get())) + i) = (int32_t)output_dims[i];
       }
     }
   }
@@ -459,7 +454,7 @@ std::vector<ge::Tensor> CreateInputTensors(const ge::Graph &graph) {
       const auto &tensor_desc = tensor->GetTensorDesc();
       size_t shape_size = tensor_desc.GetShape().GetShapeSize();
       auto size = shape_size * ge::GetSizeByDataType(tensor_desc.GetDataType());
-      unique_ptr<uint8_t[]> value(new(std::nothrow) uint8_t[size]);
+      unique_ptr<uint8_t[]> value(new (std::nothrow) uint8_t[size]);
       (void)memset_s(value.get(), size, 1, size);
       FillConst(node, shape_size, value);
 
@@ -487,7 +482,7 @@ fe::Status FeRunningEnv::Run(ge::ComputeGraphPtr &compute_graph, std::map<string
   FE_LOGD("[FE_ST]Start to add graph %s.", compute_graph->GetName().c_str());
   /* 如果在执行AddGraph时，遇到了Segmentation fault，先排查以下几：
    * 1. 环境上使用的ge_compiler和ge_common的so是否为最新 */
-  //auto ret = AddGraph(compute_graph);
+  // auto ret = AddGraph(compute_graph);
   session_options[ge::RUN_FLAG] = "0";
   ge::Session session(session_options);
 
@@ -504,11 +499,11 @@ fe::Status FeRunningEnv::Run(ge::ComputeGraphPtr &compute_graph, std::map<string
   if (session.BuildGraph(graph_id, inputs) != ge::SUCCESS) {
     return fe::FAILED;
   }
-  //ret = Finalize();
+  // ret = Finalize();
   return session.RemoveGraph(graph_id);
 }
 
 void FeRunningEnv::Clear() {
   ge::GetThreadLocalContext().global_options_.clear();
 }
-}
+}  // namespace fe_env

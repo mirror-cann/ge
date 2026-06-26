@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,6 +24,7 @@ class ProxyDynamicModelExecutor : public DynamicModelExecutor {
   Status ClearModel(const int32_t clear_type) override;
   Status ExceptionNotify(uint32_t type, uint64_t trans_id) override;
   uint32_t GetRuntimeModelId() const;
+
  protected:
   Status LoadWithAicpuSd(const ComputeGraphPtr &root_graph, const ModelQueueParam &model_queue_param) override;
   Status UnloadFromAicpuSd() override;
@@ -37,14 +38,13 @@ class ProxyDynamicModelExecutor : public DynamicModelExecutor {
   Status StartDispatcherThread();
   virtual void Dispatcher();
   Status PrepareMsgMbuf(rtMbufPtr_t &req_msg_mbuf, rtMbufPtr_t &resp_msg_mbuf) const;
-  Status DoDequeue(const int32_t device_id, const uint32_t queue_id,
-                   rtMbufPtr_t &mbuf, const int32_t timeout) const;
-  virtual Status DequeueMbuf(const int32_t device_id, const uint32_t queue_id,
-                             rtMbufPtr_t &mbuf, const int32_t timeout) const;
-  Status EnqueueMbuf(const int32_t device_id, const uint32_t queue_id,
-                     rtMbufPtr_t mbuf, const int32_t timeout) const;
+  Status DoDequeue(const int32_t device_id, const uint32_t queue_id, rtMbufPtr_t &mbuf, const int32_t timeout) const;
+  virtual Status DequeueMbuf(const int32_t device_id, const uint32_t queue_id, rtMbufPtr_t &mbuf,
+                             const int32_t timeout) const;
+  Status EnqueueMbuf(const int32_t device_id, const uint32_t queue_id, rtMbufPtr_t mbuf, const int32_t timeout) const;
   virtual Status OnInputsReady(rtMbufPtr_t req_msg_mbuf, rtMbufPtr_t resp_msg_mbuf);
   Status OnModelExecuted(const Status status, rtMbufPtr_t req_msg_mbuf, rtMbufPtr_t resp_msg_mbuf) const;
+
  private:
   Status SetNpuModelLoaderOutputInfo();
 
@@ -59,5 +59,5 @@ class ProxyDynamicModelExecutor : public DynamicModelExecutor {
   uint32_t runtime_model_id_ = 0U;
   std::string model_name_;
 };
-}
+}  // namespace ge
 #endif  // AIR_RUNTIME_DEPLOY_EXECUTOR_PROXY_DYNAMIC_MODEL_EXECUTOR_H_

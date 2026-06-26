@@ -3,10 +3,10 @@
 # -------------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
@@ -17,13 +17,16 @@ import ctypes
 import threading
 import weakref
 from typing import List, Optional
-from ge._capi._allocator_callback_adapter import create_allocator_c_callbacks, rollback_allocator_c_callbacks
+
+from ge._capi._allocator_callback_adapter import (
+    create_allocator_c_callbacks,
+    rollback_allocator_c_callbacks,
+)
 from ge._capi.pysession_wrapper import session_lib
-from ge.error import raise_ge_error
 from ge.allocator import Allocator
+from ge.error import raise_ge_error
 from ge.graph.graph import Graph
 from ge.graph.tensor import Tensor
-
 
 _default_allocator_lock = threading.RLock()
 # stream -> weakref(session) that currently holds the default allocator for that stream.
@@ -45,18 +48,18 @@ def _is_default_allocator_owner(session, stream: int) -> bool:
 
 def _str_list_to_c_array(python_list: list):
     """
-        Convert python list to c array
+    Convert python list to c array
 
-        Parameters:
-            python_list: python list.
+    Parameters:
+        python_list: python list.
 
-        Returns:
-            c_array: c array_ptr.
+    Returns:
+        c_array: c array_ptr.
     """
     size = len(python_list)
     c_array = (ctypes.c_char_p * size)()
     for i, item in enumerate(python_list):
-        c_array[i] = item.encode('utf-8')
+        c_array[i] = item.encode("utf-8")
     return c_array
 
 
@@ -87,8 +90,9 @@ class Session:
             c_array_value = _str_list_to_c_array(values)
             c_array_key_ptr = ctypes.cast(c_array_key, ctypes.POINTER(ctypes.c_char_p))
             c_value_key_ptr = ctypes.cast(c_array_value, ctypes.POINTER(ctypes.c_char_p))
-            self._handle = session_lib.GeApiWrapper_Session_CreateSessionWithOptions(c_array_key_ptr, c_value_key_ptr,
-                                                                                     len(keys))
+            self._handle = session_lib.GeApiWrapper_Session_CreateSessionWithOptions(
+                c_array_key_ptr, c_value_key_ptr, len(keys)
+            )
         else:
             raise TypeError("option must be a dictionary")
         if not self._handle:
@@ -125,9 +129,13 @@ class Session:
         cb, prevent_gc_key, c_on_allocator_destroy = create_allocator_c_callbacks(allocator)
         with _default_allocator_lock:
             ret = session_lib.GeApiWrapper_Session_RegisterExternalAllocator(
-                self._handle, ctypes.c_void_p(stream),
-                cb.c_malloc, cb.c_free, cb.c_get_addr,
-                c_on_allocator_destroy, ctypes.c_void_p(prevent_gc_key)
+                self._handle,
+                ctypes.c_void_p(stream),
+                cb.c_malloc,
+                cb.c_free,
+                cb.c_get_addr,
+                c_on_allocator_destroy,
+                ctypes.c_void_p(prevent_gc_key),
             )
             if ret == 0:
                 self._default_allocator_streams.discard(stream)
@@ -145,8 +153,7 @@ class Session:
         if not isinstance(stream, int):
             raise TypeError("stream must be an integer")
         with _default_allocator_lock:
-            ret = session_lib.GeApiWrapper_Session_UnregisterExternalAllocator(
-                self._handle, ctypes.c_void_p(stream))
+            ret = session_lib.GeApiWrapper_Session_UnregisterExternalAllocator(self._handle, ctypes.c_void_p(stream))
             if ret == 0:
                 self._default_allocator_streams.discard(stream)
                 _stream_to_default_allocator_owner.pop(stream, None)
@@ -169,9 +176,14 @@ class Session:
             c_array_value = _str_list_to_c_array(values)
             c_array_key_ptr = ctypes.cast(c_array_key, ctypes.POINTER(ctypes.c_char_p))
             c_value_key_ptr = ctypes.cast(c_array_value, ctypes.POINTER(ctypes.c_char_p))
-            ret = session_lib.GeApiWrapper_Session_AddGraphWithOptions(self._handle, ctypes.c_uint32(graph_id),
-                                                                       add_graph._handle,
-                                                                       c_array_key_ptr, c_value_key_ptr, len(keys))
+            ret = session_lib.GeApiWrapper_Session_AddGraphWithOptions(
+                self._handle,
+                ctypes.c_uint32(graph_id),
+                add_graph._handle,
+                c_array_key_ptr,
+                c_value_key_ptr,
+                len(keys),
+            )
         if ret != 0:
             raise_ge_error("AddGraph", ret, graph_id=graph_id)
         return ret
@@ -193,8 +205,14 @@ class Session:
         arr = _tensor_list_to_c_array(inputs)
         tensor_num = ctypes.c_size_t()
         output_tensors = ctypes.POINTER(ctypes.c_void_p)()
-        ret = session_lib.GeApiWrapper_Session_RunGraph(self._handle, ctypes.c_uint32(graph_id), arr, len(inputs),
-                                                        ctypes.byref(output_tensors), ctypes.byref(tensor_num))
+        ret = session_lib.GeApiWrapper_Session_RunGraph(
+            self._handle,
+            ctypes.c_uint32(graph_id),
+            arr,
+            len(inputs),
+            ctypes.byref(output_tensors),
+            ctypes.byref(tensor_num),
+        )
         try:
             if ret != 0:
                 raise_ge_error("RunGraph", ret, graph_id=graph_id)
@@ -232,12 +250,22 @@ class Session:
         tensor_num = ctypes.c_size_t()
         output_tensors = ctypes.POINTER(ctypes.c_void_p)()
         ret = session_lib.GeApiWrapper_Session_RunGraphWithStreamAsync(
-            self._handle, ctypes.c_uint32(graph_id), ctypes.c_void_p(stream), arr, len(inputs),
-            ctypes.byref(output_tensors), ctypes.byref(tensor_num)
+            self._handle,
+            ctypes.c_uint32(graph_id),
+            ctypes.c_void_p(stream),
+            arr,
+            len(inputs),
+            ctypes.byref(output_tensors),
+            ctypes.byref(tensor_num),
         )
         try:
             if ret != 0:
-                raise_ge_error("RunGraphWithStreamAsync", ret, graph_id=graph_id, stream=f"0x{stream:x}")
+                raise_ge_error(
+                    "RunGraphWithStreamAsync",
+                    ret,
+                    graph_id=graph_id,
+                    stream=f"0x{stream:x}",
+                )
             return [Tensor._create_from(output_tensors[i]) for i in range(tensor_num.value)]
         finally:
             if output_tensors:
@@ -249,8 +277,7 @@ class Session:
             has_external = session_lib.GeApiWrapper_HasExternalAllocator(ctypes.c_void_p(stream))
             if stream in self._default_allocator_streams or has_external:
                 return
-            ret = session_lib.GeApiWrapper_Session_RegisterDefaultAllocator(
-                self._handle, ctypes.c_void_p(stream))
+            ret = session_lib.GeApiWrapper_Session_RegisterDefaultAllocator(self._handle, ctypes.c_void_p(stream))
             if ret == 0:
                 self._default_allocator_streams.add(stream)
                 _stream_to_default_allocator_owner[stream] = weakref.ref(self)

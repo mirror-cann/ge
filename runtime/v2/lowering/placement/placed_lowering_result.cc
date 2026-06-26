@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -95,7 +95,7 @@ ge::graphStatus DeviceHbmToHost(const ge::Node *node, LoweringGlobalData &global
   const int64_t src_logic_stream_id = op_desc->GetStreamId();
   auto src_stream = global_data.GetStreamById(src_logic_stream_id);
   const auto sync_stream_key = "SyncStream_" + node->GetName();
-  auto builder = [&src_stream]()->bg::ValueHolderPtr {
+  auto builder = [&src_stream]() -> bg::ValueHolderPtr {
     return bg::ValueHolder::CreateVoid<bg::ValueHolder>("SyncStream", {src_stream});
   };
   auto sync_stream_holder = global_data.GetOrCreateUniqueValueHolder(sync_stream_key, builder);
@@ -145,7 +145,6 @@ bool IsNodeRefedByRefNode(const ge::Node *node) {
   return false;
 }
 
-
 ge::graphStatus MakeSureAtHostDDR(const ge::Node *node, LoweringGlobalData &global_data, ge::DataType data_type,
                                   const OutputLowerResult &src, int64_t dst_logic_stream_id, OutputLowerResult &dst) {
   const auto op_desc = node->GetOpDescBarePtr();
@@ -166,11 +165,11 @@ ge::graphStatus MakeSureAtHostDDR(const ge::Node *node, LoweringGlobalData &glob
 
   bg::DevMemValueHolderPtr dst_address;
   if (is_need_sync) {
-    dst_address = bg::DevMemValueHolder::CreateSingleDataOutput("MakeSureTensorAtHost",
-                                                                copy_inputs, src_logic_stream_id);
+    dst_address =
+        bg::DevMemValueHolder::CreateSingleDataOutput("MakeSureTensorAtHost", copy_inputs, src_logic_stream_id);
   } else {
-    dst_address = bg::DevMemValueHolder::CreateSingleDataOutput("MakeSureTensorAtHostWithoutSync",
-                                                                copy_inputs, src_logic_stream_id);
+    dst_address = bg::DevMemValueHolder::CreateSingleDataOutput("MakeSureTensorAtHostWithoutSync", copy_inputs,
+                                                                src_logic_stream_id);
   }
 
   for (const auto &src_ordered_holder : src.order_holders) {
@@ -187,7 +186,7 @@ ge::graphStatus MakeSureAtHostDDR(const ge::Node *node, LoweringGlobalData &glob
 }
 
 ge::graphStatus MakeSureAtDevice(const ge::Node *node, LoweringGlobalData &global_data, ge::DataType data_type,
-    const OutputLowerResult &src, bg::ValueHolderPtr &allocator, OutputLowerResult &dst) {
+                                 const OutputLowerResult &src, bg::ValueHolderPtr &allocator, OutputLowerResult &dst) {
   auto dt_holder = bg::ValueHolder::CreateConst(&data_type, sizeof(data_type));
   auto tensor_size = GetTensorSize(global_data, data_type, src, dt_holder);
   std::vector<bg::ValueHolderPtr> copy_inputs{global_data.GetStream(), allocator};
@@ -228,21 +227,21 @@ ge::graphStatus MakeSureAtDeviceP2p(const ge::Node *node, LoweringGlobalData &gl
   return ge::GRAPH_SUCCESS;
 }
 
-using OutputGenerator = std::function<ge::graphStatus(
-    const ge::Node *node, LoweringGlobalData &global_data, ge::DataType data_type,
-    const OutputLowerResult &src, int64_t dst_logic_stream_id, OutputLowerResult &dst)>;
+using OutputGenerator =
+    std::function<ge::graphStatus(const ge::Node *node, LoweringGlobalData &global_data, ge::DataType data_type,
+                                  const OutputLowerResult &src, int64_t dst_logic_stream_id, OutputLowerResult &dst)>;
 // 多预留一个kTensorPlacementEnd的位置，用于保存“不知道Tensor在哪”的场景
 const auto kOutputDataCopyer = TableDriven2<static_cast<size_t>(kTensorPlacementEnd) + 1,
-    static_cast<size_t>(kTensorPlacementEnd) + 1, OutputGenerator>(nullptr)
-    .Add(kTensorPlacementEnd, kOnDeviceHbm, MakeSureAtDeviceHbm)
-    .Add(kTensorPlacementEnd, kOnDeviceP2p, MakeSureAtDeviceP2p)
-    .Add(kTensorPlacementEnd, kOnHost, MakeSureAtHostDDR)
-    .Add(kOnHost, kOnDeviceHbm, HostToDeviceHbm)
-    .Add(kOnHost, kOnDeviceP2p, HostToDeviceP2p)
-    .Add(kOnDeviceHbm, kOnHost, DeviceHbmToHost)
-    .Add(kOnDeviceHbm, kOnDeviceP2p, MakeSureAtDeviceP2p)
-    .Add(kOnDeviceP2p, kOnHost, DeviceHbmToHost)
-    .Add(kOnDeviceP2p, kOnDeviceHbm, MakeSureAtDeviceHbm);
+                                            static_cast<size_t>(kTensorPlacementEnd) + 1, OutputGenerator>(nullptr)
+                                   .Add(kTensorPlacementEnd, kOnDeviceHbm, MakeSureAtDeviceHbm)
+                                   .Add(kTensorPlacementEnd, kOnDeviceP2p, MakeSureAtDeviceP2p)
+                                   .Add(kTensorPlacementEnd, kOnHost, MakeSureAtHostDDR)
+                                   .Add(kOnHost, kOnDeviceHbm, HostToDeviceHbm)
+                                   .Add(kOnHost, kOnDeviceP2p, HostToDeviceP2p)
+                                   .Add(kOnDeviceHbm, kOnHost, DeviceHbmToHost)
+                                   .Add(kOnDeviceHbm, kOnDeviceP2p, MakeSureAtDeviceP2p)
+                                   .Add(kOnDeviceP2p, kOnHost, DeviceHbmToHost)
+                                   .Add(kOnDeviceP2p, kOnDeviceHbm, MakeSureAtDeviceHbm);
 
 bool ShouldGenOnInit(const bg::ValueHolderPtr &shape_on_init, const bg::ValueHolderPtr &addr_on_init,
                      const std::vector<bg::ValueHolderPtr> &ordered_holders,
@@ -305,8 +304,8 @@ const LowerResult *PlacedLoweringResult::GetResult() const {
 const OutputLowerResult *PlacedLoweringResult::GetOutputTensorResult(LoweringGlobalData &global_data,
                                                                      int32_t output_index,
                                                                      TargetAddrDesc target_addr_desc) {
-  bool is_data_dependency = TensorPlacementUtils::IsOnHostNotFollowing(
-      static_cast<TensorPlacement>(target_addr_desc.address_placement));
+  bool is_data_dependency =
+      TensorPlacementUtils::IsOnHostNotFollowing(static_cast<TensorPlacement>(target_addr_desc.address_placement));
   auto result = GetOutputResult(global_data, output_index, target_addr_desc, is_data_dependency);
   GE_ASSERT_NOTNULL(result);
   if (is_data_dependency) {
@@ -378,14 +377,14 @@ const OutputLowerResult *PlacedLoweringResult::CreateNoDataDependentResult(Lower
     generator = kOutputDataCopyer.Find(result->GetPlacement(), target_addr_desc.address_placement);
   }
   GE_ASSERT_NOTNULL(generator);
-  GELOGI("Create copy nodes from placement %d to %d for the %d output of node %s",
-         result->GetPlacement(), target_addr_desc.address_placement, output_index, node_->GetNamePtr());
+  GELOGI("Create copy nodes from placement %d to %d for the %d output of node %s", result->GetPlacement(),
+         target_addr_desc.address_placement, output_index, node_->GetNamePtr());
 
   auto shape_holder_on_init = HolderOnInit(output_result->shape);
   auto address_holder_on_init = HolderOnInit(output_result->address);
   std::vector<bg::ValueHolderPtr> order_holders_on_init;
-  if (ShouldGenOnInit(shape_holder_on_init, address_holder_on_init,
-                      output_result->order_holders, order_holders_on_init)) {
+  if (ShouldGenOnInit(shape_holder_on_init, address_holder_on_init, output_result->order_holders,
+                      order_holders_on_init)) {
     OutputLowerResult result_from_init = {order_holders_on_init, shape_holder_on_init,
                                           std::dynamic_pointer_cast<bg::DevMemValueHolder>(address_holder_on_init)};
     auto outputs = bg::FrameSelector::OnInitRoot(
@@ -444,8 +443,7 @@ const OutputLowerResult *PlacedLoweringResult::CreateDataDependentResult(int32_t
 }
 
 const OutputLowerResult *PlacedLoweringResult::CreateRawTensorResult(const OutputLowerResult &result,
-                                                                     int32_t output_index,
-                                                                     int32_t address_placement) {
+                                                                     int32_t output_index, int32_t address_placement) {
   auto &results = outputs_results_[output_index];
   constexpr int32_t raw_tensor_index = 2;
   auto tensor_result = results.FindPointer(address_placement, raw_tensor_index);
@@ -456,9 +454,9 @@ const OutputLowerResult *PlacedLoweringResult::CreateRawTensorResult(const Outpu
   tensor_result->address = result.address;
   auto guarder = result.address->GetGuarder();
   if (guarder != nullptr) {
-    tensor_result->shape = bg::BuildRefTensor(node_->shared_from_this(), output_index,
-                                              static_cast<TensorPlacement>(address_placement),
-                                              result_.out_shapes[output_index], result.address);
+    tensor_result->shape =
+        bg::BuildRefTensor(node_->shared_from_this(), output_index, static_cast<TensorPlacement>(address_placement),
+                           result_.out_shapes[output_index], result.address);
   } else {
     tensor_result->shape = bg::BuildTensorWithoutGuarder(node_->shared_from_this(), output_index,
                                                          static_cast<TensorPlacement>(address_placement),

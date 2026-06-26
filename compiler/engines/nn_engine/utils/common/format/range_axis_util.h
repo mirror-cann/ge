@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,71 +26,71 @@ namespace fe {
 /* The first parameter is old shape's dimension,
  * second is c0 and third is axis value. */
 using GetRangeAxisValueInfoByFormat =
-    std::function<Status(const vector<std::pair<int64_t, int64_t>>&, const vector<int64_t>&, const uint32_t&,
-                         vector<std::pair<int64_t, int64_t>>&)>;
+    std::function<Status(const vector<std::pair<int64_t, int64_t>> &, const vector<int64_t> &, const uint32_t &,
+                         vector<std::pair<int64_t, int64_t>> &)>;
 
 using GetRangeAxisValueInfoByFormatPtr = std::shared_ptr<GetRangeAxisValueInfoByFormat>;
 
 class RangeAxisUtil {
  public:
-  static Status GetRangeAxisValueByOriginFormat(const vector<std::pair<int64_t, int64_t>>& original_range_vec,
-                                                const ge::Format& format, const vector<int64_t>& dim_vec,
-                                                const uint32_t& c0, vector<std::pair<int64_t, int64_t>>& range_value);
+  static Status GetRangeAxisValueByOriginFormat(const vector<std::pair<int64_t, int64_t>> &original_range_vec,
+                                                const ge::Format &format, const vector<int64_t> &dim_vec,
+                                                const uint32_t &c0, vector<std::pair<int64_t, int64_t>> &range_value);
 
-  static bool HasAxisValueFunc(const ge::Format& format);
+  static bool HasAxisValueFunc(const ge::Format &format);
 
  private:
-  static Status GetRangeAxisValueByNCHW(const vector<std::pair<int64_t, int64_t>>& original_range_vec,
-                                        const vector<int64_t>& original_dim_vec, const uint32_t& c0,
-                                        vector<std::pair<int64_t, int64_t>>& range_value);
+  static Status GetRangeAxisValueByNCHW(const vector<std::pair<int64_t, int64_t>> &original_range_vec,
+                                        const vector<int64_t> &original_dim_vec, const uint32_t &c0,
+                                        vector<std::pair<int64_t, int64_t>> &range_value);
 
-  static Status GetRangeAxisValueByNHWC(const vector<std::pair<int64_t, int64_t>>& original_range_vec,
-                                        const vector<int64_t>& original_dim_vec, const uint32_t& c0,
-                                        vector<std::pair<int64_t, int64_t>>& range_value);
+  static Status GetRangeAxisValueByNHWC(const vector<std::pair<int64_t, int64_t>> &original_range_vec,
+                                        const vector<int64_t> &original_dim_vec, const uint32_t &c0,
+                                        vector<std::pair<int64_t, int64_t>> &range_value);
 
-  static Status GetRangeAxisValueByNC1HWC0(const vector<std::pair<int64_t, int64_t>>& original_range_vec,
-                                           const vector<int64_t>& original_dim_vec, const uint32_t& c0,
-                                           vector<std::pair<int64_t, int64_t>>& range_value);
+  static Status GetRangeAxisValueByNC1HWC0(const vector<std::pair<int64_t, int64_t>> &original_range_vec,
+                                           const vector<int64_t> &original_dim_vec, const uint32_t &c0,
+                                           vector<std::pair<int64_t, int64_t>> &range_value);
 
-  static Status GetRangeAxisValueByFz(const vector<std::pair<int64_t, int64_t>>& original_range_vec,
-                                      const vector<int64_t>& original_dim_vec, const uint32_t& c0,
-                                      vector<std::pair<int64_t, int64_t>>& range_value);
+  static Status GetRangeAxisValueByFz(const vector<std::pair<int64_t, int64_t>> &original_range_vec,
+                                      const vector<int64_t> &original_dim_vec, const uint32_t &c0,
+                                      vector<std::pair<int64_t, int64_t>> &range_value);
 
-  static Status GetRangeAxisValueByHWCN(const vector<std::pair<int64_t, int64_t>>& original_range_vec,
-                                        const vector<int64_t>& original_dim_vec, const uint32_t& c0,
-                                        vector<std::pair<int64_t, int64_t>>& range_value);
+  static Status GetRangeAxisValueByHWCN(const vector<std::pair<int64_t, int64_t>> &original_range_vec,
+                                        const vector<int64_t> &original_dim_vec, const uint32_t &c0,
+                                        vector<std::pair<int64_t, int64_t>> &range_value);
 
-  static Status GetRangeAxisValueByCHWN(const vector<std::pair<int64_t, int64_t>>& original_range_vec,
-                                        const vector<int64_t>& original_dim_vec, const uint32_t& c0,
-                                        vector<std::pair<int64_t, int64_t>>& range_value);
+  static Status GetRangeAxisValueByCHWN(const vector<std::pair<int64_t, int64_t>> &original_range_vec,
+                                        const vector<int64_t> &original_dim_vec, const uint32_t &c0,
+                                        vector<std::pair<int64_t, int64_t>> &range_value);
 
-  static Status GetRangeAxisValueByND(const vector<std::pair<int64_t, int64_t>>& original_range_vec,
-                                      const vector<int64_t>& original_dim_vec, const uint32_t& c0,
-                                      vector<std::pair<int64_t, int64_t>>& range_value);
+  static Status GetRangeAxisValueByND(const vector<std::pair<int64_t, int64_t>> &original_range_vec,
+                                      const vector<int64_t> &original_dim_vec, const uint32_t &c0,
+                                      vector<std::pair<int64_t, int64_t>> &range_value);
 
-  static Status GetRangeAxisValueByNDHWC(const vector<std::pair<int64_t, int64_t>>& original_range_vec,
-                                         const vector<int64_t>& original_dim_vec, const uint32_t& c0,
-                                         vector<std::pair<int64_t, int64_t>>& range_value);
+  static Status GetRangeAxisValueByNDHWC(const vector<std::pair<int64_t, int64_t>> &original_range_vec,
+                                         const vector<int64_t> &original_dim_vec, const uint32_t &c0,
+                                         vector<std::pair<int64_t, int64_t>> &range_value);
 
-  static Status GetRangeAxisValueByNCDHW(const vector<std::pair<int64_t, int64_t>>& original_range_vec,
-                                         const vector<int64_t>& original_dim_vec, const uint32_t& c0,
-                                         vector<std::pair<int64_t, int64_t>>& range_value);
+  static Status GetRangeAxisValueByNCDHW(const vector<std::pair<int64_t, int64_t>> &original_range_vec,
+                                         const vector<int64_t> &original_dim_vec, const uint32_t &c0,
+                                         vector<std::pair<int64_t, int64_t>> &range_value);
 
-  static Status GetRangeAxisValueByDHWCN(const vector<std::pair<int64_t, int64_t>>& original_range_vec,
-                                         const vector<int64_t>& original_dim_vec, const uint32_t& c0,
-                                         vector<std::pair<int64_t, int64_t>>& range_value);
+  static Status GetRangeAxisValueByDHWCN(const vector<std::pair<int64_t, int64_t>> &original_range_vec,
+                                         const vector<int64_t> &original_dim_vec, const uint32_t &c0,
+                                         vector<std::pair<int64_t, int64_t>> &range_value);
 
-  static Status GetRangeAxisValueByDHWNC(const vector<std::pair<int64_t, int64_t>>& original_range_vec,
-                                         const vector<int64_t>& original_dim_vec, const uint32_t& c0,
-                                         vector<std::pair<int64_t, int64_t>>& range_value);
+  static Status GetRangeAxisValueByDHWNC(const vector<std::pair<int64_t, int64_t>> &original_range_vec,
+                                         const vector<int64_t> &original_dim_vec, const uint32_t &c0,
+                                         vector<std::pair<int64_t, int64_t>> &range_value);
 
   /* map of GetAxisValueInfoByFormat, get axis value by different original
    * formats. */
   static const std::map<ge::Format, GetRangeAxisValueInfoByFormatPtr> get_range_axis_value_func_map;
 
-  static Status CheckParamValue(const vector<std::pair<int64_t, int64_t>>& original_range_vec,
-                                const vector<int64_t>& original_dim_vec, const uint32_t& c0,
-                                vector<std::pair<int64_t, int64_t>>& range_value, const size_t& min_size);
+  static Status CheckParamValue(const vector<std::pair<int64_t, int64_t>> &original_range_vec,
+                                const vector<int64_t> &original_dim_vec, const uint32_t &c0,
+                                vector<std::pair<int64_t, int64_t>> &range_value, const size_t &min_size);
 };
 }  // namespace fe
 

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -78,14 +78,14 @@ TEST_F(BgMemoryUT, AllocFftsMem) {
   ASSERT_NE(ffts_allocator, nullptr);
 
   auto batch_sizes = ValueHolder::CreateFeed(1);
-  auto batch_mems =  AllocateBatchFftsMems(ffts_allocator, batch_sizes, 0);
+  auto batch_mems = AllocateBatchFftsMems(ffts_allocator, batch_sizes, 0);
   ASSERT_NE(batch_mems, nullptr);
   FastNodeTopoChecker batch_checker(batch_mems);
   EXPECT_EQ(batch_checker.OutChecker().DataToByType("FreeBatchFftsMems").Result(), "success");
 
   size_t block_size = 2UL;
   auto block_size_holder = ValueHolder::CreateConst(&block_size, sizeof(block_size));
-  auto mems =  AllocateFftsMems(ffts_allocator, 0, {block_size_holder});
+  auto mems = AllocateFftsMems(ffts_allocator, 0, {block_size_holder});
 
   EXPECT_EQ(mems.size(), 1UL);
   ASSERT_NE(mems[0], nullptr);
@@ -97,12 +97,12 @@ TEST_F(BgMemoryUT, AllocFftsMem) {
   EXPECT_EQ(checker.OutChecker().DataToByType("FreeFftsMem").Result(), "success");
 }
 
-/*  
+/*
    连接到op*的输出边ref自refdata
                                                                 +------------------------------+
     data(refdata)      data0           data1       原始计算图    |  refdata       op       op   |
        |                  |             |            <======    |                 \      /     |
-  split_tensor      GetVariableAddr   AllocMemHbm               |                 fake_node    | 
+  split_tensor      GetVariableAddr   AllocMemHbm               |                 fake_node    |
                                                                 |                   /    \     |
                                                                 |                 op*      op  |
                                                                 +------------------------------+
@@ -159,7 +159,7 @@ TEST_F(BgMemoryUT, AllocOutputMemoryForVariable_WrongPlacement) {
   auto desc2 = foo->GetOpDesc()->MutableOutputDesc(1);
 
   ge::AttrUtils::SetBool(foo->GetOpDesc(), ge::ATTR_NAME_REFERENCE, true);
-  foo->GetOpDesc()->MutableInputDesc(1)->SetDataType(ge::DT_UNDEFINED); // Unfed optional input
+  foo->GetOpDesc()->MutableInputDesc(1)->SetDataType(ge::DT_UNDEFINED);  // Unfed optional input
   foo->GetOpDesc()->MutableInputDesc(1)->SetFormat(ge::FORMAT_RESERVED);
   ASSERT_NE(foo->GetOpDesc()->GetAllInputsSize(), foo->GetOpDesc()->GetInputsSize());
 
@@ -192,7 +192,7 @@ TEST_F(BgMemoryUT, AllocSessionFixedMemory_Success) {
   auto desc2 = foo->GetOpDesc()->MutableOutputDesc(1);
 
   ge::AttrUtils::SetBool(foo->GetOpDesc(), ge::ATTR_NAME_REFERENCE, true);
-  foo->GetOpDesc()->MutableInputDesc(1)->SetDataType(ge::DT_UNDEFINED); // Unfed optional input
+  foo->GetOpDesc()->MutableInputDesc(1)->SetDataType(ge::DT_UNDEFINED);  // Unfed optional input
   foo->GetOpDesc()->MutableInputDesc(1)->SetFormat(ge::FORMAT_RESERVED);
   ASSERT_NE(foo->GetOpDesc()->GetAllInputsSize(), foo->GetOpDesc()->GetInputsSize());
 
@@ -204,17 +204,14 @@ TEST_F(BgMemoryUT, AllocSessionFixedMemory_Success) {
   lower_input.global_data = &global_data;
 
   auto session_id_holder = bg::FrameSelector::OnInitRoot(
-      [&global_data]() -> std::vector<bg::ValueHolderPtr> {
-        return {bg::GetSessionId(global_data)};
-      });
+      [&global_data]() -> std::vector<bg::ValueHolderPtr> { return {bg::GetSessionId(global_data)}; });
 
-  auto output_size_holder = bg::FrameSelector::OnInitRoot(
-      []() -> std::vector<bg::ValueHolderPtr> {
-        size_t output_size = 64;
-        return {bg::ValueHolder::CreateConst(&output_size, sizeof(output_size))};
-      });
-  auto allocated_memory =
-      bg::AllocFixedFeatureMemory(session_id_holder[0], TensorPlacement::kOnDeviceHbm,  output_size_holder[0], global_data);
+  auto output_size_holder = bg::FrameSelector::OnInitRoot([]() -> std::vector<bg::ValueHolderPtr> {
+    size_t output_size = 64;
+    return {bg::ValueHolder::CreateConst(&output_size, sizeof(output_size))};
+  });
+  auto allocated_memory = bg::AllocFixedFeatureMemory(session_id_holder[0], TensorPlacement::kOnDeviceHbm,
+                                                      output_size_holder[0], global_data);
 
   ASSERT_NE(allocated_memory, nullptr);
 }

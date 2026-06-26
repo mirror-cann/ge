@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,7 +17,7 @@
 #include "graph/debug/ge_attr_define.h"
 
 namespace ge {
-/* Pass Explaination:
+/* Pass Explanation:
  *
  * After optimizing such as constant folding, it will form the following ctrl relationship
  * The sceno like this is unreasonable and when unknown shape, it will be error because
@@ -54,22 +54,21 @@ Status CtrlEdgeTransferPass::Run(ge::ComputeGraphPtr graph) {
         continue;
       }
 
-      GELOGD("start to tranfer ctrl edge for const node [%s]", n->GetName().c_str());
+      GELOGD("start to transfer ctrl edge for const node [%s]", n->GetName().c_str());
 
       for (auto &in_control_node : n->GetInControlNodes()) {
         GE_CHECK_NOTNULL(in_control_node);
-        GE_CHK_GRAPH_STATUS_RET(ge::GraphUtils::RemoveEdge(in_control_node->GetOutControlAnchor(),
-                                                           n->GetInControlAnchor()),
-                                "[Remove][ControlEdge] between %s and %s failed",
-                                in_control_node->GetName().c_str(), n->GetName().c_str());
+        GE_CHK_GRAPH_STATUS_RET(
+            ge::GraphUtils::RemoveEdge(in_control_node->GetOutControlAnchor(), n->GetInControlAnchor()),
+            "[Remove][ControlEdge] between %s and %s failed", in_control_node->GetName().c_str(), n->GetName().c_str());
         for (auto &out_node : n->GetOutNodes()) {
           if (out_node == nullptr) {
             continue;
           }
-          GE_CHK_GRAPH_STATUS_RET(ge::GraphUtils::AddEdge(in_control_node->GetOutControlAnchor(),
-                                                          out_node->GetInControlAnchor()),
-                                  "[Add][ControlEdge] between %s and %s failed.",
-                                  in_control_node->GetName().c_str(), out_node->GetName().c_str());
+          GE_CHK_GRAPH_STATUS_RET(
+              ge::GraphUtils::AddEdge(in_control_node->GetOutControlAnchor(), out_node->GetInControlAnchor()),
+              "[Add][ControlEdge] between %s and %s failed.", in_control_node->GetName().c_str(),
+              out_node->GetName().c_str());
         }
       }
     }

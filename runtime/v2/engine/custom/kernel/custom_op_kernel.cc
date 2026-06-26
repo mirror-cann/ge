@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,12 +23,7 @@
 namespace gert {
 namespace kernel {
 namespace {
-enum class CustomOpInput {
-  kAllocator = 0,
-  kStream,
-  kFunc,
-  kEnd
-};
+enum class CustomOpInput { kAllocator = 0, kStream, kFunc, kEnd };
 
 std::string PrintNodeType(const KernelContext *context) {
   std::stringstream ss;
@@ -61,7 +56,7 @@ void PrintTensor(std::stringstream &ss, const gert::Tensor *tensor) {
   ShapeToStringStream(ss, tensor->GetStorageShape());
   ss << ", addr: " << ge::PtrToValue(tensor->GetAddr());
 }
-}
+}  // namespace
 
 // call after kernel launch
 std::string PrintStreamIdAndTaskId() {
@@ -69,8 +64,8 @@ std::string PrintStreamIdAndTaskId() {
   uint32_t stream_id = 0U;
   uint32_t flip_task_id = 0U;
   if (rtGetTaskIdAndStreamID(&flip_task_id, &stream_id) == RT_ERROR_NONE) {
-    const uint32_t task_id = flip_task_id & 0xFFFFU; // lower 16bits
-    const uint32_t flip_num = flip_task_id >> 16U;   // high 16bits
+    const uint32_t task_id = flip_task_id & 0xFFFFU;  // lower 16bits
+    const uint32_t flip_num = flip_task_id >> 16U;    // high 16bits
     ss << "stream_id=" << stream_id << ", task_id=" << task_id << ", flip_num=" << flip_num
        << ", flip_task_id=" << flip_task_id;
   }
@@ -98,8 +93,8 @@ static ge::graphStatus CreateOutputTensors(const ExtendedKernelContext *extended
     GE_ASSERT_NOTNULL(chain);
     auto output_desc = extended_kernel_context->GetOutputDesc(index);
     GE_ASSERT_NOTNULL(output_desc);
-    chain->SetWithDefaultDeleter(new (std::nothrow) Tensor(StorageShape(),
-        output_desc->GetFormat(), output_desc->GetDataType()));
+    chain->SetWithDefaultDeleter(new (std::nothrow)
+                                     Tensor(StorageShape(), output_desc->GetFormat(), output_desc->GetDataType()));
   }
   return ge::GRAPH_SUCCESS;
 }
@@ -114,7 +109,7 @@ static ge::graphStatus CreateWorkspaceHolder(KernelContext *context, size_t node
   workspace_memory_av->SetWithDefaultDeleter(workspace_memory_holder);
   return ge::GRAPH_SUCCESS;
 }
-  
+
 static ge::graphStatus CreateWorkspacesMemory(const ge::FastNode *node, KernelContext *context) {
   (void)node;
   auto *extended_kernel_context = reinterpret_cast<ExtendedKernelContext *>(context);
@@ -125,7 +120,8 @@ static ge::graphStatus CreateWorkspacesMemory(const ge::FastNode *node, KernelCo
   return ge::GRAPH_SUCCESS;
 }
 
-static ge::graphStatus CopyShapeFromTemplateTensors(KernelContext *context, size_t node_input_num, size_t node_output_num) {
+static ge::graphStatus CopyShapeFromTemplateTensors(KernelContext *context, size_t node_input_num,
+                                                    size_t node_output_num) {
   const size_t template_tensor_start = node_input_num + static_cast<size_t>(CustomOpInput::kEnd);
   for (size_t index = 0; index < node_output_num; ++index) {
     auto template_tensor = context->GetInputPointer<Tensor>(template_tensor_start + index);
@@ -162,13 +158,12 @@ ge::graphStatus ExecuteCustomOpWithInferShapeFunc(KernelContext *context) {
   auto *eager_context = reinterpret_cast<EagerOpExecutionContext *>(context);
   GE_ASSERT_NOTNULL(eager_context);
   GE_ASSERT_SUCCESS(CopyShapeFromTemplateTensors(context, eager_context->GetComputeNodeInputNum(),
-                                                   eager_context->GetComputeNodeOutputNum()));
+                                                 eager_context->GetComputeNodeOutputNum()));
   return ExecuteCustomOpImpl(context);
 }
 
 ge::graphStatus FreeCustomOpWorkspacesFunc(KernelContext *context) {
-  auto memory_vec =
-      context->MutableInputPointer<std::vector<GertMemBlock *>>(0);
+  auto memory_vec = context->MutableInputPointer<std::vector<GertMemBlock *>>(0);
   GE_ASSERT_NOTNULL(memory_vec);
   auto gert_allocator = context->GetInputValue<GertAllocator *>(1);
   GE_ASSERT_NOTNULL(gert_allocator);
@@ -217,7 +212,7 @@ static std::vector<std::string> CustomOpExecuteKernelTrace(const KernelContext *
       output_tensor_ss << ", ";
     }
   }
-  return {PrintNodeType(context), input_tensor_ss.str(), output_tensor_ss.str(), PrintStreamIdAndTaskId()};  
+  return {PrintNodeType(context), input_tensor_ss.str(), output_tensor_ss.str(), PrintStreamIdAndTaskId()};
 }
 
 ge::graphStatus CustomOpProfilingDataFill(const KernelContext *context, ProfilingInfoWrapper &prof_info) {
@@ -256,12 +251,16 @@ ge::graphStatus CustomOpProfilingDataFill(const KernelContext *context, Profilin
 }
 
 REGISTER_KERNEL(FindCustomOp).RunFunc(FindCustomOpFunc);
-REGISTER_KERNEL(ExecuteCustomOp).OutputsCreator(CreateWorkspacesMemory)
-    .RunFunc(ExecuteCustomOpFunc).TracePrinter(CustomOpExecuteKernelTrace)
+REGISTER_KERNEL(ExecuteCustomOp)
+    .OutputsCreator(CreateWorkspacesMemory)
+    .RunFunc(ExecuteCustomOpFunc)
+    .TracePrinter(CustomOpExecuteKernelTrace)
     .ProfilingInfoFiller(CustomOpProfilingDataFill);
-REGISTER_KERNEL(ExecuteCustomOpWithInferShape).OutputsCreator(CreateWorkspacesMemory)
-    .RunFunc(ExecuteCustomOpWithInferShapeFunc).TracePrinter(CustomOpExecuteKernelTrace)
+REGISTER_KERNEL(ExecuteCustomOpWithInferShape)
+    .OutputsCreator(CreateWorkspacesMemory)
+    .RunFunc(ExecuteCustomOpWithInferShapeFunc)
+    .TracePrinter(CustomOpExecuteKernelTrace)
     .ProfilingInfoFiller(CustomOpProfilingDataFill);
 REGISTER_KERNEL(FreeCustomOpWorkspaces).RunFunc(FreeCustomOpWorkspacesFunc);
-}
-}
+}  // namespace kernel
+}  // namespace gert

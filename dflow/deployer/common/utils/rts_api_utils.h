@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,8 +31,8 @@ class RtsApiUtils {
   static inline Status MbufInit() {
     rtMemBuffCfg_t buff_cfg{};
     auto ret = rtMbufInit(&buff_cfg);
-    GE_CHK_BOOL_RET_STATUS(ret == SUCCESS || ret == ACL_ERROR_RT_REPEATED_INIT,
-                           RT_FAILED, "Invoke rtMbufInit failed, ret = 0x%X", static_cast<uint32_t>(ret));
+    GE_CHK_BOOL_RET_STATUS(ret == SUCCESS || ret == ACL_ERROR_RT_REPEATED_INIT, RT_FAILED,
+                           "Invoke rtMbufInit failed, ret = 0x%X", static_cast<uint32_t>(ret));
     return SUCCESS;
   }
 
@@ -53,8 +53,9 @@ class RtsApiUtils {
 
   static inline Status MemQueueInit(int32_t device_id) {
     auto ret = rtMemQueueInit(device_id);
-    GE_CHK_BOOL_RET_STATUS(ret == SUCCESS || ret == ACL_ERROR_RT_REPEATED_INIT,
-                           RT_FAILED, "Invoke rtMemQueueInit failed, device_id = %d, ret = 0x%X", device_id, static_cast<uint32_t>(ret));
+    GE_CHK_BOOL_RET_STATUS(ret == SUCCESS || ret == ACL_ERROR_RT_REPEATED_INIT, RT_FAILED,
+                           "Invoke rtMemQueueInit failed, device_id = %d, ret = 0x%X", device_id,
+                           static_cast<uint32_t>(ret));
     return SUCCESS;
   }
 

@@ -19,18 +19,14 @@ DecomposePassV2::DecomposePassV2(const std::vector<AscendString> &op_types) : op
 Status DecomposePassV2::Run(GraphPtr &graph, CustomPassContext &pass_context) {
   return RunDecomposePass(
       graph, pass_context, op_types_,
-      [this, &pass_context](const GNode &matched_node) {
-        return MeetRequirements(matched_node, pass_context);
-      },
-      [this, &pass_context](const GNode &matched_node) {
-        return Replacement(matched_node, pass_context);
-      });
+      [this, &pass_context](const GNode &matched_node) { return MeetRequirements(matched_node, pass_context); },
+      [this, &pass_context](const GNode &matched_node) { return Replacement(matched_node, pass_context); });
 }
 
 bool DecomposePassV2::MeetRequirements(const GNode &matched_node, CustomPassContext &pass_context) {
-  (void) matched_node;
-  (void) pass_context;
+  (void)matched_node;
+  (void)pass_context;
   return true;
 }
-} // namespace fusion
-} // namespace ge
+}  // namespace fusion
+}  // namespace ge

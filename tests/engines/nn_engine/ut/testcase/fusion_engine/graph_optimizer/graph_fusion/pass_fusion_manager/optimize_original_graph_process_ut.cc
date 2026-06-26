@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,23 +27,21 @@
 
 #undef protected
 #undef private
- 
+
 using namespace std;
 using namespace ge;
 using namespace fe;
- 
-class UTEST_OptimizeOriginalGraph: public testing::Test
-{
-public:
+
+class UTEST_OptimizeOriginalGraph : public testing::Test {
+ public:
   FEOpsKernelInfoStorePtr ops_kernel_info_store_ptr;
-protected:
-  void SetUp()
-  {
+
+ protected:
+  void SetUp() {
     cout << "UTEST_OptimizeOriginalGraph setup" << endl;
   }
- 
-  void TearDown()
-  {
+
+  void TearDown() {
     cout << "UTEST_OptimizeOriginalGraph TearDown" << endl;
   }
 
@@ -56,32 +54,32 @@ protected:
     ge::GeShape shape_nz(dim_nz);
     ge::GeShape shape_nz_ed(dim_nz_ed);
     ge::GeShape shape_nd_out(dim_nd_out);
-    
+
     ge::GeTensorDesc tensor_desc_nd(shape_nd, ge::FORMAT_ND, ge::DT_INT32);
     tensor_desc_nd.SetOriginShape(shape_nd);
     tensor_desc_nd.SetOriginDataType(ge::DT_INT32);
     tensor_desc_nd.SetOriginFormat(ge::FORMAT_ND);
-    
+
     ge::GeTensorDesc tensor_desc_nz(shape_nz, ge::FORMAT_FRACTAL_NZ, ge::DT_INT32);
     tensor_desc_nd.SetOriginShape(shape_nz);
     tensor_desc_nd.SetOriginDataType(ge::DT_INT32);
     tensor_desc_nd.SetOriginFormat(ge::FORMAT_FRACTAL_NZ);
-    
+
     ge::GeTensorDesc tensor_desc_nz_ed(shape_nz_ed, ge::FORMAT_FRACTAL_NZ, ge::DT_INT4);
     tensor_desc_nz_ed.SetOriginShape(shape_nz_ed);
     tensor_desc_nz_ed.SetOriginDataType(ge::DT_INT4);
     tensor_desc_nz_ed.SetOriginFormat(ge::FORMAT_FRACTAL_NZ);
-    
+
     ge::GeTensorDesc tensor_desc_nd_out(shape_nd_out, ge::FORMAT_ND, ge::DT_BF16);
     tensor_desc_nd_out.SetOriginShape(shape_nd_out);
     tensor_desc_nd_out.SetOriginDataType(ge::DT_BF16);
     tensor_desc_nd_out.SetOriginFormat(ge::FORMAT_ND);
-    
+
     OpDescPtr data_op = std::make_shared<OpDesc>("data", "Data");
     OpDescPtr bitcast_op = std::make_shared<OpDesc>("bitcast", "Bitcast");
     OpDescPtr GMM_op = std::make_shared<OpDesc>("groupedmatmul", "GroupedMatmul");
     OpDescPtr net_output_op = std::make_shared<OpDesc>("net_output", "NetOutput");
-    
+
     data_op->AddOutputDesc(tensor_desc_nz);
     bitcast_op->AddInputDesc(tensor_desc_nz);
     bitcast_op->AddOutputDesc(tensor_desc_nz_ed);
@@ -90,13 +88,13 @@ protected:
     net_output_op->AddInputDesc(tensor_desc_nd_out);
 
     AttrUtils::SetBool(data_op, "_enable_storage_format_spread", true);
-    
+
     ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
     NodePtr data_node = graph->AddNode(data_op);
     NodePtr bitcast_node = graph->AddNode(bitcast_op);
     NodePtr GMM_node = graph->AddNode(GMM_op);
     NodePtr net_output_node = graph->AddNode(net_output_op);
-    
+
     GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), bitcast_node->GetInDataAnchor(0));
     GraphUtils::AddEdge(bitcast_node->GetOutDataAnchor(0), GMM_node->GetInDataAnchor(0));
     GraphUtils::AddEdge(GMM_node->GetOutDataAnchor(0), net_output_node->GetInDataAnchor(0));
@@ -110,18 +108,18 @@ protected:
     std::vector<int64_t> dim_nd_out = {384, 4096};
     ge::GeShape shape_nd(dim_nd);
     ge::GeShape shape_nz(dim_nz);
-    
+
     ge::GeTensorDesc tensor_desc_nd(shape_nd, ge::FORMAT_ND, ge::DT_INT32);
     tensor_desc_nd.SetOriginShape(shape_nd);
     tensor_desc_nd.SetOriginDataType(ge::DT_INT32);
     tensor_desc_nd.SetOriginFormat(ge::FORMAT_ND);
-    
+
     ge::GeTensorDesc tensor_desc_nz(shape_nz, ge::FORMAT_FRACTAL_NZ, ge::DT_INT32);
     tensor_desc_nz.SetOriginShape(shape_nz);
     tensor_desc_nz.SetOriginDataType(ge::DT_INT32);
     tensor_desc_nz.SetOriginFormat(ge::FORMAT_FRACTAL_NZ);
     tensor_desc_nz.SetFormat(ge::FORMAT_FRACTAL_NZ);
-    
+
     OpDescPtr data_op = std::make_shared<OpDesc>("data", "Data");
     OpDescPtr pypto_op = std::make_shared<OpDesc>("pypto", "LightningIndexerPrologPto");
     data_op->AddOutputDesc(tensor_desc_nz);
@@ -130,7 +128,7 @@ protected:
     ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
     NodePtr data_node = graph->AddNode(data_op);
     NodePtr pypto_node = graph->AddNode(pypto_op);
-    
+
     GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), pypto_node->GetInDataAnchor(0));
     return graph;
   }
@@ -138,13 +136,13 @@ protected:
   ge::ComputeGraphPtr CreatePyPTOGraph2ForUserSemanticInferUt() {
     std::vector<int64_t> dim_nd = {8, 1, 4096};
     ge::GeShape shape_nd(dim_nd);
-    
+
     ge::GeTensorDesc tensor_desc_nd(shape_nd, ge::FORMAT_ND, ge::DT_INT32);
     tensor_desc_nd.SetOriginShape(shape_nd);
     tensor_desc_nd.SetOriginDataType(ge::DT_INT32);
     tensor_desc_nd.SetOriginFormat(ge::FORMAT_ND);
     tensor_desc_nd.SetFormat(ge::FORMAT_ND);
-    
+
     OpDescPtr data_op = std::make_shared<OpDesc>("data", "Data");
     OpDescPtr pypto_op = std::make_shared<OpDesc>("pypto", "LightningIndexerPrologPto");
     data_op->AddOutputDesc(tensor_desc_nd);
@@ -153,7 +151,7 @@ protected:
     ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
     NodePtr data_node = graph->AddNode(data_op);
     NodePtr pypto_node = graph->AddNode(pypto_op);
-    
+
     GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), pypto_node->GetInDataAnchor(0));
     return graph;
   }
@@ -176,38 +174,34 @@ protected:
   }
 };
 
-TEST_F(UTEST_OptimizeOriginalGraph, optimize_origin_graph_user_semantic)
-{
+TEST_F(UTEST_OptimizeOriginalGraph, optimize_origin_graph_user_semantic) {
   ComputeGraphPtr graph = CreateGraphForUserSemanticInferUt();
   UserSemanticInferencePass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status ret = PassManager::Run(*graph, passes, ops_kernel_info_store_ptr);
   EXPECT_EQ(ret, fe::NOT_CHANGED);
 }
 
-TEST_F(UTEST_OptimizeOriginalGraph, optimize_origin_graph_user_semantic_pypto_nz)
-{
+TEST_F(UTEST_OptimizeOriginalGraph, optimize_origin_graph_user_semantic_pypto_nz) {
   ComputeGraphPtr graph = CreatePyPTOGraphForUserSemanticInferUt();
   UserSemanticInferencePass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status ret = PassManager::Run(*graph, passes, ops_kernel_info_store_ptr);
   EXPECT_EQ(ret, fe::SUCCESS);
 }
 
-TEST_F(UTEST_OptimizeOriginalGraph, optimize_origin_graph_user_semantic_pypto_nd)
-{
+TEST_F(UTEST_OptimizeOriginalGraph, optimize_origin_graph_user_semantic_pypto_nd) {
   ComputeGraphPtr graph = CreatePyPTOGraph2ForUserSemanticInferUt();
   UserSemanticInferencePass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status ret = PassManager::Run(*graph, passes, ops_kernel_info_store_ptr);
   EXPECT_EQ(ret, fe::SUCCESS);
 }
 
-TEST_F(UTEST_OptimizeOriginalGraph, optimize_origin_graph_user_semantic_pypto_nd_2)
-{
+TEST_F(UTEST_OptimizeOriginalGraph, optimize_origin_graph_user_semantic_pypto_nd_2) {
   ComputeGraphPtr graph = CreatePyPTOGraph3ForUserSemanticInferUt();
   UserSemanticInferencePass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status ret = PassManager::Run(*graph, passes, ops_kernel_info_store_ptr);
   EXPECT_EQ(ret, fe::SUCCESS);
 }

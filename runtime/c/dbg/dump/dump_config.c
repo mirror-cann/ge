@@ -69,7 +69,7 @@ static ModelDumpConfig *GetModelDumpConfig(const char *mdlName) {
   return NULL;
 }
 
-static bool IsLayerNameMatched(ModelDumpConfig * config, char *name) {
+static bool IsLayerNameMatched(ModelDumpConfig *config, char *name) {
   uint32_t layerSize = (uint32_t)VectorSize(&config->layers);
   for (size_t i = 0UL; i < layerSize; ++i) {
     char *layers = *(char **)VectorAt(&config->layers, i);

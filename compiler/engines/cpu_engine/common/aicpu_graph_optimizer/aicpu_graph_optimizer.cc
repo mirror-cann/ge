@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,7 +38,7 @@ const std::string AICPU_NODE_NAME_NETOUTPUT = "NetOutput";
 const std::string AICPU_NODE_NAME_DATA = "Data";
 std::mutex g_cust_mutex;
 const std::string kOpsParallel = "aicpu_ops_parallel";
-}
+}  // namespace
 
 namespace aicpu {
 ge::Status AicpuGraphOptimizer::Initialize(const map<string, string> &options,
@@ -46,17 +46,16 @@ ge::Status AicpuGraphOptimizer::Initialize(const map<string, string> &options,
   // initial optimizers
   auto iter = options.find(ge::SOC_VERSION);
   AICPU_IF_BOOL_EXEC(iter == options.end(),
-      AICPU_REPORT_INNER_ERR_MSG(
-          "cannot find [%s] in param of optimizer initialize function.",
-          ge::SOC_VERSION.c_str());
-      return INPUT_PARAM_VALID)
+                     AICPU_REPORT_INNER_ERR_MSG("cannot find [%s] in param of optimizer initialize function.",
+                                                ge::SOC_VERSION.c_str());
+                     return INPUT_PARAM_VALID)
   soc_version_ = iter->second;
   std::string auto_cast_mode;
   if (ConfigFile::GetInstance().GetValue(kAutoCastMode, auto_cast_mode)) {
     auto_cast_mode_ = kAutoCastModeOff;
     if (StringToNum(auto_cast_mode, auto_cast_mode_).state != ge::SUCCESS) {
-      AICPUE_LOGW("Tran auto_cast_mode[%s] to integer failed. default value is [%d].",
-                  auto_cast_mode.c_str(), auto_cast_mode_);
+      AICPUE_LOGW("Tran auto_cast_mode[%s] to integer failed. default value is [%d].", auto_cast_mode.c_str(),
+                  auto_cast_mode_);
     }
   } else {
     AICPUE_LOGW("Get Value[AutoCastMode] failed");
@@ -65,18 +64,16 @@ ge::Status AicpuGraphOptimizer::Initialize(const map<string, string> &options,
   AICPU_CHECK_RES(GetOpsInfo(all_op_info_));
   std::string optimizers_str;
   std::string optimizers_config = Stringcat(engine_name_, "GraphOptimizer");
-  AICPU_IF_BOOL_EXEC(
-      !ConfigFile::GetInstance().GetValue(optimizers_config, optimizers_str),
-      AICPU_REPORT_INNER_ERR_MSG("[%s] not exist.", optimizers_config.c_str());
-      return LOAD_OPTIMIZER_CONFIG_FAILED)
+  AICPU_IF_BOOL_EXEC(!ConfigFile::GetInstance().GetValue(optimizers_config, optimizers_str),
+                     AICPU_REPORT_INNER_ERR_MSG("[%s] not exist.", optimizers_config.c_str());
+                     return LOAD_OPTIMIZER_CONFIG_FAILED)
   vector<string> optimizers;
   ConfigFile::GetInstance().SplitValue(optimizers_str, optimizers);
   for (auto optimizer : optimizers) {
-    FACTORY_GRAPH_OPTIMIZER::FactoryType optimizers_ptr =
-        FACTORY_GRAPH_OPTIMIZER::Produce(optimizer);
+    FACTORY_GRAPH_OPTIMIZER::FactoryType optimizers_ptr = FACTORY_GRAPH_OPTIMIZER::Produce(optimizer);
     AICPU_IF_BOOL_EXEC(optimizers_ptr == nullptr,
-        AICPU_REPORT_INNER_ERR_MSG("[%s] instantiate failed", optimizer.c_str());
-        return GRAPH_OPTIMIZER_INSTANCE_FAILED)
+                       AICPU_REPORT_INNER_ERR_MSG("[%s] instantiate failed", optimizer.c_str());
+                       return GRAPH_OPTIMIZER_INSTANCE_FAILED)
     optimizer_map_[optimizer] = optimizers_ptr;
     AICPU_CHECK_RES(optimizers_ptr->Initialize());
     if (optimizer == "AICPUOptimizer") {
@@ -103,17 +100,15 @@ ge::Status AicpuGraphOptimizer::Finalize() {
   return SUCCESS;
 }
 
-ge::Status AicpuGraphOptimizer::GetAttributes(
-    GraphOptimizerAttribute &attrs) const {
+ge::Status AicpuGraphOptimizer::GetAttributes(GraphOptimizerAttribute &attrs) const {
   attrs.engineName = engine_name_;
   return SUCCESS;
 }
 
-void AicpuGraphOptimizer::GetGetOpsParallelOoLevel() {                                 
+void AicpuGraphOptimizer::GetGetOpsParallelOoLevel() {
   std::string opt_value;
   auto status = GetThreadLocalContext().GetOo().GetValue(kOpsParallel, opt_value);
-  AICPUE_LOGI("Get option[%s], opt_value[%s], status[%u].",
-               kOpsParallel.c_str(), opt_value.c_str(), status);
+  AICPUE_LOGI("Get option[%s], opt_value[%s], status[%u].", kOpsParallel.c_str(), opt_value.c_str(), status);
   // 注册时未指定对应级别value或者获取到与注册不相等Value
   if (opt_value == "false") {
     AICPUE_LOGI("ops parallel disable in current level.");
@@ -150,20 +145,18 @@ ge::Status AicpuGraphOptimizer::AddTilingModeAttr(const ge::OpDescPtr &op_desc_p
   (void)AttrUtils::GetListStr(op_desc_ptr, AICPU_ATTR_NAME_OP_TILING_INLINE_ENGINE, engines);
   engines.emplace_back(engine_name_);
   bool ret = AttrUtils::SetListStr(op_desc_ptr, AICPU_ATTR_NAME_OP_TILING_INLINE_ENGINE, engines);
-  AICPU_IF_BOOL_EXEC(!(ret),
-                      AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::SetListStr failed to set attr[%s], op[%s]",
-                                              AICPU_ATTR_NAME_OP_TILING_INLINE_ENGINE.c_str(),
-                                              op_desc_ptr->GetName().c_str());
-                      return FAILED)
+  AICPU_IF_BOOL_EXEC(!(ret), AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::SetListStr failed to set attr[%s], op[%s]",
+                                                        AICPU_ATTR_NAME_OP_TILING_INLINE_ENGINE.c_str(),
+                                                        op_desc_ptr->GetName().c_str());
+                     return FAILED)
   engines.clear();
   (void)AttrUtils::GetListStr(op_desc_ptr, AICPU_ATTR_NAME_OP_EXPORT_SHAPE_ENGINE, engines);
   engines.emplace_back(engine_name_);
   ret = AttrUtils::SetListStr(op_desc_ptr, AICPU_ATTR_NAME_OP_EXPORT_SHAPE_ENGINE, engines);
-  AICPU_IF_BOOL_EXEC(!(ret),
-                      AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::SetListStr failed to set attr[%s], op[%s]",
-                                              AICPU_ATTR_NAME_OP_EXPORT_SHAPE_ENGINE.c_str(),
-                                              op_desc_ptr->GetName().c_str());
-                      return FAILED)
+  AICPU_IF_BOOL_EXEC(!(ret), AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::SetListStr failed to set attr[%s], op[%s]",
+                                                        AICPU_ATTR_NAME_OP_EXPORT_SHAPE_ENGINE.c_str(),
+                                                        op_desc_ptr->GetName().c_str());
+                     return FAILED)
   AICPUE_LOGD("Add no tiling engine[%s] for op type[%s], attrs[%s, %s].", engine_name_.c_str(), op_type.c_str(),
               AICPU_ATTR_NAME_OP_TILING_INLINE_ENGINE.c_str(), AICPU_ATTR_NAME_OP_EXPORT_SHAPE_ENGINE.c_str());
   return SUCCESS;
@@ -238,7 +231,7 @@ ge::Status AicpuGraphOptimizer::AddDtStringUnknownAttr(ge::ComputeGraph &graph) 
                     kAttrNameInputOutputDtString.c_str());
         SetInputDtStringNodeAttr(curr_node);
       }
-    } else if (curr_node->GetType() == AICPU_NODE_NAME_NETOUTPUT) { // set output dtstring node atrr
+    } else if (curr_node->GetType() == AICPU_NODE_NAME_NETOUTPUT) {  // set output dtstring node atrr
       OpDescPtr op_desc_ptr = curr_node->GetOpDesc();
       AICPU_CHECK_NOTNULL(op_desc_ptr)
       for (auto &tensor_desc : op_desc_ptr->GetAllInputsDesc()) {
@@ -294,15 +287,13 @@ ge::Status AicpuGraphOptimizer::SetOutputDtStringNodeAttr(const ge::NodePtr &nod
   return SUCCESS;
 }
 
-ge::Status AicpuGraphOptimizer::OptimizeOriginalGraphJudgeInsert(
-    ComputeGraph &graph) {
+ge::Status AicpuGraphOptimizer::OptimizeOriginalGraphJudgeInsert(ComputeGraph &graph) {
   if (IsEmptyGraph(graph)) {
     return SUCCESS;
   }
 
   for (auto optimizer : optimizer_map_) {
-    AICPU_CHECK_RES(
-        optimizer.second->OptimizeOriginalGraphJudgeInsert(graph, all_op_info_))
+    AICPU_CHECK_RES(optimizer.second->OptimizeOriginalGraphJudgeInsert(graph, all_op_info_))
   }
   return SUCCESS;
 }
@@ -315,7 +306,7 @@ ge::Status AicpuGraphOptimizer::OptimizeFusedGraph(ComputeGraph &graph) {
     ge::TraceManager::GetInstance().ClearTraceOwner();
     return SUCCESS;
   }
-  // vertify placehold and end node make sure format equals client format
+  // verify placehold and end node make sure format equals client format
   AICPU_CHECK_RES(GraphOptimizerUtils::VerifyPldAndEndNode(graph))
 
   std::string suffix = "Before_Aicpu_Optimized";
@@ -323,25 +314,22 @@ ge::Status AicpuGraphOptimizer::OptimizeFusedGraph(ComputeGraph &graph) {
 
   fe::PlatFormInfos platform_infos;
   fe::OptionalInfos opt_infos;
-  AICPU_IF_BOOL_EXEC(
-      fe::PlatformInfoManager::Instance().GetPlatformInfos(soc_version_,
-          platform_infos, opt_infos) != ge::GRAPH_SUCCESS,
-      AICPU_REPORT_INNER_ERR_MSG("Call fe::PlatformInfoManager::GetPlatformInfos "
-          "function failed. soc version[%s]", soc_version_.c_str());
-      ge::TraceManager::GetInstance().ClearTraceOwner();
-      return ge::FAILED)
+  AICPU_IF_BOOL_EXEC(fe::PlatformInfoManager::Instance().GetPlatformInfos(soc_version_, platform_infos, opt_infos) !=
+                         ge::GRAPH_SUCCESS,
+                     AICPU_REPORT_INNER_ERR_MSG("Call fe::PlatformInfoManager::GetPlatformInfos "
+                                                "function failed. soc version[%s]",
+                                                soc_version_.c_str());
+                     ge::TraceManager::GetInstance().ClearTraceOwner(); return ge::FAILED)
   // cache coherence need to be guaranteed
   std::string aicpu_cache_enable;
-  AICPU_IF_BOOL_EXEC(
-      !platform_infos.GetPlatformRes("CPUCache", "AICPUSyncBySW", aicpu_cache_enable),
-      AICPU_REPORT_INNER_ERR_MSG("Call fe::PlatFormInfos::GetPlatformRes failed to"
-          " get aicpu cache synchronous status");
-      ge::TraceManager::GetInstance().ClearTraceOwner();
-      return ge::FAILED)
+  AICPU_IF_BOOL_EXEC(!platform_infos.GetPlatformRes("CPUCache", "AICPUSyncBySW", aicpu_cache_enable),
+                     AICPU_REPORT_INNER_ERR_MSG("Call fe::PlatFormInfos::GetPlatformRes failed to"
+                                                " get aicpu cache synchronous status");
+                     ge::TraceManager::GetInstance().ClearTraceOwner(); return ge::FAILED)
   AICPUE_LOGI("aicpu cache enable flag[%s]", aicpu_cache_enable.c_str());
   if (aicpu_cache_enable.find("1") != string::npos) {
     AICPU_CHECK_RES_WITH_LOG(CacheGraph::GenerateNoCacheGraph(graph),
-        "Call GenerateCacheGraph function failed, graph[%s].", graph_name.c_str())
+                             "Call GenerateCacheGraph function failed, graph[%s].", graph_name.c_str())
     suffix = "After_Insert_Cache_op";
     GraphOptimizerUtils::DumpGraph(graph, suffix);
   }
@@ -377,13 +365,11 @@ bool AicpuGraphOptimizer::IsEmptyGraph(const ComputeGraph &graph) const {
   return false;
 }
 
-ge::Status AicpuGraphOptimizer::GetOpsInfo(
-    map<string, OpFullInfo> &all_op_info) {
+ge::Status AicpuGraphOptimizer::GetOpsInfo(map<string, OpFullInfo> &all_op_info) {
   const std::lock_guard<std::mutex> lock(g_cust_mutex);
   FACTORY_ENGINE::FactoryType engine_ptr = FACTORY_ENGINE::Produce(engine_name_);
   AICPU_CHECK_NOTNULL(engine_ptr)
-  AicpuOpsKernelInfoStorePtr aicpu_ops_kernel_info_store_ptr =
-      engine_ptr->GetAicpuOpsKernelInfoStore();
+  AicpuOpsKernelInfoStorePtr aicpu_ops_kernel_info_store_ptr = engine_ptr->GetAicpuOpsKernelInfoStore();
   AICPU_CHECK_NOTNULL(aicpu_ops_kernel_info_store_ptr)
   aicpu_ops_kernel_info_store_ptr->GetAllOpsFullKernelInfo(all_op_info);
   if (engine_name_ == "DNN_VM_AICPU_ASCEND") {
@@ -393,41 +379,39 @@ ge::Status AicpuGraphOptimizer::GetOpsInfo(
   return ge::SUCCESS;
 }
 
-bool AicpuGraphOptimizer::ReadOpsParallelRuleFromJsonFile()
-{
+bool AicpuGraphOptimizer::ReadOpsParallelRuleFromJsonFile() {
   std::string realConfigFilePath = GetSoPath(reinterpret_cast<void *>(&AicpuGraphOptimizer::Initialize));
   AICPUE_LOGD("realConfigFilePath is %s.", realConfigFilePath.c_str());
   std::string opsParallelRuleFilePath = realConfigFilePath + kAiCpuOpsParallelRuleFileRelativePath;
   AICPUE_LOGD("opsParallelRuleFilePath is %s.", opsParallelRuleFilePath.c_str());
-  return OpsParallelRuleJsonFile::Instance().ParseUnderPath(opsParallelRuleFilePath,
-                                                            ops_parallel_rule_json_file_).state == ge::SUCCESS;
+  return OpsParallelRuleJsonFile::Instance()
+             .ParseUnderPath(opsParallelRuleFilePath, ops_parallel_rule_json_file_)
+             .state == ge::SUCCESS;
 }
 
-ge::Status AicpuGraphOptimizer::GetOpsParallelRule()
-{
+ge::Status AicpuGraphOptimizer::GetOpsParallelRule() {
   if (!ReadOpsParallelRuleFromJsonFile()) {
-    AICPU_REPORT_INNER_ERR_MSG("Call Aicpu ops_parallel_rule_file_path to read ops paralle info from json file failed.");
+    AICPU_REPORT_INNER_ERR_MSG(
+        "Call Aicpu ops_parallel_rule_file_path to read ops parallel info from json file failed.");
     return LOAD_CONFIG_JSON_FILE_FAILED;
   }
 
-  AICPU_IF_BOOL_EXEC(
-    (ops_parallel_rule_json_file_.find(kOpsParallelRule) == ops_parallel_rule_json_file_.end()),
-    AICPUE_LOGW("Json file does not have ops parallel rule infos"); return SUCCESS)
+  AICPU_IF_BOOL_EXEC((ops_parallel_rule_json_file_.find(kOpsParallelRule) == ops_parallel_rule_json_file_.end()),
+                     AICPUE_LOGW("Json file does not have ops parallel rule infos");
+                     return SUCCESS)
 
   try {
     RuleInfoDesc ops_parallel_info = ops_parallel_rule_json_file_;
-    AICPUE_LOGI("Read json file, support parallel ops size is:%lu.",
-        ops_parallel_info.rule_info.ops_list.size());
+    AICPUE_LOGI("Read json file, support parallel ops size is:%lu.", ops_parallel_info.rule_info.ops_list.size());
     return FillOpsParallelRuleInfos(ops_parallel_info);
   } catch (const nlohmann::json::exception &e) {
     AICPU_REPORT_INNER_ERR_MSG("Parse ops parallel rule json file[%s] failed, %s.",
-        ops_parallel_rule_json_file_.dump().c_str(), e.what());
-      return LOAD_CONFIG_JSON_FILE_FAILED;
+                               ops_parallel_rule_json_file_.dump().c_str(), e.what());
+    return LOAD_CONFIG_JSON_FILE_FAILED;
   }
 }
 
-ge::Status AicpuGraphOptimizer::FillOpsParallelRuleInfos(RuleInfoDesc &ops_parallel_info)
-{
+ge::Status AicpuGraphOptimizer::FillOpsParallelRuleInfos(RuleInfoDesc &ops_parallel_info) {
   if (ops_parallel_info.rule_name.size() == 0) {
     AICPUE_LOGW("Json file does not have ops parallel rule info.");
     return ge::SUCCESS;
@@ -441,8 +425,7 @@ ge::Status AicpuGraphOptimizer::FillOpsParallelRuleInfos(RuleInfoDesc &ops_paral
   return ge::SUCCESS;
 }
 
-ge::Status AicpuGraphOptimizer::GetOpsParallelInfo(std::unordered_set<string> &ops_parallel_info) const
-{
+ge::Status AicpuGraphOptimizer::GetOpsParallelInfo(std::unordered_set<string> &ops_parallel_info) const {
   if (ops_parallel_rule_infos_.size() == 0) {
     AICPUE_LOGW("ops parallel rule infos size is 0.");
     return ge::FAILED;
@@ -458,25 +441,21 @@ ge::Status AicpuGraphOptimizer::GetOpsParallelInfo(std::unordered_set<string> &o
   return ge::SUCCESS;
 }
 
-ge::Status AicpuGraphOptimizer::SetStreamLabel(const ge::NodePtr &node, const std::string &label) const
-{
+ge::Status AicpuGraphOptimizer::SetStreamLabel(const ge::NodePtr &node, const std::string &label) const {
   AICPU_CHECK_NOTNULL(node);
   const OpDescPtr tmp_desc = node->GetOpDesc();
   AICPU_CHECK_NOTNULL(tmp_desc);
 
   if (!AttrUtils::SetStr(tmp_desc, "_stream_label", label)) {
-    REPORT_INNER_ERR_MSG("E19999", "Set Attr:fail for op:%s(%s)",
-        node->GetName().c_str(), node->GetType().c_str());
-    AICPUE_LOGE("[Set][Attr] fail for op:%s(%s)", node->GetName().c_str(),
-        node->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Set Attr:fail for op:%s(%s)", node->GetName().c_str(), node->GetType().c_str());
+    AICPUE_LOGE("[Set][Attr] fail for op:%s(%s)", node->GetName().c_str(), node->GetType().c_str());
     return ge::FAILED;
   }
 
   return ge::SUCCESS;
 }
 
-ge::Status AicpuGraphOptimizer::SetStreamLabelForOpsParallel(ge::ComputeGraph &graph) const
-{
+ge::Status AicpuGraphOptimizer::SetStreamLabelForOpsParallel(ge::ComputeGraph &graph) const {
   unordered_set<string> ops_parallel_info;
   AICPU_CHECK_RES(GetOpsParallelInfo(ops_parallel_info));
   for (ge::NodePtr &node : graph.GetDirectNode()) {
@@ -495,11 +474,10 @@ ge::Status AicpuGraphOptimizer::SetStreamLabelForOpsParallel(ge::ComputeGraph &g
     auto status = SetStreamLabel(node, lable);
     if (status != ge::SUCCESS) {
       AICPUE_LOGW("[Set][Streamlabel] %s to op:%s(%s) failed.", lable.c_str(), node->GetName().c_str(),
-          op_type.c_str());
+                  op_type.c_str());
       return ge::FAILED;
     }
-    AICPUE_LOGD("[Set][Streamlabel] %s to op:%s(%s) success.", lable.c_str(), node->GetName().c_str(),
-        op_type.c_str());
+    AICPUE_LOGD("[Set][Streamlabel] %s to op:%s(%s) success.", lable.c_str(), node->GetName().c_str(), op_type.c_str());
   }
   return ge::SUCCESS;
 }
@@ -515,7 +493,9 @@ void AicpuGraphOptimizer::SetAicpuAsyncOpTimeout(const ge::OpDescPtr &op_desc_pt
 
 REG_OPTION(kOpsParallel)
     .LEVELS(ge::OoLevel::kO0)
-    .DEFAULT_VALUES({{ge::OoLevel::kO0, "false"}, {ge::OoLevel::kO1, "false"},
-                     {ge::OoLevel::kO2, "true"}, {ge::OoLevel::kO3, "true"}});
+    .DEFAULT_VALUES({{ge::OoLevel::kO0, "false"},
+                     {ge::OoLevel::kO1, "false"},
+                     {ge::OoLevel::kO2, "true"},
+                     {ge::OoLevel::kO3, "true"}});
 
 }  // namespace aicpu

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -45,7 +45,7 @@ Status SetOutputSizeIfNeed(const ComputeGraphPtr &graph) {
   }
   return SUCCESS;
 }
-} // namespace
+}  // namespace
 
 ExecutionOrder::ExecutionOrder(const UserGraph &user_graph) {
   user_graph_ = user_graph;
@@ -78,7 +78,7 @@ Status ExecutionOrder::FirstPoint(const std::vector<GeTensor> &inputs, Execution
   return SUCCESS;
 }
 
-ExecutionPoint* ExecutionOrder::GetFirstPoint() {
+ExecutionPoint *ExecutionOrder::GetFirstPoint() {
   std::lock_guard<std::mutex> locker(mutex_);
   if (!slice_graphs_.empty()) {
     return slice_graphs_[0].get();
@@ -115,7 +115,7 @@ Status ExecutionOrder::AddNewSlice(const ComputeGraphPtr &graph, const std::vect
   }
   GE_ASSERT_NOTNULL(partition_result.sliced_graph);
   GE_ASSERT_SUCCESS(SetOutputSizeIfNeed(partition_result.sliced_graph));
-  GE_DUMP(partition_result.sliced_graph, "SlicedGraph_"+std::to_string(slice_graphs_.size()));
+  GE_DUMP(partition_result.sliced_graph, "SlicedGraph_" + std::to_string(slice_graphs_.size()));
   // use vector index as ep id
   const auto &ep_options = SelectEpOption(partition_result);
   slice_graphs_.emplace_back(MakeUnique<ExecutionPoint>(slice_graphs_.size(), partition_result.sliced_graph,
@@ -141,7 +141,7 @@ Status ExecutionOrder::ConstructInputTensors(const ComputeGraphPtr &compute_grap
     GE_ASSERT_NOTNULL(node->GetOpDesc());
     const auto &tensor_desc = node->GetOpDesc()->GetOutputDesc(0U);
     GE_ASSERT_TRUE(!tensor_desc.IsValid(), "The tensor desc of input node %s:%s is invalid", node->GetName().c_str(),
-                         node->GetType().c_str());
+                   node->GetType().c_str());
     GELOGD("Set input node[%s] tensor desc original shape[%s], shape[%s]", node->GetNamePtr(),
            tensor_desc.GetOriginShape().ToString().c_str(), tensor_desc.GetShape().ToString().c_str());
     if (tensor_desc.GetShape().IsUnknownShape()) {
@@ -150,12 +150,11 @@ Status ExecutionOrder::ConstructInputTensors(const ComputeGraphPtr &compute_grap
     GeTensor tensor_tmp(tensor_desc);
     inputs_temp.emplace_back(TensorAdapter::NormalizeGeTensor(tensor_tmp));
     GELOGD("Normalize graph %s input %s[%s] -> %s[%s] addr %lu size %lu", compute_graph->GetName().c_str(),
-            ge::TypeUtils::FormatToSerialString(tensor_tmp.GetTensorDesc().GetFormat()).c_str(),
-            tensor_tmp.GetTensorDesc().GetShape().ToString().c_str(),
-            ge::TypeUtils::FormatToSerialString(inputs_temp.back().MutableTensorDesc().GetFormat()).c_str(),
-            inputs_temp.back().MutableTensorDesc().GetShape().ToString().c_str(),
-            PtrToValue(inputs_temp.back().GetData().GetData()),
-            inputs_temp.back().GetData().GetSize());
+           ge::TypeUtils::FormatToSerialString(tensor_tmp.GetTensorDesc().GetFormat()).c_str(),
+           tensor_tmp.GetTensorDesc().GetShape().ToString().c_str(),
+           ge::TypeUtils::FormatToSerialString(inputs_temp.back().MutableTensorDesc().GetFormat()).c_str(),
+           inputs_temp.back().MutableTensorDesc().GetShape().ToString().c_str(),
+           PtrToValue(inputs_temp.back().GetData().GetData()), inputs_temp.back().GetData().GetSize());
   }
   GE_ASSERT_SUCCESS(TensorTransUtils::GeTensors2GertTensors(inputs_temp, graph_inputs_));
   GE_ASSERT_SUCCESS(NormalizeOutputs(compute_graph));
@@ -175,12 +174,12 @@ Status ExecutionOrder::NormalizeOutputs(const ComputeGraphPtr &compute_graph) co
            output_temp.GetTensorDesc().GetShape().ToString().c_str(),
            ge::TypeUtils::FormatToSerialString(normalized_output.MutableTensorDesc().GetFormat()).c_str(),
            normalized_output.MutableTensorDesc().GetShape().ToString().c_str(),
-           PtrToValue(normalized_output.GetData().GetData()),
-           normalized_output.GetData().GetSize());
+           PtrToValue(normalized_output.GetData().GetData()), normalized_output.GetData().GetSize());
     GE_ASSERT_SUCCESS(output_info.first->GetOpDesc()->UpdateOutputDesc(static_cast<uint32_t>(output_info.second),
-        normalized_output.MutableTensorDesc()),
-        "Update output desc size failed for op:%s(%s) index:0 ",
-        output_info.first->GetOpDesc()->GetName().c_str(), output_info.first->GetOpDesc()->GetType().c_str());
+                                                                       normalized_output.MutableTensorDesc()),
+                      "Update output desc size failed for op:%s(%s) index:0 ",
+                      output_info.first->GetOpDesc()->GetName().c_str(),
+                      output_info.first->GetOpDesc()->GetType().c_str());
   }
   return SUCCESS;
 }

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -72,7 +72,7 @@ TEST_F(LLMDatadistV2UTest, Prompt_With_buf_cfg_disorder) {
   LLMDataDist llm_engine(0);
   options["llm.BufPoolCfg"] =
       "{\"buf_cfg\":[{\"total_size\":33554432,\"blk_size\":256,\"max_buf_size\":8192},"
-                    "{\"total_size\":2097152,\"blk_size\":256,\"max_buf_size\":1024}]}";
+      "{\"total_size\":2097152,\"blk_size\":256,\"max_buf_size\":1024}]}";
   EXPECT_EQ(llm_engine.LLMDataDistInitialize(options), ge::LLM_PARAM_INVALID);
 }
 
@@ -82,7 +82,7 @@ TEST_F(LLMDatadistV2UTest, Prompt_With_buf_cfg_blk_invalid) {
   LLMDataDist llm_engine(0);
   options["llm.BufPoolCfg"] =
       "{\"buf_cfg\":[{\"total_size\":33554432,\"blk_size\":257,\"max_buf_size\":8192},"
-                    "{\"total_size\":2097152,\"blk_size\":256,\"max_buf_size\":8192}]}";
+      "{\"total_size\":2097152,\"blk_size\":256,\"max_buf_size\":8192}]}";
   EXPECT_EQ(llm_engine.LLMDataDistInitialize(options), ge::LLM_PARAM_INVALID);
 }
 
@@ -92,7 +92,7 @@ TEST_F(LLMDatadistV2UTest, Prompt_With_buf_cfg_buf_size_invalid) {
   LLMDataDist llm_engine(0);
   options["llm.BufPoolCfg"] =
       "{\"buf_cfg\":[{\"total_size\":33554432,\"blk_size\":8192,\"max_buf_size\":256},"
-                    "{\"total_size\":2097152,\"blk_size\":256,\"max_buf_size\":8192}]}";
+      "{\"total_size\":2097152,\"blk_size\":256,\"max_buf_size\":8192}]}";
   EXPECT_EQ(llm_engine.LLMDataDistInitialize(options), ge::LLM_PARAM_INVALID);
 }
 
@@ -327,8 +327,8 @@ TEST_F(LLMDatadistV2UTest, Decoder_CopyAndPullBlocks) {
   copy_cache_param.copy_block_infos = {{0LU, 1LU}, {2LU, 3LU}};
   EXPECT_EQ(llm_engine.CopyCache(copy_cache_param), ge::SUCCESS);
   PullCacheParam pull_cache_param{};
-  pull_cache_param.prompt_blocks = {0LU,1LU};
-  pull_cache_param.decoder_blocks = {2LU,3LU};
+  pull_cache_param.prompt_blocks = {0LU, 1LU};
+  pull_cache_param.decoder_blocks = {2LU, 3LU};
   EXPECT_EQ(llm_engine.PullCache(block_kv_cache.cache_id, cache_key, pull_cache_param), ge::SUCCESS);
   EXPECT_EQ(llm_engine.DeallocateCache(block_kv_cache.cache_id), ge::SUCCESS);
   EXPECT_EQ(llm_engine.DeallocateCache(prompt_kv_cache.cache_id), ge::SUCCESS);
@@ -392,7 +392,7 @@ TEST_F(LLMDatadistV2UTest, SwitchRoleSuccess) {
 TEST_F(LLMDatadistV2UTest, Init_WithDeviceIdAndRankId) {
   ge::LlmEngineOptionBuilder builder;
   llm::LLMDataDist llm_engine(0);
-  std::map<AscendString, AscendString> options {
+  std::map<AscendString, AscendString> options{
       {OPTION_EXEC_DEVICE_ID, "1"},
       {OPTION_EXEC_RANK_ID, "1"},
       {LLM_OPTION_ROLE, "Decoder"},
@@ -404,7 +404,7 @@ TEST_F(LLMDatadistV2UTest, Init_WithDeviceIdAndRankId) {
 TEST_F(LLMDatadistV2UTest, Init_WithDeviceId) {
   ge::LlmEngineOptionBuilder builder;
   llm::LLMDataDist llm_engine(0);
-  std::map<AscendString, AscendString> options {
+  std::map<AscendString, AscendString> options{
       {OPTION_EXEC_DEVICE_ID, "1"},
       {llm::LLM_OPTION_ROLE, "Decoder"},
       {llm::LLM_OPTION_CLUSTER_INFO, R"({"cluster_id": 0, "logic_device_id": ["0:0:0:0"]})"},
@@ -439,7 +439,7 @@ TEST_F(LLMDatadistV2UTest, SwapBlocks) {
   EXPECT_EQ(llm_engine.AllocateCache(kv_desc, cached_tensors_2), ge::SUCCESS);
   EXPECT_EQ(cached_tensors_2.cache_id, 2);
 
-  std::vector<std::pair<int64_t, int64_t>> block_mapping{{3,4}, {0,0}, {1,1}, {2,2}, {5,6}, {6,7}, {9,9}};
+  std::vector<std::pair<int64_t, int64_t>> block_mapping{{3, 4}, {0, 0}, {1, 1}, {2, 2}, {5, 6}, {6, 7}, {9, 9}};
   // swap in
   EXPECT_EQ(llm_engine.SwapBlocks(cached_tensors, cached_tensors_2, 128, 0, block_mapping), ge::SUCCESS);
   // swap out
@@ -492,7 +492,7 @@ TEST_F(LLMDatadistV2UTest, SwapBlocksFailed1) {
   EXPECT_EQ(cached_tensors.per_device_tensor_addrs.size(), 1U);
 
   std::vector<std::pair<int64_t, int64_t>> block_mapping{{3, 4}, {0, 0}, {1, 1}, {2, 2}, {5, 6}, {6, 7}, {9, 9}};
-  const char_t * const kEnvValue = "SET_TRANS_VAR_DATA";
+  const char_t *const kEnvValue = "SET_TRANS_VAR_DATA";
   // 设置环境变量，rtCtxSetCurrent返回失败
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);

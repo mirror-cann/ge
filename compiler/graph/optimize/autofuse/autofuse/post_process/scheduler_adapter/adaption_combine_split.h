@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,7 +19,8 @@
 
 namespace ge {
 namespace asc_adapt {
-inline Status GetSplitInfos(AscGraph &asc_graph, bool &has_split, std::map<NodePtr, uint32_t> &connect_split_load_nodes) {
+inline Status GetSplitInfos(AscGraph &asc_graph, bool &has_split,
+                            std::map<NodePtr, uint32_t> &connect_split_load_nodes) {
   for (const auto &node : asc_graph.GetAllNodes()) {
     if ((node->GetType() != kSplitType)) {
       continue;
@@ -46,9 +47,7 @@ inline Status GetSplitInfos(AscGraph &asc_graph, bool &has_split, std::map<NodeP
 }
 
 inline NodePtr CreateSplitNode(AscGraph &asc_graph, const NodePtr &load_node, uint32_t out_num) {
-  return af::AscGraphAddSplitNode(asc_graph,
-                                  ("Split_Combine_" + load_node->GetName()).c_str(),
-                                  out_num);
+  return af::AscGraphAddSplitNode(asc_graph, ("Split_Combine_" + load_node->GetName()).c_str(), out_num);
 }
 
 inline Status UpdateSplitNodeAttrs(const NodePtr &b_node, const std::vector<int64_t> &current_split_axis,
@@ -72,7 +71,8 @@ inline Status UpdateSplitNodeAttrs(const NodePtr &b_node, const std::vector<int6
   return SUCCESS;
 }
 
-inline Status GetSplitNodeFallbackDtype(const AscGraph &asc_graph, const NodePtr &node, TensorAttrInfo &current_node_attr) {
+inline Status GetSplitNodeFallbackDtype(const AscGraph &asc_graph, const NodePtr &node,
+                                        TensorAttrInfo &current_node_attr) {
   (void)asc_graph;
   const auto node_opdesc = node->GetOpDesc();
   GE_ASSERT_NOTNULL(node_opdesc);
@@ -162,7 +162,8 @@ inline Status CreateNewSplitNodeAndModifyEdge(AscGraph &asc_graph, const NodePtr
     GetSplitNodeFallbackDtype(asc_graph, peer_split_node, current_node_attr);
     GE_ASSERT_SUCCESS(UpdateSplitNodeAttrs(b_node, current_node_attr.axis, current_node_attr.repeats,
                                            current_node_attr.strides, current_node_attr.dtype, output_index));
-    GE_ASSERT_GRAPH_SUCCESS(GraphUtils::RemoveEdge(load_node->GetOutDataAnchor(0), peer_split_node->GetInDataAnchor(0)));
+    GE_ASSERT_GRAPH_SUCCESS(
+        GraphUtils::RemoveEdge(load_node->GetOutDataAnchor(0), peer_split_node->GetInDataAnchor(0)));
     output_index++;
   }
   GE_CHK_STATUS(GraphUtils::ReplaceNodesDataAnchors(new_nodes_lists, old_nodes_lists, inputs_map, outputs_map));
@@ -192,7 +193,7 @@ inline Status SplitCombine(AscGraph &asc_graph, [[maybe_unused]] const NodePtr &
   for (auto &load_node_info : connect_split_load_nodes) {
     GELOGI("split combine node %s connect num is %d.", load_node_info.first->GetName().c_str(), load_node_info.second);
     if (load_node_info.second > 1U) {
-       GE_ASSERT_SUCCESS(CreateNewSplitNodeAndModifyEdge(asc_graph, load_node_info.first, load_node_info.second));
+      GE_ASSERT_SUCCESS(CreateNewSplitNodeAndModifyEdge(asc_graph, load_node_info.first, load_node_info.second));
     }
   }
 

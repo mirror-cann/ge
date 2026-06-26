@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -96,8 +96,8 @@ TEST_F(HostExecutorDumperUT, HostDumperConstruct_Ok) {
   auto executor = std::move(executor_2_exe_graph.executor);
   ASSERT_NE(executor, nullptr);
   const auto &extend_info = ge::MakeShared<const SubscriberExtendInfo>(
-      executor.get(), executor_2_exe_graph.exe_graph, nullptr, ge::ModelData{}, nullptr,
-      SymbolsToValue{}, 0, "", nullptr, std::unordered_map<std::string, TraceAttr>{});
+      executor.get(), executor_2_exe_graph.exe_graph, nullptr, ge::ModelData{}, nullptr, SymbolsToValue{}, 0, "",
+      nullptr, std::unordered_map<std::string, TraceAttr>{});
   HostExecutorDumper dumper(extend_info);
   EXPECT_NE(dumper.extend_info_->executor, nullptr);
   EXPECT_NE(dumper.extend_info_->exe_graph, nullptr);
@@ -325,7 +325,8 @@ TEST_F(HostExecutorDumperUT, DoHostDump_WithWrongInputSize) {
   auto op_data = ge::OpDescBuilder("fake", "Fake").AddInput("x_0").AddInput("x_1").AddOutput("y").Build();
   auto fake_node = graph->AddNode(op_data);
   auto executor = BuildExecutorFromSingleNodeForDump();
-  auto dumper = executor->GetSubscribers().MutableBuiltInSubscriber<HostExecutorDumper>(BuiltInSubscriberType::kHostDumper);
+  auto dumper =
+      executor->GetSubscribers().MutableBuiltInSubscriber<HostExecutorDumper>(BuiltInSubscriberType::kHostDumper);
   ge::DumpManager::GetInstance().RemoveDumpProperties(ge::kInferSessionId);
   ge::DumpProperties dump_properties;
   dump_properties.AddPropertyValue("ALL_MODEL_NEED_DUMP_AND_IT_IS_NOT_A_MODEL_NAME", {"test"});
@@ -353,7 +354,8 @@ TEST_F(HostExecutorDumperUT, DoHostDump_WithNoDumpLayer) {
   auto op_data = ge::OpDescBuilder("fake", "Fake").AddInput("x_0").AddInput("x_1").AddOutput("y").Build();
   auto fake_node = graph->AddNode(op_data);
   auto executor = BuildExecutorFromSingleNodeForDump();
-  auto dumper = executor->GetSubscribers().MutableBuiltInSubscriber<HostExecutorDumper>(BuiltInSubscriberType::kHostDumper);
+  auto dumper =
+      executor->GetSubscribers().MutableBuiltInSubscriber<HostExecutorDumper>(BuiltInSubscriberType::kHostDumper);
   ge::DumpManager::GetInstance().RemoveDumpProperties(ge::kInferSessionId);
   ge::DumpProperties dump_properties;
   dump_properties.AddPropertyValue("WRONG_NAME", {"test"});

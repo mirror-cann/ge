@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,7 +34,7 @@ class Executor {
  public:
   Executor() = default;
   virtual ~Executor() = default;
-  Executor &operator=(const Executor &)& = delete;
+  Executor &operator=(const Executor &) & = delete;
   Executor(const Executor &) = delete;
 
   /**
@@ -88,10 +88,10 @@ class Executor {
    */
   virtual Status RunGraphWithStream(const GraphNodePtr &graph_node, const GraphId graph_id, const aclrtStream stream,
                                     const std::vector<GeTensor> &inputs, std::vector<GeTensor> &outputs) = 0;
-  
+
   virtual Status ExecuteGraphWithStream(const GraphNodePtr &graph_node, const GraphId graph_id,
-                                         aclrtStream const stream, const std::vector<gert::Tensor> &inputs,
-                                         std::vector<gert::Tensor> &outputs) = 0;
+                                        aclrtStream const stream, const std::vector<gert::Tensor> &inputs,
+                                        std::vector<gert::Tensor> &outputs) = 0;
 
   virtual Status DumpDebugJSONPrint(uint32_t model_id, uint32_t graph_id, uint32_t flags,
                                     AscendString &json_result) = 0;
@@ -115,4 +115,4 @@ class Executor {
                             const uint64_t len, std::vector<std::pair<uint64_t, uint64_t>> &cross_ranges) = 0;
 };
 }  // namespace ge
-#endif // GE_COMMON_EXECUTOR_H
+#endif  // GE_COMMON_EXECUTOR_H

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -12,7 +12,7 @@
 #include "fe_llt_utils.h"
 namespace te {
 /**
- * @brief: Tbe Initialize proccess
+ * @brief: Tbe Initialize process
  * @param [in] options            ddk version
  * @return [out] bool             succ or fail for Tbe Initialize
  */
@@ -21,7 +21,7 @@ bool TbeInitialize(const std::map<std::string, std::string> &options, bool *isSu
 }
 
 /**
- * @brief: tbe finalize proccess
+ * @brief: tbe finalize process
  * @return [out] bool             succ or fail for Tbe Finalize
  */
 bool TbeFinalize() {
@@ -42,11 +42,11 @@ bool WaitAllFinished(uint64_t graphId, vector<FinComTask> &tasks) {
  * @param [out] IsSupport: result to support or not
  * @return bool: check process ok or not
  */
-bool CheckTbeSupported(TbeOpInfo& opinfo, CheckSupportedResult &isSupport, std::string &reason) {
+bool CheckTbeSupported(TbeOpInfo &opinfo, CheckSupportedResult &isSupport, std::string &reason) {
   return te::TeStub::GetInstance().GetImpl()->CheckTbeSupported(opinfo, isSupport, reason);
 }
 
-bool CheckOpSupported(TbeOpInfo& opinfo, CheckSupportedInfo &result) {
+bool CheckOpSupported(TbeOpInfo &opinfo, CheckSupportedInfo &result) {
   bool res = te::TeStub::GetInstance().GetImpl()->CheckTbeSupported(opinfo, result.isSupported, result.reason);
   return res;
 }
@@ -59,7 +59,7 @@ bool GetOpUniqueKeys(const TbeOpInfo &tbeOpInfo, std::vector<std::string> &opUni
  * @brief pre build tbe op
  * @return [out] bool                 succ or fail of prebuild
  */
-bool PreBuildTbeOp(TbeOpInfo& opinfo, uint64_t taskId, uint64_t graphId) {
+bool PreBuildTbeOp(TbeOpInfo &opinfo, uint64_t taskId, uint64_t graphId) {
   return te::TeStub::GetInstance().GetImpl()->PreBuildTbeOp(opinfo, taskId, graphId);
 }
 
@@ -72,17 +72,16 @@ bool PreBuildTbeOp(TbeOpInfo& opinfo, uint64_t taskId, uint64_t graphId) {
  * @return [out] bool                 succ or fail of building fusion op
  */
 OpBuildResCode TeFusion(std::vector<ge::Node *> teGraphNode, ge::OpDescPtr opDesc,
-                        const std::vector<ge::NodePtr> &toBeDel,
-                        uint64_t taskId, uint64_t graphId, const std::string &strategy) {
-  return te::TeStub::GetInstance().GetImpl()->TeFusion(teGraphNode, opDesc, toBeDel, taskId,
-                                                       graphId, strategy);
+                        const std::vector<ge::NodePtr> &toBeDel, uint64_t taskId, uint64_t graphId,
+                        const std::string &strategy) {
+  return te::TeStub::GetInstance().GetImpl()->TeFusion(teGraphNode, opDesc, toBeDel, taskId, graphId, strategy);
 }
 
 OpBuildResCode TeFusionV(std::vector<ge::Node *> teGraphNode, ge::OpDescPtr opDesc,
                          const std::vector<ge::NodePtr> &toBeDel, uint64_t taskId, uint64_t graphId,
                          uint64_t sgtThreadIndex, const std::string &strategy) {
-  return te::TeStub::GetInstance().GetImpl()->TeFusionV(teGraphNode, opDesc, toBeDel, taskId,
-                                                        graphId, sgtThreadIndex, strategy);
+  return te::TeStub::GetInstance().GetImpl()->TeFusionV(teGraphNode, opDesc, toBeDel, taskId, graphId, sgtThreadIndex,
+                                                        strategy);
 }
 
 /**
@@ -136,8 +135,8 @@ OpBuildResCode FuzzBuildTbeOp(uint64_t taskId, uint64_t graphId, ge::Node &node)
 bool SetFuzzyBuildSupportInfoToNode(ge::NodePtr &nodePtr, const std::string &supportInfoStr,
                                     const std::vector<size_t> &indirectIndexs,
                                     const std::vector<std::pair<size_t, size_t>> &directIndexMap) {
-  return te::TeStub::GetInstance().GetImpl()->SetFuzzyBuildSupportInfoToNode(nodePtr, supportInfoStr,
-                                                                     indirectIndexs, directIndexMap);
+  return te::TeStub::GetInstance().GetImpl()->SetFuzzyBuildSupportInfoToNode(nodePtr, supportInfoStr, indirectIndexs,
+                                                                             directIndexMap);
 }
 
 /**
@@ -157,9 +156,7 @@ bool CheckIsTbeGeneralizeFuncRegistered(const TbeOpInfo &tbeOpInfo, bool &hasReg
  * @param [in] nodePtr              node
  * @return [out] bool               succ or fail of check
  */
-bool TeGeneralize(const TbeOpInfo &tbeOpInfo,
-                  const TE_GENERALIZE_TYPE &generalize_type,
-                  const ge::NodePtr &nodePtr) {
+bool TeGeneralize(const TbeOpInfo &tbeOpInfo, const TE_GENERALIZE_TYPE &generalize_type, const ge::NodePtr &nodePtr) {
   return te::TeStub::GetInstance().GetImpl()->TeGeneralize(tbeOpInfo, generalize_type, nodePtr);
 }
 
@@ -180,21 +177,18 @@ bool GetOpSpecificInfo(const TbeOpInfo &tbeOpInfo, std::string &opSpecificInfo) 
  * @param [out] unSupportedInputIndexs    shape range unSupported input indexs
  * @param [out] bool                      succ or fail
  */
-bool DynamicShapeRangeCheck(const TbeOpInfo &tbeOpInfo, bool &isSupported,
-                            std::vector<size_t> &upperLimitedInputIndexs,
+bool DynamicShapeRangeCheck(const TbeOpInfo &tbeOpInfo, bool &isSupported, std::vector<size_t> &upperLimitedInputIndexs,
                             std::vector<size_t> &lowerLimitedInputIndexs) {
-  return te::TeStub::GetInstance().GetImpl()->DynamicShapeRangeCheck(tbeOpInfo, isSupported,
-                                                             upperLimitedInputIndexs,
-                                                             lowerLimitedInputIndexs);
+  return te::TeStub::GetInstance().GetImpl()->DynamicShapeRangeCheck(tbeOpInfo, isSupported, upperLimitedInputIndexs,
+                                                                     lowerLimitedInputIndexs);
 }
 
-bool TeStubApi::TbeInitialize(const std::map<std::string, std::string> &options,
-                              bool *isSupportParallelCompilation) {
+bool TeStubApi::TbeInitialize(const std::map<std::string, std::string> &options, bool *isSupportParallelCompilation) {
   if (te::TeStub::GetInstance().tbe_initialize_ == nullptr) {
     return true;
   }
   auto initialize_func =
-          (bool(*)(const std::map<std::string, std::string> &, bool*))(te::TeStub::GetInstance().tbe_initialize_);
+      (bool (*)(const std::map<std::string, std::string> &, bool *))(te::TeStub::GetInstance().tbe_initialize_);
 
   return initialize_func(options, isSupportParallelCompilation);
 }
@@ -203,20 +197,18 @@ bool TeStubApi::TbeFinalize() {
   return true;
 }
 
-bool TeStubApi::CheckTbeSupported(TbeOpInfo& opinfo,
-                                  CheckSupportedResult &isSupport,
-                                  std::string &reason) {
+bool TeStubApi::CheckTbeSupported(TbeOpInfo &opinfo, CheckSupportedResult &isSupport, std::string &reason) {
   isSupport = te::FULLY_SUPPORTED;
   return true;
 }
 
-bool TeStubApi::CheckOpSupported(TbeOpInfo& opinfo, CheckSupportedInfo &result) {
+bool TeStubApi::CheckOpSupported(TbeOpInfo &opinfo, CheckSupportedInfo &result) {
   result.isSupported = te::FULLY_SUPPORTED;
   return true;
 }
 
-bool TeStubApi::PreBuildTbeOp(TbeOpInfo& opinfo, uint64_t taskId, uint64_t graphId) {
-  //之后TEFUSION会设置一个串行预编译的接口，当前采用打桩方式
+bool TeStubApi::PreBuildTbeOp(TbeOpInfo &opinfo, uint64_t taskId, uint64_t graphId) {
+  // 之后TEFUSION会设置一个串行预编译的接口，当前采用打桩方式
   string pattern = "Opaque";
   string core_type = "AiCore";
   string op_type;
@@ -240,8 +232,8 @@ bool TeStubApi::PreBuildTbeOp(TbeOpInfo& opinfo, uint64_t taskId, uint64_t graph
         }
       }
     }
-  } else if (op_type == "LeakyRelu" || op_type == "Add" || op_type == "Mul" || op_type == "Relu" ||
-             op_type == "Gelu" || op_type == "GeluGrad") {
+  } else if (op_type == "LeakyRelu" || op_type == "Add" || op_type == "Mul" || op_type == "Relu" || op_type == "Gelu" ||
+             op_type == "GeluGrad") {
     pattern = "ElemWise";
   } else if (op_type == "FullyConnection") {
     pattern = "Matmul";
@@ -277,19 +269,18 @@ bool TeStubApi::PreBuildTbeOp(TbeOpInfo& opinfo, uint64_t taskId, uint64_t graph
 }
 
 OpBuildResCode TeStubApi::TeFusion(std::vector<ge::Node *> teGraphNode, ge::OpDescPtr opDesc,
-                                   const std::vector<ge::NodePtr> &toBeDel,
-                                   uint64_t taskId, uint64_t graphId,
+                                   const std::vector<ge::NodePtr> &toBeDel, uint64_t taskId, uint64_t graphId,
                                    const std::string &strategy) {
   return TeFusionV(teGraphNode, opDesc, toBeDel, taskId, graphId, 0xffffffff, strategy);
 }
 
 OpBuildResCode TeStubApi::TeFusionV(std::vector<ge::Node *> teGraphNode, ge::OpDescPtr opDesc,
-                                    const std::vector<ge::NodePtr> &toBeDel, uint64_t taskId,
-                                    uint64_t graphId, uint64_t sgtThreadIndex,
-                                    const std::string &strategy) {
+                                    const std::vector<ge::NodePtr> &toBeDel, uint64_t taskId, uint64_t graphId,
+                                    uint64_t sgtThreadIndex, const std::string &strategy) {
   /* 编译流程耗时较长，目前没有绝对的必要采取真实实现。统一采用打桩方式。 */
   string json_file_path =
-      fe::GetCodeDir() + "/tests/engines/nn_engine/depends/te_fusion/compilation_result/te_op_312acb789acb79acb789cb7a89cef8978_1.json";
+      fe::GetCodeDir() +
+      "/tests/engines/nn_engine/depends/te_fusion/compilation_result/te_op_312acb789acb79acb789cb7a89cef8978_1.json";
   ge::AttrUtils::SetStr(opDesc, "json_file_path", json_file_path);
   FinComTask new_task;
   new_task.graphId = graphId;
@@ -314,7 +305,7 @@ bool TeStubApi::WaitAllFinished(uint64_t graphId, vector<FinComTask> &tasks) {
   } else {
     if (te::TeStub::GetInstance().wait_all_finished_ != nullptr) {
       auto wait_all_finished_func =
-              (bool(*)(uint64_t, vector<FinComTask> &))(te::TeStub::GetInstance().wait_all_finished_);
+          (bool (*)(uint64_t, vector<FinComTask> &))(te::TeStub::GetInstance().wait_all_finished_);
       return wait_all_finished_func(graphId, tasks);
     }
   }
@@ -343,46 +334,44 @@ OpBuildResCode TeStubApi::FuzzBuildTbeOp(uint64_t taskId, uint64_t graphId, ge::
 }
 
 bool TeStubApi::SetFuzzyBuildSupportInfoToNode(ge::NodePtr &nodePtr, const std::string &supportInfoStr,
-                                                       const std::vector<size_t> &indirectIndexs,
-                                                       const std::vector<std::pair<size_t, size_t>> &directIndexMap) {
+                                               const std::vector<size_t> &indirectIndexs,
+                                               const std::vector<std::pair<size_t, size_t>> &directIndexMap) {
   return true;
 }
 
-bool TeStubApi::CheckIsTbeGeneralizeFuncRegistered(const TbeOpInfo &tbeOpInfo,
-                                                           bool &hasRegisteredFunc) {
+bool TeStubApi::CheckIsTbeGeneralizeFuncRegistered(const TbeOpInfo &tbeOpInfo, bool &hasRegisteredFunc) {
   return true;
 }
 
-bool TeStubApi::TeGeneralize(const TbeOpInfo &tbeOpInfo,
-                                     const TE_GENERALIZE_TYPE &generalize_type,
-                                     const ge::NodePtr &nodePtr) {
+bool TeStubApi::TeGeneralize(const TbeOpInfo &tbeOpInfo, const TE_GENERALIZE_TYPE &generalize_type,
+                             const ge::NodePtr &nodePtr) {
   return true;
 }
 
-bool TeStubApi::GetOpSpecificInfo(const TbeOpInfo &tbeOpInfo,
-                                          std::string &opSpecificInfo) {
+bool TeStubApi::GetOpSpecificInfo(const TbeOpInfo &tbeOpInfo, std::string &opSpecificInfo) {
   return true;
 }
 
 bool TeStubApi::DynamicShapeRangeCheck(const TbeOpInfo &tbeOpInfo, bool &isSupported,
-                                               std::vector<size_t> &upperLimitedInputIndexs,
-                                               std::vector<size_t> &lowerLimitedInputIndexs) {
+                                       std::vector<size_t> &upperLimitedInputIndexs,
+                                       std::vector<size_t> &lowerLimitedInputIndexs) {
   return true;
 }
 
 /**
-* @brief: query op registered patterns
-* @param [out] opPatternVec op_pattern list, key is op_type, value is pattern(Elewise/func/...).
-* @return [out] bool        succ or fail
-*/
-bool TeStubApi::QueryOpPattern(const std::vector<std::pair<std::string, std::string>>& opPatternVec) {
+ * @brief: query op registered patterns
+ * @param [out] opPatternVec op_pattern list, key is op_type, value is pattern(Elewise/func/...).
+ * @return [out] bool        succ or fail
+ */
+bool TeStubApi::QueryOpPattern(const std::vector<std::pair<std::string, std::string>> &opPatternVec) {
   return true;
 }
 
 OpBuildResCode TeStubApi::BuildSuperKernel(const std::vector<ge::Node *> &graphNodes, ge::OpDescPtr opDesc,
-    const uint64_t taskId, const uint64_t graphId) {
+                                           const uint64_t taskId, const uint64_t graphId) {
   string json_file_path =
-          fe::GetCodeDir() + "/tests/engines/nn_engine/depends/te_fusion/compilation_result/te_op_312acb789acb79acb789cb7a89cef8978_1.json";
+      fe::GetCodeDir() +
+      "/tests/engines/nn_engine/depends/te_fusion/compilation_result/te_op_312acb789acb79acb789cb7a89cef8978_1.json";
   ge::AttrUtils::SetStr(opDesc, "json_file_path", json_file_path);
   FinComTask new_task;
   new_task.graphId = graphId;
@@ -402,5 +391,4 @@ OpBuildResCode TeStubApi::BuildSuperKernel(const std::vector<ge::Node *> &graphN
 std::string TeStubApi::GetKernelMetaDir() {
   return "./kernel_meta";
 }
-} // namespace te
-
+}  // namespace te

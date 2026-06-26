@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,9 +18,8 @@
 
 namespace ge {
 REG_OP(Const)
-    .OUTPUT(y,
-            TensorType({DT_FLOAT, DT_FLOAT16, DT_INT8, DT_INT16, DT_UINT16, DT_UINT8, DT_INT32, DT_INT64, DT_UINT32,
-                        DT_UINT64, DT_BOOL, DT_DOUBLE}))
+    .OUTPUT(y, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT8, DT_INT16, DT_UINT16, DT_UINT8, DT_INT32, DT_INT64, DT_UINT32,
+                           DT_UINT64, DT_BOOL, DT_DOUBLE}))
     .ATTR(value, Tensor, Tensor())
 
     .OP_END_FACTORY_REG(Const);
@@ -32,13 +31,11 @@ REG_OP(OCG2)
     .OP_END_FACTORY_REG(OCG2);
 
 REG_OP(OCG3)
-    .INPUT(x,
-           TensorType({DT_FLOAT, DT_FLOAT16, DT_INT8, DT_INT16, DT_UINT16, DT_UINT8, DT_INT32, DT_INT64, DT_UINT32,
-                       DT_UINT64, DT_BOOL, DT_DOUBLE}))
+    .INPUT(x, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT8, DT_INT16, DT_UINT16, DT_UINT8, DT_INT32, DT_INT64, DT_UINT32,
+                          DT_UINT64, DT_BOOL, DT_DOUBLE}))
     .INPUT(shape, TensorType({DT_INT32, DT_INT64}))
-    .OUTPUT(y,
-            TensorType({DT_FLOAT, DT_FLOAT16, DT_INT8, DT_INT16, DT_UINT16, DT_UINT8, DT_INT32, DT_INT64, DT_UINT32,
-                        DT_UINT64, DT_BOOL, DT_DOUBLE}))
+    .OUTPUT(y, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT8, DT_INT16, DT_UINT16, DT_UINT8, DT_INT32, DT_INT64, DT_UINT32,
+                           DT_UINT64, DT_BOOL, DT_DOUBLE}))
     .ATTR(axis, Int, 0)
     .ATTR(num_axes, Int, -1)
     .OP_END_FACTORY_REG(OCG3);
@@ -113,8 +110,8 @@ Graph BuildGraph1ByGnode() {
   o1_3.SetAttr("value", tensor);
   g.AddDataEdge(o1_1, 0, o3, 0);
   g.AddDataEdge(o1_2, 0, o3, 1);
-  g.AddDataEdge(o3,0,o2_1, 0);
-  g.AddDataEdge(o2_1,0,o2_2, 0);
+  g.AddDataEdge(o3, 0, o2_1, 0);
+  g.AddDataEdge(o2_1, 0, o2_2, 0);
   g.AddControlEdge(o2_2, o1_3);
   g.SetOutputs({{o2_2, 0}, {o1_3, 0}});
   return g;
@@ -250,7 +247,7 @@ TEST_F(OperatorConstructGraphUt, SetGetAttrOk) {
   EXPECT_EQ(value, 10);
   op = OperatorFactory::CreateOperator(nullptr, "OCG3");
   AscendString invalid_type("");
-  EXPECT_EQ(op.GetOpType(invalid_type), GRAPH_FAILED); // op无效
+  EXPECT_EQ(op.GetOpType(invalid_type), GRAPH_FAILED);  // op无效
   EXPECT_EQ(invalid_type, "");
 }
 
@@ -401,8 +398,7 @@ TEST_F(OperatorConstructGraphUt, GetOpsTypeList) {
   EXPECT_EQ(all_ops2.size(), all_ops.size());
 }
 
-static graphStatus stub_func(Operator &op)
-{
+static graphStatus stub_func(Operator &op) {
   return GRAPH_SUCCESS;
 }
 
@@ -431,7 +427,7 @@ TEST_F(OperatorConstructGraphUt, IsExistOp) {
   op = OperatorFactory::CreateOperator("op", "OCG3");
 
   OpCreator op_creator;
-  OperatorCreatorRegister( std::string("OCG3"), op_creator);
+  OperatorCreatorRegister(std::string("OCG3"), op_creator);
 
   bool ret = OperatorFactory::IsExistOp(nullptr);
   EXPECT_FALSE(ret);

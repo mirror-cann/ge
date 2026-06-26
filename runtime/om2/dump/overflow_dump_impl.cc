@@ -46,16 +46,14 @@ Status OverflowDumpImpl::RegisterForModel(rtModel_t rt_model_handle) {
   GELOGD("Overflow register: op_debug_mode=%u", op_debug_mode);
   uint32_t debug_stream_id = 0U;
   uint32_t debug_task_id = 0U;
-  rtError_t rt_ret = rtDebugRegister(rt_model_handle, op_debug_mode, op_debug_addr_,
-                                      &debug_stream_id, &debug_task_id);
+  rtError_t rt_ret = rtDebugRegister(rt_model_handle, op_debug_mode, op_debug_addr_, &debug_stream_id, &debug_task_id);
   if (rt_ret != RT_ERROR_NONE) {
     GELOGE(RT_FAILED, "rtDebugRegister error, ret: 0x%X", rt_ret);
     Clear();  // 注册失败，释放已分配的内存
     return RT_FAILED;
   }
 
-  GELOGD("Overflow register success, debug_task_id=%u, debug_stream_id=%u",
-         debug_task_id, debug_stream_id);
+  GELOGD("Overflow register success, debug_task_id=%u, debug_stream_id=%u", debug_task_id, debug_stream_id);
 
   // 3. 保存 debug id
   op_debug_task_id_ = debug_task_id;
@@ -66,8 +64,8 @@ Status OverflowDumpImpl::RegisterForModel(rtModel_t rt_model_handle) {
 }
 
 void OverflowDumpImpl::UnregisterForModel(rtModel_t rt_model_handle) {
-  GELOGD("OverflowDumpImpl::UnregisterForModel, rt_model_handle=%p, is_registered=%u",
-         rt_model_handle, static_cast<uint32_t>(is_op_debug_enabled_));
+  GELOGD("OverflowDumpImpl::UnregisterForModel, rt_model_handle=%p, is_registered=%u", rt_model_handle,
+         static_cast<uint32_t>(is_op_debug_enabled_));
   if (!is_op_debug_enabled_) {
     GELOGD("Overflow not registered, skip unregister");
     return;
@@ -93,7 +91,7 @@ uint32_t OverflowDumpImpl::GetOpDebugStreamId() const {
   return op_debug_stream_id_;
 }
 
-void* OverflowDumpImpl::GetOpDebugAddr() const {
+void *OverflowDumpImpl::GetOpDebugAddr() const {
   return p2p_debug_addr_;
 }
 
@@ -137,8 +135,8 @@ Status OverflowDumpImpl::MallocMemForOpdebug() {
   }
 
   // 3. 将 OpDebug 地址拷贝到 P2P 内存（H2D）
-  rt_ret = aclrtMemcpy(p2p_debug_addr_, sizeof(uint64_t), &debug_addrs_tmp,
-                        sizeof(uint64_t), ACL_MEMCPY_HOST_TO_DEVICE);
+  rt_ret =
+      aclrtMemcpy(p2p_debug_addr_, sizeof(uint64_t), &debug_addrs_tmp, sizeof(uint64_t), ACL_MEMCPY_HOST_TO_DEVICE);
   if (rt_ret != ACL_SUCCESS) {
     GELOGE(RT_FAILED, "Call aclrtMemcpy failed, ret:%d", rt_ret);
     (void)aclrtFree(p2p_debug_addr_);

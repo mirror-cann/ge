@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -71,7 +71,8 @@ Graph BuildGraphWithInvokeModelPp(const std::string &name, const std::string &mo
   return flow_graph.ToGeGraph();
 }
 
-Graph BuildGraphWithInvokeModelPpWithConfigFile(const std::string &name, const std::string &model_path, int32_t type = 0) {
+Graph BuildGraphWithInvokeModelPpWithConfigFile(const std::string &name, const std::string &model_path,
+                                                int32_t type = 0) {
   // type 0: correct ;1 invalid path ;2 invalid json
   auto data0 = dflow::FlowData("Data0", 0);
   auto node0 = dflow::FlowNode("node0", 1, 1).SetInput(0, data0);
@@ -151,7 +152,8 @@ TEST_F(InnerPpLoaderTest, model_pp_load) {
 }
 
 TEST_F(InnerPpLoaderTest, model_pp_load_error_config_file) {
-  Graph graph = BuildGraphWithInvokeModelPpWithConfigFile("testModelPp", run_data_path + "origin_model/root_model.om", 1);
+  Graph graph =
+      BuildGraphWithInvokeModelPpWithConfigFile("testModelPp", run_data_path + "origin_model/root_model.om", 1);
   const auto &comput_graph = GraphUtilsEx::GetComputeGraph(graph);
   (void)AttrUtils::SetStr(comput_graph, ATTR_NAME_SESSION_GRAPH_ID, "xxxx");
   DataFlowGraph data_flow_graph(comput_graph);
@@ -160,7 +162,8 @@ TEST_F(InnerPpLoaderTest, model_pp_load_error_config_file) {
 }
 
 TEST_F(InnerPpLoaderTest, model_pp_load_error_config_format) {
-  Graph graph = BuildGraphWithInvokeModelPpWithConfigFile("testModelPp", run_data_path + "origin_model/root_model.om", 2);
+  Graph graph =
+      BuildGraphWithInvokeModelPpWithConfigFile("testModelPp", run_data_path + "origin_model/root_model.om", 2);
   const auto &comput_graph = GraphUtilsEx::GetComputeGraph(graph);
   (void)AttrUtils::SetStr(comput_graph, ATTR_NAME_SESSION_GRAPH_ID, "xxxx");
   DataFlowGraph data_flow_graph(comput_graph);
@@ -169,7 +172,8 @@ TEST_F(InnerPpLoaderTest, model_pp_load_error_config_format) {
 }
 
 TEST_F(InnerPpLoaderTest, model_pp_load_correct_config_file) {
-  Graph graph = BuildGraphWithInvokeModelPpWithConfigFile("testModelPp", run_data_path + "origin_model/root_model.om", 0);
+  Graph graph =
+      BuildGraphWithInvokeModelPpWithConfigFile("testModelPp", run_data_path + "origin_model/root_model.om", 0);
   const auto &comput_graph = GraphUtilsEx::GetComputeGraph(graph);
   (void)AttrUtils::SetStr(comput_graph, ATTR_NAME_SESSION_GRAPH_ID, "xxxx");
   DataFlowGraph data_flow_graph(comput_graph);

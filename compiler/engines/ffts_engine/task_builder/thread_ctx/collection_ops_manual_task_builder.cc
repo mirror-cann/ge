@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -16,8 +16,7 @@ namespace ffts {
 namespace {
 Status FillHCCLCtxDef(const domi::FftsPlusCtxDef &hccl_sub_task, domi::FftsPlusCtxDef *ffts_plus_ctx_def,
                       std::map<int64_t, int32_t> &subtask_input_cnt, int32_t &index,
-                      vector<FftsPlusComCtx_t> &sub_ffts_plus_context)
-{
+                      vector<FftsPlusComCtx_t> &sub_ffts_plus_context) {
   if (sub_ffts_plus_context.empty()) {
     return FAILED;
   }
@@ -63,8 +62,7 @@ Status FillHCCLCtxDef(const domi::FftsPlusCtxDef &hccl_sub_task, domi::FftsPlusC
 }
 
 Status ModifyHCCLInputNodeSuccList(const ge::NodePtr &node, std::map<int64_t, int32_t> &subtask_input_cnt,
-                                   const std::vector<uint32_t> &ctx_id_list, int32_t &index)
-{
+                                   const std::vector<uint32_t> &ctx_id_list, int32_t &index) {
   /* when hccl inner'predcnt equal zero, we need add the succlist of the subgraph input node */
   if (subtask_input_cnt[index] == 0) {
     for (const auto &up_node : node->GetInAllNodes()) {
@@ -74,7 +72,7 @@ Status ModifyHCCLInputNodeSuccList(const ge::NodePtr &node, std::map<int64_t, in
         continue;
       }
       if ((up_op_desc->HasAttr(kTypeFFTSPlus) && !IsPhonyOp(up_op_desc)) || up_op_desc->GetType() == kAtomicAddrClean) {
-        vector <uint32_t> succ_lists;
+        vector<uint32_t> succ_lists;
         (void)ge::AttrUtils::GetListInt(up_op_desc, kSuccList, succ_lists);
         succ_lists.push_back(ctx_id_list[index]);
         (void)ge::AttrUtils::SetListInt(up_op_desc, kSuccList, succ_lists);
@@ -103,8 +101,7 @@ void CollectionOpsTaskBuilder::GetSubtaskInputCnt(const std::vector<std::vector<
   }
 }
 
-Status CollectionOpsTaskBuilder::GenContextDef(const ge::NodePtr &node,
-                                               domi::FftsPlusTaskDef *ffts_plus_task_def) {
+Status CollectionOpsTaskBuilder::GenContextDef(const ge::NodePtr &node, domi::FftsPlusTaskDef *ffts_plus_task_def) {
   FFTS_LOGD("CollectionOpsTaskBuilder::GenContextDef begin, node name:%s, node type:%s.", node->GetName().c_str(),
             node->GetType().c_str());
   auto op_desc = node->GetOpDesc();

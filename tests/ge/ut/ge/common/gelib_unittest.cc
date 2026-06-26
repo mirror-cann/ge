@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,21 +28,19 @@ using Json = nlohmann::json;
 
 class UtestGeLib : public testing::Test {
  protected:
-  void SetUp() {
-  }
-  void TearDown() {
-  }
+  void SetUp() {}
+  void TearDown() {}
 };
 
 TEST_F(UtestGeLib, Normal) {
-    EXPECT_NO_THROW(auto p1 = std::make_shared<GELib>());
+  EXPECT_NO_THROW(auto p1 = std::make_shared<GELib>());
 }
 
 TEST_F(UtestGeLib, InnerInitialize) {
-    auto p1 = std::make_shared<GELib>();
-    std::map<std::string, std::string> options;
-    p1->init_flag_ = true;
-    EXPECT_EQ(p1->InnerInitialize(options), SUCCESS);
+  auto p1 = std::make_shared<GELib>();
+  std::map<std::string, std::string> options;
+  p1->init_flag_ = true;
+  EXPECT_EQ(p1->InnerInitialize(options), SUCCESS);
 }
 
 TEST_F(UtestGeLib, InnerInitialize_aicore_num) {
@@ -117,35 +115,35 @@ TEST_F(UtestGeLib, InnerInitialize_aicore_num_invalid) {
 }
 
 TEST_F(UtestGeLib, SystemInitialize) {
-    auto p1 = std::make_shared<GELib>();
-    std::map<std::string, std::string> options;
-    options[OPTION_GRAPH_RUN_MODE] = "1";
-    p1->is_train_mode_ = true;
-    EXPECT_EQ(p1->SystemInitialize(options), SUCCESS);
+  auto p1 = std::make_shared<GELib>();
+  std::map<std::string, std::string> options;
+  options[OPTION_GRAPH_RUN_MODE] = "1";
+  p1->is_train_mode_ = true;
+  EXPECT_EQ(p1->SystemInitialize(options), SUCCESS);
 }
 
 TEST_F(UtestGeLib, SetRTSocVersion) {
-    auto p1 = std::make_shared<GELib>();
-    std::map<std::string, std::string> new_options;
-    EXPECT_EQ(p1->SetRTSocVersion(new_options), SUCCESS);
+  auto p1 = std::make_shared<GELib>();
+  std::map<std::string, std::string> new_options;
+  EXPECT_EQ(p1->SetRTSocVersion(new_options), SUCCESS);
 }
 
 TEST_F(UtestGeLib, GeInitInitialize) {
-    std::map<std::string, std::string> options;
-    EXPECT_EQ(GEInit::Initialize(options), SUCCESS);
+  std::map<std::string, std::string> options;
+  EXPECT_EQ(GEInit::Initialize(options), SUCCESS);
 }
 
 TEST_F(UtestGeLib, GeInitFinalize) {
-    EXPECT_EQ(GEInit::Finalize(), SUCCESS);
+  EXPECT_EQ(GEInit::Finalize(), SUCCESS);
 }
 
 TEST_F(UtestGeLib, GeInitGetPath) {
-    EXPECT_NE(GEInit::GetPath().size(), 0);
+  EXPECT_NE(GEInit::GetPath().size(), 0);
 }
 
 TEST_F(UtestGeLib, Finalize) {
-	auto p1 = std::make_shared<GELib>();
-	p1->init_flag_ = false;
+  auto p1 = std::make_shared<GELib>();
+  p1->init_flag_ = false;
   EXPECT_EQ(p1->Finalize(), SUCCESS);
   p1->init_flag_ = true;
   p1->is_train_mode_ = true;
@@ -209,4 +207,4 @@ TEST_F(UtestGeLib, set_OptionNameMap) {
   EXPECT_EQ(GEInit::Finalize(), SUCCESS);
 }
 
-} // namespace ge
+}  // namespace ge

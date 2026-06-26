@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -42,8 +42,7 @@ LowerResult LoweringNetOutput(const ge::NodePtr &node, const LowerInput &lower_i
 
     LOWER_REQUIRE(output_datas.size() > i);
     auto ensure_holder = bg::ValueHolder::CreateVoid<bg::ValueHolder>(
-        kernel::kEnsureTensorAtOutMemory, {lower_input.input_shapes[i],
-                                           lower_input.input_addrs[i], build_tensor_attr,
+        kernel::kEnsureTensorAtOutMemory, {lower_input.input_shapes[i], lower_input.input_addrs[i], build_tensor_attr,
                                            lower_input.global_data->GetStream(), output_datas[i]});
     ++i;
     if (ensure_holder == nullptr) {

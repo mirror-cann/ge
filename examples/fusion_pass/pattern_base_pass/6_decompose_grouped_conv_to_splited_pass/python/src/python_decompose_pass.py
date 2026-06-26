@@ -17,9 +17,9 @@ from __future__ import annotations
 from typing import List
 
 from ge.es import GraphBuilder, TensorHolder
-from ge.utils import GeUtils
 from ge.graph import DataType, Format, Graph, Node, TensorDesc
 from ge.passes import DecomposePass, PassStage, register_decompose_pass
+from ge.utils import GeUtils
 
 try:
     from ge.es.math import Split

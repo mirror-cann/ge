@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -262,8 +262,8 @@ Status AxisNameUtil::GetNewAxisAttributeValue(const ge::OpDesc &op_desc, const g
   std::vector<std::string> axis_names;
   if (GetOriginalAxisName(op_desc, origin_format, origin_shape, axis_names) != SUCCESS) {
     REPORT_INNER_ERR_MSG(EM_INNER_ERROR.c_str(),
-                       "[GraphOpt][SetAxis][GetAxisName][Op %s,type=%s]:Get axis name for ori format %d failed!",
-                       op_desc.GetName().c_str(), op_desc.GetType().c_str(), origin_format);
+                         "[GraphOpt][SetAxis][GetAxisName][Op %s,type=%s]:Get axis name for ori format %d failed!",
+                         op_desc.GetName().c_str(), op_desc.GetType().c_str(), origin_format);
     FE_LOGW("[GraphOpt][SetAxis][GetAxisName][Op name=%s,type=%s]:Get axis name for format %u failed!",
             op_desc.GetName().c_str(), op_desc.GetType().c_str(), origin_format);
     return FAILED;
@@ -271,8 +271,8 @@ Status AxisNameUtil::GetNewAxisAttributeValue(const ge::OpDesc &op_desc, const g
   // get new axis info
   if (GetNewAxisInfoByName(op_desc, current_format, axis_names, axis_index_vec) != SUCCESS) {
     REPORT_INNER_ERR_MSG(EM_INNER_ERROR.c_str(),
-                       "[GraphOpt][SetAxis][GetAxisName][Op %s,type=%s]:Get axis name for current format %d failed!",
-                       op_desc.GetName().c_str(), op_desc.GetType().c_str(), current_format);
+                         "[GraphOpt][SetAxis][GetAxisName][Op %s,type=%s]:Get axis name for current format %d failed!",
+                         op_desc.GetName().c_str(), op_desc.GetType().c_str(), current_format);
     FE_LOGW("[GraphOpt][SetAxis][GetAxisName][Op name=%s,type=%s]:Get axis name for ori format %u failed!",
             op_desc.GetName().c_str(), op_desc.GetType().c_str(), current_format);
     return FAILED;
@@ -295,7 +295,7 @@ Status AxisNameUtil::GetNewAxisInfoByName(const ge::OpDesc &op_desc, const ge::F
     }
   }
 
-  for (const auto &axis_index:axis_index_vec) {
+  for (const auto &axis_index : axis_index_vec) {
     FE_LOGD("Get reduce op [%s] axis new value is [%ld].", op_desc.GetName().c_str(), axis_index);
   }
   return SUCCESS;
@@ -327,7 +327,7 @@ Status AxisNameUtil::GetOriginalAxisName(const ge::OpDesc &op_desc, const ge::Fo
     ret = GetDHWCNAxisName(axis_index_vec, axis_name_vec);
   }
 
-  for (const auto &axis_name: axis_name_vec) {
+  for (const auto &axis_name : axis_name_vec) {
     FE_LOGD("Get reduce op [%s] axis name is [%s].", op_desc.GetName().c_str(), axis_name.c_str());
   }
   return ret;

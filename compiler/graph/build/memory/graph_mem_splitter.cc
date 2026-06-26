@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -116,9 +116,9 @@ std::vector<std::vector<int64_t>> GraphMemSplitter::GetSubMemOffsets() const {
     sub_mem_offset.emplace_back(sub_mem_info.mem_size);
     sub_mem_offset.emplace_back(sub_mem_info.is_fixed_addr_prior);
     sub_mem_offsets.emplace_back(sub_mem_offset);
-    GELOGI("SubMemOffsets[%u]: mem_type[%ld] mem_offset_base[%ld] mem_size[%ld] is_fixed_addr_prior[%d]",
-           count, sub_mem_info.mem_type,
-           sub_mem_info.mem_offset_base, sub_mem_info.mem_size, sub_mem_info.is_fixed_addr_prior);
+    GELOGI("SubMemOffsets[%u]: mem_type[%ld] mem_offset_base[%ld] mem_size[%ld] is_fixed_addr_prior[%d]", count,
+           sub_mem_info.mem_type, sub_mem_info.mem_offset_base, sub_mem_info.mem_size,
+           sub_mem_info.is_fixed_addr_prior);
     count++;
   }
   return sub_mem_offsets;

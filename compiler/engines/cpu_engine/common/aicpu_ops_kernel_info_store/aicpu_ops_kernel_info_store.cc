@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#include<mutex>
+#include <mutex>
 #include "aicpu_ops_kernel_info_store.h"
 
 #include "base/err_msg.h"
@@ -27,7 +27,7 @@ std::mutex g_cust_mutex;
 constexpr uint32_t kStridedSliceGradInputIndex1 = 1U;
 constexpr uint32_t kStridedSliceGradInputIndex2 = 2U;
 constexpr uint32_t kStridedSliceGradInputIndex3 = 3U;
-}
+}  // namespace
 
 namespace aicpu {
 
@@ -35,15 +35,13 @@ Status AicpuOpsKernelInfoStore::Initialize(const map<string, string> &options) {
   // check options
   auto iter = options.find(ge::SOC_VERSION);
   AICPU_IF_BOOL_EXEC(iter == options.end(),
-      AICPU_REPORT_INNER_ERR_MSG(
-          "cannot find [%s] in param of aicpu op store initialize function.",
-          ge::SOC_VERSION.c_str());
-      return INPUT_PARAM_VALID);
+                     AICPU_REPORT_INNER_ERR_MSG("cannot find [%s] in param of aicpu op store initialize function.",
+                                                ge::SOC_VERSION.c_str());
+                     return INPUT_PARAM_VALID);
 
   // lhisi not load TFKernel
   set<string> blacklist;
-  if ((iter->second.find("Hi") != string::npos) ||
-      (iter->second.find("SD") != string::npos)) {
+  if ((iter->second.find("Hi") != string::npos) || (iter->second.find("SD") != string::npos)) {
     blacklist.insert("TFKernel");
   }
 
@@ -81,20 +79,16 @@ Status AicpuOpsKernelInfoStore::Finalize() {
   return SUCCESS;
 }
 
-Status AicpuOpsKernelInfoStore::LoadKernelLibs(
-    const map<string, string> &options) {
+Status AicpuOpsKernelInfoStore::LoadKernelLibs(const map<string, string> &options) {
   for (const string &name : kernel_lib_names_) {
-    FACTORY_KERNELINFO::FactoryType kernel_info_ptr =
-        FACTORY_KERNELINFO::Produce(name);
+    FACTORY_KERNELINFO::FactoryType kernel_info_ptr = FACTORY_KERNELINFO::Produce(name);
     if (kernel_info_ptr == nullptr) {
-      AICPU_REPORT_INNER_ERR_MSG("create kernel in for store[%s] failed",
-          name.c_str());
+      AICPU_REPORT_INNER_ERR_MSG("create kernel in for store[%s] failed", name.c_str());
       return KERNELINFOSTORE_INSTANCE_FAILED;
     }
     Status flag = kernel_info_ptr->Initialize(options);
     if (flag != SUCCESS) {
-      AICPU_REPORT_INNER_ERR_MSG("kernel in for store[%s] initialize failed",
-          name.c_str());
+      AICPU_REPORT_INNER_ERR_MSG("kernel in for store[%s] initialize failed", name.c_str());
       return KERNELINFOSTORE_INITIALIZE_FAILED;
     }
     kernel_libs_[name] = kernel_info_ptr;
@@ -104,21 +98,17 @@ Status AicpuOpsKernelInfoStore::LoadKernelLibs(
 
 void AicpuOpsKernelInfoStore::FillKernelInfos() {
   const std::lock_guard<std::mutex> lock(g_cust_mutex);
-  for (auto lib_iter = kernel_lib_names_.crbegin();
-       lib_iter != kernel_lib_names_.crend(); ++lib_iter) {
+  for (auto lib_iter = kernel_lib_names_.crbegin(); lib_iter != kernel_lib_names_.crend(); ++lib_iter) {
     string kernel_name = *lib_iter;
     const KernelInfoPtr &kernel_lib_ptr = kernel_libs_[kernel_name];
     // how can be null...
-    AICPU_IF_BOOL_EXEC(
-        kernel_lib_ptr == nullptr,
-        AICPU_REPORT_INNER_ERR_MSG("kernel lib is nullptr, kernel name[%s].",
-            kernel_name.c_str());
-        return);
+    AICPU_IF_BOOL_EXEC(kernel_lib_ptr == nullptr,
+                       AICPU_REPORT_INNER_ERR_MSG("kernel lib is nullptr, kernel name[%s].", kernel_name.c_str());
+                       return);
     map<string, OpFullInfo> op_full_infos;
     kernel_lib_ptr->GetOpInfos(op_full_infos);
     kernel_lib_ptr->GetCustUserInfo(cust_users_);
-    for (auto opIter = op_full_infos.cbegin(); opIter != op_full_infos.cend();
-         ++opIter) {
+    for (auto opIter = op_full_infos.cbegin(); opIter != op_full_infos.cend(); ++opIter) {
       const string &op_type = opIter->first;
       const OpFullInfo &op_full_info = opIter->second;
       OpInfo op_info;
@@ -134,8 +124,7 @@ void AicpuOpsKernelInfoStore::FillKernelInfos() {
   }
 }
 
-void AicpuOpsKernelInfoStore::GetAllOpsKernelInfo(
-    map<string, OpInfo> &infos) const {
+void AicpuOpsKernelInfoStore::GetAllOpsKernelInfo(map<string, OpInfo> &infos) const {
   infos = op_infos_;
 }
 
@@ -143,22 +132,19 @@ void AicpuOpsKernelInfoStore::GetCustUserNameInfo(map<string, string> &infos) co
   infos = cust_users_;
 }
 
-bool AicpuOpsKernelInfoStore::CheckSupported(const OpDescPtr &op_desc_ptr,
-                                             string &unsupported_reason) const {
+bool AicpuOpsKernelInfoStore::CheckSupported(const OpDescPtr &op_desc_ptr, string &unsupported_reason) const {
   AICPU_CHECK_NOTNULL_ERRCODE(op_desc_ptr, false);
 
   string op_type = op_desc_ptr->GetType();
   if (op_type.empty()) {
-    AICPU_REPORT_INNER_ERR_MSG("op type is empty, op[%s]",
-        op_desc_ptr->GetName().c_str());
+    AICPU_REPORT_INNER_ERR_MSG("op type is empty, op[%s]", op_desc_ptr->GetName().c_str());
     return false;
   }
 
   // check whether the op is in aicpu ops kernel info store
   auto iter = op_full_infos_.find(op_type);
   if (iter == op_full_infos_.end()) {
-    AICPUE_LOGI("Internal kernel info store not include this op[%s].",
-                op_type.c_str());
+    AICPUE_LOGI("Internal kernel info store not include this op[%s].", op_type.c_str());
     unsupported_reason = "Aicpu kernel info store not include this op ";
     unsupported_reason.append(op_type);
     return false;
@@ -182,19 +168,13 @@ bool AicpuOpsKernelInfoStore::CheckSupported(const OpDescPtr &op_desc_ptr,
     (void)AttrUtils::SetBool(op_desc_ptr, kAttrNameTfDebug, true);
   }
   if (!op_desc_ptr->GetAllInputsDesc().empty()) {
-    bool ret = CheckInputSupported(op_desc_ptr, data_types, in_out_real_name,
-                                   unsupported_reason);
-    AICPU_IF_BOOL_EXEC(
-        !(ret), AICPUE_LOGI("Check input not supported, op[%s].", op_type.c_str());
-        return false)
+    bool ret = CheckInputSupported(op_desc_ptr, data_types, in_out_real_name, unsupported_reason);
+    AICPU_IF_BOOL_EXEC(!(ret), AICPUE_LOGI("Check input not supported, op[%s].", op_type.c_str()); return false)
   }
 
   if (!op_desc_ptr->GetAllOutputsDesc().empty()) {
-    bool ret = CheckOutputSupported(op_desc_ptr, data_types, in_out_real_name,
-                                    unsupported_reason);
-    AICPU_IF_BOOL_EXEC(
-        !(ret), AICPUE_LOGI("Check output not supported, op[%s].", op_type.c_str());
-        return false)
+    bool ret = CheckOutputSupported(op_desc_ptr, data_types, in_out_real_name, unsupported_reason);
+    AICPU_IF_BOOL_EXEC(!(ret), AICPUE_LOGI("Check output not supported, op[%s].", op_type.c_str()); return false)
   }
   return true;
 }
@@ -211,8 +191,10 @@ bool AicpuOpsKernelInfoStore::CheckStridedSliceGradSupported(const OpDescPtr &op
     return true;
   }
 
-  unsupported_reason = Stringcat("StridedSliceGrad op, data type is not the same. "
-      "begin ", begin_data_type, " end ", end_data_type, " strides ", strides_data_type);
+  unsupported_reason = Stringcat(
+      "StridedSliceGrad op, data type is not the same. "
+      "begin ",
+      begin_data_type, " end ", end_data_type, " strides ", strides_data_type);
   AICPUE_LOGW("The %s.", unsupported_reason.c_str());
   return false;
 }
@@ -224,12 +206,11 @@ bool AicpuOpsKernelInfoStore::CheckTransDataSupported(const OpDescPtr &op_desc_p
 
   string op_type = op_desc_ptr->GetType();
   if (op_type.empty()) {
-    AICPU_REPORT_INNER_ERR_MSG("op type is empty, op[%s]",
-        op_desc_ptr->GetName().c_str());
+    AICPU_REPORT_INNER_ERR_MSG("op type is empty, op[%s]", op_desc_ptr->GetName().c_str());
     return false;
   }
 
-  int groups  = 1;
+  int groups = 1;
   if (!AttrUtils::GetInt(op_desc_ptr, "groups", groups)) {
     // groups是可选属性，没有默认为1
     AICPUE_LOGW("Transdata Op does not have attr groups, using default value 1");
@@ -262,10 +243,10 @@ bool AicpuOpsKernelInfoStore::CheckTransDataSupported(const OpDescPtr &op_desc_p
       ((output_format == FORMAT_NCDHW) || (output_format == FORMAT_DHWCN) || (output_format == FORMAT_NDHWC)) &&
       input_format == FORMAT_FRACTAL_Z_3D;
   const bool fzc04_to_hwcn = ((input_format == FORMAT_FRACTAL_Z_C04) && (output_format == FORMAT_HWCN));
-  const bool nd_to_nz_c0_16 = ((input_format == FORMAT_ND) && (output_format == FORMAT_FRACTAL_NZ_C0_16) && 
-      (engine_name_ == kHostCpuEngine));
-  const bool nd_to_nz_c0_32 = ((input_format == FORMAT_ND) && (output_format == FORMAT_FRACTAL_NZ_C0_32) && 
-      (engine_name_ == kHostCpuEngine));
+  const bool nd_to_nz_c0_16 =
+      ((input_format == FORMAT_ND) && (output_format == FORMAT_FRACTAL_NZ_C0_16) && (engine_name_ == kHostCpuEngine));
+  const bool nd_to_nz_c0_32 =
+      ((input_format == FORMAT_ND) && (output_format == FORMAT_FRACTAL_NZ_C0_32) && (engine_name_ == kHostCpuEngine));
   if (output_format_fz) {
     supported = true;
   }
@@ -285,7 +266,7 @@ bool AicpuOpsKernelInfoStore::CheckTransDataSupported(const OpDescPtr &op_desc_p
   if (fzc04_to_hwcn) {
     supported = true;
   }
-  
+
   if (nd_to_nz_c0_16 || nd_to_nz_c0_32) {
     supported = true;
   }
@@ -332,11 +313,11 @@ bool AicpuOpsKernelInfoStore::CheckTransDataSupported(const OpDescPtr &op_desc_p
   return supported;
 }
 
-bool AicpuOpsKernelInfoStore::CheckInputSupported(
-    const OpDescPtr &op_desc_ptr, const map<string, string> data_types,
-    const map<string, string> in_out_real_name, string &unsupported_reason) const {
+bool AicpuOpsKernelInfoStore::CheckInputSupported(const OpDescPtr &op_desc_ptr, const map<string, string> data_types,
+                                                  const map<string, string> in_out_real_name,
+                                                  string &unsupported_reason) const {
   uint32_t input_index = 0;
-  for (const ge::GeTensorDescPtr& input_desc_ptr : op_desc_ptr->GetAllInputsDescPtr()) {
+  for (const ge::GeTensorDescPtr &input_desc_ptr : op_desc_ptr->GetAllInputsDescPtr()) {
     const string input_name = op_desc_ptr->GetInputNameByIndex(input_index);
     for (auto it = in_out_real_name.begin(); it != in_out_real_name.end(); it++) {
       const string input_real_name = it->first;
@@ -348,9 +329,8 @@ bool AicpuOpsKernelInfoStore::CheckInputSupported(
         if (dst_data_type.find(type) == dst_data_type.end()) {
           string type_str;
           (void)ConvertDataType2String(type_str, type);
-          string err_msg =
-              Stringcat("data_type ", type_str, " of input[", std::to_string(input_index), ", ", input_real_name,
-                        "] is unsupported, op type[", op_desc_ptr->GetType(), "].");
+          string err_msg = Stringcat("data_type ", type_str, " of input[", std::to_string(input_index), ", ",
+                                     input_real_name, "] is unsupported, op type[", op_desc_ptr->GetType(), "].");
           unsupported_reason = err_msg;
           AICPUE_LOGI("The %s.", err_msg.c_str());
           return false;
@@ -363,11 +343,11 @@ bool AicpuOpsKernelInfoStore::CheckInputSupported(
   return true;
 }
 
-bool AicpuOpsKernelInfoStore::CheckOutputSupported(
-    const OpDescPtr &op_desc_ptr, const map<string, string> data_types,
-    const map<string, string> in_out_real_name, string &unsupported_reason) const {
+bool AicpuOpsKernelInfoStore::CheckOutputSupported(const OpDescPtr &op_desc_ptr, const map<string, string> data_types,
+                                                   const map<string, string> in_out_real_name,
+                                                   string &unsupported_reason) const {
   uint32_t output_index = 0;
-  for (const ge::GeTensorDescPtr& output_desc_ptr : op_desc_ptr->GetAllOutputsDescPtr()) {
+  for (const ge::GeTensorDescPtr &output_desc_ptr : op_desc_ptr->GetAllOutputsDescPtr()) {
     const string output_name = op_desc_ptr->GetOutputNameByIndex(output_index);
     for (auto it = in_out_real_name.begin(); it != in_out_real_name.end(); it++) {
       const string output_real_name = it->first;
@@ -379,9 +359,8 @@ bool AicpuOpsKernelInfoStore::CheckOutputSupported(
         if (dst_data_type.find(type) == dst_data_type.end()) {
           string type_str;
           (void)ConvertDataType2String(type_str, type);
-          string err_msg =
-              Stringcat("dataType ", type_str, " of output[", std::to_string(output_index), ", ", output_real_name,
-                        " is unsupported, op type[", op_desc_ptr->GetType(), "].");
+          string err_msg = Stringcat("dataType ", type_str, " of output[", std::to_string(output_index), ", ",
+                                     output_real_name, " is unsupported, op type[", op_desc_ptr->GetType(), "].");
           unsupported_reason = err_msg;
           AICPUE_LOGI("The %s.", err_msg.c_str());
           return false;
@@ -396,9 +375,8 @@ bool AicpuOpsKernelInfoStore::CheckOutputSupported(
 void AicpuOpsKernelInfoStore::opsFlagCheck(const Node &node, string &ops_flag) {
   OpDescPtr op_desc_ptr = node.GetOpDesc();
   AICPU_IF_BOOL_EXEC(op_desc_ptr == nullptr,
-      AICPU_REPORT_INNER_ERR_MSG(
-            "op desc is nullptr, op[%s].", node.GetName().c_str());
-      return);
+                     AICPU_REPORT_INNER_ERR_MSG("op desc is nullptr, op[%s].", node.GetName().c_str());
+                     return);
   string op_type = op_desc_ptr->GetType();
   auto iter = op_full_infos_.find(op_type);
   if (iter != op_full_infos_.end()) {
@@ -408,8 +386,7 @@ void AicpuOpsKernelInfoStore::opsFlagCheck(const Node &node, string &ops_flag) {
   }
 }
 
-void AicpuOpsKernelInfoStore::GetAllOpsFullKernelInfo(
-    map<string, OpFullInfo> &infos) const {
+void AicpuOpsKernelInfoStore::GetAllOpsFullKernelInfo(map<string, OpFullInfo> &infos) const {
   infos = op_full_infos_;
 }
 
@@ -420,8 +397,8 @@ void AicpuOpsKernelInfoStore::GetAllOpsFullKernelInfo(
  */
 ge::Status AicpuOpsKernelInfoStore::CompileOp(vector<ge::NodePtr> &node_vec) {
   if (node_vec.empty()) {
-      AICPUE_LOGI("AicpuOpsKernelInfoStore's node_vec is empty in CompileOp.");
-      return ge::SUCCESS;
+    AICPUE_LOGI("AicpuOpsKernelInfoStore's node_vec is empty in CompileOp.");
+    return ge::SUCCESS;
   }
 
   AICPUE_LOGI("AicpuOpsKernelInfoStore's start CompileOp.");
@@ -434,8 +411,8 @@ ge::Status AicpuOpsKernelInfoStore::CompileOp(vector<ge::NodePtr> &node_vec) {
     std::string op_type = op_desc_ptr->GetType();
     // check function op and framework op
     if ((op_type == kFunctionOp) || (op_type == kFrameworkOp)) {
-      std::string err_msg = Stringcat("Can not create node def for function op and framework op[",
-          node->GetName(), "] in CompileOp, op type[", op_type, "].");
+      std::string err_msg = Stringcat("Can not create node def for function op and framework op[", node->GetName(),
+                                      "] in CompileOp, op type[", op_type, "].");
       AICPU_REPORT_INNER_ERR_MSG("%s.", err_msg.c_str());
       return ErrorCode::NODE_DEF_NOT_EXIST;
     }
@@ -443,8 +420,8 @@ ge::Status AicpuOpsKernelInfoStore::CompileOp(vector<ge::NodePtr> &node_vec) {
     std::string kernel_name = GetKernelLibNameByOpType(op_type, all_op_info);
     auto iter = kernel_libs_.find(kernel_name);
     if (iter == kernel_libs_.end()) {
-        AICPU_REPORT_INNER_ERR_MSG("kernel lib[%s] does not exist.", kernel_name.c_str());
-        return KERNEL_TYPE_INVALID;
+      AICPU_REPORT_INNER_ERR_MSG("kernel lib[%s] does not exist.", kernel_name.c_str());
+      return KERNEL_TYPE_INVALID;
     }
     const KernelInfoPtr &kernel_lib_ptr = iter->second;
     AICPU_CHECK_RES(kernel_lib_ptr->CompileOp(node));

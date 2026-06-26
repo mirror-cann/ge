@@ -1,6 +1,6 @@
-/* Copyright (c) 2026 Huawei Technologies Co., Ltd.
+/* Copyright (c) 2025 Huawei Technologies Co., Ltd.
  * This file is a part of the CANN Open Software.
- * Licensed under CANN Open Software License Agreement Version 1.0 (the "License").
+ * Licensed under CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
  * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
@@ -83,12 +83,14 @@ std::shared_ptr<InnerSession> GeSession::Impl::GetInnerSession() {
   return inner_session_;
 }
 
-Status GeSession::Impl::AddGraph(uint32_t graph_id, const Graph &graph, const std::map<std::string, std::string> &options) {
+Status GeSession::Impl::AddGraph(uint32_t graph_id, const Graph &graph,
+                                 const std::map<std::string, std::string> &options) {
   GE_CHK_BOOL_RET_STATUS(inner_session_ != nullptr, FAILED, "inner_session is null (null inner_session pointer)");
   return inner_session_->AddGraph(graph_id, graph, options);
 }
 
-Status GeSession::Impl::AddGraphWithCopy(uint32_t graph_id, const Graph &graph, const std::map<std::string, std::string> &options) {
+Status GeSession::Impl::AddGraphWithCopy(uint32_t graph_id, const Graph &graph,
+                                         const std::map<std::string, std::string> &options) {
   GE_CHK_BOOL_RET_STATUS(inner_session_ != nullptr, FAILED, "inner_session is null (null inner_session pointer)");
   return inner_session_->AddGraphWithCopy(graph_id, graph, options);
 }
@@ -103,7 +105,8 @@ Status GeSession::Impl::CompileGraph(uint32_t graph_id, const std::vector<ge::Te
   return inner_session_->CompileGraph(graph_id, inputs);
 }
 
-Status GeSession::Impl::LoadGraph(const uint32_t graph_id, const std::map<AscendString, AscendString> &options, void *stream) {
+Status GeSession::Impl::LoadGraph(const uint32_t graph_id, const std::map<AscendString, AscendString> &options,
+                                  void *stream) {
   GE_CHK_BOOL_RET_STATUS(inner_session_ != nullptr, FAILED, "inner_session is null (null inner_session pointer)");
   return inner_session_->LoadGraph(graph_id, options, stream);
 }
@@ -113,19 +116,21 @@ Status GeSession::Impl::DumpDebugJSONPrint(uint32_t graph_id, uint32_t flags, As
   return inner_session_->DumpDebugJSONPrint(graph_id, flags, json_result);
 }
 
-Status GeSession::Impl::RunGraph(uint32_t graph_id, const std::vector<gert::Tensor> &inputs, std::vector<gert::Tensor> &outputs) {
+Status GeSession::Impl::RunGraph(uint32_t graph_id, const std::vector<gert::Tensor> &inputs,
+                                 std::vector<gert::Tensor> &outputs) {
   GE_CHK_BOOL_RET_STATUS(inner_session_ != nullptr, FAILED, "inner_session is null (null inner_session pointer)");
   return inner_session_->RunGraph(graph_id, inputs, outputs);
 }
 
 Status GeSession::Impl::RunGraphAsync(uint32_t graph_id, std::vector<gert::Tensor> &&inputs,
-    std::function<void(Status status, std::vector<gert::Tensor> &outputs)> callback) {
+                                      std::function<void(Status status, std::vector<gert::Tensor> &outputs)> callback) {
   GE_CHK_BOOL_RET_STATUS(inner_session_ != nullptr, FAILED, "inner_session is null (null inner_session pointer)");
   return inner_session_->RunGraphAsync(graph_id, std::move(inputs), callback);
 }
 
 Status GeSession::Impl::RunGraphWithStreamAsync(uint32_t graph_id, const rtStream_t stream,
-                                               const std::vector<gert::Tensor> &inputs, std::vector<gert::Tensor> &outputs) {
+                                                const std::vector<gert::Tensor> &inputs,
+                                                std::vector<gert::Tensor> &outputs) {
   GE_CHK_BOOL_RET_STATUS(inner_session_ != nullptr, FAILED, "inner_session is null (null inner_session pointer)");
   return inner_session_->ExecuteGraphWithStreamAsync(graph_id, stream, inputs, outputs);
 }
@@ -167,12 +172,14 @@ Status GeSession::Impl::UpdateGraphFeatureMemoryBase(uint32_t graph_id, const vo
   return inner_session_->UpdateGraphFeatureMemoryBase(graph_id, memory, size);
 }
 
-Status GeSession::Impl::SetGraphFixedFeatureMemoryBase(uint32_t graph_id, MemoryType type, const void *const memory, size_t size) {
+Status GeSession::Impl::SetGraphFixedFeatureMemoryBase(uint32_t graph_id, MemoryType type, const void *const memory,
+                                                       size_t size) {
   GE_CHK_BOOL_RET_STATUS(inner_session_ != nullptr, FAILED, "inner_session is null (null inner_session pointer)");
   return inner_session_->SetGraphFixedFeatureMemoryBase(graph_id, type, memory, size);
 }
 
-Status GeSession::Impl::UpdateGraphRefreshableFeatureMemoryBase(uint32_t graph_id, const void *const memory, size_t size) {
+Status GeSession::Impl::UpdateGraphRefreshableFeatureMemoryBase(uint32_t graph_id, const void *const memory,
+                                                                size_t size) {
   GE_CHK_BOOL_RET_STATUS(inner_session_ != nullptr, FAILED, "inner_session is null (null inner_session pointer)");
   return inner_session_->UpdateGraphRefreshableFeatureMemoryBase(graph_id, memory, size);
 }
@@ -182,7 +189,7 @@ Status GeSession::Impl::RegisterExternalAllocator(const void *const stream, Allo
   return inner_session_->RegisterExternalAllocator(stream, allocator);
 }
 
-Status GeSession::Impl::UnregisterExternalAllocator(const void * const stream) const {
+Status GeSession::Impl::UnregisterExternalAllocator(const void *const stream) const {
   GE_CHK_BOOL_RET_STATUS(inner_session_ != nullptr, FAILED, "inner_session is null (null inner_session pointer)");
   return inner_session_->UnregisterExternalAllocator(stream);
 }

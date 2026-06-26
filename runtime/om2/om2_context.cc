@@ -17,7 +17,7 @@ namespace gert {
  * Uses static thread_local to ensure each thread has its own independent context instance.
  * This design enables thread-safe concurrent execution without locks or synchronization.
  */
-Om2ThreadLocalContext& GetOm2ThreadLocalContext() {
+Om2ThreadLocalContext &GetOm2ThreadLocalContext() {
   static thread_local Om2ThreadLocalContext thread_context;
   return thread_context;
 }

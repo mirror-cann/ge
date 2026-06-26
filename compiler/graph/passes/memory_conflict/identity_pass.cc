@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -69,14 +69,14 @@ Status CheckIdentityUsable(const NodePtr &node, bool &usable) {
     auto in_node_opdesc = in_node->GetOpDesc();
     GE_CHECK_NOTNULL(in_node_opdesc);
     // near entrance of subgraph || near subgraph
-    if ((in_node->GetType() == DATA && NodeUtils::IsSubgraphInput(in_node))
-        || !in_node_opdesc->GetSubgraphInstanceNames().empty()) {
+    if ((in_node->GetType() == DATA && NodeUtils::IsSubgraphInput(in_node)) ||
+        !in_node_opdesc->GetSubgraphInstanceNames().empty()) {
       usable = true;
       return SUCCESS;
     }
 
-    GE_CHK_STATUS_RET(GetOriginalType(in_node, node_type),
-                      "[Get][OriginalType] of node:%s failed", in_node->GetName().c_str());
+    GE_CHK_STATUS_RET(GetOriginalType(in_node, node_type), "[Get][OriginalType] of node:%s failed",
+                      in_node->GetName().c_str());
     bool need_skip = (node_type != SWITCH) && (node_type != REFSWITCH);
     if (need_skip) {
       GELOGD("skip identity %s connected to switch", node->GetName().c_str());
@@ -98,8 +98,8 @@ Status CheckIdentityUsable(const NodePtr &node, bool &usable) {
       usable = true;
       return SUCCESS;
     }
-    GE_CHK_STATUS_RET(GetOriginalType(out_node, node_type),
-                      "[Get][OriginalType] of node:%s failed", out_node->GetName().c_str());
+    GE_CHK_STATUS_RET(GetOriginalType(out_node, node_type), "[Get][OriginalType] of node:%s failed",
+                      out_node->GetName().c_str());
     if ((node_type != MERGE) && (node_type != REFMERGE)) {
       GELOGD("skip identity %s connected to merge", node->GetName().c_str());
       break;
@@ -141,9 +141,10 @@ Status IdentityPass::Run(NodePtr &node) {
   }
   size_t n = node->GetOpDesc()->GetOutputsSize();
   if (node->GetOpDesc()->GetInputsSize() != n) {
-    REPORT_INNER_ERR_MSG("E19999", "Num:%zu of input desc node:%s(%s) not equal to its output desc num:%zu, "
-                      "check invalid", node->GetOpDesc()->GetInputsSize(),
-                      node->GetName().c_str(), node->GetType().c_str(), n);
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Num:%zu of input desc node:%s(%s) not equal to its output desc num:%zu, "
+                         "check invalid",
+                         node->GetOpDesc()->GetInputsSize(), node->GetName().c_str(), node->GetType().c_str(), n);
     GELOGE(PARAM_INVALID, "[Check][Param] Num:%zu of input desc node:%s(%s) not equal to its output desc num:%zu",
            node->GetOpDesc()->GetInputsSize(), node->GetName().c_str(), node->GetType().c_str(), n);
     return PARAM_INVALID;
@@ -163,13 +164,13 @@ Status IdentityPass::SafelyRemoveIdentity(NodePtr &node, const std::vector<int32
         // `change ctrl out trigger from read_var to it's out data node` is a dangerous move
         // we use `filter` to reduce risk of topo-loop
         GE_ASSERT_SUCCESS(GraphUtils::CopyOutCtrlEdges(node, out_data_node, node_filter));
-        GELOGI("Node [%s %s]'s out ctrl relation is copyed to it's data consumer node [%s %s]", node->GetName().c_str(),
+        GELOGI("Node [%s %s]'s out ctrl relation is copied to it's data consumer node [%s %s]", node->GetName().c_str(),
                node->GetType().c_str(), out_data_node->GetName().c_str(), out_data_node->GetType().c_str());
       } else {
         // try to `change ctrl in dependency from read_var to it's out data node` for `write first and then read` if
         // needed
         GE_ASSERT_SUCCESS(GraphUtils::CopyInCtrlEdges(node, out_data_node));
-        GELOGI("Node [%s %s]'s in ctrl relation is copyed to it's data consumer node [%s %s]", node->GetName().c_str(),
+        GELOGI("Node [%s %s]'s in ctrl relation is copied to it's data consumer node [%s %s]", node->GetName().c_str(),
                node->GetType().c_str(), out_data_node->GetName().c_str(), out_data_node->GetType().c_str());
       }
     }

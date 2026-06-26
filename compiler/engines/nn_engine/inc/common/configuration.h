@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,11 +38,7 @@ enum class CONFIG_PARAM {
   ConfigParamBottom
 };
 
-enum class CONFIG_STR_PARAM {
-  HardwareInfo = 0,
-  FusionLicense,
-  ConfigStrParamBottom
-};
+enum class CONFIG_STR_PARAM { HardwareInfo = 0, FusionLicense, ConfigStrParamBottom };
 
 enum class ENV_STR_PARAM {
   AscendOppPath = 0,
@@ -60,15 +56,10 @@ enum class ENV_STR_PARAM {
   EnvStrParamBottom
 };
 
-enum class CONFIG_PARSER_PARAM {
-  ImplMode = 0,
-  CustDtypes,
-  ModifyMixlist,
-  ConfigParserParamBottom
-};
+enum class CONFIG_PARSER_PARAM { ImplMode = 0, CustDtypes, ModifyMixlist, ConfigParserParamBottom };
 
 /** @brief Configuration.
-* Used to manage all the configuration data within the fusion engine module. */
+ * Used to manage all the configuration data within the fusion engine module. */
 class Configuration {
  public:
   Configuration(const Configuration &) = delete;
@@ -142,9 +133,9 @@ class Configuration {
    */
   bool IsEnableSparseMatrixWeight() const;
 
-  const std::map<int32_t, float>& GetCompressRatios() const;
+  const std::map<int32_t, float> &GetCompressRatios() const;
 
-  const float& GetAICoreCompressRatio() const;
+  const float &GetAICoreCompressRatio() const;
 
   /*
    * to get l1fusion option out of the current configuration object
@@ -200,7 +191,7 @@ class Configuration {
 
   static string GetPrecisionModeStr();
 
-  const string& GetLicenseFusionStr() const;
+  const string &GetLicenseFusionStr() const;
 
   bool IsEnableReuseMemory() const;
 
@@ -251,13 +242,13 @@ class Configuration {
 
   int32_t GetMemReuseDistThreshold() const;
 
-  const std::unordered_set<string>& GetFp16OpTypeList() const;
+  const std::unordered_set<string> &GetFp16OpTypeList() const;
 
-  const std::set<string>& GetLicenseFusionDetailInfo() const;
+  const std::set<string> &GetLicenseFusionDetailInfo() const;
 
-  const std::string& GetDumpGeGraph() const;
+  const std::string &GetDumpGeGraph() const;
 
-  const std::string& GetDumpGraphLevel() const;
+  const std::string &GetDumpGraphLevel() const;
 
   const std::string GetOpDebugConfig() const;
 
@@ -273,7 +264,7 @@ class Configuration {
 
   PrecisionPolicy GetPrecisionPolicy(const std::string &op_type, const PrecisionPolicy &op_kernel_policy);
 
-  const std::map<string, string>& GetBinaryPathMap() const;
+  const std::map<string, string> &GetBinaryPathMap() const;
 
   std::string GetAllOpsImplPath() const;
 
@@ -285,9 +276,9 @@ class Configuration {
 
   bool GetMemoryCheckSwitch() const;
 
-  const std::string& GetBinaryConfigFilePath() const;
+  const std::string &GetBinaryConfigFilePath() const;
 
-  const std::string& GetAscendWorkPath() const;
+  const std::string &GetAscendWorkPath() const;
 
   uint64_t GetCompileTaskTraceTimeInterval() const;
 
@@ -304,21 +295,22 @@ class Configuration {
   std::map<string, string> content_map_;
   std::vector<FEOpsStoreInfo> ops_store_info_vector_;
 
-  bool is_dynamic_impl_first_; // env
+  bool is_dynamic_impl_first_;  // env
   bool enable_network_analysis_;
   bool enable_op_impl_strategy_;
   bool enable_ub_fusion_;
   bool enable_aclnn_;
   bool enable_rt2_ = true;
-  string ascend_ops_path_; // env
+  string ascend_ops_path_;  // env
 
   std::array<string, static_cast<size_t>(ENV_STR_PARAM::EnvStrParamBottom)> env_str_param_vec_;
   std::array<int64_t, static_cast<size_t>(CONFIG_PARAM::ConfigParamBottom)> config_param_vec_;
   std::array<string, static_cast<size_t>(CONFIG_STR_PARAM::ConfigStrParamBottom)> config_str_param_vec_;
   std::array<std::map<std::string, BaseConfigParserPtr>,
-      static_cast<size_t>(CONFIG_PARSER_PARAM::ConfigParserParamBottom)> config_parser_map_vec_;
-  std::array<std::mutex,
-      static_cast<size_t>(CONFIG_PARSER_PARAM::ConfigParserParamBottom)> config_parser_map_mutex_vec_;
+             static_cast<size_t>(CONFIG_PARSER_PARAM::ConfigParserParamBottom)>
+      config_parser_map_vec_;
+  std::array<std::mutex, static_cast<size_t>(CONFIG_PARSER_PARAM::ConfigParserParamBottom)>
+      config_parser_map_mutex_vec_;
 
   std::set<string> license_fusion_detail_value_;
   std::map<string, string> hardware_info_map_;
@@ -482,8 +474,8 @@ class Configuration {
 
   bool InitFirstLayerQuantization(const std::map<string, string> &options);
 
-  bool GetConfigValueByKey(const std::map<string, string> &options, const string &file_key,
-                           const string &cfg_key, string &value, string &file_path) const;
+  bool GetConfigValueByKey(const std::map<string, string> &options, const string &file_key, const string &cfg_key,
+                           string &value, string &file_path) const;
 };
 }  // namespace fe
 #endif  // FUSION_ENGINE_INC_COMMON_CONFIGURATION_H_

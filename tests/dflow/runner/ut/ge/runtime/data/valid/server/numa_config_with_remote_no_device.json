@@ -65,7 +65,7 @@
     "item_def":[
       {
         "item_type":"TestSocType1",
-  
+
         "memory":"[DDR:64GB]",
         "aic_type":"[DAVINCI_V100:32]"
       }

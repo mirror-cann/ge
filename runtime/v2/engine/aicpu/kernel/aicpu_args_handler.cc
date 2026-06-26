@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,10 +39,7 @@ namespace gert {
 namespace {
 constexpr size_t kMaxTotalHostLen = 128U;
 
-enum class CommonBinArgsInfo {
- kOpDesc,
- kNodeType
-};
+enum class CommonBinArgsInfo { kOpDesc, kNodeType };
 
 enum class CommonArgsInfo {
   kIoNum,
@@ -64,22 +61,17 @@ enum class CCArgsInfo {
   kSoNameSize,
 };
 
-enum class TfArgsInfo {
-  kTaskData = static_cast<int32_t>(CommonArgsInfo::kNum),
-  kTaskSize,
-  kSessionId,
-  kStepId
-};
+enum class TfArgsInfo { kTaskData = static_cast<int32_t>(CommonArgsInfo::kNum), kTaskSize, kSessionId, kStepId };
 
 const std::string kAttrJsonPath = "ops_json_path";
 const std::string kAttrCustAicpuFlag = "_cust_aicpu_flag";
 const std::string kAttrFuncName = "funcName";
 const std::string kAttrSoName = "kernelSo";
-} // namespace
+}  // namespace
 
 AicpuArgsHandler::~AicpuArgsHandler() {
   if (ext_info_device_buffer_ != nullptr) {
-    (void) aclrtFree(ext_info_device_buffer_);
+    (void)aclrtFree(ext_info_device_buffer_);
     ext_info_device_buffer_ = nullptr;
   }
 }
@@ -88,8 +80,7 @@ ge::graphStatus AicpuArgsHandler::MallocMem() {
   host_buffer_ = ge::MakeUnique<uint8_t[]>(buffer_size_);
   GE_ASSERT_NOTNULL(host_buffer_);
   if (need_device_ext_) {
-    GE_ASSERT_ACL_OK(ge::AclrtMalloc(&ext_info_device_buffer_, ext_info_size_, RT_MEMORY_HBM,
-                                    GE_MODULE_NAME_U16));
+    GE_ASSERT_ACL_OK(ge::AclrtMalloc(&ext_info_device_buffer_, ext_info_size_, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
   }
   args_.args = host_buffer_.get();
   args_.argsSize = buffer_size_;
@@ -118,8 +109,8 @@ ge::graphStatus AicpuArgsHandler::AddHostInput(const size_t idx, void *data, con
 
   args_.hostInputInfoNum += 1U;
   auto host_addr_offset = io_addr_offset_ + idx * sizeof(void *);
-  host_input_info_.emplace_back(rtHostInputInfo_t({static_cast<uint32_t>(host_addr_offset),
-                                                   static_cast<uint32_t>(host_data_offset)}));
+  host_input_info_.emplace_back(
+      rtHostInputInfo_t({static_cast<uint32_t>(host_addr_offset), static_cast<uint32_t>(host_data_offset)}));
   args_.hostInputInfoPtr = host_input_info_.data();
   GE_ASSERT_TRUE(args_.hostInputInfoNum == host_input_info_.size());
 
@@ -142,7 +133,7 @@ ge::graphStatus GetExtInfoAddrFromArgs(KernelContext *context) {
 REGISTER_KERNEL(GetExtInfoAddrFromArgs).RunFunc(GetExtInfoAddrFromArgs);
 
 ge::graphStatus CreateOutputsForAicpuArgs(const ge::FastNode *node, KernelContext *context) {
-  (void) node;
+  (void)node;
   auto io_num = context->GetInputValue<size_t>(static_cast<size_t>(CommonArgsInfo::kIoNum));
   auto node_name = context->GetInputValue<char_t *>(static_cast<size_t>(CommonArgsInfo::kNodeName));
   auto need_device_ext = context->GetInputValue<bool>(static_cast<size_t>(CommonArgsInfo::kNeedDeviceExt));
@@ -210,7 +201,9 @@ ge::graphStatus FillLaunchArgs(const KernelContext *context, gert::ExceptionDump
   wrapper.SetHostArgs(args, args_size);
   return ge::GRAPH_SUCCESS;
 }
-REGISTER_KERNEL(BuildHostCCArgs).RunFunc(BuildHostCCArgs).OutputsCreator(CreateOutputsForAicpuArgs)
+REGISTER_KERNEL(BuildHostCCArgs)
+    .RunFunc(BuildHostCCArgs)
+    .OutputsCreator(CreateOutputsForAicpuArgs)
     .ExceptionDumpInfoFiller(FillLaunchArgs);
 
 ge::graphStatus AicpuCCArgsHandler::SetOffsetArgs() {
@@ -219,8 +212,8 @@ ge::graphStatus AicpuCCArgsHandler::SetOffsetArgs() {
   if (!need_device_ext_) {
     auto ext_info_addr_offset = PtrToValue(&(param_head.extInfoAddr)) - PtrToValue(&param_head);
     args_.kernelOffsetInfoNum += 1U;
-    kernel_offset_info_.emplace_back(rtHostInputInfo_t({static_cast<uint32_t>(ext_info_addr_offset),
-                                                        static_cast<uint32_t>(ext_info_offset_)}));
+    kernel_offset_info_.emplace_back(
+        rtHostInputInfo_t({static_cast<uint32_t>(ext_info_addr_offset), static_cast<uint32_t>(ext_info_offset_)}));
   }
   args_.kernelOffsetInfoPtr = kernel_offset_info_.data();
   args_.soNameAddrOffset = so_name_offset_;
@@ -246,8 +239,8 @@ ge::graphStatus AicpuCCArgsHandler::BuildCCArgs(const std::string &arg_data, con
   GE_ASSERT_SUCCESS(SetHostArgs(arg_data, ext_info_size, PtrToValue(ext_info_device_buffer_)));
   GE_ASSERT_SUCCESS(SetOffsetArgs());
 
-  GE_ASSERT_EOK(memcpy_s(host_buffer_.get() + kernel_name_offset_, kernel_name_size, kernel_name.data(),
-                         kernel_name_size));
+  GE_ASSERT_EOK(
+      memcpy_s(host_buffer_.get() + kernel_name_offset_, kernel_name_size, kernel_name.data(), kernel_name_size));
   GE_ASSERT_EOK(memcpy_s(host_buffer_.get() + so_name_offset_, so_name_size, so_name.data(), so_name_size));
   return ge::GRAPH_SUCCESS;
 }
@@ -282,23 +275,23 @@ REGISTER_KERNEL(BuildCCArgs).RunFunc(BuildCCArgs).OutputsCreator(CreateOutputsFo
 // for Tf task
 ge::graphStatus AicpuTfArgsHandler::SetOffsetArgs() {
   STR_FWK_OP_KERNEL fwk_op_kernel = {};
-  auto workspace_base_addr_offset = PtrToValue(&(fwk_op_kernel.fwkKernelBase.fwk_kernel.workspaceBaseAddr)) -
-                                    PtrToValue(&fwk_op_kernel);
-  auto io_addr_offset = PtrToValue(&(fwk_op_kernel.fwkKernelBase.fwk_kernel.inputOutputAddr)) -
-                        PtrToValue(&fwk_op_kernel);
+  auto workspace_base_addr_offset =
+      PtrToValue(&(fwk_op_kernel.fwkKernelBase.fwk_kernel.workspaceBaseAddr)) - PtrToValue(&fwk_op_kernel);
+  auto io_addr_offset =
+      PtrToValue(&(fwk_op_kernel.fwkKernelBase.fwk_kernel.inputOutputAddr)) - PtrToValue(&fwk_op_kernel);
 
-  args_.kernelOffsetInfoNum = 2U; // workspace & io_addr
-  kernel_offset_info_.emplace_back(rtHostInputInfo_t({static_cast<uint32_t>(workspace_base_addr_offset),
-                                                      static_cast<uint32_t>(task_info_offset_)}));
-  kernel_offset_info_.emplace_back(rtHostInputInfo_t({static_cast<uint32_t>(io_addr_offset),
-                                                      static_cast<uint32_t>(io_addr_offset_)}));
+  args_.kernelOffsetInfoNum = 2U;  // workspace & io_addr
+  kernel_offset_info_.emplace_back(
+      rtHostInputInfo_t({static_cast<uint32_t>(workspace_base_addr_offset), static_cast<uint32_t>(task_info_offset_)}));
+  kernel_offset_info_.emplace_back(
+      rtHostInputInfo_t({static_cast<uint32_t>(io_addr_offset), static_cast<uint32_t>(io_addr_offset_)}));
 
   if (!need_device_ext_) {
-    auto ext_info_addr_offset = PtrToValue(&(fwk_op_kernel.fwkKernelBase.fwk_kernel.extInfoAddr)) -
-                                PtrToValue(&fwk_op_kernel);
+    auto ext_info_addr_offset =
+        PtrToValue(&(fwk_op_kernel.fwkKernelBase.fwk_kernel.extInfoAddr)) - PtrToValue(&fwk_op_kernel);
     args_.kernelOffsetInfoNum += 1U;
-    kernel_offset_info_.emplace_back(rtHostInputInfo_t({static_cast<uint32_t>(ext_info_addr_offset),
-                                                        static_cast<uint32_t>(ext_info_offset_)}));
+    kernel_offset_info_.emplace_back(
+        rtHostInputInfo_t({static_cast<uint32_t>(ext_info_addr_offset), static_cast<uint32_t>(ext_info_offset_)}));
   }
   args_.kernelOffsetInfoPtr = kernel_offset_info_.data();
   return ge::GRAPH_SUCCESS;

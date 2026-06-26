@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,26 +28,26 @@ ge::Status CheckDimInRange(int64_t cur_dim, int64_t lower_bound, int64_t upper_b
   if (lower_bound > upper_bound) {
     GELOGE(ge::FAILED, "lower bound[%ld] is larger than upper bound[%ld]", lower_bound, upper_bound);
     REPORT_PREDEFINED_ERR_MSG("E13025", std::vector<const ge::char_t *>({"reason"}),
-                              std::vector<const ge::char_t *>({("Please check input shape range. Its lower bound " +
-                                                                std::to_string(lower_bound) + " is greater than upper bound " +
-                                                                std::to_string(upper_bound) )
-                                                                   .c_str()}));
+                              std::vector<const ge::char_t *>(
+                                  {("Please check input shape range. Its lower bound " + std::to_string(lower_bound) +
+                                    " is greater than upper bound " + std::to_string(upper_bound))
+                                       .c_str()}));
     return ge::PARAM_INVALID;
   }
 
   if ((cur_dim > upper_bound) || (cur_dim < lower_bound)) {
     GELOGE(ge::FAILED, "cur dim[%ld] is not in shape range[%ld, %ld]", cur_dim, lower_bound, upper_bound);
-    REPORT_PREDEFINED_ERR_MSG("E13025", std::vector<const ge::char_t *>({"reason"}),
-                              std::vector<const ge::char_t *>({("Please check input shape. Its current dim " +
-                                                                std::to_string(cur_dim) + " is not in shape range[" +
-                                                                std::to_string(lower_bound) + ", " +
-                                                                std::to_string(upper_bound) + "]")
-                                                                   .c_str()}));
+    REPORT_PREDEFINED_ERR_MSG(
+        "E13025", std::vector<const ge::char_t *>({"reason"}),
+        std::vector<const ge::char_t *>(
+            {("Please check input shape. Its current dim " + std::to_string(cur_dim) + " is not in shape range[" +
+              std::to_string(lower_bound) + ", " + std::to_string(upper_bound) + "]")
+                 .c_str()}));
     return ge::PARAM_INVALID;
   }
   return ge::SUCCESS;
 }
-}
+}  // namespace
 namespace gert {
 ge::Status TensorUtils::CheckShapeByShapeRange(const Shape &shape, const ShapeRange &shape_range) {
   if (shape.IsScalar() || shape_range.GetMax().IsScalar() || shape_range.GetMin().IsScalar()) {
@@ -61,8 +61,9 @@ ge::Status TensorUtils::CheckShapeByShapeRange(const Shape &shape, const ShapeRa
   if ((shape_dim_num != shape_range_max_dim_num) || (shape_dim_num != shape_range_min_dum_num)) {
     GELOGE(ge::FAILED, "Shape size %zu is different from min shape size %zu or max shape size %zu", shape_dim_num,
            shape_range_min_dum_num, shape_range_max_dim_num);
-    const std::string reason = "The shape size " + std::to_string(shape_dim_num) + " is different from min shape size " +
-                                std::to_string(shape_range_min_dum_num) + " or max shape size " + std::to_string(shape_range_max_dim_num);
+    const std::string reason = "The shape size " + std::to_string(shape_dim_num) +
+                               " is different from min shape size " + std::to_string(shape_range_min_dum_num) +
+                               " or max shape size " + std::to_string(shape_range_max_dim_num);
     REPORT_PREDEFINED_ERR_MSG("E13025", std::vector<const ge::char_t *>({"reason"}),
                               std::vector<const ge::char_t *>({reason.c_str()}));
     return ge::PARAM_INVALID;

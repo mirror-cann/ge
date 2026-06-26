@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -41,15 +41,13 @@ static const std::unordered_map<std::string, PrecisionMode> kPrecisionModeMap = 
     {V2_ORIGIN, PrecisionMode::ENUM_MUST_KEEP_ORIGIN_DTYPE},
     {V2_ORIGIN, PrecisionMode::ENUM_MUST_KEEP_ORIGIN_DTYPE},
     {kCubeHif8, PrecisionMode::ENUM_CUBE_HIF8},
-    {kMixedHif8, PrecisionMode::ENUM_MIXED_HIF8}
-};
-const std::unordered_set<std::string> kIntrinsicvconvSet = {
-    "f322bf16r", "f322bf16f", "f322bf16c", "f322bf16a", "f322bf16z"
-};
-const std::map<string, bool> kSwitchMap {{"1", true}, {"0", false}};
+    {kMixedHif8, PrecisionMode::ENUM_MIXED_HIF8}};
+const std::unordered_set<std::string> kIntrinsicvconvSet = {"f322bf16r", "f322bf16f", "f322bf16c", "f322bf16a",
+                                                            "f322bf16z"};
+const std::map<string, bool> kSwitchMap{{"1", true}, {"0", false}};
 const int32_t kBase = 10;
 const std::string INTRINSIC_VCONV = "Intrinsic_vconv";
-}
+}  // namespace
 
 std::string FEContextUtils::GetPrecisionMode() {
   std::string precision_mode_str = GetGeContextValue(ge::PRECISION_MODE);
@@ -102,8 +100,8 @@ Status FEContextUtils::GetPrecisionMode(std::string &precision_mode) {
   const auto &iter = kPrecisionModeMap.find(precision_mode);
   if (iter == kPrecisionModeMap.end()) {
     FE_LOGE("Precision mode value %s is incorrect, please check it.", precision_mode.c_str());
-    ErrorMessageDetail err_msg(EM_INPUT_OPTION_INVALID, {precision_mode, ge::PRECISION_MODE,
-                               "The current value is not within the valid range"});
+    ErrorMessageDetail err_msg(EM_INPUT_OPTION_INVALID,
+                               {precision_mode, ge::PRECISION_MODE, "The current value is not within the valid range"});
     ReportErrorMessage(err_msg);
     return FAILED;
   }
@@ -151,7 +149,7 @@ Status FEContextUtils::GetPrecisionMode(fe::PrecisionMode &precision_mode) {
   if (iter == kPrecisionModeMap.end()) {
     FE_LOGE("Precision mode value %s is incorrect, please check it.", precision_mode_str.c_str());
     ErrorMessageDetail err_msg(EM_INPUT_OPTION_INVALID, {precision_mode_str, ge::PRECISION_MODE,
-                               "The current value is not within the valid range"});
+                                                         "The current value is not within the valid range"});
     ReportErrorMessage(err_msg);
     return FAILED;
   }
@@ -180,7 +178,7 @@ Status FEContextUtils::GetPrecisionMode(fe::PrecisionMode &precision_mode) {
     if (!enable_flag) {
       FE_LOGE("The AI core doesn't support mixed_bfloat16, allow_mix_precision_bf16 or allow_fp32_to_bf16.");
       ErrorMessageDetail err_msg(EM_INPUT_OPTION_INVALID,
-          {precision_mode_str, ge::PRECISION_MODE, "Current soc not support dtype of BFloat16"});
+                                 {precision_mode_str, ge::PRECISION_MODE, "Current soc not support dtype of BFloat16"});
       ReportErrorMessage(err_msg);
       return FAILED;
     }
@@ -189,13 +187,21 @@ Status FEContextUtils::GetPrecisionMode(fe::PrecisionMode &precision_mode) {
   return SUCCESS;
 }
 
-std::string FEContextUtils::GetBuildMode() { return GetGeContextValue(ge::BUILD_MODE); }
+std::string FEContextUtils::GetBuildMode() {
+  return GetGeContextValue(ge::BUILD_MODE);
+}
 
-std::string FEContextUtils::GetBuildStep() { return GetGeContextValue(ge::BUILD_STEP); }
+std::string FEContextUtils::GetBuildStep() {
+  return GetGeContextValue(ge::BUILD_STEP);
+}
 
-std::string FEContextUtils::GetCoreType() { return GetGeContextValue(ge::CORE_TYPE); }
+std::string FEContextUtils::GetCoreType() {
+  return GetGeContextValue(ge::CORE_TYPE);
+}
 
-std::string FEContextUtils::GetFusionSwitchFilePath() { return GetGeContextValue(ge::FUSION_SWITCH_FILE); }
+std::string FEContextUtils::GetFusionSwitchFilePath() {
+  return GetGeContextValue(ge::FUSION_SWITCH_FILE);
+}
 
 std::string FEContextUtils::GetGeContextValue(const std::string &key) {
   std::string option_value;
@@ -235,4 +241,4 @@ bool FEContextUtils::IsOpTuneMode() {
   return (build_mode == ge::BUILD_MODE_BASELINE || build_mode == ge::BUILD_MODE_TUNING ||
           build_mode == ge::BUILD_MODE_OPAT_RESULT);
 }
-}
+}  // namespace fe

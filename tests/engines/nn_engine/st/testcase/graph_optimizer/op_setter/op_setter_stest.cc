@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,23 +32,19 @@ using namespace ge;
 using namespace fe;
 using OpSetterPtr = std::shared_ptr<OpSetter>;
 
-
-class STEST_OP_SETTER : public testing::Test
-{
-protected:
+class STEST_OP_SETTER : public testing::Test {
+ protected:
   shared_ptr<fe::FEOpsKernelInfoStore> fe_ops_kernel_info_store_ptr_;
-  void SetUp()
-  {
+  void SetUp() {
     PlatformInfoManager::Instance().opti_compilation_infos_.SetSocVersion("Ascend310");
     PlatformInfoManager::Instance().opti_compilation_infos_.SetAICoreNum(8);
     std::map<std::string, std::string> options;
     fe_ops_kernel_info_store_ptr_ = make_shared<fe::FEOpsKernelInfoStore>();
-    FEOpsStoreInfo tbe_custom {
-            6,
-            "tbe-custom",
-            EN_IMPL_HW_TBE,
-            GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_slice_op_info/slice_success",
-            ""};
+    FEOpsStoreInfo tbe_custom{6, "tbe-custom", EN_IMPL_HW_TBE,
+                              GetCodeDir() +
+                                  "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/"
+                                  "tbe_slice_op_info/slice_success",
+                              ""};
     vector<FEOpsStoreInfo> store_info;
     store_info.emplace_back(tbe_custom);
     Configuration::Instance(fe::AI_CORE_NAME).ops_store_info_vector_ = (store_info);
@@ -130,7 +126,6 @@ protected:
     NodePtr relu_node8 = graph->AddNode(relu_op8);
     return graph;
   }
-
 };
 
 TEST_F(STEST_OP_SETTER, set_op_info_success) {
@@ -144,24 +139,24 @@ TEST_F(STEST_OP_SETTER, set_op_info_success) {
     string op_type = node->GetType();
     ge::OpDescPtr op_desc_ptr = node->GetOpDesc();
 
-	op_slice_info_str.clear();
-	(void)ge::AttrUtils::GetStr(op_desc_ptr, OP_SLICE_INFO, op_slice_info_str);
-	//EXPECT_EQ(op_slice_info_str.empty(), false);
+    op_slice_info_str.clear();
+    (void)ge::AttrUtils::GetStr(op_desc_ptr, OP_SLICE_INFO, op_slice_info_str);
+    // EXPECT_EQ(op_slice_info_str.empty(), false);
 
     int imply_type = -1;
-    if(!ge::AttrUtils::GetInt(op_desc_ptr, FE_IMPLY_TYPE, imply_type)) {
+    if (!ge::AttrUtils::GetInt(op_desc_ptr, FE_IMPLY_TYPE, imply_type)) {
       continue;
     }
     bool is_continous_input;
     bool is_continous_output;
     ge::AttrUtils::GetBool(op_desc_ptr, ge::ATTR_NAME_CONTINUOUS_INPUT, is_continous_input);
-    ge::AttrUtils::GetBool(op_desc_ptr, ge::ATTR_NAME_CONTINUOUS_OUTPUT,is_continous_output);
-    if (op_type == "Activation"){
+    ge::AttrUtils::GetBool(op_desc_ptr, ge::ATTR_NAME_CONTINUOUS_OUTPUT, is_continous_output);
+    if (op_type == "Activation") {
       EXPECT_EQ(is_continous_input, true);
       EXPECT_EQ(is_continous_output, true);
     } else {
       ge::AttrUtils::GetBool(op_desc_ptr, ge::ATTR_NAME_CONTINUOUS_INPUT, is_continous_input);
-      ge::AttrUtils::GetBool(op_desc_ptr, ge::ATTR_NAME_CONTINUOUS_OUTPUT,is_continous_output);
+      ge::AttrUtils::GetBool(op_desc_ptr, ge::ATTR_NAME_CONTINUOUS_OUTPUT, is_continous_output);
       EXPECT_EQ(is_continous_input, false);
       EXPECT_EQ(is_continous_output, false);
     }
@@ -183,8 +178,8 @@ TEST_F(STEST_OP_SETTER, set_op_impl_failed) {
 TEST_F(STEST_OP_SETTER, set_op_impl_succ) {
   Configuration::Instance(AI_CORE_NAME).impl_mode_parser_ = std::make_shared<OpImplModeConfigParser>("");
   EXPECT_NE(Configuration::Instance(AI_CORE_NAME).impl_mode_parser_, nullptr);
-  auto impl_mode_parser = std::dynamic_pointer_cast<OpImplModeConfigParser>(
-      Configuration::Instance(AI_CORE_NAME).impl_mode_parser_);
+  auto impl_mode_parser =
+      std::dynamic_pointer_cast<OpImplModeConfigParser>(Configuration::Instance(AI_CORE_NAME).impl_mode_parser_);
   EXPECT_NE(impl_mode_parser, nullptr);
   impl_mode_parser->op_precision_mode_ = "xxx";
   impl_mode_parser->op_name_select_impl_mode_map_["relu"] = "high_performance";
@@ -211,28 +206,29 @@ TEST_F(STEST_OP_SETTER, multi_set_op_info_success) {
     string op_type = node->GetType();
     ge::OpDescPtr op_desc_ptr = node->GetOpDesc();
 
-	op_slice_info_str.clear();
-	(void)ge::AttrUtils::GetStr(op_desc_ptr, OP_SLICE_INFO, op_slice_info_str);
+    op_slice_info_str.clear();
+    (void)ge::AttrUtils::GetStr(op_desc_ptr, OP_SLICE_INFO, op_slice_info_str);
 
     int imply_type = -1;
-    if(!ge::AttrUtils::GetInt(op_desc_ptr, FE_IMPLY_TYPE, imply_type)) {
+    if (!ge::AttrUtils::GetInt(op_desc_ptr, FE_IMPLY_TYPE, imply_type)) {
       continue;
     }
     bool is_continous_input;
     bool is_continous_output;
     ge::AttrUtils::GetBool(op_desc_ptr, ge::ATTR_NAME_CONTINUOUS_INPUT, is_continous_input);
-    ge::AttrUtils::GetBool(op_desc_ptr, ge::ATTR_NAME_CONTINUOUS_OUTPUT,is_continous_output);
-    if (op_type == "Activation"){
+    ge::AttrUtils::GetBool(op_desc_ptr, ge::ATTR_NAME_CONTINUOUS_OUTPUT, is_continous_output);
+    if (op_type == "Activation") {
       EXPECT_EQ(is_continous_input, true);
       EXPECT_EQ(is_continous_output, true);
     } else {
       ge::AttrUtils::GetBool(op_desc_ptr, ge::ATTR_NAME_CONTINUOUS_INPUT, is_continous_input);
-      ge::AttrUtils::GetBool(op_desc_ptr, ge::ATTR_NAME_CONTINUOUS_OUTPUT,is_continous_output);
+      ge::AttrUtils::GetBool(op_desc_ptr, ge::ATTR_NAME_CONTINUOUS_OUTPUT, is_continous_output);
       EXPECT_EQ(is_continous_input, false);
       EXPECT_EQ(is_continous_output, false);
     }
   }
-  ComputeGraphPtr graph2 = CreateMultiThreadGraph();;
+  ComputeGraphPtr graph2 = CreateMultiThreadGraph();
+  ;
   Status ret3 = op_setter_ptr->MultiThreadSetOpInfo(*(graph2.get()));
   EXPECT_EQ(fe::SUCCESS, ret3);
 }

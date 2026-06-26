@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -16,10 +16,9 @@
 namespace fe {
 class L2FusionAllocation {
  public:
-  static Status AllocateData(const L2BufferInfo &l2_buffer_info,
-                             const std::vector<OpL2DataInfo> &op_l2_data_vec,
-                             std::map<uint64_t, size_t> &count_map,
-                             OpL2AllocMap &op_l2_alloc_map, uint64_t &max_page_num);
+  static Status AllocateData(const L2BufferInfo &l2_buffer_info, const std::vector<OpL2DataInfo> &op_l2_data_vec,
+                             std::map<uint64_t, size_t> &count_map, OpL2AllocMap &op_l2_alloc_map,
+                             uint64_t &max_page_num);
 
  private:
   static Status AllocateStandingData(const int64_t &page_size, const std::map<uint64_t, size_t> &count_map,
@@ -30,10 +29,8 @@ class L2FusionAllocation {
                                             TensorL2AllocMap &tensor_l2_alloc_map, uint32_t &data_in_l2_id,
                                             int32_t &page_num_left);
 
-  static Status AllocateInputData(const TensorL2AllocMap &tensor_l2_alloc_map,
-                                  const TensorL2DataMap &input_data_map,
-                                  std::map<uint64_t, size_t> &count_map,
-                                  TensorL2AllocMap &input_alloc_map);
+  static Status AllocateInputData(const TensorL2AllocMap &tensor_l2_alloc_map, const TensorL2DataMap &input_data_map,
+                                  std::map<uint64_t, size_t> &count_map, TensorL2AllocMap &input_alloc_map);
 
   static Status AllocateOutputData(const int64_t &page_size, const uint32_t &max_page_num,
                                    const TensorL2DataMap &output_data_map, uint32_t &data_in_l2_id,

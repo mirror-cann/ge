@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,11 +32,11 @@ constexpr char const *kAclnnLoweringFunc = "AclnnLoweringFunc";
 constexpr char const *kAttrPrecisionModeEnum = "_precision_mode_enum";
 
 const OpImplKernelRegistry::OpImplFunctionsV2 *GetOpImplFunctions(const LowerInput &lower_input,
-                                                                const ge::NodePtr &node) {
+                                                                  const ge::NodePtr &node) {
   FE_ASSERT_NOTNULL(node);
   FE_ASSERT_NOTNULL(node->GetOpDesc());
-  const OpImplSpaceRegistryV2Ptr &space_registry =
-    lower_input.global_data->GetSpaceRegistryV2(static_cast<gert::OppImplVersionTag>(node->GetOpDesc()->GetOppImplVersion()));
+  const OpImplSpaceRegistryV2Ptr &space_registry = lower_input.global_data->GetSpaceRegistryV2(
+      static_cast<gert::OppImplVersionTag>(node->GetOpDesc()->GetOppImplVersion()));
   if (space_registry == nullptr) {
     GELOGW("Op impl registry is nullptr");
     return nullptr;
@@ -119,7 +119,8 @@ bg::ValueHolderPtr FindOpExecuteFunc(const ge::NodePtr &node, const LowerInput &
   auto builder = [&node, &opp_impl_version, &lower_input]() -> std::vector<bg::ValueHolderPtr> {
     return bg::FrameSelector::OnInitRoot([&]() -> std::vector<bg::ValueHolderPtr> {
       auto node_type = bg::ValueHolder::CreateConst(node->GetTypePtr(), node->GetType().size() + 1, true);
-      auto space_registry_addr = lower_input.global_data->GetSpaceRegistryV2(static_cast<gert::OppImplVersionTag>(opp_impl_version)).get();
+      auto space_registry_addr =
+          lower_input.global_data->GetSpaceRegistryV2(static_cast<gert::OppImplVersionTag>(opp_impl_version)).get();
       auto space_registry = bg::ValueHolder::CreateConst(&space_registry_addr, sizeof(void *), false);
       return {bg::ValueHolder::CreateSingleDataOutput("FindOpExeFunc", {node_type, space_registry})};
     });
@@ -133,7 +134,8 @@ std::vector<bg::ValueHolderPtr> FindOpExecute2PhaseFunc(const ge::NodePtr &node,
   auto builder = [&node, &opp_impl_version, &lower_input]() -> std::vector<bg::ValueHolderPtr> {
     return bg::FrameSelector::OnInitRoot([&]() -> std::vector<bg::ValueHolderPtr> {
       auto node_type = bg::ValueHolder::CreateConst(node->GetTypePtr(), node->GetType().size() + 1, true);
-      auto space_registry_addr = lower_input.global_data->GetSpaceRegistryV2(static_cast<gert::OppImplVersionTag>(opp_impl_version)).get();
+      auto space_registry_addr =
+          lower_input.global_data->GetSpaceRegistryV2(static_cast<gert::OppImplVersionTag>(opp_impl_version)).get();
       auto space_registry = bg::ValueHolder::CreateConst(&space_registry_addr, sizeof(void *), false);
       return bg::ValueHolder::CreateDataOutput("FindOpExe2PhaseFunc", {node_type, space_registry},
                                                2U);  // prepare & launch func
@@ -199,9 +201,8 @@ bg::ValueHolderPtr OpExecute(const ge::NodePtr &node, const LowerInput &lower_in
   GE_ASSERT(assembled_platform_info_holders.size() == static_cast<size_t>(bg::AssemblePlatformInfoIndex::kNums));
 
   auto aclnn_op_fwk_data_holder = bg::ValueHolder::CreateSingleDataOutput(
-      "BuildSingleStageAclnnOpFwkData", {
-          assembled_platform_info_holders[static_cast<size_t>(bg::AssemblePlatformInfoIndex::kCoreNumInfos)]
-      });
+      "BuildSingleStageAclnnOpFwkData",
+      {assembled_platform_info_holders[static_cast<size_t>(bg::AssemblePlatformInfoIndex::kCoreNumInfos)]});
   op_exe_inputs.emplace_back(aclnn_op_fwk_data_holder);
   return bg::ValueHolder::CreateSingleDataOutput("ExecuteOpFunc", op_exe_inputs);
 }
@@ -223,12 +224,10 @@ bg::ValueHolderPtr Op2PhaseExecute(const ge::NodePtr &node, const LowerInput &lo
   auto assembled_platform_info_holders = bg::AppendCoreTypeToPlatform(node, lower_input.global_data);
   GE_ASSERT(assembled_platform_info_holders.size() == static_cast<size_t>(bg::AssemblePlatformInfoIndex::kNums));
   auto aclnn_op_fwk_data_holder = bg::ValueHolder::CreateSingleDataOutput(
-      "BuildDualStageAclnnOpFwkData", {
-          op_exe_funcs[0],
-          op_exe_funcs[1],
-          assembled_platform_info_holders[static_cast<size_t>(bg::AssemblePlatformInfoIndex::kPlatformInfo)],
-          assembled_platform_info_holders[static_cast<size_t>(bg::AssemblePlatformInfoIndex::kCoreNumInfos)]
-      });
+      "BuildDualStageAclnnOpFwkData",
+      {op_exe_funcs[0], op_exe_funcs[1],
+       assembled_platform_info_holders[static_cast<size_t>(bg::AssemblePlatformInfoIndex::kPlatformInfo)],
+       assembled_platform_info_holders[static_cast<size_t>(bg::AssemblePlatformInfoIndex::kCoreNumInfos)]});
 
   // stream，不能放在fwk_data中，否则会导致CEM失效
   const auto stream = lower_input.global_data->GetStream();

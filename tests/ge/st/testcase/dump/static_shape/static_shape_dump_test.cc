@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -50,20 +50,27 @@ Status GenerateTaskForHccl(const Node &node, RunContext &, std::vector<domi::Tas
 GraphAndIoNum BuildGraph_HcclAdd() {
   MockForGenerateTask("ops_kernel_info_hccl", GenerateTaskForHccl);
 
-  auto data_0 = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0)
-                            .TensorDesc(FORMAT_ND, DT_FLOAT, {kTensorDim}).Build("_data_0");
-  auto data_1 = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 1)
-                            .TensorDesc(FORMAT_ND, DT_BOOL, {1}).Build("_data_1");
-  auto hcom_0 = OP_CFG(HCOMALLREDUCE).InCnt(2).OutCnt(2)
-                                     .Attr(HCOM_ATTR_REDUCE_TYPE, "sum")
-                                     .Attr(HCOM_ATTR_ROOT_RANK, 0)
-                                     .Build("_all_reduce_0");
-  auto add_0 = OP_CFG(ADD).InCnt(2).OutCnt(1)
-                          .Attr(ATTR_NAME_KERNEL_BIN_ID, "_add_0_fake_id")
-                          .TensorDesc(FORMAT_NCHW, DT_FLOAT, {kTensorDim}).Build("_add_0");
-  auto output_0 = OP_CFG(NETOUTPUT)
-                      .Attr(ATTR_NAME_KERNEL_BIN_ID, "_output_0_fake_id")
-                      .Build("_output_0");
+  auto data_0 = OP_CFG(DATA)
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .Attr(ATTR_NAME_INDEX, 0)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {kTensorDim})
+                    .Build("_data_0");
+  auto data_1 =
+      OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 1).TensorDesc(FORMAT_ND, DT_BOOL, {1}).Build("_data_1");
+  auto hcom_0 = OP_CFG(HCOMALLREDUCE)
+                    .InCnt(2)
+                    .OutCnt(2)
+                    .Attr(HCOM_ATTR_REDUCE_TYPE, "sum")
+                    .Attr(HCOM_ATTR_ROOT_RANK, 0)
+                    .Build("_all_reduce_0");
+  auto add_0 = OP_CFG(ADD)
+                   .InCnt(2)
+                   .OutCnt(1)
+                   .Attr(ATTR_NAME_KERNEL_BIN_ID, "_add_0_fake_id")
+                   .TensorDesc(FORMAT_NCHW, DT_FLOAT, {kTensorDim})
+                   .Build("_add_0");
+  auto output_0 = OP_CFG(NETOUTPUT).Attr(ATTR_NAME_KERNEL_BIN_ID, "_output_0_fake_id").Build("_output_0");
   DEF_GRAPH(hccl_add) {
     CHAIN(NODE(data_0)->EDGE(0, 0)->NODE(hcom_0));
     CHAIN(NODE(data_1)->EDGE(0, 1)->NODE(hcom_0));
@@ -74,9 +81,9 @@ GraphAndIoNum BuildGraph_HcclAdd() {
 
   auto graph = ToComputeGraph(hccl_add);
   graph->SetGraphUnknownFlag(false);
-  return { graph, 2, 1 };
+  return {graph, 2, 1};
 }
-} // namespace anonymous
+}  // namespace
 
 TEST_F(StaticShapeDumpST, Static_DataDump_Hccl_Graph) {
   auto config = DataDumpConfigBuilder();

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -164,9 +164,9 @@ ge::graphStatus UpdateOutputShapeRangeToContext(const ge::OpDescPtr &op_desc, Ke
   }
   return ge::GRAPH_SUCCESS;
 }
-} // namespace
+}  // namespace
 ge::graphStatus BuildCreateOpOutputs(const ge::FastNode *node, KernelContext *context) {
-  (void) node;
+  (void)node;
   auto compute_node_chain = context->GetOutput(0U);
   GE_ASSERT_NOTNULL(compute_node_chain);
   auto op = new (std::nothrow) ge::Operator();
@@ -176,7 +176,7 @@ ge::graphStatus BuildCreateOpOutputs(const ge::FastNode *node, KernelContext *co
 }
 
 ge::graphStatus CreateOpFromBuffer(KernelContext *context) {
-   // at least need 2 inputs, including buffer and buffer size.
+  // at least need 2 inputs, including buffer and buffer size.
   auto input_num = context->GetInputNum();
   if (input_num < static_cast<size_t>(CreateOpFromBufferInputIndex::kInputNum)) {
     return ge::GRAPH_FAILED;
@@ -206,10 +206,10 @@ ge::graphStatus CreateOpFromBuffer(KernelContext *context) {
 REGISTER_KERNEL(CreateOpFromBuffer).RunFunc(CreateOpFromBuffer).OutputsCreator(BuildCreateOpOutputs);
 
 ge::graphStatus BuildFindCompatibleInferShapeFuncOutputs(const ge::FastNode *node, KernelContext *context) {
-  (void) node;
+  (void)node;
   auto chain = context->GetOutput(0);
   GE_ASSERT_NOTNULL(chain);
-  auto infer_func = new (std::nothrow)ge::InferShapeFunc();
+  auto infer_func = new (std::nothrow) ge::InferShapeFunc();
   GE_ASSERT_NOTNULL(infer_func);
 
   chain->SetWithDefaultDeleter(infer_func);
@@ -260,7 +260,7 @@ ge::graphStatus CompatibleInferShape(KernelContext *context) {
   if (!op_desc->GetOpInferDepends().empty()) {
     auto callback = [&context, &tensor_holder](const ge::ConstNodePtr &node, const size_t index,
                                                ge::GeTensorPtr &tensor) {
-      (void) node;
+      (void)node;
       auto infer_shape_context = reinterpret_cast<InferShapeContext *>(context);
       auto input_start_pos = static_cast<size_t>(CompatibleInferShapeOrRangeInputIndex::kInputNum);
       auto shape_tensor = infer_shape_context->GetInputTensor(index + input_start_pos);
@@ -269,7 +269,7 @@ ge::graphStatus CompatibleInferShape(KernelContext *context) {
     };
     ge::OpDescUtils::SetCallbackGetConstInputFuncToOperator(*op, callback);
   }
-  
+
   // 2.get infer_func and infer
   auto op_infer_fun_index = static_cast<size_t>(CompatibleInferShapeOrRangeInputIndex::kInferFunc);
   auto op_infer_fun = context->GetInputValue<ge::InferShapeFunc *>(op_infer_fun_index);
@@ -279,7 +279,7 @@ ge::graphStatus CompatibleInferShape(KernelContext *context) {
     GELOGE(ret, "Fail to infer shape on op %s.", op_desc->GetName().c_str());
     return ret;
   }
-  
+
   // 3.update output shape from operator to context
   GE_CHK_STATUS_RET(UpdateOutputShapeToContext(op_desc, context), "Fail to update output shapes to Context.");
 
@@ -289,7 +289,7 @@ ge::graphStatus CompatibleInferShape(KernelContext *context) {
   if (compute_node_info == nullptr) {
     return ge::GRAPH_FAILED;
   }
-  GE_CHK_STATUS_RET(TransformAllOutputsShape(compute_node_info, context), "Fail to transfrom output shapes.");
+  GE_CHK_STATUS_RET(TransformAllOutputsShape(compute_node_info, context), "Fail to transform output shapes.");
   return ge::GRAPH_SUCCESS;
 }
 
@@ -316,11 +316,11 @@ ge::graphStatus CompatibleInferShapeRange(KernelContext *context) {
   if (!op_desc->GetOpInferDepends().empty()) {
     auto callback = [&context, &tensor_holder](const ge::ConstNodePtr &node, const size_t index,
                                                ge::GeTensorPtr &tensor) {
-      (void) node;
+      (void)node;
       auto infer_range_context = reinterpret_cast<InferShapeRangeContext *>(context);
       auto input_start_pos = static_cast<size_t>(CompatibleInferShapeOrRangeInputIndex::kInputNum);
-      // 此处执行时,上一个节点是CreateTensorRangesAndShapeRanges，这个kernel里面保证了min tensor与max tensor时相等的，因此只需要
-      // 将其任意一个用来产生GeTensor即可
+      // 此处执行时,上一个节点是CreateTensorRangesAndShapeRanges，这个kernel里面保证了min tensor与max
+      // tensor时相等的，因此只需要 将其任意一个用来产生GeTensor即可
       auto tensor_range = infer_range_context->GetInputTensorRange(index + input_start_pos);
       GE_CHECK_NOTNULL(tensor_range);
       auto shape_range_tensor = tensor_range->GetMin();
@@ -350,7 +350,7 @@ ge::graphStatus CompatibleInferShapeRange(KernelContext *context) {
   if (compute_node_info == nullptr) {
     return ge::GRAPH_FAILED;
   }
-  GE_CHK_STATUS_RET(TransformAllOutputsMaxShape(compute_node_info, context), "Fail to transfrom output shapes.");
+  GE_CHK_STATUS_RET(TransformAllOutputsMaxShape(compute_node_info, context), "Fail to transform output shapes.");
   return ge::GRAPH_SUCCESS;
 }
 

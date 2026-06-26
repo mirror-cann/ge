@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,14 +32,8 @@
 namespace gert {
 namespace kernel {
 namespace {
-enum class CopyInputs {
-  kOutputNum,
-  kReleaseFlag,
-  kDataSize,
-  kSrcAddr,
-  kDstAddr
-};
-} // namespace
+enum class CopyInputs { kOutputNum, kReleaseFlag, kDataSize, kSrcAddr, kDstAddr };
+}  // namespace
 ge::graphStatus PrepareCopyInputs(KernelContext *context) {
   auto output_num = context->GetInputValue<size_t>(static_cast<size_t>(CopyInputs::kOutputNum));
   auto stream = context->GetInputValue<aclrtStream>(context->GetInputNum() - 1);
@@ -57,8 +51,8 @@ ge::graphStatus PrepareCopyInputs(KernelContext *context) {
     GE_ASSERT_NOTNULL(summary);
     GE_CHECK_NOTNULL(output);
     GE_CHECK_NOTNULL(shape_buffer);
-    GELOGD("PrepareCopyInputs out[%zu], shape data=0x%lx, shape data size=%lu, raw data=0x%lx, raw data size=%lu.",
-           i, summary->shape_data_ptr, summary->shape_data_size, summary->raw_data_ptr, summary->raw_data_size);
+    GELOGD("PrepareCopyInputs out[%zu], shape data=0x%lx, shape data size=%lu, raw data=0x%lx, raw data size=%lu.", i,
+           summary->shape_data_ptr, summary->shape_data_size, summary->raw_data_ptr, summary->raw_data_size);
 
     copy_input_release_flag.emplace_back(ge::kReleaseFlag);
     copy_input_data_size.emplace_back(summary->raw_data_size);
@@ -131,7 +125,7 @@ ge::graphStatus GetOutputShapeFromHbmBuffer(KernelContext *context) {
 }
 
 ge::graphStatus CreateOutputsForHbmBuffer(const ge::FastNode *node, KernelContext *context) {
-  (void) node;
+  (void)node;
   GELOGD("Output number = %zd.", context->GetOutputNum());
   for (size_t i = 0U; i < context->GetOutputNum(); i++) {
     auto av_holder = context->GetOutput(i);
@@ -161,7 +155,7 @@ ge::graphStatus GetHostSummary(KernelContext *context) {
 }
 
 ge::graphStatus CreateOutputsForHostSummary(const ge::FastNode *node, KernelContext *context) {
-  (void) node;
+  (void)node;
   auto output_num = context->GetOutputNum();
   for (size_t i = 0U; i < output_num; i++) {
     auto av_summary = context->GetOutput(i);

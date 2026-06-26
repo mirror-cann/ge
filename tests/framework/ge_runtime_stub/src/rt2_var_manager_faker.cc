@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,7 +21,7 @@ Shape GeShapeToGertShape(const ge::GeShape &ge_shape) {
   }
   return gert_shape;
 }
-}
+}  // namespace
 
 Rt2VarManagerFaker::Rt2VarManagerFaker(UtestRt2VarManager &variable_manager) {
   var_manager_ = &variable_manager;
@@ -43,11 +43,11 @@ void Rt2VarManagerFaker::AddVar(const std::string &var_name, const std::vector<i
   if (fake_value == nullptr) {
     return;
   }
-  void *magic_addr = reinterpret_cast<void*>(fake_value.get());
+  void *magic_addr = reinterpret_cast<void *>(fake_value.get());
   gert::TensorData gert_data(magic_addr);
   gert_data.SetSize(size);
   gert_data.SetPlacement(TensorPlacement::kOnDeviceHbm);
   var_manager_->SetVarShapeAndMemory(var_name, gert_shape, gert_data);
   value_holder_.emplace_back(std::move(fake_value.release()));
 }
-}
+}  // namespace gert

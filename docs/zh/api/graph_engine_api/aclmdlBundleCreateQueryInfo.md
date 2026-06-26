@@ -41,4 +41,3 @@ aclmdlBundleQueryInfo *aclmdlBundleCreateQueryInfo()
 ## 返回值说明<a name="section16131193591515"></a>
 
 返回aclmdlBundleQueryInfo类型的指针。
-

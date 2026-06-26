@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -35,9 +35,8 @@ struct OutputReuseInfo {
 
 struct ParseParam {
   ParseParam(const ge::OpDesc *op_desc, std::vector<OutputReuseInfo> &output_reuse_infos,
-             std::map<int64_t, int32_t> &offset_to_index_map) : op_desc(op_desc),
-        output_reuse_infos(output_reuse_infos),
-        offset_to_index_map(offset_to_index_map) {}
+             std::map<int64_t, int32_t> &offset_to_index_map)
+      : op_desc(op_desc), output_reuse_infos(output_reuse_infos), offset_to_index_map(offset_to_index_map) {}
   const ge::OpDesc *op_desc;
   std::map<int64_t, int32_t> data_address_2_index{};
   std::map<int64_t, ge::NodePtr> var_address_2_nodes{};
@@ -90,6 +89,7 @@ class StaticModelOutputAllocator {
   static ge::Status ParseRefVariable(ParseParam &param);
 
   static ge::graphStatus ParseReuseOutputs(ParseParam &param);
+
  private:
   const bg::ValueHolderPtr davinci_model_holder_;
   std::vector<bg::DevMemValueHolderPtr> input_addrs_;

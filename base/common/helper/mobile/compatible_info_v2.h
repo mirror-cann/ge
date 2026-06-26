@@ -19,16 +19,16 @@
 namespace ge {
 
 class CompatibleInfoV2 {
-public:
-    CompatibleInfoV2() = default;
+ public:
+  CompatibleInfoV2() = default;
 
-    ~CompatibleInfoV2() = default;
+  ~CompatibleInfoV2() = default;
 
-    std::size_t GetSize() const;
+  std::size_t GetSize() const;
 
-    ge::Status GetCompatibleInfo(ge::BaseBuffer& buffer) const;
+  ge::Status GetCompatibleInfo(ge::BaseBuffer &buffer) const;
 };
 
-} // namespace ge
+}  // namespace ge
 
-#endif // BASE_COMMON_HELPER_MOBILE_COMPATIBLE_INFO_V2_H
+#endif  // BASE_COMMON_HELPER_MOBILE_COMPATIBLE_INFO_V2_H

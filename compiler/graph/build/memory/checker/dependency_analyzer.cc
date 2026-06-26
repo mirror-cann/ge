@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -342,8 +342,8 @@ Status DependencyAnalyzer::Init() {
   InitReachNodesMap();
   GELOGI("init finish.");
   const auto end_time = GetCurrentTimestamp();
-  GELOGI("cost time: %llu microseconds, graph: %s has %zu nodes and %zu out data anchors",
-         end_time - start_time, compute_graph_->GetName().c_str(), id_max_, id_2_out_data_anchor_table_.size());
+  GELOGI("cost time: %llu microseconds, graph: %s has %zu nodes and %zu out data anchors", end_time - start_time,
+         compute_graph_->GetName().c_str(), id_max_, id_2_out_data_anchor_table_.size());
   return SUCCESS;
 }
 
@@ -742,8 +742,8 @@ void DependencyAnalyzer::ExtendReachNodesMapCrossSubGraph() {
         reach_nodes_bit_map_table_[GetTopoId(node.get())].Or(wrapper_info.subgraph_all_nodes_bitmap);
         if (debug_mode) {
           GELOGI("%" PRId64 " reach %" PRId64 "(%s), extend to reach[%" PRId64 "-%" PRId64 "]", GetTopoId(node.get()),
-              parent_id, parent_node->GetTypePtr(), wrapper_info.direct_nodes.front(),
-              wrapper_info.direct_nodes.back());
+                 parent_id, parent_node->GetTypePtr(), wrapper_info.direct_nodes.front(),
+                 wrapper_info.direct_nodes.back());
         }
       }
     }

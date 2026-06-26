@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -15,13 +15,12 @@
 #include "common/op_info_common.h"
 
 namespace fe {
-void CountNdInputForPass(const UpdateInfo &update_info, ge::Format &ori_format,
-                        ge::NodePtr &node, size_t &count_input_is_nd);
+void CountNdInputForPass(const UpdateInfo &update_info, ge::Format &ori_format, ge::NodePtr &node,
+                         size_t &count_input_is_nd);
 
-ge::GeShape GetNewShapeForPass(const ge::OpDescPtr& op_desc_ptr, const ge::GeShape& old_shape,
-                              const ge::Format& old_format, const ge::Format& new_format,
-                              const int64_t& op_imply_type, const ge::DataType& current_data_type,
-                              const int64_t& group);
+ge::GeShape GetNewShapeForPass(const ge::OpDescPtr &op_desc_ptr, const ge::GeShape &old_shape,
+                               const ge::Format &old_format, const ge::Format &new_format, const int64_t &op_imply_type,
+                               const ge::DataType &current_data_type, const int64_t &group);
 
 Status PadNDToOtherFormatForPass(const UpdateInfo &update_info, const ge::Format &op_kernel_format,
                                  ge::Format &ori_format);
@@ -29,26 +28,27 @@ Status PadNDToOtherFormatForPass(const UpdateInfo &update_info, const ge::Format
 int64_t GetReshapeTypeMaskForPass(const UpdateInfo &update_info, const ge::Format &ori_format,
                                   const ge::Format &primary_format);
 
-Status UpdateNewShapeAndFormatForPass(const UpdateInfo& update_info, ge::Format op_kernel_format,
-                                      const int64_t& group, const ge::GeShape& original_shape,
-                                      const ge::GeShape& new_shape, const std::string& op_type,
-                                      const std::string& op_name);
+Status UpdateNewShapeAndFormatForPass(const UpdateInfo &update_info, ge::Format op_kernel_format, const int64_t &group,
+                                      const ge::GeShape &original_shape, const ge::GeShape &new_shape,
+                                      const std::string &op_type, const std::string &op_name);
 
-Status UpdateNewShapeForPass(const UpdateInfo& update_info, ge::Format op_kernel_format,
-                             ge::DataType op_kernel_dtype, int64_t group, int64_t op_imply_type_input);
+Status UpdateNewShapeForPass(const UpdateInfo &update_info, ge::Format op_kernel_format, ge::DataType op_kernel_dtype,
+                             int64_t group, int64_t op_imply_type_input);
 
-Status CalcNewShapeAndUpdateForPass(const UpdateInfo& update_info,
-                                   ge::Format op_kernel_format, ge::DataType op_kernel_dtype);
+Status CalcNewShapeAndUpdateForPass(const UpdateInfo &update_info, ge::Format op_kernel_format,
+                                    ge::DataType op_kernel_dtype);
 
 class RefreshCubeC0FusionPass : public PatternFusionBasePass {
  public:
   static ge::GeTensorDescPtr GetCubeInputDesc(const ge::OpDescPtr &op_desc);
+
  protected:
   vector<FusionPattern *> DefinePatterns() override;
   Status Fusion(ge::ComputeGraph &graph, Mapping &mapping, std::vector<ge::NodePtr> &new_nodes) override;
+
  private:
-  Status UpdateTensorDesc(ge::NodePtr &node, ge::GeTensorDescPtr &tensor_desc,
-                          const ge::DataType &data_type, const uint32_t &index, const bool &is_input) const;
+  Status UpdateTensorDesc(ge::NodePtr &node, ge::GeTensorDescPtr &tensor_desc, const ge::DataType &data_type,
+                          const uint32_t &index, const bool &is_input) const;
 };
 }  // namespace fe
 

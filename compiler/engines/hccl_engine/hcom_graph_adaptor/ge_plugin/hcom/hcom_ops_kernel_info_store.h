@@ -42,9 +42,9 @@ enum UpdatePairedInputIndex {
 struct HcclOpExecResParams {
   std::string tag;
   std::vector<rtStream_t> streams;
-  void** streamArray;
+  void **streamArray;
   size_t streamCount;
-  void* scratchMemAddr;
+  void *scratchMemAddr;
   uint64_t scratchMemSize;
 };
 
@@ -69,7 +69,8 @@ class HcomOpsKernelInfoStore : public HCCLOpsKernelInfoStore {
   HcclResult SetCustomKernelInfo(ge::OpInfo &opinfo, std::map<string, ge::OpInfo> &infos) const override;
   HcclResult GetSupportedOP(std::vector<std::string> &hcclSupportOp) const override;
   HcclResult GetDataTypeFromTaskInfo(const ge::GETaskInfo &task, HcclDataType &dataType) const override;
-  HcclResult CheckOutputMemSize(u32 shapeType, const int64_t &hcomComm, const std::string &sGroup, u64 outputMemSize) const;
+  HcclResult CheckOutputMemSize(u32 shapeType, const int64_t &hcomComm, const std::string &sGroup,
+                                u64 outputMemSize) const;
   HcclResult GenerateOpTagFromTaskInfo(const ge::GETaskInfo &task, const std::string &opType, std::string &sTag,
                                        u32 &loopMaxTime);
   HcclResult GetGroupFromTaskInfo(const ge::GETaskInfo &task, std::string &sGroup) const;
@@ -151,9 +152,8 @@ class HcomOpsKernelInfoStore : public HCCLOpsKernelInfoStore {
                                         u32 &propValue) const;
   HcclResult GetJsonProperty(const nlohmann::json &obj, const char *propName, nlohmann::json &propValue) const;
   HcclResult CheckOfflineDevTypeIsSame(const ge::GETaskInfo &task) const;
-  HcclResult PrepareOpExecutionParams(const std::vector<std::string> &tagVec,
-                                       const ge::GETaskKernelHcclInfo &hcclInfo,
-                                       HcclOpExecResParams &resParams);
+  HcclResult PrepareOpExecutionParams(const std::vector<std::string> &tagVec, const ge::GETaskKernelHcclInfo &hcclInfo,
+                                      HcclOpExecResParams &resParams);
 
   HcclResult HcomAllGatherLoop(const std::vector<std::string> &tagVec, u32 shapeType, const int64_t &comm,
                                const std::string &group, void *&inputDataPtr, void *&outputDataPtr, u64 count,
@@ -188,14 +188,14 @@ class HcomOpsKernelInfoStore : public HCCLOpsKernelInfoStore {
                             const int64_t &comm, const std::string &group, void *&inputDataPtr, void *&outputDataPtr,
                             u64 count, HcclDataType dataType, HcclReduceOp reduceType, u32 root, rtStream_t streamMain,
                             HcclOpExecResParams &resParams);
-  HcclResult HcomSendLoop(
-    const std::vector<std::string> &tagVec, u32 &srTag, u32 shapeType, const int64_t &comm, const std::string &group,
-    void *&inputDataPtr, u64 count, HcclDataType dataType, u32 &destRank,
-    const std::string &groupName, rtStream_t streamMain, HcclOpExecResParams &resParams);
-  HcclResult HcomReceiveLoop(
-    const std::vector<std::string> &tagVec, u32 &srTag, u32 shapeType, const int64_t &comm, const std::string &group,
-    void *&outputDataPtr, u64 count, HcclDataType dataType, u32 &srcRank,
-    const std::string &groupName, rtStream_t streamMain, HcclOpExecResParams &resParams);
+  HcclResult HcomSendLoop(const std::vector<std::string> &tagVec, u32 &srTag, u32 shapeType, const int64_t &comm,
+                          const std::string &group, void *&inputDataPtr, u64 count, HcclDataType dataType,
+                          u32 &destRank, const std::string &groupName, rtStream_t streamMain,
+                          HcclOpExecResParams &resParams);
+  HcclResult HcomReceiveLoop(const std::vector<std::string> &tagVec, u32 &srTag, u32 shapeType, const int64_t &comm,
+                             const std::string &group, void *&outputDataPtr, u64 count, HcclDataType dataType,
+                             u32 &srcRank, const std::string &groupName, rtStream_t streamMain,
+                             HcclOpExecResParams &resParams);
   HcclResult HcomBroadcastLoop(const std::vector<std::string> &tagVec, u32 shapeType, const int64_t &comm,
                                const std::string &group, void *&inputDataPtr, u64 count, HcclDataType dataType,
                                u32 root, rtStream_t streamMain, HcclOpExecResParams &resParams);
@@ -224,11 +224,11 @@ class HcomOpsKernelInfoStore : public HCCLOpsKernelInfoStore {
   HcclResult ActivateSubStreams(const ge::GETaskInfo &task);
   HcclResult DeactivateSubStreams(const ge::GETaskInfo &task);
 #ifndef OPEN_BUILD_PROJECT
-  HcclResult CleanInterMemoryV2(std::vector<std::int64_t> &crackSize,
-                                std::vector<std::int64_t> &crackAddr, rtStream_t stream);
+  HcclResult CleanInterMemoryV2(std::vector<std::int64_t> &crackSize, std::vector<std::int64_t> &crackAddr,
+                                rtStream_t stream);
 #endif
-  HcclResult CleanInterMemory(std::vector<std::int64_t> &crackAddr,
-                              std::vector<std::int64_t> &crackSize, rtStream_t stream);
+  HcclResult CleanInterMemory(std::vector<std::int64_t> &crackAddr, std::vector<std::int64_t> &crackSize,
+                              rtStream_t stream);
 
   std::mutex workSpaceMemMutex_;
   std::map<std::string, std::tuple<void *, u64>> workSpaceMemInfo_;  // key:group name,value:workSpace mem ptr and size

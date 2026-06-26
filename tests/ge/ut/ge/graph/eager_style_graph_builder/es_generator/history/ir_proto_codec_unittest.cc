@@ -1,5 +1,5 @@
 /**
-* Copyright (c) 2026 Huawei Technologies Co., Ltd.
+ * Copyright (c) 2026 Huawei Technologies Co., Ltd.
  * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
@@ -27,19 +27,20 @@ namespace {
 nlohmann::json PhonyAllOpJson() {
   return {
       {"op_type", "phony_all"},
-      {"inputs", nlohmann::json::array({
-                     {{"name", "x"}, {"type", "INPUT"}, {"dtype", "TensorType({DT_FLOAT, DT_FLOAT16})"}},
-                     {{"name", "xo"}, {"type", "OPTIONAL_INPUT"}, {"dtype", "T"}},
-                     {{"name", "dx"}, {"type", "DYNAMIC_INPUT"}, {"dtype", "TensorType({RealNumberType(), DT_VARIANT})"}},
-                 })},
+      {"inputs",
+       nlohmann::json::array({
+           {{"name", "x"}, {"type", "INPUT"}, {"dtype", "TensorType({DT_FLOAT, DT_FLOAT16})"}},
+           {{"name", "xo"}, {"type", "OPTIONAL_INPUT"}, {"dtype", "T"}},
+           {{"name", "dx"}, {"type", "DYNAMIC_INPUT"}, {"dtype", "TensorType({RealNumberType(), DT_VARIANT})"}},
+       })},
       {"outputs", nlohmann::json::array({
                       {{"name", "y"}, {"type", "OUTPUT"}, {"dtype", "TensorType::NumberType()"}},
                       {{"name", "dy"}, {"type", "DYNAMIC_OUTPUT"}, {"dtype", "T"}},
-                 })},
+                  })},
       {"subgraphs", nlohmann::json::array({
-                 {{"name", "g"}, {"type", "STATIC"}},
-                 {{"name", "dg"}, {"type", "DYNAMIC"}},
-                 })},
+                        {{"name", "g"}, {"type", "STATIC"}},
+                        {{"name", "dg"}, {"type", "DYNAMIC"}},
+                    })},
       {"attrs", nlohmann::json::array({
                     {{"name", "ri"}, {"type", "Int"}, {"required", true}},
                     {{"name", "i"}, {"type", "Int"}, {"required", false}, {"default_value", "7"}},
@@ -48,9 +49,15 @@ nlohmann::json PhonyAllOpJson() {
                     {{"name", "b"}, {"type", "Bool"}, {"required", false}, {"default_value", "true"}},
                     {{"name", "dt"}, {"type", "Type"}, {"required", false}, {"default_value", "\"DT_INT64\""}},
                     {{"name", "li"}, {"type", "ListInt"}, {"required", false}, {"default_value", "[1,-2]"}},
-                    {{"name", "lf"}, {"type", "ListFloat"}, {"required", false}, {"default_value", "[1.0,9.99999993922529e-09]"}},
+                    {{"name", "lf"},
+                     {"type", "ListFloat"},
+                     {"required", false},
+                     {"default_value", "[1.0,9.99999993922529e-09]"}},
                     {{"name", "lb"}, {"type", "ListBool"}, {"required", false}, {"default_value", "[true,false]"}},
-                    {{"name", "ldt"}, {"type", "ListType"}, {"required", false}, {"default_value", "[\"DT_FLOAT\",\"DT_DOUBLE\"]"}},
+                    {{"name", "ldt"},
+                     {"type", "ListType"},
+                     {"required", false},
+                     {"default_value", "[\"DT_FLOAT\",\"DT_DOUBLE\"]"}},
                     {{"name", "lli"}, {"type", "ListListInt"}, {"required", false}, {"default_value", "[[],[2,3],[]]"}},
                     {{"name", "t"}, {"type", "Tensor"}, {"required", false}, {"default_value", "\"Tensor()\""}},
                     {{"name", "ls"}, {"type", "ListString"}, {"required", false}, {"default_value", "[\"a\",\"b\"]"}},
@@ -158,8 +165,7 @@ void ExpectPhonyAllListOptionalAttrs(const IrOpProto &proto) {
   EXPECT_EQ(attr_li->av_type, "ListInt");
   EXPECT_FALSE(attr_li->required);
   EXPECT_EQ(attr_li->default_value, "[1,-2]");
-  EXPECT_EQ(nlohmann::json::parse(attr_li->default_value).get<std::vector<int64_t>>(),
-            std::vector<int64_t>({1, -2}));
+  EXPECT_EQ(nlohmann::json::parse(attr_li->default_value).get<std::vector<int64_t>>(), std::vector<int64_t>({1, -2}));
 
   const auto *attr_lf = FindAttr(proto.attrs, "lf");
   ASSERT_NE(attr_lf, nullptr);
@@ -178,8 +184,7 @@ void ExpectPhonyAllListOptionalAttrs(const IrOpProto &proto) {
   EXPECT_EQ(attr_lb->av_type, "ListBool");
   EXPECT_FALSE(attr_lb->required);
   EXPECT_EQ(attr_lb->default_value, "[true,false]");
-  EXPECT_EQ(nlohmann::json::parse(attr_lb->default_value).get<std::vector<bool>>(),
-            std::vector<bool>({true, false}));
+  EXPECT_EQ(nlohmann::json::parse(attr_lb->default_value).get<std::vector<bool>>(), std::vector<bool>({true, false}));
 
   const auto *attr_ldt = FindAttr(proto.attrs, "ldt");
   ASSERT_NE(attr_ldt, nullptr);
@@ -213,7 +218,8 @@ void ExpectPhonyAllTensorAttr(const IrOpProto &proto) {
   EXPECT_FALSE(attr_t->required);
   EXPECT_EQ(attr_t->default_value, "\"Tensor()\"");
   auto tensor = std::make_shared<ge::GeTensor>(ge::GeTensor());
-  EXPECT_EQ(nlohmann::json::parse(attr_t->default_value).get<ge::ConstGeTensorPtr>()->GetTensorDesc(), tensor.get()->GetTensorDesc());
+  EXPECT_EQ(nlohmann::json::parse(attr_t->default_value).get<ge::ConstGeTensorPtr>()->GetTensorDesc(),
+            tensor.get()->GetTensorDesc());
 }
 
 void ExpectPhonyAllAttrs(const IrOpProto &proto) {
@@ -237,29 +243,29 @@ void ExpectRuntimeErrorWithMessage(F &&fn, const std::string &expected) {
 }  // namespace
 
 REG_OP(phony_all)
-  .INPUT(x, TensorType({DT_FLOAT, DT_FLOAT16}))
-  .OPTIONAL_INPUT(xo, "T")
-  .DYNAMIC_INPUT(dx, TensorType({RealNumberType(), DT_VARIANT}))
-  .GRAPH(g)
-  .DYNAMIC_GRAPH(dg)
-  .REQUIRED_ATTR(ri, Int)
-  .ATTR(i, Int, 7)
-  .ATTR(f, Float, 1.0)
-  .ATTR(s, String, "a")
-  .ATTR(b, Bool, true)
-  .ATTR(dt, Type, DT_INT64)
-  .ATTR(li, ListInt, {1, -2})
-  .ATTR(lf, ListFloat, {1.0, 1e-08f})
-  .ATTR(lb, ListBool, {true, false})
-  .ATTR(ldt, ListType, {DT_FLOAT, DT_DOUBLE})
-  .ATTR(lli, ListListInt, {{}, {2, 3}, {}})
-  .ATTR(t, Tensor, Tensor())
-  .ATTR(ls, ListString, {"a", "b"})
-  .REQUIRED_ATTR(rlb, ListBool)
-  .OUTPUT(y, TensorType::NumberType())
-  .DYNAMIC_OUTPUT(dy, "T")
-  .DATATYPE(T, TensorType::ALL())
-  .OP_END_FACTORY_REG(phony_all);
+    .INPUT(x, TensorType({DT_FLOAT, DT_FLOAT16}))
+    .OPTIONAL_INPUT(xo, "T")
+    .DYNAMIC_INPUT(dx, TensorType({RealNumberType(), DT_VARIANT}))
+    .GRAPH(g)
+    .DYNAMIC_GRAPH(dg)
+    .REQUIRED_ATTR(ri, Int)
+    .ATTR(i, Int, 7)
+    .ATTR(f, Float, 1.0)
+    .ATTR(s, String, "a")
+    .ATTR(b, Bool, true)
+    .ATTR(dt, Type, DT_INT64)
+    .ATTR(li, ListInt, {1, -2})
+    .ATTR(lf, ListFloat, {1.0, 1e-08f})
+    .ATTR(lb, ListBool, {true, false})
+    .ATTR(ldt, ListType, {DT_FLOAT, DT_DOUBLE})
+    .ATTR(lli, ListListInt, {{}, {2, 3}, {}})
+    .ATTR(t, Tensor, Tensor())
+    .ATTR(ls, ListString, {"a", "b"})
+    .REQUIRED_ATTR(rlb, ListBool)
+    .OUTPUT(y, TensorType::NumberType())
+    .DYNAMIC_OUTPUT(dy, "T")
+    .DATATYPE(T, TensorType::ALL())
+    .OP_END_FACTORY_REG(phony_all);
 
 class IrProtoCodecUT : public ::testing::Test {};
 
@@ -356,8 +362,7 @@ TEST(IrProtoCodecUT, FromJsonThrowsOnInputMissingName) {
 TEST(IrProtoCodecUT, FromJsonThrowsOnInvalidInputType) {
   auto op_json = PhonyAllOpJson();
   op_json["inputs"][0]["type"] = "BAD_INPUT";
-  ExpectRuntimeErrorWithMessage([&]() { IrProtoCodec::FromJson(op_json); },
-                                "inputs[0].type invalid: BAD_INPUT");
+  ExpectRuntimeErrorWithMessage([&]() { IrProtoCodec::FromJson(op_json); }, "inputs[0].type invalid: BAD_INPUT");
 }
 
 TEST(IrProtoCodecUT, FromJsonThrowsOnOutputsNotArray) {
@@ -388,8 +393,7 @@ TEST(IrProtoCodecUT, FromJsonThrowsOnAttrRequiredNotBool) {
 TEST(IrProtoCodecUT, FromJsonThrowsOnAttrDefaultValueNotString) {
   auto op_json = PhonyAllOpJson();
   op_json["attrs"][2]["default_value"] = 7;
-  ExpectRuntimeErrorWithMessage([&]() { IrProtoCodec::FromJson(op_json); },
-                                "attrs[2].default_value is not a string");
+  ExpectRuntimeErrorWithMessage([&]() { IrProtoCodec::FromJson(op_json); }, "attrs[2].default_value is not a string");
 }
 
 TEST(IrProtoCodecUT, ToJsonThrowsOnInvalidIrInputType) {

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -91,7 +91,7 @@ std::unique_ptr<Tensor> CreateTensorFromFile(const char *data_file_path, const s
  */
 template <typename T>
 EsCTensorHolder *EsCreateConst(EsCGraphBuilder *graph, const T *value, const int64_t *dims, int64_t dim_num,
-                                ge::DataType dt, ge::Format format = FORMAT_ND) {
+                               ge::DataType dt, ge::Format format = FORMAT_ND) {
   if (graph == nullptr || value == nullptr) {
     return nullptr;
   }
@@ -134,7 +134,7 @@ EsCTensorHolder *EsCreateConst(EsCGraphBuilder *graph, const T *value, const int
  */
 template <typename T>
 EsCTensorHolder *EsCreateConstV2(EsCGraphBuilder *graph, const T *value, const int64_t *dims, int64_t dim_num,
-                                  ge::DataType dt, ge::Format format = FORMAT_ND) {
+                                 ge::DataType dt, ge::Format format = FORMAT_ND) {
   if (graph == nullptr || value == nullptr) {
     return nullptr;
   }
@@ -201,7 +201,7 @@ class EsGraphBuilder {
    * @return 返回创建的张量智能指针，失败时返回nullptr
    */
   std::unique_ptr<Tensor> CreateBoolTensor(const std::vector<bool> &value, const std::vector<int64_t> &dims,
-                                       Format format = FORMAT_ND) {
+                                           Format format = FORMAT_ND) {
     std::vector<uint8_t> converted_value{};
     converted_value.reserve(value.size());
     std::transform(value.begin(), value.end(), std::back_inserter(converted_value),
@@ -368,9 +368,8 @@ class EsGraphBuilder {
   template <typename T>
   EsTensorHolder CreateConst(const std::vector<T> &value, const std::vector<int64_t> &dims, ge::DataType dt,
                              ge::Format format = FORMAT_ND) {
-    return EsTensorHolder(
-        ge::es::EsCreateConst<T>(graph_builder_.get(), value.data(), dims.data(), static_cast<int64_t>(dims.size()),
-                                 dt, format));
+    return EsTensorHolder(ge::es::EsCreateConst<T>(graph_builder_.get(), value.data(), dims.data(),
+                                                   static_cast<int64_t>(dims.size()), dt, format));
   }
 
   /**
@@ -387,9 +386,8 @@ class EsGraphBuilder {
   template <typename T>
   EsTensorHolder CreateConstV2(const std::vector<T> &value, const std::vector<int64_t> &dims, ge::DataType dt,
                                ge::Format format = FORMAT_ND) {
-    return EsTensorHolder(
-        ge::es::EsCreateConstV2<T>(graph_builder_.get(), value.data(), dims.data(), static_cast<int64_t>(dims.size()),
-                                   dt, format));
+    return EsTensorHolder(ge::es::EsCreateConstV2<T>(graph_builder_.get(), value.data(), dims.data(),
+                                                     static_cast<int64_t>(dims.size()), dt, format));
   }
 
   /**

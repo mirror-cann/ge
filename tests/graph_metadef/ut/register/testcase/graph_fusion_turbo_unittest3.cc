@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,112 +31,94 @@ using namespace fe;
 
 namespace fe {
 REG_OP(Const)
-    .OUTPUT(y,
-            TensorType({DT_FLOAT, DT_FLOAT16, DT_INT8, DT_INT16, DT_UINT16, DT_UINT8, DT_INT32, DT_INT64, DT_UINT32,
-                        DT_UINT64, DT_BOOL, DT_DOUBLE}))
-        .ATTR(value, Tensor, Tensor())
-        .OP_END_FACTORY_REG(Const);
+    .OUTPUT(y, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT8, DT_INT16, DT_UINT16, DT_UINT8, DT_INT32, DT_INT64, DT_UINT32,
+                           DT_UINT64, DT_BOOL, DT_DOUBLE}))
+    .ATTR(value, Tensor, Tensor())
+    .OP_END_FACTORY_REG(Const);
 
 REG_OP(Transpose)
-    .INPUT(x,
-           TensorType({DT_FLOAT, DT_FLOAT16, DT_INT8, DT_INT16, DT_UINT16, DT_UINT8, DT_INT32, DT_INT64, DT_UINT32,
-                       DT_UINT64, DT_BOOL, DT_DOUBLE}))
-        .INPUT(shape, TensorType({DT_INT32, DT_INT64}))
-        .OUTPUT(y,
-                TensorType({DT_FLOAT, DT_FLOAT16, DT_INT8, DT_INT16, DT_UINT16, DT_UINT8, DT_INT32, DT_INT64, DT_UINT32,
-                            DT_UINT64, DT_BOOL, DT_DOUBLE}))
-        .ATTR(axis, Int, 0)
-        .ATTR(num_axes, Int, -1)
-        .OP_END_FACTORY_REG(Transpose);
+    .INPUT(x, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT8, DT_INT16, DT_UINT16, DT_UINT8, DT_INT32, DT_INT64, DT_UINT32,
+                          DT_UINT64, DT_BOOL, DT_DOUBLE}))
+    .INPUT(shape, TensorType({DT_INT32, DT_INT64}))
+    .OUTPUT(y, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT8, DT_INT16, DT_UINT16, DT_UINT8, DT_INT32, DT_INT64, DT_UINT32,
+                           DT_UINT64, DT_BOOL, DT_DOUBLE}))
+    .ATTR(axis, Int, 0)
+    .ATTR(num_axes, Int, -1)
+    .OP_END_FACTORY_REG(Transpose);
 
 REG_OP(Add)
-    .INPUT(x1, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16,
-                           DT_INT8, DT_UINT8, DT_DOUBLE, DT_COMPLEX128,
-                           DT_COMPLEX64, DT_STRING}))
-        .INPUT(x2, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16,
-                               DT_INT8, DT_UINT8, DT_DOUBLE, DT_COMPLEX128,
-                               DT_COMPLEX64, DT_STRING}))
-        .OUTPUT(y, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16,
-                               DT_INT8, DT_UINT8, DT_DOUBLE, DT_COMPLEX128,
-                               DT_COMPLEX64, DT_STRING}))
-        .OP_END_FACTORY_REG(Add)
+    .INPUT(x1, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16, DT_INT8, DT_UINT8, DT_DOUBLE,
+                           DT_COMPLEX128, DT_COMPLEX64, DT_STRING}))
+    .INPUT(x2, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16, DT_INT8, DT_UINT8, DT_DOUBLE,
+                           DT_COMPLEX128, DT_COMPLEX64, DT_STRING}))
+    .OUTPUT(y, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16, DT_INT8, DT_UINT8, DT_DOUBLE,
+                           DT_COMPLEX128, DT_COMPLEX64, DT_STRING}))
+    .OP_END_FACTORY_REG(Add)
 
-REG_OP(MultiAdd)
-    .INPUT(x1, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16,
-                           DT_INT8, DT_UINT8, DT_DOUBLE, DT_COMPLEX128,
-                           DT_COMPLEX64, DT_STRING}))
-        .INPUT(x2, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16,
-                               DT_INT8, DT_UINT8, DT_DOUBLE, DT_COMPLEX128,
-                               DT_COMPLEX64, DT_STRING}))
-        .INPUT(x3, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16,
-                               DT_INT8, DT_UINT8, DT_DOUBLE, DT_COMPLEX128,
-                               DT_COMPLEX64, DT_STRING}))
-        .INPUT(x4, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16,
-                               DT_INT8, DT_UINT8, DT_DOUBLE, DT_COMPLEX128,
-                               DT_COMPLEX64, DT_STRING}))
-        .OUTPUT(y, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16,
-                               DT_INT8, DT_UINT8, DT_DOUBLE, DT_COMPLEX128,
-                               DT_COMPLEX64, DT_STRING}))
-        .OP_END_FACTORY_REG(MultiAdd)
+        REG_OP(MultiAdd)
+    .INPUT(x1, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16, DT_INT8, DT_UINT8, DT_DOUBLE,
+                           DT_COMPLEX128, DT_COMPLEX64, DT_STRING}))
+    .INPUT(x2, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16, DT_INT8, DT_UINT8, DT_DOUBLE,
+                           DT_COMPLEX128, DT_COMPLEX64, DT_STRING}))
+    .INPUT(x3, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16, DT_INT8, DT_UINT8, DT_DOUBLE,
+                           DT_COMPLEX128, DT_COMPLEX64, DT_STRING}))
+    .INPUT(x4, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16, DT_INT8, DT_UINT8, DT_DOUBLE,
+                           DT_COMPLEX128, DT_COMPLEX64, DT_STRING}))
+    .OUTPUT(y, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16, DT_INT8, DT_UINT8, DT_DOUBLE,
+                           DT_COMPLEX128, DT_COMPLEX64, DT_STRING}))
+    .OP_END_FACTORY_REG(MultiAdd)
 
-REG_OP(Relu)
-    .INPUT(x, TensorType({DT_FLOAT, DT_FLOAT16, DT_DOUBLE,
-                          DT_INT8, DT_INT32, DT_INT16, DT_INT64,
-                          DT_UINT8, DT_UINT16, DT_QINT8}))
-        .OUTPUT(y, TensorType({DT_FLOAT, DT_FLOAT16, DT_DOUBLE,
-                               DT_INT8, DT_INT32, DT_INT16, DT_INT64,
-                               DT_UINT8, DT_UINT16, DT_QINT8}))
-        .OP_END_FACTORY_REG(Relu)
+        REG_OP(Relu)
+    .INPUT(x, TensorType({DT_FLOAT, DT_FLOAT16, DT_DOUBLE, DT_INT8, DT_INT32, DT_INT16, DT_INT64, DT_UINT8, DT_UINT16,
+                          DT_QINT8}))
+    .OUTPUT(y, TensorType({DT_FLOAT, DT_FLOAT16, DT_DOUBLE, DT_INT8, DT_INT32, DT_INT16, DT_INT64, DT_UINT8, DT_UINT16,
+                           DT_QINT8}))
+    .OP_END_FACTORY_REG(Relu)
 
-REG_OP(End)
+        REG_OP(End)
     .INPUT(x, TensorType::ALL())
-        .OUTPUT(y, TensorType::ALL())
-        .ATTR(peerIndex, Int, 0)
-        .ATTR(parentOpType, String, "")
-        .OP_END_FACTORY_REG(End)
+    .OUTPUT(y, TensorType::ALL())
+    .ATTR(peerIndex, Int, 0)
+    .ATTR(parentOpType, String, "")
+    .OP_END_FACTORY_REG(End)
 
-REG_OP(LarsV2Update)
+        REG_OP(LarsV2Update)
     .INPUT(w, TensorType(DT_FLOAT))
-        .INPUT(g, TensorType(DT_FLOAT))
-        .INPUT(w_square_sum, TensorType(DT_FLOAT))
-        .INPUT(g_square_sum, TensorType(DT_FLOAT))
-        .INPUT(weight_decay, TensorType(DT_FLOAT))
-        .INPUT(learning_rate, TensorType(DT_FLOAT))
-        .OUTPUT(g_new, TensorType(DT_FLOAT))
-        .ATTR(hyperpara, Float, 0.001)
-        .ATTR(epsilon, Float, 0.00001)
-        .ATTR(use_clip, Bool, false)
-        .OP_END_FACTORY_REG(LarsV2Update)
+    .INPUT(g, TensorType(DT_FLOAT))
+    .INPUT(w_square_sum, TensorType(DT_FLOAT))
+    .INPUT(g_square_sum, TensorType(DT_FLOAT))
+    .INPUT(weight_decay, TensorType(DT_FLOAT))
+    .INPUT(learning_rate, TensorType(DT_FLOAT))
+    .OUTPUT(g_new, TensorType(DT_FLOAT))
+    .ATTR(hyperpara, Float, 0.001)
+    .ATTR(epsilon, Float, 0.00001)
+    .ATTR(use_clip, Bool, false)
+    .OP_END_FACTORY_REG(LarsV2Update)
 
-REG_OP(SquareSumAll)
+        REG_OP(SquareSumAll)
     .INPUT(x1, TensorType({DT_FLOAT}))
-        .INPUT(x2, TensorType({DT_FLOAT}))
-        .OUTPUT(y1, TensorType({DT_FLOAT}))
-        .OUTPUT(y2, TensorType({DT_FLOAT}))
-        .OP_END_FACTORY_REG(SquareSumAll)
+    .INPUT(x2, TensorType({DT_FLOAT}))
+    .OUTPUT(y1, TensorType({DT_FLOAT}))
+    .OUTPUT(y2, TensorType({DT_FLOAT}))
+    .OP_END_FACTORY_REG(SquareSumAll)
 
-REG_OP(LarsV2)
+        REG_OP(LarsV2)
     .INPUT(w, TensorType(DT_FLOAT))
-        .INPUT(g, TensorType(DT_FLOAT))
-        .INPUT(weight_decay, TensorType(DT_FLOAT))
-        .INPUT(learning_rate, TensorType(DT_FLOAT))
-        .OUTPUT(g_new, TensorType(DT_FLOAT))
-        .ATTR(hyperpara, Float, 0.001)
-        .ATTR(epsilon, Float, 0.00001)
-        .ATTR(use_clip, Bool, false)
-        .OP_END_FACTORY_REG(LarsV2)
+    .INPUT(g, TensorType(DT_FLOAT))
+    .INPUT(weight_decay, TensorType(DT_FLOAT))
+    .INPUT(learning_rate, TensorType(DT_FLOAT))
+    .OUTPUT(g_new, TensorType(DT_FLOAT))
+    .ATTR(hyperpara, Float, 0.001)
+    .ATTR(epsilon, Float, 0.00001)
+    .ATTR(use_clip, Bool, false)
+    .OP_END_FACTORY_REG(LarsV2)
 
-class UTestFusionTurbo3 : public testing::Test {
+        class UTestFusionTurbo3 : public testing::Test {
  public:
-
  protected:
+  void SetUp() {}
 
-
-  void SetUp() {
-  }
-
-  void TearDown() {
-  }
+  void TearDown() {}
 
   ge::NodePtr GetNode(ComputeGraphPtr &graph, const string &name) {
     for (auto &node : graph->GetDirectNode()) {
@@ -154,7 +136,7 @@ class UTestFusionTurbo3 : public testing::Test {
     OpDescPtr op_desc_relu2 = std::make_shared<OpDesc>("relu2", "Relu");
     OpDescPtr op_desc_output = std::make_shared<OpDesc>("output", "NetOutput");
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim_a = {8, 4, 16, 16};
     GeShape shape_a(dim_a);
     GeTensorDesc tensor_desc_a(shape_a);
@@ -192,7 +174,7 @@ class UTestFusionTurbo3 : public testing::Test {
     Relations rl(0, {node_relu1, 0});
     acc.LinkInput(rl, node_add);
 
-    unique_ptr<int32_t[]> data(new(std::nothrow) int32_t[4096]);
+    unique_ptr<int32_t[]> data(new (std::nothrow) int32_t[4096]);
     WeightInfo w(tensor_desc_a, data.get());
     acc.AddWeight(node_relu1, 0, w);
     acc.AddWeight(node_relu2, 0, w);
@@ -206,7 +188,7 @@ class UTestFusionTurbo3 : public testing::Test {
     OpDescPtr op_desc_relu2 = std::make_shared<OpDesc>("relu2", "Relu");
     OpDescPtr op_desc_output = std::make_shared<OpDesc>("output", "NetOutput");
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim_a = {8, 4, 16, 16};
     GeShape shape_a(dim_a);
     GeTensorDesc tensor_desc_a(shape_a);
@@ -249,8 +231,7 @@ class UTestFusionTurbo3 : public testing::Test {
     auto relu2_front = acc.InsertNodeBefore("relu2_front", "Relu", node_relu2, 0);
 
     auto relu_top = acc.AddNodeOnly("relu_top", "Relu");
-    Relations output_relation(0, {{relu1_front, 0},
-                                  {relu2_front, 0}});
+    Relations output_relation(0, {{relu1_front, 0}, {relu2_front, 0}});
     acc.LinkOutput(output_relation, relu_top);
     return graph;
   }
@@ -307,7 +288,7 @@ TEST_F(UTestFusionTurbo3, test_case_03) {
   FusionTurbo ft(graph);
 
   auto &tensor_desc = relu_top->GetOpDesc()->GetOutputDesc(0);
-  unique_ptr<int32_t[]> data(new(std::nothrow) int32_t[4096]);
+  unique_ptr<int32_t[]> data(new (std::nothrow) int32_t[4096]);
   WeightInfo w(tensor_desc, data.get());
   auto const_node = ft.AddWeightAfter(relu_top, 0, w);
   ASSERT_NE(const_node, nullptr);
@@ -319,4 +300,4 @@ TEST_F(UTestFusionTurbo3, test_case_03) {
   auto relu_top_out_data_nodes = relu_top->GetOutNodes();
   ASSERT_EQ(relu_top_out_data_nodes.size(), 0);
 }
-}
+}  // namespace fe

@@ -38,8 +38,8 @@ graphStatus ParseCustomKernelItem(const uint8_t *data, const size_t len, const s
 
   const auto *header = reinterpret_cast<const CustomKernelItemHeader *>(data + offset);
   if (header->magic != kCustomKernelItemMagic) {
-    GELOGE(GRAPH_FAILED, "[CUSTOM OP] Invalid magic in CustomKernelItemHeader: 0x%X, expected 0x%X",
-           header->magic, kCustomKernelItemMagic);
+    GELOGE(GRAPH_FAILED, "[CUSTOM OP] Invalid magic in CustomKernelItemHeader: 0x%X, expected 0x%X", header->magic,
+           kCustomKernelItemMagic);
     return GRAPH_FAILED;
   }
 
@@ -162,7 +162,7 @@ bool CustomOpRegistry::IsAddressRefreshable(const AscendString &op_type) {
   if (custom_op == nullptr) {
     return false;
   }
-  return dynamic_cast<const ArgsUpdater*>(custom_op) != nullptr;
+  return dynamic_cast<const ArgsUpdater *>(custom_op) != nullptr;
 }
 
 BaseCustomOp *CustomOpRegistry::FindCustomOp(const AscendString &op_type) const {

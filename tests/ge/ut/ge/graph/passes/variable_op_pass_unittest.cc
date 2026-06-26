@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -114,7 +114,9 @@ ComputeGraphPtr BuildGraph4() {
 
 class NodeBuilder {
  public:
-  NodeBuilder(const std::string &name, const std::string &type) { op_desc_ = std::make_shared<OpDesc>(name, type); }
+  NodeBuilder(const std::string &name, const std::string &type) {
+    op_desc_ = std::make_shared<OpDesc>(name, type);
+  }
 
   NodeBuilder &AddInputDesc(std::initializer_list<int64_t> shape, ge::Format format = FORMAT_NCHW,
                             ge::DataType data_type = DT_FLOAT) {
@@ -128,7 +130,9 @@ class NodeBuilder {
     return *this;
   }
 
-  ge::NodePtr Build(const ge::ComputeGraphPtr &graph) { return graph->AddNode(op_desc_); }
+  ge::NodePtr Build(const ge::ComputeGraphPtr &graph) {
+    return graph->AddNode(op_desc_);
+  }
 
  private:
   ge::GeTensorDescPtr CreateTensorDesc(std::initializer_list<int64_t> shape, ge::Format format = FORMAT_NCHW,
@@ -199,8 +203,7 @@ bool BuildComputeGraph0(ge::ComputeGraphPtr &graph) {
   ge::GraphUtils::AddEdge(node_4d_new->GetOutDataAnchor(0), node_4d_to_5d_2_new->GetInDataAnchor(0));
 
   // Node4D
-  ge::NodePtr node_4d =
-      NodeBuilder("Node4D", VARIABLE).AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT32).Build(graph);
+  ge::NodePtr node_4d = NodeBuilder("Node4D", VARIABLE).AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT32).Build(graph);
 
   // NodeTrans4DTo5D
   ge::NodePtr node_4d_to_5d_1 = NodeBuilder("4d_to_5d_1", TRANSDATA)
@@ -283,8 +286,7 @@ bool BuildComputeGraph0(ge::ComputeGraphPtr &graph) {
 
   ge::GraphUtils::AddEdge(node_4d_to_5d_1_chwn->GetOutDataAnchor(0), node_5d_1_chwn->GetInDataAnchor(0));
 
-  ge::NodePtr node_4d_d =
-      NodeBuilder("Node4D_D", VARIABLE).AddOutputDesc({1}, FORMAT_CHWN, DT_INT32).Build(graph);
+  ge::NodePtr node_4d_d = NodeBuilder("Node4D_D", VARIABLE).AddOutputDesc({1}, FORMAT_CHWN, DT_INT32).Build(graph);
 
   // NodeTrans4DTo5D
   ge::NodePtr node_4d_to_5d_1_d = NodeBuilder("4d_to_5d_1_D", TRANSDATA)
@@ -323,8 +325,7 @@ bool BuildComputeGraph0(ge::ComputeGraphPtr &graph) {
 
 bool BuildComputeGraph1(ge::ComputeGraphPtr &graph) {
   // Node4D
-  ge::NodePtr node_4d =
-      NodeBuilder("Node4D", VARIABLE).AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT32).Build(graph);
+  ge::NodePtr node_4d = NodeBuilder("Node4D", VARIABLE).AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT32).Build(graph);
 
   // NodeTrans4DTo5D
   ge::NodePtr node_4d_to_5d_1 = NodeBuilder("4d_to_5d_1", TRANSDATA)
@@ -373,8 +374,7 @@ bool BuildComputeGraph1(ge::ComputeGraphPtr &graph) {
 
 bool BuildComputeGraph4(ge::ComputeGraphPtr &graph) {
   // Node4D
-  ge::NodePtr node_4d =
-      NodeBuilder("Node4D", VARIABLE).AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT32).Build(graph);
+  ge::NodePtr node_4d = NodeBuilder("Node4D", VARIABLE).AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT32).Build(graph);
 
   // NodeTrans4DTo5D
   ge::NodePtr node_4d_to_5d_1 = NodeBuilder("4d_to_5d_1", TRANSDATA)
@@ -427,16 +427,14 @@ bool BuildComputeGraph4(ge::ComputeGraphPtr &graph) {
 
 bool BuildComputeGraph5(ge::ComputeGraphPtr &graph) {
   // Node4D
-  ge::NodePtr node_4d =
-      NodeBuilder("Node4D", VARIABLE).AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT32).Build(graph);
+  ge::NodePtr node_4d = NodeBuilder("Node4D", VARIABLE).AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT32).Build(graph);
 
   return true;
 }
 
 bool BuildComputeGraph6(ge::ComputeGraphPtr &graph) {
   // Node4D
-  ge::NodePtr node_4d =
-      NodeBuilder("Node4D", VARIABLE).AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT32).Build(graph);
+  ge::NodePtr node_4d = NodeBuilder("Node4D", VARIABLE).AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT32).Build(graph);
 
   // NodeTrans4DTo5D
   ge::NodePtr node_4d_to_5d_1 = NodeBuilder("4d_to_5d_1", TRANSDATA)
@@ -482,8 +480,7 @@ bool BuildComputeGraph6(ge::ComputeGraphPtr &graph) {
 
 bool BuildComputeGraph7(ge::ComputeGraphPtr &graph) {
   // Node4D
-  ge::NodePtr node_4d =
-      NodeBuilder("Node4D", VARIABLE).AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT32).Build(graph);
+  ge::NodePtr node_4d = NodeBuilder("Node4D", VARIABLE).AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_INT32).Build(graph);
 
   // NodeTrans4DTo5D
   ge::NodePtr node_4d_to_4d_1 = NodeBuilder("4d_to_4d_1", TRANSDATA)
@@ -1052,7 +1049,8 @@ TEST_F(UtestVariableOpPassUnit, DeleteReshapeAndCheckShapeSuccess) {
   auto var1 = graph->FindNode("var1");
   VarManager::Instance(0)->AssignVarMem(var1->GetName(), nullptr, var1->GetOpDesc()->GetOutputDesc(0), RT_MEMORY_HBM);
   const uint8_t *dev_ptr = nullptr;
-  VarManager::Instance(0)->SetVarAddr(var1->GetName(), var1->GetOpDesc()->GetOutputDesc(0), dev_ptr, RT_MEMORY_HBM, nullptr);
+  VarManager::Instance(0)->SetVarAddr(var1->GetName(), var1->GetOpDesc()->GetOutputDesc(0), dev_ptr, RT_MEMORY_HBM,
+                                      nullptr);
 
   ge::GraphNodePtr graph_node = std::make_shared<GraphNode>(0);
   GraphUtilsEx::InferShapeInNeed(graph);
@@ -1083,7 +1081,8 @@ TEST_F(UtestVariableOpPassUnit, reformat) {
   auto var1 = graph->FindNode("var1");
   VarManager::Instance(0)->AssignVarMem(var1->GetName(), nullptr, var1->GetOpDesc()->GetOutputDesc(0), RT_MEMORY_HBM);
   const uint8_t *dev_ptr = nullptr;
-  VarManager::Instance(0)->SetVarAddr(var1->GetName(), var1->GetOpDesc()->GetOutputDesc(0), dev_ptr, RT_MEMORY_HBM, nullptr);
+  VarManager::Instance(0)->SetVarAddr(var1->GetName(), var1->GetOpDesc()->GetOutputDesc(0), dev_ptr, RT_MEMORY_HBM,
+                                      nullptr);
 
   ge::GraphNodePtr graph_node = std::make_shared<GraphNode>(0);
   GraphUtilsEx::InferShapeInNeed(graph);
@@ -1113,7 +1112,8 @@ TEST_F(UtestVariableOpPassUnit, trans_road_insert_reformat) {
   auto var1 = graph->FindNode("var1");
   VarManager::Instance(1)->AssignVarMem(var1->GetName(), nullptr, var1->GetOpDesc()->GetOutputDesc(0), RT_MEMORY_HBM);
   const uint8_t *dev_ptr = nullptr;
-  VarManager::Instance(1)->SetVarAddr(var1->GetName(), var1->GetOpDesc()->GetOutputDesc(0), dev_ptr, RT_MEMORY_HBM, nullptr);
+  VarManager::Instance(1)->SetVarAddr(var1->GetName(), var1->GetOpDesc()->GetOutputDesc(0), dev_ptr, RT_MEMORY_HBM,
+                                      nullptr);
 
   ge::GraphNodePtr graph_node = std::make_shared<GraphNode>(0);
   GraphUtilsEx::InferShapeInNeed(graph);
@@ -1138,7 +1138,6 @@ TEST_F(UtestVariableOpPassUnit, invalid_src_shape2) {
   formats::TransResult ret;
   EXPECT_NE(t2.TransFormat(args, ret), ge::SUCCESS);
 }
-
 
 static ComputeGraphPtr BuildGraphVariableOpPass() {
   DEF_GRAPH(variableOpGraph) {

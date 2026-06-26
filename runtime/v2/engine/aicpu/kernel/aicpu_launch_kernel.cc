@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -53,10 +53,7 @@ constexpr size_t kTensorListPopBackInputHandleIdx = 1;
 
 using CustAICPUKernelPtr = std::shared_ptr<ge::OpKernelBin>;
 
-enum class AllocHostCpuOutputMemoryInputs {
-  kSize,
-  kAllocator
-};
+enum class AllocHostCpuOutputMemoryInputs { kSize, kAllocator };
 
 inline int64_t CeilDivisor(const int64_t x, const int64_t base) {
   int64_t ret = 0;
@@ -77,7 +74,7 @@ void PrintHex(const T *p, size_t num, std::stringstream &ss) {
   constexpr uint64_t TWICE = 2UL;
   for (size_t i = 0; i < num; ++i) {
     if (!IsPointer) {
-      ss << "0x" << std::setfill('0') << std::setw(sizeof(T) * TWICE) << std::hex << + p[i] << ' ';
+      ss << "0x" << std::setfill('0') << std::setw(sizeof(T) * TWICE) << std::hex << +p[i] << ' ';
     } else {
       ss << p[i] << ' ';
     }
@@ -91,7 +88,7 @@ void PrintStreamIdAndTaskId(const KernelContext *context, std::vector<std::strin
   uint32_t stream_id = 0U;
   uint32_t flip_task_id = 0U;
   if (rtGetTaskIdAndStreamID(&flip_task_id, &stream_id) == RT_ERROR_NONE) {
-    const uint32_t task_id = flip_task_id & 0xFFFF; // lower 16bits
+    const uint32_t task_id = flip_task_id & 0xFFFF;  // lower 16bits
     const uint32_t flip_num = flip_task_id >> 16U;   // high 16bits
     ss << "stream_id=" << stream_id << ", task_id=" << task_id << ", flip_num=" << flip_num
        << ", flip_task_id=" << flip_task_id;
@@ -171,16 +168,16 @@ std::vector<std::string> PrintTfLaunchArgs(const KernelContext *context) {
   std::vector<std::string> msgs;
   std::stringstream ss;
   ss << "Launch tf function arguments: "
-     << "op_name " << args_handler->GetNodeName() << ", stream " << stream
-     << ", args_ex " <<  &(args_handler->GetArgsEx()) << ", io_num " << args_handler->GetIoNum()
-     << " , host input size " << args_handler->GetHostInputSize();
+     << "op_name " << args_handler->GetNodeName() << ", stream " << stream << ", args_ex "
+     << &(args_handler->GetArgsEx()) << ", io_num " << args_handler->GetIoNum() << " , host input size "
+     << args_handler->GetHostInputSize();
   msgs.emplace_back(ss.str());
   PrintArgsOffset(*context, msgs);
   PrintIoAddresses(*context, msgs);
   PrintStreamIdAndTaskId(context, msgs);
   return msgs;
 }
-} // namespace
+}  // namespace
 
 ge::graphStatus UpdateAicpuIoAddr(KernelContext *context) {
   auto args_handler = context->MutableInputPointer<AicpuArgsHandler>(0U);
@@ -226,11 +223,8 @@ ge::graphStatus ExpandAicpuOptionalInputAddrs(KernelContext *context) {
     GE_ASSERT_TRUE(actual_input_index < actual_input_num);
     auto in_tensor_data = context->GetInputPointer<gert::GertTensorData>(actual_input_index);
     GE_ASSERT_NOTNULL(in_tensor_data);
-    GELOGD("Kernel %s tensor data info is: input index %zu, addr is %p, size is %zu.",
-           node_name,
-           input_index,
-           static_cast<void *>(in_tensor_data->GetAddr()),
-           in_tensor_data->GetSize());
+    GELOGD("Kernel %s tensor data info is: input index %zu, addr is %p, size is %zu.", node_name, input_index,
+           static_cast<void *>(in_tensor_data->GetAddr()), in_tensor_data->GetSize());
     GE_ASSERT_SUCCESS(out_tensor_data->ShareFrom(*in_tensor_data));
     ++actual_input_index;
   }
@@ -256,7 +250,8 @@ REGISTER_KERNEL(ExpandAicpuOptionalInputAddrs)
     .OutputsCreator(CreateExpandAicpuOptionalInputAddrsOutputs)
     .ConcurrentCriticalSectionKey(kKernelUseMemory);
 
-ge::graphStatus DistributeAsyncWaitTask(rtStream stream, const std::string &op_name, const AicpuArgsHandler *args_handler) {
+ge::graphStatus DistributeAsyncWaitTask(rtStream stream, const std::string &op_name,
+                                        const AicpuArgsHandler *args_handler) {
   const auto is_block_op = args_handler->IsBlockOp();
   if (is_block_op) {
     GE_ASSERT_RT_OK(DistributeWaitTaskForAicpuBlockingOp(stream, args_handler, op_name.c_str()));
@@ -274,10 +269,10 @@ ge::graphStatus AicpuLaunchTfKernel(KernelContext *context) {
   GE_ASSERT_NOTNULL(node_type);
   const auto &op_name = args_handler->GetNodeName();
   if (!OpJsonBinHandler::IsSupportBinHandle() || *bin_handle == nullptr) {
-    GELOGI("launch tf kernel %s with compatable.", op_name.c_str());
+    GELOGI("launch tf kernel %s with compatible.", op_name.c_str());
     const auto &arg_ex = args_handler->GetArgsEx();
-    GE_ASSERT_RT_OK(rtAicpuKernelLaunchExWithArgs(rtKernelType_t::KERNEL_TYPE_FWK, op_name.c_str(), 1U, &arg_ex, nullptr,
-                                                  stream, RT_KERNEL_DEFAULT));
+    GE_ASSERT_RT_OK(rtAicpuKernelLaunchExWithArgs(rtKernelType_t::KERNEL_TYPE_FWK, op_name.c_str(), 1U, &arg_ex,
+                                                  nullptr, stream, RT_KERNEL_DEFAULT));
   } else {
     std::vector<aclrtPlaceHolderInfo> placeHolder_info;
     for (const auto &kernel_info : args_handler->GetKernelOffset()) {
@@ -287,15 +282,16 @@ ge::graphStatus AicpuLaunchTfKernel(KernelContext *context) {
     for (const auto &host_Info : args_handler->GetHostInputOffset()) {
       placeHolder_info.emplace_back(aclrtPlaceHolderInfo({host_Info.addrOffset, host_Info.dataOffset}));
     }
-    GELOGI("launch tf kernel %s with new interface, place_size=%lu, args_size=%lu, node_type=%s",
-      op_name.c_str(), placeHolder_info.size(), args_handler->GetArgsEx().argsSize, node_type);
+    GELOGI("launch tf kernel %s with new interface, place_size=%lu, args_size=%lu, node_type=%s", op_name.c_str(),
+           placeHolder_info.size(), args_handler->GetArgsEx().argsSize, node_type);
     aclrtLaunchKernelAttr launch_attr = {};
     aclrtLaunchKernelCfg cfg = {&launch_attr, 0UL};
     aclrtFuncHandle func_handle = nullptr;
     GE_ASSERT_SUCCESS(aclrtBinaryGetFunction(*bin_handle, node_type, &func_handle));
     GE_ASSERT_NOTNULL(func_handle);
     GE_ASSERT_RT_OK(aclrtLaunchKernelWithHostArgs(func_handle, 1U, stream, &cfg, args_handler->GetArgsEx().args,
-      args_handler->GetArgsEx().argsSize, placeHolder_info.data(), placeHolder_info.size()));
+                                                  args_handler->GetArgsEx().argsSize, placeHolder_info.data(),
+                                                  placeHolder_info.size()));
   }
   return DistributeAsyncWaitTask(stream, op_name, args_handler);
 }
@@ -310,7 +306,7 @@ ge::graphStatus AicpuLaunchCCKernelWithNewInterface(const KernelContext *context
   for (auto &kernel_info : args_handler->GetKernelOffset()) {
     placeHolder_info.emplace_back(aclrtPlaceHolderInfo({kernel_info.addrOffset, kernel_info.dataOffset}));
   }
- 
+
   for (auto &host_Info : args_handler->GetHostInputOffset()) {
     placeHolder_info.emplace_back(aclrtPlaceHolderInfo({host_Info.addrOffset, host_Info.dataOffset}));
   }
@@ -319,15 +315,15 @@ ge::graphStatus AicpuLaunchCCKernelWithNewInterface(const KernelContext *context
   auto node_type = context->GetInputValue<char_t *>(static_cast<size_t>(AicpuCCLaunch::kNodeType));
   GE_ASSERT_NOTNULL(node_type);
   GELOGI("launch cc kernel %s with new interface, block_dim=%u, place_size=%lu, args_size=%lu, node_type=%s",
-    op_name.c_str(), block_dim, placeHolder_info.size(), args_handler->GetArgsEx().argsSize, node_type);
+         op_name.c_str(), block_dim, placeHolder_info.size(), args_handler->GetArgsEx().argsSize, node_type);
   aclrtLaunchKernelAttr launch_attr = {};
   aclrtLaunchKernelCfg cfg = {&launch_attr, 0UL};
   aclrtFuncHandle func_handle = nullptr;
   GE_ASSERT_SUCCESS(aclrtBinaryGetFunction(*bin_handle, node_type, &func_handle));
   GE_ASSERT_NOTNULL(func_handle);
-  GE_ASSERT_RT_OK(aclrtLaunchKernelWithHostArgs(func_handle, block_dim, stream, &cfg,
-    args_handler->GetArgsEx().args, args_handler->GetArgsEx().argsSize,
-    placeHolder_info.data(), placeHolder_info.size()));   
+  GE_ASSERT_RT_OK(aclrtLaunchKernelWithHostArgs(func_handle, block_dim, stream, &cfg, args_handler->GetArgsEx().args,
+                                                args_handler->GetArgsEx().argsSize, placeHolder_info.data(),
+                                                placeHolder_info.size()));
   return SUCCESS;
 }
 
@@ -343,15 +339,16 @@ ge::graphStatus AicpuLaunchCCKernel(KernelContext *context) {
   uint32_t flag = RT_KERNEL_DEFAULT;
   uint32_t rt_kernel_type = static_cast<uint32_t>(rtKernelType_t::KERNEL_TYPE_AICPU);
   const auto &op_name = args_handler->GetNodeName();
-  if ((kernel_type == ccKernelType::CUST_AI_CPU) || (!OpJsonBinHandler::IsSupportBinHandle()) || (*bin_handle == nullptr)) {
+  if ((kernel_type == ccKernelType::CUST_AI_CPU) || (!OpJsonBinHandler::IsSupportBinHandle()) ||
+      (*bin_handle == nullptr)) {
     if (kernel_type == ccKernelType::CUST_AI_CPU) {
       flag |= static_cast<uint32_t>(RT_KERNEL_CUSTOM_AICPU);
       rt_kernel_type = static_cast<uint32_t>(rtKernelType_t::KERNEL_TYPE_AICPU_CUSTOM);
     }
-    GELOGI("launch cc kernel %s with compatable, kernel_type is %u.", op_name.c_str(), kernel_type);
+    GELOGI("launch cc kernel %s with compatible, kernel_type is %u.", op_name.c_str(), kernel_type);
     const auto &arg_ex = args_handler->GetArgsEx();
-    GE_ASSERT_RT_OK(rtAicpuKernelLaunchExWithArgs(rt_kernel_type,
-                    op_name.c_str(), block_dim, &arg_ex, nullptr, stream, flag));
+    GE_ASSERT_RT_OK(
+        rtAicpuKernelLaunchExWithArgs(rt_kernel_type, op_name.c_str(), block_dim, &arg_ex, nullptr, stream, flag));
   } else {
     GE_ASSERT_SUCCESS(AicpuLaunchCCKernelWithNewInterface(context));
   }
@@ -361,12 +358,12 @@ ge::graphStatus AicpuLaunchCCKernel(KernelContext *context) {
 REGISTER_KERNEL(AicpuLaunchCCKernel).RunFunc(AicpuLaunchCCKernel).TracePrinter(PrintCCLaunchArgs);
 
 struct SharedPtrNoDeleter {
-  void operator()(ge::OpKernelBin*) {}
+  void operator()(ge::OpKernelBin *) {}
 };
 
 ge::graphStatus LaunchAicpuCustKernel(KernelContext *context) {
   GE_ASSERT_NOTNULL(context);
-  const auto aicpu_kernel_holder = context->GetInputValue<ge::OpKernelBin*>(0U);
+  const auto aicpu_kernel_holder = context->GetInputValue<ge::OpKernelBin *>(0U);
   GE_ASSERT_NOTNULL(aicpu_kernel_holder);
   const CustAICPUKernelPtr aicpu_kernel(aicpu_kernel_holder, SharedPtrNoDeleter());
   GE_ASSERT_NOTNULL(aicpu_kernel);
@@ -393,7 +390,7 @@ ge::graphStatus AicpuHostCompute(KernelContext *context) {
   auto io_num = args_handler->GetIoNum();
   uint64_t *io_addrs = PtrToPtr<uint8_t, uint64_t>(args_handler->GetIoAddr());
   GE_ASSERT_NOTNULL(io_addrs);
-  for (size_t i = 1U; i < io_num + 1U; i++) { // skip AicpuArgsHandler
+  for (size_t i = 1U; i < io_num + 1U; i++) {  // skip AicpuArgsHandler
     auto tensor_data = context->GetInputValue<gert::GertTensorData *>(i);
     GE_ASSERT_NOTNULL(tensor_data);
     *io_addrs = PtrToValue(tensor_data->GetAddr());
@@ -439,9 +436,8 @@ ge::graphStatus CalcBlockDim(KernelContext *context) {
   if (ret == ACL_SUCCESS) {
     (void)aclrtGetDeviceInfo(static_cast<uint32_t>(device_id), ACL_DEV_ATTR_AICPU_CORE_NUM, &ai_cpu_cnt);
   }
-  const int64_t max_shard_num = ai_cpu_cnt * 2; // magic num
-  const int64_t per_unit_size = total / std::min(std::max(int64_t{1}, ai_cpu_cnt),
-                                                 total);
+  const int64_t max_shard_num = ai_cpu_cnt * 2;  // magic num
+  const int64_t per_unit_size = total / std::min(std::max(int64_t{1}, ai_cpu_cnt), total);
   int64_t block_size = std::max(int64_t{1}, std::min(total, per_unit_size));
   int64_t shard_num = CeilDivisor(total, block_size);
   shard_num = std::min(max_shard_num, shard_num);
@@ -516,7 +512,7 @@ ge::graphStatus AllocHostCpuOutputMemory(KernelContext *context) {
   return ge::GRAPH_SUCCESS;
 }
 ge::graphStatus CreateOutputsForAllocHostCpuOutput(const ge::FastNode *node, KernelContext *context) {
-  (void) node;
+  (void)node;
   for (size_t i = 0U; i < context->GetOutputNum(); ++i) {
     auto chain = context->GetOutput(i);
     auto tensor_data = ge::MakeUnique<GertTensorData>(0, kOnHost, -1, nullptr);

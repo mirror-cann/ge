@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2026 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,19 +32,19 @@ struct IrTypeToJsonMap {
 };
 
 constexpr IrTypeToJsonMap<IrInputType> kInputTypeMap[] = {
-  {kIrInputRequired, "INPUT"},
-  {kIrInputOptional, "OPTIONAL_INPUT"},
-  {kIrInputDynamic, "DYNAMIC_INPUT"},
+    {kIrInputRequired, "INPUT"},
+    {kIrInputOptional, "OPTIONAL_INPUT"},
+    {kIrInputDynamic, "DYNAMIC_INPUT"},
 };
 
 constexpr IrTypeToJsonMap<IrOutputType> kOutputTypeMap[] = {
-  {kIrOutputRequired, "OUTPUT"},
-  {kIrOutputDynamic, "DYNAMIC_OUTPUT"},
+    {kIrOutputRequired, "OUTPUT"},
+    {kIrOutputDynamic, "DYNAMIC_OUTPUT"},
 };
 
 constexpr IrTypeToJsonMap<SubgraphType> kSubgraphTypeMap[] = {
-  {kStatic, "STATIC"},
-  {kDynamic, "DYNAMIC"},
+    {kStatic, "STATIC"},
+    {kDynamic, "DYNAMIC"},
 };
 
 template <typename IrType, size_t N>
@@ -58,7 +58,8 @@ const char *IrTypeToJson(IrType type, const IrTypeToJsonMap<IrType> (&map)[N], c
 }
 
 template <typename IrType, size_t N>
-IrType JsonToIrType(const std::string &type_str, const IrTypeToJsonMap<IrType> (&map)[N], const std::string &error_prefix) {
+IrType JsonToIrType(const std::string &type_str, const IrTypeToJsonMap<IrType> (&map)[N],
+                    const std::string &error_prefix) {
   for (size_t i = 0; i < N; ++i) {
     if (type_str == map[i].name) {
       return map[i].type;
@@ -67,13 +68,13 @@ IrType JsonToIrType(const std::string &type_str, const IrTypeToJsonMap<IrType> (
   throw std::runtime_error(error_prefix + type_str);
 }
 
-#define GET_ATTR_JSON_FUNC(AttrUtilType, CppType)                                              \
+#define GET_ATTR_JSON_FUNC(AttrUtilType, CppType)                                                      \
   static std::string Get##AttrUtilType##Json(const OpDescPtr &op_desc, const std::string &attr_name) { \
-    CppType value{};                                                                           \
-    if (!AttrUtils::Get##AttrUtilType(op_desc, attr_name, value)) {                            \
-      throw std::runtime_error("Failed to get default value for attr: " + attr_name); \
-    }                                                                                          \
-    return nlohmann::json(value).dump();                                                             \
+    CppType value{};                                                                                   \
+    if (!AttrUtils::Get##AttrUtilType(op_desc, attr_name, value)) {                                    \
+      throw std::runtime_error("Failed to get default value for attr: " + attr_name);                  \
+    }                                                                                                  \
+    return nlohmann::json(value).dump();                                                               \
   }
 
 GET_ATTR_JSON_FUNC(Int, int64_t);
@@ -100,18 +101,18 @@ GET_ATTR_JSON_FUNC(Tensor, ge::ConstGeTensorPtr);
 using AttrDefaultJsonHandler = std::string (*)(const OpDescPtr &, const std::string &);
 std::string GetDefaultValueJsonLiteral(const OpDescPtr &op_desc, const IrAttrInfo &attr_info) {
   static const std::unordered_map<std::string, AttrDefaultJsonHandler> av_types_to_default = {
-    {"VT_INT", GetIntJson},
-    {"VT_FLOAT", GetFloatJson},
-    {"VT_STRING", GetStrJson},
-    {"VT_BOOL", GetBoolJson},
-    {"VT_DATA_TYPE", GetDataTypeJson},
-    {"VT_TENSOR", GetTensorJson},
-    {"VT_LIST_INT", GetListIntJson},
-    {"VT_LIST_FLOAT", GetListFloatJson},
-    {"VT_LIST_BOOL", GetListBoolJson},
-    {"VT_LIST_DATA_TYPE", GetListDataTypeJson},
-    {"VT_LIST_LIST_INT", GetListListIntJson},
-    {"VT_LIST_STRING", GetListStrJson},
+      {"VT_INT", GetIntJson},
+      {"VT_FLOAT", GetFloatJson},
+      {"VT_STRING", GetStrJson},
+      {"VT_BOOL", GetBoolJson},
+      {"VT_DATA_TYPE", GetDataTypeJson},
+      {"VT_TENSOR", GetTensorJson},
+      {"VT_LIST_INT", GetListIntJson},
+      {"VT_LIST_FLOAT", GetListFloatJson},
+      {"VT_LIST_BOOL", GetListBoolJson},
+      {"VT_LIST_DATA_TYPE", GetListDataTypeJson},
+      {"VT_LIST_LIST_INT", GetListListIntJson},
+      {"VT_LIST_STRING", GetListStrJson},
   };
 
   const std::string &attr_name = attr_info.name;
@@ -156,8 +157,7 @@ std::vector<IrInput> ParseInputsFromJson(const nlohmann::json &op_json) {
     const std::string ctx = "inputs[" + std::to_string(i) + "]";
     IrInput input;
     input.name = GetRequiredStringField(input_json, "name", ctx);
-    input.type = JsonToIrType(GetRequiredStringField(input_json, "type", ctx), kInputTypeMap,
-                              ctx + ".type invalid: ");
+    input.type = JsonToIrType(GetRequiredStringField(input_json, "type", ctx), kInputTypeMap, ctx + ".type invalid: ");
     auto dtype_it = input_json.find("dtype");
     if (dtype_it != input_json.end()) {
       if (!dtype_it->is_string()) {
@@ -184,8 +184,8 @@ std::vector<IrOutput> ParseOutputsFromJson(const nlohmann::json &op_json) {
     const std::string ctx = "outputs[" + std::to_string(i) + "]";
     IrOutput output;
     output.name = GetRequiredStringField(output_json, "name", ctx);
-    output.type = JsonToIrType(GetRequiredStringField(output_json, "type", ctx), kOutputTypeMap,
-                               ctx + ".type invalid: ");
+    output.type =
+        JsonToIrType(GetRequiredStringField(output_json, "type", ctx), kOutputTypeMap, ctx + ".type invalid: ");
     auto dtype_it = output_json.find("dtype");
     if (dtype_it != output_json.end()) {
       if (!dtype_it->is_string()) {
@@ -212,8 +212,8 @@ std::vector<IrSubgraph> ParseSubgraphsFromJson(const nlohmann::json &op_json) {
     const std::string ctx = "subgraphs[" + std::to_string(i) + "]";
     IrSubgraph subgraph;
     subgraph.name = GetRequiredStringField(subgraph_json, "name", ctx);
-    subgraph.type = JsonToIrType(GetRequiredStringField(subgraph_json, "type", ctx), kSubgraphTypeMap,
-                                 ctx + ".type invalid: ");
+    subgraph.type =
+        JsonToIrType(GetRequiredStringField(subgraph_json, "type", ctx), kSubgraphTypeMap, ctx + ".type invalid: ");
     subgraphs.emplace_back(std::move(subgraph));
   }
   return subgraphs;

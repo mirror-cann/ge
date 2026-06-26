@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -45,7 +45,7 @@ class FakeOpsKernelInfoStore : public OpsKernelInfoStore {
   bool CheckSupported(const OpDescPtr &op_desc, std::string &reason) const override {
     return false;
   };
-  void GetAllOpsKernelInfo(std::map<std::string, ge::OpInfo> &infos) const override{};
+  void GetAllOpsKernelInfo(std::map<std::string, ge::OpInfo> &infos) const override {};
 
   Status FuzzCompileOp(std::vector<NodePtr> &node_vec) override {
     return SUCCESS;
@@ -137,7 +137,7 @@ TEST_F(UtestFuzzCompileBinSelector, do_select_bin_success_without_kernel_miss) {
   NodeCompileCacheItem item;
   auto add_item = bin_selector.nccm_->AddCompileCache(node, item);
   ASSERT_NE(add_item, nullptr);
-  
+
   /*
   bin_selector.aicore_kernel_store_ = std::make_shared<FakeOpsKernelInfoStore>();
   OpsKernelBuilderRegistry::GetInstance().kernel_builders_["AIcoreEngine"] = std::make_shared<FakeOpsKernelBuilder>();

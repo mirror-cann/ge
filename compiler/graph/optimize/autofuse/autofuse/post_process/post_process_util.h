@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,10 +20,10 @@
 #include "utils/auto_fuse_config.h"
 
 namespace ge {
-using af::AscNodeAttr;
 using af::AscGraphAttr;
-using af::AscTensorAttr;
 using af::AscGraphUtils;
+using af::AscNodeAttr;
+using af::AscTensorAttr;
 using af::AutoFuseAttrs;
 using af::GetInterAttrs;
 namespace ascir_op = af::ascir_op;
@@ -103,9 +103,9 @@ inline std::vector<std::string> ReadListStrEnv(const char *env_name, const char 
 
   while (std::getline(iss, token, sep)) {
     if (!token.empty()) {
-    if (single_result.insert(token).second) {
-      result.push_back(token);
-    }
+      if (single_result.insert(token).second) {
+        result.push_back(token);
+      }
     }
   }
 
@@ -113,7 +113,8 @@ inline std::vector<std::string> ReadListStrEnv(const char *env_name, const char 
 }
 
 // 后处理异常流程dump正在处理的dump图
-inline Status CacheGraphBeforePostProcess(const NodePtr &node, const std::string &proc_name, const ComputeGraphPtr &graph) {
+inline Status CacheGraphBeforePostProcess(const NodePtr &node, const std::string &proc_name,
+                                          const ComputeGraphPtr &graph) {
   if (!IsLogEnable(GE_MODULE_NAME, DLOG_DEBUG)) {
     return SUCCESS;
   }
@@ -187,8 +188,7 @@ inline Status ProcessAscBackendNodes(const ComputeGraphPtr &ge_or_fused_asc_back
       if (ret != SUCCESS) {
         GELOGE(FAILED, "FusedAscBackend node: %s(%s), post process(%s) failed, start to dump cache graphs;",
                node->GetName().c_str(), node->GetType().c_str(), proc_name.c_str());
-        GE_ASSERT_SUCCESS(
-            DumpFusedCacheGraphForExceptionPostProcess((attr->GetFuseComputeGraph())->GetName()));
+        GE_ASSERT_SUCCESS(DumpFusedCacheGraphForExceptionPostProcess((attr->GetFuseComputeGraph())->GetName()));
         return ret;
       }
     }
@@ -423,8 +423,7 @@ inline Status GetTensorInfoFromAscgraph(TensorInfo &tensor_info, const AscGraph 
     }
   }
   GELOGI("asc_graph %s, get tensor info: axis:%s, repeats:%s, strides:%s.", asc_graph.GetName().c_str(),
-         AutofuseUtils::VectorToStr(tensor_info.axis).c_str(),
-         AutofuseUtils::VectorToStr(tensor_info.repeats).c_str(),
+         AutofuseUtils::VectorToStr(tensor_info.axis).c_str(), AutofuseUtils::VectorToStr(tensor_info.repeats).c_str(),
          AutofuseUtils::VectorToStr(tensor_info.strides).c_str());
   return SUCCESS;
 }
@@ -453,7 +452,8 @@ inline Status SetGatherAxis(const NodePtr &node, const int64_t &axis) {
   auto gather_ir_attr = dynamic_cast<ascir_op::Gather::AscGatherIrAttrDef *>(attr->ir_attr.get());
   GE_ASSERT_NOTNULL(gather_ir_attr);
   if (ge::GRAPH_SUCCESS == (gather_ir_attr->SetAxis(axis))) {
-    GELOGI("set gather axis index to node: %s(%s) %" PRId64 ".", node->GetName().c_str(), node->GetType().c_str(), axis);
+    GELOGI("set gather axis index to node: %s(%s) %" PRId64 ".", node->GetName().c_str(), node->GetType().c_str(),
+           axis);
   } else {
     GELOGW("set gather axis index to node: %s(%s) null.", node->GetName().c_str(), node->GetType().c_str());
   }

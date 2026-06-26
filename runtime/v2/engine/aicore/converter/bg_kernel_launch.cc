@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,8 +18,7 @@ namespace bg {
 namespace {
 const size_t kMixNotifyIdNum = 2;
 
-std::vector<ValueHolderPtr> BuildLaunchCommonHead(const CommonLaunchArg &launch_arg,
-                                                  const size_t &io_num) {
+std::vector<ValueHolderPtr> BuildLaunchCommonHead(const CommonLaunchArg &launch_arg, const size_t &io_num) {
   std::vector<ValueHolderPtr> inputs;
   inputs.emplace_back(launch_arg.stream);
   inputs.emplace_back(launch_arg.bin_addr);
@@ -34,12 +33,7 @@ std::vector<ValueHolderPtr> BuildLaunchCommonHead(const CommonLaunchArg &launch_
   inputs.emplace_back(launch_arg.local_mem_size);
   return inputs;
 }
-enum class CoreNumType {
-  ALL_CORE,
-  AI_CORE,
-  VECTOR_CORE,
-  TYPE_NUM
-};
+enum class CoreNumType { ALL_CORE, AI_CORE, VECTOR_CORE, TYPE_NUM };
 
 bool GetResource(const ge::OpDescPtr op_desc, const CommonLaunchArg &launch_arg, std::vector<ValueHolderPtr> &inputs) {
   auto sub_stream_id = op_desc->GetAttachedStreamId();
@@ -92,8 +86,8 @@ bool BuildLaunchCommonTail(const CommonLaunchArg &launch_arg, std::vector<ValueH
   mix_args.ai_core_num = core_num_v[static_cast<size_t>(CoreNumType::AI_CORE)];
   mix_args.vec_core_num = core_num_v[static_cast<size_t>(CoreNumType::VECTOR_CORE)];
   if (mix_args.all_core_num == 0 || mix_args.ai_core_num == 0 || mix_args.vec_core_num == 0) {
-    GELOGW("Node [%s] core number [%u][%u][%u] is invalid.", op_desc->GetNamePtr(), mix_args.all_core_num, mix_args.ai_core_num,
-           mix_args.vec_core_num);
+    GELOGW("Node [%s] core number [%u][%u][%u] is invalid.", op_desc->GetNamePtr(), mix_args.all_core_num,
+           mix_args.ai_core_num, mix_args.vec_core_num);
     return false;
   }
   inputs.emplace_back(ValueHolder::CreateConst(&mix_args, sizeof(mix_args)));
@@ -109,8 +103,7 @@ bool BuildLaunchCommonTail(const CommonLaunchArg &launch_arg, std::vector<ValueH
 }
 
 }  // namespace
-ValueHolderPtr LaunchKernelWithHandle(const CommonLaunchArg &launch_arg,
-                                      const ValueHolderPtr &stub_func,
+ValueHolderPtr LaunchKernelWithHandle(const CommonLaunchArg &launch_arg, const ValueHolderPtr &stub_func,
                                       const ValueHolderPtr &node_info,
                                       const std::vector<DevMemValueHolderPtr> &input_addrs,
                                       const std::vector<DevMemValueHolderPtr> &output_addrs) {
@@ -147,12 +140,11 @@ ValueHolderPtr LaunchKernelWithFlag(const CommonLaunchArg &launch_arg,
   }
 }
 
-ValueHolderPtr AtomicLaunchKernelWithHandle(const CommonLaunchArg &launch_arg,
-                                            const ValueHolderPtr &stub_func,
+ValueHolderPtr AtomicLaunchKernelWithHandle(const CommonLaunchArg &launch_arg, const ValueHolderPtr &stub_func,
                                             const ValueHolderPtr &clean_workspace_indexes,
                                             const std::vector<DevMemValueHolderPtr> &clean_output_addrs,
                                             const ValueHolderPtr &clean_workspace_addrs) {
-  size_t io_num = clean_output_addrs.size(); // only clean output addrs
+  size_t io_num = clean_output_addrs.size();  // only clean output addrs
   std::vector<ValueHolderPtr> inputs = BuildLaunchCommonHead(launch_arg, io_num);
   inputs.emplace_back(stub_func);
   inputs.emplace_back(clean_workspace_indexes);
@@ -174,7 +166,8 @@ ValueHolderPtr AtomicLaunchKernelWithFlag(const CommonLaunchArg &launch_arg,
 }
 
 ValueHolderPtr LaunchFFTSPlusTaskNoCopy(const ValueHolderPtr &stream, bg::ValueHolderPtr task_info_para,
-    bg::ValueHolderPtr need_launch, bg::ValueHolderPtr dfx_holder, bg::ValueHolderPtr workspaces_addr) {
+                                        bg::ValueHolderPtr need_launch, bg::ValueHolderPtr dfx_holder,
+                                        bg::ValueHolderPtr workspaces_addr) {
   std::vector<ValueHolderPtr> inputs = {stream, task_info_para, need_launch, dfx_holder};
   if (workspaces_addr != nullptr) {
     inputs.emplace_back(workspaces_addr);
@@ -182,8 +175,7 @@ ValueHolderPtr LaunchFFTSPlusTaskNoCopy(const ValueHolderPtr &stream, bg::ValueH
   return ValueHolder::CreateVoid<ValueHolder>("LaunchFFTSPlusTaskNoCopy", inputs);
 }
 
-ValueHolderPtr LaunchStarsKernel(const ValueHolderPtr &sqe_addr,
-                                 const ValueHolderPtr &sqe_len,
+ValueHolderPtr LaunchStarsKernel(const ValueHolderPtr &sqe_addr, const ValueHolderPtr &sqe_len,
                                  const ValueHolderPtr &stream) {
   std::vector<ValueHolderPtr> inputs;
   inputs.emplace_back(sqe_addr);

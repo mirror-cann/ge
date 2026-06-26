@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -35,20 +35,16 @@ class NodeDoneCallback {
 
 class ExecutionEngine {
  public:
-  static Status ExecuteAsync(const NodeState &node_state,
-                             const std::shared_ptr<TaskContext> &task_context,
-                             GraphExecutionContext &execution_context,
-                             const std::function<void()> &callback);
+  static Status ExecuteAsync(const NodeState &node_state, const std::shared_ptr<TaskContext> &task_context,
+                             GraphExecutionContext &execution_context, const std::function<void()> &callback);
 
  private:
   static Status ValidateInputTensors(const NodeState &node_state, const TaskContext &task_context);
   static Status PropagateOutputs(const NodeItem &node_item, const TaskContext &task_context,
                                  const GraphExecutionContext &context);
-  static Status DoExecuteAsync(const NodeState &node_state,
-                               TaskContext &task_context,
-                               GraphExecutionContext &context,
+  static Status DoExecuteAsync(const NodeState &node_state, TaskContext &task_context, GraphExecutionContext &context,
                                const std::function<void()> &callback);
 };
 }  // namespace hybrid
 }  // namespace ge
-#endif // GE_HYBRID_EXECUTOR_EXECUTOR_EXECUTION_ENGINE_H_
+#endif  // GE_HYBRID_EXECUTOR_EXECUTOR_EXECUTION_ENGINE_H_

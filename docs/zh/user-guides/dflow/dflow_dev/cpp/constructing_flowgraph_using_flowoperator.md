@@ -137,7 +137,7 @@ auto node2 = dflow::FlowNode("flow_node2", 1, 1).SetInput(0, flow_node0, 1); // 
     ```
 
     相关接口请参考FlowGraph类。
-    
+
 3. 设置FlowGraph输入和输出节点，使用到的主要接口为：
 
     - 设置FlowGraph内的输入节点：SetInputs。

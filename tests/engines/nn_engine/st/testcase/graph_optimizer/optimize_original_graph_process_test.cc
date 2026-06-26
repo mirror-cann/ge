@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -186,8 +186,8 @@ class OptimizeOriginalGraphProcessTest : public testing::Test {
     AttrUtils::SetBool(net_output_op, "_is_heavy_op", true);
 
     if (type == 1) {
-      ge::GeShape shape_5hd_ch({1,1,20,1,16});
-      ge::GeShape shape_5hd_nc({10,2,1,1,16});
+      ge::GeShape shape_5hd_ch({1, 1, 20, 1, 16});
+      ge::GeShape shape_5hd_nc({10, 2, 1, 1, 16});
       AttrUtils::SetStr(data_op->MutableOutputDesc(0), ge::ATTR_NAME_RESHAPE_INFER_TYPE, "CH");
       data_op->MutableOutputDesc(0)->SetShape(shape_5hd_ch);
       AttrUtils::SetStr(net_output_op->MutableInputDesc(0), ge::ATTR_NAME_RESHAPE_INFER_TYPE, "CH");
@@ -434,7 +434,7 @@ class OptimizeOriginalGraphProcessTest : public testing::Test {
     OpDescPtr dequant3_op = std::make_shared<OpDesc>("dequant3", "AscendDequant");
     OpDescPtr relu3_op = std::make_shared<OpDesc>("relu3", "LeakyRelu");
 
-    ge::GeShape shape({8,224,224,3});
+    ge::GeShape shape({8, 224, 224, 3});
     ge::GeShape shape_64({64});
     ge::GeTensorDesc tensor_nchw_uint8(shape, ge::FORMAT_NCHW, ge::DT_UINT8);
     tensor_nchw_uint8.SetOriginShape(shape);
@@ -763,15 +763,15 @@ TEST_F(OptimizeOriginalGraphProcessTest, optimize_origin_graph_aipp_case1) {
     std::cout << "==== " << op_desc->GetName() << " - " << op_desc->GetType() << std::endl;
     if (op_desc->GetType() == "TransData") {
       trans_cout++;
-      ge::Format input_format = static_cast<ge::Format>(ge::GetPrimaryFormat(op_desc->MutableInputDesc(0)->GetFormat()));
+      ge::Format input_format =
+          static_cast<ge::Format>(ge::GetPrimaryFormat(op_desc->MutableInputDesc(0)->GetFormat()));
       EXPECT_EQ(input_format, ge::FORMAT_NC1HWC0);
       EXPECT_EQ(op_desc->MutableOutputDesc(0)->GetFormat(), ge::FORMAT_NHWC);
-
     }
     if (op_desc->GetType() == "Cast") {
       cast_cout++;
-//      EXPECT_EQ(op_desc->MutableInputDesc(0)->GetFormat(), ge::FORMAT_NHWC);
-//      EXPECT_EQ(op_desc->MutableOutputDesc(0)->GetFormat(), ge::FORMAT_NHWC);
+      //      EXPECT_EQ(op_desc->MutableInputDesc(0)->GetFormat(), ge::FORMAT_NHWC);
+      //      EXPECT_EQ(op_desc->MutableOutputDesc(0)->GetFormat(), ge::FORMAT_NHWC);
     }
   }
   EXPECT_EQ(trans_cout, 0);
@@ -838,4 +838,4 @@ TEST_F(OptimizeOriginalGraphProcessTest, optimize_sub_graph_quant_dump_able_case
   EXPECT_EQ(quant_count, 2);
   Configuration::Instance(AI_CORE_NAME).config_param_vec_[static_cast<size_t>(CONFIG_PARAM::QuantDumpable)] = 0;
 }
-}
+}  // namespace fe

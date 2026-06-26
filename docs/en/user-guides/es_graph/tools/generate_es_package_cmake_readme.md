@@ -313,14 +313,14 @@ using namespace ge::es;
 
 int main() {
     EsGraphBuilder builder("my_graph");
-    
+
     // Create inputs
     auto input1 = builder.CreateConstFloat(1.0f);
     auto input2 = builder.CreateConstFloat(2.0f);
-    
+
     // Use generated ES API
     auto result = Add(input1, input2);
-    
+
     auto graph = builder.build_and_reset();
     return 0;
 }

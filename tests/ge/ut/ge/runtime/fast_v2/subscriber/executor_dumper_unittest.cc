@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,8 +38,8 @@
 #include "common/global_variables/diagnose_switch.h"
 #include "macro_utils/dt_public_unscope.h"
 #include "common/model/ge_model.h"
-#include "engine/aicore/kernel/mixl2_update_kernel.h"  //todo: to be deleted
-#include "engine/aicpu/kernel/ffts_plus/aicpu_update_kernel.h" // todo: to be deleted
+#include "engine/aicore/kernel/mixl2_update_kernel.h"           //todo: to be deleted
+#include "engine/aicpu/kernel/ffts_plus/aicpu_update_kernel.h"  // todo: to be deleted
 #include "depends/profiler/src/dump_stub.h"
 #include "exe_graph/lowering/lowering_definitions.h"
 
@@ -59,7 +59,8 @@ void ExecutorRun(ModelV2Executor *executor) {
   auto inputs = FakeTensors({2048}, 2);
 
   rtStream_t rt_stream;
-  ASSERT_EQ(aclrtCreateStreamWithConfig(&rt_stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&rt_stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0),
+            RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(rt_stream));
 
   ASSERT_EQ(
@@ -808,13 +809,14 @@ TEST_F(ExecutorDumperUT, OverflowDumpModelStart_DumpOpDebug_OnlyOverflowDumpEnab
   ASSERT_EQ(dumper->op_debug_registers_.size(), 1U);
   EXPECT_EQ(dumper->op_debug_registers_[0]->stream_ref_count_[stream], 1);
   ASSERT_NE(dumper->op_debug_registers_[0]->op_debug_tasks_[stream], nullptr);
-//  EXPECT_NE(dumper->op_debug_registers_[0]->op_debug_tasks_[stream]->op_debug_addr_, nullptr);
+  //  EXPECT_NE(dumper->op_debug_registers_[0]->op_debug_tasks_[stream]->op_debug_addr_, nullptr);
 
   EXPECT_EQ(dumper->data_dumpers_.size(), 1U);
   EXPECT_EQ(dumper->data_dumpers_[0]->is_op_debug_, true);
   EXPECT_EQ(*(reinterpret_cast<void *const *>(dumper->data_dumpers_[0]->op_debug_addr_)),
             dumper->op_debug_registers_[0]->op_debug_tasks_[stream]->op_debug_addr_);
-  EXPECT_EQ(dumper->data_dumpers_[0]->op_debug_task_id_, dumper->op_debug_registers_[0]->op_debug_tasks_[stream]->debug_task_id_);
+  EXPECT_EQ(dumper->data_dumpers_[0]->op_debug_task_id_,
+            dumper->op_debug_registers_[0]->op_debug_tasks_[stream]->debug_task_id_);
   EXPECT_EQ(dumper->data_dumpers_[0]->op_debug_stream_id_,
             dumper->op_debug_registers_[0]->op_debug_tasks_[stream]->debug_stream_id_);
   EXPECT_NE(dumper->data_dumpers_[0]->dev_mem_load_, nullptr);
@@ -874,7 +876,7 @@ TEST_F(ExecutorDumperUT, MultiStream_TwoStream_OverflowDumpModelStart_DataDumper
     auto stream = *(reinterpret_cast<rtStream_t *>(stream_vec->MutableData()) + i);
     EXPECT_EQ(dumper->op_debug_registers_[i]->stream_ref_count_[stream], 1);
     ASSERT_NE(dumper->op_debug_registers_[i]->op_debug_tasks_[stream], nullptr);
-//    EXPECT_NE(dumper->op_debug_registers_[i]->op_debug_tasks_[stream]->op_debug_addr_, nullptr);
+    //    EXPECT_NE(dumper->op_debug_registers_[i]->op_debug_tasks_[stream]->op_debug_addr_, nullptr);
     EXPECT_EQ(dumper->data_dumpers_[i]->is_op_debug_, true);
     EXPECT_EQ(*(reinterpret_cast<void *const *>(dumper->data_dumpers_[i]->op_debug_addr_)),
               dumper->op_debug_registers_[i]->op_debug_tasks_[stream]->op_debug_addr_);
@@ -1285,7 +1287,8 @@ TEST_F(ExecutorDumperUT, OverflowDump_FFTSPlus_Ok) {
   context_holder_1.value_holder[static_cast<size_t>(kernel::ArgsInKey::THREAD_PARAM)].Set(&thread_param, nullptr);
   context_holder_1.value_holder[static_cast<size_t>(kernel::ArgsInKey::IN_MEM_TYPE)].Set(out_type_vec, nullptr);
   context_holder_1.value_holder[static_cast<size_t>(kernel::ArgsInKey::OUT_MEM_TYPE)].Set(out_type_vec, nullptr);
-  context_holder_1.value_holder[static_cast<size_t>(kernel::ArgsInKey::THREAD_DIM)].Set(reinterpret_cast<void *>(thread_dim), nullptr);
+  context_holder_1.value_holder[static_cast<size_t>(kernel::ArgsInKey::THREAD_DIM)].Set(
+      reinterpret_cast<void *>(thread_dim), nullptr);
   size_t size = sizeof(Node) + sizeof(AsyncAnyValue *) * 6;
   Node *launch_node_1 = (Node *)malloc(size);
   launch_node_1->node_id = id;
@@ -1685,7 +1688,8 @@ TEST_F(ExecutorDumperUT, ExceptionDump_PrepareExceptionDumpSuccess_WithEmptyAddr
   ge::ModelData model_data{};
   model_data.om_name = "test";
   auto model_executor = ModelV2Executor::Create(exe_graph, model_data, root_model);
-  auto dumper = model_executor->GetSubscribers().MutableBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper);
+  auto dumper =
+      model_executor->GetSubscribers().MutableBuiltInSubscriber<ExecutorDumper>(BuiltInSubscriberType::kDumper);
   ASSERT_NE(dumper, nullptr);
   EXPECT_TRUE(dumper->is_inited_);
   EXPECT_EQ(model_executor->Load(), ge::GRAPH_SUCCESS);
@@ -1792,7 +1796,8 @@ TEST_F(ExecutorDumperUT, DoFftsplusExceptionDump_Ok) {
   context_holder_1.value_holder[static_cast<size_t>(kernel::ArgsInKey::THREAD_PARAM)].Set(&thread_param, nullptr);
   context_holder_1.value_holder[static_cast<size_t>(kernel::ArgsInKey::IN_MEM_TYPE)].Set(out_type_vec, nullptr);
   context_holder_1.value_holder[static_cast<size_t>(kernel::ArgsInKey::OUT_MEM_TYPE)].Set(out_type_vec, nullptr);
-  context_holder_1.value_holder[static_cast<size_t>(kernel::ArgsInKey::THREAD_DIM)].Set(reinterpret_cast<void *>(thread_dim), nullptr);
+  context_holder_1.value_holder[static_cast<size_t>(kernel::ArgsInKey::THREAD_DIM)].Set(
+      reinterpret_cast<void *>(thread_dim), nullptr);
   size_t size = sizeof(Node) + sizeof(AsyncAnyValue *) * 6;
   Node *launch_node_1 = (Node *)malloc(size);
   launch_node_1->node_id = id;
@@ -2095,7 +2100,9 @@ TEST_F(ExecutorDumperUT, DoFftsplusDataDumpWithOpRange_new) {
   uint64_t id = FindFirstNonEmptyId(dumper);
 
   ge::DumpProperties dump_properties;
-  std::vector<std::pair<std::string, std::string>> op_ranges = {{"add1", "add1"},};
+  std::vector<std::pair<std::string, std::string>> op_ranges = {
+      {"add1", "add1"},
+  };
   dump_properties.SetOpDumpRange("test", op_ranges);
   dump_properties.SetDumpMode("all");
   ge::DumpManager::GetInstance().AddDumpProperties(ge::kInferSessionId, dump_properties);
@@ -2478,7 +2485,8 @@ TEST_F(ExecutorDumperUT, OverflowDump_FFTSPlus_Ok_new) {
   context_holder_1.value_holder[static_cast<size_t>(kernel::ArgsInKey::THREAD_PARAM)].Set(&thread_param, nullptr);
   context_holder_1.value_holder[static_cast<size_t>(kernel::ArgsInKey::IN_MEM_TYPE)].Set(out_type_vec, nullptr);
   context_holder_1.value_holder[static_cast<size_t>(kernel::ArgsInKey::OUT_MEM_TYPE)].Set(out_type_vec, nullptr);
-  context_holder_1.value_holder[static_cast<size_t>(kernel::ArgsInKey::THREAD_DIM)].Set(reinterpret_cast<void *>(thread_dim), nullptr);
+  context_holder_1.value_holder[static_cast<size_t>(kernel::ArgsInKey::THREAD_DIM)].Set(
+      reinterpret_cast<void *>(thread_dim), nullptr);
   size_t size = sizeof(Node) + sizeof(AsyncAnyValue *) * 6;
   Node *launch_node_1 = (Node *)malloc(size);
   launch_node_1->node_id = id;
@@ -2769,8 +2777,8 @@ TEST_F(ExecutorDumperUT, GetRootGraphName_WithRootGraph) {
 
   auto root_compute_graph = ge_root_model->GetRootGraph();
   const auto &extend_info = ge::MakeShared<const SubscriberExtendInfo>(
-    nullptr, exe_graph, root_compute_graph, ge::ModelData(), nullptr, SymbolsToValue{}, 0, "", nullptr,
-    std::unordered_map<std::string, TraceAttr>{});
+      nullptr, exe_graph, root_compute_graph, ge::ModelData(), nullptr, SymbolsToValue{}, 0, "", nullptr,
+      std::unordered_map<std::string, TraceAttr>{});
 
   ExecutorDumper dumper(extend_info);
   std::string root_name = dumper.GetRootGraphName();
@@ -2780,9 +2788,9 @@ TEST_F(ExecutorDumperUT, GetRootGraphName_WithRootGraph) {
 TEST_F(ExecutorDumperUT, GetRootGraphName_WithoutRootGraph) {
   auto exe_graph = std::make_shared<ge::ExecuteGraph>("");
 
-  const auto &extend_info = ge::MakeShared<const SubscriberExtendInfo>(
-      nullptr, exe_graph, nullptr, ge::ModelData(), nullptr, SymbolsToValue{}, 0, "", nullptr,
-      std::unordered_map<std::string, TraceAttr>{});
+  const auto &extend_info = ge::MakeShared<const SubscriberExtendInfo>(nullptr, exe_graph, nullptr, ge::ModelData(),
+                                                                       nullptr, SymbolsToValue{}, 0, "", nullptr,
+                                                                       std::unordered_map<std::string, TraceAttr>{});
 
   ExecutorDumper dumper(extend_info);
   std::string root_name = dumper.GetRootGraphName();
@@ -2790,18 +2798,18 @@ TEST_F(ExecutorDumperUT, GetRootGraphName_WithoutRootGraph) {
 }
 
 TEST_F(ExecutorDumperUT, IsOpInDumpList_RootGraphDump) {
-  auto exe_graph = std::make_shared<ge::ExecuteGraph>("");                    // 执行图，可以忽略名称
-  auto root_graph = std::make_shared<ge::ComputeGraph>("root_graph_name");    // 根图，类型修正
+  auto exe_graph = std::make_shared<ge::ExecuteGraph>("");                  // 执行图，可以忽略名称
+  auto root_graph = std::make_shared<ge::ComputeGraph>("root_graph_name");  // 根图，类型修正
 
-  const auto &extend_info = ge::MakeShared<const SubscriberExtendInfo>(
-      nullptr, exe_graph, root_graph, ge::ModelData(), nullptr, SymbolsToValue{}, 0, "", nullptr,
-      std::unordered_map<std::string, TraceAttr>{});
+  const auto &extend_info = ge::MakeShared<const SubscriberExtendInfo>(nullptr, exe_graph, root_graph, ge::ModelData(),
+                                                                       nullptr, SymbolsToValue{}, 0, "", nullptr,
+                                                                       std::unordered_map<std::string, TraceAttr>{});
 
   ExecutorDumper dumper(extend_info);
   GlobalDumper::GetInstance()->SetEnableFlags(1UL);
 
   ge::DumpProperties dump_properties;
-  dump_properties.AddPropertyValue("root_graph_name", {"test_op"});   // 配置根图名称和需要dump的算子
+  dump_properties.AddPropertyValue("root_graph_name", {"test_op"});  // 配置根图名称和需要dump的算子
   dump_properties.SetDumpMode("all");
   ge::DumpManager::GetInstance().AddDumpProperties(ge::kInferSessionId, dump_properties);
 
@@ -2813,9 +2821,9 @@ TEST_F(ExecutorDumperUT, IsOpInDumpList_RootGraphDump) {
 TEST_F(ExecutorDumperUT, IsOpInDumpList_CurrentGraphDump) {
   auto exe_graph = std::make_shared<ge::ExecuteGraph>("current_graph");
 
-  const auto &extend_info = ge::MakeShared<const SubscriberExtendInfo>(
-    nullptr, exe_graph, nullptr, ge::ModelData{}, nullptr, SymbolsToValue{}, 0, "", nullptr,
-    std::unordered_map<std::string, TraceAttr>{});
+  const auto &extend_info = ge::MakeShared<const SubscriberExtendInfo>(nullptr, exe_graph, nullptr, ge::ModelData{},
+                                                                       nullptr, SymbolsToValue{}, 0, "", nullptr,
+                                                                       std::unordered_map<std::string, TraceAttr>{});
 
   ExecutorDumper dumper(extend_info);
   GlobalDumper::GetInstance()->SetEnableFlags(1UL);

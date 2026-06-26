@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,7 +20,7 @@ namespace ge {
 namespace {
 constexpr int64_t kDefaultTimeout = 1200;       // s
 constexpr int32_t kDequeueTimeout = 3000;       // ms
-constexpr int32_t kDequeueTimeoutInSec = 3;       // s
+constexpr int32_t kDequeueTimeoutInSec = 3;     // s
 constexpr int32_t kEnqueueTimeout = 30 * 1000;  // ms
 constexpr int64_t kDefaultRetryTimes = 400;
 constexpr uint32_t kMsgQueueDepth = 3U;
@@ -92,7 +92,7 @@ Status MessageClient<Request, Response>::CreateMessageQueue(const std::string &n
   const std::string rsp_msg_queue_name = "response_queue." + name_suffix;
   const auto ret = HService::GetInstance().CreateQueue(device_id_, rsp_msg_queue_name, mem_queue_attr, response_qid);
   if (ret != SUCCESS) {
-    GELOGE(FAILED, "[Create][Reponse] message queue failed, queue name %s.", rsp_msg_queue_name.c_str());
+    GELOGE(FAILED, "[Create][Response] message queue failed, queue name %s.", rsp_msg_queue_name.c_str());
     (void)HService::GetInstance().DestroyQueue(device_id_, request_qid);
     return FAILED;
   }

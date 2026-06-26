@@ -12,24 +12,24 @@ flowchart LR
         A1[图规范化] --> A2[Shape 推理]
         A2 --> A3[量化准备]
     end
-    
+
     subgraph S2["阶段2: 图优化"]
         B1[通用优化<br/>CSE/常量折叠/DCE] --> B2[融合优化<br/>Pattern+自动融合]
         B2 --> B3[精度/格式调整]
     end
-    
+
     subgraph S3["阶段3: 引擎分区"]
         C1[引擎分配] --> C2[组合引擎分区]
         C2 --> C3[原子引擎分区]
         C3 --> C4[子图优化]
     end
-    
+
     subgraph S4["阶段4: 构建"]
         D1[流分配] --> D2[内存规划]
         D2 --> D3[任务生成]
         D3 --> D4[模型序列化]
     end
-    
+
     S1 --> S2 --> S3 --> S4
 ```
 
@@ -56,7 +56,7 @@ flowchart TD
     B --> C[BuildModel: 编译入口]
     C --> D[OptimizeGraph: 图优化]
     C --> E[BuildGraph: 构建]
-    
+
     D --> D1[PreRunOptimizeOriginalGraph]
     D1 --> D1a[CustomPass BeforeInferShape]
     D1a --> D1b[PrepareInit: 初始化准备]
@@ -71,7 +71,7 @@ flowchart TD
     D1j --> D1k[RefineRunningFormat: 格式调整]
     D1k --> D1l[OptimizeStage1: Pass 批次1]
     D1l --> D1m[OptimizeAfterStage1: 引擎级后优化]
-    
+
     D --> D2[PreRunOptimizeSubGraph]
     D2 --> D2a[ProcessNullableOutput]
     D2a --> D2b[OptimizeSubgraph: 分区+子图优化]
@@ -82,14 +82,14 @@ flowchart TD
     D2b4 --> D2b5[AtomicEngine Partition]
     D2b5 --> D2b6[多线程子图优化]
     D2b6 --> D2b7[MergeSubgraph: 合并子图]
-    
+
     D --> D3[PreRunAfterOptimizeSubGraph]
     D3 --> D3a[OptimizeWholeGraph: 全图引擎优化]
     D3a --> D3b[OptimizeStage2: Pass 批次2]
     D3b --> D3c[OptimizeGraphBeforeBuild: 构建前优化]
     D3c --> D3d[MemConflictProc: 内存冲突处理]
     D3d --> D3e[Build: 构建]
-    
+
     E --> E1[权重外置处理]
     E1 --> E2[IR 定义恢复]
     E2 --> E3[GraphBuilder.Build]
@@ -225,42 +225,42 @@ classDiagram
         +CaptureTensor(NodeIo)
         +GetCapturedTensors()
     }
-    
+
     class PatternMatcher {
         +MatchNext() MatchResult
         -PatternMatcherImpl impl_
     }
-    
+
     class PatternMatcherImpl {
         +Initialize() Status
         +MatchNext() MatchResult
         -MatchBranchByOutTensor() bool
         -UpdateAllMatchCoordinates() Status
     }
-    
+
     class NodeMatcher {
         <<interface>>
         +IsMatch(Node, Node) bool
     }
-    
+
     class DataMatcher {
         +IsMatch(Node, Node) bool
     }
-    
+
     class ConstantMatcher {
         +IsMatch(Node, Node) bool
     }
-    
+
     class NormalNodeMatcher {
         +IsMatch(Node, Node) bool
     }
-    
+
     class MatchResult {
         +GetMatchedNode() Status
         +AppendNodeMatchPair() Status
         +ToSubgraphBoundary() SubgraphBoundary
     }
-    
+
     PatternMatcher --> Pattern
     PatternMatcher --> PatternMatcherImpl
     PatternMatcherImpl --> NodeMatcher
@@ -400,14 +400,14 @@ flowchart TD
     B2 -->|动态Shape| B3[BuildForDynamicShapeGraph]
     B2 -->|已知Shape| B4[BuildForKnownShapeGraph]
     B2 -->|未知Shape| B5[BuildForUnknownShapeGraph]
-    
+
     B3 --> B6[ModelBuilder.PreBuildModel]
     B6 --> B7[ModelBuilder.BuildModelForGetTask]
     B7 --> B8[TaskGenerator.GetTaskInfo]
-    
+
     B4 --> B9[SecondPartition: 二次分区]
     B9 --> B6
-    
+
     B5 --> B10[DynamicStreamAllocator]
     B10 --> B11[TaskGenerator]
 ```
@@ -430,14 +430,14 @@ flowchart TD
     SA[StreamAllocator] --> SA1[AssignLogicalStreams: 逻辑流分配]
     SA1 --> SA2[InsertSyncNodes: 插入同步节点]
     SA2 --> SA3[SplitStreamAndRefreshTaskDef: 流拆分和刷新]
-    
+
     SA1 --> SA1a[按引擎和并行度分配逻辑流]
     SA1a --> SA1b[支持流标签和附着流]
-    
+
     SA2 --> SA2a{使用 Notify?}
     SA2a -->|是| SA2b[InsertSyncNodesWithNotify]
     SA2a -->|否| SA2c[InsertSyncEvents: 插入 Event 同步]
-    
+
     SA3 --> SA3a[按任务数量拆分流]
     SA3a --> SA3b[刷新物理流 ID]
     SA3b --> SA3c[更新 StreamActive 节点]
@@ -468,16 +468,16 @@ flowchart TD
     MA1 --> MA2[AssignVarMemory: 变量内存]
     MA2 --> MA3[HybridMemAssigner: 混合内存分配]
     MA3 --> MA4[BlockMemAssigner: 块内存分配]
-    
+
     MA4 --> MA4a[分析张量生命周期]
     MA4a --> MA4b[构建内存块复用图]
     MA4b --> MA4c[分配偏移量]
-    
+
     MA1 --> MA5[AssignZeroCopyMemory: 零拷贝内存]
     MA1 --> MA6[ReAssignContinuousMemory: 连续内存]
     MA1 --> MA7[AssignReferenceMemory: 引用内存]
     MA1 --> MA8[SetAtomicCleanOffset: 原子清零]
-    
+
     MA --> MA9[SetInputOffset: 设置输入偏移]
     MA --> MA10[CheckOffset: 偏移校验]
 ```

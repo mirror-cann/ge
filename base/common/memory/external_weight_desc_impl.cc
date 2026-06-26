@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -49,8 +49,9 @@ AscendString ExternalWeightDesc::ExternalWeightDescData::GetId() const {
   return id_;
 }
 
-void ExternalWeightDesc::ExternalWeightDescData::SetLocationSizeOffsetId(const AscendString &location, const size_t size,
-                                                   const size_t offset, const AscendString &id) {
+void ExternalWeightDesc::ExternalWeightDescData::SetLocationSizeOffsetId(const AscendString &location,
+                                                                         const size_t size, const size_t offset,
+                                                                         const AscendString &id) {
   location_ = location;
   size_ = size;
   offset_ = offset;
@@ -58,7 +59,7 @@ void ExternalWeightDesc::ExternalWeightDescData::SetLocationSizeOffsetId(const A
 }
 
 ExternalWeightDescPtr ExternalWeightDesc::Builder::Build(const AscendString &location, const size_t size,
-                                                   const size_t offset, const AscendString &id) {
+                                                         const size_t offset, const AscendString &id) {
   ExternalWeightDescPtr external_weight_desc(new (std::nothrow) ExternalWeightDesc());
   GE_ASSERT_NOTNULL(external_weight_desc);
 
@@ -67,4 +68,4 @@ ExternalWeightDescPtr ExternalWeightDesc::Builder::Build(const AscendString &loc
   external_weight_desc->data_->SetLocationSizeOffsetId(location, size, offset, id);
   return external_weight_desc;
 }
-} // namespace ge
+}  // namespace ge

@@ -31,8 +31,7 @@ class DAGGraph {
   std::shared_ptr<DAGNode> AddNode(const std::string &name, const std::string &type);
   std::shared_ptr<DAGNode> FindNode(const std::string &name) const;
   std::vector<std::shared_ptr<DAGNode>> GetAllNodes() const;
-  graphStatus AddEdge(std::shared_ptr<DAGNode> src, int32_t src_port,
-                      std::shared_ptr<DAGNode> dst, int32_t dst_port);
+  graphStatus AddEdge(std::shared_ptr<DAGNode> src, int32_t src_port, std::shared_ptr<DAGNode> dst, int32_t dst_port);
   std::vector<std::shared_ptr<DAGEdge>> GetAllEdges() const;
   void SetDeviceResource(const DeviceResourceInfo &resource);
   const DeviceResourceInfo &GetDeviceResource() const;

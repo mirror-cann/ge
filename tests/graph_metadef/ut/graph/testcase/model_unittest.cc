@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,23 +30,20 @@ namespace ge {
 namespace {
 constexpr size_t kSmallBufferSize = 32UL;
 constexpr size_t kLargeBufferSize = 536870912U;
-class SubModel : public Model
-{
-public:
-
+class SubModel : public Model {
+ public:
   SubModel();
   SubModel(const std::string &name, const std::string &custom_version);
 
   virtual ~SubModel();
-
 };
 
-SubModel::SubModel(){}
-SubModel::SubModel(const std::string &name, const std::string &custom_version):Model(name,custom_version){}
+SubModel::SubModel() {}
+SubModel::SubModel(const std::string &name, const std::string &custom_version) : Model(name, custom_version) {}
 
 SubModel::~SubModel() = default;
 
-}
+}  // namespace
 
 static Model BuildModelWithConst(bool large_weight) {
   Model model("model_name/main_model", "custom version3.0");
@@ -118,32 +115,32 @@ class ModelUt : public testing::Test {};
 TEST_F(ModelUt, SetGet) {
   auto md = SubModel();
   auto md2 = SubModel("md2", "test");
-  EXPECT_EQ(md.GetName(),"");
+  EXPECT_EQ(md.GetName(), "");
   md.SetName("tt");
-  EXPECT_EQ(md.GetName(),"tt");
-  EXPECT_EQ(md2.GetName(),"md2");
+  EXPECT_EQ(md.GetName(), "tt");
+  EXPECT_EQ(md2.GetName(), "md2");
   md2.SetName("md2tt");
-  EXPECT_EQ(md2.GetName(),"md2tt");
-  EXPECT_EQ(md.GetVersion(),0);
-  EXPECT_EQ(md2.GetVersion(),0);
-  EXPECT_EQ(md2.GetPlatformVersion(),"test");
+  EXPECT_EQ(md2.GetName(), "md2tt");
+  EXPECT_EQ(md.GetVersion(), 0);
+  EXPECT_EQ(md2.GetVersion(), 0);
+  EXPECT_EQ(md2.GetPlatformVersion(), "test");
 
   auto graph = BuildGraph();
-  EXPECT_EQ(graph.IsValid(),true);
+  EXPECT_EQ(graph.IsValid(), true);
   md2.SetGraph(GraphUtilsEx::GetComputeGraph(graph));
   auto g = md2.GetGraph();
   EXPECT_NE(&g, nullptr);
   Buffer buf = Buffer(1024);
-  EXPECT_EQ(buf.GetSize(),1024);
-  EXPECT_EQ(md2.IsValid(),true);
+  EXPECT_EQ(buf.GetSize(), 1024);
+  EXPECT_EQ(md2.IsValid(), true);
   ProtoAttrMap attr = AttrStore::Create(512);
   AttrId id = 1;
   int val = 100;
   attr.Set<int>(id, val);
-  const int* v = attr.Get<int>(id);
-  EXPECT_EQ(*v,val);
+  const int *v = attr.Get<int>(id);
+  EXPECT_EQ(*v, val);
   md2.SetAttr(attr);
-  EXPECT_EQ(md2.Save(buf,true), GRAPH_SUCCESS);
+  EXPECT_EQ(md2.Save(buf, true), GRAPH_SUCCESS);
 }
 
 TEST_F(ModelUt, Load) {
@@ -151,30 +148,24 @@ TEST_F(ModelUt, Load) {
   auto graph = BuildGraph();
   md.SetGraph(GraphUtilsEx::GetComputeGraph(graph));
   uint8_t b[5];
-  memset(b,1,5);
-  EXPECT_EQ(md.Load((const uint8_t*)b, 5, md),GRAPH_FAILED);
+  memset(b, 1, 5);
+  EXPECT_EQ(md.Load((const uint8_t *)b, 5, md), GRAPH_FAILED);
 
-  std::string msg = "package lm;\nmessage helloworld{\nrequired int32     id = 1;\nrequired string    str = 2;\noptional int32     opt = 3;}";
+  std::string msg =
+      "package lm;\nmessage helloworld{\nrequired int32     id = 1;\nrequired string    str = 2;\noptional int32     "
+      "opt = 3;}";
   std::ofstream outfile;
   outfile.open("./test_load.proto");
   outfile << msg;
   EXPECT_EQ(md.LoadFromFile("./test_load.proto"), GRAPH_SUCCESS);
   system("rm -rf ./test_load.proto");
   outfile.close();
-
 }
 
 TEST_F(ModelUt, Save) {
-  EXPECT_NO_THROW(
-    auto md = SubModel("md2", "test");
-    auto graph = BuildGraph();
-    md.SetGraph(GraphUtilsEx::GetComputeGraph(graph));
-    std::stringstream ss;
-    ss << "./test_save.proto";
-    md.SaveToFile(ss.str());
-    std::string cmd = "rm -rf " + ss.str();
-    system(cmd.c_str());
-  );
+  EXPECT_NO_THROW(auto md = SubModel("md2", "test"); auto graph = BuildGraph();
+                  md.SetGraph(GraphUtilsEx::GetComputeGraph(graph)); std::stringstream ss; ss << "./test_save.proto";
+                  md.SaveToFile(ss.str()); std::string cmd = "rm -rf " + ss.str(); system(cmd.c_str()););
 }
 
 TEST_F(ModelUt, Save_Failure) {
@@ -183,7 +174,7 @@ TEST_F(ModelUt, Save_Failure) {
   md.SetGraph(GraphUtilsEx::GetComputeGraph(graph));
   std::stringstream fn;
   fn << "/tmp/";
-  for (int i = 0; i < 4096; i++){
+  for (int i = 0; i < 4096; i++) {
     fn << "a";
   }
   fn << ".proto";
@@ -195,23 +186,23 @@ TEST_F(ModelUt, Load_Longname) {
   auto md = SubModel("md2", "test");
   std::stringstream fn;
   fn << "/tmp/";
-  for (int i = 0; i < 4096; i++){
+  for (int i = 0; i < 4096; i++) {
     fn << "a";
   }
   fn << ".proto";
-  EXPECT_EQ(md.LoadFromFile(fn.str()),GRAPH_FAILED);
+  EXPECT_EQ(md.LoadFromFile(fn.str()), GRAPH_FAILED);
 }
 
 TEST_F(ModelUt, Load_Nonfilename) {
   auto md = SubModel("md2", "test");
-  EXPECT_EQ(md.LoadFromFile("/tmp/non-exsit"),GRAPH_FAILED);
+  EXPECT_EQ(md.LoadFromFile("/tmp/non-exsit"), GRAPH_FAILED);
 }
 
 TEST_F(ModelUt, SaveLargeModelWithoutSeparate) {
   auto md = BuildModelWithLargeConst();
   Buffer buf = Buffer(1024);
-  EXPECT_EQ(buf.GetSize(),1024);
-  EXPECT_EQ(md.IsValid(),true);
+  EXPECT_EQ(buf.GetSize(), 1024);
+  EXPECT_EQ(md.IsValid(), true);
   EXPECT_EQ(md.SaveWithoutSeparate(buf), GRAPH_FAILED);
 }
 
@@ -241,7 +232,7 @@ TEST_F(ModelUt, SaveLargeModelWithRealPath) {
       ASSERT_EQ((buff == nullptr), false);
       ASSERT_EQ(buff[0], 7);
       ASSERT_EQ(buff[10], 8);
-      ASSERT_EQ(buff[kLargeBufferSize - 2], 9); // value is ok for def serialize
+      ASSERT_EQ(buff[kLargeBufferSize - 2], 9);  // value is ok for def serialize
     }
   }
   auto sub_graph = com_graph1->GetSubgraph("sub_graph");
@@ -275,7 +266,7 @@ TEST_F(ModelUt, SaveLargeModelWithRelatedPath) {
       ASSERT_EQ((buff == nullptr), false);
       ASSERT_EQ(buff[0], 7);
       ASSERT_EQ(buff[10], 8);
-      ASSERT_EQ(buff[kLargeBufferSize - 2], 9); // value is ok for def serialize
+      ASSERT_EQ(buff[kLargeBufferSize - 2], 9);  // value is ok for def serialize
     }
   }
   auto sub_graph = com_graph1->GetSubgraph("sub_graph");
@@ -320,7 +311,7 @@ TEST_F(ModelUt, SaveLargeModelSeparateWithRelatedPath) {
       ASSERT_EQ((buff == nullptr), false);
       ASSERT_EQ(buff[0], 7);
       ASSERT_EQ(buff[10], 8);
-      ASSERT_EQ(buff[kSmallBufferSize - 2], 9); // value is ok for def serialize
+      ASSERT_EQ(buff[kSmallBufferSize - 2], 9);  // value is ok for def serialize
     }
   }
   auto sub_graph = com_graph1->GetSubgraph("sub_graph");
@@ -356,7 +347,7 @@ TEST_F(ModelUt, SaveLargeModelWithRelatedPath2) {
       ASSERT_EQ((buff == nullptr), false);
       ASSERT_EQ(buff[0], 7);
       ASSERT_EQ(buff[10], 8);
-      ASSERT_EQ(buff[kLargeBufferSize - 2], 9); // value is ok for def serialize
+      ASSERT_EQ(buff[kLargeBufferSize - 2], 9);  // value is ok for def serialize
     }
   }
   auto sub_graph = com_graph1->GetSubgraph("sub_graph");
@@ -390,7 +381,7 @@ TEST_F(ModelUt, SaveLargeModelWithRelatedPath3) {
       ASSERT_EQ((buff == nullptr), false);
       ASSERT_EQ(buff[0], 7);
       ASSERT_EQ(buff[10], 8);
-      ASSERT_EQ(buff[kLargeBufferSize - 2], 9); // value is ok for def serialize
+      ASSERT_EQ(buff[kLargeBufferSize - 2], 9);  // value is ok for def serialize
     }
   }
   auto sub_graph = com_graph1->GetSubgraph("sub_graph");

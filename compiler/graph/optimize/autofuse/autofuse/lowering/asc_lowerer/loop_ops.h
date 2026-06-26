@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,7 +26,6 @@
 #include "loop_common.h"
 #include "loop_op_overrides.h"
 #include "../op_helper/cube.h"
-
 
 namespace ge {
 namespace loop {
@@ -102,7 +101,7 @@ class LoopOp {
   }
 
   [[nodiscard]] virtual bool InferDataType(const std::vector<DataType> &input_dtypes,
-                                             std::vector<DataType> &expect_output_dtypes) const = 0;
+                                           std::vector<DataType> &expect_output_dtypes) const = 0;
 
   [[nodiscard]] virtual ge::NodePtr GetAscendIrNode() const {
     return nullptr;
@@ -122,6 +121,7 @@ class LoopOp {
     }
     return op;
   }
+
  protected:
   graphStatus Realize() {
     return RealizeImpl();
@@ -152,6 +152,7 @@ class LoopVar {
   LoopVar Clone() const {
     return op_ ? LoopVar(op_->Clone()) : LoopVar();
   }
+
  private:
   LoopOpPtr op_;
 };
@@ -187,7 +188,7 @@ class PointwiseOp : public LoopOp {
   };
 
   [[nodiscard]] bool InferDataType(const std::vector<DataType> &input_dtypes,
-                                     std::vector<DataType> &expect_output_dtypes) const override;
+                                   std::vector<DataType> &expect_output_dtypes) const override;
 
  private:
   std::string ReadableLine(const std::vector<std::string> &var_names) const override {
@@ -243,7 +244,8 @@ class LoadOp : public LoopOp {
   };
 
   [[nodiscard]] bool InferDataType(const std::vector<DataType> &input_dtypes,
-                                         std::vector<DataType> &expect_output_dtypes) const override;
+                                   std::vector<DataType> &expect_output_dtypes) const override;
+
  private:
   const ge::OutDataAnchor *src_;
   const ge::InDataAnchor *dst_;
@@ -257,8 +259,14 @@ struct GatherInput {
 class LoadGatherOp : public LoopOp {
  public:
   explicit LoadGatherOp(const ge::OutDataAnchor *dst, const std::vector<ge::OutDataAnchorPtr> &outputs,
-                        std::vector<GatherInput> inputs, std::vector<Expression> dims, int64_t axis, bool negative_index_support)
-      : dst_(dst), outputs_(outputs), ginputs_(inputs), dims_(dims), axis_(axis), negative_index_support_(negative_index_support) {}
+                        std::vector<GatherInput> inputs, std::vector<Expression> dims, int64_t axis,
+                        bool negative_index_support)
+      : dst_(dst),
+        outputs_(outputs),
+        ginputs_(inputs),
+        dims_(dims),
+        axis_(axis),
+        negative_index_support_(negative_index_support) {}
 
   [[nodiscard]] CseVar Compute(const LoopCtx &ctx) const override;
 
@@ -294,10 +302,10 @@ class LoadGatherOp : public LoopOp {
   }
 
   [[nodiscard]] bool InferDataType(const std::vector<DataType> &input_dtypes,
-                                     std::vector<DataType> &expect_output_dtypes) const override;
+                                   std::vector<DataType> &expect_output_dtypes) const override;
 
-  [[nodiscard]] vector<const ge::OutDataAnchor*> Buffers() const {
-    vector<const OutDataAnchor*> buffers;
+  [[nodiscard]] vector<const ge::OutDataAnchor *> Buffers() const {
+    vector<const OutDataAnchor *> buffers;
     for (const auto &output : outputs_) {
       buffers.push_back(output.get());
     }
@@ -312,7 +320,7 @@ class LoadGatherOp : public LoopOp {
     return edges;
   }
 
-private:
+ private:
   [[nodiscard]] std::string Buffer() const {
     if (!dst_ || !dst_->GetOwnerNode()) {
       return "Invalid dst_";
@@ -366,7 +374,7 @@ class StoreOp : public LoopOp {
   graphStatus RealizeImpl() override;
 
   [[nodiscard]] bool InferDataType(const std::vector<DataType> &input_dtypes,
-                                     std::vector<DataType> &expect_output_dtypes) const override;
+                                   std::vector<DataType> &expect_output_dtypes) const override;
 
  private:
   ge::OutDataAnchor *dst_;
@@ -449,7 +457,7 @@ class StoreReductionOp : public ReductionBaseOp {
   graphStatus RealizeImpl() override;
 
   [[nodiscard]] bool InferDataType(const std::vector<DataType> &input_dtypes,
-                                     std::vector<DataType> &expect_output_dtypes) const override;
+                                   std::vector<DataType> &expect_output_dtypes) const override;
 
  private:
   [[nodiscard]] std::string Buffer() const {
@@ -509,7 +517,7 @@ class StoreConcatOp : public LoopOp {
   graphStatus RealizeImpl() override;
 
   [[nodiscard]] bool InferDataType(const std::vector<DataType> &input_dtypes,
-                                     std::vector<DataType> &expect_output_dtypes) const override;
+                                   std::vector<DataType> &expect_output_dtypes) const override;
 
  private:
   [[nodiscard]] std::string Buffer() const {
@@ -551,7 +559,7 @@ class ReduceThenBroadcastOp : public ReductionBaseOp {
   }
 
   [[nodiscard]] bool InferDataType(const std::vector<DataType> &input_dtypes,
-                                     std::vector<DataType> &expect_output_dtypes) const override;
+                                   std::vector<DataType> &expect_output_dtypes) const override;
 
  private:
   ReduceType reduce_type_;
@@ -583,7 +591,7 @@ class ScalarOp : public LoopOp {
   }
 
   [[nodiscard]] bool InferDataType(const std::vector<DataType> &input_dtypes,
-                                     std::vector<DataType> &expect_output_dtypes) const override;
+                                   std::vector<DataType> &expect_output_dtypes) const override;
 
  private:
   std::string face_;
@@ -626,7 +634,7 @@ class BroadcastOp : public LoopOp {
   [[nodiscard]] std::string ReadableLine(const std::vector<std::string> &var_names) const override;
 
   [[nodiscard]] bool InferDataType(const std::vector<DataType> &input_dtypes,
-                                     std::vector<DataType> &expect_output_dtypes) const override;
+                                   std::vector<DataType> &expect_output_dtypes) const override;
 
  private:
   std::vector<DimKind> broadcast_;
@@ -640,7 +648,7 @@ class PermuteOp : public LoopOp {
     std::vector<size_t> neworder = order_;
     for (size_t i = 0; i < neworder.size(); i++) {
       for (size_t j = 0; j < order_.size(); j++) {
-        if(order_[j] == i) {
+        if (order_[j] == i) {
           neworder[i] = j;
         }
       }
@@ -682,7 +690,7 @@ class PermuteOp : public LoopOp {
   }
 
   [[nodiscard]] bool InferDataType(const std::vector<DataType> &input_dtypes,
-                                     std::vector<DataType> &expect_output_dtypes) const override {
+                                   std::vector<DataType> &expect_output_dtypes) const override {
     if (!input_dtypes.empty()) {
       expect_output_dtypes.emplace_back(input_dtypes[0]);
     }
@@ -718,7 +726,7 @@ class SqueezeOp : public LoopOp {
   }
 
   [[nodiscard]] bool InferDataType(const std::vector<DataType> &input_dtypes,
-                                     std::vector<DataType> &expect_output_dtypes) const override {
+                                   std::vector<DataType> &expect_output_dtypes) const override {
     if (!input_dtypes.empty()) {
       expect_output_dtypes.emplace_back(input_dtypes[0]);
     }
@@ -767,7 +775,7 @@ class UnsqueezeOp : public LoopOp {
   };
 
   [[nodiscard]] bool InferDataType(const std::vector<DataType> &input_dtypes,
-                                     std::vector<DataType> &expect_output_dtypes) const override {
+                                   std::vector<DataType> &expect_output_dtypes) const override {
     if (!input_dtypes.empty()) {
       expect_output_dtypes.emplace_back(input_dtypes[0]);
     }
@@ -785,14 +793,14 @@ class UnsqueezeOp : public LoopOp {
 };
 
 struct StrideSliceParam {
-  StrideSliceParam(std::vector<Expression> starts, std::vector<Expression> strides) :
-  begin(std::move(starts)), strides(std::move(strides)) {};
+  StrideSliceParam(std::vector<Expression> starts, std::vector<Expression> strides)
+      : begin(std::move(starts)), strides(std::move(strides)) {};
   std::vector<Expression> begin;
   std::vector<Expression> strides;
 };
 
 class StoreStridedSliceOp : public LoopOp {
-public:
+ public:
   explicit StoreStridedSliceOp(const ge::OutDataAnchorPtr &dst, LoopOpPtr src, StrideSliceParam param,
                                std::vector<Expression> dims, std::vector<Expression> input_dims)
       : LoopOp(std::move(src)),
@@ -834,14 +842,14 @@ public:
   }
 
   [[nodiscard]] bool InferDataType(const std::vector<DataType> &input_dtypes,
-                                     std::vector<DataType> &expect_output_dtypes) const override {
+                                   std::vector<DataType> &expect_output_dtypes) const override {
     if (!input_dtypes.empty()) {
       expect_output_dtypes.emplace_back(input_dtypes[0]);
     }
     return true;
   }
 
-private:
+ private:
   [[nodiscard]] std::string Buffer() const {
     return dst_->GetOwnerNode()->GetName() + ":" + std::to_string(dst_->GetIdx());
   }
@@ -853,7 +861,7 @@ private:
 };
 
 class StoreSplitOp : public LoopOp {
-public:
+ public:
   constexpr static size_t kSplitCanFuseMaxOutput = 512U;
   constexpr static size_t kSplitCanLowerEndDimMaxOutput = 48U;
   struct StoreSplitDesc {
@@ -863,64 +871,62 @@ public:
     std::vector<std::vector<Expression>> output_dims_;
     std::vector<Expression> input_dims_;
     size_t split_dim_;
-    uint32_t index_;   // lowering后的StoreSplitOp对应的OutDataAnchor ID
+    uint32_t index_;                 // lowering后的StoreSplitOp对应的OutDataAnchor ID
     inline static uint32_t id_ = 0;  // lowering前的SplitOp的唯一索引号
 
     // 私有构造函数，禁止直接构造
     StoreSplitDesc() = default;
     friend class StoreSplitDescBuilder;
   };
-    // Builder 类
-    class StoreSplitDescBuilder {
-    private:
-      StoreSplitDesc desc_;
+  // Builder 类
+  class StoreSplitDescBuilder {
+   private:
+    StoreSplitDesc desc_;
 
-    public:
-      StoreSplitDescBuilder& Output(const ge::OutDataAnchorPtr& output) {
-        desc_.output_ = output;
-        return *this;
-      }
+   public:
+    StoreSplitDescBuilder &Output(const ge::OutDataAnchorPtr &output) {
+      desc_.output_ = output;
+      return *this;
+    }
 
-      StoreSplitDescBuilder& SrcOp(const LoopOpPtr& src_op) {
-        desc_.src_op_ = src_op;
-        return *this;
-      }
+    StoreSplitDescBuilder &SrcOp(const LoopOpPtr &src_op) {
+      desc_.src_op_ = src_op;
+      return *this;
+    }
 
-      StoreSplitDescBuilder& OutputDims(const std::vector<std::vector<Expression>>& output_dims) {
-        desc_.output_dims_ = output_dims;
-        return *this;
-      }
+    StoreSplitDescBuilder &OutputDims(const std::vector<std::vector<Expression>> &output_dims) {
+      desc_.output_dims_ = output_dims;
+      return *this;
+    }
 
-      StoreSplitDescBuilder& InputDims(const std::vector<Expression>& input_dims) {
-        desc_.input_dims_ = input_dims;
-        return *this;
-      }
+    StoreSplitDescBuilder &InputDims(const std::vector<Expression> &input_dims) {
+      desc_.input_dims_ = input_dims;
+      return *this;
+    }
 
-      StoreSplitDescBuilder& SplitDim(size_t split_dim) {
-        desc_.split_dim_ = split_dim;
-        return *this;
-      }
+    StoreSplitDescBuilder &SplitDim(size_t split_dim) {
+      desc_.split_dim_ = split_dim;
+      return *this;
+    }
 
-      StoreSplitDescBuilder& Index(uint32_t index) {
-        desc_.index_ = index;
-        return *this;
-      }
+    StoreSplitDescBuilder &Index(uint32_t index) {
+      desc_.index_ = index;
+      return *this;
+    }
 
-      // 构建并返回 StoreSplitDesc 实例
-      StoreSplitDesc Build() {
-        // 构造时自增 id，仅在 idx_ == 0 时
-        if (desc_.index_ == 0) {
-          desc_.id_++;
-        }
-        std::stringstream ss;
-        ss << "StoreSplitDesc(original split global id: " << desc_.id_
-           << ", index: " << desc_.index_
-           << ", split_dim: " << desc_.split_dim_
-           << ")";
-        GELOGD("StoreSplitDesc: %s",ss.str().c_str());
-        return desc_;
+    // 构建并返回 StoreSplitDesc 实例
+    StoreSplitDesc Build() {
+      // 构造时自增 id，仅在 idx_ == 0 时
+      if (desc_.index_ == 0) {
+        desc_.id_++;
       }
-    };
+      std::stringstream ss;
+      ss << "StoreSplitDesc(original split global id: " << desc_.id_ << ", index: " << desc_.index_
+         << ", split_dim: " << desc_.split_dim_ << ")";
+      GELOGD("StoreSplitDesc: %s", ss.str().c_str());
+      return desc_;
+    }
+  };
   explicit StoreSplitOp(const StoreSplitDesc &desc)
       : LoopOp(std::move(desc.src_op_)),
         input_dims_(std::move(desc.input_dims_)),
@@ -928,14 +934,14 @@ public:
         output_(desc.output_),
         split_dim_(desc.split_dim_),
         idx_(desc.index_),
-        id_(desc.id_){}
+        id_(desc.id_) {}
 
   [[nodiscard]] CseVar Compute(const LoopCtx &ctx) const override {
     CseVar split_input = ctx.Get(inputs_[0]);
     std::string target = BufferName(output_);
     Ops()->SetBufferSrc(target, output_.get());
-    TensorLoopDesc output_desc(dims_[idx_],ContiguousStrides(dims_[idx_]));
-    Ops()->StoreSplit(target,split_input, output_desc,Symbol(0),idx_,id_);
+    TensorLoopDesc output_desc(dims_[idx_], ContiguousStrides(dims_[idx_]));
+    Ops()->StoreSplit(target, split_input, output_desc, Symbol(0), idx_, id_);
     return ctx.Get(inputs_[0]);
   }
 
@@ -945,7 +951,7 @@ public:
   }
 
   [[nodiscard]] graphStatus ReIndex(const Index &index, Index &reindex) const override {
-    reindex=index;
+    reindex = index;
     return GRAPH_SUCCESS;
   }
 
@@ -959,12 +965,11 @@ public:
   [[nodiscard]] std::string ReadableLine(const std::vector<std::string> &var_names) const override {
     std::stringstream ss;
     std::vector<std::string> wrapped_outputs;
-    ss << Type() << "(" ;
+    ss << Type() << "(";
     std::ostringstream oss;
-    oss << "\"" << output_->GetOwnerNode()->GetName()
-        << ":" << output_->GetIdx() << "\"";
+    oss << "\"" << output_->GetOwnerNode()->GetName() << ":" << output_->GetIdx() << "\"";
     wrapped_outputs.push_back(oss.str());
-    ss << loop::StrJoin(wrapped_outputs) <<", " ;
+    ss << loop::StrJoin(wrapped_outputs) << ", ";
     ss << loop::StrJoin(var_names) << ", split_dim=" << split_dim_ << ")";
     return ss.str();
   }
@@ -974,17 +979,17 @@ public:
   }
 
   [[nodiscard]] bool InferDataType(const std::vector<DataType> &input_dtypes,
-                                     std::vector<DataType> &expect_output_dtypes) const override {
+                                   std::vector<DataType> &expect_output_dtypes) const override {
     if (!input_dtypes.empty()) {
-      constexpr uint32_t ref_index=0;
+      constexpr uint32_t ref_index = 0;
       expect_output_dtypes.emplace_back(input_dtypes[ref_index]);
     }
     return true;
   }
 
-private:
+ private:
   [[nodiscard]] std::string Buffer() const {
-    auto dst_=output_;
+    auto dst_ = output_;
     return dst_->GetOwnerNode()->GetName() + ":" + std::to_string(dst_->GetIdx());
   }
 
@@ -1092,7 +1097,7 @@ class StoreConv2DOp : public LoopOp {
     const std::string target = BufferName(dst_);
     Ops()->SetBufferSrc(target, dst_);
     auto result = Ops()->StoreConv2D(target, conv_inputs, TensorLoopDesc(dims_, ContiguousStrides(dims_)), attrs_,
-                              {attrs_.output_dtype});
+                                     {attrs_.output_dtype});
     return result;
   }
 
@@ -1197,11 +1202,12 @@ class ReshapeOp : public LoopOp {
 
   [[nodiscard]] std::string ReadableLine(const std::vector<std::string> &var_names) const override {
     std::stringstream ss;
-    ss << Type() << "(" << var_names[0] << ", " << loop::StrJoin(src_dims_).c_str() << " -> " << loop::StrJoin(dst_dims_).c_str() << ")";
+    ss << Type() << "(" << var_names[0] << ", " << loop::StrJoin(src_dims_).c_str() << " -> "
+       << loop::StrJoin(dst_dims_).c_str() << ")";
     return ss.str();
   }
 
-private:
+ private:
   std::vector<Expression> src_dims_;
   std::vector<Expression> dst_dims_;
   size_t short_idx_;
@@ -1246,7 +1252,7 @@ class StoreReshapeOp : public LoopOp {
   graphStatus RealizeImpl() override;
 
   [[nodiscard]] bool InferDataType(const std::vector<DataType> &input_dtypes,
-                                     std::vector<DataType> &expect_output_dtypes) const override {
+                                   std::vector<DataType> &expect_output_dtypes) const override {
     if (!input_dtypes.empty()) {
       expect_output_dtypes.emplace_back(input_dtypes[0]);
     }

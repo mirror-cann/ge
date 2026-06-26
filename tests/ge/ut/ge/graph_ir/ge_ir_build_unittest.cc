@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -61,7 +61,7 @@ const string kOpMasterPath = "/op_impl/ai_core/tbe/op_tiling/lib/linux/x86_64/";
 using namespace ge;
 
 namespace ge {
-  extern graphStatus CheckVarDesc(const vector<ge::GraphWithOptions> &graph_and_options, const uint64_t session_id);
+extern graphStatus CheckVarDesc(const vector<ge::GraphWithOptions> &graph_and_options, const uint64_t session_id);
 ge::graphStatus StubInferShape(ge::Operator &op) {
   auto x_input_desc = op.GetInputDesc(0);
   auto x_shape = x_input_desc.GetShape().GetDims();
@@ -89,7 +89,7 @@ ge::graphStatus GetShapeInferShape(ge::Operator &op) {
   op.SetAttr("_op_export_shape_engine", export_shape_engine);
   return ge::GRAPH_SUCCESS;
 }
-}
+}  // namespace ge
 class UtestIrCommon : public testing::Test {
  protected:
   void SetUp() {}
@@ -130,7 +130,7 @@ static ComputeGraphPtr BuildComputeGraph() {
 
   builder.AddDataEdge(data1, 0, addn1, 0);
   builder.AddDataEdge(data2, 0, addn1, 1);
-  builder.AddDataEdge(addn1, 0,netoutput, 0);
+  builder.AddDataEdge(addn1, 0, netoutput, 0);
 
   return builder.GetGraph();
 }
@@ -140,13 +140,13 @@ static ComputeGraphPtr BuildComputeGraph1() {
   auto data1 = builder.AddNode("input1", DATA, 1, 1, FORMAT_NCHW, DT_FLOAT, {1, 2, 3});
   auto data2 = builder.AddNode("input2", DATA, 1, 1, FORMAT_NCHW, DT_FLOAT, {4, 10});
   auto addn1 = builder.AddNode("addn1", AddNYes, 2, 1);
-  auto node1 = builder.AddNode("addd", "Mul", 2, 1);
+  auto node1 = builder.AddNode("add", "Mul", 2, 1);
   auto node2 = builder.AddNode("ffm", "FrameworkOp", 2, 1);
   auto netoutput = builder.AddNode("netoutput", NETOUTPUT, 1, 0);
 
   builder.AddDataEdge(data1, 0, addn1, 0);
   builder.AddDataEdge(data2, 0, addn1, 1);
-  builder.AddDataEdge(addn1, 0,netoutput, 0);
+  builder.AddDataEdge(addn1, 0, netoutput, 0);
 
   return builder.GetGraph();
 }
@@ -168,7 +168,7 @@ static Graph BuildIrConstGraph1() {
 
   GeTensorPtr tensor = nullptr;
   float value_tmp[16] = {1.0};
-  tensor = std::make_shared<GeTensor>(weight_desc, (uint8_t *) (&value_tmp[0]), sizeof(value_tmp));
+  tensor = std::make_shared<GeTensor>(weight_desc, (uint8_t *)(&value_tmp[0]), sizeof(value_tmp));
   OpDescUtils::SetWeights(const_node_1, {tensor});
   OpDescUtils::SetWeights(const_node_2, {tensor});
 
@@ -219,12 +219,12 @@ static Graph BuildIrVariableGraph1() {
 }
 
 // data not set attr index;
-// but becasue of op proto, register attr index. so all data index is zero;
+// but because of op proto, register attr index. so all data index is zero;
 static Graph BuildIrGraph() {
   auto data1 = op::Data("data1");
   auto data2 = op::Data("data2");
   auto data3 = op::Data("data3");
-  std::vector<Operator> inputs {data1, data2, data3};
+  std::vector<Operator> inputs{data1, data2, data3};
   std::vector<Operator> outputs;
 
   Graph graph("test_graph");
@@ -238,7 +238,7 @@ static Graph BuildIrGraph1() {
   auto data2 = op::Data("data2").set_attr_index(1);
   auto data3 = op::Data("data3");
   auto data4 = op::Data("Test");
-  std::vector<Operator> inputs {data1, data2, data3, data4};
+  std::vector<Operator> inputs{data1, data2, data3, data4};
   std::vector<Operator> outputs;
 
   Graph graph("test_graph");
@@ -272,7 +272,7 @@ static Graph BuildIrGraph2() {
   auto data1 = op::Data("data1").set_attr_index(0);
   auto data2 = op::Data("data2");
   auto data3 = op::Data("data3").set_attr_index(2);
-  std::vector<Operator> inputs {data1, data2, data3};
+  std::vector<Operator> inputs{data1, data2, data3};
   std::vector<Operator> outputs;
 
   Graph graph("test_graph");
@@ -285,7 +285,7 @@ static Graph BuildIrGraph3() {
   auto data1 = op::Data("data1").set_attr_index(0);
   auto data2 = op::Data("data2").set_attr_index(1);
   auto data3 = op::Data("data3").set_attr_index(2);
-  std::vector<Operator> inputs {data1, data2, data3};
+  std::vector<Operator> inputs{data1, data2, data3};
   std::vector<Operator> outputs;
 
   Graph graph("test_graph");
@@ -316,7 +316,7 @@ static std::string ConstructOppEnv() {
 TEST(UtestIrCommon, update_data_op_shape) {
   ge::OpDescPtr op_desc = CreateOpDesc("Data", "Data");
   map<string, vector<int64_t>> shape_map;
-  shape_map["Data"] = {{1,2}};
+  shape_map["Data"] = {{1, 2}};
 
   Status ret = UpdateDataOpShape(op_desc, shape_map);
   EXPECT_EQ(ret, ge::SUCCESS);
@@ -327,7 +327,7 @@ TEST(UtestIrCommon, update_data_op_shape_range) {
   std::vector<std::vector<std::pair<int64_t, int64_t>>> index_shape_range_map;
 
   std::pair<int64_t, int64_t> range_pair(1, 2);
-  vector<pair<int64_t, int64_t>> range_pair_tmp = { range_pair };
+  vector<pair<int64_t, int64_t>> range_pair_tmp = {range_pair};
 
   index_shape_range_map.push_back(range_pair_tmp);
 
@@ -356,22 +356,22 @@ TEST(UtestIrCommon, update_dynamic_shape_range_failed) {
   ret = UpdateDynamicInputShapeRange(graph, input_shape_range);
   EXPECT_EQ(ret, ge::PARAM_INVALID);
 
-  //3
+  // 3
   input_shape_range = "input1:[1, 3~2, -1];input2:[3~5, 10]";
   ret = UpdateDynamicInputShapeRange(graph, input_shape_range);
   EXPECT_EQ(ret, ge::FAILED);
 
-  //4
+  // 4
   input_shape_range = "input1:[1, 2~-3, -1]";
   ret = UpdateDynamicInputShapeRange(graph, input_shape_range);
   EXPECT_EQ(ret, ge::PARAM_INVALID);
 
-  //5
+  // 5
   input_shape_range = "input:[1, 2~3, -1]";
   ret = UpdateDynamicInputShapeRange(graph, input_shape_range);
   EXPECT_EQ(ret, ge::PARAM_INVALID);
 
-  //6
+  // 6
   input_shape_range = "addn1:[1, 2~3, -1]";
   ret = UpdateDynamicInputShapeRange(graph, input_shape_range);
   EXPECT_EQ(ret, ge::PARAM_INVALID);
@@ -420,7 +420,6 @@ TEST(UtestIrCommon, check_dynamic_images_size_input_shape_succ) {
 
   Status ret = CheckDynamicImagesizeInputShapeValid(shape_map, input_format, dynamic_image_size);
   EXPECT_EQ(ret, ge::SUCCESS);
-
 }
 
 TEST(UtestIrCommon, check_dynamic_input_param_succ) {
@@ -432,8 +431,8 @@ TEST(UtestIrCommon, check_dynamic_input_param_succ) {
   string input_format = "NCHW";
   bool is_dynamic_input = false;
 
-  Status ret = CheckDynamicInputParamValid(dynamic_batch_size, dynamic_image_size, dynamic_dims,
-                                           input_shape, input_shape_range, input_format, is_dynamic_input);
+  Status ret = CheckDynamicInputParamValid(dynamic_batch_size, dynamic_image_size, dynamic_dims, input_shape,
+                                           input_shape_range, input_format, is_dynamic_input);
   EXPECT_EQ(ret, ge::SUCCESS);
 }
 
@@ -446,8 +445,8 @@ TEST(UtestIrCommon, check_dynamic_input_param_scalar_succ) {
   string input_format = "ND";
   bool is_dynamic_input = false;
 
-  Status ret = CheckDynamicInputParamValid(dynamic_batch_size, dynamic_image_size, dynamic_dims,
-                                           input_shape, input_shape_range, input_format, is_dynamic_input);
+  Status ret = CheckDynamicInputParamValid(dynamic_batch_size, dynamic_image_size, dynamic_dims, input_shape,
+                                           input_shape_range, input_format, is_dynamic_input);
   EXPECT_EQ(ret, ge::SUCCESS);
 }
 
@@ -457,8 +456,7 @@ TEST(UtestIrCommon, transfer_shape_to_range_succ) {
   string dynamic_dims;
   string input_shape = "data:-1,1~3,244,244;data1:1~2,3,2";
   string input_shape_range;
-  Status ret = CheckAndTransferInputShapeToRange(input_shape, input_shape_range,
-                                                 dynamic_batch_size, dynamic_image_size,
+  Status ret = CheckAndTransferInputShapeToRange(input_shape, input_shape_range, dynamic_batch_size, dynamic_image_size,
                                                  dynamic_dims);
   EXPECT_EQ(ret, ge::SUCCESS);
   EXPECT_TRUE(input_shape == "");
@@ -466,8 +464,7 @@ TEST(UtestIrCommon, transfer_shape_to_range_succ) {
 
   input_shape = "data1:-1,1,244,244;data2:-1,3,2";
   input_shape_range = "";
-  ret = CheckAndTransferInputShapeToRange(input_shape, input_shape_range,
-                                          dynamic_batch_size, dynamic_image_size,
+  ret = CheckAndTransferInputShapeToRange(input_shape, input_shape_range, dynamic_batch_size, dynamic_image_size,
                                           dynamic_dims);
   EXPECT_EQ(ret, ge::SUCCESS);
   EXPECT_TRUE(input_shape == "");
@@ -475,8 +472,7 @@ TEST(UtestIrCommon, transfer_shape_to_range_succ) {
 
   input_shape = "-1,1~3,244,244;1~2,3,2";
   input_shape_range = "";
-  ret = CheckAndTransferInputShapeToRange(input_shape, input_shape_range,
-                                          dynamic_batch_size, dynamic_image_size,
+  ret = CheckAndTransferInputShapeToRange(input_shape, input_shape_range, dynamic_batch_size, dynamic_image_size,
                                           dynamic_dims);
   EXPECT_EQ(ret, ge::SUCCESS);
   EXPECT_TRUE(input_shape == "");
@@ -484,8 +480,7 @@ TEST(UtestIrCommon, transfer_shape_to_range_succ) {
 
   input_shape = "2,244,244;1,3,2";
   input_shape_range = "";
-  ret = CheckAndTransferInputShapeToRange(input_shape, input_shape_range,
-                                          dynamic_batch_size, dynamic_image_size,
+  ret = CheckAndTransferInputShapeToRange(input_shape, input_shape_range, dynamic_batch_size, dynamic_image_size,
                                           dynamic_dims);
   EXPECT_EQ(ret, ge::SUCCESS);
   EXPECT_TRUE(input_shape == "2,244,244;1,3,2");
@@ -494,8 +489,7 @@ TEST(UtestIrCommon, transfer_shape_to_range_succ) {
   input_shape = "data:-1,1,244,244;data1:1,3,2";
   input_shape_range = "";
   dynamic_batch_size = "1";
-  ret = CheckAndTransferInputShapeToRange(input_shape, input_shape_range,
-                                          dynamic_batch_size, dynamic_image_size,
+  ret = CheckAndTransferInputShapeToRange(input_shape, input_shape_range, dynamic_batch_size, dynamic_image_size,
                                           dynamic_dims);
   EXPECT_EQ(ret, ge::SUCCESS);
   EXPECT_TRUE(input_shape == "data:-1,1,244,244;data1:1,3,2");
@@ -504,8 +498,7 @@ TEST(UtestIrCommon, transfer_shape_to_range_succ) {
   input_shape = "";
   input_shape_range = "data:[-1,1,244,244];data1:[1,3,2]";
   dynamic_batch_size = "";
-  ret = CheckAndTransferInputShapeToRange(input_shape, input_shape_range,
-                                          dynamic_batch_size, dynamic_image_size,
+  ret = CheckAndTransferInputShapeToRange(input_shape, input_shape_range, dynamic_batch_size, dynamic_image_size,
                                           dynamic_dims);
   EXPECT_EQ(ret, ge::SUCCESS);
   EXPECT_TRUE(input_shape == "");
@@ -513,50 +506,43 @@ TEST(UtestIrCommon, transfer_shape_to_range_succ) {
 
   input_shape = "data1;data2:-1,3,2";
   input_shape_range = "";
-  ret = CheckAndTransferInputShapeToRange(input_shape, input_shape_range,
-                                          dynamic_batch_size, dynamic_image_size,
+  ret = CheckAndTransferInputShapeToRange(input_shape, input_shape_range, dynamic_batch_size, dynamic_image_size,
                                           dynamic_dims);
   EXPECT_NE(ret, ge::SUCCESS);
 
   input_shape = "data1:;data2:-1,3,2";
   input_shape_range = "";
-  ret = CheckAndTransferInputShapeToRange(input_shape, input_shape_range,
-                                          dynamic_batch_size, dynamic_image_size,
+  ret = CheckAndTransferInputShapeToRange(input_shape, input_shape_range, dynamic_batch_size, dynamic_image_size,
                                           dynamic_dims);
   EXPECT_EQ(ret, ge::SUCCESS);
 
   input_shape = ":;data2:-1,3,2";
   input_shape_range = "";
-  ret = CheckAndTransferInputShapeToRange(input_shape, input_shape_range,
-                                          dynamic_batch_size, dynamic_image_size,
+  ret = CheckAndTransferInputShapeToRange(input_shape, input_shape_range, dynamic_batch_size, dynamic_image_size,
                                           dynamic_dims);
   EXPECT_NE(ret, ge::SUCCESS);
 
   input_shape = "data1 3*;data2,-1,3,2";
   input_shape_range = "";
-  ret = CheckAndTransferInputShapeToRange(input_shape, input_shape_range,
-                                          dynamic_batch_size, dynamic_image_size,
+  ret = CheckAndTransferInputShapeToRange(input_shape, input_shape_range, dynamic_batch_size, dynamic_image_size,
                                           dynamic_dims);
   EXPECT_NE(ret, ge::SUCCESS);
 
   input_shape = "data1:-1, 2, 3;data2:1~3, 3, 2";
   input_shape_range = "";
-  ret = CheckAndTransferInputShapeToRange(input_shape, input_shape_range,
-                                          dynamic_batch_size, dynamic_image_size,
+  ret = CheckAndTransferInputShapeToRange(input_shape, input_shape_range, dynamic_batch_size, dynamic_image_size,
                                           dynamic_dims);
   EXPECT_EQ(ret, ge::SUCCESS);
 
   input_shape = "data1:3*;data2:-1,3, 2data";
   input_shape_range = "";
-  ret = CheckAndTransferInputShapeToRange(input_shape, input_shape_range,
-                                          dynamic_batch_size, dynamic_image_size,
+  ret = CheckAndTransferInputShapeToRange(input_shape, input_shape_range, dynamic_batch_size, dynamic_image_size,
                                           dynamic_dims);
   EXPECT_NE(ret, ge::SUCCESS);
 
   input_shape = "data1:-1,1,244,244;data2:-1,3,2";
   input_shape_range = "data1:[-1,1,244,244];data2:[-1,3,2]";
-  ret = CheckAndTransferInputShapeToRange(input_shape, input_shape_range,
-                                          dynamic_batch_size, dynamic_image_size,
+  ret = CheckAndTransferInputShapeToRange(input_shape, input_shape_range, dynamic_batch_size, dynamic_image_size,
                                           dynamic_dims);
   EXPECT_EQ(ret, ge::SUCCESS);
   EXPECT_TRUE(input_shape == "");
@@ -565,16 +551,14 @@ TEST(UtestIrCommon, transfer_shape_to_range_succ) {
   input_shape = "data2:1~3,3,2";
   input_shape_range = "";
   dynamic_batch_size = "1,2,3";
-  ret = CheckAndTransferInputShapeToRange(input_shape, input_shape_range,
-                                          dynamic_batch_size, dynamic_image_size,
+  ret = CheckAndTransferInputShapeToRange(input_shape, input_shape_range, dynamic_batch_size, dynamic_image_size,
                                           dynamic_dims);
   EXPECT_NE(ret, ge::SUCCESS);
 
   input_shape = "data2:-1,3,2";
   input_shape_range = "";
   dynamic_batch_size = "1,2,3";
-  ret = CheckAndTransferInputShapeToRange(input_shape, input_shape_range,
-                                          dynamic_batch_size, dynamic_image_size,
+  ret = CheckAndTransferInputShapeToRange(input_shape, input_shape_range, dynamic_batch_size, dynamic_image_size,
                                           dynamic_dims);
   EXPECT_EQ(ret, ge::SUCCESS);
 }
@@ -588,8 +572,8 @@ TEST(UtestIrCommon, check_dynamic_input_param_failed) {
   string input_format = "NCHW";
   bool is_dynamic_input = false;
 
-  Status ret = CheckDynamicInputParamValid(dynamic_batch_size, dynamic_image_size, dynamic_dims,
-                                           input_shape, input_shape_range, input_format,is_dynamic_input);
+  Status ret = CheckDynamicInputParamValid(dynamic_batch_size, dynamic_image_size, dynamic_dims, input_shape,
+                                           input_shape_range, input_format, is_dynamic_input);
   EXPECT_EQ(ret, ge::PARAM_INVALID);
 }
 
@@ -618,7 +602,7 @@ TEST(UtestIrCommon, check_modify_mixlist_param) {
 
 TEST(UtestIrCommon, check_compress_weight) {
   std::string enable_compress_weight = "true";
-  std::string compress_weight_conf="./";
+  std::string compress_weight_conf = "./";
   Status ret = CheckCompressWeightParamValid(enable_compress_weight, compress_weight_conf);
   EXPECT_EQ(ret, PARAM_INVALID);
 
@@ -680,14 +664,14 @@ TEST(UtestIrCommon, check_param_failed) {
   ret = CheckBufferOptimizeParamValid(param_invalid);
   EXPECT_EQ(ret, PARAM_INVALID);
 
-  //ret = CheckKeepTypeParamValid(param_invalid);
-  //EXPECT_EQ(ret, PARAM_INVALID);
+  // ret = CheckKeepTypeParamValid(param_invalid);
+  // EXPECT_EQ(ret, PARAM_INVALID);
 
   // ret = CheckInsertOpConfParamValid(param_invalid);
   // EXPECT_EQ(ret, PARAM_INVALID);
 
-  //ret = CheckDisableReuseMemoryParamValid(param_invalid);
-  //EXPECT_EQ(ret, PARAM_INVALID);
+  // ret = CheckDisableReuseMemoryParamValid(param_invalid);
+  // EXPECT_EQ(ret, PARAM_INVALID);
 
   ret = CheckEnableSingleStreamParamValid(param_invalid);
   EXPECT_EQ(ret, PARAM_INVALID);
@@ -873,7 +857,7 @@ TEST(UtestIrBuild, check_aclgrphBundle) {
 
   std::vector<GraphWithOptions> graph_and_options;
   std::map<AscendString, AscendString> options;
-  //options.insert({AscendString("ge.socVersion"), AscendString("Ascend910A")});
+  // options.insert({AscendString("ge.socVersion"), AscendString("Ascend910A")});
   options.insert({AscendString("input_format"), AscendString("ND")});
   ModelBufferData model;
   ret = aclgrphBundleBuildModel(graph_and_options, model);
@@ -917,14 +901,39 @@ TEST(UtestIrBuild, check_aclgrphBundle) {
 
   GeRunningEnvFaker ge_env;
   auto multi_dims = MakeShared<FakeMultiDimsOptimizer>();
-  ge_env.Install(FakeEngine("AIcoreEngine").KernelInfoStore("AiCoreLib").GraphOptimizer("AIcoreEngine").Priority(PriorityEnum::COST_0));
-  ge_env.Install(FakeEngine("VectorEngine").KernelInfoStore("VectorLib").GraphOptimizer("VectorEngine").Priority(PriorityEnum::COST_1));
-  ge_env.Install(FakeEngine("DNN_VM_AICPU").KernelInfoStore("AicpuLib").GraphOptimizer("aicpu_tf_optimizer").Priority(PriorityEnum::COST_3));
-  ge_env.Install(FakeEngine("DNN_VM_AICPU_ASCEND").KernelInfoStore("AicpuAscendLib").GraphOptimizer("aicpu_ascend_optimizer").Priority(PriorityEnum::COST_2));
-  ge_env.Install(FakeEngine("DNN_HCCL").KernelInfoStore("ops_kernel_info_hccl").GraphOptimizer("hccl_graph_optimizer").GraphOptimizer("hvd_graph_optimizer").Priority(PriorityEnum::COST_1));
-  ge_env.Install(FakeEngine("DNN_VM_RTS").KernelInfoStore("RTSLib").GraphOptimizer("DNN_VM_RTS_GRAPH_OPTIMIZER_STORE").Priority(PriorityEnum::COST_1));
-  ge_env.Install(FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE").GraphOptimizer("DNN_VM_HOST_CPU_OPTIMIZER").Priority(PriorityEnum::COST_9));
-  ge_env.Install(FakeEngine("DNN_VM_HOST_CPU").KernelInfoStore("DNN_VM_HOST_CPU_OP_STORE").GraphOptimizer("DNN_VM_HOST_CPU_OPTIMIZER").Priority(PriorityEnum::COST_10));
+  ge_env.Install(FakeEngine("AIcoreEngine")
+                     .KernelInfoStore("AiCoreLib")
+                     .GraphOptimizer("AIcoreEngine")
+                     .Priority(PriorityEnum::COST_0));
+  ge_env.Install(FakeEngine("VectorEngine")
+                     .KernelInfoStore("VectorLib")
+                     .GraphOptimizer("VectorEngine")
+                     .Priority(PriorityEnum::COST_1));
+  ge_env.Install(FakeEngine("DNN_VM_AICPU")
+                     .KernelInfoStore("AicpuLib")
+                     .GraphOptimizer("aicpu_tf_optimizer")
+                     .Priority(PriorityEnum::COST_3));
+  ge_env.Install(FakeEngine("DNN_VM_AICPU_ASCEND")
+                     .KernelInfoStore("AicpuAscendLib")
+                     .GraphOptimizer("aicpu_ascend_optimizer")
+                     .Priority(PriorityEnum::COST_2));
+  ge_env.Install(FakeEngine("DNN_HCCL")
+                     .KernelInfoStore("ops_kernel_info_hccl")
+                     .GraphOptimizer("hccl_graph_optimizer")
+                     .GraphOptimizer("hvd_graph_optimizer")
+                     .Priority(PriorityEnum::COST_1));
+  ge_env.Install(FakeEngine("DNN_VM_RTS")
+                     .KernelInfoStore("RTSLib")
+                     .GraphOptimizer("DNN_VM_RTS_GRAPH_OPTIMIZER_STORE")
+                     .Priority(PriorityEnum::COST_1));
+  ge_env.Install(FakeEngine("DNN_VM_GE_LOCAL")
+                     .KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE")
+                     .GraphOptimizer("DNN_VM_HOST_CPU_OPTIMIZER")
+                     .Priority(PriorityEnum::COST_9));
+  ge_env.Install(FakeEngine("DNN_VM_HOST_CPU")
+                     .KernelInfoStore("DNN_VM_HOST_CPU_OP_STORE")
+                     .GraphOptimizer("DNN_VM_HOST_CPU_OPTIMIZER")
+                     .Priority(PriorityEnum::COST_10));
   ge_env.Install(FakeEngine("DSAEngine").KernelInfoStore("DSAEngine").Priority(PriorityEnum::COST_1));
   ge_env.Install(FakeEngine("AIcoreEngine").GraphOptimizer("MultiDims", multi_dims));
   ge_env.Install(FakeOp(NETOUTPUT).InfoStoreAndBuilder("AicpuLib"));
@@ -979,7 +988,7 @@ TEST(UtestIrBuild, check_CheckVarDesc) {
   EXPECT_EQ(ret, GRAPH_SUCCESS);
   TransNodeInfo info;
   std::vector<TransNodeInfo> info_vec{info};
-  VarManager::Instance(0)->Init(0,0,0,0);
+  VarManager::Instance(0)->Init(0, 0, 0, 0);
   VarManager::Instance(0)->SetTransRoad("var1", info_vec);
   VarManager::Instance(0)->SetTransRoad("var2", info_vec);
   ret = CheckVarDesc(graph_and_options, 0);
@@ -990,10 +999,8 @@ TEST(UtestIrBuild, check_CheckVarDesc) {
 TEST(UtestIrBuild, check_data_op_attr_index_invalid_0) {
   ComputeGraphPtr compute_graph = BuildComputeGraph();
   Graph graph = GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
-  const map<string, string> build_options = {
-    {"input_shape_range", "[1, 2~3, -1],[4~5, 3~5, 10],[1, 2~3, -1]"},
-    {ge::ir_option::SHAPE_GENERALIZED_BUILD_MODE, "shape_precise"}
-  };
+  const map<string, string> build_options = {{"input_shape_range", "[1, 2~3, -1],[4~5, 3~5, 10],[1, 2~3, -1]"},
+                                             {ge::ir_option::SHAPE_GENERALIZED_BUILD_MODE, "shape_precise"}};
   ModelBufferData model;
   graphStatus ret = aclgrphBuildModel(graph, build_options, model);
   EXPECT_EQ(ret, GRAPH_FAILED);
@@ -1030,7 +1037,7 @@ TEST(UtestIrBuild, check_irbuild_supported_inner_options_invalid) {
   ComputeGraphPtr compute_graph = BuildComputeGraph();
   Graph graph = GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
   const map<string, string> ir_build_options = {
-    {"ge.inner_options_invalid", "1"},
+      {"ge.inner_options_invalid", "1"},
   };
   ModelBufferData model;
   graphStatus ret = aclgrphBuildModel(graph, ir_build_options, model);
@@ -1040,9 +1047,7 @@ TEST(UtestIrBuild, check_irbuild_supported_inner_options_invalid) {
 // not set attr index, when set input shape range
 TEST(UtestIrBuild, check_data_op_attr_index_invalid_1) {
   Graph graph = BuildIrGraph();
-  const map<string, string> build_options = {
-    {"input_shape_range", "[1, 2~3, -1],[4~5, 3~5, 10],[1, 2~3, -1]"}
-  };
+  const map<string, string> build_options = {{"input_shape_range", "[1, 2~3, -1],[4~5, 3~5, 10],[1, 2~3, -1]"}};
   ModelBufferData model;
   graphStatus ret = aclgrphBuildModel(graph, build_options, model);
   EXPECT_EQ(ret, GRAPH_FAILED);
@@ -1051,9 +1056,7 @@ TEST(UtestIrBuild, check_data_op_attr_index_invalid_1) {
 // set attr index, but not valid, when set input shape range
 TEST(UtestIrBuild, check_data_op_attr_index_invalid_2) {
   Graph graph = BuildIrGraph1();
-  const map<string, string> build_options = {
-    {"input_shape_range", "[1, 2~3, -1],[4~5, 3~5, 10],[1, 2~3, -1]"}
-  };
+  const map<string, string> build_options = {{"input_shape_range", "[1, 2~3, -1],[4~5, 3~5, 10],[1, 2~3, -1]"}};
   ModelBufferData model;
   graphStatus ret = aclgrphBuildModel(graph, build_options, model);
   EXPECT_NE(ret, GRAPH_SUCCESS);
@@ -1067,9 +1070,7 @@ TEST(UtestIrBuild, check_data_op_attr_index_invalid_2) {
 // only check data op attr index valid func.
 TEST(UtestIrBuild, check_data_op_attr_index_valid) {
   Graph graph = BuildIrGraph3();
-  const map<string, string> build_options = {
-    {"input_shape_range", "[1, 2~3, -1],[4~5, 3~5, 10],[1, 2~3, -1]"}
-  };
+  const map<string, string> build_options = {{"input_shape_range", "[1, 2~3, -1],[4~5, 3~5, 10],[1, 2~3, -1]"}};
   ModelBufferData model;
   graphStatus ret = aclgrphBuildModel(graph, build_options, model);
   EXPECT_EQ(ret, ge::GE_CLI_GE_NOT_INITIALIZED);
@@ -1087,9 +1088,7 @@ TEST(UtestIrBuild, check_data_attr_index_succ_no_input_range) {
 
 TEST(UtestIrBuild, check_modify_mixlist_param) {
   Graph graph = BuildIrGraph1();
-  const std::map<std::string, std::string> build_options = {
-    {"ge.exec.modify_mixlist", "/modify.json"}
-  };
+  const std::map<std::string, std::string> build_options = {{"ge.exec.modify_mixlist", "/modify.json"}};
   ModelBufferData model;
 
   auto ret = aclgrphBuildModel(graph, build_options, model);
@@ -1098,9 +1097,7 @@ TEST(UtestIrBuild, check_modify_mixlist_param) {
 
 TEST(UtestIrBuild, check_op_precision_mode_param) {
   Graph graph = BuildIrGraph1();
-  const std::map<std::string, std::string> build_options = {
-    {"ge.exec.op_precision_mode", "./op_precision_mode.ini"}
-  };
+  const std::map<std::string, std::string> build_options = {{"ge.exec.op_precision_mode", "./op_precision_mode.ini"}};
   ModelBufferData model;
 
   auto ret = aclgrphBuildModel(graph, build_options, model);
@@ -1110,9 +1107,7 @@ TEST(UtestIrBuild, check_op_precision_mode_param) {
 TEST(UtestIrBuild, check_input_format_param) {
   Graph graph_1 = BuildIrGraph1();
   ModelBufferData model_1;
-  const std::map<std::string, std::string> build_options = {
-    {"input_format", "ND"}
-  };
+  const std::map<std::string, std::string> build_options = {{"input_format", "ND"}};
   auto ret = ge::aclgrphBuildModel(graph_1, build_options, model_1);
   EXPECT_NE(ret, ge::GRAPH_SUCCESS);
 }
@@ -1120,9 +1115,7 @@ TEST(UtestIrBuild, check_input_format_param) {
 TEST(UtestIrBuild, check_customize_dtypes_param) {
   Graph graph_1 = BuildIrGraph1();
   ModelBufferData model_1;
-  const std::map<std::string, std::string> build_options = {
-    {"ge.customizeDtypes", "./op_precision_mode.ini"}
-  };
+  const std::map<std::string, std::string> build_options = {{"ge.customizeDtypes", "./op_precision_mode.ini"}};
   auto ret = ge::aclgrphBuildModel(graph_1, build_options, model_1);
   EXPECT_NE(ret, ge::GRAPH_SUCCESS);
 }
@@ -1130,9 +1123,7 @@ TEST(UtestIrBuild, check_customize_dtypes_param) {
 TEST(UtestIrBuild, CheckPrecisionModeParamValid_Failed) {
   Graph graph_1 = BuildIrGraph1();
   ModelBufferData model_1;
-  const std::map<std::string, std::string> build_options = {
-      {ge::PRECISION_MODE, "invalid"}
-  };
+  const std::map<std::string, std::string> build_options = {{ge::PRECISION_MODE, "invalid"}};
   auto ret = ge::aclgrphBuildModel(graph_1, build_options, model_1);
   EXPECT_NE(ret, ge::GRAPH_SUCCESS);
   std::string ge_option;
@@ -1142,9 +1133,7 @@ TEST(UtestIrBuild, CheckPrecisionModeParamValid_Failed) {
 TEST(UtestIrBuild, CheckPrecisionModeV2ParamValid_Failed) {
   Graph graph_1 = BuildIrGraph1();
   ModelBufferData model_1;
-  const std::map<std::string, std::string> build_options = {
-      {ge::PRECISION_MODE_V2, "invalid"}
-  };
+  const std::map<std::string, std::string> build_options = {{ge::PRECISION_MODE_V2, "invalid"}};
   auto ret = ge::aclgrphBuildModel(graph_1, build_options, model_1);
   EXPECT_NE(ret, ge::GRAPH_SUCCESS);
   std::string ge_option;
@@ -1154,10 +1143,8 @@ TEST(UtestIrBuild, CheckPrecisionModeV2ParamValid_Failed) {
 TEST(UtestIrBuild, CheckPrecisionModeV2ParamValid_Failed_WhenConfigPrecisionModeAtTheSameTime) {
   Graph graph_1 = BuildIrGraph1();
   ModelBufferData model_1;
-  const std::map<std::string, std::string> build_options = {
-      {ge::PRECISION_MODE_V2, "fp16"},
-      {ge::PRECISION_MODE, "force_fp16"}
-  };
+  const std::map<std::string, std::string> build_options = {{ge::PRECISION_MODE_V2, "fp16"},
+                                                            {ge::PRECISION_MODE, "force_fp16"}};
   auto ret = ge::aclgrphBuildModel(graph_1, build_options, model_1);
   EXPECT_NE(ret, ge::GRAPH_SUCCESS);
   std::string ge_option;
@@ -1167,9 +1154,7 @@ TEST(UtestIrBuild, CheckPrecisionModeV2ParamValid_Failed_WhenConfigPrecisionMode
 TEST(UtestIrBuild, CheckPrecisionModeParamValid_Success) {
   Graph graph_1 = BuildIrGraph1();
   ModelBufferData model_1;
-  const std::map<std::string, std::string> build_options = {
-      {ge::PRECISION_MODE, "force_fp16"}
-  };
+  const std::map<std::string, std::string> build_options = {{ge::PRECISION_MODE, "force_fp16"}};
   (void)ge::aclgrphBuildModel(graph_1, build_options, model_1);
   std::string ge_option;
   EXPECT_EQ(ge::GetThreadLocalContext().GetOption(ge::PRECISION_MODE, ge_option), ge::SUCCESS);
@@ -1179,9 +1164,7 @@ TEST(UtestIrBuild, CheckPrecisionModeParamValid_Success) {
 TEST(UtestIrBuild, CheckPrecisionModeV2ParamValid_Success) {
   Graph graph_1 = BuildIrGraph1();
   ModelBufferData model_1;
-  const std::map<std::string, std::string> build_options = {
-      {ge::PRECISION_MODE_V2, "fp16"}
-  };
+  const std::map<std::string, std::string> build_options = {{ge::PRECISION_MODE_V2, "fp16"}};
   (void)ge::aclgrphBuildModel(graph_1, build_options, model_1);
   std::string ge_option;
   EXPECT_EQ(ge::GetThreadLocalContext().GetOption(ge::PRECISION_MODE_V2, ge_option), ge::SUCCESS);
@@ -1190,25 +1173,19 @@ TEST(UtestIrBuild, CheckPrecisionModeV2ParamValid_Success) {
 
 TEST(UtestIrBuild, check_build_model_and_build_step) {
   Graph graph_1 = BuildIrGraph1();
-  const std::map<std::string, std::string> build_options_1 = {
-    {"ge.buildMode", "xxx"}
-  };
+  const std::map<std::string, std::string> build_options_1 = {{"ge.buildMode", "xxx"}};
   ModelBufferData model_1;
   auto ret_1 = aclgrphBuildModel(graph_1, build_options_1, model_1);
   EXPECT_NE(ret_1, GRAPH_SUCCESS);
 
   Graph graph_2 = BuildIrGraph1();
-  const std::map<std::string, std::string> build_options_2 = {
-    {"ge.buildStep", "xxx"}
-  };
+  const std::map<std::string, std::string> build_options_2 = {{"ge.buildStep", "xxx"}};
   ModelBufferData model_2;
   auto ret_2 = aclgrphBuildModel(graph_2, build_options_2, model_2);
   EXPECT_NE(ret_2, GRAPH_SUCCESS);
 
   Graph graph_3 = BuildIrGraph1();
-  const std::map<std::string, std::string> build_options_3 = {
-    {"ge.buildMode", "tuning"}
-  };
+  const std::map<std::string, std::string> build_options_3 = {{"ge.buildMode", "tuning"}};
   ModelBufferData model_3;
   auto ret_3 = aclgrphBuildModel(graph_3, build_options_3, model_3);
   EXPECT_NE(ret_3, GRAPH_SUCCESS);
@@ -1250,8 +1227,8 @@ TEST(UtestIrBuild, aclgrphGenerateForOp_test) {
   std::unique_ptr<uint8_t[]> data = std::unique_ptr<uint8_t[]>(reinterpret_cast<uint8_t *>(d));
   tensor_desc.SetConstData(std::move(data), sizeof(int));
   ge::Graph graph;
-  ge::graphStatus ret = ge::aclgrphGenerateForOp(type, vector<ge::TensorDesc>{tensor_desc},
-                                                 vector<ge::TensorDesc>{tensor_desc}, graph);
+  ge::graphStatus ret =
+      ge::aclgrphGenerateForOp(type, vector<ge::TensorDesc>{tensor_desc}, vector<ge::TensorDesc>{tensor_desc}, graph);
   EXPECT_EQ(ret, ge::GRAPH_SUCCESS);
 }
 
@@ -1410,7 +1387,7 @@ TEST(UtestIrBuild, check_compression_optimize_conf_test) {
 
 TEST(UtestIrBuild, check_virtual_type_test_success) {
   std::map<std::string, std::string> global_options2;
-  global_options2[ge::VIRTUAL_TYPE ] = "1";
+  global_options2[ge::VIRTUAL_TYPE] = "1";
   global_options2[ge::OPTION_HOST_ENV_OS] = "linux";
   global_options2[ge::OPTION_HOST_ENV_CPU] = "x86_64";
   ge::graphStatus ret = ge::aclgrphBuildInitialize(global_options2);
@@ -1420,7 +1397,7 @@ TEST(UtestIrBuild, check_virtual_type_test_success) {
 
 TEST(UtestIrBuild, aclgrphBuildInitializeCheckJitCompileTrue) {
   std::map<std::string, std::string> global_options2;
-  global_options2[ge::VIRTUAL_TYPE ] = "1";
+  global_options2[ge::VIRTUAL_TYPE] = "1";
   global_options2[ge::OPTION_HOST_ENV_OS] = "linux";
   global_options2[ge::OPTION_HOST_ENV_CPU] = "x86_64";
   ge::graphStatus ret = ge::aclgrphBuildInitialize(global_options2);
@@ -1435,8 +1412,8 @@ TEST(UtestIrBuild, aclgrphBuildInitializeCheckJitCompileTrue) {
 TEST(UtestIrBuild, check_dynamic_dims_input_shape_valid_test) {
   std::map<std::string, std::vector<int64_t>> shape_map;
   std::string dynamic_dims;
-  std::vector<int64_t> shape = {1, 3, 224,224};
-  shape_map.insert(map<std::string, std::vector<int64_t>>::value_type ("NCHW", shape));
+  std::vector<int64_t> shape = {1, 3, 224, 224};
+  shape_map.insert(map<std::string, std::vector<int64_t>>::value_type("NCHW", shape));
   auto ret = ge::CheckDynamicDimsInputShapeValid(shape_map, dynamic_dims);
   EXPECT_EQ(ret, false);
 }
@@ -1490,26 +1467,26 @@ TEST(UtestIrBuild, parse_check_dynamic_input_param_valid_test) {
   std::string input_shape_range = "1:3:224:224";
   std::string input_format;
   bool is_dynamic_input;
-  auto ret = ge::CheckDynamicInputParamValid(dynamic_batch_size, dynamic_image_size, dynamic_dims,
-      input_shape, input_shape_range, input_format, is_dynamic_input);
+  auto ret = ge::CheckDynamicInputParamValid(dynamic_batch_size, dynamic_image_size, dynamic_dims, input_shape,
+                                             input_shape_range, input_format, is_dynamic_input);
   ASSERT_NE(ret, SUCCESS);
   dynamic_batch_size = "1";
   dynamic_image_size = "1";
   dynamic_dims = "1:3";
-  ret = ge::CheckDynamicInputParamValid(dynamic_batch_size, dynamic_image_size, dynamic_dims,
-      input_shape, input_shape_range, input_format, is_dynamic_input);
+  ret = ge::CheckDynamicInputParamValid(dynamic_batch_size, dynamic_image_size, dynamic_dims, input_shape,
+                                        input_shape_range, input_format, is_dynamic_input);
   ASSERT_NE(ret, SUCCESS);
   dynamic_image_size = "1";
   dynamic_dims = "";
   input_shape = "1";
-  ret = ge::CheckDynamicInputParamValid(dynamic_batch_size, dynamic_image_size, dynamic_dims,
-      input_shape, input_shape_range, input_format, is_dynamic_input);
+  ret = ge::CheckDynamicInputParamValid(dynamic_batch_size, dynamic_image_size, dynamic_dims, input_shape,
+                                        input_shape_range, input_format, is_dynamic_input);
   ASSERT_NE(ret, SUCCESS);
   dynamic_image_size = "";
   dynamic_dims = "1";
   input_shape = "1";
-  ret = ge::CheckDynamicInputParamValid(dynamic_batch_size, dynamic_image_size, dynamic_dims,
-      input_shape, input_shape_range, input_format, is_dynamic_input);
+  ret = ge::CheckDynamicInputParamValid(dynamic_batch_size, dynamic_image_size, dynamic_dims, input_shape,
+                                        input_shape_range, input_format, is_dynamic_input);
   ASSERT_NE(ret, SUCCESS);
 }
 
@@ -1577,9 +1554,7 @@ TEST(UtestIrBuild, aclgrphBuildModel_test1) {
   ret = ge::aclgrphSaveModel(output_file1, model_1);
   EXPECT_NE(ret, ge::GRAPH_SUCCESS);
   Graph graph_1 = BuildIrGraph1();
-  const std::map<std::string, std::string> build_options_1 = {
-    {"ge.buildMode", "xxx"}
-  };
+  const std::map<std::string, std::string> build_options_1 = {{"ge.buildMode", "xxx"}};
   auto ret_1 = aclgrphBuildModel(graph_1, build_options_1, model_1);
   EXPECT_NE(ret_1, GRAPH_SUCCESS);
   ret = ge::aclgrphSaveModel(output_file, model_1);
@@ -1648,47 +1623,47 @@ TEST(UtestIrCommon, check_dynamic_batch_size_input_shape_test1) {
 }
 
 TEST(UtestIrCommon, weight_compress_func_test) {
-    ComputeGraphPtr graph = BuildComputeGraph1();
-    std::string currentDir = "";
-    auto ret = ge::WeightCompressFunc(graph, currentDir);
-    ASSERT_EQ(ret, SUCCESS);
-    currentDir = "./test_weight_compress_func_test";
-    ret = ge::WeightCompressFunc(graph, currentDir);
-    ASSERT_NE(ret, SUCCESS);
-    currentDir = __FILE__;
-    std::size_t idx = currentDir.find_last_of("/");
-    currentDir = currentDir.substr(0, idx) + "/weight_compress.cfg";
-    ret = ge::WeightCompressFunc(graph, currentDir);
-    ASSERT_EQ(ret, SUCCESS);
+  ComputeGraphPtr graph = BuildComputeGraph1();
+  std::string currentDir = "";
+  auto ret = ge::WeightCompressFunc(graph, currentDir);
+  ASSERT_EQ(ret, SUCCESS);
+  currentDir = "./test_weight_compress_func_test";
+  ret = ge::WeightCompressFunc(graph, currentDir);
+  ASSERT_NE(ret, SUCCESS);
+  currentDir = __FILE__;
+  std::size_t idx = currentDir.find_last_of("/");
+  currentDir = currentDir.substr(0, idx) + "/weight_compress.cfg";
+  ret = ge::WeightCompressFunc(graph, currentDir);
+  ASSERT_EQ(ret, SUCCESS);
 }
 
 TEST(UtestIrCommon, is_original_op_find_test) {
-    ge::OpDescPtr op_desc = CreateOpDesc("Data", "Data");
-    std::vector<std::vector<std::pair<int64_t, int64_t>>> index_shape_range_map;
-    std::string op_name = "Data";
-    vector<pair<int64_t, int64_t>> range_pair_tmp;
-    std::vector<std::string> original_op_names = {"DATA"};
-    AttrUtils::SetListStr(op_desc, ATTR_NAME_DATA_DUMP_ORIGIN_OP_NAMES, original_op_names);
-    index_shape_range_map.push_back(range_pair_tmp);
+  ge::OpDescPtr op_desc = CreateOpDesc("Data", "Data");
+  std::vector<std::vector<std::pair<int64_t, int64_t>>> index_shape_range_map;
+  std::string op_name = "Data";
+  vector<pair<int64_t, int64_t>> range_pair_tmp;
+  std::vector<std::string> original_op_names = {"DATA"};
+  AttrUtils::SetListStr(op_desc, ATTR_NAME_DATA_DUMP_ORIGIN_OP_NAMES, original_op_names);
+  index_shape_range_map.push_back(range_pair_tmp);
 
-    AttrUtils::SetInt(op_desc, ATTR_NAME_INDEX, 0);
-    auto ret = ge::IsOriginalOpFind(op_desc, op_name);
-    ASSERT_EQ(ret, SUCCESS);
-    op_name = "TEST";
-    ret = ge::IsOriginalOpFind(op_desc, op_name);
-    ASSERT_EQ(ret, SUCCESS);
+  AttrUtils::SetInt(op_desc, ATTR_NAME_INDEX, 0);
+  auto ret = ge::IsOriginalOpFind(op_desc, op_name);
+  ASSERT_EQ(ret, SUCCESS);
+  op_name = "TEST";
+  ret = ge::IsOriginalOpFind(op_desc, op_name);
+  ASSERT_EQ(ret, SUCCESS);
 }
 
 TEST(UtestIrCommon, is_op_type_equal_test) {
-    auto builder = ut::GraphBuilder("test");
-    NodePtr data1 = builder.AddNode("input1", DATA, 1, 1, FORMAT_NCHW, DT_FLOAT, {1, 2, 3});
-    NodePtr data2 = builder.AddNode("input2", "CASE", 1, 1, FORMAT_NCHW, DT_FLOAT, {1, 2, 3});
-    std::string op_type = "DATA1";
-    auto ret = ge::IsOpTypeEqual(data1, op_type);
-    ASSERT_EQ(ret, SUCCESS);
-    data1->SetOrigNode(data2);
-    ret = ge::IsOpTypeEqual(data1, op_type);
-    ASSERT_EQ(ret, SUCCESS);
+  auto builder = ut::GraphBuilder("test");
+  NodePtr data1 = builder.AddNode("input1", DATA, 1, 1, FORMAT_NCHW, DT_FLOAT, {1, 2, 3});
+  NodePtr data2 = builder.AddNode("input2", "CASE", 1, 1, FORMAT_NCHW, DT_FLOAT, {1, 2, 3});
+  std::string op_type = "DATA1";
+  auto ret = ge::IsOpTypeEqual(data1, op_type);
+  ASSERT_EQ(ret, SUCCESS);
+  data1->SetOrigNode(data2);
+  ret = ge::IsOpTypeEqual(data1, op_type);
+  ASSERT_EQ(ret, SUCCESS);
 }
 
 TEST(UtestIrBuild, aclgrphSaveModelTest) {
@@ -1786,8 +1761,7 @@ TEST(UtestIrBuild, aclgrphSaveModelOm2ExternalWeightRelocateTest) {
   SimpleZipArchiveReader archive(saved_model.data(), saved_model.size());
   ASSERT_TRUE(archive.IsGood());
   size_t config_size = 0U;
-  const auto config_buf =
-      archive.ExtractToMem("saved_model/data/constants/model_0_constants_config.json", config_size);
+  const auto config_buf = archive.ExtractToMem("saved_model/data/constants/model_0_constants_config.json", config_size);
   ASSERT_NE(config_buf, nullptr);
   const JsonFile saved_config(reinterpret_cast<const uint8_t *>(config_buf.get()), config_size);
   ASSERT_TRUE(saved_config.IsValid());
@@ -1848,9 +1822,7 @@ TEST(UtestIrBuild, aclgrphBuildModelOm2UnsupportedGlobalOptionTest) {
       {ge::OPTION_HOST_ENV_CPU, "x86_64"},
   };
   ASSERT_EQ(ge::aclgrphBuildInitialize(global_options), ge::GRAPH_SUCCESS);
-  GE_MAKE_GUARD(finalize_guard, [] {
-    ge::aclgrphBuildFinalize();
-  });
+  GE_MAKE_GUARD(finalize_guard, [] { ge::aclgrphBuildFinalize(); });
 
   Graph graph = BuildIrGraph1();
   ModelBufferData model;
@@ -1970,10 +1942,9 @@ TEST(UtestIrBuild, bundle_save_successfully) {
   aclgrphBuildFinalize();
   system("rm -f ./saved_bundle_model.om");
   system("rm -f ./saved_single_model.om");
-
 }
 
-namespace ge{
+namespace ge {
 extern Status VerifyVarOffset(const ComputeGraphPtr &root_graph,
                               std::map<std::string, std::pair<int64_t, GeTensorDesc>> &var_name_to_verify_info);
 }
@@ -2071,13 +2042,11 @@ TEST(UtestIrBuild, ir_build_oo_init) {
   Graph graph_1 = BuildIrGraph1();
   ModelBufferData model_1;
 
-  std::map<std::string, std::string> global_options = {
-      {ge::SOC_VERSION, "Ascend910"},
-      {ge::OPTION_HOST_ENV_OS, "linux"},
-      {ge::OPTION_HOST_ENV_CPU, "x86_64"},
-      {ge::OO_LEVEL, "O1"},
-      {OO_CONSTANT_FOLDING, "false"}
-  };
+  std::map<std::string, std::string> global_options = {{ge::SOC_VERSION, "Ascend910"},
+                                                       {ge::OPTION_HOST_ENV_OS, "linux"},
+                                                       {ge::OPTION_HOST_ENV_CPU, "x86_64"},
+                                                       {ge::OO_LEVEL, "O1"},
+                                                       {OO_CONSTANT_FOLDING, "false"}};
   EXPECT_EQ(ge::aclgrphBuildInitialize(global_options), GRAPH_SUCCESS);
 
   const std::map<std::string, std::string> build_options = {{ge::OO_LEVEL, "O1"}, {OO_CONSTANT_FOLDING, "true"}};
@@ -2137,7 +2106,6 @@ TEST(UtestIrBuild, ir_build_export_compile_stat_valid) {
   std::string opt_value("-1");
   EXPECT_EQ(GetThreadLocalContext().GetOption(OPTION_EXPORT_COMPILE_STAT, opt_value), ge::GRAPH_SUCCESS);
   EXPECT_EQ(opt_value, "1");
-
 
   std::map<std::string, std::string> global_options;
   std::map<std::string, std::string> build_options;

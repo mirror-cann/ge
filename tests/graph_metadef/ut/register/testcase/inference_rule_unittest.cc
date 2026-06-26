@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -167,7 +167,8 @@ class CtxMaker {
   StorageShape *NewTensor(const std::initializer_list<int64_t> &runtime_input, ge::DataType dtype) {
     values.emplace_back(std::shared_ptr<void>(malloc(sizeof(int64_t) * runtime_input.size()), std::free));
     auto shape = StorageShape({static_cast<long>(runtime_input.size())}, {static_cast<long>(runtime_input.size())});
-    tensor_holders.emplace_back(std::make_shared<gert::Tensor>(shape, StorageFormat(), kOnHost, dtype, values.back().get()));
+    tensor_holders.emplace_back(
+        std::make_shared<gert::Tensor>(shape, StorageFormat(), kOnHost, dtype, values.back().get()));
     if (dtype == ge::DT_INT32) {
       const auto data = tensor_holders.back()->GetData<int32_t>();
       size_t i = 0;

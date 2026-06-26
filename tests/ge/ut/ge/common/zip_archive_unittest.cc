@@ -243,8 +243,7 @@ TEST_F(ZipArchiveUt, TestRaiiZipArchive_Ok_ExtractManyNoCompressionEntriesAfterL
   std::vector<std::pair<std::string, std::string>> entries;
   entries.reserve(kEntryCount);
   for (size_t i = 0U; i < kEntryCount; ++i) {
-    entries.emplace_back("kernels/kernel_" + std::to_string(i) + ".o",
-                         "kernel_bin_payload_" + std::to_string(i));
+    entries.emplace_back("kernels/kernel_" + std::to_string(i) + ".o", "kernel_bin_payload_" + std::to_string(i));
   }
   CreateTestZipArchive(archive_path, entries, false);
 

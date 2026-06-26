@@ -28,7 +28,7 @@ REG_OP(STTestAddForIRBuilder)
     .ATTR(axis, Int, 0)
     .OP_END_FACTORY_REG(STTestAddForIRBuilder)
 
-REG_OP(STTestConvForIRBuilder)
+        REG_OP(STTestConvForIRBuilder)
     .INPUT(x, TensorType({DT_FLOAT}))
     .INPUT(w, TensorType({DT_FLOAT}))
     .OPTIONAL_INPUT(bias, TensorType({DT_FLOAT}))
@@ -37,28 +37,29 @@ REG_OP(STTestConvForIRBuilder)
     .ATTR(pad_mode, Int, 0)
     .OP_END_FACTORY_REG(STTestConvForIRBuilder)
 
-REG_OP(STTestDynamicForIRBuilder)
+        REG_OP(STTestDynamicForIRBuilder)
     .DYNAMIC_INPUT(x, TensorType({DT_FLOAT}))
     .DYNAMIC_OUTPUT(y, TensorType({DT_FLOAT}))
     .ATTR(N, Int, 1)
     .OP_END_FACTORY_REG(STTestDynamicForIRBuilder)
 
-class NamedIoNodeBuilderSTTest : public testing::Test {
+        class NamedIoNodeBuilderSTTest : public testing::Test {
  protected:
   static void SetUpTestSuite() {
     std::map<std::string, std::string> options;
     EXPECT_EQ(ge::GELib::Initialize(options), ge::SUCCESS);
     ge::GELib::GetInstance()->OpsKernelManagerObj().ops_kernel_store_.clear();
 
-    ge::GeRunningEnvFaker().Reset()
-      .Install(ge::FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE"))
-      .Install(ge::FakeEngine("AIcoreEngine").KernelInfoStore("AIcoreEngine"))
-      .Install(ge::FakeOp(ge::DATA).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-      .Install(ge::FakeOp(ge::NETOUTPUT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-      .Install(ge::FakeOp("Add").InfoStoreAndBuilder("AIcoreEngine"))
-      .Install(ge::FakeOp("STTestAddForIRBuilder").InfoStoreAndBuilder("AIcoreEngine"))
-      .Install(ge::FakeOp("STTestConvForIRBuilder").InfoStoreAndBuilder("AIcoreEngine"))
-      .Install(ge::FakeOp("STTestDynamicForIRBuilder").InfoStoreAndBuilder("AIcoreEngine"));
+    ge::GeRunningEnvFaker()
+        .Reset()
+        .Install(ge::FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(ge::FakeEngine("AIcoreEngine").KernelInfoStore("AIcoreEngine"))
+        .Install(ge::FakeOp(ge::DATA).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(ge::FakeOp(ge::NETOUTPUT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(ge::FakeOp("Add").InfoStoreAndBuilder("AIcoreEngine"))
+        .Install(ge::FakeOp("STTestAddForIRBuilder").InfoStoreAndBuilder("AIcoreEngine"))
+        .Install(ge::FakeOp("STTestConvForIRBuilder").InfoStoreAndBuilder("AIcoreEngine"))
+        .Install(ge::FakeOp("STTestDynamicForIRBuilder").InfoStoreAndBuilder("AIcoreEngine"));
 
     ge::EngineConfPtr conf1 = std::make_shared<ge::EngineConf>();
     conf1->id = "AIcoreEngine";
@@ -90,12 +91,12 @@ TEST_F(NamedIoNodeBuilderSTTest, BuildBasicNodeInRunningEnv) {
   AscendString error_msg;
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("STTestAddForIRBuilder")
-      .Name("add_node")
-      .AddInput("x1")
-      .AddInput("x2")
-      .AddOutput("y")
-      .Build(error_msg);
+                  .Type("STTestAddForIRBuilder")
+                  .Name("add_node")
+                  .AddInput("x1")
+                  .AddInput("x2")
+                  .AddOutput("y")
+                  .Build(error_msg);
 
   ASSERT_NE(node, nullptr) << "Build failed: " << (error_msg.GetString() != nullptr ? error_msg.GetString() : "");
 
@@ -118,13 +119,13 @@ TEST_F(NamedIoNodeBuilderSTTest, BuildWithUserAttrPreserved) {
   axis_val.SetAttrValue(static_cast<int64_t>(42));
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("STTestAddForIRBuilder")
-      .Name("add_with_attr")
-      .AddInput("x1")
-      .AddInput("x2")
-      .AddOutput("y")
-      .Attr("axis", axis_val)
-      .Build(error_msg);
+                  .Type("STTestAddForIRBuilder")
+                  .Name("add_with_attr")
+                  .AddInput("x1")
+                  .AddInput("x2")
+                  .AddOutput("y")
+                  .Attr("axis", axis_val)
+                  .Build(error_msg);
 
   ASSERT_NE(node, nullptr);
 
@@ -140,13 +141,13 @@ TEST_F(NamedIoNodeBuilderSTTest, BuildWithOptionalInput) {
   AscendString error_msg;
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("STTestConvForIRBuilder")
-      .Name("conv_node")
-      .AddInput("x")
-      .AddInput("w")
-      .AddInput("bias")
-      .AddOutput("y")
-      .Build(error_msg);
+                  .Type("STTestConvForIRBuilder")
+                  .Name("conv_node")
+                  .AddInput("x")
+                  .AddInput("w")
+                  .AddInput("bias")
+                  .AddOutput("y")
+                  .Build(error_msg);
 
   ASSERT_NE(node, nullptr) << "Build failed: " << (error_msg.GetString() != nullptr ? error_msg.GetString() : "");
 
@@ -163,12 +164,12 @@ TEST_F(NamedIoNodeBuilderSTTest, BuildWithOptionalInputSkipped) {
   AscendString error_msg;
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("STTestConvForIRBuilder")
-      .Name("conv_no_bias")
-      .AddInput("x")
-      .AddInput("w")
-      .AddOutput("y")
-      .Build(error_msg);
+                  .Type("STTestConvForIRBuilder")
+                  .Name("conv_no_bias")
+                  .AddInput("x")
+                  .AddInput("w")
+                  .AddOutput("y")
+                  .Build(error_msg);
 
   ASSERT_NE(node, nullptr);
 
@@ -186,13 +187,13 @@ TEST_F(NamedIoNodeBuilderSTTest, BuildDynamicInputOutput) {
   AscendString error_msg;
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("STTestDynamicForIRBuilder")
-      .Name("dynamic_node")
-      .AddInput("x0")
-      .AddInput("x1")
-      .AddOutput("y0")
-      .AddOutput("y1")
-      .Build(error_msg);
+                  .Type("STTestDynamicForIRBuilder")
+                  .Name("dynamic_node")
+                  .AddInput("x0")
+                  .AddInput("x1")
+                  .AddOutput("y0")
+                  .AddOutput("y1")
+                  .Build(error_msg);
 
   ASSERT_NE(node, nullptr) << "Build failed: " << (error_msg.GetString() != nullptr ? error_msg.GetString() : "");
 
@@ -213,12 +214,12 @@ TEST_F(NamedIoNodeBuilderSTTest, BuildWithTensorDesc) {
   TensorDesc y_desc(Shape({3, 4}), FORMAT_ND, DT_FLOAT);
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("STTestAddForIRBuilder")
-      .Name("add_with_desc")
-      .AddInput("x1", x_desc)
-      .AddInput("x2", x_desc)
-      .AddOutput("y", y_desc)
-      .Build(error_msg);
+                  .Type("STTestAddForIRBuilder")
+                  .Name("add_with_desc")
+                  .AddInput("x1", x_desc)
+                  .AddInput("x2", x_desc)
+                  .AddOutput("y", y_desc)
+                  .Build(error_msg);
 
   ASSERT_NE(node, nullptr);
 
@@ -235,12 +236,8 @@ TEST_F(NamedIoNodeBuilderSTTest, BuildWithUnregisteredType_ReturnsNullptr) {
   Graph graph("st_test_graph");
   AscendString error_msg;
 
-  auto node = NamedIoNodeBuilder(graph)
-      .Type("NonExistentOp")
-      .Name("bad_node")
-      .AddInput("x")
-      .AddOutput("y")
-      .Build(error_msg);
+  auto node =
+      NamedIoNodeBuilder(graph).Type("NonExistentOp").Name("bad_node").AddInput("x").AddOutput("y").Build(error_msg);
 
   EXPECT_EQ(node, nullptr);
   EXPECT_NE(error_msg.GetString(), nullptr);
@@ -252,11 +249,11 @@ TEST_F(NamedIoNodeBuilderSTTest, BuildWithMissingRequiredInput_ReturnsNullptr) {
   AscendString error_msg;
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("STTestAddForIRBuilder")
-      .Name("missing_input_node")
-      .AddInput("x1")
-      .AddOutput("y")
-      .Build(error_msg);
+                  .Type("STTestAddForIRBuilder")
+                  .Name("missing_input_node")
+                  .AddInput("x1")
+                  .AddOutput("y")
+                  .Build(error_msg);
 
   EXPECT_EQ(node, nullptr);
   EXPECT_NE(error_msg.GetString(), nullptr);
@@ -268,12 +265,12 @@ TEST_F(NamedIoNodeBuilderSTTest, BuildWithIncompatibleInputName_ReturnsNullptr) 
   AscendString error_msg;
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("STTestAddForIRBuilder")
-      .Name("bad_input_node")
-      .AddInput("x1")
-      .AddInput("not_in_ir")
-      .AddOutput("y")
-      .Build(error_msg);
+                  .Type("STTestAddForIRBuilder")
+                  .Name("bad_input_node")
+                  .AddInput("x1")
+                  .AddInput("not_in_ir")
+                  .AddOutput("y")
+                  .Build(error_msg);
 
   EXPECT_EQ(node, nullptr);
   EXPECT_NE(error_msg.GetString(), nullptr);
@@ -285,11 +282,11 @@ TEST_F(NamedIoNodeBuilderSTTest, BuildWithMissingRequiredOutput_ReturnsNullptr) 
   AscendString error_msg;
 
   auto node = NamedIoNodeBuilder(graph)
-      .Type("STTestAddForIRBuilder")
-      .Name("missing_output_node")
-      .AddInput("x1")
-      .AddInput("x2")
-      .Build(error_msg);
+                  .Type("STTestAddForIRBuilder")
+                  .Name("missing_output_node")
+                  .AddInput("x1")
+                  .AddInput("x2")
+                  .Build(error_msg);
 
   EXPECT_EQ(node, nullptr);
   EXPECT_NE(error_msg.GetString(), nullptr);
@@ -301,21 +298,21 @@ TEST_F(NamedIoNodeBuilderSTTest, BuildMultipleNodesOnSameGraph) {
   AscendString error_msg;
 
   auto node1 = NamedIoNodeBuilder(graph)
-      .Type("STTestAddForIRBuilder")
-      .Name("add1")
-      .AddInput("x1")
-      .AddInput("x2")
-      .AddOutput("y")
-      .Build(error_msg);
+                   .Type("STTestAddForIRBuilder")
+                   .Name("add1")
+                   .AddInput("x1")
+                   .AddInput("x2")
+                   .AddOutput("y")
+                   .Build(error_msg);
   ASSERT_NE(node1, nullptr);
 
   auto node2 = NamedIoNodeBuilder(graph)
-      .Type("STTestAddForIRBuilder")
-      .Name("add2")
-      .AddInput("x1")
-      .AddInput("x2")
-      .AddOutput("y")
-      .Build(error_msg);
+                   .Type("STTestAddForIRBuilder")
+                   .Name("add2")
+                   .AddInput("x1")
+                   .AddInput("x2")
+                   .AddOutput("y")
+                   .Build(error_msg);
   ASSERT_NE(node2, nullptr);
 
   const auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);

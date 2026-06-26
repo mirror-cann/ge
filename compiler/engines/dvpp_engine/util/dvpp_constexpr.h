@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,8 +20,7 @@ namespace dvpp {
 const std::string ATTR_NAME_PERFORMANCE_PRIOR = "_performance_prior";
 // dvpp私有属性 打在算子上 用于避免重复校验
 const std::string ATTR_DVPP_CHECK_RESULT = "_dvpp_check_result";
-const std::string ATTR_DVPP_CHECK_UNSUPPORT_REASON =
-    "_dvpp_check_unsupport_reason";
+const std::string ATTR_DVPP_CHECK_UNSUPPORT_REASON = "_dvpp_check_unsupport_reason";
 
 const std::string kSocVersionAscend910B1 = "Ascend910B1";
 const std::string kSocVersionAscend910B2 = "Ascend910B2";
@@ -37,19 +36,9 @@ const std::string kSocVersionAscend9109372 = "Ascend910_9372";
 const std::string kSocVersionAscend9109362 = "Ascend910_9362";
 
 const std::vector<std::string> kSocVersionMLR1 = {
-  kSocVersionAscend910B1,
-  kSocVersionAscend910B2,
-  kSocVersionAscend910B2C,
-  kSocVersionAscend910B3,
-  kSocVersionAscend910B4,
-  kSocVersionAscend910B41,
-  kSocVersionAscend9109391,
-  kSocVersionAscend9109392,
-  kSocVersionAscend9109381,
-  kSocVersionAscend9109382,
-  kSocVersionAscend9109372,
-  kSocVersionAscend9109362
-};
+    kSocVersionAscend910B1,   kSocVersionAscend910B2,   kSocVersionAscend910B2C,  kSocVersionAscend910B3,
+    kSocVersionAscend910B4,   kSocVersionAscend910B41,  kSocVersionAscend9109391, kSocVersionAscend9109392,
+    kSocVersionAscend9109381, kSocVersionAscend9109382, kSocVersionAscend9109372, kSocVersionAscend9109362};
 
 const std::string kJsonFileAscend910B = "dvpp_ops_info_ascend910b.json";
 
@@ -58,7 +47,7 @@ const std::string kDvppKernelSo = "libdvpp_ops.so";
 const std::string kDvppFunctionName = "RunCpuKernel";
 
 const std::string kAiCpuEngineName = "DNN_VM_AICPU";
-constexpr uint32_t kAiCpuKernelType = 6; // 310p版本和aicpu一致
+constexpr uint32_t kAiCpuKernelType = 6;  // 310p版本和aicpu一致
 const std::string kDvppOpDef = "op_def";
 
 const std::string kDvppGraphOptimizer = "dvpp_graph_optimizer";
@@ -74,22 +63,16 @@ constexpr int64_t kDynamicShape = -2;
 constexpr int64_t kDynamicDim = -1;
 
 // new 路径为整体整改修改，旧的路径需要保持兼容
-const std::string kDvppOpsJsonFilePathBaseOnEnvPath =
-    "/op_impl/built-in/dvpp/dvpp_kernel/config/";
-const std::string kDvppOpsJsonFilePathBaseOnEnvPathNew =
-    "/built-in/op_impl/dvpp/dvpp_kernel/config/";
+const std::string kDvppOpsJsonFilePathBaseOnEnvPath = "/op_impl/built-in/dvpp/dvpp_kernel/config/";
+const std::string kDvppOpsJsonFilePathBaseOnEnvPathNew = "/built-in/op_impl/dvpp/dvpp_kernel/config/";
 
 #ifdef RUN_TEST
-const std::string kDvppOpsJsonFilePath =
-    "../../../../../tests/engines/dvppeng/stub/";
-const std::string kDvppOpsJsonFilePathNew =
-    "../../../../../tests/engines/dvppeng/stub/";
-#else // ifdef RUN_TEST
-const std::string kDvppOpsJsonFilePath =
-    "/usr/local/Ascend/opp/op_impl/built-in/dvpp/dvpp_kernel/config/";
-const std::string kDvppOpsJsonFilePathNew =
-    "/usr/local/Ascend/opp/built-in/op_impl/dvpp/dvpp_kernel/config/";
-#endif // ifdef RUN_TEST
+const std::string kDvppOpsJsonFilePath = "../../../../../tests/engines/dvppeng/stub/";
+const std::string kDvppOpsJsonFilePathNew = "../../../../../tests/engines/dvppeng/stub/";
+#else   // ifdef RUN_TEST
+const std::string kDvppOpsJsonFilePath = "/usr/local/Ascend/opp/op_impl/built-in/dvpp/dvpp_kernel/config/";
+const std::string kDvppOpsJsonFilePathNew = "/usr/local/Ascend/opp/built-in/op_impl/dvpp/dvpp_kernel/config/";
+#endif  // ifdef RUN_TEST
 
 const std::string kOutputMemsizeVector = "output_memsize_vector";
 const std::string kOutputAlignmentVector = "output_alignment_vector";
@@ -215,6 +198,6 @@ const std::string kDvppOpAdjustContrastWithMean = "AdjustContrastWithMean";
 const std::string kDvppOpRgbToGrayscale = "RgbToGrayscale";
 const std::string kDvppOpAdjustContrast = "AdjustContrast";
 const std::string kAICpuOpReduceMean = "ReduceMean";
-} // namespace dvpp
+}  // namespace dvpp
 
-#endif // DVPP_ENGINE_UTIL_DVPP_CONSTEXPR_H_
+#endif  // DVPP_ENGINE_UTIL_DVPP_CONSTEXPR_H_

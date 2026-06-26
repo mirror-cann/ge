@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,8 +20,7 @@ namespace {
 const std::string kExecutorPluginFuncInitialize = "Initialize";
 const std::string kExecutorPluginFuncGetExecutors = "GetOpsKernelInfoStores";
 const std::string kExecutorPluginFuncFinalize = "Finalize";
-const std::set<std::string> kHcclKernelInfoStoreNames = {"ops_kernel_info_hccl",
-                                                         "ops_kernel_info_hccl_gradtune",
+const std::set<std::string> kHcclKernelInfoStoreNames = {"ops_kernel_info_hccl", "ops_kernel_info_hccl_gradtune",
                                                          "hvd_ops_kernel_info"};
 }  // namespace
 
@@ -69,9 +68,9 @@ Status OpsKernelExecutorManager::GetExecutor(const std::string &name, OpsKernelE
 void OpsKernelExecutorManager::Finalize() {
   GELOGI("ge invoke ops kernel executor finalize.");
   executors_.clear();
-  (void) executor_plugin_.InvokeAll<Status>(kExecutorPluginFuncFinalize);
+  (void)executor_plugin_.InvokeAll<Status>(kExecutorPluginFuncFinalize);
   if (hccl_executor_plugin_ != nullptr) {
-    (void) hccl_executor_plugin_->InvokeAll<Status>(kExecutorPluginFuncFinalize);
+    (void)hccl_executor_plugin_->InvokeAll<Status>(kExecutorPluginFuncFinalize);
     hccl_executor_plugin_.reset();
   }
 }
@@ -82,12 +81,12 @@ std::string OpsKernelExecutorManager::GetHcclExecutorPluginLibPath() {
 }
 
 Status OpsKernelExecutorManager::InitializePlugin(PluginManager &plugin_manager, const std::string &plugin_paths) {
-  const std::vector<std::string> func_check_list =
-      {kExecutorPluginFuncInitialize, kExecutorPluginFuncGetExecutors, kExecutorPluginFuncFinalize};
+  const std::vector<std::string> func_check_list = {kExecutorPluginFuncInitialize, kExecutorPluginFuncGetExecutors,
+                                                    kExecutorPluginFuncFinalize};
   GE_CHK_STATUS_RET(plugin_manager.LoadSo(plugin_paths, func_check_list),
                     "[Check][SoFile] not find any valid so file.");
-  if (plugin_manager.InvokeAll<std::map<std::string, std::string> &, Status>(kExecutorPluginFuncInitialize, options_)
-      != SUCCESS) {
+  if (plugin_manager.InvokeAll<std::map<std::string, std::string> &, Status>(kExecutorPluginFuncInitialize, options_) !=
+      SUCCESS) {
     GELOGE(GE_OPS_GET_NO_VALID_SO, "[Invoke][OpsKernelInfo]PluginManager InvokeAll failed.");
     REPORT_INNER_ERR_MSG("E19999", "PluginManager InvokeAll failed.");
     return GE_OPS_GET_NO_VALID_SO;

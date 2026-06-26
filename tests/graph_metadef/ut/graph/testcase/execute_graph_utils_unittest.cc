@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -129,7 +129,7 @@ TEST_F(UtestExecuteGraphUtils, InsertNodeAfter_Ok_GraphWithControlEdge) {
   }
   auto builder = ut::ExecuteGraphBuilder("test_graph");
   auto node_to_insert = builder.AddNode("inserted_node", "Op", 1, 3);
-  (void) node_to_insert->GetExtendInfo()->SetOwnerGraph(graph.get(), node_to_insert);
+  (void)node_to_insert->GetExtendInfo()->SetOwnerGraph(graph.get(), node_to_insert);
   graph->AddNode(node_to_insert);
   auto original_edge_size = graph->GetAllEdges().size();
   EXPECT_EQ(ExecuteGraphUtils::InsertNodeAfter(src, dsts, node_to_insert, 0, 0), GRAPH_SUCCESS);
@@ -191,15 +191,15 @@ TEST_F(UtestExecuteGraphUtils, InsertNodeBefore_Fail_OutputIndexOutOfBounds) {
 }
 
 /*
-*               var                              var
-*  atomicclean  |  \                             |  \
-*         c\    |   assign                       |   assign
-*           \   |   c/         =======>          |   c/
-*           allreduce                         identity  atomicclean
-*             |                                 |     c/
-*            netoutput                        allreduce
-*                                               |
-*                                           netoutput
+ *               var                              var
+ *  atomicclean  |  \                             |  \
+ *         c\    |   assign                       |   assign
+ *           \   |   c/         =======>          |   c/
+ *           allreduce                         identity  atomicclean
+ *             |                                 |     c/
+ *            netoutput                        allreduce
+ *                                               |
+ *                                           netoutput
  */
 TEST_F(UtestExecuteGraphUtils, InsertNodeBefore_Ok_DoNotMoveCtrlEdgeFromAtomicClean) {
   auto builder = ut::ExecuteGraphBuilder("test");
@@ -404,7 +404,7 @@ TEST_F(UtestExecuteGraphUtils, ReplaceNodeEdges_Ok_replace_data_control_edge) {
   auto n4 = ExecuteGraphUtils::FindNodeFromAllNodes(graph.get(), "n4");
   auto builder = ut::ExecuteGraphBuilder("test_graph");
   auto new_node = builder.AddNode("inserted_node", "Op", 1, 1);
-  (void) new_node->GetExtendInfo()->SetOwnerGraph(graph.get(), new_node);
+  (void)new_node->GetExtendInfo()->SetOwnerGraph(graph.get(), new_node);
   graph->AddNode(new_node);
   EXPECT_EQ(ExecuteGraphUtils::ReplaceNodeEdges(new_node, n4, {0}, {0}), GRAPH_SUCCESS);
   EXPECT_EQ(n4->GetAllInDataEdgesSize(), 0U);
@@ -451,7 +451,7 @@ TEST_F(UtestExecuteGraphUtils, IsolateNode_Ok_connected_data_out) {
   builder.AddDataEdge(n2, 0, n3, 0);
   builder.AddControlEdge(n1, n3);
   EXPECT_EQ(ExecuteGraphUtils::IsolateNode(n2, {}), GRAPH_SUCCESS);
-  //EXPECT_EQ(n3->GetAllInDataEdgesSize(), 1);
+  // EXPECT_EQ(n3->GetAllInDataEdgesSize(), 1);
   EXPECT_EQ(n3->GetAllInControlEdgesSize(), 1);
 }
 

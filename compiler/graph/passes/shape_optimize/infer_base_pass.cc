@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,7 +28,7 @@ graphStatus FindValidSubgraphNetoutput(const ConstNodePtr &node, const ComputeGr
       auto sub_node_opdesc = sub_node->GetOpDesc();
       if (sub_node_opdesc == nullptr) {
         REPORT_INNER_ERR_MSG("E19999", "Invalid NetOutput node in subgraph %s, parent node %s, no OpDesc on it",
-                           sub_graph->GetName().c_str(), node->GetName().c_str());
+                             sub_graph->GetName().c_str(), node->GetName().c_str());
         GELOGE(GRAPH_FAILED, "[Check][Param] Invalid NetOutput node on sub graph %s, parent node %s, no OpDesc on it",
                sub_graph->GetName().c_str(), node->GetName().c_str());
         return GRAPH_FAILED;
@@ -40,7 +40,7 @@ graphStatus FindValidSubgraphNetoutput(const ConstNodePtr &node, const ComputeGr
   }
 
   REPORT_INNER_ERR_MSG("E19999", "Cannot find the NetOutput node in subgraph %s, parent node %s",
-                     sub_graph->GetName().c_str(), node->GetName().c_str());
+                       sub_graph->GetName().c_str(), node->GetName().c_str());
   GELOGE(GRAPH_FAILED, "[Check][Param] Cannot find the NetOutput node in subgraph %s, parent node %s",
          sub_graph->GetName().c_str(), node->GetName().c_str());
   return GRAPH_FAILED;
@@ -73,8 +73,8 @@ bool InferBasePass::NeedInfer(const NodePtr &node) const {
   return true;
 }
 void InferBasePass::AddChangedNodesImmediateRepass(const OrderedNodeSet &changed_nodes) {
-// need passed_nodes set to solve the problem that multi-input operators do repass in advance.
-// when there is passed_nodes set, wo should call AddImmediateRePassNode for all nodes in changed_nodes.
+  // need passed_nodes set to solve the problem that multi-input operators do repass in advance.
+  // when there is passed_nodes set, wo should call AddImmediateRePassNode for all nodes in changed_nodes.
   for (const auto &node_ele : changed_nodes) {
     AddImmediateRePassNode(node_ele);
   }
@@ -201,7 +201,7 @@ graphStatus InferBasePass::UpdateTensorDescToSubgraphData(const NodePtr &node) {
       const auto &data_opdesc = node_sub->GetOpDesc();
       if (data_opdesc == nullptr) {
         REPORT_INNER_ERR_MSG("E19999", "Invalid data node on the sub graph %s parent node %s, no OpDesc",
-                           sub_graph->GetName().c_str(), node->GetName().c_str());
+                             sub_graph->GetName().c_str(), node->GetName().c_str());
         GELOGE(GRAPH_FAILED, "[Get][OpDesc] Invalid data node on the sub graph %s parent node %s, no OpDesc",
                sub_graph->GetName().c_str(), node->GetName().c_str());
         return GRAPH_FAILED;
@@ -209,7 +209,7 @@ graphStatus InferBasePass::UpdateTensorDescToSubgraphData(const NodePtr &node) {
       int32_t ref_i;
       if (!AttrUtils::GetInt(data_opdesc, ATTR_NAME_PARENT_NODE_INDEX, ref_i)) {
         REPORT_INNER_ERR_MSG("E19999", "Invalid data node on the sub graph %s parent node %s, no ref-index attribute",
-                           sub_graph->GetName().c_str(), node->GetName().c_str());
+                             sub_graph->GetName().c_str(), node->GetName().c_str());
         GELOGE(GRAPH_FAILED, "[Get][Int] Invalid data node on the sub graph %s parent node %s, no ref-index attribute",
                sub_graph->GetName().c_str(), node->GetName().c_str());
         return GRAPH_FAILED;
@@ -223,10 +223,10 @@ graphStatus InferBasePass::UpdateTensorDescToSubgraphData(const NodePtr &node) {
       auto input_desc = op_desc->MutableInputDesc(ref_i);
       if (input_desc == nullptr) {
         REPORT_INNER_ERR_MSG("E19999",
-                           "The ref index(%d) on the data %s on the sub graph %s "
-                           "parent node %s are incompatible, inputs num %u",
-                           ref_i, node_sub->GetName().c_str(), sub_graph->GetName().c_str(), node->GetName().c_str(),
-                           node->GetAllInDataAnchorsSize());
+                             "The ref index(%d) on the data %s on the sub graph %s "
+                             "parent node %s are incompatible, inputs num %u",
+                             ref_i, node_sub->GetName().c_str(), sub_graph->GetName().c_str(), node->GetName().c_str(),
+                             node->GetAllInDataAnchorsSize());
         GELOGE(GRAPH_FAILED,
                "[Call][MutableInputDesc] The ref index(%d) on the data %s on the sub graph %s "
                "parent node %s are incompatible, inputs num %u",
@@ -275,16 +275,15 @@ graphStatus InferBasePass::UpdateTensorDescToParentNodeOutput(const NodePtr &nod
       auto netoutput_in_desc = netoutput_opdesc->MutableInputDesc(netoutput_in_anchor->GetIdx());
       if (netoutput_in_desc == nullptr) {
         REPORT_INNER_ERR_MSG("E19999",
-                           "Invalid NetOutput node on sub graph %s, parent node %s, cannot find input tensor %d",
-                           sub_graph->GetName().c_str(), node->GetName().c_str(), netoutput_in_anchor->GetIdx());
+                             "Invalid NetOutput node on sub graph %s, parent node %s, cannot find input tensor %d",
+                             sub_graph->GetName().c_str(), node->GetName().c_str(), netoutput_in_anchor->GetIdx());
         GELOGE(GRAPH_FAILED,
                "[Get][Tensor] Invalid NetOutput node on sub graph %s, parent node %s, cannot find input tensor %d",
                sub_graph->GetName().c_str(), node->GetName().c_str(), netoutput_in_anchor->GetIdx());
         return GRAPH_FAILED;
       }
       GELOGI("Netoutput %s in anchor index is %d, input tensor dim is %zu", netoutput->GetNamePtr(),
-             netoutput_in_anchor->GetIdx(),
-             netoutput_in_desc->GetShape().GetDimNum());
+             netoutput_in_anchor->GetIdx(), netoutput_in_desc->GetShape().GetDimNum());
       int32_t ref_i;
       if (!AttrUtils::GetInt(netoutput_in_desc, ATTR_NAME_PARENT_NODE_INDEX, ref_i)) {
         // if there is no ref index on the TensorDesc, it means the output data will be ignored outer.
@@ -292,12 +291,10 @@ graphStatus InferBasePass::UpdateTensorDescToParentNodeOutput(const NodePtr &nod
       }
       GELOGI("Parent node %s index of edge desc is %d", node->GetNamePtr(), ref_i);
       if (ref_i < 0 || static_cast<uint32_t>(ref_i) >= node->GetAllOutDataAnchorsSize()) {
-        REPORT_INNER_ERR_MSG("E19999",
-                           "Invalid ref_index %d of parent node %s, ref_index should less than %u.", ref_i,
-                           node->GetName().c_str(), node->GetAllOutDataAnchorsSize());
-        GELOGE(GRAPH_FAILED,
-               "[Get][Ref_index] Invalid ref_index %d of parent node %s, ref_index should less than %u.", ref_i,
-               node->GetName().c_str(), node->GetAllOutDataAnchorsSize());
+        REPORT_INNER_ERR_MSG("E19999", "Invalid ref_index %d of parent node %s, ref_index should less than %u.", ref_i,
+                             node->GetName().c_str(), node->GetAllOutDataAnchorsSize());
+        GELOGE(GRAPH_FAILED, "[Get][Ref_index] Invalid ref_index %d of parent node %s, ref_index should less than %u.",
+               ref_i, node->GetName().c_str(), node->GetAllOutDataAnchorsSize());
         return GRAPH_FAILED;
       }
       ref_out_tensors[ref_i].emplace_back(netoutput_in_desc);
@@ -312,7 +309,7 @@ graphStatus InferBasePass::UpdateParentNodeContainsSubgraphs(
   for (size_t i = 0; i < ref_out_tensors.size(); i++) {
     if (ref_out_tensors[i].empty()) {
       REPORT_INNER_ERR_MSG("E19999", "Parent node %s ref_index %zu subgraph output tensor list is empty.",
-                        node->GetName().c_str(), i);
+                           node->GetName().c_str(), i);
       GELOGE(GRAPH_FAILED, "[Param][check] Parent node %s ref_index %zu subgraph output tensor list is empty.",
              node->GetName().c_str(), i);
       return GRAPH_FAILED;
@@ -338,8 +335,8 @@ graphStatus InferBasePass::UpdateParentNodeContainsSubgraphs(
       ret = UpdateOutputFromSubgraphs(ref_out_tensors[i], node_output_td);
     }
     if (ret != GRAPH_SUCCESS) {
-      REPORT_INNER_ERR_MSG("E19999", "Node %s update output %zu tensor desc failed. ret: %u", node->GetName().c_str(), i,
-                        ret);
+      REPORT_INNER_ERR_MSG("E19999", "Node %s update output %zu tensor desc failed. ret: %u", node->GetName().c_str(),
+                           i, ret);
       GELOGE(GRAPH_FAILED, "[Param][check] Node %s update output %zu tensor desc failed. ret: %u",
              node->GetName().c_str(), i, ret);
       return ret;

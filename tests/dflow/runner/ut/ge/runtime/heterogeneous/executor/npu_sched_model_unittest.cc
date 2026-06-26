@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,13 +34,13 @@ TEST(NpuSchedModelTest, TestLoadNpuSchedModel) {
   std::vector<uint32_t> input_queues = {1, 2};
   load_param.model_queue_param.input_queues = input_queues;
   for (auto queue_id : input_queues) {
-    QueueAttrs queue = {.queue_id= queue_id, .device_type=NPU, .device_id=0} ;
+    QueueAttrs queue = {.queue_id = queue_id, .device_type = NPU, .device_id = 0};
     load_param.model_queue_param.input_queues_attrs.emplace_back(queue);
   }
   std::vector<uint32_t> output_queues = {1, 2, UINT32_MAX};
   load_param.model_queue_param.output_queues = output_queues;
   for (auto queue_id : output_queues) {
-    QueueAttrs queue = {.queue_id= queue_id, .device_type=NPU, .device_id=0} ;
+    QueueAttrs queue = {.queue_id = queue_id, .device_type = NPU, .device_id = 0};
     load_param.model_queue_param.output_queues_attrs.emplace_back(queue);
   }
   g_runtime_stub_mock = "rtCpuKernelLaunchWithFlag";

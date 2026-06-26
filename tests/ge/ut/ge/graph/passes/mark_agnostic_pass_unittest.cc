@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -50,8 +50,7 @@ class MarkAgnosticPassTest : public testing::Test {
     pass_manager_.AddPass("MarkAgnosticPass", new MarkAgnosticPass());
   }
 
-  NodePtr NewNode(const std::string &name, const std::string &type, int input_cnt, int output_cnt)
-  {
+  NodePtr NewNode(const std::string &name, const std::string &type, int input_cnt, int output_cnt) {
     OpDescPtr op_desc = std::make_shared<OpDesc>(name, type);
     for (int i = 0; i < input_cnt; ++i) {
       op_desc->AddInputDesc(default_tensor_desc_->Clone());
@@ -80,8 +79,7 @@ class MarkAgnosticPassTest : public testing::Test {
 };
 }  // namespace
 
-TEST_F(MarkAgnosticPassTest, EmptyGraph)
-{
+TEST_F(MarkAgnosticPassTest, EmptyGraph) {
   auto ret = mark_agnostic_pass_.Run(graph_);
   EXPECT_EQ(ret, SUCCESS);
 }
@@ -101,8 +99,7 @@ TEST_F(MarkAgnosticPassTest, Run_test1) {
   EXPECT_EQ(ret, SUCCESS);
 }
 
-TEST_F(MarkAgnosticPassTest, Run_test2)
-{
+TEST_F(MarkAgnosticPassTest, Run_test2) {
   auto merge_node = NewNode("Merge", SWITCH, 1, 2);
   auto merge_node2 = NewNode("Merge2", REFMERGE, 1, 2);
   auto node1 = NewNode("Op1", IDENTITY, 0, 1);
@@ -126,8 +123,7 @@ TEST_F(MarkAgnosticPassTest, Run_test2)
   EXPECT_EQ(except_output_index.size(), 1);
 }
 
-TEST_F(MarkAgnosticPassTest, Run_test3)
-{
+TEST_F(MarkAgnosticPassTest, Run_test3) {
   auto merge_node = NewNode("Merge", SWITCH, 1, 2);
   auto merge_node2 = NewNode("Merge2", REFMERGE, 1, 2);
   auto node1 = NewNode("Op1", IDENTITY, 0, 1);
@@ -145,8 +141,7 @@ TEST_F(MarkAgnosticPassTest, Run_test3)
   EXPECT_EQ(ret, SUCCESS);
 }
 
-TEST_F(MarkAgnosticPassTest, Run_test4)
-{
+TEST_F(MarkAgnosticPassTest, Run_test4) {
   auto merge_node = NewNode("Merge", SWITCH, 1, 2);
   auto merge_node2 = NewNode("Merge2", REFMERGE, 1, 2);
   auto node1 = NewNode("Op1", IDENTITY, 0, 1);
@@ -164,8 +159,7 @@ TEST_F(MarkAgnosticPassTest, Run_test4)
   EXPECT_EQ(ret, SUCCESS);
 }
 
-TEST_F(MarkAgnosticPassTest, Run_test5)
-{
+TEST_F(MarkAgnosticPassTest, Run_test5) {
   auto merge_node = NewNode("Merge", SWITCH, 1, 2);
   auto merge_node2 = NewNode("Merge2", REFMERGE, 1, 2);
   auto node1 = NewNode("Op1", ENTER, 0, 1);
@@ -183,4 +177,4 @@ TEST_F(MarkAgnosticPassTest, Run_test5)
   EXPECT_EQ(ret, SUCCESS);
 }
 
-} // namespace ge
+}  // namespace ge

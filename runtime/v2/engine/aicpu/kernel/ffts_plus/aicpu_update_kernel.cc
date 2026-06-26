@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -91,7 +91,7 @@ ge::graphStatus CalcInputPara(gert::KernelContext *context, const ComputeNodeInf
   GE_ASSERT_NOTNULL(slice_in);
   size_t input_num = compute_node_info->GetInputsNum();
   GE_ASSERT_EQ(input_num, slice_in->GetSize());
-  auto slice_in_vec = reinterpret_cast<const Shape*>(slice_in->GetData());
+  auto slice_in_vec = reinterpret_cast<const Shape *>(slice_in->GetData());
   const size_t idx_num = input_indexes->GetSize();
   GELOGI("Cut input index num:%zu, input num:%zu", idx_num, input_num);
   for (size_t i = 0; i < idx_num; ++i) {
@@ -127,7 +127,7 @@ ge::graphStatus CalcOutputPara(gert::KernelContext *context, const ComputeNodeIn
   GE_ASSERT_NOTNULL(slice_out);
   size_t output_num = compute_node_info->GetOutputsNum();
   GE_ASSERT_EQ(output_num, slice_out->GetSize());
-  auto slice_out_vec = reinterpret_cast<const Shape*>(slice_out->GetData());
+  auto slice_out_vec = reinterpret_cast<const Shape *>(slice_out->GetData());
   const size_t idx_num = output_indexes->GetSize();
   GELOGI("Cut output index num:%zu, out num:%zu", idx_num, output_num);
   for (size_t i = 0; i < idx_num; ++i) {
@@ -211,9 +211,8 @@ ge::graphStatus AICpuUpdateContext(gert::KernelContext *context) {
     GELOGE(ge::PARAM_INVALID, "Thread dim is zero.");
   }
 
-  rtFftsPlusAiCpuCtx_t *ctx_head =
-      reinterpret_cast<rtFftsPlusAiCpuCtx_t *>(const_cast<void *>(task_info->descBuf));
-  auto ctx_id_vec = reinterpret_cast<const int32_t*>(ctx_ids->GetData());
+  rtFftsPlusAiCpuCtx_t *ctx_head = reinterpret_cast<rtFftsPlusAiCpuCtx_t *>(const_cast<void *>(task_info->descBuf));
+  auto ctx_id_vec = reinterpret_cast<const int32_t *>(ctx_ids->GetData());
   const size_t ctx_num = ctx_ids->GetSize();
   const uint64_t address_offset = 32UL;
   uint16_t total_num = task_info->fftsPlusSqe->totalContextNum;

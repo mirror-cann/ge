@@ -19,4 +19,3 @@ add_subdirectory(common)
 add_subdirectory(hcom)
 add_subdirectory(auto_tuning)
 add_subdirectory(calculation_tool)
-

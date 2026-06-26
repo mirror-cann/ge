@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -99,15 +99,15 @@ using std::vector;
 namespace ffts {
 #define GC_PRINT_SW (true)
 
-#define GC_LOGD(...) \
-  if (GC_PRINT_SW) { \
+#define GC_LOGD(...)                            \
+  if (GC_PRINT_SW) {                            \
     D_FFTS_LOGD(FFTS_MODULE_NAME, __VA_ARGS__); \
-  } \
+  }
 
-#define GC_LOGI(...) \
-  if (GC_PRINT_SW) { \
+#define GC_LOGI(...)                            \
+  if (GC_PRINT_SW) {                            \
     D_FFTS_LOGI(FFTS_MODULE_NAME, __VA_ARGS__); \
-  } \
+  }
 
 enum ENUM_SRC_OR_DST {
   SOURCE = 0,
@@ -118,55 +118,49 @@ static ge::Format DEFAULT_FORMAT = ge::FORMAT_NCHW;
 
 static ge::DataType DEFAULT_DTYPE = ge::DT_FLOAT;
 
-static ge::GeShape DEFAULT_SHAPE = ge::GeShape({17,33,35,45});
+static ge::GeShape DEFAULT_SHAPE = ge::GeShape({17, 33, 35, 45});
 
 /**
-   * @ingroup fe
-   * @brief This struct contains the name, format, datatype,shape
-   * We assume the original data_type is the same as the current datatype,
-   * because we will not use that in FE. And the user only need to set the
-   * original shape because the current shape will be inferred by the original
-   * shape and format relation.
-   */
-ge::GeTensorDesc GetTensorDesc(const ge::OpDescPtr &op_desc_ptr,
-                               const uint32_t &index, bool is_input);
+ * @ingroup fe
+ * @brief This struct contains the name, format, datatype,shape
+ * We assume the original data_type is the same as the current datatype,
+ * because we will not use that in FE. And the user only need to set the
+ * original shape because the current shape will be inferred by the original
+ * shape and format relation.
+ */
+ge::GeTensorDesc GetTensorDesc(const ge::OpDescPtr &op_desc_ptr, const uint32_t &index, bool is_input);
 
-void SetTensorDescIntAttr(const ge::OpDescPtr &op_desc_ptr,
-                          const uint32_t &index, bool is_input,
+void SetTensorDescIntAttr(const ge::OpDescPtr &op_desc_ptr, const uint32_t &index, bool is_input,
                           const std::string &attr, const int64_t &attr_value);
 
 struct DetailedNodeAndTensorInformation {
-  string name_; // input string which consists of name + op index + tensor index
-  ge::Format format_ = DEFAULT_FORMAT;   // the Op types of Ops
+  string name_;                         // input string which consists of name + op index + tensor index
+  ge::Format format_ = DEFAULT_FORMAT;  // the Op types of Ops
   ge::DataType data_type_ = DEFAULT_DTYPE;
   ge::GeShape original_shape_ = DEFAULT_SHAPE;
   ge::Format original_format_ = DEFAULT_FORMAT;
-  DetailedNodeAndTensorInformation (const string& name_param) {
+  DetailedNodeAndTensorInformation(const string &name_param) {
     name_ = name_param;
-    format_ = DEFAULT_FORMAT;   // the Op types of Ops
+    format_ = DEFAULT_FORMAT;  // the Op types of Ops
     original_format_ = DEFAULT_FORMAT;
     data_type_ = DEFAULT_DTYPE;
     original_shape_ = DEFAULT_SHAPE;
   }
   /* Shape is inferred by current format original format and  original shape*/
-  DetailedNodeAndTensorInformation (const string& name_param,
-                                    const ge::Format& format,
-                                    const ge::Format& original_format = DEFAULT_FORMAT,
-                                    const ge::DataType& dtype = DEFAULT_DTYPE,
-                                    const ge::GeShape& original_shape = DEFAULT_SHAPE) {
+  DetailedNodeAndTensorInformation(const string &name_param, const ge::Format &format,
+                                   const ge::Format &original_format = DEFAULT_FORMAT,
+                                   const ge::DataType &dtype = DEFAULT_DTYPE,
+                                   const ge::GeShape &original_shape = DEFAULT_SHAPE) {
     name_ = name_param;
-    format_ = format;   // the Op types of Ops
-    original_format_ = original_format; // original format of tensor
+    format_ = format;                    // the Op types of Ops
+    original_format_ = original_format;  // original format of tensor
     data_type_ = dtype;
     original_shape_ = original_shape;
   }
 };
 
-static const std::map<ge::Format, uint32_t> FORMAT_NAME_MAP {
-    {ge::FORMAT_NDHWC, 5},
-    {ge::FORMAT_DHWCN, 5},
-    {ge::FORMAT_DHWNC, 5}
-};
+static const std::map<ge::Format, uint32_t> FORMAT_NAME_MAP{
+    {ge::FORMAT_NDHWC, 5}, {ge::FORMAT_DHWCN, 5}, {ge::FORMAT_DHWNC, 5}};
 using ComputeGraphPtr = std::shared_ptr<ge::ComputeGraph>;
 /** Graph Constructor
  *  Constructor a compute graph in a easy way
@@ -178,9 +172,9 @@ class GraphConstructor {
    * @brief description of Ops
    */
   struct OpDesc {
-    string op_name;                              // Identifier
+    string op_name;  // Identifier
     ge::NodePtr node;
-    string type;                   // the Op types of Ops
+    string type;  // the Op types of Ops
   };
 
   /**
@@ -188,19 +182,16 @@ class GraphConstructor {
    * @brief It shows how to add data edges between nodes to nodes
    */
   struct ConnectionInfo {
-    string op_name; // unique
-    string type;   // the Op types of Ops
+    string op_name;  // unique
+    string type;     // the Op types of Ops
     ge::NodePtr node;
     int32_t starting_tensor_index;
   };
 
   using DetailedTensor = struct DetailedNodeAndTensorInformation;
 
-
-  GraphConstructor(ComputeGraphPtr& graph, const string& name = "",
-                   const ge::Format& default_format = DEFAULT_FORMAT,
-                   const ge::DataType& default_dtype = DEFAULT_DTYPE,
-                   const ge::GeShape& default_shape = DEFAULT_SHAPE);
+  GraphConstructor(ComputeGraphPtr &graph, const string &name = "", const ge::Format &default_format = DEFAULT_FORMAT,
+                   const ge::DataType &default_dtype = DEFAULT_DTYPE, const ge::GeShape &default_shape = DEFAULT_SHAPE);
 
   ~GraphConstructor();
 
@@ -214,10 +205,8 @@ class GraphConstructor {
    *  get the corresponding op type.
    *  @return GraphConstructor&
    */
-  GraphConstructor& AddOpDesc(const string& op_name,
-                              const string& op_type,
-                              const size_t& inputs_size = 0,
-                              const size_t& outputs_size = 0);
+  GraphConstructor &AddOpDesc(const string &op_name, const string &op_type, const size_t &inputs_size = 0,
+                              const size_t &outputs_size = 0);
 
   /** The input op_name is the destination node and the input_names is the source
    * nodes' name of this op. We will check whether the op_name is already in the
@@ -231,81 +220,55 @@ class GraphConstructor {
    * op_name
    * @return GraphConstructor&
    */
-  GraphConstructor& SetInputs(const DetailedTensor& dst_tensor,
-                              const DetailedTensor& src_tensor);
+  GraphConstructor &SetInputs(const DetailedTensor &dst_tensor, const DetailedTensor &src_tensor);
 
-  GraphConstructor& SetInputs(const DetailedTensor& dst_tensor,
-                              const vector<DetailedTensor>& multiple_src_tensors);
+  GraphConstructor &SetInputs(const DetailedTensor &dst_tensor, const vector<DetailedTensor> &multiple_src_tensors);
 
-  GraphConstructor& SetInputs(const string& dst_name,
-                              const vector<string>& multiple_src_names);
+  GraphConstructor &SetInputs(const string &dst_name, const vector<string> &multiple_src_names);
 
   /* Set the src of last node */
-  GraphConstructor& SetInputs(const vector<string>& multiple_src_names);
+  GraphConstructor &SetInputs(const vector<string> &multiple_src_names);
   /*1111111111111111111111 Set Input First Version Start 111111111111111111111*/
-  GraphConstructor& SetInput(const string &dst_name, const string &src_name);
+  GraphConstructor &SetInput(const string &dst_name, const string &src_name);
 
   /** For specific cases, we want to set the input and output format of specific
    * tensor. The following function provides an ability to set the format */
-  GraphConstructor& SetInput(const string &dst_name, const string &src_name,
-                             const ge::Format &format);
+  GraphConstructor &SetInput(const string &dst_name, const string &src_name, const ge::Format &format);
 
-  GraphConstructor& SetInput(const string &dst_name, const string &src_name,
-                             const ge::Format &format,
+  GraphConstructor &SetInput(const string &dst_name, const string &src_name, const ge::Format &format,
                              const ge::Format &original_format);
 
-  GraphConstructor& SetInput(const string &dst_name, const string &src_name,
-                             const ge::Format &format,
-                             const ge::Format &original_format,
-                             const vector<int64_t>& original_dims);
+  GraphConstructor &SetInput(const string &dst_name, const string &src_name, const ge::Format &format,
+                             const ge::Format &original_format, const vector<int64_t> &original_dims);
 
-  GraphConstructor& SetInput(const string &dst_name,
-                             const ge::Format &dst_format,
-                             const string &src_name,
+  GraphConstructor &SetInput(const string &dst_name, const ge::Format &dst_format, const string &src_name,
                              const ge::Format &src_format);
 
-  GraphConstructor& SetInput(const string &dst_name,
-                             const ge::Format &dst_format,
-                             const ge::DataType &dst_dtype,
-                             const string &src_name,
-                             const ge::Format &src_format,
-                             const ge::DataType &src_dtype);
+  GraphConstructor &SetInput(const string &dst_name, const ge::Format &dst_format, const ge::DataType &dst_dtype,
+                             const string &src_name, const ge::Format &src_format, const ge::DataType &src_dtype);
 
-  GraphConstructor& SetInput(const string &dst_name,
-                             const ge::Format &dst_format,
-                             const string &src_name,
-                             const ge::Format &src_format,
-                             const ge::Format &dst_original_format);
+  GraphConstructor &SetInput(const string &dst_name, const ge::Format &dst_format, const string &src_name,
+                             const ge::Format &src_format, const ge::Format &dst_original_format);
 
-  GraphConstructor& SetInput(const string &dst_name,
-                             const ge::Format &dst_format,
-                             const string &src_name,
-                             const ge::Format &src_format,
-                             const ge::Format &dst_original_format,
+  GraphConstructor &SetInput(const string &dst_name, const ge::Format &dst_format, const string &src_name,
+                             const ge::Format &src_format, const ge::Format &dst_original_format,
                              const ge::Format &src_original_format);
 
-  GraphConstructor& SetInput(const string &dst_name,
-                             const ge::Format &dst_format,
-                             const string &src_name,
-                             const ge::Format &src_format,
-                             const ge::Format &dst_original_format,
-                             const ge::Format &src_original_format,
-                             const vector<int64_t>& dst_original_dims,
-                             const vector<int64_t>& src_original_dims);
+  GraphConstructor &SetInput(const string &dst_name, const ge::Format &dst_format, const string &src_name,
+                             const ge::Format &src_format, const ge::Format &dst_original_format,
+                             const ge::Format &src_original_format, const vector<int64_t> &dst_original_dims,
+                             const vector<int64_t> &src_original_dims);
   /*11111111111111111111111 Set Input First Version End 1111111111111111111111*/
 
   /*22222222222222222222222 Set Input Second Version Start 2222222222222222222*/
   /** For specific cases, we want to set the input and output format and shape
    * of specific tensor. The following function provides an ability to set the
    * format and shape*/
-  GraphConstructor& SetInput(const string &dst_name, const string &src_name,
-                             const vector<int64_t>& dims,
-                             const uint32_t& dst_or_src = SOURCE_AND_DESTINATION);
+  GraphConstructor &SetInput(const string &dst_name, const string &src_name, const vector<int64_t> &dims,
+                             const uint32_t &dst_or_src = SOURCE_AND_DESTINATION);
 
-  GraphConstructor& SetInput(const string &dst_name, const string &src_name,
-                             const vector<int64_t>& dims,
-                             const ge::Format &format,
-                             const uint32_t& dst_or_src = SOURCE_AND_DESTINATION);
+  GraphConstructor &SetInput(const string &dst_name, const string &src_name, const vector<int64_t> &dims,
+                             const ge::Format &format, const uint32_t &dst_or_src = SOURCE_AND_DESTINATION);
   /*22222222222222222222222 Set Input Second Version End 222222222222222222222*/
 
   GraphConstructor &Attr(string node_name, const std::string &name, bool value);
@@ -324,63 +287,49 @@ class GraphConstructor {
   GraphConstructor &Attr(const std::string &name, const std::vector<int64_t> &value);
   GraphConstructor &Attr(const std::string &name, const char *value);
 
-  static Status DumpGraph(const ge::ComputeGraphPtr& graph);
+  static Status DumpGraph(const ge::ComputeGraphPtr &graph);
 
   /* If each edge and node of graph1 and graph2 are the same, return true,
    * otherwise return false. */
-  static bool CompareGraph(const ComputeGraphPtr& graph1, const ComputeGraphPtr& graph2);
+  static bool CompareGraph(const ComputeGraphPtr &graph1, const ComputeGraphPtr &graph2);
 
-  static bool CompareNode(const ge::NodePtr & node1, const ge::NodePtr & node2);
+  static bool CompareNode(const ge::NodePtr &node1, const ge::NodePtr &node2);
 
-  static string GetInputString(const ge::NodePtr& node);
+  static string GetInputString(const ge::NodePtr &node);
 
-  void GetNodeByName(const string& name, ge::NodePtr &node_out);
+  void GetNodeByName(const string &name, ge::NodePtr &node_out);
 
-  static ge::NodePtr GetNodeByName(const string& name, const ComputeGraphPtr& graph);
+  static ge::NodePtr GetNodeByName(const string &name, const ComputeGraphPtr &graph);
   /* Set pattern for the last added node. */
-  GraphConstructor& SetPattern(const string &optype);
+  GraphConstructor &SetPattern(const string &optype);
 
   /* Set last added node as tvm op. */
-  GraphConstructor& SetTvmType();
+  GraphConstructor &SetTvmType();
 
   template <class T>
-  GraphConstructor& SetExtAttr(string &&attr_name, const T &value);
+  GraphConstructor &SetExtAttr(string &&attr_name, const T &value);
 
  private:
   /* Set Tensor Desc information such as original shstatic ape and original format. */
-  Status SetTensorDescInfo(ge::GeTensorDesc& tensor,
-      const ge::Format& original_format, const ge::DataType& data_type,
-      const ge::GeShape& shape, const ge::Format& format);
+  Status SetTensorDescInfo(ge::GeTensorDesc &tensor, const ge::Format &original_format, const ge::DataType &data_type,
+                           const ge::GeShape &shape, const ge::Format &format);
 
-  Status AddNewNodeIntoGraph(const string& op_type,
-                             const string& op_real_name,
-                             const size_t& size_of_new_tensors,
-                             const DetailedTensor& tensor_info,
-                             const bool& is_dst_node,
-                             int32_t& tensor_index,
-                             ge::NodePtr& new_node);
+  Status AddNewNodeIntoGraph(const string &op_type, const string &op_real_name, const size_t &size_of_new_tensors,
+                             const DetailedTensor &tensor_info, const bool &is_dst_node, int32_t &tensor_index,
+                             ge::NodePtr &new_node);
 
   /* The node is existing and we */
-  Status AddTensorIntoExistingNodes(
-      const size_t& size_of_new_tensors,
-      const DetailedTensor& tensor_info,
-      const bool& is_dst_node,
-      map<string, std::shared_ptr<OpDesc>>::iterator& iter,
-      int32_t& input_index);
+  Status AddTensorIntoExistingNodes(const size_t &size_of_new_tensors, const DetailedTensor &tensor_info,
+                                    const bool &is_dst_node, map<string, std::shared_ptr<OpDesc>>::iterator &iter,
+                                    int32_t &input_index);
 
   /*Parse the name and update op and node info. Add the node
    * into connection info*/
-  Status ParseNodeNameAndAddNodeIntoGraph(
-      const DetailedTensor& dst_tensor,
-      const size_t& size_of_new_tensors,
-      bool is_dst_node, vector<ConnectionInfo>& connection_info_of_all_nodes);
+  Status ParseNodeNameAndAddNodeIntoGraph(const DetailedTensor &dst_tensor, const size_t &size_of_new_tensors,
+                                          bool is_dst_node, vector<ConnectionInfo> &connection_info_of_all_nodes);
 
-
-  Status AddEdges(
-      const vector<ConnectionInfo>& src_connection_info_of_all_nodes,
-      const vector<ConnectionInfo>& dst_connection_info_of_all_nodes);
-
-
+  Status AddEdges(const vector<ConnectionInfo> &src_connection_info_of_all_nodes,
+                  const vector<ConnectionInfo> &dst_connection_info_of_all_nodes);
 
   /** Parse the input or output name, the name is as the following format:
    *
@@ -390,18 +339,16 @@ class GraphConstructor {
    *
    * @return Status
    */
-  Status NodeNameParser(const string &name, string& op_type,
-                         string& op_real_name, int32_t& input_or_output_index);
+  Status NodeNameParser(const string &name, string &op_type, string &op_real_name, int32_t &input_or_output_index);
 
-
-  Status ReplaceNodeWithNewBode(ge::NodePtr& old_node, ge::NodePtr& new_node);
+  Status ReplaceNodeWithNewBode(ge::NodePtr &old_node, ge::NodePtr &new_node);
 
   void SetGraph(ComputeGraphPtr graph);
+
  private:
   GraphConstructor(const GraphConstructor &) = default;
 
   GraphConstructor &operator=(const GraphConstructor &) = default;
-
 
  private:
   ComputeGraphPtr graph_;
@@ -414,6 +361,6 @@ class GraphConstructor {
 
   ge::NodePtr last_added_node_;
 };
-}
+}  // namespace ffts
 
 #endif  // LLT_FUSION_ENGINE_GRAPH_CONSTRUCTOR_GRAPH_CONSTRUCTOR_H_

@@ -26,11 +26,7 @@ class PythonAddZeroConstValueMatchPass(PatternFusionPass):
     """Recognize Add(x, 0.0f) with strict const-value-match and replace it with x."""
 
     def __init__(self):
-        super().__init__(
-            PatternMatcherConfigBuilder()
-            .enable_const_value_match()
-            .build()
-        )
+        super().__init__(PatternMatcherConfigBuilder().enable_const_value_match().build())
 
     @pattern
     def add_zero(self, inputs):

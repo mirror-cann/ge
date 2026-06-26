@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -134,8 +134,8 @@ struct KernelBoxMeta {
       return false;
     }
     if (!op->InferDataType(input_dtypes, expect_output_dtypes)) {
-      GELOGI("Infer Op %s with input dtypes %s got outputs %s", op->Type().c_str(),
-             loop::StrJoin(input_dtypes).c_str(), loop::StrJoin(expect_output_dtypes).c_str());
+      GELOGI("Infer Op %s with input dtypes %s got outputs %s", op->Type().c_str(), loop::StrJoin(input_dtypes).c_str(),
+             loop::StrJoin(expect_output_dtypes).c_str());
       return false;
     }
     if (!expect_output_dtypes.empty()) {
@@ -179,7 +179,7 @@ struct KernelBoxMeta {
     bool has_reshape = false;
     bool has_other_ops = false;
     FuseType result_type = FuseType::kPointwise;
-    
+
     LoopOp::Dfs(var.Op().get(), [&has_reshape, &has_other_ops, &result_type](const LoopOp *op) -> graphStatus {
       if (op == nullptr) {
         return GRAPH_SUCCESS;
@@ -201,7 +201,7 @@ struct KernelBoxMeta {
       }
       return GRAPH_SUCCESS;
     });
-    
+
     if (has_reshape && !has_other_ops) {
       return FuseType::kReshape;
     }
@@ -364,7 +364,7 @@ class KernelBox {
 
   size_t NumSlices() {
     return GetExtraMeta().num_slices;
-  }  
+  }
 
   std::string StreamLabel() {
     return GetExtraMeta().stream_label;

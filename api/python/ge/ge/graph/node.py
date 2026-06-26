@@ -3,10 +3,10 @@
 # -------------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
@@ -14,18 +14,20 @@
 """Node module for GraphEngine node operations."""
 
 import ctypes
-from typing import List, Optional, Tuple, Any
+from typing import Any, List, Tuple
+
 from ge._capi.pygraph_wrapper import graph_lib
+
 from ._attr import _AttrValue
 from .tensor_desc import TensorDesc
 
 
 class Node:
     """Node class for GraphEngine node operations.
-    
+
     This class provides a Pythonic interface for node operations
     using the GraphEngine C API.
-    
+
     Example:
         >>> # Node objects are created internally by Graph operations
         >>> nodes = graph.get_all_nodes()
@@ -55,7 +57,7 @@ class Node:
         raise RuntimeError("Node does not support deepcopy")
 
     @classmethod
-    def _create_from(cls, node_handle: ctypes.c_void_p, owns_handle: bool = True) -> 'Node':
+    def _create_from(cls, node_handle: ctypes.c_void_p, owns_handle: bool = True) -> "Node":
         """Create Node object from C++ handle.(internal use only by e.g Graph.get_all_nodes()
         or TensorHolder._get_node_snapshot(), do not use this method directly)
 
@@ -79,10 +81,10 @@ class Node:
     @property
     def name(self) -> str:
         """Get node name.
-        
+
         Returns:
             Node name.
-            
+
         Raises:
             RuntimeError: If name retrieval fails.
         """
@@ -91,7 +93,7 @@ class Node:
             raise RuntimeError("Failed to get Node name")
 
         try:
-            return ctypes.string_at(c_str).decode('utf-8')
+            return ctypes.string_at(c_str).decode("utf-8")
         finally:
             graph_lib.GeApiWrapper_FreeString(c_str)
 
@@ -110,13 +112,13 @@ class Node:
             raise RuntimeError("Failed to get Node type")
 
         try:
-            return ctypes.string_at(c_str).decode('utf-8')
+            return ctypes.string_at(c_str).decode("utf-8")
         finally:
             graph_lib.GeApiWrapper_FreeString(c_str)
 
-    def get_in_control_nodes(self) -> List['Node']:
+    def get_in_control_nodes(self) -> List["Node"]:
         """Get input control nodes.
-        
+
         Returns:
             List of input control Node objects.
         """
@@ -130,15 +132,15 @@ class Node:
         finally:
             graph_lib.GeApiWrapper_GNode_FreeGNodeArray(nodes)
 
-    def get_in_data_nodes_and_port_indexes(self, in_index: int) -> Tuple['Node', int]:
+    def get_in_data_nodes_and_port_indexes(self, in_index: int) -> Tuple["Node", int]:
         """Get input data node and port index.
-        
+
         Args:
             in_index: Input index.
-            
+
         Returns:
             Tuple of (input Node, port index).
-            
+
         Raises:
             TypeError: If in_index is not an integer.
             RuntimeError: If retrieval fails.
@@ -157,16 +159,15 @@ class Node:
 
         return Node._create_from(in_node), index.value
 
-    def get_out_data_nodes_and_port_indexes(self, out_index: int) -> List[Tuple['Node', int]]:
-        
+    def get_out_data_nodes_and_port_indexes(self, out_index: int) -> List[Tuple["Node", int]]:
         """Get output data nodes and port indexes.
-        
+
         Args:
             out_index: Output index.
-            
+
         Returns:
             List of Tuple of (output Node, port index).
-            
+
         Raises:
             TypeError: If out_index is not an integer.
             RuntimeError: If retrieval fails.
@@ -177,11 +178,15 @@ class Node:
         out_indexes = ctypes.POINTER(ctypes.c_int32)()
         size = ctypes.c_int()
         ret = graph_lib.GeApiWrapper_GNode_GetOutDataNodesAndPortIndexes(
-            self._handle, out_index, ctypes.byref(out_nodes), ctypes.byref(out_indexes), ctypes.byref(size)
+            self._handle,
+            out_index,
+            ctypes.byref(out_nodes),
+            ctypes.byref(out_indexes),
+            ctypes.byref(size),
         )
         if ret != 0:  # GRAPH_SUCCESS
             raise RuntimeError(f"Failed to get output data node for index {out_index}")
-        try: 
+        try:
             return [(Node._create_from(out_nodes[i]), out_indexes[i]) for i in range(size.value)]
         finally:
             graph_lib.GeApiWrapper_GNode_FreeGNodeArray(out_nodes)
@@ -189,13 +194,13 @@ class Node:
 
     def get_attr(self, key: str) -> Any:
         """Get node attribute.
-        
+
         Args:
             key: Attribute name.
-            
+
         Returns:
             Attribute value.
-            
+
         Raises:
             TypeError: If key is not a string.
             RuntimeError: If attribute retrieval fails.
@@ -204,7 +209,7 @@ class Node:
             raise TypeError("Attribute key must be a string")
 
         attr_value = _AttrValue()
-        key_bytes = key.encode('utf-8')
+        key_bytes = key.encode("utf-8")
 
         ret = graph_lib.GeApiWrapper_GNode_GetAttr(self._handle, key_bytes, attr_value._av_ptr)
         if ret != 0:  # GRAPH_SUCCESS
@@ -214,11 +219,11 @@ class Node:
 
     def set_attr(self, key: str, value: Any) -> None:
         """Set node attribute.
-        
+
         Args:
             key: Attribute name.
             value: Attribute value.
-            
+
         Raises:
             TypeError: If arguments have wrong types.
             RuntimeError: If attribute setting fails.
@@ -226,7 +231,7 @@ class Node:
         if not isinstance(key, str):
             raise TypeError("Attribute key must be a string")
 
-        key_bytes = key.encode('utf-8')
+        key_bytes = key.encode("utf-8")
         attr_value = _AttrValue()
         attr_value.set_value(value)
         ret = graph_lib.GeApiWrapper_GNode_SetAttr(self._handle, key_bytes, attr_value._av_ptr)
@@ -253,10 +258,13 @@ class Node:
             raise TypeError("Input index must be an integer")
 
         attr_value = _AttrValue()
-        attr_name_bytes = attr_name.encode('utf-8')
+        attr_name_bytes = attr_name.encode("utf-8")
 
         ret = graph_lib.GeApiWrapper_GNode_GetInputAttr(
-            self._handle, attr_name_bytes, ctypes.c_uint32(input_index), attr_value._av_ptr
+            self._handle,
+            attr_name_bytes,
+            ctypes.c_uint32(input_index),
+            attr_value._av_ptr,
         )
         if ret != 0:  # GRAPH_SUCCESS
             raise RuntimeError(f"Failed to get Node {self.name} input attribute '{attr_name}' for index {input_index}")
@@ -265,12 +273,12 @@ class Node:
 
     def set_input_attr(self, attr_name: str, input_index: int, value: Any) -> None:
         """Set input attribute.
-        
+
         Args:
             attr_name: Attribute name.
             input_index: Input index.
             value: Attribute value.
-            
+
         Raises:
             TypeError: If arguments have wrong types.
             RuntimeError: If attribute setting fails.
@@ -280,25 +288,28 @@ class Node:
         if not isinstance(input_index, int):
             raise TypeError("Input index must be an integer")
 
-        attr_name_bytes = attr_name.encode('utf-8')
+        attr_name_bytes = attr_name.encode("utf-8")
         attr_value = _AttrValue()
         attr_value.set_value(value)
         ret = graph_lib.GeApiWrapper_GNode_SetInputAttr(
-            self._handle, attr_name_bytes, ctypes.c_uint32(input_index), attr_value._av_ptr
+            self._handle,
+            attr_name_bytes,
+            ctypes.c_uint32(input_index),
+            attr_value._av_ptr,
         )
         if ret != 0:  # GRAPH_SUCCESS
             raise RuntimeError(f"Failed to set Node {self.name} input attribute '{attr_name}' for index {input_index}")
 
     def get_output_attr(self, attr_name: str, output_index: int) -> Any:
         """Get output attribute.
-        
+
         Args:
             attr_name: Attribute name.
             output_index: Output index.
-            
+
         Returns:
             Attribute value.
-            
+
         Raises:
             TypeError: If arguments have wrong types.
             RuntimeError: If attribute retrieval fails.
@@ -309,25 +320,29 @@ class Node:
             raise TypeError("Output index must be an integer")
 
         attr_value = _AttrValue()
-        attr_name_bytes = attr_name.encode('utf-8')
+        attr_name_bytes = attr_name.encode("utf-8")
 
         ret = graph_lib.GeApiWrapper_GNode_GetOutputAttr(
-            self._handle, attr_name_bytes, ctypes.c_uint32(output_index), attr_value._av_ptr
+            self._handle,
+            attr_name_bytes,
+            ctypes.c_uint32(output_index),
+            attr_value._av_ptr,
         )
         if ret != 0:  # GRAPH_SUCCESS
             raise RuntimeError(
-                f"Failed to get Node {self.name} output attribute '{attr_name}' for index {output_index}")
+                f"Failed to get Node {self.name} output attribute '{attr_name}' for index {output_index}"
+            )
 
         return attr_value.get_value()
 
     def set_output_attr(self, attr_name: str, output_index: int, value: Any) -> None:
         """Set output attribute.
-        
+
         Args:
             attr_name: Attribute name.
             output_index: Output index.
             value: Attribute value.
-            
+
         Raises:
             TypeError: If arguments have wrong types.
             RuntimeError: If attribute setting fails.
@@ -337,19 +352,23 @@ class Node:
         if not isinstance(output_index, int):
             raise TypeError("Output index must be an integer")
 
-        attr_name_bytes = attr_name.encode('utf-8')
+        attr_name_bytes = attr_name.encode("utf-8")
         attr_value = _AttrValue()
         attr_value.set_value(value)
         ret = graph_lib.GeApiWrapper_GNode_SetOutputAttr(
-            self._handle, attr_name_bytes, ctypes.c_uint32(output_index), attr_value._av_ptr
+            self._handle,
+            attr_name_bytes,
+            ctypes.c_uint32(output_index),
+            attr_value._av_ptr,
         )
         if ret != 0:  # GRAPH_SUCCESS
             raise RuntimeError(
-                f"Failed to set Node {self.name} output attribute '{attr_name}' for index {output_index}")
+                f"Failed to set Node {self.name} output attribute '{attr_name}' for index {output_index}"
+            )
 
-    def get_out_control_nodes(self) -> List['Node']:
+    def get_out_control_nodes(self) -> List["Node"]:
         """Get output control nodes.
-        
+
         Returns:
             List of output control Node objects.
         """
@@ -365,15 +384,15 @@ class Node:
 
     def get_inputs_size(self) -> int:
         """Get input size
-        
+
         Returns:
             Number of input size
         """
         return graph_lib.GeApiWrapper_GNode_GetInputsSize(self._handle)
-        
+
     def get_outputs_size(self) -> int:
         """Get output size
-        
+
         Returns:
             Number of output size
         """
@@ -381,10 +400,10 @@ class Node:
 
     def has_attr(self, attr_name: str) -> bool:
         """Has attribute
-        
+
         Args:
             attr_name: Attribute name.
-            
+
         Returns:
             If node has attribute of this name.
         """
@@ -392,7 +411,7 @@ class Node:
             raise TypeError("attr_name must be a string")
 
         attr_name_bytes = attr_name.encode("utf-8")
-        return  graph_lib.GeApiWrapper_GNode_HasAttr(self._handle, attr_name_bytes)
+        return graph_lib.GeApiWrapper_GNode_HasAttr(self._handle, attr_name_bytes)
 
     def get_input_desc(self, index: int) -> TensorDesc:
         """Get input tensor descriptor.

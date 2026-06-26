@@ -17,54 +17,54 @@ TypeAliasDecl *InterfaceFileCodeGenerator::BuildOm2ModelHandleAlias() {
 
 StructDecl *InterfaceFileCodeGenerator::BuildBinDataInfoStruct() {
   return ast_.Struct("BinDataInfo", {
-      ast_.Field("const void *", "data"),
-      ast_.Field("size_t", "size"),
-  });
+                                        ast_.Field("const void *", "data"),
+                                        ast_.Field("size_t", "size"),
+                                    });
 }
 
 StructDecl *InterfaceFileCodeGenerator::BuildAicpuParamHeadStruct() {
   return ast_.Struct("AicpuParamHead", {
-      ast_.Field("uint32_t", "length"),
-      ast_.Field("uint32_t", "ioAddrNum"),
-      ast_.Field("uint32_t", "extInfoLength"),
-      ast_.Field("uint64_t", "extInfoAddr"),
-  });
+                                           ast_.Field("uint32_t", "length"),
+                                           ast_.Field("uint32_t", "ioAddrNum"),
+                                           ast_.Field("uint32_t", "extInfoLength"),
+                                           ast_.Field("uint64_t", "extInfoAddr"),
+                                       });
 }
 
 StructDecl *InterfaceFileCodeGenerator::BuildAicpuSessionInfoStruct() {
   return ast_.Struct("AicpuSessionInfo", {
-      ast_.Field("uint64_t", "sessionId"),
-      ast_.Field("uint64_t", "kernelId"),
-      ast_.Field("bool", "sessFlag"),
-  });
+                                             ast_.Field("uint64_t", "sessionId"),
+                                             ast_.Field("uint64_t", "kernelId"),
+                                             ast_.Field("bool", "sessFlag"),
+                                         });
 }
 
 StructDecl *InterfaceFileCodeGenerator::BuildTfAiCpuExInfoStruct() {
   return ast_.Struct("TfAiCpuExInfo", {
-    ast_.Field("uint32_t", "fwkKernelType"),
-    ast_.Field("uint32_t", "fwkOperateType"),
-    ast_.Field("uint64_t", "sessionID"),
-    ast_.Field("uint64_t", "stepIDAddr"),
-    ast_.Field("uint64_t", "kernelID"),
-    ast_.Field("uint64_t", "nodeDefLen"),
-    ast_.Field("uint64_t", "nodeDefBuf"),
-    ast_.Field("uint64_t", "funDefLibLen"),
-    ast_.Field("uint64_t", "funDefLibBuf"),
-    ast_.Field("uint64_t", "inputOutputLen"),
-    ast_.Field("uint64_t", "inputOutputBuf"),
-    ast_.Field("uint64_t", "workspaceBaseAddr"),
-    ast_.Field("uint64_t", "inputOutputAddr"),
-    ast_.Field("uint64_t", "extInfoLen"),
-    ast_.Field("uint64_t", "extInfoAddr"),
-  });
+                                          ast_.Field("uint32_t", "fwkKernelType"),
+                                          ast_.Field("uint32_t", "fwkOperateType"),
+                                          ast_.Field("uint64_t", "sessionID"),
+                                          ast_.Field("uint64_t", "stepIDAddr"),
+                                          ast_.Field("uint64_t", "kernelID"),
+                                          ast_.Field("uint64_t", "nodeDefLen"),
+                                          ast_.Field("uint64_t", "nodeDefBuf"),
+                                          ast_.Field("uint64_t", "funDefLibLen"),
+                                          ast_.Field("uint64_t", "funDefLibBuf"),
+                                          ast_.Field("uint64_t", "inputOutputLen"),
+                                          ast_.Field("uint64_t", "inputOutputBuf"),
+                                          ast_.Field("uint64_t", "workspaceBaseAddr"),
+                                          ast_.Field("uint64_t", "inputOutputAddr"),
+                                          ast_.Field("uint64_t", "extInfoLen"),
+                                          ast_.Field("uint64_t", "extInfoAddr"),
+                                      });
 }
 
 StructDecl *InterfaceFileCodeGenerator::BuildArgsInfoStruct() {
   return ast_.Struct("ArgsInfo", {
-      ast_.Field("void *", "host_addr"),
-      ast_.Field("void *", "dev_addr"),
-      ast_.Field("size_t", "size"),
-  });
+                                     ast_.Field("void *", "host_addr"),
+                                     ast_.Field("void *", "dev_addr"),
+                                     ast_.Field("size_t", "size"),
+                                 });
 }
 
 ClassDecl *InterfaceFileCodeGenerator::BuildOm2ArgsTableClass() {
@@ -76,8 +76,8 @@ ClassDecl *InterfaceFileCodeGenerator::BuildOm2ArgsTableClass() {
       ast_.DeclareMethod("GetArgsInfo", {ast_.Var("size_t", "index")}, "ArgsInfo *"),
       ast_.DeclareMethod("GetDevArgAddr", {ast_.Var("size_t", "offset")}, "void *"),
       ast_.DeclareMethod("GetHostArgAddr", {ast_.Var("size_t", "offset")}, "void *"),
-      ast_.DeclareMethod("UpdateHostArgs",
-                         {ast_.Var("size_t", "index"), ast_.Var("const uintptr_t", "addr")}, "aclError"),
+      ast_.DeclareMethod("UpdateHostArgs", {ast_.Var("size_t", "index"), ast_.Var("const uintptr_t", "addr")},
+                         "aclError"),
       ast_.DeclareMethod("CopyArgsToDevice", {}, "aclError"),
       ast_.Private(),
       ast_.Field("int64_t", "args_size_"),
@@ -93,27 +93,28 @@ ClassDecl *InterfaceFileCodeGenerator::BuildOm2ModelClass(const Om2CodegenModel 
   const auto &runtime = codegen_model.runtime;
   std::vector<DeclNode *> items = {
       ast_.Public(),
-      ast_.DeclareMethod("Om2Model",
-                         {ast_.Var("const char **", "bin_files"), ast_.Var("const void **", "bin_data"),
-                          ast_.Var("size_t *", "bin_size"), ast_.Var("size_t", "bin_num"),
-                          ast_.Var("void **", "constants"), ast_.Var("void *", "work_ptr"),
-                          ast_.Var("uint64_t *", "session_id"), ast_.Var("uint32_t", "model_id"),
-                          ast_.Var("void *", "instance_handle")},
-                         ""),
+      ast_.DeclareMethod(
+          "Om2Model",
+          {ast_.Var("const char **", "bin_files"), ast_.Var("const void **", "bin_data"),
+           ast_.Var("size_t *", "bin_size"), ast_.Var("size_t", "bin_num"), ast_.Var("void **", "constants"),
+           ast_.Var("void *", "work_ptr"), ast_.Var("uint64_t *", "session_id"), ast_.Var("uint32_t", "model_id"),
+           ast_.Var("void *", "instance_handle")},
+          ""),
       ast_.DeclareMethod("~Om2Model", {}, ""),
       ast_.DeclareMethod("InitResources", {}, "aclError"),
       ast_.DeclareMethod("RegisterKernels", {}, "aclError"),
       ast_.DeclareMethod("Load", {}, "aclError"),
       ast_.DeclareMethod("GetRtModelHandle", {}, "aclmdlRI"),
-      ast_.DeclareMethod("Run", {ast_.Var("size_t", "input_count"), ast_.Var("void **", "input_data"),
-                                 ast_.Var("size_t", "output_count"), ast_.Var("void **", "output_data"),
-                                 ast_.Var("int32_t", "stream_sync_timeout")},
-                         "aclError"),
-      ast_.DeclareMethod("RunAsync",
-                         {ast_.Var("aclrtStream &", "exe_stream"), ast_.Var("size_t", "input_count"),
-                          ast_.Var("void **", "input_data"), ast_.Var("size_t", "output_count"),
-                          ast_.Var("void **", "output_data")},
-                         "aclError"),
+      ast_.DeclareMethod(
+          "Run",
+          {ast_.Var("size_t", "input_count"), ast_.Var("void **", "input_data"), ast_.Var("size_t", "output_count"),
+           ast_.Var("void **", "output_data"), ast_.Var("int32_t", "stream_sync_timeout")},
+          "aclError"),
+      ast_.DeclareMethod(
+          "RunAsync",
+          {ast_.Var("aclrtStream &", "exe_stream"), ast_.Var("size_t", "input_count"),
+           ast_.Var("void **", "input_data"), ast_.Var("size_t", "output_count"), ast_.Var("void **", "output_data")},
+          "aclError"),
       ast_.DeclareMethod("ReleaseResources", {}, "aclError"),
       ast_.Private(),
       ast_.Field("void **", "constants_"),
@@ -154,33 +155,28 @@ void InterfaceFileCodeGenerator::DealParamForOm2ModelClass(std::vector<DeclNode 
   items.push_back(ast_.Field("std::map<uint32_t, std::pair<void *, uint32_t>>", "label_goto_args_"));
   items.push_back(ast_.Field("std::map<uint32_t, aclrtLabelList>", "label_goto_ex_label_list_"));
   if (runtime.has_label_switch) {
-    items.push_back(ast_.DeclareMethod("CreateLabelListForLabelSwitch",
-                                      {ast_.Var("uint32_t", "op_index"),
-                                        ast_.Var("std::vector<uint32_t>", "label_list_indexs")}, "aclError"));
+    items.push_back(ast_.DeclareMethod(
+        "CreateLabelListForLabelSwitch",
+        {ast_.Var("uint32_t", "op_index"), ast_.Var("std::vector<uint32_t>", "label_list_indexs")}, "aclError"));
   }
   if (runtime.has_label_goto) {
     items.push_back(ast_.DeclareMethod("CreateLabelListForLabelGotoEx",
-                                      {ast_.Var("uint32_t", "op_index"),
-                                        ast_.Var("uint32_t", "label_index")}, "aclError"));
+                                       {ast_.Var("uint32_t", "op_index"), ast_.Var("uint32_t", "label_index")},
+                                       "aclError"));
     items.push_back(ast_.Field("std::vector<void *>", "label_goto_ex_index_values_"));
   }
 }
 
 std::vector<DeclNode *> InterfaceFileCodeGenerator::BuildExternalApiDecls() {
   return {
-      ast_.DeclareFunction("Om2ModelCreate",
-                           {ast_.Var("om2::Om2ModelHandle *", "model_handle"),
-                            ast_.Var("aclmdlRI *", "rt_model_handle"),
-                            ast_.Var("const char **", "bin_files"),
-                            ast_.Var("const void **", "bin_data"),
-                            ast_.Var("size_t *", "bin_size"),
-                            ast_.Var("int", "bin_num"),
-                            ast_.Var("void **", "constants"),
-                            ast_.Var("void *", "work_ptr"),
-                            ast_.Var("uint64_t *", "session_id"),
-                            ast_.Var("uint32_t", "model_id"),
-                            ast_.Var("void *", "instance_handle")},
-                           "aclError"),
+      ast_.DeclareFunction(
+          "Om2ModelCreate",
+          {ast_.Var("om2::Om2ModelHandle *", "model_handle"), ast_.Var("aclmdlRI *", "rt_model_handle"),
+           ast_.Var("const char **", "bin_files"), ast_.Var("const void **", "bin_data"),
+           ast_.Var("size_t *", "bin_size"), ast_.Var("int", "bin_num"), ast_.Var("void **", "constants"),
+           ast_.Var("void *", "work_ptr"), ast_.Var("uint64_t *", "session_id"), ast_.Var("uint32_t", "model_id"),
+           ast_.Var("void *", "instance_handle")},
+          "aclError"),
       ast_.DeclareFunction("Om2ModelLoad", {ast_.Var("om2::Om2ModelHandle *", "model_handle")}, "aclError"),
       ast_.DeclareFunction("Om2ModelRunAsync",
                            {ast_.Var("om2::Om2ModelHandle *", "model_handle"), ast_.Var("aclrtStream", "stream"),

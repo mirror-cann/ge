@@ -9,4 +9,3 @@ enum class DumpFormat : uint32_t {
   kReadable   // 参考Dynamo风格的高可读性文本文件，生成文件名为ge_readable*.txt
 };
 ```
-

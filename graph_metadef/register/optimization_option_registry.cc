@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -12,7 +12,7 @@
 #include "framework/common/debug/ge_log.h"
 
 namespace {
-bool IsPassOptionValid(const std::string& pass_name, const std::map<ge::OoHierarchy, std::string> &options) {
+bool IsPassOptionValid(const std::string &pass_name, const std::map<ge::OoHierarchy, std::string> &options) {
   // 一级选项必须有且仅有一个，二级选项有且仅有一个或零个
   if (options.count(ge::OoHierarchy::kH1) == 0UL) {
     GELOGW("The pass [%s] has no primary switch option", pass_name.c_str());
@@ -21,8 +21,7 @@ bool IsPassOptionValid(const std::string& pass_name, const std::map<ge::OoHierar
 
   for (const auto &opt : options) {
     if (opt.second.empty()) {
-      GELOGW("The pass [%s] has an empty option, pass option is not registered",
-             pass_name.c_str());
+      GELOGW("The pass [%s] has an empty option, pass option is not registered", pass_name.c_str());
       return false;
     }
     if (opt.first >= ge::OoHierarchy::kEnd) {
@@ -33,7 +32,7 @@ bool IsPassOptionValid(const std::string& pass_name, const std::map<ge::OoHierar
   }
   return true;
 }
-}
+}  // namespace
 namespace ge {
 OptionRegistry &OptionRegistry::GetInstance() {
   static OptionRegistry instance;
@@ -45,7 +44,7 @@ void OptionRegistry::Register(const OoInfo &option) {
     GELOGW("Repeatedly register option [%s]", option.name.c_str());
     return;
   }
-  (void) registered_opt_table_.emplace(option.name, option);
+  (void)registered_opt_table_.emplace(option.name, option);
   GELOGD("Add optimization option [%s], OoLevel is [%s]", option.name.c_str(),
          OoInfoUtils::GenOoLevelStr(option.levels).c_str());
 }
@@ -65,7 +64,7 @@ std::unordered_map<std::string, OoInfo> OptionRegistry::GetVisibleOptions(OoEntr
     if (OoInfoUtils::IsBitSet(option_info.visibility, static_cast<uint32_t>(entry_point))) {
       const auto iter = option_info.show_infos.find(entry_point);
       if (iter != option_info.show_infos.end()) {
-        (void) visible_options.emplace(iter->second.show_name, option_info);
+        (void)visible_options.emplace(iter->second.show_name, option_info);
       }
     }
   }
@@ -98,7 +97,7 @@ graphStatus PassOptionRegistry::FindOptionNamesByPassName(const std::string &pas
   }
   for (const auto &opt_name : iter->second) {
     if (!opt_name.empty()) {
-      (void) option_names.emplace_back(opt_name);
+      (void)option_names.emplace_back(opt_name);
     }
   }
   return GRAPH_SUCCESS;
@@ -174,10 +173,10 @@ OptionRegister &OptionRegister::SetHelpText(std::string opt_help) {
   return *this;
 }
 
-OptionRegister &OptionRegister::SetShowName(OoEntryPoint entry_point, std::string show_name, ge::OoCategory category) {
+OptionRegister &OptionRegister::SetShowName(OoEntryPoint entry_point, std::string show_name, ge::OoCategory catagory) {
   if (opt_reg_data_ != nullptr) {
     if (opt_reg_data_->show_infos.count(entry_point) == 0UL) {
-      opt_reg_data_->show_infos.emplace(entry_point, OoShowInfo{category, std::move(show_name)});
+      opt_reg_data_->show_infos.emplace(entry_point, OoShowInfo{catagory, std::move(show_name)});
     }
   }
   return *this;
@@ -225,7 +224,7 @@ PassOptionRegister &PassOptionRegister::SetOptLevel(const std::vector<OoLevel> &
 
 PassOptionRegister &PassOptionRegister::BindSwitchOption(const std::string &opt_name, OoHierarchy hierarchy) {
   if (pass_reg_data_ != nullptr) {
-    (void) pass_reg_data_->options.emplace(hierarchy, opt_name);
+    (void)pass_reg_data_->options.emplace(hierarchy, opt_name);
   }
   return *this;
 }

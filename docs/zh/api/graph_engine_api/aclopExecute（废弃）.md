@@ -138,4 +138,3 @@ aclrtStream stream)
 ## 约束说明<a name="section29496561849"></a>
 
 多线程场景下，不支持调用本接口时指定同一个Stream或使用默认Stream，否则可能任务执行异常。
-

@@ -16,96 +16,96 @@
 #include "utils.h"
 
 class AclModelWeight {
-public:
-    AclModelWeight(size_t modelWeightSize)
-    {
-        modelWeightSize_ = modelWeightSize;
-        CHECK(aclrtMalloc(&modelWeightPtr_, modelWeightSize_, ACL_MEM_MALLOC_HUGE_FIRST));
-    }
-    ~AclModelWeight()
-    {
-        CHECK(aclrtFree(modelWeightPtr_));
-        modelWeightPtr_ = nullptr;
-        modelWeightSize_ = 0;
-    }
-    size_t GetModelWeightSize();
-    void *GetModelWeightPrt();
-private:
-    size_t modelWeightSize_;
-    void *modelWeightPtr_;
+ public:
+  AclModelWeight(size_t modelWeightSize) {
+    modelWeightSize_ = modelWeightSize;
+    CHECK(aclrtMalloc(&modelWeightPtr_, modelWeightSize_, ACL_MEM_MALLOC_HUGE_FIRST));
+  }
+  ~AclModelWeight() {
+    CHECK(aclrtFree(modelWeightPtr_));
+    modelWeightPtr_ = nullptr;
+    modelWeightSize_ = 0;
+  }
+  size_t GetModelWeightSize();
+  void *GetModelWeightPrt();
+
+ private:
+  size_t modelWeightSize_;
+  void *modelWeightPtr_;
 };
 
 class AclModelWork {
-public:
-    AclModelWork(size_t modelWorkSize)
-    {
-        modelWorkSize_ = modelWorkSize;
-        CHECK(aclrtMalloc(&modelWorkPtr_, modelWorkSize_, ACL_MEM_MALLOC_HUGE_FIRST));
-    }
-    ~AclModelWork()
-    {
-        CHECK(aclrtFree(modelWorkPtr_));
-        modelWorkPtr_ = nullptr;
-        modelWorkSize_ = 0;
-    }
-    size_t GetModelWorkSize();
-    void *GetModelWorkPtr();
-private:
-    size_t modelWorkSize_;
-    void *modelWorkPtr_;
+ public:
+  AclModelWork(size_t modelWorkSize) {
+    modelWorkSize_ = modelWorkSize;
+    CHECK(aclrtMalloc(&modelWorkPtr_, modelWorkSize_, ACL_MEM_MALLOC_HUGE_FIRST));
+  }
+  ~AclModelWork() {
+    CHECK(aclrtFree(modelWorkPtr_));
+    modelWorkPtr_ = nullptr;
+    modelWorkSize_ = 0;
+  }
+  size_t GetModelWorkSize();
+  void *GetModelWorkPtr();
+
+ private:
+  size_t modelWorkSize_;
+  void *modelWorkPtr_;
 };
 
 class AclModelDesc {
-public:
-    AclModelDesc(uint32_t modelId)
-    {
-        modelId_ = modelId;
-        modelDesc_ = aclmdlCreateDesc();
-        CHECK_NOT_NULL(modelDesc_);
-        CHECK(aclmdlGetDesc(modelDesc_, modelId));
-    }
-    ~AclModelDesc()
-    {
-        CHECK(aclmdlUnload(modelId_));
-        CHECK(aclmdlDestroyDesc(modelDesc_));
-        modelDesc_ = nullptr;
-    }
-    aclmdlDesc *GetModelDesc();
-private:
-    uint32_t modelId_;
-    aclmdlDesc *modelDesc_;
+ public:
+  AclModelDesc(uint32_t modelId) {
+    modelId_ = modelId;
+    modelDesc_ = aclmdlCreateDesc();
+    CHECK_NOT_NULL(modelDesc_);
+    CHECK(aclmdlGetDesc(modelDesc_, modelId));
+  }
+  ~AclModelDesc() {
+    CHECK(aclmdlUnload(modelId_));
+    CHECK(aclmdlDestroyDesc(modelDesc_));
+    modelDesc_ = nullptr;
+  }
+  aclmdlDesc *GetModelDesc();
+
+ private:
+  uint32_t modelId_;
+  aclmdlDesc *modelDesc_;
 };
 
 class AclModelInput {
-public:
-    AclModelInput(void *inputDataBuffer, size_t bufferSize, aclmdlDesc *modelDesc);
-    ~AclModelInput();
-    aclmdlDataset *GetDataSet();
-private:
-    aclmdlDataset *dataset_;
+ public:
+  AclModelInput(void *inputDataBuffer, size_t bufferSize, aclmdlDesc *modelDesc);
+  ~AclModelInput();
+  aclmdlDataset *GetDataSet();
+
+ private:
+  aclmdlDataset *dataset_;
 };
 
 struct InputTensor {
-    void* data;
-    size_t byte_size;
+  void *data;
+  size_t byte_size;
 };
 
 class AclLlmModelInput {
-public:
-    AclLlmModelInput(const std::vector<InputTensor>& inputs, aclmdlDesc *modelDesc);
-    ~AclLlmModelInput();
-    aclmdlDataset *GetDataSet();
-private:
-    aclmdlDataset *dataset_;
+ public:
+  AclLlmModelInput(const std::vector<InputTensor> &inputs, aclmdlDesc *modelDesc);
+  ~AclLlmModelInput();
+  aclmdlDataset *GetDataSet();
+
+ private:
+  aclmdlDataset *dataset_;
 };
 
 class AclModelOutput {
-public:
-    AclModelOutput(aclmdlDesc *modelDesc);
-    ~AclModelOutput();
-    aclmdlDataset *GetDataSet();
-private:
-    aclmdlDataset *dataset_;
+ public:
+  AclModelOutput(aclmdlDesc *modelDesc);
+  ~AclModelOutput();
+  aclmdlDataset *GetDataSet();
+
+ private:
+  aclmdlDataset *dataset_;
 };
 
 #endif  // SAMPLE_ACL_COMMON_SAMPLE_MODEL_H_

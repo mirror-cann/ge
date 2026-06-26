@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -180,21 +180,23 @@ void DavinciModelFaker::SetAdviseSymbolAddr(const DavinciModel &dm, uint64_t &fm
     if (in_iter != model_input_symbols_to_input_topo_order_index.end()) {
       // fake的allocation表中，按顺序fusion, fm, 所有inputs、outputs
       symbols_to_logical_addr[symbol_to_ios.first] =
-        dm.logical_mem_allocations_
-          .at(in_iter->second + dm.fm_mem_allocations_start_id_ + dm.logical_fm_mem_allocations_size_).logical_addr;
+          dm.logical_mem_allocations_
+              .at(in_iter->second + dm.fm_mem_allocations_start_id_ + dm.logical_fm_mem_allocations_size_)
+              .logical_addr;
       continue;
     }
     auto out_iter = model_output_symbols_to_output_index.find(symbol_to_ios.first);
     if (out_iter != model_output_symbols_to_output_index.end()) {
       symbols_to_logical_addr[symbol_to_ios.first] =
           dm.logical_mem_allocations_
-            .at(dm.fm_mem_allocations_start_id_ + dm.logical_fm_mem_allocations_size_  + out_iter->second +
-            model_input_symbols_to_input_topo_order_index.size()).logical_addr;
+              .at(dm.fm_mem_allocations_start_id_ + dm.logical_fm_mem_allocations_size_ + out_iter->second +
+                  model_input_symbols_to_input_topo_order_index.size())
+              .logical_addr;
       continue;
     }
 
     symbols_to_logical_addr[symbol_to_ios.first] =
-      dm.logical_mem_allocations_.at(dm.fm_mem_allocations_start_id_).logical_addr + fm_offset;
+        dm.logical_mem_allocations_.at(dm.fm_mem_allocations_start_id_).logical_addr + fm_offset;
     fm_offset += 0x100;
   }
   task_info_registry_stub_->SetSymbolsToLogicalAddr(std::move(symbols_to_logical_addr));

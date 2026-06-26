@@ -1,6 +1,5 @@
 # aclGraphDumpOption<a name="ZH-CN_TOPIC_0000001312481413"></a>
 
--   **[aclCreateGraphDumpOpt](aclCreateGraphDumpOpt.md)**  
+-   **[aclCreateGraphDumpOpt](aclCreateGraphDumpOpt.md)**
 
--   **[aclDestroyGraphDumpOpt](aclDestroyGraphDumpOpt.md)**  
-
+-   **[aclDestroyGraphDumpOpt](aclDestroyGraphDumpOpt.md)**

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,9 +17,9 @@
 #include "parser/common/op_parser_factory.h"
 #include "framework/omg/parser/parser_types.h"
 
+using domi::TENSORFLOW;
 using domi::tensorflow::AttrValue;
 using domi::tensorflow::NodeDef;
-using domi::TENSORFLOW;
 using ge::parser::DATA;
 
 namespace ge {
@@ -63,15 +63,12 @@ Status TensorFlowDataParser::ParseInputFromModel(const Message *op_src, const ge
 
     domi::tensorflow::DataType tf_type = attr_value.type();
     ge::DataType type = domi::TensorAssign::ConvertTensorflowDataType(tf_type);
-    CHECK_FALSE_EXEC(type != ge::DataType::DT_UNDEFINED,
-                     REPORT_INNER_ERR_MSG("E19999", "Data type %s of node %s is not supported",
-                                       DataType_Name(tf_type).c_str(),
-                                       node->name().c_str());
-                     GELOGE(domi::PARAM_INVALID,
-                            "Data type %s of node %s is not supported.",
-                            DataType_Name(tf_type).c_str(),
-                            node->name().c_str());
-                     return domi::PARAM_INVALID);
+    CHECK_FALSE_EXEC(
+        type != ge::DataType::DT_UNDEFINED, REPORT_INNER_ERR_MSG("E19999", "Data type %s of node %s is not supported",
+                                                                 DataType_Name(tf_type).c_str(), node->name().c_str());
+        GELOGE(domi::PARAM_INVALID, "Data type %s of node %s is not supported.", DataType_Name(tf_type).c_str(),
+               node->name().c_str());
+        return domi::PARAM_INVALID);
 
     GE_CHK_BOOL_RET_STATUS(ge::AttrUtils::SetInt(op_def, DATA_ATTR_NAME_DATA_TYPE, static_cast<int64_t>(type)), FAILED,
                            "SetAttr:%s to node:%s(%s) failed", DATA_ATTR_NAME_DATA_TYPE.c_str(),
@@ -123,8 +120,7 @@ Status TensorFlowDataParser::ParseInputFromUser(const Message *op_src, const ge:
   GE_CHK_BOOL_RET_STATUS(model_input_dims_v.empty() || input_dim_size_ == model_input_dims_v.size(),
                          domi::PARAM_INVALID,
                          "user designated input_dim_num %zu does match input_dim_num %zu defined by model",
-                         input_dim_size_,
-                         model_input_dims_v.size());
+                         input_dim_size_, model_input_dims_v.size());
 
   // replace with the user designated_dims
   user_input_dims_v.swap(designated_dims);
@@ -138,7 +134,7 @@ Status TensorFlowDataParser::CheckInputShape(const std::string &name) {
     // dim i = 0, means empty tensor.
     // dim i = -1 or -2, means unknown shape.
     GE_CHK_BOOL_RET_STATUS(user_input_dims_v[i] >= kValidShapeMinValue, domi::PARAM_INVALID,
-        "parse data node %s: shape contains placeholder, but not designated by user", name.c_str());
+                           "parse data node %s: shape contains placeholder, but not designated by user", name.c_str());
   }
   return SUCCESS;
 }

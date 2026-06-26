@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,14 +25,14 @@ HeavyFormatSupportFormatsUpdater::~HeavyFormatSupportFormatsUpdater() {}
  * original sub-format(0), there will be no change when we do the
  * second time query. */
 void HeavyFormatSupportFormatsUpdater::UpdateSubFormatForTensors(const ge::OpDescPtr &op_desc_ptr,
-                                                                 const HeavyFormatInfo& heavy_format_info) const {
+                                                                 const HeavyFormatInfo &heavy_format_info) const {
   for (size_t i = 0; i < op_desc_ptr->GetAllInputsSize(); i++) {
     auto input = op_desc_ptr->MutableInputDesc(i);
     if (input != nullptr) {
       int32_t ori_format = ge::GetPrimaryFormat(static_cast<int32_t>(input->GetFormat()));
       int32_t c0_bit_val = GetC0BitByDataType(input->GetDataType());
-      input->SetFormat(static_cast<ge::Format>(ge::GetFormatFromSubAndC0(ori_format, heavy_format_info.sub_format,
-                                                                         c0_bit_val)));
+      input->SetFormat(
+          static_cast<ge::Format>(ge::GetFormatFromSubAndC0(ori_format, heavy_format_info.sub_format, c0_bit_val)));
     }
   }
 
@@ -41,20 +41,20 @@ void HeavyFormatSupportFormatsUpdater::UpdateSubFormatForTensors(const ge::OpDes
     if (output != nullptr) {
       int32_t prm_format = ge::GetPrimaryFormat(static_cast<int32_t>(output->GetFormat()));
       int32_t c0_bit_val = GetC0BitByDataType(output->GetDataType());
-      output->SetFormat(static_cast<ge::Format>(ge::GetFormatFromSubAndC0(prm_format, heavy_format_info.sub_format,
-                                                                          c0_bit_val)));
+      output->SetFormat(
+          static_cast<ge::Format>(ge::GetFormatFromSubAndC0(prm_format, heavy_format_info.sub_format, c0_bit_val)));
     }
   }
 }
 
-Status HeavyFormatSupportFormatsUpdater::UpdateSupportFormats(const ge::NodePtr& node_ptr,
-                                                              const OpKernelInfoPtr& op_kernel_info_ptr,
-                                                              const std::vector<IndexNameMap>& tensor_map,
-                                                              const HeavyFormatInfo& heavy_format_info) {
+Status HeavyFormatSupportFormatsUpdater::UpdateSupportFormats(const ge::NodePtr &node_ptr,
+                                                              const OpKernelInfoPtr &op_kernel_info_ptr,
+                                                              const std::vector<IndexNameMap> &tensor_map,
+                                                              const HeavyFormatInfo &heavy_format_info) {
   auto op_desc_ptr = node_ptr->GetOpDesc();
   auto op_name = op_desc_ptr->GetName();
   auto op_type = op_desc_ptr->GetType();
-  // 1. If the heavy_format is not fz/fz_3d, or the op is not dynamic_format and op.patter=Broadcast,
+  // 1. If the heavy_format is not fz/fz_3d, or the op is not dynamic_format and op.pattern=Broadcast,
   // no need to update the support_formats
   if (!IsFzRelaFormat(heavy_format_info) || !IsSelectFormatOrBroadcast(op_desc_ptr, op_kernel_info_ptr)) {
     return SUCCESS;
@@ -96,8 +96,9 @@ Status HeavyFormatSupportFormatsUpdater::UpdateSupportFormats(const ge::NodePtr&
 
   ret = format_dtype_setter_ptr_->SetSupportFormatDtypeByNode(node_ptr, heavy_format_info);
   if (ret != SUCCESS) {
-    REPORT_FE_ERROR("[GraphOptJdgInst][SptFmtUpDtr][UptSptFmt] Op[name=%s, type=%s]: failed to set the supported formats",
-                    op_name.c_str(), op_type.c_str());
+    REPORT_FE_ERROR(
+        "[GraphOptJdgInst][SptFmtUpDtr][UptSptFmt] Op[name=%s, type=%s]: failed to set the supported formats",
+        op_name.c_str(), op_type.c_str());
     return FAILED;
   }
   (void)ge::AttrUtils::SetStr(op_desc_ptr, ATTR_NAME_FE_PROPAGAT_HEAVY_FORMAT,
@@ -106,24 +107,22 @@ Status HeavyFormatSupportFormatsUpdater::UpdateSupportFormats(const ge::NodePtr&
   return SUCCESS;
 }
 
-bool HeavyFormatSupportFormatsUpdater::IsFzRelaFormat(const HeavyFormatInfo& heavy_format_info) const {
+bool HeavyFormatSupportFormatsUpdater::IsFzRelaFormat(const HeavyFormatInfo &heavy_format_info) const {
   return std::find(FE_GROUP_RELA_FORMAT_VECTOR.begin(), FE_GROUP_RELA_FORMAT_VECTOR.end(),
                    heavy_format_info.expected_heavy_format) != FE_GROUP_RELA_FORMAT_VECTOR.end();
 }
 
-bool HeavyFormatSupportFormatsUpdater::IsSelectFormatOrBroadcast(const ge::OpDescPtr& op_desc_ptr,
-                                                                 const OpKernelInfoPtr& op_kernel_info_ptr) {
+bool HeavyFormatSupportFormatsUpdater::IsSelectFormatOrBroadcast(const ge::OpDescPtr &op_desc_ptr,
+                                                                 const OpKernelInfoPtr &op_kernel_info_ptr) {
   bool is_dynamic_check = IsOpDynamicImpl(op_desc_ptr);
-  bool is_op_pattern_broadcast =
-      format_dtype_setter_ptr_->IsOpPatternBroadcast(op_kernel_info_ptr, is_dynamic_check);
-  bool is_op_select_format =
-      format_dtype_setter_ptr_->IsSelectFormat(op_kernel_info_ptr, is_dynamic_check);
+  bool is_op_pattern_broadcast = format_dtype_setter_ptr_->IsOpPatternBroadcast(op_kernel_info_ptr, is_dynamic_check);
+  bool is_op_select_format = format_dtype_setter_ptr_->IsSelectFormat(op_kernel_info_ptr, is_dynamic_check);
   return is_op_pattern_broadcast || is_op_select_format;
 }
 
-bool HeavyFormatSupportFormatsUpdater::NeedUpdateSupportFormats(const ge::OpDescPtr& op_desc_ptr,
-                                                                const HeavyFormatInfo& heavy_format_info,
-                                                                const vector<ge::Format>& kernel_formats,
+bool HeavyFormatSupportFormatsUpdater::NeedUpdateSupportFormats(const ge::OpDescPtr &op_desc_ptr,
+                                                                const HeavyFormatInfo &heavy_format_info,
+                                                                const vector<ge::Format> &kernel_formats,
                                                                 ge::Format propaga_heavy_format) {
   if (!ge::AttrUtils::HasAttr(op_desc_ptr, ATTR_NAME_FE_PROPAGAT_HEAVY_FORMAT)) {
     if (std::find(kernel_formats.begin(), kernel_formats.end(), heavy_format_info.expected_heavy_format) ==

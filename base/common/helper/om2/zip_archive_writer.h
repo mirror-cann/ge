@@ -27,13 +27,13 @@ namespace ge {
 struct ModelBufferData;
 
 struct MemoryFile {
-  uint8_t *buffer;          // Writable buffer.
-  uint64_t length;          // Actual writable buffer content length.
-  uint64_t capacity;        // Writable buffer capacity.
-  uint64_t position;        // Current position.
-  int32_t error;                // Error flag.
-  int32_t grow_mode;            // Whether the buffer can grow.
-  int32_t release_from_outside; // 0 means zipClose releases buffer, 1 means external release.
+  uint8_t *buffer;               // Writable buffer.
+  uint64_t length;               // Actual writable buffer content length.
+  uint64_t capacity;             // Writable buffer capacity.
+  uint64_t position;             // Current position.
+  int32_t error;                 // Error flag.
+  int32_t grow_mode;             // Whether the buffer can grow.
+  int32_t release_from_outside;  // 0 means zipClose releases buffer, 1 means external release.
 };
 
 struct SimpleZipMemoryFileReadonly {

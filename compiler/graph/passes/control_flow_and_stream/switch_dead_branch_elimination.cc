@@ -67,10 +67,10 @@ bool ParseOutDataAnchors(const NodePtr &node, const NodePtr &pred_node, OutDataA
                          OutDataAnchorPtr &inactive_out_data_anchor) {
   auto tensors = OpDescUtils::MutableWeights(pred_node);
   if (tensors.empty()) {
-    REPORT_INNER_ERR_MSG("E19999", "Node:%s(%s) has no weight, check invalid",
-                       pred_node->GetName().c_str(), pred_node->GetType().c_str());
-    GELOGE(FAILED, "[Check][Param] Node:%s(%s) has no weight",
-           pred_node->GetName().c_str(), pred_node->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Node:%s(%s) has no weight, check invalid", pred_node->GetName().c_str(),
+                         pred_node->GetType().c_str());
+    GELOGE(FAILED, "[Check][Param] Node:%s(%s) has no weight", pred_node->GetName().c_str(),
+           pred_node->GetType().c_str());
     return false;
   }
 
@@ -112,11 +112,10 @@ Status SwitchDeadBranchElimination::DeleteSwitchNode(NodePtr &node, NodePtr &pre
   // link pred's in control nodes to switch
   if (GraphUtils::CopyInCtrlEdges(pred_node, node) != GRAPH_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Copy in control edge from node:%s(%s) to node:%s(%s) failed",
-                      pred_node->GetName().c_str(), pred_node->GetType().c_str(),
-                      node->GetName().c_str(), node->GetType().c_str());
-    GELOGE(FAILED, "[Copy][InCtrlEdges] from node:%s(%s) to node:%s(%s) failed",
-           pred_node->GetName().c_str(), pred_node->GetType().c_str(),
-           node->GetName().c_str(), node->GetType().c_str());
+                         pred_node->GetName().c_str(), pred_node->GetType().c_str(), node->GetName().c_str(),
+                         node->GetType().c_str());
+    GELOGE(FAILED, "[Copy][InCtrlEdges] from node:%s(%s) to node:%s(%s) failed", pred_node->GetName().c_str(),
+           pred_node->GetType().c_str(), node->GetName().c_str(), node->GetType().c_str());
     return FAILED;
   }
   // Remove link between pred and switch
@@ -130,9 +129,9 @@ Status SwitchDeadBranchElimination::DeleteSwitchNode(NodePtr &node, NodePtr &pre
   size_t out_index = static_cast<size_t>(active_out_data_anchor->GetIdx());
   if (out_index >= switch_io_map.size()) {
     REPORT_INNER_ERR_MSG("E19999", "Out index:%zu of node:%s(%s) >= %zu, check invalid", out_index,
-                       node->GetName().c_str(), node->GetType().c_str(), switch_io_map.size());
-    GELOGE(FAILED, "[Check][Param] Out index:%zu of node:%s(%s) >= %zu.", out_index,
-           node->GetName().c_str(), node->GetType().c_str(), switch_io_map.size());
+                         node->GetName().c_str(), node->GetType().c_str(), switch_io_map.size());
+    GELOGE(FAILED, "[Check][Param] Out index:%zu of node:%s(%s) >= %zu.", out_index, node->GetName().c_str(),
+           node->GetType().c_str(), switch_io_map.size());
     return FAILED;
   }
   switch_io_map[out_index] = kDataInputIndex;
@@ -147,8 +146,7 @@ Status SwitchDeadBranchElimination::Run(NodePtr &node) {
   }
 
   std::string op_type;
-  GE_CHK_STATUS_RET(GetOriginalType(node, op_type),
-                    "[Get][OriginalType] of node:%s failed", node->GetName().c_str());
+  GE_CHK_STATUS_RET(GetOriginalType(node, op_type), "[Get][OriginalType] of node:%s failed", node->GetName().c_str());
   if ((op_type != SWITCH) && (op_type != REFSWITCH)) {
     return SUCCESS;
   }
@@ -188,8 +186,8 @@ Status SwitchDeadBranchElimination::Run(NodePtr &node) {
     std::vector<NodePtr> end_nodes;
     Status ret = PassUtils::RemoveInactiveBranchToMerge(inactive_out_data_anchor, del_nodes, end_nodes);
     if (ret != SUCCESS) {
-      GELOGE(FAILED, "[Remove][InactiveBranch] from node:%s(%s) to merge failed",
-             node->GetName().c_str(), node->GetType().c_str());
+      GELOGE(FAILED, "[Remove][InactiveBranch] from node:%s(%s) to merge failed", node->GetName().c_str(),
+             node->GetType().c_str());
       return ret;
     }
 

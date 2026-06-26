@@ -33,7 +33,7 @@ extern "C" uint32_t GetRegisteredCustomOpCreatorAbiVersion();
 
 extern "C" size_t GetRegisteredCustomOpCreatorNum();
 
-extern "C" int32_t GetRegisteredCustomOpCreators(
-    ge::CustomOpTypeToCreator *creators, const size_t creator_num, const size_t creator_struct_size);
+extern "C" int32_t GetRegisteredCustomOpCreators(ge::CustomOpTypeToCreator *creators, const size_t creator_num,
+                                                 const size_t creator_struct_size);
 
 #endif  // CANN_GRAPH_ENGINE_CUSTOM_OP_PULL_REGISTRY_H

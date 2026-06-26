@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -65,8 +65,8 @@ const std::string kAscendQuant = "AscendQuant";
 const std::string kQuantCinCoutReverse = "quant_cin_cout_reverse";
 constexpr uint32_t kBitShift3ByteSize = 24;
 constexpr uint32_t kBitShift37 = 37;
-const std::unordered_set<std::string> kNanoSocVersionSet = {kSocVersionAscend035,
-                                                            kSocVersionAscend035A, kSocVersionAscend035B};
+const std::unordered_set<std::string> kNanoSocVersionSet = {kSocVersionAscend035, kSocVersionAscend035A,
+                                                            kSocVersionAscend035B};
 // maps aic version to ISA arch VERSION
 const std::map<std::string, std::string> kAicIsaArchVersionMap{{"100", "v100"}, {"200", "v200"}, {"202", "v200"},
                                                                {"210", "v200"}, {"220", "v220"}, {"300", "v300"},
@@ -89,7 +89,7 @@ const std::map<ge::Format, std::map<std::string, int32_t>> AXIS_INDEX_OF_FORMAT 
      {{"N", DHWNC_DIM_N}, {"C", DHWNC_DIM_C}, {"H", DHWNC_DIM_H}, {"W", DHWNC_DIM_W}, {"D", DHWNC_DIM_D}}}};
 
 const std::set<std::string> kRootGraphData = {"Data", "RefData"};
-}
+}  // namespace
 
 static uint64_t GetHostCpuAtomicId() {
   static std::atomic<uint64_t> global_trans_atomic_id(0);
@@ -226,13 +226,12 @@ inline Status CheckInt64MulOverflow(int64_t m, int64_t n) {
 
 Status QuantUtilImpl::GetCoValueByWeight(ge::NodePtr &cube_node, size_t idx, std::vector<int64_t> &bias_shape) {
   FE_PARAM_CHECK_NOTNULL(cube_node->GetOpDesc()->MutableInputDesc(static_cast<uint32_t>(idx)));
-  const ge::Format filter_format =
-      static_cast<ge::Format>(ge::GetPrimaryFormat(
-          cube_node->GetOpDesc()->MutableInputDesc(static_cast<uint32_t>(idx))->GetFormat()));
+  const ge::Format filter_format = static_cast<ge::Format>(
+      ge::GetPrimaryFormat(cube_node->GetOpDesc()->MutableInputDesc(static_cast<uint32_t>(idx))->GetFormat()));
   auto filter_shape = cube_node->GetOpDesc()->MutableInputDesc(static_cast<uint32_t>(idx))->MutableShape();
 
-  if ((filter_format == ge::FORMAT_ND || filter_format == ge::FORMAT_NCHW)
-      && kNeedAddBiasWithWeightNd.count(cube_node->GetType()) != 0) {
+  if ((filter_format == ge::FORMAT_ND || filter_format == ge::FORMAT_NCHW) &&
+      kNeedAddBiasWithWeightNd.count(cube_node->GetType()) != 0) {
     auto filter_dims = filter_shape.GetDims();
     if (filter_dims.size() == 2) {  // current only support 2D weight
       (void)bias_shape.emplace_back(filter_dims[1]);
@@ -247,8 +246,8 @@ Status QuantUtilImpl::GetCoValueByWeight(ge::NodePtr &cube_node, size_t idx, std
   if (filter_format != ge::FORMAT_ND) {
     int64_t groups = 1;
     std::vector<int64_t> filter_dims4_d;
-    (void) ge::AttrUtils::GetInt(cube_node->GetOpDesc(), "groups", groups);
-    (void) PadShapeTo4Dim(filter_format, filter_shape.GetDims(), filter_dims4_d);
+    (void)ge::AttrUtils::GetInt(cube_node->GetOpDesc(), "groups", groups);
+    (void)PadShapeTo4Dim(filter_format, filter_shape.GetDims(), filter_dims4_d);
     if (filter_dims4_d.empty()) {
       GELOGE(ge::FAILED, "[GraphOpt][AvgPolQntPcsFus][GetCoVal] Node[%s] filter_dims4_d is empty.",
              cube_node->GetName().c_str());
@@ -293,7 +292,8 @@ TensorPtr QuantUtilImpl::CreateBiasTensor(const std::vector<int64_t> &shape) {
   ge::GeShape bias_shape(shape);
   bias_ptr->MutableTensorDesc().SetShape(bias_shape);
   bias_ptr->MutableTensorDesc().SetDataType(ge::DT_INT32);
-  const Status ret = bias_ptr->SetData(reinterpret_cast<uint8_t *>(bias_data_temp.get()), static_cast<size_t>(size) * static_cast<size_t>(sizeof(int32_t)));
+  const Status ret = bias_ptr->SetData(reinterpret_cast<uint8_t *>(bias_data_temp.get()),
+                                       static_cast<size_t>(size) * static_cast<size_t>(sizeof(int32_t)));
   if (ret != SUCCESS) {
     GELOGW("Failed to set bias data!");
     return nullptr;
@@ -316,8 +316,8 @@ ge::NodePtr QuantUtilImpl::CreateBiasNode(std::shared_ptr<ge::ComputeGraph> &gra
   return const_node;
 }
 
-Status QuantUtilImpl::UpdateBiasOutputDesc(const ge::NodePtr &cube_node, const ge::GeShape &shape,
-                                           ge::Format format, const uint32_t index) {
+Status QuantUtilImpl::UpdateBiasOutputDesc(const ge::NodePtr &cube_node, const ge::GeShape &shape, ge::Format format,
+                                           const uint32_t index) {
   FE_PARAM_CHECK_NOTNULL(cube_node->GetInDataAnchor(static_cast<int32_t>(index)));
   FE_PARAM_CHECK_NOTNULL(cube_node->GetInDataAnchor(static_cast<int32_t>(index))->GetPeerOutAnchor());
   ge::NodePtr bias_node = cube_node->GetInDataAnchor(static_cast<int32_t>(index))->GetPeerOutAnchor()->GetOwnerNode();
@@ -375,13 +375,12 @@ Status QuantUtilImpl::CreateBiasInput(std::shared_ptr<ge::ComputeGraph> &graph, 
   const ge::GeShape bias_shape(shape);
   auto bias_input_desc = cube_node->GetOpDesc()->GetInputDesc(static_cast<uint32_t>(bias_idx));
   const ge::Format input_desc0_origin_format = bias_input_desc.GetOriginFormat();
-  if (UpdateBiasOutputDesc(cube_node, bias_shape, input_desc0_origin_format,
-                           static_cast<uint32_t>(bias_idx)) != SUCCESS) {
+  if (UpdateBiasOutputDesc(cube_node, bias_shape, input_desc0_origin_format, static_cast<uint32_t>(bias_idx)) !=
+      SUCCESS) {
     return FAILED;
   }
-  if (UpdateCubeInputDesc(cube_node, bias_shape, input_desc0_origin_format,
-                          static_cast<uint32_t>(bias_idx)) != SUCCESS) {
-
+  if (UpdateCubeInputDesc(cube_node, bias_shape, input_desc0_origin_format, static_cast<uint32_t>(bias_idx)) !=
+      SUCCESS) {
     return FAILED;
   }
   return SUCCESS;
@@ -440,31 +439,31 @@ void QuantUtilImpl::SetAttrsForBiasOptimizerOp(ge::OpDescPtr &op_desc, const ge:
                                                const WeightMode cube_type) {
   bool quant_cin_cout_reverse = false;
   if (ge::AttrUtils::GetBool(cube_node->GetOpDesc(), kQuantCinCoutReverse, quant_cin_cout_reverse)) {
-    (void) ge::AttrUtils::SetBool(op_desc, kQuantCinCoutReverse, quant_cin_cout_reverse);
+    (void)ge::AttrUtils::SetBool(op_desc, kQuantCinCoutReverse, quant_cin_cout_reverse);
   } else {
-    (void) ge::AttrUtils::SetBool(op_desc, kQuantCinCoutReverse, false);
+    (void)ge::AttrUtils::SetBool(op_desc, kQuantCinCoutReverse, false);
   }
   int64_t groups = 1;
-  (void) ge::AttrUtils::GetInt(cube_node->GetOpDesc(), "groups", groups);
-  (void) ge::AttrUtils::SetInt(op_desc, "groups", groups);
-  (void) ge::AttrUtils::SetBool(op_desc, "_is_come_from_const_op", true);
+  (void)ge::AttrUtils::GetInt(cube_node->GetOpDesc(), "groups", groups);
+  (void)ge::AttrUtils::SetInt(op_desc, "groups", groups);
+  (void)ge::AttrUtils::SetBool(op_desc, "_is_come_from_const_op", true);
   if (cube_type == WeightMode::RESERVED) {
-    (void) ge::AttrUtils::SetStr(op_desc, "cube_op_type", cube_node->GetType());
+    (void)ge::AttrUtils::SetStr(op_desc, "cube_op_type", cube_node->GetType());
   } else {
     if (cube_type == WeightMode::WEIGHTWITH2D) {
-      (void) ge::AttrUtils::SetStr(op_desc, "cube_op_type", "MatMulV2");
+      (void)ge::AttrUtils::SetStr(op_desc, "cube_op_type", "MatMulV2");
     } else {
-      (void) ge::AttrUtils::SetStr(op_desc, "cube_op_type", "Conv3D");
+      (void)ge::AttrUtils::SetStr(op_desc, "cube_op_type", "Conv3D");
     }
   }
   std::string soc_version = "v100";
   GetIsaArchVersionStr(soc_version);
-  (void) ge::AttrUtils::SetStr(op_desc, "soc_version", soc_version);
+  (void)ge::AttrUtils::SetStr(op_desc, "soc_version", soc_version);
   int dst_type = ge::DT_INT8;
   if (ascend_weight_quant_node != nullptr) {
-    (void) ge::AttrUtils::GetInt(ascend_weight_quant_node->GetOpDesc(), "dst_type", dst_type);
+    (void)ge::AttrUtils::GetInt(ascend_weight_quant_node->GetOpDesc(), "dst_type", dst_type);
   }
-  (void) ge::AttrUtils::SetInt(op_desc, "dst_type", dst_type);
+  (void)ge::AttrUtils::SetInt(op_desc, "dst_type", dst_type);
 }
 
 Status QuantUtilImpl::SetQuantScaleAndOffset(const ge::NodePtr &quant_node, const BiasOptimizeEdges &param,
@@ -472,17 +471,18 @@ Status QuantUtilImpl::SetQuantScaleAndOffset(const ge::NodePtr &quant_node, cons
   if (quant_node != nullptr) {
     // get scale and offset from quant node attr
     float_t scale_a = 0.0F;
-    (void) ge::AttrUtils::GetFloat(quant_node->GetOpDesc(), "scale", scale_a);
-    (void) ge::AttrUtils::SetFloat(host_op_desc, "scale", scale_a);
+    (void)ge::AttrUtils::GetFloat(quant_node->GetOpDesc(), "scale", scale_a);
+    (void)ge::AttrUtils::SetFloat(host_op_desc, "scale", scale_a);
 
     float_t offset = 0.0F;
-    (void) ge::AttrUtils::GetFloat(quant_node->GetOpDesc(), "offset", offset);
-    (void) ge::AttrUtils::SetFloat(host_op_desc, "offset", offset);
+    (void)ge::AttrUtils::GetFloat(quant_node->GetOpDesc(), "offset", offset);
+    (void)ge::AttrUtils::SetFloat(host_op_desc, "offset", offset);
     return SUCCESS;
   }
   if (param.quant_offset == nullptr || param.quant_scale == nullptr) {
-    GELOGE(ge::FAILED, , "Invalid param! Quant_offset anchor and quant_scale anchor should not be nullptr, "
-      "please check in detail.");
+    GELOGE(ge::FAILED, ,
+           "Invalid param! Quant_offset anchor and quant_scale anchor should not be nullptr, "
+           "please check in detail.");
     return FAILED;
   }
   ge::GeTensorDesc quant_offset_tensor;
@@ -510,8 +510,9 @@ Status QuantUtilImpl::LinkBiasOptimizeHostOp(const ge::NodePtr &quant_node, cons
     return FAILED;
   }
   if (ge::GraphUtils::RemoveEdge(bias_peer_out_anchor, param.cube_bias) != ge::GRAPH_SUCCESS) {
-    GELOGE(ge::FAILED, "[GraphOpt][CreateHostOp][LinkHostOpEdge] Remove Edge between bias output "
-      "and cube input anchor failed.");
+    GELOGE(ge::FAILED,
+           "[GraphOpt][CreateHostOp][LinkHostOpEdge] Remove Edge between bias output "
+           "and cube input anchor failed.");
     return FAILED;
   }
 
@@ -551,9 +552,8 @@ Status QuantUtilImpl::LinkBiasOptimizeHostOp(const ge::NodePtr &quant_node, cons
              host_op_node->GetAllInDataAnchorsSize());
       return FAILED;
     }
-    if (ge::GraphUtils::AddEdge(quant_offset_peer_out_anchor,
-                                host_op_node->GetInDataAnchor(static_cast<int32_t>(BIAS_OPT_OP_OFFSET_IDX)))
-                                != SUCCESS) {
+    if (ge::GraphUtils::AddEdge(quant_offset_peer_out_anchor, host_op_node->GetInDataAnchor(static_cast<int32_t>(
+                                                                  BIAS_OPT_OP_OFFSET_IDX))) != SUCCESS) {
       GELOGE(ge::FAILED, "add edge between quant_offset peer out anchor and host op failed");
       return FAILED;
     }
@@ -564,9 +564,8 @@ Status QuantUtilImpl::LinkBiasOptimizeHostOp(const ge::NodePtr &quant_node, cons
     if (quant_scale_peer_out_anchor == nullptr) {
       return FAILED;
     }
-    if (ge::GraphUtils::AddEdge(quant_scale_peer_out_anchor,
-                                host_op_node->GetInDataAnchor(static_cast<int32_t>(BIAS_OPT_OP_SCALE_IDX)))
-                                != SUCCESS) {
+    if (ge::GraphUtils::AddEdge(quant_scale_peer_out_anchor, host_op_node->GetInDataAnchor(static_cast<int32_t>(
+                                                                 BIAS_OPT_OP_SCALE_IDX))) != SUCCESS) {
       GELOGE(ge::FAILED, "add edge between quant_scale peer out anchor and host op failed");
       return FAILED;
     }
@@ -584,8 +583,7 @@ Status QuantUtilImpl::LinkBiasOptimizeHostOp(const ge::NodePtr &quant_node, cons
 
 Status QuantUtilImpl::CreateBiasOptimizeHostCpuOp(std::shared_ptr<ge::ComputeGraph> &graph,
                                                   const ge::NodePtr &quant_node, const BiasOptimizeEdges &param,
-                                                  const ge::NodePtr &weight_const_node,
-                                                  WeightMode cube_type,
+                                                  const ge::NodePtr &weight_const_node, WeightMode cube_type,
                                                   std::vector<ge::NodePtr> &fusion_nodes) {
   // create host cpu op desc
   std::ostringstream oss;
@@ -693,8 +691,7 @@ Status QuantUtilImpl::BiasOptimizeByEdgeCommon(const ge::NodePtr &quant_node, Bi
 }
 
 Status QuantUtilImpl::BiasOptimizeByEdge(const QuantParam &quant_param, BiasOptimizeEdges &param,
-                                         std::vector<ge::NodePtr> &fusion_nodes,
-                                         WeightMode cube_type) {
+                                         std::vector<ge::NodePtr> &fusion_nodes, WeightMode cube_type) {
   if (param.cube_weight == nullptr) {
     GELOGE(ge::FAILED, "[OriginGraphOptimize][GraphFusion][QuantOpt] Cube weight null.");
     return FAILED;
@@ -758,11 +755,11 @@ ge::OpDescPtr QuantUtilImpl::CreateDeqScaleHostOp(const std::string &op_name, co
   // set attr
   float offset = 0.0F;
   if (ge::AttrUtils::GetFloat(cube_node, ATTR_OFFSET, offset)) {
-    (void) ge::AttrUtils::SetFloat(op_desc, ATTR_OFFSET, offset);
+    (void)ge::AttrUtils::SetFloat(op_desc, ATTR_OFFSET, offset);
     GELOGD("Set offset value [%f] for op[%s]", offset, op_name.c_str());
   }
-  (void) ge::AttrUtils::SetInt(op_desc, ATTR_OUTDTYPE, static_cast<int64_t>(prenode_outputdesc->GetDataType()));
-  (void) ge::AttrUtils::SetBool(op_desc, kAttrSingleOp, ATTRTRUE);
+  (void)ge::AttrUtils::SetInt(op_desc, ATTR_OUTDTYPE, static_cast<int64_t>(prenode_outputdesc->GetDataType()));
+  (void)ge::AttrUtils::SetBool(op_desc, kAttrSingleOp, ATTRTRUE);
   GELOGD("Host op [%s, %s] has been created.", op_desc->GetName().c_str(), op_desc->GetType().c_str());
   return op_desc;
 }
@@ -786,9 +783,8 @@ Status QuantUtilImpl::InsertFixpipeDequantScaleConvert(ge::InDataAnchorPtr deq_s
   // set op_desc
   std::string new_op_type = QuantUtilImpl::IsNanoSoc() ? "SetQuantScale" : "SetM1Dequant";
   std::string new_op_name = post_fuze_node->GetName() + new_op_type + std::to_string(GetHostCpuAtomicId());
-  ge::OpDescPtr new_op_desc =
-      QuantUtilImpl::CreateDeqScaleHostOp(new_op_name, new_op_type, post_fuze_node->GetOpDesc(),
-                                          static_cast<size_t>(deq_scale_index));
+  ge::OpDescPtr new_op_desc = QuantUtilImpl::CreateDeqScaleHostOp(new_op_name, new_op_type, post_fuze_node->GetOpDesc(),
+                                                                  static_cast<size_t>(deq_scale_index));
   FE_PARAM_CHECK_NOTNULL(new_op_desc);
   ge::NodePtr new_node = compute_graph->AddNode(new_op_desc);
   FE_PARAM_CHECK_NOTNULL(new_node);
@@ -816,10 +812,10 @@ Status QuantUtilImpl::InsertFixpipeDequantScaleConvert(const ge::InDataAnchorPtr
   const uint8_t *quant_offset_data_tmp = GetDataByAnchor(quant_offset);
   FE_PARAM_CHECK_NOTNULL(quant_offset_data_tmp);
   const float *quant_offset_data = reinterpret_cast<const float *>(quant_offset_data_tmp);
-  (void) ge::AttrUtils::SetFloat(cube_op_desc, ATTR_OFFSET, *quant_offset_data);
+  (void)ge::AttrUtils::SetFloat(cube_op_desc, ATTR_OFFSET, *quant_offset_data);
 
-  ge::OpDescPtr new_op_desc =
-      QuantUtilImpl::CreateDeqScaleHostOp(new_op_name, new_op_type, cube_op_desc, static_cast<size_t>(deq_scale->GetIdx()));
+  ge::OpDescPtr new_op_desc = QuantUtilImpl::CreateDeqScaleHostOp(new_op_name, new_op_type, cube_op_desc,
+                                                                  static_cast<size_t>(deq_scale->GetIdx()));
   FE_PARAM_CHECK_NOTNULL(new_op_desc);
   auto compute_graph = cube_node->GetOwnerComputeGraph();
   ge::NodePtr new_node = compute_graph->AddNode(new_op_desc);
@@ -835,14 +831,12 @@ Status QuantUtilImpl::InsertFixpipeDequantScaleConvert(const ge::InDataAnchorPtr
     return FAILED;
   }
   if (ge::GraphUtils::AddEdge(new_node->GetOutDataAnchor(0), deq_scale) != ge::GRAPH_SUCCESS) {
-    GELOGE(ge::FAILED, "Node[%s, %s]: fail to add edge.", cube_node->GetName().c_str(),
-           cube_node->GetType().c_str());
+    GELOGE(ge::FAILED, "Node[%s, %s]: fail to add edge.", cube_node->GetName().c_str(), cube_node->GetType().c_str());
     return FAILED;
   }
   if (ge::GraphUtils::AddEdge(deq_scale_peer_node->GetOutDataAnchor(0), new_node->GetInDataAnchor(0)) !=
       ge::GRAPH_SUCCESS) {
-    GELOGE(ge::FAILED, "Node[%s, %s]: fail to add edge.", cube_node->GetName().c_str(),
-           cube_node->GetType().c_str());
+    GELOGE(ge::FAILED, "Node[%s, %s]: fail to add edge.", cube_node->GetName().c_str(), cube_node->GetType().c_str());
     return FAILED;
   }
   fusion_nodes.push_back(new_node);
@@ -907,14 +901,14 @@ uint64_t QuantUtilImpl::SetM1OfQuant(const float &scale, const float &offset, co
   } else if (data_type == ge::DT_UINT8) {
     uint64_data = TransM1Scale(scale) + (((uint64_offset & 0x1FFUL) << kBitShift37) & 0x3FE000000000UL);
   } else if (data_type == ge::DT_INT4) {
-    uint64_data = TransM1Scale(scale) + (((uint64_offset & 0x1FUL) << kBitShift37) & 0x3E000000000UL) +
-                  0x400000000000UL;
+    uint64_data =
+        TransM1Scale(scale) + (((uint64_offset & 0x1FUL) << kBitShift37) & 0x3E000000000UL) + 0x400000000000UL;
   } else if (data_type == ge::DT_INT16) {
     uint64_data = TransM1Scale(scale) + ((uint64_offset >> kBitShift3ByteSize) & 0xFFUL) +
                   (((uint64_offset & 0x1FFUL) << kBitShift37) & 0x3FE000000000UL) + 0x400000000000UL;
   } else if (data_type == ge::DT_INT8) {
-    uint64_data = TransM1Scale(scale) + (((uint64_offset & 0x1FFUL) << kBitShift37) & 0x3FE000000000UL) +
-                  0x400000000000UL;
+    uint64_data =
+        TransM1Scale(scale) + (((uint64_offset & 0x1FFUL) << kBitShift37) & 0x3FE000000000UL) + 0x400000000000UL;
   } else {
     // do nothing
   }
@@ -976,7 +970,7 @@ Status QuantUtilImpl::CreateQuantOp(const ge::NodePtr &cube_node, const ge::InDa
   ge::NodePtr quant_op = compute_graph->AddNode(quant_op_desc);
   FE_PARAM_CHECK_NOTNULL(quant_op);
 
-  ge::OutDataAnchorPtr quant_scale_peer_anchor =  quant_scale->GetPeerOutAnchor();
+  ge::OutDataAnchorPtr quant_scale_peer_anchor = quant_scale->GetPeerOutAnchor();
   FE_PARAM_CHECK_NOTNULL(quant_scale_peer_anchor);
   if (ge::GraphUtils::RemoveEdge(quant_scale_peer_anchor, quant_scale) != ge::GRAPH_SUCCESS) {
     GELOGE(ge::FAILED, "Node[%s, %s]: fail to remove edge.", cube_node->GetName().c_str(),
@@ -984,8 +978,7 @@ Status QuantUtilImpl::CreateQuantOp(const ge::NodePtr &cube_node, const ge::InDa
     return FAILED;
   }
   if (ge::GraphUtils::AddEdge(quant_op->GetOutDataAnchor(0), quant_scale) != ge::GRAPH_SUCCESS) {
-    GELOGE(ge::FAILED, "Node[%s, %s]: fail to add edge.", cube_node->GetName().c_str(),
-           cube_node->GetType().c_str());
+    GELOGE(ge::FAILED, "Node[%s, %s]: fail to add edge.", cube_node->GetName().c_str(), cube_node->GetType().c_str());
     return FAILED;
   }
   ge::NodePtr quant_scale_peer_node = quant_scale_peer_anchor->GetOwnerNode();
@@ -1018,8 +1011,8 @@ Status QuantUtilImpl::InsertFixpipeQuantScaleConvert(ge::InDataAnchorPtr &quant_
   ge::DataType cube_out_data_type = cube_out_desc->GetDataType();
   GELOGD("Node[%s, %s]: cube_out_data_type is %zu.", cube_node->GetName().c_str(), cube_node->GetType().c_str(),
          static_cast<size_t>(cube_out_data_type));
-  ge::GeTensorDescPtr scale_tensor_desc = cube_node->GetOpDesc()->MutableInputDesc(
-      static_cast<uint32_t>(quant_scale->GetIdx()));
+  ge::GeTensorDescPtr scale_tensor_desc =
+      cube_node->GetOpDesc()->MutableInputDesc(static_cast<uint32_t>(quant_scale->GetIdx()));
   bool has_desc = true;
   if (scale_tensor_desc == nullptr) {
     ge::GeShape shape{};
@@ -1029,8 +1022,8 @@ Status QuantUtilImpl::InsertFixpipeQuantScaleConvert(ge::InDataAnchorPtr &quant_
   }
   ge::GeTensorPtr quant_op_tensor = nullptr;
   GE_MAKE_SHARED(quant_op_tensor = std::make_shared<ge::GeTensor>(), return FAILED);
-  if (UpdateScalarInput(quant_scale_data, quant_offset_data, cube_out_data_type, scale_tensor_desc,
-      quant_op_tensor) != SUCCESS) {
+  if (UpdateScalarInput(quant_scale_data, quant_offset_data, cube_out_data_type, scale_tensor_desc, quant_op_tensor) !=
+      SUCCESS) {
     GELOGE(ge::FAILED, "Node[%s, %s]: fail to update scalar input.", cube_node->GetName().c_str(),
            cube_node->GetType().c_str());
     return FAILED;
@@ -1046,8 +1039,7 @@ Status QuantUtilImpl::InsertFixpipeQuantScaleConvert(ge::InDataAnchorPtr &quant_
   return SUCCESS;
 }
 
-Status QuantUtilImpl::InsertQuantScaleConvert(ge::InDataAnchorPtr &quant_scale,
-                                              ge::InDataAnchorPtr &quant_offset,
+Status QuantUtilImpl::InsertQuantScaleConvert(ge::InDataAnchorPtr &quant_scale, ge::InDataAnchorPtr &quant_offset,
                                               std::vector<ge::NodePtr> &fusion_nodes) {
   if (IsSupportFixpipe()) {
     return InsertFixpipeQuantScaleConvert(quant_scale, quant_offset, fusion_nodes);
@@ -1070,18 +1062,20 @@ Status QuantUtilImpl::SetAttrForRequantHostCpuOp(ge::OpDescPtr &req_host_op_desc
   const int32_t scale_size = static_cast<int32_t>(req_scale_tensor->GetData().size() / sizeof(uint64_t));
   req_scale_size = bias_size == 0 ? scale_size : bias_size;
   GELOGD("Req_scale_size is %d.", req_scale_size);
-  
+
   const uint8_t *req_scale_data_tmp = req_scale_tensor->GetData().GetData();
   FE_PARAM_CHECK_NOTNULL(req_scale_data_tmp);
   const float *req_scale_data = reinterpret_cast<const float *>(req_scale_data_tmp);
   std::vector<float> quant_scale_vec(1, *req_scale_data);
-  (void)quant_scale_vec.insert(quant_scale_vec.end(), static_cast<int64_t>(static_cast<int64_t>(req_scale_size) - 1), quant_scale_vec[0]);
+  (void)quant_scale_vec.insert(quant_scale_vec.end(), static_cast<int64_t>(static_cast<int64_t>(req_scale_size) - 1),
+                               quant_scale_vec[0]);
   const uint8_t *quant_offset_data_tmp = GetDataByAnchor(quant_offset);
   FE_PARAM_CHECK_NOTNULL(quant_offset_data_tmp);
   const int64_t *quant_offset_data = reinterpret_cast<const int64_t *>(quant_offset_data_tmp);
   std::vector<int64_t> quant_offset_vec(1, *quant_offset_data);
-  (void)quant_offset_vec.insert(quant_offset_vec.end(), static_cast<int64_t>(static_cast<int64_t>(req_scale_size) - 1), quant_offset_vec[0]);
-  
+  (void)quant_offset_vec.insert(quant_offset_vec.end(), static_cast<int64_t>(static_cast<int64_t>(req_scale_size) - 1),
+                                quant_offset_vec[0]);
+
   ge::GeShape req_scale_shape = req_scale_tensor->GetTensorDesc().GetShape();
   if (req_scale_shape.GetDimNum() != 1) {
     GELOGE(ge::FAILED, "Req_scale_shape %zu is invalid.", req_scale_shape.GetDimNum());
@@ -1122,11 +1116,11 @@ Status QuantUtilImpl::CreateRequantHostCpuOp(ge::InDataAnchorPtr &req_scale, ge:
     has_desc = false;
   }
 
-  std::string req_host_op_name = cube_node->GetName() + "_" + kRequantHostCpuOpType + "_" +
-      std::to_string(GetHostCpuAtomicId());
+  std::string req_host_op_name =
+      cube_node->GetName() + "_" + kRequantHostCpuOpType + "_" + std::to_string(GetHostCpuAtomicId());
   ge::OpDescPtr req_host_op_desc = nullptr;
-  GE_MAKE_SHARED(req_host_op_desc =
-      std::make_shared<ge::OpDesc>(req_host_op_name, kRequantHostCpuOpType), return FAILED);
+  GE_MAKE_SHARED(req_host_op_desc = std::make_shared<ge::OpDesc>(req_host_op_name, kRequantHostCpuOpType),
+                 return FAILED);
   if (req_host_op_desc->AddInputDesc(kRequantInputName, *req_scale_tensor_desc) != ge::GRAPH_SUCCESS) {
     GELOGE(ge::FAILED, "Node[%s, %s]: fail to add input desc.", cube_node->GetName().c_str(),
            cube_node->GetType().c_str());
@@ -1164,16 +1158,15 @@ Status QuantUtilImpl::CreateRequantHostCpuOp(ge::InDataAnchorPtr &req_scale, ge:
   FE_PARAM_CHECK_NOTNULL(cube_op_desc);
   FE_PARAM_CHECK_NOTNULL(cube_op_desc->MutableInputDesc(static_cast<uint32_t>(req_scale->GetIdx())));
   cube_op_desc->MutableInputDesc(static_cast<uint32_t>(req_scale->GetIdx()))->SetShape(ge::GeShape({req_scale_size}));
-  cube_op_desc->MutableInputDesc(
-      static_cast<uint32_t>(req_scale->GetIdx()))->SetOriginShape(ge::GeShape({req_scale_size}));
+  cube_op_desc->MutableInputDesc(static_cast<uint32_t>(req_scale->GetIdx()))
+      ->SetOriginShape(ge::GeShape({req_scale_size}));
 
   auto compute_graph = cube_node->GetOwnerComputeGraph();
   FE_PARAM_CHECK_NOTNULL(compute_graph);
   ge::NodePtr req_op = compute_graph->AddNode(req_host_op_desc);
   FE_PARAM_CHECK_NOTNULL(req_op);
   if (ge::GraphUtils::AddEdge(req_scale->GetPeerOutAnchor(), req_op->GetInDataAnchor(0)) != ge::GRAPH_SUCCESS) {
-    GELOGE(ge::FAILED, "Node[%s, %s]: fail to add edge.", cube_node->GetName().c_str(),
-           cube_node->GetType().c_str());
+    GELOGE(ge::FAILED, "Node[%s, %s]: fail to add edge.", cube_node->GetName().c_str(), cube_node->GetType().c_str());
     return FAILED;
   }
   if (ge::GraphUtils::RemoveEdge(req_scale->GetPeerOutAnchor(), req_scale) != ge::GRAPH_SUCCESS) {
@@ -1182,8 +1175,7 @@ Status QuantUtilImpl::CreateRequantHostCpuOp(ge::InDataAnchorPtr &req_scale, ge:
     return FAILED;
   }
   if (ge::GraphUtils::AddEdge(req_op->GetOutDataAnchor(0), req_scale) != ge::GRAPH_SUCCESS) {
-    GELOGE(ge::FAILED, "Node[%s, %s]: fail to add edge.", cube_node->GetName().c_str(),
-           cube_node->GetType().c_str());
+    GELOGE(ge::FAILED, "Node[%s, %s]: fail to add edge.", cube_node->GetName().c_str(), cube_node->GetType().c_str());
     return FAILED;
   }
   (void)fusion_nodes.emplace_back(req_op);
@@ -1205,8 +1197,7 @@ Status QuantUtilImpl::InsertNotFixpipeRequantScaleConvert(ge::InDataAnchorPtr &r
   return SUCCESS;
 }
 
-Status QuantUtilImpl::InsertRequantScaleConvert(ge::InDataAnchorPtr &req_scale,
-                                                ge::InDataAnchorPtr &quant_offset,
+Status QuantUtilImpl::InsertRequantScaleConvert(ge::InDataAnchorPtr &req_scale, ge::InDataAnchorPtr &quant_offset,
                                                 ge::InDataAnchorPtr &cube_bias,
                                                 std::vector<ge::NodePtr> &fusion_nodes) {
   if (IsSupportFixpipe()) {

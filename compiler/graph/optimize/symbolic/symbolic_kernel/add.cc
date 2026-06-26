@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2026 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -67,9 +67,8 @@ graphStatus BroadcastData(const std::vector<Expression> &src_data, const std::ve
   return SUCCESS;
 }
 
-graphStatus SetOutputShapeAndValue(gert::InferSymbolComputeContext *context,
-                                    const std::vector<int64_t> &output_dims,
-                                    std::vector<Expression> &&output_values) {
+graphStatus SetOutputShapeAndValue(gert::InferSymbolComputeContext *context, const std::vector<int64_t> &output_dims,
+                                   std::vector<Expression> &&output_values) {
   auto output_tensor = context->GetOutputSymbolTensor(kOutputIndex);
   GE_ASSERT_NOTNULL(output_tensor);
   std::vector<Expression> output_shape_symbols;
@@ -86,9 +85,8 @@ graphStatus SetOutputShapeAndValue(gert::InferSymbolComputeContext *context,
   return SUCCESS;
 }
 
-graphStatus ComputeBroadcastShape(const gert::InferSymbolComputeContext *context,
-                                  const std::vector<int64_t> &x1_dims, const std::vector<int64_t> &x2_dims,
-                                  std::vector<int64_t> &output_dims) {
+graphStatus ComputeBroadcastShape(const gert::InferSymbolComputeContext *context, const std::vector<int64_t> &x1_dims,
+                                  const std::vector<int64_t> &x2_dims, std::vector<int64_t> &output_dims) {
   size_t max_rank = std::max(x1_dims.size(), x2_dims.size());
   std::vector<int64_t> aligned_x1 = x1_dims;
   std::vector<int64_t> aligned_x2 = x2_dims;
@@ -107,8 +105,8 @@ graphStatus ComputeBroadcastShape(const gert::InferSymbolComputeContext *context
     } else if (aligned_x2[i] == 1) {
       output_dims.push_back(aligned_x1[i]);
     } else {
-      GELOGW("Add broadcast failed, x1[%zu]=%lld, x2[%zu]=%lld, node %s[%s].",
-             i, aligned_x1[i], i, aligned_x2[i], context->GetNodeName(), context->GetNodeType());
+      GELOGW("Add broadcast failed, x1[%zu]=%lld, x2[%zu]=%lld, node %s[%s].", i, aligned_x1[i], i, aligned_x2[i],
+             context->GetNodeName(), context->GetNodeType());
       return UNSUPPORTED;
     }
   }
@@ -152,8 +150,8 @@ graphStatus AddSymbolicKernelCompute(gert::InferSymbolComputeContext *context) {
   GE_ASSERT_SUCCESS(BroadcastData(*x1_symbols, x1_dims, output_dims, x1_broadcast));
   std::vector<Expression> x2_broadcast;
   GE_ASSERT_SUCCESS(BroadcastData(*x2_symbols, x2_dims, output_dims, x2_broadcast));
-  GE_ASSERT_TRUE(x1_broadcast.size() == x2_broadcast.size(),
-                 "Add broadcast size mismatch: %zu vs %zu", x1_broadcast.size(), x2_broadcast.size());
+  GE_ASSERT_TRUE(x1_broadcast.size() == x2_broadcast.size(), "Add broadcast size mismatch: %zu vs %zu",
+                 x1_broadcast.size(), x2_broadcast.size());
   std::vector<Expression> output_values;
   output_values.reserve(x1_broadcast.size());
   for (size_t i = 0UL; i < x1_broadcast.size(); ++i) {

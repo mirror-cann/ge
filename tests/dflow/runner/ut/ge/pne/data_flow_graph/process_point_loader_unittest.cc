@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,9 +28,7 @@ class ProcessPointLoaderTest : public Test {
     (void)system("mkdir -p ./compile_cache_dir");
     std::string cache_config_file = "./compile_cache_dir/cache.conf";
     {
-      nlohmann::json cfg_json = {
-                                  {"cache_manual_check", cache_manual_check},
-                                  {"cache_debug_mode", cache_debug_mode}};
+      nlohmann::json cfg_json = {{"cache_manual_check", cache_manual_check}, {"cache_debug_mode", cache_debug_mode}};
       std::ofstream json_file(cache_config_file);
       json_file << cfg_json << std::endl;
     }
@@ -41,9 +39,7 @@ class ProcessPointLoaderTest : public Test {
       bin_info["Ascend"] = "stub_path";
       std::map<string, int64_t> res_info;
       res_info["Ascend"] = 100;
-      nlohmann::json buildinfo_json = {
-                                        {"bin_info", bin_info},
-                                        {"resource_info", res_info}};
+      nlohmann::json buildinfo_json = {{"bin_info", bin_info}, {"resource_info", res_info}};
       std::ofstream json_file(buildinfo_file);
       json_file << buildinfo_json << std::endl;
     }
@@ -52,6 +48,7 @@ class ProcessPointLoaderTest : public Test {
   static void RemoveCacheConfig() {
     (void)system("rm -fr ./compile_cache_dir");
   }
+
  protected:
   void SetUp() {
     std::string cmd = "mkdir -p temp; cd temp; touch libtest.so";
@@ -135,12 +132,20 @@ TEST_F(ProcessPointLoaderTest, LoadProcessPoint_SUCCESS) {
   EXPECT_EQ(ProcessPointLoader::LoadProcessPoint(pp1, data_flow_graph, node1_ptr), SUCCESS);
   remove(pp0_config_file.c_str());
   DEF_GRAPH(then_branch) {
-    auto data = OP_CFG("Data").InCnt(1).OutCnt(1).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0).TensorDesc(FORMAT_ND, DT_INT32, {1, 2, 3});
+    auto data = OP_CFG("Data")
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
+                    .TensorDesc(FORMAT_ND, DT_INT32, {1, 2, 3});
     auto net_output = OP_CFG("NetOutput").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {1, 2, 3});
     CHAIN(NODE("then_arg_0", data)->NODE("then_Node_Output", net_output));
   };
   DEF_GRAPH(else_branch) {
-    auto data = OP_CFG("Data").InCnt(1).OutCnt(1).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0).TensorDesc(FORMAT_ND, DT_INT32, {1, 2, 3});
+    auto data = OP_CFG("Data")
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
+                    .TensorDesc(FORMAT_ND, DT_INT32, {1, 2, 3});
     auto neg_op = OP_CFG("Neg").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {1, 2, 3});
     auto net_output = OP_CFG("NetOutput").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {1, 2, 3});
     CHAIN(NODE("else_arg_0", data)->NODE("neg", neg_op)->NODE("else_Node_Output", net_output));
@@ -224,10 +229,10 @@ TEST_F(ProcessPointLoaderTest, LoadFuncProcessPointFromCache_SUCCESS) {
   options[OPTION_GRAPH_KEY] = "graph1";
   GetThreadLocalContext().SetGraphOption(options);
   PrepareForCacheConfig(true, true);
-  GE_MAKE_GUARD(recover, ([this, options_back](){
-    RemoveCacheConfig();
-    GetThreadLocalContext().SetGraphOption(options_back);
-  }));
+  GE_MAKE_GUARD(recover, ([this, options_back]() {
+                  RemoveCacheConfig();
+                  GetThreadLocalContext().SetGraphOption(options_back);
+                }));
 
   DataFlowGraph data_flow_graph(root_graph, "", true);
   auto node0_ptr = root_graph->FindNode("node0");
@@ -280,7 +285,7 @@ TEST_F(ProcessPointLoaderTest, LoadProcessPoint_builtin_func) {
   (void)AttrUtils::GetInt(subgraph, "_npu_sched_model", value);
   EXPECT_EQ(value, 1);
   std::string placement_value;
-  (void)AttrUtils::GetStr(subgraph,ATTR_NAME_FLOW_ATTR_IO_PLACEMENT, placement_value);
+  (void)AttrUtils::GetStr(subgraph, ATTR_NAME_FLOW_ATTR_IO_PLACEMENT, placement_value);
   EXPECT_EQ(placement_value, "device");
 }
 
@@ -347,10 +352,10 @@ TEST_F(ProcessPointLoaderTest, LoadProcessPoint_With_InputShape_And_Name) {
   remove("./pp1_config.json");
   std::string pp_config_file = "./pp1_config.json";
   {
-      nlohmann::json pp1_cfg_json = {{"inputs_tensor_desc",
-                                      {{{"shape", {1, 2, 3}}, {"data_type", "DT_INT32"}, {"format", "ND"}},
-                                       {{"shape", {1, 2, 3}}, {"data_type", "DT_INT32"}}}},
-                                       {"build_options", {{"ge.inputShape", "data0:1~3,2,4~10;data1:2~3,2~3,3"}}}};
+    nlohmann::json pp1_cfg_json = {{"inputs_tensor_desc",
+                                    {{{"shape", {1, 2, 3}}, {"data_type", "DT_INT32"}, {"format", "ND"}},
+                                     {{"shape", {1, 2, 3}}, {"data_type", "DT_INT32"}}}},
+                                   {"build_options", {{"ge.inputShape", "data0:1~3,2,4~10;data1:2~3,2~3,3"}}}};
     std::ofstream json_file(pp_config_file);
     json_file << pp1_cfg_json << std::endl;
   }
@@ -398,10 +403,10 @@ TEST_F(ProcessPointLoaderTest, LoadProcessPoint_With_InputShape_Without_Name) {
   remove("./pp1_config.json");
   std::string pp_config_file = "./pp1_config.json";
   {
-      nlohmann::json pp1_cfg_json = {{"inputs_tensor_desc",
-                                      {{{"shape", {1, 2, 3}}, {"data_type", "DT_INT32"}, {"format", "ND"}},
-                                       {{"shape", {1, 2, 3}}, {"data_type", "DT_INT32"}}}},
-                                       {"build_options", {{"ge.inputShape", "1~3,2,4~10;2~3,2~3,3"}}}};
+    nlohmann::json pp1_cfg_json = {{"inputs_tensor_desc",
+                                    {{{"shape", {1, 2, 3}}, {"data_type", "DT_INT32"}, {"format", "ND"}},
+                                     {{"shape", {1, 2, 3}}, {"data_type", "DT_INT32"}}}},
+                                   {"build_options", {{"ge.inputShape", "1~3,2,4~10;2~3,2~3,3"}}}};
     std::ofstream json_file(pp_config_file);
     json_file << pp1_cfg_json << std::endl;
   }
@@ -447,9 +452,9 @@ TEST_F(ProcessPointLoaderTest, LoadProcessPoint_without_outputnode) {
   remove("./pp1_config.json");
   std::string pp_config_file = "./pp1_config.json";
   {
-    nlohmann::json pp1_cfg_json = {{"inputs_tensor_desc",
-                                    {{{"shape", {1, 2, 3}}, {"data_type", "DT_INT32"}, {"format", "ND"}}}},
-                                   {"build_options", {{"ge.inputShape", "1~3,2,4~10"}}}};
+    nlohmann::json pp1_cfg_json = {
+        {"inputs_tensor_desc", {{{"shape", {1, 2, 3}}, {"data_type", "DT_INT32"}, {"format", "ND"}}}},
+        {"build_options", {{"ge.inputShape", "1~3,2,4~10"}}}};
     std::ofstream json_file(pp_config_file);
     json_file << pp1_cfg_json << std::endl;
   }
@@ -498,10 +503,10 @@ TEST_F(ProcessPointLoaderTest, LoadProcessPoint_With_InputShape_Missing_Name) {
   remove("./pp1_config.json");
   std::string pp_config_file = "./pp1_config.json";
   {
-      nlohmann::json pp1_cfg_json = {{"inputs_tensor_desc",
-                                      {{{"shape", {1, 2, 3}}, {"data_type", "DT_INT32"}, {"format", "ND"}},
-                                       {{"shape", {1, 2, 3}}, {"data_type", "DT_INT32"}}}},
-                                       {"build_options", {{"ge.inputShape", "data3:1~3,2,4~10;data1:2~3,2~3,3"}}}};
+    nlohmann::json pp1_cfg_json = {{"inputs_tensor_desc",
+                                    {{{"shape", {1, 2, 3}}, {"data_type", "DT_INT32"}, {"format", "ND"}},
+                                     {{"shape", {1, 2, 3}}, {"data_type", "DT_INT32"}}}},
+                                   {"build_options", {{"ge.inputShape", "data3:1~3,2,4~10;data1:2~3,2~3,3"}}}};
     std::ofstream json_file(pp_config_file);
     json_file << pp1_cfg_json << std::endl;
   }
@@ -671,20 +676,20 @@ TEST_F(ProcessPointLoaderTest, LoadProcessPoint_succ_buf_cfg) {
   pp0.set_type(dataflow::ProcessPoint_ProcessPointType_FUNCTION);
   std::string pp0_config_file = "./pp0_config.json";
   {
-      nlohmann::json pp0_cfg_json = {{"workspace", "temp"},
+    nlohmann::json pp0_cfg_json = {
+        {"workspace", "temp"},
         {"target_bin", "libtest.so"},
         {"input_num", 2},
         {"output_num", 2},
         {"func_list", {{{"func_name", "func1"}}}},
         {"running_resources_info", {{{"type", "cpu"}, {"num", 2}}}},
-        {"buf_cfg", 
-        {
-          {{"total_size", 2097152}, {"blk_size", 256}, {"max_buf_size", 8192}, {"page_type", "normal"}},
-          {{"total_size", 33554432}, {"blk_size", 8192}, {"max_buf_size", 8388608}, {"page_type", "normal"}},
-          {{"total_size", 2097152}, {"blk_size", 256}, {"max_buf_size", 8192}, {"page_type", "huge"}},
-          {{"total_size", 33554432}, {"blk_size", 8192}, {"max_buf_size", 8388608}, {"page_type", "huge"}},
-        }
-      },
+        {"buf_cfg",
+         {
+             {{"total_size", 2097152}, {"blk_size", 256}, {"max_buf_size", 8192}, {"page_type", "normal"}},
+             {{"total_size", 33554432}, {"blk_size", 8192}, {"max_buf_size", 8388608}, {"page_type", "normal"}},
+             {{"total_size", 2097152}, {"blk_size", 256}, {"max_buf_size", 8192}, {"page_type", "huge"}},
+             {{"total_size", 33554432}, {"blk_size", 8192}, {"max_buf_size", 8388608}, {"page_type", "huge"}},
+         }},
     };
     std::ofstream json_file(pp0_config_file);
     json_file << pp0_cfg_json << std::endl;
@@ -717,19 +722,20 @@ TEST_F(ProcessPointLoaderTest, LoadProcessPoint_failed_buf_cfg_normal_disorder) 
   pp0.set_type(dataflow::ProcessPoint_ProcessPointType_FUNCTION);
   std::string pp0_config_file = "./pp0_config.json";
   {
-      nlohmann::json pp0_cfg_json = {{"workspace", "temp"},
+    nlohmann::json pp0_cfg_json = {
+        {"workspace", "temp"},
         {"target_bin", "libtest.so"},
         {"input_num", 2},
         {"output_num", 2},
         {"func_list", {{{"func_name", "func1"}}}},
         {"running_resources_info", {{{"type", "cpu"}, {"num", 2}}}},
-        {"buf_cfg", 
-        {{{"total_size", 33554432}, {"blk_size", 8192}, {"max_buf_size", 8388608}, {"page_type", "normal"}},
-          {{"total_size", 2097152}, {"blk_size", 256}, {"max_buf_size", 8192}, {"page_type", "normal"}},
-          {{"total_size", 2097152}, {"blk_size", 256}, {"max_buf_size", 8192}, {"page_type", "huge"}},
-          {{"total_size", 33554432}, {"blk_size", 8192}, {"max_buf_size", 8388608}, {"page_type", "huge"}},
-        }
-      },
+        {"buf_cfg",
+         {
+             {{"total_size", 33554432}, {"blk_size", 8192}, {"max_buf_size", 8388608}, {"page_type", "normal"}},
+             {{"total_size", 2097152}, {"blk_size", 256}, {"max_buf_size", 8192}, {"page_type", "normal"}},
+             {{"total_size", 2097152}, {"blk_size", 256}, {"max_buf_size", 8192}, {"page_type", "huge"}},
+             {{"total_size", 33554432}, {"blk_size", 8192}, {"max_buf_size", 8388608}, {"page_type", "huge"}},
+         }},
     };
     std::ofstream json_file(pp0_config_file);
     json_file << pp0_cfg_json << std::endl;
@@ -764,20 +770,20 @@ TEST_F(ProcessPointLoaderTest, LoadProcessPoint_failed_buf_cfg_huge_disorder) {
   pp0.set_type(dataflow::ProcessPoint_ProcessPointType_FUNCTION);
   std::string pp0_config_file = "./pp0_config.json";
   {
-      nlohmann::json pp0_cfg_json = {{"workspace", "temp"},
+    nlohmann::json pp0_cfg_json = {
+        {"workspace", "temp"},
         {"target_bin", "libtest.so"},
         {"input_num", 2},
         {"output_num", 2},
         {"func_list", {{{"func_name", "func1"}}}},
         {"running_resources_info", {{{"type", "cpu"}, {"num", 2}}}},
-        {"buf_cfg", 
-        {
-          {{"total_size", 2097152}, {"blk_size", 256}, {"max_buf_size", 8192}, {"page_type", "normal"}},
-          {{"total_size", 33554432}, {"blk_size", 8192}, {"max_buf_size", 8388608}, {"page_type", "normal"}},
-          {{"total_size", 2097152}, {"blk_size", 256}, {"max_buf_size", 8192}, {"page_type", "huge"}},
-          {{"total_size", 33554432}, {"blk_size", 256}, {"max_buf_size", 1024}, {"page_type", "huge"}},
-        }
-      },
+        {"buf_cfg",
+         {
+             {{"total_size", 2097152}, {"blk_size", 256}, {"max_buf_size", 8192}, {"page_type", "normal"}},
+             {{"total_size", 33554432}, {"blk_size", 8192}, {"max_buf_size", 8388608}, {"page_type", "normal"}},
+             {{"total_size", 2097152}, {"blk_size", 256}, {"max_buf_size", 8192}, {"page_type", "huge"}},
+             {{"total_size", 33554432}, {"blk_size", 256}, {"max_buf_size", 1024}, {"page_type", "huge"}},
+         }},
     };
     std::ofstream json_file(pp0_config_file);
     json_file << pp0_cfg_json << std::endl;
@@ -812,17 +818,17 @@ TEST_F(ProcessPointLoaderTest, LoadProcessPoint_failed_buf_cfg_blk_invalid) {
   pp0.set_type(dataflow::ProcessPoint_ProcessPointType_FUNCTION);
   std::string pp0_config_file = "./pp0_config.json";
   {
-      nlohmann::json pp0_cfg_json = {{"workspace", "temp"},
+    nlohmann::json pp0_cfg_json = {
+        {"workspace", "temp"},
         {"target_bin", "libtest.so"},
         {"input_num", 2},
         {"output_num", 2},
         {"func_list", {{{"func_name", "func1"}}}},
         {"running_resources_info", {{{"type", "cpu"}, {"num", 2}}}},
-        {"buf_cfg", 
-        {
-          {{"total_size", 2097152}, {"blk_size", 255}, {"max_buf_size", 8192}, {"page_type", "normal"}},
-        }
-      },
+        {"buf_cfg",
+         {
+             {{"total_size", 2097152}, {"blk_size", 255}, {"max_buf_size", 8192}, {"page_type", "normal"}},
+         }},
     };
     std::ofstream json_file(pp0_config_file);
     json_file << pp0_cfg_json << std::endl;
@@ -857,17 +863,17 @@ TEST_F(ProcessPointLoaderTest, LoadProcessPoint_failed_buf_cfg_page_type_invalid
   pp0.set_type(dataflow::ProcessPoint_ProcessPointType_FUNCTION);
   std::string pp0_config_file = "./pp0_config.json";
   {
-      nlohmann::json pp0_cfg_json = {{"workspace", "temp"},
+    nlohmann::json pp0_cfg_json = {
+        {"workspace", "temp"},
         {"target_bin", "libtest.so"},
         {"input_num", 2},
         {"output_num", 2},
         {"func_list", {{{"func_name", "func1"}}}},
         {"running_resources_info", {{{"type", "cpu"}, {"num", 2}}}},
-        {"buf_cfg", 
-        {
-          {{"total_size", 2097152}, {"blk_size", 256}, {"max_buf_size", 8192}, {"page_type", "abnormal"}},
-        }
-      },
+        {"buf_cfg",
+         {
+             {{"total_size", 2097152}, {"blk_size", 256}, {"max_buf_size", 8192}, {"page_type", "abnormal"}},
+         }},
     };
     std::ofstream json_file(pp0_config_file);
     json_file << pp0_cfg_json << std::endl;

@@ -37,7 +37,7 @@ graph TB
         H --> I
         I --> J[Write to OM file SO_BINS partition]
     end
-    
+
     subgraph "OM File Structure"
         J --> K[ModelFileHeader]
         K --> L[MODEL_DEF partition]
@@ -46,7 +46,7 @@ graph TB
         K --> O[SO_BINS partition]
         K --> P[TILING_DATA partition]
     end
-    
+
     subgraph "Runtime (ModelManager)"
         O --> Q[ModelHelper::LoadSoStoreModelPartitionInfo]
         Q --> R[OpSoStore::Load parsing]
@@ -83,13 +83,13 @@ graph LR
         C[kOpMasterDevice = 1] -->|bit 14| D[0x4000]
         E[kAutofuse = 2] -->|bit 13| F[0x2000]
     end
-    
+
     subgraph "Purpose"
         B --> G[RT2 dynamic shape<br/>infer shape / tiling so]
         D --> H[Device-side tiling so<br/>op_master_device]
         F --> I[Autofuse fusion operator so<br/>offline save and load]
     end
-    
+
     subgraph "Trigger Condition"
         G --> J[Dynamic shape model<br/>or static_to_dynamic_softsync]
         H --> K[TaskDef contains<br/>PREPROCESS_KERNEL type task]

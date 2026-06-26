@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -81,10 +81,10 @@ struct OutputsGuarderInfo {
 ge::graphStatus AddPlusCount(const std::string &name, const std::vector<PlusRefGuarderInfo> &plus_refs);
 ge::graphStatus AddPointFromForConflicts(const std::string &name, const std::set<int32_t> &conflict_indexes,
                                          const std::vector<ge::FastNode *> &netoutput_nodes);
-ge::graphStatus CalcSubgraphGuardersPolicy(const ge::FastNode * const parent_node,
+ge::graphStatus CalcSubgraphGuardersPolicy(const ge::FastNode *const parent_node,
                                            std::set<std::pair<int32_t, std::string>> &all_guarder_indexes_types,
                                            std::vector<OutputsGuarderInfo> &subgraph_indexes_to_policy);
-ge::graphStatus CalcChainConflictSolvePolicy(const ge::FastNode * const node,
+ge::graphStatus CalcChainConflictSolvePolicy(const ge::FastNode *const node,
                                              std::vector<ge::FastNode *> &subgraph_indexes_to_netoutput,
                                              std::set<int32_t> &conflict_indexes, std::set<int32_t> &all_same_indexes);
 ge::graphStatus RemoveGuarders(const std::vector<ge::FastNode *> &remove_guarders);

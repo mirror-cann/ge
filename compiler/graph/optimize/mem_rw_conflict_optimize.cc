@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2026 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -46,10 +46,10 @@ enum class InputRWType {
 };
 // rw type of output
 enum class OutputRWType {
-  kReadOnlyConst, // 1.const output
-  kReadOnly,   // 1.not ref output but has several peer output
-  kSoftRead,   // not ref output but only has one output node
-  kWriteable,  // ref output. Like Assign/ApplyMomentum
+  kReadOnlyConst,  // 1.const output
+  kReadOnly,       // 1.not ref output but has several peer output
+  kSoftRead,       // not ref output but only has one output node
+  kWriteable,      // ref output. Like Assign/ApplyMomentum
   kInvalidRWType
 };
 
@@ -498,25 +498,23 @@ Status MarkRWTypeForSubgraphOutput(const ComputeGraphPtr &sub_graph, const NodeP
     GELOGD("Output rw type of Node %s %dth output anchor is %s", pre_node->GetName().c_str(), pre_out_anchor->GetIdx(),
            OutputRWTypeToSerialString(pre_output_rw_type).c_str());
 
-    if ((pre_output_rw_type == OutputRWType::kWriteable) &&
-        (!JudgeOptimizableByParentNode(parent_node, parent_idx))) {
+    if ((pre_output_rw_type == OutputRWType::kWriteable) && (!JudgeOptimizableByParentNode(parent_node, parent_idx))) {
       // insert identity
       auto identity_op = CreateIdentityOpDesc(pre_node, pre_out_anchor->GetIdx());
       GE_CHECK_NOTNULL(identity_op);
       NodePtr identity_node = GraphUtils::InsertNodeAfter(pre_out_anchor, {in_data_anchor}, identity_op);
       if (identity_node == nullptr) {
         REPORT_INNER_ERR_MSG("E19999", "Insert Identity node %s(%s) between %s(%s) -> %s(%s) failed.",
-                          identity_op->GetName().c_str(), identity_op->GetType().c_str(),
-                          pre_node->GetName().c_str(), pre_node->GetType().c_str(), node->GetName().c_str(),
-                          node->GetType().c_str());
-        GELOGE(FAILED, "[Insert][IdentityNode] %s(%s) between %s(%s) -> %s(%s) failed.",
-               identity_op->GetName().c_str(), identity_op->GetType().c_str(), pre_node->GetName().c_str(),
-               pre_node->GetType().c_str(), node->GetName().c_str(), node->GetType().c_str());
+                             identity_op->GetName().c_str(), identity_op->GetType().c_str(),
+                             pre_node->GetName().c_str(), pre_node->GetType().c_str(), node->GetName().c_str(),
+                             node->GetType().c_str());
+        GELOGE(FAILED, "[Insert][IdentityNode] %s(%s) between %s(%s) -> %s(%s) failed.", identity_op->GetName().c_str(),
+               identity_op->GetType().c_str(), pre_node->GetName().c_str(), pre_node->GetType().c_str(),
+               node->GetName().c_str(), node->GetType().c_str());
         return FAILED;
       }
       GELOGI("InsertNode %s between %s:%d and %s:%d successfully.", identity_node->GetName().c_str(),
-             pre_node->GetName().c_str(), pre_out_anchor->GetIdx(),
-             node->GetName().c_str(), in_data_anchor->GetIdx());
+             pre_node->GetName().c_str(), pre_out_anchor->GetIdx(), node->GetName().c_str(), in_data_anchor->GetIdx());
       pre_output_rw_type = OutputRWType::kSoftRead;
     }
     output_rw_type_map.emplace(std::make_pair(in_data_anchor->GetIdx(), pre_output_rw_type));
@@ -531,7 +529,7 @@ Status MarkRWTypeForSubgraph(const ComputeGraphPtr &sub_graph) {
   const auto &sub_graph_name = sub_graph->GetName();
   // the name of the subgraph should be unique
   if (subgraph_inputs_.count(sub_graph_name) > 0U || subgraph_netoutput_.count(sub_graph_name) > 0U) {
-    GELOGE(FAILED, "Subgraph name %s is not uniqe", sub_graph_name.c_str());
+    GELOGE(FAILED, "Subgraph name %s is not unique", sub_graph_name.c_str());
     return FAILED;
   }
   for (const auto &node : sub_graph->GetDirectNode()) {
@@ -723,8 +721,8 @@ Status SplitIdentityAlongAnchor(const OutDataAnchorPtr &out_data_anchor, const I
   if (input_rw_type == InputRWType::kScopeWriteable || input_rw_type == InputRWType::kWriteable) {
     auto new_identity_op = CreateIdentityOpDesc(pre_node, pre_out_data_anchor->GetIdx());
     GE_CHECK_NOTNULL(new_identity_op);
-    GE_ASSERT_NOTNULL(GraphUtils::InsertNodeBefore(peer_in_data_anchor, new_identity_op,
-        kIdentityAnchorIndex, kIdentityAnchorIndex));
+    GE_ASSERT_NOTNULL(
+        GraphUtils::InsertNodeBefore(peer_in_data_anchor, new_identity_op, kIdentityAnchorIndex, kIdentityAnchorIndex));
     GELOGI("Node %s input rw type is %s. Insert Identity between %s and %s.", peer_in_data_node->GetName().c_str(),
            InputRWTypeToSerialString(input_rw_type).c_str(), pre_out_data_anchor->GetOwnerNode()->GetName().c_str(),
            peer_in_data_anchor->GetOwnerNode()->GetName().c_str());
@@ -792,7 +790,6 @@ Status SplitIdentity(const NodePtr &node) {
 
 bool IsLastLinkCanSkipIdentity(const NodePtr &node, InputRWType rw_type, NodePtr &last_node) {
   if (last_node == nullptr) {
-
     last_node = node;
   }
   // if in anchor in different node, can't skip
@@ -836,7 +833,7 @@ bool NeedCheckSkipIdentiy(OutputRWType type, const NodePtr &out_node, const OutD
     }
     // 找到ref的output2input map
     const auto iter = refs_output_2_input_.find(temp->GetOpDesc()->GetName());
-    if (iter == refs_output_2_input_.end()) { 
+    if (iter == refs_output_2_input_.end()) {
       return true;
     }
     // 找到对应的输入input anchor
@@ -1055,8 +1052,7 @@ Status GraphOptimize::HandleMemoryRWConflict(ComputeGraphPtr &compute_graph) con
 Status InitRWConflictCheck(const ComputeGraphPtr &compute_graph) {
   ReInit();
   GE_CHECK_NOTNULL(compute_graph);
-  GE_CHK_STATUS(MarkRefRelations(compute_graph),
-                "Mark ref relations failed for %s", compute_graph->GetName().c_str());
+  GE_CHK_STATUS(MarkRefRelations(compute_graph), "Mark ref relations failed for %s", compute_graph->GetName().c_str());
   const auto &sub_graph_vec = compute_graph->GetAllSubgraphs();
   if (sub_graph_vec.empty()) {
     GELOGI("No subgraph found in graph %s. Skip RW type marking for subgraphs.", compute_graph->GetName().c_str());
@@ -1070,11 +1066,10 @@ Status InitRWConflictCheck(const ComputeGraphPtr &compute_graph) {
   return SUCCESS;
 }
 
-bool WouldDeleteTensorMoveCauseRWConflict(
-    const NodePtr &src_node, uint32_t src_out_idx,
-    const NodePtr &tm_succ, uint32_t tm_succ_in_idx) {
-  if ((src_node == nullptr) || (src_node->GetOpDesc() == nullptr) ||
-      (tm_succ == nullptr) || (tm_succ->GetOpDesc() == nullptr)) {
+bool WouldDeleteTensorMoveCauseRWConflict(const NodePtr &src_node, uint32_t src_out_idx, const NodePtr &tm_succ,
+                                          uint32_t tm_succ_in_idx) {
+  if ((src_node == nullptr) || (src_node->GetOpDesc() == nullptr) || (tm_succ == nullptr) ||
+      (tm_succ->GetOpDesc() == nullptr)) {
     GELOGW("WouldDeleteTensorMoveCauseRWConflict got null input, conservatively report conflict.");
     return true;
   }
@@ -1098,8 +1093,8 @@ bool IsNodeInputWritable(const NodePtr &node, uint32_t index) {
   }
   auto in_rw_type = GetInputRWTypeByIndex(node, index, true);
   const bool is_writable = (in_rw_type == InputRWType::kWriteable || in_rw_type == InputRWType::kScopeWriteable);
-  GELOGI("Node %s input %u RW type: %d, writable=%s.",
-         node->GetName().c_str(), index, static_cast<int>(in_rw_type), is_writable ? "true" : "false");
+  GELOGI("Node %s input %u RW type: %d, writable=%s.", node->GetName().c_str(), index, static_cast<int>(in_rw_type),
+         is_writable ? "true" : "false");
   return is_writable;
 }
 

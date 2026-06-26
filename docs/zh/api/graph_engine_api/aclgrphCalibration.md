@@ -119,4 +119,3 @@ graphStatus aclgrphCalibration(ge::Graph &graph, const std::map<ge::AscendString
 
 -   对于已经被插入量化算子的Graph不支持进行量化。
 -   使用配置文件中的**calibration**训练后量化功能时，只支持**带NPU设备**的安装场景，详细介绍请参见《CANN 软件安装指南》手册搭建对应产品环境。
-

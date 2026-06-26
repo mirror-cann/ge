@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,43 +18,43 @@ using namespace testing;
 namespace ge {
 namespace {
 auto data0 = OP_CFG(DATA)
+                 .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                 .InCnt(1)
+                 .OutCnt(1)
+                 .InNames({"x"})
+                 .OutNames({"y"})
+                 .Attr(ATTR_NAME_INDEX, 0)
+                 .Build("data");
+auto var = OP_CFG(VARIABLE)
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("var");
+auto relu = OP_CFG(RELU)
                 .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
                 .InCnt(1)
                 .OutCnt(1)
                 .InNames({"x"})
                 .OutNames({"y"})
-                .Attr(ATTR_NAME_INDEX, 0)
-                .Build("data");
-auto var = OP_CFG(VARIABLE)
-                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4})
-                    .InCnt(1)
-                    .OutCnt(1)
-                    .InNames({"x"})
-                    .OutNames({"y"})
-                    .Build("var");
-auto relu = OP_CFG(RELU)
-                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4})
-                  .InCnt(1)
-                  .OutCnt(1)
-                  .InNames({"x"})
-                  .OutNames({"y"})
-                  .Build("relu");
+                .Build("relu");
 auto relu2 = OP_CFG(RELU)
-                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4})
-                  .InCnt(1)
-                  .OutCnt(1)
-                  .InNames({"x"})
-                  .OutNames({"y"})
-                  .Build("relu2");
+                 .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                 .InCnt(1)
+                 .OutCnt(1)
+                 .InNames({"x"})
+                 .OutNames({"y"})
+                 .Build("relu2");
 auto cmo = OP_CFG(CMO)
-                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4})
-                  .InCnt(1)
-                  .OutCnt(1)
-                  .InNames({"x"})
-                  .OutNames({"y"})
-                  .Build("cmo");
+               .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+               .InCnt(1)
+               .OutCnt(1)
+               .InNames({"x"})
+               .OutNames({"y"})
+               .Build("cmo");
 auto assign = OP_CFG(ASSIGN)
-                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4})
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
                   .InCnt(2)
                   .OutCnt(1)
                   .InNames({"ref", "value"})
@@ -62,7 +62,7 @@ auto assign = OP_CFG(ASSIGN)
                   .Build("assign");
 
 vector<int32_t> data_value(1 * 2 * 3 * 4, 0);
-GeTensorDesc data_tensor_desc(GeShape({1,2,3,4}), FORMAT_NCHW, DT_INT32);
+GeTensorDesc data_tensor_desc(GeShape({1, 2, 3, 4}), FORMAT_NCHW, DT_INT32);
 GeTensorPtr tensor = std::make_shared<GeTensor>(data_tensor_desc, (uint8_t *)data_value.data(), sizeof(int32_t));
 auto const_op = OP_CFG(CONSTANTOP).InCnt(0).OutCnt(1).Weight(tensor).Build("const_op");
 
@@ -98,12 +98,12 @@ ComputeGraphPtr ReadWriteNoControlGraph() {
  */
 ComputeGraphPtr TwoWriteNoControlGraph() {
   auto assign1 = OP_CFG(ASSIGN)
-                  .TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4})
-                  .InCnt(2)
-                  .OutCnt(1)
-                  .InNames({"ref", "value"})
-                  .OutNames({"ref"})
-                  .Build("assign1");
+                     .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                     .InCnt(2)
+                     .OutCnt(1)
+                     .InNames({"ref", "value"})
+                     .OutNames({"ref"})
+                     .Build("assign1");
   DEF_GRAPH(g1) {
     CHAIN(NODE(var)->EDGE(0, 0)->NODE(assign1)->NODE("NetOutput", NETOUTPUT));
     CHAIN(NODE(const_op)->EDGE(0, 1)->NODE(assign1));
@@ -188,7 +188,7 @@ ComputeGraphPtr ReadWriteIndirectControlGraph() {
 }
 
 /*
-*      var    data         then:                  else:
+ *      var    data         then:                  else:
  *    /     \ |               data  const             data
  *  relu    if                |   /                   |
  *     \   /                 assign                  relu
@@ -198,7 +198,7 @@ ComputeGraphPtr ReadWriteIndirectControlGraph() {
 ComputeGraphPtr WriteInSubgraphReadInRootgraph(bool with_control_in_root) {
   auto main_graph = [&with_control_in_root]() {
     DEF_GRAPH(g) {
-      CHAIN(NODE("pred", DATA)->NODE("if", "If")->EDGE(0,1)->NODE("NetOutput", NETOUTPUT));
+      CHAIN(NODE("pred", DATA)->NODE("if", "If")->EDGE(0, 1)->NODE("NetOutput", NETOUTPUT));
       CHAIN(NODE(var)->NODE(relu)->NODE("NetOutput"));
       CHAIN(NODE(var)->EDGE(0, 1)->NODE("if"));
       if (with_control_in_root) {
@@ -260,7 +260,7 @@ ComputeGraphPtr WriteInSubgraphReadInRootgraph(bool with_control_in_root) {
 }
 
 /*
-*      var    data         then:                  else:
+ *      var    data         then:                  else:
  *    /     \ |               data  const               data
  *  relu    if               /   \   /                    |
  *     \   /               relu assign                  relu
@@ -270,7 +270,7 @@ ComputeGraphPtr WriteInSubgraphReadInRootgraph(bool with_control_in_root) {
 ComputeGraphPtr BothConflictInSubgraphAndRootgraph() {
   auto main_graph = []() {
     DEF_GRAPH(g) {
-      CHAIN(NODE("pred", DATA)->NODE("if", "If")->EDGE(0,1)->NODE("NetOutput", NETOUTPUT));
+      CHAIN(NODE("pred", DATA)->NODE("if", "If")->EDGE(0, 1)->NODE("NetOutput", NETOUTPUT));
       CHAIN(NODE(var)->NODE(relu)->NODE("NetOutput"));
       CHAIN(NODE(var)->EDGE(0, 1)->NODE("if"));
     };
@@ -330,7 +330,7 @@ ComputeGraphPtr BothConflictInSubgraphAndRootgraph() {
 }
 
 /*
-*      var    data         then:                  else:
+ *      var    data         then:                  else:
  *    /     \ |               data                 data
  *  assign    if                |                      |
  *     \     /                 relu                  relu
@@ -340,9 +340,9 @@ ComputeGraphPtr BothConflictInSubgraphAndRootgraph() {
 ComputeGraphPtr ReadInSubgraphWriteInRootgraphNoControlGraph() {
   auto main_graph = []() {
     DEF_GRAPH(g) {
-      CHAIN(NODE("pred", DATA)->NODE("if", "If")->EDGE(0,1)->NODE("NetOutput", NETOUTPUT));
+      CHAIN(NODE("pred", DATA)->NODE("if", "If")->EDGE(0, 1)->NODE("NetOutput", NETOUTPUT));
       CHAIN(NODE(var)->NODE(assign)->NODE("NetOutput"));
-      CHAIN(NODE(var)->EDGE(0,1)->NODE("if"));
+      CHAIN(NODE(var)->EDGE(0, 1)->NODE("if"));
       CHAIN(NODE(const_op)->EDGE(0, 1)->NODE(assign));
     };
     return ToComputeGraph(g);
@@ -397,7 +397,7 @@ ComputeGraphPtr ReadInSubgraphWriteInRootgraphNoControlGraph() {
 
   return main_graph;
 }
-} // namespace
+}  // namespace
 class UtestGraphLintTest : public testing::Test {
  protected:
   void SetUp() {
@@ -408,7 +408,8 @@ class UtestGraphLintTest : public testing::Test {
   void TearDown() {
     dlog_setlevel(GE_MODULE_NAME, origin_log_level_, origin_event_level_);
   }
-private:
+
+ private:
   int32_t origin_log_level_ = -1;
   int32_t origin_event_level_ = -1;
 };
@@ -790,4 +791,4 @@ TEST_F(UtestGraphLintTest, testInvalid_subgraph_not_support) {
   GraphLint graph_lint;
   EXPECT_NE(graph_lint.Verify(subgraph), GRAPH_SUCCESS);
 }
-} // namespace ge
+}  // namespace ge

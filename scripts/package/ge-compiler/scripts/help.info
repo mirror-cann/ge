@@ -22,4 +22,3 @@
     --install-for-all               Install for all user
     --pylocal                       Install python packages to install dir path
   --version                         Query the package version
- 

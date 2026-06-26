@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,12 +32,10 @@ using namespace std;
 using namespace ge;
 using namespace fe;
 
-
 using TransNodeManagerPtr = std::shared_ptr<TransNodeManager>;
 using HeavyFormatPropagationPtr = std::shared_ptr<HeavyFormatPropagation>;
 class STEST_fusion_engine_heavy_format_distribution_graph_constructor : public testing::Test {
  protected:
-
   void SetUp() {
     std::map<std::string, std::string> options;
     fe_ops_kernel_info_store_ptr_ = make_shared<fe::FEOpsKernelInfoStore>();
@@ -61,9 +59,7 @@ class STEST_fusion_engine_heavy_format_distribution_graph_constructor : public t
     reflection_builder_ptr_ = std::make_shared<ge::RefRelations>();
   }
 
-  void TearDown() {
-
-  }
+  void TearDown() {}
   shared_ptr<fe::FEOpsKernelInfoStore> fe_ops_kernel_info_store_ptr_;
   RefRelationsPtr reflection_builder_ptr_;
 
@@ -100,7 +96,7 @@ class STEST_fusion_engine_heavy_format_distribution_graph_constructor : public t
   }
 
   static Status CheckGraphAtStage1(ComputeGraphPtr graph) {
-    for (auto& node : graph->GetDirectNode()) {
+    for (auto &node : graph->GetDirectNode()) {
       if (node->GetName() == "am1") {
         EXPECT_EQ("{[], }", GraphConstructor::GetInputString(node));
       }
@@ -124,7 +120,7 @@ class STEST_fusion_engine_heavy_format_distribution_graph_constructor : public t
   }
 
   static Status CheckGraphAtStage2(ComputeGraphPtr graph) {
-    for (auto& node : graph->GetDirectNode()) {
+    for (auto &node : graph->GetDirectNode()) {
       if (node->GetName() == "am1") {
         EXPECT_EQ("{[], }", GraphConstructor::GetInputString(node));
       }
@@ -154,7 +150,7 @@ class STEST_fusion_engine_heavy_format_distribution_graph_constructor : public t
   }
 
   static Status CheckGraphAtStage3(ComputeGraphPtr graph) {
-    for (auto& node : graph->GetDirectNode()) {
+    for (auto &node : graph->GetDirectNode()) {
       if (node->GetName() == "am2_0") {
         EXPECT_EQ("{}", GraphConstructor::GetInputString(node));
       }
@@ -201,42 +197,43 @@ class STEST_fusion_engine_heavy_format_distribution_graph_constructor : public t
   static void CreateThreeGraphWithL2LossAndAddN_NewMethod_BasicTest(ComputeGraphPtr graph) {
     /* Only Contains underline and colon is missing */
     GraphConstructor test(graph);
-    test.SetInput("am1_", "Conv2DBackPropFilter_a") // node name is am1 and illegal
-        .SetInput("am2_2", "am2_2")  // self loop exists, illegal
-        .SetInput("am2__", "am2_2") // node name is am2_ and am2_2
-        .SetInput("am2", "am2_0") // node name is am2 and am2_0, they are different nodes
-        .SetInput("_2", "am2_2") // node name is "" (illegal) and am2_2
-        .SetInput("_2_2", "am2_2"); // node name is "_2_2", type is _2_ (legal) and am2_2
+    test.SetInput("am1_", "Conv2DBackPropFilter_a")  // node name is am1 and illegal
+        .SetInput("am2_2", "am2_2")                  // self loop exists, illegal
+        .SetInput("am2__", "am2_2")                  // node name is am2_ and am2_2
+        .SetInput("am2", "am2_0")                    // node name is am2 and am2_0, they are different nodes
+        .SetInput("_2", "am2_2")                     // node name is "" (illegal) and am2_2
+        .SetInput("_2_2", "am2_2");                  // node name is "_2_2", type is _2_ (legal) and am2_2
     CheckGraphAtStage1(graph);
     GraphConstructor::DumpGraph(graph);
 
     /* Only Contains colon */
-    test.SetInput("am1:", "Conv2DBackPropFilter:a") // node name is am1 and illegal
-        .SetInput("am2:2", "am2:1")  // self loop exists, illegal
-        .SetInput("am2::", "am2:2") // node name is am2: and am2(output anchor 2)
-        .SetInput("am2", "am2:0") // node name is am2 and am2, they are same node
-        .SetInput(":2", "am2:2") // node name is "" (illegal) and am2
-        .SetInput(":a:2", "am2_2"); // node name is ":a", type is :a (legal) and am2_2
+    test.SetInput("am1:", "Conv2DBackPropFilter:a")  // node name is am1 and illegal
+        .SetInput("am2:2", "am2:1")                  // self loop exists, illegal
+        .SetInput("am2::", "am2:2")                  // node name is am2: and am2(output anchor 2)
+        .SetInput("am2", "am2:0")                    // node name is am2 and am2, they are same node
+        .SetInput(":2", "am2:2")                     // node name is "" (illegal) and am2
+        .SetInput(":a:2", "am2_2");                  // node name is ":a", type is :a (legal) and am2_2
     CheckGraphAtStage2(graph);
     GraphConstructor::DumpGraph(graph);
 
     /* Contains underline and colon */
-    test.SetInput("am1_:", "am2:"); //index is 0 and 0 for node am1 and am2
-    test.SetInput("am1_:", "am2:"); //index is 1 and 1 for node am1 and am2
-    test.SetInput("am1_:", "am2:"); //index is 2 and 3 for node am1 and am2, the index 2 of node am2 is occupied
-    test.SetInput("am1_:", "Conv2DBackPropFilter_:"); // node name is am1 tensor 0, conv2_d_back_prop_filter tensor 0
-    test.SetInput("am1_0:", "o_conv2DBackPropFilter_1:0"); // node name is am1 tensor0, and -_conv2DBackPropFilter_1 tensor 0
-    test.SetInput("am1:0_0", "123:0"); // am1:0_0 is legal, the optype is am1:0
-    test.SetInput("am1:_0", "123:0"); // am1:_0 is legal, the optype is am1:
-    test.SetInput("am1_0:3.0", "123:0"); // am1:0_3.0 is illegal, the char after colon should be integer
-    test.SetInput("am1_0:0", "123:0"); // first optype is am1, remove the edge between
-    test.SetInput("o_conv2DBackPropFilter_1", "123"); // node name is am1 tensor0, and -_conv2DBackPropFilter_1 tensor 0
+    test.SetInput("am1_:", "am2:");  // index is 0 and 0 for node am1 and am2
+    test.SetInput("am1_:", "am2:");  // index is 1 and 1 for node am1 and am2
+    test.SetInput("am1_:", "am2:");  // index is 2 and 3 for node am1 and am2, the index 2 of node am2 is occupied
+    test.SetInput("am1_:", "Conv2DBackPropFilter_:");  // node name is am1 tensor 0, conv2_d_back_prop_filter tensor 0
+    test.SetInput("am1_0:",
+                  "o_conv2DBackPropFilter_1:0");  // node name is am1 tensor0, and -_conv2DBackPropFilter_1 tensor 0
+    test.SetInput("am1:0_0", "123:0");            // am1:0_0 is legal, the optype is am1:0
+    test.SetInput("am1:_0", "123:0");             // am1:_0 is legal, the optype is am1:
+    test.SetInput("am1_0:3.0", "123:0");          // am1:0_3.0 is illegal, the char after colon should be integer
+    test.SetInput("am1_0:0", "123:0");            // first optype is am1, remove the edge between
+    test.SetInput("o_conv2DBackPropFilter_1",
+                  "123");  // node name is am1 tensor0, and -_conv2DBackPropFilter_1 tensor 0
     CheckGraphAtStage3(graph);
     GraphConstructor::DumpGraph(graph);
   }
-  static void GetNode(const ge::ComputeGraphPtr& graph,
-               const string& name, ge::NodePtr& node_out) {
-    for (auto& node : graph->GetDirectNode()) {
+  static void GetNode(const ge::ComputeGraphPtr &graph, const string &name, ge::NodePtr &node_out) {
+    for (auto &node : graph->GetDirectNode()) {
       if (node->GetName() == "conv2d") {
         node_out = node;
       }
@@ -254,8 +251,8 @@ class STEST_fusion_engine_heavy_format_distribution_graph_constructor : public t
         .AddOpDesc("addn", "Conv2D")
         .AddOpDesc("am", "ApplyMomentum")
         .AddOpDesc("conv2dback", "Conv2DBackpropInput")
-        .SetInput("conv2d", "", ge::FORMAT_FRACTAL_Z) // set input 0 of conv2d as FORMAT_FRACTAL_Z
-        .SetInput("conv2d", "", ge::FORMAT_NC1HWC0); // set input 0 of conv2d as FORMAT_NC1HWC0
+        .SetInput("conv2d", "", ge::FORMAT_FRACTAL_Z)  // set input 0 of conv2d as FORMAT_FRACTAL_Z
+        .SetInput("conv2d", "", ge::FORMAT_NC1HWC0);   // set input 0 of conv2d as FORMAT_NC1HWC0
 
     ge::NodePtr conv_node;
     GetNode(graph, "conv2d", conv_node);
@@ -267,16 +264,16 @@ class STEST_fusion_engine_heavy_format_distribution_graph_constructor : public t
 
     test.SetInput("conv2d:1", "", ge::FORMAT_NC1HWC0);
 
-    test.SetInput("conv2d", "", ge::FORMAT_NC1HWC0) // set input 0 of conv2d as FORMAT_FRACTAL_Z
-        .SetInput("conv2d", "", ge::FORMAT_FRACTAL_Z); // set input 0 of conv2d as FORMAT_NC1HWC0
+    test.SetInput("conv2d", "", ge::FORMAT_NC1HWC0)     // set input 0 of conv2d as FORMAT_FRACTAL_Z
+        .SetInput("conv2d", "", ge::FORMAT_FRACTAL_Z);  // set input 0 of conv2d as FORMAT_NC1HWC0
 
     auto input_desc1 = conv_opdesc->MutableInputDesc(1);
     input_desc0 = conv_opdesc->MutableInputDesc(0);
     EXPECT_EQ(input_desc0->GetFormat(), FORMAT_FRACTAL_Z);
     EXPECT_EQ(input_desc1->GetFormat(), FORMAT_NC1HWC0);
 
-    test.SetInput("conv2d:0", "", ge::FORMAT_NC1HWC0) // set input 0 of conv2d as FORMAT_FRACTAL_Z
-        .SetInput("conv2d:1", "", ge::FORMAT_FRACTAL_Z); // set input 1 of conv2d as FORMAT_NC1HWC0
+    test.SetInput("conv2d:0", "", ge::FORMAT_NC1HWC0)     // set input 0 of conv2d as FORMAT_FRACTAL_Z
+        .SetInput("conv2d:1", "", ge::FORMAT_FRACTAL_Z);  // set input 1 of conv2d as FORMAT_NC1HWC0
 
     input_desc1 = conv_opdesc->MutableInputDesc(1);
     input_desc0 = conv_opdesc->MutableInputDesc(0);
@@ -284,11 +281,11 @@ class STEST_fusion_engine_heavy_format_distribution_graph_constructor : public t
     EXPECT_EQ(input_desc1->GetFormat(), FORMAT_FRACTAL_Z);
 
     /* conv2_d_back_prop_filter(Fragz)      Conv2D(NC1HWC0)
-   *          |                       /
-   *        a.m.(NCHW)          L2Loss (NCHW)
-   *               \           /
-   *                 AddN(NCHW)
-   *  After distribution, the input and output of a.m. will become Fragz */
+     *          |                       /
+     *        a.m.(NCHW)          L2Loss (NCHW)
+     *               \           /
+     *                 AddN(NCHW)
+     *  After distribution, the input and output of a.m. will become Fragz */
     vector<int64_t> dims_l2_loss_out = {};
     test.SetInput("l2loss", ge::FORMAT_NCHW, "conv2d", ge::FORMAT_NC1HWC0)
         .SetInput("addn:1", "l2loss", dims_l2_loss_out)
@@ -345,7 +342,7 @@ class STEST_fusion_engine_heavy_format_distribution_graph_constructor : public t
     am_tensor_desc.SetOriginShape(GeShape({3, 4, 5, 6}));
     am_tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
     apply_momentum_op->AddOutputDesc(am_tensor_desc);
-    for (uint32_t i = 0;  i < 5; i++) {
+    for (uint32_t i = 0; i < 5; i++) {
       apply_momentum_op->AddInputDesc(am_tensor_desc);
     }
     auto am_node = graph->AddNode(apply_momentum_op);
@@ -398,24 +395,18 @@ class STEST_fusion_engine_heavy_format_distribution_graph_constructor : public t
 
     GraphUtils::AddEdge(conv_node->GetOutDataAnchor(0), reduce_node->GetInDataAnchor(0));
   }
-
 };
 
-
-
 TEST_F(STEST_fusion_engine_heavy_format_distribution_graph_constructor, test1) {
-
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateThreeGraphWithL2LossAndAddN_NewMethod(graph);
   EXPECT_EQ(graph->GetName(), "test");
-
 }
 
 TEST_F(STEST_fusion_engine_heavy_format_distribution_graph_constructor, test2) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateThreeGraphWithL2LossAndAddN_NewMethod_BasicTest(graph);
   EXPECT_EQ(graph->GetName(), "test");
-
 }
 
 TEST_F(STEST_fusion_engine_heavy_format_distribution_graph_constructor, test3) {
@@ -431,23 +422,23 @@ TEST_F(STEST_fusion_engine_heavy_format_distribution_graph_constructor, test3) {
   EXPECT_EQ(GraphConstructor::CompareGraph(graph1, graph2), true);
 }
 
-TEST_F(STEST_fusion_engine_heavy_format_distribution_graph_constructor,
-       distribute_to_reduce) {
+TEST_F(STEST_fusion_engine_heavy_format_distribution_graph_constructor, distribute_to_reduce) {
   ComputeGraphPtr graph1 = std::make_shared<ComputeGraph>("test1");
   Conv2D_ReduceSumD(graph1);
-  HeavyFormatPropagationPtr HeavyFormatPropagator = std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
-  HeavyFormatPropagator->Initialize();
+  HeavyFormatPropagationPtr HeavyFormatPropagator =
+      std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
+  HeavyFormatPropagator->Initalize();
   Status ret = HeavyFormatPropagator->PropagateHeavyFormat(*(graph1.get()));
-  for(auto node : graph1->GetDirectNode()) {
+  for (auto node : graph1->GetDirectNode()) {
     if (node->GetType() == "ReduceSumD") {
       auto opdesc = node->GetOpDesc();
       {
-        auto input =opdesc->GetInputDesc(0);
+        auto input = opdesc->GetInputDesc(0);
         EXPECT_EQ(ge::GetPrimaryFormat(input.GetFormat()), ge::FORMAT_NC1HWC0);
         EXPECT_EQ(input.GetDataType(), ge::DT_FLOAT16);
       }
       {
-        auto output =opdesc->GetOutputDesc(0);
+        auto output = opdesc->GetOutputDesc(0);
         EXPECT_EQ(output.GetFormat(), ge::FORMAT_NCHW);
         EXPECT_EQ(output.GetDataType(), ge::DT_FLOAT16);
       }
@@ -455,151 +446,151 @@ TEST_F(STEST_fusion_engine_heavy_format_distribution_graph_constructor,
   }
 }
 
-//TEST_F(STEST_fusion_engine_heavy_format_distribution_graph_constructor,
-//       stop_distributing_from_non5d_shape_of_format_ndc1hwc0) {
-//   /*        Cosh(NDHWC, {3,4,5,6} 4D)
+// TEST_F(STEST_fusion_engine_heavy_format_distribution_graph_constructor,
+//        stop_distributing_from_non5d_shape_of_format_ndc1hwc0) {
+//    /*        Cosh(NDHWC, {3,4,5,6} 4D)
+//     *          |
+//     *       Conv3D (NDC1HWC0, original format NDHWC, original shape {3,4,5,6,1})
+//     *          |
+//     *       Cosh(NDHWC, {3,4,5,6} 4D)
+//     *  After distribution, the input and output of Cosh will not become
+//     *  NDC1HWC0 because the shape size of Cosh is not 5*/
+//   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test2");
+//   ge::GeShape original_shape = GeShape({3, 4, 5, 6, 1});
+//   vector<int64_t> cosh_dims = {3, 4, 5, 6 };
+//   GraphConstructor test(graph, "", ge::FORMAT_NDHWC, ge::DT_FLOAT16, original_shape);
+//   test.SetInput("Cosh_0", "", {3, 4, 5, 6 })
+//
+//       .SetInput("Conv3D:0", "Cosh_0", {3, 4, 5, 6 }, SOURCE)
+//       .SetInput("Conv3D:1", "");
+//
+//   test.SetInput("Cosh_0", "Conv3D", {3, 4, 5, 6 }, DESTINATION);
+//   test.Judge(fe_ops_kernel_info_store_ptr_);
+//   HeavyFormatPropagationPtr HeavyFormatPropagator = std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME,
+//   reflection_builder_ptr_); HeavyFormatPropagator->Initalize(); Status ret =
+//   HeavyFormatPropagator->PropagateHeavyFormat(*(graph.get()));
+//
+//
+//   for(auto node : graph->GetDirectNode()) {
+//     if (node->GetType() == "Cosh_0") {
+//       auto opdesc = node->GetOpDesc();
+//       {
+//         auto input =opdesc->GetInputDesc(0);
+//         EXPECT_EQ(input.GetFormat(), ge::FORMAT_NDHWC);
+//         EXPECT_EQ(input.GetDataType(), ge::DT_FLOAT16);
+//         EXPECT_EQ(input.GetShape().GetDims(), cosh_dims);
+//       }
+//       {
+//         auto output =opdesc->GetOutputDesc(0);
+//         EXPECT_EQ(output.GetFormat(), ge::FORMAT_NDHWC);
+//         EXPECT_EQ(output.GetDataType(), ge::DT_FLOAT16);
+//         EXPECT_EQ(output.GetShape().GetDims(), cosh_dims);
+//       }
+//     }
+//
+//     if (node->GetType() == "Cosh_1") {
+//       auto opdesc = node->GetOpDesc();
+//       {
+//         auto input =opdesc->GetInputDesc(0);
+//         EXPECT_EQ(input.GetFormat(), ge::FORMAT_NDHWC);
+//         EXPECT_EQ(input.GetDataType(), ge::DT_FLOAT16);
+//         EXPECT_EQ(input.GetShape().GetDims(), cosh_dims);
+//       }
+//       {
+//         auto output =opdesc->GetOutputDesc(0);
+//         EXPECT_EQ(output.GetFormat(), ge::FORMAT_NDHWC);
+//         EXPECT_EQ(output.GetDataType(), ge::DT_FLOAT16);
+//         EXPECT_EQ(output.GetShape().GetDims(), cosh_dims);
+//       }
+//     }
+//
+//     if (node->GetType() == "Conv2D") {
+//       auto opdesc = node->GetOpDesc();
+//       {
+//         auto input =opdesc->GetInputDesc(0);
+//         EXPECT_EQ(input.GetFormat(), ge::FORMAT_NDHWC);
+//         EXPECT_EQ(input.GetDataType(), ge::DT_FLOAT16);
+//       }
+//       {
+//         auto output =opdesc->GetOutputDesc(0);
+//         EXPECT_EQ(output.GetFormat(), ge::FORMAT_NDHWC);
+//         EXPECT_EQ(output.GetDataType(), ge::DT_FLOAT16);
+//       }
+//     }
+//   }
+// }
+//
+// TEST_F(STEST_fusion_engine_heavy_format_distribution_graph_constructor,
+//        keep_distributing_from_5d_shape_of_format_ndc1hwc0) {
+//   /*        Cosh(NDHWC, {3,4,5,6,7} 5D)
 //    *          |
 //    *       Conv3D (NDC1HWC0, original format NDHWC, original shape {3,4,5,6,1})
 //    *          |
-//    *       Cosh(NDHWC, {3,4,5,6} 4D)
+//    *       Cosh(NDHWC, {3,4,5,6,7} 5D)
 //    *  After distribution, the input and output of Cosh will not become
 //    *  NDC1HWC0 because the shape size of Cosh is not 5*/
-//  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test2");
-//  ge::GeShape original_shape = GeShape({3, 4, 5, 6, 1});
-//  vector<int64_t> cosh_dims = {3, 4, 5, 6 };
-//  GraphConstructor test(graph, "", ge::FORMAT_NDHWC, ge::DT_FLOAT16, original_shape);
-//  test.SetInput("Cosh_0", "", {3, 4, 5, 6 })
+//   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test2");
+//   ge::GeShape original_shape = GeShape({3, 4, 5, 6, 1});
+//   vector<int64_t> cosh_dims = {3,4,5,6,7};
+//   vector<int64_t> cosh_dims6_h_d = {3,4,1,5,6,16};
+//   GraphConstructor test(graph, "", ge::FORMAT_NDHWC, ge::DT_FLOAT16, original_shape);
+//   test.SetInput("Cosh_0", "", cosh_dims)
 //
-//      .SetInput("Conv3D:0", "Cosh_0", {3, 4, 5, 6 }, SOURCE)
-//      .SetInput("Conv3D:1", "");
+//       .SetInput("Conv3D:0", "Cosh_0", cosh_dims, SOURCE)
+//       .SetInput("Conv3D:1", "");
 //
-//  test.SetInput("Cosh_0", "Conv3D", {3, 4, 5, 6 }, DESTINATION);
-//  test.Judge(fe_ops_kernel_info_store_ptr_);
-//  HeavyFormatPropagationPtr HeavyFormatPropagator = std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
-//  HeavyFormatPropagator->Initialize();
-//  Status ret = HeavyFormatPropagator->PropagateHeavyFormat(*(graph.get()));
+//   test.SetInput("Cosh_0", "Conv3D", cosh_dims, DESTINATION);
+//   test.Judge(fe_ops_kernel_info_store_ptr_);
 //
+//   HeavyFormatPropagationPtr HeavyFormatPropagator = std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME,
+//   reflection_builder_ptr_); HeavyFormatPropagator->Initalize(); Status ret =
+//   HeavyFormatPropagator->PropagateHeavyFormat(*(graph.get()));
 //
-//  for(auto node : graph->GetDirectNode()) {
-//    if (node->GetType() == "Cosh_0") {
-//      auto opdesc = node->GetOpDesc();
-//      {
-//        auto input =opdesc->GetInputDesc(0);
-//        EXPECT_EQ(input.GetFormat(), ge::FORMAT_NDHWC);
-//        EXPECT_EQ(input.GetDataType(), ge::DT_FLOAT16);
-//        EXPECT_EQ(input.GetShape().GetDims(), cosh_dims);
-//      }
-//      {
-//        auto output =opdesc->GetOutputDesc(0);
-//        EXPECT_EQ(output.GetFormat(), ge::FORMAT_NDHWC);
-//        EXPECT_EQ(output.GetDataType(), ge::DT_FLOAT16);
-//        EXPECT_EQ(output.GetShape().GetDims(), cosh_dims);
-//      }
-//    }
+//   for(auto node : graph->GetDirectNode()) {
+//     if (node->GetType() == "Cosh_0") {
+//       auto opdesc = node->GetOpDesc();
+//       {
+//         auto input =opdesc->GetInputDesc(0);
+//         EXPECT_EQ(input.GetFormat(), ge::FORMAT_NDC1HWC0);
+//         EXPECT_EQ(input.GetDataType(), ge::DT_FLOAT16);
+//         EXPECT_EQ(input.GetShape().GetDims(), cosh_dims6_h_d);
+//       }
+//       {
+//         auto output =opdesc->GetOutputDesc(0);
+//         EXPECT_EQ(output.GetFormat(), ge::FORMAT_NDC1HWC0);
+//         EXPECT_EQ(output.GetDataType(), ge::DT_FLOAT16);
+//         EXPECT_EQ(output.GetShape().GetDims(), cosh_dims6_h_d);
+//       }
+//     }
 //
-//    if (node->GetType() == "Cosh_1") {
-//      auto opdesc = node->GetOpDesc();
-//      {
-//        auto input =opdesc->GetInputDesc(0);
-//        EXPECT_EQ(input.GetFormat(), ge::FORMAT_NDHWC);
-//        EXPECT_EQ(input.GetDataType(), ge::DT_FLOAT16);
-//        EXPECT_EQ(input.GetShape().GetDims(), cosh_dims);
-//      }
-//      {
-//        auto output =opdesc->GetOutputDesc(0);
-//        EXPECT_EQ(output.GetFormat(), ge::FORMAT_NDHWC);
-//        EXPECT_EQ(output.GetDataType(), ge::DT_FLOAT16);
-//        EXPECT_EQ(output.GetShape().GetDims(), cosh_dims);
-//      }
-//    }
+//     if (node->GetType() == "Cosh_1") {
+//       auto opdesc = node->GetOpDesc();
+//       {
+//         auto input =opdesc->GetInputDesc(0);
+//         EXPECT_EQ(input.GetFormat(), ge::FORMAT_NDC1HWC0);
+//         EXPECT_EQ(input.GetDataType(), ge::DT_FLOAT16);
+//         EXPECT_EQ(input.GetShape().GetDims(), cosh_dims6_h_d);
+//       }
+//       {
+//         auto output =opdesc->GetOutputDesc(0);
+//         EXPECT_EQ(output.GetFormat(), ge::FORMAT_NDC1HWC0);
+//         EXPECT_EQ(output.GetDataType(), ge::DT_FLOAT16);
+//         EXPECT_EQ(output.GetShape().GetDims(), cosh_dims6_h_d);
+//       }
+//     }
 //
-//    if (node->GetType() == "Conv2D") {
-//      auto opdesc = node->GetOpDesc();
-//      {
-//        auto input =opdesc->GetInputDesc(0);
-//        EXPECT_EQ(input.GetFormat(), ge::FORMAT_NDHWC);
-//        EXPECT_EQ(input.GetDataType(), ge::DT_FLOAT16);
-//      }
-//      {
-//        auto output =opdesc->GetOutputDesc(0);
-//        EXPECT_EQ(output.GetFormat(), ge::FORMAT_NDHWC);
-//        EXPECT_EQ(output.GetDataType(), ge::DT_FLOAT16);
-//      }
-//    }
-//  }
-//}
-//
-//TEST_F(STEST_fusion_engine_heavy_format_distribution_graph_constructor,
-//       keep_distributing_from_5d_shape_of_format_ndc1hwc0) {
-//  /*        Cosh(NDHWC, {3,4,5,6,7} 5D)
-//   *          |
-//   *       Conv3D (NDC1HWC0, original format NDHWC, original shape {3,4,5,6,1})
-//   *          |
-//   *       Cosh(NDHWC, {3,4,5,6,7} 5D)
-//   *  After distribution, the input and output of Cosh will not become
-//   *  NDC1HWC0 because the shape size of Cosh is not 5*/
-//  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test2");
-//  ge::GeShape original_shape = GeShape({3, 4, 5, 6, 1});
-//  vector<int64_t> cosh_dims = {3,4,5,6,7};
-//  vector<int64_t> cosh_dims6_h_d = {3,4,1,5,6,16};
-//  GraphConstructor test(graph, "", ge::FORMAT_NDHWC, ge::DT_FLOAT16, original_shape);
-//  test.SetInput("Cosh_0", "", cosh_dims)
-//
-//      .SetInput("Conv3D:0", "Cosh_0", cosh_dims, SOURCE)
-//      .SetInput("Conv3D:1", "");
-//
-//  test.SetInput("Cosh_0", "Conv3D", cosh_dims, DESTINATION);
-//  test.Judge(fe_ops_kernel_info_store_ptr_);
-//
-//  HeavyFormatPropagationPtr HeavyFormatPropagator = std::make_shared<HeavyFormatPropagation>(AI_CORE_NAME, reflection_builder_ptr_);
-//  HeavyFormatPropagator->Initialize();
-//  Status ret = HeavyFormatPropagator->PropagateHeavyFormat(*(graph.get()));
-//
-//  for(auto node : graph->GetDirectNode()) {
-//    if (node->GetType() == "Cosh_0") {
-//      auto opdesc = node->GetOpDesc();
-//      {
-//        auto input =opdesc->GetInputDesc(0);
-//        EXPECT_EQ(input.GetFormat(), ge::FORMAT_NDC1HWC0);
-//        EXPECT_EQ(input.GetDataType(), ge::DT_FLOAT16);
-//        EXPECT_EQ(input.GetShape().GetDims(), cosh_dims6_h_d);
-//      }
-//      {
-//        auto output =opdesc->GetOutputDesc(0);
-//        EXPECT_EQ(output.GetFormat(), ge::FORMAT_NDC1HWC0);
-//        EXPECT_EQ(output.GetDataType(), ge::DT_FLOAT16);
-//        EXPECT_EQ(output.GetShape().GetDims(), cosh_dims6_h_d);
-//      }
-//    }
-//
-//    if (node->GetType() == "Cosh_1") {
-//      auto opdesc = node->GetOpDesc();
-//      {
-//        auto input =opdesc->GetInputDesc(0);
-//        EXPECT_EQ(input.GetFormat(), ge::FORMAT_NDC1HWC0);
-//        EXPECT_EQ(input.GetDataType(), ge::DT_FLOAT16);
-//        EXPECT_EQ(input.GetShape().GetDims(), cosh_dims6_h_d);
-//      }
-//      {
-//        auto output =opdesc->GetOutputDesc(0);
-//        EXPECT_EQ(output.GetFormat(), ge::FORMAT_NDC1HWC0);
-//        EXPECT_EQ(output.GetDataType(), ge::DT_FLOAT16);
-//        EXPECT_EQ(output.GetShape().GetDims(), cosh_dims6_h_d);
-//      }
-//    }
-//
-//    if (node->GetType() == "Conv3D") {
-//      auto opdesc = node->GetOpDesc();
-//      {
-//        auto input =opdesc->GetInputDesc(0);
-//        EXPECT_EQ(input.GetFormat(), ge::FORMAT_NDC1HWC0);
-//        EXPECT_EQ(input.GetDataType(), ge::DT_FLOAT16);
-//      }
-//      {
-//        auto output =opdesc->GetOutputDesc(0);
-//        EXPECT_EQ(output.GetFormat(), ge::FORMAT_NDC1HWC0);
-//        EXPECT_EQ(output.GetDataType(), ge::DT_FLOAT16);
-//      }
-//    }
-//  }
-//}
+//     if (node->GetType() == "Conv3D") {
+//       auto opdesc = node->GetOpDesc();
+//       {
+//         auto input =opdesc->GetInputDesc(0);
+//         EXPECT_EQ(input.GetFormat(), ge::FORMAT_NDC1HWC0);
+//         EXPECT_EQ(input.GetDataType(), ge::DT_FLOAT16);
+//       }
+//       {
+//         auto output =opdesc->GetOutputDesc(0);
+//         EXPECT_EQ(output.GetFormat(), ge::FORMAT_NDC1HWC0);
+//         EXPECT_EQ(output.GetDataType(), ge::DT_FLOAT16);
+//       }
+//     }
+//   }
+// }

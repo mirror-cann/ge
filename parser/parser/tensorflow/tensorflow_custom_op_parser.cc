@@ -1,5 +1,5 @@
 /**
-* Copyright (c) 2025 Huawei Technologies Co., Ltd.
+ * Copyright (c) 2025 Huawei Technologies Co., Ltd.
  * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ std::string TfDTypeToGeSymbol(domi::tensorflow::DataType dt) {
 }
 
 template <typename T>
-std::string   FormatListValue(const google::protobuf::RepeatedField<T>& list_vals, const std::string& type) {
+std::string FormatListValue(const google::protobuf::RepeatedField<T> &list_vals, const std::string &type) {
   std::ostringstream oss;
   oss << "{";
   for (int i = 0; i < list_vals.size(); ++i) {
@@ -74,11 +74,12 @@ std::string   FormatListValue(const google::protobuf::RepeatedField<T>& list_val
   return oss.str();
 }
 
-std::string FormatListValue(const ascend_private::protobuf::RepeatedPtrField<std::string>& list_vals, const std::string& type) {
+std::string FormatListValue(const ascend_private::protobuf::RepeatedPtrField<std::string> &list_vals,
+                            const std::string &type) {
   std::ostringstream oss;
   oss << "{";
   int i = 0;
-  for (const auto& val : list_vals) {
+  for (const auto &val : list_vals) {
     if (i > 0) oss << ", ";
     if (type == "string") {
       oss << "\"" << val << "\"";
@@ -89,7 +90,7 @@ std::string FormatListValue(const ascend_private::protobuf::RepeatedPtrField<std
   return oss.str();
 }
 
-std::string FormatShapeValue(const domi::tensorflow::TensorShapeProto& shape) {
+std::string FormatShapeValue(const domi::tensorflow::TensorShapeProto &shape) {
   std::ostringstream oss;
   oss << "\"[";
   for (int i = 0; i < shape.dim_size(); ++i) {
@@ -100,7 +101,7 @@ std::string FormatShapeValue(const domi::tensorflow::TensorShapeProto& shape) {
   return oss.str();
 }
 
-std::string GetAttrDefaultValue(const domi::tensorflow::AttrValue& default_val, const std::string& attr_type) {
+std::string GetAttrDefaultValue(const domi::tensorflow::AttrValue &default_val, const std::string &attr_type) {
   if (attr_type == "int") {
     return std::to_string(default_val.i());
   }
@@ -121,7 +122,7 @@ std::string GetAttrDefaultValue(const domi::tensorflow::AttrValue& default_val, 
   if (attr_type == "shape") {
     return FormatShapeValue(default_val.shape());
   }
-  const auto& list_val = default_val.list();
+  const auto &list_val = default_val.list();
   if (attr_type == "list(int)") {
     return FormatListValue(list_val.i(), "int");
   }
@@ -175,7 +176,7 @@ std::string FormatTensorTypeExpr(const std::vector<std::string> &syms) {
 
 std::vector<std::string> CollectAllowedTypeSyms(
     const domi::tensorflow::OpDef::ArgDef &arg,
-    const std::unordered_map<std::string, const domi::tensorflow::OpDef::AttrDef*> &attr_map) {
+    const std::unordered_map<std::string, const domi::tensorflow::OpDef::AttrDef *> &attr_map) {
   std::vector<std::string> out;
   // Handling fixed type parameters
   if (ArgHasFixedType(arg)) {
@@ -213,9 +214,9 @@ std::vector<std::string> CollectAllowedTypeSyms(
   return out;
 }
 
-std::unordered_map<std::string, const domi::tensorflow::OpDef::AttrDef*>
-BuildAttrDefMap(const domi::tensorflow::OpDef &opdef) {
-  std::unordered_map<std::string, const domi::tensorflow::OpDef::AttrDef*> m;
+std::unordered_map<std::string, const domi::tensorflow::OpDef::AttrDef *> BuildAttrDefMap(
+    const domi::tensorflow::OpDef &opdef) {
+  std::unordered_map<std::string, const domi::tensorflow::OpDef::AttrDef *> m;
   m.reserve(static_cast<size_t>(opdef.attr_size()));
   for (const auto &a : opdef.attr()) {
     m.emplace(a.name(), &a);
@@ -223,23 +224,19 @@ BuildAttrDefMap(const domi::tensorflow::OpDef &opdef) {
   return m;
 }
 bool HasArgDefaultValue(const domi::tensorflow::OpDef::ArgDef &arg,
-    const std::unordered_map<std::string, const domi::tensorflow::OpDef::AttrDef*> &attr_map) {
-  const std::vector<std::string> possible_attr_names = {
-    arg.name() + "_default",
-    "default_" + arg.name(),
-    arg.name() + "_def_val"
-  };
-  for (const auto& attr_name : possible_attr_names) {
+                        const std::unordered_map<std::string, const domi::tensorflow::OpDef::AttrDef *> &attr_map) {
+  const std::vector<std::string> possible_attr_names = {arg.name() + "_default", "default_" + arg.name(),
+                                                        arg.name() + "_def_val"};
+  for (const auto &attr_name : possible_attr_names) {
     auto it = attr_map.find(attr_name);
     if ((it != attr_map.end()) && (it->second != nullptr) && (it->second->has_default_value())) {
-        return true;
+      return true;
     }
   }
   return false;
 }
-void ProcessArg(std::string &reg_op, const std::string &indent,
-                const domi::tensorflow::OpDef::ArgDef &arg,
-                const std::unordered_map<std::string, const domi::tensorflow::OpDef::AttrDef*> &attr_map,
+void ProcessArg(std::string &reg_op, const std::string &indent, const domi::tensorflow::OpDef::ArgDef &arg,
+                const std::unordered_map<std::string, const domi::tensorflow::OpDef::AttrDef *> &attr_map,
                 bool is_input) {
   if (arg.name().empty()) {
     GELOGW("Empty arg name found, skip processing");
@@ -256,7 +253,7 @@ void ProcessArg(std::string &reg_op, const std::string &indent,
       arg_type = IsListArg(arg) ? "DYNAMIC_INPUT" : "INPUT";
     }
   } else {
-     arg_type = IsListArg(arg) ? "DYNAMIC_OUTPUT" : "OUTPUT";
+    arg_type = IsListArg(arg) ? "DYNAMIC_OUTPUT" : "OUTPUT";
   }
   std::ostringstream oss;
   oss << "." << arg_type << "(" << arg.name() << ", " << type_expr << ")";
@@ -266,27 +263,24 @@ void ProcessArg(std::string &reg_op, const std::string &indent,
 std::unordered_set<std::string> CollectTypeAttrNames(const domi::tensorflow::OpDef &opdef) {
   std::unordered_set<std::string> type_attr_names;
   std::unordered_set<std::string> all_exist_attr_names;
-  for (const auto &attr: opdef.attr()) {
+  for (const auto &attr : opdef.attr()) {
     all_exist_attr_names.insert(attr.name());
   }
-  for (const auto &input_arg: opdef.input_arg()) {
+  for (const auto &input_arg : opdef.input_arg()) {
     if (!input_arg.type_attr().empty()) {
       type_attr_names.insert(input_arg.type_attr());
     }
     const std::string arg_name = input_arg.name();
-    const std::vector<std::string> default_attr_names = {
-      arg_name + "_default",
-      "default_" + arg_name,
-      arg_name + "_def_val"
-    };
-    for (const auto &attr_name: default_attr_names) {
+    const std::vector<std::string> default_attr_names = {arg_name + "_default", "default_" + arg_name,
+                                                         arg_name + "_def_val"};
+    for (const auto &attr_name : default_attr_names) {
       if (all_exist_attr_names.count(attr_name) > 0) {
         type_attr_names.insert(attr_name);
         break;
       }
     }
   }
-  for (const auto &output_arg: opdef.output_arg()) {
+  for (const auto &output_arg : opdef.output_arg()) {
     if (!output_arg.type_attr().empty()) {
       type_attr_names.insert(output_arg.type_attr());
     }
@@ -346,7 +340,7 @@ Status TensorFlowCustomOpParser::ConstructRegOpString(const domi::tensorflow::Op
     auto it = attr_type_map.find(attr_type);
     if (it != attr_type_map.end()) {
       ge_attr_type = it->second.first;
-      default_val  = it->second.second;
+      default_val = it->second.second;
     }
     default_val = GetAttrDefaultValue(attr.default_value(), attr_type);
     AppendLine(reg_op, indent, ".ATTR(" + attr_name + ", " + ge_attr_type + ", " + default_val + ")");
@@ -355,16 +349,22 @@ Status TensorFlowCustomOpParser::ConstructRegOpString(const domi::tensorflow::Op
   return SUCCESS;
 }
 
-Status TensorFlowCustomOpParser::ConstructRegCustomOpString(const domi::tensorflow::OpDef &opdef, const domi::tensorflow::NodeDef &node_def, std::string &reg_op_custom_string) {
+Status TensorFlowCustomOpParser::ConstructRegCustomOpString(const domi::tensorflow::OpDef &opdef,
+                                                            const domi::tensorflow::NodeDef &node_def,
+                                                            std::string &reg_op_custom_string) {
   bool has_dynamic = false;
   for (const auto &input_arg : opdef.input_arg()) {
-    if (IsListArg(input_arg)) { has_dynamic = true; break; }
+    if (IsListArg(input_arg)) {
+      has_dynamic = true;
+      break;
+    }
   }
   std::string parse_fn = "AutoMappingByOpFn";
   if (has_dynamic) {
     std::string fn = opdef.name();
     parse_fn = "AutoMappingFnCustomDynamic_" + fn;
-    reg_op_custom_string.append("Status ").append(parse_fn).append("(const google::protobuf::Message* op_src, ge::Operator& op) {\n");
+    reg_op_custom_string.append("Status ").append(parse_fn).append(
+        "(const google::protobuf::Message* op_src, ge::Operator& op) {\n");
     AppendLine(reg_op_custom_string, "  ", "map<string, pair<string, string>> value;");
     for (const auto &arg : opdef.input_arg()) {
       const bool is_list = (!arg.number_attr().empty() || !arg.type_list_attr().empty());
@@ -375,7 +375,12 @@ Status TensorFlowCustomOpParser::ConstructRegCustomOpString(const domi::tensorfl
       if (list_attr.empty()) continue;
       std::string line;
       line.reserve(128);
-      line.append("value[\"in").append("\"] = pair<string, string>(\"").append(tensor_name).append("\", \"").append(list_attr).append("\");");
+      line.append("value[\"in")
+          .append("\"] = pair<string, string>(\"")
+          .append(tensor_name)
+          .append("\", \"")
+          .append(list_attr)
+          .append("\");");
       AppendLine(reg_op_custom_string, "  ", line);
     }
     for (const auto &arg : opdef.output_arg()) {
@@ -387,7 +392,12 @@ Status TensorFlowCustomOpParser::ConstructRegCustomOpString(const domi::tensorfl
       if (list_attr.empty()) continue;
       std::string line;
       line.reserve(128);
-      line.append("value[\"out").append("\"] = pair<string, string>(\"").append(tensor_name).append("\", \"").append(list_attr).append("\");");
+      line.append("value[\"out")
+          .append("\"] = pair<string, string>(\"")
+          .append(tensor_name)
+          .append("\", \"")
+          .append(list_attr)
+          .append("\");");
       AppendLine(reg_op_custom_string, "  ", line);
     }
     AppendLine(reg_op_custom_string, "  ", "AutoMappingFnDynamic(op_src, op, value);");
@@ -429,19 +439,23 @@ bool CheckPathInCmdIsValid(const std::string &so_path, const std::string &file_p
          std::regex_match(ascend_include_path, kSafePathRegex);
 }
 
-Status TensorFlowCustomOpParser::CompileCustomOpFiles(const std::string &custom_op_cc_path, const std::string &output_so_path) {
+Status TensorFlowCustomOpParser::CompileCustomOpFiles(const std::string &custom_op_cc_path,
+                                                      const std::string &output_so_path) {
   std::string incloud_path;
   std::string register_path;
-  GetCompilePath(incloud_path,register_path);
+  GetCompilePath(incloud_path, register_path);
   GELOGI("Header file search directory: %s", register_path.c_str());
-  std::string command = "g++ -O2 -fstack-protector-all -shared -fPIC -Wl,-z,now -Wl,-z,noexecstack -s -o " + output_so_path + " -D_GLIBCXX_USE_CXX11_ABI=0 -Dgoogle=ascend_private -I " +
-    incloud_path + " -L c_sec -L " + register_path + " -lregister -lgraph -lruntime -x c++ " + custom_op_cc_path;
+  std::string command = "g++ -O2 -fstack-protector-all -shared -fPIC -Wl,-z,now -Wl,-z,noexecstack -s -o " +
+                        output_so_path + " -D_GLIBCXX_USE_CXX11_ABI=0 -Dgoogle=ascend_private -I " + incloud_path +
+                        " -L c_sec -L " + register_path + " -lregister -lgraph -lruntime -x c++ " + custom_op_cc_path;
   GE_ASSERT_TRUE(CheckPathInCmdIsValid(output_so_path, incloud_path, register_path),
-               "CheckPathInCmdIsValid failed, output_so_path = %s, incloud_path = %s, register_path = %s.", incloud_path.c_str(), incloud_path.c_str(), register_path.c_str());
+                 "CheckPathInCmdIsValid failed, output_so_path = %s, incloud_path = %s, register_path = %s.",
+                 incloud_path.c_str(), incloud_path.c_str(), register_path.c_str());
   int rc = system(command.c_str());
   if ((rc == -1) || (WEXITSTATUS(rc) != 0)) {
     int real_exit_code = (rc == -1) ? -1 : WEXITSTATUS(rc);
-    GELOGE(FAILED, "Failed to compile custom ops .so file, real exit code: %d, command: %s", real_exit_code, command.c_str());
+    GELOGE(FAILED, "Failed to compile custom ops .so file, real exit code: %d, command: %s", real_exit_code,
+           command.c_str());
     return FAILED;
   }
   return SUCCESS;
@@ -471,20 +485,22 @@ Status TensorFlowCustomOpParser::RegisteredTfaOps() {
       GELOGD("Skip: om_op_type not in CustomOpFactory registered set: %s", om);
       continue;
     }
-    (void)OpRegistrationTbe::Instance()->Finalize(reg_data,true, true);
+    (void)OpRegistrationTbe::Instance()->Finalize(reg_data, true, true);
     (void)domi::OpRegistry::Instance()->Register(reg_data, true);
   }
   return SUCCESS;
 }
 
 Status TensorFlowCustomOpParser::LoadCustomOpsLibrary(const std::string &so_path) {
-  ge::OpsProtoManager* const protoManager = ge::OpsProtoManager::Instance();
+  ge::OpsProtoManager *const protoManager = ge::OpsProtoManager::Instance();
   protoManager->LoadOpsProtoPluginSo(so_path);
   GE_ASSERT_SUCCESS(RegisteredTfaOps());
   return SUCCESS;
 }
 
-Status TensorFlowCustomOpParser::BuildCustomOpStrings(const std::unordered_map<std::string, const domi::tensorflow::NodeDef *> &custom_nodes_map, std::string &all_reg_op_strings) {
+Status TensorFlowCustomOpParser::BuildCustomOpStrings(
+    const std::unordered_map<std::string, const domi::tensorflow::NodeDef *> &custom_nodes_map,
+    std::string &all_reg_op_strings) {
   std::string op_ss = R"(#ifndef OP_REG_CUSTOM_H
 #define OP_REG_CUSTOM_H
 
@@ -501,7 +517,8 @@ namespace ge {
     const std::string node_op = node_def->op();
     domi::tensorflow::AttrValue attr_v;
     if (!ge::TensorFlowUtil::FindAttrValue(node_def, ge::ATTR_NAME_FRAMEWORK_OP_DEF, attr_v)) {
-      GELOGE(FAILED, "[ERROR] Custom op %s missing necessary attr: %s", node_name.c_str(), ge::ATTR_NAME_FRAMEWORK_OP_DEF.c_str());
+      GELOGE(FAILED, "[ERROR] Custom op %s missing necessary attr: %s", node_name.c_str(),
+             ge::ATTR_NAME_FRAMEWORK_OP_DEF.c_str());
       return FAILED;
     }
     const std::string &opdef_blob = attr_v.s();
@@ -567,7 +584,8 @@ Status TensorFlowCustomOpParser::DeleteTmpDirectoryContents(const std::string &o
   return SUCCESS;
 }
 
-Status TensorFlowCustomOpParser::ParseCustomOp(const std::unordered_map<std::string, const domi::tensorflow::NodeDef *> &custom_nodes_map) {
+Status TensorFlowCustomOpParser::ParseCustomOp(
+    const std::unordered_map<std::string, const domi::tensorflow::NodeDef *> &custom_nodes_map) {
   if (custom_nodes_map.empty()) {
     GELOGI("No custom operators found, custom_nodes_map is empty");
     return SUCCESS;

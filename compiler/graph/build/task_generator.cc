@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -81,8 +81,8 @@ using GenTaskCall = std::function<Status(
 uint32_t GetThreadNum() {
   const char_t *value = nullptr;
   MM_SYS_GET_ENV(MM_ENV_MAX_COMPILE_CORE_NUMBER, value);
-  int64_t thread_num = ((value != nullptr) && (value[0U] != '\0')) ?
-    std::strtol(value, nullptr, 10) : kDefaultThreadNum;
+  int64_t thread_num =
+      ((value != nullptr) && (value[0U] != '\0')) ? std::strtol(value, nullptr, 10) : kDefaultThreadNum;
   if (thread_num <= 0) {
     GELOGW("Get invalid MAX_COMPILE_CORE_NUMBER env value %s, use default thread number %ld", value, kDefaultThreadNum);
     thread_num = kDefaultThreadNum;
@@ -131,33 +131,33 @@ Status TaskGenerator::AddModelTaskToModel(const ModelTaskDef &model_task_def, ui
   GE_CHK_BOOL_EXEC(
       AttrUtils::SetInt(model, MODEL_ATTR_TASK_GEN_BASE_ADDR, reinterpret_cast<uintptr_t>(run_context.dataMemBase)),
       REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s fail for model:%s", MODEL_ATTR_TASK_GEN_BASE_ADDR.c_str(),
-                         model.GetName().c_str());
+                           model.GetName().c_str());
       GELOGE(FAILED, "[Set][Attr] %s fail for model:%s", MODEL_ATTR_TASK_GEN_BASE_ADDR.c_str(),
              model.GetName().c_str());
       return FAILED);
   GE_CHK_BOOL_EXEC(
       AttrUtils::SetInt(model, MODEL_ATTR_TASK_GEN_WEIGHT_ADDR, reinterpret_cast<uintptr_t>(run_context.weightMemBase)),
       REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s fail for model:%s", MODEL_ATTR_TASK_GEN_WEIGHT_ADDR.c_str(),
-                         model.GetName().c_str());
+                           model.GetName().c_str());
       GELOGE(FAILED, "[Set][Attr] %s fail for model:%s", MODEL_ATTR_TASK_GEN_WEIGHT_ADDR.c_str(),
              model.GetName().c_str());
       return FAILED);
   GE_CHK_BOOL_EXEC(
       AttrUtils::SetInt(model, ATTR_MODEL_TASK_GEN_VAR_ADDR, reinterpret_cast<uintptr_t>(var_mem_base_)),
       REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s fail for model:%s", ATTR_MODEL_TASK_GEN_VAR_ADDR.c_str(),
-                         model.GetName().c_str());
+                           model.GetName().c_str());
       GELOGE(FAILED, "[Set][Attr] %s fail for model:%s", ATTR_MODEL_TASK_GEN_VAR_ADDR.c_str(), model.GetName().c_str());
       return FAILED);
   GE_CHK_BOOL_EXEC(
       AttrUtils::SetInt(model, ATTR_MODEL_VAR_SIZE, var_mem_size_),
       REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s fail for model:%s", ATTR_MODEL_VAR_SIZE.c_str(),
-                         model.GetName().c_str());
+                           model.GetName().c_str());
       GELOGE(FAILED, "[Set][Attr] %s fail for model:%s", ATTR_MODEL_VAR_SIZE.c_str(), model.GetName().c_str());
       return FAILED);
   GE_CHK_BOOL_EXEC(
       AttrUtils::SetInt(model, MODEL_ATTR_SESSION_ID, session_id),
       REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s fail for mode:%s", MODEL_ATTR_SESSION_ID.c_str(),
-                         model.GetName().c_str());
+                           model.GetName().c_str());
       GELOGE(FAILED, "[Set][Attr] %s fail for mode:%s", MODEL_ATTR_SESSION_ID.c_str(), model.GetName().c_str());
       return FAILED);
   std::vector<std::string> task_index_op_name{std::make_move_iterator(op_names_.begin()),
@@ -198,7 +198,7 @@ Status TaskGenerator::UpdateOpIsVarAttr(const OpDescPtr &op_desc, uint64_t sessi
     }
     GE_CHK_BOOL_EXEC(AttrUtils::SetListBool(op_desc, kIsInputVar, input_var),
                      REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s fail for op:%s(%s)", kIsInputVar,
-                                        op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                                          op_desc->GetName().c_str(), op_desc->GetType().c_str());
                      GELOGE(FAILED, "[Set][Attr] %s fail for op:%s(%s)", kIsInputVar, op_desc->GetName().c_str(),
                             op_desc->GetType().c_str());
                      return FAILED);
@@ -225,7 +225,7 @@ Status TaskGenerator::UpdateOpIsVarAttr(const OpDescPtr &op_desc, uint64_t sessi
     }
     GE_CHK_BOOL_EXEC(AttrUtils::SetListBool(op_desc, kIsOutputVar, output_var),
                      REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s fail for op:%s(%s)", kIsOutputVar,
-                                        op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                                          op_desc->GetName().c_str(), op_desc->GetType().c_str());
                      GELOGE(FAILED, "[Set][Attr] %s fail for op:%s(%s)", kIsOutputVar, op_desc->GetName().c_str(),
                             op_desc->GetType().c_str());
                      return FAILED);
@@ -358,7 +358,8 @@ Status TaskGenerator::MarkNodeAndSetIndex(const ComputeGraphPtr &graph) const {
   return SUCCESS;
 }
 
-Status TaskGenerator::MarkFirstAndLastOpsForGraph(const ComputeGraphPtr &graph, std::unordered_set<Node *> &target_nodes) const {
+Status TaskGenerator::MarkFirstAndLastOpsForGraph(const ComputeGraphPtr &graph,
+                                                  std::unordered_set<Node *> &target_nodes) const {
   // get nodes by graph unknown status for stream mark
   auto ge_lib = GELib::GetInstance();
   GE_ASSERT_NOTNULL(ge_lib);
@@ -418,7 +419,7 @@ Status TaskGenerator::MarkFirstAndLastOps(const std::vector<Node *> &nodes, bool
       std::string op_kernel_lib_name = op_desc->GetOpKernelLibName();
       if (op_kernel_lib_name.empty()) {
         REPORT_INNER_ERR_MSG("E19999", "Get ops kernel info store failed for op:%s(%s), op_kernel_name:%s",
-                           op_desc->GetName().c_str(), op_desc->GetType().c_str(), op_kernel_lib_name.c_str());
+                             op_desc->GetName().c_str(), op_desc->GetType().c_str(), op_kernel_lib_name.c_str());
         GELOGE(INTERNAL_ERROR, "[Check][Param] node:%s(%s) get op kernel lib failed.", op_desc->GetName().c_str(),
                op_desc->GetType().c_str());
         return INTERNAL_ERROR;
@@ -447,7 +448,7 @@ Status TaskGenerator::MarkFirstAndLastOps(const std::vector<Node *> &nodes, bool
   return SUCCESS;
 }
 
-std::unordered_map<int64_t , std::vector<domi::TaskDef>> &TaskGenerator::MutableNodeId2TaskDefs() {
+std::unordered_map<int64_t, std::vector<domi::TaskDef>> &TaskGenerator::MutableNodeId2TaskDefs() {
   return node_id_2_node_tasks_;
 }
 
@@ -584,17 +585,16 @@ Status TaskGenerator::GenerateTaskForFftsNode(Node *ffts_node, const std::string
       std::vector<NodePtr> atomic_node_vec;
       atomic_node_vec.emplace_back(node);
       const auto &parent_graph = subgraph->GetParentGraph();
-      if ((parent_graph != nullptr) && (parent_graph->GetGraphUnknownFlag()) &&
-          (!subgraph->GetGraphUnknownFlag()) && (NodeUtils::IsLikeAtomicClean(node))) {
+      if ((parent_graph != nullptr) && (parent_graph->GetGraphUnknownFlag()) && (!subgraph->GetGraphUnknownFlag()) &&
+          (NodeUtils::IsLikeAtomicClean(node))) {
         GE_CHK_STATUS_RET(AtomicAddrCleanPass::CallCompileOp(atomic_node_vec),
                           "compile single op failed, parent_graph:%s, subgraph:%s, node:%s, tmp_type:%d.",
-                          parent_graph->GetName().c_str(), subgraph->GetName().c_str(),
-                          node->GetName().c_str(), node->GetType().c_str());
+                          parent_graph->GetName().c_str(), subgraph->GetName().c_str(), node->GetName().c_str(),
+                          node->GetType().c_str());
       }
       auto &task_defs = node_id_2_node_tasks[node->GetOpDesc()->GetId()];
-      std::future<Status> f =
-          ffts_inner_thread_pool_->commit(func, this, node.get(), "FFTS INNER", std::ref(task_defs),
-                                          ge_context, error_context, device_id);
+      std::future<Status> f = ffts_inner_thread_pool_->commit(func, this, node.get(), "FFTS INNER", std::ref(task_defs),
+                                                              ge_context, error_context, device_id);
       if (f.valid()) {
         vector_future.emplace_back(std::move(f));
       }
@@ -730,26 +730,27 @@ Status TaskGenerator::GenerateTaskForNodes(const std::vector<Node *> nodes) {
     std::map<int64_t, std::vector<NodePtr>> fusion_nodes;
     GE_TRACE_RUN(TaskGenerator, SaveFusionNodes, fusion_nodes, nodes_);
     if (!fusion_nodes.empty()) {
-      for(const auto &node : nodes_) {
+      for (const auto &node : nodes_) {
         // 个别节点会二次GenTask，所以需要将第一次的结果清空
         node_id_2_node_tasks_[node->GetOpDesc()->GetId()].clear();
       }
       return GenTaskForFusionNodes(fusion_nodes);
     }
   }
-  for(const auto &node : nodes) {
+  for (const auto &node : nodes) {
     // 个别节点会二次GenTask，所以需要将第一次的结果清空
     node_id_2_node_tasks_[node->GetOpDesc()->GetId()].clear();
   }
 
-  static std::map<GenTaskCallKey, GenTaskCall> handles =
-      {{GenTaskCallKey::kAtomicEngine, &TaskGenerator::GenerateTaskForNormalNode},
-       {GenTaskCallKey::kFftsEngine, &TaskGenerator::GenerateTaskForFftsNode}};
+  static std::map<GenTaskCallKey, GenTaskCall> handles = {
+      {GenTaskCallKey::kAtomicEngine, &TaskGenerator::GenerateTaskForNormalNode},
+      {GenTaskCallKey::kFftsEngine, &TaskGenerator::GenerateTaskForFftsNode}};
   thread_pool_ = MakeUnique<ThreadPool>("ge_gentask", GetThreadNum(), false);
   GE_ASSERT_NOTNULL(thread_pool_);
   std::vector<std::future<Status>> vector_future;
   int32_t device_id = kInvalidDeviceId;
-  // 离线场景不会SetDevice，所以离线场景GetDevice会报错，可以通过device id是否是-1判断是在线or离线。在线场景需要给子线程SetDevice
+  // 离线场景不会SetDevice，所以离线场景GetDevice会报错，可以通过device
+  // id是否是-1判断是在线or离线。在线场景需要给子线程SetDevice
   (void)aclrtGetDevice(&device_id);
   GELOGI("Get device id %d", device_id);
   for (const auto node : nodes) {
@@ -829,8 +830,8 @@ Status TaskGenerator::InitZeroCopyInfo(const ComputeGraphPtr &graph, const PreRu
             SetNetOutputNodeInAnchorAndPeerOffset(anchor, runtime_param, symbol_to_anchors, anchor_to_symbol));
         auto in_anchor = anchor->GetPeerOutAnchor();
         if (in_anchor == nullptr) {
-            continue;
-          }
+          continue;
+        }
         auto owner_node = in_anchor->GetOwnerNode();
         auto index = in_anchor->GetIdx();
         GE_CHK_STATUS_RET(SetAnchorsOffset(owner_node, false, index, runtime_param, node->GetOpDesc()));
@@ -857,7 +858,8 @@ Status TaskGenerator::SetNetOutputNodeInAnchorAndPeerOffset(const InDataAnchorPt
 
   NodeIndexIO out_node_in_anchor_node(out_node, out_node_inanchor_index, kIn);
   const auto anchor_symbol_iter = anchor_to_symbol.find(out_node_in_anchor_node.ToString());
-  GELOGD("anchor[%s] origin offset[%ld] set to idx[%u]", out_node_in_anchor_node.ToString().c_str(), ori_offset, offset_to_id);
+  GELOGD("anchor[%s] origin offset[%ld] set to idx[%u]", out_node_in_anchor_node.ToString().c_str(), ori_offset,
+         offset_to_id);
   if (anchor_symbol_iter != anchor_to_symbol.end()) {
     const auto &node_indexes = symbol_to_anchors[anchor_symbol_iter->second];
     for (const auto &node_index : node_indexes) {
@@ -924,21 +926,19 @@ Status TaskGenerator::SetAnchorsOffset(const NodePtr &owner_node, const bool is_
   uint32_t valid_idx = index;
   if (is_input) {
     std::vector<uint32_t> index_to_valid_idx;
-    const auto input_data_addr_offset =
-      PreModelUtils::GetInputDataAddrOffset(runtime_param, owner_node_op_desc, args_param, args_offset_vals,
-                                            index_to_valid_idx);
+    const auto input_data_addr_offset = PreModelUtils::GetInputDataAddrOffset(
+        runtime_param, owner_node_op_desc, args_param, args_offset_vals, index_to_valid_idx);
     // 对于有可选输入的算子，存在未选输入时，输入index转化为实际的idx来访问相关数组
     valid_idx = index_to_valid_idx[index];
     args_ddr_type = args_param.empty() ? invalidAddrType : args_param.at(valid_idx).para;
   } else {
     const auto output_data_addr_offset =
-      PreModelUtils::GetOutputDataAddrOffset(runtime_param, owner_node_op_desc, args_param, args_offset_vals);
+        PreModelUtils::GetOutputDataAddrOffset(runtime_param, owner_node_op_desc, args_param, args_offset_vals);
     args_ddr_type = args_param.empty() ? invalidAddrType : args_param.at(valid_idx).para;
   }
   GELOGI("node[%s] %s no.%u valid_idx:%u, args_ddr_type[%lu]", owner_node->GetName().c_str(),
-         is_input ? "input": "output", index, valid_idx, args_ddr_type);
-  if ((args_ddr_type != KERNEL_ARG_UPADTE_ADDR_TYPE_ARGS) &&
-      (args_ddr_type != KERNEL_ARG_UPADTE_ADDR_TYPE_WORKSPACE)) {
+         is_input ? "input" : "output", index, valid_idx, args_ddr_type);
+  if ((args_ddr_type != KERNEL_ARG_UPADTE_ADDR_TYPE_ARGS) && (args_ddr_type != KERNEL_ARG_UPADTE_ADDR_TYPE_WORKSPACE)) {
     return SUCCESS;
   }
   auto base_offset_list = is_input ? owner_node_op_desc->GetInputOffset() : owner_node_op_desc->GetOutputOffset();
@@ -989,8 +989,8 @@ Status TaskGenerator::GenZeroCopyTable(const OpDescPtr &op_desc, uint32_t &searc
   constexpr uint32_t offset_size = 8U;
   for (const int64_t base_offset : base_offset_list) {
     PreModelPartitionUtils::GetInstance().SetZeroCopyTable(base_offset, search_id * offset_size);
-    GELOGI("zero_copy_offset_to_ids_ node name is %s, offset[%ld], ids[%u].",
-           op_desc->GetName().c_str(), base_offset, search_id * offset_size);
+    GELOGI("zero_copy_offset_to_ids_ node name is %s, offset[%ld], ids[%u].", op_desc->GetName().c_str(), base_offset,
+           search_id * offset_size);
     search_id++;
     for (size_t position = 0U; position < zero_copy_basic_offset.size(); position++) {
       if ((base_offset == zero_copy_basic_offset[position]) && (zero_copy_relative_offset[position] != 0)) {
@@ -1020,8 +1020,7 @@ Status TaskGenerator::ReGetTaskInfo(const ComputeGraphPtr &comp_graph) {
   const auto &all_nodes = comp_graph->GetNodes(comp_graph->GetGraphUnknownFlag(), nullptr, ffts_filter);
   std::unordered_set<Node *> need_to_gen_task_nodes;
   for (const auto &node : all_nodes) {
-    if (!NoNeedGenTask(node->GetOpDesc()) &&
-        (std::find(nodes_.begin(), nodes_.end(), node.get()) == nodes_.end())) {
+    if (!NoNeedGenTask(node->GetOpDesc()) && (std::find(nodes_.begin(), nodes_.end(), node.get()) == nodes_.end())) {
       need_to_gen_task_nodes.insert(node.get());
       nodes_.emplace_back(node.get());
     }
@@ -1076,7 +1075,7 @@ Status TaskGenerator::GenModelTaskDef(const ComputeGraphPtr &graph, uint64_t ses
     }
   } else {
     for (const auto &node : graph->GetNodes(graph->GetGraphUnknownFlag(), nullptr, ffts_filter)) {
-      if(!NoNeedGenTask(node->GetOpDesc())) {
+      if (!NoNeedGenTask(node->GetOpDesc())) {
         const auto &iter = node_id_2_node_tasks_.find(node->GetOpDesc()->GetId());
         GE_ASSERT_TRUE(iter != node_id_2_node_tasks_.end(), "node %s does not gen task", node->GetNamePtr());
         op_names_.insert(op_names_.end(), iter->second.size(), node->GetOpDesc()->GetName());

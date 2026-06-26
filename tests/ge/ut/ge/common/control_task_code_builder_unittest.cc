@@ -333,10 +333,8 @@ TEST_F(ControlTaskCodeGeneratorUt, GenerateControlTaskFiles_Ok) {
   ASSERT_EQ(ReadGeneratedArtifact(artifacts, GeneratedFileIndex::kLoadingAndRunningFile, load_file), SUCCESS);
   ASSERT_FALSE(load_file.empty());
 
-
   EXPECT_NE(load_file.find("KernelLabelSwitchByIndexDistribute"), std::string::npos);
-  EXPECT_NE(load_file.find("OM2_CHK_STATUS(KernelLabelSwitchByIndexDistribute("),
-            std::string::npos);
+  EXPECT_NE(load_file.find("OM2_CHK_STATUS(KernelLabelSwitchByIndexDistribute("), std::string::npos);
   EXPECT_NE(load_file.find("OM2_CHK_STATUS(aclrtSwitchLabelByIndex(ptr, max_value, label_list, stream))"),
             std::string::npos);
   EXPECT_NE(load_file.find("OM2_CHK_STATUS(aclrtSwitchLabelByIndex(ptr, maxValue, labelList, stream))"),
@@ -347,7 +345,7 @@ TEST_F(ControlTaskCodeGeneratorUt, GenerateControlTaskFiles_Ok) {
   EXPECT_NE(load_file.find("if ((mem_type == RT_MEMORY_TS))"), std::string::npos);
   EXPECT_NE(load_file.find("OM2_CHK_STATUS(aclrtMemcpy"), std::string::npos);
 
-const std::string expected_header = R"(#include <iostream>
+  const std::string expected_header = R"(#include <iostream>
 #include <cstddef>
 #include <ctime>
 #include <chrono>
@@ -866,7 +864,7 @@ aclError Om2ModelDestroy(om2::Om2ModelHandle *model_handle);
 }
 #endif
 )";
-const std::string expected_resources = R"(#line 1 "g1_resources.cpp"
+  const std::string expected_resources = R"(#line 1 "g1_resources.cpp"
 #include "_interface.h"
 
 namespace om2 {

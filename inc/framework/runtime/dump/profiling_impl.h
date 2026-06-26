@@ -24,8 +24,8 @@ class ProfilingImpl {
   Status SaveTaskInfo(const Om2TaskInfo &task_info, const ModelDumpInfo &model_info) const;
 
  private:
-  Status BuildTaskDescInfo(const Om2TaskInfo &task_info, const ModelDumpInfo &model_info,
-                           TaskDescInfo &task_desc_info, uint32_t &prof_task_type) const;
+  Status BuildTaskDescInfo(const Om2TaskInfo &task_info, const ModelDumpInfo &model_info, TaskDescInfo &task_desc_info,
+                           uint32_t &prof_task_type) const;
   Status ReportTaskDescInfo(const TaskDescInfo &task_desc_info, uint32_t prof_task_type, uint32_t tid) const;
   Status ReportTensorInfo(const TaskDescInfo &task_desc_info, uint32_t tid) const;
   Status ReportContextIdInfo(const TaskDescInfo &task_desc_info, uint32_t tid) const;

@@ -78,16 +78,16 @@ gen_esb --es_mode=extract_history --release_version=VER [--output_dir=DIR] [--re
 ## 使用示例
 ### 生成代码到当前目录，使用默认模块名"all"，默认保护宏前缀
 `gen_esb`
- 
+
 ### 生成代码到指定目录，使用默认模块名"all"，默认保护宏前缀
 `gen_esb --output_dir=./output`
- 
+
 ### 生成代码到指定目录，使用"math"模块名，默认保护宏前缀
 `gen_esb --output_dir=./output --module_name=math`
- 
+
 ### 生成代码到指定目录，使用"all"模块名，默认保护宏前缀
 `gen_esb --output_dir=./output --module_name=all`
- 
+
 ### 生成代码到指定目录，使用"math"模块名，自定义保护宏前缀"MY_CUSTOM"
 `gen_esb --output_dir=./output --module_name=math --h_guard_prefix=MY_CUSTOM`
 
@@ -102,10 +102,10 @@ gen_esb --es_mode=extract_history --release_version=VER [--output_dir=DIR] [--re
 
 ### 生成历史原型结构化数据到当前目录，发布版本为"8.0.RC1"，默认发布日期为当前日期
 `./gen_esb --es_mode=extract_history --release_version=8.0.RC1`
- 
+
 ### 生成历史原型结构化数据到指定目录，发布版本为"8.0.RC1"，默认发布日期为当前日期
 `./gen_esb --es_mode=extract_history --release_version=8.0.RC1 --output_dir=/${CANN_INSTALL_PATH}/cann/opp/history_registry/math`
- 
+
 ### 生成历史原型结构化数据到指定目录，发布版本为"8.0.RC1"，自定义发布日期"2024-09-30"，分支名为"master"
 `./gen_esb --es_mode=extract_history --release_version=8.0.RC1 --output_dir=/${CANN_INSTALL_PATH}/cann/opp/history_registry/math --release_date=2024-09-30 --branch_name=master`
 
@@ -114,7 +114,7 @@ gen_esb --es_mode=extract_history --release_version=VER [--output_dir=DIR] [--re
 2. 确保有足够的磁盘空间存储生成的代码文件
 3. 生成的代码文件数量取决于系统中注册的算子数量
 4. 保护宏前缀应该以大写字母和下划线组成，避免与C++关键字冲突
- 
+
 ## 错误处理
 - 如果环境变量未设置，程序会提示错误并退出
 - 如果输出目录创建失败，会回退到当前目录

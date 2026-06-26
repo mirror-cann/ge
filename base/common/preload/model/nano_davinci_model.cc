@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -51,25 +51,23 @@ Status GetBinRealPath(const std::string &switch_kernel_name, std::string &bin_re
   return GRAPH_SUCCESS;
 }
 
-Status GetKernelBinByName(const std::string &bin_real_path, std::unique_ptr<char_t []> &buf, uint64_t &buf_len) {
+Status GetKernelBinByName(const std::string &bin_real_path, std::unique_ptr<char_t[]> &buf, uint64_t &buf_len) {
   std::ifstream file(bin_real_path.c_str(), std::ios::binary | std::ios::in);
   GE_ASSERT_TRUE(file.is_open(), "file: %s does not exist or is unaccessible.", bin_real_path.c_str());
-  GE_MAKE_GUARD(file_guard, [&file]() {
-    (void)file.close();
-  });
+  GE_MAKE_GUARD(file_guard, [&file]() { (void)file.close(); });
   const std::streampos begin = file.tellg();
   (void)file.seekg(0, std::ios::end);
   const std::streampos end = file.tellg();
   buf_len = static_cast<uint64_t>(end - begin);
   GE_ASSERT_TRUE(static_cast<int64_t>(buf_len) > 0, "file: %s is empty.", bin_real_path.c_str());
-  buf = MakeUnique<char_t []>(buf_len);
+  buf = MakeUnique<char_t[]>(buf_len);
   GE_ASSERT_NOTNULL(buf);
   (void)file.seekg(0, std::ios::beg);
   (void)file.read(buf.get(), static_cast<int64_t>(buf_len));
   return GRAPH_SUCCESS;
 }
 
-Status GetKernelBin(const std::string &switch_kernel_name, std::unique_ptr<char_t []> &buf, uint64_t &buf_len) {
+Status GetKernelBin(const std::string &switch_kernel_name, std::unique_ptr<char_t[]> &buf, uint64_t &buf_len) {
   // nano rts replace
   std::string bin_real_path;
   GE_ASSERT_SUCCESS(GetBinRealPath(switch_kernel_name, bin_real_path));
@@ -100,8 +98,9 @@ constexpr uint32_t kIoaOffsetSize = 8U;
 }  // namespace
 
 static std::atomic<std::uint32_t> g_task_id(0U);
-static const std::set<ModelTaskType> kNanoModelTaskType{
-    ModelTaskType::MODEL_TASK_KERNEL, ModelTaskType::MODEL_TASK_STREAM_LABEL_SWITCH_BY_INDEX, ModelTaskType::MODEL_TASK_STREAM_LABEL_GOTO};
+static const std::set<ModelTaskType> kNanoModelTaskType{ModelTaskType::MODEL_TASK_KERNEL,
+                                                        ModelTaskType::MODEL_TASK_STREAM_LABEL_SWITCH_BY_INDEX,
+                                                        ModelTaskType::MODEL_TASK_STREAM_LABEL_GOTO};
 
 Status NanoDavinciModel::Init() {
   GELOGI("begin init nano davinci model.");
@@ -199,11 +198,11 @@ Status NanoDavinciModel::MatchIndexToTaskIndex(const uint32_t label_idx, uint32_
 
 Status NanoDavinciModel::NanoAddSwitchKernel(const OpDescPtr &op_desc) {
   (void)op_desc;
-  std::unique_ptr<char_t []> buf = nullptr;
+  std::unique_ptr<char_t[]> buf = nullptr;
   uint64_t buf_len = 0U;
   const string switch_kernel_name = "switch_by_index.o";
-  GE_ASSERT_SUCCESS(GetKernelBin(switch_kernel_name, buf, buf_len),
-      "[Call][GetKernelBin]kernel[%s] get bin fail", switch_kernel_name.c_str());
+  GE_ASSERT_SUCCESS(GetKernelBin(switch_kernel_name, buf, buf_len), "[Call][GetKernelBin]kernel[%s] get bin fail",
+                    switch_kernel_name.c_str());
   GE_ASSERT_NOTNULL(buf);
   std::vector<char_t> data(buf.get(), PtrToPtr<void, char_t>(ValueToPtr(PtrToValue(buf.get()) + buf_len)));
   const TBEKernelPtr tbe_kernel = MakeShared<OpKernelBin>(switch_kernel_name, std::move(data));
@@ -323,7 +322,7 @@ Status NanoDavinciModel::NanoSwitchWeightDataInit(ComputeGraphPtr &compute_graph
 }
 
 Status NanoDavinciModel::InitSwitchWeightData(ComputeGraphPtr &compute_graph) {
-  // dirct node
+  // direct node
   GE_ASSERT_SUCCESS(NanoSwitchWeightDataInit(compute_graph, compute_graph->GetDirectNode()));
   // sub node
   for (auto &subgraph : compute_graph->GetAllSubgraphs()) {
@@ -365,7 +364,7 @@ Status NanoDavinciModel::InitSwitchNodes(const ComputeGraphPtr &compute_graph) {
     }
   }
   GE_ASSERT_SUCCESS(PreModelPartitionUtils::GetInstance().GenModelPartitionBuf(
-                    static_cast<uint8_t>(ModelPartitionType::WEIGHTS_DATA), nano_weight_data_size),
+                        static_cast<uint8_t>(ModelPartitionType::WEIGHTS_DATA), nano_weight_data_size),
                     "[Call][PreModelPartitionUtils][GenModelPartitionBuf] failed.");
 
   return SUCCESS;
@@ -420,8 +419,7 @@ Status NanoDavinciModel::UpdateFifoWindowCacheRefOffset(const ge::NodePtr &node)
       if (reuse_input && reuse_in_index >= 0 && static_cast<size_t>(reuse_in_index) < input_offset_list.size()) {
         offset = static_cast<uint32_t>(input_offset_list[static_cast<size_t>(reuse_in_index)]);
         const auto out_index = out_anchor->GetIdx();
-        GE_ASSERT_TRUE(static_cast<size_t>(out_index) < output_offset_list.size(),
-                       "node[%s] output index[%u] overflow",
+        GE_ASSERT_TRUE(static_cast<size_t>(out_index) < output_offset_list.size(), "node[%s] output index[%u] overflow",
                        node->GetName().c_str(), out_index);
         // 非FIFO相关的ref节点，无需更新
         GE_IF_BOOL_EXEC(offset == static_cast<uint32_t>(output_offset_list[static_cast<size_t>(out_index)]),
@@ -456,7 +454,8 @@ Status NanoDavinciModel::InitFifoWindowCacheOffset(const ge::NodePtr &node) {
       // 如果输出为复用节点，则不需要再另外分配内存划分offset
       // 复用场景节点的offset的设置在UpdateFifoWindowCacheRefOffset中统一设置
       GE_IF_BOOL_EXEC(reuse_input, GELOGI("node[%s] output index[%u] is reuse input[%d],continue",
-                      node->GetName().c_str(), i, reuse_in_index); continue);
+                                          node->GetName().c_str(), i, reuse_in_index);
+                      continue);
       int64_t tensor_size = 0;
       GE_ASSERT_SUCCESS(TensorUtils::GetSize(*output_tensor_desc, tensor_size));
       offset = (search_id_++) * kIoaOffsetSize;

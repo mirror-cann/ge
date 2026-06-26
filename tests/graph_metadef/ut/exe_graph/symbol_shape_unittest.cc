@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -41,9 +41,7 @@ TEST_F(SymbolShapeUT, ConstructFromListOk) {
 
 TEST_F(SymbolShapeUT, ConstructMaxNum) {
   auto s0 = ge::Symbol("s0");
-  SymbolShape s{s0, s0, s0, s0, s0, s0, s0, s0, s0, s0,
-                s0, s0, s0, s0, s0, s0, s0, s0, s0, s0,
-                s0, s0, s0, s0, s0, s0};
+  SymbolShape s{s0, s0, s0, s0, s0, s0, s0, s0, s0, s0, s0, s0, s0, s0, s0, s0, s0, s0, s0, s0, s0, s0, s0, s0, s0, s0};
   EXPECT_EQ(s.GetDimNum(), 26);
 }
 
@@ -197,12 +195,9 @@ TEST_F(SymbolShapeUT, AppendDimOk) {
 
 TEST_F(SymbolShapeUT, AppendDimOutOfBounds) {
   auto s0 = ge::Symbol("s0");
-  SymbolShape s{s0, s0, s0, s0, s0, s0, s0, s0, s0,
-                s0, s0, s0, s0, s0, s0, s0, s0, s0,
-                s0, s0, s0, s0, s0, s0, s0};
-  SymbolShape expect_s{s0, s0, s0, s0, s0, s0, s0, s0, s0,
-                       s0, s0, s0, s0, s0, s0, s0, s0, s0,
-                       s0, s0, s0, s0, s0, s0, s0, s0};
+  SymbolShape s{s0, s0, s0, s0, s0, s0, s0, s0, s0, s0, s0, s0, s0, s0, s0, s0, s0, s0, s0, s0, s0, s0, s0, s0, s0};
+  SymbolShape expect_s{s0, s0, s0, s0, s0, s0, s0, s0, s0, s0, s0, s0, s0,
+                       s0, s0, s0, s0, s0, s0, s0, s0, s0, s0, s0, s0, s0};
   s.AppendDim(s0);
   EXPECT_EQ(s, expect_s);
 }
@@ -265,7 +260,7 @@ TEST_F(SymbolShapeUT, SymbolShapeTest) {
   auto s1 = ge::Symbol("s1");
   auto s2 = ge::Symbol("s2");
   auto s3 = ge::Symbol("s3");
-  
+
   SymbolShape symbol_shape({s0, s1, s2, s3});
   EXPECT_EQ(symbol_shape.GetDimNum(), 4);
   EXPECT_EQ(symbol_shape.GetDim(0), s0);

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -41,16 +41,17 @@ class TsMemMall {
   }
 
   void *Acquire(const int64_t offset, const uint64_t size) {
-    constexpr uint32_t kMaxTsMemBlock = 2097152U;   // Max block 2M 2 * 1024 * 1024
-    constexpr uint64_t kTsMemAligment = 64U;   // Malloc for 64 bits align
+    constexpr uint32_t kMaxTsMemBlock = 2097152U;  // Max block 2M 2 * 1024 * 1024
+    constexpr uint64_t kTsMemAligment = 64U;       // Malloc for 64 bits align
     constexpr uint64_t kTsMemAlignMask = kTsMemAligment - 1U;
     if (size == 0U) {
       GELOGW("[Check][Param] Acquire mem block failed, size:%" PRIu64, size);
       return nullptr;
     }
     if (CheckUint64AddOverflow(size, kTsMemAlignMask) != SUCCESS) {
-      GELOGE(RT_FAILED, "[Check][Param] Acquire mem block failed, size:%" PRIu64 " add align_mask:%" PRIu64
-        " will overflow:", size, kTsMemAlignMask);
+      GELOGE(RT_FAILED,
+             "[Check][Param] Acquire mem block failed, size:%" PRIu64 " add align_mask:%" PRIu64 " will overflow:",
+             size, kTsMemAlignMask);
       return nullptr;
     }
     const uint64_t bytes = (size + kTsMemAlignMask) & static_cast<uint64_t>(~kTsMemAlignMask);
@@ -61,17 +62,15 @@ class TsMemMall {
     const std::lock_guard<std::mutex> lock(mem_mutex_);
     const auto it = mem_store_size_.find(offset);
     if (it != mem_store_size_.end()) {
-      GELOGI("Acquire TS memory: %p, offset: %" PRId64 ", size: %" PRIu64 ", align: %" PRIu64,
-        it->second, offset, size, bytes);
+      GELOGI("Acquire TS memory: %p, offset: %" PRId64 ", size: %" PRIu64 ", align: %" PRIu64, it->second, offset, size,
+             bytes);
       return it->second;
     }
 
     void *addr = nullptr;
-    GE_CHK_RT_EXEC(ge::AclrtMalloc(&addr, bytes, mem_type_, GE_MODULE_NAME_U16),
-                   return nullptr);
+    GE_CHK_RT_EXEC(ge::AclrtMalloc(&addr, bytes, mem_type_, GE_MODULE_NAME_U16), return nullptr);
 
-    GELOGI("Acquire TS memory: %p, offset: %" PRId64 ", size: %" PRIu64 ", align: %" PRIu64,
-      addr, offset, size, bytes);
+    GELOGI("Acquire TS memory: %p, offset: %" PRId64 ", size: %" PRIu64 ", align: %" PRIu64, addr, offset, size, bytes);
     mem_store_size_[offset] = addr;
     mem_store_addr_[addr] = offset;
     return addr;

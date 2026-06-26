@@ -41,4 +41,3 @@ aclmdlDataset *aclmdlCreateDataset()
 ## 返回值说明<a name="section162895447"></a>
 
 返回aclmdlDataset类型的指针。
-

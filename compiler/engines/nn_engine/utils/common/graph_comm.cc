@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,16 +27,16 @@ constexpr char const *kOpSwitch = "Switch";
 constexpr char const *kScopeNodeSet = "ScopeNodeSet";
 constexpr uint8_t kMaxDeepth = 8;
 
-GraphComm::GraphComm(const string &engine_name) : engine_name_(engine_name), function_graph_id_(0),
-      graph_common_lock_ptr_(nullptr) {
+GraphComm::GraphComm(const string &engine_name)
+    : engine_name_(engine_name), function_graph_id_(0), graph_common_lock_ptr_(nullptr) {
   exist_fusion_src_list_.clear();
   exist_fusion_dst_list_.clear();
   fusion_input_dataflow_list_.clear();
   fusion_output_dataflow_list_.clear();
 }
 
-GraphComm::GraphComm(const string &engine_name, std::shared_ptr<std::mutex> &lock_ptr) : engine_name_(engine_name),
-      function_graph_id_(0), graph_common_lock_ptr_(lock_ptr) {
+GraphComm::GraphComm(const string &engine_name, std::shared_ptr<std::mutex> &lock_ptr)
+    : engine_name_(engine_name), function_graph_id_(0), graph_common_lock_ptr_(lock_ptr) {
   exist_fusion_src_list_.clear();
   exist_fusion_dst_list_.clear();
   fusion_input_dataflow_list_.clear();
@@ -81,8 +81,7 @@ Status GraphComm::GetFusionNodeEdgeList(vector<ge::NodePtr> &fus_nodelist,
     for (auto &in_edge : in_edges) {
       ++cnt;
       FE_LOGD("Node name = %s, cnt = %d.", node->GetName().c_str(), cnt);
-      graph_comm_impl_ptr_->PutEdgeToFusionDataFlowVec(in_edge, in_edge.second, in_edge.first,
-                                                       fus_input_edge_list);
+      graph_comm_impl_ptr_->PutEdgeToFusionDataFlowVec(in_edge, in_edge.second, in_edge.first, fus_input_edge_list);
     }
 
     std::vector<std::pair<ge::AnchorPtr, ge::AnchorPtr>> out_edges;
@@ -92,8 +91,7 @@ Status GraphComm::GetFusionNodeEdgeList(vector<ge::NodePtr> &fus_nodelist,
     }
 
     for (auto &out_edge : out_edges) {
-      graph_comm_impl_ptr_->PutEdgeToFusionDataFlowVec(out_edge, out_edge.first, out_edge.second,
-                                                       fus_output_edge_list);
+      graph_comm_impl_ptr_->PutEdgeToFusionDataFlowVec(out_edge, out_edge.first, out_edge.second, fus_output_edge_list);
     }
   }
 
@@ -177,7 +175,9 @@ void GraphComm::ClearFusionSrc() {
   fusion_output_dataflow_list_.clear();
 }
 
-void GraphComm::ClearFusionDst() { exist_fusion_dst_list_.clear(); }
+void GraphComm::ClearFusionDst() {
+  exist_fusion_dst_list_.clear();
+}
 
 // ge::AnchorPtr replace index
 bool GraphComm::GetFusionSrc(const uint32_t &src_op_id, const ge::AnchorPtr &src_anchor, int32_t &fusion_src_index,
@@ -258,18 +258,19 @@ Status GraphComm::GetNodeDataFlowMap(
       ge::NodePtr node = graph_comm_impl_ptr_->FindNodeInFusNodeList(node_data.first, fus_nodelist);
       FE_CHECK(node == nullptr,
                REPORT_FE_ERROR("[SubGraphOpt][Merge][GetNdDataFlowMap] Failed to find node:%s in fusnodelist.",
-               node_data.first.c_str()), return FAILED);
+                               node_data.first.c_str()),
+               return FAILED);
       int anchor_idx = std::static_pointer_cast<ge::DataAnchor>(node_data.second)->GetIdx();
 
       ge::AnchorPtr anchor_ptr;
       if (map_type == 0) {
         anchor_ptr = node->GetInDataAnchor(anchor_idx);
-        (void)fusion_op_anchors_map[node].insert(std::make_pair(anchor_ptr,
-                                                                fus_node->GetInDataAnchor(static_cast<int32_t>(i))));
+        (void)fusion_op_anchors_map[node].insert(
+            std::make_pair(anchor_ptr, fus_node->GetInDataAnchor(static_cast<int32_t>(i))));
       } else {
         anchor_ptr = node->GetOutDataAnchor(anchor_idx);
-        (void)fusion_op_anchors_map[node].insert(std::make_pair(anchor_ptr,
-                                                                fus_node->GetOutDataAnchor(static_cast<int32_t>(i))));
+        (void)fusion_op_anchors_map[node].insert(
+            std::make_pair(anchor_ptr, fus_node->GetOutDataAnchor(static_cast<int32_t>(i))));
       }
 
       // update old node name and anchor
@@ -283,8 +284,7 @@ Status GraphComm::GetNodeDataFlowMap(
 }
 
 void GraphComm::GetEdgeNode(const vector<FusionDataFlow> &fus_input_edge_list,
-                            const vector<FusionDataFlow> &fus_output_edge_list,
-                            vector<ge::NodePtr> &edge_nodes) const {
+                            const vector<FusionDataFlow> &fus_output_edge_list, vector<ge::NodePtr> &edge_nodes) const {
   for (const FusionDataFlow &dataflow : fus_input_edge_list) {
     std::pair<ge::AnchorPtr, ge::AnchorPtr> in_edge = dataflow.edge;
     // get peer node
@@ -308,8 +308,7 @@ void GraphComm::GetEdgeNode(const vector<FusionDataFlow> &fus_input_edge_list,
 
 Status GraphComm::CopyFusionOpNodes(const vector<FusionDataFlow> &fus_input_edge_list,
                                     const vector<FusionDataFlow> &fus_output_edge_list,
-                                    const vector<ge::NodePtr> &fus_nodelist,
-                                    const ge::OpDescPtr &fusion_op_desc,
+                                    const vector<ge::NodePtr> &fus_nodelist, const ge::OpDescPtr &fusion_op_desc,
                                     const ge::ComputeGraphPtr &fusion_graph) const {
   vector<ge::NodePtr> edge_nodes;
 
@@ -323,8 +322,8 @@ Status GraphComm::CopyFusionOpNodes(const vector<FusionDataFlow> &fus_input_edge
     if (new_peer_node == nullptr) {
       ge::OpDescPtr new_op_desc = ge::AttrUtils::CloneOpDesc(peer_node->GetOpDesc());
       new_peer_node = fusion_graph->AddNode(new_op_desc);
-      FE_CHECK(new_peer_node == nullptr,
-               REPORT_FE_ERROR("[SubGraphOpt][Merge][CpFusOpNd] nodeNew is nullptr"), return FAILED);
+      FE_CHECK(new_peer_node == nullptr, REPORT_FE_ERROR("[SubGraphOpt][Merge][CpFusOpNd] nodeNew is nullptr"),
+               return FAILED);
       new_edge_nodelist.push_back(new_peer_node);
     }
   }
@@ -364,8 +363,7 @@ Status GraphComm::CopyFusionOpNodes(const vector<FusionDataFlow> &fus_input_edge
   return SUCCESS;
 }
 
-Status GraphComm::CopyOutDataEdges(const ge::NodePtr &src_node,
-                                   const ge::NodePtr &node,
+Status GraphComm::CopyOutDataEdges(const ge::NodePtr &src_node, const ge::NodePtr &node,
                                    const ge::ComputeGraphPtr &fusion_graph) {
   for (auto &out_anchor : src_node->GetAllOutDataAnchors()) {
     if (out_anchor == nullptr) {
@@ -378,8 +376,8 @@ Status GraphComm::CopyOutDataEdges(const ge::NodePtr &src_node,
         // src_node is output_edge_node, break.
         if (dst_node == nullptr) {
           FE_LOGD("dstNode not found in fusion_graph. name: %s, type: %s, peer_name: %s, peer_type: %s.",
-              node->GetName().c_str(), node->GetType().c_str(), peer_in_anchor->GetOwnerNode()->GetName().c_str(),
-              peer_in_anchor->GetOwnerNode()->GetType().c_str());
+                  node->GetName().c_str(), node->GetType().c_str(), peer_in_anchor->GetOwnerNode()->GetName().c_str(),
+                  peer_in_anchor->GetOwnerNode()->GetType().c_str());
           break;
         }
 
@@ -399,8 +397,7 @@ Status GraphComm::CopyOutDataEdges(const ge::NodePtr &src_node,
   return SUCCESS;
 }
 
-Status GraphComm::CopyControlEdges(const ge::NodePtr &src_node,
-                                   const ge::NodePtr &node,
+Status GraphComm::CopyControlEdges(const ge::NodePtr &src_node, const ge::NodePtr &node,
                                    const ge::ComputeGraphPtr &fusion_graph) {
   auto out_ctrl_anchor = src_node->GetOutControlAnchor();
   FE_CHECK_NOTNULL(out_ctrl_anchor);
@@ -409,8 +406,8 @@ Status GraphComm::CopyControlEdges(const ge::NodePtr &src_node,
       ge::NodePtr dst_node = fusion_graph->FindNode(peer_in_anchor->GetOwnerNode()->GetName());
       if (dst_node == nullptr) {
         FE_LOGI("control: dst_node not found in fusion_graph. name:%s, type:%s, peer_name:%s, peer_type:%s.",
-            node->GetName().c_str(), node->GetType().c_str(), peer_in_anchor->GetOwnerNode()->GetName().c_str(),
-            peer_in_anchor->GetOwnerNode()->GetType().c_str());
+                node->GetName().c_str(), node->GetType().c_str(), peer_in_anchor->GetOwnerNode()->GetName().c_str(),
+                peer_in_anchor->GetOwnerNode()->GetType().c_str());
         break;
       }
 
@@ -431,8 +428,9 @@ Status GraphComm::CopyFusionOpEdges(const ge::ComputeGraph &orig_graph, const ge
   for (ge::NodePtr &node : fusion_graph->GetDirectNode()) {
     ge::NodePtr src_node = orig_graph.FindNode(node->GetName());
     FE_CHECK(src_node == nullptr,
-             REPORT_FE_ERROR("[SubGraphOpt][Merge][CpFusOpEg] name:%s, type:%s not found",
-             node->GetName().c_str(), node->GetType().c_str()), return FAILED);
+             REPORT_FE_ERROR("[SubGraphOpt][Merge][CpFusOpEg] name:%s, type:%s not found", node->GetName().c_str(),
+                             node->GetType().c_str()),
+             return FAILED);
 
     Status ret = CopyOutDataEdges(src_node, node, fusion_graph);
     if (ret != SUCCESS) {
@@ -440,7 +438,6 @@ Status GraphComm::CopyFusionOpEdges(const ge::ComputeGraph &orig_graph, const ge
                       node->GetName().c_str());
       return ret;
     }
-
 
     ret = CopyControlEdges(src_node, node, fusion_graph);
     if (ret != SUCCESS) {
@@ -484,13 +481,11 @@ Status GraphComm::MergeFunctionNodeEdgeList(const ge::NodePtr &fus_node, const s
   return SUCCESS;
 }
 
-Status GraphComm::MergeFusionNodeCtrlEdgeList(const ge::NodePtr &fus_node,
-                                              const std::vector<ge::NodePtr> &fus_nodelist,
+Status GraphComm::MergeFusionNodeCtrlEdgeList(const ge::NodePtr &fus_node, const std::vector<ge::NodePtr> &fus_nodelist,
                                               const std::vector<FusionDataFlow> &fus_input_ctrl_edge_list,
                                               const std::vector<FusionDataFlow> &fus_output_ctrl_edge_list) {
   if (fus_input_ctrl_edge_list.empty() && fus_output_ctrl_edge_list.empty()) {
-    FE_LOGD("No Ctrl Edge In %s, list size %zu.", fus_node->GetName().c_str(),
-            fus_nodelist.size());
+    FE_LOGD("No Ctrl Edge In %s, list size %zu.", fus_node->GetName().c_str(), fus_nodelist.size());
     return SUCCESS;
   }
 
@@ -509,12 +504,12 @@ Status GraphComm::MergeFusionNodeCtrlEdgeList(const ge::NodePtr &fus_node,
 
 Status GraphComm::MergeFusionNodeInputEdgeList(const ge::NodePtr &fus_node, const vector<ge::NodePtr> &fus_nodelist,
                                                const vector<FusionDataFlow> &fus_input_edge_list) {
-  (void) fus_nodelist;
+  (void)fus_nodelist;
   int32_t fusion_dst_index = -1;
 
   ClearFusionSrc();
-  FE_CHECK(fus_node == nullptr,
-           REPORT_FE_ERROR("[SubGraphOpt][Merge][MrgFusNdInEg] fusNode is nullptr."), return FAILED);
+  FE_CHECK(fus_node == nullptr, REPORT_FE_ERROR("[SubGraphOpt][Merge][MrgFusNdInEg] fusNode is nullptr."),
+           return FAILED);
   std::vector<uint32_t> fused_tensor_indexes;
   ffts::ThreadSliceMapPtr fused_slice_info = nullptr;
   fused_slice_info = fus_node->GetOpDesc()->TryGetExtAttr(ffts::kAttrSgtStructInfo, fused_slice_info);
@@ -533,11 +528,11 @@ Status GraphComm::MergeFusionNodeInputEdgeList(const ge::NodePtr &fus_node, cons
     AddFusionInputSrc(op_id, inedge.first, fusion_dst_index, node_dstindex_pair);
     auto src_out_data_anchor = std::static_pointer_cast<ge::OutDataAnchor>(inedge.first);
     auto old_dst_anchor = std::static_pointer_cast<ge::InDataAnchor>(inedge.second);
-    if (src_out_data_anchor->ReplacePeer(old_dst_anchor,
-                                         fus_node->GetInDataAnchor(fusion_dst_index)) != ge::GRAPH_SUCCESS) {
+    if (src_out_data_anchor->ReplacePeer(old_dst_anchor, fus_node->GetInDataAnchor(fusion_dst_index)) !=
+        ge::GRAPH_SUCCESS) {
       REPORT_FE_ERROR("[SubGraphOpt][Merge][MrgFusNdInEg] Failed to add edge between %s's output %d and %s's input %d",
-                      src_node->GetName().c_str(), src_out_data_anchor->GetIdx(),
-                      fus_node->GetName().c_str(), fusion_dst_index);
+                      src_node->GetName().c_str(), src_out_data_anchor->GetIdx(), fus_node->GetName().c_str(),
+                      fusion_dst_index);
       return FAILED;
     }
     if ((fused_slice_info == nullptr) || (fused_slice_info->thread_mode == 0)) {
@@ -564,12 +559,12 @@ Status GraphComm::MergeFusionNodeInputEdgeList(const ge::NodePtr &fus_node, cons
 
 Status GraphComm::MergeFunctionNodeInputEdgeList(const ge::NodePtr &fus_node, const vector<ge::NodePtr> &fus_nodelist,
                                                  const vector<FusionDataFlow> &fus_input_edge_list) {
-  (void) fus_nodelist;
+  (void)fus_nodelist;
   int32_t fusion_dst_index = -1;
 
   ClearFusionSrc();
-  FE_CHECK(fus_node == nullptr,
-           REPORT_FE_ERROR("[SubGraphOpt][Merge][MrgFusNdInEg] fusNode is nullptr."), return FAILED);
+  FE_CHECK(fus_node == nullptr, REPORT_FE_ERROR("[SubGraphOpt][Merge][MrgFusNdInEg] fusNode is nullptr."),
+           return FAILED);
 
   for (const FusionDataFlow &dataflow : fus_input_edge_list) {
     auto inedge = dataflow.edge;
@@ -586,11 +581,11 @@ Status GraphComm::MergeFunctionNodeInputEdgeList(const ge::NodePtr &fus_node, co
     AddFusionInputSrc(op_id, inedge.first, fusion_dst_index, node_dstindex_pair);
     auto src_out_data_anchor = std::static_pointer_cast<ge::OutDataAnchor>(inedge.first);
     auto old_dst_anchor = std::static_pointer_cast<ge::InDataAnchor>(inedge.second);
-    if (src_out_data_anchor->ReplacePeer(old_dst_anchor,
-                                         fus_node->GetInDataAnchor(fusion_dst_index)) != ge::GRAPH_SUCCESS) {
+    if (src_out_data_anchor->ReplacePeer(old_dst_anchor, fus_node->GetInDataAnchor(fusion_dst_index)) !=
+        ge::GRAPH_SUCCESS) {
       REPORT_FE_ERROR("[SubGraphOpt][Merge][MrgFusNdInEg] Failed to add edge between %s's output %d and %s's input %d",
-                      src_node->GetName().c_str(), src_out_data_anchor->GetIdx(),
-                      fus_node->GetName().c_str(), fusion_dst_index);
+                      src_node->GetName().c_str(), src_out_data_anchor->GetIdx(), fus_node->GetName().c_str(),
+                      fusion_dst_index);
       return FAILED;
     }
   }
@@ -618,8 +613,8 @@ Status GraphComm::MergeFusionNodeOutputEdgeList(const ge::NodePtr &fus_node,
                                                 const vector<FusionDataFlow> &fus_output_edge_list) {
   UnlinkOldEdges(fus_output_edge_list);
   int32_t fusion_src_index = 0;
-  FE_CHECK(fus_node == nullptr,
-           REPORT_FE_ERROR("[SubGraphOpt][Merge][MrgFusNdOutEgList] fusNode is nullptr."), return FAILED);
+  FE_CHECK(fus_node == nullptr, REPORT_FE_ERROR("[SubGraphOpt][Merge][MrgFusNdOutEgList] fusNode is nullptr."),
+           return FAILED);
   std::vector<uint32_t> fused_tensor_indexes;
   ffts::ThreadSliceMapPtr fused_slice_info = nullptr;
   fused_slice_info = fus_node->GetOpDesc()->TryGetExtAttr(ffts::kAttrSgtStructInfo, fused_slice_info);
@@ -651,8 +646,8 @@ Status GraphComm::MergeFusionNodeOutputEdgeList(const ge::NodePtr &fus_node,
              REPORT_FE_ERROR("[SubGraphOpt][Merge][MrgFusNdOutEgList] outEdgeSrcDataAnchorPtr is nullptr."),
              return FAILED);
     auto node = out_edge_src_data_anchor_ptr->GetOwnerNode();
-    FE_CHECK(node == nullptr,
-             REPORT_FE_ERROR("[SubGraphOpt][Merge][MrgFusNdOutEgList] node is nullptr."), return FAILED);
+    FE_CHECK(node == nullptr, REPORT_FE_ERROR("[SubGraphOpt][Merge][MrgFusNdOutEgList] node is nullptr."),
+             return FAILED);
 
     auto dst_in_data_anchor = std::static_pointer_cast<ge::InDataAnchor>(outedge.second);
     FE_CHECK_NOTNULL(dst_in_data_anchor);
@@ -669,8 +664,8 @@ Status GraphComm::MergeFusionNodeOutputEdgeList(const ge::NodePtr &fus_node,
       if (ge::GraphUtils::AddEdge(fus_node->GetOutDataAnchor(fusion_src_index), dst_in_data_anchor) !=
           ge::GRAPH_SUCCESS) {
         REPORT_FE_ERROR("[SubGraphOpt][Merge][LinkOutput] Failed to add edge between %s's output %d and %s's input %d",
-                        fus_node->GetName().c_str(), fusion_src_index,
-                        dst_node->GetName().c_str(), dst_in_data_anchor->GetIdx());
+                        fus_node->GetName().c_str(), fusion_src_index, dst_node->GetName().c_str(),
+                        dst_in_data_anchor->GetIdx());
         return FAILED;
       }
       if ((fused_slice_info == nullptr) || (fused_slice_info->thread_mode == 0)) {
@@ -693,8 +688,8 @@ Status GraphComm::MergeFusionNodeOutputEdgeList(const ge::NodePtr &fus_node,
       if (ge::GraphUtils::AddEdge(fus_node->GetOutDataAnchor(fusion_src_exist_index), dst_in_data_anchor) !=
           ge::GRAPH_SUCCESS) {
         REPORT_FE_ERROR("[SubGraphOpt][Merge][LinkOutput] Failed to add edge between %s's output %d and %s's input %d",
-                        fus_node->GetName().c_str(), fusion_src_exist_index,
-                        dst_node->GetName().c_str(), dst_in_data_anchor->GetIdx());
+                        fus_node->GetName().c_str(), fusion_src_exist_index, dst_node->GetName().c_str(),
+                        dst_in_data_anchor->GetIdx());
         return FAILED;
       }
     }
@@ -706,7 +701,9 @@ Status GraphComm::MergeFusionNodeOutputEdgeList(const ge::NodePtr &fus_node,
   return SUCCESS;
 }
 
-string GraphComm::GetEngineName() { return engine_name_; }
+string GraphComm::GetEngineName() {
+  return engine_name_;
+}
 
 Status GraphComm::AddFunctionNodeInputDesc(const ge::OpDescPtr &fus_op,
                                            vector<fe::FusionDataFlow> &fus_input_edge_list) {
@@ -778,8 +775,7 @@ Status GraphComm::AddFunctionNodeOutputDesc(const ge::OpDescPtr &fus_op,
     }
     int64_t dst_op_id = outedge.second->GetOwnerNode()->GetOpDesc()->GetId();
     ge::DataAnchorPtr out_edge_dst_data_anchor_ptr = std::static_pointer_cast<ge::DataAnchor>(outedge.second);
-    FE_CHECK(out_edge_dst_data_anchor_ptr == nullptr, FE_LOGE("outEdgeDstDataAnchorPtr is nullptr."),
-    return FAILED);
+    FE_CHECK(out_edge_dst_data_anchor_ptr == nullptr, FE_LOGE("outEdgeDstDataAnchorPtr is nullptr."), return FAILED);
     if (IsFusionDstExist(dst_op_id, outedge.second)) {
       FE_LOGD("MergeFusionNodeOutputEdgeList: Dstid %u, DstIndex %u.", static_cast<uint32_t>(dst_op_id),
               static_cast<uint32_t>(out_edge_dst_data_anchor_ptr->GetIdx()));
@@ -791,8 +787,7 @@ Status GraphComm::AddFunctionNodeOutputDesc(const ge::OpDescPtr &fus_op,
     int32_t fusion_dst_exist_index;
 
     ge::DataAnchorPtr out_edge_src_data_anchor_ptr = std::static_pointer_cast<ge::DataAnchor>(outedge.first);
-    FE_CHECK(out_edge_src_data_anchor_ptr == nullptr, FE_LOGE("outEdgeSrcDataAnchorPtr is nullptr."),
-    return FAILED);
+    FE_CHECK(out_edge_src_data_anchor_ptr == nullptr, FE_LOGE("outEdgeSrcDataAnchorPtr is nullptr."), return FAILED);
     ge::OpDescPtr out_edge_src_op_desc_ptr = out_edge_src_data_anchor_ptr->GetOwnerNode()->GetOpDesc();
 
     auto src_op_id = outedge.first->GetOwnerNode()->GetOpDesc()->GetId();
@@ -835,7 +830,7 @@ Status GraphComm::EstablishConnection(const ge::NodePtr &node, const std::unorde
       builder.AddDataLink(src_node_name, src_idx, dst_node->GetName(), static_cast<uint32_t>(in_data_anchor->GetIdx()));
     }
   }
-  auto out_ctrl_anchor =  node->GetOutControlAnchor();
+  auto out_ctrl_anchor = node->GetOutControlAnchor();
   FE_CHECK_NOTNULL(out_ctrl_anchor);
   for (auto &in_ctrl_anchor : out_ctrl_anchor->GetPeerInControlAnchors()) {
     FE_CHECK_NOTNULL(in_ctrl_anchor);
@@ -889,17 +884,16 @@ uint64_t GraphComm::GetAtomicId() const {
   return global_atomic_id.fetch_add(1, std::memory_order_relaxed);
 }
 
-Status GraphComm::ConnectionSubGraphToRootGraph(const ge::ComputeGraphPtr &sub_graph,
-                                                ge::ComputeGraphPtr &root_graph,
+Status GraphComm::ConnectionSubGraphToRootGraph(const ge::ComputeGraphPtr &sub_graph, ge::ComputeGraphPtr &root_graph,
                                                 std::shared_ptr<std::mutex> &graph_common_lock_ptr) {
   if (graph_common_lock_ptr != nullptr) {
-    const std::lock_guard <std::mutex> lock_guard(*graph_common_lock_ptr);
+    const std::lock_guard<std::mutex> lock_guard(*graph_common_lock_ptr);
     if (root_graph->AddSubgraph(sub_graph->GetName(), sub_graph) != ge::GRAPH_SUCCESS) {
       REPORT_FE_ERROR("Failed to add sub graph. Root graph: %s.", root_graph->GetName().c_str());
       return FAILED;
     }
-    FE_LOGD("Add sub graph success. root graph: %s, subgraph: %s.",
-            root_graph->GetName().c_str(), sub_graph->GetName().c_str());
+    FE_LOGD("Add sub graph success. root graph: %s, subgraph: %s.", root_graph->GetName().c_str(),
+            sub_graph->GetName().c_str());
   }
 
   return SUCCESS;
@@ -965,8 +959,8 @@ Status GraphComm::AddOuterDataEdgeOutputs(const vector<fe::FusionDataFlow> &outp
       std::int32_t fusion_idx = output_edge.edge.second->GetIdx();
       ge::NodePtr src_node = output_edge.edge.first->GetOwnerNode();
       ge::NodePtr fusion_node = output_edge.edge.second->GetOwnerNode();
-      FE_LOGD("out src_idx is %d, out fusion_idx is %d. src_node is %s, fusion_node is %s.",
-              src_idx, fusion_idx, src_node->GetName().c_str(), fusion_node->GetName().c_str());
+      FE_LOGD("out src_idx is %d, out fusion_idx is %d. src_node is %s, fusion_node is %s.", src_idx, fusion_idx,
+              src_node->GetName().c_str(), fusion_node->GetName().c_str());
       // add relation: output index of new graph to output index of original graph.
       builder.AddOutput(src_node->GetName(), static_cast<uint32_t>(src_idx));
       output_mapping.emplace(output_index, output_index);
@@ -978,8 +972,7 @@ Status GraphComm::AddOuterDataEdgeOutputs(const vector<fe::FusionDataFlow> &outp
   return SUCCESS;
 }
 
-Status GraphComm::CreateFunctionOpSubGraph(const ge::NodePtr &function_node,
-                                           std::vector<ge::NodePtr> &node_vec,
+Status GraphComm::CreateFunctionOpSubGraph(const ge::NodePtr &function_node, std::vector<ge::NodePtr> &node_vec,
                                            vector<fe::FusionDataFlow> &input_edge_list,
                                            vector<fe::FusionDataFlow> &output_edge_list,
                                            vector<fe::FusionDataFlow> &output_ctrl_edge_list) {
@@ -1010,8 +1003,8 @@ Status GraphComm::CreateFunctionOpSubGraph(const ge::NodePtr &function_node,
        connection. */
     builder.AddNode(node->GetOpDesc());
 
-    FE_LOGD("Starting re-establishment of connection to node [name: %s]. Out data size is %u.",
-            node->GetName().c_str(), node->GetAllOutDataAnchorsSize());
+    FE_LOGD("Starting re-establishment of connection to node [name: %s]. Out data size is %u.", node->GetName().c_str(),
+            node->GetAllOutDataAnchorsSize());
     (void)EstablishConnection(node, node_name_set, builder);
   }
 
@@ -1108,8 +1101,7 @@ ge::NodePtr GraphComm::TransSingleSubGraph(ge::ComputeGraph &graph, std::vector<
   }
 
   // Merge Same scope node
-  if (MergeFunctionNodeEdgeList(function_node, node_vec, input_edge_list, output_edge_list) !=
-      SUCCESS) {
+  if (MergeFunctionNodeEdgeList(function_node, node_vec, input_edge_list, output_edge_list) != SUCCESS) {
     FE_LOGE("MergeFusionNodeEdgeList failed!");
     return nullptr;
   }
@@ -1119,15 +1111,15 @@ ge::NodePtr GraphComm::TransSingleSubGraph(ge::ComputeGraph &graph, std::vector<
     return nullptr;
   }
 
-  if (CreateFunctionOpSubGraph(function_node, node_vec, input_edge_list, output_edge_list,
-                               output_ctrl_edge_list) != SUCCESS) {
+  if (CreateFunctionOpSubGraph(function_node, node_vec, input_edge_list, output_edge_list, output_ctrl_edge_list) !=
+      SUCCESS) {
     FE_LOGE("CreateFunctionOpSubGraph for function node %s failed!", function_node->GetName().c_str());
     return nullptr;
   }
   return function_node;
 }
 
-Status GraphComm::UnfoldFuncOp(ge::ComputeGraph& graph) {
+Status GraphComm::UnfoldFuncOp(ge::ComputeGraph &graph) {
   // UnfoldSubGraph
   auto nodes = graph.GetDirectNode();
   std::vector<ge::ComputeGraphPtr> sub_graphs;
@@ -1164,8 +1156,7 @@ Status GraphComm::UnfoldFuncOp(ge::ComputeGraph& graph) {
       }
       bool no_need_partition = false;
       ge::AttrUtils::GetBool(graph_ptr, ge::ATTR_NAME_NO_NEED_PARTITION, no_need_partition);
-      if ((parent->GetType() == "PartitionedCall") &&
-          (parent->GetOpDesc()->GetOpEngineName() == AI_CORE_NAME) &&
+      if ((parent->GetType() == "PartitionedCall") && (parent->GetOpDesc()->GetOpEngineName() == AI_CORE_NAME) &&
           no_need_partition) {
         return true;
       }
@@ -1195,7 +1186,7 @@ Status GraphComm::UnfoldFuncOp(ge::ComputeGraph& graph) {
   return SUCCESS;
 }
 
-Status GraphComm::ConvertFixpipePartitionCalledOp(ge::ComputeGraph& graph, const AICoreMode &ai_core_mode) {
+Status GraphComm::ConvertFixpipePartitionCalledOp(ge::ComputeGraph &graph, const AICoreMode &ai_core_mode) {
   if (SetFixpipeToFuncOp(graph, ai_core_mode) != SUCCESS) {
     FE_LOGE("trans fixpipe to func op failed, graph: [%s]", graph.GetName().c_str());
     return FAILED;
@@ -1209,7 +1200,7 @@ Status GraphComm::ConvertFixpipePartitionCalledOp(ge::ComputeGraph& graph, const
   return SUCCESS;
 }
 
-Status GraphComm::SetFixpipeToFuncOp(ge::ComputeGraph& graph, const AICoreMode &ai_core_mode) {
+Status GraphComm::SetFixpipeToFuncOp(ge::ComputeGraph &graph, const AICoreMode &ai_core_mode) {
   // create fixpipe function op
   for (const auto &node : graph.GetDirectNode()) {
     bool is_valid_fixpipe = (node->GetType() == kOpFixpipe);
@@ -1255,7 +1246,7 @@ Status GraphComm::SetFixpipeToFuncOp(ge::ComputeGraph& graph, const AICoreMode &
 
 void GraphComm::CommonCollectFixpipeRelativeNodes(const ge::NodePtr &node,
                                                   std::vector<ge::NodePtr> &fixpipe_nodes) const {
-  if (node == nullptr ||node->GetInDataNodes().size() == 0) {
+  if (node == nullptr || node->GetInDataNodes().size() == 0) {
     return;
   }
   ge::NodePtr cube_node = node->GetInDataNodes().at(0);
@@ -1308,8 +1299,7 @@ void GraphComm::CollectSwitchInMaxDeepth(const ge::NodePtr &cur_node, std::vecto
   }
 }
 
-void GraphComm::CollectSwitchMergeNodes(const ge::NodePtr &cube_node,
-                                        std::vector<ge::NodePtr> &fixpipe_nodes) const {
+void GraphComm::CollectSwitchMergeNodes(const ge::NodePtr &cube_node, std::vector<ge::NodePtr> &fixpipe_nodes) const {
   FE_LOGI("Start to collect switch and merge nodes.");
   std::unordered_set<ge::NodePtr> fixpipe_nodes_set;
   fixpipe_nodes.emplace_back(cube_node);

@@ -27,7 +27,7 @@ NodeIo BuildNodeIo(const py::handle &node_obj, int64_t index) {
   auto *node_ptr = BorrowNodeFromPython(node_obj);
   if (node_ptr == nullptr) {
     throw std::runtime_error("Node handle is empty");
-}
+  }
   return NodeIo{*node_ptr, index};
 }
 }  // namespace
@@ -49,39 +49,53 @@ void BindGraphRewriter(py::module_ &m) {
         }
         return SubgraphInput(std::move(inputs));
       }))
-      .def("add_input", [](SubgraphInput &self, const py::handle &node, int64_t out_index) -> uint32_t {
-        return static_cast<uint32_t>(self.AddInput(BuildNodeIo(node, out_index)));
-      }, py::arg("node"), py::arg("out_index"), "Append an input anchor");
+      .def(
+          "add_input",
+          [](SubgraphInput &self, const py::handle &node, int64_t out_index) -> uint32_t {
+            return static_cast<uint32_t>(self.AddInput(BuildNodeIo(node, out_index)));
+          },
+          py::arg("node"), py::arg("out_index"), "Append an input anchor");
 
   py::class_<SubgraphOutput>(m, "SubgraphOutput", "Describe a subgraph output")
       .def(py::init<>())
-      .def(py::init([](const py::handle &node, int64_t out_index) {
-        return SubgraphOutput(BuildNodeIo(node, out_index));
-      }), py::arg("node"), py::arg("out_index"))
-      .def("set_output", [](SubgraphOutput &self, const py::handle &node, int64_t out_index) -> uint32_t {
-        return static_cast<uint32_t>(self.SetOutput(BuildNodeIo(node, out_index)));
-      }, py::arg("node"), py::arg("out_index"), "Set output anchor");
+      .def(py::init(
+               [](const py::handle &node, int64_t out_index) { return SubgraphOutput(BuildNodeIo(node, out_index)); }),
+           py::arg("node"), py::arg("out_index"))
+      .def(
+          "set_output",
+          [](SubgraphOutput &self, const py::handle &node, int64_t out_index) -> uint32_t {
+            return static_cast<uint32_t>(self.SetOutput(BuildNodeIo(node, out_index)));
+          },
+          py::arg("node"), py::arg("out_index"), "Set output anchor");
 
   py::class_<SubgraphBoundary>(m, "SubgraphBoundary", "Describe input/output boundary of subgraph to be replaced")
       .def(py::init<>())
-      .def("add_input", [](SubgraphBoundary &self, int64_t index, const SubgraphInput &input) -> uint32_t {
-        return static_cast<uint32_t>(self.AddInput(index, input));
-      }, py::arg("index"), py::arg("input"), "Bind the index-th boundary input to SubgraphInput")
-      .def("add_output", [](SubgraphBoundary &self, int64_t index, const SubgraphOutput &output) -> uint32_t {
-        return static_cast<uint32_t>(self.AddOutput(index, output));
-      }, py::arg("index"), py::arg("output"), "Bind the index-th boundary output to SubgraphOutput");
+      .def(
+          "add_input",
+          [](SubgraphBoundary &self, int64_t index, const SubgraphInput &input) -> uint32_t {
+            return static_cast<uint32_t>(self.AddInput(index, input));
+          },
+          py::arg("index"), py::arg("input"), "Bind the index-th boundary input to SubgraphInput")
+      .def(
+          "add_output",
+          [](SubgraphBoundary &self, int64_t index, const SubgraphOutput &output) -> uint32_t {
+            return static_cast<uint32_t>(self.AddOutput(index, output));
+          },
+          py::arg("index"), py::arg("output"), "Bind the index-th boundary output to SubgraphOutput");
 
   py::class_<SubgraphRewriter>(m, "SubgraphRewriter", "Subgraph rewriter")
-      .def_static("replace", [](const SubgraphBoundary &boundary, const py::handle &replacement_graph) -> uint32_t {
-        auto *graph_ptr = BorrowGraphFromPython(replacement_graph);
-        if (graph_ptr == nullptr) {
-          throw std::runtime_error("Graph handle is empty");
-        }
-        // SubgraphRewriter::Replace(const Graph&) will copy the replacement graph internally.
-        return static_cast<uint32_t>(SubgraphRewriter::Replace(boundary, *graph_ptr));
-      }, py::arg("boundary"), py::arg("replacement"), "Execute subgraph replacement");
+      .def_static(
+          "replace",
+          [](const SubgraphBoundary &boundary, const py::handle &replacement_graph) -> uint32_t {
+            auto *graph_ptr = BorrowGraphFromPython(replacement_graph);
+            if (graph_ptr == nullptr) {
+              throw std::runtime_error("Graph handle is empty");
+            }
+            // SubgraphRewriter::Replace(const Graph&) will copy the replacement graph internally.
+            return static_cast<uint32_t>(SubgraphRewriter::Replace(boundary, *graph_ptr));
+          },
+          py::arg("boundary"), py::arg("replacement"), "Execute subgraph replacement");
 }
 
 }  // namespace python_pass_native
 }  // namespace ge
-

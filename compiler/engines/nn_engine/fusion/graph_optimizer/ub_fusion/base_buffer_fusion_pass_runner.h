@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,8 +32,8 @@ class BaseBufferFusionPassRunner {
                              const OpStoreAdapterBasePtr &op_store_adapter_ptr);
 
   BaseBufferFusionPassRunner(const std::string &pass_name, BufferFusionPassBase *(*create_fn)(),
-                             const FusionCycleDetectorPtr &fusion_cycle_detector,
-                             const bool is_fusion_check, const OpStoreAdapterBasePtr &op_store_adapter_ptr);
+                             const FusionCycleDetectorPtr &fusion_cycle_detector, const bool is_fusion_check,
+                             const OpStoreAdapterBasePtr &op_store_adapter_ptr);
 
   virtual ~BaseBufferFusionPassRunner();
 
@@ -44,7 +44,7 @@ class BaseBufferFusionPassRunner {
                                   std::map<int64_t, std::vector<ge::NodePtr>> &match_nodes_map) = 0;
   virtual bool IsNodeFusible(const ge::NodePtr &node) const;
   static bool IsNodePatternMatched(const ge::NodePtr &node, const std::vector<std::string> &patterns);
-  static const BufferFusionOpDesc* GetMatchedFusionDesc(const ge::NodePtr &node, const BufferFusionPattern &pattern,
+  static const BufferFusionOpDesc *GetMatchedFusionDesc(const ge::NodePtr &node, const BufferFusionPattern &pattern,
                                                         const BufferFusionMapping &mapping);
   Status GetFusionNodesByMapping(const ge::NodePtr &first_node, const BufferFusionMapping &mapping,
                                  std::vector<ge::NodePtr> &fusion_nodes) const;
@@ -61,7 +61,7 @@ class BaseBufferFusionPassRunner {
 
   Status CheckMatchedNodesCanFusion(const BufferFusionNodeDescMap &fusion_nodes, const ge::NodePtr &next_node);
   Status GetFusionNodes(const BufferFusionMapping &mapping, std::vector<ge::NodePtr> &fusion_nodes) const;
-  const std::string& GetPassName() const;
+  const std::string &GetPassName() const;
   FusionCycleDetectorPtr GetFusionCycleDetectorPtr() const;
 
  private:
@@ -85,5 +85,5 @@ class BaseBufferFusionPassRunner {
   OpStoreAdapterBasePtr op_store_adapter_ptr_;
 };
 using BaseBufferFusionPassRunnerPtr = std::shared_ptr<BaseBufferFusionPassRunner>;
-}
+}  // namespace fe
 #endif

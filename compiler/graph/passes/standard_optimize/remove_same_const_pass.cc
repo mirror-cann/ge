@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -205,8 +205,8 @@ Status ReplaceConstNode(const ComputeGraphPtr &graph, const NodePtr &node, const
 
   if (GraphUtils::ReplaceNodeAnchors(node, to_be_removed_node, {}, output_map) != GRAPH_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Replace to_be_removed_node:%s(%s)'s anchor by node:%s(%s) failed",
-                      to_be_removed_node->GetName().c_str(), to_be_removed_node->GetType().c_str(),
-                      node->GetName().c_str(), node->GetType().c_str());
+                         to_be_removed_node->GetName().c_str(), to_be_removed_node->GetType().c_str(),
+                         node->GetName().c_str(), node->GetType().c_str());
     GELOGE(INTERNAL_ERROR, "[Replace][Anchors] of to_be_removed_node:%s(%s) by node:%s(%s) failed",
            to_be_removed_node->GetName().c_str(), to_be_removed_node->GetType().c_str(), node->GetName().c_str(),
            node->GetType().c_str());
@@ -217,8 +217,8 @@ Status ReplaceConstNode(const ComputeGraphPtr &graph, const NodePtr &node, const
 
   if (GraphUtils::RemoveNodeWithoutRelink(graph, to_be_removed_node) != GRAPH_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Remove to_be_removed_node:%s(%s) without relink in graph:%s failed",
-                      to_be_removed_node->GetName().c_str(), to_be_removed_node->GetType().c_str(),
-                      graph->GetName().c_str());
+                         to_be_removed_node->GetName().c_str(), to_be_removed_node->GetType().c_str(),
+                         graph->GetName().c_str());
     GELOGE(INTERNAL_ERROR, "[Remove][Node] %s(%s) without relink in graph:%s failed",
            to_be_removed_node->GetName().c_str(), to_be_removed_node->GetType().c_str(), graph->GetName().c_str());
     return INTERNAL_ERROR;

@@ -374,7 +374,7 @@ if (dynamic_batch_size || dynamic_image || dynamic_dims) {
 ```cpp
 if (is_getnext_sink_dynamic_) {
     cur_dynamic_dims_.resize(shape_of_cur_dynamic_dims_);
-    aclrtMemcpy(cur_dynamic_dims_.data(), ..., 
+    aclrtMemcpy(cur_dynamic_dims_.data(), ...,
                 netoutput_last_input_addr_, ..., DEVICE_TO_HOST);
 }
 ```

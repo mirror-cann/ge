@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -193,7 +193,7 @@ TensorHolder TensorFaker::Build() const {
             Random(static_cast<int64_t *>(tensor_addr), shape_size);
             break;
           default:
-            throw std::invalid_argument("unsupport data type");
+            throw std::invalid_argument("unsupported data type");
         }
       } else {
         memcpy(th.GetTensor()->GetAddr(), tensor_value_.data(), tensor_value_.size());
@@ -208,8 +208,7 @@ TensorFaker &TensorFaker::DontAllocData() {
   return *this;
 }
 
-FakeTensors::FakeTensors(std::initializer_list<int64_t> shape, size_t num,
-                         void *mem_block, TensorPlacement placement,
+FakeTensors::FakeTensors(std::initializer_list<int64_t> shape, size_t num, void *mem_block, TensorPlacement placement,
                          ge::Format format, ge::DataType data_type) {
   TensorData tensor_data{nullptr, nullptr, 0, placement};
   size_t tensor_size = 8;  // 1 int64 takes 8 bytes

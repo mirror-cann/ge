@@ -11,13 +11,12 @@
 # ----------------------------------------------------------------------------
 
 import numpy as np
-
 from ge.es import GraphBuilder
-from ge.graph import Tensor, DumpFormat
-from ge.graph.types import DataType, Format
-from ge.ge_global import GeApi
-from ge.session import Session
 from ge.es.all import *
+from ge.ge_global import GeApi
+from ge.graph import DumpFormat, Tensor
+from ge.graph.types import DataType, Format
+from ge.session import Session
 
 
 def build_matmul_add_graph():
@@ -31,14 +30,14 @@ def build_matmul_add_graph():
         None,
         DataType.DT_FLOAT,
         Format.FORMAT_ND,
-        [2, 2]
+        [2, 2],
     )
     matmul_tensor_holder = MatMul(
         input1,
         input2,
         None,
         transpose_x1=True,  # 与pattern中定义的不同
-        transpose_x2=False
+        transpose_x2=False,
     )
     add_tensor_holder = Add(matmul_tensor_holder, Const(builder, value=input3))
     # 3、设置图输出节点
@@ -48,9 +47,7 @@ def build_matmul_add_graph():
 
 
 def dump_matmul_add_graph(graph):
-    graph.dump_to_file(format=DumpFormat.kOnnx,
-                       suffix="make_matmul_add_graph"
-                       )
+    graph.dump_to_file(format=DumpFormat.kOnnx, suffix="make_matmul_add_graph")
 
 
 def run_matmul_add_graph(graph) -> int:
@@ -65,7 +62,7 @@ def run_matmul_add_graph(graph) -> int:
     """
     config = {
         "ge.exec.deviceId": "0",
-        "ge.graphRunMode": "0"  # 0: 图模式, 1: 单算子模式
+        "ge.graphRunMode": "0",  # 0: 图模式, 1: 单算子模式
     }
     ge_api = GeApi()
     ret = ge_api.ge_initialize(config)
@@ -96,14 +93,14 @@ def run_matmul_add_graph(graph) -> int:
             None,
             DataType.DT_FLOAT,
             Format.FORMAT_ND,
-            [3, 2]
+            [3, 2],
         )
         tensor2 = Tensor(
             input2_data.flatten().tolist(),
             None,
             DataType.DT_FLOAT,
             Format.FORMAT_ND,
-            [3, 2]
+            [3, 2],
         )
 
         inputs = [tensor1, tensor2]
@@ -118,6 +115,7 @@ def run_matmul_add_graph(graph) -> int:
     except Exception as e:
         print(f"[Error] 执行过程中出错: {e}")
         import traceback
+
         traceback.print_exc()
         return -1
 

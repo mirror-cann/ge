@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,21 +24,20 @@ Status MappingSubgraphInput(const ComputeGraphPtr &graph, const std::function<in
 
     int32_t index = -1;
     if (!AttrUtils::GetInt(node->GetOpDesc(), "index", index)) {
-      REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s from op:%s(%s) failed", "index",
-                        node->GetName().c_str(), node->GetType().c_str());
-      GELOGE(FAILED, "[Get][Attr] index from op:%s(%s) failed",
-             node->GetName().c_str(), node->GetType().c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s from op:%s(%s) failed", "index", node->GetName().c_str(),
+                           node->GetType().c_str());
+      GELOGE(FAILED, "[Get][Attr] index from op:%s(%s) failed", node->GetName().c_str(), node->GetType().c_str());
       return FAILED;
     }
 
     int32_t parent_index = input(index);
-    GELOGI("Generate subgraph input map for subgraph %s, data index %d, parent index %d",
-           graph->GetName().c_str(), index, parent_index);
+    GELOGI("Generate subgraph input map for subgraph %s, data index %d, parent index %d", graph->GetName().c_str(),
+           index, parent_index);
     if (!AttrUtils::SetInt(node->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, parent_index)) {
       REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s to op:%s(%s) failed", ATTR_NAME_PARENT_NODE_INDEX.c_str(),
-                        node->GetName().c_str(), node->GetType().c_str());
-      GELOGE(FAILED, "[Set][Attr] %s to op:%s(%s) failed", ATTR_NAME_PARENT_NODE_INDEX.c_str(),
-             node->GetName().c_str(), node->GetType().c_str());
+                           node->GetName().c_str(), node->GetType().c_str());
+      GELOGE(FAILED, "[Set][Attr] %s to op:%s(%s) failed", ATTR_NAME_PARENT_NODE_INDEX.c_str(), node->GetName().c_str(),
+             node->GetType().c_str());
       return FAILED;
     }
   }
@@ -56,8 +55,8 @@ Status MappingSubgraphOutput(const ComputeGraphPtr &graph, const std::function<i
   GE_CHECK_NOTNULL(op_desc);
   for (size_t index = 0; index < op_desc->GetInputsSize(); ++index) {
     int32_t parent_index = output(index);
-    GELOGI("Generate subgraph output map for subgraph %s, index %zu, parent index %d",
-           graph->GetName().c_str(), index, parent_index);
+    GELOGI("Generate subgraph output map for subgraph %s, index %zu, parent index %d", graph->GetName().c_str(), index,
+           parent_index);
     if (parent_index == -1) {
       continue;
     }
@@ -66,10 +65,10 @@ Status MappingSubgraphOutput(const ComputeGraphPtr &graph, const std::function<i
     GE_CHECK_NOTNULL(tensor);
     if (!AttrUtils::SetInt(tensor, ATTR_NAME_PARENT_NODE_INDEX, parent_index)) {
       REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s to tensor of op:%s(%s) input:%zu failed",
-                        ATTR_NAME_PARENT_NODE_INDEX.c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str(),
-                        index);
-      GELOGE(FAILED, "[Set][Attr] %s to tensor of op:%s(%s) input:%zu failed",
-             ATTR_NAME_PARENT_NODE_INDEX.c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str(), index);
+                           ATTR_NAME_PARENT_NODE_INDEX.c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str(),
+                           index);
+      GELOGE(FAILED, "[Set][Attr] %s to tensor of op:%s(%s) input:%zu failed", ATTR_NAME_PARENT_NODE_INDEX.c_str(),
+             op_desc->GetName().c_str(), op_desc->GetType().c_str(), index);
       return FAILED;
     }
   }
@@ -77,8 +76,7 @@ Status MappingSubgraphOutput(const ComputeGraphPtr &graph, const std::function<i
   return SUCCESS;
 }
 
-Status MappingSubgraphIndex(const ComputeGraphPtr &graph,
-                            const std::function<int(int32_t data_index)> &input,
+Status MappingSubgraphIndex(const ComputeGraphPtr &graph, const std::function<int(int32_t data_index)> &input,
                             const std::function<int(int32_t retval_index)> &output) {
   GE_CHECK_NOTNULL(graph);
   GE_CHECK_NOTNULL(input);
@@ -98,36 +96,33 @@ Status MappingSubgraphIndex(const ComputeGraphPtr &graph,
 
 Status ParseSubgraphPostFnCase(const std::string &subgraph_name, const ComputeGraphPtr &graph) {
   (void)subgraph_name;
-  return MappingSubgraphIndex(graph,
-      [](int32_t data_index) { return data_index + 1; },
-      [](int32_t retval_index) { return retval_index; });
+  return MappingSubgraphIndex(
+      graph, [](int32_t data_index) { return data_index + 1; }, [](int32_t retval_index) { return retval_index; });
 }
 
 Status ParseSubgraphPostFnIf(const std::string &subgraph_name, const ComputeGraphPtr &graph) {
   (void)subgraph_name;
-  return MappingSubgraphIndex(graph,
-      [](int32_t data_index) { return data_index + 1; },
-      [](int32_t retval_index) { return retval_index; });
+  return MappingSubgraphIndex(
+      graph, [](int32_t data_index) { return data_index + 1; }, [](int32_t retval_index) { return retval_index; });
 }
 
 Status ParseSubgraphPostFnWhile(const std::string &subgraph_name, const ComputeGraphPtr &graph) {
-  return MappingSubgraphIndex(graph,
-      [](int32_t data_index) { return data_index; },
+  return MappingSubgraphIndex(
+      graph, [](int32_t data_index) { return data_index; },
       [&subgraph_name](int32_t retval_index) { return (subgraph_name == "cond") ? -1 : retval_index; });
 }
 
 Status ParseSubgraphPostFnFor(const std::string &subgraph_name, const ComputeGraphPtr &graph) {
   (void)subgraph_name;
-  return MappingSubgraphIndex(graph,
-      [](int32_t data_index) { return (data_index == 0) ? 0 : data_index + kDataIndexOffset; },
+  return MappingSubgraphIndex(
+      graph, [](int32_t data_index) { return (data_index == 0) ? 0 : data_index + kDataIndexOffset; },
       [](int32_t retval_index) { return retval_index; });
 }
 
 Status ParseSubgraphPostFnPartitionedCall(const std::string &subgraph_name, const ComputeGraphPtr &graph) {
   (void)subgraph_name;
-  return MappingSubgraphIndex(graph,
-      [](int32_t data_index) { return data_index; },
-      [](int32_t retval_index) { return retval_index; });
+  return MappingSubgraphIndex(
+      graph, [](int32_t data_index) { return data_index; }, [](int32_t retval_index) { return retval_index; });
 }
 
 Status ParseSubgraphPostFnFlowNode(const std::string &subgraph_name, const ComputeGraphPtr &graph) {
@@ -135,7 +130,7 @@ Status ParseSubgraphPostFnFlowNode(const std::string &subgraph_name, const Compu
   (void)graph;
   return SUCCESS;
 }
-}
+}  // namespace
 
 Status DataPass::PostParseSubgraph(const ComputeGraphPtr &graph, const std::string &ir_name,
                                    const NodePtr &parent_node) const {
@@ -157,17 +152,17 @@ Status DataPass::PostParseSubgraph(const ComputeGraphPtr &graph, const std::stri
   auto post_func_it = subgraph_handle.find(parent_node->GetType());
   if (post_func_it == subgraph_handle.end()) {
     REPORT_INNER_ERR_MSG("E19999", "The subgraph post func for node %s type %s is null, check invalid",
-                       parent_node->GetName().c_str(), parent_node->GetType().c_str());
-    GELOGE(FAILED, "[Check][Param] The subgraph post func for node %s type %s is null.",
-           parent_node->GetName().c_str(), parent_node->GetType().c_str());
+                         parent_node->GetName().c_str(), parent_node->GetType().c_str());
+    GELOGE(FAILED, "[Check][Param] The subgraph post func for node %s type %s is null.", parent_node->GetName().c_str(),
+           parent_node->GetType().c_str());
     return FAILED;
   }
 
   if (post_func_it->second(ir_name, graph) != SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Post process subgraph %s on node %s type %s failed",
-                       graph->GetName().c_str(), parent_node->GetName().c_str(), parent_node->GetType().c_str());
-    GELOGE(FAILED, "[Call][PostFunc] Failed to post process subgraph %s on node %s type %s",
-           graph->GetName().c_str(), parent_node->GetName().c_str(), parent_node->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Post process subgraph %s on node %s type %s failed", graph->GetName().c_str(),
+                         parent_node->GetName().c_str(), parent_node->GetType().c_str());
+    GELOGE(FAILED, "[Call][PostFunc] Failed to post process subgraph %s on node %s type %s", graph->GetName().c_str(),
+           parent_node->GetName().c_str(), parent_node->GetType().c_str());
     return FAILED;
   }
 
@@ -176,7 +171,7 @@ Status DataPass::PostParseSubgraph(const ComputeGraphPtr &graph, const std::stri
 
 Status DataPass::Run(ComputeGraphPtr compute_graph) {
   GE_CHECK_NOTNULL(compute_graph);
-  if (compute_graph->GetParentNode() == nullptr) {      // for subgraph post process.
+  if (compute_graph->GetParentNode() == nullptr) {  // for subgraph post process.
     return SUCCESS;
   }
 
@@ -185,10 +180,10 @@ Status DataPass::Run(ComputeGraphPtr compute_graph) {
     if (node->GetType() == DATA) {
       uint32_t parent_index = 0;
       if (!AttrUtils::GetInt(node->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, parent_index)) {
-        break;        // parent_index not set, Graph from IR.
+        break;  // parent_index not set, Graph from IR.
       }
 
-      return SUCCESS; // Graph from Parser.
+      return SUCCESS;  // Graph from Parser.
     }
   }
 

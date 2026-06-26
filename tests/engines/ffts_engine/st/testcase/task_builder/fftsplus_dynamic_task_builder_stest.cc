@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -40,11 +40,9 @@ using namespace ge;
 
 using AICAIVDynamicTaskBuilderPtr = shared_ptr<AICAIVDynamicTaskBuilder>;
 
-class FFTSPlusDynamicTaskBuilderSTest : public testing::Test
-{
-protected:
-  void SetUp()
-  {
+class FFTSPlusDynamicTaskBuilderSTest : public testing::Test {
+ protected:
+  void SetUp() {
     aic_aiv_dy_task_builder_ptr_ = make_shared<AICAIVDynamicTaskBuilder>();
     ffts_plus_def_ptr_ = new domi::FftsPlusTaskDef;
     node_ = CreateNode();
@@ -52,7 +50,7 @@ protected:
   void TearDown() {
     delete ffts_plus_def_ptr_;
   }
-  static void SetOpDecSize(NodePtr& node) {
+  static void SetOpDecSize(NodePtr &node) {
     OpDesc::Vistor<GeTensorDesc> tensors = node->GetOpDesc()->GetAllInputsDesc();
     for (int i = 0; i < node->GetOpDesc()->GetAllInputsDesc().size(); i++) {
       ge::GeTensorDesc tensor = node->GetOpDesc()->GetAllInputsDesc().at(i);
@@ -66,15 +64,14 @@ protected:
       node->GetOpDesc()->UpdateOutputDesc(i, tensorOutput);
     }
   }
-  static NodePtr CreateNode()
-  {
+  static NodePtr CreateNode() {
     FeTestOpDescBuilder builder;
     builder.SetName("test_tvm");
     builder.SetType("conv");
-    builder.SetInputs({ 1 });
-    builder.SetOutputs({ 1 });
-    builder.AddInputDesc({ -1, -1, 4, 4 }, ge::FORMAT_NCHW, ge::DT_FLOAT);
-    builder.AddOutputDesc({ -1, -1, 4, 4 }, ge::FORMAT_NCHW, ge::DT_FLOAT);
+    builder.SetInputs({1});
+    builder.SetOutputs({1});
+    builder.AddInputDesc({-1, -1, 4, 4}, ge::FORMAT_NCHW, ge::DT_FLOAT);
+    builder.AddOutputDesc({-1, -1, 4, 4}, ge::FORMAT_NCHW, ge::DT_FLOAT);
     auto node = builder.Finish();
 
     const char tbeBin[] = "tbe_bin";
@@ -109,8 +106,8 @@ protected:
     input_tensor_slice_v.push_back(dim_rang);
     vector<vector<ffts::DimRange>> input_tensor_slice_vv;
     input_tensor_slice_vv.push_back(input_tensor_slice_v);
-    vector<vector<vector<ffts::DimRange>>> input_tensor_slice_vvv = { input_tensor_slice_vv };
-    vector<vector<vector<ffts::DimRange>>> output_tensor_slice = { input_tensor_slice_vv };
+    vector<vector<vector<ffts::DimRange>>> input_tensor_slice_vvv = {input_tensor_slice_vv};
+    vector<vector<vector<ffts::DimRange>>> output_tensor_slice = {input_tensor_slice_vv};
     tsmp_ptr->input_tensor_slice = input_tensor_slice_vvv;
     tsmp_ptr->output_tensor_slice = output_tensor_slice;
     node->GetOpDesc()->SetExtAttr("_sgt_struct_info", tsmp_ptr);
@@ -119,16 +116,15 @@ protected:
     FftsPlusCtxDefPtr ctxDefPtr = std::make_shared<domi::FftsPlusCtxDef>();
     node->GetOpDesc()->SetExtAttr("_aicore_ctx_def", ctxDefPtr);
     return node;
-	}
+  }
 
-public:
+ public:
   AICAIVDynamicTaskBuilderPtr aic_aiv_dy_task_builder_ptr_;
-	domi::FftsPlusTaskDef *ffts_plus_def_ptr_;
-	NodePtr node_{ nullptr };
+  domi::FftsPlusTaskDef *ffts_plus_def_ptr_;
+  NodePtr node_{nullptr};
 };
 
-TEST_F(FFTSPlusDynamicTaskBuilderSTest, Gen_AICAIV_DYContextDef_SUCCESS)
-{
-	Status ret = aic_aiv_dy_task_builder_ptr_->GenContextDef(node_, ffts_plus_def_ptr_);
-	EXPECT_EQ(fe::SUCCESS, ret);
+TEST_F(FFTSPlusDynamicTaskBuilderSTest, Gen_AICAIV_DYContextDef_SUCCESS) {
+  Status ret = aic_aiv_dy_task_builder_ptr_->GenContextDef(node_, ffts_plus_def_ptr_);
+  EXPECT_EQ(fe::SUCCESS, ret);
 }

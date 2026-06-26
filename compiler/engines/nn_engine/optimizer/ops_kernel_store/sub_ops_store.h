@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -45,17 +45,10 @@ struct SupportedFormatAndDtype {
   vector<ge::DataType> promote_target_type;
 
   SupportedFormatAndDtype(OpKernelInfoPtr op_kernel_info_ptr_param, string reason_param)
-      : op_kernel_info_ptr(std::move(op_kernel_info_ptr_param)),
-        reason(std::move(reason_param)),
-        is_input(false) {}
+      : op_kernel_info_ptr(std::move(op_kernel_info_ptr_param)), reason(std::move(reason_param)), is_input(false) {}
 };
 
-enum class PrecisionReduceType {
-  FP32_TO_BF16,
-  FP32_TO_FP16,
-  BF16_TO_FP16,
-  INVALID
-};
+enum class PrecisionReduceType { FP32_TO_BF16, FP32_TO_FP16, BF16_TO_FP16, INVALID };
 using PrecisonReduceCheckFunc = std::function<bool(const bool &, const fe::PrecisionMode &)>;
 using PrecisonReduceCheckFuncArray =
     std::array<PrecisonReduceCheckFunc, static_cast<size_t>(PrecisionReduceType::INVALID)>;
@@ -106,10 +99,8 @@ class SubOpsStore {
   virtual bool CheckSubStoreSupported(const ge::NodePtr &node, const CheckSupportMode &check_mode,
                                       const bool &check_unknown_shape, CheckSupportParam &check_param) const;
 
-  Status GetSupportFormatAndDtype(const ge::NodePtr &node,
-                                  const OpKernelInfoPtr &op_kernel_info_ptr,
-                                  const bool &is_dynamic_check,
-                                  FormatDtypeInfo &format_dtype_info) const;
+  Status GetSupportFormatAndDtype(const ge::NodePtr &node, const OpKernelInfoPtr &op_kernel_info_ptr,
+                                  const bool &is_dynamic_check, FormatDtypeInfo &format_dtype_info) const;
 
  protected:
   /*
@@ -138,8 +129,7 @@ class SubOpsStore {
   bool CheckOutputSupported(const ge::NodePtr &node, uint32_t output_size, const bool &is_force_dtype_support,
                             SupportedFormatAndDtype &info) const;
 
-  bool CheckOpSupported(const ge::NodePtr &node_ptr, const bool &is_dynamic_impl,
-                        CheckSupportParam &check_param) const;
+  bool CheckOpSupported(const ge::NodePtr &node_ptr, const bool &is_dynamic_impl, CheckSupportParam &check_param) const;
 
  private:
   bool IsInputConst(const ge::NodePtr &node, const int32_t &index) const;
@@ -147,15 +137,12 @@ class SubOpsStore {
   bool CheckSingleTensorAccurateMode(uint32_t size, uint32_t type_index, const ge::NodePtr &node,
                                      SupportedFormatAndDtype &info, bool &need_continue) const;
 
-  bool CheckSingleTensorSupportedAccurateMode(const ge::NodePtr &node, uint32_t index,
-                                              uint32_t type_index, SupportedFormatAndDtype &info,
-                                              bool &check_flag) const;
+  bool CheckSingleTensorSupportedAccurateMode(const ge::NodePtr &node, uint32_t index, uint32_t type_index,
+                                              SupportedFormatAndDtype &info, bool &check_flag) const;
 
   bool CheckFormatAndDtypeNormalMode(const ge::NodePtr &node, const std::string &name,
-                                     const ge::GeTensorDescPtr &tensor_desc,
-                                     SupportedFormatAndDtype &info,
-                                     const bool &is_force_dtype_support,
-                                     std::string &reason) const;
+                                     const ge::GeTensorDescPtr &tensor_desc, SupportedFormatAndDtype &info,
+                                     const bool &is_force_dtype_support, std::string &reason) const;
 
   /*
    * @ingroup fe
@@ -166,8 +153,7 @@ class SubOpsStore {
    */
   bool CheckDtypeSupported(const ge::NodePtr &node, const ge::GeTensorDescPtr &tensor_desc_ptr,
                            InputOrOutputInfoPtr input_or_output_info_ptr,
-                           const vector<ge::DataType> &support_data_types,
-                           const SupportedFormatAndDtype &info) const;
+                           const vector<ge::DataType> &support_data_types, const SupportedFormatAndDtype &info) const;
 
   /*
    * @ingroup fe
@@ -176,8 +162,8 @@ class SubOpsStore {
    * @param[in] tensor_desc_info_ptr : a InputOrOutputInfoPtr of the input
    * @return: true if supported, else false;
    */
-  bool CheckAccuracyDtypeSupported(ge::ConstGeTensorDescPtr c_tensor_desc_ptr,
-                                   uint32_t type_index, InputOrOutputInfoPtr input_or_output_info_ptr,
+  bool CheckAccuracyDtypeSupported(ge::ConstGeTensorDescPtr c_tensor_desc_ptr, uint32_t type_index,
+                                   InputOrOutputInfoPtr input_or_output_info_ptr,
                                    const vector<ge::DataType> &support_data_types) const;
 
   /*
@@ -210,8 +196,8 @@ class SubOpsStore {
    * @return: true if supported, else false;
    */
   bool CheckSubformatSupported(const ge::NodePtr &node, int64_t groups,
-                               const InputOrOutputInfoPtr &input_or_output_info_ptr,
-                               const string &tensor_name, SupportedFormatAndDtype &info) const;
+                               const InputOrOutputInfoPtr &input_or_output_info_ptr, const string &tensor_name,
+                               SupportedFormatAndDtype &info) const;
   /*
    * @ingroup fe
    * @brief: check whether the format is supported by this sub ops store
@@ -220,8 +206,8 @@ class SubOpsStore {
    * @param[in] tensor_desc_info_ptr : a InputOrOutputInfoPtr of the input
    * @return: true if supported, else false;
    */
-  bool CheckAccuracyFormatSupported(ge::ConstGeTensorDescPtr c_tensor_desc_ptr,
-                                    uint32_t type_index, InputOrOutputInfoPtr input_or_output_info_ptr,
+  bool CheckAccuracyFormatSupported(ge::ConstGeTensorDescPtr c_tensor_desc_ptr, uint32_t type_index,
+                                    InputOrOutputInfoPtr input_or_output_info_ptr,
                                     const vector<ge::Format> &support_formats) const;
 
   /*
@@ -232,8 +218,8 @@ class SubOpsStore {
    * @param[in] is_input_const : the value from GetIsInputConst
    * @return: true if supported, else false;
    */
-  bool CheckInputConstValueDepend(const ge::NodePtr &node, const string &input_name,
-                                  const uint32_t &in_index, SupportedFormatAndDtype &info) const;
+  bool CheckInputConstValueDepend(const ge::NodePtr &node, const string &input_name, const uint32_t &in_index,
+                                  SupportedFormatAndDtype &info) const;
 
   void LogAllFormatAndDtype(const SupportedFormatAndDtype &info, const string &tensor_name,
                             std::ostringstream &reason_oss, string &reason) const;
@@ -248,11 +234,8 @@ class SubOpsStore {
   bool CheckCustomizeDtype(const ge::OpDescPtr &op_desc, const SupportedFormatAndDtype &info,
                            bool &is_force_dtype_support) const;
 
-  void FilterDtypesByCustom(const vector<ge::DataType> &cust_dtypes,
-                            const IndexNameMap &index_map,
-                            const SupportedFormatAndDtype &info,
-                            const bool &is_input,
-                            vector<bool> &filer_index) const;
+  void FilterDtypesByCustom(const vector<ge::DataType> &cust_dtypes, const IndexNameMap &index_map,
+                            const SupportedFormatAndDtype &info, const bool &is_input, vector<bool> &filer_index) const;
 
   void SetAttrParamTypeList(const ge::OpDescPtr &op_desc, const OpKernelInfoPtr &op_kernel_info_ptr,
                             const SupportedFormatAndDtype &info) const;
@@ -268,8 +251,8 @@ class SubOpsStore {
   static bool VerifyFormatC0Val(const ge::OpDescPtr &op_desc_ptr, const ge::ConstGeTensorDescPtr &tensor_desc_ptr);
 
   void JudgeNeedUpdateDtype(const fe::PrecisionMode &precision_mode, const ge::GeTensorDescPtr &tensor_desc_ptr,
-      const vector<ge::DataType> &support_data_types, const ge::OpDescPtr &op_desc_ptr,
-      const InputOrOutputInfoPtr &input_or_output_info_ptr) const;
+                            const vector<ge::DataType> &support_data_types, const ge::OpDescPtr &op_desc_ptr,
+                            const InputOrOutputInfoPtr &input_or_output_info_ptr) const;
 
   void FeedPromoteInfo(const ge::NodePtr &node, SupportedFormatAndDtype &info) const;
 
@@ -278,7 +261,7 @@ class SubOpsStore {
   void GetPromoteInputList(const ge::NodePtr &node, SupportedFormatAndDtype &info) const;
 
   bool ParsePromoteStr(const PromoteTypeVal &promote_type_val, const ge::NodePtr &node,
-      const OpKernelInfoPtr &op_kernel_info_ptr, std::vector<std::vector<int>> &promote_list) const;
+                       const OpKernelInfoPtr &op_kernel_info_ptr, std::vector<std::vector<int>> &promote_list) const;
 
   void TransInputNameToIdx(const std::vector<std::string> &promote_item, const ge::NodePtr &node,
                            std::vector<std::vector<int>> &promote_list) const;
@@ -300,10 +283,8 @@ class SubOpsStore {
    * @brief: Dispatch format/dtype check by check_mode (ACCURACY_MODE or normal mode).
    *         In normal mode checks inputs then outputs.
    */
-  bool CheckFormatDtypeByMode(const ge::NodePtr &node, const CheckSupportMode &check_mode,
-                              uint32_t input_size, uint32_t output_size,
-                              const bool &is_force_dtype_support,
-                              SupportedFormatAndDtype &info,
+  bool CheckFormatDtypeByMode(const ge::NodePtr &node, const CheckSupportMode &check_mode, uint32_t input_size,
+                              uint32_t output_size, const bool &is_force_dtype_support, SupportedFormatAndDtype &info,
                               CheckSupportParam &check_param) const;
 
   /*
@@ -312,7 +293,7 @@ class SubOpsStore {
   bool CheckAttrsAndParamType(const ge::NodePtr &node, const SupportedFormatAndDtype &info,
                               CheckSupportParam &check_param) const;
 
-  protected:
+ protected:
   bool init_flag_;
 
   std::string engine_name_;

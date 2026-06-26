@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,7 +31,7 @@ Status AttrAssignmentExpression::ParseJson(const nlohmann::json &json_object) {
     return ILLEGAL_JSON;
   }
   // Key map in attribute assignment expression, "attr", "value", "expr"
-  map<string, bool> check_map {
+  map<string, bool> check_map{
       {ATTR, false},
       {VALUE, false},
       {EXPR, false},
@@ -90,7 +90,7 @@ Status AttrAssignmentExpression::ParseToJsonAttr(const nlohmann::json &json_obje
     return ILLEGAL_JSON;
   }
   // Key map in attribute assignment expression, "attr", "value", "expr"
-  map<string, bool> check_map {
+  map<string, bool> check_map{
       {ATTR, false},
       {VALUE, false},
       {EXPR, false},
@@ -157,7 +157,7 @@ Status AttrAssignmentExpression::GetValueType(const std::map<string, std::vector
     std::string engine_name = FusionRuleParserUtils::Instance()->GetEngineName();
     FE_CHECK(engine_name.empty(), REPORT_FE_ERROR("[GraphOpt][FusionRuleInit][GetValType] The engine_name is empty."),
              return ILLEGAL_JSON);
-    
+
     OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(engine_name).GetHighPrioOpKernelInfoPtr(op_type);
     if (op_kernel_info_ptr != nullptr) {
       // 3. Get MapAttrType from OpKernelInfo

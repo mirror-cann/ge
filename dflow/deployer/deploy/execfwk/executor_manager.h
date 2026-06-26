@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,7 +33,7 @@ class ExecutorManager {
     int32_t process_id;
     bool is_proxy = false;
 
-    bool operator < (const ExecutorKey &other) const {
+    bool operator<(const ExecutorKey &other) const {
       auto lhs = *this;
       auto rhs = other;
       if (lhs.rank_id.empty() && (!rhs.rank_id.empty())) {
@@ -60,17 +60,17 @@ class ExecutorManager {
    public:
     static bool Compare(const ExecutorKey &lhs, const ExecutorKey &rhs);
     static std::string GetKeyByEngine(const ExecutorKey &executor_key);
+
    private:
     static std::map<std::string, std::function<std::string(const ExecutorKey &)>> executor_get_key_funcs_;
   };
 
   Status GetOrCreateExecutorClient(const ExecutorManager::ExecutorKey &executor_key,
-                                   const PneExecutorClient::ClientContext &client_context,
-                                   PneExecutorClient **client);
+                                   const PneExecutorClient::ClientContext &client_context, PneExecutorClient **client);
   Status GetExecutorClient(const ExecutorManager::ExecutorKey &executor_key, PneExecutorClient **client);
   void GetExecutorStatus(deployer::DeployerResponse &response,
-      std::map<ExecutorManager::ExecutorKey, bool> &abnormal_pids,
-      std::map<uint32_t, std::vector<std::string>> &model_instance_name);
+                         std::map<ExecutorManager::ExecutorKey, bool> &abnormal_pids,
+                         std::map<uint32_t, std::vector<std::string>> &model_instance_name);
   void ResponseErrorInfoFormat(deployer::DeployerResponse &response) const;
   void Finalize();
 

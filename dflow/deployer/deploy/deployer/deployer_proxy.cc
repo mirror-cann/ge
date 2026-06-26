@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -72,8 +72,7 @@ void DeployerProxy::Finalize() {
   GELOGI("Deployer proxy finalized");
 }
 
-std::unique_ptr<Deployer> DeployerProxy::CreateDeployer(const NodeConfig &node_config,
-                                                        const bool with_heartbeat) {
+std::unique_ptr<Deployer> DeployerProxy::CreateDeployer(const NodeConfig &node_config, const bool with_heartbeat) {
   if (node_config.is_local) {
     return MakeUnique<LocalDeployer>(with_heartbeat);
   } else {
@@ -81,28 +80,23 @@ std::unique_ptr<Deployer> DeployerProxy::CreateDeployer(const NodeConfig &node_c
   }
 }
 
-Status DeployerProxy::SendRequest(int32_t node_id,
-                                  deployer::DeployerRequest &request,
+Status DeployerProxy::SendRequest(int32_t node_id, deployer::DeployerRequest &request,
                                   deployer::DeployerResponse &response) {
   Deployer *deployer = nullptr;
   {
     std::lock_guard<std::mutex> lk(mu_);
     if (static_cast<size_t>(node_id) >= deployers_.size()) {
-      GELOGE(PARAM_INVALID,
-             "device id out of range, node id = %d, num_deployers = %zu",
-             node_id,
-             deployers_.size());
+      GELOGE(PARAM_INVALID, "device id out of range, node id = %d, num_deployers = %zu", node_id, deployers_.size());
       return PARAM_INVALID;
     }
     deployer = deployers_[node_id].get();
   }
 
-  GE_CHK_STATUS_RET(deployer->Process(request, response),
-                    "Failed to send request, node_id = %d, request = %s, %s.",
+  GE_CHK_STATUS_RET(deployer->Process(request, response), "Failed to send request, node_id = %d, request = %s, %s.",
                     node_id, request.DebugString().c_str(), deployer->GetNodeInfo().DebugString().c_str());
   GE_CHK_STATUS(response.error_code(),
-                "Failed to process request, node_id = %d, request type = %d, error code = %u, %s.",
-                node_id, request.type(), response.error_code(), deployer->GetNodeInfo().DebugString().c_str());
+                "Failed to process request, node_id = %d, request type = %d, error code = %u, %s.", node_id,
+                request.type(), response.error_code(), deployer->GetNodeInfo().DebugString().c_str());
   return SUCCESS;
 }
 
@@ -114,10 +108,7 @@ int32_t DeployerProxy::NumNodes() const {
 const NodeInfo *DeployerProxy::GetNodeInfo(int32_t node_id) const {
   std::lock_guard<std::mutex> lk(mu_);
   if (static_cast<size_t>(node_id) >= deployers_.size()) {
-    GELOGE(PARAM_INVALID,
-           "device id out of range, node id = %d, num_deployers = %zu",
-           node_id,
-           deployers_.size());
+    GELOGE(PARAM_INVALID, "device id out of range, node id = %d, num_deployers = %zu", node_id, deployers_.size());
     return nullptr;
   }
   return &deployers_[node_id]->GetNodeInfo();

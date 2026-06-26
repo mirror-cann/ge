@@ -10,9 +10,9 @@
 
 ```
 ├── src
-│   ├──fuse_matmul_add_pass.cpp  // pass实现文件 
+│   ├──fuse_matmul_add_pass.cpp  // pass实现文件
 ├── CMakeLists.txt               // 编译脚本
-├── data         
+├── data
 |   ├──torch_gen_onnx.py         // torch脚本用于导出onnx
 |   ├──torch_forward_1.py          // torch脚本用于在线推理，pass成功执行
 |   ├──torch_forward_2.py          // torch脚本用于在线推理，pass被拦截
@@ -43,11 +43,11 @@
 1. 配置环境变量。
 
    运行软件包中设置环境变量脚本，命令如下：
-   
+
    ```
    source ${ASCEND_PATH}/set_env.sh
    ```
-   
+
    `${ASCEND_PATH}`为CANN软件包安装目录下的cann路径。请替换相关软件包的实际安装路径，例如`${INSTALL_PATH}/cann`。
 
 2. 根据实际情况修改**CMakeLists.txt**文件中的如下信息。
@@ -122,7 +122,7 @@
     - 进入data目录执行.py文件进行在线推理（在线推理请确保已安装torch_npu插件），执行`torch_forward_1.py`：
        ```
        python torch_forward_1.py
-       ```  
+       ```
    - 对于torch_forward_1.py，日志中出现如下打印：
      ```
      Define pattern for FuseMatMulAndAddPass in capture tensor sample
@@ -154,5 +154,3 @@
       export ASCEND_SLOG_PRINT_TO_STDOUT=1 #日志打印到屏幕
       export ASCEND_GLOBAL_LOG_LEVEL=0 #日志级别为debug级别
      ```
-
-

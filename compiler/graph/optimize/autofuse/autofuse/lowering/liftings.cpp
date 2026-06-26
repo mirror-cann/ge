@@ -39,7 +39,7 @@ const char *const kBMMV3Type = "BatchMatMulV3";
 const char *const kConv2DType = "Conv2D";
 const char *const kConv2DV2Type = "Conv2DV2";
 
-GeShape TransferShapeBetweenHwcnNchw(const GeShape& old_shape, const Format& old_format, const Format& new_format) {
+GeShape TransferShapeBetweenHwcnNchw(const GeShape &old_shape, const Format &old_format, const Format &new_format) {
   if (old_shape.GetDimNum() != 4U) {
     return old_shape;
   }
@@ -56,8 +56,7 @@ GeShape TransferShapeBetweenHwcnNchw(const GeShape& old_shape, const Format& old
   return old_shape;
 }
 
-graphStatus CreateConvSubgraphAttr(const NodePtr &node, vector<const Node *> &compute_ops,
-                                   size_t &cube_real_inputs) {
+graphStatus CreateConvSubgraphAttr(const NodePtr &node, vector<const Node *> &compute_ops, size_t &cube_real_inputs) {
   const auto &sub_graph = ComGraphMakeShared<ComputeGraph>(kConvSubgraph + node->GetName());
   GE_ASSERT_NOTNULL(sub_graph);
   for (auto *org_node : compute_ops) {
@@ -66,14 +65,16 @@ graphStatus CreateConvSubgraphAttr(const NodePtr &node, vector<const Node *> &co
       GE_ASSERT_NOTNULL(op_desc);
       op_desc->SetName(org_node->GetName());
       auto conv_output_desc = op_desc->MutableOutputDesc(0);
-      const auto data_format = conv_output_desc->GetFormat(); // 1.单算子在自动融合后formatJudge更新format，自动融合需在subgraph更新format
+      const auto data_format =
+          conv_output_desc->GetFormat();  // 1.单算子在自动融合后formatJudge更新format，自动融合需在subgraph更新format
       auto conv_node = sub_graph->AddNode(op_desc);
       GE_ASSERT_NOTNULL(conv_node);
       for (auto i = 0U; i < cube_real_inputs; i++) {
         auto conv_input_desc = op_desc->MutableInputDesc(i);
         GE_ASSERT_NOTNULL(conv_input_desc);
         const auto old_format = conv_input_desc->GetFormat();
-        conv_input_desc->SetFormat(data_format); // 2.conv节点的输入更新为与输出一致（filter输入会不一样，单算子执行时tiling会校验这个format一致）
+        conv_input_desc->SetFormat(
+            data_format);  // 2.conv节点的输入更新为与输出一致（filter输入会不一样，单算子执行时tiling会校验这个format一致）
         const auto new_shape = TransferShapeBetweenHwcnNchw(conv_input_desc->GetShape(), old_format, data_format);
         conv_input_desc->SetShape(new_shape);
         conv_input_desc->SetOriginShape(new_shape);
@@ -117,8 +118,7 @@ graphStatus RecordLiftingSkipReason(const NodePtr &fuse_node, const std::string 
   return GRAPH_SUCCESS;
 }
 
-graphStatus CreateMMSubgraphAttr(const NodePtr &node, vector<const Node *> &compute_ops,
-                                 size_t &cube_real_inputs) {
+graphStatus CreateMMSubgraphAttr(const NodePtr &node, vector<const Node *> &compute_ops, size_t &cube_real_inputs) {
   const auto &sub_graph = ComGraphMakeShared<ComputeGraph>(kMatmulSubgraph + node->GetName());
   GE_ASSERT_NOTNULL(sub_graph);
   for (auto *org_node : compute_ops) {
@@ -157,11 +157,13 @@ graphStatus CreateMMSubgraphAttr(const NodePtr &node, vector<const Node *> &comp
   return GRAPH_SUCCESS;
 }
 
-bool IsCubeSkipLifting(const NodePtr &node, const size_t min_compute_nodes,
-                       const AutoFuseAttrs *fuse_attrs, bool is_fuse_from_lowering) {
+bool IsCubeSkipLifting(const NodePtr &node, const size_t min_compute_nodes, const AutoFuseAttrs *fuse_attrs,
+                       bool is_fuse_from_lowering) {
   auto origin_nodes = fuse_attrs->GetOriginNodes();
-  vector<const Node *> compute_ops = AutofuseUtils::GetComputeOps(origin_nodes); // GetComputeOps里面融合reshape等节点不会统计成compute节点
-  if ((compute_ops.size() < min_compute_nodes) && is_fuse_from_lowering) { // 需要is_fuse_from_lowering标记判断是否经过canfuse融合
+  vector<const Node *> compute_ops =
+      AutofuseUtils::GetComputeOps(origin_nodes);  // GetComputeOps里面融合reshape等节点不会统计成compute节点
+  if ((compute_ops.size() < min_compute_nodes) &&
+      is_fuse_from_lowering) {  // 需要is_fuse_from_lowering标记判断是否经过canfuse融合
     return false;
   }
 
@@ -180,7 +182,8 @@ bool IsCubeSkipLifting(const NodePtr &node, const size_t min_compute_nodes,
     } else {
       // 当前cube只有matmul和conv，非conv就是matmul
     }
-    cube_real_inputs = asc_node->GetInNodes().size(); // ascgraph里面的cube节点，即使输入是某个节点输出的多引用，也有至少两个输入
+    cube_real_inputs =
+        asc_node->GetInNodes().size();  // ascgraph里面的cube节点，即使输入是某个节点输出的多引用，也有至少两个输入
     break;
   }
   if (has_conv) {
@@ -206,9 +209,11 @@ bool IsSingleTransposeShouldSkipLifting(const NodePtr &node) {
       const auto &output_tail_axis = asc_node->outputs[0].attr.axis[input_size - 1];
       const auto repeat = asc_node->inputs[0].attr.repeats[input_size - 1];
       int64_t dim = -1;
-      GE_ASSERT_TRUE(repeat.GetHint(dim), "Failed to get int value, expr = %s", ge::SymbolicUtils::ToString(repeat).c_str());
+      GE_ASSERT_TRUE(repeat.GetHint(dim), "Failed to get int value, expr = %s",
+                     ge::SymbolicUtils::ToString(repeat).c_str());
       const auto data_type_size = GetSizeByDataType(asc_node->inputs[0].attr.dtype);
-      GE_ASSERT_TRUE(data_type_size > 0, "data_type_size must greater than 0", ge::SymbolicUtils::ToString(repeat).c_str());
+      GE_ASSERT_TRUE(data_type_size > 0, "data_type_size must greater than 0",
+                     ge::SymbolicUtils::ToString(repeat).c_str());
       constexpr int64_t limited_tail_size = 512U;
       const auto limited_size = limited_tail_size / data_type_size;
       // 目前仅非尾轴转置且大尾轴场景跳过Lifting
@@ -255,15 +260,15 @@ bool IsSkipLifting(const NodePtr &node, size_t min_compute_nodes) {
   }
   auto origin_nodes = fuse_attrs->GetOriginNodes();
   if ((origin_nodes.size() > kNumOne) && (fuse_attrs->HasFuseType(loop::FuseType::kSliceSplit))) {
-    GELOGI("Skip lifting node: %s, as slice fuse other node, origin node size is %zu",
-           node->GetNamePtr(), origin_nodes.size());
+    GELOGI("Skip lifting node: %s, as slice fuse other node, origin node size is %zu", node->GetNamePtr(),
+           origin_nodes.size());
     return true;
   }
   // step4: compute node num
-  vector<const Node*> compute_nodes = AutofuseUtils::GetComputeOps(origin_nodes);
+  vector<const Node *> compute_nodes = AutofuseUtils::GetComputeOps(origin_nodes);
   if (compute_nodes.size() >= min_compute_nodes) {
-    GELOGD("Skip lifting node：%s, as num fused nodes num %zu >= %zu",
-           node->GetNamePtr(), compute_nodes.size(), min_compute_nodes);
+    GELOGD("Skip lifting node：%s, as num fused nodes num %zu >= %zu", node->GetNamePtr(), compute_nodes.size(),
+           min_compute_nodes);
     return true;
   }
 
@@ -301,9 +306,10 @@ bool IsSkipLifting(const NodePtr &node, size_t min_compute_nodes) {
 
   // AscIR只包含Transpose类型节点时跳过lifting
   if ((origin_nodes.size() == kNumOne) && (IsSpecificConditionSkipLifting(node))) {
-    GELOGI("Skip lifting node: %s, as the origin node is "
-           "Non-tail axis Transpose with Tail axis greater than or equal to 512B",
-           node->GetNamePtr());
+    GELOGI(
+        "Skip lifting node: %s, as the origin node is "
+        "Non-tail axis Transpose with Tail axis greater than or equal to 512B",
+        node->GetNamePtr());
     return true;
   }
   return false;
@@ -329,7 +335,7 @@ graphStatus LiftingAscBackendOp(const NodePtr &node) {
     }
   }
   auto origin_index = 0U;
-  for (auto asc_output: node->GetAllOutDataAnchors()) {
+  for (auto asc_output : node->GetAllOutDataAnchors()) {
     GE_ASSERT_NOTNULL(asc_output);
     GE_ASSERT_TRUE(fuse_attr->GetOriginOutputBuffers().size() > origin_index);
     const auto origin_output = fuse_attr->GetOriginOutputBuffers()[origin_index++];
@@ -371,9 +377,10 @@ graphStatus LiftingMultiOutNode(const NodePtr &node, const NodePtr &origin_node,
   if (num_of_out_anchors == origin_node->GetAllOutDataAnchorsSize()) {
     GELOGI("Lift AscBackend nodes %s, node list is %s, as: Num fused nodes %zu < %zu.",
            loop::StrJoin(maybe_lifting, [](const NodePtr &n) { return n->GetName(); }).c_str(),
-           loop::StrJoin(fuse_attrs->GetOriginNodes(), [](const Node *n) {
-             return n->GetType() + "(" + n->GetName() + ")";
-           }).c_str(), fuse_attrs->GetOriginNodes().size(), kMinComputeNodes);
+           loop::StrJoin(fuse_attrs->GetOriginNodes(),
+                         [](const Node *n) { return n->GetType() + "(" + n->GetName() + ")"; })
+               .c_str(),
+           fuse_attrs->GetOriginNodes().size(), kMinComputeNodes);
     GE_ASSERT_GRAPH_SUCCESS(LiftingAscBackendOps(maybe_lifting));
     maybe_lifting.clear();
   }
@@ -398,8 +405,8 @@ graphStatus LiftingManager::LiftingGraph(const ComputeGraphPtr &graph) {
     GE_ASSERT_NOTNULL(origin_node);
 
     if (IsSkipLifting(node, kMinComputeNodes)) {
-      GELOGD("Skip lifting node: %s(%s), as it need skip lifting process.",
-             node->GetNamePtr(), node->GetType().c_str());
+      GELOGD("Skip lifting node: %s(%s), as it need skip lifting process.", node->GetNamePtr(),
+             node->GetType().c_str());
       continue;
     }
 
@@ -409,12 +416,13 @@ graphStatus LiftingManager::LiftingGraph(const ComputeGraphPtr &graph) {
     }
 
     GELOGI("Lift AscBackend node %s, node list is %s, as: Num fused nodes %zu < %zu.", node->GetNamePtr(),
-           loop::StrJoin(fuse_attrs->GetOriginNodes(), [](const Node *n) {
-             return n->GetType() + "(" + n->GetName() + ")";
-           }).c_str(), fuse_attrs->GetOriginNodes().size(), kMinComputeNodes);
+           loop::StrJoin(fuse_attrs->GetOriginNodes(),
+                         [](const Node *n) { return n->GetType() + "(" + n->GetName() + ")"; })
+               .c_str(),
+           fuse_attrs->GetOriginNodes().size(), kMinComputeNodes);
     (void)RecordLiftingSkipReason(node, "Not satisfy requierent of skiping lifting , need do lifting");
     GE_ASSERT_GRAPH_SUCCESS(LiftingAscBackendOp(node));
   }
   return GRAPH_SUCCESS;
 }
-}
+}  // namespace ge

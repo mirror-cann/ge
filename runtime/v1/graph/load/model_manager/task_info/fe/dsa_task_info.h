@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,17 +22,21 @@ class DSATaskInfo : public TaskInfo {
 
   ~DSATaskInfo() override = default;
 
-  Status Init(const domi::TaskDef &task_def, DavinciModel *const davinci_model,
-              const PisToArgs &args = {}, const PisToPersistentWorkspace &persistent_workspace = {},
+  Status Init(const domi::TaskDef &task_def, DavinciModel *const davinci_model, const PisToArgs &args = {},
+              const PisToPersistentWorkspace &persistent_workspace = {},
               const IowAddrs &iow_addrs = {{}, {}, {}}) override;
 
   Status Distribute() override;
 
   Status Release() override;
 
-  uint32_t GetTaskID() const override { return task_id_; }
+  uint32_t GetTaskID() const override {
+    return task_id_;
+  }
 
-  uint32_t GetStreamId() const override { return stream_id_; }
+  uint32_t GetStreamId() const override {
+    return stream_id_;
+  }
 
   void PostProcess(const domi::TaskDef &task_def) override;
 
@@ -76,8 +80,8 @@ class DSATaskInfo : public TaskInfo {
   std::vector<uint64_t> sqe_io_addrs_;
   size_t stateful_workspace_idx_{0UL};
   std::vector<uint64_t> workspace_io_addrs_;
-  ArgsIoAddrsUpdater sqe_args_updater_;         // args placement is sqe
-  ArgsIoAddrsUpdater workspace_args_updater_;   // args placement is hbm
+  ArgsIoAddrsUpdater sqe_args_updater_;        // args placement is sqe
+  ArgsIoAddrsUpdater workspace_args_updater_;  // args placement is hbm
   std::vector<uint8_t> sqe_args_refresh_flags_;
   std::vector<uint8_t> hbm_args_refresh_flags_;
 
@@ -91,13 +95,13 @@ class DSATaskInfo : public TaskInfo {
   void GetAddrs(const IowAddrs &iow_addrs);
   Status InitWorkspace(const OpDescPtr &op_desc, const domi::DSATaskDef &dsa_task);
   Status InitSqe(const OpDescPtr &op_desc, const domi::DSATaskDef &dsa_task);
-  uint8_t BoolToUint8(const bool val) const { return (val ? 1U : 0U); }
-  Status UpdateHostArgsWithSqePlacement(const std::vector<uint64_t> &active_mem_base_addr,
-                                        void *const host_args,
+  uint8_t BoolToUint8(const bool val) const {
+    return (val ? 1U : 0U);
+  }
+  Status UpdateHostArgsWithSqePlacement(const std::vector<uint64_t> &active_mem_base_addr, void *const host_args,
                                         const size_t host_args_len) const;
 
-  Status UpdateHostArgsWithHbmPlacement(const std::vector<uint64_t> &active_mem_base_addr,
-                                        void *const host_args,
+  Status UpdateHostArgsWithHbmPlacement(const std::vector<uint64_t> &active_mem_base_addr, void *const host_args,
                                         const size_t host_args_len) const;
 };
 }  // namespace ge

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -15,11 +15,9 @@
 #include "opskernel_executor/ops_kernel_executor_manager.h"
 #include "common/runtime_api_wrapper.h"
 
-
 namespace ge {
-Status DvppTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *const davinci_model,
-                          const PisToArgs &args, const PisToPersistentWorkspace &persistent_workspace,
-                          const IowAddrs &iow_addrs) {
+Status DvppTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *const davinci_model, const PisToArgs &args,
+                          const PisToPersistentWorkspace &persistent_workspace, const IowAddrs &iow_addrs) {
   GELOGI("DvppTaskInfo Init Start.");
   (void)args;
   (void)persistent_workspace;
@@ -36,9 +34,8 @@ Status DvppTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *const dav
   }
 
   ops_kernel_store_ = op_desc->TryGetExtAttr<OpsKernelExecutor *>("OpsKernelInfoStorePtr", nullptr);
-  if ((ops_kernel_store_ == nullptr) &&
-      (OpsKernelExecutorManager::GetInstance().GetExecutor(op_desc->GetOpKernelLibName(), ops_kernel_store_) !=
-       SUCCESS)) {
+  if ((ops_kernel_store_ == nullptr) && (OpsKernelExecutorManager::GetInstance().GetExecutor(
+                                             op_desc->GetOpKernelLibName(), ops_kernel_store_) != SUCCESS)) {
     REPORT_INNER_ERR_MSG("E19999", "Can't get op_desc from davinci_model by index:%u", dvpp_task.op_index());
     GELOGE(INTERNAL_ERROR, "[Get][Op] Task op index:%u out of range!", dvpp_task.op_index());
     return INTERNAL_ERROR;
@@ -60,8 +57,8 @@ Status DvppTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *const dav
     GELOGE(INTERNAL_ERROR, "[Load][Task] fail, return ret:%u", result);
     return INTERNAL_ERROR;
   }
-  GELOGI("DvppTaskInfo %s Init Success, logic stream id: %u, stream: %p",
-    op_desc->GetNamePtr(), task_def.stream_id(), stream_);
+  GELOGI("DvppTaskInfo %s Init Success, logic stream id: %u, stream: %p", op_desc->GetNamePtr(), task_def.stream_id(),
+         stream_);
   return SUCCESS;
 }
 

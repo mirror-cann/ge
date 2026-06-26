@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -45,8 +45,9 @@ using namespace fe;
 class UB_FUSION_ST_AUTO_FUSION : public testing::Test {
  public:
  protected:
-
-  static void SetUpTestCase() { std::cout << "UB fusion SetUp" << std::endl; }
+  static void SetUpTestCase() {
+    std::cout << "UB fusion SetUp" << std::endl;
+  }
 
   static void TearDownTestCase() {
     std::cout << "UB fusion TearDown" << std::endl;
@@ -55,14 +56,11 @@ class UB_FUSION_ST_AUTO_FUSION : public testing::Test {
   virtual void SetUp() {
     graph_comm_ptr_ = std::make_shared<GraphComm>("engineName");
     graph_comm_ptr_->Initialize();
-    sub_graph_optimizer_ptr_ =
-        std::make_shared<BufferFusion>(graph_comm_ptr_, nullptr, nullptr);
+    sub_graph_optimizer_ptr_ = std::make_shared<BufferFusion>(graph_comm_ptr_, nullptr, nullptr);
     auto_buffer_fusion_ptr_ = std::make_shared<AutomaticBufferFusion>(nullptr);
   }
 
-  virtual void TearDown() {
-
- }
+  virtual void TearDown() {}
 
   std::shared_ptr<GraphComm> graph_comm_ptr_;
   std::shared_ptr<AutomaticBufferFusion> auto_buffer_fusion_ptr_;
@@ -71,8 +69,7 @@ class UB_FUSION_ST_AUTO_FUSION : public testing::Test {
   void BuildGraph_01(ge::ComputeGraphPtr &graph) {
     /* add1 -> add2 */
     ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-        original_shape);
+    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
     string ADD = "Add";
     test.AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "add1", ADD, 2, 1)
         .SetExtAttr(ge::OP_EXTATTR_NAME_TBE_KERNEL, 0)
@@ -92,8 +89,7 @@ class UB_FUSION_ST_AUTO_FUSION : public testing::Test {
    *     */
   void BuildGraph_02(ge::ComputeGraphPtr &graph) {
     ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                          original_shape);
+    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
     string ADD = "Add";
     string SQRT = "Sqrt";
     test.AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "add1", ADD, 2, 1)
@@ -119,49 +115,48 @@ class UB_FUSION_ST_AUTO_FUSION : public testing::Test {
     test.DumpGraph(graph);
   }
 
-    /* add1 -> add2
-     *     \-> sqrt1
-     *     \-> sqrt2
-     *     \-> sqrt3 -> sqrt4-> conv2d -> sqrt5
-     *     */
-    void BuildGraph_Long_Name(ge::ComputeGraphPtr &graph) {
-        ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-        GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                              original_shape);
-        string ADD = "Add";
-        string SQRT = "Sqrt";
-        string one_hundred_one;
-        string one_hundred_two;
-        string one_hundred_three;
-        string one_hundred_four;
-        for (int i = 0; i < 100; i++) {
-            one_hundred_one += "1";
-            one_hundred_two += "2";
-            one_hundred_three += "3";
-            one_hundred_four += "4";
-        }
-        test.AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "add1"+one_hundred_one, ADD, 2, 1)
-            .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "add2"+one_hundred_two, ADD, 2, 1)
-            .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt1"+one_hundred_one, SQRT, 1, 1)
-            .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt2"+one_hundred_two, SQRT, 1, 1)
-            .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt3"+one_hundred_three, SQRT, 1, 1)
-            .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt4"+one_hundred_four, SQRT, 1, 1)
-            .AddOpDesc(EN_IMPL_HW_TBE, "convolution", "conv2d", fe::CONV2D, 2, 1)
-            .SetInput("add1:0", "Data_1")
-            .SetInput("add1:1", "Data_2")
-            .SetInput("add2:0", "Data_3")
-            .SetInput("add2:1", "add1:0")
-            .SetInput("sqrt1", "add1:0")
-            .SetInput("sqrt2", "add1:0")
-            .SetInput("sqrt3", "add1:0")
-            .SetInput("sqrt4", "sqrt3")
-            .SetInput("conv2d", "sqrt4")
-            .SetInput("conv2d:1", "Data_4")
-            .SetInput("sqrt5", "conv2d")
-            .SetInput("NetOutput", "sqrt5:0");
-
-        test.DumpGraph(graph);
+  /* add1 -> add2
+   *     \-> sqrt1
+   *     \-> sqrt2
+   *     \-> sqrt3 -> sqrt4-> conv2d -> sqrt5
+   *     */
+  void BuildGraph_Long_Name(ge::ComputeGraphPtr &graph) {
+    ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
+    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
+    string ADD = "Add";
+    string SQRT = "Sqrt";
+    string one_hundred_one;
+    string one_hundred_two;
+    string one_hundred_three;
+    string one_hundred_four;
+    for (int i = 0; i < 100; i++) {
+      one_hundred_one += "1";
+      one_hundred_two += "2";
+      one_hundred_three += "3";
+      one_hundred_four += "4";
     }
+    test.AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "add1" + one_hundred_one, ADD, 2, 1)
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "add2" + one_hundred_two, ADD, 2, 1)
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt1" + one_hundred_one, SQRT, 1, 1)
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt2" + one_hundred_two, SQRT, 1, 1)
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt3" + one_hundred_three, SQRT, 1, 1)
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt4" + one_hundred_four, SQRT, 1, 1)
+        .AddOpDesc(EN_IMPL_HW_TBE, "convolution", "conv2d", fe::CONV2D, 2, 1)
+        .SetInput("add1:0", "Data_1")
+        .SetInput("add1:1", "Data_2")
+        .SetInput("add2:0", "Data_3")
+        .SetInput("add2:1", "add1:0")
+        .SetInput("sqrt1", "add1:0")
+        .SetInput("sqrt2", "add1:0")
+        .SetInput("sqrt3", "add1:0")
+        .SetInput("sqrt4", "sqrt3")
+        .SetInput("conv2d", "sqrt4")
+        .SetInput("conv2d:1", "Data_4")
+        .SetInput("sqrt5", "conv2d")
+        .SetInput("NetOutput", "sqrt5:0");
+
+    test.DumpGraph(graph);
+  }
 
   /* add1 -> add2
    *     \-> sqrt1
@@ -171,8 +166,7 @@ class UB_FUSION_ST_AUTO_FUSION : public testing::Test {
    *     \-> conv2d2 */
   void BuildGraph_03(ge::ComputeGraphPtr &graph) {
     ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                          original_shape);
+    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
     string ADD = "Add";
     string SQRT = "Sqrt";
     test.AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "add1", ADD, 2, 1)
@@ -216,8 +210,7 @@ class UB_FUSION_ST_AUTO_FUSION : public testing::Test {
    * Can fuse add1, add2, sqrt1, sqrt2, sqrt3. */
   void BuildGraph_04(ge::ComputeGraphPtr &graph) {
     ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                          original_shape);
+    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
     string ADD = "Add";
     string SQRT = "Sqrt";
     test.AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "add1", ADD, 2, 1)
@@ -252,7 +245,6 @@ class UB_FUSION_ST_AUTO_FUSION : public testing::Test {
         .SetInput("NetOutput", "conv2d2");
   }
 
-
   /* add1 -> add2
    *     \-> sqrt1
    *     \-> sqrt2
@@ -263,8 +255,7 @@ class UB_FUSION_ST_AUTO_FUSION : public testing::Test {
    * Can fuse add1, add2, sqrt1, sqrt2, sqrt3, sqrt4*/
   void BuildGraph_05(ge::ComputeGraphPtr &graph) {
     ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                          original_shape);
+    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
     string ADD = "Add";
     string SQRT = "Sqrt";
     test.AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "add1", ADD, 2, 1)
@@ -301,8 +292,7 @@ class UB_FUSION_ST_AUTO_FUSION : public testing::Test {
    *     */
   void BuildGraph_06(ge::ComputeGraphPtr &graph) {
     ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                          original_shape);
+    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
     string ADD = "Add";
     string SQRT = "Sqrt";
     test.AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "add1", ADD, 2, 1)
@@ -319,8 +309,7 @@ class UB_FUSION_ST_AUTO_FUSION : public testing::Test {
    *     */
   void BuildGraph_07(ge::ComputeGraphPtr &graph) {
     ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                          original_shape);
+    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
     string ADD = "Add";
     string SQRT = "Sqrt";
     test.AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt1", SQRT, 1, 1)
@@ -331,14 +320,12 @@ class UB_FUSION_ST_AUTO_FUSION : public testing::Test {
         .SetInputs({"sqrt1", "sqrt2"});
   }
 
-
   /* add1 -> sqrt1 -> sqrt3 -> sqrt5 -> Conv
    *      \- sqrt2 -> sqrt4 -> sqrt6 ---/
    *     */
   void BuildGraph_08(ge::ComputeGraphPtr &graph) {
     ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                          original_shape);
+    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
     string ADD = "Add";
     string SQRT = "Sqrt";
     test.AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "add1", ADD, 2, 1)
@@ -368,8 +355,7 @@ class UB_FUSION_ST_AUTO_FUSION : public testing::Test {
    *  cannot fuse because duplicate is not allowed. */
   void BuildGraph_09(ge::ComputeGraphPtr &graph) {
     ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                          original_shape);
+    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
     string ADD = "Add";
     string SQRT = "Sqrt";
     test.AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt1", SQRT, 1, 1)
@@ -382,7 +368,6 @@ class UB_FUSION_ST_AUTO_FUSION : public testing::Test {
     test.DumpGraph(graph);
   }
 
-
   /* Data_1 -> sqrt1 ------> conv2d
    *             \- sqrt2 ---/
    *             \- sqrt3
@@ -390,8 +375,7 @@ class UB_FUSION_ST_AUTO_FUSION : public testing::Test {
    *  from fusion is 2(sqrt2 and sqrt3), which is less than 3. */
   void BuildGraph_10(ge::ComputeGraphPtr &graph) {
     ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                          original_shape);
+    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
     string ADD = "Add";
     string SQRT = "Sqrt";
     test.AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt1", SQRT, 1, 1)
@@ -406,7 +390,6 @@ class UB_FUSION_ST_AUTO_FUSION : public testing::Test {
     test.DumpGraph(graph);
   }
 
-
   /*  Data_1 -> sqrt1 ------> conv2d
    *             \- sqrt2 ----/
    *             \- sqrt3  ->Netoutput
@@ -420,8 +403,7 @@ class UB_FUSION_ST_AUTO_FUSION : public testing::Test {
    *                            \-------> Netoutput */
   void BuildGraph_11(ge::ComputeGraphPtr &graph) {
     ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                          original_shape);
+    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
     string ADD = "Add";
     string SQRT = "Sqrt";
     test.AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt1", SQRT, 1, 1)
@@ -441,88 +423,147 @@ class UB_FUSION_ST_AUTO_FUSION : public testing::Test {
   /*  sqrt1 -> sqrt2 ->..... -> sqrt31 */
   void BuildGraph_12(ge::ComputeGraphPtr &graph) {
     ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                          original_shape);
+    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
     string ADD = "Add";
     string SQRT = "Sqrt";
-    test.AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt1", SQRT, 1, 1).SetInputs({"Data_1"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt2", SQRT, 1, 1).SetInputs({"sqrt1"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt3", SQRT, 1, 1).SetInputs({"sqrt2"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt4", SQRT, 1, 1).SetInputs({"sqrt3"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt5", SQRT, 1, 1).SetInputs({"sqrt4"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt6", SQRT, 1, 1).SetInputs({"sqrt5"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt7", SQRT, 1, 1).SetInputs({"sqrt6"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt8", SQRT, 1, 1).SetInputs({"sqrt7"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt9", SQRT, 1, 1).SetInputs({"sqrt8"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt10", SQRT, 1, 1).SetInputs({"sqrt9"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt11", SQRT, 1, 1).SetInputs({"sqrt10"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt12", SQRT, 1, 1).SetInputs({"sqrt11"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt13", SQRT, 1, 1).SetInputs({"sqrt12"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt14", SQRT, 1, 1).SetInputs({"sqrt13"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt15", SQRT, 1, 1).SetInputs({"sqrt14"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt16", SQRT, 1, 1).SetInputs({"sqrt15"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt17", SQRT, 1, 1).SetInputs({"sqrt16"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt18", SQRT, 1, 1).SetInputs({"sqrt17"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt19", SQRT, 1, 1).SetInputs({"sqrt18"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt20", SQRT, 1, 1).SetInputs({"sqrt19"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt21", SQRT, 1, 1).SetInputs({"sqrt20"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt22", SQRT, 1, 1).SetInputs({"sqrt21"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt23", SQRT, 1, 1).SetInputs({"sqrt22"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt24", SQRT, 1, 1).SetInputs({"sqrt23"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt25", SQRT, 1, 1).SetInputs({"sqrt24"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt26", SQRT, 1, 1).SetInputs({"sqrt25"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt27", SQRT, 1, 1).SetInputs({"sqrt26"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt28", SQRT, 1, 1).SetInputs({"sqrt27"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt29", SQRT, 1, 1).SetInputs({"sqrt28"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt30", SQRT, 1, 1).SetInputs({"sqrt29"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt31", SQRT, 1, 1).SetInputs({"sqrt30"})
+    test.AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt1", SQRT, 1, 1)
+        .SetInputs({"Data_1"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt2", SQRT, 1, 1)
+        .SetInputs({"sqrt1"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt3", SQRT, 1, 1)
+        .SetInputs({"sqrt2"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt4", SQRT, 1, 1)
+        .SetInputs({"sqrt3"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt5", SQRT, 1, 1)
+        .SetInputs({"sqrt4"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt6", SQRT, 1, 1)
+        .SetInputs({"sqrt5"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt7", SQRT, 1, 1)
+        .SetInputs({"sqrt6"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt8", SQRT, 1, 1)
+        .SetInputs({"sqrt7"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt9", SQRT, 1, 1)
+        .SetInputs({"sqrt8"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt10", SQRT, 1, 1)
+        .SetInputs({"sqrt9"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt11", SQRT, 1, 1)
+        .SetInputs({"sqrt10"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt12", SQRT, 1, 1)
+        .SetInputs({"sqrt11"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt13", SQRT, 1, 1)
+        .SetInputs({"sqrt12"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt14", SQRT, 1, 1)
+        .SetInputs({"sqrt13"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt15", SQRT, 1, 1)
+        .SetInputs({"sqrt14"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt16", SQRT, 1, 1)
+        .SetInputs({"sqrt15"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt17", SQRT, 1, 1)
+        .SetInputs({"sqrt16"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt18", SQRT, 1, 1)
+        .SetInputs({"sqrt17"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt19", SQRT, 1, 1)
+        .SetInputs({"sqrt18"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt20", SQRT, 1, 1)
+        .SetInputs({"sqrt19"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt21", SQRT, 1, 1)
+        .SetInputs({"sqrt20"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt22", SQRT, 1, 1)
+        .SetInputs({"sqrt21"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt23", SQRT, 1, 1)
+        .SetInputs({"sqrt22"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt24", SQRT, 1, 1)
+        .SetInputs({"sqrt23"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt25", SQRT, 1, 1)
+        .SetInputs({"sqrt24"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt26", SQRT, 1, 1)
+        .SetInputs({"sqrt25"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt27", SQRT, 1, 1)
+        .SetInputs({"sqrt26"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt28", SQRT, 1, 1)
+        .SetInputs({"sqrt27"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt29", SQRT, 1, 1)
+        .SetInputs({"sqrt28"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt30", SQRT, 1, 1)
+        .SetInputs({"sqrt29"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt31", SQRT, 1, 1)
+        .SetInputs({"sqrt30"})
         .SetInputs("NetOutput", {"sqrt31"});
     test.DumpGraph(graph);
   }
-
 
   /*  add -> sqrt1 ->..... -> sqrt15
    *     \- sqrt16 -> .... -> sqrt31*/
   void BuildGraph_13(ge::ComputeGraphPtr &graph) {
     ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                          original_shape);
+    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
     string ADD = "Add";
     string SQRT = "Sqrt";
-    test.AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "add1", ADD, 2, 1).SetInputs({"Data_1", "Data_2"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt1", SQRT, 1, 1).SetInputs({"add1:0"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt2", SQRT, 1, 1).SetInputs({"sqrt1"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt3", SQRT, 1, 1).SetInputs({"sqrt2"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt4", SQRT, 1, 1).SetInputs({"sqrt3"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt5", SQRT, 1, 1).SetInputs({"sqrt4"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt6", SQRT, 1, 1).SetInputs({"sqrt5"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt7", SQRT, 1, 1).SetInputs({"sqrt6"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt8", SQRT, 1, 1).SetInputs({"sqrt7"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt9", SQRT, 1, 1).SetInputs({"sqrt8"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt10", SQRT, 1, 1).SetInputs({"sqrt9"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt11", SQRT, 1, 1).SetInputs({"sqrt10"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt12", SQRT, 1, 1).SetInputs({"sqrt11"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt13", SQRT, 1, 1).SetInputs({"sqrt12"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt14", SQRT, 1, 1).SetInputs({"sqrt13"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt15", SQRT, 1, 1).SetInputs({"sqrt14"})
+    test.AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "add1", ADD, 2, 1)
+        .SetInputs({"Data_1", "Data_2"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt1", SQRT, 1, 1)
+        .SetInputs({"add1:0"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt2", SQRT, 1, 1)
+        .SetInputs({"sqrt1"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt3", SQRT, 1, 1)
+        .SetInputs({"sqrt2"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt4", SQRT, 1, 1)
+        .SetInputs({"sqrt3"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt5", SQRT, 1, 1)
+        .SetInputs({"sqrt4"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt6", SQRT, 1, 1)
+        .SetInputs({"sqrt5"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt7", SQRT, 1, 1)
+        .SetInputs({"sqrt6"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt8", SQRT, 1, 1)
+        .SetInputs({"sqrt7"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt9", SQRT, 1, 1)
+        .SetInputs({"sqrt8"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt10", SQRT, 1, 1)
+        .SetInputs({"sqrt9"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt11", SQRT, 1, 1)
+        .SetInputs({"sqrt10"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt12", SQRT, 1, 1)
+        .SetInputs({"sqrt11"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt13", SQRT, 1, 1)
+        .SetInputs({"sqrt12"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt14", SQRT, 1, 1)
+        .SetInputs({"sqrt13"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt15", SQRT, 1, 1)
+        .SetInputs({"sqrt14"})
 
-
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt16", SQRT, 1, 1).SetInputs({"add1:0"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt17", SQRT, 1, 1).SetInputs({"sqrt16"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt18", SQRT, 1, 1).SetInputs({"sqrt17"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt19", SQRT, 1, 1).SetInputs({"sqrt18"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt20", SQRT, 1, 1).SetInputs({"sqrt19"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt21", SQRT, 1, 1).SetInputs({"sqrt20"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt22", SQRT, 1, 1).SetInputs({"sqrt21"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt23", SQRT, 1, 1).SetInputs({"sqrt22"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt24", SQRT, 1, 1).SetInputs({"sqrt23"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt25", SQRT, 1, 1).SetInputs({"sqrt24"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt26", SQRT, 1, 1).SetInputs({"sqrt25"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt27", SQRT, 1, 1).SetInputs({"sqrt26"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt28", SQRT, 1, 1).SetInputs({"sqrt27"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt29", SQRT, 1, 1).SetInputs({"sqrt28"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt30", SQRT, 1, 1).SetInputs({"sqrt29"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt31", SQRT, 1, 1).SetInputs({"sqrt30"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt16", SQRT, 1, 1)
+        .SetInputs({"add1:0"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt17", SQRT, 1, 1)
+        .SetInputs({"sqrt16"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt18", SQRT, 1, 1)
+        .SetInputs({"sqrt17"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt19", SQRT, 1, 1)
+        .SetInputs({"sqrt18"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt20", SQRT, 1, 1)
+        .SetInputs({"sqrt19"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt21", SQRT, 1, 1)
+        .SetInputs({"sqrt20"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt22", SQRT, 1, 1)
+        .SetInputs({"sqrt21"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt23", SQRT, 1, 1)
+        .SetInputs({"sqrt22"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt24", SQRT, 1, 1)
+        .SetInputs({"sqrt23"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt25", SQRT, 1, 1)
+        .SetInputs({"sqrt24"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt26", SQRT, 1, 1)
+        .SetInputs({"sqrt25"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt27", SQRT, 1, 1)
+        .SetInputs({"sqrt26"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt28", SQRT, 1, 1)
+        .SetInputs({"sqrt27"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt29", SQRT, 1, 1)
+        .SetInputs({"sqrt28"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt30", SQRT, 1, 1)
+        .SetInputs({"sqrt29"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt31", SQRT, 1, 1)
+        .SetInputs({"sqrt30"})
         .SetInputs("NetOutput", {"sqrt15", "sqrt31"});
     test.DumpGraph(graph);
   }
@@ -534,57 +575,88 @@ class UB_FUSION_ST_AUTO_FUSION : public testing::Test {
    */
   void BuildGraph_13_1(ge::ComputeGraphPtr &graph) {
     ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                          original_shape);
+    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
     string ADD = "Add";
     string SQRT = "Sqrt";
-    test.AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "add1", ADD, 2, 1).SetInputs({"Data_1", "Data_2"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt1", SQRT, 1, 1).SetInputs({"add1:0"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt2", SQRT, 1, 1).SetInputs({"sqrt1"})
+    test.AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "add1", ADD, 2, 1)
+        .SetInputs({"Data_1", "Data_2"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt1", SQRT, 1, 1)
+        .SetInputs({"add1:0"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt2", SQRT, 1, 1)
+        .SetInputs({"sqrt1"})
         .Attr(ATTR_NAME_IS_OP_DYNAMIC_IMPL, false)
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt3", SQRT, 1, 1).SetInputs({"sqrt2"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt3", SQRT, 1, 1)
+        .SetInputs({"sqrt2"})
         .Attr(ATTR_NAME_IS_OP_DYNAMIC_IMPL, false)
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt4", SQRT, 1, 1).SetInputs({"sqrt3"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt4", SQRT, 1, 1)
+        .SetInputs({"sqrt3"})
         .Attr(ATTR_NAME_IS_OP_DYNAMIC_IMPL, false)
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt5", SQRT, 1, 1).SetInputs({"sqrt4"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt5", SQRT, 1, 1)
+        .SetInputs({"sqrt4"})
         .Attr(ATTR_NAME_IS_OP_DYNAMIC_IMPL, false)
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt6", SQRT, 1, 1).SetInputs({"sqrt5"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt6", SQRT, 1, 1)
+        .SetInputs({"sqrt5"})
         .Attr(ATTR_NAME_IS_OP_DYNAMIC_IMPL, false)
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt7", SQRT, 1, 1).SetInputs({"sqrt6"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt7", SQRT, 1, 1)
+        .SetInputs({"sqrt6"})
         .Attr(ATTR_NAME_IS_OP_DYNAMIC_IMPL, false)
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt8", SQRT, 1, 1).SetInputs({"sqrt7"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt8", SQRT, 1, 1)
+        .SetInputs({"sqrt7"})
         .Attr(ATTR_NAME_IS_OP_DYNAMIC_IMPL, false)
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt9", SQRT, 1, 1).SetInputs({"sqrt8"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt9", SQRT, 1, 1)
+        .SetInputs({"sqrt8"})
         .Attr(ATTR_NAME_IS_OP_DYNAMIC_IMPL, false)
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt10", SQRT, 1, 1).SetInputs({"sqrt9"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt10", SQRT, 1, 1)
+        .SetInputs({"sqrt9"})
         .Attr(ATTR_NAME_IS_OP_DYNAMIC_IMPL, true)
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt11", SQRT, 1, 1).SetInputs({"sqrt10"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt11", SQRT, 1, 1)
+        .SetInputs({"sqrt10"})
         .Attr(ATTR_NAME_IS_OP_DYNAMIC_IMPL, true)
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt12", SQRT, 1, 1).SetInputs({"sqrt11"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt12", SQRT, 1, 1)
+        .SetInputs({"sqrt11"})
         .Attr(ATTR_NAME_IS_OP_DYNAMIC_IMPL, true)
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt13", SQRT, 1, 1).SetInputs({"sqrt12"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt13", SQRT, 1, 1)
+        .SetInputs({"sqrt12"})
         .Attr(ATTR_NAME_IS_OP_DYNAMIC_IMPL, true)
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt14", SQRT, 1, 1).SetInputs({"sqrt13"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt14", SQRT, 1, 1)
+        .SetInputs({"sqrt13"})
         .Attr(ATTR_NAME_IS_OP_DYNAMIC_IMPL, true)
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt15", SQRT, 1, 1).SetInputs({"sqrt14"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt15", SQRT, 1, 1)
+        .SetInputs({"sqrt14"})
         .Attr(ATTR_NAME_IS_OP_DYNAMIC_IMPL, true)
 
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt16", SQRT, 1, 1).SetInputs({"add1:0"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt17", SQRT, 1, 1).SetInputs({"sqrt16"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt18", SQRT, 1, 1).SetInputs({"sqrt17"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt19", SQRT, 1, 1).SetInputs({"sqrt18"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt20", SQRT, 1, 1).SetInputs({"sqrt19"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt21", SQRT, 1, 1).SetInputs({"sqrt20"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt22", SQRT, 1, 1).SetInputs({"sqrt21"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt23", SQRT, 1, 1).SetInputs({"sqrt22"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt24", SQRT, 1, 1).SetInputs({"sqrt23"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt25", SQRT, 1, 1).SetInputs({"sqrt24"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt26", SQRT, 1, 1).SetInputs({"sqrt25"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt27", SQRT, 1, 1).SetInputs({"sqrt26"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt28", SQRT, 1, 1).SetInputs({"sqrt27"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt29", SQRT, 1, 1).SetInputs({"sqrt28"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt30", SQRT, 1, 1).SetInputs({"sqrt29"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt31", SQRT, 1, 1).SetInputs({"sqrt30"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt16", SQRT, 1, 1)
+        .SetInputs({"add1:0"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt17", SQRT, 1, 1)
+        .SetInputs({"sqrt16"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt18", SQRT, 1, 1)
+        .SetInputs({"sqrt17"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt19", SQRT, 1, 1)
+        .SetInputs({"sqrt18"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt20", SQRT, 1, 1)
+        .SetInputs({"sqrt19"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt21", SQRT, 1, 1)
+        .SetInputs({"sqrt20"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt22", SQRT, 1, 1)
+        .SetInputs({"sqrt21"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt23", SQRT, 1, 1)
+        .SetInputs({"sqrt22"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt24", SQRT, 1, 1)
+        .SetInputs({"sqrt23"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt25", SQRT, 1, 1)
+        .SetInputs({"sqrt24"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt26", SQRT, 1, 1)
+        .SetInputs({"sqrt25"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt27", SQRT, 1, 1)
+        .SetInputs({"sqrt26"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt28", SQRT, 1, 1)
+        .SetInputs({"sqrt27"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt29", SQRT, 1, 1)
+        .SetInputs({"sqrt28"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt30", SQRT, 1, 1)
+        .SetInputs({"sqrt29"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt31", SQRT, 1, 1)
+        .SetInputs({"sqrt30"})
         .SetInputs("NetOutput", {"sqrt15", "sqrt31"});
     test.DumpGraph(graph);
   }
@@ -596,21 +668,28 @@ class UB_FUSION_ST_AUTO_FUSION : public testing::Test {
    *     \- sqrt8 */
   void BuildGraph_14(ge::ComputeGraphPtr &graph) {
     ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                          original_shape);
+    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
     string ADD = "Add";
     string SQRT = "Sqrt";
-    test.AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "add1", ADD, 2, 1).SetInputs({"Data_1", "Data_2"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt1", SQRT, 1, 1).SetInputs({"add1:0"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt2", SQRT, 1, 1).SetInputs({"add1:0"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt3", SQRT, 1, 1).SetInputs({"add1:0"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt4", SQRT, 1, 1).SetInputs({"add1:0"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt5", SQRT, 1, 1).SetInputs({"add1:0"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt6", SQRT, 1, 1).SetInputs({"add1:0"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt7", SQRT, 1, 1).SetInputs({"add1:0"})
-        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt8", SQRT, 1, 1).SetInputs({"add1:0"})
-        .SetInputs("NetOutput", {"sqrt1", "sqrt2", "sqrt3", "sqrt4", "sqrt5",
-                                 "sqrt6", "sqrt7", "sqrt8"});
+    test.AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "add1", ADD, 2, 1)
+        .SetInputs({"Data_1", "Data_2"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt1", SQRT, 1, 1)
+        .SetInputs({"add1:0"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt2", SQRT, 1, 1)
+        .SetInputs({"add1:0"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt3", SQRT, 1, 1)
+        .SetInputs({"add1:0"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt4", SQRT, 1, 1)
+        .SetInputs({"add1:0"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt5", SQRT, 1, 1)
+        .SetInputs({"add1:0"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt6", SQRT, 1, 1)
+        .SetInputs({"add1:0"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt7", SQRT, 1, 1)
+        .SetInputs({"add1:0"})
+        .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt8", SQRT, 1, 1)
+        .SetInputs({"add1:0"})
+        .SetInputs("NetOutput", {"sqrt1", "sqrt2", "sqrt3", "sqrt4", "sqrt5", "sqrt6", "sqrt7", "sqrt8"});
     test.DumpGraph(graph);
   }
 
@@ -619,8 +698,7 @@ class UB_FUSION_ST_AUTO_FUSION : public testing::Test {
    */
   void BuildGraph_15(ge::ComputeGraphPtr &graph) {
     ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                          original_shape);
+    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
     string ADD = "Add";
     string SQRT = "Sqrt";
     test.AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt1", SQRT, 1, 1)
@@ -642,15 +720,13 @@ class UB_FUSION_ST_AUTO_FUSION : public testing::Test {
     test.DumpGraph(graph);
   }
 
-
   /*   sqrt1--->Add1---->Add2------->Add3
    *     \-----sqrt2(2)--sqrt3(2)-----/
    *
    * sqrt2 and sqrt3 will be set as scope id 2 */
   void BuildGraph_16(ge::ComputeGraphPtr &graph) {
     ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                          original_shape);
+    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
     string ADD = "Add";
     string SQRT = "Sqrt";
     test.AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt1", SQRT, 1, 1)
@@ -689,8 +765,7 @@ class UB_FUSION_ST_AUTO_FUSION : public testing::Test {
    * sqrt2 and sqrt3 will be set as scope id 2 */
   void BuildGraph_17(ge::ComputeGraphPtr &graph, ge::NodePtr &sqrt1) {
     ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                          original_shape);
+    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
     string ADD = "Add";
     string SQRT = "Sqrt";
     test.AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt1", SQRT, 1, 1)
@@ -728,11 +803,9 @@ class UB_FUSION_ST_AUTO_FUSION : public testing::Test {
    *   sqrt2----/
    *
    * test the connectivity matrix */
-  void BuildGraph_18(ge::ComputeGraphPtr &graph,
-      ge::NodePtr& sqrt1, ge::NodePtr& sqrt2, ge::NodePtr& add1) {
+  void BuildGraph_18(ge::ComputeGraphPtr &graph, ge::NodePtr &sqrt1, ge::NodePtr &sqrt2, ge::NodePtr &add1) {
     ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                          original_shape);
+    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
     string ADD = "Add";
     string SQRT = "Sqrt";
     test.AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sqrt1", SQRT, 1, 1)
@@ -750,16 +823,14 @@ class UB_FUSION_ST_AUTO_FUSION : public testing::Test {
     test.GetNodeByName("add1", add1);
   }
 
-
   /*   realdiv------->sign---------------->mul
    *        \---abs-->add(2)--->sqrt(2)--->/
    *
    * add and sqrt will be set as scope id 2 */
-  void BuildGraph_19(ge::ComputeGraphPtr &graph, ge::NodePtr &realdiv,
-      ge::NodePtr& sign, ge::NodePtr &abs, ge::NodePtr &mul) {
+  void BuildGraph_19(ge::ComputeGraphPtr &graph, ge::NodePtr &realdiv, ge::NodePtr &sign, ge::NodePtr &abs,
+                     ge::NodePtr &mul) {
     ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                          original_shape);
+    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
     string ADD = "Add";
     string SQRT = "Sqrt";
     test.AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "realdiv", "RealDiv", 2, 2)
@@ -803,11 +874,10 @@ class UB_FUSION_ST_AUTO_FUSION : public testing::Test {
    *                \------->Maximum1(2)------>Square3(2)------->/
    *
    * add and sqrt will be set as scope id 2 */
-  void BuildGraph_20(ge::ComputeGraphPtr &graph, ge::NodePtr &mul1,
-                     ge::NodePtr& square, ge::NodePtr &mul2, ge::NodePtr &max3) {
+  void BuildGraph_20(ge::ComputeGraphPtr &graph, ge::NodePtr &mul1, ge::NodePtr &square, ge::NodePtr &mul2,
+                     ge::NodePtr &max3) {
     ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                          original_shape);
+    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
     string ADD = "Add";
     string SQRT = "Sqrt";
     test.AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "Square", "Square", 1, 1)
@@ -861,8 +931,7 @@ class UB_FUSION_ST_AUTO_FUSION : public testing::Test {
    */
   void BuildGraph_21(ge::ComputeGraphPtr &graph) {
     ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                          original_shape);
+    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
     string ADD = "Add";
     test.AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "bn", "BNTrainingUpdateV2", 3, 3)
         .SetInputs({"Data_1", "Data_2", "Data_3"})
@@ -878,14 +947,11 @@ class UB_FUSION_ST_AUTO_FUSION : public testing::Test {
     test.DumpGraph(graph);
   }
 
-
   /* contains control edges. */
-  void BuildGraph_22(ge::ComputeGraphPtr &graph, ge::NodePtr &addn,
-                     ge::NodePtr& realdiv1, ge::NodePtr &realdiv,
-                     ge::NodePtr& transdata) {
+  void BuildGraph_22(ge::ComputeGraphPtr &graph, ge::NodePtr &addn, ge::NodePtr &realdiv1, ge::NodePtr &realdiv,
+                     ge::NodePtr &transdata) {
     ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                          original_shape);
+    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
 
     test.AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "AddN", "AddN", 2, 1)
         .SetInputs({"PlaceHolder_1", "PlaceHolder_2"})
@@ -926,14 +992,11 @@ class UB_FUSION_ST_AUTO_FUSION : public testing::Test {
     test.GetNodeByName("TransData", transdata);
   }
 
-
   /* contains control edges. */
-  void BuildGraph_23(ge::ComputeGraphPtr &graph, ge::NodePtr &addn,
-                     ge::NodePtr& realdiv1, ge::NodePtr &realdiv,
-                     ge::NodePtr& transdata) {
+  void BuildGraph_23(ge::ComputeGraphPtr &graph, ge::NodePtr &addn, ge::NodePtr &realdiv1, ge::NodePtr &realdiv,
+                     ge::NodePtr &transdata) {
     ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                          original_shape);
+    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
 
     test.AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "AddN", "AddN", 2, 1)
         .SetInputs({"PlaceHolder_1", "PlaceHolder_2"})
@@ -975,11 +1038,9 @@ class UB_FUSION_ST_AUTO_FUSION : public testing::Test {
   }
 
   /* Do not contain any cycle. */
-  void BuildGraph_24(ge::ComputeGraphPtr &graph, ge::NodePtr &abs,
-                     ge::NodePtr& square, ge::NodePtr &neg) {
+  void BuildGraph_24(ge::ComputeGraphPtr &graph, ge::NodePtr &abs, ge::NodePtr &square, ge::NodePtr &neg) {
     ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                          original_shape);
+    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
 
     test.AddOpDesc("Data", "Data", 1, 1)
 
@@ -1012,9 +1073,8 @@ class UB_FUSION_ST_AUTO_FUSION : public testing::Test {
     test.GetNodeByName("Neg", neg);
   }
 
-  ge::NodePtr AddNode(ge::ComputeGraphPtr graph, const string &name, const string &type,
-                      int32_t out_anchors_num = 1, int32_t in_anchors_num = 1,
-                      bool flag = false, string pattern = "") {
+  ge::NodePtr AddNode(ge::ComputeGraphPtr graph, const string &name, const string &type, int32_t out_anchors_num = 1,
+                      int32_t in_anchors_num = 1, bool flag = false, string pattern = "") {
     ge::GeTensorDesc tensor_desc(ge::GeShape({1, 1, 1, 1}), ge::FORMAT_NCHW, ge::DT_FLOAT);
     ge::OpDescPtr opdesc = std::make_shared<ge::OpDesc>(name, type);
     if (flag) {
@@ -1085,14 +1145,13 @@ class UB_FUSION_ST_AUTO_FUSION : public testing::Test {
   }
 };
 
-
 TEST_F(UB_FUSION_ST_AUTO_FUSION, two_add_fuse_succ) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   BuildGraph_01(graph);
 
   ffts::ThreadSliceMapPtr threadSliceMap = std::make_shared<ffts::ThreadSliceMap>();
-  threadSliceMap->ori_output_tensor_shape = {{{10,20,30,40}}};
-  threadSliceMap->output_tensor_slice = {{{{0,10}}}};
+  threadSliceMap->ori_output_tensor_shape = {{{10, 20, 30, 40}}};
+  threadSliceMap->output_tensor_slice = {{{{0, 10}}}};
   for (auto &node : graph->GetDirectNode()) {
     node->GetOpDesc()->SetExtAttr(ffts::kAttrSgtStructInfo, threadSliceMap);
     (void)ge::AttrUtils::SetInt(node->GetOpDesc(), "_thread_id", 0);
@@ -1108,15 +1167,13 @@ TEST_F(UB_FUSION_ST_AUTO_FUSION, two_add_fuse_succ) {
   cerr << "UB_FUSION_UT_ELT_ELT UB fusion result" << endl;
   for (auto &node : graph->GetDirectNode()) {
     uint32_t scope_id = 0;
-    cerr << "name: " << node->GetName() << ", type:" <<
-        node->GetOpDesc()->GetType() << endl;
+    cerr << "name: " << node->GetName() << ", type:" << node->GetOpDesc()->GetType() << endl;
 
     if (ge::AttrUtils::GetInt(node->GetOpDesc(), SCOPE_ID_ATTR, scope_id)) {
       cerr << "scope id : " << scope_id << endl;
     }
   }
 }
-
 
 TEST_F(UB_FUSION_ST_AUTO_FUSION, three_add_fuse_succ) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
@@ -1171,7 +1228,6 @@ TEST_F(UB_FUSION_ST_AUTO_FUSION, three_add_fuse_fail) {
   sub_graph_optimizer_ptr_->BuildFusionGraph(*graph);
 }
 
-
 TEST_F(UB_FUSION_ST_AUTO_FUSION, multiple_input_from_same_node) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   BuildGraph_07(graph);
@@ -1201,7 +1257,6 @@ TEST_F(UB_FUSION_ST_AUTO_FUSION, multiple_input_from_same_node) {
   EXPECT_EQ(node_count, 3);
   EXPECT_EQ(fusion_node_count, 1);
 }
-
 
 TEST_F(UB_FUSION_ST_AUTO_FUSION, complex_01) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
@@ -1234,37 +1289,37 @@ TEST_F(UB_FUSION_ST_AUTO_FUSION, complex_01) {
 }
 
 TEST_F(UB_FUSION_ST_AUTO_FUSION, complex_long_name) {
-    string one_hundred_one;
-    for (int i = 0; i < 100; i++) {
-        one_hundred_one += "1";
+  string one_hundred_one;
+  for (int i = 0; i < 100; i++) {
+    one_hundred_one += "1";
+  }
+  ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
+  BuildGraph_Long_Name(graph);
+
+  sub_graph_optimizer_ptr_->engine_name_ = fe::AI_CORE_NAME;
+  // find sub-graphs that match UB fusion pattern
+  auto_buffer_fusion_ptr_->Run(*graph);
+
+  // create fused Graph, and merge matched sub-graphs into fusion ops
+  sub_graph_optimizer_ptr_->BuildFusionGraph(*graph);
+
+  cerr << "UB_FUSION_UT_ELT_ELT UB fusion result" << endl;
+  uint32_t node_count = 0;
+  uint32_t fusion_node_count = 0;
+  for (auto &node : graph->GetDirectNode()) {
+    ++node_count;
+    uint32_t scope_id = 0;
+    cerr << "name: " << node->GetName() << ", type:" << node->GetOpDesc()->GetType() << endl;
+
+    if (ge::AttrUtils::GetInt(node->GetOpDesc(), SCOPE_ID_ATTR, scope_id)) {
+      cerr << "scope id : " << scope_id << endl;
     }
-    ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
-    BuildGraph_Long_Name(graph);
-
-    sub_graph_optimizer_ptr_->engine_name_ = fe::AI_CORE_NAME;
-    // find sub-graphs that match UB fusion pattern
-    auto_buffer_fusion_ptr_->Run(*graph);
-
-    // create fused Graph, and merge matched sub-graphs into fusion ops
-    sub_graph_optimizer_ptr_->BuildFusionGraph(*graph);
-
-    cerr << "UB_FUSION_UT_ELT_ELT UB fusion result" << endl;
-    uint32_t node_count = 0;
-    uint32_t fusion_node_count = 0;
-    for (auto &node : graph->GetDirectNode()) {
-        ++node_count;
-        uint32_t scope_id = 0;
-        cerr << "name: " << node->GetName() << ", type:" << node->GetOpDesc()->GetType() << endl;
-
-        if (ge::AttrUtils::GetInt(node->GetOpDesc(), SCOPE_ID_ATTR, scope_id)) {
-            cerr << "scope id : " << scope_id << endl;
-        }
-        if (node->GetName() == "add1"+one_hundred_one) {
-            ++fusion_node_count;
-        }
+    if (node->GetName() == "add1" + one_hundred_one) {
+      ++fusion_node_count;
     }
-    EXPECT_EQ(node_count, 19);
-    EXPECT_EQ(fusion_node_count, 1);
+  }
+  EXPECT_EQ(node_count, 19);
+  EXPECT_EQ(fusion_node_count, 1);
 }
 
 TEST_F(UB_FUSION_ST_AUTO_FUSION, complex_02) {
@@ -1297,7 +1352,6 @@ TEST_F(UB_FUSION_ST_AUTO_FUSION, complex_02) {
   EXPECT_EQ(fusion_node_count, 1);
 }
 
-
 TEST_F(UB_FUSION_ST_AUTO_FUSION, complex_03) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   BuildGraph_04(graph);
@@ -1328,7 +1382,6 @@ TEST_F(UB_FUSION_ST_AUTO_FUSION, complex_03) {
   EXPECT_EQ(fusion_node_count, 1);
 }
 
-
 TEST_F(UB_FUSION_ST_AUTO_FUSION, complex_04) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   BuildGraph_05(graph);
@@ -1351,15 +1404,13 @@ TEST_F(UB_FUSION_ST_AUTO_FUSION, complex_04) {
       cerr << "scope id : " << scope_id << endl;
     }
 
-    if (node->GetName() == "sqrt3sqrt4" ||
-        node->GetName() == "sqrt5sqrt6") {
+    if (node->GetName() == "sqrt3sqrt4" || node->GetName() == "sqrt5sqrt6") {
       fusion_node_count++;
     }
   }
   EXPECT_EQ(node_count, 14);
   EXPECT_EQ(fusion_node_count, 2);
 }
-
 
 TEST_F(UB_FUSION_ST_AUTO_FUSION, complex_05) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
@@ -1390,7 +1441,6 @@ TEST_F(UB_FUSION_ST_AUTO_FUSION, complex_05) {
   EXPECT_EQ(node_count, 5);
   EXPECT_EQ(fusion_node_count, 1);
 }
-
 
 TEST_F(UB_FUSION_ST_AUTO_FUSION, complex_06) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
@@ -1423,7 +1473,6 @@ TEST_F(UB_FUSION_ST_AUTO_FUSION, complex_06) {
   EXPECT_EQ(node_count, 4);
   EXPECT_EQ(fusion_node_count, 1);
 }
-
 
 TEST_F(UB_FUSION_ST_AUTO_FUSION, complex_07) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
@@ -1504,8 +1553,7 @@ TEST_F(UB_FUSION_ST_AUTO_FUSION, complex_09) {
   for (auto &node : graph->GetDirectNode()) {
     node_count++;
     uint32_t scope_id = 0;
-    cerr << "name: " << node->GetName() << ", type:"
-         << node->GetOpDesc()->GetType() << endl;
+    cerr << "name: " << node->GetName() << ", type:" << node->GetOpDesc()->GetType() << endl;
 
     if (ge::AttrUtils::GetInt(node->GetOpDesc(), SCOPE_ID_ATTR, scope_id)) {
       cerr << "scope id : " << scope_id << endl;
@@ -1513,14 +1561,14 @@ TEST_F(UB_FUSION_ST_AUTO_FUSION, complex_09) {
 
     if (node->GetName() == "sqrt1sqrt2" ||
         node->GetName() ==
-        "sqrt3sqrt4sqrt5sqrt6sqrt7sqrt8sqrt9sqrt10sqrt11sqrt12sqrt13sqrt14sqrt15sqrt16sqrt17sqrt18sqrt19sqrt20sqrt21sqrt22sqrt23sqrt24sqrt25sqrt26sqrt27sqrt28sqrt29sqrt30sqrt31") {
+            "sqrt3sqrt4sqrt5sqrt6sqrt7sqrt8sqrt9sqrt10sqrt11sqrt12sqrt13sqrt14sqrt15sqrt16sqrt17sqrt18sqrt19sqrt20sqrt2"
+            "1sqrt22sqrt23sqrt24sqrt25sqrt26sqrt27sqrt28sqrt29sqrt30sqrt31") {
       fusion_node_count++;
     }
   }
   EXPECT_EQ(node_count, 4);
   EXPECT_EQ(fusion_node_count, 2);
 }
-
 
 TEST_F(UB_FUSION_ST_AUTO_FUSION, complex_10) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
@@ -1538,16 +1586,15 @@ TEST_F(UB_FUSION_ST_AUTO_FUSION, complex_10) {
   for (auto &node : graph->GetDirectNode()) {
     node_count++;
     uint32_t scope_id = 0;
-    cerr << "name: " << node->GetName() << ", type:"
-         << node->GetOpDesc()->GetType() << endl;
+    cerr << "name: " << node->GetName() << ", type:" << node->GetOpDesc()->GetType() << endl;
 
     if (ge::AttrUtils::GetInt(node->GetOpDesc(), SCOPE_ID_ATTR, scope_id)) {
       cerr << "scope id : " << scope_id << endl;
     }
 
-    if (node->GetName() == "sqrt16sqrt17sqrt18sqrt19sqrt20sqrt21sqrt22sqrt23sqrt24sqrt25sqrt26sqrt27sqrt28sqrt29sqrt30sqrt31" ||
-        node->GetName() ==
-        "add1sqrt1sqrt2sqrt3sqrt4sqrt5sqrt6sqrt7sqrt8sqrt9sqrt10sqrt11sqrt12sqrt13sqrt14sqrt15") {
+    if (node->GetName() ==
+            "sqrt16sqrt17sqrt18sqrt19sqrt20sqrt21sqrt22sqrt23sqrt24sqrt25sqrt26sqrt27sqrt28sqrt29sqrt30sqrt31" ||
+        node->GetName() == "add1sqrt1sqrt2sqrt3sqrt4sqrt5sqrt6sqrt7sqrt8sqrt9sqrt10sqrt11sqrt12sqrt13sqrt14sqrt15") {
       fusion_node_count++;
     }
   }
@@ -1571,14 +1618,15 @@ TEST_F(UB_FUSION_ST_AUTO_FUSION, complex_10_1) {
   for (auto &node : graph->GetDirectNode()) {
     node_count++;
     uint32_t scope_id = 0;
-    cerr << "name: " << node->GetName() << ", type:"
-         << node->GetOpDesc()->GetType() << endl;
+    cerr << "name: " << node->GetName() << ", type:" << node->GetOpDesc()->GetType() << endl;
 
     if (ge::AttrUtils::GetInt(node->GetOpDesc(), SCOPE_ID_ATTR, scope_id)) {
       cerr << "scope id : " << scope_id << endl;
     }
 
-    if (node->GetName() == "add1sqrt16sqrt17sqrt18sqrt19sqrt20sqrt21sqrt22sqrt23sqrt24sqrt25sqrt26sqrt27sqrt28sqrt29sqrt30sqrt31sqrt1sqrt2sqrt3sqrt4sqrt5sqrt6sqrt7sqrt8sqrt9" ||
+    if (node->GetName() ==
+            "add1sqrt16sqrt17sqrt18sqrt19sqrt20sqrt21sqrt22sqrt23sqrt24sqrt25sqrt26sqrt27sqrt28sqrt29sqrt30sqrt31sqrt1s"
+            "qrt2sqrt3sqrt4sqrt5sqrt6sqrt7sqrt8sqrt9" ||
         node->GetName() == "sqrt10sqrt11sqrt12sqrt13sqrt14sqrt15") {
       fusion_node_count++;
     }
@@ -1602,8 +1650,7 @@ TEST_F(UB_FUSION_ST_AUTO_FUSION, complex_11) {
   for (auto &node : graph->GetDirectNode()) {
     node_count++;
     uint32_t scope_id = 0;
-    cerr << "name: " << node->GetName() << ", type:"
-         << node->GetOpDesc()->GetType() << endl;
+    cerr << "name: " << node->GetName() << ", type:" << node->GetOpDesc()->GetType() << endl;
 
     if (ge::AttrUtils::GetInt(node->GetOpDesc(), SCOPE_ID_ATTR, scope_id)) {
       cerr << "scope id : " << scope_id << endl;
@@ -1627,8 +1674,7 @@ TEST_F(UB_FUSION_ST_AUTO_FUSION, test_loop_detection_01) {
   for (auto &node : graph->GetDirectNode()) {
     node_count++;
     uint32_t scope_id = 0;
-    cerr << "name: " << node->GetName() << ", type:"
-         << node->GetOpDesc()->GetType() << endl;
+    cerr << "name: " << node->GetName() << ", type:" << node->GetOpDesc()->GetType() << endl;
 
     if (ge::AttrUtils::GetInt(node->GetOpDesc(), SCOPE_ID_ATTR, scope_id)) {
       cerr << "scope id : " << scope_id << endl;
@@ -1652,8 +1698,7 @@ TEST_F(UB_FUSION_ST_AUTO_FUSION, test_loop_detection_02) {
   for (auto &node : graph->GetDirectNode()) {
     node_count++;
     uint32_t scope_id = 0;
-    cerr << "name: " << node->GetName() << ", type:"
-         << node->GetOpDesc()->GetType() << endl;
+    cerr << "name: " << node->GetName() << ", type:" << node->GetOpDesc()->GetType() << endl;
 
     if (ge::AttrUtils::GetInt(node->GetOpDesc(), SCOPE_ID_ATTR, scope_id)) {
       cerr << "scope id : " << scope_id << endl;
@@ -1733,7 +1778,6 @@ TEST_F(UB_FUSION_ST_AUTO_FUSION, test_loop_detection_05) {
   EXPECT_EQ(scope_id_mul2, 3);
   EXPECT_EQ(scope_id_max3, 3);
 }
-
 
 TEST_F(UB_FUSION_ST_AUTO_FUSION, test_loop_detection_06) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
@@ -1865,8 +1909,8 @@ TEST_F(UB_FUSION_ST_AUTO_FUSION, test_loop_dectection_08) {
     if (node->GetName() == "square7" || node->GetName() == "square5" || node->GetName() == "square2" ||
         node->GetName() == "square8" || node->GetName() == "square6" || node->GetName() == "square4" ||
         node->GetName() == "square3" || node->GetName() == "sub1" || node->GetName() == "add6" ||
-        node->GetName() == "add5" || node->GetName() == "add4" ||
-        node->GetName() == "add3" || node->GetName() == "add") {
+        node->GetName() == "add5" || node->GetName() == "add4" || node->GetName() == "add3" ||
+        node->GetName() == "add") {
       EXPECT_EQ(scope_id, 12);
     }
     if (node->GetName() == "sub") {
@@ -1892,7 +1936,6 @@ TEST_F(UB_FUSION_ST_AUTO_FUSION, test_reachability_map) {
   EXPECT_EQ(auto_buffer_fusion_ptr_->connection_matrix_->IsConnected(sqrt1, add1), true);
 }
 
-
 TEST_F(UB_FUSION_ST_AUTO_FUSION, Bnv2) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   BuildGraph_21(graph);
@@ -1915,9 +1958,7 @@ TEST_F(UB_FUSION_ST_AUTO_FUSION, Bnv2) {
     if (ge::AttrUtils::GetInt(node->GetOpDesc(), SCOPE_ID_ATTR, scope_id)) {
       cerr << "scope id : " << scope_id << endl;
     }
-    std::vector<string> peer_in_names = {
-        "other_1", "other_2", "other_3", "other_4", "other_5"
-    };
+    std::vector<string> peer_in_names = {"other_1", "other_2", "other_3", "other_4", "other_5"};
     if (node->GetName() == "bnadd2add3") {
       ++fusion_node_count;
       int i = 0;
@@ -1931,7 +1972,7 @@ TEST_F(UB_FUSION_ST_AUTO_FUSION, Bnv2) {
   EXPECT_EQ(fusion_node_count, 1);
 }
 
-TEST_F(UB_FUSION_ST_AUTO_FUSION, change_scope_id_test){
+TEST_F(UB_FUSION_ST_AUTO_FUSION, change_scope_id_test) {
   int64_t old_scope_id = 0;
   int64_t new_scope_id = 2;
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
@@ -1978,7 +2019,7 @@ TEST_F(UB_FUSION_ST_AUTO_FUSION, test_get_op_pattern) {
   EXPECT_EQ(ret, false);
 }
 
-TEST_F(UB_FUSION_ST_AUTO_FUSION, fuse_two_nodes){
+TEST_F(UB_FUSION_ST_AUTO_FUSION, fuse_two_nodes) {
   using namespace ge;
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
 
@@ -2027,111 +2068,111 @@ TEST_F(UB_FUSION_ST_AUTO_FUSION, fuse_two_nodes){
   EXPECT_EQ(ret, fe::SUCCESS);
 }
 
-//TEST_F(UB_FUSION_ST_AUTO_FUSION, update_all_related_nodes_when_two_scope_merged) {
-//  auto &fe_env = fe_env::FeRunningEnv::Instance();
-//  string network_path = fe_env::FeRunningEnv::GetNetworkPath("cycle_detection_network.txt");
-//  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("ut");
-//  bool state = ge::GraphUtils::LoadGEGraph(network_path.c_str(), graph);
-//  ASSERT_EQ(state, true);
+// TEST_F(UB_FUSION_ST_AUTO_FUSION, update_all_related_nodes_when_two_scope_merged) {
+//   auto &fe_env = fe_env::FeRunningEnv::Instance();
+//   string network_path = fe_env::FeRunningEnv::GetNetworkPath("cycle_detection_network.txt");
+//   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("ut");
+//   bool state = ge::GraphUtils::LoadGEGraph(network_path.c_str(), graph);
+//   ASSERT_EQ(state, true);
 //
-//  const string ele_pattern = "ElemWise";
-//  for (auto &node : graph->GetDirectNode()) {
-//    auto op = node->GetOpDesc();
-//    if (node->GetType() == "Add" || node->GetType() == "LessEqual" || node->GetType() == "Minimum") {
-//      ge::AttrUtils::SetStr(op, kOpPattern, ele_pattern);
-//      const char tbe_bin[] = "tbe_bin";
-//      vector<char> buffer(tbe_bin, tbe_bin + strlen(tbe_bin));
-//      ge::OpKernelBinPtr tbe_kernel_ptr = std::make_shared<ge::OpKernelBin>(
-//          node->GetName(), std::move(buffer));
-//      op->SetExtAttr(ge::OP_EXTATTR_NAME_TBE_KERNEL, tbe_kernel_ptr);
-//    }
-//  }
-//  sub_graph_optimizer_ptr_->engine_name_ = fe::AI_CORE_NAME;
+//   const string ele_pattern = "ElemWise";
+//   for (auto &node : graph->GetDirectNode()) {
+//     auto op = node->GetOpDesc();
+//     if (node->GetType() == "Add" || node->GetType() == "LessEqual" || node->GetType() == "Minimum") {
+//       ge::AttrUtils::SetStr(op, kOpPattern, ele_pattern);
+//       const char tbe_bin[] = "tbe_bin";
+//       vector<char> buffer(tbe_bin, tbe_bin + strlen(tbe_bin));
+//       ge::OpKernelBinPtr tbe_kernel_ptr = std::make_shared<ge::OpKernelBin>(
+//           node->GetName(), std::move(buffer));
+//       op->SetExtAttr(ge::OP_EXTATTR_NAME_TBE_KERNEL, tbe_kernel_ptr);
+//     }
+//   }
+//   sub_graph_optimizer_ptr_->engine_name_ = fe::AI_CORE_NAME;
 //
-//  auto_buffer_fusion_ptr_->Run(*graph);
+//   auto_buffer_fusion_ptr_->Run(*graph);
 //
-//  // create fused Graph, and merge matched sub-graphs into fusion ops
-//  ASSERT_EQ(fe::SUCCESS, sub_graph_optimizer_ptr_->BuildFusionGraph(*graph));
-//}
+//   // create fused Graph, and merge matched sub-graphs into fusion ops
+//   ASSERT_EQ(fe::SUCCESS, sub_graph_optimizer_ptr_->BuildFusionGraph(*graph));
+// }
 
-//TEST_F(UB_FUSION_ST_AUTO_FUSION, realdiv_self_cycle_by_control_edge) {
-//  auto &fe_env = fe_env::FeRunningEnv::Instance();
-//  string network_path = fe_env::FeRunningEnv::GetNetworkPath("test_cycle_detection_control_edges.txt");
-//  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("ut");
-//  bool state = ge::GraphUtils::LoadGEGraph(network_path.c_str(), graph);
-//  ASSERT_EQ(state, true);
+// TEST_F(UB_FUSION_ST_AUTO_FUSION, realdiv_self_cycle_by_control_edge) {
+//   auto &fe_env = fe_env::FeRunningEnv::Instance();
+//   string network_path = fe_env::FeRunningEnv::GetNetworkPath("test_cycle_detection_control_edges.txt");
+//   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("ut");
+//   bool state = ge::GraphUtils::LoadGEGraph(network_path.c_str(), graph);
+//   ASSERT_EQ(state, true);
 //
-//  const string ele_pattern = "ElemWise";
-//  for (auto &node : graph->GetDirectNode()) {
-//    auto op = node->GetOpDesc();
-//    auto type = node->GetType();
-//    if (type != OP_TYPE_PLACE_HOLDER &&
-//        type != OP_TYPE_END && type != "StridedSliceGrad") {
-//      ge::AttrUtils::SetStr(op, kOpPattern, ele_pattern);
-//      const char tbe_bin[] = "tbe_bin";
-//      vector<char> buffer(tbe_bin, tbe_bin + strlen(tbe_bin));
-//      ge::OpKernelBinPtr tbe_kernel_ptr = std::make_shared<ge::OpKernelBin>(
-//          node->GetName(), std::move(buffer));
-//      op->SetExtAttr(ge::OP_EXTATTR_NAME_TBE_KERNEL, tbe_kernel_ptr);
-//    }
-//  }
-//  sub_graph_optimizer_ptr_->engine_name_ = fe::AI_CORE_NAME;
-//  std::shared_ptr<FusionCycleDetector> cycle_detector;
-//  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(),);
-//  cycle_detector->Initialize(*graph);
+//   const string ele_pattern = "ElemWise";
+//   for (auto &node : graph->GetDirectNode()) {
+//     auto op = node->GetOpDesc();
+//     auto type = node->GetType();
+//     if (type != OP_TYPE_PLACE_HOLDER &&
+//         type != OP_TYPE_END && type != "StridedSliceGrad") {
+//       ge::AttrUtils::SetStr(op, kOpPattern, ele_pattern);
+//       const char tbe_bin[] = "tbe_bin";
+//       vector<char> buffer(tbe_bin, tbe_bin + strlen(tbe_bin));
+//       ge::OpKernelBinPtr tbe_kernel_ptr = std::make_shared<ge::OpKernelBin>(
+//           node->GetName(), std::move(buffer));
+//       op->SetExtAttr(ge::OP_EXTATTR_NAME_TBE_KERNEL, tbe_kernel_ptr);
+//     }
+//   }
+//   sub_graph_optimizer_ptr_->engine_name_ = fe::AI_CORE_NAME;
+//   std::shared_ptr<FusionCycleDetector> cycle_detector;
+//   FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(),);
+//   cycle_detector->Initialize(*graph);
 //
-//  auto create_fn1 = []() -> BufferFusionPassBase * { return new (std::nothrow) TbeMultiOutputFusionPass(); };
-//  BufferFusionPassRunner *test_pass1 = new (std::nothrow)
-//      BufferFusionPassRunner("test_pass1", create_fn1, cycle_detector);
-//  auto create_fn2= []() -> BufferFusionPassBase * { return new (std::nothrow) TbeEltwiseFusionPass(); };
-//  BufferFusionPassRunner *test_pass2 = new (std::nothrow)
-//      BufferFusionPassRunner("test_pass2", create_fn2, cycle_detector);
-//  test_pass1->Run(*graph);
-//  test_pass2->Run(*graph);
-//  auto_buffer_fusion_ptr_->Run(*graph);
-//  ge::GraphUtils::DumpGEGraphToOnnx(*graph, "before");
-//  // create fused Graph, and merge matched sub-graphs into fusion ops
-//  EXPECT_EQ(fe::SUCCESS, sub_graph_optimizer_ptr_->BuildFusionGraph(*graph));
-//  ge::GraphUtils::DumpGEGraphToOnnx(*graph, "after");
-//}
+//   auto create_fn1 = []() -> BufferFusionPassBase * { return new (std::nothrow) TbeMultiOutputFusionPass(); };
+//   BufferFusionPassRunner *test_pass1 = new (std::nothrow)
+//       BufferFusionPassRunner("test_pass1", create_fn1, cycle_detector);
+//   auto create_fn2= []() -> BufferFusionPassBase * { return new (std::nothrow) TbeEltwiseFusionPass(); };
+//   BufferFusionPassRunner *test_pass2 = new (std::nothrow)
+//       BufferFusionPassRunner("test_pass2", create_fn2, cycle_detector);
+//   test_pass1->Run(*graph);
+//   test_pass2->Run(*graph);
+//   auto_buffer_fusion_ptr_->Run(*graph);
+//   ge::GraphUtils::DumpGEGraphToOnnx(*graph, "before");
+//   // create fused Graph, and merge matched sub-graphs into fusion ops
+//   EXPECT_EQ(fe::SUCCESS, sub_graph_optimizer_ptr_->BuildFusionGraph(*graph));
+//   ge::GraphUtils::DumpGEGraphToOnnx(*graph, "after");
+// }
 
-//TEST_F(UB_FUSION_ST_AUTO_FUSION, realdiv_self_cycle_by_control_edge_only_automatic_fusion) {
-//  auto &fe_env = fe_env::FeRunningEnv::Instance();
-//  string network_path = fe_env::FeRunningEnv::GetNetworkPath("test_cycle_detection_control_edges.txt");
-//  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("ut");
-//  bool state = ge::GraphUtils::LoadGEGraph(network_path.c_str(), graph);
-//  ASSERT_EQ(state, true);
+// TEST_F(UB_FUSION_ST_AUTO_FUSION, realdiv_self_cycle_by_control_edge_only_automatic_fusion) {
+//   auto &fe_env = fe_env::FeRunningEnv::Instance();
+//   string network_path = fe_env::FeRunningEnv::GetNetworkPath("test_cycle_detection_control_edges.txt");
+//   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("ut");
+//   bool state = ge::GraphUtils::LoadGEGraph(network_path.c_str(), graph);
+//   ASSERT_EQ(state, true);
 //
-//  const string ele_pattern = "ElemWise";
-//  for (auto &node : graph->GetDirectNode()) {
-//    auto op = node->GetOpDesc();
-//    auto type = node->GetType();
-//    if (type != OP_TYPE_PLACE_HOLDER &&
-//        type != OP_TYPE_END && type != "StridedSliceGrad") {
-//      ge::AttrUtils::SetStr(op, kOpPattern, ele_pattern);
-//      const char tbe_bin[] = "tbe_bin";
-//      vector<char> buffer(tbe_bin, tbe_bin + strlen(tbe_bin));
-//      ge::OpKernelBinPtr tbe_kernel_ptr = std::make_shared<ge::OpKernelBin>(
-//          node->GetName(), std::move(buffer));
-//      op->SetExtAttr(ge::OP_EXTATTR_NAME_TBE_KERNEL, tbe_kernel_ptr);
-//    }
-//  }
-//  sub_graph_optimizer_ptr_->engine_name_ = fe::AI_CORE_NAME;
-//  std::shared_ptr<FusionCycleDetector> cycle_detector;
-//  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(),);
-//  cycle_detector->Initialize(*graph);
+//   const string ele_pattern = "ElemWise";
+//   for (auto &node : graph->GetDirectNode()) {
+//     auto op = node->GetOpDesc();
+//     auto type = node->GetType();
+//     if (type != OP_TYPE_PLACE_HOLDER &&
+//         type != OP_TYPE_END && type != "StridedSliceGrad") {
+//       ge::AttrUtils::SetStr(op, kOpPattern, ele_pattern);
+//       const char tbe_bin[] = "tbe_bin";
+//       vector<char> buffer(tbe_bin, tbe_bin + strlen(tbe_bin));
+//       ge::OpKernelBinPtr tbe_kernel_ptr = std::make_shared<ge::OpKernelBin>(
+//           node->GetName(), std::move(buffer));
+//       op->SetExtAttr(ge::OP_EXTATTR_NAME_TBE_KERNEL, tbe_kernel_ptr);
+//     }
+//   }
+//   sub_graph_optimizer_ptr_->engine_name_ = fe::AI_CORE_NAME;
+//   std::shared_ptr<FusionCycleDetector> cycle_detector;
+//   FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(),);
+//   cycle_detector->Initialize(*graph);
 //
-//  auto create_fn1 = []() -> BufferFusionPassBase * { return new (std::nothrow) TbeMultiOutputFusionPass(); };
-//  BufferFusionPassRunner *test_pass1 = new (std::nothrow)
-//      BufferFusionPassRunner("test_pass1", create_fn1, cycle_detector);
-//  auto create_fn2= []() -> BufferFusionPassBase * { return new (std::nothrow) TbeEltwiseFusionPass(); };
-//  BufferFusionPassRunner *test_pass2 = new (std::nothrow)
-//      BufferFusionPassRunner("test_pass2", create_fn2, cycle_detector);
-//  test_pass1->Run(*graph);
-//  test_pass2->Run(*graph);
-//  auto_buffer_fusion_ptr_->Run(*graph);
-//  ge::GraphUtils::DumpGEGraphToOnnx(*graph, "before");
-//  // create fused Graph, and merge matched sub-graphs into fusion ops
-//  EXPECT_EQ(fe::SUCCESS, sub_graph_optimizer_ptr_->BuildFusionGraph(*graph));
-//  ge::GraphUtils::DumpGEGraphToOnnx(*graph, "after");
-//}
+//   auto create_fn1 = []() -> BufferFusionPassBase * { return new (std::nothrow) TbeMultiOutputFusionPass(); };
+//   BufferFusionPassRunner *test_pass1 = new (std::nothrow)
+//       BufferFusionPassRunner("test_pass1", create_fn1, cycle_detector);
+//   auto create_fn2= []() -> BufferFusionPassBase * { return new (std::nothrow) TbeEltwiseFusionPass(); };
+//   BufferFusionPassRunner *test_pass2 = new (std::nothrow)
+//       BufferFusionPassRunner("test_pass2", create_fn2, cycle_detector);
+//   test_pass1->Run(*graph);
+//   test_pass2->Run(*graph);
+//   auto_buffer_fusion_ptr_->Run(*graph);
+//   ge::GraphUtils::DumpGEGraphToOnnx(*graph, "before");
+//   // create fused Graph, and merge matched sub-graphs into fusion ops
+//   EXPECT_EQ(fe::SUCCESS, sub_graph_optimizer_ptr_->BuildFusionGraph(*graph));
+//   ge::GraphUtils::DumpGEGraphToOnnx(*graph, "after");
+// }

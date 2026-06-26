@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,29 +26,27 @@ using namespace std;
 using namespace testing;
 namespace te {
 namespace fusion {
-class FusionApiUTest : public testing::Test
-{
-protected:
-    static void SetUpTestCase() {
-        std::cout << "FusionApiUTest SetUpTestCase" << std::endl;
-    }
+class FusionApiUTest : public testing::Test {
+ protected:
+  static void SetUpTestCase() {
+    std::cout << "FusionApiUTest SetUpTestCase" << std::endl;
+  }
 
-    static void TearDownTestCase() {
-        std::cout << "FusionApiUTest TearDownTestCase" << std::endl;
-    }
+  static void TearDownTestCase() {
+    std::cout << "FusionApiUTest TearDownTestCase" << std::endl;
+  }
 };
 
-TEST(FusionApiUTest, init_and_finalize)
-{
-    EXPECT_EQ(TbeFinalize(), true);
-    InitPyHandleStub();
-    TeConfigInfo::Instance().env_item_vec_[static_cast<size_t>(TeConfigInfo::EnvItem::TeParallelCompiler)] = "7";
-    std::map<std::string, std::string> options;
-    options.emplace(ge::SOC_VERSION, "Ascend910B1");
-    bool isSupportParallel = false;
-    bool* isSupportParallelCompilation = &isSupportParallel;
-    EXPECT_EQ(TbeInitialize(options, isSupportParallelCompilation), true);
-    EXPECT_EQ(isSupportParallel, true);
+TEST(FusionApiUTest, init_and_finalize) {
+  EXPECT_EQ(TbeFinalize(), true);
+  InitPyHandleStub();
+  TeConfigInfo::Instance().env_item_vec_[static_cast<size_t>(TeConfigInfo::EnvItem::TeParallelCompiler)] = "7";
+  std::map<std::string, std::string> options;
+  options.emplace(ge::SOC_VERSION, "Ascend910B1");
+  bool isSupportParallel = false;
+  bool *isSupportParallelCompilation = &isSupportParallel;
+  EXPECT_EQ(TbeInitialize(options, isSupportParallelCompilation), true);
+  EXPECT_EQ(isSupportParallel, true);
 }
-}
-}
+}  // namespace fusion
+}  // namespace te

@@ -85,4 +85,3 @@ aclError aclmdlLoadWithConfig(const aclmdlConfigHandle *handle, uint32_t *modelI
 -   [aclmdlLoadFromMemWithMem](aclmdlLoadFromMemWithMem.md)接口
 -   [aclmdlLoadFromFileWithQ](aclmdlLoadFromFileWithQ.md)接口
 -   [aclmdlLoadFromMemWithQ](aclmdlLoadFromMemWithQ.md)接口
-

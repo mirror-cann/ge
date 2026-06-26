@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -157,7 +157,7 @@ static void ExecutorWithKernelRunForLstmpExeGraph(benchmark::State &state) {
   mem_block->Free();
 }
 
-//BENCHMARK(ExecutorWithKernelRunForLstmpExeGraph)->Iterations(1);
+// BENCHMARK(ExecutorWithKernelRunForLstmpExeGraph)->Iterations(1);
 BENCHMARK(ExecutorWithKernelRunForLstmpExeGraph);
 
 static void ParallelExecutorWithKernelRunForLstmpExeGraph(benchmark::State &state) {
@@ -204,8 +204,7 @@ static void ParallelExecutorWithKernelRunForLstmpExeGraph(benchmark::State &stat
   rtStream_t stream;
   aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
-  model_executor->Execute({i3.value},
-                          std::vector<Tensor *>({i0.holder.get(), i1.holder.get(), i2.holder.get()}).data(),
+  model_executor->Execute({i3.value}, std::vector<Tensor *>({i0.holder.get(), i1.holder.get(), i2.holder.get()}).data(),
                           3, reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size());
   for (auto _ : state) {
     model_executor->Execute({i3.value},
@@ -217,7 +216,7 @@ static void ParallelExecutorWithKernelRunForLstmpExeGraph(benchmark::State &stat
   mem_block->Free();
 }
 
-//BENCHMARK(ParallelExecutorWithKernelRunForLstmpExeGraph)->Iterations(2);
+// BENCHMARK(ParallelExecutorWithKernelRunForLstmpExeGraph)->Iterations(2);
 BENCHMARK(ParallelExecutorWithKernelRunForLstmpExeGraph);
 
 /*

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -85,7 +85,7 @@ CachingMemAllocator::CachingMemAllocator(const uint32_t device_id, const rtMemTy
 CachingMemAllocator::CachingMemAllocator(const std::string &graph_name, const uint32_t device_id,
                                          const rtMemType_t memory_type)
     : rts_mem_allocator_(*RtsCachingMemAllocator::GetAllocator(device_id, memory_type), device_id, "rt2 memory pool"),
-    // 不加nothrow，理由：由于构造函数无法返回失败，且这是关键资源申请，如果申请失败允许进程退出。
+      // 不加nothrow，理由：由于构造函数无法返回失败，且这是关键资源申请，如果申请失败允许进程退出。
       memory_pool_(new ScalableAllocator(span_allocator_, rts_mem_allocator_, ScalableConfig(), graph_name)) {
   const std::lock_guard<std::mutex> lock(mutex_);
   same_thread_allocators_.emplace_back(this);
@@ -96,7 +96,7 @@ CachingMemAllocator::CachingMemAllocator(const std::string &graph_name, const ui
 CachingMemAllocator::CachingMemAllocator(const uint32_t device_id, const rtMemType_t memory_type,
                                          ScalableConfig &config)
     : rts_mem_allocator_(*RtsCachingMemAllocator::GetAllocator(device_id, memory_type), device_id, "rt2 memory pool"),
-    // 不加nothrow，理由：由于构造函数无法返回失败，且这是关键资源申请，如果申请失败允许进程退出。
+      // 不加nothrow，理由：由于构造函数无法返回失败，且这是关键资源申请，如果申请失败允许进程退出。
       memory_pool_(new ScalableAllocator(span_allocator_, rts_mem_allocator_, config)) {
   const std::lock_guard<std::mutex> lock(mutex_);
   same_thread_allocators_.emplace_back(this);

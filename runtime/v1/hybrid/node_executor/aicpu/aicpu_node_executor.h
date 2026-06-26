@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,13 +21,14 @@ namespace hybrid {
 class AicpuNodeTaskBase : public NodeTask {
  public:
   AicpuNodeTaskBase(const NodeItem *const node_item, const domi::TaskDef &task_def)
-      : NodeTask(), node_item_(node_item), task_def_(task_def),
-        node_name_(node_item->node_name), node_type_(node_item->node_type),
+      : NodeTask(),
+        node_item_(node_item),
+        task_def_(task_def),
+        node_name_(node_item->node_name),
+        node_type_(node_item->node_type),
         unknown_type_(node_item->shape_inference_type),
-        aicpu_ext_handle_(node_item->node_name,
-                          static_cast<uint32_t>(node_item->num_inputs),
-                          static_cast<uint32_t>(node_item->num_outputs),
-                          node_item->shape_inference_type),
+        aicpu_ext_handle_(node_item->node_name, static_cast<uint32_t>(node_item->num_inputs),
+                          static_cast<uint32_t>(node_item->num_outputs), node_item->shape_inference_type),
         op_name_(node_item->node->GetOpDesc()->GetName()) {}
 
   ~AicpuNodeTaskBase() override;
@@ -41,7 +42,9 @@ class AicpuNodeTaskBase : public NodeTask {
 
   Status ExecuteAsync(TaskContext &context, const std::function<void()> &done_callback) override;
 
-  void SetNeedHostMemOpt(const bool need_host_mem_opt) override { need_host_mem_opt_ = need_host_mem_opt; }
+  void SetNeedHostMemOpt(const bool need_host_mem_opt) override {
+    need_host_mem_opt_ = need_host_mem_opt;
+  }
 
  protected:
   virtual Status CheckOverflow(TaskContext &context) const;
@@ -84,14 +87,13 @@ class AicpuNodeTaskBase : public NodeTask {
   Status UpdateShapeByHbmBuffer(const TaskContext &context,
                                 const std::vector<std::unique_ptr<TensorBuffer>> &out_shape_hbm);
 
-  Status PrepareCopyInputs(const TaskContext &context,
-                           const std::vector<std::unique_ptr<TensorBuffer>> &out_shape_hbm);
+  Status PrepareCopyInputs(const TaskContext &context, const std::vector<std::unique_ptr<TensorBuffer>> &out_shape_hbm);
 
   Status DistributeWaitTaskForAicpuBlockingOp(rtStream_t stream) const;
   Status CheckDeviceSupportBlockingAicpuOpProcess(bool &is_support) const;
   Status UpdateEventIdForBlockingAicpuOp();
   void SetTaskTag() const;
-  void InitBlockAicpuOp(const OpDescPtr& op_desc);
+  void InitBlockAicpuOp(const OpDescPtr &op_desc);
 
  private:
   const NodeItem *node_item_;
@@ -149,22 +151,24 @@ class AicpuTfNodeTask : public AicpuNodeTaskBase {
   ~AicpuTfNodeTask() override = default;
   Status Init(const HybridModel &model) override;
 
-  bool IsSupportHostMemInputOpt() const override { return true; }
-  bool IsArgsExtendedForHostMemInput() const override { return host_mem_input_data_offset_ != 0U; }
+  bool IsSupportHostMemInputOpt() const override {
+    return true;
+  }
+  bool IsArgsExtendedForHostMemInput() const override {
+    return host_mem_input_data_offset_ != 0U;
+  }
 
  protected:
-
   Status LaunchTask(TaskContext &context) override;
 
   Status UpdateIoAddr(TaskContext &context) override;
 
-  Status UpdateHostMemInputArgs(const TaskContext &context, void *const args,
-                                const size_t args_size);
+  Status UpdateHostMemInputArgs(const TaskContext &context, void *const args, const size_t args_size);
 
   Status InitForDependComputeTask() override;
 
-  Status CopyDataToHbm(TaskContext &context,
-                       const std::vector<std::unique_ptr<TensorBuffer>> &out_shape_hbm) override;
+  Status CopyDataToHbm(TaskContext &context, const std::vector<std::unique_ptr<TensorBuffer>> &out_shape_hbm) override;
+
  private:
   Status SetMemCopyTask(const domi::TaskDef &task_def);
 
@@ -204,15 +208,17 @@ class AicpuNodeTask : public AicpuNodeTaskBase {
 
   Status Init(const HybridModel &model) override;
 
-  bool IsSupportHostMemInputOpt() const override { return true; }
-  bool IsArgsExtendedForHostMemInput() const override { return host_mem_input_data_offset_ != 0U; }
+  bool IsSupportHostMemInputOpt() const override {
+    return true;
+  }
+  bool IsArgsExtendedForHostMemInput() const override {
+    return host_mem_input_data_offset_ != 0U;
+  }
 
  protected:
-
   Status LaunchTask(TaskContext &context) override;
 
-  Status CopyDataToHbm(TaskContext &context,
-                       const std::vector<std::unique_ptr<TensorBuffer>> &out_shape_hbm) override;
+  Status CopyDataToHbm(TaskContext &context, const std::vector<std::unique_ptr<TensorBuffer>> &out_shape_hbm) override;
 
   Status UpdateIoAddr(TaskContext &context) override;
 
@@ -249,12 +255,10 @@ class AicpuNodeTask : public AicpuNodeTaskBase {
 
 class AiCpuNodeExecutor : public NodeExecutor {
  public:
-  Status LoadTask(const HybridModel &model,
-                  const NodePtr &node,
-                  std::shared_ptr<NodeTask> &task) const override;
+  Status LoadTask(const HybridModel &model, const NodePtr &node, std::shared_ptr<NodeTask> &task) const override;
 
   Status PrepareTask(NodeTask &task, TaskContext &context) const override;
 };
-}
-}
+}  // namespace hybrid
+}  // namespace ge
 #endif  // GE_HYBRID_KERNEL_AICPU_NODE_EXECUTOR_H_

@@ -41,7 +41,7 @@ Status SymbolicInfoPreProcessor::Run(const ComputeGraphPtr &graph, const std::ve
     GE_DUMP(graph, "Autofuser_AfterSymbolicInferPreProcess");
     return SUCCESS;
   }
-  
+
   // 从 ThreadLocalContext 读取 options，与 UserGraphsManager 逻辑一致
   const auto &options = GetThreadLocalContext().GetAllGraphOptions();
   if (!IsGraphSupportSliceSchedule(graph, options)) {
@@ -78,4 +78,4 @@ Status SymbolicInfoPreProcessor::Run(const ComputeGraphPtr &graph, const std::ve
   GE_DUMP(graph, "Autofuser_AfterSymbolicInferPreProcess");
   return SUCCESS;
 }
-} // namespace ge
+}  // namespace ge

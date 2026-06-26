@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -70,7 +70,7 @@ TEST_F(UtestCpuQueueSchedule, CpuTaskZeroCopy_InitAddrs_fail) {
   cpy_args.cpy_type = ZeroCpyType::kAllDynamic;
   is_no_tiling_list.push_back(true);
 
-  //EXPECT_EQ(cpu_task_zero_copy.InitAddrs(mbuf_list, outside_addrs, is_no_tiling_list, cpy_args), SUCCESS); //??
+  // EXPECT_EQ(cpu_task_zero_copy.InitAddrs(mbuf_list, outside_addrs, is_no_tiling_list, cpy_args), SUCCESS); //??
 }
 
 TEST_F(UtestCpuQueueSchedule, CpuTaskInfo_Init_args_valid) {
@@ -323,7 +323,7 @@ TEST_F(UtestCpuQueueSchedule, CpuTaskMarkStep_Init_Succ) {
   group_info.group_index = 0U;
   group_info.group_policy = 0U;
   std::string dump_step = "0|2-4|8";
-  void* malloc_mem = nullptr;
+  void *malloc_mem = nullptr;
   (void)aclrtMalloc(&malloc_mem, sizeof(uint64_t), ACL_MEM_MALLOC_HUGE_ONLY);
   uintptr_t step_id = static_cast<uintptr_t>(PtrToValue(malloc_mem));
 
@@ -339,7 +339,7 @@ TEST_F(UtestCpuQueueSchedule, CpuTaskActiveEntry_Init_failed) {
   CpuTaskActiveEntry cpu_task_active_entry(stream);
   rtStream_t stream2 = nullptr;
 
-  EXPECT_NE(cpu_task_active_entry.Init(stream2), SUCCESS);   //??
+  EXPECT_NE(cpu_task_active_entry.Init(stream2), SUCCESS);  //??
 
   cpu_task_active_entry.args_size_ = 1;
   auto ret = cpu_task_active_entry.Init(stream2);
@@ -381,12 +381,10 @@ TEST_F(UtestCpuQueueSchedule, CpuTaskModelReportStatus_Init) {
   std::vector<QueueAttrs> input_queues;
   input_queues.emplace_back(input_queue);
 
-  EXPECT_EQ(cpu_task_model_report_status.Init(model_uuid,
-    status_output_queue, input_queues), SUCCESS);
+  EXPECT_EQ(cpu_task_model_report_status.Init(model_uuid, status_output_queue, input_queues), SUCCESS);
 
   cpu_task_model_report_status.args_size_ = 1;
-  EXPECT_EQ(cpu_task_model_report_status.Init(model_uuid,
-    status_output_queue, input_queues), FAILED);
+  EXPECT_EQ(cpu_task_model_report_status.Init(model_uuid, status_output_queue, input_queues), FAILED);
 }
 
 TEST_F(UtestCpuQueueSchedule, CpuTaskModelReportStatus_Distribute) {
@@ -456,11 +454,11 @@ TEST_F(UtestCpuQueueSchedule, CpuTaskModelGatherDequeue) {
   EXPECT_EQ(in_mbufs.size(), 3);
   EXPECT_NE(dequeue_task.args_, nullptr);
   uint32_t queue_num = queues.size();
-  EXPECT_EQ(dequeue_task.args_size_, sizeof(GatherDequeueKernelArgs) +
-      queue_num *(sizeof(uint32_t) * 3 + sizeof(uint64_t)* 2));
+  EXPECT_EQ(dequeue_task.args_size_,
+            sizeof(GatherDequeueKernelArgs) + queue_num * (sizeof(uint32_t) * 3 + sizeof(uint64_t) * 2));
   auto *ptr = reinterpret_cast<GatherDequeueKernelArgs *>(dequeue_task.args_);
   // check data in memory is expected
-  // num timeout cache_num drop_out 
+  // num timeout cache_num drop_out
   // queue_list_ptr mbuf_list_addr_ptr device_id_ptr device_type_ptrs
   // queue_id_list input_addrs_list device_id_list device_type_list input_mbuff(prepare for aicpu to set real addr)
   EXPECT_EQ(ptr->input_nums, queue_num);
@@ -473,7 +471,7 @@ TEST_F(UtestCpuQueueSchedule, CpuTaskModelGatherDequeue) {
   EXPECT_EQ(reinterpret_cast<uint32_t *>(ptr->queue_ids_addr)[2], 102);
 
   uint64_t input_addr = reinterpret_cast<uint64_t>(reinterpret_cast<uintptr_t>(ptr->queue_device_type_addr)) +
-      sizeof(uint32_t) * queue_num;
+                        sizeof(uint32_t) * queue_num;
   EXPECT_EQ(reinterpret_cast<uint64_t *>(ptr->mbuf_addrs_addr)[0], input_addr);
   EXPECT_EQ(reinterpret_cast<uint64_t *>(ptr->mbuf_addrs_addr)[1], input_addr + sizeof(uint64_t));
   EXPECT_EQ(reinterpret_cast<uint64_t *>(ptr->mbuf_addrs_addr)[2], input_addr + sizeof(uint64_t) * 2);

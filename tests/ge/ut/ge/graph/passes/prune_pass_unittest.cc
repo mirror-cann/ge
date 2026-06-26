@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -61,7 +61,7 @@ TEST_F(UtestGraphPassesPrunePass, no_net_out_put_node) {
 
   uint64_t size_ori = graph->GetDirectNode().size();
   PrunePass prune_pass;
-  std::vector<std::pair<string, GraphPass*>> passes = { {"PrunePass", &prune_pass} };
+  std::vector<std::pair<string, GraphPass *>> passes = {{"PrunePass", &prune_pass}};
   Status status = PassManager::Run(graph, passes);
 
   EXPECT_EQ(ge::SUCCESS, status);
@@ -103,7 +103,7 @@ TEST_F(UtestGraphPassesPrunePass, has_net_out_put_node_with_only_one_path) {
 
   uint64_t size_ori = graph->GetDirectNode().size();
   PrunePass prune_pass;
-  std::vector<std::pair<string, GraphPass*>> passes = { {"PrunePass", &prune_pass} };
+  std::vector<std::pair<string, GraphPass *>> passes = {{"PrunePass", &prune_pass}};
   Status status = PassManager::Run(graph, passes);
 
   uint64_t size = graph->GetDirectNode().size();
@@ -139,7 +139,7 @@ TEST_F(UtestGraphPassesPrunePass, has_net_out_put_node_with_one_valid_path_and_o
   ge::GraphUtils::AddEdge(reverse_node->GetOutDataAnchor(0), floor_node->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(floor_node->GetOutDataAnchor(0), netoutput_node->GetInDataAnchor(0));
 
-  // incvalid path construct (reverse->floor1->floor2)
+  // invalid path construct (reverse->floor1->floor2)
   ge::OpDescPtr floor_op1 = std::make_shared<ge::OpDesc>();
   ge::OpDescUtilsEx::SetType(floor_op1, FLOOR);
   floor_op1->SetName("Floor1");
@@ -161,8 +161,10 @@ TEST_F(UtestGraphPassesPrunePass, has_net_out_put_node_with_one_valid_path_and_o
   floor_op3->AddOutputDesc(ge::GeTensorDesc());
   ge::NodePtr floor_node3 = graph->AddNode(floor_op3);
 
-  EXPECT_EQ(ge::GraphUtils::AddEdge(reverse_node->GetOutDataAnchor(1), floor_node1->GetInDataAnchor(0)), ge::GRAPH_SUCCESS);
-  EXPECT_EQ(ge::GraphUtils::AddEdge(floor_node1->GetOutDataAnchor(0), floor_node2->GetInDataAnchor(0)), ge::GRAPH_SUCCESS);
+  EXPECT_EQ(ge::GraphUtils::AddEdge(reverse_node->GetOutDataAnchor(1), floor_node1->GetInDataAnchor(0)),
+            ge::GRAPH_SUCCESS);
+  EXPECT_EQ(ge::GraphUtils::AddEdge(floor_node1->GetOutDataAnchor(0), floor_node2->GetInDataAnchor(0)),
+            ge::GRAPH_SUCCESS);
 
   PrunePass prune_pass;
   vector<GraphPass *> passes = {&prune_pass};
@@ -243,7 +245,7 @@ TEST_F(UtestGraphPassesPrunePass, has_net_out_put_node_with_multi_path) {
   uint64_t size_ori = graph->GetDirectNode().size();
 
   PrunePass prune_pass;
-  std::vector<std::pair<string, GraphPass*>> passes = { {"PrunePass", &prune_pass} };
+  std::vector<std::pair<string, GraphPass *>> passes = {{"PrunePass", &prune_pass}};
   (void)PassManager::Run(graph, passes);
 
   uint64_t size_after_proc = graph->GetDirectNode().size();
@@ -316,7 +318,7 @@ TEST_F(UtestGraphPassesPrunePass, multi_net_out_put_node_with_circle_net) {
   uint64_t size_ori = graph->GetDirectNode().size();
 
   PrunePass prune_pass;
-  std::vector<std::pair<string, GraphPass*>> passes = { {"PrunePass", &prune_pass} };
+  std::vector<std::pair<string, GraphPass *>> passes = {{"PrunePass", &prune_pass}};
   Status status = PassManager::Run(graph, passes);
   EXPECT_EQ(ge::SUCCESS, status);
   uint64_t size_after_proc = graph->GetDirectNode().size();
@@ -326,88 +328,56 @@ TEST_F(UtestGraphPassesPrunePass, multi_net_out_put_node_with_circle_net) {
 // case 6: two mix circle and multi path,diamand style
 TEST_F(UtestGraphPassesPrunePass, mix_two_circle_net) {
   EXPECT_NO_THROW(
-    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("default");
+      ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("default");
 
-    ge::OpDescPtr data_op = std::make_shared<ge::OpDesc>();
-    ge::OpDescUtilsEx::SetType(data_op, DATA);
-    data_op->SetName("data");
-    data_op->AddOutputDesc(ge::GeTensorDesc());
-    data_op->AddOutputDesc(ge::GeTensorDesc());
-    ge::NodePtr data_node = graph->AddNode(data_op);
+      ge::OpDescPtr data_op = std::make_shared<ge::OpDesc>(); ge::OpDescUtilsEx::SetType(data_op, DATA);
+      data_op->SetName("data"); data_op->AddOutputDesc(ge::GeTensorDesc()); data_op->AddOutputDesc(ge::GeTensorDesc());
+      ge::NodePtr data_node = graph->AddNode(data_op);
 
-    ge::OpDescPtr op_1 = std::make_shared<ge::OpDesc>();
-    ge::OpDescUtilsEx::SetType(op_1, REVERSE);
-    op_1->SetName("Reverse1");
-    op_1->AddInputDesc(ge::GeTensorDesc());
-    op_1->AddInputDesc(ge::GeTensorDesc());
-    op_1->AddOutputDesc(ge::GeTensorDesc());
-    ge::NodePtr node_1 = graph->AddNode(op_1);
+      ge::OpDescPtr op_1 = std::make_shared<ge::OpDesc>(); ge::OpDescUtilsEx::SetType(op_1, REVERSE);
+      op_1->SetName("Reverse1"); op_1->AddInputDesc(ge::GeTensorDesc()); op_1->AddInputDesc(ge::GeTensorDesc());
+      op_1->AddOutputDesc(ge::GeTensorDesc()); ge::NodePtr node_1 = graph->AddNode(op_1);
 
-    ge::OpDescPtr op_2 = std::make_shared<ge::OpDesc>();
-    ge::OpDescUtilsEx::SetType(op_2, REVERSE);
-    op_2->SetName("Reverse2");
-    op_2->AddInputDesc(ge::GeTensorDesc());
-    op_2->AddOutputDesc(ge::GeTensorDesc());
-    op_2->AddOutputDesc(ge::GeTensorDesc());
-    ge::NodePtr node_2 = graph->AddNode(op_2);
+      ge::OpDescPtr op_2 = std::make_shared<ge::OpDesc>(); ge::OpDescUtilsEx::SetType(op_2, REVERSE);
+      op_2->SetName("Reverse2"); op_2->AddInputDesc(ge::GeTensorDesc()); op_2->AddOutputDesc(ge::GeTensorDesc());
+      op_2->AddOutputDesc(ge::GeTensorDesc()); ge::NodePtr node_2 = graph->AddNode(op_2);
 
-    ge::OpDescPtr op_3 = std::make_shared<ge::OpDesc>();
-    ge::OpDescUtilsEx::SetType(op_3, REVERSE);
-    op_3->SetName("Reverse3");
-    op_3->AddInputDesc(ge::GeTensorDesc());
-    op_3->AddInputDesc(ge::GeTensorDesc());
-    op_3->AddOutputDesc(ge::GeTensorDesc());
-    ge::NodePtr node_3 = graph->AddNode(op_3);
+      ge::OpDescPtr op_3 = std::make_shared<ge::OpDesc>(); ge::OpDescUtilsEx::SetType(op_3, REVERSE);
+      op_3->SetName("Reverse3"); op_3->AddInputDesc(ge::GeTensorDesc()); op_3->AddInputDesc(ge::GeTensorDesc());
+      op_3->AddOutputDesc(ge::GeTensorDesc()); ge::NodePtr node_3 = graph->AddNode(op_3);
 
-    ge::OpDescPtr op_4 = std::make_shared<ge::OpDesc>();
-    ge::OpDescUtilsEx::SetType(op_4, REVERSE);
-    op_4->SetName("Reverse4");
-    op_4->AddInputDesc(ge::GeTensorDesc());
-    op_4->AddInputDesc(ge::GeTensorDesc());
-    op_4->AddOutputDesc(ge::GeTensorDesc());
-    ge::NodePtr node_4 = graph->AddNode(op_4);
+      ge::OpDescPtr op_4 = std::make_shared<ge::OpDesc>(); ge::OpDescUtilsEx::SetType(op_4, REVERSE);
+      op_4->SetName("Reverse4"); op_4->AddInputDesc(ge::GeTensorDesc()); op_4->AddInputDesc(ge::GeTensorDesc());
+      op_4->AddOutputDesc(ge::GeTensorDesc()); ge::NodePtr node_4 = graph->AddNode(op_4);
 
-    ge::OpDescPtr op_5 = std::make_shared<ge::OpDesc>();
-    ge::OpDescUtilsEx::SetType(op_5, REVERSE);
-    op_5->SetName("Reverse5");
-    op_5->AddInputDesc(ge::GeTensorDesc());
-    op_5->AddOutputDesc(ge::GeTensorDesc());
-    op_5->AddOutputDesc(ge::GeTensorDesc());
-    ge::NodePtr node_5 = graph->AddNode(op_5);
+      ge::OpDescPtr op_5 = std::make_shared<ge::OpDesc>(); ge::OpDescUtilsEx::SetType(op_5, REVERSE);
+      op_5->SetName("Reverse5"); op_5->AddInputDesc(ge::GeTensorDesc()); op_5->AddOutputDesc(ge::GeTensorDesc());
+      op_5->AddOutputDesc(ge::GeTensorDesc()); ge::NodePtr node_5 = graph->AddNode(op_5);
 
-    ge::OpDescPtr net_output_op = std::make_shared<ge::OpDesc>(NODE_NAME_NET_OUTPUT, NETOUTPUT);
-    net_output_op->AddInputDesc(ge::GeTensorDesc());
-    net_output_op->AddOutputDesc(ge::GeTensorDesc());
-    ge::AttrUtils::SetBool(net_output_op, "identity_add_netoutput", true);
-    ge::NodePtr netoutput_node = graph->AddNode(net_output_op);
+      ge::OpDescPtr net_output_op = std::make_shared<ge::OpDesc>(NODE_NAME_NET_OUTPUT, NETOUTPUT);
+      net_output_op->AddInputDesc(ge::GeTensorDesc()); net_output_op->AddOutputDesc(ge::GeTensorDesc());
+      ge::AttrUtils::SetBool(net_output_op, "identity_add_netoutput", true);
+      ge::NodePtr netoutput_node = graph->AddNode(net_output_op);
 
-    ge::GraphUtils::AddEdge(node_1->GetOutDataAnchor(0), netoutput_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(node_2->GetOutDataAnchor(0), node_1->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(node_5->GetOutDataAnchor(0), node_1->GetInDataAnchor(1));
-    ge::GraphUtils::AddEdge(node_4->GetOutDataAnchor(0), node_2->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(node_2->GetOutDataAnchor(1), node_3->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(node_5->GetOutDataAnchor(1), node_3->GetInDataAnchor(1));
-    ge::GraphUtils::AddEdge(node_3->GetOutDataAnchor(0), node_4->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), node_4->GetInDataAnchor(1));
-    ge::GraphUtils::AddEdge(node_4->GetOutDataAnchor(1), node_5->GetInDataAnchor(0));
-    // construct two isolated node
-    ge::OpDescPtr op_6 = std::make_shared<ge::OpDesc>();
-    ge::OpDescUtilsEx::SetType(op_6, REVERSE);
-    op_6->SetName("Reverse");
-    op_6->AddInputDesc(ge::GeTensorDesc());
-    op_6->AddOutputDesc(ge::GeTensorDesc());
-    ge::NodePtr node_6 = graph->AddNode(op_6);
+      ge::GraphUtils::AddEdge(node_1->GetOutDataAnchor(0), netoutput_node->GetInDataAnchor(0));
+      ge::GraphUtils::AddEdge(node_2->GetOutDataAnchor(0), node_1->GetInDataAnchor(0));
+      ge::GraphUtils::AddEdge(node_5->GetOutDataAnchor(0), node_1->GetInDataAnchor(1));
+      ge::GraphUtils::AddEdge(node_4->GetOutDataAnchor(0), node_2->GetInDataAnchor(0));
+      ge::GraphUtils::AddEdge(node_2->GetOutDataAnchor(1), node_3->GetInDataAnchor(0));
+      ge::GraphUtils::AddEdge(node_5->GetOutDataAnchor(1), node_3->GetInDataAnchor(1));
+      ge::GraphUtils::AddEdge(node_3->GetOutDataAnchor(0), node_4->GetInDataAnchor(0));
+      ge::GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), node_4->GetInDataAnchor(1));
+      ge::GraphUtils::AddEdge(node_4->GetOutDataAnchor(1), node_5->GetInDataAnchor(0));
+      // construct two isolated node
+      ge::OpDescPtr op_6 = std::make_shared<ge::OpDesc>();
+      ge::OpDescUtilsEx::SetType(op_6, REVERSE); op_6->SetName("Reverse"); op_6->AddInputDesc(ge::GeTensorDesc());
+      op_6->AddOutputDesc(ge::GeTensorDesc()); ge::NodePtr node_6 = graph->AddNode(op_6);
 
-    ge::OpDescPtr op_7 = std::make_shared<ge::OpDesc>();
-    ge::OpDescUtilsEx::SetType(op_7, REVERSE);
-    op_7->SetName("Reverse");
-    op_7->AddInputDesc(ge::GeTensorDesc());
-    op_7->AddOutputDesc(ge::GeTensorDesc());
-    ge::NodePtr node_7 = graph->AddNode(op_7);
+      ge::OpDescPtr op_7 = std::make_shared<ge::OpDesc>(); ge::OpDescUtilsEx::SetType(op_7, REVERSE);
+      op_7->SetName("Reverse"); op_7->AddInputDesc(ge::GeTensorDesc()); op_7->AddOutputDesc(ge::GeTensorDesc());
+      ge::NodePtr node_7 = graph->AddNode(op_7);
 
-    PrunePass prune_pass;
-    vector<GraphPass *> passes = {&prune_pass};
-  );
+      PrunePass prune_pass; vector<GraphPass *> passes = {&prune_pass};);
 }
 // case7: one net path with two DATA node
 TEST_F(UtestGraphPassesPrunePass, has_net_out_put_node_with_two_isolate_data_node) {
@@ -457,7 +427,7 @@ TEST_F(UtestGraphPassesPrunePass, has_net_out_put_node_with_two_isolate_data_nod
 
   uint64_t size_ori = graph->GetDirectNode().size();
   PrunePass prune_pass;
-  std::vector<std::pair<string, GraphPass*>> passes = { {"PrunePass", &prune_pass} };
+  std::vector<std::pair<string, GraphPass *>> passes = {{"PrunePass", &prune_pass}};
   Status status = PassManager::Run(graph, passes);
 
   uint64_t size = graph->GetDirectNode().size();
@@ -506,7 +476,7 @@ TEST_F(UtestGraphPassesPrunePass, skip_do_prune_with_skip_attr) {
   auto cmo1_res = graph->FindNode("cmo1");
   EXPECT_NE(cmo1_res, nullptr);
   auto cmo2_res = graph->FindNode("cmo2");
-  
+
   EXPECT_NE(cmo2_res, nullptr);
   auto cmo3_res = graph->FindNode("cmo3");
   EXPECT_EQ(cmo3_res, nullptr);
@@ -523,16 +493,16 @@ TEST_F(UtestGraphPassesPrunePass, RefNodeWithoutOutput_Skip_prune) {
   auto graph_builder = ut::GraphBuilder("test");
   auto data_1 = graph_builder.AddNode("data_1", DATA, 0, 1);
   auto data_2 = graph_builder.AddNode("data_2", DATA, 0, 1);
-  auto assign =  graph_builder.AddNode("assign", ASSIGN, 2, 1);
+  auto assign = graph_builder.AddNode("assign", ASSIGN, 2, 1);
   AttrUtils::SetBool(assign->GetOpDesc(), ATTR_NAME_REFERENCE, true);
-  auto out_0 =  graph_builder.AddNode("out", NETOUTPUT, 1, 1);
+  auto out_0 = graph_builder.AddNode("out", NETOUTPUT, 1, 1);
   graph_builder.AddDataEdge(data_1, 0, assign, 0);
   graph_builder.AddDataEdge(data_1, 0, assign, 1);
 
   auto graph = graph_builder.GetGraph();
   auto size_ori = graph->GetDirectNodesSize();
   PrunePass prune_pass;
-  std::vector<std::pair<string, GraphPass*>> passes = { {"PrunePass", &prune_pass} };
+  std::vector<std::pair<string, GraphPass *>> passes = {{"PrunePass", &prune_pass}};
   Status status = PassManager::Run(graph, passes);
   uint64_t size = graph->GetDirectNode().size();
   EXPECT_EQ(ge::SUCCESS, status);

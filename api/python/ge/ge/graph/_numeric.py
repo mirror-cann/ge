@@ -3,10 +3,10 @@
 # -------------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
@@ -21,10 +21,10 @@ __all__ = ["float_to_fp16_bits", "float_list_to_fp16_bits"]
 
 def float_to_fp16_bits(value: float) -> int:
     """Convert float to fp16 bits."""
-    f32 = struct.unpack('<I', struct.pack('<f', float(value)))[0]
+    f32 = struct.unpack("<I", struct.pack("<f", float(value)))[0]
     sign = (f32 >> 31) & 0x1
-    exponent = (f32 >> 23) & 0xff
-    mantissa = f32 & 0x7fffff
+    exponent = (f32 >> 23) & 0xFF
+    mantissa = f32 & 0x7FFFFF
 
     if exponent == 255:
         half_exp = 0x1F

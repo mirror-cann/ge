@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -13,13 +13,15 @@
 #include "framework/common/debug/ge_log.h"
 namespace gert {
 
-AiCoreTaskDefFaker::AiCoreTaskDefFaker(std::string stub_name) : with_handle_(false), need_atomic_(false),
-                                                                inited_(false), stub_name_(stub_name), with_aicpu_(false) {
-}
+AiCoreTaskDefFaker::AiCoreTaskDefFaker(std::string stub_name)
+    : with_handle_(false), need_atomic_(false), inited_(false), stub_name_(stub_name), with_aicpu_(false) {}
 
 AiCoreTaskDefFaker::AiCoreTaskDefFaker(bool with_handle, bool need_atomic, std::string stub_name, bool with_aicpu)
-        : with_handle_(with_handle), need_atomic_(need_atomic), inited_(false), stub_name_(stub_name), with_aicpu_(with_aicpu) {
-}
+    : with_handle_(with_handle),
+      need_atomic_(need_atomic),
+      inited_(false),
+      stub_name_(stub_name),
+      with_aicpu_(with_aicpu) {}
 
 vector<domi::TaskDef> AiCoreTaskDefFaker::CreateTaskDef(uint64_t op_index) {
   Init();
@@ -53,32 +55,32 @@ vector<domi::TaskDef> AiCoreTaskDefFaker::CreateTaskDef(uint64_t op_index) {
   return task_def;
 }
 
-std::unique_ptr<TaskDefFaker> AiCoreTaskDefFaker::Clone()  const {
+std::unique_ptr<TaskDefFaker> AiCoreTaskDefFaker::Clone() const {
   return std::unique_ptr<AiCoreTaskDefFaker>(new AiCoreTaskDefFaker(*this));
 }
 
-AiCoreTaskDefFaker& AiCoreTaskDefFaker::AtomicStubNum(const std::string &name){
+AiCoreTaskDefFaker &AiCoreTaskDefFaker::AtomicStubNum(const std::string &name) {
   need_atomic_ = true;
   atomic_stub_name_ = name;
   return *this;
 }
 
-AiCoreTaskDefFaker& AiCoreTaskDefFaker::WithHandle(){
+AiCoreTaskDefFaker &AiCoreTaskDefFaker::WithHandle() {
   with_handle_ = true;
   return *this;
 }
 
-AiCoreTaskDefFaker& AiCoreTaskDefFaker::BinData(uint64_t data){
+AiCoreTaskDefFaker &AiCoreTaskDefFaker::BinData(uint64_t data) {
   bin_data = data;
   return *this;
 }
 
-AiCoreTaskDefFaker& AiCoreTaskDefFaker::ArgsFormat(const std::string &args_format){
+AiCoreTaskDefFaker &AiCoreTaskDefFaker::ArgsFormat(const std::string &args_format) {
   args_format_ = args_format;
   return *this;
 }
 
-void AiCoreTaskDefFaker::Init(){
+void AiCoreTaskDefFaker::Init() {
   if (inited_) {
     return;
   }
@@ -96,4 +98,4 @@ void AiCoreTaskDefFaker::Init(){
   inited_ = true;
 }
 
-};
+};  // namespace gert

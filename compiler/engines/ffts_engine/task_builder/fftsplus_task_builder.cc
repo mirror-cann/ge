@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -60,7 +60,7 @@ void FillComCtxForNode(const ge::NodePtr &up_node, uint32_t recurise_cnt,
 
   return;
 }
-} //namespace
+}  // namespace
 
 FFTSPlusTaskBuilder::FFTSPlusTaskBuilder() {}
 
@@ -72,7 +72,8 @@ Status FFTSPlusTaskBuilder::GetFirstAvailableLabel(domi::FftsPlusTaskDef *ffts_p
                                                    uint32_t &recursion_count) {
   recursion_count++;
   if (recursion_count > kGetFirstAvailableLabel) {
-    FFTS_LOGE("The count of GetFirstAvailableLabel recursions has reached %d; now stopping recursion.", recursion_count);
+    FFTS_LOGE("The count of GetFirstAvailableLabel recursions has reached %d; now stopping recursion.",
+              recursion_count);
     return FAILED;
   }
   FFTS_LOGD("pred_label_ctx successor_num is %u", pred_label_ctx->successor_num());
@@ -84,11 +85,11 @@ Status FFTSPlusTaskBuilder::GetFirstAvailableLabel(domi::FftsPlusTaskDef *ffts_p
       REPORT_FFTS_ERROR("[FFTSPlusTaskBuilder][GetFirstLabel] last_succ_id: %u, ctx_size: %u", last_succ_id, ctx_size);
       return FAILED;
     }
-    domi::FftsPlusCtxDef* last_succ_ctx = ffts_plus_task_def->mutable_ffts_plus_ctx(static_cast<int>(last_succ_id));
+    domi::FftsPlusCtxDef *last_succ_ctx = ffts_plus_task_def->mutable_ffts_plus_ctx(static_cast<int>(last_succ_id));
     FFTS_CHECK_NOTNULL(last_succ_ctx);
     if (last_succ_ctx->context_type() == RT_CTX_TYPE_LABEL) {
-      GetFirstAvailableLabel(ffts_plus_task_def, last_succ_ctx->mutable_label_ctx(),
-                             avl_label_context, recursion_count);
+      GetFirstAvailableLabel(ffts_plus_task_def, last_succ_ctx->mutable_label_ctx(), avl_label_context,
+                             recursion_count);
     } else {
       FFTS_LOGD("The last successor is unlabeled; stop the search and generate a new label.");
       Status ret = GenerateNewLabelCtx(ffts_plus_task_def, last_succ_id, pred_label_ctx, avl_label_context);
@@ -212,11 +213,12 @@ uint32_t FFTSPlusTaskBuilder::GetPreCnt(uint32_t curr_id, domi::FftsPlusTaskDef 
 
 Status FFTSPlusTaskBuilder::ReplaceSuccList(uint32_t succ_id, uint32_t new_succ_id, uint32_t curr_id,
                                             domi::FftsPlusTaskDef *ffts_plus_task_def) const {
-  domi::FftsPlusCtxDef* ffts_plus_ctx = ffts_plus_task_def->mutable_ffts_plus_ctx(curr_id);
+  domi::FftsPlusCtxDef *ffts_plus_ctx = ffts_plus_task_def->mutable_ffts_plus_ctx(curr_id);
   FFTS_CHECK_NOTNULL(ffts_plus_ctx);
   uint32_t type = ffts_plus_ctx->context_type();
   Status ret = SUCCESS;
-  FFTS_LOGD("Current type[%u], attempting to replace succ_id[%u] with [%u] from context[%u].", type, succ_id, new_succ_id, curr_id);
+  FFTS_LOGD("Current type[%u], attempting to replace succ_id[%u] with [%u] from context[%u].", type, succ_id,
+            new_succ_id, curr_id);
   switch (type) {
     case RT_CTX_TYPE_AT_START:
       ret = ReplaceOneId(ffts_plus_task_def, succ_id, new_succ_id, ffts_plus_ctx->mutable_at_start_ctx());
@@ -262,8 +264,9 @@ Status FFTSPlusTaskBuilder::ReplaceSuccList(uint32_t succ_id, uint32_t new_succ_
 }
 
 Status FFTSPlusTaskBuilder::UpdateSuccList(uint32_t succ_id, uint32_t curr_id,
-    domi::FftsPlusTaskDef *ffts_plus_task_def, size_t thread_id, bool is_auto) const {
-  domi::FftsPlusCtxDef* ffts_plus_ctx = ffts_plus_task_def->mutable_ffts_plus_ctx(curr_id);
+                                           domi::FftsPlusTaskDef *ffts_plus_task_def, size_t thread_id,
+                                           bool is_auto) const {
+  domi::FftsPlusCtxDef *ffts_plus_ctx = ffts_plus_task_def->mutable_ffts_plus_ctx(curr_id);
   FFTS_CHECK_NOTNULL(ffts_plus_ctx);
   uint32_t type = ffts_plus_ctx->context_type();
   FFTS_LOGD("Current type: %u wants to add succ_id: %u in curr_id: %u's context.", type, succ_id, curr_id);
@@ -302,17 +305,16 @@ Status FFTSPlusTaskBuilder::UpdateSuccList(uint32_t succ_id, uint32_t curr_id,
     case RT_CTX_TYPE_CASE_SWITCH:
       AddOneId(ffts_plus_task_def, succ_id, ffts_plus_ctx->mutable_case_switch_ctx(), thread_id, is_auto);
       break;
-    case RT_CTX_TYPE_COND_SWITCH:
-      {
-        auto cond_switch_ctx_def = ffts_plus_ctx->mutable_cond_switch_ctx();
-        FFTS_CHECK_NOTNULL(cond_switch_ctx_def);
-        auto succ_num = cond_switch_ctx_def->true_successor_num();
-        ++succ_num;
-        FFTS_LOGD("Added one successor %u. Successor count is %u.", succ_id, succ_num);
-        cond_switch_ctx_def->set_true_successor_num(succ_num);
-        cond_switch_ctx_def->add_true_successor_list(succ_id);
-        break;
-      }
+    case RT_CTX_TYPE_COND_SWITCH: {
+      auto cond_switch_ctx_def = ffts_plus_ctx->mutable_cond_switch_ctx();
+      FFTS_CHECK_NOTNULL(cond_switch_ctx_def);
+      auto succ_num = cond_switch_ctx_def->true_successor_num();
+      ++succ_num;
+      FFTS_LOGD("Added one successor %u. Successor count is %u.", succ_id, succ_num);
+      cond_switch_ctx_def->set_true_successor_num(succ_num);
+      cond_switch_ctx_def->add_true_successor_list(succ_id);
+      break;
+    }
     case RT_CTX_TYPE_LABEL:
       AddOneId(ffts_plus_task_def, succ_id, ffts_plus_ctx->mutable_label_ctx(), thread_id, is_auto);
       break;
@@ -326,16 +328,15 @@ Status FFTSPlusTaskBuilder::UpdateSuccList(uint32_t succ_id, uint32_t curr_id,
   return SUCCESS;
 }
 
-Status FFTSPlusTaskBuilder::GenerateTaskDef(const ge::NodePtr &node,
-                                            domi::FftsPlusTaskDef *ffts_plus_task_def) {
+Status FFTSPlusTaskBuilder::GenerateTaskDef(const ge::NodePtr &node, domi::FftsPlusTaskDef *ffts_plus_task_def) {
   FFTS_LOGD("TaskBuilder::GenerateTask begin, node name:%s, node type:%s.", node->GetName().c_str(),
             node->GetType().c_str());
 
   ge::OpDescPtr op_desc = node->GetOpDesc();
   Status status = GenContextDef(node, ffts_plus_task_def);
   if (status != SUCCESS) {
-    FFTS_LOGE("GenSubFftsTaskCommonInfo failed. Op[%s, optype[%s]].",
-              op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    FFTS_LOGE("GenSubFftsTaskCommonInfo failed. Op[%s, optype[%s]].", op_desc->GetName().c_str(),
+              op_desc->GetType().c_str());
     return status;
   }
   return SUCCESS;
@@ -361,8 +362,8 @@ void FFTSPlusTaskBuilder::FillSingleProducersInfo(const ge::NodePtr &pre_node, u
               pre_op_desc->GetName().c_str(), pre_op_desc->GetType().c_str(), hccl_output_degree_0_num);
   } else if (IsPhonyOp(pre_op_desc) || (!pre_op_desc->HasAttr(kContextId) && !pre_op_desc->HasAttr(kAutoCtxIdList))) {
     FFTS_LOGD("Node name: %s, Node type: %s, has attribute kContextId: %d, has attribute kAutoCtxIdList: %d.",
-              pre_op_desc->GetName().c_str(), pre_op_desc->GetType().c_str(),
-              pre_op_desc->HasAttr(kContextId), pre_op_desc->HasAttr(kAutoCtxIdList));
+              pre_op_desc->GetName().c_str(), pre_op_desc->GetType().c_str(), pre_op_desc->HasAttr(kContextId),
+              pre_op_desc->HasAttr(kAutoCtxIdList));
     for (const auto &in_node : pre_node->GetInAllNodes()) {
       FFTS_LOGD("Node name: %s, node type: %s, in-node name: %s, in-node type: %s.", pre_op_desc->GetName().c_str(),
                 pre_op_desc->GetType().c_str(), in_node->GetName().c_str(), in_node->GetType().c_str());
@@ -375,19 +376,17 @@ void FFTSPlusTaskBuilder::FillSingleProducersInfo(const ge::NodePtr &pre_node, u
   }
 }
 
-void FFTSPlusTaskBuilder::JudgeAutoStratCtxIdListInfo(const ge::NodePtr &node,
-                                                      uint32_t &pred_cnt) const {
+void FFTSPlusTaskBuilder::JudgeAutoStratCtxIdListInfo(const ge::NodePtr &node, uint32_t &pred_cnt) const {
   vector<uint32_t> at_start_ctx_id_list;
   (void)ge::AttrUtils::GetListInt(node->GetOpDesc(), kAutoAtStartCtxIdList, at_start_ctx_id_list);
   if (!at_start_ctx_id_list.empty()) {
     pred_cnt += 1;
   }
-  FFTS_LOGD("FFTSPlusTaskBuilder node name:%s, node type:%s, predCnt:%u success.",
-            node->GetName().c_str(), node->GetType().c_str(), pred_cnt);
+  FFTS_LOGD("FFTSPlusTaskBuilder node name:%s, node type:%s, predCnt:%u success.", node->GetName().c_str(),
+            node->GetType().c_str(), pred_cnt);
 }
 
-Status FFTSPlusTaskBuilder::FillCommonProducersInfo(const ge::NodePtr &node,
-                                                    uint32_t &pred_cnt,
+Status FFTSPlusTaskBuilder::FillCommonProducersInfo(const ge::NodePtr &node, uint32_t &pred_cnt,
                                                     FftsPlusComCtx_t &ffts_plus_context) const {
   for (const auto &up_node : node->GetInAllNodes()) {
     FillSingleProducersInfo(up_node, pred_cnt, kRecuriseCntMax);
@@ -397,10 +396,8 @@ Status FFTSPlusTaskBuilder::FillCommonProducersInfo(const ge::NodePtr &node,
   return SUCCESS;
 }
 
-Status FFTSPlusTaskBuilder::FillProducersInfoForLabelX(const ge::NodePtr &node,
-                                                       FftsPlusComCtx_t &ffts_plus_context,
-                                                       uint32_t &pred_cnt,
-                                                       const std::string &node_type,
+Status FFTSPlusTaskBuilder::FillProducersInfoForLabelX(const ge::NodePtr &node, FftsPlusComCtx_t &ffts_plus_context,
+                                                       uint32_t &pred_cnt, const std::string &node_type,
                                                        const ge::OpDescPtr &op_desc) const {
   if (node_type == "LabelSet") {
     FFTS_LOGD("dealing with Producers' labelset");
@@ -438,7 +435,7 @@ Status FFTSPlusTaskBuilder::FillProducersInfo(const ge::NodePtr &node, FftsPlusC
   FFTS_LOGD("Dealing with FillProducersInfo.");
   PrintNode(node);
   PrintNodeAttrExtNodes(node, ATTR_NAME_PARENT_PRE_NODES);
-  std::shared_ptr<std::vector<ge::NodePtr>> parent_inputnodes  = nullptr;
+  std::shared_ptr<std::vector<ge::NodePtr>> parent_inputnodes = nullptr;
   parent_inputnodes = op_desc->TryGetExtAttr(ATTR_NAME_PARENT_PRE_NODES, parent_inputnodes);
   if (parent_inputnodes != nullptr && (*parent_inputnodes).size() != 0) {
     for (const auto &up_node : (*parent_inputnodes)) {
@@ -474,8 +471,7 @@ Status FFTSPlusTaskBuilder::FillProducersInfo(const ge::NodePtr &node, FftsPlusC
   }
 }
 
-bool FFTSPlusTaskBuilder::GetJumpLabelSetContextid(const ge::NodePtr &node,
-                                                   uint32_t &jumplabel_context_id,
+bool FFTSPlusTaskBuilder::GetJumpLabelSetContextid(const ge::NodePtr &node, uint32_t &jumplabel_context_id,
                                                    bool &has_jumpnode) const {
   ge::NodePtr labelset = nullptr;
   ge::OpDescPtr op_desc = node->GetOpDesc();
@@ -485,19 +481,18 @@ bool FFTSPlusTaskBuilder::GetJumpLabelSetContextid(const ge::NodePtr &node,
   jumplabel_context_id = 0;
   labelset = op_desc->TryGetExtAttr(ATTR_NAME_LABEL_JUMP_NODE, labelset);
   if (labelset != nullptr) {
-      (void)ge::AttrUtils::GetInt(labelset->GetOpDesc(), kContextId, jumplabel_context_id);
-      FFTS_LOGD("Out node name: %s, node type: %s, context_id: %u.", labelset->GetName().c_str(),
-                labelset->GetType().c_str(), jumplabel_context_id);
-      has_jumpnode = true;
-      (void)ge::AttrUtils::SetInt(op_desc, ATTR_NAME_LABEL_JUMP_NODE_INDEX, jumplabel_context_id);
+    (void)ge::AttrUtils::GetInt(labelset->GetOpDesc(), kContextId, jumplabel_context_id);
+    FFTS_LOGD("Out node name: %s, node type: %s, context_id: %u.", labelset->GetName().c_str(),
+              labelset->GetType().c_str(), jumplabel_context_id);
+    has_jumpnode = true;
+    (void)ge::AttrUtils::SetInt(op_desc, ATTR_NAME_LABEL_JUMP_NODE_INDEX, jumplabel_context_id);
     return true;
   }
   has_jumpnode = false;
   return false;
 }
 
-void FFTSPlusTaskBuilder::FillManualCustomersInfoCommon(const ge::NodePtr &up_node,
-                                                        ge::OpDescPtr up_op_desc,
+void FFTSPlusTaskBuilder::FillManualCustomersInfoCommon(const ge::NodePtr &up_node, ge::OpDescPtr up_op_desc,
                                                         FftsPlusComCtx_t &sub_ffts_plus_context_elem) const {
   if (up_node == nullptr) {
     return;
@@ -544,8 +539,7 @@ void FFTSPlusTaskBuilder::FillManualCustomersInfoForLabelSet(const ge::NodePtr &
     }
   }
   for (const auto &up_node : node->GetOutAllNodes()) {
-    FFTS_LOGD("Out node name: %s, node type: %s.", up_node->GetName().c_str(),
-              up_node->GetType().c_str());
+    FFTS_LOGD("Out node name: %s, node type: %s.", up_node->GetName().c_str(), up_node->GetType().c_str());
     ge::OpDescPtr up_op_desc = up_node->GetOpDesc();
     FillManualCustomersInfoCommon(up_node, up_op_desc, sub_ffts_plus_context_elem);
   }
@@ -558,7 +552,7 @@ void FFTSPlusTaskBuilder::FillManualCustomersInfoForLabelSwitch(const ge::NodePt
   FFTS_LOGD("Dealing with customer LabelSwitchByIndex.");
   PrintNode(node);
   PrintNodeAttrExtNodes(node, ATTR_NAME_LABEL_JUMP_NODES);
-  std::shared_ptr<std::vector<ge::NodePtr>> labelsets_nodes  = nullptr;
+  std::shared_ptr<std::vector<ge::NodePtr>> labelsets_nodes = nullptr;
   labelsets_nodes = op_desc->TryGetExtAttr(ATTR_NAME_LABEL_JUMP_NODES, labelsets_nodes);
   if (labelsets_nodes != nullptr && (*labelsets_nodes).size() != 0) {
     for (const auto &up_node : (*labelsets_nodes)) {
@@ -590,7 +584,6 @@ void FFTSPlusTaskBuilder::FillManualCustomersInfoForLabelGoto(const ge::NodePtr 
   return;
 }
 
-
 Status FFTSPlusTaskBuilder::FillManualCustomersInfo(const ge::NodePtr &node,
                                                     FftsPlusComCtx_t &sub_ffts_plus_context_elem) const {
   uint32_t context_id = 0;
@@ -606,7 +599,7 @@ Status FFTSPlusTaskBuilder::FillManualCustomersInfo(const ge::NodePtr &node,
     sub_ffts_plus_context_elem.succ_list.emplace_back(context_id);
   }
 
-  std::shared_ptr<std::vector<ge::NodePtr>> succ_nodes  = nullptr;
+  std::shared_ptr<std::vector<ge::NodePtr>> succ_nodes = nullptr;
   succ_nodes = op_desc->TryGetExtAttr(kNonEdgeSuccList, succ_nodes);
   if (succ_nodes != nullptr && (*succ_nodes).size() != 0) {
     for (const auto &succ_node : (*succ_nodes)) {
@@ -629,8 +622,7 @@ Status FFTSPlusTaskBuilder::FillManualCustomersInfo(const ge::NodePtr &node,
     FFTS_LOGD("other manual information.");
     for (const auto &up_node : node->GetOutAllNodes()) {
       FFTS_CHECK_NOTNULL(up_node);
-      FFTS_LOGD("Out node name: %s, node type: %s.", up_node->GetName().c_str(),
-                up_node->GetType().c_str());
+      FFTS_LOGD("Out node name: %s, node type: %s.", up_node->GetName().c_str(), up_node->GetType().c_str());
       ge::OpDescPtr up_op_desc = up_node->GetOpDesc();
       FillManualCustomersInfoCommon(up_node, up_op_desc, sub_ffts_plus_context_elem);
     }

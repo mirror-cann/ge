@@ -35,7 +35,7 @@ engine_common_includes :=   ${LOCAL_PATH} \
 							${TOPDIR}open_source/json/include \
 							${TOPDIR}third_party/protobuf/include \
 
-                          
+
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := libstub_for_aicpu

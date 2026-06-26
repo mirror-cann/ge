@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,7 +27,7 @@ using namespace ge;
 const char *const kOriginElementNumAttrName = "origin_element_num";
 
 class UtestGraphPassesConstantFuseSamePass : public testing::Test {
-protected:
+ protected:
   void SetUp() {}
   void TearDown() {}
 };
@@ -49,7 +49,7 @@ ComputeGraphPtr BuildGraph1() {
 
   float weight[] = {0.0f};
   GeTensorDesc weight_desc(GeShape({1}), FORMAT_NHWC, DT_FLOAT);
-  GeTensorPtr tensor = std::make_shared<GeTensor>(weight_desc, (uint8_t *) weight, sizeof(weight));
+  GeTensorPtr tensor = std::make_shared<GeTensor>(weight_desc, (uint8_t *)weight, sizeof(weight));
   int64_t origin_val_size = 1;
   (void)ge::AttrUtils::SetInt(tensor->MutableTensorDesc(), kOriginElementNumAttrName, origin_val_size);
   OpDescUtils::SetWeights(const1, {tensor});
@@ -73,12 +73,12 @@ ComputeGraphPtr BuildGraph2() {
 
   float weight[] = {0.0f};
   GeTensorDesc weight_desc(GeShape({1}), FORMAT_NHWC, DT_FLOAT);
-  GeTensorPtr tensor = std::make_shared<GeTensor>(weight_desc, (uint8_t *) weight, sizeof(weight));
+  GeTensorPtr tensor = std::make_shared<GeTensor>(weight_desc, (uint8_t *)weight, sizeof(weight));
   OpDescUtils::SetWeights(const1, {tensor});
 
   float weight2[] = {1.23f};
   GeTensorDesc weight2_desc(GeShape({1}), FORMAT_NHWC, DT_FLOAT);
-  GeTensorPtr tensor2 = std::make_shared<GeTensor>(weight2_desc, (uint8_t *) weight2, sizeof(weight2));
+  GeTensorPtr tensor2 = std::make_shared<GeTensor>(weight2_desc, (uint8_t *)weight2, sizeof(weight2));
   OpDescUtils::SetWeights(const2, {tensor2});
 
   builder.AddDataEdge(const1, 0, add1, 0);
@@ -106,7 +106,7 @@ ComputeGraphPtr BuildGraph3() {
 
   float weight[] = {0.0f};
   GeTensorDesc weight_desc(GeShape({1}), FORMAT_NHWC, DT_FLOAT);
-  GeTensorPtr tensor = std::make_shared<GeTensor>(weight_desc, (uint8_t *) weight, sizeof(weight));
+  GeTensorPtr tensor = std::make_shared<GeTensor>(weight_desc, (uint8_t *)weight, sizeof(weight));
   int64_t origin_val_size = 1;
   (void)ge::AttrUtils::SetInt(tensor->MutableTensorDesc(), kOriginElementNumAttrName, origin_val_size);
   OpDescUtils::SetWeights(const1, {tensor});
@@ -141,7 +141,7 @@ ComputeGraphPtr BuildGraph4() {
 
   float weight[] = {0.0f};
   GeTensorDesc weight_desc(GeShape({1}), FORMAT_NHWC, DT_FLOAT);
-  GeTensorPtr tensor = std::make_shared<GeTensor>(weight_desc, (uint8_t *) weight, sizeof(weight));
+  GeTensorPtr tensor = std::make_shared<GeTensor>(weight_desc, (uint8_t *)weight, sizeof(weight));
   int64_t origin_val_size = 1;
   (void)ge::AttrUtils::SetInt(tensor->MutableTensorDesc(), kOriginElementNumAttrName, origin_val_size);
   OpDescUtils::SetWeights(const1, {tensor});
@@ -149,7 +149,7 @@ ComputeGraphPtr BuildGraph4() {
 
   float weight2[] = {1.23f};
   GeTensorDesc weight2_desc(GeShape({1}), FORMAT_NHWC, DT_FLOAT);
-  GeTensorPtr tensor2 = std::make_shared<GeTensor>(weight2_desc, (uint8_t *) weight2, sizeof(weight2));
+  GeTensorPtr tensor2 = std::make_shared<GeTensor>(weight2_desc, (uint8_t *)weight2, sizeof(weight2));
   (void)ge::AttrUtils::SetInt(tensor2->MutableTensorDesc(), kOriginElementNumAttrName, origin_val_size);
   OpDescUtils::SetWeights(const3, {tensor2});
   OpDescUtils::SetWeights(const4, {tensor2});
@@ -173,7 +173,7 @@ ComputeGraphPtr BuildGraph4_1() {
 
   float weight[] = {0.0f};
   GeTensorDesc weight_desc(GeShape({1}), FORMAT_NCHW, DT_FLOAT);
-  GeTensorPtr tensor = std::make_shared<GeTensor>(weight_desc, (uint8_t *) weight, sizeof(weight));
+  GeTensorPtr tensor = std::make_shared<GeTensor>(weight_desc, (uint8_t *)weight, sizeof(weight));
   int64_t origin_val_size = 1;
   (void)ge::AttrUtils::SetInt(tensor->MutableTensorDesc(), kOriginElementNumAttrName, origin_val_size);
   OpDescUtils::SetWeights(const1, {tensor});
@@ -181,7 +181,7 @@ ComputeGraphPtr BuildGraph4_1() {
 
   float weight2[] = {0.0f};
   GeTensorDesc weight2_desc(GeShape({1}), FORMAT_NHWC, DT_FLOAT);
-  GeTensorPtr tensor2 = std::make_shared<GeTensor>(weight2_desc, (uint8_t *) weight2, sizeof(weight2));
+  GeTensorPtr tensor2 = std::make_shared<GeTensor>(weight2_desc, (uint8_t *)weight2, sizeof(weight2));
   (void)ge::AttrUtils::SetInt(tensor2->MutableTensorDesc(), kOriginElementNumAttrName, origin_val_size);
   OpDescUtils::SetWeights(const3, {tensor2});
   OpDescUtils::SetWeights(const4, {tensor2});
@@ -205,7 +205,7 @@ ComputeGraphPtr BuildGraph4_2() {
 
   float weight[] = {0.0f};
   GeTensorDesc weight_desc(GeShape({1}), FORMAT_NCHW, DT_FLOAT);
-  GeTensorPtr tensor = std::make_shared<GeTensor>(weight_desc, (uint8_t *) weight, sizeof(weight));
+  GeTensorPtr tensor = std::make_shared<GeTensor>(weight_desc, (uint8_t *)weight, sizeof(weight));
   int64_t origin_val_size = 1;
   (void)ge::AttrUtils::SetInt(tensor->MutableTensorDesc(), kOriginElementNumAttrName, origin_val_size);
   OpDescUtils::SetWeights(const1, {tensor});
@@ -213,7 +213,7 @@ ComputeGraphPtr BuildGraph4_2() {
 
   float weight2[] = {0.0f};
   GeTensorDesc weight2_desc(GeShape({1, 1}), FORMAT_NCHW, DT_FLOAT);
-  GeTensorPtr tensor2 = std::make_shared<GeTensor>(weight2_desc, (uint8_t *) weight2, sizeof(weight2));
+  GeTensorPtr tensor2 = std::make_shared<GeTensor>(weight2_desc, (uint8_t *)weight2, sizeof(weight2));
   (void)ge::AttrUtils::SetInt(tensor2->MutableTensorDesc(), kOriginElementNumAttrName, origin_val_size);
   OpDescUtils::SetWeights(const3, {tensor2});
   OpDescUtils::SetWeights(const4, {tensor2});
@@ -246,7 +246,7 @@ ComputeGraphPtr BuildGraph4_3() {
 
   float weight[] = {0.0f};
   GeTensorDesc weight_desc(GeShape({1}), FORMAT_NHWC, DT_FLOAT);
-  GeTensorPtr tensor = std::make_shared<GeTensor>(weight_desc, (uint8_t *) weight, sizeof(weight));
+  GeTensorPtr tensor = std::make_shared<GeTensor>(weight_desc, (uint8_t *)weight, sizeof(weight));
   int64_t origin_val_size = 1;
   (void)ge::AttrUtils::SetInt(tensor->MutableTensorDesc(), kOriginElementNumAttrName, origin_val_size);
   OpDescUtils::SetWeights(const1, {tensor});
@@ -254,7 +254,7 @@ ComputeGraphPtr BuildGraph4_3() {
 
   float weight2[] = {1.23f};
   GeTensorDesc weight2_desc(GeShape({1}), FORMAT_NHWC, DT_FLOAT);
-  GeTensorPtr tensor2 = std::make_shared<GeTensor>(weight2_desc, (uint8_t *) weight2, sizeof(weight2));
+  GeTensorPtr tensor2 = std::make_shared<GeTensor>(weight2_desc, (uint8_t *)weight2, sizeof(weight2));
   (void)ge::AttrUtils::SetInt(tensor2->MutableTensorDesc(), kOriginElementNumAttrName, origin_val_size);
   OpDescUtils::SetWeights(const3, {tensor2});
   OpDescUtils::SetWeights(const4, {tensor2});
@@ -268,7 +268,7 @@ ComputeGraphPtr BuildGraph4_3() {
   return builder.GetGraph();
 }
 
-} // namespace
+}  // namespace
 
 TEST_F(UtestGraphPassesConstantFuseSamePass, success_const_has_data) {
   ge::ComputeGraphPtr graph = BuildGraph1();

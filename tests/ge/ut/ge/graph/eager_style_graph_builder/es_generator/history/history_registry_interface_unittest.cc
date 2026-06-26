@@ -116,7 +116,8 @@ TEST_F(HistoryRegistryInterfaceUT, LoadHistoryChainOpNotFoundAddsWarning) {
   EXPECT_TRUE(ctx.versions.empty());
   EXPECT_TRUE(ctx.proto_chain.empty());
   ASSERT_EQ(warnings.size(), 1U);
-  EXPECT_NE(warnings[0].find("op NonExistentOp skip version 8.0.RC1: Op NonExistentOp not found in operators.json"), std::string::npos);
+  EXPECT_NE(warnings[0].find("op NonExistentOp skip version 8.0.RC1: Op NonExistentOp not found in operators.json"),
+            std::string::npos);
 }
 
 TEST_F(HistoryRegistryInterfaceUT, LoadHistoryChainSkipsInvalidVersion) {

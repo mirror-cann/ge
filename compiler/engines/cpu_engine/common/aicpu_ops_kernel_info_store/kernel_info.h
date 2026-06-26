@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,8 +32,7 @@ class KernelInfo {
    * @param options configuration information
    * @return status whether this operation success
    */
-  virtual ge::Status Initialize(
-      const std::map<std::string, std::string> &options);
+  virtual ge::Status Initialize(const std::map<std::string, std::string> &options);
 
   /**
    * Release related resources of the aicpu kernelinfo store
@@ -46,8 +45,7 @@ class KernelInfo {
    * @param a map<string, OpInfo> stores operator's name and OpInfo
    * @return status whether this operation success
    */
-  ge::Status GetOpInfos(
-      std::map<std::string, aicpu::OpFullInfo> &op_infos) const;
+  ge::Status GetOpInfos(std::map<std::string, aicpu::OpFullInfo> &op_infos) const;
 
   ge::Status GetOpInfo(const std::string &op_type, OpFullInfo &op_info) const;
 
@@ -69,12 +67,15 @@ class KernelInfo {
   void SetJsonPath(const std::string &json_path);
 
   const std::string GetJsonPath();
+
  protected:
   /**
    * Read json file
    * @return whether read file successfully
    */
-  virtual bool ReadOpInfoFromJsonFile() { return true; }
+  virtual bool ReadOpInfoFromJsonFile() {
+    return true;
+  }
 
   const std::string GetOpsPath(const void *instance) const;
 
@@ -99,8 +100,7 @@ class KernelInfo {
 
 #define FACTORY_KERNELINFO Factory<KernelInfo>
 
-#define FACTORY_KERNELINFO_CLASS_KEY(CLASS, KEY) \
-  FACTORY_KERNELINFO::Register<CLASS> __##CLASS(KEY);
+#define FACTORY_KERNELINFO_CLASS_KEY(CLASS, KEY) FACTORY_KERNELINFO::Register<CLASS> __##CLASS(KEY);
 
 }  // namespace aicpu
 

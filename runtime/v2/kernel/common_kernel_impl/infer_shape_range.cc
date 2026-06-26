@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -52,11 +52,9 @@ void PrintFormatDtypeShapeRange(std::stringstream &ss, ge::Format format, ge::Da
 }
 
 std::vector<std::string> InferShapeRangeKernelTrace(const KernelContext *context) {
-  return {PrintNodeType(context),
-          PrintInputRangeInfo(context, 0U),
-          PrintOutputRangeInfo(context)};
+  return {PrintNodeType(context), PrintInputRangeInfo(context, 0U), PrintOutputRangeInfo(context)};
 }
-} // namespace
+}  // namespace
 
 std::string PrintInputRangeInfo(const KernelContext *const context, const size_t &input_range_start_index) {
   std::stringstream ss;
@@ -67,8 +65,7 @@ std::string PrintInputRangeInfo(const KernelContext *const context, const size_t
   }
   if (context->GetInputNum() < input_range_start_index) {
     ss << "Trace failed, input num < input_range_start_index, "
-       << "context->GetInputNum:" << context->GetInputNum()
-       << ", input_range_start_index:" << input_range_start_index;
+       << "context->GetInputNum:" << context->GetInputNum() << ", input_range_start_index:" << input_range_start_index;
     return ss.str();
   }
   ss << "input shape ranges : ";
@@ -122,8 +119,8 @@ ge::graphStatus TransformAllOutputsMaxShape(const ComputeNodeInfo *compute_node_
     auto storage_shape = context->GetOutputPointer<StorageShape>(node_outputs_num * 2U + index);
     GE_ASSERT_NOTNULL(storage_shape);
     GE_CHK_STATUS_RET(TransformOutputShape(compute_node_info, output_td, storage_shape),
-                      "Fail to transfer node %s %zu output shape according format.",
-                      compute_node_info->GetNodeName(), index);
+                      "Fail to transfer node %s %zu output shape according format.", compute_node_info->GetNodeName(),
+                      index);
   }
   return ge::GRAPH_SUCCESS;
 }
@@ -142,22 +139,21 @@ ge::graphStatus BuildInferShapeRangeOutputs(const ge::FastNode *node, KernelCont
     GE_ASSERT_NOTNULL(min_shape_chain);
     auto output_desc = extend_context->GetOutputDesc(index);
     GE_ASSERT_NOTNULL(output_desc);
-    auto min_shape_tensor = new (std::nothrow) Tensor(StorageShape(),
-        output_desc->GetFormat(), output_desc->GetDataType());
+    auto min_shape_tensor =
+        new (std::nothrow) Tensor(StorageShape(), output_desc->GetFormat(), output_desc->GetDataType());
     GE_ASSERT_NOTNULL(min_shape_tensor);
     min_shape_chain->SetWithDefaultDeleter(min_shape_tensor);
 
     auto max_shape_chain = context->GetOutput(2U * node_output_num + index);
     GE_ASSERT_NOTNULL(max_shape_chain);
-    auto max_shape_tensor = new (std::nothrow) Tensor(StorageShape(),
-        output_desc->GetFormat(), output_desc->GetDataType());
+    auto max_shape_tensor =
+        new (std::nothrow) Tensor(StorageShape(), output_desc->GetFormat(), output_desc->GetDataType());
     GE_ASSERT_NOTNULL(max_shape_tensor);
     max_shape_chain->SetWithDefaultDeleter(max_shape_tensor);
 
     auto shape_range_chain = context->GetOutput(index);
     GE_ASSERT_NOTNULL(shape_range_chain);
-    auto shape_range = new (std::nothrow) Range<Tensor>(min_shape_tensor,
-                                                        max_shape_tensor);
+    auto shape_range = new (std::nothrow) Range<Tensor>(min_shape_tensor, max_shape_tensor);
     GE_ASSERT_NOTNULL(shape_range);
     shape_range_chain->SetWithDefaultDeleter(shape_range);
   }
@@ -248,7 +244,9 @@ ge::graphStatus BuildRanges(const ge::FastNode *node, KernelContext *context) {
   return ge::GRAPH_SUCCESS;
 }
 
-REGISTER_KERNEL(InferShapeRange).RunFunc(InferShapeRange).OutputsCreator(BuildInferShapeRangeOutputs)
+REGISTER_KERNEL(InferShapeRange)
+    .RunFunc(InferShapeRange)
+    .OutputsCreator(BuildInferShapeRangeOutputs)
     .TracePrinter(InferShapeRangeKernelTrace);
 REGISTER_KERNEL(CreateTensorRangesAndShapeRanges).RunFunc(CreateRanges).OutputsCreator(BuildRanges);
 }  // namespace kernel

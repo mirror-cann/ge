@@ -10,38 +10,19 @@
 # See LICENSE in the root of the software repository for the full text of the License.
 # ----------------------------------------------------------------------------
 
-import numpy as np
 
 from ge.es import GraphBuilder
-from ge.graph import Tensor, DumpFormat
-from ge.graph.types import DataType, Format
-from ge.ge_global import GeApi
-from ge.session import Session
 from ge.es.all import *
+from ge.graph.types import DataType
 
 
 def build_concat_graph():
     # 1、创建图构建器
     builder = GraphBuilder("MakeConcatV2FedtoReluGraph")
     # 2、创建图输入节点
-    tensor_holder1 = builder.create_input(
-        index=0,
-        name="tensor1",
-        data_type=DataType.DT_FLOAT,
-        shape=[8, 64, 128]
-    )
-    tensor_holder2 = builder.create_input(
-        index=1,
-        name="tensor2",
-        data_type=DataType.DT_FLOAT,
-        shape=[2, 64, 128]
-    )
-    tensor_holder3 = builder.create_input(
-        index=2,
-        name="tensor3",
-        data_type=DataType.DT_FLOAT,
-        shape=[6, 64, 128]
-    )
+    tensor_holder1 = builder.create_input(index=0, name="tensor1", data_type=DataType.DT_FLOAT, shape=[8, 64, 128])
+    tensor_holder2 = builder.create_input(index=1, name="tensor2", data_type=DataType.DT_FLOAT, shape=[2, 64, 128])
+    tensor_holder3 = builder.create_input(index=2, name="tensor3", data_type=DataType.DT_FLOAT, shape=[6, 64, 128])
     tensor_holder_list = [tensor_holder1, tensor_holder2, tensor_holder3]
     concat_tensor_holder = ConcatV2(tensor_holder_list, 0, N=3)
     relu_tensor_holder = Relu(concat_tensor_holder)

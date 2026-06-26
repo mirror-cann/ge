@@ -164,4 +164,3 @@ EsCTensorHolder *input_tensor = EsCreateGraphInputWithDetails(
     dim_num       // dim_num: 维度数组的长度
 );
 ```
-

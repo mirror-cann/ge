@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -53,8 +53,7 @@ bool IsControlV2Op(const std::string &op_type) {
 }
 
 bool IsExecOnDevice(const OpDescPtr &op_desc) {
-  return (op_desc->GetOpKernelLibName() == kEngineNameAiCpu) ||
-         (op_desc->GetOpKernelLibName() == kEngineNameAiCpuTf) ||
+  return (op_desc->GetOpKernelLibName() == kEngineNameAiCpu) || (op_desc->GetOpKernelLibName() == kEngineNameAiCpuTf) ||
          (op_desc->GetOpKernelLibName() == kEngineNameAiCore);
 }
 
@@ -102,7 +101,7 @@ bool IsOutputSmallEnough(ConstGeTensorDescPtr &tensor_desc, const OpDescPtr &op_
     size_t dim_num = tensor_desc->GetShape().GetDimNum();
     if (!shape_range.empty() && (dim_num != 1U)) {
       int64_t max_range_size = 1;
-      for (const auto& item : shape_range) {
+      for (const auto &item : shape_range) {
         if (item.second < 0) {
           return false;
         }
@@ -152,7 +151,7 @@ bool IsDynamicGraph(const ComputeGraphPtr &graph) {
     return true;
   }
 }
-} // namespace
+}  // namespace
 
 void HostcpuEngineUpdatePass::ClearNodeMapSource() {
   node_to_parent_node_.clear();
@@ -380,18 +379,17 @@ Status HostcpuEngineUpdatePass::UpdateHostcpuEngine(const ComputeGraphPtr &graph
   return SUCCESS;
 }
 
-Status HostcpuEngineUpdatePass::Run(const ComputeGraphPtr &graph,
-                                    NodeEngineMap &node_atomic_engine_map,
+Status HostcpuEngineUpdatePass::Run(const ComputeGraphPtr &graph, NodeEngineMap &node_atomic_engine_map,
                                     NodeEngineMap &node_composite_engine_map) {
   /**
    * User-specified pass name which takes precedence over optimization option levels (eg., O1, O3).
-   * 
+   *
    * Previous logic:
    *   - O0/O1: option is disabled, so this function pass is disabled.
    *   - O2/O3: option is enabled, so this function pass is enabled if the runtime2.0 switch is on.
-   * 
+   *
    * Updated logic:
-   *   - If the user explicitly configures the 'HostShapeOptimizationPass' pass, 
+   *   - If the user explicitly configures the 'HostShapeOptimizationPass' pass,
    *     this function pass will be enabled regardless of Oo level.
    *   - If the user does not configure the 'HostShapeOptimizationPass' pass:
    *     - Under O0/O1: this function pass remains disabled
@@ -407,8 +405,7 @@ Status HostcpuEngineUpdatePass::Run(const ComputeGraphPtr &graph,
   } else {
     std::string opt_value;
     status = GetThreadLocalContext().GetOo().GetValue(kHostcpuEngineUpdatePass, opt_value);
-    GELOGI("Get option[%s], opt_value[%s], status[%u].",
-            kHostcpuEngineUpdatePass.c_str(), opt_value.c_str(), status);
+    GELOGI("Get option[%s], opt_value[%s], status[%u].", kHostcpuEngineUpdatePass.c_str(), opt_value.c_str(), status);
     // 没有注册或者获取OoLevel与注册时默认值不匹配（OoLevel为0/1），则不支持hostcpu engine update pass
     if (opt_value == "false") {
       GELOGI("Hostcpu engine update close in current level.");
@@ -432,8 +429,8 @@ Status HostcpuEngineUpdatePass::Run(const ComputeGraphPtr &graph,
   GELOGI("[HostcpuEngineUpdatePass]: graph[%s] optimize start.", graph->GetName().c_str());
   GE_MAKE_GUARD(clear_node_map, [this]() { ClearNodeMapSource(); });
   GE_ASSERT_SUCCESS(UpdateHostcpuEngine(graph, node_atomic_engine_map, node_composite_engine_map));
-  GELOGI("[HostcpuEngineUpdatePass]: graph[%s] optimize succ, host ops size=%u.",
-         graph->GetName().c_str(), host_exe_ops_.size());
+  GELOGI("[HostcpuEngineUpdatePass]: graph[%s] optimize succ, host ops size=%u.", graph->GetName().c_str(),
+         host_exe_ops_.size());
   return SUCCESS;
 }
 
@@ -441,6 +438,8 @@ Status HostcpuEngineUpdatePass::Run(const ComputeGraphPtr &graph,
 // Did not directly register pass name to GE.
 REG_OPTION(kHostcpuEngineUpdatePass)
     .LEVELS(ge::OoLevel::kO0)
-    .DEFAULT_VALUES({{ge::OoLevel::kO0, "false"}, {ge::OoLevel::kO1, "false"},
-                     {ge::OoLevel::kO2, "true"}, {ge::OoLevel::kO3, "true"}});
+    .DEFAULT_VALUES({{ge::OoLevel::kO0, "false"},
+                     {ge::OoLevel::kO1, "false"},
+                     {ge::OoLevel::kO2, "true"},
+                     {ge::OoLevel::kO3, "true"}});
 }  // namespace ge

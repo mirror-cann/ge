@@ -16,11 +16,11 @@
 
 namespace ge {
 class IAmctCalibration {
-public:
+ public:
   virtual ~IAmctCalibration() = default;
 
-  virtual graphStatus Calibrate(Graph& graph, const std::map<std::string, std::string>& options) = 0;
+  virtual graphStatus Calibrate(Graph &graph, const std::map<std::string, std::string> &options) = 0;
 };
-} // namespace ge
+}  // namespace ge
 
-#endif // INC_EXTERNAL_AMCT_INTERFACE_H_
+#endif  // INC_EXTERNAL_AMCT_INTERFACE_H_

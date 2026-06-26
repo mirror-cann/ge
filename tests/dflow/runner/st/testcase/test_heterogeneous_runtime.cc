@@ -1,13 +1,12 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
-
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
@@ -130,8 +129,7 @@ Status DequeueNoTilingStub(int32_t device_id, uint32_t queue_id, void *data, siz
 
 Status InitializeHeterogeneousRuntime(const std::map<std::string, std::string> &options) {
   ExecutionRuntime::SetExecutionRuntime(std::make_shared<ExecutionRuntimeStub>());
-  auto mock_deploy_model =
-    [](const FlowModelPtr &flow_model, DeployResult &deploy_result) -> Status {
+  auto mock_deploy_model = [](const FlowModelPtr &flow_model, DeployResult &deploy_result) -> Status {
     deploy_result.input_queue_attrs = {{1, 0, 0}, {2, 0, 0}, {3, 0, 0}};
     deploy_result.broadcast_input_queue_attrs.resize(3);
     deploy_result.output_queue_attrs = {{4, 0, 0}};
@@ -140,8 +138,8 @@ Status InitializeHeterogeneousRuntime(const std::map<std::string, std::string> &
 
   // mock deploy model
   auto execution_runtime = (ExecutionRuntimeStub *)ExecutionRuntime::GetInstance();
-  EXPECT_CALL(execution_runtime->GetModelDeployerStub(), DeployModel).WillRepeatedly(
-      testing::Invoke(mock_deploy_model));
+  EXPECT_CALL(execution_runtime->GetModelDeployerStub(), DeployModel)
+      .WillRepeatedly(testing::Invoke(mock_deploy_model));
 
   // mock undeploy model
   EXPECT_CALL(execution_runtime->GetModelDeployerStub(), Undeploy).WillRepeatedly(Return(SUCCESS));
@@ -181,9 +179,9 @@ class HeterogeneousRuntimeTest : public testing::Test {
 
 TEST_F(HeterogeneousRuntimeTest, TestInitHeterogeneousRuntime) {
   std::map<std::string, std::string> options_runtime;
-  ASSERT_EQ(ExecutionRuntime::InitHeterogeneousRuntime(options_runtime), FAILED); // error load so
-  mock_handle = (void *) 0xffffffff;
-  ASSERT_EQ(ExecutionRuntime::InitHeterogeneousRuntime(options_runtime), FAILED); // error find init func
+  ASSERT_EQ(ExecutionRuntime::InitHeterogeneousRuntime(options_runtime), FAILED);  // error load so
+  mock_handle = (void *)0xffffffff;
+  ASSERT_EQ(ExecutionRuntime::InitHeterogeneousRuntime(options_runtime), FAILED);  // error find init func
 }
 
 TEST_F(HeterogeneousRuntimeTest, TestTimeBatchPass) {
@@ -225,8 +223,8 @@ TEST_F(HeterogeneousRuntimeTest, TestCountBatchPass) {
 }
 
 TEST_F(HeterogeneousRuntimeTest, TestDeployModel) {
-  mock_handle = (void *) 0xffffffff;
-  mock_method = (void *) &InitializeHeterogeneousRuntime;
+  mock_handle = (void *)0xffffffff;
+  mock_method = (void *)&InitializeHeterogeneousRuntime;
   std::map<std::string, std::string> options_runtime;
   ASSERT_EQ(ExecutionRuntime::InitHeterogeneousRuntime(options_runtime), SUCCESS);
 
@@ -271,7 +269,7 @@ TEST_F(HeterogeneousRuntimeTest, TestDeployModel) {
 namespace {
 ge::dflow::FlowGraph BuildFlowGraph() {
   std::string cmd = "mkdir -p temp; cd temp; touch libtest.so";
-  (void) system(cmd.c_str());
+  (void)system(cmd.c_str());
   std::ofstream cmakefile("./temp/CMakeLists.txt");
   {
     cmakefile << "cmake_minimum_required(VERSION 3.5)\n";
@@ -311,15 +309,13 @@ ge::dflow::FlowGraph BuildFlowGraph() {
   flow_graph.SetInputs(inputsOperator).SetOutputs(outputsOperator);
   return flow_graph;
 }
-}
+}  // namespace
 
 TEST_F(HeterogeneousRuntimeTest, TestDeployModelNoTiling) {
   map<std::string, std::string> sess_options = ge::GetThreadLocalContext().GetAllSessionOptions();
-  GE_MAKE_GUARD(recover_sess_cfg, [&sess_options](){
-    GetThreadLocalContext().SetSessionOption(sess_options);
-  });
-  mock_handle = (void *) 0xffffffff;
-  mock_method = (void *) &InitializeHeterogeneousRuntime;
+  GE_MAKE_GUARD(recover_sess_cfg, [&sess_options]() { GetThreadLocalContext().SetSessionOption(sess_options); });
+  mock_handle = (void *)0xffffffff;
+  mock_method = (void *)&InitializeHeterogeneousRuntime;
   std::map<std::string, std::string> options_runtime;
   ASSERT_EQ(ExecutionRuntime::InitHeterogeneousRuntime(options_runtime), SUCCESS);
 
@@ -394,8 +390,8 @@ TEST_F(HeterogeneousRuntimeTest, TestDeployModelNoTiling) {
         op_desc->UpdateInputDesc(0, tensor1);
         op_desc->UpdateOutputDesc(0, tensor1);
         op_desc->SetInputOffset({2112});
-        op_desc->SetSrcName( { "add" } );
-        op_desc->SetSrcIndex({ 0 });
+        op_desc->SetSrcName({"add"});
+        op_desc->SetSrcIndex({0});
       }
     }
   };
@@ -438,7 +434,7 @@ TEST_F(HeterogeneousRuntimeTest, TestDeployModelNoTiling) {
   ret = session.FetchDataFlowGraph(11, fetch_output_tensors, data_flow_info, 100);
   ASSERT_EQ(ret, SUCCESS);
   ASSERT_EQ(fetch_output_tensors.size(), 1);
-  
+
   // feed empty data with eos
   data_flow_info.SetFlowFlags(1U);
   ret = session.FeedDataFlowGraph(11, {}, data_flow_info, 100);
@@ -451,11 +447,9 @@ TEST_F(HeterogeneousRuntimeTest, TestDeployModelNoTiling) {
 
 TEST_F(HeterogeneousRuntimeTest, TestFeedDataWithoutRun) {
   map<std::string, std::string> sess_options = ge::GetThreadLocalContext().GetAllSessionOptions();
-  GE_MAKE_GUARD(recover_sess_cfg, [&sess_options](){
-    GetThreadLocalContext().SetSessionOption(sess_options);
-  });
-  mock_handle = (void *) 0xffffffff;
-  mock_method = (void *) &InitializeHeterogeneousRuntime;
+  GE_MAKE_GUARD(recover_sess_cfg, [&sess_options]() { GetThreadLocalContext().SetSessionOption(sess_options); });
+  mock_handle = (void *)0xffffffff;
+  mock_method = (void *)&InitializeHeterogeneousRuntime;
   std::map<std::string, std::string> options_runtime;
   ASSERT_EQ(ExecutionRuntime::InitHeterogeneousRuntime(options_runtime), SUCCESS);
 
@@ -530,8 +524,8 @@ TEST_F(HeterogeneousRuntimeTest, TestFeedDataWithoutRun) {
         op_desc->UpdateInputDesc(0, tensor1);
         op_desc->UpdateOutputDesc(0, tensor1);
         op_desc->SetInputOffset({2112});
-        op_desc->SetSrcName( { "add" } );
-        op_desc->SetSrcIndex({ 0 });
+        op_desc->SetSrcName({"add"});
+        op_desc->SetSrcIndex({0});
       }
     }
   };
@@ -566,8 +560,8 @@ TEST_F(HeterogeneousRuntimeTest, TestFeedDataWithoutRun) {
 }
 
 TEST_F(HeterogeneousRuntimeTest, TestDeployDynamicSchedModelNoTiling) {
-  mock_handle = (void *) 0xffffffff;
-  mock_method = (void *) &InitializeHeterogeneousRuntime;
+  mock_handle = (void *)0xffffffff;
+  mock_method = (void *)&InitializeHeterogeneousRuntime;
   std::map<std::string, std::string> options_runtime;
   ASSERT_EQ(ExecutionRuntime::InitHeterogeneousRuntime(options_runtime), SUCCESS);
 
@@ -642,8 +636,8 @@ TEST_F(HeterogeneousRuntimeTest, TestDeployDynamicSchedModelNoTiling) {
         op_desc->UpdateInputDesc(0, tensor1);
         op_desc->UpdateOutputDesc(0, tensor1);
         op_desc->SetInputOffset({2112});
-        op_desc->SetSrcName( { "add" } );
-        op_desc->SetSrcIndex({ 0 });
+        op_desc->SetSrcName({"add"});
+        op_desc->SetSrcIndex({0});
       }
     }
   };

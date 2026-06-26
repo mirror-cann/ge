@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -61,7 +61,8 @@ class OptimizationOptionSt : public testing::Test {
 };
 
 namespace {
-Status DoCompileGraph(const Graph &graph, const uint32_t graph_id, const std::map<AscendString, AscendString> &options) {
+Status DoCompileGraph(const Graph &graph, const uint32_t graph_id,
+                      const std::map<AscendString, AscendString> &options) {
   Session session(options);
   auto ret = session.AddGraph(graph_id, graph, options);
   EXPECT_EQ(ret, SUCCESS);
@@ -480,7 +481,7 @@ TEST_F(OptimizationOptionSt, CompileWithO1_Ok_TopoSortDisableConstantFoldingComp
   EXPECT_NE(DoCompileGraph(graph, 1, options), SUCCESS);
 
   CHECK_GRAPH(Build) {
-    std::vector<std::string> expect_node_names = {"data0",   "relu0",  "relu2",    "data1",    "relu1",
+    std::vector<std::string> expect_node_names = {"data0",   "relu0",  "relu2",    "data1",     "relu1",
                                                   "cast_op", "abs_op", "cast_op2", "net_output"};
     std::vector<std::string> node_names;
     for (const auto &node : graph->GetAllNodes()) {
@@ -512,8 +513,7 @@ TEST_F(OptimizationOptionSt, CompileWithO1_Ok_DefaultTopoSortCompatibility) {
 
   DUMP_GRAPH_WHEN("Build");
   auto graph = CreateGraphWithStaticAndDynamicShape();
-  std::map<AscendString, AscendString> options = {
-      {"ge.oo.level", "O1"}};
+  std::map<AscendString, AscendString> options = {{"ge.oo.level", "O1"}};
   EXPECT_NE(DoCompileGraph(graph, 1, options), SUCCESS);
 
   CHECK_GRAPH(Build) {
@@ -540,10 +540,10 @@ TEST_F(OptimizationOptionSt, CompileWithO1_Ok_DynamicDimensionCompatibility) {
   auto graph = CreateDynamicDimsGraphWithScalarInput();
   DUMP_GRAPH_WHEN("PreRunAfterOptimize1");
   std::map<AscendString, AscendString> options = {{"ge.inputShape", "data0:-1;data1:-1;data2:"},
-                                             {"ge.dynamicDims", "10,10;2,2;4,4"},
-                                             {"ge.dynamicNodeType", "1"},
-                                             {"ge.runFlag", "0"},
-                                             {"ge.oo.level", "O1"}};
+                                                  {"ge.dynamicDims", "10,10;2,2;4,4"},
+                                                  {"ge.dynamicNodeType", "1"},
+                                                  {"ge.runFlag", "0"},
+                                                  {"ge.oo.level", "O1"}};
   EXPECT_EQ(DoCompileGraph(graph, 100, options), SUCCESS);
   // check result
   CHECK_GRAPH(PreRunAfterOptimize1) {
@@ -583,8 +583,7 @@ TEST_F(OptimizationOptionSt, CompileWithO1_Ok_SetDataTypeOption) {
   options.emplace(ge::OPTION_GRAPH_RUN_MODE, "0");
   Session session(options);
   std::map<ge::AscendString, ge::AscendString> build_options = {
-    {ge::AscendString(ge::ir_option::OUTPUT_TYPE), ge::AscendString("INT8")}
-  };
+      {ge::AscendString(ge::ir_option::OUTPUT_TYPE), ge::AscendString("INT8")}};
   auto ret = session.AddGraph(1, graph, build_options);
   EXPECT_EQ(ret, SUCCESS);
   std::vector<InputTensorInfo> inputs;

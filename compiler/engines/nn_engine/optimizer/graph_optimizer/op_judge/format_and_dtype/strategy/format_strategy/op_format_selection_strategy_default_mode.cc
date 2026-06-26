@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -41,8 +41,8 @@ Status OpFormatSelectionStrategyDefaultMode::Run(FormatDtypeSelectionBasicInfo &
     return FAILED;
   }
 
-  format_matcher_->FilterFormatIndex(basic_info.node, basic_info.op_kernel_info_ptr,
-                                     input_or_output_format, basic_info.matched_index_vec);
+  format_matcher_->FilterFormatIndex(basic_info.node, basic_info.op_kernel_info_ptr, input_or_output_format,
+                                     basic_info.matched_index_vec);
   FE_LOGD("Op[name=%s,type=%s]: match origin format, the expected format is %s.", cur_op_desc_name.c_str(),
           cur_op_desc_type.c_str(), ge::TypeUtils::FormatToSerialString(cur_origin_format).c_str());
   Status match_origin_format_res = format_matcher_->Match(input_or_output_format, cur_origin_format, cur_origin_format,
@@ -51,7 +51,8 @@ Status OpFormatSelectionStrategyDefaultMode::Run(FormatDtypeSelectionBasicInfo &
     FE_LOGD("Op[name=%s,type=%s]: match the origin format success, some matched formats in op kernel have been found.",
             cur_op_desc_name.c_str(), cur_op_desc_type.c_str());
   } else {
-    FE_LOGD("Op[name=%s,type=%s]: match origin format unsuccessful.", cur_op_desc_name.c_str(), cur_op_desc_type.c_str());
+    FE_LOGD("Op[name=%s,type=%s]: match origin format unsuccessful.", cur_op_desc_name.c_str(),
+            cur_op_desc_type.c_str());
   }
   return SUCCESS;
 }

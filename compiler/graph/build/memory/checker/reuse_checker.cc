@@ -105,7 +105,6 @@ bool IsSkip(const GeTensorDescPtr &output_tensor_desc, const int64_t memory_type
   return false;
 }
 
-
 bool IsRef(const ReuseNodeMem &lh, const ReuseNodeMem &rh) {
   return lh.symbol_index == rh.symbol_index;
 }
@@ -131,7 +130,7 @@ int64_t GetMemoryType(const OpDesc *const op_desc, const int32_t out_index,
   }
   return memory_type;
 }
-}  // namespacekMaxLogLen
+}  // namespace
 
 ReuseChecker::ReuseChecker(ComputeGraphPtr &graph, AnchorToSymbol anchor_to_symbol, SymbolToAnchors symbol_to_anchors)
     : graph_(graph),
@@ -155,8 +154,10 @@ Status ReuseChecker::Check() {
 
   for (auto &batched_map : reuse_nodes_) {
     for (auto &mem_typed_map : batched_map.second) {
-      GE_ASSERT_SUCCESS(CheckReuseNodes(mem_typed_map.second), "Check reuse failed. batch_lable: %s, memory_type: "
-                        "%" PRId64 "", batched_map.first.c_str(), mem_typed_map.first);
+      GE_ASSERT_SUCCESS(CheckReuseNodes(mem_typed_map.second),
+                        "Check reuse failed. batch_lable: %s, memory_type: "
+                        "%" PRId64 "",
+                        batched_map.first.c_str(), mem_typed_map.first);
     }
   }
   GELOGI("memory reuse check success, graph: %s", graph_->GetName().c_str());
@@ -187,7 +188,7 @@ Status ReuseChecker::CheckReuseNodes(OffsetReuseNodes &offset_reuse_nodes_map) {
         auto reason =
             deps_analyzer_.WhyACannotReuseB(iter_next->node, iter_next->out_index, iter->node, iter->out_index);
         REPORT_INNER_ERR_MSG("E19999", "Cannot reuse memory between %s and %s", NodeOutMemStr(*iter).c_str(),
-                           NodeOutMemStr(*iter_next).c_str());
+                             NodeOutMemStr(*iter_next).c_str());
         GELOGE(FAILED, "Cannot reuse memory between %s and %s", NodeOutMemStr(*iter).c_str(),
                NodeOutMemStr(*iter_next).c_str());
         REPORT_INNER_ERR_MSG("E19999", "reason: %s", reason.c_str());

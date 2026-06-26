@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -74,8 +74,8 @@ Status OpFormatMatcher::Match(const vector<ge::Format> &op_kernel_format_vec, co
             iter++;
           }
         } else {
-          FE_LOGD("the matched index %u is larger than or equal to the opKernelFormatVecSize %u.",
-                  index, op_kernel_format_vec_size);
+          FE_LOGD("the matched index %u is larger than or equal to the opKernelFormatVecSize %u.", index,
+                  op_kernel_format_vec_size);
           iter = matched_index_vec.erase(iter);
         }
       }

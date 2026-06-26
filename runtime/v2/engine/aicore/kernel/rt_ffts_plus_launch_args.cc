@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,7 +25,8 @@ ge::graphStatus SetDynamicArgsSize(RtFFTSKernelLaunchArgs::ArgsDesc &args_desc, 
                                    size_t all_size) {
   desc_size = desc_size * sizeof(DynDesc);
   desc_size = ge::MemSizeAlign(desc_size, static_cast<uint32_t>(sizeof(uint64_t)));
-  GELOGD("Calc dynamic %s io with desc_size: %zu and all_size: %zu.", is_input ? "input" : "output", desc_size, all_size);
+  GELOGD("Calc dynamic %s io with desc_size: %zu and all_size: %zu.", is_input ? "input" : "output", desc_size,
+         all_size);
   if (is_input) {
     FE_ASSERT_TRUE(args_desc.SetSize(RtFFTSKernelLaunchArgs::kDyInputsDescData, desc_size));
     FE_ASSERT_TRUE(args_desc.SetSize(RtFFTSKernelLaunchArgs::kDyInputsHostAddr, all_size));
@@ -207,7 +208,8 @@ ge::graphStatus RtFFTSKernelLaunchArgs::CalcTotalSize(const ge::NodePtr &node,
       sub_size += (dyn_v.size() - 1);
     }
   }
-  GELOGD("Dynamic in group size[%zu] out group size[%zu] sub size[%zu].", dyn_in_vv.size(), dyn_out_vv.size(), sub_size);
+  GELOGD("Dynamic in group size[%zu] out group size[%zu] sub size[%zu].", dyn_in_vv.size(), dyn_out_vv.size(),
+         sub_size);
   size_t args_size = node_desc.input_num + node_desc.output_num + node_desc.addr_num + node_desc.workspace_cap + 1;
   if (node_desc.dynamic_folded) {
     // sub size will be folded
@@ -321,8 +323,8 @@ ge::graphStatus RtFFTSKernelLaunchArgs::RedirectTilingAddr() {
   return ge::GRAPH_SUCCESS;
 }
 
-ge::graphStatus RtFFTSKernelLaunchArgs::SetDynInAddr(size_t in_index, size_t &arg_index, uintptr_t data_base, const Shape &shape,
-                                          void *args_dev_base) {
+ge::graphStatus RtFFTSKernelLaunchArgs::SetDynInAddr(size_t in_index, size_t &arg_index, uintptr_t data_base,
+                                                     const Shape &shape, void *args_dev_base) {
   auto dyn_in_desc_v = GetArgsPointer<DynDesc>(kDyInputsDescData);
   size_t i = 0;
   for (; i < dyn_in_num_; ++i) {
@@ -350,8 +352,8 @@ ge::graphStatus RtFFTSKernelLaunchArgs::SetDynInAddr(size_t in_index, size_t &ar
   return ge::GRAPH_SUCCESS;
 }
 
-ge::graphStatus RtFFTSKernelLaunchArgs::SetDynOutAddr(size_t out_index, size_t &arg_index, uintptr_t data_base, const Shape &shape,
-                                           void *args_dev_base) {
+ge::graphStatus RtFFTSKernelLaunchArgs::SetDynOutAddr(size_t out_index, size_t &arg_index, uintptr_t data_base,
+                                                      const Shape &shape, void *args_dev_base) {
   auto dyn_out_desc_v = GetArgsPointer<DynDesc>(kDyOutputsDescData);
   size_t i = 0;
   for (; i < dyn_out_num_; ++i) {

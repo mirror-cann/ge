@@ -1,10 +1,10 @@
 #!/bin/bash
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
@@ -580,10 +580,10 @@ checkopts() {
       echo "Do you want to enable ASAN? [yes/no]"
       echo "(Auto-select 'no' in 5 seconds if no response)"
       echo ""
-      
+
       read -t 5 -r ASAN_RESPONSE || ASAN_RESPONSE="no"
       ASAN_RESPONSE=$(echo "$ASAN_RESPONSE" | tr '[:upper:]' '[:lower:]')
-      
+
       if [ "$ASAN_RESPONSE" = "yes" ] || [ "$ASAN_RESPONSE" = "y" ]; then
         ASAN_MODE="true"
         echo "[INFO] User selected: ASAN enabled"

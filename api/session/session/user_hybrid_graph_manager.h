@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,12 +33,13 @@ class UserHybridGraphManager {
   Status AddGraph(uint32_t user_graph_id, const Graph &graph, const std::map<std::string, std::string> &options);
   Status BuildGraph(uint32_t user_graph_id, const std::vector<GeTensor> &inputs, uint64_t session_id);
   Status RunGraphAsync(uint32_t user_graph_id, std::vector<gert::Tensor> &&inputs, uint64_t session_id,
-      const RunAsyncCallbackV2 &callback);
+                       const RunAsyncCallbackV2 &callback);
   Status RemoveGraph(uint32_t user_graph_id);
   bool IsGraphNeedRebuild(uint32_t user_graph_id);
   Status GetCompiledFlag(uint32_t user_graph_id, bool &flag);
   Status SetCompiledFlag(uint32_t user_graph_id, bool flag);
   Status Finalize();
+
  private:
   bool IsHybridMode(const std::map<std::string, std::string> &options) const;
   void SetDynamicGraphId(const uint32_t user_graph_id);
@@ -59,6 +60,6 @@ class UserHybridGraphManager {
   uint32_t inner_graph_id_cnt_{0U};
 };
 using UserHybridGraphManagerPtr = std::shared_ptr<UserHybridGraphManager>;
-} // ge
+}  // namespace ge
 
 #endif  // USER_HYBRID_GRAPH_MANAGER_H

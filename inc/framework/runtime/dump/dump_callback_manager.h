@@ -21,7 +21,7 @@ namespace dump {
 
 class DumpCallbackManager {
  public:
-  static DumpCallbackManager& GetInstance();
+  static DumpCallbackManager &GetInstance();
   static Status GlobalInit();
   bool RegisterDumpCallbacks(uint32_t module_id) const;
 
@@ -30,8 +30,8 @@ class DumpCallbackManager {
   ~DumpCallbackManager() = default;
 
   // 回调处理函数
-  static int32_t EnableDumpCallback(uint64_t dumpSwitch, const char* dumpData, int32_t size);
-  static int32_t DisableDumpCallback(uint64_t dumpSwitch, const char* dumpData, int32_t size);
+  static int32_t EnableDumpCallback(uint64_t dumpSwitch, const char *dumpData, int32_t size);
+  static int32_t DisableDumpCallback(uint64_t dumpSwitch, const char *dumpData, int32_t size);
 
   // 异常 Dump 位开关处理
   static bool IsEnableExceptionDumpBySwitch(uint64_t dumpSwitch);
@@ -39,7 +39,7 @@ class DumpCallbackManager {
   static bool ProcessExceptionDumpBySwitch(uint64_t dumpSwitch);
 
   // 内部处理逻辑
-  static Status HandleEnableDump(const char* dumpData, int32_t size);
+  static Status HandleEnableDump(const char *dumpData, int32_t size);
   static Status HandleDisableDump();
   static Status HandleDumpExceptionConfig();
   static Status HandleDumpDebugConfig();

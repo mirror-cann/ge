@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,17 +39,21 @@ class SuperKernelV2TaskInfo : public TaskInfo {
   Status ParseTaskRunParam(const domi::TaskDef &task_def, DavinciModel *const davinci_model,
                            TaskRunParam &task_run_param) override;
 
-  Status Init(const domi::TaskDef &task_def, DavinciModel *const davinci_model,
-              const PisToArgs &args = {}, const PisToPersistentWorkspace &persistent_workspace = {},
+  Status Init(const domi::TaskDef &task_def, DavinciModel *const davinci_model, const PisToArgs &args = {},
+              const PisToPersistentWorkspace &persistent_workspace = {},
               const IowAddrs &iow_addrs = {{}, {}, {}}) override;
 
   Status Distribute() override;
 
   Status Release() override;
 
-  uint32_t GetTaskID() const override { return task_id_; }
+  uint32_t GetTaskID() const override {
+    return task_id_;
+  }
 
-  uint32_t GetStreamId() const override { return stream_id_; }
+  uint32_t GetStreamId() const override {
+    return stream_id_;
+  }
 
   uintptr_t GetDumpArgs() const override {
     return static_cast<uintptr_t>(PtrToValue(dump_args_));
@@ -64,7 +68,10 @@ class SuperKernelV2TaskInfo : public TaskInfo {
   Status GetTaskArgsRefreshInfos(std::vector<TaskArgsRefreshInfo> &infos) override;
 
   void PostProcess(const domi::TaskDef &task_def) override;
-  bool CallSaveDumpInfo() const override  { return call_save_dump_; }
+  bool CallSaveDumpInfo() const override {
+    return call_save_dump_;
+  }
+
  private:
   struct ArgsFormatInfo {
     std::map<size_t, std::pair<size_t, size_t>> ir_input_2_range;
@@ -83,11 +90,11 @@ class SuperKernelV2TaskInfo : public TaskInfo {
     size_t io_idx;
     bool is_input;
 
-    bool operator<(const SubNodeIoIndex &sub_node_io_index) const{
+    bool operator<(const SubNodeIoIndex &sub_node_io_index) const {
       return ((node_idx < sub_node_io_index.node_idx) ||
-        ((node_idx == sub_node_io_index.node_idx) && (io_idx < sub_node_io_index.io_idx)) ||
-        ((node_idx == sub_node_io_index.node_idx) && (io_idx == sub_node_io_index.io_idx)
-        && static_cast<int32_t>(is_input) <  static_cast<int32_t>(sub_node_io_index.is_input)));
+              ((node_idx == sub_node_io_index.node_idx) && (io_idx < sub_node_io_index.io_idx)) ||
+              ((node_idx == sub_node_io_index.node_idx) && (io_idx == sub_node_io_index.io_idx) &&
+               static_cast<int32_t>(is_input) < static_cast<int32_t>(sub_node_io_index.is_input)));
     }
   };
 
@@ -100,17 +107,17 @@ class SuperKernelV2TaskInfo : public TaskInfo {
   void UpdateTaskId();
 
   Status InitKernel(const domi::TaskDef &task_def, const PisToArgs &args);
-  Status FindSkSubNode(const OpDescPtr &sk_op, const int32_t id,  NodePtr &sub_node) const;
+  Status FindSkSubNode(const OpDescPtr &sk_op, const int32_t id, NodePtr &sub_node) const;
   Status GenSubNodeIoToSuperKernelIoMap(size_t node_idx, const NodePtr &sub_node);
   Status ParseArgsFormat(const std::vector<ArgDesc> &args_descs);
   size_t GetArgsSizeByFormat() const;
   Status AssembleShapeInfoAddrs(const std::vector<std::vector<ArgDesc>> &sub_node_dynamic_args_desc,
                                 const std::vector<std::vector<size_t>> &sub_node_level2_addr_idx);
 
-  Status AssembleTilingContextArgs(int32_t node_idx,const ArgDesc &arg_desc,
-                                  std::map<size_t, gert::AddrRefreshedTensor> &index_to_tensor);
+  Status AssembleTilingContextArgs(int32_t node_idx, const ArgDesc &arg_desc,
+                                   std::map<size_t, gert::AddrRefreshedTensor> &index_to_tensor);
 
-  Status AssembleTilingSinkTensors(std::map<int32_t ,std::map<size_t, gert::AddrRefreshedTensor>> &index_to_tensor);
+  Status AssembleTilingSinkTensors(std::map<int32_t, std::map<size_t, gert::AddrRefreshedTensor>> &index_to_tensor);
   void GetAddrAlignedGertTensorSize(size_t &io_aligned_offset, size_t &double_aliged_tensor_size) const;
   Status AssembleIoByArgsFormat();
   void AppendIoAddr(const uint64_t addr, const uint64_t addr_type);
@@ -125,7 +132,7 @@ class SuperKernelV2TaskInfo : public TaskInfo {
   uint32_t args_size_{0U};
   uint32_t task_id_{0U};
   uint32_t stream_id_{0U};
-  OpDescPtr op_desc_;   // Clear after distribute.
+  OpDescPtr op_desc_;  // Clear after distribute.
   std::vector<uint64_t> io_addrs_;
   std::vector<uint64_t> io_addr_mem_types_;
   DavinciModel *davinci_model_{nullptr};

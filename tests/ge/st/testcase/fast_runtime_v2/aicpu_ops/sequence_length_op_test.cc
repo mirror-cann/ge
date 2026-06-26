@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,8 +20,8 @@ struct SequenceLengthComputeTest : public testing::Test {
   SequenceLengthComputeTest() {
     SequenceLengthCompute = KernelRegistry::GetInstance().FindKernelFuncs("SequenceLengthCompute");
   }
-  const KernelRegistry::KernelFuncs* SequenceLengthCompute;
-  KernelRegistry& registry = KernelRegistry::GetInstance();
+  const KernelRegistry::KernelFuncs *SequenceLengthCompute;
+  KernelRegistry &registry = KernelRegistry::GetInstance();
 };
 
 TEST_F(SequenceLengthComputeTest, failed) {
@@ -31,7 +31,7 @@ TEST_F(SequenceLengthComputeTest, failed) {
   size_t total_size = 0;
   // build input handle tensor
   auto handle_tensor_holder = gert::Tensor::CreateFollowing(1, ge::DT_UINT64, total_size);
-  auto handle_tensor = reinterpret_cast<gert::Tensor*>(handle_tensor_holder.get());
+  auto handle_tensor = reinterpret_cast<gert::Tensor *>(handle_tensor_holder.get());
   handle_tensor->SetOriginFormat(ge::FORMAT_ND);
   handle_tensor->SetStorageFormat(ge::FORMAT_ND);
   handle_tensor->SetPlacement(gert::kFollowing);
@@ -40,27 +40,26 @@ TEST_F(SequenceLengthComputeTest, failed) {
 
   // build output length tensor
   auto output_tensor_holder = gert::Tensor::CreateFollowing(1, ge::DT_UINT64, total_size);
-  auto output_tensor = reinterpret_cast<gert::Tensor*>(output_tensor_holder.get());
+  auto output_tensor = reinterpret_cast<gert::Tensor *>(output_tensor_holder.get());
   output_tensor->SetOriginFormat(ge::FORMAT_ND);
   output_tensor->SetStorageFormat(ge::FORMAT_ND);
   output_tensor->SetPlacement(gert::kFollowing);
   output_tensor->MutableOriginShape() = {};
   output_tensor->MutableStorageShape() = {};
 
-  auto handle_tensor_data = reinterpret_cast<uint64_t*>(handle_tensor->GetAddr());
+  auto handle_tensor_data = reinterpret_cast<uint64_t *>(handle_tensor->GetAddr());
   handle_tensor_data[0] = handle;
   handle_tensor->SetData(gert::TensorData{handle_tensor_data, nullptr});
 
-  auto output_tensor_data = reinterpret_cast<uint64_t*>(output_tensor->GetAddr());
+  auto output_tensor_data = reinterpret_cast<uint64_t *>(output_tensor->GetAddr());
   output_tensor_data[0] = 1;
   output_tensor->SetData(gert::TensorData{output_tensor_data, nullptr});
 
   auto kernelHolder = gert::KernelRunContextFaker()
                           .KernelIONum(4, 0)
-                          .Inputs({reinterpret_cast<void*>(session_id),
-                                  reinterpret_cast<void*>(container_id),
-                                  reinterpret_cast<void*>(&(handle_tensor->MutableTensorData())),
-                                  reinterpret_cast<void*>(output_tensor)})
+                          .Inputs({reinterpret_cast<void *>(session_id), reinterpret_cast<void *>(container_id),
+                                   reinterpret_cast<void *>(&(handle_tensor->MutableTensorData())),
+                                   reinterpret_cast<void *>(output_tensor)})
                           .NodeIoNum(1, 1)
                           .IrInstanceNum({1})
                           .NodeInputTd(0, ge::DT_INT32, ge::FORMAT_ND, ge::FORMAT_ND)
@@ -80,42 +79,41 @@ TEST_F(SequenceLengthComputeTest, success) {
   gert::TensorSeqPtr tensor_seq_ptr = std::make_shared<gert::TensorSeq>(ge::DT_INT32);
   size_t total_size = 0;
   auto ele_tensor_holder = gert::Tensor::CreateFollowing(1, ge::DT_INT32, total_size);
-  auto ele_tensor = reinterpret_cast<gert::Tensor*>(ele_tensor_holder.get());
+  auto ele_tensor = reinterpret_cast<gert::Tensor *>(ele_tensor_holder.get());
   tensor_seq_ptr->Add(*ele_tensor);
   out_rm->Create(handle, tensor_seq_ptr);
 
   // build input handle tensor
   auto handle_tensor_holder = gert::Tensor::CreateFollowing(1, ge::DT_UINT64, total_size);
-  auto handle_tensor = reinterpret_cast<gert::Tensor*>(handle_tensor_holder.get());
+  auto handle_tensor = reinterpret_cast<gert::Tensor *>(handle_tensor_holder.get());
   handle_tensor->SetOriginFormat(ge::FORMAT_ND);
   handle_tensor->SetStorageFormat(ge::FORMAT_ND);
   handle_tensor->SetPlacement(gert::kFollowing);
   handle_tensor->MutableOriginShape() = {};
   handle_tensor->MutableStorageShape() = {};
 
-  auto handle_tensor_data = reinterpret_cast<uint64_t*>(handle_tensor->GetAddr());
+  auto handle_tensor_data = reinterpret_cast<uint64_t *>(handle_tensor->GetAddr());
   handle_tensor_data[0] = handle;
   handle_tensor->SetData(gert::TensorData{handle_tensor_data, nullptr});
 
   // build output length tensor
   auto output_tensor_holder = gert::Tensor::CreateFollowing(1, ge::DT_UINT64, total_size);
-  auto output_tensor = reinterpret_cast<gert::Tensor*>(output_tensor_holder.get());
+  auto output_tensor = reinterpret_cast<gert::Tensor *>(output_tensor_holder.get());
   output_tensor->SetOriginFormat(ge::FORMAT_ND);
   output_tensor->SetStorageFormat(ge::FORMAT_ND);
   output_tensor->SetPlacement(gert::kFollowing);
   output_tensor->MutableOriginShape() = {};
   output_tensor->MutableStorageShape() = {};
 
-  auto output_tensor_data = reinterpret_cast<uint64_t*>(output_tensor->GetAddr());
+  auto output_tensor_data = reinterpret_cast<uint64_t *>(output_tensor->GetAddr());
   output_tensor_data[0] = 1;
   output_tensor->SetData(gert::TensorData{output_tensor_data, nullptr});
 
   auto kernelHolder = gert::KernelRunContextFaker()
                           .KernelIONum(4, 0)
-                          .Inputs({reinterpret_cast<void*>(session_id),
-                                  reinterpret_cast<void*>(container_id),
-                                  reinterpret_cast<void*>(&(handle_tensor->MutableTensorData())),
-                                  reinterpret_cast<void*>(output_tensor)})
+                          .Inputs({reinterpret_cast<void *>(session_id), reinterpret_cast<void *>(container_id),
+                                   reinterpret_cast<void *>(&(handle_tensor->MutableTensorData())),
+                                   reinterpret_cast<void *>(output_tensor)})
                           .NodeIoNum(1, 1)
                           .IrInstanceNum({1})
                           .NodeInputTd(0, ge::DT_INT32, ge::FORMAT_ND, ge::FORMAT_ND)
@@ -135,42 +133,40 @@ TEST_F(SequenceLengthComputeTest, handle_null) {
   gert::TensorSeqPtr tensor_seq_ptr = std::make_shared<gert::TensorSeq>(ge::DT_INT32);
   size_t total_size = 0;
   auto ele_tensor_holder = gert::Tensor::CreateFollowing(1, ge::DT_INT32, total_size);
-  auto ele_tensor = reinterpret_cast<gert::Tensor*>(ele_tensor_holder.get());
+  auto ele_tensor = reinterpret_cast<gert::Tensor *>(ele_tensor_holder.get());
   tensor_seq_ptr->Add(*ele_tensor);
   out_rm->Create(handle, tensor_seq_ptr);
 
   // build input handle tensor
   auto handle_tensor_holder = gert::Tensor::CreateFollowing(1, ge::DT_UINT64, total_size);
-  auto handle_tensor = reinterpret_cast<gert::Tensor*>(handle_tensor_holder.get());
+  auto handle_tensor = reinterpret_cast<gert::Tensor *>(handle_tensor_holder.get());
   handle_tensor->SetOriginFormat(ge::FORMAT_ND);
   handle_tensor->SetStorageFormat(ge::FORMAT_ND);
   handle_tensor->SetPlacement(gert::kFollowing);
   handle_tensor->MutableOriginShape() = {};
   handle_tensor->MutableStorageShape() = {};
 
-  auto handle_tensor_data = reinterpret_cast<uint64_t*>(handle_tensor->GetAddr());
+  auto handle_tensor_data = reinterpret_cast<uint64_t *>(handle_tensor->GetAddr());
   handle_tensor_data[0] = handle;
   handle_tensor->SetData(gert::TensorData{handle_tensor_data, nullptr});
 
   // build output length tensor
   auto output_tensor_holder = gert::Tensor::CreateFollowing(1, ge::DT_UINT64, total_size);
-  auto output_tensor = reinterpret_cast<gert::Tensor*>(output_tensor_holder.get());
+  auto output_tensor = reinterpret_cast<gert::Tensor *>(output_tensor_holder.get());
   output_tensor->SetOriginFormat(ge::FORMAT_ND);
   output_tensor->SetStorageFormat(ge::FORMAT_ND);
   output_tensor->SetPlacement(gert::kFollowing);
   output_tensor->MutableOriginShape() = {};
   output_tensor->MutableStorageShape() = {};
 
-  auto output_tensor_data = reinterpret_cast<uint64_t*>(output_tensor->GetAddr());
+  auto output_tensor_data = reinterpret_cast<uint64_t *>(output_tensor->GetAddr());
   output_tensor_data[0] = 1;
   output_tensor->SetData(gert::TensorData{output_tensor_data, nullptr});
 
   auto kernelHolder = gert::KernelRunContextFaker()
                           .KernelIONum(4, 0)
-                          .Inputs({reinterpret_cast<void*>(session_id),
-                                  reinterpret_cast<void*>(container_id),
-                                  nullptr,
-                                  reinterpret_cast<void*>(output_tensor)})
+                          .Inputs({reinterpret_cast<void *>(session_id), reinterpret_cast<void *>(container_id),
+                                   nullptr, reinterpret_cast<void *>(output_tensor)})
                           .NodeIoNum(1, 1)
                           .IrInstanceNum({1})
                           .NodeInputTd(0, ge::DT_INT32, ge::FORMAT_ND, ge::FORMAT_ND)
@@ -190,42 +186,40 @@ TEST_F(SequenceLengthComputeTest, output_null) {
   gert::TensorSeqPtr tensor_seq_ptr = std::make_shared<gert::TensorSeq>(ge::DT_INT32);
   size_t total_size = 0;
   auto ele_tensor_holder = gert::Tensor::CreateFollowing(1, ge::DT_INT32, total_size);
-  auto ele_tensor = reinterpret_cast<gert::Tensor*>(ele_tensor_holder.get());
+  auto ele_tensor = reinterpret_cast<gert::Tensor *>(ele_tensor_holder.get());
   tensor_seq_ptr->Add(*ele_tensor);
   out_rm->Create(handle, tensor_seq_ptr);
 
   // build input handle tensor
   auto handle_tensor_holder = gert::Tensor::CreateFollowing(1, ge::DT_UINT64, total_size);
-  auto handle_tensor = reinterpret_cast<gert::Tensor*>(handle_tensor_holder.get());
+  auto handle_tensor = reinterpret_cast<gert::Tensor *>(handle_tensor_holder.get());
   handle_tensor->SetOriginFormat(ge::FORMAT_ND);
   handle_tensor->SetStorageFormat(ge::FORMAT_ND);
   handle_tensor->SetPlacement(gert::kFollowing);
   handle_tensor->MutableOriginShape() = {};
   handle_tensor->MutableStorageShape() = {};
 
-  auto handle_tensor_data = reinterpret_cast<uint64_t*>(handle_tensor->GetAddr());
+  auto handle_tensor_data = reinterpret_cast<uint64_t *>(handle_tensor->GetAddr());
   handle_tensor_data[0] = handle;
   handle_tensor->SetData(gert::TensorData{handle_tensor_data, nullptr});
 
   // build output length tensor
   auto output_tensor_holder = gert::Tensor::CreateFollowing(1, ge::DT_UINT64, total_size);
-  auto output_tensor = reinterpret_cast<gert::Tensor*>(output_tensor_holder.get());
+  auto output_tensor = reinterpret_cast<gert::Tensor *>(output_tensor_holder.get());
   output_tensor->SetOriginFormat(ge::FORMAT_ND);
   output_tensor->SetStorageFormat(ge::FORMAT_ND);
   output_tensor->SetPlacement(gert::kFollowing);
   output_tensor->MutableOriginShape() = {};
   output_tensor->MutableStorageShape() = {};
 
-  auto output_tensor_data = reinterpret_cast<uint64_t*>(output_tensor->GetAddr());
+  auto output_tensor_data = reinterpret_cast<uint64_t *>(output_tensor->GetAddr());
   output_tensor_data[0] = 1;
   output_tensor->SetData(gert::TensorData{output_tensor_data, nullptr});
 
   auto kernelHolder = gert::KernelRunContextFaker()
                           .KernelIONum(4, 0)
-                          .Inputs({reinterpret_cast<void*>(session_id),
-                                  reinterpret_cast<void*>(container_id),
-                                  reinterpret_cast<void*>(&(handle_tensor->MutableTensorData())),
-                                  nullptr})
+                          .Inputs({reinterpret_cast<void *>(session_id), reinterpret_cast<void *>(container_id),
+                                   reinterpret_cast<void *>(&(handle_tensor->MutableTensorData())), nullptr})
                           .NodeIoNum(1, 1)
                           .IrInstanceNum({1})
                           .NodeInputTd(0, ge::DT_INT32, ge::FORMAT_ND, ge::FORMAT_ND)

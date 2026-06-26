@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -178,7 +178,7 @@ bool DataFlowInfoUtils::HasCustomTransactionId(const DataFlowInfo &info) {
 }
 
 void DataFlowInfoUtils::InitMsgInfoByDataFlowInfo(ExchangeService::MsgInfo &msg_info, const DataFlowInfo &info,
-                                                    bool contains_n_mapping_node) {
+                                                  bool contains_n_mapping_node) {
   msg_info.start_time = info.GetStartTime();
   msg_info.end_time = info.GetEndTime();
   msg_info.flags = info.GetFlowFlags();
@@ -188,8 +188,10 @@ void DataFlowInfoUtils::InitMsgInfoByDataFlowInfo(ExchangeService::MsgInfo &msg_
       msg_info.trans_id = user_assign_trans_id;
       msg_info.data_flag |= kCustomTransIdFlagBit;
     } else {
-      GELOGW("cannot assign transaction id=%" PRIu64 " as no contains_n-mapping node or exception_catch not set, "
-        "ignore it", user_assign_trans_id);
+      GELOGW("cannot assign transaction id=%" PRIu64
+             " as no contains_n-mapping node or exception_catch not set, "
+             "ignore it",
+             user_assign_trans_id);
     }
   }
 }

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -12,8 +12,8 @@
 #include <memory>
 #include <vector>
 #include <string>
-using std::vector;
 using std::string;
+using std::vector;
 
 #define GE_FUNC_DEV_VISIBILITY __attribute__((visibility("hidden")))
 #define GE_FUNC_HOST_VISIBILITY __attribute__((visibility("hidden")))
@@ -22,7 +22,6 @@ using std::string;
 #define __STUB_ADAPTER
 
 namespace ge {
-
 
 enum Format {
   FORMAT_NCHW = 0,   // NCHW
@@ -62,7 +61,7 @@ enum Format {
   FORMAT_CN,
   FORMAT_NC = 35,
   FORMAT_DHWNC,
-  FORMAT_FRACTAL_Z_3D_TRANSPOSE, // 3D filter(transpose) input tensor format
+  FORMAT_FRACTAL_Z_3D_TRANSPOSE,  // 3D filter(transpose) input tensor format
   FORMAT_FRACTAL_ZN_LSTM,
   FORMAT_FRACTAL_Z_G,
   FORMAT_RESERVED = 40,
@@ -83,38 +82,38 @@ enum Format {
 };
 
 enum DataType {
-  DT_FLOAT = 0,            // float type
-  DT_FLOAT16 = 1,          // fp16 type
-  DT_INT8 = 2,             // int8 type
-  DT_INT16 = 6,            // int16 type
-  DT_UINT16 = 7,           // uint16 type
-  DT_UINT8 = 4,            // uint8 type
-  DT_INT32 = 3,            //
-  DT_INT64 = 9,            // int64 type
-  DT_UINT32 = 8,           // unsigned int32
-  DT_UINT64 = 10,          // unsigned int64
+  DT_FLOAT = 0,    // float type
+  DT_FLOAT16 = 1,  // fp16 type
+  DT_INT8 = 2,     // int8 type
+  DT_INT16 = 6,    // int16 type
+  DT_UINT16 = 7,   // uint16 type
+  DT_UINT8 = 4,    // uint8 type
+  DT_INT32 = 3,    //
+  DT_INT64 = 9,    // int64 type
+  DT_UINT32 = 8,   // unsigned int32
+  DT_UINT64 = 10,  // unsigned int64
   DT_DOUBLE = 11,
-  DT_STRING = 13,          // string type
-  DT_BF16 = 27,            // bf16 type
-  DT_UNDEFINED = 28,       // Used to indicate a DataType field has not been set.
-  DT_MAX                   // Mark the boundaries of data types
+  DT_STRING = 13,     // string type
+  DT_BF16 = 27,       // bf16 type
+  DT_UNDEFINED = 28,  // Used to indicate a DataType field has not been set.
+  DT_MAX              // Mark the boundaries of data types
 };
 
 enum YUVSubFormat {
-  YUV420_SP = 0,            // float type
-  YVU420_SP = 1,          // fp16 type
-  YUV422_SP = 2,             // int8 type
-  YVU422_SP = 3,            // int16 type
-  YUV440_SP = 4,           // uint16 type
-  YVU440_SP = 5,            // uint8 type
-  YUV444_SP = 6,            //
-  YVU444_SP = 7,            // int64 type
-  YUV444_PACKED = 8,           // unsigned int32
-  YVU444_PACKED = 9,          // unsigned int64
-  YUYV422_PACKED = 10,          // string type
-  YVYU422_PACKED = 11,            // bf16 type
-  YUV400 = 12,       // Used to indicate a DataType field has not been set.
-  YUV_BOTTEM                   // Mark the boundaries of data types
+  YUV420_SP = 0,        // float type
+  YVU420_SP = 1,        // fp16 type
+  YUV422_SP = 2,        // int8 type
+  YVU422_SP = 3,        // int16 type
+  YUV440_SP = 4,        // uint16 type
+  YVU440_SP = 5,        // uint8 type
+  YUV444_SP = 6,        //
+  YVU444_SP = 7,        // int64 type
+  YUV444_PACKED = 8,    // unsigned int32
+  YVU444_PACKED = 9,    // unsigned int64
+  YUYV422_PACKED = 10,  // string type
+  YVYU422_PACKED = 11,  // bf16 type
+  YUV400 = 12,          // Used to indicate a DataType field has not been set.
+  YUV_BOTTEM            // Mark the boundaries of data types
 };
 
 inline int32_t GetPrimaryFormat(int32_t format) {
@@ -125,44 +124,48 @@ inline int32_t GetSubFormat(int32_t format) {
   return static_cast<int32_t>((static_cast<uint32_t>(format) & 0xffff00) >> 8);
 }
 class GeShape {
-public:
-    GeShape() = default;
-    GeShape(vector<uint32_t>);
-    uint32_t GetDim (uint32_t);
-    uint32_t GetDimNum() const { return dimNum_; }
-protected:
-    vector<uint32_t> shape;
-    uint32_t dimNum_;
+ public:
+  GeShape() = default;
+  GeShape(vector<uint32_t>);
+  uint32_t GetDim(uint32_t);
+  uint32_t GetDimNum() const {
+    return dimNum_;
+  }
+
+ protected:
+  vector<uint32_t> shape;
+  uint32_t dimNum_;
 };
 
 class GeTensorDesc {
-public:
-    GeTensorDesc(vector<uint32_t>, Format);
-    Format GetFormat() const;
-    GeShape GetOriginShape() const;
-    GeShape GetShape() const;
-protected:
-    GeShape shape;
-    Format format;
+ public:
+  GeTensorDesc(vector<uint32_t>, Format);
+  Format GetFormat() const;
+  GeShape GetOriginShape() const;
+  GeShape GetShape() const;
+
+ protected:
+  GeShape shape;
+  Format format;
 };
 
 class OpDesc : public std::enable_shared_from_this<OpDesc> {
-public:
-    OpDesc() = default;
-    void SetType(string);
-    string GetType();
-    void AddInputDesc(GeTensorDesc);
-    void AddOutputDesc(GeTensorDesc);
-    GeTensorDesc GetInputDesc(uint32_t);
-    GeTensorDesc GetOutputDesc(uint32_t);
-    uint32_t GetAllInputsSize();
-protected:
-    vector<GeTensorDesc> inputs, outputs;
-    string type_;
+ public:
+  OpDesc() = default;
+  void SetType(string);
+  string GetType();
+  void AddInputDesc(GeTensorDesc);
+  void AddOutputDesc(GeTensorDesc);
+  GeTensorDesc GetInputDesc(uint32_t);
+  GeTensorDesc GetOutputDesc(uint32_t);
+  uint32_t GetAllInputsSize();
+
+ protected:
+  vector<GeTensorDesc> inputs, outputs;
+  string type_;
 };
 using OpDescPtr = std::shared_ptr<OpDesc>;
-}
-
+}  // namespace ge
 
 // namespace ge {
 

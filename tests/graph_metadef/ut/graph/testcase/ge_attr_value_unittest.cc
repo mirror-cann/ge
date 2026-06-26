@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,14 +27,13 @@ class UtestGeAttrValue : public testing::Test {
   void TearDown() {}
 };
 
-
 TEST_F(UtestGeAttrValue, GetAttrsStrAfterRid) {
   string name = "const";
   string type = "Constant";
   OpDescPtr op_desc = std::make_shared<OpDesc>();
   EXPECT_EQ(AttrUtils::GetAttrsStrAfterRid(op_desc, {}), "");
 
-  std::set<std::string> names ={"qazwsx", "d"};
+  std::set<std::string> names = {"qazwsx", "d"};
   op_desc->SetAttr("qazwsx", GeAttrValue::CreateFrom<int64_t>(132));
   op_desc->SetAttr("xswzaq", GeAttrValue::CreateFrom<int64_t>(123));
   auto tensor = GeTensor();
@@ -45,7 +44,7 @@ TEST_F(UtestGeAttrValue, GetAttrsStrAfterRid) {
 }
 
 TEST_F(UtestGeAttrValue, GetAllAttrsStr) {
- // 属性序列化
+  // 属性序列化
   string name = "const";
   string type = "Constant";
   OpDescPtr op_desc = std::make_shared<OpDesc>(name, type);
@@ -60,7 +59,6 @@ TEST_F(UtestGeAttrValue, GetAllAttrsStr) {
   EXPECT_TRUE(attr.find("seri_i") != string::npos);
   EXPECT_TRUE(attr.find("seri_value") != string::npos);
   EXPECT_TRUE(attr.find("seri_input_desc") != string::npos);
-
 }
 TEST_F(UtestGeAttrValue, GetAllAttrs) {
   string name = "const";
@@ -74,7 +72,6 @@ TEST_F(UtestGeAttrValue, GetAllAttrs) {
   int64_t attr_value = 0;
   EXPECT_EQ(attrs["i"].GetValue(attr_value), GRAPH_SUCCESS);
   EXPECT_EQ(attr_value, 100);
-
 }
 
 TEST_F(UtestGeAttrValue, TrySetExists) {
@@ -116,17 +113,17 @@ TEST_F(UtestGeAttrValue, SetGetListInt) {
   OpDescPtr op_desc = std::make_shared<OpDesc>("const1", "Identity");
   EXPECT_TRUE(op_desc);
 
-  EXPECT_TRUE(AttrUtils::SetListInt(op_desc, "li1", std::vector<int64_t>({1,2,3,4,5})));
+  EXPECT_TRUE(AttrUtils::SetListInt(op_desc, "li1", std::vector<int64_t>({1, 2, 3, 4, 5})));
   std::vector<int64_t> li1_out0;
   EXPECT_TRUE(AttrUtils::GetListInt(op_desc, "li1", li1_out0));
-  EXPECT_EQ(li1_out0, std::vector<int64_t>({1,2,3,4,5}));
+  EXPECT_EQ(li1_out0, std::vector<int64_t>({1, 2, 3, 4, 5}));
 }
 
 TEST_F(UtestGeAttrValue, SetListIntGetByGeAttrValue) {
   OpDescPtr op_desc = std::make_shared<OpDesc>("const1", "Identity");
   EXPECT_TRUE(op_desc);
 
-  EXPECT_TRUE(AttrUtils::SetListInt(op_desc, "li1", std::vector<int64_t>({1,2,3,4,5})));
+  EXPECT_TRUE(AttrUtils::SetListInt(op_desc, "li1", std::vector<int64_t>({1, 2, 3, 4, 5})));
   auto names_to_value = AttrUtils::GetAllAttrs(op_desc);
   auto iter = names_to_value.find("li1");
   EXPECT_NE(iter, names_to_value.end());
@@ -134,18 +131,18 @@ TEST_F(UtestGeAttrValue, SetListIntGetByGeAttrValue) {
   std::vector<int64_t> li1_out;
   auto &ge_value = iter->second;
   EXPECT_EQ(ge_value.GetValue(li1_out), GRAPH_SUCCESS);
-  EXPECT_EQ(li1_out, std::vector<int64_t>({1,2,3,4,5}));
+  EXPECT_EQ(li1_out, std::vector<int64_t>({1, 2, 3, 4, 5}));
 
   li1_out.clear();
   EXPECT_EQ(ge_value.GetValue<std::vector<int64_t>>(li1_out), GRAPH_SUCCESS);
-  EXPECT_EQ(li1_out, std::vector<int64_t>({1,2,3,4,5}));
+  EXPECT_EQ(li1_out, std::vector<int64_t>({1, 2, 3, 4, 5}));
 }
 
 TEST_F(UtestGeAttrValue, SetGetAttr_GeTensor) {
   OpDescPtr op_desc = std::make_shared<OpDesc>("const1", "Identity");
   GeTensorDesc td;
-  td.SetShape(GeShape(std::vector<int64_t>({1,100})));
-  td.SetOriginShape(GeShape(std::vector<int64_t>({1,100})));
+  td.SetShape(GeShape(std::vector<int64_t>({1, 100})));
+  td.SetOriginShape(GeShape(std::vector<int64_t>({1, 100})));
   td.SetDataType(DT_FLOAT);
   td.SetFormat(FORMAT_ND);
   float data[100];
@@ -293,117 +290,124 @@ TEST_F(UtestGeAttrValue, SetGetAttrValue_Comprehensive) {
 
   // 测试所有支持的类型
   std::vector<std::pair<std::string, std::function<void()>>> test_cases = {
-      {"int64_t", [&]() {
-        int64_t val = 12345;
-        EXPECT_EQ(attr_value.SetAttrValue(val), GRAPH_SUCCESS);
-        int64_t get_val = 0;
-        EXPECT_EQ(attr_value.GetAttrValue(get_val), GRAPH_SUCCESS);
-        EXPECT_EQ(get_val, val);
-      }},
-      {"float32_t", [&]() {
-        float32_t val = 3.14159f;
-        EXPECT_EQ(attr_value.SetAttrValue(val), GRAPH_SUCCESS);
-        float32_t get_val = 0.0f;
-        EXPECT_EQ(attr_value.GetAttrValue(get_val), GRAPH_SUCCESS);
-        EXPECT_FLOAT_EQ(get_val, val);
-      }},
-      {"bool", [&]() {
-        bool val = true;
-        EXPECT_EQ(attr_value.SetAttrValue(val), GRAPH_SUCCESS);
-        bool get_val = false;
-        EXPECT_EQ(attr_value.GetAttrValue(get_val), GRAPH_SUCCESS);
-        EXPECT_EQ(get_val, val);
-      }},
-      {"DataType", [&]() {
-        ge::DataType val = DT_FLOAT;
-        EXPECT_EQ(attr_value.SetAttrValue(val), GRAPH_SUCCESS);
-        ge::DataType get_val = DT_UNDEFINED;
-        EXPECT_EQ(attr_value.GetAttrValue(get_val), GRAPH_SUCCESS);
-        EXPECT_EQ(get_val, val);
-      }},
-      {"vector<int64_t>", [&]() {
-        std::vector<int64_t> val = {1, 2, 3, 4, 5};
-        EXPECT_EQ(attr_value.SetAttrValue(val), GRAPH_SUCCESS);
-        std::vector<int64_t> get_val;
-        EXPECT_EQ(attr_value.GetAttrValue(get_val), GRAPH_SUCCESS);
-        EXPECT_EQ(get_val, val);
-      }},
-      {"vector<float32_t>", [&]() {
-        std::vector<float32_t> val = {1.1f, 2.2f, 3.3f};
-        EXPECT_EQ(attr_value.SetAttrValue(val), GRAPH_SUCCESS);
-        std::vector<float32_t> get_val;
-        EXPECT_EQ(attr_value.GetAttrValue(get_val), GRAPH_SUCCESS);
-        EXPECT_EQ(get_val.size(), val.size());
-        for (size_t i = 0; i < val.size(); ++i) {
-          EXPECT_FLOAT_EQ(get_val[i], val[i]);
-        }
-      }},
-      {"vector<bool>", [&]() {
-        std::vector<bool> val = {true, false, true};
-        EXPECT_EQ(attr_value.SetAttrValue(val), GRAPH_SUCCESS);
-        std::vector<bool> get_val;
-        EXPECT_EQ(attr_value.GetAttrValue(get_val), GRAPH_SUCCESS);
-        EXPECT_EQ(get_val, val);
-      }},
-      {"vector<vector<int64_t>>", [&]() {
-        std::vector<std::vector<int64_t>> val = {{1, 2}, {3, 4, 5}};
-        EXPECT_EQ(attr_value.SetAttrValue(val), GRAPH_SUCCESS);
-        std::vector<std::vector<int64_t>> get_val;
-        EXPECT_EQ(attr_value.GetAttrValue(get_val), GRAPH_SUCCESS);
-        EXPECT_EQ(get_val, val);
-      }},
-      {"vector<DataType>", [&]() {
-        std::vector<ge::DataType> val = {DT_FLOAT, DT_INT32, DT_BOOL};
-        EXPECT_EQ(attr_value.SetAttrValue(val), GRAPH_SUCCESS);
-        std::vector<ge::DataType> get_val;
-        EXPECT_EQ(attr_value.GetAttrValue(get_val), GRAPH_SUCCESS);
-        EXPECT_EQ(get_val, val);
-      }},
-      {"AscendString", [&]() {
-        AscendString val("test_ascend_string");
-        EXPECT_EQ(attr_value.SetAttrValue(val), GRAPH_SUCCESS);
-        AscendString get_val;
-        EXPECT_EQ(attr_value.GetAttrValue(get_val), GRAPH_SUCCESS);
-        EXPECT_STREQ(get_val.GetString(), val.GetString());
-      }},
-      {"vector<AscendString>", [&]() {
-        std::vector<AscendString> val = {
-            AscendString("str1"),
-            AscendString("str2"),
-            AscendString("str3")
-        };
-        EXPECT_EQ(attr_value.SetAttrValue(val), GRAPH_SUCCESS);
-        std::vector<AscendString> get_val;
-        EXPECT_EQ(attr_value.GetAttrValue(get_val), GRAPH_SUCCESS);
-        EXPECT_EQ(get_val.size(), val.size());
-        for (size_t i = 0; i < val.size(); ++i) {
-          EXPECT_STREQ(get_val[i].GetString(), val[i].GetString());
-        }
-      }},
-      {"Tensor", [&]() {
-        TensorDesc tensor_desc(Shape({4, 4}), FORMAT_ND, DT_FLOAT);
-        std::vector<uint8_t> tensor_data = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
-        Tensor val(tensor_desc, tensor_data);
-        EXPECT_EQ(attr_value.SetAttrValue(val), GRAPH_SUCCESS);
-        Tensor get_val;
-        EXPECT_EQ(attr_value.GetAttrValue(get_val), GRAPH_SUCCESS);
-        EXPECT_EQ(get_val.GetSize(), val.GetSize());
-      }},
+      {"int64_t",
+       [&]() {
+         int64_t val = 12345;
+         EXPECT_EQ(attr_value.SetAttrValue(val), GRAPH_SUCCESS);
+         int64_t get_val = 0;
+         EXPECT_EQ(attr_value.GetAttrValue(get_val), GRAPH_SUCCESS);
+         EXPECT_EQ(get_val, val);
+       }},
+      {"float32_t",
+       [&]() {
+         float32_t val = 3.14159f;
+         EXPECT_EQ(attr_value.SetAttrValue(val), GRAPH_SUCCESS);
+         float32_t get_val = 0.0f;
+         EXPECT_EQ(attr_value.GetAttrValue(get_val), GRAPH_SUCCESS);
+         EXPECT_FLOAT_EQ(get_val, val);
+       }},
+      {"bool",
+       [&]() {
+         bool val = true;
+         EXPECT_EQ(attr_value.SetAttrValue(val), GRAPH_SUCCESS);
+         bool get_val = false;
+         EXPECT_EQ(attr_value.GetAttrValue(get_val), GRAPH_SUCCESS);
+         EXPECT_EQ(get_val, val);
+       }},
+      {"DataType",
+       [&]() {
+         ge::DataType val = DT_FLOAT;
+         EXPECT_EQ(attr_value.SetAttrValue(val), GRAPH_SUCCESS);
+         ge::DataType get_val = DT_UNDEFINED;
+         EXPECT_EQ(attr_value.GetAttrValue(get_val), GRAPH_SUCCESS);
+         EXPECT_EQ(get_val, val);
+       }},
+      {"vector<int64_t>",
+       [&]() {
+         std::vector<int64_t> val = {1, 2, 3, 4, 5};
+         EXPECT_EQ(attr_value.SetAttrValue(val), GRAPH_SUCCESS);
+         std::vector<int64_t> get_val;
+         EXPECT_EQ(attr_value.GetAttrValue(get_val), GRAPH_SUCCESS);
+         EXPECT_EQ(get_val, val);
+       }},
+      {"vector<float32_t>",
+       [&]() {
+         std::vector<float32_t> val = {1.1f, 2.2f, 3.3f};
+         EXPECT_EQ(attr_value.SetAttrValue(val), GRAPH_SUCCESS);
+         std::vector<float32_t> get_val;
+         EXPECT_EQ(attr_value.GetAttrValue(get_val), GRAPH_SUCCESS);
+         EXPECT_EQ(get_val.size(), val.size());
+         for (size_t i = 0; i < val.size(); ++i) {
+           EXPECT_FLOAT_EQ(get_val[i], val[i]);
+         }
+       }},
+      {"vector<bool>",
+       [&]() {
+         std::vector<bool> val = {true, false, true};
+         EXPECT_EQ(attr_value.SetAttrValue(val), GRAPH_SUCCESS);
+         std::vector<bool> get_val;
+         EXPECT_EQ(attr_value.GetAttrValue(get_val), GRAPH_SUCCESS);
+         EXPECT_EQ(get_val, val);
+       }},
+      {"vector<vector<int64_t>>",
+       [&]() {
+         std::vector<std::vector<int64_t>> val = {{1, 2}, {3, 4, 5}};
+         EXPECT_EQ(attr_value.SetAttrValue(val), GRAPH_SUCCESS);
+         std::vector<std::vector<int64_t>> get_val;
+         EXPECT_EQ(attr_value.GetAttrValue(get_val), GRAPH_SUCCESS);
+         EXPECT_EQ(get_val, val);
+       }},
+      {"vector<DataType>",
+       [&]() {
+         std::vector<ge::DataType> val = {DT_FLOAT, DT_INT32, DT_BOOL};
+         EXPECT_EQ(attr_value.SetAttrValue(val), GRAPH_SUCCESS);
+         std::vector<ge::DataType> get_val;
+         EXPECT_EQ(attr_value.GetAttrValue(get_val), GRAPH_SUCCESS);
+         EXPECT_EQ(get_val, val);
+       }},
+      {"AscendString",
+       [&]() {
+         AscendString val("test_ascend_string");
+         EXPECT_EQ(attr_value.SetAttrValue(val), GRAPH_SUCCESS);
+         AscendString get_val;
+         EXPECT_EQ(attr_value.GetAttrValue(get_val), GRAPH_SUCCESS);
+         EXPECT_STREQ(get_val.GetString(), val.GetString());
+       }},
+      {"vector<AscendString>",
+       [&]() {
+         std::vector<AscendString> val = {AscendString("str1"), AscendString("str2"), AscendString("str3")};
+         EXPECT_EQ(attr_value.SetAttrValue(val), GRAPH_SUCCESS);
+         std::vector<AscendString> get_val;
+         EXPECT_EQ(attr_value.GetAttrValue(get_val), GRAPH_SUCCESS);
+         EXPECT_EQ(get_val.size(), val.size());
+         for (size_t i = 0; i < val.size(); ++i) {
+           EXPECT_STREQ(get_val[i].GetString(), val[i].GetString());
+         }
+       }},
+      {"Tensor",
+       [&]() {
+         TensorDesc tensor_desc(Shape({4, 4}), FORMAT_ND, DT_FLOAT);
+         std::vector<uint8_t> tensor_data = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+         Tensor val(tensor_desc, tensor_data);
+         EXPECT_EQ(attr_value.SetAttrValue(val), GRAPH_SUCCESS);
+         Tensor get_val;
+         EXPECT_EQ(attr_value.GetAttrValue(get_val), GRAPH_SUCCESS);
+         EXPECT_EQ(get_val.GetSize(), val.GetSize());
+       }},
       {"vector<Tensor>", [&]() {
-        TensorDesc tensor_desc(Shape({2, 2}), FORMAT_ND, DT_FLOAT);
-        std::vector<uint8_t> tensor_data = {1, 2, 3, 4};
-        Tensor tensor1(tensor_desc, tensor_data);
-        Tensor tensor2(tensor_desc, tensor_data);
-        std::vector<Tensor> val = {tensor1, tensor2};
-        EXPECT_EQ(attr_value.SetAttrValue(val), GRAPH_SUCCESS);
-        std::vector<Tensor> get_val;
-        EXPECT_EQ(attr_value.GetAttrValue(get_val), GRAPH_SUCCESS);
-        EXPECT_EQ(get_val.size(), val.size());
-        for (size_t i = 0; i < val.size(); ++i) {
-          EXPECT_EQ(get_val[i].GetSize(), val[i].GetSize());
-        }
-      }}
-  };
+         TensorDesc tensor_desc(Shape({2, 2}), FORMAT_ND, DT_FLOAT);
+         std::vector<uint8_t> tensor_data = {1, 2, 3, 4};
+         Tensor tensor1(tensor_desc, tensor_data);
+         Tensor tensor2(tensor_desc, tensor_data);
+         std::vector<Tensor> val = {tensor1, tensor2};
+         EXPECT_EQ(attr_value.SetAttrValue(val), GRAPH_SUCCESS);
+         std::vector<Tensor> get_val;
+         EXPECT_EQ(attr_value.GetAttrValue(get_val), GRAPH_SUCCESS);
+         EXPECT_EQ(get_val.size(), val.size());
+         for (size_t i = 0; i < val.size(); ++i) {
+           EXPECT_EQ(get_val[i].GetSize(), val[i].GetSize());
+         }
+       }}};
 
   // 执行所有测试用例
   for (const auto &test_case : test_cases) {
@@ -533,4 +537,4 @@ TEST_F(UtestGeAttrValue, ExternC_AttrValue_SetAttrValue_Bool_EdgeCases) {
   EXPECT_EQ(attr_value.GetAttrValue(get_value), GRAPH_SUCCESS);
   EXPECT_EQ(get_value, false);
 }
-}
+}  // namespace ge

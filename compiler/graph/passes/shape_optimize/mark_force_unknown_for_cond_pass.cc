@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -16,11 +16,11 @@
 namespace ge {
 namespace {
 inline bool IsMergeInLoop(const NodePtr &node) {
-  const static std::set<std::string> kLoopMergeInputs{ ENTER, REFENTER, NEXTITERATION, REFNEXTITERATION };
+  const static std::set<std::string> kLoopMergeInputs{ENTER, REFENTER, NEXTITERATION, REFNEXTITERATION};
 
   return kLoopMergeInputs.count(NodeUtils::GetNodeType(node)) > 0;
 }
-}
+}  // namespace
 
 Status MarkForceUnknownForCondPass::Run(ComputeGraphPtr graph) {
   GELOGD("MarkForceUnknownForCondPass Enter");
@@ -59,12 +59,8 @@ bool MarkForceUnknownForCondPass::DealAsLoopSwitch(const NodePtr &node, uint32_t
   /// Enter-----------+              \.
   ///                 +--> Merge --> Switch --> Exit
   /// NextIteration---+
-  const auto is_loop_op = [](const NodePtr &n) {
-    return NodeUtils::GetNodeType(n) == LOOPCOND;
-  };
-  const auto is_exit_op = [](const NodePtr &n) {
-    return kExitOpTypes.count(NodeUtils::GetNodeType(n)) > 0;
-  };
+  const auto is_loop_op = [](const NodePtr &n) { return NodeUtils::GetNodeType(n) == LOOPCOND; };
+  const auto is_exit_op = [](const NodePtr &n) { return kExitOpTypes.count(NodeUtils::GetNodeType(n)) > 0; };
 
   const auto src_nodes = node->GetInAllNodes();
   const auto dst_nodes = node->GetOutAllNodes();
@@ -116,7 +112,7 @@ void MarkForceUnknownForCondPass::MarkUnknownForSwitch(const NodePtr &node, std:
       const std::string node_type = NodeUtils::GetNodeType(in_node);
       GELOGD("Travel node: %s, %s node: %s, span is: %u", dst_node->GetName().c_str(), node_type.c_str(),
              in_node->GetName().c_str(), dst_span);
-      if (kSwitchOpTypes.count(node_type) > 0) { // Switch input node.
+      if (kSwitchOpTypes.count(node_type) > 0) {  // Switch input node.
         if (DealAsLoopSwitch(in_node, dst_span, search_queue)) {
           continue;
         }
@@ -126,7 +122,7 @@ void MarkForceUnknownForCondPass::MarkUnknownForSwitch(const NodePtr &node, std:
         } else {
           switch_group.emplace_back(in_node);
         }
-      } else if (kMergeOpTypes.count(node_type) > 0) { // Merge input node.
+      } else if (kMergeOpTypes.count(node_type) > 0) {  // Merge input node.
         search_queue.push({in_node, dst_span + 1});
       } else {
         search_queue.push({in_node, dst_span});
@@ -206,4 +202,4 @@ void MarkForceUnknownForCondPass::MarkUnknownForSwitch(
 }
 
 REG_PASS_OPTION("MarkForceUnknownForCondPass").LEVELS(OoLevel::kO1);
-} // namespace ge
+}  // namespace ge

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,26 +23,29 @@ Status RunContextUtil::InitMemInfo(uint8_t *data_mem_base, uint64_t data_mem_siz
                                    std::map<int64_t, uint64_t> mem_type_to_data_mem_size, uint8_t *weight_mem_base,
                                    uint64_t weight_mem_size) {
   if ((data_mem_size > 0) && (data_mem_base == nullptr)) {
-    REPORT_INNER_ERR_MSG("E19999", "InitMemInfo param data_mem_base is null but data_mem_size = %" PRIu64 "", data_mem_size);
+    REPORT_INNER_ERR_MSG("E19999", "InitMemInfo param data_mem_base is null but data_mem_size = %" PRIu64 "",
+                         data_mem_size);
     GELOGE(PARAM_INVALID, "[Check][Param] InitMemInfo param data_mem_base is null but data_mem_size = %" PRIu64 ".",
            data_mem_size);
     return PARAM_INVALID;
   }
   if ((weight_mem_size > 0) && (weight_mem_base == nullptr)) {
     REPORT_INNER_ERR_MSG("E19999", "InitMemInfo param weight_mem_base is null but weight_mem_size = %" PRIu64 "",
-                       weight_mem_size);
+                         weight_mem_size);
     GELOGE(PARAM_INVALID, "[Check][Param] InitMemInfo param weight_mem_base is null but weight_mem_size = %" PRIu64 ".",
            weight_mem_size);
     return PARAM_INVALID;
   }
   if (mem_type_to_data_mem_base.empty() || mem_type_to_data_mem_size.empty() ||
       mem_type_to_data_mem_base.size() != mem_type_to_data_mem_size.size()) {
-    REPORT_INNER_ERR_MSG("E19999", "InitMemInfo param mem_type_to_data_mem_base size[%zu] "
-                       "is not equal to the size of mem_type_to_data_mem_size[%zu].",
-                       mem_type_to_data_mem_base.size(), mem_type_to_data_mem_size.size());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "InitMemInfo param mem_type_to_data_mem_base size[%zu] "
+                         "is not equal to the size of mem_type_to_data_mem_size[%zu].",
+                         mem_type_to_data_mem_base.size(), mem_type_to_data_mem_size.size());
     GELOGE(PARAM_INVALID,
            "[Check][Param] InitMemInfo param mem_type_to_data_mem_base size[%zu] is not equal to the size of "
-           "mem_type_to_data_mem_size[%zu].", mem_type_to_data_mem_base.size(), mem_type_to_data_mem_size.size());
+           "mem_type_to_data_mem_size[%zu].",
+           mem_type_to_data_mem_base.size(), mem_type_to_data_mem_size.size());
     return PARAM_INVALID;
   }
   data_mem_base_ = data_mem_base;
@@ -66,8 +69,8 @@ Status RunContextUtil::CreateRunContext(Model &model, const ComputeGraphPtr &gra
 
   uint32_t notify_num = 0;
   if (!AttrUtils::GetInt(&model, ATTR_MODEL_NOTIFY_NUM, notify_num)) {
-    REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s failed from model, session_id:%" PRIu64 ",", ATTR_MODEL_NOTIFY_NUM.c_str(),
-                       session_id);
+    REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s failed from model, session_id:%" PRIu64 ",",
+                         ATTR_MODEL_NOTIFY_NUM.c_str(), session_id);
     GELOGE(INTERNAL_ERROR, "[Get][Attr] %s failed from model, session_id:%" PRIu64 ",", ATTR_MODEL_NOTIFY_NUM.c_str(),
            session_id);
     return INTERNAL_ERROR;
@@ -77,9 +80,9 @@ Status RunContextUtil::CreateRunContext(Model &model, const ComputeGraphPtr &gra
   uint32_t event_num = 0;
   if (!AttrUtils::GetInt(&model, ATTR_MODEL_EVENT_NUM, event_num)) {
     REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s failed from model, session_id:%" PRIu64 ",",
-                       ATTR_MODEL_EVENT_NUM.c_str(), session_id);
-    GELOGE(INTERNAL_ERROR, "[Get][Attr] %s failed from model, session_id:%" PRIu64 ",",
-           ATTR_MODEL_EVENT_NUM.c_str(), session_id);
+                         ATTR_MODEL_EVENT_NUM.c_str(), session_id);
+    GELOGE(INTERNAL_ERROR, "[Get][Attr] %s failed from model, session_id:%" PRIu64 ",", ATTR_MODEL_EVENT_NUM.c_str(),
+           session_id);
     return INTERNAL_ERROR;
   }
   GELOGD("Event_num = %u", event_num);
@@ -87,14 +90,15 @@ Status RunContextUtil::CreateRunContext(Model &model, const ComputeGraphPtr &gra
   uint32_t label_num = 0;
   if (!AttrUtils::GetInt(&model, ATTR_MODEL_LABEL_NUM, label_num)) {
     REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s failed from model, session_id:%" PRIu64 ",",
-                       ATTR_MODEL_LABEL_NUM.c_str(), session_id);
-    GELOGE(INTERNAL_ERROR, "[Get][Attr] %s failed from model, session_id:%" PRIu64 ",",
-           ATTR_MODEL_LABEL_NUM.c_str(), session_id);
+                         ATTR_MODEL_LABEL_NUM.c_str(), session_id);
+    GELOGE(INTERNAL_ERROR, "[Get][Attr] %s failed from model, session_id:%" PRIu64 ",", ATTR_MODEL_LABEL_NUM.c_str(),
+           session_id);
     return INTERNAL_ERROR;
   }
   GELOGD("Label_num = %u", label_num);
 
-  GELOGI("CreateRunContext: data_mem_base_ = %p, weight_mem_base_ = %p, memory_size = %" PRIu64 ", weight_size = %" PRIu64 "",
+  GELOGI("CreateRunContext: data_mem_base_ = %p, weight_mem_base_ = %p, memory_size = %" PRIu64
+         ", weight_size = %" PRIu64 "",
          data_mem_base_, weight_mem_base_, data_mem_size_, weight_mem_size_);
 
   PrintMemInfo();
@@ -120,5 +124,7 @@ void RunContextUtil::PrintMemInfo() const {
   }
 }
 
-RunContext &RunContextUtil::GetRunContext() { return run_context_; }
+RunContext &RunContextUtil::GetRunContext() {
+  return run_context_;
+}
 }  // namespace ge

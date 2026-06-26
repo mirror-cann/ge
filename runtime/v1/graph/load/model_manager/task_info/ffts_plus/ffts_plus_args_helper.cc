@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,10 +19,10 @@ constexpr size_t kDescBufAlignedBytes = 128UL;
 namespace ge {
 
 void FftsPlusArgsHelper::AppendAbsoluteAddrs(const uint64_t rt_addr, const std::string &addr_type) {
-  GELOGD("AppendAbsoluteAddrs addr_type:[%s] ctx_op:[%s] ctx_id:[%d] idx:[%zu], "
-         "logic_addr:[%" PRIx64 "] mem_type:[%" PRIx64 "]",
-         addr_type.c_str(), ctx_info_.ctx_op->GetNamePtr(), ctx_info_.ctx_id, io_addrs_.size(), rt_addr,
-         kAbsoluteMemType);
+  GELOGD(
+      "AppendAbsoluteAddrs addr_type:[%s] ctx_op:[%s] ctx_id:[%d] idx:[%zu], "
+      "logic_addr:[%" PRIx64 "] mem_type:[%" PRIx64 "]",
+      addr_type.c_str(), ctx_info_.ctx_op->GetNamePtr(), ctx_info_.ctx_id, io_addrs_.size(), rt_addr, kAbsoluteMemType);
   io_addrs_.push_back(rt_addr);
   io_mem_types_.push_back(kAbsoluteMemType);
   ctx_args_size_[ctx_info_.ctx_id] += sizeof(uint64_t);
@@ -38,8 +38,8 @@ void FftsPlusArgsHelper::AppendIoAddrs(const uint64_t logic_addr) {
     }
   }
   GELOGD("AppendIoAddrs ctx_op:[%s] ctx_id:[%d] idx:[%zu], logic_addr:[%" PRIx64 "] iow_mem_type:[%" PRIx64 "]",
-      (ctx_info_.ctx_op != nullptr) ? ctx_info_.ctx_op->GetNamePtr() : "", ctx_info_.ctx_id, io_addrs_.size(),
-      logic_addr_to_push, mem_type);
+         (ctx_info_.ctx_op != nullptr) ? ctx_info_.ctx_op->GetNamePtr() : "", ctx_info_.ctx_id, io_addrs_.size(),
+         logic_addr_to_push, mem_type);
   io_addrs_.push_back(logic_addr_to_push);
   io_mem_types_.push_back(mem_type);
   ctx_args_size_[ctx_info_.ctx_id] += sizeof(uint64_t);
@@ -91,8 +91,8 @@ Status FftsPlusArgsHelper::AppendBinArgs(const uint8_t *const args_addr, const s
 
 Status FftsPlusArgsHelper::UpdateIoAddrByIndex(const size_t index, const uint64_t rt_addr) {
   GE_ASSERT_TRUE(((index < io_addrs_.size()) && (index < io_mem_types_.size())),
-    "ctx_op:[%s] ctx_id:[%d] idx:[%zu] is greater than io addr size:[%zu] or io mem size:[%zu]",
-    ctx_info_.ctx_op->GetNamePtr(), ctx_info_.ctx_id, index, io_addrs_.size(), io_mem_types_.size());
+                 "ctx_op:[%s] ctx_id:[%d] idx:[%zu] is greater than io addr size:[%zu] or io mem size:[%zu]",
+                 ctx_info_.ctx_op->GetNamePtr(), ctx_info_.ctx_id, index, io_addrs_.size(), io_mem_types_.size());
   io_addrs_[index] = rt_addr;
   GELOGD("UpdateIoAddrByIndex ctx_op:[%s] ctx_id:[%d] idx:[%zu], logic_addr:[%" PRIx64 "] mem_type:[%" PRIx64 "]",
          ctx_info_.ctx_op->GetNamePtr(), ctx_info_.ctx_id, index, io_addrs_[index], io_mem_types_[index]);
@@ -150,11 +150,11 @@ Status FftsPlusArgsHelper::InitRuntimeAddr(DavinciModel *davinci_model) {
   level1_addr_size_ = level1_logic_heads_.size();
   const size_t aicpu_logic_heads_size = aicpu_logic_heads_.size();
   GE_ASSERT_SUCCESS(PlanUpdaterArgslayOut(davinci_model));
-  GELOGI(
-      "Op %s is ready for copy to addr %p, addr_size=%" PRIu64 ", len=%" PRIu64 ", aicaiv_addr_size=%zu, "
-      "level1_addr_size=%zu, ascend_aicpu_addr_size=%zu.",
-      op_desc_->GetNamePtr(), args_dev_, args_size_, addr_size, aicaiv_addr_size_, level1_addr_size_,
-      aicpu_logic_heads_size);
+  GELOGI("Op %s is ready for copy to addr %p, addr_size=%" PRIu64 ", len=%" PRIu64
+         ", aicaiv_addr_size=%zu, "
+         "level1_addr_size=%zu, ascend_aicpu_addr_size=%zu.",
+         op_desc_->GetNamePtr(), args_dev_, args_size_, addr_size, aicaiv_addr_size_, level1_addr_size_,
+         aicpu_logic_heads_size);
   return SUCCESS;
 }
 
@@ -194,27 +194,22 @@ Status FftsPlusArgsHelper::GetTaskArgsRefreshInfos(std::vector<TaskArgsRefreshIn
   // 获取args table refresh info
   std::vector<TaskArgsRefreshInfo> args_refresh_infos;
   uint64_t args_table_offset =
-    PtrToValue(PtrToPtr<uint8_t, void>(args_host_)) - PtrToValue(PtrToPtr<uint8_t, void>(pis_args_host_base_));
-  (void)args_io_addrs_updater_.GenArgsRefreshInfos(args_refresh_infos,
-                                                   args_table_offset,
+      PtrToValue(PtrToPtr<uint8_t, void>(args_host_)) - PtrToValue(PtrToPtr<uint8_t, void>(pis_args_host_base_));
+  (void)args_io_addrs_updater_.GenArgsRefreshInfos(args_refresh_infos, args_table_offset,
                                                    ArgsPlacement::kArgsPlacementHbm);
 
   // 获取contex level1 refresh info
   std::vector<TaskArgsRefreshInfo> ctx_level1_args_fresh_infos;
-  GE_CHK_STATUS_RET(ffts_plus_proto_transfer.GenCtxLevel1RefreshInfo(level1_ctx_addr_infos_,
-                                                                     args_refresh_infos,
-                                                                     aicaiv_addr_size_,
-                                                                     level1_addr_size_,
-                                                                     ctx_level1_args_fresh_infos));
+  GE_CHK_STATUS_RET(ffts_plus_proto_transfer.GenCtxLevel1RefreshInfo(
+      level1_ctx_addr_infos_, args_refresh_infos, aicaiv_addr_size_, level1_addr_size_, ctx_level1_args_fresh_infos));
 
   // 获取aicpu refresh info
   std::vector<TaskArgsRefreshInfo> aicpu_args_fresh_infos;
-  GE_CHK_STATUS_RET(GenAicpuRefreshInfos(args_refresh_infos,
-                                         aicaiv_addr_size_ + level1_addr_size_,
-                                         aicpu_args_fresh_infos));
+  GE_CHK_STATUS_RET(
+      GenAicpuRefreshInfos(args_refresh_infos, aicaiv_addr_size_ + level1_addr_size_, aicpu_args_fresh_infos));
 
   // 只保留args table表的参数， 不包含context leve1 和 aicpu
-  infos.insert(infos.end(), args_refresh_infos.begin(),  args_refresh_infos.begin() + aicaiv_addr_size_);
+  infos.insert(infos.end(), args_refresh_infos.begin(), args_refresh_infos.begin() + aicaiv_addr_size_);
   infos.insert(infos.end(), ctx_level1_args_fresh_infos.begin(), ctx_level1_args_fresh_infos.end());
   infos.insert(infos.end(), aicpu_args_fresh_infos.begin(), aicpu_args_fresh_infos.end());
 
@@ -263,7 +258,7 @@ Status FftsPlusArgsHelper::GenAicpuRefreshInfos(const std::vector<TaskArgsRefres
         args_fresh_info[start_idx + idx].offset,
         0UL,
         PtrToValue(PtrToPtr<uint8_t, void>(&bin_args_host_[args_relevent_offsets_[idx]])) -
-          PtrToValue(PtrToPtr<uint8_t, void>(pis_args_host_base_)),
+            PtrToValue(PtrToPtr<uint8_t, void>(pis_args_host_base_)),
         ArgsPlacement::kArgsPlacementHbm,
         ArgsFormatPolicy::kAddrAll,
     };
@@ -291,9 +286,9 @@ Status FftsPlusArgsHelper::AssembleTilingData() const {
     return SUCCESS;
   }
   GE_ASSERT_RT_OK(aclrtMemcpy(PtrToPtr<uint8_t, void>(tiling_data_dev_),
-      static_cast<uint64_t>(tiling_data_len_ + kDescBufAlignedBytes),
-      PtrToPtr<uint8_t, const void>(tiling_data_host_), static_cast<uint64_t>(tiling_data_len_),
-      ACL_MEMCPY_HOST_TO_DEVICE));
+                              static_cast<uint64_t>(tiling_data_len_ + kDescBufAlignedBytes),
+                              PtrToPtr<uint8_t, const void>(tiling_data_host_), static_cast<uint64_t>(tiling_data_len_),
+                              ACL_MEMCPY_HOST_TO_DEVICE));
   GELOGI("Memcpy to tiling addr: %p, len: %zu successfully.", tiling_data_dev_, tiling_data_len_);
   return SUCCESS;
 }

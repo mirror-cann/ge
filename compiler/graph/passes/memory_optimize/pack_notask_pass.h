@@ -14,15 +14,18 @@
 
 namespace ge {
 class PackNotaskPass : public NotaskPassBase {
-public:
+ public:
   PackNotaskPass() : NotaskPassBase("can_reused_for_pack_optimize") {}
-protected:
+
+ protected:
   bool IsTargetOp(const ge::OpDescPtr &op_desc) const override {
     return op_desc->GetType() == "Pack";
   }
   bool CheckDim(const ge::OpDescPtr &op_desc) const override;
   bool CheckFormat(const ge::OpDescPtr &op_desc) const override;
-  std::string GetOpLabel() const override { return "pack"; }
+  std::string GetOpLabel() const override {
+    return "pack";
+  }
 };
 }  // namespace ge
 #endif

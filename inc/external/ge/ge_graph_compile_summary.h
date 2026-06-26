@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -76,7 +76,7 @@ class GE_FUNC_VISIBILITY CompiledGraphSummary {
   /// @param [out] v refreshable or not
   /// @return Status result of function
   ///
-  Status GetFeatureMemoryBaseRefreshable (bool &v) const;
+  Status GetFeatureMemoryBaseRefreshable(bool &v) const;
 
   ///
   /// @brief get the used stream number of the whole compiled graph
@@ -120,7 +120,7 @@ using CompiledGraphSummaryPtr = std::shared_ptr<CompiledGraphSummary>;
 
 class LogicalStreamAllocationInfo;
 class GE_FUNC_VISIBILITY StreamAllocationSummary {
-public:
+ public:
   class StreamAllocationSummaryImpl;
   StreamAllocationSummary();
   ~StreamAllocationSummary();
@@ -137,7 +137,7 @@ public:
    */
   const std::map<AscendString, std::vector<LogicalStreamAllocationInfo>> &GetAllLogicalStreamInfos() const;
 
-private:
+ private:
   friend class CompiledGraphSummary::Builder;
   std::unique_ptr<StreamAllocationSummaryImpl> impl_;
 };
@@ -214,7 +214,8 @@ extern "C" {
  * @param [out] map, key is graph name, value is vector of logical stream info's string which index is logical stream id
  * @return result of function
  */
-ge::Status GEStreamAllocationSummaryGetStringInfos(const ge::CompiledGraphSummary &compiled_graph_summary,
+ge::Status GEStreamAllocationSummaryGetStringInfos(
+    const ge::CompiledGraphSummary &compiled_graph_summary,
     std::map<AscendString, std::vector<AscendString>> &graph_to_string_infos);
 
 /**

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,7 +27,6 @@
 #include "dflow/inc/data_flow/model/flow_model_helper.h"
 #include "dflow/inc/data_flow/model/graph_model.h"
 #include "stub_models.h"
-
 
 namespace ge {
 class MockProxyDynamicModelExecutor : public ProxyDynamicModelExecutor {
@@ -58,13 +57,14 @@ class MockProxyDynamicModelExecutor : public ProxyDynamicModelExecutor {
 
   void UnloadModel() {
     Stop();
-    (void) UnloadFromAicpuSd();
+    (void)UnloadFromAicpuSd();
   }
 
  protected:
   void Dispatcher() override {
     return;
   }
+
  private:
   uint8_t output_buffer_[8];
 };
@@ -85,12 +85,11 @@ class MockFailedProxyDynamicModelExecutor : public MockProxyDynamicModelExecutor
 
 class ProxyDynamicModelExecutorTest : public testing::Test {
  protected:
-  void SetUp() override {
-  }
-  void TearDown() override {
-  }
+  void SetUp() override {}
+  void TearDown() override {}
 
-  PneModelPtr BuildRootModel(const std::vector<int64_t> &shape, bool add_align_attr = false, bool with_max_size = true) {
+  PneModelPtr BuildRootModel(const std::vector<int64_t> &shape, bool add_align_attr = false,
+                             bool with_max_size = true) {
     vector<std::string> engine_list = {"AIcoreEngine"};
     auto data = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, shape).Attr(ATTR_NAME_INDEX, 0);
     auto neg = OP_CFG(NEG).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, shape);
@@ -160,7 +159,8 @@ TEST_F(ProxyDynamicModelExecutorTest, TestProxyDynamicModel_NotExecute) {
   MockProxyDynamicModelExecutor executor;
   executor.Initialize();
   auto graph_model_ptr = std::dynamic_pointer_cast<GraphModel>(root_model);
-  EXPECT_EQ(executor.LoadModel(graph_model_ptr->GetModelData(), root_model->GetRootGraph(), model_queue_param), SUCCESS);
+  EXPECT_EQ(executor.LoadModel(graph_model_ptr->GetModelData(), root_model->GetRootGraph(), model_queue_param),
+            SUCCESS);
   executor.UnloadModel();
   executor.Finalize();
 }
@@ -192,9 +192,7 @@ TEST_F(ProxyDynamicModelExecutorTest, TestProxyDynamicModel_NotExecute_WithInput
   QueueAttrs out_queue_0 = {.queue_id = 2, .device_type = NPU, .device_id = 0};
   model_queue_param.input_queues_attrs = {in_queue_0, in_queue_1};
   model_queue_param.output_queues_attrs = {out_queue_0};
-  model_queue_param.input_align_attrs = {.align_max_cache_num = 4,
-                                         .align_timeout = 200,
-                                         .drop_when_not_align = true};
+  model_queue_param.input_align_attrs = {.align_max_cache_num = 4, .align_timeout = 200, .drop_when_not_align = true};
   MockProxyDynamicModelExecutor executor;
   executor.Initialize();
   EXPECT_EQ(executor.LoadModel(model_data, root_graph, model_queue_param), SUCCESS);
@@ -214,7 +212,8 @@ TEST_F(ProxyDynamicModelExecutorTest, TestProxyDynamicModel_Execute_Success) {
   MockProxyDynamicModelExecutor executor;
   executor.Initialize();
   auto graph_model_ptr = std::dynamic_pointer_cast<GraphModel>(root_model);
-  EXPECT_EQ(executor.LoadModel(graph_model_ptr->GetModelData(), root_model->GetRootGraph(), model_queue_param), SUCCESS);
+  EXPECT_EQ(executor.LoadModel(graph_model_ptr->GetModelData(), root_model->GetRootGraph(), model_queue_param),
+            SUCCESS);
   // prepare req_msg_mbuf
   uint64_t input_data = 0UL;
   rtMbufPtr_t req_msg_mbuf = nullptr;
@@ -233,8 +232,7 @@ TEST_F(ProxyDynamicModelExecutorTest, TestProxyDynamicModel_Execute_Success) {
   EXPECT_EQ(rtMbufGetBuffAddr(req_msg_mbuf, &input_buffer), RT_ERROR_NONE);
   memcpy(input_buffer, &input_runtime_tensor_desc, sizeof(input_runtime_tensor_desc));
   uint64_t output_addr = reinterpret_cast<uintptr_t>(&output_data);
-  void *output_buffer = reinterpret_cast<void *>(
-      reinterpret_cast<uintptr_t>(input_buffer) + sizeof(RuntimeTensorDesc));
+  void *output_buffer = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(input_buffer) + sizeof(RuntimeTensorDesc));
   memcpy(output_buffer, &output_addr, sizeof(uint64_t));
   // prepare resp_msg_mbuf
   rtMbufPtr_t resp_msg_mbuf = nullptr;
@@ -258,7 +256,8 @@ TEST_F(ProxyDynamicModelExecutorTest, TestProxyDynamicModel_Withoumaxsize_Execut
   MockProxyDynamicModelExecutor executor;
   executor.Initialize();
   auto graph_model_ptr = std::dynamic_pointer_cast<GraphModel>(root_model);
-  EXPECT_EQ(executor.LoadModel(graph_model_ptr->GetModelData(), root_model->GetRootGraph(), model_queue_param), SUCCESS);
+  EXPECT_EQ(executor.LoadModel(graph_model_ptr->GetModelData(), root_model->GetRootGraph(), model_queue_param),
+            SUCCESS);
   // prepare req_msg_mbuf
   uint64_t input_data = 0UL;
   rtMbufPtr_t req_msg_mbuf = nullptr;
@@ -277,8 +276,7 @@ TEST_F(ProxyDynamicModelExecutorTest, TestProxyDynamicModel_Withoumaxsize_Execut
   EXPECT_EQ(rtMbufGetBuffAddr(req_msg_mbuf, &input_buffer), RT_ERROR_NONE);
   memcpy(input_buffer, &input_runtime_tensor_desc, sizeof(input_runtime_tensor_desc));
   uint64_t output_addr = reinterpret_cast<uintptr_t>(&output_data);
-  void *output_buffer = reinterpret_cast<void *>(
-      reinterpret_cast<uintptr_t>(input_buffer) + sizeof(RuntimeTensorDesc));
+  void *output_buffer = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(input_buffer) + sizeof(RuntimeTensorDesc));
   memcpy(output_buffer, &output_addr, sizeof(uint64_t));
   // prepare resp_msg_mbuf
   rtMbufPtr_t resp_msg_mbuf = nullptr;
@@ -320,7 +318,8 @@ TEST_F(ProxyDynamicModelExecutorTest, TestProxyDynamicModel_retcode) {
   MockProxyDynamicModelExecutor executor;
   executor.Initialize();
   auto graph_model_ptr = std::dynamic_pointer_cast<GraphModel>(root_model);
-  EXPECT_EQ(executor.LoadModel(graph_model_ptr->GetModelData(), root_model->GetRootGraph(), model_queue_param), SUCCESS);
+  EXPECT_EQ(executor.LoadModel(graph_model_ptr->GetModelData(), root_model->GetRootGraph(), model_queue_param),
+            SUCCESS);
   // prepare req_msg_mbuf
   uint64_t input_data = 0UL;
   rtMbufPtr_t req_msg_mbuf = nullptr;
@@ -347,8 +346,7 @@ TEST_F(ProxyDynamicModelExecutorTest, TestProxyDynamicModel_retcode) {
     msg_info->ret_code = 9999;
   }
   uint64_t output_addr = reinterpret_cast<uintptr_t>(&output_data);
-  void *output_buffer = reinterpret_cast<void *>(
-      reinterpret_cast<uintptr_t>(input_buffer) + sizeof(RuntimeTensorDesc));
+  void *output_buffer = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(input_buffer) + sizeof(RuntimeTensorDesc));
   memcpy(output_buffer, &output_addr, sizeof(uint64_t));
   // prepare resp_msg_mbuf
   rtMbufPtr_t resp_msg_mbuf = nullptr;
@@ -373,7 +371,8 @@ TEST_F(ProxyDynamicModelExecutorTest, TestProxyDynamicModel_null_data) {
   MockProxyDynamicModelExecutor executor;
   executor.Initialize();
   auto graph_model_ptr = std::dynamic_pointer_cast<GraphModel>(root_model);
-  EXPECT_EQ(executor.LoadModel(graph_model_ptr->GetModelData(), root_model->GetRootGraph(), model_queue_param), SUCCESS);
+  EXPECT_EQ(executor.LoadModel(graph_model_ptr->GetModelData(), root_model->GetRootGraph(), model_queue_param),
+            SUCCESS);
   // prepare req_msg_mbuf
   uint64_t input_data = 0UL;
   rtMbufPtr_t req_msg_mbuf = nullptr;
@@ -400,8 +399,7 @@ TEST_F(ProxyDynamicModelExecutorTest, TestProxyDynamicModel_null_data) {
     msg_info->data_flag = 1;
   }
   uint64_t output_addr = reinterpret_cast<uintptr_t>(&output_data);
-  void *output_buffer = reinterpret_cast<void *>(
-      reinterpret_cast<uintptr_t>(input_buffer) + sizeof(RuntimeTensorDesc));
+  void *output_buffer = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(input_buffer) + sizeof(RuntimeTensorDesc));
   memcpy(output_buffer, &output_addr, sizeof(uint64_t));
   // prepare resp_msg_mbuf
   rtMbufPtr_t resp_msg_mbuf = nullptr;
@@ -425,7 +423,8 @@ TEST_F(ProxyDynamicModelExecutorTest, TestProxyDynamicModel_Execute_Dummy) {
   MockProxyDynamicModelExecutor executor;
   executor.Initialize();
   auto graph_model_ptr = std::dynamic_pointer_cast<GraphModel>(root_model);
-  EXPECT_EQ(executor.LoadModel(graph_model_ptr->GetModelData(), root_model->GetRootGraph(), model_queue_param), SUCCESS);
+  EXPECT_EQ(executor.LoadModel(graph_model_ptr->GetModelData(), root_model->GetRootGraph(), model_queue_param),
+            SUCCESS);
   // prepare req_msg_mbuf
   uint64_t input_data = 0UL;
   rtMbufPtr_t req_msg_mbuf = nullptr;
@@ -464,7 +463,8 @@ TEST_F(ProxyDynamicModelExecutorTest, TestProxyDynamicModelWithStaticOut_Execute
   MockProxyDynamicModelExecutor executor;
   executor.Initialize();
   auto graph_model_ptr = std::dynamic_pointer_cast<GraphModel>(root_model);
-  EXPECT_EQ(executor.LoadModel(graph_model_ptr->GetModelData(), root_model->GetRootGraph(), model_queue_param), SUCCESS);
+  EXPECT_EQ(executor.LoadModel(graph_model_ptr->GetModelData(), root_model->GetRootGraph(), model_queue_param),
+            SUCCESS);
   executor.UnloadModel();
   executor.Finalize();
 }
@@ -481,7 +481,8 @@ TEST_F(ProxyDynamicModelExecutorTest, TestProxyDynamicModel_Execute_Failed) {
   MockFailedProxyDynamicModelExecutor executor;
   executor.Initialize();
   auto graph_model_ptr = std::dynamic_pointer_cast<GraphModel>(root_model);
-  EXPECT_EQ(executor.LoadModel(graph_model_ptr->GetModelData(), root_model->GetRootGraph(), model_queue_param), SUCCESS);
+  EXPECT_EQ(executor.LoadModel(graph_model_ptr->GetModelData(), root_model->GetRootGraph(), model_queue_param),
+            SUCCESS);
   // prepare req_msg_mbuf
   uint64_t input_data = 0UL;
   rtMbufPtr_t req_msg_mbuf = nullptr;
@@ -500,8 +501,7 @@ TEST_F(ProxyDynamicModelExecutorTest, TestProxyDynamicModel_Execute_Failed) {
   EXPECT_EQ(rtMbufGetBuffAddr(req_msg_mbuf, &input_buffer), RT_ERROR_NONE);
   memcpy(input_buffer, &input_runtime_tensor_desc, sizeof(input_runtime_tensor_desc));
   uint64_t output_addr = reinterpret_cast<uintptr_t>(&output_data);
-  void *output_buffer = reinterpret_cast<void *>(
-      reinterpret_cast<uintptr_t>(input_buffer) + sizeof(RuntimeTensorDesc));
+  void *output_buffer = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(input_buffer) + sizeof(RuntimeTensorDesc));
   memcpy(output_buffer, &output_addr, sizeof(uint64_t));
   // prepare resp_msg_mbuf
   rtMbufPtr_t resp_msg_mbuf = nullptr;
@@ -534,7 +534,7 @@ TEST_F(ProxyDynamicModelExecutorTest, TestDispatcher_Failed) {
 }
 
 class TestPeekFailedMockRuntime : public RuntimeStub {
-public:
+ public:
   rtError_t rtMemQueuePeek(int32_t device, uint32_t qid, size_t *bufLen, int32_t timeout) override {
     *bufLen = 0;
     return ACL_ERROR_RT_PARAM_INVALID;
@@ -559,4 +559,4 @@ TEST_F(ProxyDynamicModelExecutorTest, ExceptionNotify) {
   // proxy dynamic model executor no need notify exception.
   EXPECT_EQ(executor.ExceptionNotify(0, 100), SUCCESS);
 }
-}
+}  // namespace ge

@@ -218,7 +218,7 @@ flowchart LR
         S2 --> S3[rtModelExecute]
         S3 --> S4[rtStreamSynchronize]
     end
-    
+
     subgraph NnExecute["NnExecute 模式（按需执行）"]
         H1[调用者线程] --> H2[CopyModelData]
         H2 --> H3[rtModelExecute]

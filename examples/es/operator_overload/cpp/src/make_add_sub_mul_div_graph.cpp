@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -83,10 +83,9 @@ REG_OP(Div)
   auto add_sub_mul_div = add_result + sub_result + mul_result + div_result;
   return add_sub_mul_div;
 }
-}
+}  // namespace
 namespace es_showcase {
-int RunGraph(ge::Graph &graph, const std::vector<ge::Tensor> &inputs,
-             const std::string &output_prefix) {
+int RunGraph(ge::Graph &graph, const std::vector<ge::Tensor> &inputs, const std::string &output_prefix) {
   ge::Utils::PrintTensorsToFile(inputs, "input");
   std::map<ge::AscendString, ge::AscendString> options;
   auto *s = new (std::nothrow) ge::Session(options);
@@ -94,7 +93,7 @@ int RunGraph(ge::Graph &graph, const std::vector<ge::Tensor> &inputs,
     std::cout << "Global session not ready" << std::endl;
     return -1;
   }
-  static uint32_t next =0;
+  static uint32_t next = 0;
   const uint32_t graph_id = next++;
   auto ret = s->AddGraph(graph_id, graph);
   if (ret != ge::SUCCESS) {
@@ -120,7 +119,7 @@ std::unique_ptr<ge::Graph> MakeAddSubMulDivGraphByEs() {
   auto input2 = graph_builder->CreateInput(1, "input2", ge::DT_FLOAT, ge::FORMAT_ND, {2, 2});
   auto result = MakeAddSubMulDivGraph(input1, input2);
   // 3、设置输出
-  (void) graph_builder->SetOutput(result, 0);
+  (void)graph_builder->SetOutput(result, 0);
   // 4、构建图
   return graph_builder->BuildAndReset();
 }
@@ -135,4 +134,4 @@ int MakeAddSubMulDivGraphByEsAndRun() {
   inputs.push_back(*ge::Utils::StubTensor<float>({1.0, 2.0, 3.0, 4.0}, {2, 2}));
   return RunGraph(*graph, inputs, "AddSubMulDiv");
 }
-}
+}  // namespace es_showcase

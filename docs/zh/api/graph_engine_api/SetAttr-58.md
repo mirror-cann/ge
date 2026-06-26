@@ -262,4 +262,3 @@ graphStatus SetAttr(const AscendString &name, AttrValue &attr_value) const
 gNode node;
 node.SetAttr(_op_exec_never_timeout,true);
 ```
-

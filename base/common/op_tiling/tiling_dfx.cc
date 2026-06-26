@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,8 +21,7 @@
 
 namespace optiling {
 
-ge::Status TilingDfx::GetArgsSizeWithArgsFormat(const ge::OpDescPtr &op_desc,
-                                                const std::vector<ge::ArgDesc> &arg_descs,
+ge::Status TilingDfx::GetArgsSizeWithArgsFormat(const ge::OpDescPtr &op_desc, const std::vector<ge::ArgDesc> &arg_descs,
                                                 std::vector<int64_t> &args_size_list,
                                                 std::vector<ArgsIndexToIoIndex> &args_index_to_io_index) {
   std::map<size_t, std::pair<size_t, size_t>> ir_input_2_range;
@@ -36,7 +35,8 @@ ge::Status TilingDfx::GetArgsSizeWithArgsFormat(const ge::OpDescPtr &op_desc,
         const auto iter = ir_input_2_range.find(ir_idx);
         GE_ASSERT(iter != ir_input_2_range.end(), "input ir idx [%zu] is not found", ir_idx);
         size_t arg_size = 0UL;
-        GE_ASSERT_GRAPH_SUCCESS(ge::ArgsFormatDesc::GetArgSize(op_desc, arg_descs[idx], arg_size)); // max dim的大小是25还是16
+        GE_ASSERT_GRAPH_SUCCESS(
+            ge::ArgsFormatDesc::GetArgSize(op_desc, arg_descs[idx], arg_size));  // max dim的大小是25还是16
         GE_ASSERT_TRUE(arg_size > 0UL);
         (void)args_size_list.emplace_back(static_cast<int64_t>(arg_size));
         break;
@@ -101,11 +101,11 @@ ge::Status TilingDfx::GetArgsSizeWithArgsFormat(const ge::OpDescPtr &op_desc,
         }
         break;
       }
-      case ge::AddrType::FFTS_ADDR: // 不占位
+      case ge::AddrType::FFTS_ADDR:  // 不占位
         break;
       case ge::AddrType::HIDDEN_INPUT:
       case ge::AddrType::PLACEHOLDER:
-        (void)args_size_list.emplace_back(0); // 占位
+        (void)args_size_list.emplace_back(0);  // 占位
         break;
       default:
         // iow之后的地址格式不再解析：TILING,OVERFLOW_ADDR,TILING_FFTS,TILING_CONTEXT
@@ -118,13 +118,12 @@ ge::Status TilingDfx::GetArgsSizeWithArgsFormat(const ge::OpDescPtr &op_desc,
   return ge::SUCCESS;
 }
 
-ge::Status TilingDfx::GetArgsSizeWithoutArgsFormat(size_t input_size,
-                                                   size_t output_size,
+ge::Status TilingDfx::GetArgsSizeWithoutArgsFormat(size_t input_size, size_t output_size,
                                                    std::vector<int64_t> &args_size_list,
                                                    std::vector<ArgsIndexToIoIndex> &args_index_to_io_index) {
   size_t io_size = 0U;
   GE_ASSERT_TRUE(!ge::AddOverflow(input_size, output_size, io_size));
-  (void) args_size_list.insert(args_size_list.cend(), io_size, 0);
+  (void)args_size_list.insert(args_size_list.cend(), io_size, 0);
 
   for (size_t index = 0U; index < input_size; index++) {
     ArgsIndexToIoIndex args_idx_to_io_idx = {ArgsRole::kInput, index, index};

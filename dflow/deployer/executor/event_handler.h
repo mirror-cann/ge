@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,12 +33,10 @@ class EventHandler {
   void HandleDataFlowExceptionNotifyRequest(deployer::ExecutorRequest &request, deployer::ExecutorResponse &response);
   void DoClearModel(const std::vector<uint32_t> &davinci_model_runtime_ids,
                     const std::vector<ExecutorContext::ModelHandle *> &dynamic_model_handles,
-                    const int32_t clear_msg_type,
-                    deployer::ExecutorResponse &response) const;
+                    const int32_t clear_msg_type, deployer::ExecutorResponse &response) const;
   void DoClearModelPara(const std::vector<uint32_t> &davinci_model_runtime_ids,
                         const std::vector<ExecutorContext::ModelHandle *> &dynamic_model_handles,
-                        const int32_t clear_msg_type,
-                        deployer::ExecutorResponse &response) const;
+                        const int32_t clear_msg_type, deployer::ExecutorResponse &response) const;
   Status DoDataFlowExceptionNotify(const std::vector<uint32_t> &davinci_model_runtime_ids,
                                    const std::vector<ExecutorContext::ModelHandle *> &dynamic_model_handles,
                                    const deployer::DataFlowExceptionNotify &exception_notify) const;

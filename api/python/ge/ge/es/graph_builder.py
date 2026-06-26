@@ -3,35 +3,35 @@
 # -------------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
 
 """GraphBuilder module for eager-style graph construction."""
 
-import ctypes
 import contextlib
+import ctypes
 import threading
 from enum import Enum
 from typing import List, Optional, Union
+
 from ge._capi.pyes_graph_builder_wrapper import (
-    esb_lib,
-    EsCGraphBuilderPtr,
     EsCTensorHolderPtr,
-    c_int64,
+    c_bool,
     c_float,
     c_int32,
-    c_uint64,
+    c_int64,
     c_uint32,
-    c_bool,
-    c_char_p
+    c_uint64,
+    esb_lib,
 )
-from ge.graph.types import DataType, Format
 from ge.graph import Graph
+from ge.graph.types import DataType, Format
+
 from .tensor_holder import TensorHolder
 
 # use thread local storage to manage attribute scope
@@ -49,7 +49,7 @@ class InputType(Enum):
 
 class GraphBuilder:
     """GraphBuilder for eager-style graph construction.
-    
+
     This class provides a Pythonic interface for building computation graphs
     using the eager-style graph builder C API.
 
@@ -57,8 +57,8 @@ class GraphBuilder:
     **Keep builder alive**: All TensorHolder objects created by this builder
        maintain a reference to it. The builder will not be garbage collected
        as long as any of its tensors are still referenced.
-    
-    
+
+
     Example:
         >>> builder = GraphBuilder("my_graph")
         >>> input_tensor = builder.create_input(0)
@@ -70,10 +70,10 @@ class GraphBuilder:
 
     def __init__(self, name: Optional[str] = None) -> None:
         """Initialize a GraphBuilder.
-        
+
         Args:
             name: Graph name. If None, defaults to "graph".
-            
+
         Raises:
             TypeError: If name is not a string or None.
             RuntimeError: If graph builder creation fails.
@@ -84,8 +84,8 @@ class GraphBuilder:
         if name is not None and not isinstance(name, str):
             raise TypeError("Graph name must be a string")
 
-        name_bytes = name.encode('utf-8') if name else "graph".encode('utf-8')
-        self._name = name_bytes.decode('utf-8')
+        name_bytes = name.encode("utf-8") if name else "graph".encode("utf-8")
+        self._name = name_bytes.decode("utf-8")
         self._handle = esb_lib.EsCreateGraphBuilder(name_bytes)
         if not self._handle:
             raise RuntimeError("Failed to create graph builder")
@@ -94,8 +94,10 @@ class GraphBuilder:
     def _check_usable(self, operation: str) -> None:
         """Check if the graph builder is usable"""
         if self._is_built:
-            raise RuntimeError(f"Cannot {operation}: GraphBuilder has already been built. "
-                               "Create a new GraphBuilder to build another graph.")
+            raise RuntimeError(
+                f"Cannot {operation}: GraphBuilder has already been built. "
+                "Create a new GraphBuilder to build another graph."
+            )
 
     def __del__(self) -> None:
         """Destroy the graph builder."""
@@ -113,7 +115,7 @@ class GraphBuilder:
     @property
     def name(self) -> str:
         """Get graph builder name.
-        
+
         Returns:
             Graph builder name.
         """
@@ -156,11 +158,11 @@ class GraphBuilder:
     @staticmethod
     def _validate_const_shape(values: List, dims: List[int]) -> None:
         """Validate that the number of values matches the shape dimensions.
-        
+
         Args:
             values: List of values.
             dims: Shape dimensions (must be non-empty, scalar case handled separately).
-            
+
         Raises:
             ValueError: If the number of values doesn't match the shape.
         """
@@ -169,15 +171,21 @@ class GraphBuilder:
             expected_count *= dim
         if len(values) != expected_count:
             raise ValueError(
-                f"Value count ({len(values)}) doesn't match shape {dims} "
-                f"(expected {expected_count} elements)"
+                f"Value count ({len(values)}) doesn't match shape {dims} (expected {expected_count} elements)"
             )
 
-    def create_input(self, index: int, *, name: Optional[str] = None,
-                     type_str: Optional[InputType] = InputType.DATA, data_type: Optional[DataType] = DataType.DT_FLOAT,
-                     format: Optional[Format] = Format.FORMAT_ND, shape: Optional[List[int]] = None) -> TensorHolder:
+    def create_input(
+        self,
+        index: int,
+        *,
+        name: Optional[str] = None,
+        type_str: Optional[InputType] = InputType.DATA,
+        data_type: Optional[DataType] = DataType.DT_FLOAT,
+        format: Optional[Format] = Format.FORMAT_ND,
+        shape: Optional[List[int]] = None,
+    ) -> TensorHolder:
         """Create a graph input.
-        
+
         Args:
             index: Input index, means the index of the input in the graph.
             name: Input name. If None, defaults to "input_{index}".
@@ -185,10 +193,10 @@ class GraphBuilder:
             data_type: Data type using DataType enum, defaults to DataType.DT_FLOAT.
             format: Data format using Format enum, defaults to Format.FORMAT_ND.
             shape: List of shape dimensions, If None, means scalar.
-            
+
         Returns:
             TensorHolder representing the input.
-            
+
         Raises:
             TypeError: If arguments have incorrect types.
             RuntimeError: If input creation fails.
@@ -204,8 +212,8 @@ class GraphBuilder:
 
         # use detailed input creation
         name = name or f"input_{index}"
-        name_bytes = name.encode('utf-8')
-        type_bytes = type_str.value.encode('utf-8')
+        name_bytes = name.encode("utf-8")
+        type_bytes = type_str.value.encode("utf-8")
         dt = data_type.value
         fmt = format.value
 
@@ -213,8 +221,14 @@ class GraphBuilder:
         shape_ptr = (c_int64 * dim_num)(*shape) if shape is not None else None
 
         tensor_handle = esb_lib.EsCreateGraphInputWithDetails(
-            self._handle, c_int64(index), name_bytes, type_bytes,
-            ctypes.c_int(dt), ctypes.c_int(fmt), shape_ptr, c_int64(dim_num)
+            self._handle,
+            c_int64(index),
+            name_bytes,
+            type_bytes,
+            ctypes.c_int(dt),
+            ctypes.c_int(fmt),
+            shape_ptr,
+            c_int64(dim_num),
         )
 
         if not tensor_handle:
@@ -226,14 +240,14 @@ class GraphBuilder:
 
     def create_inputs(self, num: int, start_index: int = 0) -> List[TensorHolder]:
         """Create multiple inputs.
-        
+
         Args:
             num: Number of inputs to create.
-            start_index: Start index of the inputs, if not 0 means other inputs have been created, 
+            start_index: Start index of the inputs, if not 0 means other inputs have been created,
              the overall input node index should start from 0 and be continuous increment.
 
         Returns:
-            List of TensorHolder representing the inputs. 
+            List of TensorHolder representing the inputs.
             TensorHolder is DataType.DT_FLOAT and Format.FORMAT_ND and shape is [].
 
         Raises:
@@ -252,17 +266,17 @@ class GraphBuilder:
 
     def create_const_int64(self, value: Union[int, List[int]], shape: Optional[List[int]] = None) -> TensorHolder:
         """Create int64 constant tensor.
-        
+
         Args:
             value: Single integer or list of integers. If list, the number of elements
                    must match the product of shape dimensions when shape is provided.
             shape: Shape dimensions. If None: for single integer creates scalar (shape=[]),
                    for list creates 1D tensor (shape=[len(value)]). When provided, the product
                    of dimensions must equal len(value) if value is list, or [] if value is int.
-            
+
         Returns:
             TensorHolder representing the constant.
-            
+
         Raises:
             TypeError: If value is not int or list of ints.
             ValueError: If value count doesn't match shape dimensions.
@@ -289,9 +303,7 @@ class GraphBuilder:
         c_values = (c_int64 * len(values))(*values)
         c_dims = (c_int64 * len(dims))(*dims)
 
-        tensor_handle = esb_lib.EsCreateConstInt64(
-            self._handle, c_values, c_dims, c_int64(len(dims))
-        )
+        tensor_handle = esb_lib.EsCreateConstInt64(self._handle, c_values, c_dims, c_int64(len(dims)))
 
         if not tensor_handle:
             raise RuntimeError("Failed to create int64 constant")
@@ -301,17 +313,17 @@ class GraphBuilder:
 
     def create_const_float(self, value: Union[float, List[float]], shape: Optional[List[int]] = None) -> TensorHolder:
         """Create float constant tensor.
-        
+
         Args:
             value: Single float or list of floats. If list, the number of elements
                    must match the product of shape dimensions when shape is provided.
             shape: Shape dimensions. If None: for single float creates scalar (shape=[]),
                    for list creates 1D tensor (shape=[len(value)]). When provided, the product
                    of dimensions must equal len(value) if value is list, or [] if value is float.
-            
+
         Returns:
             TensorHolder representing the constant.
-            
+
         Raises:
             TypeError: If value is not float or list of floats.
             ValueError: If value count doesn't match shape dimensions.
@@ -338,9 +350,7 @@ class GraphBuilder:
         c_values = (c_float * len(values))(*values)
         c_dims = (c_int64 * len(dims))(*dims)
 
-        tensor_handle = esb_lib.EsCreateConstFloat(
-            self._handle, c_values, c_dims, c_int64(len(dims))
-        )
+        tensor_handle = esb_lib.EsCreateConstFloat(self._handle, c_values, c_dims, c_int64(len(dims)))
 
         if not tensor_handle:
             raise RuntimeError("Failed to create float constant")
@@ -350,17 +360,17 @@ class GraphBuilder:
 
     def create_const_uint64(self, value: Union[int, List[int]], shape: Optional[List[int]] = None) -> TensorHolder:
         """Create uint64 constant tensor.
-        
+
         Args:
             value: Single integer or list of integers. If list, the number of elements
                    must match the product of shape dimensions when shape is provided.
             shape: Shape dimensions. If None: for single integer creates scalar (shape=[]),
                    for list creates 1D tensor (shape=[len(value)]). When provided, the product
                    of dimensions must equal len(value) if value is list, or [] if value is int.
-            
+
         Returns:
             TensorHolder representing the constant.
-            
+
         Raises:
             TypeError: If value is not int or list of ints.
             ValueError: If value count doesn't match shape dimensions.
@@ -387,9 +397,7 @@ class GraphBuilder:
         c_values = (c_uint64 * len(values))(*values)
         c_dims = (c_int64 * len(dims))(*dims)
 
-        tensor_handle = esb_lib.EsCreateConstUInt64(
-            self._handle, c_values, c_dims, c_int64(len(dims))
-        )
+        tensor_handle = esb_lib.EsCreateConstUInt64(self._handle, c_values, c_dims, c_int64(len(dims)))
 
         if not tensor_handle:
             raise RuntimeError("Failed to create uint64 constant")
@@ -399,17 +407,17 @@ class GraphBuilder:
 
     def create_const_int32(self, value: Union[int, List[int]], shape: Optional[List[int]] = None) -> TensorHolder:
         """Create int32 constant tensor.
-        
+
         Args:
             value: Single integer or list of integers. If list, the number of elements
                    must match the product of shape dimensions when shape is provided.
             shape: Shape dimensions. If None: for single integer creates scalar (shape=[]),
                    for list creates 1D tensor (shape=[len(value)]). When provided, the product
                    of dimensions must equal len(value) if value is list, or [] if value is int.
-            
+
         Returns:
             TensorHolder representing the constant.
-            
+
         Raises:
             TypeError: If value is not int or list of ints.
             ValueError: If value count doesn't match shape dimensions.
@@ -436,9 +444,7 @@ class GraphBuilder:
         c_values = (c_int32 * len(values))(*values)
         c_dims = (c_int64 * len(dims))(*dims)
 
-        tensor_handle = esb_lib.EsCreateConstInt32(
-            self._handle, c_values, c_dims, c_int64(len(dims))
-        )
+        tensor_handle = esb_lib.EsCreateConstInt32(self._handle, c_values, c_dims, c_int64(len(dims)))
 
         if not tensor_handle:
             raise RuntimeError("Failed to create int32 constant")
@@ -448,17 +454,17 @@ class GraphBuilder:
 
     def create_const_uint32(self, value: Union[int, List[int]], shape: Optional[List[int]] = None) -> TensorHolder:
         """Create uint32 constant tensor.
-        
+
         Args:
             value: Single integer or list of integers. If list, the number of elements
                    must match the product of shape dimensions when shape is provided.
             shape: Shape dimensions. If None: for single integer creates scalar (shape=[]),
                    for list creates 1D tensor (shape=[len(value)]). When provided, the product
                    of dimensions must equal len(value) if value is list, or [] if value is int.
-            
+
         Returns:
             TensorHolder representing the constant.
-            
+
         Raises:
             TypeError: If value is not int or list of ints.
             ValueError: If value count doesn't match shape dimensions.
@@ -485,9 +491,7 @@ class GraphBuilder:
         c_values = (c_uint32 * len(values))(*values)
         c_dims = (c_int64 * len(dims))(*dims)
 
-        tensor_handle = esb_lib.EsCreateConstUInt32(
-            self._handle, c_values, c_dims, c_int64(len(dims))
-        )
+        tensor_handle = esb_lib.EsCreateConstUInt32(self._handle, c_values, c_dims, c_int64(len(dims)))
 
         if not tensor_handle:
             raise RuntimeError("Failed to create uint32 constant")
@@ -497,13 +501,13 @@ class GraphBuilder:
 
     def create_vector_int64(self, value: List[int]) -> TensorHolder:
         """Create int64 vector tensor.
-        
+
         Args:
             value: List of integers.
-            
+
         Returns:
             TensorHolder representing the vector.
-            
+
         Raises:
             TypeError: If value is not a list of ints.
             RuntimeError: If vector creation fails.
@@ -515,9 +519,7 @@ class GraphBuilder:
 
         c_values = (c_int64 * len(value))(*value)
 
-        tensor_handle = esb_lib.EsCreateVectorInt64(
-            self._handle, c_values, c_int64(len(value))
-        )
+        tensor_handle = esb_lib.EsCreateVectorInt64(self._handle, c_values, c_int64(len(value)))
 
         if not tensor_handle:
             raise RuntimeError("Failed to create int64 vector")
@@ -527,13 +529,13 @@ class GraphBuilder:
 
     def create_scalar_int64(self, value: int) -> TensorHolder:
         """Create int64 scalar tensor.
-        
+
         Args:
             value: Integer value.
-            
+
         Returns:
             TensorHolder representing the scalar.
-            
+
         Raises:
             TypeError: If value is not an integer.
             RuntimeError: If scalar creation fails.
@@ -553,13 +555,13 @@ class GraphBuilder:
 
     def create_scalar_int32(self, value: int) -> TensorHolder:
         """Create int32 scalar tensor.
-        
+
         Args:
             value: Integer value.
-            
+
         Returns:
             TensorHolder representing the scalar.
-            
+
         Raises:
             TypeError: If value is not an integer.
             RuntimeError: If scalar creation fails.
@@ -579,13 +581,13 @@ class GraphBuilder:
 
     def create_scalar_float(self, value: float) -> TensorHolder:
         """Create float scalar tensor.
-        
+
         Args:
             value: Float value.
-            
+
         Returns:
             TensorHolder representing the scalar.
-            
+
         Raises:
             TypeError: If value is not a number.
             RuntimeError: If scalar creation fails.
@@ -605,13 +607,13 @@ class GraphBuilder:
 
     def create_scalar_uint64(self, value: int) -> TensorHolder:
         """Create uint64 scalar tensor.
-        
+
         Args:
             value: Integer value (must be non-negative).
-            
+
         Returns:
             TensorHolder representing the scalar.
-            
+
         Raises:
             TypeError: If value is not an integer.
             RuntimeError: If scalar creation fails.
@@ -633,13 +635,13 @@ class GraphBuilder:
 
     def create_scalar_uint32(self, value: int) -> TensorHolder:
         """Create uint32 scalar tensor.
-        
+
         Args:
             value: Integer value (must be non-negative and fit in uint32 range).
-            
+
         Returns:
             TensorHolder representing the scalar.
-            
+
         Raises:
             TypeError: If value is not an integer.
             RuntimeError: If scalar creation fails.
@@ -661,14 +663,14 @@ class GraphBuilder:
 
     def create_variable(self, index: int, name: str) -> TensorHolder:
         """Create a variable tensor.
-        
+
         Args:
             index: Variable index.
             name: Variable name.
-            
+
         Returns:
             TensorHolder representing the variable.
-            
+
         Raises:
             TypeError: If arguments have incorrect types.
             RuntimeError: If variable creation fails.
@@ -680,9 +682,7 @@ class GraphBuilder:
         if not isinstance(name, str):
             raise TypeError("Name must be a string")
 
-        tensor_handle = esb_lib.EsCreateVariable(
-            self._handle, c_int32(index), name.encode('utf-8')
-        )
+        tensor_handle = esb_lib.EsCreateVariable(self._handle, c_int32(index), name.encode("utf-8"))
 
         if not tensor_handle:
             raise RuntimeError("Failed to create variable")
@@ -692,11 +692,11 @@ class GraphBuilder:
 
     def set_graph_output(self, tensor: TensorHolder, output_index: int) -> None:
         """Set graph output.
-        
+
         Args:
             tensor: TensorHolder to set as output.
             output_index: Output index.
-            
+
         Raises:
             TypeError: If arguments have incorrect types.
         """
@@ -712,11 +712,11 @@ class GraphBuilder:
 
     def set_graph_attr_int64(self, attr_name: str, value: int) -> None:
         """Set int64 attribute for graph.
-        
+
         Args:
             attr_name: Attribute name.
             value: Integer value.
-            
+
         Raises:
             TypeError: If arguments have incorrect types.
         """
@@ -727,18 +727,16 @@ class GraphBuilder:
         if not isinstance(value, int):
             raise TypeError("Value must be an integer")
 
-        if esb_lib.EsSetInt64AttrForGraph(
-                self._handle, attr_name.encode('utf-8'), c_int64(value)
-        ) != 0:
+        if esb_lib.EsSetInt64AttrForGraph(self._handle, attr_name.encode("utf-8"), c_int64(value)) != 0:
             raise RuntimeError(f"Failed to set graph attribute {attr_name} for graph {self.name}")
 
     def set_graph_attr_string(self, attr_name: str, value: str) -> None:
         """Set string attribute for graph.
-        
+
         Args:
             attr_name: Attribute name.
             value: String value.
-            
+
         Raises:
             TypeError: If arguments have incorrect types.
         """
@@ -749,18 +747,16 @@ class GraphBuilder:
         if not isinstance(value, str):
             raise TypeError("Value must be a string")
 
-        if esb_lib.EsSetStringAttrForGraph(
-                self._handle, attr_name.encode('utf-8'), value.encode('utf-8')
-        ) != 0:
+        if esb_lib.EsSetStringAttrForGraph(self._handle, attr_name.encode("utf-8"), value.encode("utf-8")) != 0:
             raise RuntimeError(f"Failed to set graph attribute {attr_name} for graph {self.name}")
 
     def set_graph_attr_bool(self, attr_name: str, value: bool) -> None:
         """Set bool attribute for graph.
-        
+
         Args:
             attr_name: Attribute name.
             value: Boolean value.
-            
+
         Raises:
             TypeError: If arguments have incorrect types.
         """
@@ -771,19 +767,17 @@ class GraphBuilder:
         if not isinstance(value, bool):
             raise TypeError("Value must be a boolean")
 
-        if esb_lib.EsSetBoolAttrForGraph(
-                self._handle, attr_name.encode('utf-8'), c_bool(value)
-        ) != 0:
+        if esb_lib.EsSetBoolAttrForGraph(self._handle, attr_name.encode("utf-8"), c_bool(value)) != 0:
             raise RuntimeError(f"Failed to set graph attribute {attr_name} for graph {self.name}")
 
     def set_tensor_attr_int64(self, tensor: TensorHolder, attr_name: str, value: int) -> None:
         """Set int64 attribute for tensor.
-        
+
         Args:
             tensor: TensorHolder object.
             attr_name: Attribute name.
             value: Integer value.
-            
+
         Raises:
             TypeError: If arguments have incorrect types.
         """
@@ -796,19 +790,17 @@ class GraphBuilder:
         if not isinstance(value, int):
             raise TypeError("Value must be an integer")
 
-        if esb_lib.EsSetInt64AttrForTensor(
-                tensor._handle, attr_name.encode('utf-8'), c_int64(value)
-        ) != 0:
+        if esb_lib.EsSetInt64AttrForTensor(tensor._handle, attr_name.encode("utf-8"), c_int64(value)) != 0:
             raise RuntimeError(f"Failed to set tensor attribute {attr_name} for tensor {tensor.name}")
 
     def set_tensor_attr_string(self, tensor: TensorHolder, attr_name: str, value: str) -> None:
         """Set string attribute for tensor.
-        
+
         Args:
             tensor: TensorHolder object.
             attr_name: Attribute name.
             value: String value.
-            
+
         Raises:
             TypeError: If arguments have incorrect types.
         """
@@ -821,22 +813,20 @@ class GraphBuilder:
         if not isinstance(value, str):
             raise TypeError("Value must be a string")
 
-        if esb_lib.EsSetStringAttrForTensor(
-                tensor._handle, attr_name.encode('utf-8'), value.encode('utf-8')
-        ) != 0:
+        if esb_lib.EsSetStringAttrForTensor(tensor._handle, attr_name.encode("utf-8"), value.encode("utf-8")) != 0:
             raise RuntimeError(f"Failed to set tensor attribute {attr_name} for tensor {tensor.name}")
 
     def set_tensor_attr_bool(self, tensor: TensorHolder, attr_name: str, value: bool) -> None:
         """Set bool attribute for tensor.
-        
+
         Args:
             tensor: TensorHolder object.
             attr_name: Attribute name.
             value: Boolean value.
-            
+
         Returns:
             Operation result status code.
-            
+
         Raises:
             TypeError: If arguments have incorrect types.
         """
@@ -849,19 +839,17 @@ class GraphBuilder:
         if not isinstance(value, bool):
             raise TypeError("Value must be a boolean")
 
-        if esb_lib.EsSetBoolAttrForTensor(
-                tensor._handle, attr_name.encode('utf-8'), c_bool(value)
-        ) != 0:
+        if esb_lib.EsSetBoolAttrForTensor(tensor._handle, attr_name.encode("utf-8"), c_bool(value)) != 0:
             raise RuntimeError(f"Failed to set tensor attribute {attr_name} for tensor {tensor.name}")
 
     def set_node_attr_int64(self, tensor: TensorHolder, attr_name: str, value: int) -> None:
         """Set int64 attribute for node.
-        
+
         Args:
             tensor: TensorHolder object.
             attr_name: Attribute name.
-            value: Integer value.   
-            
+            value: Integer value.
+
         Raises:
             TypeError: If arguments have incorrect types.
         """
@@ -874,19 +862,17 @@ class GraphBuilder:
         if not isinstance(value, int):
             raise TypeError("Value must be an integer")
 
-        if esb_lib.EsSetInt64AttrForNode(
-                tensor._handle, attr_name.encode('utf-8'), c_int64(value)
-        ) != 0:
+        if esb_lib.EsSetInt64AttrForNode(tensor._handle, attr_name.encode("utf-8"), c_int64(value)) != 0:
             raise RuntimeError(f"Failed to set node attribute {attr_name} for node {tensor.name}")
 
     def set_node_attr_string(self, tensor: TensorHolder, attr_name: str, value: str) -> None:
         """Set string attribute for node.
-        
+
         Args:
             tensor: TensorHolder object.
             attr_name: Attribute name.
             value: String value.
-            
+
         Raises:
             TypeError: If arguments have incorrect types.
         """
@@ -899,19 +885,17 @@ class GraphBuilder:
         if not isinstance(value, str):
             raise TypeError("Value must be a string")
 
-        if esb_lib.EsSetStringAttrForNode(
-                tensor._handle, attr_name.encode('utf-8'), value.encode('utf-8')
-        ) != 0:
+        if esb_lib.EsSetStringAttrForNode(tensor._handle, attr_name.encode("utf-8"), value.encode("utf-8")) != 0:
             raise RuntimeError(f"Failed to set node attribute {attr_name} for node {tensor.name}")
 
     def set_node_attr_bool(self, tensor: TensorHolder, attr_name: str, value: bool) -> None:
         """Set bool attribute for node.
-        
+
         Args:
             tensor: TensorHolder object.
             attr_name: Attribute name.
             value: Boolean value.
-            
+
         Raises:
             TypeError: If arguments have incorrect types.
         """
@@ -924,9 +908,7 @@ class GraphBuilder:
         if not isinstance(value, bool):
             raise TypeError("Value must be a boolean")
 
-        if esb_lib.EsSetBoolAttrForNode(
-                tensor._handle, attr_name.encode('utf-8'), c_bool(value)
-        ) != 0:
+        if esb_lib.EsSetBoolAttrForNode(tensor._handle, attr_name.encode("utf-8"), c_bool(value)) != 0:
             raise RuntimeError(f"Failed to set node attribute {attr_name} for node {tensor.name}")
 
     def add_control_dependency(self, dst_tensor: TensorHolder, src_tensors: List[TensorHolder]) -> None:
@@ -935,7 +917,7 @@ class GraphBuilder:
         Args:
             dst_tensor: TensorHolder to add control dependency to.
             src_tensors: List of TensorHolder to add control dependency from.
-        
+
         Raises:
             TypeError: If arguments have incorrect types.
         """
@@ -965,7 +947,7 @@ class GraphBuilder:
                     If None (default), builds the graph with previously set outputs.
         Returns:
             Graph object representing the built graph.
-            
+
         Raises:
             TypeError: If outputs is not a list of TensorHolder objects.
             RuntimeError: If graph building fails.

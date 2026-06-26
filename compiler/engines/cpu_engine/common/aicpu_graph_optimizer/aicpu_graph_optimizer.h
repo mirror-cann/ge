@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,7 +27,7 @@ namespace {
 constexpr uint64_t kAutoCastModeOff = 0;
 constexpr uint64_t kAutoCastModeOn = 1;
 constexpr uint64_t kMaxOpsParallelNum = 20;
-}
+}  // namespace
 
 namespace aicpu {
 class Optimizer;
@@ -39,7 +39,7 @@ class AicpuGraphOptimizer : public ge::GraphOptimizer {
    * Contructor
    */
   explicit AicpuGraphOptimizer(const std::string &engine_name)
-    : engine_name_(engine_name), auto_cast_mode_(kAutoCastModeOff) {}
+      : engine_name_(engine_name), auto_cast_mode_(kAutoCastModeOff) {}
 
   /**
    * Destructor
@@ -51,9 +51,8 @@ class AicpuGraphOptimizer : public ge::GraphOptimizer {
    * @param options Initial options
    * @return status whether this operation success
    */
-  ge::Status Initialize(
-      const std::map<std::string, std::string> &options,
-      ge::OptimizeUtility *const optimize_utility) override;
+  ge::Status Initialize(const std::map<std::string, std::string> &options,
+                        ge::OptimizeUtility *const optimize_utility) override;
 
   /**
    * Close graph optimizer
@@ -99,20 +98,21 @@ class AicpuGraphOptimizer : public ge::GraphOptimizer {
    * @return status whether this operation success
    */
   ge::Status GetAttributes(ge::GraphOptimizerAttribute &attrs) const override;
-  
+
   ge::Status GetOpsParallelRule();
 
   void SetAicpuAsyncOpTimeout(const ge::OpDescPtr &op_desc_ptr, std::string &op_type);
 
   void GetGetOpsParallelOoLevel();
 
-  protected:
+ protected:
   // Read json file in specified path
   bool ReadOpsParallelRuleFromJsonFile();
   // ops parallel rule json serialized object
   nlohmann::json ops_parallel_rule_json_file_;
   // store ops name support paralle
   std::vector<string> ops_parallel_rule_infos_;
+
  private:
   // Copy prohibit
   AicpuGraphOptimizer(const AicpuGraphOptimizer &) = delete;

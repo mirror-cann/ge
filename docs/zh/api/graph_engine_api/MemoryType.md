@@ -23,4 +23,3 @@ enum class MemoryType : std::int64_t {
 -   MEMORY\_TYPE\_P2P：仅Device之间内存复制场景下的内存类型，可以通过调用aclrtMalloc接口申请得到，申请内存时传入aclrtMemMallocPolicy中的3种枚举值之一，ACL\_MEM\_MALLOC\_HUGE\_FIRST\_P2P、ACL\_MEM\_MALLOC\_HUGE\_ONLY\_P2P、ACL\_MEM\_MALLOC\_NORMAL\_ONLY\_P2P
 
 aclrtMalloc、aclrtMemMallocPolicy接口说明请参见《应用开发指南 \(C&C++\)》。
-

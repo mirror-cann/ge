@@ -31,7 +31,8 @@ Graph = graph_module.Graph
 
 def _write_decompose_pass_module(dir_path: Path, module_name: str, pass_name: str) -> Path:
     file_path = dir_path / f"{module_name}.py"
-    file_path.write_text(textwrap.dedent(f"""
+    file_path.write_text(
+        textwrap.dedent(f"""
         from ge.graph import Graph
         from ge.passes import DecomposePass, PassStage, register_decompose_pass
 
@@ -42,20 +43,27 @@ def _write_decompose_pass_module(dir_path: Path, module_name: str, pass_name: st
 
             def replacement(self, node):
                 return Graph("replacement_graph")
-    """).strip() + "\n", encoding="utf-8")
+    """).strip()
+        + "\n",
+        encoding="utf-8",
+    )
     return file_path
 
 
 def _write_invalid_replacement_decompose_pass_module(dir_path: Path, module_name: str, pass_name: str) -> Path:
     file_path = dir_path / f"{module_name}.py"
-    file_path.write_text(textwrap.dedent(f"""
+    file_path.write_text(
+        textwrap.dedent(f"""
         from ge.passes import DecomposePass, PassStage, register_decompose_pass
 
         @register_decompose_pass(name="{pass_name}", stage=PassStage.AFTER_INFER_SHAPE, op_types=["Add"])
         class {pass_name}(DecomposePass):
             def replacement(self, node):
                 return None
-    """).strip() + "\n", encoding="utf-8")
+    """).strip()
+        + "\n",
+        encoding="utf-8",
+    )
     return file_path
 
 
@@ -73,6 +81,7 @@ def clear_python_decompose_runtime(monkeypatch):
 
 def test_decompose_pass_rejects_run_override():
     with pytest.raises(TypeError, match="overrides run\\(\\)"):
+
         class InvalidDecomposePass(passes.DecomposePass):
             def run(self, graph, context):
                 return True
@@ -80,15 +89,23 @@ def test_decompose_pass_rejects_run_override():
 
 def test_register_decompose_pass_requires_non_empty_string_op_types():
     with pytest.raises(TypeError, match="iterable of strings"):
-        @passes.register_decompose_pass(name="BadDecomposePass",
-                                        stage=passes.PassStage.AFTER_INFER_SHAPE, op_types="Add")
+
+        @passes.register_decompose_pass(
+            name="BadDecomposePass",
+            stage=passes.PassStage.AFTER_INFER_SHAPE,
+            op_types="Add",
+        )
         class BadDecomposePass(passes.DecomposePass):
             def replacement(self, node):
                 return Graph("replacement_graph")
 
     with pytest.raises(ValueError, match="at least one op type"):
-        @passes.register_decompose_pass(name="EmptyDecomposePass",
-                                        stage=passes.PassStage.AFTER_INFER_SHAPE, op_types=[])
+
+        @passes.register_decompose_pass(
+            name="EmptyDecomposePass",
+            stage=passes.PassStage.AFTER_INFER_SHAPE,
+            op_types=[],
+        )
         class EmptyDecomposePass(passes.DecomposePass):
             def replacement(self, node):
                 return Graph("replacement_graph")
@@ -137,7 +154,9 @@ def test_bridge_decompose_protocol_functions(tmp_path, monkeypatch):
 
 def test_bridge_decompose_replacement_rejects_none(tmp_path, monkeypatch):
     module_path = _write_invalid_replacement_decompose_pass_module(
-        tmp_path, "invalid_replacement_decompose_pass", "InvalidReplacementDecomposePass"
+        tmp_path,
+        "invalid_replacement_decompose_pass",
+        "InvalidReplacementDecomposePass",
     )
     monkeypatch.setenv(bootstrap.ENV_PY_PASS_PATH, str(module_path))
 

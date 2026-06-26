@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -16,7 +16,7 @@
 #include "graph/utils/op_desc_utils.h"
 #include "graph/utils/attr_utils.h"
 #define protected public
-#define private   public
+#define private public
 #include "adapter/tbe_adapter/tbe_op_store_adapter.h"
 #include "ops_kernel_store/fe_ops_kernel_info_store.h"
 #include "graph_optimizer/shape_format_transfer/trans_node_manager/trans_node_manager.h"
@@ -38,17 +38,15 @@ using namespace ge;
 using namespace fe;
 
 class STEST_FE_TRANSOP_INSERT_RNN : public testing::Test {
-protected:
-  void SetUp()
-  {
+ protected:
+  void SetUp() {
     std::map<std::string, std::string> options;
     fe_ops_kernel_info_store_ptr_ = make_shared<fe::FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
-    FEOpsStoreInfo tbe_custom {
-            6,
-            "tbe-custom",
-            EN_IMPL_HW_TBE,
-            GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
-            ""};
+    FEOpsStoreInfo tbe_custom{
+        6, "tbe-custom", EN_IMPL_HW_TBE,
+        GetCodeDir() +
+            "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
+        ""};
     vector<FEOpsStoreInfo> store_info;
     store_info.emplace_back(tbe_custom);
     Configuration::Instance(fe::AI_CORE_NAME).ops_store_info_vector_ = (store_info);
@@ -56,22 +54,20 @@ protected:
     fe_ops_kernel_info_store_ptr_->Initialize(options);
   }
 
-  void TearDown()
-  {
+  void TearDown() {
     fe_ops_kernel_info_store_ptr_->Finalize();
   }
 
   shared_ptr<fe::FEOpsKernelInfoStore> fe_ops_kernel_info_store_ptr_;
-protected:
 
+ protected:
 };
 
-Status QueryHighPrioOpImplTypeStubTbe_RNN(FEOpsKernelInfoStore* This, const ge::OpDescPtr& op_desc_ptr,
+Status QueryHighPrioOpImplTypeStubTbe_RNN(FEOpsKernelInfoStore *This, const ge::OpDescPtr &op_desc_ptr,
                                           OpImplType &impl_type, OpKernelInfoPtr &op_kernel_ptr) {
   impl_type = EN_IMPL_HW_TBE;
   return fe::SUCCESS;
 }
-
 
 /* ND(fp16) -> FORMAT_FRACTAL_ZN_RNN(fp16)
  * The Program will insert TransdataRNN ops.
@@ -102,7 +98,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_RNN, InsertAllTransop_01_0) {
   ge::AttrUtils::SetInt(src_op2, FE_IMPLY_TYPE, 6);
   // RNN op
   OpDescPtr dst_op = std::make_shared<OpDesc>("rnn", "RNN_OP");
-  GeTensorDesc dst_tensor_desc1(GeShape({1,64,16,16}), ge::FORMAT_FRACTAL_ZN_RNN, ge::DT_FLOAT16);
+  GeTensorDesc dst_tensor_desc1(GeShape({1, 64, 16, 16}), ge::FORMAT_FRACTAL_ZN_RNN, ge::DT_FLOAT16);
   dst_tensor_desc1.SetOriginShape(GeShape(NDShape));
   dst_tensor_desc1.SetOriginFormat(ge::FORMAT_ND);
   GeTensorDesc dst_tensor_desc2(GeShape({1024}), ge::FORMAT_ND_RNN_BIAS, ge::DT_FLOAT16);
@@ -179,7 +175,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_RNN, InsertAllTransop_01_1) {
   ge::AttrUtils::SetInt(src_op2, FE_IMPLY_TYPE, 6);
   // RNN op
   OpDescPtr dst_op = std::make_shared<OpDesc>("rnn", "RNN_OP");
-  GeTensorDesc dst_tensor_desc1(GeShape({1,2,16,16}), ge::FORMAT_FRACTAL_ZN_RNN, ge::DT_FLOAT16);
+  GeTensorDesc dst_tensor_desc1(GeShape({1, 2, 16, 16}), ge::FORMAT_FRACTAL_ZN_RNN, ge::DT_FLOAT16);
   dst_tensor_desc1.SetOriginShape(GeShape(NDShape));
   dst_tensor_desc1.SetOriginFormat(ge::FORMAT_ND);
   GeTensorDesc dst_tensor_desc2(GeShape({128}), ge::FORMAT_ND_RNN_BIAS, ge::DT_FLOAT16);

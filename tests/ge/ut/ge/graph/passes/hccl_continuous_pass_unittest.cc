@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -37,7 +37,7 @@ namespace {
  *                                          |
  *                                        netoutput
  */
-ComputeGraphPtr BuildGraph_Allreduce_Read_Var_After_Assign(){
+ComputeGraphPtr BuildGraph_Allreduce_Read_Var_After_Assign() {
   auto builder = ut::GraphBuilder("test");
   auto var = builder.AddNode("var", VARIABLE, 0, 1);
   auto assign = builder.AddNode("assign", ASSIGN, 1, 1);
@@ -45,33 +45,39 @@ ComputeGraphPtr BuildGraph_Allreduce_Read_Var_After_Assign(){
   auto netoutput1 = builder.AddNode("netoutput", NETOUTPUT, 1, 0);
 
   builder.AddDataEdge(var, 0, assign, 0);
-  builder.AddDataEdge(var,0,allreduce,0);
+  builder.AddDataEdge(var, 0, allreduce, 0);
   builder.AddControlEdge(assign, allreduce);
   return builder.GetGraph();
 }
 
 static ComputeGraphPtr BuildGraph1() {
   auto builder = ut::GraphBuilder("g1");
-  auto var = builder.AddNode("var", VARIABLE, 1, 1, FORMAT_NC1HWC0, DT_FLOAT, std::vector<int64_t>({1, 1, 224, 224, 16}));
+  auto var =
+      builder.AddNode("var", VARIABLE, 1, 1, FORMAT_NC1HWC0, DT_FLOAT, std::vector<int64_t>({1, 1, 224, 224, 16}));
   var->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({1, 1, 224, 224, 16}));
-  auto cast1 = builder.AddNode("cast1", CAST, 1, 1, FORMAT_NC1HWC0, DT_FLOAT, std::vector<int64_t>({1, 1, 224, 224, 16}));
+  auto cast1 =
+      builder.AddNode("cast1", CAST, 1, 1, FORMAT_NC1HWC0, DT_FLOAT, std::vector<int64_t>({1, 1, 224, 224, 16}));
   cast1->GetOpDesc()->MutableOutputDesc(0)->SetDataType(DT_FLOAT16);
 
-  auto transdata1 = builder.AddNode("transdata1", "TransData", 1, 1, FORMAT_NC1HWC0, DT_FLOAT16, std::vector<int64_t>({1, 1, 224, 224, 16}));
+  auto transdata1 = builder.AddNode("transdata1", "TransData", 1, 1, FORMAT_NC1HWC0, DT_FLOAT16,
+                                    std::vector<int64_t>({1, 1, 224, 224, 16}));
   transdata1->GetOpDesc()->MutableOutputDesc(0)->SetFormat(FORMAT_NHWC);
   transdata1->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape(std::vector<int64_t>({1, 224, 224, 3})));
 
   auto cast2 = builder.AddNode("cast2", CAST, 1, 1, FORMAT_NHWC, DT_FLOAT16, std::vector<int64_t>({1, 224, 224, 3}));
   cast2->GetOpDesc()->MutableInputDesc(0)->SetDataType(DT_FLOAT);
 
-  auto transdata2 = builder.AddNode("transdata2", "TransData", 1, 1, FORMAT_NHWC, DT_FLOAT, std::vector<int64_t>({1, 224, 224, 3}));
+  auto transdata2 =
+      builder.AddNode("transdata2", "TransData", 1, 1, FORMAT_NHWC, DT_FLOAT, std::vector<int64_t>({1, 224, 224, 3}));
   transdata2->GetOpDesc()->MutableOutputDesc(0)->SetFormat(FORMAT_NC1HWC0);
   transdata2->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape(std::vector<int64_t>({1, 1, 224, 224, 16})));
 
-  auto conv2d = builder.AddNode("conv2d", "Conv2D", 1, 1, FORMAT_NC1HWC0, DT_FLOAT, std::vector<int64_t>({1, 1, 224, 224, 16}));
+  auto conv2d =
+      builder.AddNode("conv2d", "Conv2D", 1, 1, FORMAT_NC1HWC0, DT_FLOAT, std::vector<int64_t>({1, 1, 224, 224, 16}));
   conv2d->GetOpDesc()->MutableInputDesc(0)->SetOriginShape(GeShape({1, 1, 224, 224, 16}));
 
-  auto comBroadcast = builder.AddNode("HcomBroadcast", HCOMBROADCAST, 1, 1, FORMAT_NC1HWC0, DT_FLOAT, std::vector<int64_t>({1, 1, 224, 224, 16}));
+  auto comBroadcast = builder.AddNode("HcomBroadcast", HCOMBROADCAST, 1, 1, FORMAT_NC1HWC0, DT_FLOAT,
+                                      std::vector<int64_t>({1, 1, 224, 224, 16}));
   conv2d->GetOpDesc()->MutableInputDesc(0)->SetOriginShape(GeShape({1, 1, 224, 224, 16}));
 
   builder.AddDataEdge(var, 0, cast1, 0);
@@ -84,19 +90,23 @@ static ComputeGraphPtr BuildGraph1() {
   return builder.GetGraph();
 }
 /*
- *          add 
+ *          add
  *         /   \
  *        /     \
- *  allreduce1  allreduce2  
- * 
+ *  allreduce1  allreduce2
+ *
  */
 ComputeGraphPtr BuildGraphWithInputConflict() {
   auto builder = ut::GraphBuilder("g1");
-  auto cast1 = builder.AddNode("cast1", CAST, 1, 1, FORMAT_NC1HWC0, DT_FLOAT, std::vector<int64_t>({1, 1, 224, 224, 16}));
-  auto cast2 = builder.AddNode("cast2", CAST, 1, 1, FORMAT_NC1HWC0, DT_FLOAT, std::vector<int64_t>({1, 1, 224, 224, 16}));
+  auto cast1 =
+      builder.AddNode("cast1", CAST, 1, 1, FORMAT_NC1HWC0, DT_FLOAT, std::vector<int64_t>({1, 1, 224, 224, 16}));
+  auto cast2 =
+      builder.AddNode("cast2", CAST, 1, 1, FORMAT_NC1HWC0, DT_FLOAT, std::vector<int64_t>({1, 1, 224, 224, 16}));
   auto add = builder.AddNode("add", ADD, 1, 1, FORMAT_NC1HWC0, DT_FLOAT, std::vector<int64_t>({1, 1, 224, 224, 16}));
-  auto allreduce1 = builder.AddNode("allreduce1", HCOMALLREDUCE, 2, 1, FORMAT_NC1HWC0, DT_FLOAT, std::vector<int64_t>({1, 1, 224, 224, 16}));
-  auto allreduce2 = builder.AddNode("allreduce2", HCOMALLREDUCE, 2, 1, FORMAT_NC1HWC0, DT_FLOAT, std::vector<int64_t>({1, 1, 224, 224, 16}));
+  auto allreduce1 = builder.AddNode("allreduce1", HCOMALLREDUCE, 2, 1, FORMAT_NC1HWC0, DT_FLOAT,
+                                    std::vector<int64_t>({1, 1, 224, 224, 16}));
+  auto allreduce2 = builder.AddNode("allreduce2", HCOMALLREDUCE, 2, 1, FORMAT_NC1HWC0, DT_FLOAT,
+                                    std::vector<int64_t>({1, 1, 224, 224, 16}));
   (void)ge::AttrUtils::SetBool(allreduce1->GetOpDesc(), ge::ATTR_NAME_CONTINUOUS_INPUT, true);
   (void)ge::AttrUtils::SetBool(allreduce2->GetOpDesc(), ge::ATTR_NAME_CONTINUOUS_INPUT, true);
 
@@ -108,21 +118,27 @@ ComputeGraphPtr BuildGraphWithInputConflict() {
 }
 
 /*
- *              add 
+ *              add
  *         /     \        \
  *        /       \        \
  *  allreduce1  allreduce2  allreduce3
- * 
+ *
  */
 ComputeGraphPtr BuildGraphWithInputConflict2() {
   auto builder = ut::GraphBuilder("g1");
-  auto cast1 = builder.AddNode("cast1", CAST, 1, 1, FORMAT_NC1HWC0, DT_FLOAT, std::vector<int64_t>({1, 1, 224, 224, 16}));
-  auto cast2 = builder.AddNode("cast2", CAST, 1, 1, FORMAT_NC1HWC0, DT_FLOAT, std::vector<int64_t>({1, 1, 224, 224, 16}));
-  auto cast3 = builder.AddNode("cast3", CAST, 1, 1, FORMAT_NC1HWC0, DT_FLOAT, std::vector<int64_t>({1, 1, 224, 224, 16}));
+  auto cast1 =
+      builder.AddNode("cast1", CAST, 1, 1, FORMAT_NC1HWC0, DT_FLOAT, std::vector<int64_t>({1, 1, 224, 224, 16}));
+  auto cast2 =
+      builder.AddNode("cast2", CAST, 1, 1, FORMAT_NC1HWC0, DT_FLOAT, std::vector<int64_t>({1, 1, 224, 224, 16}));
+  auto cast3 =
+      builder.AddNode("cast3", CAST, 1, 1, FORMAT_NC1HWC0, DT_FLOAT, std::vector<int64_t>({1, 1, 224, 224, 16}));
   auto add = builder.AddNode("add", ADD, 1, 1, FORMAT_NC1HWC0, DT_FLOAT, std::vector<int64_t>({1, 1, 224, 224, 16}));
-  auto allreduce1 = builder.AddNode("allreduce1", HCOMALLREDUCE, 2, 1, FORMAT_NC1HWC0, DT_FLOAT, std::vector<int64_t>({1, 1, 224, 224, 16}));
-  auto allreduce2 = builder.AddNode("allreduce2", HCOMALLREDUCE, 2, 1, FORMAT_NC1HWC0, DT_FLOAT, std::vector<int64_t>({1, 1, 224, 224, 16}));
-  auto allreduce3 = builder.AddNode("allreduce3", HCOMALLREDUCE, 2, 1, FORMAT_NC1HWC0, DT_FLOAT, std::vector<int64_t>({1, 1, 224, 224, 16}));
+  auto allreduce1 = builder.AddNode("allreduce1", HCOMALLREDUCE, 2, 1, FORMAT_NC1HWC0, DT_FLOAT,
+                                    std::vector<int64_t>({1, 1, 224, 224, 16}));
+  auto allreduce2 = builder.AddNode("allreduce2", HCOMALLREDUCE, 2, 1, FORMAT_NC1HWC0, DT_FLOAT,
+                                    std::vector<int64_t>({1, 1, 224, 224, 16}));
+  auto allreduce3 = builder.AddNode("allreduce3", HCOMALLREDUCE, 2, 1, FORMAT_NC1HWC0, DT_FLOAT,
+                                    std::vector<int64_t>({1, 1, 224, 224, 16}));
   (void)ge::AttrUtils::SetBool(allreduce1->GetOpDesc(), ge::ATTR_NAME_CONTINUOUS_INPUT, true);
   (void)ge::AttrUtils::SetBool(allreduce2->GetOpDesc(), ge::ATTR_NAME_CONTINUOUS_INPUT, true);
   (void)ge::AttrUtils::SetBool(allreduce3->GetOpDesc(), ge::ATTR_NAME_CONTINUOUS_INPUT, true);
@@ -179,8 +195,9 @@ TEST(UtestGraphPassesHcclContinuousMemcpyPass, testModifyEdgeConnection) {
   ComputeGraphPtr graph = BuildGraph_Allreduce_Read_Var_After_Assign();
   auto src_out_anchor = graph->FindNode("var");
   auto hccl_in_anchor = graph->FindNode("allreduce");
-  
-  ret = hccl_continuous_memcpy_pass.ModifyEdgeConnection(graph, src_out_anchor->GetOutDataAnchor(0), hccl_in_anchor->GetInDataAnchor(0));
+
+  ret = hccl_continuous_memcpy_pass.ModifyEdgeConnection(graph, src_out_anchor->GetOutDataAnchor(0),
+                                                         hccl_in_anchor->GetInDataAnchor(0));
   EXPECT_EQ(ret, SUCCESS);
 }
 
@@ -201,7 +218,7 @@ TEST(UtestGraphPassesHcclContinuousMemcpyPass, testCreateAssignNode) {
   EXPECT_EQ(bRet, true);
 
   hccl_continuous_memcpy_pass.node_num_map_.insert(std::make_pair("ge", 1));
-  std::string sRet= hccl_continuous_memcpy_pass.CheckDuplicateName("ge");
+  std::string sRet = hccl_continuous_memcpy_pass.CheckDuplicateName("ge");
   EXPECT_EQ(sRet, "ge_1");
 }
 
@@ -214,11 +231,13 @@ TEST(UtestGraphPassesHcclContinuousMemcpyPass, testInsertAssignAfterBroadcastIfN
   auto src_out_anchor = graph->FindNode("HcomBroadcast");
   auto hccl_in_anchor = graph->FindNode("HcomBroadcast");
 
-  ret = hccl_continuous_memcpy_pass.InsertAssignAfterBroadcastIfNeed(graph, src_out_anchor->GetOutDataAnchor(0), hccl_in_anchor->GetInDataAnchor(0));
+  ret = hccl_continuous_memcpy_pass.InsertAssignAfterBroadcastIfNeed(graph, src_out_anchor->GetOutDataAnchor(0),
+                                                                     hccl_in_anchor->GetInDataAnchor(0));
   EXPECT_EQ(ret, SUCCESS);
 
   auto src_out_anchor_var = graph->FindNode("var");
-  ret = hccl_continuous_memcpy_pass.InsertAssignAfterBroadcastIfNeed(graph, src_out_anchor_var->GetOutDataAnchor(0), hccl_in_anchor->GetInDataAnchor(0));
+  ret = hccl_continuous_memcpy_pass.InsertAssignAfterBroadcastIfNeed(graph, src_out_anchor_var->GetOutDataAnchor(0),
+                                                                     hccl_in_anchor->GetInDataAnchor(0));
   EXPECT_EQ(ret, SUCCESS);
 }
 
@@ -229,7 +248,7 @@ TEST(UtestGraphPassesHcclContinuousMemcpyPass, testContinuousInputProcess) {
   NodePtr node = graph->FindNode("var");
   ret = hccl_continuous_memcpy_pass.ContinuousInputProcess(graph, node);
   EXPECT_EQ(ret, SUCCESS);
-  
+
   ComputeGraphPtr graph1 = std::make_shared<ComputeGraph>("graph");
   OpDescPtr in_op_ptr_1 = std::make_shared<OpDesc>("in_op_1", "Variable");
   in_op_ptr_1->AddInputDesc("x", GeTensorDesc(GeShape({1, 32, 8, 8}), FORMAT_NCHW));
@@ -322,7 +341,7 @@ TEST(UtestGraphPassesHcclContinuousMemcpyPass, testP2pmemInputProcess) {
   active_desc1->SetStreamId(2);
   EXPECT_TRUE(AttrUtils::SetListInt(active_desc1, ATTR_NAME_INPUT_MEM_TYPE_LIST, {0x11}));
   const auto &active_node1 = sub_graph1->AddNode(active_desc1);
-  
+
   ret = hccl_continuous_memcpy_pass.P2pmemInputProcess(root_graph, active_node1);
   EXPECT_EQ(ret, SUCCESS);
 }
@@ -364,7 +383,7 @@ TEST(UtestGraphPassesHcclContinuousMemcpyPass, testContinuousInputProcess1) {
   EXPECT_EQ(in_data_anchor->LinkFrom(out_data_anchor_2), GRAPH_FAILED);
   EXPECT_EQ(in_data_anchor->Unlink(out_data_anchor_2), GRAPH_FAILED);
   in_data_anchor->Unlink(out_data_anchor_1);
-  
+
   ge::AttrUtils::SetBool(in_owner_node->GetOpDesc(), ATTR_NAME_CONTINUOUS_INPUT, true);
   GeTensorDesc te_desc1(GeShape({1, 2, 3, 4}), FORMAT_NCHW, DT_FLOAT);
   in_owner_node->GetOpDesc()->AddInputDesc(te_desc1);
@@ -377,7 +396,7 @@ TEST(UtestGraphPassesHcclContinuousMemcpyPass, testContinuousInputProcess1) {
   HcclContinuousMemcpyPass hccl_continuous_memcpy_pass;
   Status ret = hccl_continuous_memcpy_pass.ContinuousInputProcess(graph_ptr, in_owner_node);
   EXPECT_EQ(ret, INTERNAL_ERROR);
-  
+
   ret = hccl_continuous_memcpy_pass.Run(graph_ptr);
 }
 
@@ -415,18 +434,18 @@ TEST(UtestGraphPassesHcclContinuousMemcpyPass, testP2pmemInputProcess1) {
  *  若一个算子的同一个输出anchor，同时连给了两个要求输入连续的算子上
  *  这样就产生了冲突
  *  需要在其中一条边插入identity
- * 
  *
- *             add 
+ *
+ *             add
  * cast1      /   \     cast2
  *   \       /     \    /
- *  allreduce1  allreduce2  
+ *  allreduce1  allreduce2
  */
 TEST(UtestGraphPassesHcclContinuousMemcpyPass, testInputContinuousConflict) {
   auto graph = BuildGraphWithInputConflict();
   EXPECT_EQ(graph->GetDirectNodesSize(), 5);
 
-  HcclContinuousMemcpyPass hccl_continuous_memcpy_pass; 
+  HcclContinuousMemcpyPass hccl_continuous_memcpy_pass;
   auto ret = hccl_continuous_memcpy_pass.Run(graph);
   EXPECT_EQ(ret, SUCCESS);
   // check has 1 identity between add and allreduce
@@ -440,7 +459,7 @@ TEST(UtestGraphPassesHcclContinuousMemcpyPass, testInputContinuousConflict_multi
   auto graph = BuildGraphWithInputConflict2();
   EXPECT_EQ(graph->GetDirectNodesSize(), 7);
 
-  HcclContinuousMemcpyPass hccl_continuous_memcpy_pass; 
+  HcclContinuousMemcpyPass hccl_continuous_memcpy_pass;
   auto ret = hccl_continuous_memcpy_pass.Run(graph);
   EXPECT_EQ(ret, SUCCESS);
   // check has 1 identity between add and allreduce

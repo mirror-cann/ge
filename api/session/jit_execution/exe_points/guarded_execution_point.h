@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,17 +30,18 @@ class GuardCheckFuncCaller {
   bool Match(const std::vector<gert::Tensor> &inputs) const;
   Status LoadGuardCheckFunc(ComputeGraphPtr computeGraphPtr);
   Status UnloadGraphCheckFunc() const;
+
  private:
   GuardCheckFunc func_{nullptr};
   int32_t file_handle_{-1};
-  void* so_handle_{nullptr};
+  void *so_handle_{nullptr};
 };
 
 class ExecutionPoint;
 class GuardedExecutionPoint {
  public:
   GuardedExecutionPoint() = delete;
-  GuardedExecutionPoint(ExecutionPoint *owner_point) : owner_point_(owner_point){};
+  GuardedExecutionPoint(ExecutionPoint *owner_point) : owner_point_(owner_point) {};
 
   bool Match(const std::vector<gert::Tensor> &inputs) const;
 

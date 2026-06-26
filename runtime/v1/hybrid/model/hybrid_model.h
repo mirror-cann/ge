@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -55,7 +55,7 @@ class HybridModel {
     return root_runtime_param_.var_size;
   }
 
-  void SetDeviceId(const uint32_t device_id)  {
+  void SetDeviceId(const uint32_t device_id) {
     device_id_ = device_id;
   }
 
@@ -106,17 +106,17 @@ class HybridModel {
     node_bin_mode_ = node_bin_mode;
   }
 
-  TensorValue* GetVariable(const std::string &name) const;
+  TensorValue *GetVariable(const std::string &name) const;
 
   NodePtr GetVariableNode(const std::string &name) const;
 
-  TensorValue* GetTensor(const NodePtr &node) const;
+  TensorValue *GetTensor(const NodePtr &node) const;
 
-  TensorBuffer* GetModelWeight(const std::string &subgraph_name) const;
+  TensorBuffer *GetModelWeight(const std::string &subgraph_name) const;
 
   const std::map<int64_t, std::vector<std::pair<int32_t, GeTensorPtr>>> &GetHostTensors() const;
 
-  const std::vector<domi::TaskDef>* GetTaskDefs(const NodePtr &node) const;
+  const std::vector<domi::TaskDef> *GetTaskDefs(const NodePtr &node) const;
 
   const GraphItem *GetRootGraphItem() const;
 
@@ -135,8 +135,7 @@ class HybridModel {
   void GetModelAttr(std::vector<std::string> &dynamic_output_shape_info) const;
 
   Status GetInputOutputDescInfo(std::vector<InputOutputDescInfo> &input_desc,
-                                std::vector<InputOutputDescInfo> &output_desc,
-                                std::vector<uint32_t> &input_formats,
+                                std::vector<InputOutputDescInfo> &output_desc, std::vector<uint32_t> &input_formats,
                                 std::vector<uint32_t> &output_formats);
 
   Status GetInputDescInfo(std::vector<InputOutputDescInfo> &input_desc, std::vector<uint32_t> &formats_result);
@@ -148,7 +147,9 @@ class HybridModel {
 
   void CreateInputDimsInfo(const OpDescPtr &op_desc, InputOutputDescInfo &input) const;
 
-  void SetModelDescVersion(const bool is_new_model_desc) { is_new_model_desc_ = is_new_model_desc; }
+  void SetModelDescVersion(const bool is_new_model_desc) {
+    is_new_model_desc_ = is_new_model_desc;
+  }
 
   void SetInputDimsAndShapeRangesInfo(const std::vector<int64_t> &model_input_dims,
                                       const std::vector<std::pair<int64_t, int64_t>> &shape_ranges,
@@ -170,7 +171,7 @@ class HybridModel {
   friend class HybridModelAsyncExecutor;
   friend class HybridModelRtV2Executor;
 
-  TensorValue* GetConstant(const NodePtr &node) const;
+  TensorValue *GetConstant(const NodePtr &node) const;
   Status InitAippInfoAndType();
   void PrintDynamicType() const;
   std::string model_name_;
@@ -178,8 +179,8 @@ class HybridModel {
   std::map<uint32_t, NodeItem *> input_nodes_;
   ComputeGraphPtr root_graph_;
   ComputeGraphPtr orig_root_graph_;
-  std::map<std::string, NodePtr> device_variable_nodes_; //lint !e148
-  std::map<std::string, NodePtr> host_variable_nodes_; //lint !e148
+  std::map<std::string, NodePtr> device_variable_nodes_;  // lint !e148
+  std::map<std::string, NodePtr> host_variable_nodes_;    // lint !e148
   std::map<std::string, std::unique_ptr<TensorValue>> variable_tensors_;
   std::map<NodePtr, std::unique_ptr<TensorValue>> constant_tensors_;
   std::map<NodePtr, std::vector<domi::TaskDef>> task_defs_;
@@ -190,7 +191,7 @@ class HybridModel {
   std::map<NodePtr, std::unique_ptr<NodeItem>> node_items_;
   std::map<int64_t, std::vector<std::pair<int32_t, GeTensorPtr>>> host_tensors_;
 
-  bool is_new_model_desc_ = false;    // support aipp
+  bool is_new_model_desc_ = false;  // support aipp
   bool is_single_op_ = false;
   bool has_observer_ = false;
   fuzz_compile::NodeBinMode node_bin_mode_;
@@ -215,4 +216,4 @@ class HybridModel {
 };
 }  // namespace hybrid
 }  // namespace ge
-#endif // GE_HYBRID_HYBRID_GRAPH_H_
+#endif  // GE_HYBRID_HYBRID_GRAPH_H_

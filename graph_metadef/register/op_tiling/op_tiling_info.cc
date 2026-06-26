@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,27 +18,35 @@ using std::make_shared;
 
 namespace utils {
 class OpRunInfoImpl {
-public:
+ public:
   OpRunInfoImpl() = default;
   ~OpRunInfoImpl() = default;
 
   OpRunInfoImpl(const uint32_t &block_dim, const bool &clear_atomic, const uint64_t &tiling_key)
-          : block_dim_(block_dim),
-            clear_atomic_(clear_atomic),
-            tiling_key_(tiling_key),
-            addr_base_(nullptr),
-            max_size_(0),
-            offset_(0),
-            tiling_cond_(-1),
-            schedule_mode_(0U) {}
+      : block_dim_(block_dim),
+        clear_atomic_(clear_atomic),
+        tiling_key_(tiling_key),
+        addr_base_(nullptr),
+        max_size_(0),
+        offset_(0),
+        tiling_cond_(-1),
+        schedule_mode_(0U) {}
 
-  void SetBlockDim(const uint32_t &block_dim) { block_dim_ = block_dim; }
+  void SetBlockDim(const uint32_t &block_dim) {
+    block_dim_ = block_dim;
+  }
 
-  uint32_t GetBlockDim() const { return block_dim_; }
+  uint32_t GetBlockDim() const {
+    return block_dim_;
+  }
 
-  void SetAicpuBlockDim(uint32_t block_dim) { aicpu_block_dim_ = block_dim; }
+  void SetAicpuBlockDim(uint32_t block_dim) {
+    aicpu_block_dim_ = block_dim;
+  }
 
-  uint32_t GetAicpuBlockDim() const { return aicpu_block_dim_; }
+  uint32_t GetAicpuBlockDim() const {
+    return aicpu_block_dim_;
+  }
 
   void SetScheduleMode(const uint32_t schedule_mode) {
     schedule_mode_ = schedule_mode;
@@ -48,9 +56,13 @@ public:
     return schedule_mode_;
   }
 
-  void AddWorkspace(const int64_t &workspace) { workspaces_.push_back(workspace); }
+  void AddWorkspace(const int64_t &workspace) {
+    workspaces_.push_back(workspace);
+  }
 
-  size_t GetWorkspaceNum() const { return workspaces_.size(); }
+  size_t GetWorkspaceNum() const {
+    return workspaces_.size();
+  }
 
   ge::graphStatus GetWorkspace(const size_t &idx, int64_t &workspace) const {
     if ((!workspaces_.empty()) && (idx < workspaces_.size())) {
@@ -60,11 +72,17 @@ public:
     return ge::GRAPH_FAILED;
   }
 
-  void GetAllWorkspaces(std::vector<int64_t> &workspaces) const { workspaces = workspaces_; }
+  void GetAllWorkspaces(std::vector<int64_t> &workspaces) const {
+    workspaces = workspaces_;
+  }
 
-  const std::vector<int64_t> &GetAllWorkspaces() const { return workspaces_; }
+  const std::vector<int64_t> &GetAllWorkspaces() const {
+    return workspaces_;
+  }
 
-  void SetWorkspaces(const std::vector<int64_t> &workspaces) { workspaces_ = workspaces; }
+  void SetWorkspaces(const std::vector<int64_t> &workspaces) {
+    workspaces_ = workspaces;
+  }
 
   void AddTilingData(const char *value, const size_t size) {
     if (addr_base_ == nullptr) {
@@ -73,8 +91,10 @@ public:
     } else {
       auto addr = ::ge::ValueToPtr(::ge::PtrToValue(addr_base_) + offset_);
       if (memcpy_s(addr, static_cast<size_t>(max_size_ - offset_), value, size) != EOK) {
-        GELOGE(ge::GRAPH_FAILED, "[Add][TilingData] Memcpy tiling data failed, "
-               "dst size = %zu, src size = %zu.", static_cast<size_t>(max_size_ - offset_), size);
+        GELOGE(ge::GRAPH_FAILED,
+               "[Add][TilingData] Memcpy tiling data failed, "
+               "dst size = %zu, src size = %zu.",
+               static_cast<size_t>(max_size_ - offset_), size);
         REPORT_INNER_ERR_MSG("E19999", "[Add][TilingData] Memcpy tiling data failed, dst size = %zu, src size = %zu.",
                              static_cast<size_t>(max_size_ - offset_), size);
         return;
@@ -89,13 +109,14 @@ public:
   }
 
   bool SetMemCheckBaseOffset(uint64_t offset) {
-    GELOGD("When max size is %lu, set a new offset [%lu] to replace the original offset [%lu].", max_size_, offset, offset_);
+    GELOGD("When max size is %lu, set a new offset [%lu] to replace the original offset [%lu].", max_size_, offset,
+           offset_);
     if (offset >= std::numeric_limits<uint64_t>::max() - sizeof(uint64_t)) {
       GELOGE(ge::GRAPH_FAILED, "Offset overflow.");
       return false;
     }
     uint64_t new_offset = (offset + sizeof(uint64_t) - 1U) / sizeof(uint64_t);
-    new_offset  = new_offset * sizeof(uint64_t);
+    new_offset = new_offset * sizeof(uint64_t);
     if (new_offset < offset_ || new_offset >= max_size_) {
       return false;
     }
@@ -103,7 +124,7 @@ public:
     return true;
   }
 
-  void* GetAddrBase(uint64_t& max_size) const {
+  void *GetAddrBase(uint64_t &max_size) const {
     max_size = max_size_;
     return addr_base_;
   }
@@ -112,24 +133,38 @@ public:
     offset_ = size;
   }
 
-  const ByteBuffer &GetAllTilingData() const { return tiling_data_; }
+  const ByteBuffer &GetAllTilingData() const {
+    return tiling_data_;
+  }
 
-  ByteBuffer &GetAllTilingData() { return tiling_data_; }
+  ByteBuffer &GetAllTilingData() {
+    return tiling_data_;
+  }
 
-  uint64_t GetTilingDataSize() const { return offset_; }
+  uint64_t GetTilingDataSize() const {
+    return offset_;
+  }
   void SetAllTilingData(const ByteBuffer &value) {
     tiling_data_.clear();
     offset_ = 0;
     AddTilingData(value.str().c_str(), value.str().size());
   }
 
-  void SetClearAtomic(const bool clear_atomic) { clear_atomic_ = clear_atomic; }
+  void SetClearAtomic(const bool clear_atomic) {
+    clear_atomic_ = clear_atomic;
+  }
 
-  bool GetClearAtomic() const { return clear_atomic_; }
+  bool GetClearAtomic() const {
+    return clear_atomic_;
+  }
 
-  void SetTilingKey(const uint64_t &tiling_key) { tiling_key_ = tiling_key; }
+  void SetTilingKey(const uint64_t &tiling_key) {
+    tiling_key_ = tiling_key;
+  }
 
-  uint64_t GetTilingKey() const { return tiling_key_; }
+  uint64_t GetTilingKey() const {
+    return tiling_key_;
+  }
 
   void ResetWorkspace() {
     workspaces_.clear();
@@ -141,9 +176,13 @@ public:
     offset_ = 0;
   }
 
-  void SetTilingCond(const int32_t tiling_cond) { tiling_cond_ = tiling_cond; }
+  void SetTilingCond(const int32_t tiling_cond) {
+    tiling_cond_ = tiling_cond;
+  }
 
-  int32_t GetTilingCond() const { return tiling_cond_; }
+  int32_t GetTilingCond() const {
+    return tiling_cond_;
+  }
 
   void SetLocalMemorySize(const uint32_t local_memory_size) {
     local_memory_size_ = local_memory_size;
@@ -153,7 +192,7 @@ public:
     return local_memory_size_;
   }
 
-private:
+ private:
   uint32_t block_dim_;
   bool clear_atomic_;
   uint64_t tiling_key_;
@@ -272,7 +311,7 @@ bool OpRunInfo::SetMemCheckBaseOffset(const uint64_t &offset) {
   return impl_->SetMemCheckBaseOffset(offset);
 }
 
-void* OpRunInfo::GetAddrBase(uint64_t& max_size) const {
+void *OpRunInfo::GetAddrBase(uint64_t &max_size) const {
   return impl_->GetAddrBase(max_size);
 }
 
@@ -331,21 +370,29 @@ uint32_t OpRunInfo::GetLocalMemorySize() const {
 }
 
 class OpCompileInfoImpl {
-public:
+ public:
   OpCompileInfoImpl() : key_(), value_() {}
   ~OpCompileInfoImpl() = default;
   OpCompileInfoImpl(const ge::AscendString &key, const ge::AscendString &value) : key_(key), value_(value) {}
   OpCompileInfoImpl(const std::string &key, const std::string &value) : key_(key.c_str()), value_(value.c_str()) {}
 
-  void SetKey(const ge::AscendString &key) { key_ = key; }
+  void SetKey(const ge::AscendString &key) {
+    key_ = key;
+  }
 
-  void SetValue(const ge::AscendString &value) { value_ = value; }
+  void SetValue(const ge::AscendString &value) {
+    value_ = value;
+  }
 
-  const ge::AscendString &GetKey() const { return key_; }
+  const ge::AscendString &GetKey() const {
+    return key_;
+  }
 
-  const ge::AscendString &GetValue() const { return value_; }
+  const ge::AscendString &GetValue() const {
+    return value_;
+  }
 
-private:
+ private:
   ge::AscendString key_;
   ge::AscendString value_;
 };

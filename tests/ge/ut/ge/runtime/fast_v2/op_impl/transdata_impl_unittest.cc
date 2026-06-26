@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,7 +21,7 @@ namespace gert {
 namespace kernel {
 ge::graphStatus InferShapeForTransData(InferShapeContext *context);
 }
-}
+}  // namespace gert
 namespace gert_test {
 class TransDataImplUT : public testing::Test {};
 TEST_F(TransDataImplUT, TransDataInferShapeOk) {
@@ -58,9 +58,9 @@ TEST_F(TransDataImplUT, TilingParseOk) {
                     .Outputs(std::vector<void *>({&compile_info}))
                     .Build();
 
-
   ASSERT_NE(gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->GetOpImpl("TransData"), nullptr);
-  auto func = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->GetOpImpl("TransData")->tiling_parse;
+  auto func =
+      gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->GetOpImpl("TransData")->tiling_parse;
   ASSERT_NE(func, nullptr);
 
   EXPECT_EQ(func(holder.GetContext<gert::KernelContext>()), ge::GRAPH_SUCCESS);
@@ -96,7 +96,8 @@ TEST_F(TransDataImplUT, TilingNd2Nz) {
                     .Build();
 
   ASSERT_NE(gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->GetOpImpl("TransData"), nullptr);
-  auto tiling_func = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->GetOpImpl("TransData")->tiling;
+  auto tiling_func =
+      gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->GetOpImpl("TransData")->tiling;
   ASSERT_NE(tiling_func, nullptr);
 
   EXPECT_EQ(tiling_func(holder.GetContext<gert::TilingContext>()), ge::GRAPH_SUCCESS);
@@ -127,7 +128,8 @@ TEST_F(TransDataImplUT, TilingNz2Nd) {
                     .Build();
 
   ASSERT_NE(gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->GetOpImpl("TransData"), nullptr);
-  auto tiling_func = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->GetOpImpl("TransData")->tiling;
+  auto tiling_func =
+      gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->GetOpImpl("TransData")->tiling;
   ASSERT_NE(tiling_func, nullptr);
 
   EXPECT_EQ(tiling_func(holder.GetContext<gert::TilingContext>()), ge::GRAPH_SUCCESS);

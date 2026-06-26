@@ -96,7 +96,7 @@ HcclResult GetOffDeviceTypeWithoutDev(DevType &devType) {
     tempDevType = DevType::DEV_TYPE_MC62;
     return HCCL_SUCCESS;
   }
-  
+
   auto iter = SOC_VER_CONVERT.find(socVersion);
   if (iter == SOC_VER_CONVERT.end()) {
     HCCL_ERROR("[Get][DeviceType]errNo[0x%016llx] rtGetSocVersion get illegal chipver, chip_ver[%s].",

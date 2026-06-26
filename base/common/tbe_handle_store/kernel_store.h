@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,7 +28,7 @@
 #define ALIGN_MEM(MEM_SIZE, ALIGN_SIZE)                                                    \
   if (((MEM_SIZE) > 0UL) && ((ALIGN_SIZE) != 0UL) && ((MEM_SIZE) % (ALIGN_SIZE) != 0UL)) { \
     GELOGI("assign before, size[%zu]", (MEM_SIZE));                                        \
-    (MEM_SIZE) = ((MEM_SIZE) + (ALIGN_SIZE)-1) / (ALIGN_SIZE) * (ALIGN_SIZE);              \
+    (MEM_SIZE) = ((MEM_SIZE) + (ALIGN_SIZE) - 1) / (ALIGN_SIZE) * (ALIGN_SIZE);            \
     GELOGI("assign after, size[%zu]", (MEM_SIZE));                                         \
   }
 

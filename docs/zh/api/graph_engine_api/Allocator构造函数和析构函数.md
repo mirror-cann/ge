@@ -50,4 +50,3 @@ Allocator &operator=(const Allocator &) = delete
 ## 约束说明<a name="zh-cn_topic_0204328165_zh-cn_topic_0182636384_section62768825"></a>
 
 纯虚类需要用户派生。
-

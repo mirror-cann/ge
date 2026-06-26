@@ -2,30 +2,29 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
 
-import unittest
 import os
-from typing import Tuple
+import unittest
 from pathlib import Path
+from typing import Tuple
+
 import cloudpickle
-import numpy as np
 import dataflow as df
 import dataflow.data_type as dt
-import dataflow.flow_func.flowfunc_wrapper as fw
 import dataflow.flow_func as ff
+import dataflow.flow_func.flowfunc_wrapper as fw
 import dataflow.utils.utils as utils
+import numpy as np
 
 
-@df.pyflow(
-    resources={"memory": 100, "num_cpus": 1, "num_npus": 1}, visible_device_enable=True
-)
+@df.pyflow(resources={"memory": 100, "num_cpus": 1, "num_npus": 1}, visible_device_enable=True)
 class Foo:
     def __init__(self, name, val):
         self.name = name
@@ -104,9 +103,7 @@ class TestPyFlow(unittest.TestCase):
         foo = Foo.fnode("some_name", 1).set_alias("Foo")
         sub1_out = foo.sub_1(data0)
         add1_out0, add1_out1 = foo.add_1(data1)
-        func_out0, func_out1 = some_func.fnode().set_alias("some_func")(
-            add1_out0, add1_out1
-        )
+        func_out0, func_out1 = some_func.fnode().set_alias("some_func")(add1_out0, add1_out1)
         graph = df.FlowGraph([sub1_out, func_out0, func_out1])
         self.assertEqual(Path("./some_func_fnode_ws").exists(), True)
         self.assertEqual(Path(foo.name + "_ws").exists(), True)
@@ -162,16 +159,12 @@ class TestPyFlow(unittest.TestCase):
         self.assertEqual(ret, 0)
 
     def test_pyflow_run_with_stream_input(self):
-        ret = func_with_stream_input(
-            fw.MetaRunContext(), [fw.FlowMsgQueue(), fw.FlowMsgQueue()]
-        )
+        ret = func_with_stream_input(fw.MetaRunContext(), [fw.FlowMsgQueue(), fw.FlowMsgQueue()])
         self.assertEqual(ret, 0)
         fnode0 = MyClass.fnode()
         with open(fnode0.name + "_ws/src_python/MyClass.pkl", "rb") as f:
             my_class = cloudpickle.loads(f.read())
-            ret = my_class.func_with_stream_input(
-                fw.MetaRunContext(), [fw.FlowMsgQueue()]
-            )
+            ret = my_class.func_with_stream_input(fw.MetaRunContext(), [fw.FlowMsgQueue()])
             self.assertEqual(ret, 0)
         os.system("rm -rf ./*_fnode_ws")
 
@@ -189,9 +182,7 @@ class TestPyFlow(unittest.TestCase):
         ret = func_with_stream_ouput(fw.MetaRunContext(), [fw.FlowMsg(), fw.FlowMsg()])
         self.assertEqual(ret, 0)
         fnode0 = MyClassWithStreamOutput.fnode()
-        with open(
-                fnode0.name + "_ws/src_python/MyClassWithStreamOutput.pkl", "rb"
-        ) as f:
+        with open(fnode0.name + "_ws/src_python/MyClassWithStreamOutput.pkl", "rb") as f:
             my_class = cloudpickle.loads(f.read())
             ret = my_class.func_with_stream_ouput(fw.MetaRunContext(), [fw.FlowMsg()])
             self.assertEqual(ret, 0)

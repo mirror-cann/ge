@@ -30,13 +30,13 @@ constexpr int kBackwardEdgeOffset = 1;
 struct Edge {
   int from;
   int to;
-  int cap;  // capacity: maximum flow allowed through this edge
-  int flow; // current flow through this edge
+  int cap;   // capacity: maximum flow allowed through this edge
+  int flow;  // current flow through this edge
   Edge(int u, int v, int c, int f) : from(u), to(v), cap(c), flow(f) {}
 };
 
 class HopcroftKarp {
-public:
+ public:
   explicit HopcroftKarp(int node_count) {
     node_num_ = node_count;
     total_node_count_ = node_num_ * kNodeSplitFactor + kEdgePairSize;
@@ -69,9 +69,10 @@ public:
     visited_[source_node_] = true;
     Q.push(source_node_);
     while (!Q.empty()) {
-      int x = Q.front(); Q.pop();
+      int x = Q.front();
+      Q.pop();
       for (int i = 0; i < static_cast<int>(adjacency_list_[x].size()); i++) {
-        Edge& e = edges_[adjacency_list_[x][i]];
+        Edge &e = edges_[adjacency_list_[x][i]];
         if (!visited_[e.to] && e.cap > e.flow) {
           visited_[e.to] = true;
           distance_[e.to] = distance_[x] + 1;
@@ -85,12 +86,12 @@ public:
   int DFS(int current_node, int remaining_flow) {
     if (current_node == sink_node_ || remaining_flow == 0) return remaining_flow;
     int flow = 0, f;
-    for (int& i = current_edge_idx_[current_node]; i < static_cast<int>(adjacency_list_[current_node].size()); i++) {
-      Edge& e = edges_[adjacency_list_[current_node][i]];
+    for (int &i = current_edge_idx_[current_node]; i < static_cast<int>(adjacency_list_[current_node].size()); i++) {
+      Edge &e = edges_[adjacency_list_[current_node][i]];
       if (distance_[current_node] + 1 == distance_[e.to] &&
           (f = DFS(e.to, std::min(remaining_flow, e.cap - e.flow))) > 0) {
         e.flow += f;
-        edges_[adjacency_list_[current_node][i]^1].flow -= f;
+        edges_[adjacency_list_[current_node][i] ^ 1].flow -= f;
         flow += f;
         remaining_flow -= f;
         if (remaining_flow == 0) break;
@@ -109,7 +110,7 @@ public:
     std::vector<int> from(total_node_count_ + 1, 0);
     for (int i = 1; i <= node_num_; i++) {
       for (int j = 0; j < static_cast<int>(adjacency_list_[i].size()); j++) {
-        Edge& e = edges_[adjacency_list_[i][j]];
+        Edge &e = edges_[adjacency_list_[i][j]];
         if (e.flow == 1) {
           int nxt = e.to - node_num_;
           if (nxt >= 1 && nxt <= node_num_) {
@@ -148,7 +149,7 @@ public:
     return routes_;
   }
 
-private:
+ private:
   int node_num_ = 0;
   int total_node_count_ = 0;
   int edge_num_ = 0;

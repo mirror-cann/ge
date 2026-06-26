@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,7 +38,6 @@
 #include "common/context/local_context.h"
 #include "common/omg_util/omg_util.h"
 
-
 namespace ge {
 namespace multibatch {
 namespace {
@@ -47,8 +46,7 @@ const int32_t kStaticOutput = -1;
 
 inline bool IsGetNextType(const NodePtr &node) {
   std::string original_type;
-  GE_IF_BOOL_EXEC(GetOriginalType(node, original_type) != SUCCESS,
-                  GELOGW("Get original type failed"); return false);
+  GE_IF_BOOL_EXEC(GetOriginalType(node, original_type) != SUCCESS, GELOGW("Get original type failed"); return false);
   return (original_type == kGetNextName);
 }
 
@@ -68,8 +66,8 @@ inline bool IsGetNextType(const NodePtr &node) {
 // +-----------+                  /
 // |   Data    | --------------->/
 // +-----------+
-void GetDynamicShapeByGraph(const ComputeGraphPtr &graph, const NodePtr &node,
-                            std::set<size_t> &dynamic_output_index, std::vector<std::string> &dynamic_output_dims) {
+void GetDynamicShapeByGraph(const ComputeGraphPtr &graph, const NodePtr &node, std::set<size_t> &dynamic_output_index,
+                            std::vector<std::string> &dynamic_output_dims) {
   GELOGD("Try get dynamic shape info, Graph: %s, Node: %s", graph->GetName().c_str(), node->GetName().c_str());
   const auto &func_desc = node->GetOpDesc();
   if (!func_desc->HasAttr(ATTR_NAME_BATCH_NUM)) {
@@ -82,10 +80,10 @@ void GetDynamicShapeByGraph(const ComputeGraphPtr &graph, const NodePtr &node,
     for (size_t j = 0; j < dynamic_branch_names.size(); ++j) {
       const auto &subgraph = graph->GetSubgraph(dynamic_branch_names[j]);
       if (subgraph == nullptr) {
-        REPORT_INNER_ERR_MSG("E19999", "Get subgraph:%s from graph:%s failed",
-                           dynamic_branch_names[j].c_str(), graph->GetName().c_str());
-        GELOGE(GE_GRAPH_EMPTY_SUBGRAPH, "[Get][SubGraph] %s from graph:%s failed",
-               dynamic_branch_names[j].c_str(), graph->GetName().c_str());
+        REPORT_INNER_ERR_MSG("E19999", "Get subgraph:%s from graph:%s failed", dynamic_branch_names[j].c_str(),
+                             graph->GetName().c_str());
+        GELOGE(GE_GRAPH_EMPTY_SUBGRAPH, "[Get][SubGraph] %s from graph:%s failed", dynamic_branch_names[j].c_str(),
+               graph->GetName().c_str());
         dynamic_output_dims.clear();
         return;
       }
@@ -93,7 +91,7 @@ void GetDynamicShapeByGraph(const ComputeGraphPtr &graph, const NodePtr &node,
       const auto &out_node = subgraph->FindFirstNodeMatchType(NETOUTPUT);
       if (out_node == nullptr) {
         REPORT_INNER_ERR_MSG("E19999", "No netoutput node exist in subgraph:%s, check invalid",
-                           subgraph->GetName().c_str());
+                             subgraph->GetName().c_str());
         GELOGE(GE_GRAPH_GRAPH_NODE_NULL, "[Check][Param] No netoutput node exist in subgraph:%s",
                subgraph->GetName().c_str());
         dynamic_output_dims.clear();
@@ -107,8 +105,8 @@ void GetDynamicShapeByGraph(const ComputeGraphPtr &graph, const NodePtr &node,
       }
       if (out_desc->GetInputsSize() <= i) {
         REPORT_INNER_ERR_MSG("E19999",
-                           "op_desc of node in subgraph:%s is nullptr or input desc size:%zu <= %zu, check invalid",
-                           subgraph->GetName().c_str(), out_desc->GetInputsSize(), i);
+                             "op_desc of node in subgraph:%s is nullptr or input desc size:%zu <= %zu, check invalid",
+                             subgraph->GetName().c_str(), out_desc->GetInputsSize(), i);
         GELOGE(GE_GRAPH_GRAPH_NODE_NULL,
                "[Check][Param] op_desc of node in subgraph:%s is nullptr or input desc size:%zu <= %zu",
                subgraph->GetName().c_str(), out_desc->GetInputsSize(), i);
@@ -155,10 +153,9 @@ void GetDirectOutputShape(const ComputeGraphPtr &graph, const NodePtr &node,
 
 Status ProcessMultiBatch(const ComputeGraphPtr &graph, const uint64_t session_id) {
   PassManager pass_manager;
-  GE_CHK_STATUS_RET(pass_manager.AddPass("CreateSubGraphWithScopePass",
-                                         new (std::nothrow) CreateSubGraphWithScopePass));
-  GE_CHK_STATUS_RET(pass_manager.AddPass("SubgraphMultiDimsClonePass",
-                                         new (std::nothrow) SubgraphMultiDimsClonePass));
+  GE_CHK_STATUS_RET(
+      pass_manager.AddPass("CreateSubGraphWithScopePass", new (std::nothrow) CreateSubGraphWithScopePass));
+  GE_CHK_STATUS_RET(pass_manager.AddPass("SubgraphMultiDimsClonePass", new (std::nothrow) SubgraphMultiDimsClonePass));
   GE_CHK_STATUS_RET(pass_manager.AddPass("MultiBatchClonePass", new (std::nothrow) MultiBatchClonePass(session_id)));
   const auto ret = pass_manager.Run(graph);
   return ret;
@@ -182,9 +179,8 @@ Status GetDynamicOutputShape(const ComputeGraphPtr &graph) {
   if ((net_output != nullptr) && !dynamic_output_dims.empty()) {
     GetDirectOutputShape(graph, net_output, dynamic_output_index, dynamic_output_dims);
     if (!AttrUtils::SetListStr(net_output->GetOpDesc(), ATTR_NAME_DYNAMIC_OUTPUT_DIMS, dynamic_output_dims)) {
-      REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s to node:%s(%s) failed",
-                        ATTR_NAME_DYNAMIC_OUTPUT_DIMS.c_str(),
-                        net_output->GetName().c_str(), net_output->GetType().c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s to node:%s(%s) failed", ATTR_NAME_DYNAMIC_OUTPUT_DIMS.c_str(),
+                           net_output->GetName().c_str(), net_output->GetType().c_str());
       GELOGE(FAILED, "[Set][Attr] %s to node:%s(%s) failed", ATTR_NAME_DYNAMIC_OUTPUT_DIMS.c_str(),
              net_output->GetName().c_str(), net_output->GetType().c_str());
       return FAILED;

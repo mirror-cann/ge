@@ -57,4 +57,3 @@ const char *aclGetCustomOpLibPath()
 ```
 const char* path = aclGetCustomOpLibPath();
 ```
-

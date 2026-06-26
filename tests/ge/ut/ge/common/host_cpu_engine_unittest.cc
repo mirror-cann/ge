@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,38 +28,37 @@ namespace ge {
 using ConstTenMap = const std::map<std::string, const Tensor>;
 using TenMap = std::map<std::string, Tensor>;
 
-class SubHostCpuOp : public HostCpuOp{
-public:
-    SubHostCpuOp();
-    virtual graphStatus Compute(Operator &op,
-                              const std::map<std::string, const Tensor> &inputs,
+class SubHostCpuOp : public HostCpuOp {
+ public:
+  SubHostCpuOp();
+  virtual graphStatus Compute(Operator &op, const std::map<std::string, const Tensor> &inputs,
                               std::map<std::string, Tensor> &outputs);
-    bool compute_flag_;
-    bool outputs_flag_;
+  bool compute_flag_;
+  bool outputs_flag_;
 };
 
-SubHostCpuOp::SubHostCpuOp(){
-    compute_flag_ = true;
-    outputs_flag_ = false;
+SubHostCpuOp::SubHostCpuOp() {
+  compute_flag_ = true;
+  outputs_flag_ = false;
 }
 
-graphStatus SubHostCpuOp::Compute(Operator &op, ConstTenMap &inputs, TenMap &outputs){
-    if (outputs_flag_){
-        outputs["__output0"] = Tensor();
-    }
-    if (compute_flag_){
-        return SUCCESS;
-    }
-    return FAILED;
+graphStatus SubHostCpuOp::Compute(Operator &op, ConstTenMap &inputs, TenMap &outputs) {
+  if (outputs_flag_) {
+    outputs["__output0"] = Tensor();
+  }
+  if (compute_flag_) {
+    return SUCCESS;
+  }
+  return FAILED;
 }
-
 
 class UTEST_host_cpu_engine : public testing::Test {
  protected:
   void SetUp() {}
   void TearDown() {}
+
  public:
-  NodePtr UtAddNode(ComputeGraphPtr &graph, std::string name, std::string type, int in_cnt, int out_cnt){
+  NodePtr UtAddNode(ComputeGraphPtr &graph, std::string name, std::string type, int in_cnt, int out_cnt) {
     auto tensor_desc = std::make_shared<GeTensorDesc>();
     std::vector<int64_t> shape = {1, 1, 224, 224};
     tensor_desc->SetShape(GeShape(shape));
@@ -70,10 +69,10 @@ class UTEST_host_cpu_engine : public testing::Test {
     tensor_desc->SetOriginDataType(DT_FLOAT);
     auto op_desc = std::make_shared<OpDesc>(name, type);
     for (int i = 0; i < in_cnt; ++i) {
-        op_desc->AddInputDesc(tensor_desc->Clone());
+      op_desc->AddInputDesc(tensor_desc->Clone());
     }
     for (int i = 0; i < out_cnt; ++i) {
-        op_desc->AddOutputDesc(tensor_desc->Clone());
+      op_desc->AddOutputDesc(tensor_desc->Clone());
     }
     return graph->AddNode(op_desc);
   }

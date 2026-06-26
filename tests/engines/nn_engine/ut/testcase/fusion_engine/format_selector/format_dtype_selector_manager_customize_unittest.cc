@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,27 +31,25 @@ using namespace testing;
 using namespace fe;
 
 using fe::FEOpsKernelInfoStore;
-using ge::GeTensorDesc;
-using ge::GeShape;
-using ge::AttrUtils;
-using ge::Format;
-using ge::DataType;
-using ge::ConstGeTensorDescPtr;
-using ge::GeTensorDescPtr;
-using ge::OpDescPtr;
-using ge::OpDesc;
 using fe::InputOrOutputInfoPtr;
+using ge::AttrUtils;
+using ge::ConstGeTensorDescPtr;
+using ge::DataType;
+using ge::Format;
 using ge::GeAttrValue;
-using std::vector;
+using ge::GeShape;
+using ge::GeTensorDesc;
+using ge::GeTensorDescPtr;
+using ge::OpDesc;
+using ge::OpDescPtr;
 using std::map;
+using std::vector;
 using namespace ge;
 using FEOpsKernelInfoStorePtr = std::shared_ptr<fe::FEOpsKernelInfoStore>;
 using OpImplTypeJudgePtr = std::shared_ptr<OpImplTypeJudge>;
 
-
 class FormatDtypeSelectorManagerCustomizeUTest : public testing::Test {
  protected:
-
   static void SetUpTestCase() {
     cout << "FEOpsKernelInfoStoreTest SetUP" << endl;
     std::string soc_version = "Ascend310P3";
@@ -68,12 +66,10 @@ class FormatDtypeSelectorManagerCustomizeUTest : public testing::Test {
   virtual void SetUp() {
     fe_ops_kernel_info_store_ptr_ = make_shared<fe::FEOpsKernelInfoStore>(AI_CORE_NAME);
     FEOpsStoreInfo tbe_builtin{
-        6,
-        "tbe-builtin",
-        EN_IMPL_HW_TBE,
-        GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/format_selector/fe_config/tbe_dynamic_opinfo",
-        ""
-    };
+        6, "tbe-builtin", EN_IMPL_HW_TBE,
+        GetCodeDir() +
+            "/tests/engines/nn_engine/ut/testcase/fusion_engine/format_selector/fe_config/tbe_dynamic_opinfo",
+        ""};
     vector<FEOpsStoreInfo> store_info;
     store_info.emplace_back(tbe_builtin);
     Configuration::Instance(fe::AI_CORE_NAME).ops_store_info_vector_ = (store_info);
@@ -82,14 +78,9 @@ class FormatDtypeSelectorManagerCustomizeUTest : public testing::Test {
     std::map<std::string, std::string> options;
     fe_ops_kernel_info_store_ptr_->Initialize(options);
     auto reflection_builder_ptr = std::make_shared<ge::RefRelations>();
-    op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(
-        fe::AI_CORE_NAME, reflection_builder_ptr);
+    op_format_dtype_judge_ptr_ = std::make_shared<OpFormatDtypeJudge>(fe::AI_CORE_NAME, reflection_builder_ptr);
     op_format_dtype_judge_ptr_->Initialize();
-    conv_input_name_map_ = {
-        {0, "x"},
-        {1, "y"},
-        {2, "z"}
-    };
+    conv_input_name_map_ = {{0, "x"}, {1, "y"}, {2, "z"}};
     conv_output_name_map_ = {
         {0, "o"},
     };
@@ -123,43 +114,49 @@ class FormatDtypeSelectorManagerCustomizeUTest : public testing::Test {
   ge::OpDescPtr conv_op_;
 };
 
-bool SelectTbeOpFormatStub(const te::TbeOpInfo &tbe_op_info, string &op_format_dtype_str)
-{
-    op_format_dtype_str = "{\"input0\":{\"name\":\"x\",\"format\":\"ND,NCHW\", \"dtype\":\"float,float16\"},\"output0\":{\"name\":\"y\",\"format\":\"ND,NCHW\", \"dtype\":\"float,float16\"}}";
-    return true;
+bool SelectTbeOpFormatStub(const te::TbeOpInfo &tbe_op_info, string &op_format_dtype_str) {
+  op_format_dtype_str =
+      "{\"input0\":{\"name\":\"x\",\"format\":\"ND,NCHW\", "
+      "\"dtype\":\"float,float16\"},\"output0\":{\"name\":\"y\",\"format\":\"ND,NCHW\", \"dtype\":\"float,float16\"}}";
+  return true;
 }
 
-bool SelectTbeOpFormatStub2(const te::TbeOpInfo &tbe_op_info, string &op_format_dtype_str)
-{
-    op_format_dtype_str = "";
-    return true;
+bool SelectTbeOpFormatStub2(const te::TbeOpInfo &tbe_op_info, string &op_format_dtype_str) {
+  op_format_dtype_str = "";
+  return true;
 }
 
-bool SelectTbeOpFormatUnknownStub(const te::TbeOpInfo &tbe_op_info, string &op_format_dtype_str)
-{
-    op_format_dtype_str = "{\"input0\":{\"name\":\"x\",\"format\":\"ND,NCHW\", \"dtype\":\"float,float16\"},\"output0\":{\"name\":\"y\",\"format\":\"ND,NCHW\",\"unknownshape_format\":\"ND,NCHW\",\"dtype\":\"float,float16\"}}";
-    return true;
+bool SelectTbeOpFormatUnknownStub(const te::TbeOpInfo &tbe_op_info, string &op_format_dtype_str) {
+  op_format_dtype_str =
+      "{\"input0\":{\"name\":\"x\",\"format\":\"ND,NCHW\", "
+      "\"dtype\":\"float,float16\"},\"output0\":{\"name\":\"y\",\"format\":\"ND,NCHW\",\"unknownshape_format\":\"ND,"
+      "NCHW\",\"dtype\":\"float,float16\"}}";
+  return true;
 }
 
-bool SelectTbeOpFormatStub1(const te::TbeOpInfo &tbe_op_info, string &op_format_dtype_str)
-{
-    std::vector<te::TbeOpParam> inputs;
-    inputs = tbe_op_info.inputs_;
-    if (!inputs.empty()) {
-        std::vector<te::TbeOpTensor> tensors;
-        inputs[0].GetTensors(tensors);
-        if (!tensors.empty()) {
-          bool is_first_layer;
-          if (tensors[0].GetFirstLayer(is_first_layer) && is_first_layer) {
-            // Check if it's the first layer conv
-            // the first layer conv can use c04 format
-            op_format_dtype_str = "{\"input0\":{\"name\":\"x\",\"format\":\"NC1HWC0_C04,NC1HWC0_C04\", \"dtype\":\"float,float16\"},\"output0\":{\"name\":\"y\",\"format\":\"NC1HWC0_C04,NC1HWC0_C04\", \"dtype\":\"float,float16\"}}";
-            return true;
-          }
-        }
+bool SelectTbeOpFormatStub1(const te::TbeOpInfo &tbe_op_info, string &op_format_dtype_str) {
+  std::vector<te::TbeOpParam> inputs;
+  inputs = tbe_op_info.inputs_;
+  if (!inputs.empty()) {
+    std::vector<te::TbeOpTensor> tensors;
+    inputs[0].GetTensors(tensors);
+    if (!tensors.empty()) {
+      bool is_first_layer;
+      if (tensors[0].GetFirstLayer(is_first_layer) && is_first_layer) {
+        // Check if it's the first layer conv
+        // the first layer conv can use c04 format
+        op_format_dtype_str =
+            "{\"input0\":{\"name\":\"x\",\"format\":\"NC1HWC0_C04,NC1HWC0_C04\", "
+            "\"dtype\":\"float,float16\"},\"output0\":{\"name\":\"y\",\"format\":\"NC1HWC0_C04,NC1HWC0_C04\", "
+            "\"dtype\":\"float,float16\"}}";
+        return true;
+      }
     }
-    op_format_dtype_str = "{\"input0\":{\"name\":\"x\",\"format\":\"ND,NCHW\", \"dtype\":\"float,float16\"},\"output0\":{\"name\":\"y\",\"format\":\"ND,NCHW\", \"dtype\":\"float,float16\"}}";
-    return true;
+  }
+  op_format_dtype_str =
+      "{\"input0\":{\"name\":\"x\",\"format\":\"ND,NCHW\", "
+      "\"dtype\":\"float,float16\"},\"output0\":{\"name\":\"y\",\"format\":\"ND,NCHW\", \"dtype\":\"float,float16\"}}";
+  return true;
 }
 
 TEST_F(FormatDtypeSelectorManagerCustomizeUTest, op_customize_selector_query_success) {
@@ -170,11 +167,12 @@ TEST_F(FormatDtypeSelectorManagerCustomizeUTest, op_customize_selector_query_suc
   op_desc_ptr->AddInputDesc("x", data_desc);
   op_desc_ptr->AddOutputDesc("y", data_desc);
 
-  OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-builtin",
-                                                                                                        op_desc_ptr->GetType());
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-builtin", op_desc_ptr->GetType());
   EXPECT_NE(op_kernel_info_ptr, nullptr);
 
-  TbeOpStoreAdapterPtr tbe_op_store_adapter_ptr = std::dynamic_pointer_cast<TbeOpStoreAdapter>(OpStoreAdapterManager::Instance(AI_CORE_NAME).GetOpStoreAdapter(EN_IMPL_HW_TBE));
+  TbeOpStoreAdapterPtr tbe_op_store_adapter_ptr = std::dynamic_pointer_cast<TbeOpStoreAdapter>(
+      OpStoreAdapterManager::Instance(AI_CORE_NAME).GetOpStoreAdapter(EN_IMPL_HW_TBE));
   tbe_op_store_adapter_ptr->SelectTbeOpFormat = SelectTbeOpFormatStub;
 
   FormatDtypeQuerier format_dtype_querier(AI_CORE_NAME);
@@ -182,10 +180,9 @@ TEST_F(FormatDtypeSelectorManagerCustomizeUTest, op_customize_selector_query_suc
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   ge::NodePtr node = graph->AddNode(op_desc_ptr);
 
-// check inputs
+  // check inputs
   FormatDtypeInfo format_dtype_info;
-  Status result = format_dtype_querier.GetSupportFormatAndDtype(op_kernel_info_ptr, node,
-                                                                false, format_dtype_info);
+  Status result = format_dtype_querier.GetSupportFormatAndDtype(op_kernel_info_ptr, node, false, format_dtype_info);
   EXPECT_EQ(fe::SUCCESS, result);
   vector<ge::Format> format_vec = format_dtype_info.format_map.at(inputs[0]->GetUniqueName());
   vector<ge::DataType> data_type_vec = format_dtype_info.data_type_map.at(inputs[0]->GetUniqueName());
@@ -194,7 +191,7 @@ TEST_F(FormatDtypeSelectorManagerCustomizeUTest, op_customize_selector_query_suc
   EXPECT_EQ(ge::DT_FLOAT, data_type_vec[0]);
   EXPECT_EQ(ge::DT_FLOAT16, data_type_vec[1]);
 
-// check outputs
+  // check outputs
   vector<InputOrOutputInfoPtr> outputs = op_kernel_info_ptr->GetAllOutputInfo();
   format_vec = format_dtype_info.format_map.at(outputs[0]->GetUniqueName());
   data_type_vec = format_dtype_info.data_type_map.at(outputs[0]->GetUniqueName());
@@ -204,76 +201,75 @@ TEST_F(FormatDtypeSelectorManagerCustomizeUTest, op_customize_selector_query_suc
   EXPECT_EQ(ge::DT_FLOAT16, data_type_vec[1]);
 }
 
-TEST_F(FormatDtypeSelectorManagerCustomizeUTest, op_customize_selector_query_failed)
-{
-    const OpDescPtr op_desc_ptr= std::make_shared<OpDesc>("test", "DynamicFormatOpWithoutFormat");
-    vector<int64_t> dim_data = {1, 2, 3, 4};
-    GeShape shape_data(dim_data);
-    GeTensorDesc data_desc(shape_data, FORMAT_NCHW, DT_FLOAT);
-    op_desc_ptr->AddInputDesc("x", data_desc);
-    op_desc_ptr->AddOutputDesc("y", data_desc);
+TEST_F(FormatDtypeSelectorManagerCustomizeUTest, op_customize_selector_query_failed) {
+  const OpDescPtr op_desc_ptr = std::make_shared<OpDesc>("test", "DynamicFormatOpWithoutFormat");
+  vector<int64_t> dim_data = {1, 2, 3, 4};
+  GeShape shape_data(dim_data);
+  GeTensorDesc data_desc(shape_data, FORMAT_NCHW, DT_FLOAT);
+  op_desc_ptr->AddInputDesc("x", data_desc);
+  op_desc_ptr->AddOutputDesc("y", data_desc);
 
-    OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-builtin", op_desc_ptr->GetType());
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-builtin", op_desc_ptr->GetType());
 
-    TbeOpStoreAdapterPtr tbe_op_store_adapter_ptr = std::dynamic_pointer_cast<TbeOpStoreAdapter>(OpStoreAdapterManager::Instance(AI_CORE_NAME).GetOpStoreAdapter(EN_IMPL_HW_TBE));
-    tbe_op_store_adapter_ptr->SelectTbeOpFormat = SelectTbeOpFormatStub2;
+  TbeOpStoreAdapterPtr tbe_op_store_adapter_ptr = std::dynamic_pointer_cast<TbeOpStoreAdapter>(
+      OpStoreAdapterManager::Instance(AI_CORE_NAME).GetOpStoreAdapter(EN_IMPL_HW_TBE));
+  tbe_op_store_adapter_ptr->SelectTbeOpFormat = SelectTbeOpFormatStub2;
 
-    FormatDtypeQuerier format_dtype_querier(AI_CORE_NAME);
-    vector<InputOrOutputInfoPtr> inputs = op_kernel_info_ptr->GetAllInputInfo();
-    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
-    ge::NodePtr node = graph->AddNode(op_desc_ptr);
+  FormatDtypeQuerier format_dtype_querier(AI_CORE_NAME);
+  vector<InputOrOutputInfoPtr> inputs = op_kernel_info_ptr->GetAllInputInfo();
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
+  ge::NodePtr node = graph->AddNode(op_desc_ptr);
 
-    // check inputs
-    FormatDtypeInfo format_dtype_info;
-    Status result = format_dtype_querier.GetSupportFormatAndDtype(op_kernel_info_ptr, node,
-                                                                  false, format_dtype_info);
-    EXPECT_EQ(fe::FAILED, result);
+  // check inputs
+  FormatDtypeInfo format_dtype_info;
+  Status result = format_dtype_querier.GetSupportFormatAndDtype(op_kernel_info_ptr, node, false, format_dtype_info);
+  EXPECT_EQ(fe::FAILED, result);
 }
 
-TEST_F(FormatDtypeSelectorManagerCustomizeUTest, unknown_shape_op_customize_selector_query_success)
-{
-    const OpDescPtr op_desc_ptr= std::make_shared<OpDesc>("test", "DynamicFormatOpWithoutFormat");
-    vector<int64_t> dim_data = {1, -1, -1, 4};
-    GeShape shape_data(dim_data);
-    GeTensorDesc data_desc(shape_data, FORMAT_NCHW, DT_FLOAT);
-    op_desc_ptr->AddInputDesc("x", data_desc);
-    op_desc_ptr->AddOutputDesc("y", data_desc);
+TEST_F(FormatDtypeSelectorManagerCustomizeUTest, unknown_shape_op_customize_selector_query_success) {
+  const OpDescPtr op_desc_ptr = std::make_shared<OpDesc>("test", "DynamicFormatOpWithoutFormat");
+  vector<int64_t> dim_data = {1, -1, -1, 4};
+  GeShape shape_data(dim_data);
+  GeTensorDesc data_desc(shape_data, FORMAT_NCHW, DT_FLOAT);
+  op_desc_ptr->AddInputDesc("x", data_desc);
+  op_desc_ptr->AddOutputDesc("y", data_desc);
 
-    OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-builtin", op_desc_ptr->GetType());
-    EXPECT_NE(op_kernel_info_ptr, nullptr);
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-builtin", op_desc_ptr->GetType());
+  EXPECT_NE(op_kernel_info_ptr, nullptr);
 
-    TbeOpStoreAdapterPtr tbe_op_store_adapter_ptr = std::dynamic_pointer_cast<TbeOpStoreAdapter>(OpStoreAdapterManager::Instance(AI_CORE_NAME).GetOpStoreAdapter(EN_IMPL_HW_TBE));
-    tbe_op_store_adapter_ptr->SelectTbeOpFormat = SelectTbeOpFormatUnknownStub;
+  TbeOpStoreAdapterPtr tbe_op_store_adapter_ptr = std::dynamic_pointer_cast<TbeOpStoreAdapter>(
+      OpStoreAdapterManager::Instance(AI_CORE_NAME).GetOpStoreAdapter(EN_IMPL_HW_TBE));
+  tbe_op_store_adapter_ptr->SelectTbeOpFormat = SelectTbeOpFormatUnknownStub;
 
-    FormatDtypeQuerier format_dtype_querier(AI_CORE_NAME);
-    vector<InputOrOutputInfoPtr> inputs = op_kernel_info_ptr->GetAllInputInfo();
-    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
-    ge::NodePtr node = graph->AddNode(op_desc_ptr);
+  FormatDtypeQuerier format_dtype_querier(AI_CORE_NAME);
+  vector<InputOrOutputInfoPtr> inputs = op_kernel_info_ptr->GetAllInputInfo();
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
+  ge::NodePtr node = graph->AddNode(op_desc_ptr);
 
-// check inputs
-    FormatDtypeInfo format_dtype_info;
-    Status result = format_dtype_querier.GetSupportFormatAndDtype(op_kernel_info_ptr, node,
-                                                               false, format_dtype_info);
-    EXPECT_EQ(fe::SUCCESS, result);
-    vector<ge::Format> format_vec = format_dtype_info.format_map.at(inputs[0]->GetUniqueName());
-    vector<ge::DataType> data_type_vec = format_dtype_info.data_type_map.at(inputs[0]->GetUniqueName());
-    EXPECT_EQ(ge::FORMAT_ND, format_vec[0]);
-    EXPECT_EQ(ge::FORMAT_NCHW, format_vec[1]);
-    EXPECT_EQ(ge::DT_FLOAT, data_type_vec[0]);
-    EXPECT_EQ(ge::DT_FLOAT16, data_type_vec[1]);
+  // check inputs
+  FormatDtypeInfo format_dtype_info;
+  Status result = format_dtype_querier.GetSupportFormatAndDtype(op_kernel_info_ptr, node, false, format_dtype_info);
+  EXPECT_EQ(fe::SUCCESS, result);
+  vector<ge::Format> format_vec = format_dtype_info.format_map.at(inputs[0]->GetUniqueName());
+  vector<ge::DataType> data_type_vec = format_dtype_info.data_type_map.at(inputs[0]->GetUniqueName());
+  EXPECT_EQ(ge::FORMAT_ND, format_vec[0]);
+  EXPECT_EQ(ge::FORMAT_NCHW, format_vec[1]);
+  EXPECT_EQ(ge::DT_FLOAT, data_type_vec[0]);
+  EXPECT_EQ(ge::DT_FLOAT16, data_type_vec[1]);
 
-// check outputs
-    vector<InputOrOutputInfoPtr> outputs = op_kernel_info_ptr->GetAllOutputInfo();
-    format_vec = format_dtype_info.format_map.at(outputs[0]->GetUniqueName());
-    data_type_vec = format_dtype_info.data_type_map.at(outputs[0]->GetUniqueName());
-    EXPECT_EQ(ge::FORMAT_ND, format_vec[0]);
-    EXPECT_EQ(ge::FORMAT_NCHW, format_vec[1]);
-    EXPECT_EQ(ge::DT_FLOAT, data_type_vec[0]);
-    EXPECT_EQ(ge::DT_FLOAT16, data_type_vec[1]);
+  // check outputs
+  vector<InputOrOutputInfoPtr> outputs = op_kernel_info_ptr->GetAllOutputInfo();
+  format_vec = format_dtype_info.format_map.at(outputs[0]->GetUniqueName());
+  data_type_vec = format_dtype_info.data_type_map.at(outputs[0]->GetUniqueName());
+  EXPECT_EQ(ge::FORMAT_ND, format_vec[0]);
+  EXPECT_EQ(ge::FORMAT_NCHW, format_vec[1]);
+  EXPECT_EQ(ge::DT_FLOAT, data_type_vec[0]);
+  EXPECT_EQ(ge::DT_FLOAT16, data_type_vec[1]);
 }
 
-TEST_F(FormatDtypeSelectorManagerCustomizeUTest, ConvertFormatDtype_failed1)
-{
+TEST_F(FormatDtypeSelectorManagerCustomizeUTest, ConvertFormatDtype_failed1) {
   string format_vec_str;
   string sub_format_vec_str;
   string data_type_vec_str = "DT_INT16, DT_INT16";
@@ -282,15 +278,14 @@ TEST_F(FormatDtypeSelectorManagerCustomizeUTest, ConvertFormatDtype_failed1)
   vector<uint32_t> sub_format_vec;
   vector<ge::DataType> data_type_vec;
   std::shared_ptr<FormatDtypeOpCustomizeSelector> customize_selector_ptr =
-        std::make_shared<FormatDtypeOpCustomizeSelector>(AI_CORE_NAME);
+      std::make_shared<FormatDtypeOpCustomizeSelector>(AI_CORE_NAME);
   Status status = customize_selector_ptr->ConvertFormatDtype(format_vec_str, sub_format_vec_str, data_type_vec_str,
                                                              format_size_of_first_input_or_output, format_vec,
                                                              sub_format_vec, data_type_vec);
   EXPECT_EQ(status, fe::FAILED);
 }
 
-TEST_F(FormatDtypeSelectorManagerCustomizeUTest, ConvertFormatDtype_failed2)
-{
+TEST_F(FormatDtypeSelectorManagerCustomizeUTest, ConvertFormatDtype_failed2) {
   string format_vec_str;
   string sub_format_vec_str;
   string data_type_vec_str;
@@ -299,15 +294,14 @@ TEST_F(FormatDtypeSelectorManagerCustomizeUTest, ConvertFormatDtype_failed2)
   vector<uint32_t> sub_format_vec;
   vector<ge::DataType> data_type_vec;
   std::shared_ptr<FormatDtypeOpCustomizeSelector> customize_selector_ptr =
-        std::make_shared<FormatDtypeOpCustomizeSelector>(AI_CORE_NAME);
+      std::make_shared<FormatDtypeOpCustomizeSelector>(AI_CORE_NAME);
   Status status = customize_selector_ptr->ConvertFormatDtype(format_vec_str, sub_format_vec_str, data_type_vec_str,
                                                              format_size_of_first_input_or_output, format_vec,
                                                              sub_format_vec, data_type_vec);
   EXPECT_EQ(status, fe::SUCCESS);
 }
 
-TEST_F(FormatDtypeSelectorManagerCustomizeUTest, ConvertFormatDtype_success)
-{
+TEST_F(FormatDtypeSelectorManagerCustomizeUTest, ConvertFormatDtype_success) {
   string format_vec_str = "ND, ND";
   string sub_format_vec_str = "test1, test2";
   string data_type_vec_str = "float16, float16";
@@ -316,40 +310,36 @@ TEST_F(FormatDtypeSelectorManagerCustomizeUTest, ConvertFormatDtype_success)
   vector<uint32_t> sub_format_vec;
   vector<ge::DataType> data_type_vec;
   std::shared_ptr<FormatDtypeOpCustomizeSelector> customize_selector_ptr =
-        std::make_shared<FormatDtypeOpCustomizeSelector>(AI_CORE_NAME);
+      std::make_shared<FormatDtypeOpCustomizeSelector>(AI_CORE_NAME);
   Status status = customize_selector_ptr->ConvertFormatDtype(format_vec_str, sub_format_vec_str, data_type_vec_str,
                                                              format_size_of_first_input_or_output, format_vec,
                                                              sub_format_vec, data_type_vec);
   EXPECT_EQ(status, fe::SUCCESS);
 }
 
-TEST_F(FormatDtypeSelectorManagerCustomizeUTest, UpdateDTypeAndFormat_suc)
-{
+TEST_F(FormatDtypeSelectorManagerCustomizeUTest, UpdateDTypeAndFormat_suc) {
   set<uint32_t> remain_index_set;
   std::map<std::string, vector<ge::Format>> format_map;
   std::map<std::string, vector<uint32_t>> sub_format_map;
   std::map<std::string, vector<ge::DataType>> data_type_map;
 
   std::shared_ptr<FormatDtypeOpCustomizeSelector> customize_selector_ptr =
-        std::make_shared<FormatDtypeOpCustomizeSelector>(AI_CORE_NAME);
-  Status status = customize_selector_ptr->UpdateDTypeAndFormat(remain_index_set, format_map,
-                                                               sub_format_map, data_type_map);
+      std::make_shared<FormatDtypeOpCustomizeSelector>(AI_CORE_NAME);
+  Status status =
+      customize_selector_ptr->UpdateDTypeAndFormat(remain_index_set, format_map, sub_format_map, data_type_map);
   EXPECT_EQ(status, fe::SUCCESS);
 }
 
-TEST_F(FormatDtypeSelectorManagerCustomizeUTest, UpdateDTypeAndFormat_suc2)
-{
+TEST_F(FormatDtypeSelectorManagerCustomizeUTest, UpdateDTypeAndFormat_suc2) {
   set<uint32_t> remain_index_set = {1};
   std::map<std::string, vector<ge::Format>> format_map;
-  std::map<std::string, vector<uint32_t>> sub_format_map = {
-    {"test1", {}}, {"test2", {2,4,6}}
-  };
+  std::map<std::string, vector<uint32_t>> sub_format_map = {{"test1", {}}, {"test2", {2, 4, 6}}};
   std::map<std::string, vector<ge::DataType>> data_type_map;
 
   std::shared_ptr<FormatDtypeOpCustomizeSelector> customize_selector_ptr =
-        std::make_shared<FormatDtypeOpCustomizeSelector>(AI_CORE_NAME);
-  Status status = customize_selector_ptr->UpdateDTypeAndFormat(remain_index_set, format_map,
-                                                               sub_format_map, data_type_map);
+      std::make_shared<FormatDtypeOpCustomizeSelector>(AI_CORE_NAME);
+  Status status =
+      customize_selector_ptr->UpdateDTypeAndFormat(remain_index_set, format_map, sub_format_map, data_type_map);
   EXPECT_EQ(status, fe::SUCCESS);
 }
 
@@ -358,19 +348,18 @@ TEST_F(FormatDtypeSelectorManagerCustomizeUTest, filter_c04_format_01) {
   std::map<std::string, vector<ge::DataType>> data_type_map;
   ge::ComputeGraphPtr graph = make_shared<ge::ComputeGraph>("test");
 
-  (void) ge::AttrUtils::SetBool(conv_op_, IS_FIRST_LAYER_CONV, true);
+  (void)ge::AttrUtils::SetBool(conv_op_, IS_FIRST_LAYER_CONV, true);
   conv_op_->SetExtAttr("ext_dynamic_format", format_map);
   conv_op_->SetExtAttr("ext_dynamic_datatype", data_type_map);
 
   std::vector<uint32_t> original_index;
   std::vector<uint32_t> expected_index;
-  op_format_dtype_judge_ptr_->FilterBySmallChannel(conv_node_, conv_kernel_,
-                                                   conv_input_name_map_, conv_output_name_map_, original_index);
+  op_format_dtype_judge_ptr_->FilterBySmallChannel(conv_node_, conv_kernel_, conv_input_name_map_,
+                                                   conv_output_name_map_, original_index);
   EXPECT_EQ(expected_index, original_index);
 }
 
-TEST_F(FormatDtypeSelectorManagerCustomizeUTest, filter_c04_format_02)
-{
+TEST_F(FormatDtypeSelectorManagerCustomizeUTest, filter_c04_format_02) {
   std::map<std::string, vector<ge::Format>> format_map;
   vector<ge::Format> format_vec1 = {FORMAT_NC1HWC0_C04, FORMAT_FRACTAL_Z_C04};
   vector<ge::Format> format_vec2 = {FORMAT_NC1HWC0_C04, FORMAT_FRACTAL_Z_C04};
@@ -388,18 +377,17 @@ TEST_F(FormatDtypeSelectorManagerCustomizeUTest, filter_c04_format_02)
 
   conv_op_->SetExtAttr("ext_dynamic_format", format_map);
   conv_op_->SetExtAttr("ext_dynamic_datatype", data_type_map);
-  (void) ge::AttrUtils::SetBool(conv_op_, IS_FIRST_LAYER_CONV, true);
+  (void)ge::AttrUtils::SetBool(conv_op_, IS_FIRST_LAYER_CONV, true);
   Configuration::Instance(AI_CORE_NAME).SetEnableSmallChannel(true);
 
   std::vector<uint32_t> original_index = {0, 1};
   std::vector<uint32_t> expected_index = {0, 1};
-  op_format_dtype_judge_ptr_->FilterBySmallChannel(conv_node_, conv_kernel_,
-                                                   conv_input_name_map_, conv_output_name_map_, original_index);
+  op_format_dtype_judge_ptr_->FilterBySmallChannel(conv_node_, conv_kernel_, conv_input_name_map_,
+                                                   conv_output_name_map_, original_index);
   EXPECT_EQ(expected_index, original_index);
 }
 
-TEST_F(FormatDtypeSelectorManagerCustomizeUTest, filter_c04_format_03)
-{
+TEST_F(FormatDtypeSelectorManagerCustomizeUTest, filter_c04_format_03) {
   std::map<std::string, vector<ge::Format>> format_map;
   vector<ge::Format> format_vec1 = {FORMAT_NC1HWC0_C04, FORMAT_NC1HWC0};
   vector<ge::Format> format_vec2 = {FORMAT_FRACTAL_Z_C04, FORMAT_FRACTAL_Z};
@@ -426,13 +414,12 @@ TEST_F(FormatDtypeSelectorManagerCustomizeUTest, filter_c04_format_03)
   std::vector<uint32_t> original_index = {0, 1};
   std::vector<uint32_t> expected_index = {0};
 
-  op_format_dtype_judge_ptr_->FilterBySmallChannel(conv_node_, conv_kernel_,
-                                                   conv_input_name_map_, conv_output_name_map_, original_index);
+  op_format_dtype_judge_ptr_->FilterBySmallChannel(conv_node_, conv_kernel_, conv_input_name_map_,
+                                                   conv_output_name_map_, original_index);
   EXPECT_EQ(expected_index, original_index);
 }
 
-TEST_F(FormatDtypeSelectorManagerCustomizeUTest, filter_c04_format_04)
-{
+TEST_F(FormatDtypeSelectorManagerCustomizeUTest, filter_c04_format_04) {
   std::map<std::string, vector<ge::Format>> format_map;
   vector<ge::Format> format_vec1 = {FORMAT_NC1HWC0_C04, FORMAT_NC1HWC0};
   vector<ge::Format> format_vec2 = {FORMAT_FRACTAL_Z_C04, FORMAT_FRACTAL_Z};
@@ -459,8 +446,8 @@ TEST_F(FormatDtypeSelectorManagerCustomizeUTest, filter_c04_format_04)
   std::vector<uint32_t> original_index = {0, 1};
   std::vector<uint32_t> expected_index = {1};
 
-  op_format_dtype_judge_ptr_->FilterBySmallChannel(conv_node_, conv_kernel_,
-                                                   conv_input_name_map_, conv_output_name_map_, original_index);
+  op_format_dtype_judge_ptr_->FilterBySmallChannel(conv_node_, conv_kernel_, conv_input_name_map_,
+                                                   conv_output_name_map_, original_index);
   EXPECT_EQ(expected_index, original_index);
 }
 
@@ -492,13 +479,12 @@ TEST_F(FormatDtypeSelectorManagerCustomizeUTest, filter_c04_format_05) {
   std::vector<uint32_t> original_index = {0, 1};
   std::vector<uint32_t> expected_index = {0, 1};
 
-  op_format_dtype_judge_ptr_->FilterBySmallChannel(conv_node_, conv_kernel_,
-                                                   conv_input_name_map_, conv_output_name_map_, original_index);
+  op_format_dtype_judge_ptr_->FilterBySmallChannel(conv_node_, conv_kernel_, conv_input_name_map_,
+                                                   conv_output_name_map_, original_index);
   EXPECT_EQ(expected_index, original_index);
 }
 
-TEST_F(FormatDtypeSelectorManagerCustomizeUTest, filter_c04_format_no_first_layer_conv2d_disable_small_chn)
-{
+TEST_F(FormatDtypeSelectorManagerCustomizeUTest, filter_c04_format_no_first_layer_conv2d_disable_small_chn) {
   std::map<std::string, vector<ge::Format>> format_map;
   vector<ge::Format> format_vec1 = {FORMAT_NC1HWC0_C04, FORMAT_NC1HWC0};
   vector<ge::Format> format_vec2 = {FORMAT_FRACTAL_Z_C04, FORMAT_FRACTAL_Z};
@@ -526,13 +512,12 @@ TEST_F(FormatDtypeSelectorManagerCustomizeUTest, filter_c04_format_no_first_laye
   std::vector<uint32_t> original_index = {0, 1};
   std::vector<uint32_t> expected_index = {1};
 
-  op_format_dtype_judge_ptr_->FilterBySmallChannel(conv_node_, conv_kernel_,
-                                                   conv_input_name_map_, conv_output_name_map_, original_index);
+  op_format_dtype_judge_ptr_->FilterBySmallChannel(conv_node_, conv_kernel_, conv_input_name_map_,
+                                                   conv_output_name_map_, original_index);
   EXPECT_EQ(expected_index, original_index);
 }
 
-TEST_F(FormatDtypeSelectorManagerCustomizeUTest, filter_c04_format_no_first_layer_conv2d_enable_small_chn)
-{
+TEST_F(FormatDtypeSelectorManagerCustomizeUTest, filter_c04_format_no_first_layer_conv2d_enable_small_chn) {
   std::map<std::string, vector<ge::Format>> format_map;
   vector<ge::Format> format_vec1 = {FORMAT_NC1HWC0_C04, FORMAT_NC1HWC0};
   vector<ge::Format> format_vec2 = {FORMAT_FRACTAL_Z_C04, FORMAT_FRACTAL_Z};
@@ -559,14 +544,13 @@ TEST_F(FormatDtypeSelectorManagerCustomizeUTest, filter_c04_format_no_first_laye
   std::vector<uint32_t> original_index = {0, 1};
   std::vector<uint32_t> expected_index = {0};
 
-  op_format_dtype_judge_ptr_->FilterBySmallChannel(conv_node_, conv_kernel_,
-                                                   conv_input_name_map_, conv_output_name_map_, original_index);
+  op_format_dtype_judge_ptr_->FilterBySmallChannel(conv_node_, conv_kernel_, conv_input_name_map_,
+                                                   conv_output_name_map_, original_index);
   EXPECT_EQ(expected_index, original_index);
 }
 
-
-TEST_F(FormatDtypeSelectorManagerCustomizeUTest, filter_c04_format_no_first_layer_conv2d_enable_small_chn_only_output_c04)
-{
+TEST_F(FormatDtypeSelectorManagerCustomizeUTest,
+       filter_c04_format_no_first_layer_conv2d_enable_small_chn_only_output_c04) {
   std::map<std::string, vector<ge::Format>> format_map;
   vector<ge::Format> format_vec1 = {FORMAT_NC1HWC0, FORMAT_NC1HWC0};
   vector<ge::Format> format_vec2 = {FORMAT_FRACTAL_Z, FORMAT_FRACTAL_Z};
@@ -593,13 +577,12 @@ TEST_F(FormatDtypeSelectorManagerCustomizeUTest, filter_c04_format_no_first_laye
   std::vector<uint32_t> original_index = {0, 1};
   std::vector<uint32_t> expected_index = {1};
 
-  op_format_dtype_judge_ptr_->FilterBySmallChannel(conv_node_, conv_kernel_,
-                                                   conv_input_name_map_, conv_output_name_map_, original_index);
+  op_format_dtype_judge_ptr_->FilterBySmallChannel(conv_node_, conv_kernel_, conv_input_name_map_,
+                                                   conv_output_name_map_, original_index);
   EXPECT_EQ(expected_index, original_index);
 }
 
-TEST_F(FormatDtypeSelectorManagerCustomizeUTest, filter_c04_format_no_first_layer_normal_op_enable_small_chn)
-{
+TEST_F(FormatDtypeSelectorManagerCustomizeUTest, filter_c04_format_no_first_layer_normal_op_enable_small_chn) {
   std::shared_ptr<FormatDtypeOpCustomizeSelector> customize_selector_ptr =
       std::make_shared<FormatDtypeOpCustomizeSelector>(AI_CORE_NAME);
   std::map<std::string, vector<ge::Format>> format_map;
@@ -629,14 +612,13 @@ TEST_F(FormatDtypeSelectorManagerCustomizeUTest, filter_c04_format_no_first_laye
   std::vector<uint32_t> original_index = {0, 1};
   std::vector<uint32_t> expected_index = {0, 1};
 
-  op_format_dtype_judge_ptr_->FilterBySmallChannel(conv_node_, conv_kernel_,
-                                                   conv_input_name_map_, conv_output_name_map_, original_index);
+  op_format_dtype_judge_ptr_->FilterBySmallChannel(conv_node_, conv_kernel_, conv_input_name_map_,
+                                                   conv_output_name_map_, original_index);
   EXPECT_EQ(expected_index, original_index);
   conv_op_->SetType("Conv2D");
 }
 
-TEST_F(FormatDtypeSelectorManagerCustomizeUTest, filter_c04_format_first_layer_normal_op_enable_small_chn)
-{
+TEST_F(FormatDtypeSelectorManagerCustomizeUTest, filter_c04_format_first_layer_normal_op_enable_small_chn) {
   std::shared_ptr<FormatDtypeOpCustomizeSelector> customize_selector_ptr =
       std::make_shared<FormatDtypeOpCustomizeSelector>(AI_CORE_NAME);
   std::map<std::string, vector<ge::Format>> format_map;
@@ -665,8 +647,8 @@ TEST_F(FormatDtypeSelectorManagerCustomizeUTest, filter_c04_format_first_layer_n
   conv_op_->SetType("Normal");
   std::vector<uint32_t> original_index = {0, 1};
   std::vector<uint32_t> expected_index = {0, 1};
-  op_format_dtype_judge_ptr_->FilterBySmallChannel(conv_node_, conv_kernel_,
-                                                   conv_input_name_map_, conv_output_name_map_, original_index);
+  op_format_dtype_judge_ptr_->FilterBySmallChannel(conv_node_, conv_kernel_, conv_input_name_map_,
+                                                   conv_output_name_map_, original_index);
   EXPECT_EQ(expected_index, original_index);
   conv_op_->SetType("Conv2D");
   map<string, vector<ge::Format>> format_map_res = {};
@@ -674,8 +656,7 @@ TEST_F(FormatDtypeSelectorManagerCustomizeUTest, filter_c04_format_first_layer_n
   EXPECT_EQ(format_map_res, format_map);
 }
 
-TEST_F(FormatDtypeSelectorManagerCustomizeUTest, parse_json_fallback)
-{
+TEST_F(FormatDtypeSelectorManagerCustomizeUTest, parse_json_fallback) {
   nlohmann::json json_object;
   nlohmann::json fallback_json;
   fallback_json["enable"] = "1,1,0,0";
@@ -701,8 +682,7 @@ TEST_F(FormatDtypeSelectorManagerCustomizeUTest, parse_json_fallback)
   EXPECT_EQ(status, fe::SUCCESS);
 }
 
-TEST_F(FormatDtypeSelectorManagerCustomizeUTest, parse_json_fail)
-{
+TEST_F(FormatDtypeSelectorManagerCustomizeUTest, parse_json_fail) {
   nlohmann::json json_object;
   FormatDtypeInfo res;
   std::shared_ptr<FormatDtypeOpCustomizeSelector> customize_selector_ptr =

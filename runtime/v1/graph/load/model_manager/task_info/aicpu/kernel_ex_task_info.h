@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,16 +25,16 @@ class KernelExTaskInfo : public TaskInfo {
 
   ~KernelExTaskInfo() override = default;
 
-  Status Init(const domi::TaskDef &task_def, DavinciModel *const davinci_model,
-              const PisToArgs &args = {}, const PisToPersistentWorkspace &persistent_workspace = {},
+  Status Init(const domi::TaskDef &task_def, DavinciModel *const davinci_model, const PisToArgs &args = {},
+              const PisToPersistentWorkspace &persistent_workspace = {},
               const IowAddrs &iow_addrs = {{}, {}, {}}) override;
 
   Status Distribute() override;
 
   Status Release() override;
 
-  Status UpdateHostArgs(const std::vector<uint64_t> &active_mem_base_addr,
-                        void *const host_args, const size_t host_args_max_len) override;
+  Status UpdateHostArgs(const std::vector<uint64_t> &active_mem_base_addr, void *const host_args,
+                        const size_t host_args_max_len) override;
 
   Status ParseTaskRunParam(const domi::TaskDef &task_def, DavinciModel *const davinci_model,
                            TaskRunParam &task_run_param) override;
@@ -42,9 +42,13 @@ class KernelExTaskInfo : public TaskInfo {
 
   Status UpdateDumpInfos(void *const host_args, const size_t host_args_max_len) override;
 
-  uint32_t GetTaskID() const override { return task_id_; }
+  uint32_t GetTaskID() const override {
+    return task_id_;
+  }
 
-  uint32_t GetStreamId() const override { return stream_id_; }
+  uint32_t GetStreamId() const override {
+    return stream_id_;
+  }
 
   uintptr_t GetDumpArgs() const override {
     return static_cast<uintptr_t>(PtrToValue(dump_args_));
@@ -79,7 +83,7 @@ class KernelExTaskInfo : public TaskInfo {
   Status CheckDeviceSupportBlockingAicpuOpProcess(bool &is_support) const;
   Status UpdateEventIdForAicpuBlockingOp(const OpDescPtr &op_desc, const hybrid::AicpuExtInfoHandler &ext_handle) const;
   Status InitKernelBufferAddr();
-  Status AssembleKernelBuffer(const STR_FWK_OP_KERNEL * const fwk_op_kernel) const;
+  Status AssembleKernelBuffer(const STR_FWK_OP_KERNEL *const fwk_op_kernel) const;
   Status InitInputOutputAddr(const PisToArgs &args, const IowAddrs &iow_addrs);
   Status AssembleInputOutputAddr();
   aclrtFuncHandle GetFuncHandle();

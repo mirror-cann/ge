@@ -79,15 +79,15 @@ class TaskCodeBuilderFactory {
   inline static std::shared_ptr<TaskCodeBuilderFactory> g_user_defined_instance_ = nullptr;
 };
 
-#define REGISTER_TASK_CODE_BUILDER(type, clazz)                                                            \
-  namespace {                                                                                              \
-  TaskCodeBuilderPtr Creator_Task_Code_Builder_##type(AstBuildContext &ast) {                              \
-    std::shared_ptr<clazz> ptr = nullptr;                                                                  \
-    ptr = MakeShared<clazz>(ast);                                                                          \
-    return ptr;                                                                                            \
-  }                                                                                                        \
-  TaskCodeBuilderFactory::Registerar g_Task_Code_Builder_Creator_##type(ModelTaskType::type,              \
-                                                                         &Creator_Task_Code_Builder_##type); \
+#define REGISTER_TASK_CODE_BUILDER(type, clazz)                                                             \
+  namespace {                                                                                               \
+  TaskCodeBuilderPtr Creator_Task_Code_Builder_##type(AstBuildContext &ast) {                               \
+    std::shared_ptr<clazz> ptr = nullptr;                                                                   \
+    ptr = MakeShared<clazz>(ast);                                                                           \
+    return ptr;                                                                                             \
+  }                                                                                                         \
+  TaskCodeBuilderFactory::Registerar g_Task_Code_Builder_Creator_##type(ModelTaskType::type,                \
+                                                                        &Creator_Task_Code_Builder_##type); \
   }  // namespace
 }  // namespace ge
 #endif  // AIR_CXX_BASE_COMMON_OM2_CODEGEN_HANDLER_TASK_CODE_BUILDER_FACTORY_H_

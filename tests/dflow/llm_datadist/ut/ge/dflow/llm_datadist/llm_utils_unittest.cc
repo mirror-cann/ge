@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,12 +31,10 @@ using namespace ::testing;
 namespace ge {
 class LLMUtilsTest : public ::testing::Test {
  protected:
-  void SetUp() override {
-  }
+  void SetUp() override {}
 
   // 在测试类中进行清理工作，如果需要的话
-  void TearDown() override {
-  }
+  void TearDown() override {}
 
   static std::map<ge::AscendString, ge::AscendString> GetOptions(const std::string &server_type) {
     // 构建选项参数
@@ -53,7 +51,8 @@ class LLMUtilsTest : public ::testing::Test {
       }
     }
     char_t deploy_cluster_path[4096]{};
-    (void)realpath("../tests/dflow/llm_datadist/ut/ge/dflow/llm_datadist/json_file/deploy_cluster_info.json", deploy_cluster_path);
+    (void)realpath("../tests/dflow/llm_datadist/ut/ge/dflow/llm_datadist/json_file/deploy_cluster_info.json",
+                   deploy_cluster_path);
     std::map<ge::AscendString, ge::AscendString> options = {
         {"ge.exec.deviceId", "0"},
         {"ge.socVersion", "TestSocType1"},
@@ -66,17 +65,17 @@ class LLMUtilsTest : public ::testing::Test {
 };
 
 class TestLLMFileSaver : public llm::LLMFileSaver {
-public:
+ public:
   static ge::Status CheckPathValid(const std::string &file_path) {
-    return  llm::LLMFileSaver::CheckPathValid(file_path);
+    return llm::LLMFileSaver::CheckPathValid(file_path);
   }
 
   static ge::Status OpenFile(int32_t &fd, const std::string &file_path, const bool append = false) {
-    return  llm::LLMFileSaver::OpenFile(fd, file_path, append);
+    return llm::LLMFileSaver::OpenFile(fd, file_path, append);
   }
 
-  static ge::Status WriteData(const void * const data, uint64_t size, const int32_t fd) {
-    return  llm::LLMFileSaver::WriteData(data, size, fd);
+  static ge::Status WriteData(const void *const data, uint64_t size, const int32_t fd) {
+    return llm::LLMFileSaver::WriteData(data, size, fd);
   }
 };
 
@@ -153,8 +152,8 @@ TEST_F(LLMUtilsTest, TestLlmUitls) {
 
   // test ConvertToInt64
   const std::string str = "a";
-  int64_t  val;
-  
+  int64_t val;
+
   ret = llm::ConvertToInt64(str, val);
   EXPECT_NE(ret, ge::SUCCESS);
   const std::string str2 = std::to_string(std::numeric_limits<int64_t>::max()) + '1';
@@ -167,7 +166,7 @@ TEST_F(LLMUtilsTest, TestLlmUitls) {
 }
 
 TEST_F(LLMUtilsTest, TestParserOptions) {
-    // 构建选项参数
+  // 构建选项参数
   const std::map<ge::AscendString, ge::AscendString> llm_options = {
       {"ge.socVersion", "TestSocType1"},
       {"ge.graphRunMode", "0"},
@@ -195,7 +194,7 @@ TEST_F(LLMUtilsTest, ParseDeployInfoInvalidClusterInfo) {
 
   llm::DeployInfo deploy_info;
   ge::Status ret = ge::SUCCESS;
-  
+
   EXPECT_NO_THROW(ret = deploy_info.ParserDeployInfo(llm_options));
   EXPECT_EQ(ret, ge::LLM_PARAM_INVALID);
 }

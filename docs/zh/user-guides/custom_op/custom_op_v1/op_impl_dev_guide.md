@@ -204,7 +204,7 @@ REG_OP(Cast)
 ge::graphStatus InferShapeForCast(InferShapeContext *context) {
   // 获取第0个输入和输出的指针
   const gert::Shape *shape = context->GetInputShape(0);
-  gert::Shape *output_shape = context->GetOutputShape(0); 
+  gert::Shape *output_shape = context->GetOutputShape(0);
   if (shape == nullptr || output_shape == nullptr) {
     // 防御式编程，不应该出现的场景，打印错误并返回失败
   GELOGE(ge::PARAM_INVALID,
@@ -215,7 +215,7 @@ ge::graphStatus InferShapeForCast(InferShapeContext *context) {
   }
 
   *output_shape = *shape;  // 将输入shape赋值到输出shape
-  
+
   return ge::GRAPH_SUCCESS;
 }
 ```
@@ -234,7 +234,7 @@ InferShape函数的原型是确定的，其接受一个`InferShapeContext`作为
 
 一类、二类算子，其InferShapeFunc满足如下条件时，可以使用框架自动推导机制，无需提供自定义InferShapeRange。
 
-1. 单输入单输出算子，InferShapeFunc满足单调性。单调性是指，在给定区间内，给定输入x的值，输出y的值是唯一的。若不满足单调性，自动推导结果将是不准确的。 
+1. 单输入单输出算子，InferShapeFunc满足单调性。单调性是指，在给定区间内，给定输入x的值，输出y的值是唯一的。若不满足单调性，自动推导结果将是不准确的。
 2. 多输入多输出算子，因自动推导框架需要选取输入shape range的min和max值来灌入InferShape函数，对于多输入的算子，不同输入的不同shape组合都需要合法。
 
 因此算子开发者需要根据算子InferShape的数学语义，判断是否需要提供自定义的InferShapeRange函数。若因算子未提供InferShapeRange函数，导致推导结果错误，只能在后续执行时报错。
@@ -383,7 +383,7 @@ ge::graphStatus TilingPrepareForTransdata(TilingParseContext *context) {
   if (parsed_object_cinfo == nullptr) {
     return ge::GRAPH_FAILED;
   }
-  
+
   // 解析json，并将解析后的结果写入到CompileInfo实例
   const nlohmann::json &allVars = (*parsed_object_cinfo)["vars"];
   if (!GetCompileValue(allVars, "ub_size", compile_info->ub_size)) {
@@ -438,7 +438,7 @@ ge::graphStatus TilingForTransData(TilingContext *context) {
   const StorageShape *out_shape = context->GetOutputShape(0);
   // 获取CompileInfo实例，此实例由TilingParse写入
   auto compile_info = reinterpret_cast<const TransDataCompileInfo *>(context->GetCompileInfo());
-  
+
   // 获取输入输出的TensorDesc，TensorDesc中包含格式信息、DataType信息
   const CompileTimeTensorDesc *src_td = context->GetInputDesc(0);
   const CompileTimeTensorDesc *dst_td = context->GetOutputDesc(0);
@@ -457,12 +457,12 @@ ge::graphStatus TilingForTransData(TilingContext *context) {
   ASSERT_SUCCESS(context->SetBlockDim(32));  // 设置BlockDim为32
   ASSERT_SUCCESS(context->SetTilingKey(10)); // 设置TilingKey为10
   ASSERT_SUCCESS(context->SetNeedAtomic(false)); // 设置不需要做Atomic清零
-  
+
   size_t *workspaces_size = context->GetWorkspaceSizes(2);  // 需要两块workspace
   ASSERT_NOT_NULL(workspaces_size);
   workspaces_size[0] = 1024;  // 第1块workspace大小为1024
   workspaces_size[1] = 2048;  // 第2块workspace大小为2048
-  
+
   // 设置 tiling data
   auto tiling_data = context->GetTilingData<TransDataMode1010Param>();
   if (tiling_data == nullptr) {
@@ -495,17 +495,17 @@ struct Foo {
 ge::graphStatus ExampleAppendTilingData(TilingContext *context) {
   TilingData *tiling_data = context->GetRawTilingData();  // Append方式写入，获取RawTilingData
   ASSERT_NOT_NULL(tiling_data);
-  
+
   // 向TilingData的尾部添加一个int64_t类型的数据、一个int32_t的数据，值为10，两次Append后，TilingData的长度为8+4=12
   // Append接口通过数据类型计算添加的数据的长度，因此在不确定C++的字面值常量默认类型时， 可以通过static_cast方式明确指定Append的数据类型
   tiling_data->Append(static_cast<int64_t>(10));
   tiling_data->Append(static_cast<int32_t>(10));
-  
+
   // Append方式同样支持结构体，相对于分次Append结构体中的每个成员变量，一次Append整个结构体编码更简单，也会有更好的性能
   tiling_data->Append<Foo>({10, 20, 30});
   Foo foo{100, 200, 300};
   tiling_data->Append(foo);
-  
+
   return ge::GRAPH_SUCCESS;
 }
 ```
@@ -536,12 +536,12 @@ ge::graphStatus ExampleGetTransDataAttr(TilingContext *context) {
   // 获取所有属性
   const RuntimeAttrs *attrs = context->GetAttrs();
   ASSERT_NOT_NULL(attrs);
-  
+
   // 按照在IR定义中的顺序，使用index获取属性，index从0开始计数
   const char *src_format = attrs->GetAttrPointer<char>(0);  // 获取src_format，src_format是IR中第一个属性，因此index为0
   const char *dst_format = attrs->GetAttrPointer<char>(1);  // 获取dst_format，dst_format是IR中第二个属性，因此index为1
   const int64_t group = attrs->GetAttrPointer<int64_t>(2);  // 获取group，group是IR中第三个属性，因此index为2
-  
+
   return ge::GRAPH_SUCCESS;
 }
 ```
@@ -584,14 +584,14 @@ ge::graphStatus InferShapeForFoo(InferShapeContext *context) {
 
   const int64_t attr1 = attrs->GetInt(3);  // 获取Bar1属性，Bar1是继3个IR属性后的第一个私有属性，因此index为3
   const int64_t attr2 = attrs->GetInt(4);  // 获取Bar2属性，Bar2是继3个IR属性后的第二个私有属性，因此index为4
-  
+
   // 一些其他处理。。。
 
   return ge::GRAPH_SUCCESS;
 }
 ```
 
-> **WARNING:** 
+> **WARNING:**
 >
 > 1. 虽然IMPL_OP本身允许同一个算子的不同实现被定义在不同的文件中，但是私有属性的声明必须在同一个文件中声明完成，否则我们无法确认私有属性的index
 > 2. 私有属性一旦注册，那么必须在Node上可以获取成功，否则lowering报错，程序退出。为了保证私有属性的index是正确的的，框架不可以对无法获得的私有属性做跳过处理。

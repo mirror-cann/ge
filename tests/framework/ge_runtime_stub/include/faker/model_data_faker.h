@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,6 +23,7 @@ class ModelDataFaker {
     ge::ModelData &Get() {
       return model_data_;
     }
+
    private:
     friend class ModelDataFaker;
     std::shared_ptr<uint8_t> data_holder_;
@@ -34,7 +35,8 @@ class ModelDataFaker {
   ModelDataHolder BuildUnknownShape() const;
   void BuildUnknownShapeFile(const char *file_path) const;
   // 调用者需要保证ModelData 中model_data的正确释放
-  ge::ModelData BuildUnknownShapeSoInOmFile(EnvCreateFunc env_create_func, std::string opp_path, bool env_initialized = false);
+  ge::ModelData BuildUnknownShapeSoInOmFile(EnvCreateFunc env_create_func, std::string opp_path,
+                                            bool env_initialized = false);
 
  private:
   ge::GeRootModelPtr ge_root_model_;

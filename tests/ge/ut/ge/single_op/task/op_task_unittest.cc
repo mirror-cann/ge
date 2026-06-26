@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -54,14 +54,16 @@ TEST_F(UtestOpTask, test_tbe_launch_kernel) {
   TbeOpTask task;
   ge::DataBuffer data_buffer;
   vector<GeTensorDesc> input_desc;
-  vector<DataBuffer> input_buffers = { data_buffer };
+  vector<DataBuffer> input_buffers = {data_buffer};
   vector<GeTensorDesc> output_desc;
-  vector<DataBuffer> output_buffers = { data_buffer };
+  vector<DataBuffer> output_buffers = {data_buffer};
   task.op_desc_ = op_desc;
   auto op = OpDescUtils::CreateOperatorFromNode(node);
-  task.op_ = std::move(std::unique_ptr<Operator>(new(std::nothrow) Operator(op)));
+  task.op_ = std::move(std::unique_ptr<Operator>(new (std::nothrow) Operator(op)));
   task.node_ = node;
-  OpTilingFuncV2 op_tiling_func = [](const ge::Operator &, const OpCompileInfoV2 &, OpRunInfoV2 &) -> bool {return true;};
+  OpTilingFuncV2 op_tiling_func = [](const ge::Operator &, const OpCompileInfoV2 &, OpRunInfoV2 &) -> bool {
+    return true;
+  };
   REGISTER_OP_TILING_UNIQ_V2(Add, op_tiling_func, 1);
   OpTilingRegistryInterf_V2("Add", op_tiling_func);
   ge::AttrUtils::SetStr(op_desc, "compile_info_key", "op_compile_info_key");
@@ -75,7 +77,7 @@ TEST_F(UtestOpTask, test_tbe_launch_kernel) {
   task.args_.reset(new (std::nothrow) uint8_t[sizeof(void *) * 3 + 64]);
   task.args_ex_.args = task.args_.get();
   task.args_ex_.argsSize = task.arg_size_;
-  task.run_info_= MakeUnique<optiling::utils::OpRunInfo>();
+  task.run_info_ = MakeUnique<optiling::utils::OpRunInfo>();
   ASSERT_NE(task.run_info_, nullptr);
 
   rtStream_t stream_ = nullptr;
@@ -149,7 +151,7 @@ TEST_F(UtestOpTask, test_tbe_update_args) {
   task.input_num_ = 2;
   task.output_num_ = 1;
   task.arg_size_ = 64;
-  task.args_ = MakeUnique<uint8_t []>(task.arg_size_);
+  task.args_ = MakeUnique<uint8_t[]>(task.arg_size_);
   task.args_ex_.args = task.args_.get();
   task.args_ex_.argsSize = task.arg_size_;
   task.arg_num_ = 3;
@@ -168,8 +170,8 @@ TEST_F(UtestOpTask, test_tbe_update_args) {
   // tiling
   task.max_tiling_size_ = 64;
   task.need_tiling_ = true;
-  total_size += task.max_tiling_size_; // tiling data
-  total_size += sizeof(void *); // tiling addr
+  total_size += task.max_tiling_size_;  // tiling data
+  total_size += sizeof(void *);         // tiling addr
 
   // overflow
   task.has_overflow_attr_ = true;
@@ -204,7 +206,7 @@ TEST_F(UtestOpTask, test_tbe_update_args) {
   inputs.emplace_back(buffer0);
 
   EXPECT_EQ(task.UpdateArgsItem(inputs, {}), SUCCESS);
-  // chck args size
+  // check args size
   EXPECT_EQ(task.arg_size_, total_size);
 
   // check overflow offset
@@ -223,7 +225,7 @@ TEST_F(UtestOpTask, test_tbe_update_args) {
   // check tiling addr offset、tiling data offset
   size_t tiling_addr_offset = (task.arg_num_ + task.workspaces_.size()) * sizeof(uintptr_t);
   EXPECT_EQ(task.args_item_offsets_.tiling_addr_offset, tiling_addr_offset);
-  size_t tiling_data_offset = (task.arg_num_+ 1 + task.workspaces_.size() + 1) * sizeof(uintptr_t);
+  size_t tiling_data_offset = (task.arg_num_ + 1 + task.workspaces_.size() + 1) * sizeof(uintptr_t);
   EXPECT_EQ(task.args_item_offsets_.tiling_data_offset, tiling_data_offset);
   uint64_t tiling_data_addr_in_args = PtrToValue(args_base + tiling_data_offset / sizeof(uintptr_t));
   EXPECT_EQ(args_base[tiling_addr_offset / sizeof(uintptr_t)], tiling_data_addr_in_args);
@@ -252,7 +254,6 @@ TEST_F(UtestOpTask, test_tbe_update_args) {
   EXPECT_EQ(task.args_ex_.hostInputInfoPtr[1].dataOffset, host_mem1_offset);
   EXPECT_EQ(task.args_ex_.hostInputInfoPtr[0].addrOffset, 0);
   EXPECT_EQ(task.args_ex_.hostInputInfoPtr[1].addrOffset, sizeof(uintptr_t));
-
 }
 
 TEST_F(UtestOpTask, test_tbe_update_args_notiling) {
@@ -271,7 +272,7 @@ TEST_F(UtestOpTask, test_tbe_update_args_notiling) {
   task.input_num_ = 2;
   task.output_num_ = 1;
   task.arg_size_ = 64;
-  task.args_ = MakeUnique<uint8_t []>(task.arg_size_);
+  task.args_ = MakeUnique<uint8_t[]>(task.arg_size_);
   task.args_ex_.args = task.args_.get();
   task.args_ex_.argsSize = task.arg_size_;
   task.arg_num_ = 3;
@@ -290,8 +291,8 @@ TEST_F(UtestOpTask, test_tbe_update_args_notiling) {
   // tiling
   task.max_tiling_size_ = 64;
   task.need_tiling_ = false;
-  total_size += task.max_tiling_size_; // tiling data
-  total_size += sizeof(void *); // tiling addr
+  total_size += task.max_tiling_size_;  // tiling data
+  total_size += sizeof(void *);         // tiling addr
 
   // overflow
   task.has_overflow_attr_ = true;
@@ -411,8 +412,7 @@ TEST_F(UtestOpTask, test_aicpu_update_host_mem_input_args) {
   // host args
   task.arg_size_ = sizeof(aicpu::AicpuParamHead) + io_num * sizeof(void *) + kMaxHostMemInputLen;
   task.args_ = MakeUnique<uint8_t[]>(task.arg_size_);
-  task.io_addr_ = PtrToPtr<void, uintptr_t>(ValueToPtr(PtrToValue(task.args_.get()) +
-                                                       sizeof(aicpu::AicpuParamHead)));
+  task.io_addr_ = PtrToPtr<void, uintptr_t>(ValueToPtr(PtrToValue(task.args_.get()) + sizeof(aicpu::AicpuParamHead)));
   task.io_addr_num_ = io_num;
 
   task.op_desc_ = op_desc;
@@ -476,14 +476,16 @@ TEST_F(UtestOpTask, test_mixl2_kernel_success) {
   MixL2OpTask task(node);
   ge::DataBuffer data_buffer;
   vector<GeTensorDesc> input_desc;
-  vector<DataBuffer> input_buffers = { data_buffer };
+  vector<DataBuffer> input_buffers = {data_buffer};
   vector<GeTensorDesc> output_desc;
-  vector<DataBuffer> output_buffers = { data_buffer };
+  vector<DataBuffer> output_buffers = {data_buffer};
   task.op_desc_ = op_desc;
   auto op = OpDescUtils::CreateOperatorFromNode(node);
-  task.op_ = std::move(std::unique_ptr<Operator>(new(std::nothrow) Operator(op)));
+  task.op_ = std::move(std::unique_ptr<Operator>(new (std::nothrow) Operator(op)));
   task.node_ = node;
-  OpTilingFuncV2 op_tiling_func = [](const ge::Operator &, const OpCompileInfoV2 &, OpRunInfoV2 &) -> bool {return true;};
+  OpTilingFuncV2 op_tiling_func = [](const ge::Operator &, const OpCompileInfoV2 &, OpRunInfoV2 &) -> bool {
+    return true;
+  };
   REGISTER_OP_TILING_UNIQ_V2(Add, op_tiling_func, 1);
   OpTilingRegistryInterf_V2("Add", op_tiling_func);
   ge::AttrUtils::SetStr(op_desc, "compile_info_key", "op_compile_info_key");
@@ -500,28 +502,28 @@ TEST_F(UtestOpTask, test_mixl2_kernel_success) {
   task.host_mem_base_idx_ = 1;
 
   {
-     auto func = [](void *handle, const uint64_t tilingKey, const void *const stubFunc,
-                    const uint32_t flag, rtKernelDetailInfo_t *kernelInfo) -> int {
-     kernelInfo->functionInfoNum = 1;
-     kernelInfo->functionInfo[0].pcAddr = (void *)(0x1245);
-     kernelInfo->functionInfo[0].prefetchCnt = 1;
-     return RT_ERROR_NONE;
-     };
-     auto runtime_stub = std::make_shared<MockRuntime>();
-     RuntimeStub::SetInstance(runtime_stub);
-     EXPECT_CALL(*runtime_stub, rtKernelGetAddrAndPrefCntV2).WillRepeatedly(testing::Invoke(func));
-     (void)AttrUtils::SetStr(op_desc, "_mix_aic" + ATTR_NAME_TBE_KERNEL_NAME, "mix_aic_kernel");
-     TBEHandleStore::GetInstance().StoreTBEHandle("mix_aic_kernel", nullptr, nullptr);
-     (void)AttrUtils::SetStr(op_desc, "_mix_aiv" + ATTR_NAME_TBE_KERNEL_NAME, "mix_aiv_kernel");
-     TBEHandleStore::GetInstance().StoreTBEHandle("mix_aiv_kernel", nullptr, nullptr);
-     std::vector<std::string> name_prefix = {"_mix_aic", "_mix_aiv"};
-     task.names_prefix_ = name_prefix;
-     ASSERT_EQ(task.UpdateIoAddr(input_buffers, output_buffers), SUCCESS);
+    auto func = [](void *handle, const uint64_t tilingKey, const void *const stubFunc, const uint32_t flag,
+                   rtKernelDetailInfo_t *kernelInfo) -> int {
+      kernelInfo->functionInfoNum = 1;
+      kernelInfo->functionInfo[0].pcAddr = (void *)(0x1245);
+      kernelInfo->functionInfo[0].prefetchCnt = 1;
+      return RT_ERROR_NONE;
+    };
+    auto runtime_stub = std::make_shared<MockRuntime>();
+    RuntimeStub::SetInstance(runtime_stub);
+    EXPECT_CALL(*runtime_stub, rtKernelGetAddrAndPrefCntV2).WillRepeatedly(testing::Invoke(func));
+    (void)AttrUtils::SetStr(op_desc, "_mix_aic" + ATTR_NAME_TBE_KERNEL_NAME, "mix_aic_kernel");
+    TBEHandleStore::GetInstance().StoreTBEHandle("mix_aic_kernel", nullptr, nullptr);
+    (void)AttrUtils::SetStr(op_desc, "_mix_aiv" + ATTR_NAME_TBE_KERNEL_NAME, "mix_aiv_kernel");
+    TBEHandleStore::GetInstance().StoreTBEHandle("mix_aiv_kernel", nullptr, nullptr);
+    std::vector<std::string> name_prefix = {"_mix_aic", "_mix_aiv"};
+    task.names_prefix_ = name_prefix;
+    ASSERT_EQ(task.UpdateIoAddr(input_buffers, output_buffers), SUCCESS);
   }
 
   {
-    auto func = [](void *handle, const uint64_t tilingKey, const void *const stubFunc,
-                   const uint32_t flag, rtKernelDetailInfo_t *kernelInfo) -> int {
+    auto func = [](void *handle, const uint64_t tilingKey, const void *const stubFunc, const uint32_t flag,
+                   rtKernelDetailInfo_t *kernelInfo) -> int {
       kernelInfo->functionInfoNum = 2;
       kernelInfo->functionInfo[0].pcAddr = (void *)(0x1245);
       kernelInfo->functionInfo[0].prefetchCnt = 1;

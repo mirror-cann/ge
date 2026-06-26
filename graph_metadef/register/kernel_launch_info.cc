@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -43,39 +43,37 @@ KernelLaunchInfo &KernelLaunchInfo::operator=(KernelLaunchInfo &&other) noexcept
 KernelLaunchInfo::KernelLaunchInfo(KernelLaunchInfoImplPtr &&impl) : impl_(std::move(impl)) {}
 
 KernelLaunchInfo KernelLaunchInfo::LoadFromData(const gert::ExeResGenerationContext *context,
-    const std::vector<uint8_t> &data) {
+                                                const std::vector<uint8_t> &data) {
   return KernelLaunchInfo(KernelLaunchInfoImpl::LoadFromData(context, data));
 }
-KernelLaunchInfo KernelLaunchInfo::CreateAicpuKfcTask(const gert::ExeResGenerationContext *context,
-    const char *so_name, const char *kernel_name) {
+KernelLaunchInfo KernelLaunchInfo::CreateAicpuKfcTask(const gert::ExeResGenerationContext *context, const char *so_name,
+                                                      const char *kernel_name) {
   return KernelLaunchInfo(KernelLaunchInfoImpl::CreateAicpuKfcTask(context, so_name, kernel_name));
 }
 
 KernelLaunchInfo KernelLaunchInfo::CreateHcomRecordTask(const gert::ExeResGenerationContext *context,
-    const char *group_name) {
+                                                        const char *group_name) {
   return KernelLaunchInfo(KernelLaunchInfoImpl::CreateHcomRecordTask(context, group_name));
 }
 KernelLaunchInfo KernelLaunchInfo::CreateHcomWaitTask(const gert::ExeResGenerationContext *context,
-    const char *group_name) {
+                                                      const char *group_name) {
   return KernelLaunchInfo(KernelLaunchInfoImpl::CreateHcomWaitTask(context, group_name));
 }
-KernelLaunchInfo KernelLaunchInfo::CreateFusionTask(
-    const gert::ExeResGenerationContext *context,
-    const std::vector<KernelLaunchInfo>& sub_tasks) {
-    std::vector<const KernelLaunchInfoImpl*> sub_tasks_ref;
-    sub_tasks_ref.reserve(sub_tasks.size());
+KernelLaunchInfo KernelLaunchInfo::CreateFusionTask(const gert::ExeResGenerationContext *context,
+                                                    const std::vector<KernelLaunchInfo> &sub_tasks) {
+  std::vector<const KernelLaunchInfoImpl *> sub_tasks_ref;
+  sub_tasks_ref.reserve(sub_tasks.size());
 
-    for (const auto &task : sub_tasks) {
-        if (task.impl_) {
-            sub_tasks_ref.emplace_back(task.impl_.get());
-        }
+  for (const auto &task : sub_tasks) {
+    if (task.impl_) {
+      sub_tasks_ref.emplace_back(task.impl_.get());
     }
+  }
 
-    return KernelLaunchInfo(
-        KernelLaunchInfoImpl::CreateFusionTask(context, sub_tasks_ref));
+  return KernelLaunchInfo(KernelLaunchInfoImpl::CreateFusionTask(context, sub_tasks_ref));
 }
 KernelLaunchInfo KernelLaunchInfo::CreateCcuTask(const gert::ExeResGenerationContext *context,
-    const std::vector<std::string>& groups) {
+                                                 const std::vector<std::string> &groups) {
   return KernelLaunchInfo(KernelLaunchInfoImpl::CreateCcuTask(context, groups));
 }
 std::vector<uint8_t> KernelLaunchInfo::Serialize() {
@@ -132,4 +130,4 @@ const char *KernelLaunchInfo::GetKernelName() const {
   }
   return nullptr;
 }
-}
+}  // namespace ge

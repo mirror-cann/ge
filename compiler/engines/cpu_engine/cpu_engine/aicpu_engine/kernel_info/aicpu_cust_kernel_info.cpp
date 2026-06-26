@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,17 +30,16 @@ constexpr int kJsonIndent = 2;
 
 KernelInfoPtr AicpuCustKernelInfo::Instance() {
   static once_flag flag;
-  call_once(flag,
-      [&]() { instance_.reset(new (std::nothrow) AicpuCustKernelInfo); });
+  call_once(flag, [&]() { instance_.reset(new (std::nothrow) AicpuCustKernelInfo); });
   return instance_;
 }
 
 bool AicpuCustKernelInfo::ReadOpInfoFromJsonFile() {
   std::string real_cust_aicpu_ops_file_path;
   std::string custom_path;
-  const char* custom_path_env = nullptr;
+  const char *custom_path_env = nullptr;
   MM_SYS_GET_ENV(MM_ENV_ASCEND_CUSTOM_OPP_PATH, custom_path_env);
-  const char* path_env = nullptr;
+  const char *path_env = nullptr;
   MM_SYS_GET_ENV(MM_ENV_ASCEND_OPP_PATH, path_env);
   std::string env_path;
   if (custom_path_env != nullptr) {
@@ -61,7 +60,7 @@ bool AicpuCustKernelInfo::ReadOpInfoFromJsonFile() {
       real_cust_aicpu_ops_file_path = env_path + kAicpuCustOpsFileBasedOnEnvPathOld;
     }
   } else {
-    std::string file_path = GetOpsPath(reinterpret_cast<void*>(&AicpuCustKernelInfo::Instance));
+    std::string file_path = GetOpsPath(reinterpret_cast<void *>(&AicpuCustKernelInfo::Instance));
     custom_path = file_path + kAicpuCustPathPrefixOld;
     if (GetCustJsonFile(custom_path)) {
       return true;
@@ -70,27 +69,21 @@ bool AicpuCustKernelInfo::ReadOpInfoFromJsonFile() {
     }
   }
   SetJsonPath(real_cust_aicpu_ops_file_path);
-  AICPUE_LOGI("AicpuCustKernelInfo real_cust_aicpu_ops_file_path is %s",
-              real_cust_aicpu_ops_file_path.c_str());
+  AICPUE_LOGI("AicpuCustKernelInfo real_cust_aicpu_ops_file_path is %s", real_cust_aicpu_ops_file_path.c_str());
   std::ifstream ifs(real_cust_aicpu_ops_file_path);
-  AICPU_IF_BOOL_EXEC(
-      !ifs.is_open(),
-      AICPUE_LOGW("Open %s failed, please check whether this file exist",
-                  real_cust_aicpu_ops_file_path.c_str());
-      op_info_json_file_ = {};
-      return true);
+  AICPU_IF_BOOL_EXEC(!ifs.is_open(), AICPUE_LOGW("Open %s failed, please check whether this file exist",
+                                                 real_cust_aicpu_ops_file_path.c_str());
+                     op_info_json_file_ = {}; return true);
   AICPU_CHECK_FALSE_EXEC(
-      OpsJsonFile::Instance().ParseUnderPath(
-          real_cust_aicpu_ops_file_path, op_info_json_file_).state == ge::SUCCESS,
-      AICPU_REPORT_INNER_ERR_MSG("Parse json file[%s] failed.",
-          real_cust_aicpu_ops_file_path.c_str());
+      OpsJsonFile::Instance().ParseUnderPath(real_cust_aicpu_ops_file_path, op_info_json_file_).state == ge::SUCCESS,
+      AICPU_REPORT_INNER_ERR_MSG("Parse json file[%s] failed.", real_cust_aicpu_ops_file_path.c_str());
       return false)
   return true;
 }
 
 bool AicpuCustKernelInfo::GetCustJsonFile(const std::string &path) {
   AICPUE_LOGD("Begin to load opp custom file.");
- 
+
   std::string real_path = path + kConfigFile;
   std::string cust_ops_file_path;
   std::vector<string> custom_user;
@@ -102,8 +95,8 @@ bool AicpuCustKernelInfo::GetCustJsonFile(const std::string &path) {
     }
     has_cust_op_ = true;
     for (size_t i = 0; i < custom_user.size(); i++) {
-      cust_ops_file_path = path + '/'+ custom_user[i] + kAicpuCustOpsFilePath;
-      std::string name = path + '/'+ custom_user[i];
+      cust_ops_file_path = path + '/' + custom_user[i] + kAicpuCustOpsFilePath;
+      std::string name = path + '/' + custom_user[i];
       if (!ReadCustJsonFile(name, cust_ops_file_path)) {
         continue;
       }
@@ -243,10 +236,8 @@ bool AicpuCustKernelInfo::ReadCustJsonFile(const std::string &user_name, const s
                      return true);
 
   AICPU_CHECK_FALSE_EXEC(
-      OpsJsonFile::Instance().ParseUnderPath(
-          cust_ops_file_path, cust_op_info_file).state == ge::SUCCESS,
-      AICPU_REPORT_INNER_ERR_MSG("Parse custom json file[%s] failed.",
-          cust_ops_file_path.c_str());
+      OpsJsonFile::Instance().ParseUnderPath(cust_ops_file_path, cust_op_info_file).state == ge::SUCCESS,
+      AICPU_REPORT_INNER_ERR_MSG("Parse custom json file[%s] failed.", cust_ops_file_path.c_str());
       return true);
   AICPUE_LOGD("user_name is %s, cust_op_info_file = %s", user_name.c_str(), cust_op_info_file.dump().c_str());
 
@@ -262,10 +253,8 @@ bool AicpuCustKernelInfo::ReadBuiltInCustJsonFile(const std::string &user_name, 
                      return true);
 
   AICPU_CHECK_FALSE_EXEC(
-      OpsJsonFile::Instance().ParseUnderPath(
-          cust_ops_file_path, cust_op_info_file).state == ge::SUCCESS,
-      AICPU_REPORT_INNER_ERR_MSG("Parse custom json file[%s] failed.",
-          cust_ops_file_path.c_str());
+      OpsJsonFile::Instance().ParseUnderPath(cust_ops_file_path, cust_op_info_file).state == ge::SUCCESS,
+      AICPU_REPORT_INNER_ERR_MSG("Parse custom json file[%s] failed.", cust_ops_file_path.c_str());
       return false);
 
   custop_info_json_file_.emplace_back(pair<string, nlohmann::json>(user_name, cust_op_info_file));

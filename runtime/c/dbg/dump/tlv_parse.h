@@ -20,13 +20,13 @@ extern "C" {
 
 /******************************** tlv oper ************************************************/
 #pragma pack(1)  // single-byte alignment
-#define DBG_L1_TLV_TYPE_MODEL_DESC        2U
-#define DBG_L1_TLV_TYPE_DUMP_PATH         3U
+#define DBG_L1_TLV_TYPE_MODEL_DESC 2U
+#define DBG_L1_TLV_TYPE_DUMP_PATH 3U
 struct DbgModelDescTlv1 {
-  uint32_t flag; // 0x1 load , 0x0 unload //加载时设置
+  uint32_t flag;  // 0x1 load , 0x0 unload //加载时设置
   uint32_t model_id;
   uint64_t *step_id_addr;
-  uint64_t iterations_per_loop_addr; // 训练特有，推理填0
+  uint64_t iterations_per_loop_addr;  // 训练特有，推理填0
   uint64_t loop_cond_addr;
   uint32_t dump_mode;
   uint64_t dump_data;
@@ -44,10 +44,10 @@ struct DbgDumpPathTlv1 {
   uint8_t dump_path[0];
 };
 /********************************************************************************************/
-#pragma pack() // Cancels single-byte alignment
+#pragma pack()  // Cancels single-byte alignment
 
 typedef struct {
-  uint32_t modelId; // 实际加载之后驱动生成的模型id
+  uint32_t modelId;  // 实际加载之后驱动生成的模型id
   size_t aicpuDumpInfoLen;
   uint8_t *aicpuDumpInfo;
   size_t dumpFileLen;
@@ -59,7 +59,7 @@ typedef struct {
   uint32_t cfgMatchedCount;
   uint32_t totalTaskNum;
   bool isSendFlag;
-  char *modelName; // dbg中解析的model name
+  char *modelName;  // dbg中解析的model name
 } ModelDbgHandle;
 
 uint32_t ParseSubTlvListU16(uint8_t *subTlvList, uint32_t subTlvlistLen, uint32_t parseTlvNum,

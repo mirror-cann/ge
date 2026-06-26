@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -59,7 +59,7 @@ uint32_t CheckMemcpyNum(const ComputeGraphPtr &graph) {
   }
   return num;
 }
-} // namespace
+}  // namespace
 
 TEST_F(UtestGraphPassesSubgraphPass, add_memcpy_success) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
@@ -399,7 +399,7 @@ TEST_F(UtestGraphPassesSubgraphPass, reassign_success) {
     // AtomicOp->NetOutput in subgraph
     OpDescPtr atomic_desc = CreateOpDesc("Atomic", "Atomic", 1, 1);
     AttrUtils::SetBool(atomic_desc, ATOMIC_ATTR_IS_ATOMIC_NODE, true);
-    AttrUtils::SetListInt(atomic_desc, ATOMIC_ATTR_OUTPUT_INDEX, { 0, 1 });
+    AttrUtils::SetListInt(atomic_desc, ATOMIC_ATTR_OUTPUT_INDEX, {0, 1});
     NodePtr atomic_node = subgraph1->AddNode(atomic_desc);
     NodePtr output_node = subgraph1->AddNode(CreateOpDesc(NODE_NAME_NET_OUTPUT, NETOUTPUT, 1, 1));
     EXPECT_EQ(GraphUtils::AddEdge(atomic_node->GetOutDataAnchor(0), output_node->GetInDataAnchor(0)), SUCCESS);
@@ -420,7 +420,8 @@ TEST_F(UtestGraphPassesSubgraphPass, reassign_success) {
     AttrUtils::SetBool(nopadding_continues_desc, ATTR_NAME_NOPADDING_CONTINUOUS_OUTPUT, true);
     NodePtr nopadding_continues_node = subgraph3->AddNode(nopadding_continues_desc);
     NodePtr output_node = subgraph3->AddNode(CreateOpDesc(NODE_NAME_NET_OUTPUT, NETOUTPUT, 1, 1));
-    EXPECT_EQ(GraphUtils::AddEdge(nopadding_continues_node->GetOutDataAnchor(0), output_node->GetInDataAnchor(0)), SUCCESS);
+    EXPECT_EQ(GraphUtils::AddEdge(nopadding_continues_node->GetOutDataAnchor(0), output_node->GetInDataAnchor(0)),
+              SUCCESS);
   }
 
   {
@@ -444,9 +445,11 @@ TEST_F(UtestGraphPassesSubgraphPass, reassign_success) {
     OpDescPtr nopadding_continues_desc = CreateOpDesc("InputContinues", "InputContinues", 1, 1);
     AttrUtils::SetBool(nopadding_continues_desc, ATTR_NAME_NOPADDING_CONTINUOUS_INPUT, true);
     NodePtr nopadding_continues_node = subgraph5->AddNode(nopadding_continues_desc);
-    EXPECT_EQ(GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), nopadding_continues_node->GetInDataAnchor(0)), SUCCESS);
+    EXPECT_EQ(GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), nopadding_continues_node->GetInDataAnchor(0)),
+              SUCCESS);
     NodePtr output_node = subgraph5->AddNode(CreateOpDesc(NODE_NAME_NET_OUTPUT, NETOUTPUT, 1, 1));
-    EXPECT_EQ(GraphUtils::AddEdge(nopadding_continues_node->GetOutDataAnchor(0), output_node->GetInDataAnchor(0)), SUCCESS);
+    EXPECT_EQ(GraphUtils::AddEdge(nopadding_continues_node->GetOutDataAnchor(0), output_node->GetInDataAnchor(0)),
+              SUCCESS);
   }
 
   PassManager pass_managers;
@@ -555,13 +558,13 @@ TEST_F(UtestGraphPassesSubgraphPass, while_body_success) {
   pass_managers.AddPass("SubgraphPass", new (std::nothrow) SubgraphPass);
   EXPECT_EQ(pass_managers.Run(graph), SUCCESS);
   EXPECT_FALSE(CheckMemcpyExist(graph));
-  EXPECT_EQ(CheckMemcpyNum(subgraph1), 3); // 1 for while input link to other nodes, 1 for data exchange in while-body
+  EXPECT_EQ(CheckMemcpyNum(subgraph1), 3);  // 1 for while input link to other nodes, 1 for data exchange in while-body
   EXPECT_EQ(CheckMemcpyNum(subsubgraph1), 2);
 
   {
     auto output_node = subsubgraph1->FindNode(NODE_NAME_NET_OUTPUT);
-    output_node->GetOpDesc()->MutableInputDesc(0)->SetShape(GeShape({-1,-1}));
-    output_node->GetOpDesc()->MutableInputDesc(1)->SetShape(GeShape({-1,-1}));
+    output_node->GetOpDesc()->MutableInputDesc(0)->SetShape(GeShape({-1, -1}));
+    output_node->GetOpDesc()->MutableInputDesc(1)->SetShape(GeShape({-1, -1}));
     PassManager pass_managers;
     pass_managers.AddPass("SubgraphPass", new (std::nothrow) SubgraphPass);
     EXPECT_EQ(pass_managers.Run(graph), SUCCESS);
@@ -673,7 +676,7 @@ TEST_F(UtestGraphPassesSubgraphPass, while_input_is_const_which_cross_paritionca
 }
 
 /**
- * 
+ *
  *                          +-----------+  +-----------+
  *                          |Then Graph |  |Else Graph |
  *                          |           |  |           |
@@ -683,12 +686,12 @@ TEST_F(UtestGraphPassesSubgraphPass, while_input_is_const_which_cross_paritionca
  *          if  <---------> |   |       |  |   |       |
  *        /    \            | Data(0)   |  | Data(1)   |
  *      Data   Data         +-----------+  +-----------+
- *                  
+ *
  *                        ||
  *                        ||
  *
- *                          Then Graph                              
- *                          +-----------------+  Else Graph   
+ *                          Then Graph
+ *                          +-----------------+  Else Graph
  *                          |   NetOutput     |  +-----------+
  *                          |   /  |   \      |  |           |
  *                          |Iden Iden  |     |  | NetOutput |
@@ -697,7 +700,7 @@ TEST_F(UtestGraphPassesSubgraphPass, while_input_is_const_which_cross_paritionca
  *          if  <---------> |      |          |  |     |     |
  *        /    \            |    Data(0)      |  | Data(1)   |
  *      Data   Data         +-----------------+  +-----------+
- * 
+ *
  */
 TEST_F(UtestGraphPassesSubgraphPass, condition_subgraph_symbol_conflict) {
   auto graph = gert::ShareGraph::IfWithKnownSubGraphAndMultiOutputs("test");
@@ -754,13 +757,19 @@ TEST_F(UtestGraphPassesSubgraphPass, ContinueNodeWithSubGraphEdgeThroughRefNode_
   const auto inner_data = OP_CFG(DATA).ParentNodeIndex(0);
   const auto reshape = OP_CFG(RELU).Attr(ATTR_NAME_REFERENCE, true).InNames({"x"}).OutNames({"x"});
   DEF_GRAPH(sub_1) {
-    CHAIN(NODE("inner_data", inner_data)->NODE("reshape1", reshape)
-              ->NODE("continue_node", RELU)->NODE("reshape2", reshape)->NODE("netoutput2", NETOUTPUT));
+    CHAIN(NODE("inner_data", inner_data)
+              ->NODE("reshape1", reshape)
+              ->NODE("continue_node", RELU)
+              ->NODE("reshape2", reshape)
+              ->NODE("netoutput2", NETOUTPUT));
   };
   sub_1.Layout();
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data", DATA)->NODE("a", RELU)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)
-              ->NODE("b", RELU)->NODE("netoutput1", NETOUTPUT));
+    CHAIN(NODE("data", DATA)
+              ->NODE("a", RELU)
+              ->NODE("partitioned_call", PARTITIONEDCALL, sub_1)
+              ->NODE("b", RELU)
+              ->NODE("netoutput1", NETOUTPUT));
   };
   auto graph = ToGeGraph(g1);
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
@@ -785,18 +794,14 @@ TEST_F(UtestGraphPassesSubgraphPass, ContinueNodeWithSubGraphEdgeThroughRefNode_
 
 TEST_F(UtestGraphPassesSubgraphPass, hcom_to_netoutput_discard_reuse_input_attr) {
   std::vector<int64_t> shape{1, -1};
-  auto data_1 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Build("data_1");
+  auto data_1 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(1).OutCnt(1).Build("data_1");
   auto hcom_1 = OP_CFG(HCOMBROADCAST)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(2)
-      .OutCnt(2)
-      .Attr(ATTR_NAME_CONTINUOUS_INPUT, true)
-      .Attr(ATTR_NAME_CONTINUOUS_OUTPUT, true)
-      .Build("hcom_1");
+                    .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
+                    .InCnt(2)
+                    .OutCnt(2)
+                    .Attr(ATTR_NAME_CONTINUOUS_INPUT, true)
+                    .Attr(ATTR_NAME_CONTINUOUS_OUTPUT, true)
+                    .Build("hcom_1");
   DEF_GRAPH(subgraph_1) {
     CHAIN(NODE(data_1)->NODE(hcom_1)->NODE("output_1", NETOUTPUT));
   };

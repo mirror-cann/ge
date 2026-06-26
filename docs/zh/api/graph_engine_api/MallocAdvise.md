@@ -71,4 +71,3 @@ virtual MemBlock *MallocAdvise(size_t size, void *addr)
 ## 约束说明<a name="section2021419196520"></a>
 
 虚函数需要用户实现，如若未实现，默认同Malloc功能相同。
-

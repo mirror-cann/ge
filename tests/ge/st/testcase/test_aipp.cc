@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -48,11 +48,11 @@ class AippSTest : public AtcTest {
     ge_env.InstallDefault().Install(FakeOp(AIPP).InfoStoreAndBuilder("AicoreLib").InferShape(aipp_stub_infer_func));
     auto multi_dims = MakeShared<FakeMultiDimsOptimizer>();
     ge_env.Install(FakeEngine("AIcoreEngine").GraphOptimizer("MultiDims", multi_dims));
-    OperatorFactoryImpl::RegisterInferShapeFunc("Data", [](Operator &op) {return GRAPH_SUCCESS;});
-    OperatorFactoryImpl::RegisterInferShapeFunc("Const", [](Operator &op) {return GRAPH_SUCCESS;});
-    OperatorFactoryImpl::RegisterInferShapeFunc("NetOutput", [](Operator &op) {return GRAPH_SUCCESS;});
-    OperatorFactoryImpl::RegisterInferShapeFunc("Conv2d", [](Operator &op) {return GRAPH_SUCCESS;});
-    OperatorFactoryImpl::RegisterInferShapeFunc("Relu", [](Operator &op) {return GRAPH_SUCCESS;});
+    OperatorFactoryImpl::RegisterInferShapeFunc("Data", [](Operator &op) { return GRAPH_SUCCESS; });
+    OperatorFactoryImpl::RegisterInferShapeFunc("Const", [](Operator &op) { return GRAPH_SUCCESS; });
+    OperatorFactoryImpl::RegisterInferShapeFunc("NetOutput", [](Operator &op) { return GRAPH_SUCCESS; });
+    OperatorFactoryImpl::RegisterInferShapeFunc("Conv2d", [](Operator &op) { return GRAPH_SUCCESS; });
+    OperatorFactoryImpl::RegisterInferShapeFunc("Relu", [](Operator &op) { return GRAPH_SUCCESS; });
     OperatorFactoryImpl::RegisterInferShapeFunc("Aipp", aipp_stub_infer_func);
   }
   void TearDown() override {
@@ -136,7 +136,8 @@ TEST_F(AippSTest, DynamicAipp_Case) {
   OperatorFactoryImpl::RegisterInferShapeFunc("Data", [](Operator &op) {
     auto input = op.GetInputDesc(0);
     op.GetOutputDesc(0).SetShape(input.GetShape());
-    return GRAPH_SUCCESS;});
+    return GRAPH_SUCCESS;
+  });
   main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   // EXPECT_EQ(ret, 0);
   ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
@@ -186,7 +187,6 @@ TEST_F(AippSTest, StaticAipp_Case) {
     // TODO: other check
   };
 }
-
 
 TEST_F(AippSTest, StaticAipp_Config_Invalid) {
   InsertAippOpUtil &instance = InsertAippOpUtil::Instance();

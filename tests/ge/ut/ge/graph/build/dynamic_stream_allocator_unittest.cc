@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,9 +28,13 @@
 namespace ge {
 class UtestDynamicStreamAllocator : public testing::Test {
  protected:
-  void SetUp() { InitGeLib(); }
+  void SetUp() {
+    InitGeLib();
+  }
 
-  void TearDown() { FinalizeGeLib(); }
+  void TearDown() {
+    FinalizeGeLib();
+  }
 
   class AICoreDNNEngine : public DNNEngine {
    public:
@@ -561,7 +565,9 @@ TEST_F(UtestDynamicStreamAllocator, aicore_aicpu_ac_parallel_enable_multi_stream
 
 // aicpu can attach backwards to aicore
 TEST_F(UtestDynamicStreamAllocator, aicpu_aicore_single_stream) {
-  DEF_GRAPH(g1) { CHAIN(NODE("where", WHERE)->NODE("relu", RELU)->NODE("output", NETOUTPUT)); };
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("where", WHERE)->NODE("relu", RELU)->NODE("output", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
 
   auto aicpu = CreateSubgraph("aicpu", graph, "where", "DNN_VM_AICPU", 0, 1);
@@ -643,7 +649,9 @@ TEST_F(UtestDynamicStreamAllocator, dsa_aicore_gelocal_multi_stream) {
 
 // aicpu cannot attach to hccl
 TEST_F(UtestDynamicStreamAllocator, hccl_aicpu_multi_stream) {
-  DEF_GRAPH(g1) { CHAIN(NODE("allreduce", HCOMALLREDUCE)->NODE("where", WHERE)); };
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("allreduce", HCOMALLREDUCE)->NODE("where", WHERE));
+  };
   auto graph = ToComputeGraph(g1);
 
   auto hccl = CreateSubgraph("hccl", graph, "allreduce", "DNN_HCCL", 0, 1);
@@ -667,7 +675,9 @@ TEST_F(UtestDynamicStreamAllocator, hccl_aicpu_multi_stream) {
 
 // gelocal can attach to hccl
 TEST_F(UtestDynamicStreamAllocator, gelocal_hccl_multi_stream) {
-  DEF_GRAPH(g1) { CHAIN(NODE("const", CONSTANT)->NODE("allreduce", HCOMALLREDUCE)); };
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("const", CONSTANT)->NODE("allreduce", HCOMALLREDUCE));
+  };
   auto graph = ToComputeGraph(g1);
 
   auto gelocal = CreateSubgraph("gelocal", graph, "const", "DNN_VM_GE_LOCAL", 0, 1);
@@ -687,7 +697,9 @@ TEST_F(UtestDynamicStreamAllocator, gelocal_hccl_multi_stream) {
 
 // assign ffts+ to main stream 0
 TEST_F(UtestDynamicStreamAllocator, ffts_aicore_single_stream) {
-  DEF_GRAPH(g1) { CHAIN(NODE("where", WHERE)->NODE("relu", RELU)->NODE("output", NETOUTPUT)); };
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("where", WHERE)->NODE("relu", RELU)->NODE("output", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
 
   auto ffts = CreateSubgraph("ffts", graph, "where", "ffts_plus", 0, 1);
@@ -709,9 +721,15 @@ TEST_F(UtestDynamicStreamAllocator, ffts_aicore_single_stream) {
 
 // assign If to main stream 0
 TEST_F(UtestDynamicStreamAllocator, aicore_if_single_stream) {
-  DEF_GRAPH(sub_then) { CHAIN(NODE("data_then", DATA)->NODE("relu_then", RELU)->NODE("output_then", NETOUTPUT)); };
-  DEF_GRAPH(sub_else) { CHAIN(NODE("data_else", DATA)->NODE("relu_else", RELU)->NODE("output_else", NETOUTPUT)); };
-  DEF_GRAPH(g1) { CHAIN(NODE("relu", RELU)->NODE("if", IF, sub_then, sub_else)->NODE("output", NETOUTPUT)); };
+  DEF_GRAPH(sub_then) {
+    CHAIN(NODE("data_then", DATA)->NODE("relu_then", RELU)->NODE("output_then", NETOUTPUT));
+  };
+  DEF_GRAPH(sub_else) {
+    CHAIN(NODE("data_else", DATA)->NODE("relu_else", RELU)->NODE("output_else", NETOUTPUT));
+  };
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("relu", RELU)->NODE("if", IF, sub_then, sub_else)->NODE("output", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
   auto graph_then = graph->GetSubgraph("sub_then");
   auto graph_else = graph->GetSubgraph("sub_else");
@@ -758,7 +776,9 @@ TEST_F(UtestDynamicStreamAllocator, aicore_if_hccl_multi_stream) {
   DEF_GRAPH(sub_else) {
     CHAIN(NODE("data_else", DATA)->NODE("allreduce_else", HCOMALLREDUCE)->NODE("output_else", NETOUTPUT));
   };
-  DEF_GRAPH(g1) { CHAIN(NODE("relu", RELU)->NODE("if", IF, sub_then, sub_else)->NODE("output", NETOUTPUT)); };
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("relu", RELU)->NODE("if", IF, sub_then, sub_else)->NODE("output", NETOUTPUT));
+  };
   auto graph = ToComputeGraph(g1);
   auto graph_then = graph->GetSubgraph("sub_then");
   auto graph_else = graph->GetSubgraph("sub_else");
@@ -814,7 +834,9 @@ TEST_F(UtestDynamicStreamAllocator, ac_parallel_enable_invalid) {
 }
 
 TEST_F(UtestDynamicStreamAllocator, only_gelocal) {
-  DEF_GRAPH(g1) { CHAIN(NODE("const", CONSTANT)); };
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("const", CONSTANT));
+  };
   auto graph = ToComputeGraph(g1);
   auto gelocal = CreateSubgraph("gelocal", graph, "const", "DNN_VM_GE_LOCAL", 0, 1);
 
@@ -898,7 +920,6 @@ TEST_F(UtestDynamicStreamAllocator, dynamic_subgraph_alloc_attached_resource) {
   EXPECT_TRUE(AttrUtils::SetStr(relu1->GetOpDesc(), "group", "group0"));
   EXPECT_TRUE(AttrUtils::SetStr(relu2->GetOpDesc(), "group", "group0"));
 
-
   NamedAttrs stream_attrs1;
   EXPECT_TRUE(AttrUtils::SetStr(stream_attrs1, ATTR_NAME_ATTACHED_STREAM_POLICY, "group"));
   EXPECT_TRUE(AttrUtils::SetStr(stream_attrs1, ATTR_NAME_ATTACHED_STREAM_KEY, "as0"));
@@ -926,6 +947,5 @@ TEST_F(UtestDynamicStreamAllocator, dynamic_subgraph_alloc_attached_resource) {
   EXPECT_EQ(stream_num, 1);
   EXPECT_EQ(notify_num, 1);
   EXPECT_EQ(event_num, 0);
-
 }
 }  // namespace ge

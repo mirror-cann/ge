@@ -23,10 +23,10 @@ from ge.passes import (
 )
 
 try:
-    from ge.es.math import Add, GEMM, MatMul
+    from ge.es.math import GEMM, Add, MatMul
 except ImportError:
     try:
-        from ge.es.all import Add, GEMM, MatMul
+        from ge.es.all import GEMM, Add, MatMul
     except ImportError:
         Add = None
         GEMM = None
@@ -60,14 +60,8 @@ def _require_es_apis() -> None:
 
 @register_fusion_pass(name="PythonMatmulAddFusionPass", stage=PassStage.BEFORE_INFER_SHAPE)
 class PythonMatmulAddFusionPass(PatternFusionPass):
-
     def __init__(self):
-        super().__init__(
-            PatternMatcherConfigBuilder()
-            .enable_const_value_match()
-            .enable_ir_attr_match()
-            .build()
-        )
+        super().__init__(PatternMatcherConfigBuilder().enable_const_value_match().enable_ir_attr_match().build())
 
     @pattern
     def matmul_add(self, inputs):
@@ -75,7 +69,10 @@ class PythonMatmulAddFusionPass(PatternFusionPass):
         _require_es_apis()
 
         x, y = inputs[:2]
-        return MatMul(x, y, None, transpose_x1=False, transpose_x2=False) + [[0.1, 0.1], [0.1, 0.1]]
+        return MatMul(x, y, None, transpose_x1=False, transpose_x2=False) + [
+            [0.1, 0.1],
+            [0.1, 0.1],
+        ]
 
     @pattern
     def batch_matmul_add(self, inputs):

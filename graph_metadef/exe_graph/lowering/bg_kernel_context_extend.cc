@@ -26,11 +26,10 @@ namespace {
 ge::graphStatus InitIOInstanceInfo(const ge::NodePtr &node, ComputeNodeInfo &compute_node_info) {
   const auto op_desc = node->GetOpDescBarePtr();
   GE_ASSERT_NOTNULL(op_desc);
-  auto in_ir_index_to_instance_index_pair_map
-    = ge::OpDescUtils::GetInputIrIndexes2InstanceIndexesPairMap(node->GetOpDesc());
+  auto in_ir_index_to_instance_index_pair_map =
+      ge::OpDescUtils::GetInputIrIndexes2InstanceIndexesPairMap(node->GetOpDesc());
   if (in_ir_index_to_instance_index_pair_map.empty()) {
-    GELOGI("node [%s(%s)] ir_index_to_instance_index_pair_map is empty",
-           node->GetNamePtr(), node->GetTypePtr());
+    GELOGI("node [%s(%s)] ir_index_to_instance_index_pair_map is empty", node->GetNamePtr(), node->GetTypePtr());
   } else {
     const auto &ir_inputs = op_desc->GetIrInputs();
     size_t input_index = 0;
@@ -44,11 +43,10 @@ ge::graphStatus InitIOInstanceInfo(const ge::NodePtr &node, ComputeNodeInfo &com
     }
   }
 
-  auto out_ir_index_to_instance_index_pair_map
-      = ge::OpDescUtils::GetOutputIrIndexes2InstanceIndexesPairMap(node->GetOpDesc());
+  auto out_ir_index_to_instance_index_pair_map =
+      ge::OpDescUtils::GetOutputIrIndexes2InstanceIndexesPairMap(node->GetOpDesc());
   if (out_ir_index_to_instance_index_pair_map.empty()) {
-    GELOGI("node [%s(%s)] output ir_index_to_instance_index_pair_map is empty",
-           node->GetNamePtr(), node->GetTypePtr());
+    GELOGI("node [%s(%s)] output ir_index_to_instance_index_pair_map is empty", node->GetNamePtr(), node->GetTypePtr());
     return ge::GRAPH_SUCCESS;
   }
   const auto &ir_outputs = op_desc->GetIrOutputs();
@@ -80,8 +78,8 @@ void SetCompileTimeTd(const ge::ConstGeTensorDescPtr &desc, CompileTimeTensorDes
   }
 }
 
-ge::graphStatus GetConnectedEdgeIndexesToAnchorIndexMap(const ge::NodePtr &node,
-    std::map<size_t, size_t> &connected_edge_indexes_to_anchor_index) {
+ge::graphStatus GetConnectedEdgeIndexesToAnchorIndexMap(
+    const ge::NodePtr &node, std::map<size_t, size_t> &connected_edge_indexes_to_anchor_index) {
   size_t compute_node_index = 0U;
   for (const auto anchor : node->GetAllInDataAnchorsPtr()) {
     GE_ASSERT_NOTNULL(anchor);
@@ -99,8 +97,8 @@ ge::graphStatus InitCompileTimeTD(const ge::NodePtr &node, ComputeNodeInfo &comp
   std::map<size_t, size_t> connected_edge_indexes_to_anchor_index;
   const auto ret = GetConnectedEdgeIndexesToAnchorIndexMap(node, connected_edge_indexes_to_anchor_index);
   if (ret != ge::GRAPH_SUCCESS) {
-    GELOGE(ret, "get connected edge indexes to anchor index map failed. node:%s(%s)",
-           node->GetName().c_str(), node->GetType().c_str());
+    GELOGE(ret, "get connected edge indexes to anchor index map failed. node:%s(%s)", node->GetName().c_str(),
+           node->GetType().c_str());
     return ret;
   }
   const auto op_desc = node->GetOpDescBarePtr();
@@ -141,18 +139,16 @@ bool GetPrivateAttrsList(const ge::NodePtr &node, const gert::OpImplRegisterV2::
         runtime_attrs_list.push_back(private_attr.second);
         continue;
       }
-      GELOGE(ge::FAILED, "Cannot find the private attr %s from node %s",
-             private_attr_name.GetString(), node->GetName().c_str());
+      GELOGE(ge::FAILED, "Cannot find the private attr %s from node %s", private_attr_name.GetString(),
+             node->GetName().c_str());
       return false;
     }
     runtime_attrs_list.push_back(iter->second);
   }
   return true;
 }
-std::unique_ptr<uint8_t[]> CreateComputeNodeInfoImpl(const std::unique_ptr<uint8_t[]> &attr_buf,
-                                                     const size_t attr_size,
-                                                     const ge::NodePtr &node,
-                                                     BufferPool &buffer_pool,
+std::unique_ptr<uint8_t[]> CreateComputeNodeInfoImpl(const std::unique_ptr<uint8_t[]> &attr_buf, const size_t attr_size,
+                                                     const ge::NodePtr &node, BufferPool &buffer_pool,
                                                      size_t &total_size) {
   const auto op_desc = node->GetOpDescBarePtr();
   GE_ASSERT_NOTNULL(op_desc);
@@ -207,8 +203,7 @@ std::unique_ptr<uint8_t[]> CreateComputeNodeInfo(const ge::NodePtr &node, Buffer
   return CreateComputeNodeInfoImpl(attr_buf, attr_size, node, buffer_pool, total_size);
 }
 
-std::unique_ptr<uint8_t[]> CreateComputeNodeInfo(const ge::NodePtr &node,
-                                                 BufferPool &buffer_pool,
+std::unique_ptr<uint8_t[]> CreateComputeNodeInfo(const ge::NodePtr &node, BufferPool &buffer_pool,
                                                  const gert::OpImplRegisterV2::PrivateAttrList &private_attrs,
                                                  size_t &total_size) {
   std::vector<ge::AnyValue> runtime_attrs_list;
@@ -218,8 +213,9 @@ std::unique_ptr<uint8_t[]> CreateComputeNodeInfo(const ge::NodePtr &node,
   GE_ASSERT_NOTNULL(attr_buf, "Create attr buffer for node: %s failed", node->GetNamePtr());
   return CreateComputeNodeInfoImpl(attr_buf, attr_size, node, buffer_pool, total_size);
 }
-std::unique_ptr<uint8_t[]> CreateComputeNodeInfoWithoutIrAttr(const ge::NodePtr &node, BufferPool &buffer_pool,
-    const gert::OpImplRegisterV2::PrivateAttrList &private_attrs, size_t &total_size) {
+std::unique_ptr<uint8_t[]> CreateComputeNodeInfoWithoutIrAttr(
+    const ge::NodePtr &node, BufferPool &buffer_pool, const gert::OpImplRegisterV2::PrivateAttrList &private_attrs,
+    size_t &total_size) {
   std::vector<ge::AnyValue> runtime_attrs_list;
   GE_ASSERT_TRUE(GetPrivateAttrsList(node, private_attrs, runtime_attrs_list));
   size_t attr_size;

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -58,13 +58,8 @@ class FftsPlusDataContextST : public testing::Test {
     config.InitCMOThreshold();
   }
 
-  void TearDown() {
-
-  }
-  void AssembleTensor(GeTensorDescPtr &tensor,
-                      const vector<uint32_t> &axes,
-                      uint32_t thread_id,
-                      uint32_t slice_num,
+  void TearDown() {}
+  void AssembleTensor(GeTensorDescPtr &tensor, const vector<uint32_t> &axes, uint32_t thread_id, uint32_t slice_num,
                       vector<vector<DimRange>> &one_thread) {
     vector<DimRange> one_tensor;
     uint32_t axis_index = 0;
@@ -96,9 +91,7 @@ class FftsPlusDataContextST : public testing::Test {
     one_thread.emplace_back(one_tensor);
   }
 
-  void AssembleAutoThreadTensor(GeTensorDescPtr &tensor,
-                                uint32_t thread_id,
-                                uint32_t slice_num,
+  void AssembleAutoThreadTensor(GeTensorDescPtr &tensor, uint32_t thread_id, uint32_t slice_num,
                                 vector<vector<DimRange>> &one_thread) {
     vector<DimRange> one_tensor;
     uint32_t axis_index = 0;
@@ -132,10 +125,10 @@ class FftsPlusDataContextST : public testing::Test {
     }
   }
 
-/* index: the index of tensor;
- * axes: dimension indices of those need to be sliced. */
-  Status SetManualSlicingInfo(const ge::NodePtr &node, uint32_t index, bool is_input,
-                              uint32_t slice_num, uint32_t slice_index, const vector<uint32_t> &axes) {
+  /* index: the index of tensor;
+   * axes: dimension indices of those need to be sliced. */
+  Status SetManualSlicingInfo(const ge::NodePtr &node, uint32_t index, bool is_input, uint32_t slice_num,
+                              uint32_t slice_index, const vector<uint32_t> &axes) {
     auto op_desc = node->GetOpDesc();
     ThreadSliceMapPtr slice_info_ptr;
     slice_info_ptr = op_desc->TryGetExtAttr(kAttrSgtStructInfo, slice_info_ptr);
@@ -189,10 +182,10 @@ class FftsPlusDataContextST : public testing::Test {
           tensor = op_desc->MutableOutputDesc(j);
         }
         FFTS_LOGD("before shape of %s is %s", node->GetName().c_str(),
-                fe::StringUtils::IntegerVecToString(tensor->GetShape().GetDims()).c_str());
+                  fe::StringUtils::IntegerVecToString(tensor->GetShape().GetDims()).c_str());
         AssembleTensor(tensor, axes, slice_info_ptr->thread_id, slice_num, (*slice)[0]);
         FFTS_LOGD("after shape of %s is %s", node->GetName().c_str(),
-                fe::StringUtils::IntegerVecToString(tensor->GetShape().GetDims()).c_str());
+                  fe::StringUtils::IntegerVecToString(tensor->GetShape().GetDims()).c_str());
       }
     }
     op_desc->SetExtAttr(kAttrSgtStructInfo, slice_info_ptr);
@@ -237,9 +230,8 @@ class FftsPlusDataContextST : public testing::Test {
         for (size_t i = 0; i < slice_num; i++) {
           slice_info_ptr->output_tensor_slice.emplace_back(vv_one_thread);
         }
-      }
-      else {
-        for(size_t i = 0; i < slice_num; i++) {
+      } else {
+        for (size_t i = 0; i < slice_num; i++) {
           slice_info_ptr->output_tensor_slice[i].emplace_back(one_thread);
         }
       }
@@ -493,11 +485,8 @@ class FftsPlusDataContextST : public testing::Test {
 
   void CreateGraph01(ge::NodePtr &b, ComputeGraphPtr &graph) {
     graph = std::make_shared<ComputeGraph>("test");
-    GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16,
-                        GeShape({288, 8, 24, 33}));
-    test.AddOpDesc("a", "A", 1, 1)
-        .AddOpDesc("b", "B", 1, 1)
-        .SetInput("b:0", "a:0");
+    GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16, GeShape({288, 8, 24, 33}));
+    test.AddOpDesc("a", "A", 1, 1).AddOpDesc("b", "B", 1, 1).SetInput("b:0", "a:0");
 
     test.GetNodeByName("b", b);
     ge::AttrUtils::SetInt(b->GetOpDesc(), kContextId, 1);
@@ -521,13 +510,10 @@ class FftsPlusDataContextST : public testing::Test {
     SetManualSlicingInfo(b, 0 /* index */, false /* is_input */, slice_num, 1 /* slice_index */, axes);
   }
 
-    void CreateAutoThreadingGraph01(ge::NodePtr &b, ComputeGraphPtr &graph) {
+  void CreateAutoThreadingGraph01(ge::NodePtr &b, ComputeGraphPtr &graph) {
     graph = std::make_shared<ComputeGraph>("test");
-    GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16,
-                        GeShape({288, 8, 24, 33}));
-    test.AddOpDesc("a", "A", 1, 1)
-        .AddOpDesc("b", "B", 1, 1)
-        .SetInput("b:0", "a:0");
+    GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16, GeShape({288, 8, 24, 33}));
+    test.AddOpDesc("a", "A", 1, 1).AddOpDesc("b", "B", 1, 1).SetInput("b:0", "a:0");
 
     test.GetNodeByName("b", b);
     vector<uint32_t> context_id_list = {9, 10, 11, 12};
@@ -555,11 +541,8 @@ class FftsPlusDataContextST : public testing::Test {
 
   void CreateDynamicGraph01(ge::NodePtr &b, ComputeGraphPtr &graph, ge::NodePtr &a) {
     graph = std::make_shared<ComputeGraph>("test");
-    GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16,
-                        GeShape({-1, 8, 24, 33}));
-    test.AddOpDesc("a", "A", 1, 1)
-        .AddOpDesc("b", "B", 1, 1)
-        .SetInput("b:0", "a:0");
+    GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16, GeShape({-1, 8, 24, 33}));
+    test.AddOpDesc("a", "A", 1, 1).AddOpDesc("b", "B", 1, 1).SetInput("b:0", "a:0");
 
     test.GetNodeByName("b", b);
     vector<uint32_t> context_id_list = {9, 10, 11, 12};
@@ -586,11 +569,8 @@ class FftsPlusDataContextST : public testing::Test {
   /* dims[0] is the highest dimension. */
   void CreateGraph02_x(ge::NodePtr &b, ComputeGraphPtr &graph, vector<uint32_t> &axes) {
     graph = std::make_shared<ComputeGraph>("test");
-    GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16,
-                          GeShape({288, 8, 24, 33}));
-    test.AddOpDesc("a", "A", 1, 1)
-        .AddOpDesc("b", "B", 1, 1)
-        .SetInput("b:0", "a:0");
+    GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16, GeShape({288, 8, 24, 33}));
+    test.AddOpDesc("a", "A", 1, 1).AddOpDesc("b", "B", 1, 1).SetInput("b:0", "a:0");
 
     test.GetNodeByName("b", b);
     ge::AttrUtils::SetInt(b->GetOpDesc(), kContextId, 1);
@@ -605,16 +585,13 @@ class FftsPlusDataContextST : public testing::Test {
     ge::AttrUtils::SetListInt(a->GetOpDesc(), "output_addrs", output_addrs);
 
     int32_t slice_num = 4;
-    SetManualSlicingInfo(b, 0 /* index */, true /* is_input */, slice_num,
-                         1 /* slice_index */, axes);
-    SetManualSlicingInfo(b, 0 /* index */, false /* is_input */, slice_num,
-                         1 /* slice_index */, axes);
+    SetManualSlicingInfo(b, 0 /* index */, true /* is_input */, slice_num, 1 /* slice_index */, axes);
+    SetManualSlicingInfo(b, 0 /* index */, false /* is_input */, slice_num, 1 /* slice_index */, axes);
   }
 
   void CreateGraph02_2_1(ge::NodePtr &b, ComputeGraphPtr &graph) {
     graph = std::make_shared<ComputeGraph>("test");
-    GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16,
-                          GeShape({288, 8, 24, 33}));
+    GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16, GeShape({288, 8, 24, 33}));
     test.AddOpDesc("a", "A", 1, 1)
         .AddOpDesc("b", "B", 3, 1)
         .AddOpDesc("c", "D", 1, 1)
@@ -647,26 +624,19 @@ class FftsPlusDataContextST : public testing::Test {
     int32_t slice_num = 4;
     vector<uint32_t> axes1 = {0};
     vector<uint32_t> axes2 = {2, 3};
-    SetManualSlicingInfo(b, 0 /* index */, true /* is_input */, slice_num,
-                         1 /* slice_index */, axes1);
-    SetManualSlicingInfo(b, 0 /* index */, false /* is_input */, slice_num,
-                         1 /* slice_index */, axes1);
+    SetManualSlicingInfo(b, 0 /* index */, true /* is_input */, slice_num, 1 /* slice_index */, axes1);
+    SetManualSlicingInfo(b, 0 /* index */, false /* is_input */, slice_num, 1 /* slice_index */, axes1);
 
-    SetManualSlicingInfo(b, 1 /* index */, true /* is_input */, slice_num,
-                         2 /* slice_index */, axes1);
+    SetManualSlicingInfo(b, 1 /* index */, true /* is_input */, slice_num, 2 /* slice_index */, axes1);
 
-    SetManualSlicingInfo(b, 2 /* index */, true /* is_input */, slice_num,
-                         3 /* slice_index */, axes2);
+    SetManualSlicingInfo(b, 2 /* index */, true /* is_input */, slice_num, 3 /* slice_index */, axes2);
   }
 
   /* dims[0] is the highest dimension. */
   void CreateGraph02_4_1(ge::NodePtr &b, ComputeGraphPtr &graph, vector<uint32_t> &axes) {
     graph = std::make_shared<ComputeGraph>("test");
-    GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16,
-                          GeShape({4, 8, 24, 33}));
-    test.AddOpDesc("a", "A", 1, 1)
-        .AddOpDesc("b", "B", 1, 1)
-        .SetInput("b:0", "a:0");
+    GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16, GeShape({4, 8, 24, 33}));
+    test.AddOpDesc("a", "A", 1, 1).AddOpDesc("b", "B", 1, 1).SetInput("b:0", "a:0");
 
     test.GetNodeByName("b", b);
     ge::AttrUtils::SetInt(b->GetOpDesc(), kContextId, 1);
@@ -681,20 +651,15 @@ class FftsPlusDataContextST : public testing::Test {
     ge::AttrUtils::SetListInt(a->GetOpDesc(), "output_addrs", output_addrs);
 
     int32_t slice_num = 4;
-    SetManualSlicingInfo(b, 0 /* index */, true /* is_input */, slice_num,
-                         1 /* slice_index */, axes);
-    SetManualSlicingInfo(b, 0 /* index */, false /* is_input */, slice_num,
-                         1 /* slice_index */, axes);
+    SetManualSlicingInfo(b, 0 /* index */, true /* is_input */, slice_num, 1 /* slice_index */, axes);
+    SetManualSlicingInfo(b, 0 /* index */, false /* is_input */, slice_num, 1 /* slice_index */, axes);
   }
 
   /* slice 288 and 24*/
   void CreateGraph03_x(ge::NodePtr &b, ComputeGraphPtr &graph) {
     graph = std::make_shared<ComputeGraph>("test");
-    GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16,
-                          GeShape({288, 8, 24, 33}));
-    test.AddOpDesc("a", "A", 1, 1)
-        .AddOpDesc("b", "B", 1, 1)
-        .SetInput("b:0", "a:0");
+    GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16, GeShape({288, 8, 24, 33}));
+    test.AddOpDesc("a", "A", 1, 1).AddOpDesc("b", "B", 1, 1).SetInput("b:0", "a:0");
 
     test.GetNodeByName("b", b);
     ge::AttrUtils::SetInt(b->GetOpDesc(), kContextId, 1);
@@ -710,17 +675,14 @@ class FftsPlusDataContextST : public testing::Test {
 
     int32_t slice_num = 4;
     vector<uint32_t> axes = {0, 2};
-    SetManualSlicingInfo(b, 0 /* index */, true /* is_input */, slice_num,
-                         2 /* slice_index */, axes);
-    SetManualSlicingInfo(b, 0 /* index */, false /* is_input */, slice_num,
-                         2 /* slice_index */, axes);
+    SetManualSlicingInfo(b, 0 /* index */, true /* is_input */, slice_num, 2 /* slice_index */, axes);
+    SetManualSlicingInfo(b, 0 /* index */, false /* is_input */, slice_num, 2 /* slice_index */, axes);
   }
 
   /* a will do the writeback operation */
   void CreateGraph04_x(ge::NodePtr &a, ComputeGraphPtr &graph, vector<uint32_t> &axes) {
     graph = std::make_shared<ComputeGraph>("test");
-    GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16,
-                          GeShape({288, 8, 24, 33}));
+    GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16, GeShape({288, 8, 24, 33}));
     test.AddOpDesc("a", "A", 1, 1)
         .AddOpDesc("b", "B", 1, 1)
         .AddOpDesc("c", "C", 1, 1)
@@ -748,21 +710,16 @@ class FftsPlusDataContextST : public testing::Test {
     c->GetOpDesc()->SetOpEngineName(fe::AI_CORE_NAME);
     /* slice a and b */
     int32_t slice_num = 4;
-    SetManualSlicingInfo(a, 0 /* index */, true /* is_input */, slice_num,
-                         1 /* slice_index */, axes);
-    SetManualSlicingInfo(a, 0 /* index */, false /* is_input */, slice_num,
-                         1 /* slice_index */, axes);
+    SetManualSlicingInfo(a, 0 /* index */, true /* is_input */, slice_num, 1 /* slice_index */, axes);
+    SetManualSlicingInfo(a, 0 /* index */, false /* is_input */, slice_num, 1 /* slice_index */, axes);
 
-    SetManualSlicingInfo(b, 0 /* index */, true /* is_input */, slice_num,
-                         1 /* slice_index */, axes);
-    SetManualSlicingInfo(b, 0 /* index */, false /* is_input */, slice_num,
-                         1 /* slice_index */, axes);
+    SetManualSlicingInfo(b, 0 /* index */, true /* is_input */, slice_num, 1 /* slice_index */, axes);
+    SetManualSlicingInfo(b, 0 /* index */, false /* is_input */, slice_num, 1 /* slice_index */, axes);
   }
 
   void CreateAutoThreadingGraph04_x(ge::NodePtr &a, ComputeGraphPtr &graph) {
     graph = std::make_shared<ComputeGraph>("test");
-    GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16,
-                          GeShape({288, 8, 24, 33}));
+    GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16, GeShape({288, 8, 24, 33}));
     test.AddOpDesc("a", "A", 1, 1)
         .AddOpDesc("b", "B", 1, 1)
         .AddOpDesc("c", "C", 1, 1)
@@ -798,11 +755,10 @@ class FftsPlusDataContextST : public testing::Test {
     SetAutoThreadSlicingInfo(b, 0 /* index */, false /* is_input */, slice_num);
   }
 
-/* a will do the writeback or invalidate operation */
+  /* a will do the writeback or invalidate operation */
   void CreateGraph04_x_1(ge::NodePtr &a, ComputeGraphPtr &graph, vector<uint32_t> &axes, int scope_of_c) {
     graph = std::make_shared<ComputeGraph>("test");
-    GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16,
-                          GeShape({288, 8, 24, 33}));
+    GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16, GeShape({288, 8, 24, 33}));
     test.AddOpDesc("a", "A", 1, 1)
         .AddOpDesc("b", "B", 1, 1)
         .AddOpDesc("pc", "PhonyConcat", 1, 1)
@@ -848,22 +804,17 @@ class FftsPlusDataContextST : public testing::Test {
     c->GetOpDesc()->SetOpEngineName(fe::AI_CORE_NAME);
     /* slice a and b */
     int32_t slice_num = 4;
-    SetManualSlicingInfo(a, 0 /* index */, true /* is_input */, slice_num,
-                         1 /* slice_index */, axes);
-    SetManualSlicingInfo(a, 0 /* index */, false /* is_input */, slice_num,
-                         1 /* slice_index */, axes);
+    SetManualSlicingInfo(a, 0 /* index */, true /* is_input */, slice_num, 1 /* slice_index */, axes);
+    SetManualSlicingInfo(a, 0 /* index */, false /* is_input */, slice_num, 1 /* slice_index */, axes);
 
-    SetManualSlicingInfo(b, 0 /* index */, true /* is_input */, slice_num,
-                         1 /* slice_index */, axes);
-    SetManualSlicingInfo(b, 0 /* index */, false /* is_input */, slice_num,
-                         1 /* slice_index */, axes);
+    SetManualSlicingInfo(b, 0 /* index */, true /* is_input */, slice_num, 1 /* slice_index */, axes);
+    SetManualSlicingInfo(b, 0 /* index */, false /* is_input */, slice_num, 1 /* slice_index */, axes);
   }
 
   /* a will do the invalidate operation */
   void CreateGraph05_x(ge::NodePtr &a, ComputeGraphPtr &graph, vector<uint32_t> &axes) {
     graph = std::make_shared<ComputeGraph>("test");
-    GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16,
-                          GeShape({288, 8, 24, 33}));
+    GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16, GeShape({288, 8, 24, 33}));
     test.AddOpDesc("a", "A", 1, 1)
         .AddOpDesc("b", "B", 1, 1)
         .AddOpDesc("c", "C", 1, 1)
@@ -893,16 +844,13 @@ class FftsPlusDataContextST : public testing::Test {
     c->GetOpDesc()->SetOpEngineName(fe::AI_CORE_NAME);
     /* slice a and b */
     int32_t slice_num = 4;
-    SetManualSlicingInfo(a, 0 /* index */, true /* is_input */, slice_num,
-                         1 /* slice_index */, axes);
-    SetManualSlicingInfo(a, 0 /* index */, false /* is_input */, slice_num,
-                         1 /* slice_index */, axes);
+    SetManualSlicingInfo(a, 0 /* index */, true /* is_input */, slice_num, 1 /* slice_index */, axes);
+    SetManualSlicingInfo(a, 0 /* index */, false /* is_input */, slice_num, 1 /* slice_index */, axes);
   }
 
   void CreateGraphInvalidFusion(NodePtr &slice0, ComputeGraphPtr &graph, vector<uint32_t> &axes) {
     graph = std::make_shared<ComputeGraph>("test");
-    GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16,
-                          GeShape({288, 8, 24, 33}));
+    GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16, GeShape({288, 8, 24, 33}));
     test.AddOpDesc("slice0", "A", 1, 2)
         .AddOpDesc("slice1", "B", 1, 1)
         .AddOpDesc("relu", "relu", 1, 1)
@@ -945,18 +893,14 @@ class FftsPlusDataContextST : public testing::Test {
     py->GetOpDesc()->SetOpEngineName(fe::AI_CORE_NAME);
     /* slice a and b */
     int32_t slice_num = 4;
-    SetManualSlicingInfo(slice0, 0 /* index */, false /* is_input */, slice_num,
-                         1 /* slice_index */, axes);
-    SetManualSlicingInfo(slice0, 1 /* index */, false /* is_input */, slice_num,
-                         1 /* slice_index */, axes);
-    SetManualSlicingInfo(slice1, 0 /* index */, false /* is_input */, slice_num,
-                         1 /* slice_index */, axes);
+    SetManualSlicingInfo(slice0, 0 /* index */, false /* is_input */, slice_num, 1 /* slice_index */, axes);
+    SetManualSlicingInfo(slice0, 1 /* index */, false /* is_input */, slice_num, 1 /* slice_index */, axes);
+    SetManualSlicingInfo(slice1, 0 /* index */, false /* is_input */, slice_num, 1 /* slice_index */, axes);
   }
-    /* a will do the invalidate operation */
+  /* a will do the invalidate operation */
   void CreateAutoThreadGraph05_x(ge::NodePtr &a, ComputeGraphPtr &graph, vector<uint32_t> &axes) {
     graph = std::make_shared<ComputeGraph>("test");
-    GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16,
-                          GeShape({288, 8, 24, 33}));
+    GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16, GeShape({288, 8, 24, 33}));
     test.AddOpDesc("a", "A", 1, 1)
         .AddOpDesc("b", "B", 1, 1)
         .AddOpDesc("c", "C", 1, 1)
@@ -995,8 +939,7 @@ class FftsPlusDataContextST : public testing::Test {
 
   void CreateDynamicGraph05_x(ge::NodePtr &a, ComputeGraphPtr &graph, vector<uint32_t> &axes) {
     graph = std::make_shared<ComputeGraph>("test");
-    GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16,
-                          GeShape({-1, 8, 24, 33}));
+    GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16, GeShape({-1, 8, 24, 33}));
     test.AddOpDesc("a", "A", 1, 1)
         .AddOpDesc("b", "B", 1, 1)
         .AddOpDesc("c", "C", 1, 1)
@@ -1032,8 +975,7 @@ class FftsPlusDataContextST : public testing::Test {
   void CreateGraphInvalidAndMemReuse(vector<ge::NodePtr> &nodes, ComputeGraphPtr &graph, vector<uint32_t> &axes,
                                      bool is_mem_reuse, bool is_auto_threading) {
     graph = std::make_shared<ComputeGraph>("test");
-    GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16,
-                          GeShape({288, 8, 24, 33}));
+    GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16, GeShape({288, 8, 24, 33}));
     test.AddOpDesc("a", "A", 1, 1)
         .AddOpDesc("b", "B", 1, 1)
         .AddOpDesc("c", "C", 1, 1)
@@ -1085,9 +1027,9 @@ class FftsPlusDataContextST : public testing::Test {
 
     if (is_mem_reuse) {
       ge::MemReuseInfo mem_reuse_info = {
-        .node = e,
-        .mem_type = ge::MemType::OUTPUT_MEM,
-        .index = 0,
+          .node = e,
+          .mem_type = ge::MemType::OUTPUT_MEM,
+          .index = 0,
       };
       vector<ge::MemReuseInfo> mem_reuse_infos = {mem_reuse_info};
       string key = "output";
@@ -1095,7 +1037,6 @@ class FftsPlusDataContextST : public testing::Test {
       map<string, vector<ge::MemReuseInfo>> node_mem_reuse_infos;
       node_mem_reuse_infos[key] = mem_reuse_infos;
       c->GetOpDesc()->SetExtAttr(ge::ATTR_NAME_MEMORY_REUSE_INFO, node_mem_reuse_infos);
-
 
       mem_reuse_info.node = c;
       mem_reuse_infos.insert(mem_reuse_infos.begin(), mem_reuse_info);
@@ -1139,36 +1080,25 @@ class FftsPlusDataContextST : public testing::Test {
       ge::AttrUtils::SetInt(c->GetOpDesc(), kContextId, 2);
       ge::AttrUtils::SetInt(d->GetOpDesc(), kContextId, 3);
       ge::AttrUtils::SetInt(e->GetOpDesc(), kContextId, 4);
-      SetManualSlicingInfo(a, 0 /* index */, true /* is_input */, slice_num,
-                            1 /* slice_index */, axes);
-      SetManualSlicingInfo(a, 0 /* index */, false /* is_input */, slice_num,
-                            1 /* slice_index */, axes);
+      SetManualSlicingInfo(a, 0 /* index */, true /* is_input */, slice_num, 1 /* slice_index */, axes);
+      SetManualSlicingInfo(a, 0 /* index */, false /* is_input */, slice_num, 1 /* slice_index */, axes);
 
-      SetManualSlicingInfo(b, 0 /* index */, true /* is_input */, slice_num,
-                            1 /* slice_index */, axes);
-      SetManualSlicingInfo(b, 0 /* index */, false /* is_input */, slice_num,
-                            1 /* slice_index */, axes);
+      SetManualSlicingInfo(b, 0 /* index */, true /* is_input */, slice_num, 1 /* slice_index */, axes);
+      SetManualSlicingInfo(b, 0 /* index */, false /* is_input */, slice_num, 1 /* slice_index */, axes);
 
-      SetManualSlicingInfo(c, 0 /* index */, true /* is_input */, slice_num,
-                            1 /* slice_index */, axes);
-      SetManualSlicingInfo(c, 0 /* index */, false /* is_input */, slice_num,
-                            1 /* slice_index */, axes);
+      SetManualSlicingInfo(c, 0 /* index */, true /* is_input */, slice_num, 1 /* slice_index */, axes);
+      SetManualSlicingInfo(c, 0 /* index */, false /* is_input */, slice_num, 1 /* slice_index */, axes);
 
-      SetManualSlicingInfo(d, 0 /* index */, true /* is_input */, slice_num,
-                            1 /* slice_index */, axes);
-      SetManualSlicingInfo(d, 0 /* index */, false /* is_input */, slice_num,
-                            1 /* slice_index */, axes);
+      SetManualSlicingInfo(d, 0 /* index */, true /* is_input */, slice_num, 1 /* slice_index */, axes);
+      SetManualSlicingInfo(d, 0 /* index */, false /* is_input */, slice_num, 1 /* slice_index */, axes);
 
-      SetManualSlicingInfo(e, 0 /* index */, true /* is_input */, slice_num,
-                            1 /* slice_index */, axes);
-      SetManualSlicingInfo(e, 0 /* index */, false /* is_input */, slice_num,
-                            1 /* slice_index */, axes);
+      SetManualSlicingInfo(e, 0 /* index */, true /* is_input */, slice_num, 1 /* slice_index */, axes);
+      SetManualSlicingInfo(e, 0 /* index */, false /* is_input */, slice_num, 1 /* slice_index */, axes);
     }
   }
   void CreateInvalidAndMemReusePy(vector<ge::NodePtr> &nodes, ComputeGraphPtr &graph) {
     graph = std::make_shared<ComputeGraph>("test");
-    GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16,
-                          GeShape({288, 8, 24, 33}));
+    GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16, GeShape({288, 8, 24, 33}));
     test.AddOpDesc("a", "A", 1, 1)
         .AddOpDesc("b", "B", 1, 1)
         .AddOpDesc("c", "C", 1, 1)
@@ -1220,20 +1150,19 @@ class FftsPlusDataContextST : public testing::Test {
  * WARNING: Burst len is 100000, which is less than the total size of b's input.
  * need to use 92 data context to do the prefetch.
  * But we only allow up to 4 prefetch data context. */
-TEST_F(FftsPlusDataContextST, prefetch_01)
-{
+TEST_F(FftsPlusDataContextST, prefetch_01) {
   ge::NodePtr b;
   ComputeGraphPtr graph;
   CreateGraph01(b, graph);
   domi::TaskDef task_def;
   domi::FftsPlusTaskDef *ffts_plus_task_def = task_def.mutable_ffts_plus_task();
-  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx(); // a's context
+  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx();  // a's context
   a_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto a_aic_aiv = a_context->mutable_aic_aiv_ctx();
   a_aic_aiv->set_prefetch_enable_bitmap(0);
   a_aic_aiv->set_prefetch_once_bitmap(0);
 
-  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx(); // b's context
+  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx();  // b's context
   b_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto b_aic_aiv = b_context->mutable_aic_aiv_ctx();
   b_aic_aiv->set_prefetch_enable_bitmap(0);
@@ -1250,20 +1179,19 @@ TEST_F(FftsPlusDataContextST, prefetch_01)
  *
  * WARNING: Burst len is 10000000, which is larger than the total size of b's input.
  * need to use 1 data context to do the prefetch. */
-TEST_F(FftsPlusDataContextST, prefetch_01_1)
-{
+TEST_F(FftsPlusDataContextST, prefetch_01_1) {
   ge::NodePtr b;
   ComputeGraphPtr graph;
   CreateGraph01(b, graph);
   domi::TaskDef task_def;
   domi::FftsPlusTaskDef *ffts_plus_task_def = task_def.mutable_ffts_plus_task();
-  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx(); // a's context
+  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx();  // a's context
   a_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto a_aic_aiv = a_context->mutable_aic_aiv_ctx();
   a_aic_aiv->set_prefetch_enable_bitmap(0);
   a_aic_aiv->set_prefetch_once_bitmap(0);
 
-  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx(); // b's context
+  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx();  // b's context
   b_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto b_aic_aiv = b_context->mutable_aic_aiv_ctx();
   b_aic_aiv->set_prefetch_enable_bitmap(0);
@@ -1307,8 +1235,7 @@ TEST_F(FftsPlusDataContextST, prefetch_01_1)
  *
  * WARNING: Burst len is 10000000, which is larger than the total size of b's input.
  * need to use 1 data context to do the prefetch. */
-TEST_F(FftsPlusDataContextST, auto_threading_prefetch_01_1)
-{
+TEST_F(FftsPlusDataContextST, auto_threading_prefetch_01_1) {
   ge::NodePtr b;
   ComputeGraphPtr graph;
   CreateAutoThreadingGraph01(b, graph);
@@ -1370,8 +1297,7 @@ TEST_F(FftsPlusDataContextST, auto_threading_prefetch_01_1)
  *
  * WARNING: Burst len is 10000000, which is larger than the total size of b's input.
  * need to use 1 data context to do the prefetch. */
-TEST_F(FftsPlusDataContextST, dynamic_threading_cmo_01_1)
-{
+TEST_F(FftsPlusDataContextST, dynamic_threading_cmo_01_1) {
   ge::NodePtr b;
   ComputeGraphPtr graph;
   ge::NodePtr a;
@@ -1392,20 +1318,19 @@ TEST_F(FftsPlusDataContextST, dynamic_threading_cmo_01_1)
  *
  * WARNING: Burst len is 5000000, which is less than the total size of b's input.
  * need to use 2 data context to do the prefetch. */
-TEST_F(FftsPlusDataContextST, prefetch_01_2)
-{
+TEST_F(FftsPlusDataContextST, prefetch_01_2) {
   ge::NodePtr b;
   ComputeGraphPtr graph;
   CreateGraph01(b, graph);
   domi::TaskDef task_def;
   domi::FftsPlusTaskDef *ffts_plus_task_def = task_def.mutable_ffts_plus_task();
-  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx(); // a's context
+  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx();  // a's context
   a_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto a_aic_aiv = a_context->mutable_aic_aiv_ctx();
   a_aic_aiv->set_prefetch_enable_bitmap(0);
   a_aic_aiv->set_prefetch_once_bitmap(0);
 
-  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx(); // b's context
+  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx();  // b's context
   b_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto b_aic_aiv = b_context->mutable_aic_aiv_ctx();
   b_aic_aiv->set_prefetch_enable_bitmap(0);
@@ -1448,21 +1373,20 @@ TEST_F(FftsPlusDataContextST, prefetch_01_2)
  * 5000.
  * b's shape is {288, 8, 24, 33}, and we slice the axis{33}, select the
  * thread 1. range {{0:288},{0:8},{0:24},{8:16}}. */
-TEST_F(FftsPlusDataContextST, prefetch_02)
-{
+TEST_F(FftsPlusDataContextST, prefetch_02) {
   ge::NodePtr b;
   vector<uint32_t> axes = {3};
   ComputeGraphPtr graph;
   CreateGraph02_x(b, graph, axes);
   domi::TaskDef task_def;
   domi::FftsPlusTaskDef *ffts_plus_task_def = task_def.mutable_ffts_plus_task();
-  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx(); // a's context
+  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx();  // a's context
   a_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto a_aic_aiv = a_context->mutable_aic_aiv_ctx();
   a_aic_aiv->set_prefetch_enable_bitmap(0);
   a_aic_aiv->set_prefetch_once_bitmap(0);
 
-  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx(); // b's context
+  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx();  // b's context
   b_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto b_aic_aiv = b_context->mutable_aic_aiv_ctx();
   b_aic_aiv->set_prefetch_enable_bitmap(0);
@@ -1505,21 +1429,20 @@ TEST_F(FftsPlusDataContextST, prefetch_02)
  * b's shape is {288, 8, 24, 33}, and we slice the axis{288}, select the
  * thread 1. range {{72:144},{0:8},{0:24},{0:33}}.
  * Burst len is 200000, need 5 context which is not allowed. */
-TEST_F(FftsPlusDataContextST, prefetch_02_1)
-{
+TEST_F(FftsPlusDataContextST, prefetch_02_1) {
   ge::NodePtr b;
   vector<uint32_t> axes = {0};
   ComputeGraphPtr graph;
   CreateGraph02_x(b, graph, axes);
   domi::TaskDef task_def;
   domi::FftsPlusTaskDef *ffts_plus_task_def = task_def.mutable_ffts_plus_task();
-  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx(); // a's context
+  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx();  // a's context
   a_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto a_aic_aiv = a_context->mutable_aic_aiv_ctx();
   a_aic_aiv->set_prefetch_enable_bitmap(0);
   a_aic_aiv->set_prefetch_once_bitmap(0);
 
-  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx(); // b's context
+  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx();  // b's context
   b_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto b_aic_aiv = b_context->mutable_aic_aiv_ctx();
   b_aic_aiv->set_prefetch_enable_bitmap(0);
@@ -1548,21 +1471,20 @@ TEST_F(FftsPlusDataContextST, prefetch_02_1)
  * b's shape is {288, 8, 24, 33}, and we slice the axis{288}, select the
  * thread 1. range {{72:144},{0:8},{0:24},{0:33}}.
  * Burst len is 250000, need 4 prefetch context. */
-TEST_F(FftsPlusDataContextST, prefetch_02_2)
-{
+TEST_F(FftsPlusDataContextST, prefetch_02_2) {
   ge::NodePtr b;
   vector<uint32_t> axes = {0};
   ComputeGraphPtr graph;
   CreateGraph02_x(b, graph, axes);
   domi::TaskDef task_def;
   domi::FftsPlusTaskDef *ffts_plus_task_def = task_def.mutable_ffts_plus_task();
-  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx(); // a's context
+  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx();  // a's context
   a_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto a_aic_aiv = a_context->mutable_aic_aiv_ctx();
   a_aic_aiv->set_prefetch_enable_bitmap(0);
   a_aic_aiv->set_prefetch_once_bitmap(0);
 
-  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx(); // b's context
+  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx();  // b's context
   b_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto b_aic_aiv = b_context->mutable_aic_aiv_ctx();
   b_aic_aiv->set_prefetch_enable_bitmap(0);
@@ -1601,9 +1523,7 @@ TEST_F(FftsPlusDataContextST, prefetch_02_2)
 
   EXPECT_EQ(b_aic_aiv->prefetch_enable_bitmap(), 1);
   EXPECT_EQ(b_aic_aiv->prefetch_once_bitmap(), 1);
-
 }
-
 
 /* A --------\
  * C ------> B
@@ -1624,15 +1544,14 @@ TEST_F(FftsPlusDataContextST, prefetch_02_2)
  * we will provide prefetch for this input.
  *
  * */
-TEST_F(FftsPlusDataContextST, prefetch_02_2_1)
-{
+TEST_F(FftsPlusDataContextST, prefetch_02_2_1) {
   ge::NodePtr b;
   ComputeGraphPtr graph;
   CreateGraph02_2_1(b, graph);
   domi::TaskDef task_def;
   domi::FftsPlusTaskDef *ffts_plus_task_def = task_def.mutable_ffts_plus_task();
 
-  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx(); // b's context
+  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx();  // b's context
   b_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto b_aic_aiv = b_context->mutable_aic_aiv_ctx();
   b_aic_aiv->set_prefetch_enable_bitmap(0);
@@ -1681,7 +1600,6 @@ TEST_F(FftsPlusDataContextST, prefetch_02_2_1)
 
   EXPECT_EQ(b_aic_aiv->prefetch_enable_bitmap(), 3);
   EXPECT_EQ(b_aic_aiv->prefetch_once_bitmap(), 3);
-
 }
 
 /* A -> B(thread dim = 4), shape is not continuous.
@@ -1689,21 +1607,20 @@ TEST_F(FftsPlusDataContextST, prefetch_02_2_1)
  * 5000.
  * b's shape is {288, 8, 24, 33}, and we slice the axis{24, 33}, select the
  * thread 1. range {{0:288},{0:8},{6:12},{8:16}}. */
-TEST_F(FftsPlusDataContextST, prefetch_02_3)
-{
+TEST_F(FftsPlusDataContextST, prefetch_02_3) {
   ge::NodePtr b;
   vector<uint32_t> axes = {2, 3};
   ComputeGraphPtr graph;
   CreateGraph02_x(b, graph, axes);
   domi::TaskDef task_def;
   domi::FftsPlusTaskDef *ffts_plus_task_def = task_def.mutable_ffts_plus_task();
-  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx(); // a's context
+  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx();  // a's context
   a_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto a_aic_aiv = a_context->mutable_aic_aiv_ctx();
   a_aic_aiv->set_prefetch_enable_bitmap(0);
   a_aic_aiv->set_prefetch_once_bitmap(0);
 
-  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx(); // b's context
+  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx();  // b's context
   b_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto b_aic_aiv = b_context->mutable_aic_aiv_ctx();
   b_aic_aiv->set_prefetch_enable_bitmap(0);
@@ -1738,9 +1655,7 @@ TEST_F(FftsPlusDataContextST, prefetch_02_3)
   EXPECT_EQ(b_aic_aiv->prefetch_once_bitmap(), 0x0001);
   EXPECT_EQ(b_aic_aiv->src_slot_size(), 1);
   EXPECT_EQ(b_aic_aiv->src_slot(0), 2);
-
 }
-
 
 /* A -> B(thread dim = 4), shape is not continuous.
  * B is thread 1 and A's output address is 20000, B's input address is
@@ -1748,23 +1663,22 @@ TEST_F(FftsPlusDataContextST, prefetch_02_3)
  * b's shape is {288, 8, 24, 33}, and we slice the axis{8, 24, 33}, select the
  * thread 1. range {{0:288},{2:4},{6:12},{8:16}}.
  * Because the first axis 288 is not sliced, we need more than 4 prefetch context for
- * a single node which is not allowed by the data stucture of aic/aiv context.
+ * a single node which is not allowed by the data structure of aic/aiv context.
  * */
-TEST_F(FftsPlusDataContextST, prefetch_02_4)
-{
+TEST_F(FftsPlusDataContextST, prefetch_02_4) {
   ge::NodePtr b;
   vector<uint32_t> axes = {1, 2, 3};
   ComputeGraphPtr graph;
   CreateGraph02_x(b, graph, axes);
   domi::TaskDef task_def;
   domi::FftsPlusTaskDef *ffts_plus_task_def = task_def.mutable_ffts_plus_task();
-  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx(); // a's context
+  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx();  // a's context
   a_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto a_aic_aiv = a_context->mutable_aic_aiv_ctx();
   a_aic_aiv->set_prefetch_enable_bitmap(0);
   a_aic_aiv->set_prefetch_once_bitmap(0);
 
-  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx(); // b's context
+  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx();  // b's context
   b_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto b_aic_aiv = b_context->mutable_aic_aiv_ctx();
   b_aic_aiv->set_prefetch_enable_bitmap(0);
@@ -1773,7 +1687,6 @@ TEST_F(FftsPlusDataContextST, prefetch_02_4)
   Status ret = prefetch_.GenManualDataCtxDef(b, ffts_plus_task_def);
   ASSERT_EQ(ffts::SUCCESS, ret);
   ASSERT_EQ(ffts_plus_task_def->ffts_plus_ctx_size(), 2);
-
 }
 
 /* A -> B(thread dim = 4), shape is not continuous.
@@ -1782,23 +1695,22 @@ TEST_F(FftsPlusDataContextST, prefetch_02_4)
  * b's shape is {288, 8, 24, 33}, and we slice the axis{8, 24, 33}, select the
  * thread 1. range {{0:288},{2:4},{6:12},{8:16}}.
  * Because the first axis 288 is not sliced, we need more than 4 prefetch context for
- * a single node which is not allowed by the data stucture of aic/aiv context.
+ * a single node which is not allowed by the data structure of aic/aiv context.
  * */
-TEST_F(FftsPlusDataContextST, prefetch_02_4_1)
-{
+TEST_F(FftsPlusDataContextST, prefetch_02_4_1) {
   ge::NodePtr b;
   vector<uint32_t> axes = {1, 2, 3};
   ComputeGraphPtr graph;
   CreateGraph02_4_1(b, graph, axes);
   domi::TaskDef task_def;
   domi::FftsPlusTaskDef *ffts_plus_task_def = task_def.mutable_ffts_plus_task();
-  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx(); // a's context
+  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx();  // a's context
   a_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto a_aic_aiv = a_context->mutable_aic_aiv_ctx();
   a_aic_aiv->set_prefetch_enable_bitmap(0);
   a_aic_aiv->set_prefetch_once_bitmap(0);
 
-  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx(); // b's context
+  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx();  // b's context
   b_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto b_aic_aiv = b_context->mutable_aic_aiv_ctx();
   b_aic_aiv->set_prefetch_enable_bitmap(0);
@@ -1845,21 +1757,20 @@ TEST_F(FftsPlusDataContextST, prefetch_02_4_1)
  * b's shape is {288, 8, 24, 33}, and we slice the axis{288, 24, 33}, select the
  * thread 1. range {{72:144},{0:8},{6:12},{8:16}}.
  * The */
-TEST_F(FftsPlusDataContextST, prefetch_02_5)
-{
+TEST_F(FftsPlusDataContextST, prefetch_02_5) {
   ge::NodePtr b;
   vector<uint32_t> axes = {0, 2, 3};
   ComputeGraphPtr graph;
   CreateGraph02_x(b, graph, axes);
   domi::TaskDef task_def;
   domi::FftsPlusTaskDef *ffts_plus_task_def = task_def.mutable_ffts_plus_task();
-  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx(); // a's context
+  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx();  // a's context
   a_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto a_aic_aiv = a_context->mutable_aic_aiv_ctx();
   a_aic_aiv->set_prefetch_enable_bitmap(0);
   a_aic_aiv->set_prefetch_once_bitmap(0);
 
-  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx(); // b's context
+  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx();  // b's context
   b_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto b_aic_aiv = b_context->mutable_aic_aiv_ctx();
   b_aic_aiv->set_prefetch_enable_bitmap(0);
@@ -1894,7 +1805,6 @@ TEST_F(FftsPlusDataContextST, prefetch_02_5)
   EXPECT_EQ(b_aic_aiv->prefetch_once_bitmap(), 0x0001);
   EXPECT_EQ(b_aic_aiv->src_slot_size(), 1);
   EXPECT_EQ(b_aic_aiv->src_slot(0), 2);
-
 }
 
 /* A -> B(thread dim = 4), shape is not continuous.
@@ -1903,20 +1813,19 @@ TEST_F(FftsPlusDataContextST, prefetch_02_5)
  * b's shape is {288, 8, 24, 33}, and we slice the axis{288, 24}, select the
  * thread 1. range {{144:216},{0:8},{12:18},{0:33}}.
  * Burst len is 250000, need 1 prefetch context. */
-TEST_F(FftsPlusDataContextST, prefetch_03)
-{
+TEST_F(FftsPlusDataContextST, prefetch_03) {
   ge::NodePtr b;
   ComputeGraphPtr graph;
   CreateGraph03_x(b, graph);
   domi::TaskDef task_def;
   domi::FftsPlusTaskDef *ffts_plus_task_def = task_def.mutable_ffts_plus_task();
-  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx(); // a's context
+  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx();  // a's context
   a_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto a_aic_aiv = a_context->mutable_aic_aiv_ctx();
   a_aic_aiv->set_prefetch_enable_bitmap(0);
   a_aic_aiv->set_prefetch_once_bitmap(0);
 
-  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx(); // b's context
+  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx();  // b's context
   b_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto b_aic_aiv = b_context->mutable_aic_aiv_ctx();
   b_aic_aiv->set_prefetch_enable_bitmap(0);
@@ -1943,7 +1852,6 @@ TEST_F(FftsPlusDataContextST, prefetch_03)
   EXPECT_EQ(prefetch_context.tail_stride_inner(), 1584);
   EXPECT_EQ(prefetch_context.tail_stride_outter(), 3649536);
 
-
   a_aic_aiv = ffts_plus_task_def->_impl_.ffts_plus_ctx_[0].mutable_aic_aiv_ctx();
   EXPECT_EQ(a_aic_aiv->prefetch_enable_bitmap(), 0);
   EXPECT_EQ(a_aic_aiv->prefetch_once_bitmap(), 0);
@@ -1954,9 +1862,7 @@ TEST_F(FftsPlusDataContextST, prefetch_03)
   EXPECT_EQ(b_aic_aiv->src_slot(0), 2);
   EXPECT_EQ(b_aic_aiv->prefetch_enable_bitmap(), 0x1);
   EXPECT_EQ(b_aic_aiv->prefetch_once_bitmap(), 0x1);
-
 }
-
 
 /* A -> B(thread dim = 4), shape is not continuous.
  * B is thread 1 and A's output address is 20000, B's input address is
@@ -1964,21 +1870,20 @@ TEST_F(FftsPlusDataContextST, prefetch_03)
  * b's shape is {288, 8, 24, 33}, and we slice the axis{288}, select the
  * thread 1. range {{72:144},{0:8},{0:24},{0:33}}.
  * Burst len is 250000, need 4 prefetch context. */
-TEST_F(FftsPlusDataContextST, prefetch_03_1)
-{
+TEST_F(FftsPlusDataContextST, prefetch_03_1) {
   ge::NodePtr b;
   vector<uint32_t> axes = {0};
   ComputeGraphPtr graph;
   CreateGraph02_x(b, graph, axes);
   domi::TaskDef task_def;
   domi::FftsPlusTaskDef *ffts_plus_task_def = task_def.mutable_ffts_plus_task();
-  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx(); // a's context
+  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx();  // a's context
   a_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto a_aic_aiv = a_context->mutable_aic_aiv_ctx();
   a_aic_aiv->set_prefetch_enable_bitmap(0);
   a_aic_aiv->set_prefetch_once_bitmap(0);
 
-  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx(); // b's context
+  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx();  // b's context
   b_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto b_aic_aiv = b_context->mutable_aic_aiv_ctx();
   b_aic_aiv->set_prefetch_enable_bitmap(0);
@@ -2016,9 +1921,7 @@ TEST_F(FftsPlusDataContextST, prefetch_03_1)
   EXPECT_EQ(b_aic_aiv->src_slot(0), 2);
   EXPECT_EQ(b_aic_aiv->prefetch_enable_bitmap(), 1);
   EXPECT_EQ(b_aic_aiv->prefetch_once_bitmap(), 1);
-
 }
-
 
 /* A -----> C
  *  \-----> B
@@ -2037,13 +1940,13 @@ TEST_F(FftsPlusDataContextST, write_back_01) {
   CreateGraph04_x(b, graph, axes);
   domi::TaskDef task_def;
   domi::FftsPlusTaskDef *ffts_plus_task_def = task_def.mutable_ffts_plus_task();
-  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx(); // a's context
+  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx();  // a's context
   a_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto a_aic_aiv = a_context->mutable_aic_aiv_ctx();
   a_aic_aiv->set_successor_num(1);
   a_aic_aiv->add_successor_list(1);
 
-  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx(); // b's context
+  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx();  // b's context
   b_context->set_context_type(RT_HW_CTX_TYPE_AIV);
 
   write_back_.burst_len_ = 250000;
@@ -2073,13 +1976,13 @@ TEST_F(FftsPlusDataContextST, write_back_01_2) {
   CreateGraph04_x(a, graph, axes);
   domi::TaskDef task_def;
   domi::FftsPlusTaskDef *ffts_plus_task_def = task_def.mutable_ffts_plus_task();
-  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx(); // a's context
+  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx();  // a's context
   a_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto a_aic_aiv = a_context->mutable_aic_aiv_ctx();
   a_aic_aiv->set_successor_num(1);
   a_aic_aiv->add_successor_list(1);
 
-  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx(); // b's context
+  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx();  // b's context
   b_context->set_context_type(RT_HW_CTX_TYPE_AIV);
 
   write_back_.burst_len_ = 1000000;
@@ -2115,11 +2018,10 @@ TEST_F(FftsPlusDataContextST, auto_threading_write_back_01_2) {
   ASSERT_EQ(ffts::SUCCESS, ret);
   ASSERT_EQ(ffts_plus_task_def->ffts_plus_ctx_size(), 18);
 
-
   // check a's succ_list has data
   bool has_data_ctx = false;
   auto aic_aiv_context_a0 = ffts_plus_task_def->_impl_.ffts_plus_ctx_[5].aic_aiv_ctx();
-  for (auto succ: aic_aiv_context_a0.successor_list()) {
+  for (auto succ : aic_aiv_context_a0.successor_list()) {
     if (succ == 18) {
       has_data_ctx = true;
     }
@@ -2150,13 +2052,13 @@ TEST_F(FftsPlusDataContextST, write_back_01_3) {
   CreateGraph04_x_1(a, graph, axes, 0);
   domi::TaskDef task_def;
   domi::FftsPlusTaskDef *ffts_plus_task_def = task_def.mutable_ffts_plus_task();
-  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx(); // a's context
+  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx();  // a's context
   a_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto a_aic_aiv = a_context->mutable_aic_aiv_ctx();
   a_aic_aiv->set_successor_num(1);
   a_aic_aiv->add_successor_list(1);
 
-  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx(); // b's context
+  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx();  // b's context
   b_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto b_aic_aiv = b_context->mutable_aic_aiv_ctx();
 
@@ -2191,13 +2093,13 @@ TEST_F(FftsPlusDataContextST, write_back_01_4) {
   CreateGraph04_x_1(a, graph, axes, 2);
   domi::TaskDef task_def;
   domi::FftsPlusTaskDef *ffts_plus_task_def = task_def.mutable_ffts_plus_task();
-  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx(); // a's context
+  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx();  // a's context
   a_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto a_aic_aiv = a_context->mutable_aic_aiv_ctx();
   a_aic_aiv->set_successor_num(1);
   a_aic_aiv->add_successor_list(1);
 
-  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx(); // b's context
+  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx();  // b's context
   b_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto b_aic_aiv = b_context->mutable_aic_aiv_ctx();
 
@@ -2211,7 +2113,6 @@ TEST_F(FftsPlusDataContextST, write_back_01_4) {
   EXPECT_EQ(a_aic_aiv->src_slot_size(), 0);
   EXPECT_EQ(a_aic_aiv->successor_num(), 1);
   EXPECT_EQ(a_aic_aiv->successor_list(0), 1);
-
 }
 TEST_F(FftsPlusDataContextST, write_back_01_5) {
   ge::NodePtr a;
@@ -2220,13 +2121,13 @@ TEST_F(FftsPlusDataContextST, write_back_01_5) {
   CreateGraph04_x_1(a, graph, axes, 2);
   domi::TaskDef task_def;
   domi::FftsPlusTaskDef *ffts_plus_task_def = task_def.mutable_ffts_plus_task();
-  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx(); // a's context
+  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx();  // a's context
   a_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto a_aic_aiv = a_context->mutable_aic_aiv_ctx();
   a_aic_aiv->set_successor_num(1);
   a_aic_aiv->add_successor_list(1);
 
-  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx(); // b's context
+  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx();  // b's context
   b_context->set_context_type(RT_HW_CTX_TYPE_AIV);
 
   write_back_.burst_len_ = 1000000;
@@ -2255,18 +2156,18 @@ TEST_F(FftsPlusDataContextST, invalidate_01) {
   CreateGraph05_x(b, graph, axes);
   domi::TaskDef task_def;
   domi::FftsPlusTaskDef *ffts_plus_task_def = task_def.mutable_ffts_plus_task();
-  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx(); // a's context
+  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx();  // a's context
   a_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto a_aic_aiv = a_context->mutable_aic_aiv_ctx();
   a_aic_aiv->set_successor_num(2);
   a_aic_aiv->add_successor_list(1);
   a_aic_aiv->add_successor_list(2);
 
-  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx(); // b's context
+  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx();  // b's context
   b_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto b_aic_aiv = b_context->mutable_aic_aiv_ctx();
 
-  auto c_context = ffts_plus_task_def->add_ffts_plus_ctx(); // b's context
+  auto c_context = ffts_plus_task_def->add_ffts_plus_ctx();  // b's context
   c_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto c_aic_aiv = c_context->mutable_aic_aiv_ctx();
 
@@ -2307,18 +2208,18 @@ TEST_F(FftsPlusDataContextST, invalidate_01_2) {
   CreateGraph05_x(b, graph, axes);
   domi::TaskDef task_def;
   domi::FftsPlusTaskDef *ffts_plus_task_def = task_def.mutable_ffts_plus_task();
-  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx(); // a's context
+  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx();  // a's context
   a_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto a_aic_aiv = a_context->mutable_aic_aiv_ctx();
   a_aic_aiv->set_successor_num(2);
   a_aic_aiv->add_successor_list(1);
   a_aic_aiv->add_successor_list(2);
 
-  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx(); // b's context
+  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx();  // b's context
   b_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto b_aic_aiv = b_context->mutable_aic_aiv_ctx();
 
-  auto c_context = ffts_plus_task_def->add_ffts_plus_ctx(); // b's context
+  auto c_context = ffts_plus_task_def->add_ffts_plus_ctx();  // b's context
   c_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto c_aic_aiv = c_context->mutable_aic_aiv_ctx();
 
@@ -2401,18 +2302,18 @@ TEST_F(FftsPlusDataContextST, invalidate_01_3) {
   CreateGraph04_x_1(a, graph, axes, 1);
   domi::TaskDef task_def;
   domi::FftsPlusTaskDef *ffts_plus_task_def = task_def.mutable_ffts_plus_task();
-  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx(); // a's context
+  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx();  // a's context
   a_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto a_aic_aiv = a_context->mutable_aic_aiv_ctx();
   a_aic_aiv->set_successor_num(2);
   a_aic_aiv->add_successor_list(1);
   a_aic_aiv->add_successor_list(2);
 
-  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx(); // b's context
+  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx();  // b's context
   b_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto b_aic_aiv = b_context->mutable_aic_aiv_ctx();
 
-  auto c_context = ffts_plus_task_def->add_ffts_plus_ctx(); // b's context
+  auto c_context = ffts_plus_task_def->add_ffts_plus_ctx();  // b's context
   c_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto c_aic_aiv = c_context->mutable_aic_aiv_ctx();
 
@@ -2444,13 +2345,13 @@ TEST_F(FftsPlusDataContextST, invalidate_01_4) {
   CreateGraphInvalidFusion(a, graph, axes);
   domi::TaskDef task_def;
   domi::FftsPlusTaskDef *ffts_plus_task_def = task_def.mutable_ffts_plus_task();
-  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx(); // a's context
+  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx();  // a's context
   a_context->set_context_type(RT_HW_CTX_TYPE_AIV);
 
-  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx(); // b's context
+  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx();  // b's context
   b_context->set_context_type(RT_HW_CTX_TYPE_AIV);
 
-  auto c_context = ffts_plus_task_def->add_ffts_plus_ctx(); // b's context
+  auto c_context = ffts_plus_task_def->add_ffts_plus_ctx();  // b's context
   c_context->set_context_type(RT_HW_CTX_TYPE_AIV);
 
   invalidate_.burst_len_ = 1000000;
@@ -2500,7 +2401,7 @@ TEST_F(FftsPlusDataContextST, AUTO_THREADING_INVALID_NO_MEM_REUSE) {
 
   invalidate_auto_.burst_len_ = 1000000;
 
-    for (auto &node : nodes) {
+  for (auto &node : nodes) {
     Status ret = invalidate_auto_.GenAutoDataCtxDef(node, ffts_plus_task_def);
     ASSERT_EQ(ffts::SUCCESS, ret);
   }
@@ -2588,31 +2489,31 @@ TEST_F(FftsPlusDataContextST, MUANUAL_THREADING_INVALID_NO_MEM_REUSE) {
 
   domi::TaskDef task_def;
   domi::FftsPlusTaskDef *ffts_plus_task_def = task_def.mutable_ffts_plus_task();
-  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx(); // a's context
+  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx();  // a's context
   a_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto a_aic_aiv = a_context->mutable_aic_aiv_ctx();
   a_aic_aiv->set_successor_num(1);
   a_aic_aiv->add_successor_list(1);
 
-  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx(); // b's context
+  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx();  // b's context
   b_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto b_aic_aiv = b_context->mutable_aic_aiv_ctx();
   b_aic_aiv->set_successor_num(1);
   b_aic_aiv->add_successor_list(2);
 
-  auto c_context = ffts_plus_task_def->add_ffts_plus_ctx(); // b's context
+  auto c_context = ffts_plus_task_def->add_ffts_plus_ctx();  // b's context
   c_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto c_aic_aiv = c_context->mutable_aic_aiv_ctx();
   c_aic_aiv->set_successor_num(1);
   c_aic_aiv->add_successor_list(3);
 
-  auto d_context = ffts_plus_task_def->add_ffts_plus_ctx(); // d's context
+  auto d_context = ffts_plus_task_def->add_ffts_plus_ctx();  // d's context
   d_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto d_aic_aiv = d_context->mutable_aic_aiv_ctx();
   d_aic_aiv->set_successor_num(1);
   d_aic_aiv->add_successor_list(4);
 
-  auto e_context = ffts_plus_task_def->add_ffts_plus_ctx(); // e's context
+  auto e_context = ffts_plus_task_def->add_ffts_plus_ctx();  // e's context
   e_context->set_context_type(RT_HW_CTX_TYPE_AIV);
 
   invalidate_.burst_len_ = 1000000;
@@ -2673,31 +2574,31 @@ TEST_F(FftsPlusDataContextST, MUANUAL_THREADING_INVALID_WITH_MEM_REUSE) {
 
   domi::TaskDef task_def;
   domi::FftsPlusTaskDef *ffts_plus_task_def = task_def.mutable_ffts_plus_task();
-  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx(); // a's context
+  auto a_context = ffts_plus_task_def->add_ffts_plus_ctx();  // a's context
   a_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto a_aic_aiv = a_context->mutable_aic_aiv_ctx();
   a_aic_aiv->set_successor_num(1);
   a_aic_aiv->add_successor_list(1);
 
-  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx(); // b's context
+  auto b_context = ffts_plus_task_def->add_ffts_plus_ctx();  // b's context
   b_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto b_aic_aiv = b_context->mutable_aic_aiv_ctx();
   b_aic_aiv->set_successor_num(1);
   b_aic_aiv->add_successor_list(2);
 
-  auto c_context = ffts_plus_task_def->add_ffts_plus_ctx(); // b's context
+  auto c_context = ffts_plus_task_def->add_ffts_plus_ctx();  // b's context
   c_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto c_aic_aiv = c_context->mutable_aic_aiv_ctx();
   c_aic_aiv->set_successor_num(1);
   c_aic_aiv->add_successor_list(3);
 
-  auto d_context = ffts_plus_task_def->add_ffts_plus_ctx(); // b's context
+  auto d_context = ffts_plus_task_def->add_ffts_plus_ctx();  // b's context
   d_context->set_context_type(RT_HW_CTX_TYPE_AIV);
   auto d_aic_aiv = d_context->mutable_aic_aiv_ctx();
   d_aic_aiv->set_successor_num(1);
   d_aic_aiv->add_successor_list(4);
 
-  auto e_context = ffts_plus_task_def->add_ffts_plus_ctx(); // e's context
+  auto e_context = ffts_plus_task_def->add_ffts_plus_ctx();  // e's context
   e_context->set_context_type(RT_HW_CTX_TYPE_AIV);
 
   invalidate_.burst_len_ = 1000000;

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,8 +33,8 @@ Status SubgraphMultiDimsPass::Run(ComputeGraphPtr graph) {
     const auto &func_desc = case_node->GetOpDesc();
     GE_CHECK_NOTNULL(func_desc);
     if (!func_desc->HasAttr(ATTR_NAME_BATCH_NUM)) {
-      GELOGD("Subgraph[%s] is not multi-dims, cause case[%s] has no batch_num attr",
-             subgraph->GetName().c_str(), case_node->GetName().c_str());
+      GELOGD("Subgraph[%s] is not multi-dims, cause case[%s] has no batch_num attr", subgraph->GetName().c_str(),
+             case_node->GetName().c_str());
       continue;
     }
     if (!IsOutputUnknownShape(func_desc)) {
@@ -93,9 +93,9 @@ Status SubgraphMultiDimsPass::CreateUpdateTensorDescNodes(const ComputeGraphPtr 
     const auto &peer_tensor = peer_desc->GetOutputDescPtr(peer_anchor->GetIdx());
     GE_CHECK_NOTNULL(peer_tensor);
     OpDescBuilder op_builder(subgraph->GetName() + "/subgraph_mbatch_update_tensor_desc_" + label + "_" +
-                                 std::to_string(input_anchor->GetIdx()), "UpdateTensorDesc");
-    op_builder.AddInput("x", GeTensorDesc(*peer_tensor))
-              .AddOutput("y", GeTensorDesc(*peer_tensor));
+                                 std::to_string(input_anchor->GetIdx()),
+                             "UpdateTensorDesc");
+    op_builder.AddInput("x", GeTensorDesc(*peer_tensor)).AddOutput("y", GeTensorDesc(*peer_tensor));
 
     const OpDescPtr op_desc = op_builder.Build();
     GE_CHECK_NOTNULL(op_desc);
@@ -116,19 +116,21 @@ Status SubgraphMultiDimsPass::CreateUpdateTensorDescNodes(const ComputeGraphPtr 
     (void)AttrUtils::SetBool(input_tensor, ATTR_NAME_TENSOR_NO_TILING_MEM_TYPE, true);
 
     if (GraphUtils::RemoveEdge(peer_anchor, input_anchor) != GRAPH_SUCCESS) {
-      REPORT_INNER_ERR_MSG("E19999", "RemoveEdge for node[%s] out data anchor[%d] and node[%s] in data anchor[%d]"
-                         " failed.", peer_node->GetName().c_str(), peer_anchor->GetIdx(),
-                         output_node->GetName().c_str(), input_anchor->GetIdx());
+      REPORT_INNER_ERR_MSG("E19999",
+                           "RemoveEdge for node[%s] out data anchor[%d] and node[%s] in data anchor[%d]"
+                           " failed.",
+                           peer_node->GetName().c_str(), peer_anchor->GetIdx(), output_node->GetName().c_str(),
+                           input_anchor->GetIdx());
       GELOGE(FAILED, "RemoveEdge for node[%s] out data anchor[%d] and node[%s] in data anchor[%d] failed.",
-             peer_node->GetName().c_str(), peer_anchor->GetIdx(),
-             output_node->GetName().c_str(), input_anchor->GetIdx());
+             peer_node->GetName().c_str(), peer_anchor->GetIdx(), output_node->GetName().c_str(),
+             input_anchor->GetIdx());
       return FAILED;
     }
     // add data edge for UpdateTensorDesc and pre node
     if (GraphUtils::AddEdge(peer_anchor, update_tensor_desc_node->GetInDataAnchor(0)) != GRAPH_SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "AddEdge for node[%s] out data anchor[%d] and node[%s] in data anchor[0] failed.",
-                         peer_node->GetName().c_str(), peer_anchor->GetIdx(),
-                         update_tensor_desc_node->GetName().c_str());
+                           peer_node->GetName().c_str(), peer_anchor->GetIdx(),
+                           update_tensor_desc_node->GetName().c_str());
       GELOGE(FAILED, "AddEdge for node[%s] out data anchor[%d] and node[%s] in data anchor[0] failed.",
              peer_node->GetName().c_str(), peer_anchor->GetIdx(), update_tensor_desc_node->GetName().c_str());
       return FAILED;
@@ -136,8 +138,8 @@ Status SubgraphMultiDimsPass::CreateUpdateTensorDescNodes(const ComputeGraphPtr 
     // add data edge for UpdateTensorDesc and NetOutput
     if (GraphUtils::AddEdge(update_tensor_desc_node->GetOutDataAnchor(0), input_anchor) != GRAPH_SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "AddEdge for node[%s] out data anchor[0] and node[%s] in data anchor[%d] failed.",
-                         update_tensor_desc_node->GetName().c_str(),
-                         output_node->GetName().c_str(), input_anchor->GetIdx());
+                           update_tensor_desc_node->GetName().c_str(), output_node->GetName().c_str(),
+                           input_anchor->GetIdx());
       GELOGE(FAILED, "AddEdge for node[%s] out data anchor[0] and node[%s] in control anchor[%d] failed.",
              update_tensor_desc_node->GetName().c_str(), output_node->GetName().c_str(), input_anchor->GetIdx());
       return FAILED;

@@ -27,7 +27,7 @@ struct EsCTensorHolder {
 ```python
 class GraphBuilder:
     _handle: EsCGraphBuilderPtr  # C 对象指针（不拥有）
-    
+
 class TensorHolder:
     _handle: EsCTensorHolderPtr  # C 对象指针（不拥有）
     _builder: GraphBuilder        # 强引用，拥有
@@ -57,7 +57,7 @@ t = create_tensor()
 # 当前设计（TensorHolder 持有 GraphBuilder）：
 # - builder Python 对象被 GC，但因为 t._builder 持有引用，不会真正析构
 # - 底层 C++ 对象保持有效
-# - t._handle 仍然有效 
+# - t._handle 仍然有效
 ```
 
 ## 潜在问题分析
@@ -70,7 +70,7 @@ t = create_tensor()
 class GraphBuilder:
     def __init__(self):
         self._tensors = []  # 如果保存了 tensor 列表
-    
+
     def create_const_float(self, value):
         tensor = TensorHolder._create_from(handle, self)
         self._tensors.append(tensor)  # ⚠️ 循环引用！
@@ -102,7 +102,7 @@ import weakref
 class GraphBuilder:
     def __init__(self):
         self._tensors = []  # 保存弱引用
-    
+
     def create_const_float(self, value):
         tensor = TensorHolder._create_from(handle, self)
         self._tensors.append(weakref.ref(tensor))  # 弱引用
@@ -187,11 +187,11 @@ result = builder2_some_op(tensor1)  # tensor1 属于 builder1
 def add(self, other: 'TensorHolder') -> 'TensorHolder':
     if not isinstance(other, TensorHolder):
         raise TypeError("Operand must be a TensorHolder")
-    
+
     # 检查是否来自同一个 builder
     if self._builder is not other._builder:
         raise ValueError("Cannot operate on tensors from different GraphBuilders")
-    
+
     # ... 后续逻辑
 ```
 
@@ -240,15 +240,15 @@ std::unique_ptr<ge::Graph> BuildGraphAndReset() {
 class GraphBuilder:
     def __init__(self):
         self._is_built = False
-    
+
     def build_and_reset(self):
         if self._is_built:
             raise RuntimeError("GraphBuilder has already been built")
-        
+
         graph_ptr = esb_lib.EsBuildGraphAndReset(self._handle)
         self._is_built = True  # 标记为已构建
         return Graph._create_from(graph_ptr)
-    
+
     def create_const_float(self, value):
         if self._is_built:
             raise RuntimeError("Cannot create tensors after graph has been built")
@@ -304,7 +304,7 @@ C++ 侧实现：
 ```cpp
 Esphony_IfOutput Esphony_If(..., EsCGraph *then_branch, ...) {
     auto &builder = ...->GetOwnerBuilder();
-    
+
     // AddResource 接管 then_branch 的所有权
     auto then_ptr = builder.AddResource(
         std::unique_ptr<ge::Graph>(then_branch)  // C++ 接管所有权
@@ -377,15 +377,15 @@ class Graph:
         self._handle = create_graph(...)
         self._owns_handle = True   # ✅ 所有权标记
         self._owner = None         # ✅ 所有权接管者引用
-    
+
     def __del__(self):
         # ✅ 根据所有权标记决定是否释放
         if self._owns_handle:
             destroy_graph(self._handle)
-    
+
     def _transfer_ownership_when_pass_as_subgraph(self, new_owner: GraphBuilder):
         """转移所有权到 C++ 侧
-        
+
         Args:
             new_owner: 接管所有权的 GraphBuilder，
                       保持引用以防止其被提前 GC
@@ -400,7 +400,7 @@ class Graph:
 // py_generator_utils.h - GenSubgraphConversion()
 static void GenSubgraphConversion(...) {
     // 生成：subgraph._transfer_ownership_when_pass_as_subgraph(owner_graph_builder)
-    ss << subgraph_name << "._transfer_ownership_when_pass_as_subgraph(" 
+    ss << subgraph_name << "._transfer_ownership_when_pass_as_subgraph("
        << "owner_graph_builder" << ")\n";
 }
 ```
@@ -409,11 +409,11 @@ static void GenSubgraphConversion(...) {
 ```python
 def If(..., then_graph, else_graph, ...):
     owner_graph_builder = ...
-    
+
     # ✅ 自动生成：转移所有权
     then_graph._transfer_ownership_when_pass_as_subgraph(owner_graph_builder)
     else_graph._transfer_ownership_when_pass_as_subgraph(owner_graph_builder)
-    
+
     result = c_lib.EsphonyIf(...)
     return result
 ```
@@ -458,8 +458,3 @@ Python 引用链:
 **当前代码状态**：✅ 已实现并测试
 
 ---
-
-
-
-
-

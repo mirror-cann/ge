@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -41,9 +41,7 @@ class LLMDataDist::Impl {
   ge::Status UnlinkClusters(const std::vector<ClusterInfo> &clusters, std::vector<ge::Status> &rets,
                             const int32_t timeout, bool force_flag = false);
 
-  ge::Status AllocateCache(const CacheDesc &cache_desc,
-                           Cache &cache,
-                           const std::vector<CacheKey> &cache_keys);
+  ge::Status AllocateCache(const CacheDesc &cache_desc, Cache &cache, const std::vector<CacheKey> &cache_keys);
 
   ge::Status DeallocateCache(int64_t cache_id);
 
@@ -117,144 +115,123 @@ void LLMDataDist::Impl::LLMDataDistFinalize() {
   LLMLOGI("LLMDataDist Finalize end.");
 }
 
-
 bool LLMDataDist::Impl::IsInitialized() const {
   return is_initialized_.load(std::memory_order::memory_order_relaxed);
 }
 
-ge::Status LLMDataDist::Impl::CheckLinkStatus(uint64_t remote_cluster_id){
+ge::Status LLMDataDist::Impl::CheckLinkStatus(uint64_t remote_cluster_id) {
   LLM_CHK_BOOL_RET_STATUS(is_initialized_.load(), ge::FAILED, "Llm datadist of cluster:%lu is not initialized.",
-                         cluster_id_);
+                          cluster_id_);
   LLM_CHK_BOOL_RET_STATUS(role_ == kDecoder, ge::LLM_PARAM_INVALID,
-                         "[LLMDataDist] CheckLinkStatus can only be used by Decoder, current_role is %s, ",
-                         role_.c_str());
+                          "[LLMDataDist] CheckLinkStatus can only be used by Decoder, current_role is %s, ",
+                          role_.c_str());
   LLM_CHK_STATUS_RET(llm_flow_service_->CheckLinkStatus(remote_cluster_id));
   return ge::SUCCESS;
 }
 
-ge::Status LLMDataDist::Impl::LinkClusters(const std::vector<ClusterInfo> &clusters,
-                                           std::vector<ge::Status> &rets, const int32_t timeout) {
-  LLM_CHK_BOOL_RET_STATUS(is_initialized_.load(), ge::FAILED,
-                         "Llm datadist of cluster:%lu is not initialized.", cluster_id_);
-  LLM_CHK_BOOL_RET_STATUS(role_ == kDecoder,
-                         ge::LLM_PARAM_INVALID,
-                         "[LLMDataDist] linkClusters can only be used by Decoder, current_role is %s, ", role_.c_str());
+ge::Status LLMDataDist::Impl::LinkClusters(const std::vector<ClusterInfo> &clusters, std::vector<ge::Status> &rets,
+                                           const int32_t timeout) {
+  LLM_CHK_BOOL_RET_STATUS(is_initialized_.load(), ge::FAILED, "Llm datadist of cluster:%lu is not initialized.",
+                          cluster_id_);
+  LLM_CHK_BOOL_RET_STATUS(role_ == kDecoder, ge::LLM_PARAM_INVALID,
+                          "[LLMDataDist] linkClusters can only be used by Decoder, current_role is %s, ",
+                          role_.c_str());
   rets.clear();
   LLM_CHK_STATUS_RET(llm_flow_service_->LinkClusters(clusters, rets, timeout));
   return ge::SUCCESS;
 }
 
-ge::Status LLMDataDist::Impl::UnlinkClusters(const std::vector<ClusterInfo> &clusters,
-                                             std::vector<ge::Status> &rets, const int32_t timeout, bool force_flag) {
-  LLM_CHK_BOOL_RET_STATUS(is_initialized_.load(std::memory_order::memory_order_relaxed),
-                         ge::FAILED,
-                         "Llm datadist of cluster:%lu is not initialized.", cluster_id_);
+ge::Status LLMDataDist::Impl::UnlinkClusters(const std::vector<ClusterInfo> &clusters, std::vector<ge::Status> &rets,
+                                             const int32_t timeout, bool force_flag) {
+  LLM_CHK_BOOL_RET_STATUS(is_initialized_.load(std::memory_order::memory_order_relaxed), ge::FAILED,
+                          "Llm datadist of cluster:%lu is not initialized.", cluster_id_);
   rets.clear();
   LLM_CHK_STATUS_RET(llm_flow_service_->UnlinkClusters(clusters, rets, timeout, force_flag), "Unlink clusters failed");
   return ge::SUCCESS;
 }
 
-ge::Status LLMDataDist::Impl::AllocateCache(const CacheDesc &cache_desc,
-                                            Cache &cache,
+ge::Status LLMDataDist::Impl::AllocateCache(const CacheDesc &cache_desc, Cache &cache,
                                             const std::vector<CacheKey> &cache_keys) {
-  LLM_CHK_BOOL_RET_STATUS(is_initialized_.load(std::memory_order::memory_order_relaxed),
-                         ge::FAILED,
-                         "Llm datadist of cluster:%lu is not initialized.", cluster_id_);
+  LLM_CHK_BOOL_RET_STATUS(is_initialized_.load(std::memory_order::memory_order_relaxed), ge::FAILED,
+                          "Llm datadist of cluster:%lu is not initialized.", cluster_id_);
   return cache_engine_->Allocate(cache_desc, cache_keys, cache);
 }
 
 ge::Status LLMDataDist::Impl::DeallocateCache(int64_t cache_id) {
-  LLM_CHK_BOOL_RET_STATUS(is_initialized_.load(std::memory_order::memory_order_relaxed),
-                         ge::FAILED,
-                         "Llm datadist of cluster:%lu is not initialized.", cluster_id_);
+  LLM_CHK_BOOL_RET_STATUS(is_initialized_.load(std::memory_order::memory_order_relaxed), ge::FAILED,
+                          "Llm datadist of cluster:%lu is not initialized.", cluster_id_);
   return cache_engine_->Deallocate(cache_id);
 }
 
-ge::Status LLMDataDist::Impl::PullCache(int64_t cache_id,
-                                        const CacheKey &cache_key,
+ge::Status LLMDataDist::Impl::PullCache(int64_t cache_id, const CacheKey &cache_key,
                                         const PullCacheParam &pull_cache_param) {
-  LLM_CHK_BOOL_RET_STATUS(is_initialized_.load(std::memory_order::memory_order_relaxed),
-                         ge::FAILED,
-                         "Llm datadist of cluster:%lu is not initialized.", cluster_id_);
+  LLM_CHK_BOOL_RET_STATUS(is_initialized_.load(std::memory_order::memory_order_relaxed), ge::FAILED,
+                          "Llm datadist of cluster:%lu is not initialized.", cluster_id_);
   LLM_CHK_BOOL_RET_STATUS(role_ == kDecoder, ge::LLM_PARAM_INVALID,
-                         "[PullKvCache] is only supported by Decoder, current_role is %s.",
-                         role_.c_str());
+                          "[PullKvCache] is only supported by Decoder, current_role is %s.", role_.c_str());
   return cache_engine_->PullCache(cache_id, cache_key, pull_cache_param);
 }
 
-ge::Status LLMDataDist::Impl::PullBlocks(int64_t cache_id,
-                                         const CacheKey &cache_key,
+ge::Status LLMDataDist::Impl::PullBlocks(int64_t cache_id, const CacheKey &cache_key,
                                          const PullCacheParam &pull_cache_param) {
-  LLM_CHK_BOOL_RET_STATUS(is_initialized_.load(std::memory_order::memory_order_relaxed),
-                         ge::FAILED,
-                         "Llm datadist of cluster:%lu is not initialized.", cluster_id_);
+  LLM_CHK_BOOL_RET_STATUS(is_initialized_.load(std::memory_order::memory_order_relaxed), ge::FAILED,
+                          "Llm datadist of cluster:%lu is not initialized.", cluster_id_);
   LLM_CHK_BOOL_RET_STATUS(role_ == kDecoder, ge::LLM_PARAM_INVALID,
-                         "[PullKvBlocks] is only supported by Decoder, current_role is %s.",
-                         role_.c_str());
-  LLM_CHK_BOOL_RET_STATUS((!pull_cache_param.prompt_blocks.empty()),
-                         ge::LLM_PARAM_INVALID,
-                         "src_blocks is empty, pull from non-block cache is not supported yet");
+                          "[PullKvBlocks] is only supported by Decoder, current_role is %s.", role_.c_str());
+  LLM_CHK_BOOL_RET_STATUS((!pull_cache_param.prompt_blocks.empty()), ge::LLM_PARAM_INVALID,
+                          "src_blocks is empty, pull from non-block cache is not supported yet");
   LLM_CHK_BOOL_RET_STATUS(pull_cache_param.prompt_blocks.size() == pull_cache_param.decoder_blocks.size(),
-                         ge::LLM_PARAM_INVALID,
-                         "number of src_blocks (%zu) mismatches that of dst_blocks (%zu)",
-                         pull_cache_param.prompt_blocks.size(), pull_cache_param.decoder_blocks.size());
-  LLM_CHK_BOOL_RET_STATUS(cache_key.prompt_batch_index == 0U,
-                         ge::LLM_PARAM_INVALID,
-                         "invalid cache_key.prompt_batch_index (%lu), only 0 is supported in pull block",
-                         cache_key.prompt_batch_index);
+                          ge::LLM_PARAM_INVALID, "number of src_blocks (%zu) mismatches that of dst_blocks (%zu)",
+                          pull_cache_param.prompt_blocks.size(), pull_cache_param.decoder_blocks.size());
+  LLM_CHK_BOOL_RET_STATUS(cache_key.prompt_batch_index == 0U, ge::LLM_PARAM_INVALID,
+                          "invalid cache_key.prompt_batch_index (%lu), only 0 is supported in pull block",
+                          cache_key.prompt_batch_index);
   return cache_engine_->PullCache(cache_id, cache_key, pull_cache_param);
 }
 
 ge::Status LLMDataDist::Impl::TransferCache(uint64_t task_id, const TransferCacheConfig &transfer_cache_config,
                                             const TransferBlockConfig &transfer_block_config) {
-  LLM_CHK_BOOL_RET_STATUS(is_initialized_.load(std::memory_order::memory_order_relaxed),
-                         ge::FAILED,
-                         "Llm datadist of cluster:%lu is not initialized.", cluster_id_);
+  LLM_CHK_BOOL_RET_STATUS(is_initialized_.load(std::memory_order::memory_order_relaxed), ge::FAILED,
+                          "Llm datadist of cluster:%lu is not initialized.", cluster_id_);
   LLM_CHK_BOOL_RET_STATUS(device_ids_.size() == 1U, ge::LLM_FEATURE_NOT_ENABLED,
-                        "Transfer cache is not supported when device num bigger than one.");
-  LLM_CHK_BOOL_RET_STATUS(role_ == kPrompt, ge::LLM_PARAM_INVALID,
-                         "Transfer cache is not supported by %s", role_.c_str());
+                          "Transfer cache is not supported when device num bigger than one.");
+  LLM_CHK_BOOL_RET_STATUS(role_ == kPrompt, ge::LLM_PARAM_INVALID, "Transfer cache is not supported by %s",
+                          role_.c_str());
   LLM_CHK_BOOL_RET_STATUS(aclrtSetDevice(device_ids_.front()) == ACL_ERROR_NONE, ge::FAILED,
                           "Failed to set device, device id = %d", device_ids_.front());
   return cache_engine_->TransferCache(task_id, transfer_cache_config, transfer_block_config);
 }
 
 ge::Status LLMDataDist::Impl::CopyCache(const CopyCacheParam &copy_cache_param) {
-  LLM_CHK_BOOL_RET_STATUS(is_initialized_.load(std::memory_order::memory_order_relaxed),
-                         ge::FAILED,
-                         "Llm datadist of cluster:%lu is not initialized.", cluster_id_);
+  LLM_CHK_BOOL_RET_STATUS(is_initialized_.load(std::memory_order::memory_order_relaxed), ge::FAILED,
+                          "Llm datadist of cluster:%lu is not initialized.", cluster_id_);
   return cache_engine_->CopyCache(copy_cache_param);
 }
 
-ge::Status LLMDataDist::Impl::CopyCache(const CacheEntry &src_cache_entry,
-                                        const CacheEntry &dst_cache_entry,
+ge::Status LLMDataDist::Impl::CopyCache(const CacheEntry &src_cache_entry, const CacheEntry &dst_cache_entry,
                                         const CopyCacheParam &copy_cache_param,
                                         const std::vector<int32_t> &device_ids) {
-  LLM_CHK_BOOL_RET_STATUS(is_initialized_.load(std::memory_order::memory_order_relaxed),
-                         ge::FAILED,
-                         "Llm datadist of cluster:%lu is not initialized.", cluster_id_);
+  LLM_CHK_BOOL_RET_STATUS(is_initialized_.load(std::memory_order::memory_order_relaxed), ge::FAILED,
+                          "Llm datadist of cluster:%lu is not initialized.", cluster_id_);
   LLM_CHK_BOOL_RET_STATUS(src_cache_entry.cache_addrs.size() % device_ids_.size() == 0, ge::LLM_PARAM_INVALID,
-                         "Param invalid, tensor_addrs size:%zu of src cache should be a multiple of device num:%zu.",
-                         src_cache_entry.cache_addrs.size(), device_ids_.size());
+                          "Param invalid, tensor_addrs size:%zu of src cache should be a multiple of device num:%zu.",
+                          src_cache_entry.cache_addrs.size(), device_ids_.size());
   LLM_CHK_BOOL_RET_STATUS(dst_cache_entry.cache_addrs.size() % device_ids_.size() == 0, ge::LLM_PARAM_INVALID,
-                         "Param invalid, tensor_addrs size:%zu of dst cache should be a multiple of device num:%zu.",
-                         dst_cache_entry.cache_addrs.size(), device_ids_.size());
+                          "Param invalid, tensor_addrs size:%zu of dst cache should be a multiple of device num:%zu.",
+                          dst_cache_entry.cache_addrs.size(), device_ids_.size());
   return llm_flow_service_->CopyCache(src_cache_entry, dst_cache_entry, copy_cache_param, device_ids);
 }
 
 ge::Status LLMDataDist::Impl::RemoveCacheKey(const CacheKey &cache_key) {
-  LLM_CHK_BOOL_RET_STATUS(is_initialized_.load(std::memory_order::memory_order_relaxed),
-                         ge::FAILED,
-                         "Llm datadist of cluster:%lu is not initialized.", cluster_id_);
+  LLM_CHK_BOOL_RET_STATUS(is_initialized_.load(std::memory_order::memory_order_relaxed), ge::FAILED,
+                          "Llm datadist of cluster:%lu is not initialized.", cluster_id_);
   return cache_engine_->RemoveCacheKey(cache_key);
 }
 
-ge::Status LLMDataDist::Impl::GetCacheTensors(int64_t cache_id,
-                                              std::vector<ge::Tensor> &outputs,
+ge::Status LLMDataDist::Impl::GetCacheTensors(int64_t cache_id, std::vector<ge::Tensor> &outputs,
                                               int32_t tensor_index) {
-  LLM_CHK_BOOL_RET_STATUS(is_initialized_.load(std::memory_order::memory_order_relaxed),
-                         ge::FAILED,
-                         "Llm datadist of cluster:%lu is not initialized.", cluster_id_);
+  LLM_CHK_BOOL_RET_STATUS(is_initialized_.load(std::memory_order::memory_order_relaxed), ge::FAILED,
+                          "Llm datadist of cluster:%lu is not initialized.", cluster_id_);
   return cache_engine_->GetCacheTensors(cache_id, outputs, tensor_index);
 }
 
@@ -263,7 +240,7 @@ ge::Status LLMDataDist::Impl::InitFlowService(const std::map<ge::AscendString, g
   llm_flow_service_ = llm::MakeUnique<LlmFlowService>(role_, enable_switch_role_, cluster_id_);
   LLM_CHECK_NOTNULL(llm_flow_service_);
   LLM_CHK_STATUS_RET(LLMUtils::ParseDeviceId(options, device_ids_, ge::OPTION_EXEC_DEVICE_ID),
-                    "Failed to get device id");
+                     "Failed to get device id");
   if (device_ids_.empty()) {
     device_ids_.emplace_back(0U);
   }
@@ -277,14 +254,12 @@ ge::Status LLMDataDist::Impl::InitFlowService(const std::map<ge::AscendString, g
 }
 
 ge::Status LLMDataDist::Impl::SwitchRole(const std::string &role, const std::map<std::string, std::string> &options) {
-  LLM_CHK_BOOL_RET_STATUS(is_initialized_.load(), ge::FAILED,
-                         "Llm datadist of cluster:%lu is not initialized.", cluster_id_);
-  LLM_CHK_BOOL_RET_STATUS(enable_switch_role_,
-                         ge::LLM_FEATURE_NOT_ENABLED,
-                         "Option %s not enabled",
-                         LLM_OPTION_ENABLE_SWITCH_ROLE);
+  LLM_CHK_BOOL_RET_STATUS(is_initialized_.load(), ge::FAILED, "Llm datadist of cluster:%lu is not initialized.",
+                          cluster_id_);
+  LLM_CHK_BOOL_RET_STATUS(enable_switch_role_, ge::LLM_FEATURE_NOT_ENABLED, "Option %s not enabled",
+                          LLM_OPTION_ENABLE_SWITCH_ROLE);
   LLM_CHK_BOOL_RET_STATUS(device_ids_.size() <= 1U, ge::LLM_FEATURE_NOT_ENABLED,
-                         "Switch role is not supported when device num bigger than one.");
+                          "Switch role is not supported when device num bigger than one.");
   LLM_CHK_STATUS_RET(llm_flow_service_->SwitchRole(role, options), "Failed to switch role");
   LLMEVENT("role switched from %s to %s", role_.c_str(), role.c_str());
   role_ = role;
@@ -295,13 +270,15 @@ ge::Status LLMDataDist::Impl::SwapBlocks(const Cache &src, const Cache &dst, con
                                          const uint32_t type,
                                          const std::vector<std::pair<int64_t, int64_t>> &block_mapping) {
   LLM_CHK_BOOL_RET_STATUS(is_initialized_.load(std::memory_order::memory_order_relaxed), ge::FAILED,
-                         "Llm datadist of cluster:%lu is not initialized.", cluster_id_);
-  LLM_CHK_BOOL_RET_STATUS(src.per_device_tensor_addrs.size() == device_ids_.size(), ge::LLM_PARAM_INVALID,
-                         "Param invalid, per_device_tensor_addrs size:%zu of src cache should be equal to device num:%zu.",
-                         src.per_device_tensor_addrs.size(), device_ids_.size());
-  LLM_CHK_BOOL_RET_STATUS(dst.per_device_tensor_addrs.size() == device_ids_.size(), ge::LLM_PARAM_INVALID,
-                         "Param invalid, per_device_tensor_addrs size:%zu of dst cache should be equal to device num:%zu.",
-                         dst.per_device_tensor_addrs.size(), device_ids_.size());
+                          "Llm datadist of cluster:%lu is not initialized.", cluster_id_);
+  LLM_CHK_BOOL_RET_STATUS(
+      src.per_device_tensor_addrs.size() == device_ids_.size(), ge::LLM_PARAM_INVALID,
+      "Param invalid, per_device_tensor_addrs size:%zu of src cache should be equal to device num:%zu.",
+      src.per_device_tensor_addrs.size(), device_ids_.size());
+  LLM_CHK_BOOL_RET_STATUS(
+      dst.per_device_tensor_addrs.size() == device_ids_.size(), ge::LLM_PARAM_INVALID,
+      "Param invalid, per_device_tensor_addrs size:%zu of dst cache should be equal to device num:%zu.",
+      dst.per_device_tensor_addrs.size(), device_ids_.size());
   SwapBlockParam swap_param{block_size, type, block_mapping};
   return llm_flow_service_->SwapBlocks(src, dst, swap_param, device_ids_);
 }
@@ -328,7 +305,7 @@ void LLMDataDist::LLMDataDistFinalize() {
   }
 }
 
-ge::Status LLMDataDist::CheckLinkStatus(uint64_t remote_cluster_id){
+ge::Status LLMDataDist::CheckLinkStatus(uint64_t remote_cluster_id) {
   LLM_CHK_BOOL_RET_STATUS(impl_ != nullptr, ge::LLM_PARAM_INVALID, "impl is nullptr, check LLMDataDist construct");
   return TransRetToLlmCodes((impl_->CheckLinkStatus(remote_cluster_id)));
 }
@@ -345,8 +322,7 @@ ge::Status LLMDataDist::UnlinkClusters(const std::vector<ClusterInfo> &clusters,
   return TransRetToLlmCodes((impl_->UnlinkClusters(clusters, rets, timeout, force_flag)));
 }
 
-ge::Status LLMDataDist::AllocateCache(const CacheDesc &cache_desc,
-                                      Cache &cache,
+ge::Status LLMDataDist::AllocateCache(const CacheDesc &cache_desc, Cache &cache,
                                       const std::vector<CacheKey> &cache_keys) {
   LLM_CHK_BOOL_RET_STATUS(impl_ != nullptr, ge::LLM_PARAM_INVALID, "impl is nullptr, check LLMDataDist construct");
   return TransRetToLlmCodes(impl_->AllocateCache(cache_desc, cache, cache_keys));
@@ -362,7 +338,8 @@ ge::Status LLMDataDist::PullCache(int64_t cache_id, const CacheKey &cache_key, c
   return TransRetToLlmCodes(impl_->PullCache(cache_id, cache_key, pull_cache_param));
 }
 
-ge::Status LLMDataDist::PullBlocks(int64_t cache_id, const CacheKey &cache_key, const PullCacheParam &pull_cache_param) {
+ge::Status LLMDataDist::PullBlocks(int64_t cache_id, const CacheKey &cache_key,
+                                   const PullCacheParam &pull_cache_param) {
   LLM_CHK_BOOL_RET_STATUS(impl_ != nullptr, ge::LLM_PARAM_INVALID, "impl is nullptr, check LLMDataDist construct");
   return TransRetToLlmCodes(impl_->PullBlocks(cache_id, cache_key, pull_cache_param));
 }
@@ -389,9 +366,7 @@ ge::Status LLMDataDist::RemoveCacheKey(const CacheKey &cache_key) {
   return TransRetToLlmCodes(impl_->RemoveCacheKey(cache_key));
 }
 
-ge::Status LLMDataDist::GetCacheTensors(int64_t cache_id,
-                                        std::vector<ge::Tensor> &outputs,
-                                        int32_t tensor_index) {
+ge::Status LLMDataDist::GetCacheTensors(int64_t cache_id, std::vector<ge::Tensor> &outputs, int32_t tensor_index) {
   LLM_CHK_BOOL_RET_STATUS(impl_ != nullptr, ge::LLM_PARAM_INVALID, "impl is nullptr, check LLMDataDist construct");
   return TransRetToLlmCodes(impl_->GetCacheTensors(cache_id, outputs, tensor_index));
 }

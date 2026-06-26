@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -12,10 +12,10 @@
 #include "dump/utils/dump_session_wrapper.h"
 #include "dump/utils/dump_config_builder.h"
 
-#include "exe_graph/runtime/kernel_context.h"           // class KernelContext
-#include "graph_builder/bg_memory.h"                    // AllocOutputMemory
-#include "register/node_converter_registry.h"           // REGISTER_NODE_CONVERTER
-#include "register/kernel_registry.h"                   // REGISTER_KERNEL
+#include "exe_graph/runtime/kernel_context.h"  // class KernelContext
+#include "graph_builder/bg_memory.h"           // AllocOutputMemory
+#include "register/node_converter_registry.h"  // REGISTER_NODE_CONVERTER
+#include "register/kernel_registry.h"          // REGISTER_KERNEL
 
 using namespace ge;
 using DynamicShapeDumpST = DumpST<true>;
@@ -33,7 +33,7 @@ LowerResult FakeLoweringHcom(const ge::NodePtr &node, const LowerInput &lower_in
 }
 REGISTER_NODE_CONVERTER("_fake_lowering_hcom", FakeLoweringHcom);
 REGISTER_KERNEL(LaunchHcomKernel).RunFunc([](KernelContext *) { return ge::GRAPH_SUCCESS; });
-} //namespace gert
+}  // namespace gert
 
 namespace {
 void MarkSingleOp(const ComputeGraphPtr &graph) {
@@ -65,7 +65,8 @@ ge::graphStatus InferShapeForAdd(gert::InferShapeContext *context) {
   if (input_shape_0.GetDimNum() != input_shape_1.GetDimNum()) {
     auto min_num = std::min(input_shape_0.GetDimNum(), input_shape_1.GetDimNum());
     if (min_num != 1) {
-      GELOGE(ge::PARAM_INVALID, "Add param invalid, input_shape_0.GetDimNum() is %zu,  input_shape_1.GetDimNum() is %zu",
+      GELOGE(ge::PARAM_INVALID,
+             "Add param invalid, input_shape_0.GetDimNum() is %zu,  input_shape_1.GetDimNum() is %zu",
              input_shape_0.GetDimNum(), input_shape_1.GetDimNum());
     } else {
       if (input_shape_1.GetDimNum() > 1) {
@@ -111,7 +112,7 @@ ge::graphStatus TilingParseForAdd(gert::KernelContext *context) {
   return ge::GRAPH_SUCCESS;
 }
 
-} // anonymous namespace
+}  // anonymous namespace
 
 TEST_F(DynamicShapeDumpST, Dynamic_OverflowDump_Graph) {
   auto config = OverflowDumpConfigBuilder();

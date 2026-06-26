@@ -48,14 +48,14 @@ typedef struct tagRtKernelInfo {
 typedef rtSmDesc_t rtL2Ctrl_t;
 
 typedef struct {
-    uint32_t addrOffset;
-    uint32_t dataOffset;
+  uint32_t addrOffset;
+  uint32_t dataOffset;
 } rtPlaceHolderInfo_t;
 
 typedef struct {
-    rtAicpuArgsEx_t baseArgs;
-    size_t cpuParamHeadOffset;
-    uint32_t rsv[4];
+  rtAicpuArgsEx_t baseArgs;
+  size_t cpuParamHeadOffset;
+  uint32_t rsv[4];
 } rtCpuKernelArgs_t;
 
 typedef enum tagRtMemRequestFeature {
@@ -67,92 +67,97 @@ typedef enum tagRtMemRequestFeature {
 #define RT_MQ_QUERY_QUES_ATTR_ENTITY_TYPE ((rtMemQueueQueryCmd_t)2)
 
 typedef struct tagNodeInfo_t {
-    uint32_t nodeIdx;
-    uint32_t reserved[1];
+  uint32_t nodeIdx;
+  uint32_t reserved[1];
 } rtNodeInfo;
 
 typedef struct tagHwtsInfo_t {
-    uint16_t taskId;
-    uint16_t sqExeHead;
-    uint16_t streamExeHead;
-    uint16_t reserved[2];
+  uint16_t taskId;
+  uint16_t sqExeHead;
+  uint16_t streamExeHead;
+  uint16_t reserved[2];
 } rtHwtsInfo;
 
 typedef struct tagLabelDevInfo_t {
-    uint16_t modelId;
-    uint16_t streamId;
-    uint16_t labelId;
-    union {
-        rtNodeInfo nodeInfo;
-        rtHwtsInfo hwtsInfo;
-        uint16_t reserved[5];
-    }u;
+  uint16_t modelId;
+  uint16_t streamId;
+  uint16_t labelId;
+  union {
+    rtNodeInfo nodeInfo;
+    rtHwtsInfo hwtsInfo;
+    uint16_t reserved[5];
+  } u;
 } rtLabelDevInfo;
 
 #define RT_STREAM_FAST_LAUNCH (0x200U)
-#define RT_STREAM_FAST_SYNC   (0x400U)
+#define RT_STREAM_FAST_SYNC (0x400U)
 
 typedef void (*rtCallback_t)(void *fnData);
 
 typedef enum rtKernelType {
-    KERNEL_TYPE_CCE = 0,
-    KERNEL_TYPE_FWK = 1,
-    KERNEL_TYPE_AICPU = 2,
-    KERNEL_TYPE_AICPU_CUSTOM = 4,
-    KERNEL_TYPE_AICPU_KFC = 5,
-    KERNEL_TYPE_CUSTOM_KFC = 6,
-    KERNEL_TYPE_HWTS = 10,
-    KERNEL_TYPE_RESERVED = 99,
+  KERNEL_TYPE_CCE = 0,
+  KERNEL_TYPE_FWK = 1,
+  KERNEL_TYPE_AICPU = 2,
+  KERNEL_TYPE_AICPU_CUSTOM = 4,
+  KERNEL_TYPE_AICPU_KFC = 5,
+  KERNEL_TYPE_CUSTOM_KFC = 6,
+  KERNEL_TYPE_HWTS = 10,
+  KERNEL_TYPE_RESERVED = 99,
 } rtKernelType_t;
 
 #define RT_CAPABILITY_SUPPORT (0x1U)
 
 RTS_API rtError_t rtKernelLaunchWithHandleV2(void *hdl, const uint64_t tilingKey, uint32_t numBlocks,
-    rtArgsEx_t *argsInfo, rtSmDesc_t *smDesc, rtStream_t stm, const rtTaskCfgInfo_t *cfgInfo);
+                                             rtArgsEx_t *argsInfo, rtSmDesc_t *smDesc, rtStream_t stm,
+                                             const rtTaskCfgInfo_t *cfgInfo);
 
 RTS_API rtError_t rtVectorCoreKernelLaunchWithHandle(void *hdl, const uint64_t tilingKey, uint32_t numBlocks,
-    rtArgsEx_t *argsInfo, rtSmDesc_t *smDesc, rtStream_t stm, const rtTaskCfgInfo_t *cfgInfo);
+                                                     rtArgsEx_t *argsInfo, rtSmDesc_t *smDesc, rtStream_t stm,
+                                                     const rtTaskCfgInfo_t *cfgInfo);
 
 RTS_API rtError_t rtVectorCoreKernelLaunch(const void *stubFunc, uint32_t numBlocks, rtArgsEx_t *argsInfo,
-    rtSmDesc_t *smDesc, rtStream_t stm, uint32_t flags, const rtTaskCfgInfo_t *cfgInfo);
+                                           rtSmDesc_t *smDesc, rtStream_t stm, uint32_t flags,
+                                           const rtTaskCfgInfo_t *cfgInfo);
 
 RTS_API rtError_t rtGetSocVersion(char_t *ver, const uint32_t maxLen);
 
 RTS_API rtError_t rtMemcpyAsync(void *dst, uint64_t destMax, const void *src, uint64_t cnt, rtMemcpyKind_t kind,
-    rtStream_t stm);
+                                rtStream_t stm);
 
 RTS_API rtError_t rtKernelLaunchWithFlagV2(const void *stubFunc, uint32_t numBlocks, rtArgsEx_t *argsInfo,
-    rtSmDesc_t *smDesc, rtStream_t stm, uint32_t flags, const rtTaskCfgInfo_t *cfgInfo);
+                                           rtSmDesc_t *smDesc, rtStream_t stm, uint32_t flags,
+                                           const rtTaskCfgInfo_t *cfgInfo);
 
 RTS_API rtError_t rtKernelLaunchEx(void *args, uint32_t argsSize, uint32_t flags, rtStream_t stm);
 
 RTS_API rtError_t rtKernelLaunchFwk(const char_t *opName, void *args, uint32_t argsSize, uint32_t flags,
-    rtStream_t rtStream);
+                                    rtStream_t rtStream);
 
 RTS_API rtError_t rtAicpuKernelLaunchWithFlag(const rtKernelLaunchNames_t *launchNames, uint32_t numBlocks,
-    const rtArgsEx_t *argsInfo, rtSmDesc_t *smDesc, rtStream_t stm, uint32_t flags);
+                                              const rtArgsEx_t *argsInfo, rtSmDesc_t *smDesc, rtStream_t stm,
+                                              uint32_t flags);
 
 RTS_API rtError_t rtDevBinaryRegister(const rtDevBinary_t *bin, void **hdl);
 
 RTS_API rtError_t rtDevBinaryUnRegister(void *hdl);
 
 RTS_API rtError_t rtFunctionRegister(void *binHandle, const void *stubFunc, const char_t *stubName,
-    const void *kernelInfoExt, uint32_t funcMode);
+                                     const void *kernelInfoExt, uint32_t funcMode);
 
 RTS_API rtError_t rtGetFunctionByName(const char_t *stubName, void **stubFunc);
 
-RTS_API rtError_t rtKernelGetAddrAndPrefCnt(void *hdl, const uint64_t tilingKey, const void * const stubFunc,
-    const uint32_t flag, void **addr, uint32_t *prefetchCnt);
+RTS_API rtError_t rtKernelGetAddrAndPrefCnt(void *hdl, const uint64_t tilingKey, const void *const stubFunc,
+                                            const uint32_t flag, void **addr, uint32_t *prefetchCnt);
 
-RTS_API rtError_t rtKernelGetAddrAndPrefCntV2(void *hdl, const uint64_t tilingKey, const void * const stubFunc,
-    const uint32_t flag, rtKernelDetailInfo_t *kernelInfo);
+RTS_API rtError_t rtKernelGetAddrAndPrefCntV2(void *hdl, const uint64_t tilingKey, const void *const stubFunc,
+                                              const uint32_t flag, rtKernelDetailInfo_t *kernelInfo);
 
 RTS_API rtError_t rtQueryFunctionRegistered(const char_t *stubName);
 
 RTS_API uint32_t rtGetTsMemType(rtMemRequestFeature_t featureType, uint32_t memSize);
 
-RTS_API rtError_t rtCmoAddrTaskLaunch(void *cmoAddrInfo, uint64_t destMax, rtCmoOpCode_t cmoOpCode,
-    rtStream_t stm, uint32_t flag);
+RTS_API rtError_t rtCmoAddrTaskLaunch(void *cmoAddrInfo, uint64_t destMax, rtCmoOpCode_t cmoOpCode, rtStream_t stm,
+                                      uint32_t flag);
 
 RTS_API rtError_t rtGetC2cCtrlAddr(uint64_t *addr, uint32_t *len);
 

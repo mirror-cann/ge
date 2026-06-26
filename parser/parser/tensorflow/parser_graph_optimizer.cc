@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -124,8 +124,8 @@ Status ParserGraphOptimizer::GetFusionCluster(const bool has_get_next, const boo
       GELOGI("MarkForFusion, IteratorGetNext graph mark success.");
     }
 
-    const bool dataset_init = (!has_get_next) && (!has_dyn_get_next) &&
-                              ((type == kIteratorType) || (type == kIteratorV2Type));
+    const bool dataset_init =
+        (!has_get_next) && (!has_dyn_get_next) && ((type == kIteratorType) || (type == kIteratorV2Type));
     if (dataset_init) {
       GE_CHK_STATUS_RET(FindFmkNodeCluser(node_cluster_map), "find framework node to be fused fail.");
       GELOGI("MarkForFusion, Iterator init graph mark success.");
@@ -183,10 +183,7 @@ Status CollectNodeFuncs(vector<ge::NodePtr> &nodes, FunctionDefLibrary *library)
 
 Status ParserGraphOptimizer::UpdateGraph(vector<NodePtr> &nodes) {
   ComputeGraphPtr sub_graph = nullptr;
-  GE_MAKE_SHARED(
-      sub_graph = std::make_shared<ComputeGraph>("subGraph"),
-      sub_graph = nullptr;
-      return PARAM_INVALID);
+  GE_MAKE_SHARED(sub_graph = std::make_shared<ComputeGraph>("subGraph"), sub_graph = nullptr; return PARAM_INVALID);
 
   unordered_map<string, NodePtr> node_map;
   vector<InDataAnchorPtr> input_anchors;
@@ -219,13 +216,11 @@ Status ParserGraphOptimizer::UpdateGraph(vector<NodePtr> &nodes) {
 
   GE_IF_BOOL_EXEC(!node_def->SerializeToString(&nodefStr),
                   REPORT_INNER_ERR_MSG("E19999", "Serialize nodedef to string failed");
-                  GELOGE(PARAM_INVALID, "Serialize nodedef to string failed.");
-                  return PARAM_INVALID);
+                  GELOGE(PARAM_INVALID, "Serialize nodedef to string failed."); return PARAM_INVALID);
 
   GE_IF_BOOL_EXEC(!func_def_lib->SerializeToString(&funcdefStr),
                   REPORT_INNER_ERR_MSG("E19999", "Serialize func_def to string failed, ");
-                  GELOGE(PARAM_INVALID, "Serialize func_def to string failed.");
-                  return PARAM_INVALID);
+                  GELOGE(PARAM_INVALID, "Serialize func_def to string failed."); return PARAM_INVALID);
 
   if (nodes.size() == 0) {
     GELOGE(FAILED, "nodes is empty.");
@@ -243,10 +238,9 @@ Status ParserGraphOptimizer::UpdateGraph(vector<NodePtr> &nodes) {
   }
 
   OpDescPtr fusion_node_opdef = nullptr;
-  GE_MAKE_SHARED(
-      fusion_node_opdef = std::make_shared<OpDesc>(fusion_op_name, nodes[0]->GetOpDesc()->GetType()),
-      fusion_node_opdef = nullptr;
-      return FAILED);
+  GE_MAKE_SHARED(fusion_node_opdef = std::make_shared<OpDesc>(fusion_op_name, nodes[0]->GetOpDesc()->GetType()),
+                 fusion_node_opdef = nullptr;
+                 return FAILED);
 
   std::string type = "";
   GE_CHK_STATUS_RET(ge::parser::GetOriginalType(nodes[0], type));
@@ -311,15 +305,13 @@ Status ParserGraphOptimizer::InsertNode(ge::ComputeGraphPtr sub_graph, vector<ge
 
     InControlAnchorPtr node_in_control = node->GetInControlAnchor();
     GE_IF_BOOL_EXEC(
-        node_in_control != nullptr, for (auto peer_out_anchor
-                                         : node_in_control->GetPeerOutControlAnchors()) {
+        node_in_control != nullptr, for (auto peer_out_anchor : node_in_control->GetPeerOutControlAnchors()) {
           vector<ge::NodePtr>::iterator iter = find(nodes.begin(), nodes.end(), peer_out_anchor->GetOwnerNode());
           GE_IF_BOOL_EXEC(iter == nodes.end(), input_control_anchors.emplace_back(node_in_control));
         });
     OutControlAnchorPtr node_out_control = node->GetOutControlAnchor();
     GE_IF_BOOL_EXEC(
-        node_out_control != nullptr, for (auto peer_in_control_anchor
-                                          : node_out_control->GetPeerInControlAnchors()) {
+        node_out_control != nullptr, for (auto peer_in_control_anchor : node_out_control->GetPeerInControlAnchors()) {
           vector<ge::NodePtr>::iterator iter = find(nodes.begin(), nodes.end(), peer_in_control_anchor->GetOwnerNode());
           GE_IF_BOOL_EXEC(iter == nodes.end(), output_control_anchors.emplace_back(node_out_control));
         });
@@ -337,35 +329,34 @@ Status ParserGraphOptimizer::LinkInnerAnchor(unordered_map<string, ge::NodePtr> 
       GE_IF_BOOL_EXEC(node_map.count(peer_out_anchor->GetOwnerNode()->GetName()) == 0, continue);
       NodePtr src = node_map[peer_out_anchor->GetOwnerNode()->GetName()];
 
-      GE_IF_BOOL_EXEC(ge::GraphUtils::AddEdge(src->GetOutDataAnchor(peer_out_anchor->GetIdx()),
-                                              dst->GetInDataAnchor(in_anchor->GetIdx())) != GRAPH_SUCCESS,
-                      REPORT_INNER_ERR_MSG("E19999", "Add edge between op:%s(%s)(index:%d) and op:%s(%s)(index:%d) failed",
-                                        src->GetName().c_str(), src->GetType().c_str(), peer_out_anchor->GetIdx(),
-                                        dst->GetName().c_str(), dst->GetType().c_str(), in_anchor->GetIdx());
-                      GELOGE(FAILED,
-                             "LinkInnerAnchor Link data anchor failed, src node: %s, "
-                             "dst node: %s.",
-                             src->GetName().c_str(), dst->GetName().c_str());
-                      return FAILED);
+      GE_IF_BOOL_EXEC(
+          ge::GraphUtils::AddEdge(src->GetOutDataAnchor(peer_out_anchor->GetIdx()),
+                                  dst->GetInDataAnchor(in_anchor->GetIdx())) != GRAPH_SUCCESS,
+          REPORT_INNER_ERR_MSG("E19999", "Add edge between op:%s(%s)(index:%d) and op:%s(%s)(index:%d) failed",
+                               src->GetName().c_str(), src->GetType().c_str(), peer_out_anchor->GetIdx(),
+                               dst->GetName().c_str(), dst->GetType().c_str(), in_anchor->GetIdx());
+          GELOGE(FAILED,
+                 "LinkInnerAnchor Link data anchor failed, src node: %s, "
+                 "dst node: %s.",
+                 src->GetName().c_str(), dst->GetName().c_str());
+          return FAILED);
     }
 
     InControlAnchorPtr node_in_control = node->GetInControlAnchor();
     GE_IF_BOOL_EXEC(
-        node_in_control != nullptr, for (auto peer_out_ctl_anchor
-                                         : node_in_control->GetPeerOutControlAnchors()) {
+        node_in_control != nullptr, for (auto peer_out_ctl_anchor : node_in_control->GetPeerOutControlAnchors()) {
           GE_IF_BOOL_EXEC(node_map.count(peer_out_ctl_anchor->GetOwnerNode()->GetName()) == 0, continue);
           NodePtr src_ctrl = node_map[peer_out_ctl_anchor->GetOwnerNode()->GetName()];
           GE_IF_BOOL_EXEC(
               ge::GraphUtils::AddEdge(src_ctrl->GetOutControlAnchor(), dst->GetInControlAnchor()) != GRAPH_SUCCESS,
               REPORT_INNER_ERR_MSG("E19999", "Add control edge between op:%s(%s) and op:%s(%s) failed",
-                                src_ctrl->GetName().c_str(), src_ctrl->GetType().c_str(),
-                                dst->GetName().c_str(), dst->GetType().c_str());
+                                   src_ctrl->GetName().c_str(), src_ctrl->GetType().c_str(), dst->GetName().c_str(),
+                                   dst->GetType().c_str());
               GELOGE(FAILED,
                      "LinkInnerAnchor Link control anchor failed, src node: "
                      "%s, dst node: %s.",
                      src_ctrl->GetName().c_str(), dst->GetName().c_str());
               return FAILED);
-
         });
   }
   return SUCCESS;
@@ -390,8 +381,8 @@ Status ParserGraphOptimizer::RebuildOutputAnchors(vector<ge::OutDataAnchorPtr> &
         GE_TENSORFLOW_DATA_TYPE_MAP.find(static_cast<int32_t>(data_type));
     GE_IF_BOOL_EXEC(
         iter == GE_TENSORFLOW_DATA_TYPE_MAP.cend(),
-        REPORT_INNER_ERR_MSG("E19999", "datatype:%d of output:%d in node:%s:%s is not supported",
-                           data_type, out_anchor->GetIdx(), src_node->GetName().c_str(), src_node->GetName().c_str());
+        REPORT_INNER_ERR_MSG("E19999", "datatype:%d of output:%d in node:%s:%s is not supported", data_type,
+                             out_anchor->GetIdx(), src_node->GetName().c_str(), src_node->GetName().c_str());
         GELOGE(PARAM_INVALID, "data_type %s not supported", ge::TypeUtils::DataTypeToSerialString(data_type).c_str());
         return PARAM_INVALID);
 
@@ -417,8 +408,8 @@ Status ParserGraphOptimizer::RebuildInputAnchors(vector<ge::InDataAnchorPtr> &in
     GE_CHECK_NOTNULL_EXEC(tensorDescPtr, return domi::FAILED);
 
     if (fusion_op_desc->AddInputDesc(*tensorDescPtr) != GRAPH_SUCCESS) {
-      REPORT_INNER_ERR_MSG("E19999", "Add input desc to op:%s(%s) failed",
-                        fusion_op_desc->GetName().c_str(), fusion_op_desc->GetType().c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Add input desc to op:%s(%s) failed", fusion_op_desc->GetName().c_str(),
+                           fusion_op_desc->GetType().c_str());
       GELOGE(FAILED, "Add fusion_op_desc AddInputDesc failed");
       return FAILED;
     }
@@ -427,8 +418,8 @@ Status ParserGraphOptimizer::RebuildInputAnchors(vector<ge::InDataAnchorPtr> &in
         GE_TENSORFLOW_DATA_TYPE_MAP.find(static_cast<int32_t>(data_type));
     GE_IF_BOOL_EXEC(
         iter == GE_TENSORFLOW_DATA_TYPE_MAP.cend(),
-        REPORT_INNER_ERR_MSG("E19999", "datatype:%d of input:%d in node:%s:%s is not supported",
-                           data_type, in_anchor->GetIdx(), dst_node->GetName().c_str(), dst_node->GetName().c_str());
+        REPORT_INNER_ERR_MSG("E19999", "datatype:%d of input:%d in node:%s:%s is not supported", data_type,
+                             in_anchor->GetIdx(), dst_node->GetName().c_str(), dst_node->GetName().c_str());
         GELOGE(PARAM_INVALID, "data_type %s not supported", ge::TypeUtils::DataTypeToSerialString(data_type).c_str());
         return PARAM_INVALID);
 

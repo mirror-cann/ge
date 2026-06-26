@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,7 +39,7 @@ void PageSpan::MergeBuddy(PageSpan &buddy_span) {
 }
 
 size_t PageSpan::GetSize() const {
-  return PageLen_GetMemSize(page_len_, scalable_allocator_.GetScalableConfig().page_idem_num) ;
+  return PageLen_GetMemSize(page_len_, scalable_allocator_.GetScalableConfig().page_idem_num);
 }
 
 void PageSpan::SetSplitable(bool splitable) {
@@ -54,5 +54,4 @@ bool PageSpan::IsSplitable(const PageLen page_len) {
   PageLen split_thresold = static_cast<PageLen>(floor(static_cast<float64_t>(page_len_) * kDelaySplitRatio));
   return try_split_page_len_ > split_thresold;
 }
-}
-
+}  // namespace gert

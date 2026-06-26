@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,8 +34,7 @@ class GeneratorManager {
   // 生成所有算子的代码
   void GenAllOps(const std::vector<OpDescPtr> &all_ops,
                  std::unordered_map<std::string, std::vector<std::string>> &unsupported_reasons_to_ops,
-                 std::vector<std::string> &exclude_ops,
-                 size_t &supported_num);
+                 std::vector<std::string> &exclude_ops, size_t &supported_num);
 
   // 生成聚合文件头部
   void GenAggregateHeaders();
@@ -98,7 +97,7 @@ std::unique_ptr<GeneratorManager> CreateGenerators(const std::string &module_nam
 void GenerateAggregateHeaders(GeneratorManager &manager);
 std::vector<std::string> ParseExcludeGenOps(const std::string &exclude_ops_str);
 void GenerateHistoryRegistry(const std::string &output_dir, const std::string &release_version,
-                            const std::string &release_date, const std::string &branch_name);
+                             const std::string &release_date, const std::string &branch_name);
 std::vector<OpDescPtr> CollectAndSortAllOps();
 }  // namespace es
 }  // namespace ge

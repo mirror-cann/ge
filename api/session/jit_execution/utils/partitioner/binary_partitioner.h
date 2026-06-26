@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,15 +33,19 @@ class BinaryPartitioner {
    * Splits the original graph into two separate graphs based on node sets.
    * @param[in] graph : The original graph before slicing.
    * @param[in] infered_nodes : The set of nodes that have completed symbol inference.
-   * @param[out] p_ret : Contains two graphs, where the first graph includes nodes that have been inferred, and the second graph includes nodes that have not been inferred.
+   * @param[out] p_ret : Contains two graphs, where the first graph includes nodes that have been inferred, and the
+   * second graph includes nodes that have not been inferred.
    * @return Status : Return GRAPH_SUCCESS on success, and return GRAPH_FAILED on failure.
    */
-  static Status Partition(const ComputeGraphPtr &graph, const std::vector<NodePtr> &infered_nodes, PartionResult &p_ret);
+  static Status Partition(const ComputeGraphPtr &graph, const std::vector<NodePtr> &infered_nodes,
+                          PartionResult &p_ret);
+
  private:
   static std::vector<NodePtr> GetRemainingNodes(const ComputeGraphPtr &graph,
                                                 const std::vector<NodePtr> &infered_nodes);
   static bool CheckNodesContainsCycle(const std::vector<NodePtr> &infered_nodes,
                                       const std::vector<NodePtr> &uninfer_nodes);
+
  private:
   static BinaryGraphBuilder graph_builder_;
 };

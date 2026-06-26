@@ -22,7 +22,10 @@ _dir = os.path.dirname(os.path.abspath(__file__))
 _dlopen_mode = getattr(os, "RTLD_GLOBAL", 0) | getattr(os, "RTLD_NOW", 0)
 pyatc_lib = load_lib_from_path(LIB_NAME, _dir, mode=_dlopen_mode)
 
-pyatc_lib.GeApiWrapper_Atc_Main.argtypes = [ctypes.c_int, ctypes.POINTER(ctypes.c_char_p)]
+pyatc_lib.GeApiWrapper_Atc_Main.argtypes = [
+    ctypes.c_int,
+    ctypes.POINTER(ctypes.c_char_p),
+]
 pyatc_lib.GeApiWrapper_Atc_Main.restype = ctypes.c_int
 
 

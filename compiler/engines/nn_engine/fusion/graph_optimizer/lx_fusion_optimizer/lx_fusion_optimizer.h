@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,11 +24,11 @@
 #include "graph/compute_graph.h"
 
 namespace fe {
-using L2FusionPreOptimizerFunc = std::function<tune::Status(ge::ComputeGraph &, AOEOption,
-    const std::vector<std::string> &, std::vector<PassChangeInfo> &)>;
+using L2FusionPreOptimizerFunc = std::function<tune::Status(
+    ge::ComputeGraph &, AOEOption, const std::vector<std::string> &, std::vector<PassChangeInfo> &)>;
 using LxFusionOptimizerFunc = std::function<tune::Status(ge::ComputeGraph &, AOEOption)>;
 using LxFusionRecoveryFunc = std::function<tune::Status(ge::ComputeGraph &, const std::vector<ge::NodePtr> &,
-    std::vector<ge::NodePtr> *, std::vector<ge::NodePtr> *)>;
+                                                        std::vector<ge::NodePtr> *, std::vector<ge::NodePtr> *)>;
 using LxFusionFinalizeFunc = std::function<tune::Status(ge::ComputeGraph &)>;
 
 class LxFusionOptimizer {
@@ -39,8 +39,8 @@ class LxFusionOptimizer {
   Status Initialize();
   Status Finalize();
 
-  Status LxFusionOptimize(ge::ComputeGraph& graph, LxFusionOptimizeResult& buffer_ret, bool &need_re_compile);
-  Status LxFusionRecovery(ge::ComputeGraph& graph, const std::vector<ge::NodePtr>& buff_fus_compile_failed_nodes,
+  Status LxFusionOptimize(ge::ComputeGraph &graph, LxFusionOptimizeResult &buffer_ret, bool &need_re_compile);
+  Status LxFusionRecovery(ge::ComputeGraph &graph, const std::vector<ge::NodePtr> &buff_fus_compile_failed_nodes,
                           std::vector<ge::NodePtr> &buff_fus_rollback_nodes,
                           std::vector<ge::NodePtr> &buff_fus_to_del_nodes);
   Status LxFusionFinalize(ge::ComputeGraph &graph);
@@ -48,16 +48,17 @@ class LxFusionOptimizer {
  private:
   Status InitFunctions();
   void ClosePlugin();
-  Status L2FusionOptimize(ge::ComputeGraph& graph, const OptimizeConfig &optimize_config);
-  void UpdateFusionTimesAndSliceInfo(const ge::ComputeGraph& graph,
+  Status L2FusionOptimize(ge::ComputeGraph &graph, const OptimizeConfig &optimize_config);
+  void UpdateFusionTimesAndSliceInfo(const ge::ComputeGraph &graph,
                                      const std::vector<PassChangeInfo> &pass_info_vec) const;
-  Status OptimizeConcatCAxis(ge::ComputeGraph& graph, bool &need_re_compile) const;
+  Status OptimizeConcatCAxis(ge::ComputeGraph &graph, bool &need_re_compile) const;
   // Status GenerateFormatTuneResult(ge::ComputeGraph& graph, bool &need_re_precompile) const;
   static void GetLxfusionOptimizeConfig(OptimizeConfig &optimize_config);
-  Status DoLxFusionOptimize(ge::ComputeGraph& graph, LxFusionOptimizeResult &buffer_ret);
+  Status DoLxFusionOptimize(ge::ComputeGraph &graph, LxFusionOptimizeResult &buffer_ret);
   static LxFusionOptimizeResult GenerateLxFusionOptimizeResult(const Status &l1_buffer_ret,
                                                                const Status &l2_buffer_ret);
-private:
+
+ private:
   bool init_flag_;
   // priority mngr
   FusionPriorityMgrPtr fusion_priority_mgr_ptr_;
@@ -71,5 +72,5 @@ private:
   LxFusionFinalizeFunc lx_fusion_finalize_func_{nullptr};
 };
 using LxFusionOptimizerPtr = std::shared_ptr<LxFusionOptimizer>;
-}
+}  // namespace fe
 #endif  // AIR_COMPILER_GRAPHCOMPILER_ENGINES_NNENG_FUSION_GRAPH_OPTIMIZER_LX_FUSION_OPTIMIZER_H_

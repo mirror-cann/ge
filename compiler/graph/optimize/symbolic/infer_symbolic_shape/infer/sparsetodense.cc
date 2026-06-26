@@ -32,16 +32,16 @@ graphStatus GetConstInt(const Expression &expr, DataType dt, int64_t &value) {
 }
 
 /**
-* SparseToDense算子的符号化shape推导
-* 【算子功能】将稀疏张量转换为稠密张量，即根据稀疏表示中的索引和值，填充到指定形状的稠密输出张量中，未指定位置的元素使用默认值填充
-* 【算子约束】
-*      1. 输出shape由名为output_shape的输入决定，该输入shape的dim_num为1，同时值依赖该输入
-*      2. output_shape输入的数据类型为DT_INT32或DT_INT64
-* 【推导逻辑】
-*      1. 按照算子约束校验名为output_shape的输入是否满足符号化推导
-*      2. 获取到值依赖的SymbolicValue,按照shape的长度将存储的dim值作为输出shape
-*/
-graphStatus InferShape4SparseToDense(gert::InferSymbolShapeContext* context) {
+ * SparseToDense算子的符号化shape推导
+ * 【算子功能】将稀疏张量转换为稠密张量，即根据稀疏表示中的索引和值，填充到指定形状的稠密输出张量中，未指定位置的元素使用默认值填充
+ * 【算子约束】
+ *      1. 输出shape由名为output_shape的输入决定，该输入shape的dim_num为1，同时值依赖该输入
+ *      2. output_shape输入的数据类型为DT_INT32或DT_INT64
+ * 【推导逻辑】
+ *      1. 按照算子约束校验名为output_shape的输入是否满足符号化推导
+ *      2. 获取到值依赖的SymbolicValue,按照shape的长度将存储的dim值作为输出shape
+ */
+graphStatus InferShape4SparseToDense(gert::InferSymbolShapeContext *context) {
   auto input1_shape = context->GetInputSymbolShape(1);
   GE_UNSUPPORTED_IF_NULL(input1_shape);
 
@@ -81,8 +81,8 @@ graphStatus InferShape4SparseToDense(gert::InferSymbolShapeContext* context) {
   }
   dim_num = (dim_num > 0) ? dim_num : 1;
   auto value_num = input1_tensor->GetSymbolicValue()->size();
-  GE_ASSERT(static_cast<size_t>(dim_num) <= value_num, "dim_num[%ld] should less than value_num[zu], node %s",
-            dim_num, value_num, context->GetNodeName());
+  GE_ASSERT(static_cast<size_t>(dim_num) <= value_num, "dim_num[%ld] should less than value_num[zu], node %s", dim_num,
+            value_num, context->GetNodeName());
 
   for (int64_t i = 0; i < dim_num; i++) {
     auto dim_expr = input1_tensor->GetSymbolicValue()->at(i);
@@ -101,6 +101,5 @@ graphStatus InferShape4SparseToDense(gert::InferSymbolShapeContext* context) {
 }
 
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(SparseToDense).InferSymbolShape(InferShape4SparseToDense);
-}
+}  // namespace
 }  // namespace ge
-

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -44,10 +44,17 @@ const std::string kUdfResourceSubDir = "udf_resource";
 constexpr size_t kMaxTransferPoolSize = 12U;
 constexpr size_t kMaxSerializePoolSize = 8U;
 
-const std::unordered_set<string> kTransferOptionsWhiteList{
-    STATIC_MEMORY_POLICY,   FILE_CONSTANT_PATH, OP_WAIT_TIMEOUT, OP_EXECUTE_TIMEOUT, OPTION_EXEC_REUSE_ZERO_COPY_MEMORY,
-    STATIC_MODEL_ADDR_FIXED, OPTION_EXEC_STREAM_SYNC_TIMEOUT, OPTION_MOMORY_POOL_THRESHOLD,
-    OPTION_EXEC_DYNAMIC_GRAPH_PARALLEL_MODE, OPTION_EXEC_PROFILING_MODE, OPTION_EXEC_PROFILING_OPTIONS};
+const std::unordered_set<string> kTransferOptionsWhiteList{STATIC_MEMORY_POLICY,
+                                                           FILE_CONSTANT_PATH,
+                                                           OP_WAIT_TIMEOUT,
+                                                           OP_EXECUTE_TIMEOUT,
+                                                           OPTION_EXEC_REUSE_ZERO_COPY_MEMORY,
+                                                           STATIC_MODEL_ADDR_FIXED,
+                                                           OPTION_EXEC_STREAM_SYNC_TIMEOUT,
+                                                           OPTION_MOMORY_POOL_THRESHOLD,
+                                                           OPTION_EXEC_DYNAMIC_GRAPH_PARALLEL_MODE,
+                                                           OPTION_EXEC_PROFILING_MODE,
+                                                           OPTION_EXEC_PROFILING_OPTIONS};
 }  // namespace
 
 FlowModelSender::~FlowModelSender() {
@@ -71,8 +78,8 @@ Status FlowModelSender::DeployRemoteVarManager(DeployState &deploy_state) {
   return DeployRemoteVarManager(model_groups);
 }
 
-Status FlowModelSender::DeployRemoteVarManager(const std::map<std::string,
-                                                              std::vector<const DeployPlan::SubmodelInfo *>> &models) {
+Status FlowModelSender::DeployRemoteVarManager(
+    const std::map<std::string, std::vector<const DeployPlan::SubmodelInfo *>> &models) {
   std::map<int32_t, std::set<uint64_t>> sessions;
   std::map<int32_t, std::map<uint64_t, std::map<OpDescPtr, std::set<int32_t>>>> node_need_transfer_memory;
   std::map<int32_t, std::set<int32_t>> device_ids;
@@ -81,11 +88,10 @@ Status FlowModelSender::DeployRemoteVarManager(const std::map<std::string,
     GE_CHK_BOOL_RET_STATUS(!submodels.empty(), FAILED, "The submodels must be not empty.");
     const auto &target_device = submodels[0]->device_info;
     GELOGD("[Deploy][RemoteVarManager] started, target_device = %s, submodel count = %zu.",
-           target_device.GetDesc().c_str(),
-           submodels.size());
-    GE_CHK_STATUS_RET(GetAllRelatedVarManager(target_device, submodels, sessions,
-                                              node_need_transfer_memory, device_ids),
-                      "Failed to GetAllRelatedVarManager");
+           target_device.GetDesc().c_str(), submodels.size());
+    GE_CHK_STATUS_RET(
+        GetAllRelatedVarManager(target_device, submodels, sessions, node_need_transfer_memory, device_ids),
+        "Failed to GetAllRelatedVarManager");
     GELOGD("[Deploy][RemoteVarManager] Success, target_device = %s.", target_device.GetDesc().c_str());
   }
   GE_CHK_STATUS_RET(TransferFileConstants(device_ids, node_need_transfer_memory),
@@ -94,8 +100,7 @@ Status FlowModelSender::DeployRemoteVarManager(const std::map<std::string,
 }
 
 Status FlowModelSender::GetAllRelatedVarManager(
-    const DeployPlan::DeviceInfo &device_info,
-    const std::vector<const DeployPlan::SubmodelInfo *> &submodels,
+    const DeployPlan::DeviceInfo &device_info, const std::vector<const DeployPlan::SubmodelInfo *> &submodels,
     std::map<int32_t, std::set<uint64_t>> &sessions,
     std::map<int32_t, std::map<uint64_t, std::map<OpDescPtr, std::set<int32_t>>>> &node_need_transfer_memory,
     std::map<int32_t, std::set<int32_t>> &device_ids) {
@@ -108,7 +113,7 @@ Status FlowModelSender::GetAllRelatedVarManager(
     }
     // session id is same for every submodel
     uint64_t session = GetContext().SessionId();
-    (void) sessions[node_id].emplace(session);
+    (void)sessions[node_id].emplace(session);
     device_ids[node_id].emplace(device_info.GetDeviceId());
     // static graph in non soc device no need to transfer fileconst, load on host thread
     auto root_graph = model->GetRootGraph();
@@ -117,8 +122,8 @@ Status FlowModelSender::GetAllRelatedVarManager(
       for (const auto &node : root_graph->GetAllNodes()) {
         if (node->GetType() == FILECONSTANT) {
           node_need_transfer_memory[node_id][session][node->GetOpDesc()].emplace(device_info.GetDeviceId());
-          GELOGI("FileConstant[%s] need to transfer to device[%d].",
-                 node->GetOpDesc()->GetName().c_str(), device_info.GetDeviceId());
+          GELOGI("FileConstant[%s] need to transfer to device[%d].", node->GetOpDesc()->GetName().c_str(),
+                 device_info.GetDeviceId());
         }
       }
     }
@@ -127,10 +132,8 @@ Status FlowModelSender::GetAllRelatedVarManager(
 }
 
 Status FlowModelSender::GetOpFileInfo(const OpDescPtr &op_desc,
-                                      const std::map<std::string, std::string> &file_id_to_path,
-                                      std::string &file_path,
-                                      size_t &offset,
-                                      size_t &length) {
+                                      const std::map<std::string, std::string> &file_id_to_path, std::string &file_path,
+                                      size_t &offset, size_t &length) {
   ge::ConstGeTensorDescPtr tensor_desc = op_desc->GetOutputDescPtr(0U);
   GE_CHECK_NOTNULL(tensor_desc);
   int64_t total_length = 0;
@@ -166,11 +169,8 @@ Status FlowModelSender::TransferFileConstants(
         size_t length = 0U;
         GE_CHK_STATUS_RET(GetOpFileInfo(op_desc, file_id_to_path, file_path, offset, length),
                           "Failed to get file path");
-        auto send_key = op_desc->GetName() + "_" +
-                        file_path + "_" +
-                        std::to_string(offset) + "_" +
-                        std::to_string(length) + "_" +
-                        std::to_string(node_id);
+        auto send_key = op_desc->GetName() + "_" + file_path + "_" + std::to_string(offset) + "_" +
+                        std::to_string(length) + "_" + std::to_string(node_id);
         op_transfer_device_list[send_key].insert(op_it.second.begin(), op_it.second.end());
         GELOGI("FileConstant[%s] need to transfer to device, device size = %zu, send key = %s.",
                op_desc->GetName().c_str(), op_it.second.size(), send_key.c_str());
@@ -183,11 +183,8 @@ Status FlowModelSender::TransferFileConstants(
         size_t length = 0U;
         GE_CHK_STATUS_RET(GetOpFileInfo(op_desc, file_id_to_path, file_path, offset, length),
                           "Failed to get file path");
-        auto send_key = op_desc->GetName() + "_" +
-                        file_path + "_" +
-                        std::to_string(offset) + "_" +
-                        std::to_string(length) + "_" +
-                        std::to_string(node_id);
+        auto send_key = op_desc->GetName() + "_" + file_path + "_" + std::to_string(offset) + "_" +
+                        std::to_string(length) + "_" + std::to_string(node_id);
         ge::ConstGeTensorDescPtr tensor_desc = op_desc->GetOutputDescPtr(0U);
         GE_CHECK_NOTNULL(tensor_desc);
 
@@ -197,20 +194,16 @@ Status FlowModelSender::TransferFileConstants(
         send_info.device_ids = std::vector<int32_t>(dev_iter->second.begin(), dev_iter->second.end());
         std::unique_ptr<std::istream> input_stream;
         GE_CHK_STATUS_RET_NOLOG(CreateInputStream(file_path, offset, input_stream));
-        GE_CHK_STATUS_RET(CopyOneWeightToTransfer(send_info,
-                                                  *input_stream,
-                                                  length,
-                                                  op_desc,
-                                                  op_transfer_device_list[send_key]),
-                          "Failed to send data.");
+        GE_CHK_STATUS_RET(
+            CopyOneWeightToTransfer(send_info, *input_stream, length, op_desc, op_transfer_device_list[send_key]),
+            "Failed to send data.");
       }
     }
   }
   return SUCCESS;
 }
 
-Status FlowModelSender::TransferWeightWithQ(std::istream &input_stream,
-                                            int64_t file_constant_size,
+Status FlowModelSender::TransferWeightWithQ(std::istream &input_stream, int64_t file_constant_size,
                                             const DeployQueueAttr &queue_attr) const {
   std::string compress_nodes;
   size_t used_memory = 0U;
@@ -221,8 +214,8 @@ Status FlowModelSender::TransferWeightWithQ(std::istream &input_stream,
   input_stream.seekg(0, input_stream.end);
   int64_t stream_size = input_stream.tellg();
   GE_CHK_BOOL_RET_STATUS(stream_size == file_constant_size, FAILED,
-                         "The file size[%ld] is inconsistent with the specified size[%ld] of tensor dec",
-                         stream_size, file_constant_size);
+                         "The file size[%ld] is inconsistent with the specified size[%ld] of tensor dec", stream_size,
+                         file_constant_size);
   input_stream.seekg(0, input_stream.beg);
 
   auto &exchange_service = HeterogeneousExchangeService::GetInstance();
@@ -235,21 +228,17 @@ Status FlowModelSender::TransferWeightWithQ(std::istream &input_stream,
       copy_len_once = file_size - used_memory;
     }
     used_memory += copy_len_once;
-    GELOGD("Enqueue shared content size[%zu] of total size[%lu] to queue[%u] in device[%d]",
-           copy_len_once, file_constant_size, queue_attr.queue_id, queue_attr.device_id);
-    GE_CHK_STATUS_RET(exchange_service.Enqueue(queue_attr.device_id,
-                                               queue_attr.queue_id,
-                                               &compress_nodes[0],
-                                               copy_len_once,
-                                               control_info),
-                      "Failed to enqueue weight, device_id = %d, queue_id = %d",
-                      queue_attr.device_id, queue_attr.queue_id);
+    GELOGD("Enqueue shared content size[%zu] of total size[%lu] to queue[%u] in device[%d]", copy_len_once,
+           file_constant_size, queue_attr.queue_id, queue_attr.device_id);
+    GE_CHK_STATUS_RET(exchange_service.Enqueue(queue_attr.device_id, queue_attr.queue_id, &compress_nodes[0],
+                                               copy_len_once, control_info),
+                      "Failed to enqueue weight, device_id = %d, queue_id = %d", queue_attr.device_id,
+                      queue_attr.queue_id);
   }
   return SUCCESS;
 }
 
-Status FlowModelSender::GetOrCreateFlowRoutePlan(const SendInfo &send_info,
-                                                 deployer::FlowRoutePlan &remote_route) {
+Status FlowModelSender::GetOrCreateFlowRoutePlan(const SendInfo &send_info, deployer::FlowRoutePlan &remote_route) {
   auto it = node_id_to_plan_.find(send_info.node_id);
   if (it != node_id_to_plan_.end()) {
     remote_route = it->second;
@@ -259,18 +248,16 @@ Status FlowModelSender::GetOrCreateFlowRoutePlan(const SendInfo &send_info,
   ExchangeRoute local_route;
   int64_t route_id = -1;
   GE_CHK_STATUS_RET_NOLOG(TransferPreDeploy(send_info, local_route, remote_route));
-  GE_CHK_STATUS_RET_NOLOG(FlowRouteManager::GetInstance().AddRoute(local_route, FlowRouteType::kTransferFlowRoute,
-                                                                   route_id));
+  GE_CHK_STATUS_RET_NOLOG(
+      FlowRouteManager::GetInstance().AddRoute(local_route, FlowRouteType::kTransferFlowRoute, route_id));
   GELOGD("Add local transfer route:%ld", route_id);
   remote_route.set_route_id(route_id);
   node_id_to_plan_[send_info.node_id] = remote_route;
   return SUCCESS;
 }
 
-Status FlowModelSender::CopyOneWeightToTransfer(const SendInfo &send_info,
-                                                std::istream &input_stream,
-                                                int64_t file_constant_size,
-                                                const OpDescPtr &op_desc,
+Status FlowModelSender::CopyOneWeightToTransfer(const SendInfo &send_info, std::istream &input_stream,
+                                                int64_t file_constant_size, const OpDescPtr &op_desc,
                                                 const std::set<int32_t> &devices) {
   auto session_id = static_cast<int64_t>(send_info.session_id);
   GELOGI("Enter to CopyOneWeightToTransfer, file constant size = %ld", file_constant_size);
@@ -283,8 +270,7 @@ Status FlowModelSender::CopyOneWeightToTransfer(const SendInfo &send_info,
   GE_CHECK_NOTNULL(local_route);
   std::vector<DeployQueueAttr> queue_attrs;
   local_route->GetQueueAttrs(queue_attrs);
-  GE_CHK_BOOL_RET_STATUS(queue_attrs.size() >= 1U, FAILED,
-                         "Check transfer pre deploy queue size[%zu] failed.",
+  GE_CHK_BOOL_RET_STATUS(queue_attrs.size() >= 1U, FAILED, "Check transfer pre deploy queue size[%zu] failed.",
                          queue_attrs.size());
   auto f = std::async(std::launch::async, [this, &input_stream, file_constant_size, &queue_attrs]() {
     GE_CHK_STATUS_RET(TransferWeightWithQ(input_stream, file_constant_size, queue_attrs[0]),
@@ -352,9 +338,8 @@ Status FlowModelSender::DeployDevMaintenanceCfg(const DeployState &deploy_state)
 
 Status FlowModelSender::DownloadDevMaintenanceCfg(int32_t dev_id) {
   GELOGD("[Download][Device debug Config] start, device id[%d]", dev_id);
-  GE_MAKE_GUARD(close_config, [dev_id]() {
-    DeviceMaintenanceCfgManager::GetInstance().CloseDevMaintenanceConfig(dev_id);
-  });
+  GE_MAKE_GUARD(close_config,
+                [dev_id]() { DeviceMaintenanceCfgManager::GetInstance().CloseDevMaintenanceConfig(dev_id); });
   GE_CHK_STATUS_RET(DeviceMaintenanceCfgManager::GetInstance().CreateDevMaintenanceConfig(dev_id),
                     "[Create][MaintenanceCfg] failed, device id[%d].", dev_id);
   GE_CHK_STATUS_RET(DeployDevCfg(dev_id, DeviceDebugConfig::ConfigType::kLogConfigType),
@@ -391,16 +376,15 @@ Status FlowModelSender::DeployDevCfg(int32_t dev_id, DeviceDebugConfig::ConfigTy
   download_config_request->set_device_id(dev_id);
   download_config_request->set_config_data(&conf_data[0], conf_data.size());
   if (DeployerProxy::GetInstance().SendRequest(dev_id, request, response) != SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999",
-                       "Send disconnect request failed, response info:%s",
-                       response.error_message().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Send disconnect request failed, response info:%s",
+                         response.error_message().c_str());
     GELOGE(FAILED, "[Send][Request]Send disconnect request failed, response info:%s", response.error_message().c_str());
     return FAILED;
   }
   auto error_code = response.error_code();
   if (error_code != SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Check response failed. error code =%u, error message=%s", error_code,
-                       response.error_message().c_str());
+                         response.error_message().c_str());
     GELOGE(FAILED, "[Check][Response]Check response failed. error code =%u, error message=%s", error_code,
            response.error_message().c_str());
     return FAILED;
@@ -415,9 +399,9 @@ Status FlowModelSender::SendDatagwSchedInfo(std::map<std::string, const DeployPl
     const auto &target_device = *it.second;
 
     deployer::DeployerResponse response;
-    GE_CHK_STATUS_RET(DeployerProxy::GetInstance().SendRequest(target_device.GetNodeId(),
-                                                               datagw_sched_infos[it.first], response),
-                      "DynamicSched Failed to send request to target_device = %s", target_device.GetDesc().c_str());
+    GE_CHK_STATUS_RET(
+        DeployerProxy::GetInstance().SendRequest(target_device.GetNodeId(), datagw_sched_infos[it.first], response),
+        "DynamicSched Failed to send request to target_device = %s", target_device.GetDesc().c_str());
     auto ret = response.error_code();
     if (ret != SUCCESS) {
       GELOGE(ret, "DynamicSched [Transfer][Sched info] failed, target_device = %s, request = %s, error_message = %s",
@@ -425,8 +409,7 @@ Status FlowModelSender::SendDatagwSchedInfo(std::map<std::string, const DeployPl
              response.error_message().c_str());
       return ret;
     }
-    GEEVENT("DynamicSched [Transfer][Sched info] success, target_device = %s",
-            target_device.GetDesc().c_str());
+    GEEVENT("DynamicSched [Transfer][Sched info] success, target_device = %s", target_device.GetDesc().c_str());
   }
   return SUCCESS;
 }
@@ -475,9 +458,11 @@ Status FlowModelSender::TransferDataGwDeployPlan(DeployState &deploy_state) {
       }
       datagw_devices_used[submodel_desc.device_info.GetKey()] = &submodel_desc.device_info;
       datagw_sched_infos[submodel_desc.device_info.GetKey()] = std::move(request);
-      GEEVENT("DynamicSched add sched model info, root_model_id=%u, model name=%s, device_id=%d, device_type=%d, "
-              "is_proxy=%d.", deploy_state.GetRootModelId(), name_and_submodel_desc.first.c_str(),
-              submodel_desc.device_info.GetDeviceId(), submodel_desc.device_info.GetType(), is_proxy_q);
+      GEEVENT(
+          "DynamicSched add sched model info, root_model_id=%u, model name=%s, device_id=%d, device_type=%d, "
+          "is_proxy=%d.",
+          deploy_state.GetRootModelId(), name_and_submodel_desc.first.c_str(), submodel_desc.device_info.GetDeviceId(),
+          submodel_desc.device_info.GetType(), is_proxy_q);
     }
   }
   return SendDatagwSchedInfo(datagw_devices_used, datagw_sched_infos);
@@ -529,19 +514,19 @@ Status FlowModelSender::TransferFlowRoutePlan(const DeployState &deploy_state) {
     flow_route_plan_request->set_root_model_id(deploy_state.GetRootModelId());
     *(flow_route_plan_request->mutable_flow_route_plan()) = flow_route_plan;
 
-    GEEVENT("[Transfer][FlowRoutePlan] start, root_model_id = %u, target_node = %d",
-            deploy_state.GetRootModelId(), node_id);
+    GEEVENT("[Transfer][FlowRoutePlan] start, root_model_id = %u, target_node = %d", deploy_state.GetRootModelId(),
+            node_id);
     deployer::DeployerResponse response;
     GE_CHK_STATUS_RET(DeployerProxy::GetInstance().SendRequest(node_id, request, response),
                       "Failed to send request to target_device = %d", node_id);
     auto ret = response.error_code();
     if (ret != SUCCESS) {
-      GELOGE(ret, "[Transfer][FlowRoutePlan] failed, target_node = %d, request = %s, error_message = %s",
-             node_id, request.DebugString().c_str(), response.error_message().c_str());
+      GELOGE(ret, "[Transfer][FlowRoutePlan] failed, target_node = %d, request = %s, error_message = %s", node_id,
+             request.DebugString().c_str(), response.error_message().c_str());
       return ret;
     }
-    GEEVENT("[Transfer][FlowRoutePlan] success, root_model_id = %u, target_node = %d",
-            deploy_state.GetRootModelId(), node_id);
+    GEEVENT("[Transfer][FlowRoutePlan] success, root_model_id = %u, target_node = %d", deploy_state.GetRootModelId(),
+            node_id);
   }
   return SUCCESS;
 }
@@ -554,8 +539,7 @@ void FlowModelSender::AddDynamicSchedInfo(const DeployState &deploy_state, const
   if (ins_iter != model_instances_num.end()) {
     instance_num = ins_iter->second;
   } else {
-    GELOGI("DynamicSched single instance model no need report status, model name=%s.",
-           model_instance_name.c_str());
+    GELOGI("DynamicSched single instance model no need report status, model name=%s.", model_instance_name.c_str());
   }
   if ((instance_num > 1U) || deploy_state.IsEnableExceptionCatch()) {
     const auto &dynamic_sched_model = deploy_state.GetDeployPlan().GetSubmodels();
@@ -563,33 +547,30 @@ void FlowModelSender::AddDynamicSchedInfo(const DeployState &deploy_state, const
     if (iter != dynamic_sched_model.end()) {
       for (const auto &idx : iter->second.status_input_queue_indices) {
         submodel_desc.add_status_input_queue_indices(idx);
-        GELOGI("DynamicSched add status input queue indice=%d, model name=%s.",
-               idx, model_instance_name.c_str());
+        GELOGI("DynamicSched add status input queue indice=%d, model name=%s.", idx, model_instance_name.c_str());
       }
       for (const auto &idx : iter->second.status_output_queue_indices) {
         submodel_desc.add_status_output_queue_indices(idx);
-        GELOGI("DynamicSched add status output queue indice=%d, model name=%s.",
-               idx, model_instance_name.c_str());
+        GELOGI("DynamicSched add status output queue indice=%d, model name=%s.", idx, model_instance_name.c_str());
       }
     }
   }
 }
 
-Status FlowModelSender::BuildSubmodelDescs(
-    const DeployState &deploy_state,
-    std::map<std::string, std::vector<deployer::SubmodelDesc>> &submodel_descs,
-    std::map<std::string, const DeployPlan::DeviceInfo *> &devices_used) {
-  std::map<std::string, std::map<std::string, std::vector<std::pair<const DeployPlan::SubmodelInfo *,
-    const std::string>>>> grouped_submodels;
+Status FlowModelSender::BuildSubmodelDescs(const DeployState &deploy_state,
+                                           std::map<std::string, std::vector<deployer::SubmodelDesc>> &submodel_descs,
+                                           std::map<std::string, const DeployPlan::DeviceInfo *> &devices_used) {
+  std::map<std::string,
+           std::map<std::string, std::vector<std::pair<const DeployPlan::SubmodelInfo *, const std::string>>>>
+      grouped_submodels;
   std::map<std::string, std::vector<std::string>> model_instances;
   for (const auto &name_and_submodel_desc : deploy_state.GetDeployPlan().GetSubmodels()) {
     const auto &submodel_desc = name_and_submodel_desc.second;
     if (submodel_desc.model == nullptr) {
       continue;
     }
-    grouped_submodels[submodel_desc.model->GetModelName()]
-                     [submodel_desc.device_info.GetKey()].
-                     emplace_back(std::make_pair(&submodel_desc, name_and_submodel_desc.first));
+    grouped_submodels[submodel_desc.model->GetModelName()][submodel_desc.device_info.GetKey()].emplace_back(
+        std::make_pair(&submodel_desc, name_and_submodel_desc.first));
     devices_used[submodel_desc.device_info.GetKey()] = &submodel_desc.device_info;
     model_instances[submodel_desc.model->GetModelName()].emplace_back(name_and_submodel_desc.first);
   }
@@ -617,11 +598,11 @@ Status FlowModelSender::BuildSubmodelDescs(
         const std::string gen_model_file_path = GetModelFilePath(deploy_state, model_name);
         // user define function: change model file name to om name already generated
         if ((submodel_info.model->GetModelType() == PNE_ID_UDF) && (!submodel_info.model->GetIsBuiltinModel())) {
-            const std::string untar_path =  std::to_string(deploy_state.GetSessionId()) + "/" +
-                std::to_string(deploy_state.GetRootModelId()) + "/" + kUdfResourceSubDir + "/" +
-                submodel_info.model->GetNormalizedModelName() + ".om";
-            submodel_desc.set_model_path(untar_path);
-            GELOGD("Set model file path [%s] by normalized name.", untar_path.c_str());
+          const std::string untar_path = std::to_string(deploy_state.GetSessionId()) + "/" +
+                                         std::to_string(deploy_state.GetRootModelId()) + "/" + kUdfResourceSubDir +
+                                         "/" + submodel_info.model->GetNormalizedModelName() + ".om";
+          submodel_desc.set_model_path(untar_path);
+          GELOGD("Set model file path [%s] by normalized name.", untar_path.c_str());
         } else {
           submodel_desc.set_model_path(gen_model_file_path);
           GELOGD("Set model file path [%s].", gen_model_file_path.c_str());
@@ -657,7 +638,7 @@ Status FlowModelSender::BuildSubmodelDescs(
         submodel_desc.set_is_head(submodel_info.is_head);
         std::string scope = "";
         (void)AttrUtils::GetStr(root_graph, ATTR_NAME_DATA_FLOW_DATA_FLOW_SCOPE, scope);
-        submodel_desc.set_scope(scope); // df scope + user set scope
+        submodel_desc.set_scope(scope);  // df scope + user set scope
         for (auto idx : submodel_info.input_queue_indices) {
           submodel_desc.add_input_queue_indices(idx);
         }
@@ -713,8 +694,7 @@ void FlowModelSender::BuildDeployPlanOptions(const DeployState &deploy_state,
   }
 
   bool is_data_flow_graph = false;
-  (void)AttrUtils::GetBool(deploy_state.GetFlowModel()->GetRootGraph(),
-                           ATTR_NAME_IS_DATA_FLOW_GRAPH,
+  (void)AttrUtils::GetBool(deploy_state.GetFlowModel()->GetRootGraph(), ATTR_NAME_IS_DATA_FLOW_GRAPH,
                            is_data_flow_graph);
   if (is_data_flow_graph) {
     options->mutable_global_options()->insert({OPTION_FLOAT_OVERFLOW_MODE, OPTION_FLOAT_OVERFLOW_MODE_SATURATION});
@@ -740,11 +720,10 @@ void FlowModelSender::BuildDeployPlanOptions(const DeployState &deploy_state,
   }
 }
 
-Status FlowModelSender::BuildUpdateDeployPlanRequest(
-    const DeployState &deploy_state,
-    const DeployPlan::DeviceInfo &target_device,
-    std::vector<deployer::SubmodelDesc> &submodel_descs,
-    deployer::DeployerRequest &request) {
+Status FlowModelSender::BuildUpdateDeployPlanRequest(const DeployState &deploy_state,
+                                                     const DeployPlan::DeviceInfo &target_device,
+                                                     std::vector<deployer::SubmodelDesc> &submodel_descs,
+                                                     deployer::DeployerRequest &request) {
   request.set_type(deployer::kUpdateDeployPlan);
   auto update_deploy_plan_request = request.mutable_update_deploy_plan_request();
   update_deploy_plan_request->set_graph_id(deploy_state.GetGraphId());
@@ -794,22 +773,21 @@ Status FlowModelSender::TransferSubmodels(DeployState &deploy_state) {
     model_to_devices[submodel.model].emplace(submodel.device_info.GetNodeId());
   }
 
-  GELOGD("[Transfer][Submodels] start, root_model_id = %u, submodel number = %zu",
-         deploy_state.GetRootModelId(),
+  GELOGD("[Transfer][Submodels] start, root_model_id = %u, submodel number = %zu", deploy_state.GetRootModelId(),
          model_to_devices.size());
   std::vector<std::future<std::tuple<Status, PneModelPtr, ModelBufferData>>> model_buffer_futs;
-  ThreadPool serialize_thread_pool("ge_dpl_serm", model_to_devices.size() > kMaxSerializePoolSize ?
-                                   kMaxSerializePoolSize :
-                                   model_to_devices.size(), false);
+  ThreadPool serialize_thread_pool(
+      "ge_dpl_serm", model_to_devices.size() > kMaxSerializePoolSize ? kMaxSerializePoolSize : model_to_devices.size(),
+      false);
   for (const auto &it : model_to_devices) {
     const auto &pne_model = it.first;
     GE_CHECK_NOTNULL(pne_model);
     std::future<std::tuple<Status, PneModelPtr, ModelBufferData>> fut =
         serialize_thread_pool.commit([&pne_model]() -> std::tuple<Status, PneModelPtr, ModelBufferData> {
-      ModelBufferData model_buff;
-      const auto ret = SerializeModel(pne_model, model_buff);
-      return std::make_tuple(ret, pne_model, model_buff);
-    });
+          ModelBufferData model_buff;
+          const auto ret = SerializeModel(pne_model, model_buff);
+          return std::make_tuple(ret, pne_model, model_buff);
+        });
     model_buffer_futs.emplace_back(std::move(fut));
   }
 
@@ -829,8 +807,8 @@ Status FlowModelSender::TransferSubmodels(DeployState &deploy_state) {
     auto submodel_id = deploy_state.GetSubmodelId(pne_model->GetModelName());
     const auto &target_node_ids = model_to_devices[pne_model];
     for (auto target_node_id : target_node_ids) {
-      std::future<Status> fut = thread_pool.commit([target_node_id, &deploy_state, pne_model,
-                                                    submodel_id, model_buff]() -> Status {
+      std::future<Status> fut = thread_pool.commit([target_node_id, &deploy_state, pne_model, submodel_id,
+                                                    model_buff]() -> Status {
         GEEVENT("[Transfer][Submodel] in deploying start, root_model_id = %u, submodel_id = %u, target_node_id = %d",
                 deploy_state.GetRootModelId(), submodel_id, target_node_id);
         const auto trans_ret = TransferModel(target_node_id, deploy_state, pne_model, model_buff);
@@ -854,9 +832,7 @@ Status FlowModelSender::TransferSubmodels(DeployState &deploy_state) {
   return SUCCESS;
 }
 
-Status FlowModelSender::TransferModel(int32_t node_id,
-                                      const DeployState &deploy_state,
-                                      const PneModelPtr &model,
+Status FlowModelSender::TransferModel(int32_t node_id, const DeployState &deploy_state, const PneModelPtr &model,
                                       const ModelBufferData model_buff) {
   GELOGD("[Transfer][Submodel] start, model_name = [%s]", model->GetModelName().c_str());
   std::string path = GetModelFilePath(deploy_state, model->GetModelName());
@@ -865,12 +841,9 @@ Status FlowModelSender::TransferModel(int32_t node_id,
   return SUCCESS;
 }
 
-Status FlowModelSender::TransferFile(int32_t target_node_id,
-                                     const std::string &path,
-                                     const void *content,
+Status FlowModelSender::TransferFile(int32_t target_node_id, const std::string &path, const void *content,
                                      size_t size) {
-  GELOGI("[Download] start, node_id = %d, path = %s, size = %lu",
-         target_node_id, path.c_str(), size);
+  GELOGI("[Download] start, node_id = %d, path = %s, size = %lu", target_node_id, path.c_str(), size);
   size_t remaining_size = size;
   size_t offset = 0;
   const size_t block_size = 2 * 1024 * 1024;  // 2M
@@ -888,22 +861,18 @@ Status FlowModelSender::TransferFile(int32_t target_node_id,
     download_request->set_eof(remaining_size == 0);
     deployer::DeployerResponse response;
     GE_CHK_STATUS_RET(DeployerProxy::GetInstance().SendRequest(target_node_id, request, response),
-                      "[TransferFile] failed to send request, node_id = %d, path = %s, offset = %zu",
-                      target_node_id,
-                      path.c_str(),
-                      offset);
+                      "[TransferFile] failed to send request, node_id = %d, path = %s, offset = %zu", target_node_id,
+                      path.c_str(), offset);
     if (response.error_code() != SUCCESS) {
-      GELOGE(FAILED,
-             "[TransferFile] failed, node_id = %d, path = %s, error code = %u, error message = %s",
+      GELOGE(FAILED, "[TransferFile] failed, node_id = %d, path = %s, error code = %u, error message = %s",
              target_node_id, path.c_str(), response.error_code(), response.error_message().c_str());
       return FAILED;
     }
     offset += size_to_send;
-    GELOGD("[TransferFile] succeeded, node_id = %d, path = %s, progress: %zu/%zu",
-           target_node_id, path.c_str(), offset, size);
+    GELOGD("[TransferFile] succeeded, node_id = %d, path = %s, progress: %zu/%zu", target_node_id, path.c_str(), offset,
+           size);
   }
-  GELOGI("[TransferFile] succeeded, node_id = %d, path = %s, total size = %zu",
-         target_node_id, path.c_str(), size);
+  GELOGI("[TransferFile] succeeded, node_id = %d, path = %s, total size = %zu", target_node_id, path.c_str(), size);
   return SUCCESS;
 }
 
@@ -911,20 +880,18 @@ Status FlowModelSender::GetDeviceInfo(int32_t node_id, int32_t device_id, int32_
                                       DeployPlan::DeviceInfo &deploy_device_info) {
   auto device_info = ResourceManager::GetInstance().GetDeviceInfo(node_id, device_id, device_type);
   GE_CHECK_NOTNULL(device_info);
-  deploy_device_info = DeployPlan::DeviceInfo(device_info->GetDeviceType(),
-                                              device_info->GetNodeId(),
-                                              device_info->GetDeviceId());
+  deploy_device_info =
+      DeployPlan::DeviceInfo(device_info->GetDeviceType(), device_info->GetNodeId(), device_info->GetDeviceId());
   return SUCCESS;
 }
 
-Status FlowModelSender::TransferPreDeploy(const SendInfo &send_info,
-                                          ExchangeRoute &local_route,
+Status FlowModelSender::TransferPreDeploy(const SendInfo &send_info, ExchangeRoute &local_route,
                                           deployer::FlowRoutePlan &remote_plan) const {
   // 1. build deploy plan
   int32_t local_node_id = ResourceManager::GetInstance().GetLocalNodeId();
   const auto &node_config = Configurations::GetInstance().GetLocalNode();
   DeployPlan::DeviceInfo local_device(CPU, local_node_id, 0);
-  // AI server head device is arbitary npu device.
+  // AI server head device is arbitrary npu device.
   if (send_info.node_id != local_node_id) {
     for (const auto &device_config : node_config.device_list) {
       if (device_config.device_type == NPU) {
@@ -960,7 +927,7 @@ Status FlowModelSender::TransferPreDeploy(const SendInfo &send_info,
 
   auto &exchange_service = HeterogeneousExchangeService::GetInstance();
   HeterogeneousExchangeDeployer deployer(exchange_service, local_plan,
-                                  DeployContext::LocalContext().GetFlowGwClientManager());
+                                         DeployContext::LocalContext().GetFlowGwClientManager());
   GE_CHK_STATUS_RET_NOLOG(deployer.Deploy(local_route));
   return SUCCESS;
 }
@@ -970,15 +937,14 @@ std::string FlowModelSender::GetModelFilePath(const DeployState &deploy_state, c
   replace(file_name.begin(), file_name.end(), '/', '_');
   replace(file_name.begin(), file_name.end(), '\\', '_');
   replace(file_name.begin(), file_name.end(), '.', '_');
-  std::string path = deploy_state.GetRelativeWorkingDir() +
-      file_name + "_" + std::to_string(deploy_state.GetSubmodelId(model_name)) + ".om";
+  std::string path = deploy_state.GetRelativeWorkingDir() + file_name + "_" +
+                     std::to_string(deploy_state.GetSubmodelId(model_name)) + ".om";
   GELOGI("Get model file path[%s] success, model name = %s", path.c_str(), model_name.c_str());
   return path;
 }
 
 Status FlowModelSender::GetSavedFilePath(const DeployPlan::SubmodelInfo &submodel_info,
-                                              const std::string &model_file_path,
-                                              std::string &saved_model_path) {
+                                         const std::string &model_file_path, std::string &saved_model_path) {
   if (submodel_info.model->GetIsBuiltinModel()) {
     saved_model_path = kUdfBuildInFuncNamePrefix;
     return SUCCESS;
@@ -989,7 +955,8 @@ Status FlowModelSender::GetSavedFilePath(const DeployPlan::SubmodelInfo &submode
   }
   saved_model_path = submodel_info.model->GetSavedModelPath();
   if ((saved_model_path.empty()) && (submodel_info.model->GetModelType() == PNE_ID_UDF)) {
-    GELOGE(FAILED, "Saved model file path must be not empty in current version."
+    GELOGE(FAILED,
+           "Saved model file path must be not empty in current version."
            "Please generate cache based on current compiler version.");
     return FAILED;
   }

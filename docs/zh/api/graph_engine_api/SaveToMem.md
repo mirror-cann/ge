@@ -83,4 +83,3 @@ graphStatus SaveToMem(GraphBuffer &graph_buffer) const
 ## 约束说明<a name="section20470355181419"></a>
 
 内存中保存的内容格式为air格式，可以通过[LoadFromMem](LoadFromMem.md)接口还原为graph对象。
-

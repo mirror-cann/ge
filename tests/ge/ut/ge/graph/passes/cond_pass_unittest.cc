@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -40,7 +40,7 @@ class UtestCondPass : public testing::Test {
     return op_desc;
   }
 
-  Status RunGraphPass(const GeTensorDesc &tensor_desc, const ComputeGraphPtr &graph){
+  Status RunGraphPass(const GeTensorDesc &tensor_desc, const ComputeGraphPtr &graph) {
     NodePtr data_node = graph->AddNode(CreateOpDesc("data", DATA, tensor_desc, 1, tensor_desc, 1));
     NodePtr if_node = graph->AddNode(CreateOpDesc("if", IF, tensor_desc, 2, tensor_desc, 1));
     EXPECT_EQ(GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), if_node->GetInDataAnchor(0)), SUCCESS);
@@ -209,7 +209,8 @@ TEST_F(UtestCondPass, while_not_scalar_success) {
 
   {
     NodePtr data_node = cond_graph->AddNode(CreateOpDesc("data", DATA, not_scalar_tensor, 1, not_scalar_tensor, 1));
-    NodePtr output_node = cond_graph->AddNode(CreateOpDesc(NODE_NAME_NET_OUTPUT, NETOUTPUT, not_scalar_tensor, 1, not_scalar_tensor, 1));
+    NodePtr output_node =
+        cond_graph->AddNode(CreateOpDesc(NODE_NAME_NET_OUTPUT, NETOUTPUT, not_scalar_tensor, 1, not_scalar_tensor, 1));
     EXPECT_EQ(GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), output_node->GetInDataAnchor(0)), SUCCESS);
   }
 
@@ -233,7 +234,8 @@ TEST_F(UtestCondPass, while_not_scalar_succ) {
 
   {
     NodePtr data_node = cond_graph->AddNode(CreateOpDesc("data", DATA, not_scalar_tensor, 1, not_scalar_tensor, 1));
-    NodePtr output_node = cond_graph->AddNode(CreateOpDesc(NODE_NAME_NET_OUTPUT, NETOUTPUT, not_scalar_tensor, 1, not_scalar_tensor, 1));
+    NodePtr output_node =
+        cond_graph->AddNode(CreateOpDesc(NODE_NAME_NET_OUTPUT, NETOUTPUT, not_scalar_tensor, 1, not_scalar_tensor, 1));
     EXPECT_EQ(GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), output_node->GetInDataAnchor(0)), SUCCESS);
   }
 
@@ -257,7 +259,8 @@ TEST_F(UtestCondPass, while_cond_output_not_one_fail) {
 
   {
     NodePtr data_node = cond_graph->AddNode(CreateOpDesc("data", DATA, not_scalar_tensor, 1, not_scalar_tensor, 1));
-    NodePtr output_node = cond_graph->AddNode(CreateOpDesc(NODE_NAME_NET_OUTPUT, NETOUTPUT, not_scalar_tensor, 2, not_scalar_tensor, 1));
+    NodePtr output_node =
+        cond_graph->AddNode(CreateOpDesc(NODE_NAME_NET_OUTPUT, NETOUTPUT, not_scalar_tensor, 2, not_scalar_tensor, 1));
     EXPECT_EQ(GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), output_node->GetInDataAnchor(0)), SUCCESS);
     EXPECT_EQ(GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), output_node->GetInDataAnchor(1)), SUCCESS);
   }

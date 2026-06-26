@@ -87,7 +87,10 @@ class ScopedUnsetEnvVar {
 class ScopedGraphOptions {
  public:
   ScopedGraphOptions() : old_options_(GetThreadLocalContext().GetAllGraphOptions()) {}
-  ~ScopedGraphOptions() { GetThreadLocalContext().SetGraphOption(old_options_); }
+  ~ScopedGraphOptions() {
+    GetThreadLocalContext().SetGraphOption(old_options_);
+  }
+
  private:
   std::map<std::string, std::string> old_options_;
 };
@@ -337,9 +340,10 @@ TEST_F(Om2CodegenUt, AstNodes_AllPublicInterfaces_Ok) {
   auto *else_block = BlockStmt::Create(ctx, {ExprStmt::Create(ctx, call_expr), return_void_stmt});
   auto *if_stmt = IfStmt::Create(ctx, unary_not, then_block, else_block);
   auto *method_body = BlockStmt::Create(ctx, {ExprStmt::Create(ctx, member_expr), ExprStmt::Create(ctx, arrow_expr)});
-  auto *func_body = BlockStmt::Create(ctx, {if_stmt, ExprStmt::Create(ctx, addr_expr), ExprStmt::Create(ctx, subscript_expr),
-                                            ExprStmt::Create(ctx, reinterpret_cast_expr), ExprStmt::Create(ctx, static_cast_expr),
-                                            ExprStmt::Create(ctx, lambda_expr), return_stmt});
+  auto *func_body =
+      BlockStmt::Create(ctx, {if_stmt, ExprStmt::Create(ctx, addr_expr), ExprStmt::Create(ctx, subscript_expr),
+                              ExprStmt::Create(ctx, reinterpret_cast_expr), ExprStmt::Create(ctx, static_cast_expr),
+                              ExprStmt::Create(ctx, lambda_expr), return_stmt});
   ASSERT_NE(comment_stmt, nullptr);
   ASSERT_EQ(std::string(comment_stmt->GetText().Data(), comment_stmt->GetText().Length()), "comment");
   ASSERT_EQ(var_decl_stmt->GetInit(), binary_add);
@@ -359,12 +363,12 @@ TEST_F(Om2CodegenUt, AstNodes_AllPublicInterfaces_Ok) {
   auto *method_def = MethodDef::Create(ctx, "Worker", "Exec", {param_x}, "void", {}, {}, method_body);
   auto *access_decl = AccessSectionDecl::Create(ctx, AccessSectionDecl::Kind::kPublic);
   auto *private_decl = AccessSectionDecl::Create(ctx, AccessSectionDecl::Kind::kPrivate);
-  auto *class_decl =
-      ClassDecl::Create(ctx, "Worker", {access_decl, field_decl, method_decl, private_decl,
-                                        FieldDecl::Create(ctx, "int", "hidden")});
+  auto *class_decl = ClassDecl::Create(
+      ctx, "Worker", {access_decl, field_decl, method_decl, private_decl, FieldDecl::Create(ctx, "int", "hidden")});
   auto *struct_decl = StructDecl::Create(ctx, "Pod", {FieldDecl::Create(ctx, "bool", "ready", lit_bool)});
   auto *extern_decl = ExternBlockDecl::Create(ctx, "C", {function_decl});
-  auto *namespace_decl = NamespaceDecl::Create(ctx, "om2", {class_decl, struct_decl, function_def, method_def, extern_decl});
+  auto *namespace_decl =
+      NamespaceDecl::Create(ctx, "om2", {class_decl, struct_decl, function_def, method_def, extern_decl});
   auto *stable_part = StablePartDecl::Create(ctx, StablePartId::kChkStatusMacro, StablePartRole::kMacroGroup,
                                              StablePartPlacement::kTranslationUnit);
   auto *include_decl = IncludeDecl::Create(ctx, "vector", IncludeDecl::Kind::kAngle);
@@ -392,31 +396,31 @@ TEST_F(Om2CodegenUt, AstNodes_AllPublicInterfaces_Ok) {
 
   const auto output = EmitNode(*tu);
   ExpectContainsAll(output, {
-      "#include <vector>\n\n",
-      "#define OM2_CHK_STATUS",
-      "typedef void *Handle;\n",
-      "namespace om2 {\n",
-      "class Worker {\n",
-      "  public:\n",
-      "    int value = 7U;\n",
-      "    void Run(int x);\n",
-      "  private:\n",
-      "    int hidden;\n",
-      "struct Pod {\n",
-      "bool ready = true;\n",
-      "int Build(int x, int y) {\n",
-      "if (!((x == 7U)))",
-      "// comment\n",
-      "int sum = (x + y);\n",
-      "x = 7U;\n",
-      "Consume(x, 7U);\n",
-      "return {7U, true, nullptr};\n",
-      "void Worker::Exec(int x) {\n",
-      "obj.field;\n",
-      "ptr->field;\n",
-      "extern \"C\" {\n",
-      "int Add(int x, int y);\n",
-  });
+                                "#include <vector>\n\n",
+                                "#define OM2_CHK_STATUS",
+                                "typedef void *Handle;\n",
+                                "namespace om2 {\n",
+                                "class Worker {\n",
+                                "  public:\n",
+                                "    int value = 7U;\n",
+                                "    void Run(int x);\n",
+                                "  private:\n",
+                                "    int hidden;\n",
+                                "struct Pod {\n",
+                                "bool ready = true;\n",
+                                "int Build(int x, int y) {\n",
+                                "if (!((x == 7U)))",
+                                "// comment\n",
+                                "int sum = (x + y);\n",
+                                "x = 7U;\n",
+                                "Consume(x, 7U);\n",
+                                "return {7U, true, nullptr};\n",
+                                "void Worker::Exec(int x) {\n",
+                                "obj.field;\n",
+                                "ptr->field;\n",
+                                "extern \"C\" {\n",
+                                "int Add(int x, int y);\n",
+                            });
 }
 
 TEST_F(Om2CodegenUt, AstDsl_AllPublicInterfaces_Ok) {
@@ -528,71 +532,80 @@ TEST_F(Om2CodegenUt, AstDsl_AllPublicInterfaces_Ok) {
   auto *decl_method = ast.DeclareMethod("MethodVec", std::vector<VarRef>{lhs}, "void");
   auto *decl_method_init = ast.DeclareMethod("MethodInit", {lhs, rhs}, "void");
   auto *def_fn_vec = ast.DefineFunction("DefVec", std::vector<VarRef>{lhs, rhs}, "uint32_t", body_vec);
-  auto *def_fn_init = ast.DefineFunction("DefInit", {lhs}, "uint32_t", {
-      ast.VarDecl("uint32_t", "tmp", add_expr),
-      ast.Return(lhs),
-  });
-  auto *def_method_vec =
-      ast.DefineMethod("Worker", "ExecVec", std::vector<VarRef>{lhs}, "void", std::vector<Stmt *>{ExprStmt::Create(ctx, call_expr.Get())});
-  auto *def_method_init = ast.DefineMethod("Worker", "ExecInit", {lhs}, "void", {
-      ast.Return(),
-  });
-  auto *all_ops_def = ast.DefineFunction("AllOps", {lhs, rhs, ptr, obj, arr, runner}, "uint32_t", {
-      CommentStmt::Create(ctx, "dsl-all-ops"),
-      BlankLineStmt::Create(ctx),
-      ast.VarDecl("auto", "from_cstr", ident_from_cstr),
-      ast.VarDecl("auto", "from_string", ident_from_string),
-      ast.VarDecl("auto", "str_node", ast.Str("dsl")),
-      ast.VarDecl("auto", "uint_node", ast.UInt(9)),
-      ast.VarDecl("auto", "ulong_node", ast.ULong(9)),
-      ast.VarDecl("auto", "eq_v", eq_expr),
-      ast.VarDecl("auto", "ne_v", ne_expr),
-      ast.VarDecl("auto", "lt_v", lt_expr),
-      ast.VarDecl("auto", "le_v", le_expr),
-      ast.VarDecl("auto", "gt_v", gt_expr),
-      ast.VarDecl("auto", "ge_v", ge_expr),
-      ast.VarDecl("auto", "land_v", land_expr),
-      ast.VarDecl("auto", "lor_v", lor_expr),
-      ast.VarDecl("auto", "add_v", add_expr),
-      ast.VarDecl("auto", "sub_v", sub_expr),
-      ast.VarDecl("auto", "mul_v", mul_expr),
-      ast.VarDecl("auto", "div_v", div_expr),
-      ast.VarDecl("auto", "mod_v", mod_expr),
-      ast.VarDecl("auto", "band_v", band_expr),
-      ast.VarDecl("auto", "bor_v", bor_expr),
-      ast.VarDecl("auto", "bxor_v", bxor_expr),
-      ast.VarDecl("auto", "shl_v", shl_expr),
-      ast.VarDecl("auto", "shr_v", shr_expr),
-      ast.VarDecl("auto", "not_v", unary_not),
-      ast.VarDecl("auto", "neg_v", unary_neg),
-      ast.VarDecl("auto", "bit_not_v", unary_bit_not),
-      ast.VarDecl("auto", "index_v", arr[2]),
-      ast.VarDecl("auto", "addr_v", lhs.Addr()),
-      ast.VarDecl("auto", "attr_v", obj.Attr("field")),
-      ast.VarDecl("auto", "arrow_v", ptr.Arrow("field")),
-      ast.VarDecl("auto", "call0_v", runner()),
-      ast.VarDecl("auto", "call1_v", runner(lhs)),
-      ast.VarDecl("auto", "member_call_v", obj.Attr("Exec")(lhs, rhs)),
-      ast.VarDecl("auto", "lambda_v", lambda_expr),
-      ast.VarDecl("auto", "reinterpret_v", reinterpret_expr),
-      ast.VarDecl("auto", "init_v", ast.InitList(std::vector<Arg>{lhs, rhs, null_arg})),
-      ast.Assign(obj.Attr("field"), call_expr),
-      IfStmt::Create(ctx, gt_expr.Get(), BlockStmt::Create(ctx, ast.Body({ast.Return(lhs)})),
-                     BlockStmt::Create(ctx, ast.Body({ast.Return(rhs)}))),
-      ast.Return(lhs),
-  });
-  auto *dsl_class =
-      ast.Class("DslClass", std::vector<DeclNode *>{ast.Public(), ast.Field("uint32_t", "field", ast.UInt(4)),
-                                                    decl_method, decl_method_init, ast.Private(),
-                                                    ast.Field("uint32_t", "hidden")});
+  auto *def_fn_init = ast.DefineFunction("DefInit", {lhs}, "uint32_t",
+                                         {
+                                             ast.VarDecl("uint32_t", "tmp", add_expr),
+                                             ast.Return(lhs),
+                                         });
+  auto *def_method_vec = ast.DefineMethod("Worker", "ExecVec", std::vector<VarRef>{lhs}, "void",
+                                          std::vector<Stmt *>{ExprStmt::Create(ctx, call_expr.Get())});
+  auto *def_method_init = ast.DefineMethod("Worker", "ExecInit", {lhs}, "void",
+                                           {
+                                               ast.Return(),
+                                           });
+  auto *all_ops_def =
+      ast.DefineFunction("AllOps", {lhs, rhs, ptr, obj, arr, runner}, "uint32_t",
+                         {
+                             CommentStmt::Create(ctx, "dsl-all-ops"),
+                             BlankLineStmt::Create(ctx),
+                             ast.VarDecl("auto", "from_cstr", ident_from_cstr),
+                             ast.VarDecl("auto", "from_string", ident_from_string),
+                             ast.VarDecl("auto", "str_node", ast.Str("dsl")),
+                             ast.VarDecl("auto", "uint_node", ast.UInt(9)),
+                             ast.VarDecl("auto", "ulong_node", ast.ULong(9)),
+                             ast.VarDecl("auto", "eq_v", eq_expr),
+                             ast.VarDecl("auto", "ne_v", ne_expr),
+                             ast.VarDecl("auto", "lt_v", lt_expr),
+                             ast.VarDecl("auto", "le_v", le_expr),
+                             ast.VarDecl("auto", "gt_v", gt_expr),
+                             ast.VarDecl("auto", "ge_v", ge_expr),
+                             ast.VarDecl("auto", "land_v", land_expr),
+                             ast.VarDecl("auto", "lor_v", lor_expr),
+                             ast.VarDecl("auto", "add_v", add_expr),
+                             ast.VarDecl("auto", "sub_v", sub_expr),
+                             ast.VarDecl("auto", "mul_v", mul_expr),
+                             ast.VarDecl("auto", "div_v", div_expr),
+                             ast.VarDecl("auto", "mod_v", mod_expr),
+                             ast.VarDecl("auto", "band_v", band_expr),
+                             ast.VarDecl("auto", "bor_v", bor_expr),
+                             ast.VarDecl("auto", "bxor_v", bxor_expr),
+                             ast.VarDecl("auto", "shl_v", shl_expr),
+                             ast.VarDecl("auto", "shr_v", shr_expr),
+                             ast.VarDecl("auto", "not_v", unary_not),
+                             ast.VarDecl("auto", "neg_v", unary_neg),
+                             ast.VarDecl("auto", "bit_not_v", unary_bit_not),
+                             ast.VarDecl("auto", "index_v", arr[2]),
+                             ast.VarDecl("auto", "addr_v", lhs.Addr()),
+                             ast.VarDecl("auto", "attr_v", obj.Attr("field")),
+                             ast.VarDecl("auto", "arrow_v", ptr.Arrow("field")),
+                             ast.VarDecl("auto", "call0_v", runner()),
+                             ast.VarDecl("auto", "call1_v", runner(lhs)),
+                             ast.VarDecl("auto", "member_call_v", obj.Attr("Exec")(lhs, rhs)),
+                             ast.VarDecl("auto", "lambda_v", lambda_expr),
+                             ast.VarDecl("auto", "reinterpret_v", reinterpret_expr),
+                             ast.VarDecl("auto", "init_v", ast.InitList(std::vector<Arg>{lhs, rhs, null_arg})),
+                             ast.Assign(obj.Attr("field"), call_expr),
+                             IfStmt::Create(ctx, gt_expr.Get(), BlockStmt::Create(ctx, ast.Body({ast.Return(lhs)})),
+                                            BlockStmt::Create(ctx, ast.Body({ast.Return(rhs)}))),
+                             ast.Return(lhs),
+                         });
+  auto *dsl_class = ast.Class(
+      "DslClass", std::vector<DeclNode *>{ast.Public(), ast.Field("uint32_t", "field", ast.UInt(4)), decl_method,
+                                          decl_method_init, ast.Private(), ast.Field("uint32_t", "hidden")});
   auto *dsl_struct = ast.Struct("DslStruct", {ast.Field("const char *", "name", ast.Str("abc"))});
-  std::vector<DeclNode *> namespace_items{ast.TypeAlias("void *", "DslHandle"), dsl_class, dsl_struct, decl_fn_init,
-                                          def_fn_vec, def_fn_init, def_method_vec, def_method_init, all_ops_def};
+  std::vector<DeclNode *> namespace_items{ast.TypeAlias("void *", "DslHandle"),
+                                          dsl_class,
+                                          dsl_struct,
+                                          decl_fn_init,
+                                          def_fn_vec,
+                                          def_fn_init,
+                                          def_method_vec,
+                                          def_method_init,
+                                          all_ops_def};
   auto *dsl_namespace = ast.Namespace("dsl_ns", namespace_items);
-  std::vector<DeclNode *> tu_items{ast.Include("vector", IncludeDecl::Kind::kAngle), ast.Include("local.h"),
-                                   ast.Space(),
-                                   ast.StablePart(StablePartId::kScopeGuard), ast.ExternBlock("C", {decl_fn}),
-                                   dsl_namespace};
+  std::vector<DeclNode *> tu_items{
+      ast.Include("vector", IncludeDecl::Kind::kAngle), ast.Include("local.h"),          ast.Space(),
+      ast.StablePart(StablePartId::kScopeGuard),        ast.ExternBlock("C", {decl_fn}), dsl_namespace};
   auto *tu = ast.File(tu_items);
   ASSERT_NE(tu, nullptr);
 
@@ -605,69 +618,69 @@ TEST_F(Om2CodegenUt, AstDsl_AllPublicInterfaces_Ok) {
 
   const auto output = EmitNode(*tu);
   ExpectContainsAll(output, {
-      "#include <vector>\n#include \"local.h\"\n\n",
-      "class ScopeGuard {\n",
-      "extern \"C\" {\n",
-      "uint32_t DeclVec(uint32_t lhs, uint32_t rhs);\n",
-      "namespace dsl_ns {\n",
-      "typedef void *DslHandle;\n",
-      "class DslClass {\n",
-      "  public:\n",
-      "    uint32_t field = 4U;\n",
-      "    void MethodVec(uint32_t lhs);\n",
-      "    void MethodInit(uint32_t lhs, uint32_t rhs);\n",
-      "  private:\n",
-      "    uint32_t hidden;\n",
-      "struct DslStruct {\n",
-      "const char *name = \"abc\";\n",
-      "void DeclInit(uint32_t lhs);\n",
-      "uint32_t DefVec(uint32_t lhs, uint32_t rhs) {\n",
-      "return;\n",
-      "uint32_t DefInit(uint32_t lhs) {\n",
-      "void Worker::ExecVec(uint32_t lhs) {\n",
-      "void Worker::ExecInit(uint32_t lhs) {\n",
-      "// dsl-all-ops\n",
-      "auto from_cstr = symbol_from_cstr;\n",
-      "auto from_string = symbol_from_string;\n",
-      "auto str_node = \"dsl\";\n",
-      "auto uint_node = 9U;\n",
-      "auto ulong_node = 9UL;\n",
-      "auto eq_v = (lhs == rhs);\n",
-      "auto ne_v = (lhs != 1);\n",
-      "auto lt_v = (lhs < rhs);\n",
-      "auto le_v = (lhs <= rhs);\n",
-      "auto gt_v = (lhs > rhs);\n",
-      "auto ge_v = (lhs >= rhs);\n",
-      "auto land_v = (lhs && rhs);\n",
-      "auto lor_v = (lhs || rhs);\n",
-      "auto add_v = (lhs + rhs);\n",
-      "auto sub_v = (lhs - rhs);\n",
-      "auto mul_v = (lhs * rhs);\n",
-      "auto div_v = (lhs / rhs);\n",
-      "auto mod_v = (lhs % rhs);\n",
-      "auto band_v = (lhs & rhs);\n",
-      "auto bor_v = (lhs | rhs);\n",
-      "auto bxor_v = (lhs ^ rhs);\n",
-      "auto shl_v = (lhs << 2);\n",
-      "auto shr_v = (lhs >> 1);\n",
-      "auto not_v = !lhs;\n",
-      "auto neg_v = -lhs;\n",
-      "auto bit_not_v = ~lhs;\n",
-      "auto index_v = arr[2];\n",
-      "auto addr_v = &lhs;\n",
-      "auto attr_v = obj.field;\n",
-      "auto arrow_v = ptr->field;\n",
-      "auto call0_v = runner();\n",
-      "auto call1_v = runner(lhs);\n",
-      "auto member_call_v = obj.Exec(lhs, rhs);\n",
-      "auto lambda_v = [rhs, &lhs]() {\n",
-      "auto reinterpret_v = reinterpret_cast<void *>(ptr);\n",
-      "auto init_v = {lhs, rhs, nullptr};\n",
-      "obj.field = Compute(lhs, rhs, \"string_literal\");\n",
-      "if ((lhs > rhs)) {\n",
-      "return lhs;\n",
-      "return rhs;\n",
-  });
+                                "#include <vector>\n#include \"local.h\"\n\n",
+                                "class ScopeGuard {\n",
+                                "extern \"C\" {\n",
+                                "uint32_t DeclVec(uint32_t lhs, uint32_t rhs);\n",
+                                "namespace dsl_ns {\n",
+                                "typedef void *DslHandle;\n",
+                                "class DslClass {\n",
+                                "  public:\n",
+                                "    uint32_t field = 4U;\n",
+                                "    void MethodVec(uint32_t lhs);\n",
+                                "    void MethodInit(uint32_t lhs, uint32_t rhs);\n",
+                                "  private:\n",
+                                "    uint32_t hidden;\n",
+                                "struct DslStruct {\n",
+                                "const char *name = \"abc\";\n",
+                                "void DeclInit(uint32_t lhs);\n",
+                                "uint32_t DefVec(uint32_t lhs, uint32_t rhs) {\n",
+                                "return;\n",
+                                "uint32_t DefInit(uint32_t lhs) {\n",
+                                "void Worker::ExecVec(uint32_t lhs) {\n",
+                                "void Worker::ExecInit(uint32_t lhs) {\n",
+                                "// dsl-all-ops\n",
+                                "auto from_cstr = symbol_from_cstr;\n",
+                                "auto from_string = symbol_from_string;\n",
+                                "auto str_node = \"dsl\";\n",
+                                "auto uint_node = 9U;\n",
+                                "auto ulong_node = 9UL;\n",
+                                "auto eq_v = (lhs == rhs);\n",
+                                "auto ne_v = (lhs != 1);\n",
+                                "auto lt_v = (lhs < rhs);\n",
+                                "auto le_v = (lhs <= rhs);\n",
+                                "auto gt_v = (lhs > rhs);\n",
+                                "auto ge_v = (lhs >= rhs);\n",
+                                "auto land_v = (lhs && rhs);\n",
+                                "auto lor_v = (lhs || rhs);\n",
+                                "auto add_v = (lhs + rhs);\n",
+                                "auto sub_v = (lhs - rhs);\n",
+                                "auto mul_v = (lhs * rhs);\n",
+                                "auto div_v = (lhs / rhs);\n",
+                                "auto mod_v = (lhs % rhs);\n",
+                                "auto band_v = (lhs & rhs);\n",
+                                "auto bor_v = (lhs | rhs);\n",
+                                "auto bxor_v = (lhs ^ rhs);\n",
+                                "auto shl_v = (lhs << 2);\n",
+                                "auto shr_v = (lhs >> 1);\n",
+                                "auto not_v = !lhs;\n",
+                                "auto neg_v = -lhs;\n",
+                                "auto bit_not_v = ~lhs;\n",
+                                "auto index_v = arr[2];\n",
+                                "auto addr_v = &lhs;\n",
+                                "auto attr_v = obj.field;\n",
+                                "auto arrow_v = ptr->field;\n",
+                                "auto call0_v = runner();\n",
+                                "auto call1_v = runner(lhs);\n",
+                                "auto member_call_v = obj.Exec(lhs, rhs);\n",
+                                "auto lambda_v = [rhs, &lhs]() {\n",
+                                "auto reinterpret_v = reinterpret_cast<void *>(ptr);\n",
+                                "auto init_v = {lhs, rhs, nullptr};\n",
+                                "obj.field = Compute(lhs, rhs, \"string_literal\");\n",
+                                "if ((lhs > rhs)) {\n",
+                                "return lhs;\n",
+                                "return rhs;\n",
+                            });
 }
 
 TEST_F(Om2CodegenUt, AstDsl_ArgSupportsAllIntegralTypes_Ok) {
@@ -682,20 +695,21 @@ TEST_F(Om2CodegenUt, AstDsl_ArgSupportsAllIntegralTypes_Ok) {
   ASSERT_NE(Arg(size_value).Resolve(ctx), nullptr);
   ASSERT_NE(Arg(u8_value).Resolve(ctx), nullptr);
 
-  auto *fn = ast.DefineFunction("IntegralArgs", {}, "void", {
-      ast.VarDecl("auto", "u32_v", u32_value),
-      ast.VarDecl("auto", "size_v", size_value),
-      ast.VarDecl("auto", "u8_v", u8_value),
-      ast.Return(),
-  });
+  auto *fn = ast.DefineFunction("IntegralArgs", {}, "void",
+                                {
+                                    ast.VarDecl("auto", "u32_v", u32_value),
+                                    ast.VarDecl("auto", "size_v", size_value),
+                                    ast.VarDecl("auto", "u8_v", u8_value),
+                                    ast.Return(),
+                                });
   ASSERT_NE(fn, nullptr);
 
   const auto output = EmitNode(*fn);
   ExpectContainsAll(output, {
-      "auto u32_v = 7;\n",
-      "auto size_v = 9;\n",
-      "auto u8_v = 3;\n",
-  });
+                                "auto u32_v = 7;\n",
+                                "auto size_v = 9;\n",
+                                "auto u8_v = 3;\n",
+                            });
 }
 
 TEST_F(Om2CodegenUt, AstDsl_MakeUniqueArray_Ok) {
@@ -703,18 +717,20 @@ TEST_F(Om2CodegenUt, AstDsl_MakeUniqueArray_Ok) {
   AstBuildContext ast(ctx);
 
   auto count = ast.Var("size_t", "count");
-  auto *fn = ast.DefineFunction("BuildArrays", {count}, "void", {
-      ast.VarDecl("auto", "builtin_buffer", ast.MakeUniqueArray(BuiltinType::kUInt8, count)),
-      ast.VarDecl("auto", "custom_buffer", ast.MakeUniqueArray("CustomType", 4)),
-      ast.Return(),
-  });
+  auto *fn =
+      ast.DefineFunction("BuildArrays", {count}, "void",
+                         {
+                             ast.VarDecl("auto", "builtin_buffer", ast.MakeUniqueArray(BuiltinType::kUInt8, count)),
+                             ast.VarDecl("auto", "custom_buffer", ast.MakeUniqueArray("CustomType", 4)),
+                             ast.Return(),
+                         });
   ASSERT_NE(fn, nullptr);
 
   const auto output = EmitNode(*fn);
   ExpectContainsAll(output, {
-      "auto builtin_buffer = std::make_unique<uint8_t[]>(count);\n",
-      "auto custom_buffer = std::make_unique<CustomType[]>(4);\n",
-  });
+                                "auto builtin_buffer = std::make_unique<uint8_t[]>(count);\n",
+                                "auto custom_buffer = std::make_unique<CustomType[]>(4);\n",
+                            });
 }
 
 TEST_F(Om2CodegenUt, AstDsl_ControlFlowAndCtorInit_Ok) {
@@ -727,34 +743,39 @@ TEST_F(Om2CodegenUt, AstDsl_ControlFlowAndCtorInit_Ok) {
   auto lhs = ast.Var("int", "lhs");
   auto item = ast.Var("auto", "item");
 
-  auto *for_stmt = ast.For(ast.VarDecl(i, 0), i < 4, ast.PreInc(i), {
-      ast.Assign(value, value + 1),
-  });
-  auto *range_for_stmt = ast.RangeFor(item, values, {
-      ast.Assign(value, value + item),
-  });
-  auto *ctor_def = ast.DefineMethod("Worker", "Worker", {lhs}, "", {ast.MemberInit("value_", lhs)}, {
-      ast.Assign(value, lhs),
-  });
+  auto *for_stmt = ast.For(ast.VarDecl(i, 0), i < 4, ast.PreInc(i),
+                           {
+                               ast.Assign(value, value + 1),
+                           });
+  auto *range_for_stmt = ast.RangeFor(item, values,
+                                      {
+                                          ast.Assign(value, value + item),
+                                      });
+  auto *ctor_def = ast.DefineMethod("Worker", "Worker", {lhs}, "", {ast.MemberInit("value_", lhs)},
+                                    {
+                                        ast.Assign(value, lhs),
+                                    });
   auto *tu = ast.File({
-      ast.Namespace("om2", {
-          ctor_def,
-          ast.DefineFunction("Touch", {value, values}, "void", {
-              for_stmt,
-              range_for_stmt,
-              ast.Return(),
-          }),
-      }),
+      ast.Namespace("om2",
+                    {
+                        ctor_def,
+                        ast.DefineFunction("Touch", {value, values}, "void",
+                                           {
+                                               for_stmt,
+                                               range_for_stmt,
+                                               ast.Return(),
+                                           }),
+                    }),
   });
 
   ASSERT_NE(tu, nullptr);
   const auto output = EmitNode(*tu);
   ExpectContainsAll(output, {
-      "Worker::Worker(int lhs)\n",
-      "  : value_(lhs) {\n",
-      "for (size_t i = 0; (i < 4); ++i) {\n",
-      "for (auto item : values) {\n",
-  });
+                                "Worker::Worker(int lhs)\n",
+                                "  : value_(lhs) {\n",
+                                "for (size_t i = 0; (i < 4); ++i) {\n",
+                                "for (auto item : values) {\n",
+                            });
 }
 
 TEST_F(Om2CodegenUt, AstDsl_MemcpyAndSizeof_Ok) {
@@ -765,20 +786,22 @@ TEST_F(Om2CodegenUt, AstDsl_MemcpyAndSizeof_Ok) {
   auto src = ast.Var("const void *", "src");
   auto addr = ast.Var("uintptr_t", "addr");
   auto *tu = ast.File({
-      ast.Namespace("om2", {
-          ast.DefineFunction("TouchMemcpy", {dst, src, addr}, "void", {
-              BodyItem(ast.Memcpy(dst, src, ast.Sizeof(addr))),
-              ast.Return(),
-          }),
-      }),
+      ast.Namespace("om2",
+                    {
+                        ast.DefineFunction("TouchMemcpy", {dst, src, addr}, "void",
+                                           {
+                                               BodyItem(ast.Memcpy(dst, src, ast.Sizeof(addr))),
+                                               ast.Return(),
+                                           }),
+                    }),
   });
 
   ASSERT_NE(tu, nullptr);
   const auto output = EmitNode(*tu);
   ExpectContainsAll(output, {
-      "void TouchMemcpy(void *dst, const void *src, uintptr_t addr) {\n",
-      "std::memcpy(dst, src, sizeof(addr));\n",
-  });
+                                "void TouchMemcpy(void *dst, const void *src, uintptr_t addr) {\n",
+                                "std::memcpy(dst, src, sizeof(addr));\n",
+                            });
 }
 
 TEST_F(Om2CodegenUt, AstDsl_IgnoreOutputRemoveFile_Ok) {
@@ -786,17 +809,18 @@ TEST_F(Om2CodegenUt, AstDsl_IgnoreOutputRemoveFile_Ok) {
   AstBuildContext ast(ctx);
 
   auto json_path = ast.Var("std::string", "json_path");
-  auto *fn = ast.DefineFunction("CleanupJsonFile", {json_path}, "void", {
-      ast.IgnoreOutput(ast.RemoveFile(json_path.CStr())),
-      ast.Return(),
-  });
+  auto *fn = ast.DefineFunction("CleanupJsonFile", {json_path}, "void",
+                                {
+                                    ast.IgnoreOutput(ast.RemoveFile(json_path.CStr())),
+                                    ast.Return(),
+                                });
   ASSERT_NE(fn, nullptr);
 
   const auto output = EmitNode(*fn);
   ExpectContainsAll(output, {
-      "void CleanupJsonFile(std::string json_path) {\n",
-      "(void)std::remove(json_path.c_str());\n",
-  });
+                                "void CleanupJsonFile(std::string json_path) {\n",
+                                "(void)std::remove(json_path.c_str());\n",
+                            });
 }
 
 TEST_F(Om2CodegenUt, InterfaceDumpApis_EmitInCLinkageAndPtrToU64Outside_Ok) {
@@ -811,17 +835,17 @@ TEST_F(Om2CodegenUt, InterfaceDumpApis_EmitInCLinkageAndPtrToU64Outside_Ok) {
 
   const auto output = EmitNode(*tu);
   ExpectContainsAll(output, {
-      "inline void *ValueToPtr(const uint64_t value) {\n",
-      "inline uint64_t PtrToU64(const void *ptr) {\n",
-      "extern \"C\" {\n",
-      "struct Om2Tensor {\n",
-      "enum Om2L0ArgKind {\n",
-      "struct Om2L0ArgSlotInfo {\n",
-      "struct Om2L0TaskRawInfo {\n",
-      "const struct Om2L0TaskRawInfo* l0_exception_dump_info;\n",
-      "__attribute__((weak)) int32_t ReportDfxTaskPreprocess(uint32_t model_id,\n",
-      "__attribute__((weak)) int32_t ReportDfxTaskPostprocess(uint32_t model_id,\n",
-  });
+                                "inline void *ValueToPtr(const uint64_t value) {\n",
+                                "inline uint64_t PtrToU64(const void *ptr) {\n",
+                                "extern \"C\" {\n",
+                                "struct Om2Tensor {\n",
+                                "enum Om2L0ArgKind {\n",
+                                "struct Om2L0ArgSlotInfo {\n",
+                                "struct Om2L0TaskRawInfo {\n",
+                                "const struct Om2L0TaskRawInfo* l0_exception_dump_info;\n",
+                                "__attribute__((weak)) int32_t ReportDfxTaskPreprocess(uint32_t model_id,\n",
+                                "__attribute__((weak)) int32_t ReportDfxTaskPostprocess(uint32_t model_id,\n",
+                            });
   EXPECT_LT(output.find("inline uint64_t PtrToU64"), output.find("extern \"C\" {"));
   EXPECT_GT(output.find("struct Om2Tensor"), output.find("extern \"C\" {"));
 }
@@ -831,24 +855,26 @@ TEST_F(Om2CodegenUt, LoadAndRunDumpHelpers_EmitInAnonymousNamespace_Ok) {
   AstBuildContext ast(ctx);
 
   auto *tu = ast.File({
-      ast.Namespace("om2", {
-          ast.Namespace("", {ast.StablePart(StablePartId::kLoadAndRunDumpHelpers)}),
-      }),
+      ast.Namespace("om2",
+                    {
+                        ast.Namespace("", {ast.StablePart(StablePartId::kLoadAndRunDumpHelpers)}),
+                    }),
   });
   ASSERT_NE(tu, nullptr);
 
   const auto output = EmitNode(*tu);
-  ExpectContainsAll(output, {
-      "namespace om2 {\n",
-      "namespace {\n",
-      "Om2Tensor BuildOm2Tensor(void *device_address, uint64_t size, int32_t data_type,\n",
-      "int32_t format, const int64_t *shape_dims, uint64_t shape_dims_num) {\n",
-      "aclError ReportLaunchedOm2Task(const char *op_name, const char *op_type, uint64_t op_desc_id,\n",
-      "const uint64_t *workspace_addrs, const uint64_t *workspace_sizes,\n",
-      "uint32_t workspace_num,\n",
-      "uint32_t task_type, uint32_t block_dim, void *stream,\n",
-      "uint8_t GetIsDataDump(const char *op_name, uint32_t model_id, void *instance_handle) {\n",
-  });
+  ExpectContainsAll(
+      output, {
+                  "namespace om2 {\n",
+                  "namespace {\n",
+                  "Om2Tensor BuildOm2Tensor(void *device_address, uint64_t size, int32_t data_type,\n",
+                  "int32_t format, const int64_t *shape_dims, uint64_t shape_dims_num) {\n",
+                  "aclError ReportLaunchedOm2Task(const char *op_name, const char *op_type, uint64_t op_desc_id,\n",
+                  "const uint64_t *workspace_addrs, const uint64_t *workspace_sizes,\n",
+                  "uint32_t workspace_num,\n",
+                  "uint32_t task_type, uint32_t block_dim, void *stream,\n",
+                  "uint8_t GetIsDataDump(const char *op_name, uint32_t model_id, void *instance_handle) {\n",
+              });
 }
 
 TEST_F(Om2CodegenUt, BuildL0ArgSlotEntries_EmitsTensorWorkspaceAndIgnoredKinds) {
@@ -873,10 +899,10 @@ TEST_F(Om2CodegenUt, BuildL0ArgSlotEntries_EmitsTensorWorkspaceAndIgnoredKinds) 
   ASSERT_NE(entries, nullptr);
   auto output = EmitNode(*entries);
   ExpectContainsAll(output, {
-      "{OM2_L0_ARG_INPUT, 0U, 0U, 0UL, 0U, 0U, 0U}",
-      "{OM2_L0_ARG_WORKSPACE, 0U, 8U, 0UL, 0U, 0U, 0U}",
-      "{OM2_L0_ARG_PLACEHOLDER, 0U, 16U, 0UL, 0U, 0U, 0U}",
-  });
+                                "{OM2_L0_ARG_INPUT, 0U, 0U, 0UL, 0U, 0U, 0U}",
+                                "{OM2_L0_ARG_WORKSPACE, 0U, 8U, 0UL, 0U, 0U, 0U}",
+                                "{OM2_L0_ARG_PLACEHOLDER, 0U, 16U, 0UL, 0U, 0U, 0U}",
+                            });
 }
 
 TEST_F(Om2CodegenUt, AstDsl_ContainerMethods_Ok) {
@@ -887,23 +913,25 @@ TEST_F(Om2CodegenUt, AstDsl_ContainerMethods_Ok) {
   auto ptr = ast.Var("std::unique_ptr<uint8_t[]>", "ptr");
   auto index = ast.Var("size_t", "index");
   auto value = ast.Var("uint8_t", "value");
-  auto *fn = ast.DefineFunction("TouchContainer", {vec, ptr, index, value}, "void", {
-      vec.Clear(),
-      vec.Resize(8),
-      vec.PushBack(value),
-      ast.Call("Use", {vec.Size(), vec.Data(), vec.Empty(), vec.At(index), ptr.GetPtr()}),
-      ast.Return(),
-  });
+  auto *fn = ast.DefineFunction("TouchContainer", {vec, ptr, index, value}, "void",
+                                {
+                                    vec.Clear(),
+                                    vec.Resize(8),
+                                    vec.PushBack(value),
+                                    ast.Call("Use", {vec.Size(), vec.Data(), vec.Empty(), vec.At(index), ptr.GetPtr()}),
+                                    ast.Return(),
+                                });
   ASSERT_NE(fn, nullptr);
 
   const auto output = EmitNode(*fn);
   ExpectContainsAll(output, {
-      "void TouchContainer(std::vector<uint8_t> vec, std::unique_ptr<uint8_t[]> ptr, size_t index, uint8_t value) {\n",
-      "vec.clear();\n",
-      "vec.resize(8);\n",
-      "vec.push_back(value);\n",
-      "Use(vec.size(), vec.data(), vec.empty(), vec.at(index), ptr.get());\n",
-  });
+                                "void TouchContainer(std::vector<uint8_t> vec, std::unique_ptr<uint8_t[]> ptr, size_t "
+                                "index, uint8_t value) {\n",
+                                "vec.clear();\n",
+                                "vec.resize(8);\n",
+                                "vec.push_back(value);\n",
+                                "Use(vec.size(), vec.data(), vec.empty(), vec.at(index), ptr.get());\n",
+                            });
 }
 
 TEST_F(Om2CodegenUt, Arg_AutoPromoteInitList_Ok) {
@@ -911,16 +939,17 @@ TEST_F(Om2CodegenUt, Arg_AutoPromoteInitList_Ok) {
   AstBuildContext ast(ctx);
 
   auto value = ast.Var("std::vector<ArgsInfo>", "value");
-  auto *fn = ast.DefineFunction("Build", {}, "void", {
-      ast.Assign(value, {{1, 2, 3}, {4, 5, 6}}),
-  });
+  auto *fn = ast.DefineFunction("Build", {}, "void",
+                                {
+                                    ast.Assign(value, {{1, 2, 3}, {4, 5, 6}}),
+                                });
 
   ASSERT_NE(fn, nullptr);
   const auto output = EmitNode(*fn);
   ExpectContainsAll(output, {
-      "void Build() {\n",
-      "value = {{1, 2, 3}, {4, 5, 6}};\n",
-  });
+                                "void Build() {\n",
+                                "value = {{1, 2, 3}, {4, 5, 6}};\n",
+                            });
 }
 
 TEST_F(Om2CodegenUt, CompileGeneratedCppToSo_MakefileVariableContinuation_Ok) {
@@ -972,8 +1001,7 @@ static Om2CodegenArtifacts MakeBuildConfigTestArtifacts(const std::string &model
   const std::string include_line = "#include \"" + interface_name + "\"\n";
   return {
       {interface_name, "#pragma once\n#define BC_TEST_VALUE 1\n"},
-      {model_name + "_load_and_run.cpp",
-       include_line + "extern \"C\" int BcTest() { return BC_TEST_VALUE; }\n"},
+      {model_name + "_load_and_run.cpp", include_line + "extern \"C\" int BcTest() { return BC_TEST_VALUE; }\n"},
       {"Makefile", R"(CXX := c++
 TARGET := libbc_test_om2.so
 SRC_FILES := bc_test_load_and_run.cpp
@@ -999,8 +1027,8 @@ std::string GetNativeMachine() {
 
 Status CompileBuildConfigArtifacts(const std::string &model_name) {
   Om2CodegenArtifact so_artifact;
-  const Status ret = Om2Utils::CompileGeneratedCppToSo(MakeBuildConfigTestArtifacts(model_name),
-                                                       model_name, so_artifact, false);
+  const Status ret =
+      Om2Utils::CompileGeneratedCppToSo(MakeBuildConfigTestArtifacts(model_name), model_name, so_artifact, false);
   if (ret == SUCCESS) {
     EXPECT_FALSE(so_artifact.data.empty());
   }
@@ -1058,8 +1086,8 @@ bool PrepareFakeCompiler(ScopedTempDir &temp_dir, const std::string &relative_pa
   if ((cxx.empty()) || (path_env == nullptr)) {
     return false;
   }
-  const std::string script = "#!/bin/sh\nexport PATH=" + ShellQuote(path_env) + "\nexec " +
-                             ShellQuote(cxx) + " \"$@\"\n";
+  const std::string script =
+      "#!/bin/sh\nexport PATH=" + ShellQuote(path_env) + "\nexec " + ShellQuote(cxx) + " \"$@\"\n";
   return temp_dir.WriteFile(relative_path, script, 0755);
 }
 
@@ -1071,8 +1099,8 @@ TEST_F(Om2CodegenUt, CompileGeneratedCppToSo_BuildConfigInvalidChar_Rejected) {
 
   const std::string model_name = "bc_invalid_char";
   Om2CodegenArtifact so_artifact;
-  EXPECT_NE(Om2Utils::CompileGeneratedCppToSo(MakeBuildConfigTestArtifacts(model_name),
-                                               model_name, so_artifact, false), SUCCESS);
+  EXPECT_NE(Om2Utils::CompileGeneratedCppToSo(MakeBuildConfigTestArtifacts(model_name), model_name, so_artifact, false),
+            SUCCESS);
 }
 
 TEST_F(Om2CodegenUt, CompileGeneratedCppToSo_BuildConfigNonWhitelisted_Rejected) {
@@ -1083,8 +1111,8 @@ TEST_F(Om2CodegenUt, CompileGeneratedCppToSo_BuildConfigNonWhitelisted_Rejected)
 
   const std::string model_name = "bc_invalid_var";
   Om2CodegenArtifact so_artifact;
-  EXPECT_NE(Om2Utils::CompileGeneratedCppToSo(MakeBuildConfigTestArtifacts(model_name),
-                                               model_name, so_artifact, false), SUCCESS);
+  EXPECT_NE(Om2Utils::CompileGeneratedCppToSo(MakeBuildConfigTestArtifacts(model_name), model_name, so_artifact, false),
+            SUCCESS);
 }
 
 TEST_F(Om2CodegenUt, CompileGeneratedCppToSo_BuildConfigUnbalancedQuote_Rejected) {
@@ -1095,8 +1123,8 @@ TEST_F(Om2CodegenUt, CompileGeneratedCppToSo_BuildConfigUnbalancedQuote_Rejected
 
   const std::string model_name = "bc_invalid_quote";
   Om2CodegenArtifact so_artifact;
-  EXPECT_NE(Om2Utils::CompileGeneratedCppToSo(MakeBuildConfigTestArtifacts(model_name),
-                                               model_name, so_artifact, false), SUCCESS);
+  EXPECT_NE(Om2Utils::CompileGeneratedCppToSo(MakeBuildConfigTestArtifacts(model_name), model_name, so_artifact, false),
+            SUCCESS);
 }
 
 TEST_F(Om2CodegenUt, CompileGeneratedCppToSo_BuildConfigNotMakeCommand_Rejected) {
@@ -1107,8 +1135,8 @@ TEST_F(Om2CodegenUt, CompileGeneratedCppToSo_BuildConfigNotMakeCommand_Rejected)
 
   const std::string model_name = "bc_not_make";
   Om2CodegenArtifact so_artifact;
-  EXPECT_NE(Om2Utils::CompileGeneratedCppToSo(MakeBuildConfigTestArtifacts(model_name),
-                                               model_name, so_artifact, false), SUCCESS);
+  EXPECT_NE(Om2Utils::CompileGeneratedCppToSo(MakeBuildConfigTestArtifacts(model_name), model_name, so_artifact, false),
+            SUCCESS);
 }
 
 TEST_F(Om2CodegenUt, CompileGeneratedCppToSo_BuildConfigUseStubLib_Rejected) {
@@ -1119,21 +1147,21 @@ TEST_F(Om2CodegenUt, CompileGeneratedCppToSo_BuildConfigUseStubLib_Rejected) {
 
   const std::string model_name = "bc_stub_lib";
   Om2CodegenArtifact so_artifact;
-  EXPECT_NE(Om2Utils::CompileGeneratedCppToSo(MakeBuildConfigTestArtifacts(model_name),
-                                               model_name, so_artifact, false), SUCCESS);
+  EXPECT_NE(Om2Utils::CompileGeneratedCppToSo(MakeBuildConfigTestArtifacts(model_name), model_name, so_artifact, false),
+            SUCCESS);
 }
 
 TEST_F(Om2CodegenUt, CompileGeneratedCppToSo_BuildConfigQuotedMakePath_Ok) {
   ScopedEnvVar asan_guard("ASAN_OPTIONS", "detect_leaks=0:halt_on_error=0");
   ScopedEnvVar lsan_guard("LSAN_OPTIONS", "exitcode=0");
   ScopedGraphOptions graph_guard;
-  GetThreadLocalContext().SetGraphOption({{"ge.buildConfig",
-                                           "  /usr/bin/make -s CXX=c++ CXXFLAGS='-std=c++17 -fPIC'"}});
+  GetThreadLocalContext().SetGraphOption(
+      {{"ge.buildConfig", "  /usr/bin/make -s CXX=c++ CXXFLAGS='-std=c++17 -fPIC'"}});
 
   const std::string model_name = "bc_quoted_make_path";
   Om2CodegenArtifact so_artifact;
-  ASSERT_EQ(Om2Utils::CompileGeneratedCppToSo(MakeBuildConfigTestArtifacts(model_name),
-                                              model_name, so_artifact, false), SUCCESS);
+  ASSERT_EQ(Om2Utils::CompileGeneratedCppToSo(MakeBuildConfigTestArtifacts(model_name), model_name, so_artifact, false),
+            SUCCESS);
   EXPECT_FALSE(so_artifact.data.empty());
 }
 
@@ -1142,20 +1170,17 @@ TEST_F(Om2CodegenUt, CompileGeneratedCppToSo_BuildConfigMakefileOptionRejected) 
   ScopedEnvVar lsan_guard("LSAN_OPTIONS", "exitcode=0");
   ScopedGraphOptions graph_guard;
   const std::vector<std::string> invalid_build_configs = {
-      "make -f user.mk",
-      "make -fuser.mk",
-      "make --file user.mk",
-      "make --file=user.mk",
-      "make --makefile user.mk",
-      "make --makefile=user.mk",
+      "make -f user.mk",     "make -fuser.mk",          "make --file user.mk",
+      "make --file=user.mk", "make --makefile user.mk", "make --makefile=user.mk",
   };
 
   for (size_t i = 0U; i < invalid_build_configs.size(); ++i) {
     GetThreadLocalContext().SetGraphOption({{"ge.buildConfig", invalid_build_configs[i]}});
     const std::string model_name = "bc_makefile_option_" + std::to_string(i);
     Om2CodegenArtifact so_artifact;
-    EXPECT_NE(Om2Utils::CompileGeneratedCppToSo(MakeBuildConfigTestArtifacts(model_name),
-                                                model_name, so_artifact, false), SUCCESS)
+    EXPECT_NE(
+        Om2Utils::CompileGeneratedCppToSo(MakeBuildConfigTestArtifacts(model_name), model_name, so_artifact, false),
+        SUCCESS)
         << invalid_build_configs[i];
   }
 }
@@ -1173,8 +1198,8 @@ TEST_F(Om2CodegenUt, CompileGeneratedCppToSo_HostEnvNativeArmAlias_Ok) {
 
   const std::string model_name = "host_env_arm64_alias";
   Om2CodegenArtifact so_artifact;
-  ASSERT_EQ(Om2Utils::CompileGeneratedCppToSo(MakeBuildConfigTestArtifacts(model_name),
-                                              model_name, so_artifact, false), SUCCESS);
+  ASSERT_EQ(Om2Utils::CompileGeneratedCppToSo(MakeBuildConfigTestArtifacts(model_name), model_name, so_artifact, false),
+            SUCCESS);
   EXPECT_FALSE(so_artifact.data.empty());
 }
 
@@ -1198,8 +1223,8 @@ TEST_F(Om2CodegenUt, CompileGeneratedCppToSo_HostEnvNonArmTarget_Ok) {
 
   const std::string model_name = "host_env_non_arm";
   Om2CodegenArtifact so_artifact;
-  ASSERT_EQ(Om2Utils::CompileGeneratedCppToSo(MakeBuildConfigTestArtifacts(model_name),
-                                              model_name, so_artifact, false), SUCCESS);
+  ASSERT_EQ(Om2Utils::CompileGeneratedCppToSo(MakeBuildConfigTestArtifacts(model_name), model_name, so_artifact, false),
+            SUCCESS);
   EXPECT_FALSE(so_artifact.data.empty());
 }
 
@@ -1336,15 +1361,15 @@ TEST_F(Om2CodegenUt, StablePartProvider_Om2LogMacros_Ok) {
   std::string output;
   ASSERT_EQ(ResolveStablePart(StablePartId::kOm2LogMacros, output), SUCCESS);
   ExpectContainsAll(output, {
-      "#define OM2_LOGD",
-      "#define OM2_LOGI",
-      "#define OM2_LOGW",
-      "#define OM2_LOGE",
-      "Om2GetTid",
-      "Om2IsLogEnable",
-      "OM2_MODULE_NAME",
-      "OM2_LOG_HEADER",
-  });
+                                "#define OM2_LOGD",
+                                "#define OM2_LOGI",
+                                "#define OM2_LOGW",
+                                "#define OM2_LOGE",
+                                "Om2GetTid",
+                                "Om2IsLogEnable",
+                                "OM2_MODULE_NAME",
+                                "OM2_LOG_HEADER",
+                            });
 }
 
 TEST_F(Om2CodegenUt, Om2CodePrinter_GetFileName_DefaultNames) {

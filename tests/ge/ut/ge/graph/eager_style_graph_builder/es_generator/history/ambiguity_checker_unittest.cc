@@ -15,102 +15,76 @@
 using namespace ge::es::history;
 
 class AmbiguityCheckerUT : public ::testing::Test {
-  protected:
-    Signature BuildSig(std::initializer_list<Param> params) const {
-      Signature sig;
-      sig.params.assign(params.begin(), params.end());
-      return sig;
-    }
+ protected:
+  Signature BuildSig(std::initializer_list<Param> params) const {
+    Signature sig;
+    sig.params.assign(params.begin(), params.end());
+    return sig;
+  }
 };
 
 TEST_F(AmbiguityCheckerUT, CallRangeBasic) {
-  const auto sig = BuildSig({
-    {ParamCxxKind::kInt64, "axis", false, ""},
-    {ParamCxxKind::kBool, "flag", true, "=false"}
-  });
+  const auto sig = BuildSig({{ParamCxxKind::kInt64, "axis", false, ""}, {ParamCxxKind::kBool, "flag", true, "=false"}});
   const auto range = AmbiguityChecker::CallRange(sig);
   EXPECT_EQ(range.first, 1);
   EXPECT_EQ(range.second, 2);
 }
 
 TEST_F(AmbiguityCheckerUT, CallRangeOverlap) {
-  const auto a = BuildSig({
-    {ParamCxxKind::kInt64, "a", false, ""},
-    {ParamCxxKind::kBool, "b", true, "=false"}
-  });
+  const auto a = BuildSig({{ParamCxxKind::kInt64, "a", false, ""}, {ParamCxxKind::kBool, "b", true, "=false"}});
   const auto b = BuildSig({{ParamCxxKind::kInt64, "a", false, ""}});
   EXPECT_TRUE(AmbiguityChecker::HasCallRangeOverlap(a, b));
 }
 
 TEST_F(AmbiguityCheckerUT, CallRangeNoOverlap) {
   const auto a = BuildSig({{ParamCxxKind::kInt64, "a", false, ""}});
-  const auto b = BuildSig({
-    {ParamCxxKind::kInt64, "a", false, ""},
-    {ParamCxxKind::kInt64, "b", false, ""},
-    {ParamCxxKind::kInt64, "c", false, ""}
-  });
+  const auto b = BuildSig({{ParamCxxKind::kInt64, "a", false, ""},
+                           {ParamCxxKind::kInt64, "b", false, ""},
+                           {ParamCxxKind::kInt64, "c", false, ""}});
   EXPECT_FALSE(AmbiguityChecker::HasCallRangeOverlap(a, b));
 }
 
 TEST_F(AmbiguityCheckerUT, Gate1NoOverlapIsSafe) {
   const auto v1 = BuildSig({{ParamCxxKind::kEsTensorLikeRef, "x", false, ""}});
-  const auto v2 = BuildSig({
-    {ParamCxxKind::kEsTensorLikeRef, "x", false, ""},
-    {ParamCxxKind::kEsTensorLikeRef, "xo1", false, ""},
-    {ParamCxxKind::kEsTensorLikeRef, "xo2", false, ""}
-  });
+  const auto v2 = BuildSig({{ParamCxxKind::kEsTensorLikeRef, "x", false, ""},
+                            {ParamCxxKind::kEsTensorLikeRef, "xo1", false, ""},
+                            {ParamCxxKind::kEsTensorLikeRef, "xo2", false, ""}});
   EXPECT_FALSE(AmbiguityChecker::HasPotentialAmbiguityByTypicalArgs(v1, v2));
 }
 
 TEST_F(AmbiguityCheckerUT, Gate2ConflictDetected) {
-  const auto v1 = BuildSig({
-    {ParamCxxKind::kEsTensorLikeRef, "x", false, ""},
-    {ParamCxxKind::kEsTensorLikeRef, "xo1", false, ""},
-    {ParamCxxKind::kInt64, "a", true, "=0"}
-  });
-  const auto v2 = BuildSig({
-    {ParamCxxKind::kEsTensorLikeRef, "x", false, ""},
-    {ParamCxxKind::kEsTensorLikeRef, "xo1", false, ""},
-    {ParamCxxKind::kEsTensorLikeRef, "xo2", false, ""}
-  });
+  const auto v1 = BuildSig({{ParamCxxKind::kEsTensorLikeRef, "x", false, ""},
+                            {ParamCxxKind::kEsTensorLikeRef, "xo1", false, ""},
+                            {ParamCxxKind::kInt64, "a", true, "=0"}});
+  const auto v2 = BuildSig({{ParamCxxKind::kEsTensorLikeRef, "x", false, ""},
+                            {ParamCxxKind::kEsTensorLikeRef, "xo1", false, ""},
+                            {ParamCxxKind::kEsTensorLikeRef, "xo2", false, ""}});
   EXPECT_TRUE(AmbiguityChecker::HasPotentialAmbiguityByTypicalArgs(v1, v2));
 }
 
 TEST_F(AmbiguityCheckerUT, Gate2NoConflictIsSafe) {
-  const auto v1 = BuildSig({
-    {ParamCxxKind::kEsTensorLikeRef, "x", false, ""},
-    {ParamCxxKind::kEsTensorLikeRef, "xo1", false, ""},
-    {ParamCxxKind::kCString, "mode", true, "=\"xx\""}
-  });
-  const auto v2 = BuildSig({
-    {ParamCxxKind::kEsTensorLikeRef, "x", false, ""},
-    {ParamCxxKind::kEsTensorLikeRef, "xo1", false, ""},
-    {ParamCxxKind::kTensorHolderRef, "xo2", false, ""}
-  });
+  const auto v1 = BuildSig({{ParamCxxKind::kEsTensorLikeRef, "x", false, ""},
+                            {ParamCxxKind::kEsTensorLikeRef, "xo1", false, ""},
+                            {ParamCxxKind::kCString, "mode", true, "=\"xx\""}});
+  const auto v2 = BuildSig({{ParamCxxKind::kEsTensorLikeRef, "x", false, ""},
+                            {ParamCxxKind::kEsTensorLikeRef, "xo1", false, ""},
+                            {ParamCxxKind::kTensorHolderRef, "xo2", false, ""}});
   EXPECT_FALSE(AmbiguityChecker::HasPotentialAmbiguityByTypicalArgs(v1, v2));
 }
 
 TEST_F(AmbiguityCheckerUT, Gate2NoConflictWhenRequiredSecondArgTypesAreDisjoint) {
-  const auto a = BuildSig({
-    {ParamCxxKind::kEsTensorLikeRef, "x", false, ""},
-    {ParamCxxKind::kInt64, "axis", false, ""}
-  });
-  const auto b = BuildSig({
-    {ParamCxxKind::kEsTensorLikeRef, "x", false, ""},
-    {ParamCxxKind::kCString, "mode", false, ""}
-  });
+  const auto a =
+      BuildSig({{ParamCxxKind::kEsTensorLikeRef, "x", false, ""}, {ParamCxxKind::kInt64, "axis", false, ""}});
+  const auto b =
+      BuildSig({{ParamCxxKind::kEsTensorLikeRef, "x", false, ""}, {ParamCxxKind::kCString, "mode", false, ""}});
   EXPECT_FALSE(AmbiguityChecker::HasPotentialAmbiguityByTypicalArgs(a, b));
 }
 
 TEST_F(AmbiguityCheckerUT, Gate2DetectsAmbiguityOnOverlapArityOnly) {
-  const auto a = BuildSig({
-    {ParamCxxKind::kEsTensorLikeRef, "x", false, ""},
-    {ParamCxxKind::kInt64, "axis", true, "=0"}
-  });
-  const auto b = BuildSig({
-    {ParamCxxKind::kEsTensorLikeRef, "x", false, ""},
-    {ParamCxxKind::kEsTensorLikeRef, "xo2", false, ""}
-  });
+  const auto a =
+      BuildSig({{ParamCxxKind::kEsTensorLikeRef, "x", false, ""}, {ParamCxxKind::kInt64, "axis", true, "=0"}});
+  const auto b =
+      BuildSig({{ParamCxxKind::kEsTensorLikeRef, "x", false, ""}, {ParamCxxKind::kEsTensorLikeRef, "xo2", false, ""}});
   EXPECT_TRUE(AmbiguityChecker::HasPotentialAmbiguityByTypicalArgs(a, b));
 }
 

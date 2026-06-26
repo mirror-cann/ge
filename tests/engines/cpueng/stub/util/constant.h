@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,7 +30,7 @@ const std::string kConfigFilePath = "/usr/local/HiAI/runtime/lib64/plugin/opsker
 
 const std::string kInitConfigFileRelativePath = "../../../../tests/engines/cpueng/stub/config/init.conf";
 
-//Attr unknown_shape
+// Attr unknown_shape
 const std::string kAttrNameUnknownShape = "_aicpu_unknown_shape";
 
 const std::string kAttrNameInputOutputDtString = "_aicpu_input_output_dtstring";
@@ -61,11 +61,11 @@ const std::string kOpsInfoJson = "/built-in/framework/tensorflow/npu_supported_o
 const std::string kOpsJsonRelativePathOld = "/tests/engines/cpueng/stub/config/npu_supported_ops.json";
 const std::string kOpsJsonRelativePath = "/tests/engines/cpueng/stub/config/npu_supported_ops.json";
 
-const std::string kCceOpsFilePath = "/usr/local/HiAI/runtime/ops/op_impl/built-in/aicpu/"
-                                      "cce_kernel/config/cce_kernel.json";
+const std::string kCceOpsFilePath =
+    "/usr/local/HiAI/runtime/ops/op_impl/built-in/aicpu/"
+    "cce_kernel/config/cce_kernel.json";
 
 const std::string kAicpuOpsFileBasedOnEnvPath = "tests/engines/cpueng/stub/config/aicpu_kernel.json";
-
 
 const std::string kAicpuOpsFileBasedOnEnvPathOld = "/tests/engines/cpueng/stub/config/aicpu_kernel.json";
 
@@ -107,7 +107,7 @@ const std::string kTfDebugMode = "TfDebugMode";
 // op check mode
 const std::string kOpCheckMode = "OpCheckMode";
 
-// Load libcpu_kernels.so in model 
+// Load libcpu_kernels.so in model
 const std::string kLoadCpuKernelsInModel = "LoadCpuKernelsInModel";
 
 // default load type for libcpu_kernels.so
@@ -197,7 +197,7 @@ const std::string kNodeTypeConst = "Const";
 
 const std::string kNodeTypeConstant = "Constant";
 
-//async flag
+// async flag
 const std::string kAsyncFlag = "async_flag";
 
 // kernelSo
@@ -219,7 +219,7 @@ const std::string kTfInDataType = "t_in_datatype";
 const std::string kTfOutDataType = "t_out_datatype";
 
 // Input tensor desc
-const std::string kInputTensorDesc  = "input_tensor_desc";
+const std::string kInputTensorDesc = "input_tensor_desc";
 
 // Output tensor desc
 const std::string kOutputTensorDesc = "output_tensor_desc";
@@ -257,7 +257,7 @@ const std::string kAttrNameFftsPlusCtxDef = "_ffts_plus_aicpu_ctx_def";
 const std::string kAttrName64BytesFlag = "_align_64_bytes_flag";
 const std::string kCustomizedTailOpDef = "sgt_tail_customized_op_def";
 const uint32_t kDefaultAicpuBlockDim = 1;
-}
+}  // namespace aicpu
 
 // auto cast mode
 const std::string kAutoCastMode = "AutoCastMode";

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,14 +25,15 @@ namespace gert {
 namespace {
 constexpr uint32_t kHybridSubgraphIndex = 0U;
 constexpr uint32_t kHybridSubgraphRecursion = 32U;
-const std::set<std::string> kHybridMergeInputSkipTypes{ge::STREAMACTIVE, ge::STREAMSWITCH, ge::CONSTANT, ge::CONSTANTOP};
+const std::set<std::string> kHybridMergeInputSkipTypes{ge::STREAMACTIVE, ge::STREAMSWITCH, ge::CONSTANT,
+                                                       ge::CONSTANTOP};
 bool IsFftsGraphNode(const ge::OpDesc &op_desc) {
   return op_desc.HasAttr(ge::ATTR_NAME_FFTS_SUB_GRAPH) || op_desc.HasAttr(ge::ATTR_NAME_FFTS_PLUS_SUB_GRAPH);
 }
 
 std::vector<ge::NodePtr> GetAllPartitioncallNodes(const ge::ComputeGraphPtr &root_graph) {
   std::vector<ge::NodePtr> partiticall_nodes;
-  for (const auto& node : root_graph->GetDirectNode()) {
+  for (const auto &node : root_graph->GetDirectNode()) {
     if (node->GetType() == ge::PARTITIONEDCALL) {
       partiticall_nodes.emplace_back(node);
     }
@@ -40,21 +41,23 @@ std::vector<ge::NodePtr> GetAllPartitioncallNodes(const ge::ComputeGraphPtr &roo
   return partiticall_nodes;
 }
 
-void SetStageLevel4SubgraphNode(const ge::NodePtr& parent_node, const ge::ComputeGraphPtr& sub_graph) {
+void SetStageLevel4SubgraphNode(const ge::NodePtr &parent_node, const ge::ComputeGraphPtr &sub_graph) {
   if (!parent_node->GetOpDesc()->HasAttr(ge::ATTR_STAGE_LEVEL)) {
     return;
   }
   int64_t stage_level = std::numeric_limits<int64_t>::max();
   if (ge::AttrUtils::GetInt(parent_node->GetOpDesc(), ge::ATTR_STAGE_LEVEL, stage_level)) {
     for (const auto &stage_node : sub_graph->GetAllNodes()) {
-      GELOGD("Set ATTR_STAGE_LEVEL on node %s, stage_level="
-             "%" PRId64 "", stage_node->GetName().c_str(), stage_level);
+      GELOGD(
+          "Set ATTR_STAGE_LEVEL on node %s, stage_level="
+          "%" PRId64 "",
+          stage_node->GetName().c_str(), stage_level);
       (void)ge::AttrUtils::SetInt(stage_node->GetOpDesc(), ge::ATTR_STAGE_LEVEL, stage_level);
     }
   }
 }
 
-ge::Status AddSubgraphNode2Rootgraph(const ge::ComputeGraphPtr& sub_graph, const ge::ComputeGraphPtr& root_graph){
+ge::Status AddSubgraphNode2Rootgraph(const ge::ComputeGraphPtr &sub_graph, const ge::ComputeGraphPtr &root_graph) {
   for (auto &sub_node : sub_graph->GetDirectNode()) {
     auto sub_node_type = sub_node->GetType();
     if (sub_node_type == ge::DATA_TYPE || sub_node_type == ge::NETOUTPUT) {
@@ -69,8 +72,8 @@ ge::Status AddSubgraphNode2Rootgraph(const ge::ComputeGraphPtr& sub_graph, const
 ge::Status GetAllDirNodeSubGraphs(const ge::ComputeGraphPtr graph, std::vector<ge::ComputeGraphPtr> &subgraphs) {
   for (const auto &node : graph->GetDirectNode()) {
     std::vector<ge::ComputeGraphPtr> node_subgraphs;
-    GE_CHK_STATUS_RET(ge::NodeUtils::GetDirectSubgraphs(node, node_subgraphs),
-                      "Get Subgraphs failed for node %s", node->GetName().c_str());
+    GE_CHK_STATUS_RET(ge::NodeUtils::GetDirectSubgraphs(node, node_subgraphs), "Get Subgraphs failed for node %s",
+                      node->GetName().c_str());
     for (auto &subgraph : node_subgraphs) {
       if (subgraph != nullptr) {
         subgraphs.push_back(subgraph);
@@ -109,8 +112,7 @@ ge::Status GraphUnfolder::DoLinkDataAnchors(const ge::OutDataAnchorPtr &out_data
 
 ge::Status GraphUnfolder::UnfoldPartitionedCallSubgraph(const ge::ComputeGraphPtr &sub_graph,
                                                         ge::ComputeGraphPtr &merged_graph,
-                                                        const ge::ComputeGraphPtr &root_graph,
-                                                        const ge::NodePtr &node,
+                                                        const ge::ComputeGraphPtr &root_graph, const ge::NodePtr &node,
                                                         const uint32_t depth) {
   GE_ASSERT_NOTNULL(sub_graph);
   if (!sub_graph->GetGraphUnknownFlag()) {
@@ -123,14 +125,16 @@ ge::Status GraphUnfolder::UnfoldPartitionedCallSubgraph(const ge::ComputeGraphPt
     int64_t stage_level = std::numeric_limits<int64_t>::max();
     if (ge::AttrUtils::GetInt(node->GetOpDesc(), ge::ATTR_STAGE_LEVEL, stage_level)) {
       for (const auto &stage_node : sub_graph->GetAllNodes()) {
-        GELOGD("Set ATTR_STAGE_LEVEL on node %s, stage_level="
-          "%" PRId64 "", stage_node->GetName().c_str(), stage_level);
+        GELOGD(
+            "Set ATTR_STAGE_LEVEL on node %s, stage_level="
+            "%" PRId64 "",
+            stage_node->GetName().c_str(), stage_level);
         (void)ge::AttrUtils::SetInt(stage_node->GetOpDesc(), ge::ATTR_STAGE_LEVEL, stage_level);
       }
     }
   }
   GE_CHK_STATUS_RET(MergeInputNodes(*sub_graph),
-      "[Invoke][MergeInputNodes][%s] Failed to merge data nodes for subgraph",
+                    "[Invoke][MergeInputNodes][%s] Failed to merge data nodes for subgraph",
                     sub_graph->GetName().c_str());
   GE_CHK_STATUS_RET(MergeNetOutputNode(*sub_graph),
                     "[Invoke][MergeNetOutputNode][%s] Failed to merge net output nodes for subgraph",
@@ -139,17 +143,15 @@ ge::Status GraphUnfolder::UnfoldPartitionedCallSubgraph(const ge::ComputeGraphPt
   GE_CHK_STATUS_RET_NOLOG(UnfoldSubgraph(root_graph, sub_graph, merged_graph, depth + 1U));
   GELOGD("[%s] Done merging subgraph. remove it from root graph", sub_graph->GetName().c_str());
   auto anchors = node->GetAllInDataAnchors();
-  (void)std::for_each(anchors.begin(), anchors.end(), [](ge::InDataAnchorPtr &anchor)->void {
-    return anchor->UnlinkAll();
-  });
+  (void)std::for_each(anchors.begin(), anchors.end(),
+                      [](ge::InDataAnchorPtr &anchor) -> void { return anchor->UnlinkAll(); });
   root_graph->RemoveSubgraph(sub_graph->GetName());
   GELOGD("[%s] Done merging subgraph", sub_graph->GetName().c_str());
   return ge::SUCCESS;
 }
 
 ge::Status GraphUnfolder::UnfoldControlNodeSubgraph(const std::vector<ge::ComputeGraphPtr> &subgraphs,
-                                                    const ge::ComputeGraphPtr &root_graph,
-                                                    const ge::NodePtr &node,
+                                                    const ge::ComputeGraphPtr &root_graph, const ge::NodePtr &node,
                                                     const uint32_t depth) {
   for (size_t i = 0UL; i < subgraphs.size(); i++) {
     GE_CHECK_NOTNULL(subgraphs[i]);
@@ -157,8 +159,7 @@ ge::Status GraphUnfolder::UnfoldControlNodeSubgraph(const std::vector<ge::Comput
       GELOGI("subgraph is known: %s, should skip unfold", subgraphs[i]->GetName().c_str());
       continue;
     }
-    GELOGI("Start unfold subgraph graph: %s of node: %s",
-        subgraphs[i]->GetName().c_str(), node->GetName().c_str());
+    GELOGI("Start unfold subgraph graph: %s of node: %s", subgraphs[i]->GetName().c_str(), node->GetName().c_str());
     std::string merged_graph_name = subgraphs[i]->GetName() + "_merged_graph";
     ge::ComputeGraphPtr temp_graph = ge::MakeShared<ge::ComputeGraph>(merged_graph_name);
     GE_CHECK_NOTNULL(temp_graph);
@@ -170,8 +171,8 @@ ge::Status GraphUnfolder::UnfoldControlNodeSubgraph(const std::vector<ge::Comput
   return ge::SUCCESS;
 }
 
-ge::Status GraphUnfolder::UnfoldSubgraph(const ge::ComputeGraphPtr &root_graph, const ge::ComputeGraphPtr &origin_sub_graph,
-                                         ge::ComputeGraphPtr &merged_graph,
+ge::Status GraphUnfolder::UnfoldSubgraph(const ge::ComputeGraphPtr &root_graph,
+                                         const ge::ComputeGraphPtr &origin_sub_graph, ge::ComputeGraphPtr &merged_graph,
                                          const uint32_t depth) {
   if (depth >= kHybridSubgraphRecursion) {
     GELOGE(ge::FAILED, "[Invoke][Unfold]There are too much recursion:%u > max:%u", depth, kHybridSubgraphRecursion);
@@ -180,9 +181,8 @@ ge::Status GraphUnfolder::UnfoldSubgraph(const ge::ComputeGraphPtr &root_graph, 
   }
   GE_ASSERT_NOTNULL(root_graph);
   GE_ASSERT_NOTNULL(origin_sub_graph);
-  const bool is_need_merge_subgraph =
-      ((origin_sub_graph->GetParentNode() != nullptr) &&
-      (origin_sub_graph->GetParentNode()->GetType() == ge::PARTITIONEDCALL));
+  const bool is_need_merge_subgraph = ((origin_sub_graph->GetParentNode() != nullptr) &&
+                                       (origin_sub_graph->GetParentNode()->GetType() == ge::PARTITIONEDCALL));
   if (!is_need_merge_subgraph) {
     merged_graph->SetGraphUnknownFlag(root_graph->GetGraphUnknownFlag());
     merged_graph->SetGraphID(root_graph->GetGraphID());
@@ -191,8 +191,7 @@ ge::Status GraphUnfolder::UnfoldSubgraph(const ge::ComputeGraphPtr &root_graph, 
     ge::GraphUtils::InheritOriginalAttr(origin_sub_graph, merged_graph);
   }
   for (const auto &node : origin_sub_graph->GetDirectNode()) {
-    if (((node->GetType() == ge::DATA_TYPE) || (node->GetType() == ge::NETOUTPUT)) &&
-        (is_need_merge_subgraph)) {
+    if (((node->GetType() == ge::DATA_TYPE) || (node->GetType() == ge::NETOUTPUT)) && (is_need_merge_subgraph)) {
       continue;
     }
     const auto &op_desc = node->GetOpDesc();
@@ -209,8 +208,8 @@ ge::Status GraphUnfolder::UnfoldSubgraph(const ge::ComputeGraphPtr &root_graph, 
       continue;
     }
     GE_ASSERT_TRUE(!subgraphs.empty());
-    GE_ASSERT_SUCCESS(UnfoldPartitionedCallSubgraph(subgraphs[kHybridSubgraphIndex],
-        merged_graph, root_graph, node, depth));
+    GE_ASSERT_SUCCESS(
+        UnfoldPartitionedCallSubgraph(subgraphs[kHybridSubgraphIndex], merged_graph, root_graph, node, depth));
   }
   return ge::SUCCESS;
 }
@@ -253,7 +252,7 @@ ge::Status GraphUnfolder::UnfoldAllPartitioncallInPlace(const ge::ComputeGraphPt
 }
 
 ge::Status GraphUnfolder::UnfoldSubGraphPartitioncall(const ge::ComputeGraphPtr &root_graph,
-  const ge::ComputeGraphPtr &sub_graph) {
+                                                      const ge::ComputeGraphPtr &sub_graph) {
   std::vector<ge::NodePtr> partiticall_nodes = GetAllPartitioncallNodes(sub_graph);
   if (partiticall_nodes.empty()) {
     GELOGI("No partitioncall node exists, sub_graph[%s]", sub_graph->GetName().c_str());
@@ -285,12 +284,12 @@ ge::Status GraphUnfolder::UnfoldSubGraphPartitioncall(const ge::ComputeGraphPtr 
 }
 
 ge::Status GraphUnfolder::UnfoldPartitioncallInPlace(const ge::ComputeGraphPtr &root_graph,
-  const ge::ComputeGraphPtr &sub_graph, uint32_t depth) {
+                                                     const ge::ComputeGraphPtr &sub_graph, uint32_t depth) {
   GE_ASSERT_NOTNULL(sub_graph);
   // 超过最大深度，不报错仅跳过
   if (depth >= kHybridSubgraphRecursion) {
-    GELOGW("Recursion depth %u exceeds max %u, skip unfolding graph: %s",
-           depth, kHybridSubgraphRecursion, sub_graph->GetName().c_str());
+    GELOGW("Recursion depth %u exceeds max %u, skip unfolding graph: %s", depth, kHybridSubgraphRecursion,
+           sub_graph->GetName().c_str());
     return ge::SUCCESS;
   }
 
@@ -330,7 +329,7 @@ ge::Status GraphUnfolder::MergeInputNodes(ge::ComputeGraph &compute_graph) {
           (kHybridMergeInputSkipTypes.count(root_node->GetType()) == 0U)) {
         GELOGD("[%s] Restore control edge to [%s]", in_control_node->GetName().c_str(), root_node->GetName().c_str());
         GE_CHECK_NOTNULL(in_control_node->GetOutControlAnchor());
-        (void) in_control_node->GetOutControlAnchor()->LinkTo(root_node->GetInControlAnchor());
+        (void)in_control_node->GetOutControlAnchor()->LinkTo(root_node->GetInControlAnchor());
       }
     }
   }
@@ -361,7 +360,7 @@ ge::Status GraphUnfolder::MergeInputInData(const ge::NodePtr &node, const ge::No
     GELOGE(ge::FAILED, "[Invoke][GetInt] failed, node:[%s(%s)] attr:[%s]", data_op_desc->GetName().c_str(),
            data_op_desc->GetType().c_str(), ge::ATTR_NAME_PARENT_NODE_INDEX.c_str());
     REPORT_INNER_ERR_MSG("E19999", "GetInt failed, node:[%s(%s)] attr:[%s]", data_op_desc->GetName().c_str(),
-                      data_op_desc->GetType().c_str(), ge::ATTR_NAME_PARENT_NODE_INDEX.c_str());
+                         data_op_desc->GetType().c_str(), ge::ATTR_NAME_PARENT_NODE_INDEX.c_str());
     return ge::FAILED;
   }
 
@@ -381,9 +380,8 @@ ge::Status GraphUnfolder::MergeInputInData(const ge::NodePtr &node, const ge::No
       const auto &dst_node = peer_in_data_anchor->GetOwnerNode();
       GE_CHECK_NOTNULL(dst_node);
       const auto &in_nodes = dst_node->GetInAllNodes();
-      const bool is_data = std::all_of(in_nodes.begin(), in_nodes.end(), [](const ge::NodePtr &n) {
-        return n->GetType() == ge::DATA;
-      });
+      const bool is_data =
+          std::all_of(in_nodes.begin(), in_nodes.end(), [](const ge::NodePtr &n) { return n->GetType() == ge::DATA; });
       if (is_data) {
         (void)root_nodes.emplace(dst_node);
       }
@@ -433,7 +431,7 @@ ge::Status GraphUnfolder::MergeNetOutputNode(ge::ComputeGraph &compute_graph) {
     const std::set<ge::NodePtr> node_set(out_nodes.begin(), out_nodes.end());
     for (auto &dst_node : out_node_set) {
       if (node_set.count(dst_node) == 0U) {
-        (void) src_node->GetOutControlAnchor()->LinkTo(dst_node->GetInControlAnchor());
+        (void)src_node->GetOutControlAnchor()->LinkTo(dst_node->GetInControlAnchor());
         GELOGD("[%s] Restore control edge to [%s]", src_node->GetName().c_str(), dst_node->GetName().c_str());
       }
     }
@@ -455,7 +453,7 @@ ge::Status GraphUnfolder::MergeNetOutputInData(const ge::NodePtr &parent_node, c
     GELOGE(ge::INTERNAL_ERROR, "[Invoke][MutableInputDesc][%s(%s)] Failed to get input desc[%d]",
            net_output_desc->GetName().c_str(), net_output_desc->GetType().c_str(), anchor_index);
     REPORT_INNER_ERR_MSG("E19999", "[%s(%s)] Failed to get input desc[%d].", net_output_desc->GetName().c_str(),
-                      net_output_desc->GetType().c_str(), anchor_index);
+                         net_output_desc->GetType().c_str(), anchor_index);
     return ge::INTERNAL_ERROR;
   }
 

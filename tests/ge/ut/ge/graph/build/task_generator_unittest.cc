@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -48,7 +48,7 @@ const char *const kMixL2Engine = "_ffts_plus_mix_l2";
 class UtestTaskGeneratorTest : public testing::Test {
  public:
   struct FakeOpsKernelBuilder : OpsKernelBuilder {
-    FakeOpsKernelBuilder(){};
+    FakeOpsKernelBuilder() {};
 
    private:
     Status Initialize(const map<std::string, std::string> &options) override {
@@ -79,7 +79,7 @@ class UtestTaskGeneratorTest : public testing::Test {
     bool CheckSupported(const OpDescPtr &op_desc, std::string &reason) const override {
       return true;
     };
-    void GetAllOpsKernelInfo(std::map<std::string, ge::OpInfo> &infos) const override{};
+    void GetAllOpsKernelInfo(std::map<std::string, ge::OpInfo> &infos) const override {};
   };
 
   ge::ComputeGraphPtr BuildGraphProfilingWithDynamicSubgraph() {
@@ -175,7 +175,7 @@ class UtestTaskGeneratorTest : public testing::Test {
     ge::ut::GraphBuilder builder("graph");
     auto var_input = builder.AddNode("var", "Variable", 1, 1);
     auto const_input = builder.AddNode("const", "Const", 1, 1);
-    auto assign = builder.AddNode("assgin", "Assign", 2, 1);
+    auto assign = builder.AddNode("assign", "Assign", 2, 1);
     // add link
     builder.AddDataEdge(var_input, 0, assign, 0);
     builder.AddDataEdge(const_input, 0, assign, 1);
@@ -243,13 +243,13 @@ class UtestTaskGeneratorTest : public testing::Test {
   }
 
   ComputeGraphPtr BuildZeroCopyTestGraph() {
-  /**
-   *      Data Data
-   *        \   /
-   *         Add
-   *         /  \ 
-   *       Cast Netoutput 
-   */
+    /**
+     *      Data Data
+     *        \   /
+     *         Add
+     *         /  \
+     *       Cast Netoutput
+     */
     auto builder = ut::GraphBuilder("g1");
     auto data1 = builder.AddNode("data", DATA, 1, 1);
     AttrUtils::SetInt(data1->GetOpDesc(), ATTR_NAME_INDEX, 0);
@@ -664,7 +664,7 @@ TEST_F(UtestTaskGeneratorTest, UpdateOpIsVarAttr) {
   ge::ComputeGraphPtr graph = BuildGraphWithVar(session_id);
   graph->SetSessionID(session_id);
   TaskGenerator task_generator;
-  auto assign = graph->FindNode("assgin");
+  auto assign = graph->FindNode("assign");
   task_generator.UpdateOpIsVarAttr(assign->GetOpDesc(), session_id);
   // input
   vector<bool> input_var;
@@ -731,8 +731,8 @@ TEST_F(UtestTaskGeneratorTest, FindGetNextProfilingIndex) {
   auto get_next_node = graph->FindNode("data");
   int64_t node_index = 0;
   int64_t log_id = -1;
-  EXPECT_EQ(profiling_task_utils.CalculateLogId(profiling_point.get_next_node_index, node_index,
-      20000, log_id), SUCCESS);
+  EXPECT_EQ(profiling_task_utils.CalculateLogId(profiling_point.get_next_node_index, node_index, 20000, log_id),
+            SUCCESS);
   EXPECT_EQ(log_id, 20000);
 }
 

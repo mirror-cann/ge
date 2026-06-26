@@ -13,12 +13,9 @@
 
 namespace minidag {
 
-DAGEdge::DAGEdge(std::shared_ptr<DAGNode> src_node, int32_t src_port,
-                 std::shared_ptr<DAGNode> dst_node, int32_t dst_port)
-    : src_node_(src_node),
-      dst_node_(dst_node),
-      src_port_(src_port),
-      dst_port_(dst_port) {}
+DAGEdge::DAGEdge(std::shared_ptr<DAGNode> src_node, int32_t src_port, std::shared_ptr<DAGNode> dst_node,
+                 int32_t dst_port)
+    : src_node_(src_node), dst_node_(dst_node), src_port_(src_port), dst_port_(dst_port) {}
 
 std::shared_ptr<DAGNode> DAGEdge::GetSrcNode() const {
   return src_node_.lock();

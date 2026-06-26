@@ -23,7 +23,7 @@ For developers without Ascend devices, you can directly use CANNLab cloud develo
    <img src="../zh/figures/cloudIDE.png" alt="Cloud Platform"  width="750px" height="90px">
 
 2. Create NPU environment and configure specifications according to page prompts. After starting the cloud development environment, click "`Connect > WebIDE`" to enter the one-stop development platform.
-   
+
    Currently, open source project resources are located in the `/mnt/workspace/gitCode/${gitCode_id}` directory by default, where ${gitCode_id} represents the developer's personal gitCode account.
 
    <img src="../zh/figures/webIDE.png" alt="Cloud Platform"  width="1000px" height="150px">
@@ -124,7 +124,7 @@ For developers who do not depend on Ascend devices, if you want to quickly set u
 
 ### Method 3: Manual Installation of Software Packages
 
-- **Scenario 1: Experience master version capabilities or develop based on master version**   
+- **Scenario 1: Experience master version capabilities or develop based on master version**
 
     1. **Install Drivers and Firmware (Optional, only required for running [samples](../../examples/README.md))**
 
@@ -146,7 +146,7 @@ For developers who do not depend on Ascend devices, if you want to quickly set u
             - `${cann_version}`: Represents CANN package version number.
             - `${arch}`: Represents CPU architecture, such as `aarch64`, `x86_64`.
             - `${install_path}`: Represents the specified installation path, needs to be installed in the same path as Toolkit package, root user defaults to `/usr/local/Ascend` directory.
-    
+
          - Install CANN ops operator package (optional, only required for running [samples](../../examples/README.md)).
 
             ```bash

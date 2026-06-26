@@ -3,10 +3,10 @@
 # -------------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
@@ -15,17 +15,18 @@
 
 from __future__ import annotations
 
-from typing import Any, List, Optional, Tuple, TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Union
 
 if TYPE_CHECKING:
     from ge.es import GraphBuilder, TensorHolder
 
 Number = Union[int, float]
-TensorLike = Union[Number, List['TensorLike']]
+TensorLike = Union[Number, List["TensorLike"]]
 
 
-def convert_to_tensor_holder(value: Optional[Union['TensorHolder', 'TensorLike']],
-                             owner_builder: 'GraphBuilder') -> Optional['TensorHolder']:
+def convert_to_tensor_holder(
+    value: Optional[Union["TensorHolder", "TensorLike"]], owner_builder: "GraphBuilder"
+) -> Optional["TensorHolder"]:
     """
     Convert value to TensorHolder object.
     Args:
@@ -37,6 +38,7 @@ def convert_to_tensor_holder(value: Optional[Union['TensorHolder', 'TensorLike']
         TypeError: If value is not TensorHolder or TensorLike or None.
     """
     from ge.es.tensor_holder import TensorHolder
+
     if value is None or isinstance(value, TensorHolder):
         return value
     if isinstance(value, (int, float)):
@@ -48,7 +50,9 @@ def convert_to_tensor_holder(value: Optional[Union['TensorHolder', 'TensorLike']
     raise TypeError("Value must be TensorHolder or int|float or nested lists of int|float or None")
 
 
-def resolve_builder(*values: Union['TensorLike', 'TensorHolder', 'GraphBuilder']) -> 'GraphBuilder':
+def resolve_builder(
+    *values: Union["TensorLike", "TensorHolder", "GraphBuilder"],
+) -> "GraphBuilder":
     """
     Resolve the owning GraphBuilder from inputs.
 
@@ -64,7 +68,8 @@ def resolve_builder(*values: Union['TensorLike', 'TensorHolder', 'GraphBuilder']
     if not values:
         raise ValueError("At least one argument is required to resolve GraphBuilder")
 
-    from ge.es import TensorHolder, GraphBuilder
+    from ge.es import GraphBuilder, TensorHolder
+
     for value in values:
         if isinstance(value, GraphBuilder):
             return value
@@ -74,7 +79,9 @@ def resolve_builder(*values: Union['TensorLike', 'TensorHolder', 'GraphBuilder']
     raise ValueError("Please ensure at least one input tensor or an explicit owner_builder is provided when supported")
 
 
-def _flatten_and_infer_shape(value: List['TensorLike']) -> Tuple[List['Number'], List[int]]:
+def _flatten_and_infer_shape(
+    value: List["TensorLike"],
+) -> Tuple[List["Number"], List[int]]:
     """
     Flatten nested numeric lists and infer their tensor shape.
 
@@ -91,7 +98,7 @@ def _flatten_and_infer_shape(value: List['TensorLike']) -> Tuple[List['Number'],
     if not value:
         return value, [0]
 
-    def _recurse(current: 'TensorLike') -> Tuple[List['Number'], List[int]]:
+    def _recurse(current: "TensorLike") -> Tuple[List["Number"], List[int]]:
         if isinstance(current, (int, float)):
             return [current], []
 
@@ -112,7 +119,7 @@ def _flatten_and_infer_shape(value: List['TensorLike']) -> Tuple[List['Number'],
     return _recurse(value)
 
 
-def _unflatten(value: List['Number'], shape: List[int]) -> List['TensorLike']:
+def _unflatten(value: List["Number"], shape: List[int]) -> List["TensorLike"]:
     """
     Unflatten data
 
@@ -131,21 +138,19 @@ def _unflatten(value: List['Number'], shape: List[int]) -> List['TensorLike']:
     if not shape:
         raise ValueError("Shape cannot be empty")
 
-    # length check 
+    # length check
     total_size = 1
     for dim in shape:
         total_size *= dim
 
     if len(value) != total_size:
-        raise ValueError(
-            f"Length of list {len(value)} does not match shape {total_size}"
-        )
+        raise ValueError(f"Length of list {len(value)} does not match shape {total_size}")
 
     # recurse
     def _recurse(flat_values, shape):
         # last dimension
         if len(shape) == 1:
-            return flat_values[:shape[0]]
+            return flat_values[: shape[0]]
 
         size = shape[0]
         step = int(len(flat_values) / size)
@@ -153,7 +158,7 @@ def _unflatten(value: List['Number'], shape: List[int]) -> List['TensorLike']:
         index = 0
 
         for _ in range(size):
-            block = flat_values[index:index + step]
+            block = flat_values[index : index + step]
             result.append(_recurse(block, shape[1:]))
             index += step
 
@@ -161,7 +166,8 @@ def _unflatten(value: List['Number'], shape: List[int]) -> List['TensorLike']:
 
     return _recurse(value, shape)
 
-def _convert_scalar_to_tensor_holder(value: 'Number', owner_builder: 'GraphBuilder') -> 'TensorHolder':
+
+def _convert_scalar_to_tensor_holder(value: "Number", owner_builder: "GraphBuilder") -> "TensorHolder":
     """
     Convert scalar to TensorHolder object.
 
@@ -184,7 +190,7 @@ def _convert_scalar_to_tensor_holder(value: 'Number', owner_builder: 'GraphBuild
     raise TypeError("Value must be a number")
 
 
-def _convert_list_to_tensor_holder(value: List[Any], owner_builder: 'GraphBuilder') -> 'TensorHolder':
+def _convert_list_to_tensor_holder(value: List[Any], owner_builder: "GraphBuilder") -> "TensorHolder":
     """
     Convert list to TensorHolder object.
 

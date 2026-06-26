@@ -23,7 +23,7 @@ class KernelExTaskCodeBuilder : public TaskCodeBuilder {
   Status Contribute(TaskSemanticContributeContext &context) override;
   int64_t ParseOpIndex(const domi::TaskDef &task_def) override;
 
-private:
+ private:
   static std::string SerializeBytesToOctalString(const std::vector<uint8_t> &buffer);
   Status InitIowAddrRefreshInfo(uint64_t current_offset);
   Status InitLaunchInfo(const TaskSemanticContributeContext &context);

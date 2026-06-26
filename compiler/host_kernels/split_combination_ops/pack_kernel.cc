@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -74,8 +74,7 @@ Status PackKernel::ValidateKernelParams(const ge::OpDescPtr &op_desc_ptr,
     return NOT_CHANGED;
   }
   if (input.size() != static_cast<size_t>(n_)) {
-    GELOGW("The number of input for Pack should be %d, in fact it is %ld ", static_cast<int32_t>(n_),
-           input.size());
+    GELOGW("The number of input for Pack should be %d, in fact it is %ld ", static_cast<int32_t>(n_), input.size());
     return PARAM_INVALID;
   }
   data_type_ = op_desc_ptr->GetInputDesc(0).GetDataType();
@@ -130,7 +129,7 @@ Status PackKernel::ValidateInputs(const ge::OpDescPtr &op_desc_ptr,
       }
     }
     if (!formats::IsShapeEqual(shape, dst_shape)) {
-      GELOGW("Shape of input %ld is not equal wiht input 0.", i);
+      GELOGW("Shape of input %ld is not equal with input 0.", i);
       return NOT_CHANGED;
     }
 
@@ -163,8 +162,7 @@ void PackKernel::ExpandDims(const int64_t axis, const std::vector<ge::ConstGeTen
   final_shape = GeShape(final_dims);
 }
 
-Status PackKernel::CopyOutputData(const GeShape &final_shape,
-                                  const std::vector<ge::ConstGeTensorPtr> &input,
+Status PackKernel::CopyOutputData(const GeShape &final_shape, const std::vector<ge::ConstGeTensorPtr> &input,
                                   ge::GeTensorPtr &output_ptr) const {
   output_ptr->MutableTensorDesc().SetShape(final_shape);
   output_ptr->MutableTensorDesc().SetDataType(DataType(data_type_));

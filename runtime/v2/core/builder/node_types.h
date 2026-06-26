@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -89,7 +89,8 @@ inline bool IsUpdateContext(const char *const node_type) {
          IsStaAutoUpdateContext(node_type) || IsMixL2UpdateContext(node_type);
 }
 inline bool IsAtomicLaunchNode(const char *const node_type) {
-  return (strcmp(node_type, "AtomicLaunchKernelWithFlag") == 0) || (strcmp(node_type, "AtomicLaunchKernelWithHandle") == 0);
+  return (strcmp(node_type, "AtomicLaunchKernelWithFlag") == 0) ||
+         (strcmp(node_type, "AtomicLaunchKernelWithHandle") == 0);
 }
 inline bool IsAiCoreLaunchNode(const char *const node_type) {
   return IsLaunchWithHandleNode(node_type) || IsLaunchWithFlagNode(node_type) || IsAtomicLaunchNode(node_type);
@@ -137,7 +138,7 @@ inline bool IsBuildTensorNode(const char *const node_type) {
 }
 
 inline bool IsIdentityNode(const char *const node_type) {
-    return ((strcmp(node_type, "IdentityAddr") == 0) || (strcmp(node_type, "IdentityShapeAndAddr") == 0));
+  return ((strcmp(node_type, "IdentityAddr") == 0) || (strcmp(node_type, "IdentityShapeAndAddr") == 0));
 }
 
 inline bool IsSplitDataTensorNode(const char *const node_type) {
@@ -166,9 +167,9 @@ inline bool IsModelOutZeroCopyEnabledAllocNode(const char *const node_type) {
 }
 
 inline bool IsAllocNode(const char *const node_type) {
-  static std::vector<const char *> kAllocKernels = {"AllocMemory",   "AllocMemHbm",     "AllocMemHost",
-                                                    "AllocBatchHbm", "AllocateFftsMem", "AllocateBatchFftsMems",
-                                                    "AllocFixedFeatureMemory"};
+  static std::vector<const char *> kAllocKernels = {
+      "AllocMemory",     "AllocMemHbm",           "AllocMemHost",           "AllocBatchHbm",
+      "AllocateFftsMem", "AllocateBatchFftsMems", "AllocFixedFeatureMemory"};
   auto func = [&node_type](const char *const type) { return (strcmp(node_type, type) == 0); };
   return std::any_of(kAllocKernels.begin(), kAllocKernels.end(), func);
 }
@@ -176,16 +177,16 @@ inline bool IsAllocHostCpuOutputMemoryNode(const char *const node_type) {
   return (strcmp(node_type, "AllocHostCpuOutputMemory") == 0);
 }
 inline bool IsAllocHostNode(const char *const node_type) {
-  static std::vector<const char *> kAllocKernels = {"AllocHostCpuOutputMemory", "AllocMemHost",
-                                                    "MakeSureTensorAtHost", "MakeSureTensorAtHostWithoutSync",
-                                                    "CopyD2H", "CopyTensorDataH2H"};
+  static std::vector<const char *> kAllocKernels = {
+      "AllocHostCpuOutputMemory",        "AllocMemHost", "MakeSureTensorAtHost",
+      "MakeSureTensorAtHostWithoutSync", "CopyD2H",      "CopyTensorDataH2H"};
   auto func = [&node_type](const char *const type) { return (strcmp(node_type, type) == 0); };
   return std::any_of(kAllocKernels.begin(), kAllocKernels.end(), func);
 }
 inline bool IsFreeNode(const char *const node_type) {
   static std::vector<const char *> kFreeKernels = {
-      "FreeMemory",   "FreeMemHbm",        "FreeBatchHbm",           "FreeTensorMemory",
-      "FreeFftsMem",  "FreeBatchFftsMems", "FreeFixedFeatureMemory", "FreeMemoryHoldAddr",
+      "FreeMemory",         "FreeMemHbm",          "FreeBatchHbm",           "FreeTensorMemory",
+      "FreeFftsMem",        "FreeBatchFftsMems",   "FreeFixedFeatureMemory", "FreeMemoryHoldAddr",
       "FreeMemHbmHoldAddr", "FreeBatchHbmHoldAddr"};
   auto func = [&node_type](const char *const type) { return (strcmp(node_type, type) == 0); };
   return std::any_of(kFreeKernels.begin(), kFreeKernels.end(), func);
@@ -194,10 +195,9 @@ inline bool IsInitNode(const char *const node_type) {
   return (strcmp(node_type, "Init") == 0);
 }
 inline bool IsTilingNode(const char *const node_type) {
-  static std::vector<const char *> kTilingKernels = {"Tiling",           "FallibleTiling",
-                                                     "CompatibleTiling", "FallibleCompatibleTiling",
-                                                     "CacheableTiling",  "CacheableFallibleTiling",
-                                                     "SymbolTiling",     "CacheableSymbolTiling"};
+  static std::vector<const char *> kTilingKernels = {
+      "Tiling",          "FallibleTiling",          "CompatibleTiling", "FallibleCompatibleTiling",
+      "CacheableTiling", "CacheableFallibleTiling", "SymbolTiling",     "CacheableSymbolTiling"};
   auto func = [&node_type](const char *const type) { return (strcmp(node_type, type) == 0); };
   return std::any_of(kTilingKernels.begin(), kTilingKernels.end(), func);
 }
@@ -235,9 +235,8 @@ inline bool IsLaunchOrHasSubGraphNode(const ge::FastNode *const node) {
 
 inline bool IsCopyAsyncNode(const ge::FastNode *const node) {
   const auto &node_type = node->GetTypePtr();
-  static std::vector<const char *> kAllocKernels = {"CopyH2D",   "CopyD2H",
-                                                    "MakeSureTensorAtDevice", "CopyD2D",
-                                                    "EnsureTensorAtOutMemory", "CopyFlowLaunch"};
+  static std::vector<const char *> kAllocKernels = {
+      "CopyH2D", "CopyD2H", "MakeSureTensorAtDevice", "CopyD2D", "EnsureTensorAtOutMemory", "CopyFlowLaunch"};
   auto func = [&node_type](const char *const type) { return (strcmp(node_type, type) == 0); };
   return std::any_of(kAllocKernels.begin(), kAllocKernels.end(), func);
 }

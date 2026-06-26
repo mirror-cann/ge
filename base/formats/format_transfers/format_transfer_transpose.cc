@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,7 +23,7 @@
 namespace ge {
 namespace formats {
 namespace {
-std::map<Format, std::map<Format, std::vector<int64_t>>> perm_args {
+std::map<Format, std::map<Format, std::vector<int64_t>>> perm_args{
     {FORMAT_NCHW,
      {{FORMAT_NHWC, std::vector<int64_t>({kNchwN, kNchwH, kNchwW, kNchwC})},
       {FORMAT_HWCN, std::vector<int64_t>({kNchwH, kNchwW, kNchwC, kNchwN})},
@@ -58,7 +58,7 @@ bool IsShapeArgValid(const std::vector<int64_t> &src_shape, const std::vector<in
   }
   if (perm_arg.size() != src_shape.size()) {
     const std::string error = "Failed to transpose, the size of src shape" + FmtToStr(src_shape.size()) +
-        " and perm arg" +  FmtToStr(perm_arg.size()) + " are different";
+                              " and perm arg" + FmtToStr(perm_arg.size()) + " are different";
     GE_ERRORLOG_AND_ERRORMSG(ACL_ERROR_GE_SHAPE_INVALID, error.c_str());
     return false;
   }
@@ -66,8 +66,8 @@ bool IsShapeArgValid(const std::vector<int64_t> &src_shape, const std::vector<in
   std::vector<int64_t> exists(perm_arg.size());
   for (const auto perm : perm_arg) {
     if (((perm < 0) || (static_cast<size_t>(perm) >= perm_arg.size())) || (exists[static_cast<size_t>(perm)] > 0)) {
-      const std::string error = "Failed to transpose, duplicated perm arg " + FmtToStr(perm) +
-        ", perm arg " +  FmtToStr(JoinToString(perm_arg));
+      const std::string error = "Failed to transpose, duplicated perm arg " + FmtToStr(perm) + ", perm arg " +
+                                FmtToStr(JoinToString(perm_arg));
       GE_ERRORLOG_AND_ERRORMSG(ACL_ERROR_GE_PARAM_INVALID, error.c_str());
       return false;
     }
@@ -85,7 +85,7 @@ bool IsTransposeArgValid(const uint8_t *const src, const std::vector<int64_t> &s
     GELOGE(ACL_ERROR_GE_DATATYPE_INVALID, "[Trans][Param]Failed, the data type %s is not support",
            TypeUtils::DataTypeToSerialString(src_data_type).c_str());
     REPORT_INNER_ERR_MSG("E19999", "Failed to transpose, the data type %s is not support",
-                      TypeUtils::DataTypeToSerialString(src_data_type).c_str());
+                         TypeUtils::DataTypeToSerialString(src_data_type).c_str());
     return false;
   }
   return IsShapeArgValid(src_shape, perm_arg);
@@ -168,24 +168,22 @@ Status Transpose(const uint8_t *const src, const std::vector<int64_t> &src_shape
     const auto src_offset = GenOffset(src_heads, dst_indexes) * data_size;
     const auto dst_offset_bytes = dst_index * data_size;
     const auto protected_size = ((dst_size - dst_offset_bytes) < static_cast<int64_t>(SECUREC_MEM_MAX_LEN))
-                              ? (dst_size - dst_offset_bytes)
-                              : static_cast<int64_t>(SECUREC_MEM_MAX_LEN);
+                                    ? (dst_size - dst_offset_bytes)
+                                    : static_cast<int64_t>(SECUREC_MEM_MAX_LEN);
     GE_CHECK_GE(protected_size, 0);
-    const auto ret =
-        memcpy_s(PtrAdd(dst.get(), static_cast<size_t>(dst_size), static_cast<size_t>(dst_offset_bytes)),
-                 static_cast<size_t>(protected_size),
-                 src + src_offset, static_cast<size_t>(data_size));
+    const auto ret = memcpy_s(PtrAdd(dst.get(), static_cast<size_t>(dst_size), static_cast<size_t>(dst_offset_bytes)),
+                              static_cast<size_t>(protected_size), src + src_offset, static_cast<size_t>(data_size));
     if (ret != EOK) {
       GELOGE(ACL_ERROR_GE_MEMORY_OPERATE_FAILED,
              "[Operate][Memory]Failed to transpose, src shape %s, perm arg %s, dst shape %s, "
              "failed to write to dst offset %" PRId64 ", current dim offset %s",
              ShapeToString(src_shape).c_str(), ShapeToString(perm_arg).c_str(), ShapeToString(dst_shape).c_str(),
              dst_offset_bytes, ShapeToString(dst_indexes).c_str());
-      REPORT_INNER_ERR_MSG("E19999", "Failed to transpose, src shape %s, perm arg %s, dst shape %s, "
-                        "failed to write to dst offset %" PRId64 ", current dim offset %s",
-                        ShapeToString(src_shape).c_str(), ShapeToString(perm_arg).c_str(),
-                        ShapeToString(dst_shape).c_str(),
-                        dst_offset_bytes, ShapeToString(dst_indexes).c_str());
+      REPORT_INNER_ERR_MSG("E19999",
+                           "Failed to transpose, src shape %s, perm arg %s, dst shape %s, "
+                           "failed to write to dst offset %" PRId64 ", current dim offset %s",
+                           ShapeToString(src_shape).c_str(), ShapeToString(perm_arg).c_str(),
+                           ShapeToString(dst_shape).c_str(), dst_offset_bytes, ShapeToString(dst_indexes).c_str());
       return ACL_ERROR_GE_MEMORY_OPERATE_FAILED;
     }
     AddOne(dst_shape, dst_indexes);
@@ -205,9 +203,9 @@ Status TransposeWithShapeCheck(const uint8_t *const src, const std::vector<int64
   }
   const auto expected_shape = TransShapeByPerm(src_shape, perm_arg);
   if (dst_shape != expected_shape) {
-    const std::string error = "Failed to trans axis for perm_arg" +
-        FmtToStr(ShapeToString(perm_arg)) + ", invalid dst shape" +
-        FmtToStr(ShapeToString(dst_shape)) + ", expect" + FmtToStr(ShapeToString(expected_shape));
+    const std::string error = "Failed to trans axis for perm_arg" + FmtToStr(ShapeToString(perm_arg)) +
+                              ", invalid dst shape" + FmtToStr(ShapeToString(dst_shape)) + ", expect" +
+                              FmtToStr(ShapeToString(expected_shape));
     GE_ERRORLOG_AND_ERRORMSG(ACL_ERROR_GE_SHAPE_INVALID, error.c_str());
   }
 
@@ -215,20 +213,19 @@ Status TransposeWithShapeCheck(const uint8_t *const src, const std::vector<int64
 }
 
 Status GetPermByForamt(const Format src_format, const Format dst_format, std::vector<int64_t> &perm) {
-  const std::map<Format, std::map<Format, std::vector<int64_t>>>::const_iterator dst_iter =
-    perm_args.find(src_format);
+  const std::map<Format, std::map<Format, std::vector<int64_t>>>::const_iterator dst_iter = perm_args.find(src_format);
   if (dst_iter == perm_args.end()) {
     const std::string error = "Failed to trans shape, do not support transpose from format " +
-        FmtToStr(TypeUtils::FormatToSerialString(src_format)) + " to " +
-        FmtToStr(TypeUtils::FormatToSerialString(dst_format));
+                              FmtToStr(TypeUtils::FormatToSerialString(src_format)) + " to " +
+                              FmtToStr(TypeUtils::FormatToSerialString(dst_format));
     GE_ERRORLOG_AND_ERRORMSG(ACL_ERROR_GE_FORMAT_INVALID, error.c_str());
     return ACL_ERROR_GE_FORMAT_INVALID;
   }
   const auto iter = dst_iter->second.find(dst_format);
   if (iter == dst_iter->second.end()) {
     const std::string error = "Failed to trans shape, do not support transpose from format " +
-        FmtToStr(TypeUtils::FormatToSerialString(src_format)) + " to " +
-        FmtToStr(TypeUtils::FormatToSerialString(dst_format));
+                              FmtToStr(TypeUtils::FormatToSerialString(src_format)) + " to " +
+                              FmtToStr(TypeUtils::FormatToSerialString(dst_format));
     GE_ERRORLOG_AND_ERRORMSG(ACL_ERROR_GE_FORMAT_INVALID, error.c_str());
     return ACL_ERROR_GE_FORMAT_INVALID;
   }

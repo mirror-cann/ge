@@ -88,4 +88,3 @@ Status GEInitialize(const std::map<AscendString, AscendString> &options)
 
 -   GE不支持多实例运行，一次只能初始化一个。
 -   多次调用该接口而没有调用GEFinalize，运行不可预期。
-

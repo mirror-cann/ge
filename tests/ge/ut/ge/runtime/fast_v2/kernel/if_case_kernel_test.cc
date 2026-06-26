@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -343,7 +343,6 @@ TEST_F(IfOrCaseKernelUT, SwitchNotify_Failed_2) {
   kernel_context->GetOutput(0)->Set(nullptr, nullptr);
 }
 
-
 TEST_F(IfOrCaseKernelUT, GenCondForWhile_bool) {
   const KernelRegistry::KernelFuncs *kernel = KernelRegistry::GetInstance().FindKernelFuncs("GenCondForWhile");
   ASSERT_NE(kernel, nullptr);
@@ -355,8 +354,7 @@ TEST_F(IfOrCaseKernelUT, GenCondForWhile_bool) {
   gert::GertTensorData tensor_data = {block, aligned_size, gert::TensorPlacement::kOnHost, -1};
   StorageShape shape({}, {});
   ge::DataType dt = ge::DT_BOOL;
-  auto context_holder =
-      KernelRunContextFaker().KernelIONum(3, 1).Inputs({&tensor_data, &shape, (void *)dt}).Build();
+  auto context_holder = KernelRunContextFaker().KernelIONum(3, 1).Inputs({&tensor_data, &shape, (void *)dt}).Build();
   auto context = context_holder.GetContext<KernelContext>();
   ASSERT_NE(context, nullptr);
 
@@ -378,8 +376,7 @@ TEST_F(IfOrCaseKernelUT, GenCondForWhile_int32) {
   gert::GertTensorData tensor_data = {block, aligned_size, gert::TensorPlacement::kOnHost, -1};
   StorageShape shape({}, {});
   ge::DataType dt = ge::DT_INT32;
-  auto context_holder =
-      KernelRunContextFaker().KernelIONum(3, 1).Inputs({&tensor_data, &shape, (void *)dt}).Build();
+  auto context_holder = KernelRunContextFaker().KernelIONum(3, 1).Inputs({&tensor_data, &shape, (void *)dt}).Build();
   auto context = context_holder.GetContext<KernelContext>();
 
   ASSERT_NE(context->GetInputPointer<TensorData>(0U), nullptr);
@@ -405,8 +402,7 @@ TEST_F(IfOrCaseKernelUT, GenCondForWhile_NonScalar) {
   gert::GertTensorData tensor_data = {block, aligned_size, gert::TensorPlacement::kOnHost, -1};
   StorageShape shape({1, 1}, {1, 1});
   ge::DataType dt = ge::DT_BOOL;
-  auto context_holder =
-      KernelRunContextFaker().KernelIONum(3, 1).Inputs({&tensor_data, &shape, (void *)dt}).Build();
+  auto context_holder = KernelRunContextFaker().KernelIONum(3, 1).Inputs({&tensor_data, &shape, (void *)dt}).Build();
   auto context = context_holder.GetContext<KernelContext>();
 
   ASSERT_NE(context->GetInputPointer<TensorData>(0U), nullptr);

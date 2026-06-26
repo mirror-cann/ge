@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -56,15 +56,14 @@ class FeGraphUtils {
   static void DumpGraphAndOnnx(const ge::ComputeGraph &graph, const std::string &suffix);
   static void DumpGraph(const ge::ComputeGraph &graph, const std::string &suffix);
 
-  static void IsNodeSpecificType(const std::unordered_set<string> &types, ge::NodePtr &node,
-                                 bool &matched);
+  static void IsNodeSpecificType(const std::unordered_set<string> &types, ge::NodePtr &node, bool &matched);
   static void ProcessPartitionedCall(const std::string &name, std::string &type, ge::NodePtr &parent_node,
                                      ge::NodePtr &really_parent_node, ge::NodePtr &node);
 
   static bool IsPeerOutConst(const ge::Node *node, const int &anchor_index, ge::NodePtr &peer_out_node);
 
   static bool IsPeerOutWeight(ge::Node *node, const int &anchor_index, ge::NodePtr &peer_out_node);
-  
+
   static bool IsMainGraphData(const ge::OpDescPtr &op_desc_ptr);
 
   static bool IsMainGraphNetOutput(const ge::OpDescPtr &op_desc_ptr);
@@ -98,11 +97,11 @@ class FeGraphUtils {
 
   static bool CheckTypeOnRootGraph(const std::unordered_set<string> &types, ge::NodePtr &parent_node);
 
-  static Status GetAoeTypeFromRootGraph(ge::ComputeGraph& graph, std::string &aoe_type);
+  static Status GetAoeTypeFromRootGraph(ge::ComputeGraph &graph, std::string &aoe_type);
 
   static void FindPeerOpType(const ge::NodePtr &node, const bool is_input, std::string &peer_op_type);
 
-  static void GetPrecisionModeFromGraph(const ge::ComputeGraph& graph, fe::PrecisionMode &precision_mode);
+  static void GetPrecisionModeFromGraph(const ge::ComputeGraph &graph, fe::PrecisionMode &precision_mode);
 };
 }  // namespace fe
 

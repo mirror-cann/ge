@@ -45,7 +45,7 @@ std::string BuildWarningPrefix(const std::string &detail) {
   }
   return prefix;
 }
-} // namespace
+}  // namespace
 
 std::string FormatWarning(const Warning &warning) {
   const auto prefix = BuildWarningPrefix(warning.detail);
@@ -54,12 +54,12 @@ std::string FormatWarning(const Warning &warning) {
       return prefix + "Action: fall back to A0 single-signature plan to avoid ambiguous or incompatible overloads.";
     case WarningCode::kUpgradeToA1:
       return prefix +
-          "Action: Try0 overloads (legacy + full signature) are ambiguous, so switch to A1: "
-          "force new inputs required and add nullptr-guard overloads.";
+             "Action: Try0 overloads (legacy + full signature) are ambiguous, so switch to A1: "
+             "force new inputs required and add nullptr-guard overloads.";
     case WarningCode::kUpgradeToA2:
       return prefix +
-          "Action: A1 overloads are still ambiguous, so switch to A2: "
-          "force new inputs as TensorHolder and add nullptr-guard overloads.";
+             "Action: A1 overloads are still ambiguous, so switch to A2: "
+             "force new inputs as TensorHolder and add nullptr-guard overloads.";
     case WarningCode::kUnsupportedAttrType:
       return prefix + "Action: unsupported attr type in C++ signature; emit std::nullptr_t placeholder for this attr.";
     case WarningCode::kInvalidAttrDefaultValue:
@@ -68,6 +68,6 @@ std::string FormatWarning(const Warning &warning) {
       return "unknown overload planning warning";
   }
 }
-} // namespace history
-} // namespace es
-} // namespace ge
+}  // namespace history
+}  // namespace es
+}  // namespace ge

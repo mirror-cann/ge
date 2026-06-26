@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -60,12 +60,13 @@ Status WeightCompressJudge::CompressTypeJudge(ge::OptimizeUtility *const optimiz
     // 3. set attr to cube_compress node and host node
     if (weight_compress_type != WeightCompressType::DISABLE_COMPRESS) {
       (void)ge::AttrUtils::SetInt(node->GetOpDesc(), ATTR_NAME_WEIGHT_COMPRESS_TYPE,
-          static_cast<int64_t>(weight_compress_type));
+                                  static_cast<int64_t>(weight_compress_type));
       (void)ge::AttrUtils::SetInt(host_node->GetOpDesc(), ATTR_NAME_WEIGHT_COMPRESS_TYPE,
-          static_cast<int64_t>(weight_compress_type));
+                                  static_cast<int64_t>(weight_compress_type));
     }
     // 4. do const folding for host node
-    FE_LOGD("Node [%s, %s]: begins to perform constant folding.", host_node->GetName().c_str(), host_node->GetType().c_str());
+    FE_LOGD("Node [%s, %s]: begins to perform constant folding.", host_node->GetName().c_str(),
+            host_node->GetType().c_str());
     if (optimize_utility->ConstantFolding(host_node) != ge::SUCCESS) {
       REPORT_FE_ERROR("[GraphOpt][WtCmpsJudge][CpmsTypeJudge] Failed to perform constant folding for node [%s, %s].",
                       host_node->GetName().c_str(), host_node->GetType().c_str());
@@ -84,7 +85,7 @@ Status WeightCompressJudge::PreConstFolding(ge::OptimizeUtility *const optimize_
   }
   ge::InDataAnchorPtr host_in_node_anchor = host_node->GetInDataAnchor(0);
   FE_CHECK_NOTNULL(host_in_node_anchor);
-  auto host_peer_out_anchor =  host_in_node_anchor->GetPeerOutAnchor();
+  auto host_peer_out_anchor = host_in_node_anchor->GetPeerOutAnchor();
   FE_CHECK_NOTNULL(host_peer_out_anchor);
   ge::NodePtr host_in_node = host_peer_out_anchor->GetOwnerNode();
   FE_CHECK_NOTNULL(host_in_node);
@@ -92,8 +93,10 @@ Status WeightCompressJudge::PreConstFolding(ge::OptimizeUtility *const optimize_
   std::vector<ge::NodePtr> const_folding_nodes = {};
   kRecursiveCnt = 0;
   if (!GetConstFoldingNodes(host_in_node, const_folding_nodes)) {
-    REPORT_FE_ERROR("[GraphOpt][WtCmpsJudge][PreConstFolding] Failed to obtain constant folding nodes between weight node"
-                    " and node[%s, %s].", host_node->GetName().c_str(), host_node->GetType().c_str());
+    REPORT_FE_ERROR(
+        "[GraphOpt][WtCmpsJudge][PreConstFolding] Failed to obtain constant folding nodes between weight node"
+        " and node[%s, %s].",
+        host_node->GetName().c_str(), host_node->GetType().c_str());
     return FAILED;
   }
   for (auto iter = const_folding_nodes.rbegin(); iter != const_folding_nodes.rend(); ++iter) {
@@ -114,19 +117,18 @@ ge::NodePtr WeightCompressJudge::GetSpecificNode(const ge::NodePtr &node, const 
     return nullptr;
   }
   ge::InDataAnchorPtr in_node_anchor = node->GetInDataAnchor(idx);
-  if (in_node_anchor == nullptr ||  in_node_anchor->GetPeerOutAnchor() == nullptr ||
+  if (in_node_anchor == nullptr || in_node_anchor->GetPeerOutAnchor() == nullptr ||
       in_node_anchor->GetPeerOutAnchor()->GetOwnerNode() == nullptr) {
     return nullptr;
   }
-  ge::NodePtr in_node =  in_node_anchor->GetPeerOutAnchor()->GetOwnerNode();
+  ge::NodePtr in_node = in_node_anchor->GetPeerOutAnchor()->GetOwnerNode();
   if (in_node->GetType() != op_type) {
     return nullptr;
   }
   return in_node;
 }
 
-bool WeightCompressJudge::GetConstFoldingNodes(const ge::NodePtr &node,
-                                               std::vector<ge::NodePtr> &const_folding_nodes) {
+bool WeightCompressJudge::GetConstFoldingNodes(const ge::NodePtr &node, std::vector<ge::NodePtr> &const_folding_nodes) {
   if (kRecursiveCnt == kRecursiveMax) {
     FE_LOGD("Recursive calls have reached the maximum number of %lu.", kRecursiveMax);
     return false;
@@ -189,7 +191,7 @@ WeightCompressType WeightCompressJudge::CompareCompressType(const ge::NodePtr &w
     low_sparse_compress_ratio = DoCompressWeights(weight_data, weight_size, WeightCompressType::LOW_SPARSE_COMPRESS);
   } else {
     fe::ThreadPool executor(kWeightCompressJudgePrefix + fe::GetCurThreadIdStr(),
-        static_cast<uint32_t>(kWeightCompressTypes.size()));
+                            static_cast<uint32_t>(kWeightCompressTypes.size()));
     std::vector<std::future<float>> vector_future;
     for (auto compress_type : kWeightCompressTypes) {
       std::future<float> f = executor.commit(DoCompressWeights, weight_data, weight_size, compress_type);
@@ -216,7 +218,7 @@ WeightCompressType WeightCompressJudge::CompareCompressType(const ge::NodePtr &w
   return GetFinalCompressType(low_sparse_compress_ratio, high_sparse_compress_ratio);
 }
 
-float WeightCompressJudge::DoCompressWeights(char* input, const size_t &input_size,
+float WeightCompressJudge::DoCompressWeights(char *input, const size_t &input_size,
                                              const WeightCompressType &compress_type) {
   float compress_ratio = 0.0;
   CompressConfig compress_config;
@@ -245,7 +247,6 @@ float WeightCompressJudge::DoCompressWeights(char* input, const size_t &input_si
   }
   return static_cast<float>(compress_size) / input_size;
 }
-
 
 size_t WeightCompressJudge::ComputeFractalSize(const size_t &weight_size) {
   size_t fractal_size = FRACTAL_SIZE_MIN;
@@ -290,4 +291,4 @@ bool WeightCompressJudge::IsMeetCompressRatioThreshold(const float &compress_rat
   }
   return res;
 }
-}
+}  // namespace fe

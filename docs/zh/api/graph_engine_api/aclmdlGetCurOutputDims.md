@@ -79,4 +79,3 @@ aclError aclmdlGetCurOutputDims(const aclmdlDesc *modelDesc, size_t index, aclmd
 
 -   通过模型转换设置多档Batch size或分辨率或维度值，实现动态Batch或动态分辨率或动态维度（ND格式）时，如果用户已调用[aclmdlSetDynamicBatchSize](aclmdlSetDynamicBatchSize.md)设置Batch、或调用[aclmdlSetDynamicHWSize](aclmdlSetDynamicHWSize.md)接口设置输入图片的宽高、或调用[aclmdlSetInputDynamicDims](aclmdlSetInputDynamicDims.md)接口设置某动态维度的值，则可通过该接口获取指定模型输出tensor的实际维度信息；如果用户未调用[aclmdlSetDynamicBatchSize](aclmdlSetDynamicBatchSize.md)接口、或[aclmdlSetDynamicHWSize](aclmdlSetDynamicHWSize.md)接口、或[aclmdlSetInputDynamicDims](aclmdlSetInputDynamicDims.md)接口，则通过该接口可获取最大档的维度信息。
 -   固定Shape场景下，通过该接口获取指定的模型输出tensor的维度信息。
-

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -93,8 +93,8 @@ ge::Status AllCachesH2dCopy(const std::vector<uintptr_t> &src_addrs, const std::
   std::thread d2d_thread = std::thread(D2dMemcpyThread, rt_context, std::ref(d2d_thread_run_flag),
                                        std::ref(d2d_args_queue), std::ref(hbm_buffers), std::ref(status_info));
   LLM_MAKE_GUARD(stop_thread, ([&d2d_thread_run_flag, &d2d_thread, &hbm_buffers, &d2d_args_queue]() {
-                  StopSwapThread(hbm_buffers, d2d_args_queue, d2d_thread_run_flag, d2d_thread);
-                }));
+                   StopSwapThread(hbm_buffers, d2d_args_queue, d2d_thread_run_flag, d2d_thread);
+                 }));
   std::queue<std::pair<int64_t, int64_t>> block_indices;
   for (const auto &src_to_dst : block_mapping) {
     block_indices.push(src_to_dst);
@@ -120,7 +120,8 @@ ge::Status AllCachesH2dCopy(const std::vector<uintptr_t> &src_addrs, const std::
       LLM_CHK_ACL_RET(
           aclrtMemcpy(hbm_addr, block_size, reinterpret_cast<void *>(src), block_size, ACL_MEMCPY_HOST_TO_DEVICE));
       const auto copy_end = std::chrono::steady_clock::now();
-      const auto cost = std::chrono::duration_cast<std::chrono::microseconds>(copy_end - copy_start).count();;
+      const auto cost = std::chrono::duration_cast<std::chrono::microseconds>(copy_end - copy_start).count();
+      ;
       h2d_copy_time.fetch_add(cost, std::memory_order_relaxed);
       const uintptr_t d2d_dst_addr = dst_addr + block_index.second * block_size;
       LLM_CHK_BOOL_RET_STATUS(
@@ -129,8 +130,8 @@ ge::Status AllCachesH2dCopy(const std::vector<uintptr_t> &src_addrs, const std::
     }
   }
   StopSwapThread(hbm_buffers, d2d_args_queue, d2d_thread_run_flag, d2d_thread);
-  LLMLOGI("[LlmPerf] h2d aclrtMemcpy cost time:%zu us, d2d aclrtMemcpyAsync cost time:%zu us",
-         h2d_copy_time.load(), status_info.second);
+  LLMLOGI("[LlmPerf] h2d aclrtMemcpy cost time:%zu us, d2d aclrtMemcpyAsync cost time:%zu us", h2d_copy_time.load(),
+          status_info.second);
   LLM_CHK_BOOL_RET_STATUS(status_info.first == ACL_ERROR_NONE, ge::FAILED, "d2d memcpy failed");
   return ge::SUCCESS;
 }
@@ -161,14 +162,14 @@ ge::Status SwapImpl::SwapBlocks(const std::vector<uintptr_t> &src_addrs, const s
         auto src = src_addr + src_index * block_size;
         auto dst = dst_addr + dst_index * block_size;
         LLMLOGI("Begin mem copy, src index:%ld, dst index:%ld, copy size:%lu, contiguous block num:%lu", src_index,
-               dst_index, copy_size, ordered_block.size());
+                dst_index, copy_size, ordered_block.size());
         const auto copy_start = std::chrono::steady_clock::now();
         if (copy_info.copy_type == CopyType::kMemcpyEx) {
           LLM_CHK_ACL_RET(rtMemcpyEx(reinterpret_cast<void *>(dst), copy_size, reinterpret_cast<void *>(src), copy_size,
-                                   copy_info.copy_kind));
+                                     copy_info.copy_kind));
         } else {
           LLM_CHK_ACL_RET(rtMemcpy(reinterpret_cast<void *>(dst), copy_size, reinterpret_cast<void *>(src), copy_size,
-                                 copy_info.copy_kind));
+                                   copy_info.copy_kind));
         }
         const auto copy_end = std::chrono::steady_clock::now();
         const auto cost = std::chrono::duration_cast<std::chrono::microseconds>(copy_end - copy_start).count();
@@ -184,7 +185,7 @@ ge::Status SwapImpl::SwapBlocks(const std::vector<uintptr_t> &src_addrs, const s
   }
   const auto end = std::chrono::steady_clock::now();
   LLMLOGI("[LlmPerf] mem copy cost time:%zu us, copy kind:%d, swap blocks cost time:%zu us", rt_copy_time.load(),
-         copy_info.copy_kind, std::chrono::duration_cast<std::chrono::microseconds>(end - start).count());
+          copy_info.copy_kind, std::chrono::duration_cast<std::chrono::microseconds>(end - start).count());
   return ge::SUCCESS;
 }
 
@@ -214,11 +215,11 @@ ge::Status SwapImpl::SwapInBlocks(const std::vector<uintptr_t> &src_addrs, const
   });
   LLM_CHK_BOOL_RET_STATUS(ret == ACL_ERROR_NONE, ge::LLM_DEVICE_OUT_OF_MEMORY, "aclrtMalloc hbm buffer failed");
   LLM_CHK_STATUS_RET(AllCachesH2dCopy(src_addrs, dst_addrs, block_size, block_mapping, hbm_buffers),
-                    "h2d memcpy failed");
+                     "h2d memcpy failed");
   const auto end = std::chrono::steady_clock::now();
   LLMLOGI("[LlmPerf] malloc hbm buffer cost time:%zu us, swap in blocks cost time:%zu us",
-         std::chrono::duration_cast<std::chrono::microseconds>(malloc_end - start).count(),
-         std::chrono::duration_cast<std::chrono::microseconds>(end - malloc_end).count());
+          std::chrono::duration_cast<std::chrono::microseconds>(malloc_end - start).count(),
+          std::chrono::duration_cast<std::chrono::microseconds>(end - malloc_end).count());
   return ge::SUCCESS;
 }
 
@@ -236,14 +237,14 @@ ge::Status SwapImpl::SwapBlocks(const Cache &src, const Cache &dst, const uint64
   const auto &src_addrs = src.per_device_tensor_addrs;
   const auto &dst_addrs = dst.per_device_tensor_addrs;
   LLM_CHK_BOOL_RET_STATUS((src_addrs[device_index].size() == dst_addrs[device_index].size()), ge::LLM_PARAM_INVALID,
-                         "src adrrs size:%zu not equal dst addrs size:%zu", src_addrs[device_index].size(),
-                         dst_addrs[device_index].size());
+                          "src adrrs size:%zu not equal dst addrs size:%zu", src_addrs[device_index].size(),
+                          dst_addrs[device_index].size());
   LLMLOGI("Begin swap blocks, cache num:%zu, swap block num:%zu", src_addrs.front().size(), block_mapping.size());
   LLM_CHK_ACL_RET(aclrtSetDevice(device_id_));
   LLM_MAKE_GUARD(reset_device, [this]() { LLM_CHK_ACL(aclrtResetDevice(device_id_)); });
   if (type == kSwapOut) {
     LLM_CHK_STATUS_RET(SwapOutBlocks(src_addrs[device_index], dst_addrs[device_index], block_size, block_mapping),
-                      "swap out blocks failed");
+                       "swap out blocks failed");
   } else {
     LLM_CHK_STATUS_RET(SwapInBlocks(src_addrs[device_index], dst_addrs[device_index], block_size, block_mapping));
   }

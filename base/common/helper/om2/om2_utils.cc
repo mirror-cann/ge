@@ -72,8 +72,7 @@ Status CreateMemFdFile(const std::string &name, const std::string &data, MemFdFi
   if (!data.empty()) {
     GE_ASSERT_TRUE(data.size() <= static_cast<size_t>(std::numeric_limits<uint32_t>::max()),
                    "[OM2] memfd data is too large, name=%s, size=%zu", name.c_str(), data.size());
-    const auto write_count = mmWrite(file.fd, const_cast<char_t *>(data.data()),
-                                     static_cast<uint32_t>(data.size()));
+    const auto write_count = mmWrite(file.fd, const_cast<char_t *>(data.data()), static_cast<uint32_t>(data.size()));
     GE_ASSERT_TRUE(write_count == static_cast<int64_t>(data.size()),
                    "[OM2] Failed to write memfd %s, expected=%zu, actual=%" PRId64, name.c_str(),
                    static_cast<int64_t>(data.size()), static_cast<int64_t>(write_count));
@@ -156,8 +155,7 @@ Status CheckBuildConfigValue(const std::string &value) {
   constexpr std::string_view kAllowedChars = " _-./+,:=@%'\"";
   for (const auto c : value) {
     // Keep build_config as make arguments instead of opening a general shell command surface.
-    const bool is_allowed = std::isalnum(static_cast<uint8_t>(c)) ||
-                            (kAllowedChars.find(c) != std::string_view::npos);
+    const bool is_allowed = std::isalnum(static_cast<uint8_t>(c)) || (kAllowedChars.find(c) != std::string_view::npos);
     GE_ASSERT_TRUE(is_allowed, "[OM2] Invalid character in build_config");
   }
   return SUCCESS;
@@ -211,19 +209,16 @@ bool IsMakeCommand(const std::string &first_token) {
   if (first_token.size() < kMakeSuffix.size()) {
     return false;
   }
-  return first_token.compare(first_token.size() - kMakeSuffix.size(),
-                             kMakeSuffix.size(), kMakeSuffix) == 0;
+  return first_token.compare(first_token.size() - kMakeSuffix.size(), kMakeSuffix.size(), kMakeSuffix) == 0;
 }
 
 bool IsMakefileOption(const std::string &token) {
   return (token == "-f") || (token.rfind("-f", 0U) == 0U) || (token == "--file") ||
-         (token.rfind("--file=", 0U) == 0U) || (token == "--makefile") ||
-         (token.rfind("--makefile=", 0U) == 0U);
+         (token.rfind("--file=", 0U) == 0U) || (token == "--makefile") || (token.rfind("--makefile=", 0U) == 0U);
 }
 
 bool IsAllowedBuildConfigVariable(const std::string &key) {
-  static const std::set<std::string> kAllowedVariables = {
-      "CXX", "CXXFLAGS", "CPPFLAGS", "LDFLAGS", "LDLIBS"};
+  static const std::set<std::string> kAllowedVariables = {"CXX", "CXXFLAGS", "CPPFLAGS", "LDFLAGS", "LDLIBS"};
   return kAllowedVariables.count(key) > 0;
 }
 
@@ -337,13 +332,15 @@ Status AppendCrossCompilerIfNeeded(std::string &command) {
   }
   // 目标与当前架构不一致，检查是否是 ARM 目标
   if (!IsArmCpu(target_cpu)) {
-    GELOGW("[OM2] Unexpected non-ARM target for cross-compile: os=%s, cpu=%s", host_env_os.c_str(), host_env_cpu.c_str());
+    GELOGW("[OM2] Unexpected non-ARM target for cross-compile: os=%s, cpu=%s", host_env_os.c_str(),
+           host_env_cpu.c_str());
     return SUCCESS;
   }
   // 目标是 ARM 且与当前架构不同，查找交叉编译器
   const std::string compiler = FindAarch64LinuxCrossCompiler();
   if (compiler.empty()) {
-    GELOGE(FAILED, "[OM2] aarch64-linux cross-compiler not found. "
+    GELOGE(FAILED,
+           "[OM2] aarch64-linux cross-compiler not found. "
            "Please install gcc-aarch64-linux-gnu or ensure ASCEND_HOME_PATH is set correctly.");
     return FAILED;
   }
@@ -353,7 +350,8 @@ Status AppendCrossCompilerIfNeeded(std::string &command) {
   // 查找并注入 LIB_PATH
   const std::string devlib = FindAarch64Devlib();
   if (devlib.empty()) {
-    GELOGE(FAILED, "[OM2] aarch64 devlib not found. "
+    GELOGE(FAILED,
+           "[OM2] aarch64 devlib not found. "
            "Please ensure ASCEND_HOME_PATH is set correctly and devlib/linux/aarch64 exists.");
     return FAILED;
   }
@@ -408,8 +406,7 @@ size_t FindMakefileVariableReplaceEnd(const std::string &data, size_t line_begin
   return line_end;
 }
 
-Status ReplaceMakefileVariable(std::string &makefile_data, const std::string &variable_name,
-                               const std::string &value) {
+Status ReplaceMakefileVariable(std::string &makefile_data, const std::string &variable_name, const std::string &value) {
   const std::string variable_prefix = variable_name + " :=";
   size_t line_begin = 0U;
   while (line_begin < makefile_data.size()) {
@@ -539,8 +536,8 @@ Status Om2Utils::CompileGeneratedCppToSo(const Om2CodegenArtifacts &artifacts, c
                          model_name.c_str());
 
   so_artifact.file_name = "lib" + model_name + "_om2.so";
-  GE_ASSERT_SUCCESS(CompileWithMemFdMakefile(*makefile_artifact, cpp_files, is_release, so_artifact, so_path,
-                                             makefile_file));
+  GE_ASSERT_SUCCESS(
+      CompileWithMemFdMakefile(*makefile_artifact, cpp_files, is_release, so_artifact, so_path, makefile_file));
   return GRAPH_SUCCESS;
 }
 

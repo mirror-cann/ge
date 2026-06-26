@@ -29,7 +29,7 @@ namespace ge {
 class DavinciModel;
 class TaskInfo;
 struct MemInfo {
-  int64_t logic_memory_base ;
+  int64_t logic_memory_base;
   int64_t memory_size;
   uint8_t *memory_base;
   uint64_t memory_type;
@@ -66,22 +66,27 @@ struct MemInfo {
       return nullptr;
     }
     GE_CHK_STATUS_EXEC(CheckInt64SubOverflow(offset, logic_memory_base), return nullptr,
-        "[Get][Memory] failed,Out of range, total size:%" PRId64 ", offset:%" PRId64 ", logic_memory_base:%" PRId64 ".",
-        memory_size, offset, logic_memory_base);
+                       "[Get][Memory] failed,Out of range, total size:%" PRId64 ", offset:%" PRId64
+                       ", logic_memory_base:%" PRId64 ".",
+                       memory_size, offset, logic_memory_base);
     const int64_t real_offset = offset - logic_memory_base;
 
     GE_CHK_STATUS_EXEC(CheckInt64AddOverflow(real_offset, bytes), return nullptr,
-                       "[Get][Memory] failed,Out of range, total size:%" PRId64 ", offset:%" PRId64 ", bytes:%" PRId64 ".",
+                       "[Get][Memory] failed,Out of range, total size:%" PRId64 ", offset:%" PRId64 ", bytes:%" PRId64
+                       ".",
                        memory_size, real_offset, bytes);
 
     if ((real_offset + bytes) <= memory_size) {
       return ValueToPtr(PtrToValue(memory_base) + static_cast<uint64_t>(real_offset));
     }
 
-    REPORT_INNER_ERR_MSG("E19999", "Out of range, total size:%" PRId64 ", offset:%" PRId64 ", bytes:"
-		       "%" PRId64 ".", memory_size, real_offset, bytes);
-    GELOGE(OUT_OF_MEMORY, "Out of range, total size:%" PRId64 ", offset:%" PRId64 ", bytes:%" PRId64 ".",
-      memory_size, real_offset, bytes);
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Out of range, total size:%" PRId64 ", offset:%" PRId64
+                         ", bytes:"
+                         "%" PRId64 ".",
+                         memory_size, real_offset, bytes);
+    GELOGE(OUT_OF_MEMORY, "Out of range, total size:%" PRId64 ", offset:%" PRId64 ", bytes:%" PRId64 ".", memory_size,
+           real_offset, bytes);
     return nullptr;
   }
 };
@@ -100,13 +105,11 @@ struct RuntimeParam {
        << ", logic_mem_base:" << &std::hex << logic_mem_base << ", host_logic_mem_base:" << host_logic_mem_base
        << ", host_svm_logic_mem_base:" << host_svm_logic_mem_base << ", logic_weight_base:" << logic_weight_base
        << ", logic_var_base:" << logic_var_base << &std::dec << ", memory_size:" << mem_size
-       << ", host_mem_size:" << host_mem_size << ", host_svm_size:" << host_svm_size << ", weight_size:"
-       << weight_size << ", var_size:" << var_size << ", zero_copy_size:" << zero_copy_size
-       << ", fixed_feature_memory_base:" << &std::hex << fixed_mem_base
-       << ", fixed_mem_size: " << &std::dec << fixed_mem_size
-       << ", p2p_fixed_mem_base: " << &std::hex << p2p_fixed_mem_base
-       << ", p2p_fixed_mem_size: " << &std::dec << p2p_fixed_mem_size
-       << ", ex_memory_info:";
+       << ", host_mem_size:" << host_mem_size << ", host_svm_size:" << host_svm_size << ", weight_size:" << weight_size
+       << ", var_size:" << var_size << ", zero_copy_size:" << zero_copy_size
+       << ", fixed_feature_memory_base:" << &std::hex << fixed_mem_base << ", fixed_mem_size: " << &std::dec
+       << fixed_mem_size << ", p2p_fixed_mem_base: " << &std::hex << p2p_fixed_mem_base
+       << ", p2p_fixed_mem_size: " << &std::dec << p2p_fixed_mem_size << ", ex_memory_info:";
     for (const auto &it : memory_infos) {
       ss << "[memory_type:" << it.first << ", memory_size:" << it.second.memory_size << "]";
     }
@@ -126,14 +129,15 @@ struct RuntimeParam {
     fm_info.logic_memory_base = logic_offset;
     auto it = sorted_memory_infos.upper_bound(fm_info);
     void *memory_addr = nullptr;
-    if ((it != sorted_memory_infos.end()) && (logic_offset >= it->logic_memory_base)
-        && (logic_offset < (it->logic_memory_base + it->memory_size))) {
+    if ((it != sorted_memory_infos.end()) && (logic_offset >= it->logic_memory_base) &&
+        (logic_offset < (it->logic_memory_base + it->memory_size))) {
       memory_addr = static_cast<void *>(it->memory_base + (logic_offset - it->logic_memory_base));
-      GELOGI("logic_offset:%" PRId64 ", logic_memory_base:%" PRId64 ", memory_base:%p, memory_addr:%p",
-             logic_offset, it->logic_memory_base, it->memory_base, memory_addr);
+      GELOGI("logic_offset:%" PRId64 ", logic_memory_base:%" PRId64 ", memory_base:%p, memory_addr:%p", logic_offset,
+             it->logic_memory_base, it->memory_base, memory_addr);
     } else {
       memory_addr = ValueToPtr(mem_base + static_cast<uint64_t>(logic_offset));
-      GELOGI("logic_offset:%" PRId64 ", memory_base0x:%" PRIx64 ", memory_addr:%p", logic_offset, mem_base, memory_addr);
+      GELOGI("logic_offset:%" PRId64 ", memory_base0x:%" PRIx64 ", memory_addr:%p", logic_offset, mem_base,
+             memory_addr);
     }
     return memory_addr;
   }
@@ -160,8 +164,8 @@ struct RuntimeParam {
   // fm_memory_infos中不包含零拷贝的内存信息
   std::vector<MemInfo> fm_memory_infos;
   std::set<MemInfo> sorted_memory_infos;
-  uint64_t fixed_mem_base = 0U; // memory type hbm
-  uint64_t fixed_mem_size = 0U; // memory type hbm
+  uint64_t fixed_mem_base = 0U;  // memory type hbm
+  uint64_t fixed_mem_size = 0U;  // memory type hbm
   uint64_t p2p_fixed_mem_base = 0U;
   uint64_t p2p_fixed_mem_size = 0U;
   std::vector<MemInfo> fixed_fm_memory_infos;
@@ -197,7 +201,7 @@ struct MemAllocation {
     OUTPUT = 1,
     FEATURE_MAP = 2,
     FIXED_FEATURE_MAP = 3,
-    ABSOLUTE = 4, // absolute addr, no need to refresh
+    ABSOLUTE = 4,  // absolute addr, no need to refresh
   };
 
   static const char_t *GetTypeStr(Type it) {
@@ -233,8 +237,8 @@ struct MemAllocation {
   std::string ToString() const {
     std::stringstream ss;
     ss << "id:" << id << ", logical_addr:0x" << &(std::hex) << logical_addr << ", data_size:0x" << &(std::hex)
-       <<  data_size << ", type:" << GetTypeStr(type) << ", index_in_type:" << index_in_type << ", mem_type:"
-       << mem_type << ", hit_count:" << hit_count;
+       << data_size << ", type:" << GetTypeStr(type) << ", index_in_type:" << index_in_type << ", mem_type:" << mem_type
+       << ", hit_count:" << hit_count;
     return ss.str();
   }
 };
@@ -252,16 +256,16 @@ struct MemAllocationSlice {
 
   std::string ToString() const {
     std::stringstream ss;
-    ss << "id:" << id << ", offset:0x" << &(std::hex) << offset << ", data_size:0x" << &(std::hex) <<  data_size;
+    ss << "id:" << id << ", offset:0x" << &(std::hex) << offset << ", data_size:0x" << &(std::hex) << data_size;
     return ss.str();
   }
 };
 
 struct AddrDesc {
   uint64_t logic_addr;
-  uint64_t memory_type; // fm, const, ....
-  bool support_refresh; // true/false rts算子，以及dsa task info 发现是老的2包，也要返回false；其他大部分应该返回为true
-  uint8_t reserved[3]; // 8字节对齐
+  uint64_t memory_type;  // fm, const, ....
+  bool support_refresh;  // true/false rts算子，以及dsa task info 发现是老的2包，也要返回false；其他大部分应该返回为true
+  uint8_t reserved[3];   // 8字节对齐
 };
 
 enum class ArgsPlacement : int32_t {
@@ -275,12 +279,13 @@ const char *GetArgsPlacementStr(ArgsPlacement placement);
 
 struct TaskArgsDesc {
   int64_t args_len;
-  ArgsPlacement placement; // hbm, ts, sqe, host_svm, end
+  ArgsPlacement placement;  // hbm, ts, sqe, host_svm, end
 };
 // about persistent workspace memory desc
 using PersistentWorkspaceDesc = TaskArgsDesc;
 struct TaskRunParam {
-  // 现在由TaskInfo 解析出来，再经过DavinciModel后，通过Init函数传回给TaskInfo是有些奇怪的，但是由于历史原因，暂时维持这一层关系
+  // 现在由TaskInfo
+  // 解析出来，再经过DavinciModel后，通过Init函数传回给TaskInfo是有些奇怪的，但是由于历史原因，暂时维持这一层关系
   std::vector<AddrDesc> parsed_input_addrs;
   std::vector<AddrDesc> parsed_output_addrs;
   std::vector<AddrDesc> parsed_workspace_addrs;
@@ -312,27 +317,22 @@ struct ArgAddrAndLen {
   int64_t len;
 };
 
-enum class ArgsFormatPolicy : int32_t {
-  kAddrAll  = 0,
-  kAddrLow32Bit = 1,
-  kAddrHigh32Bit = 2,
-  kAddrEnd = 3
-};
+enum class ArgsFormatPolicy : int32_t { kAddrAll = 0, kAddrLow32Bit = 1, kAddrHigh32Bit = 2, kAddrEnd = 3 };
 
 struct TaskArgsRefreshInfo {
-  uint32_t id;              // allocatin id
-  uint64_t offset;          // offset of active mem base addr of the allocation id
-  uint64_t io_index;        // io index, ffts level1 ctx defaults to 0
-  uint64_t args_offset;     // offset of the task args base addr
-  ArgsPlacement placement;  // hbm, ts, sqe, host_svm, end
-  ArgsFormatPolicy args_format_policy; // Args use active addr whole value or low 32-bit value or high 32-bit value
+  uint32_t id;                          // allocatin id
+  uint64_t offset;                      // offset of active mem base addr of the allocation id
+  uint64_t io_index;                    // io index, ffts level1 ctx defaults to 0
+  uint64_t args_offset;                 // offset of the task args base addr
+  ArgsPlacement placement;              // hbm, ts, sqe, host_svm, end
+  ArgsFormatPolicy args_format_policy;  // Args use active addr whole value or low 32-bit value or high 32-bit value
 
   std::string ToString() const {
-  std::stringstream ss;
-  ss << "id:" << id << ", offset:0x" << &(std::hex) << offset << ", io_index:" << io_index <<
-    ", args_offset:0x" << &(std::hex) << args_offset << ", placement:" << GetArgsPlacementStr(placement) <<
-    ", args_format_policy:" << static_cast<int32_t>(args_format_policy);
-  return ss.str();
+    std::stringstream ss;
+    ss << "id:" << id << ", offset:0x" << &(std::hex) << offset << ", io_index:" << io_index << ", args_offset:0x"
+       << &(std::hex) << args_offset << ", placement:" << GetArgsPlacementStr(placement)
+       << ", args_format_policy:" << static_cast<int32_t>(args_format_policy);
+    return ss.str();
   }
 };
 
@@ -355,11 +355,11 @@ struct IowPaRemapInfo {
   }
 
   std::string ToString() const {
-  std::stringstream ss;
-  ss << "op_name:" << op_name.c_str() << ", allocation id:" << allocation_id << ", offset:0x" << &(std::hex) <<
-    allocation_offset << ", tensor_size:0x" << tensor_size << ", PaRemapPolicy:0x" <<
-    static_cast<int32_t>(policy) ;
-  return ss.str();
+    std::stringstream ss;
+    ss << "op_name:" << op_name.c_str() << ", allocation id:" << allocation_id << ", offset:0x" << &(std::hex)
+       << allocation_offset << ", tensor_size:0x" << tensor_size << ", PaRemapPolicy:0x"
+       << static_cast<int32_t>(policy);
+    return ss.str();
   }
 };
 
@@ -377,12 +377,9 @@ struct ArgsAllocationResult {
 
   std::string ToString() const {
     std::ostringstream oss;
-    oss << "host_addr=0x" << std::hex << reinterpret_cast<uintptr_t>(host_addr)
-        << ", device_addr=0x" << device_addr
-        << ", size=" << std::dec << size
-        << ", placement=" << GetArgsPlacementStr(placement)
-        << ", is_from_reserved=" << (is_from_reserved ? "true" : "false")
-        << ", extra_pool_index=" << extra_pool_index;
+    oss << "host_addr=0x" << std::hex << reinterpret_cast<uintptr_t>(host_addr) << ", device_addr=0x" << device_addr
+        << ", size=" << std::dec << size << ", placement=" << GetArgsPlacementStr(placement)
+        << ", is_from_reserved=" << (is_from_reserved ? "true" : "false") << ", extra_pool_index=" << extra_pool_index;
     return oss.str();
   }
 };
@@ -391,10 +388,12 @@ class TaskInfo {
  public:
   TaskInfo() {}
 
-  virtual ~TaskInfo() { stream_ = nullptr; }
+  virtual ~TaskInfo() {
+    stream_ = nullptr;
+  }
 
-  virtual Status Init(const domi::TaskDef &task_def, DavinciModel *const davinci_model,
-                      const PisToArgs &args = {}, const PisToPersistentWorkspace &persistent_workspace = {},
+  virtual Status Init(const domi::TaskDef &task_def, DavinciModel *const davinci_model, const PisToArgs &args = {},
+                      const PisToPersistentWorkspace &persistent_workspace = {},
                       const IowAddrs &iow_addrs = {{}, {}, {}}) = 0;
 
   virtual Status Distribute() = 0;
@@ -403,7 +402,9 @@ class TaskInfo {
     (void)task_def;
   }
 
-  virtual Status UpdateArgs() { return SUCCESS; }
+  virtual Status UpdateArgs() {
+    return SUCCESS;
+  }
   virtual Status UpdateHostArgs(const std::vector<uint64_t> &active_mem_base_addr, void *const host_args,
                                 const size_t host_args_max_len) {
     (void)active_mem_base_addr;
@@ -423,14 +424,16 @@ class TaskInfo {
     return UpdateHostArgs(active_mem_base_addr, arg.addr, static_cast<size_t>(arg.len));
   }
 
-  virtual const std::vector<ArgsAllocationResult>& GetArgsAllocationResults() const {
+  virtual const std::vector<ArgsAllocationResult> &GetArgsAllocationResults() const {
     static const std::vector<ArgsAllocationResult> empty_results;
     return empty_results;
   }
 
-  virtual bool NeedReserveArgsTable() const { return false; }
+  virtual bool NeedReserveArgsTable() const {
+    return false;
+  }
 
-  virtual Status UpdateHostArgs(void* base_addr, size_t mem_size) {
+  virtual Status UpdateHostArgs(void *base_addr, size_t mem_size) {
     (void)base_addr;
     (void)mem_size;
     return SUCCESS;
@@ -451,26 +454,42 @@ class TaskInfo {
     return UpdateDumpInfos(arg.addr, static_cast<size_t>(arg.len));
   }
 
-  virtual Status Release() { return SUCCESS; }
+  virtual Status Release() {
+    return SUCCESS;
+  }
 
-  virtual const ccOpContext *GetCtx() const { return nullptr; }
+  virtual const ccOpContext *GetCtx() const {
+    return nullptr;
+  }
 
-  virtual uint32_t GetTaskID() const { return 0xFFFFFFFFU; }
+  virtual uint32_t GetTaskID() const {
+    return 0xFFFFFFFFU;
+  }
 
-  virtual bool CallSaveDumpInfo() const { return false; }
+  virtual bool CallSaveDumpInfo() const {
+    return false;
+  }
 
-  virtual uint32_t GetStreamId() const { return 0xFFFFFFFFU; }
+  virtual uint32_t GetStreamId() const {
+    return 0xFFFFFFFFU;
+  }
 
-  virtual uintptr_t GetDumpArgs() const { return 0U; }
+  virtual uintptr_t GetDumpArgs() const {
+    return 0U;
+  }
 
-  virtual uint32_t GetSktTaskID() const { return 0xFFFFFFFFU; }
+  virtual uint32_t GetSktTaskID() const {
+    return 0xFFFFFFFFU;
+  }
 
   virtual const std::vector<FusionOpInfo> &GetAllFusionOpInfo() const {
     static const std::vector<FusionOpInfo> all_fusion_op_info;
     return all_fusion_op_info;
   }
 
-  virtual uintptr_t GetArgs() const { return 0U; }
+  virtual uintptr_t GetArgs() const {
+    return 0U;
+  }
 
   virtual void GetTilingKeyAndData(uint32_t &tiling_key, std::string &tiling_data) const {
     tiling_key = 0U;
@@ -531,8 +550,7 @@ class TaskInfo {
   TaskInfo &operator=(const TaskInfo &) & = default;
   Status SetStream(const uint32_t stream_id, const std::vector<aclrtStream> &stream_list);
   static void SetTaskTag(const char_t *const op_name);
-  static void CacheLastTaskExtendInfoIfCollective(const std::string &op_name,
-                                                  const std::string &op_type);
+  static void CacheLastTaskExtendInfoIfCollective(const std::string &op_name, const std::string &op_type);
 
   void *stream_{nullptr};
   TaskProfInfo prof_api_{};
@@ -548,7 +566,8 @@ class TaskProfGuarder {
   ~TaskProfGuarder() noexcept {
     auto &prof_api = task_info_->MutableProfApi();
     prof_api.end_time = MsprofSysCycleTime();
-    (void)aclrtStreamGetId(reinterpret_cast<aclrtStream>(task_info_->GetTaskStream()), reinterpret_cast<int32_t*>(&prof_api.stream_id));
+    (void)aclrtStreamGetId(reinterpret_cast<aclrtStream>(task_info_->GetTaskStream()),
+                           reinterpret_cast<int32_t *>(&prof_api.stream_id));
   }
 
  private:

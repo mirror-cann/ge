@@ -89,4 +89,3 @@ aclError aclopLoad(const void *model,  size_t modelSize)
     </tr>
     </tbody>
     </table>
-

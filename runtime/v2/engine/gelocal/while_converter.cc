@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -198,8 +198,8 @@ LowerResult CreateLowerWhileNode(const ge::NodePtr &node, const LowerInput &lowe
     return ret;
   }
   size_t num_outputs = node->GetAllOutDataAnchorsSize() << 1U;
-  auto holders = bg::DevMemValueHolder::CreateDataOutput(node->GetTypePtr(), inputs, num_outputs,
-                                                         op_desc->GetStreamId());
+  auto holders =
+      bg::DevMemValueHolder::CreateDataOutput(node->GetTypePtr(), inputs, num_outputs, op_desc->GetStreamId());
   LOWER_REQUIRE_VALID_HOLDER(holders);
   ret.order_holders.push_back(holders.front());
   ret.out_shapes.insert(ret.out_shapes.cend(), holders.cbegin(), holders.cbegin() + node->GetAllOutDataAnchorsSize());
@@ -405,9 +405,11 @@ LowerResult LoweringWhile(const ge::NodePtr &node, const LowerInput &lower_input
 //   正式方案的关键点：
 //   1. while不声明输入的placement
 //   2. 在lowering while的子图时，Data产生的placement应该为Unknown；
-//   3. lowering if子图时，Data产生的placement与if时机输入的placement相同  -- 当前有bug，在if的输入为host时，可能漏了h2d操作
+//   3. lowering if子图时，Data产生的placement与if时机输入的placement相同  --
+//   当前有bug，在if的输入为host时，可能漏了h2d操作
 //   4. 创建ValueHolder时，默认的placement应该位于HostDDR
-//   5. 添加消除pass，在while的body输出与body输入、cond输入的MakeSureAt的placement相同时，可以将MakeSureAt外提到While外部，
+//   5.
+//   添加消除pass，在while的body输出与body输入、cond输入的MakeSureAt的placement相同时，可以将MakeSureAt外提到While外部，
 //      进一步如果While外部输入的placement与MakeSureAt的placement相同时，可以直接删除MakeSureAt
 REGISTER_NODE_CONVERTER_PLACEMENT("While", 0, LoweringWhile);
 REGISTER_NODE_CONVERTER_PLACEMENT("StatelessWhile", 0, LoweringWhile);

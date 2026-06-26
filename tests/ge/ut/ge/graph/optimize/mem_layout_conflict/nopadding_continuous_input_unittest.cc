@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -94,7 +94,7 @@ TEST_F(UtestMemLayoutConflictNoPaddingContinuousIn,
        NoPaddingContinuousInAndNoPaddingContinuousInCross_InsertIdentity_Success) {
   auto graph = MemConflictShareGraph::BuildNoPaddingContinuousInAndNoPaddingContinuousInCrossGraph();
   MemLayoutConflictOptimizer mem_check_pass;
-  dlog_setlevel(GE_MODULE_NAME, 1, 0); // 有些代码必须开info日志才能走到
+  dlog_setlevel(GE_MODULE_NAME, 1, 0);  // 有些代码必须开info日志才能走到
   ASSERT_EQ(mem_check_pass.Run(graph), GRAPH_SUCCESS);
   EXPECT_EQ(mem_check::ResultChecker::CheckIdentityNum(graph, 2), GRAPH_SUCCESS);
 
@@ -103,19 +103,21 @@ TEST_F(UtestMemLayoutConflictNoPaddingContinuousIn,
   const auto concat2 = graph->FindNode("phony_concat2");
   ASSERT_NE(concat2, nullptr);
   if (concat1->GetInDataAnchor(1)->GetPeerOutAnchor()->GetOwnerNode()->GetType() == IDENTITY) {
-    EXPECT_EQ(mem_check::ResultChecker::CheckIdentityBefore(graph, {{"phony_concat1", 1}, {"phony_concat1", 0}}), GRAPH_SUCCESS);
+    EXPECT_EQ(mem_check::ResultChecker::CheckIdentityBefore(graph, {{"phony_concat1", 1}, {"phony_concat1", 0}}),
+              GRAPH_SUCCESS);
   } else {
-    EXPECT_EQ(mem_check::ResultChecker::CheckIdentityBefore(graph, {{"phony_concat2", 1}, {"phony_concat2", 0}}), GRAPH_SUCCESS);
+    EXPECT_EQ(mem_check::ResultChecker::CheckIdentityBefore(graph, {{"phony_concat2", 1}, {"phony_concat2", 0}}),
+              GRAPH_SUCCESS);
   }
   bool check_success = false;
-  if ((concat1->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetType() == IDENTITY)
-      || (concat1->GetInDataAnchor(1)->GetPeerOutAnchor()->GetOwnerNode()->GetType() == IDENTITY)
-      ||(concat2->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetType() == IDENTITY)
-      || (concat2->GetInDataAnchor(1)->GetPeerOutAnchor()->GetOwnerNode()->GetType() == IDENTITY)) {
+  if ((concat1->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetType() == IDENTITY) ||
+      (concat1->GetInDataAnchor(1)->GetPeerOutAnchor()->GetOwnerNode()->GetType() == IDENTITY) ||
+      (concat2->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetType() == IDENTITY) ||
+      (concat2->GetInDataAnchor(1)->GetPeerOutAnchor()->GetOwnerNode()->GetType() == IDENTITY)) {
     check_success = true;
   }
   EXPECT_TRUE(check_success);
-  dlog_setlevel(GE_MODULE_NAME, 3, 0); // 有些代码必须开info日志才能走到
+  dlog_setlevel(GE_MODULE_NAME, 3, 0);  // 有些代码必须开info日志才能走到
 }
 /*
  *     a b c d      c d
@@ -136,11 +138,13 @@ TEST_F(UtestMemLayoutConflictNoPaddingContinuousIn,
  */
 TEST_F(UtestMemLayoutConflictNoPaddingContinuousIn,
        NoPaddingContinuousInAndNoPaddingContinuousInPartialSameInputsConflict_InsertIdentity_Success) {
-  auto graph = MemConflictShareGraph::BuildNoPaddingContinuousInAndNoPaddingContinuousInPartialSameInputsConflictGraph();
+  auto graph =
+      MemConflictShareGraph::BuildNoPaddingContinuousInAndNoPaddingContinuousInPartialSameInputsConflictGraph();
   MemLayoutConflictOptimizer mem_check_pass;
   ASSERT_EQ(mem_check_pass.Run(graph), GRAPH_SUCCESS);
   EXPECT_EQ(mem_check::ResultChecker::CheckIdentityNum(graph, 2), GRAPH_SUCCESS);
-  EXPECT_EQ(mem_check::ResultChecker::CheckIdentityBefore(graph, {{"phony_concat2"}, {"phony_concat2", 1}}), GRAPH_SUCCESS);
+  EXPECT_EQ(mem_check::ResultChecker::CheckIdentityBefore(graph, {{"phony_concat2"}, {"phony_concat2", 1}}),
+            GRAPH_SUCCESS);
 }
 
 /*
@@ -154,7 +158,8 @@ TEST_F(UtestMemLayoutConflictNoPaddingContinuousIn,
   MemLayoutConflictOptimizer mem_check_pass;
   ASSERT_EQ(mem_check_pass.Run(graph), GRAPH_SUCCESS);
   EXPECT_EQ(mem_check::ResultChecker::CheckIdentityNum(graph, 2), GRAPH_SUCCESS);
-  EXPECT_EQ(mem_check::ResultChecker::CheckIdentityBefore(graph, {{"phony_concat2", 2}, {"phony_concat2", 3}}), GRAPH_SUCCESS);
+  EXPECT_EQ(mem_check::ResultChecker::CheckIdentityBefore(graph, {{"phony_concat2", 2}, {"phony_concat2", 3}}),
+            GRAPH_SUCCESS);
 }
 /*
  *     a b c d      e b
@@ -202,8 +207,7 @@ TEST_F(UtestMemLayoutConflictNoPaddingContinuousIn,
  *  另外，GE会校验PhonyConcat的输入节点有没有打_reuse_input_on_dim_index属性，中间插入的identity没有这个属性，会校验报错。
  *  更重要的是，输入节点可能在一块大的内存中会跳写，若后面跟着identity，就无法分配大的连续内存了。
  */
-TEST_F(UtestMemLayoutConflictNoPaddingContinuousIn,
-       BuildNoPaddingContinuousInWithSameAnchor_NotInsertIdentity) {
+TEST_F(UtestMemLayoutConflictNoPaddingContinuousIn, BuildNoPaddingContinuousInWithSameAnchor_NotInsertIdentity) {
   auto graph = MemConflictShareGraph::BuildNoPaddingContinuousInWithSameAnchorData();
   MemLayoutConflictOptimizer mem_check_pass;
   ASSERT_EQ(mem_check_pass.Run(graph), GRAPH_SUCCESS);
@@ -232,4 +236,4 @@ TEST_F(UtestMemLayoutConflictNoPaddingContinuousIn,
   ASSERT_EQ(mem_check_pass.Run(graph), GRAPH_SUCCESS);
   EXPECT_EQ(mem_check::ResultChecker::CheckIdentityNum(graph, 0U), GRAPH_SUCCESS);
 }
-} // namespace ge
+}  // namespace ge

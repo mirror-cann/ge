@@ -96,4 +96,3 @@ EsCTensorHolder *EsCreateScalarInt64(EsCGraphBuilder *graph, int64_t value)
 EsCGraphBuilder *graph = EsCreateGraphBuilder("test_graph");
 auto *scalar64 = EsCreateScalarInt64(graph, 42);
 ```
-

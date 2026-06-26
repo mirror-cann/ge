@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,16 +29,15 @@ Status AttachStreamLabelPass::Run(ComputeGraphPtr graph) {
     GE_CHK_STATUS_RET(UpdateCondBranch(node, branch_head_nodes), "[Update][CondBranch] failed, start node:%s.",
                       node->GetName().c_str());
   }
-  GE_CHK_STATUS_RET(UpdateEnterNode(enter_nodes),
-                    "[Update][EnterNode] in graph:%s failed.", graph->GetName().c_str());
+  GE_CHK_STATUS_RET(UpdateEnterNode(enter_nodes), "[Update][EnterNode] in graph:%s failed.", graph->GetName().c_str());
 
   if (after_optimize_subgraph_) {
-    GE_CHK_STATUS_RET(UpdateSubgraphStreamLabel(graph),
-                      "[Update][StreamLabel] in subgraph of graph:%s failed.", graph->GetName().c_str());
+    GE_CHK_STATUS_RET(UpdateSubgraphStreamLabel(graph), "[Update][StreamLabel] in subgraph of graph:%s failed.",
+                      graph->GetName().c_str());
   }
   // 临时方案，正式方案需要根据图结构来给cmo算子分流，待正式方案上库后删除
-  GE_CHK_STATUS_RET(SetCmoStreamLabel(cmo_nodes),
-                    "Failed to set stream labels  for cmo nodes in graph:%s failed.", graph->GetName().c_str());
+  GE_CHK_STATUS_RET(SetCmoStreamLabel(cmo_nodes), "Failed to set stream labels  for cmo nodes in graph:%s failed.",
+                    graph->GetName().c_str());
 
   GELOGD("AttachStreamLabelPass Leave.");
   return SUCCESS;
@@ -128,8 +127,8 @@ Status AttachStreamLabelPass::UpdateCondBranch(const NodePtr &node,
     GELOGD("Attach label %s to node: %s.", stream_label.c_str(), tmp_node->GetName().c_str());
     auto status = SetStreamLabel(tmp_node, stream_label);
     if (status != ge::SUCCESS) {
-      GELOGE(status, "[Set][StreamLabel] %s to op:%s(%s) failed.",
-             stream_label.c_str(), tmp_node->GetName().c_str(), tmp_node->GetType().c_str());
+      GELOGE(status, "[Set][StreamLabel] %s to op:%s(%s) failed.", stream_label.c_str(), tmp_node->GetName().c_str(),
+             tmp_node->GetType().c_str());
       return status;
     }
   }
@@ -147,8 +146,8 @@ Status AttachStreamLabelPass::AttachFlag(const NodePtr &node, std::string &strea
   const std::string &type = node->GetType();
   if (type == STREAMSWITCH) {
     if (node->GetInDataNodes().empty()) {
-      REPORT_INNER_ERR_MSG("E19999", "In data nodes is empty of op:%s(%s), check invalid",
-                         node->GetName().c_str(), node->GetType().c_str());
+      REPORT_INNER_ERR_MSG("E19999", "In data nodes is empty of op:%s(%s), check invalid", node->GetName().c_str(),
+                           node->GetType().c_str());
       GELOGE(INTERNAL_ERROR, "[Get][InDataNodes] node %s has no input_data_node.", node->GetName().c_str());
       return INTERNAL_ERROR;
     }
@@ -156,26 +155,25 @@ Status AttachStreamLabelPass::AttachFlag(const NodePtr &node, std::string &strea
     bool value = false;
     OpDescPtr op_desc = node->GetOpDesc();
     GE_CHECK_NOTNULL(op_desc);
-    GE_CHK_BOOL_EXEC(AttrUtils::GetBool(op_desc, ATTR_NAME_SWITCH_TRUE_BRANCH_FLAG, value),
-                     REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s of op:%s(%s) failed",
-                                       ATTR_NAME_SWITCH_TRUE_BRANCH_FLAG.c_str(),
-                                       op_desc->GetName().c_str(), op_desc->GetType().c_str());
-                     return FAILED,
-                     "[Get][Attr] %s of op:%s(%s) failed", ATTR_NAME_SWITCH_TRUE_BRANCH_FLAG.c_str(),
-                     op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    GE_CHK_BOOL_EXEC(
+        AttrUtils::GetBool(op_desc, ATTR_NAME_SWITCH_TRUE_BRANCH_FLAG, value),
+        REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s of op:%s(%s) failed", ATTR_NAME_SWITCH_TRUE_BRANCH_FLAG.c_str(),
+                             op_desc->GetName().c_str(), op_desc->GetType().c_str());
+        return FAILED, "[Get][Attr] %s of op:%s(%s) failed", ATTR_NAME_SWITCH_TRUE_BRANCH_FLAG.c_str(),
+               op_desc->GetName().c_str(), op_desc->GetType().c_str());
     stream_label += (value ? "_t" : "_f");
     auto status = SetActiveLabelList(node, {stream_label});
     if (status != ge::SUCCESS) {
-      GELOGE(status, "[Set][ActiveLabelList] %s to op:%s(%s) failed.",
-             stream_label.c_str(), node->GetName().c_str(), node->GetType().c_str());
+      GELOGE(status, "[Set][ActiveLabelList] %s to op:%s(%s) failed.", stream_label.c_str(), node->GetName().c_str(),
+             node->GetType().c_str());
       return status;
     }
   } else if (type == STREAMMERGE) {
     stream_label = node->GetName();
     auto status = SetStreamLabel(node, stream_label);
     if (status != ge::SUCCESS) {
-      GELOGE(status, "[Set][StreamLabel] %s to op:%s(%s) failed.",
-             stream_label.c_str(), node->GetName().c_str(), node->GetType().c_str());
+      GELOGE(status, "[Set][StreamLabel] %s to op:%s(%s) failed.", stream_label.c_str(), node->GetName().c_str(),
+             node->GetType().c_str());
       return status;
     }
   }
@@ -215,9 +213,8 @@ Status AttachStreamLabelPass::UpdateEnterNode(const std::vector<NodePtr> &enter_
     bool get_attr = AttrUtils::GetListStr(active_node->GetOpDesc(), ATTR_NAME_ACTIVE_LABEL_LIST, active_label_list) &&
                     (active_label_list.size() == 1) && !active_label_list[0].empty();
     if (!get_attr) {
-      REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s of op:%s(%s) failed",
-                        ATTR_NAME_ACTIVE_LABEL_LIST.c_str(),
-                        active_node->GetName().c_str(), active_node->GetType().c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s of op:%s(%s) failed", ATTR_NAME_ACTIVE_LABEL_LIST.c_str(),
+                           active_node->GetName().c_str(), active_node->GetType().c_str());
       GELOGE(INTERNAL_ERROR, "[Get][Attr] %s of op:%s(%s) failed.", ATTR_NAME_ACTIVE_LABEL_LIST.c_str(),
              active_node->GetName().c_str(), active_node->GetType().c_str());
       return INTERNAL_ERROR;
@@ -254,8 +251,8 @@ Status AttachStreamLabelPass::SetEnterLabel(const std::vector<NodePtr> &enter_no
   for (const auto &enter_node : enter_nodes) {
     auto status = SetStreamLabel(enter_node, stream_label);
     if (status != ge::SUCCESS) {
-      GELOGE(status, "[Set][StreamLabel] %s to op:%s(%s) failed.",
-             stream_label.c_str(), enter_node->GetName().c_str(), enter_node->GetType().c_str());
+      GELOGE(status, "[Set][StreamLabel] %s to op:%s(%s) failed.", stream_label.c_str(), enter_node->GetName().c_str(),
+             enter_node->GetType().c_str());
       return status;
     }
   }
@@ -299,8 +296,8 @@ Status AttachStreamLabelPass::UpdateLoopBranch(const std::stack<NodePtr> &enter_
       GELOGD("Attach label %s to node: %s.", stream_label.c_str(), out_node->GetName().c_str());
       auto status = SetStreamLabel(out_node, stream_label);
       if (status != ge::SUCCESS) {
-        GELOGE(status, "[Set][StreamLabel] %s to op:%s(%s) failed.",
-               stream_label.c_str(), out_node->GetName().c_str(), out_node->GetType().c_str());
+        GELOGE(status, "[Set][StreamLabel] %s to op:%s(%s) failed.", stream_label.c_str(), out_node->GetName().c_str(),
+               out_node->GetType().c_str());
         return status;
       }
       nodes.push(out_node);

@@ -72,13 +72,13 @@ class TaskInfoFactory {
 };
 }  // namespace ge
 
-#define REGISTER_TASK_INFO(type, clazz)                                                                       \
-namespace {                                                                                                   \
-  TaskInfoPtr Creator_Task_Info_##type() {                                                                    \
-    std::shared_ptr<clazz> ptr = nullptr;                                                                     \
-    ptr = MakeShared<clazz>();                                                                                \
-    return ptr;                                                                                               \
-  }                                                                                                           \
-  TaskInfoFactory::Registerar g_Task_Info_Creator_##type(ModelTaskType::type, &Creator_Task_Info_##type);     \
-}  // namespace
+#define REGISTER_TASK_INFO(type, clazz)                                                                   \
+  namespace {                                                                                             \
+  TaskInfoPtr Creator_Task_Info_##type() {                                                                \
+    std::shared_ptr<clazz> ptr = nullptr;                                                                 \
+    ptr = MakeShared<clazz>();                                                                            \
+    return ptr;                                                                                           \
+  }                                                                                                       \
+  TaskInfoFactory::Registerar g_Task_Info_Creator_##type(ModelTaskType::type, &Creator_Task_Info_##type); \
+  }  // namespace
 #endif  // GE_GRAPH_LOAD_NEW_MODEL_MANAGER_TASK_INFO_TASK_INFO_FACTORY_H_

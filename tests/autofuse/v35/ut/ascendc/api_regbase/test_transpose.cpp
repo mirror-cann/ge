@@ -30,7 +30,7 @@ struct TensorTransposeInputParam {
   U size;
 };
 
-class TestRegbaseApiTranspose :public testing::Test {
+class TestRegbaseApiTranspose : public testing::Test {
  protected:
   template <typename T, typename U>
   static void InvokeKernelTestIndex(TensorTransposeInputParam<T, U> &param) {
@@ -40,21 +40,27 @@ class TestRegbaseApiTranspose :public testing::Test {
     tpipe.InitBuffer(idx_buf, sizeof(U) * param.size);
     LocalTensor<U> l_idx = idx_buf.Get<U>();
     if (param.dst_dims.size() == 1) {
-      GenTransposeIndex<U, 1>((__ubuf__ U*)l_idx.GetPhyAddr(), {param.dst_dims[0]}, {param.src_strides[0]}, param.size);
+      GenTransposeIndex<U, 1>((__ubuf__ U *)l_idx.GetPhyAddr(), {param.dst_dims[0]}, {param.src_strides[0]},
+                              param.size);
     } else if (param.dst_dims.size() == 2) {
-      GenTransposeIndex<U, 2>((__ubuf__ U*)l_idx.GetPhyAddr(), {param.dst_dims[0], param.dst_dims[1]},
-        {param.src_strides[0], param.src_strides[1]}, param.size);
+      GenTransposeIndex<U, 2>((__ubuf__ U *)l_idx.GetPhyAddr(), {param.dst_dims[0], param.dst_dims[1]},
+                              {param.src_strides[0], param.src_strides[1]}, param.size);
     } else if (param.dst_dims.size() == 3) {
-      GenTransposeIndex<U, 3>((__ubuf__ U*)l_idx.GetPhyAddr(), {param.dst_dims[0], param.dst_dims[1], param.dst_dims[2]},
-        {param.src_strides[0], param.src_strides[1], param.src_strides[2]}, param.size);
+      GenTransposeIndex<U, 3>((__ubuf__ U *)l_idx.GetPhyAddr(),
+                              {param.dst_dims[0], param.dst_dims[1], param.dst_dims[2]},
+                              {param.src_strides[0], param.src_strides[1], param.src_strides[2]}, param.size);
     } else if (param.dst_dims.size() == 4) {
-      GenTransposeIndex<U, 4>((__ubuf__ U*)l_idx.GetPhyAddr(),
-        {param.dst_dims[0], param.dst_dims[1], param.dst_dims[2], param.dst_dims[3]},
-        {param.src_strides[0], param.src_strides[1], param.src_strides[2], param.src_strides[3]}, param.size);
+      GenTransposeIndex<U, 4>((__ubuf__ U *)l_idx.GetPhyAddr(),
+                              {param.dst_dims[0], param.dst_dims[1], param.dst_dims[2], param.dst_dims[3]},
+                              {param.src_strides[0], param.src_strides[1], param.src_strides[2], param.src_strides[3]},
+                              param.size);
     } else if (param.dst_dims.size() == 5) {
-      GenTransposeIndex<U, 5>((__ubuf__ U*)l_idx.GetPhyAddr(),
-        {param.dst_dims[0], param.dst_dims[1], param.dst_dims[2], param.dst_dims[3], param.dst_dims[4]},
-        {param.src_strides[0], param.src_strides[1], param.src_strides[2], param.src_strides[3], param.src_strides[4]}, param.size);
+      GenTransposeIndex<U, 5>(
+          (__ubuf__ U *)l_idx.GetPhyAddr(),
+          {param.dst_dims[0], param.dst_dims[1], param.dst_dims[2], param.dst_dims[3], param.dst_dims[4]},
+          {param.src_strides[0], param.src_strides[1], param.src_strides[2], param.src_strides[3],
+           param.src_strides[4]},
+          param.size);
     }
     UbToGm(param.idx, l_idx, param.size);
   }
@@ -179,36 +185,48 @@ class TestRegbaseApiTranspose :public testing::Test {
       TransposeExtend<T, 1>(l_y, l_x, l_idx, {param.dst_dims[0]}, {param.src_strides[0]}, {param.dst_strides[0]});
     } else if (param.dst_dims.size() == 2) {
       TransposeExtend<T, 2>(l_y, l_x, l_idx, {param.dst_dims[0], param.dst_dims[1]},
-        {param.src_strides[0], param.src_strides[1]}, {param.dst_strides[0], param.dst_strides[1]});
+                            {param.src_strides[0], param.src_strides[1]}, {param.dst_strides[0], param.dst_strides[1]});
     } else if (param.dst_dims.size() == 3) {
       TransposeExtend<T, 3>(l_y, l_x, l_idx, {param.dst_dims[0], param.dst_dims[1], param.dst_dims[2]},
-        {param.src_strides[0], param.src_strides[1], param.src_strides[2]},
-        {param.dst_strides[0], param.dst_strides[1], param.dst_strides[2]});
+                            {param.src_strides[0], param.src_strides[1], param.src_strides[2]},
+                            {param.dst_strides[0], param.dst_strides[1], param.dst_strides[2]});
     } else if (param.dst_dims.size() == 4) {
       TransposeExtend<T, 4>(l_y, l_x, l_idx,
-        {param.dst_dims[0], param.dst_dims[1], param.dst_dims[2], param.dst_dims[3]},
-        {param.src_strides[0], param.src_strides[1], param.src_strides[2], param.src_strides[3]},
-        {param.dst_strides[0], param.dst_strides[1], param.dst_strides[2], param.dst_strides[3]});
+                            {param.dst_dims[0], param.dst_dims[1], param.dst_dims[2], param.dst_dims[3]},
+                            {param.src_strides[0], param.src_strides[1], param.src_strides[2], param.src_strides[3]},
+                            {param.dst_strides[0], param.dst_strides[1], param.dst_strides[2], param.dst_strides[3]});
     } else if (param.dst_dims.size() == 5) {
-      TransposeExtend<T, 5>(l_y, l_x, l_idx,
-        {param.dst_dims[0], param.dst_dims[1], param.dst_dims[2], param.dst_dims[3], param.dst_dims[4]},
-        {param.src_strides[0], param.src_strides[1], param.src_strides[2], param.src_strides[3], param.src_strides[4]},
-        {param.dst_strides[0], param.dst_strides[1], param.dst_strides[2], param.dst_strides[3], param.dst_strides[4]});
+      TransposeExtend<T, 5>(
+          l_y, l_x, l_idx,
+          {param.dst_dims[0], param.dst_dims[1], param.dst_dims[2], param.dst_dims[3], param.dst_dims[4]},
+          {param.src_strides[0], param.src_strides[1], param.src_strides[2], param.src_strides[3],
+           param.src_strides[4]},
+          {param.dst_strides[0], param.dst_strides[1], param.dst_strides[2], param.dst_strides[3],
+           param.dst_strides[4]});
     } else if (param.dst_dims.size() == 6) {
       TransposeExtend<T, 6>(l_y, l_x, l_idx,
-        {param.dst_dims[0], param.dst_dims[1], param.dst_dims[2], param.dst_dims[3], param.dst_dims[4], param.dst_dims[5]},
-        {param.src_strides[0], param.src_strides[1], param.src_strides[2], param.src_strides[3], param.src_strides[4], param.src_strides[5]},
-        {param.dst_strides[0], param.dst_strides[1], param.dst_strides[2], param.dst_strides[3], param.dst_strides[4], param.dst_strides[5]});
+                            {param.dst_dims[0], param.dst_dims[1], param.dst_dims[2], param.dst_dims[3],
+                             param.dst_dims[4], param.dst_dims[5]},
+                            {param.src_strides[0], param.src_strides[1], param.src_strides[2], param.src_strides[3],
+                             param.src_strides[4], param.src_strides[5]},
+                            {param.dst_strides[0], param.dst_strides[1], param.dst_strides[2], param.dst_strides[3],
+                             param.dst_strides[4], param.dst_strides[5]});
     } else if (param.dst_dims.size() == 7) {
       TransposeExtend<T, 7>(l_y, l_x, l_idx,
-        {param.dst_dims[0], param.dst_dims[1], param.dst_dims[2], param.dst_dims[3], param.dst_dims[4], param.dst_dims[5], param.dst_dims[6]},
-        {param.src_strides[0], param.src_strides[1], param.src_strides[2], param.src_strides[3], param.src_strides[4], param.src_strides[5], param.src_strides[6]},
-        {param.dst_strides[0], param.dst_strides[1], param.dst_strides[2], param.dst_strides[3], param.dst_strides[4], param.dst_strides[5], param.dst_strides[6]});
+                            {param.dst_dims[0], param.dst_dims[1], param.dst_dims[2], param.dst_dims[3],
+                             param.dst_dims[4], param.dst_dims[5], param.dst_dims[6]},
+                            {param.src_strides[0], param.src_strides[1], param.src_strides[2], param.src_strides[3],
+                             param.src_strides[4], param.src_strides[5], param.src_strides[6]},
+                            {param.dst_strides[0], param.dst_strides[1], param.dst_strides[2], param.dst_strides[3],
+                             param.dst_strides[4], param.dst_strides[5], param.dst_strides[6]});
     } else if (param.dst_dims.size() == 8) {
       TransposeExtend<T, 8>(l_y, l_x, l_idx,
-        {param.dst_dims[0], param.dst_dims[1], param.dst_dims[2], param.dst_dims[3], param.dst_dims[4], param.dst_dims[5], param.dst_dims[6], param.dst_dims[7]},
-        {param.src_strides[0], param.src_strides[1], param.src_strides[2], param.src_strides[3], param.src_strides[4], param.src_strides[5], param.src_strides[6], param.src_strides[7]},
-        {param.dst_strides[0], param.dst_strides[1], param.dst_strides[2], param.dst_strides[3], param.dst_strides[4], param.dst_strides[5], param.dst_strides[6], param.dst_strides[7]});
+                            {param.dst_dims[0], param.dst_dims[1], param.dst_dims[2], param.dst_dims[3],
+                             param.dst_dims[4], param.dst_dims[5], param.dst_dims[6], param.dst_dims[7]},
+                            {param.src_strides[0], param.src_strides[1], param.src_strides[2], param.src_strides[3],
+                             param.src_strides[4], param.src_strides[5], param.src_strides[6], param.src_strides[7]},
+                            {param.dst_strides[0], param.dst_strides[1], param.dst_strides[2], param.dst_strides[3],
+                             param.dst_strides[4], param.dst_strides[5], param.dst_strides[6], param.dst_strides[7]});
     }
     UbToGm(param.y, l_y, param.size);
   }

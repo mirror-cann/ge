@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -66,35 +66,35 @@ struct DfxExeArg {
   bool need_print{false};
   int64_t buffer_size{0U};
 };
-}
-#define REPORT_FE_ERROR(fmt, ...)                               \
-  do {                                                          \
-    REPORT_INNER_ERR_MSG(EM_INNER_ERROR.c_str(), fmt, ##__VA_ARGS__);     \
-    GELOGE(ge::FAILED, fmt, ##__VA_ARGS__);                     \
-  } while (0)
-
-#define REPORT_FE_WARN(fmt, ...)                                \
-  do {                                                          \
-    REPORT_INNER_ERR_MSG(EM_INNER_WARN.c_str(), fmt, ##__VA_ARGS__);      \
-    GELOGW(fmt, ##__VA_ARGS__);                                 \
-  } while (0)
-
-#define CHECK_HOLDERS_ALL_OK_RET(holders, expect_num, return_expr)    \
+}  // namespace gert
+#define REPORT_FE_ERROR(fmt, ...)                                     \
   do {                                                                \
-    if ((holders).size() != (expect_num)) {                           \
-      GELOGE(ge::FAILED, "Size[%zu] not expect.", (holders).size());  \
-      return_expr;                                                    \
-    }                                                                 \
-    for (const auto &holder_inter : (holders)) {                            \
-      if (holder_inter == nullptr) {                                        \
-        GELOGE(ge::FAILED, "Holder is null.");                        \
-        return_expr;                                                  \
-      }                                                               \
-      if (!holder_inter->IsOk()) {                                          \
-        GELOGE(ge::FAILED, "Holder is not ok.");                      \
-        return_expr;                                                  \
-      }                                                               \
-    }                                                                 \
+    REPORT_INNER_ERR_MSG(EM_INNER_ERROR.c_str(), fmt, ##__VA_ARGS__); \
+    GELOGE(ge::FAILED, fmt, ##__VA_ARGS__);                           \
+  } while (0)
+
+#define REPORT_FE_WARN(fmt, ...)                                     \
+  do {                                                               \
+    REPORT_INNER_ERR_MSG(EM_INNER_WARN.c_str(), fmt, ##__VA_ARGS__); \
+    GELOGW(fmt, ##__VA_ARGS__);                                      \
+  } while (0)
+
+#define CHECK_HOLDERS_ALL_OK_RET(holders, expect_num, return_expr)   \
+  do {                                                               \
+    if ((holders).size() != (expect_num)) {                          \
+      GELOGE(ge::FAILED, "Size[%zu] not expect.", (holders).size()); \
+      return_expr;                                                   \
+    }                                                                \
+    for (const auto &holder_inter : (holders)) {                     \
+      if (holder_inter == nullptr) {                                 \
+        GELOGE(ge::FAILED, "Holder is null.");                       \
+        return_expr;                                                 \
+      }                                                              \
+      if (!holder_inter->IsOk()) {                                   \
+        GELOGE(ge::FAILED, "Holder is not ok.");                     \
+        return_expr;                                                 \
+      }                                                              \
+    }                                                                \
   } while (0)
 
 #define FE_LOWER_REQUIRE(exp, ...)                               \
@@ -115,52 +115,51 @@ struct DfxExeArg {
 #define FE_LOWER_REQUIRE_NOTNULL(v, ...) FE_LOWER_REQUIRE(((v) != nullptr), __VA_ARGS__)
 #define FE_LOWER_REQUIRE_SUCCESS(v, ...) FE_LOWER_REQUIRE(((v) == ge::SUCCESS), __VA_ARGS__)
 
-#define FE_RET_NULL_RET_IF(ctx, ...)                              \
+#define FE_RET_NULL_RET_IF(ctx, ...)          \
+  do {                                        \
+    if (ctx) {                                \
+      auto msg = CreateErrorMsg(__VA_ARGS__); \
+      if (!msg.empty()) {                     \
+        REPORT_FE_ERROR("%s", msg.data());    \
+        GELOGE(ge::FAILED, "%s", msg.data()); \
+      }                                       \
+      return nullptr;                         \
+    }                                         \
+  } while (false)
+
+#define FE_RET_ERR_RET_IF(ctx, msg)                       \
+  do {                                                    \
+    if (ctx) {                                            \
+      if ((msg) != nullptr) {                             \
+        REPORT_FE_ERROR("%s", msg);                       \
+        GELOGE(ge::FAILED, "%s", msg);                    \
+      }                                                   \
+      return {HyperStatus::ErrorStatus(msg), {}, {}, {}}; \
+    }                                                     \
+  } while (false)
+
+#define FE_ASSERT(exp, ...)                           \
+  do {                                                \
+    if (!(exp)) {                                     \
+      auto msg = CreateErrorMsg(__VA_ARGS__);         \
+      if (msg.empty()) {                              \
+        REPORT_FE_ERROR("Assert %s failed", #exp);    \
+        GELOGE(ge::FAILED, "Assert %s failed", #exp); \
+      } else {                                        \
+        REPORT_FE_ERROR("%s", msg.data());            \
+        GELOGE(ge::FAILED, "%s", msg.data());         \
+      }                                               \
+      return ::ErrorResult();                         \
+    }                                                 \
+  } while (false)
+
+#define FE_CHK_RT_RET(expr)                                       \
   do {                                                            \
-    if (ctx) {                                                    \
-      auto msg = CreateErrorMsg(__VA_ARGS__);                     \
-      if (!msg.empty()) {                                         \
-        REPORT_FE_ERROR("%s", msg.data());                        \
-        GELOGE(ge::FAILED, "%s", msg.data());                     \
-      }                                                           \
-      return nullptr;                                             \
+    const rtError_t _rt_ret = (expr);                             \
+    if (_rt_ret != RT_ERROR_NONE) {                               \
+      REPORT_FE_ERROR("Call %s fail, ret: 0x%X", #expr, _rt_ret); \
+      return RT_ERROR_TO_GE_STATUS(_rt_ret);                      \
     }                                                             \
-  } while (false)
-
-#define FE_RET_ERR_RET_IF(ctx, msg)                          \
-  do {                                                       \
-    if (ctx) {                                               \
-      if ((msg) != nullptr) {                                \
-        REPORT_FE_ERROR("%s", msg);                          \
-        GELOGE(ge::FAILED, "%s", msg);                       \
-      }                                                      \
-      return {HyperStatus::ErrorStatus(msg), {}, {}, {}};    \
-    }                                                        \
-  } while (false)
-
-
-#define FE_ASSERT(exp, ...)                                               \
-  do {                                                                    \
-    if (!(exp)) {                                                         \
-      auto msg = CreateErrorMsg(__VA_ARGS__);                             \
-      if (msg.empty()) {                                                  \
-        REPORT_FE_ERROR("Assert %s failed", #exp);                        \
-        GELOGE(ge::FAILED, "Assert %s failed", #exp);                     \
-      } else {                                                            \
-        REPORT_FE_ERROR("%s", msg.data());                                \
-        GELOGE(ge::FAILED, "%s", msg.data());                             \
-      }                                                                   \
-      return ::ErrorResult();                                             \
-    }                                                                     \
-  } while (false)
-
-#define FE_CHK_RT_RET(expr)                                                   \
-  do {                                                                        \
-    const rtError_t _rt_ret = (expr);                                         \
-    if (_rt_ret != RT_ERROR_NONE) {                                           \
-      REPORT_FE_ERROR("Call %s fail, ret: 0x%X", #expr, _rt_ret);              \
-      return RT_ERROR_TO_GE_STATUS(_rt_ret);                                  \
-    }                                                                         \
   } while (false)
 
 #define FE_ASSERT_NOTNULL(v, ...) FE_ASSERT(((v) != nullptr), __VA_ARGS__)
@@ -171,12 +170,12 @@ struct DfxExeArg {
 #define FE_ASSERT_GRAPH_SUCCESS(v, ...) FE_ASSERT(((v) == ge::GRAPH_SUCCESS), __VA_ARGS__)
 #define FE_ASSERT_EOK(v, ...) FE_ASSERT(((v) == EOK), __VA_ARGS__)
 
-#define FE_RETURN_IF_ERROR(expr)            \
-  do {                                      \
-    const ge::Status _chk_status = (expr);  \
-    if (_chk_status != ge::SUCCESS) {       \
-      return _chk_status;                   \
-    }                                       \
+#define FE_RETURN_IF_ERROR(expr)           \
+  do {                                     \
+    const ge::Status _chk_status = (expr); \
+    if (_chk_status != ge::SUCCESS) {      \
+      return _chk_status;                  \
+    }                                      \
   } while (false)
 
 constexpr std::size_t MAX_DIM_NUM = 16;

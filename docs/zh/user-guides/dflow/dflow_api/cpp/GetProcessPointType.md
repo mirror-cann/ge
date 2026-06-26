@@ -30,7 +30,7 @@ GRAPH = 1,
 INNER = 2,
 FLOW_GRAPH = 3,
 INVALID = 4,
-}; 
+};
 ```
 
 ## 异常处理

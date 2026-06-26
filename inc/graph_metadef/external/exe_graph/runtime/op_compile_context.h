@@ -84,7 +84,7 @@ class OpCompileContext : public ExtendedKernelContext {
    * @param optional_infos 输出可选信息
    * @return 状态码
    */
-  ge::graphStatus GetPlatformInfos(fe::PlatFormInfos &platform_info, fe::OptionalInfos& optional_infos) const;
+  ge::graphStatus GetPlatformInfos(fe::PlatFormInfos &platform_info, fe::OptionalInfos &optional_infos) const;
 };
 
 }  // namespace gert

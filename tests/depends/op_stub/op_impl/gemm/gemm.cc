@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -47,22 +47,22 @@ const uint64_t kAlignedFlag = 2;
 const uint64_t kMinCacheTilingId = 1000000ULL;
 const uint64_t kMaxCacheTilingId = 9999999999ULL;
 
-#define CHECK(cond, log_func, expr)                                                                                    \
-  do {                                                                                                                 \
-    if (cond) {                                                                                                        \
-      log_func;                                                                                                        \
-      expr;                                                                                                            \
-    }                                                                                                                  \
+#define CHECK(cond, log_func, expr) \
+  do {                              \
+    if (cond) {                     \
+      log_func;                     \
+      expr;                         \
+    }                               \
   } while (0)
 
-#define CUBE_INNER_ERR_REPORT(op_name, err_msg, ...)                                                                   \
-  do {                                                                                                                 \
-    GELOGE(ge::GRAPH_FAILED, err_msg, ##__VA_ARGS__);                                                                  \
+#define CUBE_INNER_ERR_REPORT(op_name, err_msg, ...)  \
+  do {                                                \
+    GELOGE(ge::GRAPH_FAILED, err_msg, ##__VA_ARGS__); \
   } while (0)
 
-#define OP_LOGD(op_name, err_msg, ...)                                                                                 \
-  do {                                                                                                                 \
-    GELOGD(err_msg, ##__VA_ARGS__);                                                                                    \
+#define OP_LOGD(op_name, err_msg, ...) \
+  do {                                 \
+    GELOGD(err_msg, ##__VA_ARGS__);    \
   } while (0)
 
 using nlohmann::json;
@@ -173,7 +173,7 @@ bool CalcGEMMMknb(const char *op_type, ge::DataType dtype, const Shape &ori_shap
     compile_value.params.ori_shape_N = ori_shape_b.GetDim(idx_n_of_b);
   }
   bool unvalid_ori_shape = compile_value.params.ori_shape_M > INT_MAX || compile_value.params.ori_shape_K > INT_MAX ||
-      compile_value.params.ori_shape_N > INT_MAX;
+                           compile_value.params.ori_shape_N > INT_MAX;
   CHECK(unvalid_ori_shape,
         CUBE_INNER_ERR_REPORT(op_type, "The m,k,n of a and b tensors' ori_shape must not larger than INT_MAX"),
         return false);
@@ -214,7 +214,7 @@ uint64_t CheckTilingInRepo(const char *op_type, const GemmCompileInfo &compile_v
     auto &range = repo_range[idx];
 
     auto in_range = range[kIdxMLow] <= params.m && params.m <= range[kIdxMHigh] && range[kIdxKLow] <= params.k &&
-        params.k <= range[kIdxKHigh] && range[kIdxNLow] <= params.n && params.n <= range[kIdxNHigh];
+                    params.k <= range[kIdxKHigh] && range[kIdxNLow] <= params.n && params.n <= range[kIdxNHigh];
 
     if (isBatchMatmulMode) {
       in_range = in_range && range[kIdxBLow] <= params.batch && params.batch <= range[kIdxBHigh];
@@ -222,7 +222,7 @@ uint64_t CheckTilingInRepo(const char *op_type, const GemmCompileInfo &compile_v
 
     if (in_range) {
       int64_t dist = (m - seed[kIdxM]) * (m - seed[kIdxM]) + (k - seed[kIdxK]) * (k - seed[kIdxK]) +
-          (n - seed[kIdxN]) * (n - seed[kIdxN]);
+                     (n - seed[kIdxN]) * (n - seed[kIdxN]);
 
       if (isBatchMatmulMode) {
         dist += (batch - seed[kIdxBatch]) * (batch - seed[kIdxBatch]);
@@ -231,7 +231,8 @@ uint64_t CheckTilingInRepo(const char *op_type, const GemmCompileInfo &compile_v
         min_distance = dist;
         tiling_id_idx = idx;
         // TODO:
-        // std::cout << "dist " << dist << " tiling_id_idx " << tiling_id_idx << " tiling_id " << tiling_ids[tiling_id_idx] << std::endl;
+        // std::cout << "dist " << dist << " tiling_id_idx " << tiling_id_idx << " tiling_id " <<
+        // tiling_ids[tiling_id_idx] << std::endl;
       }
     }
     ++idx;
@@ -250,7 +251,7 @@ uint64_t CheckTilingInCostModel(const char *op_type, const GemmCompileInfo &comp
   for (size_t idx = 0; idx < cost_range.size(); ++idx) {
     const auto &range = cost_range[idx];
     auto in_range = range[kIdxMLow] <= params.m && params.m <= range[kIdxMHigh] && range[kIdxKLow] <= params.k &&
-        params.k <= range[kIdxKHigh] && range[kIdxNLow] <= params.n && params.n <= range[kIdxNHigh];
+                    params.k <= range[kIdxKHigh] && range[kIdxNLow] <= params.n && params.n <= range[kIdxNHigh];
     if (isBatchMatmulMode) {
       in_range = in_range && range[kIdxBLow] <= params.batch && params.batch <= range[kIdxBHigh];
     }
@@ -307,16 +308,15 @@ void FillRunInfoParas(const optiling::Tiling &tiling, OpRunInfoParas &runinfopar
   runinfoparas.kal1_factor = runinfoparas.params.k_32 / runinfoparas.k_dim / runinfoparas.kal1_16;
   runinfoparas.kbl1_factor = runinfoparas.params.k_32 / runinfoparas.k_dim / runinfoparas.kbl1_16;
   runinfoparas.kl1_times = (runinfoparas.kal1_16 > runinfoparas.kbl1_16)
-      ? (runinfoparas.kal1_16 / runinfoparas.kbl1_16)
-      : (runinfoparas.kbl1_16 / runinfoparas.kal1_16);
+                               ? (runinfoparas.kal1_16 / runinfoparas.kbl1_16)
+                               : (runinfoparas.kbl1_16 / runinfoparas.kal1_16);
   runinfoparas.n_ub_l0_time = runinfoparas.n_l0 / runinfoparas.cub_n1;
   runinfoparas.batch_single_core = runinfoparas.params.batch_32 / runinfoparas.batch_dim;
   runinfoparas.m_single_core =
       std::max(runinfoparas.params.m_32 / (runinfoparas.m_dim * runinfoparas.m_al1 * runinfoparas.m_l0), int32_t(1));
-  runinfoparas.n_single_core =
-      std::max(runinfoparas.params.n_32 /
-                   (runinfoparas.n_dim * runinfoparas.n_bl1 * runinfoparas.n_ub_l0_time * runinfoparas.cub_n1),
-               int32_t(1));
+  runinfoparas.n_single_core = std::max(runinfoparas.params.n_32 / (runinfoparas.n_dim * runinfoparas.n_bl1 *
+                                                                    runinfoparas.n_ub_l0_time * runinfoparas.cub_n1),
+                                        int32_t(1));
 }
 
 void SetRunInfoForCacheTiling(const OpRunInfoParas &runinfoparas, TilingData *tiling_data) {

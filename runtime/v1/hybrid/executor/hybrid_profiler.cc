@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,9 +23,9 @@ const int32_t kMaxEvents = 1024 * 500;
 const int32_t kEventDescMax = 512;
 const int32_t kMaxEventTypes = 8;
 const int32_t kIndent = 8;
-}
+}  // namespace
 
-HybridProfiler::HybridProfiler(): counter_(0) {
+HybridProfiler::HybridProfiler() : counter_(0) {
   Reset();
 }
 
@@ -34,8 +34,8 @@ void HybridProfiler::RecordEvent(const EventType event_type, const char_t *const
   va_start(args, fmt);
 
   char_t buf[kEventDescMax];
-  if (vsnprintf_s(&buf[0], static_cast<size_t>(kEventDescMax), static_cast<size_t>(kEventDescMax - 1),
-                  fmt, args) == -1) {
+  if (vsnprintf_s(&buf[0], static_cast<size_t>(kEventDescMax), static_cast<size_t>(kEventDescMax - 1), fmt, args) ==
+      -1) {
     GELOGE(FAILED, "[Parse][Param:fmt]Format %s failed.", fmt);
     REPORT_INNER_ERR_MSG("E19999", "Parse Format %s failed.", fmt);
     va_end(args);
@@ -45,8 +45,7 @@ void HybridProfiler::RecordEvent(const EventType event_type, const char_t *const
   va_end(args);
   const auto index = counter_++;
   if (index >= static_cast<int32_t>(events_.size())) {
-    GELOGE(INTERNAL_ERROR,
-           "[Check][Range]index out of range. index = %d, max event size = %zu", index, events_.size());
+    GELOGE(INTERNAL_ERROR, "[Check][Range]index out of range. index = %d, max event size = %zu", index, events_.size());
     REPORT_INNER_ERR_MSG("E19999", "index out of range. index = %d, max event size = %zu", index, events_.size());
     return;
   }
@@ -78,8 +77,8 @@ void HybridProfiler::Dump(std::ostream &output_stream) {
   const auto end_dump = std::chrono::system_clock::now();
   const auto elapsed_dump = std::chrono::duration_cast<std::chrono::microseconds>(end_dump - start).count();
   const auto cost_dump = std::chrono::duration_cast<std::chrono::microseconds>(end_dump - start_dump).count();
-  output_stream << std::setw(kIndent) << elapsed_dump << "\t\t" << cost_dump
-                << "\t\t" << "[Dump profiling]" << std::endl;
+  output_stream << std::setw(kIndent) << elapsed_dump << "\t\t" << cost_dump << "\t\t" << "[Dump profiling]"
+                << std::endl;
   Reset();
 }
 

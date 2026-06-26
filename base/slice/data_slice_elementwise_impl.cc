@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,12 +17,12 @@
 #include "graph/utils/op_desc_utils.h"
 
 namespace ge {
-static AxisInferRegister registerElementWise(ge::AxisType::ELEMENTWISE,
-  [] (void) noexcept ->DataSliceInferBase* {return new (std::nothrow) DataSliceElementwiseImpl();});
+static AxisInferRegister registerElementWise(ge::AxisType::ELEMENTWISE, [](void) noexcept -> DataSliceInferBase * {
+  return new (std::nothrow) DataSliceElementwiseImpl();
+});
 
 static bool CheckOutCutInfoVaild(size_t index, OpDescPtr op_desc, const CutInfo &one_output_cutinfo,
-    const std::vector<int64_t> &one_out_data_slice)
-{
+                                 const std::vector<int64_t> &one_out_data_slice) {
   if (static_cast<int64_t>(index) == one_output_cutinfo.second[0]) {
     if (one_out_data_slice.empty()) {
       GELOGE(FAILED, "The op[%s] output data slice cannot be empty.", op_desc->GetName().c_str());
@@ -36,21 +36,20 @@ static bool CheckOutCutInfoVaild(size_t index, OpDescPtr op_desc, const CutInfo 
     int64_t output_dim = output_desc->MutableShape().GetDim(index);
     int64_t output_last_range = one_out_data_slice.back();
     if (output_last_range > output_dim) {
-      GELOGE(FAILED, "The op[%s] output split range[%ld] larger than output dim[%ld].",
-             op_desc->GetName().c_str(), output_last_range, output_dim);
+      GELOGE(FAILED, "The op[%s] output split range[%ld] larger than output dim[%ld].", op_desc->GetName().c_str(),
+             output_last_range, output_dim);
       return false;
     }
   } else if (!one_out_data_slice.empty()) {
-    GELOGE(FAILED, "The op[%s] output split range for non-split axis[%zu] is not empty.",
-           op_desc->GetName().c_str(), index);
+    GELOGE(FAILED, "The op[%s] output split range for non-split axis[%zu] is not empty.", op_desc->GetName().c_str(),
+           index);
     return false;
   }
   return true;
 }
 
 static bool CheckOutDataSlice(OpDescPtr op_desc, const std::vector<CutInfo> &output_cutinfo,
-    const DataSliceType &out_data_slice)
-{
+                              const DataSliceType &out_data_slice) {
   if (output_cutinfo.size() != out_data_slice.size()) {
     GELOGE(FAILED, "The op[%s] output data slice info size[%u] is not equal to cut info size[%u].",
            op_desc->GetName().c_str(), output_cutinfo.size(), out_data_slice.size());
@@ -67,8 +66,9 @@ static bool CheckOutDataSlice(OpDescPtr op_desc, const std::vector<CutInfo> &out
 }
 
 static std::vector<std::vector<int64_t>> GetInputSplitRanges(GeTensorDescPtr input_desc,
-    const CutInfo &one_input_cutinfo, const std::vector<int64_t> &one_out_data_slice, bool &is_invalid_info)
-{
+                                                             const CutInfo &one_input_cutinfo,
+                                                             const std::vector<int64_t> &one_out_data_slice,
+                                                             bool &is_invalid_info) {
   std::vector<std::vector<int64_t>> split_ranges;
   for (size_t j = 0; j < input_desc->MutableShape().GetDimNum(); ++j) {
     if (static_cast<int64_t>(j) == one_input_cutinfo.second[0]) {
@@ -86,8 +86,7 @@ static std::vector<std::vector<int64_t>> GetInputSplitRanges(GeTensorDescPtr inp
 
 // Elementwise
 Status DataSliceElementwiseImpl::InferAxisSlice(Operator &op, const AxisTypeInfo &slice_info,
-    const DataSliceType &out_data_slice, DataSliceType &in_data_slice)
-{
+                                                const DataSliceType &out_data_slice, DataSliceType &in_data_slice) {
   if (!in_data_slice.empty()) {
     GELOGE(FAILED, "The op[%s] input data slice is not empty.", DataSliceGetName(op).c_str());
     return FAILED;
@@ -116,16 +115,16 @@ Status DataSliceElementwiseImpl::InferAxisSlice(Operator &op, const AxisTypeInfo
       return FAILED;
     }
     bool is_invalid_info = false;
-    std::vector<std::vector<int64_t>> split_ranges = GetInputSplitRanges(input_desc, input_cutinfo[i],
-        out_data_slice[0][output_cutinfo[0].second[0]], is_invalid_info);
+    std::vector<std::vector<int64_t>> split_ranges = GetInputSplitRanges(
+        input_desc, input_cutinfo[i], out_data_slice[0][output_cutinfo[0].second[0]], is_invalid_info);
     if (is_invalid_info) {
       GELOGE(FAILED, "The op[%s] input split range larger than input dim.", op_desc->GetName().c_str());
       return FAILED;
     }
     in_data_slice.push_back(split_ranges);
   }
-  GELOGI("Elementwise infer success, op:%s, type:%s, axis type:%d.",
-         DataSliceGetName(op).c_str(), DataSliceGetOpType(op).c_str(), static_cast<int8_t>(slice_info.GetAxisType()));
+  GELOGI("Elementwise infer success, op:%s, type:%s, axis type:%d.", DataSliceGetName(op).c_str(),
+         DataSliceGetOpType(op).c_str(), static_cast<int8_t>(slice_info.GetAxisType()));
   return SUCCESS;
 }
-}
+}  // namespace ge

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,7 +27,7 @@ auto with_subgraph_node_filter = [](const Node &node) {
   const auto &subgraph_name = node.GetOpDesc()->GetSubgraphInstanceNames();
   return !subgraph_name.empty();
 };
-}
+}  // namespace
 
 Status ParallelGroupPass::Run(ComputeGraphPtr graph) {
   GE_CHECK_NOTNULL(graph);
@@ -39,7 +39,7 @@ Status ParallelGroupPass::Run(ComputeGraphPtr graph) {
   if (graph->TopologicalSorting() != GRAPH_SUCCESS) {
     GELOGE(FAILED, "[TopoSort][Graph]Graph:%s topological sort failed.", graph->GetName().c_str());
     REPORT_INNER_ERR_MSG("E19999", "Graph:%s topological sort failed when ParallelGroupPass run.",
-                      graph->GetName().c_str());
+                         graph->GetName().c_str());
     return FAILED;
   }
 
@@ -52,7 +52,7 @@ Status ParallelGroupPass::Run(ComputeGraphPtr graph) {
   if (graph->TopologicalSorting() != GRAPH_SUCCESS) {
     GELOGE(FAILED, "[TopoSort][Graph]Graph:%s topological sort failed.", graph->GetName().c_str());
     REPORT_INNER_ERR_MSG("E19999", "Graph:%s topological sort failed when ParallelGroupPass run.",
-                      graph->GetName().c_str());
+                         graph->GetName().c_str());
     return FAILED;
   }
 
@@ -123,7 +123,7 @@ Status ParallelGroupPass::ProcessGraphGroupNodes(ComputeGraphPtr graph,
   // get all node with subgraph
   auto pnodes_with_subgraph = graph->GetNodes(false, with_subgraph_node_filter, nullptr);
   std::map<ge::NodePtr, std::unordered_set<std::string>> pnodes_2_parallel_groups;
-  for (auto iter = pnodes_with_subgraph.end() -1; iter != pnodes_with_subgraph.begin() - 1; --iter) {
+  for (auto iter = pnodes_with_subgraph.end() - 1; iter != pnodes_with_subgraph.begin() - 1; --iter) {
     const auto &pnode = *iter;
     const auto &subgraph_name = pnode->GetOpDesc()->GetSubgraphInstanceNames();
     for (auto name_iter = subgraph_name.rbegin(); name_iter != subgraph_name.rend(); ++name_iter) {
@@ -146,10 +146,9 @@ Status ParallelGroupPass::AddCtrlEdge(NodePtr pre_node, NodePtr cur_node) const 
     return SUCCESS;
   }
   auto in_nodes = cur_node->GetInAllNodes();
-  for (const auto &node :  in_nodes) {
+  for (const auto &node : in_nodes) {
     if (pre_node == node) {
-      GELOGD("Node:%s and %s already linked", pre_node->GetName().c_str(),
-             cur_node->GetName().c_str());
+      GELOGD("Node:%s and %s already linked", pre_node->GetName().c_str(), cur_node->GetName().c_str());
       return SUCCESS;
     }
   }
@@ -157,9 +156,8 @@ Status ParallelGroupPass::AddCtrlEdge(NodePtr pre_node, NodePtr cur_node) const 
   return GraphUtils::AddEdge(pre_node->GetOutControlAnchor(), cur_node->GetInControlAnchor());
 }
 
-Status ParallelGroupPass::ProcessGroupNodeInSwitch(ComputeGraphPtr graph,
-    std::map<NodePtr, std::pair<std::set<NodePtr>, NodePtr>> &node_2_switch_merge) const {
-
+Status ParallelGroupPass::ProcessGroupNodeInSwitch(
+    ComputeGraphPtr graph, std::map<NodePtr, std::pair<std::set<NodePtr>, NodePtr>> &node_2_switch_merge) const {
   std::string type;
   auto direct_nodes = graph->GetDirectNode();
   for (const auto &node : direct_nodes) {
@@ -180,16 +178,18 @@ Status ParallelGroupPass::ProcessGroupNodeInSwitch(ComputeGraphPtr graph,
     FindGroupNodeAndMerge(node, group_nodes, merge_nodes, stream_labels);
 
     if (merge_nodes.empty() || (!group_nodes.empty() && stream_labels.size() > 1)) {
-      GELOGE(FAILED, "[Process][Node]Cannot find merge node or exist switch nestification, switch node:%s,"
-             "merge_vec size:%zu, stream_labels size:%zu, graph:%s.", node->GetName().c_str(),
-             merge_nodes.size(), stream_labels.size(), graph->GetName().c_str());
-      REPORT_INNER_ERR_MSG("E19999", "Cannot find merge node or exist switch nest, switch node:%s,"
-                         "merge_vec size: %zu, stream_labels size: %zu, graph:%s.", node->GetName().c_str(),
-                         merge_nodes.size(), stream_labels.size(), graph->GetName().c_str());
+      GELOGE(FAILED,
+             "[Process][Node]Cannot find merge node or exist switch nestification, switch node:%s,"
+             "merge_vec size:%zu, stream_labels size:%zu, graph:%s.",
+             node->GetName().c_str(), merge_nodes.size(), stream_labels.size(), graph->GetName().c_str());
+      REPORT_INNER_ERR_MSG("E19999",
+                           "Cannot find merge node or exist switch nest, switch node:%s,"
+                           "merge_vec size: %zu, stream_labels size: %zu, graph:%s.",
+                           node->GetName().c_str(), merge_nodes.size(), stream_labels.size(), graph->GetName().c_str());
       return FAILED;
     }
 
-    std::sort(merge_nodes.begin(), merge_nodes.end(), [] (NodePtr a, NodePtr b) -> bool {
+    std::sort(merge_nodes.begin(), merge_nodes.end(), [](NodePtr a, NodePtr b) -> bool {
       if ((a->GetOpDesc() == nullptr) || (b->GetOpDesc() == nullptr)) {
         return false;
       }
@@ -208,7 +208,8 @@ Status ParallelGroupPass::ProcessGroupNodeInSwitch(ComputeGraphPtr graph,
 }
 
 void ParallelGroupPass::FindGroupNodeAndMerge(NodePtr stream_switch_node, std::set<NodePtr> &group_nodes,
-    std::vector<NodePtr> &merge_nodes, std::set<std::string> &stream_labels) const {
+                                              std::vector<NodePtr> &merge_nodes,
+                                              std::set<std::string> &stream_labels) const {
   std::string type;
   std::deque<NodePtr> candidates;
   std::set<NodePtr> visited;
@@ -240,22 +241,22 @@ void ParallelGroupPass::FindGroupNodeAndMerge(NodePtr stream_switch_node, std::s
   }
 }
 
-Status ParallelGroupPass::MappingNodeToSwitchAndMerge(const std::set<NodePtr> &group_nodes,
-    const std::vector<NodePtr> &merge_nodes, const NodePtr &cast_node, const NodePtr &switch_node,
-    std::map<NodePtr, std::pair<std::set<NodePtr>, NodePtr>> &node_2_switch_merge) const {
+Status ParallelGroupPass::MappingNodeToSwitchAndMerge(
+    const std::set<NodePtr> &group_nodes, const std::vector<NodePtr> &merge_nodes, const NodePtr &cast_node,
+    const NodePtr &switch_node, std::map<NodePtr, std::pair<std::set<NodePtr>, NodePtr>> &node_2_switch_merge) const {
   for (const auto &group_node : group_nodes) {
     auto itr = node_2_switch_merge.find(group_node);
     if (itr != node_2_switch_merge.end()) {
       auto &tmp = itr->second;
       auto &switch_set = tmp.first;
       const auto &merge_node = tmp.second;
-      GELOGD("Find group node: %s in switch %s and merge %s.",
-             group_node->GetName().c_str(), switch_node->GetName().c_str(), merge_node->GetName().c_str());
+      GELOGD("Find group node: %s in switch %s and merge %s.", group_node->GetName().c_str(),
+             switch_node->GetName().c_str(), merge_node->GetName().c_str());
       if (merge_node != merge_nodes.back()) {
         GELOGE(FAILED, "[Mapping][Node]Has two different merge nodes: %s and %s, graph's structure is invalid",
                merge_node->GetName().c_str(), merge_nodes.back()->GetName().c_str());
         REPORT_INNER_ERR_MSG("E19999", "Has two different merge nodes: %s and %s, graph's structure is invalid",
-                           merge_node->GetName().c_str(), merge_nodes.back()->GetName().c_str());
+                             merge_node->GetName().c_str(), merge_nodes.back()->GetName().c_str());
         return FAILED;
       }
       switch_set.insert(cast_node);
@@ -266,7 +267,8 @@ Status ParallelGroupPass::MappingNodeToSwitchAndMerge(const std::set<NodePtr> &g
   return SUCCESS;
 }
 
-Status ParallelGroupPass::ReplaceWithSwitchAndMerge(NodePtr pre_node, NodePtr cur_node,
+Status ParallelGroupPass::ReplaceWithSwitchAndMerge(
+    NodePtr pre_node, NodePtr cur_node,
     const std::map<NodePtr, std::pair<std::set<NodePtr>, NodePtr>> &node_2_switch_merge) const {
   auto pre_itr = node_2_switch_merge.find(pre_node);
   auto cur_itr = node_2_switch_merge.find(cur_node);
@@ -278,10 +280,10 @@ Status ParallelGroupPass::ReplaceWithSwitchAndMerge(NodePtr pre_node, NodePtr cu
         pre_node = pre_itr->second.second;
         for (const auto &switch_node : cur_itr->second.first) {
           if (AddCtrlEdge(pre_node, switch_node) != SUCCESS) {
-            GELOGE(FAILED, "[AddEdge][Node]Add edge for nodes: %s->%s failed.",
-                   pre_node->GetName().c_str(), switch_node->GetName().c_str());
+            GELOGE(FAILED, "[AddEdge][Node]Add edge for nodes: %s->%s failed.", pre_node->GetName().c_str(),
+                   switch_node->GetName().c_str());
             REPORT_INNER_ERR_MSG("E19999", "[AddEdge][Node]Add edge for nodes: %s->%s failed.",
-                              pre_node->GetName().c_str(), switch_node->GetName().c_str());
+                                 pre_node->GetName().c_str(), switch_node->GetName().c_str());
             return FAILED;
           }
         }
@@ -306,10 +308,10 @@ Status ParallelGroupPass::ReplaceWithSwitchAndMerge(NodePtr pre_node, NodePtr cu
           second_node = pre_node;
         }
         if (AddCtrlEdge(first_node, second_node) != SUCCESS) {
-          GELOGE(FAILED, "[AddEdge][Node]Add edge for nodes: %s->%s failed.",
-                 first_node->GetName().c_str(), second_node->GetName().c_str());
+          GELOGE(FAILED, "[AddEdge][Node]Add edge for nodes: %s->%s failed.", first_node->GetName().c_str(),
+                 second_node->GetName().c_str());
           REPORT_INNER_ERR_MSG("E19999", "[AddEdge][Node]Add edge for nodes: %s->%s failed.",
-                            first_node->GetName().c_str(), second_node->GetName().c_str());
+                               first_node->GetName().c_str(), second_node->GetName().c_str());
           return FAILED;
         }
       }
@@ -338,7 +340,7 @@ bool ParallelGroupPass::IsBigSmallLoopStreamSwitch(OpDescPtr switch_op_desc) con
 bool ParallelGroupPass::IsWhileStreamSwitch(OpDescPtr switch_op_desc) const {
   int64_t stream_switch_type = -1;
   return (AttrUtils::GetInt(switch_op_desc, ATTR_NAME_STREAM_SWITCH_TYPE, stream_switch_type) &&
-    stream_switch_type == kLoopType);
+          stream_switch_type == kLoopType);
 }
 
 bool ParallelGroupPass::IsIndirectConnect(const NodePtr &node_a, const NodePtr &node_b) const {
@@ -366,4 +368,4 @@ bool ParallelGroupPass::IsIndirectConnect(const NodePtr &node_a, const NodePtr &
 }
 
 REG_PASS_OPTION("ParallelGroupPass").LEVELS(OoLevel::kO0);
-} // namespace ge
+}  // namespace ge

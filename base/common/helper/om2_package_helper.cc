@@ -62,10 +62,10 @@ Status GetDynamicBatchInfo(const OpDescPtr &op_desc, JsonFile::json &batch_info,
     std::vector<int64_t> batch_shape;
     const std::string attr_name = ATTR_NAME_PRED_VALUE + "_" + std::to_string(i);
     if (!AttrUtils::GetListInt(op_desc, attr_name, batch_shape)) {
-      REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s from op:%s(%s) fail", attr_name.c_str(),
-                           op_desc->GetName().c_str(), op_desc->GetType().c_str());
-      GELOGE(FAILED, "[Get][Attr] %s from op:%s(%s) fail", attr_name.c_str(),
-             op_desc->GetName().c_str(), op_desc->GetType().c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s from op:%s(%s) fail", attr_name.c_str(), op_desc->GetName().c_str(),
+                           op_desc->GetType().c_str());
+      GELOGE(FAILED, "[Get][Attr] %s from op:%s(%s) fail", attr_name.c_str(), op_desc->GetName().c_str(),
+             op_desc->GetType().c_str());
       batch_info.clear();
       return FAILED;
     }
@@ -184,8 +184,7 @@ Status CollectOm2ExternalWeightRelocation(const std::string &output_file_name, c
 
 Status RepackOm2Model(const std::string &output_file_name, const SimpleZipArchiveReader &archive,
                       const std::vector<std::string> &archive_entries,
-                      const std::map<std::string, std::string> &rewritten_configs,
-                      ModelBufferData &relocated_model) {
+                      const std::map<std::string, std::string> &rewritten_configs, ModelBufferData &relocated_model) {
   auto zip_writer = MakeShared<ZipArchiveWriter>(output_file_name);
   GE_ASSERT_NOTNULL(zip_writer);
   GE_ASSERT_TRUE(zip_writer->IsMemFileOpened());
@@ -242,8 +241,8 @@ Status BuildInputJsonArray(const std::map<uint32_t, OpDescPtr> &input_ops, JsonF
     GE_ASSERT_NOTNULL(tensor_desc);
     int64_t input_size = 0;
     const auto output_desc = op_desc->GetOutputDescPtr(0U);
-    if ((output_desc != nullptr) &&
-        AttrUtils::GetInt(*output_desc, ATTR_NAME_SPECIAL_INPUT_SIZE, input_size) && (input_size > 0)) {
+    if ((output_desc != nullptr) && AttrUtils::GetInt(*output_desc, ATTR_NAME_SPECIAL_INPUT_SIZE, input_size) &&
+        (input_size > 0)) {
       GELOGI("data[%s] output has special size [%" PRId64 "]", op_desc->GetName().c_str(), input_size);
     } else {
       GE_CHK_STATUS_RET(TensorUtils::GetSize(*tensor_desc, input_size), "[Get][InputSize] failed in op: %s.",
@@ -274,8 +273,8 @@ Status BuildInputJsonArray(const std::map<uint32_t, OpDescPtr> &input_ops, JsonF
 
 Status CollectDynamicBatchInfo(const std::vector<OpDescPtr> &case_ops, ModelMetaExtraInfo &extra_info) {
   for (const auto &op_desc : case_ops) {
-    GE_ASSERT_SUCCESS(GetDynamicBatchInfo(op_desc, extra_info.dynamic_batch_info,
-                                          extra_info.user_designate_shape_order, extra_info.dynamic_type));
+    GE_ASSERT_SUCCESS(GetDynamicBatchInfo(op_desc, extra_info.dynamic_batch_info, extra_info.user_designate_shape_order,
+                                          extra_info.dynamic_type));
   }
   return SUCCESS;
 }
@@ -301,7 +300,8 @@ Status BuildOutputJsonArray(const std::vector<OpDescPtr> &output_ops, const std:
       GE_ASSERT_NOTNULL(tensor_desc);
       int64_t tensor_size = 0;
       if (AttrUtils::GetInt(tensor_desc, ATTR_NAME_SPECIAL_OUTPUT_SIZE, tensor_size) && (tensor_size > 0)) {
-        GELOGI("netoutput[%s] [%zu]th input has special size [%" PRId64 "]", op_desc->GetName().c_str(), i, tensor_size);
+        GELOGI("netoutput[%s] [%zu]th input has special size [%" PRId64 "]", op_desc->GetName().c_str(), i,
+               tensor_size);
       } else {
         (void)TensorUtils::GetTensorSizeInBytes(*tensor_desc, tensor_size);
       }
@@ -321,8 +321,7 @@ Status BuildOutputJsonArray(const std::vector<OpDescPtr> &output_ops, const std:
 
 void FillModelMetaInfo(const GeModelPtr &ge_model, const JsonFile::json &input_json_array,
                        const JsonFile::json &output_json_array, const ModelMetaExtraInfo &extra_info,
-                       const std::string &root_graph_name,
-                       JsonFile &model_meta_info) {
+                       const std::string &root_graph_name, JsonFile &model_meta_info) {
   int64_t work_size = 0;
   (void)AttrUtils::GetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, work_size);
   (void)model_meta_info.Set("inputs", input_json_array);
@@ -362,7 +361,8 @@ Status Om2PackageHelper::SaveToOmRootModel(const GeRootModelPtr &ge_root_model, 
 
   // todo 动态 shape 场景暂时不支持
   GELOGE(FAILED, "[OM2] Unknown shape models are not supported for .om2 format conversion");
-  (void)REPORT_PREDEFINED_ERR_MSG("E10055", std::vector<const char *>({"reason"}),
+  (void)REPORT_PREDEFINED_ERR_MSG(
+      "E10055", std::vector<const char *>({"reason"}),
       std::vector<const char *>({"Unknown shape models are not supported for .om2 format conversion"}));
   return FAILED;
 }
@@ -467,7 +467,8 @@ Status Om2PackageHelper::SaveConstants(std::shared_ptr<ZipArchiveWriter> &zip_wr
   const std::string constants_json_str = json_file.Dump();
   const auto constants_config_path =
       FormatOm2Path(OM2_CONSTANTS_CONFIG_PATH_FORMAT, std::to_string(model_index).c_str());
-  GE_ASSERT_TRUE(zip_writer->WriteBytes(constants_config_path, constants_json_str.data(), constants_json_str.size(), false));
+  GE_ASSERT_TRUE(
+      zip_writer->WriteBytes(constants_config_path, constants_json_str.data(), constants_json_str.size(), false));
 
   GELOGI("[OM2] Successfully saved model constants, total size = %zu bytes", ge_model->GetWeightSize());
   return SUCCESS;
@@ -516,7 +517,8 @@ Status Om2PackageHelper::SaveTbeKernels(std::shared_ptr<ZipArchiveWriter> &zip_w
   return SUCCESS;
 }
 
-Status Om2PackageHelper::SaveCustAICpuKernels(std::shared_ptr<ZipArchiveWriter> &zip_writer, const GeModelPtr &ge_model) {
+Status Om2PackageHelper::SaveCustAICpuKernels(std::shared_ptr<ZipArchiveWriter> &zip_writer,
+                                              const GeModelPtr &ge_model) {
   GELOGI("[OM2] Begin to save cust aicpu kernels");
   const auto &graph = ge_model->GetGraph();
   GE_ASSERT_NOTNULL(graph);
@@ -527,17 +529,17 @@ Status Om2PackageHelper::SaveCustAICpuKernels(std::shared_ptr<ZipArchiveWriter> 
     for (const auto &node : graph->GetNodes(graph->GetGraphUnknownFlag())) {
       const auto op_desc = node->GetOpDesc();
       GE_IF_BOOL_EXEC(op_desc == nullptr, continue);
-      const auto cust_aicpu_kernel = op_desc->TryGetExtAttr(OP_EXTATTR_CUSTAICPU_KERNEL,
-        CustAICPUKernelPtr());
+      const auto cust_aicpu_kernel = op_desc->TryGetExtAttr(OP_EXTATTR_CUSTAICPU_KERNEL, CustAICPUKernelPtr());
       GE_IF_BOOL_EXEC(cust_aicpu_kernel == nullptr, continue);
       std::string kernel_name = cust_aicpu_kernel->GetName();
       auto kernel_bin = cust_aicpu_kernel_store.FindKernel(kernel_name);
       if ((kernel_bin != nullptr) && (added_kernels.count(kernel_name) == 0)) {
         GELOGD("[OM2] Save kernel for node [%s], kernel name is [%s]", node->GetName().c_str(), kernel_name.c_str());
-        const size_t hash_id = std::hash<std::string>{}(std::string(
-            reinterpret_cast<const char *>(kernel_bin->GetBinData()), kernel_bin->GetBinDataSize()));
+        const size_t hash_id = std::hash<std::string>{}(
+            std::string(reinterpret_cast<const char *>(kernel_bin->GetBinData()), kernel_bin->GetBinDataSize()));
         const auto entry_path = kernel_bin_dir + std::to_string(hash_id) + "_CustAicpuKernel.o";
-        GE_ASSERT_TRUE(zip_writer->WriteBytes(entry_path, kernel_bin->GetBinData(), kernel_bin->GetBinDataSize(), false));
+        GE_ASSERT_TRUE(
+            zip_writer->WriteBytes(entry_path, kernel_bin->GetBinData(), kernel_bin->GetBinDataSize(), false));
         (void)added_kernels.insert(cust_aicpu_kernel->GetName());
       }
     }
@@ -569,13 +571,14 @@ Status Om2PackageHelper::SaveModelInfo(std::shared_ptr<ZipArchiveWriter> &zip_wr
 
   const auto model_meta_info_str = model_meta_info.Dump();
   const auto model_meta_entry_path = FormatOm2Path(OM2_MODEL_META_PATH_FORMAT, std::to_string(model_index).c_str());
-  GE_ASSERT_TRUE(zip_writer->WriteBytes(model_meta_entry_path, model_meta_info_str.data(), model_meta_info_str.size(), false));
+  GE_ASSERT_TRUE(
+      zip_writer->WriteBytes(model_meta_entry_path, model_meta_info_str.data(), model_meta_info_str.size(), false));
   GELOGI("Successfully saved model manifest");
   return SUCCESS;
 }
 
-Status Om2PackageHelper::SaveOpAttrJson(std::shared_ptr<ZipArchiveWriter> &zip_writer,
-                                       const GeModelPtr &ge_model, const size_t model_index) {
+Status Om2PackageHelper::SaveOpAttrJson(std::shared_ptr<ZipArchiveWriter> &zip_writer, const GeModelPtr &ge_model,
+                                        const size_t model_index) {
   GELOGI("[OM2] Begin to save operator attributes");
   const auto &graph = ge_model->GetGraph();
   GE_ASSERT_NOTNULL(graph);
@@ -605,8 +608,8 @@ Status Om2PackageHelper::SaveOpAttrJson(std::shared_ptr<ZipArchiveWriter> &zip_w
       // Add to op_attr_object with operator name as top-level key
       op_attr_object[op_desc->GetName()] = op_attr_entry;
       ++saved_op_count;
-      GELOGD("[OM2] Saved attr for op [%s], original op names count = %zu",
-             op_desc->GetName().c_str(), original_op_names.size());
+      GELOGD("[OM2] Saved attr for op [%s], original op names count = %zu", op_desc->GetName().c_str(),
+             original_op_names.size());
     }
   }
 
@@ -614,11 +617,10 @@ Status Om2PackageHelper::SaveOpAttrJson(std::shared_ptr<ZipArchiveWriter> &zip_w
   JsonFile op_attr_json(op_attr_object);
   const auto op_attr_json_str = op_attr_json.Dump();
   const auto op_attr_entry_path = FormatOm2Path(OM2_OP_ATTR_PATH_FORMAT, std::to_string(model_index).c_str());
-  GE_ASSERT_TRUE(zip_writer->WriteBytes(op_attr_entry_path, op_attr_json_str.data(),
-                                        op_attr_json_str.size(), false));
+  GE_ASSERT_TRUE(zip_writer->WriteBytes(op_attr_entry_path, op_attr_json_str.data(), op_attr_json_str.size(), false));
 
-  GELOGI("[OM2] Successfully saved operator attributes, scanned %zu ops, saved %zu ops",
-         scanned_op_count, saved_op_count);
+  GELOGI("[OM2] Successfully saved operator attributes, scanned %zu ops, saved %zu ops", scanned_op_count,
+         saved_op_count);
   return SUCCESS;
 }
 

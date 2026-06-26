@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
@@ -14,10 +14,10 @@
 matmul trans shape fusion pass
 """
 
-
 import functools
-from tbe.common.register import register_pass_for_fusion
+
 from tbe.common.platform import platform_info
+from tbe.common.register import register_pass_for_fusion
 
 
 def reshape_bias_shape(shape_bias):
@@ -48,8 +48,8 @@ def trans_shape_by_index(index, op_info, graph_info):
         peer_output_info.set_shape(new_shape)
 
 
-@register_pass_for_fusion(match_condition={"op_type":"MatMul"})
-@register_pass_for_fusion(match_condition={"op_type":"MatMulV2"})
+@register_pass_for_fusion(match_condition={"op_type": "MatMul"})
+@register_pass_for_fusion(match_condition={"op_type": "MatMulV2"})
 def trans_matmul_bias_shape(graph_info):
     """
     tansform matmul bias op shape if necessary
@@ -71,7 +71,7 @@ def trans_matmul_bias_shape(graph_info):
             trans_shape_by_index(2, op_info, graph_info)
 
 
-@register_pass_for_fusion(match_condition={"op_type":"MatMulV2Compress"})
+@register_pass_for_fusion(match_condition={"op_type": "MatMulV2Compress"})
 def trans_matmulcompress_bias_shape(graph_info):
     """
     tansform matmulcompress bias op shape if necessary. input tensor order is
@@ -94,8 +94,8 @@ def trans_matmulcompress_bias_shape(graph_info):
             trans_shape_by_index(3, op_info, graph_info)
 
 
-@register_pass_for_fusion(match_condition={"op_type":"BatchMatMul"})
-@register_pass_for_fusion(match_condition={"op_type":"BatchMatMulV2"})
+@register_pass_for_fusion(match_condition={"op_type": "BatchMatMul"})
+@register_pass_for_fusion(match_condition={"op_type": "BatchMatMulV2"})
 def trans_batch_matmul_shape(graph_info):
     """
     transform batch_matmul op shape if necessary which is not supported by dynamic
@@ -125,8 +125,9 @@ def trans_batch_matmul_shape(graph_info):
                 peer_out_format = peer_output_info.get_format()
                 shape_len = 3 if peer_out_format == "ND" else 5
                 if len(peer_out_shape) > shape_len:
-                    new_shape = [functools.reduce(
-                        lambda x, y: x * y, peer_out_shape[:-(shape_len-1)])] + peer_out_shape[-(shape_len-1):]
+                    new_shape = [
+                        functools.reduce(lambda x, y: x * y, peer_out_shape[: -(shape_len - 1)])
+                    ] + peer_out_shape[-(shape_len - 1) :]
                     peer_output_info.set_shape(new_shape)
                     peer_output_info.set_only_update_data()
 
@@ -165,7 +166,7 @@ def trans_shape_of_fixpipe(op_info, graph_info):
             peer_output_info.set_shape(new_shape)
 
 
-@register_pass_for_fusion(match_condition={"op_pattern":"BatchMatmul"})
+@register_pass_for_fusion(match_condition={"op_pattern": "BatchMatmul"})
 def trans_shape_transdata_fixpipe(graph_info):
     """
     transform shape of TransData and Fixpipe while BatchMatmul is in op list

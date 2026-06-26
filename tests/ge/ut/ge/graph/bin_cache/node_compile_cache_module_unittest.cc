@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -95,13 +95,13 @@ TEST_F(UtestCcm, testFindCompileCacheSuccess) {
   AttrUtils::SetListDataType(op_desc, "test_list_dt", val_list_dt);
   std::vector<bool> val_list_bool{true};
   AttrUtils::SetListBool(op_desc, "test_list_bool", val_list_bool);
-  std::vector<int64_t> val_list_int{1,2};
+  std::vector<int64_t> val_list_int{1, 2};
   AttrUtils::SetListInt(op_desc, "test_list_int", val_list_int);
   std::vector<float> val_list_float{1.0, 2.0};
   AttrUtils::SetListFloat(op_desc, "test_list_float", val_list_float);
   std::vector<std::string> val_list_string{"1", "2"};
   AttrUtils::SetListStr(op_desc, "test_list_string", val_list_string);
-  std::vector<std::vector<int64_t>> val_list_list_int{{1,2}};
+  std::vector<std::vector<int64_t>> val_list_list_int{{1, 2}};
   AttrUtils::SetListListInt(op_desc, "test_list_list_int", val_list_list_int);
 
   NamedAttrs name_attr;
@@ -191,7 +191,7 @@ TEST_F(UtestCcm, testFindCompileCacheSuccessForConstInput) {
   auto const_node = builder.AddNode("const", "Const", 0, 1);
   ASSERT_NE(const_node, nullptr);
   auto const_opdesc = const_node->GetOpDesc();
-  
+
   uint8_t val = 1;
   auto const_tensor = std::make_shared<GeTensor>(GeTensorDesc(), &val, sizeof(val));
   ge::AttrUtils::SetTensor(const_opdesc, "value", const_tensor);
@@ -220,7 +220,7 @@ TEST_F(UtestCcm, testFindCompileCacheFailBecauseConstInput) {
   ASSERT_NE(const_node, nullptr);
   auto const_opdesc = const_node->GetOpDesc();
   ASSERT_NE(const_opdesc, nullptr);
-  
+
   uint8_t val = 1;
   auto const_tensor = std::make_shared<GeTensor>(GeTensorDesc(), &val, sizeof(val));
   ge::AttrUtils::SetTensor(const_opdesc, "value", const_tensor);
@@ -247,7 +247,7 @@ TEST_F(UtestCcm, testFindCompileCacheFailBecauseConstInput) {
   ASSERT_NE(add_item_another, nullptr);
   ASSERT_NE(add_item_another->GetCacheItemId(), add_item->GetCacheItemId());
 
-  auto find_item = ccm.FindCompileCache(add_node_another);  
+  auto find_item = ccm.FindCompileCache(add_node_another);
   ASSERT_EQ(find_item->GetCacheItemId(), add_item_another->GetCacheItemId());
 }
 
@@ -294,4 +294,3 @@ TEST_F(UtestCcm, testGetAttrSizeDatatype) {
   NodeCompileCacheModule ccm;
   ASSERT_EQ(ccm.GetAttrSize(any_value), sizeof(val));
 }
-

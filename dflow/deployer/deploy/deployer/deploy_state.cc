@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -11,8 +11,7 @@
 #include "deploy/deployer/deploy_state.h"
 
 namespace ge {
-DeployState::DeployState(FlowModelPtr flow_model) : flow_model_(std::move(flow_model)) {
-}
+DeployState::DeployState(FlowModelPtr flow_model) : flow_model_(std::move(flow_model)) {}
 
 const FlowModelPtr &DeployState::GetFlowModel() const {
   return flow_model_;
@@ -89,8 +88,7 @@ void DeployState::SetLocalFlowRoutePlan(const int32_t node_id, const deployer::F
   local_flow_route_plan_ = std::make_pair(node_id, flow_route_plan);
 }
 
-void DeployState::AddFlowRoutePlanToDeploy(const int32_t node_id,
-                                           const deployer::FlowRoutePlan &flow_route_plan) {
+void DeployState::AddFlowRoutePlanToDeploy(const int32_t node_id, const deployer::FlowRoutePlan &flow_route_plan) {
   flow_route_plans_to_deploy_.emplace_back(std::make_pair(node_id, flow_route_plan));
 }
 
@@ -124,8 +122,7 @@ void DeployState::AddLocalSubmodelDesc(int32_t device_id, int32_t device_type,
   }
   UpdateClientRank(key);
   GELOGI("Add submodel[%s] desc success, is_dynamic = %d, is_dynamic_proxy_controlled = %d",
-         submodel_desc.model_name().c_str(),
-         static_cast<int32_t>(submodel_desc.is_dynamic()),
+         submodel_desc.model_name().c_str(), static_cast<int32_t>(submodel_desc.is_dynamic()),
          static_cast<int32_t>(dynamic_proxy_controlled_flags_[submodel_desc.submodel_id()]));
   local_submodel_descs_[key].emplace_back(submodel_desc);
 }
@@ -222,8 +219,8 @@ void DeployState::AddDataGwSchedInfos(const DeployPlan::DeviceInfo &device_info,
   datagw_sched_infos_.emplace_back(std::make_pair(device_info, sched_info));
 }
 
-const std::vector<std::pair<DeployPlan::DeviceInfo, deployer::DataGwSchedInfos>> &DeployState::GetDataGwSchedInfos(
-    ) const {
+const std::vector<std::pair<DeployPlan::DeviceInfo, deployer::DataGwSchedInfos>> &DeployState::GetDataGwSchedInfos()
+    const {
   return datagw_sched_infos_;
 }
 }  // namespace ge

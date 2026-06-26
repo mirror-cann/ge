@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -85,8 +85,8 @@ Status TensorFlowAutoMappingParserAdapter::ParseParams(const Message *op_src, ge
     ge::DataType out_type = DT_INT32;
     if (AttrUtils::GetDataType(op_dest, kShapeAttrOutType, out_type)) {
       if (!AttrUtils::SetInt(op_dest, kShapeAttrDtype, static_cast<int64_t>(out_type))) {
-        REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s to op:%s(%s) failed", kShapeAttrDtype,
-                          op_dest->GetName().c_str(), op_dest->GetType().c_str());
+        REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s to op:%s(%s) failed", kShapeAttrDtype, op_dest->GetName().c_str(),
+                             op_dest->GetType().c_str());
         GELOGE(FAILED, "Set attr dtype for op:%s failed.", op_dest->GetName().c_str());
         return FAILED;
       }
@@ -98,8 +98,8 @@ Status TensorFlowAutoMappingParserAdapter::ParseParams(const Message *op_src, ge
     ge::DataType out_type = DT_INT32;
     if (AttrUtils::GetDataType(op_dest, kShapeAttrOutType, out_type)) {
       if (!AttrUtils::SetInt(op_dest, kShapeAttrDtype, static_cast<int64_t>(out_type))) {
-        REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s to op:%s(%s) failed", kShapeAttrDtype,
-                          op_dest->GetName().c_str(), op_dest->GetType().c_str());
+        REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s to op:%s(%s) failed", kShapeAttrDtype, op_dest->GetName().c_str(),
+                             op_dest->GetType().c_str());
         GELOGE(FAILED, "Set attr dtype for op:%s failed.", op_dest->GetName().c_str());
         return FAILED;
       }
@@ -121,10 +121,9 @@ Status TensorFlowAutoMappingParserAdapter::ParseParams(const Message *op_src, ge
     // Serialize nodedef into string and package as a whole
     string serialized_node;
     GE_IF_BOOL_EXEC(!pkg_node->SerializeToString(&serialized_node),
-                    REPORT_INNER_ERR_MSG("E19999", "Trans NodeDef:%s(%s) to string failed",
-                                      pkg_node->name().c_str(), pkg_node->op().c_str());
-                    GELOGE(PARAM_INVALID, "In FrameworkOp trans NodeDef to string failed.");
-                    return PARAM_INVALID);
+                    REPORT_INNER_ERR_MSG("E19999", "Trans NodeDef:%s(%s) to string failed", pkg_node->name().c_str(),
+                                         pkg_node->op().c_str());
+                    GELOGE(PARAM_INVALID, "In FrameworkOp trans NodeDef to string failed."); return PARAM_INVALID);
 
     (void)AttrUtils::SetZeroCopyBytes(
         op_dest, ge::ATTR_NAME_FRAMEWORK_NODE_DEF,
@@ -160,4 +159,4 @@ REGISTER_OP_PARSER_CREATOR(TENSORFLOW, PARALLELCONCATSTART, TensorFlowAutoMappin
 REGISTER_OP_PARSER_CREATOR(TENSORFLOW, BITCAST, TensorFlowAutoMappingParserAdapter);
 REGISTER_OP_PARSER_CREATOR(TENSORFLOW, IDENTITY, TensorFlowAutoMappingParserAdapter);
 REGISTER_OP_PARSER_CREATOR(TENSORFLOW, NOOP, TensorFlowAutoMappingParserAdapter);
-}
+}  // namespace ge

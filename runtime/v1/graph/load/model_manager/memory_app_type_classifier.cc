@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,7 +21,7 @@ const char_t *GetMemoryAppTypeStr(MemoryAppType t) {
   return g_memory_app_types_to_str[static_cast<size_t>(t)];
 }
 MemoryAppTypeClassifier::MemoryAppTypeClassifier(const std::vector<MemAllocation> &allocations,
-    const size_t fm_start_id) {
+                                                 const size_t fm_start_id) {
   for (const auto &allocation : allocations) {
     // fusion段在fm段之前，逻辑地址和fm段会有重叠
     if (allocation.id < fm_start_id) {
@@ -31,7 +31,7 @@ MemoryAppTypeClassifier::MemoryAppTypeClassifier(const std::vector<MemAllocation
     if (allocation.type == MemAllocation::Type::FEATURE_MAP ||
         allocation.type == MemAllocation::Type::FIXED_FEATURE_MAP) {
       // FEATURE_MAP可能有多个
-      (void) sort_fm_allocations_.insert(allocation);
+      (void)sort_fm_allocations_.insert(allocation);
     }
   }
 }
@@ -60,10 +60,10 @@ MemoryAppType MemoryAppTypeClassifier::ClassifyByLogicalAddr(
     MemAllocation allocation_info{};
     allocation_info.logical_addr = logical_addr;
     auto it = sort_fm_allocations_.upper_bound(allocation_info);
-    if ((it != sort_fm_allocations_.end()) && (logical_addr >= it->logical_addr)
-        && (logical_addr < (it->logical_addr + it->data_size))) {
+    if ((it != sort_fm_allocations_.end()) && (logical_addr >= it->logical_addr) &&
+        (logical_addr < (it->logical_addr + it->data_size))) {
       if (it->type == MemAllocation::Type::FIXED_FEATURE_MAP) {
-        return MemoryAppType::kMemoryTypeFix; // 如果是fix fm段，识别为fix类型
+        return MemoryAppType::kMemoryTypeFix;  // 如果是fix fm段，识别为fix类型
       }
       return MemoryAppType::kMemoryTypeFeatureMap;
     } else {

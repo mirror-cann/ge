@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,7 +22,7 @@
 #include "graph_builder/bg_rt_session.h"
 
 namespace {
-  constexpr size_t kOutputNum = 1U;
+constexpr size_t kOutputNum = 1U;
 }
 namespace gert {
 bg::ValueHolderPtr SequenceInsertCompute(bg::ValueHolderPtr session_id, bg::ValueHolderPtr container_id,
@@ -32,7 +32,7 @@ bg::ValueHolderPtr SequenceInsertCompute(bg::ValueHolderPtr session_id, bg::Valu
   inputs.emplace_back(session_id);
   inputs.emplace_back(container_id);
   inputs.emplace_back(input_num_holder);
-  // For handle and insert index we don't neet to transfer it's shape
+  // For handle and insert index we don't need to transfer it's shape
   inputs.emplace_back(lower_input.input_addrs[0]);
   inputs.emplace_back(lower_input.input_addrs[1]);
   inputs.emplace_back(lower_input.input_shapes[1]);
@@ -57,7 +57,7 @@ LowerResult LoweringSequenceInsert(const ge::NodePtr &node, const LowerInput &lo
     GELOGE(ge::PARAM_INVALID, "[Check][LowerInput]Op %s type %s lower_input is invalid.", node->GetName().c_str(),
            ge::NodeUtils::GetNodeType(node).c_str());
     REPORT_INNER_ERR_MSG("E39999", "Op %s type %s lower_input is invalid.", node->GetName().c_str(),
-                       ge::NodeUtils::GetNodeType(node).c_str());
+                         ge::NodeUtils::GetNodeType(node).c_str());
     return {ret, {}, {}, {}};
   }
 

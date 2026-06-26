@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,20 +30,32 @@ GeModel::GeModel() : AttrHolder() {
   Init();
 }
 
-const ComputeGraphPtr &GeModel::GetGraph() const { return this->graph_; }
+const ComputeGraphPtr &GeModel::GetGraph() const {
+  return this->graph_;
+}
 
-void GeModel::SetGraph(const ComputeGraphPtr &graph) { this->graph_ = graph; }
+void GeModel::SetGraph(const ComputeGraphPtr &graph) {
+  this->graph_ = graph;
+}
 
-std::shared_ptr<domi::ModelTaskDef> GeModel::GetModelTaskDefPtr() const { return this->task_; }
+std::shared_ptr<domi::ModelTaskDef> GeModel::GetModelTaskDefPtr() const {
+  return this->task_;
+}
 
-TBEKernelStore &GeModel::GetTBEKernelStore() { return this->tbe_kernel_store_; }
+TBEKernelStore &GeModel::GetTBEKernelStore() {
+  return this->tbe_kernel_store_;
+}
 
-CustAICPUKernelStore &GeModel::GetCustAICPUKernelStore() { return this->cust_aicpu_kernel_store_; }
+CustAICPUKernelStore &GeModel::GetCustAICPUKernelStore() {
+  return this->cust_aicpu_kernel_store_;
+}
 
 // use GetWeightData and GetWeightSize instead
-Buffer GeModel::GetWeight() const { return this->weights_buffer_; }
+Buffer GeModel::GetWeight() const {
+  return this->weights_buffer_;
+}
 
-uint8_t* GeModel::GetWeightData() const {
+uint8_t *GeModel::GetWeightData() const {
   if (this->weight_data_buffer_.data != nullptr) {
     return reinterpret_cast<uint8_t *>(this->weight_data_buffer_.data);
   }
@@ -66,15 +78,25 @@ void GeModel::ClearWeightDataBuf() {
   this->weight_data_buffer_.length = 0U;
 }
 
-std::string GeModel::GetName() const { return this->name_; }
+std::string GeModel::GetName() const {
+  return this->name_;
+}
 
-uint32_t GeModel::GetVersion() const { return this->version_; }
+uint32_t GeModel::GetVersion() const {
+  return this->version_;
+}
 
-std::string GeModel::GetPlatformVersion() const { return this->platform_version_; }
+std::string GeModel::GetPlatformVersion() const {
+  return this->platform_version_;
+}
 
-uint8_t GeModel::GetPlatformType() const { return this->platform_type_; }
+uint8_t GeModel::GetPlatformType() const {
+  return this->platform_type_;
+}
 
-void GeModel::SetModelTaskDef(const std::shared_ptr<domi::ModelTaskDef> &task) { this->task_ = task; }
+void GeModel::SetModelTaskDef(const std::shared_ptr<domi::ModelTaskDef> &task) {
+  this->task_ = task;
+}
 
 void GeModel::SetTBEKernelStore(const TBEKernelStore &tbe_kernel_store) {
   this->tbe_kernel_store_ = tbe_kernel_store;
@@ -92,19 +114,33 @@ bool GeModel::LoadAICPUKernelStore(const uint8_t *const data, const size_t len) 
   return cust_aicpu_kernel_store_.Load(data, len);
 }
 
-void GeModel::SetWeight(const Buffer &weights_buffer) { this->weights_buffer_ = weights_buffer; }
+void GeModel::SetWeight(const Buffer &weights_buffer) {
+  this->weights_buffer_ = weights_buffer;
+}
 
-void GeModel::SetName(const std::string &name) { this->name_ = name; }
+void GeModel::SetName(const std::string &name) {
+  this->name_ = name;
+}
 
-void GeModel::SetVersion(const uint32_t version) { this->version_ = version; }
+void GeModel::SetVersion(const uint32_t version) {
+  this->version_ = version;
+}
 
-void GeModel::SetPlatformVersion(const std::string &platform_version) { this->platform_version_ = platform_version; }
+void GeModel::SetPlatformVersion(const std::string &platform_version) {
+  this->platform_version_ = platform_version;
+}
 
-void GeModel::SetPlatformType(const uint8_t platform_type) { this->platform_type_ = platform_type; }
+void GeModel::SetPlatformType(const uint8_t platform_type) {
+  this->platform_type_ = platform_type;
+}
 
-void GeModel::SetAttrMap(const ProtoAttrMap &attrs) { attrs_ = attrs; }
+void GeModel::SetAttrMap(const ProtoAttrMap &attrs) {
+  attrs_ = attrs;
+}
 
-ProtoAttrMap &GeModel::MutableAttrMap() { return attrs_; }
+ProtoAttrMap &GeModel::MutableAttrMap() {
+  return attrs_;
+}
 
 ConstProtoAttrMap &GeModel::GetAttrMap() const {
   return attrs_;

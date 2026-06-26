@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -41,24 +41,22 @@ graphStatus FakeCalcNodeOffsetByReuseInput(const Node &node) {
 
 using CalcOpParamCall = std::function<graphStatus(const Node &node)>;
 std::map<std::string, CalcOpParamCall> FakeOpsKernelBuilder::calc_op_param_call = {
-  {"Bitcast", FakeCalcNodeOffsetByReuseInput},
-  {"Flatten", FakeCalcNodeOffsetByReuseInput},
-  {"FlattenV2", FakeCalcNodeOffsetByReuseInput},
-  {"ExpandDims", FakeCalcNodeOffsetByReuseInput},
-  {"ReFormat", FakeCalcNodeOffsetByReuseInput},
-  {"Squeeze", FakeCalcNodeOffsetByReuseInput},
-  {"Unsqueeze", FakeCalcNodeOffsetByReuseInput},
-  {"SqueezeV2", FakeCalcNodeOffsetByReuseInput},
-  {"UnsqueezeV2", FakeCalcNodeOffsetByReuseInput},
-  {"SqueezeV3", FakeCalcNodeOffsetByReuseInput},
-  {"UnsqueezeV3", FakeCalcNodeOffsetByReuseInput}
-};
+    {"Bitcast", FakeCalcNodeOffsetByReuseInput},     {"Flatten", FakeCalcNodeOffsetByReuseInput},
+    {"FlattenV2", FakeCalcNodeOffsetByReuseInput},   {"ExpandDims", FakeCalcNodeOffsetByReuseInput},
+    {"ReFormat", FakeCalcNodeOffsetByReuseInput},    {"Squeeze", FakeCalcNodeOffsetByReuseInput},
+    {"Unsqueeze", FakeCalcNodeOffsetByReuseInput},   {"SqueezeV2", FakeCalcNodeOffsetByReuseInput},
+    {"UnsqueezeV2", FakeCalcNodeOffsetByReuseInput}, {"SqueezeV3", FakeCalcNodeOffsetByReuseInput},
+    {"UnsqueezeV3", FakeCalcNodeOffsetByReuseInput}};
 
 FakeOpsKernelBuilder::FakeOpsKernelBuilder(const std::string &info_store_name) : InfoStoreHolder(info_store_name) {}
 FakeOpsKernelBuilder::FakeOpsKernelBuilder() : InfoStoreHolder() {}
 
-Status FakeOpsKernelBuilder::Finalize() { return SUCCESS; }
-Status FakeOpsKernelBuilder::Initialize(const map<std::string, std::string> &options) { return SUCCESS; }
+Status FakeOpsKernelBuilder::Finalize() {
+  return SUCCESS;
+}
+Status FakeOpsKernelBuilder::Initialize(const map<std::string, std::string> &options) {
+  return SUCCESS;
+}
 
 Status FakeOpsKernelBuilder::CalcOpRunningParam(Node &ge_node) {
   OpDescPtr op_desc = ge_node.GetOpDesc();
@@ -101,9 +99,9 @@ Status FakeOpsKernelBuilder::CalcOpRunningParam(Node &ge_node) {
              name.c_str(), type.c_str(), i, output_mem_size, TypeUtils::FormatToSerialString(format).c_str(),
              TypeUtils::DataTypeToSerialString(data_type).c_str());
       REPORT_INNER_ERR_MSG(
-        "E19999", "CalcTensorMemSize failed for op[%s:%s] out[%zu] mem size, mem_size=%ld, format=%s, data_type=%s.",
-        name.c_str(), type.c_str(), i, output_mem_size, TypeUtils::FormatToSerialString(format).c_str(),
-        TypeUtils::DataTypeToSerialString(data_type).c_str());
+          "E19999", "CalcTensorMemSize failed for op[%s:%s] out[%zu] mem size, mem_size=%ld, format=%s, data_type=%s.",
+          name.c_str(), type.c_str(), i, output_mem_size, TypeUtils::FormatToSerialString(format).c_str(),
+          TypeUtils::DataTypeToSerialString(data_type).c_str());
       return FAILED;
     }
     GELOGI("Calc op[%s:%s] out[%zu] mem size is %ld, format=%s, data_type=%s.", name.c_str(), type.c_str(), i,
@@ -118,16 +116,15 @@ Status FakeOpsKernelBuilder::CalcOpRunningParam(Node &ge_node) {
              type.c_str(), i, TypeUtils::FormatToSerialString(format).c_str(),
              TypeUtils::DataTypeToSerialString(data_type).c_str());
       REPORT_INNER_ERR_MSG("E19999", "UpdateOutputDesc failed for op[%s:%s] out[%zu] desc , format=%s, data_type=%s.",
-                        name.c_str(), type.c_str(), i, TypeUtils::FormatToSerialString(format).c_str(),
-                        TypeUtils::DataTypeToSerialString(data_type).c_str());
+                           name.c_str(), type.c_str(), i, TypeUtils::FormatToSerialString(format).c_str(),
+                           TypeUtils::DataTypeToSerialString(data_type).c_str());
       return FAILED;
     }
   }
 
   if (calc_op_param_call.find(type) != calc_op_param_call.end()) {
     GE_ASSERT_SUCCESS(calc_op_param_call[type](ge_node),
-                      "[Call]calc_op_param_call failed, node name: %s, node type: %s.",
-                      name.c_str(), type.c_str());
+                      "[Call]calc_op_param_call failed, node name: %s, node type: %s.", name.c_str(), type.c_str());
   }
   GELOGD("Calc op[%s:%s] running param success.", name.c_str(), type.c_str());
   return SUCCESS;

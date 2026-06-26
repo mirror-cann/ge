@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -86,8 +86,8 @@ bool ReadElfMachine(const std::string &so_path, uint16_t &machine, bool &is_elf)
     return false;
   }
   const auto to_u8 = [](const char ch) { return static_cast<uint8_t>(static_cast<unsigned char>(ch)); };
-  if ((to_u8(ident[EI_MAG0]) != ELFMAG0) || (to_u8(ident[EI_MAG1]) != ELFMAG1) ||
-      (to_u8(ident[EI_MAG2]) != ELFMAG2) || (to_u8(ident[EI_MAG3]) != ELFMAG3)) {
+  if ((to_u8(ident[EI_MAG0]) != ELFMAG0) || (to_u8(ident[EI_MAG1]) != ELFMAG1) || (to_u8(ident[EI_MAG2]) != ELFMAG2) ||
+      (to_u8(ident[EI_MAG3]) != ELFMAG3)) {
     is_elf = false;
     return true;
   }
@@ -135,7 +135,8 @@ void FallbackHostEnvByCompileTime(std::string &host_env_os, std::string &host_en
 }
 
 /*
- * P2P类型的feature map内存，目前只给hccl算子使用，而大部分hccl算子都是fixed地址的，所以这里简化处理，将全部p2p内存作为fixed内存，
+ * P2P类型的feature
+ * map内存，目前只给hccl算子使用，而大部分hccl算子都是fixed地址的，所以这里简化处理，将全部p2p内存作为fixed内存，
  * 并将子图中最大的长度作为整图fix内存大小
  */
 Status GetP2pFixedFeatureMemorySize(const GeRootModel *ge_root_model, size_t &p2p_mem_size) {
@@ -147,8 +148,8 @@ Status GetP2pFixedFeatureMemorySize(const GeRootModel *ge_root_model, size_t &p2
     if (p2p_size > p2p_max_size) {
       p2p_max_size = p2p_size;
     }
-    GELOGI("[IMAS]model_name:%s p2p fixed_feature_memory size:%zu, p2p max size:%zu.",
-           ge_model_temp->GetName().c_str(), p2p_size, p2p_max_size);
+    GELOGI("[IMAS]model_name:%s p2p fixed_feature_memory size:%zu, p2p max size:%zu.", ge_model_temp->GetName().c_str(),
+           p2p_size, p2p_max_size);
   }
   p2p_mem_size = p2p_max_size;
   return SUCCESS;
@@ -168,7 +169,7 @@ Status CollectCustomOpTypesFromGraph(const ComputeGraphPtr &graph, const CustomO
   }
   return SUCCESS;
 }
-}
+}  // namespace
 Status GeRootModel::Initialize(const ComputeGraphPtr &root_graph) {
   GE_ASSERT_NOTNULL(root_graph);
   SetRootGraph(root_graph);
@@ -209,13 +210,21 @@ Status GeRootModel::CheckIsUnknownShape(bool &is_dynamic_shape) const {
   return SUCCESS;
 }
 
-const uint8_t *GeRootModel::GetOpSoStoreData() const { return op_so_store_.Data(); }
+const uint8_t *GeRootModel::GetOpSoStoreData() const {
+  return op_so_store_.Data();
+}
 
-size_t GeRootModel::GetOpStoreDataSize() const { return op_so_store_.DataSize(); }
+size_t GeRootModel::GetOpStoreDataSize() const {
+  return op_so_store_.DataSize();
+}
 
-uint16_t GeRootModel::GetSoInOmFlag() const { return so_in_om_; }
+uint16_t GeRootModel::GetSoInOmFlag() const {
+  return so_in_om_;
+}
 
-SoInOmInfo GeRootModel::GetSoInOmInfo() const { return so_info_; }
+SoInOmInfo GeRootModel::GetSoInOmInfo() const {
+  return so_info_;
+}
 
 bool GeRootModel::LoadSoBinData(const uint8_t *const data, const size_t len) {
   return op_so_store_.Load(data, len);
@@ -256,8 +265,7 @@ Status GeRootModel::CollectCustomOpSoFromCustomOppPath(const std::string &target
   if (custom_opp_path.empty()) {
     PluginManager::GetPluginPathFromCustomOppPath("", custom_opp_path);
   }
-  GE_ASSERT_TRUE(!custom_opp_path.empty(),
-                 "[CustomOp] ASCEND_CUSTOM_OPP_PATH is empty in cross-compile mode.");
+  GE_ASSERT_TRUE(!custom_opp_path.empty(), "[CustomOp] ASCEND_CUSTOM_OPP_PATH is empty in cross-compile mode.");
 
   const auto custom_opp_roots = StringUtils::Split(custom_opp_path, ':');
   const std::string so_sub_dir = "/op_graph/lib/" + target_os + "/" + target_cpu;
@@ -277,8 +285,7 @@ Status GeRootModel::CollectCustomOpSoFromCustomOppPath(const std::string &target
       GE_ASSERT_SUCCESS(CheckSoArchMatchesTarget(real_so_path, target_cpu), "Custom op so arch check failed.");
       const auto insert_ret = custom_op_so_set_.insert(real_so_path);
       if (insert_ret.second) {
-        GELOGI("[CustomOp] Collect custom op so[%s] from custom opp path in cross-compile mode.",
-               real_so_path.c_str());
+        GELOGI("[CustomOp] Collect custom op so[%s] from custom opp path in cross-compile mode.", real_so_path.c_str());
       }
     }
   }
@@ -352,8 +359,7 @@ Status GeRootModel::ResolvePortableOpSoPath(const std::string &op_type, Portable
   std::string target_cpu;
   GE_ASSERT_SUCCESS(GetTargetHostEnv(target_os, target_cpu), "Get target host env failed.");
   const bool is_cross_compile = IsCrossCompileTarget(target_os, target_cpu);
-  GE_ASSERT_TRUE(!is_cross_compile,
-                 "Cross-compile mode should not resolve custom op so by op_type[%s].",
+  GE_ASSERT_TRUE(!is_cross_compile, "Cross-compile mode should not resolve custom op so by op_type[%s].",
                  op_type.c_str());
   Dl_info dl_info;
   auto **vtable = reinterpret_cast<void ***>(portable_op);
@@ -363,11 +369,9 @@ Status GeRootModel::ResolvePortableOpSoPath(const std::string &op_type, Portable
     GE_ASSERT_TRUE(GetRealFilePath(dl_info.dli_fname, real_so_path),
                    "[CustomOp] Resolve custom op so[%s] realpath failed.", dl_info.dli_fname);
   }
-  GE_ASSERT_TRUE(!real_so_path.empty(),
-                 "[CustomOp] Resolve custom op so path by dladdr failed, op_type[%s].",
+  GE_ASSERT_TRUE(!real_so_path.empty(), "[CustomOp] Resolve custom op so path by dladdr failed, op_type[%s].",
                  op_type.c_str());
-  GE_ASSERT_TRUE(access(real_so_path.c_str(), R_OK) == 0, "custom op so[%s] is not readable.",
-                 real_so_path.c_str());
+  GE_ASSERT_TRUE(access(real_so_path.c_str(), R_OK) == 0, "custom op so[%s] is not readable.", real_so_path.c_str());
   GE_ASSERT_SUCCESS(CheckSoArchMatchesTarget(real_so_path, target_cpu), "Custom op so arch check failed.");
   so_path = real_so_path;
   return SUCCESS;
@@ -387,8 +391,7 @@ Status GeRootModel::CheckAndSetCustomOpSo() {
     if (ge_model == nullptr || ge_model->GetGraph() == nullptr || ge_model->GetGraph() == root_graph_) {
       continue;
     }
-    GE_ASSERT_SUCCESS(CollectCustomOpTypesFromGraph(ge_model->GetGraph(), custom_op_registry_,
-                                                    used_custom_op_types));
+    GE_ASSERT_SUCCESS(CollectCustomOpTypesFromGraph(ge_model->GetGraph(), custom_op_registry_, used_custom_op_types));
   }
 
   bool has_portable_custom_op = false;
@@ -484,11 +487,11 @@ Status GeRootModel::CheckAndSetSpaceRegistry() {
 Status GeRootModel::CheckAndSetAutofuseSo() {
   auto nodes = root_graph_->GetAllNodesPtr();
   for (auto node : nodes) {
-    const std::string* so_path_ptr = ge::AttrUtils::GetStr(node->GetOpDesc(), "bin_file_path");
+    const std::string *so_path_ptr = ge::AttrUtils::GetStr(node->GetOpDesc(), "bin_file_path");
     if (so_path_ptr != nullptr) {
       auto result = autofuse_so_set_.insert(*so_path_ptr);
       if (result.second) {
-          GELOGD("Added autofuse so %s.", (*so_path_ptr).c_str());
+        GELOGD("Added autofuse so %s.", (*so_path_ptr).c_str());
       }
     }
   }
@@ -501,7 +504,7 @@ Status GeRootModel::CheckAndSetAutofuseSo() {
 
 bool GeRootModel::IsNeedMallocFixedFeatureMem() const {
   bool is_unknown_shape = false;
-  (void) CheckIsUnknownShape(is_unknown_shape);
+  (void)CheckIsUnknownShape(is_unknown_shape);
   // 动态shape静态子图, 在init图中申请
   if (is_unknown_shape) {
     return false;
@@ -515,8 +518,10 @@ bool GeRootModel::IsNeedMallocFixedFeatureMem() const {
     return false;
   }
   if (VarManager::IsGeUseExtendSizeMemory(false)) {
-    GELOGI("enable extend memory, need to malloc fixed_feature_memory use session allocator, model_name: %s,"
-        " model_id: %u", GetModelName().c_str(), GetCurModelId());
+    GELOGI(
+        "enable extend memory, need to malloc fixed_feature_memory use session allocator, model_name: %s,"
+        " model_id: %u",
+        GetModelName().c_str(), GetCurModelId());
     return true;
   }
   std::string is_refreshable;
@@ -524,8 +529,10 @@ bool GeRootModel::IsNeedMallocFixedFeatureMem() const {
   static const std::string kEnabled = "1";
   // 如果用户没有设置feature base可刷新，ge也不需要申请fix内存
   if (is_refreshable != kEnabled) {
-    GELOGI("feature base is not refreshable, return false, model_name: %s,"
-           " model_id: %u", GetModelName().c_str(), GetCurModelId());
+    GELOGI(
+        "feature base is not refreshable, return false, model_name: %s,"
+        " model_id: %u",
+        GetModelName().c_str(), GetCurModelId());
     return false;
   }
   return true;
@@ -534,8 +541,9 @@ bool GeRootModel::IsNeedMallocFixedFeatureMem() const {
 /*
  * 如果用户设置了feature base可刷新，并且配置了正常的fix地址，Ge不再申请fix地址，need refresh为false。
  * 如果用户设置了feature base可刷新，没有配置fix地址，Ge需要兜底申请fix内存，need refresh为false。
- * 如果用户设置了feature base可刷新，并且配置了fix地址为nullptr，并且size也设置为0，Ge也不申请fix地址，并设置need refresh为true。
- * 如果用户没有设置feature base可刷新，配置了staticMemoryPolicy=4/2，图间共用fix优先内存, ge申请fix内存，need refresha为false.
+ * 如果用户设置了feature base可刷新，并且配置了fix地址为nullptr，并且size也设置为0，Ge也不申请fix地址，并设置need
+ * refresh为true。 如果用户没有设置feature base可刷新，配置了staticMemoryPolicy=4/2，图间共用fix优先内存,
+ * ge申请fix内存，need refresha为false.
  */
 bool GeRootModel::IsNeedMallocFixedFeatureMemByType(const rtMemType_t rt_mem_type) const {
   const auto fixed_mem_iter = fixed_feature_mems_.find(rt_mem_type);
@@ -559,14 +567,18 @@ bool GeRootModel::IsNeedMallocFixedFeatureMemByType(const rtMemType_t rt_mem_typ
     return false;
   }
   if (VarManager::IsGeUseExtendSizeMemory(false)) {
-    GELOGI("enable extend memory, need to malloc fixed_feature_memory use session allocator, model_name: %s,"
-           " model_id: %u", GetModelName().c_str(), GetCurModelId());
+    GELOGI(
+        "enable extend memory, need to malloc fixed_feature_memory use session allocator, model_name: %s,"
+        " model_id: %u",
+        GetModelName().c_str(), GetCurModelId());
     return true;
   }
-  GELOGI("fixed_feature_memory info: addr:%p, size:%zu, ge_alloc:%d, user_alloc:%d, memory type: %s, return false,"
-      "model_name: %s, model_id: %u", fixed_mem_iter->second.addr, fixed_mem_iter->second.size,
-      fixed_mem_iter->second.ge_alloc, fixed_mem_iter->second.user_alloc, MemTypeUtils::ToString(rt_mem_type).c_str(),
-      GetModelName().c_str(), GetCurModelId());
+  GELOGI(
+      "fixed_feature_memory info: addr:%p, size:%zu, ge_alloc:%d, user_alloc:%d, memory type: %s, return false,"
+      "model_name: %s, model_id: %u",
+      fixed_mem_iter->second.addr, fixed_mem_iter->second.size, fixed_mem_iter->second.ge_alloc,
+      fixed_mem_iter->second.user_alloc, MemTypeUtils::ToString(rt_mem_type).c_str(), GetModelName().c_str(),
+      GetCurModelId());
   return false;
 }
 
@@ -592,13 +604,12 @@ Status GeRootModel::GetSummaryFeatureMemory(std::vector<FeatureMemoryPtr> &all_f
     if (fixed_mem_size > hbm_fixed_feature_mem) {
       hbm_fixed_feature_mem = fixed_mem_size;
     }
-    GELOGI("[IMAS]model_name:%s hbm fixed_feature_memory size:%zu, hbm max size:%zu.",
-           ge_model_temp->GetName().c_str(), fixed_mem_size, hbm_fixed_feature_mem);
+    GELOGI("[IMAS]model_name:%s hbm fixed_feature_memory size:%zu, hbm max size:%zu.", ge_model_temp->GetName().c_str(),
+           fixed_mem_size, hbm_fixed_feature_mem);
     sub_mem_infos.clear();
   }
   if (hbm_fixed_feature_mem > 0U) {
-    auto feature_memory = FeatureMemory::Builder::Build(MemoryType::MEMORY_TYPE_DEFAULT,
-                                                        hbm_fixed_feature_mem, {true});
+    auto feature_memory = FeatureMemory::Builder::Build(MemoryType::MEMORY_TYPE_DEFAULT, hbm_fixed_feature_mem, {true});
     GE_ASSERT_NOTNULL(feature_memory);
     (void)all_feature_memory_.emplace_back(std::move(feature_memory));
   }
@@ -606,8 +617,7 @@ Status GeRootModel::GetSummaryFeatureMemory(std::vector<FeatureMemoryPtr> &all_f
   size_t p2p_fixed_size = 0U;
   GE_ASSERT_SUCCESS(GetP2pFixedFeatureMemorySize(this, p2p_fixed_size));
   if (p2p_fixed_size > 0U) {
-    auto p2p_feature_memory = FeatureMemory::Builder::Build(MemoryType::MEMORY_TYPE_P2P,
-                                                            p2p_fixed_size, {true});
+    auto p2p_feature_memory = FeatureMemory::Builder::Build(MemoryType::MEMORY_TYPE_P2P, p2p_fixed_size, {true});
     GE_ASSERT_NOTNULL(p2p_feature_memory);
     (void)all_feature_memory_.emplace_back(std::move(p2p_feature_memory));
   }

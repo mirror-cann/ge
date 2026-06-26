@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,7 +18,7 @@ namespace fe {
 const std::string LX_CORE_TYPE_WITH_DYNAMIC_UPPER = "DYNAMIC";
 const std::string LX_CORE_TYPE_WITH_DYNAMIC_LOWER = "dynamic";
 const std::string kJudgeImplTypeThreadPrefix = "judge_0_";
-OpImplTypeJudge::OpImplTypeJudge(const std::string& engine_name, FEOpsKernelInfoStorePtr fe_ops_kernel_info_store_ptr)
+OpImplTypeJudge::OpImplTypeJudge(const std::string &engine_name, FEOpsKernelInfoStorePtr fe_ops_kernel_info_store_ptr)
     : OpJudgeBase(engine_name), ops_kernel_info_store_ptr_(fe_ops_kernel_info_store_ptr) {}
 OpImplTypeJudge::~OpImplTypeJudge() {}
 
@@ -29,11 +29,11 @@ OpImplTypeJudge::~OpImplTypeJudge() {}
  *  @param   [in|out] graph  compute graph
  *  @return  SUCCESS or FAILED
  */
-Status OpImplTypeJudge::Judge(ge::ComputeGraph& graph) {
+Status OpImplTypeJudge::Judge(ge::ComputeGraph &graph) {
   // set the highest prior imply type of op
   FE_TIMECOST_START(OpImplTypeJudge);
   FE_CHECK_NOTNULL(ops_kernel_info_store_ptr_);
-  for (auto& node : graph.GetAllNodes()) {
+  for (auto &node : graph.GetAllNodes()) {
     Status result = JudgeByNode(node);
     if (result != SUCCESS) {
       return result;
@@ -67,8 +67,8 @@ Status OpImplTypeJudge::MultiThreadJudge(ge::ComputeGraph &graph) {
   std::vector<std::future<Status>> vector_future;
   // set the highest prior imply type of op
   for (auto &node : nodes) {
-    std::future<Status> f = executor.commit(OpImplTypeJudge::MultiThreadJudgeByNode, node, this,
-                                            ge::GetThreadLocalContext());
+    std::future<Status> f =
+        executor.commit(OpImplTypeJudge::MultiThreadJudgeByNode, node, this, ge::GetThreadLocalContext());
     if (!f.valid()) {
       FE_LOGE("[Call][Commit] failed, Future is invalid, node name:%s", node->GetName().c_str());
       return FAILED;
@@ -124,13 +124,13 @@ Status OpImplTypeJudge::JudgeByNode(ge::NodePtr node_ptr) {
     if ((supported_value & NOT_SUPPORTED_FLAG_BIT) == 0) {
       supported_flag = "supported";
     }
-    FE_LOGD("Op[name=%s,type=%s]: the op has been check_supported, the result is %s.",
-            op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str(), supported_flag.c_str());
+    FE_LOGD("Op[name=%s,type=%s]: the op has been check_supported, the result is %s.", op_desc_ptr->GetName().c_str(),
+            op_desc_ptr->GetType().c_str(), supported_flag.c_str());
     return SUCCESS;
   }
   if (ge::AttrUtils::HasAttr(op_desc_ptr, FE_IMPLY_TYPE)) {
-    FE_LOGD("Op[name=%s,type=%s] has been set with FE_IMPLY_TYPE.",
-            op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
+    FE_LOGD("Op[name=%s,type=%s] has been set with FE_IMPLY_TYPE.", op_desc_ptr->GetName().c_str(),
+            op_desc_ptr->GetType().c_str());
   }
 
   // 3. set the imply type of op
@@ -138,7 +138,7 @@ Status OpImplTypeJudge::JudgeByNode(ge::NodePtr node_ptr) {
   return SetOpImplType(node_ptr, impl_type);
 }
 
-Status OpImplTypeJudge::SetOpImplType(const ge::NodePtr &node, OpImplType& imply_type) {
+Status OpImplTypeJudge::SetOpImplType(const ge::NodePtr &node, OpImplType &imply_type) {
   ge::OpDescPtr op_desc_ptr = node->GetOpDesc();
   const string &op_name = op_desc_ptr->GetName();
   const string &op_type = op_desc_ptr->GetType();
@@ -188,9 +188,9 @@ Status OpImplTypeJudge::SetOpImplType(const ge::NodePtr &node, OpImplType& imply
     (void)ge::AttrUtils::SetStr(op_desc_ptr, ATTR_NAME_CUBE_VECTOR_CORE_TYPE, lx_core_type);
   }
 
-  FE_LOGD("Op[name=%s,type=%s]: set FE_IMPLY_TYPE [%s], set IMPLY_TYPE [%s] specific core type %s.",
-      op_name.c_str(), op_type.c_str(), GetImplTypeString(imply_type).c_str(),
-      GetGeImplTypeString(iter->second).c_str(), lx_core_type.c_str());
+  FE_LOGD("Op[name=%s,type=%s]: set FE_IMPLY_TYPE [%s], set IMPLY_TYPE [%s] specific core type %s.", op_name.c_str(),
+          op_type.c_str(), GetImplTypeString(imply_type).c_str(), GetGeImplTypeString(iter->second).c_str(),
+          lx_core_type.c_str());
   return SUCCESS;
 }
 
@@ -216,27 +216,26 @@ Status OpImplTypeJudge::GetLXCoreType(ge::NodePtr &node_ptr) {
     OpImplType impl_type = op_kernel_info_ptr->GetOpStoreImplType();
     OpStoreAdapterPtr op_store_adapter = nullptr;
     if (ops_kernel_info_store_ptr_->GetOpStoreAdapter(impl_type, op_store_adapter) != SUCCESS) {
-      REPORT_FE_ERROR("Op %s,type %s:failed to get op_store_adapter by op impl type [%ld].",
-                      op_name.c_str(), op_type.c_str(), impl_type);
+      REPORT_FE_ERROR("Op %s,type %s:failed to get op_store_adapter by op impl type [%ld].", op_name.c_str(),
+                      op_type.c_str(), impl_type);
       return FAILED;
     }
     bool is_dynamic_impl = IsOpDynamicImpl(node_ptr->GetOpDesc());
-    if (op_store_adapter->GetLXOpCoreType(node_ptr, op_kernel_info_ptr, is_dynamic_impl, lx_core_type_str) !=SUCCESS) {
+    if (op_store_adapter->GetLXOpCoreType(node_ptr, op_kernel_info_ptr, is_dynamic_impl, lx_core_type_str) != SUCCESS) {
       FE_LOGW("Op %s, type %s: failed to get LXOpCoreType.", op_name.c_str(), op_type.c_str());
     }
   }
   (void)ge::AttrUtils::SetStr(node_ptr->GetOpDesc(), CORE_TYPE_VALUE, lx_core_type_str);
-  FE_LOGD("Op[%s, %s]: set lx_core_type[%s] successfully.", op_name.c_str(), op_type.c_str(),
-          lx_core_type_str.c_str());
+  FE_LOGD("Op[%s, %s]: set lx_core_type[%s] successfully.", op_name.c_str(), op_type.c_str(), lx_core_type_str.c_str());
   return SUCCESS;
 }
 
-Status OpImplTypeJudge::JudgeInSubGraph(ge::ComputeGraph& graph) {
+Status OpImplTypeJudge::JudgeInSubGraph(ge::ComputeGraph &graph) {
   FE_CHECK_NOTNULL(ops_kernel_info_store_ptr_);
   for (auto &node : graph.GetDirectNode()) {
     if (GetLXCoreType(node) != SUCCESS) {
-      FE_LOGE("Op %s, type %s: failed to get LXOpCoreType.",
-              node->GetOpDesc()->GetName().c_str(), node->GetOpDesc()->GetType().c_str());
+      FE_LOGE("Op %s, type %s: failed to get LXOpCoreType.", node->GetOpDesc()->GetName().c_str(),
+              node->GetOpDesc()->GetType().c_str());
       return FAILED;
     }
     Status result = JudgeInSubGraphByNode(node);

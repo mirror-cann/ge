@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,11 +26,11 @@
 namespace ge {
 
 class UtestFuseDataNodesWithCommonInputPass : public testing::Test {
-protected:
+ protected:
   void SetUp() {}
   void TearDown() {}
 
-public:
+ public:
   NodePtr MakeNode(const ComputeGraphPtr &graph, uint32_t in_num, uint32_t out_num, string name, string type) {
     GeTensorDesc test_desc(GeShape(), FORMAT_NCHW, DT_FLOAT);
     auto op_desc = std::make_shared<OpDesc>(name, type);
@@ -60,7 +60,7 @@ TEST_F(UtestFuseDataNodesWithCommonInputPass, graph_with_subgraph1) {
   auto parent_case = MakeNode(parent_graph, 3, 1, "parent_case", "Case");
   auto parent_output = MakeNode(parent_graph, 1, 0, "parent_output", "NetOutput");
 
-  GeTensorDesc tensor_desc(GeShape({1,3,224,224}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor_desc(GeShape({1, 3, 224, 224}), FORMAT_NCHW, DT_FLOAT);
 
   parent_const->GetOpDesc()->UpdateOutputDesc(0, tensor_desc);
   parent_case->GetOpDesc()->UpdateInputDesc(0, tensor_desc);
@@ -133,7 +133,7 @@ TEST_F(UtestFuseDataNodesWithCommonInputPass, graph_with_subgraph2) {
   auto parent_case = MakeNode(parent_graph, 2, 1, "parent_case", "Case");
   auto parent_output = MakeNode(parent_graph, 1, 0, "parent_output", "NetOutput");
 
-  GeTensorDesc tensor_desc(GeShape({1,3,224,224}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor_desc(GeShape({1, 3, 224, 224}), FORMAT_NCHW, DT_FLOAT);
 
   parent_const->GetOpDesc()->UpdateOutputDesc(0, tensor_desc);
   parent_cast1->GetOpDesc()->UpdateInputDesc(0, tensor_desc);

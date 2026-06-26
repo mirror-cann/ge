@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,8 +30,8 @@
 namespace {
 const std::string kEnableFlag = "1";
 const std::string kDumpStatusOpen = "on";
-constexpr uint32_t kAicoreOverflow = 0x1U; // (0x1U << 0U)
-constexpr uint32_t kAtomicOverflow = 0x2U; // (0x1U << 1U)
+constexpr uint32_t kAicoreOverflow = 0x1U;  // (0x1U << 0U)
+constexpr uint32_t kAtomicOverflow = 0x2U;  // (0x1U << 1U)
 constexpr uint32_t kAllOverflow = kAicoreOverflow | kAtomicOverflow;
 constexpr size_t kMaxErrorStrLength = 128U;
 }  // namespace
@@ -42,7 +42,7 @@ StepCheckErrorCode DumpProperties::CheckDumpStepInner(const std::string &dump_st
   if (match_vecs.size() > 100U) {
     return StepCheckErrorCode::kTooManySets;
   }
-  const auto is_str_digit = [] (const std::string &s) -> bool {
+  const auto is_str_digit = [](const std::string &s) -> bool {
     return (StringUtils::IsSignedInt32(s)) && (isdigit(s.at(0U)) != 0);
   };
   for (const auto &match_vec : match_vecs) {
@@ -74,18 +74,22 @@ Status DumpProperties::CheckDumpStep(const std::string &dump_step) const {
       (void)REPORT_PREDEFINED_ERR_MSG(
           "E10001", std::vector<const char *>({"parameter", "value", "reason"}),
           std::vector<const char *>({ge::GetContext().GetReadableName("ge.exec.dumpStep").c_str(), dump_step.c_str(),
-                                    "The number of collection ranges cannot exceed 100."}));
-      GELOGE(PARAM_INVALID, "[Check][Param] get dump_step value:%s, "
-                            "dump_step only support dump <= 100 sets of data.", dump_step.c_str());
+                                     "The number of collection ranges cannot exceed 100."}));
+      GELOGE(PARAM_INVALID,
+             "[Check][Param] get dump_step value:%s, "
+             "dump_step only support dump <= 100 sets of data.",
+             dump_step.c_str());
       ret = PARAM_INVALID;
       break;
     case StepCheckErrorCode::kIncorrectFormat:
       (void)REPORT_PREDEFINED_ERR_MSG(
           "E10001", std::vector<const char *>({"parameter", "value", "reason"}),
           std::vector<const char *>({ge::GetContext().GetReadableName("ge.exec.dumpStep").c_str(), dump_step.c_str(),
-                                    "Incorrect parameter format. Valid format: '0|5|10|50-100'."}));
-      GELOGE(PARAM_INVALID, "[Check][Param] get dump_step value:%s, dump_step std::string style is error, "
-             "correct example:'0|5|10|50-100'.", dump_step.c_str());
+                                     "Incorrect parameter format. Valid format: '0|5|10|50-100'."}));
+      GELOGE(PARAM_INVALID,
+             "[Check][Param] get dump_step value:%s, dump_step std::string style is error, "
+             "correct example:'0|5|10|50-100'.",
+             dump_step.c_str());
       ret = PARAM_INVALID;
       break;
     case StepCheckErrorCode::kReverseStep:
@@ -94,8 +98,10 @@ Status DumpProperties::CheckDumpStep(const std::string &dump_step) const {
           std::vector<const char *>({ge::GetContext().GetReadableName("ge.exec.dumpStep").c_str(), dump_step.c_str(),
                                      "In range steps, the first step must be greater than or equal to the second step. "
                                      "Valid format: '0|5|10-20'."}));
-      GELOGE(PARAM_INVALID, "[Check][Param] get dump_step value:%s, in range steps, the first step is >= second step, "
-             "correct example:'0|5|10-20'.", dump_step.c_str());
+      GELOGE(PARAM_INVALID,
+             "[Check][Param] get dump_step value:%s, in range steps, the first step is >= second step, "
+             "correct example:'0|5|10-20'.",
+             dump_step.c_str());
       ret = PARAM_INVALID;
       break;
     default:
@@ -112,9 +118,11 @@ Status DumpProperties::CheckDumpMode(const std::string &dump_mode) const {
     (void)REPORT_PREDEFINED_ERR_MSG(
         "E10001", std::vector<const char *>({"parameter", "value", "reason"}),
         std::vector<const char *>({ge::GetContext().GetReadableName("ge.exec.dumpMode").c_str(), dump_mode.c_str(),
-                                  "The dump mode must be selected from [input, output, all]."}));
-    GELOGE(PARAM_INVALID, "[Check][Param] the dump_debug_mode:%s, is not supported,"
-           "should be one of the following:[input, output, all].", dump_mode.c_str());
+                                   "The dump mode must be selected from [input, output, all]."}));
+    GELOGE(PARAM_INVALID,
+           "[Check][Param] the dump_debug_mode:%s, is not supported,"
+           "should be one of the following:[input, output, all].",
+           dump_mode.c_str());
     return PARAM_INVALID;
   }
   return SUCCESS;
@@ -153,7 +161,7 @@ Status DumpProperties::CheckDumpPathValid(const std::string &input) const {
         "E10001", std::vector<const char *>({"parameter", "value", "reason"}),
         std::vector<const char *>(
             {ge::GetContext().GetReadableName("ge.exec.dumpPath").c_str(), input.c_str(), reason.c_str()}));
-    GELOGE(PARAM_INVALID, "[Check][Param] the path:%s, does't have read, write permissions.", input.c_str());
+    GELOGE(PARAM_INVALID, "[Check][Param] the path:%s, doesn't have read, write permissions.", input.c_str());
     return PARAM_INVALID;
   }
   return SUCCESS;
@@ -163,11 +171,14 @@ Status DumpProperties::CheckEnableDump(const std::string &input) const {
   std::set<std::string> enable_dump_option_list = {"1", "0"};
   const auto it = enable_dump_option_list.find(input);
   if (it == enable_dump_option_list.end()) {
-    (void)REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"parameter", "value", "reason"}),
-                       std::vector<const char *>({ge::GetContext().GetReadableName("ge.exec.enableDump").c_str(), input.c_str(),
-                                                 "The value must be 1 or 0."}));
-    GELOGE(PARAM_INVALID, "[Check][Param] Not support ge.exec.enableDump or ge.exec.enableDumpDebug format:%s, "
-           "only support 1 or 0.", input.c_str());
+    (void)REPORT_PREDEFINED_ERR_MSG(
+        "E10001", std::vector<const char *>({"parameter", "value", "reason"}),
+        std::vector<const char *>({ge::GetContext().GetReadableName("ge.exec.enableDump").c_str(), input.c_str(),
+                                   "The value must be 1 or 0."}));
+    GELOGE(PARAM_INVALID,
+           "[Check][Param] Not support ge.exec.enableDump or ge.exec.enableDumpDebug format:%s, "
+           "only support 1 or 0.",
+           input.c_str());
     return PARAM_INVALID;
   }
   return SUCCESS;
@@ -234,7 +245,8 @@ Status DumpProperties::InitByOptions() {
         "E10001", std::vector<const char *>({"parameter", "value", "reason"}),
         std::vector<const char *>(
             {(ge::GetContext().GetReadableName("ge.exec.enableDump") + " and " +
-              ge::GetContext().GetReadableName("ge.exec.enableDumpDebug")).c_str(),
+              ge::GetContext().GetReadableName("ge.exec.enableDumpDebug"))
+                 .c_str(),
              (enable_dump_ + ", " + enable_dump_debug_).c_str(),
              "ge.exec.enableDump and ge.exec.enableDumpDebug cannot be set to 1 at the same time."}));
     GELOGE(FAILED, "ge.exec.enableDump and ge.exec.enableDumpDebug cannot be both set to 1 at the same time.");
@@ -358,7 +370,7 @@ bool DumpProperties::IsDumpWatcherModelEnable() const {
 }
 
 bool DumpProperties::IsNeedDump(const std::string &model, const std::string &om_name,
-                                     const std::string &op_name) const {
+                                const std::string &op_name) const {
   // if dump all
   if (model_dump_properties_map_.find(DUMP_ALL_MODEL) != model_dump_properties_map_.end()) {
     return true;
@@ -443,153 +455,152 @@ const std::string &DumpProperties::GetDumpData() const {
 }
 
 const std::map<std::string, ModelOpBlacklist> &DumpProperties::GetModelDumpBlacklistMap() const {
-    return model_dump_blacklist_map_;
+  return model_dump_blacklist_map_;
 }
 
-void DumpProperties::SetModelDumpBlacklistMap(const std::map<std::string, ModelOpBlacklist>& new_map) {
-    model_dump_blacklist_map_ = new_map;
+void DumpProperties::SetModelDumpBlacklistMap(const std::map<std::string, ModelOpBlacklist> &new_map) {
+  model_dump_blacklist_map_ = new_map;
 }
 
-void DumpProperties::SetModelBlacklist(const std::string& model_name,
-                                      const ModelOpBlacklist& blacklist) {
-    // 如果model_name不存在，直接插入新的blacklist
-    if (model_dump_blacklist_map_.find(model_name) == model_dump_blacklist_map_.end()) {
-        model_dump_blacklist_map_[model_name] = blacklist;
-        GELOGI("Set blacklist for new model[%s].", model_name.c_str());
-        return;
+void DumpProperties::SetModelBlacklist(const std::string &model_name, const ModelOpBlacklist &blacklist) {
+  // 如果model_name不存在，直接插入新的blacklist
+  if (model_dump_blacklist_map_.find(model_name) == model_dump_blacklist_map_.end()) {
+    model_dump_blacklist_map_[model_name] = blacklist;
+    GELOGI("Set blacklist for new model[%s].", model_name.c_str());
+    return;
+  }
+
+  // 如果已存在，合并新的blacklist到现有的
+  ModelOpBlacklist &existing_blacklist = model_dump_blacklist_map_[model_name];
+
+  // 统计新增的blacklist数量
+  size_t new_optype_count = 0;
+  size_t new_opname_count = 0;
+  size_t merged_optype_count = 0;
+  size_t merged_opname_count = 0;
+
+  // 合并dump_optype_blacklist
+  for (auto it = blacklist.dump_optype_blacklist.begin(); it != blacklist.dump_optype_blacklist.end(); ++it) {
+    const std::string &op_type = it->first;
+    const OpBlacklist &new_op_blacklist = it->second;
+
+    if (existing_blacklist.dump_optype_blacklist.find(op_type) == existing_blacklist.dump_optype_blacklist.end()) {
+      existing_blacklist.dump_optype_blacklist[op_type] = new_op_blacklist;
+      new_optype_count++;
+      GELOGI("Add new op_type blacklist for model[%s]: op_type[%s] with %zu input indices and %zu output indices.",
+             model_name.c_str(), op_type.c_str(), new_op_blacklist.input_indices.size(),
+             new_op_blacklist.output_indices.size());
+    } else {
+      OpBlacklist &existing_op_blacklist = existing_blacklist.dump_optype_blacklist[op_type];
+      const size_t old_input_size = existing_op_blacklist.input_indices.size();
+      const size_t old_output_size = existing_op_blacklist.output_indices.size();
+
+      existing_op_blacklist.input_indices.insert(new_op_blacklist.input_indices.begin(),
+                                                 new_op_blacklist.input_indices.end());
+      existing_op_blacklist.output_indices.insert(new_op_blacklist.output_indices.begin(),
+                                                  new_op_blacklist.output_indices.end());
+
+      merged_optype_count++;
+      GELOGI(
+          "Merge op_type blacklist for model[%s]: op_type[%s], input indices: %zu -> %zu, output indices: %zu -> %zu.",
+          model_name.c_str(), op_type.c_str(), old_input_size, existing_op_blacklist.input_indices.size(),
+          old_output_size, existing_op_blacklist.output_indices.size());
     }
+  }
 
-    // 如果已存在，合并新的blacklist到现有的
-    ModelOpBlacklist& existing_blacklist = model_dump_blacklist_map_[model_name];
+  // 合并dump_opname_blacklist
+  for (auto it = blacklist.dump_opname_blacklist.begin(); it != blacklist.dump_opname_blacklist.end(); ++it) {
+    const std::string &op_name = it->first;
+    const OpBlacklist &new_op_blacklist = it->second;
 
-    // 统计新增的blacklist数量
-    size_t new_optype_count = 0;
-    size_t new_opname_count = 0;
-    size_t merged_optype_count = 0;
-    size_t merged_opname_count = 0;
+    if (existing_blacklist.dump_opname_blacklist.find(op_name) == existing_blacklist.dump_opname_blacklist.end()) {
+      existing_blacklist.dump_opname_blacklist[op_name] = new_op_blacklist;
+      new_opname_count++;
+      GELOGI("Add new op_name blacklist for model[%s]: op_name[%s] with %zu input indices and %zu output indices.",
+             model_name.c_str(), op_name.c_str(), new_op_blacklist.input_indices.size(),
+             new_op_blacklist.output_indices.size());
+    } else {
+      OpBlacklist &existing_op_blacklist = existing_blacklist.dump_opname_blacklist[op_name];
+      const size_t old_input_size = existing_op_blacklist.input_indices.size();
+      const size_t old_output_size = existing_op_blacklist.output_indices.size();
 
-    // 合并dump_optype_blacklist
-    for (auto it = blacklist.dump_optype_blacklist.begin(); it != blacklist.dump_optype_blacklist.end(); ++it) {
-        const std::string& op_type = it->first;
-        const OpBlacklist& new_op_blacklist = it->second;
+      existing_op_blacklist.input_indices.insert(new_op_blacklist.input_indices.begin(),
+                                                 new_op_blacklist.input_indices.end());
+      existing_op_blacklist.output_indices.insert(new_op_blacklist.output_indices.begin(),
+                                                  new_op_blacklist.output_indices.end());
 
-        if (existing_blacklist.dump_optype_blacklist.find(op_type) == existing_blacklist.dump_optype_blacklist.end()) {
-            existing_blacklist.dump_optype_blacklist[op_type] = new_op_blacklist;
-            new_optype_count++;
-            GELOGI("Add new op_type blacklist for model[%s]: op_type[%s] with %zu input indices and %zu output indices.",
-                   model_name.c_str(), op_type.c_str(),
-                   new_op_blacklist.input_indices.size(),
-                   new_op_blacklist.output_indices.size());
-        } else {
-            OpBlacklist& existing_op_blacklist = existing_blacklist.dump_optype_blacklist[op_type];
-            const size_t old_input_size = existing_op_blacklist.input_indices.size();
-            const size_t old_output_size = existing_op_blacklist.output_indices.size();
-
-            existing_op_blacklist.input_indices.insert(new_op_blacklist.input_indices.begin(), new_op_blacklist.input_indices.end());
-            existing_op_blacklist.output_indices.insert(new_op_blacklist.output_indices.begin(), new_op_blacklist.output_indices.end());
-
-            merged_optype_count++;
-            GELOGI("Merge op_type blacklist for model[%s]: op_type[%s], input indices: %zu -> %zu, output indices: %zu -> %zu.",
-                   model_name.c_str(), op_type.c_str(),
-                   old_input_size, existing_op_blacklist.input_indices.size(),
-                   old_output_size, existing_op_blacklist.output_indices.size());
-        }
+      merged_opname_count++;
+      GELOGI(
+          "Merge op_name blacklist for model[%s]: op_name[%s], input indices: %zu -> %zu, output indices: %zu -> %zu.",
+          model_name.c_str(), op_name.c_str(), old_input_size, existing_op_blacklist.input_indices.size(),
+          old_output_size, existing_op_blacklist.output_indices.size());
     }
+  }
 
-    // 合并dump_opname_blacklist
-    for (auto it = blacklist.dump_opname_blacklist.begin(); it != blacklist.dump_opname_blacklist.end(); ++it) {
-        const std::string& op_name = it->first;
-        const OpBlacklist& new_op_blacklist = it->second;
-
-        if (existing_blacklist.dump_opname_blacklist.find(op_name) == existing_blacklist.dump_opname_blacklist.end()) {
-            existing_blacklist.dump_opname_blacklist[op_name] = new_op_blacklist;
-            new_opname_count++;
-            GELOGI("Add new op_name blacklist for model[%s]: op_name[%s] with %zu input indices and %zu output indices.",
-                   model_name.c_str(), op_name.c_str(),
-                   new_op_blacklist.input_indices.size(),
-                   new_op_blacklist.output_indices.size());
-        } else {
-            OpBlacklist& existing_op_blacklist = existing_blacklist.dump_opname_blacklist[op_name];
-            const size_t old_input_size = existing_op_blacklist.input_indices.size();
-            const size_t old_output_size = existing_op_blacklist.output_indices.size();
-
-            existing_op_blacklist.input_indices.insert(new_op_blacklist.input_indices.begin(), new_op_blacklist.input_indices.end());
-            existing_op_blacklist.output_indices.insert(new_op_blacklist.output_indices.begin(), new_op_blacklist.output_indices.end());
-
-            merged_opname_count++;
-            GELOGI("Merge op_name blacklist for model[%s]: op_name[%s], input indices: %zu -> %zu, output indices: %zu -> %zu.",
-                   model_name.c_str(), op_name.c_str(),
-                   old_input_size, existing_op_blacklist.input_indices.size(),
-                   old_output_size, existing_op_blacklist.output_indices.size());
-        }
-    }
-
-    // 打印总体统计信息
-    GELOGI("Set blacklist for model[%s] completed: %zu new op_types, %zu merged op_types, %zu new op_names, %zu merged op_names.",
-           model_name.c_str(), new_optype_count, merged_optype_count, new_opname_count, merged_opname_count);
+  // 打印总体统计信息
+  GELOGI(
+      "Set blacklist for model[%s] completed: %zu new op_types, %zu merged op_types, %zu new op_names, %zu merged "
+      "op_names.",
+      model_name.c_str(), new_optype_count, merged_optype_count, new_opname_count, merged_opname_count);
 }
 
-bool DumpProperties::IsInputInOpNameBlacklist(const std::string &model_name,
-                                            const std::string &op_name,
-                                            const uint32_t index) const {
-    auto model_it = model_dump_blacklist_map_.find(model_name);
-    if (model_it == model_dump_blacklist_map_.end()) {
-        return false;
-    }
+bool DumpProperties::IsInputInOpNameBlacklist(const std::string &model_name, const std::string &op_name,
+                                              const uint32_t index) const {
+  auto model_it = model_dump_blacklist_map_.find(model_name);
+  if (model_it == model_dump_blacklist_map_.end()) {
+    return false;
+  }
 
-    auto op_input_it = model_it->second.dump_opname_blacklist.find(op_name);
-    if (op_input_it == model_it->second.dump_opname_blacklist.end()) {
-      return false;
-    }
+  auto op_input_it = model_it->second.dump_opname_blacklist.find(op_name);
+  if (op_input_it == model_it->second.dump_opname_blacklist.end()) {
+    return false;
+  }
 
-    return op_input_it->second.input_indices.count(index) > 0;
+  return op_input_it->second.input_indices.count(index) > 0;
 }
-bool DumpProperties::IsOutputInOpNameBlacklist(const std::string &model_name,
-                                             const std::string &op_name,
-                                             const uint32_t index) const {
-    auto model_it = model_dump_blacklist_map_.find(model_name);
-    if (model_it == model_dump_blacklist_map_.end()) {
-      return false;
-    }
+bool DumpProperties::IsOutputInOpNameBlacklist(const std::string &model_name, const std::string &op_name,
+                                               const uint32_t index) const {
+  auto model_it = model_dump_blacklist_map_.find(model_name);
+  if (model_it == model_dump_blacklist_map_.end()) {
+    return false;
+  }
 
-    auto op_output_it = model_it->second.dump_opname_blacklist.find(op_name);
-    if (op_output_it == model_it->second.dump_opname_blacklist.end()) {
-      return false;
-    }
+  auto op_output_it = model_it->second.dump_opname_blacklist.find(op_name);
+  if (op_output_it == model_it->second.dump_opname_blacklist.end()) {
+    return false;
+  }
 
-    return op_output_it->second.output_indices.count(index) > 0;
+  return op_output_it->second.output_indices.count(index) > 0;
 }
 
-bool DumpProperties::IsInputInOpTypeBlacklist(const std::string &model_name,
-                                            const std::string &op_type,
-                                            const uint32_t index) const {
-    auto model_it = model_dump_blacklist_map_.find(model_name);
-    if (model_it == model_dump_blacklist_map_.end()) {
-      return false;
-    }
+bool DumpProperties::IsInputInOpTypeBlacklist(const std::string &model_name, const std::string &op_type,
+                                              const uint32_t index) const {
+  auto model_it = model_dump_blacklist_map_.find(model_name);
+  if (model_it == model_dump_blacklist_map_.end()) {
+    return false;
+  }
 
-    auto op_input_it = model_it->second.dump_optype_blacklist.find(op_type);
-    if (op_input_it == model_it->second.dump_optype_blacklist.end()) {
-      return false;
-    }
+  auto op_input_it = model_it->second.dump_optype_blacklist.find(op_type);
+  if (op_input_it == model_it->second.dump_optype_blacklist.end()) {
+    return false;
+  }
 
-    return op_input_it->second.input_indices.count(index) > 0;
+  return op_input_it->second.input_indices.count(index) > 0;
 }
 
-bool DumpProperties::IsOutputInOpTypeBlacklist(const std::string &model_name,
-                                             const std::string &op_type,
-                                             const uint32_t index) const {
-    auto model_it = model_dump_blacklist_map_.find(model_name);
-    if (model_it == model_dump_blacklist_map_.end()) {
-      return false;
-    }
+bool DumpProperties::IsOutputInOpTypeBlacklist(const std::string &model_name, const std::string &op_type,
+                                               const uint32_t index) const {
+  auto model_it = model_dump_blacklist_map_.find(model_name);
+  if (model_it == model_dump_blacklist_map_.end()) {
+    return false;
+  }
 
-    auto op_output_it = model_it->second.dump_optype_blacklist.find(op_type);
-    if (op_output_it == model_it->second.dump_optype_blacklist.end()) {
-      return false;
-    }
+  auto op_output_it = model_it->second.dump_optype_blacklist.find(op_type);
+  if (op_output_it == model_it->second.dump_optype_blacklist.end()) {
+    return false;
+  }
 
-    return op_output_it->second.output_indices.count(index) > 0;
+  return op_output_it->second.output_indices.count(index) > 0;
 }
 
 void DumpProperties::SetDumpStatus(const std::string &status) {
@@ -690,35 +701,34 @@ void DumpProperties::SetOpDumpRange(const std::string &model,
     const std::string &model_name = model_range.first;
     const auto &ranges = model_range.second;
     for (const auto &range : ranges) {
-      GELOGI("Model name[%s] opname range begin[%s] range end[%s].",
-        model_name.c_str(), range.first.c_str(), range.second.c_str());
+      GELOGI("Model name[%s] opname range begin[%s] range end[%s].", model_name.c_str(), range.first.c_str(),
+             range.second.c_str());
     }
   }
 }
 
 /*
-  * |           | kRangeStart | kRangeEnd | kOutofRange
-  * |-----------|------------ |-----------|-------------|
-  * | kInit     | kStart      | kError    |  kInit      |
-  * | kStart    | kStart      | kStop     |  kStart     |
-  * | kStop     | kError      | kStop     |  kInit      |
-  * | kError    | kError      | kError    |  kError     |
-  */
+ * |           | kRangeStart | kRangeEnd | kOutofRange
+ * |-----------|------------ |-----------|-------------|
+ * | kInit     | kStart      | kError    |  kInit      |
+ * | kStart    | kStart      | kStop     |  kStart     |
+ * | kStop     | kError      | kStop     |  kInit      |
+ * | kError    | kError      | kError    |  kError     |
+ */
 DumpProcState DumpProperties::DumpProcFsmTransition(DumpProcState current, DumpProcEvent evt) {
   static constexpr std::size_t N_STATES = 4U;
   static constexpr std::size_t N_EVENTS = 3U;
 
   // 行列顺序必须与枚举定义一致
-  static constexpr std::array<std::array<DumpProcState, N_EVENTS>, N_STATES> kTable = {{
-      /* kInit  */
-      {DumpProcState::kStart, DumpProcState::kError, DumpProcState::kInit},
-      /* kStart */
-      {DumpProcState::kStart, DumpProcState::kStop,  DumpProcState::kStart},
-      /* kStop  */
-      {DumpProcState::kError, DumpProcState::kStop,  DumpProcState::kInit},
-      /* kError */
-      {DumpProcState::kError, DumpProcState::kError, DumpProcState::kError}
-  }};
+  static constexpr std::array<std::array<DumpProcState, N_EVENTS>, N_STATES> kTable = {
+      {/* kInit  */
+       {DumpProcState::kStart, DumpProcState::kError, DumpProcState::kInit},
+       /* kStart */
+       {DumpProcState::kStart, DumpProcState::kStop, DumpProcState::kStart},
+       /* kStop  */
+       {DumpProcState::kError, DumpProcState::kStop, DumpProcState::kInit},
+       /* kError */
+       {DumpProcState::kError, DumpProcState::kError, DumpProcState::kError}}};
 
   const auto st = static_cast<std::size_t>(current);
   const auto ev = static_cast<std::size_t>(evt);
@@ -733,7 +743,7 @@ std::string DumpProperties::GetDumpOpRangeModelName(const std::string &model, co
   std::string model_name;
   const auto model_iter = model_dump_op_ranges_map_.find(model);
   const auto om_name_iter = model_dump_op_ranges_map_.find(om_name);
-  if (om_name_iter != model_dump_op_ranges_map_.end()){
+  if (om_name_iter != model_dump_op_ranges_map_.end()) {
     model_name = om_name;
   } else if ((model_iter != model_dump_op_ranges_map_.end())) {
     model_name = model;
@@ -751,8 +761,8 @@ size_t DumpProperties::GetDumpOpRangeSize(const std::string &model, const std::s
   }
 
   const auto range_iter = model_dump_op_ranges_map_.find(model_name);
-  GELOGD("Model name[%s] model[%s] om name[%s] opname range size[%zu].",
-    model_name.c_str(), model.c_str(), om_name.c_str(), range_iter->second.size());
+  GELOGD("Model name[%s] model[%s] om name[%s] opname range size[%zu].", model_name.c_str(), model.c_str(),
+         om_name.c_str(), range_iter->second.size());
   return range_iter->second.size();
 }
 
@@ -769,9 +779,7 @@ DumpProcEvent DumpProperties::GetOpProcEvent(const std::string &op_name,
   return DumpProcEvent::kOutOfRange;
 }
 
-Status DumpProperties::SetDumpFsmState(const std::string &model,
-                                       const std::string &om_name,
-                                       const std::string &op_name,
+Status DumpProperties::SetDumpFsmState(const std::string &model, const std::string &om_name, const std::string &op_name,
                                        std::vector<DumpProcState> &dump_fsm_state,
                                        std::unordered_set<std::string> &dump_op_in_range,
                                        const bool is_update_dump_op_range) const {
@@ -782,46 +790,46 @@ Status DumpProperties::SetDumpFsmState(const std::string &model,
 
   const auto range_iter = model_dump_op_ranges_map_.find(model_name);
   if (range_iter->second.size() != dump_fsm_state.size()) {
-    GELOGE(FAILED, "Model name[%s], opname range size[%u], dump fsm state size[%u] is not equal.",
-    model_name.c_str(), range_iter->second.size(), dump_fsm_state.size());
+    GELOGE(FAILED, "Model name[%s], opname range size[%u], dump fsm state size[%u] is not equal.", model_name.c_str(),
+           range_iter->second.size(), dump_fsm_state.size());
     return FAILED;
   }
 
   for (size_t index = 0U; index < range_iter->second.size(); index++) {
     const DumpProcEvent event = GetOpProcEvent(op_name, range_iter->second[index]);
     const DumpProcState cur_state = dump_fsm_state[index];
-    if (cur_state == DumpProcState::kError) { // kError之后need dump op的范围不会再增加
+    if (cur_state == DumpProcState::kError) {  // kError之后need dump op的范围不会再增加
       continue;
     }
     DumpProcState next_state = DumpProcFsmTransition(cur_state, event);
     if (next_state == DumpProcState::kStart || next_state == DumpProcState::kStop) {
-      GELOGD("Model name[%s] model[%s] om name[%s] op[%s] cur state[%d] event[%d] next state[%d] "
-        "opname range id[%zu] need dump[%d].", model_name.c_str(), model.c_str(), om_name.c_str(), op_name.c_str(),
-        static_cast<int32_t>(cur_state), static_cast<int32_t>(event),
-        static_cast<int32_t>(next_state), index, is_update_dump_op_range);
+      GELOGD(
+          "Model name[%s] model[%s] om name[%s] op[%s] cur state[%d] event[%d] next state[%d] "
+          "opname range id[%zu] need dump[%d].",
+          model_name.c_str(), model.c_str(), om_name.c_str(), op_name.c_str(), static_cast<int32_t>(cur_state),
+          static_cast<int32_t>(event), static_cast<int32_t>(next_state), index, is_update_dump_op_range);
       if (is_update_dump_op_range) {
         (void)dump_op_in_range.insert(op_name);
       }
     } else if (next_state == DumpProcState::kError) {
-      GELOGW("Model name[%s] opname range[%s, %s] range id[%zu] is invalid.",
-        model_name.c_str(), range_iter->second[index].first.c_str(),
-        range_iter->second[index].second.c_str(), index);
+      GELOGW("Model name[%s] opname range[%s, %s] range id[%zu] is invalid.", model_name.c_str(),
+             range_iter->second[index].first.c_str(), range_iter->second[index].second.c_str(), index);
     } else {
       GELOGD(
-        "Model name[%s] model[%s] om name[%s] op[%s] cur state[%d] event[%d] "
-        "next state[%d] opname range id[%zu] no need dump.",
-        model_name.c_str(), model.c_str(), om_name.c_str(), op_name.c_str(),
-        static_cast<int32_t>(cur_state), static_cast<int32_t>(event), static_cast<int32_t>(next_state), index);
+          "Model name[%s] model[%s] om name[%s] op[%s] cur state[%d] event[%d] "
+          "next state[%d] opname range id[%zu] no need dump.",
+          model_name.c_str(), model.c_str(), om_name.c_str(), op_name.c_str(), static_cast<int32_t>(cur_state),
+          static_cast<int32_t>(event), static_cast<int32_t>(next_state), index);
     }
 
     if ((next_state == DumpProcState::kStart) &&
-      (range_iter->second[index].first == range_iter->second[index].second)) {
+        (range_iter->second[index].first == range_iter->second[index].second)) {
       next_state = DumpProcState::kStop;
       GELOGD(
-        "Model name[%s] model[%s] om name[%s] op[%s] next state[%d] opname range id[%zu] range begin[%s] "
-        "is same with range end[%s].", model_name.c_str(), model.c_str(), om_name.c_str(), op_name.c_str(),
-        static_cast<int32_t>(next_state), index, range_iter->second[index].first.c_str(),
-        range_iter->second[index].second.c_str());
+          "Model name[%s] model[%s] om name[%s] op[%s] next state[%d] opname range id[%zu] range begin[%s] "
+          "is same with range end[%s].",
+          model_name.c_str(), model.c_str(), om_name.c_str(), op_name.c_str(), static_cast<int32_t>(next_state), index,
+          range_iter->second[index].first.c_str(), range_iter->second[index].second.c_str());
     }
 
     dump_fsm_state[index] = next_state;

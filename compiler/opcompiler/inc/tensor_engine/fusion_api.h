@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -47,13 +47,13 @@ extern "C" bool WaitAllFinished(uint64_t graphId, vector<FinComTask> &tasks);
  * @param [out] result: contains the results returned by op
  * @return bool: check process ok or not
  */
-extern "C" bool CheckOpSupported(TbeOpInfo& opinfo, CheckSupportedInfo &checkSupportedInfo);
+extern "C" bool CheckOpSupported(TbeOpInfo &opinfo, CheckSupportedInfo &checkSupportedInfo);
 
 /**
  * @brief pre build tbe op
  * @return [out] bool                 succ or fail of prebuild
  */
-extern "C" bool PreBuildTbeOp(TbeOpInfo& opinfo, uint64_t taskId, uint64_t graphId);
+extern "C" bool PreBuildTbeOp(TbeOpInfo &opinfo, uint64_t taskId, uint64_t graphId);
 
 /**
  * @brief build fusion op
@@ -69,8 +69,8 @@ extern "C" bool PreBuildTbeOp(TbeOpInfo& opinfo, uint64_t taskId, uint64_t graph
  * @return [out] bool                 succ or fail of building fusion op
  */
 extern "C" OpBuildResCode TeFusion(std::vector<ge::Node *> teGraphNode, ge::OpDescPtr opDesc,
-                                   const std::vector<ge::NodePtr> &toBeDel,
-                                   uint64_t taskId, uint64_t graphId, const std::string &strategy);
+                                   const std::vector<ge::NodePtr> &toBeDel, uint64_t taskId, uint64_t graphId,
+                                   const std::string &strategy);
 
 extern "C" OpBuildResCode TeFusionV(std::vector<ge::Node *> teGraphNode, ge::OpDescPtr opDesc,
                                     const std::vector<ge::NodePtr> &toBeDel, uint64_t taskId, uint64_t graphId,
@@ -109,11 +109,11 @@ extern "C" LX_QUERY_STATUS GetOpInfo(const TbeOpInfo &tbeOpInfo, std::string &re
 extern "C" OpBuildResCode FuzzBuildTbeOp(uint64_t taskId, uint64_t graphId, ge::Node &node);
 
 /**
-* @brief: query op registered patterns
-* @param [out] opPatternVec op_pattern list, key is op_type, value is pattern(Elewise/func/...).
-* @return [out] bool        succ or fail
-*/
-extern "C" bool QueryOpPattern(const std::vector<std::pair<std::string, std::string>>& opPatternVec);
+ * @brief: query op registered patterns
+ * @param [out] opPatternVec op_pattern list, key is op_type, value is pattern(Elewise/func/...).
+ * @return [out] bool        succ or fail
+ */
+extern "C" bool QueryOpPattern(const std::vector<std::pair<std::string, std::string>> &opPatternVec);
 
 /**
  * @brief check is this op has registered generalize func
@@ -159,7 +159,7 @@ extern "C" bool DynamicShapeRangeCheck(const TbeOpInfo &tbeOpInfo, bool &isSuppo
  * @param [out] opUniqueKeyList     op UniqueKey list
  * @return [out] bool             succ or fail of get
  */
-extern "C" bool GetOpUniqueKeys(const TbeOpInfo &tbeOpInfo,  std::vector<std::string> &opUniqueKeyList);
+extern "C" bool GetOpUniqueKeys(const TbeOpInfo &tbeOpInfo, std::vector<std::string> &opUniqueKeyList);
 
 /**
  * @brief support task fusion
@@ -181,6 +181,6 @@ extern "C" bool IsOppKernelInstalled(bool isOm, int64_t implType);
  * @return [out] compileStatistics compile staticistics messages
  */
 extern "C" void GetAllCompileStatistics(std::vector<std::string> &compileStatistics);
-} // namespace te
+}  // namespace te
 /*lint +e148*/
 #endif

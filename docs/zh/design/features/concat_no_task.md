@@ -235,7 +235,7 @@ AttrUtils::SetInt(op_desc, ATTR_NAME_REUSE_INPUT_ON_DIM_INDEX, 0);
 
 // 标记前驱节点的输出 TensorDesc 不可再被复用
 for each input:
-    AttrUtils::SetBool(output_tensor_desc, 
+    AttrUtils::SetBool(output_tensor_desc,
                        "can_reused_for_concat_optimize", false);
 ```
 

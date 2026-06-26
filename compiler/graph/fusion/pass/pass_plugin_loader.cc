@@ -28,7 +28,7 @@ bool NeedLoadPythonPasses() {
 }
 
 class PassPluginLoader {
-public:
+ public:
   static PassPluginLoader &GetInstance() {
     static PassPluginLoader instance;
     return instance;
@@ -101,13 +101,13 @@ public:
     return SUCCESS;
   }
 
-private:
+ private:
   std::mutex mutex_;
   bool cpp_pass_loaded_{false};
   bool python_pass_loaded_{false};
   bool shutdown_done_{false};
 };
-}
+}  // namespace
 
 Status LoadPassPlugins() {
   return PassPluginLoader::GetInstance().Load();

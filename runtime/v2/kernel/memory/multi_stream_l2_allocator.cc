@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -59,8 +59,7 @@ GertMemBlock *MultiStreamL2Allocator::Malloc(size_t size) {
   auto gert_mem_block = borrow_allocator_.Alloc(size);
   if (gert_mem_block != nullptr) {
     if (GetPlacement() == kOnDeviceHbm) {
-      DeviceMemoryRecorder::SetRecorder(gert_mem_block->GetAddr(),
-          static_cast<int64_t>(gert_mem_block->GetSize()));
+      DeviceMemoryRecorder::SetRecorder(gert_mem_block->GetAddr(), static_cast<int64_t>(gert_mem_block->GetSize()));
     }
     gert_mem_block->NewAccessStream(GetStreamId(), GetStreamId());
   }
@@ -74,8 +73,7 @@ void MultiStreamL2Allocator::Free(GertMemBlock *block) {
     DeviceMemoryRecorder::SetRecorder(multi_stream_mem_block->GetAddr(), free_size);
   }
   bool need_recycle = false;
-  if (multi_stream_mem_block->GetCount(GetStreamId()) > 0U &&
-      multi_stream_mem_block->SubCount(GetStreamId()) == 0U) {
+  if (multi_stream_mem_block->GetCount(GetStreamId()) > 0U && multi_stream_mem_block->SubCount(GetStreamId()) == 0U) {
     need_recycle = true;
     MultiStreamMemBlockHelper::UpdateLocalRecycleMif(multi_stream_mem_block, GetStreamId());
   }

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -46,20 +46,20 @@ struct CtxInfo {
 };
 class FftsPlusArgsHelper {
  public:
-  explicit FftsPlusArgsHelper(const RuntimeParam &runtime_aram) : runtime_param_(runtime_aram){};
+  explicit FftsPlusArgsHelper(const RuntimeParam &runtime_aram) : runtime_param_(runtime_aram) {};
 
   void AppendAbsoluteAddrs(const uint64_t rt_addr, const std::string &addr_type);
   void AppendIoAddrs(const uint64_t logic_addr);
   void AppendRtIoAddrs(const uint64_t rt_addr, const uint64_t mem_type);
-  void AppendCtxLevel1Addrs(const uint64_t logic_addr, const uint64_t iow_mem_type, const CtxAddrInfo& ctx_addr_info);
+  void AppendCtxLevel1Addrs(const uint64_t logic_addr, const uint64_t iow_mem_type, const CtxAddrInfo &ctx_addr_info);
 
   Status AppendAicpuAddrs(const uint64_t rt_addr, const uint64_t io_mem_type, const size_t relevant_offset);
   Status AppendBinArgs(const uint8_t *const args_addr, const size_t args_size);
 
   Status UpdateIoAddrByIndex(const size_t index, const uint64_t rt_addr);
 
-  Status InitArgsBase(uint8_t *const pis_args_host_base, uint8_t *const args_dev,
-                      uint8_t *const args_host, const size_t args_size, const size_t bin_args_size);
+  Status InitArgsBase(uint8_t *const pis_args_host_base, uint8_t *const args_dev, uint8_t *const args_host,
+                      const size_t args_size, const size_t bin_args_size);
 
   Status GetTaskArgsRefreshInfos(std::vector<TaskArgsRefreshInfo> &infos,
                                  FftsPlusProtoTransfer &ffts_plus_proto_transfer);
@@ -146,11 +146,11 @@ class FftsPlusArgsHelper {
     return cust_to_relevant_offset_;
   }
 
-  size_t GetCtxArgsSize (const int32_t ctx_id) const;
+  size_t GetCtxArgsSize(const int32_t ctx_id) const;
+
  private:
-  Status GenAicpuRefreshInfos(const std::vector<TaskArgsRefreshInfo> &args_fresh_info,
-                             const size_t start_idx,
-                             std::vector<TaskArgsRefreshInfo> &aicpu_args_fresh_info);
+  Status GenAicpuRefreshInfos(const std::vector<TaskArgsRefreshInfo> &args_fresh_info, const size_t start_idx,
+                              std::vector<TaskArgsRefreshInfo> &aicpu_args_fresh_info);
   Status UpdateAicpuAddrs(const std::vector<uint64_t> &io_addrs, const size_t start_idx);
 
   const RuntimeParam &runtime_param_;

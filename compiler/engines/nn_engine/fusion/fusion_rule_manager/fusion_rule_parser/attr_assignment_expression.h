@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,7 +24,7 @@ namespace fe {
 using FusionRuleAttrValuePtr = std::shared_ptr<FusionRuleAttrValue>;
 
 /** @brief provide attribute assginment expression parse methods, and get
-*        attribute's info from OpKernleInfoStore */
+ *        attribute's info from OpKernleInfoStore */
 class AttrAssignmentExpression {
  public:
   AttrAssignmentExpression()
@@ -58,9 +58,13 @@ class AttrAssignmentExpression {
    */
   Status ParseToAttrValue(const std::map<string, std::vector<string>> &node_map);
 
-  const FusionRuleAttr &GetAttr() const { return attr_; }
+  const FusionRuleAttr &GetAttr() const {
+    return attr_;
+  }
 
-  FusionRuleAttrValuePtr GetValue() const { return value_; }
+  FusionRuleAttrValuePtr GetValue() const {
+    return value_;
+  }
 
  private:
   /*
@@ -108,7 +112,8 @@ class AttrAssignmentExpression {
   /*
    * @brief: Get fixed string value from json
    */
-  Status GetStrAndConvert(const nlohmann::json &json_object, std::string &value, FusionRuleAttrValuePtr attr_value) const;
+  Status GetStrAndConvert(const nlohmann::json &json_object, std::string &value,
+                          FusionRuleAttrValuePtr attr_value) const;
 
   const std::string ATTR = "attr";
   const std::string VALUE;

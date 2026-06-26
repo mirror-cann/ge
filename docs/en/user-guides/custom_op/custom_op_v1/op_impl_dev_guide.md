@@ -193,7 +193,7 @@ From `Cast` operator's functionality, its output Shape equals input Shape, Infer
 ge::graphStatus InferShapeForCast(InferShapeContext *context) {
   // Get pointers to 0th input and output
   const gert::Shape *shape = context->GetInputShape(0);
-  gert::Shape *output_shape = context->GetOutputShape(0); 
+  gert::Shape *output_shape = context->GetOutputShape(0);
   if (shape == nullptr || output_shape == nullptr) {
     // Defensive programming, scenario that shouldn't appear, print error and return failure
   GELOGE(ge::PARAM_INVALID,
@@ -204,7 +204,7 @@ ge::graphStatus InferShapeForCast(InferShapeContext *context) {
   }
 
   *output_shape = *shape;  // Assign input shape to output shape
-  
+
   return ge::GRAPH_SUCCESS;
 }
 ```
@@ -354,7 +354,7 @@ ge::graphStatus TilingPrepareForTransdata(TilingParseContext *context) {
   if (parsed_object_cinfo == nullptr) {
     return ge::GRAPH_FAILED;
   }
-  
+
   // Parse json, and write parsed result into CompileInfo instance
   const nlohmann::json &allVars = (*parsed_object_cinfo)["vars"];
   if (!GetCompileValue(allVars, "ub_size", compile_info->ub_size)) {
@@ -409,7 +409,7 @@ ge::graphStatus TilingForTransData(TilingContext *context) {
   const StorageShape *out_shape = context->GetOutputShape(0);
   // Get CompileInfo instance, this instance is written by TilingParse
   auto compile_info = reinterpret_cast<const TransDataCompileInfo *>(context->GetCompileInfo());
-  
+
   // Get input output TensorDesc, TensorDesc contains format information, DataType information
   const CompileTimeTensorDesc *src_td = context->GetInputDesc(0);
   const CompileTimeTensorDesc *dst_td = context->GetOutputDesc(0);
@@ -428,12 +428,12 @@ ge::graphStatus TilingForTransData(TilingContext *context) {
   ASSERT_SUCCESS(context->SetBlockDim(32));  // Set BlockDim to 32
   ASSERT_SUCCESS(context->SetTilingKey(10)); // Set TilingKey to 10
   ASSERT_SUCCESS(context->SetNeedAtomic(false)); // Set no need for Atomic zero clearing
-  
+
   size_t *workspaces_size = context->GetWorkspaceSizes(2);  // Need two workspaces
   ASSERT_NOT_NULL(workspaces_size);
   workspaces_size[0] = 1024;  // 1st workspace size is 1024
   workspaces_size[1] = 2048;  // 2nd workspace size is 2048
-  
+
   // Set tiling data
   auto tiling_data = context->GetTilingData<TransDataMode1010Param>();
   if (tiling_data == nullptr) {
@@ -466,16 +466,16 @@ struct Foo {
 ge::graphStatus ExampleAppendTilingData(TilingContext *context) {
   TilingData *tiling_data = context->GetRawTilingData();  // Append way write, get RawTilingData
   ASSERT_NOT_NULL(tiling_data);
-  
+
   // Add an int64_t type data to TilingData tail, an int32_t data, value is 10, after two Appends, TilingData length is 8+4=12// Append interface calculates added data length through data type, therefore when uncertain about C++ literal value constant default type, can explicitly specify Append data type through static_cast way
   tiling_data->Append(static_cast<int64_t>(10));
   tiling_data->Append(static_cast<int32_t>(10));
-  
+
   // Append way also supports structure, compared to Append each member variable in structure separately, Append whole structure once has simpler encoding, also has better performance
   tiling_data->Append<Foo>({10, 20, 30});
   Foo foo{100, 200, 300};
   tiling_data->Append(foo);
-  
+
   return ge::GRAPH_SUCCESS;
 }
 ```
@@ -506,12 +506,12 @@ ge::graphStatus ExampleGetTransDataAttr(TilingContext *context) {
   // Get all attributes
   const RuntimeAttrs *attrs = context->GetAttrs();
   ASSERT_NOT_NULL(attrs);
-  
+
   // According to order in IR definition, use index to get attribute, index counts from 0
   const char *src_format = attrs->GetAttrPointer<char>(0);  // Get src_format, src_format is first attribute in IR, therefore index is 0
   const char *dst_format = attrs->GetAttrPointer<char>(1);  // Get dst_format, dst_format is second attribute in IR, therefore index is 1
   const int64_t group = attrs->GetAttrPointer<int64_t>(2);  // Get group, group is third attribute in IR, therefore index is 2
-  
+
   return ge::GRAPH_SUCCESS;
 }
 ```
@@ -554,14 +554,14 @@ ge::graphStatus InferShapeForFoo(InferShapeContext *context) {
 
   const int64_t attr1 = attrs->GetInt(3);  // Get Bar1 attribute, Bar1 is first private attribute after 3 IR attributes, therefore index is 3
   const int64_t attr2 = attrs->GetInt(4);  // Get Bar2 attribute, Bar2 is second private attribute after 3 IR attributes, therefore index is 4
-  
+
   // Some other processing...
 
   return ge::GRAPH_SUCCESS;
 }
 ```
 
-> **WARNING:** 
+> **WARNING:**
 >
 > 1. Although IMPL_OP itself allows same operator's different implementations to be defined in different files, but private attribute declaration must be completed in same file, otherwise we cannot confirm private attribute index
 > 2. Once private attribute registered, then must be able to get successfully on Node, otherwise lowering errors, program exits. To ensure private attribute index is correct, framework cannot skip processing for unobtainable private attributes.

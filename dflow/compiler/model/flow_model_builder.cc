@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -73,8 +73,8 @@ Status FlowModelBuilder::CheckCacheGraphIoNodesWithGraphAdded(const ComputeGraph
   GE_CHK_STATUS_RET(ModifyDataIndex(added_graph), "[ModifyDataIndex] failed, graph_name = %s",
                     added_graph->GetName().c_str());
   GE_CHK_BOOL_RET_STATUS(cached_graph->GetOutputNodes().size() == added_graph->GetOutputNodes().size(), FAILED,
-      "Cache output num[%zu] is not equal to add output num[%zu].", cached_graph->GetOutputNodes().size(),
-      added_graph->GetOutputNodes().size());
+                         "Cache output num[%zu] is not equal to add output num[%zu].",
+                         cached_graph->GetOutputNodes().size(), added_graph->GetOutputNodes().size());
   std::map<int32_t, std::string> cached_input_info;
   std::map<int32_t, std::string> added_input_info;
   for (const auto &node : cached_graph->GetDirectNode()) {
@@ -91,13 +91,15 @@ Status FlowModelBuilder::CheckCacheGraphIoNodesWithGraphAdded(const ComputeGraph
       added_input_info[index] = node->GetName();
     }
   }
-  GE_CHK_BOOL_RET_STATUS(cached_input_info.size() == added_input_info.size(), FAILED, "Cache input info %s and added"
-      " input info %s are mismatch.", GetInputStr(cached_input_info).c_str(), GetInputStr(added_input_info).c_str());
+  GE_CHK_BOOL_RET_STATUS(cached_input_info.size() == added_input_info.size(), FAILED,
+                         "Cache input info %s and added"
+                         " input info %s are mismatch.",
+                         GetInputStr(cached_input_info).c_str(), GetInputStr(added_input_info).c_str());
   for (const auto &cached_input : cached_input_info) {
     const auto iter = added_input_info.find(cached_input.first);
     if ((iter == added_input_info.cend()) || (iter->second != cached_input.second)) {
       GELOGE(FAILED, "Cache input info %s and added input info %s are mismatch.",
-          GetInputStr(cached_input_info).c_str(), GetInputStr(added_input_info).c_str());
+             GetInputStr(cached_input_info).c_str(), GetInputStr(added_input_info).c_str());
       return FAILED;
     }
   }
@@ -119,7 +121,7 @@ Status FlowModelBuilder::BuildModel(Graph &graph, const std::vector<GeTensor> &i
     GEEVENT("Load flow model from cache success.");
     const auto compute_graph_cached = flow_model->GetRootGraph();
     GE_CHK_STATUS_RET(CheckCacheGraphIoNodesWithGraphAdded(compute_graph_cached, root_graph),
-                     "Input nodes or outputs nodes in cached graph is not same as graph added.");
+                      "Input nodes or outputs nodes in cached graph is not same as graph added.");
     GE_CHECK_NOTNULL(compute_graph_cached);
     graph = GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph_cached);
     return SUCCESS;
@@ -134,8 +136,7 @@ Status FlowModelBuilder::BuildModel(Graph &graph, const std::vector<GeTensor> &i
   GE_CHK_STATUS_RET(ret, "Build model failed.");
   flow_model->SetRootGraph(root_graph);
   GE_CHK_STATUS_RET(flow_model_cache.TryCacheFlowModel(flow_model), "Failed to cache flow model.");
-  GELOGI("Build model successfully, graph id = %d, graph_name = %s",
-         root_graph->GetGraphID(),
+  GELOGI("Build model successfully, graph id = %d, graph_name = %s", root_graph->GetGraphID(),
          root_graph->GetName().c_str());
   GE_DUMP(root_graph, "AfterBuildFlowModel");
   return SUCCESS;
@@ -221,7 +222,7 @@ Status FlowModelBuilder::MergeInvokedModel(const FlowModelPtr &flow_model, const
   model_relation->endpoints.insert(model_relation->endpoints.cend(), invoked_model_relation->endpoints.begin(),
                                    invoked_model_relation->endpoints.end());
   model_relation->invoked_model_queue_infos.insert(invoked_model_relation->invoked_model_queue_infos.begin(),
-                                                 invoked_model_relation->invoked_model_queue_infos.end());
+                                                   invoked_model_relation->invoked_model_queue_infos.end());
   ModelRelation::InvokedModelQueueInfo queue_info{
       invoked_model_relation->root_model_endpoint_info.input_endpoint_names,
       invoked_model_relation->root_model_endpoint_info.output_endpoint_names};
@@ -429,8 +430,8 @@ Status FlowModelBuilder::MergeDataFlowLoadedModel(const DataFlowGraph &data_flow
                         graph_name.c_str());
     } else {
       auto invoked_by_built_in = data_flow_graph.InvokedByBuiltIn(invoked_key);
-      GELOGI("sub flow model[%s] is invoked, invoke key=%s, invoked by built-in = %d",
-             graph_name.c_str(), invoked_key.c_str(), static_cast<int32_t>(invoked_by_built_in));
+      GELOGI("sub flow model[%s] is invoked, invoke key=%s, invoked by built-in = %d", graph_name.c_str(),
+             invoked_key.c_str(), static_cast<int32_t>(invoked_by_built_in));
       GE_CHK_STATUS_RET(MergeInvokedModel(flow_model, invoked_key, sub_flow_model, invoked_by_built_in),
                         "Failed to MergeInvokedModel, loaded graph_name[%s], invoked_key[%s].", graph_name.c_str(),
                         invoked_key.c_str());
@@ -525,8 +526,9 @@ Status FlowModelBuilder::FindInvokesAndGetSubDataFlowDeployInfos(
     std::string subgraph_infos;
     (void)AttrUtils::GetStr(graph, ATTR_NAME_DATA_FLOW_SUB_DATA_FLOW_DEPLOY_INFOS, subgraph_infos);
 
-    const auto &parent_pp_name = data_flow_graph.IsRootDataFlow() ? graph->GetName() + "/"
-                                 : data_flow_graph.GetDataFlowScope() + graph->GetName() + "/";
+    const auto &parent_pp_name = data_flow_graph.IsRootDataFlow()
+                                     ? graph->GetName() + "/"
+                                     : data_flow_graph.GetDataFlowScope() + graph->GetName() + "/";
     // key: graph name, value: df scope to deploy info
     deploy_infos[graph->GetName()] = {parent_pp_name, subgraph_infos, data_flow_graph.GetDataFlowDepth() + 1};
   }
@@ -622,8 +624,8 @@ Status FlowModelBuilder::BuildDataFlowGraph(const ComputeGraphPtr &root_graph,
                                             const FlowModelPtr &flow_model, const CacheParam &cache_param,
                                             const DataFlowGraphParam &df_param) const {
   GE_TRACE_START(BuildDataFlowGraph);
-  DataFlowGraph data_flow_graph(root_graph, df_param.df_scope, cache_param.enable_cache,
-                                cache_param.manual_check, df_param.df_depth);
+  DataFlowGraph data_flow_graph(root_graph, df_param.df_scope, cache_param.enable_cache, cache_param.manual_check,
+                                df_param.df_depth);
   GE_CHK_STATUS_RET_NOLOG(data_flow_graph.Initialize());
   GE_CHK_STATUS_RET(DataFlowGraphAutoDeployer::AutoDeployDataFlowGraph(data_flow_graph, df_param.deploy_info),
                     "Auto deploy data flow graph[%s] failed.", data_flow_graph.GetName().c_str());
@@ -636,8 +638,8 @@ Status FlowModelBuilder::BuildDataFlowGraph(const ComputeGraphPtr &root_graph,
   GE_CHK_STATUS_RET(ProcessNetOutput(root_graph), "[ProcessNetOutput] failed, graph_name = %s",
                     root_graph->GetName().c_str());
 
-  GE_CHK_STATUS_RET(DataFlowAttrUtils::SupplementFlowAttr(root_graph),
-                    "Failed to supplement flow attr for graph[%s].", root_graph->GetName().c_str());
+  GE_CHK_STATUS_RET(DataFlowAttrUtils::SupplementFlowAttr(root_graph), "Failed to supplement flow attr for graph[%s].",
+                    root_graph->GetName().c_str());
   std::unique_ptr<ModelRelation> model_relation;
   GE_CHK_STATUS_RET(DataFlowGraphModelRelationBuilder().BuildFromDataFlowGraph(data_flow_graph, model_relation),
                     "Failed to build ModelRelation from root graph: %s", root_graph->GetName().c_str());
@@ -648,8 +650,8 @@ Status FlowModelBuilder::BuildDataFlowGraph(const ComputeGraphPtr &root_graph,
                          "The subgraphs is empty, please check your graph.");
   GE_CHK_STATUS_RET(BuildDataFlowSubGraphs(data_flow_graph, options, flow_model, cache_param),
                     "Failed to build data flow graph[%s].", root_graph->GetName().c_str());
-  const auto &logic_dev_id_to_mem_cfg = root_graph->TryGetExtAttr(ATTR_NAME_DATA_FLOW_DEVICE_MEM_CFG,
-      std::map<std::string, std::pair<uint32_t, uint32_t>>());
+  const auto &logic_dev_id_to_mem_cfg = root_graph->TryGetExtAttr(
+      ATTR_NAME_DATA_FLOW_DEVICE_MEM_CFG, std::map<std::string, std::pair<uint32_t, uint32_t>>());
   flow_model->SetLogicDeviceToMemCfg(logic_dev_id_to_mem_cfg);
   // graph options may be changed by subgraph option, need reset root graph options
   GetThreadLocalContext().SetGraphOption(options);
@@ -685,7 +687,7 @@ Status FlowModelBuilder::BuildHeterogeneousModel(ComputeGraphPtr &root_graph,
 
 Status FlowModelBuilder::GetOrAssignDefaultEngine(const ComputeGraphPtr &compute_graph,
                                                   std::string &process_node_engine_id) {
-  (void) ge::AttrUtils::GetStr(compute_graph, ge::ATTR_NAME_PROCESS_NODE_ENGINE_ID, process_node_engine_id);
+  (void)ge::AttrUtils::GetStr(compute_graph, ge::ATTR_NAME_PROCESS_NODE_ENGINE_ID, process_node_engine_id);
   if (!process_node_engine_id.empty()) {
     if (GetContext().GetHostExecFlag()) {
       GE_CHK_BOOL_RET_STATUS(process_node_engine_id == PNE_ID_CPU, PARAM_INVALID, "option[%s] is HOST, but attr[%s] ",
@@ -698,7 +700,7 @@ Status FlowModelBuilder::GetOrAssignDefaultEngine(const ComputeGraphPtr &compute
         ToString(std::vector<std::string>(kSupportedEngines.cbegin(), kSupportedEngines.cend())).c_str());
   } else {
     process_node_engine_id = GetContext().GetHostExecFlag() ? PNE_ID_CPU : PNE_ID_NPU;
-    (void) ge::AttrUtils::SetStr(compute_graph, ge::ATTR_NAME_PROCESS_NODE_ENGINE_ID, process_node_engine_id);
+    (void)ge::AttrUtils::SetStr(compute_graph, ge::ATTR_NAME_PROCESS_NODE_ENGINE_ID, process_node_engine_id);
   }
   return SUCCESS;
 }
@@ -708,21 +710,18 @@ Status FlowModelBuilder::InitProcessNodeEngines(const std::map<std::string, std:
   auto &engines = ProcessNodeEngineManager::GetInstance().GetEngines();
   if (engines.find(PNE_ID_NPU) == engines.cend()) {
     GELOGW("[Initialize][NPUProcessNodeEngine] is not registered.");
-    auto creator = []() -> ::ge::ProcessNodeEngine * {
-      return new(std::nothrow) NPUProcessNodeEngine();
-    };
-    ProcessNodeEngineRegisterar pne_register __attribute__((unused))(PNE_ID_NPU, creator);
+    auto creator = []() -> ::ge::ProcessNodeEngine * { return new (std::nothrow) NPUProcessNodeEngine(); };
+    ProcessNodeEngineRegisterar pne_register __attribute__((unused)) (PNE_ID_NPU, creator);
   }
 
   for (auto &process_node_engine_pair : engines) {
     GE_CHECK_NOTNULL(process_node_engine_pair.second);
     auto engine_id = process_node_engine_pair.first;
-    // every graph manger has one ProcessNodeEngine instance
+    // every graph manager has one ProcessNodeEngine instance
     auto pne = ProcessNodeEngineManager::GetInstance().CloneEngine(engine_id);
     if (pne != nullptr) {
       process_node_engines_[engine_id] = pne;
-      GE_CHK_STATUS_RET(pne->Initialize(options),
-                        "[Initialize][ProcessNodeEngine] %s failed.",
+      GE_CHK_STATUS_RET(pne->Initialize(options), "[Initialize][ProcessNodeEngine] %s failed.",
                         pne->GetEngineName().c_str());
       // special ProcessNodeEngine process
       if ((pne->GetEngineName() == PNE_ID_NPU) || (pne->GetEngineName() == PNE_ID_CPU)) {
@@ -745,10 +744,8 @@ void FlowModelBuilder::Finalize() {
   process_node_engines_.clear();
 }
 
-Status FlowModelBuilder::DoBuildGraph(ComputeGraphPtr &compute_graph,
-                                      const std::map<std::string, std::string> &options,
-                                      const std::vector<GeTensor> &input_tensors,
-                                      bool is_sub_graph,
+Status FlowModelBuilder::DoBuildGraph(ComputeGraphPtr &compute_graph, const std::map<std::string, std::string> &options,
+                                      const std::vector<GeTensor> &input_tensors, bool is_sub_graph,
                                       const FlowModelPtr &flow_model) const {
   std::string pne_id;
   GE_CHK_STATUS_RET(GetOrAssignDefaultEngine(compute_graph, pne_id), "assign default engine failed.");
@@ -782,8 +779,7 @@ Status FlowModelBuilder::DoBuildGraph(ComputeGraphPtr &compute_graph,
   GELOGI("[Build][PneModel] successfully, graph=%s, engine=%s", compute_graph->GetName().c_str(),
          process_node_engine->GetEngineName().c_str());
   if (pne_model != nullptr) {
-    GE_CHK_STATUS_RET(flow_model->AddSubModel(pne_model, pne_id),
-                      "[Add][Submodel] failed, graph = %s",
+    GE_CHK_STATUS_RET(flow_model->AddSubModel(pne_model, pne_id), "[Add][Submodel] failed, graph = %s",
                       compute_graph->GetName().c_str());
   }
   return SUCCESS;
@@ -825,16 +821,15 @@ Status FlowModelBuilder::UpdateDeployInfo(const ComputeGraphPtr &graph, const Fl
     GE_CHECK_NOTNULL(sub_model.second);
     std::string old_logic_device_id = sub_model.second->GetLogicDeviceId();
     if (old_logic_device_id != logic_device_id) {
-        sub_model.second->SetLogicDeviceId(logic_device_id);
-        GELOGD("Update logic device id from[%s] to [%s] for model[%s].", old_logic_device_id.c_str(),
-               logic_device_id.c_str(), sub_model.first.c_str());
+      sub_model.second->SetLogicDeviceId(logic_device_id);
+      GELOGD("Update logic device id from[%s] to [%s] for model[%s].", old_logic_device_id.c_str(),
+             logic_device_id.c_str(), sub_model.first.c_str());
     }
     std::string old_redundant_logic_device_id = sub_model.second->GetRedundantLogicDeviceId();
     if (old_redundant_logic_device_id != redundant_logic_device_id) {
-        sub_model.second->SetRedundantLogicDeviceId(redundant_logic_device_id);
-        GELOGD("Update redundant logic device id from[%s] to [%s] for model[%s].",
-               old_redundant_logic_device_id.c_str(),
-               redundant_logic_device_id.c_str(), sub_model.first.c_str());
+      sub_model.second->SetRedundantLogicDeviceId(redundant_logic_device_id);
+      GELOGD("Update redundant logic device id from[%s] to [%s] for model[%s].", old_redundant_logic_device_id.c_str(),
+             redundant_logic_device_id.c_str(), sub_model.first.c_str());
     }
   }
   return SUCCESS;

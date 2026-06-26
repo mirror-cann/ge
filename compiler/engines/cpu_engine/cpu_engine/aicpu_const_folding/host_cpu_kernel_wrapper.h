@@ -20,12 +20,11 @@
 
 namespace ge {
 class HostCpuKernelWrapperOpV2 : public HostCpuOp {
-public:
+ public:
   HostCpuKernelWrapperOpV2();
   ~HostCpuKernelWrapperOpV2() override = default;
-  graphStatus Compute(Operator &op,
-                      const std::map<std::string, const ge::Tensor> &inputs,
+  graphStatus Compute(Operator &op, const std::map<std::string, const ge::Tensor> &inputs,
                       std::map<std::string, ge::Tensor> &outputs) override;
 };
-} // namespace ge
+}  // namespace ge
 #endif  // GE_GE_LOCAL_ENGINE_ENGINE_HOST_CPU_KERNEL_WRAPPER_H_

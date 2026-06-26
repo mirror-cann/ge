@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -37,7 +37,7 @@ using HcclRawIsendFunc = HcclResult (*)(const void *, int, HcclDataType, HcclCon
 using HcclRawImprobeFunc = HcclResult (*)(HcclConn, int *, HcclMessage *, HcclStatus *);
 using HcclRawGetCountFunc = HcclResult (*)(const HcclStatus *, HcclDataType, int *);
 using HcclRawImrecvFunc = HcclResult (*)(void *, int, HcclDataType, HcclMessage *, HcclRequest *);
-using HcclRawImrecvScatterFunc = HcclResult (*)(void *[], int [], int, HcclDataType, HcclMessage *, HcclRequest *);
+using HcclRawImrecvScatterFunc = HcclResult (*)(void *[], int[], int, HcclDataType, HcclMessage *, HcclRequest *);
 using HcclRawTestSomeFunc = HcclResult (*)(int, HcclRequest[], int *, int[], HcclStatus[]);
 using HcclRawBindFunc = HcclResult (*)(HcclConn conn, HcclAddr *bind_addr);
 using HcclRawConnectFunc = HcclResult (*)(HcclConn conn, HcclAddr *connect_addr);
@@ -49,21 +49,21 @@ using HcclRegisterGlobalMemoryFunc = HcclResult (*)(void *addr, u64 size);
 using HcclUnregisterGlobalMemoryFunc = HcclResult (*)(void *addr);
 
 class HcclSoManager {
-public:
-    static HcclSoManager *GetInstance();
-    ~HcclSoManager();
-    int32_t LoadSo();
-    int32_t UnloadSo();
-    void *GetFunc(const std::string &name) const;
-    HcclSoManager(const HcclSoManager &) = delete;
-    HcclSoManager(const HcclSoManager &&) = delete;
-    HcclSoManager &operator=(const HcclSoManager &) = delete;
-    HcclSoManager &operator=(const HcclSoManager &&) = delete;
+ public:
+  static HcclSoManager *GetInstance();
+  ~HcclSoManager();
+  int32_t LoadSo();
+  int32_t UnloadSo();
+  void *GetFunc(const std::string &name) const;
+  HcclSoManager(const HcclSoManager &) = delete;
+  HcclSoManager(const HcclSoManager &&) = delete;
+  HcclSoManager &operator=(const HcclSoManager &) = delete;
+  HcclSoManager &operator=(const HcclSoManager &&) = delete;
 
-private:
-    HcclSoManager() = default;
-    std::unordered_map<std::string, void *> func_map_;
-    void *so_handle_ = nullptr;
+ private:
+  HcclSoManager() = default;
+  std::unordered_map<std::string, void *> func_map_;
+  void *so_handle_ = nullptr;
 };
 }  // namespace FlowFunc
 

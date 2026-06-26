@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,7 +34,7 @@ ge::Status StubFunc(const ge::Node &node, std::vector<std::vector<domi::TaskDef>
 using namespace ge;
 namespace fe {
 class SuperkernelTaskBuilderST : public testing::Test {
-protected:
+ protected:
   static void SetUpTestCase() {
     OpStoreAdapterManager::Instance(AI_CORE_NAME).Finalize();
     map<string, string> options;
@@ -282,4 +282,4 @@ TEST_F(SuperkernelTaskBuilderST, superkernel_plus_reuse_binary_not_tiling_sink_f
   }
   ge::GetThreadLocalContext().SetGraphOption(options_bk);
 }
-}
+}  // namespace fe

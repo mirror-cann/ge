@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,23 +32,17 @@ class OpImplModeConfigParser : public BaseConfigParser {
   std::string EmplaceHf32ModeForAclnn(const std::string &hf32_mode) const;
 
  private:
-  Status Initialize(const std::string &op_precision_mode,
-                    const std::string &op_select_impl_mode,
-                    const std::string &op_type_list_for_impl_mode,
-                    const std::string &allow_hf32);
-  void UpDateDefaultValue(const std::string &op_precision_mode,
-                          std::string &op_select_impl_mode,
+  Status Initialize(const std::string &op_precision_mode, const std::string &op_select_impl_mode,
+                    const std::string &op_type_list_for_impl_mode, const std::string &allow_hf32);
+  void UpDateDefaultValue(const std::string &op_precision_mode, std::string &op_select_impl_mode,
                           std::string &allow_hf32);
-  Status InitOpPrecisionMode(const std::string &op_precision_mode,
-                             const std::string &op_select_impl_mode,
+  Status InitOpPrecisionMode(const std::string &op_precision_mode, const std::string &op_select_impl_mode,
                              const std::string &op_type_list_str);
   Status InitOpPrecisionModeByPrecisionMode(const std::string &op_precision_mode);
   Status InitOpPrecisionModeByImplModeAll(const std::string &op_select_impl_mode_all);
-  Status InitOpPrecisionModeByImplMode(const std::string &op_select_impl_mode,
-                                       const std::string &op_type_list_str);
+  Status InitOpPrecisionModeByImplMode(const std::string &op_select_impl_mode, const std::string &op_type_list_str);
   Status InitAllowHF32Mode(const std::string &allow_hf32);
-  void ParseLineContentWithMode(const std::string &line_content, bool parse_by_op_type,
-                                const size_t &pos_of_equal);
+  void ParseLineContentWithMode(const std::string &line_content, bool parse_by_op_type, const size_t &pos_of_equal);
   Status GetOpPrecisonModeStrFromConfigFile(const std::string &file_path);
   bool CheckConfigImplType(const std::string &impl_mode) const;
   std::string ascend_opp_path_;

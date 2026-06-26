@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,7 +28,6 @@ class TestMemCheckPassFrame : public Test {
 
   void TearDown() {}
 };
-
 
 TEST_F(TestMemCheckPassFrame, NullParam_Failed) {
   ge::ComputeGraphPtr graph = nullptr;
@@ -90,15 +89,13 @@ TEST_F(TestMemCheckPassFrame, ShouldReturnGraphNoChange_WhenNoConflict) {
   EXPECT_EQ(mem_check::ResultChecker::CheckGraphEqual(graph, except_graph), true);
 }
 
-
 TEST_F(TestMemCheckPassFrame, ShouldReturnSuccess_WhenTwoInputsButOneSpecialMemory) {
   // given
   auto builder = ut::GraphBuilder("given");
   auto data = builder.AddNode("data", DATA, 0, 1);
   auto add = builder.AddNode("add", ADD, 2, 1);
   std::vector<int64_t> input_memory_types = {3};
-  (void)ge::AttrUtils::SetListInt(add->GetOpDescBarePtr(), ATTR_NAME_INPUT_MEM_TYPE_LIST,
-    input_memory_types);
+  (void)ge::AttrUtils::SetListInt(add->GetOpDescBarePtr(), ATTR_NAME_INPUT_MEM_TYPE_LIST, input_memory_types);
   auto net_output = builder.AddNode("net_output", NETOUTPUT, 1, 0);
   builder.AddDataEdge(data, 0, add, 0);
   builder.AddDataEdge(data, 0, add, 1);
@@ -116,7 +113,7 @@ TEST_F(TestMemCheckPassFrame, ShouldReturnSuccess_WhenTwoInputsButOneSpecialMemo
 TEST_F(TestMemCheckPassFrame, ShouldReturnSuccess_ControlSolveSuccess) {
   auto graph1 = MemConflictShareGraph::BuildUserInAndUserInGraph();
   Checker test_checker;
-  
+
   auto node_out1 = graph1->FindNode("data1");
   auto node_out2 = graph1->FindNode("data2");
   auto node_out1_index = NodeIndexIO(node_out1, 0, kOut);
@@ -132,4 +129,4 @@ TEST_F(TestMemCheckPassFrame, ShouldReturnSuccess_ControlSolveSuccess) {
   CheckFuncContext context = {node_out1_index, node_out2_index, 0U, 0U, type_out1, type_out2, all_nodes, info, result};
   EXPECT_EQ(test_checker.CheckConditionConflict(type_out1[0], type_out2[0], context), SUCCESS);
 }
-}
+}  // namespace ge

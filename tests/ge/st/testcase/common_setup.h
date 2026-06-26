@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -47,11 +47,10 @@ auto UniqueInferFun = [](Operator &op) -> graphStatus {
   const auto input_shape = input_desc.GetShape().GetDims();
 
   auto output0_desc = op_desc->MutableOutputDesc(0);
-  input_desc.GetShape().IsUnknownShape() ? output0_desc->SetShape(GeShape({-1})) : output0_desc->SetShape(GeShape({16}));
+  input_desc.GetShape().IsUnknownShape() ? output0_desc->SetShape(GeShape({-1}))
+                                         : output0_desc->SetShape(GeShape({16}));
 
-  output0_desc->SetShapeRange({
-      {1, input_shape[0]}
-  });
+  output0_desc->SetShapeRange({{1, input_shape[0]}});
   return GRAPH_SUCCESS;
 };
 const auto ReshapeInferFun = [](Operator &op) {
@@ -75,12 +74,12 @@ const auto ReshapeInferFun = [](Operator &op) {
   std::vector<int64_t> out_dims;
   int64_t product = 1;
   for (int64_t i = 0; i < dim_num; i++) {
-      auto dim = shape_data[i];
-      if (dim != 0 && product > (INT64_MAX / dim)) { 
-          return GRAPH_PARAM_INVALID;
-      }
-      out_dims.push_back(dim);
-      product *= dim;
+    auto dim = shape_data[i];
+    if (dim != 0 && product > (INT64_MAX / dim)) {
+      return GRAPH_PARAM_INVALID;
+    }
+    out_dims.push_back(dim);
+    product *= dim;
   }
 
   auto td = op_desc->MutableOutputDesc("y");
@@ -197,21 +196,21 @@ class FakeAiCoreOpsKernelBuilder : public FakeOpsKernelBuilder {
     std::vector<uint8_t> args(arg_size, 0);
     domi::TaskDef task_def;
     task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_KERNEL));
-    auto kernel_info = task_def.mutable_kernel(); // auto fuse kernel
+    auto kernel_info = task_def.mutable_kernel();  // auto fuse kernel
     kernel_info->set_args(args.data(), args.size());
     kernel_info->set_args_size(arg_size);
     kernel_info->mutable_context()->set_kernel_type(static_cast<uint32_t>(ccKernelType::TE));
-    //kernel_info->set_node_info(node.GetName());
+    // kernel_info->set_node_info(node.GetName());
     kernel_info->set_block_dim(1);
     uint16_t args_offset[2] = {0};
     kernel_info->mutable_context()->set_args_offset(args_offset, 2 * sizeof(uint16_t));
     kernel_info->mutable_context()->set_op_index(node.GetOpDesc()->GetId());
 
-    auto kernel_with_handle_info = task_def.mutable_kernel_with_handle(); // auto fuse kernel
+    auto kernel_with_handle_info = task_def.mutable_kernel_with_handle();  // auto fuse kernel
     kernel_with_handle_info->set_args(args.data(), args.size());
     kernel_with_handle_info->set_args_size(arg_size);
     kernel_with_handle_info->mutable_context()->set_kernel_type(static_cast<uint32_t>(ccKernelType::TE));
-    //kernel_info->set_node_info(node.GetName());
+    // kernel_info->set_node_info(node.GetName());
     kernel_with_handle_info->set_block_dim(1);
     kernel_with_handle_info->mutable_context()->set_args_offset(args_offset, 2 * sizeof(uint16_t));
     kernel_with_handle_info->mutable_context()->set_op_index(node.GetOpDesc()->GetId());
@@ -221,7 +220,7 @@ class FakeAiCoreOpsKernelBuilder : public FakeOpsKernelBuilder {
     return SUCCESS;
   }
 };
-} // namespace
+}  // namespace
 struct CommonSetupUtil {
   static void inline CommonSetup(bool with_ge_init = true) {
     backup_operator_creators_v2_ = ge::OperatorFactoryImpl::operator_creators_v2_;
@@ -239,7 +238,8 @@ struct CommonSetupUtil {
     // 2. fake engine and ops
     auto fe_optimizer = MakeShared<FakeAiCoreEngineOptimizer>();
     auto fe_ops_kernel_builder = MakeShared<FakeAiCoreOpsKernelBuilder>("AIcoreEngine");
-    GeRunningEnvFaker().Reset()
+    GeRunningEnvFaker()
+        .Reset()
         .Install(FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE"))
         .Install(FakeEngine("AIcoreEngine")
                      .KernelInfoStore("AIcoreEngine")
@@ -251,12 +251,38 @@ struct CommonSetupUtil {
         .Install(FakeOp(CONSTANT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
         .Install(FakeOp(DATA).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
         .Install(FakeOp(PARTITIONEDCALL).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-        .Install(FakeOp(RESHAPE).Inputs({"x", "shape"}).Outputs({"y"}).AttrsDef("axis", 0).AttrsDef("num_axes", -1).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE").InferShape(ReshapeInferFun))
-        .Install(FakeOp("Relu").Inputs({"x"}).Outputs({"y"}).InfoStoreAndBuilder("AIcoreEngine").InferShape(SingleIOForwardInfer))
-        .Install(FakeOp(ADD).Inputs({"x1", "x2"}).Outputs({"y"}).InfoStoreAndBuilder("AIcoreEngine").InferShape(SingleIOForwardInfer))
-        .Install(FakeOp("AscBackend").Inputs({"x"}).Outputs({"y"}).InfoStoreAndBuilder("AIcoreEngine").InferShape(SingleIOForwardInfer))
-        .Install(FakeOp("Add").Inputs({"x1", "x2"}).Outputs({"y"}).InfoStoreAndBuilder("AIcoreEngine").InferShape(SingleIOForwardInfer))
-        .Install(FakeOp("Unique").Inputs({"x"}).Outputs({"y", "idx"}).InfoStoreAndBuilder("AIcoreEngine").InferShape(UniqueInferFun))
+        .Install(FakeOp(RESHAPE)
+                     .Inputs({"x", "shape"})
+                     .Outputs({"y"})
+                     .AttrsDef("axis", 0)
+                     .AttrsDef("num_axes", -1)
+                     .InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE")
+                     .InferShape(ReshapeInferFun))
+        .Install(FakeOp("Relu")
+                     .Inputs({"x"})
+                     .Outputs({"y"})
+                     .InfoStoreAndBuilder("AIcoreEngine")
+                     .InferShape(SingleIOForwardInfer))
+        .Install(FakeOp(ADD)
+                     .Inputs({"x1", "x2"})
+                     .Outputs({"y"})
+                     .InfoStoreAndBuilder("AIcoreEngine")
+                     .InferShape(SingleIOForwardInfer))
+        .Install(FakeOp("AscBackend")
+                     .Inputs({"x"})
+                     .Outputs({"y"})
+                     .InfoStoreAndBuilder("AIcoreEngine")
+                     .InferShape(SingleIOForwardInfer))
+        .Install(FakeOp("Add")
+                     .Inputs({"x1", "x2"})
+                     .Outputs({"y"})
+                     .InfoStoreAndBuilder("AIcoreEngine")
+                     .InferShape(SingleIOForwardInfer))
+        .Install(FakeOp("Unique")
+                     .Inputs({"x"})
+                     .Outputs({"y", "idx"})
+                     .InfoStoreAndBuilder("AIcoreEngine")
+                     .InferShape(UniqueInferFun))
 
         .Install(FakeOp("FakeType2Op").InfoStoreAndBuilder("AIcoreEngine").InferShape(type2_infer))
         .Install(FakeOp(MUL).InfoStoreAndBuilder("AIcoreEngine").InferShape(infer_fun))
@@ -272,11 +298,11 @@ struct CommonSetupUtil {
     auto ascend_install_path = EnvPath().GetAscendInstallPath();
     setenv("ASCEND_OPP_PATH", (ascend_install_path + "/opp").c_str(), 1);
     setenv("LD_LIBRARY_PATH", (ascend_install_path + "/runtime/lib64").c_str(), 1);
-    //setenv("ASCEND_OPP_PATH", "/usr/local/Ascend/latest/opp", 1);
+    // setenv("ASCEND_OPP_PATH", "/usr/local/Ascend/latest/opp", 1);
     auto work_path = EnvPath().GetAirBasePath() + "/output";
     setenv("ASCEND_WORK_PATH", work_path.c_str(), 1);
 
-    mmSetEnv("AUTOFUSE_FLAGS", "--enable_autofuse=true", 1); // 开启自动融合
+    mmSetEnv("AUTOFUSE_FLAGS", "--enable_autofuse=true", 1);  // 开启自动融合
   }
   static void inline CommonTearDown(bool with_ge_finalize = true) {
     if (with_ge_finalize) {
@@ -291,11 +317,11 @@ struct CommonSetupUtil {
     ge::OperatorFactoryImpl::operator_creators_v2_ = std::move(backup_operator_creators_v2_);
     ge::OperatorFactoryImpl::operator_creators_ = std::move(backup_operator_creators_);
   }
+
  private:
   static std::shared_ptr<std::map<std::string, ge::OpCreatorV2>> backup_operator_creators_v2_;
   static std::shared_ptr<std::map<std::string, OpCreator>> backup_operator_creators_;
 };
-}
-
+}  // namespace ge
 
 #endif  // CANN_GRAPH_ENGINE_JIT_EXECUTION_COMMON_SETUP_H

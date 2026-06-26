@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -15,16 +15,14 @@ const size_t kDynamicWindowSize = 4;
 
 OutDynamicTaskBuilder::OutDynamicTaskBuilder() {}
 
-OutDynamicTaskBuilder::OutDynamicTaskBuilder(CACHE_OPERATION operation)
-    : DataTaskBuilder(operation) {}
+OutDynamicTaskBuilder::OutDynamicTaskBuilder(CACHE_OPERATION operation) : DataTaskBuilder(operation) {}
 
 OutDynamicTaskBuilder::~OutDynamicTaskBuilder() {}
 
 void OutDynamicTaskBuilder::RecordNewCtxIdList(vector<uint32_t> &data_ctx_id_list,
                                                vector<vector<int64_t>> &write_back_invalid_ctx_id_list,
                                                domi::FftsPlusTaskDef *ffts_plus_task_def,
-                                               const rtFftsPlusContextType_t &context_type,
-                                               uint32_t const_cnt) const {
+                                               const rtFftsPlusContextType_t &context_type, uint32_t const_cnt) const {
   for (size_t i = 0; i < kDynamicWindowSize; i++) {
     domi::FftsPlusCtxDef *ffts_plus_ctx_def = ffts_plus_task_def->add_ffts_plus_ctx();
     FFTS_CHECK(ffts_plus_ctx_def == nullptr, FFTS_LOGW("ffts_plus_ctx_def is nullptr"), return);
@@ -59,8 +57,10 @@ Status OutDynamicTaskBuilder::FillDynamicDataCtx(const size_t &out_anchor_index,
     RecordNewCtxIdList(data_ctx_id_list, write_back_ctx_id_list, ffts_plus_task_def, context_type, 1);
 
     if (context_id_list.size() != kDynamicWindowSize) {
-      REPORT_FFTS_ERROR("[DataTaskBuilder][GenContextDef][FillDynamicInvalidAndWriteBackCtx] Node: %s context_id_list "
-                        "size is not equal to kDynamicWindowSize: %zu.", node->GetName().c_str(), kDynamicWindowSize);
+      REPORT_FFTS_ERROR(
+          "[DataTaskBuilder][GenContextDef][FillDynamicInvalidAndWriteBackCtx] Node: %s context_id_list "
+          "size is not equal to kDynamicWindowSize: %zu.",
+          node->GetName().c_str(), kDynamicWindowSize);
       return FAILED;
     }
 
@@ -88,4 +88,4 @@ Status OutDynamicTaskBuilder::FillDynamicDataCtx(const size_t &out_anchor_index,
   }
   return SUCCESS;
 }
-}
+}  // namespace ffts

@@ -52,10 +52,8 @@ TEST_F(OpCompileContextUT, GetOptionSuccess) {
 }
 
 TEST_F(OpCompileContextUT, GetOptionMultipleOptions) {
-  ge::GetThreadLocalContext().SetGraphOption({
-      {kTestOptionKey1, kTestOptionValue1},
-      {kTestOptionKey2, kTestOptionValue2}
-  });
+  ge::GetThreadLocalContext().SetGraphOption(
+      {{kTestOptionKey1, kTestOptionValue1}, {kTestOptionKey2, kTestOptionValue2}});
 
   OpCompileContext context;
 
@@ -133,7 +131,6 @@ TEST_F(OpCompileContextUT, GetOptionGraphOptionPriority) {
   EXPECT_STREQ(option_value.GetString(), "graph_value");
 }
 
-
 TEST_F(OpCompileContextUT, GetOptionLongValue) {
   std::string long_value(1000, 'a');
   ge::GetThreadLocalContext().SetGraphOption({{kTestOptionKey1, long_value}});
@@ -148,10 +145,8 @@ TEST_F(OpCompileContextUT, GetOptionLongValue) {
 }
 
 TEST_F(OpCompileContextUT, OpCompileContextMultipleCalls) {
-  ge::GetThreadLocalContext().SetGraphOption({
-      {kTestOptionKey1, "context1_value"},
-      {kTestOptionKey2, "context2_value"}
-  });
+  ge::GetThreadLocalContext().SetGraphOption(
+      {{kTestOptionKey1, "context1_value"}, {kTestOptionKey2, "context2_value"}});
 
   OpCompileContext context;
 
@@ -174,8 +169,7 @@ TEST_F(OpCompileContextUT, GetInputTensorSuccess) {
   op_desc->AddOutputDesc("y", ge::GeTensorDesc());
 
   gert::Tensor input_tensor(gert::StorageShape({8, 32}, {8, 32}),
-                            {ge::FORMAT_NCHW, ge::FORMAT_ND, gert::ExpandDimsType()},
-                            ge::DT_FLOAT16);
+                            {ge::FORMAT_NCHW, ge::FORMAT_ND, gert::ExpandDimsType()}, ge::DT_FLOAT16);
   std::vector<void *> inputs = {&input_tensor};
   ge::graphStatus ret = ge::GRAPH_FAILED;
   auto holder = KernelRunContextBuilder().Inputs(inputs).Build(op_desc, ret);
@@ -199,8 +193,7 @@ TEST_F(OpCompileContextUT, GetInputTensorOutOfRange) {
   op_desc->AddOutputDesc("y", ge::GeTensorDesc());
 
   gert::Tensor input_tensor(gert::StorageShape({8, 32}, {8, 32}),
-                            {ge::FORMAT_NCHW, ge::FORMAT_ND, gert::ExpandDimsType()},
-                            ge::DT_FLOAT16);
+                            {ge::FORMAT_NCHW, ge::FORMAT_ND, gert::ExpandDimsType()}, ge::DT_FLOAT16);
   std::vector<void *> inputs = {&input_tensor};
   ge::graphStatus ret = ge::GRAPH_FAILED;
   auto holder = KernelRunContextBuilder().Inputs(inputs).Build(op_desc, ret);
@@ -212,12 +205,8 @@ TEST_F(OpCompileContextUT, GetInputTensorOutOfRange) {
 }
 
 TEST_F(OpCompileContextUT, GetRequiredInputTensorSuccess) {
-  gert::Tensor input_tensor_0 = {{{8, 32}, {8, 32}},
-                                 {ge::FORMAT_NCHW, ge::FORMAT_ND, {}},
-                                 ge::DT_FLOAT16};
-  gert::Tensor input_tensor_1 = {{{16, 32}, {16, 32}},
-                                 {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},
-                                 ge::DT_INT32};
+  gert::Tensor input_tensor_0 = {{{8, 32}, {8, 32}}, {ge::FORMAT_NCHW, ge::FORMAT_ND, {}}, ge::DT_FLOAT16};
+  gert::Tensor input_tensor_1 = {{{16, 32}, {16, 32}}, {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}}, ge::DT_INT32};
 
   auto holder = KernelRunContextFaker()
                     .IrInstanceNum({1, 1})
@@ -243,9 +232,7 @@ TEST_F(OpCompileContextUT, GetRequiredInputTensorSuccess) {
 }
 
 TEST_F(OpCompileContextUT, GetRequiredInputTensorOutOfRange) {
-  gert::Tensor input_tensor = {{{8, 32}, {8, 32}},
-                               {ge::FORMAT_NCHW, ge::FORMAT_ND, {}},
-                               ge::DT_FLOAT16};
+  gert::Tensor input_tensor = {{{8, 32}, {8, 32}}, {ge::FORMAT_NCHW, ge::FORMAT_ND, {}}, ge::DT_FLOAT16};
 
   auto holder = KernelRunContextFaker()
                     .IrInstanceNum({1})
@@ -261,12 +248,8 @@ TEST_F(OpCompileContextUT, GetRequiredInputTensorOutOfRange) {
 }
 
 TEST_F(OpCompileContextUT, GetOptionalInputTensorSuccess) {
-  gert::Tensor input_tensor_0 = {{{8, 32}, {8, 32}},
-                                 {ge::FORMAT_NCHW, ge::FORMAT_ND, {}},
-                                 ge::DT_FLOAT16};
-  gert::Tensor input_tensor_1 = {{{16, 32}, {16, 32}},
-                                 {ge::FORMAT_ND, ge::FORMAT_ND, {}},
-                                 ge::DT_FLOAT};
+  gert::Tensor input_tensor_0 = {{{8, 32}, {8, 32}}, {ge::FORMAT_NCHW, ge::FORMAT_ND, {}}, ge::DT_FLOAT16};
+  gert::Tensor input_tensor_1 = {{{16, 32}, {16, 32}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}, ge::DT_FLOAT};
 
   auto holder = KernelRunContextFaker()
                     .IrInstanceNum({1, 1})
@@ -286,9 +269,7 @@ TEST_F(OpCompileContextUT, GetOptionalInputTensorSuccess) {
 }
 
 TEST_F(OpCompileContextUT, GetOptionalInputTensorNotInstantiated) {
-  gert::Tensor input_tensor = {{{8, 32}, {8, 32}},
-                               {ge::FORMAT_NCHW, ge::FORMAT_ND, {}},
-                               ge::DT_FLOAT16};
+  gert::Tensor input_tensor = {{{8, 32}, {8, 32}}, {ge::FORMAT_NCHW, ge::FORMAT_ND, {}}, ge::DT_FLOAT16};
 
   auto holder = KernelRunContextFaker()
                     .IrInstanceNum({1, 0})
@@ -304,15 +285,9 @@ TEST_F(OpCompileContextUT, GetOptionalInputTensorNotInstantiated) {
 }
 
 TEST_F(OpCompileContextUT, GetDynamicInputTensorSuccess) {
-  gert::Tensor input_tensor_0 = {{{8, 32}, {8, 32}},
-                                 {ge::FORMAT_NCHW, ge::FORMAT_ND, {}},
-                                 ge::DT_FLOAT16};
-  gert::Tensor input_tensor_1 = {{{16, 32}, {16, 32}},
-                                 {ge::FORMAT_ND, ge::FORMAT_ND, {}},
-                                 ge::DT_FLOAT};
-  gert::Tensor input_tensor_2 = {{{32, 32}, {32, 32}},
-                                 {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},
-                                 ge::DT_INT32};
+  gert::Tensor input_tensor_0 = {{{8, 32}, {8, 32}}, {ge::FORMAT_NCHW, ge::FORMAT_ND, {}}, ge::DT_FLOAT16};
+  gert::Tensor input_tensor_1 = {{{16, 32}, {16, 32}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}, ge::DT_FLOAT};
+  gert::Tensor input_tensor_2 = {{{32, 32}, {32, 32}}, {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}}, ge::DT_INT32};
 
   auto holder = KernelRunContextFaker()
                     .IrInstanceNum({1, 2})
@@ -335,12 +310,8 @@ TEST_F(OpCompileContextUT, GetDynamicInputTensorSuccess) {
 }
 
 TEST_F(OpCompileContextUT, GetDynamicInputTensorOutOfRange) {
-  gert::Tensor input_tensor_0 = {{{8, 32}, {8, 32}},
-                                 {ge::FORMAT_NCHW, ge::FORMAT_ND, {}},
-                                 ge::DT_FLOAT16};
-  gert::Tensor input_tensor_1 = {{{16, 32}, {16, 32}},
-                                 {ge::FORMAT_ND, ge::FORMAT_ND, {}},
-                                 ge::DT_FLOAT};
+  gert::Tensor input_tensor_0 = {{{8, 32}, {8, 32}}, {ge::FORMAT_NCHW, ge::FORMAT_ND, {}}, ge::DT_FLOAT16};
+  gert::Tensor input_tensor_1 = {{{16, 32}, {16, 32}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}, ge::DT_FLOAT};
 
   auto holder = KernelRunContextFaker()
                     .IrInstanceNum({1, 1})
@@ -365,8 +336,7 @@ TEST_F(OpCompileContextUT, GetOutputTensorSuccess) {
   op_desc->AddOutputDesc("y", output_desc);
 
   gert::Tensor output_tensor(gert::StorageShape({8, 16}, {8, 16}),
-                             {ge::FORMAT_NCHW, ge::FORMAT_ND, gert::ExpandDimsType()},
-                             ge::DT_INT32);
+                             {ge::FORMAT_NCHW, ge::FORMAT_ND, gert::ExpandDimsType()}, ge::DT_INT32);
   ge::graphStatus ret = ge::GRAPH_FAILED;
   auto holder = KernelRunContextBuilder().Outputs({&output_tensor}).Build(op_desc, ret);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
@@ -389,8 +359,7 @@ TEST_F(OpCompileContextUT, GetOutputTensorOutOfRange) {
   op_desc->AddOutputDesc("y", ge::GeTensorDesc());
 
   gert::Tensor output_tensor(gert::StorageShape({8, 16}, {8, 16}),
-                             {ge::FORMAT_NCHW, ge::FORMAT_ND, gert::ExpandDimsType()},
-                             ge::DT_INT32);
+                             {ge::FORMAT_NCHW, ge::FORMAT_ND, gert::ExpandDimsType()}, ge::DT_INT32);
   ge::graphStatus ret = ge::GRAPH_FAILED;
   auto holder = KernelRunContextBuilder().Outputs({&output_tensor}).Build(op_desc, ret);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
@@ -401,12 +370,8 @@ TEST_F(OpCompileContextUT, GetOutputTensorOutOfRange) {
 }
 
 TEST_F(OpCompileContextUT, GetRequiredOutputTensorSuccess) {
-  gert::Tensor output_tensor_0 = {{{8, 16}, {8, 16}},
-                                  {ge::FORMAT_NCHW, ge::FORMAT_ND, {}},
-                                  ge::DT_FLOAT16};
-  gert::Tensor output_tensor_1 = {{{16, 16}, {16, 16}},
-                                  {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},
-                                  ge::DT_INT32};
+  gert::Tensor output_tensor_0 = {{{8, 16}, {8, 16}}, {ge::FORMAT_NCHW, ge::FORMAT_ND, {}}, ge::DT_FLOAT16};
+  gert::Tensor output_tensor_1 = {{{16, 16}, {16, 16}}, {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}}, ge::DT_INT32};
 
   auto holder = KernelRunContextFaker()
                     .IrOutputInstanceNum({1, 1})
@@ -432,9 +397,7 @@ TEST_F(OpCompileContextUT, GetRequiredOutputTensorSuccess) {
 }
 
 TEST_F(OpCompileContextUT, GetRequiredOutputTensorOutOfRange) {
-  gert::Tensor output_tensor = {{{8, 16}, {8, 16}},
-                                {ge::FORMAT_NCHW, ge::FORMAT_ND, {}},
-                                ge::DT_FLOAT16};
+  gert::Tensor output_tensor = {{{8, 16}, {8, 16}}, {ge::FORMAT_NCHW, ge::FORMAT_ND, {}}, ge::DT_FLOAT16};
 
   auto holder = KernelRunContextFaker()
                     .IrOutputInstanceNum({1})
@@ -450,15 +413,9 @@ TEST_F(OpCompileContextUT, GetRequiredOutputTensorOutOfRange) {
 }
 
 TEST_F(OpCompileContextUT, GetDynamicOutputTensorSuccess) {
-  gert::Tensor output_tensor_0 = {{{8, 16}, {8, 16}},
-                                  {ge::FORMAT_NCHW, ge::FORMAT_ND, {}},
-                                  ge::DT_FLOAT16};
-  gert::Tensor output_tensor_1 = {{{16, 16}, {16, 16}},
-                                  {ge::FORMAT_ND, ge::FORMAT_ND, {}},
-                                  ge::DT_FLOAT};
-  gert::Tensor output_tensor_2 = {{{32, 16}, {32, 16}},
-                                  {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},
-                                  ge::DT_INT32};
+  gert::Tensor output_tensor_0 = {{{8, 16}, {8, 16}}, {ge::FORMAT_NCHW, ge::FORMAT_ND, {}}, ge::DT_FLOAT16};
+  gert::Tensor output_tensor_1 = {{{16, 16}, {16, 16}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}, ge::DT_FLOAT};
+  gert::Tensor output_tensor_2 = {{{32, 16}, {32, 16}}, {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}}, ge::DT_INT32};
 
   auto holder = KernelRunContextFaker()
                     .IrOutputInstanceNum({1, 2})
@@ -481,12 +438,8 @@ TEST_F(OpCompileContextUT, GetDynamicOutputTensorSuccess) {
 }
 
 TEST_F(OpCompileContextUT, GetDynamicOutputTensorOutOfRange) {
-  gert::Tensor output_tensor_0 = {{{8, 16}, {8, 16}},
-                                  {ge::FORMAT_NCHW, ge::FORMAT_ND, {}},
-                                  ge::DT_FLOAT16};
-  gert::Tensor output_tensor_1 = {{{16, 16}, {16, 16}},
-                                  {ge::FORMAT_ND, ge::FORMAT_ND, {}},
-                                  ge::DT_FLOAT};
+  gert::Tensor output_tensor_0 = {{{8, 16}, {8, 16}}, {ge::FORMAT_NCHW, ge::FORMAT_ND, {}}, ge::DT_FLOAT16};
+  gert::Tensor output_tensor_1 = {{{16, 16}, {16, 16}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}, ge::DT_FLOAT};
 
   auto holder = KernelRunContextFaker()
                     .IrOutputInstanceNum({1, 1})

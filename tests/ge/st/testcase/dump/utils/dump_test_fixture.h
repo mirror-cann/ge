@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -13,15 +13,15 @@
 
 // Headers whose private fields are needed.
 #include "macro_utils/dt_public_scope.h"
-#include "graph/load/model_manager/model_manager.h"                     // ModelManager::GetInstance().max_model_id_
+#include "graph/load/model_manager/model_manager.h"  // ModelManager::GetInstance().max_model_id_
 #include "macro_utils/dt_public_unscope.h"
 
 // Headers for setting up test framework.
 #include <gtest/gtest.h>
-#include "framework/ge_runtime_stub/include/common/dump_checker.h"      // DumpCheckRuntimeStub
-#include "ge_running_env/ge_running_env_faker.h"                        // GeRunningEnvFaker
-#include "ge/st/stubs/utils/mock_ops_kernel_builder.h"                     // MockForGenerateTask
-#include "ge/st/stubs/utils/taskdef_builder.h"                             // AiCoreTaskDefBuilder
+#include "framework/ge_runtime_stub/include/common/dump_checker.h"  // DumpCheckRuntimeStub
+#include "ge_running_env/ge_running_env_faker.h"                    // GeRunningEnvFaker
+#include "ge/st/stubs/utils/mock_ops_kernel_builder.h"              // MockForGenerateTask
+#include "ge/st/stubs/utils/taskdef_builder.h"                      // AiCoreTaskDefBuilder
 #include "common/opskernel/ops_kernel_info_types.h"
 // Public interfaces.
 #include "ge/ge_api.h"
@@ -52,14 +52,14 @@ void MockGenerateTask() {
 
   MockForGenerateTask("AIcoreEngine", aicore_func);
 }
-}
+}  // namespace
 template <bool dynamic>
 class DumpST : public ::testing::Test {
-public:
+ public:
   static void SetUpTestSuite() {
     const std::map<AscendString, AscendString> options = {
-      { OPTION_HOST_ENV_OS, "linux" },
-      { OPTION_HOST_ENV_CPU, "x86_64" },
+        {OPTION_HOST_ENV_OS, "linux"},
+        {OPTION_HOST_ENV_CPU, "x86_64"},
     };
     ASSERT_EQ(GEInitialize(options), SUCCESS);
     GeRunningEnvFaker().InstallDefault();
@@ -76,7 +76,8 @@ public:
     GeRunningEnvFaker().Reset();
     ASSERT_EQ(GEFinalize(), SUCCESS);
   }
-protected:
+
+ protected:
   void SetUp() override {
     auto dump_checker_stub = std::make_shared<DumpCheckRuntimeStub>();
     auto dump_checker_stub_acl = std::make_shared<DumpCheckAclRuntimeStub>();
@@ -95,6 +96,6 @@ protected:
   }
   DumpChecker *checker_;
 };
-} // namespace ge
+}  // namespace ge
 
 #endif

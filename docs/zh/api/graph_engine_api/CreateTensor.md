@@ -135,4 +135,3 @@ std::vector<float> data = {1.0f, 2.0f, 3.0f};
 std::vector<int64_t> dims = {3};
 auto tensor = ge::es::CreateTensor<float>(data.data(), dims.data(), dims.size(), ge::DT_FLOAT);
 ```
-

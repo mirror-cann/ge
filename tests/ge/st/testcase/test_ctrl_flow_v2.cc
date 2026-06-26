@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,12 +31,10 @@ class CtrlFlowV2Test : public testing::Test {
     GeExecutor::FinalizeEx();
   }
 
-  static OpDescPtr CreateOpDesc(const std::string &name,
-                                const std::string &type,
-                                uint32_t input_num,
+  static OpDescPtr CreateOpDesc(const std::string &name, const std::string &type, uint32_t input_num,
                                 uint32_t output_num) {
     GeTensorDesc int32_tensor(GeShape(), ge::FORMAT_NCHW, ge::DT_INT32);
-    OpDescPtr op_desc = shared_ptr<OpDesc>(new(std::nothrow) OpDesc(name, type));
+    OpDescPtr op_desc = shared_ptr<OpDesc>(new (std::nothrow) OpDesc(name, type));
     if (op_desc == nullptr) {
       return nullptr;
     }
@@ -95,9 +93,12 @@ TEST_F(CtrlFlowV2Test, TestForOp) {
     EXPECT_TRUE(AttrUtils::SetListStr(subgraph_active_op, ATTR_NAME_ACTIVE_LABEL_LIST, {"label1"}));
     auto subgraph_active_node = for_body->AddNode(subgraph_active_op);
     auto subgraph_output_node = for_body->AddNode(CreateOpDesc("subgraph-net-output", NETOUTPUT, 1, 1));
-    EXPECT_EQ(GraphUtils::AddEdge(subgraph_data_node->GetOutDataAnchor(0), subgraph_stream_node->GetInDataAnchor(0)), SUCCESS);
-    EXPECT_EQ(GraphUtils::AddEdge(subgraph_stream_node->GetOutDataAnchor(0), subgraph_active_node->GetInDataAnchor(0)), SUCCESS);
-    EXPECT_EQ(GraphUtils::AddEdge(subgraph_active_node->GetOutDataAnchor(0), subgraph_output_node->GetInDataAnchor(0)), SUCCESS);
+    EXPECT_EQ(GraphUtils::AddEdge(subgraph_data_node->GetOutDataAnchor(0), subgraph_stream_node->GetInDataAnchor(0)),
+              SUCCESS);
+    EXPECT_EQ(GraphUtils::AddEdge(subgraph_stream_node->GetOutDataAnchor(0), subgraph_active_node->GetInDataAnchor(0)),
+              SUCCESS);
+    EXPECT_EQ(GraphUtils::AddEdge(subgraph_active_node->GetOutDataAnchor(0), subgraph_output_node->GetInDataAnchor(0)),
+              SUCCESS);
   }
 
   auto graph = GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
@@ -106,4 +107,3 @@ TEST_F(CtrlFlowV2Test, TestForOp) {
   EXPECT_EQ(aclgrphBuildModel(graph, options, model_buffer_data), SUCCESS);
 }
 }  // namespace ge
-

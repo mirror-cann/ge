@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -71,7 +71,7 @@ TEST_F(WhileNodeConverterUT, ConvertWhileNode) {
     auto subgraph_call = ge::ExecuteGraphUtils::FindFirstNodeMatchType(control_frame_graph, "SubgraphCall");
     ASSERT_NE(subgraph_call, nullptr);
 
-    auto body_graph =  ge::FastNodeUtils::GetSubgraphFromNode(lower_while_node, 1);
+    auto body_graph = ge::FastNodeUtils::GetSubgraphFromNode(lower_while_node, 1);
     ASSERT_NE(body_graph, nullptr);
     auto identity_shape_and_addr = ge::ExecuteGraphUtils::FindFirstNodeMatchType(body_graph, "IdentityShapeAndAddr");
     ASSERT_NE(identity_shape_and_addr, nullptr);
@@ -135,8 +135,8 @@ TEST_F(WhileNodeConverterUT, ConvertWhileNodeXBody) {
     ASSERT_NE(identity_shape_and_addr, nullptr);
 
     auto data_nodes = identity_shape_and_addr->GetInDataNodes();
-    std::vector<ge::FastNode*> data_nodes_vec(data_nodes.begin(), data_nodes.end());
-    ASSERT_EQ(data_nodes_vec.size(), 2 * 2); // 2 * num_inputs
+    std::vector<ge::FastNode *> data_nodes_vec(data_nodes.begin(), data_nodes.end());
+    ASSERT_EQ(data_nodes_vec.size(), 2 * 2);  // 2 * num_inputs
 
     for (size_t i = 0; i < 2; ++i) {
       ASSERT_EQ(data_nodes_vec[i]->GetType(), "IdentityShape");
@@ -145,8 +145,8 @@ TEST_F(WhileNodeConverterUT, ConvertWhileNodeXBody) {
 
     auto identity_addr = data_nodes_vec[2];
     auto free_nodes = identity_addr->GetAllOutNodes();
-    std::vector<ge::FastNode*> free_nodes_vec(free_nodes.begin(), free_nodes.end());
-    ASSERT_EQ(free_nodes_vec.size(), 2 + 2); // 2 addr and 2 free
+    std::vector<ge::FastNode *> free_nodes_vec(free_nodes.begin(), free_nodes.end());
+    ASSERT_EQ(free_nodes_vec.size(), 2 + 2);  // 2 addr and 2 free
     size_t num_addr = 0U;
     size_t num_free = 0U;
     for (auto &node : free_nodes_vec) {
@@ -155,7 +155,7 @@ TEST_F(WhileNodeConverterUT, ConvertWhileNodeXBody) {
       } else if (node->GetType() == "FreeMemory") {
         num_free++;
       } else {
-        ASSERT_EQ(node->GetType(), node->GetType() + ":Unexpect");
+        ASSERT_EQ(node->GetType(), node->GetType() + ":Unexpected");
       }
     }
     ASSERT_EQ(num_addr, 2U);
@@ -189,8 +189,8 @@ TEST_F(WhileNodeConverterUT, ConvertWhileNode_multi_stream_inside_body) {
     ModelDescHolder model_desc_holder = ModelDescHolderFaker().Build();
     model_desc_holder.SetSpaceRegistry(gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry());
     auto lower_3stage_graph = GraphConverter()
-        .SetModelDescHolder(&model_desc_holder)
-        .ConvertComputeGraphToExecuteGraph(main_graph, global_data);
+                                  .SetModelDescHolder(&model_desc_holder)
+                                  .ConvertComputeGraphToExecuteGraph(main_graph, global_data);
     ASSERT_NE(lower_3stage_graph, nullptr);
     auto lower_graph = ge::FastNodeUtils::GetSubgraphFromNode(
         ge::ExecuteGraphUtils::FindFirstNodeMatchType(lower_3stage_graph.get(), "Main"), 0);

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -79,9 +79,9 @@ TEST_F(AippSystemTest, TestAippShapeV2SetAndGetSuccess) {
 
   ge::AttrUtils::SetListInt(op_desc, ge::ATTR_DYNAMIC_AIPP_INPUT_DIMS, input_dims);
 
-  std::vector<string> inputs = { "NCHW:DT_FLOAT:TensorName:100:3:1,2,8" };
+  std::vector<string> inputs = {"NCHW:DT_FLOAT:TensorName:100:3:1,2,8"};
   ge::AttrUtils::SetListStr(op_desc, ge::ATTR_NAME_AIPP_INPUTS, inputs);
-  std::vector<string> outputs = { "NCHW:DT_FLOAT:TensorName:100:3:1,2,8" };
+  std::vector<string> outputs = {"NCHW:DT_FLOAT:TensorName:100:3:1,2,8"};
   ge::AttrUtils::SetListStr(op_desc, ge::ATTR_NAME_AIPP_OUTPUTS, outputs);
 
   GeModelBuilder builder(graph);
@@ -122,7 +122,7 @@ TEST_F(AippSystemTest, TestAippShapeV2SetAndGetSuccess) {
   ASSERT_EQ(input_dims_aipp[0].name, "TensorName");
   ASSERT_EQ(input_dims_aipp[0].size, 100);
   ASSERT_EQ(input_dims_aipp[0].dim_num, 3);
-  std::vector<int64_t> verify_vec{1,2,8};
+  std::vector<int64_t> verify_vec{1, 2, 8};
   ASSERT_EQ(input_dims_aipp[0].dims, verify_vec);
 
   ASSERT_EQ(output_dims_aipp.size(), 1);

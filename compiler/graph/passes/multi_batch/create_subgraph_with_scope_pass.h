@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -35,19 +35,17 @@ class CreateSubGraphWithScopePass : public GraphPass {
   Status ParseMultiDimsAttr(const std::vector<NodePtr> &scope_nodes);
   Status CollectIoNodes(const ComputeGraphPtr &subgraph);
   Status GetSubgraphFromScope(const ComputeGraphPtr &root_graph,
-                              const std::pair<const int32_t,
-                              std::vector<NodePtr>> &scope,
+                              const std::pair<const int32_t, std::vector<NodePtr>> &scope,
                               ComputeGraphPtr &subgraph) const;
   Status MergeNodesToSubgraph(const std::vector<NodePtr> &scope_nodes, const ComputeGraphPtr &subgraph);
   Status CheckCtrlAnchorInvalid(const NodePtr &node, const std::vector<NodePtr> &scope_nodes) const;
-  Status MergeInputAnchors(const ComputeGraphPtr &subgraph,
-                           const NodePtr &node, const std::vector<NodePtr> &scope_nodes);
-  Status MergeOutputAnchors(const ComputeGraphPtr &subgraph,
-                            const NodePtr &node, const std::vector<NodePtr> &scope_nodes);
+  Status MergeInputAnchors(const ComputeGraphPtr &subgraph, const NodePtr &node,
+                           const std::vector<NodePtr> &scope_nodes);
+  Status MergeOutputAnchors(const ComputeGraphPtr &subgraph, const NodePtr &node,
+                            const std::vector<NodePtr> &scope_nodes);
   Status ProcPartitionInputAnchor(const ComputeGraphPtr &subgraph, const OutDataAnchorPtr &node_anchor,
                                   const InDataAnchorPtr &partition_anchor);
-  Status ProcPartitionOutputAnchor(const OutDataAnchorPtr &partition_anchor,
-                                   const InDataAnchorPtr &node_anchor);
+  Status ProcPartitionOutputAnchor(const OutDataAnchorPtr &partition_anchor, const InDataAnchorPtr &node_anchor);
   Status SetParentIndexToData(const ComputeGraphPtr &subgraph);
   Status SetParentIndexToNetOutput(const ComputeGraphPtr &subgraph) const;
   Status SetDataDynDimsInfo(const NodePtr &node, const NodePtr &data_node, const int32_t input_index);

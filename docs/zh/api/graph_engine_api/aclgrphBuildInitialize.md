@@ -93,4 +93,3 @@ graphStatus aclgrphBuildInitialize(std::map<AscendString, AscendString> &global_
 调用该接口后，可以在同一进程中连续调用多次[aclgrphBuildModel](aclgrphBuildModel.md)接口。
 
 **对于aclgrphBuildModel和aclgrphBuildInitialize中重复的options编译配置参数，建议不要重复配置，如果设置重复，则以aclgrphBuildModel传入的为准**。
-

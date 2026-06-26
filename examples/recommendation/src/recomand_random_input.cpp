@@ -1,5 +1,5 @@
 /**
-* Copyright (c) 2025 Huawei Technologies Co., Ltd.
+ * Copyright (c) 2025 Huawei Technologies Co., Ltd.
  * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
@@ -55,10 +55,8 @@ void PrintHelpInfo() {
 
 uint32_t GetDataTypeSize(ge::DataType dt) {
   static const std::unordered_map<ge::DataType, uint32_t> type_size_map = {
-      {ge::DT_FLOAT, 4}, {ge::DT_FLOAT16, 2}, {ge::DT_INT8, 1},
-      {ge::DT_INT16, 2}, {ge::DT_INT32, 4}, {ge::DT_INT64, 8},
-      {ge::DT_UINT32, 4}, {ge::DT_UINT64, 8}
-  };
+      {ge::DT_FLOAT, 4}, {ge::DT_FLOAT16, 2}, {ge::DT_INT8, 1},   {ge::DT_INT16, 2},
+      {ge::DT_INT32, 4}, {ge::DT_INT64, 8},   {ge::DT_UINT32, 4}, {ge::DT_UINT64, 8}};
   auto it = type_size_map.find(dt);
   return (it != type_size_map.end()) ? it->second : 1;
 }
@@ -171,15 +169,13 @@ struct Args {
 };
 
 inline bool ParseArgs(Args &args, int argc, char **argv) {
-  static struct option long_options[] = {
-      {"help", no_argument, 0, 'h'},
-      {"runs", required_argument, 0, 'r'},
-      {"batchSize", required_argument, 0, 'b'},
-      {"multiInstanceNum", required_argument, 0, 'm'},
-      {"enableBatchH2D", required_argument, 0, 'e'},
-      {"aiCoreNum", required_argument, 0, 'a'},
-      {nullptr, 0, nullptr, 0}
-  };
+  static struct option long_options[] = {{"help", no_argument, 0, 'h'},
+                                         {"runs", required_argument, 0, 'r'},
+                                         {"batchSize", required_argument, 0, 'b'},
+                                         {"multiInstanceNum", required_argument, 0, 'm'},
+                                         {"enableBatchH2D", required_argument, 0, 'e'},
+                                         {"aiCoreNum", required_argument, 0, 'a'},
+                                         {nullptr, 0, nullptr, 0}};
 
   while (true) {
     int option_index = 0;
@@ -220,8 +216,10 @@ inline bool ParseArgs(Args &args, int argc, char **argv) {
         break;
 
       case 'e':
-        if (std::string(optarg) == "true" || std::string(optarg) == "1") args.enableBatchH2D = true;
-        else if (std::string(optarg) == "false" || std::string(optarg) == "0") args.enableBatchH2D = false;
+        if (std::string(optarg) == "true" || std::string(optarg) == "1")
+          args.enableBatchH2D = true;
+        else if (std::string(optarg) == "false" || std::string(optarg) == "0")
+          args.enableBatchH2D = false;
         else {
           std::cerr << "ERROR: invalid --enableBatchH2D value: " << optarg << std::endl;
           return false;
@@ -237,12 +235,10 @@ inline bool ParseArgs(Args &args, int argc, char **argv) {
     }
   }
 
-  std::cout << "recomand config: runs=" << args.runs
-      << ", batchSize=" << args.batchSize
-      << ", multiInstanceNum=" << args.multiInstanceNum
-      << ", enableBatchH2D=" << (args.enableBatchH2D ? "true" : "false")
-      << ", aiCoreNum=" << (args.aiCoreNum.empty() ? "\"\"" : args.aiCoreNum)
-      << std::endl;
+  std::cout << "recomand config: runs=" << args.runs << ", batchSize=" << args.batchSize
+            << ", multiInstanceNum=" << args.multiInstanceNum
+            << ", enableBatchH2D=" << (args.enableBatchH2D ? "true" : "false")
+            << ", aiCoreNum=" << (args.aiCoreNum.empty() ? "\"\"" : args.aiCoreNum) << std::endl;
 
   return true;
 }
@@ -250,35 +246,28 @@ inline bool ParseArgs(Args &args, int argc, char **argv) {
 // 构建DCN_v2.pb模型配置
 ModelConfig BuildDCNV2Config(const std::string &model_path, const std::string &model_type, const int32_t batchSize) {
   static const std::vector<std::string> modelInputs = {
-      "Input_21", "Input_24", "Input_4", "Input_6", "Input_12", "Input_19",
-      "Input_3", "Input_22", "Input_23", "Input_13", "Input_18", "Input_10",
-      "Input_1", "Input_14", "Input_26", "Input_8", "Input_2", "Input_15",
-      "Input_16", "Input_17", "Input_20", "Input_7", "Input", "Input_11", "Input_5",
-      "Input_25", "Input_9"
-  };
+      "Input_21", "Input_24", "Input_4",  "Input_6", "Input_12", "Input_19", "Input_3", "Input_22", "Input_23",
+      "Input_13", "Input_18", "Input_10", "Input_1", "Input_14", "Input_26", "Input_8", "Input_2",  "Input_15",
+      "Input_16", "Input_17", "Input_20", "Input_7", "Input",    "Input_11", "Input_5", "Input_25", "Input_9"};
 
   std::vector<TensorSpec> inputs;
   inputs.reserve(modelInputs.size());
   auto makeIntInput = [&](const std::string &name) {
-    return TensorSpec{name, ge::DT_INT32, {{batchSize}, {batchSize}},
-                      {ge::FORMAT_ND, ge::FORMAT_ND, {}}
-    };
+    return TensorSpec{name, ge::DT_INT32, {{batchSize}, {batchSize}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}};
   };
 
   const std::string specialInput = "Input";
   for (const auto &name : modelInputs) {
     if (name == specialInput) {
-      inputs.emplace_back(TensorSpec{"Input", ge::DT_FLOAT, {{batchSize, 8}, {batchSize, 8}},
-                                     {ge::FORMAT_ND, ge::FORMAT_ND, {}}
-      });
+      inputs.emplace_back(
+          TensorSpec{"Input", ge::DT_FLOAT, {{batchSize, 8}, {batchSize, 8}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}});
       continue;
     }
     inputs.emplace_back(makeIntInput(name));
   }
 
   std::vector<TensorSpec> outputs = {
-      {"Identity:0", ge::DT_FLOAT, {{batchSize}, {batchSize}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}}
-  };
+      {"Identity:0", ge::DT_FLOAT, {{batchSize}, {batchSize}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}}};
 
   // 构建DCN_v2模型解析参数
   std::stringstream ss;
@@ -287,11 +276,8 @@ ModelConfig BuildDCNV2Config(const std::string &model_path, const std::string &m
   ss << "Input:" << batchSize << ",8";
 
   std::map<ge::AscendString, ge::AscendString> parser = {
-      {ge::AscendString(ge::ir_option::OUT_NODES),
-       ge::AscendString("Identity:0")},
-      {ge::AscendString(ge::ir_option::INPUT_SHAPE),
-       ge::AscendString(ss.str().c_str())}
-  };
+      {ge::AscendString(ge::ir_option::OUT_NODES), ge::AscendString("Identity:0")},
+      {ge::AscendString(ge::ir_option::INPUT_SHAPE), ge::AscendString(ss.str().c_str())}};
 
   ModelConfig cfg;
   cfg.model_path = model_path;
@@ -303,14 +289,14 @@ ModelConfig BuildDCNV2Config(const std::string &model_path, const std::string &m
   return cfg;
 }
 
-ge::Status RunInference(const ModelConfig &cfg, int num_runs, int32_t multiInstanceNum,
-                        bool enableBatchH2D, const std::string &aiCoreNum) {
+ge::Status RunInference(const ModelConfig &cfg, int num_runs, int32_t multiInstanceNum, bool enableBatchH2D,
+                        const std::string &aiCoreNum) {
   auto model_inference = gerec::ModelInference::Builder(cfg.model_path, cfg.model_type)
-                         .InputBatchCopy(enableBatchH2D)
-                         .AiCoreNum(aiCoreNum)
-                         .MultiInstanceNum(multiInstanceNum)
-                         .GraphParserParams(cfg.parser_params)
-                         .Build();
+                             .InputBatchCopy(enableBatchH2D)
+                             .AiCoreNum(aiCoreNum)
+                             .MultiInstanceNum(multiInstanceNum)
+                             .GraphParserParams(cfg.parser_params)
+                             .Build();
   if (model_inference->Init() != ge::SUCCESS) {
     std::cerr << "Init ModelInference failed" << std::endl;
     return ge::FAILED;
@@ -350,13 +336,13 @@ ge::Status RunInference(const ModelConfig &cfg, int num_runs, int32_t multiInsta
     }
   }
 
-  model_inference.reset(); // 主动析构，等待所有任务执行完
+  model_inference.reset();  // 主动析构，等待所有任务执行完
 
   auto global_end = std::chrono::high_resolution_clock::now();
   double elapsed_sec = std::chrono::duration<double>(global_end - global_start).count();
 
-  std::cout << "Run " << num_runs << " inferences in " << elapsed_sec << " seconds. Success count: " << success_count.
-      load() << std::endl;
+  std::cout << "Run " << num_runs << " inferences in " << elapsed_sec
+            << " seconds. Success count: " << success_count.load() << std::endl;
   std::cout << "Throughput: " << (num_runs * cfg.batch_size / elapsed_sec) << " inferences/sec" << std::endl;
 
   double avg_ms = static_cast<double>(total_exec_us.load()) / success_count.load() / 1000.0;

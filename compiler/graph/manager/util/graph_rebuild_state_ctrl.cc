@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,7 +17,7 @@ namespace {
 inline bool IsVariable(const std::string &node_type) {
   return node_type == ge::VARIABLE || node_type == ge::VARIABLEV2 || node_type == ge::VARHANDLEOP;
 }
-}
+}  // namespace
 void GraphRebuildStateCtrl::AddGraph(uint32_t graph_id, const ComputeGraphPtr &compute_graph) {
   if (compute_graph == nullptr) {
     GELOGE(PARAM_INVALID, "[Check][Param] Failed to add graph %u, the compute graph is null", graph_id);
@@ -79,7 +79,8 @@ void GraphRebuildStateCtrl::SetStateChanged(const std::string &resource_name) {
   auto times = ++resource_names_to_change_times_[resource_name];
   for (auto &graph_id_to_var_names : graph_ids_to_resource_names_) {
     if (graph_id_to_var_names.second.count(resource_name) > 0) {
-      GELOGI("The resource %s has been changed, total changed times %d, "
+      GELOGI(
+          "The resource %s has been changed, total changed times %d, "
           "the graph %u contains which should be re-build before next run",
           resource_name.c_str(), times, graph_id_to_var_names.first);
       /// The graph being compiled right now is also added to the rebuild-list

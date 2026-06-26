@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -93,16 +93,15 @@ class TensorDescValue {
     auto dst_addr = PtrToValue(static_cast<void *>(dst.get()));
     auto src_addr = PtrToValue(static_cast<void *>(src.get()));
     while (remain_size > SECUREC_MEM_MAX_LEN) {
-      if (memcpy_s(ValueToPtr(dst_addr), SECUREC_MEM_MAX_LEN,
-                   ValueToPtr(src_addr), SECUREC_MEM_MAX_LEN) != EOK) {
+      if (memcpy_s(ValueToPtr(dst_addr), SECUREC_MEM_MAX_LEN, ValueToPtr(src_addr), SECUREC_MEM_MAX_LEN) != EOK) {
         return false;
       }
       remain_size -= SECUREC_MEM_MAX_LEN;
       dst_addr += SECUREC_MEM_MAX_LEN;
       src_addr += SECUREC_MEM_MAX_LEN;
     }
-    if ((remain_size != 0U) && (memcpy_s(ValueToPtr(dst_addr), remain_size,
-                                         ValueToPtr(src_addr), remain_size) != EOK)) {
+    if ((remain_size != 0U) &&
+        (memcpy_s(ValueToPtr(dst_addr), remain_size, ValueToPtr(src_addr), remain_size) != EOK)) {
       return false;
     }
     return true;
@@ -116,6 +115,7 @@ class TensorDescImpl {
   ~TensorDescImpl() = default;
   TensorDescImpl(const Shape &shape, const Format format, const DataType dt)
       : shape_(shape), format_(format), data_type_(dt) {}
+
  private:
   Shape shape_;
   std::vector<std::pair<int64_t, int64_t>> range_;
@@ -146,7 +146,7 @@ class TensorImpl {
   explicit TensorImpl(const TensorDesc &tensor_desc) : ge_tensor(TensorAdapter::TensorDesc2GeTensorDesc(tensor_desc)) {}
   TensorImpl(const TensorDesc &tensor_desc, const std::vector<uint8_t> &data)
       : ge_tensor(TensorAdapter::TensorDesc2GeTensorDesc(tensor_desc), data) {}
-  TensorImpl(const TensorDesc &tensor_desc, const uint8_t * const data, const size_t size)
+  TensorImpl(const TensorDesc &tensor_desc, const uint8_t *const data, const size_t size)
       : ge_tensor(TensorAdapter::TensorDesc2GeTensorDesc(tensor_desc), data, size) {}
   TensorImpl(TensorDesc &&tensor_desc, std::vector<uint8_t> &&data)
       : ge_tensor(TensorAdapter::TensorDesc2GeTensorDesc(tensor_desc), std::move(data)) {}
@@ -164,11 +164,11 @@ class TensorImpl {
       }
       StringHead *const string_head = PtrToPtr<char_t, StringHead>(buff.get());
       // Front 8 bytes store pointer of string
-      char_t *const raw_data = PtrToPtr<void, char_t>(
-          ValueToPtr(PtrToValue(PtrToPtr<char_t, void>(buff.get())) + sizeof(*string_head)));
+      char_t *const raw_data =
+          PtrToPtr<void, char_t>(ValueToPtr(PtrToValue(PtrToPtr<char_t, void>(buff.get())) + sizeof(*string_head)));
       string_head->addr = static_cast<int64_t>(sizeof(StringHead));
       string_head->len = static_cast<int64_t>(data.size());
-      const int32_t memcpy_ret = memcpy_s(raw_data, total_size - sizeof(StringHead),  data.c_str(), data.size() + 1U);
+      const int32_t memcpy_ret = memcpy_s(raw_data, total_size - sizeof(StringHead), data.c_str(), data.size() + 1U);
       if (memcpy_ret != EOK) {
         REPORT_INNER_ERR_MSG("E18888", "memcpy data failed, ret:%d, size:%zu.", memcpy_ret, data.size() + 1U);
         GELOGE(GRAPH_FAILED, "[Copy][Data] failed, ret:%d", memcpy_ret);
@@ -187,7 +187,7 @@ class TensorImpl {
       return GRAPH_FAILED;
     }
     size_t total_size = 0U;
-    total_size = std::accumulate(data.begin(), data.end(), total_size, [](size_t total, const std::string& str) {
+    total_size = std::accumulate(data.begin(), data.end(), total_size, [](size_t total, const std::string &str) {
       /// Extra 16 bytes store string head
       /// Extra 1 byte store '\0'
       total += str.size() + sizeof(StringHead) + 1U;
@@ -201,7 +201,7 @@ class TensorImpl {
       return GRAPH_FAILED;
     }
     // Front some bytes store head of each string
-    StringHead * const string_head = PtrToPtr<char_t, StringHead>(buff.get());
+    StringHead *const string_head = PtrToPtr<char_t, StringHead>(buff.get());
     uint64_t raw_data = PtrToValue(static_cast<void *>(buff.get())) + (data.size() * sizeof(*string_head));
     uint64_t ptr_size = data.size() * sizeof(StringHead);
     for (size_t i = 0U; i < data.size(); ++i) {
@@ -209,12 +209,12 @@ class TensorImpl {
       PtrAdd<StringHead>(string_head, data.size(), i)->len = static_cast<int64_t>(data[i].size());
       if (total_size < ptr_size) {
         REPORT_INNER_ERR_MSG("E18888", "Subtraction invalid, total_size:%zu, ptr_size:%" PRIu64, total_size, ptr_size);
-        GELOGE(GRAPH_FAILED, "[Check][Param] Subtraction invalid, total_size: %zu, ptr_size: %" PRIu64,
-               total_size, ptr_size);
+        GELOGE(GRAPH_FAILED, "[Check][Param] Subtraction invalid, total_size: %zu, ptr_size: %" PRIu64, total_size,
+               ptr_size);
         return GRAPH_FAILED;
       }
-      const int32_t memcpy_ret = memcpy_s(ValueToPtr(raw_data), total_size - ptr_size,
-                                          data[i].c_str(), data[i].size() + 1U);
+      const int32_t memcpy_ret =
+          memcpy_s(ValueToPtr(raw_data), total_size - ptr_size, data[i].c_str(), data[i].size() + 1U);
       GE_CHK_BOOL_RET_STATUS(memcpy_ret == EOK, GRAPH_FAILED, "copy data failed");
       raw_data += (data[i].size() + 1U);
       ptr_size += (data[i].size() + 1U);
@@ -250,9 +250,13 @@ class ShapeImpl {
   friend class Shape;
 };
 
-Shape::Shape() { impl_ = ComGraphMakeShared<ShapeImpl>(); }
+Shape::Shape() {
+  impl_ = ComGraphMakeShared<ShapeImpl>();
+}
 
-Shape::Shape(const std::vector<int64_t> &dims) { impl_ = ComGraphMakeShared<ShapeImpl>(dims); }
+Shape::Shape(const std::vector<int64_t> &dims) {
+  impl_ = ComGraphMakeShared<ShapeImpl>(dims);
+}
 
 size_t Shape::GetDimNum() const {
   if (impl_ != nullptr) {
@@ -578,7 +582,9 @@ void TensorDesc::SetReuseInputIndex(const uint32_t idx) {
   }
 }
 
-Tensor::Tensor() { impl = ComGraphMakeSharedAndThrow<TensorImpl>(); }
+Tensor::Tensor() {
+  impl = ComGraphMakeSharedAndThrow<TensorImpl>();
+}
 
 Tensor::Tensor(const TensorDesc &tensor_desc) {
   impl = ComGraphMakeSharedAndThrow<TensorImpl>(tensor_desc);
@@ -593,8 +599,8 @@ static void CheckTensorParam(const uint64_t shape_size, const DataType data_type
 
   if (ret && ((shape_size != 0U) || (data_size != type_length))) {
     if ((type_length != 0U) && ((UINT64_MAX / type_length) < shape_size)) {
-      GELOGW("[Create][Tensor] Calculate size failed, as mul overflow: %" PRIu64 " * %" PRIu32,
-             shape_size, type_length);
+      GELOGW("[Create][Tensor] Calculate size failed, as mul overflow: %" PRIu64 " * %" PRIu32, shape_size,
+             type_length);
     } else {
       if ((shape_size * type_length) != data_size) {
         GELOGW("[Create][Tensor] Tensor length not equal: shape_byte_size=%" PRIu64 ", dt_type=%s, data_size=%zu.",
@@ -605,20 +611,19 @@ static void CheckTensorParam(const uint64_t shape_size, const DataType data_type
 }
 
 Tensor::Tensor(const TensorDesc &tensor_desc, const std::vector<uint8_t> &data) {
-  CheckTensorParam(static_cast<uint64_t>(tensor_desc.GetShape().GetShapeSize()),
-                   tensor_desc.GetDataType(), data.size());
+  CheckTensorParam(static_cast<uint64_t>(tensor_desc.GetShape().GetShapeSize()), tensor_desc.GetDataType(),
+                   data.size());
   impl = ComGraphMakeShared<TensorImpl>(tensor_desc, data);
 }
 
 Tensor::Tensor(const TensorDesc &tensor_desc, const uint8_t *data, size_t size) {
-  CheckTensorParam(static_cast<uint64_t>(tensor_desc.GetShape().GetShapeSize()),
-                   tensor_desc.GetDataType(), size);
+  CheckTensorParam(static_cast<uint64_t>(tensor_desc.GetShape().GetShapeSize()), tensor_desc.GetDataType(), size);
   impl = ComGraphMakeShared<TensorImpl>(tensor_desc, data, size);
 }
 
 Tensor::Tensor(TensorDesc &&tensor_desc, std::vector<uint8_t> &&data) {
-  CheckTensorParam(static_cast<uint64_t>(tensor_desc.GetShape().GetShapeSize()),
-                   tensor_desc.GetDataType(), data.size());
+  CheckTensorParam(static_cast<uint64_t>(tensor_desc.GetShape().GetShapeSize()), tensor_desc.GetDataType(),
+                   data.size());
   impl = ComGraphMakeShared<TensorImpl>(std::move(tensor_desc), std::move(data));
 }
 
@@ -955,7 +960,7 @@ GeTensorDesc TensorAdapter::TensorDesc2GeTensorDesc(const TensorDesc &tensor_des
   TensorUtils::SetReuseInputIndex(ge_tensor_desc, tensor_desc.impl->reuse_input_index_);
 
   AscendString name("");
-  (void) tensor_desc.GetName(name);
+  (void)tensor_desc.GetName(name);
   ge_tensor_desc.SetName(name.GetString());
   ge_tensor_desc.SetPlacement(tensor_desc.GetPlacement());
   std::vector<std::pair<int64_t, int64_t>> shape_range;
@@ -1044,7 +1049,7 @@ const GeTensor TensorAdapter::AsGeTensor(const Tensor &tensor) {
   return GeTensor();
 }
 
-const GeTensor* TensorAdapter::AsBareGeTensorPtr(const Tensor &tensor) {
+const GeTensor *TensorAdapter::AsBareGeTensorPtr(const Tensor &tensor) {
   if (tensor.impl != nullptr) {
     return &(tensor.impl->ge_tensor);
   }
@@ -1070,11 +1075,11 @@ void TensorAdapter::NormalizeGeTensorDesc(GeTensorDesc &desc) {
   bool origin_format_is_set = false;
   if (AttrUtils::GetBool(desc, ATTR_NAME_ORIGIN_FORMAT_IS_SET, origin_format_is_set) && origin_format_is_set &&
       TensorUtils::IsOriginShapeInited(desc)) {
-    (void) AttrUtils::SetInt(desc, ATTR_NAME_STORAGE_FORMAT, static_cast<int64_t>(desc.GetFormat()));
-    (void) AttrUtils::SetListInt(desc, ATTR_NAME_STORAGE_SHAPE, desc.GetShape().GetDims());
+    (void)AttrUtils::SetInt(desc, ATTR_NAME_STORAGE_FORMAT, static_cast<int64_t>(desc.GetFormat()));
+    (void)AttrUtils::SetListInt(desc, ATTR_NAME_STORAGE_SHAPE, desc.GetShape().GetDims());
     desc.SetFormat(desc.GetOriginFormat());
     desc.SetShape(desc.GetOriginShape());
-    (void) AttrUtils::SetBool(desc, ATTR_NAME_ORIGIN_FORMAT_IS_SET, false);
+    (void)AttrUtils::SetBool(desc, ATTR_NAME_ORIGIN_FORMAT_IS_SET, false);
   }
 }
 

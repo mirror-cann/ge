@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -56,10 +56,10 @@ ut::GraphBuilder ParentGraphBuilder() {
   GeTensorDesc weight_desc(GeShape({1}), FORMAT_NHWC, DT_INT32);
   GeTensorPtr tensor = std::make_shared<GeTensor>(weight_desc, (uint8_t *)weight, sizeof(weight));
   OpDescUtils::SetWeights(const1, {tensor});
-  auto case_in0_shape = GeShape({1, 1,-1, 224});
-  auto case_in1_shape = GeShape({1,1});
-  std::vector<std::pair<int64_t, int64_t>> in0_range = {make_pair(1, 1), make_pair(1, 1),
-                                                       make_pair(1, -1),   make_pair(1, 224)};
+  auto case_in0_shape = GeShape({1, 1, -1, 224});
+  auto case_in1_shape = GeShape({1, 1});
+  std::vector<std::pair<int64_t, int64_t>> in0_range = {make_pair(1, 1), make_pair(1, 1), make_pair(1, -1),
+                                                        make_pair(1, 224)};
   std::vector<std::pair<int64_t, int64_t>> in1_range = {make_pair(1, 100), make_pair(1, 10)};
   case1->GetOpDesc()->MutableInputDesc(0)->SetShape(case_in0_shape);
   case1->GetOpDesc()->MutableInputDesc(0)->SetValueRange(in0_range);
@@ -87,14 +87,14 @@ ut::GraphBuilder ParentGraphBuilder() {
 ut::GraphBuilder SwitchSubgraphBuilder(string graph_name, uint32_t num) {
   ut::GraphBuilder builder = ut::GraphBuilder(graph_name);
 
-  std::vector<int64_t> shape1 = {2,2};
+  std::vector<int64_t> shape1 = {2, 2};
   string data1_name = "data1_" + std::to_string(num);
   auto data1 = builder.AddNode(data1_name, "Data", 1, 1, FORMAT_NCHW, DT_INT32, shape1);
   auto data1_desc = data1->GetOpDesc();
   EXPECT_NE(data1_desc, nullptr);
   AttrUtils::SetInt(data1_desc, "_parent_node_index", 0);
 
-  std::vector<int64_t> shape2 = {3,3};
+  std::vector<int64_t> shape2 = {3, 3};
   string data2_name = "data2_" + std::to_string(num);
   auto data2 = builder.AddNode(data2_name, "Data", 1, 1, FORMAT_NCHW, DT_INT32, shape2);
   auto data2_desc = data2->GetOpDesc();
@@ -113,7 +113,7 @@ ut::GraphBuilder SwitchSubgraphBuilder(string graph_name, uint32_t num) {
   string merge_name = "merge_" + std::to_string(num);
   auto merge = builder.AddNode(merge_name, "Merge", 2, 1);
 
-  std::vector<int64_t> shape7 = {8,8};
+  std::vector<int64_t> shape7 = {8, 8};
   string output_name = "output_" + std::to_string(num);
   auto netoutput = builder.AddNode(output_name, NETOUTPUT, 1, 0, FORMAT_NCHW, DT_INT32, shape7);
   auto input0_desc = netoutput->GetOpDesc()->MutableInputDesc(0);
@@ -174,9 +174,7 @@ auto ShapeValueInfer = [](Operator &op) {
   }
   return SUCCESS;
 };
-REG_OP(Shape)
-    .OP_END_FACTORY_REG(Shape)
-IMPL_INFER_VALUE_RANGE_FUNC(Shape, ShapeValueRangeFunc){
+REG_OP(Shape).OP_END_FACTORY_REG(Shape) IMPL_INFER_VALUE_RANGE_FUNC(Shape, ShapeValueRangeFunc) {
   auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
   auto output_tensor_desc = op_desc->MutableOutputDesc(0);
   std::vector<std::pair<int64_t, int64_t>> in_shape_range;
@@ -191,8 +189,8 @@ TEST_F(UtestGraphInferValueRangePass, CallRun_NoSubgraph_UseRegistedFunc_NotInfe
   INFER_VALUE_RANGE_CUSTOM_FUNC_REG(Shape, INPUT_IS_DYNAMIC, ShapeValueRangeFunc);
   auto graph = std::make_shared<ComputeGraph>("test_graph");
   GeTensorDesc ge_tensor_desc(GeShape({1, 1, 4, 192}), ge::FORMAT_NCHW, DT_INT32);
-  std::vector<std::pair<int64_t, int64_t>> shape_range = {make_pair(1, 1), make_pair(1, 1),
-                                                          make_pair(4, 4),   make_pair(192, 192)};
+  std::vector<std::pair<int64_t, int64_t>> shape_range = {make_pair(1, 1), make_pair(1, 1), make_pair(4, 4),
+                                                          make_pair(192, 192)};
   ge_tensor_desc.SetShapeRange(shape_range);
   GeTensorDesc output_tensor_desc(GeShape({4}), ge::FORMAT_NCHW, DT_INT32);
   auto op_desc = std::make_shared<OpDesc>("Shape", "Shape");
@@ -214,8 +212,8 @@ TEST_F(UtestGraphInferValueRangePass, CallRun_NoSubgraph_UseRegistedFunc_DoInfer
   INFER_VALUE_RANGE_CUSTOM_FUNC_REG(Shape, INPUT_IS_DYNAMIC, ShapeValueRangeFunc);
   auto graph = std::make_shared<ComputeGraph>("test_graph");
   GeTensorDesc sqrt_tensor_desc(GeShape({-1, -1, 4, 192}), ge::FORMAT_NCHW, DT_INT32);
-  std::vector<std::pair<int64_t, int64_t>> shape_range = {make_pair(1, 100), make_pair(1, 240),
-                                                          make_pair(4, 4),   make_pair(192, 192)};
+  std::vector<std::pair<int64_t, int64_t>> shape_range = {make_pair(1, 100), make_pair(1, 240), make_pair(4, 4),
+                                                          make_pair(192, 192)};
   sqrt_tensor_desc.SetShapeRange(shape_range);
   auto sqrt_op_desc = std::make_shared<OpDesc>("Sqrt", "Sqrt");
   sqrt_op_desc->AddInputDesc(sqrt_tensor_desc);
@@ -236,7 +234,6 @@ TEST_F(UtestGraphInferValueRangePass, CallRun_NoSubgraph_UseRegistedFunc_DoInfer
   ge::GraphUtils::AddEdge(sqrt_node->GetOutDataAnchor(0), shape_node->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(shape_node->GetOutDataAnchor(0), Output_node->GetInDataAnchor(0));
   EXPECT_EQ(graph->TopologicalSorting(), GRAPH_SUCCESS);
-
 
   InferValueRangePass infer_pass;
   auto ret = infer_pass.Run(shape_node);
@@ -264,7 +261,6 @@ TEST_F(UtestGraphInferValueRangePass, CallRun_NoSubgraph_UseRegistedFunc_DoInfer
     output_value_range.push_back(pair.second);
   }
   EXPECT_EQ(target_value_range, output_value_range);
-
 }
 
 class AddKernel : public Kernel {
@@ -284,7 +280,8 @@ class AddKernel : public Kernel {
       GeTensorPtr const_tensor = std::make_shared<ge::GeTensor>(input[0]->GetTensorDesc(), (uint8_t *)data_vec.data(),
                                                                 data_num * sizeof(int64_t));
       v_output.emplace_back(const_tensor);
-    } else if (input[0]->GetTensorDesc().GetDataType() == DT_INT32 || input[0]->GetTensorDesc().GetDataType() == DT_UINT32) {
+    } else if (input[0]->GetTensorDesc().GetDataType() == DT_INT32 ||
+               input[0]->GetTensorDesc().GetDataType() == DT_UINT32) {
       vector<int32_t> data_vec;
       auto data_num = input[0]->GetTensorDesc().GetShape().GetShapeSize();
       if (input[0]->GetTensorDesc().GetShape().IsScalar()) {
@@ -317,7 +314,7 @@ TEST_F(UtestGraphInferValueRangePass, CallRun_NoSubgraph_UseCpuKernel_InputsHave
   vector<int64_t> data_vec = {1, 1, 1, 1};
   GeTensorDesc const_tensor_desc(ge::GeShape(dims_vec), ge::FORMAT_NCHW, ge::DT_INT64);
   GeTensorPtr const_tensor =
-    std::make_shared<ge::GeTensor>(const_tensor_desc, (uint8_t *)data_vec.data(), data_vec.size() * sizeof(int64_t));
+      std::make_shared<ge::GeTensor>(const_tensor_desc, (uint8_t *)data_vec.data(), data_vec.size() * sizeof(int64_t));
 
   auto const_op_desc = std::make_shared<OpDesc>("Constant", "Constant");
   const_op_desc->AddOutputDesc(const_tensor_desc);
@@ -325,8 +322,8 @@ TEST_F(UtestGraphInferValueRangePass, CallRun_NoSubgraph_UseCpuKernel_InputsHave
   auto const_node = graph->AddNode(const_op_desc);
 
   GeTensorDesc shape_tensor_desc(GeShape({4}), ge::FORMAT_NCHW, ge::DT_INT64);
-  std::vector<std::pair<int64_t, int64_t>> unknown_value_range = {make_pair(1, -1), make_pair(1, 240),
-                                                                  make_pair(4, 4),  make_pair(192, 192)};
+  std::vector<std::pair<int64_t, int64_t>> unknown_value_range = {make_pair(1, -1), make_pair(1, 240), make_pair(4, 4),
+                                                                  make_pair(192, 192)};
   shape_tensor_desc.SetValueRange(unknown_value_range);
   auto shape_op_desc = std::make_shared<OpDesc>("Shape", "Shape");
   shape_op_desc->AddOutputDesc(shape_tensor_desc);
@@ -494,7 +491,7 @@ TEST_F(UtestGraphInferValueRangePass, CallRun_NoSubgraph_UseCpuKernel_InputsAreK
   vector<int64_t> data_vec = {1, 1, 1, 1};
   GeTensorDesc const_tensor_desc(ge::GeShape(dims_vec), ge::FORMAT_NCHW, ge::DT_INT64);
   GeTensorPtr const_tensor =
-    std::make_shared<ge::GeTensor>(const_tensor_desc, (uint8_t *)data_vec.data(), data_vec.size() * sizeof(int64_t));
+      std::make_shared<ge::GeTensor>(const_tensor_desc, (uint8_t *)data_vec.data(), data_vec.size() * sizeof(int64_t));
 
   auto const_op_desc = std::make_shared<OpDesc>("Constant", "Constant");
   const_op_desc->AddOutputDesc(const_tensor_desc);
@@ -502,8 +499,8 @@ TEST_F(UtestGraphInferValueRangePass, CallRun_NoSubgraph_UseCpuKernel_InputsAreK
   auto const_node = graph->AddNode(const_op_desc);
 
   GeTensorDesc shape_tensor_desc(GeShape({4}), ge::FORMAT_NCHW, ge::DT_INT64);
-  std::vector<std::pair<int64_t, int64_t>> unknown_value_range = {make_pair(1, 100), make_pair(1, 240),
-                                                                  make_pair(4, 4),  make_pair(192, 192)};
+  std::vector<std::pair<int64_t, int64_t>> unknown_value_range = {make_pair(1, 100), make_pair(1, 240), make_pair(4, 4),
+                                                                  make_pair(192, 192)};
   shape_tensor_desc.SetValueRange(unknown_value_range);
   auto shape_op_desc = std::make_shared<OpDesc>("Shape", "Shape");
   shape_op_desc->AddOutputDesc(shape_tensor_desc);
@@ -550,15 +547,15 @@ TEST_F(UtestGraphInferValueRangePass, CallRun_NoSubgraph_UseCpuKernel_InputsAreK
   vector<int32_t> data_vec = {1, 100, 2, 200};
   GeTensorDesc const_tensor_desc(ge::GeShape({4}), ge::FORMAT_NCHW, ge::DT_INT32);
   GeTensorPtr const_tensor =
-    std::make_shared<ge::GeTensor>(const_tensor_desc, (uint8_t *)data_vec.data(), data_vec.size() * sizeof(int32_t));
+      std::make_shared<ge::GeTensor>(const_tensor_desc, (uint8_t *)data_vec.data(), data_vec.size() * sizeof(int32_t));
   auto const_op_desc = std::make_shared<OpDesc>("Constant", "Constant");
   const_op_desc->AddOutputDesc(const_tensor_desc);
   EXPECT_EQ(OpDescUtils::SetWeights(const_op_desc, const_tensor), GRAPH_SUCCESS);
   auto const_node = graph->AddNode(const_op_desc);
 
   GeTensorDesc shape_tensor_desc(GeShape({4}), ge::FORMAT_NCHW, ge::DT_INT32);
-  std::vector<std::pair<int64_t, int64_t>> known_value_range = {make_pair(1, 100), make_pair(1, 240),
-                                                                make_pair(4, 4),   make_pair(192, 192)};
+  std::vector<std::pair<int64_t, int64_t>> known_value_range = {make_pair(1, 100), make_pair(1, 240), make_pair(4, 4),
+                                                                make_pair(192, 192)};
   shape_tensor_desc.SetValueRange(known_value_range);
   auto shape_op_desc = std::make_shared<OpDesc>("Shape", "Shape");
   shape_op_desc->AddOutputDesc(shape_tensor_desc);
@@ -590,16 +587,15 @@ TEST_F(UtestGraphInferValueRangePass, CallRun_NoSubgraph_UseCpuKernel_InputsAreK
   EXPECT_EQ(target_value_range, output_value_range);
 }
 
-REG_OP(Case)
-    .OP_END_FACTORY_REG(Case)
-IMPL_INFER_VALUE_RANGE_FUNC(Case, ValueRangeFunc){
+REG_OP(Case).OP_END_FACTORY_REG(Case) IMPL_INFER_VALUE_RANGE_FUNC(Case, ValueRangeFunc) {
   auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
   auto output_tensor_desc = op_desc->MutableOutputDesc(0);
   std::vector<std::pair<int64_t, int64_t>> in_value_range;
   output_tensor_desc->GetValueRange(in_value_range);
   if (in_value_range.empty()) {
-    std::vector<std::pair<int64_t, int64_t>> out_value_range = {make_pair(1, 2), make_pair(1, 3),
-                                                                make_pair(1, 4),   make_pair(1, 5)};;
+    std::vector<std::pair<int64_t, int64_t>> out_value_range = {make_pair(1, 2), make_pair(1, 3), make_pair(1, 4),
+                                                                make_pair(1, 5)};
+    ;
     output_tensor_desc->SetValueRange(out_value_range);
   }
   return GRAPH_SUCCESS;
@@ -623,7 +619,7 @@ TEST_F(UtestGraphInferValueRangePass, CallRun_HasCaeSubgraph_WhenBeforeSubgraph)
   std::vector<std::pair<int64_t, int64_t>> out_value_range;
   case_out_0_desc->GetValueRange(out_value_range);
   EXPECT_EQ(out_value_range.size(), 4);
-  std::vector<int64_t> target_value_range = {1,2,1,3,1,4,1,5};
+  std::vector<int64_t> target_value_range = {1, 2, 1, 3, 1, 4, 1, 5};
   std::vector<int64_t> output_value_range_list;
   for (auto pair : out_value_range) {
     output_value_range_list.push_back(pair.first);
@@ -704,8 +700,7 @@ TEST_F(UtestGraphInferValueRangePass, CallRun_HasSubgraph_WhenAfterSubgraph_ForM
   EXPECT_EQ(infer_pass.Run(case_node), GRAPH_FAILED);
 }
 
-TEST_F(UtestGraphInferValueRangePass, UpdateTensorDesc_failed)
-{
+TEST_F(UtestGraphInferValueRangePass, UpdateTensorDesc_failed) {
   InferValueRangePass infer_pass;
   GeTensorDescPtr src = nullptr;
   GeTensorDescPtr dst = nullptr;
@@ -714,8 +709,7 @@ TEST_F(UtestGraphInferValueRangePass, UpdateTensorDesc_failed)
   EXPECT_EQ(ret, GRAPH_FAILED);
 }
 
-TEST_F(UtestGraphInferValueRangePass, ConstructDataByType)
-{
+TEST_F(UtestGraphInferValueRangePass, ConstructDataByType) {
   GeTensorDesc ge_tensor_desc(GeShape({1, 1, 4, 192}), ge::FORMAT_NCHW, DT_FLOAT);
 
   bool use_floor_value = true;
@@ -751,8 +745,7 @@ TEST_F(UtestGraphInferValueRangePass, ConstructDataByType)
   EXPECT_EQ(ret, GRAPH_PARAM_INVALID);
 }
 
-TEST_F(UtestGraphInferValueRangePass, UpdateOutputFromSubgraphsForSubgraphMultiDims)
-{
+TEST_F(UtestGraphInferValueRangePass, UpdateOutputFromSubgraphsForSubgraphMultiDims) {
   InferValueRangePass infer_pass;
 
   std::vector<GeTensorDescPtr> src;
@@ -762,8 +755,7 @@ TEST_F(UtestGraphInferValueRangePass, UpdateOutputFromSubgraphsForSubgraphMultiD
   EXPECT_EQ(ret, GRAPH_FAILED);
 }
 
-TEST_F(UtestGraphInferValueRangePass, SkipInfer_WhenOutputShapeSizeTooLarge_InMemoryPriority)
-{
+TEST_F(UtestGraphInferValueRangePass, SkipInfer_WhenOutputShapeSizeTooLarge_InMemoryPriority) {
   auto options_back = GetThreadLocalContext().GetAllGraphOptions();
   auto options = options_back;
   options[MEMORY_OPTIMIZATION_POLICY] = kMemoryPriority;
@@ -792,7 +784,7 @@ TEST_F(UtestGraphInferValueRangePass, SkipInfer_WhenOutputShapeSizeTooLarge_InMe
   shape_op_desc->AddOutputDesc(shape_tensor_desc);
   auto shape_node = graph->AddNode(shape_op_desc);
 
-  GeTensorDesc add_tensor_desc(GeShape({256}), ge::FORMAT_NCHW, ge::DT_INT64); // a big shape
+  GeTensorDesc add_tensor_desc(GeShape({256}), ge::FORMAT_NCHW, ge::DT_INT64);  // a big shape
   auto add_op_desc = std::make_shared<OpDesc>("Add", "Add");
   add_op_desc->AddInputDesc(shape_tensor_desc);
   add_op_desc->AddInputDesc(const_tensor_desc);

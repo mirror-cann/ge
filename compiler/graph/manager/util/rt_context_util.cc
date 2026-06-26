@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,7 +18,7 @@
 
 namespace ge {
 namespace {
-  const int64_t kDefaultGraphId = -1;
+const int64_t kDefaultGraphId = -1;
 }
 
 RtContextUtil &RtContextUtil::GetInstance() {
@@ -28,8 +28,8 @@ RtContextUtil &RtContextUtil::GetInstance() {
 
 Status RtContextUtil::SetRtContext(const uint64_t session_id, const uint32_t graph_id, const int32_t device_id,
                                    const uint32_t mode, aclrtContext rt_context) const {
-  GELOGI("set rt_context, session id: %lu, graph id: %u, mode %d, device id:%u.", session_id,
-         graph_id, static_cast<int32_t>(mode), ge::GetContext().DeviceId());
+  GELOGI("set rt_context, session id: %lu, graph id: %u, mode %d, device id:%u.", session_id, graph_id,
+         static_cast<int32_t>(mode), ge::GetContext().DeviceId());
 
   GE_CHK_STATUS_RET(aclrtCreateContext(&rt_context, device_id));
   GE_CHK_ACL_RET(aclrtSetCurrentContext(rt_context));

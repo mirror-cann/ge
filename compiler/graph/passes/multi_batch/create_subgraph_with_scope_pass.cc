@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -170,27 +170,23 @@ Status CreateSubGraphWithScopePass::Run(ComputeGraphPtr graph) {
     const std::vector<NodePtr> &scope_nodes = it.second;
     ComputeGraphPtr subgraph;
 
-    GE_CHK_STATUS_RET(ParseMultiDimsAttr(scope_nodes),
-                      "Parse dynamic dims attribute failed for scope[%d].", scope_index);
-    GE_CHK_STATUS_RET(GetSubgraphFromScope(graph, it, subgraph),
-                      "Get subgraph From scope[%d] failed.", scope_index);
+    GE_CHK_STATUS_RET(ParseMultiDimsAttr(scope_nodes), "Parse dynamic dims attribute failed for scope[%d].",
+                      scope_index);
+    GE_CHK_STATUS_RET(GetSubgraphFromScope(graph, it, subgraph), "Get subgraph From scope[%d] failed.", scope_index);
     GE_CHK_STATUS_RET(CollectIoNodes(subgraph), "Collect Io nodes from subgraph[%s] failed.",
                       subgraph->GetName().c_str());
-    GE_CHK_STATUS_RET(CreateNewPartitionedCall(graph, subgraph, scope_nodes),
-                      "Create new partitioned call failed.");
+    GE_CHK_STATUS_RET(CreateNewPartitionedCall(graph, subgraph, scope_nodes), "Create new partitioned call failed.");
     GE_CHK_STATUS_RET(MergeNodesToSubgraph(scope_nodes, subgraph), "Merge scope nodes to subgraph[%s] failed.",
                       subgraph->GetName().c_str());
     GE_CHK_STATUS_RET(SetParentIndexToData(subgraph), "Set parent index to data nodes for subgraph[%s] failed.",
                       subgraph->GetName().c_str());
     GE_CHK_STATUS_RET(SetParentIndexToNetOutput(subgraph), "Set parent index to net_output for subgraph[%s] failed.",
                       subgraph->GetName().c_str());
-    GE_CHK_STATUS_RET(AddSubgraphToNewPartitionedCall(graph, subgraph),
-                      "Add subgraph to new partitioned_call failed.");
+    GE_CHK_STATUS_RET(AddSubgraphToNewPartitionedCall(graph, subgraph), "Add subgraph to new partitioned_call failed.");
     GE_CHK_STATUS_RET(UpdateTensorMaxShape(graph, subgraph), "Update tensor max shape failed");
     (void)AttrUtils::SetBool(subgraph, ATTR_NAME_SUBGRAPH_IS_MULTI_DIMS, true);
     (void)AttrUtils::SetBool(subgraph, ATTR_NAME_NO_NEED_DYNAMIC_SHAPE_PARTITION, true);
-    GELOGI("Create multi dims original subgraph[%s] with scope[%d] success.",
-           subgraph->GetName().c_str(), scope_index);
+    GELOGI("Create multi dims original subgraph[%s] with scope[%d] success.", subgraph->GetName().c_str(), scope_index);
   }
   GE_CHK_STATUS_RET(ParseMultiBatchParams(), "Parse multi-batch parameters failed.");
   GELOGD("CreateSubGraphWithScopePass end.");
@@ -286,10 +282,9 @@ Status CreateSubGraphWithScopePass::CollectDynamicNodes(const ComputeGraphPtr &g
     }
   }
 
-  (void)std::sort(dynamic_shape_nodes.begin(), dynamic_shape_nodes.end(),
-                  [](const NodePtr &node1, const NodePtr &node2) -> bool {
-                    return (node1->GetName() < node2->GetName());
-                  });
+  (void)std::sort(
+      dynamic_shape_nodes.begin(), dynamic_shape_nodes.end(),
+      [](const NodePtr &node1, const NodePtr &node2) -> bool { return (node1->GetName() < node2->GetName()); });
   return SUCCESS;
 }
 
@@ -619,8 +614,8 @@ Status CreateSubGraphWithScopePass::AddSubgraphToNewPartitionedCall(const Comput
   GE_CHK_STATUS_RET(op_desc->AddSubgraphName(subgraph->GetName()), "Add subgraph[%s] to partitioned_call[%s] failed.",
                     subgraph->GetName().c_str(), op_desc->GetName().c_str());
   GE_CHK_STATUS_RET(op_desc->SetSubgraphInstanceName(0U, subgraph->GetName()),
-                    "Add subgraph[%s] to partitioned_call[%s] failed.",
-                    subgraph->GetName().c_str(), op_desc->GetName().c_str());
+                    "Add subgraph[%s] to partitioned_call[%s] failed.", subgraph->GetName().c_str(),
+                    op_desc->GetName().c_str());
   return SUCCESS;
 }
 
@@ -655,10 +650,10 @@ Status CreateSubGraphWithScopePass::CollectIoNodes(const ComputeGraphPtr &subgra
     int32_t parent_index = -1;
     const auto &tensor = op_desc->GetInputDescPtr(input_anchor->GetIdx());
     if (!AttrUtils::GetInt(tensor, ATTR_NAME_PARENT_NODE_INDEX, parent_index) || parent_index < 0) {
-      REPORT_INNER_ERR_MSG("E19999", "NetOutput[%s] tensor[%d] has no parent index.",
-                         output->GetName().c_str(), input_anchor->GetIdx());
-      GELOGE(PARAM_INVALID, "NetOutput[%s] tensor[%d] has no parent index.",
-             output->GetName().c_str(), input_anchor->GetIdx());
+      REPORT_INNER_ERR_MSG("E19999", "NetOutput[%s] tensor[%d] has no parent index.", output->GetName().c_str(),
+                           input_anchor->GetIdx());
+      GELOGE(PARAM_INVALID, "NetOutput[%s] tensor[%d] has no parent index.", output->GetName().c_str(),
+             input_anchor->GetIdx());
       return PARAM_INVALID;
     }
 
@@ -715,8 +710,8 @@ Status CreateSubGraphWithScopePass::MergeNodesToSubgraph(const std::vector<NodeP
   GE_CHECK_NOTNULL(op_desc);
 
   if ((scope_nodes.size() == 1U) && (scope_nodes[0U] == partitioned_call)) {
-    GELOGI("Scope has only one node[%s] type[%s], copy attrs to data nodes.",
-           partitioned_call->GetName().c_str(), partitioned_call->GetType().c_str());
+    GELOGI("Scope has only one node[%s] type[%s], copy attrs to data nodes.", partitioned_call->GetName().c_str(),
+           partitioned_call->GetType().c_str());
     return CopyPartitionedCallAttrToData(subgraph);
   }
 
@@ -731,25 +726,25 @@ Status CreateSubGraphWithScopePass::MergeNodesToSubgraph(const std::vector<NodeP
     const auto &parent_graph = node->GetOwnerComputeGraph();
     GE_CHECK_NOTNULL(parent_graph);
     if (GraphUtils::RemoveJustNode(parent_graph, node) != GRAPH_SUCCESS) {
-      REPORT_INNER_ERR_MSG("E19999", "Remove node[%s] from root graph[%s] failed.",
-                         node->GetName().c_str(), parent_graph->GetName().c_str());
-      GELOGE(FAILED, "Remove node[%s] from root graph[%s] failed.",
-             node->GetName().c_str(), parent_graph->GetName().c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Remove node[%s] from root graph[%s] failed.", node->GetName().c_str(),
+                           parent_graph->GetName().c_str());
+      GELOGE(FAILED, "Remove node[%s] from root graph[%s] failed.", node->GetName().c_str(),
+             parent_graph->GetName().c_str());
       return FAILED;
     }
     (void)subgraph->AddNode(node);
     if (node->SetOwnerComputeGraph(subgraph) != GRAPH_SUCCESS) {
-      REPORT_INNER_ERR_MSG("E19999", "Set owner graph[%s] to node[%s] failed.",
-                         subgraph->GetName().c_str(), node->GetName().c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Set owner graph[%s] to node[%s] failed.", subgraph->GetName().c_str(),
+                           node->GetName().c_str());
       GELOGE(FAILED, "Set owner graph[%s] to node[%s] failed.", subgraph->GetName().c_str(), node->GetName().c_str());
       return FAILED;
     }
     GE_CHK_STATUS_RET(MergeInputAnchors(subgraph, node, scope_nodes),
-                      "Merge node[%s]'s input anchors to subgraph[%s] failed.",
-                      node->GetName().c_str(), subgraph->GetName().c_str());
+                      "Merge node[%s]'s input anchors to subgraph[%s] failed.", node->GetName().c_str(),
+                      subgraph->GetName().c_str());
     GE_CHK_STATUS_RET(MergeOutputAnchors(subgraph, node, scope_nodes),
-                      "Merge node[%s]'s output anchors to subgraph[%s] failed.",
-                      node->GetName().c_str(), subgraph->GetName().c_str());
+                      "Merge node[%s]'s output anchors to subgraph[%s] failed.", node->GetName().c_str(),
+                      subgraph->GetName().c_str());
     GELOGI("Node[%s] has been moved to subgraph[%s].", node->GetName().c_str(), subgraph->GetName().c_str());
   }
   return SUCCESS;
@@ -760,19 +755,19 @@ Status CreateSubGraphWithScopePass::CopyPartitionedCallAttrToData(const ComputeG
   GE_CHECK_NOTNULL(partitioned_call);
 
   const std::map<NodePtr, std::map<int64_t, std::vector<int64_t>>>::const_iterator &input_shape =
-    node_to_input_shape_.find(partitioned_call);
+      node_to_input_shape_.find(partitioned_call);
   if (input_shape == node_to_input_shape_.cend()) {
     REPORT_INNER_ERR_MSG("E19999", "No input shape for the only node[%s] in scope.",
-                       partitioned_call->GetName().c_str());
+                         partitioned_call->GetName().c_str());
     GELOGE(PARAM_INVALID, "No input shape for the only node[%s] in scope.", partitioned_call->GetName().c_str());
     return PARAM_INVALID;
   }
 
   const std::map<NodePtr, std::map<int64_t, std::vector<std::vector<int64_t>>>>::const_iterator &dyn_dims =
-    node_to_multi_dims_.find(partitioned_call);
+      node_to_multi_dims_.find(partitioned_call);
   if (dyn_dims == node_to_multi_dims_.cend()) {
     REPORT_INNER_ERR_MSG("E19999", "No dynamic dims for the only node[%s] in scope.",
-                       partitioned_call->GetName().c_str());
+                         partitioned_call->GetName().c_str());
     GELOGE(PARAM_INVALID, "No dynamic dims for the only node[%s] in scope.", partitioned_call->GetName().c_str());
     return PARAM_INVALID;
   }
@@ -826,10 +821,10 @@ Status CreateSubGraphWithScopePass::CheckCtrlAnchorInvalid(const NodePtr &node,
       }
       const auto &it = std::find(scope_nodes.begin(), scope_nodes.end(), peer_node);
       if (it == scope_nodes.end()) {
-        REPORT_INNER_ERR_MSG("E19999", "Exit control edge between [%s] and [%s].",
-                           peer_node->GetName().c_str(), node->GetName().c_str());
-        GELOGE(PARAM_INVALID, "Exit control edge between [%s] and [%s].",
-               peer_node->GetName().c_str(), node->GetName().c_str());
+        REPORT_INNER_ERR_MSG("E19999", "Exit control edge between [%s] and [%s].", peer_node->GetName().c_str(),
+                             node->GetName().c_str());
+        GELOGE(PARAM_INVALID, "Exit control edge between [%s] and [%s].", peer_node->GetName().c_str(),
+               node->GetName().c_str());
         return FAILED;
       }
     }
@@ -855,10 +850,10 @@ Status CreateSubGraphWithScopePass::CheckCtrlAnchorInvalid(const NodePtr &node,
       }
 
       if (it == scope_nodes.end()) {
-        REPORT_INNER_ERR_MSG("E19999", "Exist control edge between [%s] and [%s].",
-                           node->GetName().c_str(), peer_node->GetName().c_str());
-        GELOGE(PARAM_INVALID, "Exist control edge between [%s] and [%s].",
-               node->GetName().c_str(), peer_node->GetName().c_str());
+        REPORT_INNER_ERR_MSG("E19999", "Exist control edge between [%s] and [%s].", node->GetName().c_str(),
+                             peer_node->GetName().c_str());
+        GELOGE(PARAM_INVALID, "Exist control edge between [%s] and [%s].", node->GetName().c_str(),
+               peer_node->GetName().c_str());
         return FAILED;
       }
     }
@@ -917,8 +912,8 @@ Status CreateSubGraphWithScopePass::MergeInputAnchors(const ComputeGraphPtr &sub
 
     GE_CHECK_NOTNULL(data_node);
     GE_CHK_STATUS_RET(SetDataDynDimsInfo(node, data_node, input_anchor->GetIdx()),
-                      "Set dyn dims info from node[%s] input[%d] to data[%s] failed.",
-                      node->GetName().c_str(), input_anchor->GetIdx(), data_node->GetName().c_str());
+                      "Set dyn dims info from node[%s] input[%d] to data[%s] failed.", node->GetName().c_str(),
+                      input_anchor->GetIdx(), data_node->GetName().c_str());
     std::string max_op_shape;
     if (AttrUtils::GetStr(peer_desc, ATTR_NAME_OP_MAX_SHAPE, max_op_shape)) {
       std::vector<std::string> max_shape = StringUtils::Split(max_op_shape, ';');
@@ -931,20 +926,20 @@ Status CreateSubGraphWithScopePass::MergeInputAnchors(const ComputeGraphPtr &sub
       GELOGI("Node[%s] max_op_shape:[%s], max_shape[%d]:[%s]", node->GetName().c_str(), max_op_shape.c_str(),
              peer_anchor_idx, max_shape[peer_anchor_idx].c_str());
     }
-    GELOGI("Peer node[%s] is out of scope, add new data node[%s] into subgraph[%s].",
-           peer_node->GetName().c_str(), data_node->GetName().c_str(), subgraph->GetName().c_str());
+    GELOGI("Peer node[%s] is out of scope, add new data node[%s] into subgraph[%s].", peer_node->GetName().c_str(),
+           data_node->GetName().c_str(), subgraph->GetName().c_str());
 
     if (GraphUtils::RemoveEdge(peer_anchor, input_anchor) != SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "Remove edge from node[%s] output[%d] to node[%s] input[%d] failed.",
-                         peer_node->GetName().c_str(), peer_anchor->GetIdx(),
-                         node->GetName().c_str(), input_anchor->GetIdx());
+                           peer_node->GetName().c_str(), peer_anchor->GetIdx(), node->GetName().c_str(),
+                           input_anchor->GetIdx());
       GELOGE(FAILED, "Remove edge from node[%s] output [%d] to node[%s] input[%d] failed.",
              peer_node->GetName().c_str(), peer_anchor->GetIdx(), node->GetName().c_str(), input_anchor->GetIdx());
       return FAILED;
     }
     if (GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), input_anchor) != SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "Add edge from node[%s] output[0] to node[%s] input[%d] failed.",
-                         data_node->GetName().c_str(), node->GetName().c_str(), input_anchor->GetIdx());
+                           data_node->GetName().c_str(), node->GetName().c_str(), input_anchor->GetIdx());
       GELOGE(FAILED, "Add edge from node[%s] output[0] to node[%s] input[%d] failed.", data_node->GetName().c_str(),
              node->GetName().c_str(), input_anchor->GetIdx());
       return FAILED;
@@ -961,11 +956,10 @@ Status CreateSubGraphWithScopePass::MergeInputAnchors(const ComputeGraphPtr &sub
     GE_CHECK_NOTNULL(new_anchor);
     if (GraphUtils::AddEdge(peer_anchor, new_anchor) != SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "Add edge from node[%s] output[%d] to node[%s] input[%d] failed.",
-                         peer_node->GetName().c_str(), peer_anchor->GetIdx(),
-                         new_partitioned_call_->GetName().c_str(), new_anchor->GetIdx());
-      GELOGE(FAILED, "Add edge from node[%s] output [%d] to node[%s] input[%d] failed.",
-             peer_node->GetName().c_str(), peer_anchor->GetIdx(),
-             new_partitioned_call_->GetName().c_str(), new_anchor->GetIdx());
+                           peer_node->GetName().c_str(), peer_anchor->GetIdx(),
+                           new_partitioned_call_->GetName().c_str(), new_anchor->GetIdx());
+      GELOGE(FAILED, "Add edge from node[%s] output [%d] to node[%s] input[%d] failed.", peer_node->GetName().c_str(),
+             peer_anchor->GetIdx(), new_partitioned_call_->GetName().c_str(), new_anchor->GetIdx());
       return FAILED;
     }
 
@@ -977,7 +971,7 @@ Status CreateSubGraphWithScopePass::MergeInputAnchors(const ComputeGraphPtr &sub
 Status CreateSubGraphWithScopePass::SetDataDynDimsInfo(const NodePtr &node, const NodePtr &data_node,
                                                        const int32_t input_index) {
   const std::map<NodePtr, std::map<int64_t, std::vector<int64_t>>>::const_iterator &input_shape =
-    node_to_input_shape_.find(node);
+      node_to_input_shape_.find(node);
   if (input_shape == node_to_input_shape_.cend()) {
     GELOGI("No node exist in node_to_input_shape_");
     return SUCCESS;
@@ -994,7 +988,7 @@ Status CreateSubGraphWithScopePass::SetDataDynDimsInfo(const NodePtr &node, cons
   tensor_desc->SetOriginShape(GeShape(shape->second));
 
   const std::map<NodePtr, std::map<int64_t, std::vector<std::vector<int64_t>>>>::const_iterator &multi_dims =
-    node_to_multi_dims_.find(node);
+      node_to_multi_dims_.find(node);
   if (multi_dims == node_to_multi_dims_.end()) {
     REPORT_INNER_ERR_MSG("E19999", "Input node[%s] has input_shape but no multi_dims.", node->GetName().c_str());
     GELOGE(FAILED, "Input node[%s] has input_shape but no multi_dims.", node->GetName().c_str());
@@ -1002,10 +996,9 @@ Status CreateSubGraphWithScopePass::SetDataDynDimsInfo(const NodePtr &node, cons
   }
   const auto &dims = multi_dims->second.find(input_index);
   if (dims == multi_dims->second.end()) {
-    REPORT_INNER_ERR_MSG("E19999", "Node[%s] input[%d] has input_shape but no multi_dims.",
-                       node->GetName().c_str(), input_index);
-    GELOGE(FAILED, "Node[%s] input[%d] has input_shape but no multi_dims.",
-           node->GetName().c_str(), input_index);
+    REPORT_INNER_ERR_MSG("E19999", "Node[%s] input[%d] has input_shape but no multi_dims.", node->GetName().c_str(),
+                         input_index);
+    GELOGE(FAILED, "Node[%s] input[%d] has input_shape but no multi_dims.", node->GetName().c_str(), input_index);
     return FAILED;
   }
   std::vector<int64_t> merged_dims;
@@ -1044,7 +1037,7 @@ Status CreateSubGraphWithScopePass::MergeOutputAnchors(const ComputeGraphPtr &su
       GE_CHECK_NOTNULL(peer_node);
 
       if (peer_node == subgraph->GetParentNode()) {
-      // proc node linked with partitioned call
+        // proc node linked with partitioned call
         return ProcPartitionInputAnchor(subgraph, output_anchor, peer_anchor);
       }
 
@@ -1054,14 +1047,14 @@ Status CreateSubGraphWithScopePass::MergeOutputAnchors(const ComputeGraphPtr &su
         continue;
       }
 
-      GELOGI("Peer node[%s] is out of scope, add output edge into subgraph[%s].",
-             peer_node->GetName().c_str(), subgraph->GetName().c_str());
+      GELOGI("Peer node[%s] is out of scope, add output edge into subgraph[%s].", peer_node->GetName().c_str(),
+             subgraph->GetName().c_str());
       if (GraphUtils::RemoveEdge(output_anchor, peer_anchor) != SUCCESS) {
         REPORT_INNER_ERR_MSG("E19999", "Remove edge from node[%s] output[%d] to node[%s] input[%d] failed.",
-                           node->GetName().c_str(), output_anchor->GetIdx(),
-                           peer_node->GetName().c_str(), peer_anchor->GetIdx());
-        GELOGE(FAILED, "Remove edge from node[%s] output[%d] to node[%s] input[%d] failed.",
-               node->GetName().c_str(), output_anchor->GetIdx(), peer_node->GetName().c_str(), peer_anchor->GetIdx());
+                             node->GetName().c_str(), output_anchor->GetIdx(), peer_node->GetName().c_str(),
+                             peer_anchor->GetIdx());
+        GELOGE(FAILED, "Remove edge from node[%s] output[%d] to node[%s] input[%d] failed.", node->GetName().c_str(),
+               output_anchor->GetIdx(), peer_node->GetName().c_str(), peer_anchor->GetIdx());
         return FAILED;
       }
 
@@ -1075,10 +1068,10 @@ Status CreateSubGraphWithScopePass::MergeOutputAnchors(const ComputeGraphPtr &su
       (void)NodeUtils::AppendInputAnchor(node_output, input_size + 1);
       if (GraphUtils::AddEdge(output_anchor, node_output->GetInDataAnchor(input_size)) != SUCCESS) {
         REPORT_INNER_ERR_MSG("E19999", "Add edge from node[%s] output[%d] to node[%s] input[%u] failed.",
-                           node->GetName().c_str(), output_anchor->GetIdx(),
-                           node_output->GetName().c_str(), input_size);
-        GELOGE(FAILED, "Add edge from node[%s] output[%d] to node[%s] input[%u] failed.",
-               node->GetName().c_str(), output_anchor->GetIdx(), node_output->GetName().c_str(), input_size);
+                             node->GetName().c_str(), output_anchor->GetIdx(), node_output->GetName().c_str(),
+                             input_size);
+        GELOGE(FAILED, "Add edge from node[%s] output[%d] to node[%s] input[%u] failed.", node->GetName().c_str(),
+               output_anchor->GetIdx(), node_output->GetName().c_str(), input_size);
         return FAILED;
       }
 
@@ -1089,11 +1082,11 @@ Status CreateSubGraphWithScopePass::MergeOutputAnchors(const ComputeGraphPtr &su
 
       if (GraphUtils::AddEdge(new_anchor, peer_anchor) != SUCCESS) {
         REPORT_INNER_ERR_MSG("E19999", "Add edge from node[%s] output[%zu] to node[%s] input[%d] failed.",
-                           new_partitioned_call_->GetName().c_str(), parent_index,
-                           peer_node->GetName().c_str(), peer_anchor->GetIdx());
+                             new_partitioned_call_->GetName().c_str(), parent_index, peer_node->GetName().c_str(),
+                             peer_anchor->GetIdx());
         GELOGE(FAILED, "Add edge from node[%s] output[%zu] to node[%s] input[%d] failed.",
-               new_partitioned_call_->GetName().c_str(), parent_index,
-               peer_node->GetName().c_str(), peer_anchor->GetIdx());
+               new_partitioned_call_->GetName().c_str(), parent_index, peer_node->GetName().c_str(),
+               peer_anchor->GetIdx());
         return FAILED;
       }
       anchor_to_output_[new_anchor] = node_output->GetInDataAnchor(input_size);
@@ -1123,17 +1116,17 @@ Status CreateSubGraphWithScopePass::ProcPartitionInputAnchor(const ComputeGraphP
       GE_CHECK_NOTNULL(peer_node);
       if (GraphUtils::RemoveEdge(output_anchor, peer_anchor) != SUCCESS) {
         REPORT_INNER_ERR_MSG("E19999", "Remove edge from node[%s] output[%d] to node[%s] input[%d] failed.",
-                           data_node->GetName().c_str(), output_anchor->GetIdx(),
-                           peer_node->GetName().c_str(), peer_anchor->GetIdx());
+                             data_node->GetName().c_str(), output_anchor->GetIdx(), peer_node->GetName().c_str(),
+                             peer_anchor->GetIdx());
         GELOGE(FAILED, "Remove edge from node[%s] output[%d] to node[%s] input[%d] failed.",
-               data_node->GetName().c_str(), output_anchor->GetIdx(),
-               peer_node->GetName().c_str(), peer_anchor->GetIdx());
+               data_node->GetName().c_str(), output_anchor->GetIdx(), peer_node->GetName().c_str(),
+               peer_anchor->GetIdx());
         return FAILED;
       }
       if (GraphUtils::AddEdge(node_anchor, peer_anchor) != SUCCESS) {
         REPORT_INNER_ERR_MSG("E19999", "Add edge from node[%s] output[%d] to partitioned_call input[%d] failed.",
-                           node_anchor->GetOwnerNode()->GetName().c_str(), node_anchor->GetIdx(),
-                           partition_anchor->GetIdx());
+                             node_anchor->GetOwnerNode()->GetName().c_str(), node_anchor->GetIdx(),
+                             partition_anchor->GetIdx());
         GELOGE(FAILED, "Add edge from node[%s] output[%d] to partitioned_call input[%d] failed.",
                node_anchor->GetOwnerNode()->GetName().c_str(), node_anchor->GetIdx(), partition_anchor->GetIdx());
         return FAILED;
@@ -1142,8 +1135,8 @@ Status CreateSubGraphWithScopePass::ProcPartitionInputAnchor(const ComputeGraphP
   }
   if (GraphUtils::RemoveEdge(node_anchor, partition_anchor) != SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Remove edge from node[%s] output[%d] to partitioned_call input[%d].",
-                       node_anchor->GetOwnerNode()->GetName().c_str(), node_anchor->GetIdx(),
-                       partition_anchor->GetIdx());
+                         node_anchor->GetOwnerNode()->GetName().c_str(), node_anchor->GetIdx(),
+                         partition_anchor->GetIdx());
     GELOGE(FAILED, "Remove edge from node[%s] output[%d] to partitioned_call input[%d].",
            node_anchor->GetOwnerNode()->GetName().c_str(), node_anchor->GetIdx(), partition_anchor->GetIdx());
     return FAILED;
@@ -1172,30 +1165,28 @@ Status CreateSubGraphWithScopePass::ProcPartitionOutputAnchor(const OutDataAncho
   // unlink partitioned_call and current node
   if (GraphUtils::RemoveEdge(partition_anchor, node_anchor) != SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Remove edge from partitioned_call output[%d] to node[%s] input[%d] failed.",
-                       partition_anchor->GetIdx(),
-                       node_anchor->GetOwnerNode()->GetName().c_str(), node_anchor->GetIdx());
+                         partition_anchor->GetIdx(), node_anchor->GetOwnerNode()->GetName().c_str(),
+                         node_anchor->GetIdx());
     GELOGE(FAILED, "Remove edge from partitioned_call output[%d] to node[%s] input[%d] failed.",
            partition_anchor->GetIdx(), node_anchor->GetOwnerNode()->GetName().c_str(), node_anchor->GetIdx());
     return FAILED;
   }
   if (GraphUtils::AddEdge(peer_anchor, node_anchor) != SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Add edge from node[%s] output[%d] to node[%s] input[%d] failed.",
-                       peer_node->GetName().c_str(), peer_anchor->GetIdx(),
-                       node_anchor->GetOwnerNode()->GetName().c_str(), node_anchor->GetIdx());
-    GELOGE(FAILED, "Add edge from node[%s] output[%d] to node[%s] input[%d] failed.",
-           peer_node->GetName().c_str(), peer_anchor->GetIdx(),
-           node_anchor->GetOwnerNode()->GetName().c_str(), node_anchor->GetIdx());
+                         peer_node->GetName().c_str(), peer_anchor->GetIdx(),
+                         node_anchor->GetOwnerNode()->GetName().c_str(), node_anchor->GetIdx());
+    GELOGE(FAILED, "Add edge from node[%s] output[%d] to node[%s] input[%d] failed.", peer_node->GetName().c_str(),
+           peer_anchor->GetIdx(), node_anchor->GetOwnerNode()->GetName().c_str(), node_anchor->GetIdx());
     return FAILED;
   }
   if (partition_anchor->GetPeerAnchorsSize() == 0U) {
     // unlink net_output and it's input node
     if (GraphUtils::RemoveEdge(peer_anchor, output_anchor) != SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "Remove edge from node[%s] output[%d] to node[%s] input[%d] failed.",
-                         peer_node->GetName().c_str(), peer_anchor->GetIdx(),
-                         output_anchor->GetOwnerNode()->GetName().c_str(), output_anchor->GetIdx());
-      GELOGE(FAILED, "Remove edge from node[%s] output[%d] to node[%s] input[%d] failed.",
-             peer_node->GetName().c_str(), peer_anchor->GetIdx(),
-             output_anchor->GetOwnerNode()->GetName().c_str(), output_anchor->GetIdx());
+                           peer_node->GetName().c_str(), peer_anchor->GetIdx(),
+                           output_anchor->GetOwnerNode()->GetName().c_str(), output_anchor->GetIdx());
+      GELOGE(FAILED, "Remove edge from node[%s] output[%d] to node[%s] input[%d] failed.", peer_node->GetName().c_str(),
+             peer_anchor->GetIdx(), output_anchor->GetOwnerNode()->GetName().c_str(), output_anchor->GetIdx());
       return FAILED;
     }
     anchor_to_output_.erase(it);
@@ -1246,26 +1237,24 @@ Status CreateSubGraphWithScopePass::CopyPartitionedCallStaticInput(const NodePtr
       continue;
     }
     const auto &input_tensor = src_desc->GetInputDesc(input_anchor->GetIdx());
-    GE_CHK_STATUS_RET(new_desc->AddInputDesc(input_tensor),
-                      "Add input desc for [%s] fail", new_desc->GetName().c_str());
+    GE_CHK_STATUS_RET(new_desc->AddInputDesc(input_tensor), "Add input desc for [%s] fail",
+                      new_desc->GetName().c_str());
     if (GraphUtils::RemoveEdge(peer_anchor, input_anchor) != GRAPH_SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "Remove edge from node[%s] output[%d] to node[%s] input[%d] failed",
-                        peer_node->GetName().c_str(), peer_anchor->GetIdx(),
-                        src_node->GetName().c_str(), input_anchor->GetIdx());
-      GELOGE(FAILED, "Remove edge from node[%s] output[%d] to node[%s] input[%d] failed",
-             peer_node->GetName().c_str(), peer_anchor->GetIdx(),
-             src_node->GetName().c_str(), input_anchor->GetIdx());
+                           peer_node->GetName().c_str(), peer_anchor->GetIdx(), src_node->GetName().c_str(),
+                           input_anchor->GetIdx());
+      GELOGE(FAILED, "Remove edge from node[%s] output[%d] to node[%s] input[%d] failed", peer_node->GetName().c_str(),
+             peer_anchor->GetIdx(), src_node->GetName().c_str(), input_anchor->GetIdx());
       return FAILED;
     }
     (void)NodeUtils::AppendInputAnchor(new_partitioned_call_, copy_input_cnt + 1);
     const auto &new_anchor = new_partitioned_call_->GetInDataAnchor(copy_input_cnt);
     if (GraphUtils::AddEdge(peer_anchor, new_anchor) != GRAPH_SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "Add edge from node[%s] output[%d] to node[%s] input[%zu] failed",
-                        peer_node->GetName().c_str(), peer_anchor->GetIdx(),
-                        new_partitioned_call_->GetName().c_str(), copy_input_cnt);
-      GELOGE(FAILED, "Add edge from node[%s] output[%d] to node[%s] input[%zu] failed",
-             peer_node->GetName().c_str(), peer_anchor->GetIdx(),
-             new_partitioned_call_->GetName().c_str(), copy_input_cnt);
+                           peer_node->GetName().c_str(), peer_anchor->GetIdx(),
+                           new_partitioned_call_->GetName().c_str(), copy_input_cnt);
+      GELOGE(FAILED, "Add edge from node[%s] output[%d] to node[%s] input[%zu] failed", peer_node->GetName().c_str(),
+             peer_anchor->GetIdx(), new_partitioned_call_->GetName().c_str(), copy_input_cnt);
       return FAILED;
     }
     copy_input_cnt++;
@@ -1315,20 +1304,20 @@ Status CreateSubGraphWithScopePass::CopyPartitionedCallStaticOutput(const NodePt
       for (auto it : out_scope) {
         if (GraphUtils::RemoveEdge(output_anchor, it) != GRAPH_SUCCESS) {
           REPORT_INNER_ERR_MSG("E19999", "Remove edge from node[%s] output[%d] to node[%s] input[%d] failed",
-                            src_node->GetName().c_str(), output_anchor->GetIdx(),
-                            it->GetOwnerNode()->GetName().c_str(), it->GetIdx());
+                               src_node->GetName().c_str(), output_anchor->GetIdx(),
+                               it->GetOwnerNode()->GetName().c_str(), it->GetIdx());
           GELOGE(FAILED, "Remove edge from node[%s] output[%d] to node[%s] input[%d] failed",
-                 src_node->GetName().c_str(), output_anchor->GetIdx(),
-                 it->GetOwnerNode()->GetName().c_str(), it->GetIdx());
+                 src_node->GetName().c_str(), output_anchor->GetIdx(), it->GetOwnerNode()->GetName().c_str(),
+                 it->GetIdx());
           return FAILED;
         }
         if (GraphUtils::AddEdge(new_anchor, it) != GRAPH_SUCCESS) {
           REPORT_INNER_ERR_MSG("E19999", "Add edge from node[%s] output[%zu] to node[%s] input[%d] failed",
-                            new_partitioned_call_->GetName().c_str(), copy_output_cnt,
-                            it->GetOwnerNode()->GetName().c_str(), it->GetIdx());
+                               new_partitioned_call_->GetName().c_str(), copy_output_cnt,
+                               it->GetOwnerNode()->GetName().c_str(), it->GetIdx());
           GELOGE(FAILED, "Add edge from node[%s] output[%zu] to node[%s] input[%d] failed",
-                 new_partitioned_call_->GetName().c_str(), copy_output_cnt,
-                 it->GetOwnerNode()->GetName().c_str(), it->GetIdx());
+                 new_partitioned_call_->GetName().c_str(), copy_output_cnt, it->GetOwnerNode()->GetName().c_str(),
+                 it->GetIdx());
           return FAILED;
         }
       }
@@ -1362,8 +1351,8 @@ Status CreateSubGraphWithScopePass::SetParentIndexToData(const ComputeGraphPtr &
 
 void CreateSubGraphWithScopePass::SortAnchorByIndex(std::set<std::pair<int32_t, InDataAnchorPtr>> &index_anchor) const {
   for (const auto &it : anchor_to_output_) {
-    if (it.first == nullptr || it.first->GetPeerAnchorsSize() == 0U ||
-        it.second == nullptr || it.second->GetPeerAnchorsSize() == 0U) {
+    if (it.first == nullptr || it.first->GetPeerAnchorsSize() == 0U || it.second == nullptr ||
+        it.second->GetPeerAnchorsSize() == 0U) {
       continue;
     }
     index_anchor.emplace(std::make_pair(it.first->GetIdx(), it.second));
@@ -1398,28 +1387,28 @@ Status CreateSubGraphWithScopePass::SetParentIndexToNetOutput(const ComputeGraph
     GE_CHECK_NOTNULL(peer_anchor);
     if (GraphUtils::RemoveEdge(peer_anchor, it.second) != SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "Remove edge from node[%s] output[%d] to node[%s] input[%d] failed.",
-                         peer_anchor->GetOwnerNode()->GetName().c_str(), peer_anchor->GetIdx(),
-                         net_output->GetName().c_str(), it.second->GetIdx());
+                           peer_anchor->GetOwnerNode()->GetName().c_str(), peer_anchor->GetIdx(),
+                           net_output->GetName().c_str(), it.second->GetIdx());
       GELOGE(FAILED, "Remove edge from node[%s] output[%d] to node[%s] input[%d] failed.",
-             peer_anchor->GetOwnerNode()->GetName().c_str(), peer_anchor->GetIdx(),
-             net_output->GetName().c_str(), it.second->GetIdx());
+             peer_anchor->GetOwnerNode()->GetName().c_str(), peer_anchor->GetIdx(), net_output->GetName().c_str(),
+             it.second->GetIdx());
       return FAILED;
     }
     if (GraphUtils::AddEdge(peer_anchor, new_anchor) != SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "Add edge from node[%s] output[%d] to node[%s] input[%d] failed.",
-                         peer_anchor->GetOwnerNode()->GetName().c_str(), peer_anchor->GetIdx(),
-                         new_net_output->GetName().c_str(), new_anchor->GetIdx());
+                           peer_anchor->GetOwnerNode()->GetName().c_str(), peer_anchor->GetIdx(),
+                           new_net_output->GetName().c_str(), new_anchor->GetIdx());
       GELOGE(FAILED, "Add edge from node[%s] output [%d] to node[%s] input[%d] failed.",
-             peer_anchor->GetOwnerNode()->GetName().c_str(), peer_anchor->GetIdx(),
-             new_net_output->GetName().c_str(), new_anchor->GetIdx());
+             peer_anchor->GetOwnerNode()->GetName().c_str(), peer_anchor->GetIdx(), new_net_output->GetName().c_str(),
+             new_anchor->GetIdx());
       return FAILED;
     }
 
     const auto &new_tensor = op_desc->MutableInputDesc(all_input_size);
     const int32_t parent_index = it.first;
     (void)AttrUtils::SetInt(new_tensor, ATTR_NAME_PARENT_NODE_INDEX, parent_index);
-    GELOGD("Set parent index[%d] to new net_output[%s] input[%zu].",
-           parent_index, new_net_output->GetName().c_str(), all_input_size);
+    GELOGD("Set parent index[%d] to new net_output[%s] input[%zu].", parent_index, new_net_output->GetName().c_str(),
+           all_input_size);
     all_input_size++;
   }
   (void)subgraph->RemoveNode(net_output);
@@ -1431,12 +1420,10 @@ Status CreateSubGraphWithScopePass::UpdateTensorMaxShape(const ComputeGraphPtr &
     return SUCCESS;
   }
   for (const auto &node : root_graph->GetDirectNode()) {
-    GE_CHK_STATUS_RET(SetTensorShapeRange(node), "SetTensorShapeRange node[%s] failed",
-                      node->GetName().c_str());
+    GE_CHK_STATUS_RET(SetTensorShapeRange(node), "SetTensorShapeRange node[%s] failed", node->GetName().c_str());
   }
   for (const auto &node : subgraph->GetDirectNode()) {
-    GE_CHK_STATUS_RET(SetTensorShapeRange(node), "SetTensorShapeRange node[%s] failed",
-                      node->GetName().c_str());
+    GE_CHK_STATUS_RET(SetTensorShapeRange(node), "SetTensorShapeRange node[%s] failed", node->GetName().c_str());
   }
   return SUCCESS;
 }

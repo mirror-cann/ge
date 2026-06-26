@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -81,7 +81,7 @@ TEST_F(UtestMemLayoutConflictRtsSpecailIn, RtsSpecailInAndRtsSpecailInSameType_N
  *
  *   rtMemCpyAsync (RT_MEMORY_TS out)
  *      |
- *     idenity
+ *     identity
  *      |
  *  hcomallreduce  (p2p in)
  */
@@ -117,14 +117,14 @@ TEST_F(UtestMemLayoutConflictRtsSpecailIn, RtsSpecailInAndNormalOut_NotInsertIde
 }
 
 /*
-*   a         a
+ *   a         a
  *  |         |
  * hcom1 ==> hcom1
  *  |         |
  *  b       identity
  *            |
  *            b
-*/
+ */
 TEST_F(UtestMemLayoutConflictRtsSpecailIn, RtsSpecialInAndRtsSpecialInByRef_InsertIdentity_Success) {
   auto graph = MemConflictShareGraph::BuildRtsSpecialInAndRtsSpecialInByRefGraph();
   MemLayoutConflictOptimizer mem_check_pass;
@@ -149,4 +149,4 @@ TEST_F(UtestMemLayoutConflictRtsSpecailIn, RtsSpecialInAndRtsSpecialOutByRef_Ins
   EXPECT_EQ(mem_check::ResultChecker::CheckIdentityNum(graph, 1U), GRAPH_SUCCESS);
   EXPECT_EQ(mem_check::ResultChecker::CheckIdentityBefore(graph, {{"hcom1"}}), GRAPH_SUCCESS);
 }
-} // namespace ge
+}  // namespace ge

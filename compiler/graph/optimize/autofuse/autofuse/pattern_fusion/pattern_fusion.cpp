@@ -64,4 +64,4 @@ graphStatus PatternFusion::RunAllPatternFusion(const ComputeGraphPtr &graph) {
   GE_ASSERT_GRAPH_SUCCESS(CastReshapeCastPass::Run(graph));
   return graph->TopologicalSorting();
 }
-} // namespace ge
+}  // namespace ge

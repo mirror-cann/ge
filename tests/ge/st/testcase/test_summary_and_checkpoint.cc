@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,9 +26,11 @@
 using namespace std;
 using namespace ge;
 namespace {
-graphStatus InferFunctionStub(Operator &op) { return GRAPH_SUCCESS; }
+graphStatus InferFunctionStub(Operator &op) {
+  return GRAPH_SUCCESS;
+}
 /**
- * 
+ *
  *       Variable(2, 3, 4, 5)                      Relu3(1,2,3,4,5)
  *          /            \                             /        \
  *     TransData      TransData                    TransData    summary
@@ -36,11 +38,11 @@ graphStatus InferFunctionStub(Operator &op) { return GRAPH_SUCCESS; }
  *   Relu(1,2,3,4,5)  Relu(1,2,3,4,5)            Variable(2, 3, 4, 5)
  *          \            /                             |
  *             NetOutput -------------------------------
- * 
+ *
  */
 Graph BuildVariableGraph() {
-  GeTensorDesc tensor_4_desc(ge::GeShape({2,3,4,5}), FORMAT_NCHW, DT_INT32);
-  GeTensorDesc tensor_5_desc(ge::GeShape({1,2,3,4,5}), FORMAT_NC1HWC0, DT_INT32);
+  GeTensorDesc tensor_4_desc(ge::GeShape({2, 3, 4, 5}), FORMAT_NCHW, DT_INT32);
+  GeTensorDesc tensor_5_desc(ge::GeShape({1, 2, 3, 4, 5}), FORMAT_NC1HWC0, DT_INT32);
 
   auto var1 = std::make_shared<OpDesc>("var1", VARIABLE);
   var1->AddInputDesc(tensor_4_desc);
@@ -126,7 +128,7 @@ TEST_F(SummaryAndCheckPointTest, test_generate_and_run_checkpoint_graph) {
 
   // new session & add graph
   map<AscendString, AscendString> options;
-  options[ge::OPTION_GRAPH_RUN_MODE] = AscendString("1"); // train flag
+  options[ge::OPTION_GRAPH_RUN_MODE] = AscendString("1");  // train flag
   options[VARIABLE_MEMORY_MAX_SIZE] = "12800";
   Session session(options);
   uint32_t graph_id = 1;
@@ -141,7 +143,8 @@ TEST_F(SummaryAndCheckPointTest, test_generate_and_run_checkpoint_graph) {
   DUMP_GRAPH_WHEN("PreRunBegin");
   // register Save call back func
   static uint32_t called_count = 0;
-  ge::session::pCallBackFunc callbackFuncSave = [](uint32_t graph_id, const std::map<AscendString, ge::Tensor> &params_list) {
+  ge::session::pCallBackFunc callbackFuncSave = [](uint32_t graph_id,
+                                                   const std::map<AscendString, ge::Tensor> &params_list) {
     called_count++;
     return SUCCESS;
   };
@@ -161,7 +164,7 @@ TEST_F(SummaryAndCheckPointTest, test_generate_and_run_checkpoint_graph) {
     ASSERT_EQ(var_node->GetOutAllNodes().at(0)->GetType(), "Save");
   };
   EXPECT_EQ(var_values.size(), 1);
-  EXPECT_TRUE(called_count == 0); // checkpoint graph gen by GetVariables should ignore checkpoint graph check
+  EXPECT_TRUE(called_count == 0);  // checkpoint graph gen by GetVariables should ignore checkpoint graph check
 }
 
 TEST_F(SummaryAndCheckPointTest, test_optimize_summary_graph) {
@@ -170,7 +173,7 @@ TEST_F(SummaryAndCheckPointTest, test_optimize_summary_graph) {
 
   // new session & add graph
   map<AscendString, AscendString> options;
-  options[ge::OPTION_GRAPH_RUN_MODE] = AscendString("1"); // train flag
+  options[ge::OPTION_GRAPH_RUN_MODE] = AscendString("1");  // train flag
   options[VARIABLE_MEMORY_MAX_SIZE] = "12800";
   Session session(options);
   uint32_t graph_id = 1;
@@ -179,7 +182,8 @@ TEST_F(SummaryAndCheckPointTest, test_optimize_summary_graph) {
 
   // register Summary call back func
   static uint32_t called_count = 0;
-  ge::session::pCallBackFunc callbackFuncSummary = [](uint32_t graph_id, const std::map<AscendString, ge::Tensor> &params_list) {
+  ge::session::pCallBackFunc callbackFuncSummary = [](uint32_t graph_id,
+                                                      const std::map<AscendString, ge::Tensor> &params_list) {
     called_count++;
     return SUCCESS;
   };
@@ -202,10 +206,10 @@ TEST_F(SummaryAndCheckPointTest, test_optimize_summary_graph) {
   // check result
   CHECK_GRAPH(PreRunAfterHandleSummaryOp) {
     auto summary = graph->FindNode("summary");
-    ASSERT_EQ(summary, nullptr); // summary has been deleted
+    ASSERT_EQ(summary, nullptr);  // summary has been deleted
     auto netoutput = graph->FindNode("output");
     ASSERT_NE(netoutput, nullptr);
-    ASSERT_EQ(netoutput->GetInDataNodes().size(), 4); // add relu3 as input of netoutput
+    ASSERT_EQ(netoutput->GetInDataNodes().size(), 4);  // add relu3 as input of netoutput
     ASSERT_EQ(netoutput->GetInDataNodes().at(3)->GetName(), "relu3");
   };
   EXPECT_EQ(called_count, 1);
@@ -217,7 +221,7 @@ TEST_F(SummaryAndCheckPointTest, test_optimize_summary_graph_gesession) {
 
   // new session & add graph
   map<AscendString, AscendString> options;
-  options[ge::OPTION_GRAPH_RUN_MODE] = AscendString("1"); // train flag
+  options[ge::OPTION_GRAPH_RUN_MODE] = AscendString("1");  // train flag
   options[VARIABLE_MEMORY_MAX_SIZE] = "12800";
   GeSession session(options);
   uint32_t graph_id = 1;
@@ -251,10 +255,10 @@ TEST_F(SummaryAndCheckPointTest, test_optimize_summary_graph_gesession) {
   // check result
   CHECK_GRAPH(PreRunAfterHandleSummaryOp) {
     auto summary = graph->FindNode("summary");
-    ASSERT_EQ(summary, nullptr); // summary has been deleted
+    ASSERT_EQ(summary, nullptr);  // summary has been deleted
     auto netoutput = graph->FindNode("output");
     ASSERT_NE(netoutput, nullptr);
-    ASSERT_EQ(netoutput->GetInDataNodes().size(), 4); // add relu3 as input of netoutput
+    ASSERT_EQ(netoutput->GetInDataNodes().size(), 4);  // add relu3 as input of netoutput
     ASSERT_EQ(netoutput->GetInDataNodes().at(3)->GetName(), "relu3");
   };
   EXPECT_EQ(called_count, 1);

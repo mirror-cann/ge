@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -15,14 +15,14 @@ namespace {
 /* In Pytorch: The Data op's output format will be heavy format and there are
  * only Data->Op->NetOutput(three ops) in each build graph. So we can not
  * distribute heavy format from heavy op. The only way to reduce the number of
- * TransData is using concecutive principle. The Op's input format will
+ * TransData is using consecutive principle. The Op's input format will
  * follow the output format out Data. */
-bool IsHeavyData(const ge::Format& father_output_format, const string& father_op_type) {
+bool IsHeavyData(const ge::Format &father_output_format, const string &father_op_type) {
   if (!IsRootGraphData(father_op_type) && !IsHeavyDataOp(father_op_type)) {
     return false;
   }
   bool is_heavy_format = false;
-  for (const auto& ele : FE_HEAVY_FORMAT_VECTOR) {
+  for (const auto &ele : FE_HEAVY_FORMAT_VECTOR) {
     if (ele == father_output_format) {
       is_heavy_format = true;
     }
@@ -34,7 +34,7 @@ bool IsHeavyData(const ge::Format& father_output_format, const string& father_op
     return false;
   }
 }
-} // namespace
+}  // namespace
 
 OpFormatSelectionStrategyFollowPredecessor::OpFormatSelectionStrategyFollowPredecessor(
     FormatDtypeQuerierPtr format_dtype_querier_ptr)
@@ -48,7 +48,7 @@ Status OpFormatSelectionStrategyFollowPredecessor::Initialize() {
 
 OpFormatSelectionStrategyFollowPredecessor::~OpFormatSelectionStrategyFollowPredecessor() {}
 
-Status OpFormatSelectionStrategyFollowPredecessor::Run(FormatDtypeSelectionBasicInfo& basic_info) {
+Status OpFormatSelectionStrategyFollowPredecessor::Run(FormatDtypeSelectionBasicInfo &basic_info) {
   ge::OpDescPtr cur_op_desc_ptr = basic_info.node->GetOpDesc();
   std::string cur_op_desc_name = cur_op_desc_ptr->GetName();
   std::string cur_op_desc_type = cur_op_desc_ptr->GetType();
@@ -57,13 +57,13 @@ Status OpFormatSelectionStrategyFollowPredecessor::Run(FormatDtypeSelectionBasic
   /* 1. Get father node */
   ge::InDataAnchorPtr in_data_anchor;
   bool has_no_father = false;
-  CheckHasNoFather(basic_info.is_input, static_cast<int32_t>(basic_info.index), basic_info.node,
-                   in_data_anchor, has_no_father);
+  CheckHasNoFather(basic_info.is_input, static_cast<int32_t>(basic_info.index), basic_info.node, in_data_anchor,
+                   has_no_father);
   /* 1. If the node is Gray list does not have predecessors, we just match the
    * dtype with its original dtype. */
   if (has_no_father) {
     FE_LOGD("Op[name=%s,type=%s]: does not have a father node on the input [%u]. Match with its original format.",
-        cur_op_desc_name.c_str(), cur_op_desc_type.c_str(), basic_info.index);
+            cur_op_desc_name.c_str(), cur_op_desc_type.c_str(), basic_info.index);
     return FAILED;
   }
 
@@ -74,11 +74,10 @@ Status OpFormatSelectionStrategyFollowPredecessor::Run(FormatDtypeSelectionBasic
 
   /* 2. Match all supported data type with father's output data type. */
   ge::GeTensorDesc father_output_desc = father_op_desc->GetOutputDesc(father_out_anchor_index);
-  ge::Format father_output_format = static_cast<ge::Format>(
-          ge::GetPrimaryFormat(father_output_desc.GetFormat()));
+  ge::Format father_output_format = static_cast<ge::Format>(ge::GetPrimaryFormat(father_output_desc.GetFormat()));
   /* Now, if the father's type is not Data or father format is not heavy format,
    * we just return FAILED. Because in major scenarios, we will not use
-   * concecutive principle. */
+   * consecutive principle. */
   if (!IsHeavyData(father_output_format, father_op_desc->GetType())) {
     return FAILED;
   }
@@ -95,8 +94,8 @@ Status OpFormatSelectionStrategyFollowPredecessor::Run(FormatDtypeSelectionBasic
     return FAILED;
   }
 
-  format_matcher_->FilterFormatIndex(basic_info.node, basic_info.op_kernel_info_ptr,
-                                     input_or_output_format, basic_info.matched_index_vec);
+  format_matcher_->FilterFormatIndex(basic_info.node, basic_info.op_kernel_info_ptr, input_or_output_format,
+                                     basic_info.matched_index_vec);
   FE_CHECK_NOTNULL(basic_info.cur_tensor_desc);
   auto cur_origin_format = GetCurOpOriginFormat(*(basic_info.cur_tensor_desc));
   /* Get expect format to conform shape is known */

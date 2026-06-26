@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -43,12 +43,12 @@ class BgRtSessionUT : public BgTestAutoCreateFrame {
 };
 
 /*
-*  init_graph :                 main_graph:
-*       ConstData                       InnerData
-*          |                                |
-*    InnerNetOutput                     consumer1
-*
-*/
+ *  init_graph :                 main_graph:
+ *       ConstData                       InnerData
+ *          |                                |
+ *    InnerNetOutput                     consumer1
+ *
+ */
 TEST_F(BgRtSessionUT, GetRtSessionOk) {
   InitTestFrames();
   LoweringGlobalData global_data;
@@ -61,22 +61,24 @@ TEST_F(BgRtSessionUT, GetRtSessionOk) {
   ASSERT_NE(init_frame, nullptr);
 
   auto init_exe_graph = init_frame->GetExecuteGraph().get();
-  ExeGraphSummaryChecker(init_exe_graph).StrictDirectNodeTypes(std::map<std::string, size_t>{{"ConstData", 1}, {"InnerNetOutput", 1}});
+  ExeGraphSummaryChecker(init_exe_graph)
+      .StrictDirectNodeTypes(std::map<std::string, size_t>{{"ConstData", 1}, {"InnerNetOutput", 1}});
   auto session_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_exe_graph, "ConstData");
   ASSERT_NE(session_node, nullptr);
   ASSERT_EQ(session_node->GetInDataNodes().size(), 0);
 
   auto main_exe_graph = main_frame->GetExecuteGraph().get();
-  ExeGraphSummaryChecker(main_exe_graph).StrictDirectNodeTypes(std::map<std::string, size_t>{{"InnerData", 1}, {"consumer1", 1}});
+  ExeGraphSummaryChecker(main_exe_graph)
+      .StrictDirectNodeTypes(std::map<std::string, size_t>{{"InnerData", 1}, {"consumer1", 1}});
 }
 
 /*
-*  init_graph :                 main_graph:
-*       ConstData                       InnerData
-*          |                                /   \
-*    InnerNetOutput                 consumer1   consumer2
-*
-*/
+ *  init_graph :                 main_graph:
+ *       ConstData                       InnerData
+ *          |                                /   \
+ *    InnerNetOutput                 consumer1   consumer2
+ *
+ */
 TEST_F(BgRtSessionUT, GetRtSessionSeperatelyOk) {
   InitTestFrames();
   LoweringGlobalData global_data;
@@ -94,23 +96,25 @@ TEST_F(BgRtSessionUT, GetRtSessionSeperatelyOk) {
 
   // check session node on init graph
   auto init_exe_graph = init_frame->GetExecuteGraph().get();
-  ExeGraphSummaryChecker(init_exe_graph).StrictDirectNodeTypes(std::map<std::string, size_t>{{"ConstData", 1}, {"InnerNetOutput", 1}});
-  
+  ExeGraphSummaryChecker(init_exe_graph)
+      .StrictDirectNodeTypes(std::map<std::string, size_t>{{"ConstData", 1}, {"InnerNetOutput", 1}});
+
   // check one inner_data connect to two consumer, which means session is unique on main graph
   auto main_exe_graph = main_frame->GetExecuteGraph().get();
-  ExeGraphSummaryChecker(main_exe_graph).StrictDirectNodeTypes(std::map<std::string, size_t>{{"InnerData", 1}, {"consumer1", 1}, {"consumer2", 1}});
+  ExeGraphSummaryChecker(main_exe_graph)
+      .StrictDirectNodeTypes(std::map<std::string, size_t>{{"InnerData", 1}, {"consumer1", 1}, {"consumer2", 1}});
 }
 
 /*
-*  init_graph :                 main_graph:
-*       ConstData                       InnerData
-*          |                                |                                            
-*       GetSessionId                    consumer2
-*           |
-*       consumer1
-*           |                   
-*      InnerNetOutput
-*/
+ *  init_graph :                 main_graph:
+ *       ConstData                       InnerData
+ *          |                                |
+ *       GetSessionId                    consumer2
+ *           |
+ *       consumer1
+ *           |
+ *      InnerNetOutput
+ */
 TEST_F(BgRtSessionUT, GetSessionIdWithOnInitRootOk) {
   InitTestFrames();
   LoweringGlobalData global_data;
@@ -129,12 +133,14 @@ TEST_F(BgRtSessionUT, GetSessionIdWithOnInitRootOk) {
 
   // check session node on init graph
   auto init_exe_graph = init_frame->GetExecuteGraph().get();
-  ExeGraphSummaryChecker(init_exe_graph).StrictDirectNodeTypes(std::map<std::string, size_t>{{"ConstData", 1}, {"GetSessionId", 1}, {"consumer1", 1}, {"InnerNetOutput", 1}});
-  
+  ExeGraphSummaryChecker(init_exe_graph)
+      .StrictDirectNodeTypes(std::map<std::string, size_t>{
+          {"ConstData", 1}, {"GetSessionId", 1}, {"consumer1", 1}, {"InnerNetOutput", 1}});
+
   // check one inner_data connect to two consumer, which means session is unique on main graph
   auto main_exe_graph = main_frame->GetExecuteGraph().get();
-  ExeGraphSummaryChecker(main_exe_graph).StrictDirectNodeTypes(std::map<std::string, size_t>{{"InnerData", 1},  {"consumer2", 1}});
-
+  ExeGraphSummaryChecker(main_exe_graph)
+      .StrictDirectNodeTypes(std::map<std::string, size_t>{{"InnerData", 1}, {"consumer2", 1}});
 }
 }  // namespace bg
 }  // namespace gert

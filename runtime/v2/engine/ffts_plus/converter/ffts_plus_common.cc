@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -67,7 +67,8 @@ bg::ValueHolderPtr CreateNodeMemParam(const ge::NodePtr &node, FFTSAllMemPara &a
     return nullptr;
   }
   auto holder = bg::ValueHolder::SetScopedCurrentComputeNode(node);
-  auto ret = bg::ValueHolder::CreateDataOutput("NodeMemParaAssign",
+  auto ret = bg::ValueHolder::CreateDataOutput(
+      "NodeMemParaAssign",
       {node_ori_para, iter->second.args_data, all_mem_para.dev_addr_base, all_mem_para.host_addr_base},
       static_cast<size_t>(MemParaOutKey::kNUM));
   CHECK_HOLDERS_ALL_OK_RET(ret, static_cast<size_t>(MemParaOutKey::kNUM), return nullptr);
@@ -83,9 +84,9 @@ std::vector<bg::ValueHolderPtr> FFTSTaskAndArgsLaunch(FFTSLuanchArg launch_arg, 
     uint32_t need_flag = 1U;
     launch_arg.need_launch = bg::ValueHolder::CreateConst(&need_flag, sizeof(need_flag));
   }
-  auto h2d_ret = bg::ValueHolder::CreateVoid<bg::ValueHolder>("FFTSTaskAndArgsCopy",
-      {launch_arg.global_data->GetStream(), all_mem_para.dev_addr_base,
-       all_mem_para.host_addr_base, all_mem_para.mem_guarder, launch_arg.need_launch});
+  auto h2d_ret = bg::ValueHolder::CreateVoid<bg::ValueHolder>(
+      "FFTSTaskAndArgsCopy", {launch_arg.global_data->GetStream(), all_mem_para.dev_addr_base,
+                              all_mem_para.host_addr_base, all_mem_para.mem_guarder, launch_arg.need_launch});
   auto task_info_para = task_info_vec[static_cast<size_t>(TaskPreOutKey::NODE_PARA)];
   DfxExeArg dfx_exe_arg = GetOpDfxExeArg(launch_arg.node);
   auto dfx_holder = bg::ValueHolder::CreateConst(&dfx_exe_arg, sizeof(dfx_exe_arg));
@@ -101,7 +102,8 @@ std::vector<bg::ValueHolderPtr> FFTSTaskAndArgsLaunch(FFTSLuanchArg launch_arg, 
 }
 
 ge::Status LoweringGraphPostProc(const LowerResult *graph_result, const std::vector<bg::ValueHolderPtr> &task_ret,
-    const std::vector<bg::ValueHolderPtr> &free_vec, const std::vector<bg::ValueHolderPtr> &alloc_vec) {
+                                 const std::vector<bg::ValueHolderPtr> &free_vec,
+                                 const std::vector<bg::ValueHolderPtr> &alloc_vec) {
   if (task_ret.size() != static_cast<size_t>(TaskProcKey::kNUM)) {
     GELOGE(ge::FAILED, "Task launch return num[%zu] is error", task_ret.size());
     return ge::FAILED;
@@ -111,16 +113,16 @@ ge::Status LoweringGraphPostProc(const LowerResult *graph_result, const std::vec
     return ge::FAILED;
   }
   for (const auto &order_holder : graph_result->order_holders) {
-    FE_ASSERT_HYPER_SUCCESS(bg::ValueHolder::AddDependency(order_holder,
-                                                           task_ret[static_cast<size_t>(TaskProcKey::H2D_COPY)]));
+    FE_ASSERT_HYPER_SUCCESS(
+        bg::ValueHolder::AddDependency(order_holder, task_ret[static_cast<size_t>(TaskProcKey::H2D_COPY)]));
   }
-  auto graph_res = const_cast<LowerResult*>(graph_result);
+  auto graph_res = const_cast<LowerResult *>(graph_result);
   graph_res->order_holders.clear();
   graph_res->order_holders.emplace_back(task_ret[static_cast<size_t>(TaskProcKey::TASK_LAUNCH)]);
   for (const auto &free_ptr : free_vec) {
     GELOGD("Available free nodes: %s after launch.", bg::ValueHolderUtils::GetNodeNameBarePtr(free_ptr));
-    FE_ASSERT_HYPER_SUCCESS(bg::ValueHolder::AddDependency(task_ret[static_cast<size_t>(TaskProcKey::TASK_LAUNCH)],
-                                                           free_ptr));
+    FE_ASSERT_HYPER_SUCCESS(
+        bg::ValueHolder::AddDependency(task_ret[static_cast<size_t>(TaskProcKey::TASK_LAUNCH)], free_ptr));
   }
   for (const auto &alloc_ptr : alloc_vec) {
     GELOGD("Alloc node %s after launch.", bg::ValueHolderUtils::GetNodeNameBarePtr(alloc_ptr));
@@ -137,4 +139,4 @@ std::vector<bg::ValueHolderPtr> RedirectLaunchArgs(const bg::ValueHolderPtr args
                                                       static_cast<size_t>(AllocFFTSArgOutputs::kNum));
   return launch_arg;
 }
-} // namespace gert
+}  // namespace gert

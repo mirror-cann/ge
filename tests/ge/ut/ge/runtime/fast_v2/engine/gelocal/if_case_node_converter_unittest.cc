@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -42,7 +42,8 @@ LowerResult LoweringStubNode(const ge::NodePtr &node, const LowerInput &lower_in
   merged_holders.insert(merged_holders.end(), lower_input.input_addrs.begin(), lower_input.input_addrs.end());
   if (node->GetAllOutDataAnchorsSize() == 0U) {
     const static std::string kLowerPrefix = "Lower_";
-    ret.order_holders.push_back(bg::ValueHolder::CreateVoid<bg::ValueHolder>((kLowerPrefix + node->GetType()).c_str(), merged_holders));
+    ret.order_holders.push_back(
+        bg::ValueHolder::CreateVoid<bg::ValueHolder>((kLowerPrefix + node->GetType()).c_str(), merged_holders));
   } else {
     auto holders = bg::DevMemValueHolder::CreateDataOutput(node->GetType().c_str(), merged_holders,
                                                            node->GetAllOutDataAnchorsSize() << 1U,
@@ -76,8 +77,8 @@ class IfOrCaseNodeConverterUT : public bg::BgTestAutoCreate3StageFrame {
 
       int32_t parent_index;
       ASSERT_TRUE(ge::AttrUtils::GetInt(src_node->GetOpDescBarePtr(), "index", parent_index))
-                    << "Failed to find outer node " << outer->GetName() << " index " << src_index << " from inner node "
-                    << node->GetName() << " index " << dst_index << ", path " << path_ss.str();
+          << "Failed to find outer node " << outer->GetName() << " index " << src_index << " from inner node "
+          << node->GetName() << " index " << dst_index << ", path " << path_ss.str();
       auto parent_graph = src_node->GetExtendInfo()->GetOwnerGraphBarePtr();
       ASSERT_NE(parent_graph, nullptr);
       auto parent_node = parent_graph->GetParentNodeBarePtr();
@@ -109,7 +110,6 @@ class IfOrCaseNodeConverterUT : public bg::BgTestAutoCreate3StageFrame {
         if_input.input_addrs.push_back(lr.out_addrs[0]);
       }
     }
-
 
     auto if_lower_result = LoweringIf(if_node, if_input);
     EXPECT_TRUE(if_lower_result.result.IsSuccess());
@@ -237,7 +237,9 @@ TEST_F(IfOrCaseNodeConverterUT, ConvertIf_Success_TwoGraphs) {
   ASSERT_EQ(if_lower_result.order_holders.size(), 1);
 
   auto execute_graph =
-      bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(if_lower_result.out_addrs), if_lower_result.order_holders)->GetExecuteGraph();
+      bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(if_lower_result.out_addrs),
+                                     if_lower_result.order_holders)
+          ->GetExecuteGraph();
   EXPECT_NE(execute_graph, nullptr);
 
   auto exe_if_node = ExecuteGraphUtils::FindFirstNodeMatchType(execute_graph.get(), "If");
@@ -320,7 +322,7 @@ TEST_F(IfOrCaseNodeConverterUT, ConvertIf_Success_SubgraphInputPlacementCorrect)
   MagicOpFakerBuilder("IfOrCaseNodeConverterUT_ReqHost").RequireInputPlacement(kOnHost).Build(stub);
   MagicOpFakerBuilder("IfOrCaseNodeConverterUT_GenDevice").OutputPlacement(kOnDeviceHbm).Build(stub);
 
-auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model).Build();
   bg::LowerConstDataNode(global_data);
   LowerInput if_input = {{}, {}, &global_data};

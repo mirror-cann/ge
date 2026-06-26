@@ -76,4 +76,3 @@ graphStatus类型：成功，返回GRAPH\_SUCCESS，否则，返回GRAPH\_FAILED
 ## 约束说明<a name="section439002"></a>
 
 无。
-

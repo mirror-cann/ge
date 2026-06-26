@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,22 +29,22 @@
 
 namespace fe {
 namespace {
-  const std::string kPriorityType = "Priority";
-  const std::string kBuildinType = "build-in";
-  const std::string kCustomType = "custom";
-  const std::string kPriorityTop = "Top";
-  const std::string kPriorityMain = "Main";
-  const std::string kPriorityDown = "Down";
-  const std::string kSwitchType = "Switch";
-  const std::string kExceptionalPass = "ExceptionalPassOfO1Level";
-  const std::string kSwitchOn = "on";
-  const std::string kSwitchOff = "off";
-  const std::string kPassSwitchAll = "ALL";
-  const std::string kStatgeChkLstLyrFmt = "[GraphOpt][FusionConfig][ChkLstLyrFmt]";
-  const std::string kStatgeJdgPriority = "[GraphOpt][FusionConfig][JdgPriority]";
-  const std::string kStatgeChkFusCfgJsLyrFmt = "[GraphOpt][FusionConfig][ChkFusCfgJsLyrFmt]";
-  const std::vector<std::string> kFusionTypeVec = {GRAPH_FUSION, UB_FUSION};
-}
+const std::string kPriorityType = "Priority";
+const std::string kBuildinType = "build-in";
+const std::string kCustomType = "custom";
+const std::string kPriorityTop = "Top";
+const std::string kPriorityMain = "Main";
+const std::string kPriorityDown = "Down";
+const std::string kSwitchType = "Switch";
+const std::string kExceptionalPass = "ExceptionalPassOfO1Level";
+const std::string kSwitchOn = "on";
+const std::string kSwitchOff = "off";
+const std::string kPassSwitchAll = "ALL";
+const std::string kStatgeChkLstLyrFmt = "[GraphOpt][FusionConfig][ChkLstLyrFmt]";
+const std::string kStatgeJdgPriority = "[GraphOpt][FusionConfig][JdgPriority]";
+const std::string kStatgeChkFusCfgJsLyrFmt = "[GraphOpt][FusionConfig][ChkFusCfgJsLyrFmt]";
+const std::vector<std::string> kFusionTypeVec = {GRAPH_FUSION, UB_FUSION};
+}  // namespace
 
 const int32_t CUSTOM_CFG_TOP_PRIORITY_MIN = 0;
 const int32_t CUSTOM_CFG_MAIN_PRIORITY_MIN = 1000;
@@ -60,7 +60,7 @@ const int32_t RESERVED_FOR_DOWN_PRIORITY = 10000;
 const uint64_t kBit0Mask = 0x1UL;
 
 FusionConfigParser::FusionConfigParser(std::string engine_name)
-  : is_first_init_(true), has_support_fusion_pass_(false), engine_name_(std::move(engine_name)) {}
+    : is_first_init_(true), has_support_fusion_pass_(false), engine_name_(std::move(engine_name)) {}
 
 FusionConfigParser::~FusionConfigParser() = default;
 
@@ -135,8 +135,8 @@ bool FusionConfigParser::IsForbiddenClosedPass(const std::string &pass_name, con
 
   // 2. Forbidden close pass by ops resigter
   if (IsPassAttrTypeOn(pass_attr, PassAttrType::FRBDN_CLOSE)) {
-    FE_LOGD("Pass:[%s] of [%s : %lu] is set as forbidden closed, will be on by default.",
-            pass_name.c_str(), pass_type.c_str(), pass_attr);
+    FE_LOGD("Pass:[%s] of [%s : %lu] is set as forbidden closed, will be on by default.", pass_name.c_str(),
+            pass_type.c_str(), pass_attr);
     return true;
   }
   return false;
@@ -145,8 +145,8 @@ bool FusionConfigParser::IsForbiddenClosedPass(const std::string &pass_name, con
 bool FusionConfigParser::CheckPassIsWhiteListControl(const std::string &pass_name,
                                                      const GraphFusionPassType &pass_type) const {
   std::string config_name = "fusion config or fusion switch file";
-  if (pass_type == CUSTOM_AI_CORE_GRAPH_PASS ||
-      pass_type == CUSTOM_VECTOR_CORE_GRAPH_PASS || !has_support_fusion_pass_) {
+  if (pass_type == CUSTOM_AI_CORE_GRAPH_PASS || pass_type == CUSTOM_VECTOR_CORE_GRAPH_PASS ||
+      !has_support_fusion_pass_) {
     FE_LOGD("Pass[%s] is custom_pass or cur_soc don't have white list, can be configured on/off by %s.",
             pass_name.c_str(), config_name.c_str());
     return false;
@@ -165,8 +165,7 @@ bool FusionConfigParser::CheckPassIsWhiteListControl(const std::string &pass_nam
 }
 
 Status FusionConfigParser::GetFusionSwitchByOptimizationOption(const std::string &pass_name, bool &enable_flag,
-                                                              const std::string &pass_type,
-                                                              const uint64_t pass_attr) {
+                                                               const std::string &pass_type, const uint64_t pass_attr) {
   if (ge::PassOptionUtils::CheckIsPassEnabledByOption(pass_name, enable_flag) == ge::GRAPH_SUCCESS) {
     FE_LOGI("Pass[%s] switch [%d] is configured by optimization switch.", pass_name.c_str(), enable_flag);
     return SUCCESS;
@@ -179,10 +178,10 @@ Status FusionConfigParser::GetFusionSwitchByOptimizationOption(const std::string
   }
 
   if (ge::PassOptionUtils::CheckIsPassEnabledByOption(kForbiddenPass, enable_flag) == ge::GRAPH_SUCCESS) {
-    if(IsForbiddenClosedPass(pass_name, pass_type, pass_attr)) {
-        FE_LOGI("Pass:[%s] is forbidden closed pass, pass switch [%d] is configured by optimization_switch option.",
-               pass_name.c_str(), enable_flag);
-        return SUCCESS;
+    if (IsForbiddenClosedPass(pass_name, pass_type, pass_attr)) {
+      FE_LOGI("Pass:[%s] is forbidden closed pass, pass switch [%d] is configured by optimization_switch option.",
+              pass_name.c_str(), enable_flag);
+      return SUCCESS;
     }
   }
   // O1 close all pass
@@ -265,9 +264,8 @@ Status FusionConfigParser::GetKeyAndValueFromJson(const std::string &line, const
   if (pos_of_equal == std::string::npos) {
     REPORT_FE_ERROR("[GraphOpt][FusionConfig][GetKeyValFmJs] The content of [%s] delimiter must be colon.",
                     line.c_str());
-    ErrorMessageDetail err_msg(EM_INVALID_CONTENT,
-                        {line, custom_fusion_config_json_file,
-                        "This line " + line + " does not have the delimiter :"});
+    ErrorMessageDetail err_msg(EM_INVALID_CONTENT, {line, custom_fusion_config_json_file,
+                                                    "This line " + line + " does not have the delimiter :"});
     ReportErrorMessage(err_msg);
     return FAILED;
   }
@@ -315,11 +313,11 @@ Status FusionConfigParser::LoadOldFormatFusionSwitchFile(const string &custom_fu
 
     if (!key.empty()) {
       if (value != kSwitchOn && value != kSwitchOff) {
-        REPORT_FE_ERROR("[GraphOpt][FusionConfig][LdOldFmtFusSwtFile] Pass switch[%s, %s] is not correct.",
-                        key.c_str(), value.c_str());
+        REPORT_FE_ERROR("[GraphOpt][FusionConfig][LdOldFmtFusSwtFile] Pass switch[%s, %s] is not correct.", key.c_str(),
+                        value.c_str());
         ifs.close();
-        ErrorMessageDetail err_msg(EM_INVALID_CONTENT, {key, custom_fusion_config_json_file,
-                                   "pass name " + key + " is duplicate"});
+        ErrorMessageDetail err_msg(EM_INVALID_CONTENT,
+                                   {key, custom_fusion_config_json_file, "pass name " + key + " is duplicate"});
         ReportErrorMessage(err_msg);
         return FAILED;
       }
@@ -328,8 +326,8 @@ Status FusionConfigParser::LoadOldFormatFusionSwitchFile(const string &custom_fu
         REPORT_FE_ERROR("[GraphOpt][FusionConfig][LdOldFmtFusSwtFile] Pass[%s] is repetitive, please check it.",
                         key.c_str());
         ifs.close();
-        ErrorMessageDetail err_msg(EM_INVALID_CONTENT, {key, custom_fusion_config_json_file,
-                                   "pass name " + key + " is duplicate"});
+        ErrorMessageDetail err_msg(EM_INVALID_CONTENT,
+                                   {key, custom_fusion_config_json_file, "pass name " + key + " is duplicate"});
         ReportErrorMessage(err_msg);
         return FAILED;
       }
@@ -360,7 +358,7 @@ Status FusionConfigParser::VerifyAndParserCustomFile(const string &custom_fusion
       return FAILED;
     }
     if (ReadJsonFile(custom_fusion_config_json_file, custom_fusion_config_json) != SUCCESS) {
-      FE_LOGD("Read Json content from file:[%s] unsuccess and start to try read this file by old format.",
+      FE_LOGD("Read Json content from file:[%s] unsuccessful and start to try read this file by old format.",
               custom_fusion_config_json_file.c_str());
       if (LoadOldFormatFusionSwitchFile(custom_fusion_config_json_file, old_fusion_switch_map) != SUCCESS) {
         REPORT_FE_ERROR("[GraphOpt][Init][VerifyAndParserCustomFile] Failed to read this file[%s] by old format.",
@@ -399,8 +397,8 @@ Status FusionConfigParser::CheckConfigFileFormat(const nlohmann::json &custom_fu
     REPORT_FE_ERROR(
         "[GraphOpt][Init][CheckCfgFileFormat] Fail to check custom fusion config file format. The file path is %s",
         custom_fusion_config_json_file.c_str());
-    ErrorMessageDetail err_msg(EM_READ_FILE_FAILED, {custom_fusion_config_json_file,
-                                                     "Failed to check custom fusion config json file format"});
+    ErrorMessageDetail err_msg(
+        EM_READ_FILE_FAILED, {custom_fusion_config_json_file, "Failed to check custom fusion config json file format"});
     ReportErrorMessage(err_msg);
     return FAILED;
   }
@@ -439,8 +437,8 @@ Status FusionConfigParser::ParseFusionConfigFile() {
   nlohmann::json custom_fusion_config_json;
   nlohmann::json build_in_fusion_config_json;
   std::map<string, bool> old_fusion_switch_map;
-  if (VerifyAndParserCustomFile(custom_fusion_config_json_file, custom_fusion_config_json,
-      old_fusion_switch_map) != SUCCESS) {
+  if (VerifyAndParserCustomFile(custom_fusion_config_json_file, custom_fusion_config_json, old_fusion_switch_map) !=
+      SUCCESS) {
     return FAILED;
   }
 
@@ -459,14 +457,16 @@ Status FusionConfigParser::ParseFusionConfigFile() {
     ConstructFusionSwitchMap(custom_fusion_config_json, build_in_fusion_config_json, old_fusion_switch_map);
 
     if (ConstructFusionPriorityMap(custom_fusion_config_json, build_in_fusion_config_json) != SUCCESS) {
-      REPORT_FE_ERROR("[GraphOpt][Init][ParseFusionPrio]Failed to init fusion priority with file [%s] or [%s]."
-                      "ErrNo: %u",
-                      built_in_fusion_config_json_file.c_str(), custom_fusion_config_json_file.c_str(), ret);
+      REPORT_FE_ERROR(
+          "[GraphOpt][Init][ParseFusionPrio]Failed to init fusion priority with file [%s] or [%s]."
+          "ErrNo: %u",
+          built_in_fusion_config_json_file.c_str(), custom_fusion_config_json_file.c_str(), ret);
       return FAILED;
     }
   } catch (const std::exception &e) {
     REPORT_FE_ERROR(
-        "[GraphOpt][Init][ParseFusConfig] Failed to parse fusion config file[%s] or [%s] to Json. Error message is [%s]",
+        "[GraphOpt][Init][ParseFusConfig] Failed to parse fusion config file[%s] or [%s] to Json. Error message is "
+        "[%s]",
         custom_fusion_config_json_file.c_str(), built_in_fusion_config_json_file.c_str(), e.what());
     return ILLEGAL_JSON;
   }
@@ -484,7 +484,7 @@ void FusionConfigParser::ParseSupportFusionPassFile() {
   nlohmann::json support_fusion_pass_file_json;
   if (ReadJsonFile(support_fusion_pass_file_path, support_fusion_pass_file_json) != SUCCESS) {
     FE_LOGW("[GraphOpt][Init][ParseFusConfig] Read Json content from file:[%s] unsuccessful.",
-             support_fusion_pass_file_path.c_str());
+            support_fusion_pass_file_path.c_str());
     return;
   }
 
@@ -505,7 +505,7 @@ void FusionConfigParser::ParseSupportFusionPassFile() {
       std::string cur_support_fusion_pass1 = iter1.value();
       support_fusion_pass_vec_ = StringUtils::Split(StringUtils::Trim(cur_support_fusion_pass1), ',');
       FE_LOGD("Support fusion pass vec is %s with cur_soc_version[%s].",
-                StringUtils::StrVecToString(support_fusion_pass_vec_).c_str(), short_soc_version.c_str());
+              StringUtils::StrVecToString(support_fusion_pass_vec_).c_str(), short_soc_version.c_str());
     } else {
       has_support_fusion_pass_ = false;
       FE_LOGI("Not configure support fusion pass with cur soc_version[%s] or cur_npu_arch[%s].",
@@ -524,7 +524,7 @@ void FusionConfigParser::ConstructFusionSwitchMap(const nlohmann::json &custom_p
   for (const std::string &fusion_type : kFusionTypeVec) {
     // for the old fusion switch version, we can not tell whether it is graph fusion or ub fusion
     std::map<std::string, bool> fusion_switch_map = old_fusion_switch_map;
-    // here deal with the custom first, in ModifyFusionSwitchMap function, data will not be coverd
+    // here deal with the custom first, in ModifyFusionSwitchMap function, data will not be covered
     ModifyFusionSwitchMap(fusion_type, custom_pass_config_json, fusion_switch_map);
     ModifyFusionSwitchMap(fusion_type, builtin_pass_config_json, fusion_switch_map);
     fusion_switch_map_.emplace(fusion_type, fusion_switch_map);
@@ -535,9 +535,9 @@ void FusionConfigParser::ConstructFusionSwitchMap(const nlohmann::json &custom_p
 }
 
 void FusionConfigParser::ConstructExceptionalPassMap(const nlohmann::json &fusion_pass_config_json,
-                                                    std::set<std::string> &exceptional_pass) const {
+                                                     std::set<std::string> &exceptional_pass) const {
   if (fusion_pass_config_json == nullptr ||
-    fusion_pass_config_json.find(kExceptionalPass) == fusion_pass_config_json.end()) {
+      fusion_pass_config_json.find(kExceptionalPass) == fusion_pass_config_json.end()) {
     return;
   }
   // after file check, exceptional pass must be array
@@ -577,7 +577,7 @@ void FusionConfigParser::ModifyFusionSwitchMap(const std::string &fusion_type,
 Status FusionConfigParser::ConstructFusionPriorityMap(const nlohmann::json &custom_pass_config_json,
                                                       const nlohmann::json &builtin_pass_config_json) {
   for (const std::string &fusion_type : kFusionTypeVec) {
-    // here deal with the custom first, in ModifyFusionPriorityMap function, data will not be coverd
+    // here deal with the custom first, in ModifyFusionPriorityMap function, data will not be covered
     std::map<string, int32_t> fusion_priority_map;
     if (ModifyFusionPriorityMap(fusion_type, custom_pass_config_json, fusion_priority_map) != SUCCESS) {
       return FAILED;
@@ -628,7 +628,6 @@ Status FusionConfigParser::ModifyFusionPriorityMap(const std::string &fusion_typ
   return SUCCESS;
 }
 
-
 Status FusionConfigParser::JudgePriority(string level_elem, int32_t priority_value, const string &owner_type) const {
   const int32_t first_condition =
       (owner_type == kCustomType) ? CUSTOM_CFG_TOP_PRIORITY_MIN : BUILT_IN_CFG_TOP_PRIORITY_MIN;
@@ -672,16 +671,14 @@ Status FusionConfigParser::CheckLastLayerFormatForPriorityPart(string type_elem,
     string level_elem_string = StringUtils::Trim(level_elem);
 
     if (level_elem_string != kPriorityTop && level_elem_string != kPriorityMain && level_elem_string != kPriorityDown) {
-      REPORT_FE_ERROR(
-          "[%s] The third level key [%s] of json file[%s] is error, which should be top/main/down.",
-          kStatgeChkLstLyrFmt.c_str(), level_elem.c_str(), owner_type.c_str());
+      REPORT_FE_ERROR("[%s] The third level key [%s] of json file[%s] is error, which should be top/main/down.",
+                      kStatgeChkLstLyrFmt.c_str(), level_elem.c_str(), owner_type.c_str());
       return FAILED;
     }
     if (!pass_switch_file_json[type_elem][fusion_elem][level_elem].is_object()) {
-      REPORT_FE_ERROR(
-          "[%s] The fourth level of json file[%s] should be json form, but which actually is [%s].",
-          kStatgeChkLstLyrFmt.c_str(), owner_type.c_str(),
-          GetJsonType(pass_switch_file_json[type_elem][fusion_elem][level_elem]).c_str());
+      REPORT_FE_ERROR("[%s] The fourth level of json file[%s] should be json form, but which actually is [%s].",
+                      kStatgeChkLstLyrFmt.c_str(), owner_type.c_str(),
+                      GetJsonType(pass_switch_file_json[type_elem][fusion_elem][level_elem]).c_str());
       return ILLEGAL_JSON;
     }
 
@@ -733,8 +730,9 @@ Status FusionConfigParser::CheckFusionConfigJsonLastLayerFormat(string type_elem
       string value = StringUtils::Trim(value_inner);
 
       if (value != kSwitchOn && value != kSwitchOff) {
-        REPORT_FE_ERROR("[GraphOpt][FusionConfig][ChkFusCfgJsLyrFmt] Illegal switch value: [%s]. Must be 'on' or 'off'.",
-                        value.c_str());
+        REPORT_FE_ERROR(
+            "[GraphOpt][FusionConfig][ChkFusCfgJsLyrFmt] Illegal switch value: [%s]. Must be 'on' or 'off'.",
+            value.c_str());
         return FAILED;
       }
     }
@@ -763,20 +761,21 @@ Status FusionConfigParser::CheckFusionConfigJsonFormat(nlohmann::json pass_switc
     string type_elem_string = StringUtils::Trim(type_elem);
     if (type_elem_string == kExceptionalPass) {
       if (!pass_switch_file_json[type_elem].is_array()) {
-        REPORT_FE_ERROR("The second level of [%s] json file is [%s], which should be json form.",
-            owner_type.c_str(), GetJsonType(pass_switch_file_json[type_elem]).c_str());
+        REPORT_FE_ERROR("The second level of [%s] json file is [%s], which should be json form.", owner_type.c_str(),
+                        GetJsonType(pass_switch_file_json[type_elem]).c_str());
         return ILLEGAL_JSON;
       }
       continue;
     }
     if (type_elem_string != kSwitchType && type_elem_string != kPriorityType) {
       REPORT_FE_ERROR("[%s] The first level key [%s] of [%s] json file is error, which should be Switch or Priority.",
-          kStatgeChkFusCfgJsLyrFmt.c_str(), type_elem.c_str(), owner_type.c_str());
+                      kStatgeChkFusCfgJsLyrFmt.c_str(), type_elem.c_str(), owner_type.c_str());
       return FAILED;
     }
     if (!pass_switch_file_json[type_elem].is_object()) {
       REPORT_FE_ERROR("[%s] The second level of [%s] json file is [%s], which should be json form.",
-          kStatgeChkFusCfgJsLyrFmt.c_str(), owner_type.c_str(), GetJsonType(pass_switch_file_json[type_elem]).c_str());
+                      kStatgeChkFusCfgJsLyrFmt.c_str(), owner_type.c_str(),
+                      GetJsonType(pass_switch_file_json[type_elem]).c_str());
       return ILLEGAL_JSON;
     }
 
@@ -792,8 +791,8 @@ Status FusionConfigParser::CheckFusionConfigJsonFormat(nlohmann::json pass_switc
       }
       if (!pass_switch_file_json[type_elem][fusion_elem].is_object()) {
         REPORT_FE_ERROR("[%s] The third level of [%s] json file is [%s], which should be json form.",
-            kStatgeChkFusCfgJsLyrFmt.c_str(), owner_type.c_str(),
-            GetJsonType(pass_switch_file_json[type_elem][fusion_elem]).c_str());
+                        kStatgeChkFusCfgJsLyrFmt.c_str(), owner_type.c_str(),
+                        GetJsonType(pass_switch_file_json[type_elem][fusion_elem]).c_str());
         return ILLEGAL_JSON;
       }
 

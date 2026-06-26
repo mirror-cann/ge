@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,7 +26,7 @@ const std::string kDataModeDynamic = "dynamic_aipp";
 const std::string kDataModeDynamicConf = "dynamic_aipp_conf";
 constexpr int32_t kDecimalRadix = 10;
 constexpr uint32_t kDataIndex = 0U;
-}
+}  // namespace
 
 void AippUtils::SetMatrixInfo(const domi::AippOpParams &aipp_params, AippConfigInfo &aipp_info) {
   if (aipp_params.matrix_r0c0_size() > 0) {
@@ -155,10 +155,10 @@ Status AippUtils::SetAippInfoAndTypeFromOpDesc(const std::map<std::string, uint3
   if ((!get_attr_aipp) || (!get_attr_mode)) {
     std::stringstream error_message;
     error_message << "Both ATTR_NAME_AIPP and ATTR_DATA_RELATED_AIPP_MODE attributes are needed on the data node, "
-                     "but only " << (get_attr_aipp ? "ATTR_NAME_AIPP" : "ATTR_DATA_RELATED_AIPP_MODE")
-                  << " is obtained at the time.";
+                     "but only "
+                  << (get_attr_aipp ? "ATTR_NAME_AIPP" : "ATTR_DATA_RELATED_AIPP_MODE") << " is obtained at the time.";
     REPORT_INNER_ERR_MSG("E19999", "Op:%s, index:%u, error message:%s", op_desc->GetName().c_str(), index,
-                       error_message.str().c_str());
+                         error_message.str().c_str());
     GELOGE(INTERNAL_ERROR, "[Get][Attrs]Op:%s, index:%u, error message:%s", op_desc->GetName().c_str(), index,
            error_message.str().c_str());
     return INTERNAL_ERROR;
@@ -198,8 +198,8 @@ Status AippUtils::SetAippInfoImpl(const NamedAttrs &aipp_attr, const OpDescPtr &
   return SUCCESS;
 }
 
-Status AippUtils::SetAippTypeImpl(const std::map<std::string, uint32_t> &data_index_map,
-                                  const std::string &data_mode, const OpDescPtr &op_desc, const uint32_t index,
+Status AippUtils::SetAippTypeImpl(const std::map<std::string, uint32_t> &data_index_map, const std::string &data_mode,
+                                  const OpDescPtr &op_desc, const uint32_t index,
                                   std::map<uint32_t, std::pair<InputAippType, size_t>> &aipp_types) {
   InputAippType aipp_type = DATA_WITHOUT_AIPP;
   if (data_mode == kDataModeStatic) {
@@ -210,7 +210,7 @@ Status AippUtils::SetAippTypeImpl(const std::map<std::string, uint32_t> &data_in
     aipp_type = DYNAMIC_AIPP_NODE;
   } else {
     REPORT_INNER_ERR_MSG("E19999", "Get invalid mode:%s, op:%s, type:%s.", data_mode.c_str(),
-                       op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                         op_desc->GetName().c_str(), op_desc->GetType().c_str());
     GELOGE(INTERNAL_ERROR, "[Get][Attr]Get invalid mode:%s, op:%s, type:%s.", data_mode.c_str(),
            op_desc->GetName().c_str(), op_desc->GetType().c_str());
     return INTERNAL_ERROR;
@@ -232,9 +232,10 @@ Status AippUtils::SetAippTypeImpl(const std::map<std::string, uint32_t> &data_in
       GELOGI("Find AippData:%s of index:%zu for op:%s, index:%u", related_name->c_str(), aipp_data_index,
              op_desc->GetName().c_str(), index);
     } else {
-      REPORT_INNER_ERR_MSG("E19999", "Cannot find AippData node for index:%u, op:%s", index, op_desc->GetName().c_str());
-      GELOGE(INTERNAL_ERROR, "[Find][AippData]Cannot find AippData node for index:%u, op:%s",
-             index, op_desc->GetName().c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Cannot find AippData node for index:%u, op:%s", index,
+                           op_desc->GetName().c_str());
+      GELOGE(INTERNAL_ERROR, "[Find][AippData]Cannot find AippData node for index:%u, op:%s", index,
+             op_desc->GetName().c_str());
       return INTERNAL_ERROR;
     }
   }
@@ -271,10 +272,10 @@ Status AippUtils::ParseAIPPInfo(const std::string &in_out_info, InputOutputDims 
   GELOGI("ParseAIPPInfo: origin str: %s", in_out_info.c_str());
   const std::vector<std::string> infos = StringUtils::Split(in_out_info, ':');
   if (infos.size() != kAippInfoNum) {
-    REPORT_INNER_ERR_MSG("E19999", "in_out_info:%s size:%zu != kAippInfoNum:%u check invalid",
-        in_out_info.c_str(), infos.size(), kAippInfoNum);
+    REPORT_INNER_ERR_MSG("E19999", "in_out_info:%s size:%zu != kAippInfoNum:%u check invalid", in_out_info.c_str(),
+                         infos.size(), kAippInfoNum);
     GELOGE(ACL_ERROR_GE_AIPP_MODE_INVALID, "[Check][Param] in_out_info:%s size:%zu != kAippInfoNum:%u",
-        in_out_info.c_str(), infos.size(), kAippInfoNum);
+           in_out_info.c_str(), infos.size(), kAippInfoNum);
     return ACL_ERROR_GE_AIPP_MODE_INVALID;
   }
   dims_info.name = infos[kAippInfoTensorName];
@@ -292,7 +293,7 @@ Status AippUtils::ParseAIPPInfo(const std::string &in_out_info, InputOutputDims 
 }
 
 void AippUtils::SetOrigInputInfo(const std::string &input, const uint32_t index,
-    std::map<uint32_t, OriginInputInfo> &orig_input_info_map) {
+                                 std::map<uint32_t, OriginInputInfo> &orig_input_info_map) {
   GELOGI("origin input str: %s.", input.c_str());
   const std::vector<std::string> infos = StringUtils::Split(input, ':');
   OriginInputInfo input_info{};
@@ -303,9 +304,9 @@ void AippUtils::SetOrigInputInfo(const std::string &input, const uint32_t index,
   return;
 }
 
-Status AippUtils::SetAippInputOutputInfoFromOpDesc(const OpDescPtr &op_desc, const uint32_t index,
-      std::map<uint32_t, OriginInputInfo> &orig_input_info_map,
-      std::map<uint32_t, std::pair<std::vector<InputOutputDims>, std::vector<InputOutputDims>>> &aipp_dims_info) {
+Status AippUtils::SetAippInputOutputInfoFromOpDesc(
+    const OpDescPtr &op_desc, const uint32_t index, std::map<uint32_t, OriginInputInfo> &orig_input_info_map,
+    std::map<uint32_t, std::pair<std::vector<InputOutputDims>, std::vector<InputOutputDims>>> &aipp_dims_info) {
   if ((!op_desc->HasAttr(ATTR_NAME_AIPP_INPUTS)) || (!op_desc->HasAttr(ATTR_NAME_AIPP_OUTPUTS))) {
     GELOGI("there is not AIPP related with index %u, node: %s.", index, op_desc->GetName().c_str());
     return SUCCESS;
@@ -313,7 +314,7 @@ Status AippUtils::SetAippInputOutputInfoFromOpDesc(const OpDescPtr &op_desc, con
 
   std::vector<std::string> inputs;
   std::vector<InputOutputDims> input_dims;
-  orig_input_info_map[index] = { FORMAT_RESERVED, DT_UNDEFINED, 0U };
+  orig_input_info_map[index] = {FORMAT_RESERVED, DT_UNDEFINED, 0U};
   if (AttrUtils::GetListStr(op_desc, ATTR_NAME_AIPP_INPUTS, inputs) && (!inputs.empty())) {
     GELOGI("Data: %s has %zu related aippInfo.", op_desc->GetName().c_str(), inputs.size());
     for (const auto &it : inputs) {
@@ -327,10 +328,10 @@ Status AippUtils::SetAippInputOutputInfoFromOpDesc(const OpDescPtr &op_desc, con
       int64_t data_input_size = 0;
       (void)TensorUtils::GetSize(*(data_input_desc), data_input_size);
       GELOGD("Related Data[%d]: tensor_name: %s, dim_num: %zu, tensor_size: %zu, format: %s, data_type: %s, shape: %s.",
-          index, op_desc->GetName().c_str(), data_input_desc->GetShape().GetDimNum(), data_input_size,
-          TypeUtils::FormatToSerialString(data_input_desc->GetFormat()).c_str(),
-          TypeUtils::DataTypeToSerialString(data_input_desc->GetDataType()).c_str(),
-          ToString(data_input_desc->GetShape().GetDims()).c_str());
+             index, op_desc->GetName().c_str(), data_input_desc->GetShape().GetDimNum(), data_input_size,
+             TypeUtils::FormatToSerialString(data_input_desc->GetFormat()).c_str(),
+             TypeUtils::DataTypeToSerialString(data_input_desc->GetDataType()).c_str(),
+             ToString(data_input_desc->GetShape().GetDims()).c_str());
     }
     SetOrigInputInfo(inputs[kAippOriginInputIndex], index, orig_input_info_map);
   }
@@ -346,12 +347,12 @@ Status AippUtils::SetAippInputOutputInfoFromOpDesc(const OpDescPtr &op_desc, con
     }
   }
 
-  aipp_dims_info[index] = { input_dims, output_dims };
+  aipp_dims_info[index] = {input_dims, output_dims};
   return SUCCESS;
 }
 
 Status AippUtils::GetOrigInputInfo(const std::map<uint32_t, OriginInputInfo> &orig_input_info_map, const uint32_t index,
-    OriginInputInfo &orig_input_info) {
+                                   OriginInputInfo &orig_input_info) {
   const auto it = orig_input_info_map.find(index);
   if (it == orig_input_info_map.end()) {
     REPORT_INNER_ERR_MSG("E19999", "Get index:%u from orig_input_info_map fail", index);
@@ -368,9 +369,8 @@ Status AippUtils::GetOrigInputInfo(const std::map<uint32_t, OriginInputInfo> &or
 }
 
 Status AippUtils::GetAllAippInputOutputDims(
-      const std::map<uint32_t,
-      std::pair<std::vector<InputOutputDims>, std::vector<InputOutputDims>>> &aipp_dims_info,
-      const uint32_t index, std::vector<InputOutputDims> &input_dims, std::vector<InputOutputDims> &output_dims) {
+    const std::map<uint32_t, std::pair<std::vector<InputOutputDims>, std::vector<InputOutputDims>>> &aipp_dims_info,
+    const uint32_t index, std::vector<InputOutputDims> &input_dims, std::vector<InputOutputDims> &output_dims) {
   const auto it = aipp_dims_info.find(index);
   if (it == aipp_dims_info.end()) {
     REPORT_INNER_ERR_MSG("E19999", "Get index:%u from aipp_dims_info fail", index);

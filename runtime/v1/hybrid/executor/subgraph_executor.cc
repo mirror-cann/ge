@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,18 +24,19 @@ namespace hybrid {
 namespace {
 constexpr uint32_t kDefaultThreadNums = 6U;
 constexpr uint32_t kReadyQueueSize = 16U;
-}
+}  // namespace
 
 SubgraphExecutor::SubgraphExecutor(const GraphItem *const graph_item, GraphExecutionContext *const context,
                                    const bool force_infer_shape, ThreadPool *pre_run_pool)
-    : SubgraphContext(graph_item, context), ShapeInferenceEngine(context, force_infer_shape),
+    : SubgraphContext(graph_item, context),
+      ShapeInferenceEngine(context, force_infer_shape),
       graph_item_(graph_item),
       context_(context),
       pre_run_pool_(pre_run_pool),
       own_thread_pool_(false),
       ready_queue_(kReadyQueueSize) {
   ShapeInferenceEngine::Config(this);
-  shape_inference_engine_  = this;
+  shape_inference_engine_ = this;
   subgraph_context_ = this;
 }
 
@@ -53,8 +54,8 @@ Status SubgraphExecutor::Init() {
     GE_CHECK_NOTNULL(pre_run_pool_);
     own_thread_pool_ = true;
   }
-  GE_CHK_STATUS_RET(subgraph_context_->Init(),
-                    "[Init][SubgraphContext][%s] Failed to init subgraph context.", graph_item_->GetName().c_str());
+  GE_CHK_STATUS_RET(subgraph_context_->Init(), "[Init][SubgraphContext][%s] Failed to init subgraph context.",
+                    graph_item_->GetName().c_str());
   return SUCCESS;
 }
 
@@ -63,22 +64,21 @@ Status SubgraphExecutor::InitInputsForKnownShape(const std::vector<TensorValue> 
   for (size_t i = 0U; i < input_index_mapping.size(); ++i) {
     auto &parent_input_index = input_index_mapping[i];
     if (static_cast<size_t>(parent_input_index) >= inputs.size()) {
-      GELOGE(INTERNAL_ERROR, "[Check][Size][%s] Number of inputs [%zu] is not sufficient for subgraph"
-             "which needs at lease [%d] inputs", graph_item_->GetName().c_str(), inputs.size(),
-             parent_input_index + 1);
-      REPORT_INNER_ERR_MSG("E19999", "[%s] Number of inputs [%zu] is not sufficient for subgraph"
-                         "which needs at lease [%d] inputs",
-                         graph_item_->GetName().c_str(), inputs.size(), parent_input_index + 1);
+      GELOGE(INTERNAL_ERROR,
+             "[Check][Size][%s] Number of inputs [%zu] is not sufficient for subgraph"
+             "which needs at lease [%d] inputs",
+             graph_item_->GetName().c_str(), inputs.size(), parent_input_index + 1);
+      REPORT_INNER_ERR_MSG("E19999",
+                           "[%s] Number of inputs [%zu] is not sufficient for subgraph"
+                           "which needs at lease [%d] inputs",
+                           graph_item_->GetName().c_str(), inputs.size(), parent_input_index + 1);
       return INTERNAL_ERROR;
     }
 
     auto &input_tensor = inputs[static_cast<size_t>(parent_input_index)];
     (void)subgraph_context_->SetInput(static_cast<int32_t>(i), input_tensor);
-    GELOGD("[%s] Set input tensor[%zu] with inputs with index = %d, tensor = %s",
-           graph_item_->GetName().c_str(),
-           i,
-           parent_input_index,
-           input_tensor.DebugString().c_str());
+    GELOGD("[%s] Set input tensor[%zu] with inputs with index = %d, tensor = %s", graph_item_->GetName().c_str(), i,
+           parent_input_index, input_tensor.DebugString().c_str());
   }
 
   return SUCCESS;
@@ -90,8 +90,7 @@ Status SubgraphExecutor::ExecuteAsync(const std::vector<TensorValue> &inputs,
   GELOGD("[%s] is dynamic = %s", graph_item_->GetName().c_str(), graph_item_->IsDynamic() ? "true" : "false");
   GE_CHK_STATUS_RET(InitInputs(inputs, input_desc), "[Invoke][Init]failed for [%s].", graph_item_->GetName().c_str());
   if (!outputs.empty()) {
-    GE_CHK_STATUS_RET(EnableOutputZeroCopy(outputs),
-                      "[Invoke][EnableOutputZeroCopy] Failed by user provided outputs.");
+    GE_CHK_STATUS_RET(EnableOutputZeroCopy(outputs), "[Invoke][EnableOutputZeroCopy] Failed by user provided outputs.");
   }
 
   GE_CHK_STATUS_RET_NOLOG(PreRunSubgraph());
@@ -202,8 +201,8 @@ Status SubgraphExecutor::PrepareNode(const NodeItem &node_item) {
   if (task == nullptr) {
     GELOGE(INTERNAL_ERROR, "[Get][KernelTask] failed for[%s(%s)], NodeTask is null.", p_node_state->GetName().c_str(),
            p_node_state->GetType().c_str());
-    REPORT_INNER_ERR_MSG("E19999", "GetKernelTask failed for %s(%s), nodetask is null.", p_node_state->GetName().c_str(),
-                      p_node_state->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "GetKernelTask failed for %s(%s), nodetask is null.",
+                         p_node_state->GetName().c_str(), p_node_state->GetType().c_str());
     return INTERNAL_ERROR;
   }
 
@@ -212,7 +211,8 @@ Status SubgraphExecutor::PrepareNode(const NodeItem &node_item) {
     GE_CHK_STATUS_RET_NOLOG(shape_inference_engine_->InferShape(*p_node_state));
     if (task->IsNeedTilling()) {
       PROFILING_START(p_node_state->GetProfilingIndex(), profiling::kCommitTilingTask);
-      const auto prepare_func = [this, p_node_state](const error_message::ErrorManagerContext &error_context) -> Status {
+      const auto prepare_func = [this,
+                                 p_node_state](const error_message::ErrorManagerContext &error_context) -> Status {
         error_message::SetErrMgrContext(error_context);
         GetContext().SetSessionId(context_->session_id);
         GetContext().SetContextId(context_->context_id);
@@ -226,8 +226,7 @@ Status SubgraphExecutor::PrepareNode(const NodeItem &node_item) {
       return NodeEnqueue(p_node_state);
     }
   } else {
-    GELOGD("[%s] Skipping shape inference and compilation for node with static shape.",
-           node_item.NodeName().c_str());
+    GELOGD("[%s] Skipping shape inference and compilation for node with static shape.", node_item.NodeName().c_str());
   }
   GE_CHK_STATUS_RET_NOLOG(NodeEnqueue(p_node_state));
   return AfterPrepared(p_node_state);
@@ -307,8 +306,8 @@ Status SubgraphExecutor::PrepareNodes(const int32_t group) {
         GELOGD("[%s] Done preparing nodes successfully.", graph_item_->GetName().c_str());
         return SUCCESS;
       }
-      GELOGW("[Pop][Node] failed, graph:[%s] Context status: %u.",
-             graph_item_->GetName().c_str(), context_->GetStatus());
+      GELOGW("[Pop][Node] failed, graph:[%s] Context status: %u.", graph_item_->GetName().c_str(),
+             context_->GetStatus());
       return SUCCESS;
     }
 
@@ -318,8 +317,7 @@ Status SubgraphExecutor::PrepareNodes(const int32_t group) {
     }
 
     RECORD_EXECUTION_EVENT(context_, node_item->NodeName().c_str(), "[PrepareNode] Start");
-    GE_CHK_STATUS_RET(PrepareNode(*node_item),
-                      "[Prepare][Node] [%s(%s)] failed to prepare task.",
+    GE_CHK_STATUS_RET(PrepareNode(*node_item), "[Prepare][Node] [%s(%s)] failed to prepare task.",
                       node_item->NodeName().c_str(), node_item->NodeType().c_str());
     RECORD_EXECUTION_EVENT(context_, node_item->NodeName().c_str(), "[PrepareNode] End");
     node_complete = node_item->NodeType() == NETOUTPUT;
@@ -333,12 +331,12 @@ Status SubgraphExecutor::PrepareNodes(const int32_t group) {
 
 Status SubgraphExecutor::NodeScheduled(NodeState *const node_state) {
   GELOGD("Graph[%s] After [%s] scheduled, data size: %zu, ctrl size: %zu, switch index: %d, merge index: %d",
-         graph_item_->GetName().c_str(), node_state->GetName().c_str(),
-         node_state->GetNodeItem().data_send_.size(), node_state->GetNodeItem().ctrl_send_.size(),
-         node_state->GetSwitchIndex(), node_state->GetMergeIndex());
+         graph_item_->GetName().c_str(), node_state->GetName().c_str(), node_state->GetNodeItem().data_send_.size(),
+         node_state->GetNodeItem().ctrl_send_.size(), node_state->GetSwitchIndex(), node_state->GetMergeIndex());
 
   GE_CHECK_NOTNULL(pre_run_pool_);
-  const auto prepare_func = [this, node_state](const struct error_message::ErrorManagerContext &error_context) -> Status {
+  const auto prepare_func = [this,
+                             node_state](const struct error_message::ErrorManagerContext &error_context) -> Status {
     error_message::SetErrMgrContext(error_context);
     RECORD_CALLBACK_EVENT(context_, node_state->GetName().c_str(), "[NodeScheduled] Start");
     const std::function<void(const NodeItem *)> callback = [this, &node_state](const NodeItem *const node_item) {
@@ -445,7 +443,7 @@ Status SubgraphExecutor::InitCallback(NodeState *const node_state, std::function
 }
 
 Status SubgraphExecutor::PrepareForExecution(const GraphExecutionContext *const ctx, NodeState &node_state) const {
-  const auto &task = node_state.GetKernelTask(); // checked not null outside
+  const auto &task = node_state.GetKernelTask();  // checked not null outside
   GE_CHK_ACL_RET(aclrtSetCurrentContext(ctx->rt_context));
   auto &node_item = node_state.GetNodeItem();
   if (node_item.IsNoOp()) {
@@ -564,10 +562,10 @@ Status SubgraphExecutor::GetOutputs(std::vector<TensorValue> &outputs, std::vect
                     "[Invoke][GetOutputDescList][%s] Failed to get output tensor desc.",
                     graph_item_->GetName().c_str());
   if (outputs.size() != output_desc.size()) {
-    GELOGE(INTERNAL_ERROR, "[Check][Size]Number of outputs(%zu) mismatch number of output_desc(%zu).",
-           outputs.size(), output_desc.size());
-    REPORT_INNER_ERR_MSG("E19999", "Number of outputs(%zu) mismatch number of output_desc(%zu).",
-                       outputs.size(), output_desc.size());
+    GELOGE(INTERNAL_ERROR, "[Check][Size]Number of outputs(%zu) mismatch number of output_desc(%zu).", outputs.size(),
+           output_desc.size());
+    REPORT_INNER_ERR_MSG("E19999", "Number of outputs(%zu) mismatch number of output_desc(%zu).", outputs.size(),
+                         output_desc.size());
     return INTERNAL_ERROR;
   }
   return SUCCESS;
@@ -613,14 +611,9 @@ Status SubgraphExecutor::SetOutputsToParentNode(const TaskContext &task_context)
     const int32_t parent_output_index = graph_item_->GetParentOutputIndex(i);
     GE_CHECK_GE(parent_output_index, 0);
     // update tensor
-    GELOGD("[%s] Updating output[%zu] to parent output[%d]",
-           graph_item_->GetName().c_str(),
-           i,
-           parent_output_index);
+    GELOGD("[%s] Updating output[%zu] to parent output[%d]", graph_item_->GetName().c_str(), i, parent_output_index);
 
-    GELOGD("[%s] Updating output tensor, index = %d, tensor = %s",
-           graph_item_->GetName().c_str(),
-           parent_output_index,
+    GELOGD("[%s] Updating output tensor, index = %d, tensor = %s", graph_item_->GetName().c_str(), parent_output_index,
            outputs[i].DebugString().c_str());
     GE_CHK_STATUS_RET(task_context.SetOutput(parent_output_index, outputs[i]));
 
@@ -630,17 +623,12 @@ Status SubgraphExecutor::SetOutputsToParentNode(const TaskContext &task_context)
     const auto &output_desc = output_desc_list[i];
     const auto parent_output_desc = task_context.MutableOutputDesc(parent_output_index);
     GE_CHECK_NOTNULL(parent_output_desc);
-    GELOGD("[%s] Updating output shape[%d] from [%s] to [%s]",
-           graph_item_->GetName().c_str(),
-           parent_output_index,
-           parent_output_desc->MutableShape().ToString().c_str(),
-           output_desc->GetShape().ToString().c_str());
+    GELOGD("[%s] Updating output shape[%d] from [%s] to [%s]", graph_item_->GetName().c_str(), parent_output_index,
+           parent_output_desc->MutableShape().ToString().c_str(), output_desc->GetShape().ToString().c_str());
     parent_output_desc->SetShape(output_desc->GetShape());
 
-    GELOGD("[%s] Updating output original shape[%d] from [%s] to [%s]",
-           graph_item_->GetName().c_str(),
-           parent_output_index,
-           parent_output_desc->GetOriginShape().ToString().c_str(),
+    GELOGD("[%s] Updating output original shape[%d] from [%s] to [%s]", graph_item_->GetName().c_str(),
+           parent_output_index, parent_output_desc->GetOriginShape().ToString().c_str(),
            output_desc->GetOriginShape().ToString().c_str());
     parent_output_desc->SetOriginShape(output_desc->GetOriginShape());
     int64_t out_size = 0;
@@ -656,8 +644,8 @@ Status SubgraphExecutor::EnableOutputZeroCopy(const std::vector<TensorValue> &ou
   const auto &output_edges = graph_item_->GetOutputEdges();
   // Op -> MetOutput, set the output tensor of Op that output to the NetOutput node
   if (outputs.size() != output_edges.size()) {
-    GELOGE(PARAM_INVALID, "[Check][Size]Output number mismatches, expect = %zu, but given = %zu",
-           output_edges.size(), outputs.size());
+    GELOGE(PARAM_INVALID, "[Check][Size]Output number mismatches, expect = %zu, but given = %zu", output_edges.size(),
+           outputs.size());
     REPORT_INNER_ERR_MSG("E19999", "Output number mismatches, expect = %zu, but given = %zu", output_edges.size(),
                          outputs.size());
     return PARAM_INVALID;
@@ -671,19 +659,14 @@ Status SubgraphExecutor::EnableOutputZeroCopy(const std::vector<TensorValue> &ou
     auto &output_node = output_edges[i].first;
     GE_CHECK_NOTNULL(output_node);
     const int32_t output_idx = output_edges[i].second;
-    GELOGD("[%s] Set output tensor[%zu] to [%s]'s output[%d], tensor = %s",
-           graph_item_->GetName().c_str(),
-           i,
-           output_node->NodeName().c_str(),
-           output_idx,
-           output_tensor.DebugString().c_str());
+    GELOGD("[%s] Set output tensor[%zu] to [%s]'s output[%d], tensor = %s", graph_item_->GetName().c_str(), i,
+           output_node->NodeName().c_str(), output_idx, output_tensor.DebugString().c_str());
     const auto node_state = subgraph_context_->GetNodeState(output_node);
     GE_CHECK_NOTNULL(node_state);
     node_state->SetUserAllocated(true);
 
     GE_CHK_STATUS_RET(subgraph_context_->SetOutput(*output_node, output_idx, output_tensor),
-                      "[Invoke][SetOutput][%s] Failed to set input tensor[%zu]",
-                      graph_item_->GetName().c_str(), i);
+                      "[Invoke][SetOutput][%s] Failed to set input tensor[%zu]", graph_item_->GetName().c_str(), i);
   }
 
   GELOGD("Done enabling zero copy for outputs successfully.");
@@ -699,8 +682,7 @@ Status SubgraphExecutor::InitInputs(const std::vector<TensorValue> &inputs,
   PROFILING_SCOPE(-1, profiling::kUpdateShape);
   if (graph_item_->IsDynamic()) {
     GE_CHK_STATUS_RET(shape_inference_engine_->InitInferShapes(graph_item_, inputs, input_desc),
-                      "[Call][InitInputsForUnknownShape][%s] Failed to set inputs.",
-                      graph_item_->GetName().c_str());
+                      "[Call][InitInputsForUnknownShape][%s] Failed to set inputs.", graph_item_->GetName().c_str());
   } else {
     GE_CHK_STATUS_RET(InitInputsForKnownShape(inputs),
                       "[Invoke][InitInputsForKnownShape][%s] Failed to init executor for known shape subgraph.",

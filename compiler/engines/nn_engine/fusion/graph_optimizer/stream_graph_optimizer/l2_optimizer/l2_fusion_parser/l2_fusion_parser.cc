@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,7 +31,8 @@ Status L2FusionParser::GetDataDependentCountMap(const ge::ComputeGraph &graph,
     for (auto out_anchor : node->GetAllOutDataAnchors()) {
       FE_CHECK(out_anchor == nullptr,
                REPORT_FE_ERROR("[StreamOpt][L2Opt][GetDataDepdCountMap] Node %s out anchor is null.",
-               node->GetName().c_str()), return FAILED);
+                               node->GetName().c_str()),
+               return FAILED);
       size_t peer_anchor_num = out_anchor->GetPeerAnchors().size();
       if (peer_anchor_num == 0) {
         continue;
@@ -43,14 +44,15 @@ Status L2FusionParser::GetDataDependentCountMap(const ge::ComputeGraph &graph,
         }
         peer_anchor_num = peer_anchor_nodes.size();
       }
-      uint64_t tmp_id = DATA_OVERALL_ID(static_cast<uint64_t>(node_id), OUTPUT_DATA,
-                                        static_cast<uint32_t>(out_anchor->GetIdx()));
+      uint64_t tmp_id =
+          DATA_OVERALL_ID(static_cast<uint64_t>(node_id), OUTPUT_DATA, static_cast<uint32_t>(out_anchor->GetIdx()));
       if (data_dependent_count_map.find(tmp_id) != data_dependent_count_map.end()) {
-        FE_LOGD("There are already output tensors for node %s, index %d.", node->GetName().c_str(), out_anchor->GetIdx());
+        FE_LOGD("There are already output tensors for node %s, index %d.", node->GetName().c_str(),
+                out_anchor->GetIdx());
       }
       data_dependent_count_map[tmp_id] = peer_anchor_num;
-      FE_LOGD("node %s: node_id %ld, out_anchor_index %d; id is %lu, peer_anchor_num is %zu.",
-              node->GetName().c_str(), node_id, out_anchor->GetIdx(), tmp_id, peer_anchor_num);
+      FE_LOGD("node %s: node_id %ld, out_anchor_index %d; id is %lu, peer_anchor_num is %zu.", node->GetName().c_str(),
+              node_id, out_anchor->GetIdx(), tmp_id, peer_anchor_num);
     }
   }
 
@@ -71,8 +73,7 @@ Status L2FusionParser::GetDataFromGraph(const ge::ComputeGraph &graph,
                                         std::vector<OpL2DataInfo> &op_l2_data_vec) {
   std::vector<ge::NodePtr> end_node_vec;
   for (const ge::NodePtr &node : graph.GetDirectNode()) {
-    FE_CHECK(node == nullptr, REPORT_FE_ERROR("[StreamOpt][L2Opt][GetDataFromGph] node is nullptr."),
-             return FAILED);
+    FE_CHECK(node == nullptr, REPORT_FE_ERROR("[StreamOpt][L2Opt][GetDataFromGph] node is nullptr."), return FAILED);
     FE_CHECK(node->GetOpDesc() == nullptr, REPORT_FE_ERROR("[StreamOpt][L2Opt][GetDataFromGph] op desc is nullptr."),
              return FAILED);
     if (NoNeedAllocOpL2Info(node)) {
@@ -98,37 +99,35 @@ Status L2FusionParser::GetDataFromNode(const ge::NodePtr &node, const OpReferTen
   op_l2_data.node_task_num = 1;
   // the node is not in L2 white listTensorL2DataInfo
   FE_CHECK(GetInputDataFromNode(node, (op_l2_data.input)) != SUCCESS,
-           REPORT_FE_ERROR("[StreamOpt][L2Opt][GetDataFromGph] GetInputDataFromNode failed!"),
-           return FAILED);
+           REPORT_FE_ERROR("[StreamOpt][L2Opt][GetDataFromGph] GetInputDataFromNode failed!"), return FAILED);
   if (NoNeedAllocOutputs(node)) {
     // if this node is refer node, clear the refer tensor info
     end_node_vec.push_back(node);
     return SUCCESS;
   }
   FE_CHECK(GetOutputDataFromNode(node, refer_tensor_index_map, (op_l2_data.output)) != SUCCESS,
-           REPORT_FE_ERROR("[StreamOpt][L2Opt][GetDataFromGph] Failed to get output data from node!"),
-           return FAILED);
+           REPORT_FE_ERROR("[StreamOpt][L2Opt][GetDataFromGph] Failed to get output data from node!"), return FAILED);
   return SUCCESS;
 }
 
 Status L2FusionParser::GetInputDataFromNode(const ge::NodePtr &node, TensorL2DataMap &input_tensor_l2_map) {
   ge::OpDescPtr opdef = node->GetOpDesc();
-  FE_CHECK(opdef == nullptr,
-           REPORT_FE_ERROR("[StreamOpt][L2Opt][GetInDataFromInNd] opdef is nullptr."),
-           return FAILED);
+  FE_CHECK(opdef == nullptr, REPORT_FE_ERROR("[StreamOpt][L2Opt][GetInDataFromInNd] opdef is nullptr."), return FAILED);
 
   // get input
   vector<int64_t> op_input_offset = opdef->GetInputOffset();
   size_t input_size = opdef->GetAllInputsSize();
   for (size_t i = 0; i < input_size; ++i) {
     if (L2FusionComm::IsConstInput(node, i)) {
-      FE_LOGD("Peer output node of node[%s]'s input[%zu] is a constant node, thus not processed.", node->GetName().c_str(), i);
+      FE_LOGD("Peer output node of node[%s]'s input[%zu] is a constant node, thus not processed.",
+              node->GetName().c_str(), i);
       continue;
     }
     ge::InDataAnchorPtr in_anchor = node->GetInDataAnchor(i);
-    FE_CHECK(in_anchor == nullptr,
-             REPORT_FE_ERROR("[StreamOpt][L2Opt][GetInDataFromInNd] node %s in anchor is null",
-             node->GetName().c_str()), return FAILED);
+    FE_CHECK(
+        in_anchor == nullptr,
+        REPORT_FE_ERROR("[StreamOpt][L2Opt][GetInDataFromInNd] node %s in anchor is null", node->GetName().c_str()),
+        return FAILED);
     // no out anchor, do continue
     if (in_anchor->GetPeerOutAnchor() == nullptr) {
       continue;
@@ -137,8 +136,8 @@ Status L2FusionParser::GetInputDataFromNode(const ge::NodePtr &node, TensorL2Dat
     const ge::GeTensorDesc tensor_desc = opdef->GetInputDesc(i);
     TensorL2DataInfo l2_data;
     l2_data.id = GetDataUnitDataId(node, i, INPUT_DATA, tensor_desc);
-    FE_LOGD("Data ID of node [%s, %s]'s input [%zu] is [%lu].", node->GetName().c_str(), node->GetType().c_str(),
-            i, l2_data.id);
+    FE_LOGD("Data ID of node [%s, %s]'s input [%zu] is [%lu].", node->GetName().c_str(), node->GetType().c_str(), i,
+            l2_data.id);
     l2_data.ddr_addr = (op_input_offset.size() > i) ? op_input_offset[i] : 0;
     FE_CHECK(L2FusionComm::GetGraphDataSize(node, i, INPUT_DATA, l2_data.data_size) != SUCCESS,
              REPORT_FE_ERROR("[StreamOpt][L2Opt][GetInDataFromInNd] Failed to get graph data size!"), return FAILED);
@@ -152,8 +151,8 @@ Status L2FusionParser::GetOutputDataFromNode(const ge::NodePtr &node,
                                              const OpReferTensorIndexMap &refer_tensor_index_map,
                                              TensorL2DataMap &output_tensor_l2_map) {
   ge::OpDescPtr op_desc_ptr = node->GetOpDesc();
-  FE_CHECK(op_desc_ptr == nullptr,
-           REPORT_FE_ERROR("[StreamOpt][L2Opt][GetOutDataFromInNd] op_desc_ptr is nullptr."), return FAILED);
+  FE_CHECK(op_desc_ptr == nullptr, REPORT_FE_ERROR("[StreamOpt][L2Opt][GetOutDataFromInNd] op_desc_ptr is nullptr."),
+           return FAILED);
 
   vector<int64_t> output_offset = op_desc_ptr->GetOutputOffset();
   size_t output_size = op_desc_ptr->GetOutputsSize();
@@ -167,11 +166,12 @@ Status L2FusionParser::GetOutputDataFromNode(const ge::NodePtr &node,
 
     TensorL2DataInfo l2_data;
     l2_data.id = GetDataUnitDataId(node, i, OUTPUT_DATA, output_desc);
-    FE_LOGD("Data ID of node [%s, %s]'s output [%zu] is [%lu].", node->GetName().c_str(), node->GetType().c_str(),
-            i, l2_data.id);
+    FE_LOGD("Data ID of node [%s, %s]'s output [%zu] is [%lu].", node->GetName().c_str(), node->GetType().c_str(), i,
+            l2_data.id);
     l2_data.ddr_addr = (output_offset.size() > i) ? output_offset[i] : 0;  // hyz,output
     FE_CHECK(L2FusionComm::GetGraphDataSize(node, i, OUTPUT_DATA, l2_data.data_size) != SUCCESS,
-             REPORT_FE_ERROR("[StreamOpt][L2Opt][GetOutDataFromInNd] GetGraphDataSize operation failed!"), return FAILED);
+             REPORT_FE_ERROR("[StreamOpt][L2Opt][GetOutDataFromInNd] GetGraphDataSize operation failed!"),
+             return FAILED);
     l2_data.occupy_data_ids.clear();
     l2_data.refer_data_id = 0;
     OpReferTensorIndexMap::const_iterator iter = refer_tensor_index_map.find(l2_data.id);
@@ -212,8 +212,8 @@ void L2FusionParser::ClearReferTensorData(const ge::InDataAnchorPtr &in_data_anc
 
   OpReferTensorIndexMap::const_iterator iter = refer_tensor_index_map.find(data_id);
   if (iter != refer_tensor_index_map.end()) {
-    FE_LOGD("The reference of output[%d] of node[%s, %s] is input[%u].",
-            output_index, peer_in_node->GetName().c_str(), peer_in_node->GetType().c_str(), iter->second);
+    FE_LOGD("The reference of output[%d] of node[%s, %s] is input[%u].", output_index, peer_in_node->GetName().c_str(),
+            peer_in_node->GetType().c_str(), iter->second);
     ge::InDataAnchorPtr peer_in_data_anchor = peer_in_node->GetInDataAnchor(static_cast<int32_t>(iter->second));
     ClearReferTensorData(peer_in_data_anchor, refer_tensor_index_map, op_l2_data_vec);
   }
@@ -224,12 +224,12 @@ void L2FusionParser::ClearReferDataInfo(const ge::NodePtr &node, const OpReferTe
   FE_LOGD("Begin cleaning reference data for node [%s, %s].", node->GetName().c_str(), node->GetType().c_str());
   size_t output_size = node->GetOpDesc()->GetOutputsSize();
   for (size_t i = 0; i < output_size; ++i) {
-    uint64_t data_id = DATA_OVERALL_ID(static_cast<uint64_t>(node->GetOpDesc()->GetId()), OUTPUT_DATA,
-                                       static_cast<uint64_t>(i));
+    uint64_t data_id =
+        DATA_OVERALL_ID(static_cast<uint64_t>(node->GetOpDesc()->GetId()), OUTPUT_DATA, static_cast<uint64_t>(i));
     OpReferTensorIndexMap::const_iterator iter = refer_tensor_index_map.find(data_id);
     if (iter != refer_tensor_index_map.end()) {
-      FE_LOGD("The reference of output[%zu] from node[%s, %s] is input[%u].",
-              i, node->GetName().c_str(), node->GetType().c_str(), iter->second);
+      FE_LOGD("The reference of output[%zu] from node[%s, %s] is input[%u].", i, node->GetName().c_str(),
+              node->GetType().c_str(), iter->second);
       ge::InDataAnchorPtr in_data_anchor = node->GetInDataAnchor(static_cast<int32_t>(iter->second));
       ClearReferTensorData(in_data_anchor, refer_tensor_index_map, op_l2_data_vec);
     }
@@ -260,7 +260,8 @@ bool L2FusionParser::NoNeedAllocOpL2Info(const ge::NodePtr &node) {
 
 bool L2FusionParser::NoNeedAllocOutputs(const ge::NodePtr &node) {
   if (node->GetOutDataNodes().size() == 0) {
-    FE_LOGD("Node [%s] has no output data nodes; skipping L2 buffer allocation for its outputs.", node->GetName().c_str());
+    FE_LOGD("Node [%s] has no output data nodes; skipping L2 buffer allocation for its outputs.",
+            node->GetName().c_str());
     return true;
   }
   for (const auto &anchor : node->GetAllOutDataAnchors()) {
@@ -268,7 +269,7 @@ bool L2FusionParser::NoNeedAllocOutputs(const ge::NodePtr &node) {
       for (const auto &dst_anchor : anchor->GetPeerInDataAnchors()) {
         FE_CHECK(dst_anchor == nullptr,
                  REPORT_FE_ERROR("[StreamOpt][L2Opt][NoNeedAllocOut] Node %s peer in anchor is null.",
-                 node->GetName().c_str()),
+                                 node->GetName().c_str()),
                  return FAILED);
         auto peer_node = dst_anchor->GetOwnerNode();
         if (peer_node->GetType() == OP_TYPE_END) {
@@ -306,7 +307,7 @@ uint64_t L2FusionParser::GetDataUnitDataId(const ge::NodePtr &node, const size_t
     }
   }
 
-  // input data, only src in graph can be allocted
+  // input data, only src in graph can be allocated
   if (data_type == INPUT_DATA) {
     ge::InDataAnchorPtr in_anchor = node->GetInDataAnchor(static_cast<int32_t>(tensor_index));
     FE_CHECK(in_anchor == nullptr,
@@ -345,8 +346,8 @@ void L2FusionParser::GetOpReferTensorIndexMap(const ge::ComputeGraph &graph,
       int32_t output_index = op_desc->GetOutputIndexByName(tensor_name);
       int32_t input_index = op_desc->GetInputIndexByName(tensor_name);
       if (output_index >= 0 && input_index >= 0) {
-        uint64_t data_id = DATA_OVERALL_ID(static_cast<uint64_t>(op_desc->GetId()), OUTPUT_DATA,
-                                           static_cast<uint32_t>(output_index));
+        uint64_t data_id =
+            DATA_OVERALL_ID(static_cast<uint64_t>(op_desc->GetId()), OUTPUT_DATA, static_cast<uint32_t>(output_index));
         refer_tensor_index_map.emplace(data_id, static_cast<uint32_t>(input_index));
       }
     }

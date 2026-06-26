@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -43,40 +43,40 @@ constexpr const int FE_MAX_LOG_SIZE = 8192;
 constexpr const int FE_MSG_LEN = 1024;
 constexpr const size_t FE_MSG_MAX_LEN = FE_MSG_LEN - 200;
 
-#define FE_LOGD(...)                                                      \
-  do {                                                                         \
-    if (CheckLogLevel(static_cast<int32_t>(FE), DLOG_DEBUG) != 1) {            \
-      break;                                                                   \
-    }                                                                          \
-    char msgbuf[FE_MAX_LOG_SIZE];                                              \
-    if (snprintf_s(msgbuf, sizeof(msgbuf), sizeof(msgbuf) - 1, ##__VA_ARGS__) == -1) {     \
-      msgbuf[sizeof(msgbuf) - 1] = '\0';                                      \
-    }                                                                         \
-    size_t msg_len = std::strlen(msgbuf);                                     \
-    if (msg_len < FE_MSG_MAX_LEN) {                                           \
-      FE_LOGDEBUG(__VA_ARGS__);                                               \
-      break;                                                                  \
-    }                                                                         \
-    char *msg_chunk_begin = msgbuf;                                           \
-    char *msg_chunk_end = nullptr;                                            \
-    while (msg_chunk_begin < msgbuf + msg_len) {                              \
-      if (msg_chunk_begin[0] == '\n') {                                       \
-        FE_LOGDEBUG("");                                                      \
-        msg_chunk_begin += 1;                                                 \
-        continue;                                                             \
-      }                                                                       \
-      msg_chunk_end = std::strchr(msg_chunk_begin, '\n');                     \
-      if (msg_chunk_end == nullptr) {                                         \
-        msg_chunk_end = msg_chunk_begin + std::strlen(msg_chunk_begin);       \
-      }                                                                       \
-      while (msg_chunk_end > msg_chunk_begin) {                               \
-        std::string msg_chunk(msg_chunk_begin,                                \
+#define FE_LOGD(...)                                                                                           \
+  do {                                                                                                         \
+    if (CheckLogLevel(static_cast<int32_t>(FE), DLOG_DEBUG) != 1) {                                            \
+      break;                                                                                                   \
+    }                                                                                                          \
+    char msgbuf[FE_MAX_LOG_SIZE];                                                                              \
+    if (snprintf_s(msgbuf, sizeof(msgbuf), sizeof(msgbuf) - 1, ##__VA_ARGS__) == -1) {                         \
+      msgbuf[sizeof(msgbuf) - 1] = '\0';                                                                       \
+    }                                                                                                          \
+    size_t msg_len = std::strlen(msgbuf);                                                                      \
+    if (msg_len < FE_MSG_MAX_LEN) {                                                                            \
+      FE_LOGDEBUG(__VA_ARGS__);                                                                                \
+      break;                                                                                                   \
+    }                                                                                                          \
+    char *msg_chunk_begin = msgbuf;                                                                            \
+    char *msg_chunk_end = nullptr;                                                                             \
+    while (msg_chunk_begin < msgbuf + msg_len) {                                                               \
+      if (msg_chunk_begin[0] == '\n') {                                                                        \
+        FE_LOGDEBUG("");                                                                                       \
+        msg_chunk_begin += 1;                                                                                  \
+        continue;                                                                                              \
+      }                                                                                                        \
+      msg_chunk_end = std::strchr(msg_chunk_begin, '\n');                                                      \
+      if (msg_chunk_end == nullptr) {                                                                          \
+        msg_chunk_end = msg_chunk_begin + std::strlen(msg_chunk_begin);                                        \
+      }                                                                                                        \
+      while (msg_chunk_end > msg_chunk_begin) {                                                                \
+        std::string msg_chunk(msg_chunk_begin,                                                                 \
                               std::min(FE_MSG_MAX_LEN, static_cast<size_t>(msg_chunk_end - msg_chunk_begin))); \
-        FE_LOGDEBUG("%s", msg_chunk.c_str());                                 \
-        msg_chunk_begin += msg_chunk.size();                                  \
-      }                                                                       \
-      msg_chunk_begin += 1;                                                   \
-    }                                                                         \
+        FE_LOGDEBUG("%s", msg_chunk.c_str());                                                                  \
+        msg_chunk_begin += msg_chunk.size();                                                                   \
+      }                                                                                                        \
+      msg_chunk_begin += 1;                                                                                    \
+    }                                                                                                          \
   } while (0)
 
 #define IsDebugLogLevel (CheckLogLevel(FE, DLOG_DEBUG) == 1)
@@ -136,15 +136,15 @@ constexpr const size_t FE_MSG_MAX_LEN = FE_MSG_LEN - 200;
     }                                                   \
   } while (0)
 
-#define REPORT_FE_ERROR(fmt, ...)  \
-  do {                                                  \
-    REPORT_INNER_ERR_MSG(EM_INNER_ERROR.c_str(), fmt, ##__VA_ARGS__);     \
-    FE_LOGE(fmt, ##__VA_ARGS__);                        \
+#define REPORT_FE_ERROR(fmt, ...)                                     \
+  do {                                                                \
+    REPORT_INNER_ERR_MSG(EM_INNER_ERROR.c_str(), fmt, ##__VA_ARGS__); \
+    FE_LOGE(fmt, ##__VA_ARGS__);                                      \
   } while (0)
 
-#define REPORT_FE_WARN(fmt, ...)  \
-  do {                                                  \
-    REPORT_INNER_ERR_MSG(EM_INNER_WARN.c_str(), fmt, ##__VA_ARGS__);     \
-    FE_LOGW(fmt, ##__VA_ARGS__);                        \
+#define REPORT_FE_WARN(fmt, ...)                                     \
+  do {                                                               \
+    REPORT_INNER_ERR_MSG(EM_INNER_WARN.c_str(), fmt, ##__VA_ARGS__); \
+    FE_LOGW(fmt, ##__VA_ARGS__);                                     \
   } while (0)
 #endif  // FUSION_ENGINE_INC_COMMON_FE_LOG_H_

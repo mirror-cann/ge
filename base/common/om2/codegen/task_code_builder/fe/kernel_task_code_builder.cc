@@ -83,7 +83,6 @@ uint32_t ConvertEngineType(const std::string &engine_type_str) {
   return 0U;  // ACL_RT_ENGINE_TYPE_AIC
 }
 
-
 bool IsAicpuTask(const KernelTaskSemantic &semantic) {
   return semantic.kernel_type == ge::ccKernelType::AI_CPU;
 }
@@ -130,24 +129,24 @@ void KernelTaskCodeBuilder::AppendOrderedArgValue(const AddrSemantic &semantic) 
 OpDefBuildData KernelTaskCodeBuilder::GetOpDefBuildData() const {
   OpDefBuildData data;
   // 公共字段：args_idx
-  uint32_t args_idx = semantic_.args_table_entry.has_value()
-                          ? static_cast<uint32_t>(semantic_.args_table_entry->table_index) : 0U;
+  uint32_t args_idx =
+      semantic_.args_table_entry.has_value() ? static_cast<uint32_t>(semantic_.args_table_entry->table_index) : 0U;
 
   // 表驱动：AddrValueKind → arg 字段构造器
   using ArgBuilder = void (KernelTaskCodeBuilder::*)(const AddrSemantic &, OpArgBuildData &) const;
   static const std::unordered_map<AddrValueKind, ArgBuilder> kArgBuilders = {
-    {AddrValueKind::kInputInstance,   &KernelTaskCodeBuilder::BuildInputInstanceArg},
-    {AddrValueKind::kOutputInstance,  &KernelTaskCodeBuilder::BuildOutputInstanceArg},
-    {AddrValueKind::kWorkspace,       &KernelTaskCodeBuilder::BuildWorkspaceArg},
-    {AddrValueKind::kConstTensor,     &KernelTaskCodeBuilder::BuildConstTensorArg},
-    {AddrValueKind::kLevel1DescPtr,   &KernelTaskCodeBuilder::BuildLevel1DescArg},
-    {AddrValueKind::kCustomValue,     &KernelTaskCodeBuilder::BuildCustomValueArg},
-    {AddrValueKind::kPlaceholder,     &KernelTaskCodeBuilder::BuildPlaceholderArg},
-    {AddrValueKind::kOptionalEmpty,   &KernelTaskCodeBuilder::BuildOptionalEmptyArg},
-    {AddrValueKind::kFftsAddr,        &KernelTaskCodeBuilder::BuildFftsAddrArg},
-    {AddrValueKind::kEventAddr,       &KernelTaskCodeBuilder::BuildEventAddrArg},
-    {AddrValueKind::kOverflowAddr,    &KernelTaskCodeBuilder::BuildOverflowAddrArg},
-    {AddrValueKind::kTiling,          &KernelTaskCodeBuilder::BuildTilingArg},
+      {AddrValueKind::kInputInstance, &KernelTaskCodeBuilder::BuildInputInstanceArg},
+      {AddrValueKind::kOutputInstance, &KernelTaskCodeBuilder::BuildOutputInstanceArg},
+      {AddrValueKind::kWorkspace, &KernelTaskCodeBuilder::BuildWorkspaceArg},
+      {AddrValueKind::kConstTensor, &KernelTaskCodeBuilder::BuildConstTensorArg},
+      {AddrValueKind::kLevel1DescPtr, &KernelTaskCodeBuilder::BuildLevel1DescArg},
+      {AddrValueKind::kCustomValue, &KernelTaskCodeBuilder::BuildCustomValueArg},
+      {AddrValueKind::kPlaceholder, &KernelTaskCodeBuilder::BuildPlaceholderArg},
+      {AddrValueKind::kOptionalEmpty, &KernelTaskCodeBuilder::BuildOptionalEmptyArg},
+      {AddrValueKind::kFftsAddr, &KernelTaskCodeBuilder::BuildFftsAddrArg},
+      {AddrValueKind::kEventAddr, &KernelTaskCodeBuilder::BuildEventAddrArg},
+      {AddrValueKind::kOverflowAddr, &KernelTaskCodeBuilder::BuildOverflowAddrArg},
+      {AddrValueKind::kTiling, &KernelTaskCodeBuilder::BuildTilingArg},
   };
 
   uint64_t current_args_offset = 0U;
@@ -316,7 +315,6 @@ AicoreTaskData KernelTaskCodeBuilder::BuildAicoreTaskData(uint32_t args_idx, uin
   return aicore;
 }
 
-
 Status KernelTaskCodeBuilder::AppendOrderedArgValueForCommon(const AddrSemantic &semantic, const uint64_t addr_offset) {
   if (semantic.memory_app == MemoryAppType::kModelIo) {
     io_addr_refresh_records_.push_back(
@@ -337,14 +335,13 @@ bool KernelTaskCodeBuilder::SupportsTableDriven() const {
   return IsAicoreTask(semantic_);  // 仅 AICORE 走表驱动，AICPU 走 RenderDistribution
 }
 
-
 Status KernelTaskCodeBuilder::ValidateLevel1DescTargetOffsets() const {
   for (size_t i = 0UL; i < semantic_.ordered_arg_values.size(); ++i) {
     const auto &ordered_arg = semantic_.ordered_arg_values[i];
     if (ordered_arg.kind == AddrValueKind::kLevel1DescPtr) {
       GE_ASSERT_TRUE(ordered_arg.level1_target_offset.has_value(),
-                     "[OM2] Level1 desc target offset is missing, index[%zu], symbol[%s].",
-                     i, ordered_arg.symbol_hint.c_str());
+                     "[OM2] Level1 desc target offset is missing, index[%zu], symbol[%s].", i,
+                     ordered_arg.symbol_hint.c_str());
     }
   }
   return SUCCESS;
@@ -384,16 +381,18 @@ Status KernelTaskCodeBuilder::Contribute(TaskSemanticContributeContext &context)
   }
   if (semantic_.args_table_entry.has_value()) {
     ++(*context.next_args_table_index);
-    *context.next_host_args_offset += Om2ModelUtils::ArgsSizeAlign8(static_cast<size_t>(semantic_.args_table_entry->args_size));
+    *context.next_host_args_offset +=
+        Om2ModelUtils::ArgsSizeAlign8(static_cast<size_t>(semantic_.args_table_entry->args_size));
   }
   return SUCCESS;
 }
 
 Status KernelTaskCodeBuilder::ResolveKernelName(const KernelTaskSemantic &semantic, const OpDescPtr &op_desc,
-                                                 const domi::TaskDef &task_def, std::string &kernel_name) {
+                                                const domi::TaskDef &task_def, std::string &kernel_name) {
   if (IsAllKernelTask(semantic)) {
     const auto kernel_name_ptr = AttrUtils::GetStr(op_desc, "_kernelname");
-    GE_ASSERT_NOTNULL(kernel_name_ptr, "[OM2] Failed to get kernel_name from op_desc, op=%s", op_desc->GetName().c_str());
+    GE_ASSERT_NOTNULL(kernel_name_ptr, "[OM2] Failed to get kernel_name from op_desc, op=%s",
+                      op_desc->GetName().c_str());
     kernel_name = *kernel_name_ptr;
   } else {
     kernel_name = task_def.kernel().kernel_name();
@@ -402,7 +401,7 @@ Status KernelTaskCodeBuilder::ResolveKernelName(const KernelTaskSemantic &semant
 }
 
 std::string KernelTaskCodeBuilder::ResolveFuncHandleKey(const TaskSemanticContributeContext &context,
-                                                       const std::string &kernel_name) const {
+                                                        const std::string &kernel_name) const {
   std::string func_handle_key;
   if (is_separately_clean_task_) {
     const auto *kernel_name_ptr = AttrUtils::GetStr(context.op_desc, ATOMIC_ATTR_TBE_KERNEL_NAME);
@@ -487,8 +486,8 @@ Status KernelTaskCodeBuilder::BuildLaunchFuncHandleSemantic(const TaskSemanticCo
   GE_ASSERT_SUCCESS(ResolveKernelName(semantic_, context.op_desc, context.task_def, kernel_name));
   const std::string func_handle_key = ResolveFuncHandleKey(context, kernel_name);
   const auto func_handle_it = context.func_handle_indices->find(func_handle_key);
-  GE_ASSERT_TRUE(func_handle_it != context.func_handle_indices->end(),
-                 "[OM2] Func handle key %s not found.", func_handle_key.c_str());
+  GE_ASSERT_TRUE(func_handle_it != context.func_handle_indices->end(), "[OM2] Func handle key %s not found.",
+                 func_handle_key.c_str());
   launch_semantic.func_handle_index = func_handle_it->second;
   GELOGI("[OM2] BuildLaunchSemantic: op=%s, func_handle_key=%s, func_idx=%u", context.op_desc->GetNamePtr(),
          func_handle_key.c_str(), launch_semantic.func_handle_index);
@@ -509,7 +508,7 @@ Status KernelTaskCodeBuilder::CopyTilingDataIfNeeded(const TaskSemanticContribut
   if (is_soft_sync_op_ && Om2CodegenUtils::IsAllKernel(context.task_type)) {
     REPORT_INNER_ERR_MSG("E19999", "Unsupported scenario for soft sync.");
     GELOGE(FAILED, "[OM2] Unsupported scenario, is_soft_sync_op_[%d], task_type[%d].", is_soft_sync_op_,
-                   static_cast<int32_t>(context.task_type));
+           static_cast<int32_t>(context.task_type));
     return FAILED;
   }
 
@@ -523,7 +522,7 @@ Status KernelTaskCodeBuilder::CopyTilingDataIfNeeded(const TaskSemanticContribut
     if (!is_separately_clean_task_) {
       std::string dfx_info;
       GE_CHK_STATUS_RET(ConstructDfxInfo(context.op_desc, *run_info, args_format_holder.arg_descs, dfx_info),
-          "Append memcheck data for node: %s failed.", context.op_desc->GetNamePtr());
+                        "Append memcheck data for node: %s failed.", context.op_desc->GetNamePtr());
       tiling_data_ += dfx_info;
     }
     GELOGI("Success to update tiling data to io_addr of %s, tiling data %s, size: %zu.", context.op_desc->GetNamePtr(),
@@ -532,10 +531,8 @@ Status KernelTaskCodeBuilder::CopyTilingDataIfNeeded(const TaskSemanticContribut
   return SUCCESS;
 }
 
-Status KernelTaskCodeBuilder::ConstructDfxInfo(const ge::OpDescPtr &op_desc,
-                                               const optiling::OpRunInfoV2 &run_info,
-                                               const std::vector<ge::ArgDesc> &arg_descs,
-                                               std::string &dfx_info) const {
+Status KernelTaskCodeBuilder::ConstructDfxInfo(const ge::OpDescPtr &op_desc, const optiling::OpRunInfoV2 &run_info,
+                                               const std::vector<ge::ArgDesc> &arg_descs, std::string &dfx_info) const {
   bool is_mem_check_enable = false;
   (void)ge::AttrUtils::GetBool(op_desc, optiling::kMemoryCheck, is_mem_check_enable);
   if (!is_mem_check_enable) {
@@ -550,18 +547,18 @@ Status KernelTaskCodeBuilder::ConstructDfxInfo(const ge::OpDescPtr &op_desc,
   std::vector<optiling::ArgsIndexToIoIndex> args_idx_to_io_idx_vec;
   if (!arg_descs.empty()) {
     GE_ASSERT_SUCCESS(
-      optiling::TilingDfx::GetArgsSizeWithArgsFormat(op_desc, arg_descs, args_size_vec, args_idx_to_io_idx_vec));
-  } else  {
-    GELOGI("OP [%s] not has formatted args_format. input desc size [%zu], out desc size [%zu]",
-      op_desc->GetNamePtr(),input_descs.size(), op_desc->GetOutputsSize());
-    GE_ASSERT_SUCCESS(optiling::TilingDfx::GetArgsSizeWithoutArgsFormat(input_descs.size(),
-      op_desc->GetOutputsSize(), args_size_vec, args_idx_to_io_idx_vec));
+        optiling::TilingDfx::GetArgsSizeWithArgsFormat(op_desc, arg_descs, args_size_vec, args_idx_to_io_idx_vec));
+  } else {
+    GELOGI("OP [%s] not has formatted args_format. input desc size [%zu], out desc size [%zu]", op_desc->GetNamePtr(),
+           input_descs.size(), op_desc->GetOutputsSize());
+    GE_ASSERT_SUCCESS(optiling::TilingDfx::GetArgsSizeWithoutArgsFormat(input_descs.size(), op_desc->GetOutputsSize(),
+                                                                        args_size_vec, args_idx_to_io_idx_vec));
   }
 
   std::vector<int64_t> shape_size_vec;
   GE_ASSERT_SUCCESS(UpdateDfxArgsAndShapeSize(op_desc, args_idx_to_io_idx_vec, args_size_vec, shape_size_vec));
-  (void)args_size_vec.insert(args_size_vec.cend(),
-      run_info.GetAllWorkspaces().cbegin(), run_info.GetAllWorkspaces().cend());
+  (void)args_size_vec.insert(args_size_vec.cend(), run_info.GetAllWorkspaces().cbegin(),
+                             run_info.GetAllWorkspaces().cend());
 
   // tiling data为0的场景 或者args Size 为0的场景，直接返回
   const int64_t tiling_data_size = static_cast<int64_t>(run_info.GetAllTilingData().str().size());
@@ -576,7 +573,7 @@ Status KernelTaskCodeBuilder::ConstructDfxInfo(const ge::OpDescPtr &op_desc,
   }
 
   const auto memcheck_info_capacity = ge::RoundUp(static_cast<uint64_t>(max_size), sizeof(uintptr_t));
-  GELOGI("Get memcheck info capcity: %zu, op_name: %s", memcheck_info_capacity, op_desc->GetNamePtr());
+  GELOGI("Get memcheck info capacity: %zu, op_name: %s", memcheck_info_capacity, op_desc->GetNamePtr());
   const auto memcheck_data_holder = gert::TilingData::CreateCap(memcheck_info_capacity);
   auto memcheck_data = reinterpret_cast<gert::TilingData *>(memcheck_data_holder.get());
   int64_t memcheck_start_size = 0L;
@@ -588,25 +585,23 @@ Status KernelTaskCodeBuilder::ConstructDfxInfo(const ge::OpDescPtr &op_desc,
     GELOGI("[TilingAppendDfxInfo] size idx[%zu], val[%lld]", i, args_size_vec[i]);
   }
   GE_ASSERT_SUCCESS(memcheck_data->Append(args_size_vec.data(), args_size_vec.size()));
-  GELOGI("Op name[%s] memcheck info size: %lld, start size: %lld",
-    op_desc->GetNamePtr(), memcheck_data->GetDataSize(), memcheck_start_size);
+  GELOGI("Op name[%s] memcheck info size: %lld, start size: %lld", op_desc->GetNamePtr(), memcheck_data->GetDataSize(),
+         memcheck_start_size);
   dfx_info = std::string(reinterpret_cast<ge::char_t *>(memcheck_data->GetData()), memcheck_data->GetDataSize());
   return ge::SUCCESS;
 }
 
 Status KernelTaskCodeBuilder::UpdateDfxArgsAndShapeSize(
-                              const OpDescPtr &op_desc,
-                              const std::vector<optiling::ArgsIndexToIoIndex> &args_idx_to_io_idx_vec,
-                              std::vector<int64_t> &args_size_vec,
-                              std::vector<int64_t> &shape_size_vec) const {
+    const OpDescPtr &op_desc, const std::vector<optiling::ArgsIndexToIoIndex> &args_idx_to_io_idx_vec,
+    std::vector<int64_t> &args_size_vec, std::vector<int64_t> &shape_size_vec) const {
   auto input_descs = op_desc->GetAllInputsDescPtr();
 
- // 更新size以及shape
+  // 更新size以及shape
   for (size_t i = 0U; i < args_idx_to_io_idx_vec.size(); i++) {
     const size_t io_index = args_idx_to_io_idx_vec[i].io_index;
     const size_t args_index = args_idx_to_io_idx_vec[i].args_index;
-    GE_ASSERT(args_index < args_size_vec.size(),
-      "args index [%zu] not less than args list size [%zu]", args_index, args_size_vec.size());
+    GE_ASSERT(args_index < args_size_vec.size(), "args index [%zu] not less than args list size [%zu]", args_index,
+              args_size_vec.size());
 
     if (args_idx_to_io_idx_vec[i].args_role == optiling::ArgsRole::kInput) {
       const auto tensor = input_descs.at(io_index);
@@ -614,7 +609,7 @@ Status KernelTaskCodeBuilder::UpdateDfxArgsAndShapeSize(
       int64_t tensor_size = 0;
       GE_ASSERT_SUCCESS(ge::TensorUtils::GetSize(*tensor, tensor_size));
       GELOGI("Update input tensor size, node[%s], index:%zu, args index: %zu, io index: %zu, tensor size: %lld",
-        op_desc->GetNamePtr(), i, args_index, io_index, tensor_size);
+             op_desc->GetNamePtr(), i, args_index, io_index, tensor_size);
       args_size_vec[args_index] = tensor_size;
       // shape
       AppendShapeInfo(tensor->GetShape(), shape_size_vec);
@@ -623,7 +618,7 @@ Status KernelTaskCodeBuilder::UpdateDfxArgsAndShapeSize(
       int64_t tensor_size = 0L;
       GE_ASSERT_SUCCESS(ge::TensorUtils::GetSize(tensor, tensor_size));
       GELOGI("Update output tensor size, node[%s], index:%zu, args index: %zu, io index: %zu, tensor size: %lld",
-          op_desc->GetNamePtr(), i, args_index, io_index, tensor_size);
+             op_desc->GetNamePtr(), i, args_index, io_index, tensor_size);
       args_size_vec[args_index] = tensor_size;
       // shape
       shape_size_vec.push_back(0);
@@ -652,12 +647,13 @@ ge::Status KernelTaskCodeBuilder::GetMemCheckStartSize(const ge::OpDescPtr &op_d
   if (ori_param_size > 0LL) {
     // tik场景下TilingAppendMem添加的数据需要从偏移为ori_param_size的地址开始添加，此处需要将DataSize设置成ori_param_size
     GE_ASSERT_TRUE(origin_tiling_data_size <= ori_param_size);
-    GELOGI("Current tiling data size: %zu, set ori_param_size to %lld by attr, op_name: %s",
-          origin_tiling_data_size, ori_param_size, op_desc->GetNamePtr());
+    GELOGI("Current tiling data size: %zu, set ori_param_size to %lld by attr, op_name: %s", origin_tiling_data_size,
+           ori_param_size, op_desc->GetNamePtr());
   } else {
-    ori_param_size = static_cast<int64_t>(((static_cast<uint64_t>(origin_tiling_data_size) + sizeof(int64_t) - 1UL) / sizeof(int64_t)) * sizeof(int64_t));
+    ori_param_size = static_cast<int64_t>(
+        ((static_cast<uint64_t>(origin_tiling_data_size) + sizeof(int64_t) - 1UL) / sizeof(int64_t)) * sizeof(int64_t));
     GELOGI("Current tiling data size: %zu, set ori_param_size to %lld by aligned by %zu, op_name: %s",
-          origin_tiling_data_size, ori_param_size, sizeof(int64_t), op_desc->GetNamePtr());
+           origin_tiling_data_size, ori_param_size, sizeof(int64_t), op_desc->GetNamePtr());
   }
   memcheck_start_size = ori_param_size - origin_tiling_data_size;
   return ge::SUCCESS;
@@ -693,28 +689,29 @@ Status KernelTaskCodeBuilder::AppendDistributionForAicpu(const std::vector<Arg> 
   const std::string args_var_name = "op" + std::to_string(op_index) + "_args";
   auto args_var = ast_.Var("std::vector<uint8_t>", args_var_name);
   GE_ASSERT_SUCCESS(AppendAicpuArgsCode(ioaddr_var, args_var, items));
-  auto cfg_holder = AppendLaunchConfigSetup(static_cast<size_t>(op_index), items,
-                                            ast_.Call("GetIsDataDump", {Arg::StringLiteral(header_.op_name), model_id_, instance_handle_}));
-  (void)items.emplace_back(ChkStatus(ast_.Call("AicpuKernelTaskDistribute", {
-      args_var,
-      args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(semantic_.args_table_entry->table_index)),
-      func_handles_[static_cast<int64_t>(semantic_.launch.func_handle_index)],
-      static_cast<int64_t>(semantic_.launch.block_dim),
-      stream_list_[static_cast<int64_t>(semantic_.launch.stream_id)],
-      cfg_holder.Attr("cfg").Addr()})));
+  auto cfg_holder = AppendLaunchConfigSetup(
+      static_cast<size_t>(op_index), items,
+      ast_.Call("GetIsDataDump", {Arg::StringLiteral(header_.op_name), model_id_, instance_handle_}));
+  (void)items.emplace_back(ChkStatus(ast_.Call(
+      "AicpuKernelTaskDistribute",
+      {args_var, args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(semantic_.args_table_entry->table_index)),
+       func_handles_[static_cast<int64_t>(semantic_.launch.func_handle_index)],
+       static_cast<int64_t>(semantic_.launch.block_dim), stream_list_[static_cast<int64_t>(semantic_.launch.stream_id)],
+       cfg_holder.Attr("cfg").Addr()})));
   GE_ASSERT_SUCCESS(TaskCodeBuilderUtil::AppendReportLaunchedTaskCall(
       ast_, items, "op" + std::to_string(header_.op_index), header_,
-      semantic_.args_table_entry.has_value() ? &(*semantic_.args_table_entry) : nullptr,
-      semantic_.input_addrs, semantic_.output_addrs, semantic_.workspace_addrs,
-      semantic_.task_type, semantic_.launch.block_dim, stream_list_[static_cast<int64_t>(semantic_.launch.stream_id)],
-      model_id_, instance_handle_, args_table_, /*use_args_info_size=*/true));
+      semantic_.args_table_entry.has_value() ? &(*semantic_.args_table_entry) : nullptr, semantic_.input_addrs,
+      semantic_.output_addrs, semantic_.workspace_addrs, semantic_.task_type, semantic_.launch.block_dim,
+      stream_list_[static_cast<int64_t>(semantic_.launch.stream_id)], model_id_, instance_handle_, args_table_,
+      /*use_args_info_size=*/true));
   return SUCCESS;
 }
 
 Status KernelTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &items) {
   GELOGD("[OM2] start to generate task distribute code.");
   const int64_t op_index = header_.op_index;
-  (void)items.emplace_back(ast_.Comment("============================= " + header_.op_name + " ==============================="));
+  (void)items.emplace_back(
+      ast_.Comment("============================= " + header_.op_name + " ==============================="));
   GE_ASSERT_SUCCESS(GenArgsCode());
   std::vector<Arg> args_vars;
   for (const auto &args_addr_node : args_addr_nodes_) {
@@ -727,34 +724,33 @@ Status KernelTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &items) {
   }
   GE_ASSERT_TRUE(semantic_.args_table_entry.has_value());
   if (IsAicoreTask(semantic_)) {
-    auto cfg_holder = AppendLaunchConfigSetup(static_cast<size_t>(op_index), items,
-                                              ast_.Call("GetIsDataDump", {
-                                                  Arg::StringLiteral(header_.op_name), model_id_, instance_handle_}));
+    auto cfg_holder = AppendLaunchConfigSetup(
+        static_cast<size_t>(op_index), items,
+        ast_.Call("GetIsDataDump", {Arg::StringLiteral(header_.op_name), model_id_, instance_handle_}));
     const std::string l0_arg_slots_name = "op" + std::to_string(op_index) + "_l0_arg_slots";
     auto l0_arg_slots = ast_.Var("const Om2L0ArgSlotInfo *", l0_arg_slots_name);
-    (void)items.emplace_back(ast_.VarDecl("const Om2L0ArgSlotInfo", l0_arg_slots_name + "[]",
-                                    TaskCodeBuilderUtil::BuildL0ArgSlotEntries(ast_, semantic_.ordered_arg_values)));
+    (void)items.emplace_back(
+        ast_.VarDecl("const Om2L0ArgSlotInfo", l0_arg_slots_name + "[]",
+                     TaskCodeBuilderUtil::BuildL0ArgSlotEntries(ast_, semantic_.ordered_arg_values)));
     const std::string l0_info_name = "op" + std::to_string(op_index) + "_l0_info";
     auto l0_info = ast_.Var("const Om2L0TaskRawInfo", l0_info_name);
-    (void)items.emplace_back(ast_.VarDecl(l0_info, ast_.InitList({
-        "1U",
-        op_need_assert_or_printf_ ? "1U" : "0U",
-        std::to_string(semantic_.ordered_arg_values.size()) + "UL",
-        l0_arg_slots})));
+    (void)items.emplace_back(ast_.VarDecl(
+        l0_info, ast_.InitList({"1U", op_need_assert_or_printf_ ? "1U" : "0U",
+                                std::to_string(semantic_.ordered_arg_values.size()) + "UL", l0_arg_slots})));
     (void)items.emplace_back(ChkStatus(BuildReportTaskPreprocessCall(l0_info.Addr())));
-    (void)items.emplace_back(ChkStatus(ast_.Call("KernelTaskDistribute", {
-        FlattenHostArgs(args_vars),
-        args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(semantic_.args_table_entry->table_index)),
-        func_handles_[static_cast<int64_t>(semantic_.launch.func_handle_index)],
-        static_cast<int64_t>(semantic_.launch.block_dim),
-        stream_list_[static_cast<int64_t>(semantic_.launch.stream_id)],
-        cfg_holder.Attr("cfg").Addr()})));
+    (void)items.emplace_back(ChkStatus(
+        ast_.Call("KernelTaskDistribute",
+                  {FlattenHostArgs(args_vars),
+                   args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(semantic_.args_table_entry->table_index)),
+                   func_handles_[static_cast<int64_t>(semantic_.launch.func_handle_index)],
+                   static_cast<int64_t>(semantic_.launch.block_dim),
+                   stream_list_[static_cast<int64_t>(semantic_.launch.stream_id)], cfg_holder.Attr("cfg").Addr()})));
     GE_ASSERT_SUCCESS(TaskCodeBuilderUtil::AppendReportLaunchedTaskCall(
         ast_, items, "op" + std::to_string(header_.op_index), header_,
-        semantic_.args_table_entry.has_value() ? &(*semantic_.args_table_entry) : nullptr,
-        semantic_.input_addrs, semantic_.output_addrs, semantic_.workspace_addrs,
-        semantic_.task_type, semantic_.launch.block_dim, stream_list_[static_cast<int64_t>(semantic_.launch.stream_id)],
-        model_id_, instance_handle_, args_table_, /*use_args_info_size=*/true));
+        semantic_.args_table_entry.has_value() ? &(*semantic_.args_table_entry) : nullptr, semantic_.input_addrs,
+        semantic_.output_addrs, semantic_.workspace_addrs, semantic_.task_type, semantic_.launch.block_dim,
+        stream_list_[static_cast<int64_t>(semantic_.launch.stream_id)], model_id_, instance_handle_, args_table_,
+        /*use_args_info_size=*/true));
   } else if (IsAicpuTask(semantic_) || IsCustAicpuTask(semantic_)) {
     GE_ASSERT_SUCCESS(AppendDistributionForAicpu(args_vars, items));
   } else {
@@ -771,10 +767,10 @@ Status KernelTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &items) {
 Status KernelTaskCodeBuilder::RenderDistHelper(std::vector<DeclNode *> &items) {
   (void)items.push_back(ast_.Field("constexpr int64_t", "kDImEndFlag = std::numeric_limits<int64_t>::min()"));
   (void)items.push_back(BuildKernelTaskDistribute());
-  (void)items.push_back(ast_.Field("constexpr uint32_t", "kAicpuArgsExtInfoAddrOffset",
-                             ast_.UInt(kAicpuArgsExtInfoAddrOffset)));
-  (void)items.push_back(ast_.Field("constexpr uint32_t", "kAicpuArgsio_addr_offset",
-                             ast_.UInt(kAicpuArgsioAddrOffset)));
+  (void)items.push_back(
+      ast_.Field("constexpr uint32_t", "kAicpuArgsExtInfoAddrOffset", ast_.UInt(kAicpuArgsExtInfoAddrOffset)));
+  (void)items.push_back(
+      ast_.Field("constexpr uint32_t", "kAicpuArgsio_addr_offset", ast_.UInt(kAicpuArgsioAddrOffset)));
   (void)items.push_back(BuildUpdateExtInfoSession());
   (void)items.push_back(BuildAssembleAicpuExtInfo());
   (void)items.push_back(BuildAssembleAicpuArgs());
@@ -791,12 +787,13 @@ FunctionDef *KernelTaskCodeBuilder::BuildKernelTaskDistribute() const {
   auto stream = ast_.Var("aclrtStream", "stream");
   auto config = ast_.Var("aclrtLaunchKernelCfg *", "config");
   return ast_.DefineFunction("KernelTaskDistribute", {io_addrs, args_info, func_handle, block_dim, stream, config},
-                             "aclError", {
+                             "aclError",
+                             {
                                  ChkNotNull(args_info),
                                  ChkStatus(MemcpyS(args_info.Arrow("host_addr"), args_info.Arrow("size"),
                                                    io_addrs.Data(), io_addrs.Size() * ast_.Sizeof("uint64_t"))),
                                  ChkStatus(AclrtLaunchKernelV2(func_handle, block_dim, args_info.Arrow("dev_addr"),
-                                                              args_info.Arrow("size"), config, stream)),
+                                                               args_info.Arrow("size"), config, stream)),
                                  ast_.Return("ACL_SUCCESS"),
                              });
 }
@@ -807,17 +804,16 @@ FunctionDef *KernelTaskCodeBuilder::BuildUpdateExtInfoSession() const {
   auto session_id = ast_.Var("uint64_t *", "session_id");
   auto kernel_id = ast_.Var("uint64_t *", "kernel_id");
   auto session_info = ast_.Var("AicpuSessionInfo *", "session_info");
-  return ast_.DefineFunction("UpdateExtInfoSession", {ext_info, session_info_offset, session_id, kernel_id},
-                             "aclError", {
-                                 ast_.VarDecl(session_info,
-                                              ast_.ReinterpretCast("AicpuSessionInfo *",
-                                                                   ext_info[session_info_offset].Addr())),
-                                 ast_.Assign(session_info.Arrow("sessionId"), ast_.Deref(session_id)),
-                                 ast_.Assign(session_info.Arrow("kernelId"), ast_.Deref(kernel_id)),
-                                 ast_.Assign(session_info.Arrow("sessFlag"), true),
-                                 ast_.PostInc(ast_.Deref(kernel_id)),
-                                 ast_.Return("ACL_SUCCESS"),
-                             });
+  return ast_.DefineFunction(
+      "UpdateExtInfoSession", {ext_info, session_info_offset, session_id, kernel_id}, "aclError",
+      {
+          ast_.VarDecl(session_info, ast_.ReinterpretCast("AicpuSessionInfo *", ext_info[session_info_offset].Addr())),
+          ast_.Assign(session_info.Arrow("sessionId"), ast_.Deref(session_id)),
+          ast_.Assign(session_info.Arrow("kernelId"), ast_.Deref(kernel_id)),
+          ast_.Assign(session_info.Arrow("sessFlag"), true),
+          ast_.PostInc(ast_.Deref(kernel_id)),
+          ast_.Return("ACL_SUCCESS"),
+      });
 }
 
 FunctionDef *KernelTaskCodeBuilder::BuildAssembleAicpuExtInfo() const {
@@ -830,25 +826,24 @@ FunctionDef *KernelTaskCodeBuilder::BuildAssembleAicpuExtInfo() const {
   auto index = ast_.Var("size_t", "index");
   auto tmp_ext_info = ast_.Var("std::unique_ptr<uint8_t[]>", "tmp_ext_info");
   auto dev_ptr = ast_.Var("void *", "dev_ptr");
-  return ast_.DefineFunction("AssembleAicpuExtInfo",
-                             {ext_info, ext_info_len, session_info_offset, session_id, kernel_id,
-                              dev_ext_info_mem_ptrs, index},
-                             "aclError", {
-                                 ast_.VarDecl(tmp_ext_info, ast_.MakeUniqueArray(BuiltinType::kUInt8, ext_info_len)),
-                                 MemcpyS(tmp_ext_info.GetPtr(), ext_info_len, ext_info, ext_info_len),
-                                 ast_.If(session_info_offset != -1, {
-                                     ChkStatus(ast_.Call("UpdateExtInfoSession",
-                                                         {tmp_ext_info.GetPtr(), session_info_offset,
-                                                          session_id, kernel_id})),
-                                 }),
-                                 ast_.VarDecl(dev_ptr, nullptr),
-                                 ChkStatus(AclrtMallocAlign32(dev_ptr.Addr(), ext_info_len,
-                                                              "ACL_MEM_MALLOC_HUGE_FIRST")),
-                                 ChkStatus(AclrtMemcpy(dev_ptr, ext_info_len, tmp_ext_info.GetPtr(),
-                                                       ext_info_len, "ACL_MEMCPY_HOST_TO_DEVICE")),
-                                 ast_.Assign(dev_ext_info_mem_ptrs[index], dev_ptr),
-                                 ast_.Return("ACL_SUCCESS"),
-                             });
+  return ast_.DefineFunction(
+      "AssembleAicpuExtInfo",
+      {ext_info, ext_info_len, session_info_offset, session_id, kernel_id, dev_ext_info_mem_ptrs, index}, "aclError",
+      {
+          ast_.VarDecl(tmp_ext_info, ast_.MakeUniqueArray(BuiltinType::kUInt8, ext_info_len)),
+          MemcpyS(tmp_ext_info.GetPtr(), ext_info_len, ext_info, ext_info_len),
+          ast_.If(session_info_offset != -1,
+                  {
+                      ChkStatus(ast_.Call("UpdateExtInfoSession",
+                                          {tmp_ext_info.GetPtr(), session_info_offset, session_id, kernel_id})),
+                  }),
+          ast_.VarDecl(dev_ptr, nullptr),
+          ChkStatus(AclrtMallocAlign32(dev_ptr.Addr(), ext_info_len, "ACL_MEM_MALLOC_HUGE_FIRST")),
+          ChkStatus(
+              AclrtMemcpy(dev_ptr, ext_info_len, tmp_ext_info.GetPtr(), ext_info_len, "ACL_MEMCPY_HOST_TO_DEVICE")),
+          ast_.Assign(dev_ext_info_mem_ptrs[index], dev_ptr),
+          ast_.Return("ACL_SUCCESS"),
+      });
 }
 
 FunctionDef *KernelTaskCodeBuilder::BuildAssembleAicpuArgs() const {
@@ -862,25 +857,21 @@ FunctionDef *KernelTaskCodeBuilder::BuildAssembleAicpuArgs() const {
   auto aicpu_param_head = ast_.Var("const auto", "aicpu_param_head");
   auto ext_info_addr_value = ast_.Var("uint64_t", "ext_info_addr_value");
   auto addrs_size = ast_.Var("size_t", "addrs_size");
-  return ast_.DefineFunction("AssembleAicpuArgs", {args, args_len, ext_info_addr, ext_info_len, io_addr,
-                                                   target_args_ptr},
-                             "aclError", {
-                                 ast_.VarDecl(tmp_args, ast_.MakeUniqueArray(BuiltinType::kUInt8, args_len)),
-                                 MemcpyS(tmp_args.GetPtr(), args_len, args, args_len),
-                                 ast_.VarDecl(aicpu_param_head,
-                                              ast_.ReinterpretCast("AicpuParamHead *", tmp_args.GetPtr())),
-                                 ast_.Assign(aicpu_param_head.Arrow("extInfoLength"),
-                                             ast_.StaticCast("uint32_t", ext_info_len)),
-                                 ast_.VarDecl(ext_info_addr_value, ast_.ReinterpretCast("uint64_t", ext_info_addr)),
-                                 MemcpyS(tmp_args.GetPtr() + "kAicpuArgsExtInfoAddrOffset",
-                                         ast_.Sizeof("uint64_t"), ext_info_addr_value.Addr(),
-                                         ast_.Sizeof("uint64_t")),
-                                 ast_.VarDecl(addrs_size, ast_.Sizeof("uint64_t") * io_addr.Size()),
-                                 MemcpyS(tmp_args.GetPtr() + "kAicpuArgsio_addr_offset", addrs_size,
-                                         io_addr.Data(), addrs_size),
-                                 MemcpyS(target_args_ptr, args_len, tmp_args.GetPtr(), args_len),
-                                 ast_.Return("ACL_SUCCESS"),
-                             });
+  return ast_.DefineFunction(
+      "AssembleAicpuArgs", {args, args_len, ext_info_addr, ext_info_len, io_addr, target_args_ptr}, "aclError",
+      {
+          ast_.VarDecl(tmp_args, ast_.MakeUniqueArray(BuiltinType::kUInt8, args_len)),
+          MemcpyS(tmp_args.GetPtr(), args_len, args, args_len),
+          ast_.VarDecl(aicpu_param_head, ast_.ReinterpretCast("AicpuParamHead *", tmp_args.GetPtr())),
+          ast_.Assign(aicpu_param_head.Arrow("extInfoLength"), ast_.StaticCast("uint32_t", ext_info_len)),
+          ast_.VarDecl(ext_info_addr_value, ast_.ReinterpretCast("uint64_t", ext_info_addr)),
+          MemcpyS(tmp_args.GetPtr() + "kAicpuArgsExtInfoAddrOffset", ast_.Sizeof("uint64_t"),
+                  ext_info_addr_value.Addr(), ast_.Sizeof("uint64_t")),
+          ast_.VarDecl(addrs_size, ast_.Sizeof("uint64_t") * io_addr.Size()),
+          MemcpyS(tmp_args.GetPtr() + "kAicpuArgsio_addr_offset", addrs_size, io_addr.Data(), addrs_size),
+          MemcpyS(target_args_ptr, args_len, tmp_args.GetPtr(), args_len),
+          ast_.Return("ACL_SUCCESS"),
+      });
 }
 
 FunctionDef *KernelTaskCodeBuilder::BuildAicpuKernelTaskDistribute() const {
@@ -890,15 +881,15 @@ FunctionDef *KernelTaskCodeBuilder::BuildAicpuKernelTaskDistribute() const {
   auto block_dim = ast_.Var("uint32_t", "block_dim");
   auto stream = ast_.Var("aclrtStream", "stream");
   auto config = ast_.Var("aclrtLaunchKernelCfg *", "config");
-  return ast_.DefineFunction("AicpuKernelTaskDistribute", {args, args_info, func_handle, block_dim, stream, config},
-                             "aclError", {
-                                 ChkNotNull(args_info),
-                                 ChkStatus(MemcpyS(args_info.Arrow("host_addr"), args_info.Arrow("size"),
-                                                   args.Data(), args.Size())),
-                                 ChkStatus(AclrtLaunchKernelV2(func_handle, block_dim, args_info.Arrow("dev_addr"),
-                                                              args_info.Arrow("size"), config, stream)),
-                                 ast_.Return("ACL_SUCCESS"),
-                             });
+  return ast_.DefineFunction(
+      "AicpuKernelTaskDistribute", {args, args_info, func_handle, block_dim, stream, config}, "aclError",
+      {
+          ChkNotNull(args_info),
+          ChkStatus(MemcpyS(args_info.Arrow("host_addr"), args_info.Arrow("size"), args.Data(), args.Size())),
+          ChkStatus(AclrtLaunchKernelV2(func_handle, block_dim, args_info.Arrow("dev_addr"), args_info.Arrow("size"),
+                                        config, stream)),
+          ast_.Return("ACL_SUCCESS"),
+      });
 }
 
 FunctionDef *KernelTaskCodeBuilder::BuildGetEventIdAddr() const {
@@ -910,17 +901,19 @@ FunctionDef *KernelTaskCodeBuilder::BuildGetEventIdAddr() const {
 
   constexpr size_t mem_event_size = 8;
 
-  return ast_.DefineFunction("GetEventIdAddr", {event_addr, event_id_mem_map, event_id, mem_ptrs}, "aclError", {
-      ast_.VarDecl(it, event_id_mem_map.Attr("find")(event_id)),
-      ast_.If(event_id_mem_map.Attr("end")() != "it", {
-          ast_.Assign(event_addr, it.Arrow("second")),
-          ast_.Return("ACL_SUCCESS"),
-      }),
-      ChkStatus(ast_.Call("MallocDeviceMemory", {event_addr, mem_event_size, 2, mem_ptrs})),
-      ChkStatus(ast_.Call("aclrtMemset", {event_addr, mem_event_size, 0, mem_event_size})),
-      ast_.Assign(event_id_mem_map[event_id], event_addr),
-      ast_.Return("ACL_SUCCESS"),
-  });
+  return ast_.DefineFunction("GetEventIdAddr", {event_addr, event_id_mem_map, event_id, mem_ptrs}, "aclError",
+                             {
+                                 ast_.VarDecl(it, event_id_mem_map.Attr("find")(event_id)),
+                                 ast_.If(event_id_mem_map.Attr("end")() != "it",
+                                         {
+                                             ast_.Assign(event_addr, it.Arrow("second")),
+                                             ast_.Return("ACL_SUCCESS"),
+                                         }),
+                                 ChkStatus(ast_.Call("MallocDeviceMemory", {event_addr, mem_event_size, 2, mem_ptrs})),
+                                 ChkStatus(ast_.Call("aclrtMemset", {event_addr, mem_event_size, 0, mem_event_size})),
+                                 ast_.Assign(event_id_mem_map[event_id], event_addr),
+                                 ast_.Return("ACL_SUCCESS"),
+                             });
 }
 
 Status KernelTaskCodeBuilder::GenArgsCode() {
@@ -939,9 +932,8 @@ Status KernelTaskCodeBuilder::GenArgsCode() {
 Status KernelTaskCodeBuilder::BuildAddrGenInfoFromSemantic(const AddrSemantic &semantic,
                                                            RenderedAddrInfo &addr_gen_info) const {
   addr_gen_info.var_name = semantic.symbol_hint;
-  addr_gen_info.mem_type =
-      (semantic.memory_app == MemoryAppType::kModelIo) ? Om2MemoryAppType::kMemoryTypeModelIo
-                                                       : Om2MemoryAppType::kMemoryTypeFix;
+  addr_gen_info.mem_type = (semantic.memory_app == MemoryAppType::kModelIo) ? Om2MemoryAppType::kMemoryTypeModelIo
+                                                                            : Om2MemoryAppType::kMemoryTypeFix;
   addr_gen_info.compile_state_io_addr_offset = semantic.compile_state_io_addr_offset;
   switch (semantic.kind) {
     case AddrValueKind::kConstTensor:
@@ -966,7 +958,8 @@ Status KernelTaskCodeBuilder::BuildAddrGenInfoFromSemantic(const AddrSemantic &s
       return SUCCESS;
     case AddrValueKind::kCustomValue:
       GE_ASSERT_TRUE(!semantic.symbol_hint.empty(), "[OM2] Custom value symbol hint is empty.");
-      (void)addr_gen_info.nodes.emplace_back(ast_.VarDecl("auto", semantic.symbol_hint, ast_.UInt(semantic.custom_value)));
+      (void)addr_gen_info.nodes.emplace_back(
+          ast_.VarDecl("auto", semantic.symbol_hint, ast_.UInt(semantic.custom_value)));
       return SUCCESS;
     case AddrValueKind::kLevel1DescPtr:
       return BuildAddrGenInfoForLevel1DescPtr(semantic, addr_gen_info);
@@ -983,8 +976,7 @@ Status KernelTaskCodeBuilder::BuildAddrGenInfoFromSemantic(const AddrSemantic &s
     default:
       REPORT_INNER_ERR_MSG("E19999", "Unsupported addr semantic kind %d in render stage.",
                            static_cast<int32_t>(semantic.kind));
-      GELOGE(FAILED, "[OM2] Unsupported addr semantic kind %d in render stage.",
-             static_cast<int32_t>(semantic.kind));
+      GELOGE(FAILED, "[OM2] Unsupported addr semantic kind %d in render stage.", static_cast<int32_t>(semantic.kind));
       return FAILED;
   }
 }
@@ -1009,7 +1001,7 @@ Status KernelTaskCodeBuilder::BuildAddrGenInfoForConstTensor(const AddrSemantic 
   } else {
     const std::string shape_var_name = semantic.symbol_hint + "_shape";
     (void)addr_gen_info.nodes.emplace_back(ast_.VarDecl("static constexpr int64_t", shape_var_name + "[]",
-                                                  ast_.InitList(ConvertToArgs(tensor_info.shape_dims))));
+                                                        ast_.InitList(ConvertToArgs(tensor_info.shape_dims))));
     (void)tensor_args.emplace_back(ast_.Var("const int64_t *", shape_var_name));
     (void)tensor_args.emplace_back(ast_.ULong(tensor_info.shape_dims.size()));
   }
@@ -1024,8 +1016,8 @@ Status KernelTaskCodeBuilder::BuildAddrGenInfoForInstance(const AddrSemantic &se
   if (semantic.is_reused_from_upstream) {
     return SUCCESS;
   }
-  auto &base_ptr = (semantic.memory_type == (kSessionScopeMemoryMask | RT_MEMORY_HBM))
-                       ? session_scope_mem_ptr_ : total_dev_mem_ptr_;
+  auto &base_ptr =
+      (semantic.memory_type == (kSessionScopeMemoryMask | RT_MEMORY_HBM)) ? session_scope_mem_ptr_ : total_dev_mem_ptr_;
   (void)addr_gen_info.nodes.emplace_back(
       ast_.VarDecl("auto", semantic.symbol_hint, GetAddr(base_ptr, semantic.mem_offset)));
   return SUCCESS;
@@ -1035,8 +1027,8 @@ Status KernelTaskCodeBuilder::BuildAddrGenInfoForIoTensor(const AddrSemantic &se
                                                           RenderedAddrInfo &addr_gen_info) const {
   GE_ASSERT_TRUE(semantic.tensor_info.has_value(), "[OM2] Tensor info is required for io tensor render.");
   const auto &tensor_info = *semantic.tensor_info;
-  auto &base_ptr = (semantic.memory_type == (kSessionScopeMemoryMask | RT_MEMORY_HBM))
-                       ? session_scope_mem_ptr_ : total_dev_mem_ptr_;
+  auto &base_ptr =
+      (semantic.memory_type == (kSessionScopeMemoryMask | RT_MEMORY_HBM)) ? session_scope_mem_ptr_ : total_dev_mem_ptr_;
   addr_gen_info.tensor_var_name = semantic.symbol_hint;
   std::vector<Arg> tensor_args = {
       GetAddr(base_ptr, semantic.mem_offset),
@@ -1050,7 +1042,7 @@ Status KernelTaskCodeBuilder::BuildAddrGenInfoForIoTensor(const AddrSemantic &se
   } else {
     const std::string shape_var_name = semantic.symbol_hint + "_shape";
     (void)addr_gen_info.nodes.emplace_back(ast_.VarDecl("static constexpr int64_t", shape_var_name + "[]",
-                                                  ast_.InitList(ConvertToArgs(tensor_info.shape_dims))));
+                                                        ast_.InitList(ConvertToArgs(tensor_info.shape_dims))));
     (void)tensor_args.emplace_back(ast_.Var("const int64_t *", shape_var_name));
     (void)tensor_args.emplace_back(ast_.ULong(tensor_info.shape_dims.size()));
   }
@@ -1071,9 +1063,8 @@ Status KernelTaskCodeBuilder::BuildAddrGenInfoForEventAddr(const AddrSemantic &s
                                                            RenderedAddrInfo &addr_gen_info) const {
   auto event_addr_op = ast_.Var("void *", semantic.symbol_hint);
   (void)addr_gen_info.nodes.emplace_back(ast_.VarDecl(event_addr_op, nullptr));
-  (void)addr_gen_info.nodes.emplace_back(ChkStatus(ast_.Call("GetEventIdAddr",
-                                                       {event_addr_op.Addr(), mem_event_id_mem_map_,
-                                                        semantic.event_id, dev_dynamic_mem_ptrs_})));
+  (void)addr_gen_info.nodes.emplace_back(ChkStatus(ast_.Call(
+      "GetEventIdAddr", {event_addr_op.Addr(), mem_event_id_mem_map_, semantic.event_id, dev_dynamic_mem_ptrs_})));
   return SUCCESS;
 }
 
@@ -1086,22 +1077,19 @@ Status KernelTaskCodeBuilder::BuildAddrGenInfoForTiling(const AddrSemantic &sema
   auto tiling_data_addr_var = ast_.Var("void *", semantic.symbol_hint);
   (void)addr_gen_info.nodes.emplace_back(ast_.VarDecl(tiling_data_str_var, Arg::StringLiteral(tiling_data_str)));
   (void)addr_gen_info.nodes.emplace_back(ast_.VarDecl(tiling_data_addr_var, nullptr));
-  (void)addr_gen_info.nodes.emplace_back(ChkStatus(ast_.Call("MallocDeviceMemory",
-                                                       {tiling_data_addr_var, tiling_data_.size(), 2,
-                                                        dev_dynamic_mem_ptrs_})));
-  (void)addr_gen_info.nodes.emplace_back(ChkStatus(AclrtMemcpy(tiling_data_addr_var, tiling_data_.size(),
-                                                         tiling_data_str_var, tiling_data_.size(),
-                                                         "ACL_MEMCPY_HOST_TO_DEVICE")));
+  (void)addr_gen_info.nodes.emplace_back(ChkStatus(
+      ast_.Call("MallocDeviceMemory", {tiling_data_addr_var, tiling_data_.size(), 2, dev_dynamic_mem_ptrs_})));
+  (void)addr_gen_info.nodes.emplace_back(
+      ChkStatus(AclrtMemcpy(tiling_data_addr_var, tiling_data_.size(), tiling_data_str_var, tiling_data_.size(),
+                            "ACL_MEMCPY_HOST_TO_DEVICE")));
   return SUCCESS;
 }
 
 Status KernelTaskCodeBuilder::BuildAddrGenInfoForLevel1DescPtr(const AddrSemantic &semantic,
-                                                           RenderedAddrInfo &addr_gen_info) const {
+                                                               RenderedAddrInfo &addr_gen_info) const {
   GE_ASSERT_TRUE(!semantic.symbol_hint.empty(), "[OM2] Level1 desc symbol hint is empty.");
-  GE_ASSERT_TRUE(semantic_.args_table_entry.has_value(),
-                  "[OM2] Args table entry is required for level1 desc render.");
-  GE_ASSERT_TRUE(semantic.level1_target_offset.has_value(),
-                  "[OM2] Level1 desc target offset is required for render.");
+  GE_ASSERT_TRUE(semantic_.args_table_entry.has_value(), "[OM2] Args table entry is required for level1 desc render.");
+  GE_ASSERT_TRUE(semantic.level1_target_offset.has_value(), "[OM2] Level1 desc target offset is required for render.");
   const uint64_t host_args_offset = semantic_.args_table_entry->host_offset + *semantic.level1_target_offset;
   auto symbol = ast_.Var("auto", semantic.symbol_hint);
   (void)addr_gen_info.nodes.emplace_back(
@@ -1111,7 +1099,7 @@ Status KernelTaskCodeBuilder::BuildAddrGenInfoForLevel1DescPtr(const AddrSemanti
 }
 
 Status KernelTaskCodeBuilder::BuildAddrGenInfoForShapeInfoBuffer(const AddrSemantic &semantic,
-                                                           RenderedAddrInfo &addr_gen_info) const {
+                                                                 RenderedAddrInfo &addr_gen_info) const {
   GE_ASSERT_TRUE(!semantic.symbol_hint.empty(), "[OM2] Shape info symbol hint is empty.");
   GE_ASSERT_TRUE(semantic.shape_info.has_value(), "[OM2] Shape info semantic data is missing.");
   (void)addr_gen_info.nodes.emplace_back(
@@ -1160,27 +1148,22 @@ Status KernelTaskCodeBuilder::AppendAicpuArgsCode(Arg iow_addr, const VarRef &ar
   (void)items.emplace_back(ast_.VarDecl(ext_info_str_var, Arg::StringLiteral(ext_info_str)));
   (void)items.emplace_back(ast_.VarDecl(args_var));
   (void)items.emplace_back(args_var.Resize(static_cast<int64_t>(aicpu_args.args_size)));
-  (void)items.emplace_back(ast_.Call("AssembleAicpuExtInfo", {
-      ast_.ReinterpretCast("uint8_t *", ast_.ConstCast("char *", ext_info_str_var)),
-      static_cast<int64_t>(aicpu_ext_info.total_len),
-      static_cast<int64_t>(aicpu_ext_info.session_info_offset),
-      session_id_,
-      kernel_id_.Addr(),
-      dev_ext_info_mem_ptrs_,
-      static_cast<int64_t>(semantic_.aicpu_task_index)}));
-  (void)items.emplace_back(ast_.Call("AssembleAicpuArgs", {
-      ast_.ReinterpretCast("uint8_t *", ast_.ConstCast("char *", args_str_var)),
-      static_cast<int64_t>(aicpu_args.args_size),
-      dev_ext_info_mem_ptrs_[static_cast<int64_t>(semantic_.aicpu_task_index)],
-      static_cast<int64_t>(aicpu_ext_info.total_len),
-      iow_addr,
-      args_var.Data()}));
+  (void)items.emplace_back(ast_.Call(
+      "AssembleAicpuExtInfo",
+      {ast_.ReinterpretCast("uint8_t *", ast_.ConstCast("char *", ext_info_str_var)),
+       static_cast<int64_t>(aicpu_ext_info.total_len), static_cast<int64_t>(aicpu_ext_info.session_info_offset),
+       session_id_, kernel_id_.Addr(), dev_ext_info_mem_ptrs_, static_cast<int64_t>(semantic_.aicpu_task_index)}));
+  (void)items.emplace_back(
+      ast_.Call("AssembleAicpuArgs", {ast_.ReinterpretCast("uint8_t *", ast_.ConstCast("char *", args_str_var)),
+                                      static_cast<int64_t>(aicpu_args.args_size),
+                                      dev_ext_info_mem_ptrs_[static_cast<int64_t>(semantic_.aicpu_task_index)],
+                                      static_cast<int64_t>(aicpu_ext_info.total_len), iow_addr, args_var.Data()}));
   GELOGD("[OM2] AppendAicpuArgsCode end.");
   return SUCCESS;
 }
 
 Status KernelTaskCodeBuilder::GetKernelTaskMeta(const domi::TaskDef &task_def, domi::KernelContext &kernel_context,
-                                                  uint32_t &args_size, uint32_t &kernel_type) const {
+                                                uint32_t &args_size, uint32_t &kernel_type) const {
   if (Om2CodegenUtils::IsAllKernel(static_cast<ModelTaskType>(task_def.type()))) {
     const domi::KernelDefWithHandle &kernel_def = task_def.kernel_with_handle();
     args_size = static_cast<uint32_t>(kernel_def.args().size());
@@ -1204,14 +1187,12 @@ std::string KernelTaskCodeBuilder::SerializeBytesToOctalString(const std::vector
 }
 
 Expr *KernelTaskCodeBuilder::BuildLaunchConfigExpr(const LaunchConfigSemantic &launch_config, Arg is_data_dump) const {
-  return ast_.InitList({
-      ast_.UInt(static_cast<uint64_t>(launch_config.schedule_mode)),
-      launch_config.engine_type,
-      ast_.UInt(static_cast<uint64_t>(launch_config.block_dim_offset)),
-      launch_config.is_block_task_prefetch,
-      is_data_dump.Empty() ? Arg(ast_.UInt(static_cast<uint64_t>(launch_config.is_data_dump))) : is_data_dump,
-      ast_.UInt(static_cast<uint64_t>(launch_config.time_out)),
-      ast_.UInt(static_cast<uint64_t>(launch_config.local_memory_size))});
+  return ast_.InitList(
+      {ast_.UInt(static_cast<uint64_t>(launch_config.schedule_mode)), launch_config.engine_type,
+       ast_.UInt(static_cast<uint64_t>(launch_config.block_dim_offset)), launch_config.is_block_task_prefetch,
+       is_data_dump.Empty() ? Arg(ast_.UInt(static_cast<uint64_t>(launch_config.is_data_dump))) : is_data_dump,
+       ast_.UInt(static_cast<uint64_t>(launch_config.time_out)),
+       ast_.UInt(static_cast<uint64_t>(launch_config.local_memory_size))});
 }
 
 VarRef KernelTaskCodeBuilder::AppendLaunchConfigSetup(size_t op_index, std::vector<BodyItem> &items,
@@ -1219,8 +1200,8 @@ VarRef KernelTaskCodeBuilder::AppendLaunchConfigSetup(size_t op_index, std::vect
   const std::string cfg_holder_var_name = "op" + std::to_string(static_cast<int64_t>(op_index)) + "_cfg_holder";
   auto cfg_holder = ast_.Var("LaunchKernelCfgHolder", cfg_holder_var_name);
   (void)items.emplace_back(ast_.VarDecl(cfg_holder));
-  (void)items.emplace_back(ast_.Call("AssembleLaunchConfig", {
-      cfg_holder, BuildLaunchConfigExpr(semantic_.launch.config, is_data_dump)}));
+  (void)items.emplace_back(
+      ast_.Call("AssembleLaunchConfig", {cfg_holder, BuildLaunchConfigExpr(semantic_.launch.config, is_data_dump)}));
   return cfg_holder;
 }
 
@@ -1237,15 +1218,15 @@ int64_t KernelTaskCodeBuilder::ParseOpIndex(const domi::TaskDef &task_def) {
   return static_cast<int64_t>(context.op_index());
 }
 
-Status KernelTaskCodeBuilder::UpdateShapeAndType(const GeShape &shape,
-                                                 AicpuShapeAndType *const shape_and_type) const {
+Status KernelTaskCodeBuilder::UpdateShapeAndType(const GeShape &shape, AicpuShapeAndType *const shape_and_type) const {
   const auto dim_num = shape.GetDimNum();
   if (dim_num > aicpu::FWKAdapter::kMaxShapeDims) {
     GELOGE(ACL_ERROR_GE_PARAM_INVALID,
            "[OM2][Check][DimNum]Update shape and type failed because dim_num %zu exceeds the maximum shape dims %u.",
            dim_num, aicpu::FWKAdapter::kMaxShapeDims);
-    REPORT_INNER_ERR_MSG("E19999", "Update shape and type failed because dim_num %zu exceeds the maximum shape dims %u.",
-                       dim_num, aicpu::FWKAdapter::kMaxShapeDims);
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Update shape and type failed because dim_num %zu exceeds the maximum shape dims %u.", dim_num,
+                         aicpu::FWKAdapter::kMaxShapeDims);
     return ACL_ERROR_GE_PARAM_INVALID;
   }
   size_t index = 0U;
@@ -1261,64 +1242,60 @@ Status KernelTaskCodeBuilder::UpdateShapeAndType(const GeShape &shape,
 }
 
 Status KernelTaskCodeBuilder::ParseExtShape(AicpuExtInfo &aicpu_ext_info, const uint32_t num_tensor,
-  const std::string &node_name, const bool all_shape, const OpDescPtr &op_desc) const
-{
+                                            const std::string &node_name, const bool all_shape,
+                                            const OpDescPtr &op_desc) const {
   std::vector<AicpuShapeAndType *> shape_and_type;
   shape_and_type.clear();
-  GE_IF_BOOL_EXEC(aicpu_ext_info.infoLen != (num_tensor * sizeof(AicpuShapeAndType)),
-                  REPORT_INNER_ERR_MSG("E19999", "Node[%s] parse ext shape failed as infoLen must be "
-                                     "tensor_num[%u]*sizeof(ShapeAndType)[%zu] but %u.",
-                                     node_name.c_str(), num_tensor, sizeof(AicpuShapeAndType),
-                                     aicpu_ext_info.infoLen);
-                  GELOGE(ACL_ERROR_GE_PARAM_INVALID,
-                         "[OM2][Check][DataLen]Node[%s] parse ext shape failed as infoLen must be "
-                         "tensor_num[%u]*sizeof(ShapeAndType)[%zu] but %u.",
-                         node_name.c_str(), num_tensor, sizeof(AicpuShapeAndType), aicpu_ext_info.infoLen);
-                  return ACL_ERROR_GE_PARAM_INVALID;);
+  GE_IF_BOOL_EXEC(
+      aicpu_ext_info.infoLen != (num_tensor * sizeof(AicpuShapeAndType)),
+      REPORT_INNER_ERR_MSG("E19999",
+                           "Node[%s] parse ext shape failed as infoLen must be "
+                           "tensor_num[%u]*sizeof(ShapeAndType)[%zu] but %u.",
+                           node_name.c_str(), num_tensor, sizeof(AicpuShapeAndType), aicpu_ext_info.infoLen);
+      GELOGE(ACL_ERROR_GE_PARAM_INVALID,
+             "[OM2][Check][DataLen]Node[%s] parse ext shape failed as infoLen must be "
+             "tensor_num[%u]*sizeof(ShapeAndType)[%zu] but %u.",
+             node_name.c_str(), num_tensor, sizeof(AicpuShapeAndType), aicpu_ext_info.infoLen);
+      return ACL_ERROR_GE_PARAM_INVALID;);
   const auto tensor_info = PtrToPtr<char, AicpuShapeAndType>(aicpu_ext_info.infoMsg);
   if (all_shape) {
     for (uint32_t i = 0U; i < num_tensor; ++i) {
-      (void)shape_and_type.emplace_back(PtrAdd<AicpuShapeAndType>(tensor_info, static_cast<size_t>(num_tensor),
-                                                                  static_cast<size_t>(i)));
+      (void)shape_and_type.emplace_back(
+          PtrAdd<AicpuShapeAndType>(tensor_info, static_cast<size_t>(num_tensor), static_cast<size_t>(i)));
       const auto tensor_desc = op_desc->MutableInputDesc(i);
       GE_CHECK_NOTNULL(tensor_desc);
       const auto &shape = tensor_desc->GetShape();
       GE_CHK_STATUS_RET(UpdateShapeAndType(shape, shape_and_type[static_cast<size_t>(i)]),
-              "[OM2][Update][ShapeAndType] failed, Node[%s] tensor_info[%u] .",
-              node_name.c_str(), i);
+                        "[OM2][Update][ShapeAndType] failed, Node[%s] tensor_info[%u] .", node_name.c_str(), i);
     }
   }
   GELOGI("[OM2]Node[%s] parse ext shape success infoLen=%u.", node_name.c_str(), aicpu_ext_info.infoLen);
   return SUCCESS;
 }
 
-Status KernelTaskCodeBuilder::ParseExtBitmap(AicpuExtInfo &aicpu_ext_info, const std::string &node_name) const
-{
-  GE_IF_BOOL_EXEC(aicpu_ext_info.infoLen != sizeof(uint64_t),
-                  REPORT_INNER_ERR_MSG("E19999",
-                                    "Node[%s] parse bit_map info failed as infoLen must be %zu but %u.",
-                                    node_name.c_str(), sizeof(uint64_t), aicpu_ext_info.infoLen);
-                  GELOGE(PARAM_INVALID,
-                        "[OM2][Check][DataLen]Node[%s] parse bit_map info failed as infoLen must be %zu but %u.",
-                        node_name.c_str(), sizeof(uint64_t), aicpu_ext_info.infoLen);
-                  return PARAM_INVALID;);
+Status KernelTaskCodeBuilder::ParseExtBitmap(AicpuExtInfo &aicpu_ext_info, const std::string &node_name) const {
+  GE_IF_BOOL_EXEC(
+      aicpu_ext_info.infoLen != sizeof(uint64_t),
+      REPORT_INNER_ERR_MSG("E19999", "Node[%s] parse bit_map info failed as infoLen must be %zu but %u.",
+                           node_name.c_str(), sizeof(uint64_t), aicpu_ext_info.infoLen);
+      GELOGE(PARAM_INVALID, "[OM2][Check][DataLen]Node[%s] parse bit_map info failed as infoLen must be %zu but %u.",
+             node_name.c_str(), sizeof(uint64_t), aicpu_ext_info.infoLen);
+      return PARAM_INVALID;);
 
   uint64_t *bit_map = PtrToPtr<char, uint64_t>(aicpu_ext_info.infoMsg);
   *(bit_map) |= 1UL;
-  GELOGI("[OM2] Node[%s] bit_map info success infoLen=%u, value = %" PRIu64 ".",
-          node_name.c_str(), aicpu_ext_info.infoLen, *(bit_map));
+  GELOGI("[OM2] Node[%s] bit_map info success infoLen=%u, value = %" PRIu64 ".", node_name.c_str(),
+         aicpu_ext_info.infoLen, *(bit_map));
   return SUCCESS;
 }
 
-Status KernelTaskCodeBuilder::ParseExtTopicType(AicpuExtInfo &aicpu_ext_info, const std::string &node_name) const
-{
+Status KernelTaskCodeBuilder::ParseExtTopicType(AicpuExtInfo &aicpu_ext_info, const std::string &node_name) const {
   if (aicpu_ext_info.infoLen != sizeof(int32_t)) {
-    REPORT_INNER_ERR_MSG("E19999",
-                       "Node[%s] parse topic_type info failed as infoLen must be %zu but %u.",
-                       node_name.c_str(), sizeof(int32_t), aicpu_ext_info.infoLen);
+    REPORT_INNER_ERR_MSG("E19999", "Node[%s] parse topic_type info failed as infoLen must be %zu but %u.",
+                         node_name.c_str(), sizeof(int32_t), aicpu_ext_info.infoLen);
     GELOGE(ACL_ERROR_GE_PARAM_INVALID,
-           "[Check][DataLen]Node[%s] parse topic_type info failed as infoLen must be %zu but %u.",
-           node_name.c_str(), sizeof(int32_t), aicpu_ext_info.infoLen);
+           "[Check][DataLen]Node[%s] parse topic_type info failed as infoLen must be %zu but %u.", node_name.c_str(),
+           sizeof(int32_t), aicpu_ext_info.infoLen);
     return ACL_ERROR_GE_PARAM_INVALID;
   }
   GE_CHECK_NOTNULL(aicpu_ext_info.infoMsg);
@@ -1326,36 +1303,28 @@ Status KernelTaskCodeBuilder::ParseExtTopicType(AicpuExtInfo &aicpu_ext_info, co
   const int32_t deploy_type_flag = Om2CodegenUtils::TopicTypeToRtsFlag(type);
   if (deploy_type_flag == -1) {
     REPORT_INNER_ERR_MSG("E19999", "Node[%s] parse ext topic type failed because it requires %d %d %d %d but got %d.",
-                       node_name.c_str(),
-                       aicpu::FWKAdapter::FWK_ADPT_TOPIC_DEVICE_ONLY,
-                       aicpu::FWKAdapter::FWK_ADPT_TOPIC_DEVICE_FIRST,
-                       aicpu::FWKAdapter::FWK_ADPT_TOPIC_HOST_ONLY,
-                       aicpu::FWKAdapter::FWK_ADPT_TOPIC_HOST_FIRST,
-                       type);
+                         node_name.c_str(), aicpu::FWKAdapter::FWK_ADPT_TOPIC_DEVICE_ONLY,
+                         aicpu::FWKAdapter::FWK_ADPT_TOPIC_DEVICE_FIRST, aicpu::FWKAdapter::FWK_ADPT_TOPIC_HOST_ONLY,
+                         aicpu::FWKAdapter::FWK_ADPT_TOPIC_HOST_FIRST, type);
     GELOGE(ACL_ERROR_GE_PARAM_INVALID,
-      "[Check][Type]Node[%s] parse ext topic type failed because it requires %d %d %d %d but got %d.",
-      node_name.c_str(),
-      aicpu::FWKAdapter::FWK_ADPT_TOPIC_DEVICE_ONLY,
-      aicpu::FWKAdapter::FWK_ADPT_TOPIC_DEVICE_FIRST,
-      aicpu::FWKAdapter::FWK_ADPT_TOPIC_HOST_ONLY,
-      aicpu::FWKAdapter::FWK_ADPT_TOPIC_HOST_FIRST,
-      type);
+           "[Check][Type]Node[%s] parse ext topic type failed because it requires %d %d %d %d but got %d.",
+           node_name.c_str(), aicpu::FWKAdapter::FWK_ADPT_TOPIC_DEVICE_ONLY,
+           aicpu::FWKAdapter::FWK_ADPT_TOPIC_DEVICE_FIRST, aicpu::FWKAdapter::FWK_ADPT_TOPIC_HOST_ONLY,
+           aicpu::FWKAdapter::FWK_ADPT_TOPIC_HOST_FIRST, type);
     return ACL_ERROR_GE_PARAM_INVALID;
   } else if (deploy_type_flag == static_cast<int32_t>(RT_KERNEL_HOST_ONLY)) {
     REPORT_INNER_ERR_MSG("E19999", "Unsupported scenario. Node[%s], infoType=%d, infoLen=%u.", node_name.c_str(),
-                      aicpu_ext_info.infoType, aicpu_ext_info.infoLen);
-    GELOGE(FAILED, "[OM2] Unsupported scenario. Node[%s], infoType=%d, infoLen=%u.",
-                  node_name.c_str(), aicpu_ext_info.infoType, aicpu_ext_info.infoLen);
+                         aicpu_ext_info.infoType, aicpu_ext_info.infoLen);
+    GELOGE(FAILED, "[OM2] Unsupported scenario. Node[%s], infoType=%d, infoLen=%u.", node_name.c_str(),
+           aicpu_ext_info.infoType, aicpu_ext_info.infoLen);
     return FAILED;
   }
   return SUCCESS;
 }
 
-Status KernelTaskCodeBuilder::ParseExtAsyncWait(AicpuExtInfo &aicpu_ext_info, const std::string &node_name) const
-{
+Status KernelTaskCodeBuilder::ParseExtAsyncWait(AicpuExtInfo &aicpu_ext_info, const std::string &node_name) const {
   if (aicpu_ext_info.infoLen != sizeof(aicpu::FWKAdapter::AsyncWait)) {
-    REPORT_INNER_ERR_MSG("E19999",
-                         "Node[%s] parse ext async wait info failed as infoLen must be %zu but %u.",
+    REPORT_INNER_ERR_MSG("E19999", "Node[%s] parse ext async wait info failed as infoLen must be %zu but %u.",
                          node_name.c_str(), sizeof(aicpu::FWKAdapter::AsyncWait), aicpu_ext_info.infoLen);
     GELOGE(ACL_ERROR_GE_PARAM_INVALID,
            "[Check][DataLen]Node[%s] parse ext async wait info failed as infoLen must be %zu but %u.",
@@ -1366,9 +1335,9 @@ Status KernelTaskCodeBuilder::ParseExtAsyncWait(AicpuExtInfo &aicpu_ext_info, co
 }
 
 Status KernelTaskCodeBuilder::ParseExtInfo(uint8_t *ext_info, const size_t ext_info_len, const OpDescPtr &op_desc,
-  int32_t &session_info_offset, const uint32_t num_inputs, const uint32_t num_outputs, const std::string &node_name,
-  const bool all_shape) const
-{
+                                           int32_t &session_info_offset, const uint32_t num_inputs,
+                                           const uint32_t num_outputs, const std::string &node_name,
+                                           const bool all_shape) const {
   size_t offset = 0UL;
   while ((offset + sizeof(AicpuExtInfo)) <= ext_info_len) {
     auto tmp_ext_info_data = PtrAdd(ext_info, ext_info_len, offset);
@@ -1381,22 +1350,22 @@ Status KernelTaskCodeBuilder::ParseExtInfo(uint8_t *ext_info, const size_t ext_i
         break;
       case aicpu::FWKAdapter::FWK_ADPT_EXT_INPUT_SHAPE:
         GE_CHK_STATUS_RET(ParseExtShape(aicpu_ext_info, num_inputs, node_name, all_shape, op_desc),
-                                        "[OM2] Parse ext input shape failed, Node[%s].", node_name.c_str());
+                          "[OM2] Parse ext input shape failed, Node[%s].", node_name.c_str());
         break;
       case aicpu::FWKAdapter::FWK_ADPT_EXT_OUTPUT_SHAPE:
         GE_CHK_STATUS_RET(ParseExtShape(aicpu_ext_info, num_outputs, node_name, all_shape, op_desc),
-                                        "[OM2] Parse ext output shape failed, Node[%s].", node_name.c_str());
+                          "[OM2] Parse ext output shape failed, Node[%s].", node_name.c_str());
         break;
       case aicpu::FWKAdapter::FWK_ADPT_EXT_SESSION_INFO:
         session_info_offset = static_cast<int32_t>(offset) + kSessionInfoOffset;
         break;
       case aicpu::FWKAdapter::FWK_ADPT_EXT_BITMAP:
-        GE_CHK_STATUS_RET(ParseExtBitmap(aicpu_ext_info, node_name.c_str()),
-                                         "[OM2] Parse ext bitmap failed, Node[%s].", node_name.c_str());
+        GE_CHK_STATUS_RET(ParseExtBitmap(aicpu_ext_info, node_name.c_str()), "[OM2] Parse ext bitmap failed, Node[%s].",
+                          node_name.c_str());
         break;
       case aicpu::FWKAdapter::FWK_ADPT_EXT_TOPIC_TYPE:
         GE_CHK_STATUS_RET(ParseExtTopicType(aicpu_ext_info, node_name.c_str()),
-                                            "[OM2] Parse ext topic type failed, Node[%s].", node_name.c_str());
+                          "[OM2] Parse ext topic type failed, Node[%s].", node_name.c_str());
         break;
       case aicpu::FWKAdapter::FWK_ADPT_EXT_ASYNCWAIT: {
         GE_CHK_STATUS_RET(ParseExtAsyncWait(aicpu_ext_info, node_name.c_str()),
@@ -1404,18 +1373,20 @@ Status KernelTaskCodeBuilder::ParseExtInfo(uint8_t *ext_info, const size_t ext_i
         break;
       }
       default:
-        GELOGD("[OM2] Node[%s] ignore infoType=%d, infoLen=%u.",
-               node_name.c_str(), aicpu_ext_info.infoType, aicpu_ext_info.infoLen);
+        GELOGD("[OM2] Node[%s] ignore infoType=%d, infoLen=%u.", node_name.c_str(), aicpu_ext_info.infoType,
+               aicpu_ext_info.infoLen);
         break;
     }
     offset += sizeof(AicpuExtInfo);
     offset += aicpu_ext_info.infoLen;
   }
 
-  GE_IF_BOOL_EXEC(offset != ext_info_len,
-                  REPORT_INNER_ERR_MSG("E19999", "Node[%s] ext_info format error, parse not reach end,"
-                                     "offset=%zu, ext_info_len=%zu.", node_name.c_str(), offset, ext_info_len);
-                  GELOGE(ACL_ERROR_GE_PARAM_INVALID, "[OM2][Check][Size]Node[%s] ext_info format error,"
+  GE_IF_BOOL_EXEC(offset != ext_info_len, REPORT_INNER_ERR_MSG("E19999",
+                                                               "Node[%s] ext_info format error, parse not reach end,"
+                                                               "offset=%zu, ext_info_len=%zu.",
+                                                               node_name.c_str(), offset, ext_info_len);
+                  GELOGE(ACL_ERROR_GE_PARAM_INVALID,
+                         "[OM2][Check][Size]Node[%s] ext_info format error,"
                          "parse not reach end, offset=%zu, ext_info_len=%zu.",
                          node_name.c_str(), offset, ext_info_len);
                   return ACL_ERROR_GE_PARAM_INVALID;);
@@ -1423,8 +1394,7 @@ Status KernelTaskCodeBuilder::ParseExtInfo(uint8_t *ext_info, const size_t ext_i
 }
 
 Status KernelTaskCodeBuilder::InitAicpuTaskExtInfo(uint8_t *ext_info, size_t ext_info_len, const OpDescPtr op_desc,
-                                                   int32_t &session_info_offset) const
-{
+                                                   int32_t &session_info_offset) const {
   GELOGD("[OM2] start to init aicpu task ext info.");
   std::string node_name = op_desc->GetName();
   const uint32_t num_inputs = static_cast<uint32_t>(op_desc->GetInputsSize());
@@ -1480,17 +1450,17 @@ Status KernelTaskCodeBuilder::ParseArgsFormat(const OpDescPtr &op_desc, ArgsForm
                (arg_format.ir_idx == static_cast<int32_t>(TilingContextSubType::TILING_CONTEXT) ||
                 arg_format.ir_idx == static_cast<int32_t>(TilingContextSubType::TILING_DATA))) {
       REPORT_INNER_ERR_MSG("E19999", "Unsupported scenario. addr_type[%d], ir_idx[%d].",
-                     static_cast<int32_t>(AddrType::TILING_CONTEXT),
-                     arg_format.ir_idx);
+                           static_cast<int32_t>(AddrType::TILING_CONTEXT), arg_format.ir_idx);
       GELOGE(FAILED, "[OM2] Unsupported scenario. addr_type[%d], ir_idx[%d].",
-                     static_cast<int32_t>(AddrType::TILING_CONTEXT), arg_format.ir_idx);
+             static_cast<int32_t>(AddrType::TILING_CONTEXT), arg_format.ir_idx);
       return FAILED;
     }
   }
   return SUCCESS;
 }
 
-size_t KernelTaskCodeBuilder::GetArgsSizeByFormat(const OpDescPtr op_desc, const ArgsFormatInfo &args_format_holder) const {
+size_t KernelTaskCodeBuilder::GetArgsSizeByFormat(const OpDescPtr op_desc,
+                                                  const ArgsFormatInfo &args_format_holder) const {
   const auto &arg_descs = args_format_holder.arg_descs;
   size_t tmp_size = 0U;
   for (const auto &arg_desc : arg_descs) {
@@ -1500,7 +1470,7 @@ size_t KernelTaskCodeBuilder::GetArgsSizeByFormat(const OpDescPtr op_desc, const
 }
 
 size_t KernelTaskCodeBuilder::GetExtraArgsSize(const OpDescPtr &op_desc, const ccKernelType kernel_type,
-                                                 const ArgsFormatInfo &args_format_holder) const {
+                                               const ArgsFormatInfo &args_format_holder) const {
   size_t extra_size = 0UL;
   int32_t max_tiling_len{-1};
   (void)AttrUtils::GetInt(op_desc, kMaxTilingSize, max_tiling_len);
@@ -1531,8 +1501,7 @@ size_t KernelTaskCodeBuilder::GetExtraArgsSize(const OpDescPtr &op_desc, const c
   return extra_size;
 }
 
-void KernelTaskCodeBuilder::InitArgsTableEntry(const TaskSemanticContributeContext &context,
-                                                 const uint32_t args_size) {
+void KernelTaskCodeBuilder::InitArgsTableEntry(const TaskSemanticContributeContext &context, const uint32_t args_size) {
   (void)semantic_.args_table_entry.emplace();
   semantic_.args_table_entry->table_index = *context.next_args_table_index;
   semantic_.args_table_entry->args_size = args_size;
@@ -1560,19 +1529,18 @@ void KernelTaskCodeBuilder::AppendOrderedPlaceholder(const TaskSemanticContribut
 }
 
 void KernelTaskCodeBuilder::AppendOrderedCustomValue(const TaskSemanticContributeContext &context,
-                                                       const uint64_t custom_value) {
+                                                     const uint64_t custom_value) {
   AddrSemantic custom_value_semantic;
   custom_value_semantic.kind = AddrValueKind::kCustomValue;
-  custom_value_semantic.symbol_hint = "op" + std::to_string(context.op_index) + "_custom_value" +
-                                      std::to_string(cust_value_var_index_++);
+  custom_value_semantic.symbol_hint =
+      "op" + std::to_string(context.op_index) + "_custom_value" + std::to_string(cust_value_var_index_++);
   custom_value_semantic.custom_value = custom_value;
   AppendOrderedArg(custom_value_semantic);
 }
 
 Status KernelTaskCodeBuilder::AppendOrderedInputArg(size_t input_idx) {
-  GE_ASSERT_TRUE(input_idx < semantic_.input_addrs.size(),
-                 "[OM2] Input instance idx [%zu] is invalid, size:[%zu].", input_idx,
-                 semantic_.input_addrs.size());
+  GE_ASSERT_TRUE(input_idx < semantic_.input_addrs.size(), "[OM2] Input instance idx [%zu] is invalid, size:[%zu].",
+                 input_idx, semantic_.input_addrs.size());
   auto &input_addr = semantic_.input_addrs[input_idx];
   if (input_addr.tensor_info.has_value()) {
     input_addr.tensor_info->args_offset = current_args_offset_;
@@ -1593,8 +1561,7 @@ Status KernelTaskCodeBuilder::AppendOrderedOutputArg(size_t output_idx) {
   return SUCCESS;
 }
 
-Status KernelTaskCodeBuilder::AppendOrderedInputOutputByInstanceIndex(
-    const ArgDesc &arg_format) {
+Status KernelTaskCodeBuilder::AppendOrderedInputOutputByInstanceIndex(const ArgDesc &arg_format) {
   if (arg_format.addr_type == AddrType::INPUT_INSTANCE) {
     return AppendOrderedInputArg(static_cast<size_t>(arg_format.ir_idx));
   }
@@ -1602,9 +1569,9 @@ Status KernelTaskCodeBuilder::AppendOrderedInputOutputByInstanceIndex(
   return SUCCESS;
 }
 
-Status KernelTaskCodeBuilder::AppendOrderedInputOutputRange(
-    const ArgDesc &arg_format, const ArgsFormatInfo &args_format_holder,
-    const TaskSemanticContributeContext &context) {
+Status KernelTaskCodeBuilder::AppendOrderedInputOutputRange(const ArgDesc &arg_format,
+                                                            const ArgsFormatInfo &args_format_holder,
+                                                            const TaskSemanticContributeContext &context) {
   const bool is_input = (arg_format.addr_type == AddrType::INPUT);
   const auto &ir_2_range = is_input ? args_format_holder.ir_input_2_range : args_format_holder.ir_output_2_range;
   const auto iter = ir_2_range.find(static_cast<size_t>(arg_format.ir_idx));
@@ -1634,16 +1601,16 @@ Status KernelTaskCodeBuilder::AppendOrderedWorkspace(const ArgDesc &arg_format) 
     return SUCCESS;
   }
   const size_t workspace_idx = static_cast<size_t>(arg_format.ir_idx);
-  GE_ASSERT_TRUE(workspace_idx < semantic_.workspace_addrs.size(),
-                 "[OM2] Workspace idx [%zu] is invalid, size:[%zu].", workspace_idx,
-                 semantic_.workspace_addrs.size());
+  GE_ASSERT_TRUE(workspace_idx < semantic_.workspace_addrs.size(), "[OM2] Workspace idx [%zu] is invalid, size:[%zu].",
+                 workspace_idx, semantic_.workspace_addrs.size());
   AppendOrderedArg(semantic_.workspace_addrs[workspace_idx]);
   return SUCCESS;
 }
 
-Status KernelTaskCodeBuilder::AppendOrderedArgsByFormat(
-    const TaskSemanticContributeContext &context, const ArgsFormatInfo &args_format_holder,
-    std::vector<ArgDesc> &dynamic_args_desc, std::vector<size_t> &level1_desc_indices) {
+Status KernelTaskCodeBuilder::AppendOrderedArgsByFormat(const TaskSemanticContributeContext &context,
+                                                        const ArgsFormatInfo &args_format_holder,
+                                                        std::vector<ArgDesc> &dynamic_args_desc,
+                                                        std::vector<size_t> &level1_desc_indices) {
   place_holder_var_index_ = 0;
   cust_value_var_index_ = 0;
   uint32_t event_addr_index = 0;
@@ -1694,16 +1661,14 @@ Status KernelTaskCodeBuilder::AppendOrderedArgsByFormat(
 }
 
 void KernelTaskCodeBuilder::AppendOrderedDescArg(const TaskSemanticContributeContext &context,
-                                                 const ArgDesc &arg_format,
-                                                 std::vector<ArgDesc> &dynamic_args_desc,
+                                                 const ArgDesc &arg_format, std::vector<ArgDesc> &dynamic_args_desc,
                                                  std::vector<size_t> &level1_desc_indices) {
   const size_t dynamic_idx = dynamic_args_desc.size();
   dynamic_args_desc.push_back(arg_format);
   level1_desc_indices.push_back(semantic_.ordered_arg_values.size());
   AddrSemantic level1_desc_ptr;
   level1_desc_ptr.kind = AddrValueKind::kLevel1DescPtr;
-  level1_desc_ptr.symbol_hint =
-      "op" + std::to_string(context.op_index) + "_io_desc" + std::to_string(dynamic_idx);
+  level1_desc_ptr.symbol_hint = "op" + std::to_string(context.op_index) + "_io_desc" + std::to_string(dynamic_idx);
   AppendOrderedArg(level1_desc_ptr);
 }
 
@@ -1715,13 +1680,12 @@ void KernelTaskCodeBuilder::AppendOrderedFftsAddrArg(const TaskSemanticContribut
 }
 
 void KernelTaskCodeBuilder::AppendOrderedEventAddrArg(const TaskSemanticContributeContext &context,
-                                                      const ArgDesc &arg_format,
-                                                      uint32_t &event_addr_index) {
+                                                      const ArgDesc &arg_format, uint32_t &event_addr_index) {
   AddrSemantic event_addr_semantic;
   event_addr_semantic.kind = AddrValueKind::kEventAddr;
   event_addr_semantic.event_id = static_cast<uint32_t>(arg_format.ir_idx);
-  event_addr_semantic.symbol_hint = "op" + std::to_string(context.op_index) + "_event_desc" +
-                                    std::to_string(event_addr_index);
+  event_addr_semantic.symbol_hint =
+      "op" + std::to_string(context.op_index) + "_event_desc" + std::to_string(event_addr_index);
   event_addr_index++;
   AppendOrderedArg(event_addr_semantic);
 }
@@ -1744,9 +1708,10 @@ void KernelTaskCodeBuilder::AppendOrderedTilingArg(const TaskSemanticContributeC
   AppendOrderedArg(tiling_semantic);
 }
 
-Status KernelTaskCodeBuilder::AppendShapeInfoOrderedArgs(
-    const TaskSemanticContributeContext &context, const ArgsFormatInfo &args_format_holder,
-    const std::vector<ArgDesc> &dynamic_args_desc, const std::vector<size_t> &level1_desc_indices) {
+Status KernelTaskCodeBuilder::AppendShapeInfoOrderedArgs(const TaskSemanticContributeContext &context,
+                                                         const ArgsFormatInfo &args_format_holder,
+                                                         const std::vector<ArgDesc> &dynamic_args_desc,
+                                                         const std::vector<size_t> &level1_desc_indices) {
   GE_ASSERT(dynamic_args_desc.size() == args_format_holder.shape_infos.size());
   GE_ASSERT(dynamic_args_desc.size() == level1_desc_indices.size());
   for (size_t i = 0UL; i < dynamic_args_desc.size(); ++i) {
@@ -1782,7 +1747,7 @@ Status KernelTaskCodeBuilder::AppendShapeInfoOrderedArgs(
 }
 
 Status KernelTaskCodeBuilder::BuildOrderedArgValuesForAicore(const TaskSemanticContributeContext &context,
-                                                               ArgsFormatInfo &args_format_holder) {
+                                                             ArgsFormatInfo &args_format_holder) {
   GE_ASSERT_NOTNULL(context.op_desc);
   domi::KernelContext kernel_context;
   uint32_t args_size = 0U;
@@ -1802,8 +1767,8 @@ Status KernelTaskCodeBuilder::BuildOrderedArgValuesForAicore(const TaskSemanticC
 
   const size_t format_args_size = GetArgsSizeByFormat(context.op_desc, args_format_holder);
   args_size = std::max(args_size, static_cast<uint32_t>(format_args_size));
-  const size_t extra_args_size = GetExtraArgsSize(context.op_desc, static_cast<ccKernelType>(kernel_type),
-                                                  args_format_holder);
+  const size_t extra_args_size =
+      GetExtraArgsSize(context.op_desc, static_cast<ccKernelType>(kernel_type), args_format_holder);
   GE_ASSERT_TRUE(!AddOverflow(args_size, static_cast<uint32_t>(extra_args_size), args_size));
 
   InitArgsTableEntry(context, args_size);
@@ -1819,8 +1784,7 @@ Status KernelTaskCodeBuilder::BuildOrderedArgValuesForAicore(const TaskSemanticC
   return SUCCESS;
 }
 
-Status KernelTaskCodeBuilder::BuildOrderedArgValuesWithoutArgsFormat(const TaskSemanticContributeContext &context)
-{
+Status KernelTaskCodeBuilder::BuildOrderedArgValuesWithoutArgsFormat(const TaskSemanticContributeContext &context) {
   uint32_t args_addr_num = 0U;
   uint64_t addr_offset = *context.next_host_args_offset;
   for (const auto &input_addr : semantic_.input_addrs) {
@@ -1935,278 +1899,241 @@ Status KernelTaskCodeBuilder::RenderDispatchOpCaseBody(std::vector<BodyItem> &it
   return SUCCESS;
 }
 
-std::vector<BodyItem> KernelTaskCodeBuilder::BuildDispatchSetup(
-    const VarRef &op, const VarRef &ctx) {
+std::vector<BodyItem> KernelTaskCodeBuilder::BuildDispatchSetup(const VarRef &op, const VarRef &ctx) {
   return {
-    ast_.VarDecl(ast_.Var("LaunchKernelCfgHolder", "cfg_holder")),
-    ast_.VarDecl(ast_.Var("LaunchKernelConfig", "launch_config"),
-        ast_.InitListWithDesignators(std::vector<std::pair<std::string, Arg>>{
-            {"schedule_mode", op.Arrow("task_data").Attr("aicore").Attr("launch").Attr("schedule_mode")},
-            {"engine_type", ast_.StaticCast("aclrtEngineType",
-                op.Arrow("task_data").Attr("aicore").Attr("launch").Attr("engine_type"))},
-            {"block_dim_offset", op.Arrow("task_data").Attr("aicore").Attr("launch").Attr("block_dim_offset")},
-            {"is_block_task_prefetch", op.Arrow("task_data").Attr("aicore").Attr("launch").Attr("is_block_task_prefetch")},
-            {"is_data_dump", ast_.Call("GetIsDataDump",
-                {op.Arrow("op_name"), ctx.Attr("model_id"), ctx.Attr("instance_handle")})},
-            {"time_out", op.Arrow("task_data").Attr("aicore").Attr("launch").Attr("time_out")},
-            {"local_memory_size", op.Arrow("task_data").Attr("aicore").Attr("launch").Attr("local_memory_size")},
-        })),
-    ChkStatus(ast_.Call("AssembleLaunchConfig",
-        {ast_.Var("", "cfg_holder"), ast_.Var("", "launch_config")})),
-    ast_.VarDecl(ast_.Var("ArgsInfo *", "args_info"),
-        ctx.Attr("args_table").Attr("GetArgsInfo")(
-            op.Arrow("task_data").Attr("aicore").Attr("args_idx"))),
-    ChkNotNull(ast_.Var("", "args_info")),
-    // -- 声明 ordered_io_addrs 和 Report IO 向量 --
-    ast_.VarDecl(ast_.Var("std::vector<uint64_t>", "ordered_io_addrs")),
-    ast_.VarDecl(ast_.Var("std::vector<Om2Tensor>", "io_tensors")),
-    ast_.Call("", {ast_.Var("", "io_tensors").Attr("reserve")(op.Arrow("task_data").Attr("aicore").Attr("num_io_addrs"))}),
-    ast_.VarDecl(ast_.Var("std::vector<Om2TaskIoEntry>", "report_inputs")),
-    ast_.VarDecl(ast_.Var("std::vector<Om2TaskIoEntry>", "report_outputs")),
-    ast_.VarDecl(ast_.Var("std::vector<uint64_t>", "report_workspace_addrs")),
-    ast_.VarDecl(ast_.Var("std::vector<uint64_t>", "report_workspace_sizes")),
+      ast_.VarDecl(ast_.Var("LaunchKernelCfgHolder", "cfg_holder")),
+      ast_.VarDecl(
+          ast_.Var("LaunchKernelConfig", "launch_config"),
+          ast_.InitListWithDesignators(std::vector<std::pair<std::string, Arg>>{
+              {"schedule_mode", op.Arrow("task_data").Attr("aicore").Attr("launch").Attr("schedule_mode")},
+              {"engine_type", ast_.StaticCast("aclrtEngineType",
+                                              op.Arrow("task_data").Attr("aicore").Attr("launch").Attr("engine_type"))},
+              {"block_dim_offset", op.Arrow("task_data").Attr("aicore").Attr("launch").Attr("block_dim_offset")},
+              {"is_block_task_prefetch",
+               op.Arrow("task_data").Attr("aicore").Attr("launch").Attr("is_block_task_prefetch")},
+              {"is_data_dump",
+               ast_.Call("GetIsDataDump", {op.Arrow("op_name"), ctx.Attr("model_id"), ctx.Attr("instance_handle")})},
+              {"time_out", op.Arrow("task_data").Attr("aicore").Attr("launch").Attr("time_out")},
+              {"local_memory_size", op.Arrow("task_data").Attr("aicore").Attr("launch").Attr("local_memory_size")},
+          })),
+      ChkStatus(ast_.Call("AssembleLaunchConfig", {ast_.Var("", "cfg_holder"), ast_.Var("", "launch_config")})),
+      ast_.VarDecl(ast_.Var("ArgsInfo *", "args_info"),
+                   ctx.Attr("args_table").Attr("GetArgsInfo")(op.Arrow("task_data").Attr("aicore").Attr("args_idx"))),
+      ChkNotNull(ast_.Var("", "args_info")),
+      // -- 声明 ordered_io_addrs 和 Report IO 向量 --
+      ast_.VarDecl(ast_.Var("std::vector<uint64_t>", "ordered_io_addrs")),
+      ast_.VarDecl(ast_.Var("std::vector<Om2Tensor>", "io_tensors")),
+      ast_.Call(
+          "", {ast_.Var("", "io_tensors").Attr("reserve")(op.Arrow("task_data").Attr("aicore").Attr("num_io_addrs"))}),
+      ast_.VarDecl(ast_.Var("std::vector<Om2TaskIoEntry>", "report_inputs")),
+      ast_.VarDecl(ast_.Var("std::vector<Om2TaskIoEntry>", "report_outputs")),
+      ast_.VarDecl(ast_.Var("std::vector<uint64_t>", "report_workspace_addrs")),
+      ast_.VarDecl(ast_.Var("std::vector<uint64_t>", "report_workspace_sizes")),
   };
 }
 
-BodyItem KernelTaskCodeBuilder::BuildDispatchLoop(
-    const VarRef &op, const VarRef &ctx) {
+BodyItem KernelTaskCodeBuilder::BuildDispatchLoop(const VarRef &op, const VarRef &ctx) {
   auto a = ast_.Var("const auto &", "a");
-  return ast_.For(
-      ast_.VarDecl("uint32_t", "j", ast_.UInt(0)),
-      ast_.Var("", "j") < op.Arrow("task_data").Attr("aicore").Attr("num_io_addrs"),
-      ast_.PostInc(ast_.Var("", "j")), std::initializer_list<BodyItem>{
-          ast_.VarDecl(a, op.Arrow("argsInfo")[ast_.Var("", "j")]),
-          ast_.VarDecl(ast_.Var("uint64_t", "_addr"), ast_.UInt(0)),
-          ast_.Switch(ast_.Var("", "a").Attr("type"), std::vector<BodyItem>{
-              // INPUT / OUTPUT / CONST_TENSOR → 共享 handler（内部根据 a.type 区分）
-              ast_.Case(ast_.Var("", "OP_ARG_INPUT")),
-              ast_.Case(ast_.Var("", "OP_ARG_OUTPUT")),
-              ast_.Case(ast_.Var("", "OP_ARG_CONST_TENSOR")),
-              ast_.Block(HandleInputOutputArg(a, ctx)),
-              // WORKSPACE
-              ast_.Case(ast_.Var("", "OP_ARG_WORKSPACE")),
-              ast_.Block(HandleWorkspaceArg(a, ctx)),
-              // LEVEL1_DESC
-              ast_.Case(ast_.Var("", "OP_ARG_LEVEL1_DESC")),
-              ast_.Block(HandleLevel1DescArg(a, ctx)),
-              // SHAPE_INFO / CUSTOM_VALUE → 共享 handler
-              ast_.Case(ast_.Var("", "OP_ARG_SHAPE_INFO")),
-              ast_.Case(ast_.Var("", "OP_ARG_CUSTOM_VALUE")),
-              ast_.Block(HandleShapeInfoOrCustomValueArg(a)),
-              // PLACEHOLDER / OPTIONAL_EMPTY → 共享 handler
-              ast_.Case(ast_.Var("", "OP_ARG_PLACEHOLDER")),
-              ast_.Case(ast_.Var("", "OP_ARG_OPTIONAL_EMPTY")),
-              ast_.Block(HandlePlaceholderOrOptionalEmptyArg()),
-              // FFTS_ADDR
-              ast_.Case(ast_.Var("", "OP_ARG_FFTS_ADDR")),
-              ast_.Block(HandleFftsAddrArg()),
-              // EVENT_ADDR
-              ast_.Case(ast_.Var("", "OP_ARG_EVENT_ADDR")),
-              ast_.Block(HandleEventAddrArg(a, ctx)),
-              // OVERFLOW_ADDR
-              ast_.Case(ast_.Var("", "OP_ARG_OVERFLOW_ADDR")),
-              ast_.Block(HandleOverflowAddrArg(ctx)),
-              // TILING
-              ast_.Case(ast_.Var("", "OP_ARG_TILING")),
-              ast_.Block(HandleTilingArg(a, ctx)),
-              // default
-              ast_.Case(Arg(nullptr)),
-              ast_.Block(HandleDefaultArg()),
-          }),
-          ast_.Var("", "ordered_io_addrs").PushBack(ast_.Var("", "_addr")),
-      });
+  return ast_.For(ast_.VarDecl("uint32_t", "j", ast_.UInt(0)),
+                  ast_.Var("", "j") < op.Arrow("task_data").Attr("aicore").Attr("num_io_addrs"),
+                  ast_.PostInc(ast_.Var("", "j")),
+                  std::initializer_list<BodyItem>{
+                      ast_.VarDecl(a, op.Arrow("argsInfo")[ast_.Var("", "j")]),
+                      ast_.VarDecl(ast_.Var("uint64_t", "_addr"), ast_.UInt(0)),
+                      ast_.Switch(ast_.Var("", "a").Attr("type"),
+                                  std::vector<BodyItem>{
+                                      // INPUT / OUTPUT / CONST_TENSOR → 共享 handler（内部根据 a.type 区分）
+                                      ast_.Case(ast_.Var("", "OP_ARG_INPUT")),
+                                      ast_.Case(ast_.Var("", "OP_ARG_OUTPUT")),
+                                      ast_.Case(ast_.Var("", "OP_ARG_CONST_TENSOR")),
+                                      ast_.Block(HandleInputOutputArg(a, ctx)),
+                                      // WORKSPACE
+                                      ast_.Case(ast_.Var("", "OP_ARG_WORKSPACE")),
+                                      ast_.Block(HandleWorkspaceArg(a, ctx)),
+                                      // LEVEL1_DESC
+                                      ast_.Case(ast_.Var("", "OP_ARG_LEVEL1_DESC")),
+                                      ast_.Block(HandleLevel1DescArg(a, ctx)),
+                                      // SHAPE_INFO / CUSTOM_VALUE → 共享 handler
+                                      ast_.Case(ast_.Var("", "OP_ARG_SHAPE_INFO")),
+                                      ast_.Case(ast_.Var("", "OP_ARG_CUSTOM_VALUE")),
+                                      ast_.Block(HandleShapeInfoOrCustomValueArg(a)),
+                                      // PLACEHOLDER / OPTIONAL_EMPTY → 共享 handler
+                                      ast_.Case(ast_.Var("", "OP_ARG_PLACEHOLDER")),
+                                      ast_.Case(ast_.Var("", "OP_ARG_OPTIONAL_EMPTY")),
+                                      ast_.Block(HandlePlaceholderOrOptionalEmptyArg()),
+                                      // FFTS_ADDR
+                                      ast_.Case(ast_.Var("", "OP_ARG_FFTS_ADDR")),
+                                      ast_.Block(HandleFftsAddrArg()),
+                                      // EVENT_ADDR
+                                      ast_.Case(ast_.Var("", "OP_ARG_EVENT_ADDR")),
+                                      ast_.Block(HandleEventAddrArg(a, ctx)),
+                                      // OVERFLOW_ADDR
+                                      ast_.Case(ast_.Var("", "OP_ARG_OVERFLOW_ADDR")),
+                                      ast_.Block(HandleOverflowAddrArg(ctx)),
+                                      // TILING
+                                      ast_.Case(ast_.Var("", "OP_ARG_TILING")),
+                                      ast_.Block(HandleTilingArg(a, ctx)),
+                                      // default
+                                      ast_.Case(Arg(nullptr)),
+                                      ast_.Block(HandleDefaultArg()),
+                                  }),
+                      ast_.Var("", "ordered_io_addrs").PushBack(ast_.Var("", "_addr")),
+                  });
 }
 
-std::vector<BodyItem> KernelTaskCodeBuilder::BuildDistribution(
-    const VarRef &op, const VarRef &ctx) {
+std::vector<BodyItem> KernelTaskCodeBuilder::BuildDistribution(const VarRef &op, const VarRef &ctx) {
   return {
-    ast_.VarDecl(ast_.Var("Om2L0TaskRawInfo", "l0_info"),
-        ast_.InitList({
-            ast_.UInt(1U),
-            op.Arrow("task_data").Attr("aicore").Attr("l0").Attr("need_assert_or_printf"),
-            ast_.StaticCast("uint64_t", op.Arrow("task_data").Attr("aicore").Attr("l0").Attr("num_l0_slots")),
-            op.Arrow("task_data").Attr("aicore").Attr("l0").Attr("l0_slots")})),
-    ChkStatus(ast_.Call("ReportOm2TaskPreprocess", {
-        op.Arrow("op_name"),
-        op.Arrow("task_data").Attr("aicore").Attr("op_type"),
-        ast_.UInt(0),  // op_desc_id (not in OpDef struct, default to 0)
-        ast_.ReinterpretCast("uintptr_t", ast_.Var("", "args_info").Arrow("dev_addr")),
-        ast_.Var("", "args_info").Arrow("size"),
-        ast_.Var("", "report_inputs"),
-        ast_.Var("", "report_outputs"),
-        ast_.Var("", "report_workspace_addrs"),
-        ast_.Var("", "report_workspace_sizes"),
-        ast_.StaticCast("uint32_t", op.Arrow("dispatch_type")),
-        op.Arrow("task_data").Attr("aicore").Attr("kernel").Attr("block_dim"),
-        ctx.Attr("stream"),
-        ast_.Var("", "l0_info").Addr(),
-        ctx.Attr("model_id"),
-        ctx.Attr("instance_handle")})),
-    ChkStatus(ast_.Call("KernelTaskDistribute",
-        {ast_.Var("", "ordered_io_addrs"), ast_.Var("", "args_info"),
-        ctx.Attr("func_handles")[op.Arrow("task_data").Attr("aicore").Attr("kernel").Attr("func_idx")],
-        op.Arrow("task_data").Attr("aicore").Attr("kernel").Attr("block_dim"),
-        ctx.Attr("stream"), ast_.Var("", "cfg_holder").Attr("cfg").Addr()})),
-    // -- Report（empty vector 的 data() 返回 nullptr）--
-    ChkStatus(ast_.Call("ReportLaunchedOm2Task", {
-        op.Arrow("op_name"),
-        op.Arrow("task_data").Attr("aicore").Attr("op_type"),
-        ast_.UInt(0),  // op_desc_id (not in OpDef struct, default to 0)
-        ast_.ReinterpretCast("uintptr_t", ast_.Var("", "args_info").Arrow("dev_addr")),
-        ast_.Var("", "args_info").Arrow("size"),
-        ast_.Var("", "report_inputs").Data(),
-        ast_.StaticCast("uint64_t", ast_.Var("", "report_inputs").Size()),
-        ast_.Var("", "report_outputs").Data(),
-        ast_.StaticCast("uint32_t", ast_.Var("", "report_outputs").Size()),
-        ast_.Var("", "report_workspace_addrs").Data(),
-        ast_.Var("", "report_workspace_sizes").Data(),
-        ast_.StaticCast("uint32_t", ast_.Var("", "report_workspace_sizes").Size()),
-        ast_.StaticCast("uint32_t", op.Arrow("dispatch_type")),
-        op.Arrow("task_data").Attr("aicore").Attr("kernel").Attr("block_dim"),
-        ctx.Attr("stream"),
-        ctx.Attr("model_id"),
-        ctx.Attr("instance_handle")})),
+      ast_.VarDecl(
+          ast_.Var("Om2L0TaskRawInfo", "l0_info"),
+          ast_.InitList(
+              {ast_.UInt(1U), op.Arrow("task_data").Attr("aicore").Attr("l0").Attr("need_assert_or_printf"),
+               ast_.StaticCast("uint64_t", op.Arrow("task_data").Attr("aicore").Attr("l0").Attr("num_l0_slots")),
+               op.Arrow("task_data").Attr("aicore").Attr("l0").Attr("l0_slots")})),
+      ChkStatus(
+          ast_.Call("ReportOm2TaskPreprocess",
+                    {op.Arrow("op_name"), op.Arrow("task_data").Attr("aicore").Attr("op_type"),
+                     ast_.UInt(0),  // op_desc_id (not in OpDef struct, default to 0)
+                     ast_.ReinterpretCast("uintptr_t", ast_.Var("", "args_info").Arrow("dev_addr")),
+                     ast_.Var("", "args_info").Arrow("size"), ast_.Var("", "report_inputs"),
+                     ast_.Var("", "report_outputs"), ast_.Var("", "report_workspace_addrs"),
+                     ast_.Var("", "report_workspace_sizes"), ast_.StaticCast("uint32_t", op.Arrow("dispatch_type")),
+                     op.Arrow("task_data").Attr("aicore").Attr("kernel").Attr("block_dim"), ctx.Attr("stream"),
+                     ast_.Var("", "l0_info").Addr(), ctx.Attr("model_id"), ctx.Attr("instance_handle")})),
+      ChkStatus(
+          ast_.Call("KernelTaskDistribute",
+                    {ast_.Var("", "ordered_io_addrs"), ast_.Var("", "args_info"),
+                     ctx.Attr("func_handles")[op.Arrow("task_data").Attr("aicore").Attr("kernel").Attr("func_idx")],
+                     op.Arrow("task_data").Attr("aicore").Attr("kernel").Attr("block_dim"), ctx.Attr("stream"),
+                     ast_.Var("", "cfg_holder").Attr("cfg").Addr()})),
+      // -- Report（empty vector 的 data() 返回 nullptr）--
+      ChkStatus(ast_.Call(
+          "ReportLaunchedOm2Task",
+          {op.Arrow("op_name"), op.Arrow("task_data").Attr("aicore").Attr("op_type"),
+           ast_.UInt(0),  // op_desc_id (not in OpDef struct, default to 0)
+           ast_.ReinterpretCast("uintptr_t", ast_.Var("", "args_info").Arrow("dev_addr")),
+           ast_.Var("", "args_info").Arrow("size"), ast_.Var("", "report_inputs").Data(),
+           ast_.StaticCast("uint64_t", ast_.Var("", "report_inputs").Size()), ast_.Var("", "report_outputs").Data(),
+           ast_.StaticCast("uint32_t", ast_.Var("", "report_outputs").Size()),
+           ast_.Var("", "report_workspace_addrs").Data(), ast_.Var("", "report_workspace_sizes").Data(),
+           ast_.StaticCast("uint32_t", ast_.Var("", "report_workspace_sizes").Size()),
+           ast_.StaticCast("uint32_t", op.Arrow("dispatch_type")),
+           op.Arrow("task_data").Attr("aicore").Attr("kernel").Attr("block_dim"), ctx.Attr("stream"),
+           ctx.Attr("model_id"), ctx.Attr("instance_handle")})),
   };
 }
 
 std::vector<BodyItem> KernelTaskCodeBuilder::HandleInputOutputArg(const VarRef &a, const VarRef &ctx) {
   return {
-    ast_.Assign(ast_.Var("", "_addr"),
-        ast_.ReinterpretCast("uint64_t",
-            ast_.Call("ResolveOpAddr", {a.Attr("addr").Attr("mem_src"), a.Attr("addr").Attr("offset"),
-                                        ctx.Attr("total_dev_mem_ptr"), ctx.Attr("session_scope_mem_ptr"),
-                                        ctx.Attr("constants")}))),
-    ast_.Var("", "io_tensors").PushBack(ast_.Call("BuildOm2Tensor", {
-        ast_.ReinterpretCast("void *", ast_.Var("", "_addr")),
-        a.Attr("data").Attr("tensor").Attr("size"),
-        a.Attr("data").Attr("tensor").Attr("data_type"),
-        a.Attr("data").Attr("tensor").Attr("format"),
-        a.Attr("data").Attr("tensor").Attr("shape"),
-        a.Attr("data").Attr("tensor").Attr("num_shape_dims")})),
-    ast_.VarDecl(ast_.Var("Om2TaskIoEntry", "_entry"), ast_.InitList({
-        ast_.Var("", "io_tensors").Attr("back")().Addr(),
-        a.Attr("data").Attr("tensor").Attr("args_offset")})),
-    ast_.If(
-        a.Attr("type") == ast_.Var("", "OP_ARG_INPUT") ||
-            a.Attr("type") == ast_.Var("", "OP_ARG_CONST_TENSOR"),
-        {ast_.Var("", "report_inputs").PushBack(ast_.Var("", "_entry"))},
-        {ast_.Var("", "report_outputs").PushBack(ast_.Var("", "_entry"))}),
-    ast_.Break(),
+      ast_.Assign(
+          ast_.Var("", "_addr"),
+          ast_.ReinterpretCast(
+              "uint64_t", ast_.Call("ResolveOpAddr", {a.Attr("addr").Attr("mem_src"), a.Attr("addr").Attr("offset"),
+                                                      ctx.Attr("total_dev_mem_ptr"), ctx.Attr("session_scope_mem_ptr"),
+                                                      ctx.Attr("constants")}))),
+      ast_.Var("", "io_tensors")
+          .PushBack(ast_.Call(
+              "BuildOm2Tensor",
+              {ast_.ReinterpretCast("void *", ast_.Var("", "_addr")), a.Attr("data").Attr("tensor").Attr("size"),
+               a.Attr("data").Attr("tensor").Attr("data_type"), a.Attr("data").Attr("tensor").Attr("format"),
+               a.Attr("data").Attr("tensor").Attr("shape"), a.Attr("data").Attr("tensor").Attr("num_shape_dims")})),
+      ast_.VarDecl(ast_.Var("Om2TaskIoEntry", "_entry"),
+                   ast_.InitList({ast_.Var("", "io_tensors").Attr("back")().Addr(),
+                                  a.Attr("data").Attr("tensor").Attr("args_offset")})),
+      ast_.If(a.Attr("type") == ast_.Var("", "OP_ARG_INPUT") || a.Attr("type") == ast_.Var("", "OP_ARG_CONST_TENSOR"),
+              {ast_.Var("", "report_inputs").PushBack(ast_.Var("", "_entry"))},
+              {ast_.Var("", "report_outputs").PushBack(ast_.Var("", "_entry"))}),
+      ast_.Break(),
   };
 }
 
-std::vector<BodyItem> KernelTaskCodeBuilder::HandleWorkspaceArg(
-    const VarRef &a, const VarRef &ctx) {
+std::vector<BodyItem> KernelTaskCodeBuilder::HandleWorkspaceArg(const VarRef &a, const VarRef &ctx) {
   return {
-    ast_.Assign(ast_.Var("", "_addr"),
-        ast_.ReinterpretCast("uint64_t",
-            ast_.Call("ResolveOpAddr",
-                {a.Attr("addr").Attr("mem_src"),
-                 a.Attr("addr").Attr("offset"),
-                 ctx.Attr("total_dev_mem_ptr"),
-                 ctx.Attr("session_scope_mem_ptr"),
-                 ctx.Attr("constants")}))),
-    ast_.Var("", "report_workspace_addrs").PushBack(ast_.Var("", "_addr")),
-    ast_.Var("", "report_workspace_sizes").PushBack(
-        a.Attr("data").Attr("tensor").Attr("size")),
-    ast_.Break(),
+      ast_.Assign(
+          ast_.Var("", "_addr"),
+          ast_.ReinterpretCast(
+              "uint64_t", ast_.Call("ResolveOpAddr", {a.Attr("addr").Attr("mem_src"), a.Attr("addr").Attr("offset"),
+                                                      ctx.Attr("total_dev_mem_ptr"), ctx.Attr("session_scope_mem_ptr"),
+                                                      ctx.Attr("constants")}))),
+      ast_.Var("", "report_workspace_addrs").PushBack(ast_.Var("", "_addr")),
+      ast_.Var("", "report_workspace_sizes").PushBack(a.Attr("data").Attr("tensor").Attr("size")),
+      ast_.Break(),
   };
 }
-std::vector<BodyItem> KernelTaskCodeBuilder::HandleLevel1DescArg(
-    const VarRef &a, const VarRef &ctx) {
+std::vector<BodyItem> KernelTaskCodeBuilder::HandleLevel1DescArg(const VarRef &a, const VarRef &ctx) {
   return {
-    ast_.VarDecl(ast_.Var("void *", "_desc"),
-        ctx.Attr("args_table").Attr("GetDevArgAddr")(
-            a.Attr("data").Attr("custom_value"))),
-    ChkNotNull(ast_.Var("", "_desc")),
-    ast_.Assign(ast_.Var("", "_addr"),
-        ast_.ReinterpretCast("uint64_t", ast_.Var("", "_desc"))),
-    ast_.Break(),
+      ast_.VarDecl(ast_.Var("void *", "_desc"),
+                   ctx.Attr("args_table").Attr("GetDevArgAddr")(a.Attr("data").Attr("custom_value"))),
+      ChkNotNull(ast_.Var("", "_desc")),
+      ast_.Assign(ast_.Var("", "_addr"), ast_.ReinterpretCast("uint64_t", ast_.Var("", "_desc"))),
+      ast_.Break(),
   };
 }
 
-std::vector<BodyItem> KernelTaskCodeBuilder::HandleShapeInfoOrCustomValueArg(
-    const VarRef &a) {
+std::vector<BodyItem> KernelTaskCodeBuilder::HandleShapeInfoOrCustomValueArg(const VarRef &a) {
   return {
-    ast_.Assign(ast_.Var("", "_addr"),
-        a.Attr("data").Attr("custom_value")),
-    ast_.Break(),
+      ast_.Assign(ast_.Var("", "_addr"), a.Attr("data").Attr("custom_value")),
+      ast_.Break(),
   };
 }
 
 std::vector<BodyItem> KernelTaskCodeBuilder::HandlePlaceholderOrOptionalEmptyArg() {
   return {
-    ast_.Assign(ast_.Var("", "_addr"), ast_.UInt(0)),
-    ast_.Break(),
+      ast_.Assign(ast_.Var("", "_addr"), ast_.UInt(0)),
+      ast_.Break(),
   };
 }
 
 std::vector<BodyItem> KernelTaskCodeBuilder::HandleFftsAddrArg() {
   return {
-    ast_.VarDecl(ast_.Var("void *", "_ffts"), Arg(nullptr)),
-    ChkStatus(ast_.Call("aclrtGetHardwareSyncAddr",
-        {ast_.Var("", "_ffts").Addr()})),
-    ast_.Assign(ast_.Var("", "_addr"),
-        ast_.ReinterpretCast("uint64_t", ast_.Var("", "_ffts"))),
-    ast_.Break(),
+      ast_.VarDecl(ast_.Var("void *", "_ffts"), Arg(nullptr)),
+      ChkStatus(ast_.Call("aclrtGetHardwareSyncAddr", {ast_.Var("", "_ffts").Addr()})),
+      ast_.Assign(ast_.Var("", "_addr"), ast_.ReinterpretCast("uint64_t", ast_.Var("", "_ffts"))),
+      ast_.Break(),
   };
 }
 
-std::vector<BodyItem> KernelTaskCodeBuilder::HandleEventAddrArg(
-    const VarRef &a, const VarRef &ctx) {
+std::vector<BodyItem> KernelTaskCodeBuilder::HandleEventAddrArg(const VarRef &a, const VarRef &ctx) {
   return {
-    ast_.VarDecl(ast_.Var("void *", "_event"), Arg(nullptr)),
-    ChkStatus(ast_.Call("GetEventIdAddr",
-        {ast_.Var("", "_event"),
-         ctx.Attr("event_id_mem_map"),
-         ast_.StaticCast("uint32_t",
-             a.Attr("data").Attr("custom_value")),
-         ctx.Attr("dev_dynamic_mem_ptrs")})),
-    ast_.Assign(ast_.Var("", "_addr"),
-        ast_.ReinterpretCast("uint64_t", ast_.Var("", "_event"))),
-    ast_.Break(),
+      ast_.VarDecl(ast_.Var("void *", "_event"), Arg(nullptr)),
+      ChkStatus(ast_.Call("GetEventIdAddr", {ast_.Var("", "_event"), ctx.Attr("event_id_mem_map"),
+                                             ast_.StaticCast("uint32_t", a.Attr("data").Attr("custom_value")),
+                                             ctx.Attr("dev_dynamic_mem_ptrs")})),
+      ast_.Assign(ast_.Var("", "_addr"), ast_.ReinterpretCast("uint64_t", ast_.Var("", "_event"))),
+      ast_.Break(),
   };
 }
 
-std::vector<BodyItem> KernelTaskCodeBuilder::HandleOverflowAddrArg(
-    const VarRef &ctx) {
+std::vector<BodyItem> KernelTaskCodeBuilder::HandleOverflowAddrArg(const VarRef &ctx) {
   return {
-    ast_.Assign(ast_.Var("", "_addr"),
-        ast_.ReinterpretCast("uint64_t",
-            ctx.Attr("overflow_addr"))),
-    ast_.Break(),
+      ast_.Assign(ast_.Var("", "_addr"), ast_.ReinterpretCast("uint64_t", ctx.Attr("overflow_addr"))),
+      ast_.Break(),
   };
 }
 
-std::vector<BodyItem> KernelTaskCodeBuilder::HandleTilingArg(
-    const VarRef &a, const VarRef &ctx) {
+std::vector<BodyItem> KernelTaskCodeBuilder::HandleTilingArg(const VarRef &a, const VarRef &ctx) {
   return {
-    ast_.VarDecl(ast_.Var("void *", "_tiling"), Arg(nullptr)),
-    ChkStatus(ast_.Call("MallocDeviceMemory",
-        {ast_.Var("", "_tiling"),
-         a.Attr("data").Attr("tiling").Attr("raw_data_len"),
-         ast_.UInt(2),
-         ctx.Attr("dev_dynamic_mem_ptrs")})),
-    ChkStatus(ast_.Call("aclrtMemcpy",
-        {ast_.Var("", "_tiling"),
-         a.Attr("data").Attr("tiling").Attr("raw_data_len"),
-         a.Attr("data").Attr("tiling").Attr("raw_data"),
-         a.Attr("data").Attr("tiling").Attr("raw_data_len"),
-         ast_.Var("", "ACL_MEMCPY_HOST_TO_DEVICE")})),
-    ast_.Assign(ast_.Var("", "_addr"),
-        ast_.ReinterpretCast("uint64_t", ast_.Var("", "_tiling"))),
-    ast_.Break(),
+      ast_.VarDecl(ast_.Var("void *", "_tiling"), Arg(nullptr)),
+      ChkStatus(
+          ast_.Call("MallocDeviceMemory", {ast_.Var("", "_tiling"), a.Attr("data").Attr("tiling").Attr("raw_data_len"),
+                                           ast_.UInt(2), ctx.Attr("dev_dynamic_mem_ptrs")})),
+      ChkStatus(ast_.Call("aclrtMemcpy", {ast_.Var("", "_tiling"), a.Attr("data").Attr("tiling").Attr("raw_data_len"),
+                                          a.Attr("data").Attr("tiling").Attr("raw_data"),
+                                          a.Attr("data").Attr("tiling").Attr("raw_data_len"),
+                                          ast_.Var("", "ACL_MEMCPY_HOST_TO_DEVICE")})),
+      ast_.Assign(ast_.Var("", "_addr"), ast_.ReinterpretCast("uint64_t", ast_.Var("", "_tiling"))),
+      ast_.Break(),
   };
 }
 
 std::vector<BodyItem> KernelTaskCodeBuilder::HandleDefaultArg() {
   return {
-    ast_.Assign(ast_.Var("", "_addr"), ast_.UInt(0)),
-    ast_.Break(),
+      ast_.Assign(ast_.Var("", "_addr"), ast_.UInt(0)),
+      ast_.Break(),
   };
 }
 
-Status KernelTaskCodeBuilder::RenderOpDefTableFields(std::vector<std::pair<std::string, Arg>> &fields, uint32_t dispatch_type) {
+Status KernelTaskCodeBuilder::RenderOpDefTableFields(std::vector<std::pair<std::string, Arg>> &fields,
+                                                     uint32_t dispatch_type) {
   TaskCodeBuilder::RenderOpDefTableFields(fields, dispatch_type);
   const auto &opdef_data = GetOpDefBuildData();
   const auto &header = GetHeader();
@@ -2227,7 +2154,7 @@ Status KernelTaskCodeBuilder::RenderOpDefTableFields(std::vector<std::pair<std::
       {"need_assert_or_printf", static_cast<int64_t>(data.need_assert_or_printf)},
       {"num_l0_slots", static_cast<int64_t>(data.ordered_arg_values.size())},
       {"l0_slots", ast_.CCast("const Om2L0ArgSlotInfo[]",
-          TaskCodeBuilderUtil::BuildL0ArgSlotEntries(ast_, data.ordered_arg_values))},
+                              TaskCodeBuilderUtil::BuildL0ArgSlotEntries(ast_, data.ordered_arg_values))},
   };
   auto aicore_fields = std::vector<std::pair<std::string, Arg>>{
       {"op_type", Arg::StringLiteral(header.op_type)},
@@ -2238,7 +2165,8 @@ Status KernelTaskCodeBuilder::RenderOpDefTableFields(std::vector<std::pair<std::
       {"l0", ast_.InitListWithDesignators(l0_fields, true)},
   };
   GELOGI("[OM2] BuildOpDefTable: op=%s, func_idx=%u", header.op_name.c_str(), data.func_idx);
-  fields.push_back({"task_data", ast_.InitListWithDesignators({{"aicore", ast_.InitListWithDesignators(aicore_fields)}})});
+  fields.push_back(
+      {"task_data", ast_.InitListWithDesignators({{"aicore", ast_.InitListWithDesignators(aicore_fields)}})});
   return SUCCESS;
 }
 

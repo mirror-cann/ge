@@ -113,7 +113,7 @@ Provides two verification methods: online inference and ATC offline model compil
 
       ```python
       python torch_forward.py
-      ```  
+      ```
 
    - Log shows:
 

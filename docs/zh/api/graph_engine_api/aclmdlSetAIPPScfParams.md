@@ -116,4 +116,3 @@ uint64_t batchIndex)
 ## 约束说明<a name="section112191137135115"></a>
 
 缩放比例scfOutputSizeW/scfInputSizeW∈\[1/16,16\]、scfOutputSizeH/scfInputSizeH∈\[1/16,16\]。
-

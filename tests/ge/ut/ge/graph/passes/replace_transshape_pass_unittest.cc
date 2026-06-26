@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -13,7 +13,6 @@
 #include <gtest/gtest.h>
 #include "ge_graph_dsl/graph_dsl.h"
 #include "graph/passes/shape_optimize/replace_transshape_pass.h"
-
 
 using namespace testing;
 using namespace ge;
@@ -26,7 +25,7 @@ class UtestReplaceTransShapePass : public testing::Test {
 
 namespace {
 /**
- * 
+ *
  *          netoutput1
  *           /  c   \
  *  trans_shape - identity
@@ -53,7 +52,7 @@ static ComputeGraphPtr BuildGraph() {
   };
   return ToComputeGraph(g1);
 }
-} // namespace
+}  // namespace
 
 TEST_F(UtestReplaceTransShapePass, test_normal_succ) {
   const auto graph = BuildGraph();
@@ -72,4 +71,4 @@ TEST_F(UtestReplaceTransShapePass, test_normal_succ) {
   EXPECT_EQ(trans_shape->GetInAllNodes().size(), 0);
   EXPECT_EQ(trans_shape->GetOutAllNodes().size(), 0);
 }
-} // namespace ge
+}  // namespace ge

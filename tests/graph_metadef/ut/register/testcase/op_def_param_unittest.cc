@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -161,10 +161,7 @@ TEST_F(OpDefParamUT, FollowParamTest) {
       .ValueDepend(Option::REQUIRED)
       .IgnoreContiguous()
       .AutoContiguous();
-  desc.Input("x2")
-      .ParamType(Option::OPTIONAL)
-      .Follow("x1")
-      .ValueDepend(Option::REQUIRED);
+  desc.Input("x2").ParamType(Option::OPTIONAL).Follow("x1").ValueDepend(Option::REQUIRED);
   desc.Output("y")
       .ParamType(Option::OPTIONAL)
       .Follow("x2")
@@ -182,22 +179,14 @@ TEST_F(OpDefParamUT, FollowParamTest) {
 }
 TEST_F(OpDefParamUT, FollowListParamTest) {
   OpParamTrunk desc;
-  desc.Input("x1")
-      .ParamType(Option::OPTIONAL)
-      .DataTypeList({ge::DT_FLOAT16})
-      .FormatList({ge::FORMAT_ND});
+  desc.Input("x1").ParamType(Option::OPTIONAL).DataTypeList({ge::DT_FLOAT16}).FormatList({ge::FORMAT_ND});
   desc.Input("x2")
       .ParamType(Option::OPTIONAL)
       .Follow("x1", FollowType::DTYPE)
       .FormatList({ge::FORMAT_ND})
       .ValueDepend(Option::REQUIRED);
-  desc.Output("y")
-      .ParamType(Option::OPTIONAL)
-      .Follow("x2", (FollowType)5)
-      .Follow("x2", FollowType::DTYPE);
-  desc.Output("x1")
-      .ParamType(Option::OPTIONAL)
-      .Follow("x1");
+  desc.Output("y").ParamType(Option::OPTIONAL).Follow("x2", (FollowType)5).Follow("x2", FollowType::DTYPE);
+  desc.Output("x1").ParamType(Option::OPTIONAL).Follow("x1");
 
   desc.FollowDataImpl();
   auto flwMap = desc.GetFollowMap();

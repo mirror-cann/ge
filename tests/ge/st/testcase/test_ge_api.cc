@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -56,21 +56,9 @@ ge::Graph BuildDynamicAddGraph() {
   vector<std::string> engine_list = {"AIcoreEngine"};
   std::vector<int64_t> memtype_list = {RT_MEMORY_HBM, RT_MEMORY_HBM};
   std::vector<int64_t> shape{-1, -1, 3, 4};
-  auto data_1 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Build("data_1");
-  auto data_2 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Build("data_2");
-  auto add_1 = OP_CFG(ADD)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(2)
-      .OutCnt(1)
-      .Build("add_1");
+  auto data_1 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(1).OutCnt(1).Build("data_1");
+  auto data_2 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(1).OutCnt(1).Build("data_2");
+  auto add_1 = OP_CFG(ADD).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(2).OutCnt(1).Build("add_1");
 
   auto netoutput = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).Build("netoutput");
   DEF_GRAPH(g1) {
@@ -82,7 +70,7 @@ ge::Graph BuildDynamicAddGraph() {
   auto graph = ToGeGraph(g1);
   return graph;
 }
-}
+}  // namespace
 class GeApiTest : public testing::Test {
  protected:
   void SetUp() {}
@@ -172,7 +160,6 @@ TEST_F(GeApiTest, parallel_api_deleted) {
   EXPECT_EQ(session.SaveGraphsToPb(nullptr), FAILED);
 }
 
-
 TEST_F(GeApiTest, ge_session_session_id_invalid_02) {
   std::map<std::string, std::string> options;
   EXPECT_EQ(GEInitialize(options), SUCCESS);
@@ -225,7 +212,7 @@ TEST_F(GeApiTest, ge_session_test) {
   vector<Tensor> outputs;
   EXPECT_NE(session.RunGraph(graph_id, inputs, outputs), SUCCESS);
   EXPECT_EQ(session.RunGraphWithStreamAsync(graph_id, nullptr, inputs, outputs), FAILED);
-  EXPECT_EQ(session.RunGraphAsync(graph_id, inputs, nullptr), SUCCESS); // Push to queue.
+  EXPECT_EQ(session.RunGraphAsync(graph_id, inputs, nullptr), SUCCESS);  // Push to queue.
 
   vector<string> var_inputs;
   EXPECT_EQ(session.GetVariables(var_inputs, outputs), FAILED);
@@ -252,8 +239,7 @@ TEST_F(GeApiTest, ge_session_test_fail) {
 
   options.insert(pair<std::string, std::string>("ge.optionInvalid", "invalid"));
   Session session1(options);
-  std::map<AscendString, AscendString> ascend_options = {
-    {AscendString("ge.optionInvalid"), AscendString("invalid")}};
+  std::map<AscendString, AscendString> ascend_options = {{AscendString("ge.optionInvalid"), AscendString("invalid")}};
   Session session2(ascend_options);
   EXPECT_EQ(GEFinalize(), SUCCESS);
   ReInitGe();
@@ -270,8 +256,7 @@ TEST_F(GeApiTest, AddGraph_test_fail) {
   Session session(options);
   options.insert(pair<std::string, std::string>("ge.optionInvalid", "invalid"));
   (void)session.AddGraph(graph_id, graph, option);
-  std::map<AscendString, AscendString> ascend_options = {
-    {AscendString("ge.optionInvalid"), AscendString("invalid")}};
+  std::map<AscendString, AscendString> ascend_options = {{AscendString("ge.optionInvalid"), AscendString("invalid")}};
   (void)session.AddGraph(graph_id, graph, ascend_options);
   (void)session.AddGraphWithCopy(graph_id, graph, ascend_options);
   EXPECT_EQ(GEFinalize(), SUCCESS);
@@ -313,11 +298,7 @@ TEST_F(GeApiTest, run_graph_with_device_tensor) {
 TEST_F(GeApiTest, run_graph_with_checkpoint) {
   vector<std::string> engine_list = {"AIcoreEngine"};
   std::vector<int64_t> shape{1, 2, 3, 4};
-  auto variable_1 = OP_CFG(VARIABLE)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Build("variable_1");
+  auto variable_1 = OP_CFG(VARIABLE).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(1).OutCnt(1).Build("variable_1");
 
   auto netoutput = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).Build("netoutput");
   DEF_GRAPH(g1) {
@@ -351,8 +332,7 @@ TEST_F(GeApiTest, ge_session_info_test) {
 }
 
 TEST_F(GeApiTest, CheckOptionsValueInvalid_test) {
-  std::map<AscendString, AscendString> options = {
-    {AscendString("ge.key"), AscendString("")}};
+  std::map<AscendString, AscendString> options = {{AscendString("ge.key"), AscendString("")}};
   Status ret = ge::GEInitialize(options);
   EXPECT_EQ(ret, SUCCESS);
 }
@@ -393,23 +373,15 @@ ge::Graph BuildAddGraph() {
   vector<std::string> engine_list = {"AIcoreEngine"};
   std::vector<int64_t> memtype_list = {RT_MEMORY_HBM, RT_MEMORY_HBM};
   std::vector<int64_t> shape{1, 2, 3, 4};
-  auto data_1 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Build("data_1");
-  auto data_2 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Build("data_2");
+  auto data_1 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(1).OutCnt(1).Build("data_1");
+  auto data_2 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(1).OutCnt(1).Build("data_2");
   auto add_1 = OP_CFG(ADD)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(2)
-      .OutCnt(1)
-      .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF")
-      .Attr(ATTR_NAME_KERNEL_BIN_ID, "_add_1_fake_id")
-      .Build("add_1");
+                   .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
+                   .InCnt(2)
+                   .OutCnt(1)
+                   .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF")
+                   .Attr(ATTR_NAME_KERNEL_BIN_ID, "_add_1_fake_id")
+                   .Build("add_1");
 
   auto netoutput = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).Build("netoutput");
   DEF_GRAPH(g1) {
@@ -423,35 +395,35 @@ ge::Graph BuildAddGraph() {
 }
 
 void MockGenerateTask() {
-auto aicore_func = [](const Node &node, RunContext &context, std::vector<domi::TaskDef> &tasks) -> Status {
-  if (node.GetType() == CONSTANT) {
+  auto aicore_func = [](const Node &node, RunContext &context, std::vector<domi::TaskDef> &tasks) -> Status {
+    if (node.GetType() == CONSTANT) {
+      return SUCCESS;
+    }
+
+    auto op_desc = node.GetOpDesc();
+    op_desc->SetOpKernelLibName("AiCoreLib");
+    ge::AttrUtils::SetStr(op_desc, ge::TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
+    ge::AttrUtils::SetStr(op_desc, ge::ATTR_NAME_KERNEL_BIN_ID, op_desc->GetName() + "_fake_id");
+    const char kernel_bin[] = "kernel_bin";
+    vector<char> buffer(kernel_bin, kernel_bin + strlen(kernel_bin));
+    ge::OpKernelBinPtr kernel_bin_ptr = std::make_shared<ge::OpKernelBin>("test", std::move(buffer));
+    op_desc->SetExtAttr(ge::OP_EXTATTR_NAME_TBE_KERNEL, kernel_bin_ptr);
+    size_t arg_size = 100;
+    std::vector<uint8_t> args(arg_size, 0);
+    domi::TaskDef task_def;
+    task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_KERNEL));
+    auto kernel_info = task_def.mutable_kernel();
+    kernel_info->set_args(args.data(), args.size());
+    kernel_info->set_args_size(arg_size);
+    kernel_info->mutable_context()->set_kernel_type(static_cast<uint32_t>(ccKernelType::TE));
+    kernel_info->set_kernel_name(node.GetName());
+    kernel_info->set_block_dim(1);
+    uint16_t args_offset[2] = {0};
+    kernel_info->mutable_context()->set_args_offset(args_offset, 2 * sizeof(uint16_t));
+    kernel_info->mutable_context()->set_op_index(node.GetOpDesc()->GetId());
+
+    tasks.emplace_back(task_def);
     return SUCCESS;
-  }
-
-  auto op_desc = node.GetOpDesc();
-  op_desc->SetOpKernelLibName("AiCoreLib");
-  ge::AttrUtils::SetStr(op_desc, ge::TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
-  ge::AttrUtils::SetStr(op_desc, ge::ATTR_NAME_KERNEL_BIN_ID, op_desc->GetName() + "_fake_id");
-  const char kernel_bin[] = "kernel_bin";
-  vector<char> buffer(kernel_bin, kernel_bin + strlen(kernel_bin));
-  ge::OpKernelBinPtr kernel_bin_ptr = std::make_shared<ge::OpKernelBin>("test", std::move(buffer));
-  op_desc->SetExtAttr(ge::OP_EXTATTR_NAME_TBE_KERNEL, kernel_bin_ptr);
-  size_t arg_size = 100;
-  std::vector<uint8_t> args(arg_size, 0);
-  domi::TaskDef task_def;
-  task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_KERNEL));
-  auto kernel_info = task_def.mutable_kernel();
-  kernel_info->set_args(args.data(), args.size());
-  kernel_info->set_args_size(arg_size);
-  kernel_info->mutable_context()->set_kernel_type(static_cast<uint32_t>(ccKernelType::TE));
-  kernel_info->set_kernel_name(node.GetName());
-  kernel_info->set_block_dim(1);
-  uint16_t args_offset[2] = {0};
-  kernel_info->mutable_context()->set_args_offset(args_offset, 2 * sizeof(uint16_t));
-  kernel_info->mutable_context()->set_op_index(node.GetOpDesc()->GetId());
-
-  tasks.emplace_back(task_def);
-  return SUCCESS;
   };
 
   auto rts_func = [](const Node &node, RunContext &context, std::vector<domi::TaskDef> &tasks) -> Status {
@@ -505,25 +477,25 @@ void RunSession(bool compile, int threadId) {
       gert_inputs.resize(2);
       gert_outputs.resize(1);
       std::vector<int32_t> input_data_1(1 * 2 * 3 * 4, 666);
-      gert_inputs[0] = {{{1,2,3,4}, {1,2,3,4}},                // shape
-                                {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                                gert::kOnDeviceHbm,                                // placement
-                                ge::DT_INT32,                              // data type
-                                (void *) input_data_1.data()};
+      gert_inputs[0] = {{{1, 2, 3, 4}, {1, 2, 3, 4}},                // shape
+                        {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                        gert::kOnDeviceHbm,                          // placement
+                        ge::DT_INT32,                                // data type
+                        (void *)input_data_1.data()};
 
       std::vector<int32_t> input_data_2(1 * 2 * 3 * 4, 666);
-      gert_inputs[1] = {{{1,2,3,4}, {1,2,3,4}},                // shape
-                                {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                                gert::kOnDeviceHbm,                                // placement
-                                ge::DT_INT32,                              // data type
-                                (void *) input_data_2.data()};
+      gert_inputs[1] = {{{1, 2, 3, 4}, {1, 2, 3, 4}},                // shape
+                        {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                        gert::kOnDeviceHbm,                          // placement
+                        ge::DT_INT32,                                // data type
+                        (void *)input_data_2.data()};
 
       std::vector<uint8_t> output_data_1(96, 0xFF);
-      gert_outputs[0] = {{{1,2,3,4}, {1,2,3,4}},                // shape
-                              {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                              gert::kOnDeviceHbm,                                // placement
-                              ge::DT_INT32,                              // data type
-                              (void *) output_data_1.data()};
+      gert_outputs[0] = {{{1, 2, 3, 4}, {1, 2, 3, 4}},                // shape
+                         {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                         gert::kOnDeviceHbm,                          // placement
+                         ge::DT_INT32,                                // data type
+                         (void *)output_data_1.data()};
       ge::diagnoseSwitch::DisableDumper();
       runtime_stub.Clear();
       EXPECT_EQ(SUCCESS, session.ExecuteGraphWithStreamAsync(graph_id, nullptr, gert_inputs, gert_outputs));
@@ -559,7 +531,7 @@ TEST_F(GeApiTest, session_run_graph_with_stream_async_parallel) {
   MockGenerateTask();
   DUMP_GRAPH_WHEN("PreRunAfterBuild");
 
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
   const std::string fail_collect_path = (std::string(&npu_collect_path[0U]) + "/mock_fail");
@@ -584,14 +556,14 @@ TEST_F(GeApiTest, ExecuteGraphWithStreamAsync_Ok_StaticGraphEnableGeProfiling) {
   std::map<std::string, std::string> options;
   EXPECT_EQ(GEInitialize(options), SUCCESS);
 
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
   const std::string fail_collect_path = (std::string(&npu_collect_path[0U]) + "/mock_fail");
   mmSetEnv(kEnvValue, fail_collect_path.c_str(), 1);
   ge::SlogStub::SetInstance(std::make_shared<SlogStubImpl>());
 
-  setenv("GE_PROFILING_TO_STD_OUT", "1", 1); // Reset for it`s set in main.
+  setenv("GE_PROFILING_TO_STD_OUT", "1", 1);  // Reset for it`s set in main.
   RunSession(true, 0);
   unsetenv("GE_PROFILING_TO_STD_OUT");
   ge::char_t current_path[MMPA_MAX_PATH] = {'\0'};
@@ -609,8 +581,7 @@ TEST_F(GeApiTest, ExecuteGraphWithStreamAsync_Ok_StaticGraphEnableGeProfiling) {
 
 TEST_F(GeApiTest, CheckOptionsKeyInvalid_test) {
   GEFinalize();
-  std::map<AscendString, AscendString> options = {
-    {AscendString(""), AscendString("Placeholder:0;Placeholder_1:1")}};
+  std::map<AscendString, AscendString> options = {{AscendString(""), AscendString("Placeholder:0;Placeholder_1:1")}};
   Status ret = ge::GEInitialize(options);
   EXPECT_NE(ret, SUCCESS);
   ge::GEGetErrorMsgV2();
@@ -834,86 +805,87 @@ TEST_F(GeApiTest, test_ExecuteGraphWithStreamAsync) {
 
   std::map<AscendString, AscendString> options;
   {
-  Session session(options_init);
+    Session session(options_init);
 
-  auto graph = BuildAddGraph();
-  uint32_t graph_id = 1;
-  session.AddGraph(graph_id, graph);
-  // no compiled failed
-  EXPECT_NE(session.LoadGraph(graph_id, options, nullptr), SUCCESS);
+    auto graph = BuildAddGraph();
+    uint32_t graph_id = 1;
+    session.AddGraph(graph_id, graph);
+    // no compiled failed
+    EXPECT_NE(session.LoadGraph(graph_id, options, nullptr), SUCCESS);
 
-  auto ret = session.CompileGraph(graph_id);
-  EXPECT_EQ(ret, SUCCESS);
+    auto ret = session.CompileGraph(graph_id);
+    EXPECT_EQ(ret, SUCCESS);
 
-  // Loadgraph with invalid option
-  std::map<AscendString, AscendString> options_invalid;
-  options_invalid.emplace("ge.exec.frozenInputIndexes", "2a");
-  ret = session.LoadGraph(graph_id, options_invalid, nullptr);
-  EXPECT_NE(ret, SUCCESS);
+    // Loadgraph with invalid option
+    std::map<AscendString, AscendString> options_invalid;
+    options_invalid.emplace("ge.exec.frozenInputIndexes", "2a");
+    ret = session.LoadGraph(graph_id, options_invalid, nullptr);
+    EXPECT_NE(ret, SUCCESS);
 
-  options_invalid.clear();
-  options_invalid.emplace("ge.exec.frozenInputIndexes", "0,b,8");
-  ret = session.LoadGraph(graph_id, options_invalid, nullptr);
-  EXPECT_NE(ret, SUCCESS);
+    options_invalid.clear();
+    options_invalid.emplace("ge.exec.frozenInputIndexes", "0,b,8");
+    ret = session.LoadGraph(graph_id, options_invalid, nullptr);
+    EXPECT_NE(ret, SUCCESS);
 
-  options_invalid.clear();
-  options_invalid.emplace("ge.exec.frozenInputIndexes", "0,99999999999999999999999999999999999999999999999999999999999999999999999,8");
-  ret = session.LoadGraph(graph_id, options_invalid, nullptr);
-  EXPECT_NE(ret, SUCCESS);
+    options_invalid.clear();
+    options_invalid.emplace("ge.exec.frozenInputIndexes",
+                            "0,99999999999999999999999999999999999999999999999999999999999999999999999,8");
+    ret = session.LoadGraph(graph_id, options_invalid, nullptr);
+    EXPECT_NE(ret, SUCCESS);
 
-  options.emplace("ge.exec.frozenInputIndexes", "0,1111,10");
-  ret = session.LoadGraph(graph_id, options, nullptr);
-  EXPECT_EQ(ret, SUCCESS);
+    options.emplace("ge.exec.frozenInputIndexes", "0,1111,10");
+    ret = session.LoadGraph(graph_id, options, nullptr);
+    EXPECT_EQ(ret, SUCCESS);
 
-  const CompiledGraphSummaryPtr summary = session.GetCompiledGraphSummary(graph_id);
-  EXPECT_NE(summary, nullptr);
-  size_t weight_size, feature_size;
-  EXPECT_EQ(SUCCESS, summary->GetConstMemorySize(weight_size));
-  EXPECT_EQ(SUCCESS, summary->GetFeatureMemorySize(feature_size));
-  bool is_refreshable = false;
-  EXPECT_EQ(SUCCESS, summary->GetFeatureMemoryBaseRefreshable(is_refreshable));
-  EXPECT_EQ(is_refreshable, true);
+    const CompiledGraphSummaryPtr summary = session.GetCompiledGraphSummary(graph_id);
+    EXPECT_NE(summary, nullptr);
+    size_t weight_size, feature_size;
+    EXPECT_EQ(SUCCESS, summary->GetConstMemorySize(weight_size));
+    EXPECT_EQ(SUCCESS, summary->GetFeatureMemorySize(feature_size));
+    bool is_refreshable = false;
+    EXPECT_EQ(SUCCESS, summary->GetFeatureMemoryBaseRefreshable(is_refreshable));
+    EXPECT_EQ(is_refreshable, true);
 
-  std::vector<uint8_t> feature_mem(feature_size, 0);
-  EXPECT_EQ(SUCCESS, session.UpdateGraphFeatureMemoryBase(graph_id, feature_mem.data(), feature_size));
+    std::vector<uint8_t> feature_mem(feature_size, 0);
+    EXPECT_EQ(SUCCESS, session.UpdateGraphFeatureMemoryBase(graph_id, feature_mem.data(), feature_size));
 
-  std::vector<ge::Tensor> inputs;
-  std::vector<ge::Tensor> outputs;
-  ConstructInputOutputTensor(inputs, outputs);
-  ge::diagnoseSwitch::DisableDumper();
+    std::vector<ge::Tensor> inputs;
+    std::vector<ge::Tensor> outputs;
+    ConstructInputOutputTensor(inputs, outputs);
+    ge::diagnoseSwitch::DisableDumper();
 
-  std::vector<gert::Tensor> gert_inputs;
-  std::vector<gert::Tensor> gert_outputs;
-  gert_inputs.resize(2);
-  gert_outputs.resize(1);
-  std::vector<int32_t> input_data_1(1 * 2 * 3 * 4, 666);
-  gert_inputs[0] = {{{1,2,3,4}, {1,2,3,4}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            gert::kOnDeviceHbm,                                // placement
-                            ge::DT_INT32,                              // data type
-                            (void *) input_data_1.data()};
+    std::vector<gert::Tensor> gert_inputs;
+    std::vector<gert::Tensor> gert_outputs;
+    gert_inputs.resize(2);
+    gert_outputs.resize(1);
+    std::vector<int32_t> input_data_1(1 * 2 * 3 * 4, 666);
+    gert_inputs[0] = {{{1, 2, 3, 4}, {1, 2, 3, 4}},                // shape
+                      {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                      gert::kOnDeviceHbm,                          // placement
+                      ge::DT_INT32,                                // data type
+                      (void *)input_data_1.data()};
 
-  std::vector<int32_t> input_data_2(1 * 2 * 3 * 4, 666);
-  gert_inputs[1] = {{{1,2,3,4}, {1,2,3,4}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            gert::kOnDeviceHbm,                                // placement
-                            ge::DT_INT32,                              // data type
-                            (void *) input_data_2.data()};
+    std::vector<int32_t> input_data_2(1 * 2 * 3 * 4, 666);
+    gert_inputs[1] = {{{1, 2, 3, 4}, {1, 2, 3, 4}},                // shape
+                      {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                      gert::kOnDeviceHbm,                          // placement
+                      ge::DT_INT32,                                // data type
+                      (void *)input_data_2.data()};
 
-  std::vector<uint8_t> output_data_1(96, 0xFF);
-  gert_outputs[0] = {{{1,2,3,4}, {1,2,3,4}},                // shape
-                          {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                          gert::kOnDeviceHbm,                                // placement
-                          ge::DT_INT32,                              // data type
-                          (void *) output_data_1.data()};
-  ge::diagnoseSwitch::DisableDumper();
-  runtime_stub.Clear();
-  EXPECT_EQ(SUCCESS, session.ExecuteGraphWithStreamAsync(graph_id, nullptr, gert_inputs, gert_outputs));
+    std::vector<uint8_t> output_data_1(96, 0xFF);
+    gert_outputs[0] = {{{1, 2, 3, 4}, {1, 2, 3, 4}},                // shape
+                       {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                       gert::kOnDeviceHbm,                          // placement
+                       ge::DT_INT32,                                // data type
+                       (void *)output_data_1.data()};
+    ge::diagnoseSwitch::DisableDumper();
+    runtime_stub.Clear();
+    EXPECT_EQ(SUCCESS, session.ExecuteGraphWithStreamAsync(graph_id, nullptr, gert_inputs, gert_outputs));
 
-  rtStream_t stream = (void *)0x123;
-  EXPECT_EQ(SUCCESS, session.ExecuteGraphWithStreamAsync(graph_id, stream, gert_inputs, gert_outputs));
-  runtime_stub.Clear();
-}
+    rtStream_t stream = (void *)0x123;
+    EXPECT_EQ(SUCCESS, session.ExecuteGraphWithStreamAsync(graph_id, stream, gert_inputs, gert_outputs));
+    runtime_stub.Clear();
+  }
 }
 
 TEST_F(GeApiTest, test_ExecuteGraphWithStreamAsync_with_hint_option) {
@@ -958,31 +930,31 @@ TEST_F(GeApiTest, test_ExecuteGraphWithStreamAsync_with_hint_option) {
     gert_inputs.resize(2);
     gert_outputs.resize(2);
     std::vector<int32_t> input_data_1(2 * 4, 666);
-    gert_inputs[0] = {{{4, 2}, {4, 2}},                // shape
+    gert_inputs[0] = {{{4, 2}, {4, 2}},                            // shape
                       {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                      gert::kOnDeviceHbm,                                // placement
-                      ge::DT_INT32,                              // data type
-                      (void *) input_data_1.data()};
+                      gert::kOnDeviceHbm,                          // placement
+                      ge::DT_INT32,                                // data type
+                      (void *)input_data_1.data()};
 
     std::vector<int32_t> input_data_2(2 * 4, 666);
-    gert_inputs[1] = {{{4, 2}, {4, 2}},                // shape
+    gert_inputs[1] = {{{4, 2}, {4, 2}},                            // shape
                       {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                      gert::kOnDeviceHbm,                                // placement
-                      ge::DT_INT32,                              // data type
-                      (void *) input_data_2.data()};
+                      gert::kOnDeviceHbm,                          // placement
+                      ge::DT_INT32,                                // data type
+                      (void *)input_data_2.data()};
 
     std::vector<uint8_t> output_data_1(96, 0xFF);
-    gert_outputs[0] = {{{4, 2}, {4, 2}},                // shape
+    gert_outputs[0] = {{{4, 2}, {4, 2}},                            // shape
                        {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                       gert::kOnDeviceHbm,                                // placement
-                       ge::DT_INT32,                              // data type
-                       (void *) output_data_1.data()};
+                       gert::kOnDeviceHbm,                          // placement
+                       ge::DT_INT32,                                // data type
+                       (void *)output_data_1.data()};
     std::vector<uint8_t> output_data_2(96, 0xFF);
-    gert_outputs[1] = {{{4, 2}, {4, 2}},                // shape
+    gert_outputs[1] = {{{4, 2}, {4, 2}},                            // shape
                        {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                       gert::kOnDeviceHbm,                                // placement
-                       ge::DT_INT32,                              // data type
-                       (void *) output_data_2.data()};
+                       gert::kOnDeviceHbm,                          // placement
+                       ge::DT_INT32,                                // data type
+                       (void *)output_data_2.data()};
     ge::diagnoseSwitch::DisableDumper();
     runtime_stub.Clear();
     EXPECT_EQ(SUCCESS, session.ExecuteGraphWithStreamAsync(graph_id, nullptr, gert_inputs, gert_outputs));
@@ -1007,63 +979,63 @@ TEST_F(GeApiTest, test_GeSessionExecuteGraphWithStreamAsync) {
 
   std::map<AscendString, AscendString> options;
   {
-  Session session(options_init);
+    Session session(options_init);
 
-  auto graph = BuildAddGraph();
-  uint32_t graph_id = 1;
-  session.AddGraph(graph_id, graph);
+    auto graph = BuildAddGraph();
+    uint32_t graph_id = 1;
+    session.AddGraph(graph_id, graph);
 
-  auto ret = session.CompileGraph(graph_id);
-  EXPECT_EQ(ret, SUCCESS);
+    auto ret = session.CompileGraph(graph_id);
+    EXPECT_EQ(ret, SUCCESS);
 
-  ret = GeSessionLoadGraph(session, graph_id, options, nullptr);
-  EXPECT_EQ(ret, SUCCESS);
+    ret = GeSessionLoadGraph(session, graph_id, options, nullptr);
+    EXPECT_EQ(ret, SUCCESS);
 
-  const CompiledGraphSummaryPtr summary = session.GetCompiledGraphSummary(graph_id);
-  EXPECT_NE(summary, nullptr);
-  size_t weight_size, feature_size;
-  EXPECT_EQ(SUCCESS, summary->GetConstMemorySize(weight_size));
-  EXPECT_EQ(SUCCESS, summary->GetFeatureMemorySize(feature_size));
-  bool is_refreshable = false;
-  EXPECT_EQ(SUCCESS, summary->GetFeatureMemoryBaseRefreshable(is_refreshable));
-  EXPECT_EQ(is_refreshable, true);
+    const CompiledGraphSummaryPtr summary = session.GetCompiledGraphSummary(graph_id);
+    EXPECT_NE(summary, nullptr);
+    size_t weight_size, feature_size;
+    EXPECT_EQ(SUCCESS, summary->GetConstMemorySize(weight_size));
+    EXPECT_EQ(SUCCESS, summary->GetFeatureMemorySize(feature_size));
+    bool is_refreshable = false;
+    EXPECT_EQ(SUCCESS, summary->GetFeatureMemoryBaseRefreshable(is_refreshable));
+    EXPECT_EQ(is_refreshable, true);
 
-  std::vector<uint8_t> feature_mem(feature_size, 0);
-  EXPECT_EQ(SUCCESS, session.UpdateGraphFeatureMemoryBase(graph_id, feature_mem.data(), feature_size));
+    std::vector<uint8_t> feature_mem(feature_size, 0);
+    EXPECT_EQ(SUCCESS, session.UpdateGraphFeatureMemoryBase(graph_id, feature_mem.data(), feature_size));
 
-  std::vector<ge::Tensor> inputs;
-  std::vector<ge::Tensor> outputs;
-  ConstructInputOutputTensor(inputs, outputs);
-  ge::diagnoseSwitch::DisableDumper();
+    std::vector<ge::Tensor> inputs;
+    std::vector<ge::Tensor> outputs;
+    ConstructInputOutputTensor(inputs, outputs);
+    ge::diagnoseSwitch::DisableDumper();
 
-  std::vector<gert::Tensor> gert_inputs;
-  std::vector<gert::Tensor> gert_outputs;
-  gert_inputs.resize(2);
-  gert_outputs.resize(1);
-  std::vector<int32_t> input_data_1(1 * 2 * 3 * 4, 666);
-  gert_inputs[0] = {{{1,2,3,4}, {1,2,3,4}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            gert::kOnDeviceHbm,                                // placement
-                            ge::DT_INT32,                              // data type
-                            (void *) input_data_1.data()};
+    std::vector<gert::Tensor> gert_inputs;
+    std::vector<gert::Tensor> gert_outputs;
+    gert_inputs.resize(2);
+    gert_outputs.resize(1);
+    std::vector<int32_t> input_data_1(1 * 2 * 3 * 4, 666);
+    gert_inputs[0] = {{{1, 2, 3, 4}, {1, 2, 3, 4}},                // shape
+                      {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                      gert::kOnDeviceHbm,                          // placement
+                      ge::DT_INT32,                                // data type
+                      (void *)input_data_1.data()};
 
-  std::vector<int32_t> input_data_2(1 * 2 * 3 * 4, 666);
-  gert_inputs[1] = {{{1,2,3,4}, {1,2,3,4}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            gert::kOnDeviceHbm,                                // placement
-                            ge::DT_INT32,                              // data type
-                            (void *) input_data_2.data()};
+    std::vector<int32_t> input_data_2(1 * 2 * 3 * 4, 666);
+    gert_inputs[1] = {{{1, 2, 3, 4}, {1, 2, 3, 4}},                // shape
+                      {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                      gert::kOnDeviceHbm,                          // placement
+                      ge::DT_INT32,                                // data type
+                      (void *)input_data_2.data()};
 
-  std::vector<uint8_t> output_data_1(96, 0xFF);
-  gert_outputs[0] = {{{1,2,3,4}, {1,2,3,4}},                // shape
-                          {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                          gert::kOnDeviceHbm,                                // placement
-                          ge::DT_INT32,                              // data type
-                          (void *) output_data_1.data()};
-  ge::diagnoseSwitch::DisableDumper();
-  runtime_stub.Clear();
-  EXPECT_EQ(SUCCESS, GeSessionExecuteGraphWithStreamAsync(session, graph_id, nullptr, gert_inputs, gert_outputs));
-}
+    std::vector<uint8_t> output_data_1(96, 0xFF);
+    gert_outputs[0] = {{{1, 2, 3, 4}, {1, 2, 3, 4}},                // shape
+                       {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                       gert::kOnDeviceHbm,                          // placement
+                       ge::DT_INT32,                                // data type
+                       (void *)output_data_1.data()};
+    ge::diagnoseSwitch::DisableDumper();
+    runtime_stub.Clear();
+    EXPECT_EQ(SUCCESS, GeSessionExecuteGraphWithStreamAsync(session, graph_id, nullptr, gert_inputs, gert_outputs));
+  }
 }
 
 TEST_F(GeApiTest, test_ExecuteGraphWithStreamAsync_without_compile) {
@@ -1077,49 +1049,49 @@ TEST_F(GeApiTest, test_ExecuteGraphWithStreamAsync_without_compile) {
 
   std::map<AscendString, AscendString> options;
   {
-  Session session(options_init);
+    Session session(options_init);
 
-  auto graph = BuildAddGraph();
-  uint32_t graph_id = 1;
-  session.AddGraph(graph_id, graph);
+    auto graph = BuildAddGraph();
+    uint32_t graph_id = 1;
+    session.AddGraph(graph_id, graph);
 
-  auto ret = session.LoadGraph(graph_id, options, nullptr);
-  EXPECT_NE(ret, SUCCESS);
+    auto ret = session.LoadGraph(graph_id, options, nullptr);
+    EXPECT_NE(ret, SUCCESS);
 
-  std::vector<ge::Tensor> inputs;
-  std::vector<ge::Tensor> outputs;
-  ConstructInputOutputTensor(inputs, outputs);
-  ge::diagnoseSwitch::DisableDumper();
+    std::vector<ge::Tensor> inputs;
+    std::vector<ge::Tensor> outputs;
+    ConstructInputOutputTensor(inputs, outputs);
+    ge::diagnoseSwitch::DisableDumper();
 
-  std::vector<gert::Tensor> gert_inputs;
-  std::vector<gert::Tensor> gert_outputs;
-  gert_inputs.resize(2);
-  gert_outputs.resize(1);
-  std::vector<int32_t> input_data_1(1 * 2 * 3 * 4, 666);
-  gert_inputs[0] = {{{1,2,3,4}, {1,2,3,4}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            gert::kOnDeviceHbm,                                // placement
-                            ge::DT_INT32,                              // data type
-                            (void *) input_data_1.data()};
+    std::vector<gert::Tensor> gert_inputs;
+    std::vector<gert::Tensor> gert_outputs;
+    gert_inputs.resize(2);
+    gert_outputs.resize(1);
+    std::vector<int32_t> input_data_1(1 * 2 * 3 * 4, 666);
+    gert_inputs[0] = {{{1, 2, 3, 4}, {1, 2, 3, 4}},                // shape
+                      {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                      gert::kOnDeviceHbm,                          // placement
+                      ge::DT_INT32,                                // data type
+                      (void *)input_data_1.data()};
 
-  std::vector<int32_t> input_data_2(1 * 2 * 3 * 4, 666);
-  gert_inputs[1] = {{{1,2,3,4}, {1,2,3,4}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            gert::kOnDeviceHbm,                                // placement
-                            ge::DT_INT32,                              // data type
-                            (void *) input_data_2.data()};
+    std::vector<int32_t> input_data_2(1 * 2 * 3 * 4, 666);
+    gert_inputs[1] = {{{1, 2, 3, 4}, {1, 2, 3, 4}},                // shape
+                      {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                      gert::kOnDeviceHbm,                          // placement
+                      ge::DT_INT32,                                // data type
+                      (void *)input_data_2.data()};
 
-  std::vector<uint8_t> output_data_1(96, 0xFF);
-  gert_outputs[0] = {{{1,2,3,4}, {1,2,3,4}},                // shape
-                          {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                          gert::kOnDeviceHbm,                                // placement
-                          ge::DT_INT32,                              // data type
-                          (void *) output_data_1.data()};
-  ge::diagnoseSwitch::DisableDumper();
-  runtime_stub.Clear();
-  EXPECT_NE(SUCCESS, session.ExecuteGraphWithStreamAsync(graph_id, nullptr, gert_inputs, gert_outputs));
-  runtime_stub.Clear();
-}
+    std::vector<uint8_t> output_data_1(96, 0xFF);
+    gert_outputs[0] = {{{1, 2, 3, 4}, {1, 2, 3, 4}},                // shape
+                       {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                       gert::kOnDeviceHbm,                          // placement
+                       ge::DT_INT32,                                // data type
+                       (void *)output_data_1.data()};
+    ge::diagnoseSwitch::DisableDumper();
+    runtime_stub.Clear();
+    EXPECT_NE(SUCCESS, session.ExecuteGraphWithStreamAsync(graph_id, nullptr, gert_inputs, gert_outputs));
+    runtime_stub.Clear();
+  }
 }
 
 TEST_F(GeApiTest, session_execute_graph_with_graph_not_compile) {
@@ -1197,7 +1169,7 @@ TEST_F(GeApiTest, session_execute_invalid) {
   Tensor te;
   std::vector<ge::Tensor> invalid_ge_outputs = {te, te, te};
   auto graph2 = BuildAddGraph();
-  EXPECT_EQ(session.AddGraph(6 , graph2), SUCCESS);
+  EXPECT_EQ(session.AddGraph(6, graph2), SUCCESS);
   EXPECT_NE(SUCCESS, session.RunGraphWithStreamAsync(6, nullptr, ge_inputs, invalid_ge_outputs));
 
   // 空tensor输入
@@ -1267,10 +1239,10 @@ TEST_F(GeApiTest, test_RunGraph_fail_log) {
 
 extern Graph BuildHcomGraph1();
 Status GenerateTaskForHcomAllReduce(const Node &node, RunContext &run_context, std::vector<domi::TaskDef> &tasks) {
-  std::cout << "======node.GetType():" << node.GetType()  << std::endl;
+  std::cout << "======node.GetType():" << node.GetType() << std::endl;
   if (node.GetType() != "HcomAllReduce") {
-      std::cout << "*****return***"<< std::endl;
-      return SUCCESS;
+    std::cout << "*****return***" << std::endl;
+    return SUCCESS;
   }
 
   domi::TaskDef task_def;
@@ -1294,7 +1266,7 @@ uint32_t GetModelIdByGraphId(uint32_t graph_id, Session &session) {
   EXPECT_NE(session_manager, nullptr);
   ge::SessionPtr inner_session = session_manager->GetSession(session.sessionId_);
   EXPECT_NE(inner_session, nullptr);
-  const ge::GraphManager &graph_manager = inner_session->getGraphManagerObj(); // 当前无函数可以获取graph manager
+  const ge::GraphManager &graph_manager = inner_session->getGraphManagerObj();  // 当前无函数可以获取graph manager
   GraphNodePtr graph_node = nullptr;
   (void)graph_manager.GetGraphNode(graph_id, graph_node);
   EXPECT_NE(graph_node, nullptr);
@@ -1306,7 +1278,7 @@ uint32_t GetModelIdByGraphId(uint32_t graph_id, Session &session) {
 
 TEST_F(GeApiTest, pa_remapped_test_001) {
   GertRuntimeStub runtime_stub;
-  //MockIoMemReuse  mock hccl task;
+  // MockIoMemReuse  mock hccl task;
   MockForGenerateTask("ops_kernel_info_hccl", GenerateTaskForHcomAllReduce);
   std::map<AscendString, AscendString> options;
   options.emplace(ge::OPTION_FEATURE_BASE_REFRESHABLE, "1");
@@ -1362,7 +1334,7 @@ TEST_F(GeApiTest, pa_remapped_test_001) {
 
 TEST_F(GeApiTest, pa_remapped_test_002) {
   GertRuntimeStub runtime_stub;
-  //MockIoMemReuse  mock hccl task;
+  // MockIoMemReuse  mock hccl task;
   MockForGenerateTask("ops_kernel_info_hccl", GenerateTaskForHcomAllReduce);
   std::map<AscendString, AscendString> options;
   options.emplace(ge::OPTION_CONST_LIFECYCLE, "graph");
@@ -1586,19 +1558,19 @@ TEST_F(GeApiTest, RunGraphAsync_RunCustomPass_AfterInferShape_Success) {
 }
 
 /* 用例描述: 动态图带变量，在线执行，不提前申请输出内存
-* 预置条件：
-* 1. 构造动态shape图
-*
-* 测试步骤：
-* 1. Session编译，加载，执行，卸载，析构
-*
-* 预期结果：
-* 1. 不申请输出内存，执行成功
-*/
+ * 预置条件：
+ * 1. 构造动态shape图
+ *
+ * 测试步骤：
+ * 1. Session编译，加载，执行，卸载，析构
+ *
+ * 预期结果：
+ * 1. 不申请输出内存，执行成功
+ */
 TEST_F(GeApiTest, DynamicMode_RunGraphWithStreamAsync_NotAllocOutputs) {
   {
     std::map<AscendString, AscendString> options;
-    options.emplace(ge::OPTION_GRAPH_RUN_MODE, "1"); //会添加一个ge_global_step的变量
+    options.emplace(ge::OPTION_GRAPH_RUN_MODE, "1");  // 会添加一个ge_global_step的变量
     Session session(options);
     auto graph = BuildDynamicAddGraph();
     uint32_t graph_id = 1;
@@ -1650,7 +1622,8 @@ TEST_F(GeApiTest, RunGraphAsync_RunCustomPass_AfterBuiltInFusion_Success) {
       .Stage(CustomPassStage::kAfterBuiltinFusionPass);
   GertRuntimeStub runtime_stub;
   const char_t *kKeyLog = "Run custom pass [TestCustomPassAfterBuiltinFusionPass] success";
-  const char_t *kKeyStageLog = "Starting custom pass [TestCustomPassAfterBuiltinFusionPass] in stage [AfterBuiltinFusionPass]";
+  const char_t *kKeyStageLog =
+      "Starting custom pass [TestCustomPassAfterBuiltinFusionPass] in stage [AfterBuiltinFusionPass]";
 
   REGISTER_CUSTOM_PASS("TestCustomPassBeforeInferShape")
       .CustomPassFn([](ge::GraphPtr &graph, CustomPassContext &context) -> Status { return SUCCESS; });
@@ -1716,18 +1689,17 @@ TEST_F(GeApiTest, RunGraph_GraphMaxParallelModelNum_Success) {
   ReInitGe();
 }
 
-
 #define EXPECT_STR_EQ(x, y) EXPECT_EQ(std::string(x.GetString()), std::string(y))
 
 REG_OP(QueryIrTestOp1)
-  .INPUT(required_x1, TensorType::ALL())
-  .OPTIONAL_INPUT(optional_x2, TensorType::ALL())
-  .DYNAMIC_INPUT(dynamic_x3, TensorType::ALL())
-  .OUTPUT(required_y1, TensorType::ALL())
-  .DYNAMIC_OUTPUT(dynamic_y1, TensorType::ALL())
-  .OP_END_FACTORY_REG(QueryIrTestOp1)
+    .INPUT(required_x1, TensorType::ALL())
+    .OPTIONAL_INPUT(optional_x2, TensorType::ALL())
+    .DYNAMIC_INPUT(dynamic_x3, TensorType::ALL())
+    .OUTPUT(required_y1, TensorType::ALL())
+    .DYNAMIC_OUTPUT(dynamic_y1, TensorType::ALL())
+    .OP_END_FACTORY_REG(QueryIrTestOp1)
 
-TEST_F(GeApiTest, QueryIrInputOutput) {
+        TEST_F(GeApiTest, QueryIrInputOutput) {
   using OutType = std::vector<std::pair<AscendString, AscendString>>;
   OutType inputs, outputs, attrs;
   EXPECT_EQ(GetRegisteredIrDef("QueryIrTestOp1", inputs, outputs, attrs), SUCCESS);
@@ -1747,14 +1719,14 @@ TEST_F(GeApiTest, QueryIrInputOutput) {
 }
 
 REG_OP(QueryIrTestOp2)
-  .DYNAMIC_INPUT(dynamic_x3, TensorType::ALL())
-  .INPUT(required_x1, TensorType::ALL())
-  .OPTIONAL_INPUT(optional_x2, TensorType::ALL())
-  .DYNAMIC_OUTPUT(dynamic_y1, TensorType::ALL())
-  .OUTPUT(required_y1, TensorType::ALL())
-  .OP_END_FACTORY_REG(QueryIrTestOp2)
+    .DYNAMIC_INPUT(dynamic_x3, TensorType::ALL())
+    .INPUT(required_x1, TensorType::ALL())
+    .OPTIONAL_INPUT(optional_x2, TensorType::ALL())
+    .DYNAMIC_OUTPUT(dynamic_y1, TensorType::ALL())
+    .OUTPUT(required_y1, TensorType::ALL())
+    .OP_END_FACTORY_REG(QueryIrTestOp2)
 
-TEST_F(GeApiTest, QueryIrInputOutputKeepOrder) {
+        TEST_F(GeApiTest, QueryIrInputOutputKeepOrder) {
   using OutType = std::vector<std::pair<AscendString, AscendString>>;
   OutType inputs, outputs, attrs;
   EXPECT_EQ(GetRegisteredIrDef("QueryIrTestOp2", inputs, outputs, attrs), SUCCESS);
@@ -1774,24 +1746,24 @@ TEST_F(GeApiTest, QueryIrInputOutputKeepOrder) {
 }
 
 REG_OP(QueryIrTestOp3)
-  .REQUIRED_ATTR(attr1, Int)
-  .REQUIRED_ATTR(attr2, Float)
-  .REQUIRED_ATTR(attr3, String)
-  .REQUIRED_ATTR(attr4, Bool)
-  .REQUIRED_ATTR(attr5, Tensor)
-  .REQUIRED_ATTR(attr6, Type)
-  .REQUIRED_ATTR(attr7, NamedAttrs)
-  .REQUIRED_ATTR(attr8, ListInt)
-  .REQUIRED_ATTR(attr9, ListFloat)
-  .REQUIRED_ATTR(attr10, ListString)
-  .REQUIRED_ATTR(attr11, ListBool)
-  .REQUIRED_ATTR(attr12, ListTensor)
-  .REQUIRED_ATTR(attr13, Bytes)
-  .REQUIRED_ATTR(attr14, ListListInt)
-  .REQUIRED_ATTR(attr15, ListNamedAttrs)
-  .OP_END_FACTORY_REG(QueryIrTestOp3)
+    .REQUIRED_ATTR(attr1, Int)
+    .REQUIRED_ATTR(attr2, Float)
+    .REQUIRED_ATTR(attr3, String)
+    .REQUIRED_ATTR(attr4, Bool)
+    .REQUIRED_ATTR(attr5, Tensor)
+    .REQUIRED_ATTR(attr6, Type)
+    .REQUIRED_ATTR(attr7, NamedAttrs)
+    .REQUIRED_ATTR(attr8, ListInt)
+    .REQUIRED_ATTR(attr9, ListFloat)
+    .REQUIRED_ATTR(attr10, ListString)
+    .REQUIRED_ATTR(attr11, ListBool)
+    .REQUIRED_ATTR(attr12, ListTensor)
+    .REQUIRED_ATTR(attr13, Bytes)
+    .REQUIRED_ATTR(attr14, ListListInt)
+    .REQUIRED_ATTR(attr15, ListNamedAttrs)
+    .OP_END_FACTORY_REG(QueryIrTestOp3)
 
-TEST_F(GeApiTest, QueryIrAttr) {
+        TEST_F(GeApiTest, QueryIrAttr) {
   using OutType = std::vector<std::pair<AscendString, AscendString>>;
   OutType inputs, outputs, attrs;
   EXPECT_EQ(GetRegisteredIrDef("QueryIrTestOp3", inputs, outputs, attrs), SUCCESS);
@@ -1831,24 +1803,24 @@ TEST_F(GeApiTest, QueryIrAttr) {
 }
 
 REG_OP(QueryIrTestOp4)
-  .ATTR(attr1, Int, 3)
-  .ATTR(attr2, Float, 2.0)
-  .REQUIRED_ATTR(attr3, String)
-  .ATTR(attr4, Bool, false)
-  .REQUIRED_ATTR(attr5, Tensor)
-  .ATTR(attr6, Type, DT_BF16)
-  .REQUIRED_ATTR(attr7, NamedAttrs)
-  .REQUIRED_ATTR(attr8, ListInt)
-  .REQUIRED_ATTR(attr9, ListFloat)
-  .REQUIRED_ATTR(attr10, ListString)
-  .REQUIRED_ATTR(attr11, ListBool)
-  .REQUIRED_ATTR(attr12, ListTensor)
-  .REQUIRED_ATTR(attr13, Bytes)
-  .REQUIRED_ATTR(attr14, ListListInt)
-  .REQUIRED_ATTR(attr15, ListNamedAttrs)
-  .OP_END_FACTORY_REG(QueryIrTestOp4)
+    .ATTR(attr1, Int, 3)
+    .ATTR(attr2, Float, 2.0)
+    .REQUIRED_ATTR(attr3, String)
+    .ATTR(attr4, Bool, false)
+    .REQUIRED_ATTR(attr5, Tensor)
+    .ATTR(attr6, Type, DT_BF16)
+    .REQUIRED_ATTR(attr7, NamedAttrs)
+    .REQUIRED_ATTR(attr8, ListInt)
+    .REQUIRED_ATTR(attr9, ListFloat)
+    .REQUIRED_ATTR(attr10, ListString)
+    .REQUIRED_ATTR(attr11, ListBool)
+    .REQUIRED_ATTR(attr12, ListTensor)
+    .REQUIRED_ATTR(attr13, Bytes)
+    .REQUIRED_ATTR(attr14, ListListInt)
+    .REQUIRED_ATTR(attr15, ListNamedAttrs)
+    .OP_END_FACTORY_REG(QueryIrTestOp4)
 
-TEST_F(GeApiTest, QueryIrAttrKeepOrder) {
+        TEST_F(GeApiTest, QueryIrAttrKeepOrder) {
   using OutType = std::vector<std::pair<AscendString, AscendString>>;
   OutType inputs, outputs, attrs;
   EXPECT_EQ(GetRegisteredIrDef("QueryIrTestOp4", inputs, outputs, attrs), SUCCESS);
@@ -1957,15 +1929,15 @@ TEST_F(GeApiTest, ExecuteGraphWithStreamAsync_builtin_allocator_output_memory) {
   std::vector<gert::Tensor> gert_inputs;
   gert_inputs.resize(2);
   gert_inputs[0] = {{{1, 2, 3, 4}, {1, 2, 3, 4}},
-                         {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},
-                         gert::kOnDeviceHbm,
-                         ge::DT_INT32,
-                         (void *) input_data_1.data()};
+                    {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},
+                    gert::kOnDeviceHbm,
+                    ge::DT_INT32,
+                    (void *)input_data_1.data()};
   gert_inputs[1] = {{{1, 2, 3, 4}, {1, 2, 3, 4}},
-                         {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},
-                         gert::kOnDeviceHbm,
-                         ge::DT_INT32,
-                         (void *) input_data_2.data()};
+                    {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},
+                    gert::kOnDeviceHbm,
+                    ge::DT_INT32,
+                    (void *)input_data_2.data()};
 
   std::vector<gert::Tensor> gert_outputs;
   ge::diagnoseSwitch::DisableDumper();

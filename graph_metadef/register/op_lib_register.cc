@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,25 +18,25 @@
 #include "graph_metadef/common/plugin/plugin_manager.h"
 #include "graph_metadef/graph/utils/file_utils.h"
 
-extern "C" __attribute__((weak)) void SetMetadefPluginCustomOpLibPathForC(const char* custom_op_Lib_path);
+extern "C" __attribute__((weak)) void SetMetadefPluginCustomOpLibPathForC(const char *custom_op_Lib_path);
 namespace {
-  const std::string custom_so_name = "libcust_opapi.so";
+const std::string custom_so_name = "libcust_opapi.so";
 
-  void FallbackHostEnvByCompileTime(std::string &host_os, std::string &host_cpu) {
-    if (host_os.empty()) {
+void FallbackHostEnvByCompileTime(std::string &host_os, std::string &host_cpu) {
+  if (host_os.empty()) {
 #if defined(__linux__)
-      host_os = "linux";
+    host_os = "linux";
 #endif
-    }
-    if (host_cpu.empty()) {
+  }
+  if (host_cpu.empty()) {
 #if defined(__aarch64__) || defined(__arm64__)
-      host_cpu = "aarch64";
+    host_cpu = "aarch64";
 #elif defined(__x86_64__) || defined(__amd64__)
-      host_cpu = "x86_64";
+    host_cpu = "x86_64";
 #endif
-    }
   }
 }
+}  // namespace
 
 namespace ge {
 OpLibRegister::OpLibRegister(const char_t *vendor_name) : impl_(ComGraphMakeUnique<OpLibRegisterImpl>()) {
@@ -71,7 +71,7 @@ OpLibRegistry &OpLibRegistry::GetInstance() {
   return instance;
 }
 
-const char_t* OpLibRegistry::InitAndGetCustomOpLibPath() {
+const char_t *OpLibRegistry::InitAndGetCustomOpLibPath() {
   // in tfa scene, GEInitialize is called after aclGetCustomOpLibPath.
   // so if is_init_ is false, call PreProcessForCustomOp
   if (!is_init_) {
@@ -89,7 +89,7 @@ void OpLibRegistry::RegisterInitFunc(OpLibRegisterImpl &register_impl) {
   // ignore same vendor_name op lib when register secondly
   if (it.second) {
     if (func != nullptr) {
-      (void) vendor_funcs_.emplace_back(vendor_name, func);
+      (void)vendor_funcs_.emplace_back(vendor_name, func);
     }
     GELOGI("%s op lib register successfully", vendor_name.c_str());
   } else {
@@ -150,8 +150,10 @@ graphStatus OpLibRegistry::GetAllCustomOpApiSoPaths(const std::string &custom_op
   std::string host_cpu;
   PluginManager::GetCurEnvPackageOsAndCpuType(host_os, host_cpu);
   if (host_os.empty() || host_cpu.empty()) {
-    GELOGW("Failed to get current environment os or cpu type, fallback to compile-time os/cpu. host_os: %s, "
-           "host_cpu: %s.", host_os.c_str(), host_cpu.c_str());
+    GELOGW(
+        "Failed to get current environment os or cpu type, fallback to compile-time os/cpu. host_os: %s, "
+        "host_cpu: %s.",
+        host_os.c_str(), host_cpu.c_str());
     FallbackHostEnvByCompileTime(host_os, host_cpu);
   }
   GELOGI("Current host os is %s, cpu is %s.", host_os.c_str(), host_cpu.c_str());
@@ -169,7 +171,7 @@ graphStatus OpLibRegistry::GetAllCustomOpApiSoPaths(const std::string &custom_op
     std::string so_real_path = RealPath(so_path.c_str());
     if (!so_real_path.empty()) {
       GELOGI("find so_real_path %s", so_real_path.c_str());
-      (void) so_real_paths.emplace_back(so_real_path);
+      (void)so_real_paths.emplace_back(so_real_path);
     }
     // 加载ASCEND_CUSTOM_OPP_PATH/op_graph/lib/host_os/host_cpu/下的所有so文件
     std::string custom_op_so_path = path + "/op_graph/lib/" + host_os + "/" + host_cpu + "/";
@@ -191,9 +193,9 @@ graphStatus OpLibRegistry::CallInitFunc(const std::string &custom_opp_path,
   // dlopen so orderly
   for (const auto &so_path : so_real_paths) {
     GELOGI("begin dlopen %s", so_path.c_str());
-    void* const handle = mmDlopen(so_path.c_str(), static_cast<int32_t>(static_cast<uint32_t>(MMPA_RTLD_NOW)));
+    void *const handle = mmDlopen(so_path.c_str(), static_cast<int32_t>(static_cast<uint32_t>(MMPA_RTLD_NOW)));
     GE_ASSERT_NOTNULL(handle, "Failed to dlopen %s! errmsg:%s", so_path.c_str(), mmDlerror());
-    (void) handles_.emplace_back(handle);
+    (void)handles_.emplace_back(handle);
   }
 
   // call init func orderly
@@ -205,10 +207,10 @@ graphStatus OpLibRegistry::CallInitFunc(const std::string &custom_opp_path,
     GELOGI("end to call %s init func, tmp_dir is %s", vendor_func.first.c_str(), tmp_dir.GetString());
     op_lib_paths_ += (std::string(tmp_dir.GetString()) + ":");
   }
-  if (custom_opp_path.empty()) { // ignore the end :
+  if (custom_opp_path.empty()) {  // ignore the end :
     op_lib_paths_ = op_lib_paths_.substr(0, op_lib_paths_.find_last_of(':'));
   } else {
-    op_lib_paths_ += custom_opp_path; // add origin env path to ensure priority(so mode first, runbag mode second)
+    op_lib_paths_ += custom_opp_path;  // add origin env path to ensure priority(so mode first, runbag mode second)
   }
   PluginManager::SetCustomOpLibPath(op_lib_paths_);
   if (SetMetadefPluginCustomOpLibPathForC != nullptr) {
@@ -228,4 +230,4 @@ void OpLibRegistry::ClearHandles() {
 OpLibRegistry::~OpLibRegistry() {
   ClearHandles();
 }
-} // namespace ge
+}  // namespace ge

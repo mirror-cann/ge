@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -49,7 +49,7 @@ class UTEST_conv_concat_fusion_pass : public testing::Test {
   const int NCHW_DIM_H = 14;
   const int NCHW_DIM_W = 12;
 
-protected:
+ protected:
   static void SetUpTestCase() {
     PlatformUtils::Instance().soc_version_ = "Ascend910A";
     PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::CubeHighPrecison)] = 0;
@@ -64,7 +64,7 @@ protected:
     OpsKernelManager::Instance(AI_CORE_NAME).sub_ops_store_map_[EN_IMPL_HW_TBE] = subOpInfoStorePtr;
   }
   void TearDown() {}
-  void InitNoQuantGraph(ComputeGraphPtr& graph, string relu_str, bool dyn_input) {
+  void InitNoQuantGraph(ComputeGraphPtr &graph, string relu_str, bool dyn_input) {
     OpDescPtr conv1 = std::make_shared<OpDesc>("conv1", CONV2D);
     OpDescPtr conv2 = std::make_shared<OpDesc>("conv2", CONV2D);
     OpDescPtr concat = std::make_shared<OpDesc>("concat", CONCATD);
@@ -126,24 +126,16 @@ protected:
       relu2->AddOutputDesc(out_desc2);
       NodePtr relu_node1 = graph->AddNode(relu1);
       NodePtr relu_node2 = graph->AddNode(relu2);
-      ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0),
-                              relu_node1->GetInDataAnchor(0));
-      ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0),
-                              relu_node2->GetInDataAnchor(0));
+      ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0), relu_node1->GetInDataAnchor(0));
+      ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0), relu_node2->GetInDataAnchor(0));
 
-      ge::GraphUtils::AddEdge(relu_node1->GetOutDataAnchor(0),
-                              concat_node->GetInDataAnchor(0));
-      ge::GraphUtils::AddEdge(relu_node2->GetOutDataAnchor(0),
-                              concat_node->GetInDataAnchor(1));
-      ge::GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0),
-                              netoutput_node->GetInDataAnchor(0));
+      ge::GraphUtils::AddEdge(relu_node1->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+      ge::GraphUtils::AddEdge(relu_node2->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
+      ge::GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0), netoutput_node->GetInDataAnchor(0));
     } else {
-      ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0),
-                              concat_node->GetInDataAnchor(0));
-      ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0),
-                              concat_node->GetInDataAnchor(1));
-      ge::GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0),
-                              netoutput_node->GetInDataAnchor(0));
+      ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+      ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
+      ge::GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0), netoutput_node->GetInDataAnchor(0));
     }
   }
 
@@ -153,7 +145,7 @@ protected:
    *            Concat
    *              |
    */
-  void InitMaxPoolNoQuantGraph(ComputeGraphPtr& graph) {
+  void InitMaxPoolNoQuantGraph(ComputeGraphPtr &graph) {
     OpDescPtr conv1 = std::make_shared<OpDesc>("conv1", MAXPOOL);
     OpDescPtr conv2 = std::make_shared<OpDesc>("conv2", CONV2D);
     OpDescPtr concat = std::make_shared<OpDesc>("concat", CONCATD);
@@ -186,10 +178,8 @@ protected:
     NodePtr conv2_node = graph->AddNode(conv2);
     NodePtr concat_node = graph->AddNode(concat);
 
-      ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0),
-                              concat_node->GetInDataAnchor(0));
-      ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0),
-                              concat_node->GetInDataAnchor(1));
+    ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
   }
   /*
    *       MaxPool   Conv2d
@@ -197,7 +187,7 @@ protected:
    *            Concat
    *              |
    */
-  void InitPoolingNoQuantGraph(ComputeGraphPtr& graph) {
+  void InitPoolingNoQuantGraph(ComputeGraphPtr &graph) {
     OpDescPtr conv1 = std::make_shared<OpDesc>("conv1", POOLING);
     OpDescPtr conv2 = std::make_shared<OpDesc>("conv2", CONV2D);
     OpDescPtr concat = std::make_shared<OpDesc>("concat", CONCATD);
@@ -230,13 +220,11 @@ protected:
     NodePtr conv2_node = graph->AddNode(conv2);
     NodePtr concat_node = graph->AddNode(concat);
 
-      ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0),
-                              concat_node->GetInDataAnchor(0));
-      ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0),
-                              concat_node->GetInDataAnchor(1));
+    ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
   }
 
-  void InitQuantGraph(ComputeGraphPtr& graph, string elemwise_str) {
+  void InitQuantGraph(ComputeGraphPtr &graph, string elemwise_str) {
     OpDescPtr conv1 = std::make_shared<OpDesc>("conv1", CONV2D);
     OpDescPtr conv2 = std::make_shared<OpDesc>("conv2", CONV2D);
     OpDescPtr dequant1 = std::make_shared<OpDesc>("dequant1", DEQUANT);
@@ -283,10 +271,8 @@ protected:
     NodePtr dequant2_node = graph->AddNode(dequant2);
     NodePtr concat_node = graph->AddNode(concat);
     NodePtr netoutput_node = graph->AddNode(netoutput);
-    ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0),
-                            dequant1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0),
-                            dequant2_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0), dequant1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0), dequant2_node->GetInDataAnchor(0));
     if (!elemwise_str.empty()) {
       OpDescPtr relu1 = std::make_shared<OpDesc>("relu1", elemwise_str);
       OpDescPtr relu2 = std::make_shared<OpDesc>("relu2", elemwise_str);
@@ -296,28 +282,20 @@ protected:
       relu2->AddOutputDesc(out_desc2);
       NodePtr relu_node1 = graph->AddNode(relu1);
       NodePtr relu_node2 = graph->AddNode(relu2);
-      ge::GraphUtils::AddEdge(dequant1_node->GetOutDataAnchor(0),
-                              relu_node1->GetInDataAnchor(0));
-      ge::GraphUtils::AddEdge(dequant2_node->GetOutDataAnchor(0),
-                              relu_node2->GetInDataAnchor(0));
+      ge::GraphUtils::AddEdge(dequant1_node->GetOutDataAnchor(0), relu_node1->GetInDataAnchor(0));
+      ge::GraphUtils::AddEdge(dequant2_node->GetOutDataAnchor(0), relu_node2->GetInDataAnchor(0));
 
-      ge::GraphUtils::AddEdge(relu_node1->GetOutDataAnchor(0),
-                              concat_node->GetInDataAnchor(0));
-      ge::GraphUtils::AddEdge(relu_node2->GetOutDataAnchor(0),
-                              concat_node->GetInDataAnchor(1));
-      ge::GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0),
-                              netoutput_node->GetInDataAnchor(0));
+      ge::GraphUtils::AddEdge(relu_node1->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+      ge::GraphUtils::AddEdge(relu_node2->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
+      ge::GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0), netoutput_node->GetInDataAnchor(0));
     } else {
-      ge::GraphUtils::AddEdge(dequant1_node->GetOutDataAnchor(0),
-                              concat_node->GetInDataAnchor(0));
-      ge::GraphUtils::AddEdge(dequant2_node->GetOutDataAnchor(0),
-                              concat_node->GetInDataAnchor(1));
-      ge::GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0),
-                              netoutput_node->GetInDataAnchor(0));
+      ge::GraphUtils::AddEdge(dequant1_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+      ge::GraphUtils::AddEdge(dequant2_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
+      ge::GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0), netoutput_node->GetInDataAnchor(0));
     }
   }
 
-  void InitRequantGraph(ComputeGraphPtr& graph) {
+  void InitRequantGraph(ComputeGraphPtr &graph) {
     OpDescPtr conv1 = std::make_shared<OpDesc>("conv1", CONV2D);
     OpDescPtr conv2 = std::make_shared<OpDesc>("conv2", CONV2D);
     OpDescPtr requant1 = std::make_shared<OpDesc>("requant1", REQUANT);
@@ -361,18 +339,13 @@ protected:
     NodePtr requant1_node = graph->AddNode(requant1);
     NodePtr requant2_node = graph->AddNode(requant2);
     NodePtr concat_node = graph->AddNode(concat);
-    ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0),
-                              requant1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0),
-                              requant2_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(requant1_node->GetOutDataAnchor(0),
-                              concat_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(requant2_node->GetOutDataAnchor(0),
-                              concat_node->GetInDataAnchor(1));
+    ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0), requant1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0), requant2_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(requant1_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(requant2_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
   }
 
-
-  void InitQuantAndConvAndReluAndLeakyreluGraph(ComputeGraphPtr& graph, vector<string> op_type_vec) {
+  void InitQuantAndConvAndReluAndLeakyreluGraph(ComputeGraphPtr &graph, vector<string> op_type_vec) {
     OpDescPtr conv1 = std::make_shared<OpDesc>("conv1", CONV2D);
     OpDescPtr dequant1 = std::make_shared<OpDesc>("dequant1", DEQUANT);
     OpDescPtr concat = std::make_shared<OpDesc>("concat", CONCATD);
@@ -401,11 +374,11 @@ protected:
     out_desc3.SetOriginShape(shape);
 
     int op_type_vec_size = op_type_vec.size();
-    for(int i = 0; i != op_type_vec_size; ++i) {
+    for (int i = 0; i != op_type_vec_size; ++i) {
       concat->AddInputDesc(out_desc3);
     }
 
-    ge::GeShape out_shape({NCHW_DIM_N, 32*(op_type_vec_size +1), NCHW_DIM_H, NCHW_DIM_W});
+    ge::GeShape out_shape({NCHW_DIM_N, 32 * (op_type_vec_size + 1), NCHW_DIM_H, NCHW_DIM_W});
     GeTensorDesc out_desc(out_shape, ge::FORMAT_NCHW, ge::DT_FLOAT);
     out_desc.SetOriginFormat(ge::FORMAT_NCHW);
     out_desc.SetOriginDataType(ge::DT_FLOAT);
@@ -413,34 +386,28 @@ protected:
     concat->AddOutputDesc(out_desc);
 
     NodePtr concat_node = graph->AddNode(concat);
-    ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0),
-                            dequant1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(dequant1_node->GetOutDataAnchor(0),
-                            concat_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0), dequant1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(dequant1_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
 
-    for(int i = 0; i != op_type_vec_size; ++i){
-      OpDescPtr conv_op = std::make_shared<OpDesc>("conv"+to_string(i), CONV2D);
+    for (int i = 0; i != op_type_vec_size; ++i) {
+      OpDescPtr conv_op = std::make_shared<OpDesc>("conv" + to_string(i), CONV2D);
       out_desc3.SetOriginFormat(ge::FORMAT_NCHW);
       out_desc3.SetOriginDataType(ge::DT_FLOAT16);
       out_desc3.SetOriginShape(shape);
       conv_op->AddOutputDesc(out_desc3);
       NodePtr conv_node = graph->AddNode(conv_op);
-      if(op_type_vec[i] == CONV2D) {
-        ge::GraphUtils::AddEdge(conv_node->GetOutDataAnchor(0),
-                                concat_node->GetInDataAnchor(i+1));
+      if (op_type_vec[i] == CONV2D) {
+        ge::GraphUtils::AddEdge(conv_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(i + 1));
       } else {
-        OpDescPtr cur_op =
-            std::make_shared<OpDesc>(op_type_vec[i] + to_string(i), op_type_vec[i]);
+        OpDescPtr cur_op = std::make_shared<OpDesc>(op_type_vec[i] + to_string(i), op_type_vec[i]);
         cur_op->AddInputDesc(out_desc3);
         cur_op->AddOutputDesc(out_desc3);
         if (op_type_vec[i] == LEAKYRELU) {
-          (void)ge::AttrUtils::SetFloat(cur_op, "negative_slope",0.0);
+          (void)ge::AttrUtils::SetFloat(cur_op, "negative_slope", 0.0);
         }
         NodePtr cur_node = graph->AddNode(cur_op);
-        ge::GraphUtils::AddEdge(conv_node->GetOutDataAnchor(0),
-                                cur_node->GetInDataAnchor(0));
-        ge::GraphUtils::AddEdge(cur_node->GetOutDataAnchor(0),
-                                concat_node->GetInDataAnchor(i + 1));
+        ge::GraphUtils::AddEdge(conv_node->GetOutDataAnchor(0), cur_node->GetInDataAnchor(0));
+        ge::GraphUtils::AddEdge(cur_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(i + 1));
       }
     }
   }
@@ -529,65 +496,51 @@ protected:
      *          AcscendQuant
      */
 
-    ge::GraphUtils::AddEdge(relu_node->GetOutDataAnchor(0),
-                            split_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0),
-                            quant1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1),
-                            quant2_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(quant1_node->GetOutDataAnchor(0),
-                            conv1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(quant2_node->GetOutDataAnchor(0),
-                            conv2_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0),
-                            dequant1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0),
-                            dequant2_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(dequant1_node->GetOutDataAnchor(0),
-                            concat_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(dequant2_node->GetOutDataAnchor(0),
-                            concat_node->GetInDataAnchor(1));
+    ge::GraphUtils::AddEdge(relu_node->GetOutDataAnchor(0), split_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0), quant1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1), quant2_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(quant1_node->GetOutDataAnchor(0), conv1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(quant2_node->GetOutDataAnchor(0), conv2_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0), dequant1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0), dequant2_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(dequant1_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(dequant2_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
 
     if (with_quant) {
       OpDescPtr quant3 = std::make_shared<OpDesc>("quant3", QUANT);
-      (void)ge::AttrUtils::SetFloat(quant3, "scale",-1);
-      (void)ge::AttrUtils::SetFloat(quant3, "offset",-1);
+      (void)ge::AttrUtils::SetFloat(quant3, "scale", -1);
+      (void)ge::AttrUtils::SetFloat(quant3, "offset", -1);
       quant3->AddInputDesc(out_desc5);
       quant3->AddOutputDesc(out_desc5);
       NodePtr quant_node3 = graph->AddNode(quant3);
-      ge::GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0),
-                              quant_node3->GetInDataAnchor(0));
+      ge::GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0), quant_node3->GetInDataAnchor(0));
       OpDescPtr relu = std::make_shared<OpDesc>("relu1", RELU);
       relu->AddInputDesc(out_desc5);
       NodePtr relu_node = graph->AddNode(relu);
-      ge::GraphUtils::AddEdge(quant_node3->GetOutDataAnchor(0),
-                              relu_node->GetInDataAnchor(0));
+      ge::GraphUtils::AddEdge(quant_node3->GetOutDataAnchor(0), relu_node->GetInDataAnchor(0));
 
       OpDescPtr quant4 = std::make_shared<OpDesc>("quant4", QUANT);
-      (void)ge::AttrUtils::SetFloat(quant4, "scale",-1);
-      (void)ge::AttrUtils::SetFloat(quant4, "offset",-1);
+      (void)ge::AttrUtils::SetFloat(quant4, "scale", -1);
+      (void)ge::AttrUtils::SetFloat(quant4, "offset", -1);
       quant4->AddInputDesc(out_desc5);
       quant4->AddOutputDesc(out_desc5);
       NodePtr quant_node4 = graph->AddNode(quant4);
-      ge::GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0),
-                              quant_node4->GetInDataAnchor(0));
+      ge::GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0), quant_node4->GetInDataAnchor(0));
       OpDescPtr relu2 = std::make_shared<OpDesc>("relu2", RELU);
       relu2->AddInputDesc(out_desc5);
       NodePtr relu_node2 = graph->AddNode(relu2);
-      ge::GraphUtils::AddEdge(quant_node4->GetOutDataAnchor(0),
-                              relu_node2->GetInDataAnchor(0));
+      ge::GraphUtils::AddEdge(quant_node4->GetOutDataAnchor(0), relu_node2->GetInDataAnchor(0));
 
     } else {
       OpDescPtr split2 = std::make_shared<OpDesc>("split2", SPLITD);
       split2->AddInputDesc(out_desc3);
       NodePtr split2_node = graph->AddNode(split2);
-      ge::GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0),
-                              split2_node->GetInDataAnchor(0));
+      ge::GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0), split2_node->GetInDataAnchor(0));
     }
   }
 
-  Status CheckGraph(ComputeGraphPtr& graph, int expect_axis) {
-    for (auto& node : graph->GetDirectNode()) {
+  Status CheckGraph(ComputeGraphPtr &graph, int expect_axis) {
+    for (auto &node : graph->GetDirectNode()) {
       FE_CHECK_NOTNULL(node);
       if (node->GetType() == CONCATD) {
         OpDescPtr concat_op_desc_ptr = node->GetOpDesc();
@@ -596,26 +549,20 @@ protected:
         bool no_padding_continuous_input = false;
         bool no_padding_continuous_output = false;
         int dim_index = -1;
-        (void)ge::AttrUtils::GetBool(concat_op_desc_ptr, ge::ATTR_NAME_NOTASK,
-                                     no_task);
-        (void)ge::AttrUtils::GetBool(concat_op_desc_ptr,
-                                     ge::ATTR_NAME_OUTPUT_REUSE_INPUT,
-                                     output_reuse_input);
-        (void)ge::AttrUtils::GetBool(concat_op_desc_ptr,
-                                     ge::ATTR_NAME_NOPADDING_CONTINUOUS_INPUT,
+        (void)ge::AttrUtils::GetBool(concat_op_desc_ptr, ge::ATTR_NAME_NOTASK, no_task);
+        (void)ge::AttrUtils::GetBool(concat_op_desc_ptr, ge::ATTR_NAME_OUTPUT_REUSE_INPUT, output_reuse_input);
+        (void)ge::AttrUtils::GetBool(concat_op_desc_ptr, ge::ATTR_NAME_NOPADDING_CONTINUOUS_INPUT,
                                      no_padding_continuous_input);
-        (void)ge::AttrUtils::GetBool(concat_op_desc_ptr,
-                                     ge::ATTR_NAME_NOPADDING_CONTINUOUS_OUTPUT,
+        (void)ge::AttrUtils::GetBool(concat_op_desc_ptr, ge::ATTR_NAME_NOPADDING_CONTINUOUS_OUTPUT,
                                      no_padding_continuous_output);
-        (void)ge::AttrUtils::GetInt(
-            concat_op_desc_ptr, ge::ATTR_NAME_REUSE_INPUT_ON_DIM_INDEX, dim_index);
+        (void)ge::AttrUtils::GetInt(concat_op_desc_ptr, ge::ATTR_NAME_REUSE_INPUT_ON_DIM_INDEX, dim_index);
 
         EXPECT_EQ(no_task, true);
         EXPECT_EQ(output_reuse_input, true);
         EXPECT_EQ(no_padding_continuous_input, true);
         EXPECT_EQ(no_padding_continuous_output, false);
         EXPECT_EQ(dim_index, 1);
-        for (auto& input_anchor : node->GetAllInDataAnchors()) {
+        for (auto &input_anchor : node->GetAllInDataAnchors()) {
           EXPECT_NE(input_anchor, nullptr);
           EXPECT_NE(input_anchor->GetPeerOutAnchor(), nullptr);
           EXPECT_NE(input_anchor->GetPeerOutAnchor()->GetOwnerNode(), nullptr);
@@ -632,7 +579,7 @@ protected:
     return SUCCESS;
   }
 
-  Status CheckGraph2(ComputeGraphPtr& graph) {
+  Status CheckGraph2(ComputeGraphPtr &graph) {
     for (auto &node : graph->GetDirectNode()) {
       FE_CHECK_NOTNULL(node);
       EXPECT_NE(node->GetType(), STRIDEDWRITE);
@@ -643,19 +590,13 @@ protected:
         bool no_padding_continuous_input = false;
         bool no_padding_continuous_output = false;
         int dim_index = -1;
-        (void)ge::AttrUtils::GetBool(concat_op_desc_ptr, ge::ATTR_NAME_NOTASK,
-                                     no_task);
-        (void)ge::AttrUtils::GetBool(concat_op_desc_ptr,
-                                     ge::ATTR_NAME_OUTPUT_REUSE_INPUT,
-                                     output_reuse_input);
-        (void)ge::AttrUtils::GetBool(concat_op_desc_ptr,
-                                     ge::ATTR_NAME_NOPADDING_CONTINUOUS_INPUT,
+        (void)ge::AttrUtils::GetBool(concat_op_desc_ptr, ge::ATTR_NAME_NOTASK, no_task);
+        (void)ge::AttrUtils::GetBool(concat_op_desc_ptr, ge::ATTR_NAME_OUTPUT_REUSE_INPUT, output_reuse_input);
+        (void)ge::AttrUtils::GetBool(concat_op_desc_ptr, ge::ATTR_NAME_NOPADDING_CONTINUOUS_INPUT,
                                      no_padding_continuous_input);
-        (void)ge::AttrUtils::GetBool(concat_op_desc_ptr,
-                                     ge::ATTR_NAME_NOPADDING_CONTINUOUS_OUTPUT,
+        (void)ge::AttrUtils::GetBool(concat_op_desc_ptr, ge::ATTR_NAME_NOPADDING_CONTINUOUS_OUTPUT,
                                      no_padding_continuous_output);
-        (void)ge::AttrUtils::GetInt(
-            concat_op_desc_ptr, ge::ATTR_NAME_REUSE_INPUT_ON_DIM_INDEX, dim_index);
+        (void)ge::AttrUtils::GetInt(concat_op_desc_ptr, ge::ATTR_NAME_REUSE_INPUT_ON_DIM_INDEX, dim_index);
 
         EXPECT_EQ(no_task, false);
         EXPECT_EQ(output_reuse_input, false);
@@ -668,8 +609,7 @@ protected:
 
   void BuildGraph_1(ge::ComputeGraphPtr &graph, ge::DataType dtype = ge::DT_INT8) {
     ge::GeShape original_shape = ge::GeShape({NCHW_DIM_N, 32, NCHW_DIM_H, NCHW_DIM_W});
-    GraphConstructor test(graph, "", ge::FORMAT_NCHW, dtype,
-                          original_shape);
+    GraphConstructor test(graph, "", ge::FORMAT_NCHW, dtype, original_shape);
     test.AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv0", CONV2D, 1, 1)
         .SetInputs({"Data_1"})
         .AddOpDesc(EN_IMPL_HW_TBE, "dequant", "dequant0", DEQUANT, 2, 1)
@@ -691,7 +631,6 @@ protected:
         (void)ge::AttrUtils::SetInt(node->GetOpDesc(), CONCAT_DIM, 1);
       }
     }
-
   }
 };
 
@@ -701,7 +640,7 @@ TEST_F(UTEST_conv_concat_fusion_pass, con2d_success) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>(GRAPH_NAME);
   InitNoQuantGraph(graph, "", false);
   ConvConcatFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes);
   CheckGraph(graph, 1);
 }
@@ -712,7 +651,7 @@ TEST_F(UTEST_conv_concat_fusion_pass, dyn_con2d_no_pass) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>(GRAPH_NAME);
   InitNoQuantGraph(graph, "", true);
   ConvConcatFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes);
 }
 
@@ -722,7 +661,7 @@ TEST_F(UTEST_conv_concat_fusion_pass, con2d_relu_success) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>(GRAPH_NAME);
   InitNoQuantGraph(graph, RELU, false);
   ConvConcatFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes);
   CheckGraph(graph, 1);
 }
@@ -733,7 +672,7 @@ TEST_F(UTEST_conv_concat_fusion_pass, maxpool_conv2d_success) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>(GRAPH_NAME);
   InitMaxPoolNoQuantGraph(graph);
   ConvConcatFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes);
   CheckGraph(graph, 1);
 }
@@ -744,7 +683,7 @@ TEST_F(UTEST_conv_concat_fusion_pass, pooling_conv2d_success) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>(GRAPH_NAME);
   InitPoolingNoQuantGraph(graph);
   ConvConcatFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes);
   CheckGraph(graph, 1);
 }
@@ -755,11 +694,10 @@ TEST_F(UTEST_conv_concat_fusion_pass, conv2d_requant_success) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>(GRAPH_NAME);
   InitRequantGraph(graph);
   ConvConcatFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes);
   CheckGraph(graph, 1);
 }
-
 
 // conv2d+concat
 // conv2d+leakyrelu+concat
@@ -767,7 +705,7 @@ TEST_F(UTEST_conv_concat_fusion_pass, con2d_leakyrelu_success) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>(GRAPH_NAME);
   InitNoQuantGraph(graph, RELU, false);
   ConvConcatFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes);
   CheckGraph(graph, 1);
 }
@@ -780,7 +718,7 @@ TEST_F(UTEST_conv_concat_fusion_pass, con2d_dequant_success) {
   InitQuantAndConvAndReluAndLeakyreluGraph(graph, op_type_vec);
   InitQuantGraph(graph, "");
   ConvConcatFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes);
   CheckGraph(graph, 1);
 }
@@ -788,12 +726,12 @@ TEST_F(UTEST_conv_concat_fusion_pass, con2d_dequant_success) {
 // conv2d+acsenddequant+concat+ascendquant
 // conv2d+acsenddequant+concat+ascendquant
 TEST_F(UTEST_conv_concat_fusion_pass, con2d_dequant_concat_quant_success) {
-ComputeGraphPtr graph = std::make_shared<ComputeGraph>(GRAPH_NAME);
-InitQuantGraph2(graph, true);
-ConvConcatFusionPass pass;
-vector<GraphPass*> passes = {&pass};
-Status status = PassManager::Run(*graph, passes);
-CheckGraph(graph, 1);
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>(GRAPH_NAME);
+  InitQuantGraph2(graph, true);
+  ConvConcatFusionPass pass;
+  vector<GraphPass *> passes = {&pass};
+  Status status = PassManager::Run(*graph, passes);
+  CheckGraph(graph, 1);
 }
 
 // conv2d+acsenddequant+concat
@@ -803,7 +741,7 @@ TEST_F(UTEST_conv_concat_fusion_pass, con2d_dequant_and_conv_success) {
   vector<string> op_type_vec = {CONV2D};
   InitQuantAndConvAndReluAndLeakyreluGraph(graph, op_type_vec);
   ConvConcatFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes);
   CheckGraph(graph, 1);
 }
@@ -815,7 +753,7 @@ TEST_F(UTEST_conv_concat_fusion_pass, con2d_dequant_and_relu_success) {
   vector<string> op_type_vec = {RELU};
   InitQuantAndConvAndReluAndLeakyreluGraph(graph, op_type_vec);
   ConvConcatFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes);
   CheckGraph(graph, 1);
 }
@@ -827,7 +765,7 @@ TEST_F(UTEST_conv_concat_fusion_pass, con2d_dequant_and_leakyrelu_success) {
   vector<string> op_type_vec = {LEAKYRELU};
   InitQuantAndConvAndReluAndLeakyreluGraph(graph, op_type_vec);
   ConvConcatFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes);
   CheckGraph(graph, 1);
 }
@@ -840,7 +778,7 @@ TEST_F(UTEST_conv_concat_fusion_pass, con2d_dequant_and_relu_leakyrelu_success) 
   vector<string> op_type_vec = {RELU, LEAKYRELU};
   InitQuantAndConvAndReluAndLeakyreluGraph(graph, op_type_vec);
   ConvConcatFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes);
   CheckGraph(graph, 1);
 }
@@ -853,7 +791,7 @@ TEST_F(UTEST_conv_concat_fusion_pass, con2d_dequant_and_conv_relu_success) {
   vector<string> op_type_vec = {CONV2D, RELU};
   InitQuantAndConvAndReluAndLeakyreluGraph(graph, op_type_vec);
   ConvConcatFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes);
   CheckGraph(graph, 1);
 }
@@ -866,7 +804,7 @@ TEST_F(UTEST_conv_concat_fusion_pass, con2d_dequant_and_conv_leakyrelu_success) 
   vector<string> op_type_vec = {CONV2D, LEAKYRELU};
   InitQuantAndConvAndReluAndLeakyreluGraph(graph, op_type_vec);
   ConvConcatFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes);
   CheckGraph(graph, 1);
 }
@@ -881,7 +819,7 @@ TEST_F(UTEST_conv_concat_fusion_pass, con2d_dequant_and_conv_relu_leakyrelu_succ
   InitQuantAndConvAndReluAndLeakyreluGraph(graph, op_type_vec);
 
   ConvConcatFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes);
 
   CheckGraph(graph, 1);
@@ -892,7 +830,7 @@ TEST_F(UTEST_conv_concat_fusion_pass, con2d_dequant_leakyrelu_concat_success) {
   BuildGraph_1(graph);
 
   ConvConcatFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes);
 
   CheckGraph(graph, 1);
@@ -910,7 +848,7 @@ TEST_F(UTEST_conv_concat_fusion_pass, con2d_mish_not_change) {
   InitNoQuantGraph(graph, "Mish", false);
   EXPECT_EQ(graph->GetDirectNodesSize(), 6);
   ConvConcatFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes);
   EXPECT_EQ(status, fe::SUCCESS);
   EXPECT_EQ(graph->GetDirectNodesSize(), 7);
@@ -930,7 +868,7 @@ TEST_F(UTEST_conv_concat_fusion_pass, con2d_dequant_mish_not_change) {
   InitQuantGraph(graph, "Mish");
   EXPECT_EQ(graph->GetDirectNodesSize(), 8);
   ConvConcatFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes);
   EXPECT_EQ(status, fe::SUCCESS);
   EXPECT_EQ(graph->GetDirectNodesSize(), 9);
@@ -946,7 +884,7 @@ TEST_F(UTEST_conv_concat_fusion_pass, con2d_dequant_leakyrelu_concat_success_for
   options[ge::PRECISION_MODE] = "force_fp32";
   ge::GetThreadLocalContext().SetGraphOption(options);
   ConvConcatFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes);
 
   CheckGraph2(graph);
@@ -960,16 +898,14 @@ TEST_F(UTEST_conv_concat_fusion_pass, con2d_dequant_leakyrelu_concat_success_mus
   options[ge::PRECISION_MODE] = "must_keep_origin_dtype";
   ge::GetThreadLocalContext().SetGraphOption(options);
 
-
   ConvConcatFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes);
 
   CheckGraph(graph, 1);
 }
 
-TEST_F(UTEST_conv_concat_fusion_pass,
-       con2d_dequant_leakyrelu_concat_success_must_keep_origin_dtype_origin_float) {
+TEST_F(UTEST_conv_concat_fusion_pass, con2d_dequant_leakyrelu_concat_success_must_keep_origin_dtype_origin_float) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>(GRAPH_NAME);
   BuildGraph_1(graph, ge::DT_FLOAT);
 
@@ -978,7 +914,7 @@ TEST_F(UTEST_conv_concat_fusion_pass,
   ge::GetThreadLocalContext().SetGraphOption(options);
 
   ConvConcatFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes);
 
   CheckGraph2(graph);

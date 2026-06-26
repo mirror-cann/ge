@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,8 +32,7 @@ namespace fe {
 namespace {
 const std::unordered_map<ge::Format, std::unordered_set<ge::Format>> kConflictFormat = {
     {ge::FORMAT_FRACTAL_Z, {ge::FORMAT_FRACTAL_ZN_LSTM, ge::FORMAT_FRACTAL_NZ}},
-    {ge::FORMAT_FRACTAL_ZN_LSTM, {ge::FORMAT_FRACTAL_Z}}
-};
+    {ge::FORMAT_FRACTAL_ZN_LSTM, {ge::FORMAT_FRACTAL_Z}}};
 
 void SubstituteNDWithOriginalFormat(TransInfoPtr &trans_info_ptr) {
   if (trans_info_ptr->src_out_primary_format == ge::FORMAT_ND) {
@@ -60,12 +59,13 @@ void SubstituteNDWithOriginalFormat(TransInfoPtr &trans_info_ptr) {
     trans_info_ptr->src_out_original_format = trans_info_ptr->dst_in_tensor_desc_ptr->GetOriginFormat();
   }
 }
-} // namespace
+}  // namespace
 
 Status TransNodeInsertion::AddTransNodeType(TransNodeBaseGenerator *trans_node_type) {
   FE_CHECK(
       trans_node_type == nullptr,
-      REPORT_FE_ERROR("[GraphOptJdgInst][ShapeTrans][AddTransNdType] transNodeType is null, resulting in AddTransNodeType failure"),
+      REPORT_FE_ERROR(
+          "[GraphOptJdgInst][ShapeTrans][AddTransNdType] transNodeType is null, resulting in AddTransNodeType failure"),
       return PARAM_INVALID);
   whole_trans_nodes_vector_.push_back(trans_node_type);
   return SUCCESS;
@@ -139,8 +139,8 @@ void TransNodeInsertion::SetTransInfoForInsertionModeEnd() {
 }
 
 Status TransNodeInsertion::FillTransInfo(const ge::InDataAnchorPtr &dst_anchor, const ge::OutDataAnchorPtr &src_anchor,
-                                       const ge::NodePtr &src_node, const ge::NodePtr &dst_node,
-                                       ConcecutivePrinciple &use_concecutive_principle) {
+                                         const ge::NodePtr &src_node, const ge::NodePtr &dst_node,
+                                         ConcecutivePrinciple &use_concecutive_principle) {
   global_trans_info_ptr_->dst_anchor = dst_anchor;
   global_trans_info_ptr_->dst_op_desc = dst_node->GetOpDesc();
   global_trans_info_ptr_->dst_imply_type = static_cast<OpImplType>(0);
@@ -260,8 +260,7 @@ ConcecutivePrinciple TransNodeInsertion::IsAbleToUseConcecutivePrinciple() {
    * we will insert trans-nodes by their own format and original dtype. */
   bool nz_format = global_trans_info_ptr_->src_out_primary_format == ge::FORMAT_FRACTAL_NZ ||
                    global_trans_info_ptr_->dst_in_primary_format == ge::FORMAT_FRACTAL_NZ;
-  if (global_trans_info_ptr_->src_out_original_format != global_trans_info_ptr_->dst_in_original_format &&
-      !nz_format) {
+  if (global_trans_info_ptr_->src_out_original_format != global_trans_info_ptr_->dst_in_original_format && !nz_format) {
     return ConcecutivePrinciple::kOriFormatUnConcecutive;
   }
 
@@ -290,16 +289,18 @@ ConcecutivePrinciple TransNodeInsertion::IsAbleToUseConcecutivePrinciple() {
   }
 
   bool is_conflict = kConflictFormat.count(global_trans_info_ptr_->src_out_primary_format) != 0 &&
-                     kConflictFormat.at(global_trans_info_ptr_->src_out_primary_format).count(
-                         global_trans_info_ptr_->dst_in_primary_format) != 0;
+                     kConflictFormat.at(global_trans_info_ptr_->src_out_primary_format)
+                             .count(global_trans_info_ptr_->dst_in_primary_format) != 0;
   if (is_conflict) {
     return ConcecutivePrinciple::kConflictFormat;
   }
 
-  bool is_src_dump_able = IsDumpableOp(global_trans_info_ptr_->src_op_desc) &&
-          global_trans_info_ptr_->src_out_primary_format != global_trans_info_ptr_->src_out_original_format;
-  bool is_dst_dump_able = IsDumpableOp(global_trans_info_ptr_->dst_op_desc) &&
-          global_trans_info_ptr_->dst_in_primary_format != global_trans_info_ptr_->dst_in_original_format;
+  bool is_src_dump_able =
+      IsDumpableOp(global_trans_info_ptr_->src_op_desc) &&
+      global_trans_info_ptr_->src_out_primary_format != global_trans_info_ptr_->src_out_original_format;
+  bool is_dst_dump_able =
+      IsDumpableOp(global_trans_info_ptr_->dst_op_desc) &&
+      global_trans_info_ptr_->dst_in_primary_format != global_trans_info_ptr_->dst_in_original_format;
   if (is_src_dump_able || is_dst_dump_able) {
     return ConcecutivePrinciple::kDumpableUnConcecutive;
   }
@@ -448,22 +449,22 @@ bool TransNodeInsertion::IsInsertCastFirst(const TransInfoPtr trans_info_ptr) {
   if (trans_info_ptr->dst_in_c0_format == SHAPE_NUMBER_8 && trans_info_ptr->src_out_c0_format != SHAPE_NUMBER_8) {
     return true;
   }
-  int32_t dst_in_c0 =
-      (HasC0Format(trans_info_ptr->dst_in_tensor_desc_ptr->GetFormat())) ? trans_info_ptr->dst_in_c0_format :
-      GetC0ValByDataType(trans_info_ptr->dst_in_data_type);
-  int32_t src_out_c0 =
-      (HasC0Format(trans_info_ptr->src_out_tensor_desc_ptr->GetFormat())) ? trans_info_ptr->src_out_c0_format :
-      GetC0ValByDataType(trans_info_ptr->src_out_data_type);
+  int32_t dst_in_c0 = (HasC0Format(trans_info_ptr->dst_in_tensor_desc_ptr->GetFormat()))
+                          ? trans_info_ptr->dst_in_c0_format
+                          : GetC0ValByDataType(trans_info_ptr->dst_in_data_type);
+  int32_t src_out_c0 = (HasC0Format(trans_info_ptr->src_out_tensor_desc_ptr->GetFormat()))
+                           ? trans_info_ptr->src_out_c0_format
+                           : GetC0ValByDataType(trans_info_ptr->src_out_data_type);
   // if src and dst C0 not same, keep transdata at the heavy format side
   if (dst_in_c0 != src_out_c0) {
-      if (FE_HEAVY_FORMAT_SET.count(trans_info_ptr->dst_in_primary_format) != 0 &&
-          FE_HEAVY_FORMAT_SET.count(trans_info_ptr->src_out_primary_format) == 0) {
-        return true;
-      }
-      if (FE_HEAVY_FORMAT_SET.count(trans_info_ptr->src_out_primary_format) != 0 &&
-          FE_HEAVY_FORMAT_SET.count(trans_info_ptr->dst_in_primary_format) == 0) {
-        return false;
-      }
+    if (FE_HEAVY_FORMAT_SET.count(trans_info_ptr->dst_in_primary_format) != 0 &&
+        FE_HEAVY_FORMAT_SET.count(trans_info_ptr->src_out_primary_format) == 0) {
+      return true;
+    }
+    if (FE_HEAVY_FORMAT_SET.count(trans_info_ptr->src_out_primary_format) != 0 &&
+        FE_HEAVY_FORMAT_SET.count(trans_info_ptr->dst_in_primary_format) == 0) {
+      return false;
+    }
   }
   int src_data_type_bits = GetDataTypeBits(trans_info_ptr->src_out_data_type);
   int dst_data_type_bits = GetDataTypeBits(trans_info_ptr->dst_in_data_type);
@@ -510,7 +511,7 @@ Status TransNodeInsertion::InsertCastGeneralCase(const TransInfoPtr trans_info_p
 
 Status TransNodeInsertion::CombineAllStrategy(TransInfoPtr trans_info_ptr, uint64_t global_strategy_id,
                                               std::vector<std::vector<uint32_t>> &strategy_vector_combination) {
-  (void) global_strategy_id;
+  (void)global_strategy_id;
   if (strategy_vector_combination.empty()) {
     FE_LOGW("Strategy combination is empty.");
     return FAILED;
@@ -564,11 +565,12 @@ Status TransNodeInsertion::InsertTransOpByConcecutiveStrategy(ge::ComputeGraph &
   Status ret_value;
   for (auto transnode_idx : strategy_vector_combination[0]) {
     if (transnode_idx >= FORBIDDEN_INDEX) {
-      REPORT_FE_ERROR("[GraphOpt][Trans][InsertTransByConcec] We do not support transactions from %s to %s between %s and %s.",
-                      FormatToStr(global_trans_info_ptr_->src_out_primary_format).c_str(),
-                      FormatToStr(global_trans_info_ptr_->dst_in_primary_format).c_str(),
-                      global_trans_info_ptr_->src_op_desc->GetName().c_str(),
-                      global_trans_info_ptr_->dst_op_desc->GetName().c_str());
+      REPORT_FE_ERROR(
+          "[GraphOpt][Trans][InsertTransByConcec] We do not support transactions from %s to %s between %s and %s.",
+          FormatToStr(global_trans_info_ptr_->src_out_primary_format).c_str(),
+          FormatToStr(global_trans_info_ptr_->dst_in_primary_format).c_str(),
+          global_trans_info_ptr_->src_op_desc->GetName().c_str(),
+          global_trans_info_ptr_->dst_op_desc->GetName().c_str());
       return FAILED;
     }
     ret_value = whole_trans_nodes_vector_[transnode_idx]->AddTransNode(fused_graph, global_trans_info_ptr_);
@@ -631,11 +633,12 @@ Status TransNodeInsertion::InsertTransOpByOriginalFormat(ge::ComputeGraph &fused
             FormatToStr(trans_info_front_and_end_[strategy_index]->dst_in_primary_format).c_str());
     for (auto transnode_idx : strategy_vector) {
       if (transnode_idx >= FORBIDDEN_INDEX) {
-        REPORT_FE_ERROR("[GraphOpt][Trans][InsertTransByOri] We do not support transactions from %s to %s between %s and %s.",
-                        FormatToStr(global_trans_info_ptr_->src_out_primary_format).c_str(),
-                        FormatToStr(global_trans_info_ptr_->dst_in_primary_format).c_str(),
-                        global_trans_info_ptr_->src_op_desc->GetName().c_str(),
-                        global_trans_info_ptr_->dst_op_desc->GetName().c_str());
+        REPORT_FE_ERROR(
+            "[GraphOpt][Trans][InsertTransByOri] We do not support transactions from %s to %s between %s and %s.",
+            FormatToStr(global_trans_info_ptr_->src_out_primary_format).c_str(),
+            FormatToStr(global_trans_info_ptr_->dst_in_primary_format).c_str(),
+            global_trans_info_ptr_->src_op_desc->GetName().c_str(),
+            global_trans_info_ptr_->dst_op_desc->GetName().c_str());
         return FAILED;
       }
       ret_value = whole_trans_nodes_vector_[transnode_idx]->AddTransNode(fused_graph,

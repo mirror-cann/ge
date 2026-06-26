@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -41,29 +41,46 @@ class UtestOmg : public testing::Test {
 };
 
 using GetGraphCallback = std::function<std::unique_ptr<google::protobuf::Message>(
-  const google::protobuf::Message *root_proto, const std::string &graph)>;
+    const google::protobuf::Message *root_proto, const std::string &graph)>;
 
 class CaffeModelParser : public domi::ModelParser {
-  public:
-    CaffeModelParser(){}
-    ~CaffeModelParser(){}
-    domi::Status Parse(const char *file, ge::Graph &graph){return SUCCESS;}
-    domi::Status ParseFromMemory(const char *data, uint32_t size, ge::ComputeGraphPtr &graph){return SUCCESS;}
-    domi::Status ParseFromMemory(const char *data, uint32_t size, ge::Graph &graph){return SUCCESS;}
-    domi::Status ParseProto(const google::protobuf::Message *proto, ge::ComputeGraphPtr &graph){return SUCCESS;}
-    domi::Status ParseProtoWithSubgraph(const google::protobuf::Message *proto, GetGraphCallback callback,
-                                              ge::ComputeGraphPtr &graph){return SUCCESS;}
-    ge::DataType ConvertToGeDataType(const uint32_t type){return DT_FLOAT;}
-    domi::Status ParseAllGraph(const google::protobuf::Message *root_proto,
-                                              ge::ComputeGraphPtr &root_graph){return SUCCESS;}
+ public:
+  CaffeModelParser() {}
+  ~CaffeModelParser() {}
+  domi::Status Parse(const char *file, ge::Graph &graph) {
+    return SUCCESS;
+  }
+  domi::Status ParseFromMemory(const char *data, uint32_t size, ge::ComputeGraphPtr &graph) {
+    return SUCCESS;
+  }
+  domi::Status ParseFromMemory(const char *data, uint32_t size, ge::Graph &graph) {
+    return SUCCESS;
+  }
+  domi::Status ParseProto(const google::protobuf::Message *proto, ge::ComputeGraphPtr &graph) {
+    return SUCCESS;
+  }
+  domi::Status ParseProtoWithSubgraph(const google::protobuf::Message *proto, GetGraphCallback callback,
+                                      ge::ComputeGraphPtr &graph) {
+    return SUCCESS;
+  }
+  ge::DataType ConvertToGeDataType(const uint32_t type) {
+    return DT_FLOAT;
+  }
+  domi::Status ParseAllGraph(const google::protobuf::Message *root_proto, ge::ComputeGraphPtr &root_graph) {
+    return SUCCESS;
+  }
 };
 
 class CaffeWeightsParser : public domi::WeightsParser {
-  public:
-    CaffeWeightsParser(){}
-    ~CaffeWeightsParser(){}
-    domi::Status Parse(const char *file, ge::Graph &graph){return SUCCESS;}
-    domi::Status ParseFromMemory(const char *input, uint32_t lengt, ge::ComputeGraphPtr &graph){return SUCCESS;}
+ public:
+  CaffeWeightsParser() {}
+  ~CaffeWeightsParser() {}
+  domi::Status Parse(const char *file, ge::Graph &graph) {
+    return SUCCESS;
+  }
+  domi::Status ParseFromMemory(const char *input, uint32_t length, ge::ComputeGraphPtr &graph) {
+    return SUCCESS;
+  }
 };
 
 std::shared_ptr<domi::ModelParser> FuncTest() {
@@ -285,7 +302,8 @@ TEST_F(UtestOmg, ParseGraphRunModeIsOnlyPreCheck) {
   const char *target = "stub";
   RunMode run_mode = RunMode::ONLY_PRE_CHECK;
   bool dynamic_input = true;
-  Status ret = ParseGraph(out_graph, atc_params, model_file, weights_file, type, op_conf, target, run_mode, dynamic_input);
+  Status ret =
+      ParseGraph(out_graph, atc_params, model_file, weights_file, type, op_conf, target, run_mode, dynamic_input);
   EXPECT_EQ(ret, FAILED);
 
   ret = ParseGraph(out_graph, atc_params2, model_file, weights_file, type, op_conf, target, run_mode, dynamic_input);
@@ -317,7 +335,8 @@ TEST_F(UtestOmg, ParseGraphSuccess) {
   const char *target = "stub";
   RunMode run_mode = RunMode::GEN_OM_MODEL;
   bool dynamic_input = true;
-  Status ret = ParseGraph(out_graph, atc_params, model_file, weights_file, type, op_conf, target, run_mode, dynamic_input);
+  Status ret =
+      ParseGraph(out_graph, atc_params, model_file, weights_file, type, op_conf, target, run_mode, dynamic_input);
   EXPECT_EQ(ret, SUCCESS);
 
   domi::ModelParserFactory::Instance()->creator_map_.clear();
@@ -329,10 +348,8 @@ TEST_F(UtestOmg, ParseGraphSuccess) {
 TEST_F(UtestOmg, ParseGraphSuccessCheckInputShapeNode) {
   Graph out_graph;
   std::map<std::string, std::string> atc_params = {{"in_nodes", ""}};
-  std::map<std::string, std::string> atc_params_error = {{"in_nodes", ""},
-                                                         {"is_output_adjust_hw_layout", "tr,false"}};
-  std::map<std::string, std::string> atc_params_ok = {{"in_nodes", ""},
-                                                         {"is_output_adjust_hw_layout", "true,false"}};
+  std::map<std::string, std::string> atc_params_error = {{"in_nodes", ""}, {"is_output_adjust_hw_layout", "tr,false"}};
+  std::map<std::string, std::string> atc_params_ok = {{"in_nodes", ""}, {"is_output_adjust_hw_layout", "true,false"}};
 
   ComputeGraphPtr cgp = BuildComputeGraph();
   Graph graph = ge::GraphUtilsEx::CreateGraphFromComputeGraph(cgp);
@@ -350,7 +367,8 @@ TEST_F(UtestOmg, ParseGraphSuccessCheckInputShapeNode) {
   const char *target = "stub";
   RunMode run_mode = RunMode::GEN_OM_MODEL;
   bool dynamic_input = false;
-  Status ret = ParseGraph(out_graph, atc_params_error, model_file, weights_file, type, op_conf, target, run_mode, dynamic_input);
+  Status ret =
+      ParseGraph(out_graph, atc_params_error, model_file, weights_file, type, op_conf, target, run_mode, dynamic_input);
   EXPECT_EQ(ret, PARAM_INVALID);
   ret = ParseGraph(out_graph, atc_params, model_file, weights_file, type, op_conf, target, run_mode, dynamic_input);
   EXPECT_EQ(ret, SUCCESS);
@@ -405,7 +423,7 @@ TEST_F(UtestOmg, ConvertOmModelPartition) {
 
 TEST_F(UtestOmg, ConvertFwkModelToJsonTest) {
   const char *model_file = "test1";
-  char const*json_file = "test2";
+  char const *json_file = "test2";
   domi::FrameworkType type = domi::ONNX;
   domi::ModelParserFactory::Instance()->creator_map_[type] = FuncTest;
   Status ret = ConvertFwkModelToJson(type, model_file, json_file);
@@ -421,8 +439,8 @@ TEST_F(UtestOmg, ConvertFwkModelToJsonTest) {
 }
 
 TEST_F(UtestOmg, ConvertPbtxtToJsonPathINVALID) {
-  char const*model_file = "test1";
-  char const*json_file = "test2";
+  char const *model_file = "test1";
+  char const *json_file = "test2";
   Status ret = ConvertPbtxtToJson(model_file, json_file);
   EXPECT_NE(ret, SUCCESS);
 }
@@ -503,11 +521,11 @@ TEST_F(UtestOmg, ConvertPbtxtToJsonTest) {
 
   const char *json_file = nullptr;
   Status ret = ConvertPbtxtToJson(modelFile.c_str(), json_file);
-  EXPECT_NE(ret, SUCCESS); // modelfile not exist
+  EXPECT_NE(ret, SUCCESS);  // modelfile not exist
 
   std::string josnFile = "./test_model.json";
   ret = ConvertPbtxtToJson(modelFile.c_str(), josnFile.c_str());
-  EXPECT_NE(ret, SUCCESS); // modelfile not exist
+  EXPECT_NE(ret, SUCCESS);  // modelfile not exist
   system("rm -rf ./test_model.json");
 }
 
@@ -564,7 +582,6 @@ TEST_F(UtestOmg, SetOutputNodeInfoUserOutPutTest) {
   GraphUtils::AddEdge(data1->GetOutDataAnchor(0), add->GetInDataAnchor(0));
   GraphUtils::AddEdge(data2->GetOutDataAnchor(0), add->GetInDataAnchor(1));
   ge::Graph graph = ge::GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
-
 
   std::string output_type;
   domi::GetContext().user_out_nodes.clear();
@@ -641,11 +658,11 @@ TEST_F(UtestOmg, ParseGraphCheckInputFp16NodesTest) {
   graph.SaveToFile("./ut_graph1.txt");
   graph.SaveToFile("./ut_graph2.txt");
 
-  std::map<std::string, std::string> atc_params = {{"in_nodes", ""}, {"input_shape_range", ""},
-      {"is_input_adjust_hw_layout", "fal,fal"}};
+  std::map<std::string, std::string> atc_params = {
+      {"in_nodes", ""}, {"input_shape_range", ""}, {"is_input_adjust_hw_layout", "fal,fal"}};
 
-  std::map<std::string, std::string> atc_params2 = {{"in_nodes", ""}, {"input_shape_range", ""},
-      {"input_fp16_nodes", "node1:0;node2:1"}};
+  std::map<std::string, std::string> atc_params2 = {
+      {"in_nodes", ""}, {"input_shape_range", ""}, {"input_fp16_nodes", "node1:0;node2:1"}};
 
   const char *model_file = "./ut_graph1.txt";
   const char *weights_file = "./ut_graph2.txt";
@@ -658,7 +675,8 @@ TEST_F(UtestOmg, ParseGraphCheckInputFp16NodesTest) {
   const char *target = "stub";
   RunMode run_mode = RunMode::GEN_OM_MODEL;
   bool is_dynamic_input = false;
-  Status ret = ParseGraph(out_graph, atc_params, model_file, weights_file, type, op_conf, target, run_mode, is_dynamic_input);
+  Status ret =
+      ParseGraph(out_graph, atc_params, model_file, weights_file, type, op_conf, target, run_mode, is_dynamic_input);
   EXPECT_EQ(ret, PARAM_INVALID);
 
   ret = ParseGraph(out_graph, atc_params2, model_file, weights_file, type, op_conf, target, run_mode, is_dynamic_input);
@@ -708,7 +726,8 @@ TEST_F(UtestOmg, ParseGraphParseOutNodesTest) {
   const char *target = "stub";
   RunMode run_mode = RunMode::GEN_OM_MODEL;
   bool is_dynamic_input = false;
-  Status ret = ParseGraph(out_graph, atc_params, model_file, weights_file, type, op_conf, target, run_mode, is_dynamic_input);
+  Status ret =
+      ParseGraph(out_graph, atc_params, model_file, weights_file, type, op_conf, target, run_mode, is_dynamic_input);
   EXPECT_EQ(ret, PARAM_INVALID);
 
   ret = ParseGraph(out_graph, atc_params2, model_file, weights_file, type, op_conf, target, run_mode, is_dynamic_input);
@@ -721,31 +740,42 @@ TEST_F(UtestOmg, ParseGraphParseOutNodesTest) {
 }
 
 class FakeModelParser : public domi::ModelParser {
-  public:
-    FakeModelParser(){}
-    ~FakeModelParser(){}
-    domi::Status Parse(const char *file, ge::Graph &graph){
-      (void)file;
-      std::vector<int64_t> shape{8, 4, -1};
-      DEF_GRAPH(test_graph) {
-        auto data = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, shape).Attr(ATTR_NAME_INDEX, 0);
-        auto square = OP_CFG(ADD).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, shape);
-        auto netoutput = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(0).TensorDesc(FORMAT_ND, DT_FLOAT, shape);
-        CHAIN(NODE("Data", data)->NODE("Square", square)->NODE("NetOutput", netoutput));
-      };
-      auto cgp = ToComputeGraph(test_graph);
+ public:
+  FakeModelParser() {}
+  ~FakeModelParser() {}
+  domi::Status Parse(const char *file, ge::Graph &graph) {
+    (void)file;
+    std::vector<int64_t> shape{8, 4, -1};
+    DEF_GRAPH(test_graph) {
+      auto data = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, shape).Attr(ATTR_NAME_INDEX, 0);
+      auto square = OP_CFG(ADD).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, shape);
+      auto netoutput = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(0).TensorDesc(FORMAT_ND, DT_FLOAT, shape);
+      CHAIN(NODE("Data", data)->NODE("Square", square)->NODE("NetOutput", netoutput));
+    };
+    auto cgp = ToComputeGraph(test_graph);
 
-      graph = ge::GraphUtilsEx::CreateGraphFromComputeGraph(cgp);
-      return SUCCESS;
-    }
-    domi::Status ParseFromMemory(const char *data, uint32_t size, ge::ComputeGraphPtr &graph){return SUCCESS;}
-    domi::Status ParseFromMemory(const char *data, uint32_t size, ge::Graph &graph){return SUCCESS;}
-    domi::Status ParseProto(const google::protobuf::Message *proto, ge::ComputeGraphPtr &graph){return SUCCESS;}
-    domi::Status ParseProtoWithSubgraph(const google::protobuf::Message *proto, GetGraphCallback callback,
-                                              ge::ComputeGraphPtr &graph){return SUCCESS;}
-    ge::DataType ConvertToGeDataType(const uint32_t type){return DT_FLOAT;}
-    domi::Status ParseAllGraph(const google::protobuf::Message *root_proto,
-                                              ge::ComputeGraphPtr &root_graph){return SUCCESS;}
+    graph = ge::GraphUtilsEx::CreateGraphFromComputeGraph(cgp);
+    return SUCCESS;
+  }
+  domi::Status ParseFromMemory(const char *data, uint32_t size, ge::ComputeGraphPtr &graph) {
+    return SUCCESS;
+  }
+  domi::Status ParseFromMemory(const char *data, uint32_t size, ge::Graph &graph) {
+    return SUCCESS;
+  }
+  domi::Status ParseProto(const google::protobuf::Message *proto, ge::ComputeGraphPtr &graph) {
+    return SUCCESS;
+  }
+  domi::Status ParseProtoWithSubgraph(const google::protobuf::Message *proto, GetGraphCallback callback,
+                                      ge::ComputeGraphPtr &graph) {
+    return SUCCESS;
+  }
+  ge::DataType ConvertToGeDataType(const uint32_t type) {
+    return DT_FLOAT;
+  }
+  domi::Status ParseAllGraph(const google::protobuf::Message *root_proto, ge::ComputeGraphPtr &root_graph) {
+    return SUCCESS;
+  }
 };
 
 TEST_F(UtestOmg, CheckInputShapeNodeINVALID) {
@@ -762,7 +792,7 @@ TEST_F(UtestOmg, CheckInputShapeNodeINVALID) {
 
   domi::FrameworkType type = domi::ONNX;
   domi::ModelParserFactory::Instance()->RegisterCreator(type, FuncTest);
-  domi::ModelParserFactory::Instance()->creator_map_[type] = []() { 
+  domi::ModelParserFactory::Instance()->creator_map_[type] = []() {
     std::shared_ptr<domi::ModelParser> ptr = std::make_shared<FakeModelParser>();
     return ptr;
   };
@@ -772,7 +802,8 @@ TEST_F(UtestOmg, CheckInputShapeNodeINVALID) {
   const char *target = "stub";
   RunMode run_mode = RunMode::GEN_OM_MODEL;
   bool is_dynamic_input = false;
-  Status ret = ParseGraph(out_graph, atc_params, model_file, weights_file, type, op_conf, target, run_mode, is_dynamic_input);
+  Status ret =
+      ParseGraph(out_graph, atc_params, model_file, weights_file, type, op_conf, target, run_mode, is_dynamic_input);
   EXPECT_EQ(ret, PARAM_INVALID);
 
   domi::ModelParserFactory::Instance()->creator_map_.clear();

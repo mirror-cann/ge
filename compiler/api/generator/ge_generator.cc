@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -61,9 +61,7 @@ struct InputNodeInfo {
   bool has_input_desc;
   std::pair<std::string, std::string> input_node_name_type;
   InputNodeInfo(const ge::GeTensorDesc &desc, int32_t arg_idx, bool has_desc)
-      : tensor_desc(desc),
-        arg_index(arg_idx),
-        has_input_desc(has_desc) {}
+      : tensor_desc(desc), arg_index(arg_idx), has_input_desc(has_desc) {}
 };
 const char *const kAttrExcludeEngines = "_exclude_engines";
 const char *const kAttrOpType = "op_type";
@@ -85,10 +83,8 @@ constexpr const char_t *kArchTypeLabel = "version";
 constexpr const char_t *kArchTypeKey = "Arch_type";
 constexpr const char_t *kArchType = "arch_type";
 
-std::map<ge::OpEngineType, std::string> engine_type_map {
-    {ge::ENGINE_SYS, kEngineNameDefault},
-    {ge::ENGINE_AICORE, kAIcoreEngine},
-    {ge::ENGINE_VECTOR, kVectorEngine}};
+std::map<ge::OpEngineType, std::string> engine_type_map{
+    {ge::ENGINE_SYS, kEngineNameDefault}, {ge::ENGINE_AICORE, kAIcoreEngine}, {ge::ENGINE_VECTOR, kVectorEngine}};
 
 bool ContainsDynamicInpus(const ge::OpDesc &op_desc) {
   for (auto &tensor_desc : op_desc.GetAllInputsDescPtr()) {
@@ -104,10 +100,10 @@ bool IsOptional(const ge::GeTensorDesc &tensor_desc) {
   return tensor_desc.GetFormat() == ge::FORMAT_RESERVED && tensor_desc.GetDataType() == ge::DT_UNDEFINED;
 }
 
-bool IsMobile()
-{
+bool IsMobile() {
   const std::set<std::string> mobile_soc_version_list = {
-    "KirinX90", "Kirin9030",
+      "KirinX90",
+      "Kirin9030",
   };
   std::string soc_version;
   (void)ge::GetContext().GetOption(ge::SOC_VERSION, soc_version);
@@ -121,8 +117,7 @@ bool IsMobile()
 }  // namespace
 
 namespace ge {
-static void CreateGeneralizedTensorAttr(const GeTensorDesc &tensor_desc, size_t input_index,
-                                        ge::NamedAttrs &attr) {
+static void CreateGeneralizedTensorAttr(const GeTensorDesc &tensor_desc, size_t input_index, ge::NamedAttrs &attr) {
   attr.SetName("input" + std::to_string(input_index));
   attr.SetAttr("index", ge::GeAttrValue::CreateFrom<int64_t>(input_index));
 
@@ -208,8 +203,8 @@ static Status AddInputs(const ComputeGraphPtr &graph, const NodePtr &node, int32
   if (is_const) {
     ConstGeTensorPtr tensor_value;
     if (!AttrUtils::GetTensor(tensor, ge::ATTR_NAME_WEIGHTS, tensor_value)) {
-      REPORT_INNER_ERR_MSG("E19999", "get attr %s failed, tensor:%s.",
-                        ge::ATTR_NAME_WEIGHTS.c_str(), tensor.GetName().c_str());
+      REPORT_INNER_ERR_MSG("E19999", "get attr %s failed, tensor:%s.", ge::ATTR_NAME_WEIGHTS.c_str(),
+                           tensor.GetName().c_str());
       GELOGE(FAILED, "[Get][Attr] %s failed, tensor:%s.", ge::ATTR_NAME_WEIGHTS.c_str(), tensor.GetName().c_str());
       return FAILED;
     }
@@ -231,17 +226,16 @@ static Status AddInputs(const ComputeGraphPtr &graph, const NodePtr &node, int32
                    return FAILED, "[Add][OutputDesc] fail for node:%s", data_op->GetName().c_str());
   if (input_node_info.has_input_desc && !is_const) {
     GE_CHK_BOOL_EXEC(AttrUtils::SetInt(data_op, ATTR_NAME_INDEX, data_index),
-                     REPORT_INNER_ERR_MSG("E19999", "set attr %s failed for node:%s",
-                                       ATTR_NAME_INDEX.c_str(), data_op->GetName().c_str());
-                     return FAILED,
-                     "[Set][Attr:%s] fail for node:%s", ATTR_NAME_INDEX.c_str(), data_op->GetName().c_str());
+                     REPORT_INNER_ERR_MSG("E19999", "set attr %s failed for node:%s", ATTR_NAME_INDEX.c_str(),
+                                          data_op->GetName().c_str());
+                     return FAILED, "[Set][Attr:%s] fail for node:%s", ATTR_NAME_INDEX.c_str(),
+                            data_op->GetName().c_str());
     ++data_index;
   }
 
   ge::NodePtr arg_node = graph->AddNode(data_op);
-  GE_CHK_BOOL_EXEC(arg_node != nullptr,
-                   REPORT_INNER_ERR_MSG("E19999", "add node:%s to graph:%s failed", data_op->GetName().c_str(),
-                                     graph->GetName().c_str());
+  GE_CHK_BOOL_EXEC(arg_node != nullptr, REPORT_INNER_ERR_MSG("E19999", "add node:%s to graph:%s failed",
+                                                             data_op->GetName().c_str(), graph->GetName().c_str());
                    return FAILED, "[Add][Node] Insert Data node:%s fail", data_op->GetName().c_str());
 
   GE_CHK_STATUS(GraphUtils::AddEdge(arg_node->GetOutDataAnchor(0), node->GetInDataAnchor(index)),
@@ -264,21 +258,17 @@ static Status AddOutputs(const ComputeGraphPtr &graph, const NodePtr &node, cons
     GeTensorDesc tensor = out_desc.GetTensorDesc();
     TensorUtils::SetInputTensor(tensor, true);
     GE_CHK_BOOL_EXEC(op_desc->AddInputDesc(tensor) == GRAPH_SUCCESS,
-                     REPORT_INNER_ERR_MSG("E19999", "AddInputDesc failed for node:%s",
-                     op_desc->GetName().c_str());
-                     return FAILED, "[Add][InputDesc]fail for node:%s",
-                     op_desc->GetName().c_str());
+                     REPORT_INNER_ERR_MSG("E19999", "AddInputDesc failed for node:%s", op_desc->GetName().c_str());
+                     return FAILED, "[Add][InputDesc]fail for node:%s", op_desc->GetName().c_str());
 
     TensorUtils::SetInputTensor(tensor, false);
     TensorUtils::SetOutputTensor(tensor, true);
     GE_CHK_BOOL_EXEC(op_desc->AddOutputDesc(tensor) == GRAPH_SUCCESS,
-                     REPORT_INNER_ERR_MSG("E19999", "AddOutputDesc failed for node:%s",
-                     op_desc->GetName().c_str());
-                     return FAILED, "[Add][OutputDesc]fail for node:%s",
-                     op_desc->GetName().c_str());
+                     REPORT_INNER_ERR_MSG("E19999", "AddOutputDesc failed for node:%s", op_desc->GetName().c_str());
+                     return FAILED, "[Add][OutputDesc]fail for node:%s", op_desc->GetName().c_str());
 
-    userdef_dtypes.emplace_back(std::to_string(count).append(":")
-                                .append(TypeUtils::DataTypeToSerialString(tensor.GetDataType())));
+    userdef_dtypes.emplace_back(
+        std::to_string(count).append(":").append(TypeUtils::DataTypeToSerialString(tensor.GetDataType())));
     count++;
   }
   GE_ASSERT_TRUE(ge::AttrUtils::SetListStr(op_desc, ATTR_ATC_USER_DEFINE_DATATYPE, userdef_dtypes),
@@ -286,18 +276,13 @@ static Status AddOutputs(const ComputeGraphPtr &graph, const NodePtr &node, cons
                  op_desc->GetName().c_str(), graph->GetGraphID());
   GE_CHECK_NOTNULL_EXEC(graph, return PARAM_INVALID);
   ge::NodePtr out_node = graph->AddNode(op_desc);
-  GE_CHK_BOOL_EXEC(out_node != nullptr,
-                   REPORT_INNER_ERR_MSG("E19999", "add node:%s to graph:%u failed.",
-                                     op_desc->GetName().c_str(),
-                                     graph->GetGraphID());
-                   return FAILED,
-                   "[Add][Node:%s]fail in graph:%u", op_desc->GetName().c_str(), graph->GetGraphID());
+  GE_CHK_BOOL_EXEC(out_node != nullptr, REPORT_INNER_ERR_MSG("E19999", "add node:%s to graph:%u failed.",
+                                                             op_desc->GetName().c_str(), graph->GetGraphID());
+                   return FAILED, "[Add][Node:%s]fail in graph:%u", op_desc->GetName().c_str(), graph->GetGraphID());
   GE_CHECK_NOTNULL_EXEC(node, return PARAM_INVALID);
   for (int32_t i = 0; i < count; ++i) {
     GE_CHK_STATUS(GraphUtils::AddEdge(node->GetOutDataAnchor(i), out_node->GetInDataAnchor(i)),
-                  "[Add][Edge]fail from node:%s to node:%s",
-                  node->GetName().c_str(),
-                  out_node->GetName().c_str());
+                  "[Add][Edge]fail from node:%s to node:%s", node->GetName().c_str(), out_node->GetName().c_str());
   }
 
   return SUCCESS;
@@ -366,12 +351,12 @@ static void CreateOutputAttrs(const std::vector<GeTensor> &outputs, GeAttrValue:
 
 static Status GetInputTensorDesc(const std::vector<GeTensor> &inputs,
                                  const std::vector<std::pair<std::string, std::string>> &inputs_name_type,
-                                 std::unordered_map<std::string, NodePtr> &nodes_map,
-                                 bool &input_nodes_all_known_shape,
+                                 std::unordered_map<std::string, NodePtr> &nodes_map, bool &input_nodes_all_known_shape,
                                  std::vector<GeTensorDesc> &tensors_desc) {
   if (!inputs.empty() && inputs_name_type.size() != inputs.size()) {
-    GELOGE(INTERNAL_ERROR, "The size of input tensor is not same with input node, "
-                           "input tensor size:%zu, input nodes size:%zu.",
+    GELOGE(INTERNAL_ERROR,
+           "The size of input tensor is not same with input node, "
+           "input tensor size:%zu, input nodes size:%zu.",
            inputs.size(), inputs_name_type.size());
     return INTERNAL_ERROR;
   }
@@ -426,7 +411,8 @@ class GeGenerator::Impl {
   Status SaveModel(const std::string &file_name_prefix, GeModelPtr &model, ModelBufferData &model_buff) const;
 
   Status SaveRootModel(const std::string &file_name_prefix, const GeRootModelPtr &ge_root_model,
-                       ModelBufferData &model_buff, OfflineModelFormat om_format = OfflineModelFormat::OM_FORMAT_DEFAULT) const;
+                       ModelBufferData &model_buff,
+                       OfflineModelFormat om_format = OfflineModelFormat::OM_FORMAT_DEFAULT) const;
   Status SaveParams(GeModelPtr &ge_model, const std::string &type, const std::map<std::string, GeAttrValue> &attrs,
                     const std::vector<GeTensor> &inputs, const std::vector<GeTensor> &outputs);
 
@@ -458,7 +444,7 @@ Status GeGenerator::Initialize(const std::map<std::string, std::string> &options
 }
 
 Status GeGenerator::Initialize(const std::map<std::string, std::string> &options, OmgContext &context) {
-  //备份并清空注册信息map
+  // 备份并清空注册信息map
   OperatorFactoryImpl::BackupAndClearRegInfoOnce();
   impl_ = ge::MakeShared<Impl>(context);
   if (impl_ == nullptr) {
@@ -517,8 +503,7 @@ Status GeGenerator::Finalize() {
 }
 
 Status GeGenerator::GenerateOfflineModel(const Graph &graph, const std::string &file_name_prefix,
-                                         const std::vector<GeTensor> &inputs,
-                                         OfflineModelFormat om_format) {
+                                         const std::vector<GeTensor> &inputs, OfflineModelFormat om_format) {
   GELOGI("Start to generate offline model.");
   ModelBufferData model;
   (void)AttrUtils::SetStr(GraphUtilsEx::GetComputeGraph(graph), ATTR_MODEL_FILE_NAME_PREFIX, file_name_prefix);
@@ -635,7 +620,7 @@ Status GeGenerator::SetModelNameForDump(const GeRootModelPtr &ge_root_model) {
     GELOGE(FAILED, "[Check][IsUnknownShape]Check root model is unknown shape failed, model id:%u",
            ge_root_model->GetModelId());
     REPORT_INNER_ERR_MSG("E19999", "Check root model is unknown shape failed, model id:%u",
-                      ge_root_model->GetModelId());
+                         ge_root_model->GetModelId());
     return FAILED;
   }
   GE_CHECK_NOTNULL(ge_root_model->GetRootGraph());
@@ -656,8 +641,7 @@ Status GeGenerator::SetModelNameForDump(const GeRootModelPtr &ge_root_model) {
 }
 
 Status GeGenerator::GenerateModel(const Graph &graph, const std::string &file_name_prefix,
-                                  const std::vector<GeTensor> &inputs,
-                                  ModelBufferData &model, bool is_offline,
+                                  const std::vector<GeTensor> &inputs, ModelBufferData &model, bool is_offline,
                                   OfflineModelFormat om_format) {
   GeRootModelPtr ge_root_model = nullptr;
   GE_CHECK_NOTNULL_EXEC(impl_, return PARAM_INVALID);
@@ -668,7 +652,8 @@ Status GeGenerator::GenerateModel(const Graph &graph, const std::string &file_na
   (void)GetContext().GetOption(SOC_VERSION, soc_version);
   (void)GetContext().GetOption(HCCL_SUB_COMM_CONFIG, hccl_sub_comm_config);
   (void)GetContext().GetOption(CLUSTER_CONFIG, cluster_config);
-  GE_CHK_STATUS_RET_NOLOG(HcclOfflineOptionBuilder::Instance().Initialize(soc_version, cluster_config, hccl_sub_comm_config));
+  GE_CHK_STATUS_RET_NOLOG(
+      HcclOfflineOptionBuilder::Instance().Initialize(soc_version, cluster_config, hccl_sub_comm_config));
   Status ret = impl_->BuildModel(graph, inputs, ge_root_model);
   if (ret != SUCCESS) {
     GELOGE(ret, "[Build][Model] failed, ret:%u.", ret);
@@ -684,9 +669,7 @@ Status GeGenerator::GenerateModel(const Graph &graph, const std::string &file_na
   if ((impl_->build_mode_ == BUILD_MODE_TUNING) &&
       (impl_->build_step_ == BUILD_STEP_BEFORE_UB_MATCH || impl_->build_step_ == BUILD_STEP_AFTER_BUILDER ||
        impl_->build_step_ == BUILD_STEP_AFTER_BUILDER_SUB)) {
-    GELOGI("Build mode:%s with step:%s no need SaveModel.",
-           impl_->build_mode_.c_str(),
-           impl_->build_step_.c_str());
+    GELOGI("Build mode:%s with step:%s no need SaveModel.", impl_->build_mode_.c_str(), impl_->build_step_.c_str());
     return SUCCESS;
   }
 
@@ -714,105 +697,105 @@ Status GeGenerator::GenerateModel(const Graph &graph, const std::string &file_na
 }
 
 namespace {
-  bool IsNeedConnectInputOpForSingleOp(GeTensorDesc &tensor_desc) {
-    bool is_need = true;
-    // format and dtype is all reserved, stand for Optional input. When singleop scene
-    if (tensor_desc.GetFormat() == FORMAT_RESERVED && tensor_desc.GetDataType() == DT_UNDEFINED) {
-      is_need = false;
-    }
-    return is_need;
+bool IsNeedConnectInputOpForSingleOp(GeTensorDesc &tensor_desc) {
+  bool is_need = true;
+  // format and dtype is all reserved, stand for Optional input. When singleop scene
+  if (tensor_desc.GetFormat() == FORMAT_RESERVED && tensor_desc.GetDataType() == DT_UNDEFINED) {
+    is_need = false;
   }
-
-  Status CheckDynamicSupport(GeModelPtr &ge_model, const ComputeGraphPtr &graph) {
-    bool support_dynamic = true;
-    bool is_dynamic = false;
-    for (const auto &node : graph->GetDirectNode()) {
-      GE_CHECK_NOTNULL(node);
-      auto op_desc = node->GetOpDesc();
-      GE_CHECK_NOTNULL(op_desc);
-      if (op_desc->GetOpEngineName() != kAIcoreEngine) {
-        continue;
-      }
-      if (AttrUtils::HasAttr(op_desc, kAttrSupportDynamicShape)) {
-        is_dynamic = true;
-        (void) AttrUtils::GetBool(op_desc, kAttrSupportDynamicShape, support_dynamic);
-        if (!support_dynamic) {
-          GELOGW("Node[%s] doesn't support dynamic shape.", node->GetName().c_str());
-          break;
-        }
-      }
-    }
-    if (is_dynamic) {
-      (void) AttrUtils::SetBool(ge_model, kAttrSupportDynamicShape, support_dynamic);
-    }
-    return SUCCESS;
-  }
-
-  bool CheckIfConstInput(const GeTensorDescPtr &input_tensor_desc) {
-    bool is_const = false;
-    (void)AttrUtils::GetBool(input_tensor_desc, CONST_ATTR_NAME_INPUT, is_const);
-    return is_const;
-  }
-
-  Status ResetInputTensorShape(OpDescPtr &op_desc, const GeShape &dynamic_shape) {
-    GE_CHECK_NOTNULL(op_desc);
-    for (size_t i = 0; i < op_desc->GetAllInputsSize(); i++) {
-      auto input_desc = op_desc->MutableInputDesc(static_cast<uint32_t>(i));
-      GE_CHECK_NOTNULL(input_desc);
-      // pass const input
-      if (CheckIfConstInput(input_desc)) {
-        continue;
-      }
-      input_desc->SetShape(dynamic_shape);
-      input_desc->SetOriginShapeRange({});
-    }
-    return SUCCESS;
-  }
-
-  Status ResetOutputTensorShape(OpDescPtr &op_desc, const GeShape &dynamic_shape) {
-    GE_CHECK_NOTNULL(op_desc);
-    for (size_t i = 0; i < op_desc->GetAllOutputsDescSize(); i++) {
-      auto output_desc = op_desc->MutableOutputDesc(static_cast<uint32_t>(i));
-      GE_CHECK_NOTNULL(output_desc);
-      output_desc->SetShape(dynamic_shape);
-      output_desc->SetOriginShapeRange({});
-    }
-    return SUCCESS;
-  }
-
-  Status ResetOpShape(OpDescPtr &op_desc) {
-    GE_CHECK_NOTNULL(op_desc);
-    GeShape dynamic_shape(UNKNOWN_RANK);
-    (void)ResetInputTensorShape(op_desc, dynamic_shape);
-    (void)ResetOutputTensorShape(op_desc, dynamic_shape);
-    return SUCCESS;
-  }
-
-  bool IsAllAicpuNodes(const ComputeGraphPtr &graph) {
-    for (const auto &node : graph->GetDirectNode()) {
-      GE_CHECK_NOTNULL(node->GetOpDesc());
-      // pass input and output node
-      if (OpTypeUtils::IsDataNode(node->GetType()) || (node->GetType() == CONSTANT) ||
-          (node->GetType() == CONSTANTOP) || (node->GetType() == NETOUTPUT)) {
-        continue;
-      }
-
-      // find if there are aicpu nodes.
-      auto op_desc = node->GetOpDesc();
-      string engine_name = op_desc->GetOpEngineName();
-      if (engine_name.empty()) {
-        GELOGE(GRAPH_FAILED, "Get engine failed of node[%s].", node->GetName().c_str());
-        return GRAPH_FAILED;
-      }
-      if ((engine_name != kEngineNameOfAiCpu) && (engine_name != kEngineNameOfAiCpuTf)) {
-        GELOGD("node name %s, node type %s, engine name of current node is %s, it is not belong to aicpu",
-               node->GetName().c_str(), node->GetType().c_str(), engine_name.c_str());
-        return false;
-      }
-    }
-    return true;
-  }
+  return is_need;
 }
+
+Status CheckDynamicSupport(GeModelPtr &ge_model, const ComputeGraphPtr &graph) {
+  bool support_dynamic = true;
+  bool is_dynamic = false;
+  for (const auto &node : graph->GetDirectNode()) {
+    GE_CHECK_NOTNULL(node);
+    auto op_desc = node->GetOpDesc();
+    GE_CHECK_NOTNULL(op_desc);
+    if (op_desc->GetOpEngineName() != kAIcoreEngine) {
+      continue;
+    }
+    if (AttrUtils::HasAttr(op_desc, kAttrSupportDynamicShape)) {
+      is_dynamic = true;
+      (void)AttrUtils::GetBool(op_desc, kAttrSupportDynamicShape, support_dynamic);
+      if (!support_dynamic) {
+        GELOGW("Node[%s] doesn't support dynamic shape.", node->GetName().c_str());
+        break;
+      }
+    }
+  }
+  if (is_dynamic) {
+    (void)AttrUtils::SetBool(ge_model, kAttrSupportDynamicShape, support_dynamic);
+  }
+  return SUCCESS;
+}
+
+bool CheckIfConstInput(const GeTensorDescPtr &input_tensor_desc) {
+  bool is_const = false;
+  (void)AttrUtils::GetBool(input_tensor_desc, CONST_ATTR_NAME_INPUT, is_const);
+  return is_const;
+}
+
+Status ResetInputTensorShape(OpDescPtr &op_desc, const GeShape &dynamic_shape) {
+  GE_CHECK_NOTNULL(op_desc);
+  for (size_t i = 0; i < op_desc->GetAllInputsSize(); i++) {
+    auto input_desc = op_desc->MutableInputDesc(static_cast<uint32_t>(i));
+    GE_CHECK_NOTNULL(input_desc);
+    // pass const input
+    if (CheckIfConstInput(input_desc)) {
+      continue;
+    }
+    input_desc->SetShape(dynamic_shape);
+    input_desc->SetOriginShapeRange({});
+  }
+  return SUCCESS;
+}
+
+Status ResetOutputTensorShape(OpDescPtr &op_desc, const GeShape &dynamic_shape) {
+  GE_CHECK_NOTNULL(op_desc);
+  for (size_t i = 0; i < op_desc->GetAllOutputsDescSize(); i++) {
+    auto output_desc = op_desc->MutableOutputDesc(static_cast<uint32_t>(i));
+    GE_CHECK_NOTNULL(output_desc);
+    output_desc->SetShape(dynamic_shape);
+    output_desc->SetOriginShapeRange({});
+  }
+  return SUCCESS;
+}
+
+Status ResetOpShape(OpDescPtr &op_desc) {
+  GE_CHECK_NOTNULL(op_desc);
+  GeShape dynamic_shape(UNKNOWN_RANK);
+  (void)ResetInputTensorShape(op_desc, dynamic_shape);
+  (void)ResetOutputTensorShape(op_desc, dynamic_shape);
+  return SUCCESS;
+}
+
+bool IsAllAicpuNodes(const ComputeGraphPtr &graph) {
+  for (const auto &node : graph->GetDirectNode()) {
+    GE_CHECK_NOTNULL(node->GetOpDesc());
+    // pass input and output node
+    if (OpTypeUtils::IsDataNode(node->GetType()) || (node->GetType() == CONSTANT) || (node->GetType() == CONSTANTOP) ||
+        (node->GetType() == NETOUTPUT)) {
+      continue;
+    }
+
+    // find if there are aicpu nodes.
+    auto op_desc = node->GetOpDesc();
+    string engine_name = op_desc->GetOpEngineName();
+    if (engine_name.empty()) {
+      GELOGE(GRAPH_FAILED, "Get engine failed of node[%s].", node->GetName().c_str());
+      return GRAPH_FAILED;
+    }
+    if ((engine_name != kEngineNameOfAiCpu) && (engine_name != kEngineNameOfAiCpuTf)) {
+      GELOGD("node name %s, node type %s, engine name of current node is %s, it is not belong to aicpu",
+             node->GetName().c_str(), node->GetType().c_str(), engine_name.c_str());
+      return false;
+    }
+  }
+  return true;
+}
+}  // namespace
 
 Status GeGenerator::ResetAiCpuToDynamicShape(const ComputeGraphPtr &graph) {
   for (const auto &node : graph->GetDirectNode()) {
@@ -850,21 +833,23 @@ Status GeGenerator::CheckForSingleOp(const OpDescPtr &op_desc, const std::vector
                                      const std::vector<GeTensor> &outputs) {
   GE_CHECK_NOTNULL_EXEC(op_desc, return PARAM_INVALID);
   if (!inputs.empty() && (inputs.size() != op_desc->GetAllInputsSize())) {
-    REPORT_PREDEFINED_ERR_MSG("E14001", std::vector<const char *>({"opname", "optype", "value", "reason"}),
+    REPORT_PREDEFINED_ERR_MSG(
+        "E14001", std::vector<const char *>({"opname", "optype", "value", "reason"}),
         std::vector<const char *>({op_desc->GetName().c_str(), op_desc->GetType().c_str(),
-        ("inputs size" + FmtToStr(op_desc->GetAllInputsSize())).c_str(),
-        ("Input size is not equal to tensor size " + FmtToStr(inputs.size())).c_str()}));
-    GELOGE(PARAM_INVALID, "[Check][Param] Tensor size: %zu, op:%s(%s) Inputs size: %zu, not equal",
-           inputs.size(), op_desc->GetName().c_str(), op_desc->GetType().c_str(), op_desc->GetAllInputsSize());
+                                   ("inputs size" + FmtToStr(op_desc->GetAllInputsSize())).c_str(),
+                                   ("Input size is not equal to tensor size " + FmtToStr(inputs.size())).c_str()}));
+    GELOGE(PARAM_INVALID, "[Check][Param] Tensor size: %zu, op:%s(%s) Inputs size: %zu, not equal", inputs.size(),
+           op_desc->GetName().c_str(), op_desc->GetType().c_str(), op_desc->GetAllInputsSize());
     return PARAM_INVALID;
   }
   if (!outputs.empty() && (outputs.size() != op_desc->GetOutputsSize())) {
-    REPORT_PREDEFINED_ERR_MSG("E14001", std::vector<const char *>({"opname", "optype", "value", "reason"}),
+    REPORT_PREDEFINED_ERR_MSG(
+        "E14001", std::vector<const char *>({"opname", "optype", "value", "reason"}),
         std::vector<const char *>({op_desc->GetName().c_str(), op_desc->GetType().c_str(),
-        ("outputs size" + FmtToStr(op_desc->GetOutputsSize())).c_str(),
-        ("Input size is not equal to tensor size " + FmtToStr(outputs.size())).c_str()}));
-    GELOGE(PARAM_INVALID, "[Check][Param] Tensor size: %zu, op:%s(%s) Outputs size: %zu, not equal",
-           outputs.size(), op_desc->GetName().c_str(), op_desc->GetType().c_str(), op_desc->GetOutputsSize());
+                                   ("outputs size" + FmtToStr(op_desc->GetOutputsSize())).c_str(),
+                                   ("Input size is not equal to tensor size " + FmtToStr(outputs.size())).c_str()}));
+    GELOGE(PARAM_INVALID, "[Check][Param] Tensor size: %zu, op:%s(%s) Outputs size: %zu, not equal", outputs.size(),
+           op_desc->GetName().c_str(), op_desc->GetType().c_str(), op_desc->GetOutputsSize());
     return PARAM_INVALID;
   }
   return SUCCESS;
@@ -881,7 +866,7 @@ Status GeGenerator::InferFormatForSingleOp(const OpDescPtr &op_desc, const Graph
       auto temp_op_desc = ge::OpDescUtils::GetOpDescFromOperator(node_op);
       if (temp_op_desc == nullptr) {
         REPORT_INNER_ERR_MSG("E19999", "GetOpDescFromOperator failed, as return nullptr, type:%s",
-                           op_desc->GetType().c_str());
+                             op_desc->GetType().c_str());
         GELOGE(FAILED, "[Get][OpDesc] temp op desc is null, type:%s", op_desc->GetType().c_str());
         return FAILED;
       }
@@ -901,8 +886,7 @@ Status GeGenerator::InferFormatForSingleOp(const OpDescPtr &op_desc, const Graph
   auto op = OpDescUtils::CreateOperatorFromNode(node);
   auto ret = OpDescUtilsEx::CallInferFormatFunc(op_desc, op);
   if (ret != GRAPH_SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "call InferFormatFunc for single op:%s fail",
-                       op_desc->GetName().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "call InferFormatFunc for single op:%s fail", op_desc->GetName().c_str());
     GELOGE(FAILED, "[Call][InferFormatFunc] for single op:%s fail.", op_desc->GetName().c_str());
     return FAILED;
   }
@@ -928,11 +912,10 @@ void GeGenerator::AddShapeGeneralizedOption(std::map<std::string, std::string> &
   GELOGI("Shape generalized build mode is [%s].", build_mode.c_str());
 }
 
-void GeGenerator::AddExcludeEnginesOption(const OpDescPtr &op_desc,
-                                          std::map<std::string, std::string> &graph_options) {
+void GeGenerator::AddExcludeEnginesOption(const OpDescPtr &op_desc, std::map<std::string, std::string> &graph_options) {
   std::string exclude_engines;
   AttrUtils::GetStr(op_desc, kAttrExcludeEngines, exclude_engines);
-  graph_options[EXCLUDE_ENGINES] = exclude_engines; // always update option value
+  graph_options[EXCLUDE_ENGINES] = exclude_engines;  // always update option value
   GELOGI("Exclude engines is %s.", exclude_engines.c_str());
 }
 
@@ -958,8 +941,7 @@ Status GeGenerator::BuildOriginalGraphInfo(OpDescPtr &op_desc, const std::vector
   impl_->is_offline_ = is_offline;
 
   if (CheckForSingleOp(op_desc, inputs, outputs) != SUCCESS) {
-    GELOGE(PARAM_INVALID, "[Check][Param] input param is invalid when build single op:%s!",
-           op_desc->GetName().c_str());
+    GELOGE(PARAM_INVALID, "[Check][Param] input param is invalid when build single op:%s!", op_desc->GetName().c_str());
     return PARAM_INVALID;
   }
   OmgContext &omg_context = impl_->omg_context_;
@@ -1001,9 +983,8 @@ static void IsOutputNodesAllknownShape(const NodePtr &output_node, bool &output_
   return;
 }
 
-Status GeGenerator::CreateGeneralizedBuildAttrs(const GeRootModelPtr &ge_root_model,
-    const std::vector<GeTensor> &inputs,
-    const std::vector<GeTensor> &outputs,
+Status GeGenerator::CreateGeneralizedBuildAttrs(
+    const GeRootModelPtr &ge_root_model, const std::vector<GeTensor> &inputs, const std::vector<GeTensor> &outputs,
     const std::vector<std::pair<std::string, std::string>> &inputs_name_type,
     std::vector<ge::NamedAttrs> &generalized_build_attrs) {
   GELOGD("Start to create attrs, input tensor size:%zu, input node size:%zu.", inputs.size(), inputs_name_type.size());
@@ -1044,8 +1025,8 @@ Status GeGenerator::CreateGeneralizedBuildAttrs(const GeRootModelPtr &ge_root_mo
   GELOGD("Input generalized build attrs size is %zu.", input_generalized_attrs.size());
   std::vector<ge::NamedAttrs> output_generalized_attrs;
   CreateOutputAttrs(outputs, output_generalized_attrs);
-  GELOGD("Output generalized build attrs size is %zu, output tensor size is %zu.",
-         output_generalized_attrs.size(), outputs.size());
+  GELOGD("Output generalized build attrs size is %zu, output tensor size is %zu.", output_generalized_attrs.size(),
+         outputs.size());
 
   std::string performance_mode;
   GetContext().GetOption(PERFORMANCE_MODE, performance_mode);
@@ -1054,8 +1035,7 @@ Status GeGenerator::CreateGeneralizedBuildAttrs(const GeRootModelPtr &ge_root_mo
 
   ge::NamedAttrs build_res;
   build_res.SetName(ATTR_NAME_FUZZ_BUILD_RES_ATTRS);
-  build_res.SetAttr(ATTR_NAME_FUZZ_IS_HIGH_PERFORMANCE_ATTRS,
-                    ge::GeAttrValue::CreateFrom<bool>(is_high_performance));
+  build_res.SetAttr(ATTR_NAME_FUZZ_IS_HIGH_PERFORMANCE_ATTRS, ge::GeAttrValue::CreateFrom<bool>(is_high_performance));
   build_res.SetAttr(ATTR_NAME_FUZZ_INPUTS_SUPPORTED_ATTRS,
                     ge::GeAttrValue::CreateFrom<std::vector<ge::NamedAttrs>>(input_generalized_attrs));
   build_res.SetAttr(ATTR_NAME_FUZZ_OUTPUTS_SUPPORTED_ATTRS,
@@ -1125,8 +1105,8 @@ Status GeGenerator::BuildSingleOp(OpDescPtr &op_desc, const std::vector<GeTensor
   GE_CHECK_NOTNULL(root_graph);
   GeModelPtr &ge_model = name_to_ge_model[root_graph->GetName()];
   GE_CHECK_NOTNULL(ge_model);
-  (void) AttrUtils::SetStr(ge_model, kAttrNameSingleOpType, op_desc->GetType());
-  (void) AttrUtils::SetBool(ge_model, ATTR_SINGLE_OP_SCENE, true);
+  (void)AttrUtils::SetStr(ge_model, kAttrNameSingleOpType, op_desc->GetType());
+  (void)AttrUtils::SetBool(ge_model, ATTR_SINGLE_OP_SCENE, true);
   GE_CHK_STATUS_RET_NOLOG(CheckDynamicSupport(ge_model, root_graph));
   (void)AttrUtils::SetBool(ge_model, ATTR_NAME_IS_DYNAMIC_MODEL, root_graph->GetGraphUnknownFlag());
   GELOGI("After build model, The opType in op_desc_tmp is [%s], ATTR_NAME_IS_DYNAMIC_MODEL: %d",
@@ -1153,20 +1133,20 @@ Status GeGenerator::BuildSingleOp(OpDescPtr &op_desc, const std::vector<GeTensor
       return FAILED;
     }
     if (!fuzz_build_attrs.empty()) {
-      GE_CHK_BOOL_EXEC(AttrUtils::SetListNamedAttrs(ge_model, ATTR_NAME_FUZZ_BUILD_RES_ATTRS, fuzz_build_attrs),
-                       REPORT_INNER_ERR_MSG("E19999", "Set model:%s(id:%u) attr:%s failed.",
-                                         ge_model->GetName().c_str(), ge_model->GetModelId(),
-                                         ATTR_NAME_FUZZ_BUILD_RES_ATTRS.c_str());
-                       return FAILED, "Set model:%s(id:%u) attr:%s failed.",
-                       ge_model->GetName().c_str(), ge_model->GetModelId(), ATTR_NAME_FUZZ_BUILD_RES_ATTRS.c_str());
+      GE_CHK_BOOL_EXEC(
+          AttrUtils::SetListNamedAttrs(ge_model, ATTR_NAME_FUZZ_BUILD_RES_ATTRS, fuzz_build_attrs),
+          REPORT_INNER_ERR_MSG("E19999", "Set model:%s(id:%u) attr:%s failed.", ge_model->GetName().c_str(),
+                               ge_model->GetModelId(), ATTR_NAME_FUZZ_BUILD_RES_ATTRS.c_str());
+          return FAILED, "Set model:%s(id:%u) attr:%s failed.", ge_model->GetName().c_str(), ge_model->GetModelId(),
+                 ATTR_NAME_FUZZ_BUILD_RES_ATTRS.c_str());
     }
     GE_CHK_STATUS_RET_NOLOG(impl_->SaveParams(ge_model, op_desc_tmp->GetType(), op_attrs, inputs, outputs));
   } else {
     std::vector<GeTensor> inputs_dynamic(inputs);
     std::vector<GeTensor> outputs_dynamic(outputs);
     GE_CHK_STATUS_RET_NOLOG(ResetInputOutputShape(root_graph, inputs_name_type, inputs_dynamic, outputs_dynamic));
-    GE_CHK_STATUS_RET_NOLOG(impl_->SaveParams(ge_model, op_desc_tmp->GetType(), op_attrs,
-                                              inputs_dynamic, outputs_dynamic));
+    GE_CHK_STATUS_RET_NOLOG(
+        impl_->SaveParams(ge_model, op_desc_tmp->GetType(), op_attrs, inputs_dynamic, outputs_dynamic));
   }
   GELOGI("Start save GeModel to Model buffer");
   GE_CHK_STATUS_RET_NOLOG(impl_->SaveRootModel(model_file_name, ge_root_model, model_buff));
@@ -1175,7 +1155,7 @@ Status GeGenerator::BuildSingleOp(OpDescPtr &op_desc, const std::vector<GeTensor
 
 Status GeGenerator::ResetOutputShapeRange(const OpDescPtr &op_desc, const size_t index,
                                           std::vector<std::pair<int64_t, int64_t>> &shape_range) {
-  GE_CHK_BOOL_RET_STATUS((op_desc->GetInputsSize() == op_desc->GetOutputsSize()), INTERNAL_ERROR, \
+  GE_CHK_BOOL_RET_STATUS((op_desc->GetInputsSize() == op_desc->GetOutputsSize()), INTERNAL_ERROR,
                          "Netoutput node inputs des size and outputs des size must same.");
   (void)op_desc->GetOutputDesc(index).GetShapeRange(shape_range);
   if (shape_range.size() == 0U) {
@@ -1228,8 +1208,8 @@ Status GeGenerator::ResetInputOutputShape(const ComputeGraphPtr &graph,
         if (dims.empty()) {
           continue;
         }
-        if (std::any_of(dims.begin(), dims.end(), [](int64_t val) { return val == UNKNOWN_DIM_NUM || \
-                                                                    val == UNKNOWN_DIM; })) {
+        if (std::any_of(dims.begin(), dims.end(),
+                        [](int64_t val) { return val == UNKNOWN_DIM_NUM || val == UNKNOWN_DIM; })) {
           // refresh output shape range for UNKNOW_DIM
           std::vector<std::pair<int64_t, int64_t>> shape_range;
           ResetOutputShapeRange(op_desc, index, shape_range);
@@ -1279,8 +1259,8 @@ Status GeGenerator::BuildSingleOpModel(OpDescPtr &op_desc, const std::vector<GeT
   ModelBufferData model_buff;
   ComputeGraphPtr compute_graph = nullptr;
   OpEngineType engine_type = ENGINE_SYS;
-  Status status = BuildSingleOp(op_desc, inputs, outputs, model_file_name, engine_type, model_buff, compute_graph,
-                                true, compile_flag);
+  Status status = BuildSingleOp(op_desc, inputs, outputs, model_file_name, engine_type, model_buff, compute_graph, true,
+                                compile_flag);
   GELOGI("Finish build single offline model, status: %u", status);
   return status;
 }
@@ -1302,8 +1282,8 @@ Status GeGenerator::BuildSingleOpModel(OpDescPtr &op_desc, const std::vector<GeT
                                        ModelBufferData &model_buff) {
   GELOGI("Start to build single op online, input size: %zu, output size: %zu", inputs.size(), outputs.size());
   ComputeGraphPtr compute_graph = nullptr;
-  Status status = BuildSingleOp(op_desc, inputs, outputs, kFileNameSuffix, engine_type, model_buff,
-                                compute_graph, false);
+  Status status =
+      BuildSingleOp(op_desc, inputs, outputs, kFileNameSuffix, engine_type, model_buff, compute_graph, false);
   GELOGI("Finish build single online model, status: %u", status);
   return status;
 }
@@ -1321,8 +1301,8 @@ Status GeGenerator::BuildSingleOpModel(OpDescPtr &op_desc, const std::vector<GeT
 
 Status GeGenerator::BuildSingleOpModel(OpDescPtr &op_desc, const std::vector<GeTensor> &inputs,
                                        const std::vector<GeTensor> &outputs, OpEngineType engine_type,
-                                       int32_t compile_flag, ModelBufferData &model_buff,
-                                       GraphStage graph_stage, ComputeGraphPtr &compute_graph) {
+                                       int32_t compile_flag, ModelBufferData &model_buff, GraphStage graph_stage,
+                                       ComputeGraphPtr &compute_graph) {
   GELOGI("Start to build single op online, input size: %zu, output size: %zu", inputs.size(), outputs.size());
   Status status = BuildSingleOp(op_desc, inputs, outputs, kFileNameSuffix, engine_type, model_buff, compute_graph,
                                 false, compile_flag, graph_stage);
@@ -1404,8 +1384,8 @@ Status GeGenerator::CheckEngineTypeSupport(const NodePtr &node, OpEngineType eng
   } else {
     REPORT_PREDEFINED_ERR_MSG(
         "E14001", std::vector<const char *>({"opname", "optype", "value", "reason"}),
-        std::vector<const char *>({op_desc->GetName().c_str(), op_desc->GetType().c_str(),
-        "engine type", "It only supports default/AIcoreEngine/VectorEngine"}));
+        std::vector<const char *>({op_desc->GetName().c_str(), op_desc->GetType().c_str(), "engine type",
+                                   "It only supports default/AIcoreEngine/VectorEngine"}));
     GELOGE(FAILED,
            "[Check][Param] value:%d not support, "
            "only support default/AIcoreEngine/VectorEngine now",
@@ -1430,7 +1410,7 @@ Status GeGenerator::CheckEngineTypeSupport(const NodePtr &node, OpEngineType eng
   if (op_infos.empty()) {
     REPORT_PREDEFINED_ERR_MSG("E14001", std::vector<const char *>({"opname", "optype", "value", "reason"}),
                               std::vector<const char *>({op_desc->GetName().c_str(), op_desc->GetType().c_str(),
-                                                         "optype", "This optype is not registed"}));
+                                                         "optype", "This optype is not registered"}));
     GELOGE(FAILED, "[Get][OpInfo] by op type %s failed.", op_desc->GetType().c_str());
     return FAILED;
   }
@@ -1445,7 +1425,7 @@ Status GeGenerator::CheckEngineTypeSupport(const NodePtr &node, OpEngineType eng
     REPORT_PREDEFINED_ERR_MSG("E14001", std::vector<const char *>({"opname", "optype", "value", "reason"}),
                               std::vector<const char *>({op_desc->GetName().c_str(), op_desc->GetType().c_str(),
                                                          ("engine name" + FmtToStr(op_engine_name)).c_str(),
-                                                         "This optype is not registed"}));
+                                                         "This optype is not registered"}));
     GELOGE(FAILED, "[Check][Param] Cannot find ops kernel, engine name:%s. op:%s(%s)", op_engine_name.c_str(),
            op_desc->GetName().c_str(), op_desc->GetType().c_str());
     return FAILED;
@@ -1469,9 +1449,8 @@ Status GeGenerator::CheckEngineTypeSupport(const NodePtr &node, OpEngineType eng
       return FAILED;
     }
   } else {
-    REPORT_PREDEFINED_ERR_MSG(
-        "EZ3003", std::vector<const char *>({"opname", "optype"}),
-        std::vector<const char *>({op_desc->GetName().c_str(), op_desc->GetType().c_str()}));
+    REPORT_PREDEFINED_ERR_MSG("EZ3003", std::vector<const char *>({"opname", "optype"}),
+                              std::vector<const char *>({op_desc->GetName().c_str(), op_desc->GetType().c_str()}));
     GELOGE(FAILED,
            "[Check][Param] Cannot find any supported ops kernel info store by kernel_name %s,"
            "op type is %s, op name is %s",
@@ -1489,7 +1468,10 @@ Status GeGenerator::SetCurrentSessionId(const uint64_t session_id) const {
 Status GeGenerator::SetExternalGraphRebuildStateCtrl(void *rebuild_ctrl) const {
   GE_ASSERT_NOTNULL(impl_);
   impl_->rebuild_ctrl_.reset(PtrToPtr<void, GraphRebuildStateCtrl>(rebuild_ctrl),
-      [] (const GraphRebuildStateCtrl *rebuild_ctrl_param) { (void)rebuild_ctrl_param; GELOGI("no delete rebuild"); });
+                             [](const GraphRebuildStateCtrl *rebuild_ctrl_param) {
+                               (void)rebuild_ctrl_param;
+                               GELOGI("no delete rebuild");
+                             });
   impl_->graph_manager_.SetExternalGraphRebuildStateCtrl(impl_->rebuild_ctrl_);
   return SUCCESS;
 }
@@ -1621,7 +1603,7 @@ Status GeGenerator::Impl::BuildModelWithGraphId(const GraphId &graph_id, const s
     REPORT_INNER_ERR_MSG("E19999", "build graph failed, graph id:%u, ret:%u", graph_id, ret);
     GELOGE(GE_GENERATOR_GRAPH_MANAGER_BUILD_GRAPH_FAILED, "[Build][Graph] fail, graph id: %u", graph_id);
   }
-  if (session_id_ == UINT64_MAX) { // default session_id_ need to destroy session resource internal
+  if (session_id_ == UINT64_MAX) {  // default session_id_ need to destroy session resource internal
     RtContextUtil::GetInstance().DestroyRtContexts(session_id);
     Analyzer::GetInstance()->DestroySessionJsonObject(session_id);
     VarManagerPool::Instance().RemoveVarManager(session_id);
@@ -1644,8 +1626,8 @@ Status GeGenerator::Impl::GenerateInfershapeGraph(const Graph &graph) {
   ret = graph_manager_.GenerateInfershapeGraph(graph_id);
   if (ret != SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "GenerateInfershapeGraph failed, graph id:%u, ret:%u", graph_id, ret);
-    GELOGE(GE_GENERATOR_GRAPH_MANAGER_BUILD_GRAPH_FAILED,
-           "[Generate][Graph] failed, graph id:%u, ret:%u", graph_id, ret);
+    GELOGE(GE_GENERATOR_GRAPH_MANAGER_BUILD_GRAPH_FAILED, "[Generate][Graph] failed, graph id:%u, ret:%u", graph_id,
+           ret);
     return GE_GENERATOR_GRAPH_MANAGER_BUILD_GRAPH_FAILED;
   }
 

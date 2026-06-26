@@ -30,8 +30,7 @@
 namespace ge {
 
 namespace {
-graphStatus CallFromGEGraph(const ConstGraphPtr &ge_graph,
-                            std::shared_ptr<minidag::DAGGraph> &dag) {
+graphStatus CallFromGEGraph(const ConstGraphPtr &ge_graph, std::shared_ptr<minidag::DAGGraph> &dag) {
   bool has_profiled_node_cost = false;
   return DAGAdapter::FromGEGraph(ge_graph, dag, has_profiled_node_cost);
 }
@@ -44,12 +43,13 @@ class MiniDAGStreamPassTest : public testing::Test {
     EXPECT_EQ(GELib::Initialize(options), SUCCESS);
     GELib::GetInstance()->OpsKernelManagerObj().ops_kernel_store_.clear();
 
-    GeRunningEnvFaker().Reset()
-      .Install(FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE"))
-      .Install(FakeEngine("AIcoreEngine").KernelInfoStore("AIcoreEngine"))
-      .Install(FakeOp(DATA).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-      .Install(FakeOp(NETOUTPUT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-      .Install(FakeOp(ADD).InfoStoreAndBuilder("AIcoreEngine"));
+    GeRunningEnvFaker()
+        .Reset()
+        .Install(FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(FakeEngine("AIcoreEngine").KernelInfoStore("AIcoreEngine"))
+        .Install(FakeOp(DATA).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(FakeOp(NETOUTPUT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(FakeOp(ADD).InfoStoreAndBuilder("AIcoreEngine"));
 
     EngineConfPtr conf1 = std::make_shared<EngineConf>();
     conf1->id = "AIcoreEngine";
@@ -193,7 +193,7 @@ TEST_F(MiniDAGStreamPassTest, EndToEnd_DAGNodeProperties) {
   auto nodes = dag->GetAllNodes();
   EXPECT_GT(nodes.size(), 0);
 
-  for (const auto& node : nodes) {
+  for (const auto &node : nodes) {
     std::string type = node->GetType();
     EXPECT_FALSE(type.empty());
     int64_t topo_id = node->GetTopoId();
@@ -225,7 +225,7 @@ TEST_F(MiniDAGStreamPassTest, EndToEnd_DAGEdgeProperties) {
   ASSERT_NE(dag, nullptr);
 
   auto edges = dag->GetAllEdges();
-  for (const auto& edge : edges) {
+  for (const auto &edge : edges) {
     auto src = edge->GetSrcNode();
     auto dst = edge->GetDstNode();
     ASSERT_NE(src, nullptr);
@@ -256,7 +256,7 @@ TEST_F(MiniDAGStreamPassTest, EndToEnd_DAGNodeEdgeRelations) {
   ASSERT_EQ(ret, SUCCESS);
   ASSERT_NE(dag, nullptr);
 
-  for (const auto& node : dag->GetAllNodes()) {
+  for (const auto &node : dag->GetAllNodes()) {
     size_t input_count = node->GetInputCount();
     size_t output_count = node->GetOutputCount();
 
@@ -291,8 +291,8 @@ TEST_F(MiniDAGStreamPassTest, EndToEnd_DAGNodeCostProperties) {
   ASSERT_EQ(ret, SUCCESS);
   ASSERT_NE(dag, nullptr);
 
-  for (const auto& node : dag->GetAllNodes()) {
-    const auto& cost = node->GetCost();
+  for (const auto &node : dag->GetAllNodes()) {
+    const auto &cost = node->GetCost();
     const auto ge_node = ge_graph->FindNodeByName(ge::AscendString(node->GetName().c_str()));
     ASSERT_NE(ge_node, nullptr);
     const auto ge_node_ptr = ge::NodeAdapter::GNode2Node(*ge_node);
@@ -315,7 +315,7 @@ TEST_F(MiniDAGStreamPassTest, EndToEnd_DAGNodeCostProperties) {
     new_cost.memory_usage = 1024;
     nodes[0]->SetCost(new_cost);
 
-    const auto& retrieved = nodes[0]->GetCost();
+    const auto &retrieved = nodes[0]->GetCost();
     EXPECT_EQ(retrieved.execution_time, 50.0);
     EXPECT_EQ(retrieved.memory_usage, 1024);
   }
@@ -375,7 +375,7 @@ TEST_F(MiniDAGStreamPassTest, EndToEnd_RefreshStreamIdsToGE) {
 
   auto nodes = dag->GetAllNodes();
   int64_t stream_idx = 0;
-  for (auto& node : nodes) {
+  for (auto &node : nodes) {
     node->SetStreamId(stream_idx++);
     EXPECT_EQ(node->GetStreamId(), stream_idx - 1);
   }
@@ -489,7 +489,7 @@ TEST_F(MiniDAGStreamPassTest, Adapter_ControlEdgeConversion) {
   EXPECT_EQ(dag->GetEdgeCount(), 2);
 
   auto edges = dag->GetAllEdges();
-  for (const auto& edge : edges) {
+  for (const auto &edge : edges) {
     EXPECT_EQ(edge->GetSrcPort(), -1);
     EXPECT_EQ(edge->GetDstPort(), -1);
   }

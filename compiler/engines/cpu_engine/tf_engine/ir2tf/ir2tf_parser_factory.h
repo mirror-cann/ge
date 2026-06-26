@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,7 +22,7 @@ class Ir2tfParserFactory {
    * @brief instance of ir2tf parser factory
    * @return IRParserFactory instance
    */
-  static Ir2tfParserFactory& Instance();
+  static Ir2tfParserFactory &Instance();
 
   /**
    * @brief create IR Parser according to opType
@@ -38,8 +38,9 @@ class Ir2tfParserFactory {
 
  protected:
   /**
-  * @brief construct func of factory, it should not be public工厂实例只能自动创建，不能通过new的方式创建，所以构造函数不对外公开
-  */
+   * @brief construct func of factory, it should not be
+   * public工厂实例只能自动创建，不能通过new的方式创建，所以构造函数不对外公开
+   */
   Ir2tfParserFactory() = default;
 
   /**
@@ -79,17 +80,16 @@ class IRParserRegister {
  * @param [in] opType      Type of OP
  * @param [in] clazz       Implementation of IRParser
  */
-#define REGISTER_IR_PARSER_CREATOR(op_type, clazz)                         \
-  std::shared_ptr<Ir2tfBaseParser> Creator_##op_type##_Ir_Parser() {       \
-    std::shared_ptr<clazz> ptr = nullptr;                                  \
-    try {                                                                  \
-      ptr = std::make_shared<clazz>();                                     \
-    } catch(...) {                                                         \
-      ptr = nullptr;                                                       \
-    }                                                                      \
-    return std::shared_ptr<Ir2tfBaseParser>(ptr);                          \
-  }                                                                        \
-  IRParserRegister g_##opType##_IR_Parser_Creator(                         \
-    opType, Creator_##opType##_IR_Parser)
-}
-#endif // AICPU_IR2TF_PARSE_FACTORY_H_
+#define REGISTER_IR_PARSER_CREATOR(op_type, clazz)                   \
+  std::shared_ptr<Ir2tfBaseParser> Creator_##op_type##_Ir_Parser() { \
+    std::shared_ptr<clazz> ptr = nullptr;                            \
+    try {                                                            \
+      ptr = std::make_shared<clazz>();                               \
+    } catch (...) {                                                  \
+      ptr = nullptr;                                                 \
+    }                                                                \
+    return std::shared_ptr<Ir2tfBaseParser>(ptr);                    \
+  }                                                                  \
+  IRParserRegister g_##opType##_IR_Parser_Creator(opType, Creator_##opType##_IR_Parser)
+}  // namespace aicpu
+#endif  // AICPU_IR2TF_PARSE_FACTORY_H_

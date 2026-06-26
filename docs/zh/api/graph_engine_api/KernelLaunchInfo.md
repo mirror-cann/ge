@@ -1,32 +1,31 @@
 # KernelLaunchInfo<a name="ZH-CN_TOPIC_0000002484471472"></a>
 
--   **[简介](简介-63.md)**  
+-   **[简介](简介-63.md)**
 
--   **[KernelLaunchInfo构造函数和析构函数](KernelLaunchInfo构造函数和析构函数.md)**  
+-   **[KernelLaunchInfo构造函数和析构函数](KernelLaunchInfo构造函数和析构函数.md)**
 
--   **[LoadFromData](LoadFromData.md)**  
+-   **[LoadFromData](LoadFromData.md)**
 
--   **[CreateAicpuKfcTask](CreateAicpuKfcTask.md)**  
+-   **[CreateAicpuKfcTask](CreateAicpuKfcTask.md)**
 
--   **[CreateHcomRecordTask](CreateHcomRecordTask.md)**  
+-   **[CreateHcomRecordTask](CreateHcomRecordTask.md)**
 
--   **[CreateHcomWaitTask](CreateHcomWaitTask.md)**  
+-   **[CreateHcomWaitTask](CreateHcomWaitTask.md)**
 
--   **[Serialize](Serialize-64.md)**  
+-   **[Serialize](Serialize-64.md)**
 
--   **[GetStreamId](GetStreamId.md)**  
+-   **[GetStreamId](GetStreamId.md)**
 
--   **[SetStreamId](SetStreamId.md)**  
+-   **[SetStreamId](SetStreamId.md)**
 
--   **[GetBlockDim](GetBlockDim.md)**  
+-   **[GetBlockDim](GetBlockDim.md)**
 
--   **[SetBlockDim](SetBlockDim.md)**  
+-   **[SetBlockDim](SetBlockDim.md)**
 
--   **[GetArgsFormat](GetArgsFormat.md)**  
+-   **[GetArgsFormat](GetArgsFormat.md)**
 
--   **[SetArgsFormat](SetArgsFormat.md)**  
+-   **[SetArgsFormat](SetArgsFormat.md)**
 
--   **[GetSoName](GetSoName.md)**  
+-   **[GetSoName](GetSoName.md)**
 
--   **[GetKernelName](GetKernelName.md)**  
-
+-   **[GetKernelName](GetKernelName.md)**

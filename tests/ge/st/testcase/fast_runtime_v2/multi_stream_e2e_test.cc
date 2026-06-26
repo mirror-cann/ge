@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -63,8 +63,8 @@ std::unique_ptr<gert::Allocators> CreateDefaultAllocators() {
 class AicpuTfLaunchStub : public RuntimeStub {
  public:
   rtError_t rtAicpuKernelLaunchExWithArgs(uint32_t kernelType, const char *opName, uint32_t blockDim,
-                                          const rtAicpuArgsEx_t *argsInfo, rtSmDesc_t *smDesc,
-                                          rtStream_t stream, uint32_t flags) override {
+                                          const rtAicpuArgsEx_t *argsInfo, rtSmDesc_t *smDesc, rtStream_t stream,
+                                          uint32_t flags) override {
     EXPECT_EQ(argsInfo->kernelOffsetInfoNum, 3);
     EXPECT_EQ(argsInfo->kernelOffsetInfoPtr[0].addrOffset, 80);
     EXPECT_EQ(argsInfo->kernelOffsetInfoPtr[0].dataOffset, 112);
@@ -76,10 +76,12 @@ class AicpuTfLaunchStub : public RuntimeStub {
   }
 };
 
-ge::graphStatus InferShapeStub(InferShapeContext *context) { return SUCCESS;}
+ge::graphStatus InferShapeStub(InferShapeContext *context) {
+  return SUCCESS;
+}
 IMPL_OP(Conv2d).InferShape(InferShapeStub);
 IMPL_OP(Relu).InferShape(InferShapeStub);
-} // namespace
+}  // namespace
 class GraphExecutorMultiStreamSystemTest : public bg::BgTest {
  protected:
   void SetUp() override {
@@ -100,7 +102,8 @@ class GraphExecutorMultiStreamSystemTest : public bg::BgTest {
     system("rm -f ./version.info");
     unsetenv("ASCEND_OPP_PATH");
     unsetenv("ENABLE_TILING_CACHE");
-    while (bg::ValueHolder::PopGraphFrame() != nullptr) {}
+    while (bg::ValueHolder::PopGraphFrame() != nullptr) {
+    }
   }
 };
 
@@ -120,9 +123,9 @@ const std::string ReduceSumStubName = "ReduceSumStubBin";
  *    \   /
  *     add1(streamid=0)(send_id_list:[0])
  *      |
- *     relu (streamid=1)(send_id_list:[1],recive_id_list:[0])
+ *     relu (streamid=1)(send_id_list:[1],receive_id_list:[0])
  *      |
- *    netoutput(streamid=0)(recive_id_list:[1]))
+ *    netoutput(streamid=0)(receive_id_list:[1]))
  *
  * 1. 用例描述：测试两个级联节点分别在两条流上的执行
  * 2. 预置条件：
@@ -143,10 +146,10 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case01_TwoStream_AccessMemCrossStream
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.AddTaskDef("Add", AiCoreTaskDefFaker(AddStubName))
-      .AddTaskDef("Relu", AiCoreTaskDefFaker(ReluStubName))
-      .SetRootModelStreamNum(stream_num)
-      .SetRootModelEventNum(event_num)
-      .BuildGeRootModel();
+                           .AddTaskDef("Relu", AiCoreTaskDefFaker(ReluStubName))
+                           .SetRootModelStreamNum(stream_num)
+                           .SetRootModelEventNum(event_num)
+                           .BuildGeRootModel();
 
   bg::ValueHolder::PopGraphFrame();  // 不需要BgTest自带的Frame
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model);
@@ -194,8 +197,7 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case01_TwoStream_AccessMemCrossStream
     // check task on stream 0
     std::vector<TaskTypeOnStream> expect_task_infos_on_stream0 = {
         gert::TaskTypeOnStream::rtEventRecord, gert::TaskTypeOnStream::rtStreamWaitEvent,
-        gert::TaskTypeOnStream::rtMemcpyAsync,
-        gert::TaskTypeOnStream::rtStreamWaitEvent};
+        gert::TaskTypeOnStream::rtMemcpyAsync, gert::TaskTypeOnStream::rtStreamWaitEvent};
     auto task_on_stream0 = runtime_stub.GetAclRuntimeStub().GetAllTaskOnStream(stream);
     EXPECT_EQ(task_on_stream0.size(), expect_task_infos_on_stream0.size());
     for (size_t i = 0; i < task_on_stream0.size(); ++i) {
@@ -203,10 +205,9 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case01_TwoStream_AccessMemCrossStream
     }
 
     // check task on stream 1
-    std::vector<TaskTypeOnStream> expect_task_infos_on_stream1 ={
-        gert::TaskTypeOnStream::rtStreamWaitEvent, gert::TaskTypeOnStream::rtEventRecord,
-        gert::TaskTypeOnStream::rtEventRecord
-    };
+    std::vector<TaskTypeOnStream> expect_task_infos_on_stream1 = {gert::TaskTypeOnStream::rtStreamWaitEvent,
+                                                                  gert::TaskTypeOnStream::rtEventRecord,
+                                                                  gert::TaskTypeOnStream::rtEventRecord};
     auto task_on_stream1 = runtime_stub.GetAclRuntimeStub().GetAllTaskOnStream(all_rt_streams[1]);
     EXPECT_EQ(task_on_stream1.size(), expect_task_infos_on_stream1.size());
     for (size_t i = 0; i < task_on_stream1.size(); ++i) {
@@ -215,19 +216,22 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case01_TwoStream_AccessMemCrossStream
 
     // todo check error log in allocator, if has mem leak or not
     // check add output addr life cycle
-    EXPECT_TRUE(MemoryTraceChecker(runtime_stub.GetSlogStub(), add_launch_args->GetLaunchAddresses()[2])
-        .AppendExpectEvent(kAllocRe, 0) // (1) alloc in stream 0
-        .AppendExpectEventWithSrc(kWander, 0, 1) // (2) wander from stream 0 to stream 1
-        .AppendExpectEvent(kFreeRe, 0)  // (3) free on stream 0, trigger LocalRecycle
-        .AppendExpectEvent(kLocalRecycleRe, 0)
-        .AppendExpectEvent(kSendEventWithMem, 0)  // (4) send memblock which local recyled from stream 0, wait at stream 1
-        .AppendExpectEvent(kWaitEventWithMem, 1)
-        .AppendExpectEvent(kFreeRe, 1) // (5) free at stream 1, trigger BorrowRecycle
-        .AppendExpectEvent(kBorrowRecycleRe, 1)
-        .AppendExpectEvent(kSendEventWithMem, 1)  // (6) send memblock which need return to birth from stream 1, wait at stream 0
-        .AppendExpectEvent(kWaitEventWithMem, 0)
-        .AppendExpectEvent(kBirthRecycleRe, 0) // (7) trigger BirthRecycle at stream 0
-        .AsYouWish());
+    EXPECT_TRUE(
+        MemoryTraceChecker(runtime_stub.GetSlogStub(), add_launch_args->GetLaunchAddresses()[2])
+            .AppendExpectEvent(kAllocRe, 0)           // (1) alloc in stream 0
+            .AppendExpectEventWithSrc(kWander, 0, 1)  // (2) wander from stream 0 to stream 1
+            .AppendExpectEvent(kFreeRe, 0)            // (3) free on stream 0, trigger LocalRecycle
+            .AppendExpectEvent(kLocalRecycleRe, 0)
+            .AppendExpectEvent(kSendEventWithMem,
+                               0)  // (4) send memblock which local recycled from stream 0, wait at stream 1
+            .AppendExpectEvent(kWaitEventWithMem, 1)
+            .AppendExpectEvent(kFreeRe, 1)  // (5) free at stream 1, trigger BorrowRecycle
+            .AppendExpectEvent(kBorrowRecycleRe, 1)
+            .AppendExpectEvent(kSendEventWithMem,
+                               1)  // (6) send memblock which need return to birth from stream 1, wait at stream 0
+            .AppendExpectEvent(kWaitEventWithMem, 0)
+            .AppendExpectEvent(kBirthRecycleRe, 0)  // (7) trigger BirthRecycle at stream 0
+            .AsYouWish());
     model_executor.reset(nullptr);
     aclrtDestroyStream(stream);
   }
@@ -239,10 +243,10 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case01_TwoStream_AccessMemCrossStream
  *       |
  *      cast(stream:0)(send[0])
  *      /    \
- * transdata    relu (stream:1)(send:[1],recive:[0])
+ * transdata    relu (stream:1)(send:[1],receive:[0])
  * (stream:0)  /
  *      \     /
- *    netoutput(stream:0)(recive_id_list:[1]))
+ *    netoutput(stream:0)(receive_id_list:[1]))
  *
  * 1. 用例描述：测试某个单输出多引用内存，消费者在当前流和跨流上.同时测试atomic clean下发在辅流
  * 2. 预置条件：
@@ -265,11 +269,11 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case02_TwoStream_ConsumersInAndCrossS
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.AddTaskDef("Cast", AiCoreTaskDefFaker(CastStubName))
-      .AddTaskDef("Relu", AiCoreTaskDefFaker(ReluStubName).AtomicStubNum(DynamicAtomicStubName))
-      .AddTaskDef("TransData", AiCoreTaskDefFaker(TransDataStubName))
-      .SetRootModelStreamNum(stream_num)
-      .SetRootModelEventNum(event_num)
-      .BuildGeRootModel();
+                           .AddTaskDef("Relu", AiCoreTaskDefFaker(ReluStubName).AtomicStubNum(DynamicAtomicStubName))
+                           .AddTaskDef("TransData", AiCoreTaskDefFaker(TransDataStubName))
+                           .SetRootModelStreamNum(stream_num)
+                           .SetRootModelEventNum(event_num)
+                           .BuildGeRootModel();
 
   bg::ValueHolder::PopGraphFrame();  // 不需要BgTest自带的Frame
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model);
@@ -327,8 +331,7 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case02_TwoStream_ConsumersInAndCrossS
     // check task on stream 0
     std::vector<TaskTypeOnStream> expect_task_infos_on_main = {
         gert::TaskTypeOnStream::rtEventRecord, gert::TaskTypeOnStream::rtStreamWaitEvent,
-        gert::TaskTypeOnStream::rtMemcpyAsync,
-        gert::TaskTypeOnStream::rtStreamWaitEvent};
+        gert::TaskTypeOnStream::rtMemcpyAsync, gert::TaskTypeOnStream::rtStreamWaitEvent};
     auto task_on_stream = runtime_stub.GetAclRuntimeStub().GetAllTaskOnStream(stream);
     EXPECT_EQ(task_on_stream.size(), expect_task_infos_on_main.size());
     for (size_t i = 0U; i < task_on_stream.size(); ++i) {
@@ -336,7 +339,8 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case02_TwoStream_ConsumersInAndCrossS
     }
     // check task on stream 1
     std::vector<TaskTypeOnStream> expect_task_infos_on_stream1 = {
-        gert::TaskTypeOnStream::rtStreamWaitEvent, gert::TaskTypeOnStream::rtEventRecord,
+        gert::TaskTypeOnStream::rtStreamWaitEvent,
+        gert::TaskTypeOnStream::rtEventRecord,
         gert::TaskTypeOnStream::rtEventRecord,  // atomic clean
     };
     auto task_on_stream1 = runtime_stub.GetAclRuntimeStub().GetAllTaskOnStream(all_rt_streams[1]);
@@ -355,9 +359,9 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case02_TwoStream_ConsumersInAndCrossS
  *     shape
  * (stream:0)(send:1)   data2(stream:0)(send:0)
  *             \    /
- *              add (stream:1)(send:[2],recive:[0,1])
+ *              add (stream:1)(send:[2],receive:[0,1])
  *               |
- *            netoutput(stream:0)(recive:[2])
+ *            netoutput(stream:0)(receive:[2])
  *
  * 1. 用例描述：测试host内存跨流访问，框架产生的H2D拷贝，dst stream要与目标辅流算子一致
  * 2. 预置条件：
@@ -382,9 +386,9 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case03_TwoStream_HostMemAccessCrossSt
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.AddTaskDef("Add", AiCoreTaskDefFaker(AddStubName))
-      .SetRootModelStreamNum(stream_num)
-      .SetRootModelEventNum(event_num)
-      .BuildGeRootModel();
+                           .SetRootModelStreamNum(stream_num)
+                           .SetRootModelEventNum(event_num)
+                           .BuildGeRootModel();
 
   bg::ValueHolder::PopGraphFrame();  // 不需要BgTest自带的Frame
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model);
@@ -434,8 +438,7 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case03_TwoStream_HostMemAccessCrossSt
     // check task on stream 0
     std::vector<TaskTypeOnStream> expect_task_infos_on_stream0 = {
         gert::TaskTypeOnStream::rtEventRecord, gert::TaskTypeOnStream::rtEventRecord,
-        gert::TaskTypeOnStream::rtStreamWaitEvent,
-        gert::TaskTypeOnStream::rtMemcpyAsync,
+        gert::TaskTypeOnStream::rtStreamWaitEvent, gert::TaskTypeOnStream::rtMemcpyAsync,
         gert::TaskTypeOnStream::rtStreamWaitEvent};
     auto task_on_stream0 = runtime_stub.GetAclRuntimeStub().GetAllTaskOnStream(stream);
     EXPECT_EQ(task_on_stream0.size(), expect_task_infos_on_stream0.size());
@@ -446,9 +449,7 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case03_TwoStream_HostMemAccessCrossSt
     // check task on stream 1
     std::vector<TaskTypeOnStream> expect_task_infos_on_stream1 = {
         gert::TaskTypeOnStream::rtStreamWaitEvent, gert::TaskTypeOnStream::rtStreamWaitEvent,
-        gert::TaskTypeOnStream::rtEventRecord,
-        gert::TaskTypeOnStream::rtEventRecord
-    };
+        gert::TaskTypeOnStream::rtEventRecord, gert::TaskTypeOnStream::rtEventRecord};
     auto task_on_stream1 = runtime_stub.GetAclRuntimeStub().GetAllTaskOnStream(all_rt_streams[1]);
     EXPECT_EQ(task_on_stream1.size(), expect_task_infos_on_stream1.size());
     for (size_t i = 0; i < task_on_stream1.size(); ++i) {
@@ -457,7 +458,7 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case03_TwoStream_HostMemAccessCrossSt
 
     // check shape output goes to launch args
     EXPECT_EQ(add_launch_args->GetArgsEx()->hostInputInfoNum, 1);
-    EXPECT_EQ(add_launch_args->GetArgsEx()->hostInputInfoPtr[0].addrOffset, 0); //?
+    EXPECT_EQ(add_launch_args->GetArgsEx()->hostInputInfoPtr[0].addrOffset, 0);  //?
     aclrtDestroyStream(stream);
   }
   runtime_stub.Clear();
@@ -469,10 +470,10 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case03_TwoStream_HostMemAccessCrossSt
  *      \     /
  *      assign(stream:0)(send[0])
  *      /   \
- * transdata  relu (stream:1)(send:[1],recive:[0])
+ * transdata  relu (stream:1)(send:[1],receive:[0])
  * (stream:0)  /
  *      \     /
- *    netoutput(stream:0)(recive_id_list:[1]))
+ *    netoutput(stream:0)(receive_id_list:[1]))
  *
  * 1. 用例描述：测试引用类内存的跨流访问，assign类算子输出引用输入，其输出跨流访问
  * 2. 预置条件：
@@ -492,11 +493,11 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case04_TwoStream_AccessRefMemCrossStr
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.AddTaskDef("Assign", AiCoreTaskDefFaker(AssignStubName))
-      .AddTaskDef("TransData", AiCoreTaskDefFaker(TransDataStubName))
-      .AddTaskDef("Relu", AiCoreTaskDefFaker(ReluStubName))
-      .SetRootModelStreamNum(stream_num)
-      .SetRootModelEventNum(event_num)
-      .BuildGeRootModel();
+                           .AddTaskDef("TransData", AiCoreTaskDefFaker(TransDataStubName))
+                           .AddTaskDef("Relu", AiCoreTaskDefFaker(ReluStubName))
+                           .SetRootModelStreamNum(stream_num)
+                           .SetRootModelEventNum(event_num)
+                           .BuildGeRootModel();
 
   bg::ValueHolder::PopGraphFrame();  // 不需要BgTest自带的Frame
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model);
@@ -547,8 +548,7 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case04_TwoStream_AccessRefMemCrossStr
     // check task on stream 0
     std::vector<TaskTypeOnStream> expect_task_infos_on_stream0 = {
         gert::TaskTypeOnStream::rtEventRecord, gert::TaskTypeOnStream::rtStreamWaitEvent,
-        gert::TaskTypeOnStream::rtMemcpyAsync,
-        gert::TaskTypeOnStream::rtStreamWaitEvent};
+        gert::TaskTypeOnStream::rtMemcpyAsync, gert::TaskTypeOnStream::rtStreamWaitEvent};
     auto task_on_stream0 = runtime_stub.GetAclRuntimeStub().GetAllTaskOnStream(stream);
     EXPECT_EQ(task_on_stream0.size(), expect_task_infos_on_stream0.size());
     for (size_t i = 0; i < task_on_stream0.size(); ++i) {
@@ -556,10 +556,9 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case04_TwoStream_AccessRefMemCrossStr
     }
 
     // check task on stream 1
-    std::vector<TaskTypeOnStream> expect_task_infos_on_stream1 = {
-        gert::TaskTypeOnStream::rtStreamWaitEvent, gert::TaskTypeOnStream::rtEventRecord,
-        gert::TaskTypeOnStream::rtEventRecord
-    };
+    std::vector<TaskTypeOnStream> expect_task_infos_on_stream1 = {gert::TaskTypeOnStream::rtStreamWaitEvent,
+                                                                  gert::TaskTypeOnStream::rtEventRecord,
+                                                                  gert::TaskTypeOnStream::rtEventRecord};
     auto task_on_stream1 = runtime_stub.GetAclRuntimeStub().GetAllTaskOnStream(all_rt_streams[1]);
     EXPECT_EQ(task_on_stream1.size(), expect_task_infos_on_stream1.size());
     for (size_t i = 0; i < task_on_stream1.size(); ++i) {
@@ -568,15 +567,18 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case04_TwoStream_AccessRefMemCrossStr
 
     // check refdata1 output addr life cycle
     const auto refdata_addr = assign_launch_args->GetLaunchAddresses()[0];
-    EXPECT_TRUE(MemoryTraceChecker(runtime_stub.GetSlogStub(), refdata_addr)
-                    .AppendExpectEvent(kFreeRe, 0)  // (1) free in stream 0
-                    .AppendExpectEventWithSrc(kWander, 0, 1) // (2) wander from stream 0 to stream1. relu asscess mem from assign. trigger free on stream0
-                    .AppendExpectEvent(kFreeRe, 0) // (3) free on stream1
-                    .AppendExpectEvent(kFreeRe, 1)
-                    .AppendExpectEvent(kLocalRecycleRe, 1)
-                    .AppendExpectEvent(kSendEventWithMem, 1)
-                    .AppendExpectEvent(kWaitEventWithMem, 0)
-                    .AsYouWish());
+    EXPECT_TRUE(
+        MemoryTraceChecker(runtime_stub.GetSlogStub(), refdata_addr)
+            .AppendExpectEvent(kFreeRe, 0)  // (1) free in stream 0
+            .AppendExpectEventWithSrc(
+                kWander, 0,
+                1)  // (2) wander from stream 0 to stream1. relu asscess mem from assign. trigger free on stream0
+            .AppendExpectEvent(kFreeRe, 0)  // (3) free on stream1
+            .AppendExpectEvent(kFreeRe, 1)
+            .AppendExpectEvent(kLocalRecycleRe, 1)
+            .AppendExpectEvent(kSendEventWithMem, 1)
+            .AppendExpectEvent(kWaitEventWithMem, 0)
+            .AsYouWish());
     aclrtDestroyStream(stream);
   }
   runtime_stub.Clear();
@@ -587,9 +589,9 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case04_TwoStream_AccessRefMemCrossStr
  *(stream:0)  (stream:0)
  *(send:[0])  (send:[1])
  *      \     /
- *      assign(stream:1)(send:[2], recive:[0,1])
+ *      assign(stream:1)(send:[2], receive:[0,1])
  *        |
- *    netoutput(stream:0)(recive_id_list:[2]))
+ *    netoutput(stream:0)(receive_id_list:[2]))
  *
  *
  * 1. 用例描述：测试引用类内存的跨流引用，assign类算子输出引用输入，其输入为跨流访问的内存
@@ -610,11 +612,11 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case05_TwoStream_RefMemAccessCrossStr
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.AddTaskDef("Assign", AiCoreTaskDefFaker(AssignStubName))
-      .AddTaskDef("TransData", AiCoreTaskDefFaker(TransDataStubName))
-      .AddTaskDef("Relu", AiCoreTaskDefFaker(ReluStubName))
-      .SetRootModelStreamNum(stream_num)
-      .SetRootModelEventNum(event_num)
-      .BuildGeRootModel();
+                           .AddTaskDef("TransData", AiCoreTaskDefFaker(TransDataStubName))
+                           .AddTaskDef("Relu", AiCoreTaskDefFaker(ReluStubName))
+                           .SetRootModelStreamNum(stream_num)
+                           .SetRootModelEventNum(event_num)
+                           .BuildGeRootModel();
 
   bg::ValueHolder::PopGraphFrame();  // 不需要BgTest自带的Frame
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model);
@@ -622,12 +624,11 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case05_TwoStream_RefMemAccessCrossStr
   ge::DumpGraph(exe_graph.get(), "MultiStreamST_RefMemAccessCrossStream");
 
   // check the topo order is correct
-  auto assign_launch_node =
-    ge::ExecuteGraphUtils::FindNodesByTypeFromAllNodes(exe_graph.get(), "LaunchKernelWithFlag");
+  auto assign_launch_node = ge::ExecuteGraphUtils::FindNodesByTypeFromAllNodes(exe_graph.get(), "LaunchKernelWithFlag");
   ASSERT_EQ(assign_launch_node.size(), 1U);
   EXPECT_EQ(FastNodeTopoChecker(assign_launch_node.at(0))
-                .StrictConnectFrom({{"SplitRtStreams",1},
-                                    {"InnerData",0},
+                .StrictConnectFrom({{"SplitRtStreams", 1},
+                                    {"InnerData", 0},
                                     {"CacheableTiling", 1},
                                     {"AllocBatchHbm", 0},
                                     {"InnerData", 0},
@@ -637,9 +638,9 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case05_TwoStream_RefMemAccessCrossStr
                                     {"InnerData", 0},
                                     {"CacheableTiling", 11},
                                     {"CacheableTiling", 7},
-                                    {"AccessMemCrossStream", 0}, // input 0
+                                    {"AccessMemCrossStream", 0},  // input 0
                                     {"AccessMemCrossStream", 0},  // input 1
-                                    {"AccessMemCrossStream", 0}, // output 0 ref input 0
+                                    {"AccessMemCrossStream", 0},  // output 0 ref input 0
                                     {"SplitDataTensor", 0},
                                     {"SplitDataTensor", 0},
                                     {"InferShape", 0},
@@ -692,10 +693,10 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case06_TwoStream_WithStaticSubGraph_o
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.AddTaskDef("TransData", AiCoreTaskDefFaker(TransDataStubName))
-      .AddTaskDef("Relu", AiCoreTaskDefFaker(ReluStubName))
-      .SetRootModelStreamNum(stream_num)
-      .SetRootModelEventNum(event_num)
-      .BuildGeRootModel();
+                           .AddTaskDef("Relu", AiCoreTaskDefFaker(ReluStubName))
+                           .SetRootModelStreamNum(stream_num)
+                           .SetRootModelEventNum(event_num)
+                           .BuildGeRootModel();
 
   bg::ValueHolder::PopGraphFrame();  // 不需要BgTest自带的Frame
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model);
@@ -744,11 +745,10 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case06_TwoStream_WithStaticSubGraph_o
 
     // check task on stream 0
     std::vector<TaskTypeOnStream> expect_task_infos_on_stream0 = {
-        gert::TaskTypeOnStream::rtEventRecord, gert::TaskTypeOnStream::rtStreamWaitEvent,
-        gert::TaskTypeOnStream::rtMemcpyAsync, gert::TaskTypeOnStream::rtModelExecute,
-        gert::TaskTypeOnStream::rtMemcpyAsync, gert::TaskTypeOnStream::rtStreamWaitEvent,
-        gert::TaskTypeOnStream::rtStreamWaitEvent, gert::TaskTypeOnStream::rtStreamWaitEvent
-    };  // model copy?
+        gert::TaskTypeOnStream::rtEventRecord,     gert::TaskTypeOnStream::rtStreamWaitEvent,
+        gert::TaskTypeOnStream::rtMemcpyAsync,     gert::TaskTypeOnStream::rtModelExecute,
+        gert::TaskTypeOnStream::rtMemcpyAsync,     gert::TaskTypeOnStream::rtStreamWaitEvent,
+        gert::TaskTypeOnStream::rtStreamWaitEvent, gert::TaskTypeOnStream::rtStreamWaitEvent};  // model copy?
     auto task_on_stream0 = runtime_stub.GetAclRuntimeStub().GetAllTaskOnStream(stream);
     EXPECT_EQ(task_on_stream0.size(), expect_task_infos_on_stream0.size());
     for (size_t i = 0; i < task_on_stream0.size(); ++i) {
@@ -756,10 +756,9 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case06_TwoStream_WithStaticSubGraph_o
     }
 
     // check task on stream 1
-    std::vector<TaskTypeOnStream> expect_task_infos_on_stream1 = {
-        gert::TaskTypeOnStream::rtStreamWaitEvent, gert::TaskTypeOnStream::rtEventRecord,
-        gert::TaskTypeOnStream::rtEventRecord
-    };
+    std::vector<TaskTypeOnStream> expect_task_infos_on_stream1 = {gert::TaskTypeOnStream::rtStreamWaitEvent,
+                                                                  gert::TaskTypeOnStream::rtEventRecord,
+                                                                  gert::TaskTypeOnStream::rtEventRecord};
     auto task_on_stream1 = runtime_stub.GetAclRuntimeStub().GetAllTaskOnStream(all_rt_streams[1]);
     EXPECT_EQ(task_on_stream1.size(), expect_task_infos_on_stream1.size());
     for (size_t i = 0; i < task_on_stream1.size(); ++i) {
@@ -797,11 +796,10 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case07_TwoStream_WithFileConstant_ok)
   auto graph = ShareGraph::MultiStreamGraphFileConstantGraph(stream_num, event_num);
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
-  auto ge_root_model = builder
-      .AddTaskDef("Relu", AiCoreTaskDefFaker(ReluStubName))
-      .SetRootModelStreamNum(stream_num)
-      .SetRootModelEventNum(event_num)
-      .BuildGeRootModel();
+  auto ge_root_model = builder.AddTaskDef("Relu", AiCoreTaskDefFaker(ReluStubName))
+                           .SetRootModelStreamNum(stream_num)
+                           .SetRootModelEventNum(event_num)
+                           .BuildGeRootModel();
 
   bg::ValueHolder::PopGraphFrame();  // 不需要BgTest自带的Frame
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model);
@@ -821,7 +819,7 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case07_TwoStream_WithFileConstant_ok)
     ASSERT_EQ(rtStreamCreateWithFlags(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
     auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
     RtSession rt_session;
-    EXPECT_EQ(model_executor->Load({stream},{&rt_session}), ge::GRAPH_SUCCESS);
+    EXPECT_EQ(model_executor->Load({stream}, {&rt_session}), ge::GRAPH_SUCCESS);
 
     auto outputs = FakeTensors({3, 4, 5, 6}, 1);
     auto inputs = FakeTensors({3, 4, 5, 6}, 0);
@@ -838,7 +836,7 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case07_TwoStream_WithFileConstant_ok)
 /*
  *  data1(s0)  data2(streamid=1)(send_id_list:[0])
  *         \   /
- *         add1(streamid=0)(recive_id_list:[0])
+ *         add1(streamid=0)(receive_id_list:[0])
  *          |
  *       netoutput(streamid=0)
  * 1. 用例描述：测试带首部流同步的多流场景
@@ -859,9 +857,9 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case07_TwoStream_WithFirstEventSync_o
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.AddTaskDef("Add", AiCoreTaskDefFaker(AddStubName))
-      .SetRootModelStreamNum(stream_num)
-      .SetRootModelEventNum(event_num)
-      .BuildGeRootModel();
+                           .SetRootModelStreamNum(stream_num)
+                           .SetRootModelEventNum(event_num)
+                           .BuildGeRootModel();
 
   bg::ValueHolder::PopGraphFrame();  // 不需要BgTest自带的Frame
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model);
@@ -893,9 +891,9 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case07_TwoStream_WithFirstEventSync_o
     ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
 
     // check task on stream 0
-    std::vector<TaskTypeOnStream> expect_task_infos_on_stream0 = {
-        gert::TaskTypeOnStream::rtEventRecord, gert::TaskTypeOnStream::rtStreamWaitEvent,
-        gert::TaskTypeOnStream::rtStreamWaitEvent};
+    std::vector<TaskTypeOnStream> expect_task_infos_on_stream0 = {gert::TaskTypeOnStream::rtEventRecord,
+                                                                  gert::TaskTypeOnStream::rtStreamWaitEvent,
+                                                                  gert::TaskTypeOnStream::rtStreamWaitEvent};
     auto task_on_stream0 = runtime_stub.GetAclRuntimeStub().GetAllTaskOnStream(stream);
     EXPECT_EQ(task_on_stream0.size(), expect_task_infos_on_stream0.size());
     for (size_t i = 0; i < task_on_stream0.size(); ++i) {
@@ -905,7 +903,8 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case07_TwoStream_WithFirstEventSync_o
     // check task on stream 1
     auto all_rt_streams = runtime_stub.GetRtsRuntimeStub().GetAllRtStreams();
     std::vector<TaskTypeOnStream> expect_task_infos_on_stream1 = {gert::TaskTypeOnStream::rtStreamWaitEvent,
-                                                                  gert::TaskTypeOnStream::rtEventRecord, gert::TaskTypeOnStream::rtEventRecord};
+                                                                  gert::TaskTypeOnStream::rtEventRecord,
+                                                                  gert::TaskTypeOnStream::rtEventRecord};
     auto task_on_stream1 = runtime_stub.GetAclRuntimeStub().GetAllTaskOnStream(all_rt_streams[1]);
     EXPECT_EQ(task_on_stream1.size(), expect_task_infos_on_stream1.size());
     for (size_t i = 0; i < task_on_stream1.size(); ++i) {
@@ -922,7 +921,7 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case07_TwoStream_WithFirstEventSync_o
  *               \                                  |
  *             relu(streamid=0)(send_id_list:[0])   |
  *             /          \                         |
- *   netoutput(streamid=0)  add(s1)(recive_id_list:[0,1])
+ *   netoutput(streamid=0)  add(s1)(receive_id_list:[0,1])
  * 1. 用例描述：测试带首部流同步的多流场景
  * 2. 预置条件：
  *   （1）外部创建主Stream
@@ -941,10 +940,11 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case08_TwoStream_WithLastEventSync_ok
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
   AiCpuTfTaskDefFaker add_task_def;
-  auto ge_root_model = builder.AddTaskDef("Relu", AiCoreTaskDefFaker(AddStubName)).AddTaskDef("Add", add_task_def)
-      .SetRootModelStreamNum(stream_num)
-      .SetRootModelEventNum(event_num)
-      .BuildGeRootModel();
+  auto ge_root_model = builder.AddTaskDef("Relu", AiCoreTaskDefFaker(AddStubName))
+                           .AddTaskDef("Add", add_task_def)
+                           .SetRootModelStreamNum(stream_num)
+                           .SetRootModelEventNum(event_num)
+                           .BuildGeRootModel();
 
   bg::ValueHolder::PopGraphFrame();  // 不需要BgTest自带的Frame
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model);
@@ -953,8 +953,8 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case08_TwoStream_WithLastEventSync_ok
 
   GertRuntimeStub runtime_stub;
   runtime_stub.GetKernelStub().StubTiling();
-/*  auto aicpu_launch_stub = std::make_shared<AicpuTfLaunchStub>();
-  RuntimeStub::Install(aicpu_launch_stub.get());*/
+  /*  auto aicpu_launch_stub = std::make_shared<AicpuTfLaunchStub>();
+    RuntimeStub::Install(aicpu_launch_stub.get());*/
   {
     auto model_executor = ModelV2Executor::Create(exe_graph, ge_root_model);
 
@@ -982,9 +982,7 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case08_TwoStream_WithLastEventSync_ok
     EXPECT_EQ(stream, all_rt_streams[0]);
     std::vector<TaskTypeOnStream> expect_task_infos_on_stream0 = {
         gert::TaskTypeOnStream::rtEventRecord, gert::TaskTypeOnStream::rtEventRecord,
-        gert::TaskTypeOnStream::rtStreamWaitEvent,
-        gert::TaskTypeOnStream::rtStreamWaitEvent
-    };
+        gert::TaskTypeOnStream::rtStreamWaitEvent, gert::TaskTypeOnStream::rtStreamWaitEvent};
     auto task_on_stream0 = runtime_stub.GetAclRuntimeStub().GetAllTaskOnStream(all_rt_streams[0]);
     EXPECT_EQ(task_on_stream0.size(), expect_task_infos_on_stream0.size());
     for (size_t i = 0; i < task_on_stream0.size(); ++i) {
@@ -994,9 +992,7 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case08_TwoStream_WithLastEventSync_ok
     // check task on stream 1
     std::vector<TaskTypeOnStream> expect_task_infos_on_stream1 = {
         gert::TaskTypeOnStream::rtStreamWaitEvent, gert::TaskTypeOnStream::rtStreamWaitEvent,
-        gert::TaskTypeOnStream::rtEventRecord,
-        gert::TaskTypeOnStream::rtEventRecord
-    };
+        gert::TaskTypeOnStream::rtEventRecord, gert::TaskTypeOnStream::rtEventRecord};
     auto task_on_stream1 = runtime_stub.GetAclRuntimeStub().GetAllTaskOnStream(all_rt_streams[1]);
     EXPECT_EQ(task_on_stream1.size(), expect_task_infos_on_stream1.size());
     for (size_t i = 0; i < task_on_stream1.size(); ++i) {
@@ -1013,9 +1009,9 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case08_TwoStream_WithLastEventSync_ok
  *    \   /
  *     add1(streamid=0)(send_id_list:[0])
  *      |
- *     relu (streamid=1)(send_id_list:[1],recive_id_list:[0])
+ *     relu (streamid=1)(send_id_list:[1],receive_id_list:[0])
  *      |
- *    netoutput(streamid=0)(recive_id_list:[1]))
+ *    netoutput(streamid=0)(receive_id_list:[1]))
  *
  * 1. 用例描述：外置allocator场景，测试两个级联节点分别在两条流上的执行，每个step执行结束后L2将空闲内存归还给L1
  * 2. 预置条件：
@@ -1035,10 +1031,10 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case09_TwoStream_ExternalAllocator_Re
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.AddTaskDef("Add", AiCoreTaskDefFaker(AddStubName))
-      .AddTaskDef("Relu", AiCoreTaskDefFaker(ReluStubName))
-      .SetRootModelStreamNum(stream_num)
-      .SetRootModelEventNum(event_num)
-      .BuildGeRootModel();
+                           .AddTaskDef("Relu", AiCoreTaskDefFaker(ReluStubName))
+                           .SetRootModelStreamNum(stream_num)
+                           .SetRootModelEventNum(event_num)
+                           .BuildGeRootModel();
 
   bg::ValueHolder::PopGraphFrame();  // 不需要BgTest自带的Frame
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model);
@@ -1089,11 +1085,12 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case09_TwoStream_ExternalAllocator_Re
  *    \   /
  *     add1(streamid=0)(send_id_list:[0])
  *      |
- *     relu (streamid=1)(send_id_list:[1],recive_id_list:[0])
+ *     relu (streamid=1)(send_id_list:[1],receive_id_list:[0])
  *      |
- *    netoutput(streamid=0)(recive_id_list:[1]))
+ *    netoutput(streamid=0)(receive_id_list:[1]))
  *
- * 1. 用例描述：外置allocator场景，测试两个级联节点分别在两条流上的执行，且外部没有分配输出内存，执行器析构后输出tensor能够正常释放
+ * 1.
+ 用例描述：外置allocator场景，测试两个级联节点分别在两条流上的执行，且外部没有分配输出内存，执行器析构后输出tensor能够正常释放
  * 2. 预置条件：
  *   （1）外部创建主Stream
  *   （2）外部创建allocator
@@ -1111,10 +1108,10 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case10_TwoStream_ExternalAllocator_In
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.AddTaskDef("Add", AiCoreTaskDefFaker(AddStubName))
-      .AddTaskDef("Relu", AiCoreTaskDefFaker(ReluStubName))
-      .SetRootModelStreamNum(stream_num)
-      .SetRootModelEventNum(event_num)
-      .BuildGeRootModel();
+                           .AddTaskDef("Relu", AiCoreTaskDefFaker(ReluStubName))
+                           .SetRootModelStreamNum(stream_num)
+                           .SetRootModelEventNum(event_num)
+                           .BuildGeRootModel();
 
   bg::ValueHolder::PopGraphFrame();  // 不需要BgTest自带的Frame
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model);
@@ -1196,7 +1193,6 @@ TEST_F(GraphExecutorMultiStreamSystemTest, Case11_rtMalloc_Failed) {
     rtStream_t stream;
     ASSERT_EQ(rtStreamCreateWithFlags(&stream, static_cast<int32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
     auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
-
 
     RtSession rt_session;
     EXPECT_EQ(model_executor->Load({i3.value}, {&rt_session}), ge::GRAPH_SUCCESS);

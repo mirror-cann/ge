@@ -234,4 +234,3 @@ graphStatus GetAttr(const AscendString &name, AttrValue &attr_value) const
 ## 约束说明<a name="section30804749"></a>
 
 无
-

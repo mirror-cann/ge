@@ -17,9 +17,8 @@
 #include "rt_external_stream.h"
 #include "rt_external_mem.h"
 #include "rt_external_model.h"
-static void *ModelGetIoAddr(uint32_t in_nums, uint32_t out_nums,
-                            const InputData *input_data,
-                            OutputData *output_data, GeModelDesc *mdlDesc) {
+static void *ModelGetIoAddr(uint32_t in_nums, uint32_t out_nums, const InputData *input_data, OutputData *output_data,
+                            GeModelDesc *mdlDesc) {
   uint32_t ioa_size = in_nums + out_nums;
   GELOGI("output->ioa_size:%u, ioa_size:%u", output_data->ioa_size, ioa_size);
   if ((output_data->ioa_size < ioa_size) && (output_data->io_addr != NULL)) {
@@ -100,7 +99,7 @@ static Status ModelExecute(ExecHandleDesc *execDesc, bool sync, const InputData 
   rtMdlExec.workPtr = execDesc->workPtr;
   rtMdlExec.mid = (uint8_t)mdlDesc->phyModelId;
   rtMdlExec.sync = sync;
-  rtMdlExec.ioaSize = output_data->ioa_size; // (input + output + fifo) num
+  rtMdlExec.ioaSize = output_data->ioa_size;  // (input + output + fifo) num
   rtMdlExec.mpamId = execDesc->mpamId;
   rtMdlExec.mecTimeThreshHold = execDesc->mecTimeThreshHold;
   rtMdlExec.aicQos = execDesc->aicQos;

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -45,13 +45,11 @@ class GraphExecutor {
 
   Status ExecuteGraphAsync(const GeRootModelPtr &ge_root_model, const std::shared_ptr<RunArgs> &args) const;
   Status ExecuteGraphWithStream(aclrtStream const stream, const GraphNodePtr &graph_node,
-                                const GeRootModelPtr &ge_root_model,
-                                const std::vector<GeTensor> &input_tensor,
+                                const GeRootModelPtr &ge_root_model, const std::vector<GeTensor> &input_tensor,
                                 std::vector<GeTensor> &output_tensor) const;
-  
+
   Status ExecuteGraphWithStream(aclrtStream const stream, const GraphNodePtr &graph_node,
-                                const GeRootModelPtr &ge_root_model,
-                                const std::vector<gert::Tensor> &input_tensor,
+                                const GeRootModelPtr &ge_root_model, const std::vector<gert::Tensor> &input_tensor,
                                 std::vector<gert::Tensor> &output_tensor) const;
 
   static Status SetDynamicSize(const uint32_t model_id, const std::vector<uint64_t> &batch_num,
@@ -62,8 +60,8 @@ class GraphExecutor {
 
   static Status GetInputOutputDescInfo(const uint32_t model_id, std::vector<InputOutputDescInfo> &input_desc,
                                        std::vector<InputOutputDescInfo> &output_desc,
-                                       std::vector<uint32_t> &input_formats,
-                                       std::vector<uint32_t> &out_formats, const bool new_model_desc = false);
+                                       std::vector<uint32_t> &input_formats, std::vector<uint32_t> &out_formats,
+                                       const bool new_model_desc = false);
 
   static Status GetAippInfo(const uint32_t model_id, const uint32_t index, AippConfigInfo &aipp_info);
 
@@ -111,7 +109,7 @@ class GraphExecutor {
 
  private:
   Status PrepareOutput(const std::vector<InputOutputDescInfo> &output_desc,
-    std::vector<gert::Tensor> &output_tensor) const;
+                       std::vector<gert::Tensor> &output_tensor) const;
 
   Status SyncExecuteModel(const uint32_t model_id, const std::vector<gert::Tensor> &input_tensor,
                           std::vector<gert::Tensor> &output_tensor,
@@ -121,18 +119,14 @@ class GraphExecutor {
                                   const error_message::ErrorManagerContext &error_context) const;
 };
 
-using SyncExecuteModelFunc = std::function<Status(GraphExecutor *executor,
-                                                  const uint32_t model_id,
-                                                  const std::vector<GeTensor> &input_tensor,
-                                                  std::vector<GeTensor> &output_tensor,
-                                                  const error_message::ErrorManagerContext &error_context)>;
+using SyncExecuteModelFunc = std::function<Status(
+    GraphExecutor *executor, const uint32_t model_id, const std::vector<GeTensor> &input_tensor,
+    std::vector<GeTensor> &output_tensor, const error_message::ErrorManagerContext &error_context)>;
 
-using AsyncExecuteModelFunc = std::function<Status(GraphExecutor *executor,
-                                                   const GeRootModelPtr &ge_root_model,
-                                                   const uint32_t model_id,
-                                                   const std::vector<Tensor> &inputs,
-                                                   const error_message::ErrorManagerContext &error_context,
-                                                   const RunAsyncCallback &callback)>;
+using AsyncExecuteModelFunc =
+    std::function<Status(GraphExecutor *executor, const GeRootModelPtr &ge_root_model, const uint32_t model_id,
+                         const std::vector<Tensor> &inputs, const error_message::ErrorManagerContext &error_context,
+                         const RunAsyncCallback &callback)>;
 }  // namespace ge
 
 #endif  // GE_GRAPH_EXECUTE_GRAPH_EXECUTOR_H_

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,22 +32,18 @@ namespace graph_fusion_reg_v2 {
 
 class UTestGraphFusionPassReg : public testing::Test {
  public:
-
  protected:
-
   void SetUp() {
     oopt.Initialize({}, {});
   }
 
-  void TearDown() {
-  }
+  void TearDown() {}
 
   ge::OptimizationOption &oopt = ge::GetThreadLocalContext().GetOo();
 
   const std::unordered_map<std::string, ge::OoInfo> &registered_opt_table =
       ge::OptionRegistry::GetInstance().GetRegisteredOptTable();
 };
-
 
 const char *kOpTypeCast = "Cast";
 const char *kOpTypeRelu = "Relu";
@@ -63,26 +59,25 @@ const char *kPatternRelu = "Relu";
     }                                         \
   } while (0)
 
-#define UT_CHECK_NOTNULL(val)                           \
-  do {                                                  \
-    if ((val) == nullptr) {                             \
+#define UT_CHECK_NOTNULL(val)                          \
+  do {                                                 \
+    if ((val) == nullptr) {                            \
       GELOGD("Parameter[%s] must not be null.", #val); \
-      return fe::PARAM_INVALID;                         \
-    }                                                   \
+      return fe::PARAM_INVALID;                        \
+    }                                                  \
   } while (0)
 
 string pass_name_test = "CastCastFusionPass";
 string pass_name_test1 = "CastCastFusionPass1";
 class TestPass : public fe::PatternFusionBasePass {
   using Mapping = std::map<const std::shared_ptr<OpDesc>, std::vector<ge::NodePtr>, fe::CmpKey>;
- protected:
 
+ protected:
   vector<FusionPattern *> DefinePatterns() override {
     vector<FusionPattern *> patterns;
 
-    FusionPattern *pattern = new(std::nothrow) FusionPattern("CastCastFusionPass");
-    UT_CHECK(pattern == nullptr, GELOGD(" Fail to create a new pattern object."),
-             return patterns);
+    FusionPattern *pattern = new (std::nothrow) FusionPattern("CastCastFusionPass");
+    UT_CHECK(pattern == nullptr, GELOGD(" Fail to create a new pattern object."), return patterns);
     pattern->AddOpDesc(kPatternCast0, {kOpTypeCast})
         .AddOpDesc(kPatternRelu, {kOpTypeRelu})
         .AddOpDesc(kPatternCast1, {kOpTypeCast})
@@ -105,18 +100,14 @@ class TestPass : public fe::PatternFusionBasePass {
     CheckOpSupported(cast_Node0->GetOpDesc());
     CheckAccuracySupported(cast_Node0);
 
-    UT_CHECK(cast_Node0 == nullptr, GELOGD("cast_Node0 is null,fusion failed."),
-             return NOT_CHANGED);
+    UT_CHECK(cast_Node0 == nullptr, GELOGD("cast_Node0 is null,fusion failed."), return NOT_CHANGED);
     ge::OpDescPtr cast_desc0 = cast_Node0->GetOpDesc();
-    UT_CHECK(cast_desc0 == nullptr, GELOGD("cast_Node0's Desc is null,fusion failed."),
-             return NOT_CHANGED);
+    UT_CHECK(cast_desc0 == nullptr, GELOGD("cast_Node0's Desc is null,fusion failed."), return NOT_CHANGED);
 
     ge::NodePtr relu_Node = GetNodeFromMapping(kPatternRelu, mapping);
-    UT_CHECK(relu_Node == nullptr, GELOGD("relu_Node is null,fusion failed."),
-             return NOT_CHANGED);
+    UT_CHECK(relu_Node == nullptr, GELOGD("relu_Node is null,fusion failed."), return NOT_CHANGED);
     ge::OpDescPtr relu_desc = relu_Node->GetOpDesc();
-    UT_CHECK(cast_desc0 == nullptr, GELOGD("relu_Node's Desc is null,fusion failed."),
-             return NOT_CHANGED);
+    UT_CHECK(cast_desc0 == nullptr, GELOGD("relu_Node's Desc is null,fusion failed."), return NOT_CHANGED);
 
     auto relu_input = relu_desc->MutableInputDesc(0);
     UT_CHECK_NOTNULL(relu_input);
@@ -131,11 +122,9 @@ class TestPass : public fe::PatternFusionBasePass {
     }
 
     ge::NodePtr cast_Node1 = GetNodeFromMapping(kPatternCast1, mapping);
-    UT_CHECK(cast_Node1 == nullptr, GELOGD("cast_Node1 is null,fusion failed."),
-             return NOT_CHANGED);
+    UT_CHECK(cast_Node1 == nullptr, GELOGD("cast_Node1 is null,fusion failed."), return NOT_CHANGED);
     ge::OpDescPtr cast_desc1 = cast_Node1->GetOpDesc();
-    UT_CHECK(cast_desc0 == nullptr, GELOGD("cast_Node1's Desc is null,fusion failed."),
-             return NOT_CHANGED);
+    UT_CHECK(cast_desc0 == nullptr, GELOGD("cast_Node1's Desc is null,fusion failed."), return NOT_CHANGED);
 
     auto cast0_input = cast_desc0->MutableInputDesc(0);
     UT_CHECK_NOTNULL(cast0_input);
@@ -185,8 +174,8 @@ class TestPass : public fe::PatternFusionBasePass {
       return FAILED;
     }
     if (GraphUtils::RemoveNodeWithoutRelink(graphPtr, cast_Node0) != GRAPH_SUCCESS) {
-      GELOGD("[Remove][Node] %s, type:%s without relink in graph:%s failed",
-             cast_Node0->GetName().c_str(), cast_Node0->GetType().c_str(), graph.GetName().c_str());
+      GELOGD("[Remove][Node] %s, type:%s without relink in graph:%s failed", cast_Node0->GetName().c_str(),
+             cast_Node0->GetType().c_str(), graph.GetName().c_str());
       return FAILED;
     }
     for (auto inAnchor : relu_out_data_anchor->GetPeerInDataAnchors()) {
@@ -197,8 +186,8 @@ class TestPass : public fe::PatternFusionBasePass {
         return FAILED;
       }
       if (GraphUtils::RemoveNodeWithoutRelink(graphPtr, node) != GRAPH_SUCCESS) {
-        GELOGD("[Remove][Node] %s, type:%s without relink in graph:%s failed",
-               node->GetName().c_str(), node->GetType().c_str(), graph.GetName().c_str());
+        GELOGD("[Remove][Node] %s, type:%s without relink in graph:%s failed", node->GetName().c_str(),
+               node->GetType().c_str(), graph.GetName().c_str());
         return FAILED;
       }
     }
@@ -217,15 +206,14 @@ TEST_F(UTestGraphFusionPassReg, test_case_01) {
   std::map<string, FusionPassRegistry::PassDesc> pass_desc =
       FusionPassRegistry::GetInstance().GetPassDesc(SECOND_ROUND_BUILT_IN_GRAPH_PASS);
   EXPECT_EQ(pass_desc.size(), 0);
-  pass_desc =
-      FusionPassRegistry::GetInstance().GetPassDesc(BUILT_IN_GRAPH_PASS);
+  pass_desc = FusionPassRegistry::GetInstance().GetPassDesc(BUILT_IN_GRAPH_PASS);
   EXPECT_EQ(pass_desc.size(), 1);
 
   EXPECT_EQ(pass_desc[pass_name_test].attr, 3);
 
   auto create_fn1 = pass_desc[pass_name_test].create_fn;
-  auto pattern_fusion_base_pass_ptr = std::unique_ptr<PatternFusionBasePass>(
-      dynamic_cast<PatternFusionBasePass *>(create_fn1()));
+  auto pattern_fusion_base_pass_ptr =
+      std::unique_ptr<PatternFusionBasePass>(dynamic_cast<PatternFusionBasePass *>(create_fn1()));
   auto patterns = pattern_fusion_base_pass_ptr->DefinePatterns();
   EXPECT_EQ(patterns.size(), 1);
   for (auto pattern : patterns) {
@@ -268,5 +256,5 @@ TEST_F(UTestGraphFusionPassReg, test_compile_level_case_01) {
   EXPECT_EQ(enable_flag, false);
 }
 
-}
-}
+}  // namespace graph_fusion_reg_v2
+}  // namespace fe

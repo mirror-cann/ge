@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,9 +31,9 @@
 namespace gert {
 
 struct CDimFakeKernelContextHolder {
-  template<typename T>
+  template <typename T>
   T *GetContext() {
-    return reinterpret_cast<T*>(holder.context_);
+    return reinterpret_cast<T *>(holder.context_);
   }
   ComputeNodeInfo *MutableComputeNodeInfo() {
     return reinterpret_cast<ComputeNodeInfo *>(holder.compute_node_extend_holder_.get());
@@ -52,9 +52,9 @@ class CDimKernelRunContextFaker {
   CDimKernelRunContextFaker &IrInputNum(size_t input_num);
   CDimKernelRunContextFaker &IrInstanceNum(std::vector<uint32_t> instance_num);
   CDimKernelRunContextFaker &NodeInputTd(int32_t index, ge::DataType dt, ge::Format origin_format,
-                                     ge::Format storage_format);
+                                         ge::Format storage_format);
   CDimKernelRunContextFaker &NodeOutputTd(int32_t index, ge::DataType dt, ge::Format origin_format,
-                                      ge::Format storage_format);
+                                          ge::Format storage_format);
   CDimKernelRunContextFaker &NodeAttrs(std::vector<std::pair<std::string, ge::AnyValue>> keys_to_value);
   CDimKernelRunContextFaker &Inputs(std::vector<void *> inputs);
   CDimKernelRunContextFaker &Outputs(std::vector<void *> outputs);
@@ -77,7 +77,6 @@ class CDimKernelRunContextFaker {
   std::vector<std::pair<std::string, ge::AnyValue>> attrs_;
 };
 
-
 class CDimTilingContextFaker {
  public:
   CDimTilingContextFaker &NodeIoNum(size_t input_num, size_t output_num);
@@ -89,12 +88,13 @@ class CDimTilingContextFaker {
     base_faker_.IrInstanceNum(std::move(instance_num));
     return *this;
   }
-  CDimTilingContextFaker &NodeInputTd(int32_t index, ge::DataType dt, ge::Format origin_format, ge::Format storage_format) {
+  CDimTilingContextFaker &NodeInputTd(int32_t index, ge::DataType dt, ge::Format origin_format,
+                                      ge::Format storage_format) {
     base_faker_.NodeInputTd(index, dt, origin_format, storage_format);
     return *this;
   }
   CDimTilingContextFaker &NodeOutputTd(int32_t index, ge::DataType dt, ge::Format origin_format,
-                                   ge::Format storage_format) {
+                                       ge::Format storage_format) {
     base_faker_.NodeOutputTd(index, dt, origin_format, storage_format);
     return *this;
   }
@@ -113,6 +113,7 @@ class CDimTilingContextFaker {
  private:
   void UpdateInputs();
   void UpdateOutputs();
+
  private:
   enum InputsAppend { kInputsCompileInfo, kInputsTilingFunc, kInputsAppendEnd };
 
@@ -122,7 +123,6 @@ class CDimTilingContextFaker {
 
   void *compile_info_;
 };
-
 
 CDimFakeKernelContextHolder CDimBuildKernelRunContext(size_t input_num, size_t output_num, int64_t reshape_type) {
   return CDimKernelRunContextFaker().KernelIONum(input_num, output_num).Build(reshape_type);
@@ -155,29 +155,29 @@ ge::OpDescPtr CDimKernelRunContextFaker::FakeOp(int64_t reshape_type) const {
     op_desc->AppendIrInput(prefix, ge::kIrInputRequired);
     auto td = ge::GeTensorDesc();
     if (reshape_type != 0) {
-      (void) ge::AttrUtils::SetInt(td, ge::ATTR_NAME_RESHAPE_TYPE_MASK, reshape_type);
-      //td.SetExpandDimsType(ExpandDimsType(reshape_type));
+      (void)ge::AttrUtils::SetInt(td, ge::ATTR_NAME_RESHAPE_TYPE_MASK, reshape_type);
+      // td.SetExpandDimsType(ExpandDimsType(reshape_type));
     }
-    
-      td.SetOriginFormat(node_input_tds_[i].GetOriginFormat());
-      td.SetFormat(node_input_tds_[i].GetStorageFormat());
-      td.SetDataType(node_input_tds_[i].GetDataType());
-      td.SetOriginDataType(node_input_tds_[i].GetDataType());
+
+    td.SetOriginFormat(node_input_tds_[i].GetOriginFormat());
+    td.SetFormat(node_input_tds_[i].GetStorageFormat());
+    td.SetDataType(node_input_tds_[i].GetDataType());
+    td.SetOriginDataType(node_input_tds_[i].GetDataType());
     op_desc->AddInputDesc(prefix, td);
   }
   for (size_t i = 0; i < node_output_num_; ++i) {
     auto prefix = "y_" + std::to_string(i) + "_";
     auto td = ge::GeTensorDesc();
     if (reshape_type != 0) {
-      (void) ge::AttrUtils::SetInt(td, ge::ATTR_NAME_RESHAPE_TYPE_MASK, reshape_type);
-      //td.SetExpandDimsType(ExpandDimsType(reshape_type));
+      (void)ge::AttrUtils::SetInt(td, ge::ATTR_NAME_RESHAPE_TYPE_MASK, reshape_type);
+      // td.SetExpandDimsType(ExpandDimsType(reshape_type));
     }
-    
-      td.SetOriginFormat(node_output_tds_[i].GetOriginFormat());
-      td.SetFormat(node_output_tds_[i].GetStorageFormat());
-      td.SetDataType(node_output_tds_[i].GetDataType());
-      td.SetOriginDataType(node_output_tds_[i].GetDataType());
-    
+
+    td.SetOriginFormat(node_output_tds_[i].GetOriginFormat());
+    td.SetFormat(node_output_tds_[i].GetStorageFormat());
+    td.SetDataType(node_output_tds_[i].GetDataType());
+    td.SetOriginDataType(node_output_tds_[i].GetDataType());
+
     op_desc->AddOutputDesc(prefix, td);
   }
   return op_desc;
@@ -200,15 +200,16 @@ CDimFakeKernelContextHolder CDimKernelRunContextFaker::Build(int64_t reshape_typ
   fake_holder.holder = kernel_context_builder.Inputs(inputs_).Outputs(outputs_).Build(op_desc);
   return fake_holder;
 }
-CDimKernelRunContextFaker &CDimKernelRunContextFaker::NodeInputTd(int32_t index, ge::DataType dt, ge::Format origin_format,
-                                                          ge::Format storage_format) {
+CDimKernelRunContextFaker &CDimKernelRunContextFaker::NodeInputTd(int32_t index, ge::DataType dt,
+                                                                  ge::Format origin_format, ge::Format storage_format) {
   node_input_tds_[index].SetDataType(dt);
   node_input_tds_[index].SetOriginFormat(origin_format);
   node_input_tds_[index].SetStorageFormat(storage_format);
   return *this;
 }
-CDimKernelRunContextFaker &CDimKernelRunContextFaker::NodeOutputTd(int32_t index, ge::DataType dt, ge::Format origin_format,
-                                                           ge::Format storage_format) {
+CDimKernelRunContextFaker &CDimKernelRunContextFaker::NodeOutputTd(int32_t index, ge::DataType dt,
+                                                                   ge::Format origin_format,
+                                                                   ge::Format storage_format) {
   node_output_tds_[index].SetDataType(dt);
   node_output_tds_[index].SetOriginFormat(origin_format);
   node_output_tds_[index].SetStorageFormat(storage_format);
@@ -222,8 +223,8 @@ CDimKernelRunContextFaker &CDimKernelRunContextFaker::Outputs(std::vector<void *
   outputs_ = std::move(outputs);
   return *this;
 }
-CDimKernelRunContextFaker &
-CDimKernelRunContextFaker::NodeAttrs(std::vector<std::pair<std::string, ge::AnyValue>> keys_to_value) {
+CDimKernelRunContextFaker &CDimKernelRunContextFaker::NodeAttrs(
+    std::vector<std::pair<std::string, ge::AnyValue>> keys_to_value) {
   attrs_ = std::move(keys_to_value);
   return *this;
 }
@@ -263,7 +264,7 @@ void CDimTilingContextFaker::UpdateInputs() {
   for (const auto input_shape : input_shapes_) {
     inputs.push_back(input_shape);
   }
-  inputs.push_back(nullptr);        // kInputsTilingFunc
+  inputs.push_back(nullptr);  // kInputsTilingFunc
   base_faker_.Inputs(std::move(inputs));
 }
 
@@ -275,7 +276,6 @@ void CDimTilingContextFaker::UpdateOutputs() {
   base_faker_.Outputs(std::move(outputs));
 }
 
-
 namespace {
 struct CDimTestTilingData {
   int64_t a;
@@ -285,16 +285,16 @@ struct CDimTestCompileInfo {
   int64_t b;
   std::vector<int64_t> c;
 };
-}
+}  // namespace
 class GetCDimTestUT : public testing::Test {};
 
 // 测试构造kernel context的时候从tensor desc上获取ATTR_NAME_RESHAPE_TYPE_MASK并设置到compile time tensor desc 上
 // 同时测试调用Expand是否能够得到正确的扩维shape
 TEST_F(GetCDimTestUT, BuildRequiredInputWithExpandDimsType01) {
-  gert::StorageShape in_shape = {{5,2,3,4}, {5, 1, 1, 1, 1}};
-  gert::StorageShape out_shape = {{5,2,3,4}, {5, 1,1, 1, 1}};
-   vector<int64_t> origin_shape = {5,2,3,4};
-  int64_t int_reshape_type =  0;
+  gert::StorageShape in_shape = {{5, 2, 3, 4}, {5, 1, 1, 1, 1}};
+  gert::StorageShape out_shape = {{5, 2, 3, 4}, {5, 1, 1, 1, 1}};
+  vector<int64_t> origin_shape = {5, 2, 3, 4};
+  int64_t int_reshape_type = 0;
   // tiling data
   CDimTestCompileInfo compile_info_holder = {10, 200, {10, 20, 30}};
   auto param = gert::TilingData::CreateCap(2048);
@@ -315,12 +315,12 @@ TEST_F(GetCDimTestUT, BuildRequiredInputWithExpandDimsType01) {
 }
 
 TEST_F(GetCDimTestUT, BuildRequiredInputWithExpandDimsType02) {
-  gert::StorageShape in_shape = {{5,2,3,4, 1}, {5, 1, 1, 1, 1}};
-  gert::StorageShape out_shape = {{5,2,3,4, 1}, {5, 1,1, 1, 1}};
-   vector<int64_t> origin_shape = {5,2,3,4};
+  gert::StorageShape in_shape = {{5, 2, 3, 4, 1}, {5, 1, 1, 1, 1}};
+  gert::StorageShape out_shape = {{5, 2, 3, 4, 1}, {5, 1, 1, 1, 1}};
+  vector<int64_t> origin_shape = {5, 2, 3, 4};
   int64_t int_reshape_type = transformer::ExpandDimension::GenerateReshapeType(ge::FORMAT_NC1HWC0, ge::FORMAT_NC1HWC0,
                                                                                origin_shape.size(), "CHW");
-  int_reshape_type  = 0;
+  int_reshape_type = 0;
   // tiling data
   CDimTestCompileInfo compile_info_holder = {10, 200, {10, 20, 30}};
   auto param = gert::TilingData::CreateCap(2048);
@@ -346,7 +346,7 @@ TEST_F(GetCDimTestUT, BuildRequiredInputWithExpandDimsType03) {
   vector<int64_t> origin_shape = {5, 6, 7};
   int64_t int_reshape_type = transformer::ExpandDimension::GenerateReshapeType(ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0,
                                                                                origin_shape.size(), "NCH");
-  
+
   // tiling data
   CDimTestCompileInfo compile_info_holder = {10, 200, {10, 20, 30}};
   auto param = gert::TilingData::CreateCap(2048);
@@ -377,7 +377,8 @@ TEST_F(GetCDimTestUT, GetReshapeAxicValueByName01) {
   ge::GeShape inshape{storage_shape};
   int64_t int_reshape_type = transformer::ExpandDimension::GenerateReshapeType(ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0,
                                                                                origin_shape.size(), "NCH");
-  int64_t c_ax_value = transformer::ExpandDimension::GetReshapeAxicValueByName(int_reshape_type, 'W', inshape, ge::FORMAT_NCHW);
+  int64_t c_ax_value =
+      transformer::ExpandDimension::GetReshapeAxicValueByName(int_reshape_type, 'W', inshape, ge::FORMAT_NCHW);
   EXPECT_EQ(1, c_ax_value);
 }
 

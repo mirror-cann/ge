@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -226,7 +226,7 @@ TEST_F(TimeBatchFlowFuncUTest, proc_input_empty) {
   EXPECT_EQ(time_batch.Init(), FLOW_FUNC_SUCCESS);
   std::vector<std::shared_ptr<FlowMsg>> input_msgs;
   MOCKER_CPP_VIRTUAL(flow_func_context, &FlowFuncContext::SetOutput,
-                     int32_t(FlowFuncContext::*)(uint32_t, std::shared_ptr<FlowMsg>))
+                     int32_t (FlowFuncContext::*)(uint32_t, std::shared_ptr<FlowMsg>))
       .stubs()
       .will(returnValue(FLOW_FUNC_SUCCESS));
   EXPECT_EQ(time_batch.Proc(input_msgs), FLOW_FUNC_SUCCESS);
@@ -245,7 +245,7 @@ TEST_F(TimeBatchFlowFuncUTest, proc_input_error) {
   input_msg->head_msg_ = &head_msg;
   input_msgs.emplace_back(input_msg);
   MOCKER_CPP_VIRTUAL(flow_func_context, &FlowFuncContext::SetOutput,
-                     int32_t(FlowFuncContext::*)(uint32_t, std::shared_ptr<FlowMsg>))
+                     int32_t (FlowFuncContext::*)(uint32_t, std::shared_ptr<FlowMsg>))
       .stubs()
       .will(returnValue(FLOW_FUNC_SUCCESS));
   EXPECT_EQ(time_batch.Proc(input_msgs), FLOW_FUNC_SUCCESS);
@@ -260,7 +260,7 @@ TEST_F(TimeBatchFlowFuncUTest, proc_input_nullptr) {
   std::vector<std::shared_ptr<FlowMsg>> input_msgs;
   input_msgs.emplace_back(nullptr);
   MOCKER_CPP_VIRTUAL(flow_func_context, &FlowFuncContext::SetOutput,
-                     int32_t(FlowFuncContext::*)(uint32_t, std::shared_ptr<FlowMsg>))
+                     int32_t (FlowFuncContext::*)(uint32_t, std::shared_ptr<FlowMsg>))
       .stubs()
       .will(returnValue(FLOW_FUNC_SUCCESS));
   EXPECT_EQ(time_batch.Proc(input_msgs), FLOW_FUNC_SUCCESS);
@@ -279,7 +279,7 @@ TEST_F(TimeBatchFlowFuncUTest, proc_all_input_tensor_null_eos) {
   input_msg->head_msg_ = &head_msg;
   input_msgs.emplace_back(input_msg);
   MOCKER_CPP_VIRTUAL(flow_func_context, &FlowFuncContext::SetOutput,
-                     int32_t(FlowFuncContext::*)(uint32_t, std::shared_ptr<FlowMsg>))
+                     int32_t (FlowFuncContext::*)(uint32_t, std::shared_ptr<FlowMsg>))
       .stubs()
       .will(returnValue(FLOW_FUNC_SUCCESS));
   EXPECT_EQ(time_batch.Proc(input_msgs), FLOW_FUNC_SUCCESS);
@@ -298,7 +298,7 @@ TEST_F(TimeBatchFlowFuncUTest, proc_all_input_tensor_null_eos_publish_empty_outp
   input_msg->head_msg_ = &head_msg;
   input_msgs.emplace_back(input_msg);
   MOCKER_CPP_VIRTUAL(flow_func_context, &FlowFuncContext::SetOutput,
-                     int32_t(FlowFuncContext::*)(uint32_t, std::shared_ptr<FlowMsg>))
+                     int32_t (FlowFuncContext::*)(uint32_t, std::shared_ptr<FlowMsg>))
       .stubs()
       .will(returnValue(FLOW_FUNC_FAILED));
   EXPECT_EQ(time_batch.Proc(input_msgs), FLOW_FUNC_FAILED);
@@ -321,7 +321,7 @@ TEST_F(TimeBatchFlowFuncUTest, proc_one_input_tensor_null) {
   std::shared_ptr<MbufFlowMsg> mbuf_flow_msg = MbufFlowMsg::AllocTensorMsg(shape, data_type, 0, mbuf_head);
   input_msgs.emplace_back(mbuf_flow_msg);
   MOCKER_CPP_VIRTUAL(flow_func_context, &FlowFuncContext::SetOutput,
-                     int32_t(FlowFuncContext::*)(uint32_t, std::shared_ptr<FlowMsg>))
+                     int32_t (FlowFuncContext::*)(uint32_t, std::shared_ptr<FlowMsg>))
       .stubs()
       .will(returnValue(FLOW_FUNC_SUCCESS));
   EXPECT_EQ(time_batch.Proc(input_msgs), FLOW_FUNC_SUCCESS);
@@ -365,7 +365,7 @@ TEST_F(TimeBatchFlowFuncUTest, proc_success_has_output) {
   input_msgs2.emplace_back(mbuf_flow_msg2);
   input_msgs2.emplace_back(mbuf_flow_msg2);
   MOCKER_CPP_VIRTUAL(flow_func_context, &FlowFuncContext::SetOutput,
-                     int32_t(FlowFuncContext::*)(uint32_t, std::shared_ptr<FlowMsg>))
+                     int32_t (FlowFuncContext::*)(uint32_t, std::shared_ptr<FlowMsg>))
       .stubs()
       .will(returnValue(FLOW_FUNC_SUCCESS));
   EXPECT_EQ(time_batch.Proc(input_msgs2), FLOW_FUNC_SUCCESS);
@@ -393,7 +393,7 @@ TEST_F(TimeBatchFlowFuncUTest, proc_success_has_output_default_attr) {
   input_msgs2.emplace_back(mbuf_flow_msg2);
   input_msgs2.emplace_back(mbuf_flow_msg2);
   MOCKER_CPP_VIRTUAL(flow_func_context, &FlowFuncContext::SetOutput,
-                     int32_t(FlowFuncContext::*)(uint32_t, std::shared_ptr<FlowMsg>))
+                     int32_t (FlowFuncContext::*)(uint32_t, std::shared_ptr<FlowMsg>))
       .stubs()
       .will(returnValue(FLOW_FUNC_SUCCESS));
   EXPECT_EQ(time_batch.Proc(input_msgs2), FLOW_FUNC_SUCCESS);
@@ -421,7 +421,7 @@ TEST_F(TimeBatchFlowFuncUTest, proc_success_output_drop) {
   input_msgs2.emplace_back(mbuf_flow_msg2);
   input_msgs2.emplace_back(mbuf_flow_msg2);
   MOCKER_CPP_VIRTUAL(flow_func_context, &FlowFuncContext::SetOutput,
-                     int32_t(FlowFuncContext::*)(uint32_t, std::shared_ptr<FlowMsg>))
+                     int32_t (FlowFuncContext::*)(uint32_t, std::shared_ptr<FlowMsg>))
       .stubs()
       .will(returnValue(FLOW_FUNC_SUCCESS));
   EXPECT_EQ(time_batch.Proc(input_msgs2), FLOW_FUNC_SUCCESS);

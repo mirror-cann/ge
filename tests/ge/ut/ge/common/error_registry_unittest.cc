@@ -30,16 +30,14 @@ std::string g_msg = R"(
 }
 )";
 REG_FORMAT_ERROR_MSG(g_msg.c_str(), g_msg.size());
-}
+}  // namespace
 
 namespace ge {
 class UtestErrorRegistry : public testing::Test {
-protected:
-  void SetUp() {
-  }
+ protected:
+  void SetUp() {}
 
-  void TearDown() {
-  }
+  void TearDown() {}
 };
 
 TEST_F(UtestErrorRegistry, ReportInnerErrMsg) {
@@ -47,4 +45,4 @@ TEST_F(UtestErrorRegistry, ReportInnerErrMsg) {
   EXPECT_EQ(error_message::ReportPredefinedErrMsg("E16666", {"value", "parameter", "reason"}, {"1", "2", "le 0"}), -1);
   EXPECT_EQ(error_message::ReportPredefinedErrMsg("E17777", {"value", "parameter", "reason"}, {"1", "2", "le 0"}), 0);
 }
-}
+}  // namespace ge

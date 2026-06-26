@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,11 +33,11 @@ class AxisNameUtil {
   static std::string GetReshapeType(const ge::Format &format, vector<int64_t> &axis_values);
   static std::vector<int64_t> GetExceptAxisValue(vector<int64_t> &axis_values, const size_t &axis_nums);
   /**
-  * get axis name of NCHW by axis value
-  * @param axis_values : axis value
-  * @param axis_name : axis name
-  * @return SUCCESS/FAILED
-  */
+   * get axis name of NCHW by axis value
+   * @param axis_values : axis value
+   * @param axis_name : axis name
+   * @return SUCCESS/FAILED
+   */
   static std::string AxisNameToStr(std::vector<std::string> &axis_name);
 
   /**
@@ -125,14 +125,14 @@ class AxisNameUtil {
   static Status GetDHWNCAxisExceptName(std::vector<int64_t> &axis_values, std::vector<std::string> &axis_name);
 
   /**
- * According to axis name, get the axis value.
- * @param op_desc : op desc info
- * @param format : format of current op
- * @param origin_shape : original shape of current op
- * @param axis_name : axis name(N/C/H/W)
- * @param axis_value : axis value to return
- * @return SUCCESS/FAILED
- */
+   * According to axis name, get the axis value.
+   * @param op_desc : op desc info
+   * @param format : format of current op
+   * @param origin_shape : original shape of current op
+   * @param axis_name : axis name(N/C/H/W)
+   * @param axis_value : axis value to return
+   * @return SUCCESS/FAILED
+   */
   static Status GetNewAxisInfoByName(const ge::OpDesc &op_desc, const ge::Format &format,
                                      std::vector<std::string> &axis_name, std::vector<int64_t> &axis_index_vec);
 
@@ -196,11 +196,11 @@ class AxisNameUtil {
   static Status GetNCDHWAxisName(std::vector<int64_t> &axis_values, std::vector<std::string> &axis_name);
 
   /**
- * get axis name of DHWCN by axis value
- * @param axis_values : axis value
- * @param axis_name : axis name
- * @return SUCCESS/FAILED
- */
+   * get axis name of DHWCN by axis value
+   * @param axis_values : axis value
+   * @param axis_name : axis name
+   * @return SUCCESS/FAILED
+   */
   static Status GetDHWCNAxisName(std::vector<int64_t> &axis_values, std::vector<std::string> &axis_name);
 
   /* map of GetAxisValueInfoByFormat, get axis value by different original

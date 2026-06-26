@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -113,10 +113,14 @@ class ScopedCustomOpLoaderBlockingDlopenForUt {
 };
 
 static bool FindNotLoadedSystemSoForModelHelperUt(std::string &so_path) {
-  const std::vector<std::string> so_dirs = {"/lib/aarch64-linux-gnu", "/usr/lib/aarch64-linux-gnu", "/lib/x86_64-linux-gnu",
-                                            "/usr/lib/x86_64-linux-gnu", "/lib64", "/usr/lib64"};
-  const std::vector<std::string> so_names = {"libz.so.1", "liblzma.so.5", "libbz2.so.1.0", "libuuid.so.1",
-                                             "libffi.so.8", "libcrypt.so.1"};
+  const std::vector<std::string> so_dirs = {"/lib/aarch64-linux-gnu",
+                                            "/usr/lib/aarch64-linux-gnu",
+                                            "/lib/x86_64-linux-gnu",
+                                            "/usr/lib/x86_64-linux-gnu",
+                                            "/lib64",
+                                            "/usr/lib64"};
+  const std::vector<std::string> so_names = {"libz.so.1",    "liblzma.so.5", "libbz2.so.1.0",
+                                             "libuuid.so.1", "libffi.so.8",  "libcrypt.so.1"};
   for (const auto &so_dir : so_dirs) {
     for (const auto &so_name : so_names) {
       const std::string candidate = so_dir + "/" + so_name;
@@ -131,10 +135,13 @@ static bool FindNotLoadedSystemSoForModelHelperUt(std::string &so_path) {
 }
 
 static bool FindTwoReadableSystemSosForModelHelperUt(std::string &first_so_path, std::string &second_so_path) {
-  const std::vector<std::string> so_dirs = {"/lib/aarch64-linux-gnu", "/usr/lib/aarch64-linux-gnu",
-                                            "/lib/x86_64-linux-gnu", "/usr/lib/x86_64-linux-gnu",
-                                            "/lib64", "/usr/lib64"};
-  const std::vector<std::string> so_names = {"libz.so.1", "liblzma.so.5", "libbz2.so.1.0", "libuuid.so.1",
+  const std::vector<std::string> so_dirs = {"/lib/aarch64-linux-gnu",
+                                            "/usr/lib/aarch64-linux-gnu",
+                                            "/lib/x86_64-linux-gnu",
+                                            "/usr/lib/x86_64-linux-gnu",
+                                            "/lib64",
+                                            "/usr/lib64"};
+  const std::vector<std::string> so_names = {"libz.so.1",   "liblzma.so.5",  "libbz2.so.1.0", "libuuid.so.1",
                                              "libffi.so.8", "libcrypt.so.1", "libm.so.6"};
   std::set<std::string> found_paths;
   for (const auto &so_dir : so_dirs) {
@@ -246,9 +253,9 @@ static bool WriteElfHeaderForModelHelperUt(const std::string &so_path, const uin
   elf_header[1] = static_cast<uint8_t>('E');
   elf_header[2] = static_cast<uint8_t>('L');
   elf_header[3] = static_cast<uint8_t>('F');
-  elf_header[4] = 2U;  // ELFCLASS64
-  elf_header[5] = 1U;  // ELFDATA2LSB
-  elf_header[6] = 1U;  // EV_CURRENT
+  elf_header[4] = 2U;   // ELFCLASS64
+  elf_header[5] = 1U;   // ELFDATA2LSB
+  elf_header[6] = 1U;   // EV_CURRENT
   elf_header[16] = 3U;  // ET_DYN
   elf_header[18] = static_cast<uint8_t>(e_machine & 0xFFU);
   elf_header[19] = static_cast<uint8_t>((e_machine >> 8U) & 0xFFU);
@@ -277,7 +284,7 @@ static bool GetExpectedElfMachineForCpuModelHelperUt(const std::string &target_c
 }
 
 static OpSoBinPtr BuildCustomOpSoBinForModelHelperUt(const std::string &so_name, const std::string &vendor_name,
-                                                      const std::vector<char_t> &so_data) {
+                                                     const std::vector<char_t> &so_data) {
   if ((so_data.empty()) || (so_data.size() > static_cast<size_t>(UINT32_MAX))) {
     return nullptr;
   }
@@ -365,7 +372,7 @@ static bool PrepareBuiltInOpMasterFilesForModelHelperUt(const std::string &opp_p
 }
 
 static bool AddAutofuseNodeAndSetBinFilePathForModelHelperUt(const ComputeGraphPtr &ge_root_graph,
-                                                              const std::string &autofuse_stub_so) {
+                                                             const std::string &autofuse_stub_so) {
   if ((ge_root_graph == nullptr) || autofuse_stub_so.empty()) {
     return false;
   }
@@ -382,7 +389,8 @@ static bool AddAutofuseNodeAndSetBinFilePathForModelHelperUt(const ComputeGraphP
   return true;
 }
 
-static bool BuildOfflineAutofuseSoBinsForModelHelperUt(OmFileLoadHelper &load_helper, std::vector<uint8_t> &so_payload) {
+static bool BuildOfflineAutofuseSoBinsForModelHelperUt(OmFileLoadHelper &load_helper,
+                                                       std::vector<uint8_t> &so_payload) {
   load_helper.is_inited_ = true;
   OmFileContext cur_ctx;
   ModelPartition so_patition;
@@ -437,12 +445,15 @@ static bool ResolveCrossModeTargetEnvForModelHelperUt(std::string &current_env_o
   return true;
 }
 
-static bool PrepareCrossModeCustomOppForModelHelperUt(const std::string &custom_opp_path, const std::string &current_env_os,
-                                                      const std::string &current_env_cpu, const std::string &target_env_cpu,
+static bool PrepareCrossModeCustomOppForModelHelperUt(const std::string &custom_opp_path,
+                                                      const std::string &current_env_os,
+                                                      const std::string &current_env_cpu,
+                                                      const std::string &target_env_cpu,
                                                       CrossModeCustomOppPathsForModelHelperUt &so_paths) {
   so_paths.custom_opp_path = custom_opp_path;
   const std::string target_graph_so_dir = custom_opp_path + "/op_graph/lib/" + current_env_os + "/" + target_env_cpu;
-  const std::string non_target_graph_so_dir = custom_opp_path + "/op_proto/lib/" + current_env_os + "/" + current_env_cpu;
+  const std::string non_target_graph_so_dir =
+      custom_opp_path + "/op_proto/lib/" + current_env_os + "/" + current_env_cpu;
   so_paths.target_graph_so_path = target_graph_so_dir + "/libcustom_unrelated_ut.so";
   so_paths.non_target_graph_so_path = non_target_graph_so_dir + "/libshould_not_collect_ut.so";
 
@@ -463,8 +474,7 @@ static bool PrepareCrossModeCustomOppForModelHelperUt(const std::string &custom_
 }
 
 static void PreparePortableCustomOpCrossModeForModelHelperUt(const std::string &custom_opp_path,
-                                                             std::string &current_env_os,
-                                                             std::string &current_env_cpu,
+                                                             std::string &current_env_os, std::string &current_env_cpu,
                                                              std::string &target_env_cpu,
                                                              CrossModeCustomOppPathsForModelHelperUt &so_paths) {
   ASSERT_TRUE(ResolveCrossModeTargetEnvForModelHelperUt(current_env_os, current_env_cpu, target_env_cpu));
@@ -544,8 +554,7 @@ static void RegisterCustomOpCreatorForModelHelperUt(const std::string &op_type, 
   EXPECT_TRUE((ret == GRAPH_SUCCESS) || (ret == GRAPH_FAILED));
 }
 
-static NodePtr AddNodeWithOpTypeForModelHelperUt(const ComputeGraphPtr &graph,
-                                                 const std::string &node_name,
+static NodePtr AddNodeWithOpTypeForModelHelperUt(const ComputeGraphPtr &graph, const std::string &node_name,
                                                  const std::string &op_type) {
   auto op_desc = std::make_shared<OpDesc>(node_name, op_type);
   if (op_desc == nullptr) {
@@ -580,7 +589,7 @@ static GeRootModelPtr CreateGeRootModelForModelHelperUt(const std::string &root_
 }
 
 static bool FindCustomOpsPartitionForModelHelperUt(const std::shared_ptr<OmFileSaveHelper> &om_file_save_helper,
-                                                       ModelPartition &partition) {
+                                                   ModelPartition &partition) {
   if (om_file_save_helper == nullptr || om_file_save_helper->model_contexts_.empty()) {
     return false;
   }
@@ -594,7 +603,7 @@ static bool FindCustomOpsPartitionForModelHelperUt(const std::shared_ptr<OmFileS
 }
 
 static std::vector<uint8_t> BuildExpectedCustomOpsDataForModelHelperUt(const std::string &op_type,
-                                                                            const std::vector<uint8_t> &kernel_bin) {
+                                                                       const std::vector<uint8_t> &kernel_bin) {
   CustomKernelItemHeader header{};
   header.magic = kCustomKernelItemMagic;
   header.name_len = static_cast<uint32_t>(op_type.size());
@@ -622,14 +631,13 @@ static bool FindSoBinsPartitionForModelHelperUt(const std::shared_ptr<OmFileSave
 }
 
 static void FillModelTaskDef(GeModelPtr ge_model, ModelTaskType task_type = ModelTaskType::MODEL_TASK_ALL_KERNEL,
-                             ccKernelType kernel_type = ccKernelType::TE,
-                             std::string so_name = "") {
+                             ccKernelType kernel_type = ccKernelType::TE, std::string so_name = "") {
   domi::ModelTaskDef model_task_def;
   std::shared_ptr<domi::ModelTaskDef> model_task_def_ptr = make_shared<domi::ModelTaskDef>(model_task_def);
   domi::TaskDef *task_def = model_task_def_ptr->add_task();
   ge_model->SetModelTaskDef(model_task_def_ptr);
 
-  auto aicore_task = std::unique_ptr<hybrid::AiCoreOpTask>(new(std::nothrow)hybrid::AiCoreOpTask());
+  auto aicore_task = std::unique_ptr<hybrid::AiCoreOpTask>(new (std::nothrow) hybrid::AiCoreOpTask());
   task_def->set_type(static_cast<uint32_t>(task_type));
   domi::KernelDefWithHandle *kernel_with_handle = task_def->mutable_kernel_with_handle();
   kernel_with_handle->set_original_kernel_key("");
@@ -644,15 +652,14 @@ static void FillModelTaskDef(GeModelPtr ge_model, ModelTaskType task_type = Mode
   kernel_with_handle->set_args(args.data(), 64);
   domi::KernelContext *context = kernel_with_handle->mutable_context();
   context->set_op_index(1);
-  context->set_kernel_type(static_cast<uint32_t>(kernel_type));    // ccKernelType::TE
+  context->set_kernel_type(static_cast<uint32_t>(kernel_type));  // ccKernelType::TE
   uint16_t args_offset[9] = {0};
   context->set_args_offset(args_offset, 9 * sizeof(uint16_t));
 }
 
 static GeRootModelPtr ConstructGeRootModel(bool is_dynamic_shape = true,
                                            ModelTaskType task_type = ModelTaskType::MODEL_TASK_KERNEL,
-                                           ccKernelType kernel_type = ccKernelType::TE,
-                                           std::string so_name = "") {
+                                           ccKernelType kernel_type = ccKernelType::TE, std::string so_name = "") {
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("graph");
   AttrUtils::SetBool(graph, ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, is_dynamic_shape);
   GeRootModelPtr ge_root_model = std::make_shared<GeRootModel>();
@@ -672,7 +679,7 @@ static GeRootModelPtr ConstructGeRootModel(bool is_dynamic_shape = true,
   FillModelTaskDef(ge_model1, task_type, kernel_type, so_name);
   return ge_root_model;
 }
-}
+}  // namespace
 
 class UtestModelHelper : public testing::Test {
  protected:
@@ -684,21 +691,17 @@ class UtestModelHelper : public testing::Test {
     GetThreadLocalContext().SetGlobalOption(old_global_options_);
   }
 
-  void RunConcurrentLoadSameFingerprint(CustomOpSoLoader &loader,
-                                        const OpSoBinPtr &so_bin,
+  void RunConcurrentLoadSameFingerprint(CustomOpSoLoader &loader, const OpSoBinPtr &so_bin,
                                         std::vector<CustomOpSoHandlePtr> &first_handles,
-                                        std::vector<CustomOpSoHandlePtr> &second_handles,
-                                        Status &first_status,
+                                        std::vector<CustomOpSoHandlePtr> &second_handles, Status &first_status,
                                         Status &second_status) {
     ScopedCustomOpLoaderBlockingDlopenForUt dlopen_guard;
-    std::thread first_thread([&]() {
-      first_status = loader.LoadCustomOpSoBins({so_bin}, first_handles);
-    });
+    std::thread first_thread([&]() { first_status = loader.LoadCustomOpSoBins({so_bin}, first_handles); });
     bool first_dlopen_started = false;
     {
       std::unique_lock<std::mutex> lock(g_custom_op_loader_dlopen_mutex);
-      first_dlopen_started = g_custom_op_loader_dlopen_cv.wait_for(lock, std::chrono::seconds(5),
-          [] { return g_custom_op_loader_dlopen_count.load() == 1U; });
+      first_dlopen_started = g_custom_op_loader_dlopen_cv.wait_for(
+          lock, std::chrono::seconds(5), [] { return g_custom_op_loader_dlopen_count.load() == 1U; });
     }
     if (!first_dlopen_started) {
       {
@@ -709,14 +712,12 @@ class UtestModelHelper : public testing::Test {
       first_thread.join();
       ASSERT_TRUE(first_dlopen_started);
     }
-    std::thread second_thread([&]() {
-      second_status = loader.LoadCustomOpSoBins({so_bin}, second_handles);
-    });
+    std::thread second_thread([&]() { second_status = loader.LoadCustomOpSoBins({so_bin}, second_handles); });
     bool both_dlopen_started = false;
     {
       std::unique_lock<std::mutex> lock(g_custom_op_loader_dlopen_mutex);
-      both_dlopen_started = g_custom_op_loader_dlopen_cv.wait_for(lock, std::chrono::seconds(5),
-          [] { return g_custom_op_loader_dlopen_count.load() == 2U; });
+      both_dlopen_started = g_custom_op_loader_dlopen_cv.wait_for(
+          lock, std::chrono::seconds(5), [] { return g_custom_op_loader_dlopen_count.load() == 2U; });
       g_custom_op_loader_release_dlopen = true;
     }
     g_custom_op_loader_dlopen_cv.notify_all();
@@ -729,8 +730,7 @@ class UtestModelHelper : public testing::Test {
   std::map<std::string, std::string> old_global_options_;
 };
 
-TEST_F(UtestModelHelper, save_size_to_modeldef)
-{
+TEST_F(UtestModelHelper, save_size_to_modeldef) {
   GeModelPtr ge_model = ge::MakeShared<ge::GeModel>();
   std::shared_ptr<domi::ModelTaskDef> task = ge::MakeShared<domi::ModelTaskDef>();
   ge_model->SetModelTaskDef(task);
@@ -739,40 +739,44 @@ TEST_F(UtestModelHelper, save_size_to_modeldef)
   EXPECT_EQ(SUCCESS, model_helper.SaveSizeToModelDef(ge_model, 0));
 }
 
-TEST_F(UtestModelHelper, SaveModelPartitionInvalid)
-{
+TEST_F(UtestModelHelper, SaveModelPartitionInvalid) {
   std::shared_ptr<OmFileSaveHelper> om_file_save_helper = std::make_shared<OmFileSaveHelper>();
   ModelPartitionType type = MODEL_DEF;
   uint8_t data[128] = {0};
   size_t size = 10000000000;
   size_t model_index = 0;
   ModelHelper model_helper;
-  EXPECT_EQ(model_helper.SaveModelPartition(om_file_save_helper, type, (uint8_t*)data, size, model_index), PARAM_INVALID);
+  EXPECT_EQ(model_helper.SaveModelPartition(om_file_save_helper, type, (uint8_t *)data, size, model_index),
+            PARAM_INVALID);
   type = WEIGHTS_DATA;
-  EXPECT_EQ(model_helper.SaveModelPartition(om_file_save_helper, type, (uint8_t*)data, size, model_index), SUCCESS);
+  EXPECT_EQ(model_helper.SaveModelPartition(om_file_save_helper, type, (uint8_t *)data, size, model_index), SUCCESS);
   type = TASK_INFO;
-  EXPECT_EQ(model_helper.SaveModelPartition(om_file_save_helper, type, (uint8_t*)data, size, model_index), PARAM_INVALID);
+  EXPECT_EQ(model_helper.SaveModelPartition(om_file_save_helper, type, (uint8_t *)data, size, model_index),
+            PARAM_INVALID);
   type = TBE_KERNELS;
-  EXPECT_EQ(model_helper.SaveModelPartition(om_file_save_helper, type, (uint8_t*)data, size, model_index), SUCCESS);
+  EXPECT_EQ(model_helper.SaveModelPartition(om_file_save_helper, type, (uint8_t *)data, size, model_index), SUCCESS);
   type = CUST_AICPU_KERNELS;
-  EXPECT_EQ(model_helper.SaveModelPartition(om_file_save_helper, type, (uint8_t*)data, size, model_index), SUCCESS);
+  EXPECT_EQ(model_helper.SaveModelPartition(om_file_save_helper, type, (uint8_t *)data, size, model_index), SUCCESS);
   type = MODEL_INOUT_INFO;
-  EXPECT_EQ(model_helper.SaveModelPartition(om_file_save_helper, type, (uint8_t*)data, size, model_index), PARAM_INVALID);
+  EXPECT_EQ(model_helper.SaveModelPartition(om_file_save_helper, type, (uint8_t *)data, size, model_index),
+            PARAM_INVALID);
   type = (ModelPartitionType)100;
-  EXPECT_EQ(model_helper.SaveModelPartition(om_file_save_helper, type, (uint8_t*)data, size, model_index), PARAM_INVALID);
+  EXPECT_EQ(model_helper.SaveModelPartition(om_file_save_helper, type, (uint8_t *)data, size, model_index),
+            PARAM_INVALID);
   type = SO_BINS;
-  EXPECT_EQ(model_helper.SaveModelPartition(om_file_save_helper, type, (uint8_t*)data, size, model_index), PARAM_INVALID);
+  EXPECT_EQ(model_helper.SaveModelPartition(om_file_save_helper, type, (uint8_t *)data, size, model_index),
+            PARAM_INVALID);
   size = 1024;
   EXPECT_EQ(model_helper.SaveModelPartition(om_file_save_helper, type, nullptr, size, model_index), PARAM_INVALID);
-  EXPECT_EQ(model_helper.SaveModelPartition(om_file_save_helper, type, (uint8_t*)data, size, model_index), SUCCESS);
+  EXPECT_EQ(model_helper.SaveModelPartition(om_file_save_helper, type, (uint8_t *)data, size, model_index), SUCCESS);
   ASSERT_FALSE(om_file_save_helper->model_contexts_.empty());
   om_file_save_helper->model_contexts_[0U].model_data_len_ = 4000000000U;
   model_index = 2000000000U;
-  EXPECT_EQ(model_helper.SaveModelPartition(om_file_save_helper, type, (uint8_t*)data, size, model_index), PARAM_INVALID);
+  EXPECT_EQ(model_helper.SaveModelPartition(om_file_save_helper, type, (uint8_t *)data, size, model_index),
+            PARAM_INVALID);
 }
 
-TEST_F(UtestModelHelper, SaveOriginalGraphToOmModel)
-{
+TEST_F(UtestModelHelper, SaveOriginalGraphToOmModel) {
   Graph graph("graph");
   std::string output_file = "";
   ModelHelper model_helper;
@@ -788,15 +792,13 @@ TEST_F(UtestModelHelper, SaveOriginalGraphToOmModel)
   EXPECT_EQ(model_helper.SaveOriginalGraphToOmModel(graph2, output_file), SUCCESS);
 }
 
-TEST_F(UtestModelHelper, GetGeModel)
-{
+TEST_F(UtestModelHelper, GetGeModel) {
   ModelHelper model_helper;
   model_helper.model_ = nullptr;
   EXPECT_NE(model_helper.GetGeModel(), nullptr);
 }
 
-TEST_F(UtestModelHelper, LoadTask)
-{
+TEST_F(UtestModelHelper, LoadTask) {
   ModelHelper model_helper;
   OmFileLoadHelper om_load_helper;
   GeModelPtr cur_model = std::make_shared<GeModel>();
@@ -804,8 +806,7 @@ TEST_F(UtestModelHelper, LoadTask)
   EXPECT_EQ(model_helper.LoadTask(om_load_helper, cur_model, mode_index), FAILED);
 }
 
-TEST_F(UtestModelHelper, LoadTaskByHelper)
-{
+TEST_F(UtestModelHelper, LoadTaskByHelper) {
   ModelHelper model_helper;
   OmFileLoadHelper om_load_helper;
   om_load_helper.is_inited_ = false;
@@ -819,8 +820,7 @@ TEST_F(UtestModelHelper, LoadTaskByHelper)
   EXPECT_EQ(model_helper.LoadTask(om_load_helper, model_helper.model_, 0U), SUCCESS);
 }
 
-TEST_F(UtestModelHelper, SaveToOmRootModel)
-{
+TEST_F(UtestModelHelper, SaveToOmRootModel) {
   ModelHelper model_helper;
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("graph");
   GeRootModelPtr ge_root_model = std::make_shared<GeRootModel>();
@@ -839,8 +839,7 @@ TEST_F(UtestModelHelper, SaveToOmRootModel)
   EXPECT_NE(model_helper.SaveToOmRootModel(ge_root_model, output_file, model, is_unknown_shape), SUCCESS);
 }
 
-TEST_F(UtestModelHelper, SaveModelDef)
-{
+TEST_F(UtestModelHelper, SaveModelDef) {
   ModelHelper model_helper;
   std::shared_ptr<OmFileSaveHelper> om_file_save_helper = std::make_shared<OmFileSaveHelper>();
   GeModelPtr ge_model = std::make_shared<GeModel>();
@@ -850,8 +849,7 @@ TEST_F(UtestModelHelper, SaveModelDef)
   EXPECT_NE(model_helper.SaveModelDef(om_file_save_helper, ge_model, model_buffer, model_index), SUCCESS);
 }
 
-TEST_F(UtestModelHelper, SaveAllModelPartiton)
-{
+TEST_F(UtestModelHelper, SaveAllModelPartiton) {
   ModelHelper model_helper;
   std::shared_ptr<OmFileSaveHelper> om_file_save_helper = std::make_shared<OmFileSaveHelper>();
   GeModelPtr ge_model = std::make_shared<GeModel>();
@@ -859,11 +857,11 @@ TEST_F(UtestModelHelper, SaveAllModelPartiton)
   model_buffer.impl_->buffer_ = nullptr;
   ge::Buffer task_buffer;
   size_t model_index = 0;
-  EXPECT_EQ(model_helper.SaveAllModelPartiton(om_file_save_helper, ge_model, model_buffer, task_buffer, model_index), FAILED);
+  EXPECT_EQ(model_helper.SaveAllModelPartiton(om_file_save_helper, ge_model, model_buffer, task_buffer, model_index),
+            FAILED);
 }
 
-TEST_F(UtestModelHelper, SaveToOmModel)
-{
+TEST_F(UtestModelHelper, SaveToOmModel) {
   ModelHelper model_helper;
   GeModelPtr ge_model = std::make_shared<GeModel>();
   std::string output_file = "";
@@ -905,8 +903,7 @@ TEST_F(UtestModelHelper, GetWeightDataTest) {
   EXPECT_FALSE((ge_model.GetWeightData() == &i));
 }
 
-TEST_F(UtestModelHelper, CheckOsCpuInfoAndOppVersion)
-{
+TEST_F(UtestModelHelper, CheckOsCpuInfoAndOppVersion) {
   auto paths = gert::CreateSceneInfo();
   auto path = paths[0];
   system(("realpath " + path).c_str());
@@ -929,9 +926,8 @@ TEST_F(UtestModelHelper, CheckOsCpuInfoAndOppVersion)
   system(("rm -f " + path).c_str());
 }
 
-TEST_F(UtestModelHelper, SoBinSaveToOmRootModel)
-{
-  ModelHelper model_helper; // 默认为离线模型
+TEST_F(UtestModelHelper, SoBinSaveToOmRootModel) {
+  ModelHelper model_helper;  // 默认为离线模型
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("graph");
   AttrUtils::SetBool(graph, ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, true);
   GeRootModelPtr ge_root_model = std::make_shared<GeRootModel>();
@@ -987,9 +983,8 @@ TEST_F(UtestModelHelper, SoBinSaveToOmRootModel)
   system(("rm -rf " + opp_path + kInner).c_str());
 }
 
-TEST_F(UtestModelHelper, RepackSoToOm)
-{
-  ModelHelper model_helper; // 默认为离线模型
+TEST_F(UtestModelHelper, RepackSoToOm) {
+  ModelHelper model_helper;  // 默认为离线模型
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("graph");
   AttrUtils::SetBool(graph, ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, true);
   GeRootModelPtr ge_root_model = std::make_shared<GeRootModel>();
@@ -1005,7 +1000,6 @@ TEST_F(UtestModelHelper, RepackSoToOm)
   ge_model1->SetGraph(graph1);
   ge_root_model->subgraph_instance_name_to_model_["graph1"] = ge_model1;
 
-
   {
     domi::ModelTaskDef model_task_def;
     std::shared_ptr<domi::ModelTaskDef> model_task_def_ptr = make_shared<domi::ModelTaskDef>(model_task_def);
@@ -1013,7 +1007,7 @@ TEST_F(UtestModelHelper, RepackSoToOm)
     ge_model->SetModelTaskDef(model_task_def_ptr);
     ge_model1->SetModelTaskDef(model_task_def_ptr);
 
-    auto aicore_task = std::unique_ptr<hybrid::AiCoreOpTask>(new(std::nothrow)hybrid::AiCoreOpTask());
+    auto aicore_task = std::unique_ptr<hybrid::AiCoreOpTask>(new (std::nothrow) hybrid::AiCoreOpTask());
     task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_ALL_KERNEL));
     domi::KernelDefWithHandle *kernel_with_handle = task_def->mutable_kernel_with_handle();
     kernel_with_handle->set_block_dim(32);
@@ -1187,10 +1181,8 @@ TEST_F(UtestModelHelper, SaveOutNodesFromRootGraph) {
   EXPECT_TRUE(!out_node_name_get.empty());
 }
 
-
-TEST_F(UtestModelHelper, SoBinSaveToOmModel)
-{
-  ModelHelper model_helper; // 默认为离线模型
+TEST_F(UtestModelHelper, SoBinSaveToOmModel) {
+  ModelHelper model_helper;  // 默认为离线模型
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("graph");
   AttrUtils::SetBool(graph, ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, true);
   GeRootModelPtr ge_root_model = std::make_shared<GeRootModel>();
@@ -1208,7 +1200,7 @@ TEST_F(UtestModelHelper, SoBinSaveToOmModel)
     domi::TaskDef *task_def = model_task_def_ptr->add_task();
     ge_model->SetModelTaskDef(model_task_def_ptr);
 
-    auto aicore_task = std::unique_ptr<hybrid::AiCoreOpTask>(new(std::nothrow)hybrid::AiCoreOpTask());
+    auto aicore_task = std::unique_ptr<hybrid::AiCoreOpTask>(new (std::nothrow) hybrid::AiCoreOpTask());
     task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_ALL_KERNEL));
     domi::KernelDefWithHandle *kernel_with_handle = task_def->mutable_kernel_with_handle();
     kernel_with_handle->set_original_kernel_key("");
@@ -1219,7 +1211,7 @@ TEST_F(UtestModelHelper, SoBinSaveToOmModel)
     kernel_with_handle->set_args(args.data(), 64);
     domi::KernelContext *context = kernel_with_handle->mutable_context();
     context->set_op_index(1);
-    context->set_kernel_type(2);    // ccKernelType::TE
+    context->set_kernel_type(2);  // ccKernelType::TE
     uint16_t args_offset[9] = {0};
     context->set_args_offset(args_offset, 9 * sizeof(uint16_t));
   }
@@ -1268,10 +1260,9 @@ TEST_F(UtestModelHelper, SoBinSaveToOmModel)
   system(("rm -rf " + output_file).c_str());
 }
 
-TEST_F(UtestModelHelper, LoadOpSoBinSuccess)
-{
+TEST_F(UtestModelHelper, LoadOpSoBinSuccess) {
   OmFileLoadHelper load_helper;
-  ModelHelper model_helper; // 默认为离线
+  ModelHelper model_helper;  // 默认为离线
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("graph");
   AttrUtils::SetBool(graph, ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, true);
   GeRootModelPtr ge_root_model = std::make_shared<GeRootModel>();
@@ -1381,10 +1372,10 @@ TEST_F(UtestModelHelper, LoadCustomOpsWithRegistryShouldNotUseGlobalFactory) {
   load_helper.model_contexts_.push_back(cur_ctx);
 
   auto registry = std::make_shared<CustomOpRegistry>();
-  ASSERT_EQ(registry->RegisterCreator(kRegistryOnlyPortableOpTypeForModelHelper,
-                                      []() -> std::unique_ptr<BaseCustomOp> {
-                                        return std::make_unique<ModelHelperPortableOpForUt>();
-                                      }), GRAPH_SUCCESS);
+  ASSERT_EQ(registry->RegisterCreator(
+                kRegistryOnlyPortableOpTypeForModelHelper,
+                []() -> std::unique_ptr<BaseCustomOp> { return std::make_unique<ModelHelperPortableOpForUt>(); }),
+            GRAPH_SUCCESS);
   ASSERT_FALSE(CustomOpFactory::IsExistOp(kRegistryOnlyPortableOpTypeForModelHelper));
 
   ModelHelper model_helper;
@@ -1438,8 +1429,8 @@ TEST_F(UtestModelHelper, LoadCustomOpRegistryShouldFailAndReleaseLeaseWhenPullSy
   ASSERT_TRUE(FindNotLoadedSystemSoForModelHelperUt(source_so_path));
   std::vector<char_t> so_data;
   ASSERT_TRUE(ReadSoDataForModelHelperUt(source_so_path, so_data));
-  const auto custom_op_so_bin = BuildCustomOpSoBinForModelHelperUt("libtask5_missing_pull_symbols.so", "vendor_ut",
-                                                                   so_data);
+  const auto custom_op_so_bin =
+      BuildCustomOpSoBinForModelHelperUt("libtask5_missing_pull_symbols.so", "vendor_ut", so_data);
   ASSERT_NE(custom_op_so_bin, nullptr);
 
   std::vector<uint8_t> so_payload;
@@ -1470,10 +1461,10 @@ TEST_F(UtestModelHelper, ValidateCustomOpsDeserializedFailsWhenUsedCreatorHasNoI
   const auto ge_root_model = CreateGeRootModelForModelHelperUt(kRegistryOnlyPortableOpTypeForModelHelper, "");
   ASSERT_NE(ge_root_model, nullptr);
   auto registry = std::make_shared<CustomOpRegistry>();
-  ASSERT_EQ(registry->RegisterCreator(kRegistryOnlyPortableOpTypeForModelHelper,
-                                      []() -> std::unique_ptr<BaseCustomOp> {
-                                        return std::make_unique<ModelHelperPortableOpForUt>();
-                                      }), GRAPH_SUCCESS);
+  ASSERT_EQ(registry->RegisterCreator(
+                kRegistryOnlyPortableOpTypeForModelHelper,
+                []() -> std::unique_ptr<BaseCustomOp> { return std::make_unique<ModelHelperPortableOpForUt>(); }),
+            GRAPH_SUCCESS);
 
   ModelHelper model_helper;
   EXPECT_NE(model_helper.ValidateCustomOpsDeserialized(ge_root_model, registry), SUCCESS);
@@ -1483,10 +1474,10 @@ TEST_F(UtestModelHelper, ValidateCustomOpsDeserializedSucceedsWhenUsedCreatorHas
   const auto ge_root_model = CreateGeRootModelForModelHelperUt(kRegistryOnlyPortableOpTypeForModelHelper, "");
   ASSERT_NE(ge_root_model, nullptr);
   auto registry = std::make_shared<CustomOpRegistry>();
-  ASSERT_EQ(registry->RegisterCreator(kRegistryOnlyPortableOpTypeForModelHelper,
-                                      []() -> std::unique_ptr<BaseCustomOp> {
-                                        return std::make_unique<ModelHelperPortableOpForUt>();
-                                      }), GRAPH_SUCCESS);
+  ASSERT_EQ(registry->RegisterCreator(
+                kRegistryOnlyPortableOpTypeForModelHelper,
+                []() -> std::unique_ptr<BaseCustomOp> { return std::make_unique<ModelHelperPortableOpForUt>(); }),
+            GRAPH_SUCCESS);
   ASSERT_NE(registry->CreateOrGetCustomOp(kRegistryOnlyPortableOpTypeForModelHelper), nullptr);
 
   ModelHelper model_helper;
@@ -1504,8 +1495,9 @@ TEST_F(UtestModelHelper, SerializeCustomOpKernelPortableOpSerializeFailedPropaga
   ModelHelper model_helper;
   std::vector<uint8_t> merged_kernels = {0xCDU};
   ModelHelperPortableOpSerializeFailForUt portable_op;
-  EXPECT_EQ(model_helper.SerializeCustomOpKernel(&portable_op, kPortableOpSerializeFailTypeForModelHelper, merged_kernels),
-            GRAPH_FAILED);
+  EXPECT_EQ(
+      model_helper.SerializeCustomOpKernel(&portable_op, kPortableOpSerializeFailTypeForModelHelper, merged_kernels),
+      GRAPH_FAILED);
   EXPECT_EQ(merged_kernels, std::vector<uint8_t>({0xCDU}));
 }
 
@@ -1530,8 +1522,7 @@ TEST_F(UtestModelHelper, SerializeCustomOpKernelPortableOpSerializeSuccessAppend
   ASSERT_EQ(merged_kernels.size(), expected_size);
 
   CustomKernelItemHeader header{};
-  std::copy_n(merged_kernels.data() + old_size, sizeof(CustomKernelItemHeader),
-              reinterpret_cast<uint8_t *>(&header));
+  std::copy_n(merged_kernels.data() + old_size, sizeof(CustomKernelItemHeader), reinterpret_cast<uint8_t *>(&header));
   EXPECT_EQ(header.magic, kCustomKernelItemMagic);
   EXPECT_EQ(header.name_len, strlen(kPortableOpTypeForModelHelper));
   EXPECT_EQ(header.bin_len, kPortableKernelBinForModelHelper.size());
@@ -1550,8 +1541,8 @@ TEST_F(UtestModelHelper, SaveCustomOpsPartitionPortableOpsWithoutKernelBinReturn
   RegisterCustomOpCreatorForModelHelperUt(kPortableOpEmptyTypeForModelHelper, []() -> std::unique_ptr<BaseCustomOp> {
     return std::make_unique<ModelHelperPortableOpEmptyForUt>();
   });
-  const auto ge_root_model = CreateGeRootModelForModelHelperUt(kPortableOpEmptyTypeForModelHelper,
-                                                               kPortableOpEmptyTypeForModelHelper);
+  const auto ge_root_model =
+      CreateGeRootModelForModelHelperUt(kPortableOpEmptyTypeForModelHelper, kPortableOpEmptyTypeForModelHelper);
   ASSERT_NE(ge_root_model, nullptr);
 
   std::shared_ptr<OmFileSaveHelper> om_file_save_helper = std::make_shared<OmFileSaveHelper>();
@@ -1567,8 +1558,8 @@ TEST_F(UtestModelHelper, SaveCustomOpsPartitionAnyPortableOpWithoutKernelBinRetu
   RegisterCustomOpCreatorForModelHelperUt(kPortableOpEmptyTypeForModelHelper, []() -> std::unique_ptr<BaseCustomOp> {
     return std::make_unique<ModelHelperPortableOpEmptyForUt>();
   });
-  const auto ge_root_model = CreateGeRootModelForModelHelperUt(kPortableOpTypeForModelHelper,
-                                                               kPortableOpEmptyTypeForModelHelper);
+  const auto ge_root_model =
+      CreateGeRootModelForModelHelperUt(kPortableOpTypeForModelHelper, kPortableOpEmptyTypeForModelHelper);
   ASSERT_NE(ge_root_model, nullptr);
 
   std::shared_ptr<OmFileSaveHelper> om_file_save_helper = std::make_shared<OmFileSaveHelper>();
@@ -1577,10 +1568,9 @@ TEST_F(UtestModelHelper, SaveCustomOpsPartitionAnyPortableOpWithoutKernelBinRetu
 }
 
 TEST_F(UtestModelHelper, SaveCustomOpsPartitionSerializeFailedReturnsFailed) {
-  RegisterCustomOpCreatorForModelHelperUt(kPortableOpSerializeFailTypeForModelHelper,
-                                          []() -> std::unique_ptr<BaseCustomOp> {
-                                            return std::make_unique<ModelHelperPortableOpSerializeFailForUt>();
-                                          });
+  RegisterCustomOpCreatorForModelHelperUt(
+      kPortableOpSerializeFailTypeForModelHelper,
+      []() -> std::unique_ptr<BaseCustomOp> { return std::make_unique<ModelHelperPortableOpSerializeFailForUt>(); });
   const auto ge_root_model = CreateGeRootModelForModelHelperUt(kPortableOpSerializeFailTypeForModelHelper,
                                                                kPortableOpSerializeFailTypeForModelHelper);
   ASSERT_NE(ge_root_model, nullptr);
@@ -1591,9 +1581,8 @@ TEST_F(UtestModelHelper, SaveCustomOpsPartitionSerializeFailedReturnsFailed) {
 }
 
 TEST_F(UtestModelHelper, SaveCustomOpsPartitionCreateCustomOpFailedReturnsFailed) {
-  RegisterCustomOpCreatorForModelHelperUt(kUnregisteredPortableOpTypeForModelHelper, []() -> std::unique_ptr<BaseCustomOp> {
-    return nullptr;
-  });
+  RegisterCustomOpCreatorForModelHelperUt(kUnregisteredPortableOpTypeForModelHelper,
+                                          []() -> std::unique_ptr<BaseCustomOp> { return nullptr; });
 
   const auto ge_root_model = CreateGeRootModelForModelHelperUt(kUnregisteredPortableOpTypeForModelHelper,
                                                                kUnregisteredPortableOpTypeForModelHelper);
@@ -1608,8 +1597,8 @@ TEST_F(UtestModelHelper, SaveCustomOpsPartitionHasSerializablePortableOpsSavesPa
   RegisterCustomOpCreatorForModelHelperUt(kPortableOpTypeForModelHelper, []() -> std::unique_ptr<BaseCustomOp> {
     return std::make_unique<ModelHelperPortableOpForUt>();
   });
-  const auto ge_root_model = CreateGeRootModelForModelHelperUt(kPortableOpTypeForModelHelper,
-                                                               kPortableOpTypeForModelHelper);
+  const auto ge_root_model =
+      CreateGeRootModelForModelHelperUt(kPortableOpTypeForModelHelper, kPortableOpTypeForModelHelper);
   ASSERT_NE(ge_root_model, nullptr);
 
   std::shared_ptr<OmFileSaveHelper> om_file_save_helper = std::make_shared<OmFileSaveHelper>();
@@ -1631,8 +1620,8 @@ TEST_F(UtestModelHelper, SaveCustomOpsPartitionSaveModelToBufferBytesStable) {
   RegisterCustomOpCreatorForModelHelperUt(kPortableOpTypeForModelHelper, []() -> std::unique_ptr<BaseCustomOp> {
     return std::make_unique<ModelHelperPortableOpForUt>();
   });
-  const auto ge_root_model = CreateGeRootModelForModelHelperUt(kPortableOpTypeForModelHelper,
-                                                               kPortableOpTypeForModelHelper);
+  const auto ge_root_model =
+      CreateGeRootModelForModelHelperUt(kPortableOpTypeForModelHelper, kPortableOpTypeForModelHelper);
   ASSERT_NE(ge_root_model, nullptr);
 
   std::shared_ptr<OmFileSaveHelper> om_file_save_helper = std::make_shared<OmFileSaveHelper>();
@@ -1641,8 +1630,8 @@ TEST_F(UtestModelHelper, SaveCustomOpsPartitionSaveModelToBufferBytesStable) {
   ASSERT_FALSE(om_file_save_helper->model_contexts_.empty());
   ASSERT_EQ(om_file_save_helper->model_contexts_[0U].owned_partitions_.size(), 1U);
 
-  const std::vector<uint8_t> expected_partition = BuildExpectedCustomOpsDataForModelHelperUt(
-      kPortableOpTypeForModelHelper, kPortableKernelBinForModelHelper);
+  const std::vector<uint8_t> expected_partition =
+      BuildExpectedCustomOpsDataForModelHelperUt(kPortableOpTypeForModelHelper, kPortableKernelBinForModelHelper);
 
   // Overwrite allocator cache to stress payload lifetime before delayed SaveModel serialization.
   std::vector<uint8_t> memory_noise(expected_partition.size(), 0xABU);
@@ -1658,8 +1647,7 @@ TEST_F(UtestModelHelper, SaveCustomOpsPartitionSaveModelToBufferBytesStable) {
   EXPECT_EQ(loaded_data, expected_partition);
 }
 
-TEST_F(UtestModelHelper, SaveCustomOpsPartitionPortableAndNonPortableFails)
-{
+TEST_F(UtestModelHelper, SaveCustomOpsPartitionPortableAndNonPortableFails) {
   RegisterCustomOpCreatorForModelHelperUt(kPortableOpTypeForModelHelper, []() -> std::unique_ptr<BaseCustomOp> {
     return std::make_unique<ModelHelperPortableOpForUt>();
   });
@@ -1667,8 +1655,8 @@ TEST_F(UtestModelHelper, SaveCustomOpsPartitionPortableAndNonPortableFails)
     return std::make_unique<ModelHelperNonPortableOpForUt>();
   });
 
-  const auto ge_root_model = CreateGeRootModelForModelHelperUt(kPortableOpTypeForModelHelper,
-                                                               kNonPortableOpTypeForModelHelper);
+  const auto ge_root_model =
+      CreateGeRootModelForModelHelperUt(kPortableOpTypeForModelHelper, kNonPortableOpTypeForModelHelper);
   ASSERT_NE(ge_root_model, nullptr);
 
   std::shared_ptr<OmFileSaveHelper> om_file_save_helper = std::make_shared<OmFileSaveHelper>();
@@ -1680,8 +1668,8 @@ TEST_F(UtestModelHelper, SaveCustomOpsPartitionSkipsRootGraphRepeatedInSubgraphM
   RegisterCustomOpCreatorForModelHelperUt(kPortableOpTypeForModelHelper, []() -> std::unique_ptr<BaseCustomOp> {
     return std::make_unique<ModelHelperPortableOpForUt>();
   });
-  const auto ge_root_model = CreateGeRootModelForModelHelperUt(kPortableOpTypeForModelHelper,
-                                                               kPortableOpTypeForModelHelper);
+  const auto ge_root_model =
+      CreateGeRootModelForModelHelperUt(kPortableOpTypeForModelHelper, kPortableOpTypeForModelHelper);
   ASSERT_NE(ge_root_model, nullptr);
 
   GeModelPtr root_model = std::make_shared<GeModel>();
@@ -1730,8 +1718,8 @@ TEST_F(UtestModelHelper, CheckAndSetNeedSoInOMCrossModePortableOpShouldCollectAl
   RegisterCustomOpCreatorForModelHelperUt(kPortableOpTypeForModelHelper, []() -> std::unique_ptr<BaseCustomOp> {
     return std::make_unique<ModelHelperPortableOpForUt>();
   });
-  const auto ge_root_model = CreateGeRootModelForModelHelperUt(kPortableOpTypeForModelHelper,
-                                                               kPortableOpTypeForModelHelper);
+  const auto ge_root_model =
+      CreateGeRootModelForModelHelperUt(kPortableOpTypeForModelHelper, kPortableOpTypeForModelHelper);
   ASSERT_NE(ge_root_model, nullptr);
 
   std::string current_env_os;
@@ -1747,8 +1735,8 @@ TEST_F(UtestModelHelper, CheckAndSetNeedSoInOMCrossModePortableOpShouldCollectAl
   const std::string custom_opp_path = opp_path + "custom_opp_cross_mode_ut";
   ScopedTmpDirCleanerForModelHelperUt opp_dir_guard(custom_opp_path);
   CrossModeCustomOppPathsForModelHelperUt so_paths;
-  ASSERT_TRUE(PrepareCrossModeCustomOppForModelHelperUt(custom_opp_path, current_env_os, current_env_cpu, target_env_cpu,
-                                                        so_paths));
+  ASSERT_TRUE(PrepareCrossModeCustomOppForModelHelperUt(custom_opp_path, current_env_os, current_env_cpu,
+                                                        target_env_cpu, so_paths));
   mmSetEnv(kEnvNameCustom, custom_opp_path.c_str(), 1);
 
   ASSERT_EQ(ge_root_model->CheckAndSetNeedSoInOM(), SUCCESS);
@@ -1765,8 +1753,8 @@ TEST_F(UtestModelHelper, CheckAndSetNeedSoInOMSameArchShouldKeepExistingBehavior
   RegisterCustomOpCreatorForModelHelperUt(kPortableOpTypeForModelHelper, []() -> std::unique_ptr<BaseCustomOp> {
     return std::make_unique<ModelHelperPortableOpForUt>();
   });
-  const auto ge_root_model = CreateGeRootModelForModelHelperUt(kPortableOpTypeForModelHelper,
-                                                               kPortableOpTypeForModelHelper);
+  const auto ge_root_model =
+      CreateGeRootModelForModelHelperUt(kPortableOpTypeForModelHelper, kPortableOpTypeForModelHelper);
   ASSERT_NE(ge_root_model, nullptr);
 
   std::string current_env_os;
@@ -1827,8 +1815,8 @@ TEST_F(UtestModelHelper, CheckAndSetNeedSoInOMPortableOpTargetArchMismatchShould
   RegisterCustomOpCreatorForModelHelperUt(kPortableOpTypeForModelHelper, []() -> std::unique_ptr<BaseCustomOp> {
     return std::make_unique<ModelHelperPortableOpForUt>();
   });
-  const auto ge_root_model = CreateGeRootModelForModelHelperUt(kPortableOpTypeForModelHelper,
-                                                               kPortableOpTypeForModelHelper);
+  const auto ge_root_model =
+      CreateGeRootModelForModelHelperUt(kPortableOpTypeForModelHelper, kPortableOpTypeForModelHelper);
   ASSERT_NE(ge_root_model, nullptr);
 
   std::string current_env_os;
@@ -1878,8 +1866,8 @@ TEST_F(UtestModelHelper, CheckAndSetNeedSoInOMPortableCustomOpSetsCustomSoBit) {
   RegisterCustomOpCreatorForModelHelperUt(kPortableOpTypeForModelHelper, []() -> std::unique_ptr<BaseCustomOp> {
     return std::make_unique<ModelHelperPortableOpForUt>();
   });
-  const auto ge_root_model = CreateGeRootModelForModelHelperUt(kPortableOpTypeForModelHelper,
-                                                               kPortableOpTypeForModelHelper);
+  const auto ge_root_model =
+      CreateGeRootModelForModelHelperUt(kPortableOpTypeForModelHelper, kPortableOpTypeForModelHelper);
   ASSERT_NE(ge_root_model, nullptr);
 
   std::string current_env_os;
@@ -1904,8 +1892,8 @@ TEST_F(UtestModelHelper, SaveSoStoreModelPartitionInfoCustomOpOnlyGraphShouldSav
   RegisterCustomOpCreatorForModelHelperUt(kPortableOpTypeForModelHelper, []() -> std::unique_ptr<BaseCustomOp> {
     return std::make_unique<ModelHelperPortableOpForUt>();
   });
-  const auto ge_root_model = CreateGeRootModelForModelHelperUt(kPortableOpTypeForModelHelper,
-                                                               kPortableOpTypeForModelHelper);
+  const auto ge_root_model =
+      CreateGeRootModelForModelHelperUt(kPortableOpTypeForModelHelper, kPortableOpTypeForModelHelper);
   ASSERT_NE(ge_root_model, nullptr);
 
   std::string current_env_os;
@@ -1927,9 +1915,9 @@ TEST_F(UtestModelHelper, SaveSoStoreModelPartitionInfoCustomOpOnlyGraphShouldSav
   GeModelPtr first_ge_model = std::make_shared<GeModel>();
   std::string output_file_name = "custom_only_model.om";
   ModelHelper model_helper;
-  ASSERT_EQ(model_helper.SaveSoStoreModelPartitionInfo(om_file_save_helper, ge_root_model, output_file_name,
-                                                       first_ge_model),
-            SUCCESS);
+  ASSERT_EQ(
+      model_helper.SaveSoStoreModelPartitionInfo(om_file_save_helper, ge_root_model, output_file_name, first_ge_model),
+      SUCCESS);
 
   ModelPartition so_bins_partition;
   EXPECT_TRUE(FindSoBinsPartitionForModelHelperUt(om_file_save_helper, so_bins_partition));
@@ -1941,12 +1929,12 @@ TEST_F(UtestModelHelper, LoadOpSoBinCustomTypeInvalidPayloadShouldFail) {
                                          static_cast<char_t>(0x00), static_cast<char_t>(0xFF)};
   auto invalid_so_data = std::unique_ptr<char_t[]>(new (std::nothrow) char_t[invalid_payload.size()]);
   ASSERT_NE(invalid_so_data, nullptr);
-  ASSERT_EQ(memcpy_s(invalid_so_data.get(), invalid_payload.size(), invalid_payload.data(), invalid_payload.size()), EOK);
+  ASSERT_EQ(memcpy_s(invalid_so_data.get(), invalid_payload.size(), invalid_payload.data(), invalid_payload.size()),
+            EOK);
 
-  const auto custom_invalid_so = std::make_shared<OpSoBin>("libcustom_invalid.so", "vendor_custom",
-                                                           std::move(invalid_so_data),
-                                                           static_cast<uint32_t>(invalid_payload.size()),
-                                                           static_cast<SoBinType>(3));
+  const auto custom_invalid_so =
+      std::make_shared<OpSoBin>("libcustom_invalid.so", "vendor_custom", std::move(invalid_so_data),
+                                static_cast<uint32_t>(invalid_payload.size()), static_cast<SoBinType>(3));
   ASSERT_NE(custom_invalid_so, nullptr);
   op_so_store.AddKernel(custom_invalid_so);
   ASSERT_TRUE(op_so_store.Build());
@@ -2098,10 +2086,10 @@ TEST_F(UtestModelHelper, CustomOpSoLoaderLoadSameNameDifferentContentShouldRetur
   ASSERT_TRUE(ReadSoDataForModelHelperUt(second_so_path, second_so_data));
   ASSERT_NE(first_so_data, second_so_data);
 
-  const auto first_so_bin = BuildCustomOpSoBinForModelHelperUt("libcustom_op_loader_same_name_ut.so", "vendor_ut",
-                                                               first_so_data);
-  const auto second_so_bin = BuildCustomOpSoBinForModelHelperUt("libcustom_op_loader_same_name_ut.so", "vendor_ut",
-                                                                second_so_data);
+  const auto first_so_bin =
+      BuildCustomOpSoBinForModelHelperUt("libcustom_op_loader_same_name_ut.so", "vendor_ut", first_so_data);
+  const auto second_so_bin =
+      BuildCustomOpSoBinForModelHelperUt("libcustom_op_loader_same_name_ut.so", "vendor_ut", second_so_data);
   ASSERT_NE(first_so_bin, nullptr);
   ASSERT_NE(second_so_bin, nullptr);
 
@@ -2128,8 +2116,8 @@ TEST_F(UtestModelHelper, CustomOpSoLoaderWeakCacheShouldExpireAfterReturnedHandl
   ASSERT_TRUE(FindNotLoadedSystemSoForModelHelperUt(source_so_path));
   std::vector<char_t> so_data;
   ASSERT_TRUE(ReadSoDataForModelHelperUt(source_so_path, so_data));
-  const auto so_bin = BuildCustomOpSoBinForModelHelperUt("libcustom_op_loader_internal_lease_ut.so", "vendor_ut",
-                                                         so_data);
+  const auto so_bin =
+      BuildCustomOpSoBinForModelHelperUt("libcustom_op_loader_internal_lease_ut.so", "vendor_ut", so_data);
   ASSERT_NE(so_bin, nullptr);
 
   CustomOpSoLoader loader;
@@ -2162,13 +2150,13 @@ TEST_F(UtestModelHelper, CustomOpSoLoaderBatchFailureShouldReleasePreviouslyDlop
   ASSERT_TRUE(FindNotLoadedSystemSoForModelHelperUt(source_so_path));
   std::vector<char_t> valid_so_data;
   ASSERT_TRUE(ReadSoDataForModelHelperUt(source_so_path, valid_so_data));
-  const auto valid_so_bin = BuildCustomOpSoBinForModelHelperUt("libcustom_op_loader_batch_valid_ut.so", "vendor_ut",
-                                                               valid_so_data);
+  const auto valid_so_bin =
+      BuildCustomOpSoBinForModelHelperUt("libcustom_op_loader_batch_valid_ut.so", "vendor_ut", valid_so_data);
   ASSERT_NE(valid_so_bin, nullptr);
 
   const std::vector<char_t> invalid_so_data = {'n', 'o', 't', '_', 'e', 'l', 'f'};
-  const auto invalid_so_bin = BuildCustomOpSoBinForModelHelperUt("libcustom_op_loader_batch_invalid_ut.so",
-                                                                 "vendor_ut", invalid_so_data);
+  const auto invalid_so_bin =
+      BuildCustomOpSoBinForModelHelperUt("libcustom_op_loader_batch_invalid_ut.so", "vendor_ut", invalid_so_data);
   ASSERT_NE(invalid_so_bin, nullptr);
 
   CustomOpSoLoader loader;
@@ -2187,8 +2175,8 @@ TEST_F(UtestModelHelper, CustomOpSoLoaderConcurrentSameFingerprintShouldReusePub
   ASSERT_TRUE(FindNotLoadedSystemSoForModelHelperUt(source_so_path));
   std::vector<char_t> so_data;
   ASSERT_TRUE(ReadSoDataForModelHelperUt(source_so_path, so_data));
-  const auto so_bin = BuildCustomOpSoBinForModelHelperUt("libcustom_op_loader_concurrent_reuse_ut.so", "vendor_ut",
-                                                         so_data);
+  const auto so_bin =
+      BuildCustomOpSoBinForModelHelperUt("libcustom_op_loader_concurrent_reuse_ut.so", "vendor_ut", so_data);
   ASSERT_NE(so_bin, nullptr);
 
   CustomOpSoLoader loader;
@@ -2196,8 +2184,8 @@ TEST_F(UtestModelHelper, CustomOpSoLoaderConcurrentSameFingerprintShouldReusePub
   std::vector<CustomOpSoHandlePtr> second_loaded_handles;
   Status first_status = FAILED;
   Status second_status = FAILED;
-  RunConcurrentLoadSameFingerprint(loader, so_bin, first_loaded_handles, second_loaded_handles,
-                                   first_status, second_status);
+  RunConcurrentLoadSameFingerprint(loader, so_bin, first_loaded_handles, second_loaded_handles, first_status,
+                                   second_status);
   ASSERT_EQ(first_status, SUCCESS);
   ASSERT_EQ(second_status, SUCCESS);
   ASSERT_EQ(first_loaded_handles.size(), 1U);
@@ -2223,8 +2211,8 @@ TEST_F(UtestModelHelper, CustomOpSoLoaderEmptyBinDataShouldFailWithoutPublishing
 
 TEST_F(UtestModelHelper, CustomOpSoLoaderDlopenFailureShouldNotPoisonWeakCache) {
   const std::vector<char_t> invalid_so_data = {'n', 'o', 't', '_', 'e', 'l', 'f'};
-  const auto invalid_so_bin = BuildCustomOpSoBinForModelHelperUt("libcustom_op_loader_invalid_ut.so", "vendor_ut",
-                                                                 invalid_so_data);
+  const auto invalid_so_bin =
+      BuildCustomOpSoBinForModelHelperUt("libcustom_op_loader_invalid_ut.so", "vendor_ut", invalid_so_data);
   ASSERT_NE(invalid_so_bin, nullptr);
 
   CustomOpSoLoader loader;
@@ -2237,8 +2225,8 @@ TEST_F(UtestModelHelper, CustomOpSoLoaderDlopenFailureShouldNotPoisonWeakCache) 
   ASSERT_TRUE(FindNotLoadedSystemSoForModelHelperUt(source_so_path));
   std::vector<char_t> valid_so_data;
   ASSERT_TRUE(ReadSoDataForModelHelperUt(source_so_path, valid_so_data));
-  const auto valid_so_bin = BuildCustomOpSoBinForModelHelperUt("libcustom_op_loader_invalid_ut.so", "vendor_ut",
-                                                               valid_so_data);
+  const auto valid_so_bin =
+      BuildCustomOpSoBinForModelHelperUt("libcustom_op_loader_invalid_ut.so", "vendor_ut", valid_so_data);
   ASSERT_NE(valid_so_bin, nullptr);
 
   std::vector<CustomOpSoHandlePtr> valid_loaded_handles;
@@ -2248,8 +2236,7 @@ TEST_F(UtestModelHelper, CustomOpSoLoaderDlopenFailureShouldNotPoisonWeakCache) 
   loader.Cleanup();
 }
 
-TEST_F(UtestModelHelper, LoadOpSoBinDataFail)
-{
+TEST_F(UtestModelHelper, LoadOpSoBinDataFail) {
   OmFileLoadHelper load_helper;
   ModelHelper model_helper;
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("graph");
@@ -2329,9 +2316,8 @@ TEST_F(UtestModelHelper, GetBinDataSuccess) {
   system(("rm -rf " + path_vendors).c_str());
 }
 
-TEST_F(UtestModelHelper, SoBinSaveToOmModel_CPU_OS_EMPTY)
-{
-  ModelHelper model_helper; // 默认为离线模型
+TEST_F(UtestModelHelper, SoBinSaveToOmModel_CPU_OS_EMPTY) {
+  ModelHelper model_helper;  // 默认为离线模型
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("graph");
   AttrUtils::SetBool(graph, ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, true);
   GeRootModelPtr ge_root_model = std::make_shared<GeRootModel>();
@@ -2347,7 +2333,7 @@ TEST_F(UtestModelHelper, SoBinSaveToOmModel_CPU_OS_EMPTY)
     domi::TaskDef *task_def = model_task_def_ptr->add_task();
     ge_model->SetModelTaskDef(model_task_def_ptr);
 
-    auto aicore_task = std::unique_ptr<hybrid::AiCoreOpTask>(new(std::nothrow)hybrid::AiCoreOpTask());
+    auto aicore_task = std::unique_ptr<hybrid::AiCoreOpTask>(new (std::nothrow) hybrid::AiCoreOpTask());
     task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_ALL_KERNEL));
     domi::KernelDefWithHandle *kernel_with_handle = task_def->mutable_kernel_with_handle();
     kernel_with_handle->set_original_kernel_key("");
@@ -2358,7 +2344,7 @@ TEST_F(UtestModelHelper, SoBinSaveToOmModel_CPU_OS_EMPTY)
     kernel_with_handle->set_args(args.data(), 64);
     domi::KernelContext *context = kernel_with_handle->mutable_context();
     context->set_op_index(1);
-    context->set_kernel_type(2);    // ccKernelType::TE
+    context->set_kernel_type(2);  // ccKernelType::TE
     uint16_t args_offset[9] = {0};
     context->set_args_offset(args_offset, 9 * sizeof(uint16_t));
   }
@@ -2397,9 +2383,8 @@ TEST_F(UtestModelHelper, SoBinSaveToOmModel_CPU_OS_EMPTY)
   EXPECT_EQ(model_helper.SaveToOmRootModel(ge_root_model, output_file, model, is_unknown_shape), SUCCESS);
 }
 
-TEST_F(UtestModelHelper, SoBinSaveToOmRootModelErrByFileNameTooLong)
-{
-  ModelHelper model_helper; // 默认为离线模型
+TEST_F(UtestModelHelper, SoBinSaveToOmRootModelErrByFileNameTooLong) {
+  ModelHelper model_helper;  // 默认为离线模型
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("graph");
   AttrUtils::SetBool(graph, ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, true);
   GeRootModelPtr ge_root_model = std::make_shared<GeRootModel>();
@@ -2415,7 +2400,7 @@ TEST_F(UtestModelHelper, SoBinSaveToOmRootModelErrByFileNameTooLong)
     domi::TaskDef *task_def = model_task_def_ptr->add_task();
     ge_model->SetModelTaskDef(model_task_def_ptr);
 
-    auto aicore_task = std::unique_ptr<hybrid::AiCoreOpTask>(new(std::nothrow)hybrid::AiCoreOpTask());
+    auto aicore_task = std::unique_ptr<hybrid::AiCoreOpTask>(new (std::nothrow) hybrid::AiCoreOpTask());
     task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_ALL_KERNEL));
     domi::KernelDefWithHandle *kernel_with_handle = task_def->mutable_kernel_with_handle();
     kernel_with_handle->set_original_kernel_key("");
@@ -2426,7 +2411,7 @@ TEST_F(UtestModelHelper, SoBinSaveToOmRootModelErrByFileNameTooLong)
     kernel_with_handle->set_args(args.data(), 64);
     domi::KernelContext *context = kernel_with_handle->mutable_context();
     context->set_op_index(1);
-    context->set_kernel_type(2);    // ccKernelType::TE
+    context->set_kernel_type(2);  // ccKernelType::TE
     uint16_t args_offset[9] = {0};
     context->set_args_offset(args_offset, 9 * sizeof(uint16_t));
   }
@@ -2469,8 +2454,7 @@ TEST_F(UtestModelHelper, SoBinSaveToOmRootModelErrByFileNameTooLong)
   system(("rm -rf " + opp_path + kInner).c_str());
 }
 
-TEST_F(UtestModelHelper, GetSoBinData_fail)
-{
+TEST_F(UtestModelHelper, GetSoBinData_fail) {
   std::string opp_path = __FILE__;
   opp_path = opp_path.substr(0, opp_path.rfind("/") + 1);
   opp_path += "/temp/";
@@ -2646,7 +2630,8 @@ TEST_F(UtestModelHelper, SaveOpMasterDevice_WithSpaceRegistry_Success) {
 }
 
 TEST_F(UtestModelHelper, SaveOpMasterDevice_So_Name_Invalid) {
-  GeRootModelPtr ge_root_model = ConstructGeRootModel(false, ModelTaskType::MODEL_TASK_PREPROCESS_KERNEL, ccKernelType::AI_CPU);
+  GeRootModelPtr ge_root_model =
+      ConstructGeRootModel(false, ModelTaskType::MODEL_TASK_PREPROCESS_KERNEL, ccKernelType::AI_CPU);
   EXPECT_NE(ge_root_model->CheckAndSetNeedSoInOM(), SUCCESS);
 }
 

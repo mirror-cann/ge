@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,25 +22,25 @@
 #include "graph_builder/bg_rt_session.h"
 
 namespace {
-  constexpr size_t kHandleIndex = 0U;
-  constexpr size_t kDataIndex = 1U;
-  constexpr size_t kAtIndexNum = 2U;
-  constexpr size_t kLengthIndexNum = 1U;
-  constexpr size_t kOutputNum = 1U;
-}
+constexpr size_t kHandleIndex = 0U;
+constexpr size_t kDataIndex = 1U;
+constexpr size_t kAtIndexNum = 2U;
+constexpr size_t kLengthIndexNum = 1U;
+constexpr size_t kOutputNum = 1U;
+}  // namespace
 namespace gert {
 LowerResult LoweringSequenceAt(const ge::NodePtr &node, const LowerInput &lower_input) {
   if ((node == nullptr) || (node->GetOpDescBarePtr() == nullptr)) {
     GELOGE(ge::PARAM_INVALID, "[Check][Op]Can not find op.");
     REPORT_INNER_ERR_MSG("E39999", "Can not find op.");
-    return {HyperStatus::ErrorStatus(static_cast<const char*>("Can not find op")), {}, {}, {}};
+    return {HyperStatus::ErrorStatus(static_cast<const char *>("Can not find op")), {}, {}, {}};
   }
   auto ret = CheckLowerInput(lower_input);
   if (!ret.IsSuccess() || (lower_input.input_addrs.size() < kAtIndexNum)) {
     GELOGE(ge::PARAM_INVALID, "[Check][LowerInput]Op %s type %s lower_input is invalid.", node->GetName().c_str(),
            ge::NodeUtils::GetNodeType(node).c_str());
     REPORT_INNER_ERR_MSG("E39999", "Op %s type %s lower_input is invalid.", node->GetName().c_str(),
-                       ge::NodeUtils::GetNodeType(node).c_str());
+                         ge::NodeUtils::GetNodeType(node).c_str());
     return {ret, {}, {}, {}};
   }
   auto session_id = bg::GetSessionId(*lower_input.global_data);
@@ -67,24 +67,21 @@ LowerResult LoweringSequenceAt(const ge::NodePtr &node, const LowerInput &lower_
       "BuildAddrFromTensorCompute", {output_tensors, allocator_holder}, node->GetOpDescBarePtr()->GetStreamId());
   LOWER_REQUIRE_VALID_HOLDER(output_addrs, "Failed create BuildAddrFromTensorCompute lower run kernel func node");
 
-  return {HyperStatus::Success(),
-          {output_tensors, output_shapes, output_addrs},
-          {output_shapes},
-          {output_addrs}};
+  return {HyperStatus::Success(), {output_tensors, output_shapes, output_addrs}, {output_shapes}, {output_addrs}};
 }
 
 LowerResult LoweringSequenceEmpty(const ge::NodePtr &node, const LowerInput &lower_input) {
   if ((node == nullptr) || (node->GetOpDescBarePtr() == nullptr)) {
     GELOGE(ge::PARAM_INVALID, "[Check][Op]Can not find op.");
     REPORT_INNER_ERR_MSG("E39999", "Can not find op.");
-    return {HyperStatus::ErrorStatus(static_cast<const char*>("Can not find op")), {}, {}, {}};
+    return {HyperStatus::ErrorStatus(static_cast<const char *>("Can not find op")), {}, {}, {}};
   }
   auto ret = CheckLowerInput(lower_input);
   if (!ret.IsSuccess()) {
     GELOGE(ge::PARAM_INVALID, "[Check][LowerInput]Op %s type %s lower_input is invalid.", node->GetName().c_str(),
            ge::NodeUtils::GetNodeType(node).c_str());
     REPORT_INNER_ERR_MSG("E39999", "Op %s type %s lower_input is invalid.", node->GetName().c_str(),
-                       ge::NodeUtils::GetNodeType(node).c_str());
+                         ge::NodeUtils::GetNodeType(node).c_str());
     return {ret, {}, {}, {}};
   }
 
@@ -116,24 +113,21 @@ LowerResult LoweringSequenceEmpty(const ge::NodePtr &node, const LowerInput &low
   auto compute_holder = bg::ValueHolder::CreateSingleDataOutput("SequenceEmptyCompute", inputs);
   LOWER_REQUIRE_VALID_HOLDER(compute_holder, "Failed create SequenceEmptyCompute lower run kernel func node");
 
-  return {HyperStatus::Success(),
-          {compute_holder},
-          {output_shapes},
-          {output_addrs}};
+  return {HyperStatus::Success(), {compute_holder}, {output_shapes}, {output_addrs}};
 }
 
 LowerResult LoweringSequenceLength(const ge::NodePtr &node, const LowerInput &lower_input) {
   if ((node == nullptr) || (node->GetOpDescBarePtr() == nullptr)) {
     GELOGE(ge::PARAM_INVALID, "[Check][Op]Can not find op.");
     REPORT_INNER_ERR_MSG("E39999", "Can not find op.");
-    return {HyperStatus::ErrorStatus(static_cast<const char*>("Can not find op")), {}, {}, {}};
+    return {HyperStatus::ErrorStatus(static_cast<const char *>("Can not find op")), {}, {}, {}};
   }
   auto ret = CheckLowerInput(lower_input);
   if (!ret.IsSuccess() || (lower_input.input_addrs.size() < kLengthIndexNum)) {
     GELOGE(ge::PARAM_INVALID, "[Check][LowerInput]Op %s type %s lower_input is invalid.", node->GetName().c_str(),
            ge::NodeUtils::GetNodeType(node).c_str());
     REPORT_INNER_ERR_MSG("E39999", "Op %s type %s lower_input is invalid.", node->GetName().c_str(),
-                       ge::NodeUtils::GetNodeType(node).c_str());
+                         ge::NodeUtils::GetNodeType(node).c_str());
     return {ret, {}, {}, {}};
   }
 
@@ -161,10 +155,7 @@ LowerResult LoweringSequenceLength(const ge::NodePtr &node, const LowerInput &lo
   auto compute_holder = bg::ValueHolder::CreateSingleDataOutput("SequenceLengthCompute", inputs);
   LOWER_REQUIRE_VALID_HOLDER(compute_holder, "Failed create SequenceLengthCompute lower run kernel func node");
 
-  return {HyperStatus::Success(),
-          {compute_holder},
-          {output_shapes},
-          {output_addrs}};
+  return {HyperStatus::Success(), {compute_holder}, {output_shapes}, {output_addrs}};
 }
 
 REGISTER_NODE_CONVERTER_PLACEMENT("SequenceAt", kOnHost, LoweringSequenceAt);

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -36,14 +36,12 @@ class MockRuntimeFail : public RuntimeStub {
     return 1;
   }
 };
-}
+}  // namespace
 
 class UtestPlatformInfoUtil : public testing::Test {
  protected:
-  void SetUp() {
-  }
-  void TearDown() {
-  }
+  void SetUp() {}
+  void TearDown() {}
 };
 
 TEST_F(UtestPlatformInfoUtil, GetJitCompileDefaultValue_Ok_EnableByDefault) {
@@ -69,7 +67,6 @@ TEST_F(UtestPlatformInfoUtil, GetSocSpecFromPlatform) {
   ret = ge::PlatformInfoUtil::GetSocSpec("version", "NpuArch", value);
   EXPECT_EQ(ret, SUCCESS);
   ASSERT_STREQ(value.c_str(), "2201");
-  
 }
 
 TEST_F(UtestPlatformInfoUtil, GetJitCompileDefaultValueGetSocVersionFailed) {
@@ -81,4 +78,4 @@ TEST_F(UtestPlatformInfoUtil, GetJitCompileDefaultValueGetSocVersionFailed) {
   ASSERT_STREQ(jit_compile.c_str(), "2");
   stub.Reset();
 }
-}
+}  // namespace ge

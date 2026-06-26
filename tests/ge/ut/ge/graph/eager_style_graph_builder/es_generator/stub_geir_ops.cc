@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -154,32 +154,29 @@ REG_OP(phony_req_attrs)
     .REQUIRED_ATTR(req_list_list_int, ListListInt)
     .REQUIRED_ATTR(req_tensor, Tensor)
     .REQUIRED_ATTR(req_list_string, ListString)
-    .OP_END_FACTORY_REG(phony_req_attrs)
-REG_OP(phony_opt_attrs)
+    .OP_END_FACTORY_REG(phony_req_attrs) REG_OP(phony_opt_attrs)
     .INPUT(x, TensorType::ALL())
     .OUTPUT(y, TensorType::ALL())
     .ATTR(opt_data_type, Type, DT_INT64)
     .ATTR(opt_list_data_type, ListType, {DT_FLOAT, DT_DOUBLE})
-    .ATTR(opt_list_list_int, ListListInt, {{1,2,3}, {3,2,1}})
+    .ATTR(opt_list_list_int, ListListInt, {{1, 2, 3}, {3, 2, 1}})
     .ATTR(opt_tensor, Tensor, Tensor())
     .ATTR(opt_list_string, ListString, {"test", "test"})
     .OP_END_FACTORY_REG(phony_opt_attrs)
 
-// Op with Subgraphs
-REG_OP(phony_If)
+    // Op with Subgraphs
+    REG_OP(phony_If)
     .INPUT(cond, TensorType::ALL())
     .DYNAMIC_INPUT(input, TensorType::ALL())
     .DYNAMIC_OUTPUT(output, TensorType::ALL())
     .GRAPH(then_branch)
     .GRAPH(else_branch)
-    .OP_END_FACTORY_REG(phony_If)
-REG_OP(phony_Case)
+    .OP_END_FACTORY_REG(phony_If) REG_OP(phony_Case)
     .INPUT(branch_index, DT_INT32)
     .DYNAMIC_INPUT(input, TensorType::ALL())
     .DYNAMIC_OUTPUT(output, TensorType::ALL())
     .DYNAMIC_GRAPH(branches)
-    .OP_END_FACTORY_REG(phony_Case)
-REG_OP(phony_PartitionedCall)
+    .OP_END_FACTORY_REG(phony_Case) REG_OP(phony_PartitionedCall)
     .DYNAMIC_INPUT(args, TensorType::ALL())
     .DYNAMIC_OUTPUT(output, TensorType::ALL())
     .GRAPH(f)
@@ -188,8 +185,8 @@ REG_OP(phony_PartitionedCall)
     .ATTR(executor_type, String, "")
     .OP_END_FACTORY_REG(phony_PartitionedCall)
 
-// Op with subgraph and should handle 'cond'
-REG_OP(While)
+    // Op with subgraph and should handle 'cond'
+    REG_OP(While)
     .DYNAMIC_INPUT(input, TensorType::ALL())
     .DYNAMIC_OUTPUT(output, TensorType::ALL())
     .GRAPH(cond)
@@ -197,8 +194,8 @@ REG_OP(While)
     .ATTR(parallel_iterations, Int, 10)
     .OP_END_FACTORY_REG(While)
 
-// Op with dynamic and static subgraphs
-REG_OP(phony_mix_subgraphs)
+    // Op with dynamic and static subgraphs
+    REG_OP(phony_mix_subgraphs)
     .OPTIONAL_INPUT(opt_input, TensorType::ALL())
     .DYNAMIC_INPUT(input, TensorType::ALL())
     .DYNAMIC_OUTPUT(output, TensorType::ALL())
@@ -206,81 +203,62 @@ REG_OP(phony_mix_subgraphs)
     .DYNAMIC_GRAPH(branches)
     .OP_END_FACTORY_REG(phony_mix_subgraphs)
 
-// Following are V1 control Ops which should be filtered out
-REG_OP(Switch)
-    .INPUT(data, TensorType({DT_FLOAT16, DT_FLOAT, DT_DOUBLE,
-        DT_INT8, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32,
-        DT_UINT64, DT_BOOL}))
+    // Following are V1 control Ops which should be filtered out
+    REG_OP(Switch)
+    .INPUT(data, TensorType({DT_FLOAT16, DT_FLOAT, DT_DOUBLE, DT_INT8, DT_INT16, DT_INT32, DT_INT64, DT_UINT8,
+                             DT_UINT16, DT_UINT32, DT_UINT64, DT_BOOL}))
     .INPUT(pred, TensorType({DT_BOOL}))
-    .OUTPUT(output_false, TensorType({DT_FLOAT16, DT_FLOAT, DT_DOUBLE,
-        DT_INT8, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32,
-        DT_UINT64, DT_BOOL}))
-    .OUTPUT(output_true, TensorType({DT_FLOAT16, DT_FLOAT, DT_DOUBLE,
-        DT_INT8, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32,
-        DT_UINT64, DT_BOOL}))
-    .OP_END_FACTORY_REG(Switch)
-REG_OP(StreamSwitch) // Fake
+    .OUTPUT(output_false, TensorType({DT_FLOAT16, DT_FLOAT, DT_DOUBLE, DT_INT8, DT_INT16, DT_INT32, DT_INT64, DT_UINT8,
+                                      DT_UINT16, DT_UINT32, DT_UINT64, DT_BOOL}))
+    .OUTPUT(output_true, TensorType({DT_FLOAT16, DT_FLOAT, DT_DOUBLE, DT_INT8, DT_INT16, DT_INT32, DT_INT64, DT_UINT8,
+                                     DT_UINT16, DT_UINT32, DT_UINT64, DT_BOOL}))
+    .OP_END_FACTORY_REG(Switch) REG_OP(StreamSwitch)  // Fake
     .INPUT(input, TensorType::ALL())
     .OUTPUT(output, TensorType::ALL())
-    .OP_END_FACTORY_REG(StreamSwitch)
-REG_OP(Merge)
-    .DYNAMIC_INPUT(x, TensorType({DT_FLOAT16, DT_FLOAT, DT_DOUBLE,
-        DT_INT8, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32,
-        DT_UINT64, DT_BOOL}))
-    .OUTPUT(y, TensorType({DT_FLOAT16, DT_FLOAT, DT_DOUBLE,
-        DT_INT8, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32,
-        DT_UINT64, DT_BOOL}))
+    .OP_END_FACTORY_REG(StreamSwitch) REG_OP(Merge)
+    .DYNAMIC_INPUT(x, TensorType({DT_FLOAT16, DT_FLOAT, DT_DOUBLE, DT_INT8, DT_INT16, DT_INT32, DT_INT64, DT_UINT8,
+                                  DT_UINT16, DT_UINT32, DT_UINT64, DT_BOOL}))
+    .OUTPUT(y, TensorType({DT_FLOAT16, DT_FLOAT, DT_DOUBLE, DT_INT8, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16,
+                           DT_UINT32, DT_UINT64, DT_BOOL}))
     .OUTPUT(value_index, TensorType({DT_INT32}))
-    .OP_END_FACTORY_REG(Merge)
-REG_OP(StreamMerge) // Fake
+    .OP_END_FACTORY_REG(Merge) REG_OP(StreamMerge)  // Fake
     .INPUT(input, TensorType::ALL())
     .OUTPUT(output, TensorType::ALL())
-    .OP_END_FACTORY_REG(StreamMerge)
-REG_OP(Enter)
-    .INPUT(x, TensorType({DT_FLOAT16, DT_FLOAT, DT_DOUBLE,
-        DT_INT8, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32,
-        DT_UINT64, DT_BOOL}))
-    .OUTPUT(y, TensorType({DT_FLOAT16, DT_FLOAT, DT_DOUBLE,
-        DT_INT8, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32,
-        DT_UINT64, DT_BOOL}))
+    .OP_END_FACTORY_REG(StreamMerge) REG_OP(Enter)
+    .INPUT(x, TensorType({DT_FLOAT16, DT_FLOAT, DT_DOUBLE, DT_INT8, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16,
+                          DT_UINT32, DT_UINT64, DT_BOOL}))
+    .OUTPUT(y, TensorType({DT_FLOAT16, DT_FLOAT, DT_DOUBLE, DT_INT8, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16,
+                           DT_UINT32, DT_UINT64, DT_BOOL}))
     .REQUIRED_ATTR(frame_name, String)
     .REQUIRED_ATTR(is_constant, Bool)
-    .OP_END_FACTORY_REG(Enter)
-REG_OP(Exit)
-    .INPUT(x, TensorType({DT_FLOAT16, DT_FLOAT, DT_DOUBLE,
-        DT_INT8, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32,
-        DT_UINT64, DT_BOOL}))
-    .OUTPUT(y, TensorType({DT_FLOAT16, DT_FLOAT, DT_DOUBLE,
-        DT_INT8, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32,
-        DT_UINT64, DT_BOOL}))
-    .OP_END_FACTORY_REG(Exit)
-REG_OP(LoopCond)
+    .OP_END_FACTORY_REG(Enter) REG_OP(Exit)
+    .INPUT(x, TensorType({DT_FLOAT16, DT_FLOAT, DT_DOUBLE, DT_INT8, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16,
+                          DT_UINT32, DT_UINT64, DT_BOOL}))
+    .OUTPUT(y, TensorType({DT_FLOAT16, DT_FLOAT, DT_DOUBLE, DT_INT8, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16,
+                           DT_UINT32, DT_UINT64, DT_BOOL}))
+    .OP_END_FACTORY_REG(Exit) REG_OP(LoopCond)
     .INPUT(x, TensorType({DT_BOOL}))
     .OUTPUT(y, TensorType({DT_BOOL}))
-    .OP_END_FACTORY_REG(LoopCond)
-REG_OP(NextIteration)
-    .INPUT(x, TensorType({DT_FLOAT16, DT_FLOAT, DT_DOUBLE,
-        DT_INT8, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32,
-        DT_UINT64, DT_BOOL}))
-    .OUTPUT(y, TensorType({DT_FLOAT16, DT_FLOAT, DT_DOUBLE,
-        DT_INT8, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32,
-        DT_UINT64, DT_BOOL}))
+    .OP_END_FACTORY_REG(LoopCond) REG_OP(NextIteration)
+    .INPUT(x, TensorType({DT_FLOAT16, DT_FLOAT, DT_DOUBLE, DT_INT8, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16,
+                          DT_UINT32, DT_UINT64, DT_BOOL}))
+    .OUTPUT(y, TensorType({DT_FLOAT16, DT_FLOAT, DT_DOUBLE, DT_INT8, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16,
+                           DT_UINT32, DT_UINT64, DT_BOOL}))
     .OP_END_FACTORY_REG(NextIteration)
 
-// Const and Variable Op will be filtered out since we already provided related creation functions
-REG_OP(Const)
-    .OUTPUT(y, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT8, DT_INT16, DT_UINT16, \
-        DT_UINT8, DT_INT32, DT_INT64, DT_UINT32, DT_UINT64, DT_BOOL, DT_DOUBLE}))
+    // Const and Variable Op will be filtered out since we already provided related creation functions
+    REG_OP(Const)
+    .OUTPUT(y, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT8, DT_INT16, DT_UINT16, DT_UINT8, DT_INT32, DT_INT64, DT_UINT32,
+                           DT_UINT64, DT_BOOL, DT_DOUBLE}))
     .ATTR(value, Tensor, Tensor())
-    .OP_END_FACTORY_REG(Const)
-REG_OP(Variable)
+    .OP_END_FACTORY_REG(Const) REG_OP(Variable)
     .INPUT(x, TensorType::ALL())
     .OUTPUT(y, TensorType::ALL())
     .ATTR(index, Int, 0)
     .ATTR(value, Tensor, Tensor())
     .OP_END_FACTORY_REG(Variable);
 
-// Op with duplicat names
+// Op with duplicate names
 REG_OP(phony_dup_name)
     .INPUT(x, TensorType::ALL())
     .DYNAMIC_INPUT(dx, TensorType::ALL())
@@ -303,10 +281,7 @@ REG_OP(phony_keyword)
     .OP_END_FACTORY_REG(phony_keyword);
 
 // Invalid Ops
-REG_OP(phony_same_name)
-    .INPUT(x, TensorType::ALL())
-    .ATTR(x, ListInt, {10, 10, 10})
-    .OP_END_FACTORY_REG(phony_same_name);
+REG_OP(phony_same_name).INPUT(x, TensorType::ALL()).ATTR(x, ListInt, {10, 10, 10}).OP_END_FACTORY_REG(phony_same_name);
 REG_OP(phony_invalid_attr_value)
     .INPUT(x, TensorType::ALL())
     .ATTR(dt, Type, ge::DataType(-1))

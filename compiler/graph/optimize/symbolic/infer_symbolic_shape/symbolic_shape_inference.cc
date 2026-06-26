@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -52,7 +52,7 @@ std::string DebugInOutSymbolInfo(const OpDescPtr &op_desc, const std::string &st
   std::stringstream ss;
   ss << stage << " op_desc[" << op_desc->GetName().c_str() << "] Input symbolic info: {";
   size_t i = 0;
-  for (const auto& input_desc: op_desc->GetAllInputsDescPtr()) {
+  for (const auto &input_desc : op_desc->GetAllInputsDescPtr()) {
     auto attr = input_desc->GetAttrsGroup<SymbolicDescAttr>();
     if (attr == nullptr) {
       continue;
@@ -63,7 +63,7 @@ std::string DebugInOutSymbolInfo(const OpDescPtr &op_desc, const std::string &st
   }
   ss << "} Output symbolic info: {";
   i = 0;
-  for (const auto& output_desc: op_desc->GetAllOutputsDescPtr()) {
+  for (const auto &output_desc : op_desc->GetAllOutputsDescPtr()) {
     auto attr = output_desc->GetAttrsGroup<SymbolicDescAttr>();
     if (attr == nullptr) {
       continue;
@@ -127,7 +127,7 @@ bool SupportSymbolizeValue(const char *op_type, const GeTensorDescPtr &tensor_de
   if (symbol_shape_size.GetExprType() == ExprType::kExprConstantInteger &&
       symbol_shape_size.GetConstValue(const_shape_size) && const_shape_size > kMaxSymbolicValueSize) {
     GELOGW("symbolic value generalize and compute only support shape size <= %lld, but current shape size is %lld",
-        kMaxSymbolicValueSize, const_shape_size);
+           kMaxSymbolicValueSize, const_shape_size);
     return false;
   }
   return true;
@@ -188,7 +188,7 @@ Status ConstructComputeSymbolShapeContextInputs(const NodePtr &node,
   GE_ASSERT_NOTNULL(op_desc);
   auto op = ge::OpDescUtils::CreateOperatorFromNode(node);
   size_t i = 0;
-  for (const auto& input_desc: op_desc->GetAllInputsDescPtr()) {
+  for (const auto &input_desc : op_desc->GetAllInputsDescPtr()) {
     auto holder = GetInputSymbolTensorHolderCompute(op, op_desc, input_desc, i++);
     inputs.emplace_back(std::move(holder));
   }
@@ -207,11 +207,11 @@ std::unique_ptr<gert::SymbolTensor> GetInputSymbolTensorHolder(const Operator &o
     const auto index_name = op_desc->GetInputNameByIndex(static_cast<uint32_t>(idx));
     auto symbolic_shape = gert::SymbolShape();
     Tensor tensor;
-    std::unique_ptr<std::vector<Expression> > symbolic_value = nullptr;
+    std::unique_ptr<std::vector<Expression>> symbolic_value = nullptr;
     if (op.GetInputConstData(index_name.c_str(), tensor) == ge::GRAPH_SUCCESS) {
       auto size = tensor.GetTensorDesc().GetShape().GetShapeSize();
       if (tensor.GetTensorDesc().GetShape().GetDims().empty() && tensor.GetSize() != 0U) {
-        size = 1; // 处理scalar场景
+        size = 1;  // 处理scalar场景
         symbolic_shape.AppendDim(Symbol(1));
       } else {
         for (const auto dim : tensor.GetTensorDesc().GetShape().GetDims()) {
@@ -242,7 +242,8 @@ std::unique_ptr<gert::SymbolTensor> GetInputSymbolTensorHolder(const Operator &o
   return nullptr;
 }
 
-Status ConstructInferSymbolShapeContextInputs(const NodePtr &node, const gert::OpImplKernelRegistry::OpImplFunctionsV2 &func,
+Status ConstructInferSymbolShapeContextInputs(const NodePtr &node,
+                                              const gert::OpImplKernelRegistry::OpImplFunctionsV2 &func,
                                               std::vector<std::unique_ptr<gert::SymbolTensor>> &inputs) {
   auto op_desc = node->GetOpDesc();
   GE_ASSERT_NOTNULL(op_desc);
@@ -259,8 +260,8 @@ Status ConstructInferSymbolShapeContextInputs(const NodePtr &node, const gert::O
     GE_ASSERT_TRUE(!valid_op_ir_map.empty(), "Get valid op ir map failed, op[%s]", op_desc->GetName().c_str());
     size_t ir_index;
     GE_ASSERT_GRAPH_SUCCESS(ge::OpDescUtils::GetInputIrIndexByInstanceIndex(op_desc, instance_index, ir_index),
-                              "[Get][InputIrIndexByInstanceIndex] failed, op[%s], instance index[%zu], input_index[%zu]",
-                              op_desc->GetName().c_str(), instance_index, i);
+                            "[Get][InputIrIndexByInstanceIndex] failed, op[%s], instance index[%zu], input_index[%zu]",
+                            op_desc->GetName().c_str(), instance_index, i);
     auto holder = GetInputSymbolTensorHolder(op, op_desc, i, func.IsInputDataDependency(ir_index));
     inputs.emplace_back(std::move(holder));
   }
@@ -278,7 +279,7 @@ Status ConstructInferSymbolShapeContextOutputs(const ge::OpDescPtr &op_desc,
 }
 
 Status ConstructComputeSymbolShapeContextOutputs(const ge::OpDescPtr &op_desc,
-                                               std::vector<std::unique_ptr<gert::SymbolTensor>> &outputs) {
+                                                 std::vector<std::unique_ptr<gert::SymbolTensor>> &outputs) {
   for (size_t i = 0UL; i < op_desc->GetAllOutputsDescPtr().size(); i++) {
     auto symbol_shape_holder = ge::ComGraphMakeUnique<gert::SymbolTensor>();
     GE_ASSERT_NOTNULL(symbol_shape_holder, "Create context holder outputs failed, op[%s]", op_desc->GetName().c_str());
@@ -359,8 +360,10 @@ graphStatus CheckOutputSymbolDimNumValid(const OpDescPtr &op_desc) {
     }
     auto shapes = output_desc->GetShape().GetDims();
     if (symbol_shapes.size() != shapes.size()) {
-      GELOGW("Symbol_DimNum_Check: [Node:%s(%s), output: %zu] Symbol shape dim num:%zu is not equal to shape dim num: %zu.",
-             op_desc->GetName().c_str(), op_desc->GetType().c_str(), i, symbol_shapes.size(), shapes.size());
+      GELOGW(
+          "Symbol_DimNum_Check: [Node:%s(%s), output: %zu] Symbol shape dim num:%zu is not equal to shape dim num: "
+          "%zu.",
+          op_desc->GetName().c_str(), op_desc->GetType().c_str(), i, symbol_shapes.size(), shapes.size());
     }
   }
   return GRAPH_SUCCESS;
@@ -426,7 +429,7 @@ Status SymbolicShapeInference::Infer(const ComputeGraphPtr &graph) const {
     const auto ret = InferOneNode(node);
     GE_ASSERT_TRUE((ret == SUCCESS) || (ret == UNSUPPORTED), "[InferOneNode] failed,name[%s]", node->GetName().c_str());
     if (ret == UNSUPPORTED) {
-      GELOGW("InferOneNode unsupport, node %s[%s]", node->GetName().c_str(), node->GetType().c_str());
+      GELOGW("InferOneNode unsupported, node %s[%s]", node->GetName().c_str(), node->GetType().c_str());
     }
     GE_ASSERT_SUCCESS(UpdateSymbolShapeAndDtypeToPeerInputs(node));
   }
@@ -480,15 +483,13 @@ Status SymbolicShapeInference::DoInferAndUpdate(const NodePtr &node, const OpDes
   GE_ASSERT_TRUE((infer_ret == SUCCESS) || (infer_ret == UNSUPPORTED),
                  "[Call][InferSymbolShapeFunc] failed, op_desc[%s], ret[%d]", op_desc->GetName().c_str());
   if (infer_ret == UNSUPPORTED) {
-    GELOGW("Symbol infer unsupported, node %s[%s].",
-        op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    GELOGW("Symbol infer unsupported, node %s[%s].", op_desc->GetName().c_str(), op_desc->GetType().c_str());
     return UNSUPPORTED;
   }
   GE_ASSERT_GRAPH_SUCCESS(UpdateOpDescOutShape(op_desc, infer_symbol_shape_ctx));
   GE_ASSERT_SUCCESS(PrintSymbolShapeInfo(op_desc, "After_Infer_Symbol"));
   return ge::GRAPH_SUCCESS;
 }
-
 
 Status SymbolicShapeInference::DoComputeAndUpdate(const NodePtr &node, const OpDescPtr &op_desc,
                                                   const InferSymbolComputeKernelFunc &kernel_func) const {
@@ -526,8 +527,8 @@ Status SymbolicShapeInference::InferOneNode(NodePtr &node) const {
   }
 
   if (!IsSupportInfer(op_desc)) {
-    REPORT_INNER_ERR_MSG("W18888", "op %s[%s] Check support infer symbol shape failed.",
-                         node->GetNamePtr(), node->GetTypePtr());
+    REPORT_INNER_ERR_MSG("W18888", "op %s[%s] Check support infer symbol shape failed.", node->GetNamePtr(),
+                         node->GetTypePtr());
     GELOGW("op %s[%s] Check support infer symbol shape failed.", node->GetNamePtr(), node->GetTypePtr());
     return ge::UNSUPPORTED;
   }
@@ -538,8 +539,8 @@ Status SymbolicShapeInference::InferOneNode(NodePtr &node) const {
   auto kernel_func = SymbolicKernelFactory::GetInstance().Create(op_desc->GetType());
   if (kernel_func != nullptr) {
     auto ret = DoComputeAndUpdate(node, op_desc, kernel_func);
-    GE_ASSERT_TRUE(ret == SUCCESS || ret == UNSUPPORTED,
-                   "[DoComputeAndUpdate] failed, name[%s]", op_desc->GetName().c_str());
+    GE_ASSERT_TRUE(ret == SUCCESS || ret == UNSUPPORTED, "[DoComputeAndUpdate] failed, name[%s]",
+                   op_desc->GetName().c_str());
     if (ret == SUCCESS) {
       GELOGI("symbolic compute success, name[%s]", op_desc->GetName().c_str());
       return ge::SUCCESS;
@@ -588,7 +589,7 @@ graphStatus SymbolicShapeInference::UpdateSymbolShapeAndDtypeToPeerInputs(const 
         auto dst_attr = peer_input_desc->GetOrCreateAttrsGroup<SymbolicDescAttr>();
         GE_ASSERT_NOTNULL(dst_attr);
         dst_attr->symbolic_tensor.MutableOriginSymbolShape() = src_attr->symbolic_tensor.GetOriginSymbolShape();
-        std::unique_ptr<std::vector<Expression> > symbolic_value = nullptr;
+        std::unique_ptr<std::vector<Expression>> symbolic_value = nullptr;
         if (src_attr->symbolic_tensor.GetSymbolicValue() != nullptr) {
           symbolic_value = ge::MakeUnique<std::vector<Expression>>(*src_attr->symbolic_tensor.GetSymbolicValue());
         }
@@ -597,14 +598,15 @@ graphStatus SymbolicShapeInference::UpdateSymbolShapeAndDtypeToPeerInputs(const 
             "UpdatePeerInputDesc from src Node: [%s], origin symbol shape %s, "
             "To dst Node [%s]: origin symbol shape %s.",
             op_desc->GetName().c_str(),
-            SymbolicInferUtil::VectorExpressionToStr(src_attr->symbolic_tensor.GetOriginSymbolShape().GetDims()).c_str(),
+            SymbolicInferUtil::VectorExpressionToStr(src_attr->symbolic_tensor.GetOriginSymbolShape().GetDims())
+                .c_str(),
             peer_anchor_opdesc->GetName().c_str(),
-            SymbolicInferUtil::VectorExpressionToStr(dst_attr->symbolic_tensor.GetOriginSymbolShape().GetDims()).c_str());
+            SymbolicInferUtil::VectorExpressionToStr(dst_attr->symbolic_tensor.GetOriginSymbolShape().GetDims())
+                .c_str());
       } else {
         // 如果是nullptr，则清理对端
         (void)peer_input_desc->DeleteAttrsGroup<SymbolicDescAttr>();
-        GELOGW("Cannot update symbol shape of peer input of node: %s due to infer failed",
-            op_desc->GetName().c_str());
+        GELOGW("Cannot update symbol shape of peer input of node: %s due to infer failed", op_desc->GetName().c_str());
       }
     }
   }

@@ -41,15 +41,14 @@ using Om2TaskInfo = ::Om2TaskInfo;
 // ============================================================
 struct ModelDumpInfo {
   uint32_t model_id;
-  const char* model_name;
-  const char* root_graph_name;
+  const char *model_name;
+  const char *root_graph_name;
   uint32_t device_id;
-  void* rt_model_handle;  // rtModel_t
+  void *rt_model_handle;  // rtModel_t
   uint64_t step_id_addr;
   uint64_t loop_cond_addr;
   uint64_t iterations_per_loop_addr;
 };
-
 
 // ============================================================
 //                   ModelDumpManager 统一门面
@@ -69,13 +68,13 @@ class VISIBILITY_EXPORT ModelDumpManager {
   ~ModelDumpManager();
 
   // 禁用拷贝
-  ModelDumpManager(const ModelDumpManager&) = delete;
-  ModelDumpManager& operator=(const ModelDumpManager&) = delete;
+  ModelDumpManager(const ModelDumpManager &) = delete;
+  ModelDumpManager &operator=(const ModelDumpManager &) = delete;
 
   // ========================================================================
   // 模型级信息接口
   // ========================================================================
-  Status SetModelDumpInfo(const ModelDumpInfo& model_info);
+  Status SetModelDumpInfo(const ModelDumpInfo &model_info);
   void SetClearDfxCacheFlagAfterLoad(bool clear_cache);
   Status ReportModelLoadBegin() const;
   Status ReportModelLoadEnd() const;
@@ -83,11 +82,11 @@ class VISIBILITY_EXPORT ModelDumpManager {
   // ========================================================================
   // Task 级信息接口
   // ========================================================================
-  Status AddOm2TaskInfo(const Om2TaskInfo& task_info);
+  Status AddOm2TaskInfo(const Om2TaskInfo &task_info);
 
-  Status PreprocessOm2TaskInfo(const Om2TaskInfo& task_info);
+  Status PreprocessOm2TaskInfo(const Om2TaskInfo &task_info);
 
-  Status IsDataDumpEnabled(const char* op_name, uint8_t* is_data_dump) const;
+  Status IsDataDumpEnabled(const char *op_name, uint8_t *is_data_dump) const;
 
   // ========================================================================
   // Dump 下发接口
@@ -97,7 +96,7 @@ class VISIBILITY_EXPORT ModelDumpManager {
   // ========================================================================
   // 异常查询接口（与 V1 exception_dumper 接口保持一致）
   // ========================================================================
-  bool GetOpDescInfo(const OpDescInfoId& op_id, ge::OpDescInfo& op_info) const;
+  bool GetOpDescInfo(const OpDescInfoId &op_id, ge::OpDescInfo &op_info) const;
 
   // ========================================================================
   // 生命周期管理

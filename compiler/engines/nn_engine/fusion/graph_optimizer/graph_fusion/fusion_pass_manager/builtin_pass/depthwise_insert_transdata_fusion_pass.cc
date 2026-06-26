@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -79,9 +79,8 @@ Status DepthwiseInsertTransDataFusionPass::Fusion(ge::ComputeGraph &graph, Mappi
   name_id.fetch_add(1, std::memory_order_relaxed);
   new_trans_desc->SetName("trans_TransData_" + std::to_string(name_id) + "_" + depthwise_node->GetName());
   ge::GeShape new_shape;
-  ShapeAndFormat shape_and_format_info = {
-      trans_desc->GetInputDescPtr(0)->GetShape(),    new_shape,     src_format, ge::FORMAT_HWCN,
-      trans_desc->GetInputDescPtr(0)->GetDataType()};
+  ShapeAndFormat shape_and_format_info = {trans_desc->GetInputDescPtr(0)->GetShape(), new_shape, src_format,
+                                          ge::FORMAT_HWCN, trans_desc->GetInputDescPtr(0)->GetDataType()};
   Status ret = GetShapeAccordingToFormat(shape_and_format_info);
   if (ret != SUCCESS) {
     FE_LOGW("Depthwise node[%s] get new shape failed.", depthwise_node->GetName().c_str());
@@ -126,6 +125,6 @@ Status DepthwiseInsertTransDataFusionPass::VerifyFusionPattern(const ge::NodePtr
   return SUCCESS;
 }
 
-REG_PASS(DEPTHWISEINSERTTRANSDATA_PASS_NAME, SECOND_ROUND_BUILT_IN_GRAPH_PASS,
-         DepthwiseInsertTransDataFusionPass, SINGLE_SCENE_OPEN | FE_PASS);
+REG_PASS(DEPTHWISEINSERTTRANSDATA_PASS_NAME, SECOND_ROUND_BUILT_IN_GRAPH_PASS, DepthwiseInsertTransDataFusionPass,
+         SINGLE_SCENE_OPEN | FE_PASS);
 }  // namespace fe

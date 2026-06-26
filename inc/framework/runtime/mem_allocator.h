@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -46,17 +46,18 @@ class AllocatorManager {
     return nullptr;
   }
 };
-}
+}  // namespace memory
 
 class VISIBILITY_EXPORT Allocators {
  public:
   ge::Allocator *GetAllocator(const TensorPlacement &placement, const size_t &usage);
   ge::Status SetAllocator(const TensorPlacement &placement, const size_t &usage,
                           std::shared_ptr<ge::Allocator> &allocator);
+
  private:
   // todo remove usage
   std::shared_ptr<ge::Allocator> allocators[static_cast<size_t>(TensorPlacement::kTensorPlacementEnd)]
-                                                  [static_cast<size_t>(AllocatorUsage::kEnd)];
+                                           [static_cast<size_t>(AllocatorUsage::kEnd)];
 };
-}
+}  // namespace gert
 #endif  // AIR_CXX_MEM_ALLOCATOR_H

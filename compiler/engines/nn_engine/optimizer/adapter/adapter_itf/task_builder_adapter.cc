@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -48,32 +48,32 @@ Status TaskBuilderAdapter::Init() {
   // Init input
   Status status = InitInput();
   if (status != SUCCESS) {
-    FE_LOGE("[GenTask][Init][InitInput][%s, type %s] InitInput failed.",
-            op_desc_->GetName().c_str(), op_desc_->GetType().c_str());
+    FE_LOGE("[GenTask][Init][InitInput][%s, type %s] InitInput failed.", op_desc_->GetName().c_str(),
+            op_desc_->GetType().c_str());
     return status;
   }
 
   // Init output
   status = InitOutput();
   if (status != SUCCESS) {
-    FE_LOGE("[GenTask][Init][InitOutput][%s, type %s] InitOutput failed.",
-            op_desc_->GetName().c_str(), op_desc_->GetType().c_str());
+    FE_LOGE("[GenTask][Init][InitOutput][%s, type %s] InitOutput failed.", op_desc_->GetName().c_str(),
+            op_desc_->GetType().c_str());
     return status;
   }
 
   // Init workspace
   status = InitWorkspace();
   if (status != SUCCESS) {
-    FE_LOGE("[GenTask][Init][InitWorkspace][%s, type %s] InitWorkspace failed.",
-            op_desc_->GetName().c_str(), op_desc_->GetType().c_str());
+    FE_LOGE("[GenTask][Init][InitWorkspace][%s, type %s] InitWorkspace failed.", op_desc_->GetName().c_str(),
+            op_desc_->GetType().c_str());
     return status;
   }
 
   // Init L1 input
   status = InitInputL1Addr();
   if (status != SUCCESS) {
-    FE_LOGE("[GenTask][Init][InitInputL1Addr][%s, type %s] InitInputL1Addr failed.",
-            op_desc_->GetName().c_str(), op_desc_->GetType().c_str());
+    FE_LOGE("[GenTask][Init][InitInputL1Addr][%s, type %s] InitInputL1Addr failed.", op_desc_->GetName().c_str(),
+            op_desc_->GetType().c_str());
     return status;
   }
 
@@ -81,8 +81,8 @@ Status TaskBuilderAdapter::Init() {
     // Verify weight offset.
     status = VerifyWeights();
     if (status != SUCCESS) {
-      FE_LOGE("[GenTask][Init][VerifyWeights][%s, type %s] VerifyWeights failed.",
-              op_desc_->GetName().c_str(), op_desc_->GetType().c_str());
+      FE_LOGE("[GenTask][Init][VerifyWeights][%s, type %s] VerifyWeights failed.", op_desc_->GetName().c_str(),
+              op_desc_->GetType().c_str());
       return status;
     }
   }
@@ -96,7 +96,7 @@ Status TaskBuilderAdapter::Run(domi::TaskDef &task_def) {
 }
 
 void TaskBuilderAdapter::FeedArgsInfo(const domi::ArgsInfo_ArgsType &type, const domi::ArgsInfo_ArgsFormat &arg_format,
-    const size_t &input_index) {
+                                      const size_t &input_index) {
   domi::ArgsInfo arg_info;
   arg_info.set_arg_type(type);
   arg_info.set_arg_format(arg_format);
@@ -104,8 +104,8 @@ void TaskBuilderAdapter::FeedArgsInfo(const domi::ArgsInfo_ArgsType &type, const
   uint32_t arg_size = (input_index == 0xFFFFFFFFU) ? 0U : 1U;
   arg_info.set_size(arg_size);
   kernel_args_info_.emplace_back(arg_info);
-  FE_LOGD("Node[type=%s,name=%s]: Add args info[idx:%zu] finished.",
-          op_desc_->GetType().c_str(), op_desc_->GetName().c_str(), input_index);
+  FE_LOGD("Node[type=%s,name=%s]: Add args info[idx:%zu] finished.", op_desc_->GetType().c_str(),
+          op_desc_->GetName().c_str(), input_index);
 }
 
 Status TaskBuilderAdapter::InitOutput() {
@@ -136,7 +136,7 @@ Status TaskBuilderAdapter::InitOutput() {
       std::string opt_mode;
       (void)ge::AttrUtils::GetStr(op_desc_, kAttrOptionalOutputMode, opt_mode);
       if (opt_mode == fe::kGenPlaceholder) {
-        output_addrs_.push_back(reinterpret_cast<void*>(kTaskPlaceHolderAddr));
+        output_addrs_.push_back(reinterpret_cast<void *>(kTaskPlaceHolderAddr));
         FeedArgsInfo(domi::ArgsInfo_ArgsType_OUTPUT, domi::ArgsInfo_ArgsFormat_DIRECT_ADDR, 0xFFFFFFFFU);
       }
       continue;
@@ -166,15 +166,13 @@ Status TaskBuilderAdapter::InitWorkspace() {
     if (workspace_offsets.size() != workspace_sizes.size()) {
       REPORT_FE_ERROR(
           "[GenTask][InitWorkSpace][%s, type %s]: workspaceOffsets.size()[%zu] != workspace_sizes.size()[%zu]",
-          op_desc_->GetName().c_str(), op_desc_->GetType().c_str(), workspace_offsets.size(),
-          workspace_sizes.size());
+          op_desc_->GetName().c_str(), op_desc_->GetType().c_str(), workspace_offsets.size(), workspace_sizes.size());
       return FAILED;
     }
     if (has_workspace_type_list && (mem_type_list.size() != workspace_sizes.size())) {
-      REPORT_FE_ERROR(
-          "[GenTask][InitWorkSpace][%s, type %s]: mem_type_list.size()[%zu] != workspace_sizes.size()[%zu]",
-          op_desc_->GetName().c_str(), op_desc_->GetType().c_str(), mem_type_list.size(),
-          workspace_sizes.size());
+      REPORT_FE_ERROR("[GenTask][InitWorkSpace][%s, type %s]: mem_type_list.size()[%zu] != workspace_sizes.size()[%zu]",
+                      op_desc_->GetName().c_str(), op_desc_->GetType().c_str(), mem_type_list.size(),
+                      workspace_sizes.size());
       return FAILED;
     }
   }
@@ -182,7 +180,7 @@ Status TaskBuilderAdapter::InitWorkspace() {
   size_t workspace_num = workspace_sizes.size();
   std::vector<uint32_t> aicpu_workspace_type;
   ge::AttrUtils::GetListInt(op_desc_, ge::ATTR_NAME_AICPU_WORKSPACE_TYPE, aicpu_workspace_type);
-  if ((IsCustomOp(*op_desc_) || IsPrefixOpsPath(*op_desc_)) && workspace_num == aicpu_workspace_type.size()){
+  if ((IsCustomOp(*op_desc_) || IsPrefixOpsPath(*op_desc_)) && workspace_num == aicpu_workspace_type.size()) {
     for (size_t i = 0; i < workspace_num; ++i) {
       if (aicpu_workspace_type[i] == ge::AicpuWorkSpaceType::CUST_LOG) {
         workspace_sizes.erase(workspace_sizes.begin() + i);
@@ -214,17 +212,20 @@ Status TaskBuilderAdapter::InitWorkspace() {
       if (has_workspace_type_list) {
         const auto iter = context_.mem_type_to_data_mem_size.find(mem_type_list[i]);
         if (iter == context_.mem_type_to_data_mem_size.end()) {
-            REPORT_FE_ERROR("[GenTask][InitWorkSpace][%s, type %s]: cannot find context_.mem_type_to_data_mem_size by "
-                "mem_type_list[%lu] and value is [%ld]",
-                op_desc_->GetName().c_str(), op_desc_->GetType().c_str(), i, mem_type_list[i]);
-            return FAILED;
+          REPORT_FE_ERROR(
+              "[GenTask][InitWorkSpace][%s, type %s]: cannot find context_.mem_type_to_data_mem_size by "
+              "mem_type_list[%lu] and value is [%ld]",
+              op_desc_->GetName().c_str(), op_desc_->GetType().c_str(), i, mem_type_list[i]);
+          return FAILED;
         }
         data_mem_size = iter->second;
         const auto mem_base_iter = context_.mem_type_to_data_mem_base.find(mem_type_list[i]);
         if (mem_base_iter == context_.mem_type_to_data_mem_base.end()) {
-            REPORT_FE_ERROR("[GenTask][InitWorkSpace][%s, type %s]: cannot find context_.mem_type_to_data_mem_base by "
-                "mem_type_list[%lu]", op_desc_->GetName().c_str(), op_desc_->GetType().c_str(), i);
-            return FAILED;
+          REPORT_FE_ERROR(
+              "[GenTask][InitWorkSpace][%s, type %s]: cannot find context_.mem_type_to_data_mem_base by "
+              "mem_type_list[%lu]",
+              op_desc_->GetName().c_str(), op_desc_->GetType().c_str(), i);
+          return FAILED;
         }
         data_mem_base = mem_base_iter->second;
         FE_LOGD("Op[name=%s] workspace mem_type_list[%zu]: %x, data_mem_size: %llu, data_mem_base: %p.",
@@ -232,9 +233,8 @@ Status TaskBuilderAdapter::InitWorkspace() {
       }
       Status status = CheckOffsetAndSize(workspace_offset, static_cast<uint64_t>(workspace_size), data_mem_size);
       if (status != SUCCESS) {
-        REPORT_FE_ERROR(
-            "[GenTask][InitWorkSpace][%s, type %s]: Check offset and size of workspace index: %zu failed!",
-            op_desc_->GetName().c_str(), op_desc_->GetType().c_str(), i);
+        REPORT_FE_ERROR("[GenTask][InitWorkSpace][%s, type %s]: Check offset and size of workspace index: %zu failed!",
+                        op_desc_->GetName().c_str(), op_desc_->GetType().c_str(), i);
         return status;
       }
     }
@@ -285,11 +285,11 @@ Status TaskBuilderAdapter::InitInputL1Addr() {
 Status TaskBuilderAdapter::VerifyWeights() {
   // Verify weight offset.
   vector<ge::ConstGeTensorPtr> weights = ge::OpDescUtils::GetWeights(node_);
-  for (const ge::ConstGeTensorPtr& weight : weights) {
+  for (const ge::ConstGeTensorPtr &weight : weights) {
     int64_t weight_offset = 0;
     if (ge::TensorUtils::GetDataOffset(weight->GetTensorDesc(), weight_offset) != ge::GRAPH_SUCCESS) {
-      REPORT_FE_ERROR("[GenTask][VerifyWeights][%s, type %s]: Get weight offset failed.",
-                      op_desc_->GetName().c_str(), op_desc_->GetType().c_str());
+      REPORT_FE_ERROR("[GenTask][VerifyWeights][%s, type %s]: Get weight offset failed.", op_desc_->GetName().c_str(),
+                      op_desc_->GetType().c_str());
       return FAILED;
     }
 
@@ -312,9 +312,8 @@ Status TaskBuilderAdapter::CheckOffsetAndSize(int64_t offset, uint64_t space_siz
   }
   FE_UINT64_ADDCHECK(static_cast<uint64_t>(offset), space_size);
   if (static_cast<uint64_t>(offset) + space_size > total_size) {
-    REPORT_FE_ERROR(
-        "[GenTask][Init][Check] offset[%ld] + size[%lu] should not be greater than total_size[%lu]",
-        offset, space_size, total_size);
+    REPORT_FE_ERROR("[GenTask][Init][Check] offset[%ld] + size[%lu] should not be greater than total_size[%lu]", offset,
+                    space_size, total_size);
     return FAILED;
   }
 

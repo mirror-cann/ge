@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -43,12 +43,9 @@ class GE_FUNC_VISIBILITY OmFileLoadHelper {
 
   Status Init(uint8_t *const model_data, const uint32_t model_data_size, const uint32_t model_num);
 
-  Status Init(uint8_t *const model_data, const uint64_t model_data_size,
-              const ModelFileHeader *file_header = nullptr);
+  Status Init(uint8_t *const model_data, const uint64_t model_data_size, const ModelFileHeader *file_header = nullptr);
 
-  Status Init(uint8_t *const model_data,
-              const uint64_t model_data_size,
-              const uint32_t model_num,
+  Status Init(uint8_t *const model_data, const uint64_t model_data_size, const uint32_t model_num,
               const ModelFileHeader *file_header = nullptr);
 
   Status GetModelPartition(const ModelPartitionType type, ModelPartition &partition);
@@ -68,17 +65,17 @@ class GE_FUNC_VISIBILITY OmFileLoadHelper {
                                  const size_t model_index, size_t &mem_offset,
                                  const ModelFileHeader *file_header = nullptr);
 
-  Status LoadModelPartitionTable(const uint8_t *const model_data,
-                                 const uint64_t model_data_size,
-                                 const uint32_t model_num,
-                                 const ModelFileHeader *file_header = nullptr);
+  Status LoadModelPartitionTable(const uint8_t *const model_data, const uint64_t model_data_size,
+                                 const uint32_t model_num, const ModelFileHeader *file_header = nullptr);
   OmFileContext context_;
   bool is_inited_{false};
 };
 
 class GE_FUNC_VISIBILITY OmFileSaveHelper {
  public:
-  ModelFileHeader &GetModelFileHeader() { return model_header_; }
+  ModelFileHeader &GetModelFileHeader() {
+    return model_header_;
+  }
 
   ModelPartitionTable *GetPartitionTable();
 
@@ -86,14 +83,13 @@ class GE_FUNC_VISIBILITY OmFileSaveHelper {
 
   Status AddPartition(const ModelPartition &partition, const size_t cur_index);
 
-  Status AddOwnedPartition(const ModelPartitionType type, std::vector<uint8_t> &&payload,
-                           const size_t cur_index = 0U);
+  Status AddOwnedPartition(const ModelPartitionType type, std::vector<uint8_t> &&payload, const size_t cur_index = 0U);
 
   Status SaveModel(const char_t *const output_file, ModelBufferData &model, const bool save_to_file = true,
                    const bool is_partition_align = false, const uint32_t align_bytes = 32U);
 
-  ModelPartitionTable *GetPartitionTable(const size_t cur_ctx_index,
-                                         const bool is_partition_align = false, const uint32_t align_bytes = 32U);
+  ModelPartitionTable *GetPartitionTable(const size_t cur_ctx_index, const bool is_partition_align = false,
+                                         const uint32_t align_bytes = 32U);
 
  private:
   ModelFileHeader model_header_;

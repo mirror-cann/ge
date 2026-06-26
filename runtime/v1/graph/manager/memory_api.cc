@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -65,10 +65,10 @@ Status RdmaRemoteRegister(const std::vector<HostVarInfo> &var_info, rtMemType_t 
   });
 
   const auto hcom_remote_mem_register =
-      reinterpret_cast<HcclResult(*)(const MemRegisterAddr *, uint32_t)>(mmDlsym(handle, "HcomRegRemoteAccessMem"));
+      reinterpret_cast<HcclResult (*)(const MemRegisterAddr *, uint32_t)>(mmDlsym(handle, "HcomRegRemoteAccessMem"));
   if (hcom_remote_mem_register == nullptr) {
     REPORT_INNER_ERR_MSG("E19999", "Symbol HcomRegRemoteAccessMem can't find in %s, check invalid",
-                      canonical_path.c_str());
+                         canonical_path.c_str());
     GELOGE(FAILED, "[Check][Param] Symbol HcomRegRemoteAccessMem can't find in %s", canonical_path.c_str());
     return FAILED;
   }
@@ -136,7 +136,7 @@ ge::Status GeApiWrapper_InitRdmaPool(size_t size, rtMemType_t mem_type) {
 ge::Status GeApiWrapper_RdmaRemoteRegister(const std::vector<std::pair<uint64_t, uint64_t>> &var_info,
                                            rtMemType_t mem_type) {
   std::vector<ge::HostVarInfo> ge_var_info;
-  for (const auto& info : var_info) {
+  for (const auto &info : var_info) {
     ge::HostVarInfo host_var_info;
     host_var_info.base_addr = info.first;
     host_var_info.var_size = info.second;

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -93,7 +93,7 @@ TEST_F(TilingContextUT, GetDynamicInputShapeOk) {
   auto param = gert::TilingData::CreateCap(2048);
   auto holder = gert::TilingContextFaker()
                     .NodeIoNum(5, 1)
-                    .IrInstanceNum({1,2,1,0,1})
+                    .IrInstanceNum({1, 2, 1, 0, 1})
                     .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_ND)
                     .NodeInputTd(1, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_ND)
                     .NodeInputTd(2, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_ND)
@@ -140,19 +140,19 @@ TEST_F(TilingContextUT, GetDynamicInputDescOk) {
   TestCompileInfo compile_info_holder = {10, 200, {10, 20, 30}};
   auto param = gert::TilingData::CreateCap(2048);
   auto holder = gert::TilingContextFaker()
-      .NodeIoNum(5, 1)
-      .IrInstanceNum({1,2,1,0,1})
-      .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_ND)
-      .NodeInputTd(1, ge::DT_FLOAT16, ge::FORMAT_FRACTAL_Z, ge::FORMAT_ND)
-      .NodeInputTd(2, ge::DT_FLOAT16, ge::FORMAT_C1HWNC0, ge::FORMAT_ND)
-      .NodeInputTd(3, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_ND)
-      .NodeInputTd(4, ge::DT_FLOAT16, ge::FORMAT_FRACTAL_DECONV_SP_STRIDE8_TRANS, ge::FORMAT_ND)
-      .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ)
-      .InputShapes({&in_shape0, &in_shape1, &in_shape2, &in_shape3, &in_shape4})
-      .OutputShapes({&out_shape})
-      .CompileInfo(&compile_info_holder)
-      .TilingData(param.get())
-      .Build();
+                    .NodeIoNum(5, 1)
+                    .IrInstanceNum({1, 2, 1, 0, 1})
+                    .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_ND)
+                    .NodeInputTd(1, ge::DT_FLOAT16, ge::FORMAT_FRACTAL_Z, ge::FORMAT_ND)
+                    .NodeInputTd(2, ge::DT_FLOAT16, ge::FORMAT_C1HWNC0, ge::FORMAT_ND)
+                    .NodeInputTd(3, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_ND)
+                    .NodeInputTd(4, ge::DT_FLOAT16, ge::FORMAT_FRACTAL_DECONV_SP_STRIDE8_TRANS, ge::FORMAT_ND)
+                    .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ)
+                    .InputShapes({&in_shape0, &in_shape1, &in_shape2, &in_shape3, &in_shape4})
+                    .OutputShapes({&out_shape})
+                    .CompileInfo(&compile_info_holder)
+                    .TilingData(param.get())
+                    .Build();
 
   auto context = holder.GetContext<TilingContext>();
   ASSERT_NE(context, nullptr);
@@ -186,7 +186,7 @@ TEST_F(TilingContextUT, GetOutputShapeOk) {
   auto param = gert::TilingData::CreateCap(2048);
   auto holder = gert::TilingContextFaker()
                     .NodeIoNum(5, 1)
-                    .IrInstanceNum({1,2,1,0,1})
+                    .IrInstanceNum({1, 2, 1, 0, 1})
                     .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_ND)
                     .NodeInputTd(1, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_ND)
                     .NodeInputTd(2, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_ND)
@@ -211,7 +211,7 @@ TEST_F(TilingContextUT, GetInputTensorOk) {
                             {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
                             kOnDeviceHbm,                                // placement
                             ge::DT_FLOAT16,                              // data type
-                            (void *) 0xabc};
+                            (void *)0xabc};
   gert::StorageShape out_shape = {{1, 16, 256}, {1, 16, 1, 16, 16}};
 
   // tiling data
@@ -222,7 +222,7 @@ TEST_F(TilingContextUT, GetInputTensorOk) {
                     .IrInputNum(1)
                     .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_ND)
                     .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ)
-                    .InputShapes({reinterpret_cast<gert::StorageShape*>(&in_tensor)})
+                    .InputShapes({reinterpret_cast<gert::StorageShape *>(&in_tensor)})
                     .OutputShapes({&out_shape})
                     .CompileInfo(&compile_info_holder)
                     .TilingData(param.get())
@@ -241,40 +241,40 @@ TEST_F(TilingContextUT, GetInputTensorOk) {
 }
 
 TEST_F(TilingContextUT, GetDynamicInputTensorOk) {
-  gert::Tensor in_tensor = {{{1, 16}, {1, 16}},                // shape
+  gert::Tensor in_tensor = {{{1, 16}, {1, 16}},                          // shape
                             {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
                             kOnDeviceHbm,                                // placement
                             ge::DT_FLOAT16,                              // data type
-                            (void *) 0x234};
-  gert::Tensor in_tensor1 = {{{1, 16}, {1, 16}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            kOnDeviceHbm,                                // placement
-                            ge::DT_FLOAT16,                              // data type
-                            (void *) 0x123};
-  gert::Tensor in_tensor2 = {{{1, 16}, {1, 16}},                // shape
+                            (void *)0x234};
+  gert::Tensor in_tensor1 = {{{1, 16}, {1, 16}},                          // shape
                              {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
                              kOnDeviceHbm,                                // placement
                              ge::DT_FLOAT16,                              // data type
-                             (void *) 0x456};
+                             (void *)0x123};
+  gert::Tensor in_tensor2 = {{{1, 16}, {1, 16}},                          // shape
+                             {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                             kOnDeviceHbm,                                // placement
+                             ge::DT_FLOAT16,                              // data type
+                             (void *)0x456};
   gert::StorageShape out_shape = {{1, 16}, {1, 16}};
 
   // tiling data
   TestCompileInfo compile_info_holder = {10, 200, {10, 20, 30}};
   auto param = gert::TilingData::CreateCap(2048);
   auto holder = gert::TilingContextFaker()
-      .NodeIoNum(3, 1)
-      .IrInstanceNum({1, 0, 2})
-      .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_ND)
-      .NodeInputTd(1, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_ND)
-      .NodeInputTd(2, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_ND)
-      .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ)
-      .InputShapes({reinterpret_cast<gert::StorageShape*>(&in_tensor),
-                   reinterpret_cast<gert::StorageShape*>(&in_tensor1),
-                   reinterpret_cast<gert::StorageShape*>(&in_tensor2)})
-      .OutputShapes({&out_shape})
-      .CompileInfo(&compile_info_holder)
-      .TilingData(param.get())
-      .Build();
+                    .NodeIoNum(3, 1)
+                    .IrInstanceNum({1, 0, 2})
+                    .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_ND)
+                    .NodeInputTd(1, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_ND)
+                    .NodeInputTd(2, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_ND)
+                    .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ)
+                    .InputShapes({reinterpret_cast<gert::StorageShape *>(&in_tensor),
+                                  reinterpret_cast<gert::StorageShape *>(&in_tensor1),
+                                  reinterpret_cast<gert::StorageShape *>(&in_tensor2)})
+                    .OutputShapes({&out_shape})
+                    .CompileInfo(&compile_info_holder)
+                    .TilingData(param.get())
+                    .Build();
 
   auto context = holder.GetContext<TilingContext>();
   ASSERT_NE(context, nullptr);
@@ -570,47 +570,47 @@ TEST_F(TilingContextUT, SetTilingCondOk) {
 }
 
 TEST_F(TilingContextUT, GetRequiredInputTensorOk) {
-  gert::Tensor in_tensor = {{{1, 16}, {1, 16}},                // shape
+  gert::Tensor in_tensor = {{{1, 16}, {1, 16}},                          // shape
                             {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
                             kOnDeviceHbm,                                // placement
                             ge::DT_FLOAT16,                              // data type
-                            (void *) 0x0};
-  gert::Tensor in_tensor1 = {{{1, 16}, {1, 16}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            kOnDeviceHbm,                                // placement
-                            ge::DT_FLOAT16,                              // data type
-                            (void *) 0x0};
-  gert::Tensor in_tensor2 = {{{1, 16}, {1, 16}},                // shape
+                            (void *)0x0};
+  gert::Tensor in_tensor1 = {{{1, 16}, {1, 16}},                          // shape
                              {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
                              kOnDeviceHbm,                                // placement
                              ge::DT_FLOAT16,                              // data type
-                             (void *) 0x0};
-  gert::Tensor in_tensor3 = {{{1, 16}, {1, 16}},                // shape
-                              {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                              kOnDeviceHbm,                                // placement
-                              ge::DT_FLOAT16,                              // data type
-                              (void *) 0x1234};
+                             (void *)0x0};
+  gert::Tensor in_tensor2 = {{{1, 16}, {1, 16}},                          // shape
+                             {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                             kOnDeviceHbm,                                // placement
+                             ge::DT_FLOAT16,                              // data type
+                             (void *)0x0};
+  gert::Tensor in_tensor3 = {{{1, 16}, {1, 16}},                          // shape
+                             {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                             kOnDeviceHbm,                                // placement
+                             ge::DT_FLOAT16,                              // data type
+                             (void *)0x1234};
   gert::StorageShape out_shape = {{1, 16}, {1, 16}};
 
   // tiling data
   TestCompileInfo compile_info_holder = {10, 200, {10, 20, 30}};
   auto param = gert::TilingData::CreateCap(2048);
   auto holder = gert::TilingContextFaker()
-      .NodeIoNum(4, 1)
-      .IrInstanceNum({1, 0, 2, 1})
-      .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_ND)
-      .NodeInputTd(1, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_ND)
-      .NodeInputTd(2, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_ND)
-      .NodeInputTd(3, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_ND)
-      .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ)
-      .InputShapes({reinterpret_cast<gert::StorageShape *>(&in_tensor),
-                   reinterpret_cast<gert::StorageShape *>(&in_tensor1),
-                   reinterpret_cast<gert::StorageShape *>(&in_tensor2),
-                   reinterpret_cast<gert::StorageShape *>(&in_tensor3)})
-      .OutputShapes({&out_shape})
-      .CompileInfo(&compile_info_holder)
-      .TilingData(param.get())
-      .Build();
+                    .NodeIoNum(4, 1)
+                    .IrInstanceNum({1, 0, 2, 1})
+                    .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_ND)
+                    .NodeInputTd(1, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_ND)
+                    .NodeInputTd(2, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_ND)
+                    .NodeInputTd(3, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_ND)
+                    .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ)
+                    .InputShapes({reinterpret_cast<gert::StorageShape *>(&in_tensor),
+                                  reinterpret_cast<gert::StorageShape *>(&in_tensor1),
+                                  reinterpret_cast<gert::StorageShape *>(&in_tensor2),
+                                  reinterpret_cast<gert::StorageShape *>(&in_tensor3)})
+                    .OutputShapes({&out_shape})
+                    .CompileInfo(&compile_info_holder)
+                    .TilingData(param.get())
+                    .Build();
 
   auto context = holder.GetContext<TilingContext>();
   ASSERT_NE(context, nullptr);

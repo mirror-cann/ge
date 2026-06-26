@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -63,10 +63,10 @@ struct NodeDumpUnit {
 class ExecutorDataDumpInfoWrapper : public DataDumpInfoWrapper {
  public:
   ExecutorDataDumpInfoWrapper() = default;
-  explicit ExecutorDataDumpInfoWrapper(NodeDumpUnit *dump_unit): dump_unit_(dump_unit) {}
+  explicit ExecutorDataDumpInfoWrapper(NodeDumpUnit *dump_unit) : dump_unit_(dump_unit) {}
 
   ge::graphStatus CreateFftsCtxInfo(const uint32_t thread_id, const uint32_t context_id) override {
-    for (const auto &ctx: dump_unit_->context_list) {
+    for (const auto &ctx : dump_unit_->context_list) {
       GE_ASSERT_TRUE(ctx.thread_id != thread_id);
     }
     ge::Context new_ctx = {context_id, thread_id, {}, {}};
@@ -74,9 +74,9 @@ class ExecutorDataDumpInfoWrapper : public DataDumpInfoWrapper {
     return ge::SUCCESS;
   }
 
-  ge::graphStatus AddFftsCtxAddr(const uint32_t thread_id, const bool is_input,
-                             const uint64_t address, const uint64_t size) override {
-    for (auto &ctx: dump_unit_->context_list) {
+  ge::graphStatus AddFftsCtxAddr(const uint32_t thread_id, const bool is_input, const uint64_t address,
+                                 const uint64_t size) override {
+    for (auto &ctx : dump_unit_->context_list) {
       if (ctx.thread_id != thread_id) {
         continue;
       }
@@ -134,7 +134,9 @@ class ExecutorExceptionDumpInfoWrapper : public ExceptionDumpInfoWrapper {
     dump_unit_->tiling_data = ss.str();
   }
 
-  void SetTilingKey(uint32_t key) override { dump_unit_->tiling_key = key; }
+  void SetTilingKey(uint32_t key) override {
+    dump_unit_->tiling_key = key;
+  }
 
   void SetHostArgs(uintptr_t addr, size_t size) override {
     std::stringstream ss;
@@ -163,8 +165,8 @@ class ExecutorDumper {
  public:
   explicit ExecutorDumper(const std::shared_ptr<const SubscriberExtendInfo> &extend_info);
   ~ExecutorDumper();
-  static void OnExecuteEvent(int32_t sub_exe_graph_type, ExecutorDumper *dumper, ExecutorEvent event,
-                             const void *node, KernelStatus result);
+  static void OnExecuteEvent(int32_t sub_exe_graph_type, ExecutorDumper *dumper, ExecutorEvent event, const void *node,
+                             KernelStatus result);
 
   ge::Status Init();
   bool IsEnable(DumpType dump_type) const {
@@ -195,14 +197,15 @@ class ExecutorDumper {
                         const Node *exe_node = nullptr);
 
   static ge::Status OnExecutorDumperSwitch(void *ins, uint64_t enable_flags);
-protected:
+
+ protected:
   ge::Status SaveWorkSpaceAddrForAiCpuLaunchCCNode(const Node &node);
 
-private:
+ private:
   ge::Status UpdateFftsplusLaunchTask(const Node *node);
- KernelNameAndIdx GetKernelNameAndIdxAfterPass(const ge::OpDesc *op_desc, const KernelNameAndIdx &kernel_name_and_idx,
-                                               const NodeDumpUnit *dump_unit) const;
- ge::Status InsertHcclDumpOp(const KernelRunContext &context, ExecutorEvent event);
+  KernelNameAndIdx GetKernelNameAndIdxAfterPass(const ge::OpDesc *op_desc, const KernelNameAndIdx &kernel_name_and_idx,
+                                                const NodeDumpUnit *dump_unit) const;
+  ge::Status InsertHcclDumpOp(const KernelRunContext &context, ExecutorEvent event);
   ge::Status DumpOpDebug();
   ge::Status ClearDumpOpDebug();
   void GetLastKernelDumpUnits(const Node &node, std::vector<NodeDumpUnit *> &dump_nodes);
@@ -249,16 +252,17 @@ private:
   void SetDumpModelInfo(ge::DumpOp &dump_op) const;
   bool HandleFftsDump(NodeDumpUnit &dump_unit, const ge::OpDescPtr &op_desc_dump);
   bool GetAndCheckAddrs(NodeDumpUnit &dump_unit, const ge::OpDesc *op_desc, std::vector<uintptr_t> &input_addrs,
-                                             std::vector<uintptr_t> &output_addrs, std::vector<void*> &allocated_input_mem, std::vector<void*> &allocated_output_mem) const;
+                        std::vector<uintptr_t> &output_addrs, std::vector<void *> &allocated_input_mem,
+                        std::vector<void *> &allocated_output_mem) const;
 
-protected:
+ protected:
   std::unordered_map<std::string, ExceptionDumpUint> node_names_to_extra_units_{};  // key computer node name
   std::unordered_map<std::string, Node *> kernel_names_to_exe_nodes_{};
   std::unordered_map<std::string, Node *> init_kernel_names_to_exe_nodes_{};
   std::unordered_map<std::string, NodeDumpUnit> node_names_to_dump_units_{};
   std::vector<std::vector<NodeDumpUnit *>> kernel_idxes_to_dump_units_{};
 
-private:
+ private:
   std::shared_ptr<const SubscriberExtendInfo> extend_info_{nullptr};
   GlobalDumper *global_dumper_{nullptr};
   bool is_inited_{false};

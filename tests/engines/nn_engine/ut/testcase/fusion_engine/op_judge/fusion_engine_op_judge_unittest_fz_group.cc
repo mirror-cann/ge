@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -40,12 +40,10 @@ using OpFormatDtypeJudgePtr = std::shared_ptr<OpFormatDtypeJudge>;
 using OpDtypeRiseMatcherPtr = std::shared_ptr<OpDtypeRiseMatcher>;
 using OpFormatMatcherPtr = std::shared_ptr<OpFormatMatcher>;
 
-
 using TransNodeManagerPtr = std::shared_ptr<TransNodeManager>;
 
 class UTEST_fusion_engine_op_judge_unittest_fz_group : public testing::Test {
  protected:
-
   void SetUp() {
     std::map<std::string, std::string> options;
     fe_ops_kernel_info_store_ptr_ = make_shared<fe::FEOpsKernelInfoStore>();
@@ -71,19 +69,17 @@ class UTEST_fusion_engine_op_judge_unittest_fz_group : public testing::Test {
     op_format_dtype_judge_ptr_->Initialize();
   }
 
-  void TearDown() {
-
-  }
+  void TearDown() {}
   shared_ptr<fe::FEOpsKernelInfoStore> fe_ops_kernel_info_store_ptr_;
   RefRelationsPtr reflection_builder_ptr_;
   OpFormatDtypeJudgePtr op_format_dtype_judge_ptr_;
 };
 
-TEST_F(UTEST_fusion_engine_op_judge_unittest_fz_group, test_01){
+TEST_F(UTEST_fusion_engine_op_judge_unittest_fz_group, test_01) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr op1 = std::make_shared<OpDesc>("A1", "A");
   OpDescPtr op2 = std::make_shared<OpDesc>("B1", "B");
-  //add descriptor
+  // add descriptor
   int64_t op1_groups = 2;
   int64_t op2_groups = 1;
   vector<int64_t> dim_input({40, 25, 7, 7});
@@ -161,7 +157,6 @@ TEST_F(UTEST_fusion_engine_op_judge_unittest_fz_group, test_01){
   EXPECT_EQ(op1->GetInputDesc(1).GetShape().GetDims(), dim_result_fzg1);
   EXPECT_EQ(ge::GetSubFormat(op1->GetInputDesc(1).GetFormat()), op1_groups);
 
-
   EXPECT_EQ(ge::GetPrimaryFormat(op1->GetOutputDesc(0).GetFormat()), FORMAT_FRACTAL_Z);
   EXPECT_EQ(op1->GetOutputDesc(0).GetDataType(), DT_FLOAT16);
   EXPECT_EQ(op1->GetOutputDesc(0).GetShape().GetDims(), dim_result_fzg1);
@@ -179,14 +174,13 @@ TEST_F(UTEST_fusion_engine_op_judge_unittest_fz_group, test_01){
   EXPECT_EQ(ge::GetSubFormat(op2->GetOutputDesc(0).GetFormat()), 0);
 }
 
-
-TEST_F(UTEST_fusion_engine_op_judge_unittest_fz_group, test_02){
+TEST_F(UTEST_fusion_engine_op_judge_unittest_fz_group, test_02) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr op1 = std::make_shared<OpDesc>("E1", "E");
   OpDescPtr op2 = std::make_shared<OpDesc>("E2", "E");
   int64_t op1_groups = 2;
   int64_t op2_groups = 1;
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim_input({40, 25, 3, 7, 7});
   GeShape shape(dim_input);
   GeTensorDesc tensor_desc(shape);
@@ -250,7 +244,6 @@ TEST_F(UTEST_fusion_engine_op_judge_unittest_fz_group, test_02){
   ge::NodePtr node2 = graph->AddNode(op2);
   GraphUtils::AddEdge(node1->GetOutDataAnchor(0), node2->GetInDataAnchor(0));
 
-  
   Status ret1 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(node1, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret1 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(node1, "tbe-custom");
   Status ret2 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(node2, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
@@ -293,11 +286,11 @@ TEST_F(UTEST_fusion_engine_op_judge_unittest_fz_group, test_02){
   EXPECT_EQ(ge::GetSubFormat(op2->GetOutputDesc(0).GetFormat()), 0);
 }
 
-TEST_F(UTEST_fusion_engine_op_judge_unittest_fz_group, test_03){
+TEST_F(UTEST_fusion_engine_op_judge_unittest_fz_group, test_03) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr op1 = std::make_shared<OpDesc>("A1", "A");
   OpDescPtr op2 = std::make_shared<OpDesc>("B1", "B");
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim_input({40, 25, 7, 7});
   GeShape shape(dim_input);
   GeTensorDesc tensor_desc(shape);
@@ -353,7 +346,6 @@ TEST_F(UTEST_fusion_engine_op_judge_unittest_fz_group, test_03){
   ge::NodePtr node2 = graph->AddNode(op2);
   GraphUtils::AddEdge(node1->GetOutDataAnchor(0), node2->GetInDataAnchor(0));
 
-  
   Status ret1 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(node1, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
   ret1 = op_format_dtype_judge_ptr_->SetFormatByJudgeResult(node1, "tbe-custom");
   Status ret2 = op_format_dtype_judge_ptr_->SetDtypeByPrecisionMode(node2, "tbe-custom", OpImplType::EN_IMPL_HW_TBE);
@@ -362,14 +354,14 @@ TEST_F(UTEST_fusion_engine_op_judge_unittest_fz_group, test_03){
   ASSERT_EQ(ret2, fe::FAILED);
 }
 
-TEST_F(UTEST_fusion_engine_op_judge_unittest_fz_group, test_04){
+TEST_F(UTEST_fusion_engine_op_judge_unittest_fz_group, test_04) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr op1 = std::make_shared<OpDesc>("E1", "E");
   OpDescPtr op2 = std::make_shared<OpDesc>("E2", "E");
   int64_t op1_groups = 8;
   int64_t op2_groups = 1;
 
-  //add descriptor
+  // add descriptor
   vector<int64_t> dim_input({192, 3, 3, 3, 12});
   GeShape shape(dim_input);
   GeTensorDesc tensor_desc(shape);

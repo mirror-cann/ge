@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -66,8 +66,8 @@ class BgTest : public testing::Test {
     EXPECT_EQ(src_anchor->GetOwnerNode().get(), src_node);
     EXPECT_EQ(src_anchor->GetOwnerNode()->GetName(), src_node->GetName());
   }
-  void ConnectFromInit(const ge::FastNode *src_node, int32_t src_index, const ge::FastNode *dst_node,
-                       int32_t dst_index, const char *dst_graph_type) {
+  void ConnectFromInit(const ge::FastNode *src_node, int32_t src_index, const ge::FastNode *dst_node, int32_t dst_index,
+                       const char *dst_graph_type) {
     auto top_edge = dst_node->GetInDataEdgeByIndex(dst_index);
     ASSERT_NE(top_edge, nullptr);
     while (true) {
@@ -173,7 +173,7 @@ class BgTest : public testing::Test {
     for (const auto node : root_graph->GetAllNodes()) {
       for (const auto &subgraph_name : node->GetOpDescBarePtr()->GetSubgraphInstanceNames()) {
         EXPECT_NE(root_graph->GetSubGraph(subgraph_name), nullptr)
-                  << "Subgraph " << subgraph_name << " does not exists on root graph, node name " << node->GetName();
+            << "Subgraph " << subgraph_name << " does not exists on root graph, node name " << node->GetName();
       }
     }
   }
@@ -275,7 +275,8 @@ class BgTest : public testing::Test {
  protected:
   void TearDown() override {
     Test::TearDown();
-    while (ValueHolder::PopGraphFrame() != nullptr) {}
+    while (ValueHolder::PopGraphFrame() != nullptr) {
+    }
   }
 };
 class BgTestAutoCreateFrame : public BgTest {
@@ -314,7 +315,7 @@ class BgTestAutoCreate3StageFrame : public BgTestAutoCreateFrame {
   std::unique_ptr<GraphFrame> init_frame_;
   std::unique_ptr<GraphFrame> de_init_frame_;
 };
-}
+}  // namespace bg
 
-}
-#endif  //AIR_CXX_TESTS_UT_GE_RUNTIME_V2_COMMON_BG_TEST_H_
+}  // namespace gert
+#endif  // AIR_CXX_TESTS_UT_GE_RUNTIME_V2_COMMON_BG_TEST_H_

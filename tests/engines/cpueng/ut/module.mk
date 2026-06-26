@@ -93,7 +93,7 @@ cpu_engine_src_test_files := aicpu_engine/aicpu_engine_ut.cpp \
                              aicpu_engine/aicpu_cust_kernel_builder_ut.cpp \
                              aicpu_engine/aicpu_optimizer_ut.cpp \
                              aicpu_engine/aicpu_kernel_builder_ut.cpp \
-                             
+
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := tf_engine_utest

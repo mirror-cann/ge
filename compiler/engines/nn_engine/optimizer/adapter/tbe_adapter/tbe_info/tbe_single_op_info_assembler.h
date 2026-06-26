@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -43,19 +43,19 @@ class TbeSingleOpInfoAssembler {
 
   Status AssembleSingleTbeInfo(ge::Node *node, te::TbeOpInfo &tbe_op_info, const string &engine_name);
   Status Initialize();
+
  private:
   TbeInfoAssemblerPtr tbe_info_assembler_ptr_;
 
   Status FeedInputInfoToSingleTbeInfo(const ge::OpDescPtr &op_desc_ptr,
-                                      const vector<OpTensorStruct> op_input_tensor_struct,
-                                      te::TbeOpInfo &tbe_op_info);
+                                      const vector<OpTensorStruct> op_input_tensor_struct, te::TbeOpInfo &tbe_op_info);
 
   Status FeedOutputInfoToSingleTbeInfo(const ge::OpDescPtr &op_desc_ptr,
                                        const vector<OpTensorStruct> op_output_tensor_struct,
                                        te::TbeOpInfo &tbe_op_info);
 
-  Status JudgeShapeToSetFlag(const ge::OpDescPtr &op_desc, const bool &is_input,
-                             te::TbeOpInfo &op_info, bool &flag) const;
+  Status JudgeShapeToSetFlag(const ge::OpDescPtr &op_desc, const bool &is_input, te::TbeOpInfo &op_info,
+                             bool &flag) const;
 
   /*
    *  @ingroup fe
@@ -66,12 +66,12 @@ class TbeSingleOpInfoAssembler {
    */
   Status FeedAttrsToSingleTbeOpInfo(const ge::OpDescPtr &op_desc_ptr, te::TbeOpInfo &tbe_op_info) const;
   /*
-    *  @ingroup fe
-    *  @brief   set Attrs:flagint64 to tbe_op_info
-    *  @param   [in]  node            input node pointer
-    *  @param   [in/out]  op_info      tbe data item
-    *  @return  SUCCESS or FAILED
-    */
+   *  @ingroup fe
+   *  @brief   set Attrs:flagint64 to tbe_op_info
+   *  @param   [in]  node            input node pointer
+   *  @param   [in/out]  op_info      tbe data item
+   *  @return  SUCCESS or FAILED
+   */
   Status FeedFlagInt64ToTbeOpInfo(const ge::Node *node, te::TbeOpInfo &op_info) const;
 };
 }  // namespace fe

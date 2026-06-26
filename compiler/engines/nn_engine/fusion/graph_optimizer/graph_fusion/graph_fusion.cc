@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -62,7 +62,7 @@ CastOptimizationType GetCastOptimizationType(const ge::DataType &input_dtype, co
    * a. input: fp32/fp16, output: arbitrary except fp32/fp16.
    * b. input: arbitrary except fp32/fp16, output: fp32/fp16
    * c. input: fp32, NDC1HWC0, output: fp16, NDC1HWC0. (c is for the case of
-   * Transdata from 5D to NDC1HWC0 with dtype fp32 wich is currently not
+   * Transdata from 5D to NDC1HWC0 with dtype fp32 which is currently not
    * supported by TBE op) */
   bool condition1 = ((input_dtype == ge::DT_FLOAT16 || input_dtype == ge::DT_FLOAT) && output_dtype != ge::DT_FLOAT16 &&
                      output_dtype != ge::DT_FLOAT);
@@ -274,8 +274,8 @@ bool CheckCastSpecicalDtypeIsOptimizable(bool special_cast_dtypem, const ge::For
   if (!special_cast_dtypem) {
     return true;
   }
-  return std::find(FE_HEAVY_FORMAT_VECTOR.begin(), FE_HEAVY_FORMAT_VECTOR.end(), transdata_format)
-                   == FE_HEAVY_FORMAT_VECTOR.end();
+  return std::find(FE_HEAVY_FORMAT_VECTOR.begin(), FE_HEAVY_FORMAT_VECTOR.end(), transdata_format) ==
+         FE_HEAVY_FORMAT_VECTOR.end();
 }
 
 bool IsCastOptimizable(ge::ComputeGraph &graph, ge::NodePtr cast, CastOptimizationType &type, ge::NodePtr &transdata) {
@@ -306,7 +306,7 @@ bool IsCastOptimizable(ge::ComputeGraph &graph, ge::NodePtr cast, CastOptimizati
   bool special_cast_dtype = input_dtype == ge::DT_FLOAT16 && output_dtype == ge::DT_INT8;
   FE_LOGD("%s input dtype is %u and output dtype is %u.", cast_name.c_str(), input_dtype, output_dtype);
 
-  /* 3. Get the TransData which is waiting for switching runing sequence. */
+  /* 3. Get the TransData which is waiting for switching running sequence. */
   if (type == CastOptimizationType::OPTIMIZE_WITH_TRANSDATA_AT_TAIL) {
     Status ret = GetPeerInTransdata(graph, cast, cast_name, transdata);
     if (ret != SUCCESS) {
@@ -332,10 +332,8 @@ bool IsCastOptimizable(ge::ComputeGraph &graph, ge::NodePtr cast, CastOptimizati
   return true;
 }
 
-Status Relink(const ge::OutControlAnchorPtr &ori_out,
-              const ge::OutControlAnchorPtr &new_out,
-              const ge::InControlAnchorPtr &ori_in,
-              const ge::InControlAnchorPtr &new_in) {
+Status Relink(const ge::OutControlAnchorPtr &ori_out, const ge::OutControlAnchorPtr &new_out,
+              const ge::InControlAnchorPtr &ori_in, const ge::InControlAnchorPtr &new_in) {
   FE_CHECK_NOTNULL(ori_out);
   FE_CHECK_NOTNULL(new_out);
   FE_CHECK_NOTNULL(ori_in);
@@ -346,13 +344,11 @@ Status Relink(const ge::OutControlAnchorPtr &ori_out,
 
   const string ori_in_name = ori_in->GetOwnerNode()->GetName();
   const string ori_in_type = ori_in->GetOwnerNode()->GetType();
-  FE_LOGD("Remove edge between src:%s and dst:%s.",
-          ori_out_name.c_str(), ori_in_name.c_str());
+  FE_LOGD("Remove edge between src:%s and dst:%s.", ori_out_name.c_str(), ori_in_name.c_str());
 
   if (ge::GraphUtils::RemoveEdge(ori_out, ori_in) != ge::GRAPH_SUCCESS) {
-    REPORT_FE_ERROR("Remove control edge between op:%s(%s) and op:%s(%s) failed",
-                    ori_out_name.c_str(), ori_out_type.c_str(),
-                    ori_in_name.c_str(), ori_in_type.c_str());
+    REPORT_FE_ERROR("Remove control edge between op:%s(%s) and op:%s(%s) failed", ori_out_name.c_str(),
+                    ori_out_type.c_str(), ori_in_name.c_str(), ori_in_type.c_str());
     return FAILED;
   }
 
@@ -364,16 +360,14 @@ Status Relink(const ge::OutControlAnchorPtr &ori_out,
   FE_LOGD("Add edge between src:%s and dst:%s.", new_out_name.c_str(), new_in_name.c_str());
   auto ret = ge::GraphUtils::AddEdge(new_out, new_in);
   if (ret != ge::GRAPH_SUCCESS) {
-    REPORT_FE_ERROR("Add control edge between op:%s(%s) and op:%s(%s) failed",
-                    new_out_name.c_str(), new_out_type.c_str(),
-                    new_in_name.c_str(), new_in_type.c_str());
+    REPORT_FE_ERROR("Add control edge between op:%s(%s) and op:%s(%s) failed", new_out_name.c_str(),
+                    new_out_type.c_str(), new_in_name.c_str(), new_in_type.c_str());
     return FAILED;
   }
   return SUCCESS;
 }
 
-Status RelinkControlEdge(const ge::NodePtr &node_front,
-                         const ge::NodePtr &node_tail) {
+Status RelinkControlEdge(const ge::NodePtr &node_front, const ge::NodePtr &node_tail) {
   const std::string front_name(node_front->GetName());
   const std::string tail_name(node_tail->GetName());
   /* 1. Move in control edge from front node to tail node. */
@@ -381,8 +375,7 @@ Status RelinkControlEdge(const ge::NodePtr &node_front,
   if (front_node_in_ctrl != nullptr) {
     auto in_control_anchor = node_tail->GetInControlAnchor();
     for (auto &peer_out_control_anchor : front_node_in_ctrl->GetPeerOutControlAnchors()) {
-      if (Relink(peer_out_control_anchor, peer_out_control_anchor,
-                 front_node_in_ctrl, in_control_anchor) != SUCCESS) {
+      if (Relink(peer_out_control_anchor, peer_out_control_anchor, front_node_in_ctrl, in_control_anchor) != SUCCESS) {
         return FAILED;
       }
     }
@@ -394,8 +387,7 @@ Status RelinkControlEdge(const ge::NodePtr &node_front,
     auto front_node_out_ctrl = node_front->GetOutControlAnchor();
     auto peer_in_ctrl_anchors = tail_node_out_ctrl->GetPeerInControlAnchors();
     for (const auto &peer_in_ctrl : peer_in_ctrl_anchors) {
-      if (Relink(tail_node_out_ctrl, front_node_out_ctrl,
-                 peer_in_ctrl, peer_in_ctrl) != SUCCESS) {
+      if (Relink(tail_node_out_ctrl, front_node_out_ctrl, peer_in_ctrl, peer_in_ctrl) != SUCCESS) {
         return FAILED;
       }
     }
@@ -511,7 +503,7 @@ Status SwitchTwoNode(ge::NodePtr node1, ge::NodePtr node2) {
   return SUCCESS;
 }
 
-/* Fuse two concecutive cast if they meet the following pattern
+/* Fuse two consecutive cast if they meet the following pattern
  * ----> TransData ----> Cast1(x -> fp32) ----> Cast2 (fp32 -> fp16)----
  * This case will become:
  * ----> TransData ----> Cast1(x -> fp16) ---- */
@@ -561,7 +553,7 @@ Status FuseCastWhenTransDataInFront(ge::ComputeGraph &graph, ge::NodePtr cast) {
   return SUCCESS;
 }
 
-/* Fuse two concecutive cast if they meet the following pattern
+/* Fuse two consecutive cast if they meet the following pattern
  * ----> Cast2(16 -> fp32) ----> Cast1 (fp32 -> x) ----> TransData ---->
  * This case will become:
  * ----> Cast1(16 -> x) ----> TransData ----> */
@@ -696,7 +688,7 @@ Status HandleTransDataAtTail(ge::NodePtr transdata, ge::NodePtr cast) {
   ge::DataType cast_in_dtype = cast_input->GetDataType();
   const ge::GeShape &trans_data_out_shape = trans_data_output->GetShape();
   FE_LOGD("trans_data_out_format[%u], cast_in_dtype[%u], trans_data_input_format[%u], cast_output_dtype[%u].",
-           trans_data_out_format, cast_in_dtype, trans_data_input->GetFormat(), cast_output->GetDataType());
+          trans_data_out_format, cast_in_dtype, trans_data_input->GetFormat(), cast_output->GetDataType());
 
   /* 1. change data type of TransData and change format of Cast. */
   trans_data_input->SetDataType(cast_in_dtype);
@@ -717,7 +709,7 @@ Status HandleTransDataAtTail(ge::NodePtr transdata, ge::NodePtr cast) {
   cast_output->SetShape(trans_data_out_shape);
 
   FE_LOGD("trans_data_out_format[%u], cast_in_dtype[%u], trans_data_input_format[%u], cast_output_dtype[%u].",
-           trans_data_out_format, cast_in_dtype, trans_data_input->GetFormat(), cast_output->GetDataType());
+          trans_data_out_format, cast_in_dtype, trans_data_input->GetFormat(), cast_output->GetDataType());
   /* 3. Switch two op in graph. */
   return SwitchTwoNode(cast, transdata);
 }
@@ -823,8 +815,7 @@ Status GraphFusion::FusionPruningPass(ge::ComputeGraph &graph) {
   return SUCCESS;
 }
 
-Status GraphFusion::RunGraphFusionPassByType(const string &stage, ge::ComputeGraph &graph,
-                                             GraphFusionPassType type) {
+Status GraphFusion::RunGraphFusionPassByType(const string &stage, ge::ComputeGraph &graph, GraphFusionPassType type) {
   FE_TIMECOST_START(RunGraphFusionPassByType);
   string pass_type_str = GetPassTypeString(type);
   Status ret = RunBuiltInFusionByType(graph, type);
@@ -856,8 +847,8 @@ void AdjustRunCountAfterPass(ge::ComputeGraph &graph, const FusionPassOrRule &pa
   (void)ge::AttrUtils::GetInt(graph, "run_count", run_count_attr);
   run_count++;
   if (run_count_attr < run_count) {
-    FE_LOGI("pass:%s, run_count is not equal. run_count:%ld, cur_count:%ld", pass_or_rule.name.c_str(),
-            run_count_attr, run_count);
+    FE_LOGI("pass:%s, run_count is not equal. run_count:%ld, cur_count:%ld", pass_or_rule.name.c_str(), run_count_attr,
+            run_count);
     (void)GraphNodeMapUtil::ReCreateNodeTypeMapInGraph(graph);
     (void)ge::AttrUtils::SetInt(graph, "run_count", run_count);
   }
@@ -866,10 +857,10 @@ void AdjustRunCountAfterPass(ge::ComputeGraph &graph, const FusionPassOrRule &pa
 
 Status GraphFusion::FusionEachGraph(ge::ComputeGraph &graph) {
   bool is_single_op_scene = false;
-  (void) ge::AttrUtils::GetBool(graph, ge::ATTR_SINGLE_OP_SCENE, is_single_op_scene);
+  (void)ge::AttrUtils::GetBool(graph, ge::ATTR_SINGLE_OP_SCENE, is_single_op_scene);
   FE_LOGD("The attr is single op scene of graph[%s] is [%d].", graph.GetName().c_str(), is_single_op_scene);
   const std::vector<FusionPassOrRule> &sorted_graph_fusion_vec =
-          fusion_priority_mgr_ptr_->GetSortedGraphFusionList(is_single_op_scene);
+      fusion_priority_mgr_ptr_->GetSortedGraphFusionList(is_single_op_scene);
   NodeMapInfoPtr node_map_info;
   (void)ge::AttrUtils::SetInt(graph, "run_count", 0);
   if (GraphNodeMapUtil::CreatAndSetOpTypeMap(node_map_info, graph) != SUCCESS) {
@@ -880,13 +871,12 @@ Status GraphFusion::FusionEachGraph(ge::ComputeGraph &graph) {
   for (const FusionPassOrRule &pass_or_rule : sorted_graph_fusion_vec) {
     FE_TIMECOST_START(RunOnePassFusion);
     FE_LOGD("Start Graph Fusion:%s Owner:%s Method:%s Priority:%d.", pass_or_rule.name.c_str(),
-            GetPassTypeString(static_cast<GraphFusionPassType>(pass_or_rule.type)).c_str(),
-            pass_or_rule.method.c_str(),
+            GetPassTypeString(static_cast<GraphFusionPassType>(pass_or_rule.type)).c_str(), pass_or_rule.method.c_str(),
             FusionPriorityManager::GetRealPriority(pass_or_rule.priority));
     Status ret = SUCCESS;
     if (pass_or_rule.method == PASS_METHOD) {
-      if (find(GRAPH_FUSION_QUANT_PASS_VEC.begin(), GRAPH_FUSION_QUANT_PASS_VEC.end(),
-               pass_or_rule.type) == GRAPH_FUSION_QUANT_PASS_VEC.end()) {
+      if (find(GRAPH_FUSION_QUANT_PASS_VEC.begin(), GRAPH_FUSION_QUANT_PASS_VEC.end(), pass_or_rule.type) ==
+          GRAPH_FUSION_QUANT_PASS_VEC.end()) {
         ret = RunOnePassFusion(graph, pass_or_rule, ge_pass_map);
         AdjustRunCountAfterPass(graph, pass_or_rule, run_count);
       }
@@ -915,8 +905,8 @@ Status GraphFusion::FusionEachPruningPass(ge::ComputeGraph &graph) {
   FE_LOGD("The attr is single op scene of graph[%s] is [%d].", graph.GetName().c_str(), is_single_op_scene);
   const std::vector<FusionPassOrRule> &sorted_graph_fusion_vec =
       fusion_priority_mgr_ptr_->GetSortedGraphFusionList(is_single_op_scene);
-  FE_CHECK(sorted_graph_fusion_vec.empty(),
-           FE_LOGD("There is no registered graph fusion pass or rule."), return SUCCESS);
+  FE_CHECK(sorted_graph_fusion_vec.empty(), FE_LOGD("There is no registered graph fusion pass or rule."),
+           return SUCCESS);
 
   NodeMapInfoPtr node_map_info;
   if (GraphNodeMapUtil::CreatAndSetOpTypeMap(node_map_info, graph) != SUCCESS) {
@@ -998,8 +988,9 @@ Status GraphFusion::ComputeTensorSize(ge::NodePtr &cast, ge::NodePtr &transdata)
     FE_CHECK_NOTNULL(op_desc_ptr);
     status = TensorSizeCalculator::CalculateOpTensorSize(cast);
     if (status != SUCCESS) {
-      REPORT_FE_ERROR("[SubGraphOpt][CalcTensorSize][CalcRunPara] Failed to calculate the tensor size for operation [%s, %s].",
-                      op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
+      REPORT_FE_ERROR(
+          "[SubGraphOpt][CalcTensorSize][CalcRunPara] Failed to calculate the tensor size for operation [%s, %s].",
+          op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
       return status;
     }
   }
@@ -1008,8 +999,9 @@ Status GraphFusion::ComputeTensorSize(ge::NodePtr &cast, ge::NodePtr &transdata)
     FE_CHECK_NOTNULL(op_desc_ptr);
     status = TensorSizeCalculator::CalculateOpTensorSize(transdata);
     if (status != SUCCESS) {
-      REPORT_FE_ERROR("[SubGraphOpt][CalcTensorSize][CalcRunPara] Failed to calculate the tensor size for operation [%s, %s].",
-                      op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
+      REPORT_FE_ERROR(
+          "[SubGraphOpt][CalcTensorSize][CalcRunPara] Failed to calculate the tensor size for operation [%s, %s].",
+          op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
       return status;
     }
   }
@@ -1142,8 +1134,7 @@ Status GraphFusion::RunOneRuleFusion(ge::ComputeGraph &graph, const FusionPassOr
   }
   Status ret = fusion_rule_mgr_ptr_->RunGraphFusionRuleByType(graph, rule_type, pass_or_rule.name);
   if (ret != SUCCESS && ret != NOT_CHANGED && ret != ge::NOT_CHANGED) {
-    REPORT_FE_ERROR("[GraphOpt][FirstRoundFusion] Failed to run graph fusion rule: %s",
-                    pass_or_rule.name.c_str());
+    REPORT_FE_ERROR("[GraphOpt][FirstRoundFusion] Failed to run graph fusion rule: %s", pass_or_rule.name.c_str());
     return ret;
   }
   if (Configuration::Instance(AI_CORE_NAME).IsEnableNetworkAnalysis()) {
@@ -1157,7 +1148,7 @@ Status GraphFusion::RunOneRuleFusion(ge::ComputeGraph &graph, const FusionPassOr
 }
 
 Status GraphFusion::RunOnePassFusion(ge::ComputeGraph &graph, const FusionPassOrRule &pass_or_rule,
-                                    const std::map<std::string, ge::fusion::CreateFusionPassFn> &ge_pass_map) {
+                                     const std::map<std::string, ge::fusion::CreateFusionPassFn> &ge_pass_map) {
   auto pass_type = static_cast<GraphFusionPassType>(pass_or_rule.type);
 
   int32_t priority = FusionPriorityManager::GetRealPriority(pass_or_rule.priority);
@@ -1176,8 +1167,8 @@ Status GraphFusion::RunOnePassFusion(ge::ComputeGraph &graph, const FusionPassOr
       pass_type == BUILT_IN_GRAPH_PASS || pass_type == BUILT_IN_VECTOR_CORE_GRAPH_PASS) {
     auto ge_pass = ge_pass_map.find(pass_or_rule.name);
     if (ge_pass != ge_pass_map.end()) {
-      FE_LOGI("Begin running the open-source registration pass, pass name:%s, pass type:%s",
-               pass_or_rule.name.c_str(), GetPassTypeString(pass_type).c_str());
+      FE_LOGI("Begin running the open-source registration pass, pass name:%s, pass type:%s", pass_or_rule.name.c_str(),
+              GetPassTypeString(pass_type).c_str());
       ge::GraphPtr ge_graph = ge::GraphUtilsEx::CreateGraphPtrFromComputeGraph(graph.shared_from_this());
       ge::CustomPassContext context;
       FE_CHECK_NOTNULL(ge_pass->second);
@@ -1192,9 +1183,9 @@ Status GraphFusion::RunOnePassFusion(ge::ComputeGraph &graph, const FusionPassOr
       auto pattern_fusion_base_pass_ptr = std::unique_ptr<PatternFusionBasePass>(
           dynamic_cast<PatternFusionBasePass *>(pass_or_rule.pass_desc.create_fn()));
       FE_CHECK(pattern_fusion_base_pass_ptr == nullptr,
-              REPORT_FE_ERROR("[GraphOpt][FirstRoundFusion] Graph[%s], Pass[%s, %s]: the pattern fusion is nullptr.",
-                              graph_name.c_str(), pass_or_rule.name.c_str(), pass_type_str.c_str()),
-              return FAILED);
+               REPORT_FE_ERROR("[GraphOpt][FirstRoundFusion] Graph[%s], Pass[%s, %s]: the pattern fusion is nullptr.",
+                               graph_name.c_str(), pass_or_rule.name.c_str(), pass_type_str.c_str()),
+               return FAILED);
       pattern_fusion_base_pass_ptr->SetName(pass_or_rule.name);
       ge::TraceOwnerGuard guard(FE_MODULE_NAME, pass_or_rule.name, graph.GetName());
       ret = pattern_fusion_base_pass_ptr->Run(graph, this->ops_kernel_info_store_ptr_);
@@ -1220,13 +1211,13 @@ Status GraphFusion::RunOnePassFusion(ge::ComputeGraph &graph, const FusionPassOr
 }
 
 Status GraphFusion::RunOnePassFusionByType(ge::ComputeGraph &graph, const FusionPassOrRule &pass_or_rule,
-                                          const GraphFusionPassType &pass_type,
-                                          const std::map<std::string, ge::fusion::CreateFusionPassFn> &ge_pass_map) {
+                                           const GraphFusionPassType &pass_type,
+                                           const std::map<std::string, ge::fusion::CreateFusionPassFn> &ge_pass_map) {
   Status ret = SUCCESS;
   auto ge_pass = ge_pass_map.find(pass_or_rule.name);
   if (ge_pass != ge_pass_map.end()) {
-    FE_LOGI("Begin running the open-source registration pass, pass name:%s, pass type:%s",
-              pass_or_rule.name.c_str(), GetPassTypeString(pass_type).c_str());
+    FE_LOGI("Begin running the open-source registration pass, pass name:%s, pass type:%s", pass_or_rule.name.c_str(),
+            GetPassTypeString(pass_type).c_str());
     ge::GraphPtr ge_graph = ge::GraphUtilsEx::CreateGraphPtrFromComputeGraph(graph.shared_from_this());
     ge::CustomPassContext context;
     FE_CHECK_NOTNULL(ge_pass->second);
@@ -1236,9 +1227,8 @@ Status GraphFusion::RunOnePassFusionByType(ge::ComputeGraph &graph, const Fusion
     auto pattern_fusion_base_pass_ptr = std::unique_ptr<PatternFusionBasePass>(
         dynamic_cast<PatternFusionBasePass *>(pass_or_rule.pass_desc.create_fn()));
     if (pattern_fusion_base_pass_ptr == nullptr) {
-      REPORT_FE_ERROR(
-          "[GraphOptJdgInst][RunGraphFusion] Graph[%s], Pass[%s, %s]: the pattern_fusion_ptr is nullptr.",
-          graph.GetName().c_str(), GetPassTypeString(pass_type).c_str(), pass_or_rule.name.c_str());
+      REPORT_FE_ERROR("[GraphOptJdgInst][RunGraphFusion] Graph[%s], Pass[%s, %s]: the pattern_fusion_ptr is nullptr.",
+                      graph.GetName().c_str(), GetPassTypeString(pass_type).c_str(), pass_or_rule.name.c_str());
       return FAILED;
     }
     pattern_fusion_base_pass_ptr->SetName(pass_or_rule.name);
@@ -1250,10 +1240,10 @@ Status GraphFusion::RunOnePassFusionByType(ge::ComputeGraph &graph, const Fusion
 
 Status GraphFusion::RunBuiltInFusionByType(ge::ComputeGraph &graph, GraphFusionPassType pass_type) {
   bool is_single_op_scene = false;
-  (void) ge::AttrUtils::GetBool(graph, ge::ATTR_SINGLE_OP_SCENE, is_single_op_scene);
+  (void)ge::AttrUtils::GetBool(graph, ge::ATTR_SINGLE_OP_SCENE, is_single_op_scene);
   FE_LOGD("The attr is single op scene of graph[%s] is [%d].", graph.GetName().c_str(), is_single_op_scene);
   const std::vector<FusionPassOrRule> &sorted_graph_fusion_vec =
-          fusion_priority_mgr_ptr_->GetSortedGraphFusionList(is_single_op_scene);
+      fusion_priority_mgr_ptr_->GetSortedGraphFusionList(is_single_op_scene);
   if (sorted_graph_fusion_vec.empty()) {
     FE_LOGD("There is no registered graph fusion pass or rule.");
   }
@@ -1285,9 +1275,8 @@ Status GraphFusion::RunBuiltInFusionByType(ge::ComputeGraph &graph, GraphFusionP
       if (ret != SUCCESS && ret != NOT_CHANGED && ret != ge::NOT_CHANGED) {
         ErrorMessageDetail err_msg(EM_RUN_PASS_FAILED, {pass_or_rule.name, GetPassTypeString(pass_type)});
         ReportErrorMessage(err_msg);
-        REPORT_FE_ERROR(
-            "[GraphOptJdgInst][RunGraphFusion][RunBuiltInFusion] Failed to run graph fusion pass [%s, %s].",
-            pass_or_rule.name.c_str(), GetPassTypeString(pass_type).c_str());
+        REPORT_FE_ERROR("[GraphOptJdgInst][RunGraphFusion][RunBuiltInFusion] Failed to run graph fusion pass [%s, %s].",
+                        pass_or_rule.name.c_str(), GetPassTypeString(pass_type).c_str());
         return ret;
       }
       FE_LOGD("Run graph fusion pass successfully, pass name:%s, pass type:%s.", pass_or_rule.name.c_str(),
@@ -1367,7 +1356,7 @@ uint32_t GraphFusion::JudgeQuantMode(const ge::ComputeGraph &graph) const {
 void GraphFusion::MapPassByType(std::map<GraphFusionPassType, std::vector<FusionPassOrRule>> &quant_pass_map,
                                 ge::ComputeGraph &graph) {
   bool is_single_op_scene = false;
-  (void) ge::AttrUtils::GetBool(graph, ge::ATTR_SINGLE_OP_SCENE, is_single_op_scene);
+  (void)ge::AttrUtils::GetBool(graph, ge::ATTR_SINGLE_OP_SCENE, is_single_op_scene);
   FE_LOGD("The attr is single op scene of graph[%s] is [%d].", graph.GetName().c_str(), is_single_op_scene);
   const std::vector<FusionPassOrRule> &sorted_graph_fusion_vec =
       fusion_priority_mgr_ptr_->GetSortedGraphFusionList(is_single_op_scene);

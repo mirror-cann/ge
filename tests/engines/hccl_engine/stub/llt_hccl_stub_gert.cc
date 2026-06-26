@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,57 +19,50 @@
 namespace gert {
 namespace bg {
 
- // namespace
+// namespace
 std::atomic<int64_t> ValueHolder::id_generator_{0};
 ValueHolder::~ValueHolder() = default;
 
 ValueHolder::ValueHolder()
     : id_(id_generator_++), type_(ValueHolderType::kValueHolderTypeEnd), index_(0), placement_(0) {}
 
-ValueHolderPtr ValueHolder::CreateConst(const void *data, size_t size, bool is_string)
-{
-    ValueHolderPtr holder = std::shared_ptr<ValueHolder>(new (std::nothrow) ValueHolder());
-    return holder;
+ValueHolderPtr ValueHolder::CreateConst(const void *data, size_t size, bool is_string) {
+  ValueHolderPtr holder = std::shared_ptr<ValueHolder>(new (std::nothrow) ValueHolder());
+  return holder;
 }
 
-ValueHolderPtr ValueHolder::CreateSingleDataOutput(const char *node_type, const vector<ValueHolderPtr> &inputs)
-{
-    auto output_data = std::shared_ptr<ValueHolder>(new (std::nothrow) ValueHolder());
-    return output_data;
+ValueHolderPtr ValueHolder::CreateSingleDataOutput(const char *node_type, const vector<ValueHolderPtr> &inputs) {
+  auto output_data = std::shared_ptr<ValueHolder>(new (std::nothrow) ValueHolder());
+  return output_data;
 }
 
 std::vector<ValueHolderPtr> ValueHolder::CreateDataOutput(const char *node_type,
-    const std::vector<ValueHolderPtr> &inputs, size_t out_count)
-{
-    std::vector<ValueHolderPtr> holders;
-    return holders;
+                                                          const std::vector<ValueHolderPtr> &inputs, size_t out_count) {
+  std::vector<ValueHolderPtr> holders;
+  return holders;
 }
 
-
 ValueHolderPtr ValueHolder::CreateVoidGuarder(const char *node_type, const ValueHolderPtr &resource,
-    const vector<ValueHolderPtr> &args)
-{
-    auto guarder = std::shared_ptr<ValueHolder>(new (std::nothrow) ValueHolder());
-    return guarder;
+                                              const vector<ValueHolderPtr> &args) {
+  auto guarder = std::shared_ptr<ValueHolder>(new (std::nothrow) ValueHolder());
+  return guarder;
 }
 
 ValueHolderPtr ValueHolder::CreateMateFromNode(ge::FastNode *node, int32_t index, ValueHolderType type) {
-    auto holder = std::shared_ptr<ValueHolder>(new (std::nothrow) ValueHolder());
-    return holder;  
+  auto holder = std::shared_ptr<ValueHolder>(new (std::nothrow) ValueHolder());
+  return holder;
 }
 
 ValueHolderPtr DevMemValueHolder::CreateMateFromNode(ge::FastNode *node, int32_t index, ValueHolderType type) {
-    auto holder = std::shared_ptr<ValueHolder>(
-      new (std::nothrow) DevMemValueHolder(0)
-    );
-    return holder;
+  auto holder = std::shared_ptr<ValueHolder>(new (std::nothrow) DevMemValueHolder(0));
+  return holder;
 }
 
 DevMemValueHolderPtr DevMemValueHolder::CreateSingleDataOutput(const char *node_type,
                                                                const std::vector<ValueHolderPtr> &inputs,
                                                                int64_t logic_stream_id) {
-    auto holder = std::shared_ptr<DevMemValueHolder>(new (std::nothrow) DevMemValueHolder(0));
-    return holder;
+  auto holder = std::shared_ptr<DevMemValueHolder>(new (std::nothrow) DevMemValueHolder(0));
+  return holder;
 }
 
 std::vector<DevMemValueHolderPtr> DevMemValueHolder::CreateDataOutput(const char *node_type,
@@ -81,25 +74,26 @@ std::vector<DevMemValueHolderPtr> DevMemValueHolder::CreateDataOutput(const char
 
 GenerateExeGraph::ExeGraphGenerator GenerateExeGraph::generator_;
 static std::vector<ValueHolderPtr> InferShape(const ge::NodePtr &node, const std::vector<ValueHolderPtr> &shapes) {
-    std::vector<ValueHolderPtr> holders;
-    return holders;
+  std::vector<ValueHolderPtr> holders;
+  return holders;
 }
 
 static std::vector<ValueHolderPtr> AllocOutputMemory(TensorPlacement placement, const ge::NodePtr &node,
-    const std::vector<ValueHolderPtr> &output_sizes, LoweringGlobalData &global_data) {
-    std::vector<ValueHolderPtr> holders;
-    return holders;
+                                                     const std::vector<ValueHolderPtr> &output_sizes,
+                                                     LoweringGlobalData &global_data) {
+  std::vector<ValueHolderPtr> holders;
+  return holders;
 }
 
 static std::vector<ValueHolderPtr> CalcTensorSize(const ge::NodePtr &node,
-    const std::vector<ValueHolderPtr> &output_shapes) {
-    std::vector<ValueHolderPtr> holders;
-    size_t outputSize = output_shapes.size();
-    ValueHolderPtr outputHolder;
-    for (size_t i = 0; i < outputSize; i++) {
-        holders.push_back(outputHolder);
-    }
-    return holders;
+                                                  const std::vector<ValueHolderPtr> &output_shapes) {
+  std::vector<ValueHolderPtr> holders;
+  size_t outputSize = output_shapes.size();
+  ValueHolderPtr outputHolder;
+  for (size_t i = 0; i < outputSize; i++) {
+    holders.push_back(outputHolder);
+  }
+  return holders;
 }
 
 std::vector<ValueHolderPtr> FrameSelector::OnInitRoot(const std::function<std::vector<ValueHolderPtr>()> &builder) {
@@ -110,19 +104,19 @@ std::vector<ValueHolderPtr> FrameSelector::OnInitRoot(const std::function<std::v
 }  // namespace bg
 
 bg::ValueHolderPtr LoweringGlobalData::GetStreamById(int64_t logic_stream_id) const {
-	(void)logic_stream_id;
-	return bg::ValueHolder::CreateSingleDataOutput("Stream", {});
+  (void)logic_stream_id;
+  return bg::ValueHolder::CreateSingleDataOutput("Stream", {});
 }
 
 bg::ValueHolderPtr LoweringGlobalData::GetOrCreateL2Allocator(int64_t logic_stream_id, const AllocatorDesc desc) {
-	(void)logic_stream_id;
-	bg::ValueHolderPtr init_selected_allocator = nullptr;
-    auto placement_holder = bg::ValueHolder::CreateConst(&desc.placement, sizeof(desc.placement));
-    auto memory_type_holder = bg::ValueHolder::CreateConst(&desc.usage, sizeof(desc.usage));
-    auto created_allocator =
-        bg::ValueHolder::CreateSingleDataOutput("CreateAllocator", {placement_holder, memory_type_holder});
-    init_selected_allocator = created_allocator;
-    return init_selected_allocator;
+  (void)logic_stream_id;
+  bg::ValueHolderPtr init_selected_allocator = nullptr;
+  auto placement_holder = bg::ValueHolder::CreateConst(&desc.placement, sizeof(desc.placement));
+  auto memory_type_holder = bg::ValueHolder::CreateConst(&desc.usage, sizeof(desc.usage));
+  auto created_allocator =
+      bg::ValueHolder::CreateSingleDataOutput("CreateAllocator", {placement_holder, memory_type_holder});
+  init_selected_allocator = created_allocator;
+  return init_selected_allocator;
 }
 
 ge::graphStatus CalcAlignedSizeByShape(const Shape &shape, ge::DataType data_type, uint64_t &ret_tensor_size) {
@@ -144,12 +138,12 @@ KernelRunContextFaker &KernelRunContextFaker::NodeIoNum(size_t input_num, size_t
 }
 
 GertMemBlock *AllocatorFaker::Malloc(size_t size) {
-    GertMemBlock *block = reinterpret_cast<GertMemBlock *>(new GertMemBlockFaker(malloc(size)));
-    return block;
+  GertMemBlock *block = reinterpret_cast<GertMemBlock *>(new GertMemBlockFaker(malloc(size)));
+  return block;
 }
 void AllocatorFaker::Free(GertMemBlock *block) {
-    free(block->GetAddr());
-    delete block;
+  free(block->GetAddr());
+  delete block;
 }
 
 ge::OpDescPtr KernelRunContextFaker::FakeOp() const {

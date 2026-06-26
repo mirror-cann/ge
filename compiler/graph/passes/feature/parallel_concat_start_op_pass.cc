@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,8 +38,8 @@ Status ParallelConcatStartOpPass::Run(NodePtr &node) {
 
   if (node_op_desc->GetOutputsSize() != kParallelConcatStartOutputSize) {
     REPORT_INNER_ERR_MSG("E19999", "Output tensor num:%zu of node:%s(%s) != %zu, check invalid",
-                       node_op_desc->GetOutputsSize(), node_op_desc->GetName().c_str(),
-                       node_op_desc->GetType().c_str(), kParallelConcatStartOutputSize);
+                         node_op_desc->GetOutputsSize(), node_op_desc->GetName().c_str(),
+                         node_op_desc->GetType().c_str(), kParallelConcatStartOutputSize);
     GELOGE(PARAM_INVALID, "[Check][Param] Node[%s] output size is unexpected, the value is %zu, expected valude:%zu.",
            node_name.c_str(), node_op_desc->GetOutputsSize(), kParallelConcatStartOutputSize);
     return PARAM_INVALID;
@@ -54,20 +54,20 @@ Status ParallelConcatStartOpPass::Run(NodePtr &node) {
 
   ge::DataType attr_dtype;
   if (!ge::AttrUtils::GetDataType(node_op_desc, kAttrDtype, attr_dtype)) {
-    REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s from op:%s(%s) failed", kAttrDtype,
-                      node_op_desc->GetName().c_str(), node_op_desc->GetType().c_str());
-    GELOGE(PARAM_INVALID, "[Get][Attr] %s from op:%s(%s) failed", kAttrDtype,
-           node_op_desc->GetName().c_str(), node_op_desc->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s from op:%s(%s) failed", kAttrDtype, node_op_desc->GetName().c_str(),
+                         node_op_desc->GetType().c_str());
+    GELOGE(PARAM_INVALID, "[Get][Attr] %s from op:%s(%s) failed", kAttrDtype, node_op_desc->GetName().c_str(),
+           node_op_desc->GetType().c_str());
     return PARAM_INVALID;
   }
   output_ptr->MutableTensorDesc().SetDataType(attr_dtype);
 
   std::vector<int64_t> attr_shape_list;
   if (!ge::AttrUtils::GetListInt(node_op_desc, kAttrShape, attr_shape_list)) {
-    REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s from op:%s(%s) failed", kAttrShape,
-                      node_op_desc->GetName().c_str(), node_op_desc->GetType().c_str());
-    GELOGE(PARAM_INVALID, "[Get][Attr] %s from op:%s(%s) failed", kAttrShape,
-           node_op_desc->GetName().c_str(), node_op_desc->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s from op:%s(%s) failed", kAttrShape, node_op_desc->GetName().c_str(),
+                         node_op_desc->GetType().c_str());
+    GELOGE(PARAM_INVALID, "[Get][Attr] %s from op:%s(%s) failed", kAttrShape, node_op_desc->GetName().c_str(),
+           node_op_desc->GetType().c_str());
     return PARAM_INVALID;
   }
   output_ptr->MutableTensorDesc().SetShape(GeShape(attr_shape_list));

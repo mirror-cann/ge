@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -84,7 +84,7 @@ void ConvertModelRealtion(const flow_model::proto::ModelRelationDef &model_relat
 }
 
 Status ParseModeldata(const flow_model::proto::SubmodelDef &flow_submodel_def, const ge::ModelData &model_data,
-                        PneModelPtr &pne_model) {
+                      PneModelPtr &pne_model) {
   ComputeGraphPtr root_graph;
   auto ret = FlowModelOmLoader::TransModelDataToComputeGraph(model_data, root_graph);
   GE_CHK_STATUS_RET(ret, "Failed to trans model data to compute graph");
@@ -103,8 +103,9 @@ Status ParseModeldata(const flow_model::proto::SubmodelDef &flow_submodel_def, c
   if (flow_submodel_def.has_redundant_deploy_info()) {
     const auto &redundant_deploy_info = flow_submodel_def.redundant_deploy_info();
     GE_CHK_STATUS_RET(pne_model->SetRedundantLogicDeviceId(redundant_deploy_info.redundant_logic_device_id()),
-                      "set ge root model redundant logic device id failed, model name=%s, " \
-                      "redundant_logic_device_id=%s", flow_submodel_def.model_name().c_str(),
+                      "set ge root model redundant logic device id failed, model name=%s, "
+                      "redundant_logic_device_id=%s",
+                      flow_submodel_def.model_name().c_str(),
                       redundant_deploy_info.redundant_logic_device_id().c_str());
   }
 
@@ -112,8 +113,8 @@ Status ParseModeldata(const flow_model::proto::SubmodelDef &flow_submodel_def, c
   return SUCCESS;
 }
 
-Status LoadModeldata(const flow_model::proto::SubmodelDef &flow_submodel_def,
-                       const std::string &split_om_data_base_dir, PneModelPtr &pne_model) {
+Status LoadModeldata(const flow_model::proto::SubmodelDef &flow_submodel_def, const std::string &split_om_data_base_dir,
+                     PneModelPtr &pne_model) {
   ge::ModelData model;
   const auto &om_data_file_name = flow_submodel_def.om_data_file_path();
   if (!om_data_file_name.empty()) {
@@ -121,9 +122,9 @@ Status LoadModeldata(const flow_model::proto::SubmodelDef &flow_submodel_def,
     const auto submodel_file_path = split_om_data_base_dir + om_data_file_name;
     GELOGI("Load submodel data by file %s.", submodel_file_path.c_str());
     GE_CHK_STATUS_RET(ModelParserBase::LoadFromFile(submodel_file_path.c_str(), 0, model),
-        "Load model from file[%s] failed.", submodel_file_path.c_str());
+                      "Load model from file[%s] failed.", submodel_file_path.c_str());
     GE_MAKE_GUARD(model_guard, [&model]() {
-    if (model.model_data != nullptr) {
+      if (model.model_data != nullptr) {
         delete[] static_cast<char_t *>(model.model_data);
         model.model_data = nullptr;
       }
@@ -183,22 +184,22 @@ Status LoadSerializedModel(flow_model::proto::SubmodelDef &flow_submodel_def, co
     GE_CHK_STATUS_RET(serialized_model->UnSerializeModel(model_buff), "UnSerializeModel failed, size=%zu",
                       om_data.size());
     GELOGI("Load builtin model success.");
-  }
-  else {
+  } else {
     const auto &om_data_file_name = flow_submodel_def.om_data_file_path();
-    GE_ASSERT_TRUE(!om_data_file_name.empty(), "Missing om_data_file_path or is_builtin_udf in cache. "
-        "Please generate new cache base on current version.");
+    GE_ASSERT_TRUE(!om_data_file_name.empty(),
+                   "Missing om_data_file_path or is_builtin_udf in cache. "
+                   "Please generate new cache base on current version.");
     auto submodel_file_path = split_om_data_base_dir + om_data_file_name;
     GE_ASSERT_TRUE(FlowModelOmLoader::CheckFilePathValid(split_om_data_base_dir, submodel_file_path),
-        "Submodel file path[%s] is not in base dir[%s]", submodel_file_path.c_str(), split_om_data_base_dir.c_str());
+                   "Submodel file path[%s] is not in base dir[%s]", submodel_file_path.c_str(),
+                   split_om_data_base_dir.c_str());
     // user define function :deployder will find saved path and set to request directly
     serialized_model->SetSavedModelPath(submodel_file_path);
     std::string normalize_model_name = GetUdfModelNameByFileName(submodel_file_path);
-    GE_ASSERT_TRUE(!normalize_model_name.empty(), "Get normalized name failed by path[%s]",
-                   submodel_file_path.c_str());
+    GE_ASSERT_TRUE(!normalize_model_name.empty(), "Get normalized name failed by path[%s]", submodel_file_path.c_str());
     serialized_model->SetNormalizedModelName(normalize_model_name);
-    GELOGI("set udf model cache file path: %s, normalize name: %s.",
-           submodel_file_path.c_str(), normalize_model_name.c_str());
+    GELOGI("set udf model cache file path: %s, normalize name: %s.", submodel_file_path.c_str(),
+           normalize_model_name.c_str());
   }
 
   if (flow_submodel_def.has_deploy_resource()) {
@@ -230,9 +231,9 @@ Status FlowModelOmLoader::LoadToFlowModelDesc(const ge::ModelData &model_data, c
   const auto &model_partitions = om_file_load_helper.GetModelPartitions(0);
   GE_CHK_STATUS_RET(CheckModelPartitions(model_partitions), "Check model partitions failed.");
   std::vector<string> submodel_names;
-  GE_CHK_STATUS_RET(LoadFlowModelPartition(model_partitions[kFlowModelPartitionsFlowModelIdx],
-                                           flow_model, submodel_names),
-                    "Load flow model partition failed.");
+  GE_CHK_STATUS_RET(
+      LoadFlowModelPartition(model_partitions[kFlowModelPartitionsFlowModelIdx], flow_model, submodel_names),
+      "Load flow model partition failed.");
   return SUCCESS;
 }
 
@@ -241,7 +242,8 @@ bool FlowModelOmLoader::CheckFilePathValid(const std::string &base_dir, const st
   return real_check_dir.find(base_dir) == 0UL;
 }
 
-Status FlowModelOmLoader::TransModelDataToComputeGraph(const ge::ModelData &model_data, ge::ComputeGraphPtr &root_graph) {
+Status FlowModelOmLoader::TransModelDataToComputeGraph(const ge::ModelData &model_data,
+                                                       ge::ComputeGraphPtr &root_graph) {
   ModelHelper model_helper;
   GE_CHK_STATUS_RET(model_helper.LoadRootModel(model_data), "[Load][RootModel] failed.");
   root_graph = model_helper.GetGeRootModel()->GetRootGraph();
@@ -298,7 +300,7 @@ Status FlowModelOmLoader::CheckModelPartitions(const std::vector<ModelPartition>
     return FAILED;
   }
 
-  // the 1th partion is flow model.
+  // the 1th partition is flow model.
   const auto &flow_model_partition = model_partitions[kFlowModelPartitionsFlowModelIdx];
   if (flow_model_partition.type != FLOW_MODEL) {
     GELOGE(FAILED, "flow model [1]th partition type must be FLOW_MODEL[%d], but %d.", FLOW_MODEL,
@@ -412,8 +414,8 @@ Status FlowModelOmLoader::LoadFlowSubmodelPartition(const std::vector<ModelParti
                           flow_submodel_def.model_name().c_str(), flow_submodel_def.model_type().c_str());
       } else {
         GE_CHK_STATUS_RET(LoadModeldata(flow_submodel_def, split_om_data_base_dir, submodel),
-                          "LoadModeldata failed, model_name=%s, model_type=%s",
-                          flow_submodel_def.model_name().c_str(), flow_submodel_def.model_type().c_str());
+                          "LoadModeldata failed, model_name=%s, model_type=%s", flow_submodel_def.model_name().c_str(),
+                          flow_submodel_def.model_type().c_str());
       }
       GE_CHECK_NOTNULL(submodel, ", load flow submodel failed, model_name=%s, model_type=%s.",
                        flow_submodel_def.model_name().c_str(), flow_submodel_def.model_type().c_str());
@@ -442,7 +444,7 @@ Status FlowModelOmLoader::LoadFlowSubmodelPartition(const std::vector<ModelParti
 }
 
 Status FlowModelOmLoader::RefreshModel(const FlowModelPtr &flow_model, const std::string &model_path,
-                                               const uint64_t session_id, const uint32_t graph_id) {
+                                       const uint64_t session_id, const uint32_t graph_id) {
   std::set<ComputeGraph *> refreshed_graphs;
   for (const auto &submodel_iter : flow_model->GetSubmodels()) {
     const auto &model_name = submodel_iter.first;

@@ -68,4 +68,3 @@ size_t aclmdlGetInputSizeByIndex(aclmdlDesc *modelDesc, size_t index)
 ## 约束说明<a name="section17979108162818"></a>
 
 如果模型输入的Shape是动态的、且维度的取值为-1（表示此维度可以使用\>=1的任意取值），则通过本接口获取的大小为0，用户需根据实际数据占用的内存大小来申请内存。
-

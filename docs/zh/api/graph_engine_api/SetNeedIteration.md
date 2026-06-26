@@ -66,4 +66,3 @@ void SetNeedIteration(bool need_iteration)
 ## 约束说明<a name="section24049039"></a>
 
 需要与npu\_runconfig/iterations\_per\_loop、npu\_runconfig/loop\_cond、npu\_runconfig/one、npu\_runconfig/zero等搭配使用，用户需要先构造带有npu\_runconfig/iterations\_per\_loop、npu\_runconfig/loop\_cond、npu\_runconfig/one、npu\_runconfig/zero名字的variable算子节点。
-

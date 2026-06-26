@@ -57,4 +57,3 @@ size_t aclmdlGetDatasetNumBuffers(const aclmdlDataset *dataset)
 ## 返回值说明<a name="section162895447"></a>
 
 aclDataBuffer的个数。
-

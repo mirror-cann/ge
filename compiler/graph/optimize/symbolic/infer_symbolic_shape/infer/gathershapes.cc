@@ -28,7 +28,7 @@ namespace {
  *      1. 按照算子约束校验输入和axes属性
  *      2. 属性axes的size作为输出shape
  */
-graphStatus InferShape4GatherShapes(gert::InferSymbolShapeContext* context) {
+graphStatus InferShape4GatherShapes(gert::InferSymbolShapeContext *context) {
   auto input_shape = context->GetInputSymbolShape(0);
   GE_UNSUPPORTED_IF_NULL(input_shape);
   auto input_num = context->GetComputeNodeInputNum();
@@ -36,7 +36,7 @@ graphStatus InferShape4GatherShapes(gert::InferSymbolShapeContext* context) {
 
   auto attrs = context->GetAttrs();
   GE_ASSERT_NOTNULL(attrs);
-  const auto* attr_axes = attrs->GetListListInt(0);
+  const auto *attr_axes = attrs->GetListListInt(0);
   GE_ASSERT_NOTNULL(attr_axes);
   auto axes_size = attr_axes->GetSize();
   GE_ASSERT(axes_size != 0U);
@@ -44,17 +44,21 @@ graphStatus InferShape4GatherShapes(gert::InferSymbolShapeContext* context) {
   for (size_t i = 0U; i < axes_size; ++i) {
     const auto cv = attr_axes->Get(i);
     GE_ASSERT_NOTNULL(cv);
-    GE_ASSERT_EQ(cv->GetSize(), 2U); // [input_index, dim_index]
+    GE_ASSERT_EQ(cv->GetSize(), 2U);  // [input_index, dim_index]
     const uint64_t *data = reinterpret_cast<const uint64_t *>(cv->GetData());
     GE_ASSERT_NOTNULL(data);
     const auto input_index = *data;
-    GE_ASSERT(input_index < context->GetComputeNodeInputNum(), "Node %s input_index[%lu] must less than input num[%zu],"
-              " i: %zu", context->GetNodeName(), input_index, context->GetComputeNodeInputNum(), i);
+    GE_ASSERT(input_index < context->GetComputeNodeInputNum(),
+              "Node %s input_index[%lu] must less than input num[%zu],"
+              " i: %zu",
+              context->GetNodeName(), input_index, context->GetComputeNodeInputNum(), i);
     const auto dim_index = *(data + 1U);
     auto in_shape = context->GetInputSymbolShape(input_index);
     GE_UNSUPPORTED_IF_NULL(in_shape);
-    GE_ASSERT(dim_index < in_shape->GetDimNum(), "Node %s dim_index[%lu] must less than input shape"
-              " dim number[%zu], i: %zu", context->GetNodeName(), dim_index, in_shape->GetDimNum(), i);
+    GE_ASSERT(dim_index < in_shape->GetDimNum(),
+              "Node %s dim_index[%lu] must less than input shape"
+              " dim number[%zu], i: %zu",
+              context->GetNodeName(), dim_index, in_shape->GetDimNum(), i);
   }
 
   auto out_shape = context->GetOutputSymbolShape(0);
@@ -65,6 +69,5 @@ graphStatus InferShape4GatherShapes(gert::InferSymbolShapeContext* context) {
 }
 
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(GatherShapes).InferSymbolShape(InferShape4GatherShapes);
-}
+}  // namespace
 }  // namespace ge
-

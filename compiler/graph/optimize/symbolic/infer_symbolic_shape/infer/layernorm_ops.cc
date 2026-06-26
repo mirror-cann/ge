@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -41,8 +41,8 @@ graphStatus InferShape4LayerNorm(gert::InferSymbolShapeContext *context) {
     return PARAM_INVALID;
   }
   int64_t begin_norm_axis_val = *begin_norm_axis_ptr < 0
-                                  ? *begin_norm_axis_ptr + static_cast<int64_t>(x_shape->GetDimNum())
-                                  : *begin_norm_axis_ptr;
+                                    ? *begin_norm_axis_ptr + static_cast<int64_t>(x_shape->GetDimNum())
+                                    : *begin_norm_axis_ptr;
   *y_shape = *x_shape;
   *mean_shape = *x_shape;
   for (size_t i = 0; i < x_shape->GetDimNum(); ++i) {
@@ -112,9 +112,10 @@ graphStatus InferShape4SoftmaxCrossEntropyWithLogits(gert::InferSymbolShapeConte
   GE_ASSERT_NOTNULL(out1_shape);
 
   auto check_dim = (in_shape->GetDimNum() == kTwo && in1_shape->GetDimNum() == kTwo) ||
-      (in_shape->GetDimNum() == kFour && in1_shape->GetDimNum() == kFour);
-  GE_ASSERT_TRUE(check_dim, "[Node:%s(%s)] input invalid, input1 dim:%zu, input2 dim:%zu. Inputdims must be two or four",
-    context->GetNodeName(), context->GetNodeType(), in_shape->GetDimNum(), in1_shape->GetDimNum());
+                   (in_shape->GetDimNum() == kFour && in1_shape->GetDimNum() == kFour);
+  GE_ASSERT_TRUE(check_dim,
+                 "[Node:%s(%s)] input invalid, input1 dim:%zu, input2 dim:%zu. Inputdims must be two or four",
+                 context->GetNodeName(), context->GetNodeType(), in_shape->GetDimNum(), in1_shape->GetDimNum());
 
   auto feature_0 = in_shape->GetDim(kZero);
   auto labels_0 = in1_shape->GetDim(kZero);
@@ -157,7 +158,8 @@ graphStatus InferShape4SoftmaxCrossEntropyWithLogits(gert::InferSymbolShapeConte
 
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(LayerNorm).InferSymbolShape(InferShape4LayerNorm);
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(AddLayerNorm).InferSymbolShape(InferShape4AddLayerNorm);
-IMPL_OP_INFER_SYMBOL_SHAPE_INNER(SoftmaxCrossEntropyWithLogits).InferSymbolShape(InferShape4SoftmaxCrossEntropyWithLogits);
+IMPL_OP_INFER_SYMBOL_SHAPE_INNER(SoftmaxCrossEntropyWithLogits)
+    .InferSymbolShape(InferShape4SoftmaxCrossEntropyWithLogits);
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(LayerNormXBackpropV3).InferSymbolShape(InferShape4LayerNormXBackpropCommon);
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(LayerNormXBackpropV2).InferSymbolShape(InferShape4LayerNormXBackpropCommon);
 }  // namespace

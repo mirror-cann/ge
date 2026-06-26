@@ -89,4 +89,3 @@ EsCTensorHolder *GetTensorHolderFromNode(const ge::GNode &node, int32_t output_i
 ## 约束说明<a name="section24049039"></a>
 
 无
-

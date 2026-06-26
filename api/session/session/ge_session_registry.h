@@ -1,6 +1,6 @@
-/* Copyright (c) 2026 Huawei Technologies Co., Ltd.
+/* Copyright (c) 2025 Huawei Technologies Co., Ltd.
  * This file is a part of the CANN Open Software.
- * Licensed under CANN Open Software License Agreement Version 1.0 (the "License").
+ * Licensed under CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
  * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
@@ -19,9 +19,9 @@ namespace ge {
 class GeSessionRegistry {
  public:
   using FinalizeFunc = std::function<void()>;
-  using ImplPtr = void*;
+  using ImplPtr = void *;
 
-  static GeSessionRegistry& Instance() {
+  static GeSessionRegistry &Instance() {
     static GeSessionRegistry instance;
     return instance;
   }
@@ -47,7 +47,7 @@ class GeSessionRegistry {
   // GEFinalizeV2 中调用：遍历所有 Impl，执行 Finalize 并清理
   void FinalizeAllSessions() {
     std::lock_guard<std::mutex> lock(mutex_);
-    for (auto& pair : impls_) {
+    for (auto &pair : impls_) {
       if (pair.second) {
         pair.second();
       }
@@ -58,8 +58,8 @@ class GeSessionRegistry {
  private:
   GeSessionRegistry() = default;
   ~GeSessionRegistry() = default;
-  GeSessionRegistry(const GeSessionRegistry&) = delete;
-  GeSessionRegistry& operator=(const GeSessionRegistry&) = delete;
+  GeSessionRegistry(const GeSessionRegistry &) = delete;
+  GeSessionRegistry &operator=(const GeSessionRegistry &) = delete;
 
   std::map<ImplPtr, FinalizeFunc> impls_;
   std::mutex mutex_;

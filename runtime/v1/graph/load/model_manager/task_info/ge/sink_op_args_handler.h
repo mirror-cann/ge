@@ -21,8 +21,8 @@ class SinkOpArgsHandler : public gert::ArgsHandler {
   explicit SinkOpArgsHandler(CustomTaskInfo *task_info);
   ~SinkOpArgsHandler() override = default;
 
-  const gert::KernelArgs* MallocReadOnlyDevArgs(void *host_args, size_t args_size) override;
-  const std::deque<gert::KernelArgs>& GetKernelArgs(gert::Placement placement) const override;
+  const gert::KernelArgs *MallocReadOnlyDevArgs(void *host_args, size_t args_size) override;
+  const std::deque<gert::KernelArgs> &GetKernelArgs(gert::Placement placement) const override;
 
  private:
   CustomTaskInfo *task_info_;

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -54,7 +54,8 @@ class OptimizationOptionUT : public testing::Test {
   const std::unordered_map<std::string, OoInfo> &registered_opt_table =
       OptionRegistry::GetInstance().GetRegisteredOptTable();
 
-  static void CheckOptionValue(const OptimizationOption &oo, const std::string &opt_name, const std::string &expect_value) {
+  static void CheckOptionValue(const OptimizationOption &oo, const std::string &opt_name,
+                               const std::string &expect_value) {
     std::string value;
     EXPECT_EQ(oo.GetValue(opt_name, value), GRAPH_SUCCESS);
     EXPECT_EQ(value, expect_value);
@@ -206,7 +207,8 @@ TEST_F(OptimizationOptionUT, IsPassEnable_Failed_PassIsNotRegistered) {
 }
 
 TEST_F(OptimizationOptionUT, Initialize_With_OptimizationSwitch) {
-  std::map<std::string, std::string> ge_options = {{ge::OPTIMIZATION_SWITCH, "pass1:on;pass2;pass3:;:on;pass5:of;pass6:on"}};
+  std::map<std::string, std::string> ge_options = {
+      {ge::OPTIMIZATION_SWITCH, "pass1:on;pass2;pass3:;:on;pass5:of;pass6:on"}};
   const std::unordered_set<std::string> ge_option_set = {"pass6"};
 
   EXPECT_EQ(oopt.Initialize(ge_options, registered_opt_table, ge_option_set), GRAPH_SUCCESS);
@@ -231,7 +233,8 @@ TEST_F(OptimizationOptionUT, Initialize_With_FusionConfigStr_Have_OptimizationSw
   options_map[ge::OPTIMIZATION_SWITCH] = "pass1:on;pass2;pass3:;:on;pass5:of;pass6:on";
   GetThreadLocalContext().SetGraphOption(options_map);
 
-  std::map<std::string, std::string> ge_options = {{ge::OPTIMIZATION_SWITCH, "pass1:on;pass2;pass3:;:on;pass5:of;pass6:on"}};
+  std::map<std::string, std::string> ge_options = {
+      {ge::OPTIMIZATION_SWITCH, "pass1:on;pass2;pass3:;:on;pass5:of;pass6:on"}};
   EXPECT_EQ(oopt.Initialize(ge_options, registered_opt_table, {}), GRAPH_SUCCESS);
 
   std::string fusion_config_str = "pass6:on;pass7:on;pass8;pass9:;:on;pass11:of";

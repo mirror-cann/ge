@@ -1,12 +1,12 @@
 /**
-* Copyright (c) 2026 Huawei Technologies Co., Ltd.
-* This program is free software, you can redistribute it and/or modify it under the terms and conditions of
-* CANN Open Software License Agreement Version 2.0 (the "License").
-* Please refer to the License for details. You may not use this file except in compliance with the License.
-* THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
-* INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
-* See LICENSE in the root of the software repository for the full text of the License.
-*/
+ * Copyright (c) 2026 Huawei Technologies Co., Ltd.
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
+ * CANN Open Software License Agreement Version 2.0 (the "License").
+ * Please refer to the License for details. You may not use this file except in compliance with the License.
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
+ * See LICENSE in the root of the software repository for the full text of the License.
+ */
 
 #include "inner_identity_delete_pass.h"
 #include <checker.h>
@@ -20,7 +20,7 @@ namespace ge {
 namespace {
 const std::string kInnerIdentityAttr = "_inner_identity";
 bool IsInputFromData(const NodePtr &node) {
-  for (const auto &input: node->GetInDataNodes()) {
+  for (const auto &input : node->GetInDataNodes()) {
     GE_ASSERT_NOTNULL(input);
     if (OpTypeUtils::IsDataNode(input->GetType())) {
       return true;
@@ -40,12 +40,14 @@ bool HasTensorMemoryScope(const NodePtr &node) {
 }
 
 // nano形态下，是根据编译出来的kernel决定基地址来自于ioa/workspace/weight，而打着ATTR_NAME_TENSOR_MEMORY_SCOPE属性的算子的输出一定是分配的ioa地址，所以不能将其轻易删除，后续会有正式方案解决。临时方案如下：
-// 1. 如果identity算子打了ATTR_NAME_TENSOR_MEMORY_SCOPE属性，则说明其输出是ioa地址，如果其输入不来自于Data算子，则说明其输入不是ioa地址，这种情况下不可以删除这个identity算子。否则可以删除，因为输入输出都是ioa地址。
+// 1.
+// 如果identity算子打了ATTR_NAME_TENSOR_MEMORY_SCOPE属性，则说明其输出是ioa地址，如果其输入不来自于Data算子，则说明其输入不是ioa地址，这种情况下不可以删除这个identity算子。否则可以删除，因为输入输出都是ioa地址。
 //    Data(ioa) -> (ioa)transdata(workspace) -> (workspace)identity(ioa) -> (ioa)ref   不可以删除
 //    Data(ioa) -> (ioa)identity(ioa) -> (ioa)ref   可以删除
-// 2. 如果identity算子没有打ATTR_NAME_TENSOR_MEMORY_SCOPE属性，则说明其输出不是ioa地址，如果其输出直连的算子中没有打ATTR_NAME_TENSOR_MEMORY_SCOPE属性的算子，则可以删除。否则如果其输入来自于Data算子，则说明其输入是ioa地址，这种情况下不可以删除这个identity算子。
-//    Data(ioa) -> (ioa)relu(workspace) -> (workspace)identity(workspace) -> (workspace)transdata(ioa) -> (ioa)ref   可以删除
-//    Data(ioa) -> (ioa)identity(workspace) -> (workspace)transdata(ioa) -> (ioa)ref   不可以删除
+// 2.
+// 如果identity算子没有打ATTR_NAME_TENSOR_MEMORY_SCOPE属性，则说明其输出不是ioa地址，如果其输出直连的算子中没有打ATTR_NAME_TENSOR_MEMORY_SCOPE属性的算子，则可以删除。否则如果其输入来自于Data算子，则说明其输入是ioa地址，这种情况下不可以删除这个identity算子。
+//    Data(ioa) -> (ioa)relu(workspace) -> (workspace)identity(workspace) -> (workspace)transdata(ioa) -> (ioa)ref
+//    可以删除 Data(ioa) -> (ioa)identity(workspace) -> (workspace)transdata(ioa) -> (ioa)ref   不可以删除
 bool IsCannotDelete(const NodePtr &identity) {
   bool has_tensor_memory_scope = HasTensorMemoryScope(identity);
   // identity直连ref算子，如果输入不来自于Data，则不可以删除。否则可以删除，因为Data也是ioa地址。
@@ -116,7 +118,7 @@ bool IsStableRDFS() {
   }
   return false;
 }
-}
+}  // namespace
 
 Status InnerIdentityDeletePass::IsolateAndDeleteIdentityNode(const NodePtr &node) const {
   GE_ASSERT_NOTNULL(node);
@@ -145,7 +147,8 @@ Status InnerIdentityDeletePass::DeleteInnerIdentity(const NodePtr &node) {
   // 如果topo排序方式是稳定拓扑序，则可以删除
   if (IsStableRDFS()) {
     GELOGI(
-        "identity %s 's input has multi output, and it self has one output, topo sort mode is StableRDFS, can be deleted",
+        "identity %s 's input has multi output, and it self has one output, topo sort mode is StableRDFS, can be "
+        "deleted",
         node->GetNamePtr());
     return IsolateAndDeleteIdentityNode(node);
   }
@@ -176,12 +179,13 @@ Status InnerIdentityDeletePass::DeleteInnerIdentity(const NodePtr &node) {
         continue;
       }
       auto real_out_node = FindRealOutNode(out_node);
-      is_other_all_out_depend_ref = (is_other_all_out_depend_ref && connectivity_->IsConnected(
-                                         ref_node, real_out_node));
+      is_other_all_out_depend_ref =
+          (is_other_all_out_depend_ref && connectivity_->IsConnected(ref_node, real_out_node));
     }
     if (is_other_all_out_depend_ref) {
       GELOGI(
-          "identity %s 's input has only one output, and it self has multi output, all out node except ref depend ref, can be deleted",
+          "identity %s 's input has only one output, and it self has multi output, all out node except ref depend ref, "
+          "can be deleted",
           node->GetNamePtr());
       return IsolateAndDeleteIdentityNode(node);
     }
@@ -196,12 +200,13 @@ Status InnerIdentityDeletePass::DeleteInnerIdentity(const NodePtr &node) {
           continue;
         }
         auto real_out_node = FindRealOutNode(out_node);
-        is_ref_depend_other_all_node = (is_ref_depend_other_all_node &&
-                                        connectivity_->IsConnected(real_out_node, ref_node));
+        is_ref_depend_other_all_node =
+            (is_ref_depend_other_all_node && connectivity_->IsConnected(real_out_node, ref_node));
       }
       if (is_ref_depend_other_all_node) {
         GELOGI(
-            "identity %s 's input has multi output, and it self has one output, ref depend other all A's out node, can be deleted",
+            "identity %s 's input has multi output, and it self has one output, ref depend other all A's out node, can "
+            "be deleted",
             node->GetNamePtr());
         return IsolateAndDeleteIdentityNode(node);
       }
@@ -229,7 +234,8 @@ Status InnerIdentityDeletePass::DeleteInnerIdentity(const NodePtr &node) {
       }
       if (can_delete) {
         GELOGI(
-            "identity %s 's input has multi output, and it self has multi output, ref depend other all A's out node, other all identity's out node depend ref, can be deleted",
+            "identity %s 's input has multi output, and it self has multi output, ref depend other all A's out node, "
+            "other all identity's out node depend ref, can be deleted",
             node->GetNamePtr());
         return IsolateAndDeleteIdentityNode(node);
       }
@@ -264,4 +270,4 @@ Status InnerIdentityDeletePass::Run(ComputeGraphPtr graph) {
 }
 
 REG_PASS_OPTION("InnerIdentityDeletePass").LEVELS(OoLevel::kO0);
-} // namespace ge
+}  // namespace ge

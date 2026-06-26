@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,9 +32,8 @@
 using namespace std;
 
 namespace fe {
-class STestFeWholeProcessNano: public testing::Test
-{
-protected:
+class STestFeWholeProcessNano : public testing::Test {
+ protected:
   static void SetUpTestCase() {
     const char *soc_version = "Ascend035";
     rtSetSocVersion(soc_version);
@@ -54,21 +53,21 @@ protected:
   }
 };
 
-//TEST_F(STestFeWholeProcessNano, test_ub_fusion_cube_quant_net) {
-//  auto &fe_env = fe_env::FeRunningEnv::Instance();
-//  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("nano_quant");
-//  string network_path = fe_env::FeRunningEnv::GetNetworkPath("nano_quant_begin.txt");
-//  bool state = ge::GraphUtils::LoadGEGraph(network_path.c_str(), graph);
-//  ASSERT_EQ(state, true);
-//  EXPECT_EQ(graph->GetName(), "quantized");
-//  EXPECT_EQ(graph->GetDirectNode().size(), 123);
-//  DUMP_GRAPH_WHEN("PreRunAfterBuild");
-//  std::map<string, string> session_options;
-//  session_options.emplace(ge::OUTPUT_DATATYPE, "FP16");
-//  EXPECT_EQ(fe_env.Run(graph, session_options), fe::SUCCESS);
-//  EXPECT_EQ(graph->GetDirectNode().size(), 44);
-//  CHECK_GRAPH(PreRunAfterBuild) {
-//    EXPECT_EQ(graph->GetDirectNode().size(), 40);
-//  };
-//}
-}
+// TEST_F(STestFeWholeProcessNano, test_ub_fusion_cube_quant_net) {
+//   auto &fe_env = fe_env::FeRunningEnv::Instance();
+//   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("nano_quant");
+//   string network_path = fe_env::FeRunningEnv::GetNetworkPath("nano_quant_begin.txt");
+//   bool state = ge::GraphUtils::LoadGEGraph(network_path.c_str(), graph);
+//   ASSERT_EQ(state, true);
+//   EXPECT_EQ(graph->GetName(), "quantized");
+//   EXPECT_EQ(graph->GetDirectNode().size(), 123);
+//   DUMP_GRAPH_WHEN("PreRunAfterBuild");
+//   std::map<string, string> session_options;
+//   session_options.emplace(ge::OUTPUT_DATATYPE, "FP16");
+//   EXPECT_EQ(fe_env.Run(graph, session_options), fe::SUCCESS);
+//   EXPECT_EQ(graph->GetDirectNode().size(), 44);
+//   CHECK_GRAPH(PreRunAfterBuild) {
+//     EXPECT_EQ(graph->GetDirectNode().size(), 40);
+//   };
+// }
+}  // namespace fe

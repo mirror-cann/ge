@@ -33,11 +33,9 @@ const std::string kMemSet = "memset";
 const std::string kAddrRefreshOpStaticBinId = "UpdateModelParam_static_bin";
 const std::set<std::string> kMixCorePrefix = {"_mix_aic", "_mix_aiv", "_mix_enhanced"};
 
-const std::map<std::string, uint32_t> kMixBinaryMagic = {
-    {"_mix_aiv", RT_DEV_BINARY_MAGIC_ELF_AIVEC},
-    {"_mix_aic", RT_DEV_BINARY_MAGIC_ELF_AICUBE},
-    {"_mix_enhanced", RT_DEV_BINARY_MAGIC_ELF}
-};
+const std::map<std::string, uint32_t> kMixBinaryMagic = {{"_mix_aiv", RT_DEV_BINARY_MAGIC_ELF_AIVEC},
+                                                         {"_mix_aic", RT_DEV_BINARY_MAGIC_ELF_AICUBE},
+                                                         {"_mix_enhanced", RT_DEV_BINARY_MAGIC_ELF}};
 }  // namespace
 
 bool IsTbeTask(const OpDescPtr &op_desc) {
@@ -54,8 +52,8 @@ bool IsTbeTask(const OpDescPtr &op_desc) {
   bool attr_no_task = false;
   const bool get_attr_no_task_flag = AttrUtils::GetBool(op_desc, ATTR_NAME_NOTASK, attr_no_task);
   if (get_attr_no_task_flag && attr_no_task) {
-    GELOGI("Node[name:%s, type:%s] does not generate task, skip initialization.",
-           op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    GELOGI("Node[name:%s, type:%s] does not generate task, skip initialization.", op_desc->GetName().c_str(),
+           op_desc->GetType().c_str());
     return false;
   }
 
@@ -117,7 +115,8 @@ std::string TBEKernelHandle::GetBinHandleKey(const OpDesc &op_desc, const std::s
     (void)AttrUtils::GetStr(op_desc, ATTR_NAME_SESSION_GRAPH_ID, kernel_bin_id);
     kernel_bin_id += std::string("_" + std::to_string(model_id_) + op_desc.GetName());
   }
-  // todo 动静态图kernel注册没有归一会导致静态子图卸载时去注册动态图中已经注册的bin，先临时加个后缀规避，待后续动态图kernel注册流程归一后删除。
+  // todo
+  // 动静态图kernel注册没有归一会导致静态子图卸载时去注册动态图中已经注册的bin，先临时加个后缀规避，待后续动态图kernel注册流程归一后删除。
   kernel_bin_id += kStaticBinKeySuffix;
   return kernel_bin_id;
 }
@@ -150,9 +149,9 @@ Status TBEKernelHandle::GetAddrAndPrefCnt(const OpDescPtr &op_desc, const std::s
     }
     for (uint8_t i = 0U; i < kernel_info.functionInfoNum; ++i) {
       addr_and_pref_cnt.emplace_back(kernel_info.functionInfo[i].pcAddr, kernel_info.functionInfo[i].prefetchCnt);
-      GELOGI("Get [%u] addr 0x%" PRIx64 ", pref_cnt %u for kernel_name %s.",
-             i, PtrToValue(kernel_info.functionInfo[i].pcAddr),
-             kernel_info.functionInfo[i].prefetchCnt, kernel_name.c_str());
+      GELOGI("Get [%u] addr 0x%" PRIx64 ", pref_cnt %u for kernel_name %s.", i,
+             PtrToValue(kernel_info.functionInfo[i].pcAddr), kernel_info.functionInfo[i].prefetchCnt,
+             kernel_name.c_str());
     }
   } else {
     const auto &iter = addr_and_pref_cnt_.find(kernel_name);
@@ -211,8 +210,9 @@ Status TBEKernelHandle::RegisterAutoThreadHandle(const OpDescPtr &op_desc, const
   std::vector<std::string> bin_file_keys;
   (void)AttrUtils::GetListStr(op_desc, kStubFuncName, bin_file_keys);
   if (tbe_kernel.size() != bin_file_keys.size()) {
-    REPORT_INNER_ERR_MSG("E19999", "[%s] number of bin_file != number of file_name, bin_file_num=%zu, file_name_num=%zu",
-                       op_desc->GetName().c_str(), tbe_kernel.size(), bin_file_keys.size());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "[%s] number of bin_file != number of file_name, bin_file_num=%zu, file_name_num=%zu",
+                         op_desc->GetName().c_str(), tbe_kernel.size(), bin_file_keys.size());
     GELOGE(INTERNAL_ERROR,
            "[Check][Param] [%s] number of bin_file != number of file_name, bin_file_num=%zu, file_name_num=%zu",
            op_desc->GetName().c_str(), tbe_kernel.size(), bin_file_keys.size());
@@ -227,8 +227,9 @@ Status TBEKernelHandle::RegisterAutoThreadHandle(const OpDescPtr &op_desc, const
              op_desc->GetName().c_str());
       return INTERNAL_ERROR;
     }
-    GE_CHK_STATUS_RET(FunctionRegister(op_desc, bin_file_keys[i], tbe_kernel[i], kAutoAttrPrefix,
-        static_cast<uint32_t>(i)), "Function register of No. %zu bin file %s failed.", i, bin_file_keys[i].c_str());
+    GE_CHK_STATUS_RET(
+        FunctionRegister(op_desc, bin_file_keys[i], tbe_kernel[i], kAutoAttrPrefix, static_cast<uint32_t>(i)),
+        "Function register of No. %zu bin file %s failed.", i, bin_file_keys[i].c_str());
   }
   return SUCCESS;
 }
@@ -275,8 +276,8 @@ Status TBEKernelHandle::FunctionRegister(const OpDescPtr &op_desc, const std::st
   bool inserted = false;
   const void *const kernel_unique_ids_addr = bin_handle_store.GetUniqueIdPtr(bin_handle, kernel_name, inserted);
   if (inserted) {
-    GE_CHK_RT_RET(
-        rtFunctionRegister(bin_handle, kernel_unique_ids_addr, bin_handle_key.c_str(), kernel_name.c_str(), FUNC_MODE_NORMAL));
+    GE_CHK_RT_RET(rtFunctionRegister(bin_handle, kernel_unique_ids_addr, bin_handle_key.c_str(), kernel_name.c_str(),
+                                     FUNC_MODE_NORMAL));
   }
 
   uint64_t tiling_key = 0U;
@@ -298,22 +299,21 @@ Status TBEKernelHandle::FunctionRegister(const OpDescPtr &op_desc, const std::st
   for (uint8_t i = 0U; i < kernel_info.functionInfoNum; ++i) {
     addr_and_pref_cnt_[kernel_name].emplace_back(kernel_info.functionInfo[i].pcAddr,
                                                  kernel_info.functionInfo[i].prefetchCnt);
-    GELOGI("Get [%u] addr 0x%" PRIx64 ", pref_cnt %u for kernel_name %s.",
-           i, PtrToValue(kernel_info.functionInfo[i].pcAddr),
-           kernel_info.functionInfo[i].prefetchCnt, kernel_name.c_str());
+    GELOGI("Get [%u] addr 0x%" PRIx64 ", pref_cnt %u for kernel_name %s.", i,
+           PtrToValue(kernel_info.functionInfo[i].pcAddr), kernel_info.functionInfo[i].prefetchCnt,
+           kernel_name.c_str());
   }
 
   return SUCCESS;
 }
 
-Status TBEKernelHandle::InitBinaryMagic(const OpDescPtr &op_desc, const uint32_t thread_index,
-                                        rtDevBinary_t &binary, const std::string &prefix) const {
+Status TBEKernelHandle::InitBinaryMagic(const OpDescPtr &op_desc, const uint32_t thread_index, rtDevBinary_t &binary,
+                                        const std::string &prefix) const {
   static const std::map<std::string, uint32_t> binary_magics = {
       {"RT_DEV_BINARY_MAGIC_ELF_AICPU", RT_DEV_BINARY_MAGIC_ELF_AICPU},
       {"RT_DEV_BINARY_MAGIC_ELF", RT_DEV_BINARY_MAGIC_ELF},
       {"RT_DEV_BINARY_MAGIC_ELF_AIVEC", RT_DEV_BINARY_MAGIC_ELF_AIVEC},
-      {"RT_DEV_BINARY_MAGIC_ELF_AICUBE", RT_DEV_BINARY_MAGIC_ELF_AICUBE}
-  };
+      {"RT_DEV_BINARY_MAGIC_ELF_AICUBE", RT_DEV_BINARY_MAGIC_ELF_AICUBE}};
 
   std::string json_string;
   const std::string &tvm_magic = prefix + TVM_ATTR_NAME_MAGIC;
@@ -340,19 +340,18 @@ Status TBEKernelHandle::InitBinaryMagic(const OpDescPtr &op_desc, const uint32_t
 
   const std::map<std::string, uint32_t>::const_iterator it = binary_magics.find(json_string);
   if (it == binary_magics.cend()) {
-    REPORT_INNER_ERR_MSG("E19999", "Attr:%s value:%s in op:%s(%s), model_id:%u, check invalid",
-                       tvm_magic.c_str(), json_string.c_str(), op_desc->GetName().c_str(),
-                       op_desc->GetType().c_str(), model_id_);
-    GELOGE(PARAM_INVALID, "[Check][Param] Attr:%s value:%s in op:%s(%s), model_id:%u, check invalid",
-           tvm_magic.c_str(), json_string.c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str(), model_id_);
+    REPORT_INNER_ERR_MSG("E19999", "Attr:%s value:%s in op:%s(%s), model_id:%u, check invalid", tvm_magic.c_str(),
+                         json_string.c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str(), model_id_);
+    GELOGE(PARAM_INVALID, "[Check][Param] Attr:%s value:%s in op:%s(%s), model_id:%u, check invalid", tvm_magic.c_str(),
+           json_string.c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str(), model_id_);
     return PARAM_INVALID;
   }
   binary.magic = it->second;
   return SUCCESS;
 }
 
-Status TBEKernelHandle::InitMetaData(const OpDescPtr &op_desc, const uint32_t thread_index,
-                                     void *bin_handle, const std::string &prefix) const {
+Status TBEKernelHandle::InitMetaData(const OpDescPtr &op_desc, const uint32_t thread_index, void *bin_handle,
+                                     const std::string &prefix) const {
   std::string meta_data;
   const std::string &tvm_metadata = prefix + TVM_ATTR_NAME_METADATA;
   if (thread_index != UINT32_MAX) {
@@ -374,8 +373,8 @@ Status TBEKernelHandle::InitMetaData(const OpDescPtr &op_desc, const uint32_t th
   return SUCCESS;
 }
 
-Status TBEKernelHandle::InitKernelName(const OpDescPtr &op_desc, const uint32_t thread_index,
-                                       std::string &kernel_name, const std::string &prefix) const {
+Status TBEKernelHandle::InitKernelName(const OpDescPtr &op_desc, const uint32_t thread_index, std::string &kernel_name,
+                                       const std::string &prefix) const {
   if (thread_index != UINT32_MAX) {
     return ThreadKernelName(op_desc, thread_index, kernel_name);
   } else {
@@ -462,4 +461,4 @@ Status TBEKernelHandle::Register(const OpDescPtr &op_desc, const std::string &pr
   }
   return SUCCESS;
 }
-} // namespace ge
+}  // namespace ge

@@ -1,7 +1,7 @@
 # pre-commit使用指导书
 
 [TOC]
--- 
+--
 
 ## 1 使用背景
 
@@ -61,8 +61,8 @@ git commit --allow-empty -m "test pre-commit"
 
 #### 3.2.1 检查内容
 
-**文件类型检查** - 禁止提交二进制文件（.so, .dll, .exe 等）  
-**许可证头检查** - 验证源代码文件包含合规的许可证声明  
+**文件类型检查** - 禁止提交二进制文件（.so, .dll, .exe 等）
+**许可证头检查** - 验证源代码文件包含合规的许可证声明
 
 #### 3.2.2 核心特点
 
@@ -350,7 +350,7 @@ Full report: oat_reports/single/PlainReport_CANN.txt
 
 **行为**: **跳过检查，允许提交**
 
-**后续操作**: 
+**后续操作**:
 1. 按提示手动安装 Java
 2. 重启终端
 3. 运行 `pre-commit run oat-check` 验证环境

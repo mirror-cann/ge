@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,7 +25,7 @@ using namespace ge;
 namespace fe {
 
 class FusionQuantUtilUT : public testing::Test {
-protected:
+ protected:
   void SetUp() {}
 
   void TearDown() {}
@@ -41,7 +41,7 @@ protected:
     OpDescPtr y = std::make_shared<OpDesc>("y", "NetOutput");
 
     // add descriptor
-    ge::GeShape shape1({2,4,9,16});
+    ge::GeShape shape1({2, 4, 9, 16});
     GeTensorDesc tensor_desc1(shape1, ge::FORMAT_NCHW, ge::DT_FLOAT16);
     tensor_desc1.SetOriginFormat(ge::FORMAT_NCHW);
     tensor_desc1.SetOriginDataType(ge::DT_FLOAT16);
@@ -82,18 +82,12 @@ protected:
     NodePtr y_node = graph->AddNode(y);
 
     // link edge
-    ge::GraphUtils::AddEdge(x_node->GetOutDataAnchor(0),
-                            mm_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(weight_node->GetOutDataAnchor(0),
-                            mm_node->GetInDataAnchor(1));
-    ge::GraphUtils::AddEdge(atquant_scale_node->GetOutDataAnchor(0),
-                            mm_node->GetInDataAnchor(2));
-    ge::GraphUtils::AddEdge(quant_scale_node->GetOutDataAnchor(0),
-                            mm_node->GetInDataAnchor(3));
-    ge::GraphUtils::AddEdge(quant_offset_node->GetOutDataAnchor(0),
-                            mm_node->GetInDataAnchor(4));
-    ge::GraphUtils::AddEdge(mm_node->GetOutDataAnchor(0),
-                            y_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(x_node->GetOutDataAnchor(0), mm_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(weight_node->GetOutDataAnchor(0), mm_node->GetInDataAnchor(1));
+    ge::GraphUtils::AddEdge(atquant_scale_node->GetOutDataAnchor(0), mm_node->GetInDataAnchor(2));
+    ge::GraphUtils::AddEdge(quant_scale_node->GetOutDataAnchor(0), mm_node->GetInDataAnchor(3));
+    ge::GraphUtils::AddEdge(quant_offset_node->GetOutDataAnchor(0), mm_node->GetInDataAnchor(4));
+    ge::GraphUtils::AddEdge(mm_node->GetOutDataAnchor(0), y_node->GetInDataAnchor(0));
     return graph;
   }
 
@@ -108,7 +102,7 @@ protected:
     OpDescPtr y = std::make_shared<OpDesc>("y", "NetOutput");
 
     // add descriptor
-    ge::GeShape shape1({2,4,9,16});
+    ge::GeShape shape1({2, 4, 9, 16});
     GeTensorDesc tensor_desc1(shape1, ge::FORMAT_NCHW, ge::DT_FLOAT16);
     tensor_desc1.SetOriginFormat(ge::FORMAT_NCHW);
     tensor_desc1.SetOriginDataType(ge::DT_FLOAT16);
@@ -149,18 +143,12 @@ protected:
     NodePtr y_node = graph->AddNode(y);
 
     // link edge
-    ge::GraphUtils::AddEdge(x_node->GetOutDataAnchor(0),
-                            mm_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(weight_node->GetOutDataAnchor(0),
-                            mm_node->GetInDataAnchor(1));
-    ge::GraphUtils::AddEdge(atquant_scale_node->GetOutDataAnchor(0),
-                            mm_node->GetInDataAnchor(2));
-    ge::GraphUtils::AddEdge(quant_scale_node->GetOutDataAnchor(0),
-                            mm_node->GetInDataAnchor(3));
-    ge::GraphUtils::AddEdge(quant_offset_node->GetOutDataAnchor(0),
-                            mm_node->GetInDataAnchor(4));
-    ge::GraphUtils::AddEdge(mm_node->GetOutDataAnchor(0),
-                            y_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(x_node->GetOutDataAnchor(0), mm_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(weight_node->GetOutDataAnchor(0), mm_node->GetInDataAnchor(1));
+    ge::GraphUtils::AddEdge(atquant_scale_node->GetOutDataAnchor(0), mm_node->GetInDataAnchor(2));
+    ge::GraphUtils::AddEdge(quant_scale_node->GetOutDataAnchor(0), mm_node->GetInDataAnchor(3));
+    ge::GraphUtils::AddEdge(quant_offset_node->GetOutDataAnchor(0), mm_node->GetInDataAnchor(4));
+    ge::GraphUtils::AddEdge(mm_node->GetOutDataAnchor(0), y_node->GetInDataAnchor(0));
     return graph;
   }
 
@@ -174,7 +162,7 @@ protected:
     OpDescPtr y = std::make_shared<OpDesc>("y", "NetOutput");
 
     // add descriptor
-    ge::GeShape shape1({2,4,9,16});
+    ge::GeShape shape1({2, 4, 9, 16});
     GeTensorDesc tensor_desc1(shape1, ge::FORMAT_NCHW, ge::DT_FLOAT16);
     tensor_desc1.SetOriginFormat(ge::FORMAT_NCHW);
     tensor_desc1.SetOriginDataType(ge::DT_FLOAT16);
@@ -212,16 +200,11 @@ protected:
     NodePtr y_node = graph->AddNode(y);
 
     // link edge
-    ge::GraphUtils::AddEdge(x_node->GetOutDataAnchor(0),
-                            mm_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(weight_node->GetOutDataAnchor(0),
-                            mm_node->GetInDataAnchor(1));
-    ge::GraphUtils::AddEdge(atquant_scale_node->GetOutDataAnchor(0),
-                            mm_node->GetInDataAnchor(2));
-    ge::GraphUtils::AddEdge(quant_scale_node->GetOutDataAnchor(0),
-                            mm_node->GetInDataAnchor(3));
-    ge::GraphUtils::AddEdge(mm_node->GetOutDataAnchor(0),
-                            y_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(x_node->GetOutDataAnchor(0), mm_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(weight_node->GetOutDataAnchor(0), mm_node->GetInDataAnchor(1));
+    ge::GraphUtils::AddEdge(atquant_scale_node->GetOutDataAnchor(0), mm_node->GetInDataAnchor(2));
+    ge::GraphUtils::AddEdge(quant_scale_node->GetOutDataAnchor(0), mm_node->GetInDataAnchor(3));
+    ge::GraphUtils::AddEdge(mm_node->GetOutDataAnchor(0), y_node->GetInDataAnchor(0));
     return graph;
   }
 
@@ -242,18 +225,18 @@ protected:
         }
         ge::GeTensorPtr weight = std::make_shared<ge::GeTensor>(*out_tensor);
         if (node->GetName() == "quant_scale") {
-          vector<float> data_vec =
-              {-2.7065194, -4.7495637, 2.5856478, 2.533566 , -2.7307642, 0.08650689, 1.2195834, -4.520703,
-               -4.902806, -4.9793777 , -3.8038466 , 4.6814585, -0.8230759, 1.4473673, 4.71265, 2.3249402};
+          vector<float> data_vec = {-2.7065194, -4.7495637, 2.5856478, 2.533566,   -2.7307642, 0.08650689,
+                                    1.2195834,  -4.520703,  -4.902806, -4.9793777, -3.8038466, 4.6814585,
+                                    -0.8230759, 1.4473673,  4.71265,   2.3249402};
           weight->SetData(reinterpret_cast<uint8_t *>(data_vec.data()), shape_size * sizeof(float));
           ge::OpDescUtils::SetWeights(node->GetOpDesc(), weight);
           continue;
         }
         if (node->GetName() == "quant_offset") {
           std::cout << "mmm quant_offset" << std::endl;
-          vector<float> data_vec =
-              {1.7815902, -0.83771265, 3.8743427, -1.129952, 3.348905, 4.898297, 2.8627427, -4.685532,
-               -1.0928544, 0.0128879, 3.988301, -4.4012594, -0.15809901, 1.5274582, 3.3731332, -0.75769955};
+          vector<float> data_vec = {1.7815902,   -0.83771265, 3.8743427,  -1.129952,  3.348905, 4.898297,
+                                    2.8627427,   -4.685532,   -1.0928544, 0.0128879,  3.988301, -4.4012594,
+                                    -0.15809901, 1.5274582,   3.3731332,  -0.75769955};
           weight->SetData(reinterpret_cast<uint8_t *>(data_vec.data()), shape_size * sizeof(float));
           ge::OpDescUtils::SetWeights(node->GetOpDesc(), weight);
           continue;
@@ -318,4 +301,4 @@ TEST_F(FusionQuantUtilUT, insert_requant_op_succ) {
   Status ret = QuantUtil::InsertRequantScaleConvert(quant_scale, quant_offset, cuba_bias, fusion_nodes);
   EXPECT_EQ(ret, SUCCESS);
 }
-}
+}  // namespace fe

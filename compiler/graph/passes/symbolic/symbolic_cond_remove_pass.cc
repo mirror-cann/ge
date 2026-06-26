@@ -55,11 +55,12 @@ Status GetCaseCondIndexValue(const NodePtr &node, const Expression &cond_index_s
   }
   return FAILED;
 }
-} // namespace
+}  // namespace
 
 std::string InputValueForCondSource::GetSourceStr() const {
   return R"([&]() -> int64_t {
-      const auto *tensor = context->GetGraphInputTensor()" + std::to_string(input_data_idx_) + R"();
+      const auto *tensor = context->GetGraphInputTensor()" +
+         std::to_string(input_data_idx_) + R"();
       if (tensor == nullptr) {
         return -1;
       }
@@ -101,7 +102,8 @@ std::string InputValueForCondSource::GetSourceStr() const {
     }())";
 }
 
-Status SymbolicCondRemovePass::GetCondIndexSymbol(const NodePtr &cond_input, Expression &cond_index_sym, const std::string &node_type) {
+Status SymbolicCondRemovePass::GetCondIndexSymbol(const NodePtr &cond_input, Expression &cond_index_sym,
+                                                  const std::string &node_type) {
   auto op_desc = cond_input->GetOpDesc();
   GE_ASSERT_NOTNULL(op_desc);
   int32_t data_index = -1;
@@ -109,8 +111,8 @@ Status SymbolicCondRemovePass::GetCondIndexSymbol(const NodePtr &cond_input, Exp
   GE_ASSERT_TRUE(data_index < static_cast<int32_t>(graph_inputs_.size()));
   const auto &tensor = graph_inputs_.at(data_index);
   const auto &ge_tensor_desc = tensor.GetTensorDesc();
-  auto ori_shape = ge_tensor_desc.IsOriginShapeInitialized() ? tensor.GetTensorDesc().GetOriginShape() :
-                   ge_tensor_desc.GetShape();
+  auto ori_shape =
+      ge_tensor_desc.IsOriginShapeInitialized() ? tensor.GetTensorDesc().GetOriginShape() : ge_tensor_desc.GetShape();
   if (ori_shape.IsScalar()) {
     // data连接到多个if/case, 可以复用
     if (created_sym.find(data_index) != created_sym.end()) {
@@ -119,11 +121,13 @@ Status SymbolicCondRemovePass::GetCondIndexSymbol(const NodePtr &cond_input, Exp
       auto cond_value = CondRemovePass::GetCondIndex(&tensor);
       if (cond_value < 0) {
         if (kCaseOpTypes.find(node_type) != kCaseOpTypes.end()) {
-          GELOGI("Get cond index[%d] from node[%s][%s] success, cond_index is negative.", cond_value, cond_input->GetNamePtr(), cond_input->GetTypePtr());
+          GELOGI("Get cond index[%d] from node[%s][%s] success, cond_index is negative.", cond_value,
+                 cond_input->GetNamePtr(), cond_input->GetTypePtr());
           return UNSUPPORTED;
         }
       }
-      GELOGD("Get cond index[%d] from node[%s][%s] success, ", cond_value, cond_input->GetNamePtr(), cond_input->GetTypePtr());
+      GELOGD("Get cond index[%d] from node[%s][%s] success, ", cond_value, cond_input->GetNamePtr(),
+             cond_input->GetTypePtr());
       auto value_source = MakeShared<InputValueForCondSource>(data_index, cond_value);
       auto shape_env = GetCurShapeEnvContext();
       GE_ASSERT_NOTNULL(shape_env);
@@ -186,4 +190,4 @@ Status SymbolicCondRemovePass::Run(NodePtr &node) {
 }
 
 REG_PASS_OPTION("SymbolicCondRemovePass").LEVELS(OoLevel::kO1).SWITCH_OPT(ge::OO_DEAD_CODE_ELIMINATION);
-} // namespace ge
+}  // namespace ge

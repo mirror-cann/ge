@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -61,9 +61,7 @@ void MemoryStatisticManager::RunStatistic() {
     StatisticXsmem();
     std::unique_lock<std::mutex> lock(mtx_);
     // every 2s.
-    thread_condition_.wait_for(lock, std::chrono::seconds(2), [this] {
-      return !thread_run_flag_;
-    });
+    thread_condition_.wait_for(lock, std::chrono::seconds(2), [this] { return !thread_run_flag_; });
   }
 }
 
@@ -227,7 +225,7 @@ bool MemoryStatisticManager::ReadXsmemValue(uint64_t &real_size, uint64_t &peak_
    */
   int32_t ret =
       sscanf_s(statistic_str.c_str(), "%s %lu %lu %lu", pool_id_and_name, kMaxLen, &alloc_size, &real_size, &peak_size);
-  // must parse success 3 args(old version doen not have peak_size)
+  // must parse success 3 args(old version done not have peak_size)
   if (ret < 3) {
     GELOGE(FAILED, "Parse [%s] failed, ret=%d, pool_id_and_name=%s, alloc_size=%lu, real_size=%lu.",
            statistic_str.c_str(), ret, pool_id_and_name, alloc_size, real_size);

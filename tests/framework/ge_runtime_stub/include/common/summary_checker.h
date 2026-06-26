@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,7 +38,7 @@ class SummaryChecker {
   }
 
  protected:
-  template<typename T>
+  template <typename T>
   std::string StrictNodeTypes(const T &nodes, const std::map<std::string, size_t> &node_types_to_count) const {
     std::map<std::string, size_t> actual_node_types_to_count;
     for (const auto &node : nodes) {
@@ -50,7 +50,7 @@ class SummaryChecker {
     return "success";
   }
 
-  template<typename T>
+  template <typename T>
   std::string LooseNodeTypes(const T &nodes, const std::map<std::string, size_t> &node_types_to_count) const {
     std::map<std::string, size_t> actual_node_types_to_count;
     for (const auto &node : nodes) {
@@ -122,7 +122,7 @@ class SummaryChecker {
   ge::ComputeGraphPtr graph_;
 };
 
-class ExeGraphSummaryChecker : public SummaryChecker{
+class ExeGraphSummaryChecker : public SummaryChecker {
  public:
   explicit ExeGraphSummaryChecker(ge::ExecuteGraph *graph) : graph_(graph) {}
 
@@ -142,7 +142,6 @@ class ExeGraphSummaryChecker : public SummaryChecker{
   ge::ExecuteGraph *graph_;
 };
 
-
 }  // namespace gert
 
 #define STRICT_DIRECT_NODE_TYPES(graph, expect_types)                         \
@@ -152,10 +151,10 @@ class ExeGraphSummaryChecker : public SummaryChecker{
   auto ret = gert::SummaryChecker(graph).StrictAllNodeTypes(##__VA_ARGS__); \
   EXPECT_TRUE(ret == "success") << ret
 
-#define EXE_GRAPH_STRICT_DIRECT_NODE_TYPES(graph, expect_types)                           \
+#define EXE_GRAPH_STRICT_DIRECT_NODE_TYPES(graph, expect_types)                       \
   auto ret = gert::ExeGraphSummaryChecker(graph).StrictDirectNodeTypes(expect_types); \
   EXPECT_TRUE(ret == "success") << ret
-#define EXE_GRAPH_STRICT_ALL_NODE_TYPES(graph, ...)                                     \
+#define EXE_GRAPH_STRICT_ALL_NODE_TYPES(graph, ...)                                 \
   auto ret = gert::ExeGraphSummaryChecker(graph).StrictAllNodeTypes(##__VA_ARGS__); \
   EXPECT_TRUE(ret == "success") << ret
 

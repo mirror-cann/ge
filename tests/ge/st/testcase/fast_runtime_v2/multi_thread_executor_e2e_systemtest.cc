@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -44,7 +44,7 @@ graphStatus CalcTensorSizeFromStorageFailedFake(gert::KernelContext *context) {
   }
   return GRAPH_SUCCESS;
 }
-}
+}  // namespace
 class MultiThreadExecutorE2ESystemTest : public bg::BgTest {
  protected:
   void SetUp() override {
@@ -53,13 +53,13 @@ class MultiThreadExecutorE2ESystemTest : public bg::BgTest {
     constexpr int32_t kEnvNoOverwrite = 0;
     int32_t mmRet = 0;
     MM_SYS_SET_ENV(MM_ENV_MAX_RUNTIME_CORE_NUMBER, "3", kEnvNoOverwrite, mmRet);
-    (void) mmRet;
+    (void)mmRet;
   }
   void TearDown() override {
     Test::TearDown();
     int32_t mmRet = 0;
     MM_SYS_UNSET_ENV(MM_ENV_MAX_RUNTIME_CORE_NUMBER, mmRet);
-    (void) mmRet;
+    (void)mmRet;
     while (bg::ValueHolder::PopGraphFrame() != nullptr) {
     }
   }
@@ -234,7 +234,8 @@ void RunWhileGraph(const TaskProducerType &producer_type) {
     auto outputs = FakeTensors({}, 1, &output);
 
     rtStream_t stream;
-    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
+    ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0),
+              RT_ERROR_NONE);
     auto i1 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
     auto inputs = FakeTensors({}, 1);
@@ -298,9 +299,12 @@ void RunCaseGraph(TensorHolder &index_tensor, const TaskProducerType &producer_t
 void RunGraphFailThenSuccess(const TaskProducerType &producer_type) {
   auto graph = ShareGraph::IfCondByShapeGraph();
   graph->TopologicalSorting();
-  const char* const Cast = "Cast";
-  auto ge_root_model = GeModelBuilder(graph).AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
-      .AddTaskDef(Cast, AiCoreTaskDefFaker(Cast).WithHandle()).FakeTbeBin({Cast}).BuildGeRootModel();
+  const char *const Cast = "Cast";
+  auto ge_root_model = GeModelBuilder(graph)
+                           .AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
+                           .AddTaskDef(Cast, AiCoreTaskDefFaker(Cast).WithHandle())
+                           .FakeTbeBin({Cast})
+                           .BuildGeRootModel();
 
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model);
   ASSERT_NE(exe_graph, nullptr);
@@ -317,10 +321,8 @@ void RunGraphFailThenSuccess(const TaskProducerType &producer_type) {
   auto ess = StartExecutorStatistician(model_executor);
   EXPECT_EQ(model_executor->Load(), ge::GRAPH_SUCCESS);
 
-  auto output_holder = TensorFaker().Placement(kOnDeviceHbm).DataType(ge::DT_FLOAT)
-      .Format(ge::FORMAT_ND)
-      .Shape({2, 3, 4, 6})
-      .Build();
+  auto output_holder =
+      TensorFaker().Placement(kOnDeviceHbm).DataType(ge::DT_FLOAT).Format(ge::FORMAT_ND).Shape({2, 3, 4, 6}).Build();
   std::vector<Tensor *> outputs{output_holder.GetTensor()};
 
   auto i0 = TensorFaker().Placement(kOnDeviceHbm).DataType(ge::DT_INT32).Value<int32_t>({1}).Build();
@@ -445,8 +447,7 @@ TEST_F(MultiThreadExecutorE2ESystemTest, schedule_by_kernel_and_profiling_succes
   ge::diagnoseSwitch::EnableProfiling({ProfilingType::kTaskTime});
 
   size_t report_event_count = 0U;
-  auto default_check_func = [&](uint32_t moduleId, uint32_t type, void *data,
-                                                  uint32_t len) -> int32_t {
+  auto default_check_func = [&](uint32_t moduleId, uint32_t type, void *data, uint32_t len) -> int32_t {
     if (type == InfoType::kEvent) {
       ++report_event_count;
     }

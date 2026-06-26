@@ -356,7 +356,7 @@ TEST(RtsEngineOpTest, inputsize_error5) {
       ASSERT_EQ(ret, ge::FAILED);
       memcpyAsyncOpPtr->FillContextInfo(*nodePtr, 1);
       memcpyAsyncOpPtr->Run(tasks);
-      std::cout << "MemcpyAsyncOp CheckInputSize faild, index is invaild" << std::endl;
+      std::cout << "MemcpyAsyncOp CheckInputSize failed, index is invalid" << std::endl;
     } else {
       std::cout << "memcpyAsyncOpPtr is NULL" << std::endl;
     }
@@ -390,7 +390,7 @@ TEST(RtsEngineOpTest, inputsize_error6) {
       std::cout << "op_desc_ = " << memcpyAsyncOpPtr->op_desc_ << std::endl;
       memcpyAsyncOpPtr->FillContextInfo(*nodePtr, 1);
       memcpyAsyncOpPtr->Run(tasks);
-      std::cout << "MemcpyAsyncOp CheckInputSize faild, op_desc_ is nullptr" << std::endl;
+      std::cout << "MemcpyAsyncOp CheckInputSize failed, op_desc_ is nullptr" << std::endl;
     } else {
       std::cout << "memcpyAsyncOpPtr is NULL" << std::endl;
     }
@@ -437,7 +437,7 @@ TEST(RtsEngineOpTest, StreamMergeOp_test) {
       std::cout << "op_desc_ = " << streamMergeOpOpPtr->op_desc_ << std::endl;
       ge::Status ret = streamMergeOpOpPtr->Run(tasks);
       ASSERT_EQ(ret, ge::SUCCESS);
-      std::cout << "streamMergeOpOpPtr CheckInputSize faild, op_desc_ is nullptr" << std::endl;
+      std::cout << "streamMergeOpOpPtr CheckInputSize failed, op_desc_ is nullptr" << std::endl;
     } else {
       std::cout << "streamMergeOpOpPtr is NULL" << std::endl;
     }
@@ -473,7 +473,7 @@ TEST(RtsEngineOpTest, StreamSwitchNOp_test_ok) {
       ASSERT_EQ(ret, ge::SUCCESS);
       ret = streamSwitchNOpPtr->UpdateTaskDef(tasks);
       ASSERT_EQ(ret, ge::SUCCESS);
-      std::cout << "streamSwitchNOpPtr CheckInputSize faild, op_desc_ is nullptr" << std::endl;
+      std::cout << "streamSwitchNOpPtr CheckInputSize failed, op_desc_ is nullptr" << std::endl;
     } else {
       std::cout << "streamSwitchNOpPtr is NULL" << std::endl;
     }
@@ -513,7 +513,7 @@ TEST(RtsEngineOpTest, StreamSwitchNOp_test_fail) {
       (void)AttrUtils::SetInt(op_desc, ATTR_NAME_BATCH_NUM, 3U);
       ret = streamSwitchNOpPtr->UpdateTaskDef(tasks);
       ASSERT_EQ(ret, ge::FAILED);
-      std::cout << "streamSwitchNOpPtr CheckInputSize faild, op_desc_ is nullptr" << std::endl;
+      std::cout << "streamSwitchNOpPtr CheckInputSize failed, op_desc_ is nullptr" << std::endl;
     } else {
       std::cout << "streamSwitchNOpPtr is NULL" << std::endl;
     }

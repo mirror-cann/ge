@@ -2,18 +2,20 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
 
 from enum import Enum
+
 from llm_datadist_v1 import llm_wrapper
 
 from .utils import log
+
 
 class LLMStatusCode(Enum):
     LLM_SUCCESS = llm_wrapper.kSuccess
@@ -90,11 +92,11 @@ _code_2_status = {
     llm_wrapper.kLLMLinkBusy: LLMStatusCode.LLM_LINK_BUSY,
     llm_wrapper.kLLMOutOfMemory: LLMStatusCode.LLM_OUT_OF_MEMORY,
     llm_wrapper.kLLMDeviceMemError: LLMStatusCode.LLM_DEVICE_MEM_ERROR,
-    llm_wrapper.kLLMSuspectRemoteError: LLMStatusCode.LLM_SUSPECT_REMOTE_ERROR
+    llm_wrapper.kLLMSuspectRemoteError: LLMStatusCode.LLM_SUSPECT_REMOTE_ERROR,
 }
 
 
-class Status():
+class Status:
     def __init__(self, status):
         self._status_code = status
 
@@ -122,8 +124,10 @@ def code_2_status(status) -> LLMStatusCode:
 
 def handle_llm_status(status, func_name, other_info):
     if status != int(llm_wrapper.kSuccess):
-        raise LLMException(f"{func_name} failed, error code is {code_2_status(status)}, {other_info}.",
-                           status_code=code_2_status(status))
+        raise LLMException(
+            f"{func_name} failed, error code is {code_2_status(status)}, {other_info}.",
+            status_code=code_2_status(status),
+        )
 
 
 def raise_if_false(pred, fmt, *args, status_code=LLMStatusCode.LLM_PARAM_INVALID, **kwargs):

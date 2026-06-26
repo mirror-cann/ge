@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -172,12 +172,12 @@ class DumpStub {
 
   uint64_t AdumpGetDumpSwitch(const Adx::DumpType dumpType);
 
-  void RecordCall(const std::string& func_name, uint32_t module_id) {
+  void RecordCall(const std::string &func_name, uint32_t module_id) {
     std::lock_guard<std::mutex> lk(mu_);
     call_records_[func_name] = module_id;
   }
 
-  uint32_t GetCallRecord(const std::string& func_name) {
+  uint32_t GetCallRecord(const std::string &func_name) {
     std::lock_guard<std::mutex> lk(mu_);
     auto it = call_records_.find(func_name);
     return it != call_records_.end() ? it->second : 0;
@@ -190,11 +190,11 @@ class DumpStub {
   std::vector<std::vector<uint64_t>> units_;
   std::vector<std::vector<uint64_t>> units_dynamic_;
   std::vector<std::vector<uint64_t>> units_static_;
-  std::vector<Adx::OperatorInfoV2> dump_op_infos_;            // for exception dump
+  std::vector<Adx::OperatorInfoV2> dump_op_infos_;          // for exception dump
   std::vector<std::vector<gert::Tensor>> dump_op_tensors_;  // for exception dump
   std::map<std::string, int32_t> stub_func_ret_;
   std::map<Adx::DumpType, Adx::DumpConfig> dump_configs_;
-  bool is_enable_ {true};
+  bool is_enable_{true};
 };
 }  // namespace ge
 

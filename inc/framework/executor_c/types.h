@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,21 +17,15 @@
 extern "C" {
 #endif
 #define MODEL_FILE_CHECKSUM_LENGTH 64
-#define MODEL_NAME_LENGTH          32
-#define USER_DEFINE_INFO_LENGTH    32
-#define PLATFORM_VERSION_LEN       20
+#define MODEL_NAME_LENGTH 32
+#define USER_DEFINE_INFO_LENGTH 32
+#define PLATFORM_VERSION_LEN 20
 #define MODEL_FILE_RESERVED_LENGTH 75
-#define MODEL_FILE_MAGIC_NUM       0x444F4D49
+#define MODEL_FILE_MAGIC_NUM 0x444F4D49
 
-enum ModelEncryptType {
-  UNENCRYPTED,
-  ENCRYPTED
-};
+enum ModelEncryptType { UNENCRYPTED, ENCRYPTED };
 
-enum ModelCheckType {
-  CHECK,
-  UNCHECK
-};
+enum ModelCheckType { CHECK, UNCHECK };
 
 typedef enum {
   MODEL_DEF = 0,
@@ -52,20 +46,19 @@ typedef enum {
   PRE_MODEL_DESC_EXTEND = 23
 } ModelPartitionType;
 
-
 typedef struct {
-  uint32_t magic;                               // magic number of DOMI
-  uint32_t headsize ;                           // length of the model header. The value is fixed at 256
-  uint32_t version;                             // version 1.0
-  uint8_t checksum[MODEL_FILE_CHECKSUM_LENGTH]; // signature
+  uint32_t magic;                                // magic number of DOMI
+  uint32_t headsize;                             // length of the model header. The value is fixed at 256
+  uint32_t version;                              // version 1.0
+  uint8_t checksum[MODEL_FILE_CHECKSUM_LENGTH];  // signature
   uint32_t length;  // Ciphertext length. In the non-encryption model, the length is the plaintext length.
   // whether encrypted 0:not encrypt, 1:encrypt
   uint8_t is_encrypt;
-  uint8_t is_checksum;                          // whether to check the checksum
-  uint8_t modeltype;                            // 0:IR model 1:standard model 2:OM Tiny model 3:flow model
-  uint8_t genmode;                              // 0：offline generate 1：online generate
-  uint8_t name[MODEL_NAME_LENGTH];              // Model name, which contains 32 characters
-  uint32_t ops;                                 // Computing power (Kops)
+  uint8_t is_checksum;                              // whether to check the checksum
+  uint8_t modeltype;                                // 0:IR model 1:standard model 2:OM Tiny model 3:flow model
+  uint8_t genmode;                                  // 0：offline generate 1：online generate
+  uint8_t name[MODEL_NAME_LENGTH];                  // Model name, which contains 32 characters
+  uint32_t ops;                                     // Computing power (Kops)
   uint8_t userdefineinfo[USER_DEFINE_INFO_LENGTH];  // User-defined information. The value contains 32 characters
   uint32_t om_ir_version;
   uint32_t model_num;
@@ -85,7 +78,7 @@ typedef struct {
   ModelPartitionMemInfo partition[0];
 } ModelPartitionTable;
 
-enum TagType {INPUT_DESC_TAG = 0, OUTPUT_DESC_TAG, NAME_TAG = 10, DIMES_TAG = 11};
+enum TagType { INPUT_DESC_TAG = 0, OUTPUT_DESC_TAG, NAME_TAG = 10, DIMES_TAG = 11 };
 
 typedef struct {
   uint8_t tag;
@@ -137,7 +130,7 @@ typedef enum {
   FORMAT_CN,
   FORMAT_NC = 35,
   FORMAT_DHWNC,
-  FORMAT_FRACTAL_Z_3D_TRANSPOSE, // 3D filter(transpose) input tensor format
+  FORMAT_FRACTAL_Z_3D_TRANSPOSE,  // 3D filter(transpose) input tensor format
   FORMAT_FRACTAL_ZN_LSTM,
   FORMAT_FRACTAL_Z_G,
   FORMAT_RESERVED = 40,
@@ -233,10 +226,7 @@ typedef struct {
   Vector output_desc;
 } ModelInOutInfo;
 
-enum ModelDescType {
-  MODEL_INPUT_DESC,
-  MODEL_OUTPUT_DESC
-};
+enum ModelDescType { MODEL_INPUT_DESC, MODEL_OUTPUT_DESC };
 
 typedef struct {
   int32_t type;

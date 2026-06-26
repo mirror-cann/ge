@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,21 +33,16 @@ using namespace fe;
 
 class BufferFusionCycleDetectionUt : public testing::Test {
  public:
-
  protected:
   virtual void SetUp() {
     graph_comm_ptr_ = std::make_shared<GraphComm>("engineName");
     graph_comm_ptr_->Initialize();
-    fusion_priority_mgr_ptr_ = std::make_shared<FusionPriorityManager>(
-        "engineName", nullptr);
+    fusion_priority_mgr_ptr_ = std::make_shared<FusionPriorityManager>("engineName", nullptr);
 
-    sub_graph_optimizer_ptr_ =
-        std::make_shared<BufferFusion>(graph_comm_ptr_, fusion_priority_mgr_ptr_, nullptr);
+    sub_graph_optimizer_ptr_ = std::make_shared<BufferFusion>(graph_comm_ptr_, fusion_priority_mgr_ptr_, nullptr);
   }
 
-  virtual void TearDown() {
-
-  }
+  virtual void TearDown() {}
 
   std::shared_ptr<GraphComm> graph_comm_ptr_;
   std::shared_ptr<FusionPriorityManager> fusion_priority_mgr_ptr_;
@@ -74,18 +69,20 @@ class Conv2dAddRelu6MulMulFusionPass : public BufferFusionPassBase {
   ~Conv2dAddRelu6MulMulFusionPass() {}
 
  protected:
-  vector<BufferFusionPattern*> DefinePatterns() override {
-    vector<BufferFusionPattern*> patterns;
+  vector<BufferFusionPattern *> DefinePatterns() override {
+    vector<BufferFusionPattern *> patterns;
 
     string pattern_name = "ConvAddRelu6MulMulFusionPass";
-    BufferFusionPattern* pattern = new (std::nothrow) BufferFusionPattern(pattern_name);
+    BufferFusionPattern *pattern = new (std::nothrow) BufferFusionPattern(pattern_name);
     FE_CHECK((pattern == nullptr), FE_LOGE("new an object failed."), return patterns);
     FE_LOGD("Start to define %s pass pattern.", pattern_name.c_str());
     /* define pattern    conv2d(depthwise)   -->     add  -->  relu6  -->   mul1   -->    mul2
      *                      |           otherinput1--/                      / otherinput2-/
      *                      |----------------------------------------------/
      */
-    pattern->AddOpDesc(kPatternConv, {OP_PATTERN_CONV, OP_PATTERN_DEPTHWISE_CONV}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT)
+    pattern
+        ->AddOpDesc(kPatternConv, {OP_PATTERN_CONV, OP_PATTERN_DEPTHWISE_CONV}, TBE_PATTERN_NUM_DEFAULT,
+                    TBE_PATTERN_NUM_DEFAULT)
         .AddOpDesc(kPatternAdd, {OP_PATTERN_ELEMWISE}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT)
         .AddOpDesc(kPatternRelu6, {OP_PATTERN_ELEMWISE}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT)
         .AddOpDesc(kPatternMul1, {OP_PATTERN_ELEMWISE}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT)
@@ -113,18 +110,20 @@ class Conv2dAddRelu6MulMulFusionPass2_2 : public BufferFusionPassBase {
   ~Conv2dAddRelu6MulMulFusionPass2_2() {}
 
  protected:
-  vector<BufferFusionPattern*> DefinePatterns() override {
-    vector<BufferFusionPattern*> patterns;
+  vector<BufferFusionPattern *> DefinePatterns() override {
+    vector<BufferFusionPattern *> patterns;
 
     string pattern_name = "Conv2dAddRelu6MulMulFusionPass2_2";
-    BufferFusionPattern* pattern = new (std::nothrow) BufferFusionPattern(pattern_name);
+    BufferFusionPattern *pattern = new (std::nothrow) BufferFusionPattern(pattern_name);
     FE_CHECK((pattern == nullptr), FE_LOGE("new an object failed."), return patterns);
     FE_LOGD("Start to define %s pass pattern.", pattern_name.c_str());
     /* define pattern    conv2d(depthwise)   -->     add  -->  relu6  -->   mul1
      *                      |           otherinput1--/                      /
      *                      |----------------------------------------------/
      */
-    pattern->AddOpDesc(kPatternConv, {OP_PATTERN_CONV, OP_PATTERN_DEPTHWISE_CONV}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT)
+    pattern
+        ->AddOpDesc(kPatternConv, {OP_PATTERN_CONV, OP_PATTERN_DEPTHWISE_CONV}, TBE_PATTERN_NUM_DEFAULT,
+                    TBE_PATTERN_NUM_DEFAULT)
         .AddOpDesc(kPatternAdd, {OP_PATTERN_ELEMWISE}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT)
         .AddOpDesc(kPatternRelu6, {OP_PATTERN_ELEMWISE}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT)
         .AddOpDesc(kPatternMul1, {OP_PATTERN_ELEMWISE}, 0, TBE_PATTERN_NUM_DEFAULT)
@@ -148,18 +147,20 @@ class Conv2dAddRelu6MulMulFusionPass3 : public BufferFusionPassBase {
   ~Conv2dAddRelu6MulMulFusionPass3() {}
 
  protected:
-  vector<BufferFusionPattern*> DefinePatterns() override {
-    vector<BufferFusionPattern*> patterns;
+  vector<BufferFusionPattern *> DefinePatterns() override {
+    vector<BufferFusionPattern *> patterns;
 
     string pattern_name = "ConvAddRelu6MulMulFusionPass3";
-    BufferFusionPattern* pattern = new (std::nothrow) BufferFusionPattern(pattern_name);
+    BufferFusionPattern *pattern = new (std::nothrow) BufferFusionPattern(pattern_name);
     FE_CHECK((pattern == nullptr), FE_LOGE("new an object failed."), return patterns);
     FE_LOGD("Start to define %s pass pattern.", pattern_name.c_str());
     /* define pattern    conv2d(depthwise)   -->     add  -->  relu6  -->   mul1 --> mul2
      *                      |           otherinput1--/                      /
      *                      |----------------------------------------------/
      */
-    pattern->AddOpDesc(kPatternConv, {OP_PATTERN_CONV, OP_PATTERN_DEPTHWISE_CONV}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT)
+    pattern
+        ->AddOpDesc(kPatternConv, {OP_PATTERN_CONV, OP_PATTERN_DEPTHWISE_CONV}, TBE_PATTERN_NUM_DEFAULT,
+                    TBE_PATTERN_NUM_DEFAULT)
         .AddOpDesc(kPatternAdd, {OP_PATTERN_ELEMWISE}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT)
         .AddOpDesc(kPatternRelu6, {OP_PATTERN_ELEMWISE}, 0, TBE_PATTERN_NUM_DEFAULT)
         .AddOpDesc(kPatternMul1, {OP_PATTERN_ELEMWISE}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT)
@@ -181,25 +182,26 @@ class Conv2dAddRelu6MulMulFusionPass3 : public BufferFusionPassBase {
   }
 };
 
-
 class Conv2dAddRelu6MulMulFusionPass3_2 : public BufferFusionPassBase {
  public:
   Conv2dAddRelu6MulMulFusionPass3_2() {}
   ~Conv2dAddRelu6MulMulFusionPass3_2() {}
 
  protected:
-  vector<BufferFusionPattern*> DefinePatterns() override {
-    vector<BufferFusionPattern*> patterns;
+  vector<BufferFusionPattern *> DefinePatterns() override {
+    vector<BufferFusionPattern *> patterns;
 
     string pattern_name = "Conv2dAddRelu6MulMulFusionPass3_2";
-    BufferFusionPattern* pattern = new (std::nothrow) BufferFusionPattern(pattern_name);
+    BufferFusionPattern *pattern = new (std::nothrow) BufferFusionPattern(pattern_name);
     FE_CHECK((pattern == nullptr), FE_LOGE("new an object failed."), return patterns);
     FE_LOGD("Start to define %s pass pattern.", pattern_name.c_str());
     /* define pattern    conv2d(depthwise)   -->     add  -->  relu6  -->   mul1
      *                      |           otherinput1--/                      /
      *                      |----------------------------------------------/
      */
-    pattern->AddOpDesc(kPatternConv, {OP_PATTERN_CONV, OP_PATTERN_DEPTHWISE_CONV}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT)
+    pattern
+        ->AddOpDesc(kPatternConv, {OP_PATTERN_CONV, OP_PATTERN_DEPTHWISE_CONV}, TBE_PATTERN_NUM_DEFAULT,
+                    TBE_PATTERN_NUM_DEFAULT)
         .AddOpDesc(kPatternAdd, {OP_PATTERN_ELEMWISE}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT)
         .AddOpDesc(kPatternRelu6, {OP_PATTERN_ELEMWISE}, 0, TBE_PATTERN_NUM_DEFAULT)
         .AddOpDesc(kPatternMul1, {OP_PATTERN_ELEMWISE}, 0, TBE_PATTERN_NUM_DEFAULT)
@@ -223,11 +225,11 @@ class Conv2dAddRelu6MulMulFusionPass4 : public BufferFusionPassBase {
   ~Conv2dAddRelu6MulMulFusionPass4() {}
 
  protected:
-  vector<BufferFusionPattern*> DefinePatterns() override {
-    vector<BufferFusionPattern*> patterns;
+  vector<BufferFusionPattern *> DefinePatterns() override {
+    vector<BufferFusionPattern *> patterns;
 
     string pattern_name = "Conv2dAddRelu6MulMulFusionPass4";
-    BufferFusionPattern* pattern = new (std::nothrow) BufferFusionPattern(pattern_name);
+    BufferFusionPattern *pattern = new (std::nothrow) BufferFusionPattern(pattern_name);
     FE_CHECK((pattern == nullptr), FE_LOGE("new an object failed."), return patterns);
     FE_LOGD("Start to define %s pass pattern.", pattern_name.c_str());
     /* define pattern    conv2d(depthwise)   -->     add  -->  relu6  -->   mul1   -->    mul2
@@ -235,7 +237,8 @@ class Conv2dAddRelu6MulMulFusionPass4 : public BufferFusionPassBase {
      *                      |----------------------------------------------/
      */
     pattern->AddOpDesc(kPatternConvHead, {OP_PATTERN_CONV}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT)
-        .AddOpDesc(kPatternConv, {OP_PATTERN_CONV, OP_PATTERN_DEPTHWISE_CONV}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT)
+        .AddOpDesc(kPatternConv, {OP_PATTERN_CONV, OP_PATTERN_DEPTHWISE_CONV}, TBE_PATTERN_NUM_DEFAULT,
+                   TBE_PATTERN_NUM_DEFAULT)
         .AddOpDesc(kPatternAdd, {OP_PATTERN_ELEMWISE}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT)
         .AddOpDesc(kPatternRelu6, {OP_PATTERN_ELEMWISE}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT)
         .AddOpDesc(kPatternMul1, {OP_PATTERN_ELEMWISE}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT)
@@ -264,18 +267,19 @@ class Conv2dAddRelu6MulMulFusionPass5 : public BufferFusionPassBase {
   ~Conv2dAddRelu6MulMulFusionPass5() {}
 
  protected:
-  vector<BufferFusionPattern*> DefinePatterns() override {
-    vector<BufferFusionPattern*> patterns;
+  vector<BufferFusionPattern *> DefinePatterns() override {
+    vector<BufferFusionPattern *> patterns;
 
     string pattern_name = "Conv2dAddRelu6MulMulFusionPass5";
-    BufferFusionPattern* pattern = new (std::nothrow) BufferFusionPattern(pattern_name);
+    BufferFusionPattern *pattern = new (std::nothrow) BufferFusionPattern(pattern_name);
     FE_CHECK((pattern == nullptr), FE_LOGE("new an object failed."), return patterns);
     FE_LOGD("Start to define %s pass pattern.", pattern_name.c_str());
     /* define pattern    conv2d(depthwise)   -->     add  -->  relu6  -->   mul1
      *
      */
     pattern->AddOpDesc(kPatternConvHead, {OP_PATTERN_CONV}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT)
-        .AddOpDesc(kPatternConv, {OP_PATTERN_CONV, OP_PATTERN_DEPTHWISE_CONV}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT)
+        .AddOpDesc(kPatternConv, {OP_PATTERN_CONV, OP_PATTERN_DEPTHWISE_CONV}, TBE_PATTERN_NUM_DEFAULT,
+                   TBE_PATTERN_NUM_DEFAULT)
         .AddOpDesc(kPatternAdd, {OP_PATTERN_ELEMWISE}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT)
         .AddOpDesc(kPatternRelu6, {OP_PATTERN_ELEMWISE}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT)
         .AddOpDesc(kPatternMul1, {OP_PATTERN_ELEMWISE}, TBE_PATTERN_NUM_DEFAULT, 5)
@@ -302,18 +306,19 @@ class Conv2dAddRelu6MulMulFusionPass6 : public BufferFusionPassBase {
   ~Conv2dAddRelu6MulMulFusionPass6() {}
 
  protected:
-  vector<BufferFusionPattern*> DefinePatterns() override {
-    vector<BufferFusionPattern*> patterns;
+  vector<BufferFusionPattern *> DefinePatterns() override {
+    vector<BufferFusionPattern *> patterns;
 
     string pattern_name = "Conv2dAddRelu6MulMulFusionPass6";
-    BufferFusionPattern* pattern = new (std::nothrow) BufferFusionPattern(pattern_name);
+    BufferFusionPattern *pattern = new (std::nothrow) BufferFusionPattern(pattern_name);
     FE_CHECK((pattern == nullptr), FE_LOGE("new an object failed."), return patterns);
     FE_LOGD("Start to define %s pass pattern.", pattern_name.c_str());
     /* define pattern    conv2d(depthwise)   -->     add  -->  relu6  -->   mul1
      *
      */
     pattern->AddOpDesc(kPatternConvHead, {OP_PATTERN_CONV}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT)
-        .AddOpDesc(kPatternConv, {OP_PATTERN_CONV, OP_PATTERN_DEPTHWISE_CONV}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT)
+        .AddOpDesc(kPatternConv, {OP_PATTERN_CONV, OP_PATTERN_DEPTHWISE_CONV}, TBE_PATTERN_NUM_DEFAULT,
+                   TBE_PATTERN_NUM_DEFAULT)
         .AddOpDesc(kPatternAdd, {OP_PATTERN_ELEMWISE}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT)
         .AddOpDesc(kPatternRelu6, {OP_PATTERN_ELEMWISE}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT)
         .AddOpDesc(kPatternMul1, {TBE_PATTERN_OP_TYPE_ANY}, TBE_PATTERN_NUM_DEFAULT, 5)
@@ -334,25 +339,25 @@ class Conv2dAddRelu6MulMulFusionPass6 : public BufferFusionPassBase {
   }
 };
 
-
 class Conv2dAddRelu6MulMulFusionPass7 : public BufferFusionPassBase {
  public:
   Conv2dAddRelu6MulMulFusionPass7() {}
   ~Conv2dAddRelu6MulMulFusionPass7() {}
 
  protected:
-  vector<BufferFusionPattern*> DefinePatterns() override {
-    vector<BufferFusionPattern*> patterns;
+  vector<BufferFusionPattern *> DefinePatterns() override {
+    vector<BufferFusionPattern *> patterns;
 
     string pattern_name = "Conv2dAddRelu6MulMulFusionPass7";
-    BufferFusionPattern* pattern = new (std::nothrow) BufferFusionPattern(pattern_name);
+    BufferFusionPattern *pattern = new (std::nothrow) BufferFusionPattern(pattern_name);
     FE_CHECK((pattern == nullptr), FE_LOGE("new an object failed."), return patterns);
     FE_LOGD("Start to define %s pass pattern.", pattern_name.c_str());
     /* define pattern    conv2d(depthwise)   -->     add  -->  relu6  -->   mul1
      *
      */
     pattern->AddOpDesc(kPatternConvHead, {OP_PATTERN_CONV}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT)
-        .AddOpDesc(kPatternConv, {OP_PATTERN_CONV, OP_PATTERN_DEPTHWISE_CONV}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT)
+        .AddOpDesc(kPatternConv, {OP_PATTERN_CONV, OP_PATTERN_DEPTHWISE_CONV}, TBE_PATTERN_NUM_DEFAULT,
+                   TBE_PATTERN_NUM_DEFAULT)
         .AddOpDesc(kPatternAdd, {OP_PATTERN_ELEMWISE}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT)
         .AddOpDesc(kPatternRelu6, {OP_PATTERN_ELEMWISE}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT)
         .AddOpDesc(kPatternMul1, {TBE_PATTERN_OUTPUT_NODE}, TBE_PATTERN_NUM_DEFAULT, 5)
@@ -379,18 +384,19 @@ class Conv2dAddRelu6MulMulFusionPass8 : public BufferFusionPassBase {
   ~Conv2dAddRelu6MulMulFusionPass8() {}
 
  protected:
-  vector<BufferFusionPattern*> DefinePatterns() override {
-    vector<BufferFusionPattern*> patterns;
+  vector<BufferFusionPattern *> DefinePatterns() override {
+    vector<BufferFusionPattern *> patterns;
 
     string pattern_name = "Conv2dAddRelu6MulMulFusionPass8";
-    BufferFusionPattern* pattern = new (std::nothrow) BufferFusionPattern(pattern_name);
+    BufferFusionPattern *pattern = new (std::nothrow) BufferFusionPattern(pattern_name);
     FE_CHECK((pattern == nullptr), FE_LOGE("new an object failed."), return patterns);
     FE_LOGD("Start to define %s pass pattern.", pattern_name.c_str());
     /* define pattern    conv2d(depthwise)   -->     add  -->  relu6  -->   mul1
      *
      */
     pattern->AddOpDesc(kPatternConvHead, {OP_PATTERN_CONV}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT)
-        .AddOpDesc(kPatternConv, {OP_PATTERN_CONV, OP_PATTERN_DEPTHWISE_CONV}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT)
+        .AddOpDesc(kPatternConv, {OP_PATTERN_CONV, OP_PATTERN_DEPTHWISE_CONV}, TBE_PATTERN_NUM_DEFAULT,
+                   TBE_PATTERN_NUM_DEFAULT)
         .AddOpDesc(kPatternAdd, {OP_PATTERN_ELEMWISE}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT)
         .AddOpDesc(kPatternRelu6, {OP_PATTERN_ELEMWISE}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT)
         .AddOpDesc(kPatternMul1, {OP_PATTERN_ELEMWISE}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT)
@@ -417,8 +423,7 @@ class Conv2dAddRelu6MulMulFusionPass8 : public BufferFusionPassBase {
 namespace cycle_detection {
 void BuildGraph01(ge::ComputeGraphPtr &graph) {
   ge::GeShape original_shape = ge::GeShape({3, 161, 5, 6});
-  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16, original_shape);
   test.AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv", "Conv2D", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "add", "Add", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "relu6", "Relu6", 1, 1)
@@ -439,8 +444,7 @@ void BuildGraph01(ge::ComputeGraphPtr &graph) {
 // contains control edges cycle
 void BuildGraph02(ge::ComputeGraphPtr &graph) {
   ge::GeShape original_shape = ge::GeShape({3, 161, 5, 6});
-  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16, original_shape);
   test.AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv", "Conv2D", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "add", "Add", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "relu6", "Relu6", 1, 1)
@@ -462,8 +466,7 @@ void BuildGraph02(ge::ComputeGraphPtr &graph) {
 // contains control edges cycle
 void BuildGraph02_1(ge::ComputeGraphPtr &graph) {
   ge::GeShape original_shape = ge::GeShape({3, 161, 5, 6});
-  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16, original_shape);
   test.AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv", "Conv2D", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "add", "Add", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "relu6", "Relu6", 1, 1)
@@ -486,8 +489,7 @@ void BuildGraph02_1(ge::ComputeGraphPtr &graph) {
 // contains control edges cycle
 void BuildGraph02_2(ge::ComputeGraphPtr &graph) {
   ge::GeShape original_shape = ge::GeShape({3, 161, 5, 6});
-  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16, original_shape);
   test.AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv", "Conv2D", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "add", "Add", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "relu6", "Relu6", 1, 1)
@@ -507,8 +509,7 @@ void BuildGraph02_2(ge::ComputeGraphPtr &graph) {
 
 void BuildGraph03(ge::ComputeGraphPtr &graph) {
   ge::GeShape original_shape = ge::GeShape({3, 161, 5, 6});
-  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16, original_shape);
   test.AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv", "Conv2D", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "add", "Add", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "Opaque", "relu6", "Relu6", 1, 1)
@@ -528,8 +529,7 @@ void BuildGraph03(ge::ComputeGraphPtr &graph) {
 
 void BuildGraph03_1(ge::ComputeGraphPtr &graph) {
   ge::GeShape original_shape = ge::GeShape({3, 161, 5, 6});
-  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16, original_shape);
   test.AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv", "Conv2D", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "add", "Add", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "Opaque", "relu6", "Relu6", 1, 1)
@@ -547,8 +547,7 @@ void BuildGraph03_1(ge::ComputeGraphPtr &graph) {
 
 void BuildGraph04(ge::ComputeGraphPtr &graph) {
   ge::GeShape original_shape = ge::GeShape({3, 161, 5, 6});
-  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16, original_shape);
   test.AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv/head", "Conv2D", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv", "Conv2D", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "add", "Add", 2, 1)
@@ -585,8 +584,7 @@ void BuildGraph04(ge::ComputeGraphPtr &graph) {
  * contains a cycle. */
 void BuildGraph05(ge::ComputeGraphPtr &graph) {
   ge::GeShape original_shape = ge::GeShape({3, 161, 5, 6});
-  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16, original_shape);
   test.AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv/head", "Conv2D", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv", "Conv2D", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "add", "Add", 2, 1)
@@ -622,8 +620,7 @@ void BuildGraph05(ge::ComputeGraphPtr &graph) {
 /* The topological first branch is longer but it contains a cycle. */
 void BuildGraph05_1(ge::ComputeGraphPtr &graph) {
   ge::GeShape original_shape = ge::GeShape({3, 161, 5, 6});
-  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16, original_shape);
   test.AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv/head", "Conv2D", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv", "Conv2D", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "add", "Add", 2, 1)
@@ -658,13 +655,11 @@ void BuildGraph05_1(ge::ComputeGraphPtr &graph) {
   test.DumpGraph(graph);
 }
 
-
 /* The topological first branch is longer.
  * Both branches contain a cycle. */
 void BuildGraph05_2(ge::ComputeGraphPtr &graph) {
   ge::GeShape original_shape = ge::GeShape({3, 161, 5, 6});
-  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16, original_shape);
   test.AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv/head", "Conv2D", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv", "Conv2D", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "add", "Add", 2, 1)
@@ -706,8 +701,7 @@ void BuildGraph05_2(ge::ComputeGraphPtr &graph) {
  * The second is shorter and it contains a cycle. */
 void BuildGraph05_3(ge::ComputeGraphPtr &graph) {
   ge::GeShape original_shape = ge::GeShape({3, 161, 5, 6});
-  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16, original_shape);
   test.AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv/head", "Conv2D", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv", "Conv2D", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "add", "Add", 2, 1)
@@ -746,8 +740,7 @@ void BuildGraph05_3(ge::ComputeGraphPtr &graph) {
  * The first is shorter and it contains a cycle. */
 void BuildGraph05_4(ge::ComputeGraphPtr &graph) {
   ge::GeShape original_shape = ge::GeShape({3, 161, 5, 6});
-  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16, original_shape);
   test.AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv/head", "Conv2D", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv", "Conv2D", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "add", "Add", 2, 1)
@@ -786,8 +779,7 @@ void BuildGraph05_4(ge::ComputeGraphPtr &graph) {
  * The second is longger and it contains a cycle. */
 void BuildGraph05_5(ge::ComputeGraphPtr &graph) {
   ge::GeShape original_shape = ge::GeShape({3, 161, 5, 6});
-  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16, original_shape);
   test.AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv/head", "Conv2D", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv", "Conv2D", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "add", "Add", 2, 1)
@@ -826,8 +818,7 @@ void BuildGraph05_5(ge::ComputeGraphPtr &graph) {
  * mul1 and a real cycle on mul3. */
 void BuildGraph08(ge::ComputeGraphPtr &graph) {
   ge::GeShape original_shape = ge::GeShape({3, 161, 5, 6});
-  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16, original_shape);
   test.AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv/head", "Conv2D", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv", "Conv2D", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "add", "Add", 2, 1)
@@ -853,13 +844,11 @@ void BuildGraph08(ge::ComputeGraphPtr &graph) {
   test.DumpGraph(graph);
 }
 
-
 /* The longest match contains a real cycle on
  * mul3 and a real cycle on mul4. */
 void BuildGraph08_1(ge::ComputeGraphPtr &graph) {
   ge::GeShape original_shape = ge::GeShape({3, 161, 5, 6});
-  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16, original_shape);
   test.AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv/head", "Conv2D", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv", "Conv2D", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "add", "Add", 2, 1)
@@ -891,8 +880,7 @@ void BuildGraph08_1(ge::ComputeGraphPtr &graph) {
  * mul1 and a real cycle on mul4. */
 void BuildGraph08_2(ge::ComputeGraphPtr &graph) {
   ge::GeShape original_shape = ge::GeShape({3, 161, 5, 6});
-  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16, original_shape);
   test.AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv/head", "Conv2D", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv", "Conv2D", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "add", "Add", 2, 1)
@@ -922,8 +910,7 @@ void BuildGraph08_2(ge::ComputeGraphPtr &graph) {
  * mul1 and a real cycle on mul2. */
 void BuildGraph08_3(ge::ComputeGraphPtr &graph) {
   ge::GeShape original_shape = ge::GeShape({3, 161, 5, 6});
-  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16, original_shape);
   test.AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv/head", "Conv2D", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv", "Conv2D", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "add", "Add", 2, 1)
@@ -949,13 +936,11 @@ void BuildGraph08_3(ge::ComputeGraphPtr &graph) {
   test.DumpGraph(graph);
 }
 
-
 /* The longest match contains a real cycle on
  * mul2 and a real cycle on mul4. */
 void BuildGraph08_4(ge::ComputeGraphPtr &graph) {
   ge::GeShape original_shape = ge::GeShape({3, 161, 5, 6});
-  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16, original_shape);
   test.AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv/head", "Conv2D", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv", "Conv2D", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "add", "Add", 2, 1)
@@ -985,8 +970,7 @@ void BuildGraph08_4(ge::ComputeGraphPtr &graph) {
 
 void BuildGraph09(ge::ComputeGraphPtr &graph) {
   ge::GeShape original_shape = ge::GeShape({3, 161, 5, 6});
-  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16, original_shape);
   test.AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "sub", "Sub", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "exp", "Exp", 1, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, "Reduce", "reducesum", "ReduceSumD", 1, 1)
@@ -1003,8 +987,7 @@ void BuildGraph09(ge::ComputeGraphPtr &graph) {
 
 void BuildGraph10(ge::ComputeGraphPtr &graph) {
   ge::GeShape original_shape = ge::GeShape({3, 161, 5, 6});
-  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16, original_shape);
   test.AddOpDesc(EN_IMPL_HW_TBE, OP_PATTERN_CONV, "conv1", "Conv2D", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, OP_PATTERN_DEQUANT, "dequant", "AscendDequant", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, OP_PATTERN_ELEMWISE, "relu", "LeakyRelu", 1, 1)
@@ -1027,8 +1010,7 @@ void BuildGraph10(ge::ComputeGraphPtr &graph) {
 
 void BuildGraph11(ge::ComputeGraphPtr &graph) {
   ge::GeShape original_shape = ge::GeShape({3, 161, 5, 6});
-  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16,
-                        original_shape);
+  GraphConstructor test(graph, "", ge::FORMAT_NCHW, ge::DT_FLOAT16, original_shape);
   test.AddOpDesc(EN_IMPL_HW_TBE, OP_PATTERN_ELEMWISE, "add1", "Add", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, OP_PATTERN_ELEMWISE, "add2", "Add", 2, 1)
       .AddOpDesc(EN_IMPL_HW_TBE, OP_PATTERN_ELEMWISE, "add3", "Add", 2, 1)
@@ -1069,7 +1051,6 @@ void BuildGraph12(ge::ComputeGraphPtr &graph) {
       .SetInputs("NetOutput", {"add2:0", "add3:0"});
   test.DumpGraph(graph);
 }
-
 
 void BuildGraph13(ge::ComputeGraphPtr &graph) {
   GraphConstructor test(graph, "test");
@@ -1135,7 +1116,6 @@ void BuildGraph13(ge::ComputeGraphPtr &graph) {
       .SetInput("NetOutput", "quantfinal:0");
   test.DumpGraph(graph);
 }
-
 
 void BuildGraph14(ge::ComputeGraphPtr &graph) {
   GraphConstructor test(graph, "test");
@@ -1213,7 +1193,7 @@ void BuildGraph14(ge::ComputeGraphPtr &graph) {
       .SetInput("NetOutput", "quantfinal:0");
   test.DumpGraph(graph);
 }
-}
+}  // namespace cycle_detection
 
 /* No final cycle */
 TEST_F(BufferFusionCycleDetectionUt, testcase_01) {
@@ -1223,14 +1203,14 @@ TEST_F(BufferFusionCycleDetectionUt, testcase_01) {
   sub_graph_optimizer_ptr_->engine_name_ = fe::AI_CORE_NAME;
 
   std::shared_ptr<FusionCycleDetector> cycle_detector;
-  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(),);
+  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(), );
   cycle_detector->Initialize(*graph);
   BufferFusionOptimizerPtr buffer_fusion_optimizer = std::make_shared<BufferFusionOptimizer>();
   buffer_fusion_optimizer->Initialize(*graph);
 
   auto create_fn = []() -> BufferFusionPassBase * { return new (std::nothrow) Conv2dAddRelu6MulMulFusionPass(); };
-  BufferFusionPassRunner *test_pass = new (std::nothrow)
-      BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
+  BufferFusionPassRunner *test_pass =
+      new (std::nothrow) BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
   test_pass->Run(*graph);
   sub_graph_optimizer_ptr_->BuildFusionGraph(*graph);
 
@@ -1256,14 +1236,14 @@ TEST_F(BufferFusionCycleDetectionUt, testcase_02) {
   sub_graph_optimizer_ptr_->engine_name_ = fe::AI_CORE_NAME;
 
   std::shared_ptr<FusionCycleDetector> cycle_detector;
-  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(),);
+  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(), );
   cycle_detector->Initialize(*graph);
   BufferFusionOptimizerPtr buffer_fusion_optimizer = std::make_shared<BufferFusionOptimizer>();
   buffer_fusion_optimizer->Initialize(*graph);
 
   auto create_fn = []() -> BufferFusionPassBase * { return new (std::nothrow) Conv2dAddRelu6MulMulFusionPass(); };
-  BufferFusionPassRunner *test_pass = new (std::nothrow)
-      BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
+  BufferFusionPassRunner *test_pass =
+      new (std::nothrow) BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
   test_pass->Run(*graph);
   sub_graph_optimizer_ptr_->BuildFusionGraph(*graph);
 
@@ -1289,14 +1269,14 @@ TEST_F(BufferFusionCycleDetectionUt, testcase_02_1) {
   sub_graph_optimizer_ptr_->engine_name_ = fe::AI_CORE_NAME;
 
   std::shared_ptr<FusionCycleDetector> cycle_detector;
-  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(),);
+  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(), );
   cycle_detector->Initialize(*graph);
   BufferFusionOptimizerPtr buffer_fusion_optimizer = std::make_shared<BufferFusionOptimizer>();
   buffer_fusion_optimizer->Initialize(*graph);
 
   auto create_fn = []() -> BufferFusionPassBase * { return new (std::nothrow) Conv2dAddRelu6MulMulFusionPass(); };
-  BufferFusionPassRunner *test_pass = new (std::nothrow)
-      BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
+  BufferFusionPassRunner *test_pass =
+      new (std::nothrow) BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
 
   test_pass->Run(*graph);
   sub_graph_optimizer_ptr_->BuildFusionGraph(*graph);
@@ -1323,14 +1303,14 @@ TEST_F(BufferFusionCycleDetectionUt, testcase_02_2) {
   sub_graph_optimizer_ptr_->engine_name_ = fe::AI_CORE_NAME;
 
   std::shared_ptr<FusionCycleDetector> cycle_detector;
-  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(),);
+  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(), );
   cycle_detector->Initialize(*graph);
   BufferFusionOptimizerPtr buffer_fusion_optimizer = std::make_shared<BufferFusionOptimizer>();
   buffer_fusion_optimizer->Initialize(*graph);
 
   auto create_fn = []() -> BufferFusionPassBase * { return new (std::nothrow) Conv2dAddRelu6MulMulFusionPass2_2(); };
-  BufferFusionPassRunner *test_pass = new (std::nothrow)
-      BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
+  BufferFusionPassRunner *test_pass =
+      new (std::nothrow) BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
   test_pass->Run(*graph);
   sub_graph_optimizer_ptr_->BuildFusionGraph(*graph);
 
@@ -1350,7 +1330,8 @@ TEST_F(BufferFusionCycleDetectionUt, testcase_02_2) {
 
 TEST_F(BufferFusionCycleDetectionUt, testcase_02_2_mixl2) {
   PlatformUtils::Instance().soc_version_ = "Ascend910B2";
-  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::IsaArchVersion)] = static_cast<int64_t>(ISAArchVersion::EN_ISA_ARCH_V220);
+  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::IsaArchVersion)] =
+      static_cast<int64_t>(ISAArchVersion::EN_ISA_ARCH_V220);
   fe::PlatformInfoManager::Instance().opti_compilation_info_.soc_version = "Ascend910B2";
   fe::PlatformInfoManager::Instance().opti_compilation_infos_.SetSocVersion("Ascend910B2");
 
@@ -1366,14 +1347,14 @@ TEST_F(BufferFusionCycleDetectionUt, testcase_02_2_mixl2) {
   sub_graph_optimizer_ptr_->engine_name_ = fe::AI_CORE_NAME;
 
   std::shared_ptr<FusionCycleDetector> cycle_detector;
-  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(),);
+  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(), );
   cycle_detector->Initialize(*graph);
   BufferFusionOptimizerPtr buffer_fusion_optimizer = std::make_shared<BufferFusionOptimizer>();
   buffer_fusion_optimizer->Initialize(*graph);
 
   auto create_fn = []() -> BufferFusionPassBase * { return new (std::nothrow) Conv2dAddRelu6MulMulFusionPass2_2(); };
-  BufferFusionPassRunner *test_pass = new (std::nothrow)
-          BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
+  BufferFusionPassRunner *test_pass =
+      new (std::nothrow) BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
 
   test_pass->Run(*graph);
   sub_graph_optimizer_ptr_->BuildFusionGraph(*graph);
@@ -1399,14 +1380,14 @@ TEST_F(BufferFusionCycleDetectionUt, testcase_03) {
   sub_graph_optimizer_ptr_->engine_name_ = fe::AI_CORE_NAME;
 
   std::shared_ptr<FusionCycleDetector> cycle_detector;
-  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(),);
+  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(), );
   cycle_detector->Initialize(*graph);
   BufferFusionOptimizerPtr buffer_fusion_optimizer = std::make_shared<BufferFusionOptimizer>();
   buffer_fusion_optimizer->Initialize(*graph);
 
   auto create_fn = []() -> BufferFusionPassBase * { return new (std::nothrow) Conv2dAddRelu6MulMulFusionPass3(); };
-  BufferFusionPassRunner *test_pass = new (std::nothrow)
-      BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
+  BufferFusionPassRunner *test_pass =
+      new (std::nothrow) BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
   test_pass->Run(*graph);
   sub_graph_optimizer_ptr_->BuildFusionGraph(*graph);
 
@@ -1423,7 +1404,6 @@ TEST_F(BufferFusionCycleDetectionUt, testcase_03) {
   EXPECT_EQ(total_node, 10);
 }
 
-
 /* Contains final cycle */
 TEST_F(BufferFusionCycleDetectionUt, testcase_03_1) {
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
@@ -1432,14 +1412,14 @@ TEST_F(BufferFusionCycleDetectionUt, testcase_03_1) {
   sub_graph_optimizer_ptr_->engine_name_ = fe::AI_CORE_NAME;
 
   std::shared_ptr<FusionCycleDetector> cycle_detector;
-  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(),);
+  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(), );
   cycle_detector->Initialize(*graph);
   BufferFusionOptimizerPtr buffer_fusion_optimizer = std::make_shared<BufferFusionOptimizer>();
   buffer_fusion_optimizer->Initialize(*graph);
 
   auto create_fn = []() -> BufferFusionPassBase * { return new (std::nothrow) Conv2dAddRelu6MulMulFusionPass3(); };
-  BufferFusionPassRunner *test_pass = new (std::nothrow)
-      BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
+  BufferFusionPassRunner *test_pass =
+      new (std::nothrow) BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
   test_pass->Run(*graph);
   sub_graph_optimizer_ptr_->BuildFusionGraph(*graph);
 
@@ -1456,7 +1436,6 @@ TEST_F(BufferFusionCycleDetectionUt, testcase_03_1) {
   EXPECT_EQ(total_node, 8);
 }
 
-
 /* Contains final cycle */
 TEST_F(BufferFusionCycleDetectionUt, testcase_03_2) {
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
@@ -1465,14 +1444,14 @@ TEST_F(BufferFusionCycleDetectionUt, testcase_03_2) {
   sub_graph_optimizer_ptr_->engine_name_ = fe::AI_CORE_NAME;
 
   std::shared_ptr<FusionCycleDetector> cycle_detector;
-  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(),);
+  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(), );
   cycle_detector->Initialize(*graph);
   BufferFusionOptimizerPtr buffer_fusion_optimizer = std::make_shared<BufferFusionOptimizer>();
   buffer_fusion_optimizer->Initialize(*graph);
 
   auto create_fn = []() -> BufferFusionPassBase * { return new (std::nothrow) Conv2dAddRelu6MulMulFusionPass3_2(); };
-  BufferFusionPassRunner *test_pass = new (std::nothrow)
-      BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
+  BufferFusionPassRunner *test_pass =
+      new (std::nothrow) BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
   test_pass->Run(*graph);
   sub_graph_optimizer_ptr_->BuildFusionGraph(*graph);
 
@@ -1504,14 +1483,14 @@ TEST_F(BufferFusionCycleDetectionUt, testcase_03_3) {
   sub_graph_optimizer_ptr_->engine_name_ = fe::AI_CORE_NAME;
 
   std::shared_ptr<FusionCycleDetector> cycle_detector;
-  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(),);
+  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(), );
   cycle_detector->Initialize(*graph);
   BufferFusionOptimizerPtr buffer_fusion_optimizer = std::make_shared<BufferFusionOptimizer>();
   buffer_fusion_optimizer->Initialize(*graph);
 
   auto create_fn = []() -> BufferFusionPassBase * { return new (std::nothrow) Conv2dAddRelu6MulMulFusionPass3_2(); };
-  BufferFusionPassRunner *test_pass = new (std::nothrow)
-      BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
+  BufferFusionPassRunner *test_pass =
+      new (std::nothrow) BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
   test_pass->Run(*graph);
   sub_graph_optimizer_ptr_->BuildFusionGraph(*graph);
 }
@@ -1527,14 +1506,14 @@ TEST_F(BufferFusionCycleDetectionUt, testcase_04) {
   sub_graph_optimizer_ptr_->engine_name_ = fe::AI_CORE_NAME;
 
   std::shared_ptr<FusionCycleDetector> cycle_detector;
-  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(),);
+  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(), );
   cycle_detector->Initialize(*graph);
   BufferFusionOptimizerPtr buffer_fusion_optimizer = std::make_shared<BufferFusionOptimizer>();
   buffer_fusion_optimizer->Initialize(*graph);
 
   auto create_fn = []() -> BufferFusionPassBase * { return new (std::nothrow) Conv2dAddRelu6MulMulFusionPass4(); };
-  BufferFusionPassRunner *test_pass = new (std::nothrow)
-      BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
+  BufferFusionPassRunner *test_pass =
+      new (std::nothrow) BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
   test_pass->Run(*graph);
   sub_graph_optimizer_ptr_->BuildFusionGraph(*graph);
 
@@ -1562,14 +1541,14 @@ TEST_F(BufferFusionCycleDetectionUt, testcase_05) {
   sub_graph_optimizer_ptr_->engine_name_ = fe::AI_CORE_NAME;
 
   std::shared_ptr<FusionCycleDetector> cycle_detector;
-  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(),);
+  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(), );
   cycle_detector->Initialize(*graph);
   BufferFusionOptimizerPtr buffer_fusion_optimizer = std::make_shared<BufferFusionOptimizer>();
   buffer_fusion_optimizer->Initialize(*graph);
 
   auto create_fn = []() -> BufferFusionPassBase * { return new (std::nothrow) Conv2dAddRelu6MulMulFusionPass5(); };
-  BufferFusionPassRunner *test_pass = new (std::nothrow)
-      BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
+  BufferFusionPassRunner *test_pass =
+      new (std::nothrow) BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
   test_pass->Run(*graph);
   sub_graph_optimizer_ptr_->BuildFusionGraph(*graph);
 
@@ -1593,14 +1572,14 @@ TEST_F(BufferFusionCycleDetectionUt, testcase_05_1) {
   sub_graph_optimizer_ptr_->engine_name_ = fe::AI_CORE_NAME;
 
   std::shared_ptr<FusionCycleDetector> cycle_detector;
-  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(),);
+  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(), );
   cycle_detector->Initialize(*graph);
   BufferFusionOptimizerPtr buffer_fusion_optimizer = std::make_shared<BufferFusionOptimizer>();
   buffer_fusion_optimizer->Initialize(*graph);
 
   auto create_fn = []() -> BufferFusionPassBase * { return new (std::nothrow) Conv2dAddRelu6MulMulFusionPass5(); };
-  BufferFusionPassRunner *test_pass = new (std::nothrow)
-      BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
+  BufferFusionPassRunner *test_pass =
+      new (std::nothrow) BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
   test_pass->Run(*graph);
   sub_graph_optimizer_ptr_->BuildFusionGraph(*graph);
 
@@ -1624,14 +1603,14 @@ TEST_F(BufferFusionCycleDetectionUt, testcase_05_2) {
   sub_graph_optimizer_ptr_->engine_name_ = fe::AI_CORE_NAME;
 
   std::shared_ptr<FusionCycleDetector> cycle_detector;
-  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(),);
+  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(), );
   cycle_detector->Initialize(*graph);
   BufferFusionOptimizerPtr buffer_fusion_optimizer = std::make_shared<BufferFusionOptimizer>();
   buffer_fusion_optimizer->Initialize(*graph);
 
   auto create_fn = []() -> BufferFusionPassBase * { return new (std::nothrow) Conv2dAddRelu6MulMulFusionPass5(); };
-  BufferFusionPassRunner *test_pass = new (std::nothrow)
-      BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
+  BufferFusionPassRunner *test_pass =
+      new (std::nothrow) BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
   test_pass->Run(*graph);
   sub_graph_optimizer_ptr_->BuildFusionGraph(*graph);
 
@@ -1656,14 +1635,14 @@ TEST_F(BufferFusionCycleDetectionUt, testcase_05_3) {
   sub_graph_optimizer_ptr_->engine_name_ = fe::AI_CORE_NAME;
 
   std::shared_ptr<FusionCycleDetector> cycle_detector;
-  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(),);
+  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(), );
   cycle_detector->Initialize(*graph);
   BufferFusionOptimizerPtr buffer_fusion_optimizer = std::make_shared<BufferFusionOptimizer>();
   buffer_fusion_optimizer->Initialize(*graph);
 
   auto create_fn = []() -> BufferFusionPassBase * { return new (std::nothrow) Conv2dAddRelu6MulMulFusionPass5(); };
-  BufferFusionPassRunner *test_pass = new (std::nothrow)
-      BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
+  BufferFusionPassRunner *test_pass =
+      new (std::nothrow) BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
   test_pass->Run(*graph);
   sub_graph_optimizer_ptr_->BuildFusionGraph(*graph);
 
@@ -1687,14 +1666,14 @@ TEST_F(BufferFusionCycleDetectionUt, testcase_05_4) {
   sub_graph_optimizer_ptr_->engine_name_ = fe::AI_CORE_NAME;
 
   std::shared_ptr<FusionCycleDetector> cycle_detector;
-  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(),);
+  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(), );
   cycle_detector->Initialize(*graph);
   BufferFusionOptimizerPtr buffer_fusion_optimizer = std::make_shared<BufferFusionOptimizer>();
   buffer_fusion_optimizer->Initialize(*graph);
 
   auto create_fn = []() -> BufferFusionPassBase * { return new (std::nothrow) Conv2dAddRelu6MulMulFusionPass5(); };
-  BufferFusionPassRunner *test_pass = new (std::nothrow)
-      BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
+  BufferFusionPassRunner *test_pass =
+      new (std::nothrow) BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
   test_pass->Run(*graph);
   sub_graph_optimizer_ptr_->BuildFusionGraph(*graph);
 
@@ -1711,7 +1690,6 @@ TEST_F(BufferFusionCycleDetectionUt, testcase_05_4) {
   EXPECT_EQ(total_node, 17);
 }
 
-
 TEST_F(BufferFusionCycleDetectionUt, testcase_05_5) {
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   cycle_detection::BuildGraph05_5(graph);
@@ -1719,14 +1697,14 @@ TEST_F(BufferFusionCycleDetectionUt, testcase_05_5) {
   sub_graph_optimizer_ptr_->engine_name_ = fe::AI_CORE_NAME;
 
   std::shared_ptr<FusionCycleDetector> cycle_detector;
-  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(),);
+  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(), );
   cycle_detector->Initialize(*graph);
   BufferFusionOptimizerPtr buffer_fusion_optimizer = std::make_shared<BufferFusionOptimizer>();
   buffer_fusion_optimizer->Initialize(*graph);
 
   auto create_fn = []() -> BufferFusionPassBase * { return new (std::nothrow) Conv2dAddRelu6MulMulFusionPass5(); };
-  BufferFusionPassRunner *test_pass = new (std::nothrow)
-      BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
+  BufferFusionPassRunner *test_pass =
+      new (std::nothrow) BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
   test_pass->Run(*graph);
   sub_graph_optimizer_ptr_->BuildFusionGraph(*graph);
 
@@ -1750,14 +1728,14 @@ TEST_F(BufferFusionCycleDetectionUt, testcase_06) {
   sub_graph_optimizer_ptr_->engine_name_ = fe::AI_CORE_NAME;
 
   std::shared_ptr<FusionCycleDetector> cycle_detector;
-  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(),);
+  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(), );
   cycle_detector->Initialize(*graph);
   BufferFusionOptimizerPtr buffer_fusion_optimizer = std::make_shared<BufferFusionOptimizer>();
   buffer_fusion_optimizer->Initialize(*graph);
 
   auto create_fn = []() -> BufferFusionPassBase * { return new (std::nothrow) Conv2dAddRelu6MulMulFusionPass6(); };
-  BufferFusionPassRunner *test_pass = new (std::nothrow)
-      BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
+  BufferFusionPassRunner *test_pass =
+      new (std::nothrow) BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
   test_pass->Run(*graph);
   sub_graph_optimizer_ptr_->BuildFusionGraph(*graph);
 
@@ -1782,14 +1760,14 @@ TEST_F(BufferFusionCycleDetectionUt, testcase_07) {
   sub_graph_optimizer_ptr_->engine_name_ = fe::AI_CORE_NAME;
 
   std::shared_ptr<FusionCycleDetector> cycle_detector;
-  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(),);
+  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(), );
   cycle_detector->Initialize(*graph);
   BufferFusionOptimizerPtr buffer_fusion_optimizer = std::make_shared<BufferFusionOptimizer>();
   buffer_fusion_optimizer->Initialize(*graph);
 
   auto create_fn = []() -> BufferFusionPassBase * { return new (std::nothrow) Conv2dAddRelu6MulMulFusionPass7(); };
-  BufferFusionPassRunner *test_pass = new (std::nothrow)
-      BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
+  BufferFusionPassRunner *test_pass =
+      new (std::nothrow) BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
   test_pass->Run(*graph);
   sub_graph_optimizer_ptr_->BuildFusionGraph(*graph);
 
@@ -1813,14 +1791,14 @@ TEST_F(BufferFusionCycleDetectionUt, testcase_08) {
   sub_graph_optimizer_ptr_->engine_name_ = fe::AI_CORE_NAME;
 
   std::shared_ptr<FusionCycleDetector> cycle_detector;
-  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(),);
+  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(), );
   cycle_detector->Initialize(*graph);
   BufferFusionOptimizerPtr buffer_fusion_optimizer = std::make_shared<BufferFusionOptimizer>();
   buffer_fusion_optimizer->Initialize(*graph);
 
   auto create_fn = []() -> BufferFusionPassBase * { return new (std::nothrow) Conv2dAddRelu6MulMulFusionPass8(); };
-  BufferFusionPassRunner *test_pass = new (std::nothrow)
-      BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
+  BufferFusionPassRunner *test_pass =
+      new (std::nothrow) BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
   test_pass->Run(*graph);
   sub_graph_optimizer_ptr_->BuildFusionGraph(*graph);
 
@@ -1844,14 +1822,14 @@ TEST_F(BufferFusionCycleDetectionUt, testcase_08_1) {
   sub_graph_optimizer_ptr_->engine_name_ = fe::AI_CORE_NAME;
 
   std::shared_ptr<FusionCycleDetector> cycle_detector;
-  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(),);
+  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(), );
   cycle_detector->Initialize(*graph);
   BufferFusionOptimizerPtr buffer_fusion_optimizer = std::make_shared<BufferFusionOptimizer>();
   buffer_fusion_optimizer->Initialize(*graph);
 
   auto create_fn = []() -> BufferFusionPassBase * { return new (std::nothrow) Conv2dAddRelu6MulMulFusionPass8(); };
-  BufferFusionPassRunner *test_pass = new (std::nothrow)
-      BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
+  BufferFusionPassRunner *test_pass =
+      new (std::nothrow) BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
   test_pass->Run(*graph);
   sub_graph_optimizer_ptr_->BuildFusionGraph(*graph);
 
@@ -1875,14 +1853,14 @@ TEST_F(BufferFusionCycleDetectionUt, testcase_08_2) {
   sub_graph_optimizer_ptr_->engine_name_ = fe::AI_CORE_NAME;
 
   std::shared_ptr<FusionCycleDetector> cycle_detector;
-  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(),);
+  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(), );
   cycle_detector->Initialize(*graph);
   BufferFusionOptimizerPtr buffer_fusion_optimizer = std::make_shared<BufferFusionOptimizer>();
   buffer_fusion_optimizer->Initialize(*graph);
 
   auto create_fn = []() -> BufferFusionPassBase * { return new (std::nothrow) Conv2dAddRelu6MulMulFusionPass8(); };
-  BufferFusionPassRunner *test_pass = new (std::nothrow)
-      BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
+  BufferFusionPassRunner *test_pass =
+      new (std::nothrow) BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
   test_pass->Run(*graph);
   sub_graph_optimizer_ptr_->BuildFusionGraph(*graph);
 
@@ -1899,7 +1877,6 @@ TEST_F(BufferFusionCycleDetectionUt, testcase_08_2) {
   EXPECT_EQ(total_node, 11);
 }
 
-
 TEST_F(BufferFusionCycleDetectionUt, testcase_08_3) {
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   cycle_detection::BuildGraph08_3(graph);
@@ -1907,14 +1884,14 @@ TEST_F(BufferFusionCycleDetectionUt, testcase_08_3) {
   sub_graph_optimizer_ptr_->engine_name_ = fe::AI_CORE_NAME;
 
   std::shared_ptr<FusionCycleDetector> cycle_detector;
-  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(),);
+  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(), );
   cycle_detector->Initialize(*graph);
   BufferFusionOptimizerPtr buffer_fusion_optimizer = std::make_shared<BufferFusionOptimizer>();
   buffer_fusion_optimizer->Initialize(*graph);
 
   auto create_fn = []() -> BufferFusionPassBase * { return new (std::nothrow) Conv2dAddRelu6MulMulFusionPass8(); };
-  BufferFusionPassRunner *test_pass = new (std::nothrow)
-      BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
+  BufferFusionPassRunner *test_pass =
+      new (std::nothrow) BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
 
   test_pass->Run(*graph);
   sub_graph_optimizer_ptr_->BuildFusionGraph(*graph);
@@ -1939,14 +1916,14 @@ TEST_F(BufferFusionCycleDetectionUt, testcase_08_4) {
   sub_graph_optimizer_ptr_->engine_name_ = fe::AI_CORE_NAME;
 
   std::shared_ptr<FusionCycleDetector> cycle_detector;
-  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(),);
+  FE_MAKE_SHARED(cycle_detector = std::make_shared<FusionCycleDetector>(), );
   cycle_detector->Initialize(*graph);
   BufferFusionOptimizerPtr buffer_fusion_optimizer = std::make_shared<BufferFusionOptimizer>();
   buffer_fusion_optimizer->Initialize(*graph);
 
   auto create_fn = []() -> BufferFusionPassBase * { return new (std::nothrow) Conv2dAddRelu6MulMulFusionPass8(); };
-  BufferFusionPassRunner *test_pass = new (std::nothrow)
-      BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
+  BufferFusionPassRunner *test_pass =
+      new (std::nothrow) BufferFusionPassRunner("test_pass", create_fn, cycle_detector, buffer_fusion_optimizer);
 
   test_pass->Run(*graph);
   sub_graph_optimizer_ptr_->BuildFusionGraph(*graph);

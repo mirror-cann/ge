@@ -28,8 +28,7 @@ constexpr const char *const kConstant = "Constant";
 constexpr const char *const kValueAttrName = "value";
 
 // 创建 Constant 节点
-NodePtr CreateConstantNode(const ComputeGraphPtr &graph, const std::string &name,
-                           const GeShape &shape, DataType dtype,
+NodePtr CreateConstantNode(const ComputeGraphPtr &graph, const std::string &name, const GeShape &shape, DataType dtype,
                            const uint8_t *data, size_t data_size) {
   auto const_op = ge::OperatorFactory::CreateOperator(name.c_str(), kConstant);
   const_op.BreakConnect();
@@ -53,21 +52,17 @@ NodePtr CreateConstantNode(const ComputeGraphPtr &graph, const std::string &name
 }
 
 // 创建 shape 常量节点（使用 INT64 以支持大模型场景）
-NodePtr CreateShapeConstantNode(const ComputeGraphPtr &graph, const std::string &name,
-                                const GeShape &shape) {
+NodePtr CreateShapeConstantNode(const ComputeGraphPtr &graph, const std::string &name, const GeShape &shape) {
   const auto &dims = shape.GetDims();
   std::vector<int64_t> shape_int64(dims.begin(), dims.end());
-  return CreateConstantNode(graph, name + "_const_shape",
-                            GeShape({static_cast<int64_t>(shape_int64.size())}),
-                            DT_INT64,
+  return CreateConstantNode(graph, name + "_const_shape", GeShape({static_cast<int64_t>(shape_int64.size())}), DT_INT64,
                             reinterpret_cast<const uint8_t *>(shape_int64.data()),
                             shape_int64.size() * sizeof(int64_t));
 }
 
 // 创建 BroadcastTo 节点
-NodePtr CreateBroadcastToNode(const ComputeGraphPtr &graph, const std::string &name,
-                              const NodePtr &value_node, const NodePtr &shape_node,
-                              const GeTensorDesc &output_desc) {
+NodePtr CreateBroadcastToNode(const ComputeGraphPtr &graph, const std::string &name, const NodePtr &value_node,
+                              const NodePtr &shape_node, const GeTensorDesc &output_desc) {
   auto op_desc = std::make_shared<ge::OpDesc>(name, kBroadcastTo);
   GE_ASSERT_NOTNULL(op_desc);
 
@@ -78,9 +73,9 @@ NodePtr CreateBroadcastToNode(const ComputeGraphPtr &graph, const std::string &n
   auto broadcast_to_node = graph->AddNode(op_desc);
   GE_ASSERT_NOTNULL(broadcast_to_node);
   GE_ASSERT_GRAPH_SUCCESS(
-    GraphUtils::AddEdge(value_node->GetOutDataAnchor(0U), broadcast_to_node->GetInDataAnchor(0U)));
+      GraphUtils::AddEdge(value_node->GetOutDataAnchor(0U), broadcast_to_node->GetInDataAnchor(0U)));
   GE_ASSERT_GRAPH_SUCCESS(
-    GraphUtils::AddEdge(shape_node->GetOutDataAnchor(0U), broadcast_to_node->GetInDataAnchor(1U)));
+      GraphUtils::AddEdge(shape_node->GetOutDataAnchor(0U), broadcast_to_node->GetInDataAnchor(1U)));
 
   return broadcast_to_node;
 }
@@ -93,10 +88,8 @@ bool IsScalarValue(const GeShape &value_shape) {
 
 // 获取或创建 value 节点
 // 对于 ZerosLike，创建值为 0 的常量；对于 Fill，直接返回其 value 输入
-graphStatus GetOrCreateValueNode(const ComputeGraphPtr &graph,
-                                 const NodePtr &broadcast_op_node,
-                                 const std::string &op_type,
-                                 NodePtr &value_node) {
+graphStatus GetOrCreateValueNode(const ComputeGraphPtr &graph, const NodePtr &broadcast_op_node,
+                                 const std::string &op_type, NodePtr &value_node) {
   if (op_type == kZerosLike) {
     const auto &dtype = broadcast_op_node->GetOpDesc()->GetOutputDesc(0U).GetDataType();
     const std::string &base_name = broadcast_op_node->GetName();
@@ -108,9 +101,8 @@ graphStatus GetOrCreateValueNode(const ComputeGraphPtr &graph,
     }
 
     std::vector<uint8_t> zero_data(dtype_size, 0);
-    value_node = CreateConstantNode(graph, base_name + "_const_value",
-                                    GeShape(), dtype,
-                                    zero_data.data(), zero_data.size());
+    value_node =
+        CreateConstantNode(graph, base_name + "_const_value", GeShape(), dtype, zero_data.data(), zero_data.size());
     GE_ASSERT_NOTNULL(value_node);
     return GRAPH_SUCCESS;
   }
@@ -128,11 +120,8 @@ graphStatus GetOrCreateValueNode(const ComputeGraphPtr &graph,
 }
 
 // 通用的替换函数：将 BroadcastOp + Transpose 替换为 value + BroadcastTo
-graphStatus ReplaceWithBroadcastTo(const ComputeGraphPtr &graph,
-                                   const NodePtr &transpose_node,
-                                   const NodePtr &broadcast_op_node,
-                                   const std::string &op_type,
-                                   bool &changed) {
+graphStatus ReplaceWithBroadcastTo(const ComputeGraphPtr &graph, const NodePtr &transpose_node,
+                                   const NodePtr &broadcast_op_node, const std::string &op_type, bool &changed) {
   // 1. 获取或创建 value 节点
   NodePtr value_node = nullptr;
   auto status = GetOrCreateValueNode(graph, broadcast_op_node, op_type, value_node);
@@ -153,24 +142,24 @@ graphStatus ReplaceWithBroadcastTo(const ComputeGraphPtr &graph,
   auto shape_node = CreateShapeConstantNode(graph, base_name, transpose_output_desc.GetShape());
   GE_ASSERT_NOTNULL(shape_node);
 
-  auto broadcast_to_node = CreateBroadcastToNode(graph, base_name + "_broadcast_to",
-                                                 value_node, shape_node, transpose_output_desc);
+  auto broadcast_to_node =
+      CreateBroadcastToNode(graph, base_name + "_broadcast_to", value_node, shape_node, transpose_output_desc);
   GE_ASSERT_NOTNULL(broadcast_to_node);
 
   // 5. 替换节点并删除旧节点
   GE_ASSERT_SUCCESS(GraphUtils::ReplaceNodeAnchors(broadcast_to_node, transpose_node, {}, {0U}),
                     "Failed to replace anchors for transpose node %s", transpose_node->GetNamePtr());
-  GE_ASSERT_SUCCESS(GraphUtils::IsolateNode(transpose_node, {0U}),
-                    "Failed to isolate transpose node %s", transpose_node->GetNamePtr());
-  GE_ASSERT_GRAPH_SUCCESS(GraphUtils::RemoveJustNode(graph, transpose_node),
-                          "Failed to remove transpose node %s", transpose_node->GetNamePtr());
-  GE_ASSERT_SUCCESS(GraphUtils::IsolateNode(broadcast_op_node, {0U}),
-                    "Failed to isolate broadcast op node %s", broadcast_op_node->GetNamePtr());
-  GE_ASSERT_GRAPH_SUCCESS(GraphUtils::RemoveJustNode(graph, broadcast_op_node),
-                          "Failed to remove broadcast op node %s", broadcast_op_node->GetNamePtr());
+  GE_ASSERT_SUCCESS(GraphUtils::IsolateNode(transpose_node, {0U}), "Failed to isolate transpose node %s",
+                    transpose_node->GetNamePtr());
+  GE_ASSERT_GRAPH_SUCCESS(GraphUtils::RemoveJustNode(graph, transpose_node), "Failed to remove transpose node %s",
+                          transpose_node->GetNamePtr());
+  GE_ASSERT_SUCCESS(GraphUtils::IsolateNode(broadcast_op_node, {0U}), "Failed to isolate broadcast op node %s",
+                    broadcast_op_node->GetNamePtr());
+  GE_ASSERT_GRAPH_SUCCESS(GraphUtils::RemoveJustNode(graph, broadcast_op_node), "Failed to remove broadcast op node %s",
+                          broadcast_op_node->GetNamePtr());
 
-  GELOGD("TransposeWithBroadcastEliminatePass: replaced %s + Transpose[%s] with BroadcastTo",
-         op_type.c_str(), transpose_node->GetNamePtr());
+  GELOGD("TransposeWithBroadcastEliminatePass: replaced %s + Transpose[%s] with BroadcastTo", op_type.c_str(),
+         transpose_node->GetNamePtr());
 
   changed = true;
   return GRAPH_SUCCESS;
@@ -179,13 +168,13 @@ graphStatus ReplaceWithBroadcastTo(const ComputeGraphPtr &graph,
 bool CanOptimize(const NodePtr &node) {
   return node->GetOutDataNodesSize() == 1UL;
 }
-} // namespace
+}  // namespace
 
 graphStatus TransposeWithBroadcastEliminatePass::Run(const ComputeGraphPtr &graph, bool &changed) {
   GE_ASSERT_NOTNULL(graph);
 
   // 收集并处理所有 Transpose 节点
-  for (const auto &node: graph->GetDirectNode()) {
+  for (const auto &node : graph->GetDirectNode()) {
     GE_ASSERT_NOTNULL(node);
     const auto &type = node->GetType();
 
@@ -206,14 +195,14 @@ graphStatus TransposeWithBroadcastEliminatePass::Run(const ComputeGraphPtr &grap
 
     const auto &input_type = input_node->GetType();
     if (input_type != kZerosLike && input_type != kFill) {
-      continue; // 只支持 ZerosLike 和 Fill
+      continue;  // 只支持 ZerosLike 和 Fill
     }
 
     GE_ASSERT_GRAPH_SUCCESS(ReplaceWithBroadcastTo(graph, node, input_node, input_type, changed),
-                            "Failed to process transpose node %s with input type %s",
-                            node->GetNamePtr(), input_type.c_str());
+                            "Failed to process transpose node %s with input type %s", node->GetNamePtr(),
+                            input_type.c_str());
   }
 
   return GRAPH_SUCCESS;
 }
-} // namespace ge
+}  // namespace ge

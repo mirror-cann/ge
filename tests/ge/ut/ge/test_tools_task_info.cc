@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -55,7 +55,7 @@ class FakeOpsKernelInfoStore : public OpsKernelInfoStore {
   }
 };
 FakeOpsKernelInfoStore g_fake_ops_kernel_info_store;
-} // namespace
+}  // namespace
 
 static void AddSubGraph(const NodePtr &func_node, const ComputeGraphPtr &subgraph) {
   size_t index = func_node->GetOpDesc()->GetSubgraphInstanceNames().size();
@@ -82,8 +82,8 @@ void AddFftsPartitionedCall(const ComputeGraphPtr &graph, const std::string &fun
   AttrUtils::SetStr(ffts_call_node->GetOpDesc(), ATTR_NAME_COMPOSITE_ENGINE_KERNEL_LIB_NAME, "AiCoreLib");
 }
 
-void AddIfBranchs(const ComputeGraphPtr &graph, const std::string &func_name,
-                  const ComputeGraphPtr &then_graph, const ComputeGraphPtr &else_graph) {
+void AddIfBranchs(const ComputeGraphPtr &graph, const std::string &func_name, const ComputeGraphPtr &then_graph,
+                  const ComputeGraphPtr &else_graph) {
   const auto &func_node = graph->FindNode(func_name);
   EXPECT_NE(func_node, nullptr);
 
@@ -103,14 +103,28 @@ void AddCaseBranch(const ComputeGraphPtr &graph, const std::string &func_name, c
 }
 
 void SetUnknownOpKernel(const ComputeGraphPtr &graph, uint32_t &mem_offset, bool reset_index) {
-  const static std::set<std::string> kGeLocalTypes{
-      DATA, CONSTANT, CONSTANTOP, VARIABLE, NETOUTPUT, AIPPDATA, FILECONSTANT, RESHAPE
-  };
-  const static std::set<std::string> kRtsLibTypes{
-      IDENTITY, IDENTITYN, READVARIABLEOP, PROFILINGTRAININGTRACE, MEMCPYASYNC,
-      STREAMACTIVE, STREAMSWITCH, STREAMMERGE, ENTER, REFENTER, LOOPCOND, NEXTITERATION, REFNEXTITERATION,
-      EXIT, REFEXIT, LABELSET, LABELGOTO, LABELGOTOEX, LABELSWITCH, LABELSWITCHBYINDEX
-  };
+  const static std::set<std::string> kGeLocalTypes{DATA,      CONSTANT, CONSTANTOP,   VARIABLE,
+                                                   NETOUTPUT, AIPPDATA, FILECONSTANT, RESHAPE};
+  const static std::set<std::string> kRtsLibTypes{IDENTITY,
+                                                  IDENTITYN,
+                                                  READVARIABLEOP,
+                                                  PROFILINGTRAININGTRACE,
+                                                  MEMCPYASYNC,
+                                                  STREAMACTIVE,
+                                                  STREAMSWITCH,
+                                                  STREAMMERGE,
+                                                  ENTER,
+                                                  REFENTER,
+                                                  LOOPCOND,
+                                                  NEXTITERATION,
+                                                  REFNEXTITERATION,
+                                                  EXIT,
+                                                  REFEXIT,
+                                                  LABELSET,
+                                                  LABELGOTO,
+                                                  LABELGOTOEX,
+                                                  LABELSWITCH,
+                                                  LABELSWITCHBYINDEX};
   static uint32_t node_index = 0U;
   if (reset_index) {
     node_index = 0U;
@@ -206,7 +220,7 @@ void DelStaticForOffline(const ComputeGraphPtr &graph, uint32_t &mem_offset) {
       continue;
     }
 
-    op_desc->SetOutputOffset({ mem_offset });
+    op_desc->SetOutputOffset({mem_offset});
     for (const auto &in_anchor : node->GetOutDataAnchor(0)->GetPeerInDataAnchors()) {
       auto input_offset = in_anchor->GetOwnerNode()->GetOpDesc()->GetInputOffset();
       input_offset[in_anchor->GetIdx()] = mem_offset;
@@ -280,7 +294,7 @@ void InitAippNodeRelated(const ComputeGraphPtr &graph, const std::string &op_nam
   EXPECT_TRUE(AttrUtils::SetStr(op_desc, ATTR_DATA_RELATED_AIPP_MODE, "dynamic_aipp"));
   EXPECT_TRUE(AttrUtils::SetStr(op_desc, ATTR_DATA_AIPP_DATA_NAME_MAP, related_name));
 
-  const std::vector<string> aipp_io_attr{ "NCHW:DT_FLOAT:TensorName:TensorSize:3:1,2,8" };
+  const std::vector<string> aipp_io_attr{"NCHW:DT_FLOAT:TensorName:TensorSize:3:1,2,8"};
   EXPECT_TRUE(AttrUtils::SetListStr(op_desc, ATTR_NAME_AIPP_INPUTS, aipp_io_attr));
   EXPECT_TRUE(AttrUtils::SetListStr(op_desc, ATTR_NAME_AIPP_OUTPUTS, aipp_io_attr));
 }
@@ -291,7 +305,7 @@ void InitAippNodeDynamic(const ComputeGraphPtr &graph, const std::string &op_nam
   const auto op_desc = node->GetOpDesc();
 
   NamedAttrs aipp_attr;
-  aipp_attr.SetAttr("aipp_mode", GeAttrValue::CreateFrom<int64_t>(2)); // domi::AippOpParams_AippMode_dynamic
+  aipp_attr.SetAttr("aipp_mode", GeAttrValue::CreateFrom<int64_t>(2));  // domi::AippOpParams_AippMode_dynamic
   aipp_attr.SetAttr("related_input_rank", GeAttrValue::CreateFrom<int64_t>(0));
   aipp_attr.SetAttr("max_src_image_size", GeAttrValue::CreateFrom<int64_t>(2048));
   aipp_attr.SetAttr("support_rotation", GeAttrValue::CreateFrom<int64_t>(1));
@@ -318,7 +332,8 @@ void InitConstantNode(const ComputeGraphPtr &graph, const std::string &op_name, 
   const auto op_desc = node->GetOpDesc();
 
   GeTensorDesc data_desc = op_desc->GetOutputDesc(0);
-  GeTensorPtr weight_value = MakeShared<GeTensor>(data_desc, reinterpret_cast<uint8_t *>(&const_value), sizeof(int32_t));
+  GeTensorPtr weight_value =
+      MakeShared<GeTensor>(data_desc, reinterpret_cast<uint8_t *>(&const_value), sizeof(int32_t));
   EXPECT_TRUE(AttrUtils::SetTensor(op_desc, ATTR_NAME_WEIGHTS, weight_value));
 }
 
@@ -328,7 +343,8 @@ void InitConstantNode(const ComputeGraphPtr &graph, const std::string &op_name, 
   EXPECT_NE(node, nullptr);
   const auto &op_desc = node->GetOpDesc();
 
-  const auto weight_value = MakeShared<GeTensor>(tensor_desc, (const uint8_t *)const_value.data(), const_value.length());
+  const auto weight_value =
+      MakeShared<GeTensor>(tensor_desc, (const uint8_t *)const_value.data(), const_value.length());
   EXPECT_TRUE(AttrUtils::SetTensor(op_desc, ATTR_NAME_WEIGHTS, weight_value));
 
   EXPECT_EQ(op_desc->UpdateOutputDesc(0U, tensor_desc), SUCCESS);
@@ -446,7 +462,7 @@ void InitKernelWithHandleTaskDef_Attached(const ComputeGraphPtr &graph, domi::Mo
 }
 
 void InitKernelTaskDef_Atomic(const ComputeGraphPtr &graph, domi::ModelTaskDef &model_def, const std::string &op_name,
-                          TBEKernelStore &kernel_store) {
+                              TBEKernelStore &kernel_store) {
   const auto node = graph->FindNode(op_name);
   EXPECT_NE(node, nullptr);
   const auto op_desc = node->GetOpDesc();
@@ -481,11 +497,11 @@ void InitKernelTaskDef_Atomic(const ComputeGraphPtr &graph, domi::ModelTaskDef &
   EXPECT_TRUE(AttrUtils::SetStr(op_desc, std::string("_atomic") + TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF"));
   EXPECT_TRUE(AttrUtils::SetStr(op_desc, std::string("_memset_kernel_bin_id"), "fake_kernel_bin_id"));
   EXPECT_TRUE(AttrUtils::SetStr(op_desc, op_desc->GetName() + "_atomic_kernelname", "kernel_atomic"));
-  EXPECT_TRUE(AttrUtils::SetStr(op_desc, "_atomic"+ATTR_NAME_TBE_KERNEL_NAME, "atomic_kernel_bin"));
+  EXPECT_TRUE(AttrUtils::SetStr(op_desc, "_atomic" + ATTR_NAME_TBE_KERNEL_NAME, "atomic_kernel_bin"));
   EXPECT_TRUE(AttrUtils::SetBool(op_desc, "need_gentask_atomic", true));
   std::vector<char> atomic_kernel_bin(32, '\0');
   TBEKernelPtr atomic_kernel = MakeShared<ge::OpKernelBin>("atomic_kernel_bin", std::move(atomic_kernel_bin));
-  EXPECT_TRUE(op_desc->SetExtAttr("_atomic"+std::string(ge::OP_EXTATTR_NAME_TBE_KERNEL), atomic_kernel));
+  EXPECT_TRUE(op_desc->SetExtAttr("_atomic" + std::string(ge::OP_EXTATTR_NAME_TBE_KERNEL), atomic_kernel));
 
   kernel_store.AddTBEKernel(kernel_handle);
   kernel_store.AddTBEKernel(atomic_kernel);
@@ -594,7 +610,8 @@ void InitKernelTaskDef_AI_CPU(const ComputeGraphPtr &graph, domi::ModelTaskDef &
   }
 }
 
-void InitKernelTaskDef_CPU_AllShape(const ComputeGraphPtr &graph, domi::ModelTaskDef &model_def, const std::string &op_name) {
+void InitKernelTaskDef_CPU_AllShape(const ComputeGraphPtr &graph, domi::ModelTaskDef &model_def,
+                                    const std::string &op_name) {
   const auto node = graph->FindNode(op_name);
   EXPECT_NE(node, nullptr);
   const auto op_desc = node->GetOpDesc();
@@ -623,7 +640,8 @@ void InitKernelTaskDef_CPU_AllShape(const ComputeGraphPtr &graph, domi::ModelTas
   kernel_def.set_kernel_ext_info_size(aicpu_ext_info.size());
 }
 
-void InitKernelTaskDef_CPU_Blocking(const ComputeGraphPtr &graph, domi::ModelTaskDef &model_def, const std::string &op_name) {
+void InitKernelTaskDef_CPU_Blocking(const ComputeGraphPtr &graph, domi::ModelTaskDef &model_def,
+                                    const std::string &op_name) {
   const auto node = graph->FindNode(op_name);
   EXPECT_NE(node, nullptr);
   const auto op_desc = node->GetOpDesc();
@@ -692,11 +710,11 @@ void InitKernelTaskDef_CUST_CPU(const ComputeGraphPtr &graph, domi::ModelTaskDef
   vector<char> aicpu_ext_info(len, 0);
   char *buf = aicpu_ext_info.data();
   int offset = 0;
-  hybrid::AicpuExtInfo *ext_info = reinterpret_cast<hybrid::AicpuExtInfo*>(buf + offset);
+  hybrid::AicpuExtInfo *ext_info = reinterpret_cast<hybrid::AicpuExtInfo *>(buf + offset);
   ext_info->infoType = aicpu::FWKAdapter::FWK_ADPT_EXT_WORKSPACE_INFO;
   ext_info->infoLen = sizeof(hybrid::WorkSpaceInfo);
   offset += sizeof(hybrid::AicpuExtInfo);
-  hybrid::WorkSpaceInfo *workspace_info = reinterpret_cast<hybrid::WorkSpaceInfo*>(buf + offset);
+  hybrid::WorkSpaceInfo *workspace_info = reinterpret_cast<hybrid::WorkSpaceInfo *>(buf + offset);
   workspace_info->size = 0;
   workspace_info->addr = 0;
 
@@ -717,7 +735,7 @@ void InitKernelTaskDef(const ComputeGraphPtr &graph, domi::ModelTaskDef &model_d
   const auto node = graph->FindNode(op_name);
   EXPECT_NE(node, nullptr);
   const auto op_desc = node->GetOpDesc();
-  EXPECT_TRUE(AttrUtils::SetBool(op_desc, ATTR_NO_TASK_AND_DUMP_NEEDED, true));    // for IsNoTaskAndDumpNeeded
+  EXPECT_TRUE(AttrUtils::SetBool(op_desc, ATTR_NO_TASK_AND_DUMP_NEEDED, true));  // for IsNoTaskAndDumpNeeded
   EXPECT_TRUE(AttrUtils::SetListStr(op_desc, ATTR_NAME_DATA_DUMP_ORIGIN_OP_NAMES, std::vector<std::string>{"1", "2"}));
 
   auto &task_def = *model_def.add_task();
@@ -745,8 +763,8 @@ void InitKernelExTaskDef(const ComputeGraphPtr &graph, domi::ModelTaskDef &model
   const auto node = graph->FindNode(op_name);
   EXPECT_NE(node, nullptr);
   const auto op_desc = node->GetOpDesc();
-  op_desc->SetWorkspace({ 512 });
-  op_desc->SetWorkspaceBytes({ static_cast<int64_t>(task_info.size()) });
+  op_desc->SetWorkspace({512});
+  op_desc->SetWorkspaceBytes({static_cast<int64_t>(task_info.size())});
   EXPECT_TRUE(AttrUtils::SetInt(op_desc, ATTR_NAME_IMPLY_TYPE, static_cast<uint32_t>(domi::ImplyType::AI_CPU)));
 
   auto &task_def = *model_def.add_task();
@@ -769,13 +787,14 @@ void InitKernelExTaskDef(const ComputeGraphPtr &graph, domi::ModelTaskDef &model
   }
 }
 
-void InitKernelExTaskDef_AllShape(const ComputeGraphPtr &graph, domi::ModelTaskDef &model_def, const std::string &op_name) {
+void InitKernelExTaskDef_AllShape(const ComputeGraphPtr &graph, domi::ModelTaskDef &model_def,
+                                  const std::string &op_name) {
   std::vector<uint8_t> task_info(120, 0);
   const auto node = graph->FindNode(op_name);
   EXPECT_NE(node, nullptr);
   const auto op_desc = node->GetOpDesc();
-  op_desc->SetWorkspace({ 512 });
-  op_desc->SetWorkspaceBytes({ static_cast<int64_t>(task_info.size()) });
+  op_desc->SetWorkspace({512});
+  op_desc->SetWorkspaceBytes({static_cast<int64_t>(task_info.size())});
 
   auto &task_def = *model_def.add_task();
   auto &kernel_ex_def = *task_def.mutable_kernel_ex();
@@ -797,13 +816,14 @@ void InitKernelExTaskDef_AllShape(const ComputeGraphPtr &graph, domi::ModelTaskD
   kernel_ex_def.set_kernel_ext_info_size(aicpu_ext_info.size());
 }
 
-void InitKernelExTaskDef_Blocking(const ComputeGraphPtr &graph, domi::ModelTaskDef &model_def, const std::string &op_name) {
+void InitKernelExTaskDef_Blocking(const ComputeGraphPtr &graph, domi::ModelTaskDef &model_def,
+                                  const std::string &op_name) {
   std::vector<uint8_t> task_info(120, 0);
   const auto node = graph->FindNode(op_name);
   EXPECT_NE(node, nullptr);
   const auto op_desc = node->GetOpDesc();
-  op_desc->SetWorkspace({ 512 });
-  op_desc->SetWorkspaceBytes({ static_cast<int64_t>(task_info.size()) });
+  op_desc->SetWorkspace({512});
+  op_desc->SetWorkspaceBytes({static_cast<int64_t>(task_info.size())});
 
   auto &task_def = *model_def.add_task();
   auto &kernel_ex_def = *task_def.mutable_kernel_ex();
@@ -974,7 +994,8 @@ void InitEndGraphDef(const ComputeGraphPtr &graph, domi::ModelTaskDef &model_def
   task_def.set_id(op_desc->GetId());
 }
 
-void InitNpuGetFloatStatusTaskDef(const ComputeGraphPtr &graph, domi::ModelTaskDef &model_def, const std::string &op_name) {
+void InitNpuGetFloatStatusTaskDef(const ComputeGraphPtr &graph, domi::ModelTaskDef &model_def,
+                                  const std::string &op_name) {
   const auto node = graph->FindNode(op_name);
   EXPECT_NE(node, nullptr);
   const auto op_desc = node->GetOpDesc();
@@ -989,7 +1010,8 @@ void InitNpuGetFloatStatusTaskDef(const ComputeGraphPtr &graph, domi::ModelTaskD
   npu_get_float_status->set_output_size(2048);
 }
 
-void InitNpuClearFloatStatusTaskDef(const ComputeGraphPtr &graph, domi::ModelTaskDef &model_def, const std::string &op_name) {
+void InitNpuClearFloatStatusTaskDef(const ComputeGraphPtr &graph, domi::ModelTaskDef &model_def,
+                                    const std::string &op_name) {
   const auto node = graph->FindNode(op_name);
   EXPECT_NE(node, nullptr);
   const auto op_desc = node->GetOpDesc();
@@ -1048,7 +1070,8 @@ void InitEventTaskDef(const ComputeGraphPtr &graph, domi::ModelTaskDef &model_de
   }
 }
 
-void InitNotifyTaskDef(const ComputeGraphPtr &graph, domi::ModelTaskDef &model_def, uint32_t notify_id, const std::string &group_name) {
+void InitNotifyTaskDef(const ComputeGraphPtr &graph, domi::ModelTaskDef &model_def, uint32_t notify_id,
+                       const std::string &group_name) {
   {
     auto &task_def = *model_def.add_task();
     task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_NOTIFY_RECORD));
@@ -1060,7 +1083,8 @@ void InitNotifyTaskDef(const ComputeGraphPtr &graph, domi::ModelTaskDef &model_d
   InitNotifyWaitTaskDef(graph, model_def, notify_id, group_name);
 }
 
-void InitNotifyWaitTaskDef(const ComputeGraphPtr &graph, domi::ModelTaskDef &model_def, uint32_t notify_id, const std::string &group_name) {
+void InitNotifyWaitTaskDef(const ComputeGraphPtr &graph, domi::ModelTaskDef &model_def, uint32_t notify_id,
+                           const std::string &group_name) {
   auto &task_def = *model_def.add_task();
   task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_NOTIFY_WAIT));
   task_def.set_stream_id(0);
@@ -1091,12 +1115,12 @@ void InitFftsplusTaskDef(const ComputeGraphPtr &graph, domi::TaskDef &task_def) 
   (void)AttrUtils::SetStr(graph->GetParentNode()->GetOpDesc(), ATTR_NAME_FFTS_PLUS_SUB_GRAPH, "test");
   ffts_plus_task_def.set_addr_size(8);
   domi::FftsPlusSqeDef *sqedef = ffts_plus_task_def.mutable_ffts_plus_sqe();
-  //header
+  // header
   domi::StarsSqeHeaderDef *headerdef = sqedef->mutable_sqe_header();
   headerdef->set_l1_lock(1);
   headerdef->set_l1_unlock(1);
   headerdef->set_block_dim(1);
-  //sqe
+  // sqe
   sqedef->set_wrr_ratio(1);
   sqedef->set_sqe_index(1);
 
@@ -1113,7 +1137,8 @@ void InitFftsplusTaskDef(const ComputeGraphPtr &graph, domi::TaskDef &task_def) 
   sqedef->set_aiv_prefetch_upper(1);
 }
 
-void InitFftsPlusCaseDefaultDef(const ComputeGraphPtr &graph, domi::FftsPlusCtxDef &ctx_def, const std::string &op_name) {
+void InitFftsPlusCaseDefaultDef(const ComputeGraphPtr &graph, domi::FftsPlusCtxDef &ctx_def,
+                                const std::string &op_name) {
   const auto node = graph->FindNode(op_name);
   EXPECT_NE(node, nullptr);
   const auto op_desc = node->GetOpDesc();
@@ -1127,7 +1152,7 @@ void InitFftsPlusCaseDefaultDef(const ComputeGraphPtr &graph, domi::FftsPlusCtxD
   case_default_def->set_pred_cnt_init(1);
   case_default_def->set_pred_cnt(32);
   for (int i = 0; i < RT_CTX_SUCCESSOR_NUM; ++i) {
-    case_default_def->add_successor_list(2); // len = 26
+    case_default_def->add_successor_list(2);  // len = 26
   }
 }
 
@@ -1143,7 +1168,7 @@ void InitFftsPlusNotifyDef(const ComputeGraphPtr &graph, domi::FftsPlusCtxDef &c
   notify_def->set_pred_cnt_init(1);
   notify_def->set_pred_cnt(1);
   for (int i = 0; i < RT_CTX_SUCCESSOR_NUM; ++i) {
-    notify_def->add_successor_list(1); // len = 26
+    notify_def->add_successor_list(1);  // len = 26
   }
   notify_def->set_atm(1);
   notify_def->set_satm(1);
@@ -1170,7 +1195,7 @@ void InitWriteValueDef(const ComputeGraphPtr &graph, domi::FftsPlusCtxDef &ctx_d
   write_def->set_pred_cnt_init(1);
   write_def->set_pred_cnt(1);
   for (int i = 0; i < RT_CTX_SUCCESSOR_NUM; ++i) {
-    write_def->add_successor_list(1); // len = 26
+    write_def->add_successor_list(1);  // len = 26
   }
   write_def->set_atm(1);
   write_def->set_thread_id(1);
@@ -1209,7 +1234,7 @@ void InitMixL2Def(const ComputeGraphPtr &graph, domi::FftsPlusCtxDef &ctx_def, c
   mixctx_def->set_pred_cnt_init(1);
   mixctx_def->set_pred_cnt(1);
   for (int i = 0; i < RT_CTX_SUCCESSOR_NUM; ++i) {
-    mixctx_def->add_successor_list(1); // len = 26
+    mixctx_def->add_successor_list(1);  // len = 26
   }
   mixctx_def->set_schem(1);
 
@@ -1257,10 +1282,10 @@ void InitMixL2DefForIFA(const ComputeGraphPtr &graph, domi::FftsPlusCtxDef &ctx_
   const auto node = graph->FindNode(op_name);
   EXPECT_NE(node, nullptr);
   const auto op_desc = node->GetOpDesc();
-  op_desc->MutableAllInputName() = {{"query", 0},          {"k0", 1},      {"k1", 2},
-                                    {"value0", 3},         {"value1", 4},
+  op_desc->MutableAllInputName() = {{"query", 0},          {"k0", 1},         {"k1", 2}, {"value0", 3}, {"value1", 4},
                                     {"attention_mask", 5}, {"addition_in", 6}};
-  op_desc->MutableAllOutputName() = {{"fake_out", 0}, {"attention_out0", 1}, {"attention_out1", 2}, {"addition_out", 3}};
+  op_desc->MutableAllOutputName() = {
+      {"fake_out", 0}, {"attention_out0", 1}, {"attention_out1", 2}, {"addition_out", 3}};
 
   op_desc->SetWorkspace({1});
   op_desc->SetWorkspaceBytes({100});
@@ -1331,9 +1356,11 @@ void InitMixL2DefForIFA(const ComputeGraphPtr &graph, domi::FftsPlusCtxDef &ctx_
   mixctx_def->add_task_addr(0);              // tiling
   mixctx_def->add_task_addr(0);              // hidden_input
 
-  mixctx_def->set_args_format("{ffts_addr}{#12345}{}{i0}{i_desc1}{i_desc2}{i4}{i_instance6}{o0}{o_desc1}{o_instance3}{ws0}{t_ffts.non_tail}{hi.hcom0*}");
+  mixctx_def->set_args_format(
+      "{ffts_addr}{#12345}{}{i0}{i_desc1}{i_desc2}{i4}{i_instance6}{o0}{o_desc1}{o_instance3}{ws0}{t_ffts.non_tail}{hi."
+      "hcom0*}");
 
-  mixctx_def->set_input_output_count(3); // ?
+  mixctx_def->set_input_output_count(3);  // ?
   mixctx_def->set_save_task_addr(1);
   for (int j = 0; j < 4; ++j) {
     mixctx_def->add_src_slot(1);  // len = 4, context ID for source data which is out of subgraph
@@ -1507,7 +1534,7 @@ void InitMixAicAivDef(const ComputeGraphPtr &graph, domi::FftsPlusCtxDef &ctx_de
   mixctx_def->set_pred_cnt_init(1);
   mixctx_def->set_pred_cnt(1);
   for (int i = 0; i < RT_CTX_SUCCESSOR_NUM; ++i) {
-    mixctx_def->add_successor_list(1); // len = 26
+    mixctx_def->add_successor_list(1);  // len = 26
   }
   mixctx_def->set_schem(1);
 
@@ -1576,7 +1603,7 @@ void InitSdmaDef(const ComputeGraphPtr &graph, domi::FftsPlusCtxDef &ctx_def, co
   smda_def->set_pred_cnt_init(1);
   smda_def->set_pred_cnt(1);
   for (int i = 0; i < RT_CTX_SUCCESSOR_NUM; ++i) {
-    smda_def->add_successor_list(1); // len = 26
+    smda_def->add_successor_list(1);  // len = 26
   }
 
   smda_def->set_atm(1);
@@ -1616,7 +1643,7 @@ void InitDataCtx(const ComputeGraphPtr &graph, domi::FftsPlusCtxDef &ctx_def, co
   data_def->set_cnt_init(1);
   data_def->set_cnt(1);
   for (int i = 0; i < RT_CTX_SUCCESSOR_NUM; ++i) {
-    data_def->add_successor_list(1); // len = 26
+    data_def->add_successor_list(1);  // len = 26
   }
   data_def->set_atm(1);
   data_def->set_pmg(1);
@@ -1663,9 +1690,9 @@ void InitCondSwitchCtx(const ComputeGraphPtr &graph, domi::FftsPlusCtxDef &ctx_d
 
   for (int i = 0; i < RT_CTX_FALSE_SUCCESSOR_NUM; ++i) {
     if (i < RT_CTX_TRUE_SUCCESSOR_NUM) {
-      switch_def->add_true_successor_list(1);    // len = 12
+      switch_def->add_true_successor_list(1);  // len = 12
     }
-    switch_def->add_false_successor_list(1);   // len = 14
+    switch_def->add_false_successor_list(1);  // len = 14
   }
   switch_def->set_atm(32);
 
@@ -1707,14 +1734,15 @@ void InitFftsPlusCachePersistDef(const ComputeGraphPtr &graph, domi::FftsPlusCtx
   cache_persist_def->set_pred_cnt_init(1);
   cache_persist_def->set_pred_cnt(1);
   for (int i = 1; i < RT_CTX_SUCCESSOR_NUM; ++i) {
-    cache_persist_def->add_successor_list(1); // 16 bits, len = 26
+    cache_persist_def->add_successor_list(1);  // 16 bits, len = 26
   }
   cache_persist_def->set_persistent_en(1);
   cache_persist_def->set_persistent_id(1);
   cache_persist_def->set_persistent_size(1);
 }
 
-void InitFftsPlusAicCtxDefWithTilingData(const ComputeGraphPtr &graph, domi::FftsPlusCtxDef &ctx_def, const std::string &op_name) {
+void InitFftsPlusAicCtxDefWithTilingData(const ComputeGraphPtr &graph, domi::FftsPlusCtxDef &ctx_def,
+                                         const std::string &op_name) {
   const auto node = graph->FindNode(op_name);
   EXPECT_NE(node, nullptr);
   const auto op_desc = node->GetOpDesc();
@@ -1736,7 +1764,7 @@ void InitFftsPlusAicCtxDefWithTilingData(const ComputeGraphPtr &graph, domi::Fft
   aic_aiv_def->set_pred_cnt_init(1);
   aic_aiv_def->set_pred_cnt(1);
   for (int i = 1; i < RT_CTX_SUCCESSOR_NUM; ++i) {
-    aic_aiv_def->add_successor_list(1); // 16 bits, len = 26
+    aic_aiv_def->add_successor_list(1);  // 16 bits, len = 26
   }
   aic_aiv_def->set_schem(1);
   aic_aiv_def->set_atm(0);
@@ -1790,7 +1818,7 @@ void InitFftsPlusAicCtxDef(const ComputeGraphPtr &graph, domi::FftsPlusCtxDef &c
   aic_aiv_def->set_pred_cnt_init(1);
   aic_aiv_def->set_pred_cnt(1);
   for (int i = 1; i < RT_CTX_SUCCESSOR_NUM; ++i) {
-    aic_aiv_def->add_successor_list(1); // 16 bits, len = 26
+    aic_aiv_def->add_successor_list(1);  // 16 bits, len = 26
   }
   aic_aiv_def->set_schem(1);
   if (is_manual) {
@@ -1813,7 +1841,7 @@ void InitFftsPlusAicCtxDef(const ComputeGraphPtr &graph, domi::FftsPlusCtxDef &c
   aic_aiv_def->set_non_tail_block_dim(6);
   aic_aiv_def->set_tail_block_dim(5);
 
-  //aic_aiv_def->set_task_param_ptr_base(0x235689);
+  // aic_aiv_def->set_task_param_ptr_base(0x235689);
   aic_aiv_def->set_task_param_ptr_offset(32);
   // task_addr = {0,200,700,1000,2000, 3500}
   // task_addr_offset = {20,40,2,100,200}
@@ -1856,7 +1884,7 @@ void InitFftsPlusAicpuCtxDef(const ComputeGraphPtr &graph, domi::FftsPlusCtxDef 
   aicpu_def->set_pred_cnt_init(1);
   aicpu_def->set_pred_cnt(1);
   for (int j = 0; j < RT_CTX_SUCCESSOR_NUM; ++j) {
-    aicpu_def->add_successor_list(1);   // len = 26
+    aicpu_def->add_successor_list(1);  // len = 26
   }
   aicpu_def->set_atm(1);
   aicpu_def->set_sqe_index(1);
@@ -1913,7 +1941,7 @@ void InitCustomFftsPlusAicpuCtxDef(const ComputeGraphPtr &graph, domi::FftsPlusC
   aicpu_def->set_pred_cnt_init(1);
   aicpu_def->set_pred_cnt(1);
   for (int j = 0; j < RT_CTX_SUCCESSOR_NUM; ++j) {
-    aicpu_def->add_successor_list(1);   // len = 26
+    aicpu_def->add_successor_list(1);  // len = 26
   }
   aicpu_def->set_atm(1);
   aicpu_def->set_sqe_index(1);
@@ -1957,12 +1985,13 @@ void InitCustomFftsPlusAicpuCtxDef(const ComputeGraphPtr &graph, domi::FftsPlusC
   kerneldef->set_kernel_ext_info_size(len);
 }
 
-void InitFftsPlusAicpuFwkCtxDef(const ComputeGraphPtr &graph, domi::FftsPlusCtxDef &ctx_def, const std::string &op_name) {
+void InitFftsPlusAicpuFwkCtxDef(const ComputeGraphPtr &graph, domi::FftsPlusCtxDef &ctx_def,
+                                const std::string &op_name) {
   const auto &node = graph->FindNode(op_name);
   EXPECT_NE(node, nullptr);
   const auto &op_desc = node->GetOpDesc();
-  op_desc->SetWorkspace({64});   // offset
-  op_desc->SetWorkspaceBytes({120});    // length
+  op_desc->SetWorkspace({64});        // offset
+  op_desc->SetWorkspaceBytes({120});  // length
 
   ctx_def.set_op_index(op_desc->GetId());
   ctx_def.set_context_type(static_cast<uint32_t>(RT_CTX_TYPE_AICPU));
@@ -1973,7 +2002,7 @@ void InitFftsPlusAicpuFwkCtxDef(const ComputeGraphPtr &graph, domi::FftsPlusCtxD
   aicpu_def.set_pred_cnt_init(1);
   aicpu_def.set_pred_cnt(1);
   for (int i = 0; i < RT_CTX_SUCCESSOR_NUM; ++i) {
-    aicpu_def.add_successor_list(1);   // len = 26
+    aicpu_def.add_successor_list(1);  // len = 26
   }
   aicpu_def.set_atm(1);
   aicpu_def.set_sqe_index(1);
@@ -2176,11 +2205,10 @@ void InitDvppTaskDef(const ComputeGraphPtr &graph, domi::ModelTaskDef &model_def
   const vector<int64_t> v_memory_type2{RT_MEMORY_HBM, RT_MEMORY_HBM};
   AttrUtils::SetListInt(op_desc, TVM_ATTR_NAME_WORKSPACE_TYPE, v_memory_type2);
   AttrUtils::SetListInt(op_desc, ATTR_NAME_WORKSPACE_TYPE_LIST, v_memory_type2);
-  OpsKernelInfoStore* ops_kernel_info_ptr = &g_fake_ops_kernel_info_store;
-  op_desc->SetExtAttr<OpsKernelInfoStore *> ("OpsKernelInfoStorePtr", ops_kernel_info_ptr);
+  OpsKernelInfoStore *ops_kernel_info_ptr = &g_fake_ops_kernel_info_store;
+  op_desc->SetExtAttr<OpsKernelInfoStore *>("OpsKernelInfoStorePtr", ops_kernel_info_ptr);
 
   dvpp_task->set_op_index(op_desc->GetId());
-
 }
 
 void InitFusionOpInfo(const ComputeGraphPtr &graph, const std::string &op_name) {

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,7 +38,7 @@ static inline uint64_t GetTid(void) {
 
 #ifdef RUN_TEST
 #define GELOGD(fmt, ...)                                                                          \
-do {                                                                                              \
+  do {                                                                                            \
     printf("[DEBUG][%s:%d]%ld " fmt "\n", __FILE__, __LINE__, (long int)GetTid(), ##__VA_ARGS__); \
   } while (false)
 
@@ -63,35 +63,34 @@ do {                                                                            
     printf("[EVENT][%s:%d]%ld " fmt "\n", __FILE__, __LINE__, (long int)GetTid(), ##__VA_ARGS__); \
   } while (false)
 #else
-#define GELOGD(fmt, ...)                                                                           \
-  do {                                                                                             \
-    DlogRecord(GE_MODULE_NAME, DLOG_DEBUG, "[DEBUG][%s:%d]%ld " fmt "\n", __FILE__, __LINE__,       \
-              (long int)GetTid(), ##__VA_ARGS__);                                                  \
+#define GELOGD(fmt, ...)                                                                                          \
+  do {                                                                                                            \
+    DlogRecord(GE_MODULE_NAME, DLOG_DEBUG, "[DEBUG][%s:%d]%ld " fmt "\n", __FILE__, __LINE__, (long int)GetTid(), \
+               ##__VA_ARGS__);                                                                                    \
   } while (false)
 
-#define GELOGI(fmt, ...)                                                                           \
-  do {                                                                                             \
-    DlogRecord(GE_MODULE_NAME, DLOG_INFO, "[INFO][%s:%d]%ld " fmt "\n", __FILE__, __LINE__,         \
-              (long int)GetTid(), ##__VA_ARGS__);                                                  \
+#define GELOGI(fmt, ...)                                                                                        \
+  do {                                                                                                          \
+    DlogRecord(GE_MODULE_NAME, DLOG_INFO, "[INFO][%s:%d]%ld " fmt "\n", __FILE__, __LINE__, (long int)GetTid(), \
+               ##__VA_ARGS__);                                                                                  \
   } while (false)
 
-#define GELOGW(fmt, ...)                                                                           \
-  do {                                                                                             \
-    DlogRecord(GE_MODULE_NAME, DLOG_WARN, "[WARNING][%s:%d]%ld " fmt "\n", __FILE__, __LINE__,      \
-              (long int)GetTid(), ##__VA_ARGS__);                                                  \
+#define GELOGW(fmt, ...)                                                                                           \
+  do {                                                                                                             \
+    DlogRecord(GE_MODULE_NAME, DLOG_WARN, "[WARNING][%s:%d]%ld " fmt "\n", __FILE__, __LINE__, (long int)GetTid(), \
+               ##__VA_ARGS__);                                                                                     \
   } while (false)
 
-#define GEEVENT(fmt, ...)                                                                          \
-  do {                                                                                             \
-    DlogRecord(GE_MODULE_NAME, DLOG_EVENT, "[Event][%s:%d]%ld " fmt "\n", __FILE__, __LINE__,       \
-              (long int)GetTid(), ##__VA_ARGS__);                                                  \
+#define GEEVENT(fmt, ...)                                                                                         \
+  do {                                                                                                            \
+    DlogRecord(GE_MODULE_NAME, DLOG_EVENT, "[Event][%s:%d]%ld " fmt "\n", __FILE__, __LINE__, (long int)GetTid(), \
+               ##__VA_ARGS__);                                                                                    \
   } while (false)
 
-#define GELOGE(ERROR_CODE, fmt, ...)                                                               \
-  do {                                                                                             \
-    DlogRecord(GE_MODULE_NAME, DLOG_ERROR, "[ERROR][%s:%d]%ld:ErrorNo:%u(%s)%s " fmt "\n",          \
-              __FILE__, __LINE__, (long int)GetTid(), (uint32_t)ERROR_CODE,                        \
-              GE_GET_ERRORNO_STR, GE_GET_ERROR_LOG_HEADER, ##__VA_ARGS__);                         \
+#define GELOGE(ERROR_CODE, fmt, ...)                                                                                  \
+  do {                                                                                                                \
+    DlogRecord(GE_MODULE_NAME, DLOG_ERROR, "[ERROR][%s:%d]%ld:ErrorNo:%u(%s)%s " fmt "\n", __FILE__, __LINE__,        \
+               (long int)GetTid(), (uint32_t)ERROR_CODE, GE_GET_ERRORNO_STR, GE_GET_ERROR_LOG_HEADER, ##__VA_ARGS__); \
   } while (false)
 #endif
 

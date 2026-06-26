@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,28 +29,9 @@ const size_t kSliceInputIndexBegin = 1;
 const size_t kSliceInputIndexSize = 2;
 const std::set<DataType> kIndexNumberType = {DT_INT32, DT_INT64};
 const std::set<ge::DataType> kSupportedDataTypeToLength = {
-    DT_BOOL,
-    DT_INT64,
-    DT_UINT64,
-    DT_FLOAT,
-    DT_INT32,
-    DT_UINT32,
-    DT_INT8,
-    DT_UINT8,
-    DT_INT16,
-    DT_UINT16,
-    DT_FLOAT16,
-    DT_DOUBLE,
-    DT_DUAL,
-    DT_DUAL_SUB_INT8,
-    DT_DUAL_SUB_UINT8,
-    DT_COMPLEX64,
-    DT_COMPLEX128,
-    DT_QINT8,
-    DT_QINT16,
-    DT_QINT32,
-    DT_QUINT8,
-    DT_QUINT16,
+    DT_BOOL,       DT_INT64,  DT_UINT64,  DT_FLOAT,  DT_INT32,  DT_UINT32,        DT_INT8,           DT_UINT8,
+    DT_INT16,      DT_UINT16, DT_FLOAT16, DT_DOUBLE, DT_DUAL,   DT_DUAL_SUB_INT8, DT_DUAL_SUB_UINT8, DT_COMPLEX64,
+    DT_COMPLEX128, DT_QINT8,  DT_QINT16,  DT_QINT32, DT_QUINT8, DT_QUINT16,
 };
 struct SliceDataParam {
   std::vector<int64_t> input_dims;
@@ -83,12 +64,12 @@ void GetValueOfStride(const std::vector<ge::ConstGeTensorPtr> &input, std::vecto
   }
 }
 Status GetSliceDataParams(const ConstGeTensorPtr &x_tensor, const std::vector<int64_t> &orig_begin_vec,
-                          const std::vector<int64_t> &orig_size_vec,
-                          SliceDataParam &slice_data_param) {
+                          const std::vector<int64_t> &orig_size_vec, SliceDataParam &slice_data_param) {
   const ge::GeShape &x_shape = x_tensor->GetTensorDesc().GetShape();
   const size_t dim_size = x_shape.GetDimNum();
   if (dim_size != orig_begin_vec.size() || dim_size != orig_size_vec.size()) {
-    GELOGW("Rank of x input %zu not match with offset_size(%zu) or size_input size (%zu)", dim_size, orig_begin_vec.size(), orig_size_vec.size());
+    GELOGW("Rank of x input %zu not match with offset_size(%zu) or size_input size (%zu)", dim_size,
+           orig_begin_vec.size(), orig_size_vec.size());
     return NOT_CHANGED;
   }
 
@@ -160,7 +141,7 @@ Status SliceKernel::Compute(const OpDescPtr attr, const std::vector<ConstGeTenso
   // datatype/ type_size checked before
   auto data_type = x_tensor->GetTensorDesc().GetDataType();
   uint32_t type_size = 0;
-  (void) TypeUtils::GetDataTypeLength(data_type, type_size);
+  (void)TypeUtils::GetDataTypeLength(data_type, type_size);
   size_t data_size = x_tensor->GetData().size() / type_size;
   ret = OpUtils::SetOutputSliceData(data, static_cast<int64_t>(data_size), data_type, slice_data_param.input_dims,
                                     slice_data_param.begin_vec, slice_data_param.output_dims, output_ptr.get(),

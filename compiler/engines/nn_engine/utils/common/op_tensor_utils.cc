@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -99,13 +99,12 @@ Status OpTensorUtils::CalcTensorSize(const std::vector<int64_t> &dims, const ge:
   return SUCCESS;
 }
 
-Status OpTensorUtils::CalcTensorSize(const ge::GeTensorDesc &tensor_desc,
-                                     const int32_t output_real_calc_flag, int64_t &tensor_size) {
+Status OpTensorUtils::CalcTensorSize(const ge::GeTensorDesc &tensor_desc, const int32_t output_real_calc_flag,
+                                     int64_t &tensor_size) {
   std::vector<int64_t> dims = tensor_desc.GetShape().GetDims();
   ge::DataType data_type = tensor_desc.GetDataType();
   return CalcTensorSize(dims, data_type, output_real_calc_flag, tensor_size);
 }
-
 
 bool OpTensorUtils::IsStaticReuseBinaryOp(const ge::OpDescPtr &op_desc) {
   bool stc_dyn_soft_sync = false;
@@ -135,8 +134,8 @@ bool OpTensorUtils::IsFuzzBuildOp(const ge::OpDesc &op_desc) {
   std::string build_mode;
   bool support_dyn_shape = false;
   if ((ge::GetContext().GetOption("ge.shape_generalized_build_mode", build_mode) == ge::GRAPH_SUCCESS) &&
-    (build_mode == SHAPE_GENERALIZED) &&
-    ge::AttrUtils::GetBool(op_desc, ATTR_NAME_SUPPORT_DYNAMIC_SHAPE, support_dyn_shape) && support_dyn_shape) {
+      (build_mode == SHAPE_GENERALIZED) &&
+      ge::AttrUtils::GetBool(op_desc, ATTR_NAME_SUPPORT_DYNAMIC_SHAPE, support_dyn_shape) && support_dyn_shape) {
     return true;
   } else {
     return false;

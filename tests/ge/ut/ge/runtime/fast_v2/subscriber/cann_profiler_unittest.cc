@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -117,8 +117,8 @@ void TestReportNodeBasicInfo() {
 
   auto model_executor = BuildExecutorFromSingleNodeForDump();
   ModelV2ExecutorTestHelper::SetExecutionData(execution_data, kMainExeGraph, model_executor.get());
-  auto profiler = model_executor->GetSubscribers().MutableBuiltInSubscriber<CannProfilerV2>(
-      BuiltInSubscriberType::kCannProfilerV2);
+  auto profiler =
+      model_executor->GetSubscribers().MutableBuiltInSubscriber<CannProfilerV2>(BuiltInSubscriberType::kCannProfilerV2);
   ge::diagnoseSwitch::EnableProfiling({ProfilingType::kTaskTime, ProfilingType::kDevice});
   profiler->Init();
   CannProfilerV2::OnExecuteEvent(kMainExeGraph, profiler, kExecuteStart, launch_node, 0);
@@ -204,9 +204,9 @@ TEST_F(CannProfilerUT, InitCannDevice_Ok) {
   ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
-  ASSERT_EQ(executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.GetTensorList(),
-                              outputs.size()),
-            ge::GRAPH_SUCCESS);
+  ASSERT_EQ(
+      executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.GetTensorList(), outputs.size()),
+      ge::GRAPH_SUCCESS);
   ASSERT_EQ(executor->UnLoad(), ge::GRAPH_SUCCESS);
   ge::diagnoseSwitch::EnableProfiling({ProfilingType::kDevice});
   aclrtDestroyStream(stream);
@@ -239,8 +239,7 @@ TEST_F(CannProfilerUT, FillShapeInfo_Ok_WithEmptyChain) {
   EXPECT_EQ(*reinterpret_cast<uint32_t *>(&wrapper.tensor_info.data[76]), 3);
   EXPECT_EQ(*reinterpret_cast<uint32_t *>(&wrapper.tensor_info.data[80]), 4);
   EXPECT_EQ(*reinterpret_cast<uint32_t *>(&wrapper.tensor_info.data[82]), 0);
-  EXPECT_EQ(*reinterpret_cast<uint32_t *>(&wrapper.tensor_info.data[112]),
-            0);
+  EXPECT_EQ(*reinterpret_cast<uint32_t *>(&wrapper.tensor_info.data[112]), 0);
   delete any_value;
   delete empty_any_value;
 }
@@ -253,8 +252,8 @@ TEST_F(CannProfilerUT, InitCannProfiler_InitTensorInfoOk_WithMultipleInputNode) 
   auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Fake", false).Build();
   auto model_desc_holder = ModelDescHolderFaker().Build();
   auto exe_graph = GraphConverter()
-      .SetModelDescHolder(&model_desc_holder)
-      .ConvertComputeGraphToExecuteGraph(compute_graph, global_data);
+                       .SetModelDescHolder(&model_desc_holder)
+                       .ConvertComputeGraphToExecuteGraph(compute_graph, global_data);
   GertRuntimeStub stub;
   stub.GetKernelStub().AllKernelRegisteredAndSuccess();
   ge::diagnoseSwitch::EnableProfiling({ProfilingType::kDevice, ProfilingType::kTaskTime});
@@ -263,8 +262,8 @@ TEST_F(CannProfilerUT, InitCannProfiler_InitTensorInfoOk_WithMultipleInputNode) 
       static_cast<const ExecutionData *>(model_executor->GetExeGraphExecutor(kMainExeGraph)->GetExecutionData()),
       "CompatibleInferShape");
   const auto &node_name = static_cast<const ComputeNodeInfo *>(exe_node->context.compute_node_info)->GetNodeName();
-  auto profilerV2 = model_executor->GetSubscribers().MutableBuiltInSubscriber<CannProfilerV2>(
-      BuiltInSubscriberType::kCannProfilerV2);
+  auto profilerV2 =
+      model_executor->GetSubscribers().MutableBuiltInSubscriber<CannProfilerV2>(BuiltInSubscriberType::kCannProfilerV2);
   auto name_hash = MsprofGetHashId(node_name, strlen(node_name));
   auto iter = profilerV2->GetNamesToAddInfos().find(name_hash);
   EXPECT_NE(iter, profilerV2->GetNamesToAddInfos().cend());
@@ -273,13 +272,11 @@ TEST_F(CannProfilerUT, InitCannProfiler_InitTensorInfoOk_WithMultipleInputNode) 
   EXPECT_EQ(iter->second.tensor_info_wrappers[1].shapes.size(), 2UL);
   auto context = reinterpret_cast<KernelContext *>(&exe_node->context);
   auto input_start_pos = static_cast<size_t>(kernel::CompatibleInferShapeOrRangeInputIndex::kInputNum);
-  for (size_t i = 0UL; i<5UL; ++i) {
-    EXPECT_EQ((void *)context->MutableInput(input_start_pos + i),
-              iter->second.tensor_info_wrappers[0].shapes[i]);
+  for (size_t i = 0UL; i < 5UL; ++i) {
+    EXPECT_EQ((void *)context->MutableInput(input_start_pos + i), iter->second.tensor_info_wrappers[0].shapes[i]);
   }
 
-  EXPECT_EQ((void *)context->MutableInput(input_start_pos + 5),
-            iter->second.tensor_info_wrappers[1].shapes[0]);
+  EXPECT_EQ((void *)context->MutableInput(input_start_pos + 5), iter->second.tensor_info_wrappers[1].shapes[0]);
   EXPECT_EQ((void *)context->GetOutput(0), iter->second.tensor_info_wrappers[1].shapes[1]);
 }
 
@@ -320,8 +317,7 @@ TEST_F(CannProfilerUT, ReportMemoryInfo_Ok_OnExecutorWithFakeExecutionDataV2) {
       if (info->type == MSPROF_REPORT_NODE_TASK_MEMORY_TYPE) {
         ++cur_info_count;
         auto memory_info_data = reinterpret_cast<MsprofMemoryInfo *>(info->data);
-        std::cout << "Report memory info: node_id: " << memory_info_data->nodeId
-                  << ", addr: " << memory_info_data->addr
+        std::cout << "Report memory info: node_id: " << memory_info_data->nodeId << ", addr: " << memory_info_data->addr
                   << ", size: " << memory_info_data->size
                   << ", total allocate size: " << memory_info_data->totalAllocateMemory
                   << ", total reserve size: " << memory_info_data->totalReserveMemory << std::endl;
@@ -340,21 +336,25 @@ TEST_F(CannProfilerUT, InitProfiler_InitTaskAndTensorInfoOk_WithEmptyComputeNode
   auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Add", false).Build();
   auto model_desc_holder = ModelDescHolderFaker().Build();
   auto exe_graph = GraphConverter()
-      .SetModelDescHolder(&model_desc_holder)
-      .ConvertComputeGraphToExecuteGraph(compute_graph, global_data);
+                       .SetModelDescHolder(&model_desc_holder)
+                       .ConvertComputeGraphToExecuteGraph(compute_graph, global_data);
   ASSERT_NE(exe_graph, nullptr);
   GertRuntimeStub stub;
   stub.GetKernelStub().AllKernelRegisteredAndSuccess();
   auto executor = ModelV2Executor::Create(exe_graph, root_model);
   ASSERT_NE(executor, nullptr);
-  auto execution_data = reinterpret_cast<const ExecutionData *>(executor->GetExeGraphExecutor(kMainExeGraph)->GetExecutionData());
-  for (size_t i=0UL; i<execution_data->base_ed.node_num; ++i) {
-    std::string kernel_type = reinterpret_cast<const KernelExtendInfo *>(execution_data->base_ed.nodes[i]->context.kernel_extend_info)->GetKernelType();
+  auto execution_data =
+      reinterpret_cast<const ExecutionData *>(executor->GetExeGraphExecutor(kMainExeGraph)->GetExecutionData());
+  for (size_t i = 0UL; i < execution_data->base_ed.node_num; ++i) {
+    std::string kernel_type =
+        reinterpret_cast<const KernelExtendInfo *>(execution_data->base_ed.nodes[i]->context.kernel_extend_info)
+            ->GetKernelType();
     if (kernel_type == "LaunchKernelWithHandle") {
       const_cast<KernelRunContext *>(&execution_data->base_ed.nodes[i]->context)->compute_node_info = nullptr;
     }
   }
-  auto profiler = executor->GetSubscribers().MutableBuiltInSubscriber<CannProfilerV2>(BuiltInSubscriberType::kCannProfilerV2);
+  auto profiler =
+      executor->GetSubscribers().MutableBuiltInSubscriber<CannProfilerV2>(BuiltInSubscriberType::kCannProfilerV2);
   EXPECT_EQ(profiler->InitForCannDevice(execution_data), ge::SUCCESS);
 }
 
@@ -406,23 +406,24 @@ TEST_F(CannProfilerUT, InitContextInfo) {
   auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Add", false).Build();
   auto model_desc_holder = ModelDescHolderFaker().Build();
   auto exe_graph = GraphConverter()
-      .SetModelDescHolder(&model_desc_holder)
-      .ConvertComputeGraphToExecuteGraph(compute_graph, global_data);
+                       .SetModelDescHolder(&model_desc_holder)
+                       .ConvertComputeGraphToExecuteGraph(compute_graph, global_data);
   ASSERT_NE(exe_graph, nullptr);
   GertRuntimeStub stub;
   stub.GetKernelStub().AllKernelRegisteredAndSuccess();
   auto executor = ModelV2Executor::Create(exe_graph, root_model);
   ASSERT_NE(executor, nullptr);
-  auto execution_data = reinterpret_cast<const ExecutionData *>(executor->GetExeGraphExecutor(kMainExeGraph)->GetExecutionData());
-  auto profiler = executor->GetSubscribers().MutableBuiltInSubscriber<CannProfilerV2>(BuiltInSubscriberType::kCannProfilerV2);
+  auto execution_data =
+      reinterpret_cast<const ExecutionData *>(executor->GetExeGraphExecutor(kMainExeGraph)->GetExecutionData());
+  auto profiler =
+      executor->GetSubscribers().MutableBuiltInSubscriber<CannProfilerV2>(BuiltInSubscriberType::kCannProfilerV2);
   profiler->prof_extend_infos_.resize(execution_data->base_ed.node_num, ProfExtendInfo{});
   profiler->node_addition_infos_.resize(execution_data->base_ed.node_num);
   profiler->exe_node_id_to_profiling_filler_.resize(execution_data->base_ed.node_num, nullptr);
   profiler->node_id_to_profiler_node_id_.resize(execution_data->base_ed.node_num);
   for (size_t i = 0UL; i < execution_data->base_ed.node_num; ++i) {
     const auto execute_node = execution_data->base_ed.nodes[i];
-    const auto kernel_extend_info =
-        static_cast<const KernelExtendInfo *>(execute_node->context.kernel_extend_info);
+    const auto kernel_extend_info = static_cast<const KernelExtendInfo *>(execute_node->context.kernel_extend_info);
     if (kernel_extend_info == nullptr) {
       continue;
     }
@@ -443,14 +444,15 @@ TEST_F(CannProfilerUT, InitContextInfo) {
     }
     ProfNodeAdditionInfo addition_info{};
     profiler->name_hashes_to_node_addition_infos_[name_hash_id] = std::move(addition_info);
-    profiler->node_addition_infos_[execute_node->node_id][0] = &(profiler->name_hashes_to_node_addition_infos_[name_hash_id]);
+    profiler->node_addition_infos_[execute_node->node_id][0] =
+        &(profiler->name_hashes_to_node_addition_infos_[name_hash_id]);
     profiler->prof_extend_infos_[execute_node->node_id].node_name_idx = name_hash_id;
     profiler->prof_extend_infos_[execute_node->node_id].node_type_idx = node_type_hash_id;
     profiler->name_hash_to_node_id_.insert({name_hash_id, execute_node->node_id});
   }
 
   ge::diagnoseSwitch::EnableProfiling({ProfilingType::kDevice});
-  const std::vector<uint32_t> input_dims {1, 2, 3, 4};
+  const std::vector<uint32_t> input_dims{1, 2, 3, 4};
   ge::AttrUtils::SetListInt(op_desc, "_context_id_list", {});
   EXPECT_EQ(profiler->InitProfInfoByGraphNode(node), ge::SUCCESS);
   ge::AttrUtils::SetListInt(op_desc, "_context_id_list", input_dims);
@@ -467,7 +469,7 @@ TEST_F(CannProfilerUT, InitContextInfo_MixVector) {
   auto op_desc = node->GetOpDesc();
   ge::AttrUtils::SetStr(op_desc, ge::ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "MIX_VECTOR_CORE");
   // add cmo context info
-  for (size_t i =0UL; i < CMO_IDX_KEY.size(); i++) {
+  for (size_t i = 0UL; i < CMO_IDX_KEY.size(); i++) {
     const std::string ctx_id_attr = "_data_prof_ctx_id_v" + CMO_IDX_KEY[i];
     const std::string name_attr = "_data_prof_name_v" + CMO_IDX_KEY[i];
     const std::string type_attr = "_data_prof_type" + CMO_IDX_KEY[i];
@@ -485,15 +487,17 @@ TEST_F(CannProfilerUT, InitContextInfo_MixVector) {
   auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Add", false).Build();
   auto model_desc_holder = ModelDescHolderFaker().Build();
   auto exe_graph = GraphConverter()
-      .SetModelDescHolder(&model_desc_holder)
-      .ConvertComputeGraphToExecuteGraph(compute_graph, global_data);
+                       .SetModelDescHolder(&model_desc_holder)
+                       .ConvertComputeGraphToExecuteGraph(compute_graph, global_data);
   ASSERT_NE(exe_graph, nullptr);
   GertRuntimeStub stub;
   stub.GetKernelStub().AllKernelRegisteredAndSuccess();
   auto executor = ModelV2Executor::Create(exe_graph, root_model);
   ASSERT_NE(executor, nullptr);
-  auto execution_data = reinterpret_cast<const ExecutionData *>(executor->GetExeGraphExecutor(kMainExeGraph)->GetExecutionData());
-  auto profiler = executor->GetSubscribers().MutableBuiltInSubscriber<CannProfilerV2>(BuiltInSubscriberType::kCannProfilerV2);
+  auto execution_data =
+      reinterpret_cast<const ExecutionData *>(executor->GetExeGraphExecutor(kMainExeGraph)->GetExecutionData());
+  auto profiler =
+      executor->GetSubscribers().MutableBuiltInSubscriber<CannProfilerV2>(BuiltInSubscriberType::kCannProfilerV2);
   profiler->prof_extend_infos_.resize(execution_data->base_ed.node_num, ProfExtendInfo{});
   profiler->node_addition_infos_.resize(execution_data->base_ed.node_num);
   profiler->exe_node_id_to_profiling_filler_.resize(execution_data->base_ed.node_num, nullptr);
@@ -501,8 +505,7 @@ TEST_F(CannProfilerUT, InitContextInfo_MixVector) {
   profiler->exe_node_id_to_profiling_wrappers_.resize(execution_data->base_ed.node_num);
   for (size_t i = 0UL; i < execution_data->base_ed.node_num; ++i) {
     const auto execute_node = execution_data->base_ed.nodes[i];
-    const auto kernel_extend_info =
-        static_cast<const KernelExtendInfo *>(execute_node->context.kernel_extend_info);
+    const auto kernel_extend_info = static_cast<const KernelExtendInfo *>(execute_node->context.kernel_extend_info);
     if (kernel_extend_info == nullptr) {
       continue;
     }
@@ -523,7 +526,8 @@ TEST_F(CannProfilerUT, InitContextInfo_MixVector) {
     }
     ProfNodeAdditionInfo addition_info{};
     profiler->name_hashes_to_node_addition_infos_[name_hash_id] = std::move(addition_info);
-    profiler->node_addition_infos_[execute_node->node_id][0] = &(profiler->name_hashes_to_node_addition_infos_[name_hash_id]);
+    profiler->node_addition_infos_[execute_node->node_id][0] =
+        &(profiler->name_hashes_to_node_addition_infos_[name_hash_id]);
     profiler->node_addition_infos_[execute_node->node_id][0]->mix_launch_enable = true;
     profiler->prof_extend_infos_[execute_node->node_id].node_name_idx = name_hash_id;
     profiler->prof_extend_infos_[execute_node->node_id].node_type_idx = node_type_hash_id;
@@ -531,7 +535,7 @@ TEST_F(CannProfilerUT, InitContextInfo_MixVector) {
   }
 
   ge::diagnoseSwitch::EnableProfiling({ProfilingType::kDevice});
-  const std::vector<uint32_t> input_dims {1, 2, 3, 4};
+  const std::vector<uint32_t> input_dims{1, 2, 3, 4};
   ge::AttrUtils::SetListInt(op_desc, "_context_id_list", {});
   EXPECT_EQ(profiler->InitProfInfoByGraphNode(node), ge::SUCCESS);
   ge::AttrUtils::SetListInt(op_desc, "_context_id_list", input_dims);
@@ -543,7 +547,7 @@ TEST_F(CannProfilerUT, InitContextInfo_MixVector) {
 }
 
 TEST_F(CannProfilerUT, InitContextInfoByAttr) {
-  const std::vector<uint32_t> input_dims {1, 2, 3, 4};
+  const std::vector<uint32_t> input_dims{1, 2, 3, 4};
   auto compute_graph = ShareGraph::BuildSingleNodeGraph();
   auto node = compute_graph->FindNode("add1");
   auto op_desc = node->GetOpDesc();
@@ -567,24 +571,25 @@ TEST_F(CannProfilerUT, InitContextInfoByAttr) {
   auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Add", false).Build();
   auto model_desc_holder = ModelDescHolderFaker().Build();
   auto exe_graph = GraphConverter()
-      .SetModelDescHolder(&model_desc_holder)
-      .ConvertComputeGraphToExecuteGraph(compute_graph, global_data);
+                       .SetModelDescHolder(&model_desc_holder)
+                       .ConvertComputeGraphToExecuteGraph(compute_graph, global_data);
   ASSERT_NE(exe_graph, nullptr);
   GertRuntimeStub stub;
   stub.GetKernelStub().AllKernelRegisteredAndSuccess();
   auto executor = ModelV2Executor::Create(exe_graph, root_model);
   ASSERT_NE(executor, nullptr);
-  auto execution_data = reinterpret_cast<const ExecutionData *>(executor->GetExeGraphExecutor(kMainExeGraph)->GetExecutionData());
+  auto execution_data =
+      reinterpret_cast<const ExecutionData *>(executor->GetExeGraphExecutor(kMainExeGraph)->GetExecutionData());
 
-  auto profiler = executor->GetSubscribers().MutableBuiltInSubscriber<CannProfilerV2>(BuiltInSubscriberType::kCannProfilerV2);
+  auto profiler =
+      executor->GetSubscribers().MutableBuiltInSubscriber<CannProfilerV2>(BuiltInSubscriberType::kCannProfilerV2);
   profiler->prof_extend_infos_.resize(execution_data->base_ed.node_num, ProfExtendInfo{});
   profiler->node_addition_infos_.resize(execution_data->base_ed.node_num);
   profiler->exe_node_id_to_profiling_filler_.resize(execution_data->base_ed.node_num);
   profiler->node_id_to_profiler_node_id_.resize(execution_data->base_ed.node_num);
   for (size_t i = 0UL; i < execution_data->base_ed.node_num; ++i) {
     const auto execute_node = execution_data->base_ed.nodes[i];
-    const auto kernel_extend_info =
-        static_cast<const KernelExtendInfo *>(execute_node->context.kernel_extend_info);
+    const auto kernel_extend_info = static_cast<const KernelExtendInfo *>(execute_node->context.kernel_extend_info);
     if (kernel_extend_info == nullptr) {
       continue;
     }
@@ -605,7 +610,8 @@ TEST_F(CannProfilerUT, InitContextInfoByAttr) {
     }
     ProfNodeAdditionInfo addition_info{};
     profiler->name_hashes_to_node_addition_infos_[name_hash_id] = std::move(addition_info);
-    profiler->node_addition_infos_[execute_node->node_id][0] = &(profiler->name_hashes_to_node_addition_infos_[name_hash_id]);
+    profiler->node_addition_infos_[execute_node->node_id][0] =
+        &(profiler->name_hashes_to_node_addition_infos_[name_hash_id]);
     profiler->prof_extend_infos_[execute_node->node_id].node_name_idx = name_hash_id;
     profiler->prof_extend_infos_[execute_node->node_id].node_type_idx = node_type_hash_id;
     profiler->name_hash_to_node_id_.insert({name_hash_id, execute_node->node_id});
@@ -617,7 +623,6 @@ TEST_F(CannProfilerUT, InitContextInfoByAttr) {
     EXPECT_EQ(profiler->DoProf(execute_node), ge::SUCCESS);
   }
 }
-
 
 TEST_F(CannProfilerUT, InitContextInfo_aic_ffts_plus_task) {
   auto compute_graph = ShareGraph::BuildSingleNodeGraph();
@@ -631,23 +636,24 @@ TEST_F(CannProfilerUT, InitContextInfo_aic_ffts_plus_task) {
   auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Add", false).Build();
   auto model_desc_holder = ModelDescHolderFaker().Build();
   auto exe_graph = GraphConverter()
-      .SetModelDescHolder(&model_desc_holder)
-      .ConvertComputeGraphToExecuteGraph(compute_graph, global_data);
+                       .SetModelDescHolder(&model_desc_holder)
+                       .ConvertComputeGraphToExecuteGraph(compute_graph, global_data);
   ASSERT_NE(exe_graph, nullptr);
   GertRuntimeStub stub;
   stub.GetKernelStub().AllKernelRegisteredAndSuccess();
   auto executor = ModelV2Executor::Create(exe_graph, root_model);
   ASSERT_NE(executor, nullptr);
-  auto execution_data = reinterpret_cast<const ExecutionData *>(executor->GetExeGraphExecutor(kMainExeGraph)->GetExecutionData());
-  auto profiler = executor->GetSubscribers().MutableBuiltInSubscriber<CannProfilerV2>(BuiltInSubscriberType::kCannProfilerV2);
+  auto execution_data =
+      reinterpret_cast<const ExecutionData *>(executor->GetExeGraphExecutor(kMainExeGraph)->GetExecutionData());
+  auto profiler =
+      executor->GetSubscribers().MutableBuiltInSubscriber<CannProfilerV2>(BuiltInSubscriberType::kCannProfilerV2);
   profiler->prof_extend_infos_.resize(execution_data->base_ed.node_num, ProfExtendInfo{});
   profiler->node_addition_infos_.resize(execution_data->base_ed.node_num);
   profiler->exe_node_id_to_profiling_filler_.resize(execution_data->base_ed.node_num, nullptr);
   profiler->node_id_to_profiler_node_id_.resize(execution_data->base_ed.node_num);
   for (size_t i = 0UL; i < execution_data->base_ed.node_num; ++i) {
     const auto execute_node = execution_data->base_ed.nodes[i];
-    const auto kernel_extend_info =
-        static_cast<const KernelExtendInfo *>(execute_node->context.kernel_extend_info);
+    const auto kernel_extend_info = static_cast<const KernelExtendInfo *>(execute_node->context.kernel_extend_info);
     if (kernel_extend_info == nullptr) {
       continue;
     }
@@ -668,7 +674,8 @@ TEST_F(CannProfilerUT, InitContextInfo_aic_ffts_plus_task) {
     }
     ProfNodeAdditionInfo addition_info{};
     profiler->name_hashes_to_node_addition_infos_[name_hash_id] = std::move(addition_info);
-    profiler->node_addition_infos_[execute_node->node_id][0] = &(profiler->name_hashes_to_node_addition_infos_[name_hash_id]);
+    profiler->node_addition_infos_[execute_node->node_id][0] =
+        &(profiler->name_hashes_to_node_addition_infos_[name_hash_id]);
     profiler->prof_extend_infos_[execute_node->node_id].node_name_idx = name_hash_id;
     profiler->prof_extend_infos_[execute_node->node_id].node_type_idx = node_type_hash_id;
     profiler->name_hash_to_node_id_.insert({name_hash_id, execute_node->node_id});
@@ -709,28 +716,29 @@ TEST_F(CannProfilerUT, davici_model_report) {
   bg::ValueHolder::PopGraphFrame();
   ModelDescHolder model_desc_holder = ModelDescHolderFaker().Build();
   model_desc_holder.SetSpaceRegistry(SpaceRegistryFaker().Build());
-  auto exe_graph = GraphConverter()
-      .SetModelDescHolder(&model_desc_holder)
-      .ConvertComputeGraphToExecuteGraph(graph, global_data);
+  auto exe_graph =
+      GraphConverter().SetModelDescHolder(&model_desc_holder).ConvertComputeGraphToExecuteGraph(graph, global_data);
   ASSERT_NE(exe_graph, nullptr);
   GertRuntimeStub stub;
   stub.GetKernelStub().AllKernelRegisteredAndSuccess();
   auto executor = ModelV2Executor::Create(exe_graph, root_model);
   ASSERT_NE(executor, nullptr);
-  auto execution_data = reinterpret_cast<const ExecutionData *>(executor->GetExeGraphExecutor(kMainExeGraph)->GetExecutionData());
+  auto execution_data =
+      reinterpret_cast<const ExecutionData *>(executor->GetExeGraphExecutor(kMainExeGraph)->GetExecutionData());
 
-  auto profiler = executor->GetSubscribers().MutableBuiltInSubscriber<CannProfilerV2>(BuiltInSubscriberType::kCannProfilerV2);
+  auto profiler =
+      executor->GetSubscribers().MutableBuiltInSubscriber<CannProfilerV2>(BuiltInSubscriberType::kCannProfilerV2);
 
   std::unordered_map<uint64_t, DfxExtendInfo *> node_name_to_dfx_extend_info = {};
   profiler->InitNameAndTypeWithHash(*execution_data);
   EXPECT_EQ(profiler->InitBasicInfoAndTensorInfo(*execution_data, graph, node_name_to_dfx_extend_info), ge::SUCCESS);
   auto context = KernelRunContextFaker()
-                    .NodeName("test1")
-                    .NodeType("test1")
-                    .KernelType("DavinciModelExecute")
-                    .KernelName("DavinciModelExecute")
-                    .KernelIONum(1, 0)
-                    .Build();
+                     .NodeName("test1")
+                     .NodeType("test1")
+                     .KernelType("DavinciModelExecute")
+                     .KernelName("DavinciModelExecute")
+                     .KernelIONum(1, 0)
+                     .Build();
   context.value_holder[0].Set(reinterpret_cast<void *>(&ge_model), nullptr);
   size_t size = sizeof(Node) + sizeof(AsyncAnyValue *);
   Node *davinci_model_node = (Node *)malloc(size);
@@ -754,7 +762,7 @@ TEST_F(CannProfilerUT, davici_model_report) {
 }
 
 TEST_F(CannProfilerUT, InitContextInfo_no_namehash) {
-  const std::vector<uint32_t> input_dims {1, 2, 3, 4};
+  const std::vector<uint32_t> input_dims{1, 2, 3, 4};
   auto compute_graph = ShareGraph::BuildSingleNodeGraph();
   auto node = compute_graph->FindNode("add1");
   auto op_desc = node->GetOpDesc();
@@ -777,19 +785,20 @@ TEST_F(CannProfilerUT, InitContextInfo_no_namehash) {
   auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Add", false).Build();
   auto model_desc_holder = ModelDescHolderFaker().Build();
   auto exe_graph = GraphConverter()
-      .SetModelDescHolder(&model_desc_holder)
-      .ConvertComputeGraphToExecuteGraph(compute_graph, global_data);
+                       .SetModelDescHolder(&model_desc_holder)
+                       .ConvertComputeGraphToExecuteGraph(compute_graph, global_data);
   ASSERT_NE(exe_graph, nullptr);
   GertRuntimeStub stub;
   stub.GetKernelStub().AllKernelRegisteredAndSuccess();
   auto executor = ModelV2Executor::Create(exe_graph, root_model);
   ASSERT_NE(executor, nullptr);
-  auto profiler = executor->GetSubscribers().MutableBuiltInSubscriber<CannProfilerV2>(BuiltInSubscriberType::kCannProfilerV2);
+  auto profiler =
+      executor->GetSubscribers().MutableBuiltInSubscriber<CannProfilerV2>(BuiltInSubscriberType::kCannProfilerV2);
   EXPECT_EQ(profiler->InitProfInfoByGraphNode(node), ge::SUCCESS);
 }
 
 TEST_F(CannProfilerUT, InitContextInfo_invalid_ctx_num) {
-  const std::vector<uint32_t> input_dims {1, 2, 3, 4};
+  const std::vector<uint32_t> input_dims{1, 2, 3, 4};
   auto compute_graph = ShareGraph::BuildSingleNodeGraph();
   auto node = compute_graph->FindNode("add1");
   auto op_desc = node->GetOpDesc();
@@ -812,59 +821,59 @@ TEST_F(CannProfilerUT, InitContextInfo_invalid_ctx_num) {
   auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Add", false).Build();
   auto model_desc_holder = ModelDescHolderFaker().Build();
   auto exe_graph = GraphConverter()
-      .SetModelDescHolder(&model_desc_holder)
-      .ConvertComputeGraphToExecuteGraph(compute_graph, global_data);
+                       .SetModelDescHolder(&model_desc_holder)
+                       .ConvertComputeGraphToExecuteGraph(compute_graph, global_data);
   ASSERT_NE(exe_graph, nullptr);
   GertRuntimeStub stub;
   stub.GetKernelStub().AllKernelRegisteredAndSuccess();
   auto executor = ModelV2Executor::Create(exe_graph, root_model);
   ASSERT_NE(executor, nullptr);
-  auto profiler = executor->GetSubscribers().MutableBuiltInSubscriber<CannProfilerV2>(BuiltInSubscriberType::kCannProfilerV2);
+  auto profiler =
+      executor->GetSubscribers().MutableBuiltInSubscriber<CannProfilerV2>(BuiltInSubscriberType::kCannProfilerV2);
   EXPECT_EQ(profiler->InitProfInfoByGraphNode(node), ge::SUCCESS);
 }
 
 static void BuildMixL2NodeGraph(ge::ComputeGraphPtr &root_graph, ge::NodePtr &node, bool single) {
   DEF_GRAPH(fused_graph) {
-                           auto data_0 = OP_CFG(ge::DATA).Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
-                           auto data_1 = OP_CFG(ge::DATA).Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 1);
-                           auto ret_val_0 = OP_CFG(ge::FRAMEWORKOP).Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 0)
-                               .Attr(ge::ATTR_NAME_FRAMEWORK_ORIGINAL_TYPE, "_RetVal");
+    auto data_0 = OP_CFG(ge::DATA).Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
+    auto data_1 = OP_CFG(ge::DATA).Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 1);
+    auto ret_val_0 = OP_CFG(ge::FRAMEWORKOP)
+                         .Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 0)
+                         .Attr(ge::ATTR_NAME_FRAMEWORK_ORIGINAL_TYPE, "_RetVal");
 
-                           auto conv = OP_CFG("CONV2D_T")
-                               .Attr(ge::ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
-                               .Attr(ge::ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIC")
-                               .Attr(ge::TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
-                           auto sqrt = OP_CFG("SQRT_T")
-                               .Attr(ge::ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
-                               .Attr(ge::ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIV")
-                               .Attr(ge::TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
-                           CHAIN(NODE("_arg_in_0", data_0)
-                                     ->EDGE(0, 0)
-                                     ->NODE("conv2d", conv)
-                                     ->EDGE(0, 0)
-                                     ->NODE("sqrt", sqrt)
-                                     ->EDGE(0, 0)
-                                     ->NODE("retVal", ret_val_0));
-                           CHAIN(NODE("_arg_in_1", data_1)
-                                     ->EDGE(0, 1)
-                                     ->NODE("conv2d", conv));
-                         };
+    auto conv = OP_CFG("CONV2D_T")
+                    .Attr(ge::ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
+                    .Attr(ge::ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIC")
+                    .Attr(ge::TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
+    auto sqrt = OP_CFG("SQRT_T")
+                    .Attr(ge::ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
+                    .Attr(ge::ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIV")
+                    .Attr(ge::TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
+    CHAIN(NODE("_arg_in_0", data_0)
+              ->EDGE(0, 0)
+              ->NODE("conv2d", conv)
+              ->EDGE(0, 0)
+              ->NODE("sqrt", sqrt)
+              ->EDGE(0, 0)
+              ->NODE("retVal", ret_val_0));
+    CHAIN(NODE("_arg_in_1", data_1)->EDGE(0, 1)->NODE("conv2d", conv));
+  };
   auto origin_fused_graph = ge::ToComputeGraph(fused_graph);
 
   DEF_GRAPH(g1) {
-                  auto data_0 = OP_CFG(ge::DATA).Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
-                  auto data_1 = OP_CFG(ge::DATA).Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 1);
-                  auto fused_conv = OP_CFG("CONV2D_T")
-                      .Attr(ge::ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
-                      .Attr(ge::ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIC")
-                      .Attr(ge::TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
-                  CHAIN(NODE("_arg_0", data_0)
-                            ->EDGE(0, 0)
-                            ->NODE("Conv2D_Sqrt", fused_conv)
-                            ->EDGE(0, 0)
-                            ->NODE("Node_Output", ge::NETOUTPUT));
-                  CHAIN(NODE("_arg_1", data_1)->EDGE(0, 1)->NODE("Conv2D_Sqrt", fused_conv));
-                };
+    auto data_0 = OP_CFG(ge::DATA).Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
+    auto data_1 = OP_CFG(ge::DATA).Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 1);
+    auto fused_conv = OP_CFG("CONV2D_T")
+                          .Attr(ge::ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
+                          .Attr(ge::ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIC")
+                          .Attr(ge::TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
+    CHAIN(NODE("_arg_0", data_0)
+              ->EDGE(0, 0)
+              ->NODE("Conv2D_Sqrt", fused_conv)
+              ->EDGE(0, 0)
+              ->NODE("Node_Output", ge::NETOUTPUT));
+    CHAIN(NODE("_arg_1", data_1)->EDGE(0, 1)->NODE("Conv2D_Sqrt", fused_conv));
+  };
   uint32_t mem_offset = 0U;
   root_graph = ge::ToComputeGraph(g1);
   root_graph->SetGraphUnknownFlag(true);
@@ -879,7 +888,7 @@ static void BuildMixL2NodeGraph(ge::ComputeGraphPtr &root_graph, ge::NodePtr &no
   (void)ge::AttrUtils::SetStr(conv2d_desc, ge::kAttrCalcArgsSizeFunc, ge::kFFTSMixL2CalcFunc);
   (void)ge::AttrUtils::SetInt(conv2d_desc, bg::kMaxTilingSize, 50);
 
-  vector<int64_t> workspace_bytes = { 200, 300, 400};
+  vector<int64_t> workspace_bytes = {200, 300, 400};
   conv2d_desc->SetWorkspaceBytes(workspace_bytes);
 
   string compile_info_key = "compile_info_key";
@@ -937,7 +946,8 @@ static ge::graphStatus InferShapeTest1(InferShapeContext *context) {
   auto input_shape_1 = *context->GetInputShape(1);
   auto output_shape = context->GetOutputShape(0);
   if (input_shape_0.GetDimNum() != input_shape_1.GetDimNum()) {
-    GELOGE(ge::PARAM_INVALID, "Add param invalid, node:[%s], input_shape_0.GetDimNum() is %zu,  input_shape_1.GetDimNum() is %zu",
+    GELOGE(ge::PARAM_INVALID,
+           "Add param invalid, node:[%s], input_shape_0.GetDimNum() is %zu,  input_shape_1.GetDimNum() is %zu",
            context->GetNodeName(), input_shape_0.GetDimNum(), input_shape_1.GetDimNum());
   }
   output_shape->SetDimNum(input_shape_0.GetDimNum());
@@ -989,7 +999,7 @@ TEST_F(CannProfilerUT, ProfilingForFftsPlusL2Mix) {
   additional_data_def->set_data_type(data_type);
   additional_data_def->add_context_id(0);
 
-  domi::FftsPlusSqeDef* ffts_plus_sqe = ffts_plus_task_def.mutable_ffts_plus_sqe();
+  domi::FftsPlusSqeDef *ffts_plus_sqe = ffts_plus_task_def.mutable_ffts_plus_sqe();
   ffts_plus_sqe->set_ready_context_num(1);
   ffts_plus_sqe->set_total_context_num(2);
 
@@ -1028,13 +1038,15 @@ TEST_F(CannProfilerUT, ProfilingForFftsPlusL2Mix) {
   auto model_executor = ModelV2Executor::Create(exe_graph, root_model);
   ASSERT_NE(model_executor, nullptr);
 
-  auto execution_data = reinterpret_cast<const ExecutionData *>(model_executor->GetExeGraphExecutor(kMainExeGraph)->GetExecutionData());
-  auto profiler = model_executor->GetSubscribers().MutableBuiltInSubscriber<CannProfilerV2>(BuiltInSubscriberType::kCannProfilerV2);
+  auto execution_data =
+      reinterpret_cast<const ExecutionData *>(model_executor->GetExeGraphExecutor(kMainExeGraph)->GetExecutionData());
+  auto profiler =
+      model_executor->GetSubscribers().MutableBuiltInSubscriber<CannProfilerV2>(BuiltInSubscriberType::kCannProfilerV2);
   EXPECT_EQ(profiler->InitForCannDevice(execution_data), ge::SUCCESS);
   for (size_t i = 0UL; i < execution_data->base_ed.node_num; ++i) {
     const auto execute_node = execution_data->base_ed.nodes[i];
     profiler->RecordLaunchBeginTime(*execute_node);
-    profiler->exe_node_id_to_profiling_filler_[i] = [] (const KernelContext *, ProfilingInfoWrapper &) {
+    profiler->exe_node_id_to_profiling_filler_[i] = [](const KernelContext *, ProfilingInfoWrapper &) {
       return ge::SUCCESS;
     };
     EXPECT_EQ(profiler->DoProf(execute_node), ge::SUCCESS);

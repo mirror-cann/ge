@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -15,11 +15,11 @@
 #include "register/op_config_registry.h"
 
 namespace ops {
-OpDef::OpDef(const char *type) : impl_(new(std::nothrow) OpDefImpl) {
+OpDef::OpDef(const char *type) : impl_(new (std::nothrow) OpDefImpl) {
   OpDefImpl::Construct(this, type);
 }
 
-OpDef::OpDef(const OpDef &op_def) : impl_(new(std::nothrow) OpDefImpl) {
+OpDef::OpDef(const OpDef &op_def) : impl_(new (std::nothrow) OpDefImpl) {
   OpDefImpl::Construct(this, op_def);
 }
 
@@ -115,18 +115,18 @@ void OpDef::MergeParam(std::vector<OpParamDef> &merge, std::vector<OpParamDef> &
   this->impl_->MergeParam(merge, aicore_params);
 }
 
-void OpDef::DfsDataType(DfsParam &dfs_param, const std::vector<OpParamDef> &all_param,
-                        uint32_t list_idx, uint32_t non_list_idx) const {
+void OpDef::DfsDataType(DfsParam &dfs_param, const std::vector<OpParamDef> &all_param, uint32_t list_idx,
+                        uint32_t non_list_idx) const {
   this->impl_->DfsDataType(dfs_param, all_param, list_idx, non_list_idx);
 }
 
-void OpDef::DfsFormat(DfsParam &dfs_param, const std::vector<OpParamDef> &all_param,
-                      uint32_t list_idx, uint32_t non_list_idx) const {
+void OpDef::DfsFormat(DfsParam &dfs_param, const std::vector<OpParamDef> &all_param, uint32_t list_idx,
+                      uint32_t non_list_idx) const {
   this->impl_->DfsFormat(dfs_param, all_param, list_idx, non_list_idx);
 }
 
-void OpDef::DfsFullPermutation(DfsParam &dfs_param, const std::vector<OpParamDef> &all_param,
-                               uint32_t list_idx, uint32_t non_list_idx) const {
+void OpDef::DfsFullPermutation(DfsParam &dfs_param, const std::vector<OpParamDef> &all_param, uint32_t list_idx,
+                               uint32_t non_list_idx) const {
   this->impl_->DfsFullPermutation(dfs_param, all_param, list_idx, non_list_idx);
 }
 
@@ -158,18 +158,16 @@ void OpDef::UpdateOutput(const DfsParam &dfs_param, std::vector<OpParamDef> &out
   this->impl_->UpdateOutput(this, dfs_param, output);
 }
 
-void OpDef::SetPermutedParam(const DfsParam &dfs_param,
-                             std::vector<OpParamDef> &input,
+void OpDef::SetPermutedParam(const DfsParam &dfs_param, std::vector<OpParamDef> &input,
                              std::vector<OpParamDef> &output) {
   this->impl_->SetPermutedParam(this, dfs_param, input, output);
 }
 
-void OpDef::CheckIncompatible(const std::vector<OpParamDef>& all) const {
+void OpDef::CheckIncompatible(const std::vector<OpParamDef> &all) const {
   this->impl_->CheckIncompatible(all);
 }
 
-void OpDef::FullPermutation(std::vector<OpParamDef> &input_param,
-                            std::vector<OpParamDef> &output_param) {
+void OpDef::FullPermutation(std::vector<OpParamDef> &input_param, std::vector<OpParamDef> &output_param) {
   this->impl_->FullPermutation(this, input_param, output_param);
 }
 
@@ -204,13 +202,13 @@ OpHostCPUDef &OpDef::HostCPU(void) {
 OpMC2Def &OpDef::MC2(void) {
   return this->impl_->op_mc2;
 }
- 
+
 void OpDef::FollowImpl(void) {
   this->impl_->op_params.FollowDataImpl();
   return;
 }
- 
-void OpDef::FollowListImpl(const DfsParam &dfs_param, std::vector<OpParamDef>& input, std::vector<OpParamDef>& output) {
+
+void OpDef::FollowListImpl(const DfsParam &dfs_param, std::vector<OpParamDef> &input, std::vector<OpParamDef> &output) {
   this->impl_->op_params.FollowListDataImpl(dfs_param, input, output);
   return;
 }
@@ -224,7 +222,7 @@ std::map<ge::AscendString, std::vector<std::pair<ge::AscendString, OpDef::PortSt
 std::map<ge::AscendString, std::vector<std::pair<ge::AscendString, OpDef::PortStat>>> OpDef::GetFollowTypeMap(void) {
   return this->impl_->op_params.GetDtypeMap();
 }
-OpParamDef OpDef::GetParamDef(const ge::AscendString& name, OpDef::PortStat stat) {
+OpParamDef OpDef::GetParamDef(const ge::AscendString &name, OpDef::PortStat stat) {
   return this->impl_->op_params.GetParamDef(name, stat);
 }
 

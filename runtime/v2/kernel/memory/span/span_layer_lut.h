@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,10 +20,9 @@
 namespace gert {
 class SpanLayerLut {
   using SpanLayerIdIterator = std::set<SpanLayerId>::iterator;
+
  public:
-  explicit SpanLayerLut(const std::vector<SpanLayer *> &span_layers)
-      : span_layers_{span_layers} {
-  }
+  explicit SpanLayerLut(const std::vector<SpanLayer *> &span_layers) : span_layers_{span_layers} {}
 
  public:
   virtual void OnLayerCreated(const SpanLayer &) = 0;
@@ -78,8 +77,8 @@ class SpanLayerSeqLut : public SpanLayerLut {
     auto layer_idIter = span_layer_ids_.lower_bound(page_len);
     for (size_t lift_level = 0U; (lift_level < max_lift_Level) && (layer_idIter != span_layer_ids_.end());
          lift_level++) {
-      if ((*layer_idIter < span_layers_.size()) && (span_layers_[*layer_idIter] != nullptr)
-          && (!span_layers_[*layer_idIter]->IsEmpty())) {
+      if ((*layer_idIter < span_layers_.size()) && (span_layers_[*layer_idIter] != nullptr) &&
+          (!span_layers_[*layer_idIter]->IsEmpty())) {
         return *layer_idIter;
       }
       ++layer_idIter;
@@ -109,8 +108,7 @@ class SpanLayerQuickLut : public SpanLayerLut {
   using SpanLayerLut::SpanLayerLut;
 
  private:
-  void OnLayerCreated(const SpanLayer &) override {
-  }
+  void OnLayerCreated(const SpanLayer &) override {}
   void OnLayerAddSpan(const SpanLayer &layer) override {
     if (layer.GetSize() == 1) {
       span_layer_ids_.emplace(layer.GetLayerId());
@@ -151,6 +149,6 @@ class SpanLayerQuickLut : public SpanLayerLut {
     span_layer_ids_.clear();
   }
 };
-}
+}  // namespace gert
 
 #endif

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -110,15 +110,11 @@ const std::set<std::string> kOm2UnsupportedOptions = {
  */
 using SetOpAttrFun = graphStatus (*)(const ComputeGraphPtr &graph, const std::string &cfg_path);
 
-const std::map<aclgrphAttrType, SetOpAttrFun> kAttrTypeFuncMap = {
-    {ATTR_TYPE_KEEP_DTYPE, KeepDtypeFunc},
-    {ATTR_TYPE_WEIGHT_COMPRESS, WeightCompressFunc}
-};
+const std::map<aclgrphAttrType, SetOpAttrFun> kAttrTypeFuncMap = {{ATTR_TYPE_KEEP_DTYPE, KeepDtypeFunc},
+                                                                  {ATTR_TYPE_WEIGHT_COMPRESS, WeightCompressFunc}};
 
 const std::map<aclgrphAttrType, std::string> kAttrTypeToStringMap = {
-    {ATTR_TYPE_KEEP_DTYPE, KEEP_DTYPE_OPTION},
-    {ATTR_TYPE_WEIGHT_COMPRESS, ge::ir_option::COMPRESS_WEIGHT_CONF}
-};
+    {ATTR_TYPE_KEEP_DTYPE, KEEP_DTYPE_OPTION}, {ATTR_TYPE_WEIGHT_COMPRESS, ge::ir_option::COMPRESS_WEIGHT_CONF}};
 
 std::unordered_set<std::string> GetOptionKeys(const std::map<std::string, std::string> &options) {
   std::unordered_set<std::string> keys;
@@ -154,8 +150,8 @@ void SetBuildGraphModeOffline(std::map<std::string, std::string> &options) {
 Status CheckInputHintShape(const std::map<std::string, std::string> &global_options) {
   auto iter = global_options.find(INPUT_HINT_SHAPE);
   if (iter != global_options.end() && !iter->second.empty()) {
-    const std::string reason = "Option[input_hint_shape: " +
-      iter->second + "] is not supported in ge_ir_build. Please do not set it.";
+    const std::string reason =
+        "Option[input_hint_shape: " + iter->second + "] is not supported in ge_ir_build. Please do not set it.";
     REPORT_PREDEFINED_ERR_MSG("E10055", std::vector({"reason"}), std::vector({reason.c_str()}));
     GELOGE(GRAPH_PARAM_INVALID, "[Check][Param] %s", reason.c_str());
     return GRAPH_PARAM_INVALID;
@@ -175,13 +171,13 @@ graphStatus ParseOfflineMode(const std::map<std::string, std::string> &options, 
   }
   GE_ASSERT_SUCCESS(CheckOptionValidValues(options, kOfflineModeOption, kSupportedOfflineMode));
   if (ge::ConvertToInt32(iter->second, offline_mode) != SUCCESS) {
-    GELOGE(GRAPH_PARAM_INVALID, "[Check][Param]Option[%s] value[%s] is invalid.",
-           kOfflineModeOption.c_str(), iter->second.c_str());
+    GELOGE(GRAPH_PARAM_INVALID, "[Check][Param]Option[%s] value[%s] is invalid.", kOfflineModeOption.c_str(),
+           iter->second.c_str());
     return GRAPH_PARAM_INVALID;
   }
   if ((offline_mode != kOfflineModeOm) && (offline_mode != kOfflineModeOm2)) {
-    GELOGE(GRAPH_PARAM_INVALID, "[Check][Param]Option[%s] value[%s] is not supported.",
-           kOfflineModeOption.c_str(), iter->second.c_str());
+    GELOGE(GRAPH_PARAM_INVALID, "[Check][Param]Option[%s] value[%s] is not supported.", kOfflineModeOption.c_str(),
+           iter->second.c_str());
     return GRAPH_PARAM_INVALID;
   }
   return GRAPH_SUCCESS;
@@ -192,9 +188,9 @@ bool IsOm2BuildMode(const int32_t offline_mode) {
 }
 
 graphStatus ReportOm2UnsupportedOption(const std::string &option, const std::string &value) {
-  REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char_t *>({"parameter", "value", "reason"}),
-                            std::vector<const char_t *>({option.c_str(), value.c_str(),
-                                                         "this option is not supported in om2 mode."}));
+  REPORT_PREDEFINED_ERR_MSG(
+      "E10001", std::vector<const char_t *>({"parameter", "value", "reason"}),
+      std::vector<const char_t *>({option.c_str(), value.c_str(), "this option is not supported in om2 mode."}));
   GELOGE(GRAPH_PARAM_INVALID, "[Check][Option]option [%s] is not supported in om2 mode.", option.c_str());
   return GRAPH_PARAM_INVALID;
 }
@@ -231,8 +227,8 @@ graphStatus aclgrphSaveOm2ModelImpl(const std::string &output_file, const ModelB
   bool relocated = false;
   GE_ASSERT_SUCCESS(Om2PackageHelper::RelocateExternalWeights(output_file_name, model, relocated_model, relocated));
   const auto &model_to_save = relocated ? relocated_model : model;
-  GE_ASSERT_SUCCESS(SaveBinToFile(reinterpret_cast<const char *>(model_to_save.data.get()), model_to_save.length,
-                                  output_file_name));
+  GE_ASSERT_SUCCESS(
+      SaveBinToFile(reinterpret_cast<const char *>(model_to_save.data.get()), model_to_save.length, output_file_name));
   return GRAPH_SUCCESS;
 }
 }  // namespace
@@ -281,26 +277,26 @@ Status VerifyVarOffset(const ComputeGraphPtr &root_graph,
 
 static graphStatus CheckGlobalOptions(std::map<std::string, std::string> &global_options) {
   // check param disable_reuse_memory
-  std::string disable_reuse_memory = global_options.find(ge::ir_option::EXEC_DISABLE_REUSED_MEMORY) ==
-                                         global_options.end()
-                                         ? IR_OPTION_DISABLE_DEFAULT
-                                         : global_options[ge::ir_option::EXEC_DISABLE_REUSED_MEMORY];
+  std::string disable_reuse_memory =
+      global_options.find(ge::ir_option::EXEC_DISABLE_REUSED_MEMORY) == global_options.end()
+          ? IR_OPTION_DISABLE_DEFAULT
+          : global_options[ge::ir_option::EXEC_DISABLE_REUSED_MEMORY];
   GE_CHK_BOOL_EXEC(ge::CheckDisableReuseMemoryParamValid(disable_reuse_memory) == ge::SUCCESS,
-      return ge::GRAPH_PARAM_INVALID, "[Check][DisableReuseMemory] failed!");
+                   return ge::GRAPH_PARAM_INVALID, "[Check][DisableReuseMemory] failed!");
   global_options[ge::ir_option::EXEC_DISABLE_REUSED_MEMORY] = disable_reuse_memory;
   // check buffer_optimize
   std::string buffer_optimize = global_options.find(ge::ir_option::BUFFER_OPTIMIZE) == global_options.end()
                                     ? IR_OPTION_BUFFER_OPTIMIZE_DEFAULT
                                     : global_options[ge::ir_option::BUFFER_OPTIMIZE];
-  GE_CHK_BOOL_EXEC(ge::CheckBufferOptimizeParamValid(buffer_optimize) == ge::SUCCESS,
-      return ge::GRAPH_PARAM_INVALID, "[Check][BufferOptimize] failed!");
+  GE_CHK_BOOL_EXEC(ge::CheckBufferOptimizeParamValid(buffer_optimize) == ge::SUCCESS, return ge::GRAPH_PARAM_INVALID,
+                   "[Check][BufferOptimize] failed!");
   global_options[ge::ir_option::BUFFER_OPTIMIZE] = buffer_optimize;
   // check enable_single_stream
   std::string enable_single_stream = global_options.find(ge::ir_option::ENABLE_SINGLE_STREAM) == global_options.end()
                                          ? ""
                                          : global_options[ge::ir_option::ENABLE_SINGLE_STREAM];
   GE_CHK_BOOL_EXEC(ge::CheckEnableSingleStreamParamValid(enable_single_stream) == ge::SUCCESS,
-      return ge::GRAPH_PARAM_INVALID, "[Check][EnableSingleStream] failed!");
+                   return ge::GRAPH_PARAM_INVALID, "[Check][EnableSingleStream] failed!");
 
   // check external_weight
   std::string enable_external_weight = global_options.find(ge::ir_option::EXTERNAL_WEIGHT) == global_options.end()
@@ -316,12 +312,12 @@ static graphStatus CheckGlobalOptions(std::map<std::string, std::string> &global
   GE_CHK_BOOL_EXEC(ge::CheckAcParallelEnableParamValid(ac_parallel_enable) == ge::SUCCESS,
                    return ge::GRAPH_PARAM_INVALID, "[Check][AcParallelEnable] failed!");
   // check tiling_schedule_optimize
-  std::string tiling_schedule_optimize = global_options.find(ge::ir_option::TILING_SCHEDULE_OPTIMIZE) ==
-                                             global_options.end()
-                                             ? ""
-                                             : global_options[ge::ir_option::TILING_SCHEDULE_OPTIMIZE];
+  std::string tiling_schedule_optimize =
+      global_options.find(ge::ir_option::TILING_SCHEDULE_OPTIMIZE) == global_options.end()
+          ? ""
+          : global_options[ge::ir_option::TILING_SCHEDULE_OPTIMIZE];
   GE_CHK_BOOL_EXEC(ge::CheckTilingScheduleOptimizeParamValid(tiling_schedule_optimize) == ge::SUCCESS,
-                    return ge::GRAPH_PARAM_INVALID, "[Check][TilingScheduleOptimize] failed!");
+                   return ge::GRAPH_PARAM_INVALID, "[Check][TilingScheduleOptimize] failed!");
 
   // check quant_dumpable
   std::string quant_dumpable = global_options.find(ge::ir_option::QUANT_DUMPABLE) == global_options.end()
@@ -330,69 +326,61 @@ static graphStatus CheckGlobalOptions(std::map<std::string, std::string> &global
   GE_ASSERT_SUCCESS(CheckQuantDumpableParamValid(quant_dumpable), "[Check][QuantDumpable] failed!");
 
   // check compress_weight
-  std::string enable_compress_weight = global_options.find(ge::ir_option::ENABLE_COMPRESS_WEIGHT) ==
-                                           global_options.end()
-                                           ? IR_OPTION_ENABLE_COMPRESS_WEIGHT_DEFAULT
-                                           : global_options[ge::ir_option::ENABLE_COMPRESS_WEIGHT];
+  std::string enable_compress_weight =
+      global_options.find(ge::ir_option::ENABLE_COMPRESS_WEIGHT) == global_options.end()
+          ? IR_OPTION_ENABLE_COMPRESS_WEIGHT_DEFAULT
+          : global_options[ge::ir_option::ENABLE_COMPRESS_WEIGHT];
   std::string compress_weight_conf = global_options.find(ge::ir_option::COMPRESS_WEIGHT_CONF) == global_options.cend()
                                          ? ""
                                          : global_options[ge::ir_option::COMPRESS_WEIGHT_CONF];
   GE_CHK_BOOL_EXEC(ge::CheckCompressWeightParamValid(enable_compress_weight, compress_weight_conf) == ge::SUCCESS,
-      return ge::GRAPH_PARAM_INVALID, "[Check][CompressWeight] failed!");
-  global_options[ge::ir_option::ENABLE_COMPRESS_WEIGHT] = (enable_compress_weight == "true") ?
-                                                     ge::kEnableCompressWeightTrue :
-                                                     ge::kEnableCompressWeightFalse;
+                   return ge::GRAPH_PARAM_INVALID, "[Check][CompressWeight] failed!");
+  global_options[ge::ir_option::ENABLE_COMPRESS_WEIGHT] =
+      (enable_compress_weight == "true") ? ge::kEnableCompressWeightTrue : ge::kEnableCompressWeightFalse;
   // check sparsity option
   if (global_options.find(ir_option::SPARSITY) == global_options.end()) {
     global_options[ir_option::SPARSITY] = IR_OPTION_SPARSITY_DEFAULT;
   }
-  GE_CHK_BOOL_EXEC(CheckSparseParamValid(global_options[ir_option::SPARSITY]) == SUCCESS,
-      return GRAPH_PARAM_INVALID, "[Check][Sparsity] failed!");
+  GE_CHK_BOOL_EXEC(CheckSparseParamValid(global_options[ir_option::SPARSITY]) == SUCCESS, return GRAPH_PARAM_INVALID,
+                   "[Check][Sparsity] failed!");
   // check optypelist_for_implmode and op_select_implmode
-  std::string optypelist_for_implmode = global_options.find(ge::ir_option::OPTYPELIST_FOR_IMPLMODE) ==
-                                            global_options.end()
-                                            ? ""
-                                            : global_options[ge::ir_option::OPTYPELIST_FOR_IMPLMODE];
-  std::string op_select_implmode = global_options.find(ge::ir_option::OP_SELECT_IMPL_MODE) ==
-                                       global_options.cend()
+  std::string optypelist_for_implmode =
+      global_options.find(ge::ir_option::OPTYPELIST_FOR_IMPLMODE) == global_options.end()
+          ? ""
+          : global_options[ge::ir_option::OPTYPELIST_FOR_IMPLMODE];
+  std::string op_select_implmode = global_options.find(ge::ir_option::OP_SELECT_IMPL_MODE) == global_options.cend()
                                        ? ""
                                        : global_options[ge::ir_option::OP_SELECT_IMPL_MODE];
-  GE_CHK_BOOL_EXEC(
-      ge::CheckImplmodeParamValid(optypelist_for_implmode, op_select_implmode) == ge::SUCCESS,
-      return ge::GRAPH_PARAM_INVALID, "[Check][Implmode] failed!");
+  GE_CHK_BOOL_EXEC(ge::CheckImplmodeParamValid(optypelist_for_implmode, op_select_implmode) == ge::SUCCESS,
+                   return ge::GRAPH_PARAM_INVALID, "[Check][Implmode] failed!");
   global_options[ge::ir_option::OP_SELECT_IMPL_MODE] = op_select_implmode;
 
   // set precision mode default value
-  const std::string precision_mode = global_options.find(ge::ir_option::PRECISION_MODE) ==
-                                     global_options.end()
-                                     ? ""
-                                     : global_options[ge::ir_option::PRECISION_MODE];
-  const std::string precision_mode_v2 = global_options.find(ge::ir_option::PRECISION_MODE_V2) ==
-                                        global_options.end()
-                                        ? ""
-                                        : global_options[ge::ir_option::PRECISION_MODE_V2];
+  const std::string precision_mode = global_options.find(ge::ir_option::PRECISION_MODE) == global_options.end()
+                                         ? ""
+                                         : global_options[ge::ir_option::PRECISION_MODE];
+  const std::string precision_mode_v2 = global_options.find(ge::ir_option::PRECISION_MODE_V2) == global_options.end()
+                                            ? ""
+                                            : global_options[ge::ir_option::PRECISION_MODE_V2];
 
   // check allow_hf32
-  GE_ASSERT_SUCCESS(CheckAllowHF32ParamValid(global_options[ir_option::ALLOW_HF32]),
-                    "[Check][AllowHF32]failed!");
+  GE_ASSERT_SUCCESS(CheckAllowHF32ParamValid(global_options[ir_option::ALLOW_HF32]), "[Check][AllowHF32]failed!");
   // check modify_mixlist
-  std::string modify_mixlist = global_options.find(ge::ir_option::MODIFY_MIXLIST) ==
-                               global_options.cend()
-                               ? ""
-                               : global_options[ge::ir_option::MODIFY_MIXLIST];
+  std::string modify_mixlist = global_options.find(ge::ir_option::MODIFY_MIXLIST) == global_options.cend()
+                                   ? ""
+                                   : global_options[ge::ir_option::MODIFY_MIXLIST];
 
   GE_ASSERT_SUCCESS(CheckPrecisionModeParamValid(precision_mode), "[Check][PrecisionMode]failed!");
   GE_ASSERT_SUCCESS(CheckPrecisionModeV2ParamValid(precision_mode_v2), "[Check][PrecisionModeV2]failed!");
   GE_ASSERT_SUCCESS(CheckPrecisionModeV2Conflict(precision_mode, precision_mode_v2),
                     "[Check][PrecisionModeV2Conflict]failed!");
-  if (ge::CheckModifyMixlistParamValid(precision_mode, precision_mode_v2, modify_mixlist) !=
-      ge::SUCCESS) {
+  if (ge::CheckModifyMixlistParamValid(precision_mode, precision_mode_v2, modify_mixlist) != ge::SUCCESS) {
     return ge::GRAPH_PARAM_INVALID;
   }
   global_options[ge::ir_option::MODIFY_MIXLIST] = modify_mixlist;
   global_options[ge::OPTION_EXEC_HCCL_FLAG] = IR_OPTION_ENABLE_DEFAULT;
-  if (CheckHostEnvOsAndHostEnvCpuValid(global_options[OPTION_HOST_ENV_OS], global_options[OPTION_HOST_ENV_CPU])
-      != SUCCESS) {
+  if (CheckHostEnvOsAndHostEnvCpuValid(global_options[OPTION_HOST_ENV_OS], global_options[OPTION_HOST_ENV_CPU]) !=
+      SUCCESS) {
     return GRAPH_PARAM_INVALID;
   }
   GE_ASSERT_SUCCESS(CheckScreenPrinterOption(global_options), "[Check][ge.screen_print_mode]failed!");
@@ -401,7 +389,7 @@ static graphStatus CheckGlobalOptions(std::map<std::string, std::string> &global
 }
 
 static void LoadOpsProto() {
- // 加载顺序遵循3.0目录结构，按op_graph->op_impl->op_proto->framework顺序加载，详细规则见PluginManager::GetOpsProtoPath注释
+  // 加载顺序遵循3.0目录结构，按op_graph->op_impl->op_proto->framework顺序加载，详细规则见PluginManager::GetOpsProtoPath注释
   gert::OppPackageUtils::LoadAllOppPackage();
   std::string opsproto_path;
   Status ret = PluginManager::GetOpsProtoPath(opsproto_path);
@@ -417,7 +405,7 @@ static void LoadOpsProto() {
 
 static graphStatus aclgrphBuildInitializeImpl(std::map<std::string, std::string> &global_options) {
   GELOGD("Enter aclgrphInitialize start!");
-  //备份并清空注册信息map
+  // 备份并清空注册信息map
   OperatorFactoryImpl::BackupAndClearRegInfoOnce();
   const auto user_global_option_keys = GetOptionKeys(global_options);
   SetDefaultHostEnvOsAndHostEnvCpu(global_options[OPTION_HOST_ENV_OS], global_options[OPTION_HOST_ENV_CPU]);
@@ -430,7 +418,7 @@ static graphStatus aclgrphBuildInitializeImpl(std::map<std::string, std::string>
 
   // check global options
   if (CheckGlobalOptions(global_options) != GRAPH_SUCCESS) {
-    GELOGE(GRAPH_PARAM_INVALID, "[Check][Global Options] falied!");
+    GELOGE(GRAPH_PARAM_INVALID, "[Check][Global Options] failed!");
     return GRAPH_PARAM_INVALID;
   }
   ScreenPrinter::GetInstance().Init(global_options[OPTION_SCREEN_PRINT_MODE]);
@@ -443,7 +431,7 @@ static graphStatus aclgrphBuildInitializeImpl(std::map<std::string, std::string>
     REPORT_PREDEFINED_ERR_MSG("E10055", std::vector<const char_t *>({"reason"}),
                               std::vector<const char_t *>({reason.c_str()}));
     GELOGE(GRAPH_FAILED,
-           "[Check][Param]Options unsupport, The Auto Tune function has been discarded. Please use the AOE tool for "
+           "[Check][Param]Options unsupported, The Auto Tune function has been discarded. Please use the AOE tool for "
            "tuning.");
     return GRAPH_FAILED;
   }
@@ -523,16 +511,16 @@ class Impl {
     omg_context_.dynamic_dims.clear();
     omg_context_.user_attr_index_valid = false;
   };
-  ~Impl() { (void)generator_.Finalize(); };
+  ~Impl() {
+    (void)generator_.Finalize();
+  };
   graphStatus CheckBuildModeAndBuildStep();
   graphStatus GetSupportedOptions(const std::map<std::string, std::string> &in,
                                   std::map<std::string, std::string> &out) const;
   graphStatus CheckOptions(const std::map<std::string, std::string> &options);
   graphStatus CreateInputsForIRBuild(const ge::Graph &graph, std::vector<ge::GeTensor> &inputs);
   graphStatus SetInputs(std::vector<ge::GeTensor> &inputs, const std::vector<ge::NodePtr> &data_nodes);
-  graphStatus UpdateDataOpAttr(const Graph &graph,
-                               const std::string &input_shape,
-                               const std::string &input_shape_range,
+  graphStatus UpdateDataOpAttr(const Graph &graph, const std::string &input_shape, const std::string &input_shape_range,
                                const std::string &input_format);
   graphStatus UpdateDataOpAttr(const Graph &graph);
   graphStatus CheckDataOpAttrIndexValid(const Graph &graph, const std::string &input_shape_range);
@@ -541,26 +529,22 @@ class Impl {
   graphStatus SplitForVariableInferGraph(const ComputeGraphPtr &origin_graph,
                                          const std::vector<std::string> &const_names,
                                          WeightRefreshableGraphs &weight_refreshable_graphs) const;
-  graphStatus GenerateVariableInferGraph(const ComputeGraphPtr &origin_graph,
-                                          const vector<std::string> &const_names, Graph &infer_graph,
-                                          std::vector<ge::NodePtr> &const_nodes,
-                                          std::vector<ge::NodePtr> &var_nodes) const;
+  graphStatus GenerateVariableInferGraph(const ComputeGraphPtr &origin_graph, const vector<std::string> &const_names,
+                                         Graph &infer_graph, std::vector<ge::NodePtr> &const_nodes,
+                                         std::vector<ge::NodePtr> &var_nodes) const;
   graphStatus GenerateVariableInitGraph(const std::vector<ge::NodePtr> &var_nodes,
                                         const std::vector<ge::NodePtr> &const_nodes, Graph &init_graph) const;
   graphStatus GenerateVariableUpdateGraph(const std::vector<ge::NodePtr> &var_nodes, Graph &update_graph) const;
 
-  NodePtr InsertOp(const ComputeGraphPtr &compute_graph, const std::string &node_type,
-                   const std::string &node_name,
-                   const std::vector<GeTensorDesc> &input_list,
-                   const std::vector<GeTensorDesc> &output_list) const;
+  NodePtr InsertOp(const ComputeGraphPtr &compute_graph, const std::string &node_type, const std::string &node_name,
+                   const std::vector<GeTensorDesc> &input_list, const std::vector<GeTensorDesc> &output_list) const;
 
   NodePtr InsertIfNode(const ge::NodePtr &var_node, ComputeGraphPtr &compute_graph) const;
 
   graphStatus ConstructIfSubgraphs(const ge::NodePtr &var_node, ge::NodePtr &if_node,
                                    ComputeGraphPtr &compute_graph) const;
 
-  graphStatus BuildModel(const Graph &graph, const std::map<std::string, std::string> &options,
-                         ModelBufferData &model);
+  graphStatus BuildModel(const Graph &graph, const std::map<std::string, std::string> &options, ModelBufferData &model);
   graphStatus InitDomiOmgContext(const std::string &input_shape, const std::string &input_format,
                                  bool is_dynamic_input);
   graphStatus GetInputShapeRange(const std::string &input_shape_range,
@@ -574,6 +558,7 @@ class Impl {
   void UpdateThreadContext();
   void LoadOpsProto();
   std::string GetParam(const std::string &param);
+
  public:
   ge::GeGenerator generator_;
   std::map<std::string, std::string> options_;
@@ -587,15 +572,15 @@ graphStatus Impl::InferShapePrepare(const ComputeGraphPtr &compute_graph) {
   GE_CHECK_NOTNULL(compute_graph);
 
   PassManager prepare_infershape;
-  prepare_infershape.AddPass("PrepareNetoutput", new(std::nothrow) NetOutputPass);
+  prepare_infershape.AddPass("PrepareNetoutput", new (std::nothrow) NetOutputPass);
   prepare_infershape.AddPass("PrepareSubGraphReflection", new (std::nothrow) DataPass);
 
   auto ret = prepare_infershape.Run(compute_graph);
   if ((ret != SUCCESS) && (ret != NOT_CHANGED)) {
-    GELOGE(ret, "[Prepair][InferShape] failed, ret:%d", ret);
+    GELOGE(ret, "[Prepare][InferShape] failed, ret:%d", ret);
     return ret;
   }
-  GELOGD("Prepair for infershape success!");
+  GELOGD("Prepare for infershape success!");
   return GRAPH_SUCCESS;
 }
 
@@ -603,8 +588,7 @@ bool Impl::GetUsrAttrIndexValidFlag() {
   return omg_context_.user_attr_index_valid;
 }
 
-bool Impl::IsAttrIndexSetByUser(const ComputeGraphPtr &compute_graph,
-                                size_t &data_num,
+bool Impl::IsAttrIndexSetByUser(const ComputeGraphPtr &compute_graph, size_t &data_num,
                                 std::vector<int64_t> &attr_index) const {
   bool all_zero_flag = true;
   for (ge::NodePtr &input_node : compute_graph->GetDirectNode()) {
@@ -667,8 +651,10 @@ graphStatus Impl::CheckDataOpAttrIndexValid(const Graph &graph, const std::strin
           "of all DATA operators";
       REPORT_PREDEFINED_ERR_MSG("E13025", std::vector<const char_t *>({"reason"}),
                                 std::vector<const char_t *>({reason.c_str()}));
-      GELOGE(GRAPH_FAILED, "[Check][AttrIndex] Data op index is not set, total data op num[%ld], "
-             "when set input shape range by index.", data_num);
+      GELOGE(GRAPH_FAILED,
+             "[Check][AttrIndex] Data op index is not set, total data op num[%ld], "
+             "when set input shape range by index.",
+             data_num);
       return GRAPH_FAILED;
     }
     return GRAPH_SUCCESS;
@@ -679,12 +665,15 @@ graphStatus Impl::CheckDataOpAttrIndexValid(const Graph &graph, const std::strin
     if (std::find(attr_index.begin(), attr_index.end(), i) == attr_index.end()) {
       omg_context_.user_attr_index_valid = false;
       if (index_input_shape_range_flag) {
-        std::string reason = "Data op index[" + std::to_string(i) + "] is not set. When setting the input shape range "
-            "by index, you must set the index attribute of all DATA operators";
+        std::string reason = "Data op index[" + std::to_string(i) +
+                             "] is not set. When setting the input shape range "
+                             "by index, you must set the index attribute of all DATA operators";
         REPORT_PREDEFINED_ERR_MSG("E13025", std::vector<const char_t *>({"reason"}),
                                   std::vector<const char_t *>({reason.c_str()}));
-        GELOGE(GRAPH_FAILED, "[Check][AttrIndex] Attr index [%ld] is not set, total data op num[%ld], "
-               "when set input shape range by index", i, data_num);
+        GELOGE(GRAPH_FAILED,
+               "[Check][AttrIndex] Attr index [%ld] is not set, total data op num[%ld], "
+               "when set input shape range by index",
+               i, data_num);
         return GRAPH_FAILED;
       } else {
         GELOGW("[Check][AttrIndex] Attr index [%ld] is not set, total data op num[%ld].", i, data_num);
@@ -702,8 +691,8 @@ graphStatus Impl::UpdateDataOpAttr(const Graph &graph) {
   std::string dynamic_batch_size = GetParam(ge::ir_option::DYNAMIC_BATCH_SIZE);
   std::string dynamic_image_size = GetParam(ge::ir_option::DYNAMIC_IMAGE_SIZE);
   std::string dynamic_dims = GetParam(ge::ir_option::DYNAMIC_DIMS);
-  if (CheckAndTransferInputShapeToRange(input_shape, input_shape_range,
-      dynamic_batch_size, dynamic_image_size, dynamic_dims) != SUCCESS) {
+  if (CheckAndTransferInputShapeToRange(input_shape, input_shape_range, dynamic_batch_size, dynamic_image_size,
+                                        dynamic_dims) != SUCCESS) {
     GELOGE(GRAPH_PARAM_INVALID, "[Check][TransferShapeAndRange] failed!");
     return GRAPH_PARAM_INVALID;
   }
@@ -711,10 +700,8 @@ graphStatus Impl::UpdateDataOpAttr(const Graph &graph) {
   return UpdateDataOpAttr(graph, input_shape, input_shape_range, input_format);
 }
 
-graphStatus Impl::UpdateDataOpAttr(const Graph &graph,
-                                   const std::string &input_shape,
-                                   const std::string &input_shape_range,
-                                   const std::string &input_format) {
+graphStatus Impl::UpdateDataOpAttr(const Graph &graph, const std::string &input_shape,
+                                   const std::string &input_shape_range, const std::string &input_format) {
   GELOGD("Enter Update Data Attr Process!");
   graphStatus ret = CheckDataOpAttrIndexValid(graph, input_shape_range);
   if (ret != GRAPH_SUCCESS) {
@@ -724,8 +711,8 @@ graphStatus Impl::UpdateDataOpAttr(const Graph &graph,
   std::map<std::string, std::vector<int64_t>> shape_map;
   std::vector<std::pair<std::string, std::vector<int64_t>>> user_shape_map;
   if (!input_shape.empty()) {
-    GE_CHK_BOOL_EXEC(ParseInputShape(input_shape, shape_map, user_shape_map, true),
-                     return GRAPH_PARAM_INVALID, "[Parse][InputShape] failed!");
+    GE_CHK_BOOL_EXEC(ParseInputShape(input_shape, shape_map, user_shape_map, true), return GRAPH_PARAM_INVALID,
+                     "[Parse][InputShape] failed!");
   }
   std::map<std::string, std::vector<std::pair<int64_t, int64_t>>> name_shape_range_map;
   std::vector<std::vector<std::pair<int64_t, int64_t>>> index_shape_range_map;
@@ -766,8 +753,9 @@ graphStatus Impl::CheckBuildModeAndBuildStep() {
   if (it != options_.end() && !(it->second.empty())) {
     if (build_mode_options.find(it->second) == build_mode_options.end()) {
       REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char_t *>({"parameter", "value", "reason"}),
-          std::vector<const char_t *>({BUILD_MODE, it->second.c_str(), "The current value is not within the valid range."}));
-      GELOGE(GRAPH_PARAM_INVALID, "[Check][BuildMode]:%s is unsupported. Please check!", it->second.c_str());
+                                std::vector<const char_t *>({BUILD_MODE, it->second.c_str(),
+                                                             "The current value is not within the valid range."}));
+      GELOGE(GRAPH_PARAM_INVALID, "[Check][BuildMode]:%s is unsupporteded. Please check!", it->second.c_str());
       return GRAPH_PARAM_INVALID;
     }
     build_mode = it->second;
@@ -776,8 +764,9 @@ graphStatus Impl::CheckBuildModeAndBuildStep() {
   if (it != options_.end() && !(it->second.empty())) {
     if (build_step_options.find(it->second) == build_step_options.end()) {
       REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char_t *>({"parameter", "value", "reason"}),
-          std::vector<const char_t *>({BUILD_STEP, it->second.c_str(), "The current value is not within the valid range."}));
-      GELOGE(GRAPH_PARAM_INVALID, "[Check][BuildStep]:%s is unsupported. Please check!", it->second.c_str());
+                                std::vector<const char_t *>({BUILD_STEP, it->second.c_str(),
+                                                             "The current value is not within the valid range."}));
+      GELOGE(GRAPH_PARAM_INVALID, "[Check][BuildStep]:%s is unsupporteded. Please check!", it->second.c_str());
       return GRAPH_PARAM_INVALID;
     }
   } else {
@@ -803,8 +792,7 @@ graphStatus Impl::GetSupportedOptions(const std::map<std::string, std::string> &
       if (it_lx_fusion == ir_builder_supported_options_for_lx_fusion.cend()) {
         std::set<std::string>::const_iterator it_inner = ge::ir_builder_suppported_options_inner.find(ele.first);
         if (it_inner == ge::ir_builder_suppported_options_inner.cend()) {
-          GELOGE(GRAPH_PARAM_INVALID, "[Check][Options] unsupported option(%s), Please check!",
-                 ele.first.c_str());
+          GELOGE(GRAPH_PARAM_INVALID, "[Check][Options] unsupporteded option(%s), Please check!", ele.first.c_str());
           return GRAPH_PARAM_INVALID;
         }
       }
@@ -845,8 +833,8 @@ graphStatus Impl::CheckOptions(const std::map<std::string, std::string> &options
     return GRAPH_PARAM_INVALID;
   }
   if (it != options_.end()) {
-    GELOGI("Option set successfully, option_key=%s, option_value=%s",
-           ge::ir_option::OP_PRECISION_MODE, it->second.c_str());
+    GELOGI("Option set successfully, option_key=%s, option_value=%s", ge::ir_option::OP_PRECISION_MODE,
+           it->second.c_str());
   }
   // Check Input Format
   if (options_.find(kInputFormat) != options_.end()) {
@@ -857,15 +845,17 @@ graphStatus Impl::CheckOptions(const std::map<std::string, std::string> &options
   if (build_mode_iter != options_.cend()) {
     GELOG_DEPRECATED(ge::ir_option::SHAPE_GENERALIZED_BUILD_MODE);
   }
-  bool mode_is_invalid = build_mode_iter != options_.cend() &&
-                         build_mode_iter->second != kShapeGeneralized && build_mode_iter->second != kShapePrecise;
+  bool mode_is_invalid = build_mode_iter != options_.cend() && build_mode_iter->second != kShapeGeneralized &&
+                         build_mode_iter->second != kShapePrecise;
   if (mode_is_invalid) {
-    REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char_t *>({"value", "parameter", "reason"}),
-                              std::vector<const char_t *>({build_mode_iter->second.c_str(),
-                                                           ge::ir_option::SHAPE_GENERALIZED_BUILD_MODE,
-                                                           "must be shape_generalized or shape_precise."}));
-    GELOGE(GRAPH_PARAM_INVALID, "[Check][SHAPE_GENERALIZED_BUILD_MODE]Shape generalized build mode %s is invalid, "
-                                "only support shape_generalized or shape_precise", build_mode_iter->second.c_str());
+    REPORT_PREDEFINED_ERR_MSG(
+        "E10001", std::vector<const char_t *>({"value", "parameter", "reason"}),
+        std::vector<const char_t *>({build_mode_iter->second.c_str(), ge::ir_option::SHAPE_GENERALIZED_BUILD_MODE,
+                                     "must be shape_generalized or shape_precise."}));
+    GELOGE(GRAPH_PARAM_INVALID,
+           "[Check][SHAPE_GENERALIZED_BUILD_MODE]Shape generalized build mode %s is invalid, "
+           "only support shape_generalized or shape_precise",
+           build_mode_iter->second.c_str());
     return GRAPH_PARAM_INVALID;
   }
   GE_ASSERT_GRAPH_SUCCESS(CheckOptimizationOptionValid(options_));
@@ -890,8 +880,8 @@ graphStatus Impl::Init(const Graph &graph, const std::map<std::string, std::stri
   std::string dynamic_batch_size = GetParam(ge::ir_option::DYNAMIC_BATCH_SIZE);
   std::string dynamic_image_size = GetParam(ge::ir_option::DYNAMIC_IMAGE_SIZE);
   std::string dynamic_dims = GetParam(ge::ir_option::DYNAMIC_DIMS);
-  if (CheckAndTransferInputShapeToRange(input_shape, input_shape_range,
-      dynamic_batch_size, dynamic_image_size, dynamic_dims) != SUCCESS) {
+  if (CheckAndTransferInputShapeToRange(input_shape, input_shape_range, dynamic_batch_size, dynamic_image_size,
+                                        dynamic_dims) != SUCCESS) {
     GELOGE(GRAPH_PARAM_INVALID, "[Check][TransferShapeAndRange] failed!");
     return GRAPH_PARAM_INVALID;
   }
@@ -901,17 +891,17 @@ graphStatus Impl::Init(const Graph &graph, const std::map<std::string, std::stri
     return ret;
   }
   std::string build_mode = (options_.find(BUILD_MODE) == options_.cend() || options_[BUILD_MODE] == BUILD_MODE_NORMAL)
-                           ? "" : options_[BUILD_MODE];
+                               ? ""
+                               : options_[BUILD_MODE];
   options_[BUILD_MODE] = build_mode;
   // set log level
-  std::string log = options_.find(ge::ir_option::LOG_LEVEL) == options_.end()
-                        ? IR_OPTION_LOG_LEVEL_DEFAULT
-                        : options_[ge::ir_option::LOG_LEVEL];
+  std::string log = options_.find(ge::ir_option::LOG_LEVEL) == options_.end() ? IR_OPTION_LOG_LEVEL_DEFAULT
+                                                                              : options_[ge::ir_option::LOG_LEVEL];
   GE_CHK_BOOL_RET_STATUS_NOLOG(ge::CheckLogParamValidAndSetLogLevel(log) == 0, GRAPH_PARAM_INVALID);
   options_[ge::ir_option::LOG_LEVEL] = log;
 
-  auto ret_status = CheckHintShapeConflictWithDynamicParam(input_hint_shape, dynamic_batch_size,
-                                                           dynamic_image_size, dynamic_dims);
+  auto ret_status =
+      CheckHintShapeConflictWithDynamicParam(input_hint_shape, dynamic_batch_size, dynamic_image_size, dynamic_dims);
   if (ret_status != ge::SUCCESS) {
     GELOGE(GRAPH_PARAM_INVALID, "[Check][inputHintShape] failed!");
     return GRAPH_PARAM_INVALID;
@@ -931,16 +921,16 @@ graphStatus Impl::Init(const Graph &graph, const std::map<std::string, std::stri
 
   // check output_type
   std::string output_type = GetParam(ge::ir_option::OUTPUT_TYPE);
-  GE_CHK_BOOL_EXEC(ge::CheckOutputTypeParamValid(output_type) == ge::SUCCESS,
-      return ge::GRAPH_PARAM_INVALID, "[Check][OutputType] failed!");
+  GE_CHK_BOOL_EXEC(ge::CheckOutputTypeParamValid(output_type) == ge::SUCCESS, return ge::GRAPH_PARAM_INVALID,
+                   "[Check][OutputType] failed!");
 
   // check insert_op_conf
   std::string insert_op_conf = GetParam(ge::ir_option::INSERT_OP_FILE);
   GE_CHK_BOOL_EXEC(ge::CheckInsertOpConfParamValid(std::string(insert_op_conf)) == ge::SUCCESS,
-      return ge::GRAPH_PARAM_INVALID, "[Check][InsertOpConf] failed!");
+                   return ge::GRAPH_PARAM_INVALID, "[Check][InsertOpConf] failed!");
 
-  GE_CHK_BOOL_EXEC(insert_op_conf.empty() || dynamic_dims.empty(),
-                   return ge::GRAPH_PARAM_INVALID, "[Check][Data]dynamic dims function does not support aipp");
+  GE_CHK_BOOL_EXEC(insert_op_conf.empty() || dynamic_dims.empty(), return ge::GRAPH_PARAM_INVALID,
+                   "[Check][Data]dynamic dims function does not support aipp");
 
   // for IR builder.Only support om mode, so here fixed;
   options_.insert(std::pair<std::string, std::string>(string(IR_OPTION_MODE), to_string(0)));
@@ -1035,8 +1025,9 @@ graphStatus Impl::SetInputs(std::vector<ge::GeTensor> &inputs, const std::vector
       GELOGD("Data op: %s get shape from InputDesc in ge ir graph.", data_op_name.c_str());
     }
     // If user point input format, do work for all data ops; else do according to tensor_desc
-    const auto data_format = omg_context_.format != domi::DOMI_TENSOR_ND ?
-                             ge::TypeUtilsInner::DomiFormatToFormat(omg_context_.format) : tensor_desc->GetFormat();
+    const auto data_format = omg_context_.format != domi::DOMI_TENSOR_ND
+                                 ? ge::TypeUtilsInner::DomiFormatToFormat(omg_context_.format)
+                                 : tensor_desc->GetFormat();
     const ge::DataType data_type = tensor_desc->GetDataType();
     GELOGD("Data op get data type:%s from InputDesc in ge ir graph.",
            ge::TypeUtils::DataTypeToSerialString(data_type).c_str());
@@ -1047,8 +1038,8 @@ graphStatus Impl::SetInputs(std::vector<ge::GeTensor> &inputs, const std::vector
     desc.SetDataType(data_type);
     ge::GeTensor input_tensor;
     input_tensor.SetTensorDesc(desc);
-    GE_ASSERT_TRUE(static_cast<size_t>(id_index) < inputs.size(),
-      "id_index %ld should be smaller than inputs size %zu", id_index, inputs.size());
+    GE_ASSERT_TRUE(static_cast<size_t>(id_index) < inputs.size(), "id_index %ld should be smaller than inputs size %zu",
+                   id_index, inputs.size());
     inputs[id_index] = input_tensor;
   }
   GELOGD("CreateInputsForIRBuild, inputs size: %zu", inputs.size());
@@ -1065,7 +1056,7 @@ graphStatus Impl::CheckAutoTuneMode(const std::map<std::string, std::string> &op
                               std::vector<const char_t *>({reason.c_str()}));
     GELOGE(
         GRAPH_FAILED,
-        "[Check][Param]Options[%s] unsupport, The Auto Tune function has been discarded. Please use the AOE tool for "
+        "[Check][Param]Options[%s] unsupported, The Auto Tune function has been discarded. Please use the AOE tool for "
         "tuning.",
         iter->first.c_str());
     return GRAPH_FAILED;
@@ -1169,7 +1160,7 @@ graphStatus Impl::SplitForVariableInferGraph(const ComputeGraphPtr &origin_graph
   std::vector<ge::NodePtr> const_nodes;
   std::vector<ge::NodePtr> var_nodes;
   GE_ASSERT_SUCCESS(GenerateVariableInferGraph(origin_graph, const_names, weight_refreshable_graphs.infer_graph,
-                                                const_nodes, var_nodes));
+                                               const_nodes, var_nodes));
   GE_ASSERT_SUCCESS(GenerateVariableInitGraph(var_nodes, const_nodes, weight_refreshable_graphs.var_init_graph));
   GE_ASSERT_SUCCESS(GenerateVariableUpdateGraph(var_nodes, weight_refreshable_graphs.var_update_graph));
   return GRAPH_SUCCESS;
@@ -1207,8 +1198,8 @@ graphStatus Impl::GenerateVariableInferGraph(const ComputeGraphPtr &origin_graph
 
     // construct variable node
     std::string var_name = const_op_desc->GetName() + "_var";
-    auto var_node = InsertOp(const_node->GetOwnerComputeGraph(), ge::VARIABLE, var_name,
-                             {const_tensor_desc}, {const_tensor_desc});
+    auto var_node =
+        InsertOp(const_node->GetOwnerComputeGraph(), ge::VARIABLE, var_name, {const_tensor_desc}, {const_tensor_desc});
     GE_ASSERT_NOTNULL(var_node);
     var_nodes.emplace_back(var_node);
     GELOGI("insert variable node %s success", var_node->GetNamePtr());
@@ -1250,8 +1241,7 @@ NodePtr Impl::InsertOp(const ComputeGraphPtr &compute_graph, const string &node_
 //    \     /         \      /
 //    assign_1         assign_2
 graphStatus Impl::GenerateVariableInitGraph(const vector<ge::NodePtr> &var_nodes,
-                                            const vector<ge::NodePtr> &const_nodes,
-                                            Graph &init_graph) const {
+                                            const vector<ge::NodePtr> &const_nodes, Graph &init_graph) const {
   GE_ASSERT_TRUE(var_nodes.size() == const_nodes.size());
   std::string init_graph_name = "var_init_graph";
   auto init_compute_graph = MakeShared<ComputeGraph>(init_graph_name);
@@ -1422,13 +1412,11 @@ graphStatus CheckVarDesc(const vector<ge::GraphWithOptions> &graph_with_options,
       } else {
         GE_CHECK_NOTNULL(VarManager::Instance(session_id));
         auto trans_road = VarManager::Instance(session_id)->GetTransRoad(node->GetName());
-        bool same_format = (trans_road == nullptr) ? true :
-                           (out_tensor_desc.GetFormat() == it->second.GetFormat());
+        bool same_format = (trans_road == nullptr) ? true : (out_tensor_desc.GetFormat() == it->second.GetFormat());
         bool is_same = (same_format && (out_tensor_desc.GetDataType() == it->second.GetDataType()) &&
                         (out_tensor_desc.GetShape() == it->second.GetShape()));
         GE_ASSERT_TRUE(is_same, "var node %s verified fail, current format %s, dt %s, old format %s, dt %s",
-                       var_name.c_str(),
-                       TypeUtils::FormatToSerialString(out_tensor_desc.GetFormat()).c_str(),
+                       var_name.c_str(), TypeUtils::FormatToSerialString(out_tensor_desc.GetFormat()).c_str(),
                        TypeUtils::DataTypeToSerialString(out_tensor_desc.GetDataType()).c_str(),
                        TypeUtils::FormatToSerialString(it->second.GetFormat()).c_str(),
                        TypeUtils::DataTypeToSerialString(it->second.GetDataType()).c_str());
@@ -1565,7 +1553,8 @@ graphStatus aclgrphBundleSaveModelImpl(const std::string &output_file, const Mod
   std::vector<ModelBufferData> repacked_buffers;
   std::map<std::string, std::pair<int64_t, GeTensorDesc>> var_name_to_verify_info;
   std::string output_file_name = output_file + ".om";
-  GE_ASSERT_TRUE(model.length >= (sizeof(ModelFileHeader) + sizeof(ModelPartitionTable)), "Bundle model len is invalid.");
+  GE_ASSERT_TRUE(model.length >= (sizeof(ModelFileHeader) + sizeof(ModelPartitionTable)),
+                 "Bundle model len is invalid.");
   auto *partition_table = PtrToPtr<uint8_t, ModelPartitionTable>(model.data.get() + sizeof(ModelFileHeader));
   const size_t partition_num = partition_table->num;
   const size_t header_size =
@@ -1573,15 +1562,17 @@ graphStatus aclgrphBundleSaveModelImpl(const std::string &output_file, const Mod
 
   size_t current_offset{header_size};
   GE_ASSERT_TRUE(model.length >= current_offset,
-      "Bundle model len is invalid, model length is %lu, current_offset is %zu", model.length, current_offset);
-  size_t other_part_cnt = 0U; // other part is ordered in front of submodel partition
+                 "Bundle model len is invalid, model length is %lu, current_offset is %zu", model.length,
+                 current_offset);
+  size_t other_part_cnt = 0U;  // other part is ordered in front of submodel partition
   for (size_t i = 0UL; i < partition_num; ++i) {
     ModelData sub_model_data;
     sub_model_data.model_data = model.data.get() + current_offset;
     sub_model_data.model_len = partition_table->partition[i].mem_size;
     current_offset += partition_table->partition[i].mem_size;
     GE_ASSERT_TRUE(model.length >= current_offset,
-        "Bundle model len is invalid, model length is %lu, current_offset is %zu", model.length, current_offset);
+                   "Bundle model len is invalid, model length is %lu, current_offset is %zu", model.length,
+                   current_offset);
     if (partition_table->partition[i].type != BUNDLE_MODEL_INFO) {
       GELOGI("current partition %zu, type %d is not bundle sub model", i, partition_table->partition[i].type);
       ++other_part_cnt;
@@ -1607,22 +1598,22 @@ graphStatus aclgrphBundleSaveModelImpl(const std::string &output_file, const Mod
       model_helper.GetGeRootModel()->GetRootGraph();
       GELOGD("Load root model successfully.");
       ModelBufferData cur_buf;
-      GE_ASSERT_SUCCESS(
-          model_helper.PackSoToModelData(sub_model_data, output_file + ".om", cur_buf, false));
+      GE_ASSERT_SUCCESS(model_helper.PackSoToModelData(sub_model_data, output_file + ".om", cur_buf, false));
       repacked_buffers.emplace_back(cur_buf);
       if (model_helper.IsSoStore()) {
         output_file_name = ModelHelper::GetOutputFileName();
       }
     }
   }
-  GE_ASSERT_TRUE((partition_num - other_part_cnt) == sub_model_num, "partition_num %zu, other_part_cnt %zu, sub_model_num %zu",
-                 partition_num, other_part_cnt, sub_model_num);
+  GE_ASSERT_TRUE((partition_num - other_part_cnt) == sub_model_num,
+                 "partition_num %zu, other_part_cnt %zu, sub_model_num %zu", partition_num, other_part_cnt,
+                 sub_model_num);
   GE_ASSERT_TRUE(repacked_buffers.size() == sub_model_num, "repacked num %zu should be equal to %zu",
                  repacked_buffers.size(), sub_model_num);
 
   // bundle save
   ModelFileHeader *bundle_header = const_cast<ModelFileHeader *>(model_header);
-  size_t first_sub_model_offset = partition_table->partition[other_part_cnt].mem_offset; // first sub model offset
+  size_t first_sub_model_offset = partition_table->partition[other_part_cnt].mem_offset;  // first sub model offset
   bundle_header->model_length = sizeof(ModelFileHeader) + first_sub_model_offset;
   size_t offset = first_sub_model_offset;
   // only update sub model offset partition info
@@ -1634,8 +1625,8 @@ graphStatus aclgrphBundleSaveModelImpl(const std::string &output_file, const Mod
     offset += repacked_buffers[i].length;
   }
   // save head, partition info and other partition mem
-  GE_ASSERT_SUCCESS(FileSaver::SaveToFile(output_file_name, model.data.get(),
-                                          (sizeof(ModelFileHeader) + first_sub_model_offset)));
+  GE_ASSERT_SUCCESS(
+      FileSaver::SaveToFile(output_file_name, model.data.get(), (sizeof(ModelFileHeader) + first_sub_model_offset)));
   // save repacked sub models mem last
   for (size_t i = 0UL; i < sub_model_num; ++i) {
     GE_ASSERT_SUCCESS(
@@ -1785,8 +1776,7 @@ static graphStatus aclgrphGenerateForOp(const OpDescPtr &op_desc, const std::vec
         GELOGE(ge::FAILED, "[Set][Attr]set attr CONST_ATTR_NAME_INPUT failed.");
         return ge::FAILED;
       }
-      ge::ConstGeTensorPtr const_tensor =
-          MakeShared<GeTensor>(tensor_desc, const_data_buffer, const_data_len);
+      ge::ConstGeTensorPtr const_tensor = MakeShared<GeTensor>(tensor_desc, const_data_buffer, const_data_len);
       if (const_tensor == nullptr) {
         GELOGE(ge::FAILED, "[Malloc]make shared failed.");
         return ge::FAILED;

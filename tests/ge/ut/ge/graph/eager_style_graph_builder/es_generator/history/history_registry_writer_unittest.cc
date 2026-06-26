@@ -114,7 +114,7 @@ void ExpectOpJsonPhonyIf(const nlohmann::json &op_if_json) {
 }  // namespace
 
 class HistoryRegistryWriterUT : public ::testing::Test {
-protected:
+ protected:
   void SetUp() override {
     output_dir_ = std::string("./history_registry_writer_test_") + std::to_string(getpid()) + "/";
   }
@@ -211,9 +211,9 @@ TEST_F(HistoryRegistryWriterUT, WriteRegistryThrowsOnEmptyReleaseVersion) {
   ASSERT_NE(op_desc, nullptr);
   std::vector<OpDescPtr> ops{op_desc};
 
-  ExpectInvalidArgumentErrorContains([&]() {
-    HistoryRegistryWriter::WriteRegistry(output_dir_, "", "2024-09-30", "master", ops);
-  }, "The required parameter release_version for history registry generator is not set.");
+  ExpectInvalidArgumentErrorContains(
+      [&]() { HistoryRegistryWriter::WriteRegistry(output_dir_, "", "2024-09-30", "master", ops); },
+      "The required parameter release_version for history registry generator is not set.");
 }
 
 TEST_F(HistoryRegistryWriterUT, WriteRegistryThrowsOnDuplicateReleaseVersion) {
@@ -222,9 +222,9 @@ TEST_F(HistoryRegistryWriterUT, WriteRegistryThrowsOnDuplicateReleaseVersion) {
   std::vector<OpDescPtr> ops{op_desc};
 
   HistoryRegistryWriter::WriteRegistry(output_dir_, "8.0.RC1", "2024-09-30", "", ops);
-  ExpectInvalidArgumentErrorContains([&]() {
-    HistoryRegistryWriter::WriteRegistry(output_dir_, "8.0.RC1", "2024-10-01", "", ops);
-  }, "Given release_version already exists in index, please check index.json or use another version: ");
+  ExpectInvalidArgumentErrorContains(
+      [&]() { HistoryRegistryWriter::WriteRegistry(output_dir_, "8.0.RC1", "2024-10-01", "", ops); },
+      "Given release_version already exists in index, please check index.json or use another version: ");
 }
 
 TEST_F(HistoryRegistryWriterUT, WriteRegistryThrowsOnInvalidReleaseDate) {
@@ -232,9 +232,9 @@ TEST_F(HistoryRegistryWriterUT, WriteRegistryThrowsOnInvalidReleaseDate) {
   ASSERT_NE(op_desc, nullptr);
   std::vector<OpDescPtr> ops{op_desc};
 
-  ExpectInvalidArgumentErrorContains([&]() {
-    HistoryRegistryWriter::WriteRegistry(output_dir_, "8.0.RC1", "not-a-date", "master", ops);
-  }, "Given release_date parameter for history registry generator is not in the correct format (YYYY-MM-DD).");
+  ExpectInvalidArgumentErrorContains(
+      [&]() { HistoryRegistryWriter::WriteRegistry(output_dir_, "8.0.RC1", "not-a-date", "master", ops); },
+      "Given release_date parameter for history registry generator is not in the correct format (YYYY-MM-DD).");
 }
 
 TEST_F(HistoryRegistryWriterUT, WriteRegistryEmptyReleaseDateUsesCurrentDate) {
@@ -243,8 +243,7 @@ TEST_F(HistoryRegistryWriterUT, WriteRegistryEmptyReleaseDateUsesCurrentDate) {
   std::vector<OpDescPtr> ops{op_desc};
 
   // release_date 为空时使用当前日期，不应抛异常
-  EXPECT_NO_THROW(
-    HistoryRegistryWriter::WriteRegistry(output_dir_, "8.0.RC1", "", "master", ops));
+  EXPECT_NO_THROW(HistoryRegistryWriter::WriteRegistry(output_dir_, "8.0.RC1", "", "master", ops));
 
   nlohmann::json index_json;
   std::string error_msg;
@@ -272,8 +271,7 @@ TEST_F(HistoryRegistryWriterUT, WriteRegistrySkipsInvalidExistingIndexEntry) {
   std::vector<OpDescPtr> ops{op_desc};
 
   // 写入新版本时，非法 entry 应被跳过，不影响正常写入
-  EXPECT_NO_THROW(
-    HistoryRegistryWriter::WriteRegistry(output_dir_, "8.0.RC1", "2024-09-30", "", ops));
+  EXPECT_NO_THROW(HistoryRegistryWriter::WriteRegistry(output_dir_, "8.0.RC1", "2024-09-30", "", ops));
 
   nlohmann::json index_json;
   std::string error_msg;

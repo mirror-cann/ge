@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,10 +32,8 @@ void AddQueueDef(ModelRelation &model_relation, const std::string &name) {
 
 class DeployPlannerTest : public testing::Test {
  protected:
-  void SetUp() override {
-  }
-  void TearDown() override {
-  }
+  void SetUp() override {}
+  void TearDown() override {}
 };
 
 TEST_F(DeployPlannerTest, TestFailedDueToMismatchOfQueueNames) {
@@ -163,7 +161,7 @@ TEST_F(DeployPlannerTest, TestAddingControlInput) {
   DeployPlan deploy_plan;
   auto ret = DeployPlanner(flow_model).BuildPlan(deploy_plan);
   ASSERT_EQ(ret, SUCCESS);
-  std::cout << deploy_plan.GetAllInputQueueIndices().size()  << std::endl;
+  std::cout << deploy_plan.GetAllInputQueueIndices().size() << std::endl;
   ASSERT_EQ(deploy_plan.submodels_["subgraph-1"].input_queue_indices.size(), 1);
   ASSERT_EQ(deploy_plan.submodels_["subgraph-2"].input_queue_indices.size(), 0);
   ASSERT_EQ(deploy_plan.submodels_["subgraph-2"].control_input_queue_indices.size(), 1);
@@ -234,8 +232,7 @@ TEST_F(DeployPlannerTest, TestAddingControlOutput_NotForInvoked) {
   flow_model->model_relation_->submodel_endpoint_infos["subgraph-2"].model_name = "subgraph-2";
   flow_model->model_relation_->submodel_endpoint_infos["subgraph-2"].input_endpoint_names = {"invoke_in_1_0"};
   flow_model->model_relation_->submodel_endpoint_infos["subgraph-2"].output_endpoint_names = {};
-  flow_model->model_relation_->invoked_model_queue_infos["invoke_model_key"] = {{"invoke_in_1_0"},
-                                                                                {}};
+  flow_model->model_relation_->invoked_model_queue_infos["invoke_model_key"] = {{"invoke_in_1_0"}, {}};
   flow_model->model_relation_->submodel_endpoint_infos["subgraph-1"].invoke_model_keys = {"invoke_model_key"};
   DeployPlan deploy_plan;
   auto ret = DeployPlanner(flow_model).BuildPlan(deploy_plan);
@@ -400,7 +397,8 @@ TEST_F(DeployPlannerTest, TestBuildDynamicSchedDeployPlan_WithoutQueueBindings) 
 }
 
 TEST_F(DeployPlannerTest, TestWithFusionInvokeModel) {
-  std::string graph_inputs_fusion = "{\"invoke_model_key2\":\"0~2;3,4\", \"invoke_model_key3\":\"1,2\", \"invoke_model_key5\":\"0\"}";
+  std::string graph_inputs_fusion =
+      "{\"invoke_model_key2\":\"0~2;3,4\", \"invoke_model_key3\":\"1,2\", \"invoke_model_key5\":\"0\"}";
   auto flow_model = make_shared<FlowModel>();
   auto graph_1 = ge::MakeShared<ComputeGraph>("subgraph-1");
   AttrUtils::SetStr(graph_1, "_invoked_model_fusion_inputs", graph_inputs_fusion);
@@ -453,53 +451,48 @@ TEST_F(DeployPlannerTest, TestWithFusionInvokeModel) {
   flow_model->model_relation_->submodel_endpoint_infos["subgraph-1"].output_endpoint_names = {"out_1_0"};
 
   flow_model->model_relation_->submodel_endpoint_infos["subgraph-2"].model_name = "subgraph-2";
-  flow_model->model_relation_->submodel_endpoint_infos["subgraph-2"].input_endpoint_names = {"subgraph-2_in_5_0",
-                                                                                             "subgraph-2_in_5_1",
-                                                                                             "subgraph-2_in_5_2",
-                                                                                             "subgraph-2_in_5_3",
-                                                                                             "subgraph-2_in_5_4"};
+  flow_model->model_relation_->submodel_endpoint_infos["subgraph-2"].input_endpoint_names = {
+      "subgraph-2_in_5_0", "subgraph-2_in_5_1", "subgraph-2_in_5_2", "subgraph-2_in_5_3", "subgraph-2_in_5_4"};
   flow_model->model_relation_->submodel_endpoint_infos["subgraph-2"].output_endpoint_names = {"subgraph-2_out_1_0"};
 
   flow_model->model_relation_->submodel_endpoint_infos["subgraph-3"].model_name = "subgraph-3";
-  flow_model->model_relation_->submodel_endpoint_infos["subgraph-3"].input_endpoint_names = {"subgraph-3_in_3_0",
-                                                                                             "subgraph-3_in_3_1",
-                                                                                             "subgraph-3_in_3_2"};
+  flow_model->model_relation_->submodel_endpoint_infos["subgraph-3"].input_endpoint_names = {
+      "subgraph-3_in_3_0", "subgraph-3_in_3_1", "subgraph-3_in_3_2"};
   flow_model->model_relation_->submodel_endpoint_infos["subgraph-3"].output_endpoint_names = {"subgraph-3_out_1_0"};
 
   flow_model->model_relation_->submodel_endpoint_infos["subgraph-4"].model_name = "subgraph-4";
-  flow_model->model_relation_->submodel_endpoint_infos["subgraph-4"].input_endpoint_names = {"subgraph-4_in_2_0", "subgraph-4_in_2_1"};
+  flow_model->model_relation_->submodel_endpoint_infos["subgraph-4"].input_endpoint_names = {"subgraph-4_in_2_0",
+                                                                                             "subgraph-4_in_2_1"};
   flow_model->model_relation_->submodel_endpoint_infos["subgraph-4"].output_endpoint_names = {"subgraph-4_out_1_0"};
 
   flow_model->model_relation_->submodel_endpoint_infos["subgraph-5"].model_name = "subgraph-5";
   flow_model->model_relation_->submodel_endpoint_infos["subgraph-5"].input_endpoint_names = {"subgraph-5_in_1_0"};
   flow_model->model_relation_->submodel_endpoint_infos["subgraph-5"].output_endpoint_names = {"subgraph-5_out_1_0"};
 
-  flow_model->model_relation_->invoked_model_queue_infos["invoke_model_key2"] = {{"subgraph-2_in_5_0",
-                                                                                  "subgraph-2_in_5_1",
-                                                                                  "subgraph-2_in_5_2",
-                                                                                  "subgraph-2_in_5_3",
-                                                                                  "subgraph-2_in_5_4"},
-                                                                                 {"subgraph-2_out_1_0"}};
-  flow_model->model_relation_->invoked_model_queue_infos["invoke_model_key3"] = {{"subgraph-3_in_3_0",
-                                                                                  "subgraph-3_in_3_1",
-                                                                                  "subgraph-3_in_3_2"},
-                                                                                 {"subgraph-3_out_1_0"}};
-  flow_model->model_relation_->invoked_model_queue_infos["invoke_model_key4"] = {{"subgraph-4_in_2_0",
-                                                                                 "subgraph-4_in_2_1"},
-                                                                                 {"subgraph-4_out_1_0"}};
+  flow_model->model_relation_->invoked_model_queue_infos["invoke_model_key2"] = {
+      {"subgraph-2_in_5_0", "subgraph-2_in_5_1", "subgraph-2_in_5_2", "subgraph-2_in_5_3", "subgraph-2_in_5_4"},
+      {"subgraph-2_out_1_0"}};
+  flow_model->model_relation_->invoked_model_queue_infos["invoke_model_key3"] = {
+      {"subgraph-3_in_3_0", "subgraph-3_in_3_1", "subgraph-3_in_3_2"}, {"subgraph-3_out_1_0"}};
+  flow_model->model_relation_->invoked_model_queue_infos["invoke_model_key4"] = {
+      {"subgraph-4_in_2_0", "subgraph-4_in_2_1"}, {"subgraph-4_out_1_0"}};
   flow_model->model_relation_->invoked_model_queue_infos["invoke_model_key5"] = {{"subgraph-5_in_1_0"},
                                                                                  {"subgraph-5_out_1_0"}};
-  flow_model->model_relation_->submodel_endpoint_infos["subgraph-1"].invoke_model_keys = {"invoke_model_key2", "invoke_model_key3",
-                                                                                          "invoke_model_key4", "invoke_model_key5"};
+  flow_model->model_relation_->submodel_endpoint_infos["subgraph-1"].invoke_model_keys = {
+      "invoke_model_key2", "invoke_model_key3", "invoke_model_key4", "invoke_model_key5"};
 
   DeployPlan deploy_plan;
   auto ret = DeployPlanner(flow_model).BuildPlan(deploy_plan);
   ASSERT_EQ(ret, SUCCESS);
   ASSERT_EQ(deploy_plan.submodels_["subgraph-1"].input_queue_indices.size(), 2);
-  ASSERT_EQ(deploy_plan.submodels_["subgraph-1"].invoked_model_queue_infos["invoke_model_key2"].feed_queue_indices.size(), 5);
-  ASSERT_EQ(deploy_plan.submodels_["subgraph-1"].invoked_model_queue_infos["invoke_model_key3"].feed_queue_indices.size(), 3);
-  ASSERT_EQ(deploy_plan.submodels_["subgraph-1"].invoked_model_queue_infos["invoke_model_key4"].feed_queue_indices.size(), 2);
-  ASSERT_EQ(deploy_plan.submodels_["subgraph-1"].invoked_model_queue_infos["invoke_model_key5"].feed_queue_indices.size(), 1);
+  ASSERT_EQ(
+      deploy_plan.submodels_["subgraph-1"].invoked_model_queue_infos["invoke_model_key2"].feed_queue_indices.size(), 5);
+  ASSERT_EQ(
+      deploy_plan.submodels_["subgraph-1"].invoked_model_queue_infos["invoke_model_key3"].feed_queue_indices.size(), 3);
+  ASSERT_EQ(
+      deploy_plan.submodels_["subgraph-1"].invoked_model_queue_infos["invoke_model_key4"].feed_queue_indices.size(), 2);
+  ASSERT_EQ(
+      deploy_plan.submodels_["subgraph-1"].invoked_model_queue_infos["invoke_model_key5"].feed_queue_indices.size(), 1);
   ASSERT_EQ(deploy_plan.submodels_["subgraph-1"].output_queue_indices.size(), 1);
   ASSERT_EQ(deploy_plan.submodels_["subgraph-2"].input_queue_indices.size(), 5);
   ASSERT_EQ(deploy_plan.submodels_["subgraph-2"].output_queue_indices.size(), 1);
@@ -509,12 +502,14 @@ TEST_F(DeployPlannerTest, TestWithFusionInvokeModel) {
   ASSERT_EQ(deploy_plan.submodels_["subgraph-4"].output_queue_indices.size(), 1);
   ASSERT_EQ(deploy_plan.submodels_["subgraph-5"].input_queue_indices.size(), 1);
   ASSERT_EQ(deploy_plan.submodels_["subgraph-5"].output_queue_indices.size(), 1);
-  auto &feed2_queue_indices = deploy_plan.submodels_["subgraph-1"].invoked_model_queue_infos["invoke_model_key2"].feed_queue_indices;
+  auto &feed2_queue_indices =
+      deploy_plan.submodels_["subgraph-1"].invoked_model_queue_infos["invoke_model_key2"].feed_queue_indices;
   ASSERT_EQ(feed2_queue_indices[0], deploy_plan.queues_[feed2_queue_indices[1]].ref_index);
   ASSERT_EQ(feed2_queue_indices[0], deploy_plan.queues_[feed2_queue_indices[2]].ref_index);
   ASSERT_EQ(feed2_queue_indices[3], deploy_plan.queues_[feed2_queue_indices[4]].ref_index);
 
-  auto &feed3_queue_indices = deploy_plan.submodels_["subgraph-1"].invoked_model_queue_infos["invoke_model_key3"].feed_queue_indices;
+  auto &feed3_queue_indices =
+      deploy_plan.submodels_["subgraph-1"].invoked_model_queue_infos["invoke_model_key3"].feed_queue_indices;
   ASSERT_EQ(feed3_queue_indices[1], deploy_plan.queues_[feed3_queue_indices[2]].ref_index);
 
   const auto &invoked_model_queue_infos = deploy_plan.submodels_["subgraph-1"].invoked_model_queue_infos;

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,7 +28,7 @@ namespace {
 int32_t g_unload_called_count = 0;
 class MockMemcpy : public RuntimeStub {
  public:
-  MOCK_METHOD5(rtMemcpy, int32_t(void * , uint64_t, const void *, uint64_t, rtMemcpyKind_t));
+  MOCK_METHOD5(rtMemcpy, int32_t(void *, uint64_t, const void *, uint64_t, rtMemcpyKind_t));
 };
 
 class AclMockMemcpy : public AclRuntimeStub {
@@ -39,13 +39,19 @@ class AclMockMemcpy : public AclRuntimeStub {
 class HcclOpsKernelInfoStore : public OpsKernelInfoStore {
  public:
   HcclOpsKernelInfoStore() = default;
-  Status Initialize(const std::map<std::string, std::string> &options) override { return SUCCESS; }
+  Status Initialize(const std::map<std::string, std::string> &options) override {
+    return SUCCESS;
+  }
   // close opsKernelInfoStore
-  Status Finalize() override { return SUCCESS; }
+  Status Finalize() override {
+    return SUCCESS;
+  }
   // get all opsKernelInfo
   void GetAllOpsKernelInfo(std::map<std::string, OpInfo> &infos) const override {}
   // whether the opsKernelInfoStore is supported based on the operator attribute
-  bool CheckSupported(const OpDescPtr &opDescPtr, std::string &un_supported_reason) const override { return true; }
+  bool CheckSupported(const OpDescPtr &opDescPtr, std::string &un_supported_reason) const override {
+    return true;
+  }
   Status UnloadTask(GETaskInfo &task) {
     g_unload_called_count++;
     return SUCCESS;
@@ -54,14 +60,22 @@ class HcclOpsKernelInfoStore : public OpsKernelInfoStore {
 class FailHcclOpsKernelInfoStore : public OpsKernelInfoStore {
  public:
   FailHcclOpsKernelInfoStore() = default;
-  Status Initialize(const std::map<std::string, std::string> &options) override { return SUCCESS; }
+  Status Initialize(const std::map<std::string, std::string> &options) override {
+    return SUCCESS;
+  }
   // close opsKernelInfoStore
-  Status Finalize() override { return SUCCESS; }
+  Status Finalize() override {
+    return SUCCESS;
+  }
   // get all opsKernelInfo
   void GetAllOpsKernelInfo(std::map<std::string, OpInfo> &infos) const override {}
   // whether the opsKernelInfoStore is supported based on the operator attribute
-  bool CheckSupported(const OpDescPtr &opDescPtr, std::string &un_supported_reason) const override { return true; }
-  Status LoadTask(GETaskInfo &task) { return FAILED; }
+  bool CheckSupported(const OpDescPtr &opDescPtr, std::string &un_supported_reason) const override {
+    return true;
+  }
+  Status LoadTask(GETaskInfo &task) {
+    return FAILED;
+  }
   Status UnloadTask(GETaskInfo &task) {
     g_unload_called_count++;
     return FAILED;
@@ -283,7 +297,7 @@ TEST_F(UtestHcclTaskInfo, success_task_init) {
   task_def.clear_kernel_hccl();
   task_def1.clear_kernel_hccl();
   OpsKernelExecutorManager::GetInstance().executors_.clear();
-  delete [] reinterpret_cast<uint8_t *>(model.runtime_param_.mem_base);
+  delete[] reinterpret_cast<uint8_t *>(model.runtime_param_.mem_base);
   free(ValueToPtr(args[0].dev_addr));
   free(ValueToPtr(args[1].dev_addr));
 }
@@ -332,7 +346,7 @@ TEST_F(UtestHcclTaskInfo, hccl_task_overflow_dump) {
   EXPECT_EQ(hccl_task_info.ParseTaskRunParam(task_def, &model, task_run_param), SUCCESS);
   EXPECT_EQ(hccl_task_info.Init(task_def, &model, args, persistant_workspace, iow_addrs), SUCCESS);
 
-  model.is_op_debug_reg_ = true; // open overflow dump
+  model.is_op_debug_reg_ = true;  // open overflow dump
   GeTensorDesc input_desc(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_STRING);
   op_desc->UpdateInputDesc(0, input_desc);
   hccl_task_info.PostProcess(task_def);
@@ -440,7 +454,8 @@ TEST_F(UtestHcclTaskInfo, test_hccl_task_distribute_with_attached_stream) {
   NamedAttrs attrs1;
   attached_stream_infos.push_back(attrs0);
   attached_stream_infos.push_back(attrs1);
-  AttrUtils::SetListNamedAttrs(hccl_task_info.hccl_op_desc_, ATTR_NAME_ATTACHED_STREAM_INFO_LIST, attached_stream_infos);
+  AttrUtils::SetListNamedAttrs(hccl_task_info.hccl_op_desc_, ATTR_NAME_ATTACHED_STREAM_INFO_LIST,
+                               attached_stream_infos);
   hccl_task_info.hccl_op_desc_->SetAttachedStreamIds({-1, 0});
   // ops_kernel_info_store return success
   hccl_task_info.ops_kernel_store_ = kernel_info_store.get();
@@ -463,7 +478,7 @@ TEST_F(UtestHcclTaskInfo, test_hccl_task_distribute_release) {
   hccl_op_desc.SetName("Test_hccl");
   hccl_op_desc.SetType("HcomAllGather");
   hccl_task_info.hccl_op_desc_ = std::make_shared<OpDesc>("hcom_reduce", HCOMREDUCE);
-  std::cout<<"start distribute" <<std::endl;
+  std::cout << "start distribute" << std::endl;
   // without ops_kernel_info_store, fail
   EXPECT_EQ(hccl_task_info.Distribute(), INTERNAL_ERROR);
   EXPECT_EQ(hccl_task_info.Release(), INTERNAL_ERROR);
@@ -550,7 +565,7 @@ TEST_F(UtestHcclTaskInfo, test_hccl_task_dump_input) {
   hccl_op_desc.SetName("Test_hccl");
   hccl_op_desc.SetType("HcomAllGather");
   hccl_task_info.hccl_op_desc_ = std::make_shared<OpDesc>("hcom_reduce", HCOMREDUCE);
-  std::cout<<"start distribute" <<std::endl;
+  std::cout << "start distribute" << std::endl;
   hccl_task_info.ops_kernel_store_ = kernel_info_store.get();
   // static hccl dump input
   dump_properties.SetDumpMode("input");
@@ -575,7 +590,7 @@ TEST_F(UtestHcclTaskInfo, test_hccl_task_dump_output) {
   hccl_op_desc.SetName("Test_hccl");
   hccl_op_desc.SetType("HcomAllGather");
   hccl_task_info.hccl_op_desc_ = std::make_shared<OpDesc>("hcom_reduce", HCOMREDUCE);
-  std::cout<<"start distribute" <<std::endl;
+  std::cout << "start distribute" << std::endl;
   hccl_task_info.ops_kernel_store_ = kernel_info_store.get();
   // static hccl dump output
   dump_properties.SetDumpMode("output");
@@ -650,7 +665,7 @@ TEST_F(UtestHcclTaskInfo, Calculate_Update_Args) {
   dump_properties.SetDumpMode("all");
   dump_properties.AddPropertyValue(DUMP_ALL_MODEL, {});
   model.SetDumpProperties(dump_properties);
-  std::vector<int64_t> host_args({0,0});
+  std::vector<int64_t> host_args({0, 0});
   std::vector<uint64_t> active_base_addr;
   active_base_addr.resize(model.logical_mem_allocations_.size());
   for (size_t i = 0; i < model.logical_mem_allocations_.size(); i++) {
@@ -727,7 +742,7 @@ TEST_F(UtestHcclTaskInfo, InsertDumpOp_SetRootGraphName) {
   model.SetDumpProperties(dump_properties);
 
   // Init address for dump - input_data_addrs_ is vector<void*>
-  void *addr = reinterpret_cast<void*>(0x1000);
+  void *addr = reinterpret_cast<void *>(0x1000);
   hccl_task_info.input_data_addrs_.push_back(addr);
   hccl_task_info.output_data_addrs_.push_back(addr);
 

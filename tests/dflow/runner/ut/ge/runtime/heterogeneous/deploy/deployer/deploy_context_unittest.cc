@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -91,24 +91,24 @@ class MockRuntimeNoLeaks : public RuntimeStub {
   std::vector<void *> mem_bufs_;
 };
 
-} // namespace
+}  // namespace
 void *mock_handle = nullptr;
 
 class MockMmpa : public MmpaStubApiGe {
  public:
   void *DlSym(void *handle, const char *func_name) override {
     if (std::string(func_name) == "TsdCapabilityGet") {
-      return (void *) &TsdCapabilityGet;
+      return (void *)&TsdCapabilityGet;
     } else if (std::string(func_name) == "ProcessCloseSubProcList") {
-      return (void *) &ProcessCloseSubProcList;
+      return (void *)&ProcessCloseSubProcList;
     } else if (std::string(func_name) == "TsdProcessOpen") {
-      return (void *) &TsdProcessOpen;
+      return (void *)&TsdProcessOpen;
     } else if (std::string(func_name) == "TsdGetProcListStatus") {
-      return (void *) &TsdGetProcListStatus;
+      return (void *)&TsdGetProcListStatus;
     } else if (std::string(func_name) == "TsdFileLoad") {
-      return (void *) &TsdFileLoad;
+      return (void *)&TsdFileLoad;
     } else if (std::string(func_name) == "TsdInitFlowGw") {
-      return (void *) &TsdInitFlowGw;
+      return (void *)&TsdInitFlowGw;
     }
     return MmpaStubApiGe::DlSym(handle, func_name);
   }
@@ -120,7 +120,7 @@ class MockMmpa : public MmpaStubApiGe {
 
   void *DlOpen(const char *fileName, int32_t mode) override {
     if (std::string(fileName) == "libtsdclient.so") {
-      return (void *) mock_handle;
+      return (void *)mock_handle;
     }
     return MmpaStubApiGe::DlOpen(fileName, mode);
   }
@@ -158,7 +158,8 @@ class DeployContextTest : public testing::Test {
 class MockExecutorMessageClient : public ExecutorMessageClient {
  public:
   MockExecutorMessageClient() : ExecutorMessageClient(0) {}
-  Status SendRequest(const deployer::ExecutorRequest &request, deployer::ExecutorResponse &resp, int64_t timeout) override {
+  Status SendRequest(const deployer::ExecutorRequest &request, deployer::ExecutorResponse &resp,
+                     int64_t timeout) override {
     if (request.has_clear_model_message()) {
       resp.set_error_code(FAILED);
     }
@@ -511,7 +512,7 @@ TEST_F(DeployContextTest, TestLoadModel) {
   deployer::AddFlowRoutePlanRequest req2;
   req2.set_root_model_id(1);
   context.flow_model_receiver_.AddFlowRoutePlan(req2);
-  
+
   PneExecutorClientCreatorRegistrar<MockPneExecutorClient> registrar("MOCK_ENGINE_NAME");
 
   deployer::SendProfInfoRequest req_body;
@@ -554,7 +555,7 @@ TEST_F(DeployContextTest, TestLoadModelWithInvoke) {
   *exchange_plan->add_endpoints() = endpoint_desc;
   *exchange_plan->add_endpoints() = endpoint_desc;
   context.flow_model_receiver_.AddFlowRoutePlan(req2);
-  
+
   PneExecutorClientCreatorRegistrar<MockPneExecutorClient> registrar("MOCK_ENGINE_NAME");
 
   EXPECT_EQ(context.PreDeployLocalFlowRoute(1), SUCCESS);
@@ -681,13 +682,11 @@ TEST_F(DeployContextTest, DownloadDevMaintenanceCfg) {
     env_val++;
   }
   DeviceMaintenanceMasterCfg::InitGlobalMaintenanceConfigs();
-  auto ret = device_debug_conf.GetJsonDataByType(DeviceDebugConfig::ConfigType::kLogConfigType,
-                                                 conf_data);
+  auto ret = device_debug_conf.GetJsonDataByType(DeviceDebugConfig::ConfigType::kLogConfigType, conf_data);
   EXPECT_EQ(ret, SUCCESS);
   download_config_request->set_config_data(&conf_data[0], conf_data.size());
   context.DownloadDevMaintenanceCfg(request, response);
-  ret = device_debug_conf.GetJsonDataByType(DeviceDebugConfig::ConfigType::kConfigTypeEnd,
-                                            conf_data);
+  ret = device_debug_conf.GetJsonDataByType(DeviceDebugConfig::ConfigType::kConfigTypeEnd, conf_data);
   EXPECT_EQ(ret, FAILED);
   for (const auto &env_name : kLogEnvNames) {
     unsetenv(env_name.c_str());
@@ -699,17 +698,17 @@ TEST_F(DeployContextTest, ProcessHeartbeat01) {
   auto client = new BuiltinExecutorClient(0);
   client->sub_proc_stat_ = ProcStatus::NORMAL;
   std::unique_ptr<PneExecutorClient> exe_client = nullptr;
-  exe_client.reset((PneExecutorClient *) client);
+  exe_client.reset((PneExecutorClient *)client);
 
   auto client1 = new BuiltinExecutorClient(0);
   client1->sub_proc_stat_ = ProcStatus::STOPPED;
   std::unique_ptr<PneExecutorClient> exe_client1 = nullptr;
-  exe_client1.reset((PneExecutorClient *) client1);
+  exe_client1.reset((PneExecutorClient *)client1);
 
   auto client2 = new BuiltinExecutorClient(0);
   client2->sub_proc_stat_ = ProcStatus::EXITED;
   std::unique_ptr<PneExecutorClient> exe_client2 = nullptr;
-  exe_client2.reset((PneExecutorClient *) client2);
+  exe_client2.reset((PneExecutorClient *)client2);
 
   DeployContext context;
   ExecutorManager::ExecutorKey key = {0, 0, 0, "NPU", "", 666};
@@ -776,17 +775,17 @@ TEST_F(DeployContextTest, ProcessHeartbeat03) {
   auto client = new BuiltinExecutorClient(0);
   client->sub_proc_stat_ = ProcStatus::NORMAL;
   std::unique_ptr<PneExecutorClient> exe_client = nullptr;
-  exe_client.reset((PneExecutorClient *) client);
+  exe_client.reset((PneExecutorClient *)client);
 
   auto client1 = new BuiltinExecutorClient(0);
   client1->sub_proc_stat_ = ProcStatus::EXITED;
   std::unique_ptr<PneExecutorClient> exe_client1 = nullptr;
-  exe_client1.reset((PneExecutorClient *) client1);
+  exe_client1.reset((PneExecutorClient *)client1);
 
   auto client2 = new BuiltinExecutorClient(0);
   client2->sub_proc_stat_ = ProcStatus::STOPPED;
   std::unique_ptr<PneExecutorClient> exe_client2 = nullptr;
-  exe_client2.reset((PneExecutorClient *) client2);
+  exe_client2.reset((PneExecutorClient *)client2);
 
   DeployContext context;
   ExecutorManager::ExecutorKey key = {0, 0, 0, "NPU", "", 666};
@@ -809,28 +808,22 @@ TEST_F(DeployContextTest, ProcessHeartbeat04) {
   auto client = new BuiltinExecutorClient(0);
   client->sub_proc_stat_ = ProcStatus::NORMAL;
   std::unique_ptr<PneExecutorClient> exe_client = nullptr;
-  exe_client.reset((PneExecutorClient *) client);
+  exe_client.reset((PneExecutorClient *)client);
 
   DeployContext context;
   ExecutorManager::ExecutorKey key = {0, 0, 0, "NPU", "", 666};
   context.executor_manager_.executor_clients_[key] = std::move(exe_client);
 
   auto flowgw_client1 = new FlowGwClient(0, 0, {}, false);
-  flowgw_client1->status_func_ = []() -> ProcStatus {
-    return ProcStatus::NORMAL;
-  };
+  flowgw_client1->status_func_ = []() -> ProcStatus { return ProcStatus::NORMAL; };
   context.flowgw_client_manager_.clients_.emplace_back(std::move(std::unique_ptr<FlowGwClient>(flowgw_client1)));
 
   auto flowgw_client2 = new FlowGwClient(0, 0, {}, false);
-  flowgw_client2->status_func_ = []() -> ProcStatus {
-    return ProcStatus::STOPPED;
-  };
+  flowgw_client2->status_func_ = []() -> ProcStatus { return ProcStatus::STOPPED; };
   context.flowgw_client_manager_.clients_.emplace_back(std::move(std::unique_ptr<FlowGwClient>(flowgw_client2)));
 
   auto flowgw_client3 = new FlowGwClient(0, 0, {}, false);
-  flowgw_client3->status_func_ = []() -> ProcStatus {
-    return ProcStatus::EXITED;
-  };
+  flowgw_client3->status_func_ = []() -> ProcStatus { return ProcStatus::EXITED; };
   context.flowgw_client_manager_.clients_.emplace_back(std::move(std::unique_ptr<FlowGwClient>(flowgw_client3)));
 
   deployer::DeployerRequest req;
@@ -856,7 +849,7 @@ TEST_F(DeployContextTest, AddAbnormalSubmodelInstance) {
     uint32_t i = 0U;
     for (auto &submodel_instance : submodel_instances.second.submodel_instance_name()) {
       printf("add abnormal submodel instance abnormal submodel_instance_name is %s, i=%u\n",
-          submodel_instance.first.c_str(), i);
+             submodel_instance.first.c_str(), i);
       EXPECT_EQ(submodel_instance.first, "model1");
       i++;
     }
@@ -896,7 +889,7 @@ TEST_F(DeployContextTest, ClearModelRunningData_Failed) {
   auto model_data_clear_req = request.mutable_model_data_clear();
   std::vector<uint32_t> model_ids = {1};
   model_data_clear_req->mutable_root_model_ids()->Add(model_ids.begin(), model_ids.end());
-  
+
   auto exception_devices = model_data_clear_req->add_exception_dev_info();
   exception_devices->set_device_id(0);
   exception_devices->set_device_type(1);
@@ -910,7 +903,7 @@ TEST_F(DeployContextTest, ClearModelRunningData_Failed) {
   auto client = new MockPneExecutorClient(0);
   std::unique_ptr<PneExecutorClient> exe_client = nullptr;
   client->Initialize();
-  exe_client.reset((PneExecutorClient *) client);
+  exe_client.reset((PneExecutorClient *)client);
   context.executor_manager_.executor_clients_[key] = std::move(exe_client);
 
   deployer::InitProcessResourceRequest init_process_resource_request;
@@ -932,7 +925,7 @@ TEST_F(DeployContextTest, ClearModelRunningData_Flowgw_Succ) {
   auto model_data_clear_req = request.mutable_model_data_clear();
   std::vector<uint32_t> model_ids = {1};
   model_data_clear_req->mutable_root_model_ids()->Add(model_ids.begin(), model_ids.end());
-  
+
   auto exception_devices = model_data_clear_req->add_exception_dev_info();
   exception_devices->set_device_id(0);
   exception_devices->set_device_type(1);
@@ -943,20 +936,16 @@ TEST_F(DeployContextTest, ClearModelRunningData_Flowgw_Succ) {
   ExecutorManager::ExecutorKey key = {1, 1, 0, "NPU", ""};
   context.submodel_devices_[1].emplace(key);
   auto flowgw_client1 = new FlowGwClient(0, 1, {}, false);
-  flowgw_client1->status_func_ = []() -> ProcStatus {
-    return ProcStatus::NORMAL;
-  };
+  flowgw_client1->status_func_ = []() -> ProcStatus { return ProcStatus::NORMAL; };
   context.flowgw_client_manager_.clients_.emplace_back(std::move(std::unique_ptr<FlowGwClient>(flowgw_client1)));
 
   auto flowgw_client2 = new FlowGwClient(1, 1, {}, false);
-  flowgw_client2->status_func_ = []() -> ProcStatus {
-    return ProcStatus::NORMAL;
-  };
+  flowgw_client2->status_func_ = []() -> ProcStatus { return ProcStatus::NORMAL; };
   context.flowgw_client_manager_.clients_.emplace_back(std::move(std::unique_ptr<FlowGwClient>(flowgw_client2)));
   auto client = new MockPneExecutorClient(0);
   std::unique_ptr<PneExecutorClient> exe_client = nullptr;
   client->Initialize();
-  exe_client.reset((PneExecutorClient *) client);
+  exe_client.reset((PneExecutorClient *)client);
   context.executor_manager_.executor_clients_[key] = std::move(exe_client);
 
   deployer::InitProcessResourceRequest init_process_resource_request;
@@ -987,7 +976,7 @@ TEST_F(DeployContextTest, ClearModelRunningData_Succ) {
   auto model_data_clear_req = request.mutable_model_data_clear();
   std::vector<uint32_t> model_ids = {1};
   model_data_clear_req->mutable_root_model_ids()->Add(model_ids.begin(), model_ids.end());
-  
+
   auto exception_devices = model_data_clear_req->add_exception_dev_info();
   exception_devices->set_device_id(0);
   exception_devices->set_device_type(1);
@@ -1001,7 +990,7 @@ TEST_F(DeployContextTest, ClearModelRunningData_Succ) {
   auto client = new MockPneExecutorClient(0);
   std::unique_ptr<PneExecutorClient> exe_client = nullptr;
   client->Initialize();
-  exe_client.reset((PneExecutorClient *) client);
+  exe_client.reset((PneExecutorClient *)client);
   context.executor_manager_.executor_clients_[key] = std::move(exe_client);
 
   deployer::InitProcessResourceRequest init_process_resource_request;

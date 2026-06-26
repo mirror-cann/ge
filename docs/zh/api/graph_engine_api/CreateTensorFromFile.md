@@ -91,4 +91,3 @@ std::unique_ptr<Tensor> CreateTensorFromFile(const char *data_file_path, const s
 std::vector<int64_t> dims = {1};
 auto tensor = CreateTensorFromFile<int64_t>(file_path.c_str(), dims, ge::DT_INT64, ge::FORMAT_ALL);
 ```
-

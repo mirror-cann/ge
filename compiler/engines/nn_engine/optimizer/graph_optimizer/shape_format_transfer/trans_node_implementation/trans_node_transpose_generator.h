@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -48,8 +48,8 @@ const std::vector<std::vector<std::vector<int64_t>>> PERM_VALUE_3D_VECTOR = {
     {{3, 4, 0, 1, 2}, {3, 0, 1, 2, 4}, {0, 1, 2, 4, 3}, {}}};
 
 /** @brief class of generating Trans-node Transpose. Provide function of setting
-* unique attrs and tensors for Transpose op.
-* @version 1.0 */
+ * unique attrs and tensors for Transpose op.
+ * @version 1.0 */
 class TransNodeTransposeGenerator : public TransNodeBaseGenerator {
  public:
   TransNodeTransposeGenerator(FEOpsKernelInfoStorePtr fe_ops_store_ptr, TransInfoPtr trans_info_ptr);

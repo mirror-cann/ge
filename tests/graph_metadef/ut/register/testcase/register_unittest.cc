@@ -67,7 +67,7 @@ void to_json(nlohmann::json &j, const HcomTopoInfo::TopoLevelDesc &desc);
 void from_json(const nlohmann::json &j, HcomTopoInfo::TopoLevelDesc &desc);
 void to_json(nlohmann::json &j, const HcomTopoInfo::TopoInfo &info);
 void from_json(const nlohmann::json &j, HcomTopoInfo::TopoInfo &info);
-}
+}  // namespace ge
 namespace {
 REG_OP(AddUt)
     .INPUT(x1, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT32}))
@@ -77,11 +77,11 @@ REG_OP(AddUt)
 // infer from output
 REG_OP(FixIOOp_OutputIsFix)
     .INPUT(fix_input1, "T")
-        .INPUT(fix_input2, "T")
-        .OUTPUT(fix_output, "T2")
-        .DATATYPE(T2, TensorType({DT_BOOL}))
-        .OP_END_FACTORY_REG(FixIOOp_OutputIsFix);
-}
+    .INPUT(fix_input2, "T")
+    .OUTPUT(fix_output, "T2")
+    .DATATYPE(T2, TensorType({DT_BOOL}))
+    .OP_END_FACTORY_REG(FixIOOp_OutputIsFix);
+}  // namespace
 class CompileInfoJson : public CompileInfoBase {
  public:
   CompileInfoJson(const std::string &json) : json_str_(json) {}
@@ -242,9 +242,9 @@ UINT32 OpTilingStubBf16(gert::TilingContext *kernel_context) {
 
 UINT32 OpTilingStubNewWithDynamicInput(gert::TilingContext *kernel_context) {
   auto shape = kernel_context->GetDynamicInputShape(0, 0);
-  EXPECT_EQ(*shape, gert::StorageShape( {4, 256, 200, 336}, {4, 16, 200, 336, 16}));
+  EXPECT_EQ(*shape, gert::StorageShape({4, 256, 200, 336}, {4, 16, 200, 336, 16}));
   auto shape0_1 = kernel_context->GetDynamicInputShape(0, 1);
-  EXPECT_EQ(*shape0_1, gert::StorageShape( {4, 256, 100, 168}, {4, 16, 100, 168, 16}));
+  EXPECT_EQ(*shape0_1, gert::StorageShape({4, 256, 100, 168}, {4, 16, 100, 168, 16}));
   auto shape_optional_1 = kernel_context->GetOptionalInputShape(1);
   EXPECT_EQ(shape_optional_1, nullptr);
   auto shape_optional_2 = kernel_context->GetOptionalInputShape(2);
@@ -302,10 +302,12 @@ bool CheckErrorRetFormat(const std::string &ret_json_str) {
     EXPECT_EQ(ret_json.at("error_messages").size(), 2);
     EXPECT_EQ(ret_json.at("error_messages")[0].at("type"), 2);
     EXPECT_EQ(ret_json.at("error_messages")[0].at("errorcode"), "E19999");
-    EXPECT_EQ(0, std::string(ret_json.at("error_messages")[0].at("errormsg")).find("Parse attrs failed.[FUNC:ParseJson][FILE:op_tiling_py.cc]"));
+    EXPECT_EQ(0, std::string(ret_json.at("error_messages")[0].at("errormsg"))
+                     .find("Parse attrs failed.[FUNC:ParseJson][FILE:op_tiling_py.cc]"));
     EXPECT_EQ(ret_json.at("error_messages")[1].at("type"), 2);
     EXPECT_EQ(ret_json.at("error_messages")[1].at("errorcode"), "E19999");
-    EXPECT_EQ(0, std::string(ret_json.at("error_messages")[1].at("errormsg")).find("TbeOpTilingPyInterfaceOld failed.[FUNC:DoOpTilingForCompile][FILE:op_tiling_py.cc]"));
+    EXPECT_EQ(0, std::string(ret_json.at("error_messages")[1].at("errormsg"))
+                     .find("TbeOpTilingPyInterfaceOld failed.[FUNC:DoOpTilingForCompile][FILE:op_tiling_py.cc]"));
   } catch (const nlohmann::json::exception &e) {
     std::cout << "parse failed, reason: " << e.what() << std::endl;
     return false;
@@ -336,12 +338,8 @@ extern "C" int TbeOpTilingPyInterface(const char *optype, const char *compile_in
                                       size_t run_info_len, uint64_t *elapse);
 
 extern "C" const char *DoOpTilingForCompile(const char *optype, const char *compile_info, const char *compile_info_hash,
-                                            const char *inputs,
-                                            const char *outputs,
-                                            const char *attrs,
-                                            char *run_info_json,
-                                            size_t run_info_len,
-                                            uint64_t *elapse,
+                                            const char *inputs, const char *outputs, const char *attrs,
+                                            char *run_info_json, size_t run_info_len, uint64_t *elapse,
                                             const char *extra_info);
 
 extern "C" Status TbeLoadSoAndSaveToRegistry(const char *so_path);
@@ -371,7 +369,6 @@ CompileInfoPtr op_parse_stub_v4(const Operator &op, const ge::AscendString &comp
   return info;
 }
 
-
 UINT32 OpTilingStubNewWithNullDesc(gert::TilingContext *kernel_context) {
   auto tensor_without_data = kernel_context->GetInputTensor(1);
   EXPECT_EQ(tensor_without_data->GetAddr(), nullptr);
@@ -400,7 +397,8 @@ UINT32 OpTilingStubNewWithNullDesc(gert::TilingContext *kernel_context) {
   for (size_t i = 0UL; i < 4UL; ++i) {
     if (i == 2U) {
       EXPECT_EQ(std::isnan(reinterpret_cast<const float *>(
-                               kernel_context->GetAttrs()->GetAttrPointer<gert::ContinuousVector>(0)->GetData())[i]), true);
+                    kernel_context->GetAttrs()->GetAttrPointer<gert::ContinuousVector>(0)->GetData())[i]),
+                true);
       continue;
     }
     EXPECT_EQ(reinterpret_cast<const float *>(
@@ -1069,7 +1067,7 @@ TEST_F(UtestRegister, ParseSubgraphPostFnTest) {
 
 TEST_F(UtestRegister, optiling_py_interface) {
   EXPECT_NO_THROW(
-    const nlohmann::json j = R"([
+      const nlohmann::json j = R"([
         {
             "name": "test_0",
             "dtype": "int8",
@@ -1128,27 +1126,21 @@ TEST_F(UtestRegister, optiling_py_interface) {
         }
         ])"_json;
 
-    std::string json_str = j.dump();
-    ge::Operator op("NULL");
-    const char *optype = "ReluV2";
-    const char *optype_v3 = "ReluV3";
-    const char *optype_v4 = "ReluV4";
-    const char *cmp_info = "{\"_common_info\":[0,16,48,1,1,0,0],\"_is_ori_last_transpose\":0,\"_pattern\":\"Transdata\","
-                           "\"_permute\":[0,2,1,3],\"_sgt_cube_vector_core_type\":\"VectorCore\",\"_src_fuse\":[0,1,3],"
-                           "\"_src_pad_mode\":[0,0,2],\"_src_pad_var\":[1,1,16],\"_ub_info"
-                           "\":[[48512,24192],[-1],[-1],[-1]],\"device_id\":\"0\"}";
-    char *runinfo = const_cast<char *>("");
-    size_t size = 3;
-    const char *cmp_info_hash = "";
-    uint64_t *elapse = nullptr;
-    const char *attrs = json_str.c_str();
-    TbeOpTilingPyInterface(optype, cmp_info, cmp_info_hash, attrs, attrs, attrs, runinfo, size, elapse);
-    TbeOpTilingPyInterface(optype_v3, cmp_info, cmp_info_hash, attrs, attrs, attrs, runinfo, size, elapse);
-    TbeOpTilingPyInterface(optype_v4, cmp_info, cmp_info_hash, attrs, attrs, attrs, runinfo, size, elapse);
-    TbeOpTilingPyInterfaceEx2(optype, cmp_info, attrs, attrs, runinfo, size, cmp_info_hash, elapse);
-    TbeOpTilingPyInterfaceEx2(optype_v3, cmp_info, attrs, attrs, runinfo, size, cmp_info_hash, elapse);
-    TbeOpTilingPyInterfaceEx2(optype_v4, cmp_info, attrs, attrs, runinfo, size, cmp_info_hash, elapse);
-  );
+      std::string json_str = j.dump(); ge::Operator op("NULL"); const char *optype = "ReluV2";
+      const char *optype_v3 = "ReluV3"; const char *optype_v4 = "ReluV4";
+      const char *cmp_info =
+          "{\"_common_info\":[0,16,48,1,1,0,0],\"_is_ori_last_transpose\":0,\"_pattern\":\"Transdata\","
+          "\"_permute\":[0,2,1,3],\"_sgt_cube_vector_core_type\":\"VectorCore\",\"_src_fuse\":[0,1,3],"
+          "\"_src_pad_mode\":[0,0,2],\"_src_pad_var\":[1,1,16],\"_ub_info"
+          "\":[[48512,24192],[-1],[-1],[-1]],\"device_id\":\"0\"}";
+      char *runinfo = const_cast<char *>(""); size_t size = 3; const char *cmp_info_hash = "";
+      uint64_t *elapse = nullptr; const char *attrs = json_str.c_str();
+      TbeOpTilingPyInterface(optype, cmp_info, cmp_info_hash, attrs, attrs, attrs, runinfo, size, elapse);
+      TbeOpTilingPyInterface(optype_v3, cmp_info, cmp_info_hash, attrs, attrs, attrs, runinfo, size, elapse);
+      TbeOpTilingPyInterface(optype_v4, cmp_info, cmp_info_hash, attrs, attrs, attrs, runinfo, size, elapse);
+      TbeOpTilingPyInterfaceEx2(optype, cmp_info, attrs, attrs, runinfo, size, cmp_info_hash, elapse);
+      TbeOpTilingPyInterfaceEx2(optype_v3, cmp_info, attrs, attrs, runinfo, size, cmp_info_hash, elapse);
+      TbeOpTilingPyInterfaceEx2(optype_v4, cmp_info, attrs, attrs, runinfo, size, cmp_info_hash, elapse););
 }
 
 TEST_F(UtestRegister, new_optiling_py_interface_ok) {
@@ -1369,8 +1361,8 @@ TEST_F(UtestRegister, new_optiling_py_interface_ok_with_sub_format) {
   op_impl_func->max_tiling_data_size = 50;
 
   EXPECT_EQ(std::string(DoOpTilingForCompile(op_type, cmp_info, cmp_info_hash, input_str.c_str(), output_str.c_str(),
-                               attrs.dump().c_str(), const_cast<char *>(runinfo.c_str()), size, elapse,
-                               extra_infos.dump().c_str())),
+                                             attrs.dump().c_str(), const_cast<char *>(runinfo.c_str()), size, elapse,
+                                             extra_infos.dump().c_str())),
             "{\"ret_code\":0}");
   gert::DefaultOpImplSpaceRegistryV2::GetInstance().SetSpaceRegistry(nullptr);
 }
@@ -1394,7 +1386,7 @@ TEST_F(UtestRegister, new_optiling_py_interface_ok_with_extra_info_case2) {
 { "name": "op_para_size", "dtype": "int", "value": 50}, { "name": "group", "dtype": "str", "value": "g0"}])"_json;
   ge::HcomTopoInfo::TopoInfo original;
   original.rank_size = 64;
-  original.notify_handle = reinterpret_cast<void*>(0x1234); // 指针不会被序列化
+  original.notify_handle = reinterpret_cast<void *>(0x1234);  // 指针不会被序列化
 
   // 初始化topo_level_descs
   original.topo_level_descs[static_cast<int>(ge::HcomTopoInfo::TopoLevel::L0)] = {8, 16};
@@ -1454,7 +1446,7 @@ TEST_F(UtestRegister, new_optiling_py_interface_ok_with_extra_info_case3) {
   const nlohmann::json attrs = R"([
     { "name": "op_para_size", "dtype": "int", "value": 50}, { "name": "group_ep", "dtype": "str", "value": "g1"}, { "name": "group_tp", "dtype": "str", "value": "g2"}])"_json;
   ge::HcomTopoInfo::TopoInfo original;
-  original.notify_handle = reinterpret_cast<void*>(0x1234); // 指针不会被序列化
+  original.notify_handle = reinterpret_cast<void *>(0x1234);  // 指针不会被序列化
   original.local_window_size = 100;
 
   // 初始化topo_level_descs
@@ -1482,7 +1474,7 @@ TEST_F(UtestRegister, new_optiling_py_interface_ok_with_extra_info_case3) {
   EXPECT_EQ(std::string(DoOpTilingForCompile(op_type, cmp_info, cmp_info_hash, input_str.c_str(), output_str.c_str(),
                                              attrs.dump().c_str(), const_cast<char *>(runinfo.c_str()), size, elapse,
                                              extra_infos.c_str())),
-  "{\"ret_code\":0}");
+            "{\"ret_code\":0}");
   uint64_t local_window_size = -1;
   EXPECT_EQ(ge::HcomTopoInfo::Instance().GetGroupLocalWindowSize("g1", local_window_size), ge::GRAPH_SUCCESS);
   EXPECT_EQ(original.local_window_size, 100);
@@ -1650,46 +1642,25 @@ TEST_F(UtestRegister, NewOptilingInterface_Ok_WithNodeName) {
   {
     const nlohmann::json invalid_attrs = R"([
 { "name": "op_para_size", "value": 50}])"_json;
-    EXPECT_NE(std::string::npos, std::string(DoOpTilingForCompile(op_type,
-                                             cmp_info,
-                                             cmp_info_hash,
-                                             input_str.c_str(),
-                                             output_str.c_str(),
-                                             invalid_attrs.dump().c_str(),
-                                             const_cast<char *>(runinfo.c_str()),
-                                             size,
-                                             elapse,
-                                             extra_info_str.c_str())).find("\"ret_code\":1}"));
-    EXPECT_NE(std::string::npos, std::string(DoOpTilingForCompile(nullptr,
-                                             cmp_info,
-                                             cmp_info_hash,
-                                             input_str.c_str(),
-                                             output_str.c_str(),
-                                             invalid_attrs.dump().c_str(),
-                                             const_cast<char *>(runinfo.c_str()),
-                                             size,
-                                             elapse,
-                                             extra_info_str.c_str())).find("\"ret_code\":1}"));
-    EXPECT_NE(std::string::npos, std::string(DoOpTilingForCompile("TestReluV2",
-                                             cmp_info,
-                                             cmp_info_hash,
-                                             input_str.c_str(),
-                                             output_str.c_str(),
-                                             invalid_attrs.dump().c_str(),
-                                             const_cast<char *>(runinfo.c_str()),
-                                             size,
-                                             elapse,
-                                             extra_info_str.c_str())).find("\"ret_code\":1}"));
-    std::string ret_when_error = DoOpTilingForCompile("TestReluV2",
-                                                      cmp_info,
-                                                      cmp_info_hash,
-                                                      input_str.c_str(),
-                                                      output_str.c_str(),
-                                                      invalid_attrs.dump().c_str(),
-                                                      const_cast<char *>(runinfo.c_str()),
-                                                      size,
-                                                      elapse,
-                                                      extra_info_str.c_str());
+    EXPECT_NE(std::string::npos,
+              std::string(DoOpTilingForCompile(op_type, cmp_info, cmp_info_hash, input_str.c_str(), output_str.c_str(),
+                                               invalid_attrs.dump().c_str(), const_cast<char *>(runinfo.c_str()), size,
+                                               elapse, extra_info_str.c_str()))
+                  .find("\"ret_code\":1}"));
+    EXPECT_NE(std::string::npos,
+              std::string(DoOpTilingForCompile(nullptr, cmp_info, cmp_info_hash, input_str.c_str(), output_str.c_str(),
+                                               invalid_attrs.dump().c_str(), const_cast<char *>(runinfo.c_str()), size,
+                                               elapse, extra_info_str.c_str()))
+                  .find("\"ret_code\":1}"));
+    EXPECT_NE(
+        std::string::npos,
+        std::string(DoOpTilingForCompile("TestReluV2", cmp_info, cmp_info_hash, input_str.c_str(), output_str.c_str(),
+                                         invalid_attrs.dump().c_str(), const_cast<char *>(runinfo.c_str()), size,
+                                         elapse, extra_info_str.c_str()))
+            .find("\"ret_code\":1}"));
+    std::string ret_when_error = DoOpTilingForCompile(
+        "TestReluV2", cmp_info, cmp_info_hash, input_str.c_str(), output_str.c_str(), invalid_attrs.dump().c_str(),
+        const_cast<char *>(runinfo.c_str()), size, elapse, extra_info_str.c_str());
     EXPECT_TRUE(CheckErrorRetFormat(ret_when_error));
     ReInitErrorManager();
   }
@@ -1825,18 +1796,18 @@ TEST_F(UtestRegister, NewOptilingInterface_Ok_WithDynamicInput) {
   const nlohmann::json attrs = R"([
 { "name": "op_para_size", "dtype": "int", "value": 50}])"_json;
   EXPECT_EQ(std::string(DoOpTilingForCompile(op_type, cmp_info, cmp_info_hash, input_str.c_str(), output_str.c_str(),
-                                           attrs.dump().c_str(), const_cast<char *>(runinfo.c_str()), size, elapse,
-                                           extra_info_str.c_str())),
+                                             attrs.dump().c_str(), const_cast<char *>(runinfo.c_str()), size, elapse,
+                                             extra_info_str.c_str())),
             "{\"ret_code\":0}");
 }
 
 extern "C" int AscendCPyInterfaceCheckOp(const char *check_type, const char *optype, const char *inputs,
-                                      const char *outputs, const char *attrs, char *result_info,
-                                      size_t result_info_len);
+                                         const char *outputs, const char *attrs, char *result_info,
+                                         size_t result_info_len);
 
 extern "C" int AscendCPyInterfaceGeneralized(const char *optype, const char *inputs, const char *outputs,
-                                          const char *attrs, const char *generalize_config, char *result_info,
-                                          size_t result_info_len);
+                                             const char *attrs, const char *generalize_config, char *result_info,
+                                             size_t result_info_len);
 
 extern "C" int AscendCPyInterfaceGetTilingDefInfo(const char *optype, char *result_info, size_t result_info_len);
 
@@ -1901,7 +1872,7 @@ TEST_F(UtestRegister, ascendC_py_interface_check_cap_ok) {
   // check_supported
   REG_CHECK_SUPPORT(ascendC_py_interface_check_cap_ok, check_supported_stub);
   EXPECT_EQ(AscendCPyInterfaceCheckOp(FUNC_CHECK_SUPPORTED, op_type.c_str(), input_str.c_str(), output_str.c_str(),
-                                   attrs_str.c_str(), const_cast<char *>(res_info.c_str()), size),
+                                      attrs_str.c_str(), const_cast<char *>(res_info.c_str()), size),
             1);
   std::string check_supported_result = "{\"reason\":\"check_supported_stub\",\"ret_code\":\"1\"}";
   EXPECT_EQ(check_supported_result, res_info.substr(0, check_supported_result.size()));
@@ -1909,7 +1880,7 @@ TEST_F(UtestRegister, ascendC_py_interface_check_cap_ok) {
   // op_select_format
   REG_OP_SELECT_FORMAT(ascendC_py_interface_check_cap_ok, op_select_format_stub);
   EXPECT_EQ(AscendCPyInterfaceCheckOp(FUNC_OP_SELECT_FORMAT, op_type.c_str(), input_str.c_str(), output_str.c_str(),
-                                   attrs_str.c_str(), const_cast<char *>(res_info.c_str()), size),
+                                      attrs_str.c_str(), const_cast<char *>(res_info.c_str()), size),
             1);
   std::string op_select_format_result = "{\"op_info\":\"op_select_format_stub\"}";
   EXPECT_EQ(op_select_format_result, res_info.substr(0, op_select_format_result.size()));
@@ -1917,7 +1888,7 @@ TEST_F(UtestRegister, ascendC_py_interface_check_cap_ok) {
   // get_op_support_info
   REG_OP_SUPPORT_INFO(ascendC_py_interface_check_cap_ok, get_op_support_info_stub);
   EXPECT_EQ(AscendCPyInterfaceCheckOp(FUNC_GET_OP_SUPPORT_INFO, op_type.c_str(), input_str.c_str(), output_str.c_str(),
-                                   attrs_str.c_str(), const_cast<char *>(res_info.c_str()), size),
+                                      attrs_str.c_str(), const_cast<char *>(res_info.c_str()), size),
             1);
   std::string get_op_support_info_result = "{\"op_info\":\"get_op_support_info_stub\"}";
   EXPECT_EQ(get_op_support_info_result, res_info.substr(0, get_op_support_info_result.size()));
@@ -1925,7 +1896,7 @@ TEST_F(UtestRegister, ascendC_py_interface_check_cap_ok) {
   // get_op_specific_info
   REG_OP_SPEC_INFO(ascendC_py_interface_check_cap_ok, get_op_specific_info_stub);
   EXPECT_EQ(AscendCPyInterfaceCheckOp(FUNC_GET_SPECIFIC_INFO, op_type.c_str(), input_str.c_str(), output_str.c_str(),
-                                   attrs_str.c_str(), const_cast<char *>(res_info.c_str()), size),
+                                      attrs_str.c_str(), const_cast<char *>(res_info.c_str()), size),
             1);
   std::string get_op_specific_info_result = "{\"op_info\":\"get_op_specific_info_stub\"}";
   EXPECT_EQ(get_op_specific_info_result, res_info.substr(0, get_op_specific_info_result.size()));
@@ -1954,22 +1925,22 @@ TEST_F(UtestRegister, ascendC_py_interface_check_cap_fail_without_callback) {
   size_t size = 100;
   // check_supported
   EXPECT_EQ(AscendCPyInterfaceCheckOp(FUNC_CHECK_SUPPORTED, op_type.c_str(), input_str.c_str(), output_str.c_str(),
-                                   attrs_str.c_str(), const_cast<char *>(res_info.c_str()), size),
+                                      attrs_str.c_str(), const_cast<char *>(res_info.c_str()), size),
             0);
 
   // op_select_format
   EXPECT_EQ(AscendCPyInterfaceCheckOp(FUNC_OP_SELECT_FORMAT, op_type.c_str(), input_str.c_str(), output_str.c_str(),
-                                   attrs_str.c_str(), const_cast<char *>(res_info.c_str()), size),
+                                      attrs_str.c_str(), const_cast<char *>(res_info.c_str()), size),
             0);
 
   // get_op_support_info
   EXPECT_EQ(AscendCPyInterfaceCheckOp(FUNC_GET_OP_SUPPORT_INFO, op_type.c_str(), input_str.c_str(), output_str.c_str(),
-                                   attrs_str.c_str(), const_cast<char *>(res_info.c_str()), size),
+                                      attrs_str.c_str(), const_cast<char *>(res_info.c_str()), size),
             0);
 
   // get_op_specific_info
   EXPECT_EQ(AscendCPyInterfaceCheckOp(FUNC_GET_SPECIFIC_INFO, op_type.c_str(), input_str.c_str(), output_str.c_str(),
-                                   attrs_str.c_str(), const_cast<char *>(res_info.c_str()), size),
+                                      attrs_str.c_str(), const_cast<char *>(res_info.c_str()), size),
             0);
   unsetenv("ENABLE_RUNTIME_V2");
 }
@@ -1997,7 +1968,7 @@ TEST_F(UtestRegister, ascendC_py_interface_check_cap_fail_throw) {
   // check_supported
   REG_CHECK_SUPPORT(ascendC_py_interface_check_cap_fail_throw, check_supported_stub_throw);
   EXPECT_EQ(AscendCPyInterfaceCheckOp(FUNC_CHECK_SUPPORTED, op_type.c_str(), input_str.c_str(), output_str.c_str(),
-                                   attrs_str.c_str(), const_cast<char *>(res_info.c_str()), size),
+                                      attrs_str.c_str(), const_cast<char *>(res_info.c_str()), size),
             0);
   unsetenv("ENABLE_RUNTIME_V2");
 }
@@ -2025,7 +1996,7 @@ TEST_F(UtestRegister, ascendC_py_interface_check_cap_fail_by_callback) {
   // check_supported
   REG_CHECK_SUPPORT(ascendC_py_interface_check_cap_fail_throw, check_supported_stub_fail);
   EXPECT_EQ(AscendCPyInterfaceCheckOp(FUNC_CHECK_SUPPORTED, op_type.c_str(), input_str.c_str(), output_str.c_str(),
-                                   attrs_str.c_str(), const_cast<char *>(res_info.c_str()), size),
+                                      attrs_str.c_str(), const_cast<char *>(res_info.c_str()), size),
             0);
   unsetenv("ENABLE_RUNTIME_V2");
 }
@@ -2036,18 +2007,21 @@ TEST_F(UtestRegister, ascendC_py_interface_check_cap_fail_without_params) {
   unsetenv("ENABLE_RUNTIME_V2");
 }
 
-ge::graphStatus generalize_stub(const ge::Operator &op, const ge::AscendString &generalize_config, ge::AscendString &result) {
+ge::graphStatus generalize_stub(const ge::Operator &op, const ge::AscendString &generalize_config,
+                                ge::AscendString &result) {
   const nlohmann::json res_json = R"({"op_info": "generalize_stub"})"_json;
   std::string res_json_str = res_json.dump();
   result = AscendString(res_json_str.c_str());
   return ge::GRAPH_SUCCESS;
 }
 
-ge::graphStatus generalize_stub_fail(const ge::Operator &op, const ge::AscendString &generalize_config, ge::AscendString &result) {
+ge::graphStatus generalize_stub_fail(const ge::Operator &op, const ge::AscendString &generalize_config,
+                                     ge::AscendString &result) {
   return ge::GRAPH_FAILED;
 }
 
-ge::graphStatus generalize_stub_throw(const ge::Operator &op, const ge::AscendString &generalize_config, ge::AscendString &result) {
+ge::graphStatus generalize_stub_throw(const ge::Operator &op, const ge::AscendString &generalize_config,
+                                      ge::AscendString &result) {
   const nlohmann::json res_json = R"({"op_info": "generalize_stub"})"_json;
   std::string res_json_str = res_json.dump();
   result = AscendString(res_json_str.c_str());
@@ -2079,7 +2053,7 @@ TEST_F(UtestRegister, ascendC_py_interface_generalize_ok) {
   // shape generalize
   REG_OP_PARAM_GENERALIZE(ascendC_py_interface_generalize_ok, generalize_stub);
   EXPECT_EQ(AscendCPyInterfaceGeneralized(op_type.c_str(), input_str.c_str(), output_str.c_str(), attrs_str.c_str(),
-                                       generalize_config.c_str(), const_cast<char *>(res_info.c_str()), size),
+                                          generalize_config.c_str(), const_cast<char *>(res_info.c_str()), size),
             1);
   std::string result = "{\"op_info\":\"generalize_stub\"}";
   EXPECT_EQ(result, res_info.substr(0, result.size()));
@@ -2111,12 +2085,11 @@ TEST_F(UtestRegister, ascendC_py_interface_generalize_fail_by_callback) {
   // shape generalize
   REG_OP_PARAM_GENERALIZE(ascendC_py_interface_generalize_ok, generalize_stub_fail);
   EXPECT_EQ(AscendCPyInterfaceGeneralized(op_type.c_str(), input_str.c_str(), output_str.c_str(), attrs_str.c_str(),
-                                       generalize_config.c_str(), const_cast<char *>(res_info.c_str()), size),
+                                          generalize_config.c_str(), const_cast<char *>(res_info.c_str()), size),
             0);
 
   unsetenv("ENABLE_RUNTIME_V2");
 }
-
 
 TEST_F(UtestRegister, ascendC_py_interface_generalize_fail_without_callback) {
   setenv("ENABLE_RUNTIME_V2", "1", 0);
@@ -2141,7 +2114,7 @@ TEST_F(UtestRegister, ascendC_py_interface_generalize_fail_without_callback) {
   size_t size = 100;
   // shape generalize
   EXPECT_EQ(AscendCPyInterfaceGeneralized(op_type.c_str(), input_str.c_str(), output_str.c_str(), attrs_str.c_str(),
-                                       generalize_config.c_str(), const_cast<char *>(res_info.c_str()), size),
+                                          generalize_config.c_str(), const_cast<char *>(res_info.c_str()), size),
             0);
 
   unsetenv("ENABLE_RUNTIME_V2");
@@ -2171,7 +2144,7 @@ TEST_F(UtestRegister, ascendC_py_interface_generalize_fail_throw) {
   // shape generalize
   REG_OP_PARAM_GENERALIZE(ascendC_py_interface_generalize_fail_throw, generalize_stub_throw);
   EXPECT_EQ(AscendCPyInterfaceGeneralized(op_type.c_str(), input_str.c_str(), output_str.c_str(), attrs_str.c_str(),
-                                       generalize_config.c_str(), const_cast<char *>(res_info.c_str()), size),
+                                          generalize_config.c_str(), const_cast<char *>(res_info.c_str()), size),
             0);
 
   unsetenv("ENABLE_RUNTIME_V2");
@@ -2223,39 +2196,38 @@ TEST_F(UtestRegister, ascendC_py_interface_get_tiling_def_ok) {
   unsetenv("ENABLE_RUNTIME_V2");
 }
 
-
 namespace test1 {
 BEGIN_TILING_DATA_DEF(TestMaxPoolTilingStruct)
 TILING_DATA_FIELD_DEF_ARR(int8_t, 5, dim_0);
 TILING_DATA_FIELD_DEF_STRUCT(TestMaxPoolTilingData, dim_1);
 END_TILING_DATA_DEF
-}
+}  // namespace test1
 
 namespace test2 {
 BEGIN_TILING_DATA_DEF(TestMaxPoolTilingStruct)
 TILING_DATA_FIELD_DEF_ARR(int8_t, 5, dim_1);
 TILING_DATA_FIELD_DEF_STRUCT(TestMaxPoolTilingData, dim_2);
 END_TILING_DATA_DEF
-}  //name
+}  // namespace test2
 
 namespace test3 {
 BEGIN_TILING_DATA_DEF(TestMaxPoolTilingStruct)
 TILING_DATA_FIELD_DEF(uint64_t, dim_1);
 TILING_DATA_FIELD_DEF_STRUCT(TestMaxPoolTilingData, dim_2);
 END_TILING_DATA_DEF
-}  //infosize
+}  // namespace test3
 
 namespace test4 {
 BEGIN_TILING_DATA_DEF(TestMaxPoolTilingStruct)
 TILING_DATA_FIELD_DEF_ARR(int8_t, 4, dim_0);
 TILING_DATA_FIELD_DEF_STRUCT(TestMaxPoolTilingData, dim_1);
 END_TILING_DATA_DEF
-}  //arrsize
+}  // namespace test4
 namespace test5 {
 BEGIN_TILING_DATA_DEF(TestMaxPoolTilingStruct)
 TILING_DATA_FIELD_DEF_ARR(int8_t, 50, dim_0);
 END_TILING_DATA_DEF
-} //datasize
+}  // namespace test5
 
 std::shared_ptr<TilingDef> Test_api1() {
   return std::make_shared<test1::TestMaxPoolTilingStruct>();
@@ -2364,24 +2336,24 @@ TEST_F(UtestRegister, ascendC_register_tilingdata_base_ok) {
   params.set_act_core_num(8);
   uint8_t res_data[1024];
   int offset = 0;
-  params.SaveToBuffer((void *) (&res_data), params.GetDataSize());
-  EXPECT_EQ(*((int8_t *) (res_data + offset)), params.get_dim_0());
+  params.SaveToBuffer((void *)(&res_data), params.GetDataSize());
+  EXPECT_EQ(*((int8_t *)(res_data + offset)), params.get_dim_0());
   offset += sizeof(int16_t);
-  EXPECT_EQ(*((int16_t *) (res_data + offset)), params.get_dim_1());
+  EXPECT_EQ(*((int16_t *)(res_data + offset)), params.get_dim_1());
   offset += sizeof(int16_t);
-  EXPECT_EQ(*((int32_t *) (res_data + offset)), params.get_dim_2());
+  EXPECT_EQ(*((int32_t *)(res_data + offset)), params.get_dim_2());
   offset += sizeof(int32_t);
-  EXPECT_EQ(*((int64_t *) (res_data + offset)), params.get_dim_3());
+  EXPECT_EQ(*((int64_t *)(res_data + offset)), params.get_dim_3());
   offset += sizeof(int64_t);
-  EXPECT_EQ(*((uint8_t *) (res_data + offset)), params.get_dim_4());
+  EXPECT_EQ(*((uint8_t *)(res_data + offset)), params.get_dim_4());
   offset += sizeof(uint16_t);
-  EXPECT_EQ(*((uint16_t *) (res_data + offset)), params.get_dim_5());
+  EXPECT_EQ(*((uint16_t *)(res_data + offset)), params.get_dim_5());
   offset += sizeof(uint16_t);
-  EXPECT_EQ(*((uint32_t *) (res_data + offset)), params.get_dim_6());
+  EXPECT_EQ(*((uint32_t *)(res_data + offset)), params.get_dim_6());
   offset += sizeof(uint32_t);
-  EXPECT_EQ(*((uint64_t *) (res_data + offset)), params.get_dim_7());
+  EXPECT_EQ(*((uint64_t *)(res_data + offset)), params.get_dim_7());
   offset += sizeof(uint64_t);
-  EXPECT_EQ(*((int32_t *) (res_data + offset)), params.get_act_core_num());
+  EXPECT_EQ(*((int32_t *)(res_data + offset)), params.get_act_core_num());
   offset += sizeof(int32_t);
   unsetenv("ENABLE_RUNTIME_V2");
 }
@@ -2402,9 +2374,9 @@ TEST_F(UtestRegister, ascendC_register_tilingdata_base_failed) {
   paramStruct.dim_1.set_dim_6(60);
   paramStruct.dim_1.set_dim_7(70);
   paramStruct.dim_1.set_act_core_num(8);
-  paramStruct.SaveToBuffer((void *) (&res_data), 1024);
+  paramStruct.SaveToBuffer((void *)(&res_data), 1024);
 
-  auto params = TestMaxPoolTilingData((void *) (&res_data));
+  auto params = TestMaxPoolTilingData((void *)(&res_data));
   params.set_dim_0(0);
   params.set_dim_1(10);
   params.set_dim_2(20);
@@ -2414,17 +2386,17 @@ TEST_F(UtestRegister, ascendC_register_tilingdata_base_failed) {
   params.set_dim_6(60);
   params.set_dim_7(70);
   params.set_act_core_num(8);
-  params.SaveToBuffer((void *) (&res_data), 1024);
-  EXPECT_EQ(*((int8_t *) (res_data + offset)), params.get_dim_0());
+  params.SaveToBuffer((void *)(&res_data), 1024);
+  EXPECT_EQ(*((int8_t *)(res_data + offset)), params.get_dim_0());
   offset += sizeof(int16_t);
-  EXPECT_EQ(*((int16_t *) (res_data + offset)), params.get_dim_1());
+  EXPECT_EQ(*((int16_t *)(res_data + offset)), params.get_dim_1());
   params.SetDataPtr(res_data);
   unsetenv("ENABLE_RUNTIME_V2");
 }
 
 extern "C" int AscendCPyInterfaceOpReplay(const char *optype, const char *soc_version, int block_dim,
-                                       const char *tiling_data, const char *kernel_name, const char *entry_file,
-                                       const char *output_kernel_file, int core_type, int task_ration);
+                                          const char *tiling_data, const char *kernel_name, const char *entry_file,
+                                          const char *output_kernel_file, int core_type, int task_ration);
 
 int replay_stub(ReplayFuncParam &param, const int core_typ) {
   return 1;
@@ -2451,10 +2423,10 @@ TEST_F(UtestRegister, ascendC_py_interface_op_replay_ok) {
   int core_type = 0;
   int task_ration = 1;
   REG_REPLAY_FUNC(ascendC_py_interface_op_replay_ok, ascend710, replay_stub);
-  EXPECT_EQ(AscendCPyInterfaceOpReplay(op_type.c_str(), soc_version.c_str(), blkdim, tilingdata.c_str(),
-                                    kernel_name.c_str(), entry_file.c_str(), output_kernel_file.c_str(), core_type,
-                                    task_ration),
-            1);
+  EXPECT_EQ(
+      AscendCPyInterfaceOpReplay(op_type.c_str(), soc_version.c_str(), blkdim, tilingdata.c_str(), kernel_name.c_str(),
+                                 entry_file.c_str(), output_kernel_file.c_str(), core_type, task_ration),
+      1);
 
   unsetenv("ENABLE_RUNTIME_V2");
 }
@@ -2470,10 +2442,10 @@ TEST_F(UtestRegister, ascendC_py_interface_op_replay_fail_without_callback) {
   std::string output_kernel_file = "ascendC_py_interface_op_replay_fail_without_callback_kernel_file.cce";
   int core_type = 0;
   int task_ration = 1;
-  EXPECT_EQ(AscendCPyInterfaceOpReplay(op_type.c_str(), soc_version.c_str(), blkdim, tilingdata.c_str(),
-                                    kernel_name.c_str(), entry_file.c_str(), output_kernel_file.c_str(), core_type,
-                                    task_ration),
-            0);
+  EXPECT_EQ(
+      AscendCPyInterfaceOpReplay(op_type.c_str(), soc_version.c_str(), blkdim, tilingdata.c_str(), kernel_name.c_str(),
+                                 entry_file.c_str(), output_kernel_file.c_str(), core_type, task_ration),
+      0);
 
   unsetenv("ENABLE_RUNTIME_V2");
 }
@@ -2490,10 +2462,10 @@ TEST_F(UtestRegister, ascendC_py_interface_op_replay_fail_throw) {
   int core_type = 0;
   int task_ration = 1;
   REG_REPLAY_FUNC(ascendC_py_interface_op_replay_fail_throw, ascend710, replay_stub_throw);
-  EXPECT_EQ(AscendCPyInterfaceOpReplay(op_type.c_str(), soc_version.c_str(), blkdim, tilingdata.c_str(),
-                                    kernel_name.c_str(), entry_file.c_str(), output_kernel_file.c_str(), core_type,
-                                    task_ration),
-            0);
+  EXPECT_EQ(
+      AscendCPyInterfaceOpReplay(op_type.c_str(), soc_version.c_str(), blkdim, tilingdata.c_str(), kernel_name.c_str(),
+                                 entry_file.c_str(), output_kernel_file.c_str(), core_type, task_ration),
+      0);
 
   unsetenv("ENABLE_RUNTIME_V2");
 }
@@ -2516,10 +2488,10 @@ TEST_F(UtestRegister, ascendC_py_interface_op_replay_invalid_core_type) {
   int core_type = 4;
   int task_ration = 1;
   REG_REPLAY_FUNC(ascendC_py_interface_op_replay_invalid_core_type, ascend710, replay_stub);
-  EXPECT_EQ(AscendCPyInterfaceOpReplay(op_type.c_str(), soc_version.c_str(), blkdim, tilingdata.c_str(),
-                                    kernel_name.c_str(), entry_file.c_str(), output_kernel_file.c_str(), core_type,
-                                    task_ration),
-            0);
+  EXPECT_EQ(
+      AscendCPyInterfaceOpReplay(op_type.c_str(), soc_version.c_str(), blkdim, tilingdata.c_str(), kernel_name.c_str(),
+                                 entry_file.c_str(), output_kernel_file.c_str(), core_type, task_ration),
+      0);
 
   unsetenv("ENABLE_RUNTIME_V2");
 }
@@ -2536,10 +2508,10 @@ TEST_F(UtestRegister, ascendC_py_interface_op_replay_invalid_task_ration) {
   int core_type = 0;
   int task_ration = -1;
   REG_REPLAY_FUNC(ascendC_py_interface_op_replay_invalid_task_ration, ascend710, replay_stub);
-  EXPECT_EQ(AscendCPyInterfaceOpReplay(op_type.c_str(), soc_version.c_str(), blkdim, tilingdata.c_str(),
-                                    kernel_name.c_str(), entry_file.c_str(), output_kernel_file.c_str(), core_type,
-                                    task_ration),
-            0);
+  EXPECT_EQ(
+      AscendCPyInterfaceOpReplay(op_type.c_str(), soc_version.c_str(), blkdim, tilingdata.c_str(), kernel_name.c_str(),
+                                 entry_file.c_str(), output_kernel_file.c_str(), core_type, task_ration),
+      0);
 
   unsetenv("ENABLE_RUNTIME_V2");
 }
@@ -2556,10 +2528,10 @@ TEST_F(UtestRegister, ascendC_py_interface_op_replay_invalid_ret) {
   int core_type = 1;
   int task_ration = 2;
   REG_REPLAY_FUNC(ascendC_py_interface_op_replay_invalid_ret, ascend710, replay_stub_invalid_ret);
-  EXPECT_EQ(AscendCPyInterfaceOpReplay(op_type.c_str(), soc_version.c_str(), blkdim, tilingdata.c_str(),
-                                    kernel_name.c_str(), entry_file.c_str(), output_kernel_file.c_str(), core_type,
-                                    task_ration),
-            0);
+  EXPECT_EQ(
+      AscendCPyInterfaceOpReplay(op_type.c_str(), soc_version.c_str(), blkdim, tilingdata.c_str(), kernel_name.c_str(),
+                                 entry_file.c_str(), output_kernel_file.c_str(), core_type, task_ration),
+      0);
 
   unsetenv("ENABLE_RUNTIME_V2");
 }
@@ -2695,7 +2667,6 @@ TEST_F(UtestRegister, new_optiling_py_interface_ok_with_bf16_data) {
   op_impl_func->compile_info_deleter = DeleteCompileInfo;
   op_impl_func->max_tiling_data_size = max_tiling_size;
 
-
   EXPECT_EQ(TbeOpTilingPyInterface(op_type, cmp_info, cmp_info_hash, input_str.c_str(), output_str.c_str(),
                                    attrs.dump().c_str(), const_cast<char *>(runinfo.c_str()), size, elapse),
             1);
@@ -2734,8 +2705,9 @@ TEST_F(UtestRegister, GetRawErrorMessage_fail_map) {
 
   const string expect_result = "{\"ret_code\":0}";
   EXPECT_EQ(std::string(DoOpTilingForCompile(op_type, cmp_info, cmp_info_hash, input_str.c_str(), output_str.c_str(),
-                               attrs.dump().c_str(), const_cast<char *>(runinfo.c_str()), size, elapse,
-                               extra_infos.dump().c_str())), expect_result);
+                                             attrs.dump().c_str(), const_cast<char *>(runinfo.c_str()), size, elapse,
+                                             extra_infos.dump().c_str())),
+            expect_result);
   gert::DefaultOpImplSpaceRegistryV2::GetInstance().SetSpaceRegistry(nullptr);
 }
 
@@ -3388,7 +3360,7 @@ TEST_F(UtestRegister, new_optiling_py_interface_ok_view_with_bf16_data) {
   const char *op_type = "TestReluV2";
   const char *cmp_info = "";
   const char *cmp_info_hash = "";
-  uint64_t* elapse = nullptr;
+  uint64_t *elapse = nullptr;
 
   const std::string expect_result =
       R"({"aicpu_block_dim":1,"block_dim":1,"clear_atomic":true,"local_memory_size":0,"schedule_mode":0,"tiling_cond":0,"tiling_data":"","tiling_key":0,"workspaces":[]})";

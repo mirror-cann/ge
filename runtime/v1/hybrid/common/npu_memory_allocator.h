@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,8 +25,12 @@ class AllocationAttr {
   AllocationAttr(const int32_t padding, void *const try_reuse_addr,
                  const MemStorageType mem_type = MemStorageType::HBM);
   ~AllocationAttr() = default;
-  void SetMemType(const MemStorageType memType) { mem_type_ = memType; }
-  MemStorageType GetMemType() const { return mem_type_; }
+  void SetMemType(const MemStorageType memType) {
+    mem_type_ = memType;
+  }
+  MemStorageType GetMemType() const {
+    return mem_type_;
+  }
 
  private:
   friend class NpuMemoryAllocator;
@@ -46,7 +50,7 @@ class NpuMemoryAllocator {
   static void FreeCachedMem();
   static void ClearStream(const aclrtStream stream);
 
-  static AllocationAttr* AttrWithDefaultPadding() {
+  static AllocationAttr *AttrWithDefaultPadding() {
     static AllocationAttr attr(kDefaultPadding, nullptr);
     return &attr;
   }
@@ -56,12 +60,12 @@ class NpuMemoryAllocator {
   void Deallocate(void *const data, const MemStorageType mem_storage_type = MemStorageType::HBM) const;
 
   static constexpr int32_t kDefaultPadding = 32;
+
  private:
   Status TryFreeAndMalloc(const size_t size, void **buffer) const;
   Status TryFreeCachingMem() const;
   void *AllocateCachingMem(const std::size_t size, void *const try_reuse_addr) const;
-  void *AllocateHbmBuffer(const uint64_t size, const AllocationAttr *const attr,
-                           uint64_t &allocate_size) const;
+  void *AllocateHbmBuffer(const uint64_t size, const AllocationAttr *const attr, uint64_t &allocate_size) const;
 
   uint32_t device_id_;
   aclrtStream stream_;
@@ -75,4 +79,4 @@ class NpuMemoryAllocator {
 };
 }  // namespace hybrid
 }  // namespace ge
-#endif // GE_HYBRID_COMMON_NPU_MEMORY_ALLOCATOR_H_
+#endif  // GE_HYBRID_COMMON_NPU_MEMORY_ALLOCATOR_H_

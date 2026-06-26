@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -190,14 +190,13 @@ static void BuildStackGraphWithExeception(ComputeGraphPtr &graph, uint32_t &mem_
     }
     // for InitConstantNode
     if (node->GetName() == "const_0") {
-      op_desc->MutableOutputDesc(0)->SetDataType(DT_UINT32); // will not get max_size from tensor
+      op_desc->MutableOutputDesc(0)->SetDataType(DT_UINT32);  // will not get max_size from tensor
     }
   }
 }
 
 static void CreateGeModel(const ComputeGraphPtr &graph, uint32_t mem_offset, GeModelPtr &ge_model,
-                          TBEKernelStore &tbe_kernel_store,
-                          const std::vector<int32_t> &weights_value) {
+                          TBEKernelStore &tbe_kernel_store, const std::vector<int32_t> &weights_value) {
   std::shared_ptr<domi::ModelTaskDef> model_def = MakeShared<domi::ModelTaskDef>();
   InitKernelTaskDef_TE(graph, *model_def, "add0", tbe_kernel_store);
   InitKernelTaskDef_TE(graph, *model_def, "add1", tbe_kernel_store);
@@ -232,8 +231,8 @@ static void BuildModelForTwoStackGraph(const ComputeGraphPtr &graph, uint32_t me
   CreateGeModel(graph, mem_offset, ge_model, tbe_kernel_store, weights_value);
 }
 
-static Status DynamicStackExecute(ComputeGraphPtr &graph, const GeModelPtr &ge_model,
-                                  const int32_t input_num, const size_t output_num, const bool check_output = true) {
+static Status DynamicStackExecute(ComputeGraphPtr &graph, const GeModelPtr &ge_model, const int32_t input_num,
+                                  const size_t output_num, const bool check_output = true) {
   GeRootModelPtr ge_root_model = MakeShared<GeRootModel>();
   EXPECT_EQ(ge_root_model->Initialize(graph), SUCCESS);
   ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
@@ -333,5 +332,4 @@ TEST_F(DynamicStackExecuteTest, dynamic_stack_graph_with_execption_execute) {
   EXPECT_NE(ge_model, nullptr);
   EXPECT_EQ(DynamicStackExecute(graph, ge_model, 3, 2, false), INTERNAL_ERROR);
 }
-} // namespace ge
-
+}  // namespace ge

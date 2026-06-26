@@ -133,4 +133,3 @@ const char *opPath)
 -   编译动态Shape的算子时，如果Shape具体值不明确，但Shape范围明确，则在调用aclCreateTensorDesc接口创建[aclTensorDesc](aclTensorDesc.md)类型时，需要将dims数组的表示动态维度的元素值设置为-1，再调用[aclSetTensorShapeRange](aclSetTensorShapeRange.md)接口设置tensor的各个维度的取值范围；如果Shape具体值以及Shape范围都不明确（该场景预留），则在调用aclCreateTensorDesc接口创建[aclTensorDesc](aclTensorDesc.md)类型时，需要将dims数组的值设置为-2，例如：int64\_t dims\[\] = \{-2\}。
 -   编译有可选输入的算子时，如果可选输入不使用，则需按此种方式创建[aclTensorDesc](aclTensorDesc.md)类型的数据：[aclCreateTensorDesc](aclCreateTensorDesc.md)\(ACL\_DT\_UNDEFINED, 0, nullptr, ACL\_FORMAT\_UNDEFINED\)，表示数据类型设置为ACL\_DT\_UNDEFINED，Format设置为ACL\_FORMAT\_UNDEFINED，Shape信息为nullptr。
 -   编译有constant输入的算子时，需要先调用[aclSetTensorConst](aclSetTensorConst.md)接口设置constant输入。调用aclopCompile接口、[aclopExecuteV2](aclopExecuteV2.md)接口前，设置的constant输入数据必须保持一致。
-

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -99,8 +99,8 @@ TEST_F(KernelManagerUtest, test_aicore_kernel_with_atomic_register_and_get_func)
   const char memset_bin[] = "memset_kernel_bin_001";
   vector<char> memset_buffer(memset_bin, memset_bin + strlen(memset_bin));
   OpKernelBinPtr memset_tbe_kernel_ptr = std::make_shared<OpKernelBin>("te_memset_123456", std::move(memset_buffer));
-  AicoreRegisterInfo memset_aicore_register_info =
-      {"te_memset_123456", RT_DEV_BINARY_MAGIC_ELF_AIVEC, memset_tbe_kernel_ptr};
+  AicoreRegisterInfo memset_aicore_register_info = {"te_memset_123456", RT_DEV_BINARY_MAGIC_ELF_AIVEC,
+                                                    memset_tbe_kernel_ptr};
   KernelRegisterInfo memset_register_info = memset_aicore_register_info;
 
   std::string aicore_key = aicore_kernel_handle->GenerateKey(aic_register_info);
@@ -232,23 +232,23 @@ TEST_F(KernelManagerUtest, test_cust_aicpu_kernel_register_and_get_func) {
 
   auto cust_aicpu_bin_handle0 = cust_aicpu_kernel_handle->GetOrRegisterKernel(cust_cpu_register_info0, cust_aicpu_key0);
   EXPECT_NE(cust_aicpu_bin_handle0, nullptr);
-  auto cust_aicpu_func_handle0 = KernelHandleUtils::GetCustAicpuFuncHandle(cust_aicpu_bin_handle0,
-      "Relu", "RunCpuKernels");
+  auto cust_aicpu_func_handle0 =
+      KernelHandleUtils::GetCustAicpuFuncHandle(cust_aicpu_bin_handle0, "Relu", "RunCpuKernels");
   EXPECT_NE(cust_aicpu_func_handle0, nullptr);
   auto cust_aicpu_bin_handle1 = cust_aicpu_kernel_handle->GetOrRegisterKernel(cust_cpu_register_info1, cust_aicpu_key1);
   EXPECT_NE(cust_aicpu_bin_handle1, nullptr);
-  auto cust_aicpu_func_handle1 = KernelHandleUtils::GetCustAicpuFuncHandle(cust_aicpu_bin_handle1,
-      "Relu", "RunCpuKernels");
+  auto cust_aicpu_func_handle1 =
+      KernelHandleUtils::GetCustAicpuFuncHandle(cust_aicpu_bin_handle1, "Relu", "RunCpuKernels");
   EXPECT_NE(cust_aicpu_func_handle1, nullptr);
   auto cust_aicpu_bin_handle2 = cust_aicpu_kernel_handle->GetOrRegisterKernel(cust_cpu_register_info2, cust_aicpu_key2);
   EXPECT_NE(cust_aicpu_bin_handle2, nullptr);
-  auto cust_aicpu_func_handle2 = KernelHandleUtils::GetCustAicpuFuncHandle(cust_aicpu_bin_handle2,
-      "Relu", "RunCpuKernels");
+  auto cust_aicpu_func_handle2 =
+      KernelHandleUtils::GetCustAicpuFuncHandle(cust_aicpu_bin_handle2, "Relu", "RunCpuKernels");
   EXPECT_NE(cust_aicpu_func_handle2, nullptr);
   auto cust_aicpu_bin_handle3 = cust_aicpu_kernel_handle->GetOrRegisterKernel(cust_cpu_register_info3, cust_aicpu_key3);
   EXPECT_NE(cust_aicpu_bin_handle3, nullptr);
-  auto cust_aicpu_func_handle3 = KernelHandleUtils::GetCustAicpuFuncHandle(cust_aicpu_bin_handle3,
-      "Add", "RunCpuKernels");
+  auto cust_aicpu_func_handle3 =
+      KernelHandleUtils::GetCustAicpuFuncHandle(cust_aicpu_bin_handle3, "Add", "RunCpuKernels");
   EXPECT_NE(cust_aicpu_func_handle3, nullptr);
   EXPECT_EQ(kernel_manager.ClearAllHandle(), SUCCESS);
   EXPECT_EQ(KernelHandlesManager::global_bin_store_.size(), 0);
@@ -258,7 +258,7 @@ TEST_F(KernelManagerUtest, test_launch_kernel) {
   LaunchKernelParam launch_param;
   LaunchKernelConfig launch_config;
   launch_config.local_memory_size = 10;
-  launch_config.block_dim_offset  = 20;
+  launch_config.block_dim_offset = 20;
   launch_param.launch_config = launch_config;
   launch_param.block_dim = 32;
   launch_param.stream = (void *)0x1200;
@@ -269,4 +269,4 @@ TEST_F(KernelManagerUtest, test_launch_kernel) {
   launch_param.is_host_args = true;
   EXPECT_EQ(KernelHandleUtils::LaunchKernel(func_handle, launch_param), SUCCESS);
 }
-}
+}  // namespace ge

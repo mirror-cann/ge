@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -46,17 +46,14 @@ ge::graphStatus CannMemoryProfiler::DoProf(const Node *node, const int32_t subgr
     memory_info_data->addr = record_memory_info.addr;
     memory_info_data->totalAllocateMemory = record_memory_info.total_allocate_memory;
     memory_info_data->totalReserveMemory = record_memory_info.total_reserve_memory;
-    GELOGI("[CannMemoryProfiler][DoProf] Report memory info: node_id: %llu, "
+    GELOGI(
+        "[CannMemoryProfiler][DoProf] Report memory info: node_id: %llu, "
         "addr: %llu, size: %lld, total allocate size: %llu, "
         "total reserve size: %lld, time stamp: %llu",
-        memory_info_data->nodeId, memory_info_data->addr,
-        memory_info_data->size,
-        memory_info_data->totalAllocateMemory,
-        memory_info_data->totalReserveMemory,
-        task_memory_info_.timeStamp);
+        memory_info_data->nodeId, memory_info_data->addr, memory_info_data->size, memory_info_data->totalAllocateMemory,
+        memory_info_data->totalReserveMemory, task_memory_info_.timeStamp);
     GE_ASSERT_MSPROF_OK(
-        MsprofReportAdditionalInfo(true, &task_memory_info_,
-                                   static_cast<uint32_t>(sizeof(MsprofAdditionalInfo))));
+        MsprofReportAdditionalInfo(true, &task_memory_info_, static_cast<uint32_t>(sizeof(MsprofAdditionalInfo))));
   }
   return ge::SUCCESS;
 }
@@ -65,11 +62,9 @@ void CannMemoryProfiler::Init() {
   if (is_device_prof_inited_) {
     return;
   }
-  for (int32_t i = static_cast<int32_t>(kInitExeGraph);
-      i < static_cast<int32_t>(kSubExeGraphTypeEnd); i++) {
+  for (int32_t i = static_cast<int32_t>(kInitExeGraph); i < static_cast<int32_t>(kSubExeGraphTypeEnd); i++) {
     const auto execution_data = static_cast<const ExecutionData *>(
-        extend_info_->executor->GetExeGraphExecutor(
-            static_cast<SubExeGraphType>(i))->GetExecutionData());
+        extend_info_->executor->GetExeGraphExecutor(static_cast<SubExeGraphType>(i))->GetExecutionData());
     if (execution_data == nullptr) {
       GELOGW("[Cann Profiling] Execution data is empty, do not init profiler.");
       return;
@@ -93,10 +88,8 @@ void CannMemoryProfiler::Init() {
   is_device_prof_inited_ = true;
 }
 
-void CannMemoryProfiler::OnExecuteEvent(int32_t sub_exe_graph_type,
-                                        CannMemoryProfiler *profiler,
-                                        ExecutorEvent event, const void *node,
-                                        KernelStatus result) {
+void CannMemoryProfiler::OnExecuteEvent(int32_t sub_exe_graph_type, CannMemoryProfiler *profiler, ExecutorEvent event,
+                                        const void *node, KernelStatus result) {
   (void)result;
   if (profiler == nullptr) {
     return;
@@ -112,4 +105,4 @@ void CannMemoryProfiler::OnExecuteEvent(int32_t sub_exe_graph_type,
     return;
   }
 }
-}
+}  // namespace gert

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,7 +22,7 @@ int Py_IsInitialized();
 
 bool PyRun_SimpleString(const std::string &s);
 
-PyObject *PyImport_ImportModule(const char* s);
+PyObject *PyImport_ImportModule(const char *s);
 
 PyObject *Py_BuildValue(...);
 
@@ -38,19 +38,19 @@ PyObject *PyFloat_FromDouble(double v);
 
 PyObject *PyLong_FromLong(int64_t);
 
-int PyTuple_SetItem(PyObject*, int, PyObject*);
+int PyTuple_SetItem(PyObject *, int, PyObject *);
 
 PyObject *PyTuple_New(int);
 
 PyObject *PyList_New(int);
 
-int PyList_SetItem(PyObject*, int, PyObject*);
+int PyList_SetItem(PyObject *, int, PyObject *);
 
 PyObject *PyDict_New();
 
-int PyDict_SetItemString(PyObject*, const char*, PyObject*);
+int PyDict_SetItemString(PyObject *, const char *, PyObject *);
 
-int PyDict_SetItem(PyObject* PyTotal, PyObject* key, PyObject* val);
+int PyDict_SetItem(PyObject *PyTotal, PyObject *key, PyObject *val);
 
 PyObject *PyObject_GetAttrString(PyObject *pModule, const char *s);
 
@@ -69,13 +69,13 @@ int PyArg_Parse(PyObject *args, const char *format, int *res);
 int PyArg_Parse(PyObject *args, const char *format, void *res);
 int PyArg_Parse(PyObject *args, const char *format, PyObject **res);
 
-PyObject* PyObject_Repr(PyObject *o);
+PyObject *PyObject_Repr(PyObject *o);
 
 Py_ssize_t PyList_Size(PyObject *list);
 
 Py_ssize_t PyTuple_Size(PyObject *list);
 
-PyObject* PyList_GetItem(PyObject *list, Py_ssize_t index);
+PyObject *PyList_GetItem(PyObject *list, Py_ssize_t index);
 
 int PyArg_ParseTuple(PyObject *args, const char *format, ...);
 
@@ -87,23 +87,23 @@ void PyErr_Clear();
 
 int PyObject_HasAttrString(PyObject *o, const char *attr_name);
 
-PyObject* PyObject_CallFunction(PyObject *callable, const char *format, ...);
+PyObject *PyObject_CallFunction(PyObject *callable, const char *format, ...);
 
-PyObject* PyObject_CallMethod(PyObject *obj, const char *name, const char *format, ...);
+PyObject *PyObject_CallMethod(PyObject *obj, const char *name, const char *format, ...);
 
-PyObject* PyTuple_GetItem(PyObject *p, Py_ssize_t pos);
+PyObject *PyTuple_GetItem(PyObject *p, Py_ssize_t pos);
 
 int PyEval_ThreadsInitialized();
 
 void PyEval_InitThreads();
 
-PyThreadState* PyEval_SaveThread();
+PyThreadState *PyEval_SaveThread();
 
 void PyEval_RestoreThread(PyThreadState *tstate);
 
 void PyErr_Fetch(PyObject **ptype, PyObject **pvalue, PyObject **ptraceback);
 
-void PyErr_NormalizeException(PyObject**exc, PyObject**val, PyObject**tb);
+void PyErr_NormalizeException(PyObject **exc, PyObject **val, PyObject **tb);
 
 void PyErr_Restore(PyObject *type, PyObject *value, PyObject *traceback);
 
@@ -119,21 +119,21 @@ int PyTuple_Check(PyObject *p);
 
 int PyUnicode_Check(PyObject *p);
 
-PyObject* PyDict_GetItemString(PyObject *p, const char *key);
+PyObject *PyDict_GetItemString(PyObject *p, const char *key);
 
-PyObject* PyDict_GetItem(PyObject *p, PyObject *key);
+PyObject *PyDict_GetItem(PyObject *p, PyObject *key);
 
-PyObject* PyDict_Keys(PyObject *p);
+PyObject *PyDict_Keys(PyObject *p);
 
-PyObject* PyObject_Call(PyObject *pyFunc, PyObject *tmpArgs, PyObject *kwargs);
+PyObject *PyObject_Call(PyObject *pyFunc, PyObject *tmpArgs, PyObject *kwargs);
 
-const char* PyUnicode_AsUTF8(PyObject *p);
+const char *PyUnicode_AsUTF8(PyObject *p);
 
-int TE_PyTuple_SetItem(PyObject* PyTotal, long int idx, PyObject* PySub);
+int TE_PyTuple_SetItem(PyObject *PyTotal, long int idx, PyObject *PySub);
 
 PyObject *TE_PyTuple_New(long int idx);
 
-PyObject* TE_PyRun_SimpleString(const char* s);
+PyObject *TE_PyRun_SimpleString(const char *s);
 
 extern PyObject *Py_None;
 

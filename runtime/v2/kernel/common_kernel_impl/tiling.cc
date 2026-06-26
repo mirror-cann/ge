@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -257,8 +257,7 @@ using BuildTilingCacheKey = ge::graphStatus (*)(const KernelContext *, HashBuffe
 
 const static std::unordered_map<std::string, BuildTilingCacheKey> kBuildTilingCacheKyeFuncs = {
     {"BuildGeneralTilingCacheKey", BuildGeneralTilingCacheKey},
-    {"BuildSymbolTilingCacheKey", BuildSymbolTilingCacheKey}
-} ;
+    {"BuildSymbolTilingCacheKey", BuildSymbolTilingCacheKey}};
 
 BuildTilingCacheKey FindBuildSymbolTilingCacheKeyFunc(const std::string &func_name) {
   const auto iter = kBuildTilingCacheKyeFuncs.find(func_name);
@@ -402,8 +401,8 @@ ge::graphStatus AlignWorkspaceSizes(KernelContext *context) {
     for (size_t i = 0U; i < workspace->GetSize(); ++i) {
       GE_ASSERT_TRUE(
           !ge::RoundUpOverflow(workspace->MutableData()[i], kAiCoreWorkspaceAlignment, workspace->MutableData()[i]),
-          "size[%zu] of workspace[%zu] exceeds max size with %zu alignment",
-          workspace->MutableData()[i], i, kAiCoreWorkspaceAlignment);
+          "size[%zu] of workspace[%zu] exceeds max size with %zu alignment", workspace->MutableData()[i], i,
+          kAiCoreWorkspaceAlignment);
     }
   }
   return ge::GRAPH_SUCCESS;
@@ -840,8 +839,8 @@ ge::graphStatus PrepareCacheableTilingFwkData(KernelContext *context) {
   const auto data_dependency =
       context->GetInputValue<size_t>(static_cast<size_t>(CacheableTilingFwkDataInput::kDataDependency));
   tiling_fwk_data->data_dependency = data_dependency;
-  const auto build_tiling_cache_key_func_name = context->GetInputValue<char *>(
-      static_cast<size_t>(CacheableTilingFwkDataInput::kBuildTilingCacheKeyFuncName));
+  const auto build_tiling_cache_key_func_name =
+      context->GetInputValue<char *>(static_cast<size_t>(CacheableTilingFwkDataInput::kBuildTilingCacheKeyFuncName));
   tiling_fwk_data->build_tiling_cache_key_func_name = build_tiling_cache_key_func_name;
   return ge::GRAPH_SUCCESS;
 }
@@ -853,11 +852,8 @@ ge::graphStatus BuildCacheableTilingFwkDataOutput(const ge::FastNode *node, Kern
   std::unique_ptr<TilingCacheStrategy> tiling_cache_strategy(
       new (std::nothrow) TilingCacheLruStrategy(kTilingCacheSizePerOp, kTilingCacheEvictNum));
   GE_ASSERT_NOTNULL(tiling_cache_strategy);
-  auto fwk_data_ptr = new (std::nothrow)CacheableTilingFwkData{
-      {nullptr, nullptr},
-      TilingCacheManager(std::move(tiling_cache_strategy)),
-      0UL,
-      nullptr};
+  auto fwk_data_ptr = new (std::nothrow)
+      CacheableTilingFwkData{{nullptr, nullptr}, TilingCacheManager(std::move(tiling_cache_strategy)), 0UL, nullptr};
   GE_ASSERT_NOTNULL(fwk_data_ptr);
   fwk_data_av->SetWithDefaultDeleter(fwk_data_ptr);
   return ge::GRAPH_SUCCESS;

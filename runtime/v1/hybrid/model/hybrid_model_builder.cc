@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -60,10 +60,10 @@ const std::string kHybridEngineNameRts = "DNN_VM_RTS_OP_STORE";
 const std::string kHybridForceInfershape = "_force_infershape_when_running";
 const std::string kHybridDataModeDynamic = "dynamic_aipp";
 
-const std::set<std::string> kHybridExecutionDependentTypes{ IF, STATELESSIF, CASE, STREAMSWITCH, STACK };
-const std::set<std::string> kHybridMergeInputSkipTypes{ STREAMACTIVE, STREAMSWITCH, CONSTANT, CONSTANTOP };
-const std::set<std::string> kHybridStreamActiveTypes{ ENTER, REFENTER, NEXTITERATION, REFNEXTITERATION };
-const std::set<std::string> kFftsValidInferDepTypes {CONSTANT, CONSTANTOP, DATA};
+const std::set<std::string> kHybridExecutionDependentTypes{IF, STATELESSIF, CASE, STREAMSWITCH, STACK};
+const std::set<std::string> kHybridMergeInputSkipTypes{STREAMACTIVE, STREAMSWITCH, CONSTANT, CONSTANTOP};
+const std::set<std::string> kHybridStreamActiveTypes{ENTER, REFENTER, NEXTITERATION, REFNEXTITERATION};
+const std::set<std::string> kFftsValidInferDepTypes{CONSTANT, CONSTANTOP, DATA};
 
 Status SetOutputNameAttr(ComputeGraph &graph) {
   std::vector<std::string> output_names;
@@ -91,11 +91,11 @@ Status SetOutputNameAttr(ComputeGraph &graph) {
     }
   }
   GE_CHK_BOOL_EXEC(AttrUtils::SetListStr(&graph, ATTR_MODEL_OUT_NODES_NAME, output_names),
-      GELOGE(FAILED, "[Invoke][SetListStr] failed, graph:%s name:%s.", graph.GetName().c_str(),
-             ATTR_MODEL_OUT_NODES_NAME.c_str());
-      REPORT_INNER_ERR_MSG("E19999", "SetListStr failed, graph:%s name:%s.",  graph.GetName().c_str(),
-                        ATTR_MODEL_OUT_NODES_NAME.c_str());
-      return FAILED);
+                   GELOGE(FAILED, "[Invoke][SetListStr] failed, graph:%s name:%s.", graph.GetName().c_str(),
+                          ATTR_MODEL_OUT_NODES_NAME.c_str());
+                   REPORT_INNER_ERR_MSG("E19999", "SetListStr failed, graph:%s name:%s.", graph.GetName().c_str(),
+                                        ATTR_MODEL_OUT_NODES_NAME.c_str());
+                   return FAILED);
   return SUCCESS;
 }
 
@@ -128,7 +128,7 @@ Status CollectDependenciesForFusedGraph(const NodeItem &node_item,
     GE_CHECK_NOTNULL(op_desc);
     gert::DataDependentInterpreter ddi(op_desc, space_registry_array);
 
-    for (const auto in_anchor: node->GetAllInDataAnchorsPtr()) {
+    for (const auto in_anchor : node->GetAllInDataAnchorsPtr()) {
       GE_ASSERT_NOTNULL(in_anchor);
       bool is_data_dependent = false;
       GE_ASSERT_GRAPH_SUCCESS(ddi.IsDataDependent(in_anchor->GetIdx(), is_data_dependent));
@@ -140,21 +140,21 @@ Status CollectDependenciesForFusedGraph(const NodeItem &node_item,
       const auto &src_op_desc = src_node->GetOpDesc();
       GE_CHECK_NOTNULL(src_op_desc);
       if (src_node->GetType() != DATA_TYPE) {
-        GELOGE(UNSUPPORTED, "[Check][NodeType][%s(%s)::%s(%s)] Node in fused subgraph can only depend on Data nodes,"
-               "but depend on %s actually", node_item.NodeName().c_str(), node_item.NodeType().c_str(),
-               node->GetName().c_str(), node->GetType().c_str(),
-               src_node->GetType().c_str());
-        REPORT_INNER_ERR_MSG("E19999", "[%s(%s)::%s(%s)] Node in fused subgraph can only depend on Data nodes,"
-                           "but depend on %s actually.", node_item.NodeName().c_str(), node_item.NodeType().c_str(),
-                           node->GetName().c_str(), node->GetType().c_str(),
-                           src_node->GetType().c_str());
+        GELOGE(UNSUPPORTED,
+               "[Check][NodeType][%s(%s)::%s(%s)] Node in fused subgraph can only depend on Data nodes,"
+               "but depend on %s actually",
+               node_item.NodeName().c_str(), node_item.NodeType().c_str(), node->GetName().c_str(),
+               node->GetType().c_str(), src_node->GetType().c_str());
+        REPORT_INNER_ERR_MSG("E19999",
+                             "[%s(%s)::%s(%s)] Node in fused subgraph can only depend on Data nodes,"
+                             "but depend on %s actually.",
+                             node_item.NodeName().c_str(), node_item.NodeType().c_str(), node->GetName().c_str(),
+                             node->GetType().c_str(), src_node->GetType().c_str());
         return UNSUPPORTED;
       }
 
       data_deps.emplace_back(src_op_desc.get(), std::make_pair(op_desc.get(), in_anchor->GetIdx()));
-      GELOGD("[%s] Dependent added from input of [%s:%d]",
-             src_op_desc->GetNamePtr(),
-             op_desc->GetNamePtr(),
+      GELOGD("[%s] Dependent added from input of [%s:%d]", src_op_desc->GetNamePtr(), op_desc->GetNamePtr(),
              in_anchor->GetIdx());
     }
   }
@@ -217,14 +217,14 @@ Status HybridModelBuilder::Build() {
   GE_CHK_STATUS_RET(InitOverflowAddr(), "[Init]][OverflowAddr] failed, model_name[%s]", ModelName().c_str());
   GE_CHK_STATUS_RET(CopyGraph(), "[Invoke][CopyGraph] failed, model_name[%s]", ModelName().c_str());
   GE_CHK_STATUS_RET(InitRuntimeParams(), "[Invoke][InitRuntimeParams] failed, model_name[%s]", ModelName().c_str());
-  GE_CHK_STATUS_RET(RecoverGraphUnknownFlag(),
-                    "[Invoke][RecoverGraphUnknownFlag] failed, model_name[%s]", ModelName().c_str());
+  GE_CHK_STATUS_RET(RecoverGraphUnknownFlag(), "[Invoke][RecoverGraphUnknownFlag] failed, model_name[%s]",
+                    ModelName().c_str());
   GE_CHK_STATUS_RET(IndexSpecialNodes(), "[Invoke][IndexSpecialNodes] failed, model_name[%s]", ModelName().c_str());
   GE_CHK_STATUS_RET(IndexTaskDefs(), "[Invoke][IndexTaskDefs] failed, model_name[%s]", ModelName().c_str());
   GE_CHK_STATUS_RET(InitWeights(), "[Invoke][InitWeights] failed, model_name[%s]", ModelName().c_str());
   GE_CHK_STATUS_RET(LoadGraph(), "[Invoke][LoadGraph] failed, model_name[%s]", ModelName().c_str());
-  GE_CHK_STATUS_RET(AssignUninitializedConstantOps(),
-                    "[Invoke][AssignUninitializedConstantOps] failed, model_name[%s]", ModelName().c_str());
+  GE_CHK_STATUS_RET(AssignUninitializedConstantOps(), "[Invoke][AssignUninitializedConstantOps] failed, model_name[%s]",
+                    ModelName().c_str());
   GE_CHK_STATUS_RET(TransAllVarData(), "[Invoke][TransAllVarData] failed, model_name[%s]", ModelName().c_str());
   GE_CHK_STATUS_RET(CopyVarData(), "[Invoke][CopyVarData] failed, model_name[%s]", ModelName().c_str());
   GE_CHK_STATUS_RET(InitModelMem(), "[Invoke][InitModelMem] failed, model_name[%s]", ModelName().c_str());
@@ -252,8 +252,8 @@ Status HybridModelBuilder::BuildForSingleOp() {
   }
 
   GE_CHK_STATUS_RET(InitNodeBinMode(), "[Init]][InitNodeBinMode] failed, model_name[%s]", ModelName().c_str());
-  GE_CHK_STATUS_RET(RecoverGraphUnknownFlag(),
-                    "[Invoke][RecoverGraphUnknownFlag] failed, model_name[%s]", ModelName().c_str());
+  GE_CHK_STATUS_RET(RecoverGraphUnknownFlag(), "[Invoke][RecoverGraphUnknownFlag] failed, model_name[%s]",
+                    ModelName().c_str());
   GE_CHK_STATUS_RET(IndexTaskDefs(), "[Invoke][IndexTaskDefs] failed, model_name[%s]", ModelName().c_str());
   GE_CHK_STATUS_RET(LoadGraph(), "[Invoke][LoadGraph] failed, model_name[%s]", ModelName().c_str());
   GE_CHK_STATUS_RET(InitWeights(), "[Invoke][InitWeights] failed, model_name[%s]", ModelName().c_str());
@@ -295,8 +295,8 @@ Status HybridModelBuilder::ValidateFftsPlusSubNodeItem(const NodeItem &node_item
   }
 
   if (node_item.shape_inference_type >= DEPEND_SHAPE_RANGE) {
-    GELOGE(FAILED, "[%s] shape inference type [%u] is unsupported in fftsplus graph.",
-           node_item.node_type.c_str(), static_cast<uint32_t>(node_item.shape_inference_type));
+    GELOGE(FAILED, "[%s] shape inference type [%u] is unsupported in fftsplus graph.", node_item.node_type.c_str(),
+           static_cast<uint32_t>(node_item.shape_inference_type));
     return FAILED;
   }
   for (const auto &dep_node : node_item.dependents_for_shape_inference) {
@@ -310,10 +310,9 @@ Status HybridModelBuilder::ValidateFftsPlusSubNodeItem(const NodeItem &node_item
 }
 Status HybridModelBuilder::BuildNodeItem(const NodePtr &node, NodeItem &node_item) {
   GE_CHK_STATUS_RET(ParseForceInfershapeNodes(node, node_item),
-                    "[Invoke][ParseForceInfershapeNodes]failed, node:[%s(%s)].",
-                    node_item.NodeName().c_str(), node_item.NodeType().c_str());
-  GE_CHK_STATUS_RET(ParseDependentInputNodes(node_item),
-                    "[Invoke][ParseDependentInputNodes]failed, node:[%s(%s)].",
+                    "[Invoke][ParseForceInfershapeNodes]failed, node:[%s(%s)].", node_item.NodeName().c_str(),
+                    node_item.NodeType().c_str());
+  GE_CHK_STATUS_RET(ParseDependentInputNodes(node_item), "[Invoke][ParseDependentInputNodes]failed, node:[%s(%s)].",
                     node_item.NodeName().c_str(), node_item.NodeType().c_str());
   GE_CHK_STATUS_RET(ValidateFftsPlusSubNodeItem(node_item));
 
@@ -322,26 +321,26 @@ Status HybridModelBuilder::BuildNodeItem(const NodePtr &node, NodeItem &node_ite
   for (int32_t i = 0; i < num_outputs; ++i) {
     const auto &out_data_anchor = node->GetOutDataAnchor(i);
     if (out_data_anchor == nullptr) {
-      GELOGE(INTERNAL_ERROR, "[Get][OutDataAnchor]out anchor[%d] of node %s(%s) is nullptr",
-             i, node->GetName().c_str(), node->GetType().c_str());
-      REPORT_INNER_ERR_MSG("E19999", "out anchor[%d] of node %s(%s) is nullptr.",
-                        i, node->GetName().c_str(), node->GetType().c_str());
+      GELOGE(INTERNAL_ERROR, "[Get][OutDataAnchor]out anchor[%d] of node %s(%s) is nullptr", i, node->GetName().c_str(),
+             node->GetType().c_str());
+      REPORT_INNER_ERR_MSG("E19999", "out anchor[%d] of node %s(%s) is nullptr.", i, node->GetName().c_str(),
+                           node->GetType().c_str());
       return INTERNAL_ERROR;
     }
-    for (const auto &dst_in_anchor: out_data_anchor->GetPeerInDataAnchors()) {
+    for (const auto &dst_in_anchor : out_data_anchor->GetPeerInDataAnchors()) {
       const auto &dst_node = dst_in_anchor->GetOwnerNode();
       if (dst_node == nullptr) {
         GELOGW("dst node is nullptr. out anchor = %d", out_data_anchor->GetIdx());
       } else {
         NodeItem *dst_node_item = nullptr;
         GE_CHK_STATUS_RET(GetOrCreateNodeItem(dst_node, dst_node_item),
-                          "[GetOrCreate][NodeItem] failed, dst_node:[%s(%s)].",
-                          dst_node->GetName().c_str(), dst_node->GetType().c_str());
+                          "[GetOrCreate][NodeItem] failed, dst_node:[%s(%s)].", dst_node->GetName().c_str(),
+                          dst_node->GetType().c_str());
         int32_t canonical_index;
         const uint32_t in_anchor_index = static_cast<uint32_t>(dst_in_anchor->GetIdx());
         GE_CHK_STATUS_RET(dst_node_item->GetCanonicalInputIndex(in_anchor_index, canonical_index),
-                          "[Invoke][GetCanonicalInputIndex] failed, dst_node:[%s(%s)].",
-                          dst_node->GetName().c_str(), dst_node->GetType().c_str());
+                          "[Invoke][GetCanonicalInputIndex] failed, dst_node:[%s(%s)].", dst_node->GetName().c_str(),
+                          dst_node->GetType().c_str());
 
         node_item.outputs[static_cast<size_t>(i)].emplace_back(canonical_index, dst_node_item);
         node_item.SetDataSend(dst_node_item, dst_in_anchor->GetIdx());
@@ -421,14 +420,12 @@ Status HybridModelBuilder::ParseForceInfershapeNodes(const NodePtr &node, NodeIt
   GE_CHECK_NOTNULL(op_desc);
   // not care result, if no this attr, stand for the op does not need force infershape
   (void)AttrUtils::GetBool(op_desc, kHybridForceInfershape, node_item.is_need_force_infershape);
-  GELOGD("Node [%s] need to do infershape, flag is %d",
-         op_desc->GetName().c_str(),
+  GELOGD("Node [%s] need to do infershape, flag is %d", op_desc->GetName().c_str(),
          static_cast<int32_t>(node_item.is_need_force_infershape));
   return SUCCESS;
 }
 
-Status HybridModelBuilder::ParseDependencies(NodeItem &node_item,
-                                             std::set<NodePtr> &dependent_for_shape_inference) {
+Status HybridModelBuilder::ParseDependencies(NodeItem &node_item, std::set<NodePtr> &dependent_for_shape_inference) {
   if (node_item.fused_subgraph != nullptr) {
     return SUCCESS;
   }
@@ -439,7 +436,7 @@ Status HybridModelBuilder::ParseDependencies(NodeItem &node_item,
       gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
   gert::DataDependentInterpreter ddi(node_item.op_desc->shared_from_this(), space_registry_array);
 
-  for (const auto in_anchor: node_item.node->GetAllInDataAnchorsPtr()) {
+  for (const auto in_anchor : node_item.node->GetAllInDataAnchorsPtr()) {
     GE_ASSERT_NOTNULL(in_anchor);
     bool is_data_dependent = false;
     GE_ASSERT_GRAPH_SUCCESS(ddi.IsDataDependent(in_anchor->GetIdx(), is_data_dependent));
@@ -460,19 +457,16 @@ Status HybridModelBuilder::ParseDependencies(NodeItem &node_item,
       int64_t input_type = 0;
       if (AttrUtils::GetInt(input_tensor, ATTR_NAME_PLACEMENT, input_type) &&
           ((input_type == kHybridPlacementHost) || (input_type == kHybridPlacementHostCompileIndependent))) {
-        GELOGD("Skip d2h memcpy, get hostmem from node %s, input_type = %ld.",
-               src_node_item->NodeName().c_str(), input_type);
+        GELOGD("Skip d2h memcpy, get hostmem from node %s, input_type = %ld.", src_node_item->NodeName().c_str(),
+               input_type);
         continue;
       }
     }
-    (void) src_node_item->to_const_output_id_list.emplace(peer_out_anchor->GetIdx());
-    (void) dependent_for_shape_inference.emplace(src_node);
+    (void)src_node_item->to_const_output_id_list.emplace(peer_out_anchor->GetIdx());
+    (void)dependent_for_shape_inference.emplace(src_node);
     host_input_value_dependencies_[&node_item].emplace_back(peer_out_anchor->GetIdx(), src_node_item);
-    GELOGD("[%s][%s] infer shape dependent value of output of [%s:%d]",
-           node_item.NodeName().c_str(),
-           node_item.node_type.c_str(),
-           src_node_item->NodeName().c_str(),
-           peer_out_anchor->GetIdx());
+    GELOGD("[%s][%s] infer shape dependent value of output of [%s:%d]", node_item.NodeName().c_str(),
+           node_item.node_type.c_str(), src_node_item->NodeName().c_str(), peer_out_anchor->GetIdx());
   }
   return SUCCESS;
 }
@@ -486,9 +480,8 @@ Status HybridModelBuilder::ParseDependentInputNodes(NodeItem &node_item) {
     for (const auto &src_node : ge_node->GetInControlNodes()) {
       auto *const src_node_item = MutableNodeItem(src_node);
       if ((src_node_item != nullptr) && src_node_item->IsHcclOp()) {
-        GELOGD("[%s](%s) Add input control dependent node [%s](%s)",
-               ge_node->GetName().c_str(), ge_node->GetType().c_str(),
-               src_node->GetName().c_str(), src_node->GetType().c_str());
+        GELOGD("[%s](%s) Add input control dependent node [%s](%s)", ge_node->GetName().c_str(),
+               ge_node->GetType().c_str(), src_node->GetName().c_str(), src_node->GetType().c_str());
         (void)dependent_for_execution.emplace(src_node);
       }
     }
@@ -497,7 +490,7 @@ Status HybridModelBuilder::ParseDependentInputNodes(NodeItem &node_item) {
   // cond or branch need to be prepared before the execution of IF or CASE
   // data flow source also need input to be prepared
   if (kHybridExecutionDependentTypes.count(node_item.node_type) > 0U) {
-    const auto &src_node = NodeUtils::GetInDataNodeByIndex(*ge_node, 0); // cond input
+    const auto &src_node = NodeUtils::GetInDataNodeByIndex(*ge_node, 0);  // cond input
     GE_CHECK_NOTNULL(src_node);
     auto *const src_node_item = MutableNodeItem(src_node);
     GE_CHECK_NOTNULL(src_node_item);
@@ -541,8 +534,7 @@ Status HybridModelBuilder::ParseDependentInData(const NodeItem &node_item,
     auto src_node = peer_anchor->GetOwnerNode();
     GE_CHECK_NOTNULL(src_node);
     NodeItem *src_node_item = nullptr;
-    GE_CHK_STATUS_RET(GetOrCreateNodeItem(src_node, src_node_item),
-                      "[GetOrCreate][NodeItem] failed for [%s(%s)]",
+    GE_CHK_STATUS_RET(GetOrCreateNodeItem(src_node, src_node_item), "[GetOrCreate][NodeItem] failed for [%s(%s)]",
                       src_node->GetName().c_str(), src_node->GetType().c_str());
 
     if ((src_node_item->shape_inference_type == DEPEND_COMPUTE) || IsFftsKernelNode(*node_item.GetOpDesc()) ||
@@ -579,9 +571,8 @@ Status HybridModelBuilder::ParseDependentForFusedSubgraph(const NodeItem &node_i
     if (!AttrUtils::GetInt(*data_op_desc, ATTR_NAME_PARENT_NODE_INDEX, parent_index)) {
       GELOGE(INTERNAL_ERROR, "[Get][Attr] failed, node:[%s(%s)] attr:[%s]", data_op_desc->GetName().c_str(),
              data_op_desc->GetType().c_str(), ATTR_NAME_PARENT_NODE_INDEX.c_str());
-      REPORT_INNER_ERR_MSG("E19999", "invoke GetInt failed, node:[%s(%s)] attr:[%s]",
-                        data_op_desc->GetName().c_str(), data_op_desc->GetType().c_str(),
-                        ATTR_NAME_PARENT_NODE_INDEX.c_str());
+      REPORT_INNER_ERR_MSG("E19999", "invoke GetInt failed, node:[%s(%s)] attr:[%s]", data_op_desc->GetName().c_str(),
+                           data_op_desc->GetType().c_str(), ATTR_NAME_PARENT_NODE_INDEX.c_str());
       return INTERNAL_ERROR;
     }
 
@@ -594,16 +585,11 @@ Status HybridModelBuilder::ParseDependentForFusedSubgraph(const NodeItem &node_i
     NodeItem *src_node_item = nullptr;
     GE_CHK_STATUS_RET_NOLOG(GetOrCreateNodeItem(src_node, src_node_item));
     GELOGD("[%s::%s] Find the external source nodes that the nodes in the fused subgraph depend on, src_node = %s",
-           node_item.NodeName().c_str(),
-           dep.second.first->GetName().c_str(),
-           src_node_item->NodeName().c_str());
+           node_item.NodeName().c_str(), dep.second.first->GetName().c_str(), src_node_item->NodeName().c_str());
     (void)src_node_item->to_const_output_id_list.emplace(peer_out_anchor->GetIdx());
     (void)dependencies.emplace(src_node);
-    GELOGD("[%s][%s] infer shape dependent value from output of [%s:%d]",
-           node_item.NodeName().c_str(),
-           node_item.NodeType().c_str(),
-           src_node_item->NodeName().c_str(),
-           peer_out_anchor->GetIdx());
+    GELOGD("[%s][%s] infer shape dependent value from output of [%s:%d]", node_item.NodeName().c_str(),
+           node_item.NodeType().c_str(), src_node_item->NodeName().c_str(), peer_out_anchor->GetIdx());
     subgraph_deps.emplace_back(std::make_pair(src_node_item->op_desc->GetId(), peer_out_anchor->GetIdx()), dep.second);
   }
 
@@ -612,10 +598,10 @@ Status HybridModelBuilder::ParseDependentForFusedSubgraph(const NodeItem &node_i
 
 Status HybridModelBuilder::UpdateAnchorStatus(const NodePtr &node) {
   if (NodeUtils::SetAllAnchorStatus(node) != GRAPH_SUCCESS) {
-    GELOGE(INTERNAL_ERROR, "[Invoke][SetAllAnchorStatus] failed for node:[%s(%s)].",
-           node->GetName().c_str(), node->GetType().c_str());
-    REPORT_INNER_ERR_MSG("E19999", "SetAllAnchorStatus failed for node:[%s(%s)].",
-                      node->GetName().c_str(), node->GetType().c_str());
+    GELOGE(INTERNAL_ERROR, "[Invoke][SetAllAnchorStatus] failed for node:[%s(%s)].", node->GetName().c_str(),
+           node->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "SetAllAnchorStatus failed for node:[%s(%s)].", node->GetName().c_str(),
+                         node->GetType().c_str());
     return INTERNAL_ERROR;
   }
   for (const auto &anchor : node->GetAllInDataAnchors()) {
@@ -625,23 +611,23 @@ Status HybridModelBuilder::UpdateAnchorStatus(const NodePtr &node) {
         GELOGE(INTERNAL_ERROR, "[Invoke][SetStatus] failed to set ANCHOR_SUSPEND, node:[%s(%s)].",
                node->GetName().c_str(), node->GetType().c_str());
         REPORT_INNER_ERR_MSG("E19999", "SetStatus failed to set ANCHOR_SUSPEND, node:[%s(%s)].",
-                          node->GetName().c_str(), node->GetType().c_str());
+                             node->GetName().c_str(), node->GetType().c_str());
         return INTERNAL_ERROR;
       }
     } else if (peer_anchor->GetOwnerNode()->GetType() == CONSTANT) {
       if (AnchorUtils::SetStatus(anchor, ANCHOR_CONST) != GRAPH_SUCCESS) {
         GELOGE(INTERNAL_ERROR, "[Invoke][SetStatus] failed to set ANCHOR_CONST, node:[%s(%s)].",
                node->GetName().c_str(), node->GetType().c_str());
-        REPORT_INNER_ERR_MSG("E19999", "SetStatus failed to set ANCHOR_CONST, node:[%s(%s)].",
-                          node->GetName().c_str(), node->GetType().c_str());
+        REPORT_INNER_ERR_MSG("E19999", "SetStatus failed to set ANCHOR_CONST, node:[%s(%s)].", node->GetName().c_str(),
+                             node->GetType().c_str());
         return INTERNAL_ERROR;
       }
     } else {
       if (AnchorUtils::SetStatus(anchor, ANCHOR_DATA) != GRAPH_SUCCESS) {
-        GELOGE(INTERNAL_ERROR, "[Invoke][SetStatus] failed to set ANCHOR_DATA, node:[%s(%s)].",
-               node->GetName().c_str(), node->GetType().c_str());
-        REPORT_INNER_ERR_MSG("E19999", "SetStatus failed to set ANCHOR_DATA, node:[%s(%s)].",
-                          node->GetName().c_str(), node->GetType().c_str());
+        GELOGE(INTERNAL_ERROR, "[Invoke][SetStatus] failed to set ANCHOR_DATA, node:[%s(%s)].", node->GetName().c_str(),
+               node->GetType().c_str());
+        REPORT_INNER_ERR_MSG("E19999", "SetStatus failed to set ANCHOR_DATA, node:[%s(%s)].", node->GetName().c_str(),
+                             node->GetType().c_str());
         return INTERNAL_ERROR;
       }
     }
@@ -652,35 +638,27 @@ Status HybridModelBuilder::UpdateAnchorStatus(const NodePtr &node) {
 
 Status HybridModelBuilder::DoUnlinkDataAnchors(const OutDataAnchorPtr &out_data_anchor,
                                                const InDataAnchorPtr &in_data_anchor) {
-  GE_CHK_GRAPH_STATUS_RET(out_data_anchor->Unlink(in_data_anchor),
-                          "[Invoke][Unlink] failed to unlink %s(%s):%d from %s(%s):%d",
-                          out_data_anchor->GetOwnerNode()->GetName().c_str(),
-                          out_data_anchor->GetOwnerNode()->GetType().c_str(), out_data_anchor->GetIdx(),
-                          in_data_anchor->GetOwnerNode()->GetName().c_str(),
-                          in_data_anchor->GetOwnerNode()->GetType().c_str(), in_data_anchor->GetIdx());
+  GE_CHK_GRAPH_STATUS_RET(
+      out_data_anchor->Unlink(in_data_anchor), "[Invoke][Unlink] failed to unlink %s(%s):%d from %s(%s):%d",
+      out_data_anchor->GetOwnerNode()->GetName().c_str(), out_data_anchor->GetOwnerNode()->GetType().c_str(),
+      out_data_anchor->GetIdx(), in_data_anchor->GetOwnerNode()->GetName().c_str(),
+      in_data_anchor->GetOwnerNode()->GetType().c_str(), in_data_anchor->GetIdx());
 
-  GELOGD("Succeeded in unlinking %s:%d from %s:%d",
-         out_data_anchor->GetOwnerNode()->GetName().c_str(),
-         out_data_anchor->GetIdx(),
-         in_data_anchor->GetOwnerNode()->GetName().c_str(),
-         in_data_anchor->GetIdx());
+  GELOGD("Succeeded in unlinking %s:%d from %s:%d", out_data_anchor->GetOwnerNode()->GetName().c_str(),
+         out_data_anchor->GetIdx(), in_data_anchor->GetOwnerNode()->GetName().c_str(), in_data_anchor->GetIdx());
   return SUCCESS;
 }
 
 Status HybridModelBuilder::DoLinkDataAnchors(const OutDataAnchorPtr &out_data_anchor,
                                              const InDataAnchorPtr &in_data_anchor) {
-  GE_CHK_GRAPH_STATUS_RET(out_data_anchor->LinkTo(in_data_anchor),
-                          "[Invoke][LinkTo]Failed to link %s(%s):%d to %s(%s):%d",
-                          out_data_anchor->GetOwnerNode()->GetName().c_str(),
-                          out_data_anchor->GetOwnerNode()->GetType().c_str(), out_data_anchor->GetIdx(),
-                          in_data_anchor->GetOwnerNode()->GetName().c_str(),
-                          in_data_anchor->GetOwnerNode()->GetType().c_str(), in_data_anchor->GetIdx());
+  GE_CHK_GRAPH_STATUS_RET(
+      out_data_anchor->LinkTo(in_data_anchor), "[Invoke][LinkTo]Failed to link %s(%s):%d to %s(%s):%d",
+      out_data_anchor->GetOwnerNode()->GetName().c_str(), out_data_anchor->GetOwnerNode()->GetType().c_str(),
+      out_data_anchor->GetIdx(), in_data_anchor->GetOwnerNode()->GetName().c_str(),
+      in_data_anchor->GetOwnerNode()->GetType().c_str(), in_data_anchor->GetIdx());
 
-  GELOGD("Succeeded in linking %s:%d to %s:%d",
-         out_data_anchor->GetOwnerNode()->GetName().c_str(),
-         out_data_anchor->GetIdx(),
-         in_data_anchor->GetOwnerNode()->GetName().c_str(),
-         in_data_anchor->GetIdx());
+  GELOGD("Succeeded in linking %s:%d to %s:%d", out_data_anchor->GetOwnerNode()->GetName().c_str(),
+         out_data_anchor->GetIdx(), in_data_anchor->GetOwnerNode()->GetName().c_str(), in_data_anchor->GetIdx());
   return SUCCESS;
 }
 
@@ -724,11 +702,10 @@ Status HybridModelBuilder::MergeInputInData(const NodePtr &node, const NodePtr &
 
   int32_t parent_index = 0;
   if (!AttrUtils::GetInt(data_op_desc, ATTR_NAME_PARENT_NODE_INDEX, parent_index)) {
-    GELOGE(FAILED, "[Invoke][GetInt] failed, node:[%s(%s)] attr:[%s]",
-           data_op_desc->GetName().c_str(), data_op_desc->GetType().c_str(), ATTR_NAME_PARENT_NODE_INDEX.c_str());
-        REPORT_INNER_ERR_MSG("E19999", "GetInt failed, node:[%s(%s)] attr:[%s]",
-                          data_op_desc->GetName().c_str(), data_op_desc->GetType().c_str(),
-                          ATTR_NAME_PARENT_NODE_INDEX.c_str());
+    GELOGE(FAILED, "[Invoke][GetInt] failed, node:[%s(%s)] attr:[%s]", data_op_desc->GetName().c_str(),
+           data_op_desc->GetType().c_str(), ATTR_NAME_PARENT_NODE_INDEX.c_str());
+    REPORT_INNER_ERR_MSG("E19999", "GetInt failed, node:[%s(%s)] attr:[%s]", data_op_desc->GetName().c_str(),
+                         data_op_desc->GetType().c_str(), ATTR_NAME_PARENT_NODE_INDEX.c_str());
     return FAILED;
   }
 
@@ -806,15 +783,15 @@ Status HybridModelBuilder::MergeNetOutputInData(const NodePtr &parent_node, cons
   if (input_desc == nullptr) {
     GELOGE(INTERNAL_ERROR, "[Invoke][MutableInputDesc][%s(%s)] Failed to get input desc[%d]",
            net_output_desc->GetName().c_str(), net_output_desc->GetType().c_str(), anchor_index);
-        REPORT_INNER_ERR_MSG("E19999", "[%s(%s)] Failed to get input desc[%d].",
-                          net_output_desc->GetName().c_str(), net_output_desc->GetType().c_str(), anchor_index);
+    REPORT_INNER_ERR_MSG("E19999", "[%s(%s)] Failed to get input desc[%d].", net_output_desc->GetName().c_str(),
+                         net_output_desc->GetType().c_str(), anchor_index);
     return INTERNAL_ERROR;
   }
 
   int32_t parent_index = 0;
   if (!AttrUtils::GetInt(input_desc, ATTR_NAME_PARENT_NODE_INDEX, parent_index)) {
-    GELOGW("SubGraph: %s NetOutput input tensor %d, attr %s not found.",
-           net_output_desc->GetName().c_str(), anchor_index, ATTR_NAME_PARENT_NODE_INDEX.c_str());
+    GELOGW("SubGraph: %s NetOutput input tensor %d, attr %s not found.", net_output_desc->GetName().c_str(),
+           anchor_index, ATTR_NAME_PARENT_NODE_INDEX.c_str());
     return SUCCESS;
   }
 
@@ -884,8 +861,7 @@ Status HybridModelBuilder::UnfoldSubgraphs(const ComputeGraphPtr &root_graph, Co
   for (auto &remained_subgraph : root_graph->GetAllSubgraphs()) {
     GELOGD("Adding subgraph [%s] to merged-graph.", remained_subgraph->GetName().c_str());
     GE_CHK_GRAPH_STATUS_RET(merged_graph->AddSubgraph(remained_subgraph),
-                            "[Invoke][AddSubgraph]Failed to add subgraph [%s]",
-                            remained_subgraph->GetName().c_str());
+                            "[Invoke][AddSubgraph]Failed to add subgraph [%s]", remained_subgraph->GetName().c_str());
     remained_subgraph->SetParentGraph(merged_graph);
   }
 
@@ -902,8 +878,7 @@ Status HybridModelBuilder::UnfoldSubgraph(const ComputeGraphPtr &root_graph, con
   const auto &parent_node = sub_graph.GetParentNodeBarePtr();
   GE_CHECK_NOTNULL(parent_node);
 
-  GE_CHK_STATUS_RET(MergeInputNodes(sub_graph),
-                    "[Invoke][MergeInputNodes][%s] Failed to merge data nodes for subgraph",
+  GE_CHK_STATUS_RET(MergeInputNodes(sub_graph), "[Invoke][MergeInputNodes][%s] Failed to merge data nodes for subgraph",
                     sub_graph.GetName().c_str());
   GE_CHK_STATUS_RET(MergeNetOutputNode(sub_graph),
                     "[Invoke][MergeNetOutputNode][%s] Failed to merge net output nodes for subgraph",
@@ -921,8 +896,7 @@ Status HybridModelBuilder::UnfoldSubgraph(const ComputeGraphPtr &root_graph, con
       GE_CHECK_NOTNULL(sub_sub_graph);
       if (sub_sub_graph->GetGraphUnknownFlag()) {
         GE_CHK_STATUS_RET(UnfoldSubgraph(root_graph, parent_graph, *sub_sub_graph, depth + 1U),
-                          "[Invoke][UnfoldSubgraph][%s] Failed to merge subgraph",
-                          sub_sub_graph->GetName().c_str());
+                          "[Invoke][UnfoldSubgraph][%s] Failed to merge subgraph", sub_sub_graph->GetName().c_str());
         continue;
       }
     }
@@ -935,22 +909,19 @@ Status HybridModelBuilder::UnfoldSubgraph(const ComputeGraphPtr &root_graph, con
       }
     }
     (void)parent_graph->AddNode(sub_node);
-    GELOGD("[%s:%s] added to parent graph: [%s].",
-           sub_graph.GetName().c_str(), sub_node->GetName().c_str(), parent_graph->GetName().c_str());
+    GELOGD("[%s:%s] added to parent graph: [%s].", sub_graph.GetName().c_str(), sub_node->GetName().c_str(),
+           parent_graph->GetName().c_str());
     (void)sub_node->SetOwnerComputeGraph(parent_graph);
   }
 
   GELOGD("[%s] Done merging subgraph. remove it from root graph", sub_graph.GetName().c_str());
   auto anchors = parent_node->GetAllInDataAnchorsPtr();
-  std::for_each(anchors.begin(), anchors.end(), [](InDataAnchor *anchor) {
-      anchor->UnlinkAll();
-  });
+  std::for_each(anchors.begin(), anchors.end(), [](InDataAnchor *anchor) { anchor->UnlinkAll(); });
   root_graph->RemoveSubgraph(sub_graph.GetName());
   return SUCCESS;
 }
 
-Status HybridModelBuilder::BuildOutputMapping(GraphItem &graph_item,
-                                              const NodeItem &node_item,
+Status HybridModelBuilder::BuildOutputMapping(GraphItem &graph_item, const NodeItem &node_item,
                                               const bool is_root_graph) const {
   const auto output_size = node_item.num_inputs;
   graph_item.output_edges_.resize(static_cast<size_t>(output_size));
@@ -964,9 +935,9 @@ Status HybridModelBuilder::BuildOutputMapping(GraphItem &graph_item,
     auto *const src_node_item = GetNodeItem(src_node);
     GE_CHECK_NOTNULL(src_node_item);
     const auto output_idx = in_data_anchor->GetIdx();
-    GELOGI("Output[%d], node = %s, output_index = %d, output_offset = %d",
-           output_idx, src_node_item->NodeName().c_str(),
-           peer_out_anchor->GetIdx(), src_node_item->output_start + peer_out_anchor->GetIdx());
+    GELOGI("Output[%d], node = %s, output_index = %d, output_offset = %d", output_idx,
+           src_node_item->NodeName().c_str(), peer_out_anchor->GetIdx(),
+           src_node_item->output_start + peer_out_anchor->GetIdx());
 
     GE_CHECK_LE(output_idx, (output_size - 1));
     graph_item.output_edges_[static_cast<size_t>(output_idx)] = {src_node_item, peer_out_anchor->GetIdx()};
@@ -1015,8 +986,8 @@ Status HybridModelBuilder::SetStageCache(const ComputeGraph &graph, const GraphI
       const auto &output_nodes = node_item->outputs[static_cast<size_t>(i)];
       for (const auto &output_node : output_nodes) {
         auto &dst_node_item = output_node.second;
-        GE_CHK_STATUS_RET_NOLOG(stage_graph.GetStageCache().CreatePropagator(*node_item, i, *dst_node_item,
-                                                                             output_node.first));
+        GE_CHK_STATUS_RET_NOLOG(
+            stage_graph.GetStageCache().CreatePropagator(*node_item, i, *dst_node_item, output_node.first));
       }
     }
   }
@@ -1029,13 +1000,13 @@ Status HybridModelBuilder::LoadGraph() {
     hybrid_model_.orig_root_graph_ = root_graph;
     if (gert::GraphUnfolder::IsGraphNeedUnfold(root_graph)) {
       std::shared_ptr<ComputeGraph> merged_graph;
-      GELOGI("Before merging subgraphs DirectNodesSize = %zu, GetAllNodesSize = %zu",
-             root_graph->GetDirectNodesSize(), root_graph->GetAllNodesSize());
+      GELOGI("Before merging subgraphs DirectNodesSize = %zu, GetAllNodesSize = %zu", root_graph->GetDirectNodesSize(),
+             root_graph->GetAllNodesSize());
       GE_CHK_GRAPH_STATUS_RET(UnfoldSubgraphs(root_graph, merged_graph),
                               "[Invoke][UnfoldSubgraphs]Fail to unfold subgraphs, model_name[%s]", ModelName().c_str());
       root_graph = std::move(merged_graph);
-      GELOGI("After merging subgraphs DirectNodesSize = %zu, GetAllNodesSize = %zu",
-             root_graph->GetDirectNodesSize(), root_graph->GetAllNodesSize());
+      GELOGI("After merging subgraphs DirectNodesSize = %zu, GetAllNodesSize = %zu", root_graph->GetDirectNodesSize(),
+             root_graph->GetAllNodesSize());
     }
   }
 
@@ -1088,8 +1059,7 @@ Status HybridModelBuilder::LoadGraph() {
 
     if (sub_graph->GetGraphUnknownFlag()) {
       GE_CHK_STATUS_RET(LoadDynamicSubgraph(sub_graph, false),
-                        "[Invoke][LoadDynamicSubgraph]Failed to load subgraph: [%s]",
-                        sub_graph->GetName().c_str());
+                        "[Invoke][LoadDynamicSubgraph]Failed to load subgraph: [%s]", sub_graph->GetName().c_str());
       GE_CHK_STATUS_RET(SetStageCache(*sub_graph, *hybrid_model_.subgraph_items_[sub_graph->GetName()]),
                         "[Set[StageCache]Failed to for sub graph, model_name_:%s.", sub_graph->GetName().c_str());
     } else {
@@ -1114,7 +1084,8 @@ Status HybridModelBuilder::LoadGraph() {
   }
   GE_CHK_STATUS_RET(ParseDependentByParallelGroup(),
                     "[Invoke][ParseDependentByParallelGroup]Failed to establish dependencies for hccl ops, "
-                    "model_name[%s]", ModelName().c_str());
+                    "model_name[%s]",
+                    ModelName().c_str());
   GELOGI("Done loading all subgraphs successfully.");
   return SUCCESS;
 }
@@ -1133,8 +1104,7 @@ Status HybridModelBuilder::VarNodeToTensor(const NodePtr &var_node, std::unique_
   GE_CHECK_NOTNULL(tensor_desc);
   uint8_t *var_logic = nullptr;
   GE_CHK_STATUS_RET(var_manager_->GetVarAddr(var_name, *tensor_desc, var_logic),
-                    "[Invoke][GetVarAddr]Failed to get var addr. var_name = %s, session_id = %ld",
-                    var_name.c_str(),
+                    "[Invoke][GetVarAddr]Failed to get var addr. var_name = %s, session_id = %ld", var_name.c_str(),
                     hybrid_model_.GetSessionId());
 
   rtMemType_t memory_type = RT_MEMORY_HBM;
@@ -1144,12 +1114,14 @@ Status HybridModelBuilder::VarNodeToTensor(const NodePtr &var_node, std::unique_
   }
   uint8_t *const dev_mem = var_manager_->GetVarMemoryAddr(var_logic, memory_type, hybrid_model_.device_id_);
   if (dev_mem == nullptr) {
-    GELOGE(INTERNAL_ERROR, "[Invoke][GetVarMemoryAddr]Failed to copy var %s(%s) from device,"
-           "cant not get var addr from logic addr %p",
+    GELOGE(INTERNAL_ERROR,
+           "[Invoke][GetVarMemoryAddr]Failed to copy var %s(%s) from device,"
+           "can't not get var addr from logic addr %p",
            var_node->GetName().c_str(), var_node->GetType().c_str(), var_logic);
-    REPORT_INNER_ERR_MSG("E19999", "GetVarMemoryAddr failed, Failed to copy var %s(%s) from device,"
-                      "cant not get var addr from logic addr %p",
-                      var_node->GetName().c_str(), var_node->GetType().c_str(), var_logic);
+    REPORT_INNER_ERR_MSG("E19999",
+                         "GetVarMemoryAddr failed, Failed to copy var %s(%s) from device,"
+                         "can't not get var addr from logic addr %p",
+                         var_node->GetName().c_str(), var_node->GetType().c_str(), var_logic);
     return INTERNAL_ERROR;
   }
 
@@ -1169,7 +1141,7 @@ Status HybridModelBuilder::CopyConstantData(const NodePtr &node, const GeTensor 
   GELOGI("[IMAS]InitConstant memcpy graph_%u type[V] name[%s] output[%d] memaddr[%p] mem_size[%zu] datasize[%zu]",
          runtime_param_.graph_id, node->GetName().c_str(), 0, output_addr, output_size, tensor.GetData().size());
   GE_CHK_ACL_RET(aclrtMemcpy(output_addr, output_size, tensor.GetData().data(), tensor.GetData().size(),
-      ACL_MEMCPY_HOST_TO_DEVICE));
+                             ACL_MEMCPY_HOST_TO_DEVICE));
 
   return SUCCESS;
 }
@@ -1224,8 +1196,8 @@ Status HybridModelBuilder::InitConstantOps() const {
     }
     const auto &v_weights = ModelUtils::GetWeights(op_desc);
     if (v_weights.empty()) {
-      GELOGE(INTERNAL_ERROR, "[Check][Size][%s(%s)] Constant op has no weight",
-             var_node->GetName().c_str(), var_node->GetType().c_str());
+      GELOGE(INTERNAL_ERROR, "[Check][Size][%s(%s)] Constant op has no weight", var_node->GetName().c_str(),
+             var_node->GetType().c_str());
       return INTERNAL_ERROR;
     }
     const auto &ge_tensor = v_weights[0U];
@@ -1345,8 +1317,7 @@ Status HybridModelBuilder::InitFileConstantOps() {
   return SUCCESS;
 }
 
-void *HybridModelBuilder::GetOrCreateVarMem(const std::string &var_name,
-                                            const OpDescPtr &var_desc,
+void *HybridModelBuilder::GetOrCreateVarMem(const std::string &var_name, const OpDescPtr &var_desc,
                                             const rtMemType_t memory_type) const {
   const GeTensorDesc &output_tensor = var_desc->GetOutputDesc(0U);
   if (var_manager_->IsVarExist(var_name, output_tensor)) {
@@ -1357,8 +1328,8 @@ void *HybridModelBuilder::GetOrCreateVarMem(const std::string &var_name,
                       "[Assign][VarMem] for %s failed.", var_name.c_str());
   }
   uint8_t *var_addr = nullptr;
-  GE_ASSERT_SUCCESS(var_manager_->GetVarAddr(var_name, output_tensor, var_addr),
-                    "[Get][VarAddr] failed, var name[%s]", var_name.c_str());
+  GE_ASSERT_SUCCESS(var_manager_->GetVarAddr(var_name, output_tensor, var_addr), "[Get][VarAddr] failed, var name[%s]",
+                    var_name.c_str());
   return static_cast<void *>(var_addr);
 }
 
@@ -1368,9 +1339,7 @@ Status HybridModelBuilder::InitVariableTensors() const {
     NodePtr &var_node = it.second;
     std::unique_ptr<TensorValue> tensor;
     GE_CHK_STATUS_RET_NOLOG(VarNodeToTensor(var_node, tensor));
-    GELOGD("Init variable tensor. name = %s, size = %ld, addr = %p",
-           var_name.c_str(),
-           tensor->GetSize(),
+    GELOGD("Init variable tensor. name = %s, size = %ld, addr = %p", var_name.c_str(), tensor->GetSize(),
            tensor->GetData());
     tensor->SetName("Var_" + var_name);
     (void)hybrid_model_.variable_tensors_.emplace(var_name, std::move(tensor));
@@ -1381,12 +1350,12 @@ Status HybridModelBuilder::InitVariableTensors() const {
     GE_CHECK_NOTNULL(op_desc);
     const GeTensorDesc &output_tensor = op_desc->GetOutputDesc(0U);
     int64_t tensor_size = 0;
-    if (TensorUtils::CalcTensorMemSize(output_tensor.GetShape(), output_tensor.GetFormat(),
-                                       output_tensor.GetDataType(), tensor_size) != SUCCESS) {
-      REPORT_INNER_ERR_MSG("E19999", "CalcTensorMemSize failed, node:%s(%s)",
-                        op_desc->GetName().c_str(), op_desc->GetType().c_str());
-      GELOGE(INTERNAL_ERROR, "[Calculate][TensorMemSize] failed, node:%s(%s)",
-             op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    if (TensorUtils::CalcTensorMemSize(output_tensor.GetShape(), output_tensor.GetFormat(), output_tensor.GetDataType(),
+                                       tensor_size) != SUCCESS) {
+      REPORT_INNER_ERR_MSG("E19999", "CalcTensorMemSize failed, node:%s(%s)", op_desc->GetName().c_str(),
+                           op_desc->GetType().c_str());
+      GELOGE(INTERNAL_ERROR, "[Calculate][TensorMemSize] failed, node:%s(%s)", op_desc->GetName().c_str(),
+             op_desc->GetType().c_str());
       return INTERNAL_ERROR;
     }
 
@@ -1402,10 +1371,10 @@ Status HybridModelBuilder::InitVariableTensors() const {
     }
 
     if (mem_addr == nullptr) {
-      REPORT_INNER_ERR_MSG("E19999", "[Malloc][HostMem] for variable [%s(%s)] failed.",
-                         op_desc->GetName().c_str(), op_desc->GetType().c_str());
-      GELOGE(MEMALLOC_FAILED, "[Malloc][HostMem] for variable [%s(%s)] failed.",
-             op_desc->GetName().c_str(), op_desc->GetType().c_str());
+      REPORT_INNER_ERR_MSG("E19999", "[Malloc][HostMem] for variable [%s(%s)] failed.", op_desc->GetName().c_str(),
+                           op_desc->GetType().c_str());
+      GELOGE(MEMALLOC_FAILED, "[Malloc][HostMem] for variable [%s(%s)] failed.", op_desc->GetName().c_str(),
+             op_desc->GetType().c_str());
       return MEMALLOC_FAILED;
     }
     GELOGD("Host variable [%s] malloc success, size=%ld, addr=%p.", it.first.c_str(), tensor_size, mem_addr);
@@ -1441,12 +1410,12 @@ Status HybridModelBuilder::InitWeights() const {
                                  weight_data, weight_size),
                         "Copy weight data failed.");
     } else {
-      GE_CHK_ACL_RET(aclrtMemcpy(sub_weight_buffer->GetData(), sub_weight_buffer->GetSize(), weight_data,
-          weight_size, ACL_MEMCPY_HOST_TO_DEVICE));
+      GE_CHK_ACL_RET(aclrtMemcpy(sub_weight_buffer->GetData(), sub_weight_buffer->GetSize(), weight_data, weight_size,
+                                 ACL_MEMCPY_HOST_TO_DEVICE));
     }
 
-    GELOGI("Init weight mem successfully, weight base %p, weight size = %zu",
-           sub_weight_buffer->GetData(), sub_weight_buffer->GetSize());
+    GELOGI("Init weight mem successfully, weight base %p, weight size = %zu", sub_weight_buffer->GetData(),
+           sub_weight_buffer->GetSize());
     auto subgraph = subgraph_model.second->GetGraph();
     if (subgraph != ge_root_model_->GetRootGraph()) {
       subgraph = hybrid_model_.root_graph_->GetSubgraph(subgraph_model.first);
@@ -1463,10 +1432,10 @@ Status HybridModelBuilder::InitWeights() const {
       const auto &op_desc = node->GetOpDesc();
       const auto &v_weights = ModelUtils::GetWeights(op_desc);
       if (v_weights.empty()) {
-        GELOGE(INTERNAL_ERROR, "[Invoke][GetWeights][%s(%s)] Constant has no value",
-               node->GetName().c_str(), node->GetType().c_str());
-        REPORT_INNER_ERR_MSG("E19999", "[%s(%s)] Constant has no value.",
-                          node->GetName().c_str(), node->GetType().c_str());
+        GELOGE(INTERNAL_ERROR, "[Invoke][GetWeights][%s(%s)] Constant has no value", node->GetName().c_str(),
+               node->GetType().c_str());
+        REPORT_INNER_ERR_MSG("E19999", "[%s(%s)] Constant has no value.", node->GetName().c_str(),
+                             node->GetType().c_str());
         return INTERNAL_ERROR;
       }
       const GeTensor *const ge_tensor = v_weights[0U].get();
@@ -1476,14 +1445,14 @@ Status HybridModelBuilder::InitWeights() const {
       const auto output_desc = op_desc->MutableOutputDesc(0U);
       GE_CHECK_NOTNULL(output_desc);
       GE_CHK_GRAPH_STATUS_RET(TensorUtils::GetSize(*output_desc, tensor_size),
-                              "[Invoke][GetSize][%s(%s)] Failed to get output tensor size",
-                              node->GetName().c_str(), node->GetType().c_str());
+                              "[Invoke][GetSize][%s(%s)] Failed to get output tensor size", node->GetName().c_str(),
+                              node->GetType().c_str());
       int64_t data_offset = 0;
       GE_CHK_GRAPH_STATUS_RET(TensorUtils::GetDataOffset(tensor_desc, data_offset),
-                              "[Invoke][GetDataOffset][%s(%s)] Failed to get data offset",
-                              node->GetName().c_str(), node->GetType().c_str());
-      GELOGD("[%s] Start to init Constant node [%s], size = %ld, offset = %ld",
-             ModelName().c_str(), node->GetName().c_str(), tensor_size, data_offset);
+                              "[Invoke][GetDataOffset][%s(%s)] Failed to get data offset", node->GetName().c_str(),
+                              node->GetType().c_str());
+      GELOGD("[%s] Start to init Constant node [%s], size = %ld, offset = %ld", ModelName().c_str(),
+             node->GetName().c_str(), tensor_size, data_offset);
 
       auto tensor_data = TensorBuffer::Create(ValueToPtr(weight_base + static_cast<size_t>(data_offset)),
                                               static_cast<size_t>(tensor_size));
@@ -1501,14 +1470,12 @@ Status HybridModelBuilder::InitWeights() const {
 Status HybridModelBuilder::LoadTask(NodeItem &node_item) const {
   const auto &node_ptr = node_item.node;
   GELOGD("[%s] Start to build kernel task", node_ptr->GetName().c_str());
-  const auto load_ret = node_item.node_executor->LoadTask(hybrid_model_,
-                                                          node_ptr,
-                                                          node_item.kernel_task);
+  const auto load_ret = node_item.node_executor->LoadTask(hybrid_model_, node_ptr, node_item.kernel_task);
   if ((load_ret != UNSUPPORTED) && (load_ret != SUCCESS)) {
-    GELOGE(load_ret, "[Invoke][LoadTask][%s(%s)] Failed to load task",
-           node_ptr->GetName().c_str(), node_ptr->GetType().c_str());
-    REPORT_INNER_ERR_MSG("E19999", "[%s(%s)] Failed to load task",
-                      node_ptr->GetName().c_str(), node_ptr->GetType().c_str());
+    GELOGE(load_ret, "[Invoke][LoadTask][%s(%s)] Failed to load task", node_ptr->GetName().c_str(),
+           node_ptr->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "[%s(%s)] Failed to load task", node_ptr->GetName().c_str(),
+                         node_ptr->GetType().c_str());
     return load_ret;
   }
 
@@ -1524,8 +1491,8 @@ Status HybridModelBuilder::LoadTasks() const {
     if (node_item->node_type == NETOUTPUT) {
       continue;
     }
-    if (((node_item->node_type == PARTITIONEDCALL) && (!IsFftsGraphNode(*node_item->op_desc)))
-        || (node_item->IsFftsSubNode())) {
+    if (((node_item->node_type == PARTITIONEDCALL) && (!IsFftsGraphNode(*node_item->op_desc))) ||
+        (node_item->IsFftsSubNode())) {
       ordered_partitioned_calls[node_item->node_id][node_item->node_name] = node_item.get();
       continue;
     }
@@ -1548,13 +1515,11 @@ Status HybridModelBuilder::LoadGeModel(ComputeGraph &sub_graph, const GeModelPtr
   GE_CHECK_NOTNULL(ge_model->GetModelTaskDefPtr());
   const auto op_type = parent_node->GetType();
   if (IsControlFlowV2Op(op_type)) {
-    GELOGD("Set ge_model for control op subgraph: [%s], task_size = %d",
-           sub_graph.GetName().c_str(),
+    GELOGD("Set ge_model for control op subgraph: [%s], task_size = %d", sub_graph.GetName().c_str(),
            ge_model->GetModelTaskDefPtr()->task_size());
     (void)subgraph_models_.emplace(sub_graph.GetName(), ge_model);
   } else {
-    GELOGD("Set ge_model for subgraph: [%s], task_size = %d",
-           sub_graph.GetName().c_str(),
+    GELOGD("Set ge_model for subgraph: [%s], task_size = %d", sub_graph.GetName().c_str(),
            ge_model->GetModelTaskDefPtr()->task_size());
     (void)hybrid_model_.known_shape_sub_models_.emplace(parent_node, ge_model);
   }
@@ -1592,7 +1557,7 @@ Status HybridModelBuilder::IndexTaskDefs(const ComputeGraphPtr &sub_graph, const
     const auto node_id = node->GetOpDesc()->GetId();
     GELOGD("op_index = %ld, node_name = %s", node_id, node->GetName().c_str());
     (void)node_map.emplace(node_id, node);
-    LoadSgtKernelBinToOpDesc(*node->GetOpDesc(), sub_graph, ge_model); // for FFTS Plus.
+    LoadSgtKernelBinToOpDesc(*node->GetOpDesc(), sub_graph, ge_model);  // for FFTS Plus.
   }
 
   // The sub model has been verified during task loading, and the root model returned success without any tasks
@@ -1629,7 +1594,7 @@ Status HybridModelBuilder::IndexTaskDefs(const ComputeGraphPtr &sub_graph, const
     }
 
     const auto &node = iter->second;
-    LoadTbeKernelBinToOpDesc(task_type, ge_model, node); // for offline
+    LoadTbeKernelBinToOpDesc(task_type, ge_model, node);  // for offline
     GELOGD("Task loaded for node: %s, task type = %d, op_index = %u", node->GetName().c_str(), task_type, op_index);
     hybrid_model_.task_defs_[node].emplace_back(task_def);
   }
@@ -1695,8 +1660,8 @@ Status HybridModelBuilder::IndexSpecialNodes() {
       NodePtr src_node;
       int32_t peer_out_index = -1;
       GE_CHK_STATUS_RET_NOLOG(GetPeerNodeAcrossSubGraphs(node, src_node, peer_out_index));
-      GELOGD("Got peer node for data node %s, peer node = %s(%s)",
-             node->GetName().c_str(), src_node->GetName().c_str(), src_node->GetType().c_str());
+      GELOGD("Got peer node for data node %s, peer node = %s(%s)", node->GetName().c_str(), src_node->GetName().c_str(),
+             src_node->GetType().c_str());
 
       const bool is_ref_input = (src_node->GetType() == CONSTANTOP) || (src_node->GetType() == VARIABLE);
       if (is_ref_input) {
@@ -1713,8 +1678,7 @@ Status HybridModelBuilder::IndexSpecialNodes() {
   return SUCCESS;
 }
 
-Status HybridModelBuilder::GetPeerNodeAcrossSubGraphs(const NodePtr &data_node,
-                                                      NodePtr &peer_node,
+Status HybridModelBuilder::GetPeerNodeAcrossSubGraphs(const NodePtr &data_node, NodePtr &peer_node,
                                                       int32_t &peer_out_index) {
   const auto &sub_graph = data_node->GetOwnerComputeGraph();
   GE_CHECK_NOTNULL(sub_graph);
@@ -1722,7 +1686,7 @@ Status HybridModelBuilder::GetPeerNodeAcrossSubGraphs(const NodePtr &data_node,
   const auto &wrapped_node = data_node->GetOwnerComputeGraph()->GetParentNodeBarePtr();
   if (wrapped_node == nullptr) {
     REPORT_INNER_ERR_MSG("E19999", "parentnode of node:[%s(%s)] in root graph is nullptr.",
-                       data_node->GetName().c_str(), data_node->GetType().c_str());
+                         data_node->GetName().c_str(), data_node->GetType().c_str());
     GELOGE(INTERNAL_ERROR, "[Invoke][GetParentNode] for node [%s:%s] in root graph is nullptr.",
            data_node->GetName().c_str(), data_node->GetType().c_str());
     return INTERNAL_ERROR;
@@ -1730,11 +1694,10 @@ Status HybridModelBuilder::GetPeerNodeAcrossSubGraphs(const NodePtr &data_node,
   const auto &data_op_desc = data_node->GetOpDesc();
   int32_t parent_index = 0;
   if (!AttrUtils::GetInt(data_op_desc, ATTR_NAME_PARENT_NODE_INDEX, parent_index)) {
-    REPORT_INNER_ERR_MSG("E19999", "get attr [%s] on node:[%s(%s)] failed.",
-                      ATTR_NAME_PARENT_NODE_INDEX.c_str(),
-                      data_op_desc->GetName().c_str(), data_op_desc->GetType().c_str());
-    GELOGE(INTERNAL_ERROR, "[Get][Attr] [%s] on node:[%s(%s)] failed",
-           ATTR_NAME_PARENT_NODE_INDEX.c_str(), data_op_desc->GetName().c_str(), data_op_desc->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "get attr [%s] on node:[%s(%s)] failed.", ATTR_NAME_PARENT_NODE_INDEX.c_str(),
+                         data_op_desc->GetName().c_str(), data_op_desc->GetType().c_str());
+    GELOGE(INTERNAL_ERROR, "[Get][Attr] [%s] on node:[%s(%s)] failed", ATTR_NAME_PARENT_NODE_INDEX.c_str(),
+           data_op_desc->GetName().c_str(), data_op_desc->GetType().c_str());
     return INTERNAL_ERROR;
   }
 
@@ -1742,8 +1705,8 @@ Status HybridModelBuilder::GetPeerNodeAcrossSubGraphs(const NodePtr &data_node,
   GE_CHECK_NOTNULL(wrapped_node_in_anchor);
   const auto &src_out_anchor = wrapped_node_in_anchor->GetPeerOutAnchor();
   if ((src_out_anchor == nullptr) || (src_out_anchor->GetOwnerNode() == nullptr)) {
-    REPORT_INNER_ERR_MSG("E19999", "Parent node of node:%s(%s) do not have peer anchor.",
-                       data_node->GetName().c_str(), data_node->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Parent node of node:%s(%s) do not have peer anchor.", data_node->GetName().c_str(),
+                         data_node->GetType().c_str());
     GELOGE(INTERNAL_ERROR, "[Check][Param] Parent node of node:%s(%s) do not have peer anchor.",
            data_node->GetName().c_str(), data_node->GetType().c_str());
     return INTERNAL_ERROR;
@@ -1759,8 +1722,7 @@ Status HybridModelBuilder::GetPeerNodeAcrossSubGraphs(const NodePtr &data_node,
   if (src_node_type != PARTITIONEDCALL) {
     peer_node = src_wrapped_node;
     peer_out_index = kHybridVarOutputIndex;
-    GELOGD("[%s] Node is connected to root graph's node: %s",
-           data_node->GetName().c_str(),
+    GELOGD("[%s] Node is connected to root graph's node: %s", data_node->GetName().c_str(),
            peer_node->GetName().c_str());
     return SUCCESS;
   }
@@ -1786,8 +1748,8 @@ Status HybridModelBuilder::GetPeerNodeAcrossSubGraphs(const NodePtr &data_node,
   for (uint32_t i = 0U; i < static_cast<uint32_t>(input_size); ++i) {
     uint32_t p_index = 0U;
     if (!AttrUtils::GetInt(net_output_desc->GetInputDesc(i), ATTR_NAME_PARENT_NODE_INDEX, p_index)) {
-      GELOGW("SubGraph: %s input tensor %u attr %s not found.",
-             src_graph->GetName().c_str(), i, ATTR_NAME_PARENT_NODE_INDEX.c_str());
+      GELOGW("SubGraph: %s input tensor %u attr %s not found.", src_graph->GetName().c_str(), i,
+             ATTR_NAME_PARENT_NODE_INDEX.c_str());
       continue;
     }
 
@@ -1800,19 +1762,16 @@ Status HybridModelBuilder::GetPeerNodeAcrossSubGraphs(const NodePtr &data_node,
       peer_node = peer_out_anchor->GetOwnerNode();
       GE_CHECK_NOTNULL(peer_node);
       peer_out_index = peer_out_anchor->GetIdx();
-      GELOGD("Found peer node of Data node: %s::%s is %s::%s",
-             sub_graph->GetName().c_str(),
-             data_node->GetName().c_str(),
-             src_graph->GetName().c_str(),
-             peer_node->GetName().c_str());
+      GELOGD("Found peer node of Data node: %s::%s is %s::%s", sub_graph->GetName().c_str(),
+             data_node->GetName().c_str(), src_graph->GetName().c_str(), peer_node->GetName().c_str());
       return SUCCESS;
     }
   }
 
   GELOGE(FAILED, "[Get][PeerNode]Failed to find peer node for %s::%s(%s)", sub_graph->GetName().c_str(),
          data_node->GetName().c_str(), data_node->GetType().c_str());
-  REPORT_INNER_ERR_MSG("E19999", "Failed to find peer node for %s::%s(%s).",
-                     sub_graph->GetName().c_str(), data_node->GetName().c_str(), data_node->GetType().c_str());
+  REPORT_INNER_ERR_MSG("E19999", "Failed to find peer node for %s::%s(%s).", sub_graph->GetName().c_str(),
+                       data_node->GetName().c_str(), data_node->GetType().c_str());
   return FAILED;
 }
 Status HybridModelBuilder::InitRuntimeParams() {
@@ -1841,8 +1800,8 @@ Status HybridModelBuilder::InitRuntimeParams() {
     }
   }
 
-  GELOGI("InitRuntimeParams(), session_id:%lu, var_size:%lu. graph_id = %u",
-         runtime_param_.session_id, runtime_param_.var_size, runtime_param_.graph_id);
+  GELOGI("InitRuntimeParams(), session_id:%lu, var_size:%lu. graph_id = %u", runtime_param_.session_id,
+         runtime_param_.var_size, runtime_param_.graph_id);
 
   var_manager_ = VarManager::Instance(runtime_param_.session_id);
   GE_CHECK_NOTNULL(var_manager_);
@@ -1882,7 +1841,7 @@ Status HybridModelBuilder::IdentifyVariableOutputs(NodeItem &node_item, const Co
     }
 
     std::string ref_var_name;
-    const std::string* ref_var_name_str =  AttrUtils::GetStr(node->GetOpDescBarePtr(), REF_VAR_SRC_VAR_NAME);
+    const std::string *ref_var_name_str = AttrUtils::GetStr(node->GetOpDescBarePtr(), REF_VAR_SRC_VAR_NAME);
     if (ref_var_name_str != nullptr) {
       ref_var_name = *ref_var_name_str;
     }
@@ -1922,11 +1881,9 @@ Status HybridModelBuilder::InitModelMem() {
   GELOGI("[Init] Variable max size attr do not set, var mem auto malloc.");
   runtime_param_.var_base = 0;
   const auto page_size = VarManager::IsVariableUse1gHugePage() ? kDrv1GPageSize : kDrvPageSize;
-  auto allocator =
-      SessionMemAllocator<ExpandableActiveMemoryAllocator>::Instance().GetMemAllocator(runtime_param_.session_id,
-                                                                                       hybrid_model_.device_id_,
-                                                                                       RT_MEMORY_HBM, page_size);
-  (void) var_manager_->InitExpandableMemoryAllocator(allocator);
+  auto allocator = SessionMemAllocator<ExpandableActiveMemoryAllocator>::Instance().GetMemAllocator(
+      runtime_param_.session_id, hybrid_model_.device_id_, RT_MEMORY_HBM, page_size);
+  (void)var_manager_->InitExpandableMemoryAllocator(allocator);
   return SUCCESS;
 }
 
@@ -1954,8 +1911,7 @@ Status HybridModelBuilder::CopyVarData() const {
   }
 
   GE_CHK_STATUS_RET(TransVarDataUtils::CopyVarData(hybrid_model_.root_graph_, variable_node_list,
-                                                   runtime_param_.session_id,
-                                                   hybrid_model_.device_id_),
+                                                   runtime_param_.session_id, hybrid_model_.device_id_),
                     "[Invoke][CopyVarData] failed.");
   GELOGI("CopyVarData success.");
   return SUCCESS;
@@ -1993,8 +1949,7 @@ Status HybridModelBuilder::LoadKnownShapedSubgraph(const ComputeGraph &graph, co
   graph_item->total_inputs_ = node_item->num_inputs;
   graph_item->total_outputs_ = node_item->num_outputs;
 
-  GELOGD("NodeItem create for known shape subgraph [%s], NodeItem = %s",
-         graph.GetName().c_str(),
+  GELOGD("NodeItem create for known shape subgraph [%s], NodeItem = %s", graph.GetName().c_str(),
          node_item->DebugString().c_str());
 
   graph_item->SetName(graph.GetName());
@@ -2013,8 +1968,8 @@ Status HybridModelBuilder::LoadKnownNodeItem(GraphItem &graph_item, const NodePt
   if (op_type == DATA) {
     int32_t data_index = 0;
     if (!AttrUtils::GetInt(op_desc, ATTR_NAME_PARENT_NODE_INDEX, data_index)) {
-      GELOGE(FAILED, "[Invoke][GetInt] [%s(%s)] Failed to get attr [%s]",
-             node->GetName().c_str(), node->GetType().c_str(), ATTR_NAME_PARENT_NODE_INDEX.c_str());
+      GELOGE(FAILED, "[Invoke][GetInt] [%s(%s)] Failed to get attr [%s]", node->GetName().c_str(),
+             node->GetType().c_str(), ATTR_NAME_PARENT_NODE_INDEX.c_str());
       return FAILED;
     }
 
@@ -2321,7 +2276,7 @@ Status HybridModelBuilder::LoadDynamicNodeItem(GraphItem &graph_item, const Node
   NodeItem *node_item = nullptr;
   GE_CHK_STATUS_RET_NOLOG(GetOrCreateNodeItem(node, node_item));
   GE_CHK_STATUS_RET_NOLOG(BuildNodeItem(node, *node_item));
-  GE_CHK_STATUS_RET_NOLOG(UpdateAnchorStatus(node)); // needed by FE generate task
+  GE_CHK_STATUS_RET_NOLOG(UpdateAnchorStatus(node));  // needed by FE generate task
 
   GE_CHK_STATUS_RET_NOLOG(BuildFrameGroupIndex(*node_item));
   GE_CHK_STATUS_RET_NOLOG(BuildControlFlowGroup(graph_item, node, *node_item));
@@ -2350,7 +2305,7 @@ Status HybridModelBuilder::LoadDynamicNodeItem(GraphItem &graph_item, const Node
   graph_item.node_items_.emplace_back(node_item);
   GE_CHK_STATUS_RET_NOLOG(CreateProfilingNodeAfter(graph_item, node, post_num));
   if ((prev_num > 0U) || (post_num > 0U)) {
-    profiling_nodes[node_index] = { prev_num, post_num };
+    profiling_nodes[node_index] = {prev_num, post_num};
   }
   // parse var outputs
   GE_CHK_STATUS_RET_NOLOG(ParseVarOutputs(*node_item));
@@ -2374,7 +2329,7 @@ Status HybridModelBuilder::ParseVarOutputs(NodeItem &node_item) const {
     const auto &output_tensor_desc = node_item.op_desc->GetOutputDesc(static_cast<uint32_t>(i));
     auto var_name = AttrUtils::GetStr(output_tensor_desc, ASSIGN_VAR_NAME);
     if (var_name == nullptr) {
-        var_name = AttrUtils::GetStr(output_tensor_desc, REF_VAR_SRC_VAR_NAME);
+      var_name = AttrUtils::GetStr(output_tensor_desc, REF_VAR_SRC_VAR_NAME);
     }
     if (var_name != nullptr) {
       const auto var_node = hybrid_model_.GetVariableNode(*var_name);
@@ -2385,8 +2340,7 @@ Status HybridModelBuilder::ParseVarOutputs(NodeItem &node_item) const {
   return SUCCESS;
 }
 
-Status HybridModelBuilder::BuildInputMapping(GraphItem &graph_item,
-                                             const std::vector<NodeItem *> &input_nodes,
+Status HybridModelBuilder::BuildInputMapping(GraphItem &graph_item, const std::vector<NodeItem *> &input_nodes,
                                              const bool is_root_graph) {
   uint32_t data_op_index = 0U;
   for (const auto &node_item : input_nodes) {
@@ -2399,10 +2353,10 @@ Status HybridModelBuilder::BuildInputMapping(GraphItem &graph_item,
       data_op_index++;
     } else {
       if (!AttrUtils::GetInt(node->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, data_index)) {
-        GELOGE(FAILED, "[Invoke][GetInt] [%s(%s)] Failed to get attr [%s]",
-               node->GetName().c_str(), node->GetType().c_str(), ATTR_NAME_PARENT_NODE_INDEX.c_str());
-        REPORT_INNER_ERR_MSG("E19999", "call GetInt failed, [%s(%s)] Failed to get attr [%s]",
-                          node->GetName().c_str(), node->GetType().c_str(), ATTR_NAME_PARENT_NODE_INDEX.c_str());
+        GELOGE(FAILED, "[Invoke][GetInt] [%s(%s)] Failed to get attr [%s]", node->GetName().c_str(),
+               node->GetType().c_str(), ATTR_NAME_PARENT_NODE_INDEX.c_str());
+        REPORT_INNER_ERR_MSG("E19999", "call GetInt failed, [%s(%s)] Failed to get attr [%s]", node->GetName().c_str(),
+                             node->GetType().c_str(), ATTR_NAME_PARENT_NODE_INDEX.c_str());
         return FAILED;
       }
     }
@@ -2458,15 +2412,14 @@ Status HybridModelBuilder::CollectParallelGroups(NodeItem &node_item) {
     std::set<std::string> parallel_groups;
     GELOGD("[%s] To collect parallel group for known-shaped subgraph", node_item.NodeName().c_str());
     for (const auto &subgraph_name : node->GetOpDesc()->GetSubgraphInstanceNames()) {
-      GELOGD("[%s] Start to get parallel group from subgraph: %s",
-             node_item.NodeName().c_str(), subgraph_name.c_str());
+      GELOGD("[%s] Start to get parallel group from subgraph: %s", node_item.NodeName().c_str(), subgraph_name.c_str());
       const auto &subgraph = hybrid_model_.root_graph_->GetSubgraph(subgraph_name);
       GE_CHECK_NOTNULL(subgraph);
       for (const auto &sub_node : subgraph->GetAllNodes()) {
         std::string parallel_group;
         if (AttrUtils::GetStr(sub_node->GetOpDesc(), ATTR_NAME_PARALLEL_GROUP, parallel_group)) {
-          GELOGD("[%s:%s] Got parallel group = %s",
-                 subgraph_name.c_str(), sub_node->GetName().c_str(), parallel_group.c_str());
+          GELOGD("[%s:%s] Got parallel group = %s", subgraph_name.c_str(), sub_node->GetName().c_str(),
+                 parallel_group.c_str());
           (void)parallel_groups.emplace(parallel_group);
         }
       }
@@ -2510,17 +2463,14 @@ Status HybridModelBuilder::ParseDependentByParallelGroup() {
         }
         auto &deps = node_item->dependents_for_execution;
         if (std::find(deps.begin(), deps.end(), nearest_dep_node->node) != deps.end()) {
-          GELOGD("%s->%s Already has dependency, skip it",
-                 nearest_dep_node->node->GetName().c_str(),
+          GELOGD("%s->%s Already has dependency, skip it", nearest_dep_node->node->GetName().c_str(),
                  node_item->NodeName().c_str());
           continue;
         }
         nearest_dep_node->has_observer = true;
         deps.emplace_back(nearest_dep_node->node);
         GELOGD("Add dependency for nodes with the same parallel group[%s], src = [%s], dst = [%s]",
-               parallel_group.c_str(),
-               nearest_dep_node->NodeName().c_str(),
-               node_item->NodeName().c_str());
+               parallel_group.c_str(), nearest_dep_node->NodeName().c_str(), node_item->NodeName().c_str());
       }
     }
   }
@@ -2568,8 +2518,7 @@ Status HybridModelBuilder::OptimizeDependenciesForConstantInputs() {
       std::vector<NodePtr> depends_to_keep;
       for (const auto &ref_count_it : ref_counts) {
         if (ref_count_it.second == 0) {
-          GELOGD("[%s] no longer depends on [%s] for shape inference",
-                 node_item->NodeName().c_str(),
+          GELOGD("[%s] no longer depends on [%s] for shape inference", node_item->NodeName().c_str(),
                  ref_count_it.first->NodeName().c_str());
         } else {
           depends_to_keep.emplace_back(ref_count_it.first->node);
@@ -2590,14 +2539,14 @@ Status HybridModelBuilder::Convert2HostTensor(const NodePtr &node, const int64_t
   GE_CHECK_NOTNULL(ge_tensor);
   int64_t tensor_size = -1;
   GE_CHK_GRAPH_STATUS_RET(TensorUtils::GetTensorSizeInBytes(*tensor_desc, tensor_size),
-                          "[Get][TensorSize] In Bytes for [%s(%s)] failed",
-                          node->GetName().c_str(), node->GetType().c_str());
+                          "[Get][TensorSize] In Bytes for [%s(%s)] failed", node->GetName().c_str(),
+                          node->GetType().c_str());
   if (tensor_size > 0) {
     const auto copy_size = static_cast<size_t>(tensor_size);
     GE_CHECK_GE(tensor_value->GetSize(), copy_size);
     std::vector<uint8_t> buffer(copy_size);
-    GE_CHK_ACL_RET(aclrtMemcpy(buffer.data(), copy_size, tensor_value->GetData(), copy_size,
-        ACL_MEMCPY_DEVICE_TO_HOST));
+    GE_CHK_ACL_RET(
+        aclrtMemcpy(buffer.data(), copy_size, tensor_value->GetData(), copy_size, ACL_MEMCPY_DEVICE_TO_HOST));
     (void)ge_tensor->SetData(std::move(buffer));
     GELOGD("[%s] Copy constant tensor to host successfully, size = %zu", node->GetName().c_str(), copy_size);
   }
@@ -2617,15 +2566,15 @@ Status HybridModelBuilder::RelinkNextIteration() const {
 
     const auto it = next_iteration_op_nodes_.find(*node_name);
     if (it == next_iteration_op_nodes_.end()) {
-      GELOGE(INTERNAL_ERROR, "[Check][Param] [%s(%s)] expect NextIteration[%s] not found",
-             merge->GetName().c_str(), merge->GetType().c_str(), (*node_name).c_str());
+      GELOGE(INTERNAL_ERROR, "[Check][Param] [%s(%s)] expect NextIteration[%s] not found", merge->GetName().c_str(),
+             merge->GetType().c_str(), (*node_name).c_str());
       return INTERNAL_ERROR;
     }
 
     const auto &iteration = it->second;
     if (GraphUtils::AddEdge(iteration->GetOutDataAnchor(0), merge->GetInDataAnchor(1)) != GRAPH_SUCCESS) {
-      GELOGE(INTERNAL_ERROR, "[%s(%s)] -> [%s(%s)] Add edge failed",
-             (*node_name).c_str(), iteration->GetType().c_str(), merge->GetName().c_str(), merge->GetType().c_str());
+      GELOGE(INTERNAL_ERROR, "[%s(%s)] -> [%s(%s)] Add edge failed", (*node_name).c_str(), iteration->GetType().c_str(),
+             merge->GetName().c_str(), merge->GetType().c_str());
       return INTERNAL_ERROR;
     }
   }
@@ -2638,8 +2587,8 @@ Status HybridModelBuilder::BuildProfilingControl(GraphItem &graph_item,
   const auto node_size = graph_item.node_items_.size();
   for (const auto &item : nodes) {
     const auto node_index = item.first;
-    GE_CHK_BOOL_RET_STATUS(node_index < node_size, FAILED,
-                           "[Check][Param] node index:%zu invalid, node size:%zu", node_index, node_size);
+    GE_CHK_BOOL_RET_STATUS(node_index < node_size, FAILED, "[Check][Param] node index:%zu invalid, node size:%zu",
+                           node_index, node_size);
     const auto &node_item = graph_item.node_items_[node_index];
     if (item.second.first > 0U) {
       const auto prev_num = item.second.first;
@@ -2653,8 +2602,8 @@ Status HybridModelBuilder::BuildProfilingControl(GraphItem &graph_item,
         }
       } else {
         GE_CHK_BOOL_RET_STATUS(((node_index - prev_num) - 1U) < node_size, FAILED,
-                               "[Check][Param] prev index:%u invalid, node index:%zu, node size:%zu",
-                               prev_num, node_index, node_size);
+                               "[Check][Param] prev index:%u invalid, node index:%zu, node size:%zu", prev_num,
+                               node_index, node_size);
         const auto &prev_item = graph_item.node_items_[(node_index - prev_num) - 1U];
         for (uint32_t i = 1U; i <= prev_num; ++i) {
           GE_CHK_BOOL_RET_STATUS((node_index - i) < node_size, FAILED,
@@ -2678,8 +2627,8 @@ Status HybridModelBuilder::BuildProfilingControl(GraphItem &graph_item,
         }
       } else {
         GE_CHK_BOOL_RET_STATUS(((node_index + post_num) + 1U) < node_size, FAILED,
-                               "[Check][Param] post num:%u invalid, node index:%zu, node size:%zu",
-                               post_num, node_index, node_size);
+                               "[Check][Param] post num:%u invalid, node index:%zu, node size:%zu", post_num,
+                               node_index, node_size);
         std::set<const NodeItem *> post_items;
         post_items.insert(node_item->data_send_.cbegin(), node_item->data_send_.cend());
         post_items.insert(node_item->ctrl_send_.cbegin(), node_item->ctrl_send_.cend());
@@ -2704,8 +2653,8 @@ Status HybridModelBuilder::BuildProfilingControl(GraphItem &graph_item,
 
 Status HybridModelBuilder::BuildFrameGroupIndex(NodeItem &node_item) {
   if (node_item.is_root_node_) {
-    GELOGD("[%s] control flow frame group: %ld, parent frame: %ld",
-           node_item.node_name.c_str(), node_item.frame_index_, node_item.parent_frame_);
+    GELOGD("[%s] control flow frame group: %ld, parent frame: %ld", node_item.node_name.c_str(), node_item.frame_index_,
+           node_item.parent_frame_);
     return SUCCESS;
   }
 
@@ -2716,8 +2665,7 @@ Status HybridModelBuilder::BuildFrameGroupIndex(NodeItem &node_item) {
 
   for (const auto &src_node : node_item.node->GetInAllNodes()) {
     NodeItem *src_node_item = nullptr;
-    GE_CHK_STATUS_RET(GetOrCreateNodeItem(src_node, src_node_item),
-                      "[GetOrCreate][NodeItem] for [%s(%s)] failed",
+    GE_CHK_STATUS_RET(GetOrCreateNodeItem(src_node, src_node_item), "[GetOrCreate][NodeItem] for [%s(%s)] failed",
                       src_node->GetName().c_str(), src_node->GetType().c_str());
     if (src_node_item->is_root_node_) {
       continue;
@@ -2732,13 +2680,13 @@ Status HybridModelBuilder::BuildFrameGroupIndex(NodeItem &node_item) {
 
     const std::map<int64_t, int64_t>::const_iterator it = parent_frame_group_.find(node_item.frame_index_);
     node_item.parent_frame_ = (it != parent_frame_group_.cend()) ? it->second : -1;
-    GELOGD("[%s] control flow frame group: %ld, parent frame: %ld",
-           node_item.node_name.c_str(), node_item.frame_index_, node_item.parent_frame_);
+    GELOGD("[%s] control flow frame group: %ld, parent frame: %ld", node_item.node_name.c_str(), node_item.frame_index_,
+           node_item.parent_frame_);
     return SUCCESS;
   }
 
-  GELOGD("[%s] control flow frame group: %ld, parent frame: %ld",
-         node_item.node_name.c_str(), node_item.frame_index_, node_item.parent_frame_);
+  GELOGD("[%s] control flow frame group: %ld, parent frame: %ld", node_item.node_name.c_str(), node_item.frame_index_,
+         node_item.parent_frame_);
   return SUCCESS;
 }
 
@@ -2746,8 +2694,7 @@ Status HybridModelBuilder::BuildFrameGroupIndexForEnter(NodeItem &node_item, con
   node_item.frame_index_ = ctrl_flow_group;
   for (const auto &src_node : node_item.node->GetInAllNodes()) {
     NodeItem *src_node_item = nullptr;
-    GE_CHK_STATUS_RET(GetOrCreateNodeItem(src_node, src_node_item),
-                      "[GetOrCreate][NodeItem] for [%s(%s)] failed",
+    GE_CHK_STATUS_RET(GetOrCreateNodeItem(src_node, src_node_item), "[GetOrCreate][NodeItem] for [%s(%s)] failed",
                       src_node->GetName().c_str(), src_node->GetType().c_str());
     if (!src_node_item->is_root_node_) {
       if (src_node_item->IsExitOp()) {
@@ -2767,8 +2714,8 @@ Status HybridModelBuilder::BuildFrameGroupIndexForEnter(NodeItem &node_item, con
 
   const std::map<int64_t, int64_t>::const_iterator it = parent_frame_group_.find(node_item.frame_index_);
   node_item.parent_frame_ = (it != parent_frame_group_.cend()) ? it->second : -1;
-  GELOGD("[%s] control flow frame group: %ld, parent frame: %ld",
-         node_item.node_name.c_str(), node_item.frame_index_, node_item.parent_frame_);
+  GELOGD("[%s] control flow frame group: %ld, parent frame: %ld", node_item.node_name.c_str(), node_item.frame_index_,
+         node_item.parent_frame_);
   return SUCCESS;
 }
 
@@ -2776,17 +2723,16 @@ Status HybridModelBuilder::BuildControlFlowGroup(GraphItem &graph_item, const No
                                                  NodeItem &node_item) const {
   GELOGD("Build control flow for node %s", node->GetName().c_str());
   using GroupBuilder = std::function<Status(const HybridModelBuilder *, const NodePtr &, NodeItem &)>;
-  static const std::map<std::string, GroupBuilder> control_flow {
-    { STREAMACTIVE, &HybridModelBuilder::CreateStreamActiveGroup },
-    { STREAMSWITCH, &HybridModelBuilder::CreateStreamSwitchGroup },
-    { NEXTITERATION, &HybridModelBuilder::CreateNextIterationGroup },
-    { REFNEXTITERATION, &HybridModelBuilder::CreateNextIterationGroup },
-    { SWITCH, &HybridModelBuilder::CreateSwitchGroup },
-    { REFSWITCH, &HybridModelBuilder::CreateSwitchGroup },
-    { LABELSET, &HybridModelBuilder::CreateNotImplement },
-    { LABELGOTOEX, &HybridModelBuilder::CreateNotImplement },
-    { LABELSWITCHBYINDEX, &HybridModelBuilder::CreateNotImplement }
-  };
+  static const std::map<std::string, GroupBuilder> control_flow{
+      {STREAMACTIVE, &HybridModelBuilder::CreateStreamActiveGroup},
+      {STREAMSWITCH, &HybridModelBuilder::CreateStreamSwitchGroup},
+      {NEXTITERATION, &HybridModelBuilder::CreateNextIterationGroup},
+      {REFNEXTITERATION, &HybridModelBuilder::CreateNextIterationGroup},
+      {SWITCH, &HybridModelBuilder::CreateSwitchGroup},
+      {REFSWITCH, &HybridModelBuilder::CreateSwitchGroup},
+      {LABELSET, &HybridModelBuilder::CreateNotImplement},
+      {LABELGOTOEX, &HybridModelBuilder::CreateNotImplement},
+      {LABELSWITCHBYINDEX, &HybridModelBuilder::CreateNotImplement}};
 
   Status ret = SUCCESS;
   const auto it = control_flow.find(node_item.node_type);
@@ -2810,8 +2756,7 @@ Status HybridModelBuilder::CreateNormalNodeGroup(const NodePtr &node, NodeItem &
     }
 
     NodeItem *dst_node_item = nullptr;
-    GE_CHK_STATUS_RET(GetOrCreateNodeItem(dst_node, dst_node_item),
-                      "[GetOrCreate][NodeItem] for [%s(%s)] failed",
+    GE_CHK_STATUS_RET(GetOrCreateNodeItem(dst_node, dst_node_item), "[GetOrCreate][NodeItem] for [%s(%s)] failed",
                       dst_node->GetName().c_str(), dst_node->GetType().c_str());
     node_item.SetCtrlSend(dst_node_item, std::numeric_limits<uint32_t>::max());
   }
@@ -2827,8 +2772,7 @@ Status HybridModelBuilder::CreateMergeEnterGroup(const NodePtr &node, NodeItem &
       continue;
     }
     NodeItem *dst_node_item = nullptr;
-    GE_CHK_STATUS_RET(GetOrCreateNodeItem(dst_node, dst_node_item),
-                      "[GetOrCreate][NodeItem] [%s(%s)] failed",
+    GE_CHK_STATUS_RET(GetOrCreateNodeItem(dst_node, dst_node_item), "[GetOrCreate][NodeItem] [%s(%s)] failed",
                       dst_node->GetName().c_str(), dst_node->GetType().c_str());
     // Set Enter Control to StreamMerge as Group 0.
     dst_node_item->switch_groups_.resize(kHybridLoopMergeSize);
@@ -2848,23 +2792,22 @@ Status HybridModelBuilder::CreateMergeIterationGroup(const NodePtr &node, NodeIt
     }
     auto node_name = AttrUtils::GetStr(src_node->GetOpDescBarePtr(), ATTR_NAME_NEXT_ITERATION);
     if (node_name == nullptr) {
-      GELOGE(INTERNAL_ERROR, "[Get][Attr] [%s] on input node [%s(%s)] failed",
-             ATTR_NAME_NEXT_ITERATION.c_str(), src_node->GetName().c_str(), src_node->GetType().c_str());
+      GELOGE(INTERNAL_ERROR, "[Get][Attr] [%s] on input node [%s(%s)] failed", ATTR_NAME_NEXT_ITERATION.c_str(),
+             src_node->GetName().c_str(), src_node->GetType().c_str());
       return INTERNAL_ERROR;
     }
 
     const auto it = stream_merge_op_nodes_.find(*node_name);
     if (it == stream_merge_op_nodes_.end()) {
-      GELOGE(INTERNAL_ERROR, "[Check][Param] [%s(%s)] expect StreamMerge[%s] not found",
-             node->GetName().c_str(), node->GetType().c_str(), (*node_name).c_str());
+      GELOGE(INTERNAL_ERROR, "[Check][Param] [%s(%s)] expect StreamMerge[%s] not found", node->GetName().c_str(),
+             node->GetType().c_str(), (*node_name).c_str());
       return INTERNAL_ERROR;
     }
 
     const auto &dst_node = it->second;
     GE_CHECK_NOTNULL(dst_node);
     NodeItem *dst_node_item = nullptr;
-    GE_CHK_STATUS_RET(GetOrCreateNodeItem(dst_node, dst_node_item),
-                      "[GetOrCreate][NodeItem] for [%s(%s)] failed",
+    GE_CHK_STATUS_RET(GetOrCreateNodeItem(dst_node, dst_node_item), "[GetOrCreate][NodeItem] for [%s(%s)] failed",
                       dst_node->GetName().c_str(), dst_node->GetType().c_str());
     // Set NextIteration Control to StreamMerge as Group 1.
     dst_node_item->SetMergeCtrl(&node_item, kHybridLoopIterationIdx);
@@ -2885,12 +2828,8 @@ Status HybridModelBuilder::CreateStreamActiveGroup(const NodePtr &node, NodeItem
     return SUCCESS;
   }
 
-  const auto IsEnterNode = [](const NodePtr &n) {
-    return kEnterOpTypes.count(n->GetType()) > 0U;
-  };
-  const auto IsIterationNode = [](const NodePtr &n) {
-    return kNextIterationOpTypes.count(n->GetType()) > 0U;
-  };
+  const auto IsEnterNode = [](const NodePtr &n) { return kEnterOpTypes.count(n->GetType()) > 0U; };
+  const auto IsIterationNode = [](const NodePtr &n) { return kNextIterationOpTypes.count(n->GetType()) > 0U; };
 
   if (std::any_of(ctrl_nodes.begin(), ctrl_nodes.end(), IsEnterNode)) {
     // Enter --> StreamActive --> StreamMerge
@@ -2916,8 +2855,7 @@ Status HybridModelBuilder::CreateStreamSwitchGroup(const NodePtr &node, NodeItem
   for (const auto &dst_node : node->GetOutControlNodes()) {
     GE_CHECK_NOTNULL(dst_node);
     NodeItem *dst_node_item = nullptr;
-    GE_CHK_STATUS_RET(GetOrCreateNodeItem(dst_node, dst_node_item),
-                      "[GetOrCreate][NodeItem] for [%s(%s)] failed",
+    GE_CHK_STATUS_RET(GetOrCreateNodeItem(dst_node, dst_node_item), "[GetOrCreate][NodeItem] for [%s(%s)] failed",
                       dst_node->GetName().c_str(), dst_node->GetType().c_str());
     node_item.SetCtrlSend(dst_node_item, kHybridStreamSwitchIdx);
   }
@@ -2942,8 +2880,7 @@ Status HybridModelBuilder::CreateSwitchGroup(const NodePtr &node, NodeItem &node
   for (const auto &dst_node : node->GetOutControlNodes()) {
     GE_CHECK_NOTNULL(dst_node);
     NodeItem *dst_node_item = nullptr;
-    GE_CHK_STATUS_RET(GetOrCreateNodeItem(dst_node, dst_node_item),
-                      "[GetOrCreate][NodeItem] [%s(%s)] failed",
+    GE_CHK_STATUS_RET(GetOrCreateNodeItem(dst_node, dst_node_item), "[GetOrCreate][NodeItem] [%s(%s)] failed",
                       dst_node->GetName().c_str(), dst_node->GetType().c_str());
     node_item.SetCtrlSend(dst_node_item, std::numeric_limits<uint32_t>::max());
   }
@@ -2954,10 +2891,9 @@ Status HybridModelBuilder::CreateSwitchGroup(const NodePtr &node, NodeItem &node
     for (const auto &dst_node : node->GetOutDataNodes()) {
       GE_CHECK_NOTNULL(dst_node);
       NodeItem *dst_node_item = nullptr;
-      GE_CHK_STATUS_RET(GetOrCreateNodeItem(dst_node, dst_node_item),
-                        "[GetOrCreate][NodeItem] [%s(%s)] failed",
+      GE_CHK_STATUS_RET(GetOrCreateNodeItem(dst_node, dst_node_item), "[GetOrCreate][NodeItem] [%s(%s)] failed",
                         dst_node->GetName().c_str(), dst_node->GetType().c_str());
-      node_item.SetCtrlSend(dst_node_item, i); // take switch data as ctrl.
+      node_item.SetCtrlSend(dst_node_item, i);  // take switch data as ctrl.
     }
   }
 
@@ -2997,14 +2933,10 @@ Status HybridModelBuilder::RecoverShapeConsistency(const ComputeGraph &root_grap
         const auto &peer_tensor_desc = peer_op_desc->MutableInputDesc(static_cast<uint32_t>(in_data_anchor->GetIdx()));
         GE_CHECK_NOTNULL(peer_tensor_desc);
         if (peer_tensor_desc->GetShape().IsUnknownShape()) {
-          GELOGW("Inconsistency detected, src_tensor = %s:%d, dst_tensor = %s:%d",
-                 op_desc->GetName().c_str(),
-                 output_index,
-                 peer_op_desc->GetName().c_str(),
-                 in_data_anchor->GetIdx());
+          GELOGW("Inconsistency detected, src_tensor = %s:%d, dst_tensor = %s:%d", op_desc->GetName().c_str(),
+                 output_index, peer_op_desc->GetName().c_str(), in_data_anchor->GetIdx());
           GELOGI("Update peer input shape from [%s] to [%s], origin shape from [%s] to [%s]",
-                 peer_tensor_desc->GetShape().ToString().c_str(),
-                 tensor_desc->GetShape().ToString().c_str(),
+                 peer_tensor_desc->GetShape().ToString().c_str(), tensor_desc->GetShape().ToString().c_str(),
                  peer_tensor_desc->GetOriginShape().ToString().c_str(),
                  tensor_desc->GetOriginShape().ToString().c_str());
           peer_tensor_desc->SetShape(tensor_desc->GetShape());

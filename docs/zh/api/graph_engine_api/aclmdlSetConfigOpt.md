@@ -100,4 +100,3 @@ aclError aclmdlSetConfigOpt(aclmdlConfigHandle *handle, aclmdlConfigAttr attr, c
 -   [aclmdlLoadFromMemWithMem](aclmdlLoadFromMemWithMem.md)接口
 -   [aclmdlLoadFromFileWithQ](aclmdlLoadFromFileWithQ.md)接口
 -   [aclmdlLoadFromMemWithQ](aclmdlLoadFromMemWithQ.md)接口
-

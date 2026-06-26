@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -73,10 +73,9 @@ Status SubgraphMultiDimsClonePass::Run(ComputeGraphPtr graph) {
     subgraph->InValid();
     subgraph->Swap(*branch);
     (void)branch->DelAttr(ATTR_NAME_SUBGRAPH_IS_MULTI_DIMS);
-    GE_CHK_STATUS_RET(CreateOriGraph(subgraph),
-                      "[Create][OriGraph] for graph:%s failed.", subgraph->GetName().c_str());
-    GE_CHK_STATUS_RET(CreateSubgraphs(graph, subgraph, branch),
-                      "[Create][Subgraphs] for graph:%s failed.", subgraph->GetName().c_str());
+    GE_CHK_STATUS_RET(CreateOriGraph(subgraph), "[Create][OriGraph] for graph:%s failed.", subgraph->GetName().c_str());
+    GE_CHK_STATUS_RET(CreateSubgraphs(graph, subgraph, branch), "[Create][Subgraphs] for graph:%s failed.",
+                      subgraph->GetName().c_str());
 
     subgraph->SetParentNode(parent_node);
     subgraph->SetParentGraph(graph);
@@ -131,22 +130,19 @@ Status SubgraphMultiDimsClonePass::MergeDataDynDims() {
 Status SubgraphMultiDimsClonePass::CreateOriGraph(const ComputeGraphPtr &subgraph) {
   GELOGD("CreateOriGraph start for subgraph[%s].", subgraph->GetName().c_str());
 
-  GE_CHK_STATUS_RET(CreateGetShapeNode(subgraph),
-                    "[Create][GetShapeNode] for graph:%s failed", subgraph->GetName().c_str());
-  GE_CHK_STATUS_RET(CreateConcatNode(subgraph),
-                    "[Create][ConcatNode] for graph:%s failed", subgraph->GetName().c_str());
-  GE_CHK_STATUS_RET(CreateIndexConstNode(subgraph),
-                    "[Create][IndexConstNode] failed, graph:%s", subgraph->GetName().c_str());
-  GE_CHK_STATUS_RET(CreateMapIndexNode(subgraph),
-                    "[Create][GetShapeNode] for graph:%s failed", subgraph->GetName().c_str());
-  GE_CHK_STATUS_RET(CreateCaseNode(subgraph),
-                    "[Create][CaseNode] for graph:%s failed", subgraph->GetName().c_str());
-  GE_CHK_STATUS_RET(CreateInputNode(subgraph),
-                    "[Create][InputNode] for graph:%s failed", subgraph->GetName().c_str());
-  GE_CHK_STATUS_RET(CreateConstNode(subgraph),
-                    "[Create][ConstNode] for graph:%s failed", subgraph->GetName().c_str());
-  GE_CHK_STATUS_RET(CreateOutputNode(subgraph),
-                    "[Create][OutputNode] for graph:%s failed", subgraph->GetName().c_str());
+  GE_CHK_STATUS_RET(CreateGetShapeNode(subgraph), "[Create][GetShapeNode] for graph:%s failed",
+                    subgraph->GetName().c_str());
+  GE_CHK_STATUS_RET(CreateConcatNode(subgraph), "[Create][ConcatNode] for graph:%s failed",
+                    subgraph->GetName().c_str());
+  GE_CHK_STATUS_RET(CreateIndexConstNode(subgraph), "[Create][IndexConstNode] failed, graph:%s",
+                    subgraph->GetName().c_str());
+  GE_CHK_STATUS_RET(CreateMapIndexNode(subgraph), "[Create][GetShapeNode] for graph:%s failed",
+                    subgraph->GetName().c_str());
+  GE_CHK_STATUS_RET(CreateCaseNode(subgraph), "[Create][CaseNode] for graph:%s failed", subgraph->GetName().c_str());
+  GE_CHK_STATUS_RET(CreateInputNode(subgraph), "[Create][InputNode] for graph:%s failed", subgraph->GetName().c_str());
+  GE_CHK_STATUS_RET(CreateConstNode(subgraph), "[Create][ConstNode] for graph:%s failed", subgraph->GetName().c_str());
+  GE_CHK_STATUS_RET(CreateOutputNode(subgraph), "[Create][OutputNode] for graph:%s failed",
+                    subgraph->GetName().c_str());
 
   GELOGD("CreateOriGraph end for subgraph[%s].", subgraph->GetName().c_str());
   return SUCCESS;
@@ -171,7 +167,7 @@ Status SubgraphMultiDimsClonePass::CollectIoNodes(const ComputeGraphPtr &subgrap
 
   if (all_data_nodes_.empty()) {
     REPORT_INNER_ERR_MSG("E19999", "Data node num is 0 or output node num != 1, graph:%s, check invalid",
-                       subgraph->GetName().c_str());
+                         subgraph->GetName().c_str());
     GELOGE(FAILED, "[Check][Param] Data node num is 0 or output node num != 1, graph:%s", subgraph->GetName().c_str());
     return FAILED;
   }
@@ -230,8 +226,8 @@ Status SubgraphMultiDimsClonePass::CreateConcatNode(const ComputeGraphPtr &subgr
 
   if (GraphUtils::AddEdge(const_node->GetOutDataAnchor(0), concat_node_->GetInDataAnchor(0U)) != GRAPH_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Add edge between op:%s(%s)(index:0) and op:%s(%s)(index:1) failed",
-                      const_node_->GetName().c_str(), const_node_->GetType().c_str(), concat_node_->GetName().c_str(),
-                      concat_node_->GetType().c_str());
+                         const_node_->GetName().c_str(), const_node_->GetType().c_str(),
+                         concat_node_->GetName().c_str(), concat_node_->GetType().c_str());
     GELOGE(FAILED, "[Add][Edge] between node:%s to concat_node:%s", const_node_->GetName().c_str(),
            concat_node_->GetName().c_str());
     return FAILED;
@@ -242,8 +238,8 @@ Status SubgraphMultiDimsClonePass::CreateConcatNode(const ComputeGraphPtr &subgr
     if (GraphUtils::AddEdge(get_shape_node->GetOutDataAnchor(0), concat_node_->GetInDataAnchor(node_idx)) !=
         GRAPH_SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "Add edge between op:%s(%s)(index:0) and op:%s(%s)(index:0) failed",
-                        get_shape_node->GetName().c_str(), get_shape_node->GetType().c_str(),
-                        concat_node_->GetName().c_str(), concat_node_->GetType().c_str());
+                           get_shape_node->GetName().c_str(), get_shape_node->GetType().c_str(),
+                           concat_node_->GetName().c_str(), concat_node_->GetType().c_str());
       GELOGE(FAILED, "[Add][Edge] between op:%s(%s)(index:0) and op:%s(%s)(index:0) failed",
              get_shape_node->GetName().c_str(), get_shape_node->GetType().c_str(), concat_node_->GetName().c_str(),
              concat_node_->GetType().c_str());
@@ -265,8 +261,8 @@ Status SubgraphMultiDimsClonePass::CreateMapIndexNode(const ComputeGraphPtr &sub
   const auto &const_op_desc = const_node_->GetOpDesc();
   GE_CHECK_NOTNULL(const_op_desc);
   op_builder.AddInput("x", concat_op_desc->GetOutputDesc(0U))
-            .AddInput("data_seq", const_op_desc->GetOutputDesc(0U))
-            .AddOutput("y", GeTensorDesc(GeShape(), FORMAT_ND, DT_INT32));
+      .AddInput("data_seq", const_op_desc->GetOutputDesc(0U))
+      .AddOutput("y", GeTensorDesc(GeShape(), FORMAT_ND, DT_INT32));
 
   const OpDescPtr op_desc = op_builder.Build();
   GE_CHECK_NOTNULL(op_desc);
@@ -275,21 +271,20 @@ Status SubgraphMultiDimsClonePass::CreateMapIndexNode(const ComputeGraphPtr &sub
 
   map_index_node_ = subgraph->AddNode(op_desc);
   GE_CHECK_NOTNULL(map_index_node_);
-  if (GraphUtils::AddEdge(concat_node_->GetOutDataAnchor(0), map_index_node_->GetInDataAnchor(0)) !=
-      GRAPH_SUCCESS) {
+  if (GraphUtils::AddEdge(concat_node_->GetOutDataAnchor(0), map_index_node_->GetInDataAnchor(0)) != GRAPH_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Add edge between op:%s(%s)(index:0) and op:%s(%s)(index:0) failed",
-                      concat_node_->GetName().c_str(), concat_node_->GetType().c_str(),
-                      map_index_node_->GetName().c_str(), map_index_node_->GetType().c_str());
+                         concat_node_->GetName().c_str(), concat_node_->GetType().c_str(),
+                         map_index_node_->GetName().c_str(), map_index_node_->GetType().c_str());
     GELOGE(FAILED, "[Add][Edge] between op:%s(%s)(index:0) and op:%s(%s)(index:0) failed",
-           concat_node_->GetName().c_str(), concat_node_->GetType().c_str(),
-           map_index_node_->GetName().c_str(), map_index_node_->GetType().c_str());
+           concat_node_->GetName().c_str(), concat_node_->GetType().c_str(), map_index_node_->GetName().c_str(),
+           map_index_node_->GetType().c_str());
     return FAILED;
   }
 
   if (GraphUtils::AddEdge(const_node_->GetOutDataAnchor(0), map_index_node_->GetInDataAnchor(1)) != GRAPH_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Add edge between op:%s(%s)(index:0) and op:%s(%s)(index:1) failed",
-                      const_node_->GetName().c_str(), const_node_->GetType().c_str(),
-                      map_index_node_->GetName().c_str(), map_index_node_->GetType().c_str());
+                         const_node_->GetName().c_str(), const_node_->GetType().c_str(),
+                         map_index_node_->GetName().c_str(), map_index_node_->GetType().c_str());
     GELOGE(FAILED, "[Add][Edge] between node:%s to MapIndex:%s", const_node_->GetName().c_str(),
            map_index_node_->GetName().c_str());
     return FAILED;
@@ -316,11 +311,11 @@ Status SubgraphMultiDimsClonePass::CreateCaseNode(const ComputeGraphPtr &subgrap
 
   if (GraphUtils::AddEdge(map_index_node_->GetOutDataAnchor(0), case_node_->GetInDataAnchor(0)) != GRAPH_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Add edge between op:%s(%s)(index:0) and op:%s(%s)(index:0) failed",
-                      map_index_node_->GetName().c_str(), map_index_node_->GetType().c_str(),
-                      case_node_->GetName().c_str(), case_node_->GetType().c_str());
+                         map_index_node_->GetName().c_str(), map_index_node_->GetType().c_str(),
+                         case_node_->GetName().c_str(), case_node_->GetType().c_str());
     GELOGE(FAILED, "[Add][Edge] between op:%s(%s)(index:0) and op:%s(%s)(index:0) failed",
-           map_index_node_->GetName().c_str(), map_index_node_->GetType().c_str(),
-           case_node_->GetName().c_str(), case_node_->GetType().c_str());
+           map_index_node_->GetName().c_str(), map_index_node_->GetType().c_str(), case_node_->GetName().c_str(),
+           case_node_->GetType().c_str());
     return FAILED;
   }
 
@@ -350,8 +345,7 @@ Status SubgraphMultiDimsClonePass::CreateSubgraphs(const ComputeGraphPtr &root_g
     ComputeGraphPtr new_subgraph = GraphUtils::CloneGraph(branch, postfix, input_nodes, output_nodes);
     GE_IF_BOOL_EXEC(new_subgraph == nullptr,
                     REPORT_INNER_ERR_MSG("E19999", "Clone graph from graph:%s failed", branch->GetName().c_str());
-                    GELOGE(FAILED, "[Clone][Graph] from graph:%s failed", branch->GetName().c_str());
-                        return FAILED);
+                    GELOGE(FAILED, "[Clone][Graph] from graph:%s failed", branch->GetName().c_str()); return FAILED);
     const std::string key_name = root_graph->GetName() + "_Subgraph_Multi_Dims_Branch_" + std::to_string(i);
     new_subgraph->SetName(key_name);
     new_subgraph->SetParentNode(case_node_);
@@ -362,11 +356,10 @@ Status SubgraphMultiDimsClonePass::CreateSubgraphs(const ComputeGraphPtr &root_g
     (void)case_desc->AddSubgraphName(key_name);
     (void)case_desc->SetSubgraphInstanceName(i, new_subgraph->GetName());
 
-    GELOGD("The %s has %zu input, %zu output.",
-           new_subgraph->GetName().c_str(), input_nodes.size(), output_nodes.size());
+    GELOGD("The %s has %zu input, %zu output.", new_subgraph->GetName().c_str(), input_nodes.size(),
+           output_nodes.size());
     for (const auto &data : input_nodes) {
-      GE_CHK_STATUS_RET(UpdateSubgraphData(data, i),
-                        "[Update][SubgraphData] in subgraph:%s failed, node:%s, index:%zu",
+      GE_CHK_STATUS_RET(UpdateSubgraphData(data, i), "[Update][SubgraphData] in subgraph:%s failed, node:%s, index:%zu",
                         new_subgraph->GetName().c_str(), data->GetName().c_str(), i);
     }
   }
@@ -401,26 +394,26 @@ Status SubgraphMultiDimsClonePass::CreateIndexConstNode(const ComputeGraphPtr &s
   (void)tensor.SetData(reinterpret_cast<uint8_t *>(addr.get()), count * sizeof(int32_t));
   if (!AttrUtils::SetTensor(const_desc, ATTR_NAME_WEIGHTS, tensor)) {
     REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s to op:%s(%s) failed", ATTR_NAME_WEIGHTS.c_str(),
-                      const_desc->GetName().c_str(), const_desc->GetType().c_str());
+                         const_desc->GetName().c_str(), const_desc->GetType().c_str());
     GELOGE(OUT_OF_MEMORY, "[Set][Attr] %s to op:%s(%s) failed", ATTR_NAME_WEIGHTS.c_str(),
            const_desc->GetName().c_str(), const_desc->GetType().c_str());
     return FAILED;
   }
 
   if (const_desc->AddOutputDesc(const_tensor) != GRAPH_SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Add output desc to op:%s(%s) failed.",
-                      const_desc->GetName().c_str(), const_desc->GetType().c_str());
-    GELOGE(OUT_OF_MEMORY, "[Add][OutputDesc] to op:%s(%s) failed",
-           const_desc->GetName().c_str(), const_desc->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Add output desc to op:%s(%s) failed.", const_desc->GetName().c_str(),
+                         const_desc->GetType().c_str());
+    GELOGE(OUT_OF_MEMORY, "[Add][OutputDesc] to op:%s(%s) failed", const_desc->GetName().c_str(),
+           const_desc->GetType().c_str());
     return FAILED;
   }
 
   const_node_ = subgraph->AddNode(const_desc);
   if (const_node_ == nullptr) {
-    REPORT_INNER_ERR_MSG("E19999", "Add node:%s(%s) to graph:%s failed",
-                      const_desc->GetName().c_str(), const_desc->GetType().c_str(), subgraph->GetName().c_str());
-    GELOGE(OUT_OF_MEMORY, "[Add][Node] %s(%s) to graph:%s failed",
-           const_desc->GetName().c_str(), const_desc->GetType().c_str(), subgraph->GetName().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Add node:%s(%s) to graph:%s failed", const_desc->GetName().c_str(),
+                         const_desc->GetType().c_str(), subgraph->GetName().c_str());
+    GELOGE(OUT_OF_MEMORY, "[Add][Node] %s(%s) to graph:%s failed", const_desc->GetName().c_str(),
+           const_desc->GetType().c_str(), subgraph->GetName().c_str());
     return OUT_OF_MEMORY;
   }
 
@@ -440,10 +433,10 @@ Status SubgraphMultiDimsClonePass::CreateInputNode(const ComputeGraphPtr &subgra
     GE_CHECK_NOTNULL(data_desc);
 
     if (GraphUtils::CopyTensorAttrs(data_desc, node) != GRAPH_SUCCESS) {
-      REPORT_INNER_ERR_MSG("E19999", "Copy tensor attr from op:%s(%s) failed",
-                        node->GetName().c_str(), node->GetType().c_str());
-      GELOGE(OUT_OF_MEMORY, "[Copy][TensorAttrs] from op:%s(%s) failed",
-             node->GetName().c_str(), node->GetType().c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Copy tensor attr from op:%s(%s) failed", node->GetName().c_str(),
+                           node->GetType().c_str());
+      GELOGE(OUT_OF_MEMORY, "[Copy][TensorAttrs] from op:%s(%s) failed", node->GetName().c_str(),
+             node->GetType().c_str());
       return FAILED;
     }
 
@@ -455,11 +448,10 @@ Status SubgraphMultiDimsClonePass::CreateInputNode(const ComputeGraphPtr &subgra
     if (GraphUtils::AddEdge(data->GetOutDataAnchor(0), case_node_->GetInDataAnchor(case_input_index)) !=
         GRAPH_SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "Add edge between op:%s(%s)(index:0) and op:%s(%s)(index:%zu) failed",
-                        data->GetName().c_str(), data->GetType().c_str(),
-                        case_node_->GetName().c_str(), case_node_->GetType().c_str(), case_input_index);
-      GELOGE(FAILED, "[Add][Edge] between op:%s(%s)(index:0) and op:%s(%s)(index:%zu) failed",
-             data->GetName().c_str(), data->GetType().c_str(),
-             case_node_->GetName().c_str(), case_node_->GetType().c_str(), case_input_index);
+                           data->GetName().c_str(), data->GetType().c_str(), case_node_->GetName().c_str(),
+                           case_node_->GetType().c_str(), case_input_index);
+      GELOGE(FAILED, "[Add][Edge] between op:%s(%s)(index:0) and op:%s(%s)(index:%zu) failed", data->GetName().c_str(),
+             data->GetType().c_str(), case_node_->GetName().c_str(), case_node_->GetType().c_str(), case_input_index);
       return FAILED;
     }
 
@@ -470,9 +462,9 @@ Status SubgraphMultiDimsClonePass::CreateInputNode(const ComputeGraphPtr &subgra
       if (GraphUtils::AddEdge(data->GetOutDataAnchor(0), get_shape_node_[get_shape_input_index]->GetInDataAnchor(0)) !=
           GRAPH_SUCCESS) {
         REPORT_INNER_ERR_MSG("E19999", "Add edge between op:%s(%s)(index:0) and op:%s(%s)(index:%zu) failed",
-                          data->GetName().c_str(), data->GetType().c_str(),
-                          get_shape_node_[get_shape_input_index]->GetName().c_str(),
-                          get_shape_node_[get_shape_input_index]->GetType().c_str(), get_shape_input_index);
+                             data->GetName().c_str(), data->GetType().c_str(),
+                             get_shape_node_[get_shape_input_index]->GetName().c_str(),
+                             get_shape_node_[get_shape_input_index]->GetType().c_str(), get_shape_input_index);
         GELOGE(FAILED, "[Add][Edge] between op:%s(%s)(index:0) and op:%s(%s)(index:%zu) failed",
                data->GetName().c_str(), data->GetType().c_str(),
                get_shape_node_[get_shape_input_index]->GetName().c_str(),
@@ -502,24 +494,24 @@ Status SubgraphMultiDimsClonePass::CreateConstNode(const ComputeGraphPtr &subgra
 
     const_desc->SetName(node->GetName());
     if (GraphUtils::CopyTensorAttrs(const_desc, node) != GRAPH_SUCCESS) {
-      REPORT_INNER_ERR_MSG("E19999", "Copy tensor attr from op:%s(%s) failed",
-                        node->GetName().c_str(), node->GetType().c_str());
-      GELOGE(OUT_OF_MEMORY, "[Copy][TensorAttrs] from op:%s(%s) failed",
-             node->GetName().c_str(), node->GetType().c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Copy tensor attr from op:%s(%s) failed", node->GetName().c_str(),
+                           node->GetType().c_str());
+      GELOGE(OUT_OF_MEMORY, "[Copy][TensorAttrs] from op:%s(%s) failed", node->GetName().c_str(),
+             node->GetType().c_str());
       return FAILED;
     }
 
     const NodePtr &const_node = subgraph->AddNode(const_desc);
     GE_CHECK_NOTNULL(const_node);
 
-    if (GraphUtils::AddEdge(const_node->GetOutDataAnchor(0),
-                            case_node_->GetInDataAnchor(arg_index + i)) != GRAPH_SUCCESS) {
+    if (GraphUtils::AddEdge(const_node->GetOutDataAnchor(0), case_node_->GetInDataAnchor(arg_index + i)) !=
+        GRAPH_SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "Add edge between op:%s(%s)(index:0) and op:%s(%s)(index:%zu) failed",
-                        const_node->GetName().c_str(), const_node->GetType().c_str(),
-                        case_node_->GetName().c_str(), case_node_->GetType().c_str(), arg_index + i);
+                           const_node->GetName().c_str(), const_node->GetType().c_str(), case_node_->GetName().c_str(),
+                           case_node_->GetType().c_str(), arg_index + i);
       GELOGE(FAILED, "[Add][Edge] between op:%s(%s)(index:0) and op:%s(%s)(index:%zu) failed",
-             const_node->GetName().c_str(), const_node->GetType().c_str(),
-             case_node_->GetName().c_str(), case_node_->GetType().c_str(), arg_index + i);
+             const_node->GetName().c_str(), const_node->GetType().c_str(), case_node_->GetName().c_str(),
+             case_node_->GetType().c_str(), arg_index + i);
       return FAILED;
     }
 
@@ -528,7 +520,7 @@ Status SubgraphMultiDimsClonePass::CreateConstNode(const ComputeGraphPtr &subgra
       continue;
     }
     ge::OpDescUtilsEx::SetType(old_desc, DATA);
-    old_desc->AddInferFunc(nullptr);  // Delete infer_func_
+    old_desc->AddInferFunc(nullptr);             // Delete infer_func_
     (void)old_desc->DelAttr(ATTR_NAME_WEIGHTS);  // Delete weight.
     const auto &owner_graph = node->GetOwnerComputeGraph();
     GE_CHECK_NOTNULL(owner_graph, ", Op:%s owner compute graph is null", old_desc->GetName().c_str());
@@ -553,10 +545,10 @@ Status SubgraphMultiDimsClonePass::CreateOutputNode(const ComputeGraphPtr &subgr
   GE_CHECK_NOTNULL(output_desc);
 
   if (GraphUtils::CopyTensorAttrs(output_desc, output_node_) != GRAPH_SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Copy tensor attr from op:%s(%s) failed",
-                      output_node_->GetName().c_str(), output_node_->GetType().c_str());
-    GELOGE(OUT_OF_MEMORY, "[Copy][TensorAttrs] from op:%s(%s) failed",
-           output_node_->GetName().c_str(), output_node_->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Copy tensor attr from op:%s(%s) failed", output_node_->GetName().c_str(),
+                         output_node_->GetType().c_str());
+    GELOGE(OUT_OF_MEMORY, "[Copy][TensorAttrs] from op:%s(%s) failed", output_node_->GetName().c_str(),
+           output_node_->GetType().c_str());
     return FAILED;
   }
 
@@ -572,11 +564,11 @@ Status SubgraphMultiDimsClonePass::CreateOutputNode(const ComputeGraphPtr &subgr
   for (size_t i = 0U; i < case_node_->GetAllOutDataAnchorsSize(); ++i) {
     if (GraphUtils::AddEdge(case_node_->GetOutDataAnchor(i), node->GetInDataAnchor(i)) != GRAPH_SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "Add edge between op:%s(%s)(index:%zu) and op:%s(%s)(index:%zu) failed",
-                        case_node_->GetName().c_str(), case_node_->GetType().c_str(), i,
-                        node->GetName().c_str(), node->GetType().c_str(), i);
+                           case_node_->GetName().c_str(), case_node_->GetType().c_str(), i, node->GetName().c_str(),
+                           node->GetType().c_str(), i);
       GELOGE(FAILED, "[Add][Edge] between op:%s(%s)(index:%zu) and op:%s(%s)(index:%zu) failed",
-             case_node_->GetName().c_str(), case_node_->GetType().c_str(), i,
-             node->GetName().c_str(), node->GetType().c_str(), i);
+             case_node_->GetName().c_str(), case_node_->GetType().c_str(), i, node->GetName().c_str(),
+             node->GetType().c_str(), i);
       return FAILED;
     }
   }
@@ -620,8 +612,8 @@ Status SubgraphMultiDimsClonePass::UpdateSubgraphData(const NodePtr &data, size_
   }
   input_desc->SetShape(GeShape(actual_shape));
   input_desc->SetOriginShape(GeShape(actual_shape));
-  GELOGD("Update data[%s] shape[%s] by grade[%zu]",
-         data->GetName().c_str(), GeShape(actual_shape).ToString().c_str(), grade_index);
+  GELOGD("Update data[%s] shape[%s] by grade[%zu]", data->GetName().c_str(), GeShape(actual_shape).ToString().c_str(),
+         grade_index);
   return SUCCESS;
 }
 

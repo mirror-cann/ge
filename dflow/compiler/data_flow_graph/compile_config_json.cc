@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -114,7 +114,7 @@ Status CompileConfigJson::ReadToolchainFromJsonFile(const std::string &file_path
     std::map<std::string, std::vector<std::map<std::string, std::string>>> temp_map = json_buff;
     for (auto &compiler_info : temp_map[kFunctionPpConfigOptionCompiler]) {
       toolchain_map[compiler_info[kFunctionPpConfigOptionCompilerResourceType]] =
-        compiler_info[kFunctionPpConfigOptionCompilerToolchain];
+          compiler_info[kFunctionPpConfigOptionCompilerToolchain];
     }
   } catch (const nlohmann::json::exception &e) {
     GELOGE(FAILED, "Failed to read toolchain config from json[%s], err msg:%s", json_buff.dump().c_str(), e.what());
@@ -156,19 +156,21 @@ Status CompileConfigJson::CheckFunctionPpConfigJsonOptional(const nlohmann::json
   }
   if (json_buff.contains(kFunctionPpConfigOptionRunningResourcesInfo)) {
     GE_CHK_BOOL_RET_STATUS(json_buff[kFunctionPpConfigOptionRunningResourcesInfo].is_array(), FAILED,
-        "The config option[%s] value type should be list.", kFunctionPpConfigOptionRunningResourcesInfo);
+                           "The config option[%s] value type should be list.",
+                           kFunctionPpConfigOptionRunningResourcesInfo);
     GE_CHK_BOOL_RET_STATUS(json_buff[kFunctionPpConfigOptionRunningResourcesInfo].size() > 0, FAILED,
-        "The config option[%s] value should be at least one info.", kFunctionPpConfigOptionRunningResourcesInfo);
+                           "The config option[%s] value should be at least one info.",
+                           kFunctionPpConfigOptionRunningResourcesInfo);
     GE_CHK_STATUS_RET(CheckFunctionPpRunningResourcesInfo(json_buff[kFunctionPpConfigOptionRunningResourcesInfo]),
                       "Check function pp running resource info failed.");
   }
   if (json_buff.contains(kFunctionPpConfigOptionBufCfg)) {
     GE_CHK_BOOL_RET_STATUS(json_buff[kFunctionPpConfigOptionBufCfg].is_array(), FAILED,
-        "The config option[%s] value type should be list.", kFunctionPpConfigOptionBufCfg);
+                           "The config option[%s] value type should be list.", kFunctionPpConfigOptionBufCfg);
     GE_CHK_BOOL_RET_STATUS(json_buff[kFunctionPpConfigOptionBufCfg].size() > 0, FAILED,
-        "The config option[%s] value should be at least one info.", kFunctionPpConfigOptionBufCfg);
+                           "The config option[%s] value should be at least one info.", kFunctionPpConfigOptionBufCfg);
     GE_CHK_STATUS_RET(CheckFunctionPpBufCfg(json_buff[kFunctionPpConfigOptionBufCfg]),
-        "Check function pp buf cfg failed.");
+                      "Check function pp buf cfg failed.");
   }
   return SUCCESS;
 }
@@ -214,26 +216,34 @@ Status CompileConfigJson::CheckFunctionPpRunningResourcesInfo(const nlohmann::js
 
 Status CompileConfigJson::CheckFunctionPpBufCfg(const nlohmann::json &json_buff) {
   for (size_t i = 0; i < json_buff.size(); ++i) {
-    GE_CHK_BOOL_RET_STATUS(json_buff[i].contains(kFunctionPpConfigOptionBufCfgTotalSize), FAILED, "Failed to get "
-        "config option[%s][%zu][%s].", kFunctionPpConfigOptionBufCfg, i, kFunctionPpConfigOptionBufCfgTotalSize);
+    GE_CHK_BOOL_RET_STATUS(json_buff[i].contains(kFunctionPpConfigOptionBufCfgTotalSize), FAILED,
+                           "Failed to get "
+                           "config option[%s][%zu][%s].",
+                           kFunctionPpConfigOptionBufCfg, i, kFunctionPpConfigOptionBufCfgTotalSize);
     GE_CHK_BOOL_RET_STATUS(json_buff[i][kFunctionPpConfigOptionBufCfgTotalSize].is_number_unsigned(), FAILED,
-        "The config option[%s][%zu][%s] value type should be unsigned int.",
-        kFunctionPpConfigOptionBufCfg, i, kFunctionPpConfigOptionBufCfgTotalSize);
-    GE_CHK_BOOL_RET_STATUS(json_buff[i].contains(kFunctionPpConfigOptionBufCfgBlkSize), FAILED, "Failed to get "
-        "config option[%s][%zu][%s].", kFunctionPpConfigOptionBufCfg, i, kFunctionPpConfigOptionBufCfgBlkSize);
+                           "The config option[%s][%zu][%s] value type should be unsigned int.",
+                           kFunctionPpConfigOptionBufCfg, i, kFunctionPpConfigOptionBufCfgTotalSize);
+    GE_CHK_BOOL_RET_STATUS(json_buff[i].contains(kFunctionPpConfigOptionBufCfgBlkSize), FAILED,
+                           "Failed to get "
+                           "config option[%s][%zu][%s].",
+                           kFunctionPpConfigOptionBufCfg, i, kFunctionPpConfigOptionBufCfgBlkSize);
     GE_CHK_BOOL_RET_STATUS(json_buff[i][kFunctionPpConfigOptionBufCfgBlkSize].is_number_unsigned(), FAILED,
-        "The config option[%s][%zu][%s] value type should be unsigned int.",
-        kFunctionPpConfigOptionBufCfg, i, kFunctionPpConfigOptionBufCfgBlkSize);
-    GE_CHK_BOOL_RET_STATUS(json_buff[i].contains(kFunctionPpConfigOptionBufCfgMaxBufSize), FAILED, "Failed to get "
-        "config option[%s][%zu][%s].", kFunctionPpConfigOptionBufCfg, i, kFunctionPpConfigOptionBufCfgMaxBufSize);
+                           "The config option[%s][%zu][%s] value type should be unsigned int.",
+                           kFunctionPpConfigOptionBufCfg, i, kFunctionPpConfigOptionBufCfgBlkSize);
+    GE_CHK_BOOL_RET_STATUS(json_buff[i].contains(kFunctionPpConfigOptionBufCfgMaxBufSize), FAILED,
+                           "Failed to get "
+                           "config option[%s][%zu][%s].",
+                           kFunctionPpConfigOptionBufCfg, i, kFunctionPpConfigOptionBufCfgMaxBufSize);
     GE_CHK_BOOL_RET_STATUS(json_buff[i][kFunctionPpConfigOptionBufCfgMaxBufSize].is_number_unsigned(), FAILED,
-        "The config option[%s][%zu][%s] value type should be unsigned int.",
-        kFunctionPpConfigOptionBufCfg, i, kFunctionPpConfigOptionBufCfgMaxBufSize);
-    GE_CHK_BOOL_RET_STATUS(json_buff[i].contains(kFunctionPpConfigOptionBufCfgPageType), FAILED, "Failed to get "
-        "config option[%s][%zu][%s].", kFunctionPpConfigOptionBufCfg, i, kFunctionPpConfigOptionBufCfgPageType);
+                           "The config option[%s][%zu][%s] value type should be unsigned int.",
+                           kFunctionPpConfigOptionBufCfg, i, kFunctionPpConfigOptionBufCfgMaxBufSize);
+    GE_CHK_BOOL_RET_STATUS(json_buff[i].contains(kFunctionPpConfigOptionBufCfgPageType), FAILED,
+                           "Failed to get "
+                           "config option[%s][%zu][%s].",
+                           kFunctionPpConfigOptionBufCfg, i, kFunctionPpConfigOptionBufCfgPageType);
     GE_CHK_BOOL_RET_STATUS(json_buff[i][kFunctionPpConfigOptionBufCfgPageType].is_string(), FAILED,
-        "The config option[%s][%zu][%s] value type should be string.",
-        kFunctionPpConfigOptionBufCfg, i, kFunctionPpConfigOptionBufCfgPageType);
+                           "The config option[%s][%zu][%s] value type should be string.", kFunctionPpConfigOptionBufCfg,
+                           i, kFunctionPpConfigOptionBufCfgPageType);
   }
   return SUCCESS;
 }
@@ -305,8 +315,7 @@ Status CompileConfigJson::ReadCompileConfigJsonFile(const std::string &file_path
   return SUCCESS;
 }
 
-Status CompileConfigJson::ReadDeployInfoFromJsonFile(const std::string &file_path,
-                                                     DeployConfigInfo &deploy_conf) {
+Status CompileConfigJson::ReadDeployInfoFromJsonFile(const std::string &file_path, DeployConfigInfo &deploy_conf) {
   std::ifstream file_stream(file_path);
   GE_CHK_BOOL_RET_STATUS(file_stream.is_open(), FAILED, "Failed to open deploy config file[%s].", file_path.c_str());
   nlohmann::json json_buff;

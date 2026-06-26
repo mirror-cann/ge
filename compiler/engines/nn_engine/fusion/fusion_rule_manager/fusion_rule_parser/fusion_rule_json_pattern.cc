@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -42,7 +42,7 @@ bool CheckNodeSupported(const vector<string> &types) {
   FE_LOGD("Can't find op type:[%s] in OpKernelInfoStore.", oss.str().c_str());
   return false;
 }
-} // namespace
+}  // namespace
 
 Status FusionRuleJsonPattern::ParseToJsonPattern(const nlohmann::json &json_object) {
   FE_LOGD("Start parsing fusion rule.");
@@ -97,9 +97,8 @@ Status FusionRuleJsonPattern::ParseToJsonPattern(const nlohmann::json &json_obje
 Status FusionRuleJsonPattern::LoadJson(const nlohmann::json &json_object,
                                        FusionRuleJsonStruct &fusion_rule_json_struct) {
   if (!json_object.is_object()) {
-    REPORT_FE_ERROR(
-        "[GraphOpt][FusionRuleInit][LdJson] Single fusion rule json item should be object, actually is %s",
-        GetJsonType(json_object).c_str());
+    REPORT_FE_ERROR("[GraphOpt][FusionRuleInit][LdJson] Single fusion rule json item should be object, actually is %s",
+                    GetJsonType(json_object).c_str());
     return ILLEGAL_JSON;
   }
 

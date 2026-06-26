@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -40,74 +40,57 @@ constexpr int64_t kHaxis = 3;
 constexpr int64_t kWaxis = 4;
 const int64_t kDivision = 4;
 using AttrValueMap = google::protobuf::Map<string, aicpuops::AttrValue>;
-ge::Status SetValueTypeString(const ge::OpDescPtr &op_desc_ptr,
-                              const std::string &attr_name,
+ge::Status SetValueTypeString(const ge::OpDescPtr &op_desc_ptr, const std::string &attr_name,
                               aicpuops::AttrValue &attr_value) {
   const string *string_value = ge::AttrUtils::GetStr(op_desc_ptr, attr_name);
-  CHECK_RES_BOOL((string_value != nullptr),
-                 ErrorCode::DATA_TYPE_UNDEFILED,
-                 AICPU_REPORT_INNER_ERR_MSG(
-                     "Call ge::AttrUtils::GetStr function failed to get"
-                     " attr[%s], op[%s].",
-                     attr_name.c_str(), op_desc_ptr->GetName().c_str()))
+  CHECK_RES_BOOL((string_value != nullptr), ErrorCode::DATA_TYPE_UNDEFILED,
+                 AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::GetStr function failed to get"
+                                            " attr[%s], op[%s].",
+                                            attr_name.c_str(), op_desc_ptr->GetName().c_str()))
 
   attr_value.set_s(*string_value);
   return ge::SUCCESS;
 }
 
-ge::Status SetValueTypeFloat(const ge::OpDescPtr &op_desc_ptr,
-                             const std::string &attr_name,
+ge::Status SetValueTypeFloat(const ge::OpDescPtr &op_desc_ptr, const std::string &attr_name,
                              aicpuops::AttrValue &attr_value) {
   float float_value = 0.0;
-  CHECK_RES_BOOL(ge::AttrUtils::GetFloat(op_desc_ptr, attr_name, float_value),
-                 ErrorCode::DATA_TYPE_UNDEFILED,
-                 AICPU_REPORT_INNER_ERR_MSG(
-                     "Call ge::AttrUtils::GetFloat function failed to get"
-                     " attr[%s], op[%s].",
-                     attr_name.c_str(), op_desc_ptr->GetName().c_str()))
+  CHECK_RES_BOOL(ge::AttrUtils::GetFloat(op_desc_ptr, attr_name, float_value), ErrorCode::DATA_TYPE_UNDEFILED,
+                 AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::GetFloat function failed to get"
+                                            " attr[%s], op[%s].",
+                                            attr_name.c_str(), op_desc_ptr->GetName().c_str()))
   attr_value.set_f(float_value);
   return ge::SUCCESS;
 }
 
-ge::Status SetValueTypeBool(const ge::OpDescPtr &op_desc_ptr,
-                            const std::string &attr_name,
+ge::Status SetValueTypeBool(const ge::OpDescPtr &op_desc_ptr, const std::string &attr_name,
                             aicpuops::AttrValue &attr_value) {
   bool bool_value = false;
-  CHECK_RES_BOOL(ge::AttrUtils::GetBool(op_desc_ptr, attr_name, bool_value),
-                 ErrorCode::DATA_TYPE_UNDEFILED,
-                 AICPU_REPORT_INNER_ERR_MSG(
-                     "Call ge::AttrUtils::GetBool function failed to get"
-                     " attr[%s], op[%s].",
-                     attr_name.c_str(), op_desc_ptr->GetName().c_str()))
+  CHECK_RES_BOOL(ge::AttrUtils::GetBool(op_desc_ptr, attr_name, bool_value), ErrorCode::DATA_TYPE_UNDEFILED,
+                 AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::GetBool function failed to get"
+                                            " attr[%s], op[%s].",
+                                            attr_name.c_str(), op_desc_ptr->GetName().c_str()))
   attr_value.set_b(bool_value);
   return ge::SUCCESS;
 }
 
-ge::Status SetValueTypeInt(const ge::OpDescPtr &op_desc_ptr,
-                           const string &attr_name,
-                           aicpuops::AttrValue &attr_value) {
+ge::Status SetValueTypeInt(const ge::OpDescPtr &op_desc_ptr, const string &attr_name, aicpuops::AttrValue &attr_value) {
   int64_t int_value = 0;
-  CHECK_RES_BOOL(ge::AttrUtils::GetInt(op_desc_ptr, attr_name, int_value),
-                 ErrorCode::DATA_TYPE_UNDEFILED,
-                 AICPU_REPORT_INNER_ERR_MSG(
-                     "Call ge::AttrUtils::GetInt function failed to get"
-                     " attr[%s], op[%s].",
-                     attr_name.c_str(), op_desc_ptr->GetName().c_str()))
+  CHECK_RES_BOOL(ge::AttrUtils::GetInt(op_desc_ptr, attr_name, int_value), ErrorCode::DATA_TYPE_UNDEFILED,
+                 AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::GetInt function failed to get"
+                                            " attr[%s], op[%s].",
+                                            attr_name.c_str(), op_desc_ptr->GetName().c_str()))
   attr_value.set_i(int_value);
   return ge::SUCCESS;
 }
 
-ge::Status SetValueTypeListFloat(const ge::OpDescPtr &op_desc_ptr,
-                                 const std::string &attr_name,
+ge::Status SetValueTypeListFloat(const ge::OpDescPtr &op_desc_ptr, const std::string &attr_name,
                                  aicpuops::AttrValue &attr_value) {
   std::vector<float> float_list;
-  CHECK_RES_BOOL(
-      ge::AttrUtils::GetListFloat(op_desc_ptr, attr_name, float_list),
-      ErrorCode::DATA_TYPE_UNDEFILED,
-      AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::GetListFloat function failed"
-                              " to get attr[%s], op[%s].",
-                              attr_name.c_str(),
-                              op_desc_ptr->GetName().c_str()))
+  CHECK_RES_BOOL(ge::AttrUtils::GetListFloat(op_desc_ptr, attr_name, float_list), ErrorCode::DATA_TYPE_UNDEFILED,
+                 AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::GetListFloat function failed"
+                                            " to get attr[%s], op[%s].",
+                                            attr_name.c_str(), op_desc_ptr->GetName().c_str()))
   for (const float &f : float_list) {
     auto array = attr_value.mutable_array();
     AICPU_CHECK_NOTNULL(array)
@@ -116,16 +99,13 @@ ge::Status SetValueTypeListFloat(const ge::OpDescPtr &op_desc_ptr,
   return ge::SUCCESS;
 }
 
-ge::Status SetValueTypeAicpuTensor(const ge::OpDescPtr &op_desc_ptr,
-                                   const std::string &attr_name,
+ge::Status SetValueTypeAicpuTensor(const ge::OpDescPtr &op_desc_ptr, const std::string &attr_name,
                                    aicpuops::AttrValue &attr_value) {
   ge::ConstGeTensorPtr ge_tensor;
-  CHECK_RES_BOOL(ge::AttrUtils::GetTensor(op_desc_ptr, attr_name, ge_tensor),
-                 ErrorCode::DATA_TYPE_UNDEFILED,
-                 AICPU_REPORT_INNER_ERR_MSG(
-                     "Call ge::AttrUtils::GetTensor function failed"
-                     " to get attr[%s], op[%s].",
-                     attr_name.c_str(), op_desc_ptr->GetName().c_str()))
+  CHECK_RES_BOOL(ge::AttrUtils::GetTensor(op_desc_ptr, attr_name, ge_tensor), ErrorCode::DATA_TYPE_UNDEFILED,
+                 AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::GetTensor function failed"
+                                            " to get attr[%s], op[%s].",
+                                            attr_name.c_str(), op_desc_ptr->GetName().c_str()))
   AICPU_CHECK_NOTNULL(ge_tensor)
 
   ge::DataType ge_data_type = ge_tensor->GetTensorDesc().GetDataType();
@@ -144,31 +124,24 @@ ge::Status SetValueTypeAicpuTensor(const ge::OpDescPtr &op_desc_ptr,
   return ge::SUCCESS;
 }
 
-ge::Status SetValueTypeAicpuDataType(const ge::OpDescPtr &op_desc_ptr,
-                                     const std::string &attr_name,
+ge::Status SetValueTypeAicpuDataType(const ge::OpDescPtr &op_desc_ptr, const std::string &attr_name,
                                      aicpuops::AttrValue &attr_value) {
   ge::DataType ge_type;
-  CHECK_RES_BOOL(ge::AttrUtils::GetDataType(op_desc_ptr, attr_name, ge_type),
-                 ErrorCode::DATA_TYPE_UNDEFILED,
-                 AICPU_REPORT_INNER_ERR_MSG(
-                     "Call ge::AttrUtils::GetDataType function failed"
-                     " to get attr[%s], op[%s].",
-                     attr_name.c_str(), op_desc_ptr->GetName().c_str()))
+  CHECK_RES_BOOL(ge::AttrUtils::GetDataType(op_desc_ptr, attr_name, ge_type), ErrorCode::DATA_TYPE_UNDEFILED,
+                 AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::GetDataType function failed"
+                                            " to get attr[%s], op[%s].",
+                                            attr_name.c_str(), op_desc_ptr->GetName().c_str()))
   attr_value.set_type(static_cast<ge::DataType>(ge_type));
   return ge::SUCCESS;
 }
 
-ge::Status SetValueTypeListAicpuShape(const ge::OpDescPtr &op_desc_ptr,
-                                      const std::string &attr_name,
+ge::Status SetValueTypeListAicpuShape(const ge::OpDescPtr &op_desc_ptr, const std::string &attr_name,
                                       aicpuops::AttrValue &attr_value) {
   std::vector<std::vector<int64_t>> shape_value;
-  CHECK_RES_BOOL(
-      ge::AttrUtils::GetListListInt(op_desc_ptr, attr_name, shape_value),
-      ErrorCode::DATA_TYPE_UNDEFILED,
-      AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::GetListListInt function"
-                              " failed to get attr[%s], op[%s].",
-                              attr_name.c_str(),
-                              op_desc_ptr->GetName().c_str()))
+  CHECK_RES_BOOL(ge::AttrUtils::GetListListInt(op_desc_ptr, attr_name, shape_value), ErrorCode::DATA_TYPE_UNDEFILED,
+                 AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::GetListListInt function"
+                                            " failed to get attr[%s], op[%s].",
+                                            attr_name.c_str(), op_desc_ptr->GetName().c_str()))
 
   auto attr_list = attr_value.mutable_array();
   AICPU_CHECK_NOTNULL(attr_list)
@@ -176,9 +149,8 @@ ge::Status SetValueTypeListAicpuShape(const ge::OpDescPtr &op_desc_ptr,
     aicpuops::TensorShape *shape_tensor = attr_list->add_shape();
     AICPU_CHECK_NOTNULL(shape_tensor)
     for (const int64_t &dim : shape) {
-      AICPU_IF_BOOL_EXEC(
-          (dim < 0), AICPUE_LOGW("The dim [%ld] in shape is less than 0.", dim);
-          return ErrorCode::DATA_TYPE_UNDEFILED)
+      AICPU_IF_BOOL_EXEC((dim < 0), AICPUE_LOGW("The dim [%ld] in shape is less than 0.", dim);
+                         return ErrorCode::DATA_TYPE_UNDEFILED)
       aicpuops::TensorShape_Dim *aicpu_dims = shape_tensor->add_dim();
       AICPU_CHECK_NOTNULL(aicpu_dims)
       aicpu_dims->set_size(dim);
@@ -187,18 +159,14 @@ ge::Status SetValueTypeListAicpuShape(const ge::OpDescPtr &op_desc_ptr,
   return ge::SUCCESS;
 }
 
-ge::Status SetValueTypeListAicpuDataType(const ge::OpDescPtr &op_desc_ptr,
-                                         const std::string &attr_name,
+ge::Status SetValueTypeListAicpuDataType(const ge::OpDescPtr &op_desc_ptr, const std::string &attr_name,
                                          aicpuops::AttrValue &attr_value) {
   AICPUE_LOGD("Get attr_name[%s] data type list.", attr_name.c_str());
   std::vector<ge::DataType> ge_type_list;
-  CHECK_RES_BOOL(
-      ge::AttrUtils::GetListDataType(op_desc_ptr, attr_name, ge_type_list),
-      ErrorCode::DATA_TYPE_UNDEFILED,
-      AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::GetListDataType function"
-                              " failed to get attr[%s], op[%s].",
-                              attr_name.c_str(),
-                              op_desc_ptr->GetName().c_str()))
+  CHECK_RES_BOOL(ge::AttrUtils::GetListDataType(op_desc_ptr, attr_name, ge_type_list), ErrorCode::DATA_TYPE_UNDEFILED,
+                 AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::GetListDataType function"
+                                            " failed to get attr[%s], op[%s].",
+                                            attr_name.c_str(), op_desc_ptr->GetName().c_str()))
 
   for (ge::DataType &ge_type : ge_type_list) {
     AICPUE_LOGD("AttrName[%s] getype[%d].", attr_name.c_str(), ge_type);
@@ -208,18 +176,14 @@ ge::Status SetValueTypeListAicpuDataType(const ge::OpDescPtr &op_desc_ptr,
   return ge::SUCCESS;
 }
 
-ge::Status SetValueTypeListInt(const ge::OpDescPtr &op_desc_ptr,
-                               const std::string &attr_name,
+ge::Status SetValueTypeListInt(const ge::OpDescPtr &op_desc_ptr, const std::string &attr_name,
                                aicpuops::AttrValue &attr_value) {
-  // if not find in json file, the attr is truely list_int
+  // if not find in json file, the attr is truly list_int
   std::vector<int64_t> list_int_value;
-  CHECK_RES_BOOL(
-      ge::AttrUtils::GetListInt(op_desc_ptr, attr_name, list_int_value),
-      ErrorCode::DATA_TYPE_UNDEFILED,
-      AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::GetListInt function"
-                              " failed to get attr[%s], op[%s].",
-                              attr_name.c_str(),
-                              op_desc_ptr->GetName().c_str()))
+  CHECK_RES_BOOL(ge::AttrUtils::GetListInt(op_desc_ptr, attr_name, list_int_value), ErrorCode::DATA_TYPE_UNDEFILED,
+                 AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::GetListInt function"
+                                            " failed to get attr[%s], op[%s].",
+                                            attr_name.c_str(), op_desc_ptr->GetName().c_str()))
   for (int64_t value : list_int_value) {
     AICPU_CHECK_NOTNULL(attr_value.mutable_array())
     attr_value.mutable_array()->add_i(value);
@@ -227,17 +191,13 @@ ge::Status SetValueTypeListInt(const ge::OpDescPtr &op_desc_ptr,
   return ge::SUCCESS;
 }
 
-ge::Status SetValueTypeListString(const ge::OpDescPtr &op_desc_ptr,
-                                  const std::string &attr_name,
+ge::Status SetValueTypeListString(const ge::OpDescPtr &op_desc_ptr, const std::string &attr_name,
                                   aicpuops::AttrValue &attr_value) {
   std::vector<std::string> list_string_value;
-  CHECK_RES_BOOL(
-      ge::AttrUtils::GetListStr(op_desc_ptr, attr_name, list_string_value),
-      ErrorCode::DATA_TYPE_UNDEFILED,
-      AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::GetListStr function"
-                              " failed to get attr[%s], op[%s].",
-                              attr_name.c_str(),
-                              op_desc_ptr->GetName().c_str()))
+  CHECK_RES_BOOL(ge::AttrUtils::GetListStr(op_desc_ptr, attr_name, list_string_value), ErrorCode::DATA_TYPE_UNDEFILED,
+                 AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::GetListStr function"
+                                            " failed to get attr[%s], op[%s].",
+                                            attr_name.c_str(), op_desc_ptr->GetName().c_str()))
 
   for (std::string value : list_string_value) {
     AICPU_CHECK_NOTNULL(attr_value.mutable_array())
@@ -246,10 +206,8 @@ ge::Status SetValueTypeListString(const ge::OpDescPtr &op_desc_ptr,
   return ge::SUCCESS;
 }
 
-ge::Status GetAttrValueFromGe(const ge::OpDescPtr &op_desc_ptr,
-                              const std::string &attr_name,
-                              const ge::GeAttrValue::ValueType ge_value_type,
-                              aicpuops::AttrValue &attr_value) {
+ge::Status GetAttrValueFromGe(const ge::OpDescPtr &op_desc_ptr, const std::string &attr_name,
+                              const ge::GeAttrValue::ValueType ge_value_type, aicpuops::AttrValue &attr_value) {
   std::string op_type = op_desc_ptr->GetType();
   switch (ge_value_type) {
     case ge::GeAttrValue::ValueType::VT_STRING: {
@@ -269,13 +227,11 @@ ge::Status GetAttrValueFromGe(const ge::OpDescPtr &op_desc_ptr,
       break;
     }
     case ge::GeAttrValue::ValueType::VT_TENSOR: {
-      AICPU_CHECK_RES(
-          SetValueTypeAicpuTensor(op_desc_ptr, attr_name, attr_value))
+      AICPU_CHECK_RES(SetValueTypeAicpuTensor(op_desc_ptr, attr_name, attr_value))
       break;
     }
     case ge::GeAttrValue::ValueType::VT_DATA_TYPE: {
-      AICPU_CHECK_RES(
-          SetValueTypeAicpuDataType(op_desc_ptr, attr_name, attr_value))
+      AICPU_CHECK_RES(SetValueTypeAicpuDataType(op_desc_ptr, attr_name, attr_value))
       break;
     }
     case ge::GeAttrValue::ValueType::VT_LIST_FLOAT: {
@@ -283,13 +239,11 @@ ge::Status GetAttrValueFromGe(const ge::OpDescPtr &op_desc_ptr,
       break;
     }
     case ge::GeAttrValue::ValueType::VT_LIST_LIST_INT: {
-      AICPU_CHECK_RES(
-          SetValueTypeListAicpuShape(op_desc_ptr, attr_name, attr_value))
+      AICPU_CHECK_RES(SetValueTypeListAicpuShape(op_desc_ptr, attr_name, attr_value))
       break;
     }
     case ge::GeAttrValue::ValueType::VT_LIST_DATA_TYPE: {
-      AICPU_CHECK_RES(
-          SetValueTypeListAicpuDataType(op_desc_ptr, attr_name, attr_value))
+      AICPU_CHECK_RES(SetValueTypeListAicpuDataType(op_desc_ptr, attr_name, attr_value))
       break;
     }
     case ge::GeAttrValue::ValueType::VT_LIST_INT: {
@@ -297,13 +251,11 @@ ge::Status GetAttrValueFromGe(const ge::OpDescPtr &op_desc_ptr,
       break;
     }
     case ge::GeAttrValue::ValueType::VT_LIST_STRING: {
-      AICPU_CHECK_RES(
-          SetValueTypeListString(op_desc_ptr, attr_name, attr_value))
+      AICPU_CHECK_RES(SetValueTypeListString(op_desc_ptr, attr_name, attr_value))
       break;
     }
     default: {
-      AICPUE_LOGW("op [%s] currently cannot support attr value type [%d].",
-                  op_type.c_str(), ge_value_type);
+      AICPUE_LOGW("op [%s] currently cannot support attr value type [%d].", op_type.c_str(), ge_value_type);
       return ge::SUCCESS;
     }
   }
@@ -311,7 +263,7 @@ ge::Status GetAttrValueFromGe(const ge::OpDescPtr &op_desc_ptr,
 }
 
 static ge::Status FillOutputTensorOfAicpuNodeDef(const ge::OpDescPtr &op_desc_ptr, const bool is_unknow_shape,
-                                          aicpuops::NodeDef &node_def) {
+                                                 aicpuops::NodeDef &node_def) {
   size_t output_size = op_desc_ptr->GetOutputsSize();
   for (size_t i = 0; i < output_size; ++i) {
     aicpuops::Tensor *output_tensor = node_def.add_outputs();
@@ -338,11 +290,12 @@ ge::Status BuildAicpuNodeDef(const ge::OpDescPtr &op_desc_ptr, aicpuops::NodeDef
   bool is_unknow_shape = false;
   bool optional_input_placeholder = false;
   if (ge::AttrUtils::HasAttr(op_desc_ptr, ge::ATTR_NAME_UNKNOWN_SHAPE_TYPE)) {
-    // ATTR_NAME_UNKNOWN_SHAPE_TYPE attr exist, means unknow shape
+    // ATTR_NAME_UNKNOWN_SHAPE_TYPE attr exist, means unknown shape
     is_unknow_shape = true;
   }
   (void)ge::AttrUtils::GetBool(op_desc_ptr, kOptionalInputPlaceholder, optional_input_placeholder);
-  AICPUE_LOGI("Get attr[%s] is [%d] for node[%s].", kOptionalInputPlaceholder.c_str(), optional_input_placeholder, op_desc_ptr->GetName().c_str());
+  AICPUE_LOGI("Get attr[%s] is [%d] for node[%s].", kOptionalInputPlaceholder.c_str(), optional_input_placeholder,
+              op_desc_ptr->GetName().c_str());
 
   size_t all_input_size = op_desc_ptr->GetAllInputsSize();
   for (size_t i = 0; i < all_input_size; ++i) {
@@ -388,18 +341,15 @@ ge::Status CheckAndSetUnknowType(ge::OpDescPtr &op_desc_ptr, const map<string, O
   AICPU_CHECK_NOTNULL(op_desc_ptr);
   string op_type = op_desc_ptr->GetType();
   if (IsUnknowShape(op_desc_ptr)) {
-    AICPU_CHECK_FALSE_EXEC(
-        AttrUtils::SetBool(op_desc_ptr, kAttrNameUnknownShape, true),
-        AICPU_REPORT_INNER_ERR_MSG(
-            "Call Set ge::AttrUtils::SetBool failed to set attr[%s], op[%s].",
-            kAttrNameUnknownShape.c_str(), op_desc_ptr->GetName().c_str());
-        return ErrorCode::ADD_ATTR_FAILED)
+    AICPU_CHECK_FALSE_EXEC(AttrUtils::SetBool(op_desc_ptr, kAttrNameUnknownShape, true),
+                           AICPU_REPORT_INNER_ERR_MSG("Call Set ge::AttrUtils::SetBool failed to set attr[%s], op[%s].",
+                                                      kAttrNameUnknownShape.c_str(), op_desc_ptr->GetName().c_str());
+                           return ErrorCode::ADD_ATTR_FAILED)
   }
 
   auto iter = all_op_info.find(op_type);
   if (iter == all_op_info.end()) {
-    AICPU_REPORT_INNER_ERR_MSG("not supported op type[%s], op[%s].",
-        op_type.c_str(), op_desc_ptr->GetName().c_str());
+    AICPU_REPORT_INNER_ERR_MSG("not supported op type[%s], op[%s].", op_type.c_str(), op_desc_ptr->GetName().c_str());
     return ErrorCode::NONE_KERNELINFOSTORE;
   }
 
@@ -409,42 +359,35 @@ ge::Status CheckAndSetUnknowType(ge::OpDescPtr &op_desc_ptr, const map<string, O
   shape_type = op_full_info.shapeType;
   AICPU_CHECK_FALSE_EXEC(
       AttrUtils::SetInt(op_desc_ptr, ATTR_NAME_UNKNOWN_SHAPE_TYPE, shape_type),
-      AICPU_REPORT_INNER_ERR_MSG(
-          "Call AttrUtils::SetInt failed to set attr[%s], op[%s].",
-          ATTR_NAME_UNKNOWN_SHAPE_TYPE.c_str(), op_desc_ptr->GetName().c_str());
+      AICPU_REPORT_INNER_ERR_MSG("Call AttrUtils::SetInt failed to set attr[%s], op[%s].",
+                                 ATTR_NAME_UNKNOWN_SHAPE_TYPE.c_str(), op_desc_ptr->GetName().c_str());
       return ErrorCode::ADD_ATTR_FAILED)
 
   AICPUE_LOGI("Set unknown shape type [%d] for op type[%s].", shape_type, op_type.c_str());
   return SUCCESS;
 }
 
-ge::Status FillAttrOfAicpuNodeDef(const ge::OpDescPtr &op_desc_ptr,
-                                  aicpuops::NodeDef &node_def) {
+ge::Status FillAttrOfAicpuNodeDef(const ge::OpDescPtr &op_desc_ptr, aicpuops::NodeDef &node_def) {
   auto attrs_map = op_desc_ptr->GetAllAttrs();
   for (auto iter = attrs_map.cbegin(); iter != attrs_map.cend(); ++iter) {
     const std::string &attr_name = iter->first;
     aicpuops::AttrValue attr_value;
-    const ge::GeAttrValue::ValueType ge_value_type =
-        (iter->second).GetValueType();
-    AICPUE_LOGD("Get attr:[%s] value from op [%s], ge_value_type is [%d].",
-                attr_name.c_str(), op_desc_ptr->GetType().c_str(), ge_value_type);
+    const ge::GeAttrValue::ValueType ge_value_type = (iter->second).GetValueType();
+    AICPUE_LOGD("Get attr:[%s] value from op [%s], ge_value_type is [%d].", attr_name.c_str(),
+                op_desc_ptr->GetType().c_str(), ge_value_type);
 
     AICPUE_LOGI("Get Attr name: [%s].", attr_name.c_str());
     // If get attr value failed, no need to insert the attr. Only print log
-    if (GetAttrValueFromGe(op_desc_ptr, attr_name, ge_value_type, attr_value) !=
-        ge::SUCCESS) {
-      AICPUE_LOGW("GetAttrValueFromGe attr_name[%s] for op[%s] failed.",
-                  attr_name.c_str(), op_desc_ptr->GetType().c_str());
+    if (GetAttrValueFromGe(op_desc_ptr, attr_name, ge_value_type, attr_value) != ge::SUCCESS) {
+      AICPUE_LOGW("GetAttrValueFromGe attr_name[%s] for op[%s] failed.", attr_name.c_str(),
+                  op_desc_ptr->GetType().c_str());
       continue;
     }
 
     AICPU_CHECK_NOTNULL(node_def.mutable_attrs())
-    auto pair = node_def.mutable_attrs()->insert(
-        AttrValueMap::value_type(attr_name, attr_value));
-    AICPU_CHECK_FALSE_EXEC(
-        pair.second,
-        AICPUE_LOGW("Node[%s] insert attr [%s] to nodeDef failed.",
-                    op_desc_ptr->GetName().c_str(), attr_name.c_str()));
+    auto pair = node_def.mutable_attrs()->insert(AttrValueMap::value_type(attr_name, attr_value));
+    AICPU_CHECK_FALSE_EXEC(pair.second, AICPUE_LOGW("Node[%s] insert attr [%s] to nodeDef failed.",
+                                                    op_desc_ptr->GetName().c_str(), attr_name.c_str()));
   }
   return ge::SUCCESS;
 }
@@ -453,7 +396,7 @@ ge::Status GetAicpuFftsPlusInfo(const ge::OpDescPtr &op_desc_ptr, FftsPlusInfo &
   if (!op_desc_ptr->HasAttr(kAttrNameThreadScopeId)) {
     return ge::FAILED;
   }
-  (void) ge::AttrUtils::SetStr(op_desc_ptr, ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AICPU");
+  (void)ge::AttrUtils::SetStr(op_desc_ptr, ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AICPU");
   if (ge::AttrUtils::HasAttr(op_desc_ptr, kAttrNameUnknownShape)) {
     return ge::FAILED;
   }
@@ -463,8 +406,7 @@ ge::Status GetAicpuFftsPlusInfo(const ge::OpDescPtr &op_desc_ptr, FftsPlusInfo &
     AICPU_REPORT_INNER_ERR_MSG("The Node[%s] has no _sgt_struct_info", op_desc_ptr->GetName().c_str());
     return ge::FAILED;
   }
-  AICPUE_LOGD("Node[%s] ffts thread mode[%u]slicenum[%u]",
-              op_desc_ptr->GetName().c_str(), slice_info_ptr->thread_mode,
+  AICPUE_LOGD("Node[%s] ffts thread mode[%u]slicenum[%u]", op_desc_ptr->GetName().c_str(), slice_info_ptr->thread_mode,
               slice_info_ptr->slice_instance_num);
   if (!slice_info_ptr->thread_mode) {
     return ge::FAILED;
@@ -485,30 +427,25 @@ ge::Status InsertAicpuNodeDefAttrToOp(const ge::OpDescPtr &op_desc_ptr, aicpuops
   // 保证序列化的接口的一致性
   output_stream.SetSerializationDeterministic(true);
   if (!(node_def.SerializeToCodedStream(&output_stream))) {
-    AICPU_REPORT_INNER_ERR_MSG(
-        "The serialization from nodedef probuf to str failed, op[%s].",
-        op_desc_ptr->GetName().c_str());
+    AICPU_REPORT_INNER_ERR_MSG("The serialization from nodedef probuf to str failed, op[%s].",
+                               op_desc_ptr->GetName().c_str());
     return ErrorCode::CREATE_NODEDEF_FAILED;
   }
 
   if (!(ge::AttrUtils::SetZeroCopyBytes(op_desc_ptr, attr_name, std::move(buffer)))) {
-    AICPU_REPORT_INNER_ERR_MSG(
-        "Failed to call SetZeroCopyBytes to set node def, op[%s].",
-        op_desc_ptr->GetName().c_str());
+    AICPU_REPORT_INNER_ERR_MSG("Failed to call SetZeroCopyBytes to set node def, op[%s].",
+                               op_desc_ptr->GetName().c_str());
     return ErrorCode::CREATE_NODEDEF_FAILED;
   }
   return ge::SUCCESS;
 }
 
-ge::Status BuildFftsPlusNodeInputShapeInfo(const ge::OpDescPtr &op_desc_ptr,
-                                           aicpuops::NodeDef &node_def,
-                                           const vector<vector<int64_t>> &dims,
-                                           const bool &is_unknow_shape) {
+ge::Status BuildFftsPlusNodeInputShapeInfo(const ge::OpDescPtr &op_desc_ptr, aicpuops::NodeDef &node_def,
+                                           const vector<vector<int64_t>> &dims, const bool &is_unknow_shape) {
   size_t input_num = op_desc_ptr->GetInputsSize();
   if (dims.size() != input_num) {
-    AICPU_REPORT_INNER_ERR_MSG("op[%s] input_num[%zu] input_dims size[%zu]",
-                             op_desc_ptr->GetName().c_str(), input_num,
-                             dims.size());
+    AICPU_REPORT_INNER_ERR_MSG("op[%s] input_num[%zu] input_dims size[%zu]", op_desc_ptr->GetName().c_str(), input_num,
+                               dims.size());
     return CREATE_NODEDEF_FAILED;
   }
   for (size_t i = 0; i < input_num; ++i) {
@@ -524,21 +461,17 @@ ge::Status BuildFftsPlusNodeInputShapeInfo(const ge::OpDescPtr &op_desc_ptr,
     }
     shape->set_data_format(static_cast<ge::Format>(input_desc.GetFormat()));
     shape->set_unknown_rank(is_unknow_shape);
-    input_tensor->set_tensor_type(
-        static_cast<ge::DataType>(input_desc.GetDataType()));
+    input_tensor->set_tensor_type(static_cast<ge::DataType>(input_desc.GetDataType()));
   }
   return ge::SUCCESS;
 }
 
-ge::Status BuildFftsPlusNodeOutputShapeInfo(const ge::OpDescPtr &op_desc_ptr,
-                                            aicpuops::NodeDef &node_def,
-                                            const vector<vector<int64_t>> &dims,
-                                            const bool &is_unknow_shape) {
+ge::Status BuildFftsPlusNodeOutputShapeInfo(const ge::OpDescPtr &op_desc_ptr, aicpuops::NodeDef &node_def,
+                                            const vector<vector<int64_t>> &dims, const bool &is_unknow_shape) {
   size_t output_num = op_desc_ptr->GetOutputsSize();
   if (dims.size() != output_num) {
-    AICPU_REPORT_INNER_ERR_MSG("op[%s] output_num[%zu] output_dims size[%zu]",
-                             op_desc_ptr->GetName().c_str(), output_num,
-                             dims.size());
+    AICPU_REPORT_INNER_ERR_MSG("op[%s] output_num[%zu] output_dims size[%zu]", op_desc_ptr->GetName().c_str(),
+                               output_num, dims.size());
     return CREATE_NODEDEF_FAILED;
   }
   for (size_t i = 0; i < output_num; ++i) {
@@ -554,24 +487,20 @@ ge::Status BuildFftsPlusNodeOutputShapeInfo(const ge::OpDescPtr &op_desc_ptr,
     }
     shape->set_data_format(static_cast<ge::Format>(output_desc.GetFormat()));
     shape->set_unknown_rank(is_unknow_shape);
-    output_tensor->set_tensor_type(
-        static_cast<ge::DataType>(output_desc.GetDataType()));
+    output_tensor->set_tensor_type(static_cast<ge::DataType>(output_desc.GetDataType()));
   }
   return ge::SUCCESS;
 }
 
-ge::Status BuildFftsPlusAicpuNodeShapeInfo(const ge::OpDescPtr &op_desc_ptr,
-                                           aicpuops::NodeDef &node_def,
+ge::Status BuildFftsPlusAicpuNodeShapeInfo(const ge::OpDescPtr &op_desc_ptr, aicpuops::NodeDef &node_def,
                                            const FftsPlusInfo &ffts_info) {
   std::string op_type = op_desc_ptr->GetType();
   node_def.set_op(op_type);
   const uint32_t index = ffts_info.slice_instance_index;
   if ((index >= ffts_info.thread_input_shape.size()) || (index >= ffts_info.thread_output_shape.size())) {
-    AICPU_REPORT_INNER_ERR_MSG(
-        "op[%s] index[%u] input shape size[%zu], output shape size[%zu]",
-        op_desc_ptr->GetName().c_str(), index,
-        ffts_info.thread_input_shape.size(),
-        ffts_info.thread_output_shape.size());
+    AICPU_REPORT_INNER_ERR_MSG("op[%s] index[%u] input shape size[%zu], output shape size[%zu]",
+                               op_desc_ptr->GetName().c_str(), index, ffts_info.thread_input_shape.size(),
+                               ffts_info.thread_output_shape.size());
     return CREATE_NODEDEF_FAILED;
   }
   bool is_unknow_shape = false;
@@ -579,14 +508,12 @@ ge::Status BuildFftsPlusAicpuNodeShapeInfo(const ge::OpDescPtr &op_desc_ptr,
     is_unknow_shape = true;
   }
   auto input_dims = ffts_info.thread_input_shape[index];
-  ge::Status state = BuildFftsPlusNodeInputShapeInfo(
-      op_desc_ptr, node_def, input_dims, is_unknow_shape);
+  ge::Status state = BuildFftsPlusNodeInputShapeInfo(op_desc_ptr, node_def, input_dims, is_unknow_shape);
   if (state != ge::SUCCESS) {
     return state;
   }
   auto output_dims = ffts_info.thread_output_shape[index];
-  state = BuildFftsPlusNodeOutputShapeInfo(op_desc_ptr, node_def, output_dims,
-                                           is_unknow_shape);
+  state = BuildFftsPlusNodeOutputShapeInfo(op_desc_ptr, node_def, output_dims, is_unknow_shape);
   if (state != ge::SUCCESS) {
     return state;
   }
@@ -598,25 +525,20 @@ ge::Status BuildFftsPlusAicpuNodeShapeInfo(const ge::OpDescPtr &op_desc_ptr,
   return ge::SUCCESS;
 }
 
-ge::Status BuildFftsPlusAicpuNodeDef(const ge::OpDescPtr &op_desc_ptr,
-                                     FftsPlusInfo &ffts_info) {
+ge::Status BuildFftsPlusAicpuNodeDef(const ge::OpDescPtr &op_desc_ptr, FftsPlusInfo &ffts_info) {
   aicpuops::NodeDef node_def;
   ffts_info.slice_instance_index = 0;
-  ge::Status state = BuildFftsPlusAicpuNodeShapeInfo(
-      op_desc_ptr, node_def, ffts_info);
+  ge::Status state = BuildFftsPlusAicpuNodeShapeInfo(op_desc_ptr, node_def, ffts_info);
   if (state != ge::SUCCESS) {
-    AICPU_REPORT_INNER_ERR_MSG("op[%s] build shape info fail[%u]",
-                             op_desc_ptr->GetName().c_str(), state);
+    AICPU_REPORT_INNER_ERR_MSG("op[%s] build shape info fail[%u]", op_desc_ptr->GetName().c_str(), state);
     return CREATE_NODEDEF_FAILED;
   }
   aicpuops::NodeDef tail_node_def;
   if (ffts_info.slice_instance_num > kAicpuManualSliceNum) {
     ffts_info.slice_instance_index = ffts_info.slice_instance_num - kAicpuManualSliceNum;
-    state = BuildFftsPlusAicpuNodeShapeInfo(
-        op_desc_ptr, tail_node_def, ffts_info);
+    state = BuildFftsPlusAicpuNodeShapeInfo(op_desc_ptr, tail_node_def, ffts_info);
     if (state != ge::SUCCESS) {
-      AICPU_REPORT_INNER_ERR_MSG("op[%s] build shape info fail[%u]",
-                               op_desc_ptr->GetName().c_str(), state);
+      AICPU_REPORT_INNER_ERR_MSG("op[%s] build shape info fail[%u]", op_desc_ptr->GetName().c_str(), state);
       return CREATE_NODEDEF_FAILED;
     }
   }
@@ -648,8 +570,7 @@ ge::OpDescPtr CreateConstNode(const int insert_position) {
     // NDHWC->NCDHW
     tensor_value = {0, 4, 1, 2, 3};
   }
-  op_tensor->SetData(reinterpret_cast<uint8_t *>(tensor_value.data()),
-                  kConstdim * sizeof(int32_t));
+  op_tensor->SetData(reinterpret_cast<uint8_t *>(tensor_value.data()), kConstdim * sizeof(int32_t));
   ge::OpDescPtr const_desc = ge::OpDescUtils::CreateConstOpZeroCopy(op_tensor);
   if (const_desc == nullptr) {
     return nullptr;
@@ -663,8 +584,8 @@ ge::OpDescPtr CreateConstNode(const int insert_position) {
   return const_desc;
 }
 
-ge::NodePtr CreateTransposeNode(ge::ComputeGraph &graph, const std::string &name,
-    ge::GeTensorDesc tensor_desc, const int insert_position) {
+ge::NodePtr CreateTransposeNode(ge::ComputeGraph &graph, const std::string &name, ge::GeTensorDesc tensor_desc,
+                                const int insert_position) {
   ge::OpDescPtr perm_const_desc = CreateConstNode(insert_position);
   if (perm_const_desc == nullptr) {
     AICPU_REPORT_INNER_ERR_MSG("CreateConstNode failed");
@@ -727,8 +648,7 @@ ge::NodePtr CreateTransposeNode(ge::ComputeGraph &graph, const std::string &name
     AICPU_REPORT_INNER_ERR_MSG("Call ge::AddNode const failed");
     return nullptr;
   }
-  ret = ge::GraphUtils::AddEdge(perm_node->GetOutDataAnchor(0),
-                                transpose_node->GetInDataAnchor(1));
+  ret = ge::GraphUtils::AddEdge(perm_node->GetOutDataAnchor(0), transpose_node->GetInDataAnchor(1));
   if (ret != ge::GRAPH_SUCCESS) {
     AICPU_REPORT_INNER_ERR_MSG("Call ge::AddOutputDesc failed ret[%u]", ret);
     return nullptr;
@@ -761,19 +681,15 @@ ge::Status GenerateTransposeAfterNode(ge::ComputeGraph &graph, const ge::NodePtr
     if (peer_in_anchor == nullptr) {
       continue;
     }
-    AICPU_CHECK_RES_WITH_LOG(
-        ge::GraphUtils::RemoveEdge(src_anchor, peer_in_anchor),
-        "call RemoveEdge between %s and %s", node->GetName().c_str(),
-        peer_in_anchor->GetOwnerNode()->GetName().c_str());
-    AICPU_CHECK_RES_WITH_LOG(
-        ge::GraphUtils::AddEdge(transpose->GetOutDataAnchor(0), peer_in_anchor),
-        "call AddEdge between transpose and %s",
-        peer_in_anchor->GetOwnerNode()->GetName().c_str());
+    AICPU_CHECK_RES_WITH_LOG(ge::GraphUtils::RemoveEdge(src_anchor, peer_in_anchor),
+                             "call RemoveEdge between %s and %s", node->GetName().c_str(),
+                             peer_in_anchor->GetOwnerNode()->GetName().c_str());
+    AICPU_CHECK_RES_WITH_LOG(ge::GraphUtils::AddEdge(transpose->GetOutDataAnchor(0), peer_in_anchor),
+                             "call AddEdge between transpose and %s",
+                             peer_in_anchor->GetOwnerNode()->GetName().c_str());
   }
-  AICPU_CHECK_RES_WITH_LOG(
-      ge::GraphUtils::AddEdge(src_anchor, transpose->GetInDataAnchor(0)),
-      "call AddEdge between transpose %s and transpose",
-      node->GetName().c_str());
+  AICPU_CHECK_RES_WITH_LOG(ge::GraphUtils::AddEdge(src_anchor, transpose->GetInDataAnchor(0)),
+                           "call AddEdge between transpose %s and transpose", node->GetName().c_str());
   return ge::GRAPH_SUCCESS;
 }
 
@@ -806,19 +722,15 @@ ge::Status GenerateTransposeBeforeNode(ge::ComputeGraph &graph, const ge::NodePt
     if (peer_in_anchor == nullptr) {
       continue;
     }
-    AICPU_CHECK_RES_WITH_LOG(
-        ge::GraphUtils::RemoveEdge(src_anchor, peer_in_anchor),
-        "call RemoveEdge between %s and %s", src_op->GetName().c_str(),
-        peer_in_anchor->GetOwnerNode()->GetName().c_str());
-    AICPU_CHECK_RES_WITH_LOG(
-        ge::GraphUtils::AddEdge(transpose->GetOutDataAnchor(0), peer_in_anchor),
-        "call AddEdge between transpose and %s",
-        peer_in_anchor->GetOwnerNode()->GetName().c_str());
+    AICPU_CHECK_RES_WITH_LOG(ge::GraphUtils::RemoveEdge(src_anchor, peer_in_anchor),
+                             "call RemoveEdge between %s and %s", src_op->GetName().c_str(),
+                             peer_in_anchor->GetOwnerNode()->GetName().c_str());
+    AICPU_CHECK_RES_WITH_LOG(ge::GraphUtils::AddEdge(transpose->GetOutDataAnchor(0), peer_in_anchor),
+                             "call AddEdge between transpose and %s",
+                             peer_in_anchor->GetOwnerNode()->GetName().c_str());
   }
-  AICPU_CHECK_RES_WITH_LOG(
-      ge::GraphUtils::AddEdge(src_anchor, transpose->GetInDataAnchor(0)),
-      "call AddEdge between transpose %s and transpose",
-      src_op->GetName().c_str());
+  AICPU_CHECK_RES_WITH_LOG(ge::GraphUtils::AddEdge(src_anchor, transpose->GetInDataAnchor(0)),
+                           "call AddEdge between transpose %s and transpose", src_op->GetName().c_str());
   return ge::GRAPH_SUCCESS;
 }
 

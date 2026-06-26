@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -47,36 +47,36 @@ using namespace fe;
 using namespace te;
 
 using fe::FEOpsKernelInfoStore;
-using ge::GeTensorDesc;
-using ge::GeShape;
-using ge::AttrUtils;
-using ge::Format;
-using ge::DataType;
-using ge::ConstGeTensorDescPtr;
-using ge::GeTensorDescPtr;
-using ge::OpDescPtr;
-using ge::OpDesc;
 using fe::InputOrOutputInfoPtr;
+using ge::AttrUtils;
+using ge::ConstGeTensorDescPtr;
+using ge::DataType;
+using ge::Format;
 using ge::GeAttrValue;
-using std::vector;
+using ge::GeShape;
+using ge::GeTensorDesc;
+using ge::GeTensorDescPtr;
+using ge::OpDesc;
+using ge::OpDescPtr;
 using std::map;
+using std::vector;
 using namespace ge;
 using FEOpsKernelInfoStorePtr = std::shared_ptr<fe::FEOpsKernelInfoStore>;
 
 enum TestIter {
-    TEST_SUCCESS = 0,
-    TEST_HAVE_ALL,        // have one "all" type for attr check
-    TEST_ATTR_NOT_FOUND,  // can not found attr ATTR_NAME_STR in OpDesc
-    TEST_NOT_SUPPORT_DATA_TYPE,  // exit not support ValueType
-    TEST_CHECK_FAILED,    // have one not match iter (ATTR_NAME_FLOAT)
-    TEST_INT,
-    TEST_FLOAT,
-    TEST_BOOL,
-    TEST_STR,
-    TEST_LIST_INT,
-    TEST_LIST_FLOAT,
-    TEST_LIST_BOOL,
-    TEST_LIST_STR
+  TEST_SUCCESS = 0,
+  TEST_HAVE_ALL,               // have one "all" type for attr check
+  TEST_ATTR_NOT_FOUND,         // can not found attr ATTR_NAME_STR in OpDesc
+  TEST_NOT_SUPPORT_DATA_TYPE,  // exit not support ValueType
+  TEST_CHECK_FAILED,           // have one not match iter (ATTR_NAME_FLOAT)
+  TEST_INT,
+  TEST_FLOAT,
+  TEST_BOOL,
+  TEST_STR,
+  TEST_LIST_INT,
+  TEST_LIST_FLOAT,
+  TEST_LIST_BOOL,
+  TEST_LIST_STR
 };
 
 static const string ATTR_NAME_INT = "transposX";
@@ -89,8 +89,7 @@ static const string ATTR_NAME_LIST_STR = "attrListStr";
 static const string ATTR_NAME_LIST_BOOL = "attrListBool";
 static const string ATTR_NAME_DEFAULT = "attr_name_default";
 
-bool teGeneralize(const te::TbeOpInfo &op_info, const te::TE_GENERALIZE_TYPE &general_type,
- 	                   const ge::NodePtr &node) {
+bool teGeneralize(const te::TbeOpInfo &op_info, const te::TE_GENERALIZE_TYPE &general_type, const ge::NodePtr &node) {
   auto op_desc = node->GetOpDesc();
   auto tensor_desc_x = op_desc->MutableInputDesc(0);
   if (tensor_desc_x == nullptr) {
@@ -150,12 +149,12 @@ bool WaitAllFinishedStub(uint64_t graphId, vector<te::FinComTask> &tasks) {
   return true;
 }
 
-bool CheckTbeSupportedReasonRange(TbeOpInfo& opinfo, CheckSupportedInfo &result) {
+bool CheckTbeSupportedReasonRange(TbeOpInfo &opinfo, CheckSupportedInfo &result) {
   result.reason = "The shape is not support now";
   return true;
 }
 
-bool CheckTbeSupportedOtherReason(TbeOpInfo& opinfo, CheckSupportedInfo &result) {
+bool CheckTbeSupportedOtherReason(TbeOpInfo &opinfo, CheckSupportedInfo &result) {
   result.reason = "other";
   return true;
 }
@@ -165,14 +164,14 @@ bool GetOpSpecificInfoStub(const TbeOpInfo &tbeOpInfo, std::string &opSpecificIn
   opSpecificInfo = json_str;
   return true;
 }
-}
+}  // namespace
 
-class OptimizeUtilityStubST: public ge::OptimizeUtility {
+class OptimizeUtilityStubST : public ge::OptimizeUtility {
  public:
   OptimizeUtilityStubST() {}
   virtual ~OptimizeUtilityStubST() override {}
 
-  ge::Status InferShape(ComputeGraph &compute_graph) override{
+  ge::Status InferShape(ComputeGraph &compute_graph) override {
     return ge::SUCCESS;
   }
 
@@ -181,522 +180,513 @@ class OptimizeUtilityStubST: public ge::OptimizeUtility {
   }
 };
 
-class FEOpsKernelInfoStoreTest : public testing::Test{
+class FEOpsKernelInfoStoreTest : public testing::Test {
  protected:
-static void SetUpTestCase() {
-      fe::InitPlatformInfo("Ascend310P3", true);
-      PlatformUtils::Instance().soc_version_ = "Ascend310P3";
+  static void SetUpTestCase() {
+    fe::InitPlatformInfo("Ascend310P3", true);
+    PlatformUtils::Instance().soc_version_ = "Ascend310P3";
+  }
+  static void TearDownTestCase() {
+    cout << "FEOpsKernelInfoStoreTest SetUP" << endl;
+  }
+  ge::NodePtr AddNode(ge::ComputeGraphPtr graph, const string &name, const string &type, int32_t out_anchors_num = 1,
+                      int32_t in_anchors_num = 1) {
+    ge::GeTensorDesc tensor_desc;
+    ge::OpDescPtr opdesc = std::make_shared<ge::OpDesc>(name, type);
+    for (int32_t i = 0; i < out_anchors_num; i++) {
+      opdesc->AddOutputDesc(tensor_desc);
     }
-    static void TearDownTestCase() {
-        cout << "FEOpsKernelInfoStoreTest SetUP" << endl;
+    for (int32_t i = 0; i < in_anchors_num; i++) {
+      opdesc->AddInputDesc(tensor_desc);
     }
-    ge::NodePtr AddNode(ge::ComputeGraphPtr graph, const string &name, const string &type,
-                        int32_t out_anchors_num = 1, int32_t in_anchors_num = 1) {
-      ge::GeTensorDesc tensor_desc;
-      ge::OpDescPtr opdesc = std::make_shared<ge::OpDesc>(name, type);
-      for (int32_t i = 0; i < out_anchors_num; i++) {
-        opdesc->AddOutputDesc(tensor_desc);
-      }
-      for (int32_t i = 0; i < in_anchors_num; i++) {
-        opdesc->AddInputDesc(tensor_desc);
-      }
-      ge::NodePtr node = graph->AddNode(opdesc);
-      return node;
-    }
+    ge::NodePtr node = graph->AddNode(opdesc);
+    return node;
+  }
 
-    // Some expensive resource shared by all tests.
-    virtual void SetUp(){
-      op_desc_ptr = make_shared<ge::OpDesc>();
-      input0_desc_ptr = make_shared<ge::GeTensorDesc>();
-      input1_desc_ptr = make_shared<ge::GeTensorDesc>();
-      input2_desc_ptr = make_shared<ge::GeTensorDesc>();
-      output0_desc_ptr = make_shared<ge::GeTensorDesc>();
-      std::map<std::string, std::string> options;
+  // Some expensive resource shared by all tests.
+  virtual void SetUp() {
+    op_desc_ptr = make_shared<ge::OpDesc>();
+    input0_desc_ptr = make_shared<ge::GeTensorDesc>();
+    input1_desc_ptr = make_shared<ge::GeTensorDesc>();
+    input2_desc_ptr = make_shared<ge::GeTensorDesc>();
+    output0_desc_ptr = make_shared<ge::GeTensorDesc>();
+    std::map<std::string, std::string> options;
 
-      tbe_adapter_ptr_ = std::dynamic_pointer_cast<TbeOpStoreAdapter>(OpStoreAdapterManager::Instance(AI_CORE_NAME).GetOpStoreAdapter(EN_IMPL_HW_TBE));
-      tbe_adapter_ptr_->GetOpInfo = GetOpInfoStubTestImplJudge;
-      tbe_adapter_ptr_->PreBuildTbeOp = PreBuildTbeOpStubTestImplJudge;
-      tbe_adapter_ptr_->WaitAllFinished = WaitAllFinishedStub;
-      fe_ops_kernel_info_store_ptr = make_shared<fe::FEOpsKernelInfoStore>(AI_CORE_NAME);
-      FEOpsStoreInfo tbe_custom {
-      2,
-      "tbe-custom",
-      EN_IMPL_CUSTOM_TBE,
-      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
-      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
-      false,
-      false,
-      false};
+    tbe_adapter_ptr_ = std::dynamic_pointer_cast<TbeOpStoreAdapter>(
+        OpStoreAdapterManager::Instance(AI_CORE_NAME).GetOpStoreAdapter(EN_IMPL_HW_TBE));
+    tbe_adapter_ptr_->GetOpInfo = GetOpInfoStubTestImplJudge;
+    tbe_adapter_ptr_->PreBuildTbeOp = PreBuildTbeOpStubTestImplJudge;
+    tbe_adapter_ptr_->WaitAllFinished = WaitAllFinishedStub;
+    fe_ops_kernel_info_store_ptr = make_shared<fe::FEOpsKernelInfoStore>(AI_CORE_NAME);
+    FEOpsStoreInfo tbe_custom{
+        2,
+        "tbe-custom",
+        EN_IMPL_CUSTOM_TBE,
+        GetCodeDir() +
+            "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
+        GetCodeDir() +
+            "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
+        false,
+        false,
+        false};
 
-      vector<FEOpsStoreInfo> store_info;
-      store_info.emplace_back(tbe_custom);
-      Configuration::Instance(AI_CORE_NAME).ops_store_info_vector_ = (store_info);
-      if (Configuration::Instance(fe::AI_CORE_NAME).cust_dtypes_parser_ == nullptr) {
-        Configuration::Instance(fe::AI_CORE_NAME).cust_dtypes_parser_ = make_shared<OpCustDtypesConfigParser>();
-      }
-      op_cust_dtypes_parser_ptr_ =
-              std::dynamic_pointer_cast<OpCustDtypesConfigParser>(Configuration::Instance(fe::AI_CORE_NAME).cust_dtypes_parser_);
-
-      if (Configuration::Instance(fe::AI_CORE_NAME).mix_list_parser_ == nullptr) {
-        Configuration::Instance(fe::AI_CORE_NAME).mix_list_parser_ = make_shared<ModifyMixlistConfigParser>();
-      }
-      mixlist_parser_ptr_ =
-              std::dynamic_pointer_cast<ModifyMixlistConfigParser>(Configuration::Instance(fe::AI_CORE_NAME).mix_list_parser_);
-
-      OpsKernelManager::Instance(AI_CORE_NAME).Finalize();
-      Configuration::Instance(fe::AI_CORE_NAME).content_map_["check_subformat.enable"] = "true";
-      fe_ops_kernel_info_store_ptr->Initialize(options);
-
-      op_desc_ptr->SetName("tbe_conv");
-      ge::OpDescUtilsEx::SetType(op_desc_ptr, "conv");
-      ge::DataType set_dtype = ge::DT_FLOAT16;
-      ge::Format set_format = ge::FORMAT_ND;
-      std::vector<int64_t> shape_vec{256,256,512};
-      ge::GeShape shape_desc = GeShape(shape_vec);
-
-      input0_desc_ptr->SetDataType(set_dtype);
-      input0_desc_ptr->SetFormat(set_format);
-      input0_desc_ptr->SetShape(shape_desc);
-      op_desc_ptr->AddInputDesc("x", input0_desc_ptr->Clone());
-
-      std::vector<int64_t> shape_vec1{256,256,512};
-      ge::GeShape shape_desc1 = GeShape(shape_vec1);
-      input1_desc_ptr->SetDataType(set_dtype);
-      input1_desc_ptr->SetFormat(set_format);
-      input1_desc_ptr->SetShape(shape_desc1);
-      op_desc_ptr->AddInputDesc("y", input1_desc_ptr->Clone());
-
-      std::vector<int64_t> shape_vec2{256,256,512};
-      ge::GeShape shape_desc2 = GeShape(shape_vec2);
-      input2_desc_ptr->SetDataType(set_dtype);
-      input2_desc_ptr->SetFormat(set_format);
-      input2_desc_ptr->SetShape(shape_desc2);
-      op_desc_ptr->AddInputDesc("x1", input2_desc_ptr->Clone());
-
-      output0_desc_ptr->SetDataType(set_dtype);
-      output0_desc_ptr->SetFormat(set_format);
-      op_desc_ptr->AddOutputDesc("z", output0_desc_ptr->Clone());
-
-      format_dtype_querier_ptr_ = std::make_shared<FormatDtypeQuerier>(AI_CORE_NAME);
-      cout << "a test Set Up" << endl;
-    }
-    virtual void TearDown(){
-        cout << "a test Tear Down" << endl;
-        fe_ops_kernel_info_store_ptr->Finalize();
-
-    }
-
-    OpDescPtr CreateOpDescPtr(TestIter test_iter)
-    {
-        OpDescPtr desc_ptr = std::make_shared<OpDesc>("test_op_desc", "conv");
-        if (test_iter == TEST_INT) {
-            AttrUtils::SetInt(desc_ptr, ATTR_NAME_INT, 10);
-        }else{
-            AttrUtils::SetInt(desc_ptr, ATTR_NAME_INT, 1);
-        }
-        if (test_iter == TEST_FLOAT) {
-            AttrUtils::SetFloat(desc_ptr, ATTR_NAME_FLOAT, 22.0);
-        }else{
-            AttrUtils::SetFloat(desc_ptr, ATTR_NAME_FLOAT, 2.0);
-        }
-        if (test_iter == TEST_BOOL) {
-            AttrUtils::SetBool(desc_ptr, ATTR_NAME_BOOL, true);
-        }else{
-            AttrUtils::SetBool(desc_ptr, ATTR_NAME_BOOL, false);
-        }
-        if (test_iter == TEST_STR) {
-            AttrUtils::SetStr(desc_ptr, ATTR_NAME_STR, "not_exist");
-        }else{
-            AttrUtils::SetStr(desc_ptr, ATTR_NAME_STR, "abc");
-        }
-        if (test_iter == TEST_LIST_INT) {
-            AttrUtils::SetListInt(desc_ptr, ATTR_NAME_LIST_INT, {6,7,8});
-        }else{
-            AttrUtils::SetListInt(desc_ptr, ATTR_NAME_LIST_INT, {1,2,3});
-        }
-        if (test_iter == TEST_LIST_FLOAT) {
-            AttrUtils::SetListFloat(desc_ptr, ATTR_NAME_LIST_FLOAT, {6.0, 7.0, 8.0});
-        }else{
-            AttrUtils::SetListFloat(desc_ptr, ATTR_NAME_LIST_FLOAT, {1.0, 2.0, 3.0});
-        }
-        if (test_iter == TEST_LIST_BOOL) {
-            AttrUtils::SetListBool(desc_ptr, ATTR_NAME_LIST_BOOL, {true,false,true});
-        }else{
-            AttrUtils::SetListBool(desc_ptr, ATTR_NAME_LIST_BOOL, {true,true,true});
-        }
-        if (test_iter == TEST_LIST_STR) {
-            AttrUtils::SetListStr(desc_ptr, ATTR_NAME_LIST_STR, {"aa", "bb", "cc"});
-        }else{
-            AttrUtils::SetListStr(desc_ptr, ATTR_NAME_LIST_STR, {"a", "b", "c"});
-        }
-
-        return desc_ptr;
-    }
- public:
-    shared_ptr<fe::FEOpsKernelInfoStore> fe_ops_kernel_info_store_ptr;
-    TbeOpStoreAdapterPtr tbe_adapter_ptr_;
-    shared_ptr<ge::GeTensorDesc> input0_desc_ptr;
-    shared_ptr<ge::GeTensorDesc> input1_desc_ptr;
-    shared_ptr<ge::GeTensorDesc> input2_desc_ptr;
-    shared_ptr<ge::GeTensorDesc> output0_desc_ptr;
-    shared_ptr<ge::OpDesc> op_desc_ptr;
-    FormatDtypeQuerierPtr format_dtype_querier_ptr_;
-    OpCustDtypesConfigParserPtr op_cust_dtypes_parser_ptr_;
-    ModifyMixlistConfigParserPtr mixlist_parser_ptr_;
-};
-
-TEST_F(FEOpsKernelInfoStoreTest, initialize_fail){
-    map<string, string> options;
-    fe_ops_kernel_info_store_ptr = make_shared<fe::FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
-    FEOpsStoreInfo tbe_custom {
-    2,
-    "tbe-custom",
-    EN_IMPL_CUSTOM_TBE,
-    GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
-    ""};
     vector<FEOpsStoreInfo> store_info;
     store_info.emplace_back(tbe_custom);
     Configuration::Instance(AI_CORE_NAME).ops_store_info_vector_ = (store_info);
-    OpsKernelManager::Instance(AI_CORE_NAME).Finalize();
+    if (Configuration::Instance(fe::AI_CORE_NAME).cust_dtypes_parser_ == nullptr) {
+      Configuration::Instance(fe::AI_CORE_NAME).cust_dtypes_parser_ = make_shared<OpCustDtypesConfigParser>();
+    }
+    op_cust_dtypes_parser_ptr_ = std::dynamic_pointer_cast<OpCustDtypesConfigParser>(
+        Configuration::Instance(fe::AI_CORE_NAME).cust_dtypes_parser_);
 
+    if (Configuration::Instance(fe::AI_CORE_NAME).mix_list_parser_ == nullptr) {
+      Configuration::Instance(fe::AI_CORE_NAME).mix_list_parser_ = make_shared<ModifyMixlistConfigParser>();
+    }
+    mixlist_parser_ptr_ = std::dynamic_pointer_cast<ModifyMixlistConfigParser>(
+        Configuration::Instance(fe::AI_CORE_NAME).mix_list_parser_);
+
+    OpsKernelManager::Instance(AI_CORE_NAME).Finalize();
+    Configuration::Instance(fe::AI_CORE_NAME).content_map_["check_subformat.enable"] = "true";
     fe_ops_kernel_info_store_ptr->Initialize(options);
-    Status ret = fe_ops_kernel_info_store_ptr->Initialize(options);
-    EXPECT_EQ(fe::SUCCESS, ret);
+
+    op_desc_ptr->SetName("tbe_conv");
+    ge::OpDescUtilsEx::SetType(op_desc_ptr, "conv");
+    ge::DataType set_dtype = ge::DT_FLOAT16;
+    ge::Format set_format = ge::FORMAT_ND;
+    std::vector<int64_t> shape_vec{256, 256, 512};
+    ge::GeShape shape_desc = GeShape(shape_vec);
+
+    input0_desc_ptr->SetDataType(set_dtype);
+    input0_desc_ptr->SetFormat(set_format);
+    input0_desc_ptr->SetShape(shape_desc);
+    op_desc_ptr->AddInputDesc("x", input0_desc_ptr->Clone());
+
+    std::vector<int64_t> shape_vec1{256, 256, 512};
+    ge::GeShape shape_desc1 = GeShape(shape_vec1);
+    input1_desc_ptr->SetDataType(set_dtype);
+    input1_desc_ptr->SetFormat(set_format);
+    input1_desc_ptr->SetShape(shape_desc1);
+    op_desc_ptr->AddInputDesc("y", input1_desc_ptr->Clone());
+
+    std::vector<int64_t> shape_vec2{256, 256, 512};
+    ge::GeShape shape_desc2 = GeShape(shape_vec2);
+    input2_desc_ptr->SetDataType(set_dtype);
+    input2_desc_ptr->SetFormat(set_format);
+    input2_desc_ptr->SetShape(shape_desc2);
+    op_desc_ptr->AddInputDesc("x1", input2_desc_ptr->Clone());
+
+    output0_desc_ptr->SetDataType(set_dtype);
+    output0_desc_ptr->SetFormat(set_format);
+    op_desc_ptr->AddOutputDesc("z", output0_desc_ptr->Clone());
+
+    format_dtype_querier_ptr_ = std::make_shared<FormatDtypeQuerier>(AI_CORE_NAME);
+    cout << "a test Set Up" << endl;
+  }
+  virtual void TearDown() {
+    cout << "a test Tear Down" << endl;
+    fe_ops_kernel_info_store_ptr->Finalize();
+  }
+
+  OpDescPtr CreateOpDescPtr(TestIter test_iter) {
+    OpDescPtr desc_ptr = std::make_shared<OpDesc>("test_op_desc", "conv");
+    if (test_iter == TEST_INT) {
+      AttrUtils::SetInt(desc_ptr, ATTR_NAME_INT, 10);
+    } else {
+      AttrUtils::SetInt(desc_ptr, ATTR_NAME_INT, 1);
+    }
+    if (test_iter == TEST_FLOAT) {
+      AttrUtils::SetFloat(desc_ptr, ATTR_NAME_FLOAT, 22.0);
+    } else {
+      AttrUtils::SetFloat(desc_ptr, ATTR_NAME_FLOAT, 2.0);
+    }
+    if (test_iter == TEST_BOOL) {
+      AttrUtils::SetBool(desc_ptr, ATTR_NAME_BOOL, true);
+    } else {
+      AttrUtils::SetBool(desc_ptr, ATTR_NAME_BOOL, false);
+    }
+    if (test_iter == TEST_STR) {
+      AttrUtils::SetStr(desc_ptr, ATTR_NAME_STR, "not_exist");
+    } else {
+      AttrUtils::SetStr(desc_ptr, ATTR_NAME_STR, "abc");
+    }
+    if (test_iter == TEST_LIST_INT) {
+      AttrUtils::SetListInt(desc_ptr, ATTR_NAME_LIST_INT, {6, 7, 8});
+    } else {
+      AttrUtils::SetListInt(desc_ptr, ATTR_NAME_LIST_INT, {1, 2, 3});
+    }
+    if (test_iter == TEST_LIST_FLOAT) {
+      AttrUtils::SetListFloat(desc_ptr, ATTR_NAME_LIST_FLOAT, {6.0, 7.0, 8.0});
+    } else {
+      AttrUtils::SetListFloat(desc_ptr, ATTR_NAME_LIST_FLOAT, {1.0, 2.0, 3.0});
+    }
+    if (test_iter == TEST_LIST_BOOL) {
+      AttrUtils::SetListBool(desc_ptr, ATTR_NAME_LIST_BOOL, {true, false, true});
+    } else {
+      AttrUtils::SetListBool(desc_ptr, ATTR_NAME_LIST_BOOL, {true, true, true});
+    }
+    if (test_iter == TEST_LIST_STR) {
+      AttrUtils::SetListStr(desc_ptr, ATTR_NAME_LIST_STR, {"aa", "bb", "cc"});
+    } else {
+      AttrUtils::SetListStr(desc_ptr, ATTR_NAME_LIST_STR, {"a", "b", "c"});
+    }
+
+    return desc_ptr;
+  }
+
+ public:
+  shared_ptr<fe::FEOpsKernelInfoStore> fe_ops_kernel_info_store_ptr;
+  TbeOpStoreAdapterPtr tbe_adapter_ptr_;
+  shared_ptr<ge::GeTensorDesc> input0_desc_ptr;
+  shared_ptr<ge::GeTensorDesc> input1_desc_ptr;
+  shared_ptr<ge::GeTensorDesc> input2_desc_ptr;
+  shared_ptr<ge::GeTensorDesc> output0_desc_ptr;
+  shared_ptr<ge::OpDesc> op_desc_ptr;
+  FormatDtypeQuerierPtr format_dtype_querier_ptr_;
+  OpCustDtypesConfigParserPtr op_cust_dtypes_parser_ptr_;
+  ModifyMixlistConfigParserPtr mixlist_parser_ptr_;
+};
+
+TEST_F(FEOpsKernelInfoStoreTest, initialize_fail) {
+  map<string, string> options;
+  fe_ops_kernel_info_store_ptr = make_shared<fe::FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
+  FEOpsStoreInfo tbe_custom{
+      2, "tbe-custom", EN_IMPL_CUSTOM_TBE,
+      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
+      ""};
+  vector<FEOpsStoreInfo> store_info;
+  store_info.emplace_back(tbe_custom);
+  Configuration::Instance(AI_CORE_NAME).ops_store_info_vector_ = (store_info);
+  OpsKernelManager::Instance(AI_CORE_NAME).Finalize();
+
+  fe_ops_kernel_info_store_ptr->Initialize(options);
+  Status ret = fe_ops_kernel_info_store_ptr->Initialize(options);
+  EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, initialize_succ){
-    shared_ptr<FEOpsKernelInfoStore> fe_ops_kernel_info_store_ptr = make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
-    map<string, string> options;
-    FEOpsStoreInfo tbe_custom {
-    2,
-    "tbe-custom",
-    EN_IMPL_CUSTOM_TBE,
-    GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
-    ""};
-    vector<FEOpsStoreInfo> store_info;
-    store_info.emplace_back(tbe_custom);
-    Configuration::Instance(fe::AI_CORE_NAME).ops_store_info_vector_ = (store_info);
-    Status ret = fe_ops_kernel_info_store_ptr->Initialize(options);
-    EXPECT_EQ(fe::SUCCESS, ret);
+TEST_F(FEOpsKernelInfoStoreTest, initialize_succ) {
+  shared_ptr<FEOpsKernelInfoStore> fe_ops_kernel_info_store_ptr = make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
+  map<string, string> options;
+  FEOpsStoreInfo tbe_custom{
+      2, "tbe-custom", EN_IMPL_CUSTOM_TBE,
+      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
+      ""};
+  vector<FEOpsStoreInfo> store_info;
+  store_info.emplace_back(tbe_custom);
+  Configuration::Instance(fe::AI_CORE_NAME).ops_store_info_vector_ = (store_info);
+  Status ret = fe_ops_kernel_info_store_ptr->Initialize(options);
+  EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, initialize_read_json_not_exist){
-    shared_ptr<FEOpsKernelInfoStore> fe_ops_kernel_info_store_ptr = make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
-    map<string, string> options;
-    FEOpsStoreInfo cce_custom {
-    0,
-    "cce_custom_opinfo",
-    EN_IMPL_CUSTOM_CONSTANT_CCE,
-    GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_not_exist",
-    ""};
-    vector<FEOpsStoreInfo> store_info;
-    store_info.emplace_back(cce_custom);
-    Configuration::Instance(fe::AI_CORE_NAME).ops_store_info_vector_ = (store_info);
-    OpsKernelManager::Instance(AI_CORE_NAME).Finalize();
+TEST_F(FEOpsKernelInfoStoreTest, initialize_read_json_not_exist) {
+  shared_ptr<FEOpsKernelInfoStore> fe_ops_kernel_info_store_ptr = make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
+  map<string, string> options;
+  FEOpsStoreInfo cce_custom{
+      0, "cce_custom_opinfo", EN_IMPL_CUSTOM_CONSTANT_CCE,
+      GetCodeDir() +
+          "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_not_exist",
+      ""};
+  vector<FEOpsStoreInfo> store_info;
+  store_info.emplace_back(cce_custom);
+  Configuration::Instance(fe::AI_CORE_NAME).ops_store_info_vector_ = (store_info);
+  OpsKernelManager::Instance(AI_CORE_NAME).Finalize();
 
-    Status ret = fe_ops_kernel_info_store_ptr->Initialize(options);
-    EXPECT_EQ(fe::FAILED, ret);
+  Status ret = fe_ops_kernel_info_store_ptr->Initialize(options);
+  EXPECT_EQ(fe::FAILED, ret);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, initialize_twice){
-    shared_ptr<FEOpsKernelInfoStore> fe_ops_kernel_info_store_ptr = make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
-    map<string, string> options;
-    FEOpsStoreInfo tbe_custom {
-    2,
-    "tbe-custom",
-    EN_IMPL_CUSTOM_TBE,
-    GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
-    ""};
-    vector<FEOpsStoreInfo> store_info;
-    store_info.emplace_back(tbe_custom);
-    Configuration::Instance(fe::AI_CORE_NAME).ops_store_info_vector_ = (store_info);
-    Status ret1 = fe_ops_kernel_info_store_ptr->Initialize(options);
-    Status ret2 = fe_ops_kernel_info_store_ptr->Initialize(options);
-    EXPECT_EQ(fe::SUCCESS, ret1);
-    EXPECT_EQ(fe::SUCCESS, ret2);
+TEST_F(FEOpsKernelInfoStoreTest, initialize_twice) {
+  shared_ptr<FEOpsKernelInfoStore> fe_ops_kernel_info_store_ptr = make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
+  map<string, string> options;
+  FEOpsStoreInfo tbe_custom{
+      2, "tbe-custom", EN_IMPL_CUSTOM_TBE,
+      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
+      ""};
+  vector<FEOpsStoreInfo> store_info;
+  store_info.emplace_back(tbe_custom);
+  Configuration::Instance(fe::AI_CORE_NAME).ops_store_info_vector_ = (store_info);
+  Status ret1 = fe_ops_kernel_info_store_ptr->Initialize(options);
+  Status ret2 = fe_ops_kernel_info_store_ptr->Initialize(options);
+  EXPECT_EQ(fe::SUCCESS, ret1);
+  EXPECT_EQ(fe::SUCCESS, ret2);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, get_all_ops_kernel_info_succ){
-    shared_ptr<map<string, ge::OpInfo>> infos = make_shared<map<string, ge::OpInfo>>();
-    fe_ops_kernel_info_store_ptr->GetAllOpsKernelInfo(*(infos.get()));
-    EXPECT_EQ(false, infos->empty());
-    infos.reset();
+TEST_F(FEOpsKernelInfoStoreTest, get_all_ops_kernel_info_succ) {
+  shared_ptr<map<string, ge::OpInfo>> infos = make_shared<map<string, ge::OpInfo>>();
+  fe_ops_kernel_info_store_ptr->GetAllOpsKernelInfo(*(infos.get()));
+  EXPECT_EQ(false, infos->empty());
+  infos.reset();
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, get_one_op_kernel_info_ptr)
-{
-    string op_type = "conv";
-    string op_not_exist = "relu";
-    OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", op_type);
-    OpKernelInfoPtr op_kernel_info_ptr1 = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", op_not_exist);
-    EXPECT_NE(op_kernel_info_ptr, nullptr);
-    EXPECT_EQ(op_kernel_info_ptr1, nullptr);
+TEST_F(FEOpsKernelInfoStoreTest, get_one_op_kernel_info_ptr) {
+  string op_type = "conv";
+  string op_not_exist = "relu";
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", op_type);
+  OpKernelInfoPtr op_kernel_info_ptr1 =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", op_not_exist);
+  EXPECT_NE(op_kernel_info_ptr, nullptr);
+  EXPECT_EQ(op_kernel_info_ptr1, nullptr);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, get_high_prio_op_kernel_info_ptr)
-{
+TEST_F(FEOpsKernelInfoStoreTest, get_high_prio_op_kernel_info_ptr) {
   string op_type = "conv";
   string op_not_exist = "relu";
 
   OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetHighPrioOpKernelInfoPtr(op_type);
-  OpKernelInfoPtr op_kernel_info_ptr1 = OpsKernelManager::Instance(AI_CORE_NAME).GetHighPrioOpKernelInfoPtr(op_not_exist);
+  OpKernelInfoPtr op_kernel_info_ptr1 =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetHighPrioOpKernelInfoPtr(op_not_exist);
 
   EXPECT_NE(nullptr, op_kernel_info_ptr);
-  if(op_kernel_info_ptr != nullptr){
-      EXPECT_EQ("conv", op_kernel_info_ptr->GetOpType());
+  if (op_kernel_info_ptr != nullptr) {
+    EXPECT_EQ("conv", op_kernel_info_ptr->GetOpType());
   }
 
   EXPECT_EQ(nullptr, op_kernel_info_ptr1);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, finalize_succ){
-    Status ret = fe_ops_kernel_info_store_ptr->Finalize();
-    EXPECT_EQ(fe::SUCCESS, ret);
+TEST_F(FEOpsKernelInfoStoreTest, finalize_succ) {
+  Status ret = fe_ops_kernel_info_store_ptr->Finalize();
+  EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, check_attr_supported_succ)
-{
-    SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
-    OpDescPtr op_desc_ptr_t = CreateOpDescPtr(TEST_SUCCESS);
-    OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
+TEST_F(FEOpsKernelInfoStoreTest, check_attr_supported_succ) {
+  SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
+  OpDescPtr op_desc_ptr_t = CreateOpDescPtr(TEST_SUCCESS);
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
 
-    std::string reason;
-    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
-    ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
-    bool ret = sub_ops_store_ptr->CheckAttrSupport(test_node, *(op_kernel_info_ptr.get()), reason);
-    EXPECT_EQ(true, ret);
+  std::string reason;
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
+  ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
+  bool ret = sub_ops_store_ptr->CheckAttrSupport(test_node, *(op_kernel_info_ptr.get()), reason);
+  EXPECT_EQ(true, ret);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, check_attr_supported)
-{
-    shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
-    op_desc_ptr_t->SetName("tbe_conv");
-    ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "conv");
-    int64_t int_value = 1;
-    float float_value = 2.0;
-    bool bool_value = false;
-    string str_value = "abc";
-    vector<int64_t> int_vec{1, 2, 3};
-    vector<int64_t> rint_vec;
-    vector<float> float_vec{4.0, 5.0, 6.0};
-    vector<float> rfloat_vec;
-    vector<bool> bool_vec{false, true, true};
-    vector<bool> rbool_vec;
-    std::vector<string> str_vec{"a", "b", "c"};
-    AttrUtils::SetInt(op_desc_ptr_t, "transposX", int_value);
-    AttrUtils::SetFloat(op_desc_ptr_t, "transposY", float_value);
-    AttrUtils::SetBool(op_desc_ptr_t,"attrBool", bool_value);
-    AttrUtils::SetStr(op_desc_ptr_t,"attrStr", str_value);
-    AttrUtils::SetListInt(op_desc_ptr_t, "attrListInt", int_vec);
-    AttrUtils::SetListFloat(op_desc_ptr_t, "attrListFloat", float_vec);
-    AttrUtils::SetListBool(op_desc_ptr_t, "attrListBool", bool_vec);
-    AttrUtils::SetListStr(op_desc_ptr_t, "attrListStr", str_vec);
+TEST_F(FEOpsKernelInfoStoreTest, check_attr_supported) {
+  shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
+  op_desc_ptr_t->SetName("tbe_conv");
+  ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "conv");
+  int64_t int_value = 1;
+  float float_value = 2.0;
+  bool bool_value = false;
+  string str_value = "abc";
+  vector<int64_t> int_vec{1, 2, 3};
+  vector<int64_t> rint_vec;
+  vector<float> float_vec{4.0, 5.0, 6.0};
+  vector<float> rfloat_vec;
+  vector<bool> bool_vec{false, true, true};
+  vector<bool> rbool_vec;
+  std::vector<string> str_vec{"a", "b", "c"};
+  AttrUtils::SetInt(op_desc_ptr_t, "transposX", int_value);
+  AttrUtils::SetFloat(op_desc_ptr_t, "transposY", float_value);
+  AttrUtils::SetBool(op_desc_ptr_t, "attrBool", bool_value);
+  AttrUtils::SetStr(op_desc_ptr_t, "attrStr", str_value);
+  AttrUtils::SetListInt(op_desc_ptr_t, "attrListInt", int_vec);
+  AttrUtils::SetListFloat(op_desc_ptr_t, "attrListFloat", float_vec);
+  AttrUtils::SetListBool(op_desc_ptr_t, "attrListBool", bool_vec);
+  AttrUtils::SetListStr(op_desc_ptr_t, "attrListStr", str_vec);
 
-    SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
-    OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
-    EXPECT_NE(nullptr, op_kernel_info_ptr);
-    std::string reason;
-    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
-    ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
-    bool ret = sub_ops_store_ptr->CheckAttrSupport(test_node, *(op_kernel_info_ptr.get()), reason);
-    EXPECT_EQ(true, ret);
+  SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
+  EXPECT_NE(nullptr, op_kernel_info_ptr);
+  std::string reason;
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
+  ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
+  bool ret = sub_ops_store_ptr->CheckAttrSupport(test_node, *(op_kernel_info_ptr.get()), reason);
+  EXPECT_EQ(true, ret);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, check_attr_not_exist)
-{
-    shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
-    op_desc_ptr_t->SetName("tbe_conv");
-    ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "conv");
-    int64_t int_value = 1;
-    float float_value = 2.0;
-    bool bool_value = false;
-    string str_value = "abc";
-    vector<int64_t> int_vec{1, 2, 3};
-    vector<int64_t> rint_vec;
-    vector<float> float_vec{4.0, 5.0, 6.0};
-    vector<float> rfloat_vec;
-    vector<bool> bool_vec{false, true, true};
-    vector<bool> rbool_vec;
-    std::vector<string> str_vec{"a", "b", "c"};
+TEST_F(FEOpsKernelInfoStoreTest, check_attr_not_exist) {
+  shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
+  op_desc_ptr_t->SetName("tbe_conv");
+  ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "conv");
+  int64_t int_value = 1;
+  float float_value = 2.0;
+  bool bool_value = false;
+  string str_value = "abc";
+  vector<int64_t> int_vec{1, 2, 3};
+  vector<int64_t> rint_vec;
+  vector<float> float_vec{4.0, 5.0, 6.0};
+  vector<float> rfloat_vec;
+  vector<bool> bool_vec{false, true, true};
+  vector<bool> rbool_vec;
+  std::vector<string> str_vec{"a", "b", "c"};
 
-    AttrUtils::SetFloat(op_desc_ptr_t, "transposY", float_value);
-    AttrUtils::SetBool(op_desc_ptr_t,"attrBool", bool_value);
-    AttrUtils::SetStr(op_desc_ptr_t,"attrStr", str_value);
-    AttrUtils::SetListInt(op_desc_ptr_t, "attrListInt", int_vec);
-    AttrUtils::SetListFloat(op_desc_ptr_t, "attrListFloat", float_vec);
-    AttrUtils::SetListBool(op_desc_ptr_t, "attrListBool", bool_vec);
-    AttrUtils::SetListStr(op_desc_ptr_t, "attrListStr", str_vec);
+  AttrUtils::SetFloat(op_desc_ptr_t, "transposY", float_value);
+  AttrUtils::SetBool(op_desc_ptr_t, "attrBool", bool_value);
+  AttrUtils::SetStr(op_desc_ptr_t, "attrStr", str_value);
+  AttrUtils::SetListInt(op_desc_ptr_t, "attrListInt", int_vec);
+  AttrUtils::SetListFloat(op_desc_ptr_t, "attrListFloat", float_vec);
+  AttrUtils::SetListBool(op_desc_ptr_t, "attrListBool", bool_vec);
+  AttrUtils::SetListStr(op_desc_ptr_t, "attrListStr", str_vec);
 
-    OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
-    EXPECT_NE(op_kernel_info_ptr, nullptr);
-    SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
-    std::string reason;
-    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
-    ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
-    bool ret = sub_ops_store_ptr->CheckAttrSupport(test_node, *(op_kernel_info_ptr.get()), reason);
-    EXPECT_EQ(false, ret);
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
+  EXPECT_NE(op_kernel_info_ptr, nullptr);
+  SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
+  std::string reason;
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
+  ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
+  bool ret = sub_ops_store_ptr->CheckAttrSupport(test_node, *(op_kernel_info_ptr.get()), reason);
+  EXPECT_EQ(false, ret);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, check_attr_supported_unkown_attr)
-{
-    std::map<std::string, std::string> options_t;
-    shared_ptr<fe::FEOpsKernelInfoStore> fe_ops_kernel_info_store_ptr_t =
-        make_shared<fe::FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
-    FEOpsStoreInfo cce_custom {
-    1,
-    "cce-custom",
-    EN_IMPL_CUSTOM_TBE,
-    GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/cce_custom_opinfo",
-    ""};
-    vector<FEOpsStoreInfo> store_info;
-    store_info.emplace_back(cce_custom);
-    Configuration::Instance(fe::AI_CORE_NAME).ops_store_info_vector_ = (store_info);
-    Status stu = fe_ops_kernel_info_store_ptr_t->Initialize(options_t);
-    EXPECT_EQ(fe::SUCCESS, stu);
+TEST_F(FEOpsKernelInfoStoreTest, check_attr_supported_unkown_attr) {
+  std::map<std::string, std::string> options_t;
+  shared_ptr<fe::FEOpsKernelInfoStore> fe_ops_kernel_info_store_ptr_t =
+      make_shared<fe::FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
+  FEOpsStoreInfo cce_custom{
+      1, "cce-custom", EN_IMPL_CUSTOM_TBE,
+      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/cce_custom_opinfo",
+      ""};
+  vector<FEOpsStoreInfo> store_info;
+  store_info.emplace_back(cce_custom);
+  Configuration::Instance(fe::AI_CORE_NAME).ops_store_info_vector_ = (store_info);
+  Status stu = fe_ops_kernel_info_store_ptr_t->Initialize(options_t);
+  EXPECT_EQ(fe::SUCCESS, stu);
 
-    shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
-    op_desc_ptr_t->SetName("cce_conv");
-    ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "conv");
-    int64_t int_value = 1;
-    float float_value = 2.0;
-    bool bool_value = false;
-    string str_value = "abc";
-    vector<int64_t> int_vec{1, 2, 3};
-    vector<int64_t> rint_vec;
-    vector<float> float_vec{4.0, 5.0, 6.0};
-    vector<float> rfloat_vec;
-    vector<bool> bool_vec{false, true, true};
-    vector<bool> rbool_vec;
-    AttrUtils::SetInt(op_desc_ptr_t, "transposX", int_value);
-    AttrUtils::SetFloat(op_desc_ptr_t, "transposY", float_value);
-    AttrUtils::SetBool(op_desc_ptr_t,"attrBool", bool_value);
-    AttrUtils::SetStr(op_desc_ptr_t,"attrStr", str_value);
+  shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
+  op_desc_ptr_t->SetName("cce_conv");
+  ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "conv");
+  int64_t int_value = 1;
+  float float_value = 2.0;
+  bool bool_value = false;
+  string str_value = "abc";
+  vector<int64_t> int_vec{1, 2, 3};
+  vector<int64_t> rint_vec;
+  vector<float> float_vec{4.0, 5.0, 6.0};
+  vector<float> rfloat_vec;
+  vector<bool> bool_vec{false, true, true};
+  vector<bool> rbool_vec;
+  AttrUtils::SetInt(op_desc_ptr_t, "transposX", int_value);
+  AttrUtils::SetFloat(op_desc_ptr_t, "transposY", float_value);
+  AttrUtils::SetBool(op_desc_ptr_t, "attrBool", bool_value);
+  AttrUtils::SetStr(op_desc_ptr_t, "attrStr", str_value);
 
-    // test the default of switch code in CheckAttrSupported;
-    AttrUtils::SetListInt(op_desc_ptr_t, "attrListInt", int_vec);
-    AttrUtils::SetListFloat(op_desc_ptr_t, "attrListFloat", float_vec);
-    AttrUtils::SetListBool(op_desc_ptr_t, "attrListBool", bool_vec);
+  // test the default of switch code in CheckAttrSupported;
+  AttrUtils::SetListInt(op_desc_ptr_t, "attrListInt", int_vec);
+  AttrUtils::SetListFloat(op_desc_ptr_t, "attrListFloat", float_vec);
+  AttrUtils::SetListBool(op_desc_ptr_t, "attrListBool", bool_vec);
 
-    OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
 
-    SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
-    std::string reason;
-    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
-    ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
-    bool ret = sub_ops_store_ptr->CheckAttrSupport(test_node, *(op_kernel_info_ptr.get()), reason);
-    EXPECT_EQ(false, ret);
+  SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
+  std::string reason;
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
+  ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
+  bool ret = sub_ops_store_ptr->CheckAttrSupport(test_node, *(op_kernel_info_ptr.get()), reason);
+  EXPECT_EQ(false, ret);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, check_attr_int_false)
-{
-    OpDescPtr op_desc_ptr_t = CreateOpDescPtr(TEST_INT);
+TEST_F(FEOpsKernelInfoStoreTest, check_attr_int_false) {
+  OpDescPtr op_desc_ptr_t = CreateOpDescPtr(TEST_INT);
 
-    OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
 
-    SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
-    std::string reason;
-    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
-    ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
-    bool ret = sub_ops_store_ptr->CheckAttrSupport(test_node, *(op_kernel_info_ptr.get()), reason);
-    EXPECT_EQ(false, ret);
+  SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
+  std::string reason;
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
+  ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
+  bool ret = sub_ops_store_ptr->CheckAttrSupport(test_node, *(op_kernel_info_ptr.get()), reason);
+  EXPECT_EQ(false, ret);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, check_attr_float_false)
-{
-    OpDescPtr op_desc_ptr_t = CreateOpDescPtr(TEST_FLOAT);
+TEST_F(FEOpsKernelInfoStoreTest, check_attr_float_false) {
+  OpDescPtr op_desc_ptr_t = CreateOpDescPtr(TEST_FLOAT);
 
-    SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
-    OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
-    std::string reason;
-    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
-    ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
-    bool ret = sub_ops_store_ptr->CheckAttrSupport(test_node, *(op_kernel_info_ptr.get()), reason);
-    EXPECT_EQ(false, ret);
+  SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
+  std::string reason;
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
+  ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
+  bool ret = sub_ops_store_ptr->CheckAttrSupport(test_node, *(op_kernel_info_ptr.get()), reason);
+  EXPECT_EQ(false, ret);
 }
-TEST_F(FEOpsKernelInfoStoreTest, check_attr_str_false)
-{
-    OpDescPtr op_desc_ptr_t = CreateOpDescPtr(TEST_STR);
+TEST_F(FEOpsKernelInfoStoreTest, check_attr_str_false) {
+  OpDescPtr op_desc_ptr_t = CreateOpDescPtr(TEST_STR);
 
-    SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
-    OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
-    std::string reason;
-    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
-    ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
-    bool ret = sub_ops_store_ptr->CheckAttrSupport(test_node, *(op_kernel_info_ptr.get()), reason);
-    EXPECT_EQ(false, ret);
-}
-
-TEST_F(FEOpsKernelInfoStoreTest, check_attr_bool_false)
-{
-    OpDescPtr op_desc_ptr_t = CreateOpDescPtr(TEST_BOOL);
-
-    SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
-    OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
-    std::string reason;
-    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
-    ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
-    bool ret = sub_ops_store_ptr->CheckAttrSupport(test_node, *(op_kernel_info_ptr.get()), reason);
-    EXPECT_EQ(false, ret);
+  SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
+  std::string reason;
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
+  ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
+  bool ret = sub_ops_store_ptr->CheckAttrSupport(test_node, *(op_kernel_info_ptr.get()), reason);
+  EXPECT_EQ(false, ret);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, check_attr_supported_list_bool_false)
-{
-    OpDescPtr op_desc_ptr_t = CreateOpDescPtr(TEST_LIST_BOOL);
+TEST_F(FEOpsKernelInfoStoreTest, check_attr_bool_false) {
+  OpDescPtr op_desc_ptr_t = CreateOpDescPtr(TEST_BOOL);
 
-    SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
-    OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
-    std::string reason;
-    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
-    ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
-    bool ret = sub_ops_store_ptr->CheckAttrSupport(test_node, *(op_kernel_info_ptr.get()), reason);
-    EXPECT_EQ(false, ret);
+  SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
+  std::string reason;
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
+  ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
+  bool ret = sub_ops_store_ptr->CheckAttrSupport(test_node, *(op_kernel_info_ptr.get()), reason);
+  EXPECT_EQ(false, ret);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, check_attr_supported_list_int_false)
-{
-    OpDescPtr op_desc_ptr_t = CreateOpDescPtr(TEST_LIST_INT);
+TEST_F(FEOpsKernelInfoStoreTest, check_attr_supported_list_bool_false) {
+  OpDescPtr op_desc_ptr_t = CreateOpDescPtr(TEST_LIST_BOOL);
 
-    SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
-    OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
-    std::string reason;
-    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
-    ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
-    bool ret = sub_ops_store_ptr->CheckAttrSupport(test_node, *(op_kernel_info_ptr.get()), reason);
-    EXPECT_EQ(false, ret);
+  SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
+  std::string reason;
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
+  ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
+  bool ret = sub_ops_store_ptr->CheckAttrSupport(test_node, *(op_kernel_info_ptr.get()), reason);
+  EXPECT_EQ(false, ret);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, check_attr_list_float_false)
-{
-    OpDescPtr op_desc_ptr_t = CreateOpDescPtr(TEST_LIST_FLOAT);
+TEST_F(FEOpsKernelInfoStoreTest, check_attr_supported_list_int_false) {
+  OpDescPtr op_desc_ptr_t = CreateOpDescPtr(TEST_LIST_INT);
 
-    SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
-    OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
-    std::string reason;
-    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
-    ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
-    bool ret = sub_ops_store_ptr->CheckAttrSupport(test_node, *(op_kernel_info_ptr.get()), reason);
-    EXPECT_EQ(false, ret);
+  SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
+  std::string reason;
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
+  ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
+  bool ret = sub_ops_store_ptr->CheckAttrSupport(test_node, *(op_kernel_info_ptr.get()), reason);
+  EXPECT_EQ(false, ret);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, check_attr_list_str_false)
-{
-    OpDescPtr op_desc_ptr_t = CreateOpDescPtr(TEST_LIST_STR);
+TEST_F(FEOpsKernelInfoStoreTest, check_attr_list_float_false) {
+  OpDescPtr op_desc_ptr_t = CreateOpDescPtr(TEST_LIST_FLOAT);
 
-    SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
-    OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
-    std::string reason;
-    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
-    ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
-    bool ret = sub_ops_store_ptr->CheckAttrSupport(test_node, *(op_kernel_info_ptr.get()), reason);
-    EXPECT_EQ(false, ret);
+  SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
+  std::string reason;
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
+  ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
+  bool ret = sub_ops_store_ptr->CheckAttrSupport(test_node, *(op_kernel_info_ptr.get()), reason);
+  EXPECT_EQ(false, ret);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_for_cast)
-{
-  FEOpsStoreInfo tbe_custom {
-      2,
-      "tbe-custom",
-      EN_IMPL_CUSTOM_TBE,
+TEST_F(FEOpsKernelInfoStoreTest, check_attr_list_str_false) {
+  OpDescPtr op_desc_ptr_t = CreateOpDescPtr(TEST_LIST_STR);
+
+  SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
+  std::string reason;
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
+  ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
+  bool ret = sub_ops_store_ptr->CheckAttrSupport(test_node, *(op_kernel_info_ptr.get()), reason);
+  EXPECT_EQ(false, ret);
+}
+
+TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_for_cast) {
+  FEOpsStoreInfo tbe_custom{
+      2, "tbe-custom", EN_IMPL_CUSTOM_TBE,
       GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
       ""};
   vector<FEOpsStoreInfo> store_info;
@@ -709,8 +699,8 @@ TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_for_cast)
 
   ge::Format format_5dh_16 = static_cast<ge::Format>(ge::GetFormatFromC0(ge::FORMAT_NC1HWC0, 5));
   ge::Format format_5dh_8 = static_cast<ge::Format>(ge::GetFormatFromC0(ge::FORMAT_NC1HWC0, 4));
-  std::vector<int64_t> dims_nchw{10,20,15,15};
-  std::vector<int64_t> dims_5hd{10,2,15,15,16};
+  std::vector<int64_t> dims_nchw{10, 20, 15, 15};
+  std::vector<int64_t> dims_5hd{10, 2, 15, 15, 16};
   ge::GeShape shape_nchw(dims_nchw);
   ge::GeShape shape_5hd(dims_5hd);
   ge::GeTensorDesc tensor_desc(shape_5hd, format_5dh_16, ge::DT_FLOAT16);
@@ -734,13 +724,12 @@ TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_for_cast)
   EXPECT_EQ(ret, false);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_fail1)
-{
+TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_fail1) {
   shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
   shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
-  shared_ptr<ge::GeTensorDesc>  input1_desc_ptr = make_shared<ge::GeTensorDesc>();
-  shared_ptr<ge::GeTensorDesc>  input2_desc_ptr = make_shared<ge::GeTensorDesc>();
-  shared_ptr<ge::GeTensorDesc>  output0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> input1_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> input2_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
   op_desc_ptr_t->SetName("tbe_conv");
   ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "conv");
   int64_t int_value = 1;
@@ -756,15 +745,15 @@ TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_fail1)
   std::vector<string> str_vec{"a", "b", "c"};
   AttrUtils::SetInt(op_desc_ptr_t, "transposX", int_value);
   AttrUtils::SetFloat(op_desc_ptr_t, "transposY", float_value);
-  AttrUtils::SetBool(op_desc_ptr_t,"attrBool", bool_value);
-  AttrUtils::SetStr(op_desc_ptr_t,"attrStr", str_value);
+  AttrUtils::SetBool(op_desc_ptr_t, "attrBool", bool_value);
+  AttrUtils::SetStr(op_desc_ptr_t, "attrStr", str_value);
   AttrUtils::SetListInt(op_desc_ptr_t, "attrListInt", int_vec);
   AttrUtils::SetListFloat(op_desc_ptr_t, "attrListFloat", float_vec);
   AttrUtils::SetListBool(op_desc_ptr_t, "attrListBool", bool_vec);
   AttrUtils::SetListStr(op_desc_ptr_t, "attrListStr", str_vec);
 
   ge::DataType set_dtype = ge::DT_FLOAT16;
-  std::vector<int64_t> shape_vec{256,256,512};
+  std::vector<int64_t> shape_vec{256, 256, 512};
   ge::GeShape shape_desc = GeShape(shape_vec);
 
   input0_desc_ptr->SetDataType(set_dtype);
@@ -782,18 +771,18 @@ TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_fail1)
 
   string un_supported_reason;
   SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
-  OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
   bool ret = fe_ops_kernel_info_store_ptr->CheckAccuracySupported(op_desc_ptr_t, un_supported_reason);
   EXPECT_EQ(false, ret);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_fail2)
-{
+TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_fail2) {
   shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
   shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
-  shared_ptr<ge::GeTensorDesc>  input1_desc_ptr = make_shared<ge::GeTensorDesc>();
-  shared_ptr<ge::GeTensorDesc>  input2_desc_ptr = make_shared<ge::GeTensorDesc>();
-  shared_ptr<ge::GeTensorDesc>  output0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> input1_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> input2_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
   op_desc_ptr_t->SetName("tbe_conv");
   ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "conv");
   int64_t int_value = 1;
@@ -809,15 +798,15 @@ TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_fail2)
   std::vector<string> str_vec{"a", "b", "c"};
   AttrUtils::SetInt(op_desc_ptr_t, "transposX", int_value);
   AttrUtils::SetFloat(op_desc_ptr_t, "transposY", float_value);
-  AttrUtils::SetBool(op_desc_ptr_t,"attrBool", bool_value);
-  AttrUtils::SetStr(op_desc_ptr_t,"attrStr", str_value);
+  AttrUtils::SetBool(op_desc_ptr_t, "attrBool", bool_value);
+  AttrUtils::SetStr(op_desc_ptr_t, "attrStr", str_value);
   AttrUtils::SetListInt(op_desc_ptr_t, "attrListInt", int_vec);
   AttrUtils::SetListFloat(op_desc_ptr_t, "attrListFloat", float_vec);
   AttrUtils::SetListBool(op_desc_ptr_t, "attrListBool", bool_vec);
   AttrUtils::SetListStr(op_desc_ptr_t, "attrListStr", str_vec);
 
   ge::DataType set_dtype = ge::DT_FLOAT16;
-  std::vector<int64_t> shape_vec{256,256,512};
+  std::vector<int64_t> shape_vec{256, 256, 512};
   ge::GeShape shape_desc = GeShape(shape_vec);
 
   input0_desc_ptr->SetDataType(set_dtype);
@@ -826,7 +815,7 @@ TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_fail2)
   input0_desc_ptr->SetOriginFormat(ge::FORMAT_NCHW);
   op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
 
-  std::vector<int64_t> shape_vec1{256,256,512};
+  std::vector<int64_t> shape_vec1{256, 256, 512};
   ge::GeShape shape_desc1 = GeShape(shape_vec1);
   input1_desc_ptr->SetDataType(set_dtype);
   input1_desc_ptr->SetShape(shape_desc1);
@@ -834,7 +823,7 @@ TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_fail2)
   input1_desc_ptr->SetOriginFormat(ge::FORMAT_NCHW);
   op_desc_ptr_t->AddInputDesc("y", input1_desc_ptr->Clone());
 
-  std::vector<int64_t> shape_vec2{256,256,512};
+  std::vector<int64_t> shape_vec2{256, 256, 512};
   ge::GeShape shape_desc2 = GeShape(shape_vec2);
   input2_desc_ptr->SetDataType(set_dtype);
   input2_desc_ptr->SetShape(shape_desc2);
@@ -844,13 +833,13 @@ TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_fail2)
 
   string un_supported_reason;
   SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
-  OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
   bool ret = fe_ops_kernel_info_store_ptr->CheckAccuracySupported(op_desc_ptr_t, un_supported_reason);
   EXPECT_EQ(false, ret);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_fail3)
-{
+TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_fail3) {
   shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
   shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
   shared_ptr<ge::GeTensorDesc> input1_desc_ptr = make_shared<ge::GeTensorDesc>();
@@ -872,22 +861,22 @@ TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_fail3)
   std::vector<string> str_vec{"a", "b", "c"};
   AttrUtils::SetInt(op_desc_ptr_t, "transposX", int_value);
   AttrUtils::SetFloat(op_desc_ptr_t, "transposY", float_value);
-  AttrUtils::SetBool(op_desc_ptr_t,"attrBool", bool_value);
-  AttrUtils::SetStr(op_desc_ptr_t,"attrStr", str_value);
+  AttrUtils::SetBool(op_desc_ptr_t, "attrBool", bool_value);
+  AttrUtils::SetStr(op_desc_ptr_t, "attrStr", str_value);
   AttrUtils::SetListInt(op_desc_ptr_t, "attrListInt", int_vec);
   AttrUtils::SetListFloat(op_desc_ptr_t, "attrListFloat", float_vec);
   AttrUtils::SetListBool(op_desc_ptr_t, "attrListBool", bool_vec);
   AttrUtils::SetListStr(op_desc_ptr_t, "attrListStr", str_vec);
 
   ge::DataType set_dtype = ge::DT_FLOAT16;
-  std::vector<int64_t> shape_vec{256,256,512};
+  std::vector<int64_t> shape_vec{256, 256, 512};
   ge::GeShape shape_desc = GeShape(shape_vec);
 
   input0_desc_ptr->SetDataType(set_dtype);
   input0_desc_ptr->SetShape(shape_desc);
   op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
 
-  std::vector<int64_t> shape_vec1{256,256,512};
+  std::vector<int64_t> shape_vec1{256, 256, 512};
   ge::GeShape shape_desc1 = GeShape(shape_vec1);
   input1_desc_ptr->SetDataType(set_dtype);
   input1_desc_ptr->SetShape(shape_desc1);
@@ -902,757 +891,752 @@ TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_fail3)
   op_desc_ptr_t->AddOutputDesc("666", output1_desc_ptr->Clone());
 
   SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
-  OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
   std::string un_supported_reason;
   bool ret = fe_ops_kernel_info_store_ptr->CheckAccuracySupported(op_desc_ptr_t, un_supported_reason);
   EXPECT_EQ(false, ret);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, check_supported_fail2)
-{
-    shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
-    shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc> input1_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc> input2_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc> output1_desc_ptr = make_shared<ge::GeTensorDesc>();
-    op_desc_ptr_t->SetName("tbe_conv");
-    ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "conv");
-    int64_t int_value = 1;
-    float float_value = 2.0;
-    bool bool_value = false;
-    string str_value = "abc";
-    vector<int64_t> int_vec{1, 2, 3};
-    vector<int64_t> rint_vec;
-    vector<float> float_vec{4.0, 5.0, 6.0};
-    vector<float> rfloat_vec;
-    vector<bool> bool_vec{false, true, true};
-    vector<bool> rbool_vec;
-    std::vector<string> str_vec{"a", "b", "c"};
-    AttrUtils::SetInt(op_desc_ptr_t, "transposX", int_value);
-    AttrUtils::SetFloat(op_desc_ptr_t, "transposY", float_value);
-    AttrUtils::SetBool(op_desc_ptr_t,"attrBool", bool_value);
-    AttrUtils::SetStr(op_desc_ptr_t,"attrStr", str_value);
-    AttrUtils::SetListInt(op_desc_ptr_t, "attrListInt", int_vec);
-    AttrUtils::SetListFloat(op_desc_ptr_t, "attrListFloat", float_vec);
-    AttrUtils::SetListBool(op_desc_ptr_t, "attrListBool", bool_vec);
-    AttrUtils::SetListStr(op_desc_ptr_t, "attrListStr", str_vec);
+TEST_F(FEOpsKernelInfoStoreTest, check_supported_fail2) {
+  shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
+  shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> input1_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> input2_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> output1_desc_ptr = make_shared<ge::GeTensorDesc>();
+  op_desc_ptr_t->SetName("tbe_conv");
+  ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "conv");
+  int64_t int_value = 1;
+  float float_value = 2.0;
+  bool bool_value = false;
+  string str_value = "abc";
+  vector<int64_t> int_vec{1, 2, 3};
+  vector<int64_t> rint_vec;
+  vector<float> float_vec{4.0, 5.0, 6.0};
+  vector<float> rfloat_vec;
+  vector<bool> bool_vec{false, true, true};
+  vector<bool> rbool_vec;
+  std::vector<string> str_vec{"a", "b", "c"};
+  AttrUtils::SetInt(op_desc_ptr_t, "transposX", int_value);
+  AttrUtils::SetFloat(op_desc_ptr_t, "transposY", float_value);
+  AttrUtils::SetBool(op_desc_ptr_t, "attrBool", bool_value);
+  AttrUtils::SetStr(op_desc_ptr_t, "attrStr", str_value);
+  AttrUtils::SetListInt(op_desc_ptr_t, "attrListInt", int_vec);
+  AttrUtils::SetListFloat(op_desc_ptr_t, "attrListFloat", float_vec);
+  AttrUtils::SetListBool(op_desc_ptr_t, "attrListBool", bool_vec);
+  AttrUtils::SetListStr(op_desc_ptr_t, "attrListStr", str_vec);
 
-    ge::DataType set_dtype = ge::DT_FLOAT16;
-    std::vector<int64_t> shape_vec{256,256,512};
-    ge::GeShape shape_desc = GeShape(shape_vec);
+  ge::DataType set_dtype = ge::DT_FLOAT16;
+  std::vector<int64_t> shape_vec{256, 256, 512};
+  ge::GeShape shape_desc = GeShape(shape_vec);
 
-    input0_desc_ptr->SetDataType(set_dtype);
-    input0_desc_ptr->SetShape(shape_desc);
-    op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
+  input0_desc_ptr->SetDataType(set_dtype);
+  input0_desc_ptr->SetShape(shape_desc);
+  op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
 
-    std::vector<int64_t> shape_vec1{256,256,512};
-    ge::GeShape shape_desc1 = GeShape(shape_vec1);
-    input1_desc_ptr->SetDataType(set_dtype);
-    input1_desc_ptr->SetShape(shape_desc1);
-    op_desc_ptr_t->AddInputDesc("ccc", input1_desc_ptr->Clone());
+  std::vector<int64_t> shape_vec1{256, 256, 512};
+  ge::GeShape shape_desc1 = GeShape(shape_vec1);
+  input1_desc_ptr->SetDataType(set_dtype);
+  input1_desc_ptr->SetShape(shape_desc1);
+  op_desc_ptr_t->AddInputDesc("ccc", input1_desc_ptr->Clone());
 
-    output0_desc_ptr->SetDataType(set_dtype);
-    output0_desc_ptr->SetShape(shape_desc);
-    op_desc_ptr_t->AddOutputDesc("z", output0_desc_ptr->Clone());
+  output0_desc_ptr->SetDataType(set_dtype);
+  output0_desc_ptr->SetShape(shape_desc);
+  op_desc_ptr_t->AddOutputDesc("z", output0_desc_ptr->Clone());
 
-    output1_desc_ptr->SetDataType(set_dtype);
-    output1_desc_ptr->SetShape(shape_desc);
-    op_desc_ptr_t->AddOutputDesc("666", output1_desc_ptr->Clone());
+  output1_desc_ptr->SetDataType(set_dtype);
+  output1_desc_ptr->SetShape(shape_desc);
+  op_desc_ptr_t->AddOutputDesc("666", output1_desc_ptr->Clone());
 
-    SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
-    OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
-    std::string un_supported_reason;
-    bool ret = fe_ops_kernel_info_store_ptr->CheckSupported(op_desc_ptr_t, un_supported_reason);
-    EXPECT_EQ(false, ret);
+  SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
+  std::string un_supported_reason;
+  bool ret = fe_ops_kernel_info_store_ptr->CheckSupported(op_desc_ptr_t, un_supported_reason);
+  EXPECT_EQ(false, ret);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, check_unknown_shape_1)
-{
-    shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
-    shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
-    op_desc_ptr_t->SetName("tbe_conv");
-    ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "UnknownShape");
+TEST_F(FEOpsKernelInfoStoreTest, check_unknown_shape_1) {
+  shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
+  shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  op_desc_ptr_t->SetName("tbe_conv");
+  ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "UnknownShape");
 
-    ge::DataType set_dtype = ge::DT_FLOAT16;
-    std::vector<int64_t> shape_vec{256,-1,512};
-    ge::GeShape shape_desc = GeShape(shape_vec);
+  ge::DataType set_dtype = ge::DT_FLOAT16;
+  std::vector<int64_t> shape_vec{256, -1, 512};
+  ge::GeShape shape_desc = GeShape(shape_vec);
 
-    input0_desc_ptr->SetDataType(set_dtype);
-    input0_desc_ptr->SetShape(shape_desc);
-    op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
+  input0_desc_ptr->SetDataType(set_dtype);
+  input0_desc_ptr->SetShape(shape_desc);
+  op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
 
-    output0_desc_ptr->SetDataType(set_dtype);
-    output0_desc_ptr->SetShape(shape_desc);
-    op_desc_ptr_t->AddOutputDesc("y", output0_desc_ptr->Clone());
-    OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "UnknownShape");
-    SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
-    std::string un_supported_reason;
-    bool ret = fe_ops_kernel_info_store_ptr->CheckSupported(op_desc_ptr_t, un_supported_reason);
-    EXPECT_EQ(false, ret);
+  output0_desc_ptr->SetDataType(set_dtype);
+  output0_desc_ptr->SetShape(shape_desc);
+  op_desc_ptr_t->AddOutputDesc("y", output0_desc_ptr->Clone());
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "UnknownShape");
+  SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
+  std::string un_supported_reason;
+  bool ret = fe_ops_kernel_info_store_ptr->CheckSupported(op_desc_ptr_t, un_supported_reason);
+  EXPECT_EQ(false, ret);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, check_unknown_shape_2)
-{
-    shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
-    shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
-    op_desc_ptr_t->SetName("tbe_conv");
-    ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "DynamicShape");
+TEST_F(FEOpsKernelInfoStoreTest, check_unknown_shape_2) {
+  shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
+  shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  op_desc_ptr_t->SetName("tbe_conv");
+  ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "DynamicShape");
 
-    ge::DataType set_dtype = ge::DT_FLOAT16;
-    std::vector<int64_t> shape_vec{256,-1,512};
-    ge::GeShape shape_desc = GeShape(shape_vec);
+  ge::DataType set_dtype = ge::DT_FLOAT16;
+  std::vector<int64_t> shape_vec{256, -1, 512};
+  ge::GeShape shape_desc = GeShape(shape_vec);
 
-    input0_desc_ptr->SetDataType(set_dtype);
-    input0_desc_ptr->SetShape(shape_desc);
-    op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
+  input0_desc_ptr->SetDataType(set_dtype);
+  input0_desc_ptr->SetShape(shape_desc);
+  op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
 
-    output0_desc_ptr->SetDataType(set_dtype);
-    output0_desc_ptr->SetShape(shape_desc);
-    op_desc_ptr_t->AddOutputDesc("y", output0_desc_ptr->Clone());
-    OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "UnknownShape");
-    SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
-    std::string un_supported_reason;
-    bool ret = fe_ops_kernel_info_store_ptr->CheckSupported(op_desc_ptr_t, un_supported_reason);
-    EXPECT_EQ(IsOpDynamicImpl(op_desc_ptr_t), true);
-    EXPECT_EQ(true, ret);
+  output0_desc_ptr->SetDataType(set_dtype);
+  output0_desc_ptr->SetShape(shape_desc);
+  op_desc_ptr_t->AddOutputDesc("y", output0_desc_ptr->Clone());
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "UnknownShape");
+  SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
+  std::string un_supported_reason;
+  bool ret = fe_ops_kernel_info_store_ptr->CheckSupported(op_desc_ptr_t, un_supported_reason);
+  EXPECT_EQ(IsOpDynamicImpl(op_desc_ptr_t), true);
+  EXPECT_EQ(true, ret);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, check_unknown_shape_3)
-{
-    shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
-    shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
-    op_desc_ptr_t->SetName("tbe_conv");
-    ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "DynamicShape");
+TEST_F(FEOpsKernelInfoStoreTest, check_unknown_shape_3) {
+  shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
+  shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  op_desc_ptr_t->SetName("tbe_conv");
+  ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "DynamicShape");
 
-    ge::DataType set_dtype = ge::DT_INT32;
-    std::vector<int64_t> shape_vec{256,-1,512};
-    ge::GeShape shape_desc = GeShape(shape_vec);
+  ge::DataType set_dtype = ge::DT_INT32;
+  std::vector<int64_t> shape_vec{256, -1, 512};
+  ge::GeShape shape_desc = GeShape(shape_vec);
 
-    input0_desc_ptr->SetDataType(set_dtype);
-    input0_desc_ptr->SetShape(shape_desc);
-    op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
+  input0_desc_ptr->SetDataType(set_dtype);
+  input0_desc_ptr->SetShape(shape_desc);
+  op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
 
-    output0_desc_ptr->SetDataType(set_dtype);
-    output0_desc_ptr->SetShape(shape_desc);
-    op_desc_ptr_t->AddOutputDesc("y", output0_desc_ptr->Clone());
-    OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "UnknownShape");
-    SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
-    std::string un_supported_reason;
-    bool ret = fe_ops_kernel_info_store_ptr->CheckSupported(op_desc_ptr_t, un_supported_reason);
-    EXPECT_EQ(false, ret);
+  output0_desc_ptr->SetDataType(set_dtype);
+  output0_desc_ptr->SetShape(shape_desc);
+  op_desc_ptr_t->AddOutputDesc("y", output0_desc_ptr->Clone());
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "UnknownShape");
+  SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
+  std::string un_supported_reason;
+  bool ret = fe_ops_kernel_info_store_ptr->CheckSupported(op_desc_ptr_t, un_supported_reason);
+  EXPECT_EQ(false, ret);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, check_unknown_shape_4)
-{
-    shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
-    shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
-    op_desc_ptr_t->SetName("tbe_conv");
-    ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "DynamicShape");
+TEST_F(FEOpsKernelInfoStoreTest, check_unknown_shape_4) {
+  shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
+  shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  op_desc_ptr_t->SetName("tbe_conv");
+  ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "DynamicShape");
 
-    ge::DataType set_dtype = ge::DT_FLOAT16;
-    std::vector<int64_t> shape_vec{-2};
-    ge::GeShape shape_desc = GeShape(shape_vec);
+  ge::DataType set_dtype = ge::DT_FLOAT16;
+  std::vector<int64_t> shape_vec{-2};
+  ge::GeShape shape_desc = GeShape(shape_vec);
 
-    input0_desc_ptr->SetDataType(set_dtype);
-    input0_desc_ptr->SetShape(shape_desc);
-    op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
+  input0_desc_ptr->SetDataType(set_dtype);
+  input0_desc_ptr->SetShape(shape_desc);
+  op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
 
-    output0_desc_ptr->SetDataType(set_dtype);
-    output0_desc_ptr->SetShape(shape_desc);
-    op_desc_ptr_t->AddOutputDesc("y", output0_desc_ptr->Clone());
-    OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "UnknownShape");
-    SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
-    std::string un_supported_reason;
-    bool ret = fe_ops_kernel_info_store_ptr->CheckSupported(op_desc_ptr_t, un_supported_reason);
-    EXPECT_EQ(false, ret);
+  output0_desc_ptr->SetDataType(set_dtype);
+  output0_desc_ptr->SetShape(shape_desc);
+  op_desc_ptr_t->AddOutputDesc("y", output0_desc_ptr->Clone());
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "UnknownShape");
+  SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
+  std::string un_supported_reason;
+  bool ret = fe_ops_kernel_info_store_ptr->CheckSupported(op_desc_ptr_t, un_supported_reason);
+  EXPECT_EQ(false, ret);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, check_unknown_shape_5)
-{
-    shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
-    shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
-    op_desc_ptr_t->SetName("tbe_conv");
-    ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "DynamicRank");
+TEST_F(FEOpsKernelInfoStoreTest, check_unknown_shape_5) {
+  shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
+  shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  op_desc_ptr_t->SetName("tbe_conv");
+  ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "DynamicRank");
 
-    ge::DataType set_dtype = ge::DT_FLOAT16;
-    std::vector<int64_t> shape_vec{-2};
-    ge::GeShape shape_desc = GeShape(shape_vec);
+  ge::DataType set_dtype = ge::DT_FLOAT16;
+  std::vector<int64_t> shape_vec{-2};
+  ge::GeShape shape_desc = GeShape(shape_vec);
 
-    input0_desc_ptr->SetDataType(set_dtype);
-    input0_desc_ptr->SetShape(shape_desc);
-    op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
+  input0_desc_ptr->SetDataType(set_dtype);
+  input0_desc_ptr->SetShape(shape_desc);
+  op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
 
-    output0_desc_ptr->SetDataType(set_dtype);
-    output0_desc_ptr->SetShape(shape_desc);
-    op_desc_ptr_t->AddOutputDesc("y", output0_desc_ptr->Clone());
-    OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "UnknownShape");
-    SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
-    std::string un_supported_reason;
-    bool ret = fe_ops_kernel_info_store_ptr->CheckSupported(op_desc_ptr_t, un_supported_reason);
-    ge::ComputeGraphPtr graph_hgl = std::make_shared<ge::ComputeGraph>("Node");
-    ge::NodePtr node = graph_hgl->AddNode(op_desc_ptr_t);
-    ge::CheckSupportFlag flag = ge::CheckSupportFlag::kDefault;
-    (void)fe_ops_kernel_info_store_ptr->CheckSupported(node, un_supported_reason, flag);
-    EXPECT_EQ(flag, ge::CheckSupportFlag::kDefault);
-    EXPECT_EQ(true, ret);
+  output0_desc_ptr->SetDataType(set_dtype);
+  output0_desc_ptr->SetShape(shape_desc);
+  op_desc_ptr_t->AddOutputDesc("y", output0_desc_ptr->Clone());
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "UnknownShape");
+  SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
+  std::string un_supported_reason;
+  bool ret = fe_ops_kernel_info_store_ptr->CheckSupported(op_desc_ptr_t, un_supported_reason);
+  ge::ComputeGraphPtr graph_hgl = std::make_shared<ge::ComputeGraph>("Node");
+  ge::NodePtr node = graph_hgl->AddNode(op_desc_ptr_t);
+  ge::CheckSupportFlag flag = ge::CheckSupportFlag::kDefault;
+  (void)fe_ops_kernel_info_store_ptr->CheckSupported(node, un_supported_reason, flag);
+  EXPECT_EQ(flag, ge::CheckSupportFlag::kDefault);
+  EXPECT_EQ(true, ret);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, check_unknown_shape_6)
-{
-    shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
-    shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
-    op_desc_ptr_t->SetName("tbe_conv");
-    ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "DynamicRank");
+TEST_F(FEOpsKernelInfoStoreTest, check_unknown_shape_6) {
+  shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
+  shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  op_desc_ptr_t->SetName("tbe_conv");
+  ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "DynamicRank");
 
-    ge::DataType set_dtype = ge::DT_INT32;
-    std::vector<int64_t> shape_vec{-2};
-    ge::GeShape shape_desc = GeShape(shape_vec);
+  ge::DataType set_dtype = ge::DT_INT32;
+  std::vector<int64_t> shape_vec{-2};
+  ge::GeShape shape_desc = GeShape(shape_vec);
 
-    input0_desc_ptr->SetDataType(set_dtype);
-    input0_desc_ptr->SetShape(shape_desc);
-    op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
+  input0_desc_ptr->SetDataType(set_dtype);
+  input0_desc_ptr->SetShape(shape_desc);
+  op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
 
-    output0_desc_ptr->SetDataType(set_dtype);
-    output0_desc_ptr->SetShape(shape_desc);
-    op_desc_ptr_t->AddOutputDesc("y", output0_desc_ptr->Clone());
-    OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "UnknownShape");
-    SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
-    std::string un_supported_reason;
-    bool ret = fe_ops_kernel_info_store_ptr->CheckSupported(op_desc_ptr_t, un_supported_reason);
-    EXPECT_EQ(false, ret);
-    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("Node");
-    ge::NodePtr node = graph->AddNode(op_desc_ptr_t);
-    ge::CheckSupportFlag flag = ge::CheckSupportFlag::kDefault;
-    string soc_version_bk = PlatformUtils::Instance().soc_version_;
-    PlatformUtils::Instance().soc_version_ = "Ascend310";
-    (void)fe_ops_kernel_info_store_ptr->CheckSupported(node, un_supported_reason, flag);
-    EXPECT_NE(flag, ge::CheckSupportFlag::kNotSupportDynamicShape);
-    PlatformUtils::Instance().soc_version_ = soc_version_bk;
+  output0_desc_ptr->SetDataType(set_dtype);
+  output0_desc_ptr->SetShape(shape_desc);
+  op_desc_ptr_t->AddOutputDesc("y", output0_desc_ptr->Clone());
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "UnknownShape");
+  SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
+  std::string un_supported_reason;
+  bool ret = fe_ops_kernel_info_store_ptr->CheckSupported(op_desc_ptr_t, un_supported_reason);
+  EXPECT_EQ(false, ret);
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("Node");
+  ge::NodePtr node = graph->AddNode(op_desc_ptr_t);
+  ge::CheckSupportFlag flag = ge::CheckSupportFlag::kDefault;
+  string soc_version_bk = PlatformUtils::Instance().soc_version_;
+  PlatformUtils::Instance().soc_version_ = "Ascend310";
+  (void)fe_ops_kernel_info_store_ptr->CheckSupported(node, un_supported_reason, flag);
+  EXPECT_NE(flag, ge::CheckSupportFlag::kNotSupportDynamicShape);
+  PlatformUtils::Instance().soc_version_ = soc_version_bk;
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, check_supported_fail3)
-{
-    shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
-    shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc>  input1_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc>  input2_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc>  output0_desc_ptr = make_shared<ge::GeTensorDesc>();
-    op_desc_ptr_t->SetName("tbe_conv");
-    ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "conv");
-    int64_t int_value = 1;
-    float float_value = 2.0;
-    bool bool_value = false;
-    string str_value = "abc";
-    vector<int64_t> int_vec{1, 2, 3};
-    vector<int64_t> rint_vec;
-    vector<float> float_vec{4.0, 5.0, 6.0};
-    vector<float> rfloat_vec;
-    vector<bool> bool_vec{false, true, true};
-    vector<bool> rbool_vec;
-    std::vector<string> str_vec{"a", "b", "c"};
-    AttrUtils::SetInt(op_desc_ptr_t, "transposX", int_value);
-    AttrUtils::SetFloat(op_desc_ptr_t, "transposY", float_value);
-    AttrUtils::SetBool(op_desc_ptr_t,"attrBool", bool_value);
-    AttrUtils::SetStr(op_desc_ptr_t,"attrStr", str_value);
-    AttrUtils::SetListInt(op_desc_ptr_t, "attrListInt", int_vec);
-    AttrUtils::SetListFloat(op_desc_ptr_t, "attrListFloat", float_vec);
-    AttrUtils::SetListBool(op_desc_ptr_t, "attrListBool", bool_vec);
-    AttrUtils::SetListStr(op_desc_ptr_t, "attrListStr", str_vec);
+TEST_F(FEOpsKernelInfoStoreTest, check_supported_fail3) {
+  shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
+  shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> input1_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> input2_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  op_desc_ptr_t->SetName("tbe_conv");
+  ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "conv");
+  int64_t int_value = 1;
+  float float_value = 2.0;
+  bool bool_value = false;
+  string str_value = "abc";
+  vector<int64_t> int_vec{1, 2, 3};
+  vector<int64_t> rint_vec;
+  vector<float> float_vec{4.0, 5.0, 6.0};
+  vector<float> rfloat_vec;
+  vector<bool> bool_vec{false, true, true};
+  vector<bool> rbool_vec;
+  std::vector<string> str_vec{"a", "b", "c"};
+  AttrUtils::SetInt(op_desc_ptr_t, "transposX", int_value);
+  AttrUtils::SetFloat(op_desc_ptr_t, "transposY", float_value);
+  AttrUtils::SetBool(op_desc_ptr_t, "attrBool", bool_value);
+  AttrUtils::SetStr(op_desc_ptr_t, "attrStr", str_value);
+  AttrUtils::SetListInt(op_desc_ptr_t, "attrListInt", int_vec);
+  AttrUtils::SetListFloat(op_desc_ptr_t, "attrListFloat", float_vec);
+  AttrUtils::SetListBool(op_desc_ptr_t, "attrListBool", bool_vec);
+  AttrUtils::SetListStr(op_desc_ptr_t, "attrListStr", str_vec);
 
-    ge::DataType set_dtype = ge::DT_FLOAT16;
-    std::vector<int64_t> shape_vec{256,256,512};
-    ge::GeShape shape_desc = GeShape(shape_vec);
+  ge::DataType set_dtype = ge::DT_FLOAT16;
+  std::vector<int64_t> shape_vec{256, 256, 512};
+  ge::GeShape shape_desc = GeShape(shape_vec);
 
-    input0_desc_ptr->SetDataType(set_dtype);
-    input0_desc_ptr->SetShape(shape_desc);
-    input0_desc_ptr->SetFormat(ge::FORMAT_NCHW);
-    input0_desc_ptr->SetOriginFormat(ge::FORMAT_NCHW);
-    op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
+  input0_desc_ptr->SetDataType(set_dtype);
+  input0_desc_ptr->SetShape(shape_desc);
+  input0_desc_ptr->SetFormat(ge::FORMAT_NCHW);
+  input0_desc_ptr->SetOriginFormat(ge::FORMAT_NCHW);
+  op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
 
-    std::vector<int64_t> shape_vec1{256,256,512};
-    ge::GeShape shape_desc1 = GeShape(shape_vec1);
-    input1_desc_ptr->SetDataType(set_dtype);
-    input1_desc_ptr->SetShape(shape_desc1);
-    input1_desc_ptr->SetFormat(ge::FORMAT_NCHW);
-    input1_desc_ptr->SetOriginFormat(ge::FORMAT_NCHW);
-    op_desc_ptr_t->AddInputDesc("y", input1_desc_ptr->Clone());
+  std::vector<int64_t> shape_vec1{256, 256, 512};
+  ge::GeShape shape_desc1 = GeShape(shape_vec1);
+  input1_desc_ptr->SetDataType(set_dtype);
+  input1_desc_ptr->SetShape(shape_desc1);
+  input1_desc_ptr->SetFormat(ge::FORMAT_NCHW);
+  input1_desc_ptr->SetOriginFormat(ge::FORMAT_NCHW);
+  op_desc_ptr_t->AddInputDesc("y", input1_desc_ptr->Clone());
 
-    output0_desc_ptr->SetDataType(set_dtype);
-    output0_desc_ptr->SetShape(shape_desc);
-    output0_desc_ptr->SetFormat(ge::FORMAT_NCHW);
-    output0_desc_ptr->SetOriginFormat(ge::FORMAT_NCHW);
-    op_desc_ptr_t->AddOutputDesc("z", output0_desc_ptr->Clone());
+  output0_desc_ptr->SetDataType(set_dtype);
+  output0_desc_ptr->SetShape(shape_desc);
+  output0_desc_ptr->SetFormat(ge::FORMAT_NCHW);
+  output0_desc_ptr->SetOriginFormat(ge::FORMAT_NCHW);
+  op_desc_ptr_t->AddOutputDesc("z", output0_desc_ptr->Clone());
 
-    SubOpsStorePtr sub_ops_store_ptr = make_shared<fe::SubOpsStore>(fe::AI_CORE_NAME);
-    FEOpsStoreInfo tbe_builtin {
-            0,
-            "tbe-builtin",
-            EN_IMPL_HW_TBE,
-            GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_opinfo",
-            ""};
-    SubOpInfoStorePtr sub_ops_kernel_ptr = std::make_shared<SubOpInfoStore>(tbe_builtin);
-    sub_ops_kernel_ptr->Initialize(fe::AI_CORE_NAME);
+  SubOpsStorePtr sub_ops_store_ptr = make_shared<fe::SubOpsStore>(fe::AI_CORE_NAME);
+  FEOpsStoreInfo tbe_builtin{
+      0, "tbe-builtin", EN_IMPL_HW_TBE,
+      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_opinfo", ""};
+  SubOpInfoStorePtr sub_ops_kernel_ptr = std::make_shared<SubOpInfoStore>(tbe_builtin);
+  sub_ops_kernel_ptr->Initialize(fe::AI_CORE_NAME);
 
-    sub_ops_store_ptr->SetSubStoreInfo(tbe_builtin);
-    bool stu = sub_ops_store_ptr->InitializeSubStore();
+  sub_ops_store_ptr->SetSubStoreInfo(tbe_builtin);
+  bool stu = sub_ops_store_ptr->InitializeSubStore();
 
-    std::shared_ptr<OpKernelInfo> tbe_op_kernel_info_ptr = std::make_shared<OpKernelInfo>("conv");
-    std::shared_ptr<InputOrOutputInfo> InputInfoPtr1 = std::make_shared<InputOrOutputInfo>("x");
-    std::shared_ptr<InputOrOutputInfo> InputInfoPtr2 = std::make_shared<InputOrOutputInfo>("y");
-    std::shared_ptr<InputOrOutputInfo> InputInfoPtr3 = std::make_shared<InputOrOutputInfo>("z");
-    InputInfoPtr1->supported_dtypes_ = {ge::DT_FLOAT16};
-    InputInfoPtr2->supported_dtypes_ = {ge::DT_FLOAT16};
-    InputInfoPtr3->supported_dtypes_ = {ge::DT_FLOAT16};
-    std::shared_ptr<InputOrOutputInfo> OutputInfoPtr = std::make_shared<InputOrOutputInfo>("o");
-    OutputInfoPtr->supported_dtypes_ = {ge::DT_UNDEFINED};
-    tbe_op_kernel_info_ptr->input_infos_ = {InputInfoPtr1, InputInfoPtr2, InputInfoPtr3};
-    tbe_op_kernel_info_ptr->output_infos_ = {OutputInfoPtr};
-    sub_ops_kernel_ptr->op_kernel_info_map_.emplace(std::make_pair("conv", tbe_op_kernel_info_ptr));
+  std::shared_ptr<OpKernelInfo> tbe_op_kernel_info_ptr = std::make_shared<OpKernelInfo>("conv");
+  std::shared_ptr<InputOrOutputInfo> InputInfoPtr1 = std::make_shared<InputOrOutputInfo>("x");
+  std::shared_ptr<InputOrOutputInfo> InputInfoPtr2 = std::make_shared<InputOrOutputInfo>("y");
+  std::shared_ptr<InputOrOutputInfo> InputInfoPtr3 = std::make_shared<InputOrOutputInfo>("z");
+  InputInfoPtr1->supported_dtypes_ = {ge::DT_FLOAT16};
+  InputInfoPtr2->supported_dtypes_ = {ge::DT_FLOAT16};
+  InputInfoPtr3->supported_dtypes_ = {ge::DT_FLOAT16};
+  std::shared_ptr<InputOrOutputInfo> OutputInfoPtr = std::make_shared<InputOrOutputInfo>("o");
+  OutputInfoPtr->supported_dtypes_ = {ge::DT_UNDEFINED};
+  tbe_op_kernel_info_ptr->input_infos_ = {InputInfoPtr1, InputInfoPtr2, InputInfoPtr3};
+  tbe_op_kernel_info_ptr->output_infos_ = {OutputInfoPtr};
+  sub_ops_kernel_ptr->op_kernel_info_map_.emplace(std::make_pair("conv", tbe_op_kernel_info_ptr));
 
-    fe::UnSupportedReason reason;
-    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
-    ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
-    CheckSupportParam check_param;
-    check_param.op_kernel_ptr = tbe_op_kernel_info_ptr;
-    bool ret1 = sub_ops_store_ptr->CheckSubStoreSupported(test_node, CheckSupportMode::DTYPE_FORMAT_MODE, false, check_param);
-    EXPECT_EQ(false, ret1);
-    tbe_op_kernel_info_ptr->input_infos_.clear();
-    std::shared_ptr<InputOrOutputInfo> InputInfoPtr4 = std::make_shared<InputOrOutputInfo>("z");
-    InputInfoPtr4->supported_dtypes_ = {ge::DT_UNDEFINED};
-    tbe_op_kernel_info_ptr->input_infos_ = {InputInfoPtr1, InputInfoPtr2, InputInfoPtr4};
-    sub_ops_kernel_ptr->op_kernel_info_map_.clear();
-    sub_ops_kernel_ptr->op_kernel_info_map_.emplace(std::make_pair("conv", tbe_op_kernel_info_ptr));
-    bool ret2 = sub_ops_store_ptr->CheckSubStoreSupported(test_node, CheckSupportMode::DTYPE_FORMAT_MODE, false, check_param);
-    EXPECT_EQ(false, ret2);
+  fe::UnSupportedReason reason;
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
+  ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
+  CheckSupportParam check_param;
+  check_param.op_kernel_ptr = tbe_op_kernel_info_ptr;
+  bool ret1 =
+      sub_ops_store_ptr->CheckSubStoreSupported(test_node, CheckSupportMode::DTYPE_FORMAT_MODE, false, check_param);
+  EXPECT_EQ(false, ret1);
+  tbe_op_kernel_info_ptr->input_infos_.clear();
+  std::shared_ptr<InputOrOutputInfo> InputInfoPtr4 = std::make_shared<InputOrOutputInfo>("z");
+  InputInfoPtr4->supported_dtypes_ = {ge::DT_UNDEFINED};
+  tbe_op_kernel_info_ptr->input_infos_ = {InputInfoPtr1, InputInfoPtr2, InputInfoPtr4};
+  sub_ops_kernel_ptr->op_kernel_info_map_.clear();
+  sub_ops_kernel_ptr->op_kernel_info_map_.emplace(std::make_pair("conv", tbe_op_kernel_info_ptr));
+  bool ret2 =
+      sub_ops_store_ptr->CheckSubStoreSupported(test_node, CheckSupportMode::DTYPE_FORMAT_MODE, false, check_param);
+  EXPECT_EQ(false, ret2);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, check_supported_fail4)
-{
-    shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
-    op_desc_ptr_t->SetName("tbe_conv");
-    ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "conv");
-    fe_ops_kernel_info_store_ptr->map_all_sub_store_info_.clear();
-    string un_supported_reason;
-    SubOpsStorePtr sub_ops_kernel_info_store_ptr = nullptr;
-    fe_ops_kernel_info_store_ptr->map_all_sub_store_info_.emplace(std::make_pair("tbe-custom", sub_ops_kernel_info_store_ptr));
-    bool ret1 = fe_ops_kernel_info_store_ptr->CheckSupported(op_desc_ptr_t, un_supported_reason);
-    EXPECT_EQ(false, ret1);
+TEST_F(FEOpsKernelInfoStoreTest, check_supported_fail4) {
+  shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
+  op_desc_ptr_t->SetName("tbe_conv");
+  ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "conv");
+  fe_ops_kernel_info_store_ptr->map_all_sub_store_info_.clear();
+  string un_supported_reason;
+  SubOpsStorePtr sub_ops_kernel_info_store_ptr = nullptr;
+  fe_ops_kernel_info_store_ptr->map_all_sub_store_info_.emplace(
+      std::make_pair("tbe-custom", sub_ops_kernel_info_store_ptr));
+  bool ret1 = fe_ops_kernel_info_store_ptr->CheckSupported(op_desc_ptr_t, un_supported_reason);
+  EXPECT_EQ(false, ret1);
 
-    shared_ptr<ge::OpDesc> op_desc_ptr_t2 = make_shared<ge::OpDesc>();
-    op_desc_ptr_t2->SetName("tbe_conv");
-    ge::OpDescUtilsEx::SetType(op_desc_ptr_t2, "conv");
-    fe_ops_kernel_info_store_ptr->map_all_sub_store_info_.clear();
-    bool ret2 = fe_ops_kernel_info_store_ptr->CheckSupported(op_desc_ptr_t2, un_supported_reason);
-    EXPECT_EQ(false, ret2);
+  shared_ptr<ge::OpDesc> op_desc_ptr_t2 = make_shared<ge::OpDesc>();
+  op_desc_ptr_t2->SetName("tbe_conv");
+  ge::OpDescUtilsEx::SetType(op_desc_ptr_t2, "conv");
+  fe_ops_kernel_info_store_ptr->map_all_sub_store_info_.clear();
+  bool ret2 = fe_ops_kernel_info_store_ptr->CheckSupported(op_desc_ptr_t2, un_supported_reason);
+  EXPECT_EQ(false, ret2);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, check_input_output_supported_succ)
-{
-    shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
-    shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc>  input1_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc>  input2_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc>  output0_desc_ptr = make_shared<ge::GeTensorDesc>();
-    op_desc_ptr_t->SetName("tbe_conv");
-    ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "conv");
-    int64_t int_value = 1;
-    float float_value = 2.0;
-    bool bool_value = false;
-    string str_value = "abc";
-    vector<int64_t> int_vec{1, 2, 3};
-    vector<int64_t> rint_vec;
-    vector<float> float_vec{4.0, 5.0, 6.0};
-    vector<float> rfloat_vec;
-    vector<bool> bool_vec{false, true, true};
-    vector<bool> rbool_vec;
-    std::vector<string> str_vec{"a", "b", "c"};
-    AttrUtils::SetInt(op_desc_ptr_t, "transposX", int_value);
-    AttrUtils::SetFloat(op_desc_ptr_t, "transposY", float_value);
-    AttrUtils::SetBool(op_desc_ptr_t,"attrBool", bool_value);
-    AttrUtils::SetStr(op_desc_ptr_t,"attrStr", str_value);
-    AttrUtils::SetListInt(op_desc_ptr_t, "attrListInt", int_vec);
-    AttrUtils::SetListFloat(op_desc_ptr_t, "attrListFloat", float_vec);
-    AttrUtils::SetListBool(op_desc_ptr_t, "attrListBool", bool_vec);
-    AttrUtils::SetListStr(op_desc_ptr_t, "attrListStr", str_vec);
+TEST_F(FEOpsKernelInfoStoreTest, check_input_output_supported_succ) {
+  shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
+  shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> input1_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> input2_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  op_desc_ptr_t->SetName("tbe_conv");
+  ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "conv");
+  int64_t int_value = 1;
+  float float_value = 2.0;
+  bool bool_value = false;
+  string str_value = "abc";
+  vector<int64_t> int_vec{1, 2, 3};
+  vector<int64_t> rint_vec;
+  vector<float> float_vec{4.0, 5.0, 6.0};
+  vector<float> rfloat_vec;
+  vector<bool> bool_vec{false, true, true};
+  vector<bool> rbool_vec;
+  std::vector<string> str_vec{"a", "b", "c"};
+  AttrUtils::SetInt(op_desc_ptr_t, "transposX", int_value);
+  AttrUtils::SetFloat(op_desc_ptr_t, "transposY", float_value);
+  AttrUtils::SetBool(op_desc_ptr_t, "attrBool", bool_value);
+  AttrUtils::SetStr(op_desc_ptr_t, "attrStr", str_value);
+  AttrUtils::SetListInt(op_desc_ptr_t, "attrListInt", int_vec);
+  AttrUtils::SetListFloat(op_desc_ptr_t, "attrListFloat", float_vec);
+  AttrUtils::SetListBool(op_desc_ptr_t, "attrListBool", bool_vec);
+  AttrUtils::SetListStr(op_desc_ptr_t, "attrListStr", str_vec);
 
-    ge::DataType set_dtype = ge::DT_FLOAT16;
-    std::vector<int64_t> shape_vec{256,256,512};
-    ge::GeShape shape_desc = GeShape(shape_vec);
+  ge::DataType set_dtype = ge::DT_FLOAT16;
+  std::vector<int64_t> shape_vec{256, 256, 512};
+  ge::GeShape shape_desc = GeShape(shape_vec);
 
-    input0_desc_ptr->SetDataType(set_dtype);
-    input0_desc_ptr->SetShape(shape_desc);
-    input0_desc_ptr->SetFormat(ge::FORMAT_NCHW);
-    input0_desc_ptr->SetOriginFormat(ge::FORMAT_NCHW);
-    op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
+  input0_desc_ptr->SetDataType(set_dtype);
+  input0_desc_ptr->SetShape(shape_desc);
+  input0_desc_ptr->SetFormat(ge::FORMAT_NCHW);
+  input0_desc_ptr->SetOriginFormat(ge::FORMAT_NCHW);
+  op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
 
-    std::vector<int64_t> shape_vec1{256,256,512};
-    ge::GeShape shape_desc1 = GeShape(shape_vec1);
-    input1_desc_ptr->SetDataType(set_dtype);
-    input1_desc_ptr->SetShape(shape_desc1);
-    input1_desc_ptr->SetFormat(ge::FORMAT_NCHW);
-    input1_desc_ptr->SetOriginFormat(ge::FORMAT_NCHW);
-    op_desc_ptr_t->AddInputDesc("y", input1_desc_ptr->Clone());
+  std::vector<int64_t> shape_vec1{256, 256, 512};
+  ge::GeShape shape_desc1 = GeShape(shape_vec1);
+  input1_desc_ptr->SetDataType(set_dtype);
+  input1_desc_ptr->SetShape(shape_desc1);
+  input1_desc_ptr->SetFormat(ge::FORMAT_NCHW);
+  input1_desc_ptr->SetOriginFormat(ge::FORMAT_NCHW);
+  op_desc_ptr_t->AddInputDesc("y", input1_desc_ptr->Clone());
 
-    std::vector<int64_t> shape_vec2{256,256,512};
-    ge::GeShape shape_desc2 = GeShape(shape_vec2);
-    input2_desc_ptr->SetDataType(set_dtype);
-    input2_desc_ptr->SetShape(shape_desc2);
-    input2_desc_ptr->SetFormat(ge::FORMAT_NCHW);
-    input2_desc_ptr->SetOriginFormat(ge::FORMAT_NCHW);
-    op_desc_ptr_t->AddInputDesc("x1", input2_desc_ptr->Clone());
+  std::vector<int64_t> shape_vec2{256, 256, 512};
+  ge::GeShape shape_desc2 = GeShape(shape_vec2);
+  input2_desc_ptr->SetDataType(set_dtype);
+  input2_desc_ptr->SetShape(shape_desc2);
+  input2_desc_ptr->SetFormat(ge::FORMAT_NCHW);
+  input2_desc_ptr->SetOriginFormat(ge::FORMAT_NCHW);
+  op_desc_ptr_t->AddInputDesc("x1", input2_desc_ptr->Clone());
 
-    output0_desc_ptr->SetDataType(set_dtype);
-    output0_desc_ptr->SetShape(shape_desc);
-    output0_desc_ptr->SetFormat(ge::FORMAT_NCHW);
-    output0_desc_ptr->SetOriginFormat(ge::FORMAT_NCHW);
-    op_desc_ptr_t->AddOutputDesc("z", output0_desc_ptr->Clone());
+  output0_desc_ptr->SetDataType(set_dtype);
+  output0_desc_ptr->SetShape(shape_desc);
+  output0_desc_ptr->SetFormat(ge::FORMAT_NCHW);
+  output0_desc_ptr->SetOriginFormat(ge::FORMAT_NCHW);
+  op_desc_ptr_t->AddOutputDesc("z", output0_desc_ptr->Clone());
 
+  SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
+  sub_ops_store_ptr->InitializeSubStore();
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
+  fe::SupportedFormatAndDtype info(op_kernel_info_ptr, "");
+  info.input_index_name_map.emplace(0, "x");
+  info.input_index_name_map.emplace(1, "y");
+  info.input_index_name_map.emplace(2, "h");
+  info.output_index_name_map.emplace(0, "z");
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
+  ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
+  FormatDtypeInfo format_dtype_info;
+  Status get_format_dtype_status =
+      sub_ops_store_ptr->GetSupportFormatAndDtype(test_node, info.op_kernel_info_ptr, false, format_dtype_info);
+  info.suppport_formats_map = format_dtype_info.format_map;
+  info.support_data_types_map = format_dtype_info.data_type_map;
+  EXPECT_EQ(fe::SUCCESS, get_format_dtype_status);
 
-
-    SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
-    sub_ops_store_ptr->InitializeSubStore();
-    OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
-    fe::SupportedFormatAndDtype info(op_kernel_info_ptr, "");
-    info.input_index_name_map.emplace(0, "x");
-    info.input_index_name_map.emplace(1, "y");
-    info.input_index_name_map.emplace(2, "h");
-    info.output_index_name_map.emplace(0, "z");
-    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
-    ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
-    FormatDtypeInfo format_dtype_info;
-    Status get_format_dtype_status = sub_ops_store_ptr->GetSupportFormatAndDtype(
-            test_node, info.op_kernel_info_ptr, false, format_dtype_info);
-    info.suppport_formats_map = format_dtype_info.format_map;
-    info.support_data_types_map = format_dtype_info.data_type_map;
-    EXPECT_EQ(fe::SUCCESS, get_format_dtype_status);
-
-    bool ret = sub_ops_store_ptr->CheckInputSupported(test_node, 3, false, info);
-    bool ret1 = sub_ops_store_ptr->CheckOutputSupported(test_node, 1, false, info);
-    EXPECT_EQ(true, ret);
-    EXPECT_EQ(true, ret1);
+  bool ret = sub_ops_store_ptr->CheckInputSupported(test_node, 3, false, info);
+  bool ret1 = sub_ops_store_ptr->CheckOutputSupported(test_node, 1, false, info);
+  EXPECT_EQ(true, ret);
+  EXPECT_EQ(true, ret1);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, check_input_output_supported_fail)
-{
-    shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
-    shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc>  input1_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc>  input2_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc>  output0_desc_ptr = make_shared<ge::GeTensorDesc>();
-    op_desc_ptr_t->SetName("tbe_conv");
-    ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "conv");
-    int64_t int_value = 1;
-    float float_value = 2.0;
-    bool bool_value = false;
-    string str_value = "abc";
-    vector<int64_t> int_vec{1, 2, 3};
-    vector<int64_t> rint_vec;
-    vector<float> float_vec{4.0, 5.0, 6.0};
-    vector<float> rfloat_vec;
-    vector<bool> bool_vec{false, true, true};
-    vector<bool> rbool_vec;
-    std::vector<string> str_vec{"a", "b", "c"};
-    AttrUtils::SetInt(op_desc_ptr_t, "transposX", int_value);
-    AttrUtils::SetFloat(op_desc_ptr_t, "transposY", float_value);
-    AttrUtils::SetBool(op_desc_ptr_t,"attrBool", bool_value);
-    AttrUtils::SetStr(op_desc_ptr_t,"attrStr", str_value);
-    AttrUtils::SetListInt(op_desc_ptr_t, "attrListInt", int_vec);
-    AttrUtils::SetListFloat(op_desc_ptr_t, "attrListFloat", float_vec);
-    AttrUtils::SetListBool(op_desc_ptr_t, "attrListBool", bool_vec);
-    AttrUtils::SetListStr(op_desc_ptr_t, "attrListStr", str_vec);
+TEST_F(FEOpsKernelInfoStoreTest, check_input_output_supported_fail) {
+  shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
+  shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> input1_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> input2_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  op_desc_ptr_t->SetName("tbe_conv");
+  ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "conv");
+  int64_t int_value = 1;
+  float float_value = 2.0;
+  bool bool_value = false;
+  string str_value = "abc";
+  vector<int64_t> int_vec{1, 2, 3};
+  vector<int64_t> rint_vec;
+  vector<float> float_vec{4.0, 5.0, 6.0};
+  vector<float> rfloat_vec;
+  vector<bool> bool_vec{false, true, true};
+  vector<bool> rbool_vec;
+  std::vector<string> str_vec{"a", "b", "c"};
+  AttrUtils::SetInt(op_desc_ptr_t, "transposX", int_value);
+  AttrUtils::SetFloat(op_desc_ptr_t, "transposY", float_value);
+  AttrUtils::SetBool(op_desc_ptr_t, "attrBool", bool_value);
+  AttrUtils::SetStr(op_desc_ptr_t, "attrStr", str_value);
+  AttrUtils::SetListInt(op_desc_ptr_t, "attrListInt", int_vec);
+  AttrUtils::SetListFloat(op_desc_ptr_t, "attrListFloat", float_vec);
+  AttrUtils::SetListBool(op_desc_ptr_t, "attrListBool", bool_vec);
+  AttrUtils::SetListStr(op_desc_ptr_t, "attrListStr", str_vec);
 
-    ge::DataType set_dtype = ge::DT_FLOAT16;
-    std::vector<int64_t> shape_vec{256,256,512};
-    ge::GeShape shape_desc = GeShape(shape_vec);
+  ge::DataType set_dtype = ge::DT_FLOAT16;
+  std::vector<int64_t> shape_vec{256, 256, 512};
+  ge::GeShape shape_desc = GeShape(shape_vec);
 
-    input0_desc_ptr->SetDataType(set_dtype);
-    input0_desc_ptr->SetShape(shape_desc);
-    op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
+  input0_desc_ptr->SetDataType(set_dtype);
+  input0_desc_ptr->SetShape(shape_desc);
+  op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
 
-    std::vector<int64_t> shape_vec1{256,256,512};
-    ge::GeShape shape_desc1 = GeShape(shape_vec1);
-    input1_desc_ptr->SetDataType(set_dtype);
-    input1_desc_ptr->SetShape(shape_desc1);
-    op_desc_ptr_t->AddInputDesc("y", input1_desc_ptr->Clone());
+  std::vector<int64_t> shape_vec1{256, 256, 512};
+  ge::GeShape shape_desc1 = GeShape(shape_vec1);
+  input1_desc_ptr->SetDataType(set_dtype);
+  input1_desc_ptr->SetShape(shape_desc1);
+  op_desc_ptr_t->AddInputDesc("y", input1_desc_ptr->Clone());
 
-    std::vector<int64_t> shape_vec2{256,256,512};
-    ge::GeShape shape_desc2 = GeShape(shape_vec2);
-    input2_desc_ptr->SetDataType(set_dtype);
-    input2_desc_ptr->SetShape(shape_desc2);
-    op_desc_ptr_t->AddInputDesc("x1", input2_desc_ptr->Clone());
+  std::vector<int64_t> shape_vec2{256, 256, 512};
+  ge::GeShape shape_desc2 = GeShape(shape_vec2);
+  input2_desc_ptr->SetDataType(set_dtype);
+  input2_desc_ptr->SetShape(shape_desc2);
+  op_desc_ptr_t->AddInputDesc("x1", input2_desc_ptr->Clone());
 
-    output0_desc_ptr->SetDataType(set_dtype);
-    output0_desc_ptr->SetShape(shape_desc);
-    op_desc_ptr_t->AddOutputDesc("z", output0_desc_ptr->Clone());
+  output0_desc_ptr->SetDataType(set_dtype);
+  output0_desc_ptr->SetShape(shape_desc);
+  op_desc_ptr_t->AddOutputDesc("z", output0_desc_ptr->Clone());
 
-
-
-    SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
-    sub_ops_store_ptr->InitializeSubStore();
-    OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
-    SupportedFormatAndDtype info(op_kernel_info_ptr, "");
-    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
-    ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
-    FormatDtypeInfo format_dtype_info;
-    Status get_format_dtype_status = sub_ops_store_ptr->GetSupportFormatAndDtype(
-            test_node, info.op_kernel_info_ptr, false, format_dtype_info);
-    info.suppport_formats_map = format_dtype_info.format_map;
-    info.support_data_types_map = format_dtype_info.data_type_map;
-    EXPECT_EQ(fe::SUCCESS, get_format_dtype_status);
-    bool ret = sub_ops_store_ptr->CheckInputSupported(test_node, 3, false, info);
-    bool ret1 = sub_ops_store_ptr->CheckOutputSupported(test_node, 1, false, info);
-    EXPECT_EQ(false, ret);
-    EXPECT_EQ(false, ret1);
+  SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
+  sub_ops_store_ptr->InitializeSubStore();
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
+  SupportedFormatAndDtype info(op_kernel_info_ptr, "");
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
+  ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
+  FormatDtypeInfo format_dtype_info;
+  Status get_format_dtype_status =
+      sub_ops_store_ptr->GetSupportFormatAndDtype(test_node, info.op_kernel_info_ptr, false, format_dtype_info);
+  info.suppport_formats_map = format_dtype_info.format_map;
+  info.support_data_types_map = format_dtype_info.data_type_map;
+  EXPECT_EQ(fe::SUCCESS, get_format_dtype_status);
+  bool ret = sub_ops_store_ptr->CheckInputSupported(test_node, 3, false, info);
+  bool ret1 = sub_ops_store_ptr->CheckOutputSupported(test_node, 1, false, info);
+  EXPECT_EQ(false, ret);
+  EXPECT_EQ(false, ret1);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, check_input_output_supported_2)
-{
-    shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
-    shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc>  input1_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc>  input2_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc>  output0_desc_ptr = make_shared<ge::GeTensorDesc>();
-    op_desc_ptr_t->SetName("tbe_conv");
-    ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "conv");
-    int64_t int_value = 1;
-    float float_value = 2.0;
-    bool bool_value = false;
-    string str_value = "abc";
-    vector<int64_t> int_vec{1, 2, 3};
-    vector<int64_t> rint_vec;
-    vector<float> float_vec{4.0, 5.0, 6.0};
-    vector<float> rfloat_vec;
-    vector<bool> bool_vec{false, true, true};
-    vector<bool> rbool_vec;
-    std::vector<string> str_vec{"a", "b", "c"};
-    AttrUtils::SetInt(op_desc_ptr_t, "transposX", int_value);
-    AttrUtils::SetFloat(op_desc_ptr_t, "transposY", float_value);
-    AttrUtils::SetBool(op_desc_ptr_t,"attrBool", bool_value);
-    AttrUtils::SetStr(op_desc_ptr_t,"attrStr", str_value);
-    AttrUtils::SetListInt(op_desc_ptr_t, "attrListInt", int_vec);
-    AttrUtils::SetListFloat(op_desc_ptr_t, "attrListFloat", float_vec);
-    AttrUtils::SetListBool(op_desc_ptr_t, "attrListBool", bool_vec);
-    AttrUtils::SetListStr(op_desc_ptr_t, "attrListStr", str_vec);
+TEST_F(FEOpsKernelInfoStoreTest, check_input_output_supported_2) {
+  shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
+  shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> input1_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> input2_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  op_desc_ptr_t->SetName("tbe_conv");
+  ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "conv");
+  int64_t int_value = 1;
+  float float_value = 2.0;
+  bool bool_value = false;
+  string str_value = "abc";
+  vector<int64_t> int_vec{1, 2, 3};
+  vector<int64_t> rint_vec;
+  vector<float> float_vec{4.0, 5.0, 6.0};
+  vector<float> rfloat_vec;
+  vector<bool> bool_vec{false, true, true};
+  vector<bool> rbool_vec;
+  std::vector<string> str_vec{"a", "b", "c"};
+  AttrUtils::SetInt(op_desc_ptr_t, "transposX", int_value);
+  AttrUtils::SetFloat(op_desc_ptr_t, "transposY", float_value);
+  AttrUtils::SetBool(op_desc_ptr_t, "attrBool", bool_value);
+  AttrUtils::SetStr(op_desc_ptr_t, "attrStr", str_value);
+  AttrUtils::SetListInt(op_desc_ptr_t, "attrListInt", int_vec);
+  AttrUtils::SetListFloat(op_desc_ptr_t, "attrListFloat", float_vec);
+  AttrUtils::SetListBool(op_desc_ptr_t, "attrListBool", bool_vec);
+  AttrUtils::SetListStr(op_desc_ptr_t, "attrListStr", str_vec);
 
-    ge::DataType set_dtype = ge::DT_FLOAT16;
-    std::vector<int64_t> shape_vec{256,256,512};
-    ge::GeShape shape_desc = GeShape(shape_vec);
+  ge::DataType set_dtype = ge::DT_FLOAT16;
+  std::vector<int64_t> shape_vec{256, 256, 512};
+  ge::GeShape shape_desc = GeShape(shape_vec);
 
-    input0_desc_ptr->SetDataType(set_dtype);
-    input0_desc_ptr->SetShape(shape_desc);
-    op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
+  input0_desc_ptr->SetDataType(set_dtype);
+  input0_desc_ptr->SetShape(shape_desc);
+  op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
 
-    std::vector<int64_t> shape_vec1{256,256,512};
-    ge::GeShape shape_desc1 = GeShape(shape_vec1);
-    input1_desc_ptr->SetDataType(set_dtype);
-    input1_desc_ptr->SetShape(shape_desc1);
-    op_desc_ptr_t->AddInputDesc("y", input1_desc_ptr->Clone());
+  std::vector<int64_t> shape_vec1{256, 256, 512};
+  ge::GeShape shape_desc1 = GeShape(shape_vec1);
+  input1_desc_ptr->SetDataType(set_dtype);
+  input1_desc_ptr->SetShape(shape_desc1);
+  op_desc_ptr_t->AddInputDesc("y", input1_desc_ptr->Clone());
 
-    std::vector<int64_t> shape_vec2{256,256,512};
-    ge::GeShape shape_desc2 = GeShape(shape_vec2);
-    input2_desc_ptr->SetDataType(set_dtype);
-    input2_desc_ptr->SetShape(shape_desc2);
-    op_desc_ptr_t->AddInputDesc("x1", input2_desc_ptr->Clone());
+  std::vector<int64_t> shape_vec2{256, 256, 512};
+  ge::GeShape shape_desc2 = GeShape(shape_vec2);
+  input2_desc_ptr->SetDataType(set_dtype);
+  input2_desc_ptr->SetShape(shape_desc2);
+  op_desc_ptr_t->AddInputDesc("x1", input2_desc_ptr->Clone());
 
-    output0_desc_ptr->SetDataType(set_dtype);
-    output0_desc_ptr->SetShape(shape_desc);
-    op_desc_ptr_t->AddOutputDesc("z", output0_desc_ptr->Clone());
+  output0_desc_ptr->SetDataType(set_dtype);
+  output0_desc_ptr->SetShape(shape_desc);
+  op_desc_ptr_t->AddOutputDesc("z", output0_desc_ptr->Clone());
 
-    SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
-    sub_ops_store_ptr->InitializeSubStore();
-    OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
-    SupportedFormatAndDtype info(op_kernel_info_ptr, "");
+  SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
+  sub_ops_store_ptr->InitializeSubStore();
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
+  SupportedFormatAndDtype info(op_kernel_info_ptr, "");
 
-    info.input_index_name_map.emplace(0, "q");
-    info.input_index_name_map.emplace(1, "w");
-    info.input_index_name_map.emplace(2, "e");
-    info.output_index_name_map.emplace(0, "asdf");
-    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
-    ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
-    FormatDtypeInfo format_dtype_info;
-    Status get_format_dtype_status = sub_ops_store_ptr->GetSupportFormatAndDtype(
-            test_node, info.op_kernel_info_ptr, false, format_dtype_info);
-    info.suppport_formats_map = format_dtype_info.format_map;
-    info.support_data_types_map = format_dtype_info.data_type_map;
-    EXPECT_EQ(fe::SUCCESS, get_format_dtype_status);
+  info.input_index_name_map.emplace(0, "q");
+  info.input_index_name_map.emplace(1, "w");
+  info.input_index_name_map.emplace(2, "e");
+  info.output_index_name_map.emplace(0, "asdf");
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
+  ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
+  FormatDtypeInfo format_dtype_info;
+  Status get_format_dtype_status =
+      sub_ops_store_ptr->GetSupportFormatAndDtype(test_node, info.op_kernel_info_ptr, false, format_dtype_info);
+  info.suppport_formats_map = format_dtype_info.format_map;
+  info.support_data_types_map = format_dtype_info.data_type_map;
+  EXPECT_EQ(fe::SUCCESS, get_format_dtype_status);
 
-    bool ret = sub_ops_store_ptr->CheckInputSupported(test_node, 3, false, info);
-    bool ret1 = sub_ops_store_ptr->CheckOutputSupported(test_node, 1, false, info);
-    EXPECT_EQ(false, ret);
-    EXPECT_EQ(false, ret1);
+  bool ret = sub_ops_store_ptr->CheckInputSupported(test_node, 3, false, info);
+  bool ret1 = sub_ops_store_ptr->CheckOutputSupported(test_node, 1, false, info);
+  EXPECT_EQ(false, ret);
+  EXPECT_EQ(false, ret1);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, check_input_output_supported_datetype_fail)
-{
-    shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
-    shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc>  input1_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc>  input2_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc>  output0_desc_ptr = make_shared<ge::GeTensorDesc>();
-    op_desc_ptr_t->SetName("tbe_conv");
-    ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "conv2");
-    int64_t int_value = 1;
-    float float_value = 2.0;
-    bool bool_value = false;
-    string str_value = "abc";
-    vector<int64_t> int_vec{1, 2, 3};
-    vector<int64_t> rint_vec;
-    vector<float> float_vec{4.0, 5.0, 6.0};
-    vector<float> rfloat_vec;
-    vector<bool> bool_vec{false, true, true};
-    vector<bool> rbool_vec;
-    std::vector<string> str_vec{"a", "b", "c"};
-    AttrUtils::SetInt(op_desc_ptr_t, "transposX", int_value);
-    AttrUtils::SetFloat(op_desc_ptr_t, "transposY", float_value);
-    AttrUtils::SetBool(op_desc_ptr_t,"attrBool", bool_value);
-    AttrUtils::SetStr(op_desc_ptr_t,"attrStr", str_value);
-    AttrUtils::SetListInt(op_desc_ptr_t, "attrListInt", int_vec);
-    AttrUtils::SetListFloat(op_desc_ptr_t, "attrListFloat", float_vec);
-    AttrUtils::SetListBool(op_desc_ptr_t, "attrListBool", bool_vec);
-    AttrUtils::SetListStr(op_desc_ptr_t, "attrListStr", str_vec);
+TEST_F(FEOpsKernelInfoStoreTest, check_input_output_supported_datetype_fail) {
+  shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
+  shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> input1_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> input2_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  op_desc_ptr_t->SetName("tbe_conv");
+  ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "conv2");
+  int64_t int_value = 1;
+  float float_value = 2.0;
+  bool bool_value = false;
+  string str_value = "abc";
+  vector<int64_t> int_vec{1, 2, 3};
+  vector<int64_t> rint_vec;
+  vector<float> float_vec{4.0, 5.0, 6.0};
+  vector<float> rfloat_vec;
+  vector<bool> bool_vec{false, true, true};
+  vector<bool> rbool_vec;
+  std::vector<string> str_vec{"a", "b", "c"};
+  AttrUtils::SetInt(op_desc_ptr_t, "transposX", int_value);
+  AttrUtils::SetFloat(op_desc_ptr_t, "transposY", float_value);
+  AttrUtils::SetBool(op_desc_ptr_t, "attrBool", bool_value);
+  AttrUtils::SetStr(op_desc_ptr_t, "attrStr", str_value);
+  AttrUtils::SetListInt(op_desc_ptr_t, "attrListInt", int_vec);
+  AttrUtils::SetListFloat(op_desc_ptr_t, "attrListFloat", float_vec);
+  AttrUtils::SetListBool(op_desc_ptr_t, "attrListBool", bool_vec);
+  AttrUtils::SetListStr(op_desc_ptr_t, "attrListStr", str_vec);
 
-    ge::DataType set_dtype = ge::DT_FLOAT16;
-    std::vector<int64_t> shape_vec{256,256,512};
-    ge::GeShape shape_desc = GeShape(shape_vec);
+  ge::DataType set_dtype = ge::DT_FLOAT16;
+  std::vector<int64_t> shape_vec{256, 256, 512};
+  ge::GeShape shape_desc = GeShape(shape_vec);
 
-    input0_desc_ptr->SetDataType(ge::DT_UINT8);
-    input0_desc_ptr->SetShape(shape_desc);
-    op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
+  input0_desc_ptr->SetDataType(ge::DT_UINT8);
+  input0_desc_ptr->SetShape(shape_desc);
+  op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
 
-    std::vector<int64_t> shape_vec1{256,256,512};
-    ge::GeShape shape_desc1 = GeShape(shape_vec1);
-    input1_desc_ptr->SetDataType(set_dtype);
-    input1_desc_ptr->SetShape(shape_desc1);
-    op_desc_ptr_t->AddInputDesc("y", input1_desc_ptr->Clone());
+  std::vector<int64_t> shape_vec1{256, 256, 512};
+  ge::GeShape shape_desc1 = GeShape(shape_vec1);
+  input1_desc_ptr->SetDataType(set_dtype);
+  input1_desc_ptr->SetShape(shape_desc1);
+  op_desc_ptr_t->AddInputDesc("y", input1_desc_ptr->Clone());
 
-    std::vector<int64_t> shape_vec2{256,256,512};
-    ge::GeShape shape_desc2 = GeShape(shape_vec2);
-    input2_desc_ptr->SetDataType(set_dtype);
-    input2_desc_ptr->SetShape(shape_desc2);
-    op_desc_ptr_t->AddInputDesc("x1", input2_desc_ptr->Clone());
+  std::vector<int64_t> shape_vec2{256, 256, 512};
+  ge::GeShape shape_desc2 = GeShape(shape_vec2);
+  input2_desc_ptr->SetDataType(set_dtype);
+  input2_desc_ptr->SetShape(shape_desc2);
+  op_desc_ptr_t->AddInputDesc("x1", input2_desc_ptr->Clone());
 
-    output0_desc_ptr->SetDataType(ge::DT_UINT8);
-    output0_desc_ptr->SetShape(shape_desc);
-    op_desc_ptr_t->AddOutputDesc("z", output0_desc_ptr->Clone());
+  output0_desc_ptr->SetDataType(ge::DT_UINT8);
+  output0_desc_ptr->SetShape(shape_desc);
+  op_desc_ptr_t->AddOutputDesc("z", output0_desc_ptr->Clone());
 
-    SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
-    sub_ops_store_ptr->InitializeSubStore();
+  SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
+  sub_ops_store_ptr->InitializeSubStore();
 
-    OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv2");
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv2");
 
-    SupportedFormatAndDtype info(op_kernel_info_ptr, "");
-    info.input_index_name_map.emplace(0, "x");
-    info.input_index_name_map.emplace(1, "y");
-    info.input_index_name_map.emplace(2, "h");
-    info.output_index_name_map.emplace(0, "z");
+  SupportedFormatAndDtype info(op_kernel_info_ptr, "");
+  info.input_index_name_map.emplace(0, "x");
+  info.input_index_name_map.emplace(1, "y");
+  info.input_index_name_map.emplace(2, "h");
+  info.output_index_name_map.emplace(0, "z");
 
-    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
-    ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
-    FormatDtypeInfo format_dtype_info;
-    Status get_format_dtype_status = sub_ops_store_ptr->GetSupportFormatAndDtype(
-            test_node, info.op_kernel_info_ptr, false, format_dtype_info);
-    info.suppport_formats_map = format_dtype_info.format_map;
-    info.support_data_types_map = format_dtype_info.data_type_map;
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
+  ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
+  FormatDtypeInfo format_dtype_info;
+  Status get_format_dtype_status =
+      sub_ops_store_ptr->GetSupportFormatAndDtype(test_node, info.op_kernel_info_ptr, false, format_dtype_info);
+  info.suppport_formats_map = format_dtype_info.format_map;
+  info.support_data_types_map = format_dtype_info.data_type_map;
 
-    EXPECT_EQ(fe::SUCCESS, get_format_dtype_status);
-    bool ret = sub_ops_store_ptr->CheckInputSupported(test_node, 3, false, info);
-    bool ret1 = sub_ops_store_ptr->CheckOutputSupported(test_node, 1, false, info);
-    EXPECT_EQ(false, ret);
-    EXPECT_EQ(false, ret1);
+  EXPECT_EQ(fe::SUCCESS, get_format_dtype_status);
+  bool ret = sub_ops_store_ptr->CheckInputSupported(test_node, 3, false, info);
+  bool ret1 = sub_ops_store_ptr->CheckOutputSupported(test_node, 1, false, info);
+  EXPECT_EQ(false, ret);
+  EXPECT_EQ(false, ret1);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, check_output_supported_shape_fail)
-{
-    shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
-    shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc>  output0_desc_ptr = make_shared<ge::GeTensorDesc>();
-    op_desc_ptr_t->SetName("tbe_conv");
-    ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "conv2");
+TEST_F(FEOpsKernelInfoStoreTest, check_output_supported_shape_fail) {
+  shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
+  shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  op_desc_ptr_t->SetName("tbe_conv");
+  ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "conv2");
 
-    ge::DataType set_dtype = ge::DT_FLOAT16;
-    std::vector<int64_t> shape_vec{0, -1};
-    ge::GeShape shape_desc = GeShape(shape_vec);
+  ge::DataType set_dtype = ge::DT_FLOAT16;
+  std::vector<int64_t> shape_vec{0, -1};
+  ge::GeShape shape_desc = GeShape(shape_vec);
 
-    input0_desc_ptr->SetDataType(ge::DT_FLOAT16);
-    input0_desc_ptr->SetShape(shape_desc);
-    op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
+  input0_desc_ptr->SetDataType(ge::DT_FLOAT16);
+  input0_desc_ptr->SetShape(shape_desc);
+  op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
 
-    output0_desc_ptr->SetDataType(ge::DT_FLOAT16);
-    output0_desc_ptr->SetShape(shape_desc);
-    op_desc_ptr_t->AddOutputDesc("y", output0_desc_ptr->Clone());
+  output0_desc_ptr->SetDataType(ge::DT_FLOAT16);
+  output0_desc_ptr->SetShape(shape_desc);
+  op_desc_ptr_t->AddOutputDesc("y", output0_desc_ptr->Clone());
 
-    SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
-    sub_ops_store_ptr->InitializeSubStore();
+  SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
+  sub_ops_store_ptr->InitializeSubStore();
 
-    OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv2");
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv2");
 
-    SupportedFormatAndDtype info(op_kernel_info_ptr, "");
-    info.input_index_name_map.emplace(0, "x");
-    info.output_index_name_map.emplace(0, "y");
+  SupportedFormatAndDtype info(op_kernel_info_ptr, "");
+  info.input_index_name_map.emplace(0, "x");
+  info.output_index_name_map.emplace(0, "y");
 
-    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
-    ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
-    bool ret1 = fe::SubOpsStore::CheckTensorNotNull(test_node->GetOpDesc()->MutableOutputDesc(0)->GetShape());
-    EXPECT_EQ(false, ret1);
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
+  ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
+  bool ret1 = fe::SubOpsStore::CheckTensorNotNull(test_node->GetOpDesc()->MutableOutputDesc(0)->GetShape());
+  EXPECT_EQ(false, ret1);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, check_dtype_false)
-{
-    shared_ptr<ge::GeTensorDesc> input_ptr = make_shared<ge::GeTensorDesc>();
-    OpDescPtr test_op_desc_ptr = CreateOpDescPtr(TEST_SUCCESS);
-    ge::DataType set_dtype = ge::DT_UINT64;
-    ge::Format set_format = ge::FORMAT_ND;
-    std::vector<int64_t> shape_vec{256,256,512};
-    ge::GeShape shape_desc = GeShape(shape_vec);
+TEST_F(FEOpsKernelInfoStoreTest, check_dtype_false) {
+  shared_ptr<ge::GeTensorDesc> input_ptr = make_shared<ge::GeTensorDesc>();
+  OpDescPtr test_op_desc_ptr = CreateOpDescPtr(TEST_SUCCESS);
+  ge::DataType set_dtype = ge::DT_UINT64;
+  ge::Format set_format = ge::FORMAT_ND;
+  std::vector<int64_t> shape_vec{256, 256, 512};
+  ge::GeShape shape_desc = GeShape(shape_vec);
 
-    input_ptr->SetDataType(set_dtype);
-    input_ptr->SetFormat(set_format);
-    input_ptr->SetShape(shape_desc);
-    test_op_desc_ptr->AddInputDesc("x", input_ptr->Clone());
+  input_ptr->SetDataType(set_dtype);
+  input_ptr->SetFormat(set_format);
+  input_ptr->SetShape(shape_desc);
+  test_op_desc_ptr->AddInputDesc("x", input_ptr->Clone());
 
-    SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
-    sub_ops_store_ptr->InitializeSubStore();
-    OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
-    InputOrOutputInfoPtr input_info_ptr;
-    op_kernel_info_ptr->GetInputInfoByName("x", input_info_ptr);
+  SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
+  sub_ops_store_ptr->InitializeSubStore();
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
+  InputOrOutputInfoPtr input_info_ptr;
+  op_kernel_info_ptr->GetInputInfoByName("x", input_info_ptr);
 
-    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
-    ge::NodePtr test_node = graph->AddNode(test_op_desc_ptr);
-    FormatDtypeInfo format_dtype_info;
-    Status get_format_dtype_status = sub_ops_store_ptr->GetSupportFormatAndDtype(test_node,
-            op_kernel_info_ptr, false, format_dtype_info);
-    EXPECT_EQ(fe::SUCCESS, get_format_dtype_status);
-    SupportedFormatAndDtype check_info(op_kernel_info_ptr, "");
-    bool ret = sub_ops_store_ptr->CheckDtypeSupported(test_node, input_ptr, input_info_ptr,
-                                                      format_dtype_info.data_type_map.at(input_info_ptr->GetUniqueName()),
-                                                      check_info);
-    EXPECT_EQ(false, ret);
-    check_info.promote_flag = true;
-    check_info.is_input = true;
-    check_info.cur_idx = 0;
-    check_info.promote_target_type.emplace_back(ge::DT_FLOAT);
-    vector<int> tmp_vec = {0, 1};
-    check_info.promote_input_list.emplace_back(tmp_vec);
-    vector<ge::DataType> op_support_data_types = {ge::DT_FLOAT16, ge::DT_FLOAT};
-    ret = fe::SubOpsStore::CheckPromoteTypeSupport(op_support_data_types, check_info);
-    EXPECT_EQ(true, ret);
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
+  ge::NodePtr test_node = graph->AddNode(test_op_desc_ptr);
+  FormatDtypeInfo format_dtype_info;
+  Status get_format_dtype_status =
+      sub_ops_store_ptr->GetSupportFormatAndDtype(test_node, op_kernel_info_ptr, false, format_dtype_info);
+  EXPECT_EQ(fe::SUCCESS, get_format_dtype_status);
+  SupportedFormatAndDtype check_info(op_kernel_info_ptr, "");
+  bool ret = sub_ops_store_ptr->CheckDtypeSupported(test_node, input_ptr, input_info_ptr,
+                                                    format_dtype_info.data_type_map.at(input_info_ptr->GetUniqueName()),
+                                                    check_info);
+  EXPECT_EQ(false, ret);
+  check_info.promote_flag = true;
+  check_info.is_input = true;
+  check_info.cur_idx = 0;
+  check_info.promote_target_type.emplace_back(ge::DT_FLOAT);
+  vector<int> tmp_vec = {0, 1};
+  check_info.promote_input_list.emplace_back(tmp_vec);
+  vector<ge::DataType> op_support_data_types = {ge::DT_FLOAT16, ge::DT_FLOAT};
+  ret = fe::SubOpsStore::CheckPromoteTypeSupport(op_support_data_types, check_info);
+  EXPECT_EQ(true, ret);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, feed_promote_info){
+TEST_F(FEOpsKernelInfoStoreTest, feed_promote_info) {
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   ge::OpDescPtr op_desc_ptr = make_shared<ge::OpDesc>("mul_0", "Mul");
   ge::NodePtr test_node = graph->AddNode(op_desc_ptr);
 
   ge::Format format_5dh_16 = static_cast<ge::Format>(ge::GetFormatFromC0(ge::FORMAT_NC1HWC0, 5));
-  std::vector<int64_t> dims_nchw{10,20,15,15};
-  std::vector<int64_t> dims_5hd{10,2,15,15,16};
+  std::vector<int64_t> dims_nchw{10, 20, 15, 15};
+  std::vector<int64_t> dims_5hd{10, 2, 15, 15, 16};
   ge::GeShape shape_nchw(dims_nchw);
   ge::GeShape shape_5hd(dims_5hd);
   ge::GeTensorDesc tensor_desc(shape_5hd, format_5dh_16, ge::DT_FLOAT16);
@@ -1680,7 +1664,7 @@ TEST_F(FEOpsKernelInfoStoreTest, feed_promote_info){
   op_desc_ptr_1->AddOutputDesc("y", tensor_desc);
   ge::NodePtr test_node_1 = graph->AddNode(op_desc_ptr_1);
   tbe_adapter_ptr_->GetOpSpecificInfo = GetOpSpecificInfoStub;
-  OpKernelInfoPtr op_kernel_info_ptr_1=
+  OpKernelInfoPtr op_kernel_info_ptr_1 =
       OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "Mul_Promote");
   SupportedFormatAndDtype info_1(op_kernel_info_ptr_1, "");
   sub_ops_store_ptr->FeedPromoteInfo(test_node_1, info_1);
@@ -1693,7 +1677,7 @@ TEST_F(FEOpsKernelInfoStoreTest, feed_promote_info){
   op_desc_ptr_2->AddOutputDesc("y", tensor_desc);
   ge::NodePtr test_node_2 = graph->AddNode(op_desc_ptr_2);
   tbe_adapter_ptr_->GetOpSpecificInfo = GetOpSpecificInfoStub;
-  OpKernelInfoPtr op_kernel_info_ptr_2=
+  OpKernelInfoPtr op_kernel_info_ptr_2 =
       OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "Mul_Dynamic");
   SupportedFormatAndDtype info_2(op_kernel_info_ptr_2, "");
   sub_ops_store_ptr->FeedPromoteInfo(test_node_2, info_2);
@@ -1707,11 +1691,10 @@ TEST_F(FEOpsKernelInfoStoreTest, feed_promote_info){
   op_desc_ptr_3->AddInputDesc("x2", tensor_desc1);
   op_desc_ptr_3->AddOutputDesc("y", tensor_desc);
   ge::NodePtr test_node_3 = graph->AddNode(op_desc_ptr_3);
-  OpKernelInfoPtr op_kernel_info_ptr_3=
+  OpKernelInfoPtr op_kernel_info_ptr_3 =
       OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "Mul_Dynamic");
   SupportedFormatAndDtype info_3(op_kernel_info_ptr_3, "");
   EXPECT_EQ(tbe_adapter_ptr_->IsNeedSkipOpJudge(test_node_3, op_kernel_info_ptr_3), true);
-  
 
   FEOpsStoreInfo fe_store_info;
   fe_store_info.op_impl_type = EN_IMPL_CUSTOM_TBE;
@@ -1720,96 +1703,95 @@ TEST_F(FEOpsKernelInfoStoreTest, feed_promote_info){
   promote_val.is_dynamic = true;
   std::vector<std::vector<int>> promote_list;
   sub_ops_store_ptr->ParsePromoteStr(promote_val, test_node_2, op_kernel_info_ptr_2, promote_list);
-  std::vector<std::vector<int>> promote_list_exprcted = {{0,1}};
+  std::vector<std::vector<int>> promote_list_exprcted = {{0, 1}};
   EXPECT_EQ(promote_list, promote_list_exprcted);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_fail4)
-{
-    shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
-    shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc> input1_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc> input2_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc> output1_desc_ptr = make_shared<ge::GeTensorDesc>();
-    op_desc_ptr_t->SetName("tbe_conv");
-    ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "conv");
-    int64_t int_value = 1;
-    float float_value = 2.0;
-    bool bool_value = false;
-    string str_value = "abc";
-    vector<int64_t> int_vec{1, 2, 3};
-    vector<int64_t> rint_vec;
-    vector<float> float_vec{4.0, 5.0, 6.0};
-    vector<float> rfloat_vec;
-    vector<bool> bool_vec{false, true, true};
-    vector<bool> rbool_vec;
-    std::vector<string> str_vec{"a", "b", "c"};
-    AttrUtils::SetInt(op_desc_ptr_t, "transposX", int_value);
-    AttrUtils::SetFloat(op_desc_ptr_t, "transposY", float_value);
-    AttrUtils::SetBool(op_desc_ptr_t,"attrBool", bool_value);
-    AttrUtils::SetStr(op_desc_ptr_t,"attrStr", str_value);
-    AttrUtils::SetListInt(op_desc_ptr_t, "attrListInt", int_vec);
-    AttrUtils::SetListFloat(op_desc_ptr_t, "attrListFloat", float_vec);
-    AttrUtils::SetListBool(op_desc_ptr_t, "attrListBool", bool_vec);
-    AttrUtils::SetListStr(op_desc_ptr_t, "attrListStr", str_vec);
-
-    ge::DataType set_dtype = ge::DT_FLOAT16;
-    std::vector<int64_t> shape_vec{256,256,512};
-    ge::GeShape shape_desc = GeShape(shape_vec);
-
-    input0_desc_ptr->SetDataType(set_dtype);
-    input0_desc_ptr->SetShape(shape_desc);
-    op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
-
-    std::vector<int64_t> shape_vec1{256,256,512};
-    ge::GeShape shape_desc1 = GeShape(shape_vec1);
-    input1_desc_ptr->SetDataType(set_dtype);
-    input1_desc_ptr->SetShape(shape_desc1);
-    op_desc_ptr_t->AddInputDesc("ccc", input1_desc_ptr->Clone());
-
-    output0_desc_ptr->SetDataType(set_dtype);
-    output0_desc_ptr->SetShape(shape_desc);
-    op_desc_ptr_t->AddOutputDesc("z", output0_desc_ptr->Clone());
-
-    output1_desc_ptr->SetDataType(set_dtype);
-    output1_desc_ptr->SetShape(shape_desc);
-    op_desc_ptr_t->AddOutputDesc("666", output1_desc_ptr->Clone());
-
-    SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
-    OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
-    std::string un_supported_reason;
-    bool ret = fe_ops_kernel_info_store_ptr->CheckAccuracySupported(op_desc_ptr_t, un_supported_reason);
-    EXPECT_EQ(false, ret);
-}
-
-TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_fail5)
-{
-    shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
-    op_desc_ptr_t->SetName("tbe_conv");
-    ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "conv");
-    fe_ops_kernel_info_store_ptr->map_all_sub_store_info_.clear();
-    string un_supported_reason;
-    SubOpsStorePtr sub_ops_kernel_info_store_ptr = nullptr;
-    fe_ops_kernel_info_store_ptr->map_all_sub_store_info_.emplace(std::make_pair("tbe-custom", sub_ops_kernel_info_store_ptr));
-    bool ret1 = fe_ops_kernel_info_store_ptr->CheckSupported(op_desc_ptr_t, un_supported_reason);
-    EXPECT_EQ(false, ret1);
-
-    shared_ptr<ge::OpDesc> op_desc_ptr_t2 = make_shared<ge::OpDesc>();
-    op_desc_ptr_t2->SetName("tbe_conv");
-    ge::OpDescUtilsEx::SetType(op_desc_ptr_t2, "conv");
-    fe_ops_kernel_info_store_ptr->map_all_sub_store_info_.clear();
-    bool ret2 = fe_ops_kernel_info_store_ptr->CheckAccuracySupported(op_desc_ptr_t2, un_supported_reason);
-    EXPECT_EQ(false, ret2);
-}
-
-TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_fail6)
-{
+TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_fail4) {
   shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
   shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
-  shared_ptr<ge::GeTensorDesc>  input1_desc_ptr = make_shared<ge::GeTensorDesc>();
-  shared_ptr<ge::GeTensorDesc>  input2_desc_ptr = make_shared<ge::GeTensorDesc>();
-  shared_ptr<ge::GeTensorDesc>  output0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> input1_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> input2_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> output1_desc_ptr = make_shared<ge::GeTensorDesc>();
+  op_desc_ptr_t->SetName("tbe_conv");
+  ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "conv");
+  int64_t int_value = 1;
+  float float_value = 2.0;
+  bool bool_value = false;
+  string str_value = "abc";
+  vector<int64_t> int_vec{1, 2, 3};
+  vector<int64_t> rint_vec;
+  vector<float> float_vec{4.0, 5.0, 6.0};
+  vector<float> rfloat_vec;
+  vector<bool> bool_vec{false, true, true};
+  vector<bool> rbool_vec;
+  std::vector<string> str_vec{"a", "b", "c"};
+  AttrUtils::SetInt(op_desc_ptr_t, "transposX", int_value);
+  AttrUtils::SetFloat(op_desc_ptr_t, "transposY", float_value);
+  AttrUtils::SetBool(op_desc_ptr_t, "attrBool", bool_value);
+  AttrUtils::SetStr(op_desc_ptr_t, "attrStr", str_value);
+  AttrUtils::SetListInt(op_desc_ptr_t, "attrListInt", int_vec);
+  AttrUtils::SetListFloat(op_desc_ptr_t, "attrListFloat", float_vec);
+  AttrUtils::SetListBool(op_desc_ptr_t, "attrListBool", bool_vec);
+  AttrUtils::SetListStr(op_desc_ptr_t, "attrListStr", str_vec);
+
+  ge::DataType set_dtype = ge::DT_FLOAT16;
+  std::vector<int64_t> shape_vec{256, 256, 512};
+  ge::GeShape shape_desc = GeShape(shape_vec);
+
+  input0_desc_ptr->SetDataType(set_dtype);
+  input0_desc_ptr->SetShape(shape_desc);
+  op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
+
+  std::vector<int64_t> shape_vec1{256, 256, 512};
+  ge::GeShape shape_desc1 = GeShape(shape_vec1);
+  input1_desc_ptr->SetDataType(set_dtype);
+  input1_desc_ptr->SetShape(shape_desc1);
+  op_desc_ptr_t->AddInputDesc("ccc", input1_desc_ptr->Clone());
+
+  output0_desc_ptr->SetDataType(set_dtype);
+  output0_desc_ptr->SetShape(shape_desc);
+  op_desc_ptr_t->AddOutputDesc("z", output0_desc_ptr->Clone());
+
+  output1_desc_ptr->SetDataType(set_dtype);
+  output1_desc_ptr->SetShape(shape_desc);
+  op_desc_ptr_t->AddOutputDesc("666", output1_desc_ptr->Clone());
+
+  SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
+  std::string un_supported_reason;
+  bool ret = fe_ops_kernel_info_store_ptr->CheckAccuracySupported(op_desc_ptr_t, un_supported_reason);
+  EXPECT_EQ(false, ret);
+}
+
+TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_fail5) {
+  shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
+  op_desc_ptr_t->SetName("tbe_conv");
+  ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "conv");
+  fe_ops_kernel_info_store_ptr->map_all_sub_store_info_.clear();
+  string un_supported_reason;
+  SubOpsStorePtr sub_ops_kernel_info_store_ptr = nullptr;
+  fe_ops_kernel_info_store_ptr->map_all_sub_store_info_.emplace(
+      std::make_pair("tbe-custom", sub_ops_kernel_info_store_ptr));
+  bool ret1 = fe_ops_kernel_info_store_ptr->CheckSupported(op_desc_ptr_t, un_supported_reason);
+  EXPECT_EQ(false, ret1);
+
+  shared_ptr<ge::OpDesc> op_desc_ptr_t2 = make_shared<ge::OpDesc>();
+  op_desc_ptr_t2->SetName("tbe_conv");
+  ge::OpDescUtilsEx::SetType(op_desc_ptr_t2, "conv");
+  fe_ops_kernel_info_store_ptr->map_all_sub_store_info_.clear();
+  bool ret2 = fe_ops_kernel_info_store_ptr->CheckAccuracySupported(op_desc_ptr_t2, un_supported_reason);
+  EXPECT_EQ(false, ret2);
+}
+
+TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_fail6) {
+  shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
+  shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> input1_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> input2_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
   op_desc_ptr_t->SetName("tbe_conv");
   ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "conv3");
   int64_t int_value = 1;
@@ -1825,15 +1807,15 @@ TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_fail6)
   std::vector<string> str_vec{"a", "b", "c"};
   AttrUtils::SetInt(op_desc_ptr_t, "transposX", int_value);
   AttrUtils::SetFloat(op_desc_ptr_t, "transposY", float_value);
-  AttrUtils::SetBool(op_desc_ptr_t,"attrBool", bool_value);
-  AttrUtils::SetStr(op_desc_ptr_t,"attrStr", str_value);
+  AttrUtils::SetBool(op_desc_ptr_t, "attrBool", bool_value);
+  AttrUtils::SetStr(op_desc_ptr_t, "attrStr", str_value);
   AttrUtils::SetListInt(op_desc_ptr_t, "attrListInt", int_vec);
   AttrUtils::SetListFloat(op_desc_ptr_t, "attrListFloat", float_vec);
   AttrUtils::SetListBool(op_desc_ptr_t, "attrListBool", bool_vec);
   AttrUtils::SetListStr(op_desc_ptr_t, "attrListStr", str_vec);
 
   ge::DataType set_dtype = ge::DT_FLOAT16;
-  std::vector<int64_t> shape_vec{256,256,512};
+  std::vector<int64_t> shape_vec{256, 256, 512};
   ge::GeShape shape_desc = GeShape(shape_vec);
 
   input0_desc_ptr->SetDataType(set_dtype);
@@ -1842,7 +1824,7 @@ TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_fail6)
   input0_desc_ptr->SetOriginFormat(ge::FORMAT_NCHW);
   op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
 
-  std::vector<int64_t> shape_vec1{256,256,512};
+  std::vector<int64_t> shape_vec1{256, 256, 512};
   ge::GeShape shape_desc1 = GeShape(shape_vec1);
   input1_desc_ptr->SetDataType(set_dtype);
   input1_desc_ptr->SetShape(shape_desc1);
@@ -1850,7 +1832,7 @@ TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_fail6)
   input1_desc_ptr->SetOriginFormat(ge::FORMAT_NCHW);
   op_desc_ptr_t->AddInputDesc("y", input1_desc_ptr->Clone());
 
-  std::vector<int64_t> shape_vec2{256,256,512};
+  std::vector<int64_t> shape_vec2{256, 256, 512};
   ge::GeShape shape_desc2 = GeShape(shape_vec2);
   input2_desc_ptr->SetDataType(set_dtype);
   input2_desc_ptr->SetShape(shape_desc2);
@@ -1867,18 +1849,19 @@ TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_fail6)
 
   string un_supported_reason;
   SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
-  OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv3");;
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv3");
+  ;
   bool ret = fe_ops_kernel_info_store_ptr->CheckAccuracySupported(op_desc_ptr_t, un_supported_reason);
   EXPECT_EQ(false, ret);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_fail7)
-{
+TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_fail7) {
   shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
   shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
-  shared_ptr<ge::GeTensorDesc>  input1_desc_ptr = make_shared<ge::GeTensorDesc>();
-  shared_ptr<ge::GeTensorDesc>  input2_desc_ptr = make_shared<ge::GeTensorDesc>();
-  shared_ptr<ge::GeTensorDesc>  output0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> input1_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> input2_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
   op_desc_ptr_t->SetName("tbe_conv");
   ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "conv");
   int64_t int_value = 1;
@@ -1894,15 +1877,15 @@ TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_fail7)
   std::vector<string> str_vec{"a", "b", "c"};
   AttrUtils::SetInt(op_desc_ptr_t, "transposX", int_value);
   AttrUtils::SetFloat(op_desc_ptr_t, "transposY", float_value);
-  AttrUtils::SetBool(op_desc_ptr_t,"attrBool", bool_value);
-  AttrUtils::SetStr(op_desc_ptr_t,"attrStr", str_value);
+  AttrUtils::SetBool(op_desc_ptr_t, "attrBool", bool_value);
+  AttrUtils::SetStr(op_desc_ptr_t, "attrStr", str_value);
   AttrUtils::SetListInt(op_desc_ptr_t, "attrListInt", int_vec);
   AttrUtils::SetListFloat(op_desc_ptr_t, "attrListFloat", float_vec);
   AttrUtils::SetListBool(op_desc_ptr_t, "attrListBool", bool_vec);
   AttrUtils::SetListStr(op_desc_ptr_t, "attrListStr", str_vec);
 
   ge::DataType set_dtype = ge::DT_FLOAT16;
-  std::vector<int64_t> shape_vec{256,256,512};
+  std::vector<int64_t> shape_vec{256, 256, 512};
   ge::GeShape shape_desc = GeShape(shape_vec);
 
   input0_desc_ptr->SetDataType(set_dtype);
@@ -1911,7 +1894,7 @@ TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_fail7)
   input0_desc_ptr->SetOriginFormat(ge::FORMAT_NCHW);
   op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
 
-  std::vector<int64_t> shape_vec1{256,256,512};
+  std::vector<int64_t> shape_vec1{256, 256, 512};
   ge::GeShape shape_desc1 = GeShape(shape_vec1);
   input1_desc_ptr->SetDataType(set_dtype);
   input1_desc_ptr->SetShape(shape_desc1);
@@ -1919,7 +1902,7 @@ TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_fail7)
   input1_desc_ptr->SetOriginFormat(ge::FORMAT_NCHW);
   op_desc_ptr_t->AddInputDesc("y", input1_desc_ptr->Clone());
 
-  std::vector<int64_t> shape_vec2{256,256,512};
+  std::vector<int64_t> shape_vec2{256, 256, 512};
   ge::GeShape shape_desc2 = GeShape(shape_vec2);
   input2_desc_ptr->SetDataType(set_dtype);
   input2_desc_ptr->SetShape(shape_desc2);
@@ -1936,18 +1919,18 @@ TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_fail7)
 
   string un_supported_reason;
   SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
-  OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
   bool ret = fe_ops_kernel_info_store_ptr->CheckAccuracySupported(op_desc_ptr_t, un_supported_reason);
   EXPECT_EQ(false, ret);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_fail8)
-{
+TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_fail8) {
   shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
   shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
-  shared_ptr<ge::GeTensorDesc>  input1_desc_ptr = make_shared<ge::GeTensorDesc>();
-  shared_ptr<ge::GeTensorDesc>  input2_desc_ptr = make_shared<ge::GeTensorDesc>();
-  shared_ptr<ge::GeTensorDesc>  output0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> input1_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> input2_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
   op_desc_ptr_t->SetName("tbe_conv");
   ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "conv");
   int64_t int_value = 1;
@@ -1963,15 +1946,15 @@ TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_fail8)
   std::vector<string> str_vec{"a", "b", "c"};
   AttrUtils::SetInt(op_desc_ptr_t, "transposX", int_value);
   AttrUtils::SetFloat(op_desc_ptr_t, "transposY", float_value);
-  AttrUtils::SetBool(op_desc_ptr_t,"attrBool", bool_value);
-  AttrUtils::SetStr(op_desc_ptr_t,"attrStr", str_value);
+  AttrUtils::SetBool(op_desc_ptr_t, "attrBool", bool_value);
+  AttrUtils::SetStr(op_desc_ptr_t, "attrStr", str_value);
   AttrUtils::SetListInt(op_desc_ptr_t, "attrListInt", int_vec);
   AttrUtils::SetListFloat(op_desc_ptr_t, "attrListFloat", float_vec);
   AttrUtils::SetListBool(op_desc_ptr_t, "attrListBool", bool_vec);
   AttrUtils::SetListStr(op_desc_ptr_t, "attrListStr", str_vec);
 
   ge::DataType set_dtype = ge::DT_FLOAT16;
-  std::vector<int64_t> shape_vec{256,256,512};
+  std::vector<int64_t> shape_vec{256, 256, 512};
   ge::GeShape shape_desc = GeShape(shape_vec);
 
   input0_desc_ptr->SetDataType(set_dtype);
@@ -1980,7 +1963,7 @@ TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_fail8)
   input0_desc_ptr->SetOriginFormat(ge::FORMAT_NCHW);
   op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
 
-  std::vector<int64_t> shape_vec1{256,256,512};
+  std::vector<int64_t> shape_vec1{256, 256, 512};
   ge::GeShape shape_desc1 = GeShape(shape_vec1);
   input1_desc_ptr->SetDataType(set_dtype);
   input1_desc_ptr->SetShape(shape_desc1);
@@ -1988,7 +1971,7 @@ TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_fail8)
   input1_desc_ptr->SetOriginFormat(ge::FORMAT_NCHW);
   op_desc_ptr_t->AddInputDesc("y", input1_desc_ptr->Clone());
 
-  std::vector<int64_t> shape_vec2{256,256,1};
+  std::vector<int64_t> shape_vec2{256, 256, 1};
   ge::GeShape shape_desc2 = GeShape(shape_vec2);
   input2_desc_ptr->SetDataType(set_dtype);
   input2_desc_ptr->SetShape(shape_desc2);
@@ -2005,9 +1988,10 @@ TEST_F(FEOpsKernelInfoStoreTest, check_accuracy_supported_fail8)
 
   string un_supported_reason;
   SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
-  OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
   bool ret = fe_ops_kernel_info_store_ptr->CheckAccuracySupported(op_desc_ptr_t, un_supported_reason);
-  // This fuction check input size, but the new version remove checking input size, so changing false to true.
+  // This function check input size, but the new version remove checking input size, so changing false to true.
   EXPECT_EQ(true, ret);
 }
 
@@ -2080,13 +2064,11 @@ TEST_F(FEOpsKernelInfoStoreTest, check_input_output_accuracy_supported_succ) {
   CreateConv(test_node, "conv");
   SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
   sub_ops_store_ptr->InitializeSubStore();
-  OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom",
-                                                                                                        "conv");
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
   SupportedFormatAndDtype info(op_kernel_info_ptr, "");
   FormatDtypeInfo format_dtype_info;
-  Status status = sub_ops_store_ptr->GetSupportFormatAndDtype(
-      test_node, op_kernel_info_ptr, false,
-      format_dtype_info);
+  Status status = sub_ops_store_ptr->GetSupportFormatAndDtype(test_node, op_kernel_info_ptr, false, format_dtype_info);
   info.suppport_formats_map = format_dtype_info.format_map;
   info.support_data_types_map = format_dtype_info.data_type_map;
   EXPECT_EQ(fe::SUCCESS, status);
@@ -2122,289 +2104,289 @@ TEST_F(FEOpsKernelInfoStoreTest, impl_judge_3) {
   EXPECT_EQ(result, fe::SUCCESS);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, check_input_output_accuracy_supported_fail)
-{
-    shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
-    shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc>  input1_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc>  input2_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc>  output0_desc_ptr = make_shared<ge::GeTensorDesc>();
-    op_desc_ptr_t->SetName("tbe_conv");
-    ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "conv");
-    int64_t int_value = 1;
-    float float_value = 2.0;
-    bool bool_value = false;
-    string str_value = "abc";
-    vector<int64_t> int_vec{1, 2, 3};
-    vector<int64_t> rint_vec;
-    vector<float> float_vec{4.0, 5.0, 6.0};
-    vector<float> rfloat_vec;
-    vector<bool> bool_vec{false, true, true};
-    vector<bool> rbool_vec;
-    std::vector<string> str_vec{"a", "b", "c"};
-    AttrUtils::SetInt(op_desc_ptr_t, "transposX", int_value);
-    AttrUtils::SetFloat(op_desc_ptr_t, "transposY", float_value);
-    AttrUtils::SetBool(op_desc_ptr_t,"attrBool", bool_value);
-    AttrUtils::SetStr(op_desc_ptr_t,"attrStr", str_value);
-    AttrUtils::SetListInt(op_desc_ptr_t, "attrListInt", int_vec);
-    AttrUtils::SetListFloat(op_desc_ptr_t, "attrListFloat", float_vec);
-    AttrUtils::SetListBool(op_desc_ptr_t, "attrListBool", bool_vec);
-    AttrUtils::SetListStr(op_desc_ptr_t, "attrListStr", str_vec);
+TEST_F(FEOpsKernelInfoStoreTest, check_input_output_accuracy_supported_fail) {
+  shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
+  shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> input1_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> input2_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  op_desc_ptr_t->SetName("tbe_conv");
+  ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "conv");
+  int64_t int_value = 1;
+  float float_value = 2.0;
+  bool bool_value = false;
+  string str_value = "abc";
+  vector<int64_t> int_vec{1, 2, 3};
+  vector<int64_t> rint_vec;
+  vector<float> float_vec{4.0, 5.0, 6.0};
+  vector<float> rfloat_vec;
+  vector<bool> bool_vec{false, true, true};
+  vector<bool> rbool_vec;
+  std::vector<string> str_vec{"a", "b", "c"};
+  AttrUtils::SetInt(op_desc_ptr_t, "transposX", int_value);
+  AttrUtils::SetFloat(op_desc_ptr_t, "transposY", float_value);
+  AttrUtils::SetBool(op_desc_ptr_t, "attrBool", bool_value);
+  AttrUtils::SetStr(op_desc_ptr_t, "attrStr", str_value);
+  AttrUtils::SetListInt(op_desc_ptr_t, "attrListInt", int_vec);
+  AttrUtils::SetListFloat(op_desc_ptr_t, "attrListFloat", float_vec);
+  AttrUtils::SetListBool(op_desc_ptr_t, "attrListBool", bool_vec);
+  AttrUtils::SetListStr(op_desc_ptr_t, "attrListStr", str_vec);
 
-    ge::DataType set_dtype = ge::DT_FLOAT16;
-    std::vector<int64_t> shape_vec{256,256,512};
-    ge::GeShape shape_desc = GeShape(shape_vec);
+  ge::DataType set_dtype = ge::DT_FLOAT16;
+  std::vector<int64_t> shape_vec{256, 256, 512};
+  ge::GeShape shape_desc = GeShape(shape_vec);
 
-    input0_desc_ptr->SetDataType(set_dtype);
-    input0_desc_ptr->SetShape(shape_desc);
-    op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
+  input0_desc_ptr->SetDataType(set_dtype);
+  input0_desc_ptr->SetShape(shape_desc);
+  op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
 
-    std::vector<int64_t> shape_vec1{256,256,512};
-    ge::GeShape shape_desc1 = GeShape(shape_vec1);
-    input1_desc_ptr->SetDataType(set_dtype);
-    input1_desc_ptr->SetShape(shape_desc1);
-    op_desc_ptr_t->AddInputDesc("y", input1_desc_ptr->Clone());
+  std::vector<int64_t> shape_vec1{256, 256, 512};
+  ge::GeShape shape_desc1 = GeShape(shape_vec1);
+  input1_desc_ptr->SetDataType(set_dtype);
+  input1_desc_ptr->SetShape(shape_desc1);
+  op_desc_ptr_t->AddInputDesc("y", input1_desc_ptr->Clone());
 
-    std::vector<int64_t> shape_vec2{256,256,512};
-    ge::GeShape shape_desc2 = GeShape(shape_vec2);
-    input2_desc_ptr->SetDataType(set_dtype);
-    input2_desc_ptr->SetShape(shape_desc2);
-    op_desc_ptr_t->AddInputDesc("x1", input2_desc_ptr->Clone());
+  std::vector<int64_t> shape_vec2{256, 256, 512};
+  ge::GeShape shape_desc2 = GeShape(shape_vec2);
+  input2_desc_ptr->SetDataType(set_dtype);
+  input2_desc_ptr->SetShape(shape_desc2);
+  op_desc_ptr_t->AddInputDesc("x1", input2_desc_ptr->Clone());
 
-    output0_desc_ptr->SetDataType(set_dtype);
-    output0_desc_ptr->SetShape(shape_desc);
-    op_desc_ptr_t->AddOutputDesc("z", output0_desc_ptr->Clone());
+  output0_desc_ptr->SetDataType(set_dtype);
+  output0_desc_ptr->SetShape(shape_desc);
+  op_desc_ptr_t->AddOutputDesc("z", output0_desc_ptr->Clone());
 
-    SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
-    sub_ops_store_ptr->InitializeSubStore();
-    OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
-    SupportedFormatAndDtype info(op_kernel_info_ptr, "");
-    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
-    ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
-    FormatDtypeInfo format_dtype_info;
-    Status status = sub_ops_store_ptr->GetSupportFormatAndDtype(test_node, op_kernel_info_ptr, false, format_dtype_info);
-    info.suppport_formats_map = format_dtype_info.format_map;
-    info.support_data_types_map = format_dtype_info.data_type_map;
-    EXPECT_EQ(fe::SUCCESS, status);
-    bool ret = sub_ops_store_ptr->CheckAllTensorsSupportedAccurateMode(test_node, info);
-    EXPECT_EQ(false, ret);
+  SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
+  sub_ops_store_ptr->InitializeSubStore();
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
+  SupportedFormatAndDtype info(op_kernel_info_ptr, "");
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
+  ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
+  FormatDtypeInfo format_dtype_info;
+  Status status = sub_ops_store_ptr->GetSupportFormatAndDtype(test_node, op_kernel_info_ptr, false, format_dtype_info);
+  info.suppport_formats_map = format_dtype_info.format_map;
+  info.support_data_types_map = format_dtype_info.data_type_map;
+  EXPECT_EQ(fe::SUCCESS, status);
+  bool ret = sub_ops_store_ptr->CheckAllTensorsSupportedAccurateMode(test_node, info);
+  EXPECT_EQ(false, ret);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, check_input_output_accuracy_supported_2)
-{
-    shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
-    shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc>  input1_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc>  input2_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc>  output0_desc_ptr = make_shared<ge::GeTensorDesc>();
-    op_desc_ptr_t->SetName("tbe_conv");
-    ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "conv");
-    int64_t int_value = 1;
-    float float_value = 2.0;
-    bool bool_value = false;
-    string str_value = "abc";
-    vector<int64_t> int_vec{1, 2, 3};
-    vector<int64_t> rint_vec;
-    vector<float> float_vec{4.0, 5.0, 6.0};
-    vector<float> rfloat_vec;
-    vector<bool> bool_vec{false, true, true};
-    vector<bool> rbool_vec;
-    std::vector<string> str_vec{"a", "b", "c"};
-    AttrUtils::SetInt(op_desc_ptr_t, "transposX", int_value);
-    AttrUtils::SetFloat(op_desc_ptr_t, "transposY", float_value);
-    AttrUtils::SetBool(op_desc_ptr_t,"attrBool", bool_value);
-    AttrUtils::SetStr(op_desc_ptr_t,"attrStr", str_value);
-    AttrUtils::SetListInt(op_desc_ptr_t, "attrListInt", int_vec);
-    AttrUtils::SetListFloat(op_desc_ptr_t, "attrListFloat", float_vec);
-    AttrUtils::SetListBool(op_desc_ptr_t, "attrListBool", bool_vec);
-    AttrUtils::SetListStr(op_desc_ptr_t, "attrListStr", str_vec);
+TEST_F(FEOpsKernelInfoStoreTest, check_input_output_accuracy_supported_2) {
+  shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
+  shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> input1_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> input2_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  op_desc_ptr_t->SetName("tbe_conv");
+  ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "conv");
+  int64_t int_value = 1;
+  float float_value = 2.0;
+  bool bool_value = false;
+  string str_value = "abc";
+  vector<int64_t> int_vec{1, 2, 3};
+  vector<int64_t> rint_vec;
+  vector<float> float_vec{4.0, 5.0, 6.0};
+  vector<float> rfloat_vec;
+  vector<bool> bool_vec{false, true, true};
+  vector<bool> rbool_vec;
+  std::vector<string> str_vec{"a", "b", "c"};
+  AttrUtils::SetInt(op_desc_ptr_t, "transposX", int_value);
+  AttrUtils::SetFloat(op_desc_ptr_t, "transposY", float_value);
+  AttrUtils::SetBool(op_desc_ptr_t, "attrBool", bool_value);
+  AttrUtils::SetStr(op_desc_ptr_t, "attrStr", str_value);
+  AttrUtils::SetListInt(op_desc_ptr_t, "attrListInt", int_vec);
+  AttrUtils::SetListFloat(op_desc_ptr_t, "attrListFloat", float_vec);
+  AttrUtils::SetListBool(op_desc_ptr_t, "attrListBool", bool_vec);
+  AttrUtils::SetListStr(op_desc_ptr_t, "attrListStr", str_vec);
 
-    ge::DataType set_dtype = ge::DT_FLOAT16;
-    std::vector<int64_t> shape_vec{256,256,512};
-    ge::GeShape shape_desc = GeShape(shape_vec);
+  ge::DataType set_dtype = ge::DT_FLOAT16;
+  std::vector<int64_t> shape_vec{256, 256, 512};
+  ge::GeShape shape_desc = GeShape(shape_vec);
 
-    input0_desc_ptr->SetDataType(set_dtype);
-    input0_desc_ptr->SetShape(shape_desc);
-    op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
+  input0_desc_ptr->SetDataType(set_dtype);
+  input0_desc_ptr->SetShape(shape_desc);
+  op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
 
-    std::vector<int64_t> shape_vec1{256,256,512};
-    ge::GeShape shape_desc1 = GeShape(shape_vec1);
-    input1_desc_ptr->SetDataType(set_dtype);
-    input1_desc_ptr->SetShape(shape_desc1);
-    op_desc_ptr_t->AddInputDesc("y", input1_desc_ptr->Clone());
+  std::vector<int64_t> shape_vec1{256, 256, 512};
+  ge::GeShape shape_desc1 = GeShape(shape_vec1);
+  input1_desc_ptr->SetDataType(set_dtype);
+  input1_desc_ptr->SetShape(shape_desc1);
+  op_desc_ptr_t->AddInputDesc("y", input1_desc_ptr->Clone());
 
-    std::vector<int64_t> shape_vec2{256,256,512};
-    ge::GeShape shape_desc2 = GeShape(shape_vec2);
-    input2_desc_ptr->SetDataType(set_dtype);
-    input2_desc_ptr->SetShape(shape_desc2);
-    op_desc_ptr_t->AddInputDesc("x1", input2_desc_ptr->Clone());
+  std::vector<int64_t> shape_vec2{256, 256, 512};
+  ge::GeShape shape_desc2 = GeShape(shape_vec2);
+  input2_desc_ptr->SetDataType(set_dtype);
+  input2_desc_ptr->SetShape(shape_desc2);
+  op_desc_ptr_t->AddInputDesc("x1", input2_desc_ptr->Clone());
 
-    output0_desc_ptr->SetDataType(set_dtype);
-    output0_desc_ptr->SetShape(shape_desc);
-    op_desc_ptr_t->AddOutputDesc("z", output0_desc_ptr->Clone());
+  output0_desc_ptr->SetDataType(set_dtype);
+  output0_desc_ptr->SetShape(shape_desc);
+  op_desc_ptr_t->AddOutputDesc("z", output0_desc_ptr->Clone());
 
-    SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
-    sub_ops_store_ptr->InitializeSubStore();
-    OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
-    SupportedFormatAndDtype info(op_kernel_info_ptr, "");
+  SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
+  sub_ops_store_ptr->InitializeSubStore();
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
+  SupportedFormatAndDtype info(op_kernel_info_ptr, "");
 
-    info.input_index_name_map.emplace(0, "q");
-    info.input_index_name_map.emplace(1, "w");
-    info.input_index_name_map.emplace(2, "e");
-    info.output_index_name_map.emplace(0, "asdf");
-    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
-    ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
-    FormatDtypeInfo format_dtype_info;
-    Status status = sub_ops_store_ptr->GetSupportFormatAndDtype(test_node, op_kernel_info_ptr, false, format_dtype_info);
-    info.suppport_formats_map = format_dtype_info.format_map;
-    info.support_data_types_map = format_dtype_info.data_type_map;
-    EXPECT_EQ(fe::SUCCESS, status);
-    bool ret = sub_ops_store_ptr->CheckAllTensorsSupportedAccurateMode(test_node, info);
-    EXPECT_EQ(false, ret);
+  info.input_index_name_map.emplace(0, "q");
+  info.input_index_name_map.emplace(1, "w");
+  info.input_index_name_map.emplace(2, "e");
+  info.output_index_name_map.emplace(0, "asdf");
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
+  ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
+  FormatDtypeInfo format_dtype_info;
+  Status status = sub_ops_store_ptr->GetSupportFormatAndDtype(test_node, op_kernel_info_ptr, false, format_dtype_info);
+  info.suppport_formats_map = format_dtype_info.format_map;
+  info.support_data_types_map = format_dtype_info.data_type_map;
+  EXPECT_EQ(fe::SUCCESS, status);
+  bool ret = sub_ops_store_ptr->CheckAllTensorsSupportedAccurateMode(test_node, info);
+  EXPECT_EQ(false, ret);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, check_input_output_accuracy_supported_datetype_fail)
-{
-    shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
-    shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc>  input1_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc>  input2_desc_ptr = make_shared<ge::GeTensorDesc>();
-    shared_ptr<ge::GeTensorDesc>  output0_desc_ptr = make_shared<ge::GeTensorDesc>();
-    op_desc_ptr_t->SetName("tbe_conv");
-    ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "conv2");
-    int64_t int_value = 1;
-    float float_value = 2.0;
-    bool bool_value = false;
-    string str_value = "abc";
-    vector<int64_t> int_vec{1, 2, 3};
-    vector<int64_t> rint_vec;
-    vector<float> float_vec{4.0, 5.0, 6.0};
-    vector<float> rfloat_vec;
-    vector<bool> bool_vec{false, true, true};
-    vector<bool> rbool_vec;
-    std::vector<string> str_vec{"a", "b", "c"};
-    AttrUtils::SetInt(op_desc_ptr_t, "transposX", int_value);
-    AttrUtils::SetFloat(op_desc_ptr_t, "transposY", float_value);
-    AttrUtils::SetBool(op_desc_ptr_t,"attrBool", bool_value);
-    AttrUtils::SetStr(op_desc_ptr_t,"attrStr", str_value);
-    AttrUtils::SetListInt(op_desc_ptr_t, "attrListInt", int_vec);
-    AttrUtils::SetListFloat(op_desc_ptr_t, "attrListFloat", float_vec);
-    AttrUtils::SetListBool(op_desc_ptr_t, "attrListBool", bool_vec);
-    AttrUtils::SetListStr(op_desc_ptr_t, "attrListStr", str_vec);
+TEST_F(FEOpsKernelInfoStoreTest, check_input_output_accuracy_supported_datetype_fail) {
+  shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>();
+  shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> input1_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> input2_desc_ptr = make_shared<ge::GeTensorDesc>();
+  shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
+  op_desc_ptr_t->SetName("tbe_conv");
+  ge::OpDescUtilsEx::SetType(op_desc_ptr_t, "conv2");
+  int64_t int_value = 1;
+  float float_value = 2.0;
+  bool bool_value = false;
+  string str_value = "abc";
+  vector<int64_t> int_vec{1, 2, 3};
+  vector<int64_t> rint_vec;
+  vector<float> float_vec{4.0, 5.0, 6.0};
+  vector<float> rfloat_vec;
+  vector<bool> bool_vec{false, true, true};
+  vector<bool> rbool_vec;
+  std::vector<string> str_vec{"a", "b", "c"};
+  AttrUtils::SetInt(op_desc_ptr_t, "transposX", int_value);
+  AttrUtils::SetFloat(op_desc_ptr_t, "transposY", float_value);
+  AttrUtils::SetBool(op_desc_ptr_t, "attrBool", bool_value);
+  AttrUtils::SetStr(op_desc_ptr_t, "attrStr", str_value);
+  AttrUtils::SetListInt(op_desc_ptr_t, "attrListInt", int_vec);
+  AttrUtils::SetListFloat(op_desc_ptr_t, "attrListFloat", float_vec);
+  AttrUtils::SetListBool(op_desc_ptr_t, "attrListBool", bool_vec);
+  AttrUtils::SetListStr(op_desc_ptr_t, "attrListStr", str_vec);
 
-    ge::DataType set_dtype = ge::DT_FLOAT16;
-    std::vector<int64_t> shape_vec{256,256,512};
-    ge::GeShape shape_desc = GeShape(shape_vec);
+  ge::DataType set_dtype = ge::DT_FLOAT16;
+  std::vector<int64_t> shape_vec{256, 256, 512};
+  ge::GeShape shape_desc = GeShape(shape_vec);
 
-    input0_desc_ptr->SetDataType(ge::DT_UINT8);
-    input0_desc_ptr->SetShape(shape_desc);
-    op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
+  input0_desc_ptr->SetDataType(ge::DT_UINT8);
+  input0_desc_ptr->SetShape(shape_desc);
+  op_desc_ptr_t->AddInputDesc("x", input0_desc_ptr->Clone());
 
-    std::vector<int64_t> shape_vec1{256,256,512};
-    ge::GeShape shape_desc1 = GeShape(shape_vec1);
-    input1_desc_ptr->SetDataType(set_dtype);
-    input1_desc_ptr->SetShape(shape_desc1);
-    op_desc_ptr_t->AddInputDesc("y", input1_desc_ptr->Clone());
+  std::vector<int64_t> shape_vec1{256, 256, 512};
+  ge::GeShape shape_desc1 = GeShape(shape_vec1);
+  input1_desc_ptr->SetDataType(set_dtype);
+  input1_desc_ptr->SetShape(shape_desc1);
+  op_desc_ptr_t->AddInputDesc("y", input1_desc_ptr->Clone());
 
-    std::vector<int64_t> shape_vec2{256,256,512};
-    ge::GeShape shape_desc2 = GeShape(shape_vec2);
-    input2_desc_ptr->SetDataType(set_dtype);
-    input2_desc_ptr->SetShape(shape_desc2);
-    op_desc_ptr_t->AddInputDesc("x1", input2_desc_ptr->Clone());
+  std::vector<int64_t> shape_vec2{256, 256, 512};
+  ge::GeShape shape_desc2 = GeShape(shape_vec2);
+  input2_desc_ptr->SetDataType(set_dtype);
+  input2_desc_ptr->SetShape(shape_desc2);
+  op_desc_ptr_t->AddInputDesc("x1", input2_desc_ptr->Clone());
 
-    output0_desc_ptr->SetDataType(ge::DT_UINT8);
-    output0_desc_ptr->SetShape(shape_desc);
-    op_desc_ptr_t->AddOutputDesc("z", output0_desc_ptr->Clone());
+  output0_desc_ptr->SetDataType(ge::DT_UINT8);
+  output0_desc_ptr->SetShape(shape_desc);
+  op_desc_ptr_t->AddOutputDesc("z", output0_desc_ptr->Clone());
 
-    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
-    ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
+  ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
 
-    SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
-    sub_ops_store_ptr->InitializeSubStore();
+  SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
+  sub_ops_store_ptr->InitializeSubStore();
 
-    OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv2");
-    SupportedFormatAndDtype info(op_kernel_info_ptr, "");
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv2");
+  SupportedFormatAndDtype info(op_kernel_info_ptr, "");
 
-    info.input_index_name_map.emplace(0, "x");
-    info.input_index_name_map.emplace(1, "y");
-    info.input_index_name_map.emplace(2, "h");
-    info.output_index_name_map.emplace(0, "z");
+  info.input_index_name_map.emplace(0, "x");
+  info.input_index_name_map.emplace(1, "y");
+  info.input_index_name_map.emplace(2, "h");
+  info.output_index_name_map.emplace(0, "z");
 
-    FormatDtypeInfo format_dtype_info;
-    Status status = sub_ops_store_ptr->GetSupportFormatAndDtype(test_node, op_kernel_info_ptr, false, format_dtype_info);
-    info.suppport_formats_map = format_dtype_info.format_map;
-    info.support_data_types_map = format_dtype_info.data_type_map;
-    EXPECT_EQ(fe::SUCCESS, status);
-    bool ret = sub_ops_store_ptr->CheckAllTensorsSupportedAccurateMode(test_node, info);
-    EXPECT_EQ(false, ret);
+  FormatDtypeInfo format_dtype_info;
+  Status status = sub_ops_store_ptr->GetSupportFormatAndDtype(test_node, op_kernel_info_ptr, false, format_dtype_info);
+  info.suppport_formats_map = format_dtype_info.format_map;
+  info.support_data_types_map = format_dtype_info.data_type_map;
+  EXPECT_EQ(fe::SUCCESS, status);
+  bool ret = sub_ops_store_ptr->CheckAllTensorsSupportedAccurateMode(test_node, info);
+  EXPECT_EQ(false, ret);
 }
 
 static void CreateSpacesizeTwoOpGraph(ComputeGraphPtr graph) {
-    OpDescPtr bn_op = std::make_shared<OpDesc>("batchnormal", "conv");
-    OpDescPtr relu_op = std::make_shared<OpDesc>("relu", "conv");
+  OpDescPtr bn_op = std::make_shared<OpDesc>("batchnormal", "conv");
+  OpDescPtr relu_op = std::make_shared<OpDesc>("relu", "conv");
 
-    // add descriptor
-    vector<int64_t> dims = {1,2,3,4};
-    GeShape shape(dims);
+  // add descriptor
+  vector<int64_t> dims = {1, 2, 3, 4};
+  GeShape shape(dims);
 
-    GeTensorDesc in_desc1(shape);
-    in_desc1.SetFormat(FORMAT_NCHW);
-    in_desc1.SetDataType(DT_FLOAT16);
-    relu_op->AddInputDesc("x", in_desc1);
+  GeTensorDesc in_desc1(shape);
+  in_desc1.SetFormat(FORMAT_NCHW);
+  in_desc1.SetDataType(DT_FLOAT16);
+  relu_op->AddInputDesc("x", in_desc1);
 
-    GeTensorDesc out_desc1(shape);
-    out_desc1.SetFormat(FORMAT_HWCN);
-    out_desc1.SetDataType(DT_FLOAT16);
-    relu_op->AddOutputDesc("y", out_desc1);
+  GeTensorDesc out_desc1(shape);
+  out_desc1.SetFormat(FORMAT_HWCN);
+  out_desc1.SetDataType(DT_FLOAT16);
+  relu_op->AddOutputDesc("y", out_desc1);
 
-    GeTensorDesc in_desc2(shape);
-    in_desc2.SetFormat(FORMAT_FRACTAL_Z);
-    in_desc2.SetDataType(DT_FLOAT16);
-    bn_op->AddInputDesc("x", in_desc2);
+  GeTensorDesc in_desc2(shape);
+  in_desc2.SetFormat(FORMAT_FRACTAL_Z);
+  in_desc2.SetDataType(DT_FLOAT16);
+  bn_op->AddInputDesc("x", in_desc2);
 
-    GeTensorDesc out_desc2(shape);
-    out_desc2.SetFormat(FORMAT_NHWC);
-    out_desc2.SetDataType(DT_FLOAT16);
-    bn_op->AddOutputDesc("y", out_desc2);
+  GeTensorDesc out_desc2(shape);
+  out_desc2.SetFormat(FORMAT_NHWC);
+  out_desc2.SetDataType(DT_FLOAT16);
+  bn_op->AddOutputDesc("y", out_desc2);
 
-    NodePtr bn_node = graph->AddNode(bn_op);
-    NodePtr relu_node = graph->AddNode(relu_op);
+  NodePtr bn_node = graph->AddNode(bn_op);
+  NodePtr relu_node = graph->AddNode(relu_op);
 
-    GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0), relu_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0), relu_node->GetInDataAnchor(0));
 }
 
 static void CreateUnknownOpGraph(ComputeGraphPtr graph) {
-    OpDescPtr bn_op = std::make_shared<OpDesc>("batchnormal", "conv");
-    OpDescPtr relu_op = std::make_shared<OpDesc>("relu", "conv");
-    // add descriptor
-    vector<int64_t> dims = {1,-1,-1,4};
-    GeShape shape(dims);
+  OpDescPtr bn_op = std::make_shared<OpDesc>("batchnormal", "conv");
+  OpDescPtr relu_op = std::make_shared<OpDesc>("relu", "conv");
+  // add descriptor
+  vector<int64_t> dims = {1, -1, -1, 4};
+  GeShape shape(dims);
 
-    GeTensorDesc in_desc1(shape);
-    in_desc1.SetFormat(FORMAT_NCHW);
-    in_desc1.SetDataType(DT_FLOAT16);
-    relu_op->AddInputDesc("x", in_desc1);
+  GeTensorDesc in_desc1(shape);
+  in_desc1.SetFormat(FORMAT_NCHW);
+  in_desc1.SetDataType(DT_FLOAT16);
+  relu_op->AddInputDesc("x", in_desc1);
 
-    GeTensorDesc out_desc1(shape);
-    out_desc1.SetFormat(FORMAT_HWCN);
-    out_desc1.SetDataType(DT_FLOAT16);
-    relu_op->AddOutputDesc("y", out_desc1);
+  GeTensorDesc out_desc1(shape);
+  out_desc1.SetFormat(FORMAT_HWCN);
+  out_desc1.SetDataType(DT_FLOAT16);
+  relu_op->AddOutputDesc("y", out_desc1);
 
-    GeTensorDesc in_desc2(shape);
-    in_desc2.SetFormat(FORMAT_FRACTAL_Z);
-    in_desc2.SetDataType(DT_FLOAT16);
-    bn_op->AddInputDesc("x", in_desc2);
+  GeTensorDesc in_desc2(shape);
+  in_desc2.SetFormat(FORMAT_FRACTAL_Z);
+  in_desc2.SetDataType(DT_FLOAT16);
+  bn_op->AddInputDesc("x", in_desc2);
 
-    GeTensorDesc out_desc2(shape);
-    out_desc2.SetFormat(FORMAT_NHWC);
-    out_desc2.SetDataType(DT_FLOAT16);
-    bn_op->AddOutputDesc("y", out_desc2);
-    ge::AttrUtils::SetBool(relu_op, ATTR_NAME_SUPPORT_DYNAMIC_SHAPE, false);
-    ge::AttrUtils::SetBool(bn_op, ATTR_NAME_SUPPORT_DYNAMIC_SHAPE, false);
-    NodePtr bn_node = graph->AddNode(bn_op);
-    NodePtr relu_node = graph->AddNode(relu_op);
+  GeTensorDesc out_desc2(shape);
+  out_desc2.SetFormat(FORMAT_NHWC);
+  out_desc2.SetDataType(DT_FLOAT16);
+  bn_op->AddOutputDesc("y", out_desc2);
+  ge::AttrUtils::SetBool(relu_op, ATTR_NAME_SUPPORT_DYNAMIC_SHAPE, false);
+  ge::AttrUtils::SetBool(bn_op, ATTR_NAME_SUPPORT_DYNAMIC_SHAPE, false);
+  NodePtr bn_node = graph->AddNode(bn_op);
+  NodePtr relu_node = graph->AddNode(relu_op);
 
-    GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0), relu_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0), relu_node->GetInDataAnchor(0));
 }
 
 static void CreateAtomicOpGraph2(ComputeGraphPtr graph) {
@@ -2412,7 +2394,7 @@ static void CreateAtomicOpGraph2(ComputeGraphPtr graph) {
   OpDescPtr relu_op = std::make_shared<OpDesc>("relu", "conv");
 
   // add descriptor
-  vector<int64_t> dims = {1,2,3,4};
+  vector<int64_t> dims = {1, 2, 3, 4};
   GeShape shape(dims);
 
   GeTensorDesc in_desc1(shape);
@@ -2436,12 +2418,11 @@ static void CreateAtomicOpGraph2(ComputeGraphPtr graph) {
   bn_op->AddOutputDesc("y", out_desc2);
 
   std::vector<uint32_t> tmp_output_index(1, 1);
-  ge::AttrUtils::SetListInt(bn_op, TBE_OP_ATOMIC_OUTPUT_INDEX,
-                                tmp_output_index);
+  ge::AttrUtils::SetListInt(bn_op, TBE_OP_ATOMIC_OUTPUT_INDEX, tmp_output_index);
   ge::AttrUtils::SetInt(bn_op, TBE_OP_ATOMIC_WORKSPACE_FLAG, 1);
   ge::AttrUtils::SetBool(bn_op, ATTR_NAME_UNKNOWN_SHAPE, true);
-  std::vector<int64_t> wksp{500,600,800};
-  std::vector<int64_t> wkspsize{100,120,200};
+  std::vector<int64_t> wksp{500, 600, 800};
+  std::vector<int64_t> wkspsize{100, 120, 200};
   std::vector<int64_t> outputoffset{8500};
   bn_op->SetOutputOffset(outputoffset);
   bn_op->SetWorkspace(wksp);
@@ -2453,157 +2434,162 @@ static void CreateAtomicOpGraph2(ComputeGraphPtr graph) {
   GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0), relu_node->GetInDataAnchor(0));
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, check_format_nd_success)
-{
-    shared_ptr<ge::GeTensorDesc> input_ptr = make_shared<ge::GeTensorDesc>();
-    OpDescPtr test_op_desc_ptr = CreateOpDescPtr(TEST_SUCCESS);
-    ge::DataType set_dtype = ge::DT_UINT64;
-    ge::Format set_format = ge::FORMAT_ND;
-    std::vector<int64_t> shape_vec{256,256,512};
-    ge::GeShape shape_desc = GeShape(shape_vec);
+TEST_F(FEOpsKernelInfoStoreTest, check_format_nd_success) {
+  shared_ptr<ge::GeTensorDesc> input_ptr = make_shared<ge::GeTensorDesc>();
+  OpDescPtr test_op_desc_ptr = CreateOpDescPtr(TEST_SUCCESS);
+  ge::DataType set_dtype = ge::DT_UINT64;
+  ge::Format set_format = ge::FORMAT_ND;
+  std::vector<int64_t> shape_vec{256, 256, 512};
+  ge::GeShape shape_desc = GeShape(shape_vec);
 
-    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
-    ge::NodePtr test_node = graph->AddNode(test_op_desc_ptr);
-    input_ptr->SetDataType(set_dtype);
-    input_ptr->SetOriginFormat(set_format);
-    input_ptr->SetFormat(set_format);
-    input_ptr->SetShape(shape_desc);
-    test_op_desc_ptr->AddInputDesc("x", input_ptr->Clone());
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
+  ge::NodePtr test_node = graph->AddNode(test_op_desc_ptr);
+  input_ptr->SetDataType(set_dtype);
+  input_ptr->SetOriginFormat(set_format);
+  input_ptr->SetFormat(set_format);
+  input_ptr->SetShape(shape_desc);
+  test_op_desc_ptr->AddInputDesc("x", input_ptr->Clone());
 
-    SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
-    sub_ops_store_ptr->InitializeSubStore();
-    OpKernelInfoPtr op_kernel_info_ptr1 = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
-    EXPECT_NE(op_kernel_info_ptr1, nullptr);
-    InputOrOutputInfoPtr input_info_ptr1;
-    op_kernel_info_ptr1->GetInputInfoByName("x", input_info_ptr1);
+  SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
+  sub_ops_store_ptr->InitializeSubStore();
+  OpKernelInfoPtr op_kernel_info_ptr1 =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "conv");
+  EXPECT_NE(op_kernel_info_ptr1, nullptr);
+  InputOrOutputInfoPtr input_info_ptr1;
+  op_kernel_info_ptr1->GetInputInfoByName("x", input_info_ptr1);
 
-    FormatDtypeInfo format_dtype_info1;
-    Status get_format_dtype_status = sub_ops_store_ptr->GetSupportFormatAndDtype(test_node,
-            op_kernel_info_ptr1, false, format_dtype_info1);
-    EXPECT_EQ(fe::SUCCESS, get_format_dtype_status);
+  FormatDtypeInfo format_dtype_info1;
+  Status get_format_dtype_status =
+      sub_ops_store_ptr->GetSupportFormatAndDtype(test_node, op_kernel_info_ptr1, false, format_dtype_info1);
+  EXPECT_EQ(fe::SUCCESS, get_format_dtype_status);
 
-    bool ret1 = sub_ops_store_ptr->CheckFormatSupported(test_node,input_ptr, input_info_ptr1,
-            format_dtype_info1.format_map.at(input_info_ptr1->GetUniqueName()));
-    EXPECT_EQ(false, ret1);
+  bool ret1 = sub_ops_store_ptr->CheckFormatSupported(
+      test_node, input_ptr, input_info_ptr1, format_dtype_info1.format_map.at(input_info_ptr1->GetUniqueName()));
+  EXPECT_EQ(false, ret1);
 
-    OpKernelInfoPtr op_kernel_info_ptr2 = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "K");
-    EXPECT_NE(op_kernel_info_ptr2, nullptr);
-    InputOrOutputInfoPtr input_info_ptr2;
-    op_kernel_info_ptr2->GetInputInfoByName("x", input_info_ptr2);
-    FormatDtypeInfo format_dtype_info2;
-    get_format_dtype_status = sub_ops_store_ptr->GetSupportFormatAndDtype(test_node,
-            op_kernel_info_ptr2, false, format_dtype_info2);
-    EXPECT_EQ(fe::SUCCESS, get_format_dtype_status);
-    bool ret2 = sub_ops_store_ptr->CheckFormatSupported(test_node, input_ptr, input_info_ptr2,
-            format_dtype_info2.format_map.at(input_info_ptr2->GetUniqueName()));
-    EXPECT_EQ(true, ret2);
+  OpKernelInfoPtr op_kernel_info_ptr2 =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "K");
+  EXPECT_NE(op_kernel_info_ptr2, nullptr);
+  InputOrOutputInfoPtr input_info_ptr2;
+  op_kernel_info_ptr2->GetInputInfoByName("x", input_info_ptr2);
+  FormatDtypeInfo format_dtype_info2;
+  get_format_dtype_status =
+      sub_ops_store_ptr->GetSupportFormatAndDtype(test_node, op_kernel_info_ptr2, false, format_dtype_info2);
+  EXPECT_EQ(fe::SUCCESS, get_format_dtype_status);
+  bool ret2 = sub_ops_store_ptr->CheckFormatSupported(
+      test_node, input_ptr, input_info_ptr2, format_dtype_info2.format_map.at(input_info_ptr2->GetUniqueName()));
+  EXPECT_EQ(true, ret2);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, init_formatagnostic_op_fail)
-{
-    shared_ptr<FEOpsKernelInfoStore> fe_ops_kernel_info_store_ptr = make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
-    map<string, string> options;
-    FEOpsStoreInfo tbe_custom {
-            0,
-            "cce_custom_opinfo",
-            EN_IMPL_CUSTOM_CONSTANT_CCE,
-            GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_dynamic_opinfo_fail",
-            ""};
-    vector<FEOpsStoreInfo> store_info;
-    store_info.emplace_back(tbe_custom);
-    Configuration::Instance(fe::AI_CORE_NAME).ops_store_info_vector_ = (store_info);
-    OpsKernelManager::Instance(AI_CORE_NAME).Finalize();
+TEST_F(FEOpsKernelInfoStoreTest, init_formatagnostic_op_fail) {
+  shared_ptr<FEOpsKernelInfoStore> fe_ops_kernel_info_store_ptr = make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
+  map<string, string> options;
+  FEOpsStoreInfo tbe_custom{
+      0, "cce_custom_opinfo", EN_IMPL_CUSTOM_CONSTANT_CCE,
+      GetCodeDir() +
+          "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_dynamic_opinfo_fail",
+      ""};
+  vector<FEOpsStoreInfo> store_info;
+  store_info.emplace_back(tbe_custom);
+  Configuration::Instance(fe::AI_CORE_NAME).ops_store_info_vector_ = (store_info);
+  OpsKernelManager::Instance(AI_CORE_NAME).Finalize();
 
-    Status ret = fe_ops_kernel_info_store_ptr->Initialize(options);
-    EXPECT_EQ(fe::FAILED, ret);
+  Status ret = fe_ops_kernel_info_store_ptr->Initialize(options);
+  EXPECT_EQ(fe::FAILED, ret);
 }
 
-//TEST_F(FEOpsKernelInfoStoreTest, set_dynamic_custom_op_store_info_succ)
+// TEST_F(FEOpsKernelInfoStoreTest, set_dynamic_custom_op_store_info_succ)
 //{
-//  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
-//  OpDescPtr op_desc_0 = std::make_shared<OpDesc>("data", "Data");
-//  OpDescPtr op_desc_a = std::make_shared<OpDesc>("A", "Conv4D");
-//  // add descriptor
-//  vector<int64_t> dim(4, 4);
-//  GeShape shape(dim);
-//  GeTensorDesc out_desc(shape);
-//  GeTensorDesc out_desc1(shape);
+//   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
+//   OpDescPtr op_desc_0 = std::make_shared<OpDesc>("data", "Data");
+//   OpDescPtr op_desc_a = std::make_shared<OpDesc>("A", "Conv4D");
+//   // add descriptor
+//   vector<int64_t> dim(4, 4);
+//   GeShape shape(dim);
+//   GeTensorDesc out_desc(shape);
+//   GeTensorDesc out_desc1(shape);
 //
-//  op_desc_0->AddOutputDesc(out_desc);
-//  op_desc_a->AddInputDesc(out_desc);
-//  op_desc_a->AddInputDesc(out_desc1);
-//  op_desc_a->AddOutputDesc(out_desc);
+//   op_desc_0->AddOutputDesc(out_desc);
+//   op_desc_a->AddInputDesc(out_desc);
+//   op_desc_a->AddInputDesc(out_desc1);
+//   op_desc_a->AddOutputDesc(out_desc);
 //
-//  NodePtr node_0 = graph->AddNode(op_desc_0);
-//  NodePtr node_a = graph->AddNode(op_desc_a);
+//   NodePtr node_0 = graph->AddNode(op_desc_0);
+//   NodePtr node_a = graph->AddNode(op_desc_a);
 //
-//  OpDescPtr const_op = std::make_shared<OpDesc>("const", "Const");
-//  GeTensorDesc src_tensor_desc(GeShape({1, 1024, 256, 512}), ge::FORMAT_NHWC, ge::DT_FLOAT);
-//  const_op->AddOutputDesc(src_tensor_desc);
-//  const_op->AddInputDesc(src_tensor_desc);
-//  auto const_node = graph->AddNode(const_op);
+//   OpDescPtr const_op = std::make_shared<OpDesc>("const", "Const");
+//   GeTensorDesc src_tensor_desc(GeShape({1, 1024, 256, 512}), ge::FORMAT_NHWC, ge::DT_FLOAT);
+//   const_op->AddOutputDesc(src_tensor_desc);
+//   const_op->AddInputDesc(src_tensor_desc);
+//   auto const_node = graph->AddNode(const_op);
 //
-//  GraphUtils::AddEdge(node_0->GetOutDataAnchor(0), node_a->GetInDataAnchor(0));
-//  GraphUtils::AddEdge(const_node->GetOutDataAnchor(0), node_a->GetInDataAnchor(1));
+//   GraphUtils::AddEdge(node_0->GetOutDataAnchor(0), node_a->GetInDataAnchor(0));
+//   GraphUtils::AddEdge(const_node->GetOutDataAnchor(0), node_a->GetInDataAnchor(1));
 //
-//  ge::AttrUtils::SetBool(node_a->GetOpDesc(), NON_PERSISTENT_CUSTOM_OP_FLAG, true);
-//  std::string op_store_path = GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/non_persistent_tbe_custom_opinfo/non_persistent_tbe_custom_opinfo.json";
-//  ge::AttrUtils::SetStr(node_a->GetOpDesc(), CUSTOM_OP_IMPL_CONFIG_PATH, op_store_path);
+//   ge::AttrUtils::SetBool(node_a->GetOpDesc(), NON_PERSISTENT_CUSTOM_OP_FLAG, true);
+//   std::string op_store_path = GetCodeDir() +
+//   "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/non_persistent_tbe_custom_opinfo/non_persistent_tbe_custom_opinfo.json";
+//   ge::AttrUtils::SetStr(node_a->GetOpDesc(), CUSTOM_OP_IMPL_CONFIG_PATH, op_store_path);
 //
-//  Status ret = fe_ops_kernel_info_store_ptr->SetDynamicCustomOpStoreInfo(*graph);
-//  EXPECT_EQ(fe::SUCCESS, ret);
+//   Status ret = fe_ops_kernel_info_store_ptr->SetDynamicCustomOpStoreInfo(*graph);
+//   EXPECT_EQ(fe::SUCCESS, ret);
 //
-//  FEOpsStoreInfo op_store_info1;
-//  Configuration::Instance(fe_ops_kernel_info_store_ptr->GetFEOpsKernelInfoStoreName()).
-//                          GetOpStoreInfoByImplType(EN_IMPL_NON_PERSISTENT_CUSTOM_TBE, op_store_info1);
-//  OpKernelInfoPtr op_kernel_info_ptr1 = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("non-persistent-tbe-custom", "Conv4D");
-//  EXPECT_NE(op_kernel_info_ptr1, nullptr);
+//   FEOpsStoreInfo op_store_info1;
+//   Configuration::Instance(fe_ops_kernel_info_store_ptr->GetFEOpsKernelInfoStoreName()).
+//                           GetOpStoreInfoByImplType(EN_IMPL_NON_PERSISTENT_CUSTOM_TBE, op_store_info1);
+//   OpKernelInfoPtr op_kernel_info_ptr1 =
+//   OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("non-persistent-tbe-custom", "Conv4D");
+//   EXPECT_NE(op_kernel_info_ptr1, nullptr);
 //
-//  std::string op_dsl_file_path1;
-//  if (op_kernel_info_ptr1 != nullptr &&
-//      !op_kernel_info_ptr1->GetOpImpPath().empty()) {
-//    op_dsl_file_path1 = op_kernel_info_ptr1->GetOpImpPath();
-//  } else {
-//    op_dsl_file_path1 = op_store_info1.op_impl_file_path;
-//  }
-//  std::string path = GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/non_persistent_tbe_custom_opinfo/op_imply/";
-//  char resoved_path[260] =  {0x00};
-//  realpath(path.c_str(), resoved_path);
-//  path = resoved_path;
-//  EXPECT_EQ(path, op_dsl_file_path1);
+//   std::string op_dsl_file_path1;
+//   if (op_kernel_info_ptr1 != nullptr &&
+//       !op_kernel_info_ptr1->GetOpImpPath().empty()) {
+//     op_dsl_file_path1 = op_kernel_info_ptr1->GetOpImpPath();
+//   } else {
+//     op_dsl_file_path1 = op_store_info1.op_impl_file_path;
+//   }
+//   std::string path = GetCodeDir() +
+//   "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/non_persistent_tbe_custom_opinfo/op_imply/";
+//   char resoved_path[260] =  {0x00};
+//   realpath(path.c_str(), resoved_path);
+//   path = resoved_path;
+//   EXPECT_EQ(path, op_dsl_file_path1);
 //
-//  OpDescPtr op_desc_b = std::make_shared<OpDesc>("B", "Conv4D");
-//  op_desc_b->AddInputDesc(out_desc);
-//  op_desc_b->AddOutputDesc(out_desc);
-//  NodePtr node_b = graph->AddNode(op_desc_b);
-//  ge::AttrUtils::SetBool(node_b->GetOpDesc(), NON_PERSISTENT_CUSTOM_OP_FLAG, true);
-//  GraphUtils::AddEdge(node_a->GetOutDataAnchor(0), node_b->GetInDataAnchor(0));
-//  op_store_path = GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/non_persistent_tbe_custom_opinfo/non_persistent_tbe_custom_opinfo.json";
-//  ge::AttrUtils::SetStr(node_b->GetOpDesc(), CUSTOM_OP_IMPL_CONFIG_PATH, op_store_path);
-//  OpsKernelManager::Instance(AI_CORE_NAME).sub_ops_kernel_map_.clear();
-//  OpsKernelManager::Instance(AI_CORE_NAME).sub_ops_store_map_.clear();
-//  ret = fe_ops_kernel_info_store_ptr->SetDynamicCustomOpStoreInfo(*graph);
-//  EXPECT_EQ(fe::SUCCESS, ret);
+//   OpDescPtr op_desc_b = std::make_shared<OpDesc>("B", "Conv4D");
+//   op_desc_b->AddInputDesc(out_desc);
+//   op_desc_b->AddOutputDesc(out_desc);
+//   NodePtr node_b = graph->AddNode(op_desc_b);
+//   ge::AttrUtils::SetBool(node_b->GetOpDesc(), NON_PERSISTENT_CUSTOM_OP_FLAG, true);
+//   GraphUtils::AddEdge(node_a->GetOutDataAnchor(0), node_b->GetInDataAnchor(0));
+//   op_store_path = GetCodeDir() +
+//   "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/non_persistent_tbe_custom_opinfo/non_persistent_tbe_custom_opinfo.json";
+//   ge::AttrUtils::SetStr(node_b->GetOpDesc(), CUSTOM_OP_IMPL_CONFIG_PATH, op_store_path);
+//   OpsKernelManager::Instance(AI_CORE_NAME).sub_ops_kernel_map_.clear();
+//   OpsKernelManager::Instance(AI_CORE_NAME).sub_ops_store_map_.clear();
+//   ret = fe_ops_kernel_info_store_ptr->SetDynamicCustomOpStoreInfo(*graph);
+//   EXPECT_EQ(fe::SUCCESS, ret);
 //
-//  FEOpsStoreInfo op_store_info2;
-//  Configuration::Instance(fe_ops_kernel_info_store_ptr->GetFEOpsKernelInfoStoreName()).
-//                          GetOpStoreInfoByImplType(EN_IMPL_NON_PERSISTENT_CUSTOM_TBE, op_store_info2);
-//  OpKernelInfoPtr op_kernel_info_ptr2 = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("non-persistent-tbe-custom", "Conv4D");
-//  EXPECT_NE(op_kernel_info_ptr2, nullptr);
-//  std::string op_dsl_file_path2;
-//  if (op_kernel_info_ptr2 != nullptr && !op_kernel_info_ptr2->GetOpImpPath().empty()) {
-//    op_dsl_file_path2 = op_kernel_info_ptr2->GetOpImpPath();
-//  } else {
-//    op_dsl_file_path2 = op_store_info2.op_impl_file_path;
-//  }
-//  path = GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/non_persistent_tbe_custom_opinfo/op_imply/";
-//  char resoved_path1[260] =  {0x00};
-//  realpath(path.c_str(), resoved_path1);
-//  path = resoved_path1;
-//  EXPECT_EQ(path, op_dsl_file_path2);
-//}
+//   FEOpsStoreInfo op_store_info2;
+//   Configuration::Instance(fe_ops_kernel_info_store_ptr->GetFEOpsKernelInfoStoreName()).
+//                           GetOpStoreInfoByImplType(EN_IMPL_NON_PERSISTENT_CUSTOM_TBE, op_store_info2);
+//   OpKernelInfoPtr op_kernel_info_ptr2 =
+//   OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("non-persistent-tbe-custom", "Conv4D");
+//   EXPECT_NE(op_kernel_info_ptr2, nullptr);
+//   std::string op_dsl_file_path2;
+//   if (op_kernel_info_ptr2 != nullptr && !op_kernel_info_ptr2->GetOpImpPath().empty()) {
+//     op_dsl_file_path2 = op_kernel_info_ptr2->GetOpImpPath();
+//   } else {
+//     op_dsl_file_path2 = op_store_info2.op_impl_file_path;
+//   }
+//   path = GetCodeDir() +
+//   "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/non_persistent_tbe_custom_opinfo/op_imply/";
+//   char resoved_path1[260] =  {0x00};
+//   realpath(path.c_str(), resoved_path1);
+//   path = resoved_path1;
+//   EXPECT_EQ(path, op_dsl_file_path2);
+// }
 
-TEST_F(FEOpsKernelInfoStoreTest, compile_op_get_tvm_json_info_failed){
+TEST_F(FEOpsKernelInfoStoreTest, compile_op_get_tvm_json_info_failed) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr op_desc_0 = std::make_shared<OpDesc>("data", "Data");
   vector<int64_t> dim(4, 4);
@@ -2613,7 +2599,7 @@ TEST_F(FEOpsKernelInfoStoreTest, compile_op_get_tvm_json_info_failed){
   NodePtr node_0 = graph->AddNode(op_desc_0);
 
   ScopeNodeIdMap fusion_nodes_map;
-  std::vector<ge::Node*> fusion_nodes;
+  std::vector<ge::Node *> fusion_nodes;
   fusion_nodes.push_back(node_0.get());
   fusion_nodes_map.emplace(std::make_pair(1, fusion_nodes));
   CompileResultMap compile_ret_map;
@@ -2621,7 +2607,7 @@ TEST_F(FEOpsKernelInfoStoreTest, compile_op_get_tvm_json_info_failed){
   EXPECT_EQ(ret, OP_COMPILER_CHECK_FALSE_FAILED);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, set_workspace_info_for_memset){
+TEST_F(FEOpsKernelInfoStoreTest, set_workspace_info_for_memset) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr op_desc_0 = std::make_shared<OpDesc>("data", "Data");
   vector<int64_t> dim(4, 4);
@@ -2648,9 +2634,7 @@ TEST_F(FEOpsKernelInfoStoreTest, set_workspace_info_for_memset){
   EXPECT_EQ(ret, fe::FAILED);
 }
 
-
-TEST_F(FEOpsKernelInfoStoreTest, pre_compile_and_compile_success)
-{
+TEST_F(FEOpsKernelInfoStoreTest, pre_compile_and_compile_success) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr op_desc_0 = std::make_shared<OpDesc>("add", "Add");
   vector<int64_t> dim(4, 4);
@@ -2664,8 +2648,7 @@ TEST_F(FEOpsKernelInfoStoreTest, pre_compile_and_compile_success)
   EXPECT_EQ(ret, fe::SUCCESS);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, fuzz_pre_compile_and_compile_success)
-{
+TEST_F(FEOpsKernelInfoStoreTest, fuzz_pre_compile_and_compile_success) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr op_desc_0 = std::make_shared<OpDesc>("add", "Add");
   vector<int64_t> dim(4, 4);
@@ -2679,8 +2662,7 @@ TEST_F(FEOpsKernelInfoStoreTest, fuzz_pre_compile_and_compile_success)
   EXPECT_EQ(ret, fe::SUCCESS);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, compile_single_op_failed)
-{
+TEST_F(FEOpsKernelInfoStoreTest, compile_single_op_failed) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr op_desc_0 = std::make_shared<OpDesc>("add", "Add");
   vector<int64_t> dim(4, 4);
@@ -2692,8 +2674,7 @@ TEST_F(FEOpsKernelInfoStoreTest, compile_single_op_failed)
   EXPECT_EQ(ret, fe::FAILED);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, set_dynamic_custom_op_store_info_failed)
-{
+TEST_F(FEOpsKernelInfoStoreTest, set_dynamic_custom_op_store_info_failed) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr op_desc_0 = std::make_shared<OpDesc>("data", "Data");
   OpDescPtr op_desc_a = std::make_shared<OpDesc>("A", "Conv5D");
@@ -2724,7 +2705,9 @@ TEST_F(FEOpsKernelInfoStoreTest, set_dynamic_custom_op_store_info_failed)
   Status ret = fe_ops_kernel_info_store_ptr->SetDynamicCustomOpStoreInfo(*graph);
   EXPECT_EQ(fe::FAILED, ret);
 
-  std::string op_store_path = GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/non_persistent_tbe_custom_opinfo/non_persistent_tbe_custom_opinfo.json";
+  std::string op_store_path = GetCodeDir() +
+                              "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/"
+                              "non_persistent_tbe_custom_opinfo/non_persistent_tbe_custom_opinfo.json";
   ge::AttrUtils::SetStr(node_a->GetOpDesc(), CUSTOM_OP_IMPL_CONFIG_PATH, op_store_path);
   ret = fe_ops_kernel_info_store_ptr->SetDynamicCustomOpStoreInfo(*graph);
   EXPECT_EQ(fe::FAILED, ret);
@@ -2739,19 +2722,22 @@ TEST_F(FEOpsKernelInfoStoreTest, set_dynamic_custom_op_store_info_failed)
   EXPECT_EQ(fe::FAILED, ret);
 
   ge::OpDescUtilsEx::SetType(op_desc, "Conv4D");
-  op_store_path = GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/non_persistent_tbe_custom_opinfo1/non_persistent_tbe_custom_opinfo.json";
+  op_store_path = GetCodeDir() +
+                  "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/"
+                  "non_persistent_tbe_custom_opinfo1/non_persistent_tbe_custom_opinfo.json";
   ge::AttrUtils::SetStr(node_a->GetOpDesc(), CUSTOM_OP_IMPL_CONFIG_PATH, op_store_path);
   ret = fe_ops_kernel_info_store_ptr->SetDynamicCustomOpStoreInfo(*graph);
   EXPECT_EQ(fe::FAILED, ret);
 
-  op_store_path = GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/non_persistent_tbe_custom_opinfo/non_persistent_tbe_custom_opinfo1.json";
+  op_store_path = GetCodeDir() +
+                  "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/"
+                  "non_persistent_tbe_custom_opinfo/non_persistent_tbe_custom_opinfo1.json";
   ge::AttrUtils::SetStr(node_a->GetOpDesc(), CUSTOM_OP_IMPL_CONFIG_PATH, op_store_path);
   ret = fe_ops_kernel_info_store_ptr->SetDynamicCustomOpStoreInfo(*graph);
   EXPECT_EQ(fe::FAILED, ret);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, set_dynamic_custom_op_store_info_1)
-{
+TEST_F(FEOpsKernelInfoStoreTest, set_dynamic_custom_op_store_info_1) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr op_desc_0 = std::make_shared<OpDesc>("data", "Data");
   OpDescPtr op_desc_a = std::make_shared<OpDesc>("A", "Conv10D");
@@ -2779,15 +2765,16 @@ TEST_F(FEOpsKernelInfoStoreTest, set_dynamic_custom_op_store_info_1)
   GraphUtils::AddEdge(const_node->GetOutDataAnchor(0), node_a->GetInDataAnchor(1));
   ge::AttrUtils::SetBool(node_a->GetOpDesc(), NON_PERSISTENT_CUSTOM_OP_FLAG, true);
 
-  std::string op_store_path = GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/non_persistent_tbe_custom_opinfo/non_persistent_tbe_custom_opinfo.json";
+  std::string op_store_path = GetCodeDir() +
+                              "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/"
+                              "non_persistent_tbe_custom_opinfo/non_persistent_tbe_custom_opinfo.json";
   ge::AttrUtils::SetStr(node_a->GetOpDesc(), CUSTOM_OP_IMPL_CONFIG_PATH, op_store_path);
 
   Status ret = fe_ops_kernel_info_store_ptr->SetDynamicCustomOpStoreInfo(*graph);
   EXPECT_EQ(fe::FAILED, ret);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, set_dynamic_custom_op_store_info_2)
-{
+TEST_F(FEOpsKernelInfoStoreTest, set_dynamic_custom_op_store_info_2) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr op_desc_0 = std::make_shared<OpDesc>("data", "Data");
   OpDescPtr op_desc_a = std::make_shared<OpDesc>("A", "Conv8D");
@@ -2815,15 +2802,16 @@ TEST_F(FEOpsKernelInfoStoreTest, set_dynamic_custom_op_store_info_2)
   GraphUtils::AddEdge(const_node->GetOutDataAnchor(0), node_a->GetInDataAnchor(1));
   ge::AttrUtils::SetBool(node_a->GetOpDesc(), NON_PERSISTENT_CUSTOM_OP_FLAG, true);
 
-  std::string op_store_path = GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/non_persistent_tbe_custom_opinfo/non_persistent_tbe_custom_opinfo.json";
+  std::string op_store_path = GetCodeDir() +
+                              "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/"
+                              "non_persistent_tbe_custom_opinfo/non_persistent_tbe_custom_opinfo.json";
   ge::AttrUtils::SetStr(node_a->GetOpDesc(), CUSTOM_OP_IMPL_CONFIG_PATH, op_store_path);
 
   Status ret = fe_ops_kernel_info_store_ptr->SetDynamicCustomOpStoreInfo(*graph);
   EXPECT_NE(fe::SUCCESS, ret);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, set_dynamic_custom_op_store_info_3)
-{
+TEST_F(FEOpsKernelInfoStoreTest, set_dynamic_custom_op_store_info_3) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr op_desc_0 = std::make_shared<OpDesc>("data", "Data");
   OpDescPtr op_desc_a = std::make_shared<OpDesc>("A", "Conv9D");
@@ -2855,8 +2843,7 @@ TEST_F(FEOpsKernelInfoStoreTest, set_dynamic_custom_op_store_info_3)
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, set_dynamic_custom_op_store_info_4)
-{
+TEST_F(FEOpsKernelInfoStoreTest, set_dynamic_custom_op_store_info_4) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr op_desc_0 = std::make_shared<OpDesc>("data", "Data");
   OpDescPtr op_desc_a = std::make_shared<OpDesc>("A", "Conv7D");
@@ -2888,237 +2875,240 @@ TEST_F(FEOpsKernelInfoStoreTest, set_dynamic_custom_op_store_info_4)
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-//TEST_F(FEOpsKernelInfoStoreTest, set_dynamic_custom_op_store_info_5)
+// TEST_F(FEOpsKernelInfoStoreTest, set_dynamic_custom_op_store_info_5)
 //{
-//  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
-//  OpDescPtr op_desc_0 = std::make_shared<OpDesc>("data", "Data");
-//  OpDescPtr op_desc_a = std::make_shared<OpDesc>("A", "Conv4D");
-//  // add descriptor
-//  vector<int64_t> dim(4, 4);
-//  GeShape shape(dim);
-//  GeTensorDesc out_desc(shape);
-//  GeTensorDesc out_desc1(shape);
+//   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
+//   OpDescPtr op_desc_0 = std::make_shared<OpDesc>("data", "Data");
+//   OpDescPtr op_desc_a = std::make_shared<OpDesc>("A", "Conv4D");
+//   // add descriptor
+//   vector<int64_t> dim(4, 4);
+//   GeShape shape(dim);
+//   GeTensorDesc out_desc(shape);
+//   GeTensorDesc out_desc1(shape);
 //
-//  op_desc_0->AddOutputDesc(out_desc);
-//  op_desc_a->AddInputDesc(out_desc);
-//  op_desc_a->AddInputDesc(out_desc1);
-//  op_desc_a->AddOutputDesc(out_desc);
+//   op_desc_0->AddOutputDesc(out_desc);
+//   op_desc_a->AddInputDesc(out_desc);
+//   op_desc_a->AddInputDesc(out_desc1);
+//   op_desc_a->AddOutputDesc(out_desc);
 //
-//  NodePtr node_0 = graph->AddNode(op_desc_0);
-//  NodePtr node_a = graph->AddNode(op_desc_a);
+//   NodePtr node_0 = graph->AddNode(op_desc_0);
+//   NodePtr node_a = graph->AddNode(op_desc_a);
 //
-//  OpDescPtr const_op = std::make_shared<OpDesc>("const", "Const");
-//  GeTensorDesc src_tensor_desc(GeShape({1, 1024, 256, 512}), ge::FORMAT_NHWC, ge::DT_FLOAT);
-//  const_op->AddOutputDesc(src_tensor_desc);
-//  const_op->AddInputDesc(src_tensor_desc);
-//  auto const_node = graph->AddNode(const_op);
+//   OpDescPtr const_op = std::make_shared<OpDesc>("const", "Const");
+//   GeTensorDesc src_tensor_desc(GeShape({1, 1024, 256, 512}), ge::FORMAT_NHWC, ge::DT_FLOAT);
+//   const_op->AddOutputDesc(src_tensor_desc);
+//   const_op->AddInputDesc(src_tensor_desc);
+//   auto const_node = graph->AddNode(const_op);
 //
-//  GraphUtils::AddEdge(node_0->GetOutDataAnchor(0), node_a->GetInDataAnchor(0));
-//  GraphUtils::AddEdge(const_node->GetOutDataAnchor(0), node_a->GetInDataAnchor(1));
+//   GraphUtils::AddEdge(node_0->GetOutDataAnchor(0), node_a->GetInDataAnchor(0));
+//   GraphUtils::AddEdge(const_node->GetOutDataAnchor(0), node_a->GetInDataAnchor(1));
 //
-//  ge::AttrUtils::SetBool(node_a->GetOpDesc(), NON_PERSISTENT_CUSTOM_OP_FLAG, true);
-//  std::string op_store_path = GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/non_persistent_tbe_custom_opinfo/non_persistent_tbe_custom_opinfo.json";
-//  ge::AttrUtils::SetStr(node_a->GetOpDesc(), CUSTOM_OP_IMPL_CONFIG_PATH, op_store_path);
-//  OpsKernelManager::Instance(AI_CORE_NAME).sub_ops_store_map_.clear();
-//  OpsKernelManager::Instance(AI_CORE_NAME).sub_ops_kernel_map_.clear();
-//  Status ret = fe_ops_kernel_info_store_ptr->SetDynamicCustomOpStoreInfo(*graph);
-//  EXPECT_EQ(fe::SUCCESS, ret);
+//   ge::AttrUtils::SetBool(node_a->GetOpDesc(), NON_PERSISTENT_CUSTOM_OP_FLAG, true);
+//   std::string op_store_path = GetCodeDir() +
+//   "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/non_persistent_tbe_custom_opinfo/non_persistent_tbe_custom_opinfo.json";
+//   ge::AttrUtils::SetStr(node_a->GetOpDesc(), CUSTOM_OP_IMPL_CONFIG_PATH, op_store_path);
+//   OpsKernelManager::Instance(AI_CORE_NAME).sub_ops_store_map_.clear();
+//   OpsKernelManager::Instance(AI_CORE_NAME).sub_ops_kernel_map_.clear();
+//   Status ret = fe_ops_kernel_info_store_ptr->SetDynamicCustomOpStoreInfo(*graph);
+//   EXPECT_EQ(fe::SUCCESS, ret);
 //
-//  FEOpsStoreInfo op_store_info1;
-//  Configuration::Instance(fe_ops_kernel_info_store_ptr->GetFEOpsKernelInfoStoreName()).
-//                          GetOpStoreInfoByImplType(EN_IMPL_NON_PERSISTENT_CUSTOM_TBE, op_store_info1);
-//  OpKernelInfoPtr op_kernel_info_ptr1 = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("non-persistent-tbe-custom", "Conv4D");
-//  EXPECT_NE(op_kernel_info_ptr1, nullptr);
-//  std::string op_dsl_file_path1;
-//  if (op_kernel_info_ptr1 != nullptr &&
-//      !op_kernel_info_ptr1->GetOpImpPath().empty()) {
-//    op_dsl_file_path1 = op_kernel_info_ptr1->GetOpImpPath();
-//  } else {
-//    op_dsl_file_path1 = op_store_info1.op_impl_file_path;
-//  }
-//  std::string path = GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/non_persistent_tbe_custom_opinfo/op_imply/";
-//  char resoved_path[260] =  {0x00};
-//  realpath(path.c_str(), resoved_path);
-//  path = resoved_path;
-//  EXPECT_EQ(path, op_dsl_file_path1);
+//   FEOpsStoreInfo op_store_info1;
+//   Configuration::Instance(fe_ops_kernel_info_store_ptr->GetFEOpsKernelInfoStoreName()).
+//                           GetOpStoreInfoByImplType(EN_IMPL_NON_PERSISTENT_CUSTOM_TBE, op_store_info1);
+//   OpKernelInfoPtr op_kernel_info_ptr1 =
+//   OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("non-persistent-tbe-custom", "Conv4D");
+//   EXPECT_NE(op_kernel_info_ptr1, nullptr);
+//   std::string op_dsl_file_path1;
+//   if (op_kernel_info_ptr1 != nullptr &&
+//       !op_kernel_info_ptr1->GetOpImpPath().empty()) {
+//     op_dsl_file_path1 = op_kernel_info_ptr1->GetOpImpPath();
+//   } else {
+//     op_dsl_file_path1 = op_store_info1.op_impl_file_path;
+//   }
+//   std::string path = GetCodeDir() +
+//   "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/non_persistent_tbe_custom_opinfo/op_imply/";
+//   char resoved_path[260] =  {0x00};
+//   realpath(path.c_str(), resoved_path);
+//   path = resoved_path;
+//   EXPECT_EQ(path, op_dsl_file_path1);
 //
-//  OpDescPtr op_desc_b = std::make_shared<OpDesc>("B", "Conv5D");
-//  op_desc_b->AddInputDesc(out_desc);
-//  op_desc_b->AddOutputDesc(out_desc);
-//  NodePtr node_b = graph->AddNode(op_desc_b);
-//  ge::AttrUtils::SetBool(node_b->GetOpDesc(), NON_PERSISTENT_CUSTOM_OP_FLAG, false);
-//  GraphUtils::AddEdge(node_a->GetOutDataAnchor(0), node_b->GetInDataAnchor(0));
-//  op_store_path = GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/non_persistent_tbe_custom_opinfo/non_persistent_tbe_custom_opinfo.json";
-//  ge::AttrUtils::SetStr(node_b->GetOpDesc(), CUSTOM_OP_IMPL_CONFIG_PATH, op_store_path);
-//  OpsKernelManager::Instance(AI_CORE_NAME).sub_ops_kernel_map_.clear();
-//  OpsKernelManager::Instance(AI_CORE_NAME).sub_ops_store_map_.clear();
-//  ret = fe_ops_kernel_info_store_ptr->SetDynamicCustomOpStoreInfo(*graph);
-//  EXPECT_EQ(fe::SUCCESS, ret);
+//   OpDescPtr op_desc_b = std::make_shared<OpDesc>("B", "Conv5D");
+//   op_desc_b->AddInputDesc(out_desc);
+//   op_desc_b->AddOutputDesc(out_desc);
+//   NodePtr node_b = graph->AddNode(op_desc_b);
+//   ge::AttrUtils::SetBool(node_b->GetOpDesc(), NON_PERSISTENT_CUSTOM_OP_FLAG, false);
+//   GraphUtils::AddEdge(node_a->GetOutDataAnchor(0), node_b->GetInDataAnchor(0));
+//   op_store_path = GetCodeDir() +
+//   "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/non_persistent_tbe_custom_opinfo/non_persistent_tbe_custom_opinfo.json";
+//   ge::AttrUtils::SetStr(node_b->GetOpDesc(), CUSTOM_OP_IMPL_CONFIG_PATH, op_store_path);
+//   OpsKernelManager::Instance(AI_CORE_NAME).sub_ops_kernel_map_.clear();
+//   OpsKernelManager::Instance(AI_CORE_NAME).sub_ops_store_map_.clear();
+//   ret = fe_ops_kernel_info_store_ptr->SetDynamicCustomOpStoreInfo(*graph);
+//   EXPECT_EQ(fe::SUCCESS, ret);
 //
-//  std::string reason;
-//  for (auto node : graph->GetDirectNode()) {
-//    ret = fe_ops_kernel_info_store_ptr->CheckSupported(node->GetOpDesc(), reason);
-//    if (node->GetType() == "Conv5D") {
-//      EXPECT_EQ(false, ret);
-//    }
-//  }
-//}
+//   std::string reason;
+//   for (auto node : graph->GetDirectNode()) {
+//     ret = fe_ops_kernel_info_store_ptr->CheckSupported(node->GetOpDesc(), reason);
+//     if (node->GetType() == "Conv5D") {
+//       EXPECT_EQ(false, ret);
+//     }
+//   }
+// }
 
 TEST_F(FEOpsKernelInfoStoreTest, test_value_depend_case1) {
-    OpKernelInfoPtr op_kernel_info_ptr =
-            OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType(EN_IMPL_CUSTOM_TBE, "ValueDepend");
-    EXPECT_NE(op_kernel_info_ptr, nullptr);
-    for (InputOrOutputInfoPtr info_ptr : op_kernel_info_ptr->GetAllInputInfo()) {
-        if (info_ptr->GetName() == "a") {
-            EXPECT_EQ(info_ptr->GetConstValueDepend(), CONST_REQUIRED);
-        }
-        if (info_ptr->GetName() == "b") {
-            EXPECT_EQ(info_ptr->GetConstValueDepend(), CONST_OPTIONAL);
-        }
-        if (info_ptr->GetName() == "c") {
-            EXPECT_EQ(info_ptr->GetConstValueDepend(), CONST_IGNORE);
-        }
-        if (info_ptr->GetName() == "d") {
-            EXPECT_EQ(info_ptr->GetConstValueDepend(), CONST_IGNORE);
-        }
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType(EN_IMPL_CUSTOM_TBE, "ValueDepend");
+  EXPECT_NE(op_kernel_info_ptr, nullptr);
+  for (InputOrOutputInfoPtr info_ptr : op_kernel_info_ptr->GetAllInputInfo()) {
+    if (info_ptr->GetName() == "a") {
+      EXPECT_EQ(info_ptr->GetConstValueDepend(), CONST_REQUIRED);
     }
+    if (info_ptr->GetName() == "b") {
+      EXPECT_EQ(info_ptr->GetConstValueDepend(), CONST_OPTIONAL);
+    }
+    if (info_ptr->GetName() == "c") {
+      EXPECT_EQ(info_ptr->GetConstValueDepend(), CONST_IGNORE);
+    }
+    if (info_ptr->GetName() == "d") {
+      EXPECT_EQ(info_ptr->GetConstValueDepend(), CONST_IGNORE);
+    }
+  }
 }
 
 TEST_F(FEOpsKernelInfoStoreTest, test_value_depend_case2) {
-    OpDescPtr value_depend = std::make_shared<OpDesc>("value_depend", "ValueDepend");
+  OpDescPtr value_depend = std::make_shared<OpDesc>("value_depend", "ValueDepend");
 
-    // add descriptor
-    vector<int64_t> dims = {1,2,3,4};
-    GeShape shape(dims);
-    GeTensorDesc tensor_desc(shape);
-    tensor_desc.SetFormat(FORMAT_NCHW);
-    tensor_desc.SetOriginFormat(FORMAT_NCHW);
-    tensor_desc.SetDataType(DT_FLOAT);
-    tensor_desc.SetOriginDataType(DT_FLOAT);
+  // add descriptor
+  vector<int64_t> dims = {1, 2, 3, 4};
+  GeShape shape(dims);
+  GeTensorDesc tensor_desc(shape);
+  tensor_desc.SetFormat(FORMAT_NCHW);
+  tensor_desc.SetOriginFormat(FORMAT_NCHW);
+  tensor_desc.SetDataType(DT_FLOAT);
+  tensor_desc.SetOriginDataType(DT_FLOAT);
 
-    value_depend->AddInputDesc("a", tensor_desc);
-    value_depend->AddInputDesc("b", tensor_desc);
-    value_depend->AddInputDesc("c", tensor_desc);
-    value_depend->AddInputDesc("d", tensor_desc);
-    value_depend->AddOutputDesc("z", tensor_desc);
-    vector<bool> is_input_const = {true, true, false, false};
-    value_depend->SetIsInputConst(is_input_const);
+  value_depend->AddInputDesc("a", tensor_desc);
+  value_depend->AddInputDesc("b", tensor_desc);
+  value_depend->AddInputDesc("c", tensor_desc);
+  value_depend->AddInputDesc("d", tensor_desc);
+  value_depend->AddOutputDesc("z", tensor_desc);
+  vector<bool> is_input_const = {true, true, false, false};
+  value_depend->SetIsInputConst(is_input_const);
 
-    std::string un_supported_reason;
-    bool ret = fe_ops_kernel_info_store_ptr->CheckSupported(value_depend, un_supported_reason);
-    cout << un_supported_reason << endl;
-    EXPECT_EQ(false, ret);
+  std::string un_supported_reason;
+  bool ret = fe_ops_kernel_info_store_ptr->CheckSupported(value_depend, un_supported_reason);
+  cout << un_supported_reason << endl;
+  EXPECT_EQ(false, ret);
 }
 
 TEST_F(FEOpsKernelInfoStoreTest, test_value_depend_case3) {
-    OpDescPtr value_depend = std::make_shared<OpDesc>("value_depend", "ValueDepend");
+  OpDescPtr value_depend = std::make_shared<OpDesc>("value_depend", "ValueDepend");
 
-    // add descriptor
-    vector<int64_t> dims = {1,2,3,4};
-    GeShape shape(dims);
-    GeTensorDesc tensor_desc(shape);
-    tensor_desc.SetFormat(FORMAT_NCHW);
-    tensor_desc.SetOriginFormat(FORMAT_NCHW);
-    tensor_desc.SetDataType(DT_FLOAT);
-    tensor_desc.SetOriginDataType(DT_FLOAT);
+  // add descriptor
+  vector<int64_t> dims = {1, 2, 3, 4};
+  GeShape shape(dims);
+  GeTensorDesc tensor_desc(shape);
+  tensor_desc.SetFormat(FORMAT_NCHW);
+  tensor_desc.SetOriginFormat(FORMAT_NCHW);
+  tensor_desc.SetDataType(DT_FLOAT);
+  tensor_desc.SetOriginDataType(DT_FLOAT);
 
-    value_depend->AddInputDesc("a", tensor_desc);
-    value_depend->AddInputDesc("b", tensor_desc);
-    value_depend->AddInputDesc("c", tensor_desc);
-    value_depend->AddInputDesc("d", tensor_desc);
-    value_depend->AddOutputDesc("z", tensor_desc);
-    vector<bool> is_input_const = {false, false, true, false};
-    value_depend->SetIsInputConst(is_input_const);
+  value_depend->AddInputDesc("a", tensor_desc);
+  value_depend->AddInputDesc("b", tensor_desc);
+  value_depend->AddInputDesc("c", tensor_desc);
+  value_depend->AddInputDesc("d", tensor_desc);
+  value_depend->AddOutputDesc("z", tensor_desc);
+  vector<bool> is_input_const = {false, false, true, false};
+  value_depend->SetIsInputConst(is_input_const);
 
-    std::string un_supported_reason;
-    bool ret = fe_ops_kernel_info_store_ptr->CheckSupported(value_depend, un_supported_reason);
-    cout << un_supported_reason << endl;
-    EXPECT_EQ(false, ret);
+  std::string un_supported_reason;
+  bool ret = fe_ops_kernel_info_store_ptr->CheckSupported(value_depend, un_supported_reason);
+  cout << un_supported_reason << endl;
+  EXPECT_EQ(false, ret);
 }
 
 TEST_F(FEOpsKernelInfoStoreTest, test_value_depend_case4) {
-    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test_graph");
-    ge::NodePtr value_depend1 = AddNode(graph, "value_depend", fe::CONSTANT);
-    ge::NodePtr value_depend2 = AddNode(graph, "value_depend", fe::CONSTANT);
-    ge::NodePtr value_depend3 = AddNode(graph, "value_depend", fe::DATA);
-    ge::NodePtr value_depend4 = AddNode(graph, "value_depend", fe::DATA);
-    ge::NodePtr value_depend5 = AddNode(graph, "value_depend", "ValueDepend", 1, 4);
-    ge::NodePtr out_node = AddNode(graph, "out", "Upsample");
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test_graph");
+  ge::NodePtr value_depend1 = AddNode(graph, "value_depend", fe::CONSTANT);
+  ge::NodePtr value_depend2 = AddNode(graph, "value_depend", fe::CONSTANT);
+  ge::NodePtr value_depend3 = AddNode(graph, "value_depend", fe::DATA);
+  ge::NodePtr value_depend4 = AddNode(graph, "value_depend", fe::DATA);
+  ge::NodePtr value_depend5 = AddNode(graph, "value_depend", "ValueDepend", 1, 4);
+  ge::NodePtr out_node = AddNode(graph, "out", "Upsample");
 
-    vector<int64_t> dims = {1,2,3,4};
-    GeShape shape(dims);
+  vector<int64_t> dims = {1, 2, 3, 4};
+  GeShape shape(dims);
 
-    value_depend1->GetOpDesc()->MutableOutputDesc(0)->SetShape(shape);
-    value_depend1->GetOpDesc()->MutableOutputDesc(0)->SetFormat(FORMAT_NCHW);
-    value_depend1->GetOpDesc()->MutableOutputDesc(0)->SetOriginFormat(FORMAT_NCHW);
-    value_depend1->GetOpDesc()->MutableOutputDesc(0)->SetDataType(DT_FLOAT);
-    value_depend1->GetOpDesc()->MutableOutputDesc(0)->SetOriginDataType(DT_FLOAT);
-    value_depend2->GetOpDesc()->MutableOutputDesc(0)->SetShape(shape);
-    value_depend2->GetOpDesc()->MutableOutputDesc(0)->SetFormat(FORMAT_NCHW);
-    value_depend2->GetOpDesc()->MutableOutputDesc(0)->SetOriginFormat(FORMAT_NCHW);
-    value_depend2->GetOpDesc()->MutableOutputDesc(0)->SetDataType(DT_FLOAT);
-    value_depend2->GetOpDesc()->MutableOutputDesc(0)->SetOriginDataType(DT_FLOAT);
-    value_depend3->GetOpDesc()->MutableOutputDesc(0)->SetShape(shape);
-    value_depend3->GetOpDesc()->MutableOutputDesc(0)->SetFormat(FORMAT_NCHW);
-    value_depend3->GetOpDesc()->MutableOutputDesc(0)->SetOriginFormat(FORMAT_NCHW);
-    value_depend3->GetOpDesc()->MutableOutputDesc(0)->SetDataType(DT_FLOAT);
-    value_depend3->GetOpDesc()->MutableOutputDesc(0)->SetOriginDataType(DT_FLOAT);
-    value_depend4->GetOpDesc()->MutableOutputDesc(0)->SetShape(shape);
-    value_depend4->GetOpDesc()->MutableOutputDesc(0)->SetFormat(FORMAT_NCHW);
-    value_depend4->GetOpDesc()->MutableOutputDesc(0)->SetOriginFormat(FORMAT_NCHW);
-    value_depend4->GetOpDesc()->MutableOutputDesc(0)->SetDataType(DT_FLOAT);
-    value_depend4->GetOpDesc()->MutableOutputDesc(0)->SetOriginDataType(DT_FLOAT);
+  value_depend1->GetOpDesc()->MutableOutputDesc(0)->SetShape(shape);
+  value_depend1->GetOpDesc()->MutableOutputDesc(0)->SetFormat(FORMAT_NCHW);
+  value_depend1->GetOpDesc()->MutableOutputDesc(0)->SetOriginFormat(FORMAT_NCHW);
+  value_depend1->GetOpDesc()->MutableOutputDesc(0)->SetDataType(DT_FLOAT);
+  value_depend1->GetOpDesc()->MutableOutputDesc(0)->SetOriginDataType(DT_FLOAT);
+  value_depend2->GetOpDesc()->MutableOutputDesc(0)->SetShape(shape);
+  value_depend2->GetOpDesc()->MutableOutputDesc(0)->SetFormat(FORMAT_NCHW);
+  value_depend2->GetOpDesc()->MutableOutputDesc(0)->SetOriginFormat(FORMAT_NCHW);
+  value_depend2->GetOpDesc()->MutableOutputDesc(0)->SetDataType(DT_FLOAT);
+  value_depend2->GetOpDesc()->MutableOutputDesc(0)->SetOriginDataType(DT_FLOAT);
+  value_depend3->GetOpDesc()->MutableOutputDesc(0)->SetShape(shape);
+  value_depend3->GetOpDesc()->MutableOutputDesc(0)->SetFormat(FORMAT_NCHW);
+  value_depend3->GetOpDesc()->MutableOutputDesc(0)->SetOriginFormat(FORMAT_NCHW);
+  value_depend3->GetOpDesc()->MutableOutputDesc(0)->SetDataType(DT_FLOAT);
+  value_depend3->GetOpDesc()->MutableOutputDesc(0)->SetOriginDataType(DT_FLOAT);
+  value_depend4->GetOpDesc()->MutableOutputDesc(0)->SetShape(shape);
+  value_depend4->GetOpDesc()->MutableOutputDesc(0)->SetFormat(FORMAT_NCHW);
+  value_depend4->GetOpDesc()->MutableOutputDesc(0)->SetOriginFormat(FORMAT_NCHW);
+  value_depend4->GetOpDesc()->MutableOutputDesc(0)->SetDataType(DT_FLOAT);
+  value_depend4->GetOpDesc()->MutableOutputDesc(0)->SetOriginDataType(DT_FLOAT);
 
-    value_depend5->GetOpDesc()->MutableInputDesc(0)->SetShape(shape);
-    value_depend5->GetOpDesc()->MutableInputDesc(0)->SetFormat(FORMAT_NCHW);
-    value_depend5->GetOpDesc()->MutableInputDesc(0)->SetOriginFormat(FORMAT_NCHW);
-    value_depend5->GetOpDesc()->MutableInputDesc(0)->SetDataType(DT_FLOAT);
-    value_depend5->GetOpDesc()->MutableInputDesc(0)->SetOriginDataType(DT_FLOAT);
-    value_depend5->GetOpDesc()->MutableInputDesc(1)->SetShape(shape);
-    value_depend5->GetOpDesc()->MutableInputDesc(1)->SetFormat(FORMAT_NCHW);
-    value_depend5->GetOpDesc()->MutableInputDesc(1)->SetOriginFormat(FORMAT_NCHW);
-    value_depend5->GetOpDesc()->MutableInputDesc(1)->SetDataType(DT_FLOAT);
-    value_depend5->GetOpDesc()->MutableInputDesc(1)->SetOriginDataType(DT_FLOAT);
-    value_depend5->GetOpDesc()->MutableInputDesc(2)->SetShape(shape);
-    value_depend5->GetOpDesc()->MutableInputDesc(2)->SetFormat(FORMAT_NCHW);
-    value_depend5->GetOpDesc()->MutableInputDesc(2)->SetOriginFormat(FORMAT_NCHW);
-    value_depend5->GetOpDesc()->MutableInputDesc(2)->SetDataType(DT_FLOAT);
-    value_depend5->GetOpDesc()->MutableInputDesc(2)->SetOriginDataType(DT_FLOAT);
-    value_depend5->GetOpDesc()->MutableInputDesc(3)->SetShape(shape);
-    value_depend5->GetOpDesc()->MutableInputDesc(3)->SetFormat(FORMAT_NCHW);
-    value_depend5->GetOpDesc()->MutableInputDesc(3)->SetOriginFormat(FORMAT_NCHW);
-    value_depend5->GetOpDesc()->MutableInputDesc(3)->SetDataType(DT_FLOAT);
-    value_depend5->GetOpDesc()->MutableInputDesc(3)->SetOriginDataType(DT_FLOAT);
-    value_depend5->GetOpDesc()->MutableOutputDesc(0)->SetShape(shape);
-    value_depend5->GetOpDesc()->MutableOutputDesc(0)->SetFormat(FORMAT_NCHW);
-    value_depend5->GetOpDesc()->MutableOutputDesc(0)->SetOriginFormat(FORMAT_NCHW);
-    value_depend5->GetOpDesc()->MutableOutputDesc(0)->SetDataType(DT_FLOAT);
-    value_depend5->GetOpDesc()->MutableOutputDesc(0)->SetOriginDataType(DT_FLOAT);
+  value_depend5->GetOpDesc()->MutableInputDesc(0)->SetShape(shape);
+  value_depend5->GetOpDesc()->MutableInputDesc(0)->SetFormat(FORMAT_NCHW);
+  value_depend5->GetOpDesc()->MutableInputDesc(0)->SetOriginFormat(FORMAT_NCHW);
+  value_depend5->GetOpDesc()->MutableInputDesc(0)->SetDataType(DT_FLOAT);
+  value_depend5->GetOpDesc()->MutableInputDesc(0)->SetOriginDataType(DT_FLOAT);
+  value_depend5->GetOpDesc()->MutableInputDesc(1)->SetShape(shape);
+  value_depend5->GetOpDesc()->MutableInputDesc(1)->SetFormat(FORMAT_NCHW);
+  value_depend5->GetOpDesc()->MutableInputDesc(1)->SetOriginFormat(FORMAT_NCHW);
+  value_depend5->GetOpDesc()->MutableInputDesc(1)->SetDataType(DT_FLOAT);
+  value_depend5->GetOpDesc()->MutableInputDesc(1)->SetOriginDataType(DT_FLOAT);
+  value_depend5->GetOpDesc()->MutableInputDesc(2)->SetShape(shape);
+  value_depend5->GetOpDesc()->MutableInputDesc(2)->SetFormat(FORMAT_NCHW);
+  value_depend5->GetOpDesc()->MutableInputDesc(2)->SetOriginFormat(FORMAT_NCHW);
+  value_depend5->GetOpDesc()->MutableInputDesc(2)->SetDataType(DT_FLOAT);
+  value_depend5->GetOpDesc()->MutableInputDesc(2)->SetOriginDataType(DT_FLOAT);
+  value_depend5->GetOpDesc()->MutableInputDesc(3)->SetShape(shape);
+  value_depend5->GetOpDesc()->MutableInputDesc(3)->SetFormat(FORMAT_NCHW);
+  value_depend5->GetOpDesc()->MutableInputDesc(3)->SetOriginFormat(FORMAT_NCHW);
+  value_depend5->GetOpDesc()->MutableInputDesc(3)->SetDataType(DT_FLOAT);
+  value_depend5->GetOpDesc()->MutableInputDesc(3)->SetOriginDataType(DT_FLOAT);
+  value_depend5->GetOpDesc()->MutableOutputDesc(0)->SetShape(shape);
+  value_depend5->GetOpDesc()->MutableOutputDesc(0)->SetFormat(FORMAT_NCHW);
+  value_depend5->GetOpDesc()->MutableOutputDesc(0)->SetOriginFormat(FORMAT_NCHW);
+  value_depend5->GetOpDesc()->MutableOutputDesc(0)->SetDataType(DT_FLOAT);
+  value_depend5->GetOpDesc()->MutableOutputDesc(0)->SetOriginDataType(DT_FLOAT);
 
-    out_node->GetOpDesc()->MutableInputDesc(0)->SetShape(shape);
-    out_node->GetOpDesc()->MutableInputDesc(0)->SetFormat(FORMAT_NCHW);
-    out_node->GetOpDesc()->MutableInputDesc(0)->SetOriginFormat(FORMAT_NCHW);
-    out_node->GetOpDesc()->MutableInputDesc(0)->SetDataType(DT_FLOAT);
-    out_node->GetOpDesc()->MutableInputDesc(0)->SetOriginDataType(DT_FLOAT);
+  out_node->GetOpDesc()->MutableInputDesc(0)->SetShape(shape);
+  out_node->GetOpDesc()->MutableInputDesc(0)->SetFormat(FORMAT_NCHW);
+  out_node->GetOpDesc()->MutableInputDesc(0)->SetOriginFormat(FORMAT_NCHW);
+  out_node->GetOpDesc()->MutableInputDesc(0)->SetDataType(DT_FLOAT);
+  out_node->GetOpDesc()->MutableInputDesc(0)->SetOriginDataType(DT_FLOAT);
 
-    ge::GraphUtils::AddEdge(value_depend1->GetOutDataAnchor(0), value_depend5->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(value_depend2->GetOutDataAnchor(0), value_depend5->GetInDataAnchor(1));
-    ge::GraphUtils::AddEdge(value_depend3->GetOutDataAnchor(0), value_depend5->GetInDataAnchor(2));
-    ge::GraphUtils::AddEdge(value_depend4->GetOutDataAnchor(0), value_depend5->GetInDataAnchor(3));
-    ge::GraphUtils::AddEdge(value_depend5->GetOutDataAnchor(0), out_node->GetInDataAnchor(0));
+  ge::GraphUtils::AddEdge(value_depend1->GetOutDataAnchor(0), value_depend5->GetInDataAnchor(0));
+  ge::GraphUtils::AddEdge(value_depend2->GetOutDataAnchor(0), value_depend5->GetInDataAnchor(1));
+  ge::GraphUtils::AddEdge(value_depend3->GetOutDataAnchor(0), value_depend5->GetInDataAnchor(2));
+  ge::GraphUtils::AddEdge(value_depend4->GetOutDataAnchor(0), value_depend5->GetInDataAnchor(3));
+  ge::GraphUtils::AddEdge(value_depend5->GetOutDataAnchor(0), out_node->GetInDataAnchor(0));
 
-    std::string un_supported_reason;
-    bool ret = fe_ops_kernel_info_store_ptr->CheckSupported(value_depend5, un_supported_reason);
-    cout << un_supported_reason << endl;
-    EXPECT_EQ(true, ret);
+  std::string un_supported_reason;
+  bool ret = fe_ops_kernel_info_store_ptr->CheckSupported(value_depend5, un_supported_reason);
+  cout << un_supported_reason << endl;
+  EXPECT_EQ(true, ret);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, set_cut_info_01)
-{
+TEST_F(FEOpsKernelInfoStoreTest, set_cut_info_01) {
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   ge::OpDescPtr op = std::make_shared<ge::OpDesc>("op", "Relu");
   ge::OpDescPtr op1 = std::make_shared<ge::OpDesc>("op1", "Relu");
-  GeShape shape = ge::GeShape({1,2,1,1,1});
+  GeShape shape = ge::GeShape({1, 2, 1, 1, 1});
   Format format = FORMAT_NHWC;
   DataType dt = DT_FLOAT;
   ge::GeTensorDesc tensor_desc(shape, format, dt);
@@ -3147,12 +3137,7 @@ TEST_F(FEOpsKernelInfoStoreTest, set_cut_info_01)
   vector<vector<int64_t>> current_stgy;
   vector<vector<int64_t>> current_stgy1;
   vector<vector<int64_t>> current_stgy_expect = {
-      {1, 0, 0, 0, 0},
-      {0, 1, 0, 0, 0},
-      {0, 0, 1, 0, 0},
-      {0, 0, 0, 1, 0},
-      {0, 0, 0, 0, 1}
-  };
+      {1, 0, 0, 0, 0}, {0, 1, 0, 0, 0}, {0, 0, 1, 0, 0}, {0, 0, 0, 1, 0}, {0, 0, 0, 0, 1}};
   (void)ge::AttrUtils::GetListListInt(input, "_cut_info", current_stgy);
   (void)ge::AttrUtils::GetListListInt(input1, "_cut_info", current_stgy1);
   ASSERT_EQ(current_stgy.size(), current_stgy_expect.size());
@@ -3177,8 +3162,7 @@ TEST_F(FEOpsKernelInfoStoreTest, set_cut_info_01)
   EXPECT_EQ(current_stgy[4], current_stgy_expect[4]);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, precompile_01)
-{
+TEST_F(FEOpsKernelInfoStoreTest, precompile_01) {
   shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>("test", "DynamicCompileStatic");
   shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
   shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
@@ -3203,7 +3187,8 @@ TEST_F(FEOpsKernelInfoStoreTest, precompile_01)
   output0_desc_ptr->SetOriginFormat(set_format);
   output0_desc_ptr->SetOriginShape(shape_desc);
   op_desc_ptr_t->AddOutputDesc("y", output0_desc_ptr->Clone());
-  OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "UnknownShape");
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "UnknownShape");
   SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
 
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test_graph");
@@ -3214,18 +3199,14 @@ TEST_F(FEOpsKernelInfoStoreTest, precompile_01)
   auto node_data = graph->AddNode(data1);
   TbeInfoAssembler t;
   t.Initialize();
-  te::TbeOpInfo info("test",
-                     "test1",
-                     "DynamicCompileStatic",
-                     fe::AI_CORE_NAME);
+  te::TbeOpInfo info("test", "test1", "DynamicCompileStatic", fe::AI_CORE_NAME);
   (void)ge::AttrUtils::SetBool(op_desc_ptr_t, ge::ATTR_NAME_DISABLE_ATTACHED_RESOURCE, true);
   Status ret = t.AssembleTbeInfo(node.get(), op_kernel_info_ptr, info, fe::AI_CORE_NAME);
   EXPECT_EQ(info.GetVectorCoreType(), te::VectorCoreType::DISABLE);
   EXPECT_EQ(ret, fe::SUCCESS);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, autofuse01)
-{
+TEST_F(FEOpsKernelInfoStoreTest, autofuse01) {
   shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>("test", "AscBackend");
   shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
   shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
@@ -3259,20 +3240,17 @@ TEST_F(FEOpsKernelInfoStoreTest, autofuse01)
   auto node_data = graph->AddNode(data1);
   TbeInfoAssembler t;
   t.Initialize();
-  te::TbeOpInfo info("test",
-                     "test1",
-                     "AscBackend",
-                     fe::AI_CORE_NAME);
+  te::TbeOpInfo info("test", "test1", "AscBackend", fe::AI_CORE_NAME);
   (void)ge::AttrUtils::SetBool(op_desc_ptr_t, ge::ATTR_NAME_DISABLE_ATTACHED_RESOURCE, true);
   Status ret = t.AssembleAutoFuseTbeInfo(node.get(), info);
   EXPECT_EQ(ret, fe::SUCCESS);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, outputInplaceAbility)
-{
+TEST_F(FEOpsKernelInfoStoreTest, outputInplaceAbility) {
   shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>("test", "DynamicCompileStatic");
-  OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "InPlaceOp");
-  std::vector<std::vector<int64_t>> output_inplace = {{0,0},{0,1}};
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "InPlaceOp");
+  std::vector<std::vector<int64_t>> output_inplace = {{0, 0}, {0, 1}};
   op_kernel_info_ptr->SetOutputIplaceInfo(output_inplace);
   TbeInfoAssembler t;
   EXPECT_EQ(t.Initialize(), fe::SUCCESS);
@@ -3281,39 +3259,37 @@ TEST_F(FEOpsKernelInfoStoreTest, outputInplaceAbility)
   ge::AttrUtils::GetListListInt(op_desc_ptr_t, kAttrOutputInplaceAbility, inplace);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, parseOutputInplace)
-{
+TEST_F(FEOpsKernelInfoStoreTest, parseOutputInplace) {
   string ouputInplaceAbility = "{0,1}, {1,2}";
   std::vector<std::vector<int64_t>> output_inplace;
   fe::StringUtils::TransStringToListListInt(ouputInplaceAbility, output_inplace);
-  std::vector<std::vector<int64_t>> golden = {{0,1}, {1,2}};
+  std::vector<std::vector<int64_t>> golden = {{0, 1}, {1, 2}};
   EXPECT_EQ(output_inplace, golden);
-  
+
   ouputInplaceAbility = "{{0,1}, {1,2}";
-  std::vector<std::vector<int64_t>> golden1={};
+  std::vector<std::vector<int64_t>> golden1 = {};
   fe::StringUtils::TransStringToListListInt(ouputInplaceAbility, output_inplace);
   EXPECT_EQ(output_inplace, golden1);
-  
+
   ouputInplaceAbility = "{{0,1,1}, {1,2}";
   fe::StringUtils::TransStringToListListInt(ouputInplaceAbility, output_inplace);
   EXPECT_EQ(output_inplace, golden1);
-  
+
   ouputInplaceAbility = "{{0,1}, {1}}";
   fe::StringUtils::TransStringToListListInt(ouputInplaceAbility, output_inplace);
   EXPECT_EQ(output_inplace, golden1);
-  
+
   ouputInplaceAbility = "{{0,1}, {1, 1}}}";
   fe::StringUtils::TransStringToListListInt(ouputInplaceAbility, output_inplace);
   EXPECT_EQ(output_inplace, golden1);
-  
+
   ouputInplaceAbility = "{{0,1}, {11, 1}}";
-  std::vector<std::vector<int64_t>> golden2={{0,1}, {11, 1}};
+  std::vector<std::vector<int64_t>> golden2 = {{0, 1}, {11, 1}};
   fe::StringUtils::TransStringToListListInt(ouputInplaceAbility, output_inplace);
   EXPECT_EQ(output_inplace, golden2);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, precompile_02)
-{
+TEST_F(FEOpsKernelInfoStoreTest, precompile_02) {
   shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>("test", "DynamicCompileStatic");
   shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
   shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
@@ -3347,8 +3323,7 @@ TEST_F(FEOpsKernelInfoStoreTest, precompile_02)
   EXPECT_EQ(ret, fe::SUCCESS);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, precompile_03)
-{
+TEST_F(FEOpsKernelInfoStoreTest, precompile_03) {
   shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>("test", "DynamicCompileStatic");
   shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
   shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
@@ -3373,24 +3348,21 @@ TEST_F(FEOpsKernelInfoStoreTest, precompile_03)
   output0_desc_ptr->SetOriginFormat(set_format);
   output0_desc_ptr->SetOriginShape(shape_desc);
   op_desc_ptr_t->AddOutputDesc("x", output0_desc_ptr->Clone());
-  OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "InPlaceOp");
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "InPlaceOp");
   SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
 
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test_graph");
   auto node = graph->AddNode(op_desc_ptr_t);
   TbeInfoAssembler t;
   t.Initialize();
-  te::TbeOpInfo info("test",
-                     "test1",
-                     "DynamicCompileStatic",
-                     fe::AI_CORE_NAME);
+  te::TbeOpInfo info("test", "test1", "DynamicCompileStatic", fe::AI_CORE_NAME);
   Status ret = t.AssembleTbeInfo(node.get(), op_kernel_info_ptr, info, fe::AI_CORE_NAME);
 
   EXPECT_EQ(ret, fe::SUCCESS);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, precompile_04)
-{
+TEST_F(FEOpsKernelInfoStoreTest, precompile_04) {
   shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>("test", "DynamicCompileStatic");
   shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
   shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
@@ -3415,25 +3387,22 @@ TEST_F(FEOpsKernelInfoStoreTest, precompile_04)
   output0_desc_ptr->SetOriginFormat(set_format);
   output0_desc_ptr->SetOriginShape(shape_desc);
   op_desc_ptr_t->AddOutputDesc("x", output0_desc_ptr->Clone());
-  OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "InPlaceOp");
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "InPlaceOp");
   SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
 
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test_graph");
   auto node = graph->AddNode(op_desc_ptr_t);
   TbeInfoAssembler t;
   t.Initialize();
-  te::TbeOpInfo info("test",
-                     "test1",
-                     "DynamicCompileStatic",
-                     fe::AI_CORE_NAME);
+  te::TbeOpInfo info("test", "test1", "DynamicCompileStatic", fe::AI_CORE_NAME);
   (void)ge::AttrUtils::SetStr(op_desc_ptr_t, kRelationReusedParam, "");
   Status ret = t.AssembleTbeInfo(node.get(), op_kernel_info_ptr, info, fe::AI_CORE_NAME);
 
   EXPECT_EQ(ret, fe::SUCCESS);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, precompile_05)
-{
+TEST_F(FEOpsKernelInfoStoreTest, precompile_05) {
   std::string soc_version = PlatformUtils::Instance().GetSocVersion();
   PlatformUtils::Instance().soc_version_ = "Ascend035";
   PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::SpecifiedMemBase)] = 1;
@@ -3510,7 +3479,8 @@ TEST_F(FEOpsKernelInfoStoreTest, precompile_05)
   ge::GraphUtils::AddEdge(node_vd->GetOutDataAnchor(0), node_end->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(node_vd->GetOutDataAnchor(1), node_end2->GetInDataAnchor(0));
 
-  OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "DdrBaseProp");
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "DdrBaseProp");
   SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
 
   TbeInfoAssembler t;
@@ -3556,7 +3526,8 @@ TEST_F(FEOpsKernelInfoStoreTest, precompile_05)
     }
   }
   EXPECT_EQ(ret, fe::SUCCESS);
-  OpKernelInfoPtr op_kernel_info_ptr_k = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "K");
+  OpKernelInfoPtr op_kernel_info_ptr_k =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "K");
   te::TbeOpInfo tbe_op_info_k("test2", "test2", "K", fe::AI_CORE_NAME);
   ret = t.AssembleTbeInfo(node_k.get(), op_kernel_info_ptr_k, tbe_op_info_k, fe::AI_CORE_NAME);
   std::vector<te::TbeOpParam> k_inputs;
@@ -3574,8 +3545,7 @@ TEST_F(FEOpsKernelInfoStoreTest, precompile_05)
   }
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, dynamic_compile_static_1)
-{
+TEST_F(FEOpsKernelInfoStoreTest, dynamic_compile_static_1) {
   shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>("DynamicCompileStatic_op_1", "DynamicCompileStatic");
   shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
   shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
@@ -3600,7 +3570,8 @@ TEST_F(FEOpsKernelInfoStoreTest, dynamic_compile_static_1)
   output0_desc_ptr->SetOriginFormat(set_format);
   output0_desc_ptr->SetOriginShape(shape_desc);
   op_desc_ptr_t->AddOutputDesc("y", output0_desc_ptr->Clone());
-  OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "UnknownShape");
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "UnknownShape");
   SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
   std::string un_supported_reason;
   bool ret = fe_ops_kernel_info_store_ptr->CheckSupported(op_desc_ptr_t, un_supported_reason);
@@ -3609,8 +3580,7 @@ TEST_F(FEOpsKernelInfoStoreTest, dynamic_compile_static_1)
   EXPECT_EQ(IsOpDynamicImpl(op_desc_ptr_t), true);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, dynamic_compile_static_2)
-{
+TEST_F(FEOpsKernelInfoStoreTest, dynamic_compile_static_2) {
   shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>("DynamicCompileStatic_op_1", "DynamicCompileStatic");
   shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
   shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
@@ -3635,7 +3605,8 @@ TEST_F(FEOpsKernelInfoStoreTest, dynamic_compile_static_2)
   output0_desc_ptr->SetOriginFormat(set_format);
   output0_desc_ptr->SetOriginShape(shape_desc);
   op_desc_ptr_t->AddOutputDesc("y", output0_desc_ptr->Clone());
-  OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "UnknownShape");
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "UnknownShape");
   SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
   std::string un_supported_reason;
   bool ret = fe_ops_kernel_info_store_ptr->CheckSupported(op_desc_ptr_t, un_supported_reason);
@@ -3644,8 +3615,7 @@ TEST_F(FEOpsKernelInfoStoreTest, dynamic_compile_static_2)
   EXPECT_EQ(IsOpDynamicImpl(op_desc_ptr_t), false);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, dynamic_compile_static_3)
-{
+TEST_F(FEOpsKernelInfoStoreTest, dynamic_compile_static_3) {
   shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>("DynamicCompileStatic_op_1", "DynamicCompileStatic");
   shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
   shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
@@ -3670,7 +3640,8 @@ TEST_F(FEOpsKernelInfoStoreTest, dynamic_compile_static_3)
   output0_desc_ptr->SetOriginFormat(set_format);
   output0_desc_ptr->SetOriginShape(shape_desc);
   op_desc_ptr_t->AddOutputDesc("y", output0_desc_ptr->Clone());
-  OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "UnknownShape");
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "UnknownShape");
   SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
   std::string un_supported_reason;
   bool ret = fe_ops_kernel_info_store_ptr->CheckSupported(op_desc_ptr_t, un_supported_reason);
@@ -3679,8 +3650,7 @@ TEST_F(FEOpsKernelInfoStoreTest, dynamic_compile_static_3)
   EXPECT_EQ(IsOpDynamicImpl(op_desc_ptr_t), false);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, dynamic_compile_static_4)
-{
+TEST_F(FEOpsKernelInfoStoreTest, dynamic_compile_static_4) {
   shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>("DynamicCompileStatic_op_2", "DynamicCompileStatic2");
   shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
   shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
@@ -3705,7 +3675,8 @@ TEST_F(FEOpsKernelInfoStoreTest, dynamic_compile_static_4)
   output0_desc_ptr->SetOriginFormat(set_format);
   output0_desc_ptr->SetOriginShape(shape_desc);
   op_desc_ptr_t->AddOutputDesc("y", output0_desc_ptr->Clone());
-  OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "UnknownShape");
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "UnknownShape");
   SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
   std::string un_supported_reason;
   bool ret = fe_ops_kernel_info_store_ptr->CheckSupported(op_desc_ptr_t, un_supported_reason);
@@ -3714,8 +3685,7 @@ TEST_F(FEOpsKernelInfoStoreTest, dynamic_compile_static_4)
   EXPECT_EQ(IsOpDynamicImpl(op_desc_ptr_t), true);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, reshape_1)
-{
+TEST_F(FEOpsKernelInfoStoreTest, reshape_1) {
   shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>("reshape_1", "Reshape");
   shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
   shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
@@ -3742,15 +3712,15 @@ TEST_F(FEOpsKernelInfoStoreTest, reshape_1)
   output0_desc_ptr->SetOriginFormat(set_format);
   output0_desc_ptr->SetOriginShape(shape_desc);
   op_desc_ptr_t->AddOutputDesc("z", output0_desc_ptr->Clone());
-  OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "UnknownShape");
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "UnknownShape");
   SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
   std::string un_supported_reason;
   bool ret = fe_ops_kernel_info_store_ptr->CheckSupported(op_desc_ptr_t, un_supported_reason);
   EXPECT_EQ(ret, false);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, reshape_2)
-{
+TEST_F(FEOpsKernelInfoStoreTest, reshape_2) {
   shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>("reshape_2", "Reshape");
   shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
   shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
@@ -3777,24 +3747,24 @@ TEST_F(FEOpsKernelInfoStoreTest, reshape_2)
   output0_desc_ptr->SetOriginShape(shape_desc);
   op_desc_ptr_t->AddOutputDesc("d", output0_desc_ptr->Clone());
   op_desc_ptr_t->AddOutputDesc("e", output0_desc_ptr->Clone());
-  OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "UnknownShape");
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "UnknownShape");
   SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
   std::string un_supported_reason;
   bool ret = fe_ops_kernel_info_store_ptr->CheckSupported(op_desc_ptr_t, un_supported_reason);
   EXPECT_EQ(ret, false);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, update_op_info_store_success)
-{
-  FEOpsStoreInfo tbe_custom {
-  2,
-  "tbe-custom",
-  EN_IMPL_CUSTOM_TBE,
-  GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
-  GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
-  false,
-  false,
-  false};
+TEST_F(FEOpsKernelInfoStoreTest, update_op_info_store_success) {
+  FEOpsStoreInfo tbe_custom{
+      2,
+      "tbe-custom",
+      EN_IMPL_CUSTOM_TBE,
+      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
+      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
+      false,
+      false,
+      false};
   shared_ptr<fe::SubOpInfoStore> sub_ops_kernel_ptr = std::make_shared<fe::SubOpInfoStore>(tbe_custom);
   std::map<std::string, OpContent> op_content_map;
   OpContent op_content;
@@ -3824,322 +3794,308 @@ TEST_F(FEOpsKernelInfoStoreTest, finalize_opkernel_info_test1) {
   EXPECT_EQ(ret, fe::SUCCESS);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, compile_and_set_kernel_name_for_memset){
-    ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
-    OpDescPtr op_desc_0 = std::make_shared<OpDesc>("data", "MatMul");
-    vector<int64_t> dim(4, 4);
-    GeShape shape(dim);
-    GeTensorDesc out_desc(shape);
-    op_desc_0->AddOutputDesc(out_desc);
-    ge::NodePtr test_node1 = graph->AddNode(op_desc_0);
-    ge::NodePtr test_node2 = graph->AddNode(op_desc_0);
-    test_node2->GetOpDesc()->SetExtAttr(fe::ATTR_NAME_MEMSET_NODE, test_node1);
-    test_node2->GetOpDesc()->SetExtAttr(ATTR_NAME_SUPPORT_DYNAMIC_SHAPE, false);
-    std::string core_type = "vector_core";
-    ge::AttrUtils::SetStr(test_node1->GetOpDesc(), "_cube_vector_core_type", core_type);
-    ge::AttrUtils::SetStr(test_node1->GetOpDesc(), "compile_info_json", "compile_info_json");
-    ge::AttrUtils::SetStr(test_node1->GetOpDesc(), "compile_info_key", "compile_info_key");
-    ge::AttrUtils::SetInt(test_node1->GetOpDesc(), "globalworkspace_size", 8);
-    ge::AttrUtils::SetInt(test_node1->GetOpDesc(), "globalworkspace_type", 0);
-    std::string kernel_name = "te_matmul";
-    ge::AttrUtils::SetStr(test_node2->GetOpDesc(), "_kernelname", kernel_name);
-    ge::AttrUtils::SetStr(test_node2->GetOpDesc(), ge::TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
-    ge::AttrUtils::SetStr(test_node2->GetOpDesc(), "_unregst_oppath", "../../abs.py");
-    std::vector<uint32_t> tmp_output_index {1, 1, 2, 1};
-    ge::AttrUtils::SetListInt(test_node2->GetOpDesc(), TBE_OP_ATOMIC_OUTPUT_INDEX, tmp_output_index);
-    const char tbe_bin[] = "tbe_bin";
-    std::vector<char> buffer(tbe_bin, tbe_bin + strlen(tbe_bin));
-    ge::OpKernelBinPtr tbe_kernel_ptr = std::make_shared<OpKernelBin>(test_node2->GetName(), std::move(buffer));
-    test_node2->GetOpDesc()->SetExtAttr("tbeKernel", tbe_kernel_ptr);
-    std::vector<ge::NodePtr> node_vec;
-    std::vector<ge::NodePtr> atomic_memset_nodes;
-    node_vec.push_back(test_node2);
-    atomic_memset_nodes.push_back(test_node2);
-    shared_ptr<FEOpsKernelInfoStore> ops_store = make_shared<FEOpsKernelInfoStore>();
-    Status ret = ops_store->CompileAndSetKernelNameForMemSet(node_vec, atomic_memset_nodes);
-   if ((op_desc_0->HasAttr(op_desc_0->GetName() + "_atomic_kernelname")) &&
-        (op_desc_0->HasAttr(ge::ATTR_NAME_TBE_KERNEL_NAME_FOR_LOAD))) {
+TEST_F(FEOpsKernelInfoStoreTest, compile_and_set_kernel_name_for_memset) {
+  ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
+  OpDescPtr op_desc_0 = std::make_shared<OpDesc>("data", "MatMul");
+  vector<int64_t> dim(4, 4);
+  GeShape shape(dim);
+  GeTensorDesc out_desc(shape);
+  op_desc_0->AddOutputDesc(out_desc);
+  ge::NodePtr test_node1 = graph->AddNode(op_desc_0);
+  ge::NodePtr test_node2 = graph->AddNode(op_desc_0);
+  test_node2->GetOpDesc()->SetExtAttr(fe::ATTR_NAME_MEMSET_NODE, test_node1);
+  test_node2->GetOpDesc()->SetExtAttr(ATTR_NAME_SUPPORT_DYNAMIC_SHAPE, false);
+  std::string core_type = "vector_core";
+  ge::AttrUtils::SetStr(test_node1->GetOpDesc(), "_cube_vector_core_type", core_type);
+  ge::AttrUtils::SetStr(test_node1->GetOpDesc(), "compile_info_json", "compile_info_json");
+  ge::AttrUtils::SetStr(test_node1->GetOpDesc(), "compile_info_key", "compile_info_key");
+  ge::AttrUtils::SetInt(test_node1->GetOpDesc(), "globalworkspace_size", 8);
+  ge::AttrUtils::SetInt(test_node1->GetOpDesc(), "globalworkspace_type", 0);
+  std::string kernel_name = "te_matmul";
+  ge::AttrUtils::SetStr(test_node2->GetOpDesc(), "_kernelname", kernel_name);
+  ge::AttrUtils::SetStr(test_node2->GetOpDesc(), ge::TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
+  ge::AttrUtils::SetStr(test_node2->GetOpDesc(), "_unregst_oppath", "../../abs.py");
+  std::vector<uint32_t> tmp_output_index{1, 1, 2, 1};
+  ge::AttrUtils::SetListInt(test_node2->GetOpDesc(), TBE_OP_ATOMIC_OUTPUT_INDEX, tmp_output_index);
+  const char tbe_bin[] = "tbe_bin";
+  std::vector<char> buffer(tbe_bin, tbe_bin + strlen(tbe_bin));
+  ge::OpKernelBinPtr tbe_kernel_ptr = std::make_shared<OpKernelBin>(test_node2->GetName(), std::move(buffer));
+  test_node2->GetOpDesc()->SetExtAttr("tbeKernel", tbe_kernel_ptr);
+  std::vector<ge::NodePtr> node_vec;
+  std::vector<ge::NodePtr> atomic_memset_nodes;
+  node_vec.push_back(test_node2);
+  atomic_memset_nodes.push_back(test_node2);
+  shared_ptr<FEOpsKernelInfoStore> ops_store = make_shared<FEOpsKernelInfoStore>();
+  Status ret = ops_store->CompileAndSetKernelNameForMemSet(node_vec, atomic_memset_nodes);
+  if ((op_desc_0->HasAttr(op_desc_0->GetName() + "_atomic_kernelname")) &&
+      (op_desc_0->HasAttr(ge::ATTR_NAME_TBE_KERNEL_NAME_FOR_LOAD))) {
     ret = fe::FAILED;
-    }
-    EXPECT_EQ(fe::SUCCESS, ret);
+  }
+  EXPECT_EQ(fe::SUCCESS, ret);
 }
 
 TEST_F(FEOpsKernelInfoStoreTest, fuzzy_compile_op_success) {
-    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("default");
-    OpDescPtr relu_op = std::make_shared<OpDesc>("relu", "MatMul");
-    OpDescPtr data = std::make_shared<OpDesc>("DATA0", fe::DATA);
-    OpDescPtr data2 = std::make_shared<OpDesc>("DATA1", fe::DATA);
-    vector<int64_t> dims = {1, 2, 3, 4};
-    GeShape shape(dims);
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("default");
+  OpDescPtr relu_op = std::make_shared<OpDesc>("relu", "MatMul");
+  OpDescPtr data = std::make_shared<OpDesc>("DATA0", fe::DATA);
+  OpDescPtr data2 = std::make_shared<OpDesc>("DATA1", fe::DATA);
+  vector<int64_t> dims = {1, 2, 3, 4};
+  GeShape shape(dims);
 
-    GeTensorDesc in_desc1(shape);
-    in_desc1.SetFormat(FORMAT_NCHW);
-    in_desc1.SetOriginFormat(FORMAT_NCHW);
-    in_desc1.SetDataType(DT_FLOAT16);
-    in_desc1.SetOriginShape(shape);
-    relu_op->AddInputDesc("x", in_desc1);
-    data->AddOutputDesc("x", in_desc1);
+  GeTensorDesc in_desc1(shape);
+  in_desc1.SetFormat(FORMAT_NCHW);
+  in_desc1.SetOriginFormat(FORMAT_NCHW);
+  in_desc1.SetDataType(DT_FLOAT16);
+  in_desc1.SetOriginShape(shape);
+  relu_op->AddInputDesc("x", in_desc1);
+  data->AddOutputDesc("x", in_desc1);
 
-    GeTensorDesc in_desc2(shape);
-    in_desc2.SetFormat(FORMAT_NCHW);
-    in_desc2.SetOriginFormat(FORMAT_NCHW);
-    in_desc2.SetDataType(DT_FLOAT16);
-    in_desc2.SetOriginShape(shape);
-    relu_op->AddInputDesc("y", in_desc2);
-    data2->AddOutputDesc("y", in_desc2);
+  GeTensorDesc in_desc2(shape);
+  in_desc2.SetFormat(FORMAT_NCHW);
+  in_desc2.SetOriginFormat(FORMAT_NCHW);
+  in_desc2.SetDataType(DT_FLOAT16);
+  in_desc2.SetOriginShape(shape);
+  relu_op->AddInputDesc("y", in_desc2);
+  data2->AddOutputDesc("y", in_desc2);
 
-    GeTensorDesc out_desc1(shape);
-    out_desc1.SetFormat(FORMAT_HWCN);
-    out_desc1.SetOriginFormat(FORMAT_HWCN);
-    out_desc1.SetDataType(DT_FLOAT16);
-    out_desc1.SetOriginShape(shape);
-    relu_op->AddOutputDesc("z", out_desc1);
+  GeTensorDesc out_desc1(shape);
+  out_desc1.SetFormat(FORMAT_HWCN);
+  out_desc1.SetOriginFormat(FORMAT_HWCN);
+  out_desc1.SetDataType(DT_FLOAT16);
+  out_desc1.SetOriginShape(shape);
+  relu_op->AddOutputDesc("z", out_desc1);
 
-    ge::AttrUtils::SetStr(relu_op, ge::ATTR_NAME_UNREGST_OPPATH, "./impl/abc");
-    ge::AttrUtils::SetInt(relu_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_CUSTOM_TBE));
-    ge::AttrUtils::SetStr(relu_op, "relu_kernelname", "relu_build");
-    ge::AttrUtils::SetBool(relu_op, ATTR_NAME_SUPPORT_DYNAMIC_SHAPE, false);
-    NodePtr relu_node = graph->AddNode(relu_op);
-    NodePtr data_node = graph->AddNode(data);
-    NodePtr data_node2 = graph->AddNode(data2);
-    ge::AttrUtils::SetStr(relu_node->GetOpDesc(), OPS_PATH_NAME_PREFIX, "");
-    ge::AttrUtils::SetStr(data_node->GetOpDesc(), OPS_PATH_NAME_PREFIX, "");
-    ge::AttrUtils::SetStr(data_node2->GetOpDesc(), OPS_PATH_NAME_PREFIX, "");
-    GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), relu_node->GetInDataAnchor(0));
-    GraphUtils::AddEdge(data_node2->GetOutDataAnchor(0), relu_node->GetInDataAnchor(1));
-    FEOpsStoreInfo tbe_builtin {
-            6,
-            "tbe-builtin",
-            EN_IMPL_HW_TBE,
-            GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_opinfo",
-            ""};
-    SubOpsStorePtr sub_ops_store_ptr = make_shared<fe::SubOpsStore>(fe::AI_CORE_NAME);
-    sub_ops_store_ptr->SetSubStoreInfo(tbe_builtin);
-    sub_ops_store_ptr->InitializeSubStore();
-    vector<FEOpsStoreInfo> store_info;
-    store_info.emplace_back(tbe_builtin);
-    Configuration::Instance(AI_CORE_NAME).ops_store_info_vector_ = (store_info);
+  ge::AttrUtils::SetStr(relu_op, ge::ATTR_NAME_UNREGST_OPPATH, "./impl/abc");
+  ge::AttrUtils::SetInt(relu_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_CUSTOM_TBE));
+  ge::AttrUtils::SetStr(relu_op, "relu_kernelname", "relu_build");
+  ge::AttrUtils::SetBool(relu_op, ATTR_NAME_SUPPORT_DYNAMIC_SHAPE, false);
+  NodePtr relu_node = graph->AddNode(relu_op);
+  NodePtr data_node = graph->AddNode(data);
+  NodePtr data_node2 = graph->AddNode(data2);
+  ge::AttrUtils::SetStr(relu_node->GetOpDesc(), OPS_PATH_NAME_PREFIX, "");
+  ge::AttrUtils::SetStr(data_node->GetOpDesc(), OPS_PATH_NAME_PREFIX, "");
+  ge::AttrUtils::SetStr(data_node2->GetOpDesc(), OPS_PATH_NAME_PREFIX, "");
+  GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), relu_node->GetInDataAnchor(0));
+  GraphUtils::AddEdge(data_node2->GetOutDataAnchor(0), relu_node->GetInDataAnchor(1));
+  FEOpsStoreInfo tbe_builtin{
+      6, "tbe-builtin", EN_IMPL_HW_TBE,
+      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_opinfo", ""};
+  SubOpsStorePtr sub_ops_store_ptr = make_shared<fe::SubOpsStore>(fe::AI_CORE_NAME);
+  sub_ops_store_ptr->SetSubStoreInfo(tbe_builtin);
+  sub_ops_store_ptr->InitializeSubStore();
+  vector<FEOpsStoreInfo> store_info;
+  store_info.emplace_back(tbe_builtin);
+  Configuration::Instance(AI_CORE_NAME).ops_store_info_vector_ = (store_info);
 
-    SubOpInfoStorePtr sub_ops_kernel_ptr = std::make_shared<SubOpInfoStore>(tbe_builtin);
-    sub_ops_kernel_ptr->Initialize(fe::AI_CORE_NAME);
-    OpsKernelManager::Instance(fe::AI_CORE_NAME).sub_ops_kernel_map_.emplace("tbe-builtin", sub_ops_kernel_ptr);
-    tbe_adapter_ptr_->CheckIsTbeGeneralizeFuncRegistered = checkIsRegistered;
-    tbe_adapter_ptr_->TeGeneralize = teGeneralize;
-    std::vector<ge::NodePtr> node_vec{};
-    node_vec.push_back(relu_node);
-    Status ret = fe_ops_kernel_info_store_ptr->FuzzCompileOp(node_vec);
-    EXPECT_EQ(ret, fe::SUCCESS);
+  SubOpInfoStorePtr sub_ops_kernel_ptr = std::make_shared<SubOpInfoStore>(tbe_builtin);
+  sub_ops_kernel_ptr->Initialize(fe::AI_CORE_NAME);
+  OpsKernelManager::Instance(fe::AI_CORE_NAME).sub_ops_kernel_map_.emplace("tbe-builtin", sub_ops_kernel_ptr);
+  tbe_adapter_ptr_->CheckIsTbeGeneralizeFuncRegistered = checkIsRegistered;
+  tbe_adapter_ptr_->TeGeneralize = teGeneralize;
+  std::vector<ge::NodePtr> node_vec{};
+  node_vec.push_back(relu_node);
+  Status ret = fe_ops_kernel_info_store_ptr->FuzzCompileOp(node_vec);
+  EXPECT_EQ(ret, fe::SUCCESS);
 }
 
 TEST_F(FEOpsKernelInfoStoreTest, fuzzy_compile_fusionop_success) {
-    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("default");
-    OpDescPtr dy_op = std::make_shared<OpDesc>("DynamicShape", "DynamicShape");
-    OpDescPtr data = std::make_shared<OpDesc>("DATA0", fe::DATA);
-    vector<int64_t> dims = {1, 2, 3, 4};
-    GeShape shape(dims);
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("default");
+  OpDescPtr dy_op = std::make_shared<OpDesc>("DynamicShape", "DynamicShape");
+  OpDescPtr data = std::make_shared<OpDesc>("DATA0", fe::DATA);
+  vector<int64_t> dims = {1, 2, 3, 4};
+  GeShape shape(dims);
 
-    GeTensorDesc in_desc1(shape);
-    in_desc1.SetFormat(FORMAT_NCHW);
-    in_desc1.SetOriginFormat(FORMAT_NCHW);
-    in_desc1.SetDataType(DT_FLOAT16);
-    in_desc1.SetOriginShape(shape);
-    dy_op->AddInputDesc("x", in_desc1);
-    data->AddInputDesc("x", in_desc1);
-    data->AddOutputDesc("y", in_desc1);
+  GeTensorDesc in_desc1(shape);
+  in_desc1.SetFormat(FORMAT_NCHW);
+  in_desc1.SetOriginFormat(FORMAT_NCHW);
+  in_desc1.SetDataType(DT_FLOAT16);
+  in_desc1.SetOriginShape(shape);
+  dy_op->AddInputDesc("x", in_desc1);
+  data->AddInputDesc("x", in_desc1);
+  data->AddOutputDesc("y", in_desc1);
 
-    GeTensorDesc out_desc1(shape);
-    out_desc1.SetFormat(FORMAT_HWCN);
-    out_desc1.SetOriginFormat(FORMAT_HWCN);
-    out_desc1.SetDataType(DT_FLOAT16);
-    out_desc1.SetOriginShape(shape);
-    dy_op->AddOutputDesc("z", out_desc1);
+  GeTensorDesc out_desc1(shape);
+  out_desc1.SetFormat(FORMAT_HWCN);
+  out_desc1.SetOriginFormat(FORMAT_HWCN);
+  out_desc1.SetDataType(DT_FLOAT16);
+  out_desc1.SetOriginShape(shape);
+  dy_op->AddOutputDesc("z", out_desc1);
 
-    NodePtr dy_node = graph->AddNode(dy_op);
-    NodePtr data_node = graph->AddNode(data);
-    GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), dy_node->GetInDataAnchor(0));
+  NodePtr dy_node = graph->AddNode(dy_op);
+  NodePtr data_node = graph->AddNode(data);
+  GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), dy_node->GetInDataAnchor(0));
 
-    ge::AttrUtils::SetInt(data, ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
-    ge::ComputeGraphPtr fusion_graph = std::make_shared<ge::ComputeGraph>("fusionop");
-    OpDescPtr test_op = std::make_shared<OpDesc>("test", "test");
-    NodePtr test_node = fusion_graph->AddNode(test_op);
-    test_op->AddInputDesc("x", in_desc1);
-    test_op->AddOutputDesc("y", out_desc1);
-    AttrUtils::SetGraph(test_node->GetOpDesc(), "_original_fusion_graph", graph);
+  ge::AttrUtils::SetInt(data, ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
+  ge::ComputeGraphPtr fusion_graph = std::make_shared<ge::ComputeGraph>("fusionop");
+  OpDescPtr test_op = std::make_shared<OpDesc>("test", "test");
+  NodePtr test_node = fusion_graph->AddNode(test_op);
+  test_op->AddInputDesc("x", in_desc1);
+  test_op->AddOutputDesc("y", out_desc1);
+  AttrUtils::SetGraph(test_node->GetOpDesc(), "_original_fusion_graph", graph);
 
-    ge::AttrUtils::SetBool(dy_op, ATTR_NAME_SUPPORT_DYNAMIC_SHAPE, false);
-    FEOpsStoreInfo tbe_custom {
-            6,
-            "tbe-custom",
-            EN_IMPL_HW_TBE,
-            GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
-            GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo"};
-    SubOpsStorePtr sub_ops_store_ptr = make_shared<fe::SubOpsStore>(fe::AI_CORE_NAME);
-    sub_ops_store_ptr->SetSubStoreInfo(tbe_custom);
-    sub_ops_store_ptr->InitializeSubStore();
-    vector<FEOpsStoreInfo> store_info;
-    store_info.emplace_back(tbe_custom);
-    Configuration::Instance(AI_CORE_NAME).ops_store_info_vector_ = (store_info);
+  ge::AttrUtils::SetBool(dy_op, ATTR_NAME_SUPPORT_DYNAMIC_SHAPE, false);
+  FEOpsStoreInfo tbe_custom{
+      6, "tbe-custom", EN_IMPL_HW_TBE,
+      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
+      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo"};
+  SubOpsStorePtr sub_ops_store_ptr = make_shared<fe::SubOpsStore>(fe::AI_CORE_NAME);
+  sub_ops_store_ptr->SetSubStoreInfo(tbe_custom);
+  sub_ops_store_ptr->InitializeSubStore();
+  vector<FEOpsStoreInfo> store_info;
+  store_info.emplace_back(tbe_custom);
+  Configuration::Instance(AI_CORE_NAME).ops_store_info_vector_ = (store_info);
 
-    SubOpInfoStorePtr sub_ops_kernel_ptr = std::make_shared<SubOpInfoStore>(tbe_custom);
-    sub_ops_kernel_ptr->Initialize(fe::AI_CORE_NAME);
-    OpsKernelManager::Instance(fe::AI_CORE_NAME).sub_ops_kernel_map_.emplace("tbe-custom", sub_ops_kernel_ptr);
+  SubOpInfoStorePtr sub_ops_kernel_ptr = std::make_shared<SubOpInfoStore>(tbe_custom);
+  sub_ops_kernel_ptr->Initialize(fe::AI_CORE_NAME);
+  OpsKernelManager::Instance(fe::AI_CORE_NAME).sub_ops_kernel_map_.emplace("tbe-custom", sub_ops_kernel_ptr);
 
-    OptimizeUtilityStubST *optimize_utility_stub = new OptimizeUtilityStubST();
-    fe_ops_kernel_info_store_ptr->SetGeneralizeRelatedParam(optimize_utility_stub, nullptr);
-    tbe_adapter_ptr_->engine_name_ = fe::AI_CORE_NAME;
-    tbe_adapter_ptr_->CheckIsTbeGeneralizeFuncRegistered = checkIsRegistered;
-    tbe_adapter_ptr_->TeGeneralize = teGeneralize;
-    std::vector<ge::NodePtr> node_vec{};
-    node_vec.push_back(test_node);
-    Status ret = fe_ops_kernel_info_store_ptr->FuzzCompileOp(node_vec);
-    EXPECT_EQ(ret, fe::FAILED);
+  OptimizeUtilityStubST *optimize_utility_stub = new OptimizeUtilityStubST();
+  fe_ops_kernel_info_store_ptr->SetGeneralizeRelatedParam(optimize_utility_stub, nullptr);
+  tbe_adapter_ptr_->engine_name_ = fe::AI_CORE_NAME;
+  tbe_adapter_ptr_->CheckIsTbeGeneralizeFuncRegistered = checkIsRegistered;
+  tbe_adapter_ptr_->TeGeneralize = teGeneralize;
+  std::vector<ge::NodePtr> node_vec{};
+  node_vec.push_back(test_node);
+  Status ret = fe_ops_kernel_info_store_ptr->FuzzCompileOp(node_vec);
+  EXPECT_EQ(ret, fe::FAILED);
 }
 
 TEST_F(FEOpsKernelInfoStoreTest, update_diff_shape_change) {
-    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("default");
-    OpDescPtr relu_op = std::make_shared<OpDesc>("relu", "Relu");
-    vector<int64_t> dims = {-1, -1, -1, 4};
-    GeShape shape(dims);
-    GeTensorDesc in_desc;
-    in_desc.SetShape(shape);
-    in_desc.SetOriginShape(shape);
-    in_desc.SetFormat(FORMAT_ND_RNN_BIAS);
-    in_desc.SetOriginFormat(FORMAT_ND);
-    in_desc.SetDataType(DT_FLOAT16);
-    in_desc.SetOriginShapeRange({{2,3},{1,3},{4,15},{4,4}});
-    relu_op->AddInputDesc("x", in_desc);
-    NodePtr relu_node = graph->AddNode(relu_op);
-    fe_ops_kernel_info_store_ptr->UpdateNodeShapeAndRange(relu_node);
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("default");
+  OpDescPtr relu_op = std::make_shared<OpDesc>("relu", "Relu");
+  vector<int64_t> dims = {-1, -1, -1, 4};
+  GeShape shape(dims);
+  GeTensorDesc in_desc;
+  in_desc.SetShape(shape);
+  in_desc.SetOriginShape(shape);
+  in_desc.SetFormat(FORMAT_ND_RNN_BIAS);
+  in_desc.SetOriginFormat(FORMAT_ND);
+  in_desc.SetDataType(DT_FLOAT16);
+  in_desc.SetOriginShapeRange({{2, 3}, {1, 3}, {4, 15}, {4, 4}});
+  relu_op->AddInputDesc("x", in_desc);
+  NodePtr relu_node = graph->AddNode(relu_op);
+  fe_ops_kernel_info_store_ptr->UpdateNodeShapeAndRange(relu_node);
 
-    vector<int64_t> res_dims = {-1, -1, -1, 64};
-    std::vector<std::pair<int64_t, int64_t>> ori_shape_range;
-    std::vector<std::pair<int64_t, int64_t>> res_shape_range = {{2, 3}, {1, 3}, {4, 15}, {64, 64}};
-    EXPECT_EQ(relu_node->GetOpDesc()->MutableInputDesc(0)->GetShape().GetDims(), res_dims);
-    relu_node->GetOpDesc()->MutableInputDesc(0)->GetShapeRange(ori_shape_range);
-    EXPECT_EQ(ori_shape_range, res_shape_range);
+  vector<int64_t> res_dims = {-1, -1, -1, 64};
+  std::vector<std::pair<int64_t, int64_t>> ori_shape_range;
+  std::vector<std::pair<int64_t, int64_t>> res_shape_range = {{2, 3}, {1, 3}, {4, 15}, {64, 64}};
+  EXPECT_EQ(relu_node->GetOpDesc()->MutableInputDesc(0)->GetShape().GetDims(), res_dims);
+  relu_node->GetOpDesc()->MutableInputDesc(0)->GetShapeRange(ori_shape_range);
+  EXPECT_EQ(ori_shape_range, res_shape_range);
 }
 
 TEST_F(FEOpsKernelInfoStoreTest, dim_shape_check_support_success) {
-    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("default");
-    OpDescPtr dy_op = std::make_shared<OpDesc>("dynamicShape", "DynamicShape1");
-    vector<int64_t> dims = {-2};
-    GeShape shape(dims);
-    GeTensorDesc desc;
-    desc.SetShape(shape);
-    dy_op->AddInputDesc("x", desc);
-    dy_op->AddOutputDesc("y", desc);
-    NodePtr relu_node = graph->AddNode(dy_op);
-    std::map<std::string, std::string> graph_options = GetThreadLocalContext().GetAllGraphOptions();
-    graph_options["ge.shape_generalized_build_mode"] = "shape_generalized";
-    GetThreadLocalContext().SetGraphOption(graph_options);
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("default");
+  OpDescPtr dy_op = std::make_shared<OpDesc>("dynamicShape", "DynamicShape1");
+  vector<int64_t> dims = {-2};
+  GeShape shape(dims);
+  GeTensorDesc desc;
+  desc.SetShape(shape);
+  dy_op->AddInputDesc("x", desc);
+  dy_op->AddOutputDesc("y", desc);
+  NodePtr relu_node = graph->AddNode(dy_op);
+  std::map<std::string, std::string> graph_options = GetThreadLocalContext().GetAllGraphOptions();
+  graph_options["ge.shape_generalized_build_mode"] = "shape_generalized";
+  GetThreadLocalContext().SetGraphOption(graph_options);
 
-    FEOpsStoreInfo tbe_custom {
-            2,
-            "tbe-custom",
-            EN_IMPL_CUSTOM_TBE,
-            GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
-            GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo"};
-    SubOpsStorePtr sub_ops_store_ptr = make_shared<fe::SubOpsStore>(fe::AI_CORE_NAME);
-    sub_ops_store_ptr->SetSubStoreInfo(tbe_custom);
-    sub_ops_store_ptr->InitializeSubStore();
-    vector<FEOpsStoreInfo> store_info;
-    store_info.emplace_back(tbe_custom);
-    Configuration::Instance(AI_CORE_NAME).ops_store_info_vector_ = (store_info);
+  FEOpsStoreInfo tbe_custom{
+      2, "tbe-custom", EN_IMPL_CUSTOM_TBE,
+      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
+      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo"};
+  SubOpsStorePtr sub_ops_store_ptr = make_shared<fe::SubOpsStore>(fe::AI_CORE_NAME);
+  sub_ops_store_ptr->SetSubStoreInfo(tbe_custom);
+  sub_ops_store_ptr->InitializeSubStore();
+  vector<FEOpsStoreInfo> store_info;
+  store_info.emplace_back(tbe_custom);
+  Configuration::Instance(AI_CORE_NAME).ops_store_info_vector_ = (store_info);
 
-    SubOpInfoStorePtr sub_ops_kernel_ptr = std::make_shared<SubOpInfoStore>(tbe_custom);
-    sub_ops_kernel_ptr->Initialize(fe::AI_CORE_NAME);
-    OpsKernelManager::Instance(fe::AI_CORE_NAME).sub_ops_kernel_map_.emplace("tbe-custom", sub_ops_kernel_ptr);
-    tbe_adapter_ptr_->engine_name_ = fe::AI_CORE_NAME;
-    tbe_adapter_ptr_->CheckTbeSupported = CheckTbeSupportedReasonRange;
+  SubOpInfoStorePtr sub_ops_kernel_ptr = std::make_shared<SubOpInfoStore>(tbe_custom);
+  sub_ops_kernel_ptr->Initialize(fe::AI_CORE_NAME);
+  OpsKernelManager::Instance(fe::AI_CORE_NAME).sub_ops_kernel_map_.emplace("tbe-custom", sub_ops_kernel_ptr);
+  tbe_adapter_ptr_->engine_name_ = fe::AI_CORE_NAME;
+  tbe_adapter_ptr_->CheckTbeSupported = CheckTbeSupportedReasonRange;
 
-    CheckSupportMode check_mode = CheckSupportMode::DTYPE_FORMAT_MODE;
-    OpImplType impl_type = EN_IMPL_HW_TBE;
-    CheckSupportParam check_param;
-    bool res = fe_ops_kernel_info_store_ptr->CheckSupportedByOpsStore(relu_node, check_mode,
-                                                                      check_param, impl_type);
-    EXPECT_TRUE(res);
-    EXPECT_TRUE(AttrUtils::HasAttr(relu_node->GetOpDesc(), kOpShapeOrRangeUnsupport));
+  CheckSupportMode check_mode = CheckSupportMode::DTYPE_FORMAT_MODE;
+  OpImplType impl_type = EN_IMPL_HW_TBE;
+  CheckSupportParam check_param;
+  bool res = fe_ops_kernel_info_store_ptr->CheckSupportedByOpsStore(relu_node, check_mode, check_param, impl_type);
+  EXPECT_TRUE(res);
+  EXPECT_TRUE(AttrUtils::HasAttr(relu_node->GetOpDesc(), kOpShapeOrRangeUnsupport));
 }
 
 TEST_F(FEOpsKernelInfoStoreTest, dim_shape_check_support_fail) {
-    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("default");
-    OpDescPtr dy_op = std::make_shared<OpDesc>("dynamicShape", "DynamicShape1");
-    vector<int64_t> dims = {-2};
-    GeShape shape(dims);
-    GeTensorDesc desc;
-    desc.SetShape(shape);
-    dy_op->AddInputDesc("x", desc);
-    dy_op->AddOutputDesc("y", desc);
-    NodePtr relu_node = graph->AddNode(dy_op);
-    std::map<std::string, std::string> graph_options = GetThreadLocalContext().GetAllGraphOptions();
-    graph_options["ge.shape_generalized_build_mode"] = "shape_generalized";
-    GetThreadLocalContext().SetGraphOption(graph_options);
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("default");
+  OpDescPtr dy_op = std::make_shared<OpDesc>("dynamicShape", "DynamicShape1");
+  vector<int64_t> dims = {-2};
+  GeShape shape(dims);
+  GeTensorDesc desc;
+  desc.SetShape(shape);
+  dy_op->AddInputDesc("x", desc);
+  dy_op->AddOutputDesc("y", desc);
+  NodePtr relu_node = graph->AddNode(dy_op);
+  std::map<std::string, std::string> graph_options = GetThreadLocalContext().GetAllGraphOptions();
+  graph_options["ge.shape_generalized_build_mode"] = "shape_generalized";
+  GetThreadLocalContext().SetGraphOption(graph_options);
 
-    FEOpsStoreInfo tbe_custom {
-            2,
-            "tbe-custom",
-            EN_IMPL_CUSTOM_TBE,
-            GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
-            GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo"};
-    SubOpsStorePtr sub_ops_store_ptr = make_shared<fe::SubOpsStore>(fe::AI_CORE_NAME);
-    sub_ops_store_ptr->SetSubStoreInfo(tbe_custom);
-    sub_ops_store_ptr->InitializeSubStore();
-    vector<FEOpsStoreInfo> store_info;
-    store_info.emplace_back(tbe_custom);
-    Configuration::Instance(AI_CORE_NAME).ops_store_info_vector_ = (store_info);
+  FEOpsStoreInfo tbe_custom{
+      2, "tbe-custom", EN_IMPL_CUSTOM_TBE,
+      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
+      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo"};
+  SubOpsStorePtr sub_ops_store_ptr = make_shared<fe::SubOpsStore>(fe::AI_CORE_NAME);
+  sub_ops_store_ptr->SetSubStoreInfo(tbe_custom);
+  sub_ops_store_ptr->InitializeSubStore();
+  vector<FEOpsStoreInfo> store_info;
+  store_info.emplace_back(tbe_custom);
+  Configuration::Instance(AI_CORE_NAME).ops_store_info_vector_ = (store_info);
 
-    SubOpInfoStorePtr sub_ops_kernel_ptr = std::make_shared<SubOpInfoStore>(tbe_custom);
-    sub_ops_kernel_ptr->Initialize(fe::AI_CORE_NAME);
-    OpsKernelManager::Instance(fe::AI_CORE_NAME).sub_ops_kernel_map_.emplace("tbe-custom", sub_ops_kernel_ptr);
-    tbe_adapter_ptr_->engine_name_ = fe::AI_CORE_NAME;
-    tbe_adapter_ptr_->CheckTbeSupported = CheckTbeSupportedOtherReason;
+  SubOpInfoStorePtr sub_ops_kernel_ptr = std::make_shared<SubOpInfoStore>(tbe_custom);
+  sub_ops_kernel_ptr->Initialize(fe::AI_CORE_NAME);
+  OpsKernelManager::Instance(fe::AI_CORE_NAME).sub_ops_kernel_map_.emplace("tbe-custom", sub_ops_kernel_ptr);
+  tbe_adapter_ptr_->engine_name_ = fe::AI_CORE_NAME;
+  tbe_adapter_ptr_->CheckTbeSupported = CheckTbeSupportedOtherReason;
 
-    CheckSupportMode check_mode = CheckSupportMode::DTYPE_FORMAT_MODE;
-    OpImplType impl_type = EN_IMPL_HW_TBE;
-    CheckSupportParam check_param;
-    bool res = fe_ops_kernel_info_store_ptr->CheckSupportedByOpsStore(relu_node, check_mode,
-                                                                      check_param, impl_type);
-    EXPECT_FALSE(res);
-    EXPECT_FALSE(AttrUtils::HasAttr(relu_node->GetOpDesc(), kOpShapeOrRangeUnsupport));
+  CheckSupportMode check_mode = CheckSupportMode::DTYPE_FORMAT_MODE;
+  OpImplType impl_type = EN_IMPL_HW_TBE;
+  CheckSupportParam check_param;
+  bool res = fe_ops_kernel_info_store_ptr->CheckSupportedByOpsStore(relu_node, check_mode, check_param, impl_type);
+  EXPECT_FALSE(res);
+  EXPECT_FALSE(AttrUtils::HasAttr(relu_node->GetOpDesc(), kOpShapeOrRangeUnsupport));
 }
 
 TEST_F(FEOpsKernelInfoStoreTest, dynamic_shape_check_support_success) {
-    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("default");
-    OpDescPtr dy_op = std::make_shared<OpDesc>("dynamicShape", "DynamicShape1");
-    vector<int64_t> dims = {-1};
-    GeShape shape(dims);
-    GeTensorDesc desc;
-    desc.SetShape(shape);
-    dy_op->AddInputDesc("x", desc);
-    dy_op->AddOutputDesc("y", desc);
-    NodePtr relu_node = graph->AddNode(dy_op);
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("default");
+  OpDescPtr dy_op = std::make_shared<OpDesc>("dynamicShape", "DynamicShape1");
+  vector<int64_t> dims = {-1};
+  GeShape shape(dims);
+  GeTensorDesc desc;
+  desc.SetShape(shape);
+  dy_op->AddInputDesc("x", desc);
+  dy_op->AddOutputDesc("y", desc);
+  NodePtr relu_node = graph->AddNode(dy_op);
 
-    FEOpsStoreInfo tbe_custom {
-            2,
-            "tbe-custom",
-            EN_IMPL_CUSTOM_TBE,
-            GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
-            GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo"};
-    SubOpsStorePtr sub_ops_store_ptr = make_shared<fe::SubOpsStore>(fe::AI_CORE_NAME);
-    sub_ops_store_ptr->SetSubStoreInfo(tbe_custom);
-    sub_ops_store_ptr->InitializeSubStore();
-    vector<FEOpsStoreInfo> store_info;
-    store_info.emplace_back(tbe_custom);
-    Configuration::Instance(AI_CORE_NAME).ops_store_info_vector_ = (store_info);
+  FEOpsStoreInfo tbe_custom{
+      2, "tbe-custom", EN_IMPL_CUSTOM_TBE,
+      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
+      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo"};
+  SubOpsStorePtr sub_ops_store_ptr = make_shared<fe::SubOpsStore>(fe::AI_CORE_NAME);
+  sub_ops_store_ptr->SetSubStoreInfo(tbe_custom);
+  sub_ops_store_ptr->InitializeSubStore();
+  vector<FEOpsStoreInfo> store_info;
+  store_info.emplace_back(tbe_custom);
+  Configuration::Instance(AI_CORE_NAME).ops_store_info_vector_ = (store_info);
 
-    SubOpInfoStorePtr sub_ops_kernel_ptr = std::make_shared<SubOpInfoStore>(tbe_custom);
-    sub_ops_kernel_ptr->Initialize(fe::AI_CORE_NAME);
-    OpsKernelManager::Instance(fe::AI_CORE_NAME).sub_ops_kernel_map_.emplace("tbe-custom", sub_ops_kernel_ptr);
-    tbe_adapter_ptr_->engine_name_ = fe::AI_CORE_NAME;
-    tbe_adapter_ptr_->CheckTbeSupported = CheckTbeSupportedReasonRange;
+  SubOpInfoStorePtr sub_ops_kernel_ptr = std::make_shared<SubOpInfoStore>(tbe_custom);
+  sub_ops_kernel_ptr->Initialize(fe::AI_CORE_NAME);
+  OpsKernelManager::Instance(fe::AI_CORE_NAME).sub_ops_kernel_map_.emplace("tbe-custom", sub_ops_kernel_ptr);
+  tbe_adapter_ptr_->engine_name_ = fe::AI_CORE_NAME;
+  tbe_adapter_ptr_->CheckTbeSupported = CheckTbeSupportedReasonRange;
 
-    CheckSupportMode check_mode = CheckSupportMode::DTYPE_FORMAT_MODE;
-    OpImplType impl_type = EN_IMPL_HW_TBE;
-    CheckSupportParam check_param;
-    bool res = fe_ops_kernel_info_store_ptr->CheckSupportedByOpsStore(relu_node, check_mode,
-                                                                      check_param, impl_type);
-    EXPECT_TRUE(res);
-    EXPECT_TRUE(AttrUtils::HasAttr(relu_node->GetOpDesc(), kOpShapeOrRangeUnsupport));
+  CheckSupportMode check_mode = CheckSupportMode::DTYPE_FORMAT_MODE;
+  OpImplType impl_type = EN_IMPL_HW_TBE;
+  CheckSupportParam check_param;
+  bool res = fe_ops_kernel_info_store_ptr->CheckSupportedByOpsStore(relu_node, check_mode, check_param, impl_type);
+  EXPECT_TRUE(res);
+  EXPECT_TRUE(AttrUtils::HasAttr(relu_node->GetOpDesc(), kOpShapeOrRangeUnsupport));
 }
 
 TEST_F(FEOpsKernelInfoStoreTest, customize_dtypes_check_support_1) {
@@ -4159,7 +4115,7 @@ TEST_F(FEOpsKernelInfoStoreTest, customize_dtypes_check_support_1) {
   op_cust_dtypes_parser_ptr_->op_name_cust_dtypes_.clear();
 
   OpKernelInfoPtr op_kernel_info_ptr =
-          OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", mat_mul_op->GetType());
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", mat_mul_op->GetType());
   SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
   std::string un_supported_reason;
   bool ret = fe_ops_kernel_info_store_ptr->CheckSupported(mat_mul_op, un_supported_reason);
@@ -4205,7 +4161,7 @@ TEST_F(FEOpsKernelInfoStoreTest, customize_dtypes_check_support_2) {
   op_cust_dtypes_parser_ptr_->op_type_cust_dtypes_.clear();
   op_cust_dtypes_parser_ptr_->op_name_cust_dtypes_.clear();
   OpKernelInfoPtr op_kernel_info_ptr =
-          OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", mat_mul_op->GetType());
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", mat_mul_op->GetType());
   SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
   std::string un_supported_reason;
   bool ret = fe_ops_kernel_info_store_ptr->CheckSupported(mat_mul_op, un_supported_reason);
@@ -4303,7 +4259,7 @@ TEST_F(FEOpsKernelInfoStoreTest, get_node_support_info_02) {
   NodePtr node = graph->AddNode(op_desc);
   vector<uint16_t> data_vec(16, 10);
   GeTensorPtr weight_ptr =
-          std::make_shared<ge::GeTensor>(tensor_desc, (uint8_t *)data_vec.data(), 16 * sizeof(uint16_t));
+      std::make_shared<ge::GeTensor>(tensor_desc, (uint8_t *)data_vec.data(), 16 * sizeof(uint16_t));
   ge::OpDescPtr const_op = ge::OpDescUtils::CreateConstOp(weight_ptr);
   NodePtr const_node = graph->AddNode(const_op);
   GraphUtils::AddEdge(const_node->GetOutDataAnchor(0), node->GetInDataAnchor(0));
@@ -4353,7 +4309,8 @@ TEST_F(FEOpsKernelInfoStoreTest, get_node_support_info_03) {
     EXPECT_EQ(op_info_json["input0"]["param_type"], "required");
     EXPECT_EQ(op_info_json["input0"]["format"], "NCHW,NC1HWC0,NHWC,ND,HWCN,CHWN,NDHWC,DHWCN,DHWNC");
     EXPECT_EQ(op_info_json["output0"]["name"], "y");
-    EXPECT_EQ(op_info_json["output0"]["dtype"], "DT_FLOAT16,DT_FLOAT16,DT_FLOAT16,DT_FLOAT16,DT_FLOAT16,DT_FLOAT16,DT_FLOAT16,DT_FLOAT16,DT_FLOAT16");
+    EXPECT_EQ(op_info_json["output0"]["dtype"],
+              "DT_FLOAT16,DT_FLOAT16,DT_FLOAT16,DT_FLOAT16,DT_FLOAT16,DT_FLOAT16,DT_FLOAT16,DT_FLOAT16,DT_FLOAT16");
   } catch (nlohmann::json::parse_error &ex) {
     EXPECT_TRUE(false);
   }
@@ -4459,7 +4416,7 @@ TEST_F(FEOpsKernelInfoStoreTest, SetAttrParamTypeList) {
   EXPECT_EQ(output_type_list, output_type_list_bk);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, compile_op_tiling){
+TEST_F(FEOpsKernelInfoStoreTest, compile_op_tiling) {
   shared_ptr<ge::OpDesc> op_desc_ptr = make_shared<ge::OpDesc>("Add", "Add");
   op_desc_ptr->AddInputDesc(ge::GeTensorDesc(ge::GeShape({4, 4}), ge::FORMAT_ND, ge::DT_DOUBLE));
   op_desc_ptr->AddInputDesc(ge::GeTensorDesc(ge::GeShape({4, 4}), ge::FORMAT_ND, ge::DT_DOUBLE));
@@ -4488,7 +4445,7 @@ TEST_F(FEOpsKernelInfoStoreTest, compile_op_tiling){
   ret = fe_ops_kernel_info_store_ptr->CompileOpTiling(reduce_node);
   EXPECT_EQ(fe::SUCCESS, ret);
 
-  PlatformUtils::Instance().vir_type_list_ = {2,4,8,16};
+  PlatformUtils::Instance().vir_type_list_ = {2, 4, 8, 16};
   shared_ptr<ge::OpDesc> op_sync = make_shared<ge::OpDesc>("BiasAddGrad", "BiasAddGrad");
   ge::AttrUtils::SetStr(op_sync, "compile_info_json", json_str);
   ge::AttrUtils::SetStr(op_sync, fe::ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AiCore");
@@ -4527,7 +4484,7 @@ TEST_F(FEOpsKernelInfoStoreTest, compile_op_tiling){
   EXPECT_EQ(has_tiling_data, true);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, compile_mix_tiling){
+TEST_F(FEOpsKernelInfoStoreTest, compile_mix_tiling) {
   shared_ptr<ge::OpDesc> op_desc_ptr = make_shared<ge::OpDesc>("Add", "Add");
   op_desc_ptr->AddInputDesc(ge::GeTensorDesc(ge::GeShape({4, 4}), ge::FORMAT_ND, ge::DT_DOUBLE));
   op_desc_ptr->AddInputDesc(ge::GeTensorDesc(ge::GeShape({4, 4}), ge::FORMAT_ND, ge::DT_DOUBLE));
@@ -4538,8 +4495,8 @@ TEST_F(FEOpsKernelInfoStoreTest, compile_mix_tiling){
   ge::AttrUtils::SetBool(op_desc_ptr, fe::kMixDynamicRatio, true);
   ge::GeAttrValue::NAMED_ATTRS tiling_with_ratio;
   std::vector<std::string> tiling_key_vec = {"0", "1", "2"};
-  std::vector<int64_t> c_ratio_vec = {0,0,2};
-  std::vector<int64_t> v_ratio_vec = {1,1,1};
+  std::vector<int64_t> c_ratio_vec = {0, 0, 2};
+  std::vector<int64_t> v_ratio_vec = {1, 1, 1};
   tiling_with_ratio.SetAttr("mix_tiling_key", ge::GeAttrValue::CreateFrom<std::vector<std::string>>(tiling_key_vec));
   tiling_with_ratio.SetAttr("mix_tiling_c_ratio", ge::GeAttrValue::CreateFrom<std::vector<int64_t>>(c_ratio_vec));
   tiling_with_ratio.SetAttr("mix_tiling_v_ratio", ge::GeAttrValue::CreateFrom<std::vector<int64_t>>(v_ratio_vec));
@@ -4549,8 +4506,8 @@ TEST_F(FEOpsKernelInfoStoreTest, compile_mix_tiling){
   Status ret = fe_ops_kernel_info_store_ptr->CompileOpTiling(test_node);
   EXPECT_EQ(fe::SUCCESS, ret);
 
-  c_ratio_vec = {1,0,2};
-  v_ratio_vec = {0,1,1};
+  c_ratio_vec = {1, 0, 2};
+  v_ratio_vec = {0, 1, 1};
   tiling_with_ratio.SetAttr("mix_tiling_c_ratio", ge::GeAttrValue::CreateFrom<std::vector<int64_t>>(c_ratio_vec));
   tiling_with_ratio.SetAttr("mix_tiling_v_ratio", ge::GeAttrValue::CreateFrom<std::vector<int64_t>>(v_ratio_vec));
   ge::AttrUtils::SetNamedAttrs(op_desc_ptr, "mix_tiling_with_ratio_attr", tiling_with_ratio);
@@ -4559,8 +4516,8 @@ TEST_F(FEOpsKernelInfoStoreTest, compile_mix_tiling){
   ret = fe_ops_kernel_info_store_ptr->CompileOpTiling(test_node);
   EXPECT_EQ(fe::SUCCESS, ret);
 
-  c_ratio_vec = {2,0,2};
-  v_ratio_vec = {1,1,1};
+  c_ratio_vec = {2, 0, 2};
+  v_ratio_vec = {1, 1, 1};
   tiling_with_ratio.SetAttr("mix_tiling_c_ratio", ge::GeAttrValue::CreateFrom<std::vector<int64_t>>(c_ratio_vec));
   tiling_with_ratio.SetAttr("mix_tiling_v_ratio", ge::GeAttrValue::CreateFrom<std::vector<int64_t>>(v_ratio_vec));
   ge::AttrUtils::SetNamedAttrs(op_desc_ptr, "mix_tiling_with_ratio_attr", tiling_with_ratio);
@@ -4569,8 +4526,8 @@ TEST_F(FEOpsKernelInfoStoreTest, compile_mix_tiling){
   ret = fe_ops_kernel_info_store_ptr->CompileOpTiling(test_node);
   EXPECT_EQ(fe::SUCCESS, ret);
 
-  c_ratio_vec = {1,0,2};
-  v_ratio_vec = {2,1,1};
+  c_ratio_vec = {1, 0, 2};
+  v_ratio_vec = {2, 1, 1};
   tiling_with_ratio.SetAttr("mix_tiling_c_ratio", ge::GeAttrValue::CreateFrom<std::vector<int64_t>>(c_ratio_vec));
   tiling_with_ratio.SetAttr("mix_tiling_v_ratio", ge::GeAttrValue::CreateFrom<std::vector<int64_t>>(v_ratio_vec));
   ge::AttrUtils::SetNamedAttrs(op_desc_ptr, "mix_tiling_with_ratio_attr", tiling_with_ratio);
@@ -4582,7 +4539,7 @@ TEST_F(FEOpsKernelInfoStoreTest, compile_mix_tiling){
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, compile_mix_tiling_failed){
+TEST_F(FEOpsKernelInfoStoreTest, compile_mix_tiling_failed) {
   shared_ptr<ge::OpDesc> op_desc_ptr = make_shared<ge::OpDesc>("Add", "Add");
   op_desc_ptr->AddInputDesc(ge::GeTensorDesc(ge::GeShape({4, 4}), ge::FORMAT_ND, ge::DT_DOUBLE));
   op_desc_ptr->AddInputDesc(ge::GeTensorDesc(ge::GeShape({4, 4}), ge::FORMAT_ND, ge::DT_DOUBLE));
@@ -4605,7 +4562,7 @@ TEST_F(FEOpsKernelInfoStoreTest, compile_mix_tiling_failed){
   EXPECT_EQ(fe::FAILED, ret);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, compile_vector_core_mix_tiling){
+TEST_F(FEOpsKernelInfoStoreTest, compile_vector_core_mix_tiling) {
   shared_ptr<ge::OpDesc> op_desc_ptr = make_shared<ge::OpDesc>("Add", "Add");
   op_desc_ptr->AddInputDesc(ge::GeTensorDesc(ge::GeShape({4, 4}), ge::FORMAT_ND, ge::DT_DOUBLE));
   op_desc_ptr->AddInputDesc(ge::GeTensorDesc(ge::GeShape({4, 4}), ge::FORMAT_ND, ge::DT_DOUBLE));
@@ -4616,8 +4573,8 @@ TEST_F(FEOpsKernelInfoStoreTest, compile_vector_core_mix_tiling){
   ge::AttrUtils::SetBool(op_desc_ptr, fe::kMixDynamicRatio, true);
   ge::GeAttrValue::NAMED_ATTRS tiling_with_ratio;
   std::vector<std::string> tiling_key_vec = {"0", "1", "2"};
-  std::vector<int64_t> c_ratio_vec = {1,1,1};
-  std::vector<int64_t> v_ratio_vec = {0,1,1};
+  std::vector<int64_t> c_ratio_vec = {1, 1, 1};
+  std::vector<int64_t> v_ratio_vec = {0, 1, 1};
   tiling_with_ratio.SetAttr("mix_tiling_key", ge::GeAttrValue::CreateFrom<std::vector<std::string>>(tiling_key_vec));
   tiling_with_ratio.SetAttr("mix_tiling_c_ratio", ge::GeAttrValue::CreateFrom<std::vector<int64_t>>(c_ratio_vec));
   tiling_with_ratio.SetAttr("mix_tiling_v_ratio", ge::GeAttrValue::CreateFrom<std::vector<int64_t>>(v_ratio_vec));
@@ -4634,8 +4591,7 @@ TEST_F(FEOpsKernelInfoStoreTest, compile_vector_core_mix_tiling){
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, precompile_08)
-{
+TEST_F(FEOpsKernelInfoStoreTest, precompile_08) {
   shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>("test", "DynamicCompileStatic");
   shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
   shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
@@ -4660,25 +4616,22 @@ TEST_F(FEOpsKernelInfoStoreTest, precompile_08)
   output0_desc_ptr->SetOriginFormat(set_format);
   output0_desc_ptr->SetOriginShape(shape_desc);
   op_desc_ptr_t->AddOutputDesc("x", output0_desc_ptr->Clone());
-  OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "InPlaceOp");
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "InPlaceOp");
   SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
 
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test_graph");
   auto node = graph->AddNode(op_desc_ptr_t);
   TbeInfoAssembler t;
   t.Initialize();
-  te::TbeOpInfo info("test",
-                     "test1",
-                     "DynamicCompileStatic",
-                     fe::AI_CORE_NAME);
+  te::TbeOpInfo info("test", "test1", "DynamicCompileStatic", fe::AI_CORE_NAME);
   (void)ge::AttrUtils::SetStr(op_desc_ptr_t, kRelationReusedParam, "");
   Status ret = t.AssembleTbeInfo(node.get(), op_kernel_info_ptr, info, fe::AI_CORE_NAME);
 
   EXPECT_EQ(ret, fe::SUCCESS);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, precompile_09_ub)
-{
+TEST_F(FEOpsKernelInfoStoreTest, precompile_09_ub) {
   shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>("test", "DynamicCompileStatic");
   uint32_t ub_size = 2048;
   op_desc_ptr_t->SetExtAttr(ATTR_NAME_UB_FUSION_SPACE_SIZE, ub_size);
@@ -4705,25 +4658,22 @@ TEST_F(FEOpsKernelInfoStoreTest, precompile_09_ub)
   output0_desc_ptr->SetOriginFormat(set_format);
   output0_desc_ptr->SetOriginShape(shape_desc);
   op_desc_ptr_t->AddOutputDesc("x", output0_desc_ptr->Clone());
-  OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "InPlaceOp");
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "InPlaceOp");
   SubOpsStorePtr sub_ops_store_ptr = std::make_shared<SubOpsStore>(AI_CORE_NAME);
 
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test_graph");
   auto node = graph->AddNode(op_desc_ptr_t);
   TbeInfoAssembler t;
   t.Initialize();
-  te::TbeOpInfo info("test",
-                     "test1",
-                     "DynamicCompileStatic",
-                     fe::AI_CORE_NAME);
+  te::TbeOpInfo info("test", "test1", "DynamicCompileStatic", fe::AI_CORE_NAME);
   (void)ge::AttrUtils::SetStr(op_desc_ptr_t, kRelationReusedParam, "");
   Status ret = t.AssembleTbeInfo(node.get(), op_kernel_info_ptr, info, fe::AI_CORE_NAME);
 
   EXPECT_EQ(ret, fe::SUCCESS);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, check_dtype_by_mix_bf16_suc)
-{
+TEST_F(FEOpsKernelInfoStoreTest, check_dtype_by_mix_bf16_suc) {
   PlatformInfoManager::Instance().opti_compilation_infos_.SetSocVersion("Ascend910B2");
   ge::GetThreadLocalContext().graph_options_[ge::PRECISION_MODE] = ALLOW_MIX_PRECISION_BF16;
   shared_ptr<ge::GeTensorDesc> input_ptr = make_shared<ge::GeTensorDesc>();
@@ -4731,9 +4681,9 @@ TEST_F(FEOpsKernelInfoStoreTest, check_dtype_by_mix_bf16_suc)
   shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>("maxpool", "MaxPool_0");
   ge::DataType set_dtype = ge::DT_FLOAT;
   ge::Format set_format = ge::FORMAT_ND;
-  std::vector<int64_t> shape_vec{256,256,512};
+  std::vector<int64_t> shape_vec{256, 256, 512};
   ge::GeShape shape_desc = GeShape(shape_vec);
-  vector<int64_t> tensorShape = {1,1,3,1};
+  vector<int64_t> tensorShape = {1, 1, 3, 1};
   GeTensorDesc tensor1(GeShape(tensorShape), FORMAT_NCHW, ge::DT_FLOAT);
   input_ptr->SetDataType(set_dtype);
   input_ptr->SetFormat(set_format);
@@ -4743,7 +4693,8 @@ TEST_F(FEOpsKernelInfoStoreTest, check_dtype_by_mix_bf16_suc)
   output_ptr->SetShape(shape_desc);
   op_desc_ptr_t->AddInputDesc("x", tensor1);
   op_desc_ptr_t->AddOutputDesc("y", tensor1);
-  OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "MaxPool_0");
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "MaxPool_0");
   EXPECT_NE(nullptr, op_kernel_info_ptr);
   InputOrOutputInfoPtr input_info_ptr;
   InputOrOutputInfoPtr output_info_ptr;
@@ -4754,8 +4705,8 @@ TEST_F(FEOpsKernelInfoStoreTest, check_dtype_by_mix_bf16_suc)
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
   FormatDtypeInfo format_dtype_info;
-  Status get_format_dtype_status = sub_ops_store_ptr->GetSupportFormatAndDtype(test_node,
-          op_kernel_info_ptr, false, format_dtype_info);
+  Status get_format_dtype_status =
+      sub_ops_store_ptr->GetSupportFormatAndDtype(test_node, op_kernel_info_ptr, false, format_dtype_info);
   EXPECT_EQ(fe::SUCCESS, get_format_dtype_status);
   ge::GeTensorDescPtr input_desc = op_desc_ptr_t->MutableInputDesc(0);
   ge::GeTensorDescPtr output_desc = op_desc_ptr_t->MutableOutputDesc(0);
@@ -4768,11 +4719,11 @@ TEST_F(FEOpsKernelInfoStoreTest, check_dtype_by_mix_bf16_suc)
                                                check_info);
   EXPECT_EQ(ret, true);
   bool has_need_update_dtype_flag = false;
-  has_need_update_dtype_flag = ge::AttrUtils::GetBool(input_desc,
-                              NEED_UPDATE_DTYPE_WHEN_OP_CHECKSUPPORT, has_need_update_dtype_flag);
+  has_need_update_dtype_flag =
+      ge::AttrUtils::GetBool(input_desc, NEED_UPDATE_DTYPE_WHEN_OP_CHECKSUPPORT, has_need_update_dtype_flag);
   EXPECT_EQ(false, has_need_update_dtype_flag);
-  has_need_update_dtype_flag = ge::AttrUtils::GetBool(output_desc,
-                              NEED_UPDATE_DTYPE_WHEN_OP_CHECKSUPPORT, has_need_update_dtype_flag);
+  has_need_update_dtype_flag =
+      ge::AttrUtils::GetBool(output_desc, NEED_UPDATE_DTYPE_WHEN_OP_CHECKSUPPORT, has_need_update_dtype_flag);
   EXPECT_EQ(false, has_need_update_dtype_flag);
   std::pair<std::vector<size_t>, std::vector<size_t>> in_out_changed_idx_vec;
   tbe_adapter_ptr_->UpdateTensorByMixPrecisionMode(test_node, op_kernel_info_ptr, in_out_changed_idx_vec);
@@ -4780,9 +4731,8 @@ TEST_F(FEOpsKernelInfoStoreTest, check_dtype_by_mix_bf16_suc)
   EXPECT_EQ(ge::DT_FLOAT, op_desc_ptr_t->MutableOutputDesc("y")->GetDataType());
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, get_all_supp_format)
-{
-  vector<int64_t> tensorShape = {1,1,3,1};
+TEST_F(FEOpsKernelInfoStoreTest, get_all_supp_format) {
+  vector<int64_t> tensorShape = {1, 1, 3, 1};
   GeTensorDesc tensor1(GeShape(tensorShape), FORMAT_NCHW, ge::DT_FLOAT);
   std::map<string, vector<ge::Format>> format_map;
   shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>("maxpool", "MaxPool_0");
@@ -4790,7 +4740,8 @@ TEST_F(FEOpsKernelInfoStoreTest, get_all_supp_format)
   op_desc_ptr_t->AddOutputDesc("y", tensor1);
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   ge::NodePtr test_node = graph->AddNode(op_desc_ptr_t);
-  OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "MaxPool_0");
+  OpKernelInfoPtr op_kernel_info_ptr =
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "MaxPool_0");
   Status status = format_dtype_querier_ptr_->GetAllSupportFormat(op_kernel_info_ptr, test_node, format_map);
   EXPECT_EQ(status, fe::SUCCESS);
   OpSetterPtr op_setter_ptr = std::make_shared<OpSetter>(AI_CORE_NAME);
@@ -4803,7 +4754,8 @@ TEST_F(FEOpsKernelInfoStoreTest, get_all_supp_format)
   EXPECT_EQ(bres, false);
 
   (void)ge::AttrUtils::SetInt(test_node->GetOpDesc(), FE_IMPLY_TYPE, 6);
-  TbeOpStoreAdapterPtr tbe_adapter_ptr = std::dynamic_pointer_cast<TbeOpStoreAdapter>(OpStoreAdapterManager::Instance(AI_CORE_NAME).GetOpStoreAdapter(EN_IMPL_HW_TBE));
+  TbeOpStoreAdapterPtr tbe_adapter_ptr = std::dynamic_pointer_cast<TbeOpStoreAdapter>(
+      OpStoreAdapterManager::Instance(AI_CORE_NAME).GetOpStoreAdapter(EN_IMPL_HW_TBE));
   tbe_adapter_ptr->Initialize(std::map<std::string, std::string>());
 
   tbe_adapter_ptr->IsOppKernelInstalled = nullptr;
@@ -4823,7 +4775,7 @@ TEST_F(FEOpsKernelInfoStoreTest, get_all_supp_format)
   GeTensorDesc tensor2(GeShape(dynTensorShape), FORMAT_ND, ge::DT_FLOAT);
   shared_ptr<ge::OpDesc> op_desc_ptr_1 = make_shared<ge::OpDesc>("maxpool_1", "MaxPool_fallback");
   OpKernelInfoPtr op_kernel_info_ptr_2 =
-    OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "MaxPool_fallback");
+      OpsKernelManager::Instance(AI_CORE_NAME).GetOpKernelInfoByOpType("tbe-custom", "MaxPool_fallback");
   op_desc_ptr_1->AddInputDesc("x", tensor2);
   op_desc_ptr_1->AddOutputDesc("y", tensor2);
   ge::ComputeGraphPtr graph_1 = std::make_shared<ge::ComputeGraph>("test_1");
@@ -4970,8 +4922,7 @@ TEST_F(FEOpsKernelInfoStoreTest, subformat_support_check_fail2) {
   EXPECT_EQ(res, false);
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, test_set_hashed_extram_params)
-{
+TEST_F(FEOpsKernelInfoStoreTest, test_set_hashed_extram_params) {
   shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>("test", "AscBackend");
   shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
   shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
@@ -4997,11 +4948,10 @@ TEST_F(FEOpsKernelInfoStoreTest, test_set_hashed_extram_params)
   output0_desc_ptr->SetOriginShape(shape_desc);
   op_desc_ptr_t->AddOutputDesc("y", output0_desc_ptr->Clone());
 
-  op_desc_ptr_t->SetExtAttr("_extra_param_builder",
-    std::function<std::string()>([]() -> std::string {
-    std::string output = "{name:Relu_1_out0_asc}";
-    return output;
-  }));
+  op_desc_ptr_t->SetExtAttr("_extra_param_builder", std::function<std::string()>([]() -> std::string {
+                              std::string output = "{name:Relu_1_out0_asc}";
+                              return output;
+                            }));
 
   std::string hashed_extra_param = "{name:Relu_1_out0_asc}{type:Data}";
   op_desc_ptr_t->SetExtAttr("_hashed_extra_param_builder", hashed_extra_param);
@@ -5013,10 +4963,7 @@ TEST_F(FEOpsKernelInfoStoreTest, test_set_hashed_extram_params)
   auto node_data = graph->AddNode(data1);
   TbeInfoAssembler t;
   t.Initialize();
-  te::TbeOpInfo info("test",
-                     "test1",
-                     "AscBackend",
-                     fe::AI_CORE_NAME);
+  te::TbeOpInfo info("test", "test1", "AscBackend", fe::AI_CORE_NAME);
   (void)ge::AttrUtils::SetBool(op_desc_ptr_t, ge::ATTR_NAME_DISABLE_ATTACHED_RESOURCE, true);
   Status ret = t.AssembleAutoFuseTbeInfo(node.get(), info);
   EXPECT_EQ(ret, fe::SUCCESS);
@@ -5024,8 +4971,7 @@ TEST_F(FEOpsKernelInfoStoreTest, test_set_hashed_extram_params)
   EXPECT_EQ(info.GetHashedExtraParams(), "{name:Relu_1_out0_asc}{type:Data}");
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, test_set_op_impl_switch)
-{
+TEST_F(FEOpsKernelInfoStoreTest, test_set_op_impl_switch) {
   shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>("test", "AscBackend");
   shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
   shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
@@ -5055,10 +5001,7 @@ TEST_F(FEOpsKernelInfoStoreTest, test_set_op_impl_switch)
   auto node = graph->AddNode(op_desc_ptr_t);
   TbeInfoAssembler t;
   t.Initialize();
-  te::TbeOpInfo info("test",
-                     "test1",
-                     "AscBackend",
-                     fe::AI_CORE_NAME);
+  te::TbeOpInfo info("test", "test1", "AscBackend", fe::AI_CORE_NAME);
   string op_impl_switch = "";
   (void)ge::AttrUtils::SetStr(op_desc_ptr_t, kAttrOpImplSwitchValue, "has_set");
   t.SetOpImplSwitch(node->GetOpDesc(), info);
@@ -5066,8 +5009,7 @@ TEST_F(FEOpsKernelInfoStoreTest, test_set_op_impl_switch)
   EXPECT_EQ(op_impl_switch, "has_set");
 }
 
-TEST_F(FEOpsKernelInfoStoreTest, test_set_op_custom_op_file_path)
-{
+TEST_F(FEOpsKernelInfoStoreTest, test_set_op_custom_op_file_path) {
   shared_ptr<ge::OpDesc> op_desc_ptr_t = make_shared<ge::OpDesc>("test", "AscBackend");
   shared_ptr<ge::GeTensorDesc> input0_desc_ptr = make_shared<ge::GeTensorDesc>();
   shared_ptr<ge::GeTensorDesc> output0_desc_ptr = make_shared<ge::GeTensorDesc>();
@@ -5098,7 +5040,8 @@ TEST_F(FEOpsKernelInfoStoreTest, test_set_op_custom_op_file_path)
   FEOpsStoreInfo ops_store;
   ops_store.fe_ops_store_name = "tbe-custom";
   ops_store.is_custom_store = true;
-  ops_store.cfg_file_path = "/home/jenkins/Ascend/ascend-toolkit/latest/opp_vendors/customize/op_impl/ai_core/tbe/config/ascend910";
+  ops_store.cfg_file_path =
+      "/home/jenkins/Ascend/ascend-toolkit/latest/opp_vendors/customize/op_impl/ai_core/tbe/config/ascend910";
   shared_ptr<FEOpsKernelInfoStore> fe_ops_kernel_info_store_ptr = make_shared<FEOpsKernelInfoStore>();
   fe_ops_kernel_info_store_ptr->GetAndSetCustomOpFilePath(node, ops_store);
   std::string custom_op_file_path;
@@ -5120,7 +5063,8 @@ TEST_F(FEOpsKernelInfoStoreTest, test_set_op_custom_op_file_path)
   FEOpsStoreInfo ops_store2;
   ops_store2.fe_ops_store_name = "tbe-custom1";
   ops_store2.is_custom_store = true;
-  ops_store2.cfg_file_path = "/home/jenkins/Ascend/ascend-toolkit/latest/opp_vendors/customize/op_impl/ai_core/tbe/config/ascend910";
+  ops_store2.cfg_file_path =
+      "/home/jenkins/Ascend/ascend-toolkit/latest/opp_vendors/customize/op_impl/ai_core/tbe/config/ascend910";
   fe_ops_kernel_info_store_ptr->GetAndSetCustomOpFilePath(node, ops_store2);
   std::string custom_op_file_path2;
   (void)ge::AttrUtils::GetStr(node->GetOpDesc(), CUSTOM_OP_FILE_PATH, custom_op_file_path2);
@@ -5130,7 +5074,8 @@ TEST_F(FEOpsKernelInfoStoreTest, test_set_op_custom_op_file_path)
   FEOpsStoreInfo ops_store3;
   ops_store3.fe_ops_store_name = "tbe-builtin";
   ops_store3.is_custom_store = false;
-  ops_store3.cfg_file_path = "/home/jenkins/Ascend/ascend-toolkit/latest/opp_vendors/customize/op_impl/ai_core/tbe/config/ascend910";
+  ops_store3.cfg_file_path =
+      "/home/jenkins/Ascend/ascend-toolkit/latest/opp_vendors/customize/op_impl/ai_core/tbe/config/ascend910";
   fe_ops_kernel_info_store_ptr->GetAndSetCustomOpFilePath(node, ops_store3);
   std::string custom_op_file_path3;
   (void)ge::AttrUtils::GetStr(node->GetOpDesc(), CUSTOM_OP_FILE_PATH, custom_op_file_path3);

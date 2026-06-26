@@ -27,20 +27,20 @@ graph TB
         EsCTensorHolder[EsCTensorHolder<br/>C structure]
         EsbFuncs[esb_funcs.h<br/>C function interfaces]
     end
-    
+
     subgraph "C++ Wrapper Layer"
         EsGraphBuilder[EsGraphBuilder<br/>Graph builder class]
         EsTensorHolder[EsTensorHolder<br/>Tensor holder class]
         CompliantNodeBuilder[CompliantNodeBuilder<br/>Compliant node builder class]
     end
-    
+
     subgraph "GE Meta Types"
         Graph[ge::Graph<br/>Computation graph]
         GNode[ge::GNode<br/>Graph node]
         DataType[ge::DataType<br/>Data type]
         Format[ge::Format<br/>Tensor format]
     end
-    
+
     %% Dependencies
     EsGraphBuilder -->|"Encapsulates"| EsCGraphBuilder
     EsGraphBuilder -->|"Uses"| CompliantNodeBuilder
@@ -54,7 +54,7 @@ graph TB
     EsCGraphBuilder -->|"Builds"| Graph
     EsCGraphBuilder -->|"Uses"| DataType
     EsCGraphBuilder -->|"Uses"| Format
-    
+
     %% C API call relationships
     EsGraphBuilder -.->|"Calls"| EsbFuncs
     EsTensorHolder -.->|"Calls"| EsbFuncs

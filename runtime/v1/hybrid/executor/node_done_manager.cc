@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,17 +20,16 @@ namespace hybrid {
 namespace {
 constexpr int32_t kDefaultWaitTimeoutInSec = 600;
 constexpr int32_t kDefaultWaitTimeoutInSecForHeterogeneousRuntime = 1800;
-}
+}  // namespace
 std::string NodeDoneManager::Cond::ts_msg_;
 
 bool NodeDoneManager::Cond::Await() {
   std::unique_lock<std::mutex> lk(cond_mu_);
-  const auto timeout_in_sec = ExecutionRuntimeUtils::IsInHeterogeneousExecutor() ?
-                              kDefaultWaitTimeoutInSecForHeterogeneousRuntime : kDefaultWaitTimeoutInSec;
+  const auto timeout_in_sec = ExecutionRuntimeUtils::IsInHeterogeneousExecutor()
+                                  ? kDefaultWaitTimeoutInSecForHeterogeneousRuntime
+                                  : kDefaultWaitTimeoutInSec;
   while (true) {
-    if (!cv_.wait_for(lk,
-                      std::chrono::seconds(timeout_in_sec),
-                      [this]() { return is_released_ || is_cancelled_; })) {
+    if (!cv_.wait_for(lk, std::chrono::seconds(timeout_in_sec), [this]() { return is_released_ || is_cancelled_; })) {
       const auto ret = rtGetDevMsg(RT_GET_DEV_RUNNING_STREAM_SNAPSHOT_MSG, &DevMsgCallback);
       if (ret != RT_ERROR_NONE) {
         GELOGE(INTERNAL_ERROR, "[Call][RTS]Call rtGetDevMsg failed, ret=%d.", static_cast<int>(ret));
@@ -55,8 +54,8 @@ bool NodeDoneManager::Cond::Await() {
 void NodeDoneManager::Cond::Reset() {
   const std::unique_lock<std::mutex> lk(cond_mu_);
   if ((!is_released_) && (!is_cancelled_)) {
-    GELOGW("Called before done, released: %d, cancelled: %d",
-           static_cast<int32_t>(is_released_), static_cast<int32_t>(is_cancelled_));
+    GELOGW("Called before done, released: %d, cancelled: %d", static_cast<int32_t>(is_released_),
+           static_cast<int32_t>(is_cancelled_));
   }
 
   is_released_ = false;

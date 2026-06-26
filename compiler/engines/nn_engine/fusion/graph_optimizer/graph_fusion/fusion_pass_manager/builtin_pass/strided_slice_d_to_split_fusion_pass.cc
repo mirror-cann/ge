@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,11 +30,12 @@ const string kAttrShrinkAxisMask = "shrink_axis_mask";
 const string kSplitDim = "split_dim";
 const string kNumSplit = "num_split";
 const int64_t kNumSplitMax = 63;
-}
+}  // namespace
 vector<FusionPattern *> StridedSliceDToSplitFusionPass::DefinePatterns() {
   vector<FusionPattern *> patterns;
   FusionPattern *pattern = new (std::nothrow) FusionPattern("StridedSliceDToSplitFusionPass");
-  FE_CHECK(pattern == nullptr, REPORT_FE_ERROR("[GraphOpt][StridedSliceDToSplitFus][DefPtn] Failed to create a new object."),
+  FE_CHECK(pattern == nullptr,
+           REPORT_FE_ERROR("[GraphOpt][StridedSliceDToSplitFus][DefPtn] Failed to create a new object."),
            return patterns);
   pattern->AddOpDesc(kPatternStridedSliceD, {STRIDEDSLICED}).SetOutput(kPatternStridedSliceD);
   patterns.push_back(pattern);
@@ -51,7 +52,7 @@ std::vector<size_t> StridedSliceDToSplitFusionPass::GetMaskAxis(const int64_t &m
     tmp_bit_value = (abs(mask_value) >> i) & 1;
     if (tmp_bit_value == 1) {
       if (mask_value > 0) {
-        mask_axis.emplace_back(dims_size -1 - i);
+        mask_axis.emplace_back(dims_size - 1 - i);
       } else {
         mask_axis.emplace_back(i);
       }
@@ -62,8 +63,7 @@ std::vector<size_t> StridedSliceDToSplitFusionPass::GetMaskAxis(const int64_t &m
 
 Status StridedSliceDToSplitFusionPass::ModifyBeginAndEnd(const ge::OpDescPtr &strided_slice_d_desc,
                                                          const std::vector<int64_t> &ori_shape,
-                                                         std::vector<int64_t> &begins,
-                                                         std::vector<int64_t> &ends) {
+                                                         std::vector<int64_t> &begins, std::vector<int64_t> &ends) {
   int64_t ellipsis_mask = 0;
   (void)ge::AttrUtils::GetInt(strided_slice_d_desc, kAttrEllipsisMask, ellipsis_mask);
   if (ellipsis_mask < 0) {
@@ -115,8 +115,7 @@ Status StridedSliceDToSplitFusionPass::ModifyBeginAndEnd(const ge::OpDescPtr &st
 
 bool StridedSliceDToSplitFusionPass::CheckEvenlySlice(const ge::OpDescPtr &strided_slice_d_desc,
                                                       const std::vector<int64_t> &ori_shape,
-                                                      std::vector<int64_t> &begins,
-                                                      std::vector<int64_t> &ends,
+                                                      std::vector<int64_t> &begins, std::vector<int64_t> &ends,
                                                       SplitInfo &split_info) {
   // modify begin and end
   FE_LOGD("Node[%s]: the begins is %s, and the ends is %s.", strided_slice_d_desc->GetName().c_str(),
@@ -146,7 +145,8 @@ bool StridedSliceDToSplitFusionPass::CheckEvenlySlice(const ge::OpDescPtr &strid
     } else if (tmp_slice_size == ori_shape[i]) {
       continue;
     } else {
-      FE_LOGD("Node[%s]: the slice_size %ld check was unsuccessful.", strided_slice_d_desc->GetName().c_str(), tmp_slice_size);
+      FE_LOGD("Node[%s]: the slice_size %ld check was unsuccessful.", strided_slice_d_desc->GetName().c_str(),
+              tmp_slice_size);
       return false;
     }
   }
@@ -177,15 +177,15 @@ bool StridedSliceDToSplitFusionPass::CheckCommonCondition(const ge::NodePtr &str
   int64_t new_axis_mask = 0;
   (void)ge::AttrUtils::GetInt(strided_slice_d_desc, kAttrNewAxisMask, new_axis_mask);
   if (new_axis_mask != 0) {
-    FE_LOGD("Node[%s]: check the attr new_axis_mask %ld unsuccessful.",
-            strided_slice_d_desc->GetName().c_str(), new_axis_mask);
+    FE_LOGD("Node[%s]: check the attr new_axis_mask %ld unsuccessful.", strided_slice_d_desc->GetName().c_str(),
+            new_axis_mask);
     return false;
   }
   int64_t shrink_axis_mask = 0;
   (void)ge::AttrUtils::GetInt(strided_slice_d_desc, kAttrShrinkAxisMask, shrink_axis_mask);
   if (shrink_axis_mask != 0) {
-    FE_LOGD("Node[%s]: failed to check the attribute shrink_axis_mask %ld.",
-            strided_slice_d_desc->GetName().c_str(), shrink_axis_mask);
+    FE_LOGD("Node[%s]: failed to check the attribute shrink_axis_mask %ld.", strided_slice_d_desc->GetName().c_str(),
+            shrink_axis_mask);
     return false;
   }
   // size check
@@ -255,8 +255,8 @@ Status StridedSliceDToSplitFusionPass::UpdateGraph(ge::ComputeGraph &graph, ge::
     FE_CHECK_NOTNULL(out_ahcor);
     auto peer_in_anchors = out_ahcor->GetPeerInDataAnchors();
     if (!peer_in_anchors.empty()) {
-      Relations relations_output = {{static_cast<int32_t>(split_info.split_out_anchor),
-                                     {strided_slice_d_node, 0, PEER}}};
+      Relations relations_output = {
+          {static_cast<int32_t>(split_info.split_out_anchor), {strided_slice_d_node, 0, PEER}}};
       if (fusion_turbo.LinkOutput(relations_output, split_d_node, UPDATE_THIS) != SUCCESS) {
         FE_LOGE("Node[%s]: failed to link output.", split_d_name.c_str());
         return FAILED;
@@ -304,6 +304,6 @@ Status StridedSliceDToSplitFusionPass::Fusion(ge::ComputeGraph &graph, Mapping &
   FE_LOGD("Node[%s]: ending StridedSliceDToSplitFusionPass.", strided_slice_d_node->GetName().c_str());
   return SUCCESS;
 }
-REG_PASS("StridedSliceDToSplitFusionPass", BUILT_IN_GRAPH_PASS,
-         StridedSliceDToSplitFusionPass, SINGLE_SCENE_OPEN | FE_PASS);
+REG_PASS("StridedSliceDToSplitFusionPass", BUILT_IN_GRAPH_PASS, StridedSliceDToSplitFusionPass,
+         SINGLE_SCENE_OPEN | FE_PASS);
 }  // namespace fe

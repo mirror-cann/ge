@@ -22,7 +22,7 @@ cpp/
 - 通过安装指导 [环境准备](../../../../docs/zh/build.md#1-环境准备)正确安装`toolkit`和`ops`包
 - 设置环境变量 (假设包安装在/usr/local/Ascend/)
 ```
-source /usr/local/Ascend/cann/set_env.sh 
+source /usr/local/Ascend/cann/set_env.sh
 ```
 ### 3.2、编译和执行
 
@@ -65,7 +65,7 @@ export ASCEND_GLOBAL_LOG_LEVEL=0 #日志级别为debug级别
 ### 3.4、图编译流程中DUMP图
 可执行程序执行过程中，如果需要DUMP图来辅助定位图编译流程，可以在 bash run_sample.sh -t sample_and_run 之前设置如下环境变量来DUMP图到执行路径下
 ```bash
-export DUMP_GE_GRAPH=2 
+export DUMP_GE_GRAPH=2
 ```
 
 ## 4、核心概念介绍
@@ -85,17 +85,17 @@ export DUMP_GE_GRAPH=2
 
 例如 Split 算子原型如下所示，ES 构图生成的API是 Split（C++）或 EsSplit（C）
 ```bash
-  REG_OP(Split) 
-    .INPUT(split_dim, TensorType({DT_INT32})) 
-    .INPUT(x, TensorType({DT_COMPLEX128, DT_COMPLEX64, DT_DOUBLE, DT_FLOAT, DT_FLOAT16, DT_INT16, 
-     DT_INT32, DT_INT64, DT_INT8, DT_QINT16, DT_QINT32, DT_QINT8, 
-     DT_QUINT16, DT_QUINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_UINT8, 
-     DT_BF16, DT_BOOL})) 
-    .DYNAMIC_OUTPUT(y, TensorType({DT_COMPLEX128, DT_COMPLEX64, DT_DOUBLE, DT_FLOAT, DT_FLOAT16, DT_INT16, 
-     DT_INT32, DT_INT64, DT_INT8, DT_QINT16, DT_QINT32, DT_QINT8, 
-     DT_QUINT16, DT_QUINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_UINT8, 
-     DT_BF16, DT_BOOL})) 
-    .REQUIRED_ATTR(num_split, Int) 
+  REG_OP(Split)
+    .INPUT(split_dim, TensorType({DT_INT32}))
+    .INPUT(x, TensorType({DT_COMPLEX128, DT_COMPLEX64, DT_DOUBLE, DT_FLOAT, DT_FLOAT16, DT_INT16,
+     DT_INT32, DT_INT64, DT_INT8, DT_QINT16, DT_QINT32, DT_QINT8,
+     DT_QUINT16, DT_QUINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_UINT8,
+     DT_BF16, DT_BOOL}))
+    .DYNAMIC_OUTPUT(y, TensorType({DT_COMPLEX128, DT_COMPLEX64, DT_DOUBLE, DT_FLOAT, DT_FLOAT16, DT_INT16,
+     DT_INT32, DT_INT64, DT_INT8, DT_QINT16, DT_QINT32, DT_QINT8,
+     DT_QUINT16, DT_QUINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_UINT8,
+     DT_BF16, DT_BOOL}))
+    .REQUIRED_ATTR(num_split, Int)
     .OP_END_FACTORY_REG(Split)
 ```
 其对应的函数原型为：

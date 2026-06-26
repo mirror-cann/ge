@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,7 +25,6 @@
 
 namespace ge {
 extern const std::map<int64_t, HcclDataType> kConstOpHcclDataType;
-
 
 class HcomOmeUtil {
  public:
@@ -115,16 +114,15 @@ class HcomOmeUtil {
   /// @brief GetHcomP2pCount
   /// @return SUCCESS
   /// @return FAIL
-  static Status GetHcomP2pCount(const ge::GeTensorDesc &tensor_desc,
-                                const HcclDataType data_type,
-                                const HcomOperationType p2p_type,
-                                int64_t &count);
+  static Status GetHcomP2pCount(const ge::GeTensorDesc &tensor_desc, const HcclDataType data_type,
+                                const HcomOperationType p2p_type, int64_t &count);
 
   /// @ingroup domi_ome
   /// @brief GetHcomCount
   /// @return SUCCESS
   /// @return FAIL
   static Status GetHcclDataType(const ge::DataType src_data_type, HcclDataType &hccl_data_type);
+
  private:
   /// @ingroup domi_ome
   /// @brief GetHorovodCount

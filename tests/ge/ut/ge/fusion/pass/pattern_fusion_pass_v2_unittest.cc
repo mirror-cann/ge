@@ -38,8 +38,12 @@ class ProbeV2Pass : public PatternFusionPassV2 {
   using MeetReqProbe = std::function<bool(const std::unique_ptr<MatchResult> &, CustomPassContext &)>;
   using ReplacementProbe = std::function<GraphUniqPtr(const std::unique_ptr<MatchResult> &, CustomPassContext &)>;
 
-  void SetMeetRequirementsProbe(MeetReqProbe probe) { meet_req_probe_ = std::move(probe); }
-  void SetReplacementProbe(ReplacementProbe probe) { replacement_probe_ = std::move(probe); }
+  void SetMeetRequirementsProbe(MeetReqProbe probe) {
+    meet_req_probe_ = std::move(probe);
+  }
+  void SetReplacementProbe(ReplacementProbe probe) {
+    replacement_probe_ = std::move(probe);
+  }
 
  protected:
   std::vector<PatternUniqPtr> Patterns() override {
@@ -53,16 +57,14 @@ class ProbeV2Pass : public PatternFusionPassV2 {
     return patterns;
   }
 
-  bool MeetRequirements(const std::unique_ptr<MatchResult> &match_result,
-                        CustomPassContext &pass_context) override {
+  bool MeetRequirements(const std::unique_ptr<MatchResult> &match_result, CustomPassContext &pass_context) override {
     if (meet_req_probe_) {
       return meet_req_probe_(match_result, pass_context);
     }
     return PatternFusionPassV2::MeetRequirements(match_result, pass_context);
   }
 
-  GraphUniqPtr Replacement(const std::unique_ptr<MatchResult> &match_result,
-                           CustomPassContext &pass_context) override {
+  GraphUniqPtr Replacement(const std::unique_ptr<MatchResult> &match_result, CustomPassContext &pass_context) override {
     if (replacement_probe_) {
       return replacement_probe_(match_result, pass_context);
     }
@@ -87,7 +89,7 @@ GraphPtr MakeTargetGraph() {
   auto target_compute_graph = gert::ShareGraph::LstmpGraph();
   return GraphUtilsEx::CreateGraphPtrFromComputeGraph(target_compute_graph);
 }
-} // namespace
+}  // namespace
 
 TEST_F(UtestPatternFusionPassV2, RunSuccess_BasicV2Flow) {
   auto target_graph = MakeTargetGraph();
@@ -170,8 +172,7 @@ TEST_F(UtestPatternFusionPassV2, MeetRequirements_FalseSkipsReplacement) {
   ProbeV2Pass pass;
   CustomPassContext context;
 
-  pass.SetMeetRequirementsProbe(
-      [](const std::unique_ptr<MatchResult> &, CustomPassContext &) { return false; });
+  pass.SetMeetRequirementsProbe([](const std::unique_ptr<MatchResult> &, CustomPassContext &) { return false; });
 
   bool replacement_invoked = false;
   pass.SetReplacementProbe([&](const std::unique_ptr<MatchResult> &, CustomPassContext &) -> GraphUniqPtr {
@@ -193,5 +194,5 @@ TEST_F(UtestPatternFusionPassV2, Replacement_NullptrAborts) {
 
   EXPECT_NE(pass.Run(target_graph, context), SUCCESS);
 }
-} // namespace fusion
-} // namespace ge
+}  // namespace fusion
+}  // namespace ge

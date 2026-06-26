@@ -34,32 +34,32 @@
 #include "mmpa/mmpa_api.h"
 
 namespace {
-const char* const kVtString = "VT_STRING";
-const char* const kVtListString = "VT_LIST_STRING";
-const char* const kVtFloat = "VT_FLOAT";
-const char* const kVtListFloat = "VT_LIST_FLOAT";
-const char* const kVtInt = "VT_INT";
-const char* const kVtListInt = "VT_LIST_INT";
-const char* const kVtListListInt = "VT_LIST_LIST_INT";
-const char* const kVtBool = "VT_BOOL";
-const char* const kVtListBool = "VT_LIST_BOOL";
-const char* const kVtDataType = "VT_DATA_TYPE";
-const char* const kVtListDataType = "VT_LIST_DATA_TYPE";
-const char* const kVtTensor = "VT_TENSOR";
-const char* const kVtListTensor = "VT_LIST_TENSOR";
+const char *const kVtString = "VT_STRING";
+const char *const kVtListString = "VT_LIST_STRING";
+const char *const kVtFloat = "VT_FLOAT";
+const char *const kVtListFloat = "VT_LIST_FLOAT";
+const char *const kVtInt = "VT_INT";
+const char *const kVtListInt = "VT_LIST_INT";
+const char *const kVtListListInt = "VT_LIST_LIST_INT";
+const char *const kVtBool = "VT_BOOL";
+const char *const kVtListBool = "VT_LIST_BOOL";
+const char *const kVtDataType = "VT_DATA_TYPE";
+const char *const kVtListDataType = "VT_LIST_DATA_TYPE";
+const char *const kVtTensor = "VT_TENSOR";
+const char *const kVtListTensor = "VT_LIST_TENSOR";
 const char kPathSeparator = '/';
-const char* const kConstantFoldingSoPrefix = "libopconstant_folding_";
-const char* const kConstantFoldingSoSuffix = ".so";
-const char* const kExcludedConstantFoldingSo = "libconstant_folding_ops.so";
-const char* const kSymGetAllRegisteredOpTypesV2 = "GetAllRegisteredOpTypesV2";
-const char* const kSymIsRegisteredV2 = "IsRegisteredV2";
-const char* const kSymRunCpuKernelV2 = "RunCpuKernelV2";
+const char *const kConstantFoldingSoPrefix = "libopconstant_folding_";
+const char *const kConstantFoldingSoSuffix = ".so";
+const char *const kExcludedConstantFoldingSo = "libconstant_folding_ops.so";
+const char *const kSymGetAllRegisteredOpTypesV2 = "GetAllRegisteredOpTypesV2";
+const char *const kSymIsRegisteredV2 = "IsRegisteredV2";
+const char *const kSymRunCpuKernelV2 = "RunCpuKernelV2";
 
 using AttrValueMap = google::protobuf::Map<string, aicpuops::AttrValue>;
 
-using GetAllRegisteredOpTypesV2Fn = std::vector<std::string>(*)();
-using IsRegisteredV2Fn = bool(*)(const std::string &);
-using RunCpuKernelV2Fn = uint32_t(*)(aicpu::CpuKernelContext &);
+using GetAllRegisteredOpTypesV2Fn = std::vector<std::string> (*)();
+using IsRegisteredV2Fn = bool (*)(const std::string &);
+using RunCpuKernelV2Fn = uint32_t (*)(aicpu::CpuKernelContext &);
 
 struct V2ModuleBinding {
   void *handle = nullptr;
@@ -73,10 +73,8 @@ std::vector<V2ModuleBinding> g_v2_bindings;
 // op_type->binding反向索引, Init阶段一次性构建, 运行期只读。
 std::unordered_map<std::string, const V2ModuleBinding *> g_v2_op_index;
 
-void ConvertGeToAicpuTensor(const ge::GeTensorDesc &tensor_desc,
-                            const std::string &tensor_name,
-                            const ge::Tensor &ge_tensor,
-                            aicpuops::Tensor *aicpu_tensor) {
+void ConvertGeToAicpuTensor(const ge::GeTensorDesc &tensor_desc, const std::string &tensor_name,
+                            const ge::Tensor &ge_tensor, aicpuops::Tensor *aicpu_tensor) {
   aicpu_tensor->set_name(tensor_name);
   aicpu_tensor->set_tensor_type(tensor_desc.GetDataType());
   aicpu_tensor->set_data_ptr(static_cast<uint64_t>(reinterpret_cast<intptr_t>(ge_tensor.GetData())));
@@ -93,13 +91,12 @@ void ConvertGeToAicpuTensor(const ge::GeTensorDesc &tensor_desc,
     }
     shape->set_data_format(static_cast<ge::Format>(tensor_desc.GetFormat()));
   }
-  AICPUE_LOGI("Op set tensor[%s], tensor info[type:%d, data:%p, size:%llu].",
-         tensor_name.c_str(), static_cast<int>(tensor_desc.GetDataType()),
-         ge_tensor.GetData(), ge_tensor.GetSize());
+  AICPUE_LOGI("Op set tensor[%s], tensor info[type:%d, data:%p, size:%llu].", tensor_name.c_str(),
+              static_cast<int>(tensor_desc.GetDataType()), ge_tensor.GetData(), ge_tensor.GetSize());
 }
 
-int32_t AddStringAttrToNodeDef(const ge::Operator &op, const char *name,
-                               [[maybe_unused]] aicpuops::NodeDef node_def, aicpuops::AttrValue &attr_value) {
+int32_t AddStringAttrToNodeDef(const ge::Operator &op, const char *name, [[maybe_unused]] aicpuops::NodeDef node_def,
+                               aicpuops::AttrValue &attr_value) {
   std::string s;
   ge::graphStatus ret = op.GetAttr(name, s);
   if (ret != ge::GRAPH_SUCCESS) {
@@ -133,8 +130,8 @@ int32_t AddListStringAttrToNodeDef(const ge::Operator &op, const char *name,
   return 0;
 }
 
-int32_t AddFloatAttrToNodeDef(const ge::Operator &op, const char *name,
-                              [[maybe_unused]] aicpuops::NodeDef node_def, aicpuops::AttrValue &attr_value) {
+int32_t AddFloatAttrToNodeDef(const ge::Operator &op, const char *name, [[maybe_unused]] aicpuops::NodeDef node_def,
+                              aicpuops::AttrValue &attr_value) {
   float f = 0;
   ge::graphStatus ret = op.GetAttr(name, f);
   if (ret != ge::GRAPH_SUCCESS) {
@@ -147,8 +144,8 @@ int32_t AddFloatAttrToNodeDef(const ge::Operator &op, const char *name,
   return 0;
 }
 
-int32_t AddListFloatAttrToNodeDef(const ge::Operator &op, const char *name,
-                                  [[maybe_unused]] aicpuops::NodeDef node_def, aicpuops::AttrValue &attr_value) {
+int32_t AddListFloatAttrToNodeDef(const ge::Operator &op, const char *name, [[maybe_unused]] aicpuops::NodeDef node_def,
+                                  aicpuops::AttrValue &attr_value) {
   std::vector<float> list_f;
   ge::graphStatus ret = op.GetAttr(name, list_f);
   if (ret != ge::GRAPH_SUCCESS) {
@@ -168,8 +165,8 @@ int32_t AddListFloatAttrToNodeDef(const ge::Operator &op, const char *name,
   return 0;
 }
 
-int32_t AddBoolAttrToNodeDef(const ge::Operator &op, const char *name,
-                             [[maybe_unused]] aicpuops::NodeDef node_def, aicpuops::AttrValue &attr_value) {
+int32_t AddBoolAttrToNodeDef(const ge::Operator &op, const char *name, [[maybe_unused]] aicpuops::NodeDef node_def,
+                             aicpuops::AttrValue &attr_value) {
   bool b = false;
   ge::graphStatus ret = op.GetAttr(name, b);
   if (ret != ge::GRAPH_SUCCESS) {
@@ -182,8 +179,8 @@ int32_t AddBoolAttrToNodeDef(const ge::Operator &op, const char *name,
   return 0;
 }
 
-int32_t AddListBoolAttrToNodeDef(const ge::Operator &op, const char *name,
-                                 [[maybe_unused]] aicpuops::NodeDef node_def, aicpuops::AttrValue &attr_value) {
+int32_t AddListBoolAttrToNodeDef(const ge::Operator &op, const char *name, [[maybe_unused]] aicpuops::NodeDef node_def,
+                                 aicpuops::AttrValue &attr_value) {
   std::vector<bool> list_b;
   ge::graphStatus ret = op.GetAttr(name, list_b);
   if (ret != ge::GRAPH_SUCCESS) {
@@ -203,8 +200,8 @@ int32_t AddListBoolAttrToNodeDef(const ge::Operator &op, const char *name,
   return 0;
 }
 
-int32_t AddIntAttrToNodeDef(const ge::Operator &op, const char *name,
-                            [[maybe_unused]] aicpuops::NodeDef node_def, aicpuops::AttrValue &attr_value) {
+int32_t AddIntAttrToNodeDef(const ge::Operator &op, const char *name, [[maybe_unused]] aicpuops::NodeDef node_def,
+                            aicpuops::AttrValue &attr_value) {
   int64_t i = 0;
   ge::graphStatus ret = op.GetAttr(name, i);
   if (ret != ge::GRAPH_SUCCESS) {
@@ -217,8 +214,8 @@ int32_t AddIntAttrToNodeDef(const ge::Operator &op, const char *name,
   return 0;
 }
 
-int32_t AddListIntAttrToNodeDef(const ge::Operator &op, const char *name,
-                                [[maybe_unused]] aicpuops::NodeDef node_def, aicpuops::AttrValue &attr_value) {
+int32_t AddListIntAttrToNodeDef(const ge::Operator &op, const char *name, [[maybe_unused]] aicpuops::NodeDef node_def,
+                                aicpuops::AttrValue &attr_value) {
   std::vector<int64_t> list_i;
   ge::graphStatus ret = op.GetAttr(name, list_i);
   if (ret != ge::GRAPH_SUCCESS) {
@@ -263,8 +260,8 @@ int32_t AddListListIntAttrToNodeDef(const ge::Operator &op, const char *name,
   return 0;
 }
 
-int32_t AddDataTypeAttrToNodeDef(const ge::Operator &op, const char *name,
-                                 [[maybe_unused]] aicpuops::NodeDef node_def, aicpuops::AttrValue &attr_value) {
+int32_t AddDataTypeAttrToNodeDef(const ge::Operator &op, const char *name, [[maybe_unused]] aicpuops::NodeDef node_def,
+                                 aicpuops::AttrValue &attr_value) {
   ge::DataType data_type = ge::DT_UNDEFINED;
   ge::graphStatus ret = op.GetAttr(name, data_type);
   if (ret != ge::GRAPH_SUCCESS) {
@@ -298,8 +295,8 @@ int32_t AddListDataTypeAttrToNodeDef(const ge::Operator &op, const char *name,
   return 0;
 }
 
-int32_t AddTensorAttrToNodeDef(const ge::Operator &op, const char *name,
-                               [[maybe_unused]] aicpuops::NodeDef node_def, aicpuops::AttrValue &attr_value) {
+int32_t AddTensorAttrToNodeDef(const ge::Operator &op, const char *name, [[maybe_unused]] aicpuops::NodeDef node_def,
+                               aicpuops::AttrValue &attr_value) {
   ge::Tensor ge_tensor;
   ge::graphStatus ret = op.GetAttr(name, ge_tensor);
   if (ret != ge::GRAPH_SUCCESS) {
@@ -325,12 +322,12 @@ int32_t AddTensorAttrToNodeDef(const ge::Operator &op, const char *name,
   for (size_t i = 0; i < dims.size(); i++) {
     aicpuops::TensorShape_Dim *aicpu_dims = shape->add_dim();
     if (aicpu_dims == nullptr) {
-      return -1; 
+      return -1;
     }
     aicpu_dims->set_size(dims[i]);
   }
 
-  AICPUE_LOGD("Finish add tensor attr to neod def, name[%s].", name);                           
+  AICPUE_LOGD("Finish add tensor attr to neod def, name[%s].", name);
   return 0;
 }
 
@@ -352,7 +349,7 @@ int32_t AddListTensorAttrToNodeDef(const ge::Operator &op, const char *name,
     if (aicpu_tensor == nullptr) {
       return -1;
     }
-  
+
     ge::TensorDesc ge_tensor_desc = ge_tensor.GetTensorDesc();
     aicpu_tensor->set_tensor_type(ge_tensor_desc.GetDataType());
     aicpu_tensor->set_data_ptr(static_cast<uint64_t>(reinterpret_cast<intptr_t>(ge_tensor.GetData())));
@@ -367,7 +364,7 @@ int32_t AddListTensorAttrToNodeDef(const ge::Operator &op, const char *name,
     for (size_t i = 0; i < dims.size(); i++) {
       aicpuops::TensorShape_Dim *aicpu_dims = shape->add_dim();
       if (aicpu_dims == nullptr) {
-        return -1; 
+        return -1;
       }
       aicpu_dims->set_size(dims[i]);
     }
@@ -377,10 +374,8 @@ int32_t AddListTensorAttrToNodeDef(const ge::Operator &op, const char *name,
   return 0;
 }
 
-int32_t AddListAttrToNodeDef(const ge::Operator &op, const char *name,
-                             const std::string &type,
-                             aicpuops::NodeDef node_def,
-                             aicpuops::AttrValue &attr_value) {
+int32_t AddListAttrToNodeDef(const ge::Operator &op, const char *name, const std::string &type,
+                             aicpuops::NodeDef node_def, aicpuops::AttrValue &attr_value) {
   int32_t ret = 0;
   if (type == kVtListString) {
     ret = AddListStringAttrToNodeDef(op, name, node_def, attr_value);
@@ -397,14 +392,12 @@ int32_t AddListAttrToNodeDef(const ge::Operator &op, const char *name,
   } else if (type == kVtListTensor) {
     ret = AddListTensorAttrToNodeDef(op, name, node_def, attr_value);
   } else {
-    AICPUE_LOGW("Attr type is unsuported, name: [%s], type: [%s].",
-           name, type.c_str());
+    AICPUE_LOGW("Attr type is unsupported, name: [%s], type: [%s].", name, type.c_str());
   }
   return ret;
 }
 
-int32_t AddAttrToNodeDef(const ge::Operator &op, const char *name,
-                         const std::string type, aicpuops::NodeDef node_def,
+int32_t AddAttrToNodeDef(const ge::Operator &op, const char *name, const std::string type, aicpuops::NodeDef node_def,
                          aicpuops::AttrValue &attr_value) {
   int32_t ret = 0;
   if (type.empty() || type[0] == '_') {
@@ -430,7 +423,7 @@ int32_t AddAttrToNodeDef(const ge::Operator &op, const char *name,
 
 std::string GetRealPath(const std::string &path) {
   char resoved_path[PATH_MAX] = {0};
-  if(realpath(path.c_str(), resoved_path) != nullptr) {
+  if (realpath(path.c_str(), resoved_path) != nullptr) {
     return std::string(resoved_path);
   }
   AICPUE_LOGW("path %s does not exist", path.c_str());
@@ -452,8 +445,7 @@ bool IsConstantFoldingSo(const std::string &file_name) {
   if (file_name.length() < suffix_len) {
     return false;
   }
-  if (file_name.compare(file_name.length() - suffix_len,
-                        suffix_len, kConstantFoldingSoSuffix) != 0) {
+  if (file_name.compare(file_name.length() - suffix_len, suffix_len, kConstantFoldingSoSuffix) != 0) {
     return false;
   }
   return file_name != kExcludedConstantFoldingSo;
@@ -464,17 +456,13 @@ void TryBindV2Symbols(void *handle, const std::string &so_name) {
   binding.handle = handle;
   binding.so_name = so_name;
 
-  binding.get_all_op_types = reinterpret_cast<GetAllRegisteredOpTypesV2Fn>(
-      dlsym(handle, kSymGetAllRegisteredOpTypesV2));
-  binding.is_registered = reinterpret_cast<IsRegisteredV2Fn>(
-      dlsym(handle, kSymIsRegisteredV2));
-  binding.run_cpu_kernel = reinterpret_cast<RunCpuKernelV2Fn>(
-      dlsym(handle, kSymRunCpuKernelV2));
+  binding.get_all_op_types =
+      reinterpret_cast<GetAllRegisteredOpTypesV2Fn>(dlsym(handle, kSymGetAllRegisteredOpTypesV2));
+  binding.is_registered = reinterpret_cast<IsRegisteredV2Fn>(dlsym(handle, kSymIsRegisteredV2));
+  binding.run_cpu_kernel = reinterpret_cast<RunCpuKernelV2Fn>(dlsym(handle, kSymRunCpuKernelV2));
 
-  if ((binding.get_all_op_types == nullptr) &&
-      (binding.run_cpu_kernel == nullptr)) {
-    AICPUE_LOGW("V2 C ABI symbols not found in so[%s], skip V2 binding.",
-                so_name.c_str());
+  if ((binding.get_all_op_types == nullptr) && (binding.run_cpu_kernel == nullptr)) {
+    AICPUE_LOGW("V2 C ABI symbols not found in so[%s], skip V2 binding.", so_name.c_str());
     return;
   }
   g_v2_bindings.emplace_back(binding);
@@ -499,8 +487,7 @@ void LoadConstantFoldingSo(const std::string &base_path) {
     AICPUE_LOGI("Found constant folding so: %s", lib_path.c_str());
     void *handle = dlopen(lib_path.c_str(), RTLD_NOW | RTLD_GLOBAL);
     if (handle == nullptr) {
-      AICPUE_LOGW("dlopen failed: %s, reason: %s",
-                   lib_path.c_str(), dlerror());
+      AICPUE_LOGW("dlopen failed: %s, reason: %s", lib_path.c_str(), dlerror());
       continue;
     }
     AICPUE_LOGI("Successfully loaded: %s", lib_path.c_str());
@@ -517,14 +504,12 @@ void RegisterHostCpuOp(std::vector<std::string> ops, ge::HostCpuOp *(*create_fn)
       continue;
     }
     AICPUE_LOGI("Register op[%s].", op_type.c_str());
-    ::ge::HostCpuOpRegistrar registrar __attribute__((unused)) =
-        ::ge::HostCpuOpRegistrar(op_type.c_str(), create_fn);
+    ::ge::HostCpuOpRegistrar registrar __attribute__((unused)) = ::ge::HostCpuOpRegistrar(op_type.c_str(), create_fn);
   }
 }
 
 extern "C" {
-__attribute__((visibility("default"))) int32_t InitCpuConstantFoldingNew(
-    ge::HostCpuOp *(*create_fn)()) {
+__attribute__((visibility("default"))) int32_t InitCpuConstantFoldingNew(ge::HostCpuOp *(*create_fn)()) {
   AICPUE_LOGI("Init cpu constant folding begin.");
 
   const char *path_env = nullptr;
@@ -539,8 +524,7 @@ __attribute__((visibility("default"))) int32_t InitCpuConstantFoldingNew(
 
   LoadConstantFoldingSo(base_path);
 
-  std::vector<std::string> ops =
-      aicpu::CpuKernelRegister::Instance().GetAllRegisteredOpTypes();
+  std::vector<std::string> ops = aicpu::CpuKernelRegister::Instance().GetAllRegisteredOpTypes();
   AICPUE_LOGI("Registered V1 ops: %llu", static_cast<uint64_t>(ops.size()));
   RegisterHostCpuOp(ops, create_fn);
 
@@ -555,23 +539,18 @@ __attribute__((visibility("default"))) int32_t InitCpuConstantFoldingNew(
       // 多so重复注册同一op_type时保留先加载者, 避免后加载者静默覆盖。
       auto insert_ret = g_v2_op_index.emplace(op_type, &binding);
       if (!insert_ret.second) {
-        AICPUE_LOGW(
-            "op type [%s] V2 already indexed by so[%s], so[%s] skipped.",
-            op_type.c_str(), insert_ret.first->second->so_name.c_str(),
-            binding.so_name.c_str());
+        AICPUE_LOGW("op type [%s] V2 already indexed by so[%s], so[%s] skipped.", op_type.c_str(),
+                    insert_ret.first->second->so_name.c_str(), binding.so_name.c_str());
       }
     }
-    AICPUE_LOGI("Registered V2 ops from so[%s]: %llu",
-                binding.so_name.c_str(),
-                static_cast<uint64_t>(ops_v2.size()));
+    AICPUE_LOGI("Registered V2 ops from so[%s]: %llu", binding.so_name.c_str(), static_cast<uint64_t>(ops_v2.size()));
     RegisterHostCpuOp(ops_v2, create_fn);
   }
 
   return 0;
 }
-int32_t BuildInputTensors(const ge::OpDescPtr &op_desc,
-    const std::map<std::string, const ge::Tensor> &inputs,
-    const char *op_type, aicpuops::NodeDef &node_def) {
+int32_t BuildInputTensors(const ge::OpDescPtr &op_desc, const std::map<std::string, const ge::Tensor> &inputs,
+                          const char *op_type, aicpuops::NodeDef &node_def) {
   uint32_t count = static_cast<uint32_t>(op_desc->GetAllInputsSize());
   for (uint32_t i = 0; i < count; ++i) {
     ge::GeTensorDescPtr desc = op_desc->MutableInputDesc(i);
@@ -593,9 +572,8 @@ int32_t BuildInputTensors(const ge::OpDescPtr &op_desc,
   return 0;
 }
 
-int32_t BuildOutputTensors(const ge::OpDescPtr &op_desc,
-    std::map<std::string, ge::Tensor> &outputs,
-    const char *op_type, aicpuops::NodeDef &node_def) {
+int32_t BuildOutputTensors(const ge::OpDescPtr &op_desc, std::map<std::string, ge::Tensor> &outputs,
+                           const char *op_type, aicpuops::NodeDef &node_def) {
   uint32_t count = static_cast<uint32_t>(op_desc->GetOutputsSize());
   for (uint32_t i = 0; i < count; ++i) {
     ge::GeTensorDesc desc = op_desc->GetOutputDesc(i);
@@ -614,8 +592,7 @@ int32_t BuildOutputTensors(const ge::OpDescPtr &op_desc,
   return 0;
 }
 
-int32_t BuildNodeDefAttrs(const ge::Operator &op,
-                          aicpuops::NodeDef &node_def) {
+int32_t BuildNodeDefAttrs(const ge::Operator &op, aicpuops::NodeDef &node_def) {
   std::map<ge::AscendString, ge::AscendString> attrs;
   if (op.GetAllAttrNamesAndTypes(attrs) != ge::GRAPH_SUCCESS) {
     return -1;
@@ -632,8 +609,7 @@ int32_t BuildNodeDefAttrs(const ge::Operator &op,
     if (node_def_attrs == nullptr) {
       return -1;
     }
-    auto pair = node_def_attrs->insert(
-        AttrValueMap::value_type(std::string(name), attr_value));
+    auto pair = node_def_attrs->insert(AttrValueMap::value_type(std::string(name), attr_value));
     if (!pair.second) {
       return -1;
     }
@@ -642,22 +618,19 @@ int32_t BuildNodeDefAttrs(const ge::Operator &op,
 }
 
 int32_t BuildNodeDef(const ge::Operator &op, const std::string &op_type_str,
-    const std::map<std::string, const ge::Tensor> &inputs,
-    std::map<std::string, ge::Tensor> &outputs,
-    aicpuops::NodeDef &node_def) {
+                     const std::map<std::string, const ge::Tensor> &inputs, std::map<std::string, ge::Tensor> &outputs,
+                     aicpuops::NodeDef &node_def) {
   auto op_desc = ge::OpDescUtils::GetOpDescFromOperator(op);
   if (op_desc == nullptr) {
     AICPUE_LOGW("Op[%s] get op desc failed.", op_type_str.c_str());
     return -1;
   }
   node_def.set_op(op_type_str);
-  int32_t ret = BuildInputTensors(
-      op_desc, inputs, op_type_str.c_str(), node_def);
+  int32_t ret = BuildInputTensors(op_desc, inputs, op_type_str.c_str(), node_def);
   if (ret != 0) {
     return ret;
   }
-  ret = BuildOutputTensors(
-      op_desc, outputs, op_type_str.c_str(), node_def);
+  ret = BuildOutputTensors(op_desc, outputs, op_type_str.c_str(), node_def);
   if (ret != 0) {
     return ret;
   }
@@ -677,10 +650,9 @@ const V2ModuleBinding *LookupV2Binding(const std::string &op_type) {
   return binding;
 }
 
-__attribute__((visibility("default"))) int32_t CpuConstantFoldingComputeNew(
-    const ge::Operator &op,
-    const std::map<std::string, const ge::Tensor> &inputs,
-    std::map<std::string, ge::Tensor> outputs) {
+__attribute__((visibility("default"))) int32_t
+CpuConstantFoldingComputeNew(const ge::Operator &op, const std::map<std::string, const ge::Tensor> &inputs,
+                             std::map<std::string, ge::Tensor> outputs) {
   ge::AscendString op_type;
   if (op.GetOpType(op_type) != ge::GRAPH_SUCCESS) {
     return -1;
@@ -691,15 +663,12 @@ __attribute__((visibility("default"))) int32_t CpuConstantFoldingComputeNew(
   const V2ModuleBinding *hit_binding = LookupV2Binding(op_type_str);
   if (hit_binding == nullptr) {
     if (aicpu::CpuKernelRegister::Instance().GetCpuKernel(op_type_str) == nullptr) {
-      AICPUE_LOGW("op type [%s] is not registered in v1 nor v2.",
-                  op_type.GetString());
+      AICPUE_LOGW("op type [%s] is not registered in v1 nor v2.", op_type.GetString());
       return -1;
     }
-    AICPUE_LOGI("op type [%s] use v1 kernel from local register.",
-                op_type.GetString());
+    AICPUE_LOGI("op type [%s] use v1 kernel from local register.", op_type.GetString());
   } else {
-    AICPUE_LOGI("op type [%s] hit v2 in so[%s].",
-                op_type.GetString(), hit_binding->so_name.c_str());
+    AICPUE_LOGI("op type [%s] hit v2 in so[%s].", op_type.GetString(), hit_binding->so_name.c_str());
   }
 
   aicpuops::NodeDef node_def;
@@ -715,13 +684,11 @@ __attribute__((visibility("default"))) int32_t CpuConstantFoldingComputeNew(
   }
 
   if (hit_binding != nullptr) {
-    AICPUE_LOGI("op type [%s] run cpu kernel v2 in so[%s].",
-                op_type.GetString(), hit_binding->so_name.c_str());
+    AICPUE_LOGI("op type [%s] run cpu kernel v2 in so[%s].", op_type.GetString(), hit_binding->so_name.c_str());
     ret = static_cast<int32_t>(hit_binding->run_cpu_kernel(ctx));
   } else {
     AICPUE_LOGI("op type [%s] run cpu kernel v1.", op_type.GetString());
-    ret = static_cast<int32_t>(
-        aicpu::CpuKernelRegister::Instance().RunCpuKernel(ctx));
+    ret = static_cast<int32_t>(aicpu::CpuKernelRegister::Instance().RunCpuKernel(ctx));
   }
   if (ret != 0) {
     return -1;

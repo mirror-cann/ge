@@ -50,7 +50,7 @@ The graph compilation process is divided into graph preparation, graph optimizat
 During the graph optimization process, graphs are dumped stage by stage. You can validate nodes, edge relationships, attributes, etc. on the graph by dumping a certain stage. Use DUMP_GRAPH_WHEN and CHECK_GRAPH macros together. The first macro specifies which stage's graph to dump, and the second macro can write graph validation logic.
 ```c++
 /**
- * 
+ *
  *       Variable(2, 3, 4, 5)                      Relu3(1,2,3,4,5)
  *          /            \                             /        \
  *     TransData      TransData                    TransData    summary
@@ -58,7 +58,7 @@ During the graph optimization process, graphs are dumped stage by stage. You can
  *   Relu(1,2,3,4,5)  Relu(1,2,3,4,5)            Variable(2, 3, 4, 5)
  *          \            /                             |
  *             NetOutput -------------------------------
- * 
+ *
  * Case description: After Summary optimization, Summary operator is deleted, its input node connects to Netoutput as network output
  * Preconditions:
  * 1. Register Summary operator's graph

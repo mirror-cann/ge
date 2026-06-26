@@ -85,4 +85,3 @@ Status aclgrphProfDestroyConfig(aclgrphProfConfig *profiler_config)
 -   与[aclgrphProfCreateConfig](aclgrphProfCreateConfig.md)接口配对使用，先调用aclgrphProfCreateConfig接口再调用aclgrphProfDestroyConfig接口。
 -   需要销毁的Profiling配置信息必须是由aclgrphProfCreateConfig创建。
 -   销毁Profiling配置信息失败，请检查配置信息参数是否合理。
-

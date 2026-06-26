@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -155,8 +155,8 @@ TEST_F(TilingUT, FindTilingFunc_Success) {
   auto run_context = BuildKernelRunContext(2, 1);
   const char *node_type = "null_tiling";
   run_context.value_holder[0].Set(const_cast<char *>(node_type), nullptr);
-  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl(node_type)->tiling
-      = StubTiling;
+  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl(node_type)->tiling =
+      StubTiling;
 
   auto space_registry = std::make_shared<OpImplSpaceRegistryV2>();
   ASSERT_NE(space_registry, nullptr);
@@ -182,7 +182,9 @@ TEST_F(TilingUT, test_tiling_parse_create_output_success) {
   auto run_context = BuildKernelRunContext(3, 1);
   const char *node_type = "null_tiling";
   run_context.value_holder[1].Set(const_cast<char *>(node_type), nullptr);
-  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl(node_type)
+  gert::DefaultOpImplSpaceRegistryV2::GetInstance()
+      .GetSpaceRegistry()
+      ->CreateOrGetOpImpl(node_type)
       ->compile_info_creator = StubCreateCompileInfo;
 
   auto space_registry = std::make_shared<gert::OpImplSpaceRegistryV2>();
@@ -190,7 +192,9 @@ TEST_F(TilingUT, test_tiling_parse_create_output_success) {
   run_context.value_holder[2].Set(space_registry.get(), nullptr);
 
   ASSERT_EQ(tilingParse->outputs_creator(nullptr, run_context), ge::GRAPH_SUCCESS);
-  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl(node_type)
+  gert::DefaultOpImplSpaceRegistryV2::GetInstance()
+      .GetSpaceRegistry()
+      ->CreateOrGetOpImpl(node_type)
       ->compile_info_creator = nullptr;
 }
 
@@ -199,7 +203,9 @@ TEST_F(TilingUT, test_tiling_parse_create_output_is_null_follow_default_impl) {
   const char *node_type = "null_tiling";
   run_context.value_holder[1].Set(const_cast<char *>(node_type), nullptr);
   // set compile_info_creator is null, make it follow default impl of compile_info_creator
-  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl(node_type)
+  gert::DefaultOpImplSpaceRegistryV2::GetInstance()
+      .GetSpaceRegistry()
+      ->CreateOrGetOpImpl(node_type)
       ->compile_info_creator = nullptr;
 
   auto space_registry = SpaceRegistryFaker().Build();
@@ -208,7 +214,9 @@ TEST_F(TilingUT, test_tiling_parse_create_output_is_null_follow_default_impl) {
   run_context.value_holder[2].Set(space_registry.get(), nullptr);
 
   ASSERT_EQ(tilingParse->outputs_creator(nullptr, run_context), ge::GRAPH_SUCCESS);
-  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl(node_type)
+  gert::DefaultOpImplSpaceRegistryV2::GetInstance()
+      .GetSpaceRegistry()
+      ->CreateOrGetOpImpl(node_type)
       ->compile_info_creator = nullptr;
   run_context.FreeAll();
 }
@@ -233,16 +241,16 @@ TEST_F(TilingUT, test_tiling_parse_func_run_success) {
   auto run_context = BuildKernelRunContext(3, 1);
   const char *node_type = "null_tiling_parse";
   run_context.value_holder[1].Set(const_cast<char *>(node_type), nullptr);
-  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl(node_type)
-      ->tiling_parse = StubTilingParse;
+  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl(node_type)->tiling_parse =
+      StubTilingParse;
 
   auto space_registry = std::make_shared<gert::OpImplSpaceRegistryV2>();
   space_registry->CreateOrGetOpImpl(node_type)->tiling_parse = StubTilingParse;
   run_context.value_holder[2].Set(space_registry.get(), nullptr);
 
   ASSERT_EQ(tilingParse->run_func(run_context), ge::GRAPH_SUCCESS);
-  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl(node_type)
-      ->tiling_parse = nullptr;
+  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl(node_type)->tiling_parse =
+      nullptr;
 }
 
 TEST_F(TilingUT, test_build_unmanage_tensor_data_success) {

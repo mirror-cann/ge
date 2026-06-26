@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -170,7 +170,7 @@ ge::graphStatus CreateSwitchNotifyOutputs(const ge::FastNode *node, KernelContex
   auto outputs_num = node->GetAllOutDataEdgesSize();
   std::vector<NodeIdentity> optimized_watcher;
   optimized_watcher.reserve(watchers_num);
-  optimized_watcher.push_back(watcher->node_ids[0]); // Target receiver
+  optimized_watcher.push_back(watcher->node_ids[0]);  // Target receiver
   for (size_t i = outputs_num; i < watchers_num; i++) {
     optimized_watcher.push_back(watcher->node_ids[i]);
   }

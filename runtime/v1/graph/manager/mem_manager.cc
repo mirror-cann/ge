@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -15,7 +15,9 @@
 namespace ge {
 MemManager::MemManager() : MemoryManager() {}
 
-MemManager::~MemManager() { Finalize(); }
+MemManager::~MemManager() {
+  Finalize();
+}
 
 MemManager &MemManager::Instance() {
   static MemManager mem_manager;
@@ -31,7 +33,7 @@ Status MemManager::Initialize(const std::vector<rtMemType_t> &memory_type) {
 
   GELOGI("MemManager Initialize.");
   if (allocator_manager_ != nullptr) {
-    (void) allocator_manager_->Initialize(memory_type);
+    (void)allocator_manager_->Initialize(memory_type);
   }
 
   auto ret = InitAllocator(memory_type, memory_allocator_map_);
@@ -91,8 +93,8 @@ uint8_t *MemManager::GetMemoryAddr(const rtMemType_t memory_type, const std::str
   return MemInstance(memory_type).GetMemoryAddr(memory_key, device_id);
 }
 
-uint8_t *MemManager::MallocMemory(const rtMemType_t memory_type, const std::string &purpose,
-                                  const size_t memory_size, const uint32_t device_id) {
+uint8_t *MemManager::MallocMemory(const rtMemType_t memory_type, const std::string &purpose, const size_t memory_size,
+                                  const uint32_t device_id) {
   return MemInstance(memory_type).MallocMemory(purpose, memory_size, device_id);
 }
 

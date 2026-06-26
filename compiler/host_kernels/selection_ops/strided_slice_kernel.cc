@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -243,17 +243,17 @@ Status StridedSliceKernel::InitParamWithAttrs(const std::vector<ConstGeTensorPtr
       end_i = x_dims.at(i);
       stride_i = 1;
     }
-    GELOGD("Before mask calculate. Begin is : %ld\t,end is : %ld\t stride is : %ld\t x_dim_i is : %ld",
-           begin_i, end_i, stride_i, x_dims.at(i));
+    GELOGD("Before mask calculate. Begin is : %ld\t,end is : %ld\t stride is : %ld\t x_dim_i is : %ld", begin_i, end_i,
+           stride_i, x_dims.at(i));
     auto ret = MaskCal(i, begin_i, end_i, x_dims.at(i));
     if (ret != SUCCESS) {
       GELOGW("MaskCal failed, because of data overflow.");
       return NOT_CHANGED;
     }
     int64_t dim_final;
-    GELOGD("Before stride calculate. Begin is : %ld\t,end is : %ld\t stride is : %ld\t x_dim_i is : %ld",
-           begin_i, end_i, stride_i, x_dims.at(i));
-    (void) StrideCal(x_dims.at(i), begin_i, end_i, stride_i, dim_final);
+    GELOGD("Before stride calculate. Begin is : %ld\t,end is : %ld\t stride is : %ld\t x_dim_i is : %ld", begin_i,
+           end_i, stride_i, x_dims.at(i));
+    (void)StrideCal(x_dims.at(i), begin_i, end_i, stride_i, dim_final);
     output_dims.push_back(dim_final);
     input_dims.push_back(x_dims.at(i));
     begin_vec.push_back(begin_i);
@@ -280,8 +280,7 @@ void StridedSliceKernel::ExpandDimsWithNewAxis(const ConstGeTensorPtr &begin_ten
   }
 }
 
-void StridedSliceKernel::ExpandStrideWithEllipsisMask(const size_t x_dims_num,
-                                                      const std::vector<int64_t> &x_dims,
+void StridedSliceKernel::ExpandStrideWithEllipsisMask(const size_t x_dims_num, const std::vector<int64_t> &x_dims,
                                                       std::vector<int64_t> &orig_begin_vec,
                                                       std::vector<int64_t> &orig_end_vec,
                                                       std::vector<int64_t> &orig_stride_vec) {

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -36,7 +36,7 @@ struct BasicInfoForRemovingNode {
 };
 
 /** @brief Class of merging all reversed trans-nodes
-* pairs. */
+ * pairs. */
 class TransNodeMerging {
  public:
   explicit TransNodeMerging();
@@ -56,16 +56,14 @@ class TransNodeMerging {
   Status AddEdgesForNewNode(ge::OutDataAnchorPtr src_anchor, ge::InDataAnchorPtr dst_anchor, ge::NodePtr new_node);
 
   Status MergeOneNode(ge::ComputeGraph &fused_graph, ge::NodePtr node, const uint32_t &current_in_anchor_index,
-                            std::stack<uint32_t> &in_anchor_index_stack);
+                      std::stack<uint32_t> &in_anchor_index_stack);
 
   bool CheckTwoTransOpDescMergable(const ge::NodePtr &src_node, const ge::NodePtr &dst_node,
-                                   const std::vector<ge::NodePtr> &origin_cast_list,
-                                   const bool check_list_flag) const;
+                                   const std::vector<ge::NodePtr> &origin_cast_list, const bool check_list_flag) const;
 
   Status MergeTransOpBetweenTwoNormalOp(ge::ComputeGraph &fused_graph, ge::NodePtr src_node,
                                         const ge::InDataAnchorPtr &in_anchor,
-                                        const std::vector<ge::NodePtr> &origin_cast_list,
-                                        const bool check_list_flag);
+                                        const std::vector<ge::NodePtr> &origin_cast_list, const bool check_list_flag);
 
   uint32_t FindIndexOfCurrentNode(const Vistor<ge::InDataAnchorPtr> &in_data_anchor_ptr_vec,
                                   const ge::InDataAnchorPtr &in_anchor) const;

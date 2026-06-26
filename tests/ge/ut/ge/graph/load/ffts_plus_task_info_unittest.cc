@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -3623,7 +3623,8 @@ TEST_F(UtestFftsPlusTaskInfo, load_mixl2_with_args_format_successfully) {
   EXPECT_EQ(task_info.ffts_flus_args_helper_->io_addrs_[37], 64);
 
   auto cust_to_relevant = task_info.ffts_flus_args_helper_->cust_to_relevant_offset_;
-  std::map<uint64_t, uint64_t> golden = {{0, 2}, {1, 24}, {2, 25}, {3, 34}, {4, 35}, {5, 5}, {6, 6}, {7, 7}, {8, 44}, {9, 45}, {10, 9}};
+  std::map<uint64_t, uint64_t> golden = {{0, 2}, {1, 24}, {2, 25}, {3, 34}, {4, 35}, {5, 5},
+                                         {6, 6}, {7, 7},  {8, 44}, {9, 45}, {10, 9}};
   EXPECT_EQ(golden, cust_to_relevant);
   HiddenInputsFuncRegistry::GetInstance().type_to_funcs_.clear();
   task_info.Release();
@@ -3653,8 +3654,8 @@ TEST_F(UtestFftsPlusTaskInfo, load_ifa_with_tiling_dependence_successfully) {
   davinci_model.logical_mem_allocations_.push_back(fm_mem_allocation);
   task_def.set_stream_id(0);
 
-  auto func = [](void *handle, const uint64_t tilingKey, const void *const stubFunc,
-                 const uint32_t flag, rtKernelDetailInfo_t *kernelInfo) -> int {
+  auto func = [](void *handle, const uint64_t tilingKey, const void *const stubFunc, const uint32_t flag,
+                 rtKernelDetailInfo_t *kernelInfo) -> int {
     kernelInfo->functionInfoNum = 1;
     kernelInfo->functionInfo[0].pcAddr = (void *)(0x1245);
     kernelInfo->functionInfo[0].prefetchCnt = 1;
@@ -3700,8 +3701,7 @@ TEST_F(UtestFftsPlusTaskInfo, load_ifa_with_tiling_dependence_successfully) {
   AttrUtils::SetListStr(op_desc, ATTR_NAME_KERNEL_NAMES_PREFIX, name_prefix);
   AttrUtils::SetBool(op_desc, "_kernel_list_first_name", true);
   davinci_model.op_list_[0] = op_desc;
-  davinci_model.operator_list_[0] =
-      MakeShared<Operator>(OpDescUtils::CreateOperatorFromNode(ifa_node));
+  davinci_model.operator_list_[0] = MakeShared<Operator>(OpDescUtils::CreateOperatorFromNode(ifa_node));
   AttrUtils::SetInt(op_desc, ATTR_NAME_ATTACHED_STREAM_ID, 0);
   rtStream_t stream1 = nullptr;
   davinci_model.reusable_stream_allocator_->GetOrCreateRtStream(stream1, 0, 0, 0);
@@ -3775,8 +3775,8 @@ TEST_F(UtestFftsPlusTaskInfo, load_mixl2_with_args_format_with_l0_exception_dump
   davinci_model.logical_mem_allocations_.push_back(fm_mem_allocation);
   task_def.set_stream_id(0);
 
-  auto func = [](void *handle, const uint64_t tilingKey, const void *const stubFunc,
-                 const uint32_t flag, rtKernelDetailInfo_t *kernelInfo) -> int {
+  auto func = [](void *handle, const uint64_t tilingKey, const void *const stubFunc, const uint32_t flag,
+                 rtKernelDetailInfo_t *kernelInfo) -> int {
     kernelInfo->functionInfoNum = 1;
     kernelInfo->functionInfo[0].pcAddr = (void *)(0x1245);
     kernelInfo->functionInfo[0].prefetchCnt = 1;
@@ -3822,8 +3822,7 @@ TEST_F(UtestFftsPlusTaskInfo, load_mixl2_with_args_format_with_l0_exception_dump
   AttrUtils::SetListStr(op_desc, ATTR_NAME_KERNEL_NAMES_PREFIX, name_prefix);
   AttrUtils::SetBool(op_desc, "_kernel_list_first_name", true);
   davinci_model.op_list_[0] = op_desc;
-  davinci_model.operator_list_[0] =
-      MakeShared<Operator>(OpDescUtils::CreateOperatorFromNode(ifa_node));
+  davinci_model.operator_list_[0] = MakeShared<Operator>(OpDescUtils::CreateOperatorFromNode(ifa_node));
   AttrUtils::SetInt(op_desc, ATTR_NAME_ATTACHED_STREAM_ID, 0);
   rtStream_t stream1 = nullptr;
   davinci_model.reusable_stream_allocator_->GetOrCreateRtStream(stream1, 0, 0, 0);

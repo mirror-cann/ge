@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,8 +21,7 @@ InnerProcessMsgForwarding::~InnerProcessMsgForwarding() {
   Finalize();
 }
 
-Status InnerProcessMsgForwarding::Initialize(const std::vector<DeployQueueAttr> &status_input_queue_attrs)
-{
+Status InnerProcessMsgForwarding::Initialize(const std::vector<DeployQueueAttr> &status_input_queue_attrs) {
   const auto execution_runtime = ExecutionRuntime::GetInstance();
   GE_CHECK_NOTNULL(execution_runtime);
   exchange_service_ = &execution_runtime->GetExchangeService();
@@ -91,7 +90,7 @@ void InnerProcessMsgForwarding::Run() {
                sub_model_status.msg_type());
         continue;
       }
-      if(iter->second(sub_model_status) != SUCCESS) {
+      if (iter->second(sub_model_status) != SUCCESS) {
         GELOGW("Execute call back func failed for message type:%u.", sub_model_status.msg_type());
         continue;
       }
@@ -101,9 +100,8 @@ void InnerProcessMsgForwarding::Run() {
   GELOGI("Inner process message forwarding thread exit.");
 }
 
-Status InnerProcessMsgForwarding::RegisterCallBackFunc(const StatusQueueMsgType& msg_type,
-    const std::function<Status(const domi::SubmodelStatus&)> &func)
-{
+Status InnerProcessMsgForwarding::RegisterCallBackFunc(
+    const StatusQueueMsgType &msg_type, const std::function<Status(const domi::SubmodelStatus &)> &func) {
   const std::lock_guard<std::mutex> lock(func_mutex_);
   if (callbacks_.find(msg_type) == callbacks_.end()) {
     callbacks_[msg_type] = func;
@@ -113,4 +111,4 @@ Status InnerProcessMsgForwarding::RegisterCallBackFunc(const StatusQueueMsgType&
          static_cast<uint32_t>(msg_type));
   return FAILED;
 }
-}
+}  // namespace ge

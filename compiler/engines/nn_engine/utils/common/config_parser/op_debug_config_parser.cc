@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,19 +22,17 @@
 #include "framework/common/ge_types.h"
 #include "graph/ge_context.h"
 
-
 namespace fe {
 namespace {
 constexpr char const *kMemoryCheckKey = "oom";
 const int64_t OFFSET_2 = 2;
-};
+};  // namespace
 OpDebugConfigParser::OpDebugConfigParser() : BaseConfigParser() {}
 OpDebugConfigParser::OpDebugConfigParser(const string &npu_collect_path) : BaseConfigParser() {
   npu_collect_path_ = npu_collect_path;
 }
 OpDebugConfigParser::~OpDebugConfigParser() {}
-Status OpDebugConfigParser::InitializeFromOptions(const std::map<std::string, std::string> &options)
-{
+Status OpDebugConfigParser::InitializeFromOptions(const std::map<std::string, std::string> &options) {
   std::map<std::string, std::string>::const_iterator iter = options.find(kOpDebugConfig);
   if (iter == options.end() || iter->second.empty()) {
     FE_LOGD("Parameter[op_debug_config] is not found in options.");
@@ -45,7 +43,7 @@ Status OpDebugConfigParser::InitializeFromOptions(const std::map<std::string, st
   std::string real_path = GetRealPath(file_path);
   if (real_path.empty()) {
     ErrorMessageDetail err_msg(EM_INPUT_OPTION_INVALID, {file_path, kOpDebugConfig,
-                               "The file does not exist or its access permission is denied"});
+                                                         "The file does not exist or its access permission is denied"});
     ReportErrorMessage(err_msg);
     FE_LOGE("op_debug_configs real_path is null.");
     return FAILED;
@@ -54,7 +52,7 @@ Status OpDebugConfigParser::InitializeFromOptions(const std::map<std::string, st
   std::ifstream ifs(real_path);
   if (!ifs.is_open()) {
     ErrorMessageDetail err_msg(EM_INPUT_OPTION_INVALID, {iter->second, kOpDebugConfig,
-                               "The file does not exist or its access permission is denied"});
+                                                         "The file does not exist or its access permission is denied"});
     ReportErrorMessage(err_msg);
     FE_LOGE("[Configuration][GetConfigValueByKey] Config file %s does not exist.", iter->second.c_str());
     return FAILED;
@@ -97,12 +95,11 @@ Status OpDebugConfigParser::InitializeFromContext() {
 }
 
 bool OpDebugConfigParser::GetOpdebugValue(const std::string &line, std::vector<std::string> &res,
-                                          const std::string &file_path)
-{
+                                          const std::string &file_path) {
   size_t pos_of_equal = line.find('=');
   if (pos_of_equal == string::npos) {
     ErrorMessageDetail err_msg(EM_INVALID_CONTENT,
-        {kOpDebugConfig, file_path, "Line:\"" + line + "\" not contain \"=\"."});
+                               {kOpDebugConfig, file_path, "Line:\"" + line + "\" not contain \"=\"."});
     ReportErrorMessage(err_msg);
     REPORT_FE_ERROR("[Configuration][ParseOpDebugConfig]Config [%s] format is error.", line.c_str());
     return false;
@@ -110,7 +107,7 @@ bool OpDebugConfigParser::GetOpdebugValue(const std::string &line, std::vector<s
   std::string value = line.substr(pos_of_equal + 1);
   if (value.empty()) {
     ErrorMessageDetail err_msg(EM_INVALID_CONTENT,
-        {kOpDebugConfig, file_path, "Line:\"" + line + "\", value is empty."});
+                               {kOpDebugConfig, file_path, "Line:\"" + line + "\", value is empty."});
     ReportErrorMessage(err_msg);
     REPORT_FE_ERROR("[Configuration][ParseOpDebugConfig]Config value [%s] is empty.", line.c_str());
     return false;
@@ -140,8 +137,7 @@ void OpDebugConfigParser::AssembleOpDebugConfigInfo(std::vector<std::string> &va
   op_debug_config_ = ss.str();
 }
 
-void OpDebugConfigParser::AssembleOpDebugListInfo(std::vector<std::string> &value_list_vec)
-{
+void OpDebugConfigParser::AssembleOpDebugListInfo(std::vector<std::string> &value_list_vec) {
   for (auto &it : value_list_vec) {
     it = StringUtils::Trim(it);
     if (it.empty()) {
@@ -155,8 +151,7 @@ void OpDebugConfigParser::AssembleOpDebugListInfo(std::vector<std::string> &valu
   }
 }
 
-bool OpDebugConfigParser::SetOpDebugList(const std::string &op_debug_list, const std::string &file_path)
-{
+bool OpDebugConfigParser::SetOpDebugList(const std::string &op_debug_list, const std::string &file_path) {
   if (op_debug_list.empty()) {
     FE_LOGD("without op_debug_list");
     return true;
@@ -169,8 +164,7 @@ bool OpDebugConfigParser::SetOpDebugList(const std::string &op_debug_list, const
   return true;
 }
 
-bool OpDebugConfigParser::SetOpdebugConfig(const std::string &file_path)
-{
+bool OpDebugConfigParser::SetOpdebugConfig(const std::string &file_path) {
   if (op_debug_config_.empty()) {
     FE_LOGD("with out op_debug_config");
     return false;
@@ -183,22 +177,19 @@ bool OpDebugConfigParser::SetOpdebugConfig(const std::string &file_path)
   return get_op_bebug_status;
 }
 
-std::string OpDebugConfigParser::GetOpDebugConfig() const
-{
+std::string OpDebugConfigParser::GetOpDebugConfig() const {
   return op_debug_config_;
 }
 
-bool OpDebugConfigParser::IsNeedMemoryCheck() const
-{
+bool OpDebugConfigParser::IsNeedMemoryCheck() const {
   return enable_op_memory_check_;
 }
 
-void OpDebugConfigParser::SetOpDebugConfigEnv(const std::string &env)
-{
+void OpDebugConfigParser::SetOpDebugConfigEnv(const std::string &env) {
   if (op_debug_config_.empty() && !env.empty()) {
-      op_debug_config_ = "dump_bin,dump_cce,dump_loc,ccec_g";
-      FE_LOGD("The op_debug_config is empty, but env[%s] is not empty; setting op_debug_config_ value to [%s].",
-              env.c_str(), op_debug_config_.c_str());
+    op_debug_config_ = "dump_bin,dump_cce,dump_loc,ccec_g";
+    FE_LOGD("The op_debug_config is empty, but env[%s] is not empty; setting op_debug_config_ value to [%s].",
+            env.c_str(), op_debug_config_.c_str());
   }
 }
 
@@ -214,4 +205,4 @@ bool OpDebugConfigParser::IsOpDebugListOp(const ge::OpDescPtr &op_desc_ptr) cons
   }
   return false;
 }
-}
+}  // namespace fe

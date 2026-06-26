@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,25 +27,21 @@ constexpr int32_t kDataInputIndex = 0;
 
 namespace hybrid {
 ShapeInferenceEngine::ShapeInferenceEngine(GraphExecutionContext *const execution_context, const bool force_infer_shape)
-    : force_infer_shape_(force_infer_shape),
-      execution_context_(execution_context) {}
+    : force_infer_shape_(force_infer_shape), execution_context_(execution_context) {}
 
 void ShapeInferenceEngine::Config(SubgraphContext *const subgraph_context) {
   this->subgraph_context_ = subgraph_context;
 }
 
 Status ShapeInferenceEngine::InferShape(const NodeState &node_state) const {
-  HYBRID_CHK_STATUS_RET(DoInferShape(node_state),
-                        "[Invoke][DoInferShape] failed for [%s(%s)].",
+  HYBRID_CHK_STATUS_RET(DoInferShape(node_state), "[Invoke][DoInferShape] failed for [%s(%s)].",
                         node_state.GetName().c_str(), node_state.GetType().c_str());
   PROFILING_START(node_state.GetProfilingIndex(), profiling::kInferShapePropgate);
-  HYBRID_CHK_STATUS_RET(PropagateOutputShapes(node_state),
-                        "[Invoke][PropagateOutputShapes] failed for [%s(%s)].",
+  HYBRID_CHK_STATUS_RET(PropagateOutputShapes(node_state), "[Invoke][PropagateOutputShapes] failed for [%s(%s)].",
                         node_state.GetName().c_str(), node_state.GetType().c_str());
   PROFILING_END(node_state.GetProfilingIndex(), profiling::kInferShapePropgate);
   return SUCCESS;
 }
-
 
 Status ShapeInferenceEngine::InitInferShapes(const GraphItem *const graph_item, const std::vector<TensorValue> &inputs,
                                              const std::vector<ConstGeTensorDescPtr> &input_desc) const {
@@ -56,8 +52,8 @@ Status ShapeInferenceEngine::InitInferShapes(const GraphItem *const graph_item, 
            "[Check][Size][%s] Number of inputs [%zu] is not sufficient for subgraph which needs [%zu] inputs.",
            graph_item->GetName().c_str(), inputs.size(), input_nodes.size());
     REPORT_INNER_ERR_MSG("E19999",
-                       "[%s] Number of inputs [%zu] is not sufficient for subgraph which needs [%zu] inputs.",
-                       graph_item->GetName().c_str(), inputs.size(), input_nodes.size());
+                         "[%s] Number of inputs [%zu] is not sufficient for subgraph which needs [%zu] inputs.",
+                         graph_item->GetName().c_str(), inputs.size(), input_nodes.size());
     return INTERNAL_ERROR;
   }
 
@@ -69,11 +65,8 @@ Status ShapeInferenceEngine::InitInferShapes(const GraphItem *const graph_item, 
     }
 
     auto &input_tensor = inputs[i];
-    GELOGD("[%s] Set input tensor[%zu] to inputs with index = %d, tensor = %s",
-           graph_item->GetName().c_str(),
-           i,
-           input_node->input_start,
-           input_tensor.DebugString().c_str());
+    GELOGD("[%s] Set input tensor[%zu] to inputs with index = %d, tensor = %s", graph_item->GetName().c_str(), i,
+           input_node->input_start, input_tensor.DebugString().c_str());
 
     const GeTensorDesc *tensor_desc = nullptr;
     // tensor_desc may be nullptr when static shape input
@@ -113,8 +106,8 @@ Status ShapeInferenceEngine::PropagateOutputs(const NodeItem *const node_item, c
       }
       GE_CHECK_NOTNULL(tensor_desc);
       GE_CHECK_NOTNULL(dst_node_item->op_desc->MutableInputDesc(static_cast<uint32_t>(dst_input_idx)));
-      GE_CHK_STATUS_RET_NOLOG(ShapeUtils::CopyShapeAndTensorSize(*tensor_desc,
-          *(dst_node_item->op_desc->MutableInputDesc(static_cast<uint32_t>(dst_input_idx)))));
+      GE_CHK_STATUS_RET_NOLOG(ShapeUtils::CopyShapeAndTensorSize(
+          *tensor_desc, *(dst_node_item->op_desc->MutableInputDesc(static_cast<uint32_t>(dst_input_idx)))));
     }
   }
 
@@ -180,7 +173,7 @@ Status ShapeInferenceEngine::DoInferShape(const NodeState &node_state) const {
     RECORD_SHAPE_INFERENCE_EVENT(execution_context_, node_item.NodeName().c_str(), "[InferShapeAndType] Start");
     PROFILING_START(node_state.GetProfilingIndex(), profiling::kInferShape);
     GE_CHK_STATUS_RET(ShapeRefiner::InferShapeAndTypeForRunning(node_item.node, *op, true),
-        "[Invoke][InferShapeAndType] for %s failed.", node_item.NodeName().c_str());
+                      "[Invoke][InferShapeAndType] for %s failed.", node_item.NodeName().c_str());
     PROFILING_END(node_state.GetProfilingIndex(), profiling::kInferShape);
     RECORD_SHAPE_INFERENCE_EVENT(execution_context_, node_item.NodeName().c_str(), "[InferShapeAndType] End");
   }
@@ -191,8 +184,7 @@ Status ShapeInferenceEngine::DoInferShape(const NodeState &node_state) const {
   GE_CHK_STATUS_RET_NOLOG(node_item.CalcOutputTensorSizes(node_item.shape_inference_type == DEPEND_SHAPE_RANGE));
   RECORD_COMPILE_EVENT(execution_context_, node_item.NodeName().c_str(), "[CalcOpRunningParam] End");
 
-  GELOGD("[%s] [HybridTrace] After shape inference. Node = %s",
-         node_item.NodeName().c_str(),
+  GELOGD("[%s] [HybridTrace] After shape inference. Node = %s", node_item.NodeName().c_str(),
          node_item.DebugString().c_str());
 
   GELOGD("[%s] InferShapeAndType finished successfully.", node_item.NodeName().c_str());
@@ -207,7 +199,7 @@ Status ShapeInferenceEngine::PropagateOutputShapes(const NodeState &node_state) 
 
   RECORD_SHAPE_INFERENCE_EVENT(execution_context_, node_item.NodeName().c_str(), "[PropagateOutputShapes] Start");
   if (!node_item.IsShapeInFuture()) {
-    GE_CHK_STATUS_RET_NOLOG(const_cast<NodeItem&>(node_item).DoPropagate());
+    GE_CHK_STATUS_RET_NOLOG(const_cast<NodeItem &>(node_item).DoPropagate());
   }
   RECORD_SHAPE_INFERENCE_EVENT(execution_context_, node_item.NodeName().c_str(), "[PropagateOutputShapes] End");
   GELOGD("[%s] Propagating output shapes finished successfully.", node_item.NodeName().c_str());
@@ -237,8 +229,8 @@ Status ShapeInferenceEngine::InferShapeForSubgraph(const NodeItem &node_item,
     GE_CHK_STATUS_RET(ShapeRefiner::InferShapeAndType(fused_subgraph.nodes[i]));
     PROFILING_END(fused_subgraph.name_to_prof_indexes[i], profiling::kInferShape);
     GELOGD("[%s] Done invoking InferShapeAndType", fused_subgraph.nodes[i]->GetName().c_str());
-    GE_CHK_STATUS_RET(UpdatePeerNodeShape(*fused_subgraph.nodes[i]),
-        "[Update][PeerNodeShape] failed for [%s].", fused_subgraph.nodes[i]->GetName().c_str());
+    GE_CHK_STATUS_RET(UpdatePeerNodeShape(*fused_subgraph.nodes[i]), "[Update][PeerNodeShape] failed for [%s].",
+                      fused_subgraph.nodes[i]->GetName().c_str());
   }
 
   for (auto &it : fused_subgraph.output_mapping) {
@@ -270,23 +262,21 @@ Status ShapeInferenceEngine::UpdatePeerNodeShape(const Node &node) const {
       GE_CHECK_NOTNULL(peer_op_desc);
       const auto peer_input_desc = peer_op_desc->MutableInputDesc(static_cast<uint32_t>(peer_anchor->GetIdx()));
       if (peer_input_desc == nullptr) {
-        GELOGE(GRAPH_FAILED, "[Call][MutableInputDesc] for %s(%s) return nullptr.",
-               peer_op_desc->GetName().c_str(), peer_op_desc->GetType().c_str());
-        REPORT_INNER_ERR_MSG("E19999", "%s(%s) call MutableInputDesc return nullptr.",
-                          peer_op_desc->GetName().c_str(), peer_op_desc->GetType().c_str());
+        GELOGE(GRAPH_FAILED, "[Call][MutableInputDesc] for %s(%s) return nullptr.", peer_op_desc->GetName().c_str(),
+               peer_op_desc->GetType().c_str());
+        REPORT_INNER_ERR_MSG("E19999", "%s(%s) call MutableInputDesc return nullptr.", peer_op_desc->GetName().c_str(),
+                             peer_op_desc->GetType().c_str());
         continue;
       }
 
       GELOGI("Peer input op desc name is %s, need to flush: shape size is %zu, datatype is %d, original datatype is %d",
-             peer_anchor->GetOwnerNode()->GetOpDesc()->GetName().c_str(),
-             output_tensor->GetShape().GetDimNum(), output_tensor->GetDataType(),
-             output_tensor->GetOriginDataType());
+             peer_anchor->GetOwnerNode()->GetOpDesc()->GetName().c_str(), output_tensor->GetShape().GetDimNum(),
+             output_tensor->GetDataType(), output_tensor->GetOriginDataType());
       peer_input_desc->SetOriginShape(output_tensor->GetOriginShape());
       peer_input_desc->SetShape(output_tensor->GetShape());
       GELOGI("Peer input op desc name is %s, shape size is %zu, datatype is %d, original datatype is %d",
-             peer_anchor->GetOwnerNode()->GetOpDesc()->GetName().c_str(),
-             peer_input_desc->GetShape().GetDimNum(), peer_input_desc->GetDataType(),
-             peer_input_desc->GetOriginDataType());
+             peer_anchor->GetOwnerNode()->GetOpDesc()->GetName().c_str(), peer_input_desc->GetShape().GetDimNum(),
+             peer_input_desc->GetDataType(), peer_input_desc->GetOriginDataType());
     }
   }
   return SUCCESS;
@@ -303,10 +293,10 @@ Status ShapeInferenceEngine::SetDependingTensor(const FusedSubgraph &fused_subgr
       GE_CHECK_NOTNULL(dst_tensor_desc);
       GeTensorPtr tensor = nullptr;
       if (execution_context_->runtime_context_.GetTensor(src_node_id, src_output_idx, tensor) != GRAPH_SUCCESS) {
-        REPORT_INNER_ERR_MSG("E19999", "Failed to get tensor, node_id = %" PRId64 ", output_idx = %d.",
-                          src_node_id, src_output_idx);
-        GELOGE(INTERNAL_ERROR, "[Get][Tensor]Failed to get tensor, node_id = %ld, output_idx = %d.",
-               src_node_id, src_output_idx);
+        REPORT_INNER_ERR_MSG("E19999", "Failed to get tensor, node_id = %" PRId64 ", output_idx = %d.", src_node_id,
+                             src_output_idx);
+        GELOGE(INTERNAL_ERROR, "[Get][Tensor]Failed to get tensor, node_id = %ld, output_idx = %d.", src_node_id,
+               src_output_idx);
         return INTERNAL_ERROR;
       }
       (void)AttrUtils::SetTensor(dst_tensor_desc, ATTR_NAME_VALUE, tensor);

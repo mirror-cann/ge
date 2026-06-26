@@ -3,10 +3,10 @@
 # -------------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
@@ -14,9 +14,11 @@
 """AttrValue module for attribute value operations in GraphEngine."""
 
 import ctypes
-from typing import List, Union, Any, Callable, TypeVar, Type
+from typing import Any, Callable, List, Type
+
 from ge._capi.pygraph_wrapper import graph_lib
-from .types import DataType, AttrValueType
+
+from .types import AttrValueType, DataType
 
 
 def _clear_cache_on_success(method: Callable[..., int]) -> Callable[..., bool]:
@@ -38,9 +40,7 @@ def _cache_with_type_check(expected_type: AttrValueType):
     def decorator(method: Callable[..., Any]) -> Callable[..., Any]:
         def _wrapped(self, *args, **kwargs):
             # 检查是否有缓存且类型匹配
-            if (self._cached_value is not None and
-                    self._value_type is not None and
-                    self._value_type == expected_type):
+            if self._cached_value is not None and self._value_type is not None and self._value_type == expected_type:
                 return self._cached_value
 
             # 没有缓存或类型不匹配，调用原方法获取值
@@ -61,12 +61,12 @@ def _cache_with_type_check(expected_type: AttrValueType):
 
 def _validate_list_input(values: List[Any], expected_type: Type, type_name: str) -> None:
     """Validate list input parameters.
-    
+
     Args:
         values: List of values to validate.
         expected_type: Expected type for list elements.
         type_name: Human-readable type name for error messages.
-        
+
     Raises:
         TypeError: If values is not a list or elements are wrong type.
         ValueError: If values is empty.
@@ -83,13 +83,13 @@ def _validate_list_input(values: List[Any], expected_type: Type, type_name: str)
 
 def _create_list_setter(c_type, setter_func, expected_type, type_name):
     """Factory function to create list setter methods.
-    
+
     Args:
         c_type: C type for the array (e.g., ctypes.c_float).
         setter_func: C API function for setting the list.
         expected_type: Python type for validation.
         type_name: Human-readable type name for error messages.
-        
+
     Returns:
         Decorated setter method.
     """
@@ -97,10 +97,10 @@ def _create_list_setter(c_type, setter_func, expected_type, type_name):
     @_clear_cache_on_success
     def setter(self, values: List[Any]) -> bool:
         """Set list of values.
-        
+
         Args:
             values: List of values.
-            
+
         Returns:
             True if successful, False otherwise.
         """
@@ -120,13 +120,13 @@ def _create_list_setter(c_type, setter_func, expected_type, type_name):
 
 def _create_list_getter(c_type, getter_func, free_func, expected_type):
     """Factory function to create list getter methods.
-    
+
     Args:
         c_type: C type for the array (e.g., ctypes.c_float).
         getter_func: C API function for getting the list.
         free_func: C API function for freeing the list.
         expected_type: Python type for the returned values.
-        
+
     Returns:
         Decorated getter method.
     """
@@ -134,17 +134,17 @@ def _create_list_getter(c_type, getter_func, free_func, expected_type):
     @_cache_with_type_check(expected_type)
     def getter(self) -> List[Any]:
         """Get list of values.
-        
+
         Returns:
             List of values.
-            
+
         Raises:
             RuntimeError: If retrieval fails.
         """
         size = ctypes.c_int64()
         c_array = getter_func(self._av_ptr, ctypes.byref(size))
         if not c_array:
-            raise RuntimeError(f"Failed to get list value")
+            raise RuntimeError("Failed to get list value")
 
         try:
             return [c_array[i] for i in range(size.value)]
@@ -156,10 +156,10 @@ def _create_list_getter(c_type, getter_func, free_func, expected_type):
 
 class _AttrValue:
     """AttrValue for attribute value operations in GraphEngine.
-    
+
     This class provides a Pythonic interface for attribute value operations
     using the GraphEngine C API.
-    
+
     Example:
         >>> attr = _AttrValue()
         >>> attr.set_string("hello")
@@ -170,7 +170,7 @@ class _AttrValue:
 
     def __init__(self) -> None:
         """Initialize an AttrValue.
-        
+
         Creates a new AttrValue instance using the GraphEngine C API.
         """
         # Create new AttrValue
@@ -199,10 +199,10 @@ class _AttrValue:
 
     def _type_name(self, avt: AttrValueType) -> str:
         """Get human-readable type name.
-        
+
         Args:
             avt: AttrDataType enum value.
-            
+
         Returns:
             Human-readable type name.
         """
@@ -223,7 +223,7 @@ class _AttrValue:
     @property
     def value_type(self) -> AttrValueType:
         """Get the current value type.
-        
+
         Returns:
             AttrDataType enum value.
         """
@@ -233,7 +233,7 @@ class _AttrValue:
 
     def get_value_type(self) -> AttrValueType:
         """Get the current value type.
-        
+
         Returns:
             AttrDataType enum value.
         """
@@ -241,7 +241,7 @@ class _AttrValue:
 
     def get_value(self) -> Any:
         """Get the current value.
-        
+
         Returns:
             Value.
         """
@@ -272,7 +272,7 @@ class _AttrValue:
 
     def set_value(self, value: Any) -> None:
         """Set the current value.
-        
+
         Args:
             value: Value to set.
         """
@@ -307,26 +307,26 @@ class _AttrValue:
     @_clear_cache_on_success
     def set_string(self, value: str) -> bool:
         """Set string value.
-        
+
         Args:
             value: String value to set.
-            
+
         Returns:
             True if successful, False otherwise.
         """
         if not isinstance(value, str):
             raise TypeError("Value must be a string")
 
-        value_bytes = value.encode('utf-8')
+        value_bytes = value.encode("utf-8")
         return graph_lib.GeApiWrapper_AttrValue_SetString(self._av_ptr, value_bytes)
 
     @_cache_with_type_check(AttrValueType.VT_STRING)
     def get_string(self) -> str:
         """Get string value.
-        
+
         Returns:
             String value.
-            
+
         Raises:
             RuntimeError: If value is not a string or retrieval fails.
         """
@@ -335,7 +335,7 @@ class _AttrValue:
             raise RuntimeError("Failed to get string value")
 
         try:
-            return ctypes.string_at(c_str).decode('utf-8')
+            return ctypes.string_at(c_str).decode("utf-8")
         finally:
             graph_lib.GeApiWrapper_FreeString(c_str)
 
@@ -343,10 +343,10 @@ class _AttrValue:
     @_clear_cache_on_success
     def set_float(self, value: float) -> bool:
         """Set float value.
-        
+
         Args:
             value: Float value to set.
-            
+
         Returns:
             True if successful, False otherwise.
         """
@@ -358,10 +358,10 @@ class _AttrValue:
     @_cache_with_type_check(AttrValueType.VT_FLOAT)
     def get_float(self) -> float:
         """Get float value.
-        
+
         Returns:
             Float value.
-            
+
         Raises:
             RuntimeError: If value is not a float or retrieval fails.
         """
@@ -375,10 +375,10 @@ class _AttrValue:
     @_clear_cache_on_success
     def set_bool(self, value: bool) -> bool:
         """Set bool value.
-        
+
         Args:
             value: Bool value to set.
-            
+
         Returns:
             True if successful, False otherwise.
         """
@@ -390,10 +390,10 @@ class _AttrValue:
     @_cache_with_type_check(AttrValueType.VT_BOOL)
     def get_bool(self) -> bool:
         """Get bool value.
-        
+
         Returns:
             Bool value.
-            
+
         Raises:
             RuntimeError: If value is not a bool or retrieval fails.
         """
@@ -407,10 +407,10 @@ class _AttrValue:
     @_clear_cache_on_success
     def set_int(self, value: int) -> bool:
         """Set int value.
-        
+
         Args:
             value: Int value to set.
-            
+
         Returns:
             True if successful, False otherwise.
         """
@@ -422,10 +422,10 @@ class _AttrValue:
     @_cache_with_type_check(AttrValueType.VT_INT)
     def get_int(self) -> int:
         """Get int value.
-        
+
         Returns:
             Int value.
-            
+
         Raises:
             RuntimeError: If value is not an int or retrieval fails.
         """
@@ -439,10 +439,10 @@ class _AttrValue:
     @_clear_cache_on_success
     def set_data_type(self, value: DataType) -> bool:
         """Set DataType value.
-        
+
         Args:
             value: DataType value to set.
-            
+
         Returns:
             True if successful, False otherwise.
         """
@@ -454,10 +454,10 @@ class _AttrValue:
     @_cache_with_type_check(AttrValueType.VT_DATA_TYPE)
     def get_data_type(self) -> DataType:
         """Get DataType value.
-        
+
         Returns:
             DataType value.
-            
+
         Raises:
             RuntimeError: If value is not a DataType or retrieval fails.
         """
@@ -491,81 +491,71 @@ class _AttrValue:
         ctypes.c_float,
         graph_lib.GeApiWrapper_AttrValue_SetListFloat,
         (int, float),
-        "numbers"
+        "numbers",
     )
 
     get_list_float = _create_list_getter(
         ctypes.c_float,
         graph_lib.GeApiWrapper_AttrValue_GetListFloat,
         graph_lib.GeApiWrapper_FreeListFloat,
-        AttrValueType.VT_LIST_FLOAT
+        AttrValueType.VT_LIST_FLOAT,
     )
 
-    set_list_int = _create_list_setter(
-        ctypes.c_int64,
-        graph_lib.GeApiWrapper_AttrValue_SetListInt,
-        int,
-        "integers"
-    )
+    set_list_int = _create_list_setter(ctypes.c_int64, graph_lib.GeApiWrapper_AttrValue_SetListInt, int, "integers")
 
     get_list_int = _create_list_getter(
         ctypes.c_int64,
         graph_lib.GeApiWrapper_AttrValue_GetListInt,
         graph_lib.GeApiWrapper_FreeListInt,
-        AttrValueType.VT_LIST_INT
+        AttrValueType.VT_LIST_INT,
     )
 
-    set_list_bool = _create_list_setter(
-        ctypes.c_bool,
-        graph_lib.GeApiWrapper_AttrValue_SetListBool,
-        bool,
-        "booleans"
-    )
+    set_list_bool = _create_list_setter(ctypes.c_bool, graph_lib.GeApiWrapper_AttrValue_SetListBool, bool, "booleans")
 
     get_list_bool = _create_list_getter(
         ctypes.c_bool,
         graph_lib.GeApiWrapper_AttrValue_GetListBool,
         graph_lib.GeApiWrapper_FreeListBool,
-        AttrValueType.VT_LIST_BOOL
+        AttrValueType.VT_LIST_BOOL,
     )
 
     set_list_data_type = _create_list_setter(
         ctypes.c_int,
         graph_lib.GeApiWrapper_AttrValue_SetListDataType,
         DataType,
-        "DataTypes"
+        "DataTypes",
     )
 
     get_list_data_type = _create_list_getter(
         ctypes.c_int,
         graph_lib.GeApiWrapper_AttrValue_GetListDataType,
         graph_lib.GeApiWrapper_FreeListDataType,
-        AttrValueType.VT_LIST_DATA_TYPE
+        AttrValueType.VT_LIST_DATA_TYPE,
     )
 
     # String list needs special handling due to encoding
     @_clear_cache_on_success
     def set_list_string(self, values: List[str]) -> bool:
         """Set list of string values.
-        
+
         Args:
             values: List of string values.
-            
+
         Returns:
             True if successful, False otherwise.
         """
         _validate_list_input(values, str, "strings")
 
-        arr = (ctypes.c_char_p * len(values))(*[v.encode('utf-8') for v in values])
+        arr = (ctypes.c_char_p * len(values))(*[v.encode("utf-8") for v in values])
         return graph_lib.GeApiWrapper_AttrValue_SetListString(self._av_ptr, arr, len(values))
 
     @_cache_with_type_check(AttrValueType.VT_LIST_STRING)
     def get_list_string(self) -> List[str]:
         """Get list of string values.
-        
+
         Returns:
             List of string values.
-            
+
         Raises:
             RuntimeError: If value is not a list of strings or retrieval fails.
         """
@@ -575,7 +565,7 @@ class _AttrValue:
             raise RuntimeError("Failed to get list_string value")
 
         try:
-            return [ctypes.string_at(c_array[i]).decode('utf-8') for i in range(size.value)]
+            return [ctypes.string_at(c_array[i]).decode("utf-8") for i in range(size.value)]
         finally:
             graph_lib.GeApiWrapper_FreeListString(c_array)
 

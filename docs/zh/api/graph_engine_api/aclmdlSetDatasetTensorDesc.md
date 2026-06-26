@@ -78,4 +78,3 @@ aclError aclmdlSetDatasetTensorDesc(aclmdlDataset *dataset, aclTensorDesc *tenso
 ## 约束说明<a name="section14595511230"></a>
 
 对同一个模型，[aclmdlSetDynamicBatchSize](aclmdlSetDynamicBatchSize.md)接口、[aclmdlSetDynamicHWSize](aclmdlSetDynamicHWSize.md)接口、[aclmdlSetInputDynamicDims](aclmdlSetInputDynamicDims.md)接口、aclmdlSetDatasetTensorDesc接口，只能调用其中一个接口。
-

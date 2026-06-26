@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -46,7 +46,7 @@ class STEST_concat_optimize_checker : public testing::Test {
  protected:
   void SetUp() {}
   void TearDown() {}
-  void InitGraph1(ComputeGraphPtr& graph) {
+  void InitGraph1(ComputeGraphPtr &graph) {
     OpDescPtr conv = std::make_shared<OpDesc>("conv", CONV2D);
     OpDescPtr concat = std::make_shared<OpDesc>("concat", CONCATD);
     (void)ge::AttrUtils::SetInt(concat, CONCAT_DIM, 1);
@@ -64,13 +64,11 @@ class STEST_concat_optimize_checker : public testing::Test {
     // create nodes
     NodePtr conv_node = graph->AddNode(conv);
     NodePtr concat_node = graph->AddNode(concat);
-    ge::GraphUtils::AddEdge(conv_node->GetOutDataAnchor(0),
-                            concat_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(conv_node->GetOutDataAnchor(0),
-                            concat_node->GetInDataAnchor(1));
+    ge::GraphUtils::AddEdge(conv_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(conv_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
   }
 
-  void InitGraph2(ComputeGraphPtr& graph) {
+  void InitGraph2(ComputeGraphPtr &graph) {
     OpDescPtr conv1 = std::make_shared<OpDesc>("conv1", CONV2D);
     OpDescPtr conv2 = std::make_shared<OpDesc>("conv2", CONV2D);
     OpDescPtr concat = std::make_shared<OpDesc>("concat", CONCATD);
@@ -102,13 +100,11 @@ class STEST_concat_optimize_checker : public testing::Test {
      *        Concat(concat_dim=0)
      *          |
      */
-    ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0),
-                            concat_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0),
-                            concat_node->GetInDataAnchor(1));
+    ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
   }
 
-  void InitGraph3(ComputeGraphPtr& graph) {
+  void InitGraph3(ComputeGraphPtr &graph) {
     OpDescPtr conv1 = std::make_shared<OpDesc>("conv1", CONV2D);
     OpDescPtr conv2 = std::make_shared<OpDesc>("conv2", CONV2D);
     OpDescPtr concat = std::make_shared<OpDesc>("concat", CONCATD);
@@ -140,13 +136,11 @@ class STEST_concat_optimize_checker : public testing::Test {
      *        Concat
      *          |
      */
-    ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0),
-                            concat_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0),
-                            concat_node->GetInDataAnchor(1));
+    ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
   }
 
-  void InitGraph4(ComputeGraphPtr& graph) {
+  void InitGraph4(ComputeGraphPtr &graph) {
     OpDescPtr conv1 = std::make_shared<OpDesc>("conv1", CONV2D);
     OpDescPtr conv2 = std::make_shared<OpDesc>("conv2", CONV2D);
     OpDescPtr concat = std::make_shared<OpDesc>("concat", CONCATD);
@@ -179,49 +173,45 @@ class STEST_concat_optimize_checker : public testing::Test {
      *        Concat
      *          |
      */
-    ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0),
-                            concat_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0),
-                            concat_node->GetInDataAnchor(1));
+    ge::GraphUtils::AddEdge(conv1_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(conv2_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
   }
 
-void InitGraph5QuantNotAligned(ComputeGraphPtr& graph) {
-  OpDescPtr quant1 = std::make_shared<OpDesc>("quant1", ASCEND_QUANT);
-  OpDescPtr quant2 = std::make_shared<OpDesc>("quant2", ASCEND_QUANT);
-  OpDescPtr concat = std::make_shared<OpDesc>("concat", CONCATD);
-  (void)ge::AttrUtils::SetInt(concat, CONCAT_DIM, 1);
+  void InitGraph5QuantNotAligned(ComputeGraphPtr &graph) {
+    OpDescPtr quant1 = std::make_shared<OpDesc>("quant1", ASCEND_QUANT);
+    OpDescPtr quant2 = std::make_shared<OpDesc>("quant2", ASCEND_QUANT);
+    OpDescPtr concat = std::make_shared<OpDesc>("concat", CONCATD);
+    (void)ge::AttrUtils::SetInt(concat, CONCAT_DIM, 1);
 
-  // add descriptor
-  ge::GeShape shape1({1, 64, 14, 14});
-  ge::GeShape shape2({1, 32, 14, 14});
-  GeTensorDesc out_desc1(shape1, ge::FORMAT_NCHW, ge::DT_INT4);
-  out_desc1.SetOriginFormat(ge::FORMAT_NCHW);
-  out_desc1.SetOriginDataType(ge::DT_FLOAT);
-  out_desc1.SetOriginShape(shape1);
-  GeTensorDesc out_desc2(shape2, ge::FORMAT_NCHW, ge::DT_INT4);
-  out_desc2.SetOriginFormat(ge::FORMAT_NCHW);
-  out_desc2.SetOriginDataType(ge::DT_FLOAT);
-  out_desc2.SetOriginShape(shape2);
+    // add descriptor
+    ge::GeShape shape1({1, 64, 14, 14});
+    ge::GeShape shape2({1, 32, 14, 14});
+    GeTensorDesc out_desc1(shape1, ge::FORMAT_NCHW, ge::DT_INT4);
+    out_desc1.SetOriginFormat(ge::FORMAT_NCHW);
+    out_desc1.SetOriginDataType(ge::DT_FLOAT);
+    out_desc1.SetOriginShape(shape1);
+    GeTensorDesc out_desc2(shape2, ge::FORMAT_NCHW, ge::DT_INT4);
+    out_desc2.SetOriginFormat(ge::FORMAT_NCHW);
+    out_desc2.SetOriginDataType(ge::DT_FLOAT);
+    out_desc2.SetOriginShape(shape2);
 
-  quant1->AddOutputDesc(out_desc1);
-  quant2->AddOutputDesc(out_desc2);
-  concat->AddInputDesc(out_desc1);
-  concat->AddInputDesc(out_desc2);
+    quant1->AddOutputDesc(out_desc1);
+    quant2->AddOutputDesc(out_desc2);
+    concat->AddInputDesc(out_desc1);
+    concat->AddInputDesc(out_desc2);
 
-  // create nodes
-  NodePtr quant1_node = graph->AddNode(quant1);
-  NodePtr quant2_node = graph->AddNode(quant2);
-   NodePtr concat_node = graph->AddNode(concat);
-  /*
-  * quant(INT4) quant(INT4)
-  *      \       /
-  *        Concat
-  *          |
-  */
-    ge::GraphUtils::AddEdge(quant1_node->GetOutDataAnchor(0),
-                            concat_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(quant2_node->GetOutDataAnchor(0),
-                            concat_node->GetInDataAnchor(1));
+    // create nodes
+    NodePtr quant1_node = graph->AddNode(quant1);
+    NodePtr quant2_node = graph->AddNode(quant2);
+    NodePtr concat_node = graph->AddNode(concat);
+    /*
+     * quant(INT4) quant(INT4)
+     *      \       /
+     *        Concat
+     *          |
+     */
+    ge::GraphUtils::AddEdge(quant1_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(quant2_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
   }
 };
 
@@ -229,7 +219,7 @@ TEST_F(STEST_concat_optimize_checker, check_fail_input_from_same_node) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>(GRAPH_NAME);
   InitGraph1(graph);
   ConvConcatFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes);
   EXPECT_EQ(status, NOT_CHANGED);
 }
@@ -238,7 +228,7 @@ TEST_F(STEST_concat_optimize_checker, check_fail_not_dim_c) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>(GRAPH_NAME);
   InitGraph2(graph);
   ConvConcatFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes);
   EXPECT_EQ(status, NOT_CHANGED);
 }
@@ -247,7 +237,7 @@ TEST_F(STEST_concat_optimize_checker, check_fail_not_dim_c_aligned) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>(GRAPH_NAME);
   InitGraph3(graph);
   ConvConcatFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes);
   EXPECT_EQ(status, NOT_CHANGED);
 }
@@ -256,7 +246,7 @@ TEST_F(STEST_concat_optimize_checker, check_fail_pre_node_invalid) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>(GRAPH_NAME);
   InitGraph4(graph);
   ConvConcatFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes);
   EXPECT_EQ(status, NOT_CHANGED);
 }
@@ -265,12 +255,12 @@ TEST_F(STEST_concat_optimize_checker, check_fail_int4_not_dim_c_aligned) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>(GRAPH_NAME);
   InitGraph5QuantNotAligned(graph);
   ConvConcatFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes);
   EXPECT_EQ(status, NOT_CHANGED);
 }
 
-TEST_F(STEST_concat_optimize_checker, is_dimc_test){
+TEST_F(STEST_concat_optimize_checker, is_dimc_test) {
   string dim_attr = "test";
   bool is_input = true;
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
@@ -292,7 +282,7 @@ TEST_F(STEST_concat_optimize_checker, is_dimc_test){
   EXPECT_EQ(ret, false);
 }
 
-TEST_F(STEST_concat_optimize_checker, test_is_dim_c_asigned){
+TEST_F(STEST_concat_optimize_checker, test_is_dim_c_asigned) {
   string dim_attr = "test";
   bool is_input = true;
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");

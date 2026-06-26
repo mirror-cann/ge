@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -91,7 +91,7 @@ ComputeGraphPtr BuildGraphWithAicoreHcclSerial() {
   };
   return ToComputeGraph(g1);
 }
-}
+}  // namespace
 class UtestLogicalStreamAllocator : public testing::Test {
  protected:
   void SetUp() {
@@ -108,7 +108,7 @@ class UtestLogicalStreamAllocator : public testing::Test {
     }
     void *DlSym(void *handle, const char *func_name) override {
       if (std::string(func_name) == "IsEnableMdeTopoSortV2") {
-        return (void *) &IsEnableMdeTopoSort;
+        return (void *)&IsEnableMdeTopoSort;
       }
 
       return dlsym(handle, func_name);
@@ -152,54 +152,26 @@ class UtestLogicalStreamAllocator : public testing::Test {
     auto instance_ptr = ge::GELib::GetInstance();
     EXPECT_NE(instance_ptr, nullptr);
 
-
-    DNNEngineAttribute attr_aicore = { "aicore",
-                                       {},
-                                       PriorityEnum::COST_0,
-                                       DEVICE,
-                                       FORMAT_RESERVED,
-                                       FORMAT_RESERVED,
-                                       true };
+    DNNEngineAttribute attr_aicore = {"aicore",        {},  PriorityEnum::COST_0, DEVICE, FORMAT_RESERVED,
+                                      FORMAT_RESERVED, true};
     auto aicore_engine = std::make_shared<AICoreDNNEngine>(attr_aicore);
     instance_ptr->DNNEngineManagerObj().engines_map_["aicore"] = aicore_engine;
 
-    DNNEngineAttribute attr_aicpu = { "aicpu",
-                                       {},
-                                       PriorityEnum::COST_2,
-                                       DEVICE,
-                                       FORMAT_RESERVED,
-                                       FORMAT_RESERVED,
-                                       true };
+    DNNEngineAttribute attr_aicpu = {"aicpu", {}, PriorityEnum::COST_2, DEVICE, FORMAT_RESERVED, FORMAT_RESERVED, true};
     auto aicpu_engine = std::make_shared<AICpuDNNEngine>(attr_aicpu);
     instance_ptr->DNNEngineManagerObj().engines_map_["aicpu"] = aicpu_engine;
 
-    DNNEngineAttribute attr_hccl = { "hccl",
-                                      {},
-                                      PriorityEnum::COST_1,
-                                      DEVICE,
-                                      FORMAT_RESERVED,
-                                      FORMAT_RESERVED,
-                                      true };
+    DNNEngineAttribute attr_hccl = {"hccl", {}, PriorityEnum::COST_1, DEVICE, FORMAT_RESERVED, FORMAT_RESERVED, true};
     auto hccl_engine = std::make_shared<HcclDNNEngine>(attr_hccl);
     instance_ptr->DNNEngineManagerObj().engines_map_["hccl"] = hccl_engine;
 
-    DNNEngineAttribute attr_ge_local = { "ge_local",
-                                        {},
-                                        PriorityEnum::COST_9,
-                                        DEVICE,
-                                        FORMAT_RESERVED,
-                                        FORMAT_RESERVED,
-                                        true };
+    DNNEngineAttribute attr_ge_local = {"ge_local",      {},  PriorityEnum::COST_9, DEVICE, FORMAT_RESERVED,
+                                        FORMAT_RESERVED, true};
     auto ge_local_engine = std::make_shared<GeLocalDNNEngine>(attr_ge_local);
     instance_ptr->DNNEngineManagerObj().engines_map_["ge_local"] = ge_local_engine;
 
-    DNNEngineAttribute attr_vector_core = { "VectorEngine",
-                                         {},
-                                         PriorityEnum::COST_9,
-                                         DEVICE,
-                                         FORMAT_RESERVED,
-                                         FORMAT_RESERVED,
-                                         true };
+    DNNEngineAttribute attr_vector_core = {"VectorEngine",  {},  PriorityEnum::COST_9, DEVICE, FORMAT_RESERVED,
+                                           FORMAT_RESERVED, true};
     auto vector_core_engine = std::make_shared<GeLocalDNNEngine>(attr_vector_core);
     instance_ptr->DNNEngineManagerObj().engines_map_["VectorEngine"] = vector_core_engine;
 
@@ -335,8 +307,7 @@ class UtestLogicalStreamAllocator : public testing::Test {
   }
 
   SubGraphInfoPtr CreateParallelGroupSubgraphWithName(const string &name, const string &engine,
-                                                      const string &stream_label = "",
-                                                      std::string group_name = "1") {
+                                                      const string &stream_label = "", std::string group_name = "1") {
     ComputeGraphPtr compute_graph = std::make_shared<ComputeGraph>(name);
     OpDescPtr op_desc = std::make_shared<OpDesc>("relu", RELU);
     op_desc->AddInputDesc(GeTensorDesc());
@@ -349,8 +320,7 @@ class UtestLogicalStreamAllocator : public testing::Test {
     const auto &com_subgraph = subgraph->GetSubGraph();
     GraphUtils::AddEdge(com_subgraph->FindFirstNodeMatchType(PLACEHOLDER)->GetOutDataAnchor(0),
                         relu_node->GetInDataAnchor(0));
-    GraphUtils::AddEdge(relu_node->GetOutDataAnchor(0),
-                        com_subgraph->FindFirstNodeMatchType(END)->GetInDataAnchor(0));
+    GraphUtils::AddEdge(relu_node->GetOutDataAnchor(0), com_subgraph->FindFirstNodeMatchType(END)->GetInDataAnchor(0));
     return subgraph;
   }
 
@@ -387,9 +357,13 @@ class UtestLogicalStreamAllocator : public testing::Test {
     return stream_id;
   }
 
-  bool ExpectStreamEq(SubGraphInfoPtr subgraph, int64_t expect) { return GetStream(subgraph) == expect; }
+  bool ExpectStreamEq(SubGraphInfoPtr subgraph, int64_t expect) {
+    return GetStream(subgraph) == expect;
+  }
 
-  bool ExpectStreamNe(SubGraphInfoPtr subgraph, int64_t expect) { return GetStream(subgraph) != expect; }
+  bool ExpectStreamNe(SubGraphInfoPtr subgraph, int64_t expect) {
+    return GetStream(subgraph) != expect;
+  }
 
   static Status PrepareSchedulerConf(Graph2SubGraphInfoList &subgraph_map, std::vector<EngineConfPtr> &confs) {
     SchedulerConf scheduler_conf;
@@ -467,7 +441,7 @@ class UtestLogicalStreamAllocator : public testing::Test {
    *             Subgraph4 -> Subgraph5 -> Subgraph6 ->  Subgraph7  ->  Subgraph9
    *              (cpu)        (core)        (core)  (AllReduce2,hccl) (Apply2,core)
    */
-   void TestAll(int parallel_num) {
+  void TestAll(int parallel_num) {
     auto const1 = CreateConstSubgraph();
     auto const2 = CreateConstSubgraph();
     auto get_next = CreateSubgraphWithName("get_next", "aicpu", "get_next", 0, 1);
@@ -515,7 +489,7 @@ class UtestLogicalStreamAllocator : public testing::Test {
     max_parallel_num["aicpu"] = parallel_num;
 
     Status status = AssignLogicalStreams({const1, const2, get_next, genmask1, genmask2, domask, subgraph4, subgraph5,
-                                         subgraph6, allreduce1, allreduce2, apply1, apply2},
+                                          subgraph6, allreduce1, allreduce2, apply1, apply2},
                                          confs, max_parallel_num);
     EXPECT_EQ(status, ge::SUCCESS);
 
@@ -900,7 +874,7 @@ TEST_F(UtestLogicalStreamAllocator, test_multiOut_new_stream) {
 }
 
 /**
- * if paralle id 1, then use stream
+ * if parallel id 1, then use stream
  *        sub1
  *    /   |   |   \.
  * sub2 sub3 sub4 sub5
@@ -1007,7 +981,7 @@ TEST_F(UtestLogicalStreamAllocator, test_independent_switch_label) {
   vector<EngineConfPtr> confs = {conf1, conf2, conf3};
 
   Status status =
-      AssignLogicalStreams({subgraph1, subgraph2, subgraph3, subgraph4, subgraph5},confs, max_parallel_num);
+      AssignLogicalStreams({subgraph1, subgraph2, subgraph3, subgraph4, subgraph5}, confs, max_parallel_num);
   EXPECT_EQ(status, ge::SUCCESS);
   EXPECT_EQ(GetStream(subgraph1), 4);
   EXPECT_EQ(GetStream(subgraph2), 0);
@@ -1056,7 +1030,7 @@ TEST_F(UtestLogicalStreamAllocator, test_user_stream_label_over_independent) {
   vector<EngineConfPtr> confs = {conf1, conf2, conf3};
 
   Status status =
-      AssignLogicalStreams({subgraph1, subgraph2, subgraph3, subgraph4, subgraph5},confs, max_parallel_num);
+      AssignLogicalStreams({subgraph1, subgraph2, subgraph3, subgraph4, subgraph5}, confs, max_parallel_num);
   EXPECT_EQ(status, ge::SUCCESS);
   EXPECT_EQ(GetStream(subgraph1), 3);
   EXPECT_EQ(GetStream(subgraph2), 0);
@@ -1146,9 +1120,13 @@ TEST_F(UtestLogicalStreamAllocator, test_const_input) {
   EXPECT_EQ(GetStream(domask3), 0);
 }
 
-TEST_F(UtestLogicalStreamAllocator, TestAllParallelNum1) { TestAll(1); }
+TEST_F(UtestLogicalStreamAllocator, TestAllParallelNum1) {
+  TestAll(1);
+}
 
-TEST_F(UtestLogicalStreamAllocator, TestAllParallelNum2) { TestAll(2); }
+TEST_F(UtestLogicalStreamAllocator, TestAllParallelNum2) {
+  TestAll(2);
+}
 
 TEST_F(UtestLogicalStreamAllocator, TestReusableSubgraphNotAssignedStream) {
   SubGraphInfoPtr data = CreateDataSubgraph();

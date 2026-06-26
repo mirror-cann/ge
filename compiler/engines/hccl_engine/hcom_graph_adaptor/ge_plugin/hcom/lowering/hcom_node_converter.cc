@@ -134,7 +134,8 @@ gert::LowerResult LoweringRecvNode(const ge::NodePtr &node, const gert::LowerInp
   // launch kernel
   auto outPut = LaunchRecvOpKernel({hcomOpArgsHolder, lowerInput.global_data->GetStream()}, node, lowerInput);
   if (outPut.size() != LAUNCH_RECV_KERNEL_OUTPUT_SIZE) {
-    return {gert::HyperStatus::ErrorStatus(static_cast<const char *>("excute LaunchRecvOpKernel failed.")), {}, {}, {}};
+    return {
+        gert::HyperStatus::ErrorStatus(static_cast<const char *>("execute LaunchRecvOpKernel failed.")), {}, {}, {}};
   }
 
   gert::bg::ValueHolder::CreateVoidGuarder("FreeMemory", outPut[1], {});

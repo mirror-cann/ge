@@ -21,27 +21,27 @@ TEST(SinkOpArgsHandlerTest, NullTaskInfoReturnsNullptr) {
 
 TEST(SinkOpArgsHandlerTest, GetKernelArgsWithNullTaskInfoHost) {
   SinkOpArgsHandler handler(nullptr);
-  const auto& args = handler.GetKernelArgs(gert::Placement::kPlacementHost);
+  const auto &args = handler.GetKernelArgs(gert::Placement::kPlacementHost);
   EXPECT_EQ(args.size(), 0);
 }
 
 TEST(SinkOpArgsHandlerTest, GetKernelArgsWithNullTaskInfoDevice) {
   SinkOpArgsHandler handler(nullptr);
-  const auto& args = handler.GetKernelArgs(gert::Placement::kPlacementDevice);
+  const auto &args = handler.GetKernelArgs(gert::Placement::kPlacementDevice);
   EXPECT_EQ(args.size(), 0);
 }
 
 TEST(SinkOpArgsHandlerTest, GetKernelArgsDelegatesToTaskInfoHost) {
   CustomTaskInfo task_info;
   SinkOpArgsHandler handler(&task_info);
-  const auto& args = handler.GetKernelArgs(gert::Placement::kPlacementHost);
+  const auto &args = handler.GetKernelArgs(gert::Placement::kPlacementHost);
   EXPECT_EQ(args.size(), 0);
 }
 
 TEST(SinkOpArgsHandlerTest, GetKernelArgsDelegatesToTaskInfoDevice) {
   CustomTaskInfo task_info;
   SinkOpArgsHandler handler(&task_info);
-  const auto& args = handler.GetKernelArgs(gert::Placement::kPlacementDevice);
+  const auto &args = handler.GetKernelArgs(gert::Placement::kPlacementDevice);
   EXPECT_EQ(args.size(), 0);
 }
 

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,32 +38,16 @@ const void *kFileConstantBase = reinterpret_cast<void *>(0x202208122106);
 const void *kOffset = reinterpret_cast<void *>(0x996246);
 
 const void *kInputAddressBase = reinterpret_cast<void *>(0x110);
-constexpr const char* kInputFrozenIndex = "0,1\0";
+constexpr const char *kInputFrozenIndex = "0,1\0";
 
-enum InputsCommon {
-  kDavinciModel,
-  kInputsCommonEnd
-};
+enum InputsCommon { kDavinciModel, kInputsCommonEnd };
 
-enum class InputsSpecial {
-  kDavinciModel,
-  kStreamId,
-  kInputsCommonEnd
-};
+enum class InputsSpecial { kDavinciModel, kStreamId, kInputsCommonEnd };
 
-enum ModelExecute {
-  kRtStream = InputsCommon::kInputsCommonEnd,
-  kInputNum,
-  kOutputNum,
-  kModelExecuteEnd
-};
+enum ModelExecute { kRtStream = InputsCommon::kInputsCommonEnd, kInputNum, kOutputNum, kModelExecuteEnd };
 
-enum UpdateWorkspaces {
-  kWorkspacesNum = InputsCommon::kInputsCommonEnd,
-  kWorkspaceMemory,
-  kUpdateWorkspacesEnd
-};
-}
+enum UpdateWorkspaces { kWorkspacesNum = InputsCommon::kInputsCommonEnd, kWorkspaceMemory, kUpdateWorkspacesEnd };
+}  // namespace
 
 class DavinciModelUt : public testing::Test {
  public:
@@ -75,7 +59,10 @@ class DavinciModelUt : public testing::Test {
     context_holder_with_davinci_model_ = BuildContextForCreateDavinciModel(space_registry_array);
     auto ret = registry.FindKernelFuncs("DavinciModelCreate")->run_func(context_holder_with_davinci_model_);
     EXPECT_EQ(ret, ge::SUCCESS);
-    davinci_model_ = context_holder_with_davinci_model_.value_holder[static_cast<size_t>(kernel::DavinciModelCreateInput::kDavinciModelCreateInputEnd)].GetPointer<ge::DavinciModel>();
+    davinci_model_ =
+        context_holder_with_davinci_model_
+            .value_holder[static_cast<size_t>(kernel::DavinciModelCreateInput::kDavinciModelCreateInputEnd)]
+            .GetPointer<ge::DavinciModel>();
     EXPECT_NE(davinci_model_, nullptr);
     EXPECT_EQ(davinci_model_->GetCustomOpRegistry().get(), custom_op_registry_.get());
     auto ret2 = registry.FindKernelFuncs("DavinciModelCreate")->trace_printer(context_holder_with_davinci_model_);
@@ -90,7 +77,7 @@ class DavinciModelUt : public testing::Test {
   void SetAllDavinciModelExMemoryNull() {
     ge::VarManager::Instance(davinci_model_->GetSessionId())->FreeVarMemory();
     for (auto &mem_info : davinci_model_->GetRuntimeParam().memory_infos) {
-      const_cast<MemInfo&>(mem_info.second).memory_base = nullptr;
+      const_cast<MemInfo &>(mem_info.second).memory_base = nullptr;
     }
   }
   void SetAllStreamNull() {
@@ -135,15 +122,15 @@ class DavinciModelUt : public testing::Test {
     auto global_data = faker_.FakeWithoutHandleAiCore("Conv2d", false).Build();
     LowerInput lower_input = {{}, {}, &global_data};
     auto ge_model = reinterpret_cast<ge::GeModel *>(
-      lower_input.global_data->GetGraphStaticCompiledModel(parent_node->GetOpDesc()->GetSubgraphInstanceName(0)));
+        lower_input.global_data->GetGraphStaticCompiledModel(parent_node->GetOpDesc()->GetSubgraphInstanceName(0)));
     ge::AttrUtils::SetInt(ge_model, ge::ATTR_MODEL_STREAM_NUM, 1);
     // construct outer weight
     size_t weight_size = ge_model->GetWeightSize();
     weight_data_ = std::unique_ptr<uint8_t[]>(new (std::nothrow) uint8_t[weight_size]);
     weight_info_ = {weight_data_.get(), weight_size, kTensorPlacementEnd, -1};
 
-    KernelRunContextHolder context = BuildKernelRunContext(
-        static_cast<size_t>(kernel::DavinciModelCreateInput::kDavinciModelCreateInputEnd), 1);
+    KernelRunContextHolder context =
+        BuildKernelRunContext(static_cast<size_t>(kernel::DavinciModelCreateInput::kDavinciModelCreateInputEnd), 1);
     context.value_holder[0].Set(ge_model, nullptr);
     context.value_holder[1].Set((void *)session_id_, nullptr);
     context.value_holder[2].Set(&weight_info_, nullptr);
@@ -151,8 +138,7 @@ class DavinciModelUt : public testing::Test {
     context.value_holder[4].Set((void *)1, nullptr);
     context.value_holder[5].Set(space_registry_array.get(), nullptr);
     std::string file_constant_weight_dir;
-    auto file_constant_weight_dir_data =
-        static_cast<void *>(const_cast<char *>(file_constant_weight_dir.c_str()));
+    auto file_constant_weight_dir_data = static_cast<void *>(const_cast<char *>(file_constant_weight_dir.c_str()));
     context.value_holder[6].Set(file_constant_weight_dir_data, nullptr);
     reusable_stream_allocator_.emplace_back(ge::ReusableStreamAllocator::Create());
     context.value_holder[7].Set((void *)reusable_stream_allocator_.back().get(), nullptr);
@@ -165,8 +151,8 @@ class DavinciModelUt : public testing::Test {
     auto frozen_inputs_data = static_cast<void *>(const_cast<char *>(kInputFrozenIndex));
     context.value_holder[14].Set(frozen_inputs_data, nullptr);
     FillFileConstantVec(context);
-    context.value_holder[static_cast<size_t>(kernel::DavinciModelCreateInput::kCustomOpRegistry)]
-        .Set(custom_op_registry_.get(), nullptr);
+    context.value_holder[static_cast<size_t>(kernel::DavinciModelCreateInput::kCustomOpRegistry)].Set(
+        custom_op_registry_.get(), nullptr);
     (void)bg::ValueHolder::PopGraphFrame();
     return context;
   }
@@ -240,7 +226,8 @@ class DavinciModelUt : public testing::Test {
     context_.value_holder[kOutputNum].Set(reinterpret_cast<void *>(outputs_num), nullptr);
 
     for (size_t i = 0U; i < inputs_num; ++i) {
-      inputs_tensor_data[i] = {reinterpret_cast<void *>(PtrAdd<uint32_t>((uint32_t *)kInputAddressBase, 100, i)), 0U, kTensorPlacementEnd, -1};
+      inputs_tensor_data[i] = {reinterpret_cast<void *>(PtrAdd<uint32_t>((uint32_t *)kInputAddressBase, 100, i)), 0U,
+                               kTensorPlacementEnd, -1};
       context_.value_holder[kModelExecuteEnd + i].Set(&inputs_tensor_data[i], nullptr);
     }
     for (size_t i = 0U; i < outputs_num; ++i) {
@@ -290,11 +277,13 @@ class DavinciModelUt : public testing::Test {
     for (size_t i = 0U; i < inputs_num; ++i) {
       memory_type_offset_[i].offset = 0;
       memory_type_offset_[i].base_type = kernel::MemoryBaseType::kMemoryBaseTypeEnd;
-      context_.value_holder[static_cast<size_t>(InputsSpecial::kInputsCommonEnd) + i].Set(&memory_type_offset_[i], nullptr);
+      context_.value_holder[static_cast<size_t>(InputsSpecial::kInputsCommonEnd) + i].Set(&memory_type_offset_[i],
+                                                                                          nullptr);
     }
     for (size_t i = 0U; i < outputs_num; ++i) {
       outputs_tensor_data[i] = {reinterpret_cast<void *>(0x110), 0U, kTensorPlacementEnd, -1};
-      context_.value_holder[static_cast<size_t>(InputsSpecial::kInputsCommonEnd) + inputs_num + i].Set(&outputs_tensor_data[i], nullptr);
+      context_.value_holder[static_cast<size_t>(InputsSpecial::kInputsCommonEnd) + inputs_num + i].Set(
+          &outputs_tensor_data[i], nullptr);
     }
 
     return context_;
@@ -306,6 +295,7 @@ class DavinciModelUt : public testing::Test {
     context_.value_holder[kRtStream].Set(stream_, nullptr);
     return context_;
   }
+
  public:
   KernelRegistry &registry = KernelRegistry::GetInstance();
   std::deque<unique_ptr<ge::ReusableStreamAllocator>> reusable_stream_allocator_;
@@ -394,4 +384,4 @@ TEST_F(DavinciModelUt, DavinciModelExecuteWithStream) {
   auto ret = registry.FindKernelFuncs("DavinciModelExecute")->run_func(context);
   EXPECT_EQ(ret, ge::SUCCESS);
 }
-} // namespace gert
+}  // namespace gert

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,9 +39,9 @@
 
 namespace ge {
 namespace {
-const char_t *const kBuiltIn = "built-in";     // opp built-in directory name
-const char_t *const kVendors = "vendors";      // opp vendors directory name
-const char_t *const kConfig = "config.ini";    // opp vendors config file name
+const char_t *const kBuiltIn = "built-in";   // opp built-in directory name
+const char_t *const kVendors = "vendors";    // opp vendors directory name
+const char_t *const kConfig = "config.ini";  // opp vendors config file name
 const size_t kVendorConfigPartsCount = 2U;
 const char_t *const kLibRegisterSo = "libregister.so";
 }  // namespace
@@ -160,7 +160,7 @@ Status TBEPluginLoader::GetOppPluginVendors(const std::string &vendors_config, s
   GE_ASSERT_TRUE(v_parts.size() == kVendorConfigPartsCount, "Format of file content is invalid!");
   vendors = StringUtils::Split(v_parts[1], ',');
   GE_ASSERT_TRUE(!vendors.empty(), "Format of file content is invalid!");
-  (void) for_each(vendors.begin(), vendors.end(), &StringUtils::Trim);
+  (void)for_each(vendors.begin(), vendors.end(), &StringUtils::Trim);
   return SUCCESS;
 }
 
@@ -168,22 +168,18 @@ void TBEPluginLoader::GetPluginPathFromCustomOppPath(const std::string &sub_path
   PluginManager::GetPluginPathFromCustomOppPath(sub_path, plugin_path);
 }
 
-Status TBEPluginLoader::GetOppPluginPathOld(const std::string &opp_path,
-                                            const std::string &path_fmt,
-                                            std::string &plugin_path,
-                                            const std::string &path_fmt_custom) {
+Status TBEPluginLoader::GetOppPluginPathOld(const std::string &opp_path, const std::string &path_fmt,
+                                            std::string &plugin_path, const std::string &path_fmt_custom) {
   GELOGI("Enter get opp plugin path old schedule");
-  const std::string &fmt_custom  = path_fmt_custom.empty() ? path_fmt : path_fmt_custom;
-  plugin_path = (opp_path + std::regex_replace(fmt_custom, std::regex("%s"), "custom") + ":")
-              + (opp_path + std::regex_replace(path_fmt, std::regex("%s"), "built-in"));
+  const std::string &fmt_custom = path_fmt_custom.empty() ? path_fmt : path_fmt_custom;
+  plugin_path = (opp_path + std::regex_replace(fmt_custom, std::regex("%s"), "custom") + ":") +
+                (opp_path + std::regex_replace(path_fmt, std::regex("%s"), "built-in"));
   GELOGI("plugin_path is '%s'", plugin_path.c_str());
   return SUCCESS;
 }
 
-Status TBEPluginLoader::GetOppPluginPathNew(const std::string &opp_path,
-                                            const std::string &path_fmt,
-                                            std::string &plugin_path,
-                                            const std::string &old_custom_path,
+Status TBEPluginLoader::GetOppPluginPathNew(const std::string &opp_path, const std::string &path_fmt,
+                                            std::string &plugin_path, const std::string &old_custom_path,
                                             const std::string &path_fmt_custom) {
   GELOGI("Enter get opp plugin path new schedule");
   const std::string vendors_config = opp_path + kVendors + "/" + kConfig;
@@ -192,7 +188,7 @@ Status TBEPluginLoader::GetOppPluginPathNew(const std::string &opp_path,
     GELOGI("Cannot get opp plugin vendors!");
     plugin_path += opp_path + old_custom_path + ":";
   } else {
-    const std::string &fmt_custom  = path_fmt_custom.empty() ? path_fmt : path_fmt_custom;
+    const std::string &fmt_custom = path_fmt_custom.empty() ? path_fmt : path_fmt_custom;
     for (const auto &vendor : vendors) {
       plugin_path += opp_path + kVendors + "/" + std::regex_replace(fmt_custom, std::regex("%s"), vendor) + ":";
     }

@@ -45,12 +45,14 @@ class HCCLOpsKernelBuilder : public ge::OpsKernelBuilder {
                                   [[maybe_unused]] const u64 &opMemSize) {
     return HCCL_SUCCESS;
   };
-  virtual HcclResult SetOpAtomicInputIndex([[maybe_unused]] ge::Node &node, [[maybe_unused]] const std::string &sCollectiveType) {
+  virtual HcclResult SetOpAtomicInputIndex([[maybe_unused]] ge::Node &node,
+                                           [[maybe_unused]] const std::string &sCollectiveType) {
     return HCCL_SUCCESS;
   };
   virtual HcclResult CheckSupportedOP(const std::string &sCollectiveType) const;
   HcclResult SetOpOutputMemSize(ge::Node &node, const std::string &sCollectiveType);
-  HcclResult CalcHCCLOutputMemSize(const std::string &sCollectiveType, int64_t &memSize, const ge::GeTensorDesc &desc_temp) const;
+  HcclResult CalcHCCLOutputMemSize(const std::string &sCollectiveType, int64_t &memSize,
+                                   const ge::GeTensorDesc &desc_temp) const;
 };
 }  // namespace hccl
 #endif  // __OPS_KERNEL_INFO_STORE__BASEH__

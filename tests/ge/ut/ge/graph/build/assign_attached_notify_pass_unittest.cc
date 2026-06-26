@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -84,8 +84,8 @@ ComputeGraphPtr CreateGraph1WithSubgraphs() {
 
   ComputeGraphPtr root_graph;
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", DATA)->NODE("partitioncall_0", PARTITIONEDCALL)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("data1", DATA)->NODE("partitioncall_0", PARTITIONEDCALL)->NODE("netoutput", NETOUTPUT));
+  };
   auto graph1 = ToGeGraph(g1);
   root_graph = ge::GraphUtilsEx::GetComputeGraph(graph1);
 
@@ -366,7 +366,7 @@ ComputeGraphPtr CreateGraph2_V2() {
   EXPECT_TRUE(ge::AttrUtils::SetStr(attached_notify2, ATTR_NAME_ATTACHED_RESOURCE_NAME, "group1"));
   EXPECT_TRUE(ge::AttrUtils::SetStr(attached_notify2, ATTR_NAME_ATTACHED_RESOURCE_REUSE_KEY, "an2"));
   EXPECT_TRUE(ge::AttrUtils::SetInt(attached_notify2, ge::ATTR_NAME_ATTACHED_RESOURCE_TYPE,
-                              static_cast<int64_t>(SyncResType::kSyncResNotify)));
+                                    static_cast<int64_t>(SyncResType::kSyncResNotify)));
   EXPECT_TRUE(ge::AttrUtils::SetBool(attached_notify2, ge::ATTR_NAME_ATTACHED_RESOURCE_REQUIRED_FLAG, true));
   std::vector<NamedAttrs> attached_sync_res_info_list_from_attr2;
   attached_sync_res_info_list_from_attr2.emplace_back(attached_notify2);
@@ -374,9 +374,10 @@ ComputeGraphPtr CreateGraph2_V2() {
   EXPECT_TRUE(ge::AttrUtils::SetListNamedAttrs(relu3->GetOpDesc(), ge::ATTR_NAME_ATTACHED_SYNC_RES_INFO_LIST,
                                                attached_sync_res_info_list_from_attr2));
 
-  EXPECT_TRUE(ge::AttrUtils::SetStr(attached_sync_res_info_list_from_attr2[0], ATTR_NAME_ATTACHED_RESOURCE_REUSE_KEY, "an3"));
+  EXPECT_TRUE(
+      ge::AttrUtils::SetStr(attached_sync_res_info_list_from_attr2[0], ATTR_NAME_ATTACHED_RESOURCE_REUSE_KEY, "an3"));
   EXPECT_TRUE(ge::AttrUtils::SetListNamedAttrs(relu4->GetOpDesc(), ge::ATTR_NAME_ATTACHED_SYNC_RES_INFO_LIST,
-                                         attached_sync_res_info_list_from_attr2));
+                                               attached_sync_res_info_list_from_attr2));
   return graph;
 }
 
@@ -416,7 +417,6 @@ ComputeGraphPtr CreateGraph3_V2() {
                                          attached_sync_res_info_list_from_attr);
   return graph;
 }
-
 
 /**
  * 适配V2场景，属性名字发生变化，采用V2版本表示新的属性方式;
@@ -644,7 +644,7 @@ TEST_F(UtestAssignAttachedNotifyPass, Assign_With_Subgraph) {
 
   Graph2SubGraphInfoList graph_2_sub_graph_info_list{{graph, {}}, {sub_graph, {}}};
   const auto &allocator = MakeShared<StreamAllocator>(graph, graph_2_sub_graph_info_list);
-  EXPECT_EQ(  allocator->AssignAttachedNotifyResource(), SUCCESS);
+  EXPECT_EQ(allocator->AssignAttachedNotifyResource(), SUCCESS);
   auto relu1 = sub_graph->FindNode("relu1");
   EXPECT_NE(relu1, nullptr);
   auto relu2 = sub_graph->FindNode("relu2");
@@ -720,7 +720,6 @@ TEST_F(UtestAssignAttachedNotifyPass, Case1_V2) {
   EXPECT_NE(notify_id1, notify_id2);
   EXPECT_TRUE(notify_id1[0] == 2U || notify_id1[0] == 3U);
   EXPECT_TRUE(notify_id2[0] == 2U || notify_id2[0] == 3U);
-
 
   // 通信域外的relu3, relu4 的attached notify id还是无效值
   std::vector<int64_t> notify_id3 = GetAttachedNotifyIds_V2(relu3);
@@ -813,7 +812,7 @@ TEST_F(UtestAssignAttachedNotifyPass, Assign_With_Subgraph_V2) {
 
   Graph2SubGraphInfoList graph_2_sub_graph_info_list{{graph, {}}, {sub_graph, {}}};
   const auto &allocator = MakeShared<StreamAllocator>(graph, graph_2_sub_graph_info_list);
-  EXPECT_EQ(  allocator->AssignAttachedNotifyResource(), SUCCESS);
+  EXPECT_EQ(allocator->AssignAttachedNotifyResource(), SUCCESS);
   auto relu1 = sub_graph->FindNode("relu1");
   EXPECT_NE(relu1, nullptr);
   auto relu2 = sub_graph->FindNode("relu2");
@@ -839,7 +838,8 @@ TEST_F(UtestAssignAttachedNotifyPass, Not_Require_V2) {
   (void)ge::AttrUtils::GetListNamedAttrs(relu1->GetOpDesc(), ge::ATTR_NAME_ATTACHED_SYNC_RES_INFO_LIST,
                                          attached_sync_res_info_list_from_attr);
   EXPECT_EQ(attached_sync_res_info_list_from_attr.size(), 1);
-  EXPECT_TRUE(ge::AttrUtils::SetBool(attached_sync_res_info_list_from_attr[0], ge::ATTR_NAME_ATTACHED_RESOURCE_REQUIRED_FLAG, false));
+  EXPECT_TRUE(ge::AttrUtils::SetBool(attached_sync_res_info_list_from_attr[0],
+                                     ge::ATTR_NAME_ATTACHED_RESOURCE_REQUIRED_FLAG, false));
   (void)ge::AttrUtils::SetListNamedAttrs(relu1->GetOpDesc(), ge::ATTR_NAME_ATTACHED_SYNC_RES_INFO_LIST,
                                          attached_sync_res_info_list_from_attr);
   (void)ge::AttrUtils::SetListNamedAttrs(relu2->GetOpDesc(), ge::ATTR_NAME_ATTACHED_SYNC_RES_INFO_LIST,

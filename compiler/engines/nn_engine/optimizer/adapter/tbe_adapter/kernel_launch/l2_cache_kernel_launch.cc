@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,26 +21,27 @@
 namespace fe {
 namespace {
 const std::string ATTR_NAME_L2CACHE_GRAPH_READ_MODE = "_fe_l2cache_graph_read_mode";
-const std::set<std::string> LIFECYCLE_IS_END_OPS = {DATA, AIPPDATA, ANN_DATA,
-                                                    CONSTANT, CONSTANTOP};
+const std::set<std::string> LIFECYCLE_IS_END_OPS = {DATA, AIPPDATA, ANN_DATA, CONSTANT, CONSTANTOP};
 const std::set<std::string> LIFECYCLE_IS_NOT_END_OPS = {VARIABLE};
-}
+}  // namespace
 size_t L2CacheKernelLaunch::GetAppendArgsSizeOf() {
   return sizeof(uint64_t);  // uinit64_t: 8
 }
 
-size_t L2CacheKernelLaunch::GetAppendArgsNum() { return input_num_; }
+size_t L2CacheKernelLaunch::GetAppendArgsNum() {
+  return input_num_;
+}
 
 Status L2CacheKernelLaunch::AddAppendArgs(const ge::Node &node, void *all_args_buff, const uint32_t &args_size) {
   auto op_desc_ptr = node.GetOpDesc();
   auto op_name = node.GetName();
   auto op_type = node.GetType();
 
-  // 1. gerenate read mode
+  // 1. generate read mode
   vector<uint64_t> read_modes;
   if (GenerateReadModes(node, read_modes) != SUCCESS) {
-    REPORT_FE_ERROR("[GenTask][AddAppendArgs][Op %s,type %s] failed to generate the read mode.",
-                    op_name.c_str(), op_type.c_str());
+    REPORT_FE_ERROR("[GenTask][AddAppendArgs][Op %s,type %s] failed to generate the read mode.", op_name.c_str(),
+                    op_type.c_str());
     return FAILED;
   }
 
@@ -93,7 +94,7 @@ Status L2CacheKernelLaunch::GenerateReadModes(const ge::Node &node, vector<uint6
     if (read_mode == L2CacheReadMode::RM_NONE) {
       // 2. get the life cycle of the input desc
       auto is_life_cycle_end = IsLifeCycleEnd(node, input_desc, idx);
-      // 3. genarate rm by life cycle and read distance
+      // 3. generate rm by life cycle and read distance
       read_mode = GenerateReadMode(node, input_desc, idx, is_life_cycle_end);
     }
     // 4. set the attr
@@ -122,8 +123,7 @@ L2CacheReadMode L2CacheKernelLaunch::GenRmForSpecialInputOps(const ge::NodePtr &
   return L2CacheReadMode::RM_NONE;
 }
 
-bool L2CacheKernelLaunch::IsLifeCycleEnd(const ge::Node &node,
-                                         const ge::GeTensorDescPtr &input_desc,
+bool L2CacheKernelLaunch::IsLifeCycleEnd(const ge::Node &node, const ge::GeTensorDescPtr &input_desc,
                                          int input_idx) const {
   auto op_desc = node.GetOpDesc();
   auto op_name = op_desc->GetName();
@@ -186,7 +186,7 @@ L2CacheReadMode L2CacheKernelLaunch::GenerateReadMode(const ge::Node &node, cons
   }
   FE_LOGD("Op[name=%s,type=%s,input=%d]: data_visit_dist_to_next_node=[%d], data_visit_dist_threshold=[%d].",
           op_name.c_str(), op_type.c_str(), input_idx, data_visit_dist_to_next_node, kDataVisitDistThreshold);
-  return data_visit_dist_to_next_node <= kDataVisitDistThreshold ?
-         L2CacheReadMode::READ_LAST : L2CacheReadMode::READ_INVALID;
+  return data_visit_dist_to_next_node <= kDataVisitDistThreshold ? L2CacheReadMode::READ_LAST
+                                                                 : L2CacheReadMode::READ_INVALID;
 }
 }  // namespace fe

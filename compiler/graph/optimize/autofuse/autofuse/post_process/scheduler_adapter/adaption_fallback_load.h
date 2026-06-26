@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,7 +33,7 @@ inline Status UpdateLoadNodeOutput(const NodePtr &data_node, AscTensorAttr *load
 }
 
 inline Status UpdateDataAndLoadNodeOutput(const NodePtr &data_node, const NodePtr &load_node,
-                            const std::vector<std::pair<int64_t, int64_t>> &transpose_info) {
+                                          const std::vector<std::pair<int64_t, int64_t>> &transpose_info) {
   if (transpose_info.empty()) {
     return SUCCESS;
   }
@@ -53,9 +53,12 @@ inline Status UpdateDataAndLoadNodeOutput(const NodePtr &data_node, const NodePt
   GE_ASSERT_NOTNULL(load_node_attr);
   auto &load_sched_axis = load_node_attr->sched.axis;
   for (auto index = 0U; index < transpose_info.size(); index++) {
-    std::swap(data_output_attr->axis[transpose_info[index].first], data_output_attr->axis[transpose_info[index].second]);
-    std::swap(data_output_attr->repeats[transpose_info[index].first], data_output_attr->repeats[transpose_info[index].second]);
-    std::swap(data_output_attr->strides[transpose_info[index].first], data_output_attr->strides[transpose_info[index].second]);
+    std::swap(data_output_attr->axis[transpose_info[index].first],
+              data_output_attr->axis[transpose_info[index].second]);
+    std::swap(data_output_attr->repeats[transpose_info[index].first],
+              data_output_attr->repeats[transpose_info[index].second]);
+    std::swap(data_output_attr->strides[transpose_info[index].first],
+              data_output_attr->strides[transpose_info[index].second]);
     std::swap(load_sched_axis[transpose_info[index].first], load_sched_axis[transpose_info[index].second]);
   }
   load_output_attr->axis = data_output_attr->axis;
@@ -68,8 +71,7 @@ inline Status UpdateDataAndLoadNodeOutput(const NodePtr &data_node, const NodePt
   return SUCCESS;
 }
 inline NodePtr CreateTransposeNode(AscGraph &asc_graph, const NodePtr &load_node, const size_t index) {
-  const std::string name = "Transpose_" + std::to_string(index) + "_" +
-                           load_node->GetName() + "_" +
+  const std::string name = "Transpose_" + std::to_string(index) + "_" + load_node->GetName() + "_" +
                            std::to_string(AutofuseUtils::GenUniqueNumber());
   return af::AscGraphAddAscirNodeByType(asc_graph, kTransposeType.c_str(), name.c_str(), 0U, 0U);
 }
@@ -77,8 +79,7 @@ inline NodePtr CreateTransposeNode(AscGraph &asc_graph, const NodePtr &load_node
 inline NodePtr CreateBroadcastNode(AscGraph &asc_graph, const NodePtr &load_node,
                                    const std::vector<int64_t> &broadcast_info, const size_t index) {
   const std::string name = "Broadcast_" + std::to_string(broadcast_info.size() - 1 - index) + "_" +
-                           load_node->GetName() + "_" +
-                           std::to_string(AutofuseUtils::GenUniqueNumber());
+                           load_node->GetName() + "_" + std::to_string(AutofuseUtils::GenUniqueNumber());
   return af::AscGraphAddAscirNodeByType(asc_graph, kBroadcastType.c_str(), name.c_str(), 0U, 0U);
 }
 
@@ -338,7 +339,7 @@ inline Status InsertViewOpTranspose(AscGraph &asc_graph, const NodePtr &data_nod
   GE_ASSERT_SUCCESS(ConnectNodeWithLoadOrStore(connect_node, t_node));
   GE_ASSERT_SUCCESS(UpdateTransposeNodeAttrs(t_node, current_node_attr, transpose_info));
   GE_ASSERT_SUCCESS(UpdateTopoInfo(node, t_node, current_topo_id));
-  GE_ASSERT_SUCCESS(asc_adapt::FromDtypeToOtherDtype(t_node, DT_FLOAT, dtype)); // 默认类型是DT_FLOAT
+  GE_ASSERT_SUCCESS(asc_adapt::FromDtypeToOtherDtype(t_node, DT_FLOAT, dtype));  // 默认类型是DT_FLOAT
 
   return SUCCESS;
 }
@@ -401,8 +402,8 @@ inline Status GeFallback(const ComputeGraphPtr &ge_or_fused_asc_backend_graph) {
   return SUCCESS;
 }
 
-inline Status CreateAndUpdateBroadcastNodeInfo(AscGraph &asc_graph, const NodePtr &node,
-                                               NodePtr &connect_node, TensorInfo &tensor_info) {
+inline Status CreateAndUpdateBroadcastNodeInfo(AscGraph &asc_graph, const NodePtr &node, NodePtr &connect_node,
+                                               TensorInfo &tensor_info) {
   const std::vector<int64_t> &broadcast_info = tensor_info.broadcast_info;
   GE_ASSERT_TRUE(!broadcast_info.empty());
   for (auto index = 0U; index < broadcast_info.size(); index++) {

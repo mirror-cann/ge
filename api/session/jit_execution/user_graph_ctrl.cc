@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -14,14 +14,14 @@
 #include "ge_context.h"
 #include "formats/utils/formats_trans_utils.h"
 
-#define JIT_CTRL_ASSERT(exp, ...)               \
-  do {                                          \
-    bool tmp_ret = (exp);                       \
-    if (!tmp_ret) {                             \
-      (void)Finalize();                         \
-      GE_ASSERT_TRUE(tmp_ret, __VA_ARGS__);     \
-      return ::ErrorResult();                   \
-    }                                           \
+#define JIT_CTRL_ASSERT(exp, ...)           \
+  do {                                      \
+    bool tmp_ret = (exp);                   \
+    if (!tmp_ret) {                         \
+      (void)Finalize();                     \
+      GE_ASSERT_TRUE(tmp_ret, __VA_ARGS__); \
+      return ::ErrorResult();               \
+    }                                       \
   } while (false)
 
 #define JIT_CTRL_ASSERT_NOTNULL(v, ...) JIT_CTRL_ASSERT(((v) != nullptr), __VA_ARGS__)
@@ -47,7 +47,7 @@ std::string UserGraphExecutionToString(const std::unique_ptr<UserGraphExecution>
   }
   return ss.str();
 }
-} // namespace
+}  // namespace
 Status JitExecutorPool::AddJitExecutor(unique_ptr<JitExecutor> &jit_executor) {
   auto idle_executor = jit_executor.get();
   std::lock_guard<std::mutex> locker(executors_mutex_);
@@ -121,8 +121,7 @@ Status UserGraphControl::AddGraphInstance() {
   JIT_CTRL_ASSERT_NOTNULL(jit_executor, "[UserGraph:%u]Failed to create jit executor instance.", user_graph_id_);
   JIT_CTRL_ASSERT_SUCCESS(jit_executor_pool_.AddJitExecutor(jit_executor));
   const auto size = jit_executor_pool_.Size();
-  GELOGD("[AddGraphInstance]Add new jit executor for graph[%u], total instance is %zu.", user_graph_id_,
-         size);
+  GELOGD("[AddGraphInstance]Add new jit executor for graph[%u], total instance is %zu.", user_graph_id_, size);
   return SUCCESS;
 }
 
@@ -151,7 +150,8 @@ Status UserGraphControl::CompileCompleteGraph(uint64_t session_id) {
     GE_ASSERT_NOTNULL(new_graph);
     GE_ASSERT_SUCCESS(GraphUtils::CopyComputeGraph(order_.GetUserGraph().compute_graph, new_graph));
     Graph graph_to_add = GraphUtilsEx::CreateGraphFromComputeGraph(new_graph);
-    GE_ASSERT_SUCCESS(graph_manager_.AddGraph(instance_id, graph_to_add, order_.GetUserGraph().graph_options, domi::GetContext()));
+    GE_ASSERT_SUCCESS(
+        graph_manager_.AddGraph(instance_id, graph_to_add, order_.GetUserGraph().graph_options, domi::GetContext()));
     user_graph_id_to_ins_id.emplace(user_graph_id_, instance_id);
   } else {
     instance_id = iter->second;
@@ -164,7 +164,8 @@ Status UserGraphControl::CompileCompleteGraph(uint64_t session_id) {
  * CompileGraph接口必须要对整图进行编译，因为GetCompiledGraphSummary需要获取整图编译的结果，所以如果有切图的情况都不需要进入jit的流程，因此该接口的行为如下：
  * 1、对于图的data节点为静态tensor：a.不会切图的情况下(没有二三四类算子)在jit中正常生成EP、GEP进行编译；
  *                                b.会切图的情况下，生成对于的ins id进行一次整图编译，在jit流程中只编译第一张slice graph
- * 2、对于图的data节点为动态tensor：a.不会切图的情况下，生成对于的ins id直接进行整图编译，不进入jit流程(因为通过动态tensor构造的hint产生的符号以及guard没有意义，后面执行时还是要根据input重编译，因此也不需要进入jit流程)
+ * 2、对于图的data节点为动态tensor：a.不会切图的情况下，生成对于的ins
+ * id直接进行整图编译，不进入jit流程(因为通过动态tensor构造的hint产生的符号以及guard没有意义，后面执行时还是要根据input重编译，因此也不需要进入jit流程)
  *                                b.会切图的情况下，生成对于的ins id直接进行整图编译，不进入jit流程
  */
 Status UserGraphControl::CompileGraph(uint64_t session_id) {
@@ -251,7 +252,8 @@ Status UserGraphControl::LoadGraph(const std::map<AscendString, AscendString> &o
 }
 
 Status UserGraphControl::ExecuteGraphWithStreamAsync(std::unique_ptr<UserGraphExecution> task) {
-  GELOGI("ExecuteGraphWithStreamAsync USER_GRAPH[%u] with %s", user_graph_id_, UserGraphExecutionToString(task).c_str());
+  GELOGI("ExecuteGraphWithStreamAsync USER_GRAPH[%u] with %s", user_graph_id_,
+         UserGraphExecutionToString(task).c_str());
   auto jit_executor = jit_executor_pool_.GetIdleExecutor();
   JIT_CTRL_ASSERT_NOTNULL(jit_executor);
   GELOGD("Start to ExecuteGraphWithStreamAsync");

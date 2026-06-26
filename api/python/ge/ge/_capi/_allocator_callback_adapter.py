@@ -18,9 +18,9 @@ from typing import Dict
 from ge.allocator import Allocator, MemBlock
 
 from .pysession_wrapper import (
-    c_func_t_malloc,
     c_func_t_free,
     c_func_t_get_addr,
+    c_func_t_malloc,
     c_func_t_on_destroy,
 )
 

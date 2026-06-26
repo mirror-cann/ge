@@ -28,7 +28,7 @@ uint32_t GenerateModelId(void) {
 static int32_t ModelDescRefObjCmp(void *a, void *b, void *appInfo) {
   (void)appInfo;
   // GE make sure a b not NULL
-  return (int32_t)(*(ModelDescRefObj**)a)->modelDesc.modelId - (int32_t)(*(ModelDescRefObj**)b)->modelDesc.modelId;
+  return (int32_t)(*(ModelDescRefObj **)a)->modelDesc.modelId - (int32_t)(*(ModelDescRefObj **)b)->modelDesc.modelId;
 }
 
 static void FreeModelDescMem(GeModelDesc *modelDesc) {
@@ -108,7 +108,7 @@ void DeInitGeModelDescManager(void) {
   mmMutexDestroy(&g_mutex);
 }
 
-Status AddModelDescRef(ModelDescRefObj * mdlDescRef) {
+Status AddModelDescRef(ModelDescRefObj *mdlDescRef) {
   (void)mmMutexLock(&g_mutex);
   if (EmplaceSortVector(&geModelDescManager, &mdlDescRef) == NULL) {
     (void)mmMutexUnLock(&g_mutex);
@@ -123,7 +123,7 @@ void ReleaseModelDescRef(GeModelDesc *modelDesc) {
   ReleaseObjRef(&mdlDescRefObj->refObj, DestroyModelDescRef);
 }
 
-void* FuncNull(RefObj *refObj) {
+void *FuncNull(RefObj *refObj) {
   (void)refObj;
   return NULL;
 }
@@ -134,7 +134,7 @@ GeModelDesc *GetModelDescRef(uint32_t modelId) {
   ModelDescRefObj *mdlDescRefObjTag = &mdlDescRefObj;
   GeModelDesc *outMdlDesc = NULL;
   (void)mmMutexLock(&g_mutex);
-  ModelDescRefObj** refObj = (ModelDescRefObj**)SortVectorAtKey(&geModelDescManager, &mdlDescRefObjTag);
+  ModelDescRefObj **refObj = (ModelDescRefObj **)SortVectorAtKey(&geModelDescManager, &mdlDescRefObjTag);
   if (refObj == NULL) {
     (void)mmMutexUnLock(&g_mutex);
     return NULL;

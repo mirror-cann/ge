@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,7 +30,7 @@ using namespace hybrid;
 class UtestRtsNodeTask : public testing::Test {
  protected:
   void SetUp() {}
-  void TearDown() { }
+  void TearDown() {}
 };
 
 REGISTER_RTS_TASK_CREATOR(IDENTITY, IdentityNodeTask);
@@ -89,20 +89,22 @@ TEST_F(UtestRtsNodeTask, test_stream_switch_task) {
   std::function<void()> done = []() {};
   ASSERT_EQ(node_state->GetSwitchIndex(), -1);
   ASSERT_EQ(task->ExecuteAsync(*node_state->GetTaskContext(), done), SUCCESS);
-  ASSERT_EQ(node_state->GetSwitchIndex(), 0); // not equal, active 0
+  ASSERT_EQ(node_state->GetSwitchIndex(), 0);  // not equal, active 0
 
   uint64_t value_2 = 110;
   TensorValue in_tensor2(&value_2, sizeof(value_2));
   subgraph_context.SetInput(*node_item, 1, in_tensor2);
   ASSERT_EQ(task->ExecuteAsync(*node_state->GetTaskContext(), done), SUCCESS);
-  ASSERT_EQ(node_state->GetSwitchIndex(), 1); // equal, active 1
+  ASSERT_EQ(node_state->GetSwitchIndex(), 1);  // equal, active 1
 
   int64_t pred_value = 0;
   node_state->GetTaskContext()->MutableInputDesc(0)->SetDataType(DT_INT32);
-  ASSERT_EQ(dynamic_cast<RtsNodeTask *>(task.get())->GetScalarIndexValue(*node_state->GetTaskContext(), 0, pred_value), SUCCESS);
+  ASSERT_EQ(dynamic_cast<RtsNodeTask *>(task.get())->GetScalarIndexValue(*node_state->GetTaskContext(), 0, pred_value),
+            SUCCESS);
 
   node_state->GetTaskContext()->MutableInputDesc(0)->SetDataType(DT_FLOAT);
-  ASSERT_EQ(dynamic_cast<RtsNodeTask *>(task.get())->GetScalarIndexValue(*node_state->GetTaskContext(), 0, pred_value), UNSUPPORTED);
+  ASSERT_EQ(dynamic_cast<RtsNodeTask *>(task.get())->GetScalarIndexValue(*node_state->GetTaskContext(), 0, pred_value),
+            UNSUPPORTED);
 
   ASSERT_TRUE(AttrUtils::SetInt(node->GetOpDesc(), ATTR_NAME_STREAM_SWITCH_COND, 2));
   ASSERT_EQ(node_executor.LoadTask(hybrid_model, node, task), SUCCESS);
@@ -640,7 +642,7 @@ TEST_F(UtestRtsNodeTask, test_identity_init_output_svm_d2h) {
 
   NodePtr node = CreateNode(*graph, "identity", IDENTITY, 1, 1);
   ASSERT_TRUE(AttrUtils::SetListInt(node->GetOpDesc(), ATTR_NAME_OUTPUT_MEM_TYPE_LIST,
-                                     std::vector<int64_t>{RT_MEMORY_HOST_SVM}));
+                                    std::vector<int64_t>{RT_MEMORY_HOST_SVM}));
 
   IdentityNodeTask identity_task;
   ASSERT_EQ(identity_task.Init(hybrid_model, node), SUCCESS);
@@ -658,7 +660,7 @@ TEST_F(UtestRtsNodeTask, test_identity_init_input_svm_h2d) {
 
   NodePtr node = CreateNode(*graph, "identity", IDENTITY, 1, 1);
   ASSERT_TRUE(AttrUtils::SetListInt(node->GetOpDesc(), ATTR_NAME_INPUT_MEM_TYPE_LIST,
-                                     std::vector<int64_t>{RT_MEMORY_HOST_SVM}));
+                                    std::vector<int64_t>{RT_MEMORY_HOST_SVM}));
 
   IdentityNodeTask identity_task;
   ASSERT_EQ(identity_task.Init(hybrid_model, node), SUCCESS);
@@ -676,9 +678,9 @@ TEST_F(UtestRtsNodeTask, test_identity_init_both_svm_default) {
 
   NodePtr node = CreateNode(*graph, "identity", IDENTITY, 1, 1);
   ASSERT_TRUE(AttrUtils::SetListInt(node->GetOpDesc(), ATTR_NAME_OUTPUT_MEM_TYPE_LIST,
-                                     std::vector<int64_t>{RT_MEMORY_HOST_SVM}));
+                                    std::vector<int64_t>{RT_MEMORY_HOST_SVM}));
   ASSERT_TRUE(AttrUtils::SetListInt(node->GetOpDesc(), ATTR_NAME_INPUT_MEM_TYPE_LIST,
-                                     std::vector<int64_t>{RT_MEMORY_HOST_SVM}));
+                                    std::vector<int64_t>{RT_MEMORY_HOST_SVM}));
 
   IdentityNodeTask identity_task;
   ASSERT_EQ(identity_task.Init(hybrid_model, node), SUCCESS);
@@ -821,4 +823,4 @@ TEST_F(UtestRtsNodeTask, test_loadtask_fail) {
   RtsNodeExecutor node_executor;
   ASSERT_NE(node_executor.LoadTask(hybrid_model, node, task), SUCCESS);
 }
-} // namespace ge
+}  // namespace ge

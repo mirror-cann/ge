@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,22 +32,19 @@ constexpr char const *kPatternTransdata = "Transdata";
 constexpr char const *PLACE_HOLDER = "PlaceHolder";
 constexpr char const *CONV2D = "Conv2D";
 constexpr char const *DEPTHWISECONV2D = "DepthwiseConv2D";
-std::unordered_set<std::string> WHITELIST_OF_OP_PATTERN = {OP_PATTERN_CONV, OP_PATTERN_DEPTHWISE_CONV,
-                                                           OP_PATTERN_STRIDED_WRITE, OP_PATTERN_STRIDED_READ,
-                                                           OP_PATTERN_WRITE_SELECT, OP_PATTERN_READ_SELECT,
-                                                           OP_PATTERN_DEQUANT, OP_PATTERN_ELEMWISE,
-                                                           OP_PATTERN_BROAD_CAST, OP_PATTERN_QUANT,
-                                                           OP_PATTERN_FIXPIPE, kPatternTransdata};
+std::unordered_set<std::string> WHITELIST_OF_OP_PATTERN = {
+    OP_PATTERN_CONV,         OP_PATTERN_DEPTHWISE_CONV, OP_PATTERN_STRIDED_WRITE, OP_PATTERN_STRIDED_READ,
+    OP_PATTERN_WRITE_SELECT, OP_PATTERN_READ_SELECT,    OP_PATTERN_DEQUANT,       OP_PATTERN_ELEMWISE,
+    OP_PATTERN_BROAD_CAST,   OP_PATTERN_QUANT,          OP_PATTERN_FIXPIPE,       kPatternTransdata};
 std::unordered_set<std::string> SLICE_INFO_UPDATE_OP_PATTERN = {OP_PATTERN_DEQUANT};
 
 std::unordered_set<std::string> kElemwisePatterns = {OP_PATTERN_ELEMWISE, OP_PATTERN_BROAD_CAST};
-std::unordered_set<std::string> SKIPPED_TYPE_FOR_SLICE_INFO = {"StridedRead", "StridedWrite",
-                                                               "ReadSelect", "WriteSelect"};
+std::unordered_set<std::string> SKIPPED_TYPE_FOR_SLICE_INFO = {"StridedRead", "StridedWrite", "ReadSelect",
+                                                               "WriteSelect"};
 std::unordered_set<ge::Format> JUDGE_SPLIT_AXIS_FORMAT = {
-        ge::FORMAT_NCHW, ge::FORMAT_NHWC, ge::FORMAT_NC1HWC0, ge::FORMAT_NHWC1C0, ge::FORMAT_C1HWNC0, ge::FORMAT_CHWN,
-        ge::FORMAT_HWCN, ge::FORMAT_NDHWC, ge::FORMAT_NCDHW, ge::FORMAT_DHWCN, ge::FORMAT_DHWNC
-};
-}
+    ge::FORMAT_NCHW, ge::FORMAT_NHWC,  ge::FORMAT_NC1HWC0, ge::FORMAT_NHWC1C0, ge::FORMAT_C1HWNC0, ge::FORMAT_CHWN,
+    ge::FORMAT_HWCN, ge::FORMAT_NDHWC, ge::FORMAT_NCDHW,   ge::FORMAT_DHWCN,   ge::FORMAT_DHWNC};
+}  // namespace
 
 bool UbPassSliceInfoManager::CheckOpPatternSupport(const string &op_pattern) {
   return (WHITELIST_OF_OP_PATTERN.count(op_pattern) != 0);
@@ -154,8 +151,7 @@ Status UbPassSliceInfoManager::SetSliceInfoForFusionNodes(vector<ge::NodePtr> &f
     slice_info_base_ptr = SwitchSliceInfoPtrByPattern(matched_pattern, fusion_node, input_size);
     FE_CHECK_NOTNULL(slice_info_base_ptr);
     bool is_head_fusion = IsHeadFusion(fusion_node, fusion_nodes);
-    slice_info_base_ptr->ModifySliceInfoByPattern(fusion_node, fusion_nodes, op_calc_info, input_size,
-                                                  is_head_fusion);
+    slice_info_base_ptr->ModifySliceInfoByPattern(fusion_node, fusion_nodes, op_calc_info, input_size, is_head_fusion);
   }
   SetFusionOpSliceInfoToJson(op_calc_info, op_calc_info_str);
   for (auto fusion_node : fusion_nodes) {
@@ -242,9 +238,9 @@ static bool IsFusionNode(const ge::NodePtr &node, std::unordered_map<ge::NodePtr
   return (node != nullptr && node_visited.count(node) != 0);
 }
 
-static Status GetRealIdxOfTailNode(const ge::NodePtr &tail_node, const size_t &out_idx, size_t& real_idx,
+static Status GetRealIdxOfTailNode(const ge::NodePtr &tail_node, const size_t &out_idx, size_t &real_idx,
                                    std::unordered_map<ge::NodePtr, bool> &node_visited,
-                                   UbPassInputOutputIndexInfo & index_info) {
+                                   UbPassInputOutputIndexInfo &index_info) {
   FE_CHECK_NOTNULL(tail_node);
   auto actual_tail_node = tail_node;
   size_t actual_out_idx = out_idx;
@@ -271,7 +267,7 @@ static Status GetRealIdxOfTailNode(const ge::NodePtr &tail_node, const size_t &o
 
 static Status GetRealIdxOfHeadNode(const ge::NodePtr &head_node, const size_t &in_idx, size_t &real_idx,
                                    std::unordered_map<ge::NodePtr, bool> &node_visited,
-                                   UbPassInputOutputIndexInfo & index_info) {
+                                   UbPassInputOutputIndexInfo &index_info) {
   FE_CHECK_NOTNULL(head_node);
   auto actual_head_node = head_node;
   size_t actual_in_idx = in_idx;
@@ -296,32 +292,33 @@ static Status GetRealIdxOfHeadNode(const ge::NodePtr &head_node, const size_t &i
   return SUCCESS;
 }
 
-static Status GetIdxInfoForFusionOp(const vector<ge::NodePtr> &fusion_nodes, std::unordered_map<ge::NodePtr, bool> &node_visited,
+static Status GetIdxInfoForFusionOp(const vector<ge::NodePtr> &fusion_nodes,
+                                    std::unordered_map<ge::NodePtr, bool> &node_visited,
                                     UbPassInputOutputIndexInfo &index_info) {
   size_t fusion_input_index = -1;
   size_t fusion_output_index = -1;
-  for (auto &fusion_node: fusion_nodes) {
+  for (auto &fusion_node : fusion_nodes) {
     FE_CHECK_NOTNULL(fusion_node);
     FE_CHECK_NOTNULL(fusion_node->GetOpDesc());
     auto node_id = fusion_node->GetOpDesc()->GetId();
     // calculate input index
-    for (auto &in_anchor: fusion_node->GetAllInDataAnchors()) {
+    for (auto &in_anchor : fusion_node->GetAllInDataAnchors()) {
       FE_CHECK_NOTNULL(in_anchor);
       if (in_anchor->GetPeerOutAnchor() == nullptr ||
           IsFusionNode(in_anchor->GetPeerOutAnchor()->GetOwnerNode(), node_visited)) {
-        continue; // previous condition is for case such like: offset_w, the 4th input of conv2d
+        continue;  // previous condition is for case such like: offset_w, the 4th input of conv2d
       }
       index_info[std::to_string(node_id) + ":in:" + std::to_string(in_anchor->GetIdx())] = ++fusion_input_index;
     }
 
     // calculate output index
-    for (auto &out_anchor: fusion_node->GetAllOutDataAnchors()) {
+    for (auto &out_anchor : fusion_node->GetAllOutDataAnchors()) {
       FE_CHECK_NOTNULL(out_anchor);
       for (auto &peer_in_anchor : out_anchor->GetPeerInDataAnchors()) {
         if (peer_in_anchor == nullptr || IsFusionNode(peer_in_anchor->GetOwnerNode(), node_visited)) {
           continue;
         }
-        index_info[std::to_string(node_id) +":out:" + std::to_string(out_anchor->GetIdx())]  = ++fusion_output_index;
+        index_info[std::to_string(node_id) + ":out:" + std::to_string(out_anchor->GetIdx())] = ++fusion_output_index;
         break;
       }
     }
@@ -341,9 +338,9 @@ static Status GetOpSliceInfoForSingleOp(const ge::NodePtr &node, OpCalcInfo &op_
   return SUCCESS;
 }
 
-static bool GetOutputSplitInfoAtIdx(const std::vector<OutputSplitInfoPtr> &output_split_infos,  const size_t &idx,
+static bool GetOutputSplitInfoAtIdx(const std::vector<OutputSplitInfoPtr> &output_split_infos, const size_t &idx,
                                     OutputSplitInfoPtr &output_split_info) {
-  for (auto &split_info: output_split_infos) {
+  for (auto &split_info : output_split_infos) {
     if (split_info->GetIndex() == idx) {
       output_split_info = split_info;
       return true;
@@ -384,17 +381,17 @@ static string GetAxisByIndex(ge::Format op_format, int64_t index) {
   std::string temp = "";
   for (size_t i = 0; i < op_format_str.length(); i++) {
     if (isdigit(op_format_str[i])) {
-        temp += op_format_str[i];
+      temp += op_format_str[i];
     } else {
       if (!temp.empty()) {
-          sub_strs_vec.push_back(temp);
-          temp = "";
+        sub_strs_vec.push_back(temp);
+        temp = "";
       }
       temp += op_format_str[i];
     }
   }
   if (!temp.empty()) {
-      sub_strs_vec.push_back(temp);
+    sub_strs_vec.push_back(temp);
   }
   if (static_cast<size_t>(index) >= sub_strs_vec.size()) {
     FE_LOGW("index exceeds sub_strs_vec size");
@@ -406,14 +403,14 @@ static string GetAxisByIndex(ge::Format op_format, int64_t index) {
 /** Check whether tail node out_split_infos can be split
  * If tail node out format equal to head node out format, then compare the axis_split number
  * Otherwise, check the actual split axis is equal
-*/
+ */
 static bool CheckAxisSplitChoice(const ge::NodePtr &node,
-                          const std::pair<int64_t, ge::Format> &axis_split_choice_with_format,
-                          size_t in_out_index, int64_t split_axis) {
-  auto tail_node_op_format = static_cast<ge::Format>(GetPrimaryFormat(
-      node->GetOpDesc()->GetOutputDesc(in_out_index).GetFormat()));
+                                 const std::pair<int64_t, ge::Format> &axis_split_choice_with_format,
+                                 size_t in_out_index, int64_t split_axis) {
+  auto tail_node_op_format =
+      static_cast<ge::Format>(GetPrimaryFormat(node->GetOpDesc()->GetOutputDesc(in_out_index).GetFormat()));
   bool axis_can_not_compare = (JUDGE_SPLIT_AXIS_FORMAT.count(tail_node_op_format) == 0 ||
-      JUDGE_SPLIT_AXIS_FORMAT.count(axis_split_choice_with_format.second) == 0);
+                               JUDGE_SPLIT_AXIS_FORMAT.count(axis_split_choice_with_format.second) == 0);
   if (tail_node_op_format == axis_split_choice_with_format.second || axis_can_not_compare) {
     FE_LOGD("head node axis %ld, tail node axis %ld.", axis_split_choice_with_format.first, split_axis);
     return split_axis == axis_split_choice_with_format.first;
@@ -425,13 +422,13 @@ static bool CheckAxisSplitChoice(const ge::NodePtr &node,
 }
 
 static Status GetAxisSplitMapAtAxis(const ge::NodePtr &node,
-                             const std::pair<int64_t, ge::Format> &axis_split_choice_with_format,
-                             AxisSplitMapPtr& selected_split_map) {
+                                    const std::pair<int64_t, ge::Format> &axis_split_choice_with_format,
+                                    AxisSplitMapPtr &selected_split_map) {
   OpCalcInfo op_slice_info;
   if (!op_slice_info.Initialize() || GetOpSliceInfoForSingleOp(node, op_slice_info) != SUCCESS) {
     return FAILED;
   }
-  for (auto &axis_split_map: op_slice_info.GetAxisSplitMaps()) {
+  for (auto &axis_split_map : op_slice_info.GetAxisSplitMaps()) {
     auto out_split_infos = axis_split_map->GetOutputSplitInfos();
     bool condition = (out_split_infos.size() > 0 && out_split_infos.at(0) != nullptr &&
                       out_split_infos.at(0)->GetAxis().size() > 0 &&
@@ -446,12 +443,12 @@ static Status GetAxisSplitMapAtAxis(const ge::NodePtr &node,
 }
 
 static Status AddOutputSplitInfoForFusionNode(const ge::NodePtr &last_node,
-                                              vector <OutputSplitInfoPtr> &last_output_split_infos,
-                                              vector<OutputSplitInfo>& new_output_split_infos,
+                                              vector<OutputSplitInfoPtr> &last_output_split_infos,
+                                              vector<OutputSplitInfo> &new_output_split_infos,
                                               UbPassInputOutputIndexInfo &index_info,
                                               std::unordered_map<ge::NodePtr, bool> &node_visited) {
   FE_CHECK_NOTNULL(last_node);
-  for (const auto &cur_output_split_info: last_output_split_infos) {
+  for (const auto &cur_output_split_info : last_output_split_infos) {
     size_t out_idx = cur_output_split_info->GetIndex();
     auto last_out_anchors = last_node->GetAllOutDataAnchors();
     bool condition = (last_out_anchors.size() <= out_idx || last_out_anchors.at(out_idx) == nullptr);
@@ -459,10 +456,10 @@ static Status AddOutputSplitInfoForFusionNode(const ge::NodePtr &last_node,
       return FAILED;
     }
     for (const auto &last_out_peer_in_anchor : last_out_anchors.at(out_idx)->GetPeerInDataAnchors()) {
-      condition = (last_out_peer_in_anchor == nullptr ||
-                   IsFusionNode(last_out_peer_in_anchor->GetOwnerNode(), node_visited));
+      condition =
+          (last_out_peer_in_anchor == nullptr || IsFusionNode(last_out_peer_in_anchor->GetOwnerNode(), node_visited));
       if (condition) {
-        continue; // current out_node is not a output of fusion op
+        continue;  // current out_node is not a output of fusion op
       }
       OutputSplitInfo new_output_split_info;
       if (!new_output_split_info.Initialize()) {
@@ -517,7 +514,7 @@ static Status UpDownSearchAxisSplitMapChain(const ge::NodePtr &node, const AxisS
   FE_CHECK_NOTNULL(node);
   FE_CHECK_NOTNULL(node->GetOpDesc());
   auto in_anchors = node->GetAllInDataAnchors();
-  for (auto &input_split_info: axis_split_map->GetInputSplitInfos()) {
+  for (auto &input_split_info : axis_split_map->GetInputSplitInfos()) {
     FE_CHECK_NOTNULL(input_split_info);
     size_t in_idx = input_split_info->GetIndex();
     auto in_axes = input_split_info->GetAxis();
@@ -548,28 +545,27 @@ static Status UpDownSearchAxisSplitMapChain(const ge::NodePtr &node, const AxisS
       if (HandleInputNode(node, input_split_info, index_info, node_visited, new_input_split_infos) != SUCCESS) {
         return FAILED;
       }
-    } else if (node_visited[last_node]) { // last_node has been visited before, continue next check
+    } else if (node_visited[last_node]) {  // last_node has been visited before, continue next check
       continue;
-    } else { // last_node is a node in fusion op, check whether it has a matched output_split_info
+    } else {  // last_node is a node in fusion op, check whether it has a matched output_split_info
       auto last_out_idx = last_out_anchor->GetIdx();
       AxisSplitMapPtr last_axis_split_map;
       auto node_op_format =
           static_cast<ge::Format>(GetPrimaryFormat(node->GetOpDesc()->GetInputDesc(in_idx).GetFormat()));
-      bool ret = (in_axes.size() <= 0 ||
-        GetAxisSplitMapAtAxis(last_node, std::make_pair(in_axes.at(0), node_op_format), last_axis_split_map) !=
-        SUCCESS);
+      bool ret = (in_axes.size() <= 0 || GetAxisSplitMapAtAxis(last_node, std::make_pair(in_axes.at(0), node_op_format),
+                                                               last_axis_split_map) != SUCCESS);
       if (ret) {
         return FAILED;
       }
       auto last_output_split_infos = last_axis_split_map->GetOutputSplitInfos();
       OutputSplitInfoPtr last_output_split_info;
       bool search_ret = ((GetOutputSplitInfoAtIdx(last_output_split_infos, last_out_idx, last_output_split_info)) &&
-                        (in_axes == last_output_split_info->GetAxis()) &&
-                        (UpDownSearchAxisSplitMapChain(last_node, last_axis_split_map, new_axis_split_map,
-                                                       node_visited, index_info) == SUCCESS));
+                         (in_axes == last_output_split_info->GetAxis()) &&
+                         (UpDownSearchAxisSplitMapChain(last_node, last_axis_split_map, new_axis_split_map,
+                                                        node_visited, index_info) == SUCCESS));
       if (search_ret) {
-        if (AddOutputSplitInfoForFusionNode(last_node, last_output_split_infos, new_output_split_infos,
-                                            index_info, node_visited) != SUCCESS) {
+        if (AddOutputSplitInfoForFusionNode(last_node, last_output_split_infos, new_output_split_infos, index_info,
+                                            node_visited) != SUCCESS) {
           return FAILED;
         }
         node_visited[last_node] = true;
@@ -593,12 +589,12 @@ static Status UpDownSearchAxisSplitMapChain(const ge::NodePtr &node, const AxisS
 static Status GetValidAxisSplitChoices(const vector<ge::NodePtr> &tail_nodes,
                                        const std::unordered_set<int64_t> &invalid_split_axis,
                                        const vector<std::pair<int64_t, ge::Format>> &axis_order_reference,
-                                       vector<std::pair<int64_t, ge::Format >> &valid_split_axis) {
+                                       vector<std::pair<int64_t, ge::Format>> &valid_split_axis) {
   int64_t node_num = tail_nodes.size();
-  for (auto &axis_with_format: axis_order_reference) {
+  for (auto &axis_with_format : axis_order_reference) {
     int64_t count = 0;
     // if all tail_nodes can be cut on one axis, it is considered as a valid split axis
-    for (auto &tail_node: tail_nodes) {
+    for (auto &tail_node : tail_nodes) {
       AxisSplitMapPtr split_map;
       if (GetAxisSplitMapAtAxis(tail_node, axis_with_format, split_map) != SUCCESS) {
         break;
@@ -636,7 +632,7 @@ static Status GetInvalidAxisSplitChoices(const vector<ge::NodePtr> &fusion_nodes
 static Status GetHeadNodeAxisSplitOrder(const vector<ge::NodePtr> &fusion_nodes, OpCalcInfo &head_op_slice_info,
                                         std::vector<std::pair<int64_t, ge::Format>> &head_split_axis) {
   ge::NodePtr head_node = nullptr;
-  for (auto &fusion_node: fusion_nodes) {
+  for (auto &fusion_node : fusion_nodes) {
     // fusion_nodes have been TopologicalSorting, if fusion_node cannot be skipped, it must be the head node
     if (!IsSkippedNode(fusion_node)) {
       head_node = fusion_node;
@@ -648,15 +644,15 @@ static Status GetHeadNodeAxisSplitOrder(const vector<ge::NodePtr> &fusion_nodes,
   if (condition) {
     return FAILED;
   }
-  for (auto &head_axis_split_map: head_op_slice_info.GetAxisSplitMaps()) {
+  for (auto &head_axis_split_map : head_op_slice_info.GetAxisSplitMaps()) {
     auto out_split_infos = head_axis_split_map->GetOutputSplitInfos();
     bool ret = (out_split_infos.size() <= 0 || out_split_infos.at(0) == nullptr ||
-                 out_split_infos.at(0)->GetAxis().size() <= 0);
+                out_split_infos.at(0)->GetAxis().size() <= 0);
     if (ret) {
       return FAILED;
     }
-    auto head_out_format = static_cast<ge::Format>(GetPrimaryFormat(head_node->GetOpDesc()->GetOutputDesc(
-        out_split_infos.at(0)->GetIndex()).GetFormat()));
+    auto head_out_format = static_cast<ge::Format>(
+        GetPrimaryFormat(head_node->GetOpDesc()->GetOutputDesc(out_split_infos.at(0)->GetIndex()).GetFormat()));
     head_split_axis.push_back(std::make_pair(out_split_infos.at(0)->GetAxis()[0], head_out_format));
   }
   return SUCCESS;
@@ -664,54 +660,54 @@ static Status GetHeadNodeAxisSplitOrder(const vector<ge::NodePtr> &fusion_nodes,
 
 Status UbPassSliceInfoManager::CalcSliceInfoForFusionOp(vector<ge::NodePtr> &fusion_nodes, OpCalcInfo &op_slice_info) {
   /* Main idea of this function is to updown search a split_info_map chain among fusion nodes.
-  * The search process follows the
-  * rule that peer input-output tensors must have same split info.
-  * If the chain is found, the corresponding split_info_map can
-  * be added into op_slice_info for fusion_op.
-  *
-  * Assuming a UB fusion pass matches follwing structure: "conv1 ---> conv2",
-  * op slice info for each conv node can be described as below:
-  * conv1: (1) {inputList:{idx:0, axis=[0], headOverLap=[0],  TailOverLap=[0]}, outputList{idx:0, axis=[0]}}
-  *        (2) {inputList:{idx:0, axis=[2], headOverLap=[-1], TailOverLap=[-1]}, outputList{idx:0, axis=[2]}}
-  *        (3) {inputList:{idx:0, axis=[3], headOverLap=[-1], TailOverLap=[-1]}, outputList{idx:0, axis=[3]}}
-  *        (4) {inputList:{idx:1, axis=[1], headOverLap=[0],  TailOverLap=[0]}, outputList{idx:0, axis=[1]}}
-  *
-  * conv2: (1) {inputList:{idx:0, axis=[0], headOverLap=[0],  TailOverLap=[0]}, outputList{idx:0, axis=[0]}}
-  *        (2) {inputList:{idx:0, axis=[2], headOverLap=[-1], TailOverLap=[-1]}, outputList{idx:0, axis=[2]}}
-  *        (3) {inputList:{idx:0, axis=[3], headOverLap=[-1], TailOverLap=[-1]}, outputList{idx:0, axis=[3]}}
-  *        (4) {inputList:{idx:1, axis=[1], headOverLap=[0],  TailOverLap=[0]}, outputList{idx:0, axis=[1]}}
-  *
-  * Since the output:0 of conv1 is the input:0 of conv2, these tow tensor must have the same split info.
-  * Thus, split info numbered (4)
-  * of conv1 cannot be adopted as the input:0 of conv2 does not have a split info performed on axis 1,
-  * which means the chain does not
-  * exist. Thus, the op_slice info for fusion op is as following:
-  * fusion op: (1) {inputList:{idx:0, axis=[0], headOverLap=[0],  TailOverLap=[0]}, outputList{idx:0, axis=[0]}}
-  *            (2) {inputList:{idx:0, axis=[2], headOverLap=[-1], TailOverLap=[-1]}, outputList{idx:0, axis=[2]}}
-  *            (3) {inputList:{idx:0, axis=[3], headOverLap=[-1], TailOverLap=[-1]}, outputList{idx:0, axis=[3]}}
-  *            (4) {inputList:{idx:2, axis=[1], headOverLap=[0],  TailOverLap=[0]}, outputList{idx:0, axis=[1]}}
-  *
-  * [N][C1][H][W][C0] (input:0)   [K1][N1][N0][K0] (input:1)
-  *   \      \  \
-  *    \      \  \
-  *     \      \  \
-  *  (1) \  (2) \  \ (3)
-  *      [N][C1][H][W][C0] (output:0)
-  *       |      |  |
-  *       |      |  |
-  *      [N][C1][H][W][C0] (input:0)    [K1][N1][N0][K0] (input:1)
-  *        \      \  \                       |
-  *         \      \  \                      | (4)
-  *          \    --\--\----------------------
-  *           \   |  \  \
-  *           [N][C1][H][W][C0]  (output:0)
-  *
-  */
+   * The search process follows the
+   * rule that peer input-output tensors must have same split info.
+   * If the chain is found, the corresponding split_info_map can
+   * be added into op_slice_info for fusion_op.
+   *
+   * Assuming a UB fusion pass matches following structure: "conv1 ---> conv2",
+   * op slice info for each conv node can be described as below:
+   * conv1: (1) {inputList:{idx:0, axis=[0], headOverLap=[0],  TailOverLap=[0]}, outputList{idx:0, axis=[0]}}
+   *        (2) {inputList:{idx:0, axis=[2], headOverLap=[-1], TailOverLap=[-1]}, outputList{idx:0, axis=[2]}}
+   *        (3) {inputList:{idx:0, axis=[3], headOverLap=[-1], TailOverLap=[-1]}, outputList{idx:0, axis=[3]}}
+   *        (4) {inputList:{idx:1, axis=[1], headOverLap=[0],  TailOverLap=[0]}, outputList{idx:0, axis=[1]}}
+   *
+   * conv2: (1) {inputList:{idx:0, axis=[0], headOverLap=[0],  TailOverLap=[0]}, outputList{idx:0, axis=[0]}}
+   *        (2) {inputList:{idx:0, axis=[2], headOverLap=[-1], TailOverLap=[-1]}, outputList{idx:0, axis=[2]}}
+   *        (3) {inputList:{idx:0, axis=[3], headOverLap=[-1], TailOverLap=[-1]}, outputList{idx:0, axis=[3]}}
+   *        (4) {inputList:{idx:1, axis=[1], headOverLap=[0],  TailOverLap=[0]}, outputList{idx:0, axis=[1]}}
+   *
+   * Since the output:0 of conv1 is the input:0 of conv2, these tow tensor must have the same split info.
+   * Thus, split info numbered (4)
+   * of conv1 cannot be adopted as the input:0 of conv2 does not have a split info performed on axis 1,
+   * which means the chain does not
+   * exist. Thus, the op_slice info for fusion op is as following:
+   * fusion op: (1) {inputList:{idx:0, axis=[0], headOverLap=[0],  TailOverLap=[0]}, outputList{idx:0, axis=[0]}}
+   *            (2) {inputList:{idx:0, axis=[2], headOverLap=[-1], TailOverLap=[-1]}, outputList{idx:0, axis=[2]}}
+   *            (3) {inputList:{idx:0, axis=[3], headOverLap=[-1], TailOverLap=[-1]}, outputList{idx:0, axis=[3]}}
+   *            (4) {inputList:{idx:2, axis=[1], headOverLap=[0],  TailOverLap=[0]}, outputList{idx:0, axis=[1]}}
+   *
+   * [N][C1][H][W][C0] (input:0)   [K1][N1][N0][K0] (input:1)
+   *   \      \  \
+   *    \      \  \
+   *     \      \  \
+   *  (1) \  (2) \  \ (3)
+   *      [N][C1][H][W][C0] (output:0)
+   *       |      |  |
+   *       |      |  |
+   *      [N][C1][H][W][C0] (input:0)    [K1][N1][N0][K0] (input:1)
+   *        \      \  \                       |
+   *         \      \  \                      | (4)
+   *          \    --\--\----------------------
+   *           \   |  \  \
+   *           [N][C1][H][W][C0]  (output:0)
+   *
+   */
 
   // mark fusion nodes. bool value is taken to identify whether this node has been visited,
   // useful when a fusion op has multi output nodes.
   std::unordered_map<ge::NodePtr, bool> node_visited;
-  for (auto &fusion_node: fusion_nodes) {
+  for (auto &fusion_node : fusion_nodes) {
     FE_CHECK_NOTNULL(fusion_node);
     node_visited[fusion_node] = false;
   }
@@ -741,7 +737,7 @@ Status UbPassSliceInfoManager::CalcSliceInfoForFusionOp(vector<ge::NodePtr> &fus
   }
 
   // go through each split axis to check whether it is a valid split axis
-  for (auto &split_axis: valid_split_axis) {
+  for (auto &split_axis : valid_split_axis) {
     AxisSplitMapPtr new_axis_split_map;
     FE_MAKE_SHARED(new_axis_split_map = std::make_shared<AxisSplitMap>(), return FAILED);
     if (!new_axis_split_map->Initialize()) {
@@ -749,21 +745,21 @@ Status UbPassSliceInfoManager::CalcSliceInfoForFusionOp(vector<ge::NodePtr> &fus
     }
     // if each tail_node has a down-to-up split map chain, axis is considered as a valid split axis
     bool is_valid_axis = false;
-    for (auto &tail_node: tail_nodes) {
+    for (auto &tail_node : tail_nodes) {
       is_valid_axis = true;
       AxisSplitMapPtr tail_axis_split_map;
       condition = (GetAxisSplitMapAtAxis(tail_node, split_axis, tail_axis_split_map) == SUCCESS &&
-                   UpDownSearchAxisSplitMapChain(tail_node, tail_axis_split_map, new_axis_split_map,
-                                                 node_visited, index_info) == SUCCESS);
+                   UpDownSearchAxisSplitMapChain(tail_node, tail_axis_split_map, new_axis_split_map, node_visited,
+                                                 index_info) == SUCCESS);
       if (condition) {
         // add output_split_info of tail_node into axis_split_map
-        for (auto &tail_output_split_info: tail_axis_split_map->GetOutputSplitInfos()) {
+        for (auto &tail_output_split_info : tail_axis_split_map->GetOutputSplitInfos()) {
           FE_CHECK_NOTNULL(tail_output_split_info);
           OutputSplitInfo new_output_split_info;
           size_t real_idx = 0;
           size_t out_idx = tail_output_split_info->GetIndex();
           bool condition1 = (!new_output_split_info.Initialize() ||
-                            (GetRealIdxOfTailNode(tail_node, out_idx, real_idx, node_visited, index_info) != SUCCESS));
+                             (GetRealIdxOfTailNode(tail_node, out_idx, real_idx, node_visited, index_info) != SUCCESS));
           if (condition1) {
             return FAILED;
           }

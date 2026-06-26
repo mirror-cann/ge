@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,31 +31,31 @@
 
 namespace ge {
 class ExecutionPointUT : public testing::Test {
-protected:
- void SetUp() override {
-     auto ascend_install_path = EnvPath().GetAscendInstallPath();
-     setenv("ASCEND_OPP_PATH", (ascend_install_path + "/opp").c_str(), 1);
-     setenv("LD_LIBRARY_PATH", (ascend_install_path + "/runtime/lib64").c_str(), 1);
-     graph_ = EsCreateGraphBuilder("Hello");
-     const auto env_ptr = getenv("LD_PRELOAD");
-     if (env_ptr != nullptr) {
-       env = env_ptr;
-       unsetenv("LD_PRELOAD");
-     }
- }
- void TearDown() override {
-     EsDestroyGraphBuilder(graph_);
-     graph_ = nullptr;
-     unsetenv("ASCEND_OPP_PATH");
-     unsetenv("LD_LIBRARY_PATH");
-     if (!env.empty()) {
-       setenv("LD_PRELOAD", env.c_str(), 1);
-     }
- }
-    EsCGraphBuilder *graph_{nullptr};
+ protected:
+  void SetUp() override {
+    auto ascend_install_path = EnvPath().GetAscendInstallPath();
+    setenv("ASCEND_OPP_PATH", (ascend_install_path + "/opp").c_str(), 1);
+    setenv("LD_LIBRARY_PATH", (ascend_install_path + "/runtime/lib64").c_str(), 1);
+    graph_ = EsCreateGraphBuilder("Hello");
+    const auto env_ptr = getenv("LD_PRELOAD");
+    if (env_ptr != nullptr) {
+      env = env_ptr;
+      unsetenv("LD_PRELOAD");
+    }
+  }
+  void TearDown() override {
+    EsDestroyGraphBuilder(graph_);
+    graph_ = nullptr;
+    unsetenv("ASCEND_OPP_PATH");
+    unsetenv("LD_LIBRARY_PATH");
+    if (!env.empty()) {
+      setenv("LD_PRELOAD", env.c_str(), 1);
+    }
+  }
+  EsCGraphBuilder *graph_{nullptr};
 
-    ExecutionPoint *ep;
-    std::string env;
+  ExecutionPoint *ep;
+  std::string env;
 };
 
 TEST_F(ExecutionPointUT, load_guard_check_func) {
@@ -82,8 +82,11 @@ TEST_F(ExecutionPointUT, load_guard_check_func) {
   EXPECT_EQ(codegen.GuardFuncCodegenAndCompile(compute_graph), ge::GRAPH_SUCCESS);
 
   auto make_tensor = []() {
-    return gert::Tensor{{{3, 2, 9}, {3, 2, 9}}, {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},
-                        gert::kOnDeviceHbm, ge::DT_FLOAT16, (void *)0x0};
+    return gert::Tensor{{{3, 2, 9}, {3, 2, 9}},
+                        {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},
+                        gert::kOnDeviceHbm,
+                        ge::DT_FLOAT16,
+                        (void *)0x0};
   };
   std::vector<gert::Tensor> inputs;
   inputs.push_back(make_tensor());
@@ -124,10 +127,9 @@ TEST_F(ExecutionPointUT, load_guard_check_func) {
   dlog_setlevel(0, 3, 0);
 }
 
-
 ComputeGraphPtr CompileGraph1(ComputeGraphPtr compute_graph) {
   GuardCodegen codegen;
-  //auto compute_graph = graph_->BuildComputeGraph();
+  // auto compute_graph = graph_->BuildComputeGraph();
   auto attr = compute_graph->GetOrCreateAttrsGroup<ShapeEnvAttr>();
   EXPECT_NE(attr, nullptr);
   ShapeEnvGuarder guard(attr);
@@ -149,7 +151,7 @@ ComputeGraphPtr CompileGraph1(ComputeGraphPtr compute_graph) {
 
 ComputeGraphPtr CompileGraph2(ComputeGraphPtr compute_graph) {
   GuardCodegen codegen;
-  //auto compute_graph = graph_->BuildComputeGraph();
+  // auto compute_graph = graph_->BuildComputeGraph();
   auto attr = compute_graph->GetOrCreateAttrsGroup<ShapeEnvAttr>();
   EXPECT_NE(attr, nullptr);
   ShapeEnvGuarder guard(attr);
@@ -169,7 +171,8 @@ ComputeGraphPtr CompileGraph2(ComputeGraphPtr compute_graph) {
   return compute_graph;
 }
 
-static void ThreadFunction(ExecutionPoint *ep, const std::vector<gert::Tensor> *inputs, size_t *compiled_count, std::mutex *mutex, int flag) {
+static void ThreadFunction(ExecutionPoint *ep, const std::vector<gert::Tensor> *inputs, size_t *compiled_count,
+                           std::mutex *mutex, int flag) {
   static size_t count = 0;
   static size_t graph_id = 0;
   ++count;
@@ -322,4 +325,4 @@ TEST_F(ExecutionPointUT, OneGraphMultiThread_Success) {
   delete ep;
   dlog_setlevel(0, 3, 0);
 }
-}
+}  // namespace ge

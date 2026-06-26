@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -41,7 +41,7 @@ std::string GetSpecificFilePath(const std::string &file_path, const string &suff
   closedir(dir);
   return "";
 }
-} // namespace
+}  // namespace
 using ExecuteSharedGraph = SharedGraph<ExecuteGraphPtr, ut::ExecuteGraphBuilder>;
 class UtestGraphDumpUtils : public testing::Test {
  public:
@@ -70,15 +70,20 @@ TEST_F(UtestGraphDumpUtils, DumpGraph_Ok_with_execute_graph) {
   std::string file_path = ge::RealPath(dump_file_path.str().c_str());
   // root graph
   ComputeGraphPtr compute_graph = std::make_shared<ComputeGraph>("GeTestGraph");
-  ASSERT_EQ(GraphUtils::LoadGEGraph(GetSpecificFilePath(file_path, "_exe_graph_test.txt").c_str(), *compute_graph), true);
+  ASSERT_EQ(GraphUtils::LoadGEGraph(GetSpecificFilePath(file_path, "_exe_graph_test.txt").c_str(), *compute_graph),
+            true);
   ASSERT_EQ(compute_graph->GetDirectNodesSize(), 5);
   ASSERT_EQ(compute_graph->GetAllSubgraphs().size(), 2);
   // sub graph 0 should not dump
   ComputeGraphPtr subgraph_0 = std::make_shared<ComputeGraph>("subgraph_0");
-  ASSERT_EQ(GraphUtils::LoadGEGraph(GetSpecificFilePath(file_path, "_exe_graph_test_sub_graph_0.txt").c_str(), *subgraph_0), false);
+  ASSERT_EQ(
+      GraphUtils::LoadGEGraph(GetSpecificFilePath(file_path, "_exe_graph_test_sub_graph_0.txt").c_str(), *subgraph_0),
+      false);
   // sub graph 1 should not dump
   ComputeGraphPtr subgraph_1 = std::make_shared<ComputeGraph>("subgraph_1");
-  ASSERT_EQ(GraphUtils::LoadGEGraph(GetSpecificFilePath(file_path, "_exe_graph_test_sub_graph_1.txt").c_str(), *subgraph_1), false);
+  ASSERT_EQ(
+      GraphUtils::LoadGEGraph(GetSpecificFilePath(file_path, "_exe_graph_test_sub_graph_1.txt").c_str(), *subgraph_1),
+      false);
 
   system(("rm -rf " + dump_graph_path_).c_str());
 }

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -109,8 +109,7 @@ Status ConcatV2Kernel::Compute(const ge::OpDescPtr op_desc_ptr, const std::vecto
   return SUCCESS;
 }
 
-Status ConcatV2Kernel::ConcatV2PreCompute(const std::vector<ConstGeTensorPtr> &input,
-                                          int32_t &tidx,
+Status ConcatV2Kernel::ConcatV2PreCompute(const std::vector<ConstGeTensorPtr> &input, int32_t &tidx,
                                           ConstGeTensorPtr &tensor) const {
   size_t input_size = input.size();
   // N + 1 is greater than or equal to 3
@@ -131,7 +130,7 @@ Status ConcatV2Kernel::ConcatV2PreCompute(const std::vector<ConstGeTensorPtr> &i
       continue;
     }
     if (tensor == nullptr) {
-      tensor = input.at(i); // get first valid tensor with data
+      tensor = input.at(i);  // get first valid tensor with data
     }
   }
 
@@ -154,7 +153,7 @@ Status ConcatV2Kernel::ConcatV2PreCompute(const std::vector<ConstGeTensorPtr> &i
   GE_CHECK_NOTNULL(tensor_axis);
   const int32_t *axis = reinterpret_cast<const int32_t *>(tensor_axis->GetData().data());
   GE_CHECK_NOTNULL(axis);
-  tidx = axis[0];                                                                // [-rank(values), rank(values))
+  tidx = axis[0];                                                                       // [-rank(values), rank(values))
   int32_t rank = static_cast<int32_t>(tensor->GetTensorDesc().GetShape().GetDimNum());  // rank
   if (tidx < 0) {
     tidx += rank;
@@ -163,8 +162,8 @@ Status ConcatV2Kernel::ConcatV2PreCompute(const std::vector<ConstGeTensorPtr> &i
   // 2. empty tensor only support case: [n],[m],[]
   // case: [[],[]] ,[[],[]] ,[] or other case when rank >=2 is not supported
   if (tidx < 0 || tidx >= rank || (has_empty_tensor && rank > kSupportEmptyTensorRank)) {
-    GELOGW("ConcatV2 info: tidx[%d]_rank[%d]_has_empty_tensor[bool:%d] cannot be supported, skip fold.",
-           tidx, rank, has_empty_tensor);
+    GELOGW("ConcatV2 info: tidx[%d]_rank[%d]_has_empty_tensor[bool:%d] cannot be supported, skip fold.", tidx, rank,
+           has_empty_tensor);
     return NOT_CHANGED;
   }
 

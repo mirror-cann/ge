@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  *
@@ -48,7 +48,7 @@
  *
  * Note: Link against libge_runner_v2.so instead of libge_runner.so
  * For detailed migration guide, see documentation
-* ===================================================================================================================*/
+ * ===================================================================================================================*/
 
 #ifndef INC_EXTERNAL_GE_GE_API_V2_H_
 #define INC_EXTERNAL_GE_GE_API_V2_H_
@@ -67,7 +67,7 @@
 #include "ge/ge_allocator.h"
 #include "exe_graph/runtime/tensor.h"
 namespace ge {
-using RunCallback = std::function<Status(uint32_t graph_id, const std::map<AscendString, gert::Tensor>& params_list)>;
+using RunCallback = std::function<Status(uint32_t graph_id, const std::map<AscendString, gert::Tensor> &params_list)>;
 // Initialize GE
 GE_FUNC_VISIBILITY Status GEInitializeV2(const std::map<AscendString, AscendString> &options);
 // Finalize GE, release all resources
@@ -303,13 +303,13 @@ class GE_FUNC_VISIBILITY GeSession {
 
 extern "C" {
 /// GE enhances its compilation capability by extending the IR representation
-/// or by introducing new compiler options. 
-/// Add feature capability query support between APP and GE. 
+/// or by introducing new compiler options.
+/// Add feature capability query support between APP and GE.
 bool IsIrRepSupport(const char *rep);
 
 ge::Status GetRegisteredIrDef(const char *op_type, std::vector<std::pair<ge::AscendString, ge::AscendString>> &inputs,
                               std::vector<std::pair<ge::AscendString, ge::AscendString>> &outputs,
                               std::vector<std::pair<ge::AscendString, ge::AscendString>> &attrs);
-} // extern "C"
+}  // extern "C"
 
 #endif  // INC_EXTERNAL_GE_GE_API_V2_H_

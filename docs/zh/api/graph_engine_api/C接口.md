@@ -1,30 +1,29 @@
 # C接口<a name="ZH-CN_TOPIC_0000002484311482"></a>
 
--   **[aclGetCustomOpLibPath](aclGetCustomOpLibPath.md)**  
+-   **[aclGetCustomOpLibPath](aclGetCustomOpLibPath.md)**
 
--   **[GeSessionLoadGraph](GeSessionLoadGraph.md)**  
+-   **[GeSessionLoadGraph](GeSessionLoadGraph.md)**
 
--   **[GeSessionExecuteGraphWithStreamAsync](GeSessionExecuteGraphWithStreamAsync.md)**  
+-   **[GeSessionExecuteGraphWithStreamAsync](GeSessionExecuteGraphWithStreamAsync.md)**
 
--   **[GEStreamAllocationSummaryGetAllNodes](GEStreamAllocationSummaryGetAllNodes.md)**  
+-   **[GEStreamAllocationSummaryGetAllNodes](GEStreamAllocationSummaryGetAllNodes.md)**
 
--   **[GEStreamAllocationSummaryGetAttachedStreamIds](GEStreamAllocationSummaryGetAttachedStreamIds.md)**  
+-   **[GEStreamAllocationSummaryGetAttachedStreamIds](GEStreamAllocationSummaryGetAttachedStreamIds.md)**
 
--   **[GEStreamAllocationSummaryGetHcclFollowedStreamNums](GEStreamAllocationSummaryGetHcclFollowedStreamNums.md)**  
+-   **[GEStreamAllocationSummaryGetHcclFollowedStreamNums](GEStreamAllocationSummaryGetHcclFollowedStreamNums.md)**
 
--   **[GEStreamAllocationSummaryGetLogicalStreamIds](GEStreamAllocationSummaryGetLogicalStreamIds.md)**  
+-   **[GEStreamAllocationSummaryGetLogicalStreamIds](GEStreamAllocationSummaryGetLogicalStreamIds.md)**
 
--   **[GEStreamAllocationSummaryGetPhysicalStreamNums](GEStreamAllocationSummaryGetPhysicalStreamNums.md)**  
+-   **[GEStreamAllocationSummaryGetPhysicalStreamNums](GEStreamAllocationSummaryGetPhysicalStreamNums.md)**
 
--   **[GEStreamAllocationSummaryGetStringInfos](GEStreamAllocationSummaryGetStringInfos.md)**  
+-   **[GEStreamAllocationSummaryGetStringInfos](GEStreamAllocationSummaryGetStringInfos.md)**
 
--   **[GEStreamAllocationSummaryGetStreamGraphs](GEStreamAllocationSummaryGetStreamGraphs.md)**  
+-   **[GEStreamAllocationSummaryGetStreamGraphs](GEStreamAllocationSummaryGetStreamGraphs.md)**
 
--   **[GEStreamAllocationSummaryGetUsrStreamLabels](GEStreamAllocationSummaryGetUsrStreamLabels.md)**  
+-   **[GEStreamAllocationSummaryGetUsrStreamLabels](GEStreamAllocationSummaryGetUsrStreamLabels.md)**
 
--   **[GEStreamAllocationSummaryIsAssignedByStreamPass](GEStreamAllocationSummaryIsAssignedByStreamPass.md)**  
+-   **[GEStreamAllocationSummaryIsAssignedByStreamPass](GEStreamAllocationSummaryIsAssignedByStreamPass.md)**
 
--   **[GetRegisteredIrDef](GetRegisteredIrDef.md)**  
+-   **[GetRegisteredIrDef](GetRegisteredIrDef.md)**
 
--   **[IsIrRepSupport](IsIrRepSupport.md)**  
-
+-   **[IsIrRepSupport](IsIrRepSupport.md)**

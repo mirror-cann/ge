@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -40,8 +40,8 @@ Status OpDtypeSelectionStrategyForceFp32::Run(FormatDtypeSelectionBasicInfo &bas
   bool is_first_input = basic_info.tensor_kernel_info_ptr->GetIsInput() && (basic_info.index == 0);
   std::unordered_set<string> fp16_op_type_list = Configuration::Instance(AI_CORE_NAME).GetFp16OpTypeList();
   bool is_fp16_op_type = fp16_op_type_list.count(cur_op_desc_type) != 0;
-  bool expected_to_fp16 = (origin_dtype == ge::DT_FLOAT) || (origin_dtype == ge::DT_BF16) ||
-                          (origin_dtype == ge::DT_FLOAT16);
+  bool expected_to_fp16 =
+      (origin_dtype == ge::DT_FLOAT) || (origin_dtype == ge::DT_BF16) || (origin_dtype == ge::DT_FLOAT16);
   bool cube_node_input_flag = is_first_input && is_fp16_op_type && expected_to_fp16;
   if (cube_node_input_flag && CubeNodeDtypeCheck(basic_info)) {
     origin_dtype = ge::DT_FLOAT16;
@@ -83,11 +83,11 @@ bool OpDtypeSelectionStrategyForceFp32::CubeNodeDtypeCheck(FormatDtypeSelectionB
   ge::OpDescPtr op_desc_ptr = basic_info.node->GetOpDesc();
   if (op_desc_ptr->HasAttr(kAttrSupported_16In_32Out)) {
     bool supported_16in_32out = false;
-    (void) ge::AttrUtils::GetBool(op_desc_ptr, kAttrSupported_16In_32Out, supported_16in_32out);
+    (void)ge::AttrUtils::GetBool(op_desc_ptr, kAttrSupported_16In_32Out, supported_16in_32out);
     return supported_16in_32out;
   }
-  FE_LOGW("Node[type=%s,name=%s]: not found attr supported_16in_32out.",
-          op_desc_ptr->GetType().c_str(), op_desc_ptr->GetName().c_str());
+  FE_LOGW("Node[type=%s,name=%s]: not found attr supported_16in_32out.", op_desc_ptr->GetType().c_str(),
+          op_desc_ptr->GetName().c_str());
   return false;
 }
 }  // namespace fe

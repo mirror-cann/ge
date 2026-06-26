@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,11 +33,11 @@ constexpr char const *kEffectTimesLog = "effect_times";
 constexpr int kJsonDumpIndex = 4;
 constexpr int64_t kFileOffset = -2;
 constexpr uint32_t kJsonPrefix = 2;
-}
+}  // namespace
 
-FusionStatisticWriter::FusionStatisticWriter(){};
+FusionStatisticWriter::FusionStatisticWriter() {};
 
-FusionStatisticWriter::~FusionStatisticWriter(){};
+FusionStatisticWriter::~FusionStatisticWriter() {};
 
 FusionStatisticWriter &FusionStatisticWriter::Instance() {
   static FusionStatisticWriter fusion_statistic_writer;
@@ -71,13 +71,17 @@ void FusionStatisticWriter::WriteAllFusionInfoToJsonFile(const std::string &sess
     std::ofstream file;
     if (RealPath(fusion_result_path_).empty()) {
       file.open(fusion_result_path_);
-      FE_CHECK(!file.is_open(), FE_LOGW("Failed to open file[%s], errmsg[%s], errno[%d].",
-                                        fusion_result_path_.c_str(), strerror(errno), errno), return);
+      FE_CHECK(!file.is_open(),
+               FE_LOGW("Failed to open file[%s], errmsg[%s], errno[%d].", fusion_result_path_.c_str(), strerror(errno),
+                       errno),
+               return);
       file << json_data.dump(kJsonDumpIndex);
     } else {
       file.open(fusion_result_path_, std::ios::in | std::ios::out);
-      FE_CHECK(!file.is_open(), FE_LOGW("Failed to open file[%s], errmsg[%s], errno[%d].",
-                                       fusion_result_path_.c_str(), strerror(errno), errno), return);
+      FE_CHECK(!file.is_open(),
+               FE_LOGW("Failed to open file[%s], errmsg[%s], errno[%d].", fusion_result_path_.c_str(), strerror(errno),
+                       errno),
+               return);
 
       // remove "\n}" of json "{\n  data1:1\n}"
       // after append data: "{\n  data1:1,\n  data2:2\n}"
@@ -112,8 +116,8 @@ void FusionStatisticWriter::GetFusionResultFilePath() {
   oss.flush();
   std::string file_path = oss.str();
   if (ge::CreateDirectory(file_path) != 0) {
-    FE_LOGW("Create directory %s for fusion_result.json failed, use current directory to store this file", 
-      file_path.c_str());
+    FE_LOGW("Create directory %s for fusion_result.json failed, use current directory to store this file",
+            file_path.c_str());
     fusion_result_path_ = kFusionResultFilename;
   }
   oss << "/" << kFusionResultFilename;
@@ -150,8 +154,8 @@ void FusionStatisticWriter::SaveFusionTimesToJson(const std::map<std::string, Fu
 void FusionStatisticWriter::SaveFusionInfoToJson(const std::string &session_and_graph_id, json &json_data) const {
   std::map<std::string, FusionInfo> graph_fusion_info_map;
   std::map<std::string, FusionInfo> buffer_fusion_info_map;
-  FusionStatisticRecorder::Instance().GetAndClearFusionInfo(session_and_graph_id,
-                                                    graph_fusion_info_map, buffer_fusion_info_map);
+  FusionStatisticRecorder::Instance().GetAndClearFusionInfo(session_and_graph_id, graph_fusion_info_map,
+                                                            buffer_fusion_info_map);
   if (!graph_fusion_info_map.empty() || !buffer_fusion_info_map.empty()) {
     json cur_fusion_info_json_data;
     SaveFusionTimesToJson(graph_fusion_info_map, kGraphFusionLogType, cur_fusion_info_json_data);
@@ -162,4 +166,4 @@ void FusionStatisticWriter::SaveFusionInfoToJson(const std::string &session_and_
     FE_LOGD("Session_and_graph_id[%s]: Finish saving fusion result to json.", session_and_graph_id.c_str());
   }
 }
-}
+}  // namespace fe

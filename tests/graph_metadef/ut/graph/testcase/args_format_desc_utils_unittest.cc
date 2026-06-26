@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -130,7 +130,6 @@ TEST_F(UtestArgsFormatDescUtils, common_args_dynamic_folded) {
   EXPECT_EQ(expanded_descs[0].addr_type, AddrType::INPUT);
   EXPECT_EQ(expanded_descs[0].ir_idx, 0);
   EXPECT_EQ(expanded_descs[0].folded, true);
-
 }
 
 TEST_F(UtestArgsFormatDescUtils, serialize_dynamic_args) {
@@ -194,7 +193,7 @@ TEST_F(UtestArgsFormatDescUtils, deserialize_placeholder) {
 }
 
 TEST_F(UtestArgsFormatDescUtils, deserialize_unsupported) {
-auto op_desc = std::make_shared<OpDesc>("tmp_op", "Mul");
+  auto op_desc = std::make_shared<OpDesc>("tmp_op", "Mul");
   std::string format1 = "{hehe}";
   std::vector<ArgDesc> descs1;
   EXPECT_NE(ArgsFormatDescUtils::Parse(format1, descs1), SUCCESS);
@@ -248,7 +247,8 @@ TEST_F(UtestArgsFormatDescUtils, insert_hidden_input) {
   EXPECT_EQ(ArgsFormatDescUtils::ToString(descs), "{}{hi.hcom0*}{hi.hcom1*}{hi.hcom2*}{hi.hcom0*}");
 
   EXPECT_EQ(ArgsFormatDescUtils::InsertHiddenInputs(descs, 5, HiddenInputsType::HCOM, 3), GRAPH_SUCCESS);
-  EXPECT_EQ(ArgsFormatDescUtils::ToString(descs), "{}{hi.hcom0*}{hi.hcom1*}{hi.hcom2*}{hi.hcom0*}{hi.hcom0*}{hi.hcom1*}{hi.hcom2*}");
+  EXPECT_EQ(ArgsFormatDescUtils::ToString(descs),
+            "{}{hi.hcom0*}{hi.hcom1*}{hi.hcom2*}{hi.hcom0*}{hi.hcom0*}{hi.hcom1*}{hi.hcom2*}");
 
   EXPECT_NE(ArgsFormatDescUtils::InsertHiddenInputs(descs, 9, HiddenInputsType::HCOM, 1), GRAPH_SUCCESS);
 }

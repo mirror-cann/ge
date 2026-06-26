@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -115,8 +115,9 @@ bool AscBackendSubGraphFusionDecider::CanFuse(const NodePtr &node1, const NodePt
   if (CanMergeAscGraph(graph1, graph2, node1, node2) != SUCCESS) {
     GELOGD(
         "AscBackendGraphFuse: node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][Node1 and node2's "
-        "ascgraph cannot merge]", node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(),
-        node2->GetType().c_str(), ge::NotFuseReasonCode(ge::NotFuseReason::kCanNotMergeAscGraph));
+        "ascgraph cannot merge]",
+        node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
+        ge::NotFuseReasonCode(ge::NotFuseReason::kCanNotMergeAscGraph));
     return false;
   }
   // 判断group merge是否成功
@@ -345,7 +346,8 @@ ComputeGraphPtr AscBackendFusionDecider::MergeAscGraphByLoop(const ComputeGraphP
     NodeUtils::UnlinkAll(*data_node);
   }
   // slice和split算子在能同时进行水平融合和垂直融合时只进行垂直融合，需要对节点去重，避免重复删除
-  std::set<NodePtr> del_output_and_store_nodes_set(del_output_and_store_nodes.begin(), del_output_and_store_nodes.end());
+  std::set<NodePtr> del_output_and_store_nodes_set(del_output_and_store_nodes.begin(),
+                                                   del_output_and_store_nodes.end());
   for (const auto &invalid_node : del_output_and_store_nodes_set) {
     GE_ASSERT_GRAPH_SUCCESS(GraphUtils::RemoveNodeWithoutRelink(subgraph1, invalid_node));
     NodeUtils::UnlinkAll(*invalid_node);
@@ -406,8 +408,7 @@ Status AscBackendFusionDecider::UpdateNewNodeAttr(const OpDescPtr op, const Node
   GetInterAttrs(attr).fused_subgraph_outputs.insert(GetInterAttrs(attr).fused_subgraph_outputs.end(),
                                                     subgraph2_output_nodes.begin(), subgraph2_output_nodes.end());
 
-  auto fuse_type =
-      MergeFuseType(GetInterAttrs(autofuse_attr1).fuse_type, GetInterAttrs(autofuse_attr2).fuse_type);
+  auto fuse_type = MergeFuseType(GetInterAttrs(autofuse_attr1).fuse_type, GetInterAttrs(autofuse_attr2).fuse_type);
   attr->SetAscGraph(BackendUtils::GetNodeFusedAscGraph(node1), autofuse_attr1->GetFuseType());
   GetInterAttrs(attr).fuse_type = fuse_type;
   BackendUtils::SetReduceOriginalAxisInfo(GetInterAttrs(attr), GetInterAttrs(autofuse_attr1),
@@ -576,8 +577,9 @@ Status AscBackendFusionDecider::LinkDataNode(InDataAnchorPtr &in_anchor, const N
   return SUCCESS;
 }
 
-Status AscBackendFusionDecider::LinkAscSubGraphNode(const NodePtr &node1, const NodePtr &node2,
-    std::vector<ge::NodePtr> &outputs, const ComputeGraph::Vistor<NodePtr> &inputs, const NodeFuseInfo &node_fuse_info,
+Status AscBackendFusionDecider::LinkAscSubGraphNode(
+    const NodePtr &node1, const NodePtr &node2, std::vector<ge::NodePtr> &outputs,
+    const ComputeGraph::Vistor<NodePtr> &inputs, const NodeFuseInfo &node_fuse_info,
     std::vector<NodePtr> &del_data_nodes, std::vector<NodePtr> &del_output_and_store_nodes, bool is_reduction) const {
   for (const auto &subgraph_link : node_fuse_info.GetNode1ToNode2LinkMap()) {
     // 把data的输出anchor和netoutput的peer out anchor replace
@@ -755,7 +757,7 @@ Status AscBackendFusionDecider::GetAllFusePossibilityNodes(const ComputeGraphPtr
   auto subgraph2_netoutput = subgraph2->GetOrUpdateNetOutputNode();
   GE_ASSERT_NOTNULL(subgraph2_netoutput);
 
-  if(node_fuse_info.CanDoHorizontalMapping()) {
+  if (node_fuse_info.CanDoHorizontalMapping()) {
     for (const auto &same_input : node_fuse_info.GetSameInputMap()) {
       GE_ASSERT_TRUE(static_cast<size_t>(same_input.first) < subgraph1_input_nodes.size(), "size %zu VS size %zu",
                      static_cast<size_t>(same_input.first), subgraph1_input_nodes.size());
@@ -993,7 +995,8 @@ NodePtr AscBackendFusionDecider::Fuse(const NodePtr &node1, const NodePtr &node2
 bool AscBackendFusionDecider::CanFuse(const NodePtr &node1, const NodePtr &node2) const {
   ComputeGraphPtr graph1;
   ComputeGraphPtr graph2;
-  thread_local static std::set<std::string> has_been_dumped_nodes;  // 存放已经dump过的node，如果node已经dump过了，就不再重复dump这个node的图
+  thread_local static std::set<std::string>
+      has_been_dumped_nodes;  // 存放已经dump过的node，如果node已经dump过了，就不再重复dump这个node的图
   GELOGI("AscBackendGraphFuse:can fuse check before, node: %s(%s) and node: %s(%s).", node1->GetNamePtr(),
          node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str());
   // 黑名单的node不可融合
@@ -1024,17 +1027,15 @@ bool AscBackendFusionDecider::CanFuse(const NodePtr &node1, const NodePtr &node2
     return false;
   }
   if (BackendUtils::UpdateSubgraphOutputAttr(graph1, node1) != SUCCESS) {
-    GELOGI(
-        "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][node1(%s) can't update subgraph output attr]",
-        node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
-        ge::NotFuseReasonCode(ge::NotFuseReason::kUpdateSubgraphOutputAttrFailed), node1->GetNamePtr());
+    GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][node1(%s) can't update subgraph output attr]",
+           node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
+           ge::NotFuseReasonCode(ge::NotFuseReason::kUpdateSubgraphOutputAttrFailed), node1->GetNamePtr());
     return false;
   }
   if (BackendUtils::UpdateSubgraphOutputAttr(graph2, node2) != SUCCESS) {
-    GELOGI(
-        "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][node2(%s) can't update subgraph output attr]",
-        node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
-        ge::NotFuseReasonCode(ge::NotFuseReason::kUpdateSubgraphOutputAttrFailed), node2->GetNamePtr());
+    GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][node2(%s) can't update subgraph output attr]",
+           node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
+           ge::NotFuseReasonCode(ge::NotFuseReason::kUpdateSubgraphOutputAttrFailed), node2->GetNamePtr());
     return false;
   }
 
@@ -1056,10 +1057,9 @@ bool AscBackendFusionDecider::CanFuse(const NodePtr &node1, const NodePtr &node2
     return false;
   }
   if (UnifySubgraphAxis(node1, node2, node_fuse_info, graph_axis_map, false) != SUCCESS) {
-    GELOGI(
-        "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][node1 and node2 can't unify subgraph axis]",
-        node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
-        ge::NotFuseReasonCode(ge::NotFuseReason::kUnifySubgraphAxisFailed));
+    GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][node1 and node2 can't unify subgraph axis]",
+           node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
+           ge::NotFuseReasonCode(ge::NotFuseReason::kUnifySubgraphAxisFailed));
     return false;
   }
 
@@ -1068,8 +1068,9 @@ bool AscBackendFusionDecider::CanFuse(const NodePtr &node1, const NodePtr &node2
                                         graph_axis_map.GetNode2AxisMap(), node_fuse_info)) {
     GELOGI(
         "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][In concat fusion occasion, node1 and node2's "
-        "schedule axis not equal]", node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), 
-        node2->GetType().c_str(), ge::NotFuseReasonCode(ge::NotFuseReason::kConcatNodeSchedAxisNotEqual));
+        "schedule axis not equal]",
+        node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
+        ge::NotFuseReasonCode(ge::NotFuseReason::kConcatNodeSchedAxisNotEqual));
     return false;
   }
 
@@ -1077,35 +1078,33 @@ bool AscBackendFusionDecider::CanFuse(const NodePtr &node1, const NodePtr &node2
   if (node_fuse_info.GetNode2InputMap().size() > max_fusion_node_input_size) {
     GELOGI(
         "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][fused node input data nums(%zu) exceed "
-        "threshold(%u) after fuse]", node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(),
-        node2->GetType().c_str(), ge::NotFuseReasonCode(ge::NotFuseReason::kInputNumsExceedThreshold),
-        node_fuse_info.GetNode2InputMap().size(), max_fusion_node_input_size);
+        "threshold(%u) after fuse]",
+        node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
+        ge::NotFuseReasonCode(ge::NotFuseReason::kInputNumsExceedThreshold), node_fuse_info.GetNode2InputMap().size(),
+        max_fusion_node_input_size);
     return false;
   }
 
   // 判断group merge是否成功
   optimize::autoschedule::AxisGroup axes_group1;
   if (BackendUtils::GetAscGraphAxisGroup(node1, axes_group1, graph_axis_map.GetNode1AxisMap()) != SUCCESS) {
-    GELOGI(
-        "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][node1(%s) can't get ascgraph axis group]",
-        node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
-        ge::NotFuseReasonCode(ge::NotFuseReason::kGetAscgraphAxisGroupFailed), node1->GetNamePtr());
+    GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][node1(%s) can't get ascgraph axis group]",
+           node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
+           ge::NotFuseReasonCode(ge::NotFuseReason::kGetAscgraphAxisGroupFailed), node1->GetNamePtr());
     return false;
   }
   optimize::autoschedule::AxisGroup axes_group2;
   if (BackendUtils::GetAscGraphAxisGroup(node2, axes_group2, graph_axis_map.GetNode2AxisMap()) != SUCCESS) {
-    GELOGI(
-        "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][node2(%s) can't get ascgraph axis group]",
-        node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
-        ge::NotFuseReasonCode(ge::NotFuseReason::kGetAscgraphAxisGroupFailed), node2->GetNamePtr());
+    GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][node2(%s) can't get ascgraph axis group]",
+           node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
+           ge::NotFuseReasonCode(ge::NotFuseReason::kGetAscgraphAxisGroupFailed), node2->GetNamePtr());
     return false;
   }
   optimize::autoschedule::AxisGroup merged_axes_group;
   if (!BackendUtils::IsCanMergeAxisGroup(axes_group1, axes_group2, merged_axes_group)) {
-    GELOGI(
-        "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][node1 and node2 can't merge axis group]",
-        node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
-        ge::NotFuseReasonCode(ge::NotFuseReason::kMergeAxisGroupFailed));
+    GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][node1 and node2 can't merge axis group]",
+           node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
+           ge::NotFuseReasonCode(ge::NotFuseReason::kMergeAxisGroupFailed));
     return false;
   }
   GELOGI("AscBackendGraphFuse:can fuse check end, node: %s(%s) and node: %s(%s) can fuse.", node1->GetNamePtr(),
@@ -1140,13 +1139,11 @@ Status AscBackendFusionDecider::UpdateNewNodeAndGENodeOutputMappingRelation(cons
                                                                             const NodeFuseInfo &node_fuse_info) {
   std::vector<std::pair<std::string, int32_t>> new_output_names;
   // node1
-  GE_ASSERT_SUCCESS(AscBackendFusionDecider::GetNodeOriginInfo(node1, new_node->GetAllOutDataAnchorsSize(),
-                                                               node_fuse_info.GetNode1OutputMap(),
-                                                               new_output_names, true));
+  GE_ASSERT_SUCCESS(AscBackendFusionDecider::GetNodeOriginInfo(
+      node1, new_node->GetAllOutDataAnchorsSize(), node_fuse_info.GetNode1OutputMap(), new_output_names, true));
   // node2
-  GE_ASSERT_SUCCESS(AscBackendFusionDecider::GetNodeOriginInfo(node2, new_node->GetAllOutDataAnchorsSize(),
-                                                               node_fuse_info.GetNode2OutputMap(),
-                                                               new_output_names, true));
+  GE_ASSERT_SUCCESS(AscBackendFusionDecider::GetNodeOriginInfo(
+      node2, new_node->GetAllOutDataAnchorsSize(), node_fuse_info.GetNode2OutputMap(), new_output_names, true));
   GetInterAttrs(GetOrCreateAutoFuseAttrs(new_node->GetOpDesc())).origin_output_names_ = new_output_names;
   return SUCCESS;
 }
@@ -1156,13 +1153,11 @@ Status AscBackendFusionDecider::UpdateNewNodeAndGENodeInputMappingRelation(const
                                                                            const NodeFuseInfo &node_fuse_info) {
   std::vector<std::pair<std::string, int32_t>> new_input_names;
   // node1
-  GE_ASSERT_SUCCESS(AscBackendFusionDecider::GetNodeOriginInfo(node1, new_node->GetAllInDataAnchorsSize(),
-                                                               node_fuse_info.GetNode1InputMap(),
-                                                               new_input_names, false));
+  GE_ASSERT_SUCCESS(AscBackendFusionDecider::GetNodeOriginInfo(
+      node1, new_node->GetAllInDataAnchorsSize(), node_fuse_info.GetNode1InputMap(), new_input_names, false));
   // node2
-  GE_ASSERT_SUCCESS(AscBackendFusionDecider::GetNodeOriginInfo(node2, new_node->GetAllInDataAnchorsSize(),
-                                                               node_fuse_info.GetNode2InputMap(),
-                                                               new_input_names, false));
+  GE_ASSERT_SUCCESS(AscBackendFusionDecider::GetNodeOriginInfo(
+      node2, new_node->GetAllInDataAnchorsSize(), node_fuse_info.GetNode2InputMap(), new_input_names, false));
   GetInterAttrs(GetOrCreateAutoFuseAttrs(new_node->GetOpDesc())).origin_input_names_ = new_input_names;
   return SUCCESS;
 }
@@ -1210,7 +1205,8 @@ Status AscBackendFusionDecider::SetReduceFusedElementwiseNodeNum(const NodePtr &
   return SUCCESS;
 }
 
-Status AscBackendFusionDecider::SetSplitNodeGlobalId(const NodePtr &new_node, const NodePtr &node1, const NodePtr &node2) {
+Status AscBackendFusionDecider::SetSplitNodeGlobalId(const NodePtr &new_node, const NodePtr &node1,
+                                                     const NodePtr &node2) {
   const auto attr = BackendUtils::GetNodeAutoFuseAttr(new_node);
   GE_ASSERT_NOTNULL(attr);
   const auto attr1 = BackendUtils::GetNodeAutoFuseAttr(node1);
@@ -1223,15 +1219,15 @@ Status AscBackendFusionDecider::SetSplitNodeGlobalId(const NodePtr &new_node, co
   if (attr2->HasFuseType(loop::FuseType::kSplit)) {
     auto gid = attr2->GetSplitGlobalId();
     GE_ASSERT_TRUE(!attr1->HasFuseType(loop::FuseType::kSplit) || attr1->GetSplitGlobalId() == gid,
-                   "fused nodes %s(%s) and %s(%s) have incompatible split global ids.",
-                   node1->GetType().c_str(), node1->GetName().c_str(),
-                   node2->GetType().c_str(), node2->GetName().c_str());
+                   "fused nodes %s(%s) and %s(%s) have incompatible split global ids.", node1->GetType().c_str(),
+                   node1->GetName().c_str(), node2->GetType().c_str(), node2->GetName().c_str());
     attr->SetSplitGlobalId(gid);
   }
   return SUCCESS;
 }
 
-Status AscBackendFusionDecider::SetSplitNodeConcreteEdges(const NodePtr &new_node, const NodePtr &node1, const NodePtr &node2) {
+Status AscBackendFusionDecider::SetSplitNodeConcreteEdges(const NodePtr &new_node, const NodePtr &node1,
+                                                          const NodePtr &node2) {
   const auto attr = BackendUtils::GetNodeAutoFuseAttr(new_node);
   GE_ASSERT_NOTNULL(attr);
   const auto attr1 = BackendUtils::GetNodeAutoFuseAttr(node1);

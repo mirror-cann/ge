@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,7 +27,7 @@ constexpr char const *kInputDType = "InputDtype";
 constexpr char const *kOutputDType = "OutputDtype";
 const char kSplitPattern = ':';
 const char kCommasPattern = ',';
-}
+}  // namespace
 
 OpCustDtypesConfigParser::OpCustDtypesConfigParser() : BaseConfigParser() {}
 OpCustDtypesConfigParser::~OpCustDtypesConfigParser() {}
@@ -65,8 +65,8 @@ Status OpCustDtypesConfigParser::ParseCustomDtypeContent() {
   string real_file_path = GetRealPath(cust_dtypes_path_);
   if (real_file_path.empty()) {
     ErrorMessageDetail err_msg(EM_INPUT_OPTION_INVALID,
-        {cust_dtypes_path_, ge::CUSTOMIZE_DTYPES,
-        "The customize file does not exist or its access permission is denied"});
+                               {cust_dtypes_path_, ge::CUSTOMIZE_DTYPES,
+                                "The customize file does not exist or its access permission is denied"});
     ReportErrorMessage(err_msg);
     FE_LOGE("[OpCustDtypesConfigParser][Parse] The customize file path[%s] is invalid.", cust_dtypes_path_.c_str());
     return FAILED;
@@ -114,9 +114,9 @@ bool OpCustDtypesConfigParser::ParseFileContent(const string &custom_file_path) 
     }
     (void)StringUtils::Trim(line_str);
     if (!ParseDTypeFromLine(line_str, is_type)) {
-      ErrorMessageDetail err_msg(EM_INPUT_OPTION_INVALID,
-                                 {custom_file_path, ge::CUSTOMIZE_DTYPES,
-                                  "The content format of the customization file is incorrect"});
+      ErrorMessageDetail err_msg(
+          EM_INPUT_OPTION_INVALID,
+          {custom_file_path, ge::CUSTOMIZE_DTYPES, "The content format of the customization file is incorrect"});
       ReportErrorMessage(err_msg);
       FE_LOGE("[OpCustDtypesConfigParser][Parse] Parse line content[%s] failed, break.", line_str.c_str());
       in_file_stream.close();
@@ -246,8 +246,10 @@ void OpCustDtypesConfigParser::CheckAndSetCustomizeDtype(const bool &is_type, co
     op_type_cust_dtypes_.insert(std::make_pair(op_type, custom_dtype_vec));
   } else {
     if (op_name_cust_dtypes_.find(op_type) != op_name_cust_dtypes_.end()) {
-      FE_LOGW("[Configuration][Parse] Repeated setting of custom data type for opName[%s] is ignored and will not be available.",
-              op_type.c_str());
+      FE_LOGW(
+          "[Configuration][Parse] Repeated setting of custom data type for opName[%s] is ignored and will not be "
+          "available.",
+          op_type.c_str());
       return;
     }
     op_name_cust_dtypes_.insert(std::make_pair(op_type, custom_dtype_vec));
@@ -274,4 +276,4 @@ bool OpCustDtypesConfigParser::GetCustomizeDtypeByOpName(const string &op_name, 
   FE_LOGD("[OpCustDtypesConfigParser][Parse] Node[%s]: customize_dtype has not been found.", op_name.c_str());
   return false;
 }
-}
+}  // namespace fe

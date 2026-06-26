@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,15 +29,13 @@ TEST_F(OutputsReuseHelperUT, GenerateOutputsReuseInfosSuccess) {
   auto graph = ShareGraph::BuildWithKnownSubgraph();
   auto parent_node = graph->FindNode(ge::PARTITIONEDCALL);
 
-auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Conv2d", false).Build();
   LowerInput data_input = {{}, {}, &global_data};
   auto data_a_ret = LoweringDataNode(graph->FindNode("data_a"), data_input);
   ASSERT_TRUE(data_a_ret.result.IsSuccess());
   ASSERT_EQ(data_a_ret.out_shapes.size(), 1);
-  LowerInput conv2d_input = {{data_a_ret.out_shapes[0]},
-                             {data_a_ret.out_addrs[0]},
-                             &global_data};
+  LowerInput conv2d_input = {{data_a_ret.out_shapes[0]}, {data_a_ret.out_addrs[0]}, &global_data};
 
   std::vector<OutputReuseInfo> output_reuse_infos;
   auto ret = StaticModelOutputAllocator::GenerateOutputsReuseInfos(
@@ -58,15 +56,13 @@ TEST_F(OutputsReuseHelperUT, GenerateOutputsReuseInfos_Success_PartitionedCallCo
   auto graph = ShareGraph::BuildWithNestingKnownSubgraph();
   auto parent_node = graph->FindNode(ge::PARTITIONEDCALL);
 
-auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Conv2d", false).Build();
   LowerInput data_input = {{}, {}, &global_data};
   auto data_a_ret = LoweringDataNode(graph->FindNode("data_a"), data_input);
   ASSERT_TRUE(data_a_ret.result.IsSuccess());
   ASSERT_EQ(data_a_ret.out_shapes.size(), 1);
-  LowerInput conv2d_input = {{data_a_ret.out_shapes[0]},
-                             {data_a_ret.out_addrs[0]},
-                             &global_data};
+  LowerInput conv2d_input = {{data_a_ret.out_shapes[0]}, {data_a_ret.out_addrs[0]}, &global_data};
 
   std::vector<OutputReuseInfo> output_reuse_infos;
   auto ret = StaticModelOutputAllocator::GenerateOutputsReuseInfos(
@@ -97,15 +93,13 @@ TEST_F(OutputsReuseHelperUT, RefOutpusOffsetCorrect) {
   const auto &tensor_desc1 = net_output->GetOpDesc()->MutableInputDesc(1U);
   (void)ge::TensorUtils::SetDataOffset(*tensor_desc1, 0x90);
 
-auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Conv2d", false).Build();
   LowerInput data_input = {{}, {}, &global_data};
   auto data_a_ret = LoweringDataNode(graph->FindNode("data_a"), data_input);
   ASSERT_TRUE(data_a_ret.result.IsSuccess());
   ASSERT_EQ(data_a_ret.out_shapes.size(), 1);
-  LowerInput conv2d_input = {{data_a_ret.out_shapes[0]},
-                             {data_a_ret.out_addrs[0]},
-                             &global_data};
+  LowerInput conv2d_input = {{data_a_ret.out_shapes[0]}, {data_a_ret.out_addrs[0]}, &global_data};
 
   std::vector<OutputReuseInfo> output_reuse_infos;
   auto ret = StaticModelOutputAllocator::GenerateOutputsReuseInfos(
@@ -146,9 +140,7 @@ TEST_F(OutputsReuseHelperUT, RefOutpusOffsetCorrect_WithTwoConst) {
   auto data_a_ret = LoweringDataNode(graph->FindNode("data_a"), data_input);
   ASSERT_TRUE(data_a_ret.result.IsSuccess());
   ASSERT_EQ(data_a_ret.out_shapes.size(), 1);
-  LowerInput conv2d_input = {{data_a_ret.out_shapes[0]},
-                             {data_a_ret.out_addrs[0]},
-                             &global_data};
+  LowerInput conv2d_input = {{data_a_ret.out_shapes[0]}, {data_a_ret.out_addrs[0]}, &global_data};
 
   std::vector<OutputReuseInfo> output_reuse_infos;
   auto ret = StaticModelOutputAllocator::GenerateOutputsReuseInfos(
@@ -190,7 +182,7 @@ TEST_F(OutputsReuseHelperUT, RefVariableCorrect) {
   const auto &tensor_desc1 = net_output->GetOpDesc()->MutableInputDesc(1U);
   (void)ge::TensorUtils::SetDataOffset(*tensor_desc1, 0x90);
 
-auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Conv2d", false).Build();
   bg::LowerConstDataNode(global_data);
 
@@ -198,9 +190,7 @@ auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto data_a_ret = LoweringDataNode(graph->FindNode("data_a"), data_input);
   ASSERT_TRUE(data_a_ret.result.IsSuccess());
   ASSERT_EQ(data_a_ret.out_shapes.size(), 1);
-  LowerInput conv2d_input = {{data_a_ret.out_shapes[0]},
-                             {data_a_ret.out_addrs[0]},
-                             &global_data};
+  LowerInput conv2d_input = {{data_a_ret.out_shapes[0]}, {data_a_ret.out_addrs[0]}, &global_data};
 
   std::vector<OutputReuseInfo> output_reuse_infos;
   auto ret = StaticModelOutputAllocator::GenerateOutputsReuseInfos(
@@ -250,16 +240,14 @@ TEST_F(OutputsReuseHelperUT, RefConstantCorrect) {
   const auto &tensor_desc1 = net_output->GetOpDesc()->MutableInputDesc(1U);
   (void)ge::TensorUtils::SetDataOffset(*tensor_desc1, 0x90);
 
-auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Conv2d", false).Build();
   bg::LowerConstDataNode(global_data);
   LowerInput data_input = {{}, {}, &global_data};
   auto data_a_ret = LoweringDataNode(graph->FindNode("data_a"), data_input);
   ASSERT_TRUE(data_a_ret.result.IsSuccess());
   ASSERT_EQ(data_a_ret.out_shapes.size(), 1);
-  LowerInput conv2d_input = {{data_a_ret.out_shapes[0]},
-                             {data_a_ret.out_addrs[0]},
-                             &global_data};
+  LowerInput conv2d_input = {{data_a_ret.out_shapes[0]}, {data_a_ret.out_addrs[0]}, &global_data};
 
   std::vector<OutputReuseInfo> output_reuse_infos;
   auto ret = StaticModelOutputAllocator::GenerateOutputsReuseInfos(
@@ -288,7 +276,7 @@ auto root_model = GeModelBuilder(graph).BuildGeRootModel();
 
 TEST_F(OutputsReuseHelperUT, StringTypeNoReuseOutputSizeCorrect) {
   auto graph = ShareGraph::BuildStringNodeGraph();
-auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model).Build();
   std::vector<OutputReuseInfo> output_reuse_infos;
   auto ret = StaticModelOutputAllocator::GenerateOutputsReuseInfos(graph, output_reuse_infos);
@@ -339,4 +327,4 @@ TEST_F(OutputsReuseHelperUT, ParseReuseInputsReuse) {
   ASSERT_EQ(output_reuse_infos.size(), 1);
   EXPECT_EQ(output_reuse_infos[0].is_reuse, true);
 }
-} // namespace gert
+}  // namespace gert

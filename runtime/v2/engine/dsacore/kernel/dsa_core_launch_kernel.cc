@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -54,8 +54,7 @@ enum class DsaInfo {
 
 ge::graphStatus DsaCoreUpdateSqeSeedCountResult(const KernelContext *context,
                                                 std::vector<gert::GertTensorData *> &input_tensor_datas,
-                                                rtStarsDsaSqe_t *sqe_data,
-                                                const size_t *input_num) {
+                                                rtStarsDsaSqe_t *sqe_data, const size_t *input_num) {
   auto seed_type = context->GetInputPointer<uint32_t>(static_cast<size_t>(DsaInfo::kSeedType));
   FE_ASSERT_NOTNULL(seed_type);
   auto count_type = context->GetInputPointer<uint32_t>(static_cast<size_t>(DsaInfo::kCountType));
@@ -74,8 +73,8 @@ ge::graphStatus DsaCoreUpdateSqeSeedCountResult(const KernelContext *context,
   }
   uint64_t dev_output_addr = 0;
   for (size_t output_i = 0; output_i < *output_num; ++output_i) {
-    auto tensor_data = context->GetInputValue<gert::GertTensorData *>(static_cast<size_t>(DsaInfo::kNum) +
-                                                                  *input_num + output_i);
+    auto tensor_data =
+        context->GetInputValue<gert::GertTensorData *>(static_cast<size_t>(DsaInfo::kNum) + *input_num + output_i);
     FE_ASSERT_NOTNULL(tensor_data);
     dev_output_addr = PtrToValue(reinterpret_cast<TensorAddress>(tensor_data->GetAddr()));
     sqe_data->dsaCfgResultAddrLow = static_cast<uint32_t>(dev_output_addr & kMask32Bits);
@@ -98,11 +97,12 @@ ge::graphStatus DsaCoreUpdateSqeSeedCountResult(const KernelContext *context,
   }
   sqe_data->dsaCfgNumberLow = static_cast<uint32_t>(random_count_value_or_addr & kMask32Bits);
   sqe_data->dsaCfgNumberHigh = static_cast<uint32_t>(random_count_value_or_addr >> k32Bits);
-  GELOGD("DsaCoreUpdateSqeArg dump seed_type:%u, count_type:%u, seed_type_string:%s, count_type_string:%s, "
-         "input_num:%zu, output_num:%zu, dev_output_addr:0x%lx, seed_value_or_addr:0x%lx,"
-         "random_count_value_or_addr:0x%lx",
-         *seed_type, *count_type, seed_type_string, count_type_string, *input_num, *output_num,
-         dev_output_addr, seed_value_or_addr, random_count_value_or_addr);
+  GELOGD(
+      "DsaCoreUpdateSqeArg dump seed_type:%u, count_type:%u, seed_type_string:%s, count_type_string:%s, "
+      "input_num:%zu, output_num:%zu, dev_output_addr:0x%lx, seed_value_or_addr:0x%lx,"
+      "random_count_value_or_addr:0x%lx",
+      *seed_type, *count_type, seed_type_string, count_type_string, *input_num, *output_num, dev_output_addr,
+      seed_value_or_addr, random_count_value_or_addr);
   return ge::GRAPH_SUCCESS;
 }
 
@@ -112,8 +112,8 @@ ge::graphStatus DsaCoreUpdateSqeArg(KernelContext *context) {
   FE_ASSERT_NOTNULL(sqe_data);
   auto workspace = context->GetInputPointer<ContinuousVector>(static_cast<size_t>(DsaInfo::kWorkspaceAddr));
   FE_ASSERT_NOTNULL(workspace);
-  auto workspace_sizes = context->GetInputPointer<TypedContinuousVector<int64_t>>
-                         (static_cast<size_t>(DsaInfo::kWorkspaceSize));
+  auto workspace_sizes =
+      context->GetInputPointer<TypedContinuousVector<int64_t>>(static_cast<size_t>(DsaInfo::kWorkspaceSize));
   FE_ASSERT_NOTNULL(workspace_sizes);
   auto input_num = context->GetInputPointer<size_t>(static_cast<size_t>(DsaInfo::kInputNum));
   FE_ASSERT_NOTNULL(input_num);
@@ -157,7 +157,7 @@ ge::graphStatus DsaCoreUpdateSqeArg(KernelContext *context) {
   auto ws_sizes_data = workspace_sizes->GetData();
   if (*input1_type == 0U) {
     FE_ASSERT_TRUE(input_tensor_datas.size() > 2U);
-    vector<uint64_t> input_addr{ PtrToValue(reinterpret_cast<TensorAddress>(input_tensor_datas[2U]->GetAddr())) };
+    vector<uint64_t> input_addr{PtrToValue(reinterpret_cast<TensorAddress>(input_tensor_datas[2U]->GetAddr()))};
     if ((*input_num == kDSAArgsInputAddrSize && workspace->GetSize() == kDSAWorkspaceAddrSize) ||
         *input_num == kDSAStatelessAddrSize) {
       FE_ASSERT_TRUE(input_tensor_datas.size() > 3U);
@@ -166,8 +166,8 @@ ge::graphStatus DsaCoreUpdateSqeArg(KernelContext *context) {
     FE_ASSERT_TRUE((sizeof(uint64_t) * input_addr.size()) <=
                    static_cast<uint64_t>(ws_sizes_data[workspace->GetSize() - 1U]));
     FE_ASSERT_RT_OK(aclrtMemcpyAsync(const_cast<TensorAddress>(addrs_data[workspace->GetSize() - 1U]->GetAddr()),
-        static_cast<uint64_t>(ws_sizes_data[workspace->GetSize() - 1U]), input_addr.data(),
-        sizeof(uint64_t) * input_addr.size(), ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE, stream));
+                                     static_cast<uint64_t>(ws_sizes_data[workspace->GetSize() - 1U]), input_addr.data(),
+                                     sizeof(uint64_t) * input_addr.size(), ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE, stream));
   } else {
     uint64_t input_data[2] = {0U, 0U};
     FE_ASSERT_EOK(memcpy_s(&input_data[0], sizeof(uint64_t), input1_value_string, strlen(input1_value_string)));
@@ -176,8 +176,8 @@ ge::graphStatus DsaCoreUpdateSqeArg(KernelContext *context) {
     }
     FE_ASSERT_TRUE(static_cast<size_t>(ws_sizes_data[workspace->GetSize() - 1U]) >= sizeof(input_data));
     FE_ASSERT_RT_OK(aclrtMemcpyAsync(const_cast<TensorAddress>(addrs_data[workspace->GetSize() - 1U]->GetAddr()),
-        static_cast<uint64_t>(ws_sizes_data[workspace->GetSize() - 1U]), input_data,
-        sizeof(input_data), ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE, stream));
+                                     static_cast<uint64_t>(ws_sizes_data[workspace->GetSize() - 1U]), input_data,
+                                     sizeof(input_data), ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE, stream));
   }
 
   return ge::GRAPH_SUCCESS;

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -45,8 +45,7 @@ class Cluster {
       : index_(index),
         engine_name_(std::move(engine)),
         stream_label_(std::move(stream)),
-        user_stream_label_(std::move(user_stream)) {
-  }
+        user_stream_label_(std::move(user_stream)) {}
   ~Cluster() = default;
 };
 using ClusterPtr = std::shared_ptr<Cluster>;
@@ -56,12 +55,7 @@ class EnginePartitioner {
   /// Partition() can only be called in Partition mode.
   /// MergeAfterSubGraphOptimization() can only be called in Merge mode.
   /// After Partition(), change to Merge mode. After MergeAfterSubGraphOptimization(), change to Partition mode
-  enum class Mode {
-    kAtomicEnginePartitioning,
-    kCompositeEnginePartitioning,
-    kSecondPartitioning,
-    kMerging
-  };
+  enum class Mode { kAtomicEnginePartitioning, kCompositeEnginePartitioning, kSecondPartitioning, kMerging };
   EnginePartitioner() : partition_times_(0) {};
   ~EnginePartitioner() = default;
 
@@ -70,15 +64,19 @@ class EnginePartitioner {
   Status Partition(const ComputeGraphPtr &compute_graph, Mode mode);
 
   // after partition, all SubGraph will be merged back based on end<->pld.
-  Status MergeAfterSubGraphOptimization(ComputeGraphPtr &output_merged_compute_graph,
-                                        const ComputeGraphPtr &original_compute_graph,
-                                        EnginePartitioner::Mode mode = EnginePartitioner::Mode::kAtomicEnginePartitioning);
+  Status MergeAfterSubGraphOptimization(
+      ComputeGraphPtr &output_merged_compute_graph, const ComputeGraphPtr &original_compute_graph,
+      EnginePartitioner::Mode mode = EnginePartitioner::Mode::kAtomicEnginePartitioning);
   // Return all subgraphs
   const Graph2SubGraphInfoList &GetSubGraphMap();
 
-  const Graph2InputNodesSubGraphInfo &GetSubGraphInfoMap() {return graph_2_input_subgraph_; }
+  const Graph2InputNodesSubGraphInfo &GetSubGraphInfoMap() {
+    return graph_2_input_subgraph_;
+  }
 
-  EnginePlacer &GetEnginePlacer() { return engine_placer_; }
+  EnginePlacer &GetEnginePlacer() {
+    return engine_placer_;
+  }
 
  private:
   struct GraphPartitionInfo {
@@ -130,22 +128,15 @@ class EnginePartitioner {
 
   // check if the node is data-like. Currently data-like means: data, variable, const
   bool IsDataLike(NodePtr node) const;
-  graphStatus MakeEndOpNode(const AnchorPtr &out_anchor,
-                            const ge::ComputeGraphPtr &end_graph,
-                            NodePtr &new_end_node);
-  graphStatus SetPldOpAttr(const NodePtr &src_node,
-                           const NodePtr &new_end_node,
-                           const ge::ComputeGraphPtr &end_graph,
-                           const AnchorPtr &out_anchor,
-                           const OpDescPtr &pld_op_desc) const;
+  graphStatus MakeEndOpNode(const AnchorPtr &out_anchor, const ge::ComputeGraphPtr &end_graph, NodePtr &new_end_node);
+  graphStatus SetPldOpAttr(const NodePtr &src_node, const NodePtr &new_end_node, const ge::ComputeGraphPtr &end_graph,
+                           const AnchorPtr &out_anchor, const OpDescPtr &pld_op_desc) const;
   graphStatus SetEndOpAttr(const NodePtr &dst_node, const OpDescPtr &end_op_desc) const;
   // add place holder and end node in src and dst graph
   graphStatus AddPlaceHolderEndInSrcDstGraph(const AnchorPtr &out_anchor, const AnchorPtr &peer_in_anchor,
                                              const ComputeGraphPtr &pld_graph, const ComputeGraphPtr &end_graph);
-  graphStatus MakePldOpNode(const AnchorPtr &peer_in_anchor,
-                            const NodePtr &src_node,
-                            const ge::ComputeGraphPtr &pld_graph,
-                            NodePtr &new_pld_node);
+  graphStatus MakePldOpNode(const AnchorPtr &peer_in_anchor, const NodePtr &src_node,
+                            const ge::ComputeGraphPtr &pld_graph, NodePtr &new_pld_node);
   Status LinkInput2EndRemoveOrginalLink(const NodePtr &input_node, const ComputeGraphPtr &src_graph,
                                         const ComputeGraphPtr &dst_graph);
 
@@ -199,11 +190,11 @@ class EnginePartitioner {
   Graph2InputNodesSubGraphInfo graph_2_input_subgraph_;
   GraphPartitionInfo graph_info_;
   uint32_t partition_times_;  // times of call partition
-  std::map<Mode, std::string> mode_2_str_ = {{ Mode::kAtomicEnginePartitioning, "AtomicEnginePartitioning" },
-                                             { Mode::kCompositeEnginePartitioning, "CompositeEnginePartitioning" },
-                                             { Mode::kSecondPartitioning, "SecondPartitioning" },
-                                             { Mode::kMerging, "Merging" }};
-  
+  std::map<Mode, std::string> mode_2_str_ = {{Mode::kAtomicEnginePartitioning, "AtomicEnginePartitioning"},
+                                             {Mode::kCompositeEnginePartitioning, "CompositeEnginePartitioning"},
+                                             {Mode::kSecondPartitioning, "SecondPartitioning"},
+                                             {Mode::kMerging, "Merging"}};
+
   // for support overflow detection
   int64_t global_workspace_type_ = -1;
   int64_t global_workspace_size_ = -1;

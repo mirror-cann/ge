@@ -35,29 +35,29 @@
 #include "task_node_map.h"
 
 namespace {
-  constexpr uint32_t k32BitsMask = 0xFFFFFFFFU;  // 32 bits, 1111,1111,1111,1111,1111,1111,1111,1111
-  constexpr uint64_t kUnknown = 0U;
-  constexpr uint64_t kSupport = 1UL << 0U;
-  constexpr uint64_t kNoSupport = 1UL << 1U;
-  constexpr uint32_t kKiloByte = 1024U;
-  constexpr uint32_t kTilingThreshold1 = 96U;
-  constexpr uint32_t kTilingThreshold2 = 4096U;
-  constexpr uint32_t kTilingFactor1 = 8U;
-  constexpr uint32_t kTilingFactor2 = 2U;
-  constexpr uint32_t kTilingFactor3 = 6U;
-  constexpr uint32_t kAlign256B = 64;
-  constexpr uint32_t kUBLen = 183 * 1024;
-  constexpr uint32_t kRtsLitePcieBarCopySize = 1024U;
-  constexpr uint32_t kKernelLaunchArgOffset2 = 16;
-  constexpr uint32_t kBufferNum = 2;
-  constexpr uint32_t kBufferFactor = 31;
-  constexpr uint32_t kUpdateVersionH2d = 2;
-  constexpr uint32_t kUpdateVersionKernelLaunch = 3;
-  constexpr const ge::char_t *kCoreTypeAIV = "AIV";
-  const std::string kAddrRefreshOpName = "UpdateModelParam_static_bin";
-  const std::string kAddrRefreshOpType = "Data";
-  constexpr uint32_t kModelLoadStage = 0;
-}
+constexpr uint32_t k32BitsMask = 0xFFFFFFFFU;  // 32 bits, 1111,1111,1111,1111,1111,1111,1111,1111
+constexpr uint64_t kUnknown = 0U;
+constexpr uint64_t kSupport = 1UL << 0U;
+constexpr uint64_t kNoSupport = 1UL << 1U;
+constexpr uint32_t kKiloByte = 1024U;
+constexpr uint32_t kTilingThreshold1 = 96U;
+constexpr uint32_t kTilingThreshold2 = 4096U;
+constexpr uint32_t kTilingFactor1 = 8U;
+constexpr uint32_t kTilingFactor2 = 2U;
+constexpr uint32_t kTilingFactor3 = 6U;
+constexpr uint32_t kAlign256B = 64;
+constexpr uint32_t kUBLen = 183 * 1024;
+constexpr uint32_t kRtsLitePcieBarCopySize = 1024U;
+constexpr uint32_t kKernelLaunchArgOffset2 = 16;
+constexpr uint32_t kBufferNum = 2;
+constexpr uint32_t kBufferFactor = 31;
+constexpr uint32_t kUpdateVersionH2d = 2;
+constexpr uint32_t kUpdateVersionKernelLaunch = 3;
+constexpr const ge::char_t *kCoreTypeAIV = "AIV";
+const std::string kAddrRefreshOpName = "UpdateModelParam_static_bin";
+const std::string kAddrRefreshOpType = "Data";
+constexpr uint32_t kModelLoadStage = 0;
+}  // namespace
 namespace ge {
 rtMemType_t GetRtsMemoryType(const ArgsPlacement placement, const int64_t size) {
   switch (placement) {
@@ -140,10 +140,9 @@ void DebugLogTaskRunParam(const size_t task_index, const int64_t op_index, const
     }
   }
 
-  ss << " inputs num " << param.parsed_input_addrs.size() << ','
-      << " outputs num " << param.parsed_output_addrs.size() << ','
-      << " workspaces num " << param.parsed_workspace_addrs.size() << ','
-      << " persistent workspaces num " << param.persistent_workspace_descs.size() << ',';
+  ss << " inputs num " << param.parsed_input_addrs.size() << ',' << " outputs num " << param.parsed_output_addrs.size()
+     << ',' << " workspaces num " << param.parsed_workspace_addrs.size() << ',' << " persistent workspaces num "
+     << param.persistent_workspace_descs.size() << ',';
   if (!param.persistent_workspace_descs.empty()) {
     ss << " len/placement: ";
     for (const auto &pw_desc : param.persistent_workspace_descs) {
@@ -152,7 +151,7 @@ void DebugLogTaskRunParam(const size_t task_index, const int64_t op_index, const
   }
 
   if (op_desc != nullptr) {
-    ss << " op type " << op_desc->GetType().c_str() << ',' << " op name "<< op_desc->GetName().c_str() << '.';
+    ss << " op type " << op_desc->GetType().c_str() << ',' << " op name " << op_desc->GetName().c_str() << '.';
   }
   GELOGD("%s", ss.str().c_str());
 }
@@ -175,54 +174,49 @@ void UseMin(uint64_t new_dev_addr, void *new_host_addr, uint64_t &dev_addr, void
     host_addr = new_host_addr;
   }
 }
-Status GetOverlapRange(const std::pair<uint64_t, uint64_t> range1,
-                       const std::pair<uint64_t, uint64_t> range2,
+Status GetOverlapRange(const std::pair<uint64_t, uint64_t> range1, const std::pair<uint64_t, uint64_t> range2,
                        std::pair<uint64_t, uint64_t> &overlap_range) {
-    overlap_range.second = std::min(range1.second, range2.second);  // [va, va + len)
-    overlap_range.first = std::max(range1.first, range2.first);
-    if (overlap_range.first >= overlap_range.second) {
-      return FAILED;
-    }
+  overlap_range.second = std::min(range1.second, range2.second);  // [va, va + len)
+  overlap_range.first = std::max(range1.first, range2.first);
+  if (overlap_range.first >= overlap_range.second) {
+    return FAILED;
+  }
 
-    return SUCCESS;
+  return SUCCESS;
 }
-uint32_t MathCeil(uint32_t num1, uint32_t num2)
-{
-    return (num2 == 0) ? num1 : ((num1 + num2 - 1) / num2);
+uint32_t MathCeil(uint32_t num1, uint32_t num2) {
+  return (num2 == 0) ? num1 : ((num1 + num2 - 1) / num2);
 }
-uint32_t MathFloor(uint32_t num1, uint32_t num2)
-{
-    return (num2 == 0) ? num1 : (num1 / num2);
+uint32_t MathFloor(uint32_t num1, uint32_t num2) {
+  return (num2 == 0) ? num1 : (num1 / num2);
 }
-uint32_t AlignUp(uint32_t num1, uint32_t num2)
-{
-    return MathCeil(num1, num2) * num2;
+uint32_t AlignUp(uint32_t num1, uint32_t num2) {
+  return MathCeil(num1, num2) * num2;
 }
-uint32_t AlignDown(uint32_t num1, uint32_t num2)
-{
-    return MathFloor(num1, num2) * num2;
+uint32_t AlignDown(uint32_t num1, uint32_t num2) {
+  return MathFloor(num1, num2) * num2;
 }
 Status GetPlatformVectorNum(uint32_t &vec_core_num) {
   fe::PlatFormInfos platform_infos;
   fe::OptionalInfos optional_info;
-  GE_ASSERT_TRUE(fe::PlatformInfoManager::GeInstance().GetPlatformInfoWithOutSocVersion(platform_infos, optional_info) ==
-                 SUCCESS, "Get platform failed.");
+  GE_ASSERT_TRUE(
+      fe::PlatformInfoManager::GeInstance().GetPlatformInfoWithOutSocVersion(platform_infos, optional_info) == SUCCESS,
+      "Get platform failed.");
   platform_infos.SetCoreNumByCoreType(kCoreTypeAIV);
   vec_core_num = platform_infos.GetCoreNum();
   GE_ASSERT_TRUE(vec_core_num != 0U, "Vector num:%u is invalid.", vec_core_num);
   return SUCCESS;
 }
-Status CalculateBlockDim(uint32_t index_len, uint32_t &block_dim)
-{
+Status CalculateBlockDim(uint32_t index_len, uint32_t &block_dim) {
   uint32_t vec_core_num = 0;
   GE_ASSERT_TRUE(GetPlatformVectorNum(vec_core_num) == SUCCESS, "GetPlatformVectorNum failed.");
-  uint32_t k_total_len = index_len / kKiloByte; // 计算有多少K的数据，以Byte为单位
+  uint32_t k_total_len = index_len / kKiloByte;  // 计算有多少K的数据，以Byte为单位
   if (k_total_len <= kTilingThreshold1) {
-      block_dim = std::max(k_total_len / kTilingFactor1, 1U);
+    block_dim = std::max(k_total_len / kTilingFactor1, 1U);
   } else if (k_total_len <= kTilingThreshold2) {
-      block_dim = std::lround(kTilingFactor2 * std::log2(static_cast<double>(k_total_len)));
+    block_dim = std::lround(kTilingFactor2 * std::log2(static_cast<double>(k_total_len)));
   } else {
-      block_dim = std::min(k_total_len * kTilingFactor3 / kKiloByte, static_cast<uint32_t>(vec_core_num));
+    block_dim = std::min(k_total_len * kTilingFactor3 / kKiloByte, static_cast<uint32_t>(vec_core_num));
   }
   return SUCCESS;
 }
@@ -247,17 +241,19 @@ Status ModelArgsManager::GenModelArgsRefreshInfosForTask(std::vector<TaskArgsRef
     m_info.offset = info.offset;
     GE_ASSERT_TRUE(info.placement < ArgsPlacement::kEnd);
     GE_ASSERT_TRUE(info.args_offset < static_cast<uint64_t>(pls_to_args[pls].len),
-        "op_name:%s, op_type:%s, args offset:%" PRIu64 " is more than pls:%zu, len:%d, task args refresh info:[%s]",
-        node->GetOpDesc()->GetName().c_str(), node->GetOpDesc()->GetType().c_str(),
-        info.args_offset, pls, pls_to_args[pls].len, info.ToString().c_str());
+                   "op_name:%s, op_type:%s, args offset:%" PRIu64
+                   " is more than pls:%zu, len:%d, task args refresh info:[%s]",
+                   node->GetOpDesc()->GetName().c_str(), node->GetOpDesc()->GetType().c_str(), info.args_offset, pls,
+                   pls_to_args[pls].len, info.ToString().c_str());
     GE_ASSERT_TRUE(pls_to_args[pls].host_addr != nullptr);
     m_info.host_args_addr = ValueToPtr(PtrToValue(pls_to_args[pls].host_addr) + info.args_offset);
     m_info.device_args_addr = pls_to_args[pls].dev_addr + info.args_offset;
-    GELOGI("[Args][Init] op_name:%s, op_type:%s, pls:%zu, pls host addr:0x%llx, pls dev addr:0x%llx, "
-      "task args refresh info:[%s], after transfer, model args refresh info:[%s].",
-      node->GetOpDesc()->GetName().c_str(), node->GetOpDesc()->GetType().c_str(), pls,
-      PtrToValue(pls_to_args[pls].host_addr), pls_to_args[pls].dev_addr,
-      info.ToString().c_str(), m_info.ToString().c_str());
+    GELOGI(
+        "[Args][Init] op_name:%s, op_type:%s, pls:%zu, pls host addr:0x%llx, pls dev addr:0x%llx, "
+        "task args refresh info:[%s], after transfer, model args refresh info:[%s].",
+        node->GetOpDesc()->GetName().c_str(), node->GetOpDesc()->GetType().c_str(), pls,
+        PtrToValue(pls_to_args[pls].host_addr), pls_to_args[pls].dev_addr, info.ToString().c_str(),
+        m_info.ToString().c_str());
     if (info.args_format_policy == ArgsFormatPolicy::kAddrAll) {
       allocation_ids_to_model_args_refresh_infos_addr_all[m_info.id].emplace_back(std::move(m_info));
     } else if (info.args_format_policy == ArgsFormatPolicy::kAddrLow32Bit) {
@@ -270,8 +266,7 @@ Status ModelArgsManager::GenModelArgsRefreshInfosForTask(std::vector<TaskArgsRef
   return SUCCESS;
 }
 
-Status ModelArgsManager::GenAllocationToIowPaRemapInfos(TaskInfoPtr task_info,
-                                                        const NodePtr &node,
+Status ModelArgsManager::GenAllocationToIowPaRemapInfos(TaskInfoPtr task_info, const NodePtr &node,
                                                         std::vector<IowPaRemapInfo> pa_remap_infos) {
   for (auto &info : pa_remap_infos) {
     info.task_info = task_info.get();
@@ -285,12 +280,12 @@ Status ModelArgsManager::GenAllocationToIowPaRemapInfos(TaskInfoPtr task_info,
 Status ModelArgsManager::PaRemapped(const uint64_t va, const uint64_t new_pa, const uint64_t len,
                                     std::vector<std::pair<uint64_t, uint64_t>> &overlap_range) {
   (void)new_pa;
-  std::pair<uint64_t, uint64_t> va_range(va, va + len); // [va, va + len)
+  std::pair<uint64_t, uint64_t> va_range(va, va + len);  // [va, va + len)
   pa_remap_match_support_num_ = 0UL;
   pa_remap_match_nosupport_num_ = 0UL;
   uint64_t flag = kUnknown;
   GE_ASSERT_TRUE(((last_bases_.size()) > 0U && (id_to_len_.size() == last_bases_.size())),
-    "len list size %zu, base list size %zu", id_to_len_.size(), last_bases_.size());
+                 "len list size %zu, base list size %zu", id_to_len_.size(), last_bases_.size());
   const size_t active_mem_base_len = last_bases_.size();
   auto active_mem_base_addr = GetActivateMemBaseAddrs();
   GE_ASSERT_NOTNULL(active_mem_base_addr);
@@ -301,17 +296,17 @@ Status ModelArgsManager::PaRemapped(const uint64_t va, const uint64_t new_pa, co
   }
   size_t absolute_mem_id = id_to_len_.size() - 1U;
   for (size_t id = 0U; id < id_to_len_.size(); id++) {
-    std::pair<uint64_t, uint64_t> allocation_range(last_bases_[id], last_bases_[id] + id_to_len_[id]); // 左闭右开
+    std::pair<uint64_t, uint64_t> allocation_range(last_bases_[id], last_bases_[id] + id_to_len_[id]);  // 左闭右开
     std::pair<uint64_t, uint64_t> allocation_and_va_overlap_range;
     if (GetOverlapRange(va_range, allocation_range, allocation_and_va_overlap_range) != SUCCESS) {
       continue;
     }
 
     std::pair<uint64_t, uint64_t> allocation_and_va_overlap_offset_range(
-      allocation_and_va_overlap_range.first - last_bases_[id],
-      allocation_and_va_overlap_range.second - last_bases_[id]);
+        allocation_and_va_overlap_range.first - last_bases_[id],
+        allocation_and_va_overlap_range.second - last_bases_[id]);
 
-    IowPaRemapInfo pa_remap_info {};
+    IowPaRemapInfo pa_remap_info{};
     pa_remap_info.allocation_offset = allocation_and_va_overlap_offset_range.first;
     auto it = allocation_ids_to_iow_pa_remap_infos_[id].upper_bound(pa_remap_info);
     for (; it != allocation_ids_to_iow_pa_remap_infos_[id].end(); it++) {
@@ -321,26 +316,29 @@ Status ModelArgsManager::PaRemapped(const uint64_t va, const uint64_t new_pa, co
 
       std::pair<uint64_t, uint64_t> tensor_offset_range(it->allocation_offset, it->allocation_offset + it->tensor_size);
       std::pair<uint64_t, uint64_t> tensor_and_va_offset_overlap_range;
-      if (GetOverlapRange(allocation_and_va_overlap_offset_range,
-        tensor_offset_range, tensor_and_va_offset_overlap_range) != SUCCESS) {
+      if (GetOverlapRange(allocation_and_va_overlap_offset_range, tensor_offset_range,
+                          tensor_and_va_offset_overlap_range) != SUCCESS) {
         continue;
       }
 
       if (it->policy != PaRemapPolicy::KSupport) {
         flag |= kNoSupport;
         pa_remap_match_nosupport_num_++;
-        GELOGI("Iow no support remap, active mem base:[0x%" PRIx64 "], len:[0x%" PRIx64 "], task info:[%s], "
-          "va:[0x%" PRIx64 "], va len:[0x%" PRIx64 "],"
-          "overlap_range start:[0x%" PRIx64 "], overlap_range end:[0x%" PRIx64 "]", last_bases_[id], id_to_len_[id],
-          it->ToString().c_str(), va, len, last_bases_[id] + tensor_and_va_offset_overlap_range.first,
-          last_bases_[id] + tensor_and_va_offset_overlap_range.second - 1U);
+        GELOGI("Iow no support remap, active mem base:[0x%" PRIx64 "], len:[0x%" PRIx64
+               "], task info:[%s], "
+               "va:[0x%" PRIx64 "], va len:[0x%" PRIx64
+               "],"
+               "overlap_range start:[0x%" PRIx64 "], overlap_range end:[0x%" PRIx64 "]",
+               last_bases_[id], id_to_len_[id], it->ToString().c_str(), va, len,
+               last_bases_[id] + tensor_and_va_offset_overlap_range.first,
+               last_bases_[id] + tensor_and_va_offset_overlap_range.second - 1U);
       }
 
       // absolute段，包含const var，保存交叉的tensor记录，当前需求只支持fm/io段，和absolute段应无交叉
       if (id == absolute_mem_id) {
-        overlap_range.emplace_back(
-          std::pair<uint64_t, uint64_t>(last_bases_[id] + tensor_and_va_offset_overlap_range.first,
-            last_bases_[id] + tensor_and_va_offset_overlap_range.second - 1U)); // [lower, upper - 1U]
+        overlap_range.emplace_back(std::pair<uint64_t, uint64_t>(
+            last_bases_[id] + tensor_and_va_offset_overlap_range.first,
+            last_bases_[id] + tensor_and_va_offset_overlap_range.second - 1U));  // [lower, upper - 1U]
       }
     }
 
@@ -352,41 +350,44 @@ Status ModelArgsManager::PaRemapped(const uint64_t va, const uint64_t new_pa, co
     if (flag == kUnknown) {
       flag |= kSupport;
       pa_remap_match_support_num_++;
-      GELOGI("Iow support remap, active mem base:[0x%" PRIx64 "], len:[0x%" PRIx64 "], allocation id:[%u], "
-        "va:[0x%" PRIx64 "], va len:[0x%" PRIx64 "], "
-        "overlap_range start:[0x%" PRIx64 "], overlap_range end:[0x%" PRIx64 "].",
-        last_bases_[id], id_to_len_[id], id, va, len,
-        allocation_and_va_overlap_range.first, allocation_and_va_overlap_range.second - 1U);
+      GELOGI("Iow support remap, active mem base:[0x%" PRIx64 "], len:[0x%" PRIx64
+             "], allocation id:[%u], "
+             "va:[0x%" PRIx64 "], va len:[0x%" PRIx64
+             "], "
+             "overlap_range start:[0x%" PRIx64 "], overlap_range end:[0x%" PRIx64 "].",
+             last_bases_[id], id_to_len_[id], id, va, len, allocation_and_va_overlap_range.first,
+             allocation_and_va_overlap_range.second - 1U);
     }
 
     // 非absolute 段，记录交叉的段区间
     overlap_range.emplace_back(std::pair<uint64_t, uint64_t>(
-      allocation_and_va_overlap_range.first, allocation_and_va_overlap_range.second - 1U)); // [lower, upper - 1U]
+        allocation_and_va_overlap_range.first, allocation_and_va_overlap_range.second - 1U));  // [lower, upper - 1U]
   }
 
   if (flag == kUnknown) {  // 全部是未识别
-    GELOGI("va unkown, va:[0x%" PRIx64 "], va len:[0x%" PRIx64 "].", va, len);
+    GELOGI("va unknown, va:[0x%" PRIx64 "], va len:[0x%" PRIx64 "].", va, len);
     return PARAM_INVALID;
-  } else if ((flag & (kNoSupport)) == kNoSupport) { // 只要有一个不支持remap，返回失败
+  } else if ((flag & (kNoSupport)) == kNoSupport) {  // 只要有一个不支持remap，返回失败
     GELOGI("va no support remap, match support num %" PRIu64 ", match no support num %" PRIu64 ".",
-      pa_remap_match_support_num_, pa_remap_match_nosupport_num_);
+           pa_remap_match_support_num_, pa_remap_match_nosupport_num_);
     return FAILED;
   } else {
     // 1)所有都支持remap 2) 部分支持+部分未识别，这两种场景未做区分，session层面根据返回的交叉区间区分是否存在未识别场景
     GELOGI("va support remap, match support num %" PRIu64 ", match no support num %" PRIu64 ".",
-      pa_remap_match_support_num_, pa_remap_match_nosupport_num_);
+           pa_remap_match_support_num_, pa_remap_match_nosupport_num_);
     return SUCCESS;
   }
 }
 
 Status ModelArgsManager::CalculateUpdateModelParamTiling(uint32_t active_base_len, uint32_t index_len,
-    uint32_t &block_dim, UpdateModelParamTilingData &tiling) const {
+                                                         uint32_t &block_dim,
+                                                         UpdateModelParamTilingData &tiling) const {
   GE_ASSERT_TRUE(CalculateBlockDim(index_len, block_dim) == SUCCESS, "CalculateBlockDim failed.");
   tiling.totalActiveBaseTblCnt = AlignUp(active_base_len, kAlign32B) / sizeof(uint32_t);
   uint32_t total_cnt = index_len / sizeof(uint32_t);
   uint32_t total_buffer_len = kUBLen - active_base_len * kBufferNum;
   /* 每一轮最多计算的uint32_t数据个数 */
-  uint32_t max_tile_cnt = AlignDown(total_buffer_len / kBufferFactor, kAlign256B); // 每轮计算256字节 即64个uint32_t
+  uint32_t max_tile_cnt = AlignDown(total_buffer_len / kBufferFactor, kAlign256B);  // 每轮计算256字节 即64个uint32_t
 
   tiling.blockCnt = AlignUp(MathCeil(total_cnt, block_dim), kAlign256B);
   block_dim = MathCeil(total_cnt, tiling.blockCnt);
@@ -406,7 +407,7 @@ Status ModelArgsManager::CalculateUpdateModelParamTiling(uint32_t active_base_le
 
 Status ModelArgsManager::GenAddrRefreshIndexAndOffset(const uint64_t &offset_num) {
   uint64_t host_input_copy_num =
-    (host_input_size_ > 0U && is_pcie_bar_copy_) ? MathCeil(host_input_size_, sizeof(uint64_t)) : 0U;
+      (host_input_size_ > 0U && is_pcie_bar_copy_) ? MathCeil(host_input_size_, sizeof(uint64_t)) : 0U;
   uint64_t args_offset_num = offset_num + host_input_copy_num;
 
   // 申请offset 和 index表的host地址
@@ -416,11 +417,13 @@ Status ModelArgsManager::GenAddrRefreshIndexAndOffset(const uint64_t &offset_num
   auto model_args_host_index = ge::MakeUnique<uint32_t[]>(index_mutiples * static_cast<size_t>(args_offset_num));
 
   // offset的device表
-  model_args_device_offset_ = davinci_model_->MallocDynamicMemory(static_cast<size_t>(args_offset_num) * sizeof(uint64_t));
+  model_args_device_offset_ =
+      davinci_model_->MallocDynamicMemory(static_cast<size_t>(args_offset_num) * sizeof(uint64_t));
   GE_ASSERT_NOTNULL(model_args_device_offset_);
 
   // index的device表
-  model_args_device_index_ = davinci_model_->MallocDynamicMemory(static_cast<size_t>(args_offset_num) * sizeof(uint64_t));
+  model_args_device_index_ =
+      davinci_model_->MallocDynamicMemory(static_cast<size_t>(args_offset_num) * sizeof(uint64_t));
   GE_ASSERT_NOTNULL(model_args_device_index_);
 
   // 算子的workspace参数
@@ -435,8 +438,7 @@ Status ModelArgsManager::GenAddrRefreshIndexAndOffset(const uint64_t &offset_num
         GELOGW("info.device_args_addr %llu is not uint64 offset.", info.device_args_addr);
         return FAILED;
       }
-      uint64_t io_index =
-          (info.device_args_addr - model_args_[0].model_args_device_addr) / sizeof(uint64_t);
+      uint64_t io_index = (info.device_args_addr - model_args_[0].model_args_device_addr) / sizeof(uint64_t);
       if (io_index <= offset_num) {
         model_args_host_offset[io_index] = info.offset;
         // index为uint32_t类型，且在算子侧，以uint8_t进行计算，也因此需要转换为uint8_t的index并压栈两次
@@ -449,12 +451,11 @@ Status ModelArgsManager::GenAddrRefreshIndexAndOffset(const uint64_t &offset_num
 
   for (auto item : allocation_ids_to_model_args_refresh_infos_addr_low_32bit) {
     for (const auto &info : item) {
-     if (info.device_args_addr % sizeof(uint64_t) != 0) {
-       GELOGW("info.device_args_addr %llu is not uint64 offset.", info.device_args_addr);
-       return FAILED;
-     }
-      uint64_t io_index =
-         (info.device_args_addr - model_args_[0].model_args_device_addr) / sizeof(uint64_t);
+      if (info.device_args_addr % sizeof(uint64_t) != 0) {
+        GELOGW("info.device_args_addr %llu is not uint64 offset.", info.device_args_addr);
+        return FAILED;
+      }
+      uint64_t io_index = (info.device_args_addr - model_args_[0].model_args_device_addr) / sizeof(uint64_t);
       if (io_index <= offset_num) {
         // index为uint32_t类型，且在算子侧，以uint8_t进行计算，也因此需要转换为uint8_t的index并压栈两次
         model_args_host_index[index_mutiples * io_index] = index_mutiples * info.id * sizeof(uint32_t);
@@ -465,8 +466,7 @@ Status ModelArgsManager::GenAddrRefreshIndexAndOffset(const uint64_t &offset_num
 
   for (auto item : allocation_ids_to_model_args_refresh_infos_addr_high_32bit) {
     for (const auto &info : item) {
-      uint64_t io_index =
-          (info.device_args_addr - model_args_[0].model_args_device_addr) / sizeof(uint64_t);
+      uint64_t io_index = (info.device_args_addr - model_args_[0].model_args_device_addr) / sizeof(uint64_t);
       if (io_index <= offset_num) {
         model_args_host_offset[io_index] = info.offset;
         // index压栈两次
@@ -477,8 +477,10 @@ Status ModelArgsManager::GenAddrRefreshIndexAndOffset(const uint64_t &offset_num
   // index和offset的host表赋值，不可刷新部分赋值
   for (size_t i = 0; i < offset_num; i++) {
     if (io_index_set.count(i) == 0) {
-      model_args_host_index[index_mutiples * i] = index_mutiples * (allocation_ids_to_model_args_refresh_infos_addr_all.size() - 1) * sizeof(uint32_t);
-      model_args_host_index[index_mutiples * i + 1] = (index_mutiples * allocation_ids_to_model_args_refresh_infos_addr_all.size() - 1) * sizeof(uint32_t);
+      model_args_host_index[index_mutiples * i] =
+          index_mutiples * (allocation_ids_to_model_args_refresh_infos_addr_all.size() - 1) * sizeof(uint32_t);
+      model_args_host_index[index_mutiples * i + 1] =
+          (index_mutiples * allocation_ids_to_model_args_refresh_infos_addr_all.size() - 1) * sizeof(uint32_t);
       model_args_host_offset[i] = *(reinterpret_cast<uint64_t *>(model_args_[0].model_args_host_addr.get()) + i);
     }
   }
@@ -486,7 +488,7 @@ Status ModelArgsManager::GenAddrRefreshIndexAndOffset(const uint64_t &offset_num
   // host_input_copy_num部分赋值
   uint32_t active_mem_base_addr_len = davinci_model_->GetLogicalMemAllocation().size() * sizeof(uint64_t);
   uint32_t active_mem_base_addr_len_align32b = AlignUp(active_mem_base_addr_len, kAlign32B);
-  uint32_t active_mem_base_offset = active_mem_base_addr_len_align32b/sizeof(uint64_t);
+  uint32_t active_mem_base_offset = active_mem_base_addr_len_align32b / sizeof(uint64_t);
   for (size_t i = offset_num; i < args_offset_num; i++) {
     if (io_index_set.count(i) == 0) {
       model_args_host_index[index_mutiples * i] = index_mutiples * active_mem_base_offset * sizeof(uint32_t);
@@ -498,9 +500,10 @@ Status ModelArgsManager::GenAddrRefreshIndexAndOffset(const uint64_t &offset_num
 
   // 拷贝index和offset的device表
   GE_ASSERT_RT_OK(aclrtMemcpy(model_args_device_offset_, args_offset_num * sizeof(uint64_t),
-      model_args_host_offset.get(), args_offset_num * sizeof(uint64_t), ACL_MEMCPY_HOST_TO_DEVICE));
-  GE_ASSERT_RT_OK(aclrtMemcpy(model_args_device_index_, args_offset_num * sizeof(uint64_t),
-      model_args_host_index.get(), args_offset_num * sizeof(uint64_t), ACL_MEMCPY_HOST_TO_DEVICE));
+                              model_args_host_offset.get(), args_offset_num * sizeof(uint64_t),
+                              ACL_MEMCPY_HOST_TO_DEVICE));
+  GE_ASSERT_RT_OK(aclrtMemcpy(model_args_device_index_, args_offset_num * sizeof(uint64_t), model_args_host_index.get(),
+                              args_offset_num * sizeof(uint64_t), ACL_MEMCPY_HOST_TO_DEVICE));
 
   // 补充args构成
   kernel_launch_args_ptr_->model_offset_args_device_addr = PtrToValue(model_args_device_offset_);
@@ -509,9 +512,10 @@ Status ModelArgsManager::GenAddrRefreshIndexAndOffset(const uint64_t &offset_num
   kernel_launch_args_ptr_->workspace_addr = PtrToValue(workspace_addr_device_);
   if (logLevel_ <= DLOG_INFO) {
     for (size_t i = 0; i < args_offset_num; i++) {
-      GELOGI("Print GenAddrRefreshIndexAndOffset result, model args table Index is:%d, "
-             "active mem base index is:%d, addr offset is:0x%" PRIx64, i,
-             model_args_host_index[index_mutiples * i] / sizeof(uint64_t), model_args_host_offset[i]);
+      GELOGI(
+          "Print GenAddrRefreshIndexAndOffset result, model args table Index is:%d, "
+          "active mem base index is:%d, addr offset is:0x%" PRIx64,
+          i, model_args_host_index[index_mutiples * i] / sizeof(uint64_t), model_args_host_offset[i]);
     }
   }
 
@@ -543,14 +547,14 @@ Status ModelArgsManager::GenKernelLaunchArgs(uint64_t &offset_num) {
       // pcie bar场景通过算子刷新来更新host内存，offset需要做扩展,partition分配内存时已做64字节对齐，此处不会越界
       args_offset_num += MathCeil(host_input_size_, sizeof(uint64_t));
     }
-    GE_ASSERT_SUCCESS(
-      CalculateUpdateModelParamTiling(args_active_mem_base_and_host_input_size, args_offset_num * sizeof(uint64_t),
-                                      block_dim_, kernel_launch_args_ptr_->tiling_data));
+    GE_ASSERT_SUCCESS(CalculateUpdateModelParamTiling(args_active_mem_base_and_host_input_size,
+                                                      args_offset_num * sizeof(uint64_t), block_dim_,
+                                                      kernel_launch_args_ptr_->tiling_data));
     GELOGI("kernel launch is pcie bar copy, args size:%" PRIu64 ", tiling active mem base and host input size:%" PRIu64
            ", active mem base align size:%u, host input size:%" PRIu64 ", tiling args offset num:%" PRIu64
            ", model args offset num:%" PRIu64,
-           args_size, args_active_mem_base_and_host_input_size,
-           active_mem_base_addr_len_align32b, host_input_size_, args_offset_num, offset_num);
+           args_size, args_active_mem_base_and_host_input_size, active_mem_base_addr_len_align32b, host_input_size_,
+           args_offset_num, offset_num);
   } else {
     activate_mem_base_device_addrs_dev_ = davinci_model_->MallocDynamicMemory(args_active_mem_base_and_host_input_size);
     // offset device addr | index device addr | active mem base device addr | model args table addr
@@ -560,18 +564,19 @@ Status ModelArgsManager::GenKernelLaunchArgs(uint64_t &offset_num) {
     host_input_device_ptr_ = kernel_launch_args_ptr_->active_mem_base_device_addr + active_mem_base_addr_len_align32b;
     addr_update_op_args_.hostInputInfoNum = 0;
     addr_update_op_args_.argsSize = sizeof(KernelLaunchOpArgs);
-    GE_ASSERT_SUCCESS(CalculateUpdateModelParamTiling(
-      active_mem_base_addr_len_align32b, args_offset_num * sizeof(uint64_t),
-      block_dim_, kernel_launch_args_ptr_->tiling_data));
+    GE_ASSERT_SUCCESS(CalculateUpdateModelParamTiling(active_mem_base_addr_len_align32b,
+                                                      args_offset_num * sizeof(uint64_t), block_dim_,
+                                                      kernel_launch_args_ptr_->tiling_data));
 
-    GELOGI("kernel launch is not pcie bar copy, tiling active mem base size:%" PRIu64 ", tiling args offset num:%" PRIu64
-           ", args size:%" PRIu64 ", host input size:%" PRIu64 ", malloc active mem and host input size:%" PRIu64,
-           active_mem_base_addr_len_align32b, args_offset_num, addr_update_op_args_.argsSize,
-           host_input_size_, args_active_mem_base_and_host_input_size);
+    GELOGI("kernel launch is not pcie bar copy, tiling active mem base size:%" PRIu64
+           ", tiling args offset num:%" PRIu64 ", args size:%" PRIu64 ", host input size:%" PRIu64
+           ", malloc active mem and host input size:%" PRIu64,
+           active_mem_base_addr_len_align32b, args_offset_num, addr_update_op_args_.argsSize, host_input_size_,
+           args_active_mem_base_and_host_input_size);
   }
 
   GE_ASSERT_NOTNULL(launched_args_unique_ptr_);
-  addr_update_op_args_.args = static_cast<void*>(launched_args_unique_ptr_.get());
+  addr_update_op_args_.args = static_cast<void *>(launched_args_unique_ptr_.get());
   // tiling addr在的偏移地址
   addr_update_op_args_.tilingAddrOffset = kAddrRefreshOpParamOffset - sizeof(uint64_t);
   addr_update_op_args_.hasTiling = 1;
@@ -598,9 +603,9 @@ Status ModelArgsManager::InitTaskInfoV2(domi::ModelTaskDef &model_task_def) {
 
   // todo 逻辑地址与memory type的对应关系，看起来通过task_info返回有些重复了，因为不同的task
   //      info可能返回同一个逻辑地址，而一个逻辑地址是什么memory type是确定的，没必要在每个task info中都返回一
-  const auto logical_addrs_to_memory_type = MemoryAppTypeClassifier(davinci_model_->GetLogicalMemAllocation(),
-                                                                    davinci_model_->GetFmMemAllocationsStartId())
-                                          .ClassifyByTaskRunParams(task_indexes_to_run_param);
+  const auto logical_addrs_to_memory_type =
+      MemoryAppTypeClassifier(davinci_model_->GetLogicalMemAllocation(), davinci_model_->GetFmMemAllocationsStartId())
+          .ClassifyByTaskRunParams(task_indexes_to_run_param);
 
   std::vector<TaskArgsRefreshTypeClassifier::TaskRefreshType> task_indexes_to_refresh_type;
   TaskArgsRefreshTypeClassifier::FixedAddrs fixed_addrs;
@@ -613,7 +618,8 @@ Status ModelArgsManager::InitTaskInfoV2(domi::ModelTaskDef &model_task_def) {
   GE_ASSERT_SUCCESS(ModelArgsLayoutPlanner(task_indexes_to_refresh_type, task_indexes_to_run_param, host_input_size_)
                         .Plan(planned_model_args_layout_result, AddrUseFor::kAddrUseForArgs));
 
-  GE_ASSERT_SUCCESS(AllocModelArgs(planned_model_args_layout_result, model_args_, model_args_len_, op_refresh_placement_));
+  GE_ASSERT_SUCCESS(
+      AllocModelArgs(planned_model_args_layout_result, model_args_, model_args_len_, op_refresh_placement_));
   std::vector<PisToArgs> task_indexes_to_args;
   GE_ASSERT_SUCCESS(ConstructUpdateData(task_node_map, planned_model_args_layout_result, task_indexes_to_run_param,
                                         task_indexes_to_args));
@@ -634,19 +640,19 @@ Status ModelArgsManager::InitTaskInfoV2(domi::ModelTaskDef &model_task_def) {
 
     std::vector<TaskArgsRefreshInfo> infos;
     GE_ASSERT_SUCCESS(task_info->GetTaskArgsRefreshInfos(infos),
-                    "Failed to get task args refresh infos, task index %zu, related node %s", i,
-                    task_node_map.FindNodeByTaskIndex(i).node->GetName().c_str());
+                      "Failed to get task args refresh infos, task index %zu, related node %s", i,
+                      task_node_map.FindNodeByTaskIndex(i).node->GetName().c_str());
 
-    GE_ASSERT_SUCCESS(GenModelArgsRefreshInfosForTask(infos, task_indexes_to_args[i],
-                      task_node_map.FindNodeByTaskIndex(i).node));
+    GE_ASSERT_SUCCESS(
+        GenModelArgsRefreshInfosForTask(infos, task_indexes_to_args[i], task_node_map.FindNodeByTaskIndex(i).node));
 
     std::vector<IowPaRemapInfo> pa_remap_infos;
     GE_ASSERT_SUCCESS(task_info->GetTaskIowPaRemapInfos(pa_remap_infos),
-                     "Failed to get task iow pa remap infos, task index %zu, related node %s", i,
-                     task_node_map.FindNodeByTaskIndex(i).node->GetName().c_str());
+                      "Failed to get task iow pa remap infos, task index %zu, related node %s", i,
+                      task_node_map.FindNodeByTaskIndex(i).node->GetName().c_str());
 
-    GE_ASSERT_SUCCESS(GenAllocationToIowPaRemapInfos(task_info,
-                      task_node_map.FindNodeByTaskIndex(i).node, pa_remap_infos));
+    GE_ASSERT_SUCCESS(
+        GenAllocationToIowPaRemapInfos(task_info, task_node_map.FindNodeByTaskIndex(i).node, pa_remap_infos));
   }
 
   /*
@@ -707,7 +713,7 @@ Status ModelArgsManager::TaskArgsVa2PaAssociatedWithModelIO(aclrtStream const st
   return SUCCESS;
 }
 
-void ModelArgsManager::UpdateHostArgs(uint64_t* active_mem_base_addr) {
+void ModelArgsManager::UpdateHostArgs(uint64_t *active_mem_base_addr) {
   dfx_info_.update_addr_num = 0UL;
   const size_t size = davinci_model_->GetLogicalMemAllocation().size();
   for (size_t id = 0UL; id < size; id++) {
@@ -717,24 +723,24 @@ void ModelArgsManager::UpdateHostArgs(uint64_t* active_mem_base_addr) {
 
     for (const auto &info : allocation_ids_to_model_args_refresh_infos_addr_all[id]) {
       *(PtrToPtr<void, uint64_t>(info.host_args_addr)) = active_mem_base_addr[id] + info.offset;
-      GELOGI("[Args][Updater] update model args refresh info:[%s], active addr:0x%llx.",
-        info.ToString().c_str(), *(PtrToPtr<void, uint64_t>(info.host_args_addr)));
+      GELOGI("[Args][Updater] update model args refresh info:[%s], active addr:0x%llx.", info.ToString().c_str(),
+             *(PtrToPtr<void, uint64_t>(info.host_args_addr)));
     }
     dfx_info_.update_addr_num += allocation_ids_to_model_args_refresh_infos_addr_all[id].size();
 
     for (const auto &info : allocation_ids_to_model_args_refresh_infos_addr_low_32bit[id]) {
       *(PtrToPtr<void, uint32_t>(info.host_args_addr)) =
-        static_cast<uint32_t>((active_mem_base_addr[id] + info.offset) & k32BitsMask);
-      GELOGI("[Args][Updater] update model args refresh info:[%s], active addr:0x%x",
-        info.ToString().c_str(), *(PtrToPtr<void, uint32_t>(info.host_args_addr)));
+          static_cast<uint32_t>((active_mem_base_addr[id] + info.offset) & k32BitsMask);
+      GELOGI("[Args][Updater] update model args refresh info:[%s], active addr:0x%x", info.ToString().c_str(),
+             *(PtrToPtr<void, uint32_t>(info.host_args_addr)));
     }
     dfx_info_.update_addr_num += allocation_ids_to_model_args_refresh_infos_addr_low_32bit[id].size();
 
     for (const auto &info : allocation_ids_to_model_args_refresh_infos_addr_high_32bit[id]) {
       *(PtrToPtr<void, uint32_t>(info.host_args_addr)) =
-        static_cast<uint32_t>((active_mem_base_addr[id] + info.offset) >> k32Bits);
-      GELOGI("[Args][Updater] update model args refresh info:%s, active addr:0x%x",
-        info.ToString().c_str(), *(PtrToPtr<void, uint32_t>(info.host_args_addr)));
+          static_cast<uint32_t>((active_mem_base_addr[id] + info.offset) >> k32Bits);
+      GELOGI("[Args][Updater] update model args refresh info:%s, active addr:0x%x", info.ToString().c_str(),
+             *(PtrToPtr<void, uint32_t>(info.host_args_addr)));
     }
 
     last_bases_[id] = active_mem_base_addr[id];
@@ -745,18 +751,18 @@ void ModelArgsManager::GenModelArgsAaddrAfterDistributed() {
   // 满足以下条件才用算子刷新
   // 1、地址刷新算子已加载
   // 2、只有一个placememt需要刷新且placememt有效(即只kernel launch一次算子)
-  if (func_handle_ != nullptr && model_args_.size() == 1 &&
-      op_refresh_placement_ == ArgsPlacement::kArgsPlacementHbm && !has_reserve_args_table_) {
-    uint64_t offset_num = (model_args_len_[0] - host_input_partition_len_) / sizeof(uint64_t) ;
+  if (func_handle_ != nullptr && model_args_.size() == 1 && op_refresh_placement_ == ArgsPlacement::kArgsPlacementHbm &&
+      !has_reserve_args_table_) {
+    uint64_t offset_num = (model_args_len_[0] - host_input_partition_len_) / sizeof(uint64_t);
     // args table表的长度在这边扩展
     if (offset_num > 0 && GenKernelLaunchArgs(offset_num) == SUCCESS &&
         GenAddrRefreshIndexAndOffset(offset_num) == SUCCESS) {
-        update_version_ = kUpdateVersionKernelLaunch;
+      update_version_ = kUpdateVersionKernelLaunch;
     }
     GELOGI("update_version:%d, model args offset num:%llu", update_version_, offset_num);
   } else {
-    GELOGI("update_version:%d, func_handle_:%p, model args size:%zu, op_refresh_placement:%d",
-      update_version_, func_handle_, model_args_.size(), static_cast<int32_t>(op_refresh_placement_));
+    GELOGI("update_version:%d, func_handle_:%p, model args size:%zu, op_refresh_placement:%d", update_version_,
+           func_handle_, model_args_.size(), static_cast<int32_t>(op_refresh_placement_));
   }
   GELOGI("model args manager update version %d", update_version_);
   return;
@@ -766,27 +772,30 @@ Status ModelArgsManager::PrintKernelLaunchArgsDfxInfo(aclrtStream const stm) {
   uint32_t active_mem_base_addr_size = davinci_model_->GetLogicalMemAllocation().size();
   uint32_t active_mem_base_addr_len_align32b = AlignUp(active_mem_base_addr_size * sizeof(uint64_t), kAlign32B);
   active_mem_base_addr_len_align32b = active_mem_base_addr_len_align32b + host_input_size_;
-  active_mem_base_addr_size = active_mem_base_addr_len_align32b/sizeof(uint64_t);
+  active_mem_base_addr_size = active_mem_base_addr_len_align32b / sizeof(uint64_t);
   // 此处添加校验
   uint64_t *active_mem_base_addr = GetActivateMemBaseAddrs();
   for (size_t i = 0; i < active_mem_base_addr_size; i++) {
-    GELOGI("Print Kernel Launch Args, host active mem base Index is:%d, active mem base addr is:0x%" PRIx64,
-            i, active_mem_base_addr[i]);
+    GELOGI("Print Kernel Launch Args, host active mem base Index is:%d, active mem base addr is:0x%" PRIx64, i,
+           active_mem_base_addr[i]);
   }
 
   GE_CHK_ACL_RET(aclrtSynchronizeStream(stm));
   std::vector<uint64_t> model_args_device_addrs(model_args_len_[0] / sizeof(uint64_t), 0);
   (void)aclrtMemcpy(model_args_device_addrs.data(), model_args_len_[0],
-      ValueToPtr(model_args_[0].model_args_device_addr), model_args_len_[0], ACL_MEMCPY_DEVICE_TO_HOST);
+                    ValueToPtr(model_args_[0].model_args_device_addr), model_args_len_[0], ACL_MEMCPY_DEVICE_TO_HOST);
   UpdateModelParamTilingData update_model_param_tiling_data_temp = {};
-  (void)aclrtMemcpy(static_cast<void*>(&update_model_param_tiling_data_temp), sizeof(UpdateModelParamTilingData),
-      ValueToPtr(kernel_launch_args_ptr_->tiling_addr), sizeof(UpdateModelParamTilingData), ACL_MEMCPY_DEVICE_TO_HOST);
-  GELOGI("Print device Tiling Data. tiling.totalActivateBaseTblCnt: %u, tiling.blockCnt:%u, tiling.tileCnt: %u , tiling.tileNum: %u, "
-    "tiling.tailCnt: %u, tiling.lastTileNum: %u, tiling.lastTailCnt: %u, block dim is %u.",
-    update_model_param_tiling_data_temp.totalActiveBaseTblCnt,
-    update_model_param_tiling_data_temp.blockCnt, update_model_param_tiling_data_temp.tileCnt,
-    update_model_param_tiling_data_temp.tileNum, update_model_param_tiling_data_temp.tailCnt,
-    update_model_param_tiling_data_temp.lastTileNum, update_model_param_tiling_data_temp.lastTailCnt, block_dim_);
+  (void)aclrtMemcpy(static_cast<void *>(&update_model_param_tiling_data_temp), sizeof(UpdateModelParamTilingData),
+                    ValueToPtr(kernel_launch_args_ptr_->tiling_addr), sizeof(UpdateModelParamTilingData),
+                    ACL_MEMCPY_DEVICE_TO_HOST);
+  GELOGI(
+      "Print device Tiling Data. tiling.totalActivateBaseTblCnt: %u, tiling.blockCnt:%u, tiling.tileCnt: %u , "
+      "tiling.tileNum: %u, "
+      "tiling.tailCnt: %u, tiling.lastTileNum: %u, tiling.lastTailCnt: %u, block dim is %u.",
+      update_model_param_tiling_data_temp.totalActiveBaseTblCnt, update_model_param_tiling_data_temp.blockCnt,
+      update_model_param_tiling_data_temp.tileCnt, update_model_param_tiling_data_temp.tileNum,
+      update_model_param_tiling_data_temp.tailCnt, update_model_param_tiling_data_temp.lastTileNum,
+      update_model_param_tiling_data_temp.lastTailCnt, block_dim_);
 
   std::vector<uint32_t> device_index_table;
   std::vector<uint64_t> device_offset_table;
@@ -799,43 +808,45 @@ Status ModelArgsManager::PrintKernelLaunchArgsDfxInfo(aclrtStream const stm) {
   device_index_table.resize(model_args_refresh_len_ / sizeof(uint32_t));
   device_offset_table.resize(model_args_refresh_len_ / sizeof(uint64_t));
   (void)aclrtMemcpy(device_offset_table.data(), model_args_refresh_len_,
-      ValueToPtr(kernel_launch_args_ptr_->model_offset_args_device_addr), model_args_refresh_len_,
-      ACL_MEMCPY_DEVICE_TO_HOST);
+                    ValueToPtr(kernel_launch_args_ptr_->model_offset_args_device_addr), model_args_refresh_len_,
+                    ACL_MEMCPY_DEVICE_TO_HOST);
   (void)aclrtMemcpy(device_index_table.data(), model_args_refresh_len_,
-      ValueToPtr(kernel_launch_args_ptr_->model_index_args_device_addr), model_args_refresh_len_,
-      ACL_MEMCPY_DEVICE_TO_HOST);
+                    ValueToPtr(kernel_launch_args_ptr_->model_index_args_device_addr), model_args_refresh_len_,
+                    ACL_MEMCPY_DEVICE_TO_HOST);
   for (size_t i = 0; i < model_args_refresh_len_ / sizeof(uint64_t); i++) {
-    GELOGI("Print device offset table. index:%" PRId64 ", offset is:%" PRId64 ", index is %d, %d.",
-          i, device_offset_table[i], device_index_table[2 * i], device_index_table[2 * i + 1]);
+    GELOGI("Print device offset table. index:%" PRId64 ", offset is:%" PRId64 ", index is %d, %d.", i,
+           device_offset_table[i], device_index_table[2 * i], device_index_table[2 * i + 1]);
   }
 
   std::vector<uint64_t> device_active_mem_table;
   device_active_mem_table.resize(active_mem_base_addr_size);
   (void)aclrtMemcpy(device_active_mem_table.data(), active_mem_base_addr_size * sizeof(uint64_t),
-      ValueToPtr(kernel_launch_args_ptr_->active_mem_base_device_addr),
-      active_mem_base_addr_size * sizeof(uint64_t), ACL_MEMCPY_DEVICE_TO_HOST);
+                    ValueToPtr(kernel_launch_args_ptr_->active_mem_base_device_addr),
+                    active_mem_base_addr_size * sizeof(uint64_t), ACL_MEMCPY_DEVICE_TO_HOST);
   for (size_t i = 0; i < active_mem_base_addr_size; i++) {
     GELOGI("Print active mem base. index:%" PRId64 ", value is:%" PRId64 ".", i, device_active_mem_table[i]);
   }
 
-  GELOGI("Print kernelLaunch Op args is: model_offset_args_device_addr is:0x%" PRIx64 ", "
-         "model_index_args_device_addr is:0x%" PRIx64 ", active_mem_base_device_addr: 0x%" PRIx64 ", "
+  GELOGI("Print kernelLaunch Op args is: model_offset_args_device_addr is:0x%" PRIx64
+         ", "
+         "model_index_args_device_addr is:0x%" PRIx64 ", active_mem_base_device_addr: 0x%" PRIx64
+         ", "
          "model_args_table_addr:0x%" PRIx64 ", workspace_addr:0x%" PRIx64 ", tiling_addr:0x%" PRIx64,
-         kernel_launch_args_ptr_->model_offset_args_device_addr,
-         kernel_launch_args_ptr_->model_index_args_device_addr, kernel_launch_args_ptr_->active_mem_base_device_addr,
-         kernel_launch_args_ptr_->model_args_table_addr, kernel_launch_args_ptr_->workspace_addr,
-         kernel_launch_args_ptr_->tiling_addr);
+         kernel_launch_args_ptr_->model_offset_args_device_addr, kernel_launch_args_ptr_->model_index_args_device_addr,
+         kernel_launch_args_ptr_->active_mem_base_device_addr, kernel_launch_args_ptr_->model_args_table_addr,
+         kernel_launch_args_ptr_->workspace_addr, kernel_launch_args_ptr_->tiling_addr);
 
   for (size_t j = 0; j < model_args_len_[0] / sizeof(uint64_t); j++) {
-    GELOGI("Print model args host table, model args index is:%d, model args host tensor data addr is:0x%" PRIx64 ","
-            "model device_args_addr is 0x%" PRIx64 ".",
-          j, *(reinterpret_cast<uint64_t*>(static_cast<void*>(model_args_[0].model_args_host_addr.get())) + j),
-          model_args_[0].model_args_host_addr.get() + j * sizeof(uint64_t));
+    GELOGI("Print model args host table, model args index is:%d, model args host tensor data addr is:0x%" PRIx64
+           ","
+           "model device_args_addr is 0x%" PRIx64 ".",
+           j, *(reinterpret_cast<uint64_t *>(static_cast<void *>(model_args_[0].model_args_host_addr.get())) + j),
+           model_args_[0].model_args_host_addr.get() + j * sizeof(uint64_t));
     if (model_args_device_addrs[j] !=
-        *(reinterpret_cast<uint64_t*>(static_cast<void*>(model_args_[0].model_args_host_addr.get())) + j)) {
-      GELOGI("Print different args. Index: %" PRId64 ", device addr is: %" PRId64 ", host addr is: %" PRId64,
-        j, model_args_device_addrs[j],
-        *(reinterpret_cast<uint64_t*>(static_cast<void*>(model_args_[0].model_args_host_addr.get())) + j));
+        *(reinterpret_cast<uint64_t *>(static_cast<void *>(model_args_[0].model_args_host_addr.get())) + j)) {
+      GELOGI("Print different args. Index: %" PRId64 ", device addr is: %" PRId64 ", host addr is: %" PRId64, j,
+             model_args_device_addrs[j],
+             *(reinterpret_cast<uint64_t *>(static_cast<void *>(model_args_[0].model_args_host_addr.get())) + j));
     }
   }
   return SUCCESS;
@@ -845,8 +856,7 @@ Status ModelArgsManager::ReportKernelLaunchOpProfilingData(const uint64_t begin_
   thread_local const int32_t tid = mmGetTid();
   const uint64_t end_time = MsprofSysCycleTime();
   const uint64_t op_name_hash = MsprofGetHashId(kAddrRefreshOpName.c_str(), kAddrRefreshOpName.length());
-  (void)gert::GlobalProfilingWrapper::ReportApiInfo(begin_time, end_time, op_name_hash,
-                                                    MSPROF_REPORT_NODE_LAUNCH_TYPE);
+  (void)gert::GlobalProfilingWrapper::ReportApiInfo(begin_time, end_time, op_name_hash, MSPROF_REPORT_NODE_LAUNCH_TYPE);
 
   if (!gert::GlobalProfilingWrapper::GetInstance()->IsEnabled(gert::ProfilingType::kDevice)) {
     return ge::SUCCESS;
@@ -874,20 +884,21 @@ Status ModelArgsManager::ReportKernelLaunchOpProfilingData(const uint64_t begin_
   return ge::SUCCESS;
 }
 
- Status ModelArgsManager::UpdateForExecute(uint32_t &up, aclrtStream const stm, const uint32_t model_execute_stage) {
+Status ModelArgsManager::UpdateForExecute(uint32_t &up, aclrtStream const stm, const uint32_t model_execute_stage) {
   GetStageTimeInfo(kStageCalcUpdatePolicyBegin);
   uint64_t active_mem_base_addr_len = davinci_model_->GetLogicalMemAllocation().size() * sizeof(uint64_t);
   uint64_t *active_mem_base_addr = GetActivateMemBaseAddrs();
   GE_ASSERT_NOTNULL(active_mem_base_addr);
-   if (update_version_ == 1) {
+  if (update_version_ == 1) {
     std::vector<uint64_t> active_mem_base_addr_vec;
     for (size_t i = 0; i < davinci_model_->GetLogicalMemAllocation().size(); i++) {
       active_mem_base_addr_vec.emplace_back(active_mem_base_addr[i]);
     }
     up_ = CalcUpdatePolicy(active_mem_base_addr_vec);
-    GELOGI("Begin to update model args, policy %s, fm_hit_count 0x%" PRIx64 ", "
-          "zero_copy_model_io_hit_count:0x%" PRIx64 ", va_2_pa:%d.",
-          GetUpdatePolicyStr(up_), fm_hit_count_, model_io_hit_count_, static_cast<int32_t>(need_dev_va_2_pa_));
+    GELOGI("Begin to update model args, policy %s, fm_hit_count 0x%" PRIx64
+           ", "
+           "zero_copy_model_io_hit_count:0x%" PRIx64 ", va_2_pa:%d.",
+           GetUpdatePolicyStr(up_), fm_hit_count_, model_io_hit_count_, static_cast<int32_t>(need_dev_va_2_pa_));
     GE_ASSERT_TRUE(up_ < kUpdatePolicyEnd);
     GetStageTimeInfo(kStageUpdateHostArgsBegin);
     if (up_ == kNoNeedUpdate) {
@@ -903,8 +914,8 @@ Status ModelArgsManager::ReportKernelLaunchOpProfilingData(const uint64_t begin_
     for (const auto &update_data : model_update_data->update_datas) {
       GE_ASSERT_SUCCESS(update_data.task_info->UpdateHostArgs(active_mem_base_addr_vec, update_data.host_args));
     }
-  } else if (update_version_ == kUpdateVersionH2d || model_execute_stage == kModelLoadStage
-    || davinci_model_->GetForbiddenStreamFlag()) {
+  } else if (update_version_ == kUpdateVersionH2d || model_execute_stage == kModelLoadStage ||
+             davinci_model_->GetForbiddenStreamFlag()) {
     GetStageTimeInfo(kStageUpdateHostArgsBegin);
     up_ = static_cast<ModelArgsManager::UpdatePolicy>(up);
     if (SECUREC_UNLIKELY(!has_args_)) {
@@ -919,8 +930,9 @@ Status ModelArgsManager::ReportKernelLaunchOpProfilingData(const uint64_t begin_
 
     if (logLevel_ <= DLOG_INFO) {
       GELOGI("Begin to update model args, policy %s, fm_hit_count 0x%" PRIx64 ", model_io_hit_count:0x%" PRIx64
-        ", update_addr_num:%" PRIu64 ", va_2_pa:%d.", GetUpdatePolicyStr(up_), fm_hit_count_, model_io_hit_count_,
-        dfx_info_.update_addr_num, static_cast<int32_t>(need_dev_va_2_pa_));
+             ", update_addr_num:%" PRIu64 ", va_2_pa:%d.",
+             GetUpdatePolicyStr(up_), fm_hit_count_, model_io_hit_count_, dfx_info_.update_addr_num,
+             static_cast<int32_t>(need_dev_va_2_pa_));
     }
 
     GE_ASSERT_TRUE(up_ < kUpdatePolicyEnd);
@@ -932,10 +944,10 @@ Status ModelArgsManager::ReportKernelLaunchOpProfilingData(const uint64_t begin_
     }
 
     // 更新dump info
-    if (davinci_model_->ModelNeedDump() ||            // data dump include L0
-        davinci_model_->IsDumpLayerOpModelEnable() || // data dump include L0
-        davinci_model_->GetOpDugReg() ||              // overflow dump include L0
-        gert::GlobalDumper::GetInstance()->IsEnable(gert::DumpType::kExceptionDump)) { // exception dump
+    if (davinci_model_->ModelNeedDump() ||                                              // data dump include L0
+        davinci_model_->IsDumpLayerOpModelEnable() ||                                   // data dump include L0
+        davinci_model_->GetOpDugReg() ||                                                // overflow dump include L0
+        gert::GlobalDumper::GetInstance()->IsEnable(gert::DumpType::kExceptionDump)) {  // exception dump
       auto &model_update_data = update_policies_to_model_data_[up_];
       GE_ASSERT_NOTNULL(model_update_data, "Failed to update model args, policy %s does not exist",
                         GetUpdatePolicyStr(up_));
@@ -952,8 +964,9 @@ Status ModelArgsManager::ReportKernelLaunchOpProfilingData(const uint64_t begin_
     }
     if (logLevel_ <= DLOG_INFO) {
       GELOGI("Begin to update model args, policy %s, fm_hit_count 0x%" PRIx64 ", model_io_hit_count:0x%" PRIx64
-        ", update_addr_num:%" PRIu64 ", va_2_pa:%d.", GetUpdatePolicyStr(up_), fm_hit_count_, model_io_hit_count_,
-        dfx_info_.update_addr_num, static_cast<int32_t>(need_dev_va_2_pa_));
+             ", update_addr_num:%" PRIu64 ", va_2_pa:%d.",
+             GetUpdatePolicyStr(up_), fm_hit_count_, model_io_hit_count_, dfx_info_.update_addr_num,
+             static_cast<int32_t>(need_dev_va_2_pa_));
     }
     GE_ASSERT_TRUE(up_ < kUpdatePolicyEnd);
     if (up_ == kNoNeedUpdate) {
@@ -964,10 +977,10 @@ Status ModelArgsManager::ReportKernelLaunchOpProfilingData(const uint64_t begin_
     }
 
     // 更新dump info
-    if (davinci_model_->ModelNeedDump() ||            // data dump include L0
-        davinci_model_->IsDumpLayerOpModelEnable() || // data dump include L0
-        davinci_model_->GetOpDugReg() ||              // overflow dump include L0
-        gert::GlobalDumper::GetInstance()->IsEnable(gert::DumpType::kExceptionDump)) { // exception dump
+    if (davinci_model_->ModelNeedDump() ||                                              // data dump include L0
+        davinci_model_->IsDumpLayerOpModelEnable() ||                                   // data dump include L0
+        davinci_model_->GetOpDugReg() ||                                                // overflow dump include L0
+        gert::GlobalDumper::GetInstance()->IsEnable(gert::DumpType::kExceptionDump)) {  // exception dump
       UpdateHostArgs(active_mem_base_addr);
       auto &model_update_data = update_policies_to_model_data_[up_];
       GE_ASSERT_NOTNULL(model_update_data, "Failed to update model args, policy %s does not exist",
@@ -981,28 +994,33 @@ Status ModelArgsManager::ReportKernelLaunchOpProfilingData(const uint64_t begin_
     uint32_t active_mem_base_addr_len_align32b = AlignUp(active_mem_base_addr_len, kAlign32B);
     uint64_t args_active_mem_base_size = active_mem_base_addr_len_align32b + host_input_size_;
     if (args_active_mem_base_size >
-      kRtsLitePcieBarCopySize - kAddrRefreshOpParamOffset - sizeof(UpdateModelParamTilingData)) {
+        kRtsLitePcieBarCopySize - kAddrRefreshOpParamOffset - sizeof(UpdateModelParamTilingData)) {
       if (up_ == KUpdateHostInput) {
         uint64_t host_input_device_addr =
             PtrToValue(activate_mem_base_device_addrs_dev_) + active_mem_base_addr_len_align32b;
         uint64_t host_input_host_addr = PtrToValue(active_mem_base_addr) + active_mem_base_addr_len_align32b;
         GE_ASSERT_RT_OK(aclrtMemcpyAsync(ValueToPtr(host_input_device_addr), host_input_size_,
-            ValueToPtr(host_input_host_addr), host_input_size_, ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE, stm));
+                                         ValueToPtr(host_input_host_addr), host_input_size_,
+                                         ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE, stm));
         return SUCCESS;
       }
       // 加载阶段会做一次model args table表的全量刷新，本次刷新未使用地址刷新算子，所以未刷新device侧active mem base表
-      // 需要在首次使用地址刷新算子时，完成对device侧active mem base表全量刷新，新增active_mem_base_table_h2d_copy_flag_区分是否部分拷贝active mem base表
+      // 需要在首次使用地址刷新算子时，完成对device侧active mem
+      // base表全量刷新，新增active_mem_base_table_h2d_copy_flag_区分是否部分拷贝active mem base表
       if (up > static_cast<uint32_t>(kUpdateModelIo) || !active_mem_base_table_h2d_copy_flag_) {
         GE_ASSERT_RT_OK(aclrtMemcpyAsync(activate_mem_base_device_addrs_dev_, args_active_mem_base_size,
-            static_cast<void*>(active_mem_base_addr), args_active_mem_base_size,
-            ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE, stm));
+                                         static_cast<void *>(active_mem_base_addr), args_active_mem_base_size,
+                                         ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE, stm));
         active_mem_base_table_h2d_copy_flag_ = true;
       } else {
-        args_active_mem_base_size = args_active_mem_base_size - davinci_model_->GetNoFrozenInputAllocationBaseId() * sizeof(uint64_t);
-        GE_ASSERT_RT_OK(aclrtMemcpyAsync(ValueToPtr(PtrToValue(activate_mem_base_device_addrs_dev_) +
-	      davinci_model_->GetNoFrozenInputAllocationBaseId() * sizeof(uint64_t)), args_active_mem_base_size,
-            static_cast<void*>(active_mem_base_addr + davinci_model_->GetNoFrozenInputAllocationBaseId()),
-	          args_active_mem_base_size, ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE, stm));
+        args_active_mem_base_size =
+            args_active_mem_base_size - davinci_model_->GetNoFrozenInputAllocationBaseId() * sizeof(uint64_t);
+        GE_ASSERT_RT_OK(aclrtMemcpyAsync(
+            ValueToPtr(PtrToValue(activate_mem_base_device_addrs_dev_) +
+                       davinci_model_->GetNoFrozenInputAllocationBaseId() * sizeof(uint64_t)),
+            args_active_mem_base_size,
+            static_cast<void *>(active_mem_base_addr + davinci_model_->GetNoFrozenInputAllocationBaseId()),
+            args_active_mem_base_size, ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE, stm));
       }
     }
 
@@ -1041,15 +1059,15 @@ Status ModelArgsManager::ReportKernelLaunchOpProfilingData(const uint64_t begin_
   auto &model_update_data = update_policies_to_model_data_[up_];
   GE_ASSERT_NOTNULL(model_update_data, "Failed to update model args, policy %s does not exist",
                     GetUpdatePolicyStr(up_));
-  if (update_version_ != kUpdateVersionKernelLaunch  || model_execute_stage == kModelLoadStage
-    || davinci_model_->GetForbiddenStreamFlag()) {
+  if (update_version_ != kUpdateVersionKernelLaunch || model_execute_stage == kModelLoadStage ||
+      davinci_model_->GetForbiddenStreamFlag()) {
     for (const auto &cp_data : model_update_data->h2d_copy_datas) {
       if (davinci_model_->GetAsyncMode()) {
         GE_ASSERT_RT_OK(aclrtMemcpyAsync(ValueToPtr(cp_data.device_addr), cp_data.len, cp_data.host_addr, cp_data.len,
-            ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE, stm));
+                                         ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE, stm));
       } else {
         GE_ASSERT_RT_OK(aclrtMemcpy(ValueToPtr(cp_data.device_addr), cp_data.len, cp_data.host_addr, cp_data.len,
-            ACL_MEMCPY_HOST_TO_DEVICE));
+                                    ACL_MEMCPY_HOST_TO_DEVICE));
       }
       if (need_dev_va_2_pa_) {
         GE_ASSERT_RT_OK(rtDevVA2PA(cp_data.device_addr, cp_data.len, stm, davinci_model_->GetAsyncMode()));
@@ -1111,31 +1129,31 @@ void ModelArgsManager::CalculateDfxTime(std::stringstream &ss, const uint32_t mo
   }
 
   const uint64_t stage1_t =
-    dfx_info_.stage_time_info[kStageCalcUpdatePolicyBegin] - dfx_info_.stage_time_info[kStagePrepareBegin];
+      dfx_info_.stage_time_info[kStageCalcUpdatePolicyBegin] - dfx_info_.stage_time_info[kStagePrepareBegin];
   const uint64_t stage2_t =
-    dfx_info_.stage_time_info[kStageUpdateHostArgsBegin] - dfx_info_.stage_time_info[kStageCalcUpdatePolicyBegin];
+      dfx_info_.stage_time_info[kStageUpdateHostArgsBegin] - dfx_info_.stage_time_info[kStageCalcUpdatePolicyBegin];
 
   const uint64_t stage3_t =
-    dfx_info_.stage_time_info[kStageActiveMembaseMemcpyBegin] - dfx_info_.stage_time_info[kStageUpdateHostArgsBegin];
+      dfx_info_.stage_time_info[kStageActiveMembaseMemcpyBegin] - dfx_info_.stage_time_info[kStageUpdateHostArgsBegin];
   const uint64_t stage4_t =
-    dfx_info_.stage_time_info[kStageKernelLaunchBegin] - dfx_info_.stage_time_info[kStageActiveMembaseMemcpyBegin];
+      dfx_info_.stage_time_info[kStageKernelLaunchBegin] - dfx_info_.stage_time_info[kStageActiveMembaseMemcpyBegin];
 
   const uint64_t stage5_t =
-    dfx_info_.stage_time_info[kStageHostArgsH2dBegin] - dfx_info_.stage_time_info[kStageKernelLaunchBegin];
+      dfx_info_.stage_time_info[kStageHostArgsH2dBegin] - dfx_info_.stage_time_info[kStageKernelLaunchBegin];
   const uint64_t stage6_t =
-    dfx_info_.stage_time_info[kStageUpdateDsaSqeBegin] - dfx_info_.stage_time_info[kStageHostArgsH2dBegin];
+      dfx_info_.stage_time_info[kStageUpdateDsaSqeBegin] - dfx_info_.stage_time_info[kStageHostArgsH2dBegin];
   const uint64_t stage7_t =
-    dfx_info_.stage_time_info[kStageStatisticsEnd] - dfx_info_.stage_time_info[kStageUpdateDsaSqeBegin];
+      dfx_info_.stage_time_info[kStageStatisticsEnd] - dfx_info_.stage_time_info[kStageUpdateDsaSqeBegin];
 
   const uint64_t avg_a_addr_update_time =
-    (dfx_info_.update_addr_num == 0UL) ? 0UL : (((stage5_t + stage4_t + stage3_t) * 1000UL) / dfx_info_.update_addr_num);
+      (dfx_info_.update_addr_num == 0UL) ? 0UL
+                                         : (((stage5_t + stage4_t + stage3_t) * 1000UL) / dfx_info_.update_addr_num);
 
   ss << "update_version:" << update_version_ << ", updatepolicy:" << static_cast<int32_t>(up_)
-    << ", active_mem_base_addr_len:" << dfx_info_.active_mem_base_addr_len
-    << ", actual_update_addr_num:" << dfx_info_.update_addr_num
-    << ", stage_2_1-7_time[" << stage1_t << "," << stage2_t << "," << stage3_t << ","
-    << stage4_t << "," << stage5_t << "," << stage6_t << "," << stage7_t
-    << "]us, avg_a_addr_update_time[" << avg_a_addr_update_time << "]ns";
+     << ", active_mem_base_addr_len:" << dfx_info_.active_mem_base_addr_len
+     << ", actual_update_addr_num:" << dfx_info_.update_addr_num << ", stage_2_1-7_time[" << stage1_t << "," << stage2_t
+     << "," << stage3_t << "," << stage4_t << "," << stage5_t << "," << stage6_t << "," << stage7_t
+     << "]us, avg_a_addr_update_time[" << avg_a_addr_update_time << "]ns";
 }
 
 void ModelArgsManager::PrintDfxStatistics(const uint32_t model_execute_stage) {
@@ -1147,16 +1165,15 @@ void ModelArgsManager::PrintDfxStatistics(const uint32_t model_execute_stage) {
   CalculateDfxTime(ss, model_execute_stage);
 
   GEEVENT(
-    "[ArgsUpdate] graph_name:%s, graph_id:%u, model_id:%u, fm_refreshable:%d, known:%d, update_policy:%s, "
-    "fm_hit_cnt:%" PRIu64 ", mdl_io_hit_cnt:%" PRIu64 ", %s",
-    dfx_info_.graph_name.c_str(), dfx_info_.graph_id, dfx_info_.model_id,
-    static_cast<int32_t>(dfx_info_.fm_refreshable), static_cast<int32_t>(dfx_info_.known), GetUpdatePolicyStr(up_),
-    fm_hit_count_, model_io_hit_count_, ss.str().c_str());
+      "[ArgsUpdate] graph_name:%s, graph_id:%u, model_id:%u, fm_refreshable:%d, known:%d, update_policy:%s, "
+      "fm_hit_cnt:%" PRIu64 ", mdl_io_hit_cnt:%" PRIu64 ", %s",
+      dfx_info_.graph_name.c_str(), dfx_info_.graph_id, dfx_info_.model_id,
+      static_cast<int32_t>(dfx_info_.fm_refreshable), static_cast<int32_t>(dfx_info_.known), GetUpdatePolicyStr(up_),
+      fm_hit_count_, model_io_hit_count_, ss.str().c_str());
 }
 
-Status ModelArgsManager::AllocModelArgs(const ModelArgsLayoutPlannedResult &layout,
-                                        std::vector<ModelArgs> &model_args, std::vector<uint64_t> &model_args_len,
-                                        ArgsPlacement &pls) {
+Status ModelArgsManager::AllocModelArgs(const ModelArgsLayoutPlannedResult &layout, std::vector<ModelArgs> &model_args,
+                                        std::vector<uint64_t> &model_args_len, ArgsPlacement &pls) {
   model_args.reserve(static_cast<size_t>(ArgsPlacement::kEnd));
   for (size_t pli = 0; pli < static_cast<size_t>(ArgsPlacement::kEnd); ++pli) {
     int64_t len = 0;
@@ -1171,7 +1188,7 @@ Status ModelArgsManager::AllocModelArgs(const ModelArgsLayoutPlannedResult &layo
       }
 
       if ((pli == static_cast<size_t>(ArgsPlacement::kArgsPlacementHbm)) &&
-        (pai == static_cast<size_t>(UpdateTriggerType::KTriggerByHostInput))) {
+          (pai == static_cast<size_t>(UpdateTriggerType::KTriggerByHostInput))) {
         host_input_partition_len_ = partition_len;
       }
 
@@ -1190,16 +1207,17 @@ Status ModelArgsManager::AllocModelArgs(const ModelArgsLayoutPlannedResult &layo
     GE_ASSERT_TRUE(!AddOverflow(built_in_len, reserved_len, total_len));
 
     placed_model_args.model_args_host_addr = ge::MakeUnique<uint8_t[]>(total_len);
-    GE_ASSERT_NOTNULL(placed_model_args.model_args_host_addr, "Failed to alloc args %zu at host, total_len %zu", pli, total_len);
+    GE_ASSERT_NOTNULL(placed_model_args.model_args_host_addr, "Failed to alloc args %zu at host, total_len %zu", pli,
+                      total_len);
 
     const auto memory_type = GetRtsMemoryType(placed_model_args.placement, static_cast<int64_t>(total_len));
     const auto model_args_device_addr = davinci_model_->MallocDynamicMemory(total_len, memory_type);
     GE_ASSERT_NOTNULL(model_args_device_addr);
     placed_model_args.model_args_device_addr = PtrToValue(model_args_device_addr);
 
-    GELOGI("Alloc model args built_in=%zu, reserved=%zu, placement=%s, addr=0x%llx for model %u(%s)",
-           built_in_len, reserved_len, GetArgsPlacementStr(placed_model_args.placement),
-           placed_model_args.model_args_device_addr, davinci_model_->GetModelId(), davinci_model_->GetOmName().c_str());
+    GELOGI("Alloc model args built_in=%zu, reserved=%zu, placement=%s, addr=0x%llx for model %u(%s)", built_in_len,
+           reserved_len, GetArgsPlacementStr(placed_model_args.placement), placed_model_args.model_args_device_addr,
+           davinci_model_->GetModelId(), davinci_model_->GetOmName().c_str());
 
     if (reserved_len > 0UL) {
       reserved_segments_[pli].start_offset = built_in_len;
@@ -1228,14 +1246,13 @@ Status ModelArgsManager::AllocateArgsBuffer(size_t size, ArgsPlacement placement
 }
 
 Status ModelArgsManager::AllocateFromReservedSegment(size_t size, ArgsPlacement placement,
-                                                      ArgsAllocationResult &result) {
+                                                     ArgsAllocationResult &result) {
   const size_t placement_idx = static_cast<size_t>(placement);
   ReservedSegmentInfo &info = reserved_segments_[placement_idx];
   size_t end_offset = 0UL;
   size_t segment_end = 0UL;
   if (AddOverflow(info.current_offset, size, end_offset) ||
-      AddOverflow(info.start_offset, info.total_size, segment_end) ||
-      end_offset > segment_end) {
+      AddOverflow(info.start_offset, info.total_size, segment_end) || end_offset > segment_end) {
     return FAILED;
   }
 
@@ -1258,13 +1275,12 @@ Status ModelArgsManager::AllocateFromReservedSegment(size_t size, ArgsPlacement 
   result.extra_pool_index = std::numeric_limits<uint32_t>::max();
   info.current_offset += size;
 
-  GELOGD("Allocated args from reserved: size=%zu, placement=%s, host=0x%llx, device=0x%llx",
-         size, GetArgsPlacementStr(placement), PtrToValue(result.host_addr), result.device_addr);
+  GELOGD("Allocated args from reserved: size=%zu, placement=%s, host=0x%llx, device=0x%llx", size,
+         GetArgsPlacementStr(placement), PtrToValue(result.host_addr), result.device_addr);
   return SUCCESS;
 }
 
-Status ModelArgsManager::AllocateFromExistingPool(size_t size, ArgsPlacement placement,
-                                                   ArgsAllocationResult &result) {
+Status ModelArgsManager::AllocateFromExistingPool(size_t size, ArgsPlacement placement, ArgsAllocationResult &result) {
   for (size_t pool_idx = 0UL; pool_idx < extra_args_pools_.size(); ++pool_idx) {
     ExtraArgsPool &pool = extra_args_pools_[pool_idx];
     if (pool.placement != placement) {
@@ -1283,15 +1299,14 @@ Status ModelArgsManager::AllocateFromExistingPool(size_t size, ArgsPlacement pla
     result.extra_pool_index = static_cast<uint32_t>(pool_idx);
     pool.allocated_offset += size;
 
-    GELOGD("Allocated args from existing extra pool: pool_idx=%zu, size=%zu, placement=%s",
-           pool_idx, size, GetArgsPlacementStr(placement));
+    GELOGD("Allocated args from existing extra pool: pool_idx=%zu, size=%zu, placement=%s", pool_idx, size,
+           GetArgsPlacementStr(placement));
     return SUCCESS;
   }
   return FAILED;
 }
 
-Status ModelArgsManager::AllocateFromNewPool(size_t size, ArgsPlacement placement,
-                                              ArgsAllocationResult &result) {
+Status ModelArgsManager::AllocateFromNewPool(size_t size, ArgsPlacement placement, ArgsAllocationResult &result) {
   constexpr size_t kMinExtraPoolSize = 4096UL;
   const size_t pool_size = std::max(size, kMinExtraPoolSize);
 
@@ -1319,9 +1334,8 @@ Status ModelArgsManager::AllocateFromNewPool(size_t size, ArgsPlacement placemen
   result.extra_pool_index = new_pool_idx;
   pool.allocated_offset += size;
 
-  GELOGI("Created new extra args pool: pool_idx=%u, size=%zu, placement=%s, host=0x%llx, device=0x%llx",
-         new_pool_idx, pool_size, GetArgsPlacementStr(placement),
-         PtrToValue(pool.host_addr.get()), pool.device_addr);
+  GELOGI("Created new extra args pool: pool_idx=%u, size=%zu, placement=%s, host=0x%llx, device=0x%llx", new_pool_idx,
+         pool_size, GetArgsPlacementStr(placement), PtrToValue(pool.host_addr.get()), pool.device_addr);
   return SUCCESS;
 }
 
@@ -1367,8 +1381,8 @@ Status ModelArgsManager::ConstructUpdateData(const TaskNodeMap &task_node_map,
 
   // 增加host_input的updatda
   if (host_input_size_ > 0U) {
-      update_policies_to_model_data_[KUpdateHostInput] = MakeUnique<ArgsUpdateData>();
-      GE_ASSERT_NOTNULL(update_policies_to_model_data_[KUpdateHostInput]);
+    update_policies_to_model_data_[KUpdateHostInput] = MakeUnique<ArgsUpdateData>();
+    GE_ASSERT_NOTNULL(update_policies_to_model_data_[KUpdateHostInput]);
   }
 
   // step 3. construct policy level update data
@@ -1412,13 +1426,12 @@ Status ModelArgsManager::ConstructOneTaskUpdateData(
     const size_t task_index, const OneTaskArgsLayoutResult &task_arg_results,
     const std::vector<TaskRunParam> &task_indexes_to_param,
     const std::array<const ModelArgsManager::ModelArgs *, static_cast<size_t>(ArgsPlacement::kEnd)> &pis_to_model_args,
-    OneTaskUpdateData &task_update_data,
-    const AddrUseFor addr_use_for) const {
+    OneTaskUpdateData &task_update_data, const AddrUseFor addr_use_for) const {
   for (size_t j = 0UL; j < task_arg_results.size(); ++j) {
     const auto &task_arg_ret = task_arg_results[j];
-    auto &args_desc = (addr_use_for == AddrUseFor::kAddrUseForArgs) ?
-                                task_indexes_to_param[task_index].args_descs[j] :
-                                task_indexes_to_param[task_index].persistent_workspace_descs[j];
+    auto &args_desc = (addr_use_for == AddrUseFor::kAddrUseForArgs)
+                          ? task_indexes_to_param[task_index].args_descs[j]
+                          : task_indexes_to_param[task_index].persistent_workspace_descs[j];
     // store placement与require placement的区别：
     // require placement是task返回的placement，代表args的真实位置
     // store placement是经过layout planner规划后的placement，代表args在device上的存储位置
@@ -1492,7 +1505,7 @@ Status ModelArgsManager::ConstructH2DCopyParams(const ModelArgsManager::ModelArg
           cp_arg.len = static_cast<uint64_t>(partition.len);
           cp_arg.device_addr = model_arg.model_args_device_addr + static_cast<uint64_t>(partition.offset);
           cp_arg.host_addr =
-            ValueToPtr(PtrToValue(model_arg.model_args_host_addr.get()) + static_cast<uint64_t>(partition.offset));
+              ValueToPtr(PtrToValue(model_arg.model_args_host_addr.get()) + static_cast<uint64_t>(partition.offset));
           return SUCCESS;
         }
       }
@@ -1503,7 +1516,7 @@ Status ModelArgsManager::ConstructH2DCopyParams(const ModelArgsManager::ModelArg
       cp_arg.len = 0UL;
       cp_arg.device_addr = std::numeric_limits<uint64_t>::max();
       for (const auto &partition : model_arg.model_args_partitions) {
-        if ((partition.partition_type == UpdateTriggerType::kTriggerByFmAndIo)||
+        if ((partition.partition_type == UpdateTriggerType::kTriggerByFmAndIo) ||
             (partition.partition_type == UpdateTriggerType::KTriggerByHostInput)) {
           cp_arg.len += static_cast<uint64_t>(partition.len);
           UseMin(model_arg.model_args_device_addr + static_cast<uint64_t>(partition.offset),
@@ -1520,7 +1533,7 @@ Status ModelArgsManager::ConstructH2DCopyParams(const ModelArgsManager::ModelArg
       cp_arg.device_addr = std::numeric_limits<uint64_t>::max();
       for (const auto &partition : model_arg.model_args_partitions) {
         if ((partition.partition_type == UpdateTriggerType::kTriggerByFmAndIo) ||
-            (partition.partition_type == UpdateTriggerType::kTriggerByFm ) ||
+            (partition.partition_type == UpdateTriggerType::kTriggerByFm) ||
             (partition.partition_type == UpdateTriggerType::KTriggerByHostInput)) {
           cp_arg.len += static_cast<uint64_t>(partition.len);
           UseMin(model_arg.model_args_device_addr + static_cast<uint64_t>(partition.offset),
@@ -1569,8 +1582,8 @@ Status ModelArgsManager::AllocFixedAddrs(const TaskNodeMap &task_node_map,
   fixed_addr_bulk_.pieces.reserve(offsets.size() * 2UL);
   for (size_t i = 0U; i < offsets.size(); ++i) {
     for (const auto &fixed_addr : fixed_addrs.at(i)) {
-      fixed_addr_bulk_.pieces.push_back({fixed_addr,
-                                         PtrToValue(fixed_addr_bulk_.device_addr) + static_cast<uint64_t>(offsets[i])});
+      fixed_addr_bulk_.pieces.push_back(
+          {fixed_addr, PtrToValue(fixed_addr_bulk_.device_addr) + static_cast<uint64_t>(offsets[i])});
     }
   }
 
@@ -1636,14 +1649,14 @@ Status ModelArgsManager::ConstructTaskInitParams(
 Status ModelArgsManager::ValidateTaskRunParam(const std::vector<TaskArgsDesc> &args_descs) const {
   std::map<ArgsPlacement, int32_t> placement_counts;
   for (const auto &args_desc : args_descs) {
-    GE_ASSERT_TRUE((++placement_counts[args_desc.placement] <= 1),
-                   "Placement %d has multiple records", static_cast<int32_t>(args_desc.placement));
+    GE_ASSERT_TRUE((++placement_counts[args_desc.placement] <= 1), "Placement %d has multiple records",
+                   static_cast<int32_t>(args_desc.placement));
   }
   return SUCCESS;
 }
 Status ModelArgsManager::ParseModelTaskDef(domi::ModelTaskDef &model_task_def,
-                                            std::vector<TaskRunParam> &task_indexes_to_run_param,
-                                            TaskNodeMap &task_node_map) {
+                                           std::vector<TaskRunParam> &task_indexes_to_run_param,
+                                           TaskNodeMap &task_node_map) {
   const auto need_log = IsLogEnable(GE_MODULE_NAME, DLOG_DEBUG);
   const size_t task_size = static_cast<size_t>(model_task_def.task_size());
   task_list_ptr_->resize(task_size);
@@ -1673,7 +1686,7 @@ Status ModelArgsManager::ParseModelTaskDef(domi::ModelTaskDef &model_task_def,
     const OpDescPtr op_desc = davinci_model_->GetOpByIndex(static_cast<uint32_t>(op_index));
     if (op_desc != nullptr) {
       GE_ASSERT_SUCCESS(
-        davinci_model_->SetDumpFsmState(op_desc->GetName(),static_cast<ModelTaskType>(task_def->type())));
+          davinci_model_->SetDumpFsmState(op_desc->GetName(), static_cast<ModelTaskType>(task_def->type())));
 
       // 需要地址刷新的自定义算子预留内存，在MallocReadOnlyDevArgs流程里使用
       if (task_info->NeedReserveArgsTable()) {
@@ -1726,13 +1739,14 @@ ModelArgsManager::UpdatePolicy ModelArgsManager::CalcUpdatePolicy(const vector<u
   const size_t fm_start_id = davinci_model_->GetFmMemAllocationsStartId();
   const size_t fm_size = davinci_model_->GetFmMemAllocationsSize();
   if (SECUREC_UNLIKELY(fm_size + fm_start_id > active_mem_base_addr.size())) {
-    GELOGE(INTERNAL_ERROR, "Failed to calc update policy, fm_size %zu sub fm_start_id %u "
-           "should less than %zu", fm_size, fm_start_id,
-           active_mem_base_addr.size());
+    GELOGE(INTERNAL_ERROR,
+           "Failed to calc update policy, fm_size %zu sub fm_start_id %u "
+           "should less than %zu",
+           fm_size, fm_start_id, active_mem_base_addr.size());
     return kUpdatePolicyEnd;
   }
 
-  auto reset_last_base = [this, &active_mem_base_addr] (size_t start_id, size_t end_id) {
+  auto reset_last_base = [this, &active_mem_base_addr](size_t start_id, size_t end_id) {
     for (size_t i = start_id; i < end_id; ++i) {
       if (last_bases_[i] != active_mem_base_addr[i]) {
         last_bases_ = active_mem_base_addr;
@@ -1778,7 +1792,8 @@ ModelArgsManager::TriggerTypesToPolicies ModelArgsManager::GenerateTriggerTypesT
         SmallVector<UpdatePolicy, kUpdatePolicyEnd>{kUpdateModelIo, kUpdateFmAndModelIo, kInitOneTime},
 
         // KTriggerByHostInput: 在kUpdateModelIo和kUpdateFmAndModelIo和KUpdateHostInput三种策略中被使用
-        SmallVector<UpdatePolicy, kUpdatePolicyEnd>{KUpdateHostInput, kUpdateModelIo, kUpdateFmAndModelIo, kInitOneTime}};
+        SmallVector<UpdatePolicy, kUpdatePolicyEnd>{KUpdateHostInput, kUpdateModelIo, kUpdateFmAndModelIo,
+                                                    kInitOneTime}};
   } else {
     return {SmallVector<UpdatePolicy, kUpdatePolicyEnd>{kInitOneTime},
             // kTriggerByFm： 在fm不支持刷新时，不可能出现，给一个错误值，如果出现了在外层报错
@@ -1793,32 +1808,38 @@ Status ModelArgsManager::GetHostInputMem(uint64_t &host_addr, uint64_t &device_a
     return SUCCESS;
   }
 
-  if (update_version_ == kUpdateVersionH2d ) {
+  if (update_version_ == kUpdateVersionH2d) {
     auto &model_update_data = update_policies_to_model_data_[KUpdateHostInput];
     GE_ASSERT_TRUE((model_update_data != nullptr) && (model_update_data->h2d_copy_datas.size() == 1));
     host_addr = PtrToValue(model_update_data->h2d_copy_datas[0].host_addr);
     device_addr = model_update_data->h2d_copy_datas[0].device_addr;
     len = model_update_data->h2d_copy_datas[0].len;
-    GELOGI("host input mem from model args table, model_id:%u, "
-      "host addr:0x%" PRIx64 ", device addr:0x%" PRIx64 ", len:%" PRIu64 ", update_version:%u, is_pcie_bar_copy:%s",
-      davinci_model_->GetModelId(), host_addr, device_addr, len, update_version_, is_pcie_bar_copy_ ? "true" : "false");
+    GELOGI(
+        "host input mem from model args table, model_id:%u, "
+        "host addr:0x%" PRIx64 ", device addr:0x%" PRIx64 ", len:%" PRIu64 ", update_version:%u, is_pcie_bar_copy:%s",
+        davinci_model_->GetModelId(), host_addr, device_addr, len, update_version_,
+        is_pcie_bar_copy_ ? "true" : "false");
   } else if (update_version_ == kUpdateVersionKernelLaunch && is_pcie_bar_copy_) {
     auto &model_update_data = update_policies_to_model_data_[KUpdateHostInput];
     GE_ASSERT_TRUE((model_update_data != nullptr) && (model_update_data->h2d_copy_datas.size() == 1));
     device_addr = model_update_data->h2d_copy_datas[0].device_addr;
     GE_ASSERT_TRUE(host_input_size_ <= model_update_data->h2d_copy_datas[0].len,
-      "host_input_size:%" PRIu64 ", update len:%" PRIu64, host_input_size_, model_update_data->h2d_copy_datas[0].len);
+                   "host_input_size:%" PRIu64 ", update len:%" PRIu64, host_input_size_,
+                   model_update_data->h2d_copy_datas[0].len);
     len = host_input_size_;
     host_addr = PtrToValue(host_input_host_ptr_);
-    GELOGI("host input mem from model args table, model_id:%u, "
-      "host addr:0x%" PRIx64 ", device addr:0x%" PRIx64 ", len:%" PRIu64 ", update_version:%u, is_pcie_bar_copy:%s",
-      davinci_model_->GetModelId(), host_addr, device_addr, len, update_version_, is_pcie_bar_copy_ ? "true" : "false");
+    GELOGI(
+        "host input mem from model args table, model_id:%u, "
+        "host addr:0x%" PRIx64 ", device addr:0x%" PRIx64 ", len:%" PRIu64 ", update_version:%u, is_pcie_bar_copy:%s",
+        davinci_model_->GetModelId(), host_addr, device_addr, len, update_version_,
+        is_pcie_bar_copy_ ? "true" : "false");
   } else if (update_version_ == kUpdateVersionKernelLaunch) {
     host_addr = PtrToValue(host_input_host_ptr_);
     device_addr = host_input_device_ptr_;
     len = host_input_size_;
     GELOGI("host input mem from active mem base, model_id:%u, host addr:0x%" PRIx64 ", device addr:0x%" PRIx64
-      ", len:%" PRIu64, davinci_model_->GetModelId(), host_addr, device_addr, len);
+           ", len:%" PRIu64,
+           davinci_model_->GetModelId(), host_addr, device_addr, len);
   }
 
   GE_ASSERT_TRUE((host_addr != 0U) && (device_addr != 0U));
@@ -1878,7 +1899,8 @@ Status ModelArgsManager::IntegrateReservedH2DCopyDatas() {
       if (existing_arg != nullptr) {
         existing_arg->len += reserved_used;
         GELOGI("[IntegrateReservedH2D] Expanded: policy=%zu, placement=%zu, len=%zu, host=0x%llx, device=0x%" PRIx64,
-               policy, placement_idx, existing_arg->len, PtrToValue(existing_arg->host_addr), existing_arg->device_addr);
+               policy, placement_idx, existing_arg->len, PtrToValue(existing_arg->host_addr),
+               existing_arg->device_addr);
       } else {
         H2DCopyArg h2d_arg;
         h2d_arg.len = reserved_used;
@@ -1921,7 +1943,7 @@ Status ModelArgsManager::IntegrateExtraH2DCopyDatas() {
 }
 
 ModelArgsManager::UpdateHostArgsArg *ModelArgsManager::FindOrCreateUpdateArg(ArgsUpdateData &update_data,
-                                                              size_t task_index, TaskInfo *task_info) {
+                                                                             size_t task_index, TaskInfo *task_info) {
   for (auto &arg : update_data.update_datas) {
     if (arg.task_index == task_index) {
       return &arg;
@@ -1934,8 +1956,7 @@ ModelArgsManager::UpdateHostArgsArg *ModelArgsManager::FindOrCreateUpdateArg(Arg
   return &update_data.update_datas.back();
 }
 
-void ModelArgsManager::AppendHostArgs(UpdateHostArgsArg *update_arg,
-                                        const std::vector<ArgsAllocationResult> &results) {
+void ModelArgsManager::AppendHostArgs(UpdateHostArgsArg *update_arg, const std::vector<ArgsAllocationResult> &results) {
   for (const auto &result : results) {
     HostArg host_arg;
     host_arg.addr = result.host_addr;
@@ -1965,8 +1986,8 @@ Status ModelArgsManager::IntegrateReservedUpdateDatas(
       AppendHostArgs(update_arg, results);
 
       custom_op_policies_to_task_infos_[policy].insert(task_info);
-      GELOGI("IntegrateReservedUpdateDatas: task_index=%zu, policy=%zu, task_id=%u",
-             task_index, static_cast<size_t>(policy), task_info->GetTaskID());
+      GELOGI("IntegrateReservedUpdateDatas: task_index=%zu, policy=%zu, task_id=%u", task_index,
+             static_cast<size_t>(policy), task_info->GetTaskID());
     }
   }
   return SUCCESS;
@@ -2003,8 +2024,8 @@ Status ModelArgsManager::IntegrateExtraUpdateDatas(
       }
 
       custom_op_policies_to_task_infos_[policy].insert(task_info);
-      GELOGI("IntegrateExtraUpdateDatas: task_index=%zu, policy=%zu, task_id=%u",
-             task_index, static_cast<size_t>(policy), task_info->GetTaskID());
+      GELOGI("IntegrateExtraUpdateDatas: task_index=%zu, policy=%zu, task_id=%u", task_index,
+             static_cast<size_t>(policy), task_info->GetTaskID());
     }
   }
   return SUCCESS;
@@ -2042,9 +2063,8 @@ Status ModelArgsManager::UpdateCustomOpHostArgs(uint64_t *active_mem_base_addr) 
   if (it == custom_op_policies_to_task_infos_.end()) {
     return SUCCESS;
   }
-  for (TaskInfo* task_info : it->second) {
-    Status ret = task_info->UpdateHostArgs(active_mem_base_addr,
-                                           davinci_model_->GetLogicalMemAllocation().size());
+  for (TaskInfo *task_info : it->second) {
+    Status ret = task_info->UpdateHostArgs(active_mem_base_addr, davinci_model_->GetLogicalMemAllocation().size());
     if (ret != SUCCESS) {
       GELOGE(ret, "TaskInfo::UpdateHostArgs failed, task_id=%u", task_info->GetTaskID());
       return ret;
@@ -2065,11 +2085,11 @@ Status ModelArgsManager::RefreshExtraH2DCopyDatas(aclrtStream stm) {
   for (auto &update_data : it->second) {
     for (auto &h2d_arg : update_data.h2d_copy_datas) {
       if (davinci_model_->GetAsyncMode()) {
-        GE_ASSERT_RT_OK(aclrtMemcpyAsync(ValueToPtr(h2d_arg.device_addr), h2d_arg.len, h2d_arg.host_addr,
-                                         h2d_arg.len, ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE, stm));
+        GE_ASSERT_RT_OK(aclrtMemcpyAsync(ValueToPtr(h2d_arg.device_addr), h2d_arg.len, h2d_arg.host_addr, h2d_arg.len,
+                                         ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE, stm));
       } else {
-        GE_ASSERT_RT_OK(aclrtMemcpy(ValueToPtr(h2d_arg.device_addr), h2d_arg.len, h2d_arg.host_addr,
-                                    h2d_arg.len, ACL_MEMCPY_HOST_TO_DEVICE));
+        GE_ASSERT_RT_OK(aclrtMemcpy(ValueToPtr(h2d_arg.device_addr), h2d_arg.len, h2d_arg.host_addr, h2d_arg.len,
+                                    ACL_MEMCPY_HOST_TO_DEVICE));
       }
       GELOGD("Extra memory H2D refresh: len=%zu, device_addr=0x%" PRIx64, h2d_arg.len, h2d_arg.device_addr);
     }

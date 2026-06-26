@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -146,19 +146,16 @@ void TestNnExecute() {
   ProfilingManager::Instance().device_id_.emplace_back(0);
   model.task_list_.resize(1);
   dlog_setlevel(GE_MODULE_NAME, DLOG_DEBUG, 0);
-  EXPECT_EQ(model.NnExecute(stream, false, input_data, output_data,
-            input_tensor, output_tensor), SUCCESS);
+  EXPECT_EQ(model.NnExecute(stream, false, input_data, output_data, input_tensor, output_tensor), SUCCESS);
 
   const char_t *const kEnvRecordPath = "CONSTANT_FOLDING_PASS_9";
   char_t record_path[MMPA_MAX_PATH] = "mock_fail";
   mmSetEnv(kEnvRecordPath, &record_path[0U], MMPA_MAX_PATH);
-  EXPECT_NE(model.NnExecute(stream, false, input_data, output_data,
-            input_tensor, output_tensor), SUCCESS);
+  EXPECT_NE(model.NnExecute(stream, false, input_data, output_data, input_tensor, output_tensor), SUCCESS);
   unsetenv(kEnvRecordPath);
 
   input_data.blobs[0].length = 128;  // 128 not enough.
-  EXPECT_NE(model.NnExecute(stream, false, input_data, output_data,
-            input_tensor, output_tensor), SUCCESS);
+  EXPECT_NE(model.NnExecute(stream, false, input_data, output_data, input_tensor, output_tensor), SUCCESS);
   dlog_setlevel(GE_MODULE_NAME, DLOG_ERROR, 0);
 }
 
@@ -238,16 +235,15 @@ void TestNnExecuteWithGertTensor() {
   input_tensor.resize(1);
   output_tensor.resize(1);
   input_tensor[0] = {{{1, 4, 4, 8}, {1, 4, 4, 8}},                // shape
-                             {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                             gert::kOnDeviceHbm,                                // placement
-                             ge::DT_FLOAT,                              // data type
-                             (void *) data_buf_input.get()};
+                     {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                     gert::kOnDeviceHbm,                          // placement
+                     ge::DT_FLOAT,                                // data type
+                     (void *)data_buf_input.get()};
   output_tensor[0] = {{{1, 4, 4, 8}, {1, 4, 4, 8}},                // shape
-                             {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                             gert::kOnDeviceHbm,                                // placement
-                             ge::DT_FLOAT,                              // data type
-                             (void *) data_buf_output.get()};
-
+                      {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                      gert::kOnDeviceHbm,                          // placement
+                      ge::DT_FLOAT,                                // data type
+                      (void *)data_buf_output.get()};
 
   ProfilingManager::Instance().device_id_.emplace_back(0);
   model.task_list_.resize(1);
@@ -325,8 +321,7 @@ void TestNnExecuteWithHostPlsModelIo() {
   model.task_list_.resize(1);
   std::vector<GeTensor> input_tensor = {};
   std::vector<GeTensor> output_tensor = {};
-  EXPECT_EQ(model.NnExecute(stream, false, input_data, output_data,
-            input_tensor, output_tensor), SUCCESS);
+  EXPECT_EQ(model.NnExecute(stream, false, input_data, output_data, input_tensor, output_tensor), SUCCESS);
 }
 
 void TestNnExecuteWithHostPlsModelIo_ZeroCopyReuse() {
@@ -404,8 +399,7 @@ void TestNnExecuteWithHostPlsModelIo_ZeroCopyReuse() {
   model.task_list_.resize(1);
   std::vector<GeTensor> input_tensor = {};
   std::vector<GeTensor> output_tensor = {};
-  EXPECT_NE(model.NnExecute(stream, false, input_data, output_data,
-            input_tensor, output_tensor), SUCCESS);
+  EXPECT_NE(model.NnExecute(stream, false, input_data, output_data, input_tensor, output_tensor), SUCCESS);
   graph_options[OPTION_EXEC_REUSE_ZERO_COPY_MEMORY] = "";
   GetThreadLocalContext().SetGraphOption(graph_options);
 }
@@ -420,7 +414,7 @@ GeModelPtr ConstructGeModel(const size_t mem_size) {
   shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   ge_model->SetModelTaskDef(model_task_def);
 
-  GeTensorDesc tensor(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
   TensorUtils::SetSize(tensor, 512);
   {
     OpDescPtr op_desc = CreateOpDesc("data", DATA);
@@ -435,14 +429,14 @@ GeModelPtr ConstructGeModel(const size_t mem_size) {
     OpDescPtr op_desc = CreateOpDesc("output", NETOUTPUT);
     op_desc->AddInputDesc(tensor);
     op_desc->SetInputOffset({0});
-    op_desc->SetSrcName( { "data" } );
-    op_desc->SetSrcIndex( { 0 } );
+    op_desc->SetSrcName({"data"});
+    op_desc->SetSrcIndex({0});
     NodePtr node = graph->AddNode(op_desc);
   }
   return ge_model;
 }
 
-void BuildDavinciModel(DavinciModel &model){
+void BuildDavinciModel(DavinciModel &model) {
   model.SetKnownNode(true);
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("default");
 
@@ -457,7 +451,7 @@ void BuildDavinciModel(DavinciModel &model){
   shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   ge_model->SetModelTaskDef(model_task_def);
 
-  GeTensorDesc tensor(GeShape({1,2}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor(GeShape({1, 2}), FORMAT_NCHW, DT_FLOAT);
   TensorUtils::SetSize(tensor, 512);
 
   OpDescPtr op_input = CreateOpDesc("data", DATA);
@@ -465,7 +459,7 @@ void BuildDavinciModel(DavinciModel &model){
   op_input->AddOutputDesc(tensor);
   op_input->SetInputOffset({1024});
   op_input->SetOutputOffset({1024});
-  NodePtr node_input = graph->AddNode(op_input);    // op_index = 0
+  NodePtr node_input = graph->AddNode(op_input);  // op_index = 0
 
   OpDescPtr op_kernel = CreateOpDesc("square", "Square");
   op_kernel->AddInputDesc(tensor);
@@ -490,10 +484,9 @@ void BuildDavinciModel(DavinciModel &model){
   OpDescPtr op_output = CreateOpDesc("output", NETOUTPUT);
   op_output->AddInputDesc(tensor);
   op_output->SetInputOffset({5120});
-  op_output->SetSrcName( { "memcpy" } );
-  op_output->SetSrcIndex( { 0 } );
+  op_output->SetSrcName({"memcpy"});
+  op_output->SetSrcIndex({0});
   NodePtr node_output = graph->AddNode(op_output);  // op_index = 3
-
 
   domi::TaskDef *task_def1 = model_task_def->add_task();
   task_def1->set_stream_id(0);
@@ -505,7 +498,7 @@ void BuildDavinciModel(DavinciModel &model){
   kernel_def->set_args(args.data(), 64);
   domi::KernelContext *context = kernel_def->mutable_context();
   context->set_op_index(1);
-  context->set_kernel_type(2U);    // ccKernelType::TE
+  context->set_kernel_type(2U);  // ccKernelType::TE
   uint16_t args_offset[9] = {0};
   context->set_args_offset(args_offset, 9 * sizeof(uint16_t));
 
@@ -523,7 +516,7 @@ void BuildDavinciModel(DavinciModel &model){
   model.Assign(ge_model);
 }
 
-void BuildDavinciModelWithMultiTasks(DavinciModel &model){
+void BuildDavinciModelWithMultiTasks(DavinciModel &model) {
   model.SetKnownNode(true);
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("default");
 
@@ -538,7 +531,7 @@ void BuildDavinciModelWithMultiTasks(DavinciModel &model){
   shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   ge_model->SetModelTaskDef(model_task_def);
 
-  GeTensorDesc tensor(GeShape({1,2}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor(GeShape({1, 2}), FORMAT_NCHW, DT_FLOAT);
   TensorUtils::SetSize(tensor, 512);
 
   OpDescPtr op_input = CreateOpDesc("data", DATA);
@@ -546,7 +539,7 @@ void BuildDavinciModelWithMultiTasks(DavinciModel &model){
   op_input->AddOutputDesc(tensor);
   op_input->SetInputOffset({1024});
   op_input->SetOutputOffset({1024});
-  NodePtr node_input = graph->AddNode(op_input);    // op_index = 0
+  NodePtr node_input = graph->AddNode(op_input);  // op_index = 0
 
   OpDescPtr op_kernel = CreateOpDesc("square", "Square");
   op_kernel->AddInputDesc(tensor);
@@ -566,10 +559,9 @@ void BuildDavinciModelWithMultiTasks(DavinciModel &model){
   OpDescPtr op_output = CreateOpDesc("output", NETOUTPUT);
   op_output->AddInputDesc(tensor);
   op_output->SetInputOffset({5120});
-  op_output->SetSrcName( { "memcpy" } );
-  op_output->SetSrcIndex( { 0 } );
+  op_output->SetSrcName({"memcpy"});
+  op_output->SetSrcIndex({0});
   NodePtr node_output = graph->AddNode(op_output);  // op_index = 3
-
 
   domi::TaskDef *task_def1 = model_task_def->add_task();
   task_def1->set_stream_id(0);
@@ -596,7 +588,7 @@ void BuildDavinciModelWithMultiTasks(DavinciModel &model){
   model.Assign(ge_model);
 }
 
-void BuildDavinciModelWithFftsTask(DavinciModel &model, bool io_reuse_flag){
+void BuildDavinciModelWithFftsTask(DavinciModel &model, bool io_reuse_flag) {
   model.SetKnownNode(true);
   model.bin_kernel_handle_.addr_and_pref_cnt_["aictest"].emplace_back(std::make_pair((void *)(0x1245), 1));
   model.bin_kernel_handle_.addr_and_pref_cnt_["aivtest"].emplace_back(std::make_pair((void *)(0x1235), 2));
@@ -626,7 +618,7 @@ void BuildDavinciModelWithFftsTask(DavinciModel &model, bool io_reuse_flag){
   op_ffts->AddOutputDesc(tensor);
   op_ffts->SetInputOffset({1024});
   op_ffts->SetOutputOffset({1024});
-  NodePtr node_input = graph->AddNode(op_ffts);    // op_index = 0
+  NodePtr node_input = graph->AddNode(op_ffts);  // op_index = 0
 
   {
     OpDescPtr op_desc = CreateOpDesc("data", DATA);
@@ -641,8 +633,8 @@ void BuildDavinciModelWithFftsTask(DavinciModel &model, bool io_reuse_flag){
     OpDescPtr op_desc = CreateOpDesc("output", NETOUTPUT);
     op_desc->AddInputDesc(tensor);
     op_desc->SetInputOffset({8});
-    op_desc->SetSrcName( { "data" } );
-    op_desc->SetSrcIndex( { 0 } );
+    op_desc->SetSrcName({"data"});
+    op_desc->SetSrcIndex({0});
     NodePtr node = graph->AddNode(op_desc);
   }
 
@@ -670,14 +662,20 @@ void InitModel() {
   diagnoseSwitch::EnableDeviceProfiling();
   model.Init();
 }
-}
+}  // namespace
 class OpsKernelInfoStoreStub : public OpsKernelInfoStore {
  public:
   OpsKernelInfoStoreStub() = default;
-  Status Initialize(const std::map<std::string, std::string> &options) override { return SUCCESS; }
-  Status Finalize() override { return SUCCESS; }
+  Status Initialize(const std::map<std::string, std::string> &options) override {
+    return SUCCESS;
+  }
+  Status Finalize() override {
+    return SUCCESS;
+  }
   void GetAllOpsKernelInfo(std::map<std::string, OpInfo> &infos) const override {}
-  bool CheckSupported(const OpDescPtr &opDescPtr, std::string &un_supported_reason) const override { return true; }
+  bool CheckSupported(const OpDescPtr &opDescPtr, std::string &un_supported_reason) const override {
+    return true;
+  }
   Status LoadTask(GETaskInfo &task) override {
     HcclDumpInfo dump_info = {0U, 0U, 0U, (void *)0x01, 1U, (void *)0x02, 1U};
     GETaskKernelHcclInfo kernel_hccl_info;
@@ -685,13 +683,15 @@ class OpsKernelInfoStoreStub : public OpsKernelInfoStore {
     task.kernelHcclInfo[0].hccl_dump_info.emplace_back(dump_info);
     return SUCCESS;
   }
-  Status UnloadTask(GETaskInfo &task) { return SUCCESS; }
+  Status UnloadTask(GETaskInfo &task) {
+    return SUCCESS;
+  }
 };
 
 namespace {
 class DModelListener : public ModelListener {
  public:
-  DModelListener(){};
+  DModelListener() {};
   ~DModelListener() = default;
   uint32_t OnComputeDone(uint32_t model_id, uint32_t data_index, uint32_t result, std::vector<gert::Tensor> &outputs) {
     complete_flag_ = true;
@@ -700,23 +700,22 @@ class DModelListener : public ModelListener {
   bool complete_flag_{false};
 };
 shared_ptr<ModelListener> g_local_call_back(new DModelListener());
-}
+}  // namespace
 
 class UtestDavinciModel : public testing::Test {
  protected:
   void SetUp() {
     VarManager::Instance(0)->Init(0, 0, 0, 0);
-    const std::map<string, string> options{ {GRAPH_MEMORY_MAX_SIZE, "1048576"}, {VARIABLE_MEMORY_MAX_SIZE, "1048576"} };
+    const std::map<string, string> options{{GRAPH_MEMORY_MAX_SIZE, "1048576"}, {VARIABLE_MEMORY_MAX_SIZE, "1048576"}};
     VarManager::Instance(0)->SetMemoryMallocSize(options, 10UL * 1024UL * 1024UL);
-    MemManager::Instance().Initialize({ RT_MEMORY_HBM, RT_MEMORY_P2P_DDR });
+    MemManager::Instance().Initialize({RT_MEMORY_HBM, RT_MEMORY_P2P_DDR});
     g_runtime_stub_mock.clear();
     AclRuntimeStub::SetErrorResultApiName("");
     RuntimeStub::GetInstance()->input_mem_copy_batch_count_ = 0;
     RTS_STUB_SETUP();
     const ::testing::TestInfo *test_info = ::testing::UnitTest::GetInstance()->current_test_info();
-    test_case_name =  test_info->test_case_name();
+    test_case_name = test_info->test_case_name();
     test_work_dir = EnvPath().GetOrCreateCaseTmpPath(test_case_name);
-
   }
 
   void TearDown() {
@@ -729,7 +728,8 @@ class UtestDavinciModel : public testing::Test {
     RTS_STUB_TEARDOWN();
     EnvPath().RemoveRfCaseTmpPath(test_case_name);
   }
-protected:
+
+ protected:
   std::string test_case_name;
   std::string test_work_dir;
 };
@@ -769,13 +769,26 @@ TEST_F(UtestDavinciModel, davinci_init_success) {
   uint32_t mem_offset = 0U;
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   DEF_GRAPH(g1) {
-    CHAIN(NODE("_arg_0", DATA)->EDGE(0, 0)->NODE("add_n", ADDN));   // ccKernelType::TE
-    CHAIN(NODE("_var_0", VARIABLE)->NODE("allreduce", HCOMALLREDUCE)->EDGE(0, 0)->NODE("relu", RELU)); // HCCL
-    CHAIN(NODE("_arg_1", CONSTANTOP)->EDGE(0, 1)->NODE("add_n")->EDGE(0, 1)->NODE("relu")-> // ccKernelType::CUSTOMIZED
-          NODE("square", SQUARE)->EDGE(0, 0)->      // ccKernelType::AI_CPU
-          NODE("reshape", RESHAPE)->EDGE(0, 0)->    // ccKernelType::CUST_AI_CPU
-          NODE("deque", FRAMEWORKOP)->EDGE(0, 0)->  // KERNEL_EX
-          NODE("memcpy", MEMCPYASYNC)->EDGE(0, 0)-> // MEMCPY_ASYNC
+    CHAIN(NODE("_arg_0", DATA)->EDGE(0, 0)->NODE("add_n", ADDN));  // ccKernelType::TE
+    CHAIN(NODE("_var_0", VARIABLE)->NODE("allreduce", HCOMALLREDUCE)->EDGE(0, 0)->NODE("relu", RELU));  // HCCL
+    CHAIN(NODE("_arg_1", CONSTANTOP)
+              ->EDGE(0, 1)
+              ->NODE("add_n")
+              ->EDGE(0, 1)
+              ->NODE("relu")
+              ->  // ccKernelType::CUSTOMIZED
+          NODE("square", SQUARE)
+              ->EDGE(0, 0)
+              ->  // ccKernelType::AI_CPU
+          NODE("reshape", RESHAPE)
+              ->EDGE(0, 0)
+              ->  // ccKernelType::CUST_AI_CPU
+          NODE("deque", FRAMEWORKOP)
+              ->EDGE(0, 0)
+              ->  // KERNEL_EX
+          NODE("memcpy", MEMCPYASYNC)
+              ->EDGE(0, 0)
+              ->  // MEMCPY_ASYNC
           NODE("Node_Output", NETOUTPUT));
   };
   ComputeGraphPtr graph = ToComputeGraph(g1);
@@ -840,7 +853,7 @@ TEST_F(UtestDavinciModel, davinci_init_success) {
     auto &task_def = *model_def->add_task();
     task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_HCCL));
     task_def.set_stream_id(op_desc->GetStreamId());
-    task_def.set_private_def("hccl_task"); // for GetPrivateDefByTaskDef
+    task_def.set_private_def("hccl_task");  // for GetPrivateDefByTaskDef
 
     auto &hccl_def = *task_def.mutable_kernel_hccl();
     hccl_def.set_op_index(op_desc->GetId());
@@ -907,7 +920,7 @@ TEST_F(UtestDavinciModel, davinci_init_success) {
 
     int32_t run_mode = static_cast<uint32_t>(domi::ImplyType::AI_CPU);
     EXPECT_TRUE(AttrUtils::SetInt(op_desc, ATTR_NAME_IMPLY_TYPE, run_mode));
-    EXPECT_TRUE(AttrUtils::SetBool(op_desc, ATTR_NO_TASK_AND_DUMP_NEEDED, true));    // for IsNoTaskAndDumpNeeded
+    EXPECT_TRUE(AttrUtils::SetBool(op_desc, ATTR_NO_TASK_AND_DUMP_NEEDED, true));  // for IsNoTaskAndDumpNeeded
     EXPECT_TRUE(AttrUtils::SetListStr(op_desc, ATTR_NAME_DATA_DUMP_ORIGIN_OP_NAMES, std::vector<std::string>{"ok"}));
 
     auto &task_def = *model_def->add_task();
@@ -954,7 +967,7 @@ TEST_F(UtestDavinciModel, davinci_init_success) {
   {
     const auto &node = graph->FindNode("deque");
     const auto &op_desc = node->GetOpDesc();
-    op_desc->SetWorkspace({1308});   // offset
+    op_desc->SetWorkspace({1308});       // offset
     op_desc->SetWorkspaceBytes({120U});  // length
 
     domi::TaskDef &task_def = *model_def->add_task();
@@ -990,8 +1003,8 @@ TEST_F(UtestDavinciModel, davinci_init_success) {
     const auto &node = graph->FindNode("Node_Output");
     const auto &op_desc = node->GetOpDesc();
 
-    op_desc->SetSrcName( { "memcpy" } );
-    op_desc->SetSrcIndex( { 0 } );
+    op_desc->SetSrcName({"memcpy"});
+    op_desc->SetSrcIndex({0});
   }
 
   {
@@ -1004,11 +1017,11 @@ TEST_F(UtestDavinciModel, davinci_init_success) {
     model.Assign(ge_model);
     model.SetAiCpuCustFlag(true);
     EXPECT_EQ(model.Init(), SUCCESS);
-    EXPECT_EQ(model.stream_to_task_index_list_.size(), 1); // 单条流
+    EXPECT_EQ(model.stream_to_task_index_list_.size(), 1);  // 单条流
     uint64_t stream = model.stream_to_task_index_list_.begin()->first;
-    EXPECT_EQ(model.stream_to_task_index_list_[stream].size(), 7); // 单条流，hccl所在流上有7个task
-    model.main_follow_stream_mapping_[stream].push_back(ge::ValueToPtr((2))); // hccl从流
-    EXPECT_EQ(model.RecoverModel(), SUCCESS); // 单条流，hccl所在流上有7个task
+    EXPECT_EQ(model.stream_to_task_index_list_[stream].size(), 7);             // 单条流，hccl所在流上有7个task
+    model.main_follow_stream_mapping_[stream].push_back(ge::ValueToPtr((2)));  // hccl从流
+    EXPECT_EQ(model.RecoverModel(), SUCCESS);                                  // 单条流，hccl所在流上有7个task
     runtime_stub.Clear();
     dlog_setlevel(GE_MODULE_NAME, DLOG_ERROR, 1);
   }
@@ -1024,7 +1037,7 @@ TEST_F(UtestDavinciModel, davinci_init_success) {
     EXPECT_EQ(model.Init(), SUCCESS);
 
     class TaskIdChanger : public TaskInfo {
-    public:
+     public:
       TaskIdChanger(TaskInfoPtr original_task) : original_task_(original_task) {
         is_support_redistribute_ = true;
         original_task_id_ = original_task->GetTaskID();
@@ -1048,16 +1061,19 @@ TEST_F(UtestDavinciModel, davinci_init_success) {
         return status;
       }
 
-      Status Init(const domi::TaskDef &task_def, DavinciModel *davinci_model,
-                  const PisToArgs &args, const PisToPersistentWorkspace &persistent_workspace,
-                  const IowAddrs &iow_addrs) override {
+      Status Init(const domi::TaskDef &task_def, DavinciModel *davinci_model, const PisToArgs &args,
+                  const PisToPersistentWorkspace &persistent_workspace, const IowAddrs &iow_addrs) override {
         return original_task_->Init(task_def, davinci_model, args, persistent_workspace, iow_addrs);
       }
 
-      uint32_t GetStreamId() const override { return original_task_->GetStreamId(); }
-      bool IsSupportReDistribute() override { return true; }
+      uint32_t GetStreamId() const override {
+        return original_task_->GetStreamId();
+      }
+      bool IsSupportReDistribute() override {
+        return true;
+      }
 
-    private:
+     private:
       TaskInfoPtr original_task_;
       uint32_t original_task_id_;
       uint32_t new_task_id_;
@@ -1069,8 +1085,8 @@ TEST_F(UtestDavinciModel, davinci_init_success) {
       if (original_task) {
         auto wrapper = std::make_shared<TaskIdChanger>(original_task);
         model.task_list_[i] = wrapper;
-        GELOGI("Wrapped task %zu: will change task_id from %u to %u",
-              i, wrapper->GetTaskID(), wrapper->GetTaskID() + 1000);
+        GELOGI("Wrapped task %zu: will change task_id from %u to %u", i, wrapper->GetTaskID(),
+               wrapper->GetTaskID() + 1000);
       }
     }
 
@@ -1169,8 +1185,8 @@ TEST_F(UtestDavinciModel, davinci_init_success) {
     model.SetQueIds(input_queue_attrs, output_queue_attrs);
 
     model.Assign(ge_model);
-    model.input_no_tiling_flag_ = { false };
-    model.output_no_tiling_flag_ = { false };
+    model.input_no_tiling_flag_ = {false};
+    model.output_no_tiling_flag_ = {false};
     EXPECT_EQ(model.Init(), SUCCESS);
 
     EXPECT_EQ(model.input_addrs_list_.size(), 1);
@@ -1201,8 +1217,8 @@ TEST_F(UtestDavinciModel, davinci_init_success) {
     model.SetQueIds(input_queue_attrs, output_queue_attrs);
 
     model.Assign(ge_model);
-    model.input_no_tiling_flag_ = { true };
-    model.output_no_tiling_flag_ = { true };
+    model.input_no_tiling_flag_ = {true};
+    model.output_no_tiling_flag_ = {true};
     model.has_no_tiling_input_ = true;
     model.has_no_tiling_output_ = true;
     EXPECT_EQ(model.Init(), SUCCESS);
@@ -1250,7 +1266,7 @@ TEST_F(UtestDavinciModel, davinci_init_success) {
     DavinciModel model(0, nullptr);
     DumpProperties dump_properties;
     dump_properties.SetDumpMode("output");
-    dump_properties.AddPropertyValue(DUMP_LAYER_OP_MODEL, {"deque","allreduce"});
+    dump_properties.AddPropertyValue(DUMP_LAYER_OP_MODEL, {"deque", "allreduce"});
     dump_properties.AddPropertyValue(DUMP_WATCHER_MODEL, {"square", "allreduce"});
     model.SetDumpProperties(dump_properties);
     model.Assign(ge_model);
@@ -1299,7 +1315,9 @@ TEST_F(UtestDavinciModel, davinci_init_success) {
     DumpProperties dump_properties;
     dump_properties.SetDumpMode("output");
     model.om_name_ = "test";
-    std::vector<std::pair<std::string, std::string>> op_ranges = {{"square", "deque"},};
+    std::vector<std::pair<std::string, std::string>> op_ranges = {
+        {"square", "deque"},
+    };
     dump_properties.SetOpDumpRange("test", op_ranges);
 
     model.SetDumpProperties(dump_properties);
@@ -1341,8 +1359,8 @@ TEST_F(UtestDavinciModel, init_data_op) {
   OpDescPtr op_output = CreateOpDesc("output", NETOUTPUT);
   op_output->AddInputDesc(tensor);
   op_output->SetInputOffset({1024});
-  op_output->SetSrcName( { "data" } );
-  op_output->SetSrcIndex( { 0 } );
+  op_output->SetSrcName({"data"});
+  op_output->SetSrcIndex({0});
   NodePtr node_output = graph->AddNode(op_output);
 
   model.ge_model_->SetGraph(graph);
@@ -1437,8 +1455,8 @@ TEST_F(UtestDavinciModel, init_netoutput_op_subgraph) {
   OpDescPtr op_output = CreateOpDesc("output", NETOUTPUT);
   op_output->AddInputDesc(tensor);
   op_output->SetInputOffset({1024});
-  op_output->SetSrcName( { "data" } );
-  op_output->SetSrcIndex( { 0 } );
+  op_output->SetSrcName({"data"});
+  op_output->SetSrcIndex({0});
   NodePtr node = graph->AddNode(op_output);
 
   std::vector<OpDescPtr> output_op_list;
@@ -1480,8 +1498,8 @@ TEST_F(UtestDavinciModel, init_unknown) {
   EXPECT_EQ(model.GetInputOutputDescInfo(input_descs, output_descs), SUCCESS);
 
   int32_t virtual_addr = 0;
-  const std::vector<void *> inputs = { &virtual_addr };
-  const std::vector<void *> outputs = { &virtual_addr  };
+  const std::vector<void *> inputs = {&virtual_addr};
+  const std::vector<void *> outputs = {&virtual_addr};
   EXPECT_EQ(model.UpdateKnownNodeArgs(VPtrToValue(inputs), VPtrToValue(outputs)), SUCCESS);
 }
 
@@ -1507,8 +1525,8 @@ TEST_F(UtestDavinciModel, init_outputs_pls_more_outputs) {
   EXPECT_EQ(model.GetInputOutputDescInfo(input_descs, output_descs), SUCCESS);
 
   int32_t virtual_addr = 0;
-  const std::vector<void *> inputs = { &virtual_addr };
-  const std::vector<void *> outputs = { &virtual_addr, &virtual_addr};
+  const std::vector<void *> inputs = {&virtual_addr};
+  const std::vector<void *> outputs = {&virtual_addr, &virtual_addr};
   EXPECT_EQ(model.UpdateKnownNodeArgs(VPtrToValue(inputs), VPtrToValue(outputs)), SUCCESS);
 }
 
@@ -1551,7 +1569,7 @@ TEST_F(UtestDavinciModel, Init_variable_op) {
 
   EXPECT_EQ(model.InitNodes(graph), SUCCESS);
 
-  //EXPECT_EQ(model.UpdateStepInfo(), SUCCESS);
+  // EXPECT_EQ(model.UpdateStepInfo(), SUCCESS);
 
   OutputData output_data;
   EXPECT_FALSE(model.has_output_node_);
@@ -1595,7 +1613,7 @@ TEST_F(UtestDavinciModel, init_constant_op) {
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("default");
 
   OpDescPtr op_desc1 = CreateOpDesc("FileConstant1", FILECONSTANT);
-  std::vector<int64_t> shape = {2,2,2,2};
+  std::vector<int64_t> shape = {2, 2, 2, 2};
   EXPECT_TRUE(AttrUtils::SetDataType(op_desc1, "dtype", DT_FLOAT));
   EXPECT_TRUE(AttrUtils::SetStr(op_desc1, ATTR_NAME_FILE_CONSTANT_ID, "file"));
   EXPECT_TRUE(AttrUtils::SetListInt(op_desc1, "shape", shape));
@@ -1611,7 +1629,7 @@ TEST_F(UtestDavinciModel, init_constant_op) {
   EXPECT_TRUE(AttrUtils::SetListInt(op_desc2, "shape", shape));
   op_desc2->AddOutputDesc(tensor_desc);
   op_desc2->SetOutputOffset({0});
-  graph->AddNode(op_desc2); // test ExternalWeightManager::CheckAndSetWeightLoaded
+  graph->AddNode(op_desc2);  // test ExternalWeightManager::CheckAndSetWeightLoaded
 
   std::unique_ptr<float[]> float_buf(new float[16]);
   std::string file_name = "tmp_weight_file.bin";
@@ -1638,7 +1656,7 @@ TEST_F(UtestDavinciModel, Preprocess_Fileconstant_Op_OK) {
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("default");
 
   OpDescPtr op_desc = CreateOpDesc("FileConstant", FILECONSTANT);
-  std::vector<int64_t> shape = {2,2,2,2};
+  std::vector<int64_t> shape = {2, 2, 2, 2};
 
   EXPECT_TRUE(AttrUtils::SetDataType(op_desc, "dtype", DT_FLOAT));
   EXPECT_TRUE(AttrUtils::SetStr(op_desc, ATTR_NAME_FILE_CONSTANT_ID, "file"));
@@ -1661,7 +1679,7 @@ TEST_F(UtestDavinciModel, Preprocess_Fileconstant_Op_OK) {
   EXPECT_EQ(status, SUCCESS);
   ASSERT_NE(model.runtime_param_.fileconstant_addr_mapping.find(static_cast<int64_t>(0)),
             model.runtime_param_.fileconstant_addr_mapping.end());
-  free(reinterpret_cast<void*>(model.weights_mem_base_));
+  free(reinterpret_cast<void *>(model.weights_mem_base_));
   (void)remove("tmp_weight_file.bin");
 }
 
@@ -1680,7 +1698,7 @@ TEST_F(UtestDavinciModel, Preprocess_Fileconstant_Success_UserDeviceMem) {
 
   OpDescPtr op_desc = CreateOpDesc("FileConstant", FILECONSTANT);
   AttrUtils::SetStr(op_desc, ATTR_NAME_FILE_PATH, "./weight_2132345.bin");
-  std::vector<int64_t> shape = {2,2,2,2};
+  std::vector<int64_t> shape = {2, 2, 2, 2};
 
   EXPECT_TRUE(AttrUtils::SetDataType(op_desc, "dtype", DT_INT32));
   EXPECT_TRUE(AttrUtils::SetStr(op_desc, ATTR_NAME_FILE_CONSTANT_ID, "file"));
@@ -1710,7 +1728,7 @@ TEST_F(UtestDavinciModel, Preprocess_Fileconstant_Success_UserDeviceMem) {
   ASSERT_NE(iter, model.runtime_param_.fileconstant_addr_mapping.end());
 
   EXPECT_EQ(iter->second, reinterpret_cast<uintptr_t>(user_mem));
-  free(reinterpret_cast<void*>(model.weights_mem_base_));
+  free(reinterpret_cast<void *>(model.weights_mem_base_));
 }
 
 TEST_F(UtestDavinciModel, Preprocess_Fileconstant_Success_UserDeviceMem_HandleIndividualWeights) {
@@ -1730,7 +1748,7 @@ TEST_F(UtestDavinciModel, Preprocess_Fileconstant_Success_UserDeviceMem_HandleIn
 
   OpDescPtr op_desc = CreateOpDesc("FileConstant", FILECONSTANT);
   AttrUtils::SetStr(op_desc, ATTR_NAME_FILE_PATH, "./weight_21323451.bin");
-  std::vector<int64_t> shape = {2,2,2,2};
+  std::vector<int64_t> shape = {2, 2, 2, 2};
 
   EXPECT_TRUE(AttrUtils::SetDataType(op_desc, "dtype", DT_INT32));
   EXPECT_TRUE(AttrUtils::SetStr(op_desc, ATTR_NAME_FILE_CONSTANT_ID, "file"));
@@ -1769,7 +1787,7 @@ TEST_F(UtestDavinciModel, Preprocess_Fileconstant_Success_UserDeviceMem_HandleIn
   (void)remove("weight_21323452.bin");
 
   model.SetFileConstantUserDeviceMem({file_conststant_mem1, file_conststant_mem2});
-  auto status  = model.PreProcessFileConstants(graph, default_parm);
+  auto status = model.PreProcessFileConstants(graph, default_parm);
   EXPECT_EQ(status, SUCCESS);
   auto iter = model.runtime_param_.fileconstant_addr_mapping.find(static_cast<int64_t>(0));
   ASSERT_NE(iter, model.runtime_param_.fileconstant_addr_mapping.end());
@@ -1778,7 +1796,7 @@ TEST_F(UtestDavinciModel, Preprocess_Fileconstant_Success_UserDeviceMem_HandleIn
 
   EXPECT_EQ(iter->second, reinterpret_cast<uintptr_t>(user_mem_1));
   EXPECT_EQ(iter1->second, reinterpret_cast<uintptr_t>(user_mem_2));
-  free(reinterpret_cast<void*>(model.weights_mem_base_));
+  free(reinterpret_cast<void *>(model.weights_mem_base_));
 }
 
 TEST_F(UtestDavinciModel, Preprocess_Fileconstant_Failed_UserDeviceMemSizeInvalid) {
@@ -1797,7 +1815,7 @@ TEST_F(UtestDavinciModel, Preprocess_Fileconstant_Failed_UserDeviceMemSizeInvali
 
   OpDescPtr op_desc = CreateOpDesc("FileConstant", FILECONSTANT);
   AttrUtils::SetStr(op_desc, ATTR_NAME_FILE_PATH, "/home/weight_2132345.bin");
-  std::vector<int64_t> shape = {2,2,2,2};
+  std::vector<int64_t> shape = {2, 2, 2, 2};
 
   EXPECT_TRUE(AttrUtils::SetDataType(op_desc, "dtype", DT_INT32));
   EXPECT_TRUE(AttrUtils::SetStr(op_desc, ATTR_NAME_FILE_CONSTANT_ID, "file"));
@@ -1810,7 +1828,7 @@ TEST_F(UtestDavinciModel, Preprocess_Fileconstant_Failed_UserDeviceMemSizeInvali
 
   auto status = model.PreProcessFileConstants(graph, default_parm);
   EXPECT_NE(status, SUCCESS);
-  free(reinterpret_cast<void*>(model.weights_mem_base_));
+  free(reinterpret_cast<void *>(model.weights_mem_base_));
 }
 
 TEST_F(UtestDavinciModel, Preprocess_Fileconstant_Success_WeightCombined) {
@@ -1824,7 +1842,7 @@ TEST_F(UtestDavinciModel, Preprocess_Fileconstant_Success_WeightCombined) {
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("default");
 
   OpDescPtr op_desc = CreateOpDesc("FileConstant0", FILECONSTANT);
-  std::vector<int64_t> shape = {2,2,2,2};
+  std::vector<int64_t> shape = {2, 2, 2, 2};
 
   EXPECT_TRUE(AttrUtils::SetDataType(op_desc, "dtype", DT_INT32));
   EXPECT_TRUE(AttrUtils::SetStr(op_desc, ATTR_NAME_FILE_CONSTANT_ID, "file"));
@@ -1865,7 +1883,7 @@ TEST_F(UtestDavinciModel, Preprocess_Fileconstant_Success_WeightCombined) {
             model.runtime_param_.fileconstant_addr_mapping.end());
   ASSERT_NE(model.runtime_param_.fileconstant_addr_mapping.find(static_cast<int64_t>(1)),
             model.runtime_param_.fileconstant_addr_mapping.end());
-  free(reinterpret_cast<void*>(model.weights_mem_base_));
+  free(reinterpret_cast<void *>(model.weights_mem_base_));
   (void)remove("weight_combined_2132345.bin");
 }
 
@@ -1880,7 +1898,7 @@ TEST_F(UtestDavinciModel, Preprocess_Fileconstant_Success_IndividualWeights) {
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("default");
 
   OpDescPtr op_desc = CreateOpDesc("FileConstant0", FILECONSTANT);
-  std::vector<int64_t> shape = {2,2,2,2};
+  std::vector<int64_t> shape = {2, 2, 2, 2};
 
   EXPECT_TRUE(AttrUtils::SetDataType(op_desc, "dtype", DT_INT32));
   EXPECT_TRUE(AttrUtils::SetStr(op_desc, ATTR_NAME_FILE_CONSTANT_ID, "file"));
@@ -1927,7 +1945,7 @@ TEST_F(UtestDavinciModel, Preprocess_Fileconstant_Success_IndividualWeights) {
             model.runtime_param_.fileconstant_addr_mapping.end());
   ASSERT_NE(model.runtime_param_.fileconstant_addr_mapping.find(static_cast<int64_t>(1)),
             model.runtime_param_.fileconstant_addr_mapping.end());
-  free(reinterpret_cast<void*>(model.weights_mem_base_));
+  free(reinterpret_cast<void *>(model.weights_mem_base_));
   (void)remove("weight_combined_1.bin");
   (void)remove("weight_combined_2.bin");
 }
@@ -1940,7 +1958,7 @@ TEST_F(UtestDavinciModel, Preprocess_Fileconstant_Op_Memory_Allocation_Failed) {
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("default");
 
   OpDescPtr op_desc = CreateOpDesc("FileConstant", FILECONSTANT);
-  std::vector<int64_t> shape = {2,2,2,2};
+  std::vector<int64_t> shape = {2, 2, 2, 2};
 
   EXPECT_TRUE(AttrUtils::SetDataType(op_desc, "dtype", DT_FLOAT));
   EXPECT_TRUE(AttrUtils::SetStr(op_desc, ATTR_NAME_FILE_CONSTANT_ID, "file"));
@@ -1973,7 +1991,7 @@ TEST_F(UtestDavinciModel, Preprocess_Fileconstant_Op_Param_Failed) {
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("default");
 
   OpDescPtr op_desc = CreateOpDesc("FileConstant", FILECONSTANT);
-  std::vector<int64_t> shape = {2,2,2,2};
+  std::vector<int64_t> shape = {2, 2, 2, 2};
 
   EXPECT_TRUE(AttrUtils::SetDataType(op_desc, "dtype", DT_FLOAT));
   EXPECT_TRUE(AttrUtils::SetStr(op_desc, ATTR_NAME_FILE_CONSTANT_ID, "file"));
@@ -1985,7 +2003,7 @@ TEST_F(UtestDavinciModel, Preprocess_Fileconstant_Op_Param_Failed) {
   graph->AddNode(op_desc);
   auto status = model.PreProcessFileConstants(graph, default_parm);
   EXPECT_EQ(status, PARAM_INVALID);
-  free(reinterpret_cast<void*>(model.weights_mem_base_));
+  free(reinterpret_cast<void *>(model.weights_mem_base_));
 }
 
 TEST_F(UtestDavinciModel, output_no_tiling_data) {
@@ -2048,7 +2066,7 @@ TEST_F(UtestDavinciModel, copy_input_data_no_tiling) {
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("default");
 
   OpDescPtr data = CreateOpDesc("data", DATA);
-  GeTensorDesc tensor_desc(GeShape({-1,-1,224,224}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor_desc(GeShape({-1, -1, 224, 224}), FORMAT_NCHW, DT_FLOAT);
   data->SetOutputOffset({2048});
   AttrUtils::SetBool(tensor_desc, ATTR_NAME_TENSOR_NO_TILING_MEM_TYPE, true);
   AttrUtils::SetInt(tensor_desc, ATTR_NAME_TENSOR_DESC_MEM_OFFSET, 1024);
@@ -2062,7 +2080,7 @@ TEST_F(UtestDavinciModel, copy_input_data_no_tiling) {
   EXPECT_EQ(model.InitDataOp(graph, data_node, data_op_index, data_by_index, input_outside_addrs), SUCCESS);
 
   InputData input_data;
-  std::vector<int64_t> shape = {4,3,224,224};
+  std::vector<int64_t> shape = {4, 3, 224, 224};
   input_data.shapes.push_back(shape);
   size_t size = 5160;
   void *data_addr = (void *)malloc(size);
@@ -2076,7 +2094,7 @@ TEST_F(UtestDavinciModel, copy_input_data_no_tiling) {
   input_data.blobs.pop_back();
   ZeroCopyOffset zero_copy_offset_input0;
   std::vector<std::pair<int64_t, uint64_t>> zero_data_info_input0;
-  zero_data_info_input0.emplace_back(1,0x1111);
+  zero_data_info_input0.emplace_back(1, 0x1111);
   zero_copy_offset_input0.data_info_ = zero_data_info_input0;
   model.input_data_info_[0] = zero_copy_offset_input0;
   EXPECT_NE(model.CopyInputData(input_data), SUCCESS);
@@ -2100,7 +2118,7 @@ TEST_F(UtestDavinciModel, InitRealSizeAndShapeInfo_succ2) {
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("test_graph");
 
   OpDescPtr data1 = CreateOpDesc("data1", DATA);
-  GeTensorDesc shape_desc(GeShape({4,3,224,224}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc shape_desc(GeShape({4, 3, 224, 224}), FORMAT_NCHW, DT_FLOAT);
   data1->AddInputDesc(shape_desc);
   data1->AddOutputDesc(shape_desc);
   NodePtr data1_node = graph->AddNode(data1);
@@ -2113,8 +2131,8 @@ TEST_F(UtestDavinciModel, InitRealSizeAndShapeInfo_succ2) {
 
   OpDescPtr output = CreateOpDesc("output1", NETOUTPUT);
   output->AddInputDesc(tensor);
-  output->SetSrcName( { "case1" } );
-  output->SetSrcIndex( { 0 } );
+  output->SetSrcName({"case1"});
+  output->SetSrcIndex({0});
   NodePtr output_node = graph->AddNode(output);
 
   GraphUtils::AddEdge(data1_node->GetOutDataAnchor(0), case1_node->GetInDataAnchor(0));
@@ -2139,14 +2157,14 @@ TEST_F(UtestDavinciModel, InitRealSizeAndShapeInfo_succ3) {
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("test_graph");
 
   OpDescPtr data1 = CreateOpDesc("data1", DATA);
-  GeTensorDesc shape_desc(GeShape({4,3,224,224}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc shape_desc(GeShape({4, 3, 224, 224}), FORMAT_NCHW, DT_FLOAT);
   data1->AddInputDesc(shape_desc);
   data1->AddOutputDesc(shape_desc);
   NodePtr data1_node = graph->AddNode(data1);
 
   OpDescPtr shape_node = CreateOpDesc("ascend_mbatch_get_dynamic_dims_node", GETDYNAMICDIMS);
   GeTensorDesc in_tensor(GeShape(), FORMAT_NCHW, DT_FLOAT);
-  GeTensorDesc out_tensor(GeShape({4,3}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc out_tensor(GeShape({4, 3}), FORMAT_NCHW, DT_FLOAT);
   shape_node->AddInputDesc(in_tensor);
   shape_node->AddOutputDesc(out_tensor);
   NodePtr get_dynamic_dims_node = graph->AddNode(shape_node);
@@ -2154,8 +2172,8 @@ TEST_F(UtestDavinciModel, InitRealSizeAndShapeInfo_succ3) {
   OpDescPtr output = CreateOpDesc("output1", NETOUTPUT);
   GeTensorDesc tensor(GeShape(), FORMAT_NCHW, DT_FLOAT);
   output->AddInputDesc(tensor);
-  output->SetSrcName( { "data1", "ascend_mbatch_get_dynamic_dims_node" } );
-  output->SetSrcIndex( { 0, 1 } );
+  output->SetSrcName({"data1", "ascend_mbatch_get_dynamic_dims_node"});
+  output->SetSrcIndex({0, 1});
   NodePtr output_node = graph->AddNode(output);
   GraphUtils::AddEdge(data1_node->GetOutDataAnchor(0), output_node->GetInDataAnchor(0));
   GraphUtils::AddEdge(get_dynamic_dims_node->GetOutDataAnchor(0), output_node->GetInDataAnchor(1));
@@ -2174,7 +2192,7 @@ TEST_F(UtestDavinciModel, InitRealSizeAndShapeInfo_succ3) {
 
 TEST_F(UtestDavinciModel, init_data_aipp_info) {
   DavinciModel model(0, nullptr);
-  model.ge_model_ = MakeShared<GeModel>();   // for CustAICPUKernelStore::GetCustAICPUKernelStore()
+  model.ge_model_ = MakeShared<GeModel>();  // for CustAICPUKernelStore::GetCustAICPUKernelStore()
   model.runtime_param_.mem_base = 0x08000000;
   model.runtime_param_.mem_size = 5120000;
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("default");
@@ -2214,7 +2232,7 @@ TEST_F(UtestDavinciModel, init_data_aipp_info) {
 
 TEST_F(UtestDavinciModel, init_data_aipp_static) {
   DavinciModel model(0, nullptr);
-  model.ge_model_ = MakeShared<GeModel>();   // for CustAICPUKernelStore::GetCustAICPUKernelStore()
+  model.ge_model_ = MakeShared<GeModel>();  // for CustAICPUKernelStore::GetCustAICPUKernelStore()
   model.runtime_param_.mem_base = 0x08000000;
   model.runtime_param_.mem_size = 5120000;
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("default");
@@ -2251,7 +2269,7 @@ TEST_F(UtestDavinciModel, init_data_aipp_static) {
 
 TEST_F(UtestDavinciModel, init_data_aipp_dynamic) {
   DavinciModel model(0, nullptr);
-  model.ge_model_ = MakeShared<GeModel>();   // for CustAICPUKernelStore::GetCustAICPUKernelStore()
+  model.ge_model_ = MakeShared<GeModel>();  // for CustAICPUKernelStore::GetCustAICPUKernelStore()
   model.runtime_param_.mem_base = 0x08000000;
   model.runtime_param_.mem_size = 5120000;
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("default");
@@ -2264,7 +2282,7 @@ TEST_F(UtestDavinciModel, init_data_aipp_dynamic) {
   op_desc->AddOutputDesc(tensor);
   op_desc->SetInputOffset({1024});
   op_desc->SetOutputOffset({1024});
-  NodePtr node = graph->AddNode(op_desc);   // op_index 0
+  NodePtr node = graph->AddNode(op_desc);  // op_index 0
   AttrUtils::SetStr(op_desc, ATTR_DATA_RELATED_AIPP_MODE, "dynamic_aipp");
   AttrUtils::SetStr(op_desc, ATTR_DATA_AIPP_DATA_NAME_MAP, "related_aipp");
 
@@ -2285,7 +2303,7 @@ TEST_F(UtestDavinciModel, init_data_aipp_dynamic) {
 
 TEST_F(UtestDavinciModel, init_data_aipp_related) {
   DavinciModel model(0, nullptr);
-  model.ge_model_ = MakeShared<GeModel>();   // for CustAICPUKernelStore::GetCustAICPUKernelStore()
+  model.ge_model_ = MakeShared<GeModel>();  // for CustAICPUKernelStore::GetCustAICPUKernelStore()
   model.runtime_param_.mem_base = 0x08000000;
   model.runtime_param_.mem_size = 5120000;
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("default");
@@ -2299,7 +2317,7 @@ TEST_F(UtestDavinciModel, init_data_aipp_related) {
     op_desc->AddOutputDesc(tensor);
     op_desc->SetInputOffset({1024});
     op_desc->SetOutputOffset({1024});
-    NodePtr node = graph->AddNode(op_desc);   // op_index 0
+    NodePtr node = graph->AddNode(op_desc);  // op_index 0
     AttrUtils::SetStr(op_desc, ATTR_DATA_RELATED_AIPP_MODE, "dynamic_aipp");
     AttrUtils::SetStr(op_desc, ATTR_DATA_AIPP_DATA_NAME_MAP, "related_aipp");
   }
@@ -2309,7 +2327,7 @@ TEST_F(UtestDavinciModel, init_data_aipp_related) {
     op_desc->AddOutputDesc(tensor);
     op_desc->SetInputOffset({1024});
     op_desc->SetOutputOffset({1024});
-    NodePtr node = graph->AddNode(op_desc);   // op_index 1
+    NodePtr node = graph->AddNode(op_desc);  // op_index 1
   }
 
   InputAippType aipp_type;
@@ -2332,7 +2350,7 @@ TEST_F(UtestDavinciModel, init_data_aipp_related) {
 
 TEST_F(UtestDavinciModel, init_data_aipp_dynamic_conf) {
   DavinciModel model(0, nullptr);
-  model.ge_model_ = MakeShared<GeModel>();   // for CustAICPUKernelStore::GetCustAICPUKernelStore()
+  model.ge_model_ = MakeShared<GeModel>();  // for CustAICPUKernelStore::GetCustAICPUKernelStore()
   model.runtime_param_.mem_base = 0x08000000;
   model.runtime_param_.mem_size = 5120000;
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("default");
@@ -2345,7 +2363,7 @@ TEST_F(UtestDavinciModel, init_data_aipp_dynamic_conf) {
   op_desc->AddOutputDesc(tensor);
   op_desc->SetInputOffset({1024});
   op_desc->SetOutputOffset({1024});
-  NodePtr node = graph->AddNode(op_desc);   // op_index 0
+  NodePtr node = graph->AddNode(op_desc);  // op_index 0
   AttrUtils::SetStr(op_desc, ATTR_DATA_RELATED_AIPP_MODE, "dynamic_aipp_conf");
 
   InputAippType aipp_type;
@@ -2403,7 +2421,7 @@ TEST_F(UtestDavinciModel, init_hcom_nodes) {
 
 TEST_F(UtestDavinciModel, init_data_aipp_dynamic_invalid) {
   DavinciModel model(0, nullptr);
-  model.ge_model_ = MakeShared<GeModel>();   // for CustAICPUKernelStore::GetCustAICPUKernelStore()
+  model.ge_model_ = MakeShared<GeModel>();  // for CustAICPUKernelStore::GetCustAICPUKernelStore()
   model.runtime_param_.mem_base = 0x08000000;
   model.runtime_param_.mem_size = 5120000;
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("default");
@@ -2416,7 +2434,7 @@ TEST_F(UtestDavinciModel, init_data_aipp_dynamic_invalid) {
   op_desc->AddOutputDesc(tensor);
   op_desc->SetInputOffset({1024});
   op_desc->SetOutputOffset({1024});
-  NodePtr node = graph->AddNode(op_desc);   // op_index 0
+  NodePtr node = graph->AddNode(op_desc);  // op_index 0
   AttrUtils::SetStr(op_desc, ATTR_DATA_RELATED_AIPP_MODE, "dynamic_aipp_invalid");
 
   InputAippType aipp_type;
@@ -2435,7 +2453,7 @@ TEST_F(UtestDavinciModel, init_data_aipp_dynamic_invalid) {
 
 TEST_F(UtestDavinciModel, init_data_aipp_input_info_empty) {
   DavinciModel model(0, nullptr);
-  model.ge_model_ = MakeShared<GeModel>();   // for CustAICPUKernelStore::GetCustAICPUKernelStore()
+  model.ge_model_ = MakeShared<GeModel>();  // for CustAICPUKernelStore::GetCustAICPUKernelStore()
   model.runtime_param_.mem_base = 0x08000000;
   model.runtime_param_.mem_size = 5120000;
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("default");
@@ -2448,7 +2466,7 @@ TEST_F(UtestDavinciModel, init_data_aipp_input_info_empty) {
   op_desc->AddOutputDesc(tensor);
   op_desc->SetInputOffset({1024});
   op_desc->SetOutputOffset({1024});
-  NodePtr node = graph->AddNode(op_desc);   // op_index 0
+  NodePtr node = graph->AddNode(op_desc);  // op_index 0
 
   std::vector<string> inputs = {};
   AttrUtils::SetListStr(op_desc, ATTR_NAME_AIPP_INPUTS, inputs);
@@ -2471,7 +2489,7 @@ TEST_F(UtestDavinciModel, init_data_aipp_input_info_empty) {
 
 TEST_F(UtestDavinciModel, init_data_aipp_input_info_normal) {
   DavinciModel model(0, nullptr);
-  model.ge_model_ = MakeShared<GeModel>();   // for CustAICPUKernelStore::GetCustAICPUKernelStore()
+  model.ge_model_ = MakeShared<GeModel>();  // for CustAICPUKernelStore::GetCustAICPUKernelStore()
   model.runtime_param_.mem_base = 0x08000000;
   model.runtime_param_.mem_size = 5120000;
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("default");
@@ -2484,11 +2502,11 @@ TEST_F(UtestDavinciModel, init_data_aipp_input_info_normal) {
   op_desc->AddOutputDesc(tensor);
   op_desc->SetInputOffset({1024});
   op_desc->SetOutputOffset({1024});
-  NodePtr node = graph->AddNode(op_desc);   // op_index 0
+  NodePtr node = graph->AddNode(op_desc);  // op_index 0
 
-  std::vector<string> inputs = { "NCHW:DT_FLOAT:TensorName:TensorSize:3:1,2,8" };
+  std::vector<string> inputs = {"NCHW:DT_FLOAT:TensorName:TensorSize:3:1,2,8"};
   AttrUtils::SetListStr(op_desc, ATTR_NAME_AIPP_INPUTS, inputs);
-  std::vector<string> outputs = { "NCHW:DT_FLOAT:TensorName:TensorSize:3:1,2,8" };
+  std::vector<string> outputs = {"NCHW:DT_FLOAT:TensorName:TensorSize:3:1,2,8"};
   AttrUtils::SetListStr(op_desc, ATTR_NAME_AIPP_OUTPUTS, outputs);
 
   OriginInputInfo orig_input_info;
@@ -2507,7 +2525,7 @@ TEST_F(UtestDavinciModel, init_data_aipp_input_info_normal) {
 
 TEST_F(UtestDavinciModel, init_data_aipp_input_info_invalid) {
   DavinciModel model(0, nullptr);
-  model.ge_model_ = MakeShared<GeModel>();   // for CustAICPUKernelStore::GetCustAICPUKernelStore()
+  model.ge_model_ = MakeShared<GeModel>();  // for CustAICPUKernelStore::GetCustAICPUKernelStore()
   model.runtime_param_.mem_base = 0x08000000;
   model.runtime_param_.mem_size = 5120000;
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("default");
@@ -2520,11 +2538,11 @@ TEST_F(UtestDavinciModel, init_data_aipp_input_info_invalid) {
   op_desc->AddOutputDesc(tensor);
   op_desc->SetInputOffset({1024});
   op_desc->SetOutputOffset({1024});
-  NodePtr node = graph->AddNode(op_desc);   // op_index 0
+  NodePtr node = graph->AddNode(op_desc);  // op_index 0
 
-  std::vector<string> inputs = { "NCHW:DT_FLOAT:TensorName" };     // Invalid
+  std::vector<string> inputs = {"NCHW:DT_FLOAT:TensorName"};  // Invalid
   AttrUtils::SetListStr(op_desc, ATTR_NAME_AIPP_INPUTS, inputs);
-  std::vector<string> outputs = { "NCHW:DT_FLOAT:TensorName:TensorSize:3:1,2,8" };
+  std::vector<string> outputs = {"NCHW:DT_FLOAT:TensorName:TensorSize:3:1,2,8"};
   AttrUtils::SetListStr(op_desc, ATTR_NAME_AIPP_OUTPUTS, outputs);
 
   OriginInputInfo orig_input_info;
@@ -2543,7 +2561,7 @@ TEST_F(UtestDavinciModel, init_data_aipp_input_info_invalid) {
 
 TEST_F(UtestDavinciModel, init_data_aipp_input_dims_normal) {
   DavinciModel model(0, nullptr);
-  model.ge_model_ = MakeShared<GeModel>();   // for CustAICPUKernelStore::GetCustAICPUKernelStore()
+  model.ge_model_ = MakeShared<GeModel>();  // for CustAICPUKernelStore::GetCustAICPUKernelStore()
   model.runtime_param_.mem_base = 0x08000000;
   model.runtime_param_.mem_size = 5120000;
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("default");
@@ -2556,11 +2574,11 @@ TEST_F(UtestDavinciModel, init_data_aipp_input_dims_normal) {
   op_desc->AddOutputDesc(tensor);
   op_desc->SetInputOffset({1024});
   op_desc->SetOutputOffset({1024});
-  NodePtr node = graph->AddNode(op_desc);   // op_index 0
+  NodePtr node = graph->AddNode(op_desc);  // op_index 0
 
-  std::vector<string> inputs = { "NCHW:DT_FLOAT:TensorName:TensorSize:3:1,2,8" };
+  std::vector<string> inputs = {"NCHW:DT_FLOAT:TensorName:TensorSize:3:1,2,8"};
   AttrUtils::SetListStr(op_desc, ATTR_NAME_AIPP_INPUTS, inputs);
-  std::vector<string> outputs = { "NCHW:DT_FLOAT:TensorName:TensorSize:3:1,2,8" };
+  std::vector<string> outputs = {"NCHW:DT_FLOAT:TensorName:TensorSize:3:1,2,8"};
   AttrUtils::SetListStr(op_desc, ATTR_NAME_AIPP_OUTPUTS, outputs);
 
   std::vector<InputOutputDims> input_dims;
@@ -2626,7 +2644,7 @@ TEST_F(UtestDavinciModel, label_task_success) {
 
   {
     OpDescPtr op_desc = CreateOpDesc("label_goto", LABELGOTOEX);
-    NodePtr node = graph->AddNode(op_desc);      // op_index = 2
+    NodePtr node = graph->AddNode(op_desc);  // op_index = 2
     EXPECT_TRUE(AttrUtils::SetInt(op_desc, ATTR_NAME_LABEL_SWITCH_INDEX, 2));
 
     domi::TaskDef *task_def2 = model_task_def->add_task();
@@ -2683,7 +2701,7 @@ TEST_F(UtestDavinciModel, LoadWithQueue_fail_with_diff_args) {
   queue_param.io_with_tensor_desc = true;
   queue_param.copy_inputs_for_non_zero_copy = true;
   model.SetModelQueueParam(queue_param);
-  EXPECT_EQ(model.LoadWithQueue(), ACL_ERROR_GE_EXEC_MODEL_QUEUE_ID_INVALID); // input queue size mismatch
+  EXPECT_EQ(model.LoadWithQueue(), ACL_ERROR_GE_EXEC_MODEL_QUEUE_ID_INVALID);  // input queue size mismatch
   EXPECT_EQ(model.input_data_info_.size(), 0);
   ZeroCopyOffset zero_copy_offset;
   model.input_data_info_[0] = zero_copy_offset;
@@ -2693,10 +2711,10 @@ TEST_F(UtestDavinciModel, LoadWithQueue_fail_with_diff_args) {
   model.output_queue_attrs_.emplace_back(outputQueue1);
   model.output_queue_attrs_.emplace_back(outputQueue2);
   model.output_data_info_[0] = zero_copy_offset;
-  EXPECT_EQ(model.LoadWithQueue(), ACL_ERROR_GE_EXEC_MODEL_QUEUE_ID_INVALID); // output queue size mismatch
+  EXPECT_EQ(model.LoadWithQueue(), ACL_ERROR_GE_EXEC_MODEL_QUEUE_ID_INVALID);  // output queue size mismatch
   EXPECT_EQ(model.output_data_info_.size(), 1);
   model.output_data_info_[1] = zero_copy_offset;
-  EXPECT_EQ(model.LoadWithQueue(), INTERNAL_ERROR); // AddHeadStream
+  EXPECT_EQ(model.LoadWithQueue(), INTERNAL_ERROR);  // AddHeadStream
   EXPECT_EQ(model.active_stream_list_.size(), 0);
   ge::ExecutionRuntimeUtils::in_heterogeneous_executor_ = false;
 }
@@ -2720,7 +2738,7 @@ TEST_F(UtestDavinciModel, LoadWithQueue_WithDummyQ) {
   queue_param.io_with_tensor_desc = true;
   queue_param.copy_inputs_for_non_zero_copy = true;
   model.SetModelQueueParam(queue_param);
-  EXPECT_EQ(model.LoadWithQueue(), SUCCESS); // AddHeadStream
+  EXPECT_EQ(model.LoadWithQueue(), SUCCESS);  // AddHeadStream
   ge::ExecutionRuntimeUtils::in_heterogeneous_executor_ = false;
   aclrtDestroyStream(active_stream);
 }
@@ -2900,9 +2918,8 @@ TEST_F(UtestDavinciModel, CpuModelDequeue_WithInputAlignAttrs) {
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   aclrtCreateStreamWithConfig(&active_stream, 0, 0);
   model.active_stream_list_ = {active_stream};
-  model.model_queue_param_.input_align_attrs = {.align_max_cache_num = 4,
-                                                .align_timeout = 200,
-                                                .drop_when_not_align = true};
+  model.model_queue_param_.input_align_attrs = {
+      .align_max_cache_num = 4, .align_timeout = 200, .drop_when_not_align = true};
 
   EXPECT_EQ(model.CpuModelDequeue(), SUCCESS);
   EXPECT_EQ(model.input_mbuf_list_.size(), 2);
@@ -2921,7 +2938,7 @@ TEST_F(UtestDavinciModel, Helper_CopyInput_succ) {
   EXPECT_EQ(model.input_data_info_.size(), 0);
   ZeroCopyOffset zero_copy_offset_input0;
   std::vector<std::pair<int64_t, uint64_t>> zero_data_info_input0;
-  zero_data_info_input0.emplace_back(1,0x1111);
+  zero_data_info_input0.emplace_back(1, 0x1111);
   zero_copy_offset_input0.data_info_ = zero_data_info_input0;
   std::map<uintptr_t, std::vector<uintptr_t>> virtual_addr_out_data;
   virtual_addr_out_data[0x1111].emplace_back(0x1111111);
@@ -2930,7 +2947,7 @@ TEST_F(UtestDavinciModel, Helper_CopyInput_succ) {
 
   ZeroCopyOffset zero_copy_offset_input1;
   std::vector<std::pair<int64_t, uint64_t>> zero_data_info_input1;
-  zero_data_info_input1.emplace_back(1,0x2222);
+  zero_data_info_input1.emplace_back(1, 0x2222);
   zero_copy_offset_input1.data_info_ = zero_data_info_input1;
   std::map<uintptr_t, std::vector<uintptr_t>> virtual_addr_out_data1;
   virtual_addr_out_data1[0x2222].emplace_back(0x2111111);
@@ -2943,7 +2960,7 @@ TEST_F(UtestDavinciModel, Helper_CopyInput_succ) {
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   aclrtCreateStreamWithConfig(&active_stream, 0, 0);
   model.active_stream_list_ = {active_stream};
-  EXPECT_EQ(model.CpuInputCopyProcess(), SUCCESS); // AddHeadStream
+  EXPECT_EQ(model.CpuInputCopyProcess(), SUCCESS);  // AddHeadStream
   ge::ExecutionRuntimeUtils::in_heterogeneous_executor_ = false;
   aclrtDestroyStream(active_stream);
 }
@@ -2978,7 +2995,7 @@ TEST_F(UtestDavinciModel, Helper_CopyInput_with_desc) {
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   aclrtCreateStreamWithConfig(&active_stream, 0, 0);
   model.active_stream_list_ = {active_stream};
-  EXPECT_EQ(model.CpuInputCopyProcess(), SUCCESS); // AddHeadStream
+  EXPECT_EQ(model.CpuInputCopyProcess(), SUCCESS);  // AddHeadStream
   ge::ExecutionRuntimeUtils::in_heterogeneous_executor_ = false;
   aclrtDestroyStream(active_stream);
 }
@@ -3005,10 +3022,9 @@ TEST_F(UtestDavinciModel, Helper_CopyInput_Fail) {
   model.input_data_info_[1] = zero_copy_offset;
   EXPECT_EQ(model.CpuInputCopyProcess(), INTERNAL_ERROR);
 
-
   ZeroCopyOffset zero_copy_offset_input0;
   std::vector<std::pair<int64_t, uint64_t>> zero_data_info_input0;
-  zero_data_info_input0.emplace_back(1,0x1111);
+  zero_data_info_input0.emplace_back(1, 0x1111);
   zero_copy_offset_input0.data_info_ = zero_data_info_input0;
   std::map<uintptr_t, std::vector<uintptr_t>> virtual_addr_out_data0;
   virtual_addr_out_data0[0x1111].emplace_back(0x1111111);
@@ -3018,7 +3034,7 @@ TEST_F(UtestDavinciModel, Helper_CopyInput_Fail) {
 
   ZeroCopyOffset zero_copy_offset_input1;
   std::vector<std::pair<int64_t, uint64_t>> zero_data_info_input1;
-  zero_data_info_input1.emplace_back(1,0x2222);
+  zero_data_info_input1.emplace_back(1, 0x2222);
   zero_copy_offset_input1.data_info_ = zero_data_info_input1;
   std::map<uintptr_t, std::vector<uintptr_t>> virtual_addr_out_data1;
   virtual_addr_out_data1[0x2222].emplace_back(0x1111111);
@@ -3046,12 +3062,12 @@ TEST_F(UtestDavinciModel, Helper_InputShapeValidate) {
   EXPECT_EQ(model.CpuStaticInputShapeValidate(), SUCCESS);
   model.aicpu_resources_.static_model_shape_config_result_ = true;
   InputOutputDescInfo input_info = {};
-  input_info.shape_info.dims = {-1,-1};
+  input_info.shape_info.dims = {-1, -1};
   model.origin_input_descs_.emplace_back(input_info);
   EXPECT_EQ(model.CpuStaticInputShapeValidate(), SUCCESS);
 
   model.origin_input_descs_.clear();
-  input_info.shape_info.dims = {1,1};
+  input_info.shape_info.dims = {1, 1};
   model.origin_input_descs_.emplace_back(input_info);
   model.ge_model_ = MakeShared<GeModel>();
   QueueAttrs inputQueue1 = {0, 0, 0, 0U};
@@ -3082,60 +3098,60 @@ TEST_F(UtestDavinciModel, Helper_InputShapeValidate) {
 }
 
 class ClassTest {
-public:
-    virtual ~ClassTest() {}
+ public:
+  virtual ~ClassTest() {}
 
-    virtual int func0() {
-        return 0;
-    }
-    virtual int func1(int a) {
-        return a;
-    }
-    virtual int func2(int a, int b) {
-        return a + b;
-    }
-    virtual int func3(int a, int b) const {
-        return a - b;
-    }
+  virtual int func0() {
+    return 0;
+  }
+  virtual int func1(int a) {
+    return a;
+  }
+  virtual int func2(int a, int b) {
+    return a + b;
+  }
+  virtual int func3(int a, int b) const {
+    return a - b;
+  }
 };
 
 class MockTest : public ClassTest {
-public:
-    MOCK_METHOD0(func0, int());
-    MOCK_METHOD1(func1, int(int a));
-    MOCK_METHOD2(func2, int(int a, int b));
+ public:
+  MOCK_METHOD0(func0, int());
+  MOCK_METHOD1(func1, int(int a));
+  MOCK_METHOD2(func2, int(int a, int b));
 
-    MOCK_CONST_METHOD2(func3, int(int a, int b));
+  MOCK_CONST_METHOD2(func3, int(int a, int b));
 };
 
 TEST_F(UtestDavinciModel, simple_test_gmock) {
-    MockTest mock_stub;
+  MockTest mock_stub;
 
-    ON_CALL(mock_stub, func0()).WillByDefault(testing::Return(250));
-    EXPECT_EQ(mock_stub.func0(), 250);
-    EXPECT_EQ(mock_stub.func0(), 250);
-    EXPECT_EQ(mock_stub.func0(), 250);
+  ON_CALL(mock_stub, func0()).WillByDefault(testing::Return(250));
+  EXPECT_EQ(mock_stub.func0(), 250);
+  EXPECT_EQ(mock_stub.func0(), 250);
+  EXPECT_EQ(mock_stub.func0(), 250);
 
-    EXPECT_CALL(mock_stub, func1(testing::_)).Times(2).WillOnce(testing::Return(1024)).WillOnce(testing::Return(250));
-    EXPECT_EQ(mock_stub.func1(1), 1024);
-    EXPECT_EQ(mock_stub.func1(1), 250);
+  EXPECT_CALL(mock_stub, func1(testing::_)).Times(2).WillOnce(testing::Return(1024)).WillOnce(testing::Return(250));
+  EXPECT_EQ(mock_stub.func1(1), 1024);
+  EXPECT_EQ(mock_stub.func1(1), 250);
 
-    EXPECT_CALL(mock_stub, func2(testing::_, 5)).Times(3).WillRepeatedly(testing::Return(1023));
-    EXPECT_EQ(mock_stub.func2(1, 5), 1023);
-    EXPECT_EQ(mock_stub.func2(2, 5), 1023);
-    EXPECT_EQ(mock_stub.func2(3, 5), 1023);
+  EXPECT_CALL(mock_stub, func2(testing::_, 5)).Times(3).WillRepeatedly(testing::Return(1023));
+  EXPECT_EQ(mock_stub.func2(1, 5), 1023);
+  EXPECT_EQ(mock_stub.func2(2, 5), 1023);
+  EXPECT_EQ(mock_stub.func2(3, 5), 1023);
 }
 
 TEST_F(UtestDavinciModel, NnExecute) {
- TestNnExecute();
+  TestNnExecute();
 }
 
 TEST_F(UtestDavinciModel, NnExecuteWithHostPlsModelIo) {
- TestNnExecuteWithHostPlsModelIo();
+  TestNnExecuteWithHostPlsModelIo();
 }
 
 TEST_F(UtestDavinciModel, NnExecuteWithHostPlsModelIo_ZeroCopyReuse) {
- TestNnExecuteWithHostPlsModelIo_ZeroCopyReuse();
+  TestNnExecuteWithHostPlsModelIo_ZeroCopyReuse();
 }
 
 TEST_F(UtestDavinciModel, NnExecute_ReportProfiling_ProfilingOn) {
@@ -3206,7 +3222,7 @@ TEST_F(UtestDavinciModel, NnExecute_multi_batch) {
   shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   ge_model->SetModelTaskDef(model_task_def);
 
-  GeTensorDesc tensor(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT); // sizeof(float) * 1 * 4 * 4 * 8 = 512
+  GeTensorDesc tensor(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);  // sizeof(float) * 1 * 4 * 4 * 8 = 512
   TensorUtils::SetSize(tensor, 512);
   {
     OpDescPtr op_desc = CreateOpDesc("data", DATA);
@@ -3216,7 +3232,7 @@ TEST_F(UtestDavinciModel, NnExecute_multi_batch) {
     op_desc->AddOutputDesc(tensor);
     op_desc->SetInputOffset({0});
     op_desc->SetOutputOffset({0});
-    NodePtr node = graph->AddNode(op_desc);    // op_index = 0
+    NodePtr node = graph->AddNode(op_desc);  // op_index = 0
   }
   {
     OpDescPtr op_desc = CreateOpDesc("batch", DATA);
@@ -3224,7 +3240,7 @@ TEST_F(UtestDavinciModel, NnExecute_multi_batch) {
     op_desc->AddOutputDesc(tensor);
     op_desc->SetInputOffset({0});
     op_desc->SetOutputOffset({0});
-    NodePtr node = graph->AddNode(op_desc);    // op_index = 0
+    NodePtr node = graph->AddNode(op_desc);  // op_index = 0
   }
   {
     OpDescPtr op_desc = CreateOpDesc("memcpy", MEMCPYASYNC);
@@ -3250,8 +3266,8 @@ TEST_F(UtestDavinciModel, NnExecute_multi_batch) {
     OpDescPtr op_desc = CreateOpDesc("output", NETOUTPUT);
     op_desc->AddInputDesc(tensor);
     op_desc->SetInputOffset({2048});
-    op_desc->SetSrcName( { "memcpy" } );
-    op_desc->SetSrcIndex( { 0 } );
+    op_desc->SetSrcName({"memcpy"});
+    op_desc->SetSrcIndex({0});
     NodePtr node = graph->AddNode(op_desc);  // op_index = 3
   }
 
@@ -3274,8 +3290,7 @@ TEST_F(UtestDavinciModel, NnExecute_multi_batch) {
   model.task_list_.resize(1);
   std::vector<GeTensor> input_tensor = {};
   std::vector<GeTensor> output_tensor = {};
-  EXPECT_EQ(model.NnExecute(stream, false, input_data, output_data,
-            input_tensor, output_tensor), INTERNAL_ERROR);
+  EXPECT_EQ(model.NnExecute(stream, false, input_data, output_data, input_tensor, output_tensor), INTERNAL_ERROR);
 
   InputData input_data_empty;
   OutputData output_data_empty;
@@ -3285,8 +3300,8 @@ TEST_F(UtestDavinciModel, NnExecute_multi_batch) {
     output_tensor.emplace_back(std::move(ge_tensor));
   }
   input_tensor = output_tensor;
-  EXPECT_EQ(model.NnExecute(stream, false, input_data_empty, output_data_empty,
-            input_tensor, output_tensor), INTERNAL_ERROR);
+  EXPECT_EQ(model.NnExecute(stream, false, input_data_empty, output_data_empty, input_tensor, output_tensor),
+            INTERNAL_ERROR);
 }
 
 TEST_F(UtestDavinciModel, NnExecute_multi_batch_with_gerttensor) {
@@ -3302,7 +3317,7 @@ TEST_F(UtestDavinciModel, NnExecute_multi_batch_with_gerttensor) {
   shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   ge_model->SetModelTaskDef(model_task_def);
 
-  GeTensorDesc tensor(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT); // sizeof(float) * 1 * 4 * 4 * 8 = 512
+  GeTensorDesc tensor(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);  // sizeof(float) * 1 * 4 * 4 * 8 = 512
   TensorUtils::SetSize(tensor, 512);
   {
     OpDescPtr op_desc = CreateOpDesc("data", DATA);
@@ -3312,7 +3327,7 @@ TEST_F(UtestDavinciModel, NnExecute_multi_batch_with_gerttensor) {
     op_desc->AddOutputDesc(tensor);
     op_desc->SetInputOffset({0});
     op_desc->SetOutputOffset({0});
-    NodePtr node = graph->AddNode(op_desc);    // op_index = 0
+    NodePtr node = graph->AddNode(op_desc);  // op_index = 0
   }
   {
     OpDescPtr op_desc = CreateOpDesc("batch", DATA);
@@ -3320,7 +3335,7 @@ TEST_F(UtestDavinciModel, NnExecute_multi_batch_with_gerttensor) {
     op_desc->AddOutputDesc(tensor);
     op_desc->SetInputOffset({0});
     op_desc->SetOutputOffset({0});
-    NodePtr node = graph->AddNode(op_desc);    // op_index = 0
+    NodePtr node = graph->AddNode(op_desc);  // op_index = 0
   }
   {
     OpDescPtr op_desc = CreateOpDesc("memcpy", MEMCPYASYNC);
@@ -3346,8 +3361,8 @@ TEST_F(UtestDavinciModel, NnExecute_multi_batch_with_gerttensor) {
     OpDescPtr op_desc = CreateOpDesc("output", NETOUTPUT);
     op_desc->AddInputDesc(tensor);
     op_desc->SetInputOffset({2048});
-    op_desc->SetSrcName( { "memcpy" } );
-    op_desc->SetSrcIndex( { 0 } );
+    op_desc->SetSrcName({"memcpy"});
+    op_desc->SetSrcIndex({0});
     NodePtr node = graph->AddNode(op_desc);  // op_index = 3
   }
 
@@ -3366,23 +3381,23 @@ TEST_F(UtestDavinciModel, NnExecute_multi_batch_with_gerttensor) {
   output_tensor.resize(1);
   input_tensor.resize(2);
   unique_ptr<uint8_t[]> data_buf_1(new (std::nothrow) uint8_t[512]);
-  input_tensor[0] = {{{1,4,4,8}, {1,4,4,8}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            gert::kOnDeviceHbm,                                // placement
-                            ge::DT_INT32,                              // data type
-                            (void *) data_buf_1.get()};
+  input_tensor[0] = {{{1, 4, 4, 8}, {1, 4, 4, 8}},                // shape
+                     {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                     gert::kOnDeviceHbm,                          // placement
+                     ge::DT_INT32,                                // data type
+                     (void *)data_buf_1.get()};
   unique_ptr<uint8_t[]> data_buf_2(new (std::nothrow) uint8_t[512]);
-  input_tensor[1] = {{{1,4,4,8}, {1,4,4,8}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            gert::kOnDeviceHbm,                                // placement
-                            ge::DT_INT32,                              // data type
-                            (void *) data_buf_2.get()};
+  input_tensor[1] = {{{1, 4, 4, 8}, {1, 4, 4, 8}},                // shape
+                     {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                     gert::kOnDeviceHbm,                          // placement
+                     ge::DT_INT32,                                // data type
+                     (void *)data_buf_2.get()};
   unique_ptr<uint8_t[]> data_buf_3(new (std::nothrow) uint8_t[512]);
-  output_tensor[0] = {{{1,4,4,8}, {1,4,4,8}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            gert::kOnDeviceHbm,                                // placement
-                            ge::DT_INT32,                              // data type
-                            (void *) data_buf_3.get()};
+  output_tensor[0] = {{{1, 4, 4, 8}, {1, 4, 4, 8}},                // shape
+                      {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                      gert::kOnDeviceHbm,                          // placement
+                      ge::DT_INT32,                                // data type
+                      (void *)data_buf_3.get()};
   EXPECT_EQ(model.NnExecute(stream, true, input_tensor, output_tensor), INTERNAL_ERROR);
 
   std::vector<gert::Tensor> outputs;
@@ -3390,7 +3405,7 @@ TEST_F(UtestDavinciModel, NnExecute_multi_batch_with_gerttensor) {
   EXPECT_EQ(output_data.blobs.size(), 1);
   EXPECT_EQ(output_data.blobs[0].length, 512);
   EXPECT_EQ(outputs.size(), 1);
-  output_data.blobs[0].placement = 0; // dev mem
+  output_data.blobs[0].placement = 0;  // dev mem
   input_data.blobs = output_data.blobs;
   EXPECT_EQ(input_data.blobs.size(), 1);
 
@@ -3426,14 +3441,12 @@ TEST_F(UtestDavinciModel, NnExecute_multi_batch_with_gerttensor) {
   model.logical_mem_allocations_.emplace_back(mem_allocation0);
   model.logical_mem_allocations_.emplace_back(mem_allocation1);
 
-  EXPECT_EQ(model.UpdateAllNodeArgs(input_data, output_data,
-            input_tensor, output_tensor), SUCCESS);
+  EXPECT_EQ(model.UpdateAllNodeArgs(input_data, output_data, input_tensor, output_tensor), SUCCESS);
   model.input_index_to_allocation_ids_.clear();
   model.input_index_to_allocation_ids_.emplace_back(0);
   model.output_index_to_allocation_ids_.clear();
   model.output_index_to_allocation_ids_.emplace_back(0);
-  EXPECT_EQ(model.UpdateAllNodeArgs(input_data, output_data,
-            input_tensor, output_tensor), SUCCESS);
+  EXPECT_EQ(model.UpdateAllNodeArgs(input_data, output_data, input_tensor, output_tensor), SUCCESS);
 
   InputData input_data_kHost;
   OutputData output_data_kHost;
@@ -3454,23 +3467,21 @@ TEST_F(UtestDavinciModel, NnExecute_multi_batch_with_gerttensor) {
 
   input_data_kHost.blobs.emplace_back(input_datas_1);
   output_data_kHost.blobs.emplace_back(output_datas);
-  output_data_kHost.blobs[0].placement = 0; // host mem
-  input_data_kHost.blobs[0].placement = 0; // host mem
+  output_data_kHost.blobs[0].placement = 0;  // host mem
+  input_data_kHost.blobs[0].placement = 0;   // host mem
   model.output_indexes_to_copy_info_.clear();
   model.input_indexes_to_copy_info_.clear();
   model.output_indexes_to_copy_info_.emplace(0, mem_allocation_slice);
   model.input_indexes_to_copy_info_.emplace(0, mem_allocation_slice);
-  EXPECT_EQ(model.UpdateAllNodeArgs(input_data_kHost, output_data_kHost,
-            input_tensor, output_tensor), SUCCESS);
+  EXPECT_EQ(model.UpdateAllNodeArgs(input_data_kHost, output_data_kHost, input_tensor, output_tensor), SUCCESS);
   std::vector<GeTensor> input_ge_tensor;
   std::vector<GeTensor> output_ge_tensor;
-  model.refreshable_input_index_and_allocation_ids_.emplace_back(std::make_pair(0,0));
-  model.refreshable_output_index_and_allocation_ids_.emplace_back(std::make_pair(0,1));
+  model.refreshable_input_index_and_allocation_ids_.emplace_back(std::make_pair(0, 0));
+  model.refreshable_output_index_and_allocation_ids_.emplace_back(std::make_pair(0, 1));
   // EXPECT_EQ(model.UpdateAllNodeArgsByAddrRefreshOp(input_data_kHost, output_data_kHost,
   //           input_ge_tensor, output_ge_tensor), 1343225857);
   input_data_kHost.blobs.emplace_back(input_datas);
-  EXPECT_NE(model.UpdateAllNodeArgs(input_data_kHost, output_data_kHost,
-            input_tensor, output_tensor), SUCCESS);
+  EXPECT_NE(model.UpdateAllNodeArgs(input_data_kHost, output_data_kHost, input_tensor, output_tensor), SUCCESS);
 }
 
 TEST_F(UtestDavinciModel, UpdateAllNodeArgs_with_frozen_input) {
@@ -3486,7 +3497,7 @@ TEST_F(UtestDavinciModel, UpdateAllNodeArgs_with_frozen_input) {
   shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   ge_model->SetModelTaskDef(model_task_def);
 
-  GeTensorDesc tensor(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT); // sizeof(float) * 1 * 4 * 4 * 8 = 512
+  GeTensorDesc tensor(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);  // sizeof(float) * 1 * 4 * 4 * 8 = 512
   TensorUtils::SetSize(tensor, 512);
   {
     OpDescPtr op_desc = CreateOpDesc("data", DATA);
@@ -3496,7 +3507,7 @@ TEST_F(UtestDavinciModel, UpdateAllNodeArgs_with_frozen_input) {
     op_desc->AddOutputDesc(tensor);
     op_desc->SetInputOffset({0});
     op_desc->SetOutputOffset({0});
-    NodePtr node = graph->AddNode(op_desc);    // op_index = 0
+    NodePtr node = graph->AddNode(op_desc);  // op_index = 0
   }
   {
     OpDescPtr op_desc = CreateOpDesc("batch", DATA);
@@ -3504,7 +3515,7 @@ TEST_F(UtestDavinciModel, UpdateAllNodeArgs_with_frozen_input) {
     op_desc->AddOutputDesc(tensor);
     op_desc->SetInputOffset({0});
     op_desc->SetOutputOffset({0});
-    NodePtr node = graph->AddNode(op_desc);    // op_index = 0
+    NodePtr node = graph->AddNode(op_desc);  // op_index = 0
   }
   {
     OpDescPtr op_desc = CreateOpDesc("memcpy", MEMCPYASYNC);
@@ -3530,11 +3541,11 @@ TEST_F(UtestDavinciModel, UpdateAllNodeArgs_with_frozen_input) {
     OpDescPtr op_desc = CreateOpDesc("output", NETOUTPUT);
     op_desc->AddInputDesc(tensor);
     op_desc->SetInputOffset({2048});
-    op_desc->SetSrcName( { "memcpy" } );
-    op_desc->SetSrcIndex( { 0 } );
+    op_desc->SetSrcName({"memcpy"});
+    op_desc->SetSrcIndex({0});
     NodePtr node = graph->AddNode(op_desc);  // op_index = 3
   }
-  dlog_setlevel(0,0,0);
+  dlog_setlevel(0, 0, 0);
   model.Assign(ge_model);
   EXPECT_EQ(model.Init(), SUCCESS);
   InputData input_data;
@@ -3547,17 +3558,17 @@ TEST_F(UtestDavinciModel, UpdateAllNodeArgs_with_frozen_input) {
   output_tensor.resize(1);
   input_tensor.resize(1);
   unique_ptr<uint8_t[]> data_buf_1(new (std::nothrow) uint8_t[512]);
-  input_tensor[0] = {{{1,4,4,8}, {1,4,4,8}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            gert::kOnDeviceHbm,                                // placement
-                            ge::DT_INT32,                              // data type
-                            (void *) data_buf_1.get()};
+  input_tensor[0] = {{{1, 4, 4, 8}, {1, 4, 4, 8}},                // shape
+                     {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                     gert::kOnDeviceHbm,                          // placement
+                     ge::DT_INT32,                                // data type
+                     (void *)data_buf_1.get()};
   unique_ptr<uint8_t[]> data_buf_3(new (std::nothrow) uint8_t[512]);
-  output_tensor[0] = {{{1,4,4,8}, {1,4,4,8}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            gert::kOnDeviceHbm,                                // placement
-                            ge::DT_INT32,                              // data type
-                            (void *) data_buf_3.get()};
+  output_tensor[0] = {{{1, 4, 4, 8}, {1, 4, 4, 8}},                // shape
+                      {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                      gert::kOnDeviceHbm,                          // placement
+                      ge::DT_INT32,                                // data type
+                      (void *)data_buf_3.get()};
 
   MemAllocationSlice mem_allocation_slice;
   mem_allocation_slice.id = 0;
@@ -3574,10 +3585,9 @@ TEST_F(UtestDavinciModel, UpdateAllNodeArgs_with_frozen_input) {
 
   unordered_set<uint32_t> frozen_input_indexes;
   frozen_input_indexes.insert(0);
-  model.refreshable_input_index_and_allocation_ids_.emplace_back(std::make_pair(0,0));
+  model.refreshable_input_index_and_allocation_ids_.emplace_back(std::make_pair(0, 0));
   EXPECT_EQ(model.zero_copy_input_indexes_no_frozen_.size(), 0);
   EXPECT_EQ(model.refreshable_input_index_no_frozen_and_allocation_ids_.size(), 0);
-
 
   MemAllocation mem_allocation0 = {};
   mem_allocation0.data_size = 512;
@@ -3590,21 +3600,24 @@ TEST_F(UtestDavinciModel, UpdateAllNodeArgs_with_frozen_input) {
   auto id_to_up = model.args_manager_.GetId2Policy();
 
   model.refreshable_input_index_and_allocation_ids_.clear();
-  model.refreshable_input_index_and_allocation_ids_.emplace_back(std::make_pair(0,1));
+  model.refreshable_input_index_and_allocation_ids_.emplace_back(std::make_pair(0, 1));
   model.input_index_to_active_mem_base_addrs_[0] = PtrToValue(input_tensor[0].GetAddr());
   model.output_index_to_active_mem_base_addrs_[0] = PtrToValue(output_tensor[0].GetAddr());
-  EXPECT_EQ(model.ConstructZeroCopyIoActiveBaseAddrs(model.refreshable_input_index_and_allocation_ids_,
-                                           {}, input_tensor, true, ret_up, id_to_up), SUCCESS);
-  input_tensor[0] = {{{1,4,4,8}, {1,4,4,8}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            gert::kOnHost,                                // placement
-                            ge::DT_INT32,                              // data type
-                            (void *) data_buf_1.get()};
+  EXPECT_EQ(model.ConstructZeroCopyIoActiveBaseAddrs(model.refreshable_input_index_and_allocation_ids_, {},
+                                                     input_tensor, true, ret_up, id_to_up),
+            SUCCESS);
+  input_tensor[0] = {{{1, 4, 4, 8}, {1, 4, 4, 8}},                // shape
+                     {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                     gert::kOnHost,                               // placement
+                     ge::DT_INT32,                                // data type
+                     (void *)data_buf_1.get()};
   model.allocation_ids_to_active_base_addr_[1] = 0x1;
-  EXPECT_EQ(model.ConstructZeroCopyIoActiveBaseAddrs(model.refreshable_input_index_and_allocation_ids_,
-                                           {}, input_tensor, true, ret_up, id_to_up), SUCCESS);
+  EXPECT_EQ(model.ConstructZeroCopyIoActiveBaseAddrs(model.refreshable_input_index_and_allocation_ids_, {},
+                                                     input_tensor, true, ret_up, id_to_up),
+            SUCCESS);
   EXPECT_EQ(model.ConstructActiveMemBaseAddrsForKnownNode(ret_up, model.input_index_to_active_mem_base_addrs_,
-                                              model.output_index_to_active_mem_base_addrs_), SUCCESS);
+                                                          model.output_index_to_active_mem_base_addrs_),
+            SUCCESS);
 
   model.input_index_to_allocation_ids_.clear();
   model.input_index_to_allocation_ids_.emplace_back(0);
@@ -3614,24 +3627,28 @@ TEST_F(UtestDavinciModel, UpdateAllNodeArgs_with_frozen_input) {
 
   model.input_index_to_active_mem_base_addrs_[0] = 0x1234;
   EXPECT_EQ(model.ConstructActiveMemBaseAddrsForKnownNode(ret_up, model.input_index_to_active_mem_base_addrs_,
-                                              model.output_index_to_active_mem_base_addrs_), SUCCESS);
+                                                          model.output_index_to_active_mem_base_addrs_),
+            SUCCESS);
   EXPECT_EQ(model.allocation_ids_to_active_base_addr_[1], 0x1234);
 
   model.input_index_to_active_mem_base_addrs_[0] = 0x4321;
   model.is_first_time_model_execute_ = true;
   EXPECT_EQ(model.ConstructActiveMemBaseAddrsForKnownNode(ret_up, model.input_index_to_active_mem_base_addrs_,
-                                              model.output_index_to_active_mem_base_addrs_), SUCCESS);
+                                                          model.output_index_to_active_mem_base_addrs_),
+            SUCCESS);
   // 只刷新了fm，不刷新input，frozen生效
   // 先规避，后续更新用例
   EXPECT_EQ(model.allocation_ids_to_active_base_addr_[0], 0);
 
   model.input_index_to_active_mem_base_addrs_[0] = 0x1234;
   EXPECT_EQ(model.ConstructActiveMemBaseAddrsForKnownNode(ret_up, model.input_index_to_active_mem_base_addrs_,
-                                              model.output_index_to_active_mem_base_addrs_), SUCCESS);
+                                                          model.output_index_to_active_mem_base_addrs_),
+            SUCCESS);
   EXPECT_EQ(model.allocation_ids_to_active_base_addr_[1], 0x1234);
   model.allocation_ids_to_active_base_addr_[0] = 0x1234;
   EXPECT_EQ(model.ConstructActiveMemBaseAddrsForKnownNode(ret_up, model.input_index_to_active_mem_base_addrs_,
-                                              model.output_index_to_active_mem_base_addrs_), SUCCESS);
+                                                          model.output_index_to_active_mem_base_addrs_),
+            SUCCESS);
   EXPECT_EQ(model.allocation_ids_to_active_base_addr_[0], 0);
 }
 
@@ -3648,7 +3665,7 @@ TEST_F(UtestDavinciModel, UpdateAllNodeArgs_with_GeTensor) {
   shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   ge_model->SetModelTaskDef(model_task_def);
 
-  GeTensorDesc tensor(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT); // sizeof(float) * 1 * 4 * 4 * 8 = 512
+  GeTensorDesc tensor(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);  // sizeof(float) * 1 * 4 * 4 * 8 = 512
   TensorUtils::SetSize(tensor, 512);
   {
     OpDescPtr op_desc = CreateOpDesc("data", DATA);
@@ -3658,7 +3675,7 @@ TEST_F(UtestDavinciModel, UpdateAllNodeArgs_with_GeTensor) {
     op_desc->AddOutputDesc(tensor);
     op_desc->SetInputOffset({0});
     op_desc->SetOutputOffset({0});
-    NodePtr node = graph->AddNode(op_desc);    // op_index = 0
+    NodePtr node = graph->AddNode(op_desc);  // op_index = 0
   }
   {
     OpDescPtr op_desc = CreateOpDesc("batch", DATA);
@@ -3666,7 +3683,7 @@ TEST_F(UtestDavinciModel, UpdateAllNodeArgs_with_GeTensor) {
     op_desc->AddOutputDesc(tensor);
     op_desc->SetInputOffset({0});
     op_desc->SetOutputOffset({0});
-    NodePtr node = graph->AddNode(op_desc);    // op_index = 0
+    NodePtr node = graph->AddNode(op_desc);  // op_index = 0
   }
   {
     OpDescPtr op_desc = CreateOpDesc("memcpy", MEMCPYASYNC);
@@ -3692,38 +3709,37 @@ TEST_F(UtestDavinciModel, UpdateAllNodeArgs_with_GeTensor) {
     OpDescPtr op_desc = CreateOpDesc("output", NETOUTPUT);
     op_desc->AddInputDesc(tensor);
     op_desc->SetInputOffset({2048});
-    op_desc->SetSrcName( { "memcpy" } );
-    op_desc->SetSrcIndex( { 0 } );
+    op_desc->SetSrcName({"memcpy"});
+    op_desc->SetSrcIndex({0});
     NodePtr node = graph->AddNode(op_desc);  // op_index = 3
   }
-  dlog_setlevel(0,0,0);
+  dlog_setlevel(0, 0, 0);
   model.Assign(ge_model);
   EXPECT_EQ(model.Init(), SUCCESS);
 
   model.is_online_infer_dynamic_ = true;
   model.is_getnext_sink_dynamic_ = false;
-  GeTensorDesc tensor_output(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor_output(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
   std::vector<GeTensor> ge_outputs;
   GeTensor ge_output_tensor;
   ge_output_tensor.SetTensorDesc(tensor_output);
   ge_outputs.emplace_back(ge_output_tensor);
 
-  GeTensorDesc tensor_input(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor_input(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
   std::vector<GeTensor> ge_inputs;
   GeTensor ge_input_tensor;
   ge_input_tensor.SetTensorDesc(tensor_input);
   ge_inputs.emplace_back(ge_input_tensor);
 
-  GeTensorDesc tensor_input1(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor_input1(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
   GeTensor ge_input_tensor1;
   ge_input_tensor1.SetTensorDesc(tensor_input1);
   ge_inputs.emplace_back(ge_input_tensor1);
 
   model.allocation_ids_to_active_base_addr_[0] = 0x1234;
   model.allocation_ids_to_active_base_addr_[1] = 0x1234;
-  model.refreshable_input_index_and_allocation_ids_.emplace_back(std::make_pair(1,1));
-  EXPECT_EQ(model.UpdateAllNodeArgs({}, {},
-            ge_inputs, ge_outputs), SUCCESS);
+  model.refreshable_input_index_and_allocation_ids_.emplace_back(std::make_pair(1, 1));
+  EXPECT_EQ(model.UpdateAllNodeArgs({}, {}, ge_inputs, ge_outputs), SUCCESS);
 
   InputData input_data;
   OutputData output_data;
@@ -3732,10 +3748,9 @@ TEST_F(UtestDavinciModel, UpdateAllNodeArgs_with_GeTensor) {
   input_data.blobs[0].placement = kPlacementHost;
   input_data.blobs[1].placement = kPlacementHost;
   model.allocation_ids_to_active_base_addr_[1] = 0x1234;
-  model.refreshable_input_index_and_allocation_ids_.emplace_back(std::make_pair(1,1));
-  EXPECT_EQ(model.UpdateAllNodeArgs(input_data, output_data,
-            ge_inputs, ge_outputs), SUCCESS);
-  dlog_setlevel(0,3,0);
+  model.refreshable_input_index_and_allocation_ids_.emplace_back(std::make_pair(1, 1));
+  EXPECT_EQ(model.UpdateAllNodeArgs(input_data, output_data, ge_inputs, ge_outputs), SUCCESS);
+  dlog_setlevel(0, 3, 0);
 }
 
 TEST_F(UtestDavinciModel, test_GetGeTensorBlobs) {
@@ -3827,7 +3842,6 @@ TEST_F(UtestDavinciModel, InitAddrRefreshKernelBin_Test) {
   std::map<std::string, std::string> graph_options;
   graph_options.emplace(make_pair(ge::SOC_VERSION, soc_version));
 
-
   EXPECT_EQ(model.InitAddrRefreshKernelBin(), SUCCESS);
 
   char *path = (char *)lib_path.c_str();
@@ -3842,9 +3856,9 @@ TEST_F(UtestDavinciModel, InitAddrRefreshKernelBin_Test) {
   EXPECT_EQ(model.InitAddrRefreshKernelBin(), SUCCESS);
   setenv("LD_LIBRARY_PATH", path_cann, 1);
   std::string save_path_cann = lib_path_cann + "/UpdateModelParam_dav_2201.o";
-    DEF_GRAPH(g2) {
-      CHAIN(NODE("cons2", "Const")->NODE("add2", "Add")->NODE("NetOutput", "NetOutput"));
-    };
+  DEF_GRAPH(g2) {
+    CHAIN(NODE("cons2", "Const")->NODE("add2", "Add")->NODE("NetOutput", "NetOutput"));
+  };
   ge::Graph graph_to_file_cann = ToGeGraph(g2);
   graph_to_file_cann.SaveToFile(save_path_cann.c_str());
   EXPECT_EQ(model.Init(), SUCCESS);
@@ -3858,8 +3872,8 @@ TEST_F(UtestDavinciModel, InitAddrRefreshKernelBin_Test) {
   setenv("LD_LIBRARY_PATH", path, 1);
   std::string save_path = lib_path + "/UpdateModelParam_dav_2201.o";
   DEF_GRAPH(g1) {
-      CHAIN(NODE("cons1", "Const")->NODE("add1", "Add")->NODE("NetOutput", "NetOutput"));
-    };
+    CHAIN(NODE("cons1", "Const")->NODE("add1", "Add")->NODE("NetOutput", "NetOutput"));
+  };
   ge::Graph graph_to_file = ToGeGraph(g1);
   graph_to_file.SaveToFile(save_path.c_str());
   EXPECT_EQ(model.InitAddrRefreshKernelBin(), SUCCESS);
@@ -3934,15 +3948,15 @@ TEST_F(UtestDavinciModel, InitAddrRefreshKernelBin_Test_OverflowDump_Enabled) {
   setenv("LD_LIBRARY_PATH", path, 1);
   std::string save_path = lib_path + "/UpdateModelParam_dav_2201.o";
   DEF_GRAPH(g1) {
-      CHAIN(NODE("cons1", "Const")->NODE("add1", "Add")->NODE("NetOutput", "NetOutput"));
-    };
+    CHAIN(NODE("cons1", "Const")->NODE("add1", "Add")->NODE("NetOutput", "NetOutput"));
+  };
   ge::Graph graph_to_file = ToGeGraph(g1);
   graph_to_file.SaveToFile(save_path.c_str());
 
   gert::GlobalDumper::GetInstance()->SetEnableFlags(
-  gert::BuiltInSubscriberUtil::BuildEnableFlags<gert::DumpType>({gert::DumpType::kOverflowDump}));
+      gert::BuiltInSubscriberUtil::BuildEnableFlags<gert::DumpType>({gert::DumpType::kOverflowDump}));
   EXPECT_EQ(model.Init(), SUCCESS);
-  //EXPECT_EQ(model.InitAddrRefreshKernelBin(), SUCCESS);
+  // EXPECT_EQ(model.InitAddrRefreshKernelBin(), SUCCESS);
   EXPECT_EQ(model.args_manager_.func_handle_, nullptr);
   gert::GlobalDumper::GetInstance()->SetEnableFlags(0);
   dlog_setlevel(0, 3, 0);
@@ -3962,11 +3976,11 @@ TEST_F(UtestDavinciModel, test_GetGeTensorBlobsWithGertTensor) {
   std::vector<gert::Tensor> output_tensor;
   output_tensor.resize(1);
   std::vector<uint8_t> output_data_1(96, 0xFF);
-  output_tensor[0] = {{{1,4,4,8}, {1,4,4,8}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            gert::kOnDeviceHbm,                                // placement
-                            ge::DT_INT32,                              // data type
-                            (void *) output_data_1.data()};
+  output_tensor[0] = {{{1, 4, 4, 8}, {1, 4, 4, 8}},                // shape
+                      {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                      gert::kOnDeviceHbm,                          // placement
+                      ge::DT_INT32,                                // data type
+                      (void *)output_data_1.data()};
 
   InputData result_data;
   model.GetGeTensorBlobs(result_data, output_tensor);
@@ -3978,7 +3992,7 @@ TEST_F(UtestDavinciModel, test_GetGeTensorBlobsWithGertTensor) {
 }
 
 TEST_F(UtestDavinciModel, update_output_getensor_success) {
-  GeTensorDesc tensor(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
   std::vector<GeTensor> ge_outputs;
   GeTensor ge_tensor;
   ge_tensor.SetTensorDesc(tensor);
@@ -3988,20 +4002,20 @@ TEST_F(UtestDavinciModel, update_output_getensor_success) {
   model.UpdateOutputTensorShape(ge_outputs);
   EXPECT_EQ(ge_outputs[0].GetTensorDesc().GetShape().GetDim(0), 1);
 
-  GeTensorDesc tensor_desc(GeShape({8,2,2,2}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor_desc(GeShape({8, 2, 2, 2}), FORMAT_NCHW, DT_FLOAT);
   GeTensor ge_tensor1;
   ge_tensor1.SetTensorDesc(tensor_desc);
   ge_outputs.emplace_back(ge_tensor1);
 
   model.is_online_infer_dynamic_ = true;
   map<vector<int32_t>, vector<int64_t>> batch_2_dims;
-  model.cur_dynamic_dims_ = {2,4,4,8};
-  batch_2_dims[model.cur_dynamic_dims_] = {2,4,4,8};
+  model.cur_dynamic_dims_ = {2, 4, 4, 8};
+  batch_2_dims[model.cur_dynamic_dims_] = {2, 4, 4, 8};
   model.merge_nodes_gear_and_real_out_shape_info_[0] = batch_2_dims;
 
   // output 1 is notiling
   model.output_no_tiling_flag_ = {false, true};
-  model.output_shape_info_ = {GeShape({1,4,4,8}), GeShape({4,2,2,2})};
+  model.output_shape_info_ = {GeShape({1, 4, 4, 8}), GeShape({4, 2, 2, 2})};
   model.UpdateOutputTensorShape(ge_outputs);
   EXPECT_EQ(ge_outputs[0].GetTensorDesc().GetShape().GetDim(0), 2);
   EXPECT_EQ(ge_outputs[1].GetTensorDesc().GetShape().GetDim(0), 4);
@@ -4011,11 +4025,11 @@ TEST_F(UtestDavinciModel, update_output_gerttensor_success) {
   std::vector<gert::Tensor> ge_outputs;
   std::vector<uint8_t> output_data_1(96, 0xFF);
   ge_outputs.resize(1);
-  ge_outputs[0] = {{{1,2,3,4}, {1,2,3,4}},                // shape
-                             {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                             gert::kOnDeviceHbm,                                // placement
-                             ge::DT_FLOAT,                              // data type
-                             (void *) output_data_1.data()};
+  ge_outputs[0] = {{{1, 2, 3, 4}, {1, 2, 3, 4}},                // shape
+                   {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                   gert::kOnDeviceHbm,                          // placement
+                   ge::DT_FLOAT,                                // data type
+                   (void *)output_data_1.data()};
 
   DavinciModel model(0, nullptr);
   model.UpdateOutputTensorShape(ge_outputs);
@@ -4024,26 +4038,26 @@ TEST_F(UtestDavinciModel, update_output_gerttensor_success) {
   std::vector<gert::Tensor> ge_outputs_2;
   std::vector<uint8_t> output_data_2(96, 0xFF);
   ge_outputs_2.resize(2);
-  ge_outputs_2[0] = {{{1,4,4,8}, {1,4,4,8}},                // shape
-                             {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                             gert::kOnDeviceHbm,                                // placement
-                             ge::DT_FLOAT,                              // data type
-                             (void *) output_data_1.data()};
-  ge_outputs_2[1] = {{{8,2,2,2}, {8,2,2,2}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            gert::kOnDeviceHbm,                                // placement
-                            ge::DT_FLOAT,                              // data type
-                            (void *) output_data_2.data()};
+  ge_outputs_2[0] = {{{1, 4, 4, 8}, {1, 4, 4, 8}},                // shape
+                     {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                     gert::kOnDeviceHbm,                          // placement
+                     ge::DT_FLOAT,                                // data type
+                     (void *)output_data_1.data()};
+  ge_outputs_2[1] = {{{8, 2, 2, 2}, {8, 2, 2, 2}},                // shape
+                     {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                     gert::kOnDeviceHbm,                          // placement
+                     ge::DT_FLOAT,                                // data type
+                     (void *)output_data_2.data()};
 
   model.is_online_infer_dynamic_ = true;
   map<vector<int32_t>, vector<int64_t>> batch_2_dims;
-  model.cur_dynamic_dims_ = {2,4,4,8};
-  batch_2_dims[model.cur_dynamic_dims_] = {2,4,4,8};
+  model.cur_dynamic_dims_ = {2, 4, 4, 8};
+  batch_2_dims[model.cur_dynamic_dims_] = {2, 4, 4, 8};
   model.merge_nodes_gear_and_real_out_shape_info_[0] = batch_2_dims;
 
   // output 1 is notiling
   model.output_no_tiling_flag_ = {false, true};
-  model.output_shape_info_ = {GeShape({1,4,4,8}), GeShape({4,2,2,2})};
+  model.output_shape_info_ = {GeShape({1, 4, 4, 8}), GeShape({4, 2, 2, 2})};
   model.UpdateOutputTensorShape(ge_outputs_2);
   EXPECT_EQ(ge_outputs_2[0].GetStorageShape().GetDim(0), 2);
   EXPECT_EQ(ge_outputs_2[1].GetStorageShape().GetDim(0), 4);
@@ -4053,7 +4067,7 @@ TEST_F(UtestDavinciModel, update_io_addr_success) {
   DavinciModel model(0, nullptr);
   uint32_t task_id = 1;
   uint32_t stream_id = 2;
-  model.fixed_mem_base_  = 0x22;
+  model.fixed_mem_base_ = 0x22;
   model.mem_base_ = reinterpret_cast<uintptr_t>(&task_id);
   OpDescInfo op_desc_info;
   op_desc_info.op_name = "Save";
@@ -4146,14 +4160,14 @@ TEST_F(UtestDavinciModel, run_with_task) {
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
   TaskInfoPtr task_info = MakeShared<ProfilerTraceTaskInfo>();
   model.task_list_.push_back(task_info);
   model.has_output_node_ = true;
   OpDescPtr op_desc = std::make_shared<OpDesc>("test", "test");
   std::vector<int64_t> input_offset;
   input_offset.emplace_back(0);
-  GeTensorDesc tensor(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
   op_desc->AddInputDesc(tensor);
   op_desc->SetInputOffset(input_offset);
   model.InitOutputTensorInfo(op_desc);
@@ -4185,14 +4199,14 @@ TEST_F(UtestDavinciModel, RunWithTask_GertTensor) {
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
   TaskInfoPtr task_info = MakeShared<ProfilerTraceTaskInfo>();
   model.task_list_.push_back(task_info);
   model.has_output_node_ = true;
   OpDescPtr op_desc = std::make_shared<OpDesc>("test", "test");
   std::vector<int64_t> input_offset;
   input_offset.emplace_back(0);
-  GeTensorDesc tensor(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
   op_desc->AddInputDesc(tensor);
   op_desc->SetInputOffset(input_offset);
   model.InitOutputTensorInfo(op_desc);
@@ -4223,20 +4237,20 @@ TEST_F(UtestDavinciModel, run_with_task_UpdateForExecute_failed) {
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
   TaskInfoPtr task_info = MakeShared<ProfilerTraceTaskInfo>();
   model.task_list_.push_back(task_info);
   model.has_output_node_ = true;
   OpDescPtr op_desc = std::make_shared<OpDesc>("test", "test");
   std::vector<int64_t> input_offset;
   input_offset.emplace_back(0);
-  GeTensorDesc tensor(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
   op_desc->AddInputDesc(tensor);
   op_desc->SetInputOffset(input_offset);
   model.InitOutputTensorInfo(op_desc);
 
   model.args_manager_.update_policies_to_model_data_[3] = nullptr;
-  model.args_manager_.has_args_ =true;
+  model.args_manager_.has_args_ = true;
   EXPECT_EQ(model.ModelRunStart(), SUCCESS);
   sleep(1);
   EXPECT_EQ(model.ModelRunStop(), SUCCESS);
@@ -4261,7 +4275,7 @@ TEST_F(UtestDavinciModel, run_with_task_MallocPhysicalMemory_fail) {
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
   TaskInfoPtr task_info = MakeShared<ProfilerTraceTaskInfo>();
   model.task_list_.push_back(task_info);
   model.is_online_infer_dynamic_ = true;
@@ -4269,11 +4283,11 @@ TEST_F(UtestDavinciModel, run_with_task_MallocPhysicalMemory_fail) {
 
   // 构造MallocPhysicalMemory失败
   model.is_first_execute_ = false;
-  model.active_memorys_.push_back(std::make_pair(reinterpret_cast<uint8_t *>(110),20));
+  model.active_memorys_.push_back(std::make_pair(reinterpret_cast<uint8_t *>(110), 20));
   auto mem_allocator =
       SessionMemAllocator<ActiveMemoryAllocator>::Instance().GetMemAllocator(model.session_id_, model.GetDeviceId());
   mem_allocator->expandable_memory_allocator_.active_memory_allocator_.virtual_memory_addr_base_ =
-    reinterpret_cast<uint8_t *>(100);
+      reinterpret_cast<uint8_t *>(100);
   mem_allocator->expandable_memory_allocator_.active_memory_allocator_.virtual_memory_size_ = 50;
   mem_allocator->expandable_memory_allocator_.active_memory_allocator_.vapa_check_failed_ = true;
   EXPECT_EQ(model.ModelRunStart(), SUCCESS);
@@ -4281,7 +4295,7 @@ TEST_F(UtestDavinciModel, run_with_task_MallocPhysicalMemory_fail) {
   EXPECT_EQ(model.ModelRunStop(), SUCCESS);
   EXPECT_TRUE(listener->complete_flag_);
   mem_allocator->expandable_memory_allocator_.active_memory_allocator_.virtual_memory_addr_base_ =
-    reinterpret_cast<uint8_t *>(0);
+      reinterpret_cast<uint8_t *>(0);
   mem_allocator->expandable_memory_allocator_.active_memory_allocator_.virtual_memory_size_ = 0;
   mem_allocator->expandable_memory_allocator_.active_memory_allocator_.vapa_check_failed_ = false;
 }
@@ -4300,7 +4314,7 @@ TEST_F(UtestDavinciModel, run_with_task_handle_input_data_fail) {
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
   TaskInfoPtr task_info = MakeShared<ProfilerTraceTaskInfo>();
   model.task_list_.push_back(task_info);
   model.is_online_infer_dynamic_ = true;
@@ -4312,7 +4326,7 @@ TEST_F(UtestDavinciModel, run_with_task_handle_input_data_fail) {
 
 TEST_F(UtestDavinciModel, NoNeedToCopyInputOutputWithGertTensor) {
   OutputData data;
-  dlog_setlevel(0,0,0);
+  dlog_setlevel(0, 0, 0);
   data.blobs.emplace_back(DataBuffer());
   DavinciModel davinci_model(0, nullptr);
   MemAllocationSlice mem_allocation_slice;
@@ -4322,33 +4336,34 @@ TEST_F(UtestDavinciModel, NoNeedToCopyInputOutputWithGertTensor) {
   davinci_model.output_indexes_to_copy_info_.emplace(0, mem_allocation_slice);
   davinci_model.input_indexes_to_copy_info_.emplace(0, mem_allocation_slice);
   davinci_model.output_no_tiling_flag_ = {false};
-  davinci_model.output_shape_info_ = {GeShape({1,4,4,8})};
+  davinci_model.output_shape_info_ = {GeShape({1, 4, 4, 8})};
   davinci_model.has_output_node_ = true;
   std::vector<gert::Tensor> tensor;
   tensor.resize(1);
   tensor[0] = {{{1, 16, 256}, {1, 16, 256}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            gert::kOnDeviceHbm,                                // placement
-                            ge::DT_FLOAT16,                              // data type
-                            (void *) 0xabc};
+               {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+               gert::kOnDeviceHbm,                          // placement
+               ge::DT_FLOAT16,                              // data type
+               (void *)0xabc};
   EXPECT_EQ(davinci_model.CopyOutputData(tensor), SUCCESS);
-  std::vector<DataBuffer> input_data {DataBuffer()};
-  EXPECT_EQ(davinci_model.CopyInputForNoZeroCopy(input_data, davinci_model.input_indexes_to_copy_info_, tensor), SUCCESS);
+  std::vector<DataBuffer> input_data{DataBuffer()};
+  EXPECT_EQ(davinci_model.CopyInputForNoZeroCopy(input_data, davinci_model.input_indexes_to_copy_info_, tensor),
+            SUCCESS);
   davinci_model.is_async_mode_ = true;
   EXPECT_EQ(davinci_model.CopyOutputData(tensor), SUCCESS);
   davinci_model.has_output_node_ = false;
   EXPECT_EQ(davinci_model.CopyOutputData(tensor), SUCCESS);
-  davinci_model.host_pls_output_indexes_to_copy_info_[0] = {0, 0U, 16*256};
+  davinci_model.host_pls_output_indexes_to_copy_info_[0] = {0, 0U, 16 * 256};
   davinci_model.has_output_node_ = true;
   EXPECT_NE(davinci_model.CopyOutputData(tensor), SUCCESS);
 
   uint8_t args1[70] = {123};
-  std::vector<DataBuffer> input_data2 {DataBuffer(&args1, 70, false)};
+  std::vector<DataBuffer> input_data2{DataBuffer(&args1, 70, false)};
   davinci_model.input_indexes_to_copy_info_.clear();
   mem_allocation_slice.data_size = 64;
   uint8_t buf[100];
   davinci_model.input_indexes_to_copy_info_.emplace(0, mem_allocation_slice);
-  //davinci_model.allocation_ids_to_active_base_addr_.emplace_back((uint64_t)buf);
+  // davinci_model.allocation_ids_to_active_base_addr_.emplace_back((uint64_t)buf);
 
   // uint64_t* active_base_addr = (uint64_t*)malloc(100);
 
@@ -4358,14 +4373,15 @@ TEST_F(UtestDavinciModel, NoNeedToCopyInputOutputWithGertTensor) {
   }
   active_base_addr_vec.emplace_back((uint64_t)buf);
   davinci_model.allocation_ids_to_active_base_addr_ =
-    reinterpret_cast<uint64_t*>(static_cast<void*>(active_base_addr_vec.data()));
+      reinterpret_cast<uint64_t *>(static_cast<void *>(active_base_addr_vec.data()));
   MemAllocation mem_allocation0 = {};
   mem_allocation0.data_size = 32U;
   mem_allocation0.tensor_size = 2;
   mem_allocation0.logical_addr = 0x23;
   davinci_model.logical_mem_allocations_.emplace_back(mem_allocation0);
-  EXPECT_EQ(davinci_model.CopyInputForNoZeroCopy(input_data2, davinci_model.input_indexes_to_copy_info_, tensor), SUCCESS);
-  dlog_setlevel(0,3,0);
+  EXPECT_EQ(davinci_model.CopyInputForNoZeroCopy(input_data2, davinci_model.input_indexes_to_copy_info_, tensor),
+            SUCCESS);
+  dlog_setlevel(0, 3, 0);
 }
 
 TEST_F(UtestDavinciModel, Test_CheckRtStreamSynchronize) {
@@ -4392,7 +4408,7 @@ TEST_F(UtestDavinciModel, run_with_task_model_execute_fail) {
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
   TaskInfoPtr task_info = MakeShared<ProfilerTraceTaskInfo>();
   model.task_list_.push_back(task_info);
   mmSetEnv("CONSTANT_FOLDING_PASS_8", "mock_fail", 1);
@@ -4533,10 +4549,10 @@ TEST_F(UtestDavinciModel, test_task_distribute_ffts_plus) {
   ffts_plus_task->ffts_flus_args_helper_ = MakeUnique<FftsPlusArgsHelper>(model.GetRuntimeParam());
   {
     OpDescPtr op_desc = CreateOpDesc("label_then", LABELSET);
-    //model.op_list_[op_desc->GetId()] = op_desc;
+    // model.op_list_[op_desc->GetId()] = op_desc;
     NodePtr node1 = graph->AddNode(op_desc);  // op_index = 1
-    domi::FftsPlusCtxDef* ctx_task_def = ffts_plus_task_def->add_ffts_plus_ctx();
-    //ctx_task_def->set_op_index(op_desc->GetId());
+    domi::FftsPlusCtxDef *ctx_task_def = ffts_plus_task_def->add_ffts_plus_ctx();
+    // ctx_task_def->set_op_index(op_desc->GetId());
     ctx_task_def->set_op_index(6);
     ctx_task_def->set_context_type(RT_CTX_TYPE_AICORE);
     ctx_task_def->set_context_id(0);
@@ -4545,7 +4561,7 @@ TEST_F(UtestDavinciModel, test_task_distribute_ffts_plus) {
   {
     OpDescPtr op_desc = CreateOpDesc("label_else", LABELSET);
     NodePtr node1 = graph->AddNode(op_desc);  // op_index = 1
-    domi::FftsPlusCtxDef* ctx_task_def = ffts_plus_task_def->add_ffts_plus_ctx();
+    domi::FftsPlusCtxDef *ctx_task_def = ffts_plus_task_def->add_ffts_plus_ctx();
     ctx_task_def->set_op_index(op_desc->GetId());
     ctx_task_def->set_context_type(RT_CTX_TYPE_MIX_AIC);
     ctx_task_def->set_context_id(1);
@@ -4555,7 +4571,7 @@ TEST_F(UtestDavinciModel, test_task_distribute_ffts_plus) {
   {
     OpDescPtr op_desc = CreateOpDesc("label_leave", LABELSET);
     NodePtr node1 = graph->AddNode(op_desc);  // op_index = 1
-    domi::FftsPlusCtxDef* ctx_task_def = ffts_plus_task_def->add_ffts_plus_ctx();
+    domi::FftsPlusCtxDef *ctx_task_def = ffts_plus_task_def->add_ffts_plus_ctx();
     ctx_task_def->set_op_index(op_desc->GetId());
     ctx_task_def->set_context_type(RT_CTX_TYPE_LABEL);
     ctx_task_def->set_context_id(2);
@@ -4564,7 +4580,7 @@ TEST_F(UtestDavinciModel, test_task_distribute_ffts_plus) {
   {
     OpDescPtr op_desc = CreateOpDesc("label_leat", LABELSET);
     NodePtr node1 = graph->AddNode(op_desc);  // op_index = 1
-    domi::FftsPlusCtxDef* ctx_task_def = ffts_plus_task_def->add_ffts_plus_ctx();
+    domi::FftsPlusCtxDef *ctx_task_def = ffts_plus_task_def->add_ffts_plus_ctx();
     ctx_task_def->set_op_index(op_desc->GetId());
     ctx_task_def->set_context_type(RT_CTX_TYPE_AICPU);
     ctx_task_def->set_context_id(3);
@@ -4574,7 +4590,7 @@ TEST_F(UtestDavinciModel, test_task_distribute_ffts_plus) {
   {
     OpDescPtr op_desc = CreateOpDesc("label_leave", LABELSET);
     NodePtr node1 = graph->AddNode(op_desc);  // op_index = 1
-    domi::FftsPlusCtxDef* ctx_task_def = ffts_plus_task_def->add_ffts_plus_ctx();
+    domi::FftsPlusCtxDef *ctx_task_def = ffts_plus_task_def->add_ffts_plus_ctx();
     ctx_task_def->set_op_index(op_desc->GetId());
     ctx_task_def->set_context_type(RT_CTX_TYPE_AT_START);
     ctx_task_def->set_context_id(4);
@@ -4590,7 +4606,7 @@ TEST_F(UtestDavinciModel, test_task_distribute_ffts_plus) {
 
 TEST_F(UtestDavinciModel, TestAllocateResources) {
   DavinciModel model(0, nullptr);
-  uint8_t weight[1024] {};
+  uint8_t weight[1024]{};
   model.weights_mem_base_ = reinterpret_cast<uintptr_t>(weight);
   model.runtime_param_.weight_base = reinterpret_cast<uintptr_t>(weight);
   model.runtime_param_.weight_size = 1024;
@@ -4653,14 +4669,14 @@ TEST_F(UtestDavinciModel, TestAllocateResources) {
 
   ASSERT_EQ(model.aicpu_resources_.aicpu_queues_.count("some_queue"), 1);
   uint32_t queue_id = model.aicpu_resources_.aicpu_queues_["some_queue"];
-  uint32_t op_queue_id = *reinterpret_cast<uint32_t*>(weight + 512);
+  uint32_t op_queue_id = *reinterpret_cast<uint32_t *>(weight + 512);
   ASSERT_EQ(queue_id, op_queue_id);
 
   // another node with same queue_name
   TensorUtils::SetDataOffset(*op_desc->MutableInputDesc(0), 256);
   ASSERT_EQ(model.AllocateResource(*node), SUCCESS);
   ASSERT_EQ(model.aicpu_resources_.aicpu_queues_.count("some_queue"), 1);
-  op_queue_id = *reinterpret_cast<uint32_t*>(weight + 256);
+  op_queue_id = *reinterpret_cast<uint32_t *>(weight + 256);
   ASSERT_EQ(queue_id, op_queue_id);
 
   model.aicpu_resources_.ReleaseResources();
@@ -4669,7 +4685,7 @@ TEST_F(UtestDavinciModel, TestAllocateResources) {
 
 TEST_F(UtestDavinciModel, TestAllocateChannelResources) {
   DavinciModel model(0, nullptr);
-  uint8_t weight[1024] {};
+  uint8_t weight[1024]{};
   model.weights_mem_base_ = reinterpret_cast<uintptr_t>(weight);
   model.runtime_param_.weight_base = reinterpret_cast<uintptr_t>(weight);
   model.runtime_param_.weight_size = 1024;
@@ -4694,14 +4710,14 @@ TEST_F(UtestDavinciModel, TestAllocateChannelResources) {
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
   ASSERT_EQ(model.AllocateResource(*node), SUCCESS);
   ASSERT_EQ(model.aicpu_resources_.aicpu_channels_.size(), 1);
 
   // repeat execution
   rtStream_t stream2 = nullptr;
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream2, 0, 0, 0);
-  model.stream_list_ = { stream, stream2 };
+  model.stream_list_ = {stream, stream2};
   ASSERT_EQ(model.AllocateResource(*node), SUCCESS);
   ASSERT_EQ(model.aicpu_resources_.aicpu_channels_.size(), 1);
 
@@ -4711,7 +4727,7 @@ TEST_F(UtestDavinciModel, TestAllocateChannelResources) {
 
 TEST_F(UtestDavinciModel, TestAicpuModelConfig) {
   DavinciModel model(0, nullptr);
-  uint8_t weight[1024] {};
+  uint8_t weight[1024]{};
   model.weights_mem_base_ = reinterpret_cast<uintptr_t>(weight);
   model.runtime_param_.weight_base = reinterpret_cast<uintptr_t>(weight);
   model.runtime_param_.weight_size = 1024;
@@ -4721,7 +4737,7 @@ TEST_F(UtestDavinciModel, TestAicpuModelConfig) {
 
 TEST_F(UtestDavinciModel, TestAicpuModelShapeConfig) {
   DavinciModel model(0, nullptr);
-  uint8_t weight[1024] {};
+  uint8_t weight[1024]{};
   model.weights_mem_base_ = reinterpret_cast<uintptr_t>(weight);
   model.runtime_param_.weight_base = reinterpret_cast<uintptr_t>(weight);
   model.runtime_param_.weight_size = 1024;
@@ -4742,7 +4758,7 @@ TEST_F(UtestDavinciModel, TestAicpuModelShapeConfig) {
 }
 
 TEST_F(UtestDavinciModel, save_profile_task_info) {
-  dlog_setlevel(0,0,0);
+  dlog_setlevel(0, 0, 0);
   DavinciModel model(0, nullptr);
   model.SetId(1);
   domi::ModelTaskDef model_task_def;
@@ -4761,7 +4777,7 @@ TEST_F(UtestDavinciModel, save_profile_task_info) {
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
   std::shared_ptr<FftsPlusTaskInfo> ffts_plus_task_info = MakeShared<FftsPlusTaskInfo>();
   ffts_plus_task_info->task_id_ = 0;
   ffts_plus_task_info->prof_api_.begin_time = 1;
@@ -4800,15 +4816,15 @@ TEST_F(UtestDavinciModel, save_profile_task_info) {
   task->set_stream_id(4);
   model.SaveProfilingTaskDescInfo(attached_stream_op_desc, *task_info, *task);
   const auto &logic_stream_ids_to_physic_stream_ids = model.logic_stream_ids_to_physic_stream_ids_;
-  EXPECT_TRUE(logic_stream_ids_to_physic_stream_ids.find(1) !=  logic_stream_ids_to_physic_stream_ids.end());
-  EXPECT_TRUE(logic_stream_ids_to_physic_stream_ids.find(2) !=  logic_stream_ids_to_physic_stream_ids.end());
+  EXPECT_TRUE(logic_stream_ids_to_physic_stream_ids.find(1) != logic_stream_ids_to_physic_stream_ids.end());
+  EXPECT_TRUE(logic_stream_ids_to_physic_stream_ids.find(2) != logic_stream_ids_to_physic_stream_ids.end());
   EXPECT_EQ(model.task_desc_info_.size(), 6);
   EXPECT_FALSE(model.context_id_infos_.empty());
   EXPECT_FALSE(model.node_basic_infos_.empty());
   for (auto &ele : model.context_id_infos_) {
     reinterpret_cast<MsprofContextIdInfo *>(ele.context_id_info.data)->opName = 0UL;
   }
-  for (auto &ele :model.prof_launch_apis_) {
+  for (auto &ele : model.prof_launch_apis_) {
     ele.api.itemId = 0UL;
   }
   EXPECT_EQ(model.ReportProfilingData(), SUCCESS);
@@ -4832,8 +4848,8 @@ TEST_F(UtestDavinciModel, save_profile_task_info) {
   task_def.mutable_kernel()->set_block_dim(0);
   task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_ALL_KERNEL));
   task_def.mutable_kernel_with_handle()->set_block_dim(8);
-  auto & all_kernel_def = *task_def.mutable_kernel_with_handle();
-  auto & all_kernel_context = *all_kernel_def.mutable_context();
+  auto &all_kernel_def = *task_def.mutable_kernel_with_handle();
+  auto &all_kernel_context = *all_kernel_def.mutable_context();
   all_kernel_context.set_kernel_type(static_cast<uint32_t>(ccKernelType::TE));
   (void)ge::AttrUtils::SetBool(ifa_op_desc, ATTR_NAME_DYNAMIC_TILING_DEPEND_OP, false);
   block_dim = model.GetBlockDim(static_cast<ModelTaskType>(task_def.type()), task_def, ifa_op_desc);
@@ -4853,7 +4869,7 @@ TEST_F(UtestDavinciModel, save_profile_task_info_vector) {
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
   std::shared_ptr<KernelTaskInfo> vector_task_info = MakeShared<KernelTaskInfo>();
   vector_task_info->task_id_ = 0;
   vector_task_info->prof_api_.begin_time = 1;
@@ -4900,7 +4916,7 @@ TEST_F(UtestDavinciModel, save_profile_task_info_mix) {
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
   std::shared_ptr<KernelTaskInfo> vector_task_info = MakeShared<KernelTaskInfo>();
   vector_task_info->task_id_ = 0;
   vector_task_info->prof_api_.begin_time = 1;
@@ -4980,7 +4996,7 @@ TEST_F(UtestDavinciModel, save_aicpu_profile_task_info) {
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
   std::shared_ptr<FftsPlusTaskInfo> ffts_plus_task_info = MakeShared<FftsPlusTaskInfo>();
   ffts_plus_task_info->task_id_ = 0;
   TaskInfoPtr task_info = ffts_plus_task_info;
@@ -4990,10 +5006,10 @@ TEST_F(UtestDavinciModel, save_aicpu_profile_task_info) {
   model.SaveProfilingTaskDescInfo(op_desc, *task_info, *task);
   model.SaveProfilingInfoByContext(ffts_plus_task_def->ffts_plus_ctx(0), op_desc, ffts_plus_task_info->prof_api_, true);
 
-  for(size_t i = 0U; i < model.task_desc_info_.size(); i++ ){
+  for (size_t i = 0U; i < model.task_desc_info_.size(); i++) {
     TaskDescInfo ctx_desc_info = model.task_desc_info_[i];
-    if (ctx_desc_info.task_type == kTaskTypeAicpu){
-        EXPECT_EQ(ctx_desc_info.block_dim, 8);
+    if (ctx_desc_info.task_type == kTaskTypeAicpu) {
+      EXPECT_EQ(ctx_desc_info.block_dim, 8);
     }
   }
 }
@@ -5027,7 +5043,7 @@ TEST_F(UtestDavinciModel, save_atomic_profile_task_info) {
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
   std::shared_ptr<FftsPlusTaskInfo> ffts_plus_task_info = MakeShared<FftsPlusTaskInfo>();
   ffts_plus_task_info->task_id_ = 0;
   TaskInfoPtr task_info = ffts_plus_task_info;
@@ -5037,10 +5053,10 @@ TEST_F(UtestDavinciModel, save_atomic_profile_task_info) {
   model.SaveProfilingTaskDescInfo(op_desc, *task_info, *task);
   model.SaveProfilingInfoByContext(ffts_plus_task_def->ffts_plus_ctx(0), op_desc, ffts_plus_task_info->prof_api_, true);
 
-  for(size_t i = 0U; i < model.task_desc_info_.size(); i++ ){
+  for (size_t i = 0U; i < model.task_desc_info_.size(); i++) {
     TaskDescInfo ctx_desc_info = model.task_desc_info_[i];
-    if (ctx_desc_info.task_type == kTaskTypeAicpu){
-        EXPECT_EQ(ctx_desc_info.block_dim, 8);
+    if (ctx_desc_info.task_type == kTaskTypeAicpu) {
+      EXPECT_EQ(ctx_desc_info.block_dim, 8);
     }
   }
 }
@@ -5068,7 +5084,7 @@ TEST_F(UtestDavinciModel, save_cmo_profile_task_info) {
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
   std::shared_ptr<FftsPlusTaskInfo> ffts_plus_task_info = MakeShared<FftsPlusTaskInfo>();
   ffts_plus_task_info->task_id_ = 0;
   TaskInfoPtr task_info = ffts_plus_task_info;
@@ -5103,7 +5119,7 @@ TEST_F(UtestDavinciModel, save_mix_profile_task_info) {
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
   std::shared_ptr<FftsPlusTaskInfo> ffts_plus_task_info = MakeShared<FftsPlusTaskInfo>();
   ffts_plus_task_info->task_id_ = 0;
   TaskInfoPtr task_info = ffts_plus_task_info;
@@ -5116,10 +5132,10 @@ TEST_F(UtestDavinciModel, save_mix_profile_task_info) {
   model.SaveProfilingTaskDescInfo(op_desc, *task_info, *task);
   model.SaveProfilingInfoByContext(ffts_plus_task_def->ffts_plus_ctx(0), op_desc, ffts_plus_task_info->prof_api_, true);
 
-  for(size_t i = 0U; i < model.task_desc_info_.size(); i++ ){
+  for (size_t i = 0U; i < model.task_desc_info_.size(); i++) {
     TaskDescInfo ctx_desc_info = model.task_desc_info_[i];
-    if (ctx_desc_info.task_type == kTaskTypeMixAic){
-        EXPECT_EQ(ctx_desc_info.block_dim, 0x80008);
+    if (ctx_desc_info.task_type == kTaskTypeMixAic) {
+      EXPECT_EQ(ctx_desc_info.block_dim, 0x80008);
     }
   }
   auto block_dim = model.GetBlockDim(*mixaicaivctx);
@@ -5151,7 +5167,7 @@ TEST_F(UtestDavinciModel, SaveProfileInfo_FftsPlusTask) {
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
   std::shared_ptr<FftsPlusTaskInfo> ffts_plus_task_info = MakeShared<FftsPlusTaskInfo>();
   ffts_plus_task_info->task_id_ = 0;
   ffts_plus_task_info->prof_api_.begin_time = 1;
@@ -5181,7 +5197,7 @@ TEST_F(UtestDavinciModel, init_model_profile_ffts_plus) {
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
   std::shared_ptr<FftsPlusTaskInfo> ffts_plus_task_info = MakeShared<FftsPlusTaskInfo>();
   ffts_plus_task_info->task_id_ = 0;
   FusionOpInfo fusion_op_info;
@@ -5208,7 +5224,8 @@ TEST_F(UtestDavinciModel, parse_inputs_dims_data) {
   std::vector<vector<int64_t>> user_real_input_dims;
 
   model.SetRunContext(context);
-  EXPECT_EQ(model.ParseInputsDims(tensor_input_dims, user_real_input_dims), SUCCESS);  // dynamic_node_type is empty, just return
+  EXPECT_EQ(model.ParseInputsDims(tensor_input_dims, user_real_input_dims),
+            SUCCESS);  // dynamic_node_type is empty, just return
 
   context.dynamic_node_type = DATA;
   model.SetRunContext(context);
@@ -5216,7 +5233,8 @@ TEST_F(UtestDavinciModel, parse_inputs_dims_data) {
 
   context.getnext_nosink_nodes.emplace_back(next1);
   model.SetRunContext(context);
-  EXPECT_EQ(model.ParseInputsDims(tensor_input_dims, user_real_input_dims), SUCCESS);  // ParseInputsDimsForGetNexNosinkAndData
+  EXPECT_EQ(model.ParseInputsDims(tensor_input_dims, user_real_input_dims),
+            SUCCESS);  // ParseInputsDimsForGetNexNosinkAndData
 }
 
 TEST_F(UtestDavinciModel, parse_inputs_dims_getnext) {
@@ -5241,14 +5259,16 @@ TEST_F(UtestDavinciModel, parse_inputs_dims_getnext) {
 
   context.data_nodes.emplace_back(data1);
   model.SetRunContext(context);
-  EXPECT_EQ(model.ParseInputsDims(tensor_input_dims, user_real_input_dims), PARAM_INVALID);  // ParseInputsDimsForGetNexNosinkAndData
+  EXPECT_EQ(model.ParseInputsDims(tensor_input_dims, user_real_input_dims),
+            PARAM_INVALID);  // ParseInputsDimsForGetNexNosinkAndData
   AttrUtils::SetInt(next1->GetOpDesc(), ATTR_NAME_INDEX, 0);
-  EXPECT_EQ(model.ParseInputsDims(tensor_input_dims, user_real_input_dims), SUCCESS);  // ParseInputsDimsForGetNexNosinkAndData
+  EXPECT_EQ(model.ParseInputsDims(tensor_input_dims, user_real_input_dims),
+            SUCCESS);  // ParseInputsDimsForGetNexNosinkAndData
 }
 
 TEST_F(UtestDavinciModel, parse_queue_data) {
   DavinciModel model(0, nullptr);
-  uint8_t mem[1024] {};
+  uint8_t mem[1024]{};
   model.runtime_param_.mem_base = reinterpret_cast<uintptr_t>(mem);
   model.runtime_param_.mem_size = sizeof(mem);
   std::set<uint64_t> input_outside_addrs;
@@ -5303,7 +5323,7 @@ static NodePtr CreateNodeV3(ComputeGraph &graph, const string &name, const strin
   op_desc->SetStreamId(0);
   op_desc->SetId(index++);
 
-  GeTensorDesc tensor(GeShape({4,2}), FORMAT_ND, DT_INT64);
+  GeTensorDesc tensor(GeShape({4, 2}), FORMAT_ND, DT_INT64);
   TensorUtils::SetSize(tensor, 64);
   std::vector<int64_t> input_offset;
   for (int i = 0; i < in_num; i++) {
@@ -5330,7 +5350,7 @@ TEST_F(UtestDavinciModel, TestIsInputOfNetoutputCanZeroCopy) {
   GetThreadLocalContext().SetGraphOption(graph_options);
 
   {
-    uint8_t mem[1024] {};
+    uint8_t mem[1024]{};
     std::vector<OpDescPtr> output_op_list;
     std::set<uint64_t> output_outside_addrs;
     std::shared_ptr<ComputeGraph> graph(new (std::nothrow) ComputeGraph("graph"));
@@ -5353,11 +5373,11 @@ TEST_F(UtestDavinciModel, TestIsInputOfNetoutputCanZeroCopy) {
     EXPECT_EQ(model.InitDataOp(graph, data1, data_op_index, data_by_index, output_outside_addrs), SUCCESS);
     EXPECT_EQ(model.InitDataOp(graph, data2, data_op_index, data_by_index, output_outside_addrs), SUCCESS);
     EXPECT_EQ(model.InitNetOutput(graph, netoutput, output_op_list, output_outside_addrs), SUCCESS);
-    EXPECT_TRUE(model.copy_only_addrs_.copy_only_addrs.empty()); // All outputs can zero-copy
+    EXPECT_TRUE(model.copy_only_addrs_.copy_only_addrs.empty());  // All outputs can zero-copy
   }
 
   {
-    uint8_t mem[1024] {};
+    uint8_t mem[1024]{};
     std::vector<OpDescPtr> output_op_list;
     std::set<uint64_t> output_outside_addrs;
     std::shared_ptr<ComputeGraph> graph(new (std::nothrow) ComputeGraph("graph"));
@@ -5380,11 +5400,11 @@ TEST_F(UtestDavinciModel, TestIsInputOfNetoutputCanZeroCopy) {
     EXPECT_EQ(model.InitDataOp(graph, data1, data_op_index, data_by_index, output_outside_addrs), SUCCESS);
     EXPECT_EQ(model.InitDataOp(graph, data2, data_op_index, data_by_index, output_outside_addrs), SUCCESS);
     EXPECT_EQ(model.InitNetOutput(graph, netoutput, output_op_list, output_outside_addrs), SUCCESS);
-    EXPECT_EQ(model.copy_only_addrs_.copy_only_addrs.size(), 2); // one input + one output
+    EXPECT_EQ(model.copy_only_addrs_.copy_only_addrs.size(), 2);  // one input + one output
   }
 
   {
-    uint8_t mem[1024] {};
+    uint8_t mem[1024]{};
     std::vector<OpDescPtr> output_op_list;
     std::set<uint64_t> output_outside_addrs;
     std::shared_ptr<ComputeGraph> graph(new (std::nothrow) ComputeGraph("graph"));
@@ -5409,7 +5429,7 @@ TEST_F(UtestDavinciModel, TestIsInputOfNetoutputCanZeroCopy) {
   }
 
   {
-    uint8_t mem[1024] {};
+    uint8_t mem[1024]{};
     std::vector<OpDescPtr> output_op_list;
     std::set<uint64_t> output_outside_addrs;
     std::shared_ptr<ComputeGraph> graph(new (std::nothrow) ComputeGraph("graph"));
@@ -5507,15 +5527,16 @@ TEST_F(UtestDavinciModel, prof_fusion_op_info_test) {
   GeTensorDesc tensor_desc(GeShape(), FORMAT_ND, DT_UINT32);
   op_desc->AddInputDesc(tensor_desc);
   op_desc->AddOutputDesc(tensor_desc);
-  const std::vector<int64_t> workspace_bytes = {1,2,3};
+  const std::vector<int64_t> workspace_bytes = {1, 2, 3};
   op_desc->SetWorkspaceBytes(workspace_bytes);
   const std::vector<uint8_t> weights_value(64, 'A');
-  GeTensorPtr weight_value = MakeShared<GeTensor>(op_desc->GetOutputDesc(0), weights_value.data(), weights_value.size());
+  GeTensorPtr weight_value =
+      MakeShared<GeTensor>(op_desc->GetOutputDesc(0), weights_value.data(), weights_value.size());
   AttrUtils::SetTensor(*op_desc, ATTR_NAME_WEIGHTS, weight_value);
 
   uint64_t info_num = 0;
   std::vector<MsprofAdditionalInfo> infos{};
-  auto check_func = [&](uint32_t moduleId, uint32_t type, void *data, uint32_t len)->int32_t{
+  auto check_func = [&](uint32_t moduleId, uint32_t type, void *data, uint32_t len) -> int32_t {
     if (type != ge::InfoType::kInfo) {
       return 0;
     }
@@ -5528,7 +5549,7 @@ TEST_F(UtestDavinciModel, prof_fusion_op_info_test) {
   DavinciModel davinci_model(0, nullptr);
   davinci_model.op_list_[0] = op_desc;
   FusionOpInfo fusion_op_info{};
-  fusion_op_info.original_op_names = {"op_1", "op_2", "op_3", "op_4", "op_5", "op_6","op_7","op_8","op_9"};
+  fusion_op_info.original_op_names = {"op_1", "op_2", "op_3", "op_4", "op_5", "op_6", "op_7", "op_8", "op_9"};
   fusion_op_info.op_index = 0;
   fusion_op_info.op_name = "fusion_op_1";
   davinci_model.InitFusionProfiling(fusion_op_info);
@@ -5543,15 +5564,16 @@ TEST_F(UtestDavinciModel, ProfFusionOpInfo_Ok_UpdateHashOnExecute) {
   GeTensorDesc tensor_desc(GeShape(), FORMAT_ND, DT_UINT32);
   op_desc->AddInputDesc(tensor_desc);
   op_desc->AddOutputDesc(tensor_desc);
-  const std::vector<int64_t> workspace_bytes = {1,2,3};
+  const std::vector<int64_t> workspace_bytes = {1, 2, 3};
   op_desc->SetWorkspaceBytes(workspace_bytes);
   const std::vector<uint8_t> weights_value(64, 'A');
-  GeTensorPtr weight_value = MakeShared<GeTensor>(op_desc->GetOutputDesc(0), weights_value.data(), weights_value.size());
+  GeTensorPtr weight_value =
+      MakeShared<GeTensor>(op_desc->GetOutputDesc(0), weights_value.data(), weights_value.size());
   AttrUtils::SetTensor(*op_desc, ATTR_NAME_WEIGHTS, weight_value);
 
   uint64_t info_num = 0;
   std::vector<MsprofAdditionalInfo> infos{};
-  auto check_func = [&](uint32_t moduleId, uint32_t type, void *data, uint32_t len)->int32_t{
+  auto check_func = [&](uint32_t moduleId, uint32_t type, void *data, uint32_t len) -> int32_t {
     if (type != ge::InfoType::kInfo) {
       return 0;
     }
@@ -5564,14 +5586,14 @@ TEST_F(UtestDavinciModel, ProfFusionOpInfo_Ok_UpdateHashOnExecute) {
   DavinciModel davinci_model(0, nullptr);
   davinci_model.op_list_[0] = op_desc;
   FusionOpInfo fusion_op_info{};
-  fusion_op_info.original_op_names = {"op_1", "op_2", "op_3", "op_4", "op_5", "op_6","op_7","op_8","op_9"};
+  fusion_op_info.original_op_names = {"op_1", "op_2", "op_3", "op_4", "op_5", "op_6", "op_7", "op_8", "op_9"};
   fusion_op_info.op_index = 0;
   fusion_op_info.op_name = "fusion_op_1";
   davinci_model.InitFusionProfiling(fusion_op_info);
   for (auto &ele : davinci_model.profile_list_) {
     for (auto &prof : ele.prof_fusion_data_lst) {
       for (size_t i = 0UL; i < 8; ++i) {
-        reinterpret_cast<ProfFusionOpInfo *>(prof.data)->opName=0;
+        reinterpret_cast<ProfFusionOpInfo *>(prof.data)->opName = 0;
         reinterpret_cast<ProfFusionOpInfo *>(prof.data)->fusionOpId[i] = 0;
       }
     }
@@ -5610,13 +5632,13 @@ TEST_F(UtestDavinciModel, GetSomeInfo) {
   op_input->AddOutputDesc(tensor);
   op_input->SetInputOffset({1024});
   op_input->SetOutputOffset({1024});
-  NodePtr node_input = graph->AddNode(op_input);    // op_index = 0
+  NodePtr node_input = graph->AddNode(op_input);  // op_index = 0
 
   OpDescPtr op_output = CreateOpDesc("output", NETOUTPUT);
   op_output->AddInputDesc(tensor);
   op_output->SetInputOffset({5120});
-  op_output->SetSrcName( { "memcpy" } );
-  op_output->SetSrcIndex( { 0 } );
+  op_output->SetSrcName({"memcpy"});
+  op_output->SetSrcIndex({0});
   NodePtr node_output = graph->AddNode(op_output);  // op_index = 1
 
   // get input output
@@ -5624,7 +5646,7 @@ TEST_F(UtestDavinciModel, GetSomeInfo) {
   std::vector<InputOutputDescInfo> output_descs;
   std::vector<uint32_t> input_formats;
   std::vector<uint32_t> output_formats;
-   bool by_dims = false;
+  bool by_dims = false;
   auto ret = model.GetInputOutputDescInfo(input_descs, output_descs, output_formats, output_formats, by_dims);
   EXPECT_EQ(ret, SUCCESS);
 
@@ -5684,7 +5706,7 @@ TEST_F(UtestDavinciModel, InitSomething) {
   OpDescPtr op_desc = CreateOpDesc("data", DATA);
 
   // Init StreamActive
-  //op_desc->SetAttr(ATTR_NAME_SWITCH_BRANCH_NODE_LABEL, 0);
+  // op_desc->SetAttr(ATTR_NAME_SWITCH_BRANCH_NODE_LABEL, 0);
   auto ret = model.InitStreamActive(op_desc);
   EXPECT_EQ(ret, SUCCESS);
 
@@ -5747,7 +5769,7 @@ TEST_F(UtestDavinciModel, InitWeightMem_fail) {
 
   model.is_weight_mem_has_inited_ = false;
   ge_model->weights_buffer_ = Buffer(20, 0);
-  EXPECT_NE(model.InitWeightMem(mem_ptr, weight_ptr, weight_size), FAILED);   //??
+  EXPECT_NE(model.InitWeightMem(mem_ptr, weight_ptr, weight_size), FAILED);  //??
 
   model.FreeWeightsMem();
   model.is_weight_mem_has_inited_ = false;
@@ -5783,7 +5805,7 @@ TEST_F(UtestDavinciModel, InitFeatureMapAndP2PMem_fail) {
   model.runtime_param_.zero_copy_size = 10;
   g_runtime_stub_mock = "aclrtMallocWithCfg";
 
-  EXPECT_NE(model.InitFeatureMapAndP2PMem(mem_ptr, mem_size), SUCCESS); // call more than once
+  EXPECT_NE(model.InitFeatureMapAndP2PMem(mem_ptr, mem_size), SUCCESS);  // call more than once
   param[OPTION_EXEC_REUSE_ZERO_COPY_MEMORY] = "";
   GetThreadLocalContext().SetGlobalOption(param);
 }
@@ -5886,8 +5908,8 @@ TEST_F(UtestDavinciModel, test_CpuModelPrepareOutput) {
   EXPECT_EQ(model.CpuModelPrepareOutput(0, 0, 0), FAILED);
 
   void *t = new uint8_t[1];
-  model.input_mbuf_list_ = std::vector<uintptr_t>({ PtrToValue(t) });
-  model.output_mbuf_list_ = std::vector<uintptr_t>({ PtrToValue(t) });
+  model.input_mbuf_list_ = std::vector<uintptr_t>({PtrToValue(t)});
+  model.output_mbuf_list_ = std::vector<uintptr_t>({PtrToValue(t)});
 
   EXPECT_EQ(model.CpuModelPrepareOutput(0, 0, 0), SUCCESS);
   delete[] (uint8_t *)t;
@@ -5936,7 +5958,7 @@ TEST_F(UtestDavinciModel, test_ReportModelExtInfo) {
 
   domi::GetContext().is_online_model = true;
 
-  auto check_func = [&](uint32_t moduleId, uint32_t type, void *data, uint32_t len)->int32_t{
+  auto check_func = [&](uint32_t moduleId, uint32_t type, void *data, uint32_t len) -> int32_t {
     if (type != InfoType::kInfo) {
       return 0;
     }
@@ -5960,7 +5982,8 @@ TEST_F(UtestDavinciModel, test_InitConstant) {
   EXPECT_EQ(model.InitConstant(op_desc), PARAM_INVALID);
 
   const std::vector<uint8_t> weights_value(64, 'A');
-  GeTensorPtr weight = MakeShared<GeTensor>(GeTensorDesc(GeShape({16}), FORMAT_NCHW, DT_STRING), weights_value.data(), weights_value.size());
+  GeTensorPtr weight = MakeShared<GeTensor>(GeTensorDesc(GeShape({16}), FORMAT_NCHW, DT_STRING), weights_value.data(),
+                                            weights_value.size());
   AttrUtils::SetTensor(*op_desc, ATTR_NAME_WEIGHTS, weight);
 
   GeTensorDesc tensor(GeShape({16}), FORMAT_NCHW, DT_FLOAT);
@@ -5972,7 +5995,7 @@ TEST_F(UtestDavinciModel, test_InitConstant) {
   model.runtime_param_.mem_base = PtrToValue(malloc(2000));
 
   EXPECT_EQ(model.InitConstant(op_desc), PARAM_INVALID);
-  free(reinterpret_cast<void*>(model.runtime_param_.mem_base));
+  free(reinterpret_cast<void *>(model.runtime_param_.mem_base));
 }
 
 TEST_F(UtestDavinciModel, test_InitStreamActive) {
@@ -6038,7 +6061,8 @@ TEST_F(UtestDavinciModel, InitL1DataDumperArgs_fail) {
   GeModelPtr ge_model = MakeShared<GeModel>();
   model.Assign(ge_model);
 
-  model.data_dumper_.dump_properties_.AddPropertyValue("ALL_MODEL_NEED_DUMP_AND_IT_IS_NOT_A_MODEL_NAME", std::set<std::string>());
+  model.data_dumper_.dump_properties_.AddPropertyValue("ALL_MODEL_NEED_DUMP_AND_IT_IS_NOT_A_MODEL_NAME",
+                                                       std::set<std::string>());
   g_runtime_stub_mock = "rtDumpAddrSet";
   EXPECT_EQ(model.InitL1DataDumperArgs(), FAILED);
 }
@@ -6115,13 +6139,13 @@ TEST_F(UtestDavinciModel, GetCurDynamicDims_fail) {
 
 TEST_F(UtestDavinciModel, TestInsertMultiBatchShpaeData) {
   DavinciModel model(0, nullptr);
-  model.cur_dynamic_dims_ = {1,1,1,1};
+  model.cur_dynamic_dims_ = {1, 1, 1, 1};
   std::vector<DataBuffer> blobs;
   model.runtime_param_.mem_size = 100;
   model.mem_base_size_ = 40;
   model.is_getnext_sink_dynamic_ = false;
   model.is_online_infer_dynamic_ = true;
-  model.run_context_.dynamic_shape_dims = {{1,1,1,1}};
+  model.run_context_.dynamic_shape_dims = {{1, 1, 1, 1}};
   model.CreateMultiBatchDataBuffer(blobs);
   EXPECT_EQ(blobs.size(), 1);
   EXPECT_EQ(blobs[0].length, 16);
@@ -6165,7 +6189,7 @@ TEST_F(UtestDavinciModel, TestCheckUserAndModelSize) {
 
 TEST_F(UtestDavinciModel, InitOutputTensorInfoTest) {
   DavinciModel model(0, nullptr);
-  model.is_getnext_sink_dynamic_ =  true;
+  model.is_getnext_sink_dynamic_ = true;
   auto invalid_op = MakeShared<OpDesc>();
   Status ret = model.InitOutputTensorInfo(invalid_op);
   EXPECT_NE(ret, SUCCESS);
@@ -6187,7 +6211,7 @@ TEST_F(UtestDavinciModel, InitSpaceRegistry_SUCCESS_HasSoBin) {
   std::string so_name("libopmaster.so");
   std::string vendor_name("/opp/MDC/");
   std::unique_ptr<char[]> so_bin = std::unique_ptr<char[]>(new (std::nothrow) char[so_name.length()]);
-  (void) memcpy_s(so_bin.get(), so_name.length(), so_name.data(), so_name.length());
+  (void)memcpy_s(so_bin.get(), so_name.length(), so_name.data(), so_name.length());
   OpSoBinPtr op_so_bin = std::make_shared<OpSoBin>(so_name, vendor_name, std::move(so_bin), so_name.length());
   kernels.emplace_back(op_so_bin);
   root_model->op_so_store_.kernels_ = std::move(kernels);
@@ -6235,11 +6259,11 @@ TEST_F(UtestDavinciModel, run_with_task_fail) {
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
   TaskInfoPtr task_info = MakeShared<ProfilerTraceTaskInfo>();
   model.task_list_.push_back(task_info);
 
-  const char_t * const kEnvRecordPath = "TIMEOUT";
+  const char_t *const kEnvRecordPath = "TIMEOUT";
   char_t record_path[MMPA_MAX_PATH] = "timeout";
   mmSetEnv(kEnvRecordPath, &record_path[0U], MMPA_MAX_PATH);
 
@@ -6289,7 +6313,7 @@ TEST_F(UtestDavinciModel, NnExecute_update_step) {
   dp.InitByOptions();
   model.SetDumpProperties(dp);
 
-  GeTensorDesc tensor(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT); // sizeof(float) * 1 * 4 * 4 * 8 = 512
+  GeTensorDesc tensor(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);  // sizeof(float) * 1 * 4 * 4 * 8 = 512
   TensorUtils::SetSize(tensor, 512);
   {
     OpDescPtr op_desc = CreateOpDesc("data", DATA);
@@ -6297,7 +6321,7 @@ TEST_F(UtestDavinciModel, NnExecute_update_step) {
     op_desc->AddOutputDesc(tensor);
     op_desc->SetInputOffset({0});
     op_desc->SetOutputOffset({0});
-    NodePtr node = graph->AddNode(op_desc);    // op_index = 0
+    NodePtr node = graph->AddNode(op_desc);  // op_index = 0
   }
 
   {
@@ -6324,8 +6348,8 @@ TEST_F(UtestDavinciModel, NnExecute_update_step) {
     OpDescPtr op_desc = CreateOpDesc("output", NETOUTPUT);
     op_desc->AddInputDesc(tensor);
     op_desc->SetInputOffset({2048});
-    op_desc->SetSrcName( { "memcpy" } );
-    op_desc->SetSrcIndex( { 0 } );
+    op_desc->SetSrcName({"memcpy"});
+    op_desc->SetSrcIndex({0});
     NodePtr node = graph->AddNode(op_desc);  // op_index = 3
   }
 
@@ -6333,7 +6357,6 @@ TEST_F(UtestDavinciModel, NnExecute_update_step) {
   EXPECT_EQ(model.GetGlobalStep(), 0U);
   EXPECT_EQ(model.Init(), SUCCESS);
   EXPECT_NE(model.GetGlobalStep(), 0U);
-
 
   rtStream_t stream = nullptr;
   InputData input_data;
@@ -6351,13 +6374,11 @@ TEST_F(UtestDavinciModel, NnExecute_update_step) {
 
   std::vector<GeTensor> input_tensor = {};
   std::vector<GeTensor> output_tensor = {};
-  EXPECT_EQ(model.NnExecute(stream, false, input_data, output_data,
-            input_tensor, output_tensor), SUCCESS);
+  EXPECT_EQ(model.NnExecute(stream, false, input_data, output_data, input_tensor, output_tensor), SUCCESS);
   uint64_t step_value = *(PtrToPtr<void, uint64_t>(ValueToPtr(model.GetGlobalStep())));
   EXPECT_EQ(step_value, 0U);
 
-  EXPECT_EQ(model.NnExecute(stream, false, input_data, output_data,
-            input_tensor, output_tensor), SUCCESS);
+  EXPECT_EQ(model.NnExecute(stream, false, input_data, output_data, input_tensor, output_tensor), SUCCESS);
   step_value = *(PtrToPtr<void, uint64_t>(ValueToPtr(model.GetGlobalStep())));
   EXPECT_EQ(step_value, 1U);
 }
@@ -6382,7 +6403,7 @@ TEST_F(UtestDavinciModel, NnExecute_set_timeout_when_execute_without_stream) {
   dp.InitByOptions();
   model.SetDumpProperties(dp);
 
-  GeTensorDesc tensor(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT); // sizeof(float) * 1 * 4 * 4 * 8 = 512
+  GeTensorDesc tensor(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);  // sizeof(float) * 1 * 4 * 4 * 8 = 512
   TensorUtils::SetSize(tensor, 512);
   {
     OpDescPtr op_desc = CreateOpDesc("data", DATA);
@@ -6390,7 +6411,7 @@ TEST_F(UtestDavinciModel, NnExecute_set_timeout_when_execute_without_stream) {
     op_desc->AddOutputDesc(tensor);
     op_desc->SetInputOffset({0});
     op_desc->SetOutputOffset({0});
-    NodePtr node = graph->AddNode(op_desc);    // op_index = 0
+    NodePtr node = graph->AddNode(op_desc);  // op_index = 0
   }
 
   {
@@ -6417,8 +6438,8 @@ TEST_F(UtestDavinciModel, NnExecute_set_timeout_when_execute_without_stream) {
     OpDescPtr op_desc = CreateOpDesc("output", NETOUTPUT);
     op_desc->AddInputDesc(tensor);
     op_desc->SetInputOffset({2048});
-    op_desc->SetSrcName( { "memcpy" } );
-    op_desc->SetSrcIndex( { 0 } );
+    op_desc->SetSrcName({"memcpy"});
+    op_desc->SetSrcIndex({0});
     NodePtr node = graph->AddNode(op_desc);  // op_index = 3
   }
 
@@ -6453,8 +6474,7 @@ TEST_F(UtestDavinciModel, NnExecute_set_timeout_when_execute_without_stream) {
   auto rts_stub = std::make_shared<MockRtExecute>();
   ge::RuntimeStub::SetInstance(rts_stub);
   EXPECT_CALL(*rts_stub, rtModelExecuteSync).WillRepeatedly(sync_exec);
-  EXPECT_EQ(model.NnExecute(stream, false, input_data, output_data,
-                            input_tensor, output_tensor), SUCCESS);
+  EXPECT_EQ(model.NnExecute(stream, false, input_data, output_data, input_tensor, output_tensor), SUCCESS);
   ge::RuntimeStub::Reset();
 }
 
@@ -6478,7 +6498,7 @@ TEST_F(UtestDavinciModel, NnExecute_set_timeout_when_execute_with_stream) {
   dp.InitByOptions();
   model.SetDumpProperties(dp);
 
-  GeTensorDesc tensor(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT); // sizeof(float) * 1 * 4 * 4 * 8 = 512
+  GeTensorDesc tensor(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);  // sizeof(float) * 1 * 4 * 4 * 8 = 512
   TensorUtils::SetSize(tensor, 512);
   {
     OpDescPtr op_desc = CreateOpDesc("data", DATA);
@@ -6486,7 +6506,7 @@ TEST_F(UtestDavinciModel, NnExecute_set_timeout_when_execute_with_stream) {
     op_desc->AddOutputDesc(tensor);
     op_desc->SetInputOffset({0});
     op_desc->SetOutputOffset({0});
-    NodePtr node = graph->AddNode(op_desc);    // op_index = 0
+    NodePtr node = graph->AddNode(op_desc);  // op_index = 0
   }
 
   {
@@ -6513,8 +6533,8 @@ TEST_F(UtestDavinciModel, NnExecute_set_timeout_when_execute_with_stream) {
     OpDescPtr op_desc = CreateOpDesc("output", NETOUTPUT);
     op_desc->AddInputDesc(tensor);
     op_desc->SetInputOffset({2048});
-    op_desc->SetSrcName( { "memcpy" } );
-    op_desc->SetSrcIndex( { 0 } );
+    op_desc->SetSrcName({"memcpy"});
+    op_desc->SetSrcIndex({0});
     NodePtr node = graph->AddNode(op_desc);  // op_index = 3
   }
 
@@ -6523,7 +6543,7 @@ TEST_F(UtestDavinciModel, NnExecute_set_timeout_when_execute_with_stream) {
   EXPECT_EQ(model.Init(), SUCCESS);
   EXPECT_NE(model.GetGlobalStep(), 0U);
 
-  rtStream_t stream = (void*)0x01;
+  rtStream_t stream = (void *)0x01;
   InputData input_data;
   OutputData output_data;
   std::vector<gert::Tensor> outputs;
@@ -6549,8 +6569,7 @@ TEST_F(UtestDavinciModel, NnExecute_set_timeout_when_execute_with_stream) {
   auto rts_stub = std::make_shared<MockRtExecute>();
   ge::RuntimeStub::SetInstance(rts_stub);
   EXPECT_CALL(*rts_stub, rtModelExecuteSync).WillRepeatedly(sync_exec);
-  EXPECT_EQ(model.NnExecute(stream, false, input_data, output_data,
-                            input_tensor, output_tensor), SUCCESS);
+  EXPECT_EQ(model.NnExecute(stream, false, input_data, output_data, input_tensor, output_tensor), SUCCESS);
   ge::RuntimeStub::Reset();
 }
 
@@ -6574,7 +6593,7 @@ TEST_F(UtestDavinciModel, NnExecute_update_step_with_gert_tensor) {
   dp.InitByOptions();
   model.SetDumpProperties(dp);
 
-  GeTensorDesc tensor(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT); // sizeof(float) * 1 * 4 * 4 * 8 = 512
+  GeTensorDesc tensor(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);  // sizeof(float) * 1 * 4 * 4 * 8 = 512
   TensorUtils::SetSize(tensor, 512);
   {
     OpDescPtr op_desc = CreateOpDesc("data", DATA);
@@ -6582,7 +6601,7 @@ TEST_F(UtestDavinciModel, NnExecute_update_step_with_gert_tensor) {
     op_desc->AddOutputDesc(tensor);
     op_desc->SetInputOffset({0});
     op_desc->SetOutputOffset({0});
-    NodePtr node = graph->AddNode(op_desc);    // op_index = 0
+    NodePtr node = graph->AddNode(op_desc);  // op_index = 0
   }
 
   {
@@ -6609,8 +6628,8 @@ TEST_F(UtestDavinciModel, NnExecute_update_step_with_gert_tensor) {
     OpDescPtr op_desc = CreateOpDesc("output", NETOUTPUT);
     op_desc->AddInputDesc(tensor);
     op_desc->SetInputOffset({2048});
-    op_desc->SetSrcName( { "memcpy" } );
-    op_desc->SetSrcIndex( { 0 } );
+    op_desc->SetSrcName({"memcpy"});
+    op_desc->SetSrcIndex({0});
     NodePtr node = graph->AddNode(op_desc);  // op_index = 3
   }
 
@@ -6618,7 +6637,6 @@ TEST_F(UtestDavinciModel, NnExecute_update_step_with_gert_tensor) {
   EXPECT_EQ(model.GetGlobalStep(), 0U);
   EXPECT_EQ(model.Init(), SUCCESS);
   EXPECT_NE(model.GetGlobalStep(), 0U);
-
 
   rtStream_t stream = nullptr;
 
@@ -6630,17 +6648,17 @@ TEST_F(UtestDavinciModel, NnExecute_update_step_with_gert_tensor) {
   output_tensor.resize(1);
   input_tensor.resize(1);
   unique_ptr<uint8_t[]> data_buf_1(new (std::nothrow) uint8_t[512]);
-  input_tensor[0] = {{{1,4,4,8}, {1,4,4,8}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            gert::kOnDeviceHbm,                                // placement
-                            ge::DT_INT32,                              // data type
-                            (void *) data_buf_1.get()};
+  input_tensor[0] = {{{1, 4, 4, 8}, {1, 4, 4, 8}},                // shape
+                     {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                     gert::kOnDeviceHbm,                          // placement
+                     ge::DT_INT32,                                // data type
+                     (void *)data_buf_1.get()};
   unique_ptr<uint8_t[]> data_buf_3(new (std::nothrow) uint8_t[512]);
-  output_tensor[0] = {{{1,4,4,8}, {1,4,4,8}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            gert::kOnDeviceHbm,                                // placement
-                            ge::DT_INT32,                              // data type
-                            (void *) data_buf_3.get()};
+  output_tensor[0] = {{{1, 4, 4, 8}, {1, 4, 4, 8}},                // shape
+                      {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                      gert::kOnDeviceHbm,                          // placement
+                      ge::DT_INT32,                                // data type
+                      (void *)data_buf_3.get()};
   EXPECT_EQ(model.NnExecute(stream, true, input_tensor, output_tensor), SUCCESS);
   uint64_t step_value = *(PtrToPtr<void, uint64_t>(ValueToPtr(model.GetGlobalStep())));
   EXPECT_EQ(step_value, 0U);
@@ -6666,7 +6684,7 @@ TEST_F(UtestDavinciModel, NnExecute_triggerZeroCopyMemoryInsufficientError) {
   dp.InitByOptions();
   model.SetDumpProperties(dp);
 
-  GeTensorDesc tensor(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
   TensorUtils::SetSize(tensor, 512);
   {
     OpDescPtr op_desc = CreateOpDesc("data", DATA);
@@ -6701,8 +6719,8 @@ TEST_F(UtestDavinciModel, NnExecute_triggerZeroCopyMemoryInsufficientError) {
     OpDescPtr op_desc = CreateOpDesc("output", NETOUTPUT);
     op_desc->AddInputDesc(tensor);
     op_desc->SetInputOffset({2048});
-    op_desc->SetSrcName( { "memcpy" } );
-    op_desc->SetSrcIndex( { 0 } );
+    op_desc->SetSrcName({"memcpy"});
+    op_desc->SetSrcIndex({0});
     NodePtr node = graph->AddNode(op_desc);
   }
 
@@ -6719,17 +6737,17 @@ TEST_F(UtestDavinciModel, NnExecute_triggerZeroCopyMemoryInsufficientError) {
   output_tensor.resize(1);
   input_tensor.resize(1);
   unique_ptr<uint8_t[]> data_buf_1(new (std::nothrow) uint8_t[512]);
-  input_tensor[0] = {{{1,4,4,8}, {1,4,4,8}},
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},
-                            gert::kOnDeviceHbm,
-                            ge::DT_INT32,
-                            (void *) data_buf_1.get()};
+  input_tensor[0] = {{{1, 4, 4, 8}, {1, 4, 4, 8}},
+                     {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},
+                     gert::kOnDeviceHbm,
+                     ge::DT_INT32,
+                     (void *)data_buf_1.get()};
   unique_ptr<uint8_t[]> data_buf_3(new (std::nothrow) uint8_t[512]);
-  output_tensor[0] = {{{1,4,4,8}, {1,4,4,8}},
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},
-                            gert::kOnHost,
-                            ge::DT_INT32,
-                            (void *) data_buf_3.get()};
+  output_tensor[0] = {{{1, 4, 4, 8}, {1, 4, 4, 8}},
+                      {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},
+                      gert::kOnHost,
+                      ge::DT_INT32,
+                      (void *)data_buf_3.get()};
   EXPECT_NE(model.NnExecute(stream, true, input_tensor, output_tensor), SUCCESS);
   graph_options[OPTION_EXEC_REUSE_ZERO_COPY_MEMORY] = "";
   GetThreadLocalContext().SetGraphOption(graph_options);
@@ -6755,7 +6773,7 @@ TEST_F(UtestDavinciModel, NnExecute_with_gert_tensor_sync) {
   dp.InitByOptions();
   model.SetDumpProperties(dp);
 
-  GeTensorDesc tensor(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT); // sizeof(float) * 1 * 4 * 4 * 8 = 512
+  GeTensorDesc tensor(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);  // sizeof(float) * 1 * 4 * 4 * 8 = 512
   TensorUtils::SetSize(tensor, 512);
   {
     OpDescPtr op_desc = CreateOpDesc("data", DATA);
@@ -6763,7 +6781,7 @@ TEST_F(UtestDavinciModel, NnExecute_with_gert_tensor_sync) {
     op_desc->AddOutputDesc(tensor);
     op_desc->SetInputOffset({0});
     op_desc->SetOutputOffset({0});
-    NodePtr node = graph->AddNode(op_desc);    // op_index = 0
+    NodePtr node = graph->AddNode(op_desc);  // op_index = 0
   }
 
   {
@@ -6790,8 +6808,8 @@ TEST_F(UtestDavinciModel, NnExecute_with_gert_tensor_sync) {
     OpDescPtr op_desc = CreateOpDesc("output", NETOUTPUT);
     op_desc->AddInputDesc(tensor);
     op_desc->SetInputOffset({2048});
-    op_desc->SetSrcName( { "memcpy" } );
-    op_desc->SetSrcIndex( { 0 } );
+    op_desc->SetSrcName({"memcpy"});
+    op_desc->SetSrcIndex({0});
     NodePtr node = graph->AddNode(op_desc);  // op_index = 3
   }
 
@@ -6799,7 +6817,6 @@ TEST_F(UtestDavinciModel, NnExecute_with_gert_tensor_sync) {
   EXPECT_EQ(model.GetGlobalStep(), 0U);
   EXPECT_EQ(model.Init(), SUCCESS);
   EXPECT_NE(model.GetGlobalStep(), 0U);
-
 
   rtStream_t stream = nullptr;
 
@@ -6811,17 +6828,17 @@ TEST_F(UtestDavinciModel, NnExecute_with_gert_tensor_sync) {
   output_tensor.resize(1);
   input_tensor.resize(1);
   unique_ptr<uint8_t[]> data_buf_1(new (std::nothrow) uint8_t[512]);
-  input_tensor[0] = {{{1,4,4,8}, {1,4,4,8}},                // shape
+  input_tensor[0] = {{{1, 4, 4, 8}, {1, 4, 4, 8}},                // shape
                      {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                     gert::kOnDeviceHbm,                                // placement
-                     ge::DT_INT32,                              // data type
-                     (void *) data_buf_1.get()};
+                     gert::kOnDeviceHbm,                          // placement
+                     ge::DT_INT32,                                // data type
+                     (void *)data_buf_1.get()};
   unique_ptr<uint8_t[]> data_buf_3(new (std::nothrow) uint8_t[512]);
-  output_tensor[0] = {{{1,4,4,8}, {1,4,4,8}},                // shape
+  output_tensor[0] = {{{1, 4, 4, 8}, {1, 4, 4, 8}},                // shape
                       {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                      gert::kOnDeviceHbm,                                // placement
-                      ge::DT_INT32,                              // data type
-                      (void *) data_buf_3.get()};
+                      gert::kOnDeviceHbm,                          // placement
+                      ge::DT_INT32,                                // data type
+                      (void *)data_buf_3.get()};
   // 模拟ACL在执行前设置超时时间的方法，同步方式调用该接口
   ge::GetContext().SetStreamSyncTimeout(15000);
   EXPECT_EQ(model.NnExecute(stream, false, input_tensor, output_tensor), GRAPH_SUCCESS);
@@ -6829,9 +6846,9 @@ TEST_F(UtestDavinciModel, NnExecute_with_gert_tensor_sync) {
 
 TEST_F(UtestDavinciModel, NnExecute_LaunchKfcEvent_Ok) {
   dlog_setlevel(GE_MODULE_NAME, DLOG_DEBUG, 0);
-  EXPECT_EQ(HcomTopoInfo::Instance().SetGroupOrderedStream(0, "group0", (void*)1), GRAPH_SUCCESS);
-  EXPECT_EQ(HcomTopoInfo::Instance().SetGroupOrderedStream(0, "group1", (void*)2), GRAPH_SUCCESS);
-  EXPECT_EQ(HcomTopoInfo::Instance().SetGroupOrderedStream(0, "group2", (void*)3), GRAPH_SUCCESS);
+  EXPECT_EQ(HcomTopoInfo::Instance().SetGroupOrderedStream(0, "group0", (void *)1), GRAPH_SUCCESS);
+  EXPECT_EQ(HcomTopoInfo::Instance().SetGroupOrderedStream(0, "group1", (void *)2), GRAPH_SUCCESS);
+  EXPECT_EQ(HcomTopoInfo::Instance().SetGroupOrderedStream(0, "group2", (void *)3), GRAPH_SUCCESS);
 
   GeModelPtr ge_model = MakeShared<GeModel>();
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("default");
@@ -6842,7 +6859,7 @@ TEST_F(UtestDavinciModel, NnExecute_LaunchKfcEvent_Ok) {
   shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   ge_model->SetModelTaskDef(model_task_def);
 
-  GeTensorDesc tensor(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
   TensorUtils::SetSize(tensor, 512);
   {
     OpDescPtr op_desc = CreateOpDesc("data", DATA);
@@ -6896,8 +6913,8 @@ TEST_F(UtestDavinciModel, NnExecute_LaunchKfcEvent_Ok) {
     OpDescPtr op_desc = CreateOpDesc("output", NETOUTPUT);
     op_desc->AddInputDesc(tensor);
     op_desc->SetInputOffset({2048});
-    op_desc->SetSrcName( { "memcpy0" } );
-    op_desc->SetSrcIndex( { 0 } );
+    op_desc->SetSrcName({"memcpy0"});
+    op_desc->SetSrcIndex({0});
     NodePtr node = graph->AddNode(op_desc);  // op_index = 3
   }
 
@@ -6906,9 +6923,12 @@ TEST_F(UtestDavinciModel, NnExecute_LaunchKfcEvent_Ok) {
   EXPECT_EQ(model.Init(), SUCCESS);
   EXPECT_EQ(model.hccl_group_ordered_event_list_.size(), 3);
   EXPECT_EQ(model.hccl_group_ordered_stream_list_.size(), 3);
-  EXPECT_TRUE(std::find(model.hccl_group_ordered_stream_list_.begin(), model.hccl_group_ordered_stream_list_.end(), (void*)1) != model.hccl_group_ordered_stream_list_.end());
-  EXPECT_TRUE(std::find(model.hccl_group_ordered_stream_list_.begin(), model.hccl_group_ordered_stream_list_.end(), (void*)2) != model.hccl_group_ordered_stream_list_.end());
-  EXPECT_TRUE(std::find(model.hccl_group_ordered_stream_list_.begin(), model.hccl_group_ordered_stream_list_.end(), (void*)3) != model.hccl_group_ordered_stream_list_.end());
+  EXPECT_TRUE(std::find(model.hccl_group_ordered_stream_list_.begin(), model.hccl_group_ordered_stream_list_.end(),
+                        (void *)1) != model.hccl_group_ordered_stream_list_.end());
+  EXPECT_TRUE(std::find(model.hccl_group_ordered_stream_list_.begin(), model.hccl_group_ordered_stream_list_.end(),
+                        (void *)2) != model.hccl_group_ordered_stream_list_.end());
+  EXPECT_TRUE(std::find(model.hccl_group_ordered_stream_list_.begin(), model.hccl_group_ordered_stream_list_.end(),
+                        (void *)3) != model.hccl_group_ordered_stream_list_.end());
 
   rtStream_t stream = nullptr;
   InputData input_buffer;
@@ -6920,7 +6940,7 @@ TEST_F(UtestDavinciModel, NnExecute_LaunchKfcEvent_Ok) {
 
   std::vector<GeTensor> input_tensor;
   GeTensor ge_tensor_i;
-  GeTensorDesc tensor_desc_i(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor_desc_i(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
   ge_tensor_i.SetTensorDesc(tensor_desc_i);
   std::vector<int32_t> input_data_1(1 * 4 * 4 * 8, 0);
   ge_tensor_i.SetData(reinterpret_cast<uint8_t *>(input_data_1.data()), input_data_1.size() * sizeof(int32_t));
@@ -6928,7 +6948,7 @@ TEST_F(UtestDavinciModel, NnExecute_LaunchKfcEvent_Ok) {
 
   std::vector<GeTensor> output_tensor;
   GeTensor ge_tensor_o;
-  GeTensorDesc tensor_desc_o(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor_desc_o(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
   ge_tensor_o.SetTensorDesc(tensor_desc_i);
   std::vector<int32_t> input_data_2(1 * 4 * 4 * 8, 0);
   ge_tensor_o.SetData(reinterpret_cast<uint8_t *>(input_data_2.data()), input_data_2.size() * sizeof(int32_t));
@@ -6961,8 +6981,7 @@ TEST_F(UtestDavinciModel, NnExecute_FmMemoryRefreshOk) {
   model.SetFeatureBaseRefreshable(true);
   std::vector<GeTensor> input_tensor = {};
   std::vector<GeTensor> output_tensor = {};
-  EXPECT_EQ(model.NnExecute(stream, false, input_data, output_data,
-            input_tensor, output_tensor), SUCCESS);
+  EXPECT_EQ(model.NnExecute(stream, false, input_data, output_data, input_tensor, output_tensor), SUCCESS);
 
   uint8_t *bufer = nullptr;
   model.UpdateHbmFmMemBases({bufer});
@@ -6991,12 +7010,11 @@ TEST_F(UtestDavinciModel, NnExecute_FmMemoryRefresh_CopyOutput) {
   input_data.blobs = output_data.blobs;
   EXPECT_EQ(input_data.blobs.size(), 1);
 
-//  model.task_list_.resize(1);
+  //  model.task_list_.resize(1);
   model.SetFeatureBaseRefreshable(true);
   std::vector<GeTensor> input_tensor = {};
   std::vector<GeTensor> output_tensor = {};
-  EXPECT_EQ(model.NnExecute(stream, false, input_data, output_data,
-            input_tensor, output_tensor), SUCCESS);
+  EXPECT_EQ(model.NnExecute(stream, false, input_data, output_data, input_tensor, output_tensor), SUCCESS);
   unsetenv("GE_DAVINCI_MODEL_PROFILING");
 }
 
@@ -7013,7 +7031,7 @@ TEST_F(UtestDavinciModel, NnExecute_FmMemoryRefresh_CopyOutputWithEmptyDataBuffe
   OutputData output_data;
   OutputData empty_output_data;
 
-//  model.task_list_.resize(1);
+  //  model.task_list_.resize(1);
   model.SetFeatureBaseRefreshable(true);
   vector<gert::Tensor> outputs;
   EXPECT_EQ(model.GenOutputTensorInfo(output_data, outputs), SUCCESS);
@@ -7025,8 +7043,7 @@ TEST_F(UtestDavinciModel, NnExecute_FmMemoryRefresh_CopyOutputWithEmptyDataBuffe
     output_tensor.emplace_back(std::move(ge_tensor));
   }
   input_tensor = output_tensor;
-  EXPECT_EQ(model.NnExecute(stream, false, input_data, empty_output_data,
-            input_tensor, output_tensor), SUCCESS);
+  EXPECT_EQ(model.NnExecute(stream, false, input_data, empty_output_data, input_tensor, output_tensor), SUCCESS);
   unsetenv("GE_DAVINCI_MODEL_PROFILING");
 }
 
@@ -7043,7 +7060,7 @@ TEST_F(UtestDavinciModel, NnExecute_FmMemoryRefresh_CopyOutputWithGertTensor) {
   OutputData output_data;
   OutputData empty_output_data;
 
-//  model.task_list_.resize(1);
+  //  model.task_list_.resize(1);
   model.SetFeatureBaseRefreshable(true);
   vector<gert::Tensor> outputs;
   EXPECT_EQ(model.GenOutputTensorInfo(output_data, outputs), SUCCESS);
@@ -7052,16 +7069,16 @@ TEST_F(UtestDavinciModel, NnExecute_FmMemoryRefresh_CopyOutputWithGertTensor) {
   input_tensor.resize(1);
   output_tensor.resize(1);
   std::vector<uint8_t> output_data_1(96, 0xFF);
-  output_tensor[0] = {{{1,4,4,8}, {1,4,4,8}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            gert::kOnDeviceHbm,                                // placement
-                            ge::DT_INT32,                              // data type
-                            (void *) output_data_1.data()};
-  input_tensor[0] = {{{1,4,4,8}, {1,4,4,8}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            gert::kOnDeviceHbm,                                // placement
-                            ge::DT_INT32,                              // data type
-                            (void *) output_data_1.data()};
+  output_tensor[0] = {{{1, 4, 4, 8}, {1, 4, 4, 8}},                // shape
+                      {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                      gert::kOnDeviceHbm,                          // placement
+                      ge::DT_INT32,                                // data type
+                      (void *)output_data_1.data()};
+  input_tensor[0] = {{{1, 4, 4, 8}, {1, 4, 4, 8}},                // shape
+                     {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                     gert::kOnDeviceHbm,                          // placement
+                     ge::DT_INT32,                                // data type
+                     (void *)output_data_1.data()};
   EXPECT_EQ(model.NnExecute(stream, true, input_tensor, output_tensor), SUCCESS);
   unsetenv("GE_DAVINCI_MODEL_PROFILING");
 }
@@ -7086,7 +7103,7 @@ TEST_F(UtestDavinciModel, test_copy_model_data) {
   dp.InitByOptions();
   model.SetDumpProperties(dp);
 
-  GeTensorDesc tensor(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT); // sizeof(float) * 1 * 4 * 4 * 8 = 512
+  GeTensorDesc tensor(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);  // sizeof(float) * 1 * 4 * 4 * 8 = 512
   TensorUtils::SetSize(tensor, 512);
   {
     OpDescPtr op_desc = CreateOpDesc("data", DATA);
@@ -7094,7 +7111,7 @@ TEST_F(UtestDavinciModel, test_copy_model_data) {
     op_desc->AddOutputDesc(tensor);
     op_desc->SetInputOffset({0});
     op_desc->SetOutputOffset({0});
-    NodePtr node = graph->AddNode(op_desc);    // op_index = 0
+    NodePtr node = graph->AddNode(op_desc);  // op_index = 0
   }
 
   {
@@ -7121,8 +7138,8 @@ TEST_F(UtestDavinciModel, test_copy_model_data) {
     OpDescPtr op_desc = CreateOpDesc("output", NETOUTPUT);
     op_desc->AddInputDesc(tensor);
     op_desc->SetInputOffset({2048});
-    op_desc->SetSrcName( { "memcpy" } );
-    op_desc->SetSrcIndex( { 0 } );
+    op_desc->SetSrcName({"memcpy"});
+    op_desc->SetSrcIndex({0});
     NodePtr node = graph->AddNode(op_desc);  // op_index = 3
   }
 
@@ -7138,11 +7155,11 @@ TEST_F(UtestDavinciModel, test_copy_model_data) {
   output_tensor.resize(1);
   input_tensor.resize(1);
   unique_ptr<uint8_t[]> data_buf_1(new (std::nothrow) uint8_t[512]);
-  input_tensor[0] = {{{1,2}, {1,2}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            gert::kOnDeviceHbm,                                // placement
-                            ge::DT_INT32,                              // data type
-                            (void *) data_buf_1.get()};
+  input_tensor[0] = {{{1, 2}, {1, 2}},                            // shape
+                     {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                     gert::kOnDeviceHbm,                          // placement
+                     ge::DT_INT32,                                // data type
+                     (void *)data_buf_1.get()};
   // unique_ptr<uint8_t[]> data_buf_2(new (std::nothrow) uint8_t[512]);
   // input_tensor[1] = {{{1,4,4,8}, {1,4,4,8}},                // shape
   //                           {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
@@ -7150,11 +7167,11 @@ TEST_F(UtestDavinciModel, test_copy_model_data) {
   //                           ge::DT_INT32,                              // data type
   //                           (void *) data_buf_2.get()};
   unique_ptr<uint8_t[]> data_buf_3(new (std::nothrow) uint8_t[512]);
-  output_tensor[0] = {{{1,2}, {1,2}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                            gert::kOnDeviceHbm,                                // placement
-                            ge::DT_INT32,                              // data type
-                            (void *) data_buf_3.get()};
+  output_tensor[0] = {{{1, 2}, {1, 2}},                            // shape
+                      {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
+                      gert::kOnDeviceHbm,                          // placement
+                      ge::DT_INT32,                                // data type
+                      (void *)data_buf_3.get()};
   dlog_setlevel(GE_MODULE_NAME, DLOG_DEBUG, 0);
   InputData input_data;
   OutputData output_data;
@@ -7187,7 +7204,7 @@ TEST_F(UtestDavinciModel, NnExecute_ffts_zcpy) {
   EXPECT_EQ(output_data.blobs.size(), 1);
   EXPECT_EQ(output_data.blobs[0].length, 512);
   EXPECT_EQ(outputs.size(), 1);
-  output_data.blobs[0].placement = 1; // dev mem
+  output_data.blobs[0].placement = 1;  // dev mem
   input_data.blobs = output_data.blobs;
   EXPECT_EQ(input_data.blobs.size(), 1);
 
@@ -7195,8 +7212,7 @@ TEST_F(UtestDavinciModel, NnExecute_ffts_zcpy) {
   model.SetFeatureBaseRefreshable(false);
   std::vector<GeTensor> input_tensor = {};
   std::vector<GeTensor> output_tensor = {};
-  EXPECT_EQ(model.NnExecute(stream, false, input_data, output_data,
-            input_tensor, output_tensor), SUCCESS);
+  EXPECT_EQ(model.NnExecute(stream, false, input_data, output_data, input_tensor, output_tensor), SUCCESS);
   // 后续不再刷新这个表
   EXPECT_EQ(model.input_index_to_active_mem_base_addrs_[0], 0);
   EXPECT_NE(model.output_index_to_active_mem_base_addrs_[0], PtrToValue(output_data.blobs[0].data));
@@ -7220,7 +7236,7 @@ TEST_F(UtestDavinciModel, GenOutputMemAllocations_test) {
   op_desc->AddOutputDesc(tensor);
   op_desc->AddOutputDesc(tensor1);
   op_desc->SetInputOffset({0, 8});
-  op_desc->SetOutputOffset({0 , 8});
+  op_desc->SetOutputOffset({0, 8});
 
   std::vector<OpDescPtr> output_op_list;
   output_op_list.emplace_back(op_desc);
@@ -7236,7 +7252,7 @@ TEST_F(UtestDavinciModel, GenSliceMemAllocationsZeroCopy_test) {
   GetThreadLocalContext().SetGraphOption(graph_options);
 
   {
-    uint8_t mem[1024] {};
+    uint8_t mem[1024]{};
     std::vector<OpDescPtr> output_op_list;
     std::set<uint64_t> output_outside_addrs;
     std::shared_ptr<ComputeGraph> graph(new (std::nothrow) ComputeGraph("graph"));
@@ -7259,16 +7275,16 @@ TEST_F(UtestDavinciModel, GenSliceMemAllocationsZeroCopy_test) {
     EXPECT_EQ(model.InitDataOp(graph, data1, data_op_index, data_by_index, output_outside_addrs), SUCCESS);
     EXPECT_EQ(model.InitDataOp(graph, data2, data_op_index, data_by_index, output_outside_addrs), SUCCESS);
     EXPECT_EQ(model.InitNetOutput(graph, netoutput, output_op_list, output_outside_addrs), SUCCESS);
-    EXPECT_TRUE(model.copy_only_addrs_.copy_only_addrs.empty()); // All outputs can zero-copy
+    EXPECT_TRUE(model.copy_only_addrs_.copy_only_addrs.empty());  // All outputs can zero-copy
 
     GeModelPtr ge_model = MakeShared<GeModel>();
     ge_model->SetGraph(graph);
     model.Assign(ge_model);
     model.is_getnext_sink_dynamic_ = true;
     model.mem_base_ = model.runtime_param_.mem_base;
-    EXPECT_EQ(model.GenSliceOutputMemAllocations(output_op_list), SUCCESS); // All outputs can zero-copy
+    EXPECT_EQ(model.GenSliceOutputMemAllocations(output_op_list), SUCCESS);  // All outputs can zero-copy
     model.is_getnext_sink_dynamic_ = false;
-    EXPECT_EQ(model.GenSliceOutputMemAllocations(output_op_list), SUCCESS); // All outputs can zero-copy
+    EXPECT_EQ(model.GenSliceOutputMemAllocations(output_op_list), SUCCESS);  // All outputs can zero-copy
   }
 
   graph_options[OPTION_EXEC_REUSE_ZERO_COPY_MEMORY] = "";
@@ -7293,7 +7309,7 @@ TEST_F(UtestDavinciModel, NnExecute_ffts_no_zcpy) {
   EXPECT_EQ(output_data.blobs.size(), 1);
   EXPECT_EQ(output_data.blobs[0].length, 512);
   EXPECT_EQ(outputs.size(), 1);
-  output_data.blobs[0].placement = 0; // host mem
+  output_data.blobs[0].placement = 0;  // host mem
   input_data.blobs = output_data.blobs;
   EXPECT_EQ(input_data.blobs.size(), 1);
   model.mem_base_ = reinterpret_cast<uintptr_t>(malloc(1024));
@@ -7303,8 +7319,7 @@ TEST_F(UtestDavinciModel, NnExecute_ffts_no_zcpy) {
   model.is_async_mode_ = true;
   std::vector<GeTensor> input_tensor = {};
   std::vector<GeTensor> output_tensor = {};
-  EXPECT_EQ(model.NnExecute(stream, false, input_data, output_data,
-            input_tensor, output_tensor), SUCCESS);
+  EXPECT_EQ(model.NnExecute(stream, false, input_data, output_data, input_tensor, output_tensor), SUCCESS);
   EXPECT_NE(model.input_index_to_active_mem_base_addrs_[0], PtrToValue(input_data.blobs[0].data));
   EXPECT_NE(model.output_index_to_active_mem_base_addrs_[0], PtrToValue(output_data.blobs[0].data));
   free(ValueToPtr(model.mem_base_));
@@ -7315,7 +7330,7 @@ TEST_F(UtestDavinciModel, FreeInnerFeatureMapMem_fail) {
   const char_t *const kEnvRecordPath = "TIMEOUT";
   char_t record_path[MMPA_MAX_PATH] = "timeout";
   mmSetEnv(kEnvRecordPath, &record_path[0U], MMPA_MAX_PATH);
-  void *mem = new (std::nothrow)  int[10];
+  void *mem = new (std::nothrow) int[10];
   davinci_model.mem_base_ = reinterpret_cast<uintptr_t>(mem);
   davinci_model.is_inner_mem_base_ = true;
   davinci_model.FreeInnerFeatureMapMem();
@@ -7325,7 +7340,7 @@ TEST_F(UtestDavinciModel, FreeInnerFeatureMapMem_fail) {
   auto mock_acl_runtime = std::make_shared<ge::AclRuntimeStub>();
   ge::AclRuntimeStub::SetInstance(mock_acl_runtime);
   g_runtime_stub_mock = "aclrtSynchronizeStreamWithTimeout";
-  void *mem1 = new (std::nothrow)  int[10];
+  void *mem1 = new (std::nothrow) int[10];
   davinci_model.mem_base_ = reinterpret_cast<uintptr_t>(mem1);
   davinci_model.mem_base_ = reinterpret_cast<uintptr_t>(mem1);
   davinci_model.is_inner_mem_base_ = true;
@@ -7344,17 +7359,18 @@ TEST_F(UtestDavinciModel, NoNeedToCopyInputOutput) {
   davinci_model.output_indexes_to_copy_info_.emplace(0, mem_allocation_slice);
   davinci_model.input_indexes_to_copy_info_.emplace(0, mem_allocation_slice);
   davinci_model.output_no_tiling_flag_ = {false};
-  davinci_model.output_shape_info_ = {GeShape({1,4,4,8})};
+  davinci_model.output_shape_info_ = {GeShape({1, 4, 4, 8})};
   davinci_model.has_output_node_ = true;
   std::vector<GeTensor> tensor = {};
   EXPECT_EQ(davinci_model.CopyOutputData(data, tensor), SUCCESS);
-  std::vector<DataBuffer> input_data {DataBuffer()};
-  EXPECT_EQ(davinci_model.CopyInputForNoZeroCopy(input_data, davinci_model.input_indexes_to_copy_info_, tensor), SUCCESS);
+  std::vector<DataBuffer> input_data{DataBuffer()};
+  EXPECT_EQ(davinci_model.CopyInputForNoZeroCopy(input_data, davinci_model.input_indexes_to_copy_info_, tensor),
+            SUCCESS);
   davinci_model.is_async_mode_ = true;
   EXPECT_EQ(davinci_model.CopyOutputData(data, tensor), SUCCESS);
 
   uint8_t args1[70] = {123};
-  std::vector<DataBuffer> input_data2 {DataBuffer(&args1, 70, false)};
+  std::vector<DataBuffer> input_data2{DataBuffer(&args1, 70, false)};
   davinci_model.input_indexes_to_copy_info_.clear();
   mem_allocation_slice.data_size = 64;
   uint8_t buf[100];
@@ -7365,15 +7381,16 @@ TEST_F(UtestDavinciModel, NoNeedToCopyInputOutput) {
   }
   active_base_addr_vec.emplace_back((uint64_t)buf);
   davinci_model.allocation_ids_to_active_base_addr_ =
-    reinterpret_cast<uint64_t*>(static_cast<void*>(active_base_addr_vec.data()));
+      reinterpret_cast<uint64_t *>(static_cast<void *>(active_base_addr_vec.data()));
 
   MemAllocation mem_allocation0 = {};
   mem_allocation0.data_size = 32U;
   mem_allocation0.tensor_size = 32;
   mem_allocation0.logical_addr = 0x23;
   davinci_model.logical_mem_allocations_.emplace_back(mem_allocation0);
-  //davinci_model.allocation_ids_to_active_base_addr_.emplace_back((uint64_t)buf);
-  EXPECT_EQ(davinci_model.CopyInputForNoZeroCopy(input_data2, davinci_model.input_indexes_to_copy_info_, tensor), SUCCESS);
+  // davinci_model.allocation_ids_to_active_base_addr_.emplace_back((uint64_t)buf);
+  EXPECT_EQ(davinci_model.CopyInputForNoZeroCopy(input_data2, davinci_model.input_indexes_to_copy_info_, tensor),
+            SUCCESS);
 }
 
 TEST_F(UtestDavinciModel, NoNeedToCopyInputOutputWithemptyData) {
@@ -7386,16 +7403,17 @@ TEST_F(UtestDavinciModel, NoNeedToCopyInputOutputWithemptyData) {
   davinci_model.output_indexes_to_copy_info_.emplace(0, mem_allocation_slice);
   davinci_model.input_indexes_to_copy_info_.emplace(0, mem_allocation_slice);
   davinci_model.output_no_tiling_flag_ = {false};
-  davinci_model.output_shape_info_ = {GeShape({1,4,4,8})};
+  davinci_model.output_shape_info_ = {GeShape({1, 4, 4, 8})};
   davinci_model.has_output_node_ = true;
   std::vector<GeTensor> tensor = {};
-  GeTensorDesc td(GeShape({1,4,4,8}), FORMAT_ND, DT_FLOAT);
+  GeTensorDesc td(GeShape({1, 4, 4, 8}), FORMAT_ND, DT_FLOAT);
   GeTensor geTensor(td);
   tensor.emplace_back(geTensor);
 
   EXPECT_EQ(davinci_model.CopyOutputData(data, tensor), SUCCESS);
   std::vector<DataBuffer> input_data;
-  EXPECT_EQ(davinci_model.CopyInputForNoZeroCopy(input_data, davinci_model.input_indexes_to_copy_info_, tensor), SUCCESS);
+  EXPECT_EQ(davinci_model.CopyInputForNoZeroCopy(input_data, davinci_model.input_indexes_to_copy_info_, tensor),
+            SUCCESS);
   davinci_model.is_async_mode_ = true;
   EXPECT_EQ(davinci_model.CopyOutputData(data, tensor), SUCCESS);
 }
@@ -7732,7 +7750,7 @@ TEST_F(UtestDavinciModel, test_GenFrozenInputIndex_no_frozen) {
 
 TEST_F(UtestDavinciModel, ChangeMemCpyTaskToAddr_failed_memcpy_inputoffset_empty) {
   RTS_STUB_RETURN_VALUE(rtMemcpy, rtError_t, RT_ERROR_NONE);
-  dlog_setlevel(0,0,0);
+  dlog_setlevel(0, 0, 0);
   DavinciModel model(0, nullptr);
   ComputeGraphPtr graph = MakeShared<ComputeGraph>("default");
   ProfilingProperties::Instance().is_load_profiling_ = true;
@@ -7748,7 +7766,7 @@ TEST_F(UtestDavinciModel, ChangeMemCpyTaskToAddr_failed_memcpy_inputoffset_empty
   auto memcpy_node = graph->FindFirstNodeMatchType(MEMCPYASYNC);
   memcpy_node->GetOpDesc()->SetInputOffset({});
 
-  dlog_setlevel(0,0,0);
+  dlog_setlevel(0, 0, 0);
   model.Assign(ge_model);
   EXPECT_EQ(model.Init(), SUCCESS);
 
@@ -7757,7 +7775,7 @@ TEST_F(UtestDavinciModel, ChangeMemCpyTaskToAddr_failed_memcpy_inputoffset_empty
   EXPECT_EQ(static_cast<ModelTaskType>(task_def1.type()), ModelTaskType::MODEL_TASK_MEMCPY_ASYNC);
   const domi::MemcpyAsyncDef &memcpy_async1 = task_def1.memcpy_async();
   EXPECT_EQ(static_cast<tagRtMemcpyKind>(memcpy_async1.kind()), RT_MEMCPY_DEVICE_TO_DEVICE);
-  dlog_setlevel(0,3,0);
+  dlog_setlevel(0, 3, 0);
 }
 
 TEST_F(UtestDavinciModel, ChangeMemCpyTaskToAddr_failed_memcpy_inputoffset_not_right) {
@@ -7847,74 +7865,79 @@ TEST_F(UtestDavinciModel, static_graph_memory_extend) {
   graph_options[OPTION_EXEC_REUSE_ZERO_COPY_MEMORY] = "1";
   GetThreadLocalContext().SetGraphOption(graph_options);
   {
-  // extend size statis memory
-  DavinciModel model1(0, nullptr);
-  model1.Assign(ge_model);
-  EXPECT_EQ(model1.Init(), SUCCESS);
-  EXPECT_EQ(model1.GetFmMemoryInfos().size(), 1);
-  EXPECT_EQ(SessionMemAllocator<ActiveMemoryAllocator>::Instance()
-      .GetMemAllocator(model1.GetSessionId(), 0)->active_memorys_.size(), 1);
+    // extend size statis memory
+    DavinciModel model1(0, nullptr);
+    model1.Assign(ge_model);
+    EXPECT_EQ(model1.Init(), SUCCESS);
+    EXPECT_EQ(model1.GetFmMemoryInfos().size(), 1);
+    EXPECT_EQ(SessionMemAllocator<ActiveMemoryAllocator>::Instance()
+                  .GetMemAllocator(model1.GetSessionId(), 0)
+                  ->active_memorys_.size(),
+              1);
 
-  DavinciModel model2(0, nullptr);
-  EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 7168));
-  EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_ZERO_COPY_MEMORY_SIZE, 1024));
-  sub_memory_infos.clear();
-  sub_memory_infos.push_back({RT_MEMORY_HBM, 0, 2048});
-  sub_memory_infos.push_back({RT_MEMORY_HBM, 2048, 3072});
-  sub_memory_infos.push_back({RT_MEMORY_HBM, 5120, 1024});
-  sub_memory_infos.push_back({RT_MEMORY_HBM, 6144, 1024});
-  (void)AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
+    DavinciModel model2(0, nullptr);
+    EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 7168));
+    EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_ZERO_COPY_MEMORY_SIZE, 1024));
+    sub_memory_infos.clear();
+    sub_memory_infos.push_back({RT_MEMORY_HBM, 0, 2048});
+    sub_memory_infos.push_back({RT_MEMORY_HBM, 2048, 3072});
+    sub_memory_infos.push_back({RT_MEMORY_HBM, 5120, 1024});
+    sub_memory_infos.push_back({RT_MEMORY_HBM, 6144, 1024});
+    (void)AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
 
-  model2.Assign(ge_model);
-  EXPECT_EQ(model2.Init(), SUCCESS);
+    model2.Assign(ge_model);
+    EXPECT_EQ(model2.Init(), SUCCESS);
 
-  // test1, model2 reuse model1 feature map memory, extend 2048
-  EXPECT_EQ(model2.GetFmMemoryInfos().size(), 3);
-  auto allocator = SessionMemAllocator<ActiveMemoryAllocator>::Instance()
-      .GetMemAllocator(model2.GetSessionId(), 0);
-  EXPECT_EQ(allocator->active_memorys_.size(), 3);
-  auto max_addr = std::max(allocator->active_memorys_[0].active_addr + allocator->active_memorys_[0].total_size,
-                           allocator->active_memorys_[1].active_addr + allocator->active_memorys_[1].total_size);
-  max_addr = std::max(max_addr, allocator->active_memorys_[2].active_addr + allocator->active_memorys_[2].total_size);
-  EXPECT_EQ(model2.GetFmMemoryInfos()[1].memory_base, model1.GetFmMemoryInfos()[0].memory_base);
-  EXPECT_EQ(model2.GetRuntimeParam().GetMemAddr(1024), model2.GetFmMemoryInfos()[0].memory_base + 1024);
-  EXPECT_EQ(model2.GetRuntimeParam().GetMemAddr(2048), model2.GetFmMemoryInfos()[1].memory_base);
-  EXPECT_EQ(model2.GetRuntimeParam().GetMemAddr(5120), model2.GetFmMemoryInfos()[2].memory_base);
-  EXPECT_EQ(model2.GetRuntimeParam().GetMemAddr(5120 + 512), model2.GetFmMemoryInfos()[2].memory_base + 512);
-  EXPECT_EQ(model2.GetRuntimeParam().GetMemAddr(6144), max_addr);
+    // test1, model2 reuse model1 feature map memory, extend 2048
+    EXPECT_EQ(model2.GetFmMemoryInfos().size(), 3);
+    auto allocator = SessionMemAllocator<ActiveMemoryAllocator>::Instance().GetMemAllocator(model2.GetSessionId(), 0);
+    EXPECT_EQ(allocator->active_memorys_.size(), 3);
+    auto max_addr = std::max(allocator->active_memorys_[0].active_addr + allocator->active_memorys_[0].total_size,
+                             allocator->active_memorys_[1].active_addr + allocator->active_memorys_[1].total_size);
+    max_addr = std::max(max_addr, allocator->active_memorys_[2].active_addr + allocator->active_memorys_[2].total_size);
+    EXPECT_EQ(model2.GetFmMemoryInfos()[1].memory_base, model1.GetFmMemoryInfos()[0].memory_base);
+    EXPECT_EQ(model2.GetRuntimeParam().GetMemAddr(1024), model2.GetFmMemoryInfos()[0].memory_base + 1024);
+    EXPECT_EQ(model2.GetRuntimeParam().GetMemAddr(2048), model2.GetFmMemoryInfos()[1].memory_base);
+    EXPECT_EQ(model2.GetRuntimeParam().GetMemAddr(5120), model2.GetFmMemoryInfos()[2].memory_base);
+    EXPECT_EQ(model2.GetRuntimeParam().GetMemAddr(5120 + 512), model2.GetFmMemoryInfos()[2].memory_base + 512);
+    EXPECT_EQ(model2.GetRuntimeParam().GetMemAddr(6144), max_addr);
 
-  DavinciModel model3(0, nullptr);
-  EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 2560));
-  EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_ZERO_COPY_MEMORY_SIZE, 0));
-  sub_memory_infos.clear();
-  sub_memory_infos.push_back({RT_MEMORY_HBM, 0, 2048});
-  sub_memory_infos.push_back({RT_MEMORY_HBM, 2048, 512});
-  sub_memory_infos.push_back({RT_MEMORY_HBM, 2560, 0});
-  (void)AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
+    DavinciModel model3(0, nullptr);
+    EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 2560));
+    EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_ZERO_COPY_MEMORY_SIZE, 0));
+    sub_memory_infos.clear();
+    sub_memory_infos.push_back({RT_MEMORY_HBM, 0, 2048});
+    sub_memory_infos.push_back({RT_MEMORY_HBM, 2048, 512});
+    sub_memory_infos.push_back({RT_MEMORY_HBM, 2560, 0});
+    (void)AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
 
-  // test2, reuse feature map memory
-  model3.Assign(ge_model);
-  EXPECT_EQ(model3.Init(), SUCCESS);
-  EXPECT_EQ(model3.GetFmMemoryInfos().size(), 1);
-  EXPECT_EQ(SessionMemAllocator<ActiveMemoryAllocator>::Instance()
-      .GetMemAllocator(model3.GetSessionId(), 0)->active_memorys_.size(), 3);
-  EXPECT_EQ(model3.GetFmMemoryInfos()[0].memory_base, model1.GetFmMemoryInfos()[0].memory_base);
+    // test2, reuse feature map memory
+    model3.Assign(ge_model);
+    EXPECT_EQ(model3.Init(), SUCCESS);
+    EXPECT_EQ(model3.GetFmMemoryInfos().size(), 1);
+    EXPECT_EQ(SessionMemAllocator<ActiveMemoryAllocator>::Instance()
+                  .GetMemAllocator(model3.GetSessionId(), 0)
+                  ->active_memorys_.size(),
+              3);
+    EXPECT_EQ(model3.GetFmMemoryInfos()[0].memory_base, model1.GetFmMemoryInfos()[0].memory_base);
 
-  DavinciModel model4(0, nullptr);
-  EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 2098688));
-  EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_ZERO_COPY_MEMORY_SIZE, 0));
-  sub_memory_infos.clear();
-  sub_memory_infos.push_back({RT_MEMORY_HBM, 0, 2098176});
-  sub_memory_infos.push_back({RT_MEMORY_HBM, 2098176, 512});
-  sub_memory_infos.push_back({RT_MEMORY_HBM, 2098688, 0});
-  (void)AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
+    DavinciModel model4(0, nullptr);
+    EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 2098688));
+    EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_ZERO_COPY_MEMORY_SIZE, 0));
+    sub_memory_infos.clear();
+    sub_memory_infos.push_back({RT_MEMORY_HBM, 0, 2098176});
+    sub_memory_infos.push_back({RT_MEMORY_HBM, 2098176, 512});
+    sub_memory_infos.push_back({RT_MEMORY_HBM, 2098688, 0});
+    (void)AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
 
-  // test3, no reuse feature map memory
-  model4.Assign(ge_model);
-  EXPECT_EQ(model4.Init(), SUCCESS);
-  EXPECT_EQ(model4.GetFmMemoryInfos().size(), 2);
-  EXPECT_EQ(SessionMemAllocator<ActiveMemoryAllocator>::Instance()
-      .GetMemAllocator(model4.GetSessionId(), 0)->active_memorys_.size(), 4);
+    // test3, no reuse feature map memory
+    model4.Assign(ge_model);
+    EXPECT_EQ(model4.Init(), SUCCESS);
+    EXPECT_EQ(model4.GetFmMemoryInfos().size(), 2);
+    EXPECT_EQ(SessionMemAllocator<ActiveMemoryAllocator>::Instance()
+                  .GetMemAllocator(model4.GetSessionId(), 0)
+                  ->active_memorys_.size(),
+              4);
   }
 
   graph_options[STATIC_MEMORY_POLICY] = "";
@@ -7934,7 +7957,7 @@ TEST_F(UtestDavinciModel, static_graph_memory_extend_fail) {
   sub_memory_infos.push_back({RT_MEMORY_HBM, 1024, 1024});
   sub_memory_infos.push_back({RT_MEMORY_HBM, 2048, 1024});
   sub_memory_infos.push_back({RT_MEMORY_HBM, 3072, 1024});
-  (void) AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
+  (void)AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
   const auto model_def = MakeShared<domi::ModelTaskDef>();
   ge_model->SetModelTaskDef(model_def);
 
@@ -7949,7 +7972,9 @@ TEST_F(UtestDavinciModel, static_graph_memory_extend_fail) {
     EXPECT_EQ(model1.Init(), SUCCESS);
     EXPECT_EQ(model1.GetFmMemoryInfos().size(), 1);
     EXPECT_EQ(SessionMemAllocator<ActiveMemoryAllocator>::Instance()
-        .GetMemAllocator(model1.GetSessionId(), 0)->active_memorys_.size(), 1);
+                  .GetMemAllocator(model1.GetSessionId(), 0)
+                  ->active_memorys_.size(),
+              1);
 
     DavinciModel model2(0, nullptr);
     EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 2103296));
@@ -7959,7 +7984,7 @@ TEST_F(UtestDavinciModel, static_graph_memory_extend_fail) {
     sub_memory_infos.push_back({RT_MEMORY_HBM, 2048, 3072});
     sub_memory_infos.push_back({RT_MEMORY_HBM, 5120, 1024 * 1024 * 2});
     sub_memory_infos.push_back({RT_MEMORY_HBM, 5120 + 1024 * 1024 * 2, 1024});
-    (void) AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
+    (void)AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
 
     g_runtime_stub_mock = "aclrtMallocWithCfg";
     model2.Assign(ge_model);
@@ -7981,7 +8006,7 @@ TEST_F(UtestDavinciModel, static_graph_memory_no_extend) {
   sub_memory_infos.push_back({RT_MEMORY_HBM, 1024, 1024});
   sub_memory_infos.push_back({RT_MEMORY_HBM, 2048, 1024});
   sub_memory_infos.push_back({RT_MEMORY_HBM, 3072, 1024});
-  (void) AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
+  (void)AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
   const auto model_def = MakeShared<domi::ModelTaskDef>();
   ge_model->SetModelTaskDef(model_def);
 
@@ -7989,48 +8014,54 @@ TEST_F(UtestDavinciModel, static_graph_memory_no_extend) {
   graph_options[STATIC_MEMORY_POLICY] = "2";
   GetThreadLocalContext().SetGraphOption(graph_options);
   {
-  // no extend static memory
-  DavinciModel model1(0, nullptr);
-  model1.Assign(ge_model);
-  EXPECT_EQ(model1.Init(), SUCCESS);
-  EXPECT_EQ(model1.GetFmMemoryInfos().size(), 1); // error
-  EXPECT_EQ(SessionMemAllocator<ActiveMemoryAllocator>::Instance()
-      .GetMemAllocator(model1.GetSessionId(), 0)->active_memorys_.size(), 2);
+    // no extend static memory
+    DavinciModel model1(0, nullptr);
+    model1.Assign(ge_model);
+    EXPECT_EQ(model1.Init(), SUCCESS);
+    EXPECT_EQ(model1.GetFmMemoryInfos().size(), 1);  // error
+    EXPECT_EQ(SessionMemAllocator<ActiveMemoryAllocator>::Instance()
+                  .GetMemAllocator(model1.GetSessionId(), 0)
+                  ->active_memorys_.size(),
+              2);
 
-  DavinciModel model2(0, nullptr);
-  EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 3072));
-  EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_ZERO_COPY_MEMORY_SIZE, 0));
-  sub_memory_infos.clear();
-  sub_memory_infos.push_back({RT_MEMORY_HBM, 0, 2048});
-  sub_memory_infos.push_back({RT_MEMORY_HBM, 2048, 1024});
-  sub_memory_infos.push_back({RT_MEMORY_HBM, 3072, 0});
-  (void) AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
+    DavinciModel model2(0, nullptr);
+    EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 3072));
+    EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_ZERO_COPY_MEMORY_SIZE, 0));
+    sub_memory_infos.clear();
+    sub_memory_infos.push_back({RT_MEMORY_HBM, 0, 2048});
+    sub_memory_infos.push_back({RT_MEMORY_HBM, 2048, 1024});
+    sub_memory_infos.push_back({RT_MEMORY_HBM, 3072, 0});
+    (void)AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
 
-  model2.Assign(ge_model);
-  EXPECT_EQ(model2.Init(), SUCCESS);
+    model2.Assign(ge_model);
+    EXPECT_EQ(model2.Init(), SUCCESS);
 
-  // test1, reuse model1 feature map memory
-  EXPECT_EQ(SessionMemAllocator<ActiveMemoryAllocator>::Instance()
-      .GetMemAllocator(model2.GetSessionId(), 0)->active_memorys_.size(), 2);
-  EXPECT_EQ(model2.GetFmMemoryInfos().size(), 1);
-  EXPECT_EQ(model2.GetFmMemoryInfos()[0].memory_base, model1.GetFmMemoryInfos()[0].memory_base);
+    // test1, reuse model1 feature map memory
+    EXPECT_EQ(SessionMemAllocator<ActiveMemoryAllocator>::Instance()
+                  .GetMemAllocator(model2.GetSessionId(), 0)
+                  ->active_memorys_.size(),
+              2);
+    EXPECT_EQ(model2.GetFmMemoryInfos().size(), 1);
+    EXPECT_EQ(model2.GetFmMemoryInfos()[0].memory_base, model1.GetFmMemoryInfos()[0].memory_base);
 
-  DavinciModel model3(0, nullptr);
-  EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 2560));
-  EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_ZERO_COPY_MEMORY_SIZE, 0));
-  sub_memory_infos.clear();
-  sub_memory_infos.push_back({RT_MEMORY_HBM, 0, 2048});
-  sub_memory_infos.push_back({RT_MEMORY_HBM, 2048, 512});
-  sub_memory_infos.push_back({RT_MEMORY_HBM, 2560, 0});
-  (void) AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
+    DavinciModel model3(0, nullptr);
+    EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 2560));
+    EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_ZERO_COPY_MEMORY_SIZE, 0));
+    sub_memory_infos.clear();
+    sub_memory_infos.push_back({RT_MEMORY_HBM, 0, 2048});
+    sub_memory_infos.push_back({RT_MEMORY_HBM, 2048, 512});
+    sub_memory_infos.push_back({RT_MEMORY_HBM, 2560, 0});
+    (void)AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
 
-  // test2, reuse model1 feature map memory
-  model3.Assign(ge_model);
-  EXPECT_EQ(model3.Init(), SUCCESS);
-  EXPECT_EQ(model3.GetFmMemoryInfos().size(), 1);
-  EXPECT_EQ(SessionMemAllocator<ActiveMemoryAllocator>::Instance()
-      .GetMemAllocator(model3.GetSessionId(), 0)->active_memorys_.size(), 2);
-  EXPECT_EQ(model3.GetFmMemoryInfos()[0].memory_base, model1.GetFmMemoryInfos()[0].memory_base);
+    // test2, reuse model1 feature map memory
+    model3.Assign(ge_model);
+    EXPECT_EQ(model3.Init(), SUCCESS);
+    EXPECT_EQ(model3.GetFmMemoryInfos().size(), 1);
+    EXPECT_EQ(SessionMemAllocator<ActiveMemoryAllocator>::Instance()
+                  .GetMemAllocator(model3.GetSessionId(), 0)
+                  ->active_memorys_.size(),
+              2);
+    EXPECT_EQ(model3.GetFmMemoryInfos()[0].memory_base, model1.GetFmMemoryInfos()[0].memory_base);
   }
   graph_options[STATIC_MEMORY_POLICY] = "";
   GetThreadLocalContext().SetGraphOption(graph_options);
@@ -8049,38 +8080,44 @@ TEST_F(UtestDavinciModel, no_split_info_om) {
   graph_options[STATIC_MEMORY_POLICY] = "2";
   GetThreadLocalContext().SetGraphOption(graph_options);
   {
-  // no extend size statis memory
-  DavinciModel model1(0, nullptr);
-  model1.Assign(ge_model);
-  EXPECT_EQ(model1.Init(), SUCCESS);
-  EXPECT_EQ(model1.GetFmMemoryInfos().size(), 1);
-  EXPECT_EQ(SessionMemAllocator<ActiveMemoryAllocator>::Instance()
-      .GetMemAllocator(model1.GetSessionId(), 0)->active_memorys_.size(), 2);
+    // no extend size statis memory
+    DavinciModel model1(0, nullptr);
+    model1.Assign(ge_model);
+    EXPECT_EQ(model1.Init(), SUCCESS);
+    EXPECT_EQ(model1.GetFmMemoryInfos().size(), 1);
+    EXPECT_EQ(SessionMemAllocator<ActiveMemoryAllocator>::Instance()
+                  .GetMemAllocator(model1.GetSessionId(), 0)
+                  ->active_memorys_.size(),
+              2);
 
-  DavinciModel model2(0, nullptr);
-  EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 7168));
-  EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_ZERO_COPY_MEMORY_SIZE, 1024));
+    DavinciModel model2(0, nullptr);
+    EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 7168));
+    EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_ZERO_COPY_MEMORY_SIZE, 1024));
 
-  model2.Assign(ge_model);
-  EXPECT_EQ(model2.Init(), SUCCESS);
+    model2.Assign(ge_model);
+    EXPECT_EQ(model2.Init(), SUCCESS);
 
-  // test1, model2 malloc feature map memory
-  EXPECT_EQ(model2.GetFmMemoryInfos().size(), 1); // fm
-  EXPECT_EQ(SessionMemAllocator<ActiveMemoryAllocator>::Instance()
-      .GetMemAllocator(model2.GetSessionId(), 0)->active_memorys_.size(), 3);
-  EXPECT_NE(model2.GetFmMemoryInfos()[0].memory_base, model1.GetFmMemoryInfos()[0].memory_base);
+    // test1, model2 malloc feature map memory
+    EXPECT_EQ(model2.GetFmMemoryInfos().size(), 1);  // fm
+    EXPECT_EQ(SessionMemAllocator<ActiveMemoryAllocator>::Instance()
+                  .GetMemAllocator(model2.GetSessionId(), 0)
+                  ->active_memorys_.size(),
+              3);
+    EXPECT_NE(model2.GetFmMemoryInfos()[0].memory_base, model1.GetFmMemoryInfos()[0].memory_base);
 
-  DavinciModel model3(0, nullptr);
-  EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 2560));
-  EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_ZERO_COPY_MEMORY_SIZE, 0));
+    DavinciModel model3(0, nullptr);
+    EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 2560));
+    EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_ZERO_COPY_MEMORY_SIZE, 0));
 
-  // test2, reuse model2 feature map memory
-  model3.Assign(ge_model);
-  EXPECT_EQ(model3.Init(), SUCCESS);
-  EXPECT_EQ(model3.GetFmMemoryInfos().size(), 1);
-  EXPECT_EQ(SessionMemAllocator<ActiveMemoryAllocator>::Instance()
-      .GetMemAllocator(model3.GetSessionId(), 0)->active_memorys_.size(), 3);
-  EXPECT_EQ(model3.GetFmMemoryInfos()[0].memory_base, model2.GetFmMemoryInfos()[0].memory_base);
+    // test2, reuse model2 feature map memory
+    model3.Assign(ge_model);
+    EXPECT_EQ(model3.Init(), SUCCESS);
+    EXPECT_EQ(model3.GetFmMemoryInfos().size(), 1);
+    EXPECT_EQ(SessionMemAllocator<ActiveMemoryAllocator>::Instance()
+                  .GetMemAllocator(model3.GetSessionId(), 0)
+                  ->active_memorys_.size(),
+              3);
+    EXPECT_EQ(model3.GetFmMemoryInfos()[0].memory_base, model2.GetFmMemoryInfos()[0].memory_base);
   }
   graph_options[STATIC_MEMORY_POLICY] = "";
   GetThreadLocalContext().SetGraphOption(graph_options);
@@ -8097,7 +8134,7 @@ TEST_F(UtestDavinciModel, split_info_om_no_extend) {
   sub_memory_infos.push_back({RT_MEMORY_HBM, 1024, 1024});
   sub_memory_infos.push_back({RT_MEMORY_HBM, 2048, 1024});
   sub_memory_infos.push_back({RT_MEMORY_HBM, 3072, 1024});
-  (void) AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
+  (void)AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
   const auto model_def = MakeShared<domi::ModelTaskDef>();
   ge_model->SetModelTaskDef(model_def);
 
@@ -8111,7 +8148,9 @@ TEST_F(UtestDavinciModel, split_info_om_no_extend) {
   EXPECT_EQ(model1.Init(), SUCCESS);
   EXPECT_EQ(model1.GetFmMemoryInfos().size(), 1);
   EXPECT_EQ(SessionMemAllocator<ActiveMemoryAllocator>::Instance()
-      .GetMemAllocator(model1.GetSessionId(), 0)->active_memorys_.size(), 0);
+                .GetMemAllocator(model1.GetSessionId(), 0)
+                ->active_memorys_.size(),
+            0);
 
   DavinciModel model2(0, nullptr);
   EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 7168));
@@ -8121,7 +8160,7 @@ TEST_F(UtestDavinciModel, split_info_om_no_extend) {
   sub_memory_infos.push_back({RT_MEMORY_HBM, 2048, 3072});
   sub_memory_infos.push_back({RT_MEMORY_HBM, 5120, 1024});
   sub_memory_infos.push_back({RT_MEMORY_HBM, 6144, 1024});
-  (void) AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
+  (void)AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
 
   model2.Assign(ge_model);
   EXPECT_EQ(model2.Init(), SUCCESS);
@@ -8129,7 +8168,9 @@ TEST_F(UtestDavinciModel, split_info_om_no_extend) {
   // test1, model2 malloc feature map memory
   EXPECT_EQ(model2.GetFmMemoryInfos().size(), 1);
   EXPECT_EQ(SessionMemAllocator<ActiveMemoryAllocator>::Instance()
-      .GetMemAllocator(model2.GetSessionId(), 0)->active_memorys_.size(), 0);
+                .GetMemAllocator(model2.GetSessionId(), 0)
+                ->active_memorys_.size(),
+            0);
   EXPECT_NE(model2.GetFmMemoryInfos()[0].memory_base, model1.GetFmMemoryInfos()[0].memory_base);
 
   DavinciModel model3(0, nullptr);
@@ -8139,14 +8180,16 @@ TEST_F(UtestDavinciModel, split_info_om_no_extend) {
   sub_memory_infos.push_back({RT_MEMORY_HBM, 0, 2048});
   sub_memory_infos.push_back({RT_MEMORY_HBM, 2048, 512});
   sub_memory_infos.push_back({RT_MEMORY_HBM, 2560, 0});
-  (void) AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
+  (void)AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
 
   // test2, malloc feature map memory
   model3.Assign(ge_model);
   EXPECT_EQ(model3.Init(), SUCCESS);
   EXPECT_EQ(model3.GetFmMemoryInfos().size(), 1);
   EXPECT_EQ(SessionMemAllocator<ActiveMemoryAllocator>::Instance()
-      .GetMemAllocator(model3.GetSessionId(), 0)->active_memorys_.size(), 0);
+                .GetMemAllocator(model3.GetSessionId(), 0)
+                ->active_memorys_.size(),
+            0);
   EXPECT_NE(model3.GetFmMemoryInfos()[0].memory_base, model1.GetFmMemoryInfos()[0].memory_base);
 }
 
@@ -8169,20 +8212,22 @@ TEST_F(UtestDavinciModel, static_graph_memory_outer_alloc) {
   graph_options[OPTION_EXEC_REUSE_ZERO_COPY_MEMORY] = "1";
   GetThreadLocalContext().SetGraphOption(graph_options);
   {
-  // extend size statis memory
-  DavinciModel model1(0, nullptr);
-   model1.Assign(ge_model);
-   ModelParam param;
-   void *mem_base = nullptr;
-   aclrtMalloc(&mem_base, 4096U, ACL_MEM_MALLOC_HUGE_ONLY);
-   EXPECT_TRUE(mem_base!=nullptr);
-  param.mem_base = reinterpret_cast<uintptr_t>(mem_base);
-  EXPECT_EQ(model1.Init(param), SUCCESS);
-  EXPECT_EQ(model1.GetFmMemoryInfos().size(), 1);
-  EXPECT_EQ(SessionMemAllocator<ActiveMemoryAllocator>::Instance()
-    .GetMemAllocator(model1.GetSessionId(), 0)->active_memorys_.size(), 0);
+    // extend size statis memory
+    DavinciModel model1(0, nullptr);
+    model1.Assign(ge_model);
+    ModelParam param;
+    void *mem_base = nullptr;
+    aclrtMalloc(&mem_base, 4096U, ACL_MEM_MALLOC_HUGE_ONLY);
+    EXPECT_TRUE(mem_base != nullptr);
+    param.mem_base = reinterpret_cast<uintptr_t>(mem_base);
+    EXPECT_EQ(model1.Init(param), SUCCESS);
+    EXPECT_EQ(model1.GetFmMemoryInfos().size(), 1);
+    EXPECT_EQ(SessionMemAllocator<ActiveMemoryAllocator>::Instance()
+                  .GetMemAllocator(model1.GetSessionId(), 0)
+                  ->active_memorys_.size(),
+              0);
 
-  aclrtFree(mem_base);
+    aclrtFree(mem_base);
   }
   graph_options[STATIC_MEMORY_POLICY] = "";
   GetThreadLocalContext().SetGraphOption(graph_options);
@@ -8201,7 +8246,7 @@ TEST_F(UtestDavinciModel, static_graph_memory_fixed_sub_memory_infos) {
   sub_memory_infos.push_back({RT_MEMORY_HBM, 2048, 1024});
   sub_memory_infos.push_back({RT_MEMORY_HBM, 3072, 1024});
   sub_memory_infos.push_back({RT_MEMORY_HBM, 4096, 1024});
-  (void) AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
+  (void)AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
   const auto model_def = MakeShared<domi::ModelTaskDef>();
   ge_model->SetModelTaskDef(model_def);
 
@@ -8224,7 +8269,7 @@ TEST_F(UtestDavinciModel, static_graph_memory_fixed_sub_memory_infos) {
 TEST_F(UtestDavinciModel, multi_davinci_model_load_unload) {
   StaticMemoryPolicy4Guarder guarder;
   gert::GertRuntimeStub runtime_stub;
-  dlog_setlevel(GE_MODULE_NAME, 1, 0); // enable pa va check
+  dlog_setlevel(GE_MODULE_NAME, 1, 0);  // enable pa va check
   {
     // graph 1
     ComputeGraphPtr graph1 = MakeShared<ComputeGraph>("default");
@@ -8236,7 +8281,7 @@ TEST_F(UtestDavinciModel, multi_davinci_model_load_unload) {
     std::vector<std::vector<int64_t>> sub_memory_infos;
     sub_memory_infos.push_back({RT_MEMORY_HBM, 0, 5120});
     sub_memory_infos.push_back({RT_MEMORY_HBM, 5120, 1024});
-    (void) AttrUtils::SetListListInt(ge_model1, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
+    (void)AttrUtils::SetListListInt(ge_model1, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
     const auto model_def = MakeShared<domi::ModelTaskDef>();
     ge_model1->SetModelTaskDef(model_def);
 
@@ -8256,7 +8301,7 @@ TEST_F(UtestDavinciModel, multi_davinci_model_load_unload) {
     std::vector<std::vector<int64_t>> sub_memory_infos2;
     sub_memory_infos2.push_back({RT_MEMORY_HBM, 0, 512});
     sub_memory_infos2.push_back({RT_MEMORY_HBM, 512, 512});
-    (void) AttrUtils::SetListListInt(ge_model2, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos2);
+    (void)AttrUtils::SetListListInt(ge_model2, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos2);
     const auto model_def2 = MakeShared<domi::ModelTaskDef>();
     ge_model2->SetModelTaskDef(model_def2);
 
@@ -8282,7 +8327,7 @@ TEST_F(UtestDavinciModel, multi_davinci_model_load_unload) {
     sub_memory_infos3.push_back({RT_MEMORY_HBM, 1024, 5120});
     sub_memory_infos3.push_back({RT_MEMORY_HBM, 6144, 512});
     sub_memory_infos3.push_back({RT_MEMORY_HBM, 512, 512});
-    (void) AttrUtils::SetListListInt(ge_model3, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos3);
+    (void)AttrUtils::SetListListInt(ge_model3, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos3);
     const auto model_def3 = MakeShared<domi::ModelTaskDef>();
     ge_model3->SetModelTaskDef(model_def3);
 
@@ -8299,11 +8344,9 @@ TEST_F(UtestDavinciModel, multi_davinci_model_load_unload) {
 }
 
 TEST_F(UtestDavinciModel, expandable_memory_allocator) {
-  auto mem_allocator1 =
-      SessionMemAllocator<ExpandableActiveMemoryAllocator>::Instance().GetMemAllocator(0, 1);
+  auto mem_allocator1 = SessionMemAllocator<ExpandableActiveMemoryAllocator>::Instance().GetMemAllocator(0, 1);
   ASSERT_NE(mem_allocator1, nullptr);
-  auto mem_allocator2 =
-     SessionMemAllocator<ExpandableActiveMemoryAllocator>::Instance().GetMemAllocator(0, 2);
+  auto mem_allocator2 = SessionMemAllocator<ExpandableActiveMemoryAllocator>::Instance().GetMemAllocator(0, 2);
   ASSERT_NE(mem_allocator2, nullptr);
   auto ptr = mem_allocator1->MallocMemory("test", 1024UL);
   ASSERT_NE(ptr, nullptr);
@@ -8326,7 +8369,7 @@ TEST_F(UtestDavinciModel, expandable_memory_allocator) {
 TEST_F(UtestDavinciModel, ExpandableActiveMemoryAllocator_Use1GSuccess_CheckPgType) {
   class RuntimeMock : public ge::RuntimeStub {
    public:
-    rtError_t rtMallocPhysical(rtDrvMemHandle* handle, size_t size, rtDrvMemProp_t* prop, uint64_t flags) {
+    rtError_t rtMallocPhysical(rtDrvMemHandle *handle, size_t size, rtDrvMemProp_t *prop, uint64_t flags) {
       *handle = (rtDrvMemHandle) new uint8_t[8];
       pg_type_local = prop->pg_type;
       return 0;
@@ -8336,16 +8379,15 @@ TEST_F(UtestDavinciModel, ExpandableActiveMemoryAllocator_Use1GSuccess_CheckPgTy
   auto alc_runtime_stub = std::make_shared<RuntimeMock>();
   ge::RuntimeStub::SetInstance(alc_runtime_stub);
 
-  auto mem_allocator1 =
-      SessionMemAllocator<ExpandableActiveMemoryAllocator>::Instance().GetMemAllocator(0, 1, RT_MEMORY_HBM, kDrv1GPageSize);
+  auto mem_allocator1 = SessionMemAllocator<ExpandableActiveMemoryAllocator>::Instance().GetMemAllocator(
+      0, 1, RT_MEMORY_HBM, kDrv1GPageSize);
   ASSERT_NE(mem_allocator1, nullptr);
   auto ptr = mem_allocator1->MallocMemory("test", 4096UL);
   ASSERT_NE(ptr, nullptr);
   EXPECT_EQ(alc_runtime_stub->pg_type_local, 2);
   EXPECT_EQ(mem_allocator1->FreeMemory(), ge::SUCCESS);
 
-  auto mem_allocator2 =
-      SessionMemAllocator<ExpandableActiveMemoryAllocator>::Instance().GetMemAllocator(0, 2);
+  auto mem_allocator2 = SessionMemAllocator<ExpandableActiveMemoryAllocator>::Instance().GetMemAllocator(0, 2);
   ASSERT_NE(mem_allocator2, nullptr);
   ptr = mem_allocator2->MallocMemory("test", 1024UL, true);
   ASSERT_NE(ptr, nullptr);
@@ -8358,7 +8400,7 @@ TEST_F(UtestDavinciModel, ExpandableActiveMemoryAllocator_Use1GSuccess_CheckPgTy
 TEST_F(UtestDavinciModel, ExpandableActiveMemoryAllocator_Use1GMallocSuccessThenFailed) {
   class MockRuntime : public ge::RuntimeStub {
    public:
-    rtError_t rtMallocPhysical(rtDrvMemHandle* handle, size_t size, rtDrvMemProp_t* prop, uint64_t flags) {
+    rtError_t rtMallocPhysical(rtDrvMemHandle *handle, size_t size, rtDrvMemProp_t *prop, uint64_t flags) {
       pg_type_local = prop->pg_type;
       ++call_count;
       if (call_count == 2 && prop->pg_type == 2) {
@@ -8375,7 +8417,7 @@ TEST_F(UtestDavinciModel, ExpandableActiveMemoryAllocator_Use1GMallocSuccessThen
     uint32_t pg_type_local = 0U;
   };
   class MockAclRuntime : public ge::AclRuntimeStub {
-  public:
+   public:
     aclError aclrtGetMemInfo(aclrtMemAttr attr, size_t *free_size, size_t *total) {
       *free_size = 64UL * 1024U * 1024U * 1024U;
       *total = 64UL * 1024U * 1024U * 1024U;
@@ -8388,16 +8430,16 @@ TEST_F(UtestDavinciModel, ExpandableActiveMemoryAllocator_Use1GMallocSuccessThen
   auto mock_acl_runtime = std::make_shared<MockAclRuntime>();
   ge::RuntimeStub::SetInstance(mock_runtime);
   ge::AclRuntimeStub::SetInstance(mock_acl_runtime);
-  auto mem_allocator1 =
-      SessionMemAllocator<ExpandableActiveMemoryAllocator>::Instance().GetMemAllocator(0, 1, RT_MEMORY_HBM, kDrv1GPageSize);
+  auto mem_allocator1 = SessionMemAllocator<ExpandableActiveMemoryAllocator>::Instance().GetMemAllocator(
+      0, 1, RT_MEMORY_HBM, kDrv1GPageSize);
   ASSERT_NE(mem_allocator1, nullptr);
-  auto ptr = mem_allocator1->MallocMemory("test", 1 *  1024U * 1024U * 1024U, true);
+  auto ptr = mem_allocator1->MallocMemory("test", 1 * 1024U * 1024U * 1024U, true);
   ASSERT_NE(ptr, nullptr);
   EXPECT_EQ(mock_runtime->pg_type_local, 2);
   EXPECT_EQ(mock_runtime->call_count, 1U);
 
   // 预期申请1G 大页失败后，转为申请2M大页，最后申请成功。
-  auto ptr2 = mem_allocator1->MallocMemory("test", 1 *  1024U * 1024U * 1024U, true);
+  auto ptr2 = mem_allocator1->MallocMemory("test", 1 * 1024U * 1024U * 1024U, true);
   ASSERT_NE(ptr2, nullptr);
   EXPECT_EQ(mock_runtime->pg_type_local, 1);
   EXPECT_EQ(mock_runtime->call_count, 3U);
@@ -8410,7 +8452,7 @@ TEST_F(UtestDavinciModel, ExpandableActiveMemoryAllocator_Use1GMallocSuccessThen
 TEST_F(UtestDavinciModel, ExpandableActiveMemoryAllocator_Use1GMallocFailed_NotSupport) {
   class MockRuntime : public ge::RuntimeStub {
    public:
-    rtError_t rtMallocPhysical(rtDrvMemHandle* handle, size_t size, rtDrvMemProp_t* prop, uint64_t flags) {
+    rtError_t rtMallocPhysical(rtDrvMemHandle *handle, size_t size, rtDrvMemProp_t *prop, uint64_t flags) {
       pg_type_local = prop->pg_type;
       ++call_count;
       size_local = size;
@@ -8429,7 +8471,7 @@ TEST_F(UtestDavinciModel, ExpandableActiveMemoryAllocator_Use1GMallocFailed_NotS
     uint32_t size_local = 0;
   };
   class MockAclRuntime : public ge::AclRuntimeStub {
-  public:
+   public:
     aclError aclrtGetMemInfo(aclrtMemAttr attr, size_t *free_size, size_t *total) {
       *free_size = 64UL * 1024U * 1024U * 1024U;
       *total = 64UL * 1024U * 1024U * 1024U;
@@ -8443,8 +8485,8 @@ TEST_F(UtestDavinciModel, ExpandableActiveMemoryAllocator_Use1GMallocFailed_NotS
   auto mock_acl_runtime = std::make_shared<MockAclRuntime>();
   ge::RuntimeStub::SetInstance(mock_runtime);
   ge::AclRuntimeStub::SetInstance(mock_acl_runtime);
-  auto mem_allocator1 =
-      SessionMemAllocator<ExpandableActiveMemoryAllocator>::Instance().GetMemAllocator(0, 1, RT_MEMORY_HBM, kDrv1GPageSize);
+  auto mem_allocator1 = SessionMemAllocator<ExpandableActiveMemoryAllocator>::Instance().GetMemAllocator(
+      0, 1, RT_MEMORY_HBM, kDrv1GPageSize);
   ASSERT_NE(mem_allocator1, nullptr);
   auto ptr = mem_allocator1->MallocMemory("test", 20480, true);
   ASSERT_NE(ptr, nullptr);
@@ -8459,27 +8501,22 @@ TEST_F(UtestDavinciModel, ExpandableActiveMemoryAllocator_Use1GMallocFailed_NotS
 TEST_F(UtestDavinciModel, not_support_expandable_memory_allocator) {
   class MockAclRuntime : public ge::AclRuntimeStub {
    public:
-    rtError_t aclrtReserveMemAddress(void **virPtr, size_t size, size_t alignment, void *expectPtr,
-                                     uint64_t flags) {
+    rtError_t aclrtReserveMemAddress(void **virPtr, size_t size, size_t alignment, void *expectPtr, uint64_t flags) {
       return -1;
     }
   };
   auto mock_acl_runtime = std::make_shared<MockAclRuntime>();
   ge::AclRuntimeStub::SetInstance(mock_acl_runtime);
-  auto mem_allocator1 =
-      SessionMemAllocator<ExpandableActiveMemoryAllocator>::Instance().GetMemAllocator(1, 1);
+  auto mem_allocator1 = SessionMemAllocator<ExpandableActiveMemoryAllocator>::Instance().GetMemAllocator(1, 1);
   ASSERT_NE(mem_allocator1, nullptr);
-  auto mem_allocator2 =
-      SessionMemAllocator<ExpandableActiveMemoryAllocator>::Instance().GetMemAllocator(1, 1);
+  auto mem_allocator2 = SessionMemAllocator<ExpandableActiveMemoryAllocator>::Instance().GetMemAllocator(1, 1);
   ASSERT_NE(mem_allocator2, nullptr);
   EXPECT_EQ(mem_allocator1, mem_allocator2);
   auto ptr = mem_allocator1->MallocMemory("test", 1024UL);
   ASSERT_EQ(ptr, nullptr);
 
-  EXPECT_EQ(SessionMemAllocator<ActiveMemoryAllocator>::Instance()
-      .GetMemAllocator(1, 7)->device_id_, 7);
-  EXPECT_EQ(SessionMemAllocator<ActiveMemoryAllocator>::Instance()
-      .GetMemAllocator(1, 7)->memory_type_, RT_MEMORY_HBM);
+  EXPECT_EQ(SessionMemAllocator<ActiveMemoryAllocator>::Instance().GetMemAllocator(1, 7)->device_id_, 7);
+  EXPECT_EQ(SessionMemAllocator<ActiveMemoryAllocator>::Instance().GetMemAllocator(1, 7)->memory_type_, RT_MEMORY_HBM);
   mem_allocator1->FreeMemory();
   ge::AclRuntimeStub::Reset();
 }
@@ -8493,12 +8530,11 @@ TEST_F(UtestDavinciModel, expandable_memory_allocator_fail) {
   };
   auto mock_acl_runtime = std::make_shared<MockAclRuntime>();
   ge::AclRuntimeStub::SetInstance(mock_acl_runtime);
-  auto mem_allocator1 =
-      SessionMemAllocator<ExpandableActiveMemoryAllocator>::Instance().GetMemAllocator(2, 1);
+  auto mem_allocator1 = SessionMemAllocator<ExpandableActiveMemoryAllocator>::Instance().GetMemAllocator(2, 1);
   ASSERT_NE(mem_allocator1, nullptr);
-  dlog_setlevel(0,0,0);
+  dlog_setlevel(0, 0, 0);
   auto ptr = mem_allocator1->MallocMemory("test", 60UL * 1024UL);
-  dlog_setlevel(0,3,0);
+  dlog_setlevel(0, 3, 0);
   EXPECT_EQ(ptr, nullptr);
   ptr = mem_allocator1->MallocMemory("test", 60UL * 1024UL * 1024UL * 1024UL);
   EXPECT_EQ(ptr, nullptr);
@@ -8518,7 +8554,7 @@ TEST_F(UtestDavinciModel, MallocDynamicMemorySuccess) {
 
     aclError aclrtFree(void *dev_ptr) override {
       --call_count;
-      delete[](uint8_t *) dev_ptr;
+      delete[] (uint8_t *)dev_ptr;
       return ACL_SUCCESS;
     }
     uint32_t call_count = 0U;
@@ -8565,13 +8601,26 @@ TEST_F(UtestDavinciModel, davinci_dump_by_original_name) {
   uint32_t mem_offset = 0U;
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   DEF_GRAPH(g1) {
-    CHAIN(NODE("_arg_0", DATA)->EDGE(0, 0)->NODE("add_n", ADDN));   // ccKernelType::TE
-    CHAIN(NODE("_var_0", VARIABLE)->NODE("allreduce", HCOMALLREDUCE)->EDGE(0, 0)->NODE("relu", RELU)); // HCCL
-    CHAIN(NODE("_arg_1", CONSTANTOP)->EDGE(0, 1)->NODE("add_n")->EDGE(0, 1)->NODE("relu")-> // ccKernelType::CUSTOMIZED
-          NODE("square", SQUARE)->EDGE(0, 0)->      // ccKernelType::AI_CPU
-          NODE("reshape", RESHAPE)->EDGE(0, 0)->    // ccKernelType::CUST_AI_CPU
-          NODE("deque", FRAMEWORKOP)->EDGE(0, 0)->  // KERNEL_EX
-          NODE("memcpy", MEMCPYASYNC)->EDGE(0, 0)-> // MEMCPY_ASYNC
+    CHAIN(NODE("_arg_0", DATA)->EDGE(0, 0)->NODE("add_n", ADDN));  // ccKernelType::TE
+    CHAIN(NODE("_var_0", VARIABLE)->NODE("allreduce", HCOMALLREDUCE)->EDGE(0, 0)->NODE("relu", RELU));  // HCCL
+    CHAIN(NODE("_arg_1", CONSTANTOP)
+              ->EDGE(0, 1)
+              ->NODE("add_n")
+              ->EDGE(0, 1)
+              ->NODE("relu")
+              ->  // ccKernelType::CUSTOMIZED
+          NODE("square", SQUARE)
+              ->EDGE(0, 0)
+              ->  // ccKernelType::AI_CPU
+          NODE("reshape", RESHAPE)
+              ->EDGE(0, 0)
+              ->  // ccKernelType::CUST_AI_CPU
+          NODE("deque", FRAMEWORKOP)
+              ->EDGE(0, 0)
+              ->  // KERNEL_EX
+          NODE("memcpy", MEMCPYASYNC)
+              ->EDGE(0, 0)
+              ->  // MEMCPY_ASYNC
           NODE("Node_Output", NETOUTPUT));
   };
   ComputeGraphPtr graph = ToComputeGraph(g1);
@@ -8635,7 +8684,7 @@ TEST_F(UtestDavinciModel, davinci_dump_by_original_name) {
     auto &task_def = *model_def->add_task();
     task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_HCCL));
     task_def.set_stream_id(op_desc->GetStreamId());
-    task_def.set_private_def("hccl_task"); // for GetPrivateDefByTaskDef
+    task_def.set_private_def("hccl_task");  // for GetPrivateDefByTaskDef
 
     auto &hccl_def = *task_def.mutable_kernel_hccl();
     hccl_def.set_op_index(op_desc->GetId());
@@ -8660,7 +8709,7 @@ TEST_F(UtestDavinciModel, davinci_dump_by_original_name) {
     dlog_setlevel(GE_MODULE_NAME, DLOG_INFO, 0);
     dump_properties.AddPropertyValue("LAYER_OP_MODEL_NEED_DUMP_AND_IT_IS_NOT_A_MODEL_NAME", {"addn_ori1", "addn_ori2"});
     dump_properties.SetDumpMode("all");
-    //ge::DumpManager::GetInstance().AddDumpProperties(ge::kInferSessionId, dump_properties);
+    // ge::DumpManager::GetInstance().AddDumpProperties(ge::kInferSessionId, dump_properties);
     model.SetDumpProperties(dump_properties);
     EXPECT_TRUE(model.OpNeedDump(op_desc));
     dlog_setlevel(GE_MODULE_NAME, DLOG_ERROR, 0);
@@ -8687,8 +8736,7 @@ TEST_F(UtestDavinciModel, run_with_task_no_data) {
   std::map<std::string, std::string> graph_options;
   graph_options[STATIC_MEMORY_POLICY] = "4";
   GetThreadLocalContext().SetGraphOption(graph_options);
-  auto mem_allocator1 =
-      SessionMemAllocator<ExpandableActiveMemoryAllocator>::Instance().GetMemAllocator(0, 0);
+  auto mem_allocator1 = SessionMemAllocator<ExpandableActiveMemoryAllocator>::Instance().GetMemAllocator(0, 0);
   {
     ComputeGraphPtr graph = MakeShared<ComputeGraph>("default");
     GeModelPtr ge_model = MakeShared<GeModel>();
@@ -8702,7 +8750,7 @@ TEST_F(UtestDavinciModel, run_with_task_no_data) {
     sub_memory_infos.push_back({RT_MEMORY_HBM, 2048, 1024});
     sub_memory_infos.push_back({RT_MEMORY_HBM, 3072, 1024});
     sub_memory_infos.push_back({RT_MEMORY_HBM, 4096, 1024});
-    (void) AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
+    (void)AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
     const auto model_def = MakeShared<domi::ModelTaskDef>();
     ge_model->SetModelTaskDef(model_def);
 
@@ -8718,14 +8766,14 @@ TEST_F(UtestDavinciModel, run_with_task_no_data) {
     rtStream_t stream = nullptr;
     model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
     model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-    model.stream_list_ = { stream };
+    model.stream_list_ = {stream};
     TaskInfoPtr task_info = MakeShared<ProfilerTraceTaskInfo>();
     model.task_list_.push_back(task_info);
     model.has_output_node_ = true;
     OpDescPtr op_desc = std::make_shared<OpDesc>("test", "test");
     std::vector<int64_t> input_offset;
     input_offset.emplace_back(0);
-    GeTensorDesc tensor(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT);
+    GeTensorDesc tensor(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
     op_desc->AddInputDesc(tensor);
     op_desc->SetInputOffset(input_offset);
     model.InitOutputTensorInfo(op_desc);
@@ -8742,8 +8790,7 @@ TEST_F(UtestDavinciModel, test_device_id) {
   std::map<std::string, std::string> graph_options;
   graph_options[STATIC_MEMORY_POLICY] = "4";
   GetThreadLocalContext().SetGraphOption(graph_options);
-  auto mem_allocator =
-      SessionMemAllocator<ActiveMemoryAllocator>::Instance().GetMemAllocator(1, 2);
+  auto mem_allocator = SessionMemAllocator<ActiveMemoryAllocator>::Instance().GetMemAllocator(1, 2);
   ASSERT_NE(mem_allocator, nullptr);
   LogicalMemorys logical_memorys;
   logical_memorys.emplace_back(0, 10240);
@@ -8756,7 +8803,7 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensor_OK) {
   gert::GertRuntimeStub runtime_stub;
   runtime_stub.Clear();
   dlog_setlevel(GE_MODULE_NAME, DLOG_DEBUG, 0);
-  const char * const kEnvRecordPath = "RT_MEMORY_HBM";
+  const char *const kEnvRecordPath = "RT_MEMORY_HBM";
   char record_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &record_path[0U], MMPA_MAX_PATH);
   const std::string fail_collect_path = (std::string(&record_path[0U]) + "/mock_fail");
@@ -8776,13 +8823,13 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensor_OK) {
   shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   ge_model->SetModelTaskDef(model_task_def);
 
-  GeTensorDesc tensor(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
   TensorUtils::SetSize(tensor, 512);
   {
     OpDescPtr op_desc = CreateOpDesc("data0", DATA);
     op_desc->AddInputDesc(tensor);
     op_desc->AddOutputDesc(tensor);
-    op_desc->SetInputOffset({3000}); // 不支持零拷贝, 不生成io段
+    op_desc->SetInputOffset({3000});  // 不支持零拷贝, 不生成io段
     op_desc->SetOutputOffset({4000});
     NodePtr node = graph->AddNode(op_desc);
   }
@@ -8790,7 +8837,7 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensor_OK) {
     OpDescPtr op_desc = CreateOpDesc("data1", DATA);
     op_desc->AddInputDesc(tensor);
     op_desc->AddOutputDesc(tensor);
-    op_desc->SetInputOffset({7000}); // 支持零拷贝
+    op_desc->SetInputOffset({7000});  // 支持零拷贝
     op_desc->SetOutputOffset({8000});
     NodePtr node = graph->AddNode(op_desc);
   }
@@ -8798,7 +8845,7 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensor_OK) {
     OpDescPtr op_desc = CreateOpDesc("data2", DATA);
     op_desc->AddInputDesc(tensor);
     op_desc->AddOutputDesc(tensor);
-    op_desc->SetInputOffset({9000}); // 支持零拷贝
+    op_desc->SetInputOffset({9000});  // 支持零拷贝
     op_desc->SetOutputOffset({10000});
     NodePtr node = graph->AddNode(op_desc);
   }
@@ -8826,8 +8873,8 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensor_OK) {
     OpDescPtr op_desc = CreateOpDesc("output", NETOUTPUT);
     op_desc->AddInputDesc(tensor);
     op_desc->SetInputOffset({2048});
-    op_desc->SetSrcName( { "memcpy0" } );
-    op_desc->SetSrcIndex( { 0 } );
+    op_desc->SetSrcName({"memcpy0"});
+    op_desc->SetSrcIndex({0});
     NodePtr node = graph->AddNode(op_desc);  // op_index = 3
   }
 
@@ -8859,7 +8906,7 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensor_OK) {
 
   std::vector<GeTensor> input_tensor;
   GeTensor ge_tensor_i_0;
-  GeTensorDesc tensor_desc_i_0(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor_desc_i_0(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
   tensor_desc_i_0.SetPlacement(kPlacementHost);
   ge_tensor_i_0.SetTensorDesc(tensor_desc_i_0);
   std::vector<int32_t> input_data_0(1 * 4 * 4 * 8, 0);
@@ -8867,7 +8914,7 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensor_OK) {
   input_tensor.push_back(ge_tensor_i_0);
 
   GeTensor ge_tensor_i_1;
-  GeTensorDesc tensor_desc_i_1(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor_desc_i_1(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
   tensor_desc_i_1.SetPlacement(kPlacementHost);
   ge_tensor_i_1.SetTensorDesc(tensor_desc_i_1);
   std::vector<int32_t> input_data_1(1 * 4 * 4 * 8, 1);
@@ -8875,7 +8922,7 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensor_OK) {
   input_tensor.push_back(ge_tensor_i_1);
 
   GeTensor ge_tensor_i_2;
-  GeTensorDesc tensor_desc_i_2(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor_desc_i_2(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
   tensor_desc_i_1.SetPlacement(kPlacementHost);
   ge_tensor_i_2.SetTensorDesc(tensor_desc_i_2);
   std::vector<int32_t> input_data_2(1 * 4 * 4 * 8, 2);
@@ -8884,7 +8931,7 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensor_OK) {
 
   std::vector<GeTensor> output_tensor;
   GeTensor ge_tensor_o;
-  GeTensorDesc tensor_desc_o(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor_desc_o(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
   ge_tensor_o.SetTensorDesc(tensor_desc_o);
   std::vector<int32_t> output_data(1 * 4 * 4 * 8, 0);
   ge_tensor_o.SetData(reinterpret_cast<uint8_t *>(output_data.data()), output_data.size() * sizeof(int32_t));
@@ -8892,14 +8939,14 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensor_OK) {
 
   EXPECT_EQ(model.NnExecute(stream, true, input_buffer, output_buffer, input_tensor, output_tensor), SUCCESS);
 
-  // 判断model args manger host地址是否被刷新
+  // 判断model args manager host地址是否被刷新
   for (const auto &args : runtime_stub.GetRtsRuntimeStub().GetRtMemcpyRecords()) {
     uint64_t dst_address = PtrToValue(args.dst_address);
-    void *input1_addr = const_cast<void*>(args.src_address);
-    void *input2_addr = (void*)(static_cast<uint8_t *>(const_cast<void *>(args.src_address)) + 512);
+    void *input1_addr = const_cast<void *>(args.src_address);
+    void *input2_addr = (void *)(static_cast<uint8_t *>(const_cast<void *>(args.src_address)) + 512);
     if (dst_address == host_input_device_addr) {
-      EXPECT_EQ(std::memcmp(input1_addr, (void*)input_data_1.data(), 512), 0);
-      EXPECT_EQ(std::memcmp(input2_addr, (void*)input_data_2.data(), 512), 0);
+      EXPECT_EQ(std::memcmp(input1_addr, (void *)input_data_1.data(), 512), 0);
+      EXPECT_EQ(std::memcmp(input2_addr, (void *)input_data_2.data(), 512), 0);
     }
   }
 
@@ -8913,13 +8960,13 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensor_OK) {
 TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensorHugeData_OK) {
   gert::GertRuntimeStub runtime_stub;
   runtime_stub.Clear();
-  const char * const kEnvRecordPath = "RT_MEMORY_HBM";
+  const char *const kEnvRecordPath = "RT_MEMORY_HBM";
   char record_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &record_path[0U], MMPA_MAX_PATH);
   const std::string fail_collect_path = (std::string(&record_path[0U]) + "/mock_fail");
   mmSetEnv(kEnvRecordPath, fail_collect_path.c_str(), 1);
 
-  const char * const kEnvRecordPath1 = "MOCK_MEMCPY_HUGE";
+  const char *const kEnvRecordPath1 = "MOCK_MEMCPY_HUGE";
   char record_path1[MMPA_MAX_PATH] = {"1"};
   mmSetEnv(kEnvRecordPath1, &record_path1[0U], MMPA_MAX_PATH);
 
@@ -8937,13 +8984,13 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensorHugeData_OK) {
   shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   ge_model->SetModelTaskDef(model_task_def);
 
-  GeTensorDesc tensor(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
   TensorUtils::SetSize(tensor, 512);
   {
     OpDescPtr op_desc = CreateOpDesc("data0", DATA);
     op_desc->AddInputDesc(tensor);
     op_desc->AddOutputDesc(tensor);
-    op_desc->SetInputOffset({3000}); // 不支持零拷贝, 不生成io段
+    op_desc->SetInputOffset({3000});  // 不支持零拷贝, 不生成io段
     op_desc->SetOutputOffset({4000});
     NodePtr node = graph->AddNode(op_desc);
   }
@@ -8951,16 +8998,16 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensorHugeData_OK) {
     OpDescPtr op_desc = CreateOpDesc("data1", DATA);
     op_desc->AddInputDesc(tensor);
     op_desc->AddOutputDesc(tensor);
-    op_desc->SetInputOffset({7000}); // 支持零拷贝
+    op_desc->SetInputOffset({7000});  // 支持零拷贝
     op_desc->SetOutputOffset({8000});
     NodePtr node = graph->AddNode(op_desc);
   }
   {
-    GeTensorDesc tensor_1(GeShape({4200000,4,4,8}), FORMAT_NCHW, DT_FLOAT);
+    GeTensorDesc tensor_1(GeShape({4200000, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
     OpDescPtr op_desc = CreateOpDesc("data2", DATA);
     op_desc->AddInputDesc(tensor_1);
     op_desc->AddOutputDesc(tensor_1);
-    op_desc->SetInputOffset({9000}); // 支持零拷贝
+    op_desc->SetInputOffset({9000});  // 支持零拷贝
     op_desc->SetOutputOffset({10000});
     NodePtr node = graph->AddNode(op_desc);
   }
@@ -8988,8 +9035,8 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensorHugeData_OK) {
     OpDescPtr op_desc = CreateOpDesc("output", NETOUTPUT);
     op_desc->AddInputDesc(tensor);
     op_desc->SetInputOffset({2048});
-    op_desc->SetSrcName( { "memcpy0" } );
-    op_desc->SetSrcIndex( { 0 } );
+    op_desc->SetSrcName({"memcpy0"});
+    op_desc->SetSrcIndex({0});
     NodePtr node = graph->AddNode(op_desc);  // op_index = 3
   }
 
@@ -9021,7 +9068,7 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensorHugeData_OK) {
 
   std::vector<GeTensor> input_tensor;
   GeTensor ge_tensor_i_0;
-  GeTensorDesc tensor_desc_i_0(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor_desc_i_0(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
   tensor_desc_i_0.SetPlacement(kPlacementHost);
   ge_tensor_i_0.SetTensorDesc(tensor_desc_i_0);
   std::vector<int32_t> input_data_0(1 * 4 * 4 * 8, 0);
@@ -9029,7 +9076,7 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensorHugeData_OK) {
   input_tensor.push_back(ge_tensor_i_0);
 
   GeTensor ge_tensor_i_1;
-  GeTensorDesc tensor_desc_i_1(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor_desc_i_1(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
   tensor_desc_i_1.SetPlacement(kPlacementHost);
   ge_tensor_i_1.SetTensorDesc(tensor_desc_i_1);
   std::vector<int32_t> input_data_1(1 * 4 * 4 * 8, 1);
@@ -9037,7 +9084,7 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensorHugeData_OK) {
   input_tensor.push_back(ge_tensor_i_1);
 
   GeTensor ge_tensor_i_2;
-  GeTensorDesc tensor_desc_i_2(GeShape({4200000,4,4,8}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor_desc_i_2(GeShape({4200000, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
   tensor_desc_i_1.SetPlacement(kPlacementHost);
   ge_tensor_i_2.SetTensorDesc(tensor_desc_i_2);
   std::vector<int32_t> input_data_2(4200000 * 4 * 4 * 8, 2);
@@ -9046,7 +9093,7 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensorHugeData_OK) {
 
   std::vector<GeTensor> output_tensor;
   GeTensor ge_tensor_o;
-  GeTensorDesc tensor_desc_o(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor_desc_o(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
   ge_tensor_o.SetTensorDesc(tensor_desc_o);
   std::vector<int32_t> output_data(1 * 4 * 4 * 8, 0);
   ge_tensor_o.SetData(reinterpret_cast<uint8_t *>(output_data.data()), output_data.size() * sizeof(int32_t));
@@ -9054,14 +9101,14 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensorHugeData_OK) {
 
   EXPECT_EQ(model.NnExecute(stream, true, input_buffer, output_buffer, input_tensor, output_tensor), SUCCESS);
 
-  // 判断model args manger host地址是否被刷新
+  // 判断model args manager host地址是否被刷新
   for (const auto &args : runtime_stub.GetRtsRuntimeStub().GetRtMemcpyRecords()) {
     uint64_t dst_address = PtrToValue(args.dst_address);
-    void *input1_addr = const_cast<void*>(args.src_address);
-    void *input2_addr = (void*)(static_cast<uint8_t *>(const_cast<void *>(args.src_address)) + 512);
+    void *input1_addr = const_cast<void *>(args.src_address);
+    void *input2_addr = (void *)(static_cast<uint8_t *>(const_cast<void *>(args.src_address)) + 512);
     if (dst_address == host_input_device_addr) {
-      EXPECT_EQ(std::memcmp(input1_addr, (void*)input_data_1.data(), 512), 0);
-      EXPECT_EQ(std::memcmp(input2_addr, (void*)input_data_2.data(), 2150400000), 0);
+      EXPECT_EQ(std::memcmp(input1_addr, (void *)input_data_1.data(), 512), 0);
+      EXPECT_EQ(std::memcmp(input2_addr, (void *)input_data_2.data(), 2150400000), 0);
     }
   }
 
@@ -9076,7 +9123,7 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GertTensor_OK) {
   gert::GertRuntimeStub runtime_stub;
   runtime_stub.Clear();
   dlog_setlevel(GE_MODULE_NAME, DLOG_DEBUG, 0);
-  const char * const kEnvRecordPath = "RT_MEMORY_HBM";
+  const char *const kEnvRecordPath = "RT_MEMORY_HBM";
   char record_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &record_path[0U], MMPA_MAX_PATH);
   const std::string fail_collect_path = (std::string(&record_path[0U]) + "/mock_fail");
@@ -9096,13 +9143,13 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GertTensor_OK) {
   shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   ge_model->SetModelTaskDef(model_task_def);
 
-  GeTensorDesc tensor(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
   TensorUtils::SetSize(tensor, 512);
   {
     OpDescPtr op_desc = CreateOpDesc("data0", DATA);
     op_desc->AddInputDesc(tensor);
     op_desc->AddOutputDesc(tensor);
-    op_desc->SetInputOffset({3000}); // 不支持零拷贝, 不生成io段
+    op_desc->SetInputOffset({3000});  // 不支持零拷贝, 不生成io段
     op_desc->SetOutputOffset({4000});
     NodePtr node = graph->AddNode(op_desc);
   }
@@ -9110,7 +9157,7 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GertTensor_OK) {
     OpDescPtr op_desc = CreateOpDesc("data1", DATA);
     op_desc->AddInputDesc(tensor);
     op_desc->AddOutputDesc(tensor);
-    op_desc->SetInputOffset({7000}); // 支持零拷贝
+    op_desc->SetInputOffset({7000});  // 支持零拷贝
     op_desc->SetOutputOffset({8000});
     NodePtr node = graph->AddNode(op_desc);
   }
@@ -9118,7 +9165,7 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GertTensor_OK) {
     OpDescPtr op_desc = CreateOpDesc("data2", DATA);
     op_desc->AddInputDesc(tensor);
     op_desc->AddOutputDesc(tensor);
-    op_desc->SetInputOffset({9000}); // 支持零拷贝
+    op_desc->SetInputOffset({9000});  // 支持零拷贝
     op_desc->SetOutputOffset({10000});
     NodePtr node = graph->AddNode(op_desc);
   }
@@ -9146,8 +9193,8 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GertTensor_OK) {
     OpDescPtr op_desc = CreateOpDesc("output", NETOUTPUT);
     op_desc->AddInputDesc(tensor);
     op_desc->SetInputOffset({2048});
-    op_desc->SetSrcName( { "memcpy0" } );
-    op_desc->SetSrcIndex( { 0 } );
+    op_desc->SetSrcName({"memcpy0"});
+    op_desc->SetSrcIndex({0});
     NodePtr node = graph->AddNode(op_desc);  // op_index = 3
   }
 
@@ -9183,43 +9230,43 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GertTensor_OK) {
   gert_outputs.resize(1);
 
   std::vector<int32_t> input_data_0(1 * 4 * 4 * 8, 0);
-  gert_inputs[0] = {{{1, 4 ,4, 8}, {1, 4, 4, 8}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_NCHW, {}},  // format
-                            gert::kOnHost,                                // placement
-                            ge::DT_FLOAT,                              // data type
-                            (void *) input_data_0.data()};
+  gert_inputs[0] = {{{1, 4, 4, 8}, {1, 4, 4, 8}},          // shape
+                    {ge::FORMAT_ND, ge::FORMAT_NCHW, {}},  // format
+                    gert::kOnHost,                         // placement
+                    ge::DT_FLOAT,                          // data type
+                    (void *)input_data_0.data()};
 
   std::vector<int32_t> input_data_1(1 * 4 * 4 * 8, 1);
-  gert_inputs[1] = {{{1, 4 ,4, 8}, {1, 4, 4, 8}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_NCHW, {}},  // format
-                            gert::kOnHost,                                // placement
-                            ge::DT_FLOAT,                              // data type
-                            (void *) input_data_1.data()};
+  gert_inputs[1] = {{{1, 4, 4, 8}, {1, 4, 4, 8}},          // shape
+                    {ge::FORMAT_ND, ge::FORMAT_NCHW, {}},  // format
+                    gert::kOnHost,                         // placement
+                    ge::DT_FLOAT,                          // data type
+                    (void *)input_data_1.data()};
 
   std::vector<int32_t> input_data_2(1 * 4 * 4 * 8, 2);
-  gert_inputs[2] = {{{1, 4 ,4, 8}, {1, 4, 4, 8}},               // shape
-                            {ge::FORMAT_ND, ge::FORMAT_NCHW, {}},  // format
-                            gert::kOnHost,                                // placement
-                            ge::DT_FLOAT,                              // data type
-                            (void *) input_data_2.data()};
+  gert_inputs[2] = {{{1, 4, 4, 8}, {1, 4, 4, 8}},          // shape
+                    {ge::FORMAT_ND, ge::FORMAT_NCHW, {}},  // format
+                    gert::kOnHost,                         // placement
+                    ge::DT_FLOAT,                          // data type
+                    (void *)input_data_2.data()};
 
   std::vector<int32_t> output_data(1 * 4 * 4 * 8, 0);
-  gert_outputs[0] = {{{1, 4 ,4, 8}, {1, 4, 4, 8}},                // shape
-                        {ge::FORMAT_ND, ge::FORMAT_NCHW, {}},  // format
-                        gert::kOnDeviceHbm,                                // placement
-                        ge::DT_FLOAT,                              // data type
-                        nullptr};
+  gert_outputs[0] = {{{1, 4, 4, 8}, {1, 4, 4, 8}},          // shape
+                     {ge::FORMAT_ND, ge::FORMAT_NCHW, {}},  // format
+                     gert::kOnDeviceHbm,                    // placement
+                     ge::DT_FLOAT,                          // data type
+                     nullptr};
 
   EXPECT_EQ(model.NnExecute(stream, true, gert_inputs, gert_outputs), SUCCESS);
 
-  // 判断model args manger host地址是否被刷新
+  // 判断model args manager host地址是否被刷新
   for (const auto &args : runtime_stub.GetRtsRuntimeStub().GetRtMemcpyRecords()) {
     uint64_t dst_address = PtrToValue(args.dst_address);
-    void *input1_addr = const_cast<void*>(args.src_address);
-    void *input2_addr = (void*)(static_cast<uint8_t *>(const_cast<void *>(args.src_address)) + 512);
+    void *input1_addr = const_cast<void *>(args.src_address);
+    void *input2_addr = (void *)(static_cast<uint8_t *>(const_cast<void *>(args.src_address)) + 512);
     if (dst_address == host_input_device_addr) {
-      EXPECT_EQ(std::memcmp(input1_addr, (void*)input_data_1.data(), 512), 0);
-      EXPECT_EQ(std::memcmp(input2_addr, (void*)input_data_2.data(), 512), 0);
+      EXPECT_EQ(std::memcmp(input1_addr, (void *)input_data_1.data(), 512), 0);
+      EXPECT_EQ(std::memcmp(input2_addr, (void *)input_data_2.data(), 512), 0);
     }
   }
 
@@ -9234,7 +9281,7 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GertTensorHugeData_OK) {
   gert::GertRuntimeStub runtime_stub;
   runtime_stub.Clear();
   dlog_setlevel(GE_MODULE_NAME, DLOG_DEBUG, 0);
-  const char * const kEnvRecordPath = "RT_MEMORY_HBM";
+  const char *const kEnvRecordPath = "RT_MEMORY_HBM";
   char record_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &record_path[0U], MMPA_MAX_PATH);
   const std::string fail_collect_path = (std::string(&record_path[0U]) + "/mock_fail");
@@ -9243,7 +9290,6 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GertTensorHugeData_OK) {
   const char *const kEnvRecordPath1 = "MOCK_MEMCPY_HUGE";
   char record_path1[MMPA_MAX_PATH] = {"1"};
   mmSetEnv(kEnvRecordPath1, &record_path1[0U], MMPA_MAX_PATH);
-
 
   std::map<std::string, std::string> options_map;
   options_map["ge.exec.hostInputIndexes"] = "0;1;2";
@@ -9259,13 +9305,13 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GertTensorHugeData_OK) {
   shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   ge_model->SetModelTaskDef(model_task_def);
 
-  GeTensorDesc tensor(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
   TensorUtils::SetSize(tensor, 512);
   {
     OpDescPtr op_desc = CreateOpDesc("data0", DATA);
     op_desc->AddInputDesc(tensor);
     op_desc->AddOutputDesc(tensor);
-    op_desc->SetInputOffset({3000}); // 不支持零拷贝, 不生成io段
+    op_desc->SetInputOffset({3000});  // 不支持零拷贝, 不生成io段
     op_desc->SetOutputOffset({4000});
     NodePtr node = graph->AddNode(op_desc);
   }
@@ -9273,16 +9319,16 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GertTensorHugeData_OK) {
     OpDescPtr op_desc = CreateOpDesc("data1", DATA);
     op_desc->AddInputDesc(tensor);
     op_desc->AddOutputDesc(tensor);
-    op_desc->SetInputOffset({7000}); // 支持零拷贝
+    op_desc->SetInputOffset({7000});  // 支持零拷贝
     op_desc->SetOutputOffset({8000});
     NodePtr node = graph->AddNode(op_desc);
   }
   {
-    GeTensorDesc tensor_1(GeShape({4200000,4,4,8}), FORMAT_NCHW, DT_FLOAT);
+    GeTensorDesc tensor_1(GeShape({4200000, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
     OpDescPtr op_desc = CreateOpDesc("data2", DATA);
     op_desc->AddInputDesc(tensor_1);
     op_desc->AddOutputDesc(tensor_1);
-    op_desc->SetInputOffset({9000}); // 支持零拷贝
+    op_desc->SetInputOffset({9000});  // 支持零拷贝
     op_desc->SetOutputOffset({10000});
     NodePtr node = graph->AddNode(op_desc);
   }
@@ -9310,8 +9356,8 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GertTensorHugeData_OK) {
     OpDescPtr op_desc = CreateOpDesc("output", NETOUTPUT);
     op_desc->AddInputDesc(tensor);
     op_desc->SetInputOffset({2048});
-    op_desc->SetSrcName( { "memcpy0" } );
-    op_desc->SetSrcIndex( { 0 } );
+    op_desc->SetSrcName({"memcpy0"});
+    op_desc->SetSrcIndex({0});
     NodePtr node = graph->AddNode(op_desc);  // op_index = 3
   }
 
@@ -9347,43 +9393,43 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GertTensorHugeData_OK) {
   gert_outputs.resize(1);
 
   std::vector<int32_t> input_data_0(1 * 4 * 4 * 8, 0);
-  gert_inputs[0] = {{{1, 4 ,4, 8}, {1, 4, 4, 8}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_NCHW, {}},  // format
-                            gert::kOnHost,                                // placement
-                            ge::DT_FLOAT,                              // data type
-                            (void *) input_data_0.data()};
+  gert_inputs[0] = {{{1, 4, 4, 8}, {1, 4, 4, 8}},          // shape
+                    {ge::FORMAT_ND, ge::FORMAT_NCHW, {}},  // format
+                    gert::kOnHost,                         // placement
+                    ge::DT_FLOAT,                          // data type
+                    (void *)input_data_0.data()};
 
   std::vector<int32_t> input_data_1(1 * 4 * 4 * 8, 1);
-  gert_inputs[1] = {{{1, 4 ,4, 8}, {1, 4, 4, 8}},                // shape
-                            {ge::FORMAT_ND, ge::FORMAT_NCHW, {}},  // format
-                            gert::kOnHost,                                // placement
-                            ge::DT_FLOAT,                              // data type
-                            (void *) input_data_1.data()};
+  gert_inputs[1] = {{{1, 4, 4, 8}, {1, 4, 4, 8}},          // shape
+                    {ge::FORMAT_ND, ge::FORMAT_NCHW, {}},  // format
+                    gert::kOnHost,                         // placement
+                    ge::DT_FLOAT,                          // data type
+                    (void *)input_data_1.data()};
 
   std::vector<int32_t> input_data_2(4200000 * 4 * 4 * 8, 2);
-  gert_inputs[2] = {{{4200000, 4, 4, 8}, {4200000, 4, 4, 8}},               // shape
-                            {ge::FORMAT_ND, ge::FORMAT_NCHW, {}},  // format
-                            gert::kOnHost,                                // placement
-                            ge::DT_FLOAT,                              // data type
-                            (void *) input_data_2.data()};
+  gert_inputs[2] = {{{4200000, 4, 4, 8}, {4200000, 4, 4, 8}},  // shape
+                    {ge::FORMAT_ND, ge::FORMAT_NCHW, {}},      // format
+                    gert::kOnHost,                             // placement
+                    ge::DT_FLOAT,                              // data type
+                    (void *)input_data_2.data()};
 
   std::vector<int32_t> output_data(1 * 4 * 4 * 8, 0);
-  gert_outputs[0] = {{{1, 4 ,4, 8}, {1, 4, 4, 8}},                // shape
-                        {ge::FORMAT_ND, ge::FORMAT_NCHW, {}},  // format
-                        gert::kOnDeviceHbm,                                // placement
-                        ge::DT_FLOAT,                              // data type
-                        nullptr};
+  gert_outputs[0] = {{{1, 4, 4, 8}, {1, 4, 4, 8}},          // shape
+                     {ge::FORMAT_ND, ge::FORMAT_NCHW, {}},  // format
+                     gert::kOnDeviceHbm,                    // placement
+                     ge::DT_FLOAT,                          // data type
+                     nullptr};
 
   EXPECT_EQ(model.NnExecute(stream, true, gert_inputs, gert_outputs), SUCCESS);
 
-  // 判断model args manger host地址是否被刷新
+  // 判断model args manager host地址是否被刷新
   for (const auto &args : runtime_stub.GetRtsRuntimeStub().GetRtMemcpyRecords()) {
     uint64_t dst_address = PtrToValue(args.dst_address);
-    void *input1_addr = const_cast<void*>(args.src_address);
-    void *input2_addr = (void*)(static_cast<uint8_t *>(const_cast<void *>(args.src_address)) + 512);
+    void *input1_addr = const_cast<void *>(args.src_address);
+    void *input2_addr = (void *)(static_cast<uint8_t *>(const_cast<void *>(args.src_address)) + 512);
     if (dst_address == host_input_device_addr) {
-      EXPECT_EQ(std::memcmp(input1_addr, (void*)input_data_1.data(), 512), 0);
-      EXPECT_EQ(std::memcmp(input2_addr, (void*)input_data_2.data(), 2150400000), 0);
+      EXPECT_EQ(std::memcmp(input1_addr, (void *)input_data_1.data(), 512), 0);
+      EXPECT_EQ(std::memcmp(input2_addr, (void *)input_data_2.data(), 2150400000), 0);
     }
   }
 
@@ -9400,7 +9446,7 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensor_kernelbin_OK) {
   runtime_stub.Clear();
 
   dlog_setlevel(GE_MODULE_NAME, DLOG_DEBUG, 0);
-  const char * const kEnvRecordPath = "RT_MEMORY_HBM";
+  const char *const kEnvRecordPath = "RT_MEMORY_HBM";
   char record_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &record_path[0U], MMPA_MAX_PATH);
   const std::string fail_collect_path = (std::string(&record_path[0U]) + "/mock_fail");
@@ -9420,13 +9466,13 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensor_kernelbin_OK) {
   shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   ge_model->SetModelTaskDef(model_task_def);
 
-  GeTensorDesc tensor(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
   TensorUtils::SetSize(tensor, 512);
   {
     OpDescPtr op_desc = CreateOpDesc("data0", DATA);
     op_desc->AddInputDesc(tensor);
     op_desc->AddOutputDesc(tensor);
-    op_desc->SetInputOffset({5000}); // 支持零拷贝
+    op_desc->SetInputOffset({5000});  // 支持零拷贝
     op_desc->SetOutputOffset({6000});
     NodePtr node = graph->AddNode(op_desc);
   }
@@ -9434,7 +9480,7 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensor_kernelbin_OK) {
     OpDescPtr op_desc = CreateOpDesc("data1", DATA);
     op_desc->AddInputDesc(tensor);
     op_desc->AddOutputDesc(tensor);
-    op_desc->SetInputOffset({7000}); // 支持零拷贝
+    op_desc->SetInputOffset({7000});  // 支持零拷贝
     op_desc->SetOutputOffset({8000});
     NodePtr node = graph->AddNode(op_desc);
   }
@@ -9442,7 +9488,7 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensor_kernelbin_OK) {
     OpDescPtr op_desc = CreateOpDesc("data1", DATA);
     op_desc->AddInputDesc(tensor);
     op_desc->AddOutputDesc(tensor);
-    op_desc->SetInputOffset({9000}); // 支持零拷贝
+    op_desc->SetInputOffset({9000});  // 支持零拷贝
     op_desc->SetOutputOffset({10000});
     NodePtr node = graph->AddNode(op_desc);
   }
@@ -9470,19 +9516,19 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensor_kernelbin_OK) {
     OpDescPtr op_desc = CreateOpDesc("output", NETOUTPUT);
     op_desc->AddInputDesc(tensor);
     op_desc->SetInputOffset({2048});
-    op_desc->SetSrcName( { "memcpy0" } );
-    op_desc->SetSrcIndex( { 0 } );
+    op_desc->SetSrcName({"memcpy0"});
+    op_desc->SetSrcIndex({0});
     NodePtr node = graph->AddNode(op_desc);  // op_index = 3
   }
 
   DavinciModel model(0, nullptr);
   model.Assign(ge_model);
-  model.args_manager_.SetFuncHandle((void*)100);
+  model.args_manager_.SetFuncHandle((void *)100);
   EXPECT_EQ(model.Init(), SUCCESS);
 
-
   // 获取model args manager 地址
-  uint64_t host_input_device_addr = PtrToValue(model.args_manager_.activate_mem_base_device_addrs_dev_) + 64; // 64：原来的active membase长度
+  uint64_t host_input_device_addr =
+      PtrToValue(model.args_manager_.activate_mem_base_device_addrs_dev_) + 64;  // 64：原来的active membase长度
 
   // io段的active地址已经更新为model args mnanager的物理地址
   EXPECT_EQ(model.allocation_ids_to_active_base_addr_[2], host_input_device_addr);
@@ -9498,14 +9544,14 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensor_kernelbin_OK) {
 
   std::vector<GeTensor> input_tensor;
   GeTensor ge_tensor_i_0;
-  GeTensorDesc tensor_desc_i_0(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor_desc_i_0(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
   ge_tensor_i_0.SetTensorDesc(tensor_desc_i_0);
   std::vector<int32_t> input_data_0(1 * 4 * 4 * 8, 0);
   ge_tensor_i_0.SetData(reinterpret_cast<uint8_t *>(input_data_0.data()), input_data_0.size() * sizeof(int32_t));
   input_tensor.push_back(ge_tensor_i_0);
 
   GeTensor ge_tensor_i_1;
-  GeTensorDesc tensor_desc_i_1(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor_desc_i_1(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
   tensor_desc_i_1.SetPlacement(kPlacementHost);
   ge_tensor_i_1.SetTensorDesc(tensor_desc_i_1);
   std::vector<int32_t> input_data_1(1 * 4 * 4 * 8, 0);
@@ -9513,7 +9559,7 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensor_kernelbin_OK) {
   input_tensor.push_back(ge_tensor_i_1);
 
   GeTensor ge_tensor_i_2;
-  GeTensorDesc tensor_desc_i_2(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor_desc_i_2(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
   tensor_desc_i_1.SetPlacement(kPlacementHost);
   ge_tensor_i_2.SetTensorDesc(tensor_desc_i_2);
   std::vector<int32_t> input_data_2(1 * 4 * 4 * 8, 0);
@@ -9522,7 +9568,7 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensor_kernelbin_OK) {
 
   std::vector<GeTensor> output_tensor;
   GeTensor ge_tensor_o;
-  GeTensorDesc tensor_desc_o(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor_desc_o(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
   ge_tensor_o.SetTensorDesc(tensor_desc_o);
   std::vector<int32_t> output_data(1 * 4 * 4 * 8, 0);
   ge_tensor_o.SetData(reinterpret_cast<uint8_t *>(output_data.data()), output_data.size() * sizeof(int32_t));
@@ -9533,11 +9579,11 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensor_kernelbin_OK) {
   // active mem base 是否跟新
   for (const auto &args : runtime_stub.GetRtsRuntimeStub().GetRtMemcpyRecords()) {
     uint64_t dst_address = PtrToValue(args.dst_address);
-    void *input1_addr = const_cast<void*>(args.src_address);
-    void *input2_addr = (void*)(static_cast<uint8_t *>(const_cast<void *>(args.src_address)) + 512);
+    void *input1_addr = const_cast<void *>(args.src_address);
+    void *input2_addr = (void *)(static_cast<uint8_t *>(const_cast<void *>(args.src_address)) + 512);
     if (dst_address == host_input_device_addr) {
-      EXPECT_EQ(std::memcmp(input1_addr, (void*)input_data_1.data(), 512), 0);
-      EXPECT_EQ(std::memcmp(input2_addr, (void*)input_data_2.data(), 512), 0);
+      EXPECT_EQ(std::memcmp(input1_addr, (void *)input_data_1.data(), 512), 0);
+      EXPECT_EQ(std::memcmp(input2_addr, (void *)input_data_2.data(), 512), 0);
     }
   }
 
@@ -9548,13 +9594,12 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensor_kernelbin_OK) {
   dlog_setlevel(GE_MODULE_NAME, DLOG_ERROR, 0);
 }
 
-
 TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensor_kernelbin_pciebar_OK) {
   gert::GertRuntimeStub runtime_stub;
   runtime_stub.Clear();
   dlog_setlevel(GE_MODULE_NAME, DLOG_DEBUG, 0);
 
-  const char * const kEnvRecordPath = "RT_MEMORY_HBM";
+  const char *const kEnvRecordPath = "RT_MEMORY_HBM";
   char record_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &record_path[0U], MMPA_MAX_PATH);
   const std::string fail_collect_path = (std::string(&record_path[0U]) + "/mock_fail");
@@ -9574,33 +9619,33 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensor_kernelbin_pciebar_OK) {
   shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   ge_model->SetModelTaskDef(model_task_def);
 
-  GeTensorDesc tensor(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
   TensorUtils::SetSize(tensor, 512);
   {
     OpDescPtr op_desc = CreateOpDesc("data0", DATA);
     op_desc->AddInputDesc(tensor);
     op_desc->AddOutputDesc(tensor);
-    op_desc->SetInputOffset({5000}); // 支持零拷贝
+    op_desc->SetInputOffset({5000});  // 支持零拷贝
     op_desc->SetOutputOffset({6000});
     NodePtr node = graph->AddNode(op_desc);
   }
   {
-    GeTensorDesc tensor(GeShape({1,4,4,1}), FORMAT_NCHW, DT_FLOAT);
+    GeTensorDesc tensor(GeShape({1, 4, 4, 1}), FORMAT_NCHW, DT_FLOAT);
     TensorUtils::SetSize(tensor, 128);
     OpDescPtr op_desc = CreateOpDesc("data1", DATA);
     op_desc->AddInputDesc(tensor);
     op_desc->AddOutputDesc(tensor);
-    op_desc->SetInputOffset({8000}); // 支持零拷贝
+    op_desc->SetInputOffset({8000});  // 支持零拷贝
     op_desc->SetOutputOffset({9000});
     NodePtr node = graph->AddNode(op_desc);
   }
   {
-    GeTensorDesc tensor(GeShape({1,4,4,1}), FORMAT_NCHW, DT_FLOAT);
+    GeTensorDesc tensor(GeShape({1, 4, 4, 1}), FORMAT_NCHW, DT_FLOAT);
     TensorUtils::SetSize(tensor, 128);
     OpDescPtr op_desc = CreateOpDesc("data1", DATA);
     op_desc->AddInputDesc(tensor);
     op_desc->AddOutputDesc(tensor);
-    op_desc->SetInputOffset({10000}); // 支持零拷贝
+    op_desc->SetInputOffset({10000});  // 支持零拷贝
     op_desc->SetOutputOffset({11000});
     NodePtr node = graph->AddNode(op_desc);
   }
@@ -9628,14 +9673,14 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensor_kernelbin_pciebar_OK) {
     OpDescPtr op_desc = CreateOpDesc("output", NETOUTPUT);
     op_desc->AddInputDesc(tensor);
     op_desc->SetInputOffset({2048});
-    op_desc->SetSrcName( { "memcpy0" } );
-    op_desc->SetSrcIndex( { 0 } );
+    op_desc->SetSrcName({"memcpy0"});
+    op_desc->SetSrcIndex({0});
     NodePtr node = graph->AddNode(op_desc);  // op_index = 3
   }
 
   DavinciModel model(0, nullptr);
   model.Assign(ge_model);
-  model.args_manager_.SetFuncHandle((void*)100);
+  model.args_manager_.SetFuncHandle((void *)100);
   EXPECT_EQ(model.Init(), SUCCESS);
 
   // 获取model args manager 地址
@@ -9653,22 +9698,23 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensor_kernelbin_pciebar_OK) {
   EXPECT_EQ(model.allocation_ids_to_active_base_addr_[3], host_input_device_addr + 64);
 
   // 检测launch args
-  EXPECT_EQ(model.args_manager_.addr_update_op_args_.argsSize, 272); // sizeof(KernelLaunchOpArgs) 80, active_mem_base_addr_len_align32b 64  host_input_size_ 192
+  EXPECT_EQ(model.args_manager_.addr_update_op_args_.argsSize,
+            272);  // sizeof(KernelLaunchOpArgs) 80, active_mem_base_addr_len_align32b 64  host_input_size_ 192
   // tiling检查待补充
 
   // 判断model index和offset是否正确
   for (const auto &args : runtime_stub.GetRtsRuntimeStub().GetRtMemcpySyncRecords()) {
     uint64_t dst_address = PtrToValue(args.dst_address);
-    void *src_address = const_cast<void*>(args.src_address);
-    std::cout << "src_address " <<src_address << "dst_address" << dst_address << endl;
+    void *src_address = const_cast<void *>(args.src_address);
+    std::cout << "src_address " << src_address << "dst_address" << dst_address << endl;
     if (dst_address == PtrToValue(model.args_manager_.model_args_device_offset_)) {
       uint64_t *offset_ptr = (uint64_t *)dst_address;
-      for (size_t i = 8 ; i < 16; i ++) {
+      for (size_t i = 8; i < 16; i++) {
         EXPECT_EQ(*(offset_ptr + i), 0);
       }
     } else if (dst_address == PtrToValue(model.args_manager_.model_args_device_index_)) {
       uint32_t *index_ptr = (uint32_t *)dst_address;
-      for (size_t i = 8 ; i < 16; i ++) {
+      for (size_t i = 8; i < 16; i++) {
         EXPECT_EQ(*(index_ptr + i * 2), i * 2 * sizeof(uint32_t));
         EXPECT_EQ(*(index_ptr + i * 2 + 1), (i * 2 + 1) * sizeof(uint32_t));
       }
@@ -9685,14 +9731,14 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensor_kernelbin_pciebar_OK) {
 
   std::vector<GeTensor> input_tensor;
   GeTensor ge_tensor_i_0;
-  GeTensorDesc tensor_desc_i_0(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor_desc_i_0(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
   ge_tensor_i_0.SetTensorDesc(tensor_desc_i_0);
   std::vector<int32_t> input_data_0(1 * 4 * 4 * 8, 0);
   ge_tensor_i_0.SetData(reinterpret_cast<uint8_t *>(input_data_0.data()), input_data_0.size() * sizeof(int32_t));
   input_tensor.push_back(ge_tensor_i_0);
 
   GeTensor ge_tensor_i_1;
-  GeTensorDesc tensor_desc_i_1(GeShape({1,4,4,1}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor_desc_i_1(GeShape({1, 4, 4, 1}), FORMAT_NCHW, DT_FLOAT);
   tensor_desc_i_1.SetPlacement(kPlacementHost);
   ge_tensor_i_1.SetTensorDesc(tensor_desc_i_1);
   std::vector<int32_t> input_data_1(1 * 4 * 4 * 1, 1);
@@ -9700,7 +9746,7 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensor_kernelbin_pciebar_OK) {
   input_tensor.push_back(ge_tensor_i_1);
 
   GeTensor ge_tensor_i_2;
-  GeTensorDesc tensor_desc_i_2(GeShape({1,4,4,1}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor_desc_i_2(GeShape({1, 4, 4, 1}), FORMAT_NCHW, DT_FLOAT);
   tensor_desc_i_1.SetPlacement(kPlacementHost);
   ge_tensor_i_2.SetTensorDesc(tensor_desc_i_2);
   std::vector<int32_t> input_data_2(1 * 4 * 4 * 1, 2);
@@ -9709,7 +9755,7 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensor_kernelbin_pciebar_OK) {
 
   std::vector<GeTensor> output_tensor;
   GeTensor ge_tensor_o;
-  GeTensorDesc tensor_desc_o(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor_desc_o(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
   ge_tensor_o.SetTensorDesc(tensor_desc_o);
   std::vector<int32_t> output_data(1 * 4 * 4 * 8, 0);
   ge_tensor_o.SetData(reinterpret_cast<uint8_t *>(output_data.data()), output_data.size() * sizeof(int32_t));
@@ -9718,10 +9764,11 @@ TEST_F(UtestDavinciModel, NnExecute_HostInput_GeTensor_kernelbin_pciebar_OK) {
   EXPECT_EQ(model.NnExecute(stream, true, input_buffer, output_buffer, input_tensor, output_tensor), SUCCESS);
 
   // active membase是否被更新
-  void *input1_addr =   static_cast<uint8_t *>(model.args_manager_.launched_args_unique_ptr_.get()) + sizeof(ge::ModelArgsManager::KernelLaunchOpArgs) + 64;
+  void *input1_addr = static_cast<uint8_t *>(model.args_manager_.launched_args_unique_ptr_.get()) +
+                      sizeof(ge::ModelArgsManager::KernelLaunchOpArgs) + 64;
   void *input2_addr = static_cast<void *>(static_cast<uint8_t *>(input1_addr) + 64);
-  EXPECT_EQ(std::memcmp(input1_addr, (void*)input_data_1.data(), 64), 0);
-  EXPECT_EQ(std::memcmp(input2_addr, (void*)input_data_2.data(), 64), 0);
+  EXPECT_EQ(std::memcmp(input1_addr, (void *)input_data_1.data(), 64), 0);
+  EXPECT_EQ(std::memcmp(input2_addr, (void *)input_data_2.data(), 64), 0);
 
   options_map.clear();
   GetThreadLocalContext().SetGraphOption(options_map);
@@ -9778,7 +9825,6 @@ TEST_F(UtestDavinciModel, InputBatchCopyH2DWithMergeH2DEnabled) {
   // const auto total_size = mem_allocation0.logical_addr + mem_allocation0.data_size - mem_allocation1.logical_addr;
   const auto total_size = mem_allocation0.data_size + mem_allocation1.data_size + mem_allocation2.data_size;
 
-
   ZeroCopyOffset zero_copy_offset0 = {};
   ZeroCopyOffset zero_copy_offset1 = {};
   ZeroCopyOffset zero_copy_offset2 = {};
@@ -9834,7 +9880,7 @@ TEST_F(UtestDavinciModel, InputBatchCopyH2DWithMergeH2DEnabled2) {
   ge::GetThreadLocalContext().SetSessionOption(options_map_session);  // set input fusion size
 
   const uint64_t input0_size = input_fusion_size - 1U;  // smaller than input_fusion_size
-  const uint64_t input1_size = input_fusion_size + 2U;       // bigger than input_fusion_size
+  const uint64_t input1_size = input_fusion_size + 2U;  // bigger than input_fusion_size
   const uint64_t input2_size = input_fusion_size + 1U;  // bigger than input_fusion_size
   const uint64_t max_input_size = input2_size;
 
@@ -9870,7 +9916,6 @@ TEST_F(UtestDavinciModel, InputBatchCopyH2DWithMergeH2DEnabled2) {
   // const auto total_size = mem_allocation0.logical_addr + mem_allocation0.data_size - mem_allocation1.logical_addr;
   const auto total_size = mem_allocation0.data_size + mem_allocation1.data_size + mem_allocation2.data_size;
 
-
   ZeroCopyOffset zero_copy_offset0 = {};
   ZeroCopyOffset zero_copy_offset1 = {};
   ZeroCopyOffset zero_copy_offset2 = {};
@@ -9901,9 +9946,9 @@ TEST_F(UtestDavinciModel, InputBatchCopyH2DWithMergeH2DEnabled2) {
   EXPECT_NE(input_buffer, nullptr);
 
   // test success path
-  input_data.blobs.emplace_back(DataBuffer(input_buffer, input0_size, false));      // merge copy, h2h2d ok
+  input_data.blobs.emplace_back(DataBuffer(input_buffer, input0_size, false));  // merge copy, h2h2d ok
   input_data.blobs.emplace_back(DataBuffer(input_buffer, input1_size, false));  // non-merge-copy, batch h2d
-  input_data.blobs.emplace_back(DataBuffer(input_buffer, input2_size, false));      // non-merge-copy, h2d, batch h2d
+  input_data.blobs.emplace_back(DataBuffer(input_buffer, input2_size, false));  // non-merge-copy, h2d, batch h2d
   // no need merge h2d copy, fusion input num: 1
   EXPECT_EQ(davinci_model.HandleInputData(input_data), SUCCESS);
   EXPECT_EQ(AclRuntimeStub::GetInstance()->input_mem_copy_batch_count_, 3);
@@ -10294,7 +10339,7 @@ TEST_F(UtestDavinciModel, InputBatchCopyH2DButNotSupportedWithMergeH2DDisabled) 
   EXPECT_NE(input_buffer, nullptr);
 
   input_data.blobs.emplace_back(DataBuffer(input_buffer, input0_size, false));
-  input_data.blobs.emplace_back(DataBuffer(input_buffer, input1_size, false, 1U)); // d2d
+  input_data.blobs.emplace_back(DataBuffer(input_buffer, input1_size, false, 1U));  // d2d
   input_data.blobs.emplace_back(DataBuffer(input_buffer, input2_size, false));
   // all CopyInputData -> aclrtMemcpyBatch
   EXPECT_EQ(davinci_model.HandleInputData(input_data), SUCCESS);
@@ -10304,7 +10349,6 @@ TEST_F(UtestDavinciModel, InputBatchCopyH2DButNotSupportedWithMergeH2DDisabled) 
   free(device_buffer);
   ge::GetThreadLocalContext().SetSessionOption({});
 }
-
 
 TEST_F(UtestDavinciModel, InputBatchCopyH2DFailedWithMergeH2DEnabled) {
   class MockAclRuntime : public ge::AclRuntimeStub {
@@ -10328,7 +10372,7 @@ TEST_F(UtestDavinciModel, InputBatchCopyH2DFailedWithMergeH2DEnabled) {
   ge::GetThreadLocalContext().SetSessionOption(options_map_session);  // set input fusion size
 
   const uint64_t input0_size = input_fusion_size - 1U;  // smaller than input_fusion_size
-  const uint64_t input1_size = input_fusion_size + 1U;       // equal to input_fusion_size
+  const uint64_t input1_size = input_fusion_size + 1U;  // equal to input_fusion_size
   const uint64_t input2_size = input_fusion_size + 1U;  // bigger than input_fusion_size
   const uint64_t max_input_size = input2_size;
 
@@ -10392,9 +10436,9 @@ TEST_F(UtestDavinciModel, InputBatchCopyH2DFailedWithMergeH2DEnabled) {
   EXPECT_NE(input_buffer, nullptr);
 
   // test success path
-  input_data.blobs.emplace_back(DataBuffer(input_buffer, input0_size, false));      // merge copy, h2h2d ok
+  input_data.blobs.emplace_back(DataBuffer(input_buffer, input0_size, false));  // merge copy, h2h2d ok
   input_data.blobs.emplace_back(DataBuffer(input_buffer, input1_size, false));  // non-merge-copy, not h2d, d2d
-  input_data.blobs.emplace_back(DataBuffer(input_buffer, input2_size, false));      // non-merge-copy, h2d, batch h2d
+  input_data.blobs.emplace_back(DataBuffer(input_buffer, input2_size, false));  // non-merge-copy, h2d, batch h2d
   // switch of input_batch_cpy is open and only one item exists, call rtMemcpy
   EXPECT_EQ(davinci_model.HandleInputData(input_data), RT_FAILED);
 
@@ -10757,13 +10801,13 @@ TEST_F(UtestDavinciModel, InputBatchCopyFallbackFailedWithMergeH2DDisabled) {
 TEST_F(UtestDavinciModel, testConstructActiveMemBaseAddrs) {
   DavinciModel davinci_model(0, nullptr);
   MemAllocation mem_allocation0 = {};
-  mem_allocation0.data_size = 25600U + 32U; // random value for test
-  mem_allocation0.tensor_size = 25600U; // random value for test
-  mem_allocation0.logical_addr = 30902000U; // random value for test
+  mem_allocation0.data_size = 25600U + 32U;  // random value for test
+  mem_allocation0.tensor_size = 25600U;      // random value for test
+  mem_allocation0.logical_addr = 30902000U;  // random value for test
   mem_allocation0.type = MemAllocation::Type::INPUT;
   davinci_model.logical_mem_allocations_.emplace_back(mem_allocation0);
   davinci_model.allocation_ids_to_active_base_addr_ = new uint64_t[1];
-  davinci_model.allocation_ids_to_active_base_addr_[0] = 123456; // random value for test
+  davinci_model.allocation_ids_to_active_base_addr_[0] = 123456;  // random value for test
   davinci_model.ConstructActiveMemBaseAddrs();
   EXPECT_EQ(davinci_model.allocation_ids_to_active_base_addr_[0], mem_allocation0.logical_addr);
   std::map<std::string, std::string> graph_options;
@@ -10819,7 +10863,7 @@ TEST_F(UtestDavinciModel, CheckIoReuseAddrs_SameAddress_Success) {
 
   GeModelPtr ge_model = MakeShared<GeModel>();
   ge_model->SetGraph(MakeShared<ComputeGraph>("test"));
-  AttrUtils::SetStr(ge_model, ATTR_MODEL_OUTPUT_REUSE_INPUT_MEM_INDEXES, "0,0"); // 0复用0
+  AttrUtils::SetStr(ge_model, ATTR_MODEL_OUTPUT_REUSE_INPUT_MEM_INDEXES, "0,0");  // 0复用0
   AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 1024);
   AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 1);
   const auto model_def = MakeShared<domi::ModelTaskDef>();
@@ -10829,7 +10873,7 @@ TEST_F(UtestDavinciModel, CheckIoReuseAddrs_SameAddress_Success) {
 
   void *shared_addr = reinterpret_cast<void *>(0x1000);
   std::vector<DataBuffer> input_blobs = {{shared_addr, 512, false}};
-  std::vector<DataBuffer> output_blobs = {{shared_addr, 512, false}}; // 地址相同
+  std::vector<DataBuffer> output_blobs = {{shared_addr, 512, false}};  // 地址相同
 
   std::vector<GeTensor> empty_tensors;
 
@@ -10851,7 +10895,7 @@ TEST_F(UtestDavinciModel, CheckIoReuseAddrs_DifferentAddress_Fail) {
 
   GeModelPtr ge_model = MakeShared<GeModel>();
   ge_model->SetGraph(MakeShared<ComputeGraph>("test"));
-  AttrUtils::SetStr(ge_model, ATTR_MODEL_OUTPUT_REUSE_INPUT_MEM_INDEXES, "0,0"); // 0复用0
+  AttrUtils::SetStr(ge_model, ATTR_MODEL_OUTPUT_REUSE_INPUT_MEM_INDEXES, "0,0");  // 0复用0
   AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 1024);
   AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 1);
   const auto model_def = MakeShared<domi::ModelTaskDef>();
@@ -10860,7 +10904,7 @@ TEST_F(UtestDavinciModel, CheckIoReuseAddrs_DifferentAddress_Fail) {
   EXPECT_EQ(model.Init(), SUCCESS);
 
   std::vector<DataBuffer> input_blobs = {{reinterpret_cast<void *>(0x1000), 512, false}};
-  std::vector<DataBuffer> output_blobs = {{reinterpret_cast<void *>(0x2000), 512, false}}; // 地址不同
+  std::vector<DataBuffer> output_blobs = {{reinterpret_cast<void *>(0x2000), 512, false}};  // 地址不同
   std::vector<GeTensor> empty_tensors;
 
   EXPECT_NE(model.CheckIoReuseAddrs(input_blobs, output_blobs, empty_tensors, empty_tensors), SUCCESS);
@@ -10880,7 +10924,7 @@ TEST_F(UtestDavinciModel, CheckIoReuseAddrs_OutputIndexOutOfRange_Fail) {
 
   GeModelPtr ge_model = MakeShared<GeModel>();
   ge_model->SetGraph(MakeShared<ComputeGraph>("test"));
-  AttrUtils::SetStr(ge_model, ATTR_MODEL_OUTPUT_REUSE_INPUT_MEM_INDEXES, "0,5"); // 配置输出索引为 5
+  AttrUtils::SetStr(ge_model, ATTR_MODEL_OUTPUT_REUSE_INPUT_MEM_INDEXES, "0,5");  // 配置输出索引为 5
   AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 1024);
   AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 1);
   const auto model_def = MakeShared<domi::ModelTaskDef>();
@@ -10911,7 +10955,7 @@ TEST_F(UtestDavinciModel, CheckIoReuseAddrs_InputIndexOutOfRange_Fail) {
 
   GeModelPtr ge_model = MakeShared<GeModel>();
   ge_model->SetGraph(MakeShared<ComputeGraph>("test"));
-  AttrUtils::SetStr(ge_model, ATTR_MODEL_OUTPUT_REUSE_INPUT_MEM_INDEXES, "5,0"); // 配置输入索引为 5
+  AttrUtils::SetStr(ge_model, ATTR_MODEL_OUTPUT_REUSE_INPUT_MEM_INDEXES, "5,0");  // 配置输入索引为 5
   AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 1024);
   AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 1);
   const auto model_def = MakeShared<domi::ModelTaskDef>();
@@ -10987,7 +11031,7 @@ TEST_F(UtestDavinciModel, CheckIoReuseAddrs_MultiplePairs_PartialMismatch_Fail) 
   void *addr1 = reinterpret_cast<void *>(0x2000);
   void *addr2 = reinterpret_cast<void *>(0x3000);
   std::vector<DataBuffer> input_blobs = {{addr0, 512, false}, {addr1, 512, false}};
-  std::vector<DataBuffer> output_blobs = {{addr0, 512, false}, {addr2, 512, false}}; // 1号位不匹配
+  std::vector<DataBuffer> output_blobs = {{addr0, 512, false}, {addr2, 512, false}};  // 1号位不匹配
   std::vector<GeTensor> empty_tensors;
 
   EXPECT_NE(model.CheckIoReuseAddrs(input_blobs, output_blobs, empty_tensors, empty_tensors), SUCCESS);
@@ -11041,7 +11085,7 @@ TEST_F(UtestDavinciModel, CheckIoReuseAddrs_NoConfig_SkipCheck_Success) {
   void *addr1 = reinterpret_cast<void *>(0x2000);
 
   std::vector<DataBuffer> input_blobs = {{addr0, 512, false}};
-  std::vector<DataBuffer> output_blobs = {{addr1, 512, false}}; // 地址不同
+  std::vector<DataBuffer> output_blobs = {{addr1, 512, false}};  // 地址不同
   std::vector<GeTensor> empty_tensors;
 
   // 因为没配置复用规则，所以即便地址不同，也应该返回 SUCCESS
@@ -11068,7 +11112,7 @@ TEST_F(UtestDavinciModel, CheckIoReuseAddrs_GeTensor_SameAddress_Success) {
   // 构造一个 GeTensor 并分配数据
   GeTensor tensor;
   std::vector<uint8_t> data(100, 1);
-  tensor.SetData(data); // 内部会分配内存地址
+  tensor.SetData(data);  // 内部会分配内存地址
 
   // 构造输入输出 Tensor 列表
   // 注意：这里假设 vector push_back 后的 GeTensor 仍然指向同一块 Data 内存
@@ -11102,7 +11146,7 @@ TEST_F(UtestDavinciModel, CheckIoReuseAddrs_GeTensor_DiffAddress_Fail) {
 
   GeTensor output_tensor;
   std::vector<uint8_t> data_out(100, 2);
-  output_tensor.SetData(data_out); // 分配了新的地址
+  output_tensor.SetData(data_out);  // 分配了新的地址
 
   std::vector<GeTensor> input_tensors = {input_tensor};
   std::vector<GeTensor> output_tensors = {output_tensor};
@@ -11137,7 +11181,7 @@ TEST_F(UtestDavinciModel, CheckIoReuseAddrs_GertTensor_SameAddress_Success) {
   input_tensors[0].MutableTensorData().SetAddr(shared_addr, nullptr);
 
   std::vector<gert::Tensor> output_tensors(1);
-  output_tensors[0].MutableTensorData().SetAddr(shared_addr, nullptr); // 地址一致
+  output_tensors[0].MutableTensorData().SetAddr(shared_addr, nullptr);  // 地址一致
 
   std::vector<DataBuffer> empty_blobs;
 
@@ -11168,7 +11212,7 @@ TEST_F(UtestDavinciModel, CheckIoReuseAddrs_GertTensor_DiffAddress_Fail) {
   input_tensors[0].MutableTensorData().SetAddr(reinterpret_cast<void *>(0x120000), nullptr);
 
   std::vector<gert::Tensor> output_tensors(1);
-  output_tensors[0].MutableTensorData().SetAddr(reinterpret_cast<void *>(0x999999), nullptr); // 地址不同
+  output_tensors[0].MutableTensorData().SetAddr(reinterpret_cast<void *>(0x999999), nullptr);  // 地址不同
 
   std::vector<DataBuffer> empty_blobs;
 
@@ -11325,9 +11369,9 @@ TEST_F(UtestDavinciModel, FillRawTensorInfos_WithBlacklist) {
   EXPECT_EQ(ret, SUCCESS);
   EXPECT_EQ(tensors.size(), 2);
   EXPECT_EQ(tensors[0].type, Adx::TensorType::INPUT);
-  EXPECT_EQ(tensors[0].tensorAddr, reinterpret_cast<int64_t*>(0x2000));
+  EXPECT_EQ(tensors[0].tensorAddr, reinterpret_cast<int64_t *>(0x2000));
   EXPECT_EQ(tensors[1].type, Adx::TensorType::OUTPUT);
-  EXPECT_EQ(tensors[1].tensorAddr, reinterpret_cast<int64_t*>(0x4000));
+  EXPECT_EQ(tensors[1].tensorAddr, reinterpret_cast<int64_t *>(0x4000));
 }
 
 // 修改此测试以适配新的 API
@@ -11417,7 +11461,7 @@ TEST_F(UtestDavinciModel, IsRootGraphNeedDump_True) {
 
   // Configure dump for root graph using SetDumpProperties
   DumpProperties dump_properties;
-  (void)dump_properties.InitByOptions(); // Initialize from context options
+  (void)dump_properties.InitByOptions();  // Initialize from context options
   std::set<std::string> dump_ops = {"test_op"};
   dump_properties.AddPropertyValue("root_graph", dump_ops);
   model.SetDumpProperties(dump_properties);
@@ -11452,7 +11496,7 @@ TEST_F(UtestDavinciModel, OpNeedDump_WithRootGraphConfig) {
 
   // Configure dump for root graph only using SetDumpProperties
   DumpProperties dump_properties;
-  (void)dump_properties.InitByOptions(); // Initialize from context options
+  (void)dump_properties.InitByOptions();  // Initialize from context options
   std::set<std::string> dump_ops = {"test_op"};
   dump_properties.AddPropertyValue("root_graph", dump_ops);
   model.SetDumpProperties(dump_properties);

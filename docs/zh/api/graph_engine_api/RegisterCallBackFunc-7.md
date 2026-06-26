@@ -96,4 +96,3 @@ Status RegisterCallBackFunc(const char *key, const RunCallBack &callback)
 -   回调函数类型仅支持Summary、Save。
 -   如无注册则下发Summary、Checkpoint算子会报错。
 -   目前暂时只支持图执行完后一次性调用回调函数。
-

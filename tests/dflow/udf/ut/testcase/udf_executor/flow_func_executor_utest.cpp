@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -1220,7 +1220,7 @@ TEST_F(FlowFuncExecutorUTest, ProcessProcessorInitEvent) {
   executor.running_ = true;
   executor.output_to_flow_func_processor_idx_[1] = {0, 1};
   executor.input_to_flow_func_processor_idx_[2] = 0;
-  struct event_info event {};
+  struct event_info event{};
   executor.ProcessProcessorInitEvent(event, 0);
   EXPECT_FALSE(executor.running_);
 }
@@ -1230,7 +1230,7 @@ TEST_F(FlowFuncExecutorUTest, ProcessProcessorInitEvent_subscribeOutputQueue) {
   FlowFuncExecutor executor;
   executor.running_ = true;
   executor.dev_output_queue_map_[0][0U] = false;
-  struct event_info event {};
+  struct event_info event{};
   executor.ProcessProcessorInitEvent(event, 0);
   EXPECT_TRUE(executor.running_);
   executor.ProcessProcessorInitEvent(event, 0);
@@ -1242,7 +1242,7 @@ TEST_F(FlowFuncExecutorUTest, ProcessProcessorInitEvent_subscribeStatusOutputQue
   FlowFuncExecutor executor;
   executor.running_ = true;
   executor.status_output_queue_map_[0] = {0U};
-  struct event_info event {};
+  struct event_info event{};
   executor.ProcessProcessorInitEvent(event, 0);
   EXPECT_FALSE(executor.running_);
 }
@@ -1254,7 +1254,7 @@ TEST_F(FlowFuncExecutorUTest, ProcessProcessorInitEvent_subscribeInputQueue) {
   executor.dev_input_queue_map_[0][0U] = false;
   executor.dev_input_queue_map_[0][1U] = false;
   executor.flow_msg_queues_ = {1U};
-  struct event_info event {};
+  struct event_info event{};
   executor.ProcessProcessorInitEvent(event, 0);
   EXPECT_FALSE(executor.running_);
   executor.running_ = true;
@@ -1282,7 +1282,7 @@ TEST_F(FlowFuncExecutorUTest, ProcessReportStatusEvent_success1) {
   FlowFuncExecutor executor;
   executor.running_ = true;
   executor.func_processors_.emplace_back(processor);
-  struct event_info event {};
+  struct event_info event{};
   event.comm.subevent_id = 0U;
   event.comm.event_id = static_cast<EVENT_ID>(UdfEvent::kEventIdFlowFuncReportStatus);
   executor.ProcessReportStatusEvent(event, 0U);
@@ -1311,7 +1311,7 @@ TEST_F(FlowFuncExecutorUTest, ProcessReportStatusEvent_success2) {
   FlowFuncExecutor executor;
   executor.running_ = true;
   executor.func_processors_.emplace_back(processor);
-  struct event_info event {};
+  struct event_info event{};
   event.comm.subevent_id = 0U;
   event.comm.event_id = static_cast<EVENT_ID>(UdfEvent::kEventIdFlowFuncReportStatus);
   executor.ProcessReportStatusEvent(event, 0U);
@@ -1339,7 +1339,7 @@ TEST_F(FlowFuncExecutorUTest, ProcessReportStatusEvent_success3) {
   FlowFuncExecutor executor;
   executor.running_ = true;
   executor.func_processors_.emplace_back(processor);
-  struct event_info event {};
+  struct event_info event{};
   event.comm.subevent_id = 0U;
   event.comm.event_id = static_cast<EVENT_ID>(UdfEvent::kEventIdFlowFuncReportStatus);
   executor.ProcessReportStatusEvent(event, 0U);
@@ -1351,7 +1351,7 @@ TEST_F(FlowFuncExecutorUTest, ProcessReportStatusEvent_success3) {
 TEST_F(FlowFuncExecutorUTest, ProcessReportStatusEvent_failed1) {
   FlowFuncExecutor executor;
   executor.running_ = true;
-  struct event_info event {};
+  struct event_info event{};
   event.comm.subevent_id = 0U;
   event.comm.event_id = static_cast<EVENT_ID>(UdfEvent::kEventIdFlowFuncReportStatus);
   executor.ProcessReportStatusEvent(event, 0U);
@@ -1374,7 +1374,7 @@ TEST_F(FlowFuncExecutorUTest, ProcessReportStatusEvent_failed2) {
   FlowFuncExecutor executor;
   executor.running_ = true;
   executor.func_processors_.emplace_back(processor);
-  struct event_info event {};
+  struct event_info event{};
   event.comm.subevent_id = 0U;
   event.comm.event_id = static_cast<EVENT_ID>(UdfEvent::kEventIdFlowFuncReportStatus);
   executor.ProcessReportStatusEvent(event, 0U);
@@ -1397,7 +1397,7 @@ TEST_F(FlowFuncExecutorUTest, ProcessReportStatusEvent_failed3) {
   FlowFuncExecutor executor;
   executor.running_ = true;
   executor.func_processors_.emplace_back(processor);
-  struct event_info event {};
+  struct event_info event{};
   event.comm.subevent_id = 0U;
   event.comm.event_id = static_cast<EVENT_ID>(UdfEvent::kEventIdFlowFuncReportStatus);
   executor.ProcessReportStatusEvent(event, 0U);
@@ -1420,7 +1420,7 @@ TEST_F(FlowFuncExecutorUTest, ProcessReportStatusEvent_failed4) {
   FlowFuncExecutor executor;
   executor.running_ = true;
   executor.func_processors_.emplace_back(processor);
-  struct event_info event {};
+  struct event_info event{};
   event.comm.subevent_id = 0U;
   event.comm.event_id = static_cast<EVENT_ID>(UdfEvent::kEventIdFlowFuncReportStatus);
   executor.ProcessReportStatusEvent(event, 0U);
@@ -1445,7 +1445,7 @@ TEST_F(FlowFuncExecutorUTest, ProcessReportStatusEvent_failed5) {
   FlowFuncExecutor executor;
   executor.running_ = true;
   executor.func_processors_.emplace_back(processor);
-  struct event_info event {};
+  struct event_info event{};
   event.comm.subevent_id = 0U;
   event.comm.event_id = static_cast<EVENT_ID>(UdfEvent::kEventIdFlowFuncReportStatus);
   executor.ProcessReportStatusEvent(event, 0U);
@@ -1469,7 +1469,7 @@ TEST_F(FlowFuncExecutorUTest, CheckProcessorEventFaieldWithInvalidParams) {
   FlowFuncExecutor executor;
   executor.running_ = true;
   executor.func_processors_.emplace_back(processor);
-  struct event_info event {};
+  struct event_info event{};
   // processor id greater than processor number
   event.comm.subevent_id = 1U;
   EXPECT_EQ(executor.CheckProcessorEventParams(event), FLOW_FUNC_PROCESSOR_PARAM_ERROR);
@@ -1526,7 +1526,7 @@ TEST_F(FlowFuncExecutorUTest, ProcessSuspendControlMessage) {
   auto ret = executor.Init(models);
   EXPECT_EQ(ret, FLOW_FUNC_SUCCESS);
   executor.running_ = true;
-  struct event_info event {};
+  struct event_info event{};
   event.comm.subevent_id = GlobalConfig::Instance().GetReqQueueId();
   executor.ProcessEmptyToNotEmptyEvent(event, 0);
   EXPECT_EQ(executor.running_, false);
@@ -2040,7 +2040,7 @@ TEST_F(FlowFuncExecutorUTest, ProcessRecoverControlMessage) {
   auto ret = executor.Init(models);
   EXPECT_EQ(ret, FLOW_FUNC_SUCCESS);
   executor.running_ = true;
-  struct event_info event {};
+  struct event_info event{};
   event.comm.subevent_id = GlobalConfig::Instance().GetReqQueueId();
 
   executor.running_ = true;
@@ -2072,7 +2072,7 @@ TEST_F(FlowFuncExecutorUTest, ProcessInvalidControlMessage) {
   auto ret = executor.Init(models);
   EXPECT_EQ(ret, FLOW_FUNC_SUCCESS);
   executor.running_ = true;
-  struct event_info event {};
+  struct event_info event{};
   event.comm.subevent_id = GlobalConfig::Instance().GetReqQueueId();
 
   executor.running_ = true;
@@ -2103,7 +2103,7 @@ TEST_F(FlowFuncExecutorUTest, ProcessReportSuspendEvent) {
   executor.running_ = true;
   executor.suspend_process_ids_.insert(0);
   executor.suspend_process_ids_.insert(1);
-  struct event_info event {};
+  struct event_info event{};
   event.comm.subevent_id = 0;
   event.priv.msg_len = 4U;
   int32_t evt_ret = FLOW_FUNC_SUSPEND_FAILED;
@@ -2131,7 +2131,7 @@ TEST_F(FlowFuncExecutorUTest, ProcessReportRecoverEvent) {
   executor.running_ = true;
   executor.recover_process_ids_.insert(0);
   executor.recover_process_ids_.insert(1);
-  struct event_info event {};
+  struct event_info event{};
   event.comm.subevent_id = 0;
   event.priv.msg_len = 4U;
   int32_t evt_ret = FLOW_FUNC_SUSPEND_FAILED;

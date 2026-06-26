@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -172,13 +172,15 @@ Status NodeFuseInfo::GetSubgraphSameInputIndex(const NodePtr &node1, const NodeP
    *            / /  \ \
    *           / /    \ \
    *          node1    node2
-   * 两个节点水平融合且node2与node1的多个输入都来自于同一个节点，类似于same_input_map=[(0, 0), (0, 1), (1, 0), (1, 1)]，此时需要对
-   * same_input_map进行去重，按照pair中的第2个元素（node2的输入index）进行去重，比如这个例子中需要将后两个(1, 0)和(1, 1)去掉。
+   * 两个节点水平融合且node2与node1的多个输入都来自于同一个节点，类似于same_input_map=[(0, 0), (0, 1), (1, 0), (1,
+   * 1)]，此时需要对
+   * same_input_map进行去重，按照pair中的第2个元素（node2的输入index）进行去重，比如这个例子中需要将后两个(1, 0)和(1,
+   * 1)去掉。
    */
   std::unordered_set<int32_t> seen;
-  same_input_map.erase(
-      std::remove_if(same_input_map.begin(), same_input_map.end(),
-                     [&seen](const auto &p) { return !seen.insert(p.second).second; }), same_input_map.end());
+  same_input_map.erase(std::remove_if(same_input_map.begin(), same_input_map.end(),
+                                      [&seen](const auto &p) { return !seen.insert(p.second).second; }),
+                       same_input_map.end());
   GELOGI_IF(open_log_, "after removing duplicates, node %s(%s) and node %s(%s), same input map: %s.",
             node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
             AutofuseUtils::VectorPairToStr(same_input_map).c_str());
@@ -321,17 +323,21 @@ Status NodeFuseInfo::GetNodeOutputMap(const NodePtr &node1, const NodePtr &node2
       const auto &node1_peer_node = node1_peer_anchor->GetOwnerNode();
       if (node1_peer_node != node2) {
         all_match = false;
-        GELOGI("node1 %s(%s) output %zu peer in anchor %s is not one of in anchors of node2 %s(%s), "
-               "map node1 output %zu to fused node outputs list.", node1->GetName().c_str(), node1->GetType().c_str(), node1_output,
-               loop::BufferName(node1_peer_anchor).c_str(), node2->GetName().c_str(), node2->GetType().c_str(),
-               node1_output);
+        GELOGI(
+            "node1 %s(%s) output %zu peer in anchor %s is not one of in anchors of node2 %s(%s), "
+            "map node1 output %zu to fused node outputs list.",
+            node1->GetName().c_str(), node1->GetType().c_str(), node1_output,
+            loop::BufferName(node1_peer_anchor).c_str(), node2->GetName().c_str(), node2->GetType().c_str(),
+            node1_output);
         break;
       }
     }
     if (!node1_peer_anchors.empty() && all_match) {
-      GELOGI("All of peer in anchors of out anchor %zu of node1 %s(%s) are in anchors of node2 %s(%s), "
-             "do not map node1 output %zu to fused node outputs list.", node1_output, node1->GetName().c_str(),
-             node1->GetType().c_str(), node2->GetName().c_str(), node2->GetType().c_str(), node1_output);
+      GELOGI(
+          "All of peer in anchors of out anchor %zu of node1 %s(%s) are in anchors of node2 %s(%s), "
+          "do not map node1 output %zu to fused node outputs list.",
+          node1_output, node1->GetName().c_str(), node1->GetType().c_str(), node2->GetName().c_str(),
+          node2->GetType().c_str(), node1_output);
       node_output_map[node1_output] = -1;
     }
   }
@@ -396,7 +402,7 @@ Status NodeFuseInfo::UpdateNodeFuseInfo(const NodePtr &node1, const NodePtr &nod
   GE_ASSERT_SUCCESS(GetNodeOutputIndex(node2, node2_out_node_size_, node2_out_data_size_, node2_output_index_));
   GE_ASSERT_SUCCESS(GetSubgraphSameInputIndex(node1, node2, same_input_map_));
   has_slice_vertical_ = BackendUtils::SliceHasSameLoad(node1, node2, same_input_map_);
-  can_do_horizontal_mapping_ = !HasCubeType(node1, node2); // matmul节点同时有水平融合和垂直融合时不做水平融合轴映射
+  can_do_horizontal_mapping_ = !HasCubeType(node1, node2);  // matmul节点同时有水平融合和垂直融合时不做水平融合轴映射
   // 如果两个node毫无关联返回FAILED
   if (same_input_map_.empty() && node1_to_node2_link_map_.empty()) {
     GELOGD_IF(open_log_, "node1 %s(%s) and node2 %s(%s) have no relation.", node1->GetNamePtr(),
@@ -478,7 +484,8 @@ Status AscGraphAxisMapping::GetPreNodeAttrs(const NodePtr &node, const int32_t i
   } else if (peer_node->GetType() == kFusedAscBackendType) {
     NodePtr asc_node;
     InDataAnchorPtr netoutput_in_anchor;
-    GE_ASSERT_SUCCESS(BackendUtils::GetPreAscBackendNodeAndAnchor(node, peer_node, in_anchor, asc_node, netoutput_in_anchor));
+    GE_ASSERT_SUCCESS(
+        BackendUtils::GetPreAscBackendNodeAndAnchor(node, peer_node, in_anchor, asc_node, netoutput_in_anchor));
     ComputeGraphPtr graph;
     GE_ASSERT_SUCCESS(BackendUtils::GetNodeFusedGraph(asc_node, graph));
     GE_ASSERT_SUCCESS(BackendUtils::UpdateSubgraphOutputAttr(graph, asc_node));
@@ -509,7 +516,8 @@ Status AscGraphAxisMapping::GetPreNodeAscGraphAttrs(const NodePtr &node, const i
   } else if (peer_node->GetType() == kFusedAscBackendType) {
     NodePtr asc_node;
     InDataAnchorPtr netoutput_in_anchor;
-    GE_ASSERT_SUCCESS(BackendUtils::GetPreAscBackendNodeAndAnchor(node, peer_node, in_anchor, asc_node, netoutput_in_anchor));
+    GE_ASSERT_SUCCESS(
+        BackendUtils::GetPreAscBackendNodeAndAnchor(node, peer_node, in_anchor, asc_node, netoutput_in_anchor));
     ComputeGraphPtr graph;
     GE_ASSERT_SUCCESS(BackendUtils::GetNodeFusedGraph(asc_node, graph));
     ascback_node = asc_node;
@@ -565,8 +573,8 @@ Status AscGraphAxisMapping::GetCurNodeAscGraphAttrs(const NodePtr &node, const i
 }
 
 Status AscGraphAxisMapping::FindAxisIndex(std::vector<ge::Expression> &node_repeats,
-                                           std::vector<ge::Expression> &base_repeats,
-                                           std::vector<uint32_t> &axis_index) const {
+                                          std::vector<ge::Expression> &base_repeats,
+                                          std::vector<uint32_t> &axis_index) const {
   axis_index.clear();
   AxisIndexMatchState match_state(node_repeats.size(), base_repeats.size());
 
@@ -636,12 +644,12 @@ bool AscGraphAxisMapping::CanAxisMap(std::vector<int64_t> &node1_axis, std::vect
       temp_node2_map.insert(std::pair<int64_t, int64_t>(node2_axi, node2_axi));
     }
   }
-  GELOGD_IF(open_log_,
-            "find axis map info: left axis(%s), repeats(%s), right axis(%s), repeats(%s), axis map1(%s), axis map2(%s).",
-            AutofuseUtils::VectorToStr(node1_axis).c_str(), AutofuseUtils::VectorToStr(node1_repeats).c_str(),
-            AutofuseUtils::VectorToStr(node2_axis).c_str(), AutofuseUtils::VectorToStr(node2_repeats).c_str(),
-            AutofuseUtils::VectorPairToStr(temp_node1_map).c_str(),
-            AutofuseUtils::VectorPairToStr(temp_node2_map).c_str());
+  GELOGD_IF(
+      open_log_,
+      "find axis map info: left axis(%s), repeats(%s), right axis(%s), repeats(%s), axis map1(%s), axis map2(%s).",
+      AutofuseUtils::VectorToStr(node1_axis).c_str(), AutofuseUtils::VectorToStr(node1_repeats).c_str(),
+      AutofuseUtils::VectorToStr(node2_axis).c_str(), AutofuseUtils::VectorToStr(node2_repeats).c_str(),
+      AutofuseUtils::VectorPairToStr(temp_node1_map).c_str(), AutofuseUtils::VectorPairToStr(temp_node2_map).c_str());
   return true;
 }
 
@@ -713,22 +721,23 @@ Status AscGraphAxisMapping::CheckSubGraphtVerticalAxisMapping(const NodePtr &nod
   AxisPairSet temp_node2_map;
 
   if (CanAxisMap(pre_axis_info.node_axis, pre_axis_info.node_repeats, cur_axis_info.node_axis,
-                   cur_axis_info.node_repeats, node1_map, node2_map, temp_node1_map, temp_node2_map)) {
+                 cur_axis_info.node_repeats, node1_map, node2_map, temp_node1_map, temp_node2_map)) {
     // 1.graph1 store和 graph2 data轴是否能映射
-    GELOGD_IF(open_log_, "node %s(%s) pre store and cur data axis can axis map.", node->GetNamePtr(), node->GetType().c_str());
+    GELOGD_IF(open_log_, "node %s(%s) pre store and cur data axis can axis map.", node->GetNamePtr(),
+              node->GetType().c_str());
     if (pre_node_is_reduction_ &&
-      !CanAxisMap(pre_axis_info.node_axis, pre_axis_info.node_repeats, cur_axis_info.graph_axis,
-                  cur_axis_info.graph_size, node1_map_, node2_map_, temp_node1_map, temp_node2_map)) {
-        GELOGI_IF(open_log_, "pre node is reduction, norm like state: (%d).", pre_node_reduce_all_load_state_);
-        if (pre_node_reduce_all_load_state_ != REDUCE_ALL_LOAD_ALL) {
-          GELOGI_IF(open_log_, "pre node is reduction, only allow norm like fuse, can't fuse.");
-          return FAILED;
-        }
+        !CanAxisMap(pre_axis_info.node_axis, pre_axis_info.node_repeats, cur_axis_info.graph_axis,
+                    cur_axis_info.graph_size, node1_map_, node2_map_, temp_node1_map, temp_node2_map)) {
+      GELOGI_IF(open_log_, "pre node is reduction, norm like state: (%d).", pre_node_reduce_all_load_state_);
+      if (pre_node_reduce_all_load_state_ != REDUCE_ALL_LOAD_ALL) {
+        GELOGI_IF(open_log_, "pre node is reduction, only allow norm like fuse, can't fuse.");
+        return FAILED;
+      }
     }
   } else {
     // 2. graph1 store节点和graph2轴能直接映射
     if (CanAxisMap(pre_axis_info.node_axis, pre_axis_info.node_repeats, cur_axis_info.graph_axis,
-                 cur_axis_info.graph_size, node1_map, node2_map, temp_node1_map, temp_node2_map)) {
+                   cur_axis_info.graph_size, node1_map, node2_map, temp_node1_map, temp_node2_map)) {
       GELOGD_IF(open_log_, "node %s(%s) pre store and ascgraph sched axis can axis map.", node->GetNamePtr(),
                 node->GetType().c_str());
     } else {
@@ -804,7 +813,8 @@ Status AscGraphAxisMapping::GetVerticalAxisMapInfo(const NodePtr &node, const in
             node->GetType().c_str(), index, AutofuseUtils::VectorToStr(cur_node_axis_info.graph_size).c_str(),
             AutofuseUtils::VectorToStr(cur_node_axis_info.graph_axis).c_str());
 
-  if (CheckSubGraphtVerticalAxisMapping(node, pre_node_axis_info, cur_node_axis_info, node1_map, node2_map) != SUCCESS) {
+  if (CheckSubGraphtVerticalAxisMapping(node, pre_node_axis_info, cur_node_axis_info, node1_map, node2_map) !=
+      SUCCESS) {
     return FAILED;
   }
   return SUCCESS;
@@ -1042,8 +1052,10 @@ Status AscGraphAxisMapping::ProcessSubGraphVerticalMapInfo(const NodePtr &node1,
       std::vector<ViewOpAttrInfo> attr_infos;
       if (!CanLoopMerge(asc_node1, asc_node2)) {
         std::vector<ViewOpAttrInfo> pre_attr_infos;
-        auto pre_node_input_is_simplest_load = BackendUtils::PreNodeInputIsSimplestLoad(node2, subgraph_link.second, pre_attr_infos);
-        auto cur_node_input_is_simplest_load = BackendUtils::CurNodeInputIsSimplestLoad(node2, subgraph_link.second, attr_infos);
+        auto pre_node_input_is_simplest_load =
+            BackendUtils::PreNodeInputIsSimplestLoad(node2, subgraph_link.second, pre_attr_infos);
+        auto cur_node_input_is_simplest_load =
+            BackendUtils::CurNodeInputIsSimplestLoad(node2, subgraph_link.second, attr_infos);
         // 不能循环合并时，如果前序子图没有view、后续子图没有view可以融合(transpose场景)
         if (pre_node_input_is_simplest_load && cur_node_input_is_simplest_load) {
           GELOGD_IF(open_log_, "pre node is simplest load, cur node is simplest load, map info success.");

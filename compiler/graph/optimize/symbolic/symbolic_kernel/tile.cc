@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -140,8 +140,8 @@ static graphStatus TileSymbolicKernelCompute(gert::InferSymbolComputeContext *co
   // 对齐multiples_symbols和x_dims的维度
   AlignDimNum(x_dims, multiples_dims);
   if (!CheckOutputSize(x_dims, multiples_dims)) {
-    GELOGW("SymbolicKernel compute unsupported, reason: check output size failed, node %s[%s].",
-           context->GetNodeName(), context->GetNodeType());
+    GELOGW("SymbolicKernel compute unsupported, reason: check output size failed, node %s[%s].", context->GetNodeName(),
+           context->GetNodeType());
     return UNSUPPORTED;
   }
   GELOGI("Input x shape dims: %s, multiples dims: %s.", SymbolicInferUtil::VectorToStr(x_dims).c_str(),

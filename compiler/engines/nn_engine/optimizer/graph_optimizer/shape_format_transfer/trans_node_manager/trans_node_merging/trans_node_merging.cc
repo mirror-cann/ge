@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -67,14 +67,14 @@ bool CheckAxisC(ge::DataType original_data_type, int64_t multiply_result1, int64
  * dims2[i] mod dims1[i] is equal to 0.
  *
  *
- * For NCHW, NHWC and HWCN need to ADDTIONAL check the product of all axis at
+ * For NCHW, NHWC and HWCN need to ADDITIONAL check the product of all axis at
  * the left of C and C itself is the same and the axis c can be divided by
  * C0. If the axis C is the same for both dims, we will not check this.
  * For example:
  * For NCHW, we need to check whether the product the dim N and dim C is the
  * same.
  * For NHWC, we just check all.
- * For HWCN, we need to addtionally check the product of H * W * C. */
+ * For HWCN, we need to additionally check the product of H * W * C. */
 bool CheckTwoDimsEquivalent(const std::vector<int64_t> &dims1, const std::vector<int64_t> &dims2,
                             ge::Format original_format, ge::DataType original_data_type, string op_type) {
   if (dims1 == kUnknownDimNum || dims2 == kUnknownDimNum) {
@@ -130,7 +130,7 @@ bool CheckTwoDimsEquivalent(const std::vector<int64_t> &dims1, const std::vector
   return false;
 }
 
-bool GetPeerConstNodeData(const ge::NodePtr &node, std::vector<int64_t>& perm_vec) {
+bool GetPeerConstNodeData(const ge::NodePtr &node, std::vector<int64_t> &perm_vec) {
   if (node->GetType() == TRANSPOSED) {
     ge::OpDescPtr trans_op_desc = node->GetOpDesc();
     FE_CHECK_NOTNULL(trans_op_desc);
@@ -178,8 +178,8 @@ bool CheckTwoTransposePermAttrValid(const ge::NodePtr &src_node, const ge::NodeP
   }
 
   if (src_perm_vec.size() != dst_perm_vec.size()) {
-    FE_LOGD("Perm attr size of transpose op[%s] and [%s] are not same.",
-            src_op_desc->GetNamePtr(), dst_op_desc->GetNamePtr());
+    FE_LOGD("Perm attr size of transpose op[%s] and [%s] are not same.", src_op_desc->GetNamePtr(),
+            dst_op_desc->GetNamePtr());
     return false;
   }
   std::vector<int32_t> merge_perm_vec;
@@ -192,8 +192,8 @@ bool CheckTwoTransposePermAttrValid(const ge::NodePtr &src_node, const ge::NodeP
     merge_perm_vec.push_back(src_perm_vec[static_cast<size_t>(dst_perm_vec[i])]);
   }
   if (merge_perm_vec.size() != src_perm_vec.size()) {
-    FE_LOGD("Merged perm vec size [%zu] does not match the current perm vec size [%zu].",
-            merge_perm_vec.size(), src_perm_vec.size());
+    FE_LOGD("Merged perm vec size [%zu] does not match the current perm vec size [%zu].", merge_perm_vec.size(),
+            src_perm_vec.size());
     return false;
   }
   for (size_t i = 0; i < merge_perm_vec.size(); i++) {
@@ -202,8 +202,7 @@ bool CheckTwoTransposePermAttrValid(const ge::NodePtr &src_node, const ge::NodeP
       return false;
     }
     if (static_cast<size_t>(merge_perm_vec[i]) != i) {
-      FE_LOGD("Merged perm vec is invalid for perm value[%d] is not same with its index[%zu].",
-              merge_perm_vec[i], i);
+      FE_LOGD("Merged perm vec is invalid for perm value[%d] is not same with its index[%zu].", merge_perm_vec[i], i);
       return false;
     }
   }
@@ -217,7 +216,7 @@ void UpdateAttrNames(ge::OpDescPtr dst_op_desc, ge::OpDescPtr old_src_op_desc, g
   vector<string> new_src_name;
   vector<string> new_input_name;
 
-  if(old_src_op_desc == nullptr || new_src_op_desc == nullptr) {
+  if (old_src_op_desc == nullptr || new_src_op_desc == nullptr) {
     FE_LOGD("old_src_op_desc or input_name_of_dst_node is nullptr, no attr update.");
     return;
   }
@@ -254,8 +253,8 @@ void UpdateAttrNames(ge::OpDescPtr dst_op_desc, ge::OpDescPtr old_src_op_desc, g
 Status RemoveTransposePerm(const BasicInfoForRemovingNode &info, ge::ComputeGraph &fused_graph) {
   if (info.node->GetType() == TRANSPOSE) {
     ge::InDataAnchorPtr perm_in_anchor = info.node->GetInDataAnchor(kTransposeInputPerm);
-    if(!(perm_in_anchor == nullptr || perm_in_anchor->GetPeerOutAnchor() == nullptr ||
-                                perm_in_anchor->GetPeerOutAnchor()->GetOwnerNode() == nullptr)) {
+    if (!(perm_in_anchor == nullptr || perm_in_anchor->GetPeerOutAnchor() == nullptr ||
+          perm_in_anchor->GetPeerOutAnchor()->GetOwnerNode() == nullptr)) {
       auto const_node = perm_in_anchor->GetPeerOutAnchor()->GetOwnerNode();
       ge::OutDataAnchorPtr out_anchor_of_node = const_node->GetOutDataAnchor(0);
       FE_CHECK_NOTNULL(out_anchor_of_node);
@@ -315,7 +314,7 @@ Status RemoveNodeAndEdges(const BasicInfoForRemovingNode &info, bool father_node
     FE_LOGD("[Trans][Merge] Remove edge from [%s] to [%s].", info.node->GetNamePtr(), info.dst_node->GetNamePtr());
 
     bool result = info.src_out_anchor != nullptr &&
-            ge::GraphUtils::AddEdge(info.src_out_anchor, info.dst_in_anchor) != ge::GRAPH_SUCCESS;
+                  ge::GraphUtils::AddEdge(info.src_out_anchor, info.dst_in_anchor) != ge::GRAPH_SUCCESS;
     if (result) {
       REPORT_FE_ERROR("[GraphOptJdgInst][ShapeTrans][RmNdEg] [2]:Failed to add edge from [%s] to [%s].",
                       info.src_op_desc->GetNamePtr(), info.dst_node->GetNamePtr());
@@ -342,8 +341,7 @@ Status RemoveNodeAndEdges(const BasicInfoForRemovingNode &info, bool father_node
       return FAILED;
     }
     FE_CHECK_NOTNULL(info.src_op_desc);
-    FE_LOGD("[Trans][Merge] Add edge from [%s] to [%s].",
-            info.src_op_desc->GetNamePtr(), info.dst_node->GetNamePtr());
+    FE_LOGD("[Trans][Merge] Add edge from [%s] to [%s].", info.src_op_desc->GetNamePtr(), info.dst_node->GetNamePtr());
 
     FE_LOGI("We keep node (name [%s] type [%s]) in graph because its output has [%zu] peer input anchors.",
             info.node->GetNamePtr(), info.node->GetTypePtr(), info.dst_in_anchor_size_of_node);
@@ -353,13 +351,12 @@ Status RemoveNodeAndEdges(const BasicInfoForRemovingNode &info, bool father_node
   UpdateAttrNames(info.dst_op_desc, info.node->GetOpDesc(), info.src_op_desc);
   return SUCCESS;
 }
-} // namespace
+}  // namespace
 TransNodeMerging::TransNodeMerging() {}
 
 TransNodeMerging::~TransNodeMerging() {}
 
-bool TransNodeMerging::CheckTwoTransOpDescMergable(const ge::NodePtr &src_node,
-                                                   const ge::NodePtr &dst_node,
+bool TransNodeMerging::CheckTwoTransOpDescMergable(const ge::NodePtr &src_node, const ge::NodePtr &dst_node,
                                                    const std::vector<ge::NodePtr> &origin_cast_list,
                                                    const bool check_list_flag) const {
   // dst_op_desc -> src_node
@@ -368,8 +365,9 @@ bool TransNodeMerging::CheckTwoTransOpDescMergable(const ge::NodePtr &src_node,
   ge::OpDescPtr src_op_desc = src_node->GetOpDesc();
   ge::OpDescPtr dst_op_desc = dst_node->GetOpDesc();
   FE_CHECK(src_op_desc == nullptr, FE_LOGD("Source op desc is null."), return false);
-  bool unsupport_merge = (src_op_desc->GetType() == RESHAPE && dst_op_desc->GetType() == RESHAPE) &&
-     (UnknownShapeUtils::IsUnknownShapeOp(*src_op_desc) || UnknownShapeUtils::IsUnknownShapeOp(*dst_op_desc));
+  bool unsupport_merge =
+      (src_op_desc->GetType() == RESHAPE && dst_op_desc->GetType() == RESHAPE) &&
+      (UnknownShapeUtils::IsUnknownShapeOp(*src_op_desc) || UnknownShapeUtils::IsUnknownShapeOp(*dst_op_desc));
   if (unsupport_merge) {
     return false;
   }
@@ -378,8 +376,7 @@ bool TransNodeMerging::CheckTwoTransOpDescMergable(const ge::NodePtr &src_node,
   string dst_op_type = dst_op_desc->GetType();
   // transposed and transpose are processed with the same logic
   bool flag = (!(src_op_type == dst_op_type || (IsTransposeType(src_op_type) && IsTransposeType(dst_op_type))) ||
-              !IsTransOpType(src_op_type) ||
-              !IsTransOpType(dst_op_type));
+               !IsTransOpType(src_op_type) || !IsTransOpType(dst_op_type));
   if (flag) {
     return false;
   }
@@ -397,16 +394,16 @@ bool TransNodeMerging::CheckTwoTransOpDescMergable(const ge::NodePtr &src_node,
                dst_in_tensor_desc_ptr == nullptr || dst_out_tensor_desc_ptr == nullptr,
            FE_LOGD("Tensor_desc_ptr is null."), return false);
 
-  if (dst_op_type == CAST) { // can't optimize if not casting between float types and inserted by user
+  if (dst_op_type == CAST) {  // can't optimize if not casting between float types and inserted by user
     if (!(IsFloatingCast(src_in_tensor_desc_ptr->GetDataType(), src_out_tensor_desc_ptr->GetDataType()) ||
-        IsFloatingCast(dst_in_tensor_desc_ptr->GetDataType(), dst_out_tensor_desc_ptr->GetDataType())) &&
+          IsFloatingCast(dst_in_tensor_desc_ptr->GetDataType(), dst_out_tensor_desc_ptr->GetDataType())) &&
         (!check_list_flag || !IsOptimizableCast(src_node, origin_cast_list) ||
          !IsOptimizableCast(dst_node, origin_cast_list))) {
       FE_LOGD("Keeping nodes [%s] and [%s] in the graph.", src_node->GetName().c_str(), dst_node->GetName().c_str());
       return false;
     }
   }
-  
+
   if (IsTransposeType(dst_op_type) && !CheckTwoTransposePermAttrValid(src_node, dst_node, src_op_desc, dst_op_desc)) {
     return false;
   }
@@ -426,9 +423,8 @@ bool TransNodeMerging::CheckTwoTransOpDescMergable(const ge::NodePtr &src_node,
   int64_t src_out_c0 = ge::GetC0Value(src_out_format);
   int64_t dst_in_c0 = ge::GetC0Value(dst_in_format);
   int64_t dst_out_c0 = ge::GetC0Value(dst_out_format);
-  bool fp32_has_c08 = src_in_datatype == ge::DT_FLOAT &&
-                      (src_in_c0 == SHAPE_NUMBER_8 || src_out_c0 == SHAPE_NUMBER_8 ||
-                       dst_in_c0 == SHAPE_NUMBER_8 || dst_out_c0 == SHAPE_NUMBER_8);
+  bool fp32_has_c08 = src_in_datatype == ge::DT_FLOAT && (src_in_c0 == SHAPE_NUMBER_8 || src_out_c0 == SHAPE_NUMBER_8 ||
+                                                          dst_in_c0 == SHAPE_NUMBER_8 || dst_out_c0 == SHAPE_NUMBER_8);
   if (fp32_has_c08 && (src_in_c0 != dst_out_c0 || src_out_c0 != dst_in_c0)) {
     return false;
   }
@@ -468,10 +464,11 @@ Status TransNodeMerging::MergeAllTransOps(ge::ComputeGraph &fused_graph,
         ge::NodePtr src_node = in_anchor->GetPeerOutAnchor()->GetOwnerNode();
 
         /* Every Time we merge all trans nodes between two non-trans nodes. */
-        Status ret = MergeTransOpBetweenTwoNormalOp(fused_graph, src_node, in_anchor, origin_cast_list,
-                                                    check_list_flag);
+        Status ret =
+            MergeTransOpBetweenTwoNormalOp(fused_graph, src_node, in_anchor, origin_cast_list, check_list_flag);
         if (ret == FAILED) {
-          FE_LOGD("Merge not successfully. After merging, the graph [%s] is as follows:", fused_graph.GetName().c_str());
+          FE_LOGD("Merge not successfully. After merging, the graph [%s] is as follows:",
+                  fused_graph.GetName().c_str());
           if (IsDebugLogLevel) {
             for (auto &node_tmp : fused_graph.GetDirectNode()) {
               FE_LOGD("Node named [%s]", node_tmp->GetName().c_str());
@@ -502,8 +499,8 @@ Status TransNodeMerging::MergeOneNode(ge::ComputeGraph &fused_graph, ge::NodePtr
                                in_anchor_of_node->GetPeerOutAnchor()->GetOwnerNode() == nullptr ||
                                in_anchor_of_node->GetPeerOutAnchor()->GetOwnerNode()->GetOpDesc() == nullptr);
   if (father_node_nullflag) {
-    FE_LOGW("InAnchor or its predecessor of Node (name [%s]) in subGraph (name [%s]) is null!",
-            node->GetNamePtr(), fused_graph.GetName().c_str());
+    FE_LOGW("InAnchor or its predecessor of Node (name [%s]) in subGraph (name [%s]) is null!", node->GetNamePtr(),
+            fused_graph.GetName().c_str());
   } else {
     src_out_anchor = in_anchor_of_node->GetPeerOutAnchor();
     src_node = src_out_anchor->GetOwnerNode();
@@ -538,12 +535,12 @@ Status TransNodeMerging::MergeOneNode(ge::ComputeGraph &fused_graph, ge::NodePtr
       auto dst_in_anchor_size_of_node = dst_in_anchors.size();
       if (current_in_anchor_index >= dst_in_anchor_size_of_node) {
         REPORT_FE_ERROR("%s CurNode[%s], DstNode[%s]: index %u exceeds the size of dst_in_anchors [%zu].",
-                        kStageMrgOneNd.c_str(), node->GetNamePtr(), dst_node->GetNamePtr(),
-                        current_in_anchor_index, dst_in_anchor_size_of_node);
+                        kStageMrgOneNd.c_str(), node->GetNamePtr(), dst_node->GetNamePtr(), current_in_anchor_index,
+                        dst_in_anchor_size_of_node);
         return FAILED;
       }
       BasicInfoForRemovingNode info = {
-          src_node,   src_op_desc, dst_node,          dst_op_desc,        node,
+          src_node,      src_op_desc,    dst_node,          dst_op_desc,        node,
           dst_in_anchor, src_out_anchor, in_anchor_of_node, out_anchor_of_node, dst_in_anchor_size_of_node};
       if (RemoveNodeAndEdges(info, father_node_nullflag, in_anchor_index_stack, fused_graph) != SUCCESS) {
         return FAILED;
@@ -622,7 +619,7 @@ Status TransNodeMerging::MergeTransOpBetweenTwoNormalOp(ge::ComputeGraph &fused_
       /* TransOp only have one input. */
       ge::InDataAnchorPtr in_anchor_of_src_node = src_node->GetInDataAnchor(0);
       bool flag = (in_anchor_of_src_node == nullptr || in_anchor_of_src_node->GetPeerOutAnchor() == nullptr ||
-                  in_anchor_of_src_node->GetPeerOutAnchor()->GetOwnerNode() == nullptr);
+                   in_anchor_of_src_node->GetPeerOutAnchor()->GetOwnerNode() == nullptr);
       if (flag) {
         return MERGE_TRANS_OP_NO_MORE_PREDECESSOR;
       }
@@ -641,8 +638,7 @@ bool TransNodeMerging::IsOptimizableCast(const ge::NodePtr &node,
   return (find(origin_cast_list.begin(), origin_cast_list.end(), node) == origin_cast_list.end());
 }
 
-bool TransNodeMerging::IsFloatingCast(const ge::DataType &in_data_type,
-                                      const ge::DataType &out_data_type) const {
+bool TransNodeMerging::IsFloatingCast(const ge::DataType &in_data_type, const ge::DataType &out_data_type) const {
   return IsFloatingType(in_data_type) && IsFloatingType(out_data_type);
 }
 

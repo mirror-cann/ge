@@ -72,8 +72,7 @@ class CustomOpSoLoader {
   Status LoadSingleCustomOpSoBin(const OpSoBinPtr &so_bin, std::vector<CustomOpSoHandlePtr> &loaded_handles);
   CustomOpSoHandlePtr GetLoadedHandle(const std::string &fingerprint_key);
   Status LoadCustomOpSoBinCandidate(const OpSoBinPtr &so_bin, const std::string &diagnostic_so_key,
-                                    const std::string &fingerprint_key,
-                                    CustomOpSoHandlePtr &candidate_handle) const;
+                                    const std::string &fingerprint_key, CustomOpSoHandlePtr &candidate_handle) const;
   void PublishOrReuseLoadedHandle(const std::string &fingerprint_key, const CustomOpSoHandlePtr &candidate_handle,
                                   CustomOpSoHandlePtr &loaded_handle);
   void Cleanup();

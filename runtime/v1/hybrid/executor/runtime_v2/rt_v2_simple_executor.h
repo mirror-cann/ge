@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,8 +20,7 @@ class RtV2SimpleExecutor : public RtV2ExecutorInterface {
  public:
   static std::unique_ptr<RtV2SimpleExecutor> Create(const ge::GeRootModelPtr &model, RtSession *session);
   static std::unique_ptr<RtV2SimpleExecutor> Create(const ge::GeRootModelPtr &model,
-                                                    ge::DevResourceAllocator &allocator,
-                                                    RtSession *session);
+                                                    ge::DevResourceAllocator &allocator, RtSession *session);
 
   ge::Status Load(const ModelExecuteArg &arg, const ModelLoadArg &load_arg) override {
     if (!loaded_.exchange(true)) {
@@ -32,8 +31,8 @@ class RtV2SimpleExecutor : public RtV2ExecutorInterface {
     return ge::SUCCESS;
   }
 
-  ge::Status Execute(const ModelExecuteArg &arg, Tensor **inputs, size_t input_num, Tensor **outputs,
-                     size_t output_num, const RunConfig &config) override {
+  ge::Status Execute(const ModelExecuteArg &arg, Tensor **inputs, size_t input_num, Tensor **outputs, size_t output_num,
+                     const RunConfig &config) override {
     GE_ASSERT(loaded_, "Executor for model %s has not been load", name_.c_str());
     for (size_t i = 0U; i < config.iterations_per_loop; ++i) {
       if (config.profiler_collector != nullptr) {
@@ -79,8 +78,7 @@ class RtV2SimpleExecutor : public RtV2ExecutorInterface {
   static std::unique_ptr<RtV2SimpleExecutor> Create(const ge::GeRootModelPtr &model,
                                                     StreamAllocator *const stream_allocator,
                                                     EventAllocator *const event_allocator,
-                                                    NotifyAllocator *const notify_allocator,
-                                                    RtSession *session);
+                                                    NotifyAllocator *const notify_allocator, RtSession *session);
   std::string name_;
   std::atomic_bool loaded_{false};
   std::unique_ptr<ModelV2Executor> executor_;

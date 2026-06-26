@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -70,11 +70,8 @@ bool PropertiesManager::LoadFileContent(const std::string &file_path) {
     char_t err_buf[kMaxErrorStrLength + 1U] = {};
     const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrorStrLength);
     const std::string errmsg = FormatErrnoReason(mmGetErrorCode(), err_msg);
-    (void)REPORT_PREDEFINED_ERR_MSG(
-        "E13001",
-        std::vector<const char *>({"file", "errmsg"}),
-        std::vector<const char *>({resolved_file_path.c_str(), errmsg.c_str()})
-    );
+    (void)REPORT_PREDEFINED_ERR_MSG("E13001", std::vector<const char *>({"file", "errmsg"}),
+                                    std::vector<const char *>({resolved_file_path.c_str(), errmsg.c_str()}));
     return false;
   }
 
@@ -105,10 +102,8 @@ bool PropertiesManager::ParseLine(const std::string &line) {
   if (!temp.empty()) {
     const std::string::size_type pos = temp.find_first_of(delimiter);
     if (pos == std::string::npos) {
-      GELOGE(PARAM_INVALID, "[Check][Param]Incorrect line %s, it must include %s",
-             line.c_str(), delimiter.c_str());
-      REPORT_INNER_ERR_MSG("E19999", "Incorrect line %s, it must include %s",
-                        line.c_str(), delimiter.c_str());
+      GELOGE(PARAM_INVALID, "[Check][Param]Incorrect line %s, it must include %s", line.c_str(), delimiter.c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Incorrect line %s, it must include %s", line.c_str(), delimiter.c_str());
       return false;
     }
 

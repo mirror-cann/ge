@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -37,7 +37,7 @@ class FusionGraphMerge {
 
   Status MergeFusionGraph(ge::ComputeGraph &fusion_graph);
 
-  const std::string& GetScopeAttr() const;
+  const std::string &GetScopeAttr() const;
 
  private:
   Status MergeFusionNodes(ge::ComputeGraph &fusion_graph);
@@ -47,7 +47,7 @@ class FusionGraphMerge {
   Status MergeFusionNodeL2Info(const ge::ComputeGraph &fusion_graph);
 
   virtual Status AfterMergeFusionGraph(ge::ComputeGraph &graph) {
-    (void) graph;
+    (void)graph;
     return SUCCESS;
   }
 
@@ -96,11 +96,9 @@ class FusionGraphMerge {
 
   Status RefreshFusionNodeDataFlow(ge::NodePtr fus_node, const ge::ComputeGraph &fusion_graph);
 
-  void AddBuffFusionNodeInputDesc(vector<int> &in_mem_type_old_node,
-                                  ge::OpDescPtr &in_edge_dst_op_desc_ptr,
+  void AddBuffFusionNodeInputDesc(vector<int> &in_mem_type_old_node, ge::OpDescPtr &in_edge_dst_op_desc_ptr,
                                   const ge::DataAnchorPtr &in_edge_dst_data_anchor_ptr,
-                                  vector<int64_t> &FusNodeInputOffset,
-                                  vector<int> &in_mem_type_fus_node) const;
+                                  vector<int64_t> &FusNodeInputOffset, vector<int> &in_mem_type_fus_node) const;
 
   Status SetDataOutPutMapingAttr(
       std::map<ge::NodePtr, std::map<ge::AnchorPtr, ge::AnchorPtr>> fusion_op_anchors_map) const;
@@ -138,6 +136,7 @@ class FusionGraphMerge {
   std::map<std::string, std::map<std::int64_t, ge::NodePtr>> fusion_op_name_map_all_;
 
   std::string scope_attr_;
+
  protected:
   GraphCommPtr graph_comm_ptr_;
   std::map<ge::ConstGeTensorDescPtr, int64_t> fusion_op_input_idx_map_;

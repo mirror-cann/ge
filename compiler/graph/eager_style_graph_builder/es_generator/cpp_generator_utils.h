@@ -62,7 +62,7 @@ inline void AppendCallArg(std::stringstream &ss, bool &first, const std::string 
 inline const ge::es::history::Param *FindParamByRoleAndIrName(const ge::es::history::Signature &sig,
                                                               const ge::es::history::ParamRole role,
                                                               const std::string &ir_name) {
-  for (const auto &param: sig.params) {
+  for (const auto &param : sig.params) {
     if (param.role == role && param.ir_name == ir_name) {
       return &param;
     }
@@ -71,7 +71,7 @@ inline const ge::es::history::Param *FindParamByRoleAndIrName(const ge::es::hist
 }
 
 inline const ge::es::history::Param *FindOwnerBuilderParam(const ge::es::history::Signature &sig) {
-  for (const auto &param: sig.params) {
+  for (const auto &param : sig.params) {
     if (param.role == ge::es::history::ParamRole::kOwnerBuilder) {
       return &param;
     }
@@ -80,9 +80,9 @@ inline const ge::es::history::Param *FindOwnerBuilderParam(const ge::es::history
 }
 
 inline bool HasTensorLikeParam(const ge::es::history::Signature &sig) {
-  for (const auto &param: sig.params) {
+  for (const auto &param : sig.params) {
     if (param.role == ge::es::history::ParamRole::kInput &&
-      param.kind == ge::es::history::ParamCxxKind::kEsTensorLikeRef) {
+        param.kind == ge::es::history::ParamCxxKind::kEsTensorLikeRef) {
       return true;
     }
   }
@@ -113,31 +113,21 @@ inline bool NeedOwnerBuilderCArg(const LoweredSignature &lowered) {
 
 inline LoweredSignature LowerSignature(const OpDescPtr &op, const ge::es::history::Signature &sig) {
   LoweredSignature lowered;
-  for (const auto &in: op->GetIrInputs()) {
-    lowered.inputs.push_back({
-      FindParamByRoleAndIrName(sig, ge::es::history::ParamRole::kInput, in.first),
-      in.second,
-      in.first
-    });
+  for (const auto &in : op->GetIrInputs()) {
+    lowered.inputs.push_back(
+        {FindParamByRoleAndIrName(sig, ge::es::history::ParamRole::kInput, in.first), in.second, in.first});
   }
   lowered.owner_builder = FindOwnerBuilderParam(sig);
-  for (const auto &out: op->GetIrOutputs()) {
+  for (const auto &out : op->GetIrOutputs()) {
     if (out.second != kIrOutputDynamic) {
       continue;
     }
     lowered.dynamic_outputs.push_back(
-      {
-        FindParamByRoleAndIrName(sig, ge::es::history::ParamRole::kDynamicOutputNum, out.first),
-        out.first
-      });
+        {FindParamByRoleAndIrName(sig, ge::es::history::ParamRole::kDynamicOutputNum, out.first), out.first});
   }
-  for (const auto &subgraph: op->GetOrderedSubgraphIrNames()) {
-    lowered.subgraphs.push_back(
-      {
-        FindParamByRoleAndIrName(sig, ge::es::history::ParamRole::kSubgraph, subgraph.first),
-        subgraph.second,
-        subgraph.first
-      });
+  for (const auto &subgraph : op->GetOrderedSubgraphIrNames()) {
+    lowered.subgraphs.push_back({FindParamByRoleAndIrName(sig, ge::es::history::ParamRole::kSubgraph, subgraph.first),
+                                 subgraph.second, subgraph.first});
   }
   return lowered;
 }
@@ -156,8 +146,7 @@ inline std::string JoinNames(const std::vector<std::string> &names) {
   return ss.str();
 }
 
-inline void AppendGeneratorWarning(std::vector<std::string> *warnings,
-                                   const std::string &op_type,
+inline void AppendGeneratorWarning(std::vector<std::string> *warnings, const std::string &op_type,
                                    const std::string &detail) {
   if (warnings == nullptr) {
     return;
@@ -165,10 +154,8 @@ inline void AppendGeneratorWarning(std::vector<std::string> *warnings,
   warnings->emplace_back("cpp_generator: op " + op_type + " " + detail);
 }
 
-inline bool ValidateLoweredSignature(const std::string &op_type,
-                                     const LoweredSignature &lowered,
-                                     std::vector<std::string> *warnings,
-                                     std::string &detail) {
+inline bool ValidateLoweredSignature(const std::string &op_type, const LoweredSignature &lowered,
+                                     std::vector<std::string> *warnings, std::string &detail) {
   std::vector<std::string> missing_dynamic_outputs;
   std::vector<std::string> missing_subgraphs;
   for (const auto &dyn_out : lowered.dynamic_outputs) {
@@ -204,32 +191,31 @@ inline bool ValidateLoweredSignature(const std::string &op_type,
 inline std::string ParamTypeName(const ge::es::history::Param &param) {
   using ge::es::history::ParamCxxKind;
   static const std::map<ParamCxxKind, const char *> kTypeNameTable = {
-    {ParamCxxKind::kEsTensorLikeRef, "const EsTensorLike &"},
-    {ParamCxxKind::kTensorHolderRef, "const EsTensorHolder &"},
-    {ParamCxxKind::kTensorHoldersVecRef, "const std::vector<EsTensorHolder> &"},
-    {ParamCxxKind::kDataType, "ge::DataType"},
-    {ParamCxxKind::kTensorUniquePtr, "std::unique_ptr<ge::Tensor>"},
-    {ParamCxxKind::kListIntRef, "const std::vector<int64_t> &"},
-    {ParamCxxKind::kListFloatRef, "const std::vector<float> &"},
-    {ParamCxxKind::kListBoolRef, "const std::vector<uint8_t> &"},
-    {ParamCxxKind::kListTypeRef, "const std::vector<ge::DataType> &"},
-    {ParamCxxKind::kListListIntRef, "const std::vector<std::vector<int64_t>> &"},
-    {ParamCxxKind::kListStringRef, "const std::vector<const char *> &"},
-    {ParamCxxKind::kGraphUniquePtr, "std::unique_ptr<ge::Graph>"},
-    {ParamCxxKind::kGraphsVec, "std::vector<std::unique_ptr<ge::Graph>>"},
-    {ParamCxxKind::kGraphBuilderRef, "const EsGraphBuilder &"},
-    {ParamCxxKind::kGraphBuilderPtr, "const EsGraphBuilder *"},
-    {ParamCxxKind::kInt64, "int64_t"},
-    {ParamCxxKind::kFloat, "float"},
-    {ParamCxxKind::kBool, "bool"},
-    {ParamCxxKind::kCString, "const char *"},
-    {ParamCxxKind::kNullptrT, "std::nullptr_t"}
-  };
+      {ParamCxxKind::kEsTensorLikeRef, "const EsTensorLike &"},
+      {ParamCxxKind::kTensorHolderRef, "const EsTensorHolder &"},
+      {ParamCxxKind::kTensorHoldersVecRef, "const std::vector<EsTensorHolder> &"},
+      {ParamCxxKind::kDataType, "ge::DataType"},
+      {ParamCxxKind::kTensorUniquePtr, "std::unique_ptr<ge::Tensor>"},
+      {ParamCxxKind::kListIntRef, "const std::vector<int64_t> &"},
+      {ParamCxxKind::kListFloatRef, "const std::vector<float> &"},
+      {ParamCxxKind::kListBoolRef, "const std::vector<uint8_t> &"},
+      {ParamCxxKind::kListTypeRef, "const std::vector<ge::DataType> &"},
+      {ParamCxxKind::kListListIntRef, "const std::vector<std::vector<int64_t>> &"},
+      {ParamCxxKind::kListStringRef, "const std::vector<const char *> &"},
+      {ParamCxxKind::kGraphUniquePtr, "std::unique_ptr<ge::Graph>"},
+      {ParamCxxKind::kGraphsVec, "std::vector<std::unique_ptr<ge::Graph>>"},
+      {ParamCxxKind::kGraphBuilderRef, "const EsGraphBuilder &"},
+      {ParamCxxKind::kGraphBuilderPtr, "const EsGraphBuilder *"},
+      {ParamCxxKind::kInt64, "int64_t"},
+      {ParamCxxKind::kFloat, "float"},
+      {ParamCxxKind::kBool, "bool"},
+      {ParamCxxKind::kCString, "const char *"},
+      {ParamCxxKind::kNullptrT, "std::nullptr_t"}};
   const auto iter = kTypeNameTable.find(param.kind);
   return iter == kTypeNameTable.end() ? "std::nullptr_t" : iter->second;
 }
-} // namespace cpp_gen
-} // namespace es
-} // namespace ge
+}  // namespace cpp_gen
+}  // namespace es
+}  // namespace ge
 
 #endif  // AIR_CXX_COMPILER_GRAPH_EAGER_STYLE_EAGER_STYLE_GRAPH_BUILDER_CPP_GENERATOR_UTILS_H_

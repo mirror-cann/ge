@@ -86,4 +86,3 @@ aclFormat format)
 ## 返回值说明<a name="section25151444115613"></a>
 
 返回aclTensorDesc类型的指针。
-

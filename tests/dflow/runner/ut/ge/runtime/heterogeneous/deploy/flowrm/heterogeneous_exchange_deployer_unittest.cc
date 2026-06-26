@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,7 +27,7 @@ using namespace ::testing;
 namespace ge {
 namespace {
 class MockMmpaRealPath : public ge::MmpaStubApiGe {
-public:
+ public:
   int32_t RealPath(const CHAR *path, CHAR *realPath, INT32 realPathLen) override {
     (void)strncpy_s(realPath, realPathLen, path, strlen(path));
     return 0;
@@ -36,7 +36,7 @@ public:
     return 0;
   }
 };
-}
+}  // namespace
 class HeterogeneousExchangeDeployerTest : public testing::Test {
  protected:
   void SetUp() override {
@@ -55,14 +55,12 @@ class HeterogeneousExchangeDeployerTest : public testing::Test {
 
   class MockHeterogeneousExchangeDeployer : public HeterogeneousExchangeDeployer {
    public:
-    MockHeterogeneousExchangeDeployer(ExchangeService &exchange_service,
-                               const deployer::FlowRoutePlan &deploy_plan,
-                               FlowGwClientManager &client_manager)
-      : HeterogeneousExchangeDeployer(exchange_service, deploy_plan, client_manager) {}
+    MockHeterogeneousExchangeDeployer(ExchangeService &exchange_service, const deployer::FlowRoutePlan &deploy_plan,
+                                      FlowGwClientManager &client_manager)
+        : HeterogeneousExchangeDeployer(exchange_service, deploy_plan, client_manager) {}
 
-    MOCK_METHOD1(BindRoute, Status(const std::vector<std::pair<const ExchangeEndpoint *,
-                                                               const ExchangeEndpoint *>> &));
-    MOCK_CONST_METHOD1(CreateTag, Status(ExchangeEndpoint & ));
+    MOCK_METHOD1(BindRoute, Status(const std::vector<std::pair<const ExchangeEndpoint *, const ExchangeEndpoint *>> &));
+    MOCK_CONST_METHOD1(CreateTag, Status(ExchangeEndpoint &));
   };
 
   stub::MockExchangeService mock_exchange_service_;
@@ -70,8 +68,7 @@ class HeterogeneousExchangeDeployerTest : public testing::Test {
 };
 
 namespace {
-void AddEndpoint(deployer::FlowRoutePlan &exchange_plan, int32_t type, const std::string &name,
-                 int32_t device_id = 0) {
+void AddEndpoint(deployer::FlowRoutePlan &exchange_plan, int32_t type, const std::string &name, int32_t device_id = 0) {
   auto endpoint = exchange_plan.add_endpoints();
   endpoint->set_type(type);
   endpoint->set_name(name);
@@ -86,8 +83,7 @@ void AddEndpointBinding(deployer::FlowRoutePlan &exchange_plan, int32_t src_inde
   binding->set_dst_index(dst_index);
 }
 
-void AddEndpointGroup(deployer::FlowRoutePlan &exchange_plan,
-                      const std::string &name,
+void AddEndpointGroup(deployer::FlowRoutePlan &exchange_plan, const std::string &name,
                       const std::vector<int32_t> &group) {
   auto endpoint = exchange_plan.add_endpoints();
   endpoint->set_type(static_cast<int32_t>(ExchangeEndpointType::kEndpointTypeGroup));
@@ -212,14 +208,12 @@ deployer::FlowRoutePlan BuildExchangePlanSimple2PG() {
 TEST_F(HeterogeneousExchangeDeployerTest, BindRoute) {
   deployer::FlowRoutePlan flow_route_plan;
   HeterogeneousExchangeDeployer exchange_deployer(mock_exchange_service_, flow_route_plan, client_manager_);
-  std::vector<std::pair<const ExchangeEndpoint *,
-                        const ExchangeEndpoint *>> queue_routes;
+  std::vector<std::pair<const ExchangeEndpoint *, const ExchangeEndpoint *>> queue_routes;
   EXPECT_EQ(exchange_deployer.BindRoute(queue_routes), SUCCESS);
 }
 
 TEST_F(HeterogeneousExchangeDeployerTest, UnbindRoute) {
-  std::vector<std::pair<const ExchangeEndpoint *,
-                        const ExchangeEndpoint *>> queue_routes;
+  std::vector<std::pair<const ExchangeEndpoint *, const ExchangeEndpoint *>> queue_routes;
   EXPECT_EQ(HeterogeneousExchangeDeployer::UnbindRoute(queue_routes, client_manager_), SUCCESS);
 }
 
@@ -315,7 +309,8 @@ TEST_F(HeterogeneousExchangeDeployerTest, TestDeployModel) {
   ASSERT_EQ(queue_ids.size(), 3);
   // endpoint is not exist
   ASSERT_EQ(exchange_route.IsProxyQueue(10000), false);
-  ASSERT_EQ(MockHeterogeneousExchangeDeployer::Undeploy(mock_exchange_service_, exchange_route, client_manager_), SUCCESS);
+  ASSERT_EQ(MockHeterogeneousExchangeDeployer::Undeploy(mock_exchange_service_, exchange_route, client_manager_),
+            SUCCESS);
 }
 
 TEST_F(HeterogeneousExchangeDeployerTest, TestDeployModel2PG) {
@@ -326,7 +321,8 @@ TEST_F(HeterogeneousExchangeDeployerTest, TestDeployModel2PG) {
 
   ExchangeRoute exchange_route;
   ASSERT_EQ(exchange_deployer.Deploy(exchange_route), SUCCESS);
-  ASSERT_EQ(MockHeterogeneousExchangeDeployer::Undeploy(mock_exchange_service_, exchange_route, client_manager_), SUCCESS);
+  ASSERT_EQ(MockHeterogeneousExchangeDeployer::Undeploy(mock_exchange_service_, exchange_route, client_manager_),
+            SUCCESS);
 }
 
 TEST_F(HeterogeneousExchangeDeployerTest, UpdateExceptionRoutes) {
@@ -343,8 +339,8 @@ TEST_F(HeterogeneousExchangeDeployerTest, UpdateExceptionRoutes) {
   device.device_type = 0;
   std::vector<FlowGwClient::ExceptionDeviceInfo> devices;
   devices.emplace_back(device);
-  ASSERT_EQ(MockHeterogeneousExchangeDeployer::UpdateExceptionRoutes(exchange_route,
-      client_manager_, devices), SUCCESS);
+  ASSERT_EQ(MockHeterogeneousExchangeDeployer::UpdateExceptionRoutes(exchange_route, client_manager_, devices),
+            SUCCESS);
 }
 
 TEST_F(HeterogeneousExchangeDeployerTest, DeleteExceptionGroup) {

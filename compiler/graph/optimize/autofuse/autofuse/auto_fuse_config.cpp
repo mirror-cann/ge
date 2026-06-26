@@ -24,5 +24,5 @@ const AutoFuseConfig &AutoFuseConfig::Config() {
 AutoFuseConfig &AutoFuseConfig::MutableConfig() {
   return Instance();
 }
-} // namespace autofuse
+}  // namespace autofuse
 }  // namespace ge

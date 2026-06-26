@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,13 +17,15 @@
 #include "common/aclrt_malloc_helper.h"
 
 namespace {
-const std::string k1gHugePageFirstMallocFail = "The option ge.variableUse1gHugePage was set to 2, but the "
+const std::string k1gHugePageFirstMallocFail =
+    "The option ge.variableUse1gHugePage was set to 2, but the "
     "allocation of 1GB of huge page memory failed. Instead, an attempt was made to allocate 2M large pages. "
     "This error may affect the performance of the operator execution, resulting in the inability to fully "
     "maximize the performance benefits of this option. If you do not care about these performance benefits, "
     "the above error log can be ignored.";
 
-const std::string k1gHugePageOnlyMallocFail = "The option ge.variableUse1gHugePage was set to 1, but the "
+const std::string k1gHugePageOnlyMallocFail =
+    "The option ge.variableUse1gHugePage was set to 1, but the "
     "allocation of 1GB of super large page memory failed.";
 
 // align_size是2的n次方
@@ -41,11 +43,11 @@ std::string GetPgType(size_t pg_type) {
 }
 
 uint32_t TransMemType(const uint32_t mem_type) {
-  static const std::map<uint32_t, uint32_t> kRtMemTypeToDrvMemType = {{RT_MEMORY_HBM, 0U}, // 0: MEM_HBM_TYPE
-                                                                      {RT_MEMORY_DDR, 1U}, // 1: MEM_DDR_TYPE
-                                                                      {RT_MEMORY_P2P_HBM, 2U}, // 2: MEM_P2P_HBM_TYPE
-                                                                      {RT_MEMORY_P2P_DDR, 3U}, // 3: MEM_P2P_DDR_TYPE
-                                                                      {RT_MEMORY_TS, 4U}}; // 4: MEM_TS_DDR_TYPE
+  static const std::map<uint32_t, uint32_t> kRtMemTypeToDrvMemType = {{RT_MEMORY_HBM, 0U},      // 0: MEM_HBM_TYPE
+                                                                      {RT_MEMORY_DDR, 1U},      // 1: MEM_DDR_TYPE
+                                                                      {RT_MEMORY_P2P_HBM, 2U},  // 2: MEM_P2P_HBM_TYPE
+                                                                      {RT_MEMORY_P2P_DDR, 3U},  // 3: MEM_P2P_DDR_TYPE
+                                                                      {RT_MEMORY_TS, 4U}};      // 4: MEM_TS_DDR_TYPE
   const std::map<uint32_t, uint32_t>::const_iterator it = kRtMemTypeToDrvMemType.find(mem_type);
   if (it == kRtMemTypeToDrvMemType.cend()) {
     return 0U;
@@ -79,9 +81,9 @@ static bool CompareSize(const ge::LogicalMemoryBlock &left, const ge::LogicalMem
 
 bool HasIntersection(const ge::PageRecord &left, const ge::PageRecord &right) {
   return (left.head_offset < (right.head_offset + right.using_size)) &&
-      (right.head_offset < (left.head_offset + left.using_size));
+         (right.head_offset < (left.head_offset + left.using_size));
 }
-}
+}  // namespace
 
 namespace ge {
 uint8_t *ActiveMemoryAllocator::MallocMemory(const std::string &purpose, LogicalMemorys &logical_memorys,
@@ -122,8 +124,8 @@ uint8_t *ActiveMemoryAllocator::MallocMemory(const std::string &purpose, Logical
     GELOGI("%s", logical_memory.ToString().c_str());
   }
 
-  GELOGI("ActiveMemoryAllocator::MallocMemory device_id = %u, size = %" PRIu64 " used_count = %zu.",
-    device_id, memory_size, used_count_);
+  GELOGI("ActiveMemoryAllocator::MallocMemory device_id = %u, size = %" PRIu64 " used_count = %zu.", device_id,
+         memory_size, used_count_);
   return all_success ? logical_memorys[0].active_addr : nullptr;
 }
 
@@ -161,8 +163,8 @@ void ActiveMemoryAllocator::MallocByActiveMemorys(LogicalMemorys &logical_memory
   std::sort(logical_memorys.begin(), logical_memorys.end(), CompareSize);
   for (auto &block : active_memorys_) {
     for (auto &logical_memory : logical_memorys) {
-      if (logical_memory.active_addr == reinterpret_cast<uint8_t *>(logical_memory.logical_addr)
-          || (logical_memory.active_addr == nullptr)) {
+      if (logical_memory.active_addr == reinterpret_cast<uint8_t *>(logical_memory.logical_addr) ||
+          (logical_memory.active_addr == nullptr)) {
         logical_memory.active_addr = block.Malloc(static_cast<size_t>(logical_memory.memory_size));
       }
     }
@@ -181,9 +183,10 @@ void ActiveMemoryAllocator::MergeBlocks(LogicalMemorys &logical_memorys) const {
     // logic_memory_base和memory_base都满足连续的，进行合并，零拷贝段不参加合并
     const auto &current = logical_memorys[i];
     const auto &pre = logical_memorys[i - 1U];
-    if (current.alloc && (current.logical_addr == (pre.logical_addr + pre.memory_size))
-        && ((current.active_addr == (pre.active_addr + pre.memory_size))
-            || ((current.active_addr == nullptr) && (pre.active_addr == nullptr))) && (!current.is_zero_copy)) {
+    if (current.alloc && (current.logical_addr == (pre.logical_addr + pre.memory_size)) &&
+        ((current.active_addr == (pre.active_addr + pre.memory_size)) ||
+         ((current.active_addr == nullptr) && (pre.active_addr == nullptr))) &&
+        (!current.is_zero_copy)) {
       logical_memory.memory_size += current.memory_size;
     } else {
       merged_memorys.emplace_back(logical_memory);
@@ -222,8 +225,8 @@ void ActiveMemoryAllocator::MallocActiveMemorys(const std::string &purpose, Logi
         maximum_active_addr_ = logical_memory.active_addr + malloc_size;
       }
 
-      ActiveMemoryBlock
-          active_memory(logical_memory.active_addr, malloc_size, static_cast<size_t>(logical_memory.memory_size));
+      ActiveMemoryBlock active_memory(logical_memory.active_addr, malloc_size,
+                                      static_cast<size_t>(logical_memory.memory_size));
       active_memorys_.emplace_back(std::move(active_memory));
       std::sort(active_memorys_.begin(), active_memorys_.end());
     } else {
@@ -245,8 +248,8 @@ void ActiveMemoryAllocator::MallocActiveMemorys(const std::string &purpose, Logi
     // 并记录到active_memorys中，后面执行阶段同步申请和回收处理
     if (support_extend_memory_full_ && (!active_memory.new_add)) {
       size_t reuse_size = 0U;
-      (void) expandable_memory_allocator_.GetPyhsicalMemoryAllocator().MallocPhysicalMemory(purpose,
-          active_memory.active_addr, active_memory.used_size, reuse_size);
+      (void)expandable_memory_allocator_.GetPyhsicalMemoryAllocator().MallocPhysicalMemory(
+          purpose, active_memory.active_addr, active_memory.used_size, reuse_size);
     }
     active_memorys.emplace_back(active_memory.active_addr, active_memory.used_size);
     (void)aclrtMemset(active_memory.active_addr, active_memory.used_size, 0U, active_memory.used_size);
@@ -269,13 +272,13 @@ Status ActiveMemoryAllocator::MallocPhysicalMemory(const std::string &purpose,
   size_t malloced_size = 0U;
   size_t reuse_size = 0U;
   for (const auto &addr : active_memorys) {
-    const Status ret = expandable_memory_allocator_.GetPyhsicalMemoryAllocator().MallocPhysicalMemory(purpose,
-        addr.first, addr.second, reuse_size);
+    const Status ret = expandable_memory_allocator_.GetPyhsicalMemoryAllocator().MallocPhysicalMemory(
+        purpose, addr.first, addr.second, reuse_size);
     GE_ASSERT_SUCCESS(ret, "ret = %u.", ret);
     malloced_size += addr.second;
   }
-  GELOGI("ActiveMemoryAllocator::MallocPhysicalMemory memory_size:%zu device_id = %u memory_type = %u",
-         malloced_size, device_id_, memory_type_);
+  GELOGI("ActiveMemoryAllocator::MallocPhysicalMemory memory_size:%zu device_id = %u memory_type = %u", malloced_size,
+         device_id_, memory_type_);
   return SUCCESS;
 }
 
@@ -283,11 +286,11 @@ void ActiveMemoryAllocator::Recycle(const std::vector<std::pair<uint8_t *, size_
   const std::lock_guard<std::recursive_mutex> lock(mutex_);
   size_t freed_size = 0U;
   for (const auto &addr : active_memorys) {
-    (void) expandable_memory_allocator_.GetPyhsicalMemoryAllocator().FreePhysicalMemory(addr.first, addr.second);
+    (void)expandable_memory_allocator_.GetPyhsicalMemoryAllocator().FreePhysicalMemory(addr.first, addr.second);
     freed_size += addr.second;
   }
-  GELOGI("ActiveMemoryAllocator::Recycle memory_size:%zu device_id = %u memory_type = %u",
-         freed_size, device_id_, memory_type_);
+  GELOGI("ActiveMemoryAllocator::Recycle memory_size:%zu device_id = %u memory_type = %u", freed_size, device_id_,
+         memory_type_);
 }
 
 uint8_t *ExpandableActiveMemoryAllocator::MallocMemory(const std::string &purpose, int64_t memory_size,
@@ -312,10 +315,11 @@ uint8_t *ExpandableActiveMemoryAllocator::MallocMemory(const std::string &purpos
     used_count_++;
     used_memory_size_ = std::max(used_memory_size_, static_cast<size_t>(memory_size));
   }
-  GELOGI("[%s] Total[virtual_memory_addr:%p virtual_memory_size:%zu, used_memory_size:%zu],"
-         " current[memory_addr:%p memory_size:%lld incremental:%d]", purpose.c_str(), virtual_active_addr_,
-         virtual_memory_size_, used_memory_size_, memory_addr, memory_size,
-         static_cast<int32_t>(incremental));
+  GELOGI(
+      "[%s] Total[virtual_memory_addr:%p virtual_memory_size:%zu, used_memory_size:%zu],"
+      " current[memory_addr:%p memory_size:%lld incremental:%d]",
+      purpose.c_str(), virtual_active_addr_, virtual_memory_size_, used_memory_size_, memory_addr, memory_size,
+      static_cast<int32_t>(incremental));
   return memory_addr;
 }
 
@@ -327,7 +331,7 @@ Status ExpandableActiveMemoryAllocator::FreeMemory() {
 
   if (used_count_ == 0U) {
     for (const auto &addr : mapped_memory_addrs_) {
-      (void) active_memory_allocator_.FreePhysicalMemory(addr.first, addr.second);
+      (void)active_memory_allocator_.FreePhysicalMemory(addr.first, addr.second);
     }
     mapped_memory_addrs_.clear();
     used_memory_size_ = 0U;
@@ -336,8 +340,8 @@ Status ExpandableActiveMemoryAllocator::FreeMemory() {
       virtual_active_addr_ = nullptr;
     }
   }
-  GELOGI("ActiveMemoryAllocator::FreeMemory used_count = %zu device_id = %u memory_type = %u",
-         used_count_, device_id_, memory_type_);
+  GELOGI("ActiveMemoryAllocator::FreeMemory used_count = %zu device_id = %u memory_type = %u", used_count_, device_id_,
+         memory_type_);
   return SUCCESS;
 }
 
@@ -351,11 +355,11 @@ Status ExpandableActiveMemoryAllocator::MallocVirtualMemory(const size_t memory_
       aclrtMemAttr mem_info_type = memory_type_ == RT_MEMORY_HBM ? ACL_DDR_MEM : ACL_HBM_MEM_P2P_HUGE;
       GE_ASSERT_RT_OK(aclrtGetMemInfo(mem_info_type, &free_mem, &total_mem_size));
     }
-    (void) free_mem;
+    (void)free_mem;
     GE_ASSERT_TRUE(memory_size <= total_mem_size, "memory_size: %zu, total_mem_size: %zu", memory_size, total_mem_size);
     virtual_memory_size_ = total_mem_size;
-    virtual_active_addr_ = active_memory_allocator_.ReserveVirtualMemory(virtual_memory_size_, device_id_,
-                                                                         memory_type_, share_phy_allocator_);
+    virtual_active_addr_ = active_memory_allocator_.ReserveVirtualMemory(virtual_memory_size_, device_id_, memory_type_,
+                                                                         share_phy_allocator_);
     GE_WARN_ASSERT(virtual_active_addr_ != nullptr);
     active_memory_allocator_.SetReuse(reuse_);
   }
@@ -375,8 +379,7 @@ Status ExpandableActiveMemoryAllocator::MallocPhysicalMemoryAndMap(const std::st
 }
 
 MemBlock *FixedBaseExpandableAllocator::Malloc(size_t size) {
-  const auto ptr = ex_active_allocator_.MallocMemory(kFixedBasePurpose, static_cast<int64_t>(size),
-                                                                 false);
+  const auto ptr = ex_active_allocator_.MallocMemory(kFixedBasePurpose, static_cast<int64_t>(size), false);
   GE_ASSERT_NOTNULL(ptr, "malloc failed, [%s], size: %zu", kFixedBasePurpose.c_str(), size);
   auto block = new (std::nothrow) MemBlock(*this, ptr, size);
   GE_ASSERT_NOTNULL(block);
@@ -388,8 +391,8 @@ MemBlock *FixedBaseExpandableAllocator::Malloc(size_t size) {
 void FixedBaseExpandableAllocator::Free(MemBlock *mem_block) {
   if (mem_block != nullptr) {
     (void)ex_active_allocator_.FreeMemory();
-    GELOGI("[%s] free, block: %p, addr: %p, size: %zu", kFixedBasePurpose.c_str(), mem_block,
-           mem_block->GetAddr(), mem_block->GetSize());
+    GELOGI("[%s] free, block: %p, addr: %p, size: %zu", kFixedBasePurpose.c_str(), mem_block, mem_block->GetAddr(),
+           mem_block->GetSize());
     delete mem_block;
   }
 }
@@ -402,15 +405,14 @@ ExpandableActiveMemoryAllocatorImp::~ExpandableActiveMemoryAllocatorImp() {
   }
 }
 
-uint8_t *ExpandableActiveMemoryAllocatorImp::ReserveVirtualMemory(size_t &virtual_memory_size,
-                                                                  const uint32_t device_id,
+uint8_t *ExpandableActiveMemoryAllocatorImp::ReserveVirtualMemory(size_t &virtual_memory_size, const uint32_t device_id,
                                                                   const rtMemType_t memory_type,
                                                                   const bool share_phy_allocator) {
   if (virtual_memory_addr_base_ != nullptr) {
     return virtual_memory_addr_base_;
   }
   // 动态shape扩展模式统一页表大小，variable和fm
-  if ((page_size_!= kDrv1GPageSize) && ge::ModelUtils::IsGeUseExtendSizeMemory(true)) {
+  if ((page_size_ != kDrv1GPageSize) && ge::ModelUtils::IsGeUseExtendSizeMemory(true)) {
     page_size_bits_ = kLargePageSizeBits;
     page_size_ = (1U << page_size_bits_);
     page_size_mask_ = (page_size_ - 1U);
@@ -428,7 +430,7 @@ uint8_t *ExpandableActiveMemoryAllocatorImp::ReserveVirtualMemory(size_t &virtua
 
   if (share_phy_allocator) {
     physical_memory_allocator_ =
-      PhysicalMemoryAllocatorMgr::Instance().CreateAllocator(device_id, memory_type, page_size_);
+        PhysicalMemoryAllocatorMgr::Instance().CreateAllocator(device_id, memory_type, page_size_);
   } else {
     physical_memory_allocator_ = ge::MakeShared<PhysicalMemoryAllocator>(device_id, memory_type);
   }
@@ -451,15 +453,15 @@ uint8_t *ExpandableActiveMemoryAllocatorImp::ReserveVirtualMemory(size_t &virtua
 
 void ExpandableActiveMemoryAllocatorImp::ReleaseVirtualMemory() noexcept {
   if (virtual_memory_addr_base_ != nullptr) {
-    (void) FreePhysicalMemory(virtual_memory_addr_base_, virtual_memory_size_);
-    (void) physical_memory_allocator_->Finalize(virtual_memory_addr_base_, virtual_memory_size_);
-    GEEVENT("virtual_active_addr_base:%p virtual_memory_size:%zu device_id:%u.",
-            virtual_memory_addr_base_, virtual_memory_size_, device_id_);
+    (void)FreePhysicalMemory(virtual_memory_addr_base_, virtual_memory_size_);
+    (void)physical_memory_allocator_->Finalize(virtual_memory_addr_base_, virtual_memory_size_);
+    GEEVENT("virtual_active_addr_base:%p virtual_memory_size:%zu device_id:%u.", virtual_memory_addr_base_,
+            virtual_memory_size_, device_id_);
     virtual_memory_size_ = 0U;
     virtual_memory_addr_base_ = nullptr;
     for (auto physical_memorys : physical_memorys_) {
-      if (physical_memorys.is_using || (physical_memorys.ref_count != 0U)
-          || (physical_memorys.physical_map_count != 0U) || (physical_memorys.handle != nullptr)) {
+      if (physical_memorys.is_using || (physical_memorys.ref_count != 0U) ||
+          (physical_memorys.physical_map_count != 0U) || (physical_memorys.handle != nullptr)) {
         GELOGE(ge::FAILED, "index:%zu is_using:%d ref_count:%zu physical_map_count:%zu handle:%p",
                physical_memorys.index, physical_memorys.is_using, physical_memorys.ref_count,
                physical_memorys.physical_map_count, physical_memorys.handle);
@@ -470,12 +472,10 @@ void ExpandableActiveMemoryAllocatorImp::ReleaseVirtualMemory() noexcept {
 }
 
 Status ExpandableActiveMemoryAllocatorImp::GetIndex(const uint8_t *const virtual_memory_addr,
-                                                    const size_t virtual_memory_size,
-                                                    size_t &index_begin,
-                                                    size_t &index_end,
-                                                    size_t &end_remain_size) const {
-  const size_t
-      offset_begin = static_cast<size_t>(PtrToValue(virtual_memory_addr) - PtrToValue(virtual_memory_addr_base_));
+                                                    const size_t virtual_memory_size, size_t &index_begin,
+                                                    size_t &index_end, size_t &end_remain_size) const {
+  const size_t offset_begin =
+      static_cast<size_t>(PtrToValue(virtual_memory_addr) - PtrToValue(virtual_memory_addr_base_));
   index_begin = offset_begin >> page_size_bits_;
   index_end = (offset_begin + virtual_memory_size) >> page_size_bits_;
 
@@ -492,8 +492,8 @@ Status ExpandableActiveMemoryAllocatorImp::GetIndex(const uint8_t *const virtual
   const size_t physical_memorys_counts = physical_memorys_.size();
   if ((index_end >= physical_memorys_counts) && (physical_memorys_counts > 0U)) {
     if ((offset_begin + virtual_memory_size) > (physical_memorys_counts << page_size_bits_)) {
-      GELOGE(FAILED, "virtual_memory_addr:%p virtual_memory_size:%zu is invalid.",
-             virtual_memory_addr, virtual_memory_size);
+      GELOGE(FAILED, "virtual_memory_addr:%p virtual_memory_size:%zu is invalid.", virtual_memory_addr,
+             virtual_memory_size);
       return FAILED;
     }
     index_end = physical_memorys_counts - 1U;
@@ -517,15 +517,15 @@ Status ExpandableActiveMemoryAllocatorImp::GetIndex(const uint8_t *const virtual
 }
 
 void ExpandableActiveMemoryAllocatorImp::PutToFreeList(PhysicalMemoryInfo &physical_memory) {
-  if ((!physical_memory.in_free_list) && (physical_memory.ref_count == 0U) && (!physical_memory.is_using)
-      && (physical_memory.handle != nullptr)) {
+  if ((!physical_memory.in_free_list) && (physical_memory.ref_count == 0U) && (!physical_memory.is_using) &&
+      (physical_memory.handle != nullptr)) {
     free_physical_memorys_.emplace_back(physical_memory.index);
     physical_memory.in_free_list = true;
   }
 }
 
 bool ExpandableActiveMemoryAllocatorImp::PopFromFreeList(size_t &index) {
-  while(!free_physical_memorys_.empty()) {
+  while (!free_physical_memorys_.empty()) {
     auto &physical_memory = physical_memorys_[free_physical_memorys_.back()];
     free_physical_memorys_.pop_back();
     physical_memory.in_free_list = false;
@@ -538,7 +538,7 @@ bool ExpandableActiveMemoryAllocatorImp::PopFromFreeList(size_t &index) {
 }
 
 Status ExpandableActiveMemoryAllocatorImp::MallocPhysicalMemory(uint8_t *const virtual_memory_addr,
-    const std::vector<size_t> &pa_list, bool need_map) {
+                                                                const std::vector<size_t> &pa_list, bool need_map) {
   const size_t pa_list_size = pa_list.size();
   GELOGI("pa_list_size:%zu index_begin:%zu index_end:%zu", pa_list_size, pa_list.front(), pa_list.back());
   GE_ASSERT_TRUE(!vapa_check_failed_, "ProcPageRecord failed during the last call, return failed immediately");
@@ -550,7 +550,7 @@ Status ExpandableActiveMemoryAllocatorImp::MallocPhysicalMemory(uint8_t *const v
       }
       physical_memory.is_using = false;
       void *map_addr = reinterpret_cast<void *>(virtual_memory_addr + (i << page_size_bits_));
-      (void) physical_memory_allocator_->UnmapMem(map_addr, HanleToIndex(physical_memory.handle));
+      (void)physical_memory_allocator_->UnmapMem(map_addr, HanleToIndex(physical_memory.handle));
     }
   };
 
@@ -567,14 +567,14 @@ Status ExpandableActiveMemoryAllocatorImp::MallocPhysicalMemory(uint8_t *const v
         unmap_func(index);
         return FAILED;
       }
-      HP_LOGD("MapMem addr:%p index:%zu size:%zu success, virtual_memory_addr:%p.",
-              map_addr, phys_mem.index, page_size_, virtual_memory_addr);
+      HP_LOGD("MapMem addr:%p index:%zu size:%zu success, virtual_memory_addr:%p.", map_addr, phys_mem.index,
+              page_size_, virtual_memory_addr);
       map_count_++;
       phys_mem.physical_map_count++;
       continue;
     }
-    GELOGI("PHYSICAL_MEM_USING index:%zu ref_count:%zu is_using:%d", pa_list[index],
-           phys_mem.ref_count, phys_mem.is_using);
+    GELOGI("PHYSICAL_MEM_USING index:%zu ref_count:%zu is_using:%d", pa_list[index], phys_mem.ref_count,
+           phys_mem.is_using);
     // index对应的物理内存被占用，回滚未被占用的物理内存状态
     for (size_t i = 0U; i < index; ++i) {
       auto &physical_memory = physical_memorys_[pa_list[i]];
@@ -596,7 +596,8 @@ Status ExpandableActiveMemoryAllocatorImp::MallocPhysicalMemory(uint8_t *const v
 }
 
 Status ExpandableActiveMemoryAllocatorImp::ProcessPhysicalMemoryUsing(size_t index_begin, size_t index_end,
-    size_t index_using, size_t end_remain_size, size_t &reuse_size) {
+                                                                      size_t index_using, size_t end_remain_size,
+                                                                      size_t &reuse_size) {
   size_t roll_back_end = index_end;
   if ((roll_back_end > 0U) && (end_remain_size > 0U)) {
     roll_back_end--;
@@ -634,7 +635,7 @@ Status ExpandableActiveMemoryAllocatorImp::ProcessPhysicalMemoryUsing(size_t ind
 }
 
 Status ExpandableActiveMemoryAllocatorImp::ProcessNewVa(size_t index_end, size_t end_remain_size, size_t new_va_size,
-    size_t &reuse_size) {
+                                                        size_t &reuse_size) {
   for (const auto index : pa_list_) {
     auto &physical_memory = physical_memorys_[index];
     if (physical_memory.ref_count > 0U) {
@@ -659,11 +660,11 @@ Status ExpandableActiveMemoryAllocatorImp::ProcessNewVa(size_t index_end, size_t
 }
 
 size_t ExpandableActiveMemoryAllocatorImp::RecyclePhysicalMemory(size_t new_va_count, size_t end_remain_size,
-    size_t index_end, size_t &index_begin, bool &recycle) {
+                                                                 size_t index_end, size_t &index_begin, bool &recycle) {
   size_t index = 0U;
   size_t recycle_count = 0U;
   recycle = (((theory_min_size_ * kRatioBase) / (physical_memory_size_ + page_size_)) < kTheoryRatio);
-  while(recycle && (pa_list_.size() < new_va_count) && PopFromFreeList(index)) {
+  while (recycle && (pa_list_.size() < new_va_count) && PopFromFreeList(index)) {
     auto &free_physical_memory = physical_memorys_[index];
     free_physical_memory.is_using = true;
     pa_list_.emplace_back(free_physical_memory.index);
@@ -677,10 +678,12 @@ size_t ExpandableActiveMemoryAllocatorImp::RecyclePhysicalMemory(size_t new_va_c
       index_begin++;
     }
   }
-  GELOGI("Current physical_memory_size:%zu theory_size:%zu page_size:%zu reach theory rate:%.2f%s recycle:%d "
-         "new_va_count:%zu recycle_count:%zu", physical_memory_size_, theory_size_, page_size_,
-         (kRatioBase * static_cast<float>(theory_min_size_)) / static_cast<float>(physical_memory_size_ + page_size_),
-         "%", recycle, new_va_count, recycle_count);
+  GELOGI(
+      "Current physical_memory_size:%zu theory_size:%zu page_size:%zu reach theory rate:%.2f%s recycle:%d "
+      "new_va_count:%zu recycle_count:%zu",
+      physical_memory_size_, theory_size_, page_size_,
+      (kRatioBase * static_cast<float>(theory_min_size_)) / static_cast<float>(physical_memory_size_ + page_size_), "%",
+      recycle, new_va_count, recycle_count);
   return recycle_count;
 }
 
@@ -697,7 +700,8 @@ void ExpandableActiveMemoryAllocatorImp::ReleasePhysicalMemory(PhysicalMemoryInf
 }
 
 Status ExpandableActiveMemoryAllocatorImp::MallocPhysicalMemoryByIndex(const std::string &purpose, size_t index,
-    size_t index_end, bool need_alloc_pa, size_t &reuse_size) {
+                                                                       size_t index_end, bool need_alloc_pa,
+                                                                       size_t &reuse_size) {
   auto release_func = [index_end, this](const size_t index_begin) {
     for (int64_t i = static_cast<int64_t>(index_end); i > static_cast<int64_t>(index_begin); --i) {
       ReleasePhysicalMemory(physical_memorys_[i]);
@@ -711,14 +715,14 @@ Status ExpandableActiveMemoryAllocatorImp::MallocPhysicalMemoryByIndex(const std
 
   auto &malloc_physical_memory = physical_memorys_[index];
   void *map_addr = reinterpret_cast<void *>(virtual_memory_addr_base_ + (index << page_size_bits_));
-  if (physical_memory_allocator_->MallocPhysical(purpose, malloc_physical_memory.last_pa_index, map_addr, reuse_)
-      != SUCCESS) {
+  if (physical_memory_allocator_->MallocPhysical(purpose, malloc_physical_memory.last_pa_index, map_addr, reuse_) !=
+      SUCCESS) {
     release_func(index);
     return FAILED;
   }
 
   if (physical_memory_allocator_->MapMem(map_addr, malloc_physical_memory.last_pa_index) != SUCCESS) {
-    (void) physical_memory_allocator_->FreePhysical(malloc_physical_memory.last_pa_index);
+    (void)physical_memory_allocator_->FreePhysical(malloc_physical_memory.last_pa_index);
     malloc_physical_memory.last_pa_index = kInvalidIndex;
     release_func(index);
     return FAILED;
@@ -730,8 +734,8 @@ Status ExpandableActiveMemoryAllocatorImp::MallocPhysicalMemoryByIndex(const std
   malloc_physical_memory.is_using = true;
   malloc_physical_memory.physical_map_count = 1U;
   malloc_physical_memory.is_physical_recycle = false;
-  HP_LOGD("MapMem addr:%p index:%zu last_pa_index:%zu size:%zu success, total physical_memory_size:%zu.",
-          map_addr, index, malloc_physical_memory.last_pa_index, page_size_, physical_memory_size_);
+  HP_LOGD("MapMem addr:%p index:%zu last_pa_index:%zu size:%zu success, total physical_memory_size:%zu.", map_addr,
+          index, malloc_physical_memory.last_pa_index, page_size_, physical_memory_size_);
 
   physical_memory_size_ += page_size_;
   reuse_size += page_size_;
@@ -742,7 +746,8 @@ Status ExpandableActiveMemoryAllocatorImp::MallocPhysicalMemoryByIndex(const std
 }
 
 Status ExpandableActiveMemoryAllocatorImp::MallocPhysicalMemory(const std::string &purpose,
-    const uint8_t *const virtual_memory_addr, const size_t virtual_memory_size, size_t &reuse_size) {
+                                                                const uint8_t *const virtual_memory_addr,
+                                                                const size_t virtual_memory_size, size_t &reuse_size) {
   if (!IsValidVirtualAddr(virtual_memory_addr)) {
     return SUCCESS;
   }
@@ -772,8 +777,8 @@ Status ExpandableActiveMemoryAllocatorImp::MallocPhysicalMemory(const std::strin
       GE_ASSERT_SUCCESS(MallocPhysicalMemoryByIndex(purpose, index, index_end, NeedAllocPa(index_begin), reuse_size));
     } else {
       // end_remain_size 不为0 ref_count为0，整个尾块也可用，否则部分可用
-      HP_LOGD("index:%zu ref_count:%zu, is_using:%d, total physical_memory_size:%zu.",
-              index, physical_memory.ref_count, physical_memory.is_using, physical_memory_size_);
+      HP_LOGD("index:%zu ref_count:%zu, is_using:%d, total physical_memory_size:%zu.", index, physical_memory.ref_count,
+              physical_memory.is_using, physical_memory_size_);
       if ((physical_memory.ref_count > 0U) && IsBoundary(index, index_begin, index_end)) {
         physical_memory.ref_count++;
         continue;
@@ -793,23 +798,24 @@ Status ExpandableActiveMemoryAllocatorImp::MallocPhysicalMemory(const std::strin
       }
     }
   }
-  GELOGI("virtual_memory_addr:%p virtual_memory_size:%zu success, total physical_memory_size:%zu.",
-         virtual_memory_addr, virtual_memory_size, physical_memory_size_);
+  GELOGI("virtual_memory_addr:%p virtual_memory_size:%zu success, total physical_memory_size:%zu.", virtual_memory_addr,
+         virtual_memory_size, physical_memory_size_);
   if (recycle && (recycle_count > 0U)) {
     return ProcessNewVa(index_end, end_remain_size, new_va_count, reuse_size);
   }
-  GE_ASSERT_SUCCESS(ProcPageRecord(virtual_memory_addr, virtual_memory_size, PageRecordAction::kAdd), "malloc failed,"
-                    " virtual_memory_addr: %p, virtual_memory_size: %zu", virtual_memory_addr, virtual_memory_size);
+  GE_ASSERT_SUCCESS(ProcPageRecord(virtual_memory_addr, virtual_memory_size, PageRecordAction::kAdd),
+                    "malloc failed,"
+                    " virtual_memory_addr: %p, virtual_memory_size: %zu",
+                    virtual_memory_addr, virtual_memory_size);
   return SUCCESS;
 }
 
 Status ExpandableActiveMemoryAllocatorImp::FreePhysicalMemory(uint8_t *const virtual_memory_addr,
-                                                              const std::vector<size_t> &pa_list,
-                                                              const bool reduce_ref,
+                                                              const std::vector<size_t> &pa_list, const bool reduce_ref,
                                                               const bool release) {
   size_t pa_list_size = pa_list.size();
-  GELOGI("pa_list_size:%zu index_begin:%zu index_end:%zu reduce_ref:%d release:%d",
-         pa_list_size, pa_list.front(), pa_list.back(), reduce_ref, release);
+  GELOGI("pa_list_size:%zu index_begin:%zu index_end:%zu reduce_ref:%d release:%d", pa_list_size, pa_list.front(),
+         pa_list.back(), reduce_ref, release);
   GE_ASSERT_SUCCESS(ProcPageRecordByPaList(virtual_memory_addr, pa_list, PageRecordAction::kDel));
   for (size_t index = 0U; index < pa_list_size; ++index) {
     const auto malloc_index = pa_list[index];
@@ -824,7 +830,7 @@ Status ExpandableActiveMemoryAllocatorImp::FreePhysicalMemory(uint8_t *const vir
     if (release) {
       // new va需要用新的index
       void *map_addr = reinterpret_cast<void *>(virtual_memory_addr + (index << page_size_bits_));
-      (void) physical_memory_allocator_->UnmapMem(map_addr, HanleToIndex(physical_memory.handle));
+      (void)physical_memory_allocator_->UnmapMem(map_addr, HanleToIndex(physical_memory.handle));
       map_count_--;
       if (physical_memory.physical_map_count > 0U) {
         physical_memory.physical_map_count--;
@@ -834,15 +840,14 @@ Status ExpandableActiveMemoryAllocatorImp::FreePhysicalMemory(uint8_t *const vir
     }
   }
   if (release) {
-    (void) physical_memory_allocator_->ReleaseMemAddress(virtual_memory_addr, pa_list_size * page_size_);
+    (void)physical_memory_allocator_->ReleaseMemAddress(virtual_memory_addr, pa_list_size * page_size_);
     GEEVENT("virtual_memory_addr:%p virtual_memory_size:%zu device_id:%u", virtual_memory_addr,
             pa_list.size() * page_size_, device_id_);
   }
   return SUCCESS;
 }
 
-Status ExpandableActiveMemoryAllocatorImp::ProcPageRecord(const uint8_t *const malloc_addr,
-                                                          const size_t malloc_size,
+Status ExpandableActiveMemoryAllocatorImp::ProcPageRecord(const uint8_t *const malloc_addr, const size_t malloc_size,
                                                           const PageRecordAction &action) {
   // only check vapa when info/debug level
   if (log_level_ > DLOG_INFO) {
@@ -870,14 +875,17 @@ Status ExpandableActiveMemoryAllocatorImp::ProcPageRecord(const uint8_t *const m
   for (auto index = index_begin; index <= index_end; ++index) {
     const uint8_t *const map_addr = virtual_memory_addr_base_ + (index << page_size_bits_);
     const auto head_offset = (index == index_begin) ? (PtrToValue(malloc_addr) - PtrToValue(map_addr)) : 0U;
-    const auto using_size = (index == index_end) ?
-        (PtrToValue(malloc_addr) + malloc_size - PtrToValue(map_addr) - head_offset) : (page_size_ - head_offset);
-    PageRecord page_record{map_addr, static_cast<size_t>(head_offset), static_cast<size_t>(using_size),
-                           malloc_addr, malloc_size};
+    const auto using_size = (index == index_end)
+                                ? (PtrToValue(malloc_addr) + malloc_size - PtrToValue(map_addr) - head_offset)
+                                : (page_size_ - head_offset);
+    PageRecord page_record{map_addr, static_cast<size_t>(head_offset), static_cast<size_t>(using_size), malloc_addr,
+                           malloc_size};
     if (action == PageRecordAction::kAdd) {
-      GE_ASSERT_SUCCESS(physical_memory_allocator_->AddPageRecord(HanleToIndex(physical_memorys_[index].handle),
-          page_record), "virtual and physical page mapping check failed, base: %p, page_size_: %zu, index_begin: %zu,"
-          " index_end: %zu, index: %zu",  virtual_memory_addr_base_, page_size_, index_begin, index_end, index);
+      GE_ASSERT_SUCCESS(
+          physical_memory_allocator_->AddPageRecord(HanleToIndex(physical_memorys_[index].handle), page_record),
+          "virtual and physical page mapping check failed, base: %p, page_size_: %zu, index_begin: %zu,"
+          " index_end: %zu, index: %zu",
+          virtual_memory_addr_base_, page_size_, index_begin, index_end, index);
     } else {
       physical_memory_allocator_->DelPageRecord(HanleToIndex(physical_memorys_[index].handle), page_record);
     }
@@ -900,9 +908,10 @@ Status ExpandableActiveMemoryAllocatorImp::ProcPageRecordByPaList(const uint8_t 
     const uint8_t *const map_addr = malloc_addr + (index << page_size_bits_);
     PageRecord page_record{map_addr, 0U, page_size_, malloc_addr, malloc_size};
     if (action == PageRecordAction::kAdd) {
-      GE_ASSERT_SUCCESS(physical_memory_allocator_->AddPageRecord(HanleToIndex(phys_mem.handle), page_record),
-          "virtual and physical page mapping check failed, page_size_: %zu, pa_list_size: %zu, index: %zu",
-          page_size_, pa_list_size, index);
+      GE_ASSERT_SUCCESS(
+          physical_memory_allocator_->AddPageRecord(HanleToIndex(phys_mem.handle), page_record),
+          "virtual and physical page mapping check failed, page_size_: %zu, pa_list_size: %zu, index: %zu", page_size_,
+          pa_list_size, index);
     } else {
       physical_memory_allocator_->DelPageRecord(HanleToIndex(phys_mem.handle), page_record);
     }
@@ -911,8 +920,7 @@ Status ExpandableActiveMemoryAllocatorImp::ProcPageRecordByPaList(const uint8_t 
 }
 
 Status ExpandableActiveMemoryAllocatorImp::FreePhysicalMemory(const uint8_t *const virtual_memory_addr,
-                                                              const size_t virtual_memory_size,
-                                                              const bool reduce_ref,
+                                                              const size_t virtual_memory_size, const bool reduce_ref,
                                                               const bool release) {
   if (!IsValidVirtualAddr(virtual_memory_addr)) {
     return SUCCESS;
@@ -929,9 +937,9 @@ Status ExpandableActiveMemoryAllocatorImp::FreePhysicalMemory(const uint8_t *con
     }
     if (reduce_ref && (physical_memory.ref_count > 0U)) {
       physical_memory.ref_count--;
-      HP_LOGD("Reduce reference count index:%zu ref_count:%zu, is_using:%d, total physical_memory_size:%zu.",
-             index, physical_memory.ref_count,
-             (physical_memory.ref_count > 0U) ? physical_memory.is_using : false, physical_memory_size_);
+      HP_LOGD("Reduce reference count index:%zu ref_count:%zu, is_using:%d, total physical_memory_size:%zu.", index,
+              physical_memory.ref_count, (physical_memory.ref_count > 0U) ? physical_memory.is_using : false,
+              physical_memory_size_);
       if (physical_memory.ref_count > 0U) {
         continue;
       }
@@ -968,9 +976,9 @@ void ExpandableActiveMemoryAllocatorImp::ReleasePhysicalMemoryByIndex(const size
   void *map_addr = nullptr;
   if (physical_memory.physical_map_count == 0U) {
     map_addr = reinterpret_cast<void *>(virtual_memory_addr_base_ + (index << page_size_bits_));
-    (void) physical_memory_allocator_->UnmapMem(map_addr, HanleToIndex(physical_memory.handle));
+    (void)physical_memory_allocator_->UnmapMem(map_addr, HanleToIndex(physical_memory.handle));
     map_count_--;
-    (void) physical_memory_allocator_->FreePhysical(HanleToIndex(physical_memory.handle));
+    (void)physical_memory_allocator_->FreePhysical(HanleToIndex(physical_memory.handle));
     if (physical_memory_size_ >= page_size_) {
       physical_memory_size_ -= page_size_;
     }
@@ -1034,7 +1042,7 @@ Status PhysicalMemoryAllocator::Initialize(size_t page_size, size_t max_page_cou
     GE_ASSERT_EQ(page_size_, page_size);
   } else {
     page_size_ = page_size;
-    prop_.side = 1U; // device memory
+    prop_.side = 1U;  // device memory
     prop_.devid = device_id_;
     prop_.module_id = GE_MODULE_NAME_U16;
     prop_.pg_type = kDrvMemPropPgType2M;
@@ -1052,7 +1060,7 @@ Status PhysicalMemoryAllocator::Initialize(size_t page_size, size_t max_page_cou
 }
 
 Status PhysicalMemoryAllocator::Finalize(uint8_t *const va, size_t size) {
-  (void) ReleaseMemAddress(va, size);
+  (void)ReleaseMemAddress(va, size);
   const std::lock_guard<std::recursive_mutex> lock(mutex_);
   if (ref_count_ > 0U) {
     ref_count_--;
@@ -1065,8 +1073,8 @@ Status PhysicalMemoryAllocator::Finalize(uint8_t *const va, size_t size) {
     }
 
     if ((physical_memory.ref_count != 0U) || (!physical_memory.map_addrs.empty())) {
-      GELOGE(FAILED, "PhysicalMemoryAllocator pa_index:%zu ref_count:%zu.",
-             physical_memory.index, physical_memory.ref_count);
+      GELOGE(FAILED, "PhysicalMemoryAllocator pa_index:%zu ref_count:%zu.", physical_memory.index,
+             physical_memory.ref_count);
       continue;
     }
 
@@ -1080,7 +1088,7 @@ Status PhysicalMemoryAllocator::Finalize(uint8_t *const va, size_t size) {
 
 void PhysicalMemoryAllocator::FreePhysicalPage(PhysicalMemoryInfo &physical_memory) {
   if (physical_memory.handle != nullptr) {
-    (void) aclrtFreePhysical(physical_memory.handle);
+    (void)aclrtFreePhysical(physical_memory.handle);
     physical_memory.handle = nullptr;
     physical_memory_size_ -= page_size_;
     HP_LOGI("aclrtFreePhysical success pa_index:%zu, current physical memory size:%zu, pg_type:%s",
@@ -1116,19 +1124,20 @@ Status PhysicalMemoryAllocator::MallocPhysicalPage(const std::string &purpose, s
   }
   if (ret != RT_ERROR_NONE) {
     REPORT_INNER_ERR_MSG("E19999", "call rtMallocPhysical failed, size:%zu, pg_type: %s, ret=%d", page_size_,
-                       GetPgType(prop_.pg_type).c_str(), static_cast<int>(ret));
-    GELOGE(FAILED, "call rtMallocPhysical failed, size:%zu, pg_type: %s", page_size_,
-           GetPgType(prop_.pg_type).c_str());
+                         GetPgType(prop_.pg_type).c_str(), static_cast<int>(ret));
+    GELOGE(FAILED, "call rtMallocPhysical failed, size:%zu, pg_type: %s", page_size_, GetPgType(prop_.pg_type).c_str());
     return FAILED;
   }
   malloc_physical_memory.handle = handle;
 
   physical_memorys_.emplace_back(std::move(malloc_physical_memory));
   physical_memory_size_ += page_size_;
-  GE_PRINT_DYNAMIC_MEMORY(aclrtMalloc, ToMallocMemInfo(purpose, va, device_id_, GE_MODULE_NAME_U16).c_str(), page_size_);
-  HP_LOGI("rtMallocPhysical success pa_index:%zu, current physical memory size:%zu reuse:%d, memory_type:%u,"
-      " pg_type:%s.", pa_index, physical_memory_size_, reuse, memory_type_,
-      GetPgType(prop_.pg_type).c_str());
+  GE_PRINT_DYNAMIC_MEMORY(aclrtMalloc, ToMallocMemInfo(purpose, va, device_id_, GE_MODULE_NAME_U16).c_str(),
+                          page_size_);
+  HP_LOGI(
+      "rtMallocPhysical success pa_index:%zu, current physical memory size:%zu reuse:%d, memory_type:%u,"
+      " pg_type:%s.",
+      pa_index, physical_memory_size_, reuse, memory_type_, GetPgType(prop_.pg_type).c_str());
   return SUCCESS;
 }
 
@@ -1148,13 +1157,13 @@ Status PhysicalMemoryAllocator::MallocPhysical(const std::string &purpose, size_
         auto it = physical_memory.map_addrs.find(va);
         GE_ASSERT_TRUE(it != physical_memory.map_addrs.end());
         physical_memory.map_addrs.erase(it);
-        (void) aclrtUnmapMem(va);
+        (void)aclrtUnmapMem(va);
         HP_LOGI("aclrtUnmapMem success pa_index:%zu va:%p.", pa_index, va);
       }
     }
   }
   // 找其他可用空闲内存，已经被复用过的，直接丢弃
-  while(reuse && (!free_physical_memorys_.empty())) {
+  while (reuse && (!free_physical_memorys_.empty())) {
     auto &physical_memory = physical_memorys_[free_physical_memorys_.back()];
     free_physical_memorys_.pop_back();
     physical_memory.in_free_list = false;
@@ -1178,31 +1187,34 @@ Status PhysicalMemoryAllocator::FreePhysical(size_t pa_index) {
   if (physical_memory.ref_count > 0U) {
     physical_memory.ref_count--;
   }
-  if ((!physical_memory.in_free_list) && (physical_memory.ref_count == 0U)
-      && (physical_memory.handle != nullptr)) {
+  if ((!physical_memory.in_free_list) && (physical_memory.ref_count == 0U) && (physical_memory.handle != nullptr)) {
     free_physical_memorys_.emplace_back(physical_memory.index);
     physical_memory.in_free_list = true;
     HP_LOGI("put to pool success pa_index:%zu.", pa_index);
   } else {
-    HP_LOGI("pa_index:%zu in_free_list:%d ref_count:%zu.", pa_index,
-            physical_memory.in_free_list, physical_memory.ref_count);
+    HP_LOGI("pa_index:%zu in_free_list:%d ref_count:%zu.", pa_index, physical_memory.in_free_list,
+            physical_memory.ref_count);
   }
   return SUCCESS;
 }
 
 Status PhysicalMemoryAllocator::AddPageRecord(const size_t pa_index, const PageRecord &page_record) {
   const std::lock_guard<std::recursive_mutex> lock(mutex_);
-  GE_ASSERT_TRUE(pa_index < physical_memorys_.size(), "pa_index: %zu, physical_memorys_ size: %zu",
-                 pa_index, physical_memorys_.size());
+  GE_ASSERT_TRUE(pa_index < physical_memorys_.size(), "pa_index: %zu, physical_memorys_ size: %zu", pa_index,
+                 physical_memorys_.size());
   auto &va_record_table = physical_memorys_[pa_index].va_record_table;
   if (!va_record_table.empty()) {
     const auto &first_record = *va_record_table.begin();
-    GE_ASSERT_TRUE(first_record.map_va == page_record.map_va, "pa_index[%zu] is using. using va info: %s, new va info: "
-                   "%s", pa_index, first_record.ToString().c_str(), page_record.ToString().c_str());
+    GE_ASSERT_TRUE(first_record.map_va == page_record.map_va,
+                   "pa_index[%zu] is using. using va info: %s, new va info: "
+                   "%s",
+                   pa_index, first_record.ToString().c_str(), page_record.ToString().c_str());
     for (const auto &using_va : va_record_table) {
       if (using_va.head_offset != page_record.head_offset) {
-        GE_ASSERT_TRUE(!HasIntersection(using_va, page_record), "va intersection, pa_index[%zu]. using va info: %s, "
-            "new va info: %s", pa_index, using_va.ToString().c_str(), page_record.ToString().c_str());
+        GE_ASSERT_TRUE(!HasIntersection(using_va, page_record),
+                       "va intersection, pa_index[%zu]. using va info: %s, "
+                       "new va info: %s",
+                       pa_index, using_va.ToString().c_str(), page_record.ToString().c_str());
       }
     }
   }
@@ -1215,8 +1227,7 @@ void PhysicalMemoryAllocator::DelPageRecord(const size_t pa_index, const PageRec
   if (pa_index < physical_memorys_.size()) {
     auto &va_record_table = physical_memorys_[pa_index].va_record_table;
     for (auto iter = va_record_table.begin(); iter < va_record_table.end(); ++iter) {
-      if ((iter->head_offset == page_record.head_offset) &&
-          (iter->using_size == page_record.using_size)) {
+      if ((iter->head_offset == page_record.head_offset) && (iter->using_size == page_record.using_size)) {
         va_record_table.erase(iter);
         return;
       }
@@ -1257,7 +1268,8 @@ Status PhysicalMemoryAllocator::UnmapMem(void *const va, size_t pa_index) {
 
 Status PhysicalMemoryAllocator::ReserveMemAddress(void **va, size_t size) const {
   GE_WARN_ASSERT(aclrtReserveMemAddress(va, size, 0U, nullptr, 1U) == ACL_SUCCESS);
-  HP_LOGI("aclrtReserveMemAddress success va:%p size:%zu, device:%u, memory_type:%u.", *va, size, device_id_, memory_type_);
+  HP_LOGI("aclrtReserveMemAddress success va:%p size:%zu, device:%u, memory_type:%u.", *va, size, device_id_,
+          memory_type_);
   return SUCCESS;
 }
 
@@ -1271,7 +1283,7 @@ Status PhysicalMemoryAllocator::ReleaseMemAddress(void *const va, size_t size) {
       const auto map_addr_value = PtrToValue(map_addr);
       const auto base_addr_value = PtrToValue(va);
       if ((map_addr_value >= base_addr_value) && ((map_addr_value - base_addr_value) < size)) {
-        (void) aclrtUnmapMem(map_addr);
+        (void)aclrtUnmapMem(map_addr);
         it = physical_memory.map_addrs.erase(it);
         HP_LOGI("aclrtUnmapMem pa_index:%zu addr:%p.", physical_memory.index, map_addr);
       } else {
@@ -1281,7 +1293,8 @@ Status PhysicalMemoryAllocator::ReleaseMemAddress(void *const va, size_t size) {
     }
   }
   GE_WARN_ASSERT(aclrtReleaseMemAddress(va) == ACL_SUCCESS);
-  HP_LOGI("aclrtReleaseMemAddress success va:%p size:%zu, device:%u, memory_type:%u.", va, size, device_id_, memory_type_);
+  HP_LOGI("aclrtReleaseMemAddress success va:%p size:%zu, device:%u, memory_type:%u.", va, size, device_id_,
+          memory_type_);
   return SUCCESS;
 }
 
@@ -1300,8 +1313,8 @@ std::shared_ptr<PhysicalMemoryAllocator> PhysicalMemoryAllocatorMgr::CreateAlloc
     if (type_it != dev_it->second.end()) {
       auto it = type_it->second.find(page_size);
       if (it != type_it->second.end()) {
-        GELOGI("Reuse PhysicalMemoryAllocator success device id:%u, memory_type: %u, page_size: %zu.",
-               device_id, memory_type, page_size);
+        GELOGI("Reuse PhysicalMemoryAllocator success device id:%u, memory_type: %u, page_size: %zu.", device_id,
+               memory_type, page_size);
         return it->second;
       }
     }
@@ -1310,8 +1323,8 @@ std::shared_ptr<PhysicalMemoryAllocator> PhysicalMemoryAllocatorMgr::CreateAlloc
   auto allocator = ge::MakeShared<PhysicalMemoryAllocator>(device_id, memory_type);
   GE_ASSERT_TRUE(allocator != nullptr);
   physical_memory_allocators_[device_id][memory_type][page_size] = allocator;
-  GELOGI("Create PhysicalMemoryAllocator success device id:%u, memory_type: %u, page_size: %zu.",
-         device_id, memory_type, page_size);
+  GELOGI("Create PhysicalMemoryAllocator success device id:%u, memory_type: %u, page_size: %zu.", device_id,
+         memory_type, page_size);
   return allocator;
 }
 

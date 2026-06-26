@@ -54,7 +54,7 @@ void GeApiWrapper_OfflineCompile_BuildFinalize() {
 }
 
 graphStatus GeApiWrapper_OfflineCompile_BuildModel(const Graph *graph, const char **keys, const char **values, int size,
-                                                          ModelBufferData **model) {
+                                                   ModelBufferData **model) {
   GE_ASSERT_NOTNULL(graph);
   GE_ASSERT_NOTNULL(model);
   *model = nullptr;
@@ -116,8 +116,7 @@ graphStatus GeApiWrapper_OfflineCompile_BundleBuildModel(const Graph **graphs, c
   return GRAPH_SUCCESS;
 }
 
-graphStatus GeApiWrapper_OfflineCompile_BundleSaveModel(const char_t *output_file,
-                                                               const ModelBufferData *model) {
+graphStatus GeApiWrapper_OfflineCompile_BundleSaveModel(const char_t *output_file, const ModelBufferData *model) {
   GE_ASSERT_NOTNULL(output_file);
   GE_ASSERT_NOTNULL(model);
   return aclgrphBundleSaveModel(output_file, *model);

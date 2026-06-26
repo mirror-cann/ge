@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,40 +34,40 @@
 #include "acl/acl_rt.h"
 
 // 提高日志级别判断性能
-#define HP_LOGD(fmt, ...)                                                                                       \
-  do {                                                                                                          \
-    if (DLOG_DEBUG >= log_level_) {                                                                             \
-      auto class_name = abi::__cxa_demangle(typeid(*this).name(), nullptr, nullptr, nullptr);                   \
-      if (class_name != nullptr) {                                                                              \
-        dlog_debug(GE_MODULE_NAME, "%" PRIu64 " %s::%s:" fmt, GeLog::GetTid(),                                          \
-            class_name,  __FUNCTION__, ##__VA_ARGS__);                                                          \
-        free(class_name);                                                                                       \
-      }                                                                                                         \
-    }                                                                                                           \
+#define HP_LOGD(fmt, ...)                                                                                \
+  do {                                                                                                   \
+    if (DLOG_DEBUG >= log_level_) {                                                                      \
+      auto class_name = abi::__cxa_demangle(typeid(*this).name(), nullptr, nullptr, nullptr);            \
+      if (class_name != nullptr) {                                                                       \
+        dlog_debug(GE_MODULE_NAME, "%" PRIu64 " %s::%s:" fmt, GeLog::GetTid(), class_name, __FUNCTION__, \
+                   ##__VA_ARGS__);                                                                       \
+        free(class_name);                                                                                \
+      }                                                                                                  \
+    }                                                                                                    \
   } while (false)
 
-#define HP_LOGI(fmt, ...)                                                                                       \
-  do {                                                                                                          \
-    if (DLOG_INFO >= log_level_) {                                                                              \
-      auto class_name = abi::__cxa_demangle(typeid(*this).name(), nullptr, nullptr, nullptr);                   \
-      if (class_name != nullptr) {                                                                              \
-        dlog_info(GE_MODULE_NAME, "%" PRIu64 " %s::%s:" fmt, GeLog::GetTid(),                                           \
-            class_name,  __FUNCTION__, ##__VA_ARGS__);                                                          \
-        free(class_name);                                                                                       \
-      }                                                                                                         \
-    }                                                                                                           \
+#define HP_LOGI(fmt, ...)                                                                               \
+  do {                                                                                                  \
+    if (DLOG_INFO >= log_level_) {                                                                      \
+      auto class_name = abi::__cxa_demangle(typeid(*this).name(), nullptr, nullptr, nullptr);           \
+      if (class_name != nullptr) {                                                                      \
+        dlog_info(GE_MODULE_NAME, "%" PRIu64 " %s::%s:" fmt, GeLog::GetTid(), class_name, __FUNCTION__, \
+                  ##__VA_ARGS__);                                                                       \
+        free(class_name);                                                                               \
+      }                                                                                                 \
+    }                                                                                                   \
   } while (false)
 
 namespace ge {
 constexpr int32_t kSizeWidth = 10;
 constexpr int32_t kAddrWidth = 15;
 constexpr size_t kLargePageSizeBits = 23U;
-constexpr size_t kLargePageSize = 1U << kLargePageSizeBits; // 8U * 1024U * 1024U
+constexpr size_t kLargePageSize = 1U << kLargePageSizeBits;  // 8U * 1024U * 1024U
 constexpr size_t kLargePageSizeMask = kLargePageSize - 1U;
 constexpr size_t kDrvPageSizeBits = 21U;
 constexpr size_t kDrv1GPageSizeBits = 30U;
-constexpr size_t kDrvPageSize = 1U << kDrvPageSizeBits; // 2U * 1024U * 1024U
-constexpr size_t kDrv1GPageSize = 1U << kDrv1GPageSizeBits; // 1U *1024 * 1024U * 1024U
+constexpr size_t kDrvPageSize = 1U << kDrvPageSizeBits;      // 2U * 1024U * 1024U
+constexpr size_t kDrv1GPageSize = 1U << kDrv1GPageSizeBits;  // 1U *1024 * 1024U * 1024U
 constexpr int32_t PHYSICAL_MEM_USING = 2;
 constexpr int32_t NEW_VA = 3;
 constexpr size_t kRatioBase = 100U;
@@ -107,9 +107,8 @@ struct LogicalMemoryBlock {
   std::string ToString() const {
     std::stringstream ss;
     ss << "LogicalMemoryBlock logical_addr:" << std::left << std::setw(kSizeWidth) << logical_addr
-       << " memory_size:" << std::setw(kSizeWidth) << memory_size
-       << " active_addr:" << std::setw(kAddrWidth) << static_cast<void *>(active_addr)
-       << " memory_type:" << memory_type << ", alloc:" << alloc;
+       << " memory_size:" << std::setw(kSizeWidth) << memory_size << " active_addr:" << std::setw(kAddrWidth)
+       << static_cast<void *>(active_addr) << " memory_type:" << memory_type << ", alloc:" << alloc;
     return ss.str();
   }
 };
@@ -123,10 +122,7 @@ struct ActiveMemoryBlock {
   bool new_add;
 
   ActiveMemoryBlock(uint8_t *const active_addr_tmp, size_t total_size_tmp, size_t used_size_tmp)
-      : active_addr(active_addr_tmp),
-        total_size(total_size_tmp),
-        used_size(used_size_tmp),
-        new_add(true) {}
+      : active_addr(active_addr_tmp), total_size(total_size_tmp), used_size(used_size_tmp), new_add(true) {}
 
   uint8_t *Malloc(size_t memory_size) {
     uint8_t *addr = nullptr;
@@ -149,12 +145,10 @@ struct ActiveMemoryBlock {
 
   std::string ToString() const {
     std::stringstream ss;
-    ss << "ActiveMemoryBlock active_addr_begin:"
-       << std::left << std::setw(kAddrWidth) << static_cast<void *>(active_addr)
-       << " active_addr_end:" << std::left << std::setw(kAddrWidth) << static_cast<void *>(active_addr + total_size)
-       << " total_size:" << std::setw(kSizeWidth) << total_size
-       << " used_size:" << std::setw(kSizeWidth) << used_size
-       << " new_add:" << new_add;
+    ss << "ActiveMemoryBlock active_addr_begin:" << std::left << std::setw(kAddrWidth)
+       << static_cast<void *>(active_addr) << " active_addr_end:" << std::left << std::setw(kAddrWidth)
+       << static_cast<void *>(active_addr + total_size) << " total_size:" << std::setw(kSizeWidth) << total_size
+       << " used_size:" << std::setw(kSizeWidth) << used_size << " new_add:" << new_add;
     return ss.str();
   }
 };
@@ -165,9 +159,8 @@ using ActiveMemorys = std::vector<ActiveMemoryBlock>;
 struct PageRecord {
   std::string ToString() const {
     std::stringstream ss;
-    ss << "map_va: " << static_cast<const void *>(map_va)
-       << ", head_offset: " << std::dec << head_offset << ", using_size: " << using_size
-       << ", malloc_addr: " << static_cast<const void *>(malloc_addr)
+    ss << "map_va: " << static_cast<const void *>(map_va) << ", head_offset: " << std::dec << head_offset
+       << ", using_size: " << using_size << ", malloc_addr: " << static_cast<const void *>(malloc_addr)
        << ", malloc_size: " << std::dec << malloc_size;
     return ss.str();
   }
@@ -192,17 +185,22 @@ struct PhysicalMemoryInfo {
   bool in_free_list = false;
   bool is_using = false;
   bool is_physical_recycle = false;
-  size_t last_pa_index = kInvalidIndex; //上次分配的物理内存在物理内存池里的index
+  size_t last_pa_index = kInvalidIndex;  // 上次分配的物理内存在物理内存池里的index
   std::set<void *> map_addrs;
-  VaRecordTable va_record_table; // for va pa check
+  VaRecordTable va_record_table;  // for va pa check
 };
 
 // 会被多线程调用
 class PhysicalMemoryAllocator {
  public:
   explicit PhysicalMemoryAllocator(uint32_t device_id, rtMemType_t memory_type = RT_MEMORY_HBM)
-      : device_id_(device_id), memory_type_(memory_type), ref_count_(0U), page_size_(kLargePageSize),
-        physical_memory_size_(0U), log_level_(DLOG_ERROR), prop_() {}
+      : device_id_(device_id),
+        memory_type_(memory_type),
+        ref_count_(0U),
+        page_size_(kLargePageSize),
+        physical_memory_size_(0U),
+        log_level_(DLOG_ERROR),
+        prop_() {}
   Status Initialize(size_t page_size, size_t max_page_count);
   Status Finalize(uint8_t *const va, size_t size);
   Status MallocPhysical(const std::string &purpose, size_t &pa_index, void *const va, bool reuse);
@@ -218,6 +216,7 @@ class PhysicalMemoryAllocator {
  private:
   void FreePhysicalPage(PhysicalMemoryInfo &physical_memory);
   Status MallocPhysicalPage(const std::string &purpose, size_t &pa_index, const void *const va, bool reuse);
+
  private:
   uint32_t device_id_;
   rtMemType_t memory_type_;
@@ -270,36 +269,30 @@ class ExpandableActiveMemoryAllocatorImp {
   ExpandableActiveMemoryAllocatorImp(const ExpandableActiveMemoryAllocatorImp &&) = delete;
   ExpandableActiveMemoryAllocatorImp &operator=(const ExpandableActiveMemoryAllocatorImp &&) & = delete;
 
-  Status MallocPhysicalMemory(const std::string &purpose,
-                              const uint8_t *const virtual_memory_addr,
-                              const size_t virtual_memory_size,
-                              size_t &reuse_size);
+  Status MallocPhysicalMemory(const std::string &purpose, const uint8_t *const virtual_memory_addr,
+                              const size_t virtual_memory_size, size_t &reuse_size);
 
-  Status MallocPhysicalMemory(uint8_t *const virtual_memory_addr,
-                              const std::vector<size_t> &pa_list,
+  Status MallocPhysicalMemory(uint8_t *const virtual_memory_addr, const std::vector<size_t> &pa_list,
                               bool need_map = false);
 
-  Status FreePhysicalMemory(const uint8_t *const virtual_memory_addr,
-                            const size_t virtual_memory_size,
-                            const bool reduce_ref = true,
-                            const bool release = true);
+  Status FreePhysicalMemory(const uint8_t *const virtual_memory_addr, const size_t virtual_memory_size,
+                            const bool reduce_ref = true, const bool release = true);
 
-  Status FreePhysicalMemory(uint8_t *const virtual_memory_addr,
-                            const std::vector<size_t> &pa_list,
-                            const bool reduce_ref = true,
-                            const bool release = true);
+  Status FreePhysicalMemory(uint8_t *const virtual_memory_addr, const std::vector<size_t> &pa_list,
+                            const bool reduce_ref = true, const bool release = true);
 
   uint8_t *ReserveVirtualMemory(size_t &virtual_memory_size, const uint32_t device_id,
-                                const rtMemType_t memory_type = RT_MEMORY_HBM,
-                                const bool share_phy_allocator = true);
+                                const rtMemType_t memory_type = RT_MEMORY_HBM, const bool share_phy_allocator = true);
 
   void ReleaseVirtualMemory() noexcept;
 
-  size_t ActiveMemorySize() const { return physical_memory_size_; }
+  size_t ActiveMemorySize() const {
+    return physical_memory_size_;
+  }
 
   bool IsValidVirtualAddr(const uint8_t *const virtual_active_addr) const {
-    return (virtual_memory_addr_base_ != nullptr) && (virtual_active_addr >= virtual_memory_addr_base_)
-        && (static_cast<size_t>(virtual_active_addr - virtual_memory_addr_base_) < virtual_memory_size_);
+    return (virtual_memory_addr_base_ != nullptr) && (virtual_active_addr >= virtual_memory_addr_base_) &&
+           (static_cast<size_t>(virtual_active_addr - virtual_memory_addr_base_) < virtual_memory_size_);
   }
 
   std::vector<size_t> &GetPaList() {
@@ -323,9 +316,8 @@ class ExpandableActiveMemoryAllocatorImp {
   }
 
  private:
-  Status GetIndex(const uint8_t *const virtual_memory_addr,
-                  const size_t virtual_memory_size, size_t &index_begin, size_t &index_end,
-                  size_t &end_remain_size) const;
+  Status GetIndex(const uint8_t *const virtual_memory_addr, const size_t virtual_memory_size, size_t &index_begin,
+                  size_t &index_end, size_t &end_remain_size) const;
   void ReleasePhysicalMemoryByIndex(const size_t index);
   void PutToFreeList(PhysicalMemoryInfo &physical_memory);
   bool PopFromFreeList(size_t &index);
@@ -377,15 +369,17 @@ class ExpandableActiveMemoryAllocatorImp {
   std::shared_ptr<PhysicalMemoryAllocator> physical_memory_allocator_;
   size_t theory_size_ = 0U;
   size_t theory_min_size_ = 0U;
-  bool reuse_; // 表示申请内存时是否可以复用空闲内存
-  bool vapa_check_failed_; // CachingMemAllocator::AllocateWithTryRecycle会重试，重试立即失败。
+  bool reuse_;              // 表示申请内存时是否可以复用空闲内存
+  bool vapa_check_failed_;  // CachingMemAllocator::AllocateWithTryRecycle会重试，重试立即失败。
 };
 
 class ExpandableActiveMemoryAllocator : public ExpandableMemoryAllocator {
  public:
   explicit ExpandableActiveMemoryAllocator(const uint32_t device_id, const rtMemType_t memory_type = RT_MEMORY_HBM,
                                            const size_t page_size = kDrvPageSize)
-      : ExpandableMemoryAllocator(), device_id_(device_id), memory_type_(memory_type),
+      : ExpandableMemoryAllocator(),
+        device_id_(device_id),
+        memory_type_(memory_type),
         used_count_(0U),
         virtual_active_addr_(nullptr),
         virtual_memory_size_(0U),
@@ -393,8 +387,7 @@ class ExpandableActiveMemoryAllocator : public ExpandableMemoryAllocator {
         support_reserve_mem_address_(true),
         page_size_(page_size),
         reuse_(true),
-        share_phy_allocator_(true) {
-  }
+        share_phy_allocator_(true) {}
 
   ~ExpandableActiveMemoryAllocator() override = default;
 
@@ -410,7 +403,9 @@ class ExpandableActiveMemoryAllocator : public ExpandableMemoryAllocator {
 
   Status FreeMemory() override;
 
-  bool IsSupportExpandableMemory() const override { return support_reserve_mem_address_; }
+  bool IsSupportExpandableMemory() const override {
+    return support_reserve_mem_address_;
+  }
 
   Status MallocVirtualMemory(const size_t memory_size);
 
@@ -421,7 +416,7 @@ class ExpandableActiveMemoryAllocator : public ExpandableMemoryAllocator {
   void SetReuse(bool reuse) override {
     reuse_ = reuse;
   }
-  void SetSharePhyAllocator(bool share_phy_allocator) override{
+  void SetSharePhyAllocator(bool share_phy_allocator) override {
     share_phy_allocator_ = share_phy_allocator;
   }
   uint8_t *GetVirtualActiveAddress() const {
@@ -449,8 +444,8 @@ class ExpandableActiveMemoryAllocator : public ExpandableMemoryAllocator {
   size_t page_size_;
   ExpandableActiveMemoryAllocatorImp active_memory_allocator_{ActiveMemoryUtil::IntegerBitsNum(page_size_)};
   std::vector<std::pair<uint8_t *, size_t>> mapped_memory_addrs_;
-  bool reuse_; // 表示申请内存时是否可以复用空闲内存
-  bool share_phy_allocator_; // 表示是否共享物理内存池
+  bool reuse_;                // 表示申请内存时是否可以复用空闲内存
+  bool share_phy_allocator_;  // 表示是否共享物理内存池
 };
 
 class FixedBaseExpandableAllocator : public Allocator {
@@ -480,6 +475,7 @@ class FixedBaseExpandableAllocator : public Allocator {
   size_t GetSize() const {
     return ex_active_allocator_.GetUsedSize();
   }
+
  private:
   ExpandableActiveMemoryAllocator ex_active_allocator_;
 };
@@ -488,8 +484,13 @@ class ActiveMemoryAllocator {
  public:
   explicit ActiveMemoryAllocator(const uint32_t device_id = 0U, const rtMemType_t memory_type = RT_MEMORY_HBM,
                                  const size_t page_size = kDrvPageSize)
-      : memory_type_(memory_type), used_count_(0U), peak_size_(0U), maximum_active_addr_(nullptr),
-        device_id_(device_id), memory_size_(0), support_extend_memory_full_(false),
+      : memory_type_(memory_type),
+        used_count_(0U),
+        peak_size_(0U),
+        maximum_active_addr_(nullptr),
+        device_id_(device_id),
+        memory_size_(0),
+        support_extend_memory_full_(false),
         expandable_memory_allocator_(device_id) {
     (void)page_size;
   }
@@ -571,11 +572,15 @@ class SessionMemAllocator {
     auto &find_mem_allocator = session_allocator_map_[session_id][device_id][memory_type][page_size];
     if (find_mem_allocator == nullptr) {
       find_mem_allocator = std::make_shared<T>(device_id, memory_type, page_size);
-      GELOGI("create session allocator, typeid: %s, session_id: %llu, device_id: %" PRIu64 ", memory_type: %u, "
-        "page_size: %zu", typeid(T).name(), session_id, device_id, memory_type, page_size);
+      GELOGI("create session allocator, typeid: %s, session_id: %llu, device_id: %" PRIu64
+             ", memory_type: %u, "
+             "page_size: %zu",
+             typeid(T).name(), session_id, device_id, memory_type, page_size);
     } else {
-      GELOGI("get session allocator, typeid: %s, session_id: %llu, device_id: %" PRIu64 ", memory_type: %u, "
-        "page_size: %zu", typeid(T).name(), session_id, device_id, memory_type, page_size);
+      GELOGI("get session allocator, typeid: %s, session_id: %llu, device_id: %" PRIu64
+             ", memory_type: %u, "
+             "page_size: %zu",
+             typeid(T).name(), session_id, device_id, memory_type, page_size);
     }
     return find_mem_allocator;
   }
@@ -594,8 +599,8 @@ class SessionMemAllocator {
     if (iter->second.empty()) {
       session_allocator_map_.erase(iter);
     }
-    GELOGI("remove session allocator, typeid: %s, session_id: %llu, device_id: %" PRIu64,
-           typeid(T).name(), session_id, device_id);
+    GELOGI("remove session allocator, typeid: %s, session_id: %llu, device_id: %" PRIu64, typeid(T).name(), session_id,
+           device_id);
   }
 
   void RemoveAllocator(const uint64_t session_id) {
@@ -611,8 +616,10 @@ class SessionMemAllocator {
  private:
   std::mutex map_mutex_;
   // session_id, device_id, memory_type, page_size
-  std::unordered_map<uint64_t, std::unordered_map<uint32_t, std::unordered_map<uint64_t,
-      std::unordered_map<uint64_t, std::shared_ptr<T>>>>> session_allocator_map_;
+  std::unordered_map<
+      uint64_t,
+      std::unordered_map<uint32_t, std::unordered_map<uint64_t, std::unordered_map<uint64_t, std::shared_ptr<T>>>>>
+      session_allocator_map_;
 };
 }  // namespace ge
 

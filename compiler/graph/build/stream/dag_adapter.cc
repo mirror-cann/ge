@@ -35,7 +35,7 @@ std::string GetOpNameWithoutScope(const std::string &full_name) {
   }
   return full_name;
 }
-}
+}  // namespace
 
 graphStatus DAGAdapter::ToGEStatus(minidag::graphStatus status) {
   switch (status) {
@@ -53,8 +53,7 @@ graphStatus DAGAdapter::ToGEStatus(minidag::graphStatus status) {
   }
 }
 
-graphStatus DAGAdapter::FromGEGraph(const ConstGraphPtr &ge_graph,
-                                    std::shared_ptr<minidag::DAGGraph> &dag,
+graphStatus DAGAdapter::FromGEGraph(const ConstGraphPtr &ge_graph, std::shared_ptr<minidag::DAGGraph> &dag,
                                     bool &has_profiled_node_cost) {
   GE_ASSERT_NOTNULL(ge_graph, "FromGEGraph failed: ge_graph is null");
   has_profiled_node_cost = false;
@@ -68,24 +67,20 @@ graphStatus DAGAdapter::FromGEGraph(const ConstGraphPtr &ge_graph,
 
   // 2. 转换节点（并设置topo_id）
   auto nodes_ret = ConvertNodes(ge_graph, *dag, has_profiled_node_cost);
-  GE_ASSERT_SUCCESS(nodes_ret, "FromGEGraph failed: ConvertNodes returned %d",
-                    static_cast<int>(nodes_ret));
+  GE_ASSERT_SUCCESS(nodes_ret, "FromGEGraph failed: ConvertNodes returned %d", static_cast<int>(nodes_ret));
 
   // 3. 转换边（数据边和控制边）
   auto edges_ret = ConvertEdges(ge_graph, *dag);
-  GE_ASSERT_SUCCESS(edges_ret, "FromGEGraph failed: ConvertEdges returned %d",
-                    static_cast<int>(edges_ret));
+  GE_ASSERT_SUCCESS(edges_ret, "FromGEGraph failed: ConvertEdges returned %d", static_cast<int>(edges_ret));
 
   // 获取设备资源信息
   GE_CHK_STATUS_RET(FillDeviceResource(*dag), "Failed to fill device resource info.");
 
-  GELOGI("FromGEGraph done: nodes=%zu, edges=%zu",
-          dag->GetNodeCount(), dag->GetEdgeCount());
+  GELOGI("FromGEGraph done: nodes=%zu, edges=%zu", dag->GetNodeCount(), dag->GetEdgeCount());
   return GRAPH_SUCCESS;
 }
 
-graphStatus DAGAdapter::ConvertNodes(const ConstGraphPtr &ge_graph,
-                                     minidag::DAGGraph &dag,
+graphStatus DAGAdapter::ConvertNodes(const ConstGraphPtr &ge_graph, minidag::DAGGraph &dag,
                                      bool &has_profiled_node_cost) {
   GE_ASSERT_NOTNULL(ge_graph);
   has_profiled_node_cost = false;
@@ -96,14 +91,14 @@ graphStatus DAGAdapter::ConvertNodes(const ConstGraphPtr &ge_graph,
   auto gnodes = ge_graph->GetDirectNode();
   int64_t topo_id = 0;
 
-  for (const auto& gnode : gnodes) {
+  for (const auto &gnode : gnodes) {
     AscendString name, type;
     GE_ASSERT_SUCCESS(gnode.GetName(name), "ConvertNodes failed: GetName failed for gnode");
     GE_ASSERT_SUCCESS(gnode.GetType(type), "ConvertNodes failed: GetType failed for gnode %s", name.GetString());
 
     auto dag_node = dag.AddNode(name.GetString(), type.GetString());
-    GE_ASSERT_NOTNULL(dag_node, "ConvertNodes failed: duplicate node name %s, type %s",
-                      name.GetString(), type.GetString());
+    GE_ASSERT_NOTNULL(dag_node, "ConvertNodes failed: duplicate node name %s, type %s", name.GetString(),
+                      type.GetString());
 
     auto node = NodeAdapter::GNode2Node(gnode);
     GE_ASSERT_NOTNULL(node);
@@ -116,7 +111,7 @@ graphStatus DAGAdapter::ConvertNodes(const ConstGraphPtr &ge_graph,
     has_profiled_node_cost = has_profiled_node_cost || profiled_cost_matched;
     // 设置串行标记
     std::string stream_label;
-    (void) AttrUtils::GetStr(op_desc, ATTR_NAME_STREAM_LABEL, stream_label);
+    (void)AttrUtils::GetStr(op_desc, ATTR_NAME_STREAM_LABEL, stream_label);
     if (!stream_label.empty()) {
       dag_node->SetSerialFlag(stream_label);
     }
@@ -150,9 +145,8 @@ std::string DAGAdapter::ResolveProfilingPath() {
   return "";
 }
 
-void DAGAdapter::LoadProfilingData(
-    const std::string &profiling_path,
-    std::unordered_map<std::string, minidag::ProfilingData> &profiles) {
+void DAGAdapter::LoadProfilingData(const std::string &profiling_path,
+                                   std::unordered_map<std::string, minidag::ProfilingData> &profiles) {
   if (profiling_path.empty()) {
     return;
   }
@@ -165,12 +159,9 @@ void DAGAdapter::LoadProfilingData(
   GELOGI("Parsed %zu profiling records from %s", profiles.size(), profiling_path.c_str());
 }
 
-minidag::NodeCost DAGAdapter::BuildNodeCost(
-    const std::string &node_name,
-    const NodePtr &node,
-    const OpDescPtr &op_desc,
-    const std::unordered_map<std::string, minidag::ProfilingData> &profiles,
-    bool &profiled_cost_matched) {
+minidag::NodeCost DAGAdapter::BuildNodeCost(const std::string &node_name, const NodePtr &node, const OpDescPtr &op_desc,
+                                            const std::unordered_map<std::string, minidag::ProfilingData> &profiles,
+                                            bool &profiled_cost_matched) {
   minidag::NodeCost cost;
   profiled_cost_matched = false;
   auto it = profiles.find(node_name);
@@ -184,8 +175,8 @@ minidag::NodeCost DAGAdapter::BuildNodeCost(
     cost.cube_block_num = it->second.cube_block_num;
     cost.vec_block_num = it->second.vec_block_num;
     profiled_cost_matched = true;
-    GELOGI("Use profiling cost for %s: time=%f, cube=%zu, vec=%zu",
-           node_name.c_str(), cost.execution_time, cost.cube_block_num, cost.vec_block_num);
+    GELOGI("Use profiling cost for %s: time=%f, cube=%zu, vec=%zu", node_name.c_str(), cost.execution_time,
+           cost.cube_block_num, cost.vec_block_num);
     return cost;
   }
 
@@ -216,19 +207,15 @@ graphStatus DAGAdapter::ConvertEdges(const ConstGraphPtr &ge_graph, minidag::DAG
     GE_ASSERT_SUCCESS(ConvertControlEdgesForNode(gnode, src_node, dag, control_edge_count));
   }
 
-  GELOGI("ConvertEdges done: data_edges=%ld, control_edges=%ld",
-          data_edge_count, control_edge_count);
+  GELOGI("ConvertEdges done: data_edges=%ld, control_edges=%ld", data_edge_count, control_edge_count);
   return GRAPH_SUCCESS;
 }
 
-graphStatus DAGAdapter::ConvertDataEdgesForNode(
-    const GNode &gnode,
-    const std::shared_ptr<minidag::DAGNode> &src_node,
-    minidag::DAGGraph &dag,
-    int64_t &edge_count) {
+graphStatus DAGAdapter::ConvertDataEdgesForNode(const GNode &gnode, const std::shared_ptr<minidag::DAGNode> &src_node,
+                                                minidag::DAGGraph &dag, int64_t &edge_count) {
   for (size_t i = 0; i < gnode.GetOutputsSize(); ++i) {
     auto dst_pairs = gnode.GetOutDataNodesAndPortIndexs(static_cast<int32_t>(i));
-    for (const auto& [dst_gnode, dst_port] : dst_pairs) {
+    for (const auto &[dst_gnode, dst_port] : dst_pairs) {
       if (dst_gnode == nullptr) {
         continue;
       }
@@ -249,18 +236,15 @@ graphStatus DAGAdapter::ConvertDataEdgesForNode(
   return GRAPH_SUCCESS;
 }
 
-graphStatus DAGAdapter::ConvertControlEdgesForNode(
-    const GNode &gnode,
-    const std::shared_ptr<minidag::DAGNode> &src_node,
-    minidag::DAGGraph &dag,
-    int64_t &edge_count) {
+graphStatus DAGAdapter::ConvertControlEdgesForNode(const GNode &gnode,
+                                                   const std::shared_ptr<minidag::DAGNode> &src_node,
+                                                   minidag::DAGGraph &dag, int64_t &edge_count) {
   for (const auto &dst_gnode : gnode.GetOutControlNodes()) {
     if (dst_gnode == nullptr) {
       continue;
     }
     AscendString dst_name;
-    GE_ASSERT_SUCCESS(dst_gnode->GetName(dst_name),
-                       "ConvertControlEdgesForNode failed: GetName failed for dst gnode");
+    GE_ASSERT_SUCCESS(dst_gnode->GetName(dst_name), "ConvertControlEdgesForNode failed: GetName failed for dst gnode");
     auto dst_node = dag.FindNode(dst_name.GetString());
     GE_ASSERT_NOTNULL(dst_node, "ConvertControlEdgesForNode failed: dst_node not found: %s", dst_name.GetString());
 
@@ -274,10 +258,8 @@ graphStatus DAGAdapter::ConvertControlEdgesForNode(
   return GRAPH_SUCCESS;
 }
 
-graphStatus DAGAdapter::RefreshStreamIdsToGE(
-    const minidag::DAGGraph &dag,
-    const ConstGraphPtr &ge_graph,
-    StreamPassContext &context) {
+graphStatus DAGAdapter::RefreshStreamIdsToGE(const minidag::DAGGraph &dag, const ConstGraphPtr &ge_graph,
+                                             StreamPassContext &context) {
   GE_ASSERT_NOTNULL(ge_graph, "RefreshStreamIdsToGE failed: ge_graph is null");
 
   int64_t success_count = 0;
@@ -300,7 +282,7 @@ graphStatus DAGAdapter::RefreshStreamIdsToGE(
     // Adapter 层过滤：跳过 NetOutput/Label相关的节点
     const auto &node_type = op_desc->GetTypePtr();
     bool rts_label_node = false;
-    (void) AttrUtils::GetBool(op_desc, ATTR_NAME_RTS_LABEL_NODE, rts_label_node);
+    (void)AttrUtils::GetBool(op_desc, ATTR_NAME_RTS_LABEL_NODE, rts_label_node);
     if ((node_type == "NetOutput") || rts_label_node) {
       GELOGD("Skip special node: %s", dag_node->GetName().c_str());
       ++filtered_count;
@@ -323,8 +305,7 @@ graphStatus DAGAdapter::RefreshStreamIdsToGE(
     }
     auto ret = context.SetStreamId(*gnode, stream_id);
     if (ret != GRAPH_SUCCESS) {
-      GE_LOGE("SetStreamId failed for node %s, stream_id=%ld, ret=%d",
-              dag_node->GetName().c_str(), stream_id, ret);
+      GE_LOGE("SetStreamId failed for node %s, stream_id=%ld, ret=%d", dag_node->GetName().c_str(), stream_id, ret);
       return ret;
     }
     AscendString name;
@@ -333,8 +314,7 @@ graphStatus DAGAdapter::RefreshStreamIdsToGE(
     ++success_count;
   }
 
-  GELOGI("RefreshStreamIdsToGE done: success=%ld, skip=%ld, filtered=%ld",
-          success_count, skip_count, filtered_count);
+  GELOGI("RefreshStreamIdsToGE done: success=%ld, skip=%ld, filtered=%ld", success_count, skip_count, filtered_count);
   return GRAPH_SUCCESS;
 }
 
@@ -359,8 +339,8 @@ Status DAGAdapter::FillDeviceResource(minidag::DAGGraph &dag) {
   resource.cube_core_num = platform_info.soc_info.ai_core_cnt;
   resource.vector_core_num = platform_info.soc_info.vector_core_cnt;
 
-  GELOGI("DeviceResourceInfo: soc_version=%s, aicore=%ld, vector=%ld",
-         soc_version.c_str(), resource.cube_core_num, resource.vector_core_num);
+  GELOGI("DeviceResourceInfo: soc_version=%s, aicore=%ld, vector=%ld", soc_version.c_str(), resource.cube_core_num,
+         resource.vector_core_num);
 
   dag.SetDeviceResource(resource);
   return SUCCESS;

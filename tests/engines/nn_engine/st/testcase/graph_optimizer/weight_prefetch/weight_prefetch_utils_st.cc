@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -40,15 +40,15 @@ class WeightPrefetchST : public testing::Test {
     ge::GeTensorDesc tensor_desc(shape, ge::FORMAT_NCHW, ge::DT_INT32);
     ge::TensorUtils::SetDataOffset(tensor_desc, offset);
     ge::TensorUtils::SetWeightSize(tensor_desc, weight_size);
-    ge::GeTensorPtr filter = std::make_shared<ge::GeTensor>(tensor_desc, (uint8_t *) data.data(), 24 * sizeof(int32_t));
-    OpDescPtr  const_opdesc = OpDescUtils::CreateConstOp(filter);
+    ge::GeTensorPtr filter = std::make_shared<ge::GeTensor>(tensor_desc, (uint8_t *)data.data(), 24 * sizeof(int32_t));
+    OpDescPtr const_opdesc = OpDescUtils::CreateConstOp(filter);
     ComputeGraphPtr owner_graph = node->GetOwnerComputeGraph();
     ge::NodePtr const_node = owner_graph->AddNode(const_opdesc);
     node->AddLinkFrom(const_node);
   }
 
   ge::ComputeGraphPtr CreateGraphWithGraph(const uint32_t case_type) {
-    vector<int64_t> dims = {3,4,5,6};
+    vector<int64_t> dims = {3, 4, 5, 6};
     ge::GeShape shape(dims);
     ge::GeTensorDesc tensor_desc(shape, ge::FORMAT_NCHW, ge::DT_FLOAT);
 
@@ -105,19 +105,19 @@ class WeightPrefetchST : public testing::Test {
       case 1:
         AttrUtils::SetBool(graph, "_is_graph_prefetch", true);
         AttrUtils::SetListStr(quant_op, kAttrWeightPrefetchType, {"1", "1", "1", "1"});
-        AttrUtils::SetListInt(quant_op, kAttrWeightPrefetchDstOffset, {10,20,30,40});
+        AttrUtils::SetListInt(quant_op, kAttrWeightPrefetchDstOffset, {10, 20, 30, 40});
         break;
       case 2:
         AttrUtils::SetBool(graph, "_is_graph_prefetch", true);
         ScopeAllocator::SetScopeAttr(quant_op, scope_id);
         ScopeAllocator::SetScopeAttr(conv_op, scope_id);
         AttrUtils::SetListStr(quant_op, kAttrWeightPrefetchType, {"1", "1", "1", "1"});
-        AttrUtils::SetListInt(quant_op, kAttrWeightPrefetchDstOffset, {10,20,30,40});
+        AttrUtils::SetListInt(quant_op, kAttrWeightPrefetchDstOffset, {10, 20, 30, 40});
         break;
       case 3:
         // quant -> conv, relu->dequant, dequant->transpose
         AttrUtils::SetListStr(quant_op, kAttrWeightPrefetchType, {"1", "1"});
-        AttrUtils::SetListInt(quant_op, kAttrWeightPrefetchDstOffset, {10,20});
+        AttrUtils::SetListInt(quant_op, kAttrWeightPrefetchDstOffset, {10, 20});
         AttrUtils::SetListStr(quant_op, kAttrWeightPrefetchNodeName, {conv_op->GetName()});
 
         AttrUtils::SetListStr(relu_op, kAttrWeightPrefetchType, {"1"});
@@ -134,7 +134,7 @@ class WeightPrefetchST : public testing::Test {
         ScopeAllocator::SetScopeAttr(relu_op, scope_id);
         ScopeAllocator::SetScopeAttr(dequant_op, scope_id);
         AttrUtils::SetListStr(quant_op, kAttrWeightPrefetchType, {"1", "1", "1"});
-        AttrUtils::SetListInt(quant_op, kAttrWeightPrefetchDstOffset, {10,20,30});
+        AttrUtils::SetListInt(quant_op, kAttrWeightPrefetchDstOffset, {10, 20, 30});
         AttrUtils::SetListStr(quant_op, kAttrWeightPrefetchNodeName, {conv_op->GetName(), dequant_op->GetName()});
 
         AttrUtils::SetListStr(conv_op, kAttrWeightPrefetchType, {"1"});
@@ -147,7 +147,7 @@ class WeightPrefetchST : public testing::Test {
         ScopeAllocator::SetScopeAttr(relu_op, scope_id);
         ScopeAllocator::SetScopeAttr(dequant_op, scope_id);
         AttrUtils::SetListStr(quant_op, kAttrWeightPrefetchType, {"1", "1", "1"});
-        AttrUtils::SetListInt(quant_op, kAttrWeightPrefetchDstOffset, {10,20,30});
+        AttrUtils::SetListInt(quant_op, kAttrWeightPrefetchDstOffset, {10, 20, 30});
         AttrUtils::SetListStr(quant_op, kAttrWeightPrefetchNodeName, {conv_op->GetName(), dequant_op->GetName()});
 
         AttrUtils::SetListStr(conv_op, kAttrWeightPrefetchType, {"1"});
@@ -194,7 +194,7 @@ TEST_F(WeightPrefetchST, weight_prefetch_case1) {
 
       vector<int64_t> dst_offset;
       AttrUtils::GetListInt(op_desc, kAttrWeightPrefetchDstOffset, dst_offset);
-      vector<int64_t> exp_dst_offset = {10,20,30,40};
+      vector<int64_t> exp_dst_offset = {10, 20, 30, 40};
       EXPECT_EQ(dst_offset, exp_dst_offset);
     }
   }
@@ -228,7 +228,7 @@ TEST_F(WeightPrefetchST, weight_prefetch_case2) {
 
       vector<int64_t> dst_offset;
       AttrUtils::GetListInt(op_desc, kAttrWeightPrefetchDstOffset, dst_offset);
-      vector<int64_t> exp_dst_offset = {10,20,30,40};
+      vector<int64_t> exp_dst_offset = {10, 20, 30, 40};
       EXPECT_EQ(dst_offset, exp_dst_offset);
     }
   }
@@ -262,7 +262,7 @@ TEST_F(WeightPrefetchST, weight_prefetch_case3) {
 
       vector<int64_t> dst_offset;
       AttrUtils::GetListInt(op_desc, kAttrWeightPrefetchDstOffset, dst_offset);
-      vector<int64_t> exp_dst_offset = {10,20};
+      vector<int64_t> exp_dst_offset = {10, 20};
       EXPECT_EQ(dst_offset, exp_dst_offset);
     }
     if (op_desc->GetType() == "Relu") {
@@ -338,7 +338,7 @@ TEST_F(WeightPrefetchST, weight_prefetch_case4) {
 
       vector<int64_t> dst_offset;
       AttrUtils::GetListInt(op_desc, kAttrWeightPrefetchDstOffset, dst_offset);
-      vector<int64_t> exp_dst_offset = {10,20,30};
+      vector<int64_t> exp_dst_offset = {10, 20, 30};
       EXPECT_EQ(dst_offset, exp_dst_offset);
     }
     if (op_desc->GetType() == "Conv2D") {
@@ -393,7 +393,7 @@ TEST_F(WeightPrefetchST, weight_prefetch_case5) {
 
       vector<int64_t> dst_offset;
       AttrUtils::GetListInt(op_desc, kAttrWeightPrefetchDstOffset, dst_offset);
-      vector<int64_t> exp_dst_offset = {10,20,30};
+      vector<int64_t> exp_dst_offset = {10, 20, 30};
       EXPECT_EQ(dst_offset, exp_dst_offset);
     }
     if (op_desc->GetType() == "Conv2D") {
@@ -419,4 +419,4 @@ TEST_F(WeightPrefetchST, weight_prefetch_case5) {
     }
   }
 }
-}
+}  // namespace fe

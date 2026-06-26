@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -49,9 +49,15 @@ class BCast {
 
   /// @ingroup domi_calibration
   /// @brief get result_shape
-  const kVecInt &GetOutputShape() const { return output_; }
-  const kVecInt &GetGradXReduceIdx() const { return grad_x_reduce_idx_; }
-  const kVecInt &GetGradYReduceIdx() const { return grad_y_reduce_idx_; }
+  const kVecInt &GetOutputShape() const {
+    return output_;
+  }
+  const kVecInt &GetGradXReduceIdx() const {
+    return grad_x_reduce_idx_;
+  }
+  const kVecInt &GetGradYReduceIdx() const {
+    return grad_y_reduce_idx_;
+  }
 
   /// @ingroup domi_calibration
   /// @brief convert TensorDescriptor to kVecInt
@@ -72,15 +78,13 @@ class BCast {
     // Min input num is 2
     constexpr size_t kMinDimNum = 2U;
     if (input.size() < kMinDimNum) {
-      REPORT_INNER_ERR_MSG("E19999", "Param input.size():%zu < %zu, check invalid.",
-                         input.size(), kMinDimNum);
+      REPORT_INNER_ERR_MSG("E19999", "Param input.size():%zu < %zu, check invalid.", input.size(), kMinDimNum);
       GELOGE(domi::PARAM_INVALID, "Input size is smaller than two.");
       return domi::PARAM_INVALID;
     }
     // Only broadcast shape
-    ret =
-      GenerateBcastInfo(TransShapeToDimVec(input[0U]->GetTensorDesc()),
-                        TransShapeToDimVec(input[1U]->GetTensorDesc()));
+    ret = GenerateBcastInfo(TransShapeToDimVec(input[0U]->GetTensorDesc()),
+                            TransShapeToDimVec(input[1U]->GetTensorDesc()));
     if (ret != domi::SUCCESS) {
       GELOGE(ret, "Greater broadcasting failed.");
       return ret;
@@ -100,8 +104,8 @@ class BCast {
       const int64_t y_index = y_indexes[i];
       const InT *const ptr_x1 = reinterpret_cast<const InT *>(x1_data);
       const InT *const ptr_x2 = reinterpret_cast<const InT *>(x2_data);
-      const auto value = func(*(PtrAdd<const InT>(ptr_x1, x1_size, x_index)),
-                              *(PtrAdd<const InT>(ptr_x2, x2_size, y_index)));
+      const auto value =
+          func(*(PtrAdd<const InT>(ptr_x1, x1_size, x_index)), *(PtrAdd<const InT>(ptr_x2, x2_size, y_index)));
       v_output.push_back(value);
     }
 
@@ -119,15 +123,13 @@ class BCast {
     // Min input num is 2
     constexpr size_t kMinDimNum = 2U;
     if (input.size() < kMinDimNum) {
-      REPORT_INNER_ERR_MSG("E19999", "Param input.size():%zu < %zu, check invalid.",
-                         input.size(), kMinDimNum);
+      REPORT_INNER_ERR_MSG("E19999", "Param input.size():%zu < %zu, check invalid.", input.size(), kMinDimNum);
       GELOGE(PARAM_INVALID, "Input size is smaller than two.");
       return PARAM_INVALID;
     }
     // Only broadcast shape
-    Status ret =
-      GenerateBcastInfo(TransShapeToDimVec(input[0U]->GetTensorDesc()),
-                        TransShapeToDimVec(input[1U]->GetTensorDesc()));
+    Status ret = GenerateBcastInfo(TransShapeToDimVec(input[0U]->GetTensorDesc()),
+                                   TransShapeToDimVec(input[1U]->GetTensorDesc()));
     if (ret != SUCCESS) {
       GELOGE(ret, "Greater broadcasting failed.");
       return ret;
@@ -150,7 +152,7 @@ class BCast {
       const InT *const ptr_x2 = reinterpret_cast<const InT *>(x2_data);
       const auto value = func(*(PtrAdd<const InT>(ptr_x1, x1_size, x_index)),
                               *(PtrAdd<const InT>(ptr_x2, x2_size, y_index)), data_type, ret);
-      
+
       if (ret != SUCCESS) {
         REPORT_INNER_ERR_MSG("E19999", "BCastComputeCheck func execute failed, datatype is %d.", data_type);
         GELOGE(ret, "BCastComputeCheck func execute failed, datatype is %d.", data_type);

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -41,8 +41,8 @@ auto check = [](EsTensorHolder &t) {
 };
 
 template <typename T>
-void CheckConstTensorHolder(const EsTensorHolder &holder, const std::vector<T> &value,
-                            const std::vector<int64_t> &dims, ge::DataType dt, ge::Format format) {
+void CheckConstTensorHolder(const EsTensorHolder &holder, const std::vector<T> &value, const std::vector<int64_t> &dims,
+                            ge::DataType dt, ge::Format format) {
   ASSERT_NE(holder.GetCTensorHolder(), nullptr);
   ASSERT_NE(holder.GetProducer(), nullptr);
 
@@ -71,35 +71,33 @@ void CheckConstTensorHolder(const EsTensorHolder &holder, const std::vector<T> &
     EXPECT_EQ(tensor_data[i], value[i]);
   }
 }
-} // namespace
+}  // namespace
 class EsGraphBuilderLLT : public ::testing::Test {
-  protected:
-    void SetUp() override {
-    }
-    void TearDown() override {
-    }
+ protected:
+  void SetUp() override {}
+  void TearDown() override {}
 
-    void CreateTmpFileDir() {
-      temp_dir = GetTempDirectory() + "/binary_file_test";
-      file_path = temp_dir + "/test_binary.bin";
-      std::string command = "mkdir -p " + temp_dir;
-      (void) std::system(command.c_str());
-    }
+  void CreateTmpFileDir() {
+    temp_dir = GetTempDirectory() + "/binary_file_test";
+    file_path = temp_dir + "/test_binary.bin";
+    std::string command = "mkdir -p " + temp_dir;
+    (void)std::system(command.c_str());
+  }
 
-    void CleanTmpFileDir() {
-      std::string command = "rm -rf " + temp_dir;
-      (void) std::system(command.c_str());
-    }
+  void CleanTmpFileDir() {
+    std::string command = "rm -rf " + temp_dir;
+    (void)std::system(command.c_str());
+  }
 
-    void CreateBinaryFile(const std::vector<char> &data) {
-      std::ofstream file(file_path, std::ios::binary);
-      EXPECT_TRUE(file.is_open()) << "Failed to create file: " << file_path;
-      file.write(data.data(), data.size());
-      file.close();
-    }
+  void CreateBinaryFile(const std::vector<char> &data) {
+    std::ofstream file(file_path, std::ios::binary);
+    EXPECT_TRUE(file.is_open()) << "Failed to create file: " << file_path;
+    file.write(data.data(), data.size());
+    file.close();
+  }
 
-    std::string temp_dir;
-    std::string file_path;
+  std::string temp_dir;
+  std::string file_path;
 };
 
 TEST_F(EsGraphBuilderLLT, CreateTensorFromFileTest) {
@@ -217,9 +215,8 @@ TEST_F(EsGraphBuilderLLT, EsCreateConstV2) {
   std::vector<int32_t> value = {1, 2, 3, 4};
   std::vector<int64_t> dims = {2, 2};
 
-  auto *const_tensor = ge::es::EsCreateConstV2<int32_t>(graph, value.data(), dims.data(),
-                                                        static_cast<int64_t>(dims.size()), ge::DT_INT32,
-                                                        ge::FORMAT_NCHW);
+  auto *const_tensor = ge::es::EsCreateConstV2<int32_t>(
+      graph, value.data(), dims.data(), static_cast<int64_t>(dims.size()), ge::DT_INT32, ge::FORMAT_NCHW);
   CheckConstTensorHolder(EsTensorHolder(const_tensor), value, dims, ge::DT_INT32, ge::FORMAT_NCHW);
   EsDestroyGraphBuilder(graph);
 }

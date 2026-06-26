@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -40,8 +40,8 @@ TransOpUtil::TransOpUtil() {
   }
 
   // todo high precision to lower precision cause precision loss
-  // transop_without_reshape_fusion_pass should check precison loss along trans road
-  // currently if add high to lower precision loss may cause preformance problem
+  // transop_without_reshape_fusion_pass should check precision loss along trans road
+  // currently if add high to lower precision loss may cause performance problem
 }
 
 TransOpUtil &TransOpUtil::Instance() {
@@ -77,8 +77,8 @@ int32_t TransOpUtil::GetTransOpDataIndex(const std::string &type) {
 
 bool TransOpUtil::IsPrecisionLoss(const ge::NodePtr &cast_node) {
   const auto idx = TransOpUtil::GetTransOpDataIndex(cast_node);
-  const auto input_desc = cast_node->GetOpDesc()->GetInputDesc(static_cast<uint32_t> (idx));
-  const auto output_desc = cast_node->GetOpDesc()->GetOutputDesc(static_cast<uint32_t> (kTransOpOutIndex));
+  const auto input_desc = cast_node->GetOpDesc()->GetInputDesc(static_cast<uint32_t>(idx));
+  const auto output_desc = cast_node->GetOpDesc()->GetOutputDesc(static_cast<uint32_t>(kTransOpOutIndex));
   const auto src_dtype = input_desc.GetDataType();
   const auto dst_dtype = output_desc.GetDataType();
   // ge::DT_BOOL only supports 0/1 ?

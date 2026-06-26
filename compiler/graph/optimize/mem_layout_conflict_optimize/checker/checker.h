@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -52,7 +52,8 @@ struct GraphInfo {
   /*
    * 开启动态图和静态图复用为true，纯静态图虚拟地址不变化，但是物理地址会变化。
    * 静态图中有2种rts算子STREAMSWITCH/LABELSWITCHBYINDEX会使用物理地址，因此不支持地址刷新。
-   * 所以如果开启了动静态内存复用，需要将feature map分为2段，这3种算子的内存在feature map单独一段，其虚拟地址和物理地址不会变化。
+   * 所以如果开启了动静态内存复用，需要将feature map分为2段，这3种算子的内存在feature
+   * map单独一段，其虚拟地址和物理地址不会变化。
    */
   bool is_physical_memory_refreshable;
 };
@@ -74,14 +75,21 @@ struct CheckerFunc {
               std::function<Status(CheckFuncContext &)> function, bool as_symblol = false)
       : type_a_(type_a), type_b_(type_b), func_(function), call_as_symbol_(as_symblol) {}
 
-  std::function<Status(CheckFuncContext &)> GetFunc() const { return func_; }
-  void SetCallAsSymbol() { call_as_symbol_ = true; }
-  bool IsCallAsSymbol() const { return call_as_symbol_; }
+  std::function<Status(CheckFuncContext &)> GetFunc() const {
+    return func_;
+  }
+  void SetCallAsSymbol() {
+    call_as_symbol_ = true;
+  }
+  bool IsCallAsSymbol() const {
+    return call_as_symbol_;
+  }
 
   AnchorAttribute type_a_;
   AnchorAttribute type_b_;
   std::function<Status(CheckFuncContext &)> func_;
-  bool call_as_symbol_; // 默认是将symbol中anchor两两组合调用checker函数，as_symbol为true表示按照symbol调用该checker函数，一个symbol调用一次
+  bool
+      call_as_symbol_;  // 默认是将symbol中anchor两两组合调用checker函数，as_symbol为true表示按照symbol调用该checker函数，一个symbol调用一次
 };
 
 std::set<std::pair<AnchorAttribute, AnchorAttribute>> RegAllAbsoluteConflict();
@@ -94,9 +102,8 @@ static inline void RegAbsoluteSet(AnchorAttribute type_a, AnchorAttribute type_b
   set.emplace(type_b, type_a);
 }
 
-inline bool IsInAbsoluteSet(const AnchorAttribute &type_a,
-                                   const AnchorAttribute &type_b,
-                                   const std::set<std::pair<AnchorAttribute, AnchorAttribute>> &set) {
+inline bool IsInAbsoluteSet(const AnchorAttribute &type_a, const AnchorAttribute &type_b,
+                            const std::set<std::pair<AnchorAttribute, AnchorAttribute>> &set) {
   return set.find({type_a, type_b}) != set.cend();
 }
 
@@ -116,16 +123,13 @@ class Checker {
 
   const SmallVector<AnchorAttribute, ATTR_BIT_MAX_LEN> &GetTypes(const ge::NodeIndexIO &node) const;
 
-  Status CheckConditionConflict(const AnchorAttribute &type_a,
-                                const AnchorAttribute &type_b,
+  Status CheckConditionConflict(const AnchorAttribute &type_a, const AnchorAttribute &type_b,
                                 CheckFuncContext &context) const;
 
   Status CheckConflict(CheckFuncContext &context, std::vector<vector_bit_t> &visit_flag) const;
 
-  Status CheckConditionConflictAsSymbol(const AnchorAttribute &type_a,
-                                        const AnchorAttribute &type_b,
-                                        CheckFuncContext &context,
-                                        std::vector<vector_bit_t> &visit_flag) const;
+  Status CheckConditionConflictAsSymbol(const AnchorAttribute &type_a, const AnchorAttribute &type_b,
+                                        CheckFuncContext &context, std::vector<vector_bit_t> &visit_flag) const;
 
   bool CheckNoConflict(const AnchorAttribute &type_a, const AnchorAttribute &type_b) const;
 
@@ -134,6 +138,7 @@ class Checker {
   bool IsSkip(CheckFuncContext &context) const;
 
   static const std::map<AnchorAttribute, std::string> kAnchorTypeStr;
+
  private:
   std::vector<vector<CheckerFunc *>> checkers_;
   std::set<std::pair<AnchorAttribute, AnchorAttribute>> absolute_conflict_set_;

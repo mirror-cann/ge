@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -77,7 +77,7 @@ ge::Status KernelTaskProducer::Prepare(const void *execution_data) {
       continue;
     }
 
-    std::priority_queue<ExecTask *, std::vector<ExecTask*>, ExecTaskCompare> priority_task_queue;
+    std::priority_queue<ExecTask *, std::vector<ExecTask *>, ExecTaskCompare> priority_task_queue;
     for (size_t j = 0U; j < watchers->watch_num; j++) {
       auto watch_id = watchers->node_ids[j];
       priority_task_queue.push(all_tasks_[watch_id]);
@@ -266,8 +266,7 @@ void KernelTaskProducer::CollectChain(const Node *node) {
   auto &task = all_tasks_[node_id];
   task->SetTaskId(ordered_task_id_++);
   priority_task_queue_.push(task);
-  GELOGD("priority q push node: %s",
-         reinterpret_cast<const ExtendedKernelContext *>(&node->context)->GetKernelName());
+  GELOGD("priority q push node: %s", reinterpret_cast<const ExtendedKernelContext *>(&node->context)->GetKernelName());
   has_generate_task_num_++;
 
   if (task->IsGenWatcherAfterExecute()) {

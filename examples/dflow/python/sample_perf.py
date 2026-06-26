@@ -2,22 +2,23 @@
 # -*- coding: utf-8 -*-
 # ----------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # ----------------------------------------------------------------------------
 
-import dataflow as df
 import time
+
+import dataflow as df
 
 # dataflow 初始化参数设置
 options = {
     "ge.exec.deviceId": "0",
     "ge.exec.logicalDeviceClusterDeployMode": "SINGLE",
-    "ge.exec.logicalDeviceId": "[0:0]"
+    "ge.exec.logicalDeviceId": "[0:0]",
 }
 df.init(options)
 
@@ -26,7 +27,7 @@ data0 = df.FlowData()
 data1 = df.FlowData()
 
 # 定义FuncProcessPoint
-pp0 = df.FuncProcessPoint(compile_config_path='config/add_func.json')
+pp0 = df.FuncProcessPoint(compile_config_path="config/add_func.json")
 pp0.set_init_param("out_type", df.DT_INT32)
 
 # 创建计算节点

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,7 +28,7 @@ class DataFlowGraphTest : public Test {
  protected:
   static void SetUpTestSuite() {
     std::string cmd = "mkdir -p temp; cd temp; touch libtest.so";
-    (void) system(cmd.c_str());
+    (void)system(cmd.c_str());
     std::ofstream cmakefile("./temp/CMakeLists.txt");
     {
       cmakefile << "cmake_minimum_required(VERSION 3.5)\n";
@@ -46,7 +46,7 @@ class DataFlowGraphTest : public Test {
   }
   static void TearDownTestSuite() {
     std::string cmd = "rm -rf temp";
-    (void) system(cmd.c_str());
+    (void)system(cmd.c_str());
   }
   void SetUp() override {
     {
@@ -57,8 +57,7 @@ class DataFlowGraphTest : public Test {
           R"({"cluster":[{"cluster_nodes":[{"is_local":true, "item_list":[{"item_id":0}], "node_id":0, "node_type":"TestNodeType1"}]}],"item_def":[{"aic_type":"[DAVINCI_V100:10]","item_type":"","memory":"[DDR:80GB]","resource_type":"Ascend"}],"node_def":[{"item_type":"","links_mode":"TCP:128Gb","node_type":"TestNodeType1","resource_type":"X86","support_links":"[ROCE]"}]})";
     }
   }
-  void TearDown() override {
-  }
+  void TearDown() override {}
 };
 
 TEST_F(DataFlowGraphTest, Initialize_SUCCESS) {

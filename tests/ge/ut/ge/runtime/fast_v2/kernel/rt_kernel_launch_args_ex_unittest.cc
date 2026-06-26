@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -80,12 +80,12 @@ TEST_F(RtKernelLaunchArgsExUT, CreateWithDyInOk) {
   auto node_desc_holder = malloc(compiled_args_size + sizeof(ComputeNodeDesc));
   auto node_desc = static_cast<ComputeNodeDesc *>(node_desc_holder);
   *node_desc = {.input_num = 1,
-      .output_num = 1,
-      .workspace_cap = 8,
-      .max_tiling_data = 128,
-      .need_shape_buffer = false,
-      .need_overflow = false,
-      .compiled_args_size = compiled_args_size};
+                .output_num = 1,
+                .workspace_cap = 8,
+                .max_tiling_data = 128,
+                .need_shape_buffer = false,
+                .need_overflow = false,
+                .compiled_args_size = compiled_args_size};
   auto args_info_desc_holder = CreateDefaultArgsInfoDesc(node_desc->input_num, node_desc->output_num);
   auto args_info_desc = reinterpret_cast<ArgsInfosDesc *>(args_info_desc_holder.get());
   auto arg_info = reinterpret_cast<ArgsInfosDesc::ArgsInfo *>(args_info_desc->MutableArgsInfoBase());
@@ -115,16 +115,26 @@ TEST_F(RtKernelLaunchArgsExUT, OffsetCalcCorrect) {
   auto holder = RtKernelLaunchArgsEx::Create(*node_desc, *args_info_desc);
   ASSERT_NE(holder, nullptr);
   auto args = reinterpret_cast<RtKernelLaunchArgsEx *>(holder.get());
-  EXPECT_EQ(GetOffset(args->GetArgBase(), args->GetArgsPointer<void>(RtKernelLaunchArgsEx::ArgsType::kArgsCompiledArgs)), 0);
-  EXPECT_EQ(GetOffset(args->GetArgBase(), args->GetArgsPointer<void>(RtKernelLaunchArgsEx::ArgsType::kArgsInputsAddr)), 64);
-  EXPECT_EQ(GetOffset(args->GetArgBase(), args->GetArgsPointer<void>(RtKernelLaunchArgsEx::ArgsType::kArgsOutputsAddr)), 72);
-  EXPECT_EQ(GetOffset(args->GetArgBase(), args->GetArgsPointer<void>(RtKernelLaunchArgsEx::ArgsType::kWorkspacesAddr)), 80);
-  EXPECT_EQ(GetOffset(args->GetArgBase(), args->GetArgsPointer<void>(RtKernelLaunchArgsEx::ArgsType::kShapeBufferAddr)), 80);
-  EXPECT_EQ(GetOffset(args->GetArgBase(), args->GetArgsPointer<void>(RtKernelLaunchArgsEx::ArgsType::kTilingDataAddr)), 144);
-  EXPECT_EQ(GetOffset(args->GetArgBase(), args->GetArgsPointer<void>(RtKernelLaunchArgsEx::ArgsType::kOverflowAddr)), 152);
-  EXPECT_EQ(GetOffset(args->GetArgBase(), args->GetArgsPointer<void>(RtKernelLaunchArgsEx::ArgsType::kTilingData)), 152);
-  EXPECT_EQ(GetOffset(args->GetArgBase(), args->GetArgsPointer<void>(RtKernelLaunchArgsEx::ArgsType::kHostInputData)), 344);
-  EXPECT_EQ(GetOffset(args->GetArgBase(), args->GetArgsPointer<void>(RtKernelLaunchArgsEx::ArgsType::kArgsTypeEnd)), 512);
+  EXPECT_EQ(
+      GetOffset(args->GetArgBase(), args->GetArgsPointer<void>(RtKernelLaunchArgsEx::ArgsType::kArgsCompiledArgs)), 0);
+  EXPECT_EQ(GetOffset(args->GetArgBase(), args->GetArgsPointer<void>(RtKernelLaunchArgsEx::ArgsType::kArgsInputsAddr)),
+            64);
+  EXPECT_EQ(GetOffset(args->GetArgBase(), args->GetArgsPointer<void>(RtKernelLaunchArgsEx::ArgsType::kArgsOutputsAddr)),
+            72);
+  EXPECT_EQ(GetOffset(args->GetArgBase(), args->GetArgsPointer<void>(RtKernelLaunchArgsEx::ArgsType::kWorkspacesAddr)),
+            80);
+  EXPECT_EQ(GetOffset(args->GetArgBase(), args->GetArgsPointer<void>(RtKernelLaunchArgsEx::ArgsType::kShapeBufferAddr)),
+            80);
+  EXPECT_EQ(GetOffset(args->GetArgBase(), args->GetArgsPointer<void>(RtKernelLaunchArgsEx::ArgsType::kTilingDataAddr)),
+            144);
+  EXPECT_EQ(GetOffset(args->GetArgBase(), args->GetArgsPointer<void>(RtKernelLaunchArgsEx::ArgsType::kOverflowAddr)),
+            152);
+  EXPECT_EQ(GetOffset(args->GetArgBase(), args->GetArgsPointer<void>(RtKernelLaunchArgsEx::ArgsType::kTilingData)),
+            152);
+  EXPECT_EQ(GetOffset(args->GetArgBase(), args->GetArgsPointer<void>(RtKernelLaunchArgsEx::ArgsType::kHostInputData)),
+            344);
+  EXPECT_EQ(GetOffset(args->GetArgBase(), args->GetArgsPointer<void>(RtKernelLaunchArgsEx::ArgsType::kArgsTypeEnd)),
+            512);
 
   EXPECT_EQ(args->GetArgsCap(RtKernelLaunchArgsEx::ArgsType::kArgsCompiledArgs), 64);
   EXPECT_EQ(args->GetArgsCap(RtKernelLaunchArgsEx::ArgsType::kArgsInputsAddr), 8);
@@ -178,7 +188,8 @@ TEST_F(RtKernelLaunchArgsExUT, SetIoAddr) {
   auto holder = RtKernelLaunchArgsEx::Create(*node_desc, *args_info_desc);
   ASSERT_NE(holder, nullptr);
   auto args = reinterpret_cast<RtKernelLaunchArgsEx *>(holder.get());
-  args->GetBase()->argsSize = args->GetArgsOffset(RtKernelLaunchArgsEx::ArgsType::kHostInputData) + args->GetHostInputDataSize();
+  args->GetBase()->argsSize =
+      args->GetArgsOffset(RtKernelLaunchArgsEx::ArgsType::kHostInputData) + args->GetHostInputDataSize();
   EXPECT_EQ(args->SetIoAddr(0 * sizeof(TensorAddress), (void *)1024), ge::GRAPH_SUCCESS);
   EXPECT_EQ(args->SetIoAddr(1 * sizeof(TensorAddress), (void *)2048), ge::GRAPH_SUCCESS);
 
@@ -200,7 +211,8 @@ TEST_F(RtKernelLaunchArgsExUT, SetIoAddrMultipleInputs) {
   auto holder = RtKernelLaunchArgsEx::Create(node_desc, *args_info_desc);
   ASSERT_NE(holder, nullptr);
   auto args = reinterpret_cast<RtKernelLaunchArgsEx *>(holder.get());
-  args->GetBase()->argsSize = args->GetArgsOffset(RtKernelLaunchArgsEx::ArgsType::kHostInputData) + args->GetHostInputDataSize();
+  args->GetBase()->argsSize =
+      args->GetArgsOffset(RtKernelLaunchArgsEx::ArgsType::kHostInputData) + args->GetHostInputDataSize();
   EXPECT_EQ(args->SetIoAddr(0 * sizeof(TensorAddress), (void *)1024), ge::GRAPH_SUCCESS);
   EXPECT_EQ(args->SetIoAddr(1 * sizeof(TensorAddress), (void *)2048), ge::GRAPH_SUCCESS);
   EXPECT_EQ(args->SetIoAddr(2 * sizeof(TensorAddress), (void *)4096), ge::GRAPH_SUCCESS);
@@ -266,12 +278,12 @@ TEST_F(RtKernelLaunchArgsExUT, OutputsRefOk) {
   auto node_desc_holder = ComputeNodeDesc::Create(compiled_args_size, total_size);
   auto node_desc = reinterpret_cast<ComputeNodeDesc *>(node_desc_holder.get());
   *node_desc = {.input_num = 1,
-      .output_num = 1,
-      .workspace_cap = 8,
-      .max_tiling_data = 128,
-      .need_shape_buffer = false,
-      .need_overflow = false,
-      .compiled_args_size = compiled_args_size};
+                .output_num = 1,
+                .workspace_cap = 8,
+                .max_tiling_data = 128,
+                .need_shape_buffer = false,
+                .need_overflow = false,
+                .compiled_args_size = compiled_args_size};
   auto ext_node_desc_holder = CreateDefaultArgsInfoDesc(node_desc->input_num, node_desc->output_num);
   auto context_holder = KernelRunContextFaker()
                             .KernelIONum(2, static_cast<size_t>(AllocLaunchArgOutputs::kNum))

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -57,12 +57,12 @@ TEST_F(CannTraceProfilerUT, CannTracingProfiler_test_ok) {
   // build fake ai core launch node
   auto block_dims = 32;
   auto context = gert::KernelRunContextFaker()
-      .NodeName("test1")
-      .NodeType("test1")
-      .KernelType("LaunchKernelWithHandle")
-      .KernelName("LaunchKernelWithHandle")
-      .KernelIONum(3, 1)
-      .Build();
+                     .NodeName("test1")
+                     .NodeType("test1")
+                     .KernelType("LaunchKernelWithHandle")
+                     .KernelName("LaunchKernelWithHandle")
+                     .KernelIONum(3, 1)
+                     .Build();
 
   size_t size = sizeof(Node) + sizeof(AsyncAnyValue *) * 4;
   Node *launch_node = (Node *)malloc(size);
@@ -86,8 +86,8 @@ TEST_F(CannTraceProfilerUT, CannTracingProfiler_test_ok) {
   gert::SubscriberExtendInfo extend_info;
   extend_info.executor = model_executor.get();
   extend_info.node_names_to_attrs["test1"] = {true, false, 20002};
-  auto profiler = model_executor->GetSubscribers().AddSubscriber<gert::CannTracingProfiler>(gert::kMainExeGraph,
-                                                                                      extend_info);
+  auto profiler =
+      model_executor->GetSubscribers().AddSubscriber<gert::CannTracingProfiler>(gert::kMainExeGraph, extend_info);
   gert::CannTracingProfiler::OnExecuteEvent(0, profiler, kExecuteStart, launch_node, 0);
   gert::CannTracingProfiler::OnExecuteEvent(0, profiler, kExecuteEnd, launch_node, 0);
   for (const auto &attr : profiler->node_ids_to_attrs_) {
@@ -97,8 +97,8 @@ TEST_F(CannTraceProfilerUT, CannTracingProfiler_test_ok) {
   }
 
   extend_info.node_names_to_attrs["test1"] = {true, true, 20000};
-  profiler = model_executor->GetSubscribers().AddSubscriber<gert::CannTracingProfiler>(gert::kMainExeGraph,
-                                                                                 extend_info);
+  profiler =
+      model_executor->GetSubscribers().AddSubscriber<gert::CannTracingProfiler>(gert::kMainExeGraph, extend_info);
   gert::CannTracingProfiler::OnExecuteEvent(0, profiler, kExecuteStart, launch_node, 0);
   gert::CannTracingProfiler::OnExecuteEvent(0, profiler, kExecuteEnd, launch_node, 0);
   for (const auto &attr : profiler->node_ids_to_attrs_) {
@@ -108,8 +108,8 @@ TEST_F(CannTraceProfilerUT, CannTracingProfiler_test_ok) {
   }
 
   extend_info.node_names_to_attrs["test1"] = {true, true, -1};
-  profiler = model_executor->GetSubscribers().AddSubscriber<gert::CannTracingProfiler>(gert::kMainExeGraph,
-                                                                                 extend_info);
+  profiler =
+      model_executor->GetSubscribers().AddSubscriber<gert::CannTracingProfiler>(gert::kMainExeGraph, extend_info);
   gert::CannTracingProfiler::OnExecuteEvent(0, profiler, kExecuteStart, launch_node, 0);
   gert::CannTracingProfiler::OnExecuteEvent(0, profiler, kExecuteEnd, launch_node, 0);
   for (const auto &attr : profiler->node_ids_to_attrs_) {
@@ -128,8 +128,8 @@ TEST_F(CannTraceProfilerUT, CannTracingProfiler_test_execution_data_null) {
   gert::SubscriberExtendInfo extend_info;
   extend_info.executor = &model_executor;
   extend_info.node_names_to_attrs["test1"] = {true, false, 20002};
-  auto profiler = model_executor.GetSubscribers().AddSubscriber<gert::CannTracingProfiler>(gert::kMainExeGraph,
-                                                                                            extend_info);
+  auto profiler =
+      model_executor.GetSubscribers().AddSubscriber<gert::CannTracingProfiler>(gert::kMainExeGraph, extend_info);
   EXPECT_NE(profiler, nullptr);
 }
 
@@ -153,7 +153,7 @@ TEST_F(CannTraceProfilerUT, CannTracingProfiler_test_extend_info_null) {
   gert::SubscriberExtendInfo extend_info;
   extend_info.executor = model_executor.get();
   extend_info.node_names_to_attrs["test1"] = {true, false, 20002};
-  auto profiler = model_executor->GetSubscribers().AddSubscriber<gert::CannTracingProfiler>(gert::kMainExeGraph,
-                                                                                            extend_info);
+  auto profiler =
+      model_executor->GetSubscribers().AddSubscriber<gert::CannTracingProfiler>(gert::kMainExeGraph, extend_info);
   EXPECT_NE(profiler, nullptr);
 }

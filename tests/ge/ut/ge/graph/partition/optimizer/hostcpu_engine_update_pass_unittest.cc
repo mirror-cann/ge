@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -71,13 +71,13 @@ void SetShapeRangeNoStorage(const ge::OpDescPtr &op_desc, std::initializer_list<
  *  reshape
  *    |     \
  *    |      nonzero
- *    |       \ 
+ *    |       \
  *    |      concat
- *    |     /      \ 
+ *    |     /      \
  *    | unsqueeze1  unsqueeze2
  *    |    |          |
  *    |  gather1     gather2
- *    |    |   \      |   \ 
+ *    |    |   \      |   \
  *    |    |  const1  |  const2
  *    |    |          |
  *    |  shape1      shape2
@@ -127,7 +127,7 @@ ComputeGraphPtr BuildGraph1() {
  *                                       netoutput
  *                                           |
  *             netoutput                   split
- *                |                          |   \ 
+ *                |                          |   \
  *       partitionedcall2     netoutput      |   shape
  *             /       \          |          |      |
  *  partitionedcall1   data1    const       data1   data2
@@ -137,22 +137,14 @@ ComputeGraphPtr BuildGraph2() {
     CHAIN(NODE("partitionedcall1", "PartitionedCall")
               ->NODE("partitionedcall2", "PartitionedCall")
               ->NODE("netoutput", "NetOutput"));
-    CHAIN(NODE("data1", "Data")
-              ->EDGE(0, 1)
-              ->NODE("partitionedcall2", "PartitionedCall"));
+    CHAIN(NODE("data1", "Data")->EDGE(0, 1)->NODE("partitionedcall2", "PartitionedCall"));
   };
   DEF_GRAPH(g3) {
-    CHAIN(NODE("const", "Const")
-              ->NODE("netoutput", "NetOutput"));
+    CHAIN(NODE("const", "Const")->NODE("netoutput", "NetOutput"));
   };
   DEF_GRAPH(g4) {
-    CHAIN(NODE("data1", "Data")
-              ->NODE("split", "Split")
-              ->NODE("netoutput", "NetOutput"));
-    CHAIN(NODE("data2", "Data")
-              ->NODE("shape", "Shape")
-              ->EDGE(0, 1)
-              ->NODE("split", "Split"));
+    CHAIN(NODE("data1", "Data")->NODE("split", "Split")->NODE("netoutput", "NetOutput"));
+    CHAIN(NODE("data2", "Data")->NODE("shape", "Shape")->EDGE(0, 1)->NODE("split", "Split"));
   };
   auto graph = ToComputeGraph(g2);
   graph->SetGraphUnknownFlag(true);
@@ -199,9 +191,9 @@ ComputeGraphPtr BuildGraph2() {
 
 /**
  *      netoutput                              netoutput
- *         |                                     /  \ 
+ *         |                                     /  \
  *      while_op                              mul    value_data
- *       |     \                              | \ 
+ *       |     \                              | \
  *     shape    \            netoutput        | one_tensor
  *       |       \               |            |
  *  cond_data   value_data   cond_data   cond_data
@@ -218,7 +210,8 @@ ComputeGraphPtr BuildWhileGraph() {
     auto value_data = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 1).TensorDesc(FORMAT_ND, DT_FLOAT, {1});
     auto const_data = OP_CFG(CONSTANT).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {});
     auto mul = OP_CFG(MUL).InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {});
-    auto net_output = OP_CFG(NETOUTPUT).InCnt(2).OutCnt(2).TensorDesc(FORMAT_ND, DT_FLOAT, {1}).Build("body_Node_Output");
+    auto net_output =
+        OP_CFG(NETOUTPUT).InCnt(2).OutCnt(2).TensorDesc(FORMAT_ND, DT_FLOAT, {1}).Build("body_Node_Output");
 
     CHAIN(NODE("body_arg_0", cond_data)->NODE("mul", mul)->NODE(net_output));
     CHAIN(NODE("one_tensor", const_data)->NODE("mul", mul));
@@ -275,18 +268,14 @@ ComputeGraphPtr BuildWhileGraph() {
 /**
  *           netoutput
  *               |
- *            mapindex                             
+ *            mapindex
  *            /      \
  *        data       const
  */
 ComputeGraphPtr BuildGraphMapIndex() {
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data", "Data")
-              ->NODE("mapindex", "MapIndex")
-              ->NODE("netoutput", "NetOutput"));
-    CHAIN(NODE("const", "Const")
-              ->EDGE(0, 1)
-              ->NODE("mapindex", "MapIndex"));
+    CHAIN(NODE("data", "Data")->NODE("mapindex", "MapIndex")->NODE("netoutput", "NetOutput"));
+    CHAIN(NODE("const", "Const")->EDGE(0, 1)->NODE("mapindex", "MapIndex"));
   };
 
   auto sub_graph2 = ToComputeGraph(g1);
@@ -300,7 +289,7 @@ ComputeGraphPtr BuildGraphMapIndex() {
   return sub_graph2;
 }
 
-} // namespace
+}  // namespace
 class UtestHostcpuEngineUpdatePass : public Test {
  public:
   void SetUp() {
@@ -311,7 +300,7 @@ class UtestHostcpuEngineUpdatePass : public Test {
     OpInfo aicore_op_info;
     aicore_op_info.engine = "AIcoreEngine";
     aicore_op_info.opKernelLib = "AIcoreEngine";
-  
+
     OpInfo gelocal_op_info;
     gelocal_op_info.engine = "DNN_VM_GE_LOCAL_OP_STORE";
     gelocal_op_info.opKernelLib = "DNN_VM_GE_LOCAL_OP_STORE";
@@ -374,7 +363,7 @@ TEST_F(UtestHostcpuEngineUpdatePass, TestSucc) {
   EXPECT_EQ(node_atomic_engine_map[graph->FindNode("gather1")], "DNN_VM_HOST_CPU");
   EXPECT_EQ(node_composite_engine_map[graph->FindNode("gather1")], "DNN_VM_HOST_CPU");
   bool is_small_shape = false;
-  (void)ge::AttrUtils::GetBool(graph->FindNode("gather1")->GetOpDesc(),  "SmallShapeHostcpu", is_small_shape);
+  (void)ge::AttrUtils::GetBool(graph->FindNode("gather1")->GetOpDesc(), "SmallShapeHostcpu", is_small_shape);
   EXPECT_EQ(is_small_shape, true);
 
   EXPECT_EQ(graph->FindNode("gather2")->GetOpDesc()->GetOpKernelLibName(), "DNN_VM_HOST_CPU_OP_STORE");
@@ -382,7 +371,7 @@ TEST_F(UtestHostcpuEngineUpdatePass, TestSucc) {
   EXPECT_EQ(node_atomic_engine_map[graph->FindNode("gather2")], "DNN_VM_HOST_CPU");
   EXPECT_EQ(node_composite_engine_map[graph->FindNode("gather2")], "DNN_VM_HOST_CPU");
   is_small_shape = false;
-  (void)ge::AttrUtils::GetBool(graph->FindNode("gather2")->GetOpDesc(),  "SmallShapeHostcpu", is_small_shape);
+  (void)ge::AttrUtils::GetBool(graph->FindNode("gather2")->GetOpDesc(), "SmallShapeHostcpu", is_small_shape);
   EXPECT_EQ(is_small_shape, true);
 
   EXPECT_EQ(graph->FindNode("concat")->GetOpDesc()->GetOpKernelLibName(), "DNN_VM_HOST_CPU_OP_STORE");
@@ -390,7 +379,7 @@ TEST_F(UtestHostcpuEngineUpdatePass, TestSucc) {
   EXPECT_EQ(node_atomic_engine_map[graph->FindNode("concat")], "DNN_VM_HOST_CPU");
   EXPECT_EQ(node_composite_engine_map[graph->FindNode("concat")], "DNN_VM_HOST_CPU");
   is_small_shape = false;
-  (void)ge::AttrUtils::GetBool(graph->FindNode("concat")->GetOpDesc(),  "SmallShapeHostcpu", is_small_shape);
+  (void)ge::AttrUtils::GetBool(graph->FindNode("concat")->GetOpDesc(), "SmallShapeHostcpu", is_small_shape);
   EXPECT_EQ(is_small_shape, true);
 
   auto graph2 = BuildGraph2();
@@ -432,7 +421,7 @@ TEST_F(UtestHostcpuEngineUpdatePass, TestOolevelSucc) {
   setenv("ENABLE_RUNTIME_V2", "1", 1);
   std::map<std::string, std::string> ge_options = {{ge::OO_LEVEL, "O1"}};
   const std::unordered_map<std::string, OoInfo> &registered_opt_table =
-    ge::OptionRegistry::GetInstance().GetRegisteredOptTable();
+      ge::OptionRegistry::GetInstance().GetRegisteredOptTable();
   ge::GetThreadLocalContext().GetOo().Initialize(ge_options, registered_opt_table);
   auto graph = BuildGraph1();
   EXPECT_NE(graph, nullptr);
@@ -469,4 +458,4 @@ TEST_F(UtestHostcpuEngineUpdatePass, TestOolevelSucc) {
   unsetenv("ENABLE_RUNTIME_V2");
 }
 
-} // namespace ge
+}  // namespace ge

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,7 +26,9 @@ class UtestGraphPassesVariableRefDeletePass : public testing::Test {
 
 class NodeBuilder {
  public:
-  NodeBuilder(const std::string &name, const std::string &type) { op_desc_ = std::make_shared<OpDesc>(name, type); }
+  NodeBuilder(const std::string &name, const std::string &type) {
+    op_desc_ = std::make_shared<OpDesc>(name, type);
+  }
 
   NodeBuilder &AddInputDesc(std::initializer_list<int64_t> shape, ge::Format format = FORMAT_NCHW,
                             ge::DataType data_type = DT_FLOAT) {
@@ -40,7 +42,9 @@ class NodeBuilder {
     return *this;
   }
 
-  ge::NodePtr Build(const ge::ComputeGraphPtr &graph) { return graph->AddNode(op_desc_); }
+  ge::NodePtr Build(const ge::ComputeGraphPtr &graph) {
+    return graph->AddNode(op_desc_);
+  }
 
  private:
   ge::GeTensorDescPtr CreateTensorDesc(std::initializer_list<int64_t> shape, ge::Format format = FORMAT_NCHW,
@@ -102,8 +106,10 @@ TEST_F(UtestGraphPassesVariableRefDeletePass, variable_ref_delete_pass_succ1) {
 
 TEST_F(UtestGraphPassesVariableRefDeletePass, variable_ref_delete_pass_succ2) {
   DEF_GRAPH(g1) {
-    CHAIN(NODE("variable", VARIABLE)->NODE("PartitionedCall_0", PARTITIONEDCALL)->NODE("variable_ref", VARIABLE)->
-          NODE("Output", NETOUTPUT));
+    CHAIN(NODE("variable", VARIABLE)
+              ->NODE("PartitionedCall_0", PARTITIONEDCALL)
+              ->NODE("variable_ref", VARIABLE)
+              ->NODE("Output", NETOUTPUT));
     CHAIN(NODE("data", DATA)->NODE("PartitionedCall_0"));
   };
   ComputeGraphPtr graph = ToComputeGraph(g1);
@@ -222,9 +228,9 @@ TEST_F(UtestGraphPassesVariableRefDeletePass, variable_ref_delete_pass_fail2) {
 TEST_F(UtestGraphPassesVariableRefDeletePass, refdata_ref_delete_pass_succ1) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   ge::NodePtr refdata_node = NodeBuilder("refdata", "RefData")
-                                  .AddInputDesc({2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT)
-                                  .AddOutputDesc({2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT)
-                                  .Build(graph);
+                                 .AddInputDesc({2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT)
+                                 .AddOutputDesc({2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT)
+                                 .Build(graph);
 
   ge::NodePtr const_node = NodeBuilder("const", CONSTANT)
                                .AddInputDesc({2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT)
@@ -237,9 +243,9 @@ TEST_F(UtestGraphPassesVariableRefDeletePass, refdata_ref_delete_pass_succ1) {
                                       .Build(graph);
 
   ge::NodePtr refdata_ref_node = NodeBuilder("refdata_ref", "RefData")
-                                      .AddInputDesc({2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT)
-                                      .AddOutputDesc({2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT)
-                                      .Build(graph);
+                                     .AddInputDesc({2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT)
+                                     .AddOutputDesc({2, 16, 2, 2}, FORMAT_NHWC, DT_FLOAT)
+                                     .Build(graph);
 
   std::string ref_var_src_var_name = "refdata";
   ge::AttrUtils::SetStr(refdata_ref_node->GetOpDesc(), REF_VAR_SRC_VAR_NAME, ref_var_src_var_name);

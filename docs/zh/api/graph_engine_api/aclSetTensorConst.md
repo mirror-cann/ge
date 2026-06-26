@@ -72,4 +72,3 @@ aclError aclSetTensorConst(aclTensorDesc *desc, void *dataBuffer, size_t length)
 ## 返回值说明<a name="section21631444261"></a>
 
 返回0表示成功，返回其他值表示失败，请参见[aclError](aclError.md)。
-

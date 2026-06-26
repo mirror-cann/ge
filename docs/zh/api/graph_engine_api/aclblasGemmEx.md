@@ -242,4 +242,3 @@ aclrtStream stream)
 ## 返回值说明<a name="section14132145124818"></a>
 
 返回0表示成功，返回其他值表示失败，请参见[aclError](aclError.md)。
-

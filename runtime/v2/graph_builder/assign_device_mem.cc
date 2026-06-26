@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,14 +28,13 @@ void PrepareForWeightSink(LoweringGlobalData &global_data) {
   GELOGD("RequireSize[%zu]", require_weight_size);
   auto required_mem = [&require_weight_size]() -> std::vector<bg::ValueHolderPtr> {
     return bg::FrameSelector::OnInitRoot([&require_weight_size]() -> std::vector<bg::ValueHolderPtr> {
-      auto required_size_holder = bg::ValueHolder::CreateConst(
-          &require_weight_size, sizeof(require_weight_size));
+      auto required_size_holder = bg::ValueHolder::CreateConst(&require_weight_size, sizeof(require_weight_size));
       return {required_size_holder};
     });
   };
   (void)global_data.GetOrCreateUniqueValueHolder("RequireSize", required_mem);
 }
-} // namespace
+}  // namespace
 
 bg::ValueHolderPtr AssignDeviceMem::GetBaseWeightAddr(LoweringGlobalData &global_data) {
   PrepareForWeightSink(global_data);
@@ -54,8 +53,8 @@ bg::ValueHolderPtr AssignDeviceMem::GetBaseWeightAddr(LoweringGlobalData &global
 bg::ValueHolderPtr AssignDeviceMem::GetOrCreateMemAssigner(LoweringGlobalData &global_data) {
   auto mem_assinger_holder_creator = [&global_data]() -> std::vector<bg::ValueHolderPtr> {
     return bg::FrameSelector::OnInitRoot([&global_data]() -> std::vector<bg::ValueHolderPtr> {
-        auto device_mem_holder = bg::HolderOnInit(GetBaseWeightAddr(global_data));
-        return {bg::ValueHolder::CreateSingleDataOutput("CreateMemAssigner", {device_mem_holder})};
+      auto device_mem_holder = bg::HolderOnInit(GetBaseWeightAddr(global_data));
+      return {bg::ValueHolder::CreateSingleDataOutput("CreateMemAssigner", {device_mem_holder})};
     });
   };
   return global_data.GetOrCreateUniqueValueHolder("CreateMemAssigner", mem_assinger_holder_creator)[0];
@@ -84,7 +83,7 @@ bg::ValueHolderPtr AssignDeviceMem::GetOrCreateMemAssigner(LoweringGlobalData &g
                      │SinkWeightData│
                      └──────────────┘
 */
-ge::graphStatus SinkWeightData(const ge::Node* const_node, LoweringGlobalData &global_data, ge::DataType data_type,
+ge::graphStatus SinkWeightData(const ge::Node *const_node, LoweringGlobalData &global_data, ge::DataType data_type,
                                const OutputLowerResult &src, int64_t dst_logic_stream_id, OutputLowerResult &dst) {
   (void)data_type;
   (void)dst_logic_stream_id;
@@ -102,8 +101,8 @@ ge::graphStatus SinkWeightData(const ge::Node* const_node, LoweringGlobalData &g
   TensorData weight_offset;
   weight_offset.SetAddr(ge::ValueToPtr(flatten_weight[kFlattenOffsetKey]), nullptr);
   weight_offset.SetSize(static_cast<size_t>(flatten_weight[kFlattenSizeKey]));
-  GELOGI("get const[%s], offset[%ld],size[%ld]", const_node->GetNamePtr(),
-         flatten_weight[kFlattenOffsetKey], flatten_weight[kFlattenSizeKey]);
+  GELOGI("get const[%s], offset[%ld],size[%ld]", const_node->GetNamePtr(), flatten_weight[kFlattenOffsetKey],
+         flatten_weight[kFlattenSizeKey]);
 
   auto weight_offset_holder = bg::ValueHolder::CreateConst(&weight_offset, sizeof(TensorData));
   auto get_or_create = AssignDeviceMem::GetOrCreateMemAssigner(global_data);
@@ -113,8 +112,8 @@ ge::graphStatus SinkWeightData(const ge::Node* const_node, LoweringGlobalData &g
   auto assign_mem_holder = bg::ValueHolder::CreateSingleDataOutput(
       kernel::kAssignWeightMemory, {weight_offset_holder, bg::HolderOnInit(get_or_create), stream_id_holder});
   auto sink_weight_data = bg::DevMemValueHolder::CreateSingleDataOutput(
-      "SinkWeightData", {src.address, assign_mem_holder, stream_id_holder,
-                         global_data.GetStreamById(logic_stream_id)}, logic_stream_id);
+      "SinkWeightData", {src.address, assign_mem_holder, stream_id_holder, global_data.GetStreamById(logic_stream_id)},
+      logic_stream_id);
   GE_ASSERT_NOTNULL(sink_weight_data);
   for (const auto &src_ordered_holder : src.order_holders) {
     bg::ValueHolder::AddDependency(src_ordered_holder, sink_weight_data);
@@ -126,4 +125,4 @@ ge::graphStatus SinkWeightData(const ge::Node* const_node, LoweringGlobalData &g
   return ge::GRAPH_SUCCESS;
 }
 REGISTER_OUTPUT_LOWER(Const, SinkWeightData);
-}  // namesapce gert
+}  // namespace gert

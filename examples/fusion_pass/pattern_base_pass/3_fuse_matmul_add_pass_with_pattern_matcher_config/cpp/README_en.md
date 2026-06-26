@@ -144,7 +144,7 @@ Assume CANN software package installation directory is INSTALL_PATH, e.g., `/hom
 
       ```python
       python es_forward_1.py
-      ```  
+      ```
 
    - For es_forward_1.py, log shows:
 
@@ -172,7 +172,7 @@ Assume CANN software package installation directory is INSTALL_PATH, e.g., `/hom
      Compare the following dump graphs:
       - `ge_onnx_xxxxx_PreRunBegin.pbtxt` dump graph before execution
       - `ge_onnx_xxxxx_RunCustomPassBeforeInferShape.pbtxt` custom pass dump graph before InferShape execution
-     
+
      Model optimized as expected, i.e., MatMul and Add replaced by GEMM.
    - If results not as expected, set following environment variables (for atc command, also add parameter `--log=debug`) to print logs to screen for troubleshooting.
 

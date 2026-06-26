@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,7 +19,7 @@ namespace ge {
 namespace {
 constexpr uint32_t kMaxPortNum = 128U;
 constexpr uint32_t kMaxPort = 65535U;
-}
+}  // namespace
 
 Status NetworkManager::BindMainPort() {
   DeployerConfig host_information;
@@ -27,7 +27,7 @@ Status NetworkManager::BindMainPort() {
 
   std::string ports_range = host_information.host_info.data_panel.available_ports;
   auto ports = ge::StringUtils::Split(ports_range, '~');
-  if (ports.size() != 2UL) { // available ports string has 2 numbers, which represent start and end port
+  if (ports.size() != 2UL) {  // available ports string has 2 numbers, which represent start and end port
     REPORT_INNER_ERR_MSG("E19999", "[Invalid][Port] ports_range[%s] is illegal.", ports_range.c_str());
     GELOGE(FAILED, "[Invalid][Port] ports_range[%s] is illegal.", ports_range.c_str());
     return FAILED;
@@ -36,8 +36,8 @@ Status NetworkManager::BindMainPort() {
   bool start_reg = std::regex_match(ports[0], port_reg);
   bool end_reg = std::regex_match(ports[1], port_reg);
   if (!(start_reg && end_reg)) {
-    REPORT_INNER_ERR_MSG("E19999", "[Invalid][Port] start_port[%s] or end_port[%s] is illegal.",
-                       ports[0].c_str(), ports[1].c_str());
+    REPORT_INNER_ERR_MSG("E19999", "[Invalid][Port] start_port[%s] or end_port[%s] is illegal.", ports[0].c_str(),
+                         ports[1].c_str());
     GELOGE(FAILED, "[Invalid][Port] start_port[%s] or end_port[%s] is illegal.", ports[0].c_str(), ports[1].c_str());
     return FAILED;
   }
@@ -48,8 +48,8 @@ Status NetworkManager::BindMainPort() {
     start_port = std::stoi(ports[0]);
     end_port = std::stoi(ports[1]);
   } catch (...) {
-    REPORT_INNER_ERR_MSG("E19999", "[Invalid][Port] start_port[%s] or end_port[%s] is illegal.",
-                       ports[0].c_str(), ports[1].c_str());
+    REPORT_INNER_ERR_MSG("E19999", "[Invalid][Port] start_port[%s] or end_port[%s] is illegal.", ports[0].c_str(),
+                         ports[1].c_str());
     GELOGE(FAILED, "[Invalid][Port] start_port[%s] or end_port[%s] is illegal.", ports[0].c_str(), ports[1].c_str());
     return FAILED;
   }
@@ -113,7 +113,7 @@ Status NetworkManager::GetHostInfo(DeployerConfig &host_info) const {
   return SUCCESS;
 }
 
-Status NetworkManager::GetDataPanelIp(std::string& host_ip) const {
+Status NetworkManager::GetDataPanelIp(std::string &host_ip) const {
   DeployerConfig host_information;
   GE_CHK_STATUS_RET_NOLOG(GetHostInfo(host_information));
   host_ip = host_information.host_info.data_panel.ipaddr;

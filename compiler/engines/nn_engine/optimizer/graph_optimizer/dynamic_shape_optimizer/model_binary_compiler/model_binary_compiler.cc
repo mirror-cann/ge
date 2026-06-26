@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -82,7 +82,7 @@ void PrintTensorSliceInfo(const ffts::ThreadSliceMapPtr &slice_info_ptr) {
 }
 
 void CopyTensorSliceBasicsInfo(const ffts::ThreadSliceMapPtr &slice_info_ptr,
-    const ffts::ThreadSliceMapPtr &new_slice_info_ptr) {
+                               const ffts::ThreadSliceMapPtr &new_slice_info_ptr) {
   new_slice_info_ptr->thread_scope_id = slice_info_ptr->thread_scope_id;
   new_slice_info_ptr->is_first_node_in_topo_order = slice_info_ptr->is_first_node_in_topo_order;
   new_slice_info_ptr->thread_mode = slice_info_ptr->thread_mode;
@@ -97,7 +97,7 @@ void CopyTensorSliceBasicsInfo(const ffts::ThreadSliceMapPtr &slice_info_ptr,
   new_slice_info_ptr->cut_type = slice_info_ptr->cut_type;
   new_slice_info_ptr->dependencies = slice_info_ptr->dependencies;
 }
-} // namespace
+}  // namespace
 
 ModelBinaryCompiler::ModelBinaryCompiler() {}
 
@@ -134,9 +134,10 @@ Status ModelBinaryCompiler::UpdateFuncSubGraphNetOutputInfo(const ge::NodePtr &o
   const size_t output_size = ori_op_desc->GetOutputsSize();
   const size_t input_size = net_output_op_desc->GetAllInputsSize();
   if (output_size != input_size) {
-    REPORT_FE_ERROR("[SubGraphOpt][ModelBinary] output_size[%zu] of node[%s] is not equal to "
-                    "input_size[%zu] of net_output[%s].",
-                    output_size, ori_node->GetName().c_str(), input_size, net_output->GetName().c_str());
+    REPORT_FE_ERROR(
+        "[SubGraphOpt][ModelBinary] output_size[%zu] of node[%s] is not equal to "
+        "input_size[%zu] of net_output[%s].",
+        output_size, ori_node->GetName().c_str(), input_size, net_output->GetName().c_str());
     return FAILED;
   }
 
@@ -176,8 +177,8 @@ Status ModelBinaryCompiler::GetSubGraphsByCurNode(const ge::NodePtr &node,
 
     auto sub_graph = owner_graph->GetSubgraph(name);
     if (sub_graph == nullptr) {
-      FE_LOGW("[SubGraphOpt][ModelBinary][GetSubGraph] The subgraph [%s] for node [%s] is null.",
-              name.c_str(), node->GetName().c_str());
+      FE_LOGW("[SubGraphOpt][ModelBinary][GetSubGraph] The subgraph [%s] for node [%s] is null.", name.c_str(),
+              node->GetName().c_str());
       continue;
     }
     sub_graphs.emplace_back(sub_graph);
@@ -211,13 +212,14 @@ Status ModelBinaryCompiler::UpdateConstValueByAttrBuffer(const ge::NodePtr &ori_
   FE_CHECK_NOTNULL(attr_buf);
   weights[0]->SetData(reinterpret_cast<const uint8_t *>(attr_buf.get()), attr_size * sizeof(uint8_t));
   weights[0]->MutableTensorDesc().SetDataType(ge::DT_UINT8);
-  FE_LOGD("[Op %s, type %s]: Successfully set data for const tensor.", node->GetName().c_str(), node->GetType().c_str());
+  FE_LOGD("[Op %s, type %s]: Successfully set data for const tensor.", node->GetName().c_str(),
+          node->GetType().c_str());
 
   return SUCCESS;
 }
 
 bool ModelBinaryCompiler::NeedCopyTensorSliceInfo(const ge::NodePtr &ori_node,
-    ffts::ThreadSliceMapPtr &slice_info_ptr) const {
+                                                  ffts::ThreadSliceMapPtr &slice_info_ptr) const {
   if (UnknownShapeUtils::IsUnknownShapeOp(*ori_node->GetOpDesc())) {
     FE_LOGD("Original node [%s] is an unknown shape op.", ori_node->GetName().c_str());
     return false;
@@ -234,8 +236,8 @@ bool ModelBinaryCompiler::NeedCopyTensorSliceInfo(const ge::NodePtr &ori_node,
   return false;
 }
 
-Status ModelBinaryCompiler::GetOutputTensorSliceNodesInfo(const ge::NodePtr &output_node,
-    std::unordered_map<ge::NodePtr, std::set<uint32_t>> &last_nodes_info) const {
+Status ModelBinaryCompiler::GetOutputTensorSliceNodesInfo(
+    const ge::NodePtr &output_node, std::unordered_map<ge::NodePtr, std::set<uint32_t>> &last_nodes_info) const {
   std::set<uint32_t> output_index;
   std::vector<uint32_t> parent_index;
   const auto net_output_op_desc = output_node->GetOpDesc();
@@ -254,8 +256,9 @@ Status ModelBinaryCompiler::GetOutputTensorSliceNodesInfo(const ge::NodePtr &out
       return FAILED;
     }
     if (parent_node_index < 0) {
-      REPORT_FE_ERROR("[SubGraphOpt][ModelBinary][LastNodesInfo] The parent_node_index of node [%s] input [%zu] is invalid.",
-                      output_node->GetName().c_str(), i);
+      REPORT_FE_ERROR(
+          "[SubGraphOpt][ModelBinary][LastNodesInfo] The parent_node_index of node [%s] input [%zu] is invalid.",
+          output_node->GetName().c_str(), i);
       return FAILED;
     }
     FE_LOGD("Node[%s] input[%zu] parent_node_index is %d.", output_node->GetName().c_str(), i, parent_node_index);
@@ -291,14 +294,15 @@ Status ModelBinaryCompiler::GetOutputTensorSliceNodesInfo(const ge::NodePtr &out
   return SUCCESS;
 }
 
-Status ModelBinaryCompiler::GetSubGraphTensorSliceNodesInfo(const ge::ComputeGraph &om_sub_graph,
-    std::unordered_map<ge::NodePtr, std::set<uint32_t>> &first_nodes_info,
+Status ModelBinaryCompiler::GetSubGraphTensorSliceNodesInfo(
+    const ge::ComputeGraph &om_sub_graph, std::unordered_map<ge::NodePtr, std::set<uint32_t>> &first_nodes_info,
     std::unordered_map<ge::NodePtr, std::set<uint32_t>> &last_nodes_info) const {
   for (const auto &node : om_sub_graph.GetDirectNode()) {
     if (node->GetType() == NETOUTPUT) {
       if (GetOutputTensorSliceNodesInfo(node, last_nodes_info) != SUCCESS) {
-        REPORT_FE_ERROR("[SubGraphOpt][ModelBinary][NodesInfo] Failed to get output tensor slice node info for node [%s].",
-                        node->GetName().c_str());
+        REPORT_FE_ERROR(
+            "[SubGraphOpt][ModelBinary][NodesInfo] Failed to get output tensor slice node info for node [%s].",
+            node->GetName().c_str());
         return FAILED;
       }
       continue;
@@ -308,7 +312,8 @@ Status ModelBinaryCompiler::GetSubGraphTensorSliceNodesInfo(const ge::ComputeGra
     for (const auto &in_node : node->GetInDataNodes()) {
       // if in_node has no input nodes, means it is input node and node is first node of sub graph
       if (!in_node->GetInAllNodes().empty() || in_node->GetType() != DATA) {
-        FE_LOGD("The in_node [%s] of node [%s] is not an input node.", in_node->GetName().c_str(), node->GetName().c_str());
+        FE_LOGD("The in_node [%s] of node [%s] is not an input node.", in_node->GetName().c_str(),
+                node->GetName().c_str());
         continue;
       }
       const auto data_op_desc = in_node->GetOpDesc();
@@ -336,9 +341,10 @@ Status ModelBinaryCompiler::GetSubGraphTensorSliceNodesInfo(const ge::ComputeGra
   return SUCCESS;
 }
 
-template<typename T>
+template <typename T>
 Status ModelBinaryCompiler::UpdateSingleTensorSliceInfo(const std::set<uint32_t> &index,
-    std::vector<std::vector<T>> &slice_infos, std::vector<std::vector<T>> &new_slice_infos) const {
+                                                        std::vector<std::vector<T>> &slice_infos,
+                                                        std::vector<std::vector<T>> &new_slice_infos) const {
   typename std::vector<std::vector<T>>::iterator slice_info;
   for (slice_info = slice_infos.begin(); slice_info != slice_infos.end(); ++slice_info) {
     std::vector<T> new_slice_info;
@@ -357,8 +363,10 @@ Status ModelBinaryCompiler::UpdateSingleTensorSliceInfo(const std::set<uint32_t>
 }
 
 Status ModelBinaryCompiler::UpdateAxisAndTensorIndex(const std::set<uint32_t> &index,
-    const std::vector<uint32_t> &tensor_indexes, const std::vector<uint32_t> &axis,
-    std::vector<uint32_t> &new_tensor_indexes, std::vector<uint32_t> &new_axis) const {
+                                                     const std::vector<uint32_t> &tensor_indexes,
+                                                     const std::vector<uint32_t> &axis,
+                                                     std::vector<uint32_t> &new_tensor_indexes,
+                                                     std::vector<uint32_t> &new_axis) const {
   if (tensor_indexes.size() != axis.size()) {
     REPORT_FE_ERROR("[SubGraphOpt][ModelBinary][UpdateSliceInfo] tensor_index size[%zu] not equal axis size[%zu].",
                     tensor_indexes.size(), axis.size());
@@ -376,7 +384,8 @@ Status ModelBinaryCompiler::UpdateAxisAndTensorIndex(const std::set<uint32_t> &i
 }
 
 Status ModelBinaryCompiler::SetTensorSliceInfo(const ge::NodePtr &node, const std::set<uint32_t> &index,
-    const bool &is_input, const ffts::ThreadSliceMapPtr &slice_info_ptr) const {
+                                               const bool &is_input,
+                                               const ffts::ThreadSliceMapPtr &slice_info_ptr) const {
   ffts::ThreadSliceMapPtr new_slice_info_ptr = nullptr;
   FE_MAKE_SHARED(new_slice_info_ptr = std::make_shared<ffts::ThreadSliceMap>(), return FAILED);
   FE_LOGD("index is %s.", GetIndexStr(index).c_str());
@@ -387,8 +396,8 @@ Status ModelBinaryCompiler::SetTensorSliceInfo(const ge::NodePtr &node, const st
   if (is_input) {
     status += UpdateSingleTensorSliceInfo(index, slice_info_ptr->ori_input_tensor_shape,
                                           new_slice_info_ptr->ori_input_tensor_shape);
-    status += UpdateSingleTensorSliceInfo(index, slice_info_ptr->input_tensor_slice,
-                                          new_slice_info_ptr->input_tensor_slice);
+    status +=
+        UpdateSingleTensorSliceInfo(index, slice_info_ptr->input_tensor_slice, new_slice_info_ptr->input_tensor_slice);
     status += UpdateSingleTensorSliceInfo(index, slice_info_ptr->ori_input_tensor_slice,
                                           new_slice_info_ptr->ori_input_tensor_slice);
     status += UpdateAxisAndTensorIndex(index, slice_info_ptr->input_tensor_indexes, slice_info_ptr->input_axis,
@@ -420,7 +429,8 @@ Status ModelBinaryCompiler::SetTensorSliceInfo(const ge::NodePtr &node, const st
   return SUCCESS;
 }
 
-Status ModelBinaryCompiler::UpdateTensorSliceInfoToNode(bool is_input, const ffts::ThreadSliceMapPtr &slice_info_ptr,
+Status ModelBinaryCompiler::UpdateTensorSliceInfoToNode(
+    bool is_input, const ffts::ThreadSliceMapPtr &slice_info_ptr,
     const std::unordered_map<ge::NodePtr, std::set<uint32_t>> &nodes_info) const {
   FE_LOGD("Update %s tensor slice info.", is_input ? "is_input" : "is_output");
   for (const auto &node_info : nodes_info) {
@@ -432,7 +442,7 @@ Status ModelBinaryCompiler::UpdateTensorSliceInfoToNode(bool is_input, const fft
 }
 
 Status ModelBinaryCompiler::UpdateTensorSliceInfo(const ge::NodePtr &ori_node,
-    const ge::ComputeGraph &om_sub_graph) const {
+                                                  const ge::ComputeGraph &om_sub_graph) const {
   ffts::ThreadSliceMapPtr slice_info_ptr = nullptr;
   if (!NeedCopyTensorSliceInfo(ori_node, slice_info_ptr)) {
     FE_LOGD("Node [%s] does not have tensor slice info.", ori_node->GetName().c_str());
@@ -447,17 +457,19 @@ Status ModelBinaryCompiler::UpdateTensorSliceInfo(const ge::NodePtr &ori_node,
     return FAILED;
   }
 
-  FE_LOGD("Node[%s] first nodes size %zu, last nodes size %zu.",
-          ori_node->GetName().c_str(), first_nodes_info.size(), last_nodes_info.size());
+  FE_LOGD("Node[%s] first nodes size %zu, last nodes size %zu.", ori_node->GetName().c_str(), first_nodes_info.size(),
+          last_nodes_info.size());
   if (UpdateTensorSliceInfoToNode(true, slice_info_ptr, first_nodes_info) != SUCCESS) {
-    REPORT_FE_ERROR("[SubGraphOpt][ModelBinary][UpdateSliceInfo] Failed to update first nodes for sub graph [%s] node [%s].",
-                    om_sub_graph.GetName().c_str(), ori_node->GetName().c_str());
+    REPORT_FE_ERROR(
+        "[SubGraphOpt][ModelBinary][UpdateSliceInfo] Failed to update first nodes for sub graph [%s] node [%s].",
+        om_sub_graph.GetName().c_str(), ori_node->GetName().c_str());
     return FAILED;
   }
 
   if (UpdateTensorSliceInfoToNode(false, slice_info_ptr, last_nodes_info) != SUCCESS) {
-    REPORT_FE_ERROR("[SubGraphOpt][ModelBinary][UpdateSliceInfo] Failed to update last nodes for sub graph [%s] node [%s].",
-                    om_sub_graph.GetName().c_str(), ori_node->GetName().c_str());
+    REPORT_FE_ERROR(
+        "[SubGraphOpt][ModelBinary][UpdateSliceInfo] Failed to update last nodes for sub graph [%s] node [%s].",
+        om_sub_graph.GetName().c_str(), ori_node->GetName().c_str());
     return FAILED;
   }
 
@@ -481,7 +493,7 @@ Status ModelBinaryCompiler::UpdateTensorSliceInfo(const ge::NodePtr &ori_node,
 }
 
 Status ModelBinaryCompiler::RecoverAttrsWithKernelPrefix(const ge::OpDescPtr &op_desc, const std::string &kernel_prefix,
-    const KernelLookup &lookup) const {
+                                                         const KernelLookup &lookup) const {
   std::string kernel_name;
   if (kernel_prefix.empty()) {
     (void)ge::AttrUtils::GetStr(op_desc, kKernelName, kernel_name);
@@ -494,8 +506,8 @@ Status ModelBinaryCompiler::RecoverAttrsWithKernelPrefix(const ge::OpDescPtr &op
     return FAILED;
   }
 
-  FE_LOGD("node[%s] kernel prefix is %s, kernel name is %s.",
-          op_desc->GetName().c_str(), kernel_prefix.c_str(), kernel_name.c_str());
+  FE_LOGD("node[%s] kernel prefix is %s, kernel name is %s.", op_desc->GetName().c_str(), kernel_prefix.c_str(),
+          kernel_name.c_str());
   const ge::OpKernelBinPtr tbe_kernel_ptr = lookup(kernel_name);
   if (tbe_kernel_ptr == nullptr) {
     REPORT_FE_ERROR("[SubGraphOpt][ModelBinary][RecoverAttr] tbeKernelPtr of kernelName [%s] for node [%s] is nullptr.",
@@ -519,8 +531,8 @@ Status ModelBinaryCompiler::RecoverAttrsWithKernelPrefix(const ge::OpDescPtr &op
 Status ModelBinaryCompiler::RecoverAttrsForSubGraphNode(const KernelLookup &lookup, const ge::NodePtr &node) const {
   const auto op_desc = node->GetOpDesc();
   if (!op_desc->HasAttr(ge::TVM_ATTR_NAME_MAGIC)) {
-    FE_LOGD("node[%s] has no attr %s, is not aicore node.",
-            op_desc->GetName().c_str(), ge::TVM_ATTR_NAME_MAGIC.c_str());
+    FE_LOGD("node[%s] has no attr %s, is not aicore node.", op_desc->GetName().c_str(),
+            ge::TVM_ATTR_NAME_MAGIC.c_str());
     return SUCCESS;
   }
 
@@ -544,16 +556,16 @@ Status ModelBinaryCompiler::RecoverAttrsForSubGraphNode(const KernelLookup &look
   return SUCCESS;
 }
 
-Status ModelBinaryCompiler::UpdateSubGraphNodeInfoByOriginNode(const ge::NodePtr &ori_node,
-    const KernelLookup &lookup, const ge::NodePtr &node) const {
+Status ModelBinaryCompiler::UpdateSubGraphNodeInfoByOriginNode(const ge::NodePtr &ori_node, const KernelLookup &lookup,
+                                                               const ge::NodePtr &node) const {
   if (node->GetType() == CONSTANT) {
     return UpdateConstValueByAttrBuffer(ori_node, node);
   }
 
   /* format of netoutput of om_sub_graph is ND if it is not inner format in om build,
-    * but in cur_graph, output format of ori_node will be chenged to inner format,
-    * so need to refresh format of netoutput of om_sub_graph by ori_node's output format
-    */
+   * but in cur_graph, output format of ori_node will be changed to inner format,
+   * so need to refresh format of netoutput of om_sub_graph by ori_node's output format
+   */
   if (node->GetType() == NETOUTPUT) {
     return UpdateFuncSubGraphNetOutputInfo(ori_node, node);
   }
@@ -571,7 +583,7 @@ Status ModelBinaryCompiler::UpdateSubGraphNodeInfoByOriginNode(const ge::NodePtr
 }
 
 Status ModelBinaryCompiler::UpdateNodeInfoInOmSubGraph(ge::ComputeGraph &om_sub_graph,
-    const KernelLookup &lookup) const {
+                                                       const KernelLookup &lookup) const {
   const ge::NodePtr parent_node = om_sub_graph.GetParentNode();
   if (parent_node == nullptr) {
     REPORT_FE_ERROR("[SubGraphOpt][ModelBinary] The parent node of sub graph [%s] is null.",

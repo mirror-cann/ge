@@ -76,7 +76,7 @@ size_t aclmdlGetOutputSizeByIndex(aclmdlDesc *modelDesc, size_t index)
     释放内存并重置aclDataBuffer的示例代码如下：
 
     ```
-    aclDataBuffer *dataBuffer = aclmdlGetDatasetBuffer(output, 0); // 根据index获取对应的dataBuffer        
+    aclDataBuffer *dataBuffer = aclmdlGetDatasetBuffer(output, 0); // 根据index获取对应的dataBuffer
     void *data = aclGetDataBufferAddr(dataBuffer);  // 获取data的Device指针
     aclrtFree(data ); // 释放Device内存
     aclUpdateDataBuffer(dataBuffer, nullptr, 0); // 重置dataBuffer里面内容，以便下次推理
@@ -88,4 +88,3 @@ size_t aclmdlGetOutputSizeByIndex(aclmdlDesc *modelDesc, size_t index)
 
     -   获取应用类日志，查看ERROR级别的报错，如何获取并查看日志请参见《日志参考》。
     -   在应用程序中调用aclGetRecentErrMsg接口获取报错。
-

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -91,13 +91,13 @@ struct CmoFlushData {
   uint32_t ori_window_size{0U};
   uint32_t window_size{0U};
   uint32_t real_size{0U};
-  const Shape* no_tail_slice_in{nullptr};
+  const Shape *no_tail_slice_in{nullptr};
   size_t no_tail_size_in{0U};
-  const Shape* tail_slice_in{nullptr};
+  const Shape *tail_slice_in{nullptr};
   size_t tail_size_in{0U};
-  const Shape* no_tail_slice_out{nullptr};
+  const Shape *no_tail_slice_out{nullptr};
   size_t no_tail_size_out{0U};
-  const Shape* tail_slice_out{nullptr};
+  const Shape *tail_slice_out{nullptr};
   size_t tail_size_out{0U};
   const AICoreSubTaskFlush *flush_data{nullptr};
   const ComputeNodeInfo *compute_node_info{nullptr};
@@ -156,17 +156,12 @@ enum class DataDumpKey {
 };
 
 // Exception dump
-enum class ExceptionDumpKey {
-  THREAD_DIM = 0,
-  WORKSPACE,
-  ARGS_PARA,
-  RESERVED
-};
+enum class ExceptionDumpKey { THREAD_DIM = 0, WORKSPACE, ARGS_PARA, RESERVED };
 
 struct AICoreThreadParam {
-  uint64_t offset_vec[kMaxOffsetNum]; // input + output + workspace
-  uint32_t input_num{0U};  // input
-  uint32_t input_output_num{0U};  // input + output
+  uint64_t offset_vec[kMaxOffsetNum];  // input + output + workspace
+  uint32_t input_num{0U};              // input
+  uint32_t input_output_num{0U};       // input + output
   uint16_t blk_dim;
   uint16_t tail_blk_dim;
   uint16_t schedule_mode;
@@ -186,10 +181,7 @@ enum class ArgsInKey {
   IO_START,
   kNUM
 };
-enum class ArgsOutKey {
-  FLUSH_DATA = 0,
-  kNUM
-};
+enum class ArgsOutKey { FLUSH_DATA = 0, kNUM };
 enum class ThreadOutKey {
   IN_SHAPES = 0,
   LAST_IN_SHAPES = 1,
@@ -202,13 +194,7 @@ enum class ThreadOutKey {
   kNUM
 };
 
-enum class UpTilingKey {
-  DEPEND_VEC = 0,
-  SLICE_SHAPE = 1,
-  SLICE_ORI_SHAPE = 2,
-  IN_SHAPE_START = 3,
-  kNUM
-};
+enum class UpTilingKey { DEPEND_VEC = 0, SLICE_SHAPE = 1, SLICE_ORI_SHAPE = 2, IN_SHAPE_START = 3, kNUM };
 
 enum class SkipInKey : uint32_t {
   DISCARD_HOLDER = 0,
@@ -223,19 +209,8 @@ enum class SkipInKey : uint32_t {
 /**************** FOR DYNAMIC GRAPH END ***************/
 
 /**************** FOR STATIC GRAPH BEGIN ***************/
-enum class StaArgsInKey {
-  WORKSPACE = 0,
-  SINK_RET,
-  ARGS_PARA,
-  IN_NUM,
-  OUT_NUM,
-  IO_START = 5,
-  kNUM
-};
-enum class StaArgsOutKey {
-  FLUSH_DATA = 0,
-  kNUM
-};
+enum class StaArgsInKey { WORKSPACE = 0, SINK_RET, ARGS_PARA, IN_NUM, OUT_NUM, IO_START = 5, kNUM };
+enum class StaArgsOutKey { FLUSH_DATA = 0, kNUM };
 
 enum class StaUpdateKey {
   FLUSH_DATA = 0,
@@ -257,21 +232,17 @@ enum class ManualDataDumpKey {
   IN_NUM,
   OUT_NUM,
   /**
-  * IO_START memory layer:
-  *     1. INPUT_SHAPES_SIZE: each input shape size, continous vector, size IN_NUM
-  *     2. OUTPUT_SHAPES_SIZE: each output shape size, continous vector, size OUT_NUM
-  *     3. IO_ADDRS: input_addrs and output_addrs tensors
-  */
+   * IO_START memory layer:
+   *     1. INPUT_SHAPES_SIZE: each input shape size, continous vector, size IN_NUM
+   *     2. OUTPUT_SHAPES_SIZE: each output shape size, continous vector, size OUT_NUM
+   *     3. IO_ADDRS: input_addrs and output_addrs tensors
+   */
   IO_START,
   RESERVED
 };
 
 // Static Manual exception dump
-enum class ManualExceptionDumpKey {
-  WORKSPACE = 0,
-  ARGS_PARA,
-  RESERVED
-};
+enum class ManualExceptionDumpKey { WORKSPACE = 0, ARGS_PARA, RESERVED };
 
 enum class AutoArgsInKey {
   WORKSPACE = 0,
@@ -309,22 +280,17 @@ enum class AutoDataDumpKey {
   IN_NUM,
   OUT_NUM = 5,
   /**
-  * IO_START memory layer:
-  *     1. INPUT_ORI_SHAPES_SIZE: each input ori shape size, continous vector, size IN_NUM
-  *     2. OUTPUT_ORI_SHAPES_SIZE: each output ori shape size, continous vector, size OUT_NUM
-  *     3. IO_ADDRS: input_addrs and output_addrs tensors
-  */
+   * IO_START memory layer:
+   *     1. INPUT_ORI_SHAPES_SIZE: each input ori shape size, continous vector, size IN_NUM
+   *     2. OUTPUT_ORI_SHAPES_SIZE: each output ori shape size, continous vector, size OUT_NUM
+   *     3. IO_ADDRS: input_addrs and output_addrs tensors
+   */
   IO_START,
   RESERVED
 };
 
 // Static Auto exception dump
-enum class AutoExceptionDumpKey {
-  THREAD_DIM = 0,
-  WORKSPACE,
-  ARGS_PARA,
-  RESERVED
-};
+enum class AutoExceptionDumpKey { THREAD_DIM = 0, WORKSPACE, ARGS_PARA, RESERVED };
 
 /**************** FOR STATIC GRAPH END ***************/
 
@@ -344,21 +310,9 @@ enum class AtomArgsInKey {
   kNUM
 };
 
-enum class AtomUpdateKey {
-  FLUSH_DATA = 0,
-  AICORE_CTX,
-  BLOCK_DIM,
-  TAIL_BLOCK_DIM,
-  TASK_INFO,
-  RESERVED
-};
+enum class AtomUpdateKey { FLUSH_DATA = 0, AICORE_CTX, BLOCK_DIM, TAIL_BLOCK_DIM, TASK_INFO, RESERVED };
 
-enum class AtomProcType {
-  DY_SLICE_OP = 0,
-  DY_OP,
-  STATIC_OP,
-  RESERVED
-};
+enum class AtomProcType { DY_SLICE_OP = 0, DY_OP, STATIC_OP, RESERVED };
 /**************** FOR ATOMIC NODE END ***************/
 
 #define FFTS_CTX_BIT_NUM_32 32
@@ -378,9 +332,9 @@ bool InitCtxIoAddrs(const size_t index, const memory::FftsMemBlock *ffts_mem, co
                     AICoreSubTaskFlush *flush_data, uintptr_t *args_host_data);
 bool InitCtxIoAddrs(size_t index, const gert::GertTensorData *tensor_data, const AICoreThreadParam *task_param,
                     AICoreSubTaskFlush *flush_data, uintptr_t *args_host_data);
-void InitL1WorkAddrs(const size_t index, const void* addr, AICoreSubTaskFlush *flush_data, uintptr_t *args_host_data);
-void InitOpTiling(const size_t index, const AICoreSubTaskFlush *flush_data,
-                  uintptr_t *args_host_data, size_t tiling_offset, const void *args_addr);
+void InitL1WorkAddrs(const size_t index, const void *addr, AICoreSubTaskFlush *flush_data, uintptr_t *args_host_data);
+void InitOpTiling(const size_t index, const AICoreSubTaskFlush *flush_data, uintptr_t *args_host_data,
+                  size_t tiling_offset, const void *args_addr);
 
 inline void UpdateDyAicAivCtx(rtFftsPlusAicAivCtx_t *ctx, const AICoreSubTaskFlush *flush_data, uint64_t paraBase) {
   ctx->nonTailBlockdim = flush_data->blk_dim;
@@ -409,6 +363,6 @@ inline void UpdateStaAicAivCtx(rtFftsPlusAicAivCtx_t *ctx, const AICoreSubTaskFl
   ctx->taskParamPtrOffset = flush_data->param_ptr_offset * sizeof(uintptr_t);
   return;
 }
-}
-}
+}  // namespace kernel
+}  // namespace gert
 #endif  // AIR_CXX_RUNTIME_V2_KERNEL_FFTS_PLUS_AICORE_UPDATE_KERNEL_H_

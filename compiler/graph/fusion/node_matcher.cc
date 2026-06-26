@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,14 +22,14 @@
 #include "exe_graph/lowering/bg_ir_attrs.h"
 
 namespace ge {
-namespace fusion{
+namespace fusion {
 namespace {
-template<typename T>
+template <typename T>
 bool IsTensorDataEqualWith(ConstGeTensorPtr &a_tensor, ConstGeTensorPtr &b_tensor, size_t shape_size) {
   const auto *a_value = reinterpret_cast<const T *>(a_tensor->GetData().data());
   const auto *b_value = reinterpret_cast<const T *>(b_tensor->GetData().data());
   for (size_t i = 0U; i < shape_size; ++i) {
-    if(!IsEqualWith(a_value[i], b_value[i])) {
+    if (!IsEqualWith(a_value[i], b_value[i])) {
       return false;
     }
   }
@@ -57,7 +57,7 @@ bool IsTensorEqualWith(ConstGeTensorPtr &a_tensor, ConstGeTensorPtr &b_tensor) {
 NodePtr GetRealConst(const NodePtr &node, bool enable_cross_subgraph) {
   if (ConstantUtils::IsRealConst(node->GetOpDesc())) {
     return node;
-  } else if (OpTypeUtils::IsSubgraphInnerData(node->GetOpDesc())){
+  } else if (OpTypeUtils::IsSubgraphInnerData(node->GetOpDesc())) {
     if (!enable_cross_subgraph) {
       return nullptr;
     }
@@ -139,7 +139,7 @@ bool IsIrAttrMatch(const NodePtr &p_node, const NodePtr &t_node) {
 
   return IsAttrValuesMatch(p_node, t_node, p_attr_names);
 }
-} // namespace
+}  // namespace
 
 bool NormalNodeMatcher::IsMatch(const NodePtr &p_node, const NodePtr &t_node) const {
   // todo make op type fuzzy

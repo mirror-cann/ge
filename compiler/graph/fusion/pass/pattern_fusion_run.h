@@ -23,19 +23,14 @@
 
 namespace ge {
 namespace fusion {
-using MeetRequirementsFn =
-    std::function<bool(const std::unique_ptr<MatchResult> &)>;
-using ReplacementFn =
-    std::function<GraphUniqPtr(const std::unique_ptr<MatchResult> &)>;
+using MeetRequirementsFn = std::function<bool(const std::unique_ptr<MatchResult> &)>;
+using ReplacementFn = std::function<GraphUniqPtr(const std::unique_ptr<MatchResult> &)>;
 
 // PatternFusionPass V1/V2 共享的 match-filter-replace 主循环。
 // V1/V2 仅在钩子绑定上区分，loop 本身在此实现以避免重复。
-Status RunPatternFusion(GraphPtr &graph,
-                        CustomPassContext &pass_context,
-                        const PatternMatcherConfig &match_config_template,
-                        std::vector<PatternUniqPtr> patterns,
-                        const MeetRequirementsFn &meet_requirements,
-                        const ReplacementFn &replacement);
-} // namespace fusion
-} // namespace ge
-#endif // COMPILER_GRAPH_FUSION_PASS_PATTERN_FUSION_RUN_H
+Status RunPatternFusion(GraphPtr &graph, CustomPassContext &pass_context,
+                        const PatternMatcherConfig &match_config_template, std::vector<PatternUniqPtr> patterns,
+                        const MeetRequirementsFn &meet_requirements, const ReplacementFn &replacement);
+}  // namespace fusion
+}  // namespace ge
+#endif  // COMPILER_GRAPH_FUSION_PASS_PATTERN_FUSION_RUN_H

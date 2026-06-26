@@ -45,7 +45,8 @@ struct InferValueRangePara {
   friend class InferValueRangePass;
   friend class OpDescUtilsEx;
   ~InferValueRangePara() = default;
-private:
+
+ private:
   bool is_initialized = false;
   bool use_cpu_kernel = false;
   WHEN_CALL when_call = INPUT_IS_DYNAMIC;
@@ -103,8 +104,7 @@ class GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY OperatorFactoryImpl {
 
   static graphStatus RegisterInferValueRangeFunc(const std::string &operator_type);
 
-  static graphStatus RegisterInferValueRangeFunc(const std::string &operator_type,
-                                                 const WHEN_CALL when_call,
+  static graphStatus RegisterInferValueRangeFunc(const std::string &operator_type, const WHEN_CALL when_call,
                                                  const bool use_cpu_kernel,
                                                  const InferValueRangeFunc &infer_value_range_func);
 
@@ -123,7 +123,8 @@ class GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY OperatorFactoryImpl {
 
   static IsInferFormatV2RegisteredFunc GetIsInferFormatV2RegisteredFunc();
 
-  static void RegisterIsInferShapeV2RegisteredFunc(IsInferShapeV2RegisteredFunc const is_infer_shape_v2_registered_func);
+  static void RegisterIsInferShapeV2RegisteredFunc(
+      IsInferShapeV2RegisteredFunc const is_infer_shape_v2_registered_func);
 
   static IsInferShapeV2RegisteredFunc GetIsInferShapeV2RegisteredFunc();
 

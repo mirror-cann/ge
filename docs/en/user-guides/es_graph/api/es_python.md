@@ -26,33 +26,33 @@ graph TB
         AttrScope[attr_scope<br/>Attribute scope]
         ControlDepScope[control_dependency_scope<br/>Control dependency scope]
     end
-    
+
     subgraph "C API Wrapper Layer"
         ESBLib[esb_lib<br/>Base library wrapper]
         ESBGenLib[esb_generated_lib<br/>Generated ESAPI library]
         PyESWrapper[pyes_graph_builder_wrapper<br/>Python C API wrapper]
     end
-    
+
     subgraph "C++ Backend"
         CGraphBuilder[EsCGraphBuilder<br/>C++ graph builder]
         CTensorHolder[EsCTensorHolder<br/>C++ tensor holder]
         CGraph[EsCGraph<br/>C++ graph object]
     end
-    
+
     %% Python layer relationships
     GraphBuilder -->|"Creates multiple"| TensorHolder
     GraphBuilder -->|"Uses"| InputType
     GraphBuilder -->|"Can use"| AttrScope
     GraphBuilder -->|"Can use"| ControlDepScope
     TensorHolder -->|"References"| GraphBuilder
-    
+
     %% Python to C API
     GraphBuilder -.->|"Through"| ESBLib
     TensorHolder -.->|"Through"| ESBLib
     TensorHolder -.->|"Optionally uses"| ESBGenLib
     ESBLib -->|"Calls"| PyESWrapper
     ESBGenLib -->|"Calls"| PyESWrapper
-    
+
     %% C API to C++
     PyESWrapper -->|"Converts to"| CGraphBuilder
     PyESWrapper -->|"Converts to"| CTensorHolder

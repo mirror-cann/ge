@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -41,8 +41,7 @@ int RunGraphAddWithSession(ge::Session &session, ge::Graph &graph, const std::ve
 
   const aclError set_device_before_stream_ret = aclrtSetDevice(kRunDeviceId);
   if (set_device_before_stream_ret != ACL_SUCCESS) {
-    std::cout << "aclrtSetDevice failed before CreateStream, error code: "
-              << set_device_before_stream_ret << std::endl;
+    std::cout << "aclrtSetDevice failed before CreateStream, error code: " << set_device_before_stream_ret << std::endl;
     (void)session.RemoveGraph(graph_id);
     return -1;
   }
@@ -56,8 +55,8 @@ int RunGraphAddWithSession(ge::Session &session, ge::Graph &graph, const std::ve
 
   const aclError set_device_before_run_ret = aclrtSetDevice(kRunDeviceId);
   if (set_device_before_run_ret != ACL_SUCCESS) {
-    std::cout << "aclrtSetDevice failed before RunGraphWithStreamAsync, error code: "
-              << set_device_before_run_ret << std::endl;
+    std::cout << "aclrtSetDevice failed before RunGraphWithStreamAsync, error code: " << set_device_before_run_ret
+              << std::endl;
     (void)aclrtDestroyStream(stream);
     (void)session.RemoveGraph(graph_id);
     return -1;
@@ -73,8 +72,8 @@ int RunGraphAddWithSession(ge::Session &session, ge::Graph &graph, const std::ve
 
   const aclError set_device_before_sync_ret = aclrtSetDevice(kRunDeviceId);
   if (set_device_before_sync_ret != ACL_SUCCESS) {
-    std::cout << "aclrtSetDevice failed before aclrtSynchronizeStream, error code: "
-              << set_device_before_sync_ret << std::endl;
+    std::cout << "aclrtSetDevice failed before aclrtSynchronizeStream, error code: " << set_device_before_sync_ret
+              << std::endl;
     (void)aclrtDestroyStream(stream);
     (void)session.RemoveGraph(graph_id);
     return -1;
@@ -89,8 +88,8 @@ int RunGraphAddWithSession(ge::Session &session, ge::Graph &graph, const std::ve
   }
   const aclError set_device_before_destroy_ret = aclrtSetDevice(kRunDeviceId);
   if (set_device_before_destroy_ret != ACL_SUCCESS) {
-    std::cout << "aclrtSetDevice failed before aclrtDestroyStream, error code: "
-              << set_device_before_destroy_ret << std::endl;
+    std::cout << "aclrtSetDevice failed before aclrtDestroyStream, error code: " << set_device_before_destroy_ret
+              << std::endl;
     (void)session.RemoveGraph(graph_id);
     return -1;
   }
@@ -99,8 +98,8 @@ int RunGraphAddWithSession(ge::Session &session, ge::Graph &graph, const std::ve
 
   const aclError set_device_before_copy_ret = aclrtSetDevice(kRunDeviceId);
   if (set_device_before_copy_ret != ACL_SUCCESS) {
-    std::cout << "aclrtSetDevice failed before CopyDeviceOutputsToHost, error code: "
-              << set_device_before_copy_ret << std::endl;
+    std::cout << "aclrtSetDevice failed before CopyDeviceOutputsToHost, error code: " << set_device_before_copy_ret
+              << std::endl;
     return -1;
   }
   std::vector<ge::Tensor> host_outputs;
@@ -111,7 +110,7 @@ int RunGraphAddWithSession(ge::Session &session, ge::Graph &graph, const std::ve
   ge::Utils::PrintTensorsToFile(host_outputs, output_prefix);
   return 0;
 }
-}
+}  // namespace
 namespace es_showcase {
 std::unique_ptr<ge::Graph> MakeAddGraphByEs() {
   // 1、创建图构建器
@@ -122,7 +121,7 @@ std::unique_ptr<ge::Graph> MakeAddGraphByEs() {
   auto input2 = graph_builder->CreateInput(1, "data1", ge::DT_INT32, FORMAT_ND, {});
   auto result = MakeAddGraph(input1, input2);
   // 3、设置输出
-  (void) graph_builder->SetOutput(result, 0);
+  (void)graph_builder->SetOutput(result, 0);
   // 4、构建图
   return graph_builder->BuildAndReset();
 }
@@ -150,4 +149,4 @@ int MakeAddGraphByEsAndRun() {
   outputs.push_back(output0);
   return RunGraphAddWithSession(session, *graph, inputs, outputs, "AddCopy");
 }
-}
+}  // namespace es_showcase

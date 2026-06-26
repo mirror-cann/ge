@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2026 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -84,7 +84,8 @@ nlohmann::json BuildIndexJson(const std::string &index_path, const std::string &
 
       if (entry["release_version"].get<std::string>() == release_version) {
         throw std::invalid_argument(
-          "Given release_version already exists in index, please check index.json or use another version: " + release_version);
+            "Given release_version already exists in index, please check index.json or use another version: " +
+            release_version);
       }
       json["releases"].emplace_back(entry);
       ++idx;
@@ -95,12 +96,12 @@ nlohmann::json BuildIndexJson(const std::string &index_path, const std::string &
   release_entry["release_version"] = release_version;
   release_entry["release_date"] = release_date;
   json["releases"].emplace_back(std::move(release_entry));
-  std::cout << "Added release record to index: release version " << release_version
-            << ", release date " << release_date << std::endl;
+  std::cout << "Added release record to index: release version " << release_version << ", release date " << release_date
+            << std::endl;
 
-  std::sort(json["releases"].begin(), json["releases"].end(),
-            [](const nlohmann::json &a, const nlohmann::json &b) {
-              return a["release_date"].get<std::string>() < b["release_date"].get<std::string>(); });
+  std::sort(json["releases"].begin(), json["releases"].end(), [](const nlohmann::json &a, const nlohmann::json &b) {
+    return a["release_date"].get<std::string>() < b["release_date"].get<std::string>();
+  });
   return json;
 }
 
@@ -156,11 +157,12 @@ void HistoryRegistryWriter::WriteRegistry(const std::string &output_dir, const s
   std::string date = release_date;
   if (date.empty()) {
     if (!GetCurrentDate(date)) {
-      throw std::runtime_error("Failed to get current date from system. Please provide release_date in YYYY-MM-DD format.");
+      throw std::runtime_error(
+          "Failed to get current date from system. Please provide release_date in YYYY-MM-DD format.");
     }
   } else if (!ValidateReleaseDateFormat(date)) {
     throw std::invalid_argument(
-      "Given release_date parameter for history registry generator is not in the correct format (YYYY-MM-DD).");
+        "Given release_date parameter for history registry generator is not in the correct format (YYYY-MM-DD).");
   }
   if (release_version.empty()) {
     throw std::invalid_argument("The required parameter release_version for history registry generator is not set.");

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,13 +22,13 @@ constexpr char const *kStatisticsTraceHandleName = "FE_Statistics_Trace";
 constexpr char const *kCompileTraceHandlePrefix = "FE_CompileTd_";
 constexpr char const *kFinalizeEventName = "FE_Finalize_Event";
 const uint64_t kTreadIdReminder = 10;
-}
-TraceHandleManager::TraceHandleManager() : is_init_(false), global_handle_(-1), statistics_handle_(-1),
-                                           finalize_event_handle_() {}
+}  // namespace
+TraceHandleManager::TraceHandleManager()
+    : is_init_(false), global_handle_(-1), statistics_handle_(-1), finalize_event_handle_() {}
 
 TraceHandleManager::~TraceHandleManager() {}
 
-TraceHandleManager& TraceHandleManager::Instance() {
+TraceHandleManager &TraceHandleManager::Instance() {
   static TraceHandleManager trace_handle_manager;
   return trace_handle_manager;
 }
@@ -155,4 +155,4 @@ bool TraceHandleManager::SubmitTrace(const TraHandle &trace_handle, const std::s
   TraStatus trace_status = AtraceSubmit(trace_handle, buffer, buf_size);
   return trace_status == TRACE_SUCCESS;
 }
-}
+}  // namespace fe

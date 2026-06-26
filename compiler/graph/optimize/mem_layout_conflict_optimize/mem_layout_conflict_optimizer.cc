@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,7 +31,7 @@ std::map<std::string, AnchorPtr> GetOrderedAnchors(const AnchorSet &anchors) {
   }
   return name_to_anchor;
 }
-}
+}  // namespace
 Status GraphOptimize::HandleMemoryLayoutConflict(ComputeGraphPtr &compute_graph) const {
   MemLayoutConflictOptimizer mem_layout_conflict_optimizer;
   return mem_layout_conflict_optimizer.Run(compute_graph);
@@ -89,12 +89,12 @@ Status MemLayoutConflictOptimizer::Process(ge::ComputeGraphPtr &graph) {
   graph_info.is_physical_memory_refreshable = VarManager::IsGeUseExtendSizeMemoryFull();
   GE_ASSERT_SUCCESS(GraphUtils::GetRefMapping(graph, symbol_to_anchors_, anchor_to_symbol_),
                     "[Call][GetRefMapping] for graph:%s failed.", graph->GetName().c_str());
-  GELOGI("[MemConflict] Start to check memory of static graph %s, is_root_graph_static: %d,"
+  GELOGI(
+      "[MemConflict] Start to check memory of static graph %s, is_root_graph_static: %d,"
       " is_feature_map_refreshable: %d, support_user_input_nopadding_continuous_output: %d,"
       " is_physical_memory_refreshable: %d",
-      graph->GetName().c_str(), graph_info.is_root_graph_static,
-      graph_info.is_feature_map_refreshable, graph_info.is_support_user_input_nopadding_continuous_output,
-      graph_info.is_physical_memory_refreshable);
+      graph->GetName().c_str(), graph_info.is_root_graph_static, graph_info.is_feature_map_refreshable,
+      graph_info.is_support_user_input_nopadding_continuous_output, graph_info.is_physical_memory_refreshable);
 
   MarkAllAttribute(graph);
 

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -48,9 +48,7 @@ std::vector<char> CreateStubBin(bool isLittleEndian) {
     std::cout << "file:" << op_bin_path << "does not exist or is unaccessible." << std::endl;
     return buf;
   }
-  GE_MAKE_GUARD(file_guard, [&file]() {
-    (void)file.close();
-  });
+  GE_MAKE_GUARD(file_guard, [&file]() { (void)file.close(); });
   const std::streampos begin = file.tellg();
   (void)file.seekg(0, std::ios::end);
   const std::streampos end = file.tellg();
@@ -112,7 +110,7 @@ static GeRootModelPtr GenGeRootModel() {
 
   std::shared_ptr<domi::ModelTaskDef> model_task = std::make_shared<domi::ModelTaskDef>();
   ge_model->SetModelTaskDef(model_task);
-  
+
   domi::TaskDef *task_def0 = model_task->add_task();
   task_def0->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_KERNEL));
   task_def0->set_stream_id(op_desc->GetStreamId());
@@ -136,7 +134,7 @@ static GeRootModelPtr GenGeRootModel() {
 
   return ge_root_model;
 }
-}
+}  // namespace
 
 class UtestPreModelSaveHelper : public testing::Test {
  protected:
@@ -145,8 +143,7 @@ class UtestPreModelSaveHelper : public testing::Test {
   void TearDown() override {}
 };
 
-TEST_F(UtestPreModelSaveHelper, ModelToOm)
-{
+TEST_F(UtestPreModelSaveHelper, ModelToOm) {
   dlog_setlevel(GE_MODULE_NAME, DLOG_DEBUG, 0);
   std::string output_file = "outputfile.om";
   ModelBufferData model;

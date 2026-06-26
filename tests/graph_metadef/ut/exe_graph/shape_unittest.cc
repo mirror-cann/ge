@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,8 +27,7 @@ TEST_F(ShapeUT, ConstructFromListOk) {
 }
 
 TEST_F(ShapeUT, ConstructFromListOverMaxNum) {
-  Shape s{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-          16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26};
+  Shape s{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26};
   EXPECT_EQ(s.GetDimNum(), 0);
 }
 
@@ -55,7 +54,7 @@ TEST_F(ShapeUT, NotEqualForDim) {
 
 TEST_F(ShapeUT, GetTensorShapeSizeOk) {
   Shape s2{8, 3, 224, 224};
-  EXPECT_EQ(s2.GetShapeSize(), 8 * 3 * 224 *224);
+  EXPECT_EQ(s2.GetShapeSize(), 8 * 3 * 224 * 224);
 }
 
 TEST_F(ShapeUT, GetScalerShapeSizeOk) {
@@ -147,15 +146,13 @@ TEST_F(ShapeUT, SetGetDimOk) {
 TEST_F(ShapeUT, AppendDimOk) {
   Shape s{1};
   s.AppendDim(10).AppendDim(20);
-  Shape expect_s{1,10,20};
+  Shape expect_s{1, 10, 20};
   EXPECT_EQ(s, expect_s);
 }
 
 TEST_F(ShapeUT, AppendDimOutOfBounds) {
-  Shape s{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-           16, 17, 18, 19, 20, 21, 22, 23, 24, 25};
-  Shape expect_s{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-                 16, 17, 18, 19, 20, 21, 22, 23, 24, 25};
+  Shape s{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25};
+  Shape expect_s{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25};
   s.AppendDim(10);
   EXPECT_EQ(s, expect_s);
 }
@@ -173,16 +170,15 @@ TEST_F(ShapeUT, CopyConstruct) {
   EXPECT_EQ(s_copy.GetDimNum(), 5);
 }
 
-
 TEST_F(ShapeUT, CopyAssign) {
-  Shape s{4,3,2,1};
+  Shape s{4, 3, 2, 1};
   Shape s_copy{1, 2, 3, 4, 5};
   EXPECT_EQ(s_copy.GetDimNum(), 5);
   s_copy = s;
   EXPECT_EQ(s_copy.GetDimNum(), 4);
   EXPECT_EQ(s_copy.GetDim(4), 5);
 
-  Shape a{4,3,2,1};
+  Shape a{4, 3, 2, 1};
   Shape a_copy{1, 2, 3, 4, 5};
   EXPECT_EQ(a.GetDimNum(), 4);
   a = a_copy;

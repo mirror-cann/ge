@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,54 +25,51 @@
 
 namespace {
 constexpr ge::char_t const *kAttrSupportDynamicShape = "support_dynamicshape";
-template<typename T>
+template <typename T>
 size_t AttrValueSizeByType(const ge::AnyValue &attr_value) {
   (void)attr_value;
   return sizeof(T);
 }
 
-template<>
+template <>
 size_t AttrValueSizeByType<std::string>(const ge::AnyValue &attr_value) {
   std::string val;
   (void)attr_value.GetValue<std::string>(val);
   return val.length();
 }
 
-template<typename T>
-size_t ListAttrValueSizeByType(const ge::AnyValue &attr_value)
-{
-    std::vector<T> values;
-    (void)attr_value.GetValue<std::vector<T>>(values);
-    return (sizeof(T) * values.size());
+template <typename T>
+size_t ListAttrValueSizeByType(const ge::AnyValue &attr_value) {
+  std::vector<T> values;
+  (void)attr_value.GetValue<std::vector<T>>(values);
+  return (sizeof(T) * values.size());
 }
 
-template<>
-size_t ListAttrValueSizeByType<std::string>(const ge::AnyValue &attr_value)
-{
-    std::vector<std::string> values;
-    (void)attr_value.GetValue<std::vector<std::string>>(values);
-    size_t str_size = 0U;
-    for (const auto &val : values) {
-      str_size += val.length();
-    }
-    return str_size;
+template <>
+size_t ListAttrValueSizeByType<std::string>(const ge::AnyValue &attr_value) {
+  std::vector<std::string> values;
+  (void)attr_value.GetValue<std::vector<std::string>>(values);
+  size_t str_size = 0U;
+  for (const auto &val : values) {
+    str_size += val.length();
+  }
+  return str_size;
 }
 
-template<typename T>
-size_t ListListAttrValueSizeByType(const ge::AnyValue &attr_value)
-{
-    std::vector<std::vector<T>> values;
-    (void)attr_value.GetValue<std::vector<std::vector<T>>>(values);
-    size_t cnt = 0U;
-    for (const auto &vals : values) {
-      cnt += vals.size();
-    }
-    return (sizeof(T) * cnt);
+template <typename T>
+size_t ListListAttrValueSizeByType(const ge::AnyValue &attr_value) {
+  std::vector<std::vector<T>> values;
+  (void)attr_value.GetValue<std::vector<std::vector<T>>>(values);
+  size_t cnt = 0U;
+  for (const auto &vals : values) {
+    cnt += vals.size();
+  }
+  return (sizeof(T) * cnt);
 }
 
-template<typename T>
-ge::Status CopyAttrValueSizeByType(const ge::AnyValue &attr_value,
-    uint8_t *base, const size_t max_size, size_t &offset) {
+template <typename T>
+ge::Status CopyAttrValueSizeByType(const ge::AnyValue &attr_value, uint8_t *base, const size_t max_size,
+                                   size_t &offset) {
   T val;
   (void)attr_value.GetValue<T>(val);
   const auto mem_ret = memcpy_s((base + offset), (max_size - offset), &val, sizeof(T));
@@ -84,9 +81,9 @@ ge::Status CopyAttrValueSizeByType(const ge::AnyValue &attr_value,
   return ge::SUCCESS;
 }
 
-template<>
-ge::Status CopyAttrValueSizeByType<std::string>(const ge::AnyValue &attr_value,
-    uint8_t *base, const size_t max_size, size_t &offset) {
+template <>
+ge::Status CopyAttrValueSizeByType<std::string>(const ge::AnyValue &attr_value, uint8_t *base, const size_t max_size,
+                                                size_t &offset) {
   std::string val;
   (void)attr_value.GetValue<std::string>(val);
   if (val.empty()) {
@@ -101,10 +98,9 @@ ge::Status CopyAttrValueSizeByType<std::string>(const ge::AnyValue &attr_value,
   return ge::SUCCESS;
 }
 
-template<typename T>
-ge::Status CopyListAttrValueSizeByType(const ge::AnyValue &attr_value,
-    uint8_t *base, const size_t max_size, size_t &offset)
-{
+template <typename T>
+ge::Status CopyListAttrValueSizeByType(const ge::AnyValue &attr_value, uint8_t *base, const size_t max_size,
+                                       size_t &offset) {
   std::vector<T> values;
   (void)attr_value.GetValue<std::vector<T>>(values);
   for (const auto &val : values) {
@@ -120,10 +116,9 @@ ge::Status CopyListAttrValueSizeByType(const ge::AnyValue &attr_value,
   return ge::SUCCESS;
 }
 
-template<>
-ge::Status CopyListAttrValueSizeByType<std::string>(const ge::AnyValue &attr_value,
-    uint8_t *base, const size_t max_size, size_t &offset)
-{
+template <>
+ge::Status CopyListAttrValueSizeByType<std::string>(const ge::AnyValue &attr_value, uint8_t *base,
+                                                    const size_t max_size, size_t &offset) {
   std::vector<std::string> values;
   (void)attr_value.GetValue<std::vector<std::string>>(values);
   for (const auto &val : values) {
@@ -140,10 +135,9 @@ ge::Status CopyListAttrValueSizeByType<std::string>(const ge::AnyValue &attr_val
   return ge::SUCCESS;
 }
 
-template<typename T>
-ge::Status CopyListListAttrValueSizeByType(const ge::AnyValue &attr_value,
-    uint8_t *base, const size_t max_size, size_t &offset)
-{
+template <typename T>
+ge::Status CopyListListAttrValueSizeByType(const ge::AnyValue &attr_value, uint8_t *base, const size_t max_size,
+                                           size_t &offset) {
   std::vector<std::vector<T>> values;
   (void)attr_value.GetValue<std::vector<std::vector<T>>>(values);
   for (const auto &vals : values) {
@@ -282,7 +276,7 @@ size_t NodeCompileCacheModule::GetAttrSize(const AnyValue &attr_value) const {
     case ge::GeAttrValue::VT_BOOL:
       return AttrValueSizeByType<bool>(attr_value);
     case ge::GeAttrValue::VT_INT:
-        return AttrValueSizeByType<int64_t>(attr_value);
+      return AttrValueSizeByType<int64_t>(attr_value);
     case ge::GeAttrValue::VT_FLOAT:
       return AttrValueSizeByType<float32_t>(attr_value);
     case ge::GeAttrValue::VT_DATA_TYPE:
@@ -305,9 +299,7 @@ size_t NodeCompileCacheModule::GetAttrSize(const AnyValue &attr_value) const {
   }
 }
 
-Status NodeCompileCacheModule::CopyAttrValues(const AnyValue &attr_value,
-                                              uint8_t *base,
-                                              const size_t max_size,
+Status NodeCompileCacheModule::CopyAttrValues(const AnyValue &attr_value, uint8_t *base, const size_t max_size,
                                               size_t &offset) const {
   switch (attr_value.GetValueType()) {
     case ge::GeAttrValue::VT_STRING:
@@ -315,7 +307,7 @@ Status NodeCompileCacheModule::CopyAttrValues(const AnyValue &attr_value,
     case ge::GeAttrValue::VT_BOOL:
       return CopyAttrValueSizeByType<bool>(attr_value, base, max_size, offset);
     case ge::GeAttrValue::VT_INT:
-        return CopyAttrValueSizeByType<int64_t>(attr_value, base, max_size, offset);
+      return CopyAttrValueSizeByType<int64_t>(attr_value, base, max_size, offset);
     case ge::GeAttrValue::VT_FLOAT:
       return CopyAttrValueSizeByType<float32_t>(attr_value, base, max_size, offset);
     case ge::GeAttrValue::VT_DATA_TYPE:
@@ -339,7 +331,8 @@ Status NodeCompileCacheModule::CopyAttrValues(const AnyValue &attr_value,
 }
 
 Status NodeCompileCacheModule::GetAttrTotalSize(const std::map<std::string, AnyValue> &all_attributes,
-    const std::set<string> &ordered_origin_attr_name, size_t &attr_size) const {
+                                                const std::set<string> &ordered_origin_attr_name,
+                                                size_t &attr_size) const {
   for (const auto &name : ordered_origin_attr_name) {
     GELOGD("current origin attr name is %s", name.c_str());
     auto it = all_attributes.find(name);
@@ -368,8 +361,8 @@ Status NodeCompileCacheModule::CopyAttrToMem(const std::map<std::string, AnyValu
     if (it != all_attributes.end()) {
       const AnyValue &attr_value = it->second;
       FMK_SIZET_SUBCHECK(attr_size, offset);
-      const auto mem_ret = memcpy_s((attr_mem.get() + offset), (attr_size - offset),
-          it->first.data(), it->first.length());
+      const auto mem_ret =
+          memcpy_s((attr_mem.get() + offset), (attr_size - offset), it->first.data(), it->first.length());
       if (mem_ret != EOK) {
         GELOGE(FAILED, "memcpy failed.");
         return FAILED;
@@ -582,4 +575,4 @@ NodeCompileCacheItem *NodeCompileCacheModule::AddCompileCache(const NodePtr &nod
     return &it->second;
   }
 }
-} // namespace ge
+}  // namespace ge

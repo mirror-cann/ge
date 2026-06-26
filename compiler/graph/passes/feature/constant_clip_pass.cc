@@ -24,37 +24,44 @@
 #include "graph/utils/type_utils.h"
 
 namespace {
-  const std::string Enable_Clip = "1";
-  constexpr ge::float32_t FP16_MAX_VALUE = 65504;
-  constexpr ge::float32_t FP16_MIN_VALUE = -65504;
-  constexpr ge::float32_t BF16_MAX_VALUE = 3.38E38f;
-  constexpr ge::float32_t BF16_MIN_VALUE = -3.38E38f;
-  constexpr ge::float32_t HIF8_MAX_VALUE = std::pow(2, 15);
-  constexpr ge::float32_t E5M2_MAX_VALUE = 1.75 * std::pow(2, 15);
-  constexpr ge::float32_t E4M3FN_MAX_VALUE = 1.75 * std::pow(2, 8);
-  constexpr ge::float32_t HIF4_MAX_VALUE = 1.3125f * 262144.0f;
-  constexpr ge::float32_t HIF4_MIN_VALUE = 8.881784197e-16f;
-  bool IsFloatDt(const ge::DataType &dt) {
-    return (dt == ge::DT_FLOAT) || (dt == ge::DT_FLOAT16) || (dt == ge::DT_DOUBLE) || (dt == ge::DT_BF16) ||
-           (dt == ge::DT_HIFLOAT8) || (dt == ge::DT_HIFLOAT4) || (dt == ge::DT_FLOAT8_E5M2) || (dt == ge::DT_FLOAT8_E4M3FN);
-  }
-
-  ge::float32_t GetMax(const ge::DataType dt) {
-    static std::map<ge::DataType, ge::float32_t> dt_max_map = {{ge::DT_FLOAT16, FP16_MAX_VALUE},
-        {ge::DT_BF16, BF16_MAX_VALUE}, {ge::DT_FLOAT, FLT_MAX}, {ge::DT_HIFLOAT8, HIF8_MAX_VALUE}, {ge::DT_HIFLOAT4, HIF4_MAX_VALUE},
-        {ge::DT_FLOAT8_E5M2, E5M2_MAX_VALUE}, {ge::DT_FLOAT8_E4M3FN, E4M3FN_MAX_VALUE},
-    };
-    return dt_max_map[dt];
-  }
-
-  ge::float32_t GetMin(const ge::DataType dt) {
-    static std::map<ge::DataType, ge::float32_t> dt_min_map = {{ge::DT_FLOAT16, FP16_MIN_VALUE},
-        {ge::DT_BF16, BF16_MIN_VALUE}, {ge::DT_FLOAT, -FLT_MAX}, {ge::DT_HIFLOAT8, -HIF8_MAX_VALUE}, {ge::DT_HIFLOAT4, HIF4_MIN_VALUE},
-        {ge::DT_FLOAT8_E5M2, -E5M2_MAX_VALUE}, {ge::DT_FLOAT8_E4M3FN, -E4M3FN_MAX_VALUE},
-    };
-    return dt_min_map[dt];
-  }
+const std::string Enable_Clip = "1";
+constexpr ge::float32_t FP16_MAX_VALUE = 65504;
+constexpr ge::float32_t FP16_MIN_VALUE = -65504;
+constexpr ge::float32_t BF16_MAX_VALUE = 3.38E38f;
+constexpr ge::float32_t BF16_MIN_VALUE = -3.38E38f;
+constexpr ge::float32_t HIF8_MAX_VALUE = std::pow(2, 15);
+constexpr ge::float32_t E5M2_MAX_VALUE = 1.75 * std::pow(2, 15);
+constexpr ge::float32_t E4M3FN_MAX_VALUE = 1.75 * std::pow(2, 8);
+constexpr ge::float32_t HIF4_MAX_VALUE = 1.3125f * 262144.0f;
+constexpr ge::float32_t HIF4_MIN_VALUE = 8.881784197e-16f;
+bool IsFloatDt(const ge::DataType &dt) {
+  return (dt == ge::DT_FLOAT) || (dt == ge::DT_FLOAT16) || (dt == ge::DT_DOUBLE) || (dt == ge::DT_BF16) ||
+         (dt == ge::DT_HIFLOAT8) || (dt == ge::DT_HIFLOAT4) || (dt == ge::DT_FLOAT8_E5M2) ||
+         (dt == ge::DT_FLOAT8_E4M3FN);
 }
+
+ge::float32_t GetMax(const ge::DataType dt) {
+  static std::map<ge::DataType, ge::float32_t> dt_max_map = {
+      {ge::DT_FLOAT16, FP16_MAX_VALUE},         {ge::DT_BF16, BF16_MAX_VALUE},     {ge::DT_FLOAT, FLT_MAX},
+      {ge::DT_HIFLOAT8, HIF8_MAX_VALUE},        {ge::DT_HIFLOAT4, HIF4_MAX_VALUE}, {ge::DT_FLOAT8_E5M2, E5M2_MAX_VALUE},
+      {ge::DT_FLOAT8_E4M3FN, E4M3FN_MAX_VALUE},
+  };
+  return dt_max_map[dt];
+}
+
+ge::float32_t GetMin(const ge::DataType dt) {
+  static std::map<ge::DataType, ge::float32_t> dt_min_map = {
+      {ge::DT_FLOAT16, FP16_MIN_VALUE},
+      {ge::DT_BF16, BF16_MIN_VALUE},
+      {ge::DT_FLOAT, -FLT_MAX},
+      {ge::DT_HIFLOAT8, -HIF8_MAX_VALUE},
+      {ge::DT_HIFLOAT4, HIF4_MIN_VALUE},
+      {ge::DT_FLOAT8_E5M2, -E5M2_MAX_VALUE},
+      {ge::DT_FLOAT8_E4M3FN, -E4M3FN_MAX_VALUE},
+  };
+  return dt_min_map[dt];
+}
+}  // namespace
 
 namespace ge {
 Status ConstantClipPass::Run(NodePtr &node) {
@@ -63,8 +70,8 @@ Status ConstantClipPass::Run(NodePtr &node) {
     return SUCCESS;
   }
   std::string is_weight_clip;
-  bool need_weight_clip = (GetContext().GetOption("ge.is_weight_clip", is_weight_clip) == SUCCESS) &&
-                          (is_weight_clip == Enable_Clip);
+  bool need_weight_clip =
+      (GetContext().GetOption("ge.is_weight_clip", is_weight_clip) == SUCCESS) && (is_weight_clip == Enable_Clip);
   if (!need_weight_clip) {
     return SUCCESS;
   }
@@ -77,7 +84,7 @@ Status ConstantClipPass::Run(NodePtr &node) {
   GE_ASSERT_NOTNULL(out_tensor_desc);
   const DataType out_dt = out_tensor_desc->GetDataType();
   GELOGD("enter ConstantClipPass cast %s, in_dt %s, out_dt %s", node->GetName().c_str(),
-      TypeUtils::DataTypeToSerialString(in_dt).c_str(), TypeUtils::DataTypeToSerialString(out_dt).c_str());
+         TypeUtils::DataTypeToSerialString(in_dt).c_str(), TypeUtils::DataTypeToSerialString(out_dt).c_str());
   // in_dt can only be float or double
   if (!IsFloatDt(in_dt) || !IsFloatDt(out_dt) || (GetSizeByDataType(in_dt) <= GetSizeByDataType(out_dt))) {
     return SUCCESS;
@@ -87,8 +94,8 @@ Status ConstantClipPass::Run(NodePtr &node) {
     return SUCCESS;
   }
   GELOGD("find cast op %s, src_dt %s, dst_dt %s, link const input %s", node->GetName().c_str(),
-      TypeUtils::DataTypeToSerialString(in_dt).c_str(), TypeUtils::DataTypeToSerialString(out_dt).c_str(),
-      input_nodes[0]->GetName().c_str());
+         TypeUtils::DataTypeToSerialString(in_dt).c_str(), TypeUtils::DataTypeToSerialString(out_dt).c_str(),
+         input_nodes[0]->GetName().c_str());
   auto weight_inputs = OpDescUtils::GetWeights(*(input_nodes[0]));
   if (!weight_inputs.empty()) {
     bool is_infinite = false;
@@ -96,16 +103,16 @@ Status ConstantClipPass::Run(NodePtr &node) {
     if (!is_infinite) {
       return SUCCESS;
     }
-    GELOGW("find cast op %s, src_dt %s, dst_dt %s need to be cliped, it may be lower accuracy",
-        node->GetName().c_str(), TypeUtils::DataTypeToSerialString(in_dt).c_str(),
-        TypeUtils::DataTypeToSerialString(out_dt).c_str());
+    GELOGW("find cast op %s, src_dt %s, dst_dt %s need to be clipped, it may be lower accuracy",
+           node->GetName().c_str(), TypeUtils::DataTypeToSerialString(in_dt).c_str(),
+           TypeUtils::DataTypeToSerialString(out_dt).c_str());
     GE_ASSERT_SUCCESS(InsertClipByValueBetweenCastAndConst(node));
   }
   return SUCCESS;
 }
 
-Status ConstantClipPass::CheckWeightInfinite(const ConstGeTensorPtr &const_tensor,
-    const DataType &dst_dt, bool &is_infinite) const {
+Status ConstantClipPass::CheckWeightInfinite(const ConstGeTensorPtr &const_tensor, const DataType &dst_dt,
+                                             bool &is_infinite) const {
   is_infinite = false;
   const DataType const_dt = const_tensor->GetTensorDesc().GetDataType();
   const auto min_value = GetMin(dst_dt);
@@ -145,8 +152,8 @@ Status ConstantClipPass::InsertClipByValueBetweenCastAndConst(const NodePtr &nod
   NodePtr clip_node = CreateClipNode(node);
   GE_ASSERT_NOTNULL(clip_node);
   GE_ASSERT_SUCCESS(GraphUtils::InsertNodeBetweenDataAnchors(out_data_anchor, in_data_anchor, clip_node));
-  GELOGI("insert clip node %s between %s and %s successfully",
-      clip_node->GetName().c_str(), src_node->GetName().c_str(), node->GetName().c_str());
+  GELOGI("insert clip node %s between %s and %s successfully", clip_node->GetName().c_str(),
+         src_node->GetName().c_str(), node->GetName().c_str());
   return SUCCESS;
 }
 
@@ -220,8 +227,8 @@ NodePtr ConstantClipPass::CreateClipNode(const NodePtr &node) {
   AddRePassNode(const_min_node);
   AddRePassNode(const_max_node);
   AddRePassNode(clip_node);
-  GELOGI("create clip node %s, const_min_node %s, const_max_node %s successfully",
-      clip_node->GetName().c_str(), const_min_node->GetName().c_str(), const_max_node->GetName().c_str());
+  GELOGI("create clip node %s, const_min_node %s, const_max_node %s successfully", clip_node->GetName().c_str(),
+         const_min_node->GetName().c_str(), const_max_node->GetName().c_str());
   return clip_node;
 }
 

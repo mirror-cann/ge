@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,8 +31,8 @@ InputData GetInputDataFromGertTensors(const std::vector<gert::Tensor> &inputs) {
     DataBuffer buffer;
     buffer.data = const_cast<void *>(tensor.GetAddr());
     buffer.length = tensor.GetSize();
-    buffer.placement = static_cast<uint32_t>(gert::TensorPlacementUtils::IsOnDevice(tensor.GetPlacement()) ?
-      kPlacementDevice : kPlacementHost);
+    buffer.placement = static_cast<uint32_t>(
+        gert::TensorPlacementUtils::IsOnDevice(tensor.GetPlacement()) ? kPlacementDevice : kPlacementHost);
     input_data.blobs.emplace_back(buffer);
     const auto &shape = tensor.GetStorageShape();
     std::vector<int64_t> dims(shape.GetDimNum());
@@ -53,12 +53,11 @@ Status TensorValue2GeTensor(ge::hybrid::TensorValue &&tensor_value, const ConstG
     (void)device_data;
     tensor.Destroy();
   };
-  GE_CHK_STATUS_RET(
-      ge_tensor.SetData(PtrToPtr<void, uint8_t>(const_cast<void *>(tensor_value.GetData())),
-        tensor_value.GetSize(), deleter));
+  GE_CHK_STATUS_RET(ge_tensor.SetData(PtrToPtr<void, uint8_t>(const_cast<void *>(tensor_value.GetData())),
+                                      tensor_value.GetSize(), deleter));
   return SUCCESS;
 }
-}
+}  // namespace
 namespace hybrid {
 HybridModelRtV1Executor::HybridModelRtV1Executor(HybridModel *const model, const uint32_t device_id,
                                                  const aclrtStream stream, ThreadPool *const thread_pool)
@@ -82,8 +81,8 @@ Status HybridModelRtV1Executor::DumpOpDebug() {
   if (dump_properties.IsOpDebugOpen()) {
     GELOGD("Opdebug is open in hybrid engine");
     const uint32_t op_debug_mode = dump_properties.GetOpDebugMode();
-    GE_CHK_RT_RET(static_cast<rtError_t>(
-        op_debug_register_.RegisterDebugForStream(stream_, op_debug_mode, data_dumper_)));
+    GE_CHK_RT_RET(
+        static_cast<rtError_t>(op_debug_register_.RegisterDebugForStream(stream_, op_debug_mode, data_dumper_)));
     is_op_debug_reg_ = true;
     data_dumper_.SetDumpProperties(dump_properties);
     data_dumper_.SetModelName(model_->GetModelName());
@@ -107,8 +106,8 @@ Status HybridModelRtV1Executor::DumpOpDebug() {
     const uintptr_t loop_cond = (variable_loop_cond != nullptr) ? PtrToValue(variable_loop_cond->GetData()) : 0U;
 
     data_dumper_.SetLoopAddr(global_step, loop_iter, loop_cond);
-    GE_CHK_STATUS_RET(data_dumper_.LoadDumpInfo(),
-                      "[Invoke][LoadDumpInfo] failed in hybrid engine, model_id = %u.", model_id_);
+    GE_CHK_STATUS_RET(data_dumper_.LoadDumpInfo(), "[Invoke][LoadDumpInfo] failed in hybrid engine, model_id = %u.",
+                      model_id_);
     GELOGD("Dump op debug SUCCESS in hybrid engine");
   }
   return SUCCESS;
@@ -148,7 +147,7 @@ Status HybridModelRtV1Executor::PreRun(const InputData &current_data, HybridMode
 }
 
 Status HybridModelRtV1Executor::ExecuteOnlineModel(const std::vector<gert::Tensor> &inputs,
-    std::shared_ptr<ModelListener> listener) {
+                                                   std::shared_ptr<ModelListener> listener) {
   RT2_PROFILING_SCOPE_CONST(gert::profiling::kUnknownName, gert::profiling::kModelExecute);
   RECORD_MODEL_EXECUTION_EVENT(&context_, "[RunInternal] [iteration = %d] Start", iterator_count_);
   HybridModelExecutor::ExecuteArgs args;
@@ -179,13 +178,13 @@ Status HybridModelRtV1Executor::ProcessOnlineModel(const InputData &input_data,
 
 Status HybridModelRtV1Executor::Execute(const InputData &input_data, ExecuteArgs &args) {
   GE_CHK_STATUS_RET(PrepareExecuteArgs(input_data, args),
-      "[Invoke][PrepareExecuteArgs]Failed to copy input data to model, model_id = %u", model_id_);
+                    "[Invoke][PrepareExecuteArgs]Failed to copy input data to model, model_id = %u", model_id_);
   GELOGD("Done copying input data successfully.");
   return Execute(args);
 }
 
 Status HybridModelRtV1Executor::Execute(const std::vector<gert::Tensor> &inputs, std::vector<gert::Tensor> &outputs,
-    CtrlArgs &ctrl_args) {
+                                        CtrlArgs &ctrl_args) {
   ExecuteArgs args;
   args.ctrl_args = ctrl_args;
   InputData input_data = GetInputDataFromGertTensors(inputs);
@@ -201,8 +200,8 @@ Status HybridModelRtV1Executor::Execute(const std::vector<gert::Tensor> &inputs,
     GeTensor ge_tensor;
     GE_ASSERT_SUCCESS(TensorValue2GeTensor(std::move(args.outputs[out_index]), tensor_desc, ge_tensor));
     GE_ASSERT_SUCCESS(TensorTransUtils::GeTensor2GertTensor(ge_tensor, outputs[out_index]));
-    GELOGD("Set output[%d], tensor size = %zu, shape = [%s]", out_index,
-           gert_tensor.GetSize(), formats::GertShapeToString(gert_tensor.GetStorageShape()).c_str());
+    GELOGD("Set output[%d], tensor size = %zu, shape = [%s]", out_index, gert_tensor.GetSize(),
+           formats::GertShapeToString(gert_tensor.GetStorageShape()).c_str());
     ++out_index;
   }
   return SUCCESS;
@@ -222,8 +221,8 @@ Status HybridModelRtV1Executor::Execute(ExecuteArgs &args) {
   // In heterogeneous executor, gloabl_step is updated by markStep task
   if (!ExecutionRuntimeUtils::IsInHeterogeneousExecutor()) {
     if (context_.global_step != nullptr) {
-      GE_CHK_ACL_RET(aclrtMemcpyAsync(context_.global_step, sizeof(uint64_t), &context_.iteration,
-          sizeof(uint64_t), ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE, context_.stream));
+      GE_CHK_ACL_RET(aclrtMemcpyAsync(context_.global_step, sizeof(uint64_t), &context_.iteration, sizeof(uint64_t),
+                                      ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE, context_.stream));
     }
   }
 
@@ -358,8 +357,8 @@ Status HybridModelRtV1Executor::CheckInputShapeByShapeRange(const GraphItem *con
     std::vector<std::pair<int64_t, int64_t>> shape_range;
     if (model_input_desc->GetShapeRange(shape_range) != SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "[%s] Input[%zu] get shape range failed", graph_item->GetName().c_str(), i);
-      GELOGE(INTERNAL_ERROR, "[Get][ShapeRange] [%s] Input[%zu] get shape range failed",
-             graph_item->GetName().c_str(), i);
+      GELOGE(INTERNAL_ERROR, "[Get][ShapeRange] [%s] Input[%zu] get shape range failed", graph_item->GetName().c_str(),
+             i);
       return INTERNAL_ERROR;
     }
     if (shape_range.empty()) {
@@ -368,7 +367,7 @@ Status HybridModelRtV1Executor::CheckInputShapeByShapeRange(const GraphItem *con
     }
     if (i >= args.input_desc.size()) {
       REPORT_INNER_ERR_MSG("E19999", "[%s] Inputs[%zu] is greater than or equal to input desc size[%zu].",
-                         graph_item->GetName().c_str(), i, args.input_desc.size());
+                           graph_item->GetName().c_str(), i, args.input_desc.size());
       GELOGE(INTERNAL_ERROR, "[Check][Param] [%s] inputs[%zu] is greater than or equal to input desc size[%zu].",
              graph_item->GetName().c_str(), i, args.input_desc.size());
       return INTERNAL_ERROR;
@@ -378,7 +377,7 @@ Status HybridModelRtV1Executor::CheckInputShapeByShapeRange(const GraphItem *con
     const GeShape &shape = args_tensor_desc->GetShape();
     if (shape.IsUnknownShape()) {
       REPORT_INNER_ERR_MSG("E19999", "[%s] Input desc shape [%zu] designed by user must be static.",
-                         graph_item->GetName().c_str(), i);
+                           graph_item->GetName().c_str(), i);
       GELOGE(INTERNAL_ERROR, "[Check][Param] [%s] Input desc shape [%zu] designed by user must be static.",
              graph_item->GetName().c_str(), i);
       return INTERNAL_ERROR;

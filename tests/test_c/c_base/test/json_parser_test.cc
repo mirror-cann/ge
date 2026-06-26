@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,11 +17,9 @@ using namespace testing;
 
 class UtestJsonParseTest : public testing::Test {
  protected:
-  void SetUp() {
-  }
+  void SetUp() {}
 
-  void TearDown() {
-  }
+  void TearDown() {}
 };
 
 TEST_F(UtestJsonParseTest, JsonParseCaseBasicNull) {
@@ -95,7 +93,6 @@ TEST_F(UtestJsonParseTest, JsonParseCaseBasicNegativeExp) {
   EXPECT_TRUE(((value > 0.0122) && (value < 0.0124)));
   FreeCJsonObj(jsonObj);
 }
-
 
 TEST_F(UtestJsonParseTest, JsonParseCaseBasicPositiveExp) {
   const char *json = "1.23e2";
@@ -244,9 +241,10 @@ TEST_F(UtestJsonParseTest, JsonParseCaseBasicArray) {
 }
 
 TEST_F(UtestJsonParseTest, JsonParseCaseBasicArrayObj) {
-  const char *json = "[{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}, "
-                      "{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}, "
-                      "{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}]";
+  const char *json =
+      "[{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}, "
+      "{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}, "
+      "{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}]";
   CJsonObj *jsonObj = CJsonParse(json, strlen(json));
   ASSERT_TRUE((jsonObj != NULL));
   ASSERT_TRUE(CJsonIsArray(jsonObj));
@@ -281,7 +279,6 @@ TEST_F(UtestJsonParseTest, JsonParseCaseBasicArrayObj) {
   FreeCJsonObj(jsonObj);
 }
 
-
 TEST_F(UtestJsonParseTest, JsonParseCaseBasicObjArray) {
   const char *json = "{\"a\" : [0, 1, 2]}";
   CJsonObj *jsonObj = CJsonParse(json, strlen(json));
@@ -304,9 +301,10 @@ TEST_F(UtestJsonParseTest, JsonParseCaseBasicObjArray) {
 }
 
 TEST_F(UtestJsonParseTest, JsonParseCaseJsonFile) {
-  const char *json = "{\"a\" : [{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}, "
-                                "{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}, "
-                                "{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}]}";
+  const char *json =
+      "{\"a\" : [{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}, "
+      "{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}, "
+      "{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}]}";
   const char *filePath = "test.json";
   std::ofstream stream(filePath);
   stream << json;
@@ -348,9 +346,10 @@ TEST_F(UtestJsonParseTest, JsonParseCaseJsonFile) {
 }
 
 TEST_F(UtestJsonParseTest, JsonParseCaseJsonKey) {
-  const char *json = "{\"a\" : [{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}, "
-                                "{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}, "
-                                "{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}]}";
+  const char *json =
+      "{\"a\" : [{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}, "
+      "{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}, "
+      "{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}]}";
   size_t offset;
   size_t len = CJsonParseKeyPosition(json, strlen(json), "a", &offset);
   ASSERT_EQ(offset, 7);
@@ -360,9 +359,10 @@ TEST_F(UtestJsonParseTest, JsonParseCaseJsonKey) {
 }
 
 TEST_F(UtestJsonParseTest, JsonParseCaseJsonFileKey) {
-  const char *json = "{\"a\" : [{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}, "
-                    "{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}, "
-                    "{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}]}";
+  const char *json =
+      "{\"a\" : [{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}, "
+      "{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}, "
+      "{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}]}";
   const char *filePath = "test.json";
   std::ofstream stream(filePath);
   stream << json;
@@ -370,16 +370,18 @@ TEST_F(UtestJsonParseTest, JsonParseCaseJsonFileKey) {
 
   char *subJson = CJsonFileParseKey(filePath, "a");
   ASSERT_TRUE((subJson != NULL));
-  ASSERT_STREQ(subJson, "[{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}, "
-                      "{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}, "
-                      "{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}]");
+  ASSERT_STREQ(subJson,
+               "[{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}, "
+               "{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}, "
+               "{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}]");
   free(subJson);
 }
 
 TEST_F(UtestJsonParseTest, JsonParseCaseJsonFileKeyWithTwoKey) {
-  const char *json = "{\"a\" : 123, \"b\": [{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}, "
-                    "{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}, "
-                    "{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}]}";
+  const char *json =
+      "{\"a\" : 123, \"b\": [{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}, "
+      "{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}, "
+      "{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}]}";
   const char *filePath = "test.json";
   std::ofstream stream(filePath);
   stream << json;
@@ -392,16 +394,18 @@ TEST_F(UtestJsonParseTest, JsonParseCaseJsonFileKeyWithTwoKey) {
 
   subJson = CJsonFileParseKey(filePath, "b");
   ASSERT_TRUE((subJson != NULL));
-  ASSERT_STREQ(subJson, "[{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}, "
-                      "{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}, "
-                      "{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}]");
+  ASSERT_STREQ(subJson,
+               "[{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}, "
+               "{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}, "
+               "{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}]");
   free(subJson);
 }
 
 TEST_F(UtestJsonParseTest, JsonParseCaseJsonFileKeyFail) {
-  const char *json = "{\"a\" : 123, \"b\": [{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}, "
-                    "{\"a\" : true, \"b\" : false; \"c\" : 123, \"d\" : \"123\"}, "
-                    "{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}]}";
+  const char *json =
+      "{\"a\" : 123, \"b\": [{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}, "
+      "{\"a\" : true, \"b\" : false; \"c\" : 123, \"d\" : \"123\"}, "
+      "{\"a\" : true, \"b\" : false, \"c\" : 123, \"d\" : \"123\"}]}";
   const char *filePath = "test.json";
   std::ofstream stream(filePath);
   stream << json;

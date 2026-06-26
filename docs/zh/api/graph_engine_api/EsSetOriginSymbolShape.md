@@ -109,4 +109,3 @@ const char* input_shape[] = {"a", "b", "c", "d"};
 int64_t dim_num = sizeof(input_shape) / sizeof(input_shape[0]); // 结果为 4
 EsSetOriginSymbolShape(data0, input_shape, dim_num); //设置第0个输入节点shape符号化表达
 ```
-

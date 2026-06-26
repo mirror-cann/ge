@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -45,7 +45,9 @@ class ProfilingManager {
   Status ProfModelUnsubscribe(const uint32_t device, const uint32_t model_id);
 
   // report model load profiling data flag, data contain task desc info, step info, model load fusion op info
-  bool ProfilingModelLoadOn() const { return ProfilingProperties::Instance().IsLoadProfiling(); }
+  bool ProfilingModelLoadOn() const {
+    return ProfilingProperties::Instance().IsLoadProfiling();
+  }
   // report model execute profiling data flag, data contain model execute time info
   bool ProfilingModelExecuteOn() const;
   // profiling subscribe is set
@@ -53,8 +55,12 @@ class ProfilingManager {
   // is_execute_profiling_ only used by ge option and env
 
   void GetOpInputOutputInfo(const OpDescPtr &op, TaskDescInfo &task_desc_info) const;
-  void SetStepInfoIndex(const int64_t index_id) { index_id_ = index_id; }
-  int64_t GetStepInfoIndex() const { return index_id_; }
+  void SetStepInfoIndex(const int64_t index_id) {
+    index_id_ = index_id;
+  }
+  int64_t GetStepInfoIndex() const {
+    return index_id_;
+  }
   void RecordLoadedModelId(const uint32_t model_id_) {
     const std::lock_guard<std::mutex> lock(mutex_);
     loaded_model_id_.insert(model_id_);
@@ -87,8 +93,8 @@ class ProfilingManager {
   std::mutex mutex_report_;
   std::mutex mutex_hash_;
   int64_t index_id_{std::numeric_limits<int64_t>::max()};
-  std::map<uint32_t, uint32_t> device_id_map_; // key: graph_id, value: device_id
-  std::map<uint32_t, uint32_t> model_id_map_; // key: graph_id, value: model_id
+  std::map<uint32_t, uint32_t> device_id_map_;  // key: graph_id, value: device_id
+  std::map<uint32_t, uint32_t> model_id_map_;   // key: graph_id, value: model_id
   std::unordered_set<uint32_t> reported_graph_id_;
   std::set<uint32_t> loaded_model_id_;
 };
@@ -100,6 +106,7 @@ class ProfilerCollector {
   ge::Status RecordEnd(const aclrtStream stream);
 
   bool host_cpu_flag_ = false;
+
  private:
   uint32_t model_id_;
   uint32_t graph_id_;

@@ -26,11 +26,9 @@ using DecomposeReplacementFn = std::function<GraphUniqPtr(const GNode &)>;
 
 // DecomposePass V1/V2 共享的 match-filter-replace 主循环。V1/V2 仅在钩子绑定上区分，
 // loop 本身在此实现以避免重复。
-Status RunDecomposePass(GraphPtr &graph,
-                        CustomPassContext &pass_context,
-                        const std::vector<AscendString> &op_types,
+Status RunDecomposePass(GraphPtr &graph, CustomPassContext &pass_context, const std::vector<AscendString> &op_types,
                         const DecomposeMeetRequirementsFn &meet_requirements,
                         const DecomposeReplacementFn &replacement);
-} // namespace fusion
-} // namespace ge
-#endif // COMPILER_GRAPH_FUSION_PASS_DECOMPOSE_PASS_RUN_H
+}  // namespace fusion
+}  // namespace ge
+#endif  // COMPILER_GRAPH_FUSION_PASS_DECOMPOSE_PASS_RUN_H

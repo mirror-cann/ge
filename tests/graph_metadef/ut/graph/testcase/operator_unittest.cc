@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -262,82 +262,78 @@ TEST_F(UtestOperater, GetInputConstData_subgraph) {
   ASSERT_EQ(op.GetInputConstData("sub_data", tensor), GRAPH_SUCCESS);
 }
 
-
 /*                                  -------------------------
-*                                  |  partitioncall_0_const1* |
-*     partitioncall_0--------------|             |           |
-*           |                      |          netoutput      |
-*           |                      --------------------------
-*           |                       ------------------          -------------
-*           |                      |        data      |        |     Pld     |
-*           |                      |          |       |        |      |      |
-*     partitioncall_1--------------|        FftsSub   |------->|   squeeze*  |
-*                                  |          |       |        |      |      |
-*                                  |      netoutput   |        |  netoutput  |
-*                                   ------------------          -------------
-*/
+ *                                  |  partitioncall_0_const1* |
+ *     partitioncall_0--------------|             |           |
+ *           |                      |          netoutput      |
+ *           |                      --------------------------
+ *           |                       ------------------          -------------
+ *           |                      |        data      |        |     Pld     |
+ *           |                      |          |       |        |      |      |
+ *     partitioncall_1--------------|        FftsSub   |------->|   squeeze*  |
+ *                                  |          |       |        |      |      |
+ *                                  |      netoutput   |        |  netoutput  |
+ *                                   ------------------          -------------
+ */
 TEST_F(UtestOperater, GetInputConstData_cross_subgraph) {
-    auto root_builder = ut::GraphBuilder("root");
-    const auto &partitioncall_0 = root_builder.AddNode("partitioncall_0", "PartitionedCall", 0, 1);
-    const auto &partitioncall_1 = root_builder.AddNode("partitioncall_1", "PartitionedCall", 1, 1);
-    root_builder.AddDataEdge(partitioncall_0, 0, partitioncall_1, 0);
-    const auto &root_graph = root_builder.GetGraph();
+  auto root_builder = ut::GraphBuilder("root");
+  const auto &partitioncall_0 = root_builder.AddNode("partitioncall_0", "PartitionedCall", 0, 1);
+  const auto &partitioncall_1 = root_builder.AddNode("partitioncall_1", "PartitionedCall", 1, 1);
+  root_builder.AddDataEdge(partitioncall_0, 0, partitioncall_1, 0);
+  const auto &root_graph = root_builder.GetGraph();
 
-    // 1.build partitioncall_0 sub graph
-    auto p1_sub_builder = ut::GraphBuilder("partitioncall_0_sub");
-    const auto &partitioncall_0_const1 = p1_sub_builder.AddNode("partitioncall_0_const1", "Const", 0, 1);
-    auto ge_tensor = std::make_shared<GeTensor>();
-    ASSERT_TRUE(AttrUtils::SetTensor(partitioncall_0_const1->GetOpDesc(), "value", ge_tensor));
+  // 1.build partitioncall_0 sub graph
+  auto p1_sub_builder = ut::GraphBuilder("partitioncall_0_sub");
+  const auto &partitioncall_0_const1 = p1_sub_builder.AddNode("partitioncall_0_const1", "Const", 0, 1);
+  auto ge_tensor = std::make_shared<GeTensor>();
+  ASSERT_TRUE(AttrUtils::SetTensor(partitioncall_0_const1->GetOpDesc(), "value", ge_tensor));
 
-    const auto &partitioncall_0_netoutput = p1_sub_builder.AddNode("partitioncall_0_netoutput", "NetOutput", 1, 1);
-    AttrUtils::SetInt(partitioncall_0_netoutput->GetOpDesc()->MutableInputDesc(0), "_parent_node_index", 0);
-    p1_sub_builder.AddDataEdge(partitioncall_0_const1, 0, partitioncall_0_netoutput, 0);
-    const auto &sub_graph = p1_sub_builder.GetGraph();
-    sub_graph->SetParentNode(partitioncall_0);
-    sub_graph->SetParentGraph(root_graph);
-    partitioncall_0->GetOpDesc()->AddSubgraphName("f");
-    partitioncall_0->GetOpDesc()->SetSubgraphInstanceName(0, "partitioncall_0_sub");
+  const auto &partitioncall_0_netoutput = p1_sub_builder.AddNode("partitioncall_0_netoutput", "NetOutput", 1, 1);
+  AttrUtils::SetInt(partitioncall_0_netoutput->GetOpDesc()->MutableInputDesc(0), "_parent_node_index", 0);
+  p1_sub_builder.AddDataEdge(partitioncall_0_const1, 0, partitioncall_0_netoutput, 0);
+  const auto &sub_graph = p1_sub_builder.GetGraph();
+  sub_graph->SetParentNode(partitioncall_0);
+  sub_graph->SetParentGraph(root_graph);
+  partitioncall_0->GetOpDesc()->AddSubgraphName("f");
+  partitioncall_0->GetOpDesc()->SetSubgraphInstanceName(0, "partitioncall_0_sub");
 
-    // 2.build partitioncall_1 sub graph
-    auto p2_sub_builder = ut::GraphBuilder("partitioncall_1_sub");
-    const auto &partitioncall_1_data = p2_sub_builder.AddNode("partitioncall_1_data", "Data", 0, 1);
-    AttrUtils::SetInt(partitioncall_1_data->GetOpDesc(), "_parent_node_index", 0);
-    const auto &partitioncall_1_ffts_sub = p2_sub_builder.AddNode("FftsSub", "PartitionedCall", 1, 1);
-    const auto &partitioncall_1_netoutput = p2_sub_builder.AddNode("partitioncall_1_netoutput", "NetOutput", 1, 1);
-    p2_sub_builder.AddDataEdge(partitioncall_1_data, 0, partitioncall_1_ffts_sub, 0);
-    p2_sub_builder.AddDataEdge(partitioncall_1_ffts_sub, 0, partitioncall_1_netoutput, 0);
-    const auto &sub_graph2 = p2_sub_builder.GetGraph();
-    sub_graph2->SetParentNode(partitioncall_1);
-    sub_graph2->SetParentGraph(root_graph);
-    partitioncall_1->GetOpDesc()->AddSubgraphName("f");
-    partitioncall_1->GetOpDesc()->SetSubgraphInstanceName(0, "partitioncall_1_sub");
+  // 2.build partitioncall_1 sub graph
+  auto p2_sub_builder = ut::GraphBuilder("partitioncall_1_sub");
+  const auto &partitioncall_1_data = p2_sub_builder.AddNode("partitioncall_1_data", "Data", 0, 1);
+  AttrUtils::SetInt(partitioncall_1_data->GetOpDesc(), "_parent_node_index", 0);
+  const auto &partitioncall_1_ffts_sub = p2_sub_builder.AddNode("FftsSub", "PartitionedCall", 1, 1);
+  const auto &partitioncall_1_netoutput = p2_sub_builder.AddNode("partitioncall_1_netoutput", "NetOutput", 1, 1);
+  p2_sub_builder.AddDataEdge(partitioncall_1_data, 0, partitioncall_1_ffts_sub, 0);
+  p2_sub_builder.AddDataEdge(partitioncall_1_ffts_sub, 0, partitioncall_1_netoutput, 0);
+  const auto &sub_graph2 = p2_sub_builder.GetGraph();
+  sub_graph2->SetParentNode(partitioncall_1);
+  sub_graph2->SetParentGraph(root_graph);
+  partitioncall_1->GetOpDesc()->AddSubgraphName("f");
+  partitioncall_1->GetOpDesc()->SetSubgraphInstanceName(0, "partitioncall_1_sub");
 
+  // 2.1 build sgt sub graph
+  auto sgt_sub_builder = ut::GraphBuilder("sgt_sub");
+  const auto &sgt_pld = sgt_sub_builder.AddNode("sgt_plt", "PlaceHolder", 0, 1);
+  const auto &sgt_squeeze = sgt_sub_builder.AddNode("sgt_squeeze", "Squeeze", 1, 1);
+  sgt_squeeze->GetOpDesc()->impl_->input_name_idx_["sub_data"] = 0;
+  const auto &sgt_netoutput = sgt_sub_builder.AddNode("sgt_netoutput", "NetOutput", 1, 1);
+  sgt_sub_builder.AddDataEdge(sgt_pld, 0, sgt_squeeze, 0);
+  sgt_sub_builder.AddDataEdge(sgt_squeeze, 0, sgt_netoutput, 0);
+  const auto &sgt_sub_graph = sgt_sub_builder.GetGraph();
+  sgt_sub_graph->SetParentNode(partitioncall_1_ffts_sub);
+  sgt_sub_graph->SetParentGraph(sub_graph2);
+  partitioncall_1_ffts_sub->GetOpDesc()->AddSubgraphName("sgt_sub");
+  partitioncall_1_ffts_sub->GetOpDesc()->SetSubgraphInstanceName(0, "sgt_sub");
 
-    // 2.1 build sgt sub graph
-    auto sgt_sub_builder = ut::GraphBuilder("sgt_sub");
-    const auto &sgt_pld = sgt_sub_builder.AddNode("sgt_plt", "PlaceHolder", 0, 1);
-    const auto &sgt_squeeze = sgt_sub_builder.AddNode("sgt_squeeze", "Squeeze", 1, 1);
-    sgt_squeeze->GetOpDesc()->impl_->input_name_idx_["sub_data"] = 0;
-    const auto &sgt_netoutput = sgt_sub_builder.AddNode("sgt_netoutput", "NetOutput", 1, 1);
-    sgt_sub_builder.AddDataEdge(sgt_pld, 0, sgt_squeeze, 0);
-    sgt_sub_builder.AddDataEdge(sgt_squeeze, 0, sgt_netoutput, 0);
-    const auto &sgt_sub_graph = sgt_sub_builder.GetGraph();
-    sgt_sub_graph->SetParentNode(partitioncall_1_ffts_sub);
-    sgt_sub_graph->SetParentGraph(sub_graph2);
-    partitioncall_1_ffts_sub->GetOpDesc()->AddSubgraphName("sgt_sub");
-    partitioncall_1_ffts_sub->GetOpDesc()->SetSubgraphInstanceName(0, "sgt_sub");
+  sgt_pld->GetOpDesc()->SetExtAttr<NodePtr>("parentNode", partitioncall_1_data);
 
+  root_graph->AddSubgraph(sgt_sub_graph->GetName(), sgt_sub_graph);
+  root_graph->AddSubgraph(sub_graph->GetName(), sub_graph);
+  root_graph->AddSubgraph(sub_graph2->GetName(), sub_graph2);
 
-    sgt_pld->GetOpDesc()->SetExtAttr<NodePtr>("parentNode", partitioncall_1_data);
-
-
-    root_graph->AddSubgraph(sgt_sub_graph->GetName(), sgt_sub_graph);
-    root_graph->AddSubgraph(sub_graph->GetName(), sub_graph);
-    root_graph->AddSubgraph(sub_graph2->GetName(), sub_graph2);
-
-    auto op = OpDescUtils::CreateOperatorFromNode(sgt_squeeze);
-    Tensor res;
-    ASSERT_EQ(op.GetInputConstData("sub_data", res), GRAPH_SUCCESS);
+  auto op = OpDescUtils::CreateOperatorFromNode(sgt_squeeze);
+  Tensor res;
+  ASSERT_EQ(op.GetInputConstData("sub_data", res), GRAPH_SUCCESS);
 }
 
 TEST_F(UtestOperater, TestOperatorSetInputs) {
@@ -354,21 +350,21 @@ TEST_F(UtestOperater, TestOperatorSetInputs) {
   ASSERT_EQ(src_op.GetInputsSize(), 2U);
   ASSERT_EQ(dst_op.GetInputsSize(), 2U);
   // src_index is illegal
-  (void) dst_op.SetInput(0U, src_op, 3U);
+  (void)dst_op.SetInput(0U, src_op, 3U);
   ASSERT_EQ(src_op.GetInputsSize(), 2U);
   // dst_index is illegal
-  (void) dst_op.SetInput(3U, src_op, 0U);
+  (void)dst_op.SetInput(3U, src_op, 0U);
   ASSERT_EQ(src_op.GetInputsSize(), 2U);
 
-  (void) dst_op.SetInput(1U, src_op, 0U);
+  (void)dst_op.SetInput(1U, src_op, 0U);
   ASSERT_EQ(src_op.GetInputsSize(), 2U);
 
   ge::Operator null_op;
-  (void) null_op.SetInput(1U, src_op, 0U);
+  (void)null_op.SetInput(1U, src_op, 0U);
   ASSERT_EQ(null_op.GetInputsSize(), 0U);
 
   std::string dst_name = "x1";
-  (void) dst_op.SetInput(dst_name, src_op, 0U);
+  (void)dst_op.SetInput(dst_name, src_op, 0U);
   ASSERT_EQ(dst_op.GetInputsSize(), 2U);
 }
 
@@ -453,22 +449,13 @@ TEST_F(UtestOperater, AttrRegister_ListBool) {
 }
 
 TEST_F(UtestOperater, AttrRegister_Tensor) {
-  EXPECT_NO_THROW(
-    auto op = Operator("Data");
-    auto value = Tensor();
-    std::string attr = "attr";
-    op.AttrRegister(attr, value);
-    op.AttrRegister(nullptr, value);
-  );
+  EXPECT_NO_THROW(auto op = Operator("Data"); auto value = Tensor(); std::string attr = "attr";
+                  op.AttrRegister(attr, value); op.AttrRegister(nullptr, value););
 }
 
 TEST_F(UtestOperater, AttrRegister_ListTensor) {
-  EXPECT_NO_THROW(
-    auto op = Operator("Data");
-    std::vector<Tensor> value = {Tensor()};
-    op.AttrRegister("attr", value);
-    op.AttrRegister(nullptr, value);
-  );
+  EXPECT_NO_THROW(auto op = Operator("Data"); std::vector<Tensor> value = {Tensor()}; op.AttrRegister("attr", value);
+                  op.AttrRegister(nullptr, value););
 }
 
 TEST_F(UtestOperater, AttrRegister_OpBytes) {
@@ -607,7 +594,7 @@ TEST_F(UtestOperater, RequiredAttrWithTypeRegister_Success) {
   op.RequiredAttrWithTypeRegister("dst_type", "Int");
   op.AttrRegister("fake_ir_attr", true);
   op.RequiredAttrWithTypeRegister("fake_list_type", "ListType");
-  op.RequiredAttrWithTypeRegister(nullptr, nullptr); // invalid case
+  op.RequiredAttrWithTypeRegister(nullptr, nullptr);  // invalid case
 
   auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
   ASSERT_NE(op_desc, nullptr);
@@ -615,8 +602,8 @@ TEST_F(UtestOperater, RequiredAttrWithTypeRegister_Success) {
   ASSERT_EQ(op_desc->GetIrAttrNames(), std::vector<std::string>({"dst_type", "fake_ir_attr", "fake_list_type"}));
   std::map<AscendString, AscendString> ir_attr_name_types;
   ASSERT_EQ(op.GetAllIrAttrNamesAndTypes(ir_attr_name_types), GRAPH_SUCCESS);
-  std::map<AscendString, AscendString> ir_attr_name_types_expected
-      {{"dst_type", "VT_INT"}, {"fake_ir_attr", "VT_BOOL"}, {"fake_list_type", "VT_LIST_DATA_TYPE"}};
+  std::map<AscendString, AscendString> ir_attr_name_types_expected{
+      {"dst_type", "VT_INT"}, {"fake_ir_attr", "VT_BOOL"}, {"fake_list_type", "VT_LIST_DATA_TYPE"}};
   ASSERT_EQ(ir_attr_name_types, ir_attr_name_types_expected);
   ASSERT_TRUE(op_desc->HasAttr("dst_type"));
   ASSERT_TRUE(op_desc->HasAttr("fake_ir_attr"));
@@ -636,23 +623,13 @@ TEST_F(UtestOperater, RequiredAttrWithTypeRegister_Success) {
 }
 
 TEST_F(UtestOperater, SubgraphRegister) {
-  EXPECT_NO_THROW(
-    std::string name = "add";
-    auto op = Operator("Add");
-    bool dynamic = true;
-    op.SubgraphRegister(name, dynamic);
-    op.SubgraphRegister(nullptr, dynamic);
-  );
+  EXPECT_NO_THROW(std::string name = "add"; auto op = Operator("Add"); bool dynamic = true;
+                  op.SubgraphRegister(name, dynamic); op.SubgraphRegister(nullptr, dynamic););
 }
 
 TEST_F(UtestOperater, SubgraphCountRegister) {
-  EXPECT_NO_THROW(
-    std::string name = "add";
-    auto op = Operator("Add");
-    uint32_t count = 1;
-    op.SubgraphCountRegister(name, count);
-    op.SubgraphCountRegister(nullptr, count);
-  );
+  EXPECT_NO_THROW(std::string name = "add"; auto op = Operator("Add"); uint32_t count = 1;
+                  op.SubgraphCountRegister(name, count); op.SubgraphCountRegister(nullptr, count););
 }
 
 TEST_F(UtestOperater, SetSubgraphBuilder) {
@@ -690,32 +667,19 @@ TEST_F(UtestOperater, SetSubgraphBuilder) {
 }
 
 TEST_F(UtestOperater, GetSubgraphImpl) {
-  EXPECT_NO_THROW(
-    std::string name = "add";
-    auto op = Operator("Add");
-    op.GetSubgraphImpl(name);
-    op.GetSubgraphImpl(nullptr);
-  );
+  EXPECT_NO_THROW(std::string name = "add"; auto op = Operator("Add"); op.GetSubgraphImpl(name);
+                  op.GetSubgraphImpl(nullptr););
 }
 
 TEST_F(UtestOperater, SetInput_Handler) {
-  EXPECT_NO_THROW(
-    std::string name = "add";
-    std::string type = "Add";
-    auto op = Operator(type);
-    auto handler = OutHandler(nullptr);
-    op.SetInput(name.c_str(), handler);
-    op.SetInput(nullptr, handler);
-  );
+  EXPECT_NO_THROW(std::string name = "add"; std::string type = "Add"; auto op = Operator(type);
+                  auto handler = OutHandler(nullptr); op.SetInput(name.c_str(), handler);
+                  op.SetInput(nullptr, handler););
 }
 
 TEST_F(UtestOperater, GetOutput) {
-  EXPECT_NO_THROW(
-    std::string name = "add";
-    auto op = Operator("Add");
-    op.GetOutput(name.c_str());
-    op.GetOutput(nullptr);
-  );
+  EXPECT_NO_THROW(std::string name = "add"; auto op = Operator("Add"); op.GetOutput(name.c_str());
+                  op.GetOutput(nullptr););
 }
 
 TEST_F(UtestOperater, GetInputConstDataOut) {
@@ -979,8 +943,8 @@ TEST_F(UtestOperater, FuncRegister) {
 
   if (op.operator_impl_->GetOpDescImpl() != nullptr) {
     printf("FuncRegister GetOpDescImpl is not null!\n");
-    //auto ret1 = op.operator_impl_->GetOpDescImpl()->GetInferFunc();
-    //EXPECT_EQ(ret1, nullptr);
+    // auto ret1 = op.operator_impl_->GetOpDescImpl()->GetInferFunc();
+    // EXPECT_EQ(ret1, nullptr);
   } else {
     printf("FuncRegister GetOpDescImpl is null!\n");
   }
@@ -1058,9 +1022,9 @@ TEST_F(UtestOperater, AddMultiControlInput) {
   auto o1_1_3 = op::Foo01("o1_3");
   auto o1_1_4 = op::Foo11("o1_4");
 
-  (void) o1_1_4.AddControlInput(o1_1_1);
-  (void) o1_1_4.AddControlInput(o1_1_3);
-  (void) o1_1_4.AddControlInput(o1_1_2);
+  (void)o1_1_4.AddControlInput(o1_1_1);
+  (void)o1_1_4.AddControlInput(o1_1_3);
+  (void)o1_1_4.AddControlInput(o1_1_2);
   Graph g{"g"};
   g.SetInputs(std::vector<Operator>({o1_1_1, o1_1_2, o1_1_3}));
   auto compute_graph = GraphUtilsEx::GetComputeGraph(g);
@@ -2021,7 +1985,6 @@ TEST_F(UtestOperater, SetAttr_DataType2) {
 }
 
 TEST_F(UtestOperater, CopyOperators1) {
-
   ge::OpDescPtr add_op(new ge::OpDesc("add_0", "add"));
   std::shared_ptr<ge::ComputeGraph> compute_graph(new ge::ComputeGraph("test_graph"));
   auto add_node = compute_graph->AddNode(add_op);
@@ -2357,10 +2320,8 @@ TEST_F(UtestOperater, InputRegister_Success_ByString) {
 
   auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
   ASSERT_NE(op_desc, nullptr);
-  std::vector<std::pair<std::string, IrInputType>> expected{{"x", kIrInputRequired},
-                                                            {"y", kIrInputRequired},
-                                                            {"o", kIrInputOptional},
-                                                            {"d", kIrInputDynamic}};
+  std::vector<std::pair<std::string, IrInputType>> expected{
+      {"x", kIrInputRequired}, {"y", kIrInputRequired}, {"o", kIrInputOptional}, {"d", kIrInputDynamic}};
   ASSERT_EQ(op_desc->GetIrInputs(), expected);
 }
 TEST_F(UtestOperater, InputRegister_Success_ByChar) {
@@ -2372,10 +2333,8 @@ TEST_F(UtestOperater, InputRegister_Success_ByChar) {
 
   auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
   ASSERT_NE(op_desc, nullptr);
-  std::vector<std::pair<std::string, IrInputType>> expected{{"x", kIrInputRequired},
-                                                            {"y", kIrInputRequired},
-                                                            {"o", kIrInputOptional},
-                                                            {"d", kIrInputDynamic}};
+  std::vector<std::pair<std::string, IrInputType>> expected{
+      {"x", kIrInputRequired}, {"y", kIrInputRequired}, {"o", kIrInputOptional}, {"d", kIrInputDynamic}};
   ASSERT_EQ(op_desc->GetIrInputs(), expected);
 }
 TEST_F(UtestOperater, InputRegister_Failed_NullptrChar) {
@@ -2570,7 +2529,9 @@ TEST_F(UtestOperater, GetInputConstData_While_fail) {
 TEST_F(UtestOperater, WeakLife) {
   OperatorKeeper::GetInstance().ClearInvalidOp();
   auto old_size = OperatorKeeper::GetInstance().operators_.size();
-  { auto op = ge::OperatorFactory::CreateOperator("test", "Const"); }
+  {
+    auto op = ge::OperatorFactory::CreateOperator("test", "Const");
+  }
   EXPECT_EQ(OperatorKeeper::GetInstance().operators_.size(), old_size + 1U);
   // op的生命周期结束后，因keeper单例对其是弱引用，所以weak转shared是空被清理
   OperatorKeeper::GetInstance().ClearInvalidOp();

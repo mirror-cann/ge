@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,14 +26,15 @@ void OpTilingManager::ClearHandles() noexcept {
       const char_t *error = mmDlerror();
       GE_IF_BOOL_EXEC(error == nullptr, error = "");
       GELOGE(FAILED, "[Close][Handle]Failed, handle of %s: %s", handle.first.c_str(), error);
-      REPORT_INNER_ERR_MSG("E19999", "Failed to close handle of %s: %s",
-                        handle.first.c_str(), error);
+      REPORT_INNER_ERR_MSG("E19999", "Failed to close handle of %s: %s", handle.first.c_str(), error);
     }
   }
   handles_.clear();
 }
 
-OpTilingManager::~OpTilingManager() { ClearHandles(); }
+OpTilingManager::~OpTilingManager() {
+  ClearHandles();
+}
 
 void OpTilingManager::LoadSo() {
   FuncPerfScope func_perf_scope("OpTilingManager", __FUNCTION__);
@@ -61,15 +62,13 @@ void OpTilingManager::LoadSo() {
       so_name = "liboptiling.so";
     }
     std::string so_path = root_path + "lib/" + os_type + "/" + cpu_type + "/" + so_name;
-    void *handle = mmDlopen(so_path.c_str(),
-                            static_cast<int32_t>(static_cast<uint32_t>(MMPA_RTLD_NOW) |
-                            static_cast<uint32_t>(MMPA_RTLD_GLOBAL)));
+    void *handle = mmDlopen(so_path.c_str(), static_cast<int32_t>(static_cast<uint32_t>(MMPA_RTLD_NOW) |
+                                                                  static_cast<uint32_t>(MMPA_RTLD_GLOBAL)));
     if (handle == nullptr) {
       GELOGW("Failed to dlopen %s! errmsg:%s", so_path.c_str(), mmDlerror());
       so_path = root_path + so_name;
-      handle = mmDlopen(so_path.c_str(),
-                        static_cast<int32_t>(static_cast<uint32_t>(MMPA_RTLD_NOW) |
-                        static_cast<uint32_t>(MMPA_RTLD_GLOBAL)));
+      handle = mmDlopen(so_path.c_str(), static_cast<int32_t>(static_cast<uint32_t>(MMPA_RTLD_NOW) |
+                                                              static_cast<uint32_t>(MMPA_RTLD_GLOBAL)));
       if (handle == nullptr) {
         GELOGW("Failed to dlopen %s! errmsg:%s", so_path.c_str(), mmDlerror());
       } else {

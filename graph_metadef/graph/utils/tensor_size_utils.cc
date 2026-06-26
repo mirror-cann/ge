@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2026 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,7 +33,7 @@ using rtError_t = int32_t;
 constexpr rtError_t RT_ERROR_NONE = 0;
 constexpr int32_t kDecimalBase = 10;
 
-using RtGetSocSpecFunc = rtError_t (*)(const char*, const char*, char*, const uint32_t);
+using RtGetSocSpecFunc = rtError_t (*)(const char *, const char *, char *, const uint32_t);
 
 std::string GetRuntimeLibPath() {
   std::string lib_dir = ge::GetModelPath();
@@ -47,7 +47,7 @@ std::string GetRuntimeLibPath() {
 RtGetSocSpecFunc GetRtGetSocSpecFunc() {
   static std::once_flag load_flag;
   static RtGetSocSpecFunc func = nullptr;
-  static void* runtime_handle = nullptr;
+  static void *runtime_handle = nullptr;
 
   std::call_once(load_flag, []() {
     std::string runtime_path = GetRuntimeLibPath();
@@ -59,17 +59,15 @@ RtGetSocSpecFunc GetRtGetSocSpecFunc() {
     GELOGI("[Runtime][Load] Loading runtime from: %s", runtime_path.c_str());
     runtime_handle = mmDlopen(runtime_path.c_str(), MMPA_RTLD_NOW);
     if (runtime_handle == nullptr) {
-      const char_t* error = mmDlerror();
-      GELOGW("[Runtime][Load] mmDlopen failed, path=%s, error=%s",
-             runtime_path.c_str(), error ? error : "");
+      const char_t *error = mmDlerror();
+      GELOGW("[Runtime][Load] mmDlopen failed, path=%s, error=%s", runtime_path.c_str(), error ? error : "");
       return;
     }
 
     func = reinterpret_cast<RtGetSocSpecFunc>(mmDlsym(runtime_handle, "rtGetSocSpec"));
     if (func == nullptr) {
-      const char_t* error = mmDlerror();
-      GELOGW("[Runtime][Symbol] mmDlsym rtGetSocSpec failed, error=%s",
-             error ? error : "");
+      const char_t *error = mmDlerror();
+      GELOGW("[Runtime][Symbol] mmDlsym rtGetSocSpec failed, error=%s", error ? error : "");
       return;
     }
 
@@ -88,16 +86,15 @@ bool QueryPaddingSizeFromSocSpec(int64_t &padding_size) {
 
   constexpr uint32_t kMaxValueLen = 32U;
   char padding_size_str[kMaxValueLen] = {0};
-  const rtError_t ret = rt_get_soc_spec(kSocSpecModuleAICore, kSocSpecKeyPaddingSize,
-                                         padding_size_str, kMaxValueLen);
+  const rtError_t ret = rt_get_soc_spec(kSocSpecModuleAICore, kSocSpecKeyPaddingSize, padding_size_str, kMaxValueLen);
   if (ret != RT_ERROR_NONE) {
-    GELOGW("[Query][PaddingSize] rtGetSocSpec failed, label=%s, key=%s, ret=0x%X",
-           kSocSpecModuleAICore, kSocSpecKeyPaddingSize, ret);
+    GELOGW("[Query][PaddingSize] rtGetSocSpec failed, label=%s, key=%s, ret=0x%X", kSocSpecModuleAICore,
+           kSocSpecKeyPaddingSize, ret);
     return false;
   }
 
-  GELOGI("[Query][PaddingSize] rtGetSocSpec success, label=%s, key=%s, value=%s",
-         kSocSpecModuleAICore, kSocSpecKeyPaddingSize, padding_size_str);
+  GELOGI("[Query][PaddingSize] rtGetSocSpec success, label=%s, key=%s, value=%s", kSocSpecModuleAICore,
+         kSocSpecKeyPaddingSize, padding_size_str);
 
   if (padding_size_str[0] == '-') {
     GELOGW("[Parse][PaddingSize] Got negative value: %s", padding_size_str);

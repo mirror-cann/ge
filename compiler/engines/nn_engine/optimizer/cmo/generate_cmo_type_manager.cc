@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -58,19 +58,18 @@ Status GenerateCMOTypeManager::Finalize() {
   return SUCCESS;
 }
 
-void GenerateCMOTypeManager::GenerateType(const ge::NodePtr &node,
-                                          const StreamCtrlMap &stream_ctrls,
+void GenerateCMOTypeManager::GenerateType(const ge::NodePtr &node, const StreamCtrlMap &stream_ctrls,
                                           std::unordered_map<ge::NodePtr, ge::NodePtr> &prefetch_cache_map,
                                           std::map<uint32_t, std::map<int64_t, ge::NodePtr>> &stream_node_map) const {
-  FE_LOGD("begin to generate cmo type for node:[name=%s, type=%s]",
-          node->GetOpDesc()->GetName().c_str(), node->GetOpDesc()->GetType().c_str());
+  FE_LOGD("begin to generate cmo type for node:[name=%s, type=%s]", node->GetOpDesc()->GetName().c_str(),
+          node->GetOpDesc()->GetType().c_str());
   for (int i = 0; i < static_cast<int>(CmoType::CMO_TYPE_BUTT); i++) {
     auto cmo_type = cmo_generate_map_.find(static_cast<CmoType>(i));
     if (cmo_type != cmo_generate_map_.end()) {
       cmo_type->second->GenerateType(node, stream_ctrls, prefetch_cache_map, stream_node_map);
     }
   }
-  FE_LOGD("Ending generation of CMO type for node: [name=%s, type=%s]",
-          node->GetOpDesc()->GetName().c_str(), node->GetOpDesc()->GetType().c_str());
+  FE_LOGD("Ending generation of CMO type for node: [name=%s, type=%s]", node->GetOpDesc()->GetName().c_str(),
+          node->GetOpDesc()->GetType().c_str());
 }
-}
+}  // namespace fe

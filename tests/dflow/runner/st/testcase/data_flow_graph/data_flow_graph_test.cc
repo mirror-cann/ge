@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -37,7 +37,7 @@
 
 using namespace testing;
 using namespace std;
-using namespace ge; 
+using namespace ge;
 namespace ge {
 namespace {
 Graph BuildSubGraph(const std::string &name) {
@@ -57,8 +57,8 @@ Graph BuildSubGraph(const std::string &name) {
 Graph BuildDataFlowGraphInvokeKeyRepeat(const std::string &name) {
   auto data0 = dflow::FlowData("Data0", 0);
   auto data1 = dflow::FlowData("Data1", 1);
-  auto node0 = dflow::FlowNode("node0", 2, 2).SetInput(0,data0).SetInput(1, data1);
-  auto node1 = dflow::FlowNode("node1", 2, 2).SetInput(0,data0).SetInput(1, data1);
+  auto node0 = dflow::FlowNode("node0", 2, 2).SetInput(0, data0).SetInput(1, data1);
+  auto node1 = dflow::FlowNode("node1", 2, 2).SetInput(0, data0).SetInput(1, data1);
 
   auto invoked_graph_pp0 = dflow::GraphPp("invoked_graph_pp0", []() {
                              return BuildSubGraph("invoked_graph_pp0");
@@ -87,9 +87,9 @@ Graph BuildDataFlowGraphInvokeKeyRepeat(const std::string &name) {
 Graph BuildDataFlowGraphWithHostUdfCallNn(const std::string &name, bool enable_exception = false) {
   auto data0 = dflow::FlowData("Data0", 0);
   auto data1 = dflow::FlowData("Data1", 1);
-  auto node0 = dflow::FlowNode("node0", 2, 2).SetInput(0,data0).SetInput(1, data1);
-  auto node1 = dflow::FlowNode("node1", 2, 2).SetInput(0,data0).SetInput(1, data1);
-  auto node2 = dflow::FlowNode("node2", 2, 2).SetInput(0,node0, 0).SetInput(1, node1, 0);
+  auto node0 = dflow::FlowNode("node0", 2, 2).SetInput(0, data0).SetInput(1, data1);
+  auto node1 = dflow::FlowNode("node1", 2, 2).SetInput(0, data0).SetInput(1, data1);
+  auto node2 = dflow::FlowNode("node2", 2, 2).SetInput(0, node0, 0).SetInput(1, node1, 0);
 
   auto invoked_graph_pp0 = dflow::GraphPp("invoked_graph_pp0", []() {
                              return BuildSubGraph("invoked_graph_pp0");
@@ -125,8 +125,8 @@ Graph BuildDataFlowGraphWithHostUdfCallNn(const std::string &name, bool enable_e
 Graph BuildDataFlowGraphWithHostUdf(const std::string &name) {
   auto data0 = dflow::FlowData("Data0", 0);
   auto data1 = dflow::FlowData("Data1", 1);
-  auto node0 = dflow::FlowNode("node0", 2, 2).SetInput(0,data0).SetInput(1, data1);
-  auto node1 = dflow::FlowNode("node1", 2, 2).SetInput(0,data0).SetInput(1, data1);
+  auto node0 = dflow::FlowNode("node0", 2, 2).SetInput(0, data0).SetInput(1, data1);
+  auto node1 = dflow::FlowNode("node1", 2, 2).SetInput(0, data0).SetInput(1, data1);
 
   // function pp
   auto host_udf_pp = dflow::FunctionPp("host_udf_pp").SetCompileConfig("./host_udf_config.json");
@@ -145,7 +145,7 @@ Graph BuildDataFlowGraphWithHostUdf(const std::string &name) {
 Graph BuildDataFlowGraphWithBuiltinUdf(const std::string &name) {
   auto data0 = dflow::FlowData("Data0", 0);
   auto data1 = dflow::FlowData("Data1", 1);
-  auto node0 = dflow::FlowNode("node0", 2, 2).SetInput(0,data0).SetInput(1, data1);
+  auto node0 = dflow::FlowNode("node0", 2, 2).SetInput(0, data0).SetInput(1, data1);
 
   // function pp
   auto builtin_udf_pp = dflow::FunctionPp("builtin_udf_pp").SetCompileConfig("./builtin_udf_config.json");
@@ -316,7 +316,7 @@ static ComputeGraphPtr BuildDataFlowGraph() {
 }
 
 static void BuildSubGrpahForGraphPoint(const std::string &name, const std::string &parent_node_name,
-                                                  ComputeGraphPtr root_graph, dataflow::ProcessPoint &pp) {
+                                       ComputeGraphPtr root_graph, dataflow::ProcessPoint &pp) {
   pp.set_name(name);
   pp.set_type(dataflow::ProcessPoint_ProcessPointType_GRAPH);
   pp.add_graphs(name);
@@ -377,7 +377,7 @@ static ComputeGraphPtr BuildDataFlowGraphWithOneUDF() {
   auto op_desc = node0->GetOpDesc();
   AttrUtils::SetListStr(op_desc, dflow::ATTR_NAME_DATA_FLOW_PROCESS_POINTS, pp0_attr);
   AttrUtils::SetInt(op_desc, ATTR_NAME_ESCHED_EVENT_PRIORITY, 0);
- 
+
   auto pp1 = dataflow::ProcessPoint();
   BuildSubGrpahForGraphPoint("pp1", "node1", root_graph, pp1);
   auto pp1_input0 = pp1.add_in_edges();
@@ -531,7 +531,6 @@ static ComputeGraphPtr BuildDataFlowGraphWithoutUDFNodes() {
   return root_graph;
 }
 
-
 /*
 data0    data1
    \       /
@@ -545,9 +544,9 @@ Graph BuildDataFlowGraphWithRedundantNode(const std::string &name) {
   auto data0 = dflow::FlowData("Data0", 0);
   auto data1 = dflow::FlowData("Data1", 1);
   auto data2 = dflow::FlowData("Data2", 2);
-  auto node0 = dflow::FlowNode("node0", 2, 2).SetInput(0,data0).SetInput(1, data1);
-  auto node1 = dflow::FlowNode("node1", 2, 1).SetInput(0,node0).SetInput(1, data2);
-  auto node2 = dflow::FlowNode("node2", 2, 1).SetInput(0,node1).SetInput(1, data2);
+  auto node0 = dflow::FlowNode("node0", 2, 2).SetInput(0, data0).SetInput(1, data1);
+  auto node1 = dflow::FlowNode("node1", 2, 1).SetInput(0, node0).SetInput(1, data2);
+  auto node2 = dflow::FlowNode("node2", 2, 1).SetInput(0, node1).SetInput(1, data2);
 
   // function pp
   auto pp0 = dflow::FunctionPp("func_pp0").SetCompileConfig("./pp0_config.json");
@@ -681,7 +680,6 @@ class RuntimeMock : public RuntimeStub {
  private:
   std::mutex mt_;
   std::map<rtMbufPtr_t, StubMbufInfo> mbuf_info_;
-
 };
 
 void *mock_handle = nullptr;
@@ -711,11 +709,11 @@ class ExchangeServiceMock : public ExchangeService {
                  const ControlInfo &control_info) override {
     return 0;
   }
-  Status EnqueueMbuf(int32_t device_id, uint32_t queue_id, rtMbufPtr_t m_buf, int32_t timeout){
+  Status EnqueueMbuf(int32_t device_id, uint32_t queue_id, rtMbufPtr_t m_buf, int32_t timeout) {
     return 0;
   }
 
-  MOCK_METHOD4(DequeueTensor, Status(int32_t, uint32_t, GeTensor & , ExchangeService::ControlInfo &));
+  MOCK_METHOD4(DequeueTensor, Status(int32_t, uint32_t, GeTensor &, ExchangeService::ControlInfo &));
   MOCK_METHOD4(DequeueMbuf, Status(int32_t, uint32_t, rtMbufPtr_t *, int32_t));
 
   void ResetQueueInfo(const int32_t device_id, const uint32_t queue_id) override {
@@ -798,13 +796,13 @@ class ExecutionRuntimeMock : public ExecutionRuntime {
   ExchangeService &GetExchangeService() override {
     return exchange_service_;
   }
-  const std::string &GetCompileHostResourceType() const override{
+  const std::string &GetCompileHostResourceType() const override {
     if (set_host_) {
       return host_stub_;
     }
     return host_stub2_;
   }
-  const std::map<std::string, std::string> &GetCompileDeviceInfo() const override{
+  const std::map<std::string, std::string> &GetCompileDeviceInfo() const override {
     if (set_dev_) {
       return logic_dev_id_to_res_type_;
     }
@@ -828,7 +826,6 @@ Status InitializeHeterogeneousRuntime(const std::map<std::string, std::string> &
   return SUCCESS;
 }
 
-
 class MockMmpa : public MmpaStubApiGe {
  public:
   void *DlOpen(const char *file_name, int32_t mode) override {
@@ -839,7 +836,7 @@ class MockMmpa : public MmpaStubApiGe {
   }
   void *DlSym(void *handle, const char *func_name) override {
     if (std::string(func_name) == "InitializeHeterogeneousRuntime") {
-      return (void *) &InitializeHeterogeneousRuntime;
+      return (void *)&InitializeHeterogeneousRuntime;
     }
     return dlsym(handle, func_name);
   }
@@ -878,9 +875,7 @@ class DataFlowGraphTest : public testing::Test {
   static void PrepareForCacheConfig(bool cache_manual_check, bool cache_debug_mode) {
     std::string cache_config_file = "./build_cache_dir/cache.conf";
     {
-      nlohmann::json cfg_json = {
-                                  {"cache_manual_check", cache_manual_check},
-                                  {"cache_debug_mode", cache_debug_mode}};
+      nlohmann::json cfg_json = {{"cache_manual_check", cache_manual_check}, {"cache_debug_mode", cache_debug_mode}};
       std::ofstream json_file(cache_config_file);
       json_file << cfg_json << std::endl;
     }
@@ -927,7 +922,7 @@ cd -
     PrepareForOnlyHostUdf();
     PrepareForBuiltInUdf();
     std::string cmd = "mkdir -p temp; cd temp; touch libtest.so";
-    (void) system(cmd.c_str());
+    (void)system(cmd.c_str());
     std::ofstream cmakefile("./temp/CMakeLists.txt");
     {
       cmakefile << "cmake_minimum_required(VERSION 3.5)\n";
@@ -946,38 +941,32 @@ cd -
     std::string pp0_config_file = "./pp0_config.json";
     std::string target_bin_path = "./libxxx.so";
     {
-      nlohmann::json pp0_cfg_json = {{"workspace", "./temp"},
-                                     {"target_bin", "libudf1.so"},
-                                     {"input_num", 2},
-                                     {"output_num", 2},
-                                     {"cmakelist_path", "CMakeLists.txt"},
-                                     {"compiler", "./cpu_compile.json"},
-                                     {
-                                         "running_resources_info",
-                                         {{
-                                              {"type", "cpu"},
-                                              {"num", 2},
-                                          },
-                                          {
-                                              {"type", "memory"},
-                                              {"num", 100},
-                                          }},
-                                     },
-                                     {"func_list",
-                                      {{{"func_name", "func1"}, {"inputs_index", {0}}, {"outputs_index", {0}}, {"stream_input", true}},
-                                       {{"func_name", "func2"}, {"inputs_index", {1}}, {"outputs_index", {0}}}}},
-                                     {"buf_cfg", 
-                                      {{{"total_size", 2097152}, {"blk_size", 256},
-                                        {"max_buf_size", 8192}, {"page_type", "normal"}},
-                                      {{"total_size", 33554432}, {"blk_size", 8192},
-                                       {"max_buf_size", 8388608}, {"page_type", "normal"}},
-                                      {{"total_size", 2097152}, {"blk_size", 256},
-                                       {"max_buf_size", 8192}, {"page_type", "huge"}},
-                                      {{"total_size", 33554432}, {"blk_size", 8192},
-                                       {"max_buf_size", 8388608}, {"page_type", "huge"}}
-                                      }
-                                     }
-                                   };
+      nlohmann::json pp0_cfg_json = {
+          {"workspace", "./temp"},
+          {"target_bin", "libudf1.so"},
+          {"input_num", 2},
+          {"output_num", 2},
+          {"cmakelist_path", "CMakeLists.txt"},
+          {"compiler", "./cpu_compile.json"},
+          {
+              "running_resources_info",
+              {{
+                   {"type", "cpu"},
+                   {"num", 2},
+               },
+               {
+                   {"type", "memory"},
+                   {"num", 100},
+               }},
+          },
+          {"func_list",
+           {{{"func_name", "func1"}, {"inputs_index", {0}}, {"outputs_index", {0}}, {"stream_input", true}},
+            {{"func_name", "func2"}, {"inputs_index", {1}}, {"outputs_index", {0}}}}},
+          {"buf_cfg",
+           {{{"total_size", 2097152}, {"blk_size", 256}, {"max_buf_size", 8192}, {"page_type", "normal"}},
+            {{"total_size", 33554432}, {"blk_size", 8192}, {"max_buf_size", 8388608}, {"page_type", "normal"}},
+            {{"total_size", 2097152}, {"blk_size", 256}, {"max_buf_size", 8192}, {"page_type", "huge"}},
+            {{"total_size", 33554432}, {"blk_size", 8192}, {"max_buf_size", 8388608}, {"page_type", "huge"}}}}};
       std::ofstream json_file(pp0_config_file);
       json_file << pp0_cfg_json << std::endl;
       std::ofstream target_bin(target_bin_path);
@@ -1113,7 +1102,7 @@ cd -
     remove("./cpu_compile.json");
     remove("./builtin_udf_config.json");
     std::string cmd = "rm -fr `ls ./temp/* | grep -v build`";
-    (void) system(cmd.c_str());
+    (void)system(cmd.c_str());
     (void)system("rm -fr ./temp_host_udf");
     (void)system("rm -fr ./build_cache_dir");
     dflow::DFlowFinalize();
@@ -1190,12 +1179,11 @@ cd -
   static void PrepareForBuiltInUdf() {
     std::string builtin_udf_config_file = "./builtin_udf_config.json";
     {
-      nlohmann::json builtin_udf_cfg_json = {
-                                          {"input_num", 2},
-                                          {"output_num", 2},
-                                          {"built_in_flow_func", true},
-                                          {"heavy_load", false},
-                                          {"func_list", {{{"func_name", "_BuiltIn_func1"}}}}};
+      nlohmann::json builtin_udf_cfg_json = {{"input_num", 2},
+                                             {"output_num", 2},
+                                             {"built_in_flow_func", true},
+                                             {"heavy_load", false},
+                                             {"func_list", {{{"func_name", "_BuiltIn_func1"}}}}};
       std::ofstream json_file(builtin_udf_config_file);
       json_file << builtin_udf_cfg_json << std::endl;
     }
@@ -1384,14 +1372,15 @@ TEST_F(DataFlowGraphTest, Build_with_cache_in_heterogeneous_with_fake_input_err)
   ComputeGraphPtr g2 = nullptr;
   {
     DEF_GRAPH(flow_graph) {
-      auto data0 = OP_CFG("Data").InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_INT32, {1, 2, 3});
+      auto data0 =
+          OP_CFG("Data").InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_INT32, {1, 2, 3});
       auto node0 = OP_CFG("FlowNode").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {1, 2, 3});
       auto net_output = OP_CFG("NetOutput").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {1, 2, 3});
       CHAIN(NODE("arg0", data0)->EDGE(0, 0)->NODE("node0", node0)->EDGE(0, 0)->NODE("net_output", net_output));
-  };
-  g2 = ToComputeGraph(flow_graph);
-  (void)(AttrUtils::SetBool(g2, dflow::ATTR_NAME_IS_DATA_FLOW_GRAPH, true), true);
-  (void)AttrUtils::SetStr(g2, ATTR_NAME_SESSION_GRAPH_ID, "xxxx");
+    };
+    g2 = ToComputeGraph(flow_graph);
+    (void)(AttrUtils::SetBool(g2, dflow::ATTR_NAME_IS_DATA_FLOW_GRAPH, true), true);
+    (void)AttrUtils::SetStr(g2, ATTR_NAME_SESSION_GRAPH_ID, "xxxx");
   }
   auto graph2 = GraphUtilsEx::CreateGraphFromComputeGraph(g2);
   session.AddGraph(2, graph2, graph_options);
@@ -1892,10 +1881,10 @@ TEST_F(DataFlowGraphTest, Build_with_inputshape_success) {
   remove("./pp1_config.json");
   std::string pp_config_file = "./pp1_config.json";
   {
-      nlohmann::json pp1_cfg_json = {{"inputs_tensor_desc",
-                                      {{{"shape", {1, 2, 3}}, {"data_type", "DT_INT32"}, {"format", "ND"}},
-                                       {{"shape", {1, 2, 3}}, {"data_type", "DT_INT32"}}}},
-                                       {"build_options", {{"ge.inputShape", "1~3,2,1~6;1~3,2~3,3"}}}};
+    nlohmann::json pp1_cfg_json = {{"inputs_tensor_desc",
+                                    {{{"shape", {1, 2, 3}}, {"data_type", "DT_INT32"}, {"format", "ND"}},
+                                     {{"shape", {1, 2, 3}}, {"data_type", "DT_INT32"}}}},
+                                   {"build_options", {{"ge.inputShape", "1~3,2,1~6;1~3,2~3,3"}}}};
     std::ofstream json_file(pp_config_file);
     json_file << pp1_cfg_json << std::endl;
   }
@@ -1919,10 +1908,10 @@ TEST_F(DataFlowGraphTest, Build_with_inputshape_and_name_success) {
   remove("./pp1_config.json");
   std::string pp_config_file = "./pp1_config.json";
   {
-      nlohmann::json pp1_cfg_json = {{"inputs_tensor_desc",
-                                      {{{"shape", {1, 2, 3}}, {"data_type", "DT_INT32"}, {"format", "ND"}},
-                                       {{"shape", {1, 2, 3}}, {"data_type", "DT_INT32"}}}},
-                                       {"build_options", {{"ge.inputShape", "data0:1~3,2,4~10;data1:2~3,2~3,3"}}}};
+    nlohmann::json pp1_cfg_json = {{"inputs_tensor_desc",
+                                    {{{"shape", {1, 2, 3}}, {"data_type", "DT_INT32"}, {"format", "ND"}},
+                                     {{"shape", {1, 2, 3}}, {"data_type", "DT_INT32"}}}},
+                                   {"build_options", {{"ge.inputShape", "data0:1~3,2,4~10;data1:2~3,2~3,3"}}}};
     std::ofstream json_file(pp_config_file);
     json_file << pp1_cfg_json << std::endl;
   }
@@ -1946,10 +1935,10 @@ TEST_F(DataFlowGraphTest, Build_with_inputshape_and_name_failed_lack_input) {
   remove("./pp1_config.json");
   std::string pp_config_file = "./pp1_config.json";
   {
-      nlohmann::json pp1_cfg_json = {{"inputs_tensor_desc",
-                                      {{{"shape", {1, 2, 3}}, {"data_type", "DT_INT32"}, {"format", "ND"}},
-                                       {{"shape", {1, 2, 3}}, {"data_type", "DT_INT32"}}}},
-                                       {"build_options", {{"ge.inputShape", "data3:1~3,2,4~10;data1:2~3,2~3,3"}}}};
+    nlohmann::json pp1_cfg_json = {{"inputs_tensor_desc",
+                                    {{{"shape", {1, 2, 3}}, {"data_type", "DT_INT32"}, {"format", "ND"}},
+                                     {{"shape", {1, 2, 3}}, {"data_type", "DT_INT32"}}}},
+                                   {"build_options", {{"ge.inputShape", "data3:1~3,2,4~10;data1:2~3,2~3,3"}}}};
     std::ofstream json_file(pp_config_file);
     json_file << pp1_cfg_json << std::endl;
   }
@@ -1973,10 +1962,10 @@ TEST_F(DataFlowGraphTest, Build_with_inputshape_and_name_failed_error_config) {
   remove("./pp1_config.json");
   std::string pp_config_file = "./pp1_config.json";
   {
-      nlohmann::json pp1_cfg_json = {{"inputs_tensor_desc",
-                                      {{{"shape", {1, 2, 3}}, {"data_type", "DT_INT32"}, {"format", "ND"}},
-                                       {{"shape", {1, 2, 3}}, {"data_type", "DT_INT32"}}}},
-                                       {"build_options", {{"ge.inputShape", "data0:1~,2,4~10;data1:2~3,2~3,3"}}}};
+    nlohmann::json pp1_cfg_json = {{"inputs_tensor_desc",
+                                    {{{"shape", {1, 2, 3}}, {"data_type", "DT_INT32"}, {"format", "ND"}},
+                                     {{"shape", {1, 2, 3}}, {"data_type", "DT_INT32"}}}},
+                                   {"build_options", {{"ge.inputShape", "data0:1~,2,4~10;data1:2~3,2~3,3"}}}};
     std::ofstream json_file(pp_config_file);
     json_file << pp1_cfg_json << std::endl;
   }
@@ -2000,11 +1989,12 @@ TEST_F(DataFlowGraphTest, Build_with_shape_range_success) {
   remove("./pp1_config.json");
   std::string pp_config_file = "./pp1_config.json";
   {
-      nlohmann::json pp1_cfg_json = {{"inputs_tensor_desc",
-                                      {{{"shape", {1, 2, 3}}, {"data_type", "DT_INT32"}, {"format", "ND"}},
-                                       {{"shape", {1, 2, 3}}, {"data_type", "DT_INT32"}}}},
-                                       {"build_options", {{"ge.exec.dynamicGraphExecuteMode", "dynamic_execute"},
-                                                   {"ge.exec.dataInputsShapeRange", "[1,2,2~3],[1,2,2~3]"}}}};
+    nlohmann::json pp1_cfg_json = {{"inputs_tensor_desc",
+                                    {{{"shape", {1, 2, 3}}, {"data_type", "DT_INT32"}, {"format", "ND"}},
+                                     {{"shape", {1, 2, 3}}, {"data_type", "DT_INT32"}}}},
+                                   {"build_options",
+                                    {{"ge.exec.dynamicGraphExecuteMode", "dynamic_execute"},
+                                     {"ge.exec.dataInputsShapeRange", "[1,2,2~3],[1,2,2~3]"}}}};
     std::ofstream json_file(pp_config_file);
     json_file << pp1_cfg_json << std::endl;
   }
@@ -2132,7 +2122,7 @@ TEST_F(DataFlowGraphTest, Build_host_udf_call_nn_with_deploy_info) {
   EXPECT_EQ(output.size(), 2);
   output.clear();
   // align must fetch same index
-  ret = session.FetchDataFlowGraph(1, {0},output, info, timeout);
+  ret = session.FetchDataFlowGraph(1, {0}, output, info, timeout);
   EXPECT_NE(ret, SUCCESS);
   ret = session.FetchDataFlowGraph(1, {0, 1}, output, info, timeout);
   EXPECT_EQ(ret, SUCCESS);
@@ -2157,15 +2147,15 @@ TEST_F(DataFlowGraphTest, Build_host_udf_call_nn_with_deploy_info) {
   };
   std::mutex queue_mt;
   std::queue<TmpHeadInfo> head_info_queue;
-  head_info_queue.emplace(TmpHeadInfo{1, 100, 0, 1}); // 0
-  head_info_queue.emplace(TmpHeadInfo{1, 101, 999, 2}); // 1
-  head_info_queue.emplace(TmpHeadInfo{2, 100, 0, 3}); // 0
-  head_info_queue.emplace(TmpHeadInfo{1, 100, 0, 1}); // 1
-  head_info_queue.emplace(TmpHeadInfo{1, 101, 999, 2}); // 0
-  head_info_queue.emplace(TmpHeadInfo{2, 100, 0, 3}); // 1
+  head_info_queue.emplace(TmpHeadInfo{1, 100, 0, 1});    // 0
+  head_info_queue.emplace(TmpHeadInfo{1, 101, 999, 2});  // 1
+  head_info_queue.emplace(TmpHeadInfo{2, 100, 0, 3});    // 0
+  head_info_queue.emplace(TmpHeadInfo{1, 100, 0, 1});    // 1
+  head_info_queue.emplace(TmpHeadInfo{1, 101, 999, 2});  // 0
+  head_info_queue.emplace(TmpHeadInfo{2, 100, 0, 3});    // 1
 
   auto func = [&head_info_queue, &queue_mt](const int32_t device_id, const uint32_t queue_id, GeTensor &tensor,
-                                               ExchangeService::ControlInfo &control_info) {
+                                            ExchangeService::ControlInfo &control_info) {
     std::lock_guard<std::mutex> lk(queue_mt);
     if (head_info_queue.empty()) {
       return RT_ERROR_TO_GE_STATUS(ACL_ERROR_RT_QUEUE_EMPTY);

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,11 +32,10 @@ class AbnormalStatusHandler {
   void DelCallback(const uint32_t root_model_id);
   void IncDeployingRootModelNum();
   void DecreaseDeployingRootModelNum();
-  DeployPlan::AbnormalStatusCallbackInfo* GetAbnormalStatusCallbackInfo();
+  DeployPlan::AbnormalStatusCallbackInfo *GetAbnormalStatusCallbackInfo();
   void SetDynamicSchedFlag(bool flag);
-  void AddDeployedModelInfo(uint32_t model_id,
-      const DeployPlan::ModelDeployInfo &model_deploy_infos,
-      const std::set<int32_t> &deployed_remote_nodes);
+  void AddDeployedModelInfo(uint32_t model_id, const DeployPlan::ModelDeployInfo &model_deploy_infos,
+                            const std::set<int32_t> &deployed_remote_nodes);
   void DelDeployedModelInfo(uint32_t model_id);
 
  private:
@@ -48,15 +47,14 @@ class AbnormalStatusHandler {
   };
   Status ParallelClearData(const std::pair<uint32_t, std::set<uint32_t>> &need_clear_root_models,
                            const std::vector<DeployPlan::DeviceInfo> &device_infos, const int32_t type) const;
-  void FindOldDevice(DeployPlan::DeviceStateList &device_state_list,
-      NodeConfig node_new, NodeConfig node_old) const;
-  Status FindAbnormalDeviceOnServer(DeployPlan::DeviceStateList &device_state_list,
-      DeployerConfig information_new, DeployerConfig information_old) const;
-  Status FindAbnormalDevice(DeployPlan::DeviceStateList &device_state_list,
-      DeployerConfig information_new, DeployerConfig information_old) const;
+  void FindOldDevice(DeployPlan::DeviceStateList &device_state_list, NodeConfig node_new, NodeConfig node_old) const;
+  Status FindAbnormalDeviceOnServer(DeployPlan::DeviceStateList &device_state_list, DeployerConfig information_new,
+                                    DeployerConfig information_old) const;
+  Status FindAbnormalDevice(DeployPlan::DeviceStateList &device_state_list, DeployerConfig information_new,
+                            DeployerConfig information_old) const;
   Status ParseDeviceStateList(const std::string &file_path, DeployPlan::DeviceStateList &device_state_list);
   bool IsModelMulInstance(std::map<const std::string, bool> &abnormal_submodel_instances_name,
-      DeployPlan::ModelDeployInfo model_deploy_infos) const;
+                          DeployPlan::ModelDeployInfo model_deploy_infos) const;
   bool IsHeartbeatNormal() const;
   void ParseAbnormalNodeConfig(DeployPlan::DeviceStateList &device_state_list) const;
   void ParseAbnormalDeviceInfo(DeployPlan::DeviceStateList &device_state_list) const;
@@ -71,16 +69,17 @@ class AbnormalStatusHandler {
   Status AfterHandleAbnormalInfo(const std::string &file_path, const char_t *const file_name);
   Status FailedHandleAbnormal(uint32_t root_model_id);
   void GetDeviceListDiff(const DeployPlan::DeviceStateList &device_state_list_new,
-      DeployPlan::DeviceStateList &device_state_list_old, DeployPlan::DeviceStateList &device_state_list_diff) const;
+                         DeployPlan::DeviceStateList &device_state_list_old,
+                         DeployPlan::DeviceStateList &device_state_list_diff) const;
   bool IsInDeviceList(std::set<DeployPlan::DeviceInfo> &instance_device_infos,
-      DeployPlan::DeviceStateList &device_state_list_diff) const;
+                      DeployPlan::DeviceStateList &device_state_list_diff) const;
   bool IsInModelInstanceList(uint32_t root_model_id, const std::string &model_instance_name,
-      RootModelId2SubmodelName &abnormal_submodel_instances_name) const;
+                             RootModelId2SubmodelName &abnormal_submodel_instances_name) const;
   void Add2ModelInstanceList(uint32_t root_model_id, const std::string &model_instance_name,
-      RootModelId2SubmodelName &abnormal_submodel_instances_name) const;
+                             RootModelId2SubmodelName &abnormal_submodel_instances_name) const;
   void AbnormalDiffDevices2ModelInstances(uint32_t root_model_id,
-      std::map<std::string, std::set<DeployPlan::DeviceInfo>> &model_deploy_info,
-      DeployPlan::DeviceStateList &device_state_list_diff, bool &is_new_abnormal);
+                                          std::map<std::string, std::set<DeployPlan::DeviceInfo>> &model_deploy_info,
+                                          DeployPlan::DeviceStateList &device_state_list_diff, bool &is_new_abnormal);
   void AbnormalDevices2ModelInstances(DeployPlan::DeviceStateList &device_state_list, bool &is_new_abnormal);
   Status RedeployStart(const uint32_t &root_model_id);
   Status FileMonitorProc(const std::string &file_path);
@@ -106,7 +105,7 @@ class AbnormalStatusHandler {
   std::atomic<uint32_t> deploying_root_model_cnt_{0U};
   GEThreadLocalContext run_context_;
   DeployPlan::DeviceStateList device_state_list_;
-  RootModelId2SubmodelName abnormal_submodel_instances_name_; // 记录已存在异常的submodel instance
+  RootModelId2SubmodelName abnormal_submodel_instances_name_;  // 记录已存在异常的submodel instance
 };
 }  // namespace ge
 #endif  // AIR_RUNTIME_HETEROGENEOUS_DEPLOY_ABNORMAL_STATUS_HANDLER_H_

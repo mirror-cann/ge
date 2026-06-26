@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,12 +28,12 @@
 namespace ge {
 namespace analyzer {
 enum AnalyzeType {
-  PARSER         = 0,
-  INFER_SHAPE    = 1,
-  CHECKSUPPORT   = 2,
+  PARSER = 0,
+  INFER_SHAPE = 1,
+  CHECKSUPPORT = 2,
   GRAPH_OPTIMIZE = 3,
-  GRAPH_PARTION  = 4,
-  GRAPH_BUILDER  = 5,
+  GRAPH_PARTION = 4,
+  GRAPH_BUILDER = 5,
 };
 
 struct TensorInfo {
@@ -61,8 +61,7 @@ struct DataInfo {
   DataInfo() = default;
   ~DataInfo() = default;
 
-  DataInfo(uint64_t sess, uint64_t graph, AnalyzeType type,
-           ge::NodePtr node, std::string error_info) {
+  DataInfo(uint64_t sess, uint64_t graph, AnalyzeType type, ge::NodePtr node, std::string error_info) {
     session_id = sess;
     graph_id = graph;
     analyze_type = type;
@@ -75,10 +74,10 @@ struct DataInfo {
   ge::NodePtr node_ptr{nullptr};
   std::string reason;
 };
-}
+}  // namespace analyzer
 
 class Analyzer {
-public:
+ public:
   /**
    * @ingroup ge
    * @brief: get analyzer instance.
@@ -165,16 +164,17 @@ public:
   ge::Status SaveAnalyzerDataToFile(uint64_t session_id, uint64_t graph_id);
 
   Analyzer(const Analyzer &) = delete;
-  Analyzer& operator=(const Analyzer&) = delete;
+  Analyzer &operator=(const Analyzer &) = delete;
   Analyzer(Analyzer &&) = delete;
-  Analyzer& operator=(Analyzer &&) = delete;
-private:
-  void TensorInfoToJson(nlohmann::json& j, const analyzer::TensorInfo &tensor_info) const;
-  void OpInfoToJson(nlohmann::json& j, const analyzer::OpInfo &op_info) const;
-  void GraphInfoToJson(nlohmann::json& j, const analyzer::GraphInfo &graph_info);
+  Analyzer &operator=(Analyzer &&) = delete;
+
+ private:
+  void TensorInfoToJson(nlohmann::json &j, const analyzer::TensorInfo &tensor_info) const;
+  void OpInfoToJson(nlohmann::json &j, const analyzer::OpInfo &op_info) const;
+  void GraphInfoToJson(nlohmann::json &j, const analyzer::GraphInfo &graph_info);
 
   ge::Status SaveOpInfo(ge::OpDescPtr desc, const analyzer::DataInfo &data_info,
-                                  std::shared_ptr<analyzer::GraphInfo> graph_info) const;
+                        std::shared_ptr<analyzer::GraphInfo> graph_info) const;
 
   void ClearHistoryFile() const;
   ge::Status CreateAnalyzerFile();
@@ -182,13 +182,13 @@ private:
   explicit Analyzer() {};
   ~Analyzer() = default;
 
-private:
+ private:
   std::map<uint64_t, std::map<uint64_t, std::shared_ptr<analyzer::GraphInfo>>> graph_infos_;
-  std::recursive_mutex mutex_; // protect graph_infos_
-  std::mutex file_mutex_; // protect json_file_
+  std::recursive_mutex mutex_;  // protect graph_infos_
+  std::mutex file_mutex_;       // protect json_file_
   std::ofstream json_file_;
   std::string json_file_name_;
   std::atomic_bool is_json_file_create_{false};
 };
-} // namespace ge
-#endif // DOMI_ANALYZER_ANANLYZER_H_
+}  // namespace ge
+#endif  // DOMI_ANALYZER_ANANLYZER_H_

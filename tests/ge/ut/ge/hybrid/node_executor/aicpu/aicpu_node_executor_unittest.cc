@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,7 +31,7 @@ namespace {
 struct AicpuTaskStruct {
   aicpu::AicpuParamHead head;
   uint64_t io_addrp[6];
-}__attribute__((packed));
+} __attribute__((packed));
 }  // namespace
 
 namespace ge {
@@ -48,8 +48,8 @@ class UtestAicpuNodeExecutor : public testing::Test {
   }
 };
 
-static NodePtr CreateNode(ComputeGraphPtr graph, const string &name, const string &type,
-                          int in_num, int out_num, const bool host_mem_input = false) {
+static NodePtr CreateNode(ComputeGraphPtr graph, const string &name, const string &type, int in_num, int out_num,
+                          const bool host_mem_input = false) {
   OpDescPtr op_desc = std::make_shared<OpDesc>(name, type);
   op_desc->SetStreamId(0);
   static int32_t index = 0;
@@ -177,7 +177,7 @@ TEST_F(UtestAicpuNodeExecutor, aicpu_tf_node_task) {
   ASSERT_EQ(aicpu_node_task.LaunchTask(*node_state->GetTaskContext()), SUCCESS);
   node_item->is_dynamic = false;
   ASSERT_EQ(aicpu_node_task.UpdateIoAddr(*node_state->GetTaskContext()), SUCCESS);
-  //kernel_ex_def->set_allocated_kernel_ext_info(nullptr);
+  // kernel_ex_def->set_allocated_kernel_ext_info(nullptr);
 }
 
 // tf_aicpu_node and aicpu_node
@@ -256,10 +256,9 @@ TEST_F(UtestAicpuNodeExecutor, aicpu_node_task_with_host_mem_input) {
 
   // check host mem input data address
   uint64_t *host_mem_input_addr = PtrToPtr<void, uint64_t>(aicpu_tf_node_task.input_output_addr_->GetData());
-  uint64_t host_mem_input_data_addr = PtrToValue(aicpu_tf_node_task.input_output_addr_->GetData()) +
-                                 aicpu_tf_node_task.host_mem_input_data_offset_;
+  uint64_t host_mem_input_data_addr =
+      PtrToValue(aicpu_tf_node_task.input_output_addr_->GetData()) + aicpu_tf_node_task.host_mem_input_data_offset_;
   EXPECT_EQ(*host_mem_input_addr, host_mem_input_data_addr);
-
 
   AicpuTaskStruct args;
   args.head.length = sizeof(args);
@@ -296,16 +295,16 @@ TEST_F(UtestAicpuNodeExecutor, aicpu_node_task_with_host_mem_input) {
 
     // check host mem input data address
     uint64_t *addr1 = PtrToPtr<void, uint64_t>(ValueToPtr(PtrToValue(aicpu_node_task.args_ex_.args) +
-                                                         aicpu_node_task.args_ex_.hostInputInfoPtr[0].addrOffset));
+                                                          aicpu_node_task.args_ex_.hostInputInfoPtr[0].addrOffset));
     uint64_t *addr2 = PtrToPtr<void, uint64_t>(ValueToPtr(PtrToValue(aicpu_node_task.args_ex_.args) +
-                                               aicpu_node_task.args_ex_.hostInputInfoPtr[1].addrOffset));
+                                                          aicpu_node_task.args_ex_.hostInputInfoPtr[1].addrOffset));
     EXPECT_EQ(*addr1, (*addr2) - sizeof(void *));
   }
 
   EXPECT_EQ(aicpu_node_task.LaunchTask(*node_state->GetTaskContext()), SUCCESS);
   node_item->is_dynamic = false;
   EXPECT_EQ(aicpu_node_task.UpdateIoAddr(*node_state->GetTaskContext()), SUCCESS);
-  //kernel_ex_def->set_allocated_kernel_ext_info(nullptr);
+  // kernel_ex_def->set_allocated_kernel_ext_info(nullptr);
 }
 
 TEST_F(UtestAicpuNodeExecutor, aicpu_memcopy_task) {
@@ -337,7 +336,7 @@ TEST_F(UtestAicpuNodeExecutor, aicpu_memcopy_task) {
   ASSERT_EQ(aicpu_node_task2.SetMemCopyTask(task_def), INTERNAL_ERROR);
   kernel_def->set_args_size(0);
   ASSERT_EQ(aicpu_node_task2.SetMemCopyTask(task_def), FAILED);
-  const char* args2 = "123";
+  const char *args2 = "123";
   kernel_def->set_args(reinterpret_cast<const char *>(&args2), 3);
   kernel_def->set_args_size(3);
   ASSERT_EQ(aicpu_node_task2.SetMemCopyTask(task_def), FAILED);
@@ -482,11 +481,11 @@ TEST_F(UtestAicpuNodeExecutor, aicpu_blocking_node_task) {
   vector<char> aicpu_ext_info(len, 0);
   char *buf = aicpu_ext_info.data();
   int offset = 0;
-  hybrid::AicpuExtInfo *ext_info = reinterpret_cast<hybrid::AicpuExtInfo*>(buf + offset);
+  hybrid::AicpuExtInfo *ext_info = reinterpret_cast<hybrid::AicpuExtInfo *>(buf + offset);
   ext_info->infoType = aicpu::FWKAdapter::FWK_ADPT_EXT_ASYNCWAIT;
   ext_info->infoLen = sizeof(hybrid::AsyncWaitInfo);
   offset += sizeof(hybrid::AicpuExtInfo);
-  hybrid::AsyncWaitInfo *async_wait_info = reinterpret_cast<hybrid::AsyncWaitInfo*>(buf + offset);
+  hybrid::AsyncWaitInfo *async_wait_info = reinterpret_cast<hybrid::AsyncWaitInfo *>(buf + offset);
   async_wait_info->waitType = 0;
   async_wait_info->waitId = 0;
   async_wait_info->timeOut = 0;
@@ -538,7 +537,7 @@ TEST_F(UtestAicpuNodeExecutor, aicpu_blocking_node_task_fail) {
   ASSERT_EQ(NodeItem::Create(node, new_node), SUCCESS);
   NodeItem *node_item = new_node.get();
   node_item->input_start = 0;
-  node_item->num_outputs =1;
+  node_item->num_outputs = 1;
   node_item->num_inputs = 1;
   node_item->output_start = 0;
   node_item->is_dynamic = true;
@@ -570,11 +569,11 @@ TEST_F(UtestAicpuNodeExecutor, aicpu_blocking_node_task_fail) {
   vector<char> aicpu_ext_info(len, 0);
   char *buf = aicpu_ext_info.data();
   int offset = 0;
-  hybrid::AicpuExtInfo *ext_info = reinterpret_cast<hybrid::AicpuExtInfo*>(buf + offset);
+  hybrid::AicpuExtInfo *ext_info = reinterpret_cast<hybrid::AicpuExtInfo *>(buf + offset);
   ext_info->infoType = aicpu::FWKAdapter::FWK_ADPT_EXT_ASYNCWAIT;
   ext_info->infoLen = sizeof(hybrid::AsyncWaitInfo);
   offset += sizeof(hybrid::AicpuExtInfo);
-  hybrid::AsyncWaitInfo *async_wait_info = reinterpret_cast<hybrid::AsyncWaitInfo*>(buf + offset);
+  hybrid::AsyncWaitInfo *async_wait_info = reinterpret_cast<hybrid::AsyncWaitInfo *>(buf + offset);
   async_wait_info->waitType = 0;
   async_wait_info->waitId = 0;
   async_wait_info->timeOut = 0;
@@ -704,14 +703,25 @@ TEST_F(UtestAicpuNodeExecutor, check_index) {
   EXPECT_EQ(handle.ParseExtInputShape(aicpu_ext_info), SUCCESS);
   EXPECT_EQ(handle.ParseExtOutputShape(aicpu_ext_info), SUCCESS);
   EXPECT_EQ(handle.ParseExtBitMap(aicpu_ext_info), PARAM_INVALID);
-  GeTensorDesc tensor_desc(GeShape({1,-1}), FORMAT_ND);
+  GeTensorDesc tensor_desc(GeShape({1, -1}), FORMAT_ND);
   handle.unknown_type_ = DEPEND_SHAPE_RANGE;
   tensor_desc.SetShapeRange({{1, 10}});
   EXPECT_EQ(handle.UpdateOutputShapeAndType(0, tensor_desc), SUCCESS);
   EXPECT_EQ(handle.UpdateOutputShapeAndType(10, tensor_desc), ACL_ERROR_GE_INTERNAL_ERROR);
   EXPECT_EQ(handle.UpdateInputShapeAndType(0, tensor_desc), SUCCESS);
   EXPECT_EQ(handle.UpdateInputShapeAndType(10, tensor_desc), ACL_ERROR_GE_INTERNAL_ERROR);
-  EXPECT_EQ(handle.UpdateShapeAndType(GeShape({1,1,1,1,1,1,1,1,1,}), DT_FLOAT, &type),
+  EXPECT_EQ(handle.UpdateShapeAndType(GeShape({
+                                          1,
+                                          1,
+                                          1,
+                                          1,
+                                          1,
+                                          1,
+                                          1,
+                                          1,
+                                          1,
+                                      }),
+                                      DT_FLOAT, &type),
             ACL_ERROR_GE_PARAM_INVALID);
 
   char ext_mem2[sizeof(AicpuExtInfo) + sizeof(AicpuSessionInfo)]{};
@@ -734,7 +744,8 @@ TEST_F(UtestAicpuNodeExecutor, check_index) {
   EXPECT_EQ(handle.async_wait_->waitId, 10);
 
   char ext_mem4[sizeof(AicpuExtInfo) + sizeof(int64_t)]{};
-  AicpuExtInfo &aicpu_ext_bitmap_info = *(AicpuExtInfo *)(ext_mem4);;
+  AicpuExtInfo &aicpu_ext_bitmap_info = *(AicpuExtInfo *)(ext_mem4);
+  ;
   uint64_t bit_map = 1;
   aicpu_ext_bitmap_info.infoType = aicpu::FWKAdapter::FWK_ADPT_EXT_BITMAP;
   aicpu_ext_bitmap_info.infoLen = sizeof(uint64_t);
@@ -744,7 +755,6 @@ TEST_F(UtestAicpuNodeExecutor, check_index) {
   EXPECT_EQ(handle.UpdateExecuteMode(true), SUCCESS);
 
   handle.UpdateSessionInfoId(10);
-
 
   EXPECT_EQ(handle.session_info_->sessionId, 10);
   handle.UpdateSessionInfo(1, 2, false);
@@ -885,7 +895,7 @@ TEST_F(UtestAicpuNodeExecutor, check_overflow_test) {
   ASSERT_EQ(NodeItem::Create(node, new_node), SUCCESS);
   NodeItem *node_item = new_node.get();
   node_item->input_start = 0;
-  node_item->num_outputs =1;
+  node_item->num_outputs = 1;
   node_item->num_inputs = 1;
   node_item->output_start = 0;
   node_item->is_dynamic = true;
@@ -944,4 +954,3 @@ TEST_F(UtestAicpuNodeExecutor, check_overflow_test) {
   unsetenv(kEnvOverFlowPath);
 }
 }  // namespace ge
-

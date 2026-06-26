@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,9 +30,8 @@ static const char *kPatternRelu = "Relu";
 vector<FusionPattern *> CastReluCastFusionPass::DefinePatterns() {
   vector<FusionPattern *> patterns;
 
-  FusionPattern *pattern = new(std::nothrow) FusionPattern("CastCastFusionPass");
-  FE_CHECK(pattern == nullptr, REPORT_FE_ERROR("Failed to create a new pattern object."),
-           return patterns);
+  FusionPattern *pattern = new (std::nothrow) FusionPattern("CastCastFusionPass");
+  FE_CHECK(pattern == nullptr, REPORT_FE_ERROR("Failed to create a new pattern object."), return patterns);
   FE_LOGD("Start to do node fusion pass.");
   pattern->AddOpDesc(kPatternCast0, {kOpTypeCast})
       .AddOpDesc(kPatternRelu, {kOpTypeRelu})
@@ -46,22 +45,18 @@ vector<FusionPattern *> CastReluCastFusionPass::DefinePatterns() {
   return patterns;
 }
 
-Status CastReluCastFusionPass::Fusion(ge::ComputeGraph &graph, Mapping &mapping,
-                                      vector<ge::NodePtr> &new_nodes) {
+Status CastReluCastFusionPass::Fusion(ge::ComputeGraph &graph, Mapping &mapping, vector<ge::NodePtr> &new_nodes) {
   (void)new_nodes;
   ge::NodePtr cast_Node0 = GetNodeFromMapping(kPatternCast0, mapping);
-  FE_CHECK(cast_Node0 == nullptr, REPORT_FE_ERROR("cast_Node0 is null, fusion failed."),
-           return NOT_CHANGED);
+  FE_CHECK(cast_Node0 == nullptr, REPORT_FE_ERROR("cast_Node0 is null, fusion failed."), return NOT_CHANGED);
   ge::OpDescPtr cast_desc0 = cast_Node0->GetOpDesc();
   FE_CHECK(cast_desc0 == nullptr, REPORT_FE_ERROR("cast_Node0's description is null, fusion failed."),
            return NOT_CHANGED);
 
   ge::NodePtr relu_Node = GetNodeFromMapping(kPatternRelu, mapping);
-  FE_CHECK(relu_Node == nullptr, REPORT_FE_ERROR("relu_Node is null, fusion failed."),
-           return NOT_CHANGED);
+  FE_CHECK(relu_Node == nullptr, REPORT_FE_ERROR("relu_Node is null, fusion failed."), return NOT_CHANGED);
   ge::OpDescPtr relu_desc = relu_Node->GetOpDesc();
-  FE_CHECK(cast_desc0 == nullptr, REPORT_FE_ERROR("relu_Node's Desc is null, fusion failed."),
-           return NOT_CHANGED);
+  FE_CHECK(cast_desc0 == nullptr, REPORT_FE_ERROR("relu_Node's Desc is null, fusion failed."), return NOT_CHANGED);
 
   auto relu_input = relu_desc->MutableInputDesc(0);
   FE_CHECK_NOTNULL(relu_input);
@@ -76,8 +71,7 @@ Status CastReluCastFusionPass::Fusion(ge::ComputeGraph &graph, Mapping &mapping,
   }
 
   ge::NodePtr cast_Node1 = GetNodeFromMapping(kPatternCast1, mapping);
-  FE_CHECK(cast_Node1 == nullptr, REPORT_FE_ERROR("cast_Node1 is null, fusion failed."),
-           return NOT_CHANGED);
+  FE_CHECK(cast_Node1 == nullptr, REPORT_FE_ERROR("cast_Node1 is null, fusion failed."), return NOT_CHANGED);
   ge::OpDescPtr cast_desc1 = cast_Node1->GetOpDesc();
   FE_CHECK(cast_desc0 == nullptr, REPORT_FE_ERROR("cast_node1's description is null, fusion failed."),
            return NOT_CHANGED);
@@ -132,8 +126,8 @@ Status CastReluCastFusionPass::Fusion(ge::ComputeGraph &graph, Mapping &mapping,
     return FAILED;
   }
   if (GraphUtils::RemoveNodeWithoutRelink(graphPtr, cast_Node0) != GRAPH_SUCCESS) {
-    REPORT_FE_ERROR("[Remove][Node] %s, type:%s without relink in graph:%s failed",
-                    cast_Node0->GetName().c_str(), cast_Node0->GetType().c_str(), graph.GetName().c_str());
+    REPORT_FE_ERROR("[Remove][Node] %s, type:%s without relink in graph:%s failed", cast_Node0->GetName().c_str(),
+                    cast_Node0->GetType().c_str(), graph.GetName().c_str());
     return FAILED;
   }
   for (auto inAnchor : relu_out_data_anchor->GetPeerInDataAnchors()) {
@@ -144,8 +138,8 @@ Status CastReluCastFusionPass::Fusion(ge::ComputeGraph &graph, Mapping &mapping,
       return FAILED;
     }
     if (GraphUtils::RemoveNodeWithoutRelink(graphPtr, node) != GRAPH_SUCCESS) {
-      REPORT_FE_ERROR("[Remove][Node] %s, type:%s without relink in graph:%s failed",
-                      node->GetName().c_str(), node->GetType().c_str(), graph.GetName().c_str());
+      REPORT_FE_ERROR("[Remove][Node] %s, type:%s without relink in graph:%s failed", node->GetName().c_str(),
+                      node->GetType().c_str(), graph.GetName().c_str());
       return FAILED;
     }
   }
@@ -154,6 +148,6 @@ Status CastReluCastFusionPass::Fusion(ge::ComputeGraph &graph, Mapping &mapping,
   return SUCCESS;
 }
 
-REG_PASS("CastReluCastFusionPass", SECOND_ROUND_BUILT_IN_GRAPH_PASS,
-         CastReluCastFusionPass, SINGLE_SCENE_OPEN | FE_PASS);
-}
+REG_PASS("CastReluCastFusionPass", SECOND_ROUND_BUILT_IN_GRAPH_PASS, CastReluCastFusionPass,
+         SINGLE_SCENE_OPEN | FE_PASS);
+}  // namespace fe

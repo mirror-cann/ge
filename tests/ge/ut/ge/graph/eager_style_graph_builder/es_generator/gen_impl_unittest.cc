@@ -48,7 +48,7 @@ void ExpectInvalidArgumentErrorContains(F &&fn, const std::string &expected_msg)
   }
 }
 
-}
+}  // namespace
 class GenImplLLT : public ::testing::Test {
  protected:
   void SetUp() override {
@@ -65,7 +65,7 @@ class GenImplLLT : public ::testing::Test {
 
   void TearDown() override {
     const std::string command = "rm -rf " + test_output_dir_;
-    (void) std::system(command.c_str());
+    (void)std::system(command.c_str());
   }
 
   std::string test_output_dir_;
@@ -80,7 +80,7 @@ class GenImplLLTExtractHistory : public ::testing::Test {
 
   void TearDown() override {
     const std::string command = "rm -rf " + opts.output_dir;
-    (void) std::system(command.c_str());
+    (void)std::system(command.c_str());
   }
 
   ge::es::GenEsbOptions opts;
@@ -89,7 +89,7 @@ class GenImplLLTExtractHistory : public ::testing::Test {
 // 测试生成的文件结构
 TEST_F(GenImplLLT, GeneratedFileStructure) {
   // 模拟生成的文件
-  std::vector<std::string> expected_files = {"es_all_ops_c.h",        "es_all_ops.h",         "es_phony_1i_1o.h",
+  std::vector<std::string> expected_files = {"es_all_ops_c.h",         "es_all_ops.h",          "es_phony_1i_1o.h",
                                              "es_phony_1i_1o.cpp",     "es_phony_1i_1o_c.h",    "es_phony_1i1dyi_1o.h",
                                              "es_phony_1i1dyi_1o.cpp", "es_phony_1i1dyi_1o_c.h"};
   // 验证文件是否生成
@@ -4724,13 +4724,11 @@ TEST_F(GenImplLLTExtractHistory, ExtractHistoryThrowsOnEmptyReleaseVersion) {
   opts.release_date = "2024-09-30";
   opts.branch_name = "master";
 
-  ExpectInvalidArgumentErrorContains([&]() {
-    ge::es::GenEsImpl(opts);
-  }, "release_version");
+  ExpectInvalidArgumentErrorContains([&]() { ge::es::GenEsImpl(opts); }, "release_version");
 
-  ExpectInvalidArgumentErrorContains([&]() {
-    ge::es::GenEsImpl(opts);
-  }, "The required parameter release_version for history registry generator is not set.");
+  ExpectInvalidArgumentErrorContains(
+      [&]() { ge::es::GenEsImpl(opts); },
+      "The required parameter release_version for history registry generator is not set.");
 }
 
 TEST_F(GenImplLLTExtractHistory, ExtractHistoryThrowsOnInvalidReleaseDate) {
@@ -4738,9 +4736,9 @@ TEST_F(GenImplLLTExtractHistory, ExtractHistoryThrowsOnInvalidReleaseDate) {
   opts.release_date = "20240930";
   opts.branch_name = "master";
 
-  ExpectInvalidArgumentErrorContains([&]() {
-    ge::es::GenEsImpl(opts);
-  }, "Given release_date parameter for history registry generator is not in the correct format (YYYY-MM-DD).");
+  ExpectInvalidArgumentErrorContains(
+      [&]() { ge::es::GenEsImpl(opts); },
+      "Given release_date parameter for history registry generator is not in the correct format (YYYY-MM-DD).");
 }
 
 TEST_F(GenImplLLTExtractHistory, ExtractHistoryThrowsOnDuplicateReleaseVersion) {
@@ -4751,7 +4749,7 @@ TEST_F(GenImplLLTExtractHistory, ExtractHistoryThrowsOnDuplicateReleaseVersion) 
   ge::es::GenEsImpl(opts);
 
   opts.release_date = "2024-10-01";
-  ExpectInvalidArgumentErrorContains([&]() {
-    ge::es::GenEsImpl(opts);
-  }, "Given release_version already exists in index, please check index.json or use another version: ");
+  ExpectInvalidArgumentErrorContains(
+      [&]() { ge::es::GenEsImpl(opts); },
+      "Given release_version already exists in index, please check index.json or use another version: ");
 }

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -73,10 +73,10 @@ struct GatherDequeueParam {
   int32_t inputs_align_timeout;
   uint32_t inputs_align_max_cache_num;
   uint32_t inputs_align_drop_out;
-  uint64_t queue_ids_addr;  // uint32_t
-  uint64_t mbuf_addrs_addr; // uintptr
-  uint64_t queue_device_ids_addr;  // uint32
-  uint64_t queue_device_type_addr; // uint32 0 NPU 1 CPU
+  uint64_t queue_ids_addr;          // uint32_t
+  uint64_t mbuf_addrs_addr;         // uintptr
+  uint64_t queue_device_ids_addr;   // uint32
+  uint64_t queue_device_type_addr;  // uint32 0 NPU 1 CPU
 };
 
 struct PostprocessDynamicOutputKernelArgs {
@@ -140,7 +140,7 @@ class SchedTaskModelGatherDequeue : public SchedTaskInfo {
   explicit SchedTaskModelGatherDequeue(aclrtStream const stream) : SchedTaskInfo(stream) {}
   ~SchedTaskModelGatherDequeue() override = default;
   Status Init(const std::vector<QueueAttrs> &queues, const InputAlignAttrs &input_align_attrs,
-             std::vector<uint64_t> &mbuf_addrs);
+              std::vector<uint64_t> &mbuf_addrs);
   Status Distribute() override;
 };
 
@@ -152,6 +152,7 @@ class SchedTaskPrepareDynamicInputOutput : public SchedTaskInfo {
               const std::vector<int32_t> &input_fusion_offsets, const std::vector<int64_t> &output_tensor_sizes,
               std::vector<uint64_t> &output_mbuf_addrs, uint64_t &req_msg_mbuf_addr, const bool enable_v2 = false);
   Status Distribute() override;
+
  private:
   bool enable_v2_ = false;
 };
@@ -173,6 +174,7 @@ class SchedTaskPostprocessDynamicOutput : public SchedTaskInfo {
               const RuntimeTensorDesc *output_static_tensor_descs, const size_t output_static_tensor_num,
               const bool enable_v2 = false);
   Status Distribute() override;
+
  private:
   bool enable_v2_ = false;
 };
@@ -216,5 +218,5 @@ class SchedTaskMarkStep : public SchedTaskInfo {
               const std::string &dump_step, const uint64_t step_id_addr);
   Status Distribute() override;
 };
-}
+}  // namespace ge
 #endif  // AIR_RUNTIME_DEPLOY_EXECUTOR_SCHED_TASK_INFO_H

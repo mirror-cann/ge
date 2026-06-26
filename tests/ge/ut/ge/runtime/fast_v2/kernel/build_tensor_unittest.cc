@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -295,8 +295,11 @@ TEST_F(BuildTensorUT, BuildShapeTensorDataDtypeAttrLostFailed) {
 }
 TEST_F(BuildTensorUT, SplitTensorForOutputData_SplitOk_InputCorrect) {
   auto tensor_holder = TensorFaker().DataType(ge::DT_FLOAT).Shape({1, 2, 3, 4}).Build();
-  auto context_holder =
-      KernelRunContextFaker().KernelIONum(2U, 3U).NodeIoNum(1, 1).Inputs({tensor_holder.GetTensor(), &gert_allocator}).Build();
+  auto context_holder = KernelRunContextFaker()
+                            .KernelIONum(2U, 3U)
+                            .NodeIoNum(1, 1)
+                            .Inputs({tensor_holder.GetTensor(), &gert_allocator})
+                            .Build();
   auto context = context_holder.GetContext<KernelContext>();
 
   auto funcs = registry.FindKernelFuncs(kernel::kSplitTensorForOutputData);
@@ -315,7 +318,8 @@ TEST_F(BuildTensorUT, SplitTensorForOutputData_SplitOk_InputCorrect) {
   EXPECT_EQ(context->GetOutputPointer<GertTensorData>(1)->GetPlacement(), tensor_holder.GetTensor()->GetPlacement());
 }
 TEST_F(BuildTensorUT, SplitTensorForOutputData_CheckFailed_NullTensor) {
-  auto context_holder = KernelRunContextFaker().KernelIONum(2U, 3U).NodeIoNum(1, 1).Inputs({nullptr, &gert_allocator}).Build();
+  auto context_holder =
+      KernelRunContextFaker().KernelIONum(2U, 3U).NodeIoNum(1, 1).Inputs({nullptr, &gert_allocator}).Build();
   auto context = context_holder.GetContext<KernelContext>();
 
   auto funcs = registry.FindKernelFuncs(kernel::kSplitTensorForOutputData);
@@ -335,7 +339,8 @@ TEST_F(BuildTensorUT, SplitTensorForOutputData_CheckFailed_NullTensor) {
 }
 TEST_F(BuildTensorUT, SplitTensorForOutputData_CheckFailed_NullTensorData) {
   Tensor tensor;
-  auto context_holder = KernelRunContextFaker().KernelIONum(2U, 3U).NodeIoNum(1, 1).Inputs({&tensor, &gert_allocator}).Build();
+  auto context_holder =
+      KernelRunContextFaker().KernelIONum(2U, 3U).NodeIoNum(1, 1).Inputs({&tensor, &gert_allocator}).Build();
   auto context = context_holder.GetContext<KernelContext>();
 
   auto funcs = registry.FindKernelFuncs(kernel::kSplitTensorForOutputData);
@@ -357,8 +362,11 @@ TEST_F(BuildTensorUT, SplitTensorForOutputData_CheckFailed_NullTensorData) {
 TEST_F(BuildTensorUT, SplitTensorForOutputData_CheckFailed_WhenTensorDataNotEnoughSize) {
   auto tensor_holder = TensorFaker().DataType(ge::DT_FLOAT).Shape({1, 2, 3, 4}).Build();
   tensor_holder.GetTensor()->MutableStorageShape().SetDim(0, 2);
-  auto context_holder =
-      KernelRunContextFaker().KernelIONum(2U, 3U).NodeIoNum(1, 1).Inputs({tensor_holder.GetTensor(), &gert_allocator}).Build();
+  auto context_holder = KernelRunContextFaker()
+                            .KernelIONum(2U, 3U)
+                            .NodeIoNum(1, 1)
+                            .Inputs({tensor_holder.GetTensor(), &gert_allocator})
+                            .Build();
   auto context = context_holder.GetContext<KernelContext>();
 
   auto funcs = registry.FindKernelFuncs(kernel::kSplitTensorForOutputData);
@@ -372,10 +380,11 @@ TEST_F(BuildTensorUT, SplitTensorForOutputData_CheckFailed_WhenTensorDataNotEnou
   ASSERT_NE(funcs->run_func, nullptr);
   ASSERT_NE(funcs->run_func(context), ge::GRAPH_SUCCESS);
   ASSERT_EQ(runtime_stub.GetSlogStub().GetLogs(DLOG_ERROR).size(), 1);
-  EXPECT_TRUE(runtime_stub.GetSlogStub()
-                  .GetLogs(DLOG_ERROR)
-                  .at(0)
-                  .EndsWith("The output tensor memory size[128] is smaller than the actual size[192] required by tensor."));
+  EXPECT_TRUE(
+      runtime_stub.GetSlogStub()
+          .GetLogs(DLOG_ERROR)
+          .at(0)
+          .EndsWith("The output tensor memory size[128] is smaller than the actual size[192] required by tensor."));
 }
 // todo 确定输出size校验规则后重新放开
 #if 0

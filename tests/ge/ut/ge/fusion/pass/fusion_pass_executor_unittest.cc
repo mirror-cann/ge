@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -200,8 +200,7 @@ const std::string &GetSharedPybindPatternMatcherConfigPassFilePath() {
 }
 
 const std::string &GetSharedPybindPatternMatcherConfigMarkerFilePath() {
-  static const std::string path =
-      GetSharedPybindPassDir().CreateFilePath("pattern_matcher_config_bridge_marker.txt");
+  static const std::string path = GetSharedPybindPassDir().CreateFilePath("pattern_matcher_config_bridge_marker.txt");
   return path;
 }
 
@@ -589,10 +588,11 @@ class ScopedPythonPathForUt {
 };
 
 void ForgetNativeModuleForUt() {
-  RunPythonSnippetForUt("import sys\n"
-                        "for name in list(sys.modules):\n"
-                        "    if name == 'ge' or name == 'ge.passes' or name.startswith('ge.passes.'):\n"
-                        "        sys.modules.pop(name, None)\n");
+  RunPythonSnippetForUt(
+      "import sys\n"
+      "for name in list(sys.modules):\n"
+      "    if name == 'ge' or name == 'ge.passes' or name.startswith('ge.passes.'):\n"
+      "        sys.modules.pop(name, None)\n");
 }
 
 int g_direct_bridge_registered_count = 0;
@@ -702,7 +702,7 @@ Status RunPythonFusionBasePassHolderForUt(const void *holder, GraphPtr &graph, C
   g_python_fusion_base_runtime_snapshot.last_graph_name = graph->GetName();
   return g_python_fusion_base_runtime_snapshot.run_status;
 }
-} // namespace
+}  // namespace
 using namespace ge::es;
 class UtestFusionPassExecutor : public testing::Test {
  public:
@@ -741,6 +741,7 @@ class UtestFusionPassExecutor : public testing::Test {
     GetThreadLocalContext().GetOo().Initialize({}, OptionRegistry::GetInstance().GetRegisteredOptTable());
     RestorePythonPathForSt();
   }
+
  private:
   void PreparePythonPathForSt() {
 #ifdef ST_FUSION_PASS_PY_INSTALL_DIR
@@ -823,7 +824,8 @@ TEST_F(UtestFusionPassExecutor, PatternFusionPassReg_Run_BeforeInferShape) {
   for (const auto &node : target_compute_graph->GetDirectNode()) {
     if (node->GetType() == "DynamicRNNV3") {
       auto checker = gert::NodeTopoChecker(node);
-      EXPECT_EQ(checker.StrictConnectFrom({{"Relu"}, {CONSTANT}, {CONSTANT}, {"Relu"}, {"Relu"}, {CONSTANT}}), "success");
+      EXPECT_EQ(checker.StrictConnectFrom({{"Relu"}, {CONSTANT}, {CONSTANT}, {"Relu"}, {"Relu"}, {CONSTANT}}),
+                "success");
       EXPECT_EQ(checker.StrictConnectTo(0, {{"Relu"}}), "success");
       EXPECT_EQ(checker.StrictConnectTo(1, {{"Relu"}}), "success");
       EXPECT_EQ(checker.StrictConnectTo(2, {{"Relu"}}), "success");
@@ -883,7 +885,7 @@ TEST_F(UtestFusionPassExecutor, PatternFusionPassReg_Run_BeforeInferShape_Option
   auto target_graph = GraphUtilsEx::CreateGraphPtrFromComputeGraph(target_compute_graph);
 
   GetThreadLocalContext().GetOo().Initialize({{ge::OPTIMIZATION_SWITCH, "TransDataToReluPass:off"}},
-                                            OptionRegistry::GetInstance().GetRegisteredOptTable());
+                                             OptionRegistry::GetInstance().GetRegisteredOptTable());
   FusionPassExecutor pass_executor;
   EXPECT_EQ(pass_executor.RunPasses(target_compute_graph, CustomPassStage::kAfterInferShape), SUCCESS);
   GraphUtils::DumpGEGraphToOnnx(*target_compute_graph, "after_replace");
@@ -893,7 +895,7 @@ TEST_F(UtestFusionPassExecutor, PatternFusionPassReg_Run_BeforeInferShape_Option
       has_relu = true;
     }
   }
-  EXPECT_FALSE(has_relu); // 图没有被改
+  EXPECT_FALSE(has_relu);  // 图没有被改
 }
 TEST_F(UtestFusionPassExecutor, PatternFusionPassReg_Run_BeforeInferShape_ConfigToOff) {
   // define pass
@@ -928,7 +930,8 @@ TEST_F(UtestFusionPassExecutor, PatternFusionPassReg_Run_BeforeInferShape_Config
   auto target_compute_graph = gert::ShareGraph::LstmpGraph();
   auto target_graph = GraphUtilsEx::CreateGraphPtrFromComputeGraph(target_compute_graph);
 
-  std::string fusion_config_json_str = "{\n"
+  std::string fusion_config_json_str =
+      "{\n"
       "      \"Switch\":{\n"
       "          \"GraphFusion\":{\n"
       "            \"TransDataToReluPass\" : \"off\"\n"
@@ -952,7 +955,7 @@ TEST_F(UtestFusionPassExecutor, PatternFusionPassReg_Run_BeforeInferShape_Config
       has_relu = true;
     }
   }
-  EXPECT_FALSE(has_relu); // 图没有被改
+  EXPECT_FALSE(has_relu);  // 图没有被改
   remove("./fusion_switch_config.json");
 }
 
@@ -989,7 +992,8 @@ TEST_F(UtestFusionPassExecutor, PatternFusionPassReg_Run_BeforeInferShape_Config
   auto target_compute_graph = gert::ShareGraph::LstmpGraph();
   auto target_graph = GraphUtilsEx::CreateGraphPtrFromComputeGraph(target_compute_graph);
 
-  std::string fusion_config_json_str = "{\n"
+  std::string fusion_config_json_str =
+      "{\n"
       "      \"Switch\":{\n"
       "          \"GraphFusion\":{\n"
       "            \"TransDataToReluPass\" : \"on\"\n"
@@ -1014,7 +1018,7 @@ TEST_F(UtestFusionPassExecutor, PatternFusionPassReg_Run_BeforeInferShape_Config
       has_relu = true;
     }
   }
-  EXPECT_TRUE(has_relu); // 图被改
+  EXPECT_TRUE(has_relu);  // 图被改
   remove("./fusion_switch_config.json");
 }
 
@@ -1051,7 +1055,8 @@ TEST_F(UtestFusionPassExecutor, PatternFusionPassReg_Run_BeforeInferShape_Config
   auto target_compute_graph = gert::ShareGraph::LstmpGraph();
   auto target_graph = GraphUtilsEx::CreateGraphPtrFromComputeGraph(target_compute_graph);
 
-  std::string fusion_config_json_str = "{\n"
+  std::string fusion_config_json_str =
+      "{\n"
       "      \"Switch\":{\n"
       "          \"GraphFusion\":{\n"
       "            \"ALL\" : \"off\"\n"
@@ -1075,7 +1080,7 @@ TEST_F(UtestFusionPassExecutor, PatternFusionPassReg_Run_BeforeInferShape_Config
       has_relu = true;
     }
   }
-  EXPECT_FALSE(has_relu); // 图没有被改
+  EXPECT_FALSE(has_relu);  // 图没有被改
   remove("./fusion_switch_config.json");
 }
 
@@ -1147,7 +1152,7 @@ TEST_F(UtestFusionPassExecutor, PatternFusionPassReg_Run_BeforeInferShape_WithSu
     bool MeetRequirements(const std::unique_ptr<MatchResult> &match_result) override {
       return true;
     }
-    std::unique_ptr<Graph> Replacement(const unique_ptr<MatchResult> &match_result) override { // invalid replacement
+    std::unique_ptr<Graph> Replacement(const unique_ptr<MatchResult> &match_result) override {  // invalid replacement
       auto replace_graph = ge::es::EsGraphBuilder("replacement");
       auto esb_graph = replace_graph.GetCGraphBuilder();
       auto data = EsCreateGraphInput(esb_graph, 0);
@@ -1195,7 +1200,7 @@ TEST_F(UtestFusionPassExecutor, PatternFusionPassReg_Run_BeforeInferShape_FAILED
     bool MeetRequirements(const std::unique_ptr<MatchResult> &match_result) override {
       return true;
     }
-    std::unique_ptr<Graph> Replacement(const unique_ptr<MatchResult> &match_result) override { // invalid replacement
+    std::unique_ptr<Graph> Replacement(const unique_ptr<MatchResult> &match_result) override {  // invalid replacement
       auto replace_graph = ge::es::EsGraphBuilder("replacement");
       auto esb_graph = replace_graph.GetCGraphBuilder();
       auto data = EsCreateGraphInput(esb_graph, 0);
@@ -1230,6 +1235,7 @@ TEST_F(UtestFusionPassExecutor, DecomposePass_Run_AfterInferShape) {
   class RunDecomposeTransDataPass : public DecomposePass {
    public:
     RunDecomposeTransDataPass(const std::vector<AscendString> &op_types) : DecomposePass(op_types) {}
+
    protected:
     bool MeetRequirements(const GNode &matched_node) override {
       return true;
@@ -1254,7 +1260,8 @@ TEST_F(UtestFusionPassExecutor, DecomposePass_Run_AfterInferShape) {
   for (const auto &node : target_compute_graph->GetDirectNode()) {
     if (node->GetType() == "DynamicRNNV3") {
       auto checker = gert::NodeTopoChecker(node);
-      EXPECT_EQ(checker.StrictConnectFrom({{"Relu"}, {CONSTANT}, {CONSTANT}, {"Relu"}, {"Relu"}, {CONSTANT}}), "success");
+      EXPECT_EQ(checker.StrictConnectFrom({{"Relu"}, {CONSTANT}, {CONSTANT}, {"Relu"}, {"Relu"}, {CONSTANT}}),
+                "success");
       EXPECT_EQ(checker.StrictConnectTo(0, {{"Relu"}}), "success");
       EXPECT_EQ(checker.StrictConnectTo(1, {{"Relu"}}), "success");
       EXPECT_EQ(checker.StrictConnectTo(2, {{"Relu"}}), "success");
@@ -1286,6 +1293,7 @@ TEST_F(UtestFusionPassExecutor, DecomposePass_Run_AfterInferShape_Failed) {
   class RunDecomposeTransDataPass : public DecomposePass {
    public:
     RunDecomposeTransDataPass(const std::vector<AscendString> &op_type) : DecomposePass(op_type) {}
+
    protected:
     bool MeetRequirements(const GNode &matched_node) override {
       return true;
@@ -1396,19 +1404,23 @@ TEST_F(UtestFusionPassExecutor, PythonPassBridgeLoader_SkipsBrokenPrebuiltCandid
   WriteFile(native_module_path, "native");
   WriteFile(temp_dir.CreateFilePath(artifact_dir + "/manifest.json"),
             "{\n"
-            "  \"python_tag\": \"" + std::string(kPythonTag) + "\",\n"
-            "  \"platform\": \"" + platform_tag + "\",\n"
-            "  \"bridge_abi\": 1,\n"
-            "  \"artifacts\": {\n"
-            "    \"bridge\": \"libge_python_pass_bridge.so\",\n"
-            "    \"native\": \"_ge_pass_native.so\"\n"
-            "  }\n"
-            "}\n");
+            "  \"python_tag\": \"" +
+                std::string(kPythonTag) +
+                "\",\n"
+                "  \"platform\": \"" +
+                platform_tag +
+                "\",\n"
+                "  \"bridge_abi\": 1,\n"
+                "  \"artifacts\": {\n"
+                "    \"bridge\": \"libge_python_pass_bridge.so\",\n"
+                "    \"native\": \"_ge_pass_native.so\"\n"
+                "  }\n"
+                "}\n");
 
   ScopedEnvVar scoped_python_path("PYTHONPATH", temp_dir.FilePath("site-packages"));
   auto runtime_key = ResolveRuntimeKeyForBridgeLoaderUt();
-  const auto candidates = python_pass_artifact::BuildPrebuiltBridgeLibraryCandidates(
-      runtime_key, "", kPythonFusionPassBridgeAbiVersion);
+  const auto candidates =
+      python_pass_artifact::BuildPrebuiltBridgeLibraryCandidates(runtime_key, "", kPythonFusionPassBridgeAbiVersion);
   ASSERT_EQ(candidates.size(), 1U);
   EXPECT_EQ(candidates.front().bridge_path, python_pass_artifact::ResolveRealPath(broken_bridge_path.c_str()));
   EXPECT_EQ(candidates.front().artifact_root,
@@ -1424,7 +1436,8 @@ TEST_F(UtestFusionPassExecutor, PythonPassBridgeLoader_SkipsBrokenPrebuiltCandid
             ", dlerror[broken shared object]");
   EXPECT_TRUE(python_pass_bridge_loader::BuildBridgeLoadErrorSuffix(status, nullptr).empty());
   EXPECT_TRUE(python_pass_bridge_loader::BuildBridgeLoadErrorSuffix(
-      python_pass_bridge_loader::BridgeLoadStatus::kInvalidPath, "ignored").empty());
+                  python_pass_bridge_loader::BridgeLoadStatus::kInvalidPath, "ignored")
+                  .empty());
   EXPECT_EQ(loaded_bridge.handle, nullptr);
 }
 
@@ -1500,10 +1513,9 @@ TEST_F(UtestFusionPassExecutor, PythonPassPybindBridge_InterpreterInitialization
   ForgetNativeModuleForUt();
   const auto temp_python_path = temp_dir.FilePath("");
   const char *old_python_path = getenv("PYTHONPATH");
-  const std::string python_path =
-      ((old_python_path == nullptr) || (old_python_path[0] == '\0'))
-          ? temp_python_path
-          : (temp_python_path + ":" + old_python_path);
+  const std::string python_path = ((old_python_path == nullptr) || (old_python_path[0] == '\0'))
+                                      ? temp_python_path
+                                      : (temp_python_path + ":" + old_python_path);
   ScopedEnvVar scoped_python_path("PYTHONPATH", python_path);
   ScopedPythonPathForUt scoped_sys_path(temp_python_path);
   PythonFusionPassBridgeArtifactConfig config = {nullptr, native_module_path.c_str()};
@@ -1976,8 +1988,8 @@ TEST_F(UtestFusionPassExecutor, RunPasses_SkipOrphanSubgraph) {
   // 顶层图能正常处理，孤儿子图被安全跳过，不应崩溃。
   EXPECT_EQ(pass_executor.RunPasses(target_compute_graph, CustomPassStage::kAfterInferShape), SUCCESS);
 }
-} // namespace fusion
-} // namespace ge
+}  // namespace fusion
+}  // namespace ge
 
 // CPython 内部分配器（_PyObject_Malloc / PyThread_allocate_lock）在 Py_Finalize()
 // 后仍有残余内存不被回收，这是 CPython 的已知行为，不是业务代码的泄漏。

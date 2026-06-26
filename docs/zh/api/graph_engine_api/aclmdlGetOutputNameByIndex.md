@@ -114,4 +114,3 @@ const char *aclmdlGetOutputNameByIndex(const aclmdlDesc *modelDesc, size_t index
             构图接口的详细说明请参见《图模式开发指南》。
 
     -   同时指定输出节点名称（node\_name）和输出名称（output的name），接口返回报错。
-

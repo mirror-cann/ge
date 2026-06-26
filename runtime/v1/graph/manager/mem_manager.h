@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -37,28 +37,24 @@ class MemManager : public MemoryManager {
   ~MemManager() override;
   static MemManager &Instance();
 
-  uint8_t *MallocMemory(const rtMemType_t memory_type,
-                        const std::string &purpose,
-                        const std::string &memory_key,
-                        const size_t memory_size,
-                        const uint32_t device_id) override;
+  uint8_t *MallocMemory(const rtMemType_t memory_type, const std::string &purpose, const std::string &memory_key,
+                        const size_t memory_size, const uint32_t device_id) override;
 
-  Status FreeMemory(const rtMemType_t memory_type, const std::string &memory_key,
-		            const uint32_t device_id) override;
+  Status FreeMemory(const rtMemType_t memory_type, const std::string &memory_key, const uint32_t device_id) override;
 
   uint8_t *GetMemoryBase(const rtMemType_t memory_type, const std::string &memory_key,
-		                 const uint32_t device_id) override;
+                         const uint32_t device_id) override;
 
   uint8_t *GetMemoryAddr(const rtMemType_t memory_type, const std::string &memory_key,
-		                 const uint32_t device_id) override;
+                         const uint32_t device_id) override;
 
-  uint8_t *MallocMemory(const rtMemType_t memory_type, const std::string &purpose,
-                        const size_t memory_size, const uint32_t device_id) override;
+  uint8_t *MallocMemory(const rtMemType_t memory_type, const std::string &purpose, const size_t memory_size,
+                        const uint32_t device_id) override;
 
   Status FreeMemory(const rtMemType_t memory_type, void *const memory_addr, const uint32_t device_id) override;
 
   uint8_t *GetRdmaPoolMemory(const rtMemType_t memory_type, const size_t memory_size,
-		                     const uint32_t device_id) override;
+                             const uint32_t device_id) override;
   uint8_t *GetHostPoolMemory(const rtMemType_t memory_type, const size_t memory_size) override;
 
   void FreeSessionMemory(const uint64_t session_id, const uint32_t device_id = 0U);
@@ -127,7 +123,7 @@ class MemManager : public MemoryManager {
   /// @param [in] allocate_map memory allocator map
   /// @return Allocator ptr
   template <typename T>
-  auto GetAllocator(const rtMemType_t memory_type, const std::map<rtMemType_t, T *> allocate_map) -> T& {
+  auto GetAllocator(const rtMemType_t memory_type, const std::map<rtMemType_t, T *> allocate_map) -> T & {
     const std::lock_guard<std::recursive_mutex> lock(allocator_mutex_);
     T *allocator = nullptr;
     const auto it = allocate_map.find(memory_type);

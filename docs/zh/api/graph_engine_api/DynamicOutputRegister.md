@@ -91,4 +91,3 @@ void DynamicOutputRegister(const char_t *name, const uint32_t num, const char_t 
 ## 约束说明<a name="section439002"></a>
 
 无。
-

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -51,7 +51,8 @@ TEST_F(UtestGeProfilingInit, Init) {
 TEST_F(UtestGeProfilingInit, test_init) {
   std::map<std::string, std::string> options;
   options[ge::OPTION_EXEC_PROFILING_MODE] = "1";
-  options[ge::OPTION_EXEC_PROFILING_OPTIONS] = R"({"result_path":"/data/profiling","training_trace":"on","task_trace":"on","aicpu_trace":"on","fp_point":"Data_0","bp_point":"addn","ai_core_metrics":"ResourceConflictRatio"})";
+  options[ge::OPTION_EXEC_PROFILING_OPTIONS] =
+      R"({"result_path":"/data/profiling","training_trace":"on","task_trace":"on","aicpu_trace":"on","fp_point":"Data_0","bp_point":"addn","ai_core_metrics":"ResourceConflictRatio"})";
   options[ge::OPTION_EXEC_JOB_ID] = "0";
 
   auto &profiling_init = ge::ProfilingInit::Instance();
@@ -62,10 +63,11 @@ TEST_F(UtestGeProfilingInit, test_init) {
 TEST_F(UtestGeProfilingInit, test_init_failed) {
   std::map<std::string, std::string> options;
   options[ge::OPTION_EXEC_PROFILING_MODE] = "1";
-  options[ge::OPTION_EXEC_PROFILING_OPTIONS] = R"({"result_path":"/data/profiling","training_trace":"on","task_trace":"on","aicpu_trace":"on","fp_point":"Data_0","bp_point":"addn","ai_core_metrics":"ResourceConflictRatio"})";
+  options[ge::OPTION_EXEC_PROFILING_OPTIONS] =
+      R"({"result_path":"/data/profiling","training_trace":"on","task_trace":"on","aicpu_trace":"on","fp_point":"Data_0","bp_point":"addn","ai_core_metrics":"ResourceConflictRatio"})";
   options[ge::OPTION_EXEC_JOB_ID] = "0";
 
-  const char_t * const kEnvValue = "MS_PROF_INIT_FAIL";
+  const char_t *const kEnvValue = "MS_PROF_INIT_FAIL";
   // 设置环境变量
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
@@ -87,7 +89,7 @@ TEST_F(UtestGeProfilingInit, test_shut) {
   auto &profiling_init = ge::ProfilingInit::Instance();
   profiling_init.ShutDownProfiling();
 
-  const char_t * const kEnvValue = "MS_PROF_FINALIZE_FAIL";
+  const char_t *const kEnvValue = "MS_PROF_FINALIZE_FAIL";
   mmSetEnv(kEnvValue, "mock_fail", 1);
   profiling_init.ShutDownProfiling();
   unsetenv(kEnvValue);
@@ -111,7 +113,7 @@ TEST_F(UtestGeProfilingInit, test_unset_deviceId) {
 
 TEST_F(UtestGeProfilingInit, InitProfOptions) {
   Status ret;
-  struct MsprofOptions prof_conf = {{ 0 }};
+  struct MsprofOptions prof_conf = {{0}};
   bool is_execute_profiling = false;
   unsetenv("PROFILING_MODE");
   unsetenv("PROFILING_OPTIONS");
@@ -136,7 +138,7 @@ TEST_F(UtestGeProfilingInit, InitProfOptions) {
   EXPECT_EQ(ret, ge::PARAM_INVALID);
   EXPECT_TRUE(is_execute_profiling == false);
 
-  const char* defaultProfOptions = R"({"output":"./","training_trace":"on","task_trace":"on",
+  const char *defaultProfOptions = R"({"output":"./","training_trace":"on","task_trace":"on",
   "hccl":"on","aicpu":"on","aic_metrics":"PipeUtilization","msproftx":"off"})";
 
   options[ge::OPTION_EXEC_PROFILING_OPTIONS] = defaultProfOptions;
@@ -147,7 +149,7 @@ TEST_F(UtestGeProfilingInit, InitProfOptions) {
 
   // enable prof from env
   is_execute_profiling = false;
-  struct MsprofOptions prof_conf2 = {{ 0 }};
+  struct MsprofOptions prof_conf2 = {{0}};
   options[ge::OPTION_EXEC_PROFILING_MODE] = "";
   char_t npu_collect_path[MMPA_MAX_PATH] = "true";
   mmSetEnv("PROFILING_MODE", &npu_collect_path[0U], MMPA_MAX_PATH);

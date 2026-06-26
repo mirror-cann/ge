@@ -90,8 +90,8 @@ Status DbgDumpPreProcess(rtMdlLoad_t *mdlLoad, size_t taskDescSize, char *modelN
   }
   uint32_t nameLen = strlen(modelName);
   uint32_t suffixLen = strlen(DBG_FILE_SUFFIX);
-  uint32_t totalLen = pathLen + nameLen + suffixLen + 1; // '\0'
-  char *dbgFileName  = (char *)mmMalloc(totalLen);
+  uint32_t totalLen = pathLen + nameLen + suffixLen + 1;  // '\0'
+  char *dbgFileName = (char *)mmMalloc(totalLen);
   if (dbgFileName == NULL) {
     return ACL_ERROR_GE_MEMORY_ALLOCATION;
   }

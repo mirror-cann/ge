@@ -18,7 +18,7 @@ using namespace ge::es::history;
 namespace {
 bool HasDefaultBeforeRequired(const Signature &sig) {
   bool seen_default = false;
-  for (const auto &param: sig.params) {
+  for (const auto &param : sig.params) {
     if (param.has_default) {
       seen_default = true;
       continue;
@@ -31,7 +31,7 @@ bool HasDefaultBeforeRequired(const Signature &sig) {
 }
 
 bool HasOwnerBuilderParam(const Signature &sig) {
-  for (const auto &param: sig.params) {
+  for (const auto &param : sig.params) {
     if (param.name == "owner_builder") {
       return true;
     }
@@ -83,30 +83,28 @@ bool HasNonDeletedInputWithKind(const OverloadPlan &plan, const std::string &inp
   }
   return false;
 }
-} // namespace
+}  // namespace
 
 class OverloadPlannerUT : public ::testing::Test {
-  protected:
-    IrOpProto BuildProto(const std::vector<IrInput> &inputs,
-                         const std::vector<IrAttr> &attrs = {},
-                         const std::vector<IrOutput> &outputs = {},
-                         const std::vector<IrSubgraph> &subgraphs = {}) const {
-      IrOpProto proto;
-      proto.op_type = "Foo";
-      proto.inputs = inputs;
-      proto.attrs = attrs;
-      proto.outputs = outputs;
-      proto.subgraphs = subgraphs;
-      return proto;
-    }
+ protected:
+  IrOpProto BuildProto(const std::vector<IrInput> &inputs, const std::vector<IrAttr> &attrs = {},
+                       const std::vector<IrOutput> &outputs = {}, const std::vector<IrSubgraph> &subgraphs = {}) const {
+    IrOpProto proto;
+    proto.op_type = "Foo";
+    proto.inputs = inputs;
+    proto.attrs = attrs;
+    proto.outputs = outputs;
+    proto.subgraphs = subgraphs;
+    return proto;
+  }
 
-    HistoryContext BuildHistory(const std::vector<IrOpProto> &chain) const {
-      HistoryContext context;
-      context.proto_chain = chain;
-      return context;
-    }
+  HistoryContext BuildHistory(const std::vector<IrOpProto> &chain) const {
+    HistoryContext context;
+    context.proto_chain = chain;
+    return context;
+  }
 
-    OverloadPlanner planner_;
+  OverloadPlanner planner_;
 };
 
 TEST_F(OverloadPlannerUT, PlanWithoutHistoryReturnsSingleA0Signature) {
@@ -159,12 +157,8 @@ TEST_F(OverloadPlannerUT, PlanTry0WhenNewInputWithHistoricalRequiredAttrHasNoAmb
 TEST_F(OverloadPlannerUT, PlanUpgradeToA1WhenTry0IsAmbiguous) {
   const IrAttr mode = {"mode", "String", false, "\"xx\""};
   const auto v1 = BuildProto({{"x", ge::kIrInputRequired, {}}, {"xo1", ge::kIrInputRequired, {}}}, {mode});
-  const auto current = BuildProto({
-                                    {"x", ge::kIrInputRequired, {}},
-                                    {"xo1", ge::kIrInputRequired, {}},
-                                    {"xo2", ge::kIrInputOptional, {}}
-                                  },
-                                  {mode});
+  const auto current = BuildProto(
+      {{"x", ge::kIrInputRequired, {}}, {"xo1", ge::kIrInputRequired, {}}, {"xo2", ge::kIrInputOptional, {}}}, {mode});
   const auto plan = planner_.Plan(current, BuildHistory({v1}));
   ASSERT_EQ(plan.signatures.size(), 3U);
 
@@ -199,12 +193,8 @@ TEST_F(OverloadPlannerUT, PlanUpgradeToA2WhenA1StillAmbiguousWithScalarLiteral) 
   const IrAttr a = {"a", "Int", false, "0"};
   const IrAttr b = {"b", "Int", false, "0"};
   const auto v1 = BuildProto({{"x", ge::kIrInputRequired, {}}, {"xo1", ge::kIrInputRequired, {}}}, {a});
-  const auto current = BuildProto({
-                                    {"x", ge::kIrInputRequired, {}},
-                                    {"xo1", ge::kIrInputRequired, {}},
-                                    {"xo2", ge::kIrInputOptional, {}}
-                                  },
-                                  {a, b});
+  const auto current = BuildProto(
+      {{"x", ge::kIrInputRequired, {}}, {"xo1", ge::kIrInputRequired, {}}, {"xo2", ge::kIrInputOptional, {}}}, {a, b});
   const auto plan = planner_.Plan(current, BuildHistory({v1}));
   ASSERT_EQ(plan.signatures.size(), 3U);
   EXPECT_EQ(plan.signatures[1].params[2].name, "xo2");
@@ -251,12 +241,9 @@ TEST_F(OverloadPlannerUT, PlanRejectedModesShouldNotLeakInternalWarnings) {
   const IrAttr b = {"b", "Int", false, "0"};
   const IrAttr unsupported = {"bad_attr", "UnknownType", false, ""};
   const auto v1 = BuildProto({{"x", ge::kIrInputRequired, {}}, {"xo1", ge::kIrInputRequired, {}}}, {a});
-  const auto current = BuildProto({
-                                    {"x", ge::kIrInputRequired, {}},
-                                    {"xo1", ge::kIrInputRequired, {}},
-                                    {"xo2", ge::kIrInputOptional, {}}
-                                  },
-                                  {a, b, unsupported});
+  const auto current = BuildProto(
+      {{"x", ge::kIrInputRequired, {}}, {"xo1", ge::kIrInputRequired, {}}, {"xo2", ge::kIrInputOptional, {}}},
+      {a, b, unsupported});
   const auto plan = planner_.Plan(current, BuildHistory({v1}));
 
   bool has_upgrade_to_a1 = false;
@@ -377,12 +364,10 @@ TEST_F(OverloadPlannerUT, PlanA0WhenOptionalInputAndOptionalAttrAreBothAppended)
 TEST_F(OverloadPlannerUT, PlanA1WithTwoNewInputsBuildsTwoNullptrGuards) {
   const IrAttr mode = {"mode", "String", false, "\"xx\""};
   const auto v1 = BuildProto({{"x", ge::kIrInputRequired, {}}, {"xo1", ge::kIrInputRequired, {}}}, {mode});
-  const auto current = BuildProto({
-                                    {"x", ge::kIrInputRequired, {}},
-                                    {"xo1", ge::kIrInputRequired, {}},
-                                    {"xo2", ge::kIrInputOptional, {}},
-                                    {"xo3", ge::kIrInputOptional, {}}
-                                  },
+  const auto current = BuildProto({{"x", ge::kIrInputRequired, {}},
+                                   {"xo1", ge::kIrInputRequired, {}},
+                                   {"xo2", ge::kIrInputOptional, {}},
+                                   {"xo3", ge::kIrInputOptional, {}}},
                                   {mode});
   const auto plan = planner_.Plan(current, BuildHistory({v1}));
   ASSERT_EQ(plan.signatures.size(), 4U);
@@ -493,11 +478,8 @@ TEST_F(OverloadPlannerUT, PlanBuildsMultiVersionSignaturesAcrossHistoryChain) {
   // 期望：Plan 需要覆盖多版本形态，而不是只围绕 latest 生成两条签名。
   const auto v1 = BuildProto({{"x", ge::kIrInputOptional, {}}});
   const auto v2 = BuildProto({{"x", ge::kIrInputOptional, {}}, {"xo2", ge::kIrInputOptional, {}}});
-  const auto current = BuildProto({
-                                    {"x", ge::kIrInputOptional, {}},
-                                    {"xo2", ge::kIrInputOptional, {}},
-                                    {"xo3", ge::kIrInputOptional, {}}
-                                  });
+  const auto current = BuildProto(
+      {{"x", ge::kIrInputOptional, {}}, {"xo2", ge::kIrInputOptional, {}}, {"xo3", ge::kIrInputOptional, {}}});
   const auto plan = planner_.Plan(current, BuildHistory({v1, v2}));
 
   ASSERT_EQ(plan.signatures.size(), 5U);
@@ -544,12 +526,8 @@ TEST_F(OverloadPlannerUT, PlanIgnoresDuplicateLatestProtoInHistoryChain) {
   const IrAttr a = {"a", "Int", false, "0"};
   const IrAttr b = {"b", "Int", false, "0"};
   const auto v1 = BuildProto({{"x", ge::kIrInputRequired, {}}, {"xo1", ge::kIrInputRequired, {}}}, {a});
-  const auto current = BuildProto({
-                                    {"x", ge::kIrInputRequired, {}},
-                                    {"xo1", ge::kIrInputRequired, {}},
-                                    {"xo2", ge::kIrInputOptional, {}}
-                                  },
-                                  {a, b});
+  const auto current = BuildProto(
+      {{"x", ge::kIrInputRequired, {}}, {"xo1", ge::kIrInputRequired, {}}, {"xo2", ge::kIrInputOptional, {}}}, {a, b});
   const auto plan = planner_.Plan(current, BuildHistory({v1, current}));
 
   ASSERT_EQ(plan.signatures.size(), 3U);
@@ -565,11 +543,8 @@ TEST_F(OverloadPlannerUT, PlanIgnoresDuplicateMiddleProtoInHistoryChain) {
   // 期望：重复节点被折叠，不应扩大 baseline 集合，也不应影响 A1 结果。
   const auto v1 = BuildProto({{"x", ge::kIrInputOptional, {}}});
   const auto v2 = BuildProto({{"x", ge::kIrInputOptional, {}}, {"xo2", ge::kIrInputOptional, {}}});
-  const auto current = BuildProto({
-                                    {"x", ge::kIrInputOptional, {}},
-                                    {"xo2", ge::kIrInputOptional, {}},
-                                    {"xo3", ge::kIrInputOptional, {}}
-                                  });
+  const auto current = BuildProto(
+      {{"x", ge::kIrInputOptional, {}}, {"xo2", ge::kIrInputOptional, {}}, {"xo3", ge::kIrInputOptional, {}}});
   const auto plan = planner_.Plan(current, BuildHistory({v1, v2, v2}));
 
   ASSERT_EQ(plan.signatures.size(), 5U);
@@ -598,11 +573,8 @@ TEST_F(OverloadPlannerUT, PlanA0AcrossMultiVersionTailOptionalInputsWhenNoAttrRi
   // 期望：所有版本可安全 merge，最终仅生成单个 A0 签名。
   const auto v1 = BuildProto({{"x", ge::kIrInputRequired, {}}});
   const auto v2 = BuildProto({{"x", ge::kIrInputRequired, {}}, {"xo2", ge::kIrInputOptional, {}}});
-  const auto current = BuildProto({
-                                    {"x", ge::kIrInputRequired, {}},
-                                    {"xo2", ge::kIrInputOptional, {}},
-                                    {"xo3", ge::kIrInputOptional, {}}
-                                  });
+  const auto current = BuildProto(
+      {{"x", ge::kIrInputRequired, {}}, {"xo2", ge::kIrInputOptional, {}}, {"xo3", ge::kIrInputOptional, {}}});
   const auto plan = planner_.Plan(current, BuildHistory({v1, v2}));
 
   ASSERT_EQ(plan.signatures.size(), 1U);
@@ -620,18 +592,12 @@ TEST_F(OverloadPlannerUT, PlanUpgradeToA2AcrossMultiVersionBoundaries) {
   // 期望：Try0/A1 失败后升级到 A2，新增输入在可见签名中应切到 TensorHolder，并生成对应 guard。
   const IrAttr a = {"a", "Int", false, "0"};
   const auto v1 = BuildProto({{"x", ge::kIrInputRequired, {}}, {"xo1", ge::kIrInputRequired, {}}}, {a});
-  const auto v2 = BuildProto({
-                               {"x", ge::kIrInputRequired, {}},
-                               {"xo1", ge::kIrInputRequired, {}},
-                               {"xo2", ge::kIrInputOptional, {}}
-                             },
-                             {a});
-  const auto current = BuildProto({
-                                    {"x", ge::kIrInputRequired, {}},
-                                    {"xo1", ge::kIrInputRequired, {}},
-                                    {"xo2", ge::kIrInputOptional, {}},
-                                    {"xo3", ge::kIrInputOptional, {}}
-                                  },
+  const auto v2 = BuildProto(
+      {{"x", ge::kIrInputRequired, {}}, {"xo1", ge::kIrInputRequired, {}}, {"xo2", ge::kIrInputOptional, {}}}, {a});
+  const auto current = BuildProto({{"x", ge::kIrInputRequired, {}},
+                                   {"xo1", ge::kIrInputRequired, {}},
+                                   {"xo2", ge::kIrInputOptional, {}},
+                                   {"xo3", ge::kIrInputOptional, {}}},
                                   {a});
   const auto plan = planner_.Plan(current, BuildHistory({v1, v2}));
 
@@ -665,9 +631,7 @@ TEST_F(OverloadPlannerUT, PlanFallbackToA0WhenHistoryChainHasIncompatibleMiddleV
 }
 
 TEST_F(OverloadPlannerUT, PlanA0ContainsDynamicOutputAndSubgraphParamsInOrder) {
-  const auto current = BuildProto({{"x", ge::kIrInputRequired, {}}},
-                                  {},
-                                  {{"dy", ge::kIrOutputDynamic, {}}},
+  const auto current = BuildProto({{"x", ge::kIrInputRequired, {}}}, {}, {{"dy", ge::kIrOutputDynamic, {}}},
                                   {{"then_branch", ge::kStatic}, {"branches", ge::kDynamic}});
   const auto plan = planner_.Plan(current, HistoryContext{});
   ASSERT_EQ(plan.signatures.size(), 1U);
@@ -683,9 +647,7 @@ TEST_F(OverloadPlannerUT, PlanA0ContainsDynamicOutputAndSubgraphParamsInOrder) {
 }
 
 TEST_F(OverloadPlannerUT, PlanA0AllOptionalPlacesOwnerBuilderBeforeDynamicOutputAndSubgraph) {
-  const auto current = BuildProto({{"x", ge::kIrInputOptional, {}}},
-                                  {},
-                                  {{"dy", ge::kIrOutputDynamic, {}}},
+  const auto current = BuildProto({{"x", ge::kIrInputOptional, {}}}, {}, {{"dy", ge::kIrOutputDynamic, {}}},
                                   {{"then_branch", ge::kStatic}, {"branches", ge::kDynamic}});
   const auto plan = planner_.Plan(current, HistoryContext{});
   ASSERT_EQ(plan.signatures.size(), 1U);
@@ -722,21 +684,13 @@ TEST_F(OverloadPlannerUT, PlanHistoryIncompatibleWithoutNewInputsFallsBackToA0) 
 
 TEST_F(OverloadPlannerUT, ValidationShouldRejectDefaultBeforeRequiredOrder) {
   const IrAttr keep = {"keep", "Int", true, ""};
-  const auto current = BuildProto({
-                                    {"x", ge::kIrInputRequired, {}},
-                                    {"y", ge::kIrInputOptional, {}},
-                                    {"z", ge::kIrInputOptional, {}}
-                                  },
-                                  {keep});
-  const auto v1 = BuildProto({
-                               {"x", ge::kIrInputRequired, {}},
-                               {"y", ge::kIrInputOptional, {}}
-                             },
-                             {keep});
+  const auto current = BuildProto(
+      {{"x", ge::kIrInputRequired, {}}, {"y", ge::kIrInputOptional, {}}, {"z", ge::kIrInputOptional, {}}}, {keep});
+  const auto v1 = BuildProto({{"x", ge::kIrInputRequired, {}}, {"y", ge::kIrInputOptional, {}}}, {keep});
   const auto plan = planner_.Plan(current, BuildHistory({v1}));
 
   bool has_invalid_signature = false;
-  for (const auto &sig: plan.signatures) {
+  for (const auto &sig : plan.signatures) {
     if (sig.is_deleted) {
       continue;
     }
@@ -750,29 +704,19 @@ TEST_F(OverloadPlannerUT, ValidationShouldRejectDefaultBeforeRequiredOrder) {
 
 TEST_F(OverloadPlannerUT, ValidationShouldRejectTensorLikeSignatureWithoutOwnerBuilderForAllOptionalInputs) {
   const IrAttr mode = {"mode", "String", false, "\"xx\""};
-  const auto current = BuildProto({
-                                    {"x", ge::kIrInputOptional, {}},
-                                    {"y", ge::kIrInputOptional, {}}
-                                  },
-                                  {mode},
-                                  {},
+  const auto current = BuildProto({{"x", ge::kIrInputOptional, {}}, {"y", ge::kIrInputOptional, {}}}, {mode}, {},
                                   {{"branches", ge::kDynamic}});
-  const auto v1 = BuildProto({{"x", ge::kIrInputOptional, {}}},
-                             {mode},
-                             {},
-                             {{"branches", ge::kDynamic}});
+  const auto v1 = BuildProto({{"x", ge::kIrInputOptional, {}}}, {mode}, {}, {{"branches", ge::kDynamic}});
   const auto plan = planner_.Plan(current, BuildHistory({v1}));
 
   bool has_invalid_signature = false;
-  for (const auto &sig: plan.signatures) {
+  for (const auto &sig : plan.signatures) {
     if (sig.is_deleted) {
       continue;
     }
     bool has_effective_optional_tensor_input = false;
     for (const auto &param : sig.params) {
-      if (param.role == ParamRole::kInput &&
-          param.kind == ParamCxxKind::kEsTensorLikeRef &&
-          param.has_default) {
+      if (param.role == ParamRole::kInput && param.kind == ParamCxxKind::kEsTensorLikeRef && param.has_default) {
         has_effective_optional_tensor_input = true;
         break;
       }
@@ -786,9 +730,7 @@ TEST_F(OverloadPlannerUT, ValidationShouldRejectTensorLikeSignatureWithoutOwnerB
 }
 
 TEST_F(OverloadPlannerUT, ValidationShouldNormalizeKeywordNamesForDynamicOutputAndSubgraph) {
-  const auto current = BuildProto({{"x", ge::kIrInputRequired, {}}},
-                                  {},
-                                  {{"class", ge::kIrOutputDynamic, {}}},
+  const auto current = BuildProto({{"x", ge::kIrInputRequired, {}}}, {}, {{"class", ge::kIrOutputDynamic, {}}},
                                   {{"class", ge::kStatic}});
   const auto plan = planner_.Plan(current, HistoryContext{});
   ASSERT_EQ(plan.signatures.size(), 1U);
@@ -796,7 +738,7 @@ TEST_F(OverloadPlannerUT, ValidationShouldNormalizeKeywordNamesForDynamicOutputA
 
   bool has_normalized_dynamic_output_name = false;
   bool has_normalized_subgraph_name = false;
-  for (const auto &param: signature.params) {
+  for (const auto &param : signature.params) {
     if (param.name == "out_class_num") {
       has_normalized_dynamic_output_name = true;
     }

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -53,9 +53,7 @@ std::vector<char> CreateStubBin() {
     std::cout << "file:" << op_bin_path << "does not exist or is unaccessible." << std::endl;
     return buf;
   }
-  GE_MAKE_GUARD(file_guard, [&file]() {
-    (void)file.close();
-  });
+  GE_MAKE_GUARD(file_guard, [&file]() { (void)file.close(); });
   const std::streampos begin = file.tellg();
   (void)file.seekg(0, std::ios::end);
   const std::streampos end = file.tellg();
@@ -109,7 +107,7 @@ static GeRootModelPtr GenGeRootModel() {
 
   std::shared_ptr<domi::ModelTaskDef> model_task = std::make_shared<domi::ModelTaskDef>();
   ge_model->SetModelTaskDef(model_task);
-  
+
   domi::TaskDef *task_def0 = model_task->add_task();
   task_def0->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_KERNEL));
   task_def0->set_stream_id(op_desc->GetStreamId());
@@ -133,7 +131,7 @@ static GeRootModelPtr GenGeRootModel() {
 
   return ge_root_model;
 }
-}
+}  // namespace
 
 class UtestNanoModelSaveHelper : public testing::Test {
  protected:
@@ -142,8 +140,7 @@ class UtestNanoModelSaveHelper : public testing::Test {
   void TearDown() override {}
 };
 
-TEST_F(UtestNanoModelSaveHelper, ModelToOm)
-{
+TEST_F(UtestNanoModelSaveHelper, ModelToOm) {
   std::string output_file = "outputfile.om";
   ModelBufferData model;
   NanoModelSaveHelper model_save_helper;
@@ -159,12 +156,11 @@ TEST_F(UtestNanoModelSaveHelper, ModelToOm)
   system("rm -rf outputfile.dbg");
 }
 
-TEST_F(UtestNanoModelSaveHelper, RepackSoToOm)
-{
+TEST_F(UtestNanoModelSaveHelper, RepackSoToOm) {
   uint32_t mem_offset = 0U;
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   DEF_GRAPH(g1) {
-    CHAIN(NODE("_arg_0", DATA)->EDGE(0, 0)->NODE("add_n", ADDN));   // ccKernelType::TE
+    CHAIN(NODE("_arg_0", DATA)->EDGE(0, 0)->NODE("add_n", ADDN));  // ccKernelType::TE
   };
   ComputeGraphPtr graph = ToComputeGraph(g1);
   AttrUtils::SetInt(graph, "globalworkspace_type", 1);
@@ -249,13 +245,12 @@ TEST_F(UtestNanoModelSaveHelper, RepackSoToOm)
   }
 }
 
-TEST_F(UtestNanoModelSaveHelper, GenHostFuncExeom)
-{
+TEST_F(UtestNanoModelSaveHelper, GenHostFuncExeom) {
   dlog_setlevel(GE_MODULE_NAME, DLOG_DEBUG, 0);
   uint32_t mem_offset = 0U;
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   DEF_GRAPH(g1) {
-    CHAIN(NODE("_arg_0", DATA)->EDGE(0, 0)->NODE("add_n", ADDN));   // ccKernelType::TE
+    CHAIN(NODE("_arg_0", DATA)->EDGE(0, 0)->NODE("add_n", ADDN));  // ccKernelType::TE
   };
   ComputeGraphPtr graph = ToComputeGraph(g1);
   AttrUtils::SetInt(graph, "globalworkspace_type", 1);
@@ -310,7 +305,8 @@ TEST_F(UtestNanoModelSaveHelper, GenHostFuncExeom)
     vec2.push_back(3);
     vec2.push_back(4);
     test_listlist_int.push_back(vec2);
-    op_desc->SetAttr("list_list_int_test", GeAttrValue::CreateFrom<std::vector<std::vector<int64_t>>>(test_listlist_int));
+    op_desc->SetAttr("list_list_int_test",
+                     GeAttrValue::CreateFrom<std::vector<std::vector<int64_t>>>(test_listlist_int));
     std::vector<std::vector<float>> test_listlist_float;
     std::vector<float> vec3;
     vec3.push_back(1.2);
@@ -320,8 +316,8 @@ TEST_F(UtestNanoModelSaveHelper, GenHostFuncExeom)
     vec4.push_back(5.6);
     vec4.push_back(7.8);
     test_listlist_float.push_back(vec4);
-    op_desc->SetAttr("list_list_float_test", GeAttrValue::CreateFrom<std::vector<std::vector<float>>>(test_listlist_float));
-
+    op_desc->SetAttr("list_list_float_test",
+                     GeAttrValue::CreateFrom<std::vector<std::vector<float>>>(test_listlist_float));
 
     TBEKernelStore tbe_kernel_store;
     const auto kernel = MakeShared<OpKernelBin>("test", CreateStubBin());
@@ -356,15 +352,14 @@ TEST_F(UtestNanoModelSaveHelper, GenHostFuncExeom)
   dlog_setlevel(GE_MODULE_NAME, DLOG_ERROR, 0);
 }
 
-TEST_F(UtestNanoModelSaveHelper, GenSwitchByIndexExeom)
-{
+TEST_F(UtestNanoModelSaveHelper, GenSwitchByIndexExeom) {
   /**
    *       Data    Data
    *         \      /
    *          SwitchByIndex
-   *           |       \ 
+   *           |       \
    *        LabelSet   LabelSet
-   *           |         \ 
+   *           |         \
    *      StreamActive   AddN
    *           |
    *          Add
@@ -377,8 +372,19 @@ TEST_F(UtestNanoModelSaveHelper, GenSwitchByIndexExeom)
   auto label_set_l1 = OP_CFG(LABELSET).Attr(ATTR_NAME_LABEL_SWITCH_INDEX, 1);
   auto data_0 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);
   DEF_GRAPH(g1) {
-    CHAIN(NODE("index_0", data_0)->EDGE(0, 0)->NODE("switch", label_switch)->EDGE(0, 0)->NODE("label_set_l0", label_set_l0)->NODE("stream", STREAMACTIVE)->NODE("add", ADD));
-    CHAIN(NODE("_arg_0", DATA)->EDGE(0, 1)->NODE("switch")->EDGE(1, 0)->NODE("label_set_l1", label_set_l1)->NODE("add_n", ADDN));
+    CHAIN(NODE("index_0", data_0)
+              ->EDGE(0, 0)
+              ->NODE("switch", label_switch)
+              ->EDGE(0, 0)
+              ->NODE("label_set_l0", label_set_l0)
+              ->NODE("stream", STREAMACTIVE)
+              ->NODE("add", ADD));
+    CHAIN(NODE("_arg_0", DATA)
+              ->EDGE(0, 1)
+              ->NODE("switch")
+              ->EDGE(1, 0)
+              ->NODE("label_set_l1", label_set_l1)
+              ->NODE("add_n", ADDN));
   };
   ComputeGraphPtr graph = ToComputeGraph(g1);
   AttrUtils::SetInt(graph, "globalworkspace_type", 1);
@@ -534,16 +540,15 @@ TEST_F(UtestNanoModelSaveHelper, GenSwitchByIndexExeom)
   unsetenv("LD_LIBRARY_PATH");
 }
 
-TEST_F(UtestNanoModelSaveHelper, GenLabelGotoExExeom)
-{
+TEST_F(UtestNanoModelSaveHelper, GenLabelGotoExExeom) {
   /**
    *       Data
-   *         \ 
+   *         \
    *          LabelGotoEx
-   *           | 
-   *        LabelSet 
-   *           | 
-   *      StreamActive 
+   *           |
+   *        LabelSet
+   *           |
+   *      StreamActive
    *           |
    *          AddN
    */
@@ -553,7 +558,11 @@ TEST_F(UtestNanoModelSaveHelper, GenLabelGotoExExeom)
   auto label_gotoex = OP_CFG(LABELGOTOEX).Attr(ATTR_NAME_LABEL_SWITCH_INDEX, 2);
   auto data_0 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);
   DEF_GRAPH(g1) {
-    CHAIN(NODE("_arg_0", DATA)->NODE("label_gotoex", label_gotoex)->NODE("label_set_l2", label_set_l2)->NODE("stream", STREAMACTIVE)->NODE("add_n", ADDN));
+    CHAIN(NODE("_arg_0", DATA)
+              ->NODE("label_gotoex", label_gotoex)
+              ->NODE("label_set_l2", label_set_l2)
+              ->NODE("stream", STREAMACTIVE)
+              ->NODE("add_n", ADDN));
   };
   ComputeGraphPtr graph = ToComputeGraph(g1);
 
@@ -681,8 +690,7 @@ TEST_F(UtestNanoModelSaveHelper, GenLabelGotoExExeom)
   unsetenv("LD_LIBRARY_PATH");
 }
 
-TEST_F(UtestNanoModelSaveHelper, GenExeomSubGraph)
-{
+TEST_F(UtestNanoModelSaveHelper, GenExeomSubGraph) {
   DEF_GRAPH(g_main) {
     CHAIN(NODE("input", "Data")->NODE("while", "While")->NODE("NetOutput", "NetOutput"));
   };
@@ -724,7 +732,7 @@ TEST_F(UtestNanoModelSaveHelper, GenExeomSubGraph)
 
   while_node->GetOpDesc()->AddSubgraphName("cond");
   while_node->GetOpDesc()->AddSubgraphName("body");
-  
+
   while_node->GetOpDesc()->SetSubgraphInstanceName(0, cond_graph->GetName());
   while_node->GetOpDesc()->SetSubgraphInstanceName(1, body_graph->GetName());
 
@@ -759,7 +767,7 @@ TEST_F(UtestNanoModelSaveHelper, GenExeomSubGraph)
     uint16_t args_offset[9] = {0};
     context->set_args_offset(args_offset, 9 * sizeof(uint16_t));
   }
-  
+
   std::string output_file = "outputfile.exeom";
   {
     ModelBufferData model;
@@ -770,52 +778,39 @@ TEST_F(UtestNanoModelSaveHelper, GenExeomSubGraph)
   system("rm -rf outputfile.dbg");
 }
 
-TEST_F(UtestNanoModelSaveHelper, GenWindowCacheExeom)
-{
+TEST_F(UtestNanoModelSaveHelper, GenWindowCacheExeom) {
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   ///      Data    Const    Data
   ///        \      |       /
   ///         FillWindowCache
-  ///              | 
-  ///             Add 
+  ///              |
+  ///             Add
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  std::vector<int64_t> shape = {2, 2};           // NCHW
-  auto data_0 = OP_CFG(DATA)
-                    .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-                    .InCnt(1)
-                    .OutCnt(1)
-                    .Build("data_0");
+  std::vector<int64_t> shape = {2, 2};  // NCHW
+  auto data_0 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_FLOAT, shape).InCnt(1).OutCnt(1).Build("data_0");
   data_0->SetOutputOffset({0});
   PreModelPartitionUtils::GetInstance().SetZeroCopyTable(128, 0);
   TensorUtils::SetSize(*data_0->MutableOutputDesc(0), 8);
 
-  auto data_1 = OP_CFG(CONSTANT)
-                    .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-                    .InCnt(1)
-                    .OutCnt(1)
-                    .Build("data_1");
+  auto data_1 = OP_CFG(CONSTANT).TensorDesc(FORMAT_NCHW, DT_FLOAT, shape).InCnt(1).OutCnt(1).Build("data_1");
   data_1->SetOutputOffset({0});
   ge::AttrUtils::SetInt(*data_1->MutableOutputDesc(0), ATTR_NAME_TENSOR_MEMORY_SCOPE, 2);
   TensorUtils::SetSize(*data_1->MutableOutputDesc(0), 8);
 
-  auto data_2 = OP_CFG(DATA)
-                    .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-                    .InCnt(1)
-                    .OutCnt(1)
-                    .Build("data_2");
+  auto data_2 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_FLOAT, shape).InCnt(1).OutCnt(1).Build("data_2");
   data_2->SetOutputOffset({8});
   PreModelPartitionUtils::GetInstance().SetZeroCopyTable(136, 8);
   TensorUtils::SetSize(*data_2->MutableOutputDesc(0), 8);
 
   auto fifo = OP_CFG("FillWindowCache")
-                    .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-                    .InCnt(3)
-                    .OutCnt(1)
-                    .Attr(ATTR_NAME_REFERENCE, true)
-                    .Build("fillwindowcache");
+                  .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                  .InCnt(3)
+                  .OutCnt(1)
+                  .Attr(ATTR_NAME_REFERENCE, true)
+                  .Build("fillwindowcache");
   vector<bool> is_input_const_vec = {false, true, false};
   fifo->SetIsInputConst(is_input_const_vec);
-  fifo->SetInputOffset({0,1024,8});
+  fifo->SetInputOffset({0, 1024, 8});
   fifo->SetOutputOffset({1024});
   ge::AttrUtils::SetInt(*fifo->MutableOutputDesc(0), ATTR_NAME_TENSOR_MEMORY_SCOPE, 2);
   ge::AttrUtils::SetInt(*fifo->MutableInputDesc(1), ATTR_NAME_TENSOR_MEMORY_SCOPE, 2);
@@ -823,8 +818,7 @@ TEST_F(UtestNanoModelSaveHelper, GenWindowCacheExeom)
   ge::TensorUtils::SetReuseInput(*output_tensordesc, true);
   ge::TensorUtils::SetReuseInputIndex(*output_tensordesc, 1);
   DEF_GRAPH(g1) {
-    CHAIN(NODE(data_0)->EDGE(0, 0)->NODE(fifo)->EDGE(0, 0)->
-    NODE("add", ADD));
+    CHAIN(NODE(data_0)->EDGE(0, 0)->NODE(fifo)->EDGE(0, 0)->NODE("add", ADD));
     CHAIN(NODE(data_1)->EDGE(0, 1)->NODE("fillwindowcache"));
     CHAIN(NODE(data_2)->EDGE(0, 2)->NODE("fillwindowcache"));
   };
@@ -918,18 +912,17 @@ TEST_F(UtestNanoModelSaveHelper, GenWindowCacheExeom)
   system("rm -rf outputfile.dbg");
 }
 
-TEST_F(UtestNanoModelSaveHelper, NanoEnablePrefetchTest)
-{
+TEST_F(UtestNanoModelSaveHelper, NanoEnablePrefetchTest) {
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   ///      Data  Const
   ///         \   |
   ///          Add
-  ///           | 
+  ///           |
   ///          Relu
-  ///           | 
-  ///       NetOutput 
+  ///           |
+  ///       NetOutput
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  std::vector<int64_t> shape = {2};           // NCHW
+  std::vector<int64_t> shape = {2};  // NCHW
   auto data_0 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_FLOAT, shape).InCnt(1).OutCnt(1).Build("data_0");
   data_0->SetOutputOffset({0});
   PreModelPartitionUtils::GetInstance().SetZeroCopyTable(128, 0);
@@ -940,28 +933,29 @@ TEST_F(UtestNanoModelSaveHelper, NanoEnablePrefetchTest)
   TensorUtils::SetWeightSize(data_tensor_desc, 16);
   TensorUtils::SetSize(data_tensor_desc, 16);
   GeTensorPtr data_tensor = make_shared<GeTensor>(data_tensor_desc, (uint8_t *)data_value_vec, 2 * sizeof(int32_t));
-  auto const_0 = OP_CFG(CONSTANT).Weight(data_tensor).InCnt(1).OutCnt(1).Build("const_0");;
+  auto const_0 = OP_CFG(CONSTANT).Weight(data_tensor).InCnt(1).OutCnt(1).Build("const_0");
+  ;
 
   auto add = OP_CFG(ADD)
-                    .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-                    .InCnt(2)
-                    .OutCnt(1)
-                    .Attr("_weight_prefetch_type", std::vector<std::string>{"1", "1"})
-                    .Attr("_weight_prefetch_src_offset", std::vector<int64_t>{1024,2048})
-                    .Attr("_weight_prefetch_dst_offset", std::vector<int64_t>{64, 128})
-                    .Attr("_weight_prefetch_data_size", std::vector<int64_t>{16, 16})
-                    .Build("add");
-  add->SetInputOffset({0,64});
+                 .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                 .InCnt(2)
+                 .OutCnt(1)
+                 .Attr("_weight_prefetch_type", std::vector<std::string>{"1", "1"})
+                 .Attr("_weight_prefetch_src_offset", std::vector<int64_t>{1024, 2048})
+                 .Attr("_weight_prefetch_dst_offset", std::vector<int64_t>{64, 128})
+                 .Attr("_weight_prefetch_data_size", std::vector<int64_t>{16, 16})
+                 .Build("add");
+  add->SetInputOffset({0, 64});
   add->SetOutputOffset({16});
   auto relu = OP_CFG(RELU)
-                    .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-                    .InCnt(1)
-                    .InCnt(1)
-                    .Attr("_weight_prefetch_type", std::vector<std::string>{"1"})
-                    .Attr("_weight_prefetch_src_offset", std::vector<int64_t>{1024,2048})
-                    .Attr("_weight_prefetch_dst_offset", std::vector<int64_t>{64, 128})
-                    .Attr("_weight_prefetch_data_size", std::vector<int64_t>{16, 16})
-                    .Build("relu");
+                  .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                  .InCnt(1)
+                  .InCnt(1)
+                  .Attr("_weight_prefetch_type", std::vector<std::string>{"1"})
+                  .Attr("_weight_prefetch_src_offset", std::vector<int64_t>{1024, 2048})
+                  .Attr("_weight_prefetch_dst_offset", std::vector<int64_t>{64, 128})
+                  .Attr("_weight_prefetch_data_size", std::vector<int64_t>{16, 16})
+                  .Build("relu");
   relu->SetInputOffset({16});
   relu->SetOutputOffset({32});
 

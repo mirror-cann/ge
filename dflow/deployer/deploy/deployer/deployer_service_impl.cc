@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,16 +32,12 @@ class ServiceRegister {
   ~ServiceRegister() = default;
 };
 
-#define REGISTER_REQUEST_PROCESSOR(type, fn) \
-REGISTER_REQUEST_PROCESSOR_UNIQ_DEPLOYER(__COUNTER__, type, fn)
+#define REGISTER_REQUEST_PROCESSOR(type, fn) REGISTER_REQUEST_PROCESSOR_UNIQ_DEPLOYER(__COUNTER__, type, fn)
 
-#define REGISTER_REQUEST_PROCESSOR_UNIQ_DEPLOYER(ctr, type, fn) \
-REGISTER_REQUEST_PROCESSOR_UNIQ(ctr, type, fn)
+#define REGISTER_REQUEST_PROCESSOR_UNIQ_DEPLOYER(ctr, type, fn) REGISTER_REQUEST_PROCESSOR_UNIQ(ctr, type, fn)
 
 #define REGISTER_REQUEST_PROCESSOR_UNIQ(ctr, type, fn) \
-static ::ge::ServiceRegister register_request_processor##ctr \
-__attribute__((unused)) = \
-::ge::ServiceRegister(type, fn)
+  static ::ge::ServiceRegister register_request_processor##ctr __attribute__((unused)) = ::ge::ServiceRegister(type, fn)
 
 REGISTER_REQUEST_PROCESSOR(deployer::kUpdateDeployPlan, DeployerServiceImpl::UpdateDeployPlanProcess);
 REGISTER_REQUEST_PROCESSOR(deployer::kAddFlowRoutePlan, DeployerServiceImpl::FlowRoutePlanProcess);
@@ -74,8 +70,7 @@ void DeployerServiceImpl::DownloadDevMaintenanceCfgProcess(DeployContext &contex
   context.DownloadDevMaintenanceCfg(request, response);
 }
 
-void DeployerServiceImpl::LoadModelProcess(DeployContext &context,
-                                           const deployer::DeployerRequest &request,
+void DeployerServiceImpl::LoadModelProcess(DeployContext &context, const deployer::DeployerRequest &request,
                                            deployer::DeployerResponse &response) {
   const auto &req_body = request.load_model_request();
   uint32_t root_model_id = req_body.root_model_id();
@@ -98,8 +93,7 @@ void DeployerServiceImpl::LoadModelProcess(DeployContext &context,
   context.flow_model_receiver_.DestroyDeployState(root_model_id);
 }
 
-void DeployerServiceImpl::UnloadModelProcess(DeployContext &context,
-                                             const deployer::DeployerRequest &request,
+void DeployerServiceImpl::UnloadModelProcess(DeployContext &context, const deployer::DeployerRequest &request,
                                              deployer::DeployerResponse &response) {
   const auto &req_body = request.unload_model_request();
   auto ret = context.UnloadSubmodels(req_body.model_id());
@@ -109,8 +103,7 @@ void DeployerServiceImpl::UnloadModelProcess(DeployContext &context,
   }
 }
 
-void DeployerServiceImpl::MultiVarManagerInfoProcess(DeployContext &context,
-                                                     const deployer::DeployerRequest &request,
+void DeployerServiceImpl::MultiVarManagerInfoProcess(DeployContext &context, const deployer::DeployerRequest &request,
                                                      deployer::DeployerResponse &response) {
   auto ret = context.ProcessMultiVarManager(request.multi_var_manager_request());
   if (ret != SUCCESS) {
@@ -119,8 +112,7 @@ void DeployerServiceImpl::MultiVarManagerInfoProcess(DeployContext &context,
   }
 }
 
-void DeployerServiceImpl::SharedContentProcess(DeployContext &context,
-                                               const deployer::DeployerRequest &request,
+void DeployerServiceImpl::SharedContentProcess(DeployContext &context, const deployer::DeployerRequest &request,
                                                deployer::DeployerResponse &response) {
   auto ret = context.ProcessSharedContent(request.shared_content_desc_request(), response);
   if (ret != SUCCESS) {
@@ -135,18 +127,16 @@ void DeployerServiceImpl::InitProcessResourceProcess(DeployContext &context, con
   context.InitProcessResource(request.init_process_resource_request(), response);
 }
 
-void DeployerServiceImpl::HeartbeatProcess(DeployContext &context,
-                                           const deployer::DeployerRequest &request,
+void DeployerServiceImpl::HeartbeatProcess(DeployContext &context, const deployer::DeployerRequest &request,
                                            deployer::DeployerResponse &response) {
   context.ProcessHeartbeat(request, response);
 }
 
-Status DeployerServiceImpl::Process(DeployContext &context,
-                                    const deployer::DeployerRequest &request,
+Status DeployerServiceImpl::Process(DeployContext &context, const deployer::DeployerRequest &request,
                                     deployer::DeployerResponse &response) {
   auto type = request.type();
-  GELOGI("[Process][Request] start, client = %s, type = %s",
-         context.GetName().c_str(), deployer::DeployerRequestType_Name(type).c_str());
+  GELOGI("[Process][Request] start, client = %s, type = %s", context.GetName().c_str(),
+         deployer::DeployerRequestType_Name(type).c_str());
   auto it = process_fns_.find(type);
   if (it == process_fns_.end()) {
     REPORT_INNER_ERR_MSG("E19999", "Find api type[%d] failed.", type);
@@ -168,13 +158,12 @@ Status DeployerServiceImpl::Process(DeployContext &context,
   process_fn(context, request, response);
   GE_CHK_STATUS(response.error_code(), "[Process][Request] failed, client = %s, type = %s, ret = %u",
                 context.GetName().c_str(), deployer::DeployerRequestType_Name(type).c_str(), response.error_code());
-  GELOGI("[Process][Request] end, client = %s, type = %s, ret = %u",
-         context.GetName().c_str(), deployer::DeployerRequestType_Name(type).c_str(), response.error_code());
+  GELOGI("[Process][Request] end, client = %s, type = %s, ret = %u", context.GetName().c_str(),
+         deployer::DeployerRequestType_Name(type).c_str(), response.error_code());
   return SUCCESS;
 }
 
-void DeployerServiceImpl::FlowRoutePlanProcess(DeployContext &context,
-                                               const deployer::DeployerRequest &request,
+void DeployerServiceImpl::FlowRoutePlanProcess(DeployContext &context, const deployer::DeployerRequest &request,
                                                deployer::DeployerResponse &response) {
   if (!request.has_add_flow_route_plan_request()) {
     GELOGE(PARAM_INVALID, "request body is null");
@@ -195,8 +184,7 @@ void DeployerServiceImpl::FlowRoutePlanProcess(DeployContext &context,
           request_body.root_model_id());
 }
 
-void DeployerServiceImpl::UpdateDeployPlanProcess(DeployContext &context,
-                                                  const deployer::DeployerRequest &request,
+void DeployerServiceImpl::UpdateDeployPlanProcess(DeployContext &context, const deployer::DeployerRequest &request,
                                                   deployer::DeployerResponse &response) {
   if (!request.has_update_deploy_plan_request()) {
     GELOGE(PARAM_INVALID, "request body is null");
@@ -217,8 +205,7 @@ void DeployerServiceImpl::UpdateDeployPlanProcess(DeployContext &context,
           request_body.root_model_id());
 }
 
-void DeployerServiceImpl::TransferFileProcess(DeployContext &context,
-                                              const deployer::DeployerRequest &request,
+void DeployerServiceImpl::TransferFileProcess(DeployContext &context, const deployer::DeployerRequest &request,
                                               deployer::DeployerResponse &response) {
   if (!request.has_transfer_file_request()) {
     GELOGE(PARAM_INVALID, "request body is null");
@@ -228,10 +215,8 @@ void DeployerServiceImpl::TransferFileProcess(DeployContext &context,
   }
 
   const auto &req_body = request.transfer_file_request();
-  auto ret = context.flow_model_receiver_.AppendToFile(context.GetBaseDir() + req_body.path(),
-                                                       req_body.content().data(),
-                                                       req_body.content().size(),
-                                                       req_body.eof());
+  auto ret = context.flow_model_receiver_.AppendToFile(
+      context.GetBaseDir() + req_body.path(), req_body.content().data(), req_body.content().size(), req_body.eof());
   if (ret != SUCCESS) {
     const std::string err = strerror(errno);
     std::string err_msg = "Failed to write to file[" + context.GetBaseDir() + req_body.path() + "]" +
@@ -241,8 +226,7 @@ void DeployerServiceImpl::TransferFileProcess(DeployContext &context,
   }
 }
 
-void DeployerServiceImpl::DataGwSchedInfo(DeployContext &context,
-                                          const deployer::DeployerRequest &request,
+void DeployerServiceImpl::DataGwSchedInfo(DeployContext &context, const deployer::DeployerRequest &request,
                                           deployer::DeployerResponse &response) {
   if (!request.has_datagw_sched_info()) {
     GELOGE(PARAM_INVALID, "DynamicSched request body is null");
@@ -262,8 +246,7 @@ void DeployerServiceImpl::DataGwSchedInfo(DeployContext &context,
   GEEVENT("DynamicSched DataGwSchedInfo success, model_id = %u", request_body.root_model_id());
 }
 
-void DeployerServiceImpl::ClearModelRunningData(DeployContext &context,
-                                                const deployer::DeployerRequest &request,
+void DeployerServiceImpl::ClearModelRunningData(DeployContext &context, const deployer::DeployerRequest &request,
                                                 deployer::DeployerResponse &response) {
   const auto &req_body = request.model_data_clear();
   auto ret = context.ClearModelRunningData(req_body);
@@ -285,8 +268,7 @@ void DeployerServiceImpl::DataFlowExceptionNotifyProcess(DeployContext &context,
   }
 }
 
-void DeployerServiceImpl::UpdateProfilingInfoProcess(DeployContext &context,
-                                                     const deployer::DeployerRequest &request,
+void DeployerServiceImpl::UpdateProfilingInfoProcess(DeployContext &context, const deployer::DeployerRequest &request,
                                                      deployer::DeployerResponse &response) {
   const auto &req_body = request.prof_info();
   auto ret = context.UpdateProfilingInfoProcess(req_body);

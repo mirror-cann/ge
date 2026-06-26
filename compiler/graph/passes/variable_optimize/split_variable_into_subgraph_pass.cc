@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -44,8 +44,7 @@ void CollectVarsInGraph(const NodePtr &var, const ComputeGraphPtr &subgraph,
   var_names_2_nodes[var->GetName()] = node;
 }
 
-NodePtr CreateVariableFrom(const NodePtr &var, const ComputeGraphPtr &subgraph,
-                           const NodePtr &inner_data,
+NodePtr CreateVariableFrom(const NodePtr &var, const ComputeGraphPtr &subgraph, const NodePtr &inner_data,
                            std::unordered_map<std::string, NodePtr> &var_names_2_nodes) {
   if (var_names_2_nodes[var->GetName()] != nullptr) {
     GELOGD("Found Var %s exists in graph %s", var->GetNamePtr(), subgraph->GetName().c_str());
@@ -139,15 +138,13 @@ Status SplitVariableIntoSubgraphPass::RefreshMultiDataRefDataNodeShape(const Nod
   GE_ASSERT_NOTNULL(data_op_desc);
   auto ref_data_op_desc = ref_data_node->GetOpDesc();
   GE_ASSERT_NOTNULL(ref_data_op_desc);
-  GE_ASSERT_TRUE(data_op_desc->GetAllOutputsDescSize() ==
-      ref_data_op_desc->GetAllOutputsDescSize());
+  GE_ASSERT_TRUE(data_op_desc->GetAllOutputsDescSize() == ref_data_op_desc->GetAllOutputsDescSize());
   GE_ASSERT_TRUE(data_op_desc->GetAllOutputsDescSize() > 0UL);
   auto ref_output_tensor = ref_data_op_desc->MutableOutputDesc(0U);
   GE_ASSERT_NOTNULL(ref_output_tensor);
   ref_output_tensor->SetShape(data_op_desc->GetOutputDesc(0U).GetShape());
   ref_output_tensor->SetOriginShape(data_op_desc->GetOutputDesc(0U).GetOriginShape());
-  GE_ASSERT_TRUE(data_op_desc->GetAllInputsSize() ==
-      ref_data_op_desc->GetAllInputsSize());
+  GE_ASSERT_TRUE(data_op_desc->GetAllInputsSize() == ref_data_op_desc->GetAllInputsSize());
   GE_ASSERT_TRUE(data_op_desc->GetAllInputsSize() > 0UL);
   auto ref_input_tensor = ref_data_op_desc->MutableInputDesc(0U);
   GE_ASSERT_NOTNULL(ref_input_tensor);

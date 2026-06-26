@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,11 +20,10 @@ using namespace std;
 using namespace fe;
 using namespace ge;
 
-class itfhandler_unittest : public testing::Test
-{
-protected:
+class itfhandler_unittest : public testing::Test {
+ protected:
   static void TearDownTestCase() {}
-// AUTO GEN PLEASE DO NOT MODIFY IT
+  // AUTO GEN PLEASE DO NOT MODIFY IT
 };
 
 TEST_F(itfhandler_unittest, initialize_and_finalize) {
@@ -33,7 +32,8 @@ TEST_F(itfhandler_unittest, initialize_and_finalize) {
   map<string, string> options;
   options.emplace("ge.socVersion", "Ascend910B1");
   Configuration::Instance(AI_CORE_NAME).is_init_ = false;
-  Configuration::Instance(AI_CORE_NAME).lib_path_ = GetCodeDir() + "/tests/engines/nn_engine/depends/CANN_910b_stub/cann/x86_64-linux/lib64/";
+  Configuration::Instance(AI_CORE_NAME).lib_path_ =
+      GetCodeDir() + "/tests/engines/nn_engine/depends/CANN_910b_stub/cann/x86_64-linux/lib64/";
   Configuration::Instance(AI_CORE_NAME).ascend_ops_path_ = GetCodeDir();
   ret = Initialize(options);
   EXPECT_NE(ret, fe::SUCCESS);
@@ -44,12 +44,14 @@ TEST_F(itfhandler_unittest, initialize_and_finalize) {
   EXPECT_EQ(fe::InitPlatformInfo("Ascend910B1", true), 0);
   options["ge.bufferOptimize"] = "lx_optimize";
   Configuration::Instance(AI_CORE_NAME).is_init_ = false;
-  Configuration::Instance(AI_CORE_NAME).lib_path_ = GetCodeDir() + "/tests/engines/nn_engine/depends/CANN_910b_stub/cann/x86_64-linux/lib64/";
+  Configuration::Instance(AI_CORE_NAME).lib_path_ =
+      GetCodeDir() + "/tests/engines/nn_engine/depends/CANN_910b_stub/cann/x86_64-linux/lib64/";
   Configuration::Instance(AI_CORE_NAME).ascend_ops_path_ = GetCodeDir();
   ret = Initialize(options);
   options["ge.bufferOptimize"] = "l2_optimize";
   Configuration::Instance(AI_CORE_NAME).is_init_ = false;
-  Configuration::Instance(AI_CORE_NAME).lib_path_ = GetCodeDir() + "/tests/engines/nn_engine/depends/CANN_910b_stub/cann/x86_64-linux/lib64/";
+  Configuration::Instance(AI_CORE_NAME).lib_path_ =
+      GetCodeDir() + "/tests/engines/nn_engine/depends/CANN_910b_stub/cann/x86_64-linux/lib64/";
   Configuration::Instance(AI_CORE_NAME).ascend_ops_path_ = GetCodeDir();
   ret = Initialize(options);
   cann_guard.Restore();
@@ -60,7 +62,8 @@ TEST_F(itfhandler_unittest, GetOpsKernelInfoStores_suc) {
   map<string, string> options;
   options.emplace("ge.socVersion", "Ascend910B1");
   Configuration::Instance(AI_CORE_NAME).is_init_ = false;
-  Configuration::Instance(AI_CORE_NAME).lib_path_ = GetCodeDir() + "/tests/engines/nn_engine/depends/CANN_910b_stub/cann/x86_64-linux/lib64/";
+  Configuration::Instance(AI_CORE_NAME).lib_path_ =
+      GetCodeDir() + "/tests/engines/nn_engine/depends/CANN_910b_stub/cann/x86_64-linux/lib64/";
   Configuration::Instance(AI_CORE_NAME).ascend_ops_path_ = GetCodeDir();
   Status ret = Initialize(options);
   map<string, OpsKernelInfoStorePtr> op_kern_infos;
@@ -68,12 +71,12 @@ TEST_F(itfhandler_unittest, GetOpsKernelInfoStores_suc) {
   EXPECT_EQ(op_kern_infos.size(), 2);
 }
 
-TEST_F(itfhandler_unittest, get_graph_optimizer_objs_success)
-{
+TEST_F(itfhandler_unittest, get_graph_optimizer_objs_success) {
   map<string, string> options;
   options.emplace("ge.socVersion", "Ascend910B1");
   Configuration::Instance(AI_CORE_NAME).is_init_ = false;
-  Configuration::Instance(AI_CORE_NAME).lib_path_ = GetCodeDir() + "/tests/engines/nn_engine/depends/CANN_910b_stub/cann/x86_64-linux/lib64/";
+  Configuration::Instance(AI_CORE_NAME).lib_path_ =
+      GetCodeDir() + "/tests/engines/nn_engine/depends/CANN_910b_stub/cann/x86_64-linux/lib64/";
   Configuration::Instance(AI_CORE_NAME).ascend_ops_path_ = GetCodeDir();
   Status ret = Initialize(options);
   map<string, GraphOptimizerPtr> graph_optimizers;

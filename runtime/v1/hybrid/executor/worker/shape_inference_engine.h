@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,15 +22,16 @@ class ShapeInferenceEngine {
   ~ShapeInferenceEngine() = default;
   void Config(SubgraphContext *const subgraph_context);
   Status InferShape(const NodeState &node_state) const;
-  Status InitInferShapes(const GraphItem *const graph_item,
-                         const std::vector<TensorValue> &inputs,
+  Status InitInferShapes(const GraphItem *const graph_item, const std::vector<TensorValue> &inputs,
                          const std::vector<ConstGeTensorDescPtr> &input_desc) const;
-  bool IsForceInferShape() const { return force_infer_shape_; }
+  bool IsForceInferShape() const {
+    return force_infer_shape_;
+  }
 
-private:
+ private:
   bool force_infer_shape_;
 
-private:
+ private:
   Status PropagateOutputs(const NodeItem *const node_item, const TensorValue *const tensor,
                           const GeTensorDesc *const tensor_desc) const;
   Status UpdateShapeAndValue(const NodeItem *const node_item, const TensorValue *const tensor,
@@ -46,4 +47,4 @@ private:
 };
 }  // namespace hybrid
 }  // namespace ge
-#endif // GE_HYBRID_EXECUTOR_INFERSHAPE_SHAPE_INFERENCE_ENGINE_H_
+#endif  // GE_HYBRID_EXECUTOR_INFERSHAPE_SHAPE_INFERENCE_ENGINE_H_

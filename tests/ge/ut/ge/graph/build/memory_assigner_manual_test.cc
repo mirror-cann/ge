@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -95,7 +95,7 @@ class UtestMemoryAssignerManualTest : public testing::Test {
       }
       GetSliceInfoFromJson(op_desc);
       // fake weights
-      if ((op_desc->GetType() == CONSTANT) || (op_desc->GetType() == CONSTANTOP)){
+      if ((op_desc->GetType() == CONSTANT) || (op_desc->GetType() == CONSTANTOP)) {
         int32_t value = 0;
         GeTensorDesc data_desc(GeShape(), FORMAT_NCHW, DT_INT32);
         GeTensorPtr const_value = MakeShared<GeTensor>(data_desc, reinterpret_cast<uint8_t *>(&value), sizeof(int32_t));
@@ -141,6 +141,7 @@ class UtestMemoryAssignerManualTest : public testing::Test {
     }
     return temp_time;
   }
+
  private:
   void InitGeLib() {
     class MockRuntime : public RuntimeStub {
@@ -295,7 +296,7 @@ TEST_F(UtestMemoryAssignerManualTest, memory_assign_with_report) {
     ge_id = set_ge_id;
   }
 
-  auto release_func = [&memorys, &total_time, this] (const int64_t begin) {
+  auto release_func = [&memorys, &total_time, this](const int64_t begin) {
     auto it = memorys.find(begin);
     if (it != memorys.end()) {
       for (auto p : it->second) {
@@ -316,13 +317,13 @@ TEST_F(UtestMemoryAssignerManualTest, memory_assign_with_report) {
   for (size_t step = 0U; step < set_step_count; ++step) {
     // system("callgrind_control -z");
     // system("callgrind_control -i=on");
-    std::cout<<"step:"<<step<<std::endl;
+    std::cout << "step:" << step << std::endl;
     FILE *fp = fopen(report_file_name.c_str(), "r");
     if (fp == NULL) {
       return;
     }
     bool release_before_alloc = false;
-    while(fgets(line, sizeof(line), fp) != NULL) {
+    while (fgets(line, sizeof(line), fp) != NULL) {
       std::string log_line = line;
       if (log_line.find("life time begin") == std::string::npos) {
         continue;
@@ -370,7 +371,7 @@ TEST_F(UtestMemoryAssignerManualTest, memory_assign_with_report) {
     for (auto &it : memorys) {
       for (auto p : it.second) {
         if (p == nullptr) {
-         continue;
+          continue;
         }
         p->Free();
       }
@@ -383,9 +384,9 @@ TEST_F(UtestMemoryAssignerManualTest, memory_assign_with_report) {
       }
     }
     if (total_count != 0U) {
-      std::cout<<"step:"<<step<<" total_time:"<<total_time<<"ns total_count:"<<total_count<<" average:"
-          <<total_time/total_count<<"ns "<<ex_info<<" page size:"
-          <<ge::ActiveMemoryUtil::SizeToString(kLargePageSize)<<std::endl;
+      std::cout << "step:" << step << " total_time:" << total_time << "ns total_count:" << total_count
+                << " average:" << total_time / total_count << "ns " << ex_info
+                << " page size:" << ge::ActiveMemoryUtil::SizeToString(kLargePageSize) << std::endl;
       total_count = 0U;
       total_time = 0U;
     }

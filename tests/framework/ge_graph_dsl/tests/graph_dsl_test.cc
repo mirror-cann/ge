@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,13 +33,17 @@ class GraphDslTest : public testing::Test {
   EG_NS::GraphEasyExecutor executor;
 
  protected:
-  void SetUp() { EG_NS::GraphLayout::GetInstance().Config(executor, nullptr); }
+  void SetUp() {
+    EG_NS::GraphLayout::GetInstance().Config(executor, nullptr);
+  }
 
   void TearDown() {}
 };
 
 TEST_F(GraphDslTest, test_build_graph_from_optype_with_name) {
-  DEF_GRAPH(g1) { CHAIN(NODE("data1", DATA)->NODE("add", ADD)); };
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("data1", DATA)->NODE("add", ADD));
+  };
 
   auto geGraph = ToGeGraph(g1);
   auto computeGraph = ToComputeGraph(g1);
@@ -49,7 +53,9 @@ TEST_F(GraphDslTest, test_build_graph_from_optype_with_name) {
 }
 
 TEST_F(GraphDslTest, test_build_graph_with_name) {
-  DEF_GRAPH(g1, "sample_graph") { CHAIN(NODE("data1", DATA)->NODE("add", ADD)); };
+  DEF_GRAPH(g1, "sample_graph") {
+    CHAIN(NODE("data1", DATA)->NODE("add", ADD));
+  };
 
   auto geGraph = ToGeGraph(g1);
 
@@ -82,7 +88,9 @@ TEST_F(GraphDslTest, test_build_from_op_desc_cfg) {
 }
 
 TEST_F(GraphDslTest, test_build_from_op_desc_cfg_inline) {
-  DEF_GRAPH(g1) { CHAIN(NODE("data1", OP_CFG(DATA).InCnt(1).OutCnt(1))->NODE("add", OP_CFG(ADD).InCnt(2).OutCnt(1))); };
+  DEF_GRAPH(g1) {
+    CHAIN(NODE("data1", OP_CFG(DATA).InCnt(1).OutCnt(1))->NODE("add", OP_CFG(ADD).InCnt(2).OutCnt(1)));
+  };
 
   auto geGraph = ToGeGraph(g1);
 
@@ -90,7 +98,9 @@ TEST_F(GraphDslTest, test_build_from_op_desc_cfg_inline) {
 }
 
 TEST_F(GraphDslTest, test_build_from_control_chain) {
-  DEF_GRAPH(g1) { CTRL_CHAIN(NODE("data1", DATA)->NODE("add", ADD)); };
+  DEF_GRAPH(g1) {
+    CTRL_CHAIN(NODE("data1", DATA)->NODE("add", ADD));
+  };
 
   auto geGraph = ToGeGraph(g1);
 
@@ -98,7 +108,9 @@ TEST_F(GraphDslTest, test_build_from_control_chain) {
 }
 
 TEST_F(GraphDslTest, test_build_from_data_chain) {
-  DEF_GRAPH(g1) { DATA_CHAIN(NODE("data1", DATA)->NODE("add", ADD)); };
+  DEF_GRAPH(g1) {
+    DATA_CHAIN(NODE("data1", DATA)->NODE("add", ADD));
+  };
 
   auto geGraph = ToGeGraph(g1);
 
@@ -204,23 +216,15 @@ TEST_F(GraphDslTest, test_build_graph_with_sub_graph) {
 TEST_F(GraphDslTest, test_add_output) {
   DEF_GRAPH(g) {
     auto data1 = OP_CFG(DATA)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_NCHW, DT_FLOAT, {8,3,16,16})
-        .InCnt(1)
-        .OutCnt(1)
-        .Build("data1");
-    auto data2 = OP_CFG(DATA)
-        .Attr(ATTR_NAME_INDEX, 1)
-        .TensorDesc(FORMAT_NCHW, DT_FLOAT, {})
-        .InCnt(1)
-        .OutCnt(1)
-        .Build("data2");
-    auto data3 = OP_CFG(DATA)
-        .Attr(ATTR_NAME_INDEX, 1)
-        .TensorDesc(FORMAT_NCHW, DT_FLOAT, {})
-        .InCnt(2)
-        .OutCnt(2)
-        .Build("data3");
+                     .Attr(ATTR_NAME_INDEX, 0)
+                     .TensorDesc(FORMAT_NCHW, DT_FLOAT, {8, 3, 16, 16})
+                     .InCnt(1)
+                     .OutCnt(1)
+                     .Build("data1");
+    auto data2 =
+        OP_CFG(DATA).Attr(ATTR_NAME_INDEX, 1).TensorDesc(FORMAT_NCHW, DT_FLOAT, {}).InCnt(1).OutCnt(1).Build("data2");
+    auto data3 =
+        OP_CFG(DATA).Attr(ATTR_NAME_INDEX, 1).TensorDesc(FORMAT_NCHW, DT_FLOAT, {}).InCnt(2).OutCnt(2).Build("data3");
     CHAIN(NODE(data1)->NODE(data2));
 
     ADD_OUTPUT(data1, 0);
@@ -237,4 +241,5 @@ TEST_F(GraphDslTest, test_add_output) {
   EXPECT_EQ(out_nodes_and_indexes[1].second, 1);
 }
 
-// ::eg::ChainBuilder(BUILDER, ::eg::EdgeType::DATA)->Node(::ge::OpDescNodeBuild(data1))->Node(::ge::OpDescNodeBuild(data2))
+// ::eg::ChainBuilder(BUILDER,
+// ::eg::EdgeType::DATA)->Node(::ge::OpDescNodeBuild(data1))->Node(::ge::OpDescNodeBuild(data2))

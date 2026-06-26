@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -123,7 +123,8 @@ std::unique_ptr<bg::GraphFrame> BuildGraph2() {
 
   auto alloc5 = bg::ValueHolder::CreateSingleDataOutput("AllocMemory", {allocator, size});
   bg::ValueHolder::CreateVoidGuarder("FreeMemory", alloc5, {});
-  auto launch5 = bg::ValueHolder::CreateVoid<bg::ValueHolder>("LaunchKernelWithFlag", {stream, alloc2, alloc3, alloc4, alloc5});
+  auto launch5 =
+      bg::ValueHolder::CreateVoid<bg::ValueHolder>("LaunchKernelWithFlag", {stream, alloc2, alloc3, alloc4, alloc5});
   bg::ValueHolder::AddDependency(launch2, launch5);
   bg::ValueHolder::AddDependency(launch3, launch5);
   bg::ValueHolder::AddDependency(launch4, launch5);
@@ -484,7 +485,7 @@ TEST_F(NodePriorityCalculatorUT, CalcPriority_CtrlNodesPriorityCorrect_If) {
   auto if_priority = GetPriority(if_node);
   int64_t max_priority = if_priority;
   const auto &sub_graph_indexes = if_node->GetOpDescBarePtr()->GetSubgraphNameIndexes();
-  for (const auto &index: sub_graph_indexes) {
+  for (const auto &index : sub_graph_indexes) {
     const auto &sub_graph = ge::FastNodeUtils::GetSubgraphFromNode(if_node, index.second);
     for (const auto node : sub_graph->GetAllNodes()) {
       auto cur_priority = GetPriority(node);
@@ -494,7 +495,7 @@ TEST_F(NodePriorityCalculatorUT, CalcPriority_CtrlNodesPriorityCorrect_If) {
     }
   }
   auto ctrl_graph = ge::FastNodeUtils::GetSubgraphFromNode(if_node, 0);
-  for (const auto node : ctrl_graph->GetAllNodes()){
+  for (const auto node : ctrl_graph->GetAllNodes()) {
     const auto &node_type = node->GetTypePtr();
     if (IsSwitchNotifyNode(node_type) || IsBranchPivot(node_type)) {
       ASSERT_EQ(if_priority, GetPriority(node));
@@ -524,9 +525,8 @@ TEST_F(NodePriorityCalculatorUT, CalcPriority_Correct_LoweringFromLstmp) {
   ASSERT_NE(graph, nullptr);
 
   auto model_desc_holder = ModelDescHolderFaker().Build();
-  auto exe_graph = GraphConverter()
-      .SetModelDescHolder(&model_desc_holder)
-      .ConvertComputeGraphToExecuteGraph(graph, global_data);
+  auto exe_graph =
+      GraphConverter().SetModelDescHolder(&model_desc_holder).ConvertComputeGraphToExecuteGraph(graph, global_data);
   ASSERT_NE(exe_graph, nullptr);
   exe_graph->TopologicalSorting();
   ge::DumpGraph(exe_graph.get(), "TestPriorityLstmp");

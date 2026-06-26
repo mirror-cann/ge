@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,13 +24,14 @@ class ProcessPointLoader {
   static Status LoadProcessPoint(const dataflow::ProcessPoint &process_point, DataFlowGraph &data_flow_graph,
                                  const NodePtr &node);
   static Status RemoveGraphFromParent(const ComputeGraphPtr &root_graph, const ComputeGraphPtr &sub_graph);
+
  private:
   static Status LoadFunctionProcessPoint(const dataflow::ProcessPoint &process_point, DataFlowGraph &data_flow_graph,
                                          const NodePtr &node);
   static Status LoadUserFunctionProcessPoint(const dataflow::ProcessPoint &process_point,
                                              DataFlowGraph &data_flow_graph, const NodePtr &node);
   static Status CompileUserFunctionProcessPoint(const CompileConfigJson::FunctionPpConfig &func_pp_cfg,
-                                                const std::string &pp_name,const ComputeGraphPtr &compute_graph,
+                                                const std::string &pp_name, const ComputeGraphPtr &compute_graph,
                                                 const NodePtr &node, DataFlowGraph &data_flow_graph);
   static Status SetUserFunctionProcessPointAttrs(const CompileConfigJson::FunctionPpConfig &func_pp_cfg,
                                                  const ComputeGraphPtr &compute_graph, const NodePtr &node,
@@ -48,16 +49,14 @@ class ProcessPointLoader {
                                           OpDescPtr &flow_func_desc);
   static Status SetAttrFuncsForFlowFunc(const CompileConfigJson::FunctionPpConfig &func_pp_cfg,
                                         OpDescPtr &flow_func_desc);
-  static Status SetCpuNumForFlowFunc(const CompileConfigJson::FunctionPpConfig &func_pp_cfg,
-                                     OpDescPtr &flow_func_desc);
+  static Status SetCpuNumForFlowFunc(const CompileConfigJson::FunctionPpConfig &func_pp_cfg, OpDescPtr &flow_func_desc);
   static Status PreProcessSubgraphAttrs(const ComputeGraphPtr &subgraph);
   static Status SetAttrFuncsForFlowFunc(const dataflow::ProcessPoint &process_point, OpDescPtr &flow_func_desc);
   static Status SetCustomizedAttrsForFlowFunc(const dataflow::ProcessPoint &process_point, OpDescPtr &flow_func_desc);
   static Status AddInputsForFlowFunc(NodePtr &flow_func_node, ComputeGraphPtr &compute_graph);
   static Status AddOutputsForFlowFunc(NodePtr &flow_func_node, ComputeGraphPtr &compute_graph);
-  static Status LoadInvokedProcessPoint(const dataflow::ProcessPoint &process_point,
-                                        DataFlowGraph &data_flow_graph, OpDescPtr &flow_func_desc,
-                                        const NodePtr &node, bool is_built_in_flow_func);
+  static Status LoadInvokedProcessPoint(const dataflow::ProcessPoint &process_point, DataFlowGraph &data_flow_graph,
+                                        OpDescPtr &flow_func_desc, const NodePtr &node, bool is_built_in_flow_func);
   static Status UpdateGraphInputsDesc(const CompileConfigJson::GraphPpConfig &graph_pp_cfg,
                                       ComputeGraphPtr &compute_graph);
   static void AddPrefixForGraphNodeName(ComputeGraphPtr &graph, const std::string &prefix_name);

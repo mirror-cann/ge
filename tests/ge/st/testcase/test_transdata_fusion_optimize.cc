@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -110,8 +110,8 @@ bool CheckConnection(const ComputeGraphPtr &graph, std::vector<NodeOutIndex> &pa
     }
     if (path[i].second >= firt_node->GetOutDataNodesAndAnchors().size()) {
       std::cout << "========================================" << std::endl;
-      std::cout << path[i].first << " index: " << path[i].second << " is larger than  actrual output size: "
-                << firt_node->GetOutDataNodesAndAnchors().size()
+      std::cout << path[i].first << " index: " << path[i].second
+                << " is larger than  actrual output size: " << firt_node->GetOutDataNodesAndAnchors().size()
                 << ", i: " << i << std::endl;
       std::cout << "========================================" << std::endl;
       GE_DUMP(graph, "CheckConnection_failed");
@@ -120,9 +120,9 @@ bool CheckConnection(const ComputeGraphPtr &graph, std::vector<NodeOutIndex> &pa
     auto first_out = firt_node->GetOutDataAnchor(path[i].second);
     if (first_out == nullptr) {
       std::cout << "========================================" << std::endl;
-      std::cout << path[i].first << " index: " << path[i].second << " out_anchor is null. output size: "
-                << firt_node->GetOutDataNodesAndAnchors().size()
-                << ", i: " << i << std::endl;
+      std::cout << path[i].first << " index: " << path[i].second
+                << " out_anchor is null. output size: " << firt_node->GetOutDataNodesAndAnchors().size() << ", i: " << i
+                << std::endl;
       std::cout << "========================================" << std::endl;
       GE_DUMP(graph, "CheckConnection_failed");
       return false;
@@ -193,7 +193,6 @@ class TransopFusionOptimizeTest : public testing::Test {
  protected:
   void SetUp() {}
   void TearDown() {}
-
 };
 /******************
       abs
@@ -240,12 +239,12 @@ TEST_F(TransopFusionOptimizeTest, test_transop_and_cast_breadth_fusion_pass_norm
   session.BuildGraph(1, inputs);
 
   CHECK_GRAPH(OptimizeStage1_1) {
-      auto ret = graph->TopologicalSorting();
-      EXPECT_EQ(ret, SUCCESS);
-      auto data = graph->FindNode("data");
-      auto remain_node = data->GetOutNodes().at(0);
-      EXPECT_EQ(remain_node->GetType(), "TransData");
-      EXPECT_EQ(data->GetOutDataNodesSize(), 1);
+    auto ret = graph->TopologicalSorting();
+    EXPECT_EQ(ret, SUCCESS);
+    auto data = graph->FindNode("data");
+    auto remain_node = data->GetOutNodes().at(0);
+    EXPECT_EQ(remain_node->GetType(), "TransData");
+    EXPECT_EQ(data->GetOutDataNodesSize(), 1);
   };
 }
 
@@ -280,20 +279,27 @@ TEST_F(TransopFusionOptimizeTest, test_transop_and_cast_breadth_fusion_pass_norm
 TEST_F(TransopFusionOptimizeTest, DiffGraph_ExtractTransdataThroughDoubleSubGraph_AddNewData_DoFusion) {
   const auto sub_sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_sub_1) {
-                         CHAIN(NODE("sub_sub_data", sub_sub_data)->NODE("sub_sub_netoutput", NETOUTPUT));
-                       };
+    CHAIN(NODE("sub_sub_data", sub_sub_data)->NODE("sub_sub_netoutput", NETOUTPUT));
+  };
   const auto sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub_1) {
-                     CHAIN(NODE("sub_data", sub_data)->NODE("sub_partitioned_call", PARTITIONEDCALL, sub_sub_1)
-                               ->NODE("sub_netoutput", NETOUTPUT));
-                   };
+    CHAIN(NODE("sub_data", sub_data)
+              ->NODE("sub_partitioned_call", PARTITIONEDCALL, sub_sub_1)
+              ->NODE("sub_netoutput", NETOUTPUT));
+  };
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->EDGE(0, 0)->NODE("cast", CAST)->NODE("transdata", TRANSDATA)
-                            ->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("data", DATA)->EDGE(0, 0)->NODE("partitioned_call", PARTITIONEDCALL, sub_1)
-                            ->NODE("transdata1", TRANSDATA)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("partitioned_call", PARTITIONEDCALL)->EDGE(0, 0)->NODE("transpose", TRANSPOSE)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(
+        NODE("data", DATA)->EDGE(0, 0)->NODE("cast", CAST)->NODE("transdata", TRANSDATA)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("data", DATA)
+              ->EDGE(0, 0)
+              ->NODE("partitioned_call", PARTITIONEDCALL, sub_1)
+              ->NODE("transdata1", TRANSDATA)
+              ->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("partitioned_call", PARTITIONEDCALL)
+              ->EDGE(0, 0)
+              ->NODE("transpose", TRANSPOSE)
+              ->NODE("netoutput", NETOUTPUT));
+  };
   auto sub_sub_1_graph = ToComputeGraph(sub_sub_1);
   sub_1.Layout();
   auto graph = ToGeGraph(g1);
@@ -337,8 +343,7 @@ TEST_F(TransopFusionOptimizeTest, DiffGraph_ExtractTransdataThroughDoubleSubGrap
   const auto sub_sub_graph_1 = compute_graph->GetSubgraph("sub_sub_1");
   ASSERT_NE(sub_sub_graph_1, nullptr);
 
-  NetoutputParentIndexes indexes{{"sub_netoutput", {0}},
-                                 {"sub_sub_netoutput", {0}}};
+  NetoutputParentIndexes indexes{{"sub_netoutput", {0}}, {"sub_sub_netoutput", {0}}};
   ASSERT_TRUE(AddParentIndexForNetoutput(compute_graph, indexes));
 
   map<AscendString, AscendString> options;
@@ -369,19 +374,25 @@ TEST_F(TransopFusionOptimizeTest, DiffGraph_ExtractTransdataThroughDoubleSubGrap
 TEST_F(TransopFusionOptimizeTest, IfTwoSubgraphs_NotFuse) {
   const auto if_sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(if_sub) {
-                      CHAIN(NODE("if_sub_data", if_sub_data)->EDGE(0, 0)
-                                ->NODE("if_sub_netoutput", NETOUTPUT));
-                      CHAIN(NODE("if_sub_data", if_sub_data)->EDGE(0, 0)->NODE("if_transdata", TRANSDATA)->NODE("if_relu", RELU)->Ctrl()
-                                ->NODE("if_sub_netoutput", NETOUTPUT));
-                    };
+    CHAIN(NODE("if_sub_data", if_sub_data)->EDGE(0, 0)->NODE("if_sub_netoutput", NETOUTPUT));
+    CHAIN(NODE("if_sub_data", if_sub_data)
+              ->EDGE(0, 0)
+              ->NODE("if_transdata", TRANSDATA)
+              ->NODE("if_relu", RELU)
+              ->Ctrl()
+              ->NODE("if_sub_netoutput", NETOUTPUT));
+  };
   const auto then_sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(then_sub) {
-                        CHAIN(NODE("then_sub_data", then_sub_data)->NODE("then_relu", RELU)->NODE("then_sub_netoutput", NETOUTPUT));
-                      };
+    CHAIN(NODE("then_sub_data", then_sub_data)->NODE("then_relu", RELU)->NODE("then_sub_netoutput", NETOUTPUT));
+  };
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->NODE("relu", RELU)->NODE("if", IF, if_sub, then_sub)->NODE("transdata", TRANSDATA)
-                            ->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("data", DATA)
+              ->NODE("relu", RELU)
+              ->NODE("if", IF, if_sub, then_sub)
+              ->NODE("transdata", TRANSDATA)
+              ->NODE("netoutput", NETOUTPUT));
+  };
 
   auto compute_graph = ToComputeGraph(g1);
   const auto then_sub_graph = compute_graph->GetSubgraph("then_sub");
@@ -411,7 +422,7 @@ TEST_F(TransopFusionOptimizeTest, IfTwoSubgraphs_NotFuse) {
 
 TEST_F(TransopFusionOptimizeTest, test_same_transop_fusion_pass_not_cause_loop) {
   Graph test_graph = BuildTransopFusionGraph();
-  
+
   DUMP_GRAPH_WHEN("OptimizeStage1_1");
   map<AscendString, AscendString> options;
   Session session(options);
@@ -428,7 +439,7 @@ TEST_F(TransopFusionOptimizeTest, test_same_transop_fusion_pass_not_cause_loop) 
 // 用例需要重新构造,infershape之后插入transdata
 // TEST_F(TransopFusionOptimizeTest, test_transop_symmetry_elimination_pass) {
 //   Graph test_graph = BuildTransopSymmetryGraph();
-  
+
 //   DUMP_GRAPH_WHEN("OptimizeStage1_2");
 //   map<AscendString, AscendString> options;
 //   Session session(options);
@@ -455,14 +466,14 @@ TEST_F(TransopFusionOptimizeTest, test_same_transop_fusion_pass_not_cause_loop) 
 TEST_F(TransopFusionOptimizeTest, test_framework_transop_breath_fusion_not_fuse) {
   vector<int64_t> perm1{0, 3, 1, 2};
   GeTensorDesc tensor_desc1(GeShape(vector<int64_t>{4}), FORMAT_ND, DT_INT64);
-  GeTensorPtr const_tensor1 = 
-    std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()) , sizeof(int64_t)*perm1.size());
+  GeTensorPtr const_tensor1 = std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()),
+                                                         sizeof(int64_t) * perm1.size());
   auto const1 = OP_CFG(CONSTANT).Weight(const_tensor1);
 
   vector<int32_t> perm2{0, 2, 1, 3};
   GeTensorDesc tensor_desc2(GeShape(vector<int64_t>{4}), FORMAT_ND, DT_INT32);
-  GeTensorPtr const_tensor2 = 
-    std::make_shared<GeTensor>(tensor_desc2, reinterpret_cast<uint8_t *>(perm2.data()), sizeof(int32_t)*perm2.size());
+  GeTensorPtr const_tensor2 = std::make_shared<GeTensor>(tensor_desc2, reinterpret_cast<uint8_t *>(perm2.data()),
+                                                         sizeof(int32_t) * perm2.size());
   auto const2 = OP_CFG(CONSTANT).Weight(const_tensor2);
 
   auto transpose1 = OP_CFG(TRANSPOSE).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 128, 52, 52});
@@ -531,10 +542,10 @@ TEST_F(TransopFusionOptimizeTest, test_framework_dim1_transpose_noreplace) {
     }
     if (node->GetName() == "transpose2") {
       gert::SymbolShape symbol_shape({
-        Symbol("s0"),
-        Symbol(1),
-        Symbol("s1"),
-        Symbol(10),
+          Symbol("s0"),
+          Symbol(1),
+          Symbol("s1"),
+          Symbol(10),
       });
       const auto attr = node->GetOpDesc()->MutableInputDesc(0)->GetOrCreateAttrsGroup<SymbolicDescAttr>();
       attr->symbolic_tensor.SetSymbolShape(symbol_shape);
@@ -556,14 +567,14 @@ TEST_F(TransopFusionOptimizeTest, test_framework_dim1_transpose_noreplace) {
 TEST_F(TransopFusionOptimizeTest, test_framework_dim1_transpose_replace_squeeze_unsqueeze) {
   vector<int16_t> perm1{0, 3, 1, 2};
   GeTensorDesc tensor_desc1(GeShape(vector<int64_t>{4}), FORMAT_ND, DT_UINT16);
-  GeTensorPtr const_tensor1 =
-    std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()) , sizeof(int16_t)*perm1.size());
+  GeTensorPtr const_tensor1 = std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()),
+                                                         sizeof(int16_t) * perm1.size());
   auto const1 = OP_CFG(CONSTANT).Weight(const_tensor1);
 
   vector<int32_t> perm2{0, 2, 1, 3};
   GeTensorDesc tensor_desc2(GeShape(vector<int64_t>{4}), FORMAT_ND, DT_INT32);
-  GeTensorPtr const_tensor2 =
-    std::make_shared<GeTensor>(tensor_desc2, reinterpret_cast<uint8_t *>(perm2.data()), sizeof(int32_t)*perm2.size());
+  GeTensorPtr const_tensor2 = std::make_shared<GeTensor>(tensor_desc2, reinterpret_cast<uint8_t *>(perm2.data()),
+                                                         sizeof(int32_t) * perm2.size());
   auto const2 = OP_CFG(CONSTANT).Weight(const_tensor2);
 
   auto transpose1 = OP_CFG(TRANSPOSE).TensorDesc(FORMAT_NCHW, DT_FLOAT, {16, 32, 64, 128});
@@ -593,10 +604,10 @@ TEST_F(TransopFusionOptimizeTest, test_framework_dim1_transpose_replace_squeeze_
     }
     if (node->GetName() == "transpose2") {
       gert::SymbolShape symbol_shape({
-        Symbol("s0"),
-        Symbol(1),
-        Symbol("s1"),
-        Symbol(10),
+          Symbol("s0"),
+          Symbol(1),
+          Symbol("s1"),
+          Symbol(10),
       });
       const auto attr = node->GetOpDesc()->MutableInputDesc(0)->GetOrCreateAttrsGroup<SymbolicDescAttr>();
       attr->symbolic_tensor.SetSymbolShape(symbol_shape);
@@ -626,8 +637,18 @@ TEST_F(TransopFusionOptimizeTest, test_framework_dim1_transpose_replace_squeeze_
  *        netoutput
  */
 TEST_F(TransopFusionOptimizeTest, test_reshape_recover_on_single_op_graph) {
-  auto data1 = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_NHWC, ge::DT_FLOAT, {5, -1}).Attr(ATTR_NAME_INDEX, 0).Attr("OwnerGraphIsUnknown", true);
-  auto data2 = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_NHWC, ge::DT_FLOAT, {5}).Attr(ATTR_NAME_INDEX, 1).Attr("OwnerGraphIsUnknown", true);
+  auto data1 = OP_CFG(DATA)
+                   .InCnt(1)
+                   .OutCnt(1)
+                   .TensorDesc(FORMAT_NHWC, ge::DT_FLOAT, {5, -1})
+                   .Attr(ATTR_NAME_INDEX, 0)
+                   .Attr("OwnerGraphIsUnknown", true);
+  auto data2 = OP_CFG(DATA)
+                   .InCnt(1)
+                   .OutCnt(1)
+                   .TensorDesc(FORMAT_NHWC, ge::DT_FLOAT, {5})
+                   .Attr(ATTR_NAME_INDEX, 1)
+                   .Attr("OwnerGraphIsUnknown", true);
   auto unsqueeze = OP_CFG(UNSQUEEZE)
                        .InCnt(1)
                        .TensorDesc(FORMAT_NHWC, ge::DT_FLOAT, {5})
@@ -658,8 +679,8 @@ TEST_F(TransopFusionOptimizeTest, test_reshape_recover_on_single_op_graph) {
   auto input_desc_0 = less_node->GetOpDesc()->MutableInputDesc(0);
   input_desc_0->SetShape(GeShape({5, -1}));
   auto input_desc_1 = less_node->GetOpDesc()->MutableInputDesc(1);
-  input_desc_1->SetShape(GeShape({5,1}));
-  //compute_graph->SetGraphUnknownFlag(true);
+  input_desc_1->SetShape(GeShape({5, 1}));
+  // compute_graph->SetGraphUnknownFlag(true);
   AttrUtils::SetBool(compute_graph, ge::ATTR_SINGLE_OP_SCENE, true);
 
   DUMP_GRAPH_WHEN("PreRunAfterOptimize2");
@@ -697,53 +718,48 @@ void FakeTransData5DNodeEngine(GeRunningEnvFaker &ge_env) {
   // 5 indicates that cube size is 16
   const Format src_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_NC1HWC0, FORMAT_RESERVED, 5));
   const Format dst_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_FRACTAL_Z, FORMAT_NHWC, 5));
-  ffo->OpFormatByName(
-      "conv1", {
-          .input_formats = {
-              {src_format, GeShape(std::vector<int64_t>({1,1,100,190,16}))},
-              {dst_format, GeShape(std::vector<int64_t>({9,16,16,16}))},
-          },
-          .output_formats = {
-              {src_format, GeShape(std::vector<int64_t>({1,16,100,190,16}))}
-          }
-      });
-  ffo->OpFormatByName(
-      "conv2", {
-          .input_formats = {
-              {src_format, GeShape(std::vector<int64_t>({8,2,100,190,16}))},
-              {dst_format, GeShape(std::vector<int64_t>({18,16,16,16}))},
-          },
-          .output_formats = {
-              {src_format, GeShape(std::vector<int64_t>({8,32,100,190}))}
-          }
-      });
-  ffo->OpFormatByName(
-      "conv3", {
-          .input_formats = {
-              {src_format, GeShape(std::vector<int64_t>({1,16,190,100,16}))},
-              {dst_format, GeShape(std::vector<int64_t>({18,16,16,16}))},
-          },
-          .output_formats = {
-              {src_format, GeShape(std::vector<int64_t>({1,256,190,100}))}
-          }
-      });
+  ffo->OpFormatByName("conv1",
+                      {.input_formats =
+                           {
+                               {src_format, GeShape(std::vector<int64_t>({1, 1, 100, 190, 16}))},
+                               {dst_format, GeShape(std::vector<int64_t>({9, 16, 16, 16}))},
+                           },
+                       .output_formats = {{src_format, GeShape(std::vector<int64_t>({1, 16, 100, 190, 16}))}}});
+  ffo->OpFormatByName("conv2", {.input_formats =
+                                    {
+                                        {src_format, GeShape(std::vector<int64_t>({8, 2, 100, 190, 16}))},
+                                        {dst_format, GeShape(std::vector<int64_t>({18, 16, 16, 16}))},
+                                    },
+                                .output_formats = {{src_format, GeShape(std::vector<int64_t>({8, 32, 100, 190}))}}});
+  ffo->OpFormatByName("conv3", {.input_formats =
+                                    {
+                                        {src_format, GeShape(std::vector<int64_t>({1, 16, 190, 100, 16}))},
+                                        {dst_format, GeShape(std::vector<int64_t>({18, 16, 16, 16}))},
+                                    },
+                                .output_formats = {{src_format, GeShape(std::vector<int64_t>({1, 256, 190, 100}))}}});
   ge_env.InstallDefault();
   ge_env.Install(FakeEngine("TestForTransdata").GraphOptimizer("TestForTransdata", ffo));
 }
 
 TEST_F(TransopFusionOptimizeTest, test_transdata_transdata_fusion_5hd_nchw) {
-  auto data1 = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, ge::DT_FLOAT, {1,3,100,190})
-                   .Attr(ATTR_NAME_INDEX, 0);
-  auto conv1 = OP_CFG(CONV2D).InCnt(2).OutCnt(1).TensorDesc(FORMAT_NCHW, ge::DT_FLOAT, {1,3,100,190});
-  auto reshape1 = OP_CFG(RESHAPE).InCnt(2).OutCnt(1).TensorDesc(FORMAT_NCHW, ge::DT_FLOAT, {1,256,100,190});
-  auto conv2 = OP_CFG(CONV2D).InCnt(2).OutCnt(1).TensorDesc(FORMAT_NCHW, ge::DT_FLOAT, {8,32,100,190});
+  auto data1 =
+      OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, ge::DT_FLOAT, {1, 3, 100, 190}).Attr(ATTR_NAME_INDEX, 0);
+  auto conv1 = OP_CFG(CONV2D).InCnt(2).OutCnt(1).TensorDesc(FORMAT_NCHW, ge::DT_FLOAT, {1, 3, 100, 190});
+  auto reshape1 = OP_CFG(RESHAPE).InCnt(2).OutCnt(1).TensorDesc(FORMAT_NCHW, ge::DT_FLOAT, {1, 256, 100, 190});
+  auto conv2 = OP_CFG(CONV2D).InCnt(2).OutCnt(1).TensorDesc(FORMAT_NCHW, ge::DT_FLOAT, {8, 32, 100, 190});
   auto const1 = OP_CFG(CONSTANT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, ge::DT_FLOAT, {4});
   transformer::TransferShapeUtils::GetC0Value(DT_FLOAT, ge::FORMAT_FRACTAL_NZ_C0_2);
   transformer::TransferShapeUtils::GetC0Value(DT_FLOAT, ge::FORMAT_FRACTAL_NZ_C0_8);
 
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data1", data1)->EDGE(0, 0)->NODE("conv1", conv1)->EDGE(0, 0)->NODE("reshape1", reshape1)
-              ->EDGE(0, 0)->NODE("conv2", conv2)->NODE("net_output", NETOUTPUT));
+    CHAIN(NODE("data1", data1)
+              ->EDGE(0, 0)
+              ->NODE("conv1", conv1)
+              ->EDGE(0, 0)
+              ->NODE("reshape1", reshape1)
+              ->EDGE(0, 0)
+              ->NODE("conv2", conv2)
+              ->NODE("net_output", NETOUTPUT));
     CHAIN(NODE("const1", CONSTANT)->EDGE(0, 1)->NODE("reshape1", reshape1));
     CHAIN(NODE("conv1_weight", CONSTANT)->EDGE(0, 1)->NODE("conv1", conv1));
     CHAIN(NODE("conv2_weight", CONSTANT)->EDGE(0, 1)->NODE("conv2", conv2));
@@ -753,8 +769,8 @@ TEST_F(TransopFusionOptimizeTest, test_transdata_transdata_fusion_5hd_nchw) {
 
   auto reshape = compute_graph->FindNode("reshape1");
   EXPECT_NE(reshape, nullptr);
-  GeShape reshape_in({1,256,100,190});
-  GeShape reshape_out({8,32,100,190});
+  GeShape reshape_in({1, 256, 100, 190});
+  GeShape reshape_out({8, 32, 100, 190});
   reshape->GetOpDesc()->UpdateInputDesc(0, GeTensorDesc(reshape_in, FORMAT_NCHW, DT_FLOAT));
   reshape->GetOpDesc()->UpdateOutputDesc(0, GeTensorDesc(reshape_out, FORMAT_NCHW, DT_FLOAT));
 
@@ -769,22 +785,24 @@ TEST_F(TransopFusionOptimizeTest, test_transdata_transdata_fusion_5hd_nchw) {
   DUMP_GRAPH_WHEN("OptimizeStage1_2");
   map<AscendString, AscendString> options;
   Session session(options);
-  dlog_setlevel(0,0,0);
+  dlog_setlevel(0, 0, 0);
   session.AddGraph(99, test_graph, options);
   std::vector<InputTensorInfo> inputs;
 
   (void)session.BuildGraph(99, inputs);
-  dlog_setlevel(3,3,0);
+  dlog_setlevel(3, 3, 0);
 
   CHECK_GRAPH(OptimizeStage1_2) {
     auto reshape_end = graph->FindNode("reshape1");
     EXPECT_EQ(reshape_end, nullptr);
     auto conv1_end = graph->FindNode("conv1");
     EXPECT_NE(conv1_end, nullptr);
-    EXPECT_EQ(conv1_end->GetOpDesc()->MutableOutputDesc(0)->GetShape().GetDims(), std::vector<int64_t>({1,16,100,190,16}));
+    EXPECT_EQ(conv1_end->GetOpDesc()->MutableOutputDesc(0)->GetShape().GetDims(),
+              std::vector<int64_t>({1, 16, 100, 190, 16}));
     auto conv2_end = graph->FindNode("conv2");
     EXPECT_NE(conv2_end, nullptr);
-    EXPECT_EQ(conv2_end->GetOpDesc()->MutableInputDesc(0)->GetShape().GetDims(), std::vector<int64_t>({8,2,100,190,16}));
+    EXPECT_EQ(conv2_end->GetOpDesc()->MutableInputDesc(0)->GetShape().GetDims(),
+              std::vector<int64_t>({8, 2, 100, 190, 16}));
 
     auto in_node = NodeUtils::GetInDataNodeByIndex(*conv2_end, 0);
     EXPECT_EQ(in_node->GetName(), conv1_end->GetName());
@@ -795,27 +813,33 @@ TEST_F(TransopFusionOptimizeTest, test_transdata_transdata_fusion_5hd_nchw) {
 }
 
 TEST_F(TransopFusionOptimizeTest, test_transdata_transdata_fusion_5hd_nchw_c_padding) {
-  auto data1 = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, ge::DT_FLOAT, {1,3,100,190})
-      .Attr(ATTR_NAME_INDEX, 0);
-  auto conv1 = OP_CFG(CONV2D).InCnt(2).OutCnt(1).TensorDesc(FORMAT_NCHW, ge::DT_FLOAT, {1,3,100,190});
-  auto reshape1 = OP_CFG(RESHAPE).InCnt(2).OutCnt(1).TensorDesc(FORMAT_NCHW, ge::DT_FLOAT, {1,256,100,190});
-  auto conv3 = OP_CFG(CONV2D).InCnt(2).OutCnt(1).TensorDesc(FORMAT_NCHW, ge::DT_FLOAT, {1,256,190,100});
+  auto data1 =
+      OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, ge::DT_FLOAT, {1, 3, 100, 190}).Attr(ATTR_NAME_INDEX, 0);
+  auto conv1 = OP_CFG(CONV2D).InCnt(2).OutCnt(1).TensorDesc(FORMAT_NCHW, ge::DT_FLOAT, {1, 3, 100, 190});
+  auto reshape1 = OP_CFG(RESHAPE).InCnt(2).OutCnt(1).TensorDesc(FORMAT_NCHW, ge::DT_FLOAT, {1, 256, 100, 190});
+  auto conv3 = OP_CFG(CONV2D).InCnt(2).OutCnt(1).TensorDesc(FORMAT_NCHW, ge::DT_FLOAT, {1, 256, 190, 100});
   auto const1 = OP_CFG(CONSTANT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, ge::DT_FLOAT, {4});
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", data1)->EDGE(0, 0)->NODE("conv1", conv1)->EDGE(0, 0)->NODE("reshape1", reshape1)
-                            ->EDGE(0, 0)->NODE("conv3", conv3)->NODE("net_output", NETOUTPUT));
-                  CHAIN(NODE("const1", CONSTANT)->EDGE(0, 1)->NODE("reshape1", reshape1));
-                  CHAIN(NODE("conv1_weight", CONSTANT)->EDGE(0, 1)->NODE("conv1", conv1));
-                  CHAIN(NODE("conv3_weight", CONSTANT)->EDGE(0, 1)->NODE("conv3", conv3));
-                };
+    CHAIN(NODE("data1", data1)
+              ->EDGE(0, 0)
+              ->NODE("conv1", conv1)
+              ->EDGE(0, 0)
+              ->NODE("reshape1", reshape1)
+              ->EDGE(0, 0)
+              ->NODE("conv3", conv3)
+              ->NODE("net_output", NETOUTPUT));
+    CHAIN(NODE("const1", CONSTANT)->EDGE(0, 1)->NODE("reshape1", reshape1));
+    CHAIN(NODE("conv1_weight", CONSTANT)->EDGE(0, 1)->NODE("conv1", conv1));
+    CHAIN(NODE("conv3_weight", CONSTANT)->EDGE(0, 1)->NODE("conv3", conv3));
+  };
   auto compute_graph = ToComputeGraph(g1);
   auto test_graph = GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
 
   auto reshape = compute_graph->FindNode("reshape1");
   EXPECT_NE(reshape, nullptr);
-  GeShape reshape_in({1,256,100,190});
-  GeShape reshape_out({1,256,190,100});
+  GeShape reshape_in({1, 256, 100, 190});
+  GeShape reshape_out({1, 256, 190, 100});
   reshape->GetOpDesc()->UpdateInputDesc(0, GeTensorDesc(reshape_in, FORMAT_NCHW, DT_FLOAT));
   reshape->GetOpDesc()->UpdateOutputDesc(0, GeTensorDesc(reshape_out, FORMAT_NCHW, DT_FLOAT));
 
@@ -830,22 +854,24 @@ TEST_F(TransopFusionOptimizeTest, test_transdata_transdata_fusion_5hd_nchw_c_pad
   DUMP_GRAPH_WHEN("OptimizeStage1_2");
   map<AscendString, AscendString> options;
   Session session(options);
-  dlog_setlevel(0,0,0);
+  dlog_setlevel(0, 0, 0);
   session.AddGraph(99, test_graph, options);
   std::vector<InputTensorInfo> inputs;
 
   (void)session.BuildGraph(99, inputs);
-  dlog_setlevel(3,3,0);
+  dlog_setlevel(3, 3, 0);
 
   CHECK_GRAPH(OptimizeStage1_2) {
     auto reshape_end = graph->FindNode("reshape1");
     EXPECT_EQ(reshape_end, nullptr);
     auto conv1_end = graph->FindNode("conv1");
     EXPECT_NE(conv1_end, nullptr);
-    EXPECT_EQ(conv1_end->GetOpDesc()->MutableOutputDesc(0)->GetShape().GetDims(), std::vector<int64_t>({1,16,100,190,16}));
+    EXPECT_EQ(conv1_end->GetOpDesc()->MutableOutputDesc(0)->GetShape().GetDims(),
+              std::vector<int64_t>({1, 16, 100, 190, 16}));
     auto conv3_end = graph->FindNode("conv3");
     EXPECT_NE(conv3_end, nullptr);
-    EXPECT_EQ(conv3_end->GetOpDesc()->MutableInputDesc(0)->GetShape().GetDims(), std::vector<int64_t>({1,16,190,100,16}));
+    EXPECT_EQ(conv3_end->GetOpDesc()->MutableInputDesc(0)->GetShape().GetDims(),
+              std::vector<int64_t>({1, 16, 190, 100, 16}));
 
     auto in_node = NodeUtils::GetInDataNodeByIndex(*conv3_end, 0);
     EXPECT_EQ(in_node->GetName(), conv1_end->GetName());
@@ -856,27 +882,33 @@ TEST_F(TransopFusionOptimizeTest, test_transdata_transdata_fusion_5hd_nchw_c_pad
 }
 
 TEST_F(TransopFusionOptimizeTest, test_transdata_transdata_fusion_5hd_nhwc) {
-  auto data1 = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_NHWC, ge::DT_FLOAT, {1,100,190,3})
-      .Attr(ATTR_NAME_INDEX, 0);
-  auto conv1 = OP_CFG(CONV2D).InCnt(2).OutCnt(1).TensorDesc(FORMAT_NHWC, ge::DT_FLOAT, {1,100,190,3});
-  auto reshape1 = OP_CFG(RESHAPE).InCnt(2).OutCnt(1).TensorDesc(FORMAT_NHWC, ge::DT_FLOAT, {1,100,190,3});
-  auto conv2 = OP_CFG(CONV2D).InCnt(2).OutCnt(1).TensorDesc(FORMAT_NHWC, ge::DT_FLOAT, {8,100,190,32});
+  auto data1 =
+      OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_NHWC, ge::DT_FLOAT, {1, 100, 190, 3}).Attr(ATTR_NAME_INDEX, 0);
+  auto conv1 = OP_CFG(CONV2D).InCnt(2).OutCnt(1).TensorDesc(FORMAT_NHWC, ge::DT_FLOAT, {1, 100, 190, 3});
+  auto reshape1 = OP_CFG(RESHAPE).InCnt(2).OutCnt(1).TensorDesc(FORMAT_NHWC, ge::DT_FLOAT, {1, 100, 190, 3});
+  auto conv2 = OP_CFG(CONV2D).InCnt(2).OutCnt(1).TensorDesc(FORMAT_NHWC, ge::DT_FLOAT, {8, 100, 190, 32});
   auto const1 = OP_CFG(CONSTANT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, ge::DT_FLOAT, {4});
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", data1)->EDGE(0, 0)->NODE("conv1", conv1)->EDGE(0, 0)->NODE("reshape1", reshape1)
-                            ->EDGE(0, 0)->NODE("conv2", conv2)->NODE("net_output", NETOUTPUT));
-                  CHAIN(NODE("const1", CONSTANT)->EDGE(0, 1)->NODE("reshape1", reshape1));
-                  CHAIN(NODE("conv1_weight", CONSTANT)->EDGE(0, 1)->NODE("conv1", conv1));
-                  CHAIN(NODE("conv2_weight", CONSTANT)->EDGE(0, 1)->NODE("conv2", conv2));
-                };
+    CHAIN(NODE("data1", data1)
+              ->EDGE(0, 0)
+              ->NODE("conv1", conv1)
+              ->EDGE(0, 0)
+              ->NODE("reshape1", reshape1)
+              ->EDGE(0, 0)
+              ->NODE("conv2", conv2)
+              ->NODE("net_output", NETOUTPUT));
+    CHAIN(NODE("const1", CONSTANT)->EDGE(0, 1)->NODE("reshape1", reshape1));
+    CHAIN(NODE("conv1_weight", CONSTANT)->EDGE(0, 1)->NODE("conv1", conv1));
+    CHAIN(NODE("conv2_weight", CONSTANT)->EDGE(0, 1)->NODE("conv2", conv2));
+  };
   auto compute_graph = ToComputeGraph(g1);
   auto test_graph = GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
 
   auto reshape = compute_graph->FindNode("reshape1");
   EXPECT_NE(reshape, nullptr);
-  GeShape reshape_in({1,100,190,256});
-  GeShape reshape_out({8,100,190,32});
+  GeShape reshape_in({1, 100, 190, 256});
+  GeShape reshape_out({8, 100, 190, 32});
   reshape->GetOpDesc()->UpdateInputDesc(0, GeTensorDesc(reshape_in, FORMAT_NHWC, DT_FLOAT));
   reshape->GetOpDesc()->UpdateOutputDesc(0, GeTensorDesc(reshape_out, FORMAT_NHWC, DT_FLOAT));
 
@@ -891,22 +923,24 @@ TEST_F(TransopFusionOptimizeTest, test_transdata_transdata_fusion_5hd_nhwc) {
   DUMP_GRAPH_WHEN("OptimizeStage1_2");
   map<AscendString, AscendString> options;
   Session session(options);
-  dlog_setlevel(0,0,0);
+  dlog_setlevel(0, 0, 0);
   session.AddGraph(99, test_graph, options);
   std::vector<InputTensorInfo> inputs;
 
   (void)session.BuildGraph(99, inputs);
-  dlog_setlevel(3,3,0);
+  dlog_setlevel(3, 3, 0);
 
   CHECK_GRAPH(OptimizeStage1_2) {
     auto reshape_end = graph->FindNode("reshape1");
     EXPECT_EQ(reshape_end, nullptr);
     auto conv1_end = graph->FindNode("conv1");
     EXPECT_NE(conv1_end, nullptr);
-    EXPECT_EQ(conv1_end->GetOpDesc()->MutableOutputDesc(0)->GetShape().GetDims(), std::vector<int64_t>({1,16,100,190,16}));
+    EXPECT_EQ(conv1_end->GetOpDesc()->MutableOutputDesc(0)->GetShape().GetDims(),
+              std::vector<int64_t>({1, 16, 100, 190, 16}));
     auto conv2_end = graph->FindNode("conv2");
     EXPECT_NE(conv2_end, nullptr);
-    EXPECT_EQ(conv2_end->GetOpDesc()->MutableInputDesc(0)->GetShape().GetDims(), std::vector<int64_t>({8,2,100,190,16}));
+    EXPECT_EQ(conv2_end->GetOpDesc()->MutableInputDesc(0)->GetShape().GetDims(),
+              std::vector<int64_t>({8, 2, 100, 190, 16}));
 
     auto in_node = NodeUtils::GetInDataNodeByIndex(*conv2_end, 0);
     EXPECT_EQ(in_node->GetType(), TRANSDATA);

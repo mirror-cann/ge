@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -57,12 +57,13 @@ ge::graphStatus StubKernel(KernelContext *context) {
   return ge::GRAPH_SUCCESS;
 }
 REGISTER_KERNEL(Execute_).RunFunc(StubKernel);
-}
+}  // namespace gert
 
 namespace ge {
-bool EnableSliceSchedule() { // 桩函数
+bool EnableSliceSchedule() {  // 桩函数
   return ((ge::GetAutofuseFlagValue(kAutoFuseEnableOption) == "true") &&
-          (ge::GetAutofuseFlagValue(kSliceScheduleOption) == "true"));;
+          (ge::GetAutofuseFlagValue(kSliceScheduleOption) == "true"));
+  ;
 }
 ge::graphStatus StubInferShape(ge::Operator &op) {
   auto x_input_desc = op.GetInputDesc(0);
@@ -96,7 +97,7 @@ class UserHybridGraphManagerlUT : public testing::Test {
  protected:
   void SetUp() override {
     gert_stub_.GetKernelStub().StubTiling();
-    RuntimeStub::Install(nullptr); // gert的rts stub不能在多线程环境下工作，因此使用默认rts stub
+    RuntimeStub::Install(nullptr);  // gert的rts stub不能在多线程环境下工作，因此使用默认rts stub
     AclRuntimeStub::Install(nullptr);
   }
   void TearDown() override {
@@ -145,7 +146,7 @@ TEST_F(UserHybridGraphManagerlUT, SelectExecuteGraph_MatchDynamicGear) {
 
   const uint32_t graph_id = 0;
   HybridDynamicDimsInfo dynamic_dims_info;
-  std::vector<std::vector<int64_t>> dynamic_shape_dims{{4,4,4}, {1,1,1}, {2,2,2}};
+  std::vector<std::vector<int64_t>> dynamic_shape_dims{{4, 4, 4}, {1, 1, 1}, {2, 2, 2}};
   std::vector<std::pair<std::string, std::vector<int64_t>>> user_input_dims;
   user_input_dims.push_back({"data1", {-1, 3, -1, 224}});
   user_input_dims.push_back({"data2", {1, 3, 224, 224}});
@@ -160,19 +161,22 @@ TEST_F(UserHybridGraphManagerlUT, SelectExecuteGraph_MatchDynamicGear) {
 
   std::vector<gert::Tensor> inputs;
   uint32_t selected_graph_id = 0U;
-  ASSERT_NE(user_hybrid_graph_manager.SelectExecuteGraph(dynamic_gear_graph_id, dynamic_shape_graph_id,
-                                                         inputs, selected_graph_id), SUCCESS);
+  ASSERT_NE(user_hybrid_graph_manager.SelectExecuteGraph(dynamic_gear_graph_id, dynamic_shape_graph_id, inputs,
+                                                         selected_graph_id),
+            SUCCESS);
   inputs.resize(3);
-  ASSERT_NE(user_hybrid_graph_manager.SelectExecuteGraph(dynamic_gear_graph_id, dynamic_shape_graph_id,
-                                                         inputs, selected_graph_id), SUCCESS);
+  ASSERT_NE(user_hybrid_graph_manager.SelectExecuteGraph(dynamic_gear_graph_id, dynamic_shape_graph_id, inputs,
+                                                         selected_graph_id),
+            SUCCESS);
 
   inputs.clear();
   std::vector<gert::Tensor> ge_inputs(3);
-  ge_inputs[0].MutableStorageShape() = {4,3,4,224};
+  ge_inputs[0].MutableStorageShape() = {4, 3, 4, 224};
   ge_inputs[1].MutableStorageShape() = {1, 3, 224, 224};
-  ge_inputs[2].MutableStorageShape() = {3,3,4,224};
-  ASSERT_EQ(user_hybrid_graph_manager.SelectExecuteGraph(dynamic_gear_graph_id, dynamic_shape_graph_id,
-                                                         ge_inputs, selected_graph_id), SUCCESS);
+  ge_inputs[2].MutableStorageShape() = {3, 3, 4, 224};
+  ASSERT_EQ(user_hybrid_graph_manager.SelectExecuteGraph(dynamic_gear_graph_id, dynamic_shape_graph_id, ge_inputs,
+                                                         selected_graph_id),
+            SUCCESS);
   ASSERT_TRUE(selected_graph_id == dynamic_gear_graph_id);
   graph_manager.Finalize();
 }
@@ -188,7 +192,7 @@ TEST_F(UserHybridGraphManagerlUT, SelectExecuteGraph_MatchDynamicShape) {
 
   const uint32_t graph_id = 0;
   HybridDynamicDimsInfo dynamic_dims_info;
-  std::vector<std::vector<int64_t>> dynamic_shape_dims{{4,4,4}, {1,1,1}, {2,2,2}};
+  std::vector<std::vector<int64_t>> dynamic_shape_dims{{4, 4, 4}, {1, 1, 1}, {2, 2, 2}};
   std::vector<std::pair<std::string, std::vector<int64_t>>> user_input_dims;
   user_input_dims.push_back({"data1", {-1, 3, -1, 224}});
   user_input_dims.push_back({"data2", {1, 3, 224, 224}});
@@ -202,12 +206,13 @@ TEST_F(UserHybridGraphManagerlUT, SelectExecuteGraph_MatchDynamicShape) {
   user_hybrid_graph_manager.SetDynamicGearInfo(dynamic_gear_graph_id, dynamic_dims_info);
 
   std::vector<gert::Tensor> inputs(3);
-  inputs[0].MutableStorageShape() = {3,3,3,224};
+  inputs[0].MutableStorageShape() = {3, 3, 3, 224};
   inputs[1].MutableStorageShape() = {1, 3, 224, 224};
-  inputs[2].MutableStorageShape() = {3,3,3,224};
+  inputs[2].MutableStorageShape() = {3, 3, 3, 224};
   uint32_t selected_graph_id = 0U;
-  ASSERT_EQ(user_hybrid_graph_manager.SelectExecuteGraph(dynamic_gear_graph_id, dynamic_shape_graph_id,
-                                                         inputs, selected_graph_id), SUCCESS);
+  ASSERT_EQ(user_hybrid_graph_manager.SelectExecuteGraph(dynamic_gear_graph_id, dynamic_shape_graph_id, inputs,
+                                                         selected_graph_id),
+            SUCCESS);
   ASSERT_TRUE(selected_graph_id == dynamic_shape_graph_id);
   graph_manager.Finalize();
 }
@@ -283,14 +288,39 @@ TEST_F(UserHybridGraphManagerlUT, RunGraphAsyncTest) {
 
   GeRunningEnvFaker ge_env;
   auto multi_dims = MakeShared<FakeMultiDimsOptimizer>();
-  ge_env.Install(FakeEngine("AIcoreEngine").KernelInfoStore("AiCoreLib").GraphOptimizer("AIcoreEngine").Priority(PriorityEnum::COST_0));
-  ge_env.Install(FakeEngine("VectorEngine").KernelInfoStore("VectorLib").GraphOptimizer("VectorEngine").Priority(PriorityEnum::COST_1));
-  ge_env.Install(FakeEngine("DNN_VM_AICPU").KernelInfoStore("AicpuLib").GraphOptimizer("aicpu_tf_optimizer").Priority(PriorityEnum::COST_3));
-  ge_env.Install(FakeEngine("DNN_VM_AICPU_ASCEND").KernelInfoStore("AicpuAscendLib").GraphOptimizer("aicpu_ascend_optimizer").Priority(PriorityEnum::COST_2));
-  ge_env.Install(FakeEngine("DNN_HCCL").KernelInfoStore("ops_kernel_info_hccl").GraphOptimizer("hccl_graph_optimizer").GraphOptimizer("hvd_graph_optimizer").Priority(PriorityEnum::COST_1));
-  ge_env.Install(FakeEngine("DNN_VM_RTS").KernelInfoStore("RTSLib").GraphOptimizer("DNN_VM_RTS_GRAPH_OPTIMIZER_STORE").Priority(PriorityEnum::COST_1));
-  ge_env.Install(FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE").GraphOptimizer("DNN_VM_HOST_CPU_OPTIMIZER").Priority(PriorityEnum::COST_9));
-  ge_env.Install(FakeEngine("DNN_VM_HOST_CPU").KernelInfoStore("DNN_VM_HOST_CPU_OP_STORE").GraphOptimizer("DNN_VM_HOST_CPU_OPTIMIZER").Priority(PriorityEnum::COST_10));
+  ge_env.Install(FakeEngine("AIcoreEngine")
+                     .KernelInfoStore("AiCoreLib")
+                     .GraphOptimizer("AIcoreEngine")
+                     .Priority(PriorityEnum::COST_0));
+  ge_env.Install(FakeEngine("VectorEngine")
+                     .KernelInfoStore("VectorLib")
+                     .GraphOptimizer("VectorEngine")
+                     .Priority(PriorityEnum::COST_1));
+  ge_env.Install(FakeEngine("DNN_VM_AICPU")
+                     .KernelInfoStore("AicpuLib")
+                     .GraphOptimizer("aicpu_tf_optimizer")
+                     .Priority(PriorityEnum::COST_3));
+  ge_env.Install(FakeEngine("DNN_VM_AICPU_ASCEND")
+                     .KernelInfoStore("AicpuAscendLib")
+                     .GraphOptimizer("aicpu_ascend_optimizer")
+                     .Priority(PriorityEnum::COST_2));
+  ge_env.Install(FakeEngine("DNN_HCCL")
+                     .KernelInfoStore("ops_kernel_info_hccl")
+                     .GraphOptimizer("hccl_graph_optimizer")
+                     .GraphOptimizer("hvd_graph_optimizer")
+                     .Priority(PriorityEnum::COST_1));
+  ge_env.Install(FakeEngine("DNN_VM_RTS")
+                     .KernelInfoStore("RTSLib")
+                     .GraphOptimizer("DNN_VM_RTS_GRAPH_OPTIMIZER_STORE")
+                     .Priority(PriorityEnum::COST_1));
+  ge_env.Install(FakeEngine("DNN_VM_GE_LOCAL")
+                     .KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE")
+                     .GraphOptimizer("DNN_VM_HOST_CPU_OPTIMIZER")
+                     .Priority(PriorityEnum::COST_9));
+  ge_env.Install(FakeEngine("DNN_VM_HOST_CPU")
+                     .KernelInfoStore("DNN_VM_HOST_CPU_OP_STORE")
+                     .GraphOptimizer("DNN_VM_HOST_CPU_OPTIMIZER")
+                     .Priority(PriorityEnum::COST_10));
   ge_env.Install(FakeEngine("DSAEngine").KernelInfoStore("DSAEngine").Priority(PriorityEnum::COST_1));
   ge_env.Install(FakeEngine("AIcoreEngine").GraphOptimizer("MultiDims", multi_dims));
   ge_env.Install(FakeOp(NETOUTPUT).InfoStoreAndBuilder("AicpuLib"));

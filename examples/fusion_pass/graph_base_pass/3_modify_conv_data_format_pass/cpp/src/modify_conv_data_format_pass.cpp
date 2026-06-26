@@ -28,131 +28,135 @@ constexpr int64_t dataIdxOfTransposeInputs = 0;
 constexpr int64_t permIdxOfTransposeInputs = 1;
 constexpr int64_t idxOfTransposeOutput = 0;
 
-template<typename T>
+template <typename T>
 bool JudgeTransposeConstData(uint8_t *const_data, size_t data_len, int &cnt) {
-    if (const_data == nullptr || data_len == 0 || (data_len % sizeof(T)) != 0) {
-        std::cout << "GetConstData error" << std::endl;
-        return false;
-    }
-    std::vector<T> result;
-    T *T_buffer = reinterpret_cast<T*>(const_data);
-    result.assign(T_buffer, T_buffer + (data_len / sizeof(T)));
-    if ((cnt == 0 && result == std::vector<T>{0,2,3,1}) ||
-        (cnt == 1 && result == std::vector<T>{0,3,1,2})) {
-        ++cnt;
-        return true;
-        }
+  if (const_data == nullptr || data_len == 0 || (data_len % sizeof(T)) != 0) {
+    std::cout << "GetConstData error" << std::endl;
     return false;
+  }
+  std::vector<T> result;
+  T *T_buffer = reinterpret_cast<T *>(const_data);
+  result.assign(T_buffer, T_buffer + (data_len / sizeof(T)));
+  if ((cnt == 0 && result == std::vector<T>{0, 2, 3, 1}) || (cnt == 1 && result == std::vector<T>{0, 3, 1, 2})) {
+    ++cnt;
+    return true;
+  }
+  return false;
 }
 
 bool IsMatchAnyOfType(const AscendString &op_type) {
-    return std::any_of(
-        TargetTypes.cbegin(), TargetTypes.cend(),
-        [&op_type](const AscendString &target_type) {return op_type == target_type;});
+  return std::any_of(TargetTypes.cbegin(), TargetTypes.cend(),
+                     [&op_type](const AscendString &target_type) { return op_type == target_type; });
 }
 
 bool FindNCHWConvNodes(const GraphPtr &graph, std::vector<GNode> &conv_nodes) {
-    for (auto &node: graph->GetDirectNode()) {
-        AscendString node_type, node_format;
-        if (node.GetType(node_type) != GRAPH_SUCCESS) {return false;}
-        if (IsMatchAnyOfType(node_type)
-            && node.GetAttr("data_format", node_format) == GRAPH_SUCCESS && node_format == "NCHW") { // 判断node类型 && 获取format属性 && 判断是否NCHW
-            conv_nodes.emplace_back(node);
-        }
+  for (auto &node : graph->GetDirectNode()) {
+    AscendString node_type, node_format;
+    if (node.GetType(node_type) != GRAPH_SUCCESS) {
+      return false;
     }
-    return !conv_nodes.empty();
+    if (IsMatchAnyOfType(node_type) && node.GetAttr("data_format", node_format) == GRAPH_SUCCESS &&
+        node_format == "NCHW") {  // 判断node类型 && 获取format属性 && 判断是否NCHW
+      conv_nodes.emplace_back(node);
+    }
+  }
+  return !conv_nodes.empty();
 }
 
 bool JudgeTransposeNode(const GNodePtr &node_ptr, int &cnt) {
-    Tensor const_tensor;
-    if (node_ptr->GetInputConstData(permIdxOfTransposeInputs, const_tensor) != GRAPH_SUCCESS) {
-        return false;
-    }
-    uint8_t *const_data = const_tensor.GetData();
-    size_t data_len = const_tensor.GetSize();
-    auto tensor_desc = const_tensor.GetTensorDesc();
-    auto t_datatype = tensor_desc.GetDataType();
-    if (t_datatype == DataType::DT_INT32) {
-        return JudgeTransposeConstData<int32_t>(const_data, data_len, cnt);
-    }
-    if (t_datatype == DataType::DT_INT64) {
-        return JudgeTransposeConstData<int64_t>(const_data, data_len, cnt);
-    }
+  Tensor const_tensor;
+  if (node_ptr->GetInputConstData(permIdxOfTransposeInputs, const_tensor) != GRAPH_SUCCESS) {
     return false;
+  }
+  uint8_t *const_data = const_tensor.GetData();
+  size_t data_len = const_tensor.GetSize();
+  auto tensor_desc = const_tensor.GetTensorDesc();
+  auto t_datatype = tensor_desc.GetDataType();
+  if (t_datatype == DataType::DT_INT32) {
+    return JudgeTransposeConstData<int32_t>(const_data, data_len, cnt);
+  }
+  if (t_datatype == DataType::DT_INT64) {
+    return JudgeTransposeConstData<int64_t>(const_data, data_len, cnt);
+  }
+  return false;
 }
 
 bool RemoveTransposeAndRelink(const GraphPtr &graph, const GNodePtr &node_ptr, CustomPassContext &pass_context) {
-    AscendString failed_reason;
-    if (!GraphFuseInspectorUtils::CanFuse({*node_ptr}, failed_reason)) {
-      std::cout << failed_reason.GetString() << std::endl;
+  AscendString failed_reason;
+  if (!GraphFuseInspectorUtils::CanFuse({*node_ptr}, failed_reason)) {
+    std::cout << failed_reason.GetString() << std::endl;
+    return false;
+  }
+  auto [data_node, data_output_index] = node_ptr->GetInDataNodesAndPortIndexs(dataIdxOfTransposeInputs);
+  auto [perm_node, perm_output_index] = node_ptr->GetInDataNodesAndPortIndexs(permIdxOfTransposeInputs);
+  if (graph->RemoveEdge(*data_node, data_output_index, *node_ptr, dataIdxOfTransposeInputs) != GRAPH_SUCCESS ||
+      graph->RemoveEdge(*perm_node, perm_output_index, *node_ptr, permIdxOfTransposeInputs) != GRAPH_SUCCESS) {
+    std::cout << "Remove input edges failed" << std::endl;
+    return false;
+  }
+  for (auto &[out_node, out_input_index] : node_ptr->GetOutDataNodesAndPortIndexs(idxOfTransposeOutput)) {
+    if (out_node != nullptr) {
+      if (graph->RemoveEdge(*node_ptr, idxOfTransposeOutput, *out_node, out_input_index) == GRAPH_SUCCESS &&
+          graph->AddDataEdge(*data_node, data_output_index, *out_node, out_input_index) == GRAPH_SUCCESS) {
+        std::cout << "Remove output edges success" << std::endl;
+        continue;
+      }
       return false;
     }
-    auto [data_node, data_output_index] = node_ptr->GetInDataNodesAndPortIndexs(dataIdxOfTransposeInputs);
-    auto [perm_node, perm_output_index] = node_ptr->GetInDataNodesAndPortIndexs(permIdxOfTransposeInputs);
-    if (graph->RemoveEdge(*data_node, data_output_index, *node_ptr, dataIdxOfTransposeInputs) != GRAPH_SUCCESS ||
-        graph->RemoveEdge(*perm_node, perm_output_index, *node_ptr, permIdxOfTransposeInputs) != GRAPH_SUCCESS ) {
-        std::cout << "Remove input edges failed" << std::endl;
-        return false;
-    }
-    for (auto &[out_node, out_input_index] : node_ptr->GetOutDataNodesAndPortIndexs(idxOfTransposeOutput)) {
-        if (out_node != nullptr) {
-            if (graph->RemoveEdge(*node_ptr, idxOfTransposeOutput, *out_node, out_input_index) == GRAPH_SUCCESS &&
-                graph->AddDataEdge(*data_node, data_output_index, *out_node, out_input_index) == GRAPH_SUCCESS) {
-                std::cout << "Remove output edges success" << std::endl;
-                continue;
-            }
-            return false;
-        }
-    }
-    if (GraphFuseInspectorUtils::ReportFuse({*node_ptr}, {}, pass_context) != SUCCESS) {
-      std::cout << "ReportFuse failed" << std::endl;
-      return false;
-    }
-    if (graph->RemoveNode(*perm_node) != GRAPH_SUCCESS || graph->RemoveNode(*node_ptr) != GRAPH_SUCCESS) {
-        return false;
-    }
-    return true;
+  }
+  if (GraphFuseInspectorUtils::ReportFuse({*node_ptr}, {}, pass_context) != SUCCESS) {
+    std::cout << "ReportFuse failed" << std::endl;
+    return false;
+  }
+  if (graph->RemoveNode(*perm_node) != GRAPH_SUCCESS || graph->RemoveNode(*node_ptr) != GRAPH_SUCCESS) {
+    return false;
+  }
+  return true;
 }
 
 bool DeleteTransposePairBehindIfExist(const GraphPtr &graph, const GNode &conv_node, CustomPassContext &pass_context) {
-    // 广度遍历寻找conv_node后的transpose
-    std::queue<GNodePtr> bfs_node_queue;
-    int transpose_cnt = 0;
-    auto conv_output_size = conv_node.GetOutputsSize();
+  // 广度遍历寻找conv_node后的transpose
+  std::queue<GNodePtr> bfs_node_queue;
+  int transpose_cnt = 0;
+  auto conv_output_size = conv_node.GetOutputsSize();
 
-    for (size_t idx = 0; idx < conv_output_size; ++idx) {
-        std::vector<std::pair<GNodePtr, int32_t>> output_nodes_idxes = conv_node.GetOutDataNodesAndPortIndexs(idx);
-        for (auto pair : output_nodes_idxes) {
-            bfs_node_queue.push(pair.first);
-        }
+  for (size_t idx = 0; idx < conv_output_size; ++idx) {
+    std::vector<std::pair<GNodePtr, int32_t>> output_nodes_idxes = conv_node.GetOutDataNodesAndPortIndexs(idx);
+    for (auto pair : output_nodes_idxes) {
+      bfs_node_queue.push(pair.first);
     }
-    while (!bfs_node_queue.empty()) {
-        auto node_ptr = bfs_node_queue.front();
-        bfs_node_queue.pop();
-        // 该节点的所有输出节点入队
-        auto output_size = node_ptr->GetOutputsSize();
-        for (size_t idx = 0; idx < output_size; ++idx) {
-            std::vector<std::pair<GNodePtr, int32_t>> output_nodes_idxes = node_ptr->GetOutDataNodesAndPortIndexs(idx);
-            for (auto pair : output_nodes_idxes) {
-                bfs_node_queue.push(pair.first);
-            }
-        }
-        // 判断节点是否是transpose && 判断perm
-        // 如果 cnt == 0 && perm == {0,2,3,1}，成功找到第1个，++ cnt
-        // 如果 cnt == 1 && perm == {0,3,1,2}，成功找到第2个，++ cnt
-        AscendString node_type;
-        if (node_ptr->GetType(node_type) != GRAPH_SUCCESS) {return false;}
-        if (node_type == "Transpose" && JudgeTransposeNode(node_ptr,transpose_cnt)) {
-            // 删除节点(包括const)并重新连边
-            if (!RemoveTransposeAndRelink(graph, node_ptr, pass_context)) {
-                std::cout << "RemoveTransposeAndRelink failed "<< std::endl;
-                return false;
-            };
-            // 如果cnt == 2，直接返回true
-            if (transpose_cnt == 2) {return true;}
-        }
+  }
+  while (!bfs_node_queue.empty()) {
+    auto node_ptr = bfs_node_queue.front();
+    bfs_node_queue.pop();
+    // 该节点的所有输出节点入队
+    auto output_size = node_ptr->GetOutputsSize();
+    for (size_t idx = 0; idx < output_size; ++idx) {
+      std::vector<std::pair<GNodePtr, int32_t>> output_nodes_idxes = node_ptr->GetOutDataNodesAndPortIndexs(idx);
+      for (auto pair : output_nodes_idxes) {
+        bfs_node_queue.push(pair.first);
+      }
     }
-    return true;
+    // 判断节点是否是transpose && 判断perm
+    // 如果 cnt == 0 && perm == {0,2,3,1}，成功找到第1个，++ cnt
+    // 如果 cnt == 1 && perm == {0,3,1,2}，成功找到第2个，++ cnt
+    AscendString node_type;
+    if (node_ptr->GetType(node_type) != GRAPH_SUCCESS) {
+      return false;
+    }
+    if (node_type == "Transpose" && JudgeTransposeNode(node_ptr, transpose_cnt)) {
+      // 删除节点(包括const)并重新连边
+      if (!RemoveTransposeAndRelink(graph, node_ptr, pass_context)) {
+        std::cout << "RemoveTransposeAndRelink failed " << std::endl;
+        return false;
+      };
+      // 如果cnt == 2，直接返回true
+      if (transpose_cnt == 2) {
+        return true;
+      }
+    }
+  }
+  return true;
 }
 
 /*
@@ -176,32 +180,32 @@ bool DeleteTransposePairBehindIfExist(const GraphPtr &graph, const GNode &conv_n
 4.使用RemoveEdge、AddDataEdge等删除符合条件的Transpose。
 */
 class ConvTransFormatPass : public FusionBasePass {
-public:
-    Status Run(GraphPtr &graph, CustomPassContext &pass_context) override {
-        // 备份原图用于回退
-        std::cout << "ConvTransFormatPass is starting" << std::endl;
-        Graph origin_graph = *graph;
-        std::vector<GNode> conv_nodes;
-        if (!FindNCHWConvNodes(graph, conv_nodes)) {
-            std::cout << "Graph has no Conv node in NCHW format" << std::endl;
-            return SUCCESS;
-        }
-        for (auto &node: conv_nodes) {
-            AscendString format_NHWC = "NHWC";
-            if (node.SetAttr("data_format", format_NHWC) != GRAPH_SUCCESS) {
-                std::cout << "Modify format of node failed" << std::endl;
-                *graph = origin_graph;
-                return FAILED;
-            }
-            if (!DeleteTransposePairBehindIfExist(graph, node, pass_context)) {
-                std::cout << "DeleteTransposePairBehindIfExist failed" << std::endl;
-                *graph = origin_graph;
-                return FAILED;
-            }
-        }
-        std::cout << "ConvTransFormatPass completed" << std::endl;
-        return SUCCESS;
+ public:
+  Status Run(GraphPtr &graph, CustomPassContext &pass_context) override {
+    // 备份原图用于回退
+    std::cout << "ConvTransFormatPass is starting" << std::endl;
+    Graph origin_graph = *graph;
+    std::vector<GNode> conv_nodes;
+    if (!FindNCHWConvNodes(graph, conv_nodes)) {
+      std::cout << "Graph has no Conv node in NCHW format" << std::endl;
+      return SUCCESS;
     }
+    for (auto &node : conv_nodes) {
+      AscendString format_NHWC = "NHWC";
+      if (node.SetAttr("data_format", format_NHWC) != GRAPH_SUCCESS) {
+        std::cout << "Modify format of node failed" << std::endl;
+        *graph = origin_graph;
+        return FAILED;
+      }
+      if (!DeleteTransposePairBehindIfExist(graph, node, pass_context)) {
+        std::cout << "DeleteTransposePairBehindIfExist failed" << std::endl;
+        *graph = origin_graph;
+        return FAILED;
+      }
+    }
+    std::cout << "ConvTransFormatPass completed" << std::endl;
+    return SUCCESS;
+  }
 };
 
 REG_FUSION_PASS(ConvTransFormatPass).Stage(CustomPassStage::kBeforeInferShape);

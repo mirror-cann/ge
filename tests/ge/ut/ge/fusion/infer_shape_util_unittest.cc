@@ -1,12 +1,12 @@
 /**
-* Copyright (c) 2026 Huawei Technologies Co., Ltd.
-* This program is free software, you can redistribute it and/or modify it under the terms and conditions of
-* CANN Open Software License Agreement Version 2.0 (the "License").
-* Please refer to the License for details. You may not use this file except in compliance with the License.
-* THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
-* INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
-* See LICENSE in the root of the software repository for the full text of the License.
-*/
+ * Copyright (c) 2026 Huawei Technologies Co., Ltd.
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
+ * CANN Open Software License Agreement Version 2.0 (the "License").
+ * Please refer to the License for details. You may not use this file except in compliance with the License.
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
+ * See LICENSE in the root of the software repository for the full text of the License.
+ */
 
 #include <string>
 #include <gtest/gtest.h>
@@ -52,12 +52,11 @@ graphStatus VDepInferFunc(Operator &op) {
   const size_t dim_count = const_data->GetData().GetSize() / sizeof(int64_t);
   auto out_desc = op.GetOutputDesc(0U);
   out_desc.SetShape(ge::Shape(std::vector<int64_t>(dims, dims + dim_count)));
-  (void) op.UpdateOutputDesc((int) 0, out_desc);
+  (void)op.UpdateOutputDesc((int)0, out_desc);
   return GRAPH_SUCCESS;
 }
 
-NodePtr AddDataNode(const ComputeGraphPtr &graph, const std::string &name, int64_t index,
-                    const GeTensorDesc &desc) {
+NodePtr AddDataNode(const ComputeGraphPtr &graph, const std::string &name, int64_t index, const GeTensorDesc &desc) {
   auto op = std::make_shared<OpDesc>(name, DATA);
   op->AddInputDesc(desc);
   op->AddOutputDesc(desc);
@@ -87,16 +86,15 @@ DataReluChain AddDataReluChain(const ComputeGraphPtr &graph, const std::string &
   return {data, relu};
 }
 
-NodePtr AddInt64ConstNode(const ComputeGraphPtr &graph, const std::string &name,
-                          const std::vector<int64_t> &vals) {
+NodePtr AddInt64ConstNode(const ComputeGraphPtr &graph, const std::string &name, const std::vector<int64_t> &vals) {
   GeTensorDesc desc(GeShape({static_cast<int64_t>(vals.size())}), FORMAT_ND, DT_INT64);
   auto op = std::make_shared<OpDesc>(name, CONSTANT);
   op->AddOutputDesc(desc);
   op->AddInferFunc(NoOpInferFunc);
   auto node = graph->AddNode(op);
-  auto tensor = std::make_shared<GeTensor>(
-      desc, reinterpret_cast<const uint8_t *>(vals.data()), vals.size() * sizeof(int64_t));
-  (void) OpDescUtils::SetWeights(*node, {tensor});
+  auto tensor =
+      std::make_shared<GeTensor>(desc, reinterpret_cast<const uint8_t *>(vals.data()), vals.size() * sizeof(int64_t));
+  (void)OpDescUtils::SetWeights(*node, {tensor});
   return node;
 }
 
@@ -112,12 +110,11 @@ NodePtr AddVDepNode(const ComputeGraphPtr &graph, const std::string &name, const
 void AddBoundaryInput(SubgraphBoundary &boundary, int64_t boundary_idx, const NodePtr &consumer,
                       int32_t consumer_input_idx) {
   SubgraphInput si;
-  (void) si.AddInput({NodeAdapter::Node2GNode(consumer), consumer_input_idx});
-  (void) boundary.AddInput(boundary_idx, si);
+  (void)si.AddInput({NodeAdapter::Node2GNode(consumer), consumer_input_idx});
+  (void)boundary.AddInput(boundary_idx, si);
 }
 
-void ExpectOutputShapeDtype(const NodePtr &node, const std::vector<int64_t> &expected_dims,
-                            DataType expected_dtype) {
+void ExpectOutputShapeDtype(const NodePtr &node, const std::vector<int64_t> &expected_dims, DataType expected_dtype) {
   const auto out_desc = node->GetOpDesc()->GetOutputDesc(0);
   const auto shape = out_desc.GetShape();
   EXPECT_EQ(shape.GetDimNum(), expected_dims.size());
@@ -127,9 +124,7 @@ void ExpectOutputShapeDtype(const NodePtr &node, const std::vector<int64_t> &exp
   EXPECT_EQ(out_desc.GetDataType(), expected_dtype);
 }
 
-ComputeGraphPtr BuildReplacementGraphWithRelu(int64_t data_index,
-                                              const GeShape &data_shape,
-                                              DataType data_dtype) {
+ComputeGraphPtr BuildReplacementGraphWithRelu(int64_t data_index, const GeShape &data_shape, DataType data_dtype) {
   auto replacement_compute_graph = std::make_shared<ComputeGraph>("replacement");
 
   auto data_op = std::make_shared<OpDesc>("data_r", DATA);
@@ -210,8 +205,7 @@ TEST_F(UtestInferShapeUtil, FromBoundary_ConstProducerPropagatesValue) {
 
   auto replacement = std::make_shared<ComputeGraph>("replacement_vdep");
   auto data_node = AddDataNode(replacement, "data_r", 0, const_desc);
-  auto vdep_node = AddVDepNode(replacement, "vdep", const_desc,
-                               GeTensorDesc(GeShape({-1, -1}), FORMAT_ND, DT_FLOAT));
+  auto vdep_node = AddVDepNode(replacement, "vdep", const_desc, GeTensorDesc(GeShape({-1, -1}), FORMAT_ND, DT_FLOAT));
   GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), vdep_node->GetInDataAnchor(0));
 
   SubgraphBoundary boundary;
@@ -398,8 +392,7 @@ TEST_F(UtestInferShapeUtil, FromBoundary_MixedConstAndNonConstInputs) {
 
   auto replacement = std::make_shared<ComputeGraph>("replacement_mixed");
   auto dr0_node = AddDataNode(replacement, "data_r0", 0, const_desc);
-  auto vdep_node = AddVDepNode(replacement, "vdep", const_desc,
-                               GeTensorDesc(GeShape({-1, -1}), FORMAT_ND, DT_FLOAT));
+  auto vdep_node = AddVDepNode(replacement, "vdep", const_desc, GeTensorDesc(GeShape({-1, -1}), FORMAT_ND, DT_FLOAT));
   GraphUtils::AddEdge(dr0_node->GetOutDataAnchor(0), vdep_node->GetInDataAnchor(0));
 
   GeTensorDesc wild_desc(GeShape({-1}), FORMAT_ND, DT_FLOAT);

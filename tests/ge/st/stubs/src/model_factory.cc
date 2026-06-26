@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,12 +23,13 @@
 
 #include <unistd.h>
 
-#define RETURN_WHEN_FOUND(name) do { \
-      auto iter = model_names_to_path_.find(name); \
-      if (iter != model_names_to_path_.end()) { \
-        return iter->second; \
-      }                                \
-    } while(0)
+#define RETURN_WHEN_FOUND(name)                  \
+  do {                                           \
+    auto iter = model_names_to_path_.find(name); \
+    if (iter != model_names_to_path_.end()) {    \
+      return iter->second;                       \
+    }                                            \
+  } while (0)
 
 FAKE_NS_BEGIN
 namespace {
@@ -40,7 +41,7 @@ const std::string &GetModelPath() {
   path = PathJoin(GetRunPath().c_str(), "models");
   if (!IsDir(path.c_str())) {
     auto ret = mmMkdir(path.c_str(),
-                       S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP | S_IROTH | S_IXOTH); // 775
+                       S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP | S_IROTH | S_IXOTH);  // 775
     if (ret != EN_OK) {
       path = "";
     }
@@ -48,13 +49,13 @@ const std::string &GetModelPath() {
   return path;
 }
 
-}
+}  // namespace
 std::unordered_map<std::string, std::string> ModelFactory::model_names_to_path_;
 const std::string &ge::ModelFactory::GenerateModel_1(bool is_dynamic, const bool with_fusion) {
   const std::string name = "ms1_" + std::to_string(is_dynamic);
   RETURN_WHEN_FOUND(name);
 
-  std::vector<int64_t> shape = {2,2,3,2};  // HWCN
+  std::vector<int64_t> shape = {2, 2, 3, 2};  // HWCN
   auto data_tensor = GenerateTensor(shape);
 
   DEF_GRAPH(dynamic_op) {
@@ -98,12 +99,13 @@ const std::string &ge::ModelFactory::GenerateModel_1(bool is_dynamic, const bool
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
   auto data = compute_graph->FindNode("data1");
   if (data != nullptr && data->GetOpDesc()->MutableInputDesc(0) != nullptr) {
-    data->GetOpDesc()->MutableInputDesc(0)->SetOriginShape(GeShape({1,2,3,4,5}));
+    data->GetOpDesc()->MutableInputDesc(0)->SetOriginShape(GeShape({1, 2, 3, 4, 5}));
     data->GetOpDesc()->MutableInputDesc(0)->SetOriginFormat(FORMAT_NC1HWC0);
     bool enable_storage_format_spread = true;
     (void)AttrUtils::SetBool(data->GetOpDesc(), "_enable_storage_format_spread", enable_storage_format_spread);
     bool is_origin_format_set = true;
-    (void)AttrUtils::SetBool(data->GetOpDesc()->MutableInputDesc(0), ATTR_NAME_ORIGIN_FORMAT_IS_SET, is_origin_format_set);
+    (void)AttrUtils::SetBool(data->GetOpDesc()->MutableInputDesc(0), ATTR_NAME_ORIGIN_FORMAT_IS_SET,
+                             is_origin_format_set);
   }
   return SaveAsModel(name, graph, with_fusion);
 }
@@ -112,42 +114,42 @@ const std::string &ge::ModelFactory::GenerateModel_2(bool is_dynamic, const bool
   const std::string name = "ms2_" + std::to_string(is_dynamic);
   RETURN_WHEN_FOUND(name);
 
-  std::vector<int64_t> shape = {2,2,3,2};  // HWCN
+  std::vector<int64_t> shape = {2, 2, 3, 2};  // HWCN
   auto data_tensor = GenerateTensor(shape);
   // two input data
   DEF_GRAPH(dynamic_op) {
     ge::OpDescPtr data1;
     if (is_dynamic) {
       data1 = OP_CFG(DATA)
-          .Attr(ATTR_NAME_INDEX, 0)
-          .InCnt(1)
-          .TensorDesc(FORMAT_NCHW, DT_FLOAT, {-1, 3, 16, 16})
-          .OutCnt(1)
-          .TensorDesc(FORMAT_NCHW, DT_FLOAT, {-1, 3, 16, 16})
-          .Build("data1");
+                  .Attr(ATTR_NAME_INDEX, 0)
+                  .InCnt(1)
+                  .TensorDesc(FORMAT_NCHW, DT_FLOAT, {-1, 3, 16, 16})
+                  .OutCnt(1)
+                  .TensorDesc(FORMAT_NCHW, DT_FLOAT, {-1, 3, 16, 16})
+                  .Build("data1");
 
     } else {
       data1 = OP_CFG(DATA)
-          .Attr(ATTR_NAME_INDEX, 0)
-          .InCnt(1)
-          .TensorDesc(FORMAT_NCHW, DT_FLOAT, {2, 3, 16, 16})
-          .OutCnt(1)
-          .TensorDesc(FORMAT_NCHW, DT_FLOAT, {2, 3, 16, 16})
-          .Build("data1");
+                  .Attr(ATTR_NAME_INDEX, 0)
+                  .InCnt(1)
+                  .TensorDesc(FORMAT_NCHW, DT_FLOAT, {2, 3, 16, 16})
+                  .OutCnt(1)
+                  .TensorDesc(FORMAT_NCHW, DT_FLOAT, {2, 3, 16, 16})
+                  .Build("data1");
     }
     auto data2 = OP_CFG(DATA)
-        .Attr(ATTR_NAME_INDEX, 1)
-        .InCnt(1)
-        .TensorDesc(FORMAT_NCHW, DT_FLOAT, {2, 3, 16, 16})
-        .OutCnt(1)
-        .TensorDesc(FORMAT_NCHW, DT_FLOAT, {2, 3, 16, 16})
-        .Build("data2");
+                     .Attr(ATTR_NAME_INDEX, 1)
+                     .InCnt(1)
+                     .TensorDesc(FORMAT_NCHW, DT_FLOAT, {2, 3, 16, 16})
+                     .OutCnt(1)
+                     .TensorDesc(FORMAT_NCHW, DT_FLOAT, {2, 3, 16, 16})
+                     .Build("data2");
     auto const1 = OP_CFG(CONSTANT)
-        .Weight(data_tensor)
-        .TensorDesc(FORMAT_HWCN, DT_FLOAT, shape)
-        .InCnt(1)
-        .OutCnt(1)
-        .Build("const1");
+                      .Weight(data_tensor)
+                      .TensorDesc(FORMAT_HWCN, DT_FLOAT, shape)
+                      .InCnt(1)
+                      .OutCnt(1)
+                      .Build("const1");
 
     auto conv2d1 = OP_CFG(CONV2D).InCnt(2).OutCnt(1).Build("conv2d1");
 
@@ -169,7 +171,7 @@ const std::string &ge::ModelFactory::GenerateModel_switch(bool is_dynamic, const
   const std::string name = "ms3_" + std::to_string(is_dynamic);
   RETURN_WHEN_FOUND(name);
 
-  GeTensorDesc tensor_4_desc(ge::GeShape({-1,3,4,5}), FORMAT_NCHW, DT_INT32);
+  GeTensorDesc tensor_4_desc(ge::GeShape({-1, 3, 4, 5}), FORMAT_NCHW, DT_INT32);
   GeTensorDesc tensor_1_desc(ge::GeShape({1}), FORMAT_ND, DT_BOOL);
 
   auto data1 = std::make_shared<OpDesc>("data1", DATA);
@@ -181,10 +183,25 @@ const std::string &ge::ModelFactory::GenerateModel_switch(bool is_dynamic, const
   data2->AddOutputDesc(tensor_1_desc);
 
   DEF_GRAPH(g1) {
-    CHAIN(NODE(data1)->EDGE(0, 0)->NODE("switch", SWITCH)->EDGE(0, 0)->NODE("relu1", RELU)->
-            NODE("merge", MERGE)->EDGE(0, 0)->NODE("relu3", RELU)->NODE("output", NETOUTPUT));
-    CHAIN(NODE(data2)->EDGE(0, 1)->NODE("switch")->EDGE(1, 0)->NODE("relu2", RELU)->EDGE(0, 1)->
-            NODE("merge")->EDGE(1, 0)->NODE("relu4", RELU)->NODE("output"));
+    CHAIN(NODE(data1)
+              ->EDGE(0, 0)
+              ->NODE("switch", SWITCH)
+              ->EDGE(0, 0)
+              ->NODE("relu1", RELU)
+              ->NODE("merge", MERGE)
+              ->EDGE(0, 0)
+              ->NODE("relu3", RELU)
+              ->NODE("output", NETOUTPUT));
+    CHAIN(NODE(data2)
+              ->EDGE(0, 1)
+              ->NODE("switch")
+              ->EDGE(1, 0)
+              ->NODE("relu2", RELU)
+              ->EDGE(0, 1)
+              ->NODE("merge")
+              ->EDGE(1, 0)
+              ->NODE("relu4", RELU)
+              ->NODE("output"));
   };
 
   return SaveAsModel(name, ToGeGraph(g1), with_fusion);
@@ -222,30 +239,30 @@ const std::string &ge::ModelFactory::GenerateModel_4(bool is_dynamic, const bool
     auto data1 = OP_CFG(DATA)
                      .Attr(ATTR_NAME_INDEX, 0)
                      .InCnt(1)
-                     .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128,3,224,224})
+                     .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128, 3, 224, 224})
                      .OutCnt(1)
-                     .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128,3,224,224})
+                     .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128, 3, 224, 224})
                      .Build("data1");
     auto data2 = OP_CFG(DATA)
                      .Attr(ATTR_NAME_INDEX, 1)
                      .InCnt(1)
-                     .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128,3,224,224})
+                     .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128, 3, 224, 224})
                      .OutCnt(1)
-                     .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128,3,224,224})
+                     .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128, 3, 224, 224})
                      .Build("data2");
     auto data3 = OP_CFG(DATA)
                      .Attr(ATTR_NAME_INDEX, 2)
                      .InCnt(1)
-                     .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128,3,224,224})
+                     .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128, 3, 224, 224})
                      .OutCnt(1)
-                     .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128,3,224,224})
+                     .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128, 3, 224, 224})
                      .Build("data3");
     auto data4 = OP_CFG(DATA)
                      .Attr(ATTR_NAME_INDEX, 3)
                      .InCnt(1)
-                     .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128,3,224,224})
+                     .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128, 3, 224, 224})
                      .OutCnt(1)
-                     .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128,3,224,224})
+                     .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128, 3, 224, 224})
                      .Build("data4");
 
     partitioncall0 = OP_CFG(PARTITIONEDCALL).InCnt(4).OutCnt(1).Build("partitioncall0");
@@ -263,40 +280,37 @@ const std::string &ge::ModelFactory::GenerateModel_4(bool is_dynamic, const bool
                       .Attr(ATTR_NAME_INDEX, 0)
                       .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
                       .InCnt(1)
-                      .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128,3,224,224})
+                      .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128, 3, 224, 224})
                       .OutCnt(1)
-                      .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128,3,224,224})
+                      .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128, 3, 224, 224})
                       .Build("data00");
     auto data01 = OP_CFG(DATA)
                       .Attr(ATTR_NAME_INDEX, 1)
                       .Attr(ATTR_NAME_PARENT_NODE_INDEX, 1)
                       .InCnt(1)
-                      .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128,3,224,224})
+                      .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128, 3, 224, 224})
                       .OutCnt(1)
-                      .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128,3,224,224})
+                      .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128, 3, 224, 224})
                       .Build("data01");
     auto data10 = OP_CFG(DATA)
                       .Attr(ATTR_NAME_INDEX, 2)
                       .Attr(ATTR_NAME_PARENT_NODE_INDEX, 2)
                       .InCnt(1)
-                      .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128,3,224,224})
+                      .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128, 3, 224, 224})
                       .OutCnt(1)
-                      .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128,3,224,224})
+                      .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128, 3, 224, 224})
                       .Build("data10");
     auto data11 = OP_CFG(DATA)
                       .Attr(ATTR_NAME_INDEX, 3)
                       .Attr(ATTR_NAME_PARENT_NODE_INDEX, 3)
                       .InCnt(1)
-                      .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128,3,224,224})
+                      .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128, 3, 224, 224})
                       .OutCnt(1)
-                      .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128,3,224,224})
+                      .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128, 3, 224, 224})
                       .Build("data11");
     partitioncall00 = OP_CFG(PARTITIONEDCALL).InCnt(2).OutCnt(1).Build("partitioncall00");
     auto conv_node0 = OP_CFG(CONV2D).InCnt(2).OutCnt(1).Build("conv_node0");
-    net_output_subgraph0 = OP_CFG(NETOUTPUT)
-                               .InCnt(2)
-                               .OutCnt(1)
-                               .Build("net_output_subgraph0");
+    net_output_subgraph0 = OP_CFG(NETOUTPUT).InCnt(2).OutCnt(1).Build("net_output_subgraph0");
     for (size_t i = 0U; i < net_output_subgraph0->GetInputsSize(); ++i) {
       AttrUtils::SetInt(net_output_subgraph0->MutableInputDesc(i), ATTR_NAME_PARENT_NODE_INDEX, 0);
     }
@@ -313,17 +327,17 @@ const std::string &ge::ModelFactory::GenerateModel_4(bool is_dynamic, const bool
                        .Attr(ATTR_NAME_INDEX, 0)
                        .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
                        .InCnt(1)
-                       .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128,3,224,224})
+                       .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128, 3, 224, 224})
                        .OutCnt(1)
-                       .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128,3,224,224})
+                       .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128, 3, 224, 224})
                        .Build("data000");
     auto data001 = OP_CFG(DATA)
                        .Attr(ATTR_NAME_INDEX, 1)
                        .Attr(ATTR_NAME_PARENT_NODE_INDEX, 1)
                        .InCnt(1)
-                       .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128,3,224,224})
+                       .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128, 3, 224, 224})
                        .OutCnt(1)
-                       .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128,3,224,224})
+                       .TensorDesc(FORMAT_NCHW, DT_FLOAT, {128, 3, 224, 224})
                        .Build("data001");
 
     auto conv_node00 = OP_CFG(CONV2D).InCnt(2).OutCnt(1).Build("conv_node00");
@@ -371,7 +385,7 @@ const std::string &ge::ModelFactory::GenerateModel_data_to_netoutput(bool is_dyn
   const std::string name = "ms_data_to_netoutput" + std::to_string(is_dynamic);
   RETURN_WHEN_FOUND(name);
 
-  std::vector<int64_t> shape = {2,2,3,2};  // HWCN
+  std::vector<int64_t> shape = {2, 2, 3, 2};  // HWCN
   auto data_tensor = GenerateTensor(shape);
 
   DEF_GRAPH(dynamic_op) {
@@ -437,7 +451,6 @@ const std::string &ge::ModelFactory::GenerateModel_refdata(bool is_dynamic, cons
 
   return SaveAsModel(name, ToGeGraph(dynamic_op), with_fusion);
 }
-
 
 const std::string &ModelFactory::SaveAsModel(const string &name, const Graph &graph, const bool with_fusion) {
   Model model;

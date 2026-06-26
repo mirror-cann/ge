@@ -191,4 +191,3 @@ target_link_libraries(rts_engine_utest PRIVATE
     -lpthread
     -lgcov
 )
-

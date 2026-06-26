@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -65,7 +65,9 @@ Status GraphContext::Initialize(const std::map<std::string, std::string> &option
   return SUCCESS;
 }
 
-Status GraphContext::Finalize() const { return SUCCESS; }
+Status GraphContext::Finalize() const {
+  return SUCCESS;
+}
 
 Status GraphContext::GetVariableTensor(const std::string &var_data_name, GeTensor &returned_tensor) const {
   if (var_data_name.empty()) {
@@ -76,7 +78,7 @@ Status GraphContext::GetVariableTensor(const std::string &var_data_name, GeTenso
 
   if (GetVarNodeTensorTable().empty()) {
     REPORT_INNER_ERR_MSG("E19999", "VarNodeTensorTable is empty, var_data_name:%s, check invalid",
-                       var_data_name.c_str());
+                         var_data_name.c_str());
     GELOGE(GE_GRAPH_EMPTY_VARIABLE_TENSOR_TABLE, "[Check][Param] VarNodeTensorTable is empty, var_data_name:%s",
            var_data_name.c_str());
     return GE_GRAPH_EMPTY_VARIABLE_TENSOR_TABLE;
@@ -95,8 +97,7 @@ Status GraphContext::GetVariableTensor(const std::string &var_data_name, GeTenso
     }
   }
 
-  REPORT_INNER_ERR_MSG("E19999", "VarRecord with data_name:%s does not exist, check invalid",
-                     var_data_name.c_str());
+  REPORT_INNER_ERR_MSG("E19999", "VarRecord with data_name:%s does not exist, check invalid", var_data_name.c_str());
   GELOGE(GE_GRAPH_VARIABLE_DOES_NOT_EXIST, "[Check][Param] VarRecord with data_name %s does NOT exist!",
          var_data_name.c_str());
 

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,8 +26,7 @@ constexpr int64_t kMainStreamId = 0;
 constexpr uint32_t kWhileBodyIndex = 1;
 
 // 逻辑流分配pass内打印info日志使用，可默认将pass name打印出来
-#define GE_STREAM_PASS_LOGI(fmt, ...) \
-  GELOGI("[%s]" fmt, this->GetName().c_str(), ##__VA_ARGS__)
+#define GE_STREAM_PASS_LOGI(fmt, ...) GELOGI("[%s]" fmt, this->GetName().c_str(), ##__VA_ARGS__)
 
 bool HasUserStreamLabel(const ge::NodePtr &node) {
   GE_ASSERT_NOTNULL(node->GetOpDesc());
@@ -117,7 +116,8 @@ ge::Status CollectStreamIdToIoNodes(const ge::NodePtr &node,
   return ge::SUCCESS;
 }
 
-bool HasOtherNodeBetweenIOInThisStream(const std::pair<ge::NodePtr, ge::NodePtr> &io_nodes, const std::set<int64_t> &ordered_node_ids) {
+bool HasOtherNodeBetweenIOInThisStream(const std::pair<ge::NodePtr, ge::NodePtr> &io_nodes,
+                                       const std::set<int64_t> &ordered_node_ids) {
   if ((io_nodes.first == nullptr) || (io_nodes.second == nullptr)) {
     return true;
   }
@@ -226,7 +226,7 @@ Status AssignByDependencyPass::Run(ComputeGraphPtr graph, const std::vector<Subg
         int64_t stream_id = AssignNewStream(reusable_subgraph);
         subgraph->stream_id = stream_id;
         GE_STREAM_PASS_LOGI("[Assign][NewStreamId] %ld for Reusable subgraph %s cause has not been assigned before.",
-               stream_id, reusable_subgraph->name.c_str());
+                            stream_id, reusable_subgraph->name.c_str());
       }
 
       if (reusable_subgraph->reused_subgraph != nullptr) {
@@ -236,9 +236,8 @@ Status AssignByDependencyPass::Run(ComputeGraphPtr graph, const std::vector<Subg
       subgraph->reused_subgraph = reusable_subgraph;
       reused_subgraphs_.emplace_back(subgraph, reusable_subgraph);
       GE_STREAM_PASS_LOGI("[Reuse][Stream]Subgraph %s of engine %s reuses stream of subgraph %s of engine %s.",
-             subgraph->name.c_str(),
-             subgraph->engine_conf.id.c_str(), reusable_subgraph->name.c_str(),
-             reusable_subgraph->engine_conf.id.c_str());
+                          subgraph->name.c_str(), subgraph->engine_conf.id.c_str(), reusable_subgraph->name.c_str(),
+                          reusable_subgraph->engine_conf.id.c_str());
     }
     changed = true;
   }
@@ -275,7 +274,7 @@ bool AssignByDependencyPass::SubGraphCouldReuse(
 
 bool AssignByDependencyPass::IsMemoryPriority() const {
   std::string memory_optimization_policy;
-  (void) ge::GetContext().GetOption(MEMORY_OPTIMIZATION_POLICY, memory_optimization_policy);
+  (void)ge::GetContext().GetOption(MEMORY_OPTIMIZATION_POLICY, memory_optimization_policy);
   return (memory_optimization_policy == kMemoryPriority);
 }
 
@@ -304,8 +303,7 @@ bool AssignByDependencyPass::CouldReuse(const SubgraphPtr &subgraph, const Subgr
     return false;
   }
 
-  if ((subgraph->engine_conf.id == pred_subgraph->engine_conf.id) ||
-      StreamUtils::IsEngineAttach(*subgraph)) {
+  if ((subgraph->engine_conf.id == pred_subgraph->engine_conf.id) || StreamUtils::IsEngineAttach(*subgraph)) {
     return true;
   }
 
@@ -387,7 +385,7 @@ void AssignByDependencyPass::UpdateAssignedSubgraphs(Context &context) {
     if (subgraph->stream_id == to_be_updated_stream) {
       subgraph->stream_id = context.default_stream;
       GE_STREAM_PASS_LOGI("Subgraph %s of engine %s reuses default stream %ld.", subgraph->name.c_str(),
-             subgraph->engine_conf.id.c_str(), context.default_stream);
+                          subgraph->engine_conf.id.c_str(), context.default_stream);
     } else {
       GE_STREAM_PASS_LOGI("[Update][StreamId]id:%ld for subgraph %s.", subgraph->stream_id, subgraph->name.c_str());
     }
@@ -419,9 +417,8 @@ Status SingleStreamPass::Run(ComputeGraphPtr graph, const std::vector<SubgraphPt
       const std::string &stream_label = subgraph->subgraph_info.GetStreamLabel();
       if (!stream_label.empty()) {
         const std::string option_name = GetContext().GetReadableName(ENABLE_SINGLE_STREAM);
-        const std::string reason =
-            "Option " + option_name + "=true conflicts with stream label \"" + stream_label +
-            "\"; set " + option_name + " to false";
+        const std::string reason = "Option " + option_name + "=true conflicts with stream label \"" + stream_label +
+                                   "\"; set " + option_name + " to false";
         REPORT_PREDEFINED_ERR_MSG("E10055", std::vector<const char *>({"reason"}),
                                   std::vector<const char *>({reason.c_str()}));
         GELOGE(PARAM_INVALID, "[Check][StreamLabel] stream label %s on subgraph %s conflicts with option %s=true.",
@@ -442,7 +439,7 @@ Status NodeStreamUpdatePass::Run(ComputeGraphPtr graph, const std::vector<Subgra
 
     if ((!StreamUtils::IsEngineSkip(*subgraph)) && (!StreamUtils::HasAssignedStream(*subgraph))) {
       REPORT_INNER_ERR_MSG("E19999", "Subgraph %s has not yet been assigned a stream (engine: %s)",
-                         subgraph->name.c_str(), engine_name.c_str());
+                           subgraph->name.c_str(), engine_name.c_str());
       GELOGE(INTERNAL_ERROR, "[Check][Param] Subgraph %s has not yet been assigned a stream (engine: %s).",
              subgraph->name.c_str(), engine_name.c_str());
       return INTERNAL_ERROR;
@@ -608,9 +605,7 @@ int64_t UpdateForSkippedEnginePass::GetSingleInoutStream(const NodePtr &node) co
   return kInvalidStream;
 }
 
-
-Status UpdateForMdeGroupPass::Run(ComputeGraphPtr graph, const std::vector<SubgraphPtr> &subgraphs,
-                                  Context &context) {
+Status UpdateForMdeGroupPass::Run(ComputeGraphPtr graph, const std::vector<SubgraphPtr> &subgraphs, Context &context) {
   (void)graph;
   std::map<int32_t, std::vector<OpDescPtr>> stream_op_map;
   for (const auto &subgraph : subgraphs) {
@@ -632,8 +627,8 @@ Status UpdateForMdeGroupPass::Run(ComputeGraphPtr graph, const std::vector<Subgr
     std::map<int64_t, int64_t> group_2_stream_id;
     for (const auto &op_desc : iter.second) {
       int64_t attr_new_stream_id;
-      GE_ASSERT_TRUE(AttrUtils::GetInt(op_desc, kNewStreamId, attr_new_stream_id),
-                     "[Get][Attr] %s of node %s failed,", kNewStreamId, op_desc->GetNamePtr());
+      GE_ASSERT_TRUE(AttrUtils::GetInt(op_desc, kNewStreamId, attr_new_stream_id), "[Get][Attr] %s of node %s failed,",
+                     kNewStreamId, op_desc->GetNamePtr());
       const std::map<int64_t, int64_t>::const_iterator &it_find = group_2_stream_id.find(attr_new_stream_id);
       int64_t new_stream_id = kInvalidStream;
       int64_t old_stream_id = op_desc->GetStreamId();
@@ -808,17 +803,20 @@ Status AllReduceParallelPass::Run(ComputeGraphPtr graph, const std::vector<Subgr
   return !all_reduce_succs.empty() ? SUCCESS : NOT_CHANGED;
 }
 
-bool AllReduceParallelPass::IsHcomNode(const std::string& node_type) const {
+bool AllReduceParallelPass::IsHcomNode(const std::string &node_type) const {
   return (node_type == HCOMALLREDUCE || node_type == HVDCALLBACKALLREDUCE);
 }
 
 LogicalStreamAllocator::LogicalStreamAllocator(const std::map<std::string, int32_t> &max_parallel_num)
-  : max_parallel_num_(max_parallel_num) {
+    : max_parallel_num_(max_parallel_num) {}
+
+void LogicalStreamAllocator::EnableSingleStream(bool enable) {
+  context_.enable_single_stream = enable;
 }
 
-void LogicalStreamAllocator::EnableSingleStream(bool enable) { context_.enable_single_stream = enable; }
-
-void LogicalStreamAllocator::EnableHcomParallel(bool enable) { context_.enable_hcom_parallel = enable; }
+void LogicalStreamAllocator::EnableHcomParallel(bool enable) {
+  context_.enable_hcom_parallel = enable;
+}
 
 Status LogicalStreamAllocator::Assign(const ComputeGraphPtr &root_graph, const Graph2SubGraphInfoList &subgraph_map,
                                       int64_t &total_stream_num, int64_t &main_stream_num) {
@@ -925,9 +923,10 @@ Status OptimizeIneffectiveMultiStreamPass::Run(const ComputeGraphPtr &graph) {
     auto op_desc = node->GetOpDesc();
     GE_ASSERT_NOTNULL(op_desc);
     auto cur_stream_id = op_desc->GetStreamId();
-    // 如下情况不根据图结构关系重新分流： 1. 通过StreamLabel指定分流 2. 带kNewStreamId属性(UpdateForMdeGroupPass) 3. 带ATTR_NAME_PARALLEL_GROUP属性(UpdateForParallelGroupPass)
-    if (StreamUtils::HasStreamLabelOrUserStreamLabel(node) || op_desc->HasAttr(kNewStreamId) || op_desc->
-        HasAttr(ATTR_NAME_PARALLEL_GROUP) || (cur_stream_id == kInvalidStream)) {
+    // 如下情况不根据图结构关系重新分流： 1. 通过StreamLabel指定分流 2. 带kNewStreamId属性(UpdateForMdeGroupPass) 3.
+    // 带ATTR_NAME_PARALLEL_GROUP属性(UpdateForParallelGroupPass)
+    if (StreamUtils::HasStreamLabelOrUserStreamLabel(node) || op_desc->HasAttr(kNewStreamId) ||
+        op_desc->HasAttr(ATTR_NAME_PARALLEL_GROUP) || (cur_stream_id == kInvalidStream)) {
       continue;
     }
     const auto &in_nodes = node->GetInNodes();
@@ -1021,7 +1020,6 @@ Status LogicalStreamAllocator::RunOptimizeByTopoPasses(const ComputeGraphPtr &gr
   }
   return SUCCESS;
 }
-
 
 void LogicalStreamAllocator::RefreshContinuousStreams(const ComputeGraphPtr &graph) {
   int64_t stream_num = context_.next_stream;

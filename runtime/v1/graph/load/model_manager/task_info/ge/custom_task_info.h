@@ -34,9 +34,12 @@ namespace ge {
 class SinkOpArgsHandler;
 class CustomTaskInfo : public TaskInfo {
   friend class SinkOpArgsHandler;
+
  public:
   CustomTaskInfo() = default;
-  ~CustomTaskInfo() override { davinci_model_ = nullptr; }
+  ~CustomTaskInfo() override {
+    davinci_model_ = nullptr;
+  }
 
   Status ParseTaskRunParam(const domi::TaskDef &task_def, DavinciModel *const davinci_model,
                            TaskRunParam &task_run_param) override;
@@ -61,14 +64,16 @@ class CustomTaskInfo : public TaskInfo {
 
   int64_t ParseOpIndex(const domi::TaskDef &task_def) const override;
 
-  const std::vector<ArgsAllocationResult>& GetArgsAllocationResults() const override {
+  const std::vector<ArgsAllocationResult> &GetArgsAllocationResults() const override {
     return args_allocation_results_;
   }
 
   // 后续扩展刷新模式后，该函数需要同步适配
-  bool NeedReserveArgsTable() const override { return is_args_refreshable_; }
+  bool NeedReserveArgsTable() const override {
+    return is_args_refreshable_;
+  }
 
-  Status UpdateHostArgs(void* base_addr, size_t mem_size) override;
+  Status UpdateHostArgs(void *base_addr, size_t mem_size) override;
 
  private:
   Status InsertDumpOp(const std::string &dump_mode);
@@ -76,17 +81,17 @@ class CustomTaskInfo : public TaskInfo {
                                const std::vector<uint64_t> &output_addrs_value);
   void SetCustomDumpInfo(const DumpProperties &dump_properties, DumpOp &dump_op) const;
 
-  const std::deque<gert::KernelArgs>& GetKernelArgsDeque(gert::Placement placement) const;
+  const std::deque<gert::KernelArgs> &GetKernelArgsDeque(gert::Placement placement) const;
 
   void UpdateIoAndWorkspaceAddrs(const IowAddrs &iow_addrs);
 
   Status ConstructCustomKernelContextInputsOutputs(const ge::OpDescPtr &op_desc,
-                                                    std::vector<std::unique_ptr<uint8_t[]>> &inputs,
-                                                    std::vector<std::unique_ptr<uint8_t[]>> &outputs) const;
+                                                   std::vector<std::unique_ptr<uint8_t[]>> &inputs,
+                                                   std::vector<std::unique_ptr<uint8_t[]>> &outputs) const;
 
   Status InitArgsIoAddrsUpdater();
 
-  const gert::KernelArgs* MallocReadOnlyDevArgsImpl(void *host_args, size_t args_size);
+  const gert::KernelArgs *MallocReadOnlyDevArgsImpl(void *host_args, size_t args_size);
 
   DavinciModel *davinci_model_{};
   uint32_t task_id_{0U};

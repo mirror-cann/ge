@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,9 +32,8 @@ struct TestStructB {
   }
 };
 
-}
-class AttrStoreUt : public testing::Test {
-};
+}  // namespace
+class AttrStoreUt : public testing::Test {};
 
 TEST_F(AttrStoreUt, CreateAndGetOk1) {
   auto s = AttrStore::Create(2);
@@ -70,19 +69,19 @@ TEST_F(AttrStoreUt, CreateAndGetOk2) {
 TEST_F(AttrStoreUt, CreateAndGetOk3) {
   auto s = AttrStore::Create(2);
   EXPECT_TRUE(s.Set(0, true));
-  EXPECT_TRUE(s.Set(1, TestStructB({1,2,3})));
+  EXPECT_TRUE(s.Set(1, TestStructB({1, 2, 3})));
   s.SetNameAndId("transpose_x1", 0);
   s.SetNameAndId("transpose_x2", 1);
 
   EXPECT_NE(s.Get<bool>(0), nullptr);
   EXPECT_TRUE(*s.Get<bool>(0));
   EXPECT_NE(s.Get<TestStructB>(1), nullptr);
-  EXPECT_EQ(*s.Get<TestStructB>(1), TestStructB({1,2,3}));
+  EXPECT_EQ(*s.Get<TestStructB>(1), TestStructB({1, 2, 3}));
 
   EXPECT_NE(s.GetByName<bool>("transpose_x1"), nullptr);
   EXPECT_TRUE(*s.GetByName<bool>("transpose_x1"));
   EXPECT_NE(s.GetByName<TestStructB>("transpose_x2"), nullptr);
-  EXPECT_EQ(*s.GetByName<TestStructB>("transpose_x2"), TestStructB({1,2,3}));
+  EXPECT_EQ(*s.GetByName<TestStructB>("transpose_x2"), TestStructB({1, 2, 3}));
 }
 
 TEST_F(AttrStoreUt, CreateAndGetOk_RLValue1) {
@@ -111,7 +110,7 @@ TEST_F(AttrStoreUt, CreateAndGetOk_RLValue2) {
   EXPECT_TRUE(s.SetByName("attr_0", a));
   EXPECT_TRUE(s.SetByName("attr_1", b));
   EXPECT_TRUE(s.SetByName("attr_2", c));
-  EXPECT_TRUE(s.SetByName("attr_3", TestStructB{100,200,300}));
+  EXPECT_TRUE(s.SetByName("attr_3", TestStructB{100, 200, 300}));
 
   EXPECT_EQ(*s.GetByName<TestStructB>("attr_0"), a);
   EXPECT_EQ(*s.GetByName<TestStructB>("attr_1"), a);
@@ -190,7 +189,7 @@ TEST_F(AttrStoreUt, DeleteOk) {
 TEST_F(AttrStoreUt, GetWithWrongType) {
   auto s = AttrStore::Create(2);
   EXPECT_TRUE(s.Set<bool>(0, true));
-  EXPECT_TRUE(s.Set<TestStructB>(1, {1,2,10}));
+  EXPECT_TRUE(s.Set<TestStructB>(1, {1, 2, 10}));
   s.SetNameAndId("transpose_x1", 0);
   s.SetNameAndId("transpose_x2", 1);
 
@@ -222,14 +221,13 @@ TEST_F(AttrStoreUt, ModifyByNameOk) {
   s.SetNameAndId("transpose_x2", 1);
 
   auto p = s.MutableGetByName<int64_t>("transpose_x1");
-  EXPECT_NE(p,  nullptr);
+  EXPECT_NE(p, nullptr);
   *p = 101;
   EXPECT_EQ(*s.Get<int64_t>(0), 101);
   EXPECT_EQ(*s.GetByName<int64_t>("transpose_x1"), 101);
 
-
   p = s.MutableGetByName<int64_t>("transpose_x2");
-  EXPECT_NE(p,  nullptr);
+  EXPECT_NE(p, nullptr);
   *p = 201;
   EXPECT_EQ(*s.Get<int64_t>(1), 201);
   EXPECT_EQ(*s.GetByName<int64_t>("transpose_x2"), 201);
@@ -250,20 +248,16 @@ TEST_F(AttrStoreUt, ExistsOk) {
   EXPECT_FALSE(s.Exists("transpose_x3"));
 }
 
-
 TEST_F(AttrStoreUt, GetAllAttrNamesOk) {
   auto s = AttrStore::Create(2);
   EXPECT_TRUE(s.Set<int64_t>(0, 100));
   EXPECT_TRUE(s.Set<bool>(1, true));
   s.SetNameAndId("transpose_x1", 0);
   s.SetNameAndId("transpose_x2", 1);
-  s.SetByName("attr_3", TestStructB{10,200,3000});
-  s.SetByName("attr_4", std::vector<int64_t>({1,2,3,4,5}));
+  s.SetByName("attr_3", TestStructB{10, 200, 3000});
+  s.SetByName("attr_4", std::vector<int64_t>({1, 2, 3, 4, 5}));
 
-  EXPECT_EQ(s.GetAllAttrNames(), std::set<std::string>({"transpose_x1",
-                                                        "transpose_x2",
-                                                        "attr_3",
-                                                        "attr_4"}));
+  EXPECT_EQ(s.GetAllAttrNames(), std::set<std::string>({"transpose_x1", "transpose_x2", "attr_3", "attr_4"}));
 }
 
 TEST_F(AttrStoreUt, GetAllAttrsOk) {
@@ -272,15 +266,15 @@ TEST_F(AttrStoreUt, GetAllAttrsOk) {
   EXPECT_TRUE(s.Set<bool>(1, true));
   s.SetNameAndId("transpose_x1", 0);
   s.SetNameAndId("transpose_x2", 1);
-  s.SetByName("attr_3", TestStructB{10,200,3000});
-  s.SetByName("attr_4", std::vector<int64_t>({1,2,3,4,5}));
+  s.SetByName("attr_3", TestStructB{10, 200, 3000});
+  s.SetByName("attr_4", std::vector<int64_t>({1, 2, 3, 4, 5}));
 
   auto attrs = s.GetAllAttrs();
   EXPECT_EQ(attrs.size(), 4);
   EXPECT_EQ(*attrs["transpose_x1"].Get<int64_t>(), 100);
   EXPECT_EQ(*attrs["transpose_x2"].Get<bool>(), true);
-  EXPECT_EQ(*attrs["attr_3"].Get<TestStructB>(), TestStructB({10,200,3000}));
-  EXPECT_EQ(*attrs["attr_4"].Get<std::vector<int64_t>>(), std::vector<int64_t>({1,2,3,4,5}));
+  EXPECT_EQ(*attrs["attr_3"].Get<TestStructB>(), TestStructB({10, 200, 3000}));
+  EXPECT_EQ(*attrs["attr_4"].Get<std::vector<int64_t>>(), std::vector<int64_t>({1, 2, 3, 4, 5}));
 }
 
 TEST_F(AttrStoreUt, GetAllAttrs_EmptyPredefinedAttrsNotReturn) {
@@ -288,8 +282,8 @@ TEST_F(AttrStoreUt, GetAllAttrs_EmptyPredefinedAttrsNotReturn) {
   s.SetNameAndId("transpose_x1", 0);
   s.SetNameAndId("transpose_x2", 1);
   EXPECT_TRUE(s.Set<int64_t>(0, 100));
-  s.SetByName("attr_3", TestStructB{10,200,3000});
-  s.SetByName("attr_4", std::vector<int64_t>({1,2,3,4,5}));
+  s.SetByName("attr_3", TestStructB{10, 200, 3000});
+  s.SetByName("attr_4", std::vector<int64_t>({1, 2, 3, 4, 5}));
 
   auto attrs = s.GetAllAttrs();
   EXPECT_EQ(attrs.size(), 3);
@@ -302,8 +296,8 @@ TEST_F(AttrStoreUt, GetAllAttrsWithFilterOk) {
   EXPECT_TRUE(s.Set<bool>(1, true));
   s.SetNameAndId("transpose_x1", 0);
   s.SetNameAndId("transpose_x2", 1);
-  s.SetByName("attr_3", TestStructB{10,200,3000});
-  s.SetByName("attr_4", std::vector<int64_t>({1,2,3,4,5}));
+  s.SetByName("attr_3", TestStructB{10, 200, 3000});
+  s.SetByName("attr_4", std::vector<int64_t>({1, 2, 3, 4, 5}));
 
   const AttrNameFilter attr_filter = [](const std::string &attr_name) -> bool {
     return (attr_name != "transpose_x1") && (attr_name != "attr_4");
@@ -312,9 +306,8 @@ TEST_F(AttrStoreUt, GetAllAttrsWithFilterOk) {
   auto attrs = s.GetAllAttrsWithFilter(attr_filter);
   EXPECT_EQ(attrs.size(), 2);
   EXPECT_EQ(*attrs["transpose_x2"].Get<bool>(), true);
-  EXPECT_EQ(*attrs["attr_3"].Get<TestStructB>(), TestStructB({10,200,3000}));
+  EXPECT_EQ(*attrs["attr_3"].Get<TestStructB>(), TestStructB({10, 200, 3000}));
 }
-
 
 TEST_F(AttrStoreUt, OtherAttrGroupTest) {
   auto s = AttrStore::Create(1);
@@ -390,7 +383,6 @@ TEST_F(AttrStoreUt, ErrorTest) {
   auto flag = s.CheckAttrIsExistInOtherGroup(attr_name);
   ASSERT_EQ(flag, true);
 }
-
 
 TEST_F(AttrStoreUt, GetOrCreateAttrGroupWith0Args) {
   auto s = AttrStore::Create(1);
@@ -480,4 +472,4 @@ TEST_F(AttrStoreUt, GetOrCreateAttrGroupWith2Args) {
   auto ptr_5 = s.GetOrCreateAttrsGroup<TestAttrGroup>();
   ASSERT_EQ(ptr_5, ptr);
 }
-}
+}  // namespace ge

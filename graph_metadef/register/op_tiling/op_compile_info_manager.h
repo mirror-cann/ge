@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,15 +19,15 @@
 
 namespace optiling {
 class CompileInfoManager {
-public:
+ public:
   CompileInfoManager(const CompileInfoManager &) = delete;
   CompileInfoManager &operator=(const CompileInfoManager &) = delete;
-  static CompileInfoManager& Instance();
+  static CompileInfoManager &Instance();
   bool HasCompileInfo(const std::string &key);
   CompileInfoPtr GetCompileInfo(const std::string &key);
   void SetCompileInfo(const std::string &key, CompileInfoPtr compile_info_ptr);
 
-private:
+ private:
   CompileInfoManager();
   ~CompileInfoManager();
   mutable std::mutex compile_info_mutex_;
@@ -35,15 +35,15 @@ private:
 };
 
 class CompileInfoCache {
-public:
+ public:
   CompileInfoCache(const CompileInfoCache &) = delete;
   CompileInfoCache &operator=(const CompileInfoCache &) = delete;
-  static CompileInfoCache& Instance();
+  static CompileInfoCache &Instance();
   bool HasCompileInfo(const std::string &key);
-  void* GetCompileInfo(const std::string &key);
-  void SetCompileInfo(const std::string &key, void* value);
+  void *GetCompileInfo(const std::string &key);
+  void SetCompileInfo(const std::string &key, void *value);
 
-private:
+ private:
   CompileInfoCache();
   ~CompileInfoCache();
   mutable std::mutex compile_info_mutex_;

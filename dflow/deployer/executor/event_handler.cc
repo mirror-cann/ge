@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,7 +25,7 @@ constexpr uint32_t kSingleThreadNum = 1U;
 constexpr int32_t kClearTypeStop = 1;
 constexpr int32_t kClearTypeClear = 2;
 constexpr int32_t kMaxParseModelThreadPoolSize = 8;
-}
+}  // namespace
 Status EventHandler::Initialize() {
   context_ = MakeUnique<ExecutorContext>();
   GE_CHECK_NOTNULL(context_);
@@ -43,8 +43,7 @@ void EventHandler::SetBaseDir(const std::string &base_dir) {
   base_dir_ = base_dir;
 }
 
-void EventHandler::HandleEvent(deployer::ExecutorRequest &request,
-                               deployer::ExecutorResponse &response) {
+void EventHandler::HandleEvent(deployer::ExecutorRequest &request, deployer::ExecutorResponse &response) {
   if (request.has_batch_load_model_message()) {
     HandleBatchLoadRequest(request, response);
   } else if (request.has_unload_model_message()) {
@@ -79,14 +78,14 @@ void EventHandler::HandleUnloadRequest(deployer::ExecutorRequest &request, deplo
   std::vector<uint32_t> failed;
   std::vector<std::thread> threads;
   aclrtContext ctx = nullptr;
-  (void) aclrtGetCurrentContext(&ctx);
+  (void)aclrtGetCurrentContext(&ctx);
   const auto &thread_local_ctx = GetThreadLocalContext();
   for (auto it = submodel_map->begin(); it != submodel_map->end(); ++it) {
     auto submodel_id = it->first;
     ExecutorContext::ModelHandle *handle = it->second.get();
     try {
       threads.emplace_back([handle, submodel_id, &failed, &failed_mu, ctx, &thread_local_ctx]() {
-        (void) aclrtSetCurrentContext(ctx);
+        (void)aclrtSetCurrentContext(ctx);
         GetThreadLocalContext() = thread_local_ctx;
         if (handle->UnloadModel() != SUCCESS) {
           std::lock_guard<std::mutex> lk(failed_mu);
@@ -135,8 +134,7 @@ void EventHandler::HandleSyncVarManagerRequest(deployer::ExecutorRequest &reques
   GELOGD("[Handle][Init VarManager] success.");
 }
 
-void EventHandler::HandleBatchLoadRequest(deployer::ExecutorRequest &request,
-                                          deployer::ExecutorResponse &response) {
+void EventHandler::HandleBatchLoadRequest(deployer::ExecutorRequest &request, deployer::ExecutorResponse &response) {
   if (BatchLoadModels(request) != SUCCESS) {
     response.set_error_code(FAILED);
     response.set_error_message("Failed to batch load models");
@@ -147,9 +145,8 @@ void EventHandler::HandleBatchLoadRequest(deployer::ExecutorRequest &request,
 }
 
 Status EventHandler::BatchParseAndLoadModels(const deployer::ExecutorRequest_BatchLoadModelMessage &model_messages) {
-  int32_t pool_size = model_messages.models_size() > kMaxParseModelThreadPoolSize ?
-                                                     kMaxParseModelThreadPoolSize :
-                                                     model_messages.models_size();
+  int32_t pool_size = model_messages.models_size() > kMaxParseModelThreadPoolSize ? kMaxParseModelThreadPoolSize
+                                                                                  : model_messages.models_size();
   ThreadPool pool("ge_dpl_prsm", static_cast<uint32_t>(pool_size), false);
   std::vector<std::future<Status>> fut_rets;
   for (const auto &load_model_req : model_messages.models()) {
@@ -183,16 +180,14 @@ Status EventHandler::BatchLoadModels(deployer::ExecutorRequest &request) {
   return SUCCESS;
 }
 
-void EventHandler::HandleClearModelRequest(deployer::ExecutorRequest &request,
-                                           deployer::ExecutorResponse &response) {
+void EventHandler::HandleClearModelRequest(deployer::ExecutorRequest &request, deployer::ExecutorResponse &response) {
   GELOGD("[Handle][Clear Model] begin.");
   const auto &clear_model_req = request.clear_model_message();
   // check type
   const auto clear_msg_type = clear_model_req.clear_msg_type();
   if ((clear_msg_type != kClearTypeStop) && (clear_msg_type != kClearTypeClear)) {
     GELOGE(FAILED, "Failed to clear model, invalid type: %d", clear_msg_type);
-    const std::string err_msg = "Failed to clear model, invalid type: " +
-      std::to_string(clear_msg_type);
+    const std::string err_msg = "Failed to clear model, invalid type: " + std::to_string(clear_msg_type);
     response.set_error_code(FAILED);
     response.set_error_message(err_msg.c_str());
     return;
@@ -201,8 +196,7 @@ void EventHandler::HandleClearModelRequest(deployer::ExecutorRequest &request,
   std::map<uint32_t, std::unique_ptr<ExecutorContext::ModelHandle>> *submodel_map = nullptr;
   if (context_->GetModel(root_model_id, submodel_map) != SUCCESS) {
     GELOGE(FAILED, "Failed to get model: %u", root_model_id);
-    const std::string err_msg = "Failed to get model, model id: " +
-      std::to_string(root_model_id);
+    const std::string err_msg = "Failed to get model, model id: " + std::to_string(root_model_id);
     response.set_error_code(FAILED);
     response.set_error_message(err_msg.c_str());
     return;
@@ -223,8 +217,7 @@ void EventHandler::HandleClearModelRequest(deployer::ExecutorRequest &request,
 
 void EventHandler::DoClearModel(const std::vector<uint32_t> &davinci_model_runtime_ids,
                                 const std::vector<ExecutorContext::ModelHandle *> &dynamic_model_handles,
-                                const int32_t clear_msg_type,
-                                deployer::ExecutorResponse &response) const {
+                                const int32_t clear_msg_type, deployer::ExecutorResponse &response) const {
   uint32_t parallel_num = static_cast<uint32_t>(dynamic_model_handles.size());
   if (!davinci_model_runtime_ids.empty()) {
     parallel_num += kClearDavinciModelThreadNum;
@@ -251,8 +244,7 @@ void EventHandler::DoClearModel(const std::vector<uint32_t> &davinci_model_runti
 
 void EventHandler::DoClearModelPara(const std::vector<uint32_t> &davinci_model_runtime_ids,
                                     const std::vector<ExecutorContext::ModelHandle *> &dynamic_model_handles,
-                                    const int32_t clear_msg_type,
-                                    deployer::ExecutorResponse &response) const {
+                                    const int32_t clear_msg_type, deployer::ExecutorResponse &response) const {
   // clean dynamic model async
   const uint32_t parallel_num = static_cast<uint32_t>(dynamic_model_handles.size());
   ThreadPool pool("ge_dpl_clrm", static_cast<uint32_t>(parallel_num), false);
@@ -365,8 +357,7 @@ Status EventHandler::DoDataFlowExceptionNotify(const std::vector<uint32_t> &davi
   return SUCCESS;
 }
 
-void EventHandler::HandleProfInfo(deployer::ExecutorRequest &request,
-                                  deployer::ExecutorResponse &response) {
+void EventHandler::HandleProfInfo(deployer::ExecutorRequest &request, deployer::ExecutorResponse &response) {
   GELOGI("[Handle][Set Proiling Info] begin.");
   if (context_->UpdateProfInfo(request) != SUCCESS) {
     response.set_error_code(FAILED);

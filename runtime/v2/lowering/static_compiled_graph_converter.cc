@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -57,9 +57,8 @@ constexpr size_t kP2pFixedAddrIndex = 3UL;
 constexpr size_t kP2pFixedSizeIndex = 4UL;
 constexpr size_t kP2pFixedTensorDataIndex = 5UL;
 
-const std::unordered_map<uint64_t, TensorPlacement> kRtMemTypeToPlacement = {{RT_MEMORY_HBM, kOnDeviceHbm},
-                                                                             {RT_MEMORY_P2P_DDR, kOnDeviceP2p},
-                                                                             {RT_MEMORY_DEFAULT, kOnDeviceHbm}};
+const std::unordered_map<uint64_t, TensorPlacement> kRtMemTypeToPlacement = {
+    {RT_MEMORY_HBM, kOnDeviceHbm}, {RT_MEMORY_P2P_DDR, kOnDeviceP2p}, {RT_MEMORY_DEFAULT, kOnDeviceHbm}};
 
 TensorPlacement GetPlacement(uint64_t memory_type) {
   if ((memory_type & kSessionScopeMemory) == kSessionScopeMemory) {
@@ -91,8 +90,8 @@ bool IsUseHbmFixedFeatureMemory(LoweringGlobalData &global_data) {
   const void *user_set_fixed_addr = nullptr;
   size_t fixed_size = 0U;
   GetFixedFeatureMemory(global_data, RT_MEMORY_HBM, user_set_fixed_addr, fixed_size);
-  return (user_set_fixed_addr != nullptr)
-         || kernel::IsNeedMallocFixedMemoryOnInitGraph(user_set_fixed_addr, fixed_size);
+  return (user_set_fixed_addr != nullptr) ||
+         kernel::IsNeedMallocFixedMemoryOnInitGraph(user_set_fixed_addr, fixed_size);
 }
 
 /*
@@ -100,10 +99,8 @@ bool IsUseHbmFixedFeatureMemory(LoweringGlobalData &global_data) {
  * 2 如果用户将fix地址设置为nullptr，size也设置为0，Ge不申请fix内存
  * 3 如果用户没有设置fix地址，Ge申请fix地址
  */
-ge::Status MallocFixedFeatureMemOnInitRootIfNeed(LoweringGlobalData &global_data,
-                                                 const rtMemType_t mem_type,
-                                                 bg::ValueHolderPtr &fixed_mem,
-                                                 bg::ValueHolderPtr &fixed_mem_size,
+ge::Status MallocFixedFeatureMemOnInitRootIfNeed(LoweringGlobalData &global_data, const rtMemType_t mem_type,
+                                                 bg::ValueHolderPtr &fixed_mem, bg::ValueHolderPtr &fixed_mem_size,
                                                  bg::ValueHolderPtr &fixed_tensor_data) {
   const void *user_set_fixed_addr = nullptr;
   size_t fixed_size = 0U;
@@ -116,8 +113,8 @@ ge::Status MallocFixedFeatureMemOnInitRootIfNeed(LoweringGlobalData &global_data
 
   // 没配置动静态图复用，存在这个类型的fixed feature memory，用户没有设置
   auto builder = [&global_data, &fixed_mem_size, &placement]() -> std::vector<bg::ValueHolderPtr> {
-    auto init_outputs = bg::FrameSelector::OnInitRoot(
-        [&global_data, &fixed_mem_size, &placement]() -> std::vector<bg::ValueHolderPtr> {
+    auto init_outputs =
+        bg::FrameSelector::OnInitRoot([&global_data, &fixed_mem_size, &placement]() -> std::vector<bg::ValueHolderPtr> {
           const auto memory_holder = bg::AllocMem(placement, fixed_mem_size, global_data, bg::kMainStream);
           return {memory_holder};
         });
@@ -126,41 +123,43 @@ ge::Status MallocFixedFeatureMemOnInitRootIfNeed(LoweringGlobalData &global_data
 
   // 配置动静态图复用，使用session级allocator申请fix优先内存，如果用户注册了外置allocator，使用用户注册的allocator申请
   const auto session_id_holder = bg::HolderOnInit(bg::GetSessionId(global_data));
-  auto session_mem_builder = [&session_id_holder, &global_data, &fixed_mem_size, &placement]()
-      -> std::vector<bg::ValueHolderPtr> {
+  auto session_mem_builder = [&session_id_holder, &global_data, &fixed_mem_size,
+                              &placement]() -> std::vector<bg::ValueHolderPtr> {
     const auto memory_holder = bg::AllocFixedFeatureMemory(session_id_holder, placement, fixed_mem_size, global_data);
     return {memory_holder};
   };
 
   // 只创建一个TensorData，不申请内存
   auto empty_builder = []() -> std::vector<bg::ValueHolderPtr> {
-    auto init_outputs = bg::FrameSelector::OnInitRoot(
-        []() -> std::vector<bg::ValueHolderPtr> {
-          const auto memory_holder = bg::ValueHolder::CreateSingleDataOutput("EmptyTensorData", {});
-          return {memory_holder};
-        });
+    auto init_outputs = bg::FrameSelector::OnInitRoot([]() -> std::vector<bg::ValueHolderPtr> {
+      const auto memory_holder = bg::ValueHolder::CreateSingleDataOutput("EmptyTensorData", {});
+      return {memory_holder};
+    });
     return init_outputs;
   };
   if (kernel::IsNeedMallocFixedMemoryOnInitGraph(user_set_fixed_addr, fixed_size)) {
     if (ge::VarManager::IsGeUseExtendSizeMemoryFull()) {
-      auto init_outputs = global_data.GetOrCreateUniqueValueHolder("SessionFixedFeatureMemory_"
-                                                                   + std::to_string(mem_type),
-                                                                   session_mem_builder);
+      auto init_outputs = global_data.GetOrCreateUniqueValueHolder(
+          "SessionFixedFeatureMemory_" + std::to_string(mem_type), session_mem_builder);
       GE_ASSERT_TRUE(!init_outputs.empty());
       fixed_tensor_data = init_outputs[0];
-      GELOGI("need to malloc fixed_feature_memory base by user allocator or session fixed base allocator. type: %s,"
-          " addr: %p, size: %zu", ge::MemTypeUtils::ToString(mem_type).c_str(), user_set_fixed_addr, fixed_size);
+      GELOGI(
+          "need to malloc fixed_feature_memory base by user allocator or session fixed base allocator. type: %s,"
+          " addr: %p, size: %zu",
+          ge::MemTypeUtils::ToString(mem_type).c_str(), user_set_fixed_addr, fixed_size);
     } else {
-      auto init_outputs = global_data.GetOrCreateUniqueValueHolder("FixedFeatureMemory_" + std::to_string(mem_type),
-                                                                   builder);
+      auto init_outputs =
+          global_data.GetOrCreateUniqueValueHolder("FixedFeatureMemory_" + std::to_string(mem_type), builder);
       GE_ASSERT_TRUE(!init_outputs.empty());
       fixed_tensor_data = init_outputs[0];
-      GELOGI("need to malloc fixed_feature_memory base by user allocator or inner allocator. type: %s, addr: %p,"
-          " size: %zu", ge::MemTypeUtils::ToString(mem_type).c_str(), user_set_fixed_addr, fixed_size);
+      GELOGI(
+          "need to malloc fixed_feature_memory base by user allocator or inner allocator. type: %s, addr: %p,"
+          " size: %zu",
+          ge::MemTypeUtils::ToString(mem_type).c_str(), user_set_fixed_addr, fixed_size);
     }
   } else {
-    auto init_outputs = global_data.GetOrCreateUniqueValueHolder("EmptyFixedFeatureMemory_"
-                                                                     + std::to_string(mem_type), empty_builder);
+    auto init_outputs =
+        global_data.GetOrCreateUniqueValueHolder("EmptyFixedFeatureMemory_" + std::to_string(mem_type), empty_builder);
     GE_ASSERT_TRUE(!init_outputs.empty());
     fixed_tensor_data = init_outputs[0];
     GELOGI("no need to malloc fixed_feature_memory base. type: %s, addr: %p, size: %zu",
@@ -170,19 +169,17 @@ ge::Status MallocFixedFeatureMemOnInitRootIfNeed(LoweringGlobalData &global_data
 }
 
 ge::Status MallocFixedFeatureMemOnInitRootIfNeed(LoweringGlobalData &global_data,
-                                       std::vector<bg::ValueHolderPtr> &all_fixed_mem_holder) {
+                                                 std::vector<bg::ValueHolderPtr> &all_fixed_mem_holder) {
   all_fixed_mem_holder.resize(kP2pFixedTensorDataIndex + 1UL, nullptr);
   // RT_MEMORY_HBM fixed feature memory
-  GE_ASSERT_SUCCESS(MallocFixedFeatureMemOnInitRootIfNeed(global_data, RT_MEMORY_HBM,
-                                                          all_fixed_mem_holder[kHbmFixedAddrIndex],
-                                                          all_fixed_mem_holder[kHbmFixedSizeIndex],
-                                                          all_fixed_mem_holder[kHbmFixedTensorDataIndex]));
+  GE_ASSERT_SUCCESS(MallocFixedFeatureMemOnInitRootIfNeed(
+      global_data, RT_MEMORY_HBM, all_fixed_mem_holder[kHbmFixedAddrIndex], all_fixed_mem_holder[kHbmFixedSizeIndex],
+      all_fixed_mem_holder[kHbmFixedTensorDataIndex]));
 
   // RT_MEMORY_P2P_DDR fixed feature memory
-  GE_ASSERT_SUCCESS(MallocFixedFeatureMemOnInitRootIfNeed(global_data, RT_MEMORY_P2P_DDR,
-                                                          all_fixed_mem_holder[kP2pFixedAddrIndex],
-                                                          all_fixed_mem_holder[kP2pFixedSizeIndex],
-                                                          all_fixed_mem_holder[kP2pFixedTensorDataIndex]));
+  GE_ASSERT_SUCCESS(MallocFixedFeatureMemOnInitRootIfNeed(
+      global_data, RT_MEMORY_P2P_DDR, all_fixed_mem_holder[kP2pFixedAddrIndex],
+      all_fixed_mem_holder[kP2pFixedSizeIndex], all_fixed_mem_holder[kP2pFixedTensorDataIndex]));
   return ge::SUCCESS;
 }
 
@@ -221,8 +218,7 @@ bg::ValueHolderPtr CreateAssignWeightMemoryHolder(ge::GeModel *ge_model, Lowerin
   return assign_mem_holder;
 }
 
-std::vector<bg::ValueHolderPtr> CreateDavinciModelCommonInputs(const ge::ComputeGraphPtr &graph,
-                                                               ge::GeModel *ge_model,
+std::vector<bg::ValueHolderPtr> CreateDavinciModelCommonInputs(const ge::ComputeGraphPtr &graph, ge::GeModel *ge_model,
                                                                LoweringGlobalData &global_data) {
   auto model_holder = bg::ValueHolder::CreateConst(&ge_model, sizeof(uintptr_t));
   GE_ASSERT(IsValidHolder(model_holder));
@@ -233,21 +229,24 @@ std::vector<bg::ValueHolderPtr> CreateDavinciModelCommonInputs(const ge::Compute
   GE_ASSERT_NOTNULL(root_graph);
   const uint32_t root_graph_id = root_graph->GetGraphID();
   const auto root_graph_id_holder = bg::ValueHolder::CreateConst(&root_graph_id, sizeof(uint32_t));
-  return {model_holder, session_id, CreateAssignWeightMemoryHolder(ge_model, global_data), step_id,
-          root_graph_id_holder, bg::HolderOnInit(bg::GetSpaceRegistries(global_data)),
+  return {model_holder,
+          session_id,
+          CreateAssignWeightMemoryHolder(ge_model, global_data),
+          step_id,
+          root_graph_id_holder,
+          bg::HolderOnInit(bg::GetSpaceRegistries(global_data)),
           bg::HolderOnInit(bg::GetFileConstantWeightDir(global_data)),
           bg::HolderOnInit(bg::ReusableStreamAllocator(global_data))};
 }
 
 std::vector<bg::ValueHolderPtr> CreateWorkspaceMemFromInit(LoweringGlobalData &global_data) {
   auto builder = [&global_data]() -> std::vector<bg::ValueHolderPtr> {
-    auto init_outputs = bg::FrameSelector::OnInitRoot(
-        [&global_data]() -> std::vector<bg::ValueHolderPtr> {
-          int64_t size = global_data.GetStaticModelWsSize();
-          const auto memory_size_holder = bg::ValueHolder::CreateConst(&size, sizeof(size));
-          const auto memory_holder = bg::AllocMem(kOnDeviceHbm, memory_size_holder, global_data, bg::kMainStream);
-          return {memory_holder};
-        });
+    auto init_outputs = bg::FrameSelector::OnInitRoot([&global_data]() -> std::vector<bg::ValueHolderPtr> {
+      int64_t size = global_data.GetStaticModelWsSize();
+      const auto memory_size_holder = bg::ValueHolder::CreateConst(&size, sizeof(size));
+      const auto memory_holder = bg::AllocMem(kOnDeviceHbm, memory_size_holder, global_data, bg::kMainStream);
+      return {memory_holder};
+    });
     return init_outputs;
   };
   auto init_outputs = global_data.GetOrCreateUniqueValueHolder("WorkspaceMemFromInit", builder);
@@ -271,7 +270,8 @@ std::vector<bg::ValueHolderPtr> CreateDavinciModelOnInitRoot(const ge::ComputeGr
   GE_ASSERT_SUCCESS(MallocFixedFeatureMemOnInitRootIfNeed(global_data, fixed_holder));
   const auto file_constant_mem_holder = FileConstantMemToContinuousVecHolder(global_data);
   if (is_addr_fixed_opt.empty()) {
-    davinci_model_inputs.insert(davinci_model_inputs.end(),
+    davinci_model_inputs.insert(
+        davinci_model_inputs.end(),
         {fixed_holder[kHbmFixedAddrIndex], fixed_holder[kHbmFixedSizeIndex],
          bg::HolderOnInit(fixed_holder[kHbmFixedTensorDataIndex]), fixed_holder[kP2pFixedAddrIndex],
          fixed_holder[kP2pFixedSizeIndex], bg::HolderOnInit(fixed_holder[kP2pFixedTensorDataIndex]), frozen_holder,
@@ -290,7 +290,7 @@ std::vector<bg::ValueHolderPtr> CreateDavinciModelOnInitRoot(const ge::ComputeGr
    * 实例，由davinciModel实例在init阶段下发传给hccl。
    *
    * 正式方案由HCCL模块适配上库。
-  */
+   */
   auto init_outputs = CreateWorkspaceMemFromInit(global_data);
   davinci_model_inputs.emplace_back(bg::HolderOnInit(init_outputs[0U]));
   return bg::ValueHolder::CreateDataOutput("DavinciModelCreateV2", davinci_model_inputs, 1U);
@@ -323,8 +323,7 @@ ge::Status MallocWorkspaceMem(ge::GeModel *ge_model, LoweringGlobalData &global_
       continue;
     }
     /* fixed mem is set not alloc */
-    if (is_use_hbm_fixed_feature_mem && (mem_info.memory_type == RT_MEMORY_HBM) &&
-        mem_info.is_fixed_addr_prior) {
+    if (is_use_hbm_fixed_feature_mem && (mem_info.memory_type == RT_MEMORY_HBM) && mem_info.is_fixed_addr_prior) {
       continue;
     }
     /*
@@ -332,8 +331,8 @@ ge::Status MallocWorkspaceMem(ge::GeModel *ge_model, LoweringGlobalData &global_
      * 只要size不为0，在init图中申请；如果用户将地址和size都设置为0，init图中不申请，那么在davinci model init的时候申请
      */
     if (mem_info.memory_type == RT_MEMORY_P2P_DDR) {
-      oss << "[type: " << ge::MemTypeUtils::ToString(mem_info.memory_type)
-          << ", size: " << mem_info.memory_size << ", as fixed mem, skip alloc here], ";
+      oss << "[type: " << ge::MemTypeUtils::ToString(mem_info.memory_type) << ", size: " << mem_info.memory_size
+          << ", as fixed mem, skip alloc here], ";
       continue;
     }
     const TensorPlacement placement = GetPlacement(mem_info.memory_type);
@@ -344,8 +343,7 @@ ge::Status MallocWorkspaceMem(ge::GeModel *ge_model, LoweringGlobalData &global_
     const auto memory_holder = bg::AllocMemWithoutGuarder(placement, memory_size_holder, global_data, bg::kMainStream);
     workspace_holders.emplace_back(memory_holder);
     owned_memories.emplace_back(memory_holder);
-    oss << "[type: " << ge::MemTypeUtils::ToString(mem_info.memory_type)
-        << std::dec << ", placement: " << placement
+    oss << "[type: " << ge::MemTypeUtils::ToString(mem_info.memory_type) << std::dec << ", placement: " << placement
         << ", size: " << mem_info.memory_size << "], ";
   }
   GELOGI("total workspace_holders num: %zu, %s", workspace_holders.size(), oss.str().c_str());
@@ -558,9 +556,8 @@ bool IsStaticCompiledGraphHasTaskToLaunch(const ge::ComputeGraphPtr &graph, Lowe
     return false;
   }
   auto static_model = static_cast<ge::GeModel *>(model);
-  GELOGI("graph: %s, tbe kernel empty: %d, aicpu is empty: %d, task size is:%d",
-         graph->GetName().c_str(), static_model->GetTBEKernelStore().IsEmpty(),
-         static_model->GetCustAICPUKernelStore().IsEmpty(),
+  GELOGI("graph: %s, tbe kernel empty: %d, aicpu is empty: %d, task size is:%d", graph->GetName().c_str(),
+         static_model->GetTBEKernelStore().IsEmpty(), static_model->GetCustAICPUKernelStore().IsEmpty(),
          static_model->GetModelTaskDefPtr()->task_size());
   // There is task generated result of netoutput node
   return IsStaticCompiledGraphHasTaskToLaunch(static_model);

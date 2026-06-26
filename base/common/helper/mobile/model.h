@@ -22,12 +22,11 @@
 namespace ge {
 
 class MobileModel {
-public:
-    static ge::Status ConvertToMobileModelDef(
-        const ge::proto::ModelDef& model_def,
-        ge::mobile::proto::ModelDef& mobile_model_def);
+ public:
+  static ge::Status ConvertToMobileModelDef(const ge::proto::ModelDef &model_def,
+                                            ge::mobile::proto::ModelDef &mobile_model_def);
 };
 
-} // namespace ge
+}  // namespace ge
 
-#endif // BASE_COMMON_HELPER_MOBILE_MODEL_H
+#endif  // BASE_COMMON_HELPER_MOBILE_MODEL_H

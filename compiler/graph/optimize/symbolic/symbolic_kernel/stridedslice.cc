@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -248,10 +248,14 @@ Status FillMissionIndex(const std::pair<int64_t, int64_t> &ellipsis_mask_range, 
     origin_end_indexes.emplace_back(input_dims[i]);
     origin_strides_indexes.emplace_back(1L);
   }
-  origin_start_indexes.resize(input_dims.size()); origin_end_indexes.resize(input_dims.size()); origin_strides_indexes.resize(input_dims.size());
+  origin_start_indexes.resize(input_dims.size());
+  origin_end_indexes.resize(input_dims.size());
+  origin_strides_indexes.resize(input_dims.size());
   GE_ASSERT_SUCCESS(NormalizeInput(origin_start_indexes, input_dims));
   GE_ASSERT_SUCCESS(NormalizeInput(origin_end_indexes, input_dims));
-  index_input.start_indexes.clear(); index_input.end_indexes.clear(); index_input.strides_indexes.clear();
+  index_input.start_indexes.clear();
+  index_input.end_indexes.clear();
+  index_input.strides_indexes.clear();
   int64_t start_index_pos = 0L;
   for (size_t i = 0UL; i < input_dims.size(); i++) {
     if (IsInEllipsisMaskRange(ellipsis_mask_range, static_cast<int64_t>(i))) {
@@ -456,14 +460,18 @@ Status HandleMaskAttr(const std::pair<int64_t, int64_t> &ellipsis_mask_range,
   return SUCCESS;
 }
 // StridedSliceV2: 通过 axes 将 begin/end/strides 映射到完整 rank 长度的数组
-Status ConstructV2IndexInput(gert::InferSymbolComputeContext *context,
-                             const std::vector<int64_t> &input_dims, StrdedSliceIndexInputs &index_input) {
+Status ConstructV2IndexInput(gert::InferSymbolComputeContext *context, const std::vector<int64_t> &input_dims,
+                             StrdedSliceIndexInputs &index_input) {
   std::vector<int64_t> begin_values;
   auto ret = GetValueFromInputConstData(context, kStartInputIndex, begin_values);
-  if (ret != SUCCESS) { return ret; }
+  if (ret != SUCCESS) {
+    return ret;
+  }
   std::vector<int64_t> end_values;
   ret = GetValueFromInputConstData(context, kEndInputIndex, end_values);
-  if (ret != SUCCESS) { return ret; }
+  if (ret != SUCCESS) {
+    return ret;
+  }
 
   int64_t rank = static_cast<int64_t>(input_dims.size());
   // axes: 默认 0,1,...,len(begin)-1
@@ -472,12 +480,16 @@ Status ConstructV2IndexInput(gert::InferSymbolComputeContext *context,
   if (axes_tensor != nullptr && axes_tensor->GetSymbolicValue() != nullptr) {
     for (const auto &symbol : *axes_tensor->GetSymbolicValue()) {
       int64_t val = 0L;
-      if (!symbol.GetConstValue(val)) { return UNSUPPORTED; }
+      if (!symbol.GetConstValue(val)) {
+        return UNSUPPORTED;
+      }
       axes.push_back(val >= 0 ? val : val + rank);
     }
   }
   if (axes.empty()) {
-    for (int64_t i = 0L; i < static_cast<int64_t>(begin_values.size()) && i < rank; i++) { axes.push_back(i); }
+    for (int64_t i = 0L; i < static_cast<int64_t>(begin_values.size()) && i < rank; i++) {
+      axes.push_back(i);
+    }
   }
 
   // strides: 默认全 1
@@ -487,7 +499,9 @@ Status ConstructV2IndexInput(gert::InferSymbolComputeContext *context,
     stride_values.clear();
     for (const auto &symbol : *strides_tensor->GetSymbolicValue()) {
       int64_t val = 0L;
-      if (!symbol.GetConstValue(val)) { return UNSUPPORTED; }
+      if (!symbol.GetConstValue(val)) {
+        return UNSUPPORTED;
+      }
       stride_values.push_back(val);
     }
   }
@@ -501,14 +515,15 @@ Status ConstructV2IndexInput(gert::InferSymbolComputeContext *context,
     GE_ASSERT_TRUE(axis >= 0 && axis < rank, "axis=%lld out of range [0, %lld)", axis, rank);
     index_input.start_indexes[axis] = begin_values[i];
     index_input.end_indexes[axis] = end_values[i];
-    if (i < stride_values.size()) { index_input.strides_indexes[axis] = stride_values[i]; }
+    if (i < stride_values.size()) {
+      index_input.strides_indexes[axis] = stride_values[i];
+    }
   }
   return NormalizeInput(index_input.start_indexes, input_dims);
 }
-graphStatus ComputeStridedSliceOutput(gert::InferSymbolComputeContext *context,
-                                       StrdedSliceIndexInputs &index_input,
-                                       const std::vector<int64_t> &input_x_dims,
-                                       const std::vector<Expression> *input_x_symbols) {
+graphStatus ComputeStridedSliceOutput(gert::InferSymbolComputeContext *context, StrdedSliceIndexInputs &index_input,
+                                      const std::vector<int64_t> &input_x_dims,
+                                      const std::vector<Expression> *input_x_symbols) {
   StridedSliceAttr strided_slice_attr;
   GetStridedSliceMaskAttr(context, strided_slice_attr);
   HandleMaskConflict(strided_slice_attr);
@@ -570,7 +585,9 @@ static graphStatus StridedSliceV2SymbolicKernelCompute(gert::InferSymbolComputeC
   GE_ASSERT_NOTNULL(context);
   GELOGD("StridedSliceV2 Symbolic Kernel in, node %s[%s].", context->GetNodeName(), context->GetNodeType());
   std::vector<int64_t> input_x_dims;
-  if (!context->GetConstInputDims(kXInputIndex, input_x_dims)) { return UNSUPPORTED; }
+  if (!context->GetConstInputDims(kXInputIndex, input_x_dims)) {
+    return UNSUPPORTED;
+  }
   auto input_x_symbols = context->GetInputSymbolTensor(kXInputIndex)->GetSymbolicValue();
   if (input_x_symbols == nullptr) {
     GELOGW("SymbolicKernel compute unsupported, reason: get input symbolic value failed, node %s[%s].",
@@ -580,7 +597,9 @@ static graphStatus StridedSliceV2SymbolicKernelCompute(gert::InferSymbolComputeC
 
   StrdedSliceIndexInputs index_input;
   auto ret = ConstructV2IndexInput(context, input_x_dims, index_input);
-  if (ret != SUCCESS) { return ret; }
+  if (ret != SUCCESS) {
+    return ret;
+  }
 
   return ComputeStridedSliceOutput(context, index_input, input_x_dims, input_x_symbols);
 }
@@ -591,28 +610,35 @@ static graphStatus StridedSliceV3SymbolicKernelCompute(gert::InferSymbolComputeC
   GE_ASSERT_NOTNULL(context);
   GELOGD("StridedSliceV3 Symbolic Kernel in, node %s[%s].", context->GetNodeName(), context->GetNodeType());
   std::vector<int64_t> input_x_dims;
-  if (!context->GetConstInputDims(kXInputIndex, input_x_dims)) { return UNSUPPORTED; }
+  if (!context->GetConstInputDims(kXInputIndex, input_x_dims)) {
+    return UNSUPPORTED;
+  }
   auto input_x_symbols = context->GetInputSymbolTensor(kXInputIndex)->GetSymbolicValue();
 
   StrdedSliceIndexInputs index_input;
   auto ret = ConstructV2IndexInput(context, input_x_dims, index_input);
-  if (ret != SUCCESS) { return ret; }
+  if (ret != SUCCESS) {
+    return ret;
+  }
 
   // V3 无 mask，直接逐轴计算：Ceiling((end - begin) / stride)
   std::vector<int64_t> output_dims = input_x_dims;
   for (size_t i = 0UL; i < index_input.start_indexes.size() && i < index_input.end_indexes.size(); i++) {
     auto stride = i < index_input.strides_indexes.size() ? index_input.strides_indexes[i] : 1L;
     GE_ASSERT_TRUE(stride != 0L, "strides[%zu] is 0", i);
-    int64_t result_dim = std::max(0L, static_cast<int64_t>(
-        std::ceil(static_cast<float>(index_input.end_indexes[i] - index_input.start_indexes[i]) /
-                  static_cast<float>(stride))));
+    int64_t result_dim = std::max(
+        0L,
+        static_cast<int64_t>(std::ceil(static_cast<float>(index_input.end_indexes[i] - index_input.start_indexes[i]) /
+                                       static_cast<float>(stride))));
     output_dims[i] = result_dim;
   }
 
   auto out_symbols_tensor = context->GetOutputSymbolTensor(kOutputIndex);
   GE_ASSERT_NOTNULL(out_symbols_tensor);
   std::vector<Expression> output_symbols_shape;
-  for (auto dim : output_dims) { output_symbols_shape.emplace_back(Symbol(dim)); }
+  for (auto dim : output_dims) {
+    output_symbols_shape.emplace_back(Symbol(dim));
+  }
   GE_ASSERT_NOTNULL(out_symbols_tensor->MutableSymbolicValue());
   out_symbols_tensor->MutableOriginSymbolShape().MutableDims() = output_symbols_shape;
   if (input_x_symbols != nullptr) {

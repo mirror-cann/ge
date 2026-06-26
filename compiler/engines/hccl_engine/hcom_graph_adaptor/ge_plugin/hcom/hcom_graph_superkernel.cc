@@ -115,14 +115,14 @@ ge::graphStatus HcomGetSuperKernelHiddenInputs(const ge::OpDescPtr &opdesc, std:
   CHK_RET(IsUsingOpenSource(openSourceTag));
   if (openSourceTag) {
     CHK_RET(HcceGetAlgExecParamGraphMode(cTag, group.c_str(), count, reinterpret_cast<void *>(input),
-                              reinterpret_cast<void *>(output), opType, clearEnable, dataType, reduction, &context,
-                              &len, aivCoreLimit));
+                                         reinterpret_cast<void *>(output), opType, clearEnable, dataType, reduction,
+                                         &context, &len, aivCoreLimit));
   } else {
     CHK_RET(HcomGetAlgExecParam(cTag, group.c_str(), count, reinterpret_cast<void *>(input),
-                              reinterpret_cast<void *>(output), opType, clearEnable, dataType, reduction, &context,
-                              &len, aivCoreLimit));
+                                reinterpret_cast<void *>(output), opType, clearEnable, dataType, reduction, &context,
+                                &len, aivCoreLimit));
   }
-  
+
   HCCL_INFO("SPK context %p", context);
   contexts.emplace_back(context);
 

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -95,7 +95,8 @@ std::vector<bg::DevMemValueHolderPtr> FileConstantConverter(const ge::NodePtr &n
   int64_t offset_attr = 0;
   (void)ge::AttrUtils::GetInt(node->GetOpDesc(), "offset", offset_attr);
 
-  auto file_const_holders = lower_input.global_data->GetOrCreateUniqueValueHolder(file_name + ":" + std::to_string(offset_attr), builder);
+  auto file_const_holders =
+      lower_input.global_data->GetOrCreateUniqueValueHolder(file_name + ":" + std::to_string(offset_attr), builder);
   std::vector<bg::DevMemValueHolderPtr> return_holder;
   for (const auto &addr : file_const_holders) {
     return_holder.emplace_back(std::dynamic_pointer_cast<bg::DevMemValueHolder>(addr));
@@ -104,22 +105,20 @@ std::vector<bg::DevMemValueHolderPtr> FileConstantConverter(const ge::NodePtr &n
 }
 
 std::vector<bg::ValueHolderPtr> GetUserDeviceMemoryKernel(LoweringGlobalData *const global_data,
-                                                          const ge::NodePtr &node,
-                                                          const void *const user_mem, size_t mem_size) {
+                                                          const ge::NodePtr &node, const void *const user_mem,
+                                                          size_t mem_size) {
   auto builder = [&node, user_mem, mem_size]() -> std::vector<bg::ValueHolderPtr> {
-    auto init_outputs = bg::FrameSelector::OnInitRoot(
-        [&node, user_mem, mem_size]() -> std::vector<bg::ValueHolderPtr> {
-          const auto user_mem_holder = bg::ValueHolder::CreateConst(&user_mem, sizeof(void *));
-          const auto mem_size_holder = bg::ValueHolder::CreateConst(&mem_size, sizeof(size_t));
-          GE_ASSERT_NOTNULL(user_mem_holder);
-          GE_ASSERT_NOTNULL(mem_size_holder);
+    auto init_outputs = bg::FrameSelector::OnInitRoot([&node, user_mem, mem_size]() -> std::vector<bg::ValueHolderPtr> {
+      const auto user_mem_holder = bg::ValueHolder::CreateConst(&user_mem, sizeof(void *));
+      const auto mem_size_holder = bg::ValueHolder::CreateConst(&mem_size, sizeof(size_t));
+      GE_ASSERT_NOTNULL(user_mem_holder);
+      GE_ASSERT_NOTNULL(mem_size_holder);
 
-          auto out_addr = bg::DevMemValueHolder::CreateSingleDataOutput(
-              "FileConstantUserMemKernel",
-              {user_mem_holder, mem_size_holder}, node->GetOpDescBarePtr()->GetStreamId());
-          GE_ASSERT_NOTNULL(out_addr);
-          return {out_addr};
-        });
+      auto out_addr = bg::DevMemValueHolder::CreateSingleDataOutput(
+          "FileConstantUserMemKernel", {user_mem_holder, mem_size_holder}, node->GetOpDescBarePtr()->GetStreamId());
+      GE_ASSERT_NOTNULL(out_addr);
+      return {out_addr};
+    });
 
     GE_ASSERT_TRUE(init_outputs.size() == 1U);
     return init_outputs;
@@ -128,7 +127,8 @@ std::vector<bg::ValueHolderPtr> GetUserDeviceMemoryKernel(LoweringGlobalData *co
 }
 
 ge::Status GetUserDeviceAddress(const ge::NodePtr &node, LoweringGlobalData *const global_data,
-    const std::string &file_path, size_t offset, size_t length, std::vector<bg::DevMemValueHolderPtr> &out_addrs) {
+                                const std::string &file_path, size_t offset, size_t length,
+                                std::vector<bg::DevMemValueHolderPtr> &out_addrs) {
   if (!global_data->IsUserSetFileConstantMem()) {
     return ge::SUCCESS;
   }
@@ -143,8 +143,10 @@ ge::Status GetUserDeviceAddress(const ge::NodePtr &node, LoweringGlobalData *con
     return ge::SUCCESS;
   }
   // It's unlikely, since aclmdlSetExternalWeightAddress has already verified the device_mem.
-  GE_ASSERT_NOTNULL(user_device_mem->device_mem, "Error: The address set by the user via aclmdlSetExternalWeightAddress"
-                    " for the file %s is a null pointer.", file_constant_file_name.c_str());
+  GE_ASSERT_NOTNULL(user_device_mem->device_mem,
+                    "Error: The address set by the user via aclmdlSetExternalWeightAddress"
+                    " for the file %s is a null pointer.",
+                    file_constant_file_name.c_str());
   const ge::OpDescPtr &op_desc = node->GetOpDesc();
   const auto tensor_desc = op_desc->GetOutputDesc(0);
   int64_t tensor_size = 0;
@@ -173,16 +175,18 @@ ge::Status GetUserDeviceAddress(const ge::NodePtr &node, LoweringGlobalData *con
            "[Check][Param] The device memory size set by the user via "
            "aclmdlSetExternalWeightAddress for the external weight file is insufficient. "
            "Required: %zu bytes, Provided: %zu bytes. External weight - Shape: [%s], Data type: [%s], Offset: [%zu], "
-           "File name: [%s], Node name: [%s].", weights_size, user_device_mem->mem_size - offset,
-           tensor_desc.GetShape().ToString().c_str(),
+           "File name: [%s], Node name: [%s].",
+           weights_size, user_device_mem->mem_size - offset, tensor_desc.GetShape().ToString().c_str(),
            ge::TypeUtils::DataTypeToSerialString(tensor_desc.GetDataType()).c_str(), offset,
            file_constant_file_name.c_str(), op_desc->GetNamePtr());
     return ACL_ERROR_GE_PARAM_INVALID;
   }
   const auto user_mem = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(user_device_mem->device_mem) + offset);
-  GELOGI("FileConstant node %s found user device memory (addr: %p, size: %zu). file name: %s, offset: %zu, length: %zu,"
-      " weight size: %zu", op_desc->GetNamePtr(), user_mem, user_device_mem->mem_size,
-      file_constant_file_name.c_str(), offset, length, weights_size);
+  GELOGI(
+      "FileConstant node %s found user device memory (addr: %p, size: %zu). file name: %s, offset: %zu, length: %zu,"
+      " weight size: %zu",
+      op_desc->GetNamePtr(), user_mem, user_device_mem->mem_size, file_constant_file_name.c_str(), offset, length,
+      weights_size);
 
   const auto user_device_mem_holders =
       GetUserDeviceMemoryKernel(global_data, node, user_mem, user_device_mem->mem_size);
@@ -219,8 +223,9 @@ LowerResult LoweringFileConstantNode(const ge::NodePtr &node, const LowerInput &
       ge::FileConstantUtils::GetFilePath(op_desc, file_id_and_path_map, tmp_file_path, offset, length),
       "Failed to get file path.");
   std::vector<bg::DevMemValueHolderPtr> init_outputs;
-  LOWER_REQUIRE_SUCCESS(GetUserDeviceAddress(node, lower_input.global_data, tmp_file_path, offset, length,
-    init_outputs), "lowering FileConstant node %s failed.", node->GetNamePtr());
+  LOWER_REQUIRE_SUCCESS(
+      GetUserDeviceAddress(node, lower_input.global_data, tmp_file_path, offset, length, init_outputs),
+      "lowering FileConstant node %s failed.", node->GetNamePtr());
   if (init_outputs.empty()) {
     init_outputs =
         FileConstantConverter(node, lower_input, tmp_file_path, bg::HolderOnInit(output_shape_init_output[0U]));

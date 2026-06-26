@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,8 +28,8 @@ Status GraphOptimize::HandleSummaryOp(const ComputeGraphPtr &compute_graph) {
   GE_CHECK_NOTNULL(compute_graph);
   GELOGI("HandleSummaryOp start, graph:%s", compute_graph->GetName().c_str());
   if (summary_output_indexes_.size() >= kMaxMapSize) {
-    REPORT_INNER_ERR_MSG("E19999", "Map size:%zu out of range:%d, check invalid.",
-                       summary_output_indexes_.size(), kMaxMapSize);
+    REPORT_INNER_ERR_MSG("E19999", "Map size:%zu out of range:%d, check invalid.", summary_output_indexes_.size(),
+                         kMaxMapSize);
     GELOGE(FAILED, "[Check][Param] Map size:%zu out of range:%d.", summary_output_indexes_.size(), kMaxMapSize);
     return FAILED;
   }
@@ -60,7 +60,7 @@ Status GraphOptimize::HandleSummaryOp(const ComputeGraphPtr &compute_graph) {
       auto peerin = in->GetPeerOutAnchor();
       GE_IF_BOOL_EXEC(peerin == nullptr,
                       REPORT_INNER_ERR_MSG("E19999", "peer out anchor is nullptr, node:%s, in anchor index:0",
-                                         node_ptr->GetName().c_str());
+                                           node_ptr->GetName().c_str());
                       GELOGE(GE_GRAPH_PARAM_NULLPTR, "[Get][PeerOutAnchor] of node:%s is nullptr, in anchor index:0",
                              node_ptr->GetName().c_str());
                       return GE_GRAPH_PARAM_NULLPTR);
@@ -82,8 +82,8 @@ Status GraphOptimize::HandleSummaryOp(const ComputeGraphPtr &compute_graph) {
       del_nodes.emplace_back(node_ptr);
     }
   }
-  GE_IF_BOOL_EXEC(!summary_output_indexes.empty(), (void)summary_output_indexes_.insert({compute_graph->GetGraphID(),
-                  summary_output_indexes}));
+  GE_IF_BOOL_EXEC(!summary_output_indexes.empty(),
+                  (void)summary_output_indexes_.insert({compute_graph->GetGraphID(), summary_output_indexes}));
 
   // add output nodes for summary
   std::vector<std::pair<NodePtr, int32_t>> out_nodes_info;
@@ -96,12 +96,11 @@ Status GraphOptimize::HandleSummaryOp(const ComputeGraphPtr &compute_graph) {
 
   // delete summary node
   for (auto &node_ptr : del_nodes) {
-    GE_ASSERT_SUCCESS(GraphUtils::IsolateNode(node_ptr, {}),
-                      "Call IsolateNode failed, node:%s, graph:%s",
+    GE_ASSERT_SUCCESS(GraphUtils::IsolateNode(node_ptr, {}), "Call IsolateNode failed, node:%s, graph:%s",
                       node_ptr->GetName().c_str(), compute_graph->GetName().c_str());
     GE_ASSERT_SUCCESS(GraphUtils::RemoveNodeWithoutRelink(compute_graph, node_ptr),
-                      "Call RemoveNodeWithoutRelink failed, node:%s, graph:%s",
-                      node_ptr->GetName().c_str(), compute_graph->GetName().c_str());
+                      "Call RemoveNodeWithoutRelink failed, node:%s, graph:%s", node_ptr->GetName().c_str(),
+                      compute_graph->GetName().c_str());
     // update Target list
     std::vector<NodePtr> graph_target = compute_graph->GetGraphTargetNodesInfo();
     auto iter = find(graph_target.begin(), graph_target.end(), node_ptr);

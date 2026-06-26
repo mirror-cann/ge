@@ -56,4 +56,3 @@ aclError aclmdlDestroyConfigHandle(aclmdlConfigHandle *handle)
 ## 返回值说明<a name="section15770391345"></a>
 
 返回0表示成功，返回其他值表示失败，请参见[aclError](aclError.md)。
-

@@ -1,15 +1,15 @@
 ﻿# BalanceConfig类
 
-- **[BalanceConfig构造函数和析构函数](balanceconfig-ctor-dtor.md)**  
+- **[BalanceConfig构造函数和析构函数](balanceconfig-ctor-dtor.md)**
 
-- **[SetAffinityPolicy](SetAffinityPolicy.md)**  
+- **[SetAffinityPolicy](SetAffinityPolicy.md)**
 
-- **[GetAffinityPolicy](GetAffinityPolicy.md)**  
+- **[GetAffinityPolicy](GetAffinityPolicy.md)**
 
-- **[SetBalanceWeight](SetBalanceWeight.md)**  
+- **[SetBalanceWeight](SetBalanceWeight.md)**
 
-- **[GetBalanceWeight](GetBalanceWeight.md)**  
+- **[GetBalanceWeight](GetBalanceWeight.md)**
 
-- **[SetDataPos](SetDataPos.md)**  
+- **[SetDataPos](SetDataPos.md)**
 
-- **[GetDataPos](GetDataPos.md)**  
+- **[GetDataPos](GetDataPos.md)**

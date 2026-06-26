@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,12 +29,12 @@
 #include "engine/ffts_plus/converter/ffts_plus_proto_transfer.h"
 
 namespace {
-  constexpr int32_t kSoNameAddrLIndex = 0;
-  constexpr int32_t kSoNameAddrHIndex = 1;
-  constexpr int32_t kKernelNameAddrLIndex = 4;
-  constexpr int32_t kKernelNameAddrHIndex = 5;
-  constexpr uint32_t k32BitsMask = 0xFFFFFFFFU;
-}
+constexpr int32_t kSoNameAddrLIndex = 0;
+constexpr int32_t kSoNameAddrHIndex = 1;
+constexpr int32_t kKernelNameAddrLIndex = 4;
+constexpr int32_t kKernelNameAddrHIndex = 5;
+constexpr uint32_t k32BitsMask = 0xFFFFFFFFU;
+}  // namespace
 
 namespace gert {
 namespace kernel {
@@ -83,14 +83,14 @@ ge::graphStatus AicpuUpdateExtInfo(gert::KernelContext *context, const AICpuThre
   GE_CHK_STATUS_RET_NOLOG(ext_handler.UpdateSessionInfo(*session_id, kernel_id, false));
   GE_CHK_STATUS_RET_NOLOG(ext_handler.UpdateExecuteMode(false));
 
-  auto last_input_vec = reinterpret_cast<const Shape*>(last_input_shapes->GetData());
-  auto not_last_input_vec = reinterpret_cast<const Shape*>(not_last_input_shapes->GetData());
+  auto last_input_vec = reinterpret_cast<const Shape *>(last_input_shapes->GetData());
+  auto not_last_input_vec = reinterpret_cast<const Shape *>(not_last_input_shapes->GetData());
   auto input_shapes = last_flag ? last_input_vec : not_last_input_vec;
   for (size_t i = 0; i < input_num; ++i) {
     GE_CHK_STATUS_RET_NOLOG(ext_handler.UpdateInputShape(i, input_shapes[i]));
   }
-  auto last_output_vec = reinterpret_cast<const Shape*>(last_output_shapes->GetData());
-  auto not_last_output_vec = reinterpret_cast<const Shape*>(not_last_output_shapes->GetData());
+  auto last_output_vec = reinterpret_cast<const Shape *>(last_output_shapes->GetData());
+  auto not_last_output_vec = reinterpret_cast<const Shape *>(not_last_output_shapes->GetData());
   auto output_shapes = last_flag ? last_output_vec : not_last_output_vec;
   for (size_t i = 0; i < output_num; ++i) {
     GE_CHK_STATUS_RET_NOLOG(ext_handler.UpdateOutputShape(i, output_shapes[i]));
@@ -108,8 +108,7 @@ ge::graphStatus AicpuUpdateExtInfo(gert::KernelContext *context, const AICpuThre
 void InitAicpuFftsIoAddrs(const AICpuThreadParam *thread_para, memory::FftsMemBlock *ffts_mem,
                           AICpuSubTaskFlush *flush_data, const size_t ctx_idx, const size_t task_addr_offset) {
   size_t thread_dim = static_cast<size_t>(thread_para->thread_dim);
-  uint8_t *const arg_data_base =
-      ge::PtrToPtr<void, uint8_t>(flush_data->args_base_addr_host);
+  uint8_t *const arg_data_base = ge::PtrToPtr<void, uint8_t>(flush_data->args_base_addr_host);
   for (size_t i = 0UL; i < thread_dim; ++i) {
     const size_t ctx_io_pos = (i * flush_data->arg_size) + task_addr_offset;
     GELOGD("thread_dim: %zu, ctx_idx: %zu, thread index: %zu, ctx_io_pos: %zu", thread_dim, ctx_idx, i, ctx_io_pos);
@@ -121,8 +120,7 @@ void InitAicpuFftsIoAddrs(const AICpuThreadParam *thread_para, const void *addr,
                           const size_t ctx_idx, const size_t task_addr_offset) {
   const uintptr_t data_base = ge::PtrToValue(addr);
   size_t thread_dim = static_cast<size_t>(thread_para->thread_dim);
-  uint8_t *const arg_data_base =
-      ge::PtrToPtr<void, uint8_t>(flush_data->args_base_addr_host);
+  uint8_t *const arg_data_base = ge::PtrToPtr<void, uint8_t>(flush_data->args_base_addr_host);
   for (size_t i = 0UL; i < thread_dim; ++i) {
     const size_t ctx_io_pos = (i * flush_data->arg_size) + task_addr_offset;
     GELOGD(
@@ -147,8 +145,8 @@ ge::graphStatus UpdateAicpuIoAddrs(KernelContext *context, AICpuSubTaskFlush *fl
     GELOGE(ge::FAILED, "In/Out mem type size:%zu/%zu is invalid.", in_mem_type->GetSize(), out_mem_type->GetSize());
     return ge::GRAPH_FAILED;
   }
-  auto in_mem_type_vec = reinterpret_cast<const uint32_t*>(in_mem_type->GetData());
-  auto out_mem_type_vec = reinterpret_cast<const uint32_t*>(out_mem_type->GetData());
+  auto in_mem_type_vec = reinterpret_cast<const uint32_t *>(in_mem_type->GetData());
+  auto out_mem_type_vec = reinterpret_cast<const uint32_t *>(out_mem_type->GetData());
   for (size_t i = 0UL; i < thread_para->input_output_num; ++i) {
     const size_t task_addr_offset = offset + (i * sizeof(uintptr_t));
     uint32_t mem_pool_type =
@@ -200,10 +198,9 @@ ge::graphStatus FFTSUpdateAICpuCCArgs(KernelContext *context) {
 
   uint8_t *const ext_info_base_host = ge::PtrToPtr<void, uint8_t>(flush_data->task_base_addr_host);
   uint8_t *const ext_info_base_dev = ge::PtrToPtr<void, uint8_t>(flush_data->task_base_addr_dev);
-  uint8_t *const arg_data_base =
-      ge::PtrToPtr<void, uint8_t>(flush_data->args_base_addr_host);
-  GELOGD("[%s] task args size %zu, ext info len %zu, arg data len %zu, thread dim %zu",
-         node_name, flush_data->task_size, ext_size, arg_size, thread_dim);
+  uint8_t *const arg_data_base = ge::PtrToPtr<void, uint8_t>(flush_data->args_base_addr_host);
+  GELOGD("[%s] task args size %zu, ext info len %zu, arg data len %zu, thread dim %zu", node_name,
+         flush_data->task_size, ext_size, arg_size, thread_dim);
 
   // ext_handle
   const auto unknown_type = static_cast<ge::UnknowShapeOpType>(unknown_shape_type_val);
@@ -360,7 +357,7 @@ ge::graphStatus FFTSUpdateAICpuTfArgs(KernelContext *context) {
 }
 
 ge::graphStatus AiCpuCreateFlushData(const ge::FastNode *node, KernelContext *context) {
-  (void) node;
+  (void)node;
   auto sub_task_flush = new (std::nothrow) AICpuSubTaskFlush();
   GE_ASSERT_NOTNULL(sub_task_flush);
   context->GetOutput(0)->SetWithDefaultDeleter(sub_task_flush);
@@ -401,8 +398,8 @@ ge::graphStatus FillDataDumpCtxInfo(const KernelContext *context, gert::DataDump
 
   for (size_t thread_id = 0; thread_id < thread_dim; ++thread_id) {
     auto ctxid = ctx_id_vec[thread_id % ctx_num];
-    if (wrapper.CreateFftsCtxInfo(static_cast<uint32_t>(thread_id),
-                                  static_cast<uint32_t>(ctxid)) != ge::GRAPH_SUCCESS) {
+    if (wrapper.CreateFftsCtxInfo(static_cast<uint32_t>(thread_id), static_cast<uint32_t>(ctxid)) !=
+        ge::GRAPH_SUCCESS) {
       GELOGE(ge::FAILED, "CreateFftsCtxInfo failed, thread_id:%u, ctx_id:%u.", thread_id, ctxid);
       return ge::GRAPH_FAILED;
     }
@@ -420,16 +417,14 @@ ge::graphStatus GetAddrSize(const KernelContext *context, size_t param_id, bool 
   auto compute_node_info = extend_context->GetComputeNodeInfo();
   GE_ASSERT_NOTNULL(compute_node_info);
 
-  auto tensor = input_flag ?
-                compute_node_info->GetInputTdInfo(param_id):
-                compute_node_info->GetOutputTdInfo(param_id);
+  auto tensor = input_flag ? compute_node_info->GetInputTdInfo(param_id) : compute_node_info->GetOutputTdInfo(param_id);
 
   int64_t batch_size = 1;
   if (last_flag) {
     auto tail_slice =
-        input_flag ?
-        context->GetInputPointer<gert::ContinuousVector>(static_cast<size_t>(FFTSAicpuArgss::kLastInSlice)):
-        context->GetInputPointer<gert::ContinuousVector>(static_cast<size_t>(FFTSAicpuArgss::kLastOutSlice));
+        input_flag
+            ? context->GetInputPointer<gert::ContinuousVector>(static_cast<size_t>(FFTSAicpuArgss::kLastInSlice))
+            : context->GetInputPointer<gert::ContinuousVector>(static_cast<size_t>(FFTSAicpuArgss::kLastOutSlice));
     auto tail_slice_vec = reinterpret_cast<const Shape *>(tail_slice->GetData());
 
     const size_t slice_dim_num = tail_slice_vec[param_id].GetDimNum();
@@ -441,9 +436,9 @@ ge::graphStatus GetAddrSize(const KernelContext *context, size_t param_id, bool 
     }
   } else {
     auto not_tail_slice =
-        input_flag ?
-        context->GetInputPointer<gert::ContinuousVector>(static_cast<size_t>(FFTSAicpuArgss::kNotLastInSlice)):
-        context->GetInputPointer<gert::ContinuousVector>(static_cast<size_t>(FFTSAicpuArgss::kNotLastOutSlice));
+        input_flag
+            ? context->GetInputPointer<gert::ContinuousVector>(static_cast<size_t>(FFTSAicpuArgss::kNotLastInSlice))
+            : context->GetInputPointer<gert::ContinuousVector>(static_cast<size_t>(FFTSAicpuArgss::kNotLastOutSlice));
     auto not_tail_slice_vec = reinterpret_cast<const Shape *>(not_tail_slice->GetData());
 
     const size_t slice_dim_num = not_tail_slice_vec[param_id].GetDimNum();
@@ -521,17 +516,15 @@ ge::graphStatus FillAICpuDataDumpInfo(const KernelContext *context, gert::DataDu
   for (size_t i = 0UL; i < thread_param->input_output_num; ++i) {
     const bool input_flag = i < thread_param->input_num;
     const auto param_id = input_flag ? i : (i - thread_param->input_num);
-    uint32_t mem_pool_type =
-        input_flag ? in_mem_type_vec[param_id] : out_mem_type_vec[param_id];
+    uint32_t mem_pool_type = input_flag ? in_mem_type_vec[param_id] : out_mem_type_vec[param_id];
 
     if (mem_pool_type == 1U) {
       if (GetFftsMemBlockInfo(context, i, thread_dim, param_id, input_flag, wrapper) != ge::GRAPH_SUCCESS) {
-          return ge::GRAPH_FAILED;
+        return ge::GRAPH_FAILED;
       }
     } else {
-      if (GetNormalInfo(context, i, thread_dim, param_id, input_flag, thread_param, wrapper) !=
-          ge::GRAPH_SUCCESS) {
-          return ge::GRAPH_FAILED;
+      if (GetNormalInfo(context, i, thread_dim, param_id, input_flag, thread_param, wrapper) != ge::GRAPH_SUCCESS) {
+        return ge::GRAPH_FAILED;
       }
     }
   }

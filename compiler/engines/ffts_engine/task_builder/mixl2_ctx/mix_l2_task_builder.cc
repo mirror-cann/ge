@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -112,7 +112,7 @@ Status MixL2TaskBuilder::AddAdditionalArgs(ge::OpDescPtr &op_desc, domi::FftsPlu
   FFTS_CHECK_NOTNULL(op_desc);
   // modeInArgsFirstField
   uint32_t mode = 0;
-  (void) ge::AttrUtils::GetInt(op_desc, kModeInArgsFirstField, mode);
+  (void)ge::AttrUtils::GetInt(op_desc, kModeInArgsFirstField, mode);
   bool inter_core_sync = false;
   (void)ge::AttrUtils::GetBool(op_desc, kAttrIntercoreSync, inter_core_sync);
   FFTS_LOGD("Add additional args in mode: %u", mode);
@@ -121,11 +121,11 @@ Status MixL2TaskBuilder::AddAdditionalArgs(ge::OpDescPtr &op_desc, domi::FftsPlu
     domi::AdditionalDataDef *additional_data_def = ffts_plus_task_def->add_additional_data();
     FFTS_CHECK_NOTNULL(additional_data_def);
     uint32_t context_id;
-    (void) ge::AttrUtils::GetInt(op_desc, kContextId, context_id);
+    (void)ge::AttrUtils::GetInt(op_desc, kContextId, context_id);
     additional_data_def->set_data_type(data_type);
     additional_data_def->add_context_id(context_id);
     if (ctx_num > 1) {
-      (void) ge::AttrUtils::GetInt(op_desc, "_default_context_id", context_id);
+      (void)ge::AttrUtils::GetInt(op_desc, "_default_context_id", context_id);
       additional_data_def->add_context_id(context_id);
     }
   }

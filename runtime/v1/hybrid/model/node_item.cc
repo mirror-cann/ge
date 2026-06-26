@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,18 +26,13 @@ const uint8_t kMaxTransCount = 3U;
 const uint8_t kTransOpIoSize = 1U;
 const ge::char_t *const kAttrNameOriginalFusionGraph = "_original_fusion_graph";
 const ge::char_t *const kNodeTypeRetVal = "_RetVal";
-const std::set<std::string> kControlOpTypes {
-    IF, STATELESSIF, CASE, STATELESSCASE, WHILE, STATELESSWHILE
-};
+const std::set<std::string> kControlOpTypes{IF, STATELESSIF, CASE, STATELESSCASE, WHILE, STATELESSWHILE};
 
-const std::set<std::string> kControlFlowOpTypes {
-    STREAMACTIVE, STREAMSWITCH, ENTER, REFENTER, NEXTITERATION, REFNEXTITERATION, EXIT, REFEXIT,
-    LABELGOTOEX, LABELSWITCHBYINDEX
-};
+const std::set<std::string> kControlFlowOpTypes{STREAMACTIVE,  STREAMSWITCH,      ENTER, REFENTER,
+                                                NEXTITERATION, REFNEXTITERATION,  EXIT,  REFEXIT,
+                                                LABELGOTOEX,   LABELSWITCHBYINDEX};
 
-const std::set<std::string> kMergeOpTypes {
-    MERGE, REFMERGE, STREAMMERGE
-};
+const std::set<std::string> kMergeOpTypes{MERGE, REFMERGE, STREAMMERGE};
 
 bool IsEnterFeedNode(NodePtr node) {
   // For: Enter -> node
@@ -94,10 +89,10 @@ bool CheckIsOutLoop(NodePtr node) {
 Status ParseInputMapping(const Node &node, const OpDesc &op_desc, FusedSubgraph &fused_subgraph) {
   uint32_t parent_index = 0U;
   if (!AttrUtils::GetInt(op_desc, ATTR_NAME_PARENT_NODE_INDEX, parent_index)) {
-    GELOGE(FAILED, "[Get][Attr][%s(%s)] Failed to get attr [%s]",
-           op_desc.GetName().c_str(), op_desc.GetType().c_str(), ATTR_NAME_PARENT_NODE_INDEX.c_str());
-    REPORT_INNER_ERR_MSG("E19999", "[%s(%s)] Failed to get attr [%s]",
-                      op_desc.GetName().c_str(), op_desc.GetType().c_str(), ATTR_NAME_PARENT_NODE_INDEX.c_str());
+    GELOGE(FAILED, "[Get][Attr][%s(%s)] Failed to get attr [%s]", op_desc.GetName().c_str(), op_desc.GetType().c_str(),
+           ATTR_NAME_PARENT_NODE_INDEX.c_str());
+    REPORT_INNER_ERR_MSG("E19999", "[%s(%s)] Failed to get attr [%s]", op_desc.GetName().c_str(),
+                         op_desc.GetType().c_str(), ATTR_NAME_PARENT_NODE_INDEX.c_str());
     return FAILED;
   }
 
@@ -120,7 +115,7 @@ Status ParseOutputMapping(const OpDescPtr &op_desc, FusedSubgraph &fused_subgrap
       GELOGE(FAILED, "[Get][Attr][%s(%s)] Failed to get attr [%s]", op_desc->GetName().c_str(),
              op_desc->GetType().c_str(), ATTR_NAME_PARENT_NODE_INDEX.c_str());
       REPORT_INNER_ERR_MSG("E19999", "[%s(%s)] Failed to get attr [%s].", op_desc->GetName().c_str(),
-                        op_desc->GetType().c_str(), ATTR_NAME_PARENT_NODE_INDEX.c_str());
+                           op_desc->GetType().c_str(), ATTR_NAME_PARENT_NODE_INDEX.c_str());
       return FAILED;
     }
     (void)fused_subgraph.output_mapping.emplace(static_cast<int32_t>(parent_index), input_desc);
@@ -129,7 +124,7 @@ Status ParseOutputMapping(const OpDescPtr &op_desc, FusedSubgraph &fused_subgrap
 }
 
 Status ReplaceRetValByNetOutput(ComputeGraphPtr &fused_graph) {
-   // replace all retval to one netoutput, cause fused_graph may execute later.
+  // replace all retval to one netoutput, cause fused_graph may execute later.
   const auto netoutput_op_desc = MakeShared<OpDesc>(fused_graph->GetName() + "_netoutput", NETOUTPUT);
   GE_CHECK_NOTNULL(netoutput_op_desc);
   std::vector<NodePtr> ret_val_nodes;
@@ -152,7 +147,7 @@ Status ReplaceRetValByNetOutput(ComputeGraphPtr &fused_graph) {
       GELOGE(FAILED, "[Get][Attr][%s(%s)] Failed to get attr [%s]", ret_val_op_desc->GetName().c_str(),
              ret_val_op_desc->GetType().c_str(), ATTR_NAME_PARENT_NODE_INDEX.c_str());
       REPORT_INNER_ERR_MSG("E19999", "[%s(%s)] Failed to get attr [%s]", ret_val_op_desc->GetName().c_str(),
-                        ret_val_op_desc->GetType().c_str(), ATTR_NAME_PARENT_NODE_INDEX.c_str());
+                           ret_val_op_desc->GetType().c_str(), ATTR_NAME_PARENT_NODE_INDEX.c_str());
       return FAILED;
     }
     auto ret_val_input_desc = ret_val_op_desc->GetInputDesc(0U);
@@ -188,7 +183,7 @@ Status ParseFusedSubgraph(NodeItem &node_item) {
   }
 
   GELOGI("[%s] Start to parse fused subgraph.", node_item.node_name.c_str());
-  auto fused_subgraph = std::unique_ptr<FusedSubgraph>(new(std::nothrow)FusedSubgraph());
+  auto fused_subgraph = std::unique_ptr<FusedSubgraph>(new (std::nothrow) FusedSubgraph());
   GE_CHECK_NOTNULL(fused_subgraph);
 
   ComputeGraphPtr fused_graph;
@@ -251,10 +246,10 @@ NodeItem::NodeItem(NodePtr node_ptr) : NodeShapeInfer(), node(std::move(node_ptr
 Status NodeItem::Create(const NodePtr &node_ptr, std::unique_ptr<NodeItem> &node_item) {
   GE_CHECK_NOTNULL(node_ptr);
   GE_CHECK_NOTNULL(node_ptr->GetOpDesc());
-  std::unique_ptr<NodeItem> instance(new(std::nothrow)NodeItem(node_ptr));
+  std::unique_ptr<NodeItem> instance(new (std::nothrow) NodeItem(node_ptr));
   GE_CHECK_NOTNULL(instance);
-  GE_CHK_STATUS_RET(instance->Init(), "[Invoke][Init]Failed to init NodeItem [%s(%s)].",
-                    node_ptr->GetName().c_str(), node_ptr->GetType().c_str());
+  GE_CHK_STATUS_RET(instance->Init(), "[Invoke][Init]Failed to init NodeItem [%s(%s)].", node_ptr->GetName().c_str(),
+                    node_ptr->GetType().c_str());
   node_item = std::move(instance);
   return SUCCESS;
 }
@@ -309,8 +304,8 @@ Status NodeItem::ResolveOutputMemType() {
   const bool has_mem_type_attr = AttrUtils::GetListInt(op_desc, ATTR_NAME_OUTPUT_MEM_TYPE_LIST, v_memory_type);
   if (has_mem_type_attr && (v_memory_type.size() != outputs_size)) {
     REPORT_INNER_ERR_MSG("E19999", "Attr:%s, memory_type.size:%zu != output_desc.size:%zu, op:%s(%s), check invalid",
-                       ATTR_NAME_OUTPUT_MEM_TYPE_LIST.c_str(), v_memory_type.size(), outputs_size,
-                       op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                         ATTR_NAME_OUTPUT_MEM_TYPE_LIST.c_str(), v_memory_type.size(), outputs_size,
+                         op_desc->GetName().c_str(), op_desc->GetType().c_str());
     GELOGE(PARAM_INVALID, "[Check][Param] Attr:%s, memory_type.size:%zu != output_desc.size:%zu, op:%s(%s)",
            ATTR_NAME_OUTPUT_MEM_TYPE_LIST.c_str(), v_memory_type.size(), outputs_size, op_desc->GetName().c_str(),
            op_desc->GetType().c_str());
@@ -368,8 +363,8 @@ Status NodeItem::ResolveStaticInputsAndOutputs() {
     } else {
       num_static_input_shapes++;
       is_input_shape_static_.push_back(true);
-      GELOGD("[%s] The shape of input[%d] is static. shape = [%s]",
-             NodeName().c_str(), i, input_desc->MutableShape().ToString().c_str());
+      GELOGD("[%s] The shape of input[%d] is static. shape = [%s]", NodeName().c_str(), i,
+             input_desc->MutableShape().ToString().c_str());
     }
   }
 
@@ -424,8 +419,7 @@ Status NodeItem::Init() {
   ResolveUnknownShapeType();
   if (is_dynamic) {
     GE_CHK_STATUS_RET_NOLOG(ResolveStaticInputsAndOutputs());
-    GE_CHK_STATUS_RET(ParseFusedSubgraph(*this),
-                      "[Invoke][ParseFusedSubgraph][%s(%s)] Failed to parse fused subgraph",
+    GE_CHK_STATUS_RET(ParseFusedSubgraph(*this), "[Invoke][ParseFusedSubgraph][%s(%s)] Failed to parse fused subgraph",
                       node_name.c_str(), node_type.c_str());
   }
   skip_sufficiency_of_input_check_.clear();
@@ -519,8 +513,8 @@ GeTensorDescPtr NodeItem::DoGetInputDesc(const int32_t index) const {
   if ((index < 0) || (index >= num_inputs)) {
     GELOGE(PARAM_INVALID, "[Check][Param:index][%s(%s)] Invalid input index, num inputs = %d, index = %d",
            node_name.c_str(), node_type.c_str(), num_inputs, index);
-    REPORT_INNER_ERR_MSG("E19999", "Invalid input index, node:%s(%s) num inputs = %d, index = %d",
-                       node_name.c_str(), node_type.c_str(), num_inputs, index);
+    REPORT_INNER_ERR_MSG("E19999", "Invalid input index, node:%s(%s) num inputs = %d, index = %d", node_name.c_str(),
+                         node_type.c_str(), num_inputs, index);
     return nullptr;
   }
 
@@ -561,11 +555,10 @@ Status NodeItem::GetCanonicalInputIndex(const uint32_t index, int32_t &canonical
 
   const auto iter = std::find(input_desc_indices_.begin(), input_desc_indices_.end(), index);
   if (iter == input_desc_indices_.end()) {
-    GELOGE(INTERNAL_ERROR,
-           "[Check][Param:index]input index:%u not in input_desc_indices_, check Invalid, node:%s(%s)",
+    GELOGE(INTERNAL_ERROR, "[Check][Param:index]input index:%u not in input_desc_indices_, check Invalid, node:%s(%s)",
            index, node_name.c_str(), node_type.c_str());
-    REPORT_INNER_ERR_MSG("E19999", "input index:%u not in input_desc_indices_, check Invalid, node:%s(%s)",
-                       index, node_name.c_str(), node_type.c_str());
+    REPORT_INNER_ERR_MSG("E19999", "input index:%u not in input_desc_indices_, check Invalid, node:%s(%s)", index,
+                         node_name.c_str(), node_type.c_str());
     return INTERNAL_ERROR;
   }
 
@@ -615,8 +608,8 @@ void NodeItem::SetCtrlSend(NodeItem *const node_item, const uint32_t switch_inde
 
 void NodeItem::SetMergeCtrl(NodeItem *const node_item, const uint32_t merge_index) {
   if (merge_index >= switch_groups_.size()) {
-    GELOGE(FAILED, "[Check][Param][%s(%s)] group size: %zu <= merge index: %u",
-           NodeName().c_str(), node_type.c_str(), switch_groups_.size(), merge_index);
+    GELOGE(FAILED, "[Check][Param][%s(%s)] group size: %zu <= merge index: %u", NodeName().c_str(), node_type.c_str(),
+           switch_groups_.size(), merge_index);
     return;
   }
 
@@ -630,8 +623,8 @@ void NodeItem::SetMergeCtrl(NodeItem *const node_item, const uint32_t merge_inde
 
 size_t NodeItem::GetMergeCtrl(const uint32_t merge_index) const {
   return ((node_type == STREAMMERGE) && (merge_index < switch_groups_.size()))
-         ? switch_groups_[static_cast<size_t>(merge_index)].size()
-         : 0U;
+             ? switch_groups_[static_cast<size_t>(merge_index)].size()
+             : 0U;
 }
 
 OptionalMutexGuard::OptionalMutexGuard(std::mutex *const mutex, const std::string &name) : mu_(mutex), name_(name) {

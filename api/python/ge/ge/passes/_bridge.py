@@ -16,19 +16,22 @@ import sys
 import threading
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Dict, Optional, cast, List
+from typing import Dict, List, Optional, cast
 
-from ge.graph import Graph
-from ge.graph import Node
+from ge.graph import Graph, Node
 
-from .base import DecomposePass, FusionBasePass, PassContext, PatternFusionPass, PatternMatcherConfig, StatusLike
+from ._native import borrow_match_result, borrow_node, clone_pattern_matcher_config, release_graph
+from .base import (
+    DecomposePass,
+    FusionBasePass,
+    PassContext,
+    PatternFusionPass,
+    PatternMatcherConfig,
+    StatusLike,
+)
 from .bootstrap import get_registered_passes, load_pass_plugins
 from .pattern import ensure_pattern
 from .registry import get_registered_pass_by_descriptor_key
-from ._native import borrow_node
-from ._native import borrow_match_result
-from ._native import clone_pattern_matcher_config
-from ._native import release_graph
 
 
 @dataclass

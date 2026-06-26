@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,44 +28,31 @@ struct AllocatedFuncCounter : public FuncCounter {
   int64_t c{};
   int64_t d{};
 };
-}
+}  // namespace
 
 class AnyValueUt : public testing::Test {};
 
 TEST_F(AnyValueUt, InlineClassBuildOk1) {
-  EXPECT_NO_THROW(
-    InlineStructB s1;
-    InlineStructB &s2 = s1;
-    const InlineStructB s3;
+  EXPECT_NO_THROW(InlineStructB s1; InlineStructB &s2 = s1; const InlineStructB s3;
 
-    auto av1 = AnyValue::CreateFrom(s1);
-    auto av2 = AnyValue::CreateFrom(s2);
-    auto av3 = AnyValue::CreateFrom(s3);
-    auto av4 = AnyValue::CreateFrom(InlineStructB());
+                  auto av1 = AnyValue::CreateFrom(s1); auto av2 = AnyValue::CreateFrom(s2);
+                  auto av3 = AnyValue::CreateFrom(s3); auto av4 = AnyValue::CreateFrom(InlineStructB());
 
-    auto av2_1 = AnyValue::CreateFrom<InlineStructB>(s1);
-    auto av2_2 = AnyValue::CreateFrom<InlineStructB>(s2);
-    auto av2_3 = AnyValue::CreateFrom<InlineStructB>(s3);
-    auto av2_4 = AnyValue::CreateFrom<InlineStructB>(InlineStructB());
-  );
+                  auto av2_1 = AnyValue::CreateFrom<InlineStructB>(s1);
+                  auto av2_2 = AnyValue::CreateFrom<InlineStructB>(s2);
+                  auto av2_3 = AnyValue::CreateFrom<InlineStructB>(s3);
+                  auto av2_4 = AnyValue::CreateFrom<InlineStructB>(InlineStructB()););
 }
 TEST_F(AnyValueUt, BasicTypesBuildOk1) {
-  EXPECT_NO_THROW(
-    int i1{10};
-    int &i2 = i1;
-    const int i3 = 20;
+  EXPECT_NO_THROW(int i1{10}; int &i2 = i1; const int i3 = 20;
 
-    auto av1 = AnyValue::CreateFrom(i1);
-    auto av2 = AnyValue::CreateFrom(i2);
-    auto av3 = AnyValue::CreateFrom(i3);
-    auto av4 = AnyValue::CreateFrom(30);
+                  auto av1 = AnyValue::CreateFrom(i1); auto av2 = AnyValue::CreateFrom(i2);
+                  auto av3 = AnyValue::CreateFrom(i3); auto av4 = AnyValue::CreateFrom(30);
 
-    auto av2_1 = AnyValue::CreateFrom<int>(i1);
-    auto av2_2 = AnyValue::CreateFrom<int>(i2);
-    auto av2_3 = AnyValue::CreateFrom<int>(i3);
-    auto av2_4 = AnyValue::CreateFrom<int>(30);
+                  auto av2_1 = AnyValue::CreateFrom<int>(i1); auto av2_2 = AnyValue::CreateFrom<int>(i2);
+                  auto av2_3 = AnyValue::CreateFrom<int>(i3); auto av2_4 = AnyValue::CreateFrom<int>(30);
 
-    // todo 验证av1~4为inline保存
+                  // todo 验证av1~4为inline保存
   );
 }
 
@@ -89,8 +76,8 @@ TEST_F(AnyValueUt, CopyConstructOk_Alloc1) {
   FuncCounter::Clear();
   AnyValue av2(av);
 
-    EXPECT_EQ(FuncCounter::GetClearCopyConstructTimes(), 1);
-    EXPECT_TRUE(FuncCounter::AllTimesZero());
+  EXPECT_EQ(FuncCounter::GetClearCopyConstructTimes(), 1);
+  EXPECT_TRUE(FuncCounter::AllTimesZero());
 }
 
 TEST_F(AnyValueUt, CopyConstructOk) {
@@ -102,7 +89,6 @@ TEST_F(AnyValueUt, CopyConstructOk) {
   EXPECT_EQ(*av2.Get<std::string>(), "Hello world");
   s = "asdfa";
   EXPECT_EQ(*av2.Get<std::string>(), "Hello world");
-
 }
 
 TEST_F(AnyValueUt, CopyAssignOk) {
@@ -118,7 +104,6 @@ TEST_F(AnyValueUt, CopyAssignOk) {
 }
 
 TEST_F(AnyValueUt, MoveConstructOk_Inline1) {
-
   {
     AnyValue av;
     {
@@ -135,7 +120,6 @@ TEST_F(AnyValueUt, MoveConstructOk_Inline1) {
   EXPECT_TRUE(FuncCounter::AllTimesZero());
 }
 TEST_F(AnyValueUt, MoveConstructOk_Alloc1) {
-
   {
     AnyValue av;
     {
@@ -151,7 +135,6 @@ TEST_F(AnyValueUt, MoveConstructOk_Alloc1) {
 }
 
 TEST_F(AnyValueUt, MoveAssign_Inline1) {
-
   {
     AnyValue av;
     AnyValue av2;
@@ -164,13 +147,11 @@ TEST_F(AnyValueUt, MoveAssign_Inline1) {
     av2 = std::move(av);
   }
 
-
   EXPECT_EQ(FuncCounter::GetClearMoveConstructTimes(), 1);
   EXPECT_EQ(FuncCounter::GetClearDestructTimes(), 2);
   EXPECT_TRUE(FuncCounter::AllTimesZero());
 }
 TEST_F(AnyValueUt, MoveAssignOk_Alloc1) {
-
   {
     AnyValue av;
     AnyValue av2;
@@ -191,17 +172,13 @@ TEST_F(AnyValueUt, ClassBuildOk1) {
   TestStructA &a2 = a1;
   const TestStructA a3 = {0, 100, 3000};
 
-  EXPECT_NO_THROW(
-    auto av1 = AnyValue::CreateFrom(a1);
-    auto av2 = AnyValue::CreateFrom(a2);
-    auto av3 = AnyValue::CreateFrom(a3);
-    auto av4 = AnyValue::CreateFrom(TestStructA{0, 100, 3000});
+  EXPECT_NO_THROW(auto av1 = AnyValue::CreateFrom(a1); auto av2 = AnyValue::CreateFrom(a2);
+                  auto av3 = AnyValue::CreateFrom(a3); auto av4 = AnyValue::CreateFrom(TestStructA{0, 100, 3000});
 
-    auto av2_1 = AnyValue::CreateFrom<TestStructA>(a1);
-    auto av2_2 = AnyValue::CreateFrom<TestStructA>(a2);
-    auto av2_3 = AnyValue::CreateFrom<TestStructA>(a3);
-    auto av2_4 = AnyValue::CreateFrom<TestStructA>(TestStructA{0, 100, 3000});
-  );
+                  auto av2_1 = AnyValue::CreateFrom<TestStructA>(a1);
+                  auto av2_2 = AnyValue::CreateFrom<TestStructA>(a2);
+                  auto av2_3 = AnyValue::CreateFrom<TestStructA>(a3);
+                  auto av2_4 = AnyValue::CreateFrom<TestStructA>(TestStructA{0, 100, 3000}););
 
   // todo 验证av1~4为allocate保存
   // todo 验证av1~3走了拷贝构造，av4走了移动构造
@@ -442,18 +419,18 @@ TEST_F(AnyValueUt, MoveConstructOk1) {
 
 TEST_F(AnyValueUt, SetRvalueOk) {
   AnyValue av;
-  EXPECT_EQ(av.SetValue(std::vector<int64_t>({1,2,3,4})), GRAPH_SUCCESS);
+  EXPECT_EQ(av.SetValue(std::vector<int64_t>({1, 2, 3, 4})), GRAPH_SUCCESS);
   EXPECT_NE(av.Get<std::vector<int64_t>>(), nullptr);
-  EXPECT_EQ(*av.Get<std::vector<int64_t>>(), std::vector<int64_t>({1,2,3,4}));
+  EXPECT_EQ(*av.Get<std::vector<int64_t>>(), std::vector<int64_t>({1, 2, 3, 4}));
 }
 
 TEST_F(AnyValueUt, SetGetValueOk) {
   AnyValue av;
-  EXPECT_EQ(av.SetValue(std::vector<int64_t>({1,2,3,4})), GRAPH_SUCCESS);
+  EXPECT_EQ(av.SetValue(std::vector<int64_t>({1, 2, 3, 4})), GRAPH_SUCCESS);
 
   std::vector<int64_t> value;
   EXPECT_EQ(av.GetValue(value), GRAPH_SUCCESS);
-  EXPECT_EQ(value, std::vector<int64_t>({1,2,3,4}));
+  EXPECT_EQ(value, std::vector<int64_t>({1, 2, 3, 4}));
 }
 
 TEST_F(AnyValueUt, SetGetValueOk_Inline) {
@@ -482,7 +459,7 @@ TEST_F(AnyValueUt, SetGetValueOk_Allocate) {
 
 TEST_F(AnyValueUt, GetWrongTypeFailed) {
   AnyValue av;
-  av.SetValue(std::vector<int64_t>({1,2,3,4,5}));
+  av.SetValue(std::vector<int64_t>({1, 2, 3, 4, 5}));
 
   int64_t a;
   EXPECT_NE(av.GetValue(a), GRAPH_SUCCESS);
@@ -543,17 +520,16 @@ TEST_F(AnyValueUt, GetTypeOk) {
   EXPECT_EQ(av.GetValueTypeId(), GetTypeId<Buffer>());
   EXPECT_EQ(av.GetValueType(), AnyValue::VT_BYTES);
 
-//  auto graph = proto::GraphDef(nullptr);
-//  av.SetValue(graph);
-//  EXPECT_EQ(av.GetValueTypeId(), GetTypeId<proto::GraphDef>());
-//  EXPECT_EQ(av.GetValueType(), AnyValue::VT_GRAPH);
+  //  auto graph = proto::GraphDef(nullptr);
+  //  av.SetValue(graph);
+  //  EXPECT_EQ(av.GetValueTypeId(), GetTypeId<proto::GraphDef>());
+  //  EXPECT_EQ(av.GetValueType(), AnyValue::VT_GRAPH);
 
   av.SetValue(NamedAttrs());
   EXPECT_EQ(av.GetValueTypeId(), GetTypeId<NamedAttrs>());
   EXPECT_EQ(av.GetValueType(), AnyValue::VT_NAMED_ATTRS);
 
-
-  av.SetValue(std::vector<std::vector<int64_t>>({{1,2,3}, {1,2,3}}));
+  av.SetValue(std::vector<std::vector<int64_t>>({{1, 2, 3}, {1, 2, 3}}));
   EXPECT_EQ(av.GetValueTypeId(), GetTypeId<std::vector<std::vector<int64_t>>>());
   EXPECT_EQ(av.GetValueType(), AnyValue::VT_LIST_LIST_INT);
 
@@ -561,7 +537,7 @@ TEST_F(AnyValueUt, GetTypeOk) {
   EXPECT_EQ(av.GetValueTypeId(), GetTypeId<DataType>());
   EXPECT_EQ(av.GetValueType(), AnyValue::VT_DATA_TYPE);
 
-  av.SetValue(std::vector<std::vector<float>>({{1.0,2.1,3.3}, {1.2,2.4,3.5}}));
+  av.SetValue(std::vector<std::vector<float>>({{1.0, 2.1, 3.3}, {1.2, 2.4, 3.5}}));
   EXPECT_EQ(av.GetValueTypeId(), GetTypeId<std::vector<std::vector<float>>>());
   EXPECT_EQ(av.GetValueType(), AnyValue::VT_LIST_LIST_FLOAT);
 
@@ -593,9 +569,9 @@ TEST_F(AnyValueUt, GetTypeOk) {
   EXPECT_EQ(av.GetValueTypeId(), GetTypeId<std::vector<Buffer>>());
   EXPECT_EQ(av.GetValueType(), AnyValue::VT_LIST_BYTES);
 
-//  av.SetValue(std::vector<proto::GraphDef>());
-//  EXPECT_EQ(av.GetValueTypeId(), GetTypeId<std::vector<proto::GraphDef>>());
-//  EXPECT_EQ(av.GetValueType(), AnyValue::VT_LIST_GRAPH);
+  //  av.SetValue(std::vector<proto::GraphDef>());
+  //  EXPECT_EQ(av.GetValueTypeId(), GetTypeId<std::vector<proto::GraphDef>>());
+  //  EXPECT_EQ(av.GetValueType(), AnyValue::VT_LIST_GRAPH);
 
   av.SetValue(std::vector<NamedAttrs>());
   EXPECT_EQ(av.GetValueTypeId(), GetTypeId<std::vector<NamedAttrs>>());
@@ -605,9 +581,9 @@ TEST_F(AnyValueUt, GetTypeOk) {
   EXPECT_EQ(av.GetValueTypeId(), GetTypeId<std::vector<DataType>>());
   EXPECT_EQ(av.GetValueType(), AnyValue::VT_LIST_DATA_TYPE);
 
-    av.SetValue(std::vector<int32_t>());
-    EXPECT_EQ(av.GetValueTypeId(), GetTypeId<std::vector<int32_t>>());
-    EXPECT_EQ(av.GetValueType(), AnyValue::VT_NONE);
+  av.SetValue(std::vector<int32_t>());
+  EXPECT_EQ(av.GetValueTypeId(), GetTypeId<std::vector<int32_t>>());
+  EXPECT_EQ(av.GetValueType(), AnyValue::VT_NONE);
 }
 
 TEST_F(AnyValueUt, GetTypeOk_Inline) {
@@ -619,7 +595,7 @@ TEST_F(AnyValueUt, GetTypeOk_Inline) {
 
 TEST_F(AnyValueUt, SwapOk1) {
   AnyValue av1;
-  av1.SetValue(std::vector<int32_t>({1,2,3,4}));
+  av1.SetValue(std::vector<int32_t>({1, 2, 3, 4}));
   AnyValue av2;
   av2.SetValue(static_cast<int64_t>(1024));
   av1.Swap(av2);
@@ -627,85 +603,54 @@ TEST_F(AnyValueUt, SwapOk1) {
   EXPECT_EQ(*av1.Get<int64_t>(), 1024);
 
   EXPECT_NE(av2.Get<std::vector<int32_t>>(), nullptr);
-  EXPECT_EQ(*av2.Get<std::vector<int32_t>>(), std::vector<int32_t>({1,2,3,4}));
+  EXPECT_EQ(*av2.Get<std::vector<int32_t>>(), std::vector<int32_t>({1, 2, 3, 4}));
 }
 
 TEST_F(AnyValueUt, SwapOk2) {
   AnyValue av1;
-  av1.SetValue(std::vector<int32_t>({1,2,3,4}));
+  av1.SetValue(std::vector<int32_t>({1, 2, 3, 4}));
   AnyValue av2;
-  av2.SetValue(TestStructA(10,11,12));
+  av2.SetValue(TestStructA(10, 11, 12));
   av1.Swap(av2);
   EXPECT_NE(av1.Get<TestStructA>(), nullptr);
-  EXPECT_EQ(*av1.Get<TestStructA>(), TestStructA(10,11,12));
+  EXPECT_EQ(*av1.Get<TestStructA>(), TestStructA(10, 11, 12));
 
   EXPECT_NE(av2.Get<std::vector<int32_t>>(), nullptr);
-  EXPECT_EQ(*av2.Get<std::vector<int32_t>>(), std::vector<int32_t>({1,2,3,4}));
+  EXPECT_EQ(*av2.Get<std::vector<int32_t>>(), std::vector<int32_t>({1, 2, 3, 4}));
 }
 
 TEST_F(AnyValueUt, TestValueTypes) {
   std::set<AnyValue::ValueType> value_types = {
-      AnyValue::VT_NONE,
-      AnyValue::VT_STRING,
-      AnyValue::VT_FLOAT,
+      AnyValue::VT_NONE,          AnyValue::VT_STRING,           AnyValue::VT_FLOAT,
       AnyValue::VT_BOOL,
       AnyValue::VT_INT,  // 5
-      AnyValue::VT_TENSOR_DESC,
-      AnyValue::VT_TENSOR,
-      AnyValue::VT_BYTES,
+      AnyValue::VT_TENSOR_DESC,   AnyValue::VT_TENSOR,           AnyValue::VT_BYTES,
       AnyValue::VT_GRAPH,
       AnyValue::VT_NAMED_ATTRS,  // 10
-      AnyValue::VT_LIST_LIST_INT,
-      AnyValue::VT_DATA_TYPE,
-      AnyValue::VT_LIST_LIST_FLOAT,
+      AnyValue::VT_LIST_LIST_INT, AnyValue::VT_DATA_TYPE,        AnyValue::VT_LIST_LIST_FLOAT,
       AnyValue::VT_LIST_STRING,
       AnyValue::VT_LIST_FLOAT,  // 15
-      AnyValue::VT_LIST_BOOL,
-      AnyValue::VT_LIST_INT,
-      AnyValue::VT_LIST_TENSOR_DESC,
+      AnyValue::VT_LIST_BOOL,     AnyValue::VT_LIST_INT,         AnyValue::VT_LIST_TENSOR_DESC,
       AnyValue::VT_LIST_TENSOR,
       AnyValue::VT_LIST_BYTES,  // 20
-      AnyValue::VT_LIST_GRAPH,
-      AnyValue::VT_LIST_NAMED_ATTRS,
-      AnyValue::VT_LIST_DATA_TYPE,
+      AnyValue::VT_LIST_GRAPH,    AnyValue::VT_LIST_NAMED_ATTRS, AnyValue::VT_LIST_DATA_TYPE,
   };
   EXPECT_EQ(value_types.size(), 23);
 }
 
 TEST_F(AnyValueUt, ConstructFromEmtpy) {
-  EXPECT_NO_THROW(
-    AnyValue av1;
-    const AnyValue av2;
-    AnyValue &av3 = av1;
-    const AnyValue &av4 = av2;
+  EXPECT_NO_THROW(AnyValue av1; const AnyValue av2; AnyValue &av3 = av1; const AnyValue &av4 = av2;
 
-    AnyValue tav1(av1);
-    AnyValue tav2(av2);
-    AnyValue tav3(av3);
-    AnyValue tav4(av4);
-    AnyValue tav5{AnyValue()};
-  );
+                  AnyValue tav1(av1); AnyValue tav2(av2); AnyValue tav3(av3); AnyValue tav4(av4);
+                  AnyValue tav5{AnyValue()};);
 }
 
 TEST_F(AnyValueUt, AssignFromEmtpy) {
-  EXPECT_NO_THROW(
-    AnyValue av1;
-    const AnyValue av2;
-    AnyValue &av3 = av1;
-    const AnyValue &av4 = av2;
+  EXPECT_NO_THROW(AnyValue av1; const AnyValue av2; AnyValue &av3 = av1; const AnyValue &av4 = av2;
 
-    AnyValue tav1;
-    AnyValue tav2;
-    AnyValue tav3;
-    AnyValue tav4;
-    AnyValue tav5;
+                  AnyValue tav1; AnyValue tav2; AnyValue tav3; AnyValue tav4; AnyValue tav5;
 
-    tav1 = av1;
-    tav2 = av2;
-    tav3 = av3;
-    tav4 = av4;
-    tav5 = AnyValue();
-  );
+                  tav1 = av1; tav2 = av2; tav3 = av3; tav4 = av4; tav5 = AnyValue(););
 }
 TEST_F(AnyValueUt, SwapWithEmpty) {
   AnyValue av1;

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,15 +25,15 @@ const int kNoCycleCase2 = 2;
 const int kNoCycleCase3 = 3;
 
 /*
-*  if we want to fusion cast1 and cast2
-*  it will cause a cycle between fusion_cast and transdata
-*       data1
-*       /    \
-*      /      \
-*    cast1     \
-*      |        \
-*   trandata---> cast2
-*/
+ *  if we want to fusion cast1 and cast2
+ *  it will cause a cycle between fusion_cast and transdata
+ *       data1
+ *       /    \
+ *      /      \
+ *    cast1     \
+ *      |        \
+ *   trandata---> cast2
+ */
 void BuildGraphMayCauseCycleWhenFusion(ComputeGraphPtr &graph) {
   auto root_builder = ut::GraphBuilder("root");
   const auto &data1 = root_builder.AddNode("data1", "Data", 1, 1);
@@ -56,16 +56,16 @@ class UtestCycleDetector : public testing::Test {
   void TearDown() {}
 };
 /*
-*  if we want to fusion cast1 and cast2
-*  it will cause a cycle between fusion_cast and transdata
-*       data1                           data1
-*       /    \                           |
-*      /      \             ===>      fusion_cast  <------
-*    cast1     \                         |               |
-*      |        \                     transdata-----------
-*   trandata---> cast2          wrong graph, which has cycle between
-*                               transdata and fusion_cast.
-*/
+ *  if we want to fusion cast1 and cast2
+ *  it will cause a cycle between fusion_cast and transdata
+ *       data1                           data1
+ *       /    \                           |
+ *      /      \             ===>      fusion_cast  <------
+ *    cast1     \                         |               |
+ *      |        \                     transdata-----------
+ *   trandata---> cast2          wrong graph, which has cycle between
+ *                               transdata and fusion_cast.
+ */
 TEST_F(UtestCycleDetector, TestCycleDetection_00) {
   ComputeGraphPtr graph;
   BuildGraphMayCauseCycleWhenFusion(graph);
@@ -74,7 +74,7 @@ TEST_F(UtestCycleDetector, TestCycleDetection_00) {
   auto cast2 = graph->FindNode("cast2");
   CycleDetectorPtr detector = GraphUtils::CreateCycleDetector(graph);
   EXPECT_NE(detector, nullptr);
-  
+
   bool has_cycle = detector->HasDetectedCycle({{cast1, cast2}});
   EXPECT_TRUE(has_cycle);
 }
@@ -88,7 +88,7 @@ TEST_F(UtestCycleDetector, TestCycleDetection_00) {
  * After fusion A/B/C, the graph looks like:
  *              <---
  *             /    \
- *           ABC--->D 
+ *           ABC--->D
  */
 static ComputeGraphPtr BuildFusionGraph01(std::vector<ge::NodePtr> &fusion_nodes) {
   ut::GraphBuilder builder = ut::GraphBuilder("fusion_graph");
@@ -113,7 +113,7 @@ static ComputeGraphPtr BuildFusionGraph01(std::vector<ge::NodePtr> &fusion_nodes
 TEST_F(UtestCycleDetector, TestCycleDetection_01) {
   std::vector<ge::NodePtr> fusion_nodes;
   auto graph = BuildFusionGraph01(fusion_nodes);
-  
+
   CycleDetectorPtr detector = GraphUtils::CreateCycleDetector(graph);
   EXPECT_NE(detector, nullptr);
   bool has_cycle = detector->HasDetectedCycle({fusion_nodes});
@@ -366,9 +366,7 @@ ComputeGraphPtr CreateGraph06(int case_num, std::vector<ge::NodePtr> &fusion_nod
   return graph;
 }
 
-
-static ComputeGraphPtr BuildFusionGraph06(int case_num,
-                                          std::vector<ge::NodePtr> &fusion_nodes) {
+static ComputeGraphPtr BuildFusionGraph06(int case_num, std::vector<ge::NodePtr> &fusion_nodes) {
   auto graph = CreateGraph06(case_num, fusion_nodes);
   return graph;
 }
@@ -376,7 +374,7 @@ static ComputeGraphPtr BuildFusionGraph06(int case_num,
 TEST_F(UtestCycleDetector, cycle_detection_06) {
   std::vector<ge::NodePtr> fusion_nodes;
   auto graph = BuildFusionGraph06(kNoCycleCase1, fusion_nodes);
-  
+
   CycleDetectorPtr detector = GraphUtils::CreateCycleDetector(graph);
   EXPECT_NE(detector, nullptr);
   bool has_cycle = detector->HasDetectedCycle({fusion_nodes});
@@ -386,7 +384,7 @@ TEST_F(UtestCycleDetector, cycle_detection_06) {
 TEST_F(UtestCycleDetector, cycle_detection_07) {
   std::vector<ge::NodePtr> fusion_nodes;
   auto graph = BuildFusionGraph06(kContainCycle, fusion_nodes);
-  
+
   CycleDetectorPtr detector = GraphUtils::CreateCycleDetector(graph);
   EXPECT_NE(detector, nullptr);
   bool has_cycle = detector->HasDetectedCycle({fusion_nodes});
@@ -396,7 +394,7 @@ TEST_F(UtestCycleDetector, cycle_detection_07) {
 TEST_F(UtestCycleDetector, cycle_detection_08) {
   std::vector<ge::NodePtr> fusion_nodes;
   auto graph = BuildFusionGraph06(kNoCycleCase2, fusion_nodes);
-  
+
   CycleDetectorPtr detector = GraphUtils::CreateCycleDetector(graph);
   EXPECT_NE(detector, nullptr);
   bool has_cycle = detector->HasDetectedCycle({fusion_nodes});
@@ -406,7 +404,7 @@ TEST_F(UtestCycleDetector, cycle_detection_08) {
 TEST_F(UtestCycleDetector, cycle_detection_09) {
   std::vector<ge::NodePtr> fusion_nodes;
   auto graph = BuildFusionGraph06(kNoCycleCase3, fusion_nodes);
-  
+
   CycleDetectorPtr detector = GraphUtils::CreateCycleDetector(graph);
   EXPECT_NE(detector, nullptr);
   bool has_cycle = detector->HasDetectedCycle({fusion_nodes});

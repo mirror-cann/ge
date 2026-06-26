@@ -13,7 +13,6 @@
 # 此例中，构造一个在MeetRequirements返回false的场景:add的两个输入shape不一致
 import torch
 import torch.nn as nn
-import torch_npu
 import torchair
 
 
@@ -30,7 +29,10 @@ if __name__ == "__main__":
     config = torchair.CompilerConfig()
     npu_backend = torchair.get_npu_backend(compiler_config=config)
 
-    x, y = torch.randn(2, 3, dtype=torch.float16), torch.randn(3, 2, dtype=torch.float16)
+    x, y = (
+        torch.randn(2, 3, dtype=torch.float16),
+        torch.randn(3, 2, dtype=torch.float16),
+    )
     z = torch.randn(2, 2, dtype=torch.float16)
     model = torch.compile(model, backend=npu_backend)
     res = model(x, y, z)

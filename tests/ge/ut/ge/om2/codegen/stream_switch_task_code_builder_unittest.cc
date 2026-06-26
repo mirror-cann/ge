@@ -41,7 +41,7 @@ TEST_F(UtestStreamSwitchTaskCodeBuilder, RenderDistHelperSuccess) {
 
   // 2. 验证返回值
   EXPECT_EQ(ret, SUCCESS);
-  
+
   // 3. 验证生成了且仅生成了一个函数定义节点
   ASSERT_EQ(items.size(), 1U);
   ASSERT_NE(items[0], nullptr);

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,7 +31,7 @@ const char *kDefaultGraphName = "graph";
 
 #define ES_MAKE_GUARD(var, callback) const ScopeGuard const_guard_##var(callback)
 class ScopeGuard {
-public:
+ public:
   // Noncopyable
   ScopeGuard(ScopeGuard const &) = delete;
   ScopeGuard &operator=(ScopeGuard const &) & = delete;
@@ -43,17 +43,20 @@ public:
       if (on_exit_scope_ != nullptr) {
         try {
           on_exit_scope_();
-        } catch (std::bad_function_call &) { }
-        catch (...) { }
+        } catch (std::bad_function_call &) {
+        } catch (...) {
+        }
       }
     }
   }
 
-  void Dismiss() { dismissed_ = true; }
+  void Dismiss() {
+    dismissed_ = true;
+  }
 
-private:
+ private:
   std::function<void()> on_exit_scope_;
-  bool dismissed_ ;
+  bool dismissed_;
 };
 
 template <typename T>
@@ -166,9 +169,12 @@ EsCTensor *EsCreateEsCTensor(const void *data, const int64_t *dim, int64_t dim_n
       return EsCreateEsCTensorHelper<bool>(data, dim, dim_num, ge::DT_BOOL, format);
     default:
       REPORT_PREDEFINED_ERR_MSG(
-          "E10001", std::vector<const char*>({"parameter", "value", "reason"}),
-          std::vector<const char*>({"data_type", ge::TypeUtils::DataTypeToAscendString(static_cast<ge::DataType>(data_type)).GetString(), "Doesn't support current data type."}));
-      GELOGE(ge::GRAPH_FAILED, "[Create][EsCTensor] unsupported data type %s", ge::TypeUtils::DataTypeToAscendString(static_cast<ge::DataType>(data_type)).GetString());
+          "E10001", std::vector<const char *>({"parameter", "value", "reason"}),
+          std::vector<const char *>(
+              {"data_type", ge::TypeUtils::DataTypeToAscendString(static_cast<ge::DataType>(data_type)).GetString(),
+               "Doesn't support current data type."}));
+      GELOGE(ge::GRAPH_FAILED, "[Create][EsCTensor] unsupported data type %s",
+             ge::TypeUtils::DataTypeToAscendString(static_cast<ge::DataType>(data_type)).GetString());
       break;
   }
 
@@ -215,7 +221,7 @@ EsCTensor *EsCreateEsCTensorFromFile(const char *data_file_path, const int64_t *
 #define ES_CREATE_CONST(type, cpp_type, ge_type)                                                           \
   EsCTensorHolder *EsCreateConst##type(EsCGraphBuilder *graph, const cpp_type *value, const int64_t *dims, \
                                        int64_t dim_num) {                                                  \
-    return ge::es::EsCreateConst<cpp_type>(graph, value, dims, dim_num, ge_type, ge::FORMAT_ND);          \
+    return ge::es::EsCreateConst<cpp_type>(graph, value, dims, dim_num, ge_type, ge::FORMAT_ND);           \
   }
 
 ES_CREATE_CONST(Int64, int64_t, ge::DT_INT64)
@@ -261,15 +267,16 @@ EsCTensorHolder *EsCreateVariable(EsCGraphBuilder *graph, int32_t index, const c
   GE_ASSERT_NOTNULL(graph);
   auto av_index = ge::AttrValue();
   auto index_value = static_cast<int64_t>(index);
-  (void) av_index.SetAttrValue(index_value);
+  (void)av_index.SetAttrValue(index_value);
   GE_ASSERT_NOTNULL(graph->GetGraph(), "Graph has been build and reset, cannot create variable");
-  auto node = ge::es::CompliantNodeBuilder(graph->GetGraph())
-                  .OpType("Variable")
-                  .Name(name)
-                  .IrDefInputsV2({{kIrInputNameX, ge::es::CompliantNodeBuilder::kEsIrInputRequired, ""}})
-                  .IrDefOutputsV2({{kIrOutputNameY, ge::es::CompliantNodeBuilder::kEsIrOutputRequired, ""}})
-                  .IrDefAttrsV2({{kIrIndexAttrName, ge::es::CompliantNodeBuilder::kEsAttrOptional, kIrIntAttrType, av_index}})
-                  .Build();
+  auto node =
+      ge::es::CompliantNodeBuilder(graph->GetGraph())
+          .OpType("Variable")
+          .Name(name)
+          .IrDefInputsV2({{kIrInputNameX, ge::es::CompliantNodeBuilder::kEsIrInputRequired, ""}})
+          .IrDefOutputsV2({{kIrOutputNameY, ge::es::CompliantNodeBuilder::kEsIrOutputRequired, ""}})
+          .IrDefAttrsV2({{kIrIndexAttrName, ge::es::CompliantNodeBuilder::kEsAttrOptional, kIrIntAttrType, av_index}})
+          .Build();
 
   return graph->GetTensorHolderFromNode(node, 0);
 }
@@ -301,7 +308,7 @@ uint32_t EsSetFormat(EsCTensorHolder *tensor, C_Format format) {
     GE_ASSERT_NOTNULL(graph);                                                                           \
     auto ge_graph = graph->GetGraph();                                                                  \
     GE_ASSERT_NOTNULL(ge_graph, "Graph has been build and reset, cannot set attr for graph");           \
-    GE_ASSERT_TRUE(ge_graph->IsValid(), "You cannot set attr for empty graph, add some node firstly"); \
+    GE_ASSERT_TRUE(ge_graph->IsValid(), "You cannot set attr for empty graph, add some node firstly");  \
     ge::AttrValue av;                                                                                   \
     GE_ASSERT_GRAPH_SUCCESS(av.SetAttrValue(value_expr));                                               \
     return static_cast<uint32_t>(ge_graph->SetAttr(attr_name, av));                                     \

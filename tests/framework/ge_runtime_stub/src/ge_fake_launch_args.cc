@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -16,7 +16,6 @@
 #include "stub/ge_fake_launch_args.h"
 #include "graph/def_types.h"
 using namespace std;
-
 
 namespace ge {
 GeFakeLaunchArgs::GeFakeLaunchArgs(void *handle, uint64_t devFunc, uint32_t blockDim, rtArgsEx_t *args,
@@ -43,7 +42,7 @@ void GeFakeLaunchArgs::Init(const rtArgsEx_t *args, rtSmDesc_t *smDesc) {
   memcpy(args_ex_->args, args->args, args->argsSize);
 
   args_ex_raw_ =
-    reinterpret_cast<rtArgsEx_t *>(args_holder_.get() + sizeof(rtSmDesc_t)  + sizeof(rtArgsEx_t) + args->argsSize);
+      reinterpret_cast<rtArgsEx_t *>(args_holder_.get() + sizeof(rtSmDesc_t) + sizeof(rtArgsEx_t) + args->argsSize);
   memcpy(args_ex_raw_, args, sizeof(rtArgsEx_t));
 
   args_addr_ = args->args;
@@ -51,12 +50,7 @@ void GeFakeLaunchArgs::Init(const rtArgsEx_t *args, rtSmDesc_t *smDesc) {
 
 GeFakeLaunchArgs::GeFakeLaunchArgs(const void *handle, uint32_t blockDim, rtArgsEx_t *args, rtSmDesc_t *smDesc,
                                    rtStream_t stream, uint32_t flag, std::unique_ptr<std::string> tag)
-    : handle_(handle),
-      devFunc_(0),
-      blockDim_(blockDim),
-      stream_(stream),
-      flag_(flag),
-      tag_name_(std::move(tag)) {
+    : handle_(handle), devFunc_(0), blockDim_(blockDim), stream_(stream), flag_(flag), tag_name_(std::move(tag)) {
   Init(args, smDesc);
 }
 
@@ -97,16 +91,11 @@ GeFakeLaunchArgs::GeFakeLaunchArgs(uintptr_t *ctrl, uint32_t num, uint32_t type,
   serialize_dump_info_ = std::string((char *)dump_info, dump_len);
 }
 
-GeFakeLaunchArgs::GeFakeLaunchArgs(const rtKernelLaunchNames_t *launch_names,
-                                   uint32_t blockDim, const rtArgsEx_t *args,
-                                   rtSmDesc_t *smDesc,
-                                   rtStream_t stream, uint32_t flag, std::unique_ptr<std::string> tag)
-    : devFunc_(0),
-      blockDim_(blockDim),
-      stream_(stream),
-      flag_(flag),
-      tag_name_(std::move(tag)) {
-  (void)launch_names; // todo :launch_names当前未使用，没有保存相关信息
+GeFakeLaunchArgs::GeFakeLaunchArgs(const rtKernelLaunchNames_t *launch_names, uint32_t blockDim, const rtArgsEx_t *args,
+                                   rtSmDesc_t *smDesc, rtStream_t stream, uint32_t flag,
+                                   std::unique_ptr<std::string> tag)
+    : devFunc_(0), blockDim_(blockDim), stream_(stream), flag_(flag), tag_name_(std::move(tag)) {
+  (void)launch_names;  // todo :launch_names当前未使用，没有保存相关信息
   Init(args, smDesc);
 }
 
@@ -136,12 +125,13 @@ GeFakeLaunchArgs::GeFakeLaunchArgs(const rtFuncHandle funcHandle, const uint32_t
     : blockDim_(blockDim), stream_(stm), arg_size_(argsSize), tag_name_(std::move(tag)) {
   (void)cfg;
   (void)funcHandle;
-  args_addr_ = const_cast<void*>(devArgs);
+  args_addr_ = const_cast<void *>(devArgs);
   (void)reserve;
 }
-GeFakeLaunchArgs::GeFakeLaunchArgs(aclrtFuncHandle funcHandle, uint32_t numBlocks,
-    aclrtStream stream, aclrtLaunchKernelCfg *cfg, void *hostArgs, size_t argsSize,
-    aclrtPlaceHolderInfo *placeHolderArray, size_t placeHolderNum, std::unique_ptr<std::string> tag)
+GeFakeLaunchArgs::GeFakeLaunchArgs(aclrtFuncHandle funcHandle, uint32_t numBlocks, aclrtStream stream,
+                                   aclrtLaunchKernelCfg *cfg, void *hostArgs, size_t argsSize,
+                                   aclrtPlaceHolderInfo *placeHolderArray, size_t placeHolderNum,
+                                   std::unique_ptr<std::string> tag)
     : blockDim_(numBlocks), stream_(stream), arg_size_(argsSize), tag_name_(std::move(tag)) {
   (void)cfg;
   (void)funcHandle;
@@ -150,12 +140,12 @@ GeFakeLaunchArgs::GeFakeLaunchArgs(aclrtFuncHandle funcHandle, uint32_t numBlock
   (void)placeHolderNum;
 }
 
-GeFakeLaunchArgs::GeFakeLaunchArgs(aclrtFuncHandle funcHandle, uint32_t numBlocks,
-    const void *argsData, size_t argsSize, aclrtLaunchKernelCfg *cfg,
-    aclrtStream stream, std::unique_ptr<std::string> tag)
+GeFakeLaunchArgs::GeFakeLaunchArgs(aclrtFuncHandle funcHandle, uint32_t numBlocks, const void *argsData,
+                                   size_t argsSize, aclrtLaunchKernelCfg *cfg, aclrtStream stream,
+                                   std::unique_ptr<std::string> tag)
     : blockDim_(numBlocks), stream_(stream), arg_size_(argsSize), tag_name_(std::move(tag)) {
   (void)cfg;
   (void)funcHandle;
-  args_addr_ = const_cast<void*>(argsData);
+  args_addr_ = const_cast<void *>(argsData);
 }
 }  // namespace ge

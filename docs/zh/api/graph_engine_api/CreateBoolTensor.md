@@ -100,4 +100,3 @@ std::vector<bool> data = {true, false, true, false};
 std::vector<int64_t> dims = {4};
 auto tensor = builder.CreateBoolTensor(data,dims);
 ```
-

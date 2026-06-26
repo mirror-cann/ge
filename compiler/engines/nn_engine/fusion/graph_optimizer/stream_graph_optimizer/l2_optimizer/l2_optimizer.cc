@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -166,14 +166,13 @@ Status L2Optimizer::UpdateDDRForL2Fusion(const ge::ComputeGraph &stream_graph, u
  *  @param   [in] stream_id
  *  @return  SUCCESS or FAILED
  */
-Status L2Optimizer::GetL2DataAlloc(ge::ComputeGraph &stream_graph, uint64_t mem_base,
-                                   const int64_t &stream_id) const {
+Status L2Optimizer::GetL2DataAlloc(ge::ComputeGraph &stream_graph, uint64_t mem_base, const int64_t &stream_id) const {
   std::string build_mode_value = FEContextUtils::GetBuildMode();
   // l2 buffer
   if ((CheckL2BufferFusionStrategy(stream_graph) && Configuration::Instance(engine_name_).IsEnableL2Buffer() &&
        build_mode_value != ge::BUILD_MODE_TUNING)) {
-    FE_LOGD("L2 buffer enabled. Build mode is %s, graph name: %s.",
-            build_mode_value.c_str(), stream_graph.GetName().c_str());
+    FE_LOGD("L2 buffer enabled. Build mode is %s, graph name: %s.", build_mode_value.c_str(),
+            stream_graph.GetName().c_str());
     TaskL2InfoMap l2_info_map;
     FE_CHECK(L2FusionHandler::GetL2DataAlloc(mem_base, stream_graph, l2_info_map) != fe::SUCCESS,
              REPORT_FE_ERROR("[StreamOpt][L2Opt][GetL2DataAlloc] Allocate L2 Buffer Address failed!"),
@@ -194,16 +193,14 @@ Status L2Optimizer::GetL2DataAlloc(ge::ComputeGraph &stream_graph, uint64_t mem_
   if (build_mode_value == ge::BUILD_MODE_TUNING ||
       (Configuration::Instance(engine_name_).EnableL2Fusion() && CheckL2FusionFusionStrategy(stream_graph))) {
     FE_CHECK(!SetFunctionState(fe::FuncParamType::FUSION_L2, false),
-             REPORT_FE_ERROR("[StreamOpt][L2Opt][GetL2DataAlloc] Set Func State false failed!"),
-             return fe::FAILED);
+             REPORT_FE_ERROR("[StreamOpt][L2Opt][GetL2DataAlloc] Set Func State false failed!"), return fe::FAILED);
     // update Input
     FE_CHECK(UpdateInputForL2Fusion(stream_graph) != fe::SUCCESS,
              REPORT_FE_ERROR("[StreamOpt][L2Opt][GetL2DataAlloc] Failed to update input for L2Fusion!"),
              return fe::FAILED);
     // update ddr
     FE_CHECK(UpdateDDRForL2Fusion(stream_graph, mem_base) != fe::SUCCESS,
-             REPORT_FE_ERROR("[StreamOpt][L2Opt][GetL2DataAlloc] UpdataInputForL2Fusion failed!"),
-             return fe::FAILED);
+             REPORT_FE_ERROR("[StreamOpt][L2Opt][GetL2DataAlloc] UpdataInputForL2Fusion failed!"), return fe::FAILED);
     for (auto node : stream_graph.GetDirectNode()) {
       (void)ge::AttrUtils::SetBool(node->GetOpDesc(), ATTR_NAME_LX_FUSION_PASS, true);
     }

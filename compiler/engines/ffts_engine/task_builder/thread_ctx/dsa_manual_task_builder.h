@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,10 +30,7 @@ enum class InputVldType {
   VLD_NORMAL_MEAN_STDDEV = 0b11000
 };
 
-enum class DsaValueType {
-  DSA_DATA_VALUE = 0b1,
-  DSA_DATA_ADDR = 0b0
-};
+enum class DsaValueType { DSA_DATA_VALUE = 0b1, DSA_DATA_ADDR = 0b0 };
 
 class DSAManualTaskBuilder : public FFTSPlusTaskBuilder {
   struct DSAFlags {
@@ -59,6 +56,7 @@ class DSAManualTaskBuilder : public FFTSPlusTaskBuilder {
     std::string counter;
     std::string seed;
   };
+
  public:
   DSAManualTaskBuilder();
   ~DSAManualTaskBuilder() override;
@@ -72,6 +70,7 @@ class DSAManualTaskBuilder : public FFTSPlusTaskBuilder {
    * @return  SUCCESS or FAILED
    */
   Status GenContextDef(const ge::NodePtr &node, domi::FftsPlusTaskDef *ffts_plus_task_def) override;
+
  private:
   DSAManualTaskBuilder(const DSAManualTaskBuilder &builder) = delete;
   DSAManualTaskBuilder &operator=(const DSAManualTaskBuilder &builder) = delete;
@@ -80,13 +79,11 @@ class DSAManualTaskBuilder : public FFTSPlusTaskBuilder {
   Status GetDataType(const ge::Node &node, uint32_t &type) const;
   Status GetWorkspaceInfo(const ge::Node &node, DsaWorkspace &workspace,
                           const std::shared_ptr<ge::RunContext> &contextptr) const;
-  Status GetOutputAddr(const ge::Node &node, uint64_t &addr,
-                       const std::shared_ptr<ge::RunContext> &contextptr) const;
+  Status GetOutputAddr(const ge::Node &node, uint64_t &addr, const std::shared_ptr<ge::RunContext> &contextptr) const;
   Status GetInputs(const ge::Node &node, const DSAFlags &flags, DsaInput &inputs,
                    const std::shared_ptr<ge::RunContext> &contextptr) const;
   Status FillDsaContextDef(const ge::Node &node, const DSAFlags &dsa_flags, domi::FftsPlusDsaCtxDef *dsa_ctx_def) const;
-  Status FillDsaContextData(const ge::Node &node,
-                            const domi::FftsPlusDsaCtxDef *dsacore_ctx_def,
+  Status FillDsaContextData(const ge::Node &node, const domi::FftsPlusDsaCtxDef *dsacore_ctx_def,
                             domi::FftsPlusDsaCtxDef *dsa_ctx_def) const;
   static bool IsConstInput(const ge::Node &node, uint32_t input_idx);
   static bool GetConstInputValue(const ge::Node &node, uint32_t input_idx, std::string &value);

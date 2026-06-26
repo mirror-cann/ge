@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -58,8 +58,8 @@ class ModelExecutor : public Executor {
   /// @param [in] inputs: input data for the graph running.
   /// @param [out] outputs: output data of the graph running
   /// @return Status result of function
-  Status RunGraph(const GraphNodePtr &graph_node, const GraphId graph_id,
-                  const std::vector<gert::Tensor> &inputs, std::vector<gert::Tensor> &outputs) override;
+  Status RunGraph(const GraphNodePtr &graph_node, const GraphId graph_id, const std::vector<gert::Tensor> &inputs,
+                  std::vector<gert::Tensor> &outputs) override;
 
   /// @ingroup ge
   /// @brief Run graph for NN synchronize model.
@@ -71,13 +71,11 @@ class ModelExecutor : public Executor {
   /// @return Status result of function
   Status RunGraphWithStream(const GraphNodePtr &graph_node, const GraphId graph_id, aclrtStream const stream,
                             const std::vector<GeTensor> &inputs, std::vector<GeTensor> &outputs) override;
-  
-   Status ExecuteGraphWithStream(const GraphNodePtr &graph_node, const GraphId graph_id,
-                                         aclrtStream const stream, const std::vector<gert::Tensor> &inputs,
-                                         std::vector<gert::Tensor> &outputs) override;
 
-  Status DumpDebugJSONPrint(uint32_t model_id, uint32_t graph_id, uint32_t flags,
-                            AscendString &json_result) override;
+  Status ExecuteGraphWithStream(const GraphNodePtr &graph_node, const GraphId graph_id, aclrtStream const stream,
+                                const std::vector<gert::Tensor> &inputs, std::vector<gert::Tensor> &outputs) override;
+
+  Status DumpDebugJSONPrint(uint32_t model_id, uint32_t graph_id, uint32_t flags, AscendString &json_result) override;
 
   /**
    * @ingroup ge
@@ -100,8 +98,8 @@ class ModelExecutor : public Executor {
   /// @param [in] new_pa new physical memory
   /// @param [in] len the lens of va to remap
   /// @return Status result of function
-  Status PaRemapped(const GraphNodePtr &graph_node, const uint64_t va, const uint64_t new_pa,
-                    const uint64_t len, std::vector<std::pair<uint64_t, uint64_t>> &cross_ranges) override;
+  Status PaRemapped(const GraphNodePtr &graph_node, const uint64_t va, const uint64_t new_pa, const uint64_t len,
+                    std::vector<std::pair<uint64_t, uint64_t>> &cross_ranges) override;
 
  private:
   static Status GetDeviceMemorySize(size_t &free_mem, size_t &total_mem_size);
@@ -109,13 +107,12 @@ class ModelExecutor : public Executor {
   void AddGraphNode(const GraphId graph_id, const GraphNodePtr &graph_node);
   void RemoveGraphNode(const GraphId graph_id);
 
-  Status ModelLoad(const GeRootModelPtr &ge_root_model, const GraphNodePtr &graph_node, const aclrtStream stream = nullptr);
+  Status ModelLoad(const GeRootModelPtr &ge_root_model, const GraphNodePtr &graph_node,
+                   const aclrtStream stream = nullptr);
   Status MallocFixedFeatureMemoryIfNeed(const GraphNodePtr &graph_node, const GeRootModelPtr &ge_root_model,
                                         const aclrtStream stream) const;
-  static Status MallocByDiffAllocator(const uint64_t session_id,
-                                      const aclrtStream stream,
-                                      const FeatureMemoryPtr &fixed_feature_mem,
-                                      const rtMemType_t rt_mem_type,
+  static Status MallocByDiffAllocator(const uint64_t session_id, const aclrtStream stream,
+                                      const FeatureMemoryPtr &fixed_feature_mem, const rtMemType_t rt_mem_type,
                                       const GeRootModelPtr &ge_root_model);
   static Status FreeFixedFeatureMemoryIfNeed(const GeRootModelPtr &ge_root_model);
   Status GetStreamNum(const GeRootModelPtr &ge_root_model, uint32_t &stream_num, uint64_t &hccl_follow_stream) const;
@@ -129,15 +126,14 @@ class ModelExecutor : public Executor {
   Status CheckAndReleaseEvent(const GeRootModelPtr &ge_root_model, const GraphNodePtr &graph_node);
   static Status GetMemoryInfo(size_t &free);
 
-  Status CheckFreeMemory(const GeRootModelPtr &ge_root_model, const GraphNodePtr &graph_node,
-                                bool &is_enough, bool &release_all) const;
+  Status CheckFreeMemory(const GeRootModelPtr &ge_root_model, const GraphNodePtr &graph_node, bool &is_enough,
+                         bool &release_all) const;
   Status GetMemorySizeAfterReuse(const std::vector<GeModelPtr> &ge_models, const GraphNodePtr &graph_node,
-                                        int64_t &sum_size, bool &reuse) const;
+                                 int64_t &sum_size, bool &reuse) const;
 
   void RunThread();
   void StopQueue();
-  void ReturnError(const RunAsyncCallbackV2 &callback,
-      const Status ret, const std::string &log_info) const;
+  void ReturnError(const RunAsyncCallbackV2 &callback, const Status ret, const std::string &log_info) const;
   bool DoReleaseModel(const GeRootModelPtr &ge_root_model, const GraphNodePtr &loaded_graph_node) const;
 
   bool init_flag_{false};
@@ -151,5 +147,5 @@ class ModelExecutor : public Executor {
   std::atomic_bool thread_run_flag_{false};
   BlockingQueue<std::shared_ptr<RunArgs>> run_args_q_;
 };
-}
-#endif // GE_GRAPH_EXECUTE_MODEL_EXECUTOR_H
+}  // namespace ge
+#endif  // GE_GRAPH_EXECUTE_MODEL_EXECUTOR_H

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -72,8 +72,8 @@ class ModelBuilder {
   void ClearOriginalFormat() const;
 
  private:
-  bool SetInputConst(const OpDescPtr &op_desc, const NodePtr &src_node,
-                     size_t index, std::vector<bool> &is_input_const) const;
+  bool SetInputConst(const OpDescPtr &op_desc, const NodePtr &src_node, size_t index,
+                     std::vector<bool> &is_input_const) const;
 
   void SetInputIsConst(const ge::NodePtr &n) const;
 
@@ -100,10 +100,10 @@ class ModelBuilder {
   Status CompileSingleOp() const;
 
   void CollectCheckAicpuAttr(const OpDescPtr &op_desc, std::set<std::string> &aicpu_op_types,
-                               std::set<std::string> &aicpu_tf_op_types) const;
+                             std::set<std::string> &aicpu_tf_op_types) const;
 
   void SetModelCheckAicpuAttr(ge::Model &model, std::set<std::string> &aicpu_op_types,
-                                std::set<std::string> &aicpu_tf_op_types) const;
+                              std::set<std::string> &aicpu_tf_op_types) const;
 
   Status SaveSoftSyncOpWeight() const;
   Status SaveAtomicTBEKernel(const OpDescPtr &op_desc);

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -89,13 +89,13 @@ TEST_F(InferDataTypeContextUT, SetOutputDataTypeOk) {
   ge::DataType in_datatype2 = ge::DT_INT8;
   ge::DataType origin_out_datatype = ge::DT_FLOAT16;
   auto context_holder = InferDataTypeContextFaker()
-      .IrInputNum(2)
-      .NodeIoNum(2, 1)
-      .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-      .NodeInputTd(1, ge::DT_FLOAT16, ge::FORMAT_HWCN, ge::FORMAT_FRACTAL_Z)
-      .InputDataTypes({&in_datatype1, &in_datatype2})
-      .OutputDataTypes({&origin_out_datatype})
-      .Build();
+                            .IrInputNum(2)
+                            .NodeIoNum(2, 1)
+                            .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+                            .NodeInputTd(1, ge::DT_FLOAT16, ge::FORMAT_HWCN, ge::FORMAT_FRACTAL_Z)
+                            .InputDataTypes({&in_datatype1, &in_datatype2})
+                            .OutputDataTypes({&origin_out_datatype})
+                            .Build();
   auto context = context_holder.GetContext<InferDataTypeContext>();
   ASSERT_NE(context, nullptr);
 
@@ -105,8 +105,7 @@ TEST_F(InferDataTypeContextUT, SetOutputDataTypeOk) {
 }
 
 TEST_F(InferDataTypeContextUT, Retpeat_register_InferDataType_InferOutDataTypeByFirstInput_success) {
-  IMPL_OP(TestFoo1)
-      .InferOutDataTypeSameWithFirstInput();
+  IMPL_OP(TestFoo1).InferOutDataTypeSameWithFirstInput();
   gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
   auto funcs = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->GetOpImpl("TestFoo1");
   ASSERT_NE(funcs, nullptr);
@@ -117,13 +116,13 @@ TEST_F(InferDataTypeContextUT, Retpeat_register_InferDataType_InferOutDataTypeBy
   ge::DataType in_datatype2 = ge::DT_INT8;
   ge::DataType origin_out_datatype = ge::DT_FLOAT16;
   auto context_holder = InferDataTypeContextFaker()
-      .IrInputNum(2)
-      .NodeIoNum(2, 1)
-      .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-      .NodeInputTd(1, ge::DT_FLOAT16, ge::FORMAT_HWCN, ge::FORMAT_FRACTAL_Z)
-      .InputDataTypes({&in_datatype1, &in_datatype2})
-      .OutputDataTypes({&origin_out_datatype})
-      .Build();
+                            .IrInputNum(2)
+                            .NodeIoNum(2, 1)
+                            .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+                            .NodeInputTd(1, ge::DT_FLOAT16, ge::FORMAT_HWCN, ge::FORMAT_FRACTAL_Z)
+                            .InputDataTypes({&in_datatype1, &in_datatype2})
+                            .OutputDataTypes({&origin_out_datatype})
+                            .Build();
   auto context = context_holder.GetContext<InferDataTypeContext>();
   ASSERT_NE(context, nullptr);
 
@@ -133,8 +132,7 @@ TEST_F(InferDataTypeContextUT, Retpeat_register_InferDataType_InferOutDataTypeBy
 }
 
 TEST_F(InferDataTypeContextUT, Retpeat_register_InferDataType_InferOutDataTypeByFirstInput_failed) {
-  IMPL_OP(TestFoo)
-  .InferOutDataTypeSameWithFirstInput();
+  IMPL_OP(TestFoo).InferOutDataTypeSameWithFirstInput();
   gert::SpaceRegistryFaker::CreateDefaultSpaceRegistryImpl2();
   auto funcs = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->GetOpImpl("TestFoo");
   ASSERT_NE(funcs, nullptr);
@@ -145,13 +143,13 @@ TEST_F(InferDataTypeContextUT, Retpeat_register_InferDataType_InferOutDataTypeBy
   ge::DataType in_datatype2 = ge::DT_INT8;
   ge::DataType origin_out_datatype = ge::DT_FLOAT16;
   auto context_holder = InferDataTypeContextFaker()
-      .IrInputNum(2)
-      .NodeIoNum(2, 1)
-      .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-      .NodeInputTd(1, ge::DT_FLOAT16, ge::FORMAT_HWCN, ge::FORMAT_FRACTAL_Z)
-      .InputDataTypes({&in_datatype1, &in_datatype2})
-      .OutputDataTypes({&origin_out_datatype})
-      .Build();
+                            .IrInputNum(2)
+                            .NodeIoNum(2, 1)
+                            .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+                            .NodeInputTd(1, ge::DT_FLOAT16, ge::FORMAT_HWCN, ge::FORMAT_FRACTAL_Z)
+                            .InputDataTypes({&in_datatype1, &in_datatype2})
+                            .OutputDataTypes({&origin_out_datatype})
+                            .Build();
   auto context = context_holder.GetContext<InferDataTypeContext>();
   ASSERT_NE(context, nullptr);
 

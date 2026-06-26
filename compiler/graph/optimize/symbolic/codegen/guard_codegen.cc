@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,7 +34,7 @@ const std::string k2Space = "  ";
 constexpr uint32_t kMaxFileNameLen = 128U;
 constexpr char_t const *kGuardCheckSoDataResult = "_guard_check_so_data";
 constexpr size_t kConstLogHeaderLen = 110U;
-const std::regex kSafePathRegex(R"(^(?!.*\.{2})[A-Za-z0-9./+\-_]+$)"); // 允许字母、数字、_ / . -, 但禁止..
+const std::regex kSafePathRegex(R"(^(?!.*\.{2})[A-Za-z0-9./+\-_]+$)");  // 允许字母、数字、_ / . -, 但禁止..
 
 Status GenCheckInfos(CodePrinter &printer, const std::vector<SymbolCheckInfo> &symbol_check_infos) {
   for (const auto &iter : symbol_check_infos) {
@@ -158,7 +158,7 @@ private:
 Status GenErrorInfos(CodePrinter &printer, const std::vector<SymbolCheckInfo> &symbol_check_infos) {
   for (const auto &iter : symbol_check_infos) {
     printer.AddLine(k2Space + "err_msgs.emplace_back(\"[" + iter.file + ":" + std::to_string(iter.line) +
-                    "] Check Symbol Check Expression: " + std::string(iter.expr.Serialize().get()) + 
+                    "] Check Symbol Check Expression: " + std::string(iter.expr.Serialize().get()) +
                     " Context Info: " + iter.dfx_info + " missed.\");");
   }
   return SUCCESS;
@@ -177,10 +177,9 @@ Status GenGetErrorMsg(CodePrinter &printer, const ge::ShapeEnvAttr *shape_env_at
 
 Status GenGetCheckResults(CodePrinter &printer, ge::ShapeEnvAttr *shape_env_attr) {
   GE_ASSERT_NOTNULL(shape_env_attr);
-  for (const auto &sym_to_source: shape_env_attr->GetAllSym2Src()) {
-    printer.AddLine(
-      k2Space + "const auto " + std::string(sym_to_source.first.Serialize().get()) + " = " + sym_to_source.second->
-       GetSourceStr() + ";");
+  for (const auto &sym_to_source : shape_env_attr->GetAllSym2Src()) {
+    printer.AddLine(k2Space + "const auto " + std::string(sym_to_source.first.Serialize().get()) + " = " +
+                    sym_to_source.second->GetSourceStr() + ";");
   }
   printer.AddLine(k2Space + "std::vector<uint8_t> check_results;");
   auto guard_size = shape_env_attr->GetAllSymbolCheckInfos().size() + shape_env_attr->GetAllSymbolAssertInfos().size();
@@ -258,18 +257,14 @@ graphStatus CompileGuardCheckFunc(const CodePrinter &printer, const ComputeGraph
   (void)lseek(static_cast<int32_t>(src_fd), 0, SEEK_SET);
   auto ret = snprintf_s(file_path, kMaxFileNameLen, kMaxFileNameLen - 1U, "/proc/self/fd/%d", src_fd);
   GE_ASSERT_TRUE(ret >= 0, "snprintf_s failed, ret: %d", ret);
-  GE_MAKE_GUARD(close_src_fd, [&src_fd]() {
-    mmClose(src_fd);
-  });
+  GE_MAKE_GUARD(close_src_fd, [&src_fd]() { mmClose(src_fd); });
 
   // 2. compile code to so
   char_t so_path[kMaxFileNameLen] = {"\0"};
   auto so_fd = static_cast<int32_t>(syscall(__NR_memfd_create, kSymbolCheckSoName.c_str(), 0));
   ret = snprintf_s(so_path, kMaxFileNameLen, kMaxFileNameLen - 1U, "/proc/self/fd/%d", so_fd);
   GE_ASSERT_TRUE(ret >= 0, "snprintf_s failed, ret: %d", ret);
-  GE_MAKE_GUARD(close_so_fd, [&so_fd]() {
-    mmClose(so_fd);
-  });
+  GE_MAKE_GUARD(close_so_fd, [&so_fd]() { mmClose(so_fd); });
 
   std::string opp_path;
   GE_ASSERT_SUCCESS(GetOppPath(opp_path), "Failed to get environment variable ASCEND_OPP_PATH, please set it.");
@@ -293,9 +288,7 @@ graphStatus CompileGuardCheckFunc(const CodePrinter &printer, const ComputeGraph
   // 3. read so to graph
   std::ifstream file(so_path, std::ios::binary | std::ios::ate);
   GE_ASSERT_TRUE(file.is_open());
-  GE_MAKE_GUARD(close_file, [&file]() {
-    file.close();
-  });
+  GE_MAKE_GUARD(close_file, [&file]() { file.close(); });
   std::streamsize file_size = file.tellg();
   file.seekg(0, std::ios::beg);
   std::vector<char_t> buffer(file_size);

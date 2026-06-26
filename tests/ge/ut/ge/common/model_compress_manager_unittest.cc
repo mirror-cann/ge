@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -35,9 +35,10 @@ class UtestModelCompressManager : public testing::Test {
 };
 
 TEST_F(UtestModelCompressManager, Compress_Decompress) {
-  auto add = OP_CFG(ADD).Attr(ATTR_NAME_OP_NO_TILING, true)
-                        .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF")
-                        .Attr("_l2fusion_ToOpStruct", "opL1WorkspaceFlag");
+  auto add = OP_CFG(ADD)
+                 .Attr(ATTR_NAME_OP_NO_TILING, true)
+                 .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF")
+                 .Attr("_l2fusion_ToOpStruct", "opL1WorkspaceFlag");
   auto data = OP_CFG(DATA).Attr(ATTR_NAME_OP_NO_TILING, true);
   auto output = OP_CFG(NETOUTPUT).Attr(ATTR_NAME_OP_NO_TILING, true);
   DEF_GRAPH(g1) {
@@ -52,8 +53,8 @@ TEST_F(UtestModelCompressManager, Compress_Decompress) {
   auto ret = ModelCompressManager::Compress(ge_model);
   EXPECT_EQ(ret, SUCCESS);
   auto after_compress_graph = ge_model->GetGraph();
-  ASSERT_EQ(gert::SummaryChecker(after_compress_graph)
-            .StrictAllNodeTypes({{"Data", 1}, {"Add", 1}, {"NetOutput", 1}}), "success");
+  ASSERT_EQ(gert::SummaryChecker(after_compress_graph).StrictAllNodeTypes({{"Data", 1}, {"Add", 1}, {"NetOutput", 1}}),
+            "success");
 
   GeAttrValue attr_value;
   int64_t om_compress_version;
@@ -85,8 +86,9 @@ TEST_F(UtestModelCompressManager, Compress_Decompress) {
   ret = ModelCompressManager::Decompress(ge_model);
   EXPECT_EQ(ret, SUCCESS);
   auto after_decompress_graph = ge_model->GetGraph();
-  ASSERT_EQ(gert::SummaryChecker(after_decompress_graph)
-            .StrictAllNodeTypes({{"Data", 1}, {"Add", 1}, {"NetOutput", 1}}), "success");
+  ASSERT_EQ(
+      gert::SummaryChecker(after_decompress_graph).StrictAllNodeTypes({{"Data", 1}, {"Add", 1}, {"NetOutput", 1}}),
+      "success");
 }
 
 TEST_F(UtestModelCompressManager, Compress_Decompress_With_Tensor_Attrs) {
@@ -139,22 +141,23 @@ TEST_F(UtestModelCompressManager, Compress_Decompress_With_Duplicate_Attrs) {
   dlog_setlevel(GE_MODULE_NAME, DLOG_DEBUG, 0);
   vector<int64_t> test_data = {};
   test_data.emplace_back(0);
-  auto add = OP_CFG(ADD).Attr("OUTPUT_IS_VAR", test_data)
-                        .Attr("OwnerGraphIsUnknown", 0)
-                        .Attr("_composite_engine_kernel_lib_name", "ffts_plus")
-                        .Attr("_composite_engine_name", "ffts_plus")
-                        .Attr("_ge_attr_op_kernel_lib_name", "DNN_VM_GE_LOCAL_OP_STORE")
-                        .Attr("_is_connected_to_netoutput", test_data)
-                        .Attr("_lxfusion_engine_name", "DNN_VM_GE_LOCAL")
-                        .Attr("_lxfusion_op_kernel_lib_name", "DNN_VM_GE_LOCAL_OP_STORE")
-                        .Attr("_no_mem_reuse", 1)
-                        .Attr("_no_stream_split", 1)
-                        .Attr("_op_no_tiling", 0)
-                        .Attr("_sub_stream_id", 0)
-                        .Attr("_thread_scope_id", 1)
-                        .Attr("data_type", 9)
-                        .Attr("index", 0)
-                        .Attr("is_first_node", 1);
+  auto add = OP_CFG(ADD)
+                 .Attr("OUTPUT_IS_VAR", test_data)
+                 .Attr("OwnerGraphIsUnknown", 0)
+                 .Attr("_composite_engine_kernel_lib_name", "ffts_plus")
+                 .Attr("_composite_engine_name", "ffts_plus")
+                 .Attr("_ge_attr_op_kernel_lib_name", "DNN_VM_GE_LOCAL_OP_STORE")
+                 .Attr("_is_connected_to_netoutput", test_data)
+                 .Attr("_lxfusion_engine_name", "DNN_VM_GE_LOCAL")
+                 .Attr("_lxfusion_op_kernel_lib_name", "DNN_VM_GE_LOCAL_OP_STORE")
+                 .Attr("_no_mem_reuse", 1)
+                 .Attr("_no_stream_split", 1)
+                 .Attr("_op_no_tiling", 0)
+                 .Attr("_sub_stream_id", 0)
+                 .Attr("_thread_scope_id", 1)
+                 .Attr("data_type", 9)
+                 .Attr("index", 0)
+                 .Attr("is_first_node", 1);
   auto data = OP_CFG(DATA).Attr(ATTR_NAME_OP_NO_TILING, true);
   auto output = OP_CFG(NETOUTPUT).Attr(ATTR_NAME_OP_NO_TILING, true);
   DEF_GRAPH(g1) {
@@ -298,7 +301,7 @@ TEST_F(UtestModelCompressManager, Compress_Decompress_With_Opname_Kernelname) {
   GeModelPtr ge_model = std::make_shared<GeModel>();
 
   for (const auto &node : graph->GetAllNodes()) {
-  const auto &op_desc = node->GetOpDesc();
+    const auto &op_desc = node->GetOpDesc();
     AttrUtils::SetStr(op_desc, op_desc->GetName() + kKernelName, "KernelName");
     AttrUtils::SetStr(op_desc, op_desc->GetName() + kAtomicKernelName, "AtomicKernelName");
   }

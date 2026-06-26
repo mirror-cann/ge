@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -48,8 +48,8 @@ class FusionConfigParser {
 
   bool GetPassSwitchByExceptionalCfg(const std::string &pass_name) const;
 
-  bool GetFusionSwitchByName(const std::string &pass_name, const std::string &pass_type,
-                             const uint64_t pass_attr = 0, const bool can_close_fusion = false);
+  bool GetFusionSwitchByName(const std::string &pass_name, const std::string &pass_type, const uint64_t pass_attr = 0,
+                             const bool can_close_fusion = false);
 
   bool CheckPassIsWhiteListControl(const std::string &pass_name, const GraphFusionPassType &pass_type) const;
 
@@ -68,19 +68,18 @@ class FusionConfigParser {
                              std::map<std::string, bool> &fusion_switch_map) const;
 
   void ConstructExceptionalPassMap(const nlohmann::json &fusion_pass_config_json,
-                                  std::set<std::string> &exceptional_pass) const;
+                                   std::set<std::string> &exceptional_pass) const;
 
   Status ConstructFusionPriorityMap(const nlohmann::json &custom_pass_config_json,
                                     const nlohmann::json &builtin_pass_config_json);
 
-  Status ModifyFusionPriorityMap(const std::string &fusion_type,
-                                 const nlohmann::json &fusion_pass_config_json,
+  Status ModifyFusionPriorityMap(const std::string &fusion_type, const nlohmann::json &fusion_pass_config_json,
                                  std::map<std::string, int32_t> &fusion_priority_map) const;
 
   Status CheckFusionConfigJsonFormat(nlohmann::json pass_switch_file_json, const string &owner_type) const;
 
-  Status CheckLastLayerFormatForPriorityPart(string type_elem, string fusion_elem,
-                                             nlohmann::json pass_switch_file_json, const string &owner_type) const;
+  Status CheckLastLayerFormatForPriorityPart(string type_elem, string fusion_elem, nlohmann::json pass_switch_file_json,
+                                             const string &owner_type) const;
 
   Status CheckConfigFileFormat(const nlohmann::json &custom_fusion_config_json,
                                const nlohmann::json &build_in_fusion_config_json,
@@ -92,7 +91,7 @@ class FusionConfigParser {
 
   Status JudgePriority(string level_elem, int32_t priority_value, const string &owner_type) const;
 
-  Status VerifyAndParserCustomFile(const string& custom_fusion_config_json_file,
+  Status VerifyAndParserCustomFile(const string &custom_fusion_config_json_file,
                                    nlohmann::json &custom_fusion_config_json,
                                    std::map<string, bool> &old_fusion_switch_map) const;
 
@@ -106,8 +105,8 @@ class FusionConfigParser {
 
   bool GetPassSwitchByPassName(const std::string &pass_name, const std::string &pass_type, bool &pass_switch) const;
 
-  Status GetKeyAndValueFromJson(const std::string &line, const string &custom_fusion_config_json_file,
-                                std::string &key, std::string &value) const;
+  Status GetKeyAndValueFromJson(const std::string &line, const string &custom_fusion_config_json_file, std::string &key,
+                                std::string &value) const;
 
   Status GetFusionSwitchByOptimizationOption(const std::string &pass_name, bool &enable_flag,
                                              const std::string &pass_type, const uint64_t pass_attr = 0);

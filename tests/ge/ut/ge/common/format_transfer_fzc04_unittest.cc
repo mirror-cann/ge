@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -42,8 +42,18 @@ TEST_F(UtestFormatTransfer4DToFZC04, dhwcn_data_type_uint8_invalid_shape) {
   // 6 indicates that cube size is 32
   const Format src_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_NCHW, sub_format_groups_1, 6));
   const Format dst_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_FRACTAL_Z_C04, sub_format_groups_1, 6));
-  TransArgs args{data, src_format, dst_format, FORMAT_NCHW, FORMAT_FRACTAL_Z_C04, sub_format_groups_1, sub_format_groups_1, 32,
-                 32, {4, 4, 16, 16}, {4, 4, 3, 1}, DT_UINT8};
+  TransArgs args{data,
+                 src_format,
+                 dst_format,
+                 FORMAT_NCHW,
+                 FORMAT_FRACTAL_Z_C04,
+                 sub_format_groups_1,
+                 sub_format_groups_1,
+                 32,
+                 32,
+                 {4, 4, 16, 16},
+                 {4, 4, 3, 1},
+                 DT_UINT8};
   TransResult result;
 
   FormatTransfer4DToFZC04 transfer;
@@ -58,8 +68,8 @@ TEST_F(UtestFormatTransfer4DToFZC04, dhwcn_data_type_uint8_invalid_format) {
   // 6 indicates that cube size is 32
   const Format src_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_DHWCN, sub_format_groups_1, 6));
   const Format dst_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_DHWCN, sub_format_groups_1, 6));
-  TransArgs args{data, src_format, dst_format, FORMAT_DHWCN, FORMAT_DHWCN, sub_format_groups_1, sub_format_groups_1, 32, 32,
-                 {4, 4, 16, 16}, {4, 4, 3, 1}, DT_UINT8};
+  TransArgs args{data, src_format, dst_format,     FORMAT_DHWCN, FORMAT_DHWCN, sub_format_groups_1, sub_format_groups_1,
+                 32,   32,         {4, 4, 16, 16}, {4, 4, 3, 1}, DT_UINT8};
   TransResult result;
 
   FormatTransfer4DToFZC04 transfer;
@@ -74,8 +84,18 @@ TEST_F(UtestFormatTransfer4DToFZC04, dhwcn_data_type_uint8_dst_invalid_shape) {
   // 6 indicates that cube size is 32
   const Format src_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_NCHW, sub_format_groups_1, 6));
   const Format dst_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_FRACTAL_Z_C04, sub_format_groups_1, 6));
-  TransArgs args{data, src_format, dst_format, FORMAT_NCHW, FORMAT_FRACTAL_Z_C04, sub_format_groups_1, sub_format_groups_1, 32,
-                 32, {4, 4, 16, 16}, {4, 4, 3, 1}, DT_UINT8};
+  TransArgs args{data,
+                 src_format,
+                 dst_format,
+                 FORMAT_NCHW,
+                 FORMAT_FRACTAL_Z_C04,
+                 sub_format_groups_1,
+                 sub_format_groups_1,
+                 32,
+                 32,
+                 {4, 4, 16, 16},
+                 {4, 4, 3, 1},
+                 DT_UINT8};
   TransResult result;
 
   FormatTransfer4DToFZC04 transfer;
@@ -92,15 +112,25 @@ TEST_F(UtestFormatTransfer4DToFZC04, dhwcn_data_type_uint8_success) {
   const Format dst_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_FRACTAL_Z_C04, sub_format_groups_1, 6));
   std::vector<int64_t> dst_shape_vec = {32, 1, 16, 32};
   Shape dst_shape(dst_shape_vec);
-  TransArgs args{data, src_format, dst_format, FORMAT_NCHW, FORMAT_FRACTAL_Z_C04, sub_format_groups_1, sub_format_groups_1, 32,
-                 32, {4, 2, 16, 16}, dst_shape_vec, DT_UINT8};
+  TransArgs args{data,
+                 src_format,
+                 dst_format,
+                 FORMAT_NCHW,
+                 FORMAT_FRACTAL_Z_C04,
+                 sub_format_groups_1,
+                 sub_format_groups_1,
+                 32,
+                 32,
+                 {4, 2, 16, 16},
+                 dst_shape_vec,
+                 DT_UINT8};
   TransResult result;
 
   FormatTransfer4DToFZC04 transfer;
   Status ret = transfer.TransFormat(args, result);
 
   EXPECT_EQ(ret, SUCCESS);
-  EXPECT_EQ(result.length, dst_shape.GetShapeSize()); // Uint8的数据类型，size是1
+  EXPECT_EQ(result.length, dst_shape.GetShapeSize());  // Uint8的数据类型，size是1
 }
 
 TEST_F(UtestFormatTransfer4DToFZC04, nchw_fzc04_data_type_uint8_success) {
@@ -112,15 +142,25 @@ TEST_F(UtestFormatTransfer4DToFZC04, nchw_fzc04_data_type_uint8_success) {
   const Format dst_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_FRACTAL_Z_C04, sub_format_groups_1, 6));
   std::vector<int64_t> dst_shape_vec = {18, 2, 16, 32};
   Shape dst_shape(dst_shape_vec);
-  TransArgs args{data, src_format, dst_format, FORMAT_NCHW, FORMAT_FRACTAL_Z_C04, sub_format_groups_1, sub_format_groups_1, 32,
-                 32, {32, 4, 144, 1}, dst_shape_vec, DT_UINT8};
+  TransArgs args{data,
+                 src_format,
+                 dst_format,
+                 FORMAT_NCHW,
+                 FORMAT_FRACTAL_Z_C04,
+                 sub_format_groups_1,
+                 sub_format_groups_1,
+                 32,
+                 32,
+                 {32, 4, 144, 1},
+                 dst_shape_vec,
+                 DT_UINT8};
   TransResult result;
 
   FormatTransfer4DToFZC04 transfer;
   Status ret = transfer.TransFormat(args, result);
 
   EXPECT_EQ(ret, SUCCESS);
-  EXPECT_EQ(result.length, dst_shape.GetShapeSize()); // Uint8的数据类型，size是1
+  EXPECT_EQ(result.length, dst_shape.GetShapeSize());  // Uint8的数据类型，size是1
 }
 
 /*
@@ -133,8 +173,9 @@ TEST_F(UtestFormatTransfer4DToFZC04, nchw_fzc04_c_invalid) {
   std::vector<int64_t> src_shape_vec = {16, 5, 87, 1};
   std::vector<int64_t> dst_shape_vec = {11, 1, 16, 32};
   Shape dst_shape(dst_shape_vec);
-  TransArgs args{data, src_format, dst_format, FORMAT_NCHW, FORMAT_FRACTAL_Z_C04, FORMAT_RESERVED, FORMAT_RESERVED, 32,
-                 32, src_shape_vec, dst_shape_vec, DT_UINT8};
+  TransArgs args{
+      data, src_format,    dst_format,    FORMAT_NCHW, FORMAT_FRACTAL_Z_C04, FORMAT_RESERVED, FORMAT_RESERVED, 32,
+      32,   src_shape_vec, dst_shape_vec, DT_UINT8};
   TransResult result;
   FormatTransfer4DToFZC04 transfer;
   Status ret = transfer.TransFormat(args, result);
@@ -152,8 +193,9 @@ TEST_F(UtestFormatTransfer4DToFZC04, hwcn_fzc04_c_invalid) {
   std::vector<int64_t> src_shape_vec = {16, 5, 5, 1};
   std::vector<int64_t> dst_shape_vec = {11, 1, 16, 32};
   Shape dst_shape(dst_shape_vec);
-  TransArgs args{data, src_format, dst_format, FORMAT_HWCN, FORMAT_FRACTAL_Z_C04, FORMAT_RESERVED, FORMAT_RESERVED, 32,
-                 32, src_shape_vec, dst_shape_vec, DT_UINT8};
+  TransArgs args{
+      data, src_format,    dst_format,    FORMAT_HWCN, FORMAT_FRACTAL_Z_C04, FORMAT_RESERVED, FORMAT_RESERVED, 32,
+      32,   src_shape_vec, dst_shape_vec, DT_UINT8};
   TransResult result;
   FormatTransfer4DToFZC04 transfer;
   Status ret = transfer.TransFormat(args, result);
@@ -168,14 +210,24 @@ TEST_F(UtestFormatTransfer4DToFZC04, nchw_fzc04_data_type_uint8_n_small_success)
   std::vector<int64_t> src_shape_vec = {16, 2, 87, 1};
   std::vector<int64_t> dst_shape_vec = {11, 1, 16, 32};
   Shape dst_shape(dst_shape_vec);
-  TransArgs args{data, src_format, dst_format, FORMAT_NCHW, FORMAT_FRACTAL_Z_C04, sub_format_groups_1, sub_format_groups_1, 32,
-                 32, src_shape_vec, dst_shape_vec, DT_UINT8};
+  TransArgs args{data,
+                 src_format,
+                 dst_format,
+                 FORMAT_NCHW,
+                 FORMAT_FRACTAL_Z_C04,
+                 sub_format_groups_1,
+                 sub_format_groups_1,
+                 32,
+                 32,
+                 src_shape_vec,
+                 dst_shape_vec,
+                 DT_UINT8};
   TransResult result;
   FormatTransfer4DToFZC04 transfer;
   Status ret = transfer.TransFormat(args, result);
 
   EXPECT_EQ(ret, SUCCESS);
-  EXPECT_EQ(result.length, dst_shape.GetShapeSize()); // Uint8的数据类型，size是1
+  EXPECT_EQ(result.length, dst_shape.GetShapeSize());  // Uint8的数据类型，size是1
 }
 
 /*
@@ -188,8 +240,9 @@ TEST_F(UtestFormatTransfer4DToFZC04, nchw_fzc04_groups_invalid) {
   std::vector<int64_t> src_shape_vec = {16, 2, 87, 1};
   std::vector<int64_t> dst_shape_vec = {11, 1, 16, 32};
   Shape dst_shape(dst_shape_vec);
-  TransArgs args{data, src_format, dst_format, FORMAT_NCHW, FORMAT_FRACTAL_Z_C04, FORMAT_RESERVED, FORMAT_RESERVED, 32,
-                 32, src_shape_vec, dst_shape_vec, DT_UINT8};
+  TransArgs args{
+      data, src_format,    dst_format,    FORMAT_NCHW, FORMAT_FRACTAL_Z_C04, FORMAT_RESERVED, FORMAT_RESERVED, 32,
+      32,   src_shape_vec, dst_shape_vec, DT_UINT8};
   TransResult result;
   FormatTransfer4DToFZC04 transfer;
   Status ret = transfer.TransFormat(args, result);
@@ -219,10 +272,18 @@ TEST_F(UtestFormatTransfer4DToFZC04, hwcn_fzc04_hwcn_success) {
   // 5 indicates that cube size is 16
   const Format src_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_HWCN, FORMAT_RESERVED, 5));
   const Format dst_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_FRACTAL_Z_C04, FORMAT_NHWC, 5));
-  TransArgs args{
-      reinterpret_cast<uint8_t *>(data), src_format, dst_format, FORMAT_HWCN, FORMAT_FRACTAL_Z_C04, FORMAT_RESERVED,
-      FORMAT_NHWC, 16, 16, std::vector<int64_t>({8, 8, 3, 1}),
-      std::vector<int64_t>({16, 1, 16, 16}), DT_FLOAT16};
+  TransArgs args{reinterpret_cast<uint8_t *>(data),
+                 src_format,
+                 dst_format,
+                 FORMAT_HWCN,
+                 FORMAT_FRACTAL_Z_C04,
+                 FORMAT_RESERVED,
+                 FORMAT_NHWC,
+                 16,
+                 16,
+                 std::vector<int64_t>({8, 8, 3, 1}),
+                 std::vector<int64_t>({16, 1, 16, 16}),
+                 DT_FLOAT16};
 
   TransResult result;
   EXPECT_EQ(nchw_fzc04_transfer.TransFormat(args, result), SUCCESS);
@@ -233,10 +294,19 @@ TEST_F(UtestFormatTransfer4DToFZC04, hwcn_fzc04_hwcn_success) {
   // 5 indicates that cube size is 16
   const Format src_format2 = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_FRACTAL_Z_C04, FORMAT_NHWC, 5));
   const Format dst_format2 = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_HWCN, FORMAT_RESERVED, 5));
-  TransArgs fzc04_hwcn_args{result.data.get(), src_format2, dst_format2, FORMAT_FRACTAL_Z_C04, FORMAT_HWCN, FORMAT_NHWC,
-                            FORMAT_RESERVED, 16, 16, std::vector<int64_t>({16, 1, 16, 16}),
-                            std::vector<int64_t>({8, 8, 3, 1}), DT_FLOAT16};
-  //EXPECT_EQ(result.length, sizeof(ret) / sizeof(ret[0]) * 2);
+  TransArgs fzc04_hwcn_args{result.data.get(),
+                            src_format2,
+                            dst_format2,
+                            FORMAT_FRACTAL_Z_C04,
+                            FORMAT_HWCN,
+                            FORMAT_NHWC,
+                            FORMAT_RESERVED,
+                            16,
+                            16,
+                            std::vector<int64_t>({16, 1, 16, 16}),
+                            std::vector<int64_t>({8, 8, 3, 1}),
+                            DT_FLOAT16};
+  // EXPECT_EQ(result.length, sizeof(ret) / sizeof(ret[0]) * 2);
   TransResult fzc04_hwcn_result;
   EXPECT_EQ(fzc04_hwcn_transfer.TransFormat(fzc04_hwcn_args, fzc04_hwcn_result), SUCCESS);
   EXPECT_EQ(fzc04_hwcn_result.length, sizeof(data) / sizeof(data[0]) * 2);
@@ -247,52 +317,35 @@ TEST_F(UtestFormatTransfer4DToFZC04, hwcn_fzc04_hwcn_success) {
 
 TEST_F(UtestFormatTransfer4DToFZC04, hwcn_fzc04_hwcn_4c_8n_success) {
   uint16_t data[3 * 3 * 4 * 8] = {
-      11 , 99  , 68 ,   2 ,  14 , 59 ,  24 , 100,
-        4 , 65  , 11 ,   7 ,  74 , 28 ,  71 ,  81,
-      94 , 63  , 80 ,   7 ,  95 , 29 ,  92 ,  76,
-      88 , 68  , 67 ,  98 ,  82 , 11 ,  20 ,  68,
-      36 , 17  , 15 ,  89 ,  31 ,  8 ,  51 ,  49,
-      49 , 89  , 79 ,  97 ,   7 , 91 ,  14 ,  34,
-      55 , 40  , 85 ,  59 ,  31 , 35 ,  41 ,  89,
-        4 , 82  , 90 ,  48 ,  44 , 19 ,   9 ,  84,
-      100 , 43  ,  7 ,  94 ,   4 , 91 ,  67 ,  16,
-      63 , 79  , 20 ,  62 ,  55 , 38 ,  13 ,  61,
-      98 , 99  , 44 ,   0 ,  97 , 42 ,  65 ,  80,
-      78 , 56  , 26 ,  17 ,  23 , 22 ,  76 ,  84,
-      34 , 88  , 38 ,  57 ,  37 , 77 ,  46 ,  28,
-      48 , 11  ,  6 ,  18 ,   8 , 66 ,  24 ,  29,
-        7 , 72  , 34 ,  79 ,  99 , 14 ,  75 ,  62,
-      44 , 98  , 11 ,  31 ,   4 , 79 ,  51 ,  37,
-      84 ,  3  , 89 ,  74 ,  68 , 85 ,  17 ,  93,
-      81 , 88  , 38 ,   8 ,  69 , 82 ,  91 ,  91,
-      45 , 42  ,  7 ,  96 ,  81 , 96 ,  39 ,  35,
-      93 , 46  , 73 ,   7 ,   9 , 81 ,   5 ,  63,
-      35 , 30  , 27 ,  42 ,  20 , 52 ,  36 ,  91,
-      87 ,  1  ,  8 ,   7 ,  78 , 21 ,  76 ,  97,
-      52 , 18  , 55 ,  57 ,  95 , 67 ,   3 ,  69,
-      98 , 85  , 75 ,  75 ,  38 ,  3 ,  94 ,  66,
-      92 , 27  ,  9 ,  39 ,   5 , 21 ,   4 ,  48,
-      55 , 38  , 58 ,  84 ,  23 , 13 ,  71 ,  91,
-      99 , 58  , 58 ,  16 ,  86 , 45 ,  63 ,  97,
-      30 , 10  , 21 ,  37 ,  78 , 94 ,   8 ,  49,
-      18 , 52  , 67 ,  65 ,  78 , 82 ,  74 ,  35,
-      97 , 15  , 43 ,  22 ,  30 , 87 ,  98 ,  91,
-      22 , 88  , 83 ,  63 ,  79 , 63 ,  42 ,  74,
-      29 , 62  ,  2 ,  97 ,  65 , 45 ,  76 ,  57,
-      71 , 65  ,  0 ,  69 ,  76 , 41 ,  58 ,  98,
-      90 ,  3  , 75 ,  56 ,  41 , 66 ,  41 ,  96,
-      44 , 87  , 61 ,  26 ,  62 , 57 ,  49 ,  29,
-      49 , 94  , 90 ,  96 ,  33 , 32 ,  10 ,  25};
+      11, 99, 68, 2,  14, 59, 24, 100, 4,  65, 11,  7,  74, 28, 71, 81, 94, 63, 80, 7,  95, 29, 92, 76, 88, 68, 67,
+      98, 82, 11, 20, 68, 36, 17, 15,  89, 31, 8,   51, 49, 49, 89, 79, 97, 7,  91, 14, 34, 55, 40, 85, 59, 31, 35,
+      41, 89, 4,  82, 90, 48, 44, 19,  9,  84, 100, 43, 7,  94, 4,  91, 67, 16, 63, 79, 20, 62, 55, 38, 13, 61, 98,
+      99, 44, 0,  97, 42, 65, 80, 78,  56, 26, 17,  23, 22, 76, 84, 34, 88, 38, 57, 37, 77, 46, 28, 48, 11, 6,  18,
+      8,  66, 24, 29, 7,  72, 34, 79,  99, 14, 75,  62, 44, 98, 11, 31, 4,  79, 51, 37, 84, 3,  89, 74, 68, 85, 17,
+      93, 81, 88, 38, 8,  69, 82, 91,  91, 45, 42,  7,  96, 81, 96, 39, 35, 93, 46, 73, 7,  9,  81, 5,  63, 35, 30,
+      27, 42, 20, 52, 36, 91, 87, 1,   8,  7,  78,  21, 76, 97, 52, 18, 55, 57, 95, 67, 3,  69, 98, 85, 75, 75, 38,
+      3,  94, 66, 92, 27, 9,  39, 5,   21, 4,  48,  55, 38, 58, 84, 23, 13, 71, 91, 99, 58, 58, 16, 86, 45, 63, 97,
+      30, 10, 21, 37, 78, 94, 8,  49,  18, 52, 67,  65, 78, 82, 74, 35, 97, 15, 43, 22, 30, 87, 98, 91, 22, 88, 83,
+      63, 79, 63, 42, 74, 29, 62, 2,   97, 65, 45,  76, 57, 71, 65, 0,  69, 76, 41, 58, 98, 90, 3,  75, 56, 41, 66,
+      41, 96, 44, 87, 61, 26, 62, 57,  49, 29, 49,  94, 90, 96, 33, 32, 10, 25};
   FormatTransfer4DToFZC04 nchw_fzc04_transfer;
   // {c0_value, bit_value}: c0_value = 2 ^ (bit_value - 1)
   // {1, 1}, {2, 2}, {4, 3}, {8, 4}, {16, 5}, {32, 6}, {64, 7}, {128, 8}, {256, 9}
   // 5 indicates that cube size is 16
   const Format src_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_HWCN, FORMAT_RESERVED, 5));
   const Format dst_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_FRACTAL_Z_C04, FORMAT_NHWC, 5));
-  TransArgs args{
-      reinterpret_cast<uint8_t *>(data), src_format, dst_format, FORMAT_HWCN, FORMAT_FRACTAL_Z_C04, FORMAT_RESERVED,
-      FORMAT_NHWC, 16, 16, std::vector<int64_t>({3, 3, 4, 8}),
-      std::vector<int64_t>({3, 1, 16, 16}), DT_FLOAT16};
+  TransArgs args{reinterpret_cast<uint8_t *>(data),
+                 src_format,
+                 dst_format,
+                 FORMAT_HWCN,
+                 FORMAT_FRACTAL_Z_C04,
+                 FORMAT_RESERVED,
+                 FORMAT_NHWC,
+                 16,
+                 16,
+                 std::vector<int64_t>({3, 3, 4, 8}),
+                 std::vector<int64_t>({3, 1, 16, 16}),
+                 DT_FLOAT16};
 
   TransResult result;
   EXPECT_EQ(nchw_fzc04_transfer.TransFormat(args, result), SUCCESS);
@@ -303,9 +356,18 @@ TEST_F(UtestFormatTransfer4DToFZC04, hwcn_fzc04_hwcn_4c_8n_success) {
   // 5 indicates that cube size is 16
   const Format src_format2 = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_FRACTAL_Z_C04, FORMAT_NHWC, 5));
   const Format dst_format2 = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_HWCN, FORMAT_RESERVED, 5));
-  TransArgs fzc04_hwcn_args{result.data.get(), src_format2, dst_format2, FORMAT_FRACTAL_Z_C04, FORMAT_HWCN, FORMAT_NHWC,
-                            FORMAT_RESERVED, 16, 16, std::vector<int64_t>({3, 1, 16, 16}),
-                            std::vector<int64_t>({3, 3, 4, 8}), DT_FLOAT16};
+  TransArgs fzc04_hwcn_args{result.data.get(),
+                            src_format2,
+                            dst_format2,
+                            FORMAT_FRACTAL_Z_C04,
+                            FORMAT_HWCN,
+                            FORMAT_NHWC,
+                            FORMAT_RESERVED,
+                            16,
+                            16,
+                            std::vector<int64_t>({3, 1, 16, 16}),
+                            std::vector<int64_t>({3, 3, 4, 8}),
+                            DT_FLOAT16};
   // EXPECT_EQ(result.length, sizeof(ret) / sizeof(ret[0]) * 2);
   TransResult fzc04_hwcn_result;
   EXPECT_EQ(fzc04_hwcn_transfer.TransFormat(fzc04_hwcn_args, fzc04_hwcn_result), SUCCESS);
@@ -333,10 +395,18 @@ TEST_F(UtestFormatTransfer4DToFZC04, hwcn_fzc04_hwcn_success_2) {
   // 5 indicates that cube size is 16
   const Format src_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_FRACTAL_Z_C04, FORMAT_NHWC, 5));
   const Format dst_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_HWCN, FORMAT_RESERVED, 5));
-  TransArgs args{
-      reinterpret_cast<uint8_t *>(data), src_format, dst_format, FORMAT_FRACTAL_Z_C04, FORMAT_HWCN, FORMAT_NHWC,
-      FORMAT_RESERVED, 16, 16, std::vector<int64_t>({1, 1, 16, 16}),
-      std::vector<int64_t>({2, 2, 1, 2}), DT_FLOAT16};
+  TransArgs args{reinterpret_cast<uint8_t *>(data),
+                 src_format,
+                 dst_format,
+                 FORMAT_FRACTAL_Z_C04,
+                 FORMAT_HWCN,
+                 FORMAT_NHWC,
+                 FORMAT_RESERVED,
+                 16,
+                 16,
+                 std::vector<int64_t>({1, 1, 16, 16}),
+                 std::vector<int64_t>({2, 2, 1, 2}),
+                 DT_FLOAT16};
 
   TransResult result;
   EXPECT_EQ(fzc04_hwcn_transfer.TransFormat(args, result), SUCCESS);
@@ -364,10 +434,18 @@ TEST_F(UtestFormatTransfer4DToFZC04, hwcn_fzc04_hwcn_success_3) {
   // 5 indicates that cube size is 16
   const Format src_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_FRACTAL_Z_C04, FORMAT_NHWC, 5));
   const Format dst_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_HWCN, FORMAT_RESERVED, 5));
-  TransArgs args{
-      reinterpret_cast<uint8_t *>(data), src_format, dst_format, FORMAT_FRACTAL_Z_C04, FORMAT_HWCN, FORMAT_NHWC,
-      FORMAT_RESERVED, 16, 16, std::vector<int64_t>({1, 1, 16, 16}),
-      std::vector<int64_t>({2, 2, 2, 2}), DT_FLOAT16};
+  TransArgs args{reinterpret_cast<uint8_t *>(data),
+                 src_format,
+                 dst_format,
+                 FORMAT_FRACTAL_Z_C04,
+                 FORMAT_HWCN,
+                 FORMAT_NHWC,
+                 FORMAT_RESERVED,
+                 16,
+                 16,
+                 std::vector<int64_t>({1, 1, 16, 16}),
+                 std::vector<int64_t>({2, 2, 2, 2}),
+                 DT_FLOAT16};
 
   TransResult result;
   EXPECT_EQ(fzc04_hwcn_transfer.TransFormat(args, result), SUCCESS);
@@ -3708,7 +3786,7 @@ TEST_F(UtestFormatTransfer4DToFZC04, hwcn_fzc04_hwcn_success_4) {
       0.00000000000000000000,    0.00000000000000000000,    0.00000000000000000000,    0.00000000000000000000,
       0.00000000000000000000,    0.00000000000000000000,    0.00000000000000000000,    0.00000000000000000000};
 
-  float* ret = new float[9408];
+  float *ret = new float[9408];
   for (int i = 0; i < 9408; i++) {
     ret[i] = i + 1;
   }
@@ -3718,10 +3796,18 @@ TEST_F(UtestFormatTransfer4DToFZC04, hwcn_fzc04_hwcn_success_4) {
   // 5 indicates that cube size is 16
   const Format src_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_FRACTAL_Z_C04, FORMAT_NHWC, 5));
   const Format dst_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_HWCN, FORMAT_RESERVED, 5));
-  TransArgs args{
-      reinterpret_cast<uint8_t *>(data), src_format, dst_format, FORMAT_FRACTAL_Z_C04, FORMAT_HWCN, FORMAT_NHWC,
-      FORMAT_RESERVED, 16, 16, std::vector<int64_t>({13, 4, 16, 16}),
-      std::vector<int64_t>({7, 7, 3, 64}), DT_FLOAT};
+  TransArgs args{reinterpret_cast<uint8_t *>(data),
+                 src_format,
+                 dst_format,
+                 FORMAT_FRACTAL_Z_C04,
+                 FORMAT_HWCN,
+                 FORMAT_NHWC,
+                 FORMAT_RESERVED,
+                 16,
+                 16,
+                 std::vector<int64_t>({13, 4, 16, 16}),
+                 std::vector<int64_t>({7, 7, 3, 64}),
+                 DT_FLOAT};
 
   TransResult result;
   EXPECT_EQ(fzc04_hwcn_transfer.TransFormat(args, result), SUCCESS);

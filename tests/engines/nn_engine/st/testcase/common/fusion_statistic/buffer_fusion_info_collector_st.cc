@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,13 +29,11 @@ using namespace std;
 using namespace fe;
 using namespace ge;
 
-class BUFFER_FUSION_INFO_COLLECTOR_STEST: public testing::Test {
+class BUFFER_FUSION_INFO_COLLECTOR_STEST : public testing::Test {
  protected:
-  void SetUp() {
-  }
+  void SetUp() {}
 
-  void TearDown() {
-  }
+  void TearDown() {}
 };
 
 TEST_F(BUFFER_FUSION_INFO_COLLECTOR_STEST, get_pass_name_of_scope_id_success) {
@@ -155,7 +153,7 @@ TEST_F(BUFFER_FUSION_INFO_COLLECTOR_STEST, count_buffer_fusion_times_test2) {
 }
 
 TEST_F(BUFFER_FUSION_INFO_COLLECTOR_STEST, fusion_result_json_with_env) {
-  Configuration& config = Configuration::Instance(fe::AI_CORE_NAME);
+  Configuration &config = Configuration::Instance(fe::AI_CORE_NAME);
   std::string path = GetCurpath() + "../../../../../../ascend_work_path";
   mmSetEnv("ASCEND_WORK_PATH", path.c_str(), MMPA_MAX_PATH);
   config.InitParamFromEnv();
@@ -166,7 +164,7 @@ TEST_F(BUFFER_FUSION_INFO_COLLECTOR_STEST, fusion_result_json_with_env) {
 }
 
 TEST_F(BUFFER_FUSION_INFO_COLLECTOR_STEST, fusion_result_json_without_env) {
-  Configuration& config = Configuration::Instance(fe::AI_CORE_NAME);
+  Configuration &config = Configuration::Instance(fe::AI_CORE_NAME);
   unsetenv("ASCEND_WORK_PATH");
   std::array<string, static_cast<size_t>(ENV_STR_PARAM::EnvStrParamBottom)> env_str_param_vec_tmp;
   config.env_str_param_vec_.swap(env_str_param_vec_tmp);
@@ -177,28 +175,27 @@ TEST_F(BUFFER_FUSION_INFO_COLLECTOR_STEST, fusion_result_json_without_env) {
   EXPECT_EQ(FusionStatisticWriter::Instance().fusion_result_path_, expect_fusion_result_json_path);
 }
 
-
 TEST_F(BUFFER_FUSION_INFO_COLLECTOR_STEST, clear_history_file_and_dir_with_env) {
-  Configuration& config = Configuration::Instance(fe::AI_CORE_NAME);
+  Configuration &config = Configuration::Instance(fe::AI_CORE_NAME);
   std::string path = GetCurpath() + "../../../../../../ascend_work_path";
   mmSetEnv("ASCEND_WORK_PATH", path.c_str(), MMPA_MAX_PATH);
   config.InitParamFromEnv();
   std::string fusion_result_json_path = path + "/FE" + "/" + std::to_string(mmGetPid()) + "/fusion_result.json";
   CreateFileAndFillContent(fusion_result_json_path);
-  
+
   FusionStatisticWriter::Instance().fusion_result_path_ = "";
   FusionStatisticWriter::Instance().ClearHistoryFile();
   system(("rm -rf " + path).c_str());
 }
 
 TEST_F(BUFFER_FUSION_INFO_COLLECTOR_STEST, write_fusion_info_and_clear_history_file_and_dir_without_env) {
-  Configuration& config = Configuration::Instance(fe::AI_CORE_NAME);
+  Configuration &config = Configuration::Instance(fe::AI_CORE_NAME);
   unsetenv("ASCEND_WORK_PATH");
   std::array<string, static_cast<size_t>(ENV_STR_PARAM::EnvStrParamBottom)> env_str_param_vec_tmp;
   config.env_str_param_vec_.swap(env_str_param_vec_tmp);
   config.InitParamFromEnv();
   FusionStatisticWriter::Instance().fusion_result_path_ = "";
-  FusionStatisticRecorder& fs_instance = FusionStatisticRecorder::Instance();
+  FusionStatisticRecorder &fs_instance = FusionStatisticRecorder::Instance();
   fs_instance.graph_fusion_info_map_.clear();
   fs_instance.buffer_fusion_info_map_.clear();
   FusionInfo fusion_info1(0, "0", "pass1", 1, 1);

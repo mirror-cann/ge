@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -176,7 +176,7 @@ ge::graphStatus TilingNegativeTc201(TilingContext *context, const Shape &in_shap
     axis_dst_r2nd_size = out_shape[out_shape.GetDimNum() - 2];
     // src_left_format += src_format[0];
     src_left_format = GetAxisType(src_format, 0);
-    //axis_src_left_size = out_shape[std::strchr(dst_format.c_str(), src_format[0]) - dst_format.c_str()];
+    // axis_src_left_size = out_shape[std::strchr(dst_format.c_str(), src_format[0]) - dst_format.c_str()];
     axis_src_left_size = out_shape[GetAxisIndex(dst_format, GetAxisType(src_format, 0))];
   }
   //   } else {

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -53,14 +53,14 @@ std::string GetAscendPath() {
   const char *ascend_custom_path_ptr = std::getenv("ASCEND_INSTALL_PATH");
   string ascend_path = "/mnt/d/Ascend";
   if (ascend_custom_path_ptr != nullptr) {
-      ascend_path = fe::GetRealPath(string(ascend_custom_path_ptr));
+    ascend_path = fe::GetRealPath(string(ascend_custom_path_ptr));
   } else {
-      const char *ascend_home_path_ptr = std::getenv("ASCEND_HOME");
-      if (ascend_home_path_ptr != nullptr) {
+    const char *ascend_home_path_ptr = std::getenv("ASCEND_HOME");
+    if (ascend_home_path_ptr != nullptr) {
       ascend_path = fe::GetRealPath(string(ascend_home_path_ptr));
-      } else {
+    } else {
       ascend_path = "/mnt/d/Ascend";
-      }
+    }
   }
   return ascend_path;
 }
@@ -73,7 +73,6 @@ string GetNetworkPath(const string &network_name) {
 
 class TestPass : public PatternFusionBasePass {
  protected:
-
   vector<FusionPattern *> DefinePatterns() override {
     return {};
   };
@@ -86,12 +85,12 @@ class TestPass : public PatternFusionBasePass {
 using CreateFn = GraphPass *(*)();
 
 fe::GraphPass *CreateFunc() {
-  return new(std::nothrow) TestPass();
+  return new (std::nothrow) TestPass();
 }
 
 class StubFEKernelInfoStore : public fe::FEOpsKernelInfoStore {
  public:
-  StubFEKernelInfoStore(std::string engine_name) :FEOpsKernelInfoStore(engine_name) {}
+  StubFEKernelInfoStore(std::string engine_name) : FEOpsKernelInfoStore(engine_name) {}
   bool CheckAccuracySupported(const OpDescPtr &opDescPtr, std::string &un_supported_reason,
                               bool realQuery = false) const override {
     ge::AttrUtils::SetInt(opDescPtr, FE_IMPLY_TYPE, 6);
@@ -110,27 +109,27 @@ void RegisterPassFunc(CreateFn create_fn) {
   FusionPassRegistry::GetInstance().RegisterPass(SECOND_ROUND_BUILT_IN_GRAPH_PASS, "BUILT_IN_PASS3", create_fn, 0);
   FusionPassRegistry::GetInstance().RegisterPass(SECOND_ROUND_BUILT_IN_GRAPH_PASS, "BUILT_IN_PASS4", create_fn, 0);
 
-  FusionPassRegistry::GetInstance().RegisterPass(
-      BUILT_IN_BEFORE_TRANSNODE_INSERTION_GRAPH_PASS, "BUILT_IN_PASS3", create_fn, 0);
-  FusionPassRegistry::GetInstance().RegisterPass(
-      BUILT_IN_BEFORE_TRANSNODE_INSERTION_GRAPH_PASS, "BUILT_IN_PASS4", create_fn, 0);
+  FusionPassRegistry::GetInstance().RegisterPass(BUILT_IN_BEFORE_TRANSNODE_INSERTION_GRAPH_PASS, "BUILT_IN_PASS3",
+                                                 create_fn, 0);
+  FusionPassRegistry::GetInstance().RegisterPass(BUILT_IN_BEFORE_TRANSNODE_INSERTION_GRAPH_PASS, "BUILT_IN_PASS4",
+                                                 create_fn, 0);
 
   FusionPassRegistry::GetInstance().RegisterPass(BUILT_IN_PREPARE_GRAPH_PASS, "PREPARE_PASS1", create_fn, 0);
   FusionPassRegistry::GetInstance().RegisterPass(BUILT_IN_PREPARE_GRAPH_PASS, "PREPARE_PASS2", create_fn, 0);
   FusionPassRegistry::GetInstance().RegisterPass(BUILT_IN_PREPARE_GRAPH_PASS, "PREPARE_PASS3", create_fn, 0);
 
-  FusionPassRegistry::GetInstance().RegisterPass(
-      BUILT_IN_BEFORE_QUANT_OPTIMIZATION_GRAPH_PASS, "BEFORE_QUANT_1", create_fn, 0);
-  FusionPassRegistry::GetInstance().RegisterPass(
-      BUILT_IN_BEFORE_QUANT_OPTIMIZATION_GRAPH_PASS, "BEFORE_QUANT_2", create_fn, 0);
+  FusionPassRegistry::GetInstance().RegisterPass(BUILT_IN_BEFORE_QUANT_OPTIMIZATION_GRAPH_PASS, "BEFORE_QUANT_1",
+                                                 create_fn, 0);
+  FusionPassRegistry::GetInstance().RegisterPass(BUILT_IN_BEFORE_QUANT_OPTIMIZATION_GRAPH_PASS, "BEFORE_QUANT_2",
+                                                 create_fn, 0);
 }
 
-class OptimizeUtilityUTStub: public ge::OptimizeUtility {
+class OptimizeUtilityUTStub : public ge::OptimizeUtility {
  public:
   OptimizeUtilityUTStub() {}
   virtual ~OptimizeUtilityUTStub() override {}
 
-  ge::Status InferShape(ComputeGraph &compute_graph) override{
+  ge::Status InferShape(ComputeGraph &compute_graph) override {
     return ge::SUCCESS;
   }
 
@@ -158,8 +157,7 @@ ge::OpKernelBinPtr GetOpKernelBinByKernelName(const std::string &kernel_name) {
   return nullptr;
 }
 
-bool teGeneralize(const te::TbeOpInfo &op_info,
-    const te::TE_GENERALIZE_TYPE &general_type, const ge::NodePtr &node) {
+bool teGeneralize(const te::TbeOpInfo &op_info, const te::TE_GENERALIZE_TYPE &general_type, const ge::NodePtr &node) {
   std::vector<int64_t> shape_vec;
   auto op_desc = node->GetOpDesc();
   auto tensor_desc_x = op_desc->MutableInputDesc(0);
@@ -172,7 +170,7 @@ bool teGeneralize(const te::TbeOpInfo &op_info,
       i = -1;
     }
   } else if (general_type == te::DEFAULT_TBE_OP_INFO) {
-    for (int i = 0; i < shape_vec.size()-1; ++i) {
+    for (int i = 0; i < shape_vec.size() - 1; ++i) {
       shape_vec[i] = -1;
     }
   } else {
@@ -183,34 +181,33 @@ bool teGeneralize(const te::TbeOpInfo &op_info,
   return true;
 }
 
-bool teGeneralizeException(const te::TbeOpInfo &op_info,
-    const te::TE_GENERALIZE_TYPE &general_type, const ge::NodePtr &node) {
+bool teGeneralizeException(const te::TbeOpInfo &op_info, const te::TE_GENERALIZE_TYPE &general_type,
+                           const ge::NodePtr &node) {
   return false;
 }
 
-tune::Status LxFusionFinalizeFunc1(const ge::ComputeGraph &){
+tune::Status LxFusionFinalizeFunc1(const ge::ComputeGraph &) {
   return tune::SUCCESS;
 }
 
 tune::Status LxFusionRecoveryFunc1(ge::ComputeGraph &, const std::vector<ge::NodePtr> &, std::vector<ge::NodePtr> *,
-                                   std::vector<ge::NodePtr> *){
+                                   std::vector<ge::NodePtr> *) {
   return tune::SUCCESS;
 }
 
-class UTEST_fusion_engine_fe_graph_optimizer : public testing::Test
-{
-public:
-    FEOpsKernelInfoStorePtr ops_info_store;
-    FEOpsKernelInfoStorePtr ops_kernel_info_store_ptr_;
-    SplitNOptimizer split_n_optimizer;
-    RefRelationsPtr reflection_builder_ptr_;
-    FEGraphOptimizerPtr fe_graph_optimizer_;
-    TbeOpStoreAdapterPtr tbe_adapter_ptr;
-    shared_ptr<fe::SubOpInfoStore> sub_ops_kernel_ptr;
-    shared_ptr<fe::SubOpsStore> sub_ops_store_ptr;
-    GraphFusionPtr graph_fusion_ptr_;
-    LxFusionOptimizerPtr lx_fusion_optimizer_;
-    NodePtr MakeNode(const ComputeGraphPtr &graph, uint32_t in_num, uint32_t out_num, string name, string type) {
+class UTEST_fusion_engine_fe_graph_optimizer : public testing::Test {
+ public:
+  FEOpsKernelInfoStorePtr ops_info_store;
+  FEOpsKernelInfoStorePtr ops_kernel_info_store_ptr_;
+  SplitNOptimizer split_n_optimizer;
+  RefRelationsPtr reflection_builder_ptr_;
+  FEGraphOptimizerPtr fe_graph_optimizer_;
+  TbeOpStoreAdapterPtr tbe_adapter_ptr;
+  shared_ptr<fe::SubOpInfoStore> sub_ops_kernel_ptr;
+  shared_ptr<fe::SubOpsStore> sub_ops_store_ptr;
+  GraphFusionPtr graph_fusion_ptr_;
+  LxFusionOptimizerPtr lx_fusion_optimizer_;
+  NodePtr MakeNode(const ComputeGraphPtr &graph, uint32_t in_num, uint32_t out_num, string name, string type) {
     GeTensorDesc test_desc(GeShape(), FORMAT_NCHW, DT_FLOAT);
     auto op_desc = std::make_shared<OpDesc>(name, type);
     for (auto i = 0; i < in_num; ++i) {
@@ -221,7 +218,8 @@ public:
     }
     return graph->AddNode(op_desc);
   }
-protected:
+
+ protected:
   static void SetUpTestCase() {
     std::string soc_version = "Ascend310P3";
     PlatformInfoManager::Instance().opti_compilation_info_.soc_version = soc_version;
@@ -229,12 +227,12 @@ protected:
     PlatformUtils::Instance().soc_version_ = soc_version;
     Configuration::Instance(AI_CORE_NAME).InitLibPath();
   }
-  void SetUp()
-  {
+  void SetUp() {
     reflection_builder_ptr_ = std::make_shared<ge::RefRelations>();
     ops_info_store = std::make_shared<FEOpsKernelInfoStore>();
     sub_ops_store_ptr = make_shared<fe::SubOpsStore>(fe::AI_CORE_NAME);
-    tbe_adapter_ptr = std::dynamic_pointer_cast<TbeOpStoreAdapter>(OpStoreAdapterManager::Instance(AI_CORE_NAME).GetOpStoreAdapter(EN_IMPL_HW_TBE));
+    tbe_adapter_ptr = std::dynamic_pointer_cast<TbeOpStoreAdapter>(
+        OpStoreAdapterManager::Instance(AI_CORE_NAME).GetOpStoreAdapter(EN_IMPL_HW_TBE));
 
     OptimizeUtilityUTStub *optimize_utility_utub = new OptimizeUtilityUTStub();
 
@@ -242,13 +240,13 @@ protected:
     ops_kernel_info_store_ptr_->tbe_info_assembler_ptr_ = std::make_shared<TbeInfoAssembler>();
     ops_kernel_info_store_ptr_->tbe_info_assembler_ptr_->Initialize();
     FusionRuleManagerPtr fusion_rule_mgr_ptr_ = std::make_shared<FusionRuleManager>(ops_kernel_info_store_ptr_);
-    FusionPriorityMgrPtr fusion_priority_mgr_ptr_ = std::make_shared<FusionPriorityManager>(
-              fe::AI_CORE_NAME, fusion_rule_mgr_ptr_);
+    FusionPriorityMgrPtr fusion_priority_mgr_ptr_ =
+        std::make_shared<FusionPriorityManager>(fe::AI_CORE_NAME, fusion_rule_mgr_ptr_);
     fusion_priority_mgr_ptr_->Initialize();
     lx_fusion_optimizer_ = std::make_shared<LxFusionOptimizer>(fusion_priority_mgr_ptr_, ops_kernel_info_store_ptr_);
     lx_fusion_optimizer_->Initialize();
-    graph_fusion_ptr_ = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr_, ops_kernel_info_store_ptr_,
-                                                      fusion_priority_mgr_ptr_);
+    graph_fusion_ptr_ =
+        std::make_shared<GraphFusion>(fusion_rule_mgr_ptr_, ops_kernel_info_store_ptr_, fusion_priority_mgr_ptr_);
     graph_fusion_ptr_->SetEngineName(fe::AI_CORE_NAME);
     fe_graph_optimizer_ = make_shared<FEGraphOptimizer>(ops_kernel_info_store_ptr_, fe::AI_CORE_NAME);
     std::map<std::string, std::string> options;
@@ -256,12 +254,9 @@ protected:
     fe_graph_optimizer_->graph_fusion_ptr_ = graph_fusion_ptr_;
 
     FEOpsStoreInfo TBE_OPINFO_STUB = {
-            6,
-            "tbe-builtin",
-            EN_IMPL_HW_TBE,
-            GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/heavy_opinfo",
-            ""
-    };
+        6, "tbe-builtin", EN_IMPL_HW_TBE,
+        GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/heavy_opinfo",
+        ""};
 
     sub_ops_store_ptr->SetSubStoreInfo(TBE_OPINFO_STUB);
     sub_ops_store_ptr->InitializeSubStore();
@@ -284,8 +279,7 @@ protected:
     ops_kernel_info_store_ptr_->Initialize(options);
   }
 
-  void TearDown()
-  {
+  void TearDown() {
     sub_ops_store_ptr->FinalizeSubStore();
     sub_ops_store_ptr.reset();
     sub_ops_kernel_ptr->Finalize();
@@ -327,8 +321,7 @@ protected:
     out_desc2.SetDataType(DT_FLOAT16);
     reduceSum->AddOutputDesc("y", out_desc2);
 
-    ge::AttrUtils::SetInt(conv2d, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_TBE));
+    ge::AttrUtils::SetInt(conv2d, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
     ge::AttrUtils::SetBool(conv2d, ge::ATTR_NAME_NOTASK, true);
     NodePtr bn_node = graph->AddNode(conv2d);
     NodePtr data_node = graph->AddNode(data);
@@ -361,8 +354,7 @@ protected:
     bn_op->SetIsInputConst(is_in_const_vec);
     uint32_t thread_scope_id = 2;
     (void)ge::AttrUtils::SetInt(bn_op, kThreadScopeId, thread_scope_id);
-    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_TBE));
+    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
     ge::AttrUtils::SetBool(bn_op, ge::ATTR_NAME_NOTASK, true);
     NodePtr bn_node = graph->AddNode(bn_op);
     NodePtr data_node = graph->AddNode(data);
@@ -430,8 +422,7 @@ protected:
     std::vector<bool> is_in_const_vec = {false};
     bn_op->SetIsInputConst(is_in_const_vec);
 
-    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_TBE));
+    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
     ge::AttrUtils::SetBool(bn_op, ge::ATTR_NAME_NOTASK, true);
     NodePtr bn_node = graph->AddNode(bn_op);
     NodePtr data_node = graph->AddNode(data);
@@ -558,86 +549,86 @@ protected:
   }
 
   static void CreateTwoOpDescGraph(ComputeGraphPtr graph, bool set_fusion_scope_flag = false) {
-      OpDescPtr bn_op = std::make_shared<OpDesc>("batchnormal", "BatchNorm");
-      OpDescPtr relu_op = std::make_shared<OpDesc>("relu", "Activation");
-      OpDescPtr max_op = std::make_shared<OpDesc>("max", "Maximum");
-      OpDescPtr const_op = std::make_shared<OpDesc>("const", "Const");
+    OpDescPtr bn_op = std::make_shared<OpDesc>("batchnormal", "BatchNorm");
+    OpDescPtr relu_op = std::make_shared<OpDesc>("relu", "Activation");
+    OpDescPtr max_op = std::make_shared<OpDesc>("max", "Maximum");
+    OpDescPtr const_op = std::make_shared<OpDesc>("const", "Const");
 
-      // add descriptor
-      vector<int64_t> dims = {1,2,3,4};
-      GeShape shape(dims);
+    // add descriptor
+    vector<int64_t> dims = {1, 2, 3, 4};
+    GeShape shape(dims);
 
-      GeTensorDesc in_desc1(shape);
-      in_desc1.SetFormat(FORMAT_NCHW);
-      in_desc1.SetDataType(DT_FLOAT16);
-      relu_op->AddInputDesc("x", in_desc1);
+    GeTensorDesc in_desc1(shape);
+    in_desc1.SetFormat(FORMAT_NCHW);
+    in_desc1.SetDataType(DT_FLOAT16);
+    relu_op->AddInputDesc("x", in_desc1);
 
-      GeTensorDesc out_desc1(shape);
-      out_desc1.SetFormat(FORMAT_HWCN);
-      out_desc1.SetDataType(DT_FLOAT16);
-      relu_op->AddOutputDesc("y", out_desc1);
+    GeTensorDesc out_desc1(shape);
+    out_desc1.SetFormat(FORMAT_HWCN);
+    out_desc1.SetDataType(DT_FLOAT16);
+    relu_op->AddOutputDesc("y", out_desc1);
 
-      GeTensorDesc in_desc2(shape);
-      in_desc2.SetFormat(FORMAT_FRACTAL_Z);
-      in_desc2.SetDataType(DT_FLOAT16);
-      bn_op->AddInputDesc("x", in_desc2);
+    GeTensorDesc in_desc2(shape);
+    in_desc2.SetFormat(FORMAT_FRACTAL_Z);
+    in_desc2.SetDataType(DT_FLOAT16);
+    bn_op->AddInputDesc("x", in_desc2);
 
-      GeTensorDesc out_desc2(shape);
-      out_desc2.SetFormat(FORMAT_NHWC);
-      out_desc2.SetDataType(DT_FLOAT16);
-      bn_op->AddOutputDesc("y", out_desc2);
-      std::vector<bool> is_in_const_vec = {false};
-      bn_op->SetIsInputConst(is_in_const_vec);
+    GeTensorDesc out_desc2(shape);
+    out_desc2.SetFormat(FORMAT_NHWC);
+    out_desc2.SetDataType(DT_FLOAT16);
+    bn_op->AddOutputDesc("y", out_desc2);
+    std::vector<bool> is_in_const_vec = {false};
+    bn_op->SetIsInputConst(is_in_const_vec);
 
-      GeTensorDesc in_desc3(shape);
-      in_desc3.SetFormat(FORMAT_FRACTAL_Z);
-      in_desc3.SetDataType(DT_FLOAT16);
-      max_op->AddInputDesc("x", in_desc3);
+    GeTensorDesc in_desc3(shape);
+    in_desc3.SetFormat(FORMAT_FRACTAL_Z);
+    in_desc3.SetDataType(DT_FLOAT16);
+    max_op->AddInputDesc("x", in_desc3);
 
-      GeTensorDesc in_desc4(shape);
-      in_desc4.SetFormat(FORMAT_FRACTAL_Z);
-      in_desc4.SetDataType(DT_FLOAT16);
-      max_op->AddInputDesc("y", in_desc4);
+    GeTensorDesc in_desc4(shape);
+    in_desc4.SetFormat(FORMAT_FRACTAL_Z);
+    in_desc4.SetDataType(DT_FLOAT16);
+    max_op->AddInputDesc("y", in_desc4);
 
-      GeTensorDesc out_desc3(shape);
-      out_desc3.SetFormat(FORMAT_NHWC);
-      out_desc3.SetDataType(DT_FLOAT16);
-      max_op->AddOutputDesc("z", out_desc3);
+    GeTensorDesc out_desc3(shape);
+    out_desc3.SetFormat(FORMAT_NHWC);
+    out_desc3.SetDataType(DT_FLOAT16);
+    max_op->AddOutputDesc("z", out_desc3);
 
-      GeTensorDesc out_desc4(shape);
-      out_desc4.SetFormat(FORMAT_NHWC);
-      out_desc4.SetDataType(DT_FLOAT16);
-      const_op->AddOutputDesc("z", out_desc4);
+    GeTensorDesc out_desc4(shape);
+    out_desc4.SetFormat(FORMAT_NHWC);
+    out_desc4.SetDataType(DT_FLOAT16);
+    const_op->AddOutputDesc("z", out_desc4);
 
-      ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
-      ge::AttrUtils::SetInt(relu_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
-      ge::AttrUtils::SetInt(max_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
+    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
+    ge::AttrUtils::SetInt(relu_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
+    ge::AttrUtils::SetInt(max_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
 
-      NodePtr bn_node = graph->AddNode(bn_op);
-      NodePtr relu_node = graph->AddNode(relu_op);
-      NodePtr const_node = graph->AddNode(const_op);
-      NodePtr max_node = graph->AddNode(max_op);
+    NodePtr bn_node = graph->AddNode(bn_op);
+    NodePtr relu_node = graph->AddNode(relu_op);
+    NodePtr const_node = graph->AddNode(const_op);
+    NodePtr max_node = graph->AddNode(max_op);
 
-      GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0), relu_node->GetInDataAnchor(0));
-      GraphUtils::AddEdge(relu_node->GetOutDataAnchor(0), max_node->GetInDataAnchor(0));
-      GraphUtils::AddEdge(const_node->GetOutDataAnchor(0), max_node->GetInDataAnchor(1));
-      if (set_fusion_scope_flag) {
-        ge::AttrUtils::SetInt(bn_op, "fusion_scope", -1);
-        ge::AttrUtils::SetInt(relu_op, "fusion_scope", -2);
-        ge::AttrUtils::SetInt(max_op, "fusion_scope", -3);
-      }
+    GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0), relu_node->GetInDataAnchor(0));
+    GraphUtils::AddEdge(relu_node->GetOutDataAnchor(0), max_node->GetInDataAnchor(0));
+    GraphUtils::AddEdge(const_node->GetOutDataAnchor(0), max_node->GetInDataAnchor(1));
+    if (set_fusion_scope_flag) {
+      ge::AttrUtils::SetInt(bn_op, "fusion_scope", -1);
+      ge::AttrUtils::SetInt(relu_op, "fusion_scope", -2);
+      ge::AttrUtils::SetInt(max_op, "fusion_scope", -3);
+    }
   }
 
   static void CreateTwoOpDescGraph2(ComputeGraphPtr graph) {
     OpDescPtr bn_op = std::make_shared<OpDesc>("batchnormal", "BatchNorm");
     // add descriptor
-    vector<int64_t> dims1 = {0,2,3,4};
+    vector<int64_t> dims1 = {0, 2, 3, 4};
     GeShape shape1(dims1);
-    vector<int64_t> dims2 = {1,2,3,4};
+    vector<int64_t> dims2 = {1, 2, 3, 4};
     GeShape shape2(dims2);
-    vector<int64_t> dims3 = {1,2,3,4};
+    vector<int64_t> dims3 = {1, 2, 3, 4};
     GeShape shape3(dims3);
-    vector<int64_t> dims4 = {1,2,3,4};
+    vector<int64_t> dims4 = {1, 2, 3, 4};
     GeShape shape4(dims4);
 
     GeTensorDesc in_desc1(shape1);
@@ -668,13 +659,13 @@ protected:
   static void CreateUnknownShapeGraph(ComputeGraphPtr graph) {
     OpDescPtr bn_op = std::make_shared<OpDesc>("batchnormal", "BatchNorm");
     // add descriptor
-    vector<int64_t> dims1 = {0,-1,3,4};
+    vector<int64_t> dims1 = {0, -1, 3, 4};
     GeShape shape1(dims1);
-    vector<int64_t> dims2 = {1,-1,3,4};
+    vector<int64_t> dims2 = {1, -1, 3, 4};
     GeShape shape2(dims2);
-    vector<int64_t> dims3 = {1,2,-1,4};
+    vector<int64_t> dims3 = {1, 2, -1, 4};
     GeShape shape3(dims3);
-    vector<int64_t> dims4 = {1,2,3,-1};
+    vector<int64_t> dims4 = {1, 2, 3, -1};
     GeShape shape4(dims4);
 
     GeTensorDesc in_desc1(shape1);
@@ -705,13 +696,13 @@ protected:
   static void CreateTwoOpDescGraph3(ComputeGraphPtr graph) {
     OpDescPtr bn_op = std::make_shared<OpDesc>("batchnormal", "BatchNorm");
     // add descriptor
-    vector<int64_t> dims1 = {1,2,3,4};
+    vector<int64_t> dims1 = {1, 2, 3, 4};
     GeShape shape1(dims1);
-    vector<int64_t> dims2 = {0,2,3,4};
+    vector<int64_t> dims2 = {0, 2, 3, 4};
     GeShape shape2(dims2);
-    vector<int64_t> dims3 = {1,2,3,4};
+    vector<int64_t> dims3 = {1, 2, 3, 4};
     GeShape shape3(dims3);
-    vector<int64_t> dims4 = {1,2,3,4};
+    vector<int64_t> dims4 = {1, 2, 3, 4};
     GeShape shape4(dims4);
 
     GeTensorDesc in_desc1(shape1);
@@ -742,13 +733,13 @@ protected:
   static void CreateTwoOpDescGraph4(ComputeGraphPtr graph) {
     OpDescPtr bn_op = std::make_shared<OpDesc>("batchnormal", "BatchNorm");
     // add descriptor
-    vector<int64_t> dims1 = {1,2,3,4};
+    vector<int64_t> dims1 = {1, 2, 3, 4};
     GeShape shape1(dims1);
-    vector<int64_t> dims2 = {1,2,3,4};
+    vector<int64_t> dims2 = {1, 2, 3, 4};
     GeShape shape2(dims2);
-    vector<int64_t> dims3 = {0,2,3,4};
+    vector<int64_t> dims3 = {0, 2, 3, 4};
     GeShape shape3(dims3);
-    vector<int64_t> dims4 = {1,2,3,4};
+    vector<int64_t> dims4 = {1, 2, 3, 4};
     GeShape shape4(dims4);
 
     GeTensorDesc in_desc1(shape1);
@@ -779,13 +770,13 @@ protected:
   static void CreateTwoOpDescGraph5(ComputeGraphPtr graph) {
     OpDescPtr bn_op = std::make_shared<OpDesc>("batchnormal", "BatchNorm");
     // add descriptor
-    vector<int64_t> dims1 = {1,2,3,4};
+    vector<int64_t> dims1 = {1, 2, 3, 4};
     GeShape shape1(dims1);
-    vector<int64_t> dims2 = {1,2,3,4};
+    vector<int64_t> dims2 = {1, 2, 3, 4};
     GeShape shape2(dims2);
-    vector<int64_t> dims3 = {1,2,3,4};
+    vector<int64_t> dims3 = {1, 2, 3, 4};
     GeShape shape3(dims3);
-    vector<int64_t> dims4 = {0,2,3,4};
+    vector<int64_t> dims4 = {0, 2, 3, 4};
     GeShape shape4(dims4);
 
     GeTensorDesc in_desc1(shape1);
@@ -816,13 +807,13 @@ protected:
   static void CreateTwoOpDescGraph6(ComputeGraphPtr graph) {
     OpDescPtr bn_op = std::make_shared<OpDesc>("batchnormal", "BatchNorm");
     // add descriptor
-    vector<int64_t> dims1 = {1,2,3,4};
+    vector<int64_t> dims1 = {1, 2, 3, 4};
     GeShape shape1(dims1);
-    vector<int64_t> dims2 = {1,0,3,4};
+    vector<int64_t> dims2 = {1, 0, 3, 4};
     GeShape shape2(dims2);
-    vector<int64_t> dims3 = {1,2,3,4};
+    vector<int64_t> dims3 = {1, 2, 3, 4};
     GeShape shape3(dims3);
-    vector<int64_t> dims4 = {1,2,3,4};
+    vector<int64_t> dims4 = {1, 2, 3, 4};
     GeShape shape4(dims4);
 
     GeTensorDesc in_desc1(shape1);
@@ -853,13 +844,13 @@ protected:
   static void CreateTwoOpDescGraph7(ComputeGraphPtr graph) {
     OpDescPtr bn_op = std::make_shared<OpDesc>("batchnormal", "BatchNorm");
     // add descriptor
-    vector<int64_t> dims1 = {1,2,3,4};
+    vector<int64_t> dims1 = {1, 2, 3, 4};
     GeShape shape1(dims1);
-    vector<int64_t> dims2 = {1,2,3,4};
+    vector<int64_t> dims2 = {1, 2, 3, 4};
     GeShape shape2(dims2);
-    vector<int64_t> dims3 = {1,2,3,4};
+    vector<int64_t> dims3 = {1, 2, 3, 4};
     GeShape shape3(dims3);
-    vector<int64_t> dims4 = {1,0,3,4};
+    vector<int64_t> dims4 = {1, 0, 3, 4};
     GeShape shape4(dims4);
 
     GeTensorDesc in_desc1(shape1);
@@ -920,7 +911,6 @@ protected:
     out_desc2.SetDataType(DT_FLOAT16);
     bn_op->AddOutputDesc("y", out_desc2);
 
-
     GeTensorDesc in_desc4(shape);
     in_desc4.SetFormat(FORMAT_NCHW);
     in_desc4.SetOriginShape(shape);
@@ -936,18 +926,14 @@ protected:
     std::vector<bool> is_in_const_vec = {false};
     bn_op->SetIsInputConst(is_in_const_vec);
 
-    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_TBE));
-    ge::AttrUtils::SetInt(split_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_GENERAL_CCE));
+    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
+    ge::AttrUtils::SetInt(split_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_GENERAL_CCE));
     (void)ge::AttrUtils::SetInt(split_op, SPLIT_DIM, -4);
     NodePtr bn_node = graph->AddNode(bn_op);
     NodePtr split_node = graph->AddNode(split_op);
     NodePtr relu_node = graph->AddNode(relu_op);
-    GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0),
-                        split_node->GetInDataAnchor(0));
-    GraphUtils::AddEdge(split_node->GetOutDataAnchor(0),
-                        relu_node->GetInDataAnchor(0));
+    GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0), split_node->GetInDataAnchor(0));
+    GraphUtils::AddEdge(split_node->GetOutDataAnchor(0), relu_node->GetInDataAnchor(0));
   }
 
   static void CreateConstSplitOpDescGraph(ComputeGraphPtr graph) {
@@ -977,7 +963,6 @@ protected:
     out_desc2.SetDataType(DT_FLOAT16);
     const_op->AddOutputDesc("y", out_desc2);
 
-
     GeTensorDesc in_desc4(shape);
     in_desc4.SetFormat(FORMAT_NCHW);
     in_desc4.SetOriginShape(shape);
@@ -990,18 +975,14 @@ protected:
     out_desc4.SetDataType(DT_FLOAT16);
     relu_op->AddOutputDesc("y", out_desc4);
 
-    ge::AttrUtils::SetInt(const_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_TBE));
-    ge::AttrUtils::SetInt(split_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_GENERAL_CCE));
+    ge::AttrUtils::SetInt(const_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
+    ge::AttrUtils::SetInt(split_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_GENERAL_CCE));
     (void)ge::AttrUtils::SetInt(split_op, SPLIT_DIM, 0);
     NodePtr const_node = graph->AddNode(const_op);
     NodePtr split_node = graph->AddNode(split_op);
     NodePtr relu_node = graph->AddNode(relu_op);
-    GraphUtils::AddEdge(const_node->GetOutDataAnchor(0),
-                        split_node->GetInDataAnchor(0));
-    GraphUtils::AddEdge(split_node->GetOutDataAnchor(0),
-                        relu_node->GetInDataAnchor(0));
+    GraphUtils::AddEdge(const_node->GetOutDataAnchor(0), split_node->GetInDataAnchor(0));
+    GraphUtils::AddEdge(split_node->GetOutDataAnchor(0), relu_node->GetInDataAnchor(0));
   }
 
   static void CreateDataSplitOpDescGraph(ComputeGraphPtr graph) {
@@ -1009,16 +990,16 @@ protected:
     OpDescPtr split = std::make_shared<OpDesc>("split", SPLITD);
     OpDescPtr relu1 = std::make_shared<OpDesc>("relu1", RELU);
     OpDescPtr relu2 = std::make_shared<OpDesc>("relu2", RELU);
-  
-    ge::GeShape shape1({2,4,9,16});
+
+    ge::GeShape shape1({2, 4, 9, 16});
     GeTensorDesc tensor_desc1(shape1, ge::FORMAT_NCHW, ge::DT_FLOAT16);
     tensor_desc1.SetOriginFormat(ge::FORMAT_NCHW);
     tensor_desc1.SetOriginDataType(ge::DT_FLOAT16);
     tensor_desc1.SetOriginShape(shape1);
     data->AddOutputDesc(tensor_desc1);
     split->AddInputDesc(tensor_desc1);
-  
-    ge::GeShape shape2({1,4,9,16});
+
+    ge::GeShape shape2({1, 4, 9, 16});
     GeTensorDesc tensor_desc2(shape2, ge::FORMAT_NCHW, ge::DT_FLOAT16);
     tensor_desc2.SetOriginFormat(ge::FORMAT_NCHW);
     tensor_desc2.SetOriginDataType(ge::DT_FLOAT16);
@@ -1027,22 +1008,19 @@ protected:
     split->AddOutputDesc(tensor_desc2);
     relu1->AddInputDesc(tensor_desc2);
     relu2->AddInputDesc(tensor_desc2);
-  
+
     (void)ge::AttrUtils::SetInt(split, SPLIT_DIM, 0);
     (void)ge::AttrUtils::SetInt(relu1, ge::ATTR_NAME_IMPLY_TYPE, static_cast<int>(domi::ImplyType::TVM));
     (void)ge::AttrUtils::SetInt(relu2, ge::ATTR_NAME_IMPLY_TYPE, static_cast<int>(domi::ImplyType::TVM));
-  
+
     NodePtr data_node = graph->AddNode(data);
     NodePtr split_node = graph->AddNode(split);
     NodePtr relu1_node = graph->AddNode(relu1);
     NodePtr relu2_node = graph->AddNode(relu2);
-  
-    ge::GraphUtils::AddEdge(data_node->GetOutDataAnchor(0),
-                            split_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0),
-                            relu1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1),
-                            relu2_node->GetInDataAnchor(0));
+
+    ge::GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), split_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(0), relu1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(split_node->GetOutDataAnchor(1), relu2_node->GetInDataAnchor(0));
   }
 
   static void CreateConcatOpDescGraph(ComputeGraphPtr graph) {
@@ -1112,27 +1090,21 @@ protected:
     std::vector<bool> is_in_const_vec = {false};
     bn_op->SetIsInputConst(is_in_const_vec);
 
-    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_TBE));
-    ge::AttrUtils::SetInt(concat_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_GENERAL_CCE));
+    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
+    ge::AttrUtils::SetInt(concat_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_GENERAL_CCE));
     (void)ge::AttrUtils::SetInt(concat_op, CONCAT_DIM, -4);
     NodePtr bn_node = graph->AddNode(bn_op);
     NodePtr concat_node = graph->AddNode(concat_op);
     NodePtr shape_node = graph->AddNode(shape_op);
     NodePtr relu_node = graph->AddNode(relu_op);
 
-    GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0),
-                        concat_node->GetInDataAnchor(0));
-    GraphUtils::AddEdge(shape_node->GetOutDataAnchor(0),
-                        concat_node->GetInDataAnchor(1));
-    GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0),
-                        relu_node->GetInDataAnchor(0));
+    GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+    GraphUtils::AddEdge(shape_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
+    GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0), relu_node->GetInDataAnchor(0));
   }
 
   static void CreateConcatOpDescGraph2(ComputeGraphPtr graph) {
-    OpDescPtr placeholder_op =
-        std::make_shared<OpDesc>("placeholder", "PlaceHolder");
+    OpDescPtr placeholder_op = std::make_shared<OpDesc>("placeholder", "PlaceHolder");
     OpDescPtr shape_op = std::make_shared<OpDesc>("shape", "Shape");
     OpDescPtr concat_op = std::make_shared<OpDesc>("concat", "ConcatD");
 
@@ -1180,18 +1152,14 @@ protected:
     std::vector<bool> is_in_const_vec = {false};
     placeholder_op->SetIsInputConst(is_in_const_vec);
 
-    ge::AttrUtils::SetInt(placeholder_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_TBE));
-    ge::AttrUtils::SetInt(concat_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_GENERAL_CCE));
+    ge::AttrUtils::SetInt(placeholder_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
+    ge::AttrUtils::SetInt(concat_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_GENERAL_CCE));
     (void)ge::AttrUtils::SetInt(concat_op, CONCAT_DIM, 1);
     NodePtr placeholder_node = graph->AddNode(placeholder_op);
     NodePtr concat_node = graph->AddNode(concat_op);
     NodePtr shape_node = graph->AddNode(shape_op);
-    GraphUtils::AddEdge(placeholder_node->GetOutDataAnchor(0),
-                        concat_node->GetInDataAnchor(0));
-    GraphUtils::AddEdge(shape_node->GetOutDataAnchor(0),
-                        concat_node->GetInDataAnchor(1));
+    GraphUtils::AddEdge(placeholder_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+    GraphUtils::AddEdge(shape_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
   }
 
   static void CreateConcatOpDescGraph3(ComputeGraphPtr graph) {
@@ -1241,19 +1209,15 @@ protected:
     std::vector<bool> is_in_const_vec = {false};
     bn_op->SetIsInputConst(is_in_const_vec);
 
-    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_TBE));
-    ge::AttrUtils::SetInt(concat_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_GENERAL_CCE));
+    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
+    ge::AttrUtils::SetInt(concat_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_GENERAL_CCE));
     (void)ge::AttrUtils::SetInt(concat_op, CONCAT_DIM, 0);
     ge::AttrUtils::SetBool(bn_op, ge::ATTR_NAME_CONTINUOUS_INPUT, true);
     NodePtr bn_node = graph->AddNode(bn_op);
     NodePtr concat_node = graph->AddNode(concat_op);
     NodePtr shape_node = graph->AddNode(shape_op);
-    GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0),
-                        concat_node->GetInDataAnchor(0));
-    GraphUtils::AddEdge(shape_node->GetOutDataAnchor(0),
-                        concat_node->GetInDataAnchor(1));
+    GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+    GraphUtils::AddEdge(shape_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
   }
 
   static void CreateConcatOpDescGraph4(ComputeGraphPtr graph) {
@@ -1303,19 +1267,15 @@ protected:
     std::vector<bool> is_in_const_vec = {false};
     bn_op->SetIsInputConst(is_in_const_vec);
 
-    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_TBE));
-    ge::AttrUtils::SetInt(concat_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_GENERAL_CCE));
+    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
+    ge::AttrUtils::SetInt(concat_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_GENERAL_CCE));
     (void)ge::AttrUtils::SetInt(concat_op, CONCAT_DIM, 0);
     ge::AttrUtils::SetBool(bn_op, ge::ATTR_NAME_CONTINUOUS_OUTPUT, true);
     NodePtr bn_node = graph->AddNode(bn_op);
     NodePtr concat_node = graph->AddNode(concat_op);
     NodePtr shape_node = graph->AddNode(shape_op);
-    GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0),
-                        concat_node->GetInDataAnchor(0));
-    GraphUtils::AddEdge(shape_node->GetOutDataAnchor(0),
-                        concat_node->GetInDataAnchor(1));
+    GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+    GraphUtils::AddEdge(shape_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
   }
 
   static void CreateConcatOpDescGraph5(ComputeGraphPtr graph) {
@@ -1365,19 +1325,15 @@ protected:
     std::vector<bool> is_in_const_vec = {false};
     bn_op->SetIsInputConst(is_in_const_vec);
 
-    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_TBE));
-    ge::AttrUtils::SetInt(concat_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_GENERAL_CCE));
+    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
+    ge::AttrUtils::SetInt(concat_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_GENERAL_CCE));
     (void)ge::AttrUtils::SetInt(concat_op, CONCAT_DIM, 0);
     ge::AttrUtils::SetBool(bn_op, ge::ATTR_NAME_REFERENCE, true);
     NodePtr bn_node = graph->AddNode(bn_op);
     NodePtr concat_node = graph->AddNode(concat_op);
     NodePtr shape_node = graph->AddNode(shape_op);
-    GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0),
-                        concat_node->GetInDataAnchor(0));
-    GraphUtils::AddEdge(shape_node->GetOutDataAnchor(0),
-                        concat_node->GetInDataAnchor(1));
+    GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+    GraphUtils::AddEdge(shape_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
   }
 
   static void CreateConcatOpDescGraph6(ComputeGraphPtr graph) {
@@ -1438,22 +1394,17 @@ protected:
     std::vector<bool> is_in_const_vec = {false};
     bn_op->SetIsInputConst(is_in_const_vec);
 
-    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_TBE));
-    ge::AttrUtils::SetInt(concat_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_GENERAL_CCE));
+    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
+    ge::AttrUtils::SetInt(concat_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_GENERAL_CCE));
     (void)ge::AttrUtils::SetInt(concat_op, CONCAT_DIM, 0);
     ge::AttrUtils::SetBool(bn_op, ge::ATTR_NAME_NOTASK, true);
     NodePtr bn_node = graph->AddNode(bn_op);
     NodePtr concat_node = graph->AddNode(concat_op);
     NodePtr shape_node = graph->AddNode(shape_op);
     NodePtr relu_node = graph->AddNode(relu_op);
-    GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0),
-                        concat_node->GetInDataAnchor(0));
-    GraphUtils::AddEdge(shape_node->GetOutDataAnchor(0),
-                        concat_node->GetInDataAnchor(1));
-    GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0),
-                        relu_node->GetInDataAnchor(0));
+    GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+    GraphUtils::AddEdge(shape_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
+    GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0), relu_node->GetInDataAnchor(0));
   }
 
   static void CreateConcatOpDescGraph7(ComputeGraphPtr graph) {
@@ -1495,18 +1446,14 @@ protected:
     out_desc4.SetDataType(DT_FLOAT16);
     relu_op->AddOutputDesc("y", out_desc4);
 
-    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_TBE));
-    ge::AttrUtils::SetInt(concat_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_GENERAL_CCE));
+    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
+    ge::AttrUtils::SetInt(concat_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_GENERAL_CCE));
     (void)ge::AttrUtils::SetInt(concat_op, CONCAT_DIM, 0);
     NodePtr bn_node = graph->AddNode(bn_op);
     NodePtr concat_node = graph->AddNode(concat_op);
     NodePtr relu_node = graph->AddNode(relu_op);
-    GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0),
-                        concat_node->GetInDataAnchor(0));
-    GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0),
-                        relu_node->GetInDataAnchor(0));
+    GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+    GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0), relu_node->GetInDataAnchor(0));
   }
 
   static void CreateConcatOpDescGraph8(ComputeGraphPtr graph) {
@@ -1556,18 +1503,14 @@ protected:
     std::vector<bool> is_in_const_vec = {false};
     bn_op->SetIsInputConst(is_in_const_vec);
 
-    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_TBE));
-    ge::AttrUtils::SetInt(concat_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_GENERAL_CCE));
+    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
+    ge::AttrUtils::SetInt(concat_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_GENERAL_CCE));
     (void)ge::AttrUtils::SetInt(concat_op, CONCAT_DIM, 1);
     NodePtr bn_node = graph->AddNode(bn_op);
     NodePtr concat_node = graph->AddNode(concat_op);
     NodePtr shape_node = graph->AddNode(shape_op);
-    GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0),
-                        concat_node->GetInDataAnchor(0));
-    GraphUtils::AddEdge(shape_node->GetOutDataAnchor(0),
-                        concat_node->GetInDataAnchor(1));
+    GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+    GraphUtils::AddEdge(shape_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
   }
 
   static void CreateConcatOpDescGraph9(ComputeGraphPtr graph) {
@@ -1617,22 +1560,17 @@ protected:
     std::vector<bool> is_in_const_vec = {false};
     bn_op->SetIsInputConst(is_in_const_vec);
 
-    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_TBE));
-    ge::AttrUtils::SetInt(concat_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_GENERAL_CCE));
+    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
+    ge::AttrUtils::SetInt(concat_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_GENERAL_CCE));
     (void)ge::AttrUtils::SetInt(concat_op, CONCAT_DIM, 0);
     vector<int64_t> output_index;
     output_index.push_back(0);
-    (void)ge::AttrUtils::SetListInt(bn_op, ge::ATOMIC_ATTR_OUTPUT_INDEX,
-                                    output_index);
+    (void)ge::AttrUtils::SetListInt(bn_op, ge::ATOMIC_ATTR_OUTPUT_INDEX, output_index);
     NodePtr bn_node = graph->AddNode(bn_op);
     NodePtr concat_node = graph->AddNode(concat_op);
     NodePtr shape_node = graph->AddNode(shape_op);
-    GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0),
-                        concat_node->GetInDataAnchor(0));
-    GraphUtils::AddEdge(shape_node->GetOutDataAnchor(0),
-                        concat_node->GetInDataAnchor(1));
+    GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+    GraphUtils::AddEdge(shape_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
   }
 
   static void CreateConcatOpDescGraph10(ComputeGraphPtr graph) {
@@ -1665,16 +1603,13 @@ protected:
     std::vector<bool> is_in_const_vec = {false};
     bn_op->SetIsInputConst(is_in_const_vec);
 
-    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_TBE));
-    ge::AttrUtils::SetInt(concat_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_GENERAL_CCE));
+    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
+    ge::AttrUtils::SetInt(concat_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_GENERAL_CCE));
     (void)ge::AttrUtils::SetInt(concat_op, CONCAT_DIM, 0);
     ge::AttrUtils::SetBool(bn_op, ge::ATTR_NAME_NOTASK, true);
     NodePtr bn_node = graph->AddNode(bn_op);
     NodePtr concat_node = graph->AddNode(concat_op);
-    GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0),
-                        concat_node->GetInDataAnchor(0));
+    GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
   }
 
   static void CreateConcatOpDescGraph11(ComputeGraphPtr graph) {
@@ -1724,19 +1659,15 @@ protected:
     std::vector<bool> is_in_const_vec = {false};
     bn_op->SetIsInputConst(is_in_const_vec);
 
-    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_TBE));
-    ge::AttrUtils::SetInt(concat_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_GENERAL_CCE));
+    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
+    ge::AttrUtils::SetInt(concat_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_GENERAL_CCE));
     (void)ge::AttrUtils::SetInt(concat_op, CONCAT_DIM, 0);
     ge::AttrUtils::SetBool(shape_op, ge::ATTR_NAME_REFERENCE, true);
     NodePtr bn_node = graph->AddNode(bn_op);
     NodePtr concat_node = graph->AddNode(concat_op);
     NodePtr shape_node = graph->AddNode(shape_op);
-    GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0),
-                        concat_node->GetInDataAnchor(0));
-    GraphUtils::AddEdge(shape_node->GetOutDataAnchor(0),
-                        concat_node->GetInDataAnchor(1));
+    GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+    GraphUtils::AddEdge(shape_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
   }
 
   static void CreateConcatOpDescGraph12(ComputeGraphPtr graph) {
@@ -1791,20 +1722,15 @@ protected:
     std::vector<bool> is_in_const_vec = {false};
     bn_op->SetIsInputConst(is_in_const_vec);
 
-    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_TBE));
-    ge::AttrUtils::SetInt(concat_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_GENERAL_CCE));
+    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
+    ge::AttrUtils::SetInt(concat_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_GENERAL_CCE));
     (void)ge::AttrUtils::SetInt(concat_op, CONCAT_DIM, 0);
     NodePtr bn_node = graph->AddNode(bn_op);
     NodePtr concat_node = graph->AddNode(concat_op);
     NodePtr shape_node = graph->AddNode(shape_op);
-    GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0),
-                        concat_node->GetInDataAnchor(0));
-    GraphUtils::AddEdge(shape_node->GetOutDataAnchor(0),
-                        concat_node->GetInDataAnchor(1));
-    GraphUtils::AddEdge(shape_node->GetOutDataAnchor(0),
-                        concat_node->GetInDataAnchor(2));
+    GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+    GraphUtils::AddEdge(shape_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
+    GraphUtils::AddEdge(shape_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(2));
   }
   static void CreateConcatOpDescGraph13(ComputeGraphPtr graph) {
     OpDescPtr bn_op = std::make_shared<OpDesc>("batchnormal", "BatchNorm");
@@ -1853,18 +1779,14 @@ protected:
     std::vector<bool> is_in_const_vec = {false};
     bn_op->SetIsInputConst(is_in_const_vec);
 
-    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_TBE));
-    ge::AttrUtils::SetInt(concat_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_GENERAL_CCE));
+    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
+    ge::AttrUtils::SetInt(concat_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_GENERAL_CCE));
     (void)ge::AttrUtils::SetInt(concat_op, CONCAT_DIM, 0);
     NodePtr bn_node = graph->AddNode(bn_op);
     NodePtr concat_node = graph->AddNode(concat_op);
     NodePtr shape_node = graph->AddNode(shape_op);
-    GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0),
-                        concat_node->GetInDataAnchor(0));
-    GraphUtils::AddEdge(shape_node->GetOutDataAnchor(0),
-                        concat_node->GetInDataAnchor(1));
+    GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+    GraphUtils::AddEdge(shape_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
   }
   static void CreateConcatOpDescGraph14(ComputeGraphPtr graph) {
     OpDescPtr bn_op = std::make_shared<OpDesc>("batchnormal", "BatchNorm");
@@ -1913,20 +1835,15 @@ protected:
     std::vector<bool> is_in_const_vec = {false};
     bn_op->SetIsInputConst(is_in_const_vec);
 
-    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_TBE));
-    ge::AttrUtils::SetInt(concat_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_GENERAL_CCE));
+    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
+    ge::AttrUtils::SetInt(concat_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_GENERAL_CCE));
     (void)ge::AttrUtils::SetInt(concat_op, CONCAT_DIM, 0);
     NodePtr bn_node = graph->AddNode(bn_op);
     NodePtr concat_node = graph->AddNode(concat_op);
     NodePtr shape_node = graph->AddNode(shape_op);
-    GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0),
-                        concat_node->GetInDataAnchor(0));
-    GraphUtils::AddEdge(shape_node->GetOutDataAnchor(0),
-                        concat_node->GetInDataAnchor(1));
-    GraphUtils::AddEdge(shape_node->GetOutControlAnchor(),
-                        concat_node->GetInControlAnchor());
+    GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+    GraphUtils::AddEdge(shape_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
+    GraphUtils::AddEdge(shape_node->GetOutControlAnchor(), concat_node->GetInControlAnchor());
   }
   static void CreateConcatOpDescGraph15(ComputeGraphPtr graph) {
     OpDescPtr bn_op = std::make_shared<OpDesc>("batchnormal", "BatchNorm");
@@ -1986,10 +1903,8 @@ protected:
     std::vector<bool> is_in_const_vec = {false};
     bn_op->SetIsInputConst(is_in_const_vec);
 
-    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_TBE));
-    ge::AttrUtils::SetInt(concat_op, FE_IMPLY_TYPE,
-                          static_cast<int>(EN_IMPL_HW_GENERAL_CCE));
+    ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
+    ge::AttrUtils::SetInt(concat_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_GENERAL_CCE));
     (void)ge::AttrUtils::SetInt(concat_op, CONCAT_DIM, 0);
     ge::AttrUtils::SetBool(bn_op, ge::ATTR_NAME_NOTASK, true);
     ge::AttrUtils::SetStr(end_op, "parentOpType", "NetOutput");
@@ -1997,12 +1912,9 @@ protected:
     NodePtr concat_node = graph->AddNode(concat_op);
     NodePtr shape_node = graph->AddNode(shape_op);
     NodePtr end_node = graph->AddNode(end_op);
-    GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0),
-                        concat_node->GetInDataAnchor(0));
-    GraphUtils::AddEdge(shape_node->GetOutDataAnchor(0),
-                        concat_node->GetInDataAnchor(1));
-    GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0),
-                        end_node->GetInDataAnchor(0));
+    GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+    GraphUtils::AddEdge(shape_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
+    GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0), end_node->GetInDataAnchor(0));
   }
   static void CreateConcatOpDescGraph16(ComputeGraphPtr graph) {
     OpDescPtr bn_op = std::make_shared<OpDesc>("batchnormal", "BatchNorm");
@@ -2081,28 +1993,25 @@ protected:
     NodePtr reshape_node1 = graph->AddNode(reshape_op1);
     NodePtr end_node = graph->AddNode(end_op);
     NodePtr reshape_node2 = graph->AddNode(reshape_op2);
-    GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0),
-                        concat_node->GetInDataAnchor(0));
-    GraphUtils::AddEdge(shape_node->GetOutDataAnchor(0),
-                        reshape_node1->GetInDataAnchor(0));
-    GraphUtils::AddEdge(reshape_node1->GetOutDataAnchor(0),
-                        concat_node->GetInDataAnchor(1));
-    GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0),
-                        reshape_node2->GetInDataAnchor(0));
-    GraphUtils::AddEdge(reshape_node2->GetOutDataAnchor(0),
-                        end_node->GetInDataAnchor(0));
+    GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+    GraphUtils::AddEdge(shape_node->GetOutDataAnchor(0), reshape_node1->GetInDataAnchor(0));
+    GraphUtils::AddEdge(reshape_node1->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
+    GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0), reshape_node2->GetInDataAnchor(0));
+    GraphUtils::AddEdge(reshape_node2->GetOutDataAnchor(0), end_node->GetInDataAnchor(0));
   }
   static ComputeGraphPtr CreateCastReluCastGraph6() {
     ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test1");
     OpDescPtr op_desc_cast1 = std::make_shared<OpDesc>("cast1", "Cast");
     OpDescPtr op_desc_cast3 = std::make_shared<OpDesc>("cast3", "Cast");
-    OpDescPtr op_desc_cast4 = std::make_shared<OpDesc>("loss_scale/gradients/fp32_vars/conv2d_15/Conv2D_grad/Conv2DBackpropInput_dilation", "Cast");
+    OpDescPtr op_desc_cast4 = std::make_shared<OpDesc>(
+        "loss_scale/gradients/fp32_vars/conv2d_15/Conv2D_grad/Conv2DBackpropInput_dilation", "Cast");
     OpDescPtr op_desc_relu = std::make_shared<OpDesc>("relu", "Relu");
-    OpDescPtr op_desc_cast2 = std::make_shared<OpDesc>("loss_scale/gradients/fp32_vars/conv2d_15/Conv2D_grad/Conv2DBackpropInput_dilation", "Cast");
+    OpDescPtr op_desc_cast2 = std::make_shared<OpDesc>(
+        "loss_scale/gradients/fp32_vars/conv2d_15/Conv2D_grad/Conv2DBackpropInput_dilation", "Cast");
     OpDescPtr op_desc_output = std::make_shared<OpDesc>("output", "NetOutput");
     OpDescPtr op_desc_input = std::make_shared<OpDesc>("other", "Other");
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim_a = {8, 4, 16, 16};
     GeShape shape_a(dim_a);
     GeTensorDesc tensor_desc_a(shape_a);
@@ -2127,7 +2036,7 @@ protected:
     tensor_desc_c.SetDataType(DT_FLOAT);
     tensor_desc_c.SetOriginDataType(DT_FLOAT);
 
-    //vector<int64_t> dim_d;
+    // vector<int64_t> dim_d;
     GeShape shape_d(dim_a);
     GeTensorDesc tensor_desc_d(shape_d);
     tensor_desc_d.SetFormat(FORMAT_NCHW);
@@ -2209,17 +2118,39 @@ protected:
   }
   static void CreateCMOMultiStreamGraph(ComputeGraphPtr graph) {
     OpDescPtr data = std::make_shared<OpDesc>("DATA0", fe::DATA);
-    OpDescPtr opdesc_a = std::make_shared<OpDesc>("A", "A"); opdesc_a->SetId(0); opdesc_a->SetStreamId(1);
-    OpDescPtr opdesc_b = std::make_shared<OpDesc>("B", "B"); opdesc_b->SetId(1); opdesc_b->SetStreamId(1);
-    OpDescPtr opdesc_c = std::make_shared<OpDesc>("C", "C"); opdesc_c->SetId(2); opdesc_c->SetStreamId(1);
-    OpDescPtr opdesc_d = std::make_shared<OpDesc>("D", "D"); opdesc_d->SetId(3); opdesc_d->SetStreamId(1);
-    OpDescPtr opdesc_e = std::make_shared<OpDesc>("E", "E"); opdesc_e->SetId(0); opdesc_e->SetStreamId(2);
-    OpDescPtr opdesc_f = std::make_shared<OpDesc>("F", "F"); opdesc_f->SetId(1); opdesc_f->SetStreamId(2);
-    OpDescPtr opdesc_g = std::make_shared<OpDesc>("G", "G"); opdesc_g->SetId(2); opdesc_g->SetStreamId(2);
-    OpDescPtr opdesc_h = std::make_shared<OpDesc>("H", "H"); opdesc_h->SetId(3); opdesc_h->SetStreamId(2);
-    OpDescPtr opdesc_j = std::make_shared<OpDesc>("J", "J"); opdesc_j->SetId(4); opdesc_j->SetStreamId(2);
-    OpDescPtr opdesc_send = std::make_shared<OpDesc>("send", "Send"); opdesc_send->SetId(4); opdesc_send->SetStreamId(1);
-    OpDescPtr opdesc_recv = std::make_shared<OpDesc>("recv", "Recv"); opdesc_recv->SetId(4); opdesc_recv->SetStreamId(2);
+    OpDescPtr opdesc_a = std::make_shared<OpDesc>("A", "A");
+    opdesc_a->SetId(0);
+    opdesc_a->SetStreamId(1);
+    OpDescPtr opdesc_b = std::make_shared<OpDesc>("B", "B");
+    opdesc_b->SetId(1);
+    opdesc_b->SetStreamId(1);
+    OpDescPtr opdesc_c = std::make_shared<OpDesc>("C", "C");
+    opdesc_c->SetId(2);
+    opdesc_c->SetStreamId(1);
+    OpDescPtr opdesc_d = std::make_shared<OpDesc>("D", "D");
+    opdesc_d->SetId(3);
+    opdesc_d->SetStreamId(1);
+    OpDescPtr opdesc_e = std::make_shared<OpDesc>("E", "E");
+    opdesc_e->SetId(0);
+    opdesc_e->SetStreamId(2);
+    OpDescPtr opdesc_f = std::make_shared<OpDesc>("F", "F");
+    opdesc_f->SetId(1);
+    opdesc_f->SetStreamId(2);
+    OpDescPtr opdesc_g = std::make_shared<OpDesc>("G", "G");
+    opdesc_g->SetId(2);
+    opdesc_g->SetStreamId(2);
+    OpDescPtr opdesc_h = std::make_shared<OpDesc>("H", "H");
+    opdesc_h->SetId(3);
+    opdesc_h->SetStreamId(2);
+    OpDescPtr opdesc_j = std::make_shared<OpDesc>("J", "J");
+    opdesc_j->SetId(4);
+    opdesc_j->SetStreamId(2);
+    OpDescPtr opdesc_send = std::make_shared<OpDesc>("send", "Send");
+    opdesc_send->SetId(4);
+    opdesc_send->SetStreamId(1);
+    OpDescPtr opdesc_recv = std::make_shared<OpDesc>("recv", "Recv");
+    opdesc_recv->SetId(4);
+    opdesc_recv->SetStreamId(2);
     OpDescPtr out = std::make_shared<OpDesc>("out", "NetOutput");
     AttrUtils::SetInt(opdesc_a, ATTR_NAME_OP_READ_WRITE_INDEX, 0);
     AttrUtils::SetInt(opdesc_b, ATTR_NAME_OP_READ_WRITE_INDEX, 1);
@@ -2346,7 +2277,7 @@ protected:
     return graph;
   }
 
- static void CreateSwitchMergeFixpipeGraph2(ComputeGraphPtr graph) {
+  static void CreateSwitchMergeFixpipeGraph2(ComputeGraphPtr graph) {
     OpDescPtr data = std::make_shared<OpDesc>("DATA0", fe::DATA);
     OpDescPtr conv2d = std::make_shared<OpDesc>("conv2d", CONV2D);
     OpDescPtr switch_op = std::make_shared<OpDesc>("switch", "Switch");
@@ -2414,35 +2345,31 @@ protected:
     GraphUtils::AddEdge(switch_node->GetOutDataAnchor(0), transdata_node->GetInDataAnchor(0));
     GraphUtils::AddEdge(transdata_node->GetOutDataAnchor(0), conv2d_node->GetInDataAnchor(1));
     GraphUtils::AddEdge(const_node->GetOutDataAnchor(0), bias_node->GetInDataAnchor(0));
-    GraphUtils::AddEdge(bias_node->GetOutDataAnchor(0), conv2d_node->GetInDataAnchor(2));    
+    GraphUtils::AddEdge(bias_node->GetOutDataAnchor(0), conv2d_node->GetInDataAnchor(2));
     GraphUtils::AddEdge(merge_node->GetOutDataAnchor(0), fixpipe_node->GetInDataAnchor(0));
     GraphUtils::AddEdge(fixpipe_node->GetOutDataAnchor(0), out_node->GetInDataAnchor(0));
   }
 };
 
 namespace {
-std::string GetGeContextBuildModeOptionValue(Configuration *This, const std::string &key)
-{
+std::string GetGeContextBuildModeOptionValue(Configuration *This, const std::string &key) {
   std::string value = "tuning";
   return value;
 }
 
-std::string GetGeContextBuildStepOptionValue(Configuration *This, const std::string &key)
-{
+std::string GetGeContextBuildStepOptionValue(Configuration *This, const std::string &key) {
   std::string value = "tuning";
   return value;
 }
-}
+}  // namespace
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, multi_thread_judge)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, multi_thread_judge) {
   FEOpsKernelInfoStorePtr ops_info_store;
   std::make_shared<FEOpsKernelInfoStore>();
   auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_info_store);
-  fe_graph_optimizer_ptr->format_dtype_setter_ptr_ =
-  std::make_shared<FormatDtypeSetter>(AI_CORE_NAME);
+  fe_graph_optimizer_ptr->format_dtype_setter_ptr_ = std::make_shared<FormatDtypeSetter>(AI_CORE_NAME);
   fe_graph_optimizer_ptr->op_impl_type_judge_ptr_ =
-  std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, ops_kernel_info_store_ptr_);
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, ops_kernel_info_store_ptr_);
   auto graph = CreateInceptionV3NetGraph();
   Status ret = fe_graph_optimizer_ptr->op_impl_type_judge_ptr_->MultiThreadJudge(*graph);
   EXPECT_EQ(fe::SUCCESS, ret);
@@ -2453,8 +2380,7 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, multi_thread_judge)
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, get_attributes_success)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, get_attributes_success) {
   GraphOptimizerAttribute attrs;
   auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_kernel_info_store_ptr_, AI_CORE_NAME);
 
@@ -2463,24 +2389,21 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, get_attributes_success)
   EXPECT_EQ(fe::SUCCESS, status);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, init_opcompiler)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, init_opcompiler) {
   auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_kernel_info_store_ptr_, AI_CORE_NAME);
   Status status = fe_graph_optimizer_ptr->InitializeAllOpCompiler();
 
   EXPECT_EQ(fe::SUCCESS, status);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, finalize_success1)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, finalize_success1) {
   auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_kernel_info_store_ptr_, AI_CORE_NAME);
   Status status = fe_graph_optimizer_ptr->Finalize();
 
   EXPECT_EQ(fe::SUCCESS, status);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, finalize_success2)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, finalize_success2) {
   auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_kernel_info_store_ptr_, AI_CORE_NAME);
   fe_graph_optimizer_ptr->init_flag_ = true;
   Status status = fe_graph_optimizer_ptr->Finalize();
@@ -2488,8 +2411,7 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, finalize_success2)
   EXPECT_EQ(fe::SUCCESS, status);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, finalize_session_info_success1)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, finalize_session_info_success1) {
   auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_kernel_info_store_ptr_, AI_CORE_NAME);
   auto graph = std::make_shared<ComputeGraph>("test");
   Status status = fe_graph_optimizer_ptr->FinalizeSessionInfo(*graph);
@@ -2497,8 +2419,7 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, finalize_session_info_success1)
   EXPECT_EQ(fe::SUCCESS, status);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_original_graph_failed)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_original_graph_failed) {
   auto graph = std::make_shared<ComputeGraph>("test");
   CreateTwoOpDescGraph(graph);
   auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_kernel_info_store_ptr_, AI_CORE_NAME);
@@ -2507,8 +2428,7 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_original_graph_failed)
   EXPECT_EQ(fe::FAILED, status);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_original_graph_success)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_original_graph_success) {
   auto graph = std::make_shared<ComputeGraph>("test");
   CreateTwoOpDescGraph(graph);
   auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_kernel_info_store_ptr_, AI_CORE_NAME);
@@ -2519,8 +2439,7 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_original_graph_success)
   EXPECT_EQ(fe::SUCCESS, status);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, concat_split_optimizer_success1)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, concat_split_optimizer_success1) {
   auto graph = std::make_shared<ComputeGraph>("test");
   CreateTwoOpDescGraph(graph);
   auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_kernel_info_store_ptr_, AI_CORE_NAME);
@@ -2530,8 +2449,7 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, concat_split_optimizer_success1)
   EXPECT_EQ(fe::SUCCESS, status);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, concat_split_optimizer_success2)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, concat_split_optimizer_success2) {
   auto graph = std::make_shared<ComputeGraph>("test");
   CreateTwoOpDescGraph(graph);
   auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_kernel_info_store_ptr_, AI_CORE_NAME);
@@ -2541,17 +2459,17 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, concat_split_optimizer_success2)
   EXPECT_EQ(fe::SUCCESS, status);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, post_process_after_compiling_op_success)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, post_process_after_compiling_op_success) {
   auto graph = std::make_shared<ComputeGraph>("test");
   CreateTwoOpDescGraph(graph);
   auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_kernel_info_store_ptr_, AI_CORE_NAME);
   GraphCommPtr graph_comm_ptr = std::make_shared<GraphComm>(fe::AI_CORE_NAME);
   FusionRuleManagerPtr fusion_rule_mgr_ptr_ = std::make_shared<FusionRuleManager>(ops_kernel_info_store_ptr_);
-  FusionPriorityMgrPtr fusion_priority_mgr_ptr_ = std::make_shared<FusionPriorityManager>(fe::AI_CORE_NAME, fusion_rule_mgr_ptr_);
+  FusionPriorityMgrPtr fusion_priority_mgr_ptr_ =
+      std::make_shared<FusionPriorityManager>(fe::AI_CORE_NAME, fusion_rule_mgr_ptr_);
   fusion_priority_mgr_ptr_->Initialize();
-  BufferFusionPtr buffer_fusion_ptr_ = std::make_shared<BufferFusion>(graph_comm_ptr,
-                                                                      fusion_priority_mgr_ptr_, nullptr);
+  BufferFusionPtr buffer_fusion_ptr_ =
+      std::make_shared<BufferFusion>(graph_comm_ptr, fusion_priority_mgr_ptr_, nullptr);
   std::vector<ge::NodePtr> buff_fus_compile_failed_nodes;
   fe_graph_optimizer_ptr->space_size_calculator_ptr_ = std::make_shared<SpaceSizeCalculator>();
   Status status = fe_graph_optimizer_ptr->PostProcessAfterCompilingOp(*graph, buffer_fusion_ptr_);
@@ -2559,8 +2477,7 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, post_process_after_compiling_op_s
   EXPECT_EQ(fe::SUCCESS, status);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, alloc_resouce_test1)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, alloc_resouce_test1) {
   auto graph = std::make_shared<ComputeGraph>("test");
   CreateTwoOpDescGraph(graph);
   ge::NodePtr bn_node = graph->FindNode("batchnormal");
@@ -2573,8 +2490,7 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, alloc_resouce_test1)
   EXPECT_EQ(bn_node->GetOpDesc()->HasAttr(ge::ATTR_NAME_ATTACHED_NOTIFY_INFO), true);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, alloc_resouce_test2)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, alloc_resouce_test2) {
   auto graph = std::make_shared<ComputeGraph>("test");
   CreateTwoOpDescGraph(graph);
   ge::NodePtr bn_node = graph->FindNode("batchnormal");
@@ -2590,8 +2506,7 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, alloc_resouce_test2)
   EXPECT_EQ(bn_node->GetOpDesc()->HasAttr(ATTR_NAME_DISABLE_MIX_VECTOR_CORE), true);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_fused_graph_after_graph_slice_success)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_fused_graph_after_graph_slice_success) {
   auto graph = std::make_shared<ComputeGraph>("test");
   CreateTwoOpDescGraph(graph);
   auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_kernel_info_store_ptr_, AI_CORE_NAME);
@@ -2604,8 +2519,7 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_fused_graph_after_graph_
   EXPECT_EQ(fe::SUCCESS, status);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_fused_graph_after_graph_slice_with_compiled_fusionop_success)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_fused_graph_after_graph_slice_with_compiled_fusionop_success) {
   auto graph = std::make_shared<ComputeGraph>("test");
   CreateTwoOpDescGraph(graph);
   auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_kernel_info_store_ptr_, AI_CORE_NAME);
@@ -2614,7 +2528,7 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_fused_graph_after_graph_
   fe_graph_optimizer_ptr->op_compiler_ptr_.push_back(op_compiler_ptr);
   fe_graph_optimizer_ptr->space_size_calculator_ptr_ = std::make_shared<SpaceSizeCalculator>();
 
-  for (auto& node : graph->GetDirectNode()) {
+  for (auto &node : graph->GetDirectNode()) {
     ge::OpDescPtr op_desc_ptr = node->GetOpDesc();
     (void)ge::AttrUtils::SetBool(op_desc_ptr, ATTR_NAME_IS_COMPIED_FUSION_OP, true);
     break;
@@ -2625,15 +2539,14 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_fused_graph_after_graph_
   EXPECT_EQ(fe::SUCCESS, status);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_fused_graph_after_graph_slice_with_tuneformat_fail)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_fused_graph_after_graph_slice_with_tuneformat_fail) {
   auto graph = std::make_shared<ComputeGraph>("test");
   auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_kernel_info_store_ptr_, AI_CORE_NAME);
   fe_graph_optimizer_ptr->init_flag_ = true;
   OpCompilerPtr op_compiler_ptr = make_shared<OpCompiler>("compiler_name", AI_CORE_NAME, lx_fusion_optimizer_);
   fe_graph_optimizer_ptr->op_compiler_ptr_.push_back(op_compiler_ptr);
   fe_graph_optimizer_ptr->space_size_calculator_ptr_ = std::make_shared<SpaceSizeCalculator>();
-  for (auto& node : graph->GetDirectNode()) {
+  for (auto &node : graph->GetDirectNode()) {
     ge::OpDescPtr op_desc_ptr = node->GetOpDesc();
     (void)ge::AttrUtils::SetBool(op_desc_ptr, ATTR_NAME_IS_COMPIED_FUSION_OP, true);
     break;
@@ -2643,8 +2556,7 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_fused_graph_after_graph_
   EXPECT_EQ(fe::FAILED, status);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_whole_graph_success)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_whole_graph_success) {
   auto graph = std::make_shared<ComputeGraph>("test");
   auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_kernel_info_store_ptr_, AI_CORE_NAME);
   Status status = fe_graph_optimizer_ptr->OptimizeWholeGraph(*graph);
@@ -2661,13 +2573,13 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_whole_graph_success)
   ge::GetThreadLocalContext().SetGraphOption(options_bk);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, OptimizeGraphBeforeBuild_success)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, OptimizeGraphBeforeBuild_success) {
   auto graph = std::make_shared<ComputeGraph>("test");
   CreateTwoOpDescGraph(graph);
   auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_kernel_info_store_ptr_, AI_CORE_NAME);
   FusionRuleManagerPtr fusion_rule_mgr_ptr_ = std::make_shared<FusionRuleManager>(ops_kernel_info_store_ptr_);
-  FusionPriorityMgrPtr fusion_priority_mgr_ptr_ = std::make_shared<FusionPriorityManager>(fe::AI_CORE_NAME, fusion_rule_mgr_ptr_);
+  FusionPriorityMgrPtr fusion_priority_mgr_ptr_ =
+      std::make_shared<FusionPriorityManager>(fe::AI_CORE_NAME, fusion_rule_mgr_ptr_);
   fusion_priority_mgr_ptr_->Initialize();
   fe_graph_optimizer_ptr->fusion_priority_mgr_ptr_ = fusion_priority_mgr_ptr_;
   Status status = fe_graph_optimizer_ptr->OptimizeGraphBeforeBuild(*graph);
@@ -2675,146 +2587,139 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, OptimizeGraphBeforeBuild_success)
   EXPECT_EQ(fe::SUCCESS, status);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, OptimizeGraphBeforeBuild_del_fusion_scope)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, OptimizeGraphBeforeBuild_del_fusion_scope) {
   auto graph = std::make_shared<ComputeGraph>("test");
   CreateTwoOpDescGraph(graph, true);
   auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_kernel_info_store_ptr_, AI_CORE_NAME);
   FusionRuleManagerPtr fusion_rule_mgr_ptr_ = std::make_shared<FusionRuleManager>(ops_kernel_info_store_ptr_);
-  FusionPriorityMgrPtr fusion_priority_mgr_ptr_ = std::make_shared<FusionPriorityManager>(fe::AI_CORE_NAME, fusion_rule_mgr_ptr_);
+  FusionPriorityMgrPtr fusion_priority_mgr_ptr_ =
+      std::make_shared<FusionPriorityManager>(fe::AI_CORE_NAME, fusion_rule_mgr_ptr_);
   fusion_priority_mgr_ptr_->Initialize();
   fe_graph_optimizer_ptr->fusion_priority_mgr_ptr_ = fusion_priority_mgr_ptr_;
   Status status = fe_graph_optimizer_ptr->OptimizeGraphBeforeBuild(*graph);
-  for (auto& node : graph->GetDirectNode()) {
+  for (auto &node : graph->GetDirectNode()) {
     EXPECT_EQ(node->GetOpDesc()->HasAttr("fusion_scope"), false);
   }
   EXPECT_EQ(fe::SUCCESS, status);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, OptimizeGraphPrepare_failed1)
-{
-    auto graph = std::make_shared<ComputeGraph>("test");
-    CreateTwoOpDescGraph(graph);
-    auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_kernel_info_store_ptr_, AI_CORE_NAME);
-    fe_graph_optimizer_ptr->init_flag_ = false;
-    Status status = fe_graph_optimizer_ptr->OptimizeGraphPrepare(*(graph.get()));
-    EXPECT_EQ(fe::FAILED, status);
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, OptimizeGraphPrepare_failed1) {
+  auto graph = std::make_shared<ComputeGraph>("test");
+  CreateTwoOpDescGraph(graph);
+  auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_kernel_info_store_ptr_, AI_CORE_NAME);
+  fe_graph_optimizer_ptr->init_flag_ = false;
+  Status status = fe_graph_optimizer_ptr->OptimizeGraphPrepare(*(graph.get()));
+  EXPECT_EQ(fe::FAILED, status);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, set_atomic_add_info_success)
-{
-    auto graph = std::make_shared<ComputeGraph>("test");
-    CreateTwoOpDescGraph(graph);
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, set_atomic_add_info_success) {
+  auto graph = std::make_shared<ComputeGraph>("test");
+  CreateTwoOpDescGraph(graph);
 
-    auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_kernel_info_store_ptr_, AI_CORE_NAME);
-    //fe_graph_optimizer_ptr->init_flag_ = true;
-    for (auto node : graph->GetDirectNode()) {
-        string op_type = node->GetType();
-        if (op_type == OP_TYPE_PLACE_HOLDER ||
-            op_type == OP_TYPE_END) {
-            continue;
-        }
-        ge::OpDescPtr op_desc_ptr = node->GetOpDesc();
-        if (!ge::AttrUtils::HasAttr(op_desc_ptr, FE_IMPLY_TYPE)) {
-            continue;
-        }
-        int tmp_imply_type = -1;
-        ge::AttrUtils::GetInt(op_desc_ptr, FE_IMPLY_TYPE, tmp_imply_type);
-        OpImplType op_impl_type = (OpImplType)tmp_imply_type;
-        if (op_desc_ptr->GetName() == "batchnormal") {
-            std::vector<uint32_t> tmp_output_index {1, 0, 0};
-            bool output_index = ge::AttrUtils::SetListInt(op_desc_ptr, TBE_OP_ATOMIC_OUTPUT_INDEX, tmp_output_index);
-
-            std::vector<int64_t> tmp_wk_index {1, 1, 1};
-            bool atomic = ge::AttrUtils::SetListInt(op_desc_ptr, TBE_OP_ATOMIC_WORKSPACE_INDEX, tmp_wk_index);
-            op_desc_ptr->SetWorkspaceBytes({32, 32, 32});
-            EXPECT_EQ(output_index, true);
-            EXPECT_EQ(atomic, true);
-        }
-        if (op_desc_ptr->GetName() == "relu") {
-            ge::AttrUtils::SetInt(op_desc_ptr, FE_IMPLY_TYPE, EN_IMPL_HW_TBE);
-            std::vector<uint32_t> tmp_output_index {1};
-            bool output_index2 = ge::AttrUtils::SetListInt(op_desc_ptr, TBE_OP_ATOMIC_OUTPUT_INDEX, tmp_output_index);
-
-            std::vector<int64_t> tmp_wk_index {1, 1, 1};
-            bool atomic2 = ge::AttrUtils::SetListInt(op_desc_ptr, TBE_OP_ATOMIC_WORKSPACE_INDEX, tmp_wk_index);
-            op_desc_ptr->SetWorkspaceBytes({32, 32, 32});
-            EXPECT_EQ(output_index2, true);
-            EXPECT_EQ(atomic2, true);
-        }
+  auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_kernel_info_store_ptr_, AI_CORE_NAME);
+  // fe_graph_optimizer_ptr->init_flag_ = true;
+  for (auto node : graph->GetDirectNode()) {
+    string op_type = node->GetType();
+    if (op_type == OP_TYPE_PLACE_HOLDER || op_type == OP_TYPE_END) {
+      continue;
     }
-    vector<ge::NodePtr> atomic_node_vec;
-    string atomic_clean_policy = "0";
-    Status status = fe_graph_optimizer_ptr->GetAndPreProcessForAtomicNodes(*(graph.get()), atomic_node_vec, atomic_clean_policy);
-    EXPECT_EQ(fe::SUCCESS, status);
-    atomic_clean_policy = "1";
-    status = fe_graph_optimizer_ptr->GetAndPreProcessForAtomicNodes(*(graph.get()), atomic_node_vec, atomic_clean_policy);
-    EXPECT_EQ(fe::SUCCESS, status);
-}
-
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, set_atomic_add_info_success2)
-{
-    auto graph = std::make_shared<ComputeGraph>("test");
-    CreateTwoOpDescGraph(graph);
-
-    auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_kernel_info_store_ptr_, AI_CORE_NAME);
-        //fe_graph_optimizer_ptr->init_flag_ = true;
-        for (auto node : graph->GetDirectNode()) {
-        string op_type = node->GetType();
-        if (op_type == OP_TYPE_PLACE_HOLDER ||
-        op_type == OP_TYPE_END) {
-        continue;
-        }
-        ge::OpDescPtr op_desc_ptr = node->GetOpDesc();
-        if (!ge::AttrUtils::HasAttr(op_desc_ptr, FE_IMPLY_TYPE)) {
-            continue;
-        }
-        int tmp_imply_type = -1;
-        ge::AttrUtils::GetInt(op_desc_ptr, FE_IMPLY_TYPE, tmp_imply_type);
-        OpImplType op_impl_type = (OpImplType)tmp_imply_type;
-
-        if (op_desc_ptr->GetName() == "batchnormal") {
-            std::vector<int64_t> tmp_wk_index {0, 0};
-            bool atomic = ge::AttrUtils::SetListInt(op_desc_ptr, TBE_OP_ATOMIC_WORKSPACE_FLAG, tmp_wk_index);
-            op_desc_ptr->SetWorkspaceBytes({32, 32});
-            EXPECT_EQ(atomic, true);
-        }
-        if (op_desc_ptr->GetName() == "relu") {
-            ge::AttrUtils::SetInt(op_desc_ptr, FE_IMPLY_TYPE, EN_IMPL_HW_TBE);
-            std::vector<uint32_t> tmp_output_index {0, 1};
-            bool output_index = ge::AttrUtils::SetListInt(op_desc_ptr, TBE_OP_ATOMIC_OUTPUT_INDEX, tmp_output_index);
-            EXPECT_EQ(output_index, true);
-        }
+    ge::OpDescPtr op_desc_ptr = node->GetOpDesc();
+    if (!ge::AttrUtils::HasAttr(op_desc_ptr, FE_IMPLY_TYPE)) {
+      continue;
     }
-    vector<ge::NodePtr> atomic_node_vec;
-    string atomic_clean_policy = "0";
-    Status status = fe_graph_optimizer_ptr->GetAndPreProcessForAtomicNodes(*(graph.get()), atomic_node_vec, atomic_clean_policy);
-    EXPECT_EQ(fe::SUCCESS, status);
+    int tmp_imply_type = -1;
+    ge::AttrUtils::GetInt(op_desc_ptr, FE_IMPLY_TYPE, tmp_imply_type);
+    OpImplType op_impl_type = (OpImplType)tmp_imply_type;
+    if (op_desc_ptr->GetName() == "batchnormal") {
+      std::vector<uint32_t> tmp_output_index{1, 0, 0};
+      bool output_index = ge::AttrUtils::SetListInt(op_desc_ptr, TBE_OP_ATOMIC_OUTPUT_INDEX, tmp_output_index);
+
+      std::vector<int64_t> tmp_wk_index{1, 1, 1};
+      bool atomic = ge::AttrUtils::SetListInt(op_desc_ptr, TBE_OP_ATOMIC_WORKSPACE_INDEX, tmp_wk_index);
+      op_desc_ptr->SetWorkspaceBytes({32, 32, 32});
+      EXPECT_EQ(output_index, true);
+      EXPECT_EQ(atomic, true);
+    }
+    if (op_desc_ptr->GetName() == "relu") {
+      ge::AttrUtils::SetInt(op_desc_ptr, FE_IMPLY_TYPE, EN_IMPL_HW_TBE);
+      std::vector<uint32_t> tmp_output_index{1};
+      bool output_index2 = ge::AttrUtils::SetListInt(op_desc_ptr, TBE_OP_ATOMIC_OUTPUT_INDEX, tmp_output_index);
+
+      std::vector<int64_t> tmp_wk_index{1, 1, 1};
+      bool atomic2 = ge::AttrUtils::SetListInt(op_desc_ptr, TBE_OP_ATOMIC_WORKSPACE_INDEX, tmp_wk_index);
+      op_desc_ptr->SetWorkspaceBytes({32, 32, 32});
+      EXPECT_EQ(output_index2, true);
+      EXPECT_EQ(atomic2, true);
+    }
+  }
+  vector<ge::NodePtr> atomic_node_vec;
+  string atomic_clean_policy = "0";
+  Status status =
+      fe_graph_optimizer_ptr->GetAndPreProcessForAtomicNodes(*(graph.get()), atomic_node_vec, atomic_clean_policy);
+  EXPECT_EQ(fe::SUCCESS, status);
+  atomic_clean_policy = "1";
+  status = fe_graph_optimizer_ptr->GetAndPreProcessForAtomicNodes(*(graph.get()), atomic_node_vec, atomic_clean_policy);
+  EXPECT_EQ(fe::SUCCESS, status);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_original_judge_c04_success)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, set_atomic_add_info_success2) {
+  auto graph = std::make_shared<ComputeGraph>("test");
+  CreateTwoOpDescGraph(graph);
+
+  auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_kernel_info_store_ptr_, AI_CORE_NAME);
+  // fe_graph_optimizer_ptr->init_flag_ = true;
+  for (auto node : graph->GetDirectNode()) {
+    string op_type = node->GetType();
+    if (op_type == OP_TYPE_PLACE_HOLDER || op_type == OP_TYPE_END) {
+      continue;
+    }
+    ge::OpDescPtr op_desc_ptr = node->GetOpDesc();
+    if (!ge::AttrUtils::HasAttr(op_desc_ptr, FE_IMPLY_TYPE)) {
+      continue;
+    }
+    int tmp_imply_type = -1;
+    ge::AttrUtils::GetInt(op_desc_ptr, FE_IMPLY_TYPE, tmp_imply_type);
+    OpImplType op_impl_type = (OpImplType)tmp_imply_type;
+
+    if (op_desc_ptr->GetName() == "batchnormal") {
+      std::vector<int64_t> tmp_wk_index{0, 0};
+      bool atomic = ge::AttrUtils::SetListInt(op_desc_ptr, TBE_OP_ATOMIC_WORKSPACE_FLAG, tmp_wk_index);
+      op_desc_ptr->SetWorkspaceBytes({32, 32});
+      EXPECT_EQ(atomic, true);
+    }
+    if (op_desc_ptr->GetName() == "relu") {
+      ge::AttrUtils::SetInt(op_desc_ptr, FE_IMPLY_TYPE, EN_IMPL_HW_TBE);
+      std::vector<uint32_t> tmp_output_index{0, 1};
+      bool output_index = ge::AttrUtils::SetListInt(op_desc_ptr, TBE_OP_ATOMIC_OUTPUT_INDEX, tmp_output_index);
+      EXPECT_EQ(output_index, true);
+    }
+  }
+  vector<ge::NodePtr> atomic_node_vec;
+  string atomic_clean_policy = "0";
+  Status status =
+      fe_graph_optimizer_ptr->GetAndPreProcessForAtomicNodes(*(graph.get()), atomic_node_vec, atomic_clean_policy);
+  EXPECT_EQ(fe::SUCCESS, status);
+}
+
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_original_judge_c04_success) {
   auto graph = std::make_shared<ComputeGraph>("test");
   CreateConv2dGraph(graph);
   FEOpsKernelInfoStorePtr ops_info_store;
   std::make_shared<FEOpsKernelInfoStore>();
   auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_info_store);
-  fe_graph_optimizer_ptr->format_dtype_setter_ptr_ =
-  std::make_shared<FormatDtypeSetter>(AI_CORE_NAME);
+  fe_graph_optimizer_ptr->format_dtype_setter_ptr_ = std::make_shared<FormatDtypeSetter>(AI_CORE_NAME);
   fe_graph_optimizer_ptr->op_impl_type_judge_ptr_ =
-  std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, ops_kernel_info_store_ptr_);
-  fe_graph_optimizer_ptr->op_axis_update_desc_ptr_ =
-  std::make_shared<OpAxisUpdateDesc>(AI_CORE_NAME);
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, ops_kernel_info_store_ptr_);
+  fe_graph_optimizer_ptr->op_axis_update_desc_ptr_ = std::make_shared<OpAxisUpdateDesc>(AI_CORE_NAME);
   FusionRuleManagerPtr fusion_rule_mgr_ptr_ = std::make_shared<FusionRuleManager>(ops_kernel_info_store_ptr_);
-  FusionPriorityMgrPtr fusion_priority_mgr_ptr_ = std::make_shared<FusionPriorityManager>(
-      fe::AI_CORE_NAME, fusion_rule_mgr_ptr_);
+  FusionPriorityMgrPtr fusion_priority_mgr_ptr_ =
+      std::make_shared<FusionPriorityManager>(fe::AI_CORE_NAME, fusion_rule_mgr_ptr_);
   fusion_priority_mgr_ptr_->Initialize();
 
-  fe_graph_optimizer_ptr->ops_kernel_info_store_ptr_ =
-  std::make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
+  fe_graph_optimizer_ptr->ops_kernel_info_store_ptr_ = std::make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
 
-  fe_graph_optimizer_ptr->graph_fusion_ptr_ = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr_,
-                                                                            ops_kernel_info_store_ptr_, fusion_priority_mgr_ptr_);
+  fe_graph_optimizer_ptr->graph_fusion_ptr_ =
+      std::make_shared<GraphFusion>(fusion_rule_mgr_ptr_, ops_kernel_info_store_ptr_, fusion_priority_mgr_ptr_);
   fe_graph_optimizer_ptr->space_size_calculator_ptr_ = std::make_shared<SpaceSizeCalculator>();
   fe_graph_optimizer_ptr->op_setter_ptr_ = std::make_shared<OpSetter>(AI_CORE_NAME);
   PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::CubeHighPrecison)] = 1;
@@ -2831,23 +2736,19 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_original_graph_judge_ins
   FEOpsKernelInfoStorePtr ops_info_store;
   std::make_shared<FEOpsKernelInfoStore>();
   auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_info_store);
-  fe_graph_optimizer_ptr->format_dtype_setter_ptr_ =
-      std::make_shared<FormatDtypeSetter>(AI_CORE_NAME);
+  fe_graph_optimizer_ptr->format_dtype_setter_ptr_ = std::make_shared<FormatDtypeSetter>(AI_CORE_NAME);
   fe_graph_optimizer_ptr->op_impl_type_judge_ptr_ =
       std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, ops_kernel_info_store_ptr_);
-  fe_graph_optimizer_ptr->op_axis_update_desc_ptr_ =
-      std::make_shared<OpAxisUpdateDesc>(AI_CORE_NAME);
+  fe_graph_optimizer_ptr->op_axis_update_desc_ptr_ = std::make_shared<OpAxisUpdateDesc>(AI_CORE_NAME);
   FusionRuleManagerPtr fusion_rule_mgr_ptr_ = std::make_shared<FusionRuleManager>(ops_kernel_info_store_ptr_);
-  FusionPriorityMgrPtr fusion_priority_mgr_ptr_ = std::make_shared<FusionPriorityManager>(
-      fe::AI_CORE_NAME, fusion_rule_mgr_ptr_);
+  FusionPriorityMgrPtr fusion_priority_mgr_ptr_ =
+      std::make_shared<FusionPriorityManager>(fe::AI_CORE_NAME, fusion_rule_mgr_ptr_);
   fusion_priority_mgr_ptr_->Initialize();
 
-  fe_graph_optimizer_ptr->ops_kernel_info_store_ptr_ =
-      std::make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
+  fe_graph_optimizer_ptr->ops_kernel_info_store_ptr_ = std::make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
 
-  fe_graph_optimizer_ptr->graph_fusion_ptr_ = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr_,
-                                                                            ops_kernel_info_store_ptr_,
-                                                                            fusion_priority_mgr_ptr_);
+  fe_graph_optimizer_ptr->graph_fusion_ptr_ =
+      std::make_shared<GraphFusion>(fusion_rule_mgr_ptr_, ops_kernel_info_store_ptr_, fusion_priority_mgr_ptr_);
   fe_graph_optimizer_ptr->space_size_calculator_ptr_ = std::make_shared<SpaceSizeCalculator>();
   fe_graph_optimizer_ptr->op_setter_ptr_ = std::make_shared<OpSetter>(AI_CORE_NAME);
   Status status = fe_graph_optimizer_ptr->OptimizeOriginalGraphJudgeInsert(*(graph.get()));
@@ -2856,35 +2757,31 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_original_graph_judge_ins
   EXPECT_EQ(fe::SUCCESS, status);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_original_graph_judge_insert_success1)
-{
-    auto graph = std::make_shared<ComputeGraph>("test");
-    std::string subgraph_name = "subgraph";
-    ge::ComputeGraphPtr subgraph = std::make_shared<ComputeGraph>(subgraph_name);
-    CreateSubGraph(graph, subgraph);
-    auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_info_store);
-    fe_graph_optimizer_ptr->format_dtype_setter_ptr_ =
-    std::make_shared<FormatDtypeSetter>(AI_CORE_NAME);
-    fe_graph_optimizer_ptr->op_impl_type_judge_ptr_ = 
-    std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, ops_kernel_info_store_ptr_);
-    fe_graph_optimizer_ptr->op_axis_update_desc_ptr_ = 
-    std::make_shared<OpAxisUpdateDesc>(AI_CORE_NAME);
-    FusionRuleManagerPtr fusion_rule_mgr_ptr_ = std::make_shared<FusionRuleManager>(ops_kernel_info_store_ptr_);
-    FusionPriorityMgrPtr fusion_priority_mgr_ptr_ = std::make_shared<FusionPriorityManager>(
-          fe::AI_CORE_NAME, fusion_rule_mgr_ptr_);
-    fusion_priority_mgr_ptr_->Initialize();
-    fe_graph_optimizer_ptr->graph_fusion_ptr_ = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr_,
-          ops_kernel_info_store_ptr_, fusion_priority_mgr_ptr_);
-    fe_graph_optimizer_ptr->space_size_calculator_ptr_ = std::make_shared<SpaceSizeCalculator>();
-    fe_graph_optimizer_ptr->op_setter_ptr_ = std::make_shared<OpSetter>(AI_CORE_NAME);
-    Status status = fe_graph_optimizer_ptr->OptimizeOriginalGraphJudgeInsert(*(graph.get()));
-    EXPECT_EQ(fe::SUCCESS, status);
-    status = fe_graph_optimizer_ptr->OptimizeOriginalGraphJudgeFormatInsert(*(graph.get()));
-    EXPECT_EQ(fe::SUCCESS, status);
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_original_graph_judge_insert_success1) {
+  auto graph = std::make_shared<ComputeGraph>("test");
+  std::string subgraph_name = "subgraph";
+  ge::ComputeGraphPtr subgraph = std::make_shared<ComputeGraph>(subgraph_name);
+  CreateSubGraph(graph, subgraph);
+  auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_info_store);
+  fe_graph_optimizer_ptr->format_dtype_setter_ptr_ = std::make_shared<FormatDtypeSetter>(AI_CORE_NAME);
+  fe_graph_optimizer_ptr->op_impl_type_judge_ptr_ =
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, ops_kernel_info_store_ptr_);
+  fe_graph_optimizer_ptr->op_axis_update_desc_ptr_ = std::make_shared<OpAxisUpdateDesc>(AI_CORE_NAME);
+  FusionRuleManagerPtr fusion_rule_mgr_ptr_ = std::make_shared<FusionRuleManager>(ops_kernel_info_store_ptr_);
+  FusionPriorityMgrPtr fusion_priority_mgr_ptr_ =
+      std::make_shared<FusionPriorityManager>(fe::AI_CORE_NAME, fusion_rule_mgr_ptr_);
+  fusion_priority_mgr_ptr_->Initialize();
+  fe_graph_optimizer_ptr->graph_fusion_ptr_ =
+      std::make_shared<GraphFusion>(fusion_rule_mgr_ptr_, ops_kernel_info_store_ptr_, fusion_priority_mgr_ptr_);
+  fe_graph_optimizer_ptr->space_size_calculator_ptr_ = std::make_shared<SpaceSizeCalculator>();
+  fe_graph_optimizer_ptr->op_setter_ptr_ = std::make_shared<OpSetter>(AI_CORE_NAME);
+  Status status = fe_graph_optimizer_ptr->OptimizeOriginalGraphJudgeInsert(*(graph.get()));
+  EXPECT_EQ(fe::SUCCESS, status);
+  status = fe_graph_optimizer_ptr->OptimizeOriginalGraphJudgeFormatInsert(*(graph.get()));
+  EXPECT_EQ(fe::SUCCESS, status);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_original_judge_with_aclnn_success)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_original_judge_with_aclnn_success) {
   auto graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr bm_aclnn_only = std::make_shared<OpDesc>("bm_aclnn_only", "BatchMatMulAclnnOnly");
 
@@ -2904,17 +2801,18 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_original_judge_with_acln
   std::make_shared<FEOpsKernelInfoStore>();
   auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_info_store);
   fe_graph_optimizer_ptr->format_dtype_setter_ptr_ = std::make_shared<FormatDtypeSetter>(AI_CORE_NAME);
-  fe_graph_optimizer_ptr->op_impl_type_judge_ptr_ = std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, ops_kernel_info_store_ptr_);
+  fe_graph_optimizer_ptr->op_impl_type_judge_ptr_ =
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, ops_kernel_info_store_ptr_);
   fe_graph_optimizer_ptr->op_axis_update_desc_ptr_ = std::make_shared<OpAxisUpdateDesc>(AI_CORE_NAME);
   FusionRuleManagerPtr fusion_rule_mgr_ptr_ = std::make_shared<FusionRuleManager>(ops_kernel_info_store_ptr_);
-  FusionPriorityMgrPtr fusion_priority_mgr_ptr_ = std::make_shared<FusionPriorityManager>(
-      fe::AI_CORE_NAME, fusion_rule_mgr_ptr_);
+  FusionPriorityMgrPtr fusion_priority_mgr_ptr_ =
+      std::make_shared<FusionPriorityManager>(fe::AI_CORE_NAME, fusion_rule_mgr_ptr_);
   fusion_priority_mgr_ptr_->Initialize();
 
   fe_graph_optimizer_ptr->ops_kernel_info_store_ptr_ = std::make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
 
-  fe_graph_optimizer_ptr->graph_fusion_ptr_ = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr_,
-                                                                            ops_kernel_info_store_ptr_, fusion_priority_mgr_ptr_);
+  fe_graph_optimizer_ptr->graph_fusion_ptr_ =
+      std::make_shared<GraphFusion>(fusion_rule_mgr_ptr_, ops_kernel_info_store_ptr_, fusion_priority_mgr_ptr_);
   fe_graph_optimizer_ptr->space_size_calculator_ptr_ = std::make_shared<SpaceSizeCalculator>();
   fe_graph_optimizer_ptr->op_setter_ptr_ = std::make_shared<OpSetter>(AI_CORE_NAME);
   PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::CubeHighPrecison)] = 1;
@@ -2965,7 +2863,7 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, single_op_scene_notask_failed) {
   OpDescPtr concat = std::make_shared<OpDesc>("concat", CONCATD);
   OpDescPtr netoutput = std::make_shared<OpDesc>("netoutput", "NetOutput");
 
-  ge::GeShape shape1({1,4,9,16});
+  ge::GeShape shape1({1, 4, 9, 16});
   GeTensorDesc tensor_desc1(shape1, ge::FORMAT_NCHW, ge::DT_FLOAT16);
   tensor_desc1.SetOriginFormat(ge::FORMAT_NCHW);
   tensor_desc1.SetOriginDataType(ge::DT_FLOAT16);
@@ -2975,7 +2873,7 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, single_op_scene_notask_failed) {
   concat->AddInputDesc(tensor_desc1);
   concat->AddInputDesc(tensor_desc1);
 
-  ge::GeShape shape2({2,4,9,16});
+  ge::GeShape shape2({2, 4, 9, 16});
   GeTensorDesc tensor_desc2(shape2, ge::FORMAT_NCHW, ge::DT_FLOAT16);
   tensor_desc2.SetOriginFormat(ge::FORMAT_NCHW);
   tensor_desc2.SetOriginDataType(ge::DT_FLOAT16);
@@ -2993,12 +2891,9 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, single_op_scene_notask_failed) {
   NodePtr concat_node = graph->AddNode(concat);
   NodePtr netoutput_node = graph->AddNode(netoutput);
 
-  ge::GraphUtils::AddEdge(relu1_node->GetOutDataAnchor(0),
-                          concat_node->GetInDataAnchor(0));
-  ge::GraphUtils::AddEdge(relu2_node->GetOutDataAnchor(0),
-                          concat_node->GetInDataAnchor(1));
-  ge::GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0),
-                          netoutput_node->GetInDataAnchor(0));
+  ge::GraphUtils::AddEdge(relu1_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+  ge::GraphUtils::AddEdge(relu2_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
+  ge::GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0), netoutput_node->GetInDataAnchor(0));
   auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_kernel_info_store_ptr_, AI_CORE_NAME);
   Status status = fe_graph_optimizer_ptr->SplitOptimizer(*graph, true);
   EXPECT_EQ(fe::SUCCESS, status);
@@ -3022,7 +2917,7 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, single_op_scene_check_export_comp
   OpDescPtr concat = std::make_shared<OpDesc>("concat", CONCATD);
   OpDescPtr netoutput = std::make_shared<OpDesc>("netoutput", "NetOutput");
 
-  ge::GeShape shape1({1,4,9,16});
+  ge::GeShape shape1({1, 4, 9, 16});
   GeTensorDesc tensor_desc1(shape1, ge::FORMAT_NCHW, ge::DT_FLOAT16);
   tensor_desc1.SetOriginFormat(ge::FORMAT_NCHW);
   tensor_desc1.SetOriginDataType(ge::DT_FLOAT16);
@@ -3032,7 +2927,7 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, single_op_scene_check_export_comp
   concat->AddInputDesc(tensor_desc1);
   concat->AddInputDesc(tensor_desc1);
 
-  ge::GeShape shape2({2,4,9,16});
+  ge::GeShape shape2({2, 4, 9, 16});
   GeTensorDesc tensor_desc2(shape2, ge::FORMAT_NCHW, ge::DT_FLOAT16);
   tensor_desc2.SetOriginFormat(ge::FORMAT_NCHW);
   tensor_desc2.SetOriginDataType(ge::DT_FLOAT16);
@@ -3050,12 +2945,9 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, single_op_scene_check_export_comp
   NodePtr concat_node = graph->AddNode(concat);
   NodePtr netoutput_node = graph->AddNode(netoutput);
 
-  ge::GraphUtils::AddEdge(relu1_node->GetOutDataAnchor(0),
-                          concat_node->GetInDataAnchor(0));
-  ge::GraphUtils::AddEdge(relu2_node->GetOutDataAnchor(0),
-                          concat_node->GetInDataAnchor(1));
-  ge::GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0),
-                          netoutput_node->GetInDataAnchor(0));
+  ge::GraphUtils::AddEdge(relu1_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+  ge::GraphUtils::AddEdge(relu2_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
+  ge::GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0), netoutput_node->GetInDataAnchor(0));
   auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_kernel_info_store_ptr_, AI_CORE_NAME);
   EXPECT_EQ(fe_graph_optimizer_ptr->CheckExportFusionResCond(*graph), false);
 }
@@ -3219,8 +3111,7 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_after_stage1_case2) {
   }
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, shape_and_value_generalize_nonfuzzy)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, shape_and_value_generalize_nonfuzzy) {
   auto graph = std::make_shared<ComputeGraph>("test");
   CreateBatchNormGraph(graph);
   vector<int64_t> shape_vec;
@@ -3239,8 +3130,7 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, shape_and_value_generalize_nonfuz
   ge::GetThreadLocalContext().SetGlobalOption(options1);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, shape_and_value_generalize_fuzzy)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, shape_and_value_generalize_fuzzy) {
   auto graph = std::make_shared<ComputeGraph>("test");
   CreateBatchNormGraph(graph);
   vector<int64_t> shape_vec;
@@ -3255,7 +3145,7 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, shape_and_value_generalize_fuzzy)
   EXPECT_EQ(fe::FAILED, status);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, feed_node_general_info_from_op_store){
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, feed_node_general_info_from_op_store) {
   OpDescPtr matmul = std::make_shared<OpDesc>("matmul", "Matmul");
   vector<int64_t> dim = {4, 4, 1, 4};
   GeShape shape(dim);
@@ -3309,108 +3199,102 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, shape_and_value_generalize) {
   EXPECT_EQ(ret, fe::FAILED);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, shape_and_value_generalize_success1)
-{
-    auto graph = std::make_shared<ComputeGraph>("test");
-    CreateConcatOpDescGraph10(graph);
-    vector<int64_t> dims = {1, 2, 3, 32};
-    vector<int64_t> shape_vec;
-    tbe_adapter_ptr->CheckIsTbeGeneralizeFuncRegistered = checkIsRegistered;
-    tbe_adapter_ptr->TeGeneralize = teGeneralize;
-    Status status = fe_graph_optimizer_->ShapeAndValueGeneralize(*(graph.get()));
-    EXPECT_EQ(fe::FAILED, status);
-    for (auto node : graph->GetDirectNode()) {
-      auto op_desc = node->GetOpDesc();
-      if (op_desc->GetType() != "ConcatD") {
-        continue;
-      }
-      auto tensor_desc = op_desc->MutableInputDesc("x");
-      shape_vec = tensor_desc->GetShape().GetDims();
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, shape_and_value_generalize_success1) {
+  auto graph = std::make_shared<ComputeGraph>("test");
+  CreateConcatOpDescGraph10(graph);
+  vector<int64_t> dims = {1, 2, 3, 32};
+  vector<int64_t> shape_vec;
+  tbe_adapter_ptr->CheckIsTbeGeneralizeFuncRegistered = checkIsRegistered;
+  tbe_adapter_ptr->TeGeneralize = teGeneralize;
+  Status status = fe_graph_optimizer_->ShapeAndValueGeneralize(*(graph.get()));
+  EXPECT_EQ(fe::FAILED, status);
+  for (auto node : graph->GetDirectNode()) {
+    auto op_desc = node->GetOpDesc();
+    if (op_desc->GetType() != "ConcatD") {
+      continue;
     }
+    auto tensor_desc = op_desc->MutableInputDesc("x");
+    shape_vec = tensor_desc->GetShape().GetDims();
+  }
+  EXPECT_EQ(shape_vec, dims);
+}
+
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, shape_and_value_generalize_fail1) {
+  auto graph = std::make_shared<ComputeGraph>("test");
+  CreateSimpleGraph(graph);
+  std::vector<int64_t> dims = {256, 256, 512};
+  std::vector<int64_t> shape_vec;
+  tbe_adapter_ptr->CheckIsTbeGeneralizeFuncRegistered = checkIsRegistered;
+  tbe_adapter_ptr->TeGeneralize = teGeneralize;
+
+  Status status = fe_graph_optimizer_->ShapeAndValueGeneralize(*(graph.get()));
+  EXPECT_EQ(fe::FAILED, status);
+  for (auto node : graph->GetDirectNode()) {
+    auto op_desc = node->GetOpDesc();
+    auto tensor_desc_x = op_desc->MutableInputDesc("x");
+    auto tensor_desc_y = op_desc->MutableInputDesc("y");
+    shape_vec = tensor_desc_x->GetShape().GetDims();
     EXPECT_EQ(shape_vec, dims);
-}
-
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, shape_and_value_generalize_fail1)
-{
-    auto graph = std::make_shared<ComputeGraph>("test");
-    CreateSimpleGraph(graph);
-    std::vector<int64_t> dims = {256, 256, 512};
-    std::vector<int64_t> shape_vec;
-    tbe_adapter_ptr->CheckIsTbeGeneralizeFuncRegistered = checkIsRegistered;
-    tbe_adapter_ptr->TeGeneralize = teGeneralize;
-
-    Status status = fe_graph_optimizer_->ShapeAndValueGeneralize(*(graph.get()));
-    EXPECT_EQ(fe::FAILED, status);
-    for (auto node : graph->GetDirectNode()) {
-      auto op_desc = node->GetOpDesc();
-      auto tensor_desc_x = op_desc->MutableInputDesc("x");
-      auto tensor_desc_y = op_desc->MutableInputDesc("y");
-      shape_vec = tensor_desc_x->GetShape().GetDims();
-      EXPECT_EQ(shape_vec, dims);
-      shape_vec = tensor_desc_y->GetShape().GetDims();
-      EXPECT_EQ(shape_vec, dims);
-    }
-}
-
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, shape_and_value_generalize_fail2)
-{
-    auto graph = std::make_shared<ComputeGraph>("test");
-    CreateSingleNodeGraph(graph);
-    std::vector<int64_t> dims = {1, 2, 3, 4};
-    std::vector<int64_t> shape_vec;
-    tbe_adapter_ptr->CheckIsTbeGeneralizeFuncRegistered = checkIsRegistered;
-    tbe_adapter_ptr->TeGeneralize = teGeneralize;
-    Status status = fe_graph_optimizer_->ShapeAndValueGeneralize(*(graph.get()));
-    EXPECT_EQ(fe::FAILED, status);
-    for (auto node : graph->GetDirectNode()) {
-      if (node->GetType() == fe::DATA) {
-        continue;
-      }
-      auto op_desc = node->GetOpDesc();
-      auto tensor_desc_x = op_desc->MutableInputDesc("x");
-      shape_vec = tensor_desc_x->GetShape().GetDims();
-    }
+    shape_vec = tensor_desc_y->GetShape().GetDims();
     EXPECT_EQ(shape_vec, dims);
-    auto graph2 = std::make_shared<ComputeGraph>("test");
-    CreateSingleNodeGraph2(graph2);
+  }
+}
 
-    status = fe_graph_optimizer_->ShapeAndValueGeneralize(*(graph2.get()));
-    EXPECT_EQ(fe::FAILED, status);
-    for (auto node : graph2->GetDirectNode()) {
-      if (node->GetType() == fe::DATA) {
-        continue;
-      }
-      auto op_desc = node->GetOpDesc();
-      auto tensor_desc_x = op_desc->MutableInputDesc("x");
-      shape_vec = tensor_desc_x->GetShape().GetDims();
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, shape_and_value_generalize_fail2) {
+  auto graph = std::make_shared<ComputeGraph>("test");
+  CreateSingleNodeGraph(graph);
+  std::vector<int64_t> dims = {1, 2, 3, 4};
+  std::vector<int64_t> shape_vec;
+  tbe_adapter_ptr->CheckIsTbeGeneralizeFuncRegistered = checkIsRegistered;
+  tbe_adapter_ptr->TeGeneralize = teGeneralize;
+  Status status = fe_graph_optimizer_->ShapeAndValueGeneralize(*(graph.get()));
+  EXPECT_EQ(fe::FAILED, status);
+  for (auto node : graph->GetDirectNode()) {
+    if (node->GetType() == fe::DATA) {
+      continue;
     }
-    EXPECT_EQ(shape_vec, dims);
+    auto op_desc = node->GetOpDesc();
+    auto tensor_desc_x = op_desc->MutableInputDesc("x");
+    shape_vec = tensor_desc_x->GetShape().GetDims();
+  }
+  EXPECT_EQ(shape_vec, dims);
+  auto graph2 = std::make_shared<ComputeGraph>("test");
+  CreateSingleNodeGraph2(graph2);
+
+  status = fe_graph_optimizer_->ShapeAndValueGeneralize(*(graph2.get()));
+  EXPECT_EQ(fe::FAILED, status);
+  for (auto node : graph2->GetDirectNode()) {
+    if (node->GetType() == fe::DATA) {
+      continue;
+    }
+    auto op_desc = node->GetOpDesc();
+    auto tensor_desc_x = op_desc->MutableInputDesc("x");
+    shape_vec = tensor_desc_x->GetShape().GetDims();
+  }
+  EXPECT_EQ(shape_vec, dims);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, shape_and_value_generalize_fail3)
-{
-    auto graph = std::make_shared<ComputeGraph>("test");
-    CreateBatchNormGraph(graph);
-    vector<int64_t> shape_vec;
-    tbe_adapter_ptr->CheckIsTbeGeneralizeFuncRegistered = checkIsRegisteredException;
-    tbe_adapter_ptr->TeGeneralize = teGeneralize;
-    Status status = fe_graph_optimizer_->ShapeAndValueGeneralize(*(graph.get()));
-    EXPECT_EQ(fe::FAILED, status);
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, shape_and_value_generalize_fail3) {
+  auto graph = std::make_shared<ComputeGraph>("test");
+  CreateBatchNormGraph(graph);
+  vector<int64_t> shape_vec;
+  tbe_adapter_ptr->CheckIsTbeGeneralizeFuncRegistered = checkIsRegisteredException;
+  tbe_adapter_ptr->TeGeneralize = teGeneralize;
+  Status status = fe_graph_optimizer_->ShapeAndValueGeneralize(*(graph.get()));
+  EXPECT_EQ(fe::FAILED, status);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, shape_and_value_generalize_fail4)
-{
-    auto graph = std::make_shared<ComputeGraph>("test");
-    CreateBatchNormGraph(graph);
-    vector<int64_t> shape_vec;
-    tbe_adapter_ptr->CheckIsTbeGeneralizeFuncRegistered = checkIsRegisteredException;
-    tbe_adapter_ptr->TeGeneralize = teGeneralizeException;
-    Status status = fe_graph_optimizer_->ShapeAndValueGeneralize(*(graph.get()));
-    EXPECT_EQ(fe::FAILED, status);
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, shape_and_value_generalize_fail4) {
+  auto graph = std::make_shared<ComputeGraph>("test");
+  CreateBatchNormGraph(graph);
+  vector<int64_t> shape_vec;
+  tbe_adapter_ptr->CheckIsTbeGeneralizeFuncRegistered = checkIsRegisteredException;
+  tbe_adapter_ptr->TeGeneralize = teGeneralizeException;
+  Status status = fe_graph_optimizer_->ShapeAndValueGeneralize(*(graph.get()));
+  EXPECT_EQ(fe::FAILED, status);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, test1)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, test1) {
   auto graph = std::make_shared<ComputeGraph>("test");
   CreateBatchNormGraph(graph);
   vector<int64_t> shape_vec;
@@ -3423,7 +3307,7 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, test1)
   auto parent_case = MakeNode(parent_graph, 3, 1, "parent_case", "Case");
   auto parent_output = MakeNode(parent_graph, 1, 0, "parent_output", "NetOutput");
 
-  GeTensorDesc tensor_desc(GeShape({1,3,224,224}), FORMAT_NCHW, DT_FLOAT);
+  GeTensorDesc tensor_desc(GeShape({1, 3, 224, 224}), FORMAT_NCHW, DT_FLOAT);
 
   parent_const->GetOpDesc()->UpdateOutputDesc(0, tensor_desc);
   parent_case->GetOpDesc()->UpdateInputDesc(0, tensor_desc);
@@ -3550,7 +3434,7 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, insert_clipbyvalue3) {
   ge::GraphUtils::AddEdge(pld1->GetOutDataAnchor(0), mul_node->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(pld2->GetOutDataAnchor(0), mul_node->GetInDataAnchor(1));
 
-  auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_kernel_info_store_ptr_,  AI_CORE_NAME);
+  auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_kernel_info_store_ptr_, AI_CORE_NAME);
   PlatformUtils::Instance().soc_version_ = "Ascend310P3";
   PlatformUtils::Instance().short_soc_version_ = "Ascend310P";
   fe_graph_optimizer_ptr->InsertClipByValue(*graph);
@@ -3596,7 +3480,7 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, convert_ext_attr2json) {
   ge::NodePtr mul_node = graph->AddNode(mul);
   std::shared_ptr<std::unordered_map<std::string, std::vector<std::vector<std::string>>>> op_attrs_maps_tmp =
       std::make_shared<std::unordered_map<std::string, std::vector<std::vector<std::string>>>>();
-  op_attrs_maps_tmp->insert({"mul",{{"Mul", "Mul"}}});
+  op_attrs_maps_tmp->insert({"mul", {{"Mul", "Mul"}}});
   mul_node->GetOpDesc()->SetExtAttr(ge::ATTR_NAME_ORIGIN_OP_ATTRS_MAP, op_attrs_maps_tmp);
   auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_kernel_info_store_ptr_, AI_CORE_NAME);
   PlatformUtils::Instance().soc_version_ = "Ascend310P3";
@@ -3607,7 +3491,8 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, convert_ext_attr2json) {
   fe_graph_optimizer_ptr->ConvertJson2ExtAttr(*graph);
   std::shared_ptr<std::unordered_map<std::string, std::vector<std::vector<std::string>>>> op_attrs_maps_tmp_check =
       std::make_shared<std::unordered_map<std::string, std::vector<std::vector<std::string>>>>();
-  op_attrs_maps_tmp_check = mul_node->GetOpDesc()->TryGetExtAttr(ge::ATTR_NAME_ORIGIN_OP_ATTRS_MAP, op_attrs_maps_tmp_check);
+  op_attrs_maps_tmp_check =
+      mul_node->GetOpDesc()->TryGetExtAttr(ge::ATTR_NAME_ORIGIN_OP_ATTRS_MAP, op_attrs_maps_tmp_check);
   auto iter = (*op_attrs_maps_tmp_check).begin();
   std::string pass_name = iter->first;
   auto op_attrs_vec = iter->second[0];
@@ -3631,7 +3516,7 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, convert_ext_attr2json_fail) {
   ge::AttrUtils::SetInt(mul, FE_IMPLY_TYPE, 6);
   ge::NodePtr mul_node = graph->AddNode(mul);
   std::unordered_map<std::string, std::vector<std::string>> op_attrs_maps_tmp;
-  op_attrs_maps_tmp.insert({"mul",{"qqqq"}});
+  op_attrs_maps_tmp.insert({"mul", {"qqqq"}});
   mul_node->GetOpDesc()->SetExtAttr(ge::ATTR_NAME_ORIGIN_OP_ATTRS_MAP, op_attrs_maps_tmp);
   auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_kernel_info_store_ptr_, AI_CORE_NAME);
   PlatformUtils::Instance().soc_version_ = "Ascend310P3";
@@ -3641,25 +3526,25 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, convert_ext_attr2json_fail) {
   Configuration::Instance(AI_CORE_NAME).env_str_param_vec_[static_cast<size_t>(ENV_STR_PARAM::DumpGeGraph)] = "";
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, fused_sub_graph_success)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, fused_sub_graph_success) {
   auto graph = std::make_shared<ComputeGraph>("test");
   CreateTwoOpDescGraph(graph);
 
   auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_info_store);
   fe_graph_optimizer_ptr->op_impl_type_judge_ptr_ =
-  std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, ops_kernel_info_store_ptr_);
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, ops_kernel_info_store_ptr_);
   fe_graph_optimizer_ptr->op_setter_ptr_ = std::make_shared<OpSetter>(AI_CORE_NAME);
   fe_graph_optimizer_ptr->lx_fusion_optimizer_ptr_ = lx_fusion_optimizer_;
   fe_graph_optimizer_ptr->InitializeAllOpCompiler();
   FusionRuleManagerPtr fusion_rule_mgr_ptr_ = std::make_shared<FusionRuleManager>(ops_kernel_info_store_ptr_);
-  FusionPriorityMgrPtr fusion_priority_mgr_ptr_ = std::make_shared<FusionPriorityManager>(fe::AI_CORE_NAME, fusion_rule_mgr_ptr_);
+  FusionPriorityMgrPtr fusion_priority_mgr_ptr_ =
+      std::make_shared<FusionPriorityManager>(fe::AI_CORE_NAME, fusion_rule_mgr_ptr_);
   fusion_priority_mgr_ptr_->Initialize();
   fe_graph_optimizer_ptr->fusion_priority_mgr_ptr_ = fusion_priority_mgr_ptr_;
   fe_graph_optimizer_ptr->space_size_calculator_ptr_ = std::make_shared<SpaceSizeCalculator>();
   fe_graph_optimizer_ptr->init_flag_ = true;
   Configuration::Instance(fe::AI_CORE_NAME).config_param_vec_[static_cast<size_t>(CONFIG_PARAM::BufferOptimize)] =
-          static_cast<int64_t>(EN_OFF_OPTIMIZE);
+      static_cast<int64_t>(EN_OFF_OPTIMIZE);
   PlatformUtils::Instance().soc_version_ = "Ascend310P3";
   Status status = fe_graph_optimizer_ptr->OptimizeFusedGraph(*(graph.get()));
   EXPECT_EQ(fe::SUCCESS, status);
@@ -3670,8 +3555,7 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, fused_sub_graph_success)
   status = fe_graph_optimizer_ptr->OptimizeFusedGraph(*(graph.get()));
   EXPECT_EQ(fe::FAILED, status);
 
-  OpCompilerPtr op_compiler_normal_ptr =
-      make_shared<OpCompilerNormal>("normal", AI_CORE_NAME, lx_fusion_optimizer_);
+  OpCompilerPtr op_compiler_normal_ptr = make_shared<OpCompilerNormal>("normal", AI_CORE_NAME, lx_fusion_optimizer_);
   fe_graph_optimizer_ptr->op_compiler_ptr_.push_back(op_compiler_normal_ptr);
   status = fe_graph_optimizer_ptr->OptimizeFusedGraph(*(graph.get()));
   EXPECT_EQ(fe::FAILED, status);
@@ -3682,7 +3566,8 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, fused_sub_graph_success)
   status = fe_graph_optimizer_ptr->OptimizeFusedGraph(*(graph.get()));
   EXPECT_EQ(fe::FAILED, status);
 
-  OpCompilerPtr op_compiler_mstune_ptr = make_shared<OpCompilerOpTune>("mstune", AI_CORE_NAME, lx_fusion_optimizer_, nullptr);
+  OpCompilerPtr op_compiler_mstune_ptr =
+      make_shared<OpCompilerOpTune>("mstune", AI_CORE_NAME, lx_fusion_optimizer_, nullptr);
   fe_graph_optimizer_ptr->op_compiler_ptr_.push_back(op_compiler_mstune_ptr);
   status = fe_graph_optimizer_ptr->OptimizeFusedGraph(*(graph.get()));
   EXPECT_EQ(fe::FAILED, status);
@@ -3740,45 +3625,44 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_after_graph_normalizatio
   EXPECT_EQ(status, fe::SUCCESS);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_original_blocked_some_process)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_original_blocked_some_process) {
   auto graph = std::make_shared<ComputeGraph>("test");
   CreateConv2dGraph(graph);
   FEOpsKernelInfoStorePtr ops_info_store;
   std::make_shared<FEOpsKernelInfoStore>();
   auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_info_store);
-  fe_graph_optimizer_ptr->format_dtype_setter_ptr_ =
-  std::make_shared<FormatDtypeSetter>(AI_CORE_NAME);
+  fe_graph_optimizer_ptr->format_dtype_setter_ptr_ = std::make_shared<FormatDtypeSetter>(AI_CORE_NAME);
   fe_graph_optimizer_ptr->op_impl_type_judge_ptr_ =
-  std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, ops_kernel_info_store_ptr_);
-  fe_graph_optimizer_ptr->op_axis_update_desc_ptr_ =
-  std::make_shared<OpAxisUpdateDesc>(AI_CORE_NAME);
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, ops_kernel_info_store_ptr_);
+  fe_graph_optimizer_ptr->op_axis_update_desc_ptr_ = std::make_shared<OpAxisUpdateDesc>(AI_CORE_NAME);
   FusionRuleManagerPtr fusion_rule_mgr_ptr_ = std::make_shared<FusionRuleManager>(ops_kernel_info_store_ptr_);
-  fe_graph_optimizer_ptr->fusion_priority_mgr_ptr_ = std::make_shared<FusionPriorityManager>(
-      fe::AI_CORE_NAME, fusion_rule_mgr_ptr_);
+  fe_graph_optimizer_ptr->fusion_priority_mgr_ptr_ =
+      std::make_shared<FusionPriorityManager>(fe::AI_CORE_NAME, fusion_rule_mgr_ptr_);
   fe_graph_optimizer_ptr->fusion_priority_mgr_ptr_->Initialize();
 
   Configuration::Instance(fe::AI_CORE_NAME).content_map_["fusion.config.built-in.file"] = "fusion_config1.json";
   Configuration::Instance(fe::AI_CORE_NAME).ascend_ops_path_ =
-          GetCodeDir() + "/tests/engines/nn_engine/st/testcase/fusion_config_manager/builtin_config/";
+      GetCodeDir() + "/tests/engines/nn_engine/st/testcase/fusion_config_manager/builtin_config/";
   ge::GetThreadLocalContext().graph_options_[ge::FUSION_SWITCH_FILE] =
-          GetCodeDir() + "/tests/engines/nn_engine/st/testcase/fusion_config_manager/custom_config/fusion_config.json";
+      GetCodeDir() + "/tests/engines/nn_engine/st/testcase/fusion_config_manager/custom_config/fusion_config.json";
   std::string allStr = "ALL";
-  Configuration::Instance(fe::AI_CORE_NAME).config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = allStr;
+  Configuration::Instance(fe::AI_CORE_NAME)
+      .config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = allStr;
   fe_graph_optimizer_ptr->fusion_priority_mgr_ptr_->Initialize();
 
-  fe_graph_optimizer_ptr->ops_kernel_info_store_ptr_ =
-  std::make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
+  fe_graph_optimizer_ptr->ops_kernel_info_store_ptr_ = std::make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
 
-  fe_graph_optimizer_ptr->graph_fusion_ptr_ = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr_,
-      ops_kernel_info_store_ptr_, fe_graph_optimizer_ptr->fusion_priority_mgr_ptr_);
+  fe_graph_optimizer_ptr->graph_fusion_ptr_ = std::make_shared<GraphFusion>(
+      fusion_rule_mgr_ptr_, ops_kernel_info_store_ptr_, fe_graph_optimizer_ptr->fusion_priority_mgr_ptr_);
   fe_graph_optimizer_ptr->space_size_calculator_ptr_ = std::make_shared<SpaceSizeCalculator>();
   fe_graph_optimizer_ptr->op_setter_ptr_ = std::make_shared<OpSetter>(AI_CORE_NAME);
 
   std::map<std::string, std::string> context_maps;
-  std::string fusion_switch_file_path = GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/graph_optimizer/fusion_switch_file.json";
+  std::string fusion_switch_file_path =
+      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/graph_optimizer/fusion_switch_file.json";
   if (RealPath(fusion_switch_file_path).empty()) {
-    fusion_switch_file_path = "../../../../../tests/engines/nn_engine/ut/testcase/fusion_engine/graph_optimizer/fusion_switch_file.json";
+    fusion_switch_file_path =
+        "../../../../../tests/engines/nn_engine/ut/testcase/fusion_engine/graph_optimizer/fusion_switch_file.json";
   }
   context_maps.insert(std::make_pair("ge.fusionSwitchFile", fusion_switch_file_path));
   context_maps.insert(std::make_pair("ge.build_inner_model", "false"));
@@ -3795,13 +3679,13 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_original_blocked_some_pr
     if (node->GetType() == CONV2D) {
       EXPECT_EQ(ge::FORMAT_NHWC, op_desc->GetInputDesc(0).GetFormat());
       EXPECT_EQ(ge::FORMAT_NHWC, op_desc->GetInputDesc(0).GetOriginFormat());
-      vector<int64_t> right_in_shape {1, 3, 32, 32};
+      vector<int64_t> right_in_shape{1, 3, 32, 32};
       EXPECT_EQ(right_in_shape, op_desc->GetInputDesc(0).GetShape().GetDims());
       EXPECT_EQ(ge::DT_FLOAT16, op_desc->GetInputDesc(0).GetDataType());
 
       EXPECT_EQ(ge::FORMAT_NC1HWC0, ge::GetPrimaryFormat(op_desc->GetOutputDesc(0).GetFormat()));
       EXPECT_EQ(ge::FORMAT_NC1HWC0, ge::GetPrimaryFormat(op_desc->GetOutputDesc(0).GetOriginFormat()));
-      vector<int64_t> right_out_shape {1, 1, 3, 32, 32};
+      vector<int64_t> right_out_shape{1, 1, 3, 32, 32};
       EXPECT_EQ(right_out_shape, op_desc->GetOutputDesc(0).GetShape().GetDims());
       EXPECT_EQ(ge::DT_FLOAT16, op_desc->GetInputDesc(0).GetDataType());
     }
@@ -3809,13 +3693,13 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_original_blocked_some_pr
     if (node->GetType() == "ReduceSum") {
       EXPECT_EQ(ge::FORMAT_NHWC, op_desc->GetInputDesc(0).GetFormat());
       EXPECT_EQ(ge::FORMAT_NHWC, op_desc->GetInputDesc(0).GetOriginFormat());
-      vector<int64_t> right_in_shape {1, 3, 32, 32};
+      vector<int64_t> right_in_shape{1, 3, 32, 32};
       EXPECT_EQ(right_in_shape, op_desc->GetInputDesc(0).GetShape().GetDims());
       EXPECT_EQ(ge::DT_FLOAT16, op_desc->GetInputDesc(0).GetDataType());
 
       EXPECT_EQ(ge::FORMAT_NHWC, op_desc->GetOutputDesc(0).GetFormat());
       EXPECT_EQ(ge::FORMAT_NHWC, op_desc->GetOutputDesc(0).GetOriginFormat());
-      vector<int64_t> right_out_shape {1, 3, 32, 32};
+      vector<int64_t> right_out_shape{1, 3, 32, 32};
       EXPECT_EQ(right_out_shape, op_desc->GetOutputDesc(0).GetShape().GetDims());
       EXPECT_EQ(ge::DT_FLOAT16, op_desc->GetInputDesc(0).GetDataType());
     }
@@ -3839,15 +3723,14 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_after_stage1) {
   EXPECT_EQ(graph->GetAllSubgraphs().size(), 1);
   std::shared_ptr<std::unordered_map<std::string, std::vector<std::vector<std::string>>>> op_attrs_maps_tmp =
       std::make_shared<std::unordered_map<std::string, std::vector<std::vector<std::string>>>>();
-  op_attrs_maps_tmp->insert({"mul",{{"Mul", "Mul"}}});
+  op_attrs_maps_tmp->insert({"mul", {{"Mul", "Mul"}}});
   mul_node->GetOpDesc()->SetExtAttr(ge::ATTR_NAME_ORIGIN_OP_ATTRS_MAP, op_attrs_maps_tmp);
   PlatformUtils::Instance().soc_version_ = "Ascend310P3";
   Status ret = fe_graph_optimizer_->OptimizeAfterStage1(*graph);
   EXPECT_EQ(ret, fe::SUCCESS);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, fixpipe_function_op)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, fixpipe_function_op) {
   auto graph = std::make_shared<ComputeGraph>("test");
   CreateConv2dFixpipeGraph(graph);
 
@@ -3882,8 +3765,7 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, fixpipe_function_op)
   EXPECT_EQ(false, find_partitioncall);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, fixpipe_function_op1)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, fixpipe_function_op1) {
   auto graph = std::make_shared<ComputeGraph>("test");
   CreateConv2dFixpipeGraph(graph);
 
@@ -3929,8 +3811,7 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, fixpipe_function_op1)
   EXPECT_EQ(false, find_partitioncall);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, fixpipe_function_op2)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, fixpipe_function_op2) {
   auto graph = std::make_shared<ComputeGraph>("test");
   CreateSwitchMergeFixpipeGraph(graph);
 
@@ -3965,8 +3846,7 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, fixpipe_function_op2)
   EXPECT_EQ(false, find_partitioncall);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, fixpipe_function_op4)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, fixpipe_function_op4) {
   auto graph = std::make_shared<ComputeGraph>("test");
   CreateSwitchMergeFixpipeGraph2(graph);
   ge::AttrUtils::SetStr(graph, ge::ATTR_NAME_SESSION_GRAPH_ID, "1_0");
@@ -4001,8 +3881,7 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, fixpipe_function_op4)
   EXPECT_EQ(false, find_partitioncall);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, fixpipe_function_op_sub_graph)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, fixpipe_function_op_sub_graph) {
   auto graph = std::make_shared<ComputeGraph>("test");
   ge::OpDescPtr opdesc = std::make_shared<ge::OpDesc>("node1", "PartitionCalled");
   ge::NodePtr node = graph->AddNode(opdesc);
@@ -4021,8 +3900,7 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, fixpipe_function_op_sub_graph)
   EXPECT_EQ(fe::FAILED, status);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, fixpipe_function_op_sub_graph2)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, fixpipe_function_op_sub_graph2) {
   auto graph = std::make_shared<ComputeGraph>("test");
   CreateConv2dFixpipeGraph(graph);
 
@@ -4070,8 +3948,7 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_subgraph_of_precompiledO
   EXPECT_EQ(ret, fe::FAILED);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, cmo_multi_stream_01)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, cmo_multi_stream_01) {
   PlatformUtils::Instance().soc_version_ = "Ascend310B1";
   PlatformUtils::Instance().short_soc_version_ = "Ascend310B";
   PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::L2Type)] = 0;
@@ -4084,8 +3961,8 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, cmo_multi_stream_01)
   ge::NodePtr h_node = graph->FindNode("H");
   vector<int32_t> data_visit_dist_vec = {2};
   auto input_desc = b_node->GetOpDesc()->MutableInputDesc(0);
-  std::map<std::string, std::vector<ge::MemReuseInfo>> mem_reuse_info =
-          {{"output0", {{h_node, MemType::OUTPUT_MEM, 0}}}};
+  std::map<std::string, std::vector<ge::MemReuseInfo>> mem_reuse_info = {
+      {"output0", {{h_node, MemType::OUTPUT_MEM, 0}}}};
   (void)ge::AttrUtils::SetListInt(input_desc, ge::ATTR_NAME_DATA_VISIT_DISTANCE, data_visit_dist_vec);
   a_node->GetOpDesc()->SetExtAttr(ge::ATTR_NAME_MEMORY_REUSE_INFO, mem_reuse_info);
 
@@ -4108,8 +3985,7 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, cmo_multi_stream_01)
   EXPECT_EQ(cmo[kCmoBarrier].size(), 1);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, cmo_multi_stream_02)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, cmo_multi_stream_02) {
   PlatformUtils::Instance().soc_version_ = "Ascend310B1";
   PlatformUtils::Instance().short_soc_version_ = "Ascend310B";
   PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::L2Type)] = 0;
@@ -4118,8 +3994,10 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, cmo_multi_stream_02)
   Configuration::Instance(AI_CORE_NAME).mem_reuse_dist_threshold_ = 3;
   auto graph = std::make_shared<ComputeGraph>("test");
   CreateCMOMultiStreamGraph(graph);
-  OpDescPtr opdesc_send = std::make_shared<OpDesc>("send1", "Send"); opdesc_send->SetStreamId(1);
-  OpDescPtr opdesc_recv = std::make_shared<OpDesc>("recv1", "Recv"); opdesc_recv->SetStreamId(2);
+  OpDescPtr opdesc_send = std::make_shared<OpDesc>("send1", "Send");
+  opdesc_send->SetStreamId(1);
+  OpDescPtr opdesc_recv = std::make_shared<OpDesc>("recv1", "Recv");
+  opdesc_recv->SetStreamId(2);
   ge::NodePtr send = graph->AddNode(opdesc_send);
   ge::NodePtr recv = graph->AddNode(opdesc_recv);
   ge::AttrUtils::SetInt(opdesc_send, "event_id", 1);
@@ -4134,8 +4012,8 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, cmo_multi_stream_02)
   vector<int32_t> data_visit_dist_vec = {2};
   auto input_desc = b_node->GetOpDesc()->MutableInputDesc(0);
   (void)ge::AttrUtils::SetListInt(input_desc, ge::ATTR_NAME_DATA_VISIT_DISTANCE, data_visit_dist_vec);
-  std::map<std::string, std::vector<ge::MemReuseInfo>> mem_reuse_info =
-          {{"output0", {{h_node, MemType::OUTPUT_MEM, 0}}}};
+  std::map<std::string, std::vector<ge::MemReuseInfo>> mem_reuse_info = {
+      {"output0", {{h_node, MemType::OUTPUT_MEM, 0}}}};
   a_node->GetOpDesc()->SetExtAttr(ge::ATTR_NAME_MEMORY_REUSE_INFO, mem_reuse_info);
 
   FEOpsKernelInfoStorePtr ops_info_store;
@@ -4158,8 +4036,7 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, cmo_multi_stream_02)
   Configuration::Instance(AI_CORE_NAME).mem_reuse_dist_threshold_ = 2;
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, cmo_graph_attr)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, cmo_graph_attr) {
   PlatformUtils::Instance().soc_version_ = "Ascend310B1";
   PlatformUtils::Instance().short_soc_version_ = "Ascend310B";
   PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::L2Type)] = 0;
@@ -4168,7 +4045,7 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, cmo_graph_attr)
   auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_info_store);
   FusionRuleManagerPtr fusion_rule_mgr_ptr_ = std::make_shared<FusionRuleManager>(ops_kernel_info_store_ptr_);
   fe_graph_optimizer_ptr->fusion_priority_mgr_ptr_ =
-          std::make_shared<FusionPriorityManager>(fe::AI_CORE_NAME, fusion_rule_mgr_ptr_);
+      std::make_shared<FusionPriorityManager>(fe::AI_CORE_NAME, fusion_rule_mgr_ptr_);
   Status status = fe_graph_optimizer_ptr->OptimizeGraphBeforeBuild(*(graph.get()));
   EXPECT_EQ(fe::SUCCESS, status);
   bool op_need_multi_task = false;
@@ -4176,8 +4053,7 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, cmo_graph_attr)
   EXPECT_EQ(op_need_multi_task, true);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, cmo_multi_stream_03)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, cmo_multi_stream_03) {
   PlatformUtils::Instance().soc_version_ = "Ascend310B1";
   PlatformUtils::Instance().short_soc_version_ = "Ascend310B";
   PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::L2Type)] = 0;
@@ -4192,8 +4068,8 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, cmo_multi_stream_03)
   vector<int32_t> data_visit_dist_vec = {2};
   auto input_desc = b_node->GetOpDesc()->MutableInputDesc(0);
   (void)ge::AttrUtils::SetListInt(input_desc, ge::ATTR_NAME_DATA_VISIT_DISTANCE, data_visit_dist_vec);
-  std::map<std::string, std::vector<ge::MemReuseInfo>> mem_reuse_info =
-          {{"output0", {{f_node, MemType::OUTPUT_MEM, 0}}}};
+  std::map<std::string, std::vector<ge::MemReuseInfo>> mem_reuse_info = {
+      {"output0", {{f_node, MemType::OUTPUT_MEM, 0}}}};
   a_node->GetOpDesc()->SetExtAttr(ge::ATTR_NAME_MEMORY_REUSE_INFO, mem_reuse_info);
 
   FEOpsKernelInfoStorePtr ops_info_store;
@@ -4207,47 +4083,46 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, cmo_multi_stream_03)
   Configuration::Instance(AI_CORE_NAME).mem_reuse_dist_threshold_ = 2;
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, OptimizeGraphInit_pass)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, OptimizeGraphInit_pass) {
   RegisterPassFunc(CreateFunc);
   auto graph = std::make_shared<ComputeGraph>("test");
   CreateConv2dGraph(graph);
   FEOpsKernelInfoStorePtr ops_info_store;
   std::make_shared<FEOpsKernelInfoStore>();
   auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_info_store, AI_CORE_NAME);
-  fe_graph_optimizer_ptr->format_dtype_setter_ptr_ =
-  std::make_shared<FormatDtypeSetter>(AI_CORE_NAME);
+  fe_graph_optimizer_ptr->format_dtype_setter_ptr_ = std::make_shared<FormatDtypeSetter>(AI_CORE_NAME);
   fe_graph_optimizer_ptr->op_impl_type_judge_ptr_ =
-  std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, ops_kernel_info_store_ptr_);
-  fe_graph_optimizer_ptr->op_axis_update_desc_ptr_ =
-  std::make_shared<OpAxisUpdateDesc>(AI_CORE_NAME);
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, ops_kernel_info_store_ptr_);
+  fe_graph_optimizer_ptr->op_axis_update_desc_ptr_ = std::make_shared<OpAxisUpdateDesc>(AI_CORE_NAME);
   FusionRuleManagerPtr fusion_rule_mgr_ptr_ = std::make_shared<FusionRuleManager>(ops_kernel_info_store_ptr_);
   fusion_rule_mgr_ptr_->init_flag_ = true;
   fe_graph_optimizer_ptr->fusion_priority_mgr_ptr_ =
-          std::make_shared<FusionPriorityManager>(fe::AI_CORE_NAME, fusion_rule_mgr_ptr_);
+      std::make_shared<FusionPriorityManager>(fe::AI_CORE_NAME, fusion_rule_mgr_ptr_);
   fe_graph_optimizer_ptr->fusion_priority_mgr_ptr_->Initialize();
 
   Configuration::Instance(fe::AI_CORE_NAME).content_map_["fusion.config.built-in.file"] = "fusion_config1.json";
   Configuration::Instance(fe::AI_CORE_NAME).ascend_ops_path_ =
-          GetCodeDir() + "/tests/engines/nn_engine/st/testcase/fusion_config_manager/builtin_config/";
+      GetCodeDir() + "/tests/engines/nn_engine/st/testcase/fusion_config_manager/builtin_config/";
   ge::GetThreadLocalContext().graph_options_[ge::FUSION_SWITCH_FILE] =
-          GetCodeDir() + "/tests/engines/nn_engine/st/testcase/fusion_config_manager/custom_config/fusion_config.json";
+      GetCodeDir() + "/tests/engines/nn_engine/st/testcase/fusion_config_manager/custom_config/fusion_config.json";
   std::string allStr = "ALL";
-  Configuration::Instance(fe::AI_CORE_NAME).config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = allStr;
+  Configuration::Instance(fe::AI_CORE_NAME)
+      .config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = allStr;
   fe_graph_optimizer_ptr->fusion_priority_mgr_ptr_->Initialize();
 
-  fe_graph_optimizer_ptr->ops_kernel_info_store_ptr_ =
-  std::make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
+  fe_graph_optimizer_ptr->ops_kernel_info_store_ptr_ = std::make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
 
-  fe_graph_optimizer_ptr->graph_fusion_ptr_ = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr_,
-      ops_kernel_info_store_ptr_, fe_graph_optimizer_ptr->fusion_priority_mgr_ptr_);
+  fe_graph_optimizer_ptr->graph_fusion_ptr_ = std::make_shared<GraphFusion>(
+      fusion_rule_mgr_ptr_, ops_kernel_info_store_ptr_, fe_graph_optimizer_ptr->fusion_priority_mgr_ptr_);
   fe_graph_optimizer_ptr->space_size_calculator_ptr_ = std::make_shared<SpaceSizeCalculator>();
   fe_graph_optimizer_ptr->op_setter_ptr_ = std::make_shared<OpSetter>(AI_CORE_NAME);
 
   std::map<std::string, std::string> context_maps;
-  std::string fusion_switch_file_path = GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/graph_optimizer/fusion_switch_file.json";
+  std::string fusion_switch_file_path =
+      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/graph_optimizer/fusion_switch_file.json";
   if (RealPath(fusion_switch_file_path).empty()) {
-    fusion_switch_file_path = "../../../../../tests/engines/nn_engine/ut/testcase/fusion_engine/graph_optimizer/fusion_switch_file.json";
+    fusion_switch_file_path =
+        "../../../../../tests/engines/nn_engine/ut/testcase/fusion_engine/graph_optimizer/fusion_switch_file.json";
   }
   context_maps.insert(std::make_pair("ge.fusionSwitchFile", fusion_switch_file_path));
   context_maps.insert(std::make_pair("ge.build_inner_model", "false"));
@@ -4258,56 +4133,54 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, OptimizeGraphInit_pass)
   EXPECT_EQ(fe::SUCCESS, status);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, OptimizeGraphInit_fail_01)
-{
-    auto graph = std::make_shared<ComputeGraph>("test");
-    CreateTwoOpDescGraph(graph);
-    auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_kernel_info_store_ptr_, AI_CORE_NAME);
-    fe_graph_optimizer_ptr->init_flag_ = false;
-    Status status = fe_graph_optimizer_ptr->OptimizeGraphInit(*(graph.get()));
-    EXPECT_EQ(fe::FAILED, status);
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, OptimizeGraphInit_fail_01) {
+  auto graph = std::make_shared<ComputeGraph>("test");
+  CreateTwoOpDescGraph(graph);
+  auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_kernel_info_store_ptr_, AI_CORE_NAME);
+  fe_graph_optimizer_ptr->init_flag_ = false;
+  Status status = fe_graph_optimizer_ptr->OptimizeGraphInit(*(graph.get()));
+  EXPECT_EQ(fe::FAILED, status);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, OptimizeGraphInit_fail_02)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, OptimizeGraphInit_fail_02) {
   RegisterPassFunc(CreateFunc);
   auto graph = std::make_shared<ComputeGraph>("test");
   CreateConv2dGraph(graph);
   FEOpsKernelInfoStorePtr ops_info_store;
   std::make_shared<FEOpsKernelInfoStore>();
   auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_info_store, AI_CORE_NAME);
-  fe_graph_optimizer_ptr->format_dtype_setter_ptr_ =
-  std::make_shared<FormatDtypeSetter>(AI_CORE_NAME);
+  fe_graph_optimizer_ptr->format_dtype_setter_ptr_ = std::make_shared<FormatDtypeSetter>(AI_CORE_NAME);
   fe_graph_optimizer_ptr->op_impl_type_judge_ptr_ =
-  std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, ops_kernel_info_store_ptr_);
-  fe_graph_optimizer_ptr->op_axis_update_desc_ptr_ =
-  std::make_shared<OpAxisUpdateDesc>(AI_CORE_NAME);
+      std::make_shared<OpImplTypeJudge>(AI_CORE_NAME, ops_kernel_info_store_ptr_);
+  fe_graph_optimizer_ptr->op_axis_update_desc_ptr_ = std::make_shared<OpAxisUpdateDesc>(AI_CORE_NAME);
   FusionRuleManagerPtr fusion_rule_mgr_ptr_ = std::make_shared<FusionRuleManager>(ops_kernel_info_store_ptr_);
   fe_graph_optimizer_ptr->fusion_priority_mgr_ptr_ =
-          std::make_shared<FusionPriorityManager>(fe::AI_CORE_NAME, fusion_rule_mgr_ptr_);
+      std::make_shared<FusionPriorityManager>(fe::AI_CORE_NAME, fusion_rule_mgr_ptr_);
   fe_graph_optimizer_ptr->fusion_priority_mgr_ptr_->Initialize();
 
   Configuration::Instance(fe::AI_CORE_NAME).content_map_["fusion.config.built-in.file"] = "fusion_config1.json";
   Configuration::Instance(fe::AI_CORE_NAME).lib_path_ =
-          GetCodeDir() + "/tests/engines/nn_engine/st/testcase/fusion_config_manager/builtin_config/";
+      GetCodeDir() + "/tests/engines/nn_engine/st/testcase/fusion_config_manager/builtin_config/";
   ge::GetThreadLocalContext().graph_options_[ge::FUSION_SWITCH_FILE] =
-          GetCodeDir() + "/tests/engines/nn_engine/st/testcase/fusion_config_manager/custom_config/fusion_config.json";
+      GetCodeDir() + "/tests/engines/nn_engine/st/testcase/fusion_config_manager/custom_config/fusion_config.json";
   std::string allStr = "ALL";
-  Configuration::Instance(fe::AI_CORE_NAME).config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = allStr;
+  Configuration::Instance(fe::AI_CORE_NAME)
+      .config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::FusionLicense)] = allStr;
   fe_graph_optimizer_ptr->fusion_priority_mgr_ptr_->Initialize();
 
-  fe_graph_optimizer_ptr->ops_kernel_info_store_ptr_ =
-  std::make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
+  fe_graph_optimizer_ptr->ops_kernel_info_store_ptr_ = std::make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
 
-  fe_graph_optimizer_ptr->graph_fusion_ptr_ = std::make_shared<GraphFusion>(fusion_rule_mgr_ptr_,
-      ops_kernel_info_store_ptr_, fe_graph_optimizer_ptr->fusion_priority_mgr_ptr_);
+  fe_graph_optimizer_ptr->graph_fusion_ptr_ = std::make_shared<GraphFusion>(
+      fusion_rule_mgr_ptr_, ops_kernel_info_store_ptr_, fe_graph_optimizer_ptr->fusion_priority_mgr_ptr_);
   fe_graph_optimizer_ptr->space_size_calculator_ptr_ = std::make_shared<SpaceSizeCalculator>();
   fe_graph_optimizer_ptr->op_setter_ptr_ = std::make_shared<OpSetter>(AI_CORE_NAME);
 
   std::map<std::string, std::string> context_maps;
-  std::string fusion_switch_file_path = GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/graph_optimizer/fusion_switch_file.json";
+  std::string fusion_switch_file_path =
+      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/graph_optimizer/fusion_switch_file.json";
   if (RealPath(fusion_switch_file_path).empty()) {
-    fusion_switch_file_path = "../../../../../tests/engines/nn_engine/ut/testcase/fusion_engine/graph_optimizer/fusion_switch_file.json";
+    fusion_switch_file_path =
+        "../../../../../tests/engines/nn_engine/ut/testcase/fusion_engine/graph_optimizer/fusion_switch_file.json";
   }
   context_maps.insert(std::make_pair("ge.fusionSwitchFile", fusion_switch_file_path));
   context_maps.insert(std::make_pair("ge.build_inner_model", "false"));
@@ -4318,8 +4191,7 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, OptimizeGraphInit_fail_02)
   EXPECT_EQ(fe::FAILED, status);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, clear_same_memset)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, clear_same_memset) {
   auto graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr op_desc_cast1 = std::make_shared<OpDesc>("cast1", "Cast");
   OpDescPtr op_desc_cast2 = std::make_shared<OpDesc>("cast2", "Cast");
@@ -4347,7 +4219,7 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, clear_same_memset)
   std::make_shared<FEOpsKernelInfoStore>();
   auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_info_store);
   fe_graph_optimizer_ptr->ClearSameMemSet(*graph);
-  
+
   bool has_attr = ge::AttrUtils::HasAttr(op_desc_cast2, TBE_OP_ATOMIC_OUTPUT_INDEX);
   EXPECT_FALSE(has_attr);
   bool has_attr_work = ge::AttrUtils::HasAttr(op_desc_cast2, TBE_OP_ATOMIC_WORKSPACE_INDEX);
@@ -4360,8 +4232,7 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, clear_same_memset)
   EXPECT_FALSE(has_attr_float);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, CheckNeedSetSliceInfo)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, CheckNeedSetSliceInfo) {
   auto graph = std::make_shared<ComputeGraph>("test");
   CreateBatchNormGraph(graph);
   auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(nullptr, AI_CORE_NAME);
@@ -4703,7 +4574,6 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, compile_level_heavy_prop_test1) {
   auto ret = fe_graph_optimizer_ptr->HeavyFormatPropagate(*graph, heavy_format_propagator);
   EXPECT_EQ(ret, fe::SUCCESS);
 
-
   mul->SetType(ASCEND_QUANT);
   ret = fe_graph_optimizer_ptr->HeavyFormatPropagate(*graph, heavy_format_propagator);
   EXPECT_EQ(ret, fe::SUCCESS);
@@ -4722,11 +4592,11 @@ TEST_F(UTEST_fusion_engine_fe_graph_optimizer, test_lxfusion_recovery) {
   buff_fus_compile_failed_nodes.emplace_back(mul_node);
   std::vector<ge::NodePtr> buff_fus_rollback_nodes;
   std::vector<ge::NodePtr> buff_fus_to_del_nodes;
-  lx_fusion_optimizer_->LxFusionRecovery(*(graph.get()), buff_fus_compile_failed_nodes, buff_fus_rollback_nodes, buff_fus_to_del_nodes);
+  lx_fusion_optimizer_->LxFusionRecovery(*(graph.get()), buff_fus_compile_failed_nodes, buff_fus_rollback_nodes,
+                                         buff_fus_to_del_nodes);
 }
 
-TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_stream_graph_success)
-{
+TEST_F(UTEST_fusion_engine_fe_graph_optimizer, optimize_stream_graph_success) {
   auto graph = std::make_shared<ComputeGraph>("test");
   CreateTwoOpDescGraph(graph);
   auto fe_graph_optimizer_ptr = std::make_shared<FEGraphOptimizer>(ops_kernel_info_store_ptr_, AI_CORE_NAME);

@@ -28,10 +28,11 @@ Status EndGraphTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &items)
 Status EndGraphTaskCodeBuilder::RenderDistHelper(std::vector<DeclNode *> &items) {
   auto mdl = ast_.Var("aclmdlRI", "mdl");
   auto stream = ast_.Var("aclrtStream", "stream");
-  items.push_back(ast_.DefineFunction("EndGraphTaskDistribute", {mdl, stream}, "aclError", {
-      ChkStatus(AclmdlRIEndTask(mdl, stream)),
-      ast_.Return("ACL_SUCCESS"),
-  }));
+  items.push_back(ast_.DefineFunction("EndGraphTaskDistribute", {mdl, stream}, "aclError",
+                                      {
+                                          ChkStatus(AclmdlRIEndTask(mdl, stream)),
+                                          ast_.Return("ACL_SUCCESS"),
+                                      }));
   return SUCCESS;
 }
 REGISTER_TASK_CODE_BUILDER(MODEL_TASK_END_GRAPH, EndGraphTaskCodeBuilder);

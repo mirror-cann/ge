@@ -18,15 +18,13 @@
 namespace ge {
 
 class CompiledTargetSaver {
-public:
-    CompiledTargetSaver() = default;
-    ~CompiledTargetSaver() = default;
+ public:
+  CompiledTargetSaver() = default;
+  ~CompiledTargetSaver() = default;
 
-    static ge::Status SaveToBuffer(
-        const ge::CompiledTargetPtr compiled_target,
-        ge::BaseBuffer& buffer);
+  static ge::Status SaveToBuffer(const ge::CompiledTargetPtr compiled_target, ge::BaseBuffer &buffer);
 };
 
-} // namespace ge
+}  // namespace ge
 
-#endif // BASE_COMMON_HELPER_MOBILE_COMPILED_TARGET_SAVER_H
+#endif  // BASE_COMMON_HELPER_MOBILE_COMPILED_TARGET_SAVER_H

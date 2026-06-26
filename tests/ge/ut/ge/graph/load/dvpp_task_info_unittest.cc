@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -36,7 +36,7 @@ class UtestDvppTask : public testing::Test {
     bool CheckSupported(const OpDescPtr &op_desc, std::string &reason) const override {
       return true;
     };
-    void GetAllOpsKernelInfo(std::map<std::string, ge::OpInfo> &infos) const override{};
+    void GetAllOpsKernelInfo(std::map<std::string, ge::OpInfo> &infos) const override {};
   };
 };
 
@@ -89,14 +89,14 @@ TEST_F(UtestDvppTask, init_dvpp_task_info) {
   AttrUtils::SetListInt(op_desc, ATTR_NAME_WORKSPACE_TYPE_LIST, v_memory_type2);
 
   OpsKernelInfoStorePtr ops_kernel_info_ptr = MakeShared<FakeOpsKernelInfoStore>();
-  op_desc->SetExtAttr<OpsKernelInfoStore *> ("OpsKernelInfoStorePtr", ops_kernel_info_ptr.get());
+  op_desc->SetExtAttr<OpsKernelInfoStore *>("OpsKernelInfoStorePtr", ops_kernel_info_ptr.get());
   model.op_list_[0] = op_desc;
 
   dvpp_task->set_op_index(0);
 
   EXPECT_EQ(task_info.Init(task_def, &model), SUCCESS);
 
-  delete [] reinterpret_cast<uint8_t *>(model.runtime_param_.mem_base);
+  delete[] reinterpret_cast<uint8_t *>(model.runtime_param_.mem_base);
   model.runtime_param_.mem_base = 0U;
   model.stream_list_.clear();
 }

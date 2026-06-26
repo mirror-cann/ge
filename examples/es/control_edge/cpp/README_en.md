@@ -27,7 +27,7 @@ cpp/
 - Set environment variables (assuming packages are installed in /usr/local/Ascend/)
 
 ```bash
-source /usr/local/Ascend/cann/set_env.sh 
+source /usr/local/Ascend/cann/set_env.sh
 ```
 
 ### 3.2. Compilation and Execution
@@ -86,7 +86,7 @@ export ASCEND_GLOBAL_LOG_LEVEL=0 #Log level is debug level
 During executable program execution, if you need to DUMP graph to assist debugging graph compilation process, you can set the following environment variable before bash run_sample.sh -t sample_and_run to DUMP graph to execution path
 
 ```bash
-export DUMP_GE_GRAPH=2 
+export DUMP_GE_GRAPH=2
 ```
 
 ## 4. Core Concept Introduction
@@ -165,12 +165,12 @@ EsDestroyGraphBuilder(builder);
 ```cpp
 # include "es_graph_builder.h"
 
-using namespace ge::es; 
-void build_graph_with_control_dep() { 
+using namespace ge::es;
+void build_graph_with_control_dep() {
   // 1. Create graph builder
   EsGraphBuilder builder("control_dep_example");
 
-  // 2. Create nodes 
+  // 2. Create nodes
   auto tensor_a = builder.CreateScalar(1.0f);
   auto tensor_b = builder.CreateScalar(2.0f);
 

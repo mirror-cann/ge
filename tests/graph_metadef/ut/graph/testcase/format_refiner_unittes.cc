@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,9 +21,8 @@
 namespace ge {
 class UTEST_FormatRefiner : public testing::Test {
  protected:
-  void SetUp()
-  {
-    char* which_op = getenv("WHICH_OP");
+  void SetUp() {
+    char *which_op = getenv("WHICH_OP");
     if (which_op != nullptr) {
       is_set_env = true;
       return;
@@ -31,16 +30,14 @@ class UTEST_FormatRefiner : public testing::Test {
     (void)setenv("WHICH_OP", "GEOP", 0);
   }
 
-  void TearDown()
-  {
+  void TearDown() {
     if (!is_set_env) {
       (void)unsetenv("WHICH_OP");
     }
   }
 
-private:
-  bool  is_set_env{false};
-
+ private:
+  bool is_set_env{false};
 };
 
 namespace {
@@ -428,14 +425,13 @@ ut::GraphBuilder BuildGraph9() {
   auto biasadd_data = biasadd->GetOpDesc()->GetInputDesc(0);
   biasadd_data.SetFormat(FORMAT_NHWC);
   biasadd_data.SetOriginFormat(FORMAT_NHWC);
-  biasadd_data.SetShape(GeShape(std::vector<int64_t>({1, 3, 3,224, 224})));
+  biasadd_data.SetShape(GeShape(std::vector<int64_t>({1, 3, 3, 224, 224})));
   biasadd->GetOpDesc()->UpdateInputDesc(0, biasadd_data);
   auto biasadd_out = biasadd->GetOpDesc()->GetOutputDesc(0);
   biasadd_out.SetFormat(FORMAT_NHWC);
   biasadd_out.SetOriginFormat(FORMAT_NHWC);
   biasadd_out.SetShape(GeShape(std::vector<int64_t>({1, 3, 256, 224, 224})));
   biasadd->GetOpDesc()->UpdateOutputDesc(0, biasadd_out);
-
 
   builder.AddDataEdge(var, 0, square, 0);
   builder.AddDataEdge(square, 0, biasadd, 0);
@@ -451,7 +447,7 @@ ut::GraphBuilder BuildGraph9() {
  *     /   \
  * data1   data2
  */
-ComputeGraphPtr BuildSubGraphWithVariable(const std::string name,ge::Format to_be_set_format = FORMAT_ND) {
+ComputeGraphPtr BuildSubGraphWithVariable(const std::string name, ge::Format to_be_set_format = FORMAT_ND) {
   ut::GraphBuilder builder(name);
   auto data1 = builder.AddNode(name + "data1", "Data", 1, 1);
   auto data2 = builder.AddNode(name + "data2", "Data", 1, 1);
@@ -464,13 +460,11 @@ ComputeGraphPtr BuildSubGraphWithVariable(const std::string name,ge::Format to_b
   AttrUtils::SetInt(netoutput->GetOpDesc()->MutableInputDesc(0), "_parent_node_index", static_cast<int>(0));
   AttrUtils::SetInt(netoutput->GetOpDesc()->MutableInputDesc(1), "_parent_node_index", static_cast<int>(1));
 
-
   builder.AddDataEdge(data1, 0, sub, 0);
   builder.AddDataEdge(data2, 0, sub, 1);
   builder.AddDataEdge(sub, 0, netoutput, 0);
   builder.AddDataEdge(data2, 0, variable, 0);
   builder.AddDataEdge(variable, 0, netoutput, 1);
-
 
   return builder.GetGraph();
 }
@@ -482,7 +476,7 @@ ComputeGraphPtr BuildSubGraphWithVariable(const std::string name,ge::Format to_b
  *     /   \     /
  * data1   data2
  */
-ComputeGraphPtr BuildSubGraph(const std::string name,ge::Format to_be_set_format = FORMAT_ND) {
+ComputeGraphPtr BuildSubGraph(const std::string name, ge::Format to_be_set_format = FORMAT_ND) {
   ut::GraphBuilder builder(name);
   auto data1 = builder.AddNode(name + "data1", "Data", 1, 1);
   auto data2 = builder.AddNode(name + "data2", "Data", 1, 1);
@@ -495,13 +489,11 @@ ComputeGraphPtr BuildSubGraph(const std::string name,ge::Format to_be_set_format
   AttrUtils::SetInt(netoutput->GetOpDesc()->MutableInputDesc(0), "_parent_node_index", static_cast<int>(0));
   AttrUtils::SetInt(netoutput->GetOpDesc()->MutableInputDesc(1), "_parent_node_index", static_cast<int>(1));
 
-
   builder.AddDataEdge(data1, 0, sub, 0);
   builder.AddDataEdge(data2, 0, sub, 1);
   builder.AddDataEdge(sub, 0, netoutput, 0);
   builder.AddDataEdge(data2, 0, relu, 0);
   builder.AddDataEdge(relu, 0, netoutput, 1);
-
 
   return builder.GetGraph();
 }
@@ -637,7 +629,7 @@ ut::GraphBuilder BuildGraphWithFormatLocked() {
   return builder;
 }
 
-}
+}  // namespace
 // Test BiasAdd special process
 TEST_F(UTEST_FormatRefiner, biasadd_special_process) {
   auto builder = BuildGraph9();
@@ -857,7 +849,6 @@ TEST_F(UTEST_FormatRefiner, ForwardAndDefaultInferFunc) {
   EXPECT_EQ(conv1->GetOpDesc()->GetOutputDesc(0).GetOriginFormat(), FORMAT_NCHW);
 }
 
-
 TEST_F(UTEST_FormatRefiner, ForwardAndSpecifedInferFunc) {
   auto builder = BuildGraph1();
   auto graph = builder.GetGraph();
@@ -884,9 +875,7 @@ TEST_F(UTEST_FormatRefiner, FailedWhenInfer) {
   auto builder = BuildGraph1();
   auto graph = builder.GetGraph();
   auto relu1 = graph->FindNode("relu1");
-  relu1->GetOpDesc()->AddInferFormatFunc([](Operator &op) {
-    return GRAPH_FAILED;
-  });
+  relu1->GetOpDesc()->AddInferFormatFunc([](Operator &op) { return GRAPH_FAILED; });
 
   EXPECT_EQ(FormatRefiner::InferOrigineFormat(graph), GRAPH_SUCCESS);
 }
@@ -915,9 +904,7 @@ TEST_F(UTEST_FormatRefiner, InferStopND) {
   auto builder = BuildGraph1();
   auto graph = builder.GetGraph();
   auto relu1 = graph->FindNode("relu1");
-  relu1->GetOpDesc()->AddInferFormatFunc([](Operator &op) {
-    return GRAPH_SUCCESS;
-  });
+  relu1->GetOpDesc()->AddInferFormatFunc([](Operator &op) { return GRAPH_SUCCESS; });
   EXPECT_EQ(FormatRefiner::InferOrigineFormat(graph), GRAPH_SUCCESS);
   auto var1 = graph->FindNode("var1");
   EXPECT_EQ(var1->GetOpDesc()->GetOutputDesc(0).GetOriginFormat(), FORMAT_NCHW);
@@ -938,7 +925,6 @@ TEST_F(UTEST_FormatRefiner, InferStopSameFormat) {
   auto builder = BuildGraph4();
   auto graph = builder.GetGraph();
   EXPECT_EQ(FormatRefiner::InferOrigineFormat(graph), GRAPH_SUCCESS);
-
 }
 
 TEST_F(UTEST_FormatRefiner, ForwardMultiOutput) {
@@ -983,7 +969,6 @@ TEST_F(UTEST_FormatRefiner, ForwardMultiOutput) {
   EXPECT_EQ(apply1->GetOpDesc()->GetOutputDesc(0).GetOriginFormat(), FORMAT_NCHW);
   EXPECT_EQ(apply1->GetOpDesc()->GetInputDesc(0).GetOriginFormat(), FORMAT_NCHW);
   EXPECT_EQ(apply1->GetOpDesc()->GetInputDesc(1).GetOriginFormat(), FORMAT_NCHW);
-
 }
 
 TEST_F(UTEST_FormatRefiner, FormatInferWithLockedNode) {
@@ -1031,4 +1016,4 @@ TEST_F(UTEST_FormatRefiner, SaveFormat) {
   EXPECT_EQ(save_format, FORMAT_NHWC);
   graph->SaveDataFormat(FORMAT_ND);
 }
-}
+}  // namespace ge

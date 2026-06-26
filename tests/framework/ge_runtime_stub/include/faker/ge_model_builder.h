@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -16,7 +16,7 @@
 #include "task_def_faker.h"
 
 namespace gert {
-struct GeModelBuilder{
+struct GeModelBuilder {
   struct ModelResult {
     ge::GeModelPtr model;
     std::unordered_map<size_t, int64_t> task_indexes_to_node_id;
@@ -34,10 +34,10 @@ struct GeModelBuilder{
   };
   GeModelBuilder(ge::ComputeGraphPtr compute_graph);
   GeModelBuilder &ConstWeight(const std::string &node_name);
-  GeModelBuilder &AddTaskDef(const std::string &node_type_or_name, const TaskDefFaker& task_def);
+  GeModelBuilder &AddTaskDef(const std::string &node_type_or_name, const TaskDefFaker &task_def);
   GeModelBuilder &AppendTaskDef(const TaskDefFaker &task_def);
   GeModelBuilder &FakeTbeBin(const std::vector<TbeConfig> &node_types_or_names);
-  GeModelBuilder &AddTaskDefForAll(const TaskDefFaker& task_def);
+  GeModelBuilder &AddTaskDefForAll(const TaskDefFaker &task_def);
   GeModelBuilder &AddWeight();
   GeModelBuilder &AddDefaultWeights();
   GeModelBuilder &AddDefaultTasks();
@@ -63,7 +63,7 @@ struct GeModelBuilder{
   void BuildCommon();
   void SetAttrs();
   void SetTaskDefs();
-  void SetTaskDef(TaskDefFaker& task_def, int64_t node_id);
+  void SetTaskDef(TaskDefFaker &task_def, int64_t node_id);
   void FakeTbeBinToNodes();
   ge::TBEKernelStore BuildKernelStoreFromNodes() const;
   ge::CustAICPUKernelStore BuildCustAicpuKernelStoreFromNodes() const;

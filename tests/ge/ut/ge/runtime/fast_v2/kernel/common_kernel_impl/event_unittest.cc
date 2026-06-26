@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -308,7 +308,7 @@ TEST_F(EventUT, SendEvents_Failed_InvalidEventId) {
   auto rt_events = ContinuousVectorBuilder::Create<rtEvent_t>(
       {(rtEvent_t)0x100, (rtEvent_t)0x200, (rtEvent_t)0x300, (rtEvent_t)0x400, (rtEvent_t)0x500});
   auto context = KernelRunContextFaker()
-                     .Inputs({(rtStream_t)0x1000, event_ids.get(), &events, rt_events.get(), (void*)1})
+                     .Inputs({(rtStream_t)0x1000, event_ids.get(), &events, rt_events.get(), (void *)1})
                      .Build();
   ASSERT_NE(KernelRegistry::GetInstance().FindKernelFuncs("SendEvents")->run_func, nullptr);
 
@@ -326,7 +326,7 @@ TEST_F(EventUT, SendEvents_Failed_RtEventsNotEnough) {
   auto rt_events = ContinuousVectorBuilder::Create<rtEvent_t>(
       {(rtEvent_t)0x100, (rtEvent_t)0x200, (rtEvent_t)0x300, (rtEvent_t)0x400});
   auto context = KernelRunContextFaker()
-                     .Inputs({(rtStream_t)0x1000, event_ids.get(), &events, rt_events.get(), (void*)1})
+                     .Inputs({(rtStream_t)0x1000, event_ids.get(), &events, rt_events.get(), (void *)1})
                      .Build();
   ASSERT_NE(KernelRegistry::GetInstance().FindKernelFuncs("SendEvents")->run_func, nullptr);
 
@@ -346,22 +346,22 @@ TEST_F(EventUT, SendEvents_Failed_NullInput) {
   ASSERT_NE(KernelRegistry::GetInstance().FindKernelFuncs("SendEvents")->run_func, nullptr);
 
   auto context =
-      KernelRunContextFaker().Inputs({(rtStream_t)0x1000, nullptr, &events, rt_events.get(), (void*)1}).Build();
+      KernelRunContextFaker().Inputs({(rtStream_t)0x1000, nullptr, &events, rt_events.get(), (void *)1}).Build();
   ASSERT_NE(KernelRegistry::GetInstance().FindKernelFuncs("SendEvents")->run_func(context), ge::GRAPH_SUCCESS);
 
   context = KernelRunContextFaker()
-                .Inputs({(rtStream_t)0x1000, event_ids.get(), nullptr, rt_events.get(), (void*)1})
+                .Inputs({(rtStream_t)0x1000, event_ids.get(), nullptr, rt_events.get(), (void *)1})
                 .Build();
   ASSERT_NE(KernelRegistry::GetInstance().FindKernelFuncs("SendEvents")->run_func(context), ge::GRAPH_SUCCESS);
 
-  context = KernelRunContextFaker().Inputs({(rtStream_t)0x1000, event_ids.get(), &events, nullptr, (void*)1}).Build();
+  context = KernelRunContextFaker().Inputs({(rtStream_t)0x1000, event_ids.get(), &events, nullptr, (void *)1}).Build();
   ASSERT_NE(KernelRegistry::GetInstance().FindKernelFuncs("SendEvents")->run_func(context), ge::GRAPH_SUCCESS);
 
   context =
       KernelRunContextFaker().Inputs({(rtStream_t)0x1000, event_ids.get(), &events, rt_events.get(), nullptr}).Build();
   ASSERT_NE(KernelRegistry::GetInstance().FindKernelFuncs("SendEvents")->run_func(context), ge::GRAPH_SUCCESS);
 }
-//todo just for ut coverage
+// todo just for ut coverage
 TEST_F(EventUT, LastWaitEvents) {
   auto event_ids = ContinuousVectorBuilder::Create<int64_t>({0, 2});
   auto rt_events = ContinuousVectorBuilder::Create<rtEvent_t>({(rtEvent_t)0x100, (rtEvent_t)0x200, (rtEvent_t)0x300});
@@ -384,10 +384,9 @@ TEST_F(EventUT, LastWaitEvents) {
   for (size_t i = 0U; i < allocator_size; i++) {
     l2_allocators_vec[i] = allocator_holder.allocators.at(i);
   }
-  auto context =
-      KernelRunContextFaker()
-          .Inputs({(rtStream_t)0x1000, event_ids.get(), &events, rt_events.get(), l2_allocators})
-          .Build();
+  auto context = KernelRunContextFaker()
+                     .Inputs({(rtStream_t)0x1000, event_ids.get(), &events, rt_events.get(), l2_allocators})
+                     .Build();
   ASSERT_EQ(KernelRegistry::GetInstance().FindKernelFuncs("LastWaitEvents")->run_func(context), ge::GRAPH_SUCCESS);
 }
 TEST_F(EventUT, LastWaitEvents_RecycleL2ToL1) {
@@ -410,10 +409,9 @@ TEST_F(EventUT, LastWaitEvents_RecycleL2ToL1) {
     block->Free(l2_allocators_vec[i]->GetStreamId());
   }
   ASSERT_NE(l1_allocator->GetScalableAllocator()->GetOccupiedMemSize(), origin_occupied_size);
-  auto context =
-      KernelRunContextFaker()
-          .Inputs({(rtStream_t)0x1000, event_ids.get(), &events, rt_events.get(), l2_allocators})
-          .Build();
+  auto context = KernelRunContextFaker()
+                     .Inputs({(rtStream_t)0x1000, event_ids.get(), &events, rt_events.get(), l2_allocators})
+                     .Build();
   ASSERT_EQ(KernelRegistry::GetInstance().FindKernelFuncs("LastWaitEvents")->run_func(context), ge::GRAPH_SUCCESS);
   ASSERT_EQ(l1_allocator->GetScalableAllocator()->GetOccupiedMemSize(), origin_occupied_size);
 }

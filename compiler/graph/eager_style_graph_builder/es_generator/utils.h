@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -84,7 +84,8 @@ struct IrAttrInfo {
   const TypeInfo &type_info;
 
   std::string GetRequiredString() const {
-    return is_required ? "ge::es::CompliantNodeBuilder::kEsAttrRequired" : "ge::es::CompliantNodeBuilder::kEsAttrOptional";
+    return is_required ? "ge::es::CompliantNodeBuilder::kEsAttrRequired"
+                       : "ge::es::CompliantNodeBuilder::kEsAttrOptional";
   }
 };
 std::string GetDefaultValueString(const OpDescPtr &op_desc, const std::string &attr_name, const std::string &av_type);
@@ -97,7 +98,8 @@ inline IrAttrInfo GetIrAttrInfoForName(const OpDescPtr &op_desc,
     ge::ConstGeTensorPtr default_value;
     ge::AttrUtils::GetTensor(op_desc, ir_name, default_value);
     if (!is_required && default_value->IsTensorDataValid()) {
-      throw NotSupportException("Only support 'Tensor()' as default value for Tensor attr, which current op's attr is not using.");
+      throw NotSupportException(
+          "Only support 'Tensor()' as default value for Tensor attr, which current op's attr is not using.");
     }
   }
   return {ir_name, is_required, GetTypeInfoByAvType(av_type)};
@@ -326,7 +328,7 @@ inline std::string AttrName(const std::string &name, const OpDescPtr &op_desc, G
   }
   if (type == GenLanType::GenPy) {
     return IsPyKeyword(name) ? "attr_" + name : name;
-  } 
+  }
   return IsKeyword(name) ? "attr_" + name : name;
 }
 
@@ -373,7 +375,8 @@ void WritePerOpFiles(const std::string &output_dir, const std::vector<std::strin
 // 通用Utils写入辅助函数
 template <typename ContentMap>
 void WritePerUtilFiles(const std::string &output_dir, const std::vector<std::string> &util_names,
-                     const ContentMap &contents, const std::function<std::string(const std::string &)> &get_filename) {
+                       const ContentMap &contents,
+                       const std::function<std::string(const std::string &)> &get_filename) {
   for (const auto &util_name : util_names) {
     if (contents.find(util_name) != contents.end()) {
       const std::string file_path = output_dir + get_filename(util_name);

@@ -8,7 +8,6 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-
 #ifndef AIR_CXX_RUNTIME_V2_CORE_OM2_MODEL_EXECUTOR_H_
 #define AIR_CXX_RUNTIME_V2_CORE_OM2_MODEL_EXECUTOR_H_
 #include <memory>
@@ -44,10 +43,10 @@ class VISIBILITY_EXPORT Om2ModelExecutor {
 
   ge::Status Load(ge::ModelData &model_data, const Om2ModelLoadArg &load_arg, const uint64_t session_id) const;
   ge::Status Run(std::vector<gert::Tensor *> &inputs, std::vector<gert::Tensor *> &outputs) const;
-  ge::Status RunAsync(void *const stream, std::vector<gert::Tensor *> &inputs, std::vector<gert::Tensor *> &outputs) const;
+  ge::Status RunAsync(void *const stream, std::vector<gert::Tensor *> &inputs,
+                      std::vector<gert::Tensor *> &outputs) const;
   ge::Status GetModelDescInfo(const std::vector<ge::Om2TensorDesc> *&input_desc,
-                              const std::vector<ge::Om2TensorDesc> *&output_desc,
-                              bool new_model_desc = false) const;
+                              const std::vector<ge::Om2TensorDesc> *&output_desc, bool new_model_desc = false) const;
   ge::Status GetModelAttrs(std::vector<std::string> &dynamic_output_shape) const;
   ge::Status GetDynamicBatchInfo(std::vector<std::vector<int64_t>> &dynamic_batch_info, int32_t &dynamic_type) const;
   ge::Status GetUserDesignateShapeOrder(std::vector<std::string> &user_designate_shape_order) const;
@@ -63,12 +62,11 @@ class VISIBILITY_EXPORT Om2ModelExecutor {
   std::unique_ptr<Impl> impl_;
 };
 
-
 VISIBILITY_EXPORT ge::Status LoadOm2DataFromFile(const std::string &model_path, ge::ModelData &model_data);
 VISIBILITY_EXPORT ge::Status GetOm2MemAndWeightSize(const std::string &model_path, size_t &work_size,
                                                     size_t &internal_weight_size);
-VISIBILITY_EXPORT ge::Status GetOm2MemAndWeightSize(const void *model_data, size_t model_size,
-                                                    size_t &work_size, size_t &internal_weight_size);
+VISIBILITY_EXPORT ge::Status GetOm2MemAndWeightSize(const void *model_data, size_t model_size, size_t &work_size,
+                                                    size_t &internal_weight_size);
 VISIBILITY_EXPORT ge::Status GetOm2ModelMetadata(const std::string &model_path,
                                                  std::vector<ge::Om2TensorDesc> &input_desc,
                                                  std::vector<ge::Om2TensorDesc> &input_desc_v2,

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -73,7 +73,7 @@ const std::string kCompilerVersion = "compiler_version=";
 const std::string kOppVersion = "Version=";
 const std::string kVersionInfo = "/version.info";
 const std::string kHardwareInfo = "ge.hardwareInfo";
-}
+}  // namespace
 
 namespace ge {
 namespace {
@@ -103,8 +103,8 @@ NodePtr TryGetVarNodeByOffset(const std::map<int64_t, NodePtr> &var_offsets, con
   return (find_ret == var_offsets.cend() ? nullptr : find_ret->second);
 }
 
-std::string GetOppPkgPath(const std::string &opp_path, const string &whole_pkg_path,
-                          const string &sub_pkg_path, const string &os_cpu_type, bool &is_sub_pkg) {
+std::string GetOppPkgPath(const std::string &opp_path, const string &whole_pkg_path, const string &sub_pkg_path,
+                          const string &os_cpu_type, bool &is_sub_pkg) {
   is_sub_pkg = false;
   const auto idx = opp_path.find(kInner);
   if (idx != std::string::npos) {
@@ -118,25 +118,25 @@ std::string GetOppPkgPath(const std::string &opp_path, const string &whole_pkg_p
 std::string ModelHelper::output_file_name_;
 
 Status ModelHelper::SaveModelPartition(std::shared_ptr<OmFileSaveHelper> &om_file_save_helper,
-                                       const ModelPartitionType type, const uint8_t* const data,
-                                       const size_t size, const size_t model_index) const {
+                                       const ModelPartitionType type, const uint8_t *const data, const size_t size,
+                                       const size_t model_index) const {
   if ((size < 1U) || ((size > UINT32_MAX) && (kSupportBeyond4GTypes.count(type) == 0UL))) {
     GELOGE(PARAM_INVALID, "[Add][ModelPartition]Failed, partition size %zu invalid", size);
     if (size > UINT32_MAX) {
       std::string item = "item";
       static std::map<ModelPartitionType, string> item_type_map = {
-        {MODEL_DEF, "model info"},
-        {TASK_INFO, "task info"},
-        {SO_BINS, "so bins"},
-        {TILING_DATA, "tiling data"},
-        {MODEL_INOUT_INFO, "model introductions"},
-        {STATIC_TASK_DESC, "static task desc"},
-        {DYNAMIC_TASK_DESC, "dynamic task desc"},
-        {TASK_PARAM, "task param"},
-        {PRE_MODEL_DESC, "pre model desc"},
-        {PRE_MODEL_SQE, "pre model task"},
-        {PRE_KERNEL_ARGS, "pre kernel args"},
-        {PRE_MODEL_DESC_EXTEND, "pre model desc extend"},
+          {MODEL_DEF, "model info"},
+          {TASK_INFO, "task info"},
+          {SO_BINS, "so bins"},
+          {TILING_DATA, "tiling data"},
+          {MODEL_INOUT_INFO, "model introductions"},
+          {STATIC_TASK_DESC, "static task desc"},
+          {DYNAMIC_TASK_DESC, "dynamic task desc"},
+          {TASK_PARAM, "task param"},
+          {PRE_MODEL_DESC, "pre model desc"},
+          {PRE_MODEL_SQE, "pre model task"},
+          {PRE_KERNEL_ARGS, "pre kernel args"},
+          {PRE_MODEL_DESC_EXTEND, "pre model desc extend"},
       };
       if (item_type_map.find(type) != item_type_map.end()) {
         item = item_type_map[type];
@@ -145,8 +145,10 @@ Status ModelHelper::SaveModelPartition(std::shared_ptr<OmFileSaveHelper> &om_fil
           "E13023", std::vector<const char *>({"size", "item", "maxsize"}),
           std::vector<const char *>({std::to_string(size).c_str(), item.c_str(), std::to_string(UINT32_MAX).c_str()}));
     }
-    REPORT_INNER_ERR_MSG("E19999", "Add model partition failed, partition size %zu "
-                       "invalid.", size);
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Add model partition failed, partition size %zu "
+                         "invalid.",
+                         size);
     return PARAM_INVALID;
   }
   if (data == nullptr) {
@@ -195,7 +197,7 @@ Status ModelHelper::SaveSizeToModelDef(const GeModelPtr &ge_model, const size_t 
     GELOGD("SaveSizeToModelDef so store size is %zu", GetOpStoreDataSize());
     om_info.push_back(static_cast<int64_t>(GetOpStoreDataSize()));
   } else {
-    om_info.push_back(0U); // only first model save so.
+    om_info.push_back(0U);  // only first model save so.
   }
 
   GE_CHK_BOOL_EXEC(ge::AttrUtils::SetListInt(*(ge_model.get()), "om_info_list", om_info),
@@ -207,14 +209,15 @@ Status ModelHelper::SaveSizeToModelDef(const GeModelPtr &ge_model, const size_t 
 
 Status ModelHelper::ConfigureAttrCompressionMode(const string &mode) {
   if (mode != "true" && mode != "false") {
-    GELOGE(PARAM_INVALID, "[Validate][AttrCompressionMode] Invalid value '%s'. "
-           "Only 'true' or 'false' are allowed.", mode.c_str());
+    GELOGE(PARAM_INVALID,
+           "[Validate][AttrCompressionMode] Invalid value '%s'. "
+           "Only 'true' or 'false' are allowed.",
+           mode.c_str());
     return PARAM_INVALID;
   }
 
   attr_compression_enabled_ = (mode == "true");
-  GELOGI("[AttrCompression] Configured from options: enabled=%s",
-         attr_compression_enabled_ ? "true" : "false");
+  GELOGI("[AttrCompression] Configured from options: enabled=%s", attr_compression_enabled_ ? "true" : "false");
   return SUCCESS;
 }
 
@@ -225,10 +228,8 @@ Status ModelHelper::SaveModelDef(std::shared_ptr<OmFileSaveHelper> &om_file_save
 
   // Detailed logging for debugging
   GELOGD("[AttrCompression] enabled=%s, is_offline=%d, is_need_compress=%d, decision=%s",
-         attr_compression_enabled_ ? "true" : "false",
-         static_cast<int32_t>(is_offline_),
-         static_cast<int32_t>(is_need_compress_),
-         should_compress ? "COMPRESS" : "SKIP");
+         attr_compression_enabled_ ? "true" : "false", static_cast<int32_t>(is_offline_),
+         static_cast<int32_t>(is_need_compress_), should_compress ? "COMPRESS" : "SKIP");
 
   if (should_compress) {
     (void)ModelCompressManager::Compress(ge_model);
@@ -243,10 +244,9 @@ Status ModelHelper::SaveModelDef(std::shared_ptr<OmFileSaveHelper> &om_file_save
   model_tmp->SetVersion(ge_model->GetVersion());
   const Status ret = SaveSizeToModelDef(ge_model, model_index);
   if (ret != SUCCESS) {
-    GELOGE(ret, "[Save][SizeToModelDef]Failed, model %s, error_code %u",
-           ge_model->GetName().c_str(), ret);
-    REPORT_INNER_ERR_MSG("E19999", "Save SizeToModelDef failed, model %s, error_code %u",
-                      ge_model->GetName().c_str(), ret);
+    GELOGE(ret, "[Save][SizeToModelDef]Failed, model %s, error_code %u", ge_model->GetName().c_str(), ret);
+    REPORT_INNER_ERR_MSG("E19999", "Save SizeToModelDef failed, model %s, error_code %u", ge_model->GetName().c_str(),
+                         ret);
     return ret;
   }
 
@@ -258,8 +258,10 @@ Status ModelHelper::SaveModelDef(std::shared_ptr<OmFileSaveHelper> &om_file_save
                            model_buffer.GetSize(), model_index) != SUCCESS) {
       GELOGE(PARAM_INVALID, "[Add][ModelPartition]Failed, model %s, model_def size %zu, model_index %zu",
              ge_model->GetName().c_str(), model_buffer.GetSize(), model_index);
-      REPORT_INNER_ERR_MSG("E19999", "Add model graph partition failed, model %s, model_def %zu, "
-                        "model_index %zu", ge_model->GetName().c_str(), model_buffer.GetSize(), model_index);
+      REPORT_INNER_ERR_MSG("E19999",
+                           "Add model graph partition failed, model %s, model_def %zu, "
+                           "model_index %zu",
+                           ge_model->GetName().c_str(), model_buffer.GetSize(), model_index);
       return PARAM_INVALID;
     }
   }
@@ -271,11 +273,8 @@ Status ModelHelper::SaveModelWeights(std::shared_ptr<OmFileSaveHelper> &om_file_
   GELOGD("WEIGHTS_DATA size is %zu, %p", ge_model->GetWeightSize(), ge_model->GetWeightData());
   // weight is not necessary
   if (ge_model->GetWeightSize() > 0U) {
-    GE_CHK_STATUS_RET(SaveModelPartition(om_file_save_helper,
-                                         ModelPartitionType::WEIGHTS_DATA,
-                                         ge_model->GetWeightData(),
-                                         ge_model->GetWeightSize(),
-                                         model_index),
+    GE_CHK_STATUS_RET(SaveModelPartition(om_file_save_helper, ModelPartitionType::WEIGHTS_DATA,
+                                         ge_model->GetWeightData(), ge_model->GetWeightSize(), model_index),
                       "Add weight partition failed");
   }
   return SUCCESS;
@@ -286,11 +285,9 @@ Status ModelHelper::SaveModelTbeKernel(std::shared_ptr<OmFileSaveHelper> &om_fil
   const auto &tbe_kernel_store = ge_model->GetTBEKernelStore();
   GELOGD("TBE_KERNELS size is %zu", tbe_kernel_store.DataSize());
   if (tbe_kernel_store.DataSize() > 0U) {
-    GE_CHK_STATUS_RET(
-        SaveModelPartition(om_file_save_helper, ModelPartitionType::TBE_KERNELS,
-                           tbe_kernel_store.Data(), tbe_kernel_store.DataSize(),
-                           model_index),
-        "Add tbe kernel partition failed");
+    GE_CHK_STATUS_RET(SaveModelPartition(om_file_save_helper, ModelPartitionType::TBE_KERNELS, tbe_kernel_store.Data(),
+                                         tbe_kernel_store.DataSize(), model_index),
+                      "Add tbe kernel partition failed");
   }
   return SUCCESS;
 }
@@ -300,11 +297,10 @@ Status ModelHelper::SaveModelCustAICPU(std::shared_ptr<OmFileSaveHelper> &om_fil
   const auto &cust_aicpu_kernel_store = ge_model->GetCustAICPUKernelStore();
   GELOGD("cust aicpu kernels size is %zu", cust_aicpu_kernel_store.DataSize());
   if (cust_aicpu_kernel_store.DataSize() > 0U) {
-    GE_CHK_STATUS_RET(SaveModelPartition(om_file_save_helper,
-                                         ModelPartitionType::CUST_AICPU_KERNELS,
-                                         cust_aicpu_kernel_store.Data(),
-                                         cust_aicpu_kernel_store.DataSize(), model_index),
-                      "Add cust aicpu kernel partition failed");
+    GE_CHK_STATUS_RET(
+        SaveModelPartition(om_file_save_helper, ModelPartitionType::CUST_AICPU_KERNELS, cust_aicpu_kernel_store.Data(),
+                           cust_aicpu_kernel_store.DataSize(), model_index),
+        "Add cust aicpu kernel partition failed");
   }
   return SUCCESS;
 }
@@ -312,20 +308,21 @@ Status ModelHelper::SaveModelCustAICPU(std::shared_ptr<OmFileSaveHelper> &om_fil
 Status ModelHelper::SaveModelIntroduction(std::shared_ptr<OmFileSaveHelper> &om_file_save_helper,
                                           const GeModelPtr &ge_model, const bool is_dynamic) const {
   std::unique_ptr<ModelIntroduction> modelIntroduction = ge::MakeUnique<ModelIntroduction>();
-  GE_IF_BOOL_EXEC(modelIntroduction == nullptr,
-                  REPORT_INNER_ERR_MSG("E19999", "ModelIntroduction failed, it is nullptr, model %s",
-                  ge_model->GetName().c_str());
-                  GELOGE(ACL_ERROR_GE_MEMORY_ALLOCATION, "[Create][ModelIntroduction]Failed, it is nullptr, "
-                  "model %s", ge_model->GetName().c_str()); return ACL_ERROR_GE_MEMORY_ALLOCATION);
-  GE_ASSERT_SUCCESS(modelIntroduction->Init(ge_model, is_dynamic),
-                    "ModelIntroduction Init Failed, model %s", ge_model->GetName().c_str());
+  GE_IF_BOOL_EXEC(
+      modelIntroduction == nullptr,
+      REPORT_INNER_ERR_MSG("E19999", "ModelIntroduction failed, it is nullptr, model %s", ge_model->GetName().c_str());
+      GELOGE(ACL_ERROR_GE_MEMORY_ALLOCATION,
+             "[Create][ModelIntroduction]Failed, it is nullptr, "
+             "model %s",
+             ge_model->GetName().c_str());
+      return ACL_ERROR_GE_MEMORY_ALLOCATION);
+  GE_ASSERT_SUCCESS(modelIntroduction->Init(ge_model, is_dynamic), "ModelIntroduction Init Failed, model %s",
+                    ge_model->GetName().c_str());
   std::shared_ptr<uint8_t> buff = modelIntroduction->Data();
   ge_model->SetModelInOutInfo(buff);
   GELOGD("MODEL_INOUT_INFO size is %d", modelIntroduction->DataSize());
   if (modelIntroduction->DataSize() > 0U) {
-    GE_CHK_STATUS_RET(SaveModelPartition(om_file_save_helper,
-                                         ModelPartitionType::MODEL_INOUT_INFO,
-                                         buff.get(),
+    GE_CHK_STATUS_RET(SaveModelPartition(om_file_save_helper, ModelPartitionType::MODEL_INOUT_INFO, buff.get(),
                                          static_cast<size_t>(modelIntroduction->DataSize()), 0U),
                       "Add model introduction partition failed");
   }
@@ -336,26 +333,32 @@ Status ModelHelper::SaveModelTaskDef(std::shared_ptr<OmFileSaveHelper> &om_file_
                                      ge::Buffer &task_buffer, const size_t model_index) const {
   const std::shared_ptr<domi::ModelTaskDef> model_task_def = ge_model->GetModelTaskDefPtr();
   if (model_task_def == nullptr) {
-    GELOGE(ACL_ERROR_GE_MEMORY_ALLOCATION, "[Creat][ModelTaskDef]Failed, it is nullptr, "
-           "model %s", ge_model->GetName().c_str());
+    GELOGE(ACL_ERROR_GE_MEMORY_ALLOCATION,
+           "[Creat][ModelTaskDef]Failed, it is nullptr, "
+           "model %s",
+           ge_model->GetName().c_str());
     REPORT_INNER_ERR_MSG("E19999", "Create model task def failed, it is nullptr, model %s",
-                      ge_model->GetName().c_str());
+                         ge_model->GetName().c_str());
     return ACL_ERROR_GE_MEMORY_ALLOCATION;
   }
   const size_t partition_task_size = model_task_def->ByteSizeLong();
   GE_IF_BOOL_EXEC((partition_task_size == 0U) || (static_cast<int32_t>(partition_task_size) > INT_MAX),
-                  GELOGE(FAILED, "[Check][ModelDefSize]Invalid, size %zu, model %s",
-                         partition_task_size, ge_model->GetName().c_str());
-                  REPORT_INNER_ERR_MSG("E19999", "Model def size %zu check invalid, model %s",
-                                    partition_task_size, ge_model->GetName().c_str());
-                      return FAILED);
+                  GELOGE(FAILED, "[Check][ModelDefSize]Invalid, size %zu, model %s", partition_task_size,
+                         ge_model->GetName().c_str());
+                  REPORT_INNER_ERR_MSG("E19999", "Model def size %zu check invalid, model %s", partition_task_size,
+                                       ge_model->GetName().c_str());
+                  return FAILED);
 
   task_buffer = ge::Buffer(partition_task_size);
   if (task_buffer.GetSize() == 0U) {
-    GELOGE(ACL_ERROR_GE_MEMORY_ALLOCATION, "[Allocate][ModelTaskDefBuffer]Failed, "
-           "model def size %zu, model %s", partition_task_size, ge_model->GetName().c_str());
-    REPORT_INNER_ERR_MSG("E19999", "Allocate model task def buffer failed, model def size %zu "
-                      "model %s", partition_task_size, ge_model->GetName().c_str());
+    GELOGE(ACL_ERROR_GE_MEMORY_ALLOCATION,
+           "[Allocate][ModelTaskDefBuffer]Failed, "
+           "model def size %zu, model %s",
+           partition_task_size, ge_model->GetName().c_str());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Allocate model task def buffer failed, model def size %zu "
+                         "model %s",
+                         partition_task_size, ge_model->GetName().c_str());
     return ACL_ERROR_GE_MEMORY_ALLOCATION;
   }
   (void)model_task_def->SerializePartialToArray(task_buffer.GetData(), static_cast<int32_t>(partition_task_size));
@@ -363,14 +366,16 @@ Status ModelHelper::SaveModelTaskDef(std::shared_ptr<OmFileSaveHelper> &om_file_
   GELOGD("TASK_INFO op_size:%d, stream_num:%u", model_task_def->op().size(), model_task_def->stream_num());
   GELOGD("TASK_INFO size is %zu", partition_task_size);
 
-  if (SaveModelPartition(om_file_save_helper, ModelPartitionType::TASK_INFO, task_buffer.GetData(),
-                         partition_task_size, model_index) != SUCCESS) {
-    GELOGE(PARAM_INVALID, "[Add][ModelTaskDefPartition]Failed, model def size %zu, "
+  if (SaveModelPartition(om_file_save_helper, ModelPartitionType::TASK_INFO, task_buffer.GetData(), partition_task_size,
+                         model_index) != SUCCESS) {
+    GELOGE(PARAM_INVALID,
+           "[Add][ModelTaskDefPartition]Failed, model def size %zu, "
            "model_index %zu, model %s",
            partition_task_size, model_index, ge_model->GetName().c_str());
-    REPORT_INNER_ERR_MSG("E19999", "Add model task def partition failed, model def size %zu "
-                      "model_index %zu, model %s",
-                      partition_task_size, model_index, ge_model->GetName().c_str());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Add model task def partition failed, model def size %zu "
+                         "model_index %zu, model %s",
+                         partition_task_size, model_index, ge_model->GetName().c_str());
     return PARAM_INVALID;
   }
   return SUCCESS;
@@ -395,9 +400,9 @@ Status ModelHelper::SaveModelHeader(std::shared_ptr<OmFileSaveHelper> &om_file_s
            "errno %d",
            platform_version.c_str(), ge_model->GetName().c_str(), err);
     REPORT_INNER_ERR_MSG("E19999",
-                      "ModelHelper save model %s failed while "
-                      "allocating memory for platform_version %s, errno %d",
-                      ge_model->GetName().c_str(), platform_version.c_str(), err);
+                         "ModelHelper save model %s failed while "
+                         "allocating memory for platform_version %s, errno %d",
+                         ge_model->GetName().c_str(), platform_version.c_str(), err);
     return ACL_ERROR_GE_MEMORY_ALLOCATION;
   }
   const std::string version = reinterpret_cast<char_t *>(model_header.platform_version);
@@ -411,11 +416,12 @@ Status ModelHelper::SaveModelHeader(std::shared_ptr<OmFileSaveHelper> &om_file_s
   name_size = (name_size > (MODEL_NAME_LENGTH - 1U)) ? (MODEL_NAME_LENGTH - 1U) : name_size;
   err = memcpy_s(model_header.name, MODEL_NAME_LENGTH, ge_model->GetName().c_str(), name_size);
   if (err != EOK) {
-    GELOGE(ACL_ERROR_GE_MEMORY_ALLOCATION,
-           "[Save][Model]Failed while allocating memory for model %s, errno %d",
+    GELOGE(ACL_ERROR_GE_MEMORY_ALLOCATION, "[Save][Model]Failed while allocating memory for model %s, errno %d",
            ge_model->GetName().c_str(), err);
-    REPORT_INNER_ERR_MSG("E19999", "ModelHelper save model failed while allocating memory "
-                      "for model %s,errno %d", ge_model->GetName().c_str(), err);
+    REPORT_INNER_ERR_MSG("E19999",
+                         "ModelHelper save model failed while allocating memory "
+                         "for model %s,errno %d",
+                         ge_model->GetName().c_str(), err);
     return ACL_ERROR_GE_MEMORY_ALLOCATION;
   }
   const std::string model_name = reinterpret_cast<char_t *>(model_header.name);
@@ -473,17 +479,15 @@ Status ModelHelper::GetSoBinData(const string &cpu_info, const string &os_info) 
     }
     GELOGD("Begin to scan op proto and master so from path:%s", vendors[i].c_str());
     const auto last_kernel_num = op_so_store_.GetKernelNum();
-    const auto op_proto_path = GetOppPkgPath(vendors[i] + kOpsProtoPath + os_cpu_type, kOpsProtoPath,
-                                             kOpsGraphPath, os_cpu_type, is_sub_pkg);
+    const auto op_proto_path =
+        GetOppPkgPath(vendors[i] + kOpsProtoPath + os_cpu_type, kOpsProtoPath, kOpsGraphPath, os_cpu_type, is_sub_pkg);
     GE_ASSERT_SUCCESS(LoadAndStoreOppSo(op_proto_path, is_split, is_sub_pkg),
-                      "Load and store op proto so failed, path:%s",
-                      op_proto_path.c_str());
+                      "Load and store op proto so failed, path:%s", op_proto_path.c_str());
 
-    const auto op_master_path = GetOppPkgPath(vendors[i] + kOpMasterPath + os_cpu_type, kOpMasterPath,
-                                              kOpHostPath, os_cpu_type, is_sub_pkg);
+    const auto op_master_path =
+        GetOppPkgPath(vendors[i] + kOpMasterPath + os_cpu_type, kOpMasterPath, kOpHostPath, os_cpu_type, is_sub_pkg);
     GE_ASSERT_SUCCESS(LoadAndStoreOppSo(op_master_path, is_split, is_sub_pkg),
-                      "Load and store op master so failed, path:%s",
-                      op_master_path.c_str());
+                      "Load and store op master so failed, path:%s", op_master_path.c_str());
 
     // 保存打包的自定义算子包版本号
     if ((vendors[i].find(kInner) == std::string::npos) && (op_so_store_.GetKernelNum() > last_kernel_num)) {
@@ -501,8 +505,8 @@ Status ModelHelper::GetSoBinData(const string &cpu_info, const string &os_info) 
     if (PluginManager::GetUpgradedOpsProtoPath(ops_proto_path) == ge::SUCCESS) {
       PluginManager::SplitPath(ops_proto_path, path_vec);
       for (const auto &path : path_vec) {
-        const auto root_path = GetOppPkgPath(path + "/lib/" + os_cpu_type, kOpsProtoPath, kOpsGraphPath, os_cpu_type,
-                                             is_sub_pkg);
+        const auto root_path =
+            GetOppPkgPath(path + "/lib/" + os_cpu_type, kOpsProtoPath, kOpsGraphPath, os_cpu_type, is_sub_pkg);
         (void)LoadAndStoreOppSo(root_path, true, is_sub_pkg);
       }
     }
@@ -511,8 +515,8 @@ Status ModelHelper::GetSoBinData(const string &cpu_info, const string &os_info) 
     if (PluginManager::GetUpgradedOpMasterPath(op_tiling_path) == ge::SUCCESS) {
       PluginManager::SplitPath(op_tiling_path, path_vec);
       for (const auto &path : path_vec) {
-        const auto root_path = GetOppPkgPath(path + "/op_tiling/lib/" + os_cpu_type, kOpMasterPath, kOpHostPath,
-                                             os_cpu_type, is_sub_pkg);
+        const auto root_path =
+            GetOppPkgPath(path + "/op_tiling/lib/" + os_cpu_type, kOpMasterPath, kOpHostPath, os_cpu_type, is_sub_pkg);
         (void)LoadAndStoreOppSo(root_path, true, is_sub_pkg);
       }
     }
@@ -520,9 +524,13 @@ Status ModelHelper::GetSoBinData(const string &cpu_info, const string &os_info) 
   return SUCCESS;
 }
 
-const uint8_t *ModelHelper::GetOpSoStoreData() const { return op_so_store_.Data(); }
+const uint8_t *ModelHelper::GetOpSoStoreData() const {
+  return op_so_store_.Data();
+}
 
-size_t ModelHelper::GetOpStoreDataSize() const { return op_so_store_.DataSize(); }
+size_t ModelHelper::GetOpStoreDataSize() const {
+  return op_so_store_.DataSize();
+}
 
 Status ModelHelper::SetModelCompilerVersion(const GeModelPtr &first_ge_model) {
   if (!custom_compiler_versions_.empty()) {
@@ -646,38 +654,37 @@ Status ModelHelper::SaveAllModelPartiton(std::shared_ptr<OmFileSaveHelper> &om_f
                                          const size_t model_index) const {
   GE_CHK_STATUS_RET(EnsureKernelBuilt(ge_model), "ensure kernel built failed, model=%s.", ge_model->GetName().c_str());
   if (SaveModelDef(om_file_save_helper, ge_model, model_buffer, model_index) != SUCCESS) {
-    GELOGE(FAILED, "[Save][ModelDef]Failed, model %s, model index %zu",
-           ge_model->GetName().c_str(), model_index);
+    GELOGE(FAILED, "[Save][ModelDef]Failed, model %s, model index %zu", ge_model->GetName().c_str(), model_index);
     return FAILED;
   }
 
   if (SaveModelWeights(om_file_save_helper, ge_model, model_index) != SUCCESS) {
-    GELOGE(FAILED, "[Save][ModelWeights]Failed, model %s, model index %zu",
-           ge_model->GetName().c_str(), model_index);
+    GELOGE(FAILED, "[Save][ModelWeights]Failed, model %s, model index %zu", ge_model->GetName().c_str(), model_index);
     REPORT_INNER_ERR_MSG("E19999", "ModelHelper save mode weights failed, model %s, model index %zu",
-                      ge_model->GetName().c_str(), model_index);
+                         ge_model->GetName().c_str(), model_index);
     return FAILED;
   }
 
   if (SaveModelTbeKernel(om_file_save_helper, ge_model, model_index) != SUCCESS) {
-     GELOGE(FAILED, "[Save][ModelTbeKernel]Failed, model %s, model index %zu",
-            ge_model->GetName().c_str(), model_index);
-     REPORT_INNER_ERR_MSG("E19999", "ModelHelper save model tbe kernel failed, model %s, "
-                       "model index %zu", ge_model->GetName().c_str(), model_index);
+    GELOGE(FAILED, "[Save][ModelTbeKernel]Failed, model %s, model index %zu", ge_model->GetName().c_str(), model_index);
+    REPORT_INNER_ERR_MSG("E19999",
+                         "ModelHelper save model tbe kernel failed, model %s, "
+                         "model index %zu",
+                         ge_model->GetName().c_str(), model_index);
     return FAILED;
   }
 
   if (SaveModelCustAICPU(om_file_save_helper, ge_model, model_index) != SUCCESS) {
-    GELOGE(FAILED, "[Save][ModelCustAICPU]Failed, model %s, model index %zu",
-           ge_model->GetName().c_str(), model_index);
-    REPORT_INNER_ERR_MSG("E19999", "ModelHelper save model cust aicpu failed, model %s "
-                      "model index %zu", ge_model->GetName().c_str(), model_index);
+    GELOGE(FAILED, "[Save][ModelCustAICPU]Failed, model %s, model index %zu", ge_model->GetName().c_str(), model_index);
+    REPORT_INNER_ERR_MSG("E19999",
+                         "ModelHelper save model cust aicpu failed, model %s "
+                         "model index %zu",
+                         ge_model->GetName().c_str(), model_index);
     return FAILED;
   }
 
   if (SaveModelTaskDef(om_file_save_helper, ge_model, task_buffer, model_index) != SUCCESS) {
-    GELOGE(FAILED, "[Save][TaskDef]Failed, model %s, model index %zu",
-           ge_model->GetName().c_str(), model_index);
+    GELOGE(FAILED, "[Save][TaskDef]Failed, model %s, model index %zu", ge_model->GetName().c_str(), model_index);
     return FAILED;
   }
   return SUCCESS;
@@ -689,16 +696,14 @@ Status ModelHelper::SaveRootModelPartitionsForOmModel(std::shared_ptr<OmFileSave
   if (is_offline_) {
     GE_ASSERT_SUCCESS(SaveSoStoreModelPartitionInfo(om_file_save_helper, ge_root_model, output_file_name, ge_model),
                       "[SaveSoStoreModelPartition]Failed");
-    GE_ASSERT_SUCCESS(SaveCustomOpsPartition(om_file_save_helper, ge_root_model),
-                      "[Save][CustomOpsPartition]Failed");
+    GE_ASSERT_SUCCESS(SaveCustomOpsPartition(om_file_save_helper, ge_root_model), "[Save][CustomOpsPartition]Failed");
   }
   GE_ASSERT_SUCCESS(SaveTilingData(om_file_save_helper, ge_root_model), "Save tiling data to model failed.");
   return SUCCESS;
 }
 
 Status ModelHelper::SetModelAttributes(const GeModelPtr &ge_model) const {
-  GE_CHK_BOOL_EXEC(ge::AttrUtils::SetStr(*(ge_model.get()), ATTR_MODEL_ATC_CMDLINE,
-                   domi::GetContext().atc_cmdline),
+  GE_CHK_BOOL_EXEC(ge::AttrUtils::SetStr(*(ge_model.get()), ATTR_MODEL_ATC_CMDLINE, domi::GetContext().atc_cmdline),
                    GELOGE(FAILED, "SetStr for atc_cmdline failed.");
                    return FAILED);
   std::string cur_version;
@@ -709,13 +714,16 @@ Status ModelHelper::SetModelAttributes(const GeModelPtr &ge_model) const {
   return SUCCESS;
 }
 
-Status ModelHelper::SaveToOmModel(const GeModelPtr &ge_model, const std::string &output_file,
-                                  ModelBufferData &model, const GeRootModelPtr &ge_root_model) {
+Status ModelHelper::SaveToOmModel(const GeModelPtr &ge_model, const std::string &output_file, ModelBufferData &model,
+                                  const GeRootModelPtr &ge_root_model) {
   GE_ASSERT_NOTNULL(ge_model, "Ge_model is nullptr");
   if (output_file.empty()) {
-    GELOGE(FAILED, "[Save][Model]GraphBuilder SaveModel received invalid file name prefix, "
-           "model %s", ge_model->GetName().c_str());
-    REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"value", "parameter", "reason"}),
+    GELOGE(FAILED,
+           "[Save][Model]GraphBuilder SaveModel received invalid file name prefix, "
+           "model %s",
+           ge_model->GetName().c_str());
+    REPORT_PREDEFINED_ERR_MSG(
+        "E10001", std::vector<const char *>({"value", "parameter", "reason"}),
         std::vector<const char *>({output_file.c_str(), "output_file", "the file name prefix is empty"}));
     return FAILED;
   }
@@ -728,38 +736,41 @@ Status ModelHelper::SaveToOmModel(const GeModelPtr &ge_model, const std::string 
 
   string output_file_name = output_file;
   if (ge_root_model != nullptr) {
-    GE_ASSERT_SUCCESS(SaveRootModelPartitionsForOmModel(om_file_save_helper, ge_root_model, output_file_name, ge_model));
+    GE_ASSERT_SUCCESS(
+        SaveRootModelPartitionsForOmModel(om_file_save_helper, ge_root_model, output_file_name, ge_model));
   }
 
   GE_IF_BOOL_EXEC(SaveModelIntroduction(om_file_save_helper, ge_model) != SUCCESS,
                   GELOGE(FAILED, "[Save][ModelIntroduction]Failed");
-                  REPORT_INNER_ERR_MSG("E19999", "Save model introduction failed.");
-                  return FAILED);
+                  REPORT_INNER_ERR_MSG("E19999", "Save model introduction failed."); return FAILED);
 
   auto ret = SaveAllModelPartiton(om_file_save_helper, ge_model, model_buffer, task_buffer);
   if (ret != SUCCESS) {
-    GELOGE(ret, "[Save][AllModelPartition]Failed, model %s, error_code %u",
-           ge_model->GetName().c_str(), ret);
-    REPORT_INNER_ERR_MSG("E19999", "OmFileSaveHelper save all model partition failed, model %s "
-                       "error_code %u", ge_model->GetName().c_str(), ret);
+    GELOGE(ret, "[Save][AllModelPartition]Failed, model %s, error_code %u", ge_model->GetName().c_str(), ret);
+    REPORT_INNER_ERR_MSG("E19999",
+                         "OmFileSaveHelper save all model partition failed, model %s "
+                         "error_code %u",
+                         ge_model->GetName().c_str(), ret);
     return ret;
   }
 
   ret = SaveModelHeader(om_file_save_helper, ge_model, 1U, is_so_store_);
   if (ret != SUCCESS) {
-    GELOGE(ret, "[Save][ModelHeader]Failed, model %s, error_code %u",
-           ge_model->GetName().c_str(), ret);
-    REPORT_INNER_ERR_MSG("E19999", "OmFileSaveHelper save model header failed, model %s "
-                       "error_code %u", ge_model->GetName().c_str(), ret);
+    GELOGE(ret, "[Save][ModelHeader]Failed, model %s, error_code %u", ge_model->GetName().c_str(), ret);
+    REPORT_INNER_ERR_MSG("E19999",
+                         "OmFileSaveHelper save model header failed, model %s "
+                         "error_code %u",
+                         ge_model->GetName().c_str(), ret);
     return ret;
   }
 
   ret = om_file_save_helper->SaveModel(output_file_name.c_str(), model, is_offline_ && save_to_file_);
   if (ret != SUCCESS) {
-    GELOGE(FAILED, "[Save][Model]Failed, model %s, output file %s",
-           ge_model->GetName().c_str(), output_file.c_str());
-    REPORT_INNER_ERR_MSG("E19999", "OmFileSaveHelper save model failed, model %s, "
-                       "output file %s", ge_model->GetName().c_str(), output_file.c_str());
+    GELOGE(FAILED, "[Save][Model]Failed, model %s, output file %s", ge_model->GetName().c_str(), output_file.c_str());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "OmFileSaveHelper save model failed, model %s, "
+                         "output file %s",
+                         ge_model->GetName().c_str(), output_file.c_str());
   }
   return ret;
 }
@@ -780,10 +791,10 @@ Status ModelHelper::SaveRootModelPartitions(std::shared_ptr<OmFileSaveHelper> &o
                                             const GeRootModelPtr &ge_root_model, const GeModelPtr &first_ge_model,
                                             string &output_file_name, const bool has_asc_node) {
   if (is_offline_ || has_asc_node) {
-    GE_ASSERT_SUCCESS(SaveSoStoreModelPartitionInfo(om_file_save_helper, ge_root_model,
-        output_file_name, first_ge_model), "[SaveSoStoreModelPartitionInfo]Failed");
-    GE_ASSERT_SUCCESS(SaveCustomOpsPartition(om_file_save_helper, ge_root_model),
-                      "[Save][CustomOpsPartition]Failed");
+    GE_ASSERT_SUCCESS(
+        SaveSoStoreModelPartitionInfo(om_file_save_helper, ge_root_model, output_file_name, first_ge_model),
+        "[SaveSoStoreModelPartitionInfo]Failed");
+    GE_ASSERT_SUCCESS(SaveCustomOpsPartition(om_file_save_helper, ge_root_model), "[Save][CustomOpsPartition]Failed");
   }
   GE_ASSERT_SUCCESS(SaveTilingData(om_file_save_helper, ge_root_model));
   return SUCCESS;
@@ -792,8 +803,7 @@ Status ModelHelper::SaveRootModelPartitions(std::shared_ptr<OmFileSaveHelper> &o
 Status ModelHelper::SaveRootModelLoop(std::shared_ptr<OmFileSaveHelper> &om_file_save_helper,
                                       const std::vector<std::string> &model_names,
                                       const std::map<std::string, GeModelPtr> &name_to_ge_model,
-                                      std::vector<ge::Buffer> &model_buffers,
-                                      std::vector<ge::Buffer> &task_buffers,
+                                      std::vector<ge::Buffer> &model_buffers, std::vector<ge::Buffer> &task_buffers,
                                       size_t &cur_index) const {
   for (; cur_index < model_names.size(); ++cur_index) {
     const auto model_name = model_names[cur_index];
@@ -817,10 +827,10 @@ Status ModelHelper::InitFirstGeModel(const GeRootModelPtr &ge_root_model,
   } else {
     first_ge_model = first_model_it->second;
   }
-  GE_CHK_BOOL_EXEC(ge::AttrUtils::SetStr(*(first_ge_model.get()), ATTR_MODEL_ATC_CMDLINE,
-                   domi::GetContext().atc_cmdline),
-                   GELOGE(FAILED, "SetStr for atc_cmdline failed.");
-                   return FAILED);
+  GE_CHK_BOOL_EXEC(
+      ge::AttrUtils::SetStr(*(first_ge_model.get()), ATTR_MODEL_ATC_CMDLINE, domi::GetContext().atc_cmdline),
+      GELOGE(FAILED, "SetStr for atc_cmdline failed.");
+      return FAILED);
   std::string cur_version;
   const auto get_ret = GetOppVersion(cur_version);
   if ((get_ret != SUCCESS) || (!ge::AttrUtils::SetStr(*(first_ge_model.get()), ATTR_MODEL_OPP_VERSION, cur_version))) {
@@ -881,24 +891,26 @@ Status ModelHelper::SaveToOmRootModel(const GeRootModelPtr &ge_root_model, const
   const bool has_asc_node = (asc_node_ascbackend != nullptr) || (asc_node_fusedascbackend != nullptr);
   if (has_asc_node) {
     is_need_compress_ = false;
-    GE_ASSERT_SUCCESS(ge_root_model->CheckAndSetNeedSoInOM(), "Check so in om failed, model id:%u.", ge_root_model->GetModelId());
+    GE_ASSERT_SUCCESS(ge_root_model->CheckAndSetNeedSoInOM(), "Check so in om failed, model id:%u.",
+                      ge_root_model->GetModelId());
   }
 
   string output_file_name = output_file;
   std::shared_ptr<OmFileSaveHelper> om_file_save_helper = ge::MakeShared<OmFileSaveHelper>();
   GE_CHECK_NOTNULL(om_file_save_helper);
-  GE_ASSERT_SUCCESS(SaveRootModelPartitions(om_file_save_helper, ge_root_model, first_ge_model, output_file_name, has_asc_node));
+  GE_ASSERT_SUCCESS(
+      SaveRootModelPartitions(om_file_save_helper, ge_root_model, first_ge_model, output_file_name, has_asc_node));
 
   size_t cur_index = 0U;
   bool is_partitioned = false;
-  (void) AttrUtils::GetBool(root_graph,  ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, is_partitioned);
+  (void)AttrUtils::GetBool(root_graph, ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, is_partitioned);
   if (is_partitioned) {
-    GE_ASSERT_SUCCESS(SavePartitionedFirstModel(om_file_save_helper, ge_root_model, first_ge_model,
-                                                 root_graph, is_unknown_shape, model_buffers, task_buffers, cur_index));
+    GE_ASSERT_SUCCESS(SavePartitionedFirstModel(om_file_save_helper, ge_root_model, first_ge_model, root_graph,
+                                                is_unknown_shape, model_buffers, task_buffers, cur_index));
   }
 
-  GE_ASSERT_SUCCESS(SaveRootModelLoop(om_file_save_helper, model_names, name_to_ge_model,
-                                       model_buffers, task_buffers, cur_index));
+  GE_ASSERT_SUCCESS(
+      SaveRootModelLoop(om_file_save_helper, model_names, name_to_ge_model, model_buffers, task_buffers, cur_index));
 
   GE_ASSERT_SUCCESS(
       SaveModelHeader(om_file_save_helper, first_ge_model, model_names.size(), is_so_store_, is_unknown_shape),
@@ -913,8 +925,8 @@ Status ModelHelper::SaveOriginalGraphToOmModel(const ge::Graph &graph, const std
   if (output_file.empty()) {
     GELOGE(FAILED, "[Save][Model]Received invalid file name prefix, output_file %s", output_file.c_str());
     (void)REPORT_PREDEFINED_ERR_MSG(
-          "E10059", std::vector<const char *>({"stage", "reason"}),
-          std::vector<const char *>({"SaveOriginalGraphToOmModel", "the model output file name cannot be empty"}));
+        "E10059", std::vector<const char *>({"stage", "reason"}),
+        std::vector<const char *>({"SaveOriginalGraphToOmModel", "the model output file name cannot be empty"}));
     return FAILED;
   }
   // Get computegraph from graph
@@ -942,10 +954,8 @@ Status ModelHelper::SaveOriginalGraphToOmModel(const ge::Graph &graph, const std
   ge::Buffer model_buffer;
   const ge::graphStatus status = model_ptr->SaveWithoutSeparate(model_buffer);
   if (status != ge::GRAPH_SUCCESS) {
-    GELOGE(FAILED, "[Save][Model]Failed for save buffer fail, model %s",
-           model_ptr->GetName().c_str());
-    REPORT_INNER_ERR_MSG("E19999", "Save model %s failed for save buffer fail",
-                      model_ptr->GetName().c_str());
+    GELOGE(FAILED, "[Save][Model]Failed for save buffer fail, model %s", model_ptr->GetName().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Save model %s failed for save buffer fail", model_ptr->GetName().c_str());
     return FAILED;
   }
   const std::unique_ptr<OmFileSaveHelper> om_file_save_helper = ge::MakeUnique<OmFileSaveHelper>();
@@ -964,24 +974,22 @@ Status ModelHelper::SaveOriginalGraphToOmModel(const ge::Graph &graph, const std
   model_header.om_ir_version = model_ptr->GetVersion();
   model_header.headsize = MODEL_FILE_HEAD_LEN;
   const std::string platform_version = model_ptr->GetPlatformVersion();
-  errno_t
-      err = memcpy_s(model_header.platform_version, static_cast<size_t>(PLATFORM_VERSION_LEN), platform_version.c_str(),
-                     platform_version.size() + 1U);
+  errno_t err = memcpy_s(model_header.platform_version, static_cast<size_t>(PLATFORM_VERSION_LEN),
+                         platform_version.c_str(), platform_version.size() + 1U);
   if (err != EOK) {
-    GELOGE(FAILED, "[Save][Model]Failed for platform_version %s, model %s, errno %d",
-           platform_version.c_str(), model_ptr->GetName().c_str(), err);
+    GELOGE(FAILED, "[Save][Model]Failed for platform_version %s, model %s, errno %d", platform_version.c_str(),
+           model_ptr->GetName().c_str(), err);
     REPORT_INNER_ERR_MSG("E19999", "Save model %s failed for platform_version %s, errno %d",
-                      model_ptr->GetName().c_str(), platform_version.c_str(), err);
+                         model_ptr->GetName().c_str(), platform_version.c_str(), err);
     return FAILED;
   }
   size_t name_size = model_ptr->GetName().size();
   name_size = (name_size > (MODEL_NAME_LENGTH - 1U)) ? (MODEL_NAME_LENGTH - 1U) : name_size;
   err = memcpy_s(model_header.name, MODEL_NAME_LENGTH, model_ptr->GetName().c_str(), name_size);
   if (err != EOK) {
-    GELOGE(FAILED, "[Save][Model]Failed for memory copy %s failed, errno %d",
-           model_ptr->GetName().c_str(), err);
+    GELOGE(FAILED, "[Save][Model]Failed for memory copy %s failed, errno %d", model_ptr->GetName().c_str(), err);
     REPORT_INNER_ERR_MSG("E19999", "Save model failed for memory copy %s failed, errno %d",
-                      model_ptr->GetName().c_str(), err);
+                         model_ptr->GetName().c_str(), err);
     return FAILED;
   }
   ModelBufferData model;
@@ -994,7 +1002,7 @@ Status ModelHelper::SaveBundleModelBufferToMem(const std::vector<ModelBufferData
   const size_t model_num = model_buffers.size();
   constexpr size_t var_partition_num = 1U;
   constexpr size_t var_size_len = sizeof(uint64_t);
-  const size_t mem_info_partition_num = model_num + var_partition_num; // add var partition
+  const size_t mem_info_partition_num = model_num + var_partition_num;  // add var partition
   const size_t header_size =
       sizeof(ModelFileHeader) + sizeof(ModelPartitionTable) + sizeof(ModelPartitionMemInfo) * mem_info_partition_num;
   size_t sub_model_size{0UL};
@@ -1016,7 +1024,7 @@ Status ModelHelper::SaveBundleModelBufferToMem(const std::vector<ModelBufferData
   table->partition[0].type = BUNDLE_MODEL_VAR_INFO;
   table->partition[0].mem_size = sizeof(int64_t);
   table->partition[0].mem_offset = offset;
-  *reinterpret_cast<uint64_t*>(&buff_data[sizeof(ModelFileHeader) + offset]) = var_size;
+  *reinterpret_cast<uint64_t *>(&buff_data[sizeof(ModelFileHeader) + offset]) = var_size;
   offset += var_size_len;
   // add sub model partition
   for (size_t i = 0U; i < model_num; ++i) {
@@ -1024,10 +1032,9 @@ Status ModelHelper::SaveBundleModelBufferToMem(const std::vector<ModelBufferData
     table->partition[sub_model_id].type = BUNDLE_MODEL_INFO;
     table->partition[sub_model_id].mem_size = model_buffers[i].length;
     table->partition[sub_model_id].mem_offset = offset;
-    GE_ASSERT_SUCCESS(
-        ge::GeMemcpy(&buff_data[sizeof(ModelFileHeader) + offset], sub_model_size,
-        model_buffers[i].data.get(), model_buffers[i].length),
-        "Copy model buffer failed.");
+    GE_ASSERT_SUCCESS(ge::GeMemcpy(&buff_data[sizeof(ModelFileHeader) + offset], sub_model_size,
+                                   model_buffers[i].data.get(), model_buffers[i].length),
+                      "Copy model buffer failed.");
     sub_model_size -= model_buffers[i].length;
     offset += model_buffers[i].length;
   }
@@ -1041,8 +1048,7 @@ Status ModelHelper::SaveBundleModelBufferToMem(const std::vector<ModelBufferData
 
 Status ModelHelper::LoadModel(const ge::ModelData &model_data) {
   if ((model_data.model_data == nullptr) || (model_data.model_len == 0U)) {
-    GELOGE(ACL_ERROR_GE_EXEC_MODEL_DATA_SIZE_INVALID,
-           "[Load][Model]Model_data is nullptr or model_data_size is 0");
+    GELOGE(ACL_ERROR_GE_EXEC_MODEL_DATA_SIZE_INVALID, "[Load][Model]Model_data is nullptr or model_data_size is 0");
     REPORT_PREDEFINED_ERR_MSG("E10058", std::vector<const char *>({"parameter"}),
                               std::vector<const char *>({"model_data"}));
     return ACL_ERROR_GE_EXEC_MODEL_DATA_SIZE_INVALID;
@@ -1083,14 +1089,15 @@ Status ModelHelper::LoadModel(const ge::ModelData &model_data) {
     GELOGE(status, "[Generate][GEModel]Failed");
     return status;
   }
-  GELOGD("in ModelHelper::LoadModel, is_assign_model_ is setted to true!");
+  GELOGD("in ModelHelper::LoadModel, is_assign_model_ is set to true!");
   is_assign_model_ = true;
   return SUCCESS;
 }
 
 Status ModelHelper::LoadPartInfoFromModel(const ge::ModelData &model_data, ModelPartition &partition) {
   if ((model_data.model_data == nullptr) || (model_data.model_len == 0U)) {
-    GELOGE(ACL_ERROR_GE_EXEC_MODEL_DATA_SIZE_INVALID, "[Load][RootModel] "
+    GELOGE(ACL_ERROR_GE_EXEC_MODEL_DATA_SIZE_INVALID,
+           "[Load][RootModel] "
            "Model_data is nullptr or model data is empty.");
     REPORT_PREDEFINED_ERR_MSG("E10058", std::vector<const char *>({"parameter"}),
                               std::vector<const char *>({"model_data"}));
@@ -1104,16 +1111,13 @@ Status ModelHelper::LoadPartInfoFromModel(const ge::ModelData &model_data, Model
   uint8_t *model_data_addr = nullptr;
   uint64_t model_data_size = 0U;
   Status status = ModelParserBase::ParseModelContent(model_data, model_data_addr, model_data_size);
-  GE_IF_BOOL_EXEC(status != SUCCESS,
-                  GELOGE(ACL_ERROR_GE_PARAM_INVALID, "[Parse][RootModelContent]Failed!");
+  GE_IF_BOOL_EXEC(status != SUCCESS, GELOGE(ACL_ERROR_GE_PARAM_INVALID, "[Parse][RootModelContent]Failed!");
                   return ACL_ERROR_GE_PARAM_INVALID);
   file_header_ = reinterpret_cast<ModelFileHeader *>(model_data.model_data);
-  
+
   OmFileLoadHelper om_load_helper;
   status = om_load_helper.Init(model_data_addr, model_data_size, file_header_);
-  GE_IF_BOOL_EXEC(status != SUCCESS,
-                  GELOGE(status, "[Init][OmLoeadHelper]Failed");
-                  model_data_addr = nullptr;
+  GE_IF_BOOL_EXEC(status != SUCCESS, GELOGE(status, "[Init][OmLoeadHelper]Failed"); model_data_addr = nullptr;
                   return status);
   // Encrypt model need to del temp model/no encrypt model don`t need to del model
   model_data_addr = nullptr;
@@ -1126,11 +1130,11 @@ Status ModelHelper::LoadPartInfoFromModel(const ge::ModelData &model_data, Model
   return SUCCESS;
 }
 
-
 Status ModelHelper::GetModelFileHead(const ge::ModelData &model_data, const ModelFileHeader *&file_header) {
   if (model_data.model_data == nullptr) {
-    (void)REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char*>({"parameter", "value", "reason"}),
-                       std::vector<const char*>({"om", model_data.om_name.c_str(), "Model data cannot be nullptr."}));
+    (void)REPORT_PREDEFINED_ERR_MSG(
+        "E10001", std::vector<const char *>({"parameter", "value", "reason"}),
+        std::vector<const char *>({"om", model_data.om_name.c_str(), "Model data cannot be nullptr."}));
     GELOGE(ACL_ERROR_GE_PARAM_INVALID, "[Check][Param] Invalid model. Model data cannot be nullptr.");
     return ACL_ERROR_GE_PARAM_INVALID;
   }
@@ -1138,7 +1142,7 @@ Status ModelHelper::GetModelFileHead(const ge::ModelData &model_data, const Mode
     std::string reason = "Invalid om file. The model data size " + std::to_string(model_data.model_len) +
                          " is smaller than " + std::to_string(sizeof(ModelFileHeader)) + ".";
     (void)REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"parameter", "value", "reason"}),
-                              std::vector<const char *>({"om", model_data.om_name.c_str(), reason.c_str()}));
+                                    std::vector<const char *>({"om", model_data.om_name.c_str(), reason.c_str()}));
     GELOGE(ACL_ERROR_GE_EXEC_MODEL_DATA_SIZE_INVALID,
            "[Check][Param] Invalid model. Model data size %" PRIu64 " must be greater than or equal to %zu.",
            model_data.model_len, sizeof(ModelFileHeader));
@@ -1163,20 +1167,21 @@ Status ModelHelper::CheckOsCpuInfoAndOppVersion() {
   if (file_header_->need_check_os_cpu_info == static_cast<uint8_t>(OsCpuInfoCheckTyep::NEED_CHECK)) {
     std::string host_env_os;
     std::string host_env_cpu;
-    (void) ge::AttrUtils::GetStr(*(model_.get()), ATTR_MODEL_HOST_ENV_OS, host_env_os);
-    (void) ge::AttrUtils::GetStr(*(model_.get()), ATTR_MODEL_HOST_ENV_CPU, host_env_cpu);
+    (void)ge::AttrUtils::GetStr(*(model_.get()), ATTR_MODEL_HOST_ENV_OS, host_env_os);
+    (void)ge::AttrUtils::GetStr(*(model_.get()), ATTR_MODEL_HOST_ENV_CPU, host_env_cpu);
     std::string cur_host_env_os;
     std::string cur_host_env_cpu;
     ge::PluginManager::GetCurEnvPackageOsAndCpuType(cur_host_env_os, cur_host_env_cpu);
     if ((host_env_os.compare(cur_host_env_os) != 0) || (host_env_cpu.compare(cur_host_env_cpu) != 0)) {
-      REPORT_INNER_ERR_MSG("E19999", "The os/cpu type of the model does not match the current system,"
-                         "Model is[%s][%s], system is[%s][%s], please use the matching platform",
-                         host_env_os.c_str(), host_env_cpu.c_str(),
-                         cur_host_env_os.c_str(), cur_host_env_cpu.c_str());
-      GELOGE(FAILED, "The os/cpu type of the model does not match the current system,"
+      REPORT_INNER_ERR_MSG("E19999",
+                           "The os/cpu type of the model does not match the current system,"
+                           "Model is[%s][%s], system is[%s][%s], please use the matching platform",
+                           host_env_os.c_str(), host_env_cpu.c_str(), cur_host_env_os.c_str(),
+                           cur_host_env_cpu.c_str());
+      GELOGE(FAILED,
+             "The os/cpu type of the model does not match the current system,"
              "Model is[%s][%s], system is[%s][%s]",
-             host_env_os.c_str(), host_env_cpu.c_str(),
-             cur_host_env_os.c_str(), cur_host_env_cpu.c_str());
+             host_env_os.c_str(), host_env_cpu.c_str(), cur_host_env_os.c_str(), cur_host_env_cpu.c_str());
       return FAILED;
     }
     GELOGD("Check os[%s], cpu[%s] success.", host_env_os.c_str(), host_env_cpu.c_str());
@@ -1190,18 +1195,21 @@ Status ModelHelper::CheckOsCpuInfoAndOppVersion() {
            so_in_om_info.compiler_version.c_str());
   }
 
-  if ((file_header_->need_check_os_cpu_info == static_cast<uint8_t>(OsCpuInfoCheckTyep::NO_CHECK))
-      && is_unknown_shape_model_) {
+  if ((file_header_->need_check_os_cpu_info == static_cast<uint8_t>(OsCpuInfoCheckTyep::NO_CHECK)) &&
+      is_unknown_shape_model_) {
     std::string version;
-    (void) ge::AttrUtils::GetStr(*(model_.get()), ATTR_MODEL_OPP_VERSION, version);
+    (void)ge::AttrUtils::GetStr(*(model_.get()), ATTR_MODEL_OPP_VERSION, version);
     std::string cur_version;
     // opp_kernel独立升级之后，单算子动态shape离线模型记录的opp_version和算子实际选择的不同，不做强校验
     if ((GetOppVersion(cur_version) == SUCCESS) && (version.compare(cur_version) != 0)) {
-      REPORT_INNER_ERR_MSG("E19999", "The opp version of the model does not match the current opp run package,"
-                         "Model is[%s], opp run package is[%s], try to convert the om again!",
-                         version.c_str(), cur_version.c_str());
-      GELOGE(FAILED, "The opp version of the model does not match the current opp run package,"
-             "Model is[%s], opp run package is[%s]", version.c_str(), cur_version.c_str());
+      REPORT_INNER_ERR_MSG("E19999",
+                           "The opp version of the model does not match the current opp run package,"
+                           "Model is[%s], opp run package is[%s], try to convert the om again!",
+                           version.c_str(), cur_version.c_str());
+      GELOGE(FAILED,
+             "The opp version of the model does not match the current opp run package,"
+             "Model is[%s], opp run package is[%s]",
+             version.c_str(), cur_version.c_str());
       return FAILED;
     }
     GELOGD("Check opp version[%s] success.", version.c_str());
@@ -1209,8 +1217,7 @@ Status ModelHelper::CheckOsCpuInfoAndOppVersion() {
   return SUCCESS;
 }
 
-Status ModelHelper::CheckIfWeightPathValid(const ge::ComputeGraphPtr &graph,
-                                           const ge::ModelData &model_data) const {
+Status ModelHelper::CheckIfWeightPathValid(const ge::ComputeGraphPtr &graph, const ge::ModelData &model_data) const {
   size_t index = 0UL;
   GE_ASSERT_NOTNULL(graph);
   for (const auto &node : graph->GetAllNodes()) {
@@ -1219,8 +1226,7 @@ Status ModelHelper::CheckIfWeightPathValid(const ge::ComputeGraphPtr &graph,
     }
   }
   if ((index == 0UL) && (!model_data.weight_path.empty())) {
-    GELOGE(FAILED, "Weight path[%s] should be empty if model has no external weight",
-        model_data.weight_path.c_str());
+    GELOGE(FAILED, "Weight path[%s] should be empty if model has no external weight", model_data.weight_path.c_str());
     return FAILED;
   }
   return SUCCESS;
@@ -1266,7 +1272,7 @@ Status ModelHelper::LoadRootModel(const ge::ModelData &model_data) {
   GE_ASSERT_SUCCESS(FileConstantUtils::GetExternalWeightDir(model_data, file_constant_weight_dir));
   root_model_->SetFileConstantWeightDir(file_constant_weight_dir);
 
-  GELOGD("In ModelHelper::LoadRootModel, is_assign_model_ is setted to true!");
+  GELOGD("In ModelHelper::LoadRootModel, is_assign_model_ is set to true!");
   is_assign_model_ = true;
 
   if (is_repack_so_) {
@@ -1282,8 +1288,7 @@ Status ModelHelper::LoadRootModel(const ge::ModelData &model_data) {
 }
 
 Status ModelHelper::GenerateGeModel(const OmFileLoadHelper &om_load_helper, GeModelPtr &cur_model,
-                                    GeModelPtr &first_ge_model, const size_t mode_index,
-                                    const bool is_dyn_root) const {
+                                    GeModelPtr &first_ge_model, const size_t mode_index, const bool is_dyn_root) const {
   cur_model = MakeShared<GeModel>();
   GE_CHECK_NOTNULL(cur_model);
   Status ret = LoadModelData(om_load_helper, cur_model, first_ge_model, mode_index);
@@ -1340,7 +1345,7 @@ Status ModelHelper::GenerateGeRootModel(const OmFileLoadHelper &om_load_helper, 
     root_model_->SetSubgraphInstanceNameToModel(model_->GetGraph()->GetName(), model_);
     return SUCCESS;
   }
-  for (size_t mode_index = 0U;  mode_index < file_header_->model_num; ++mode_index) {
+  for (size_t mode_index = 0U; mode_index < file_header_->model_num; ++mode_index) {
     GeModelPtr cur_model;
     GE_CHK_STATUS_RET_NOLOG(GenerateGeModel(om_load_helper, cur_model, first_ge_model, mode_index, mode_index == 0U));
     GE_ASSERT_NOTNULL(cur_model->GetGraph());
@@ -1395,16 +1400,16 @@ Status ModelHelper::LoadModelData(const OmFileLoadHelper &om_load_helper, const 
                                   const GeModelPtr &first_ge_model, const size_t mode_index) const {
   ModelPartition partition_model_def;
   // no need to check value, DATA->NetOutput
-  (void) om_load_helper.GetModelPartition(ModelPartitionType::MODEL_DEF, partition_model_def, mode_index);
+  (void)om_load_helper.GetModelPartition(ModelPartitionType::MODEL_DEF, partition_model_def, mode_index);
   GELOGD("Model_def partition addr:%p,size:%" PRIu64 "", partition_model_def.data, partition_model_def.size);
 
   ge::Model model;
-  if (ge::Model::LoadWithMultiThread(partition_model_def.data,
-      static_cast<size_t>(partition_model_def.size), model) != SUCCESS) {
+  if (ge::Model::LoadWithMultiThread(partition_model_def.data, static_cast<size_t>(partition_model_def.size), model) !=
+      SUCCESS) {
     GELOGE(INTERNAL_ERROR, "[Load][Model]Failed, model_def partition addr:%p, size:%" PRIu64 "",
            partition_model_def.data, partition_model_def.size);
     REPORT_INNER_ERR_MSG("E19999", "Load model failed, model_def partition addr:%p, size:%" PRIu64 "",
-                      partition_model_def.data, partition_model_def.size);
+                         partition_model_def.data, partition_model_def.size);
     return INTERNAL_ERROR;
   }
 
@@ -1421,8 +1426,7 @@ Status ModelHelper::LoadWeights(const OmFileLoadHelper &om_load_helper, const Ge
   ModelPartition partition;
   if (om_load_helper.GetModelPartition(ModelPartitionType::WEIGHTS_DATA, partition, mode_index) != SUCCESS) {
     GELOGE(FAILED, "[Get][ModelPartition]Failed, GetWeight size:%" PRIu64 "", partition.size);
-    REPORT_INNER_ERR_MSG("E19999", "[Get][ModelPartition]Failed, GetWeight size:%" PRIu64 "",
-                      partition.size);
+    REPORT_INNER_ERR_MSG("E19999", "[Get][ModelPartition]Failed, GetWeight size:%" PRIu64 "", partition.size);
     return FAILED;
   }
   if (is_shared_weight_) {
@@ -1444,18 +1448,19 @@ Status ModelHelper::LoadTask(const OmFileLoadHelper &om_load_helper, const GeMod
     GELOGE(FAILED, "Get task model partition failed.");
     GELOGE(FAILED, "[Get][ModelTaskPartition]Failed, task_partition size %" PRIu64 ", mode_index %zu",
            task_partition.size, mode_index);
-    REPORT_INNER_ERR_MSG("E19999", "Get model task partition failed, "
-                       "task_partition size %" PRIu64 ", mode_index %zu", task_partition.size, mode_index);
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Get model task partition failed, "
+                         "task_partition size %" PRIu64 ", mode_index %zu",
+                         task_partition.size, mode_index);
     return FAILED;
   }
   const std::shared_ptr<domi::ModelTaskDef> task = ge::MakeShared<domi::ModelTaskDef>();
   GE_CHECK_NOTNULL(task);
   if (task_partition.size != 0U) {
     if (!ReadProtoFromArray(task_partition.data, static_cast<int32_t>(task_partition.size), task.get())) {
-      GELOGE(INTERNAL_ERROR, "[Read][ProtoFromArray]Failed, task_partition size %" PRIu64 "",
-             task_partition.size);
+      GELOGE(INTERNAL_ERROR, "[Read][ProtoFromArray]Failed, task_partition size %" PRIu64 "", task_partition.size);
       REPORT_INNER_ERR_MSG("E19999", "Read proto from array failed, task_partition size %" PRIu64 "",
-                        task_partition.size);
+                           task_partition.size);
       return INTERNAL_ERROR;
     }
     GELOGD("TASK_INFO op_size:%d, stream_num:%u", task->op().size(), task->stream_num());
@@ -1483,8 +1488,8 @@ Status ModelHelper::LoadCustAICPUKernelStore(const OmFileLoadHelper &om_load_hel
                                              const size_t mode_index) const {
   // Load cust aicpu kernels
   ModelPartition partition_kernel_def;
-  if (om_load_helper.GetModelPartition(ModelPartitionType::CUST_AICPU_KERNELS, partition_kernel_def, mode_index)
-      == SUCCESS) {
+  if (om_load_helper.GetModelPartition(ModelPartitionType::CUST_AICPU_KERNELS, partition_kernel_def, mode_index) ==
+      SUCCESS) {
     GELOGD("Kernels partition size:%" PRIu64 "", partition_kernel_def.size);
     if (cur_model->LoadAICPUKernelStore(partition_kernel_def.data, partition_kernel_def.size)) {
       GELOGD("Load cust aicpu kernels success");
@@ -1594,7 +1599,8 @@ Status ModelHelper::GetHardwareInfo(std::map<std::string, std::string> &options)
                   << ";l2_size:" << std::to_string(platform_info.soc_info.l2_size)
                   << ";memory_size:" << std::to_string(platform_info.soc_info.memory_size);
   (void)options.emplace(std::make_pair(kHardwareInfo, platform_option.str()));
-  GELOGI("Soc_version: %s, set attr %s, value: %s.", soc_version.c_str(), kHardwareInfo.c_str(), platform_option.str().c_str());
+  GELOGI("Soc_version: %s, set attr %s, value: %s.", soc_version.c_str(), kHardwareInfo.c_str(),
+         platform_option.str().c_str());
 
   if (virtual_type > 0) {
     (void)options.emplace(std::make_pair(VIRTUAL_TYPE, std::to_string(virtual_type)));
@@ -1611,7 +1617,7 @@ Status ModelHelper::InitRuntimePlatform() {
   const char *soc_version = aclrtGetSocName();
   GE_ASSERT_NOTNULL(soc_version);
   GE_ASSERT_TRUE(fe::PlatformInfoManager::GeInstance().InitRuntimePlatformInfos(std::string(soc_version)) == 0U,
-      "[Init][PlatformInfo]init runtime platform info failed, SocVersion = %s", soc_version);
+                 "[Init][PlatformInfo]init runtime platform info failed, SocVersion = %s", soc_version);
 
   int64_t aicore_num = 0;
   GE_ASSERT_RT_OK(aclrtGetDeviceInfo(static_cast<uint32_t>(device_id), ACL_DEV_ATTR_AICORE_CORE_NUM, &aicore_num));
@@ -1620,9 +1626,8 @@ Status ModelHelper::InitRuntimePlatform() {
   GE_ASSERT_RT_OK(aclrtGetDeviceInfo(static_cast<uint32_t>(device_id), ACL_DEV_ATTR_VECTOR_CORE_NUM, &vec_core_num));
 
   fe::PlatFormInfos platform_infos;
-  GE_ASSERT_TRUE(
-      fe::PlatformInfoManager::GeInstance().GetRuntimePlatformInfosByDevice(device_id, platform_infos) == 0,
-      "Get runtime platformInfos by device failed, deviceId = %d", device_id);
+  GE_ASSERT_TRUE(fe::PlatformInfoManager::GeInstance().GetRuntimePlatformInfosByDevice(device_id, platform_infos) == 0,
+                 "Get runtime platformInfos by device failed, deviceId = %d", device_id);
 
   std::map<std::string, std::string> res;
   GE_ASSERT_TRUE(platform_infos.GetPlatformResWithLock(kSocInfoKey, res));
@@ -1636,14 +1641,16 @@ Status ModelHelper::InitRuntimePlatform() {
   return SUCCESS;
 }
 
-Status ModelHelper::InitRuntimeAndGetDevicePlatformInfos(int32_t device_id, const std::string &soc_version,fe::PlatFormInfos &platform_infos_device) const {
+Status ModelHelper::InitRuntimeAndGetDevicePlatformInfos(int32_t device_id, const std::string &soc_version,
+                                                         fe::PlatFormInfos &platform_infos_device) const {
   // 初始化 runtime platform info
   GE_ASSERT_TRUE(fe::PlatformInfoManager::GeInstance().InitRuntimePlatformInfos(soc_version) == 0U,
-      "[Init][PlatformInfo]init runtime platform info failed, SocVersion = %s", soc_version.c_str());
+                 "[Init][PlatformInfo]init runtime platform info failed, SocVersion = %s", soc_version.c_str());
 
   // 获取指定 device 的 platform info
-  GE_ASSERT_TRUE(fe::PlatformInfoManager::GeInstance().GetRuntimePlatformInfosByDevice(static_cast<uint32_t>(device_id), platform_infos_device, true) == 0,
-     "Get runtime platformInfos by device failed, deviceId = %d", device_id);
+  GE_ASSERT_TRUE(fe::PlatformInfoManager::GeInstance().GetRuntimePlatformInfosByDevice(
+                     static_cast<uint32_t>(device_id), platform_infos_device, true) == 0,
+                 "Get runtime platformInfos by device failed, deviceId = %d", device_id);
 
   return SUCCESS;
 }
@@ -1674,15 +1681,14 @@ Status ModelHelper::HandleDeviceInfo(fe::PlatFormInfos &platform_infos, fe::Plat
   return SUCCESS;
 }
 
-Status ModelHelper::GetPlatformInfo(int32_t device_id, const std::string &soc_version,
-                                    fe::PlatformInfo &platform_info, int32_t &virtual_type) const {
+Status ModelHelper::GetPlatformInfo(int32_t device_id, const std::string &soc_version, fe::PlatformInfo &platform_info,
+                                    int32_t &virtual_type) const {
   std::map<std::string, std::string> options;
   return GetPlatformInfo(device_id, soc_version, platform_info, virtual_type, options);
 }
 
-Status ModelHelper::GetPlatformInfo(int32_t device_id, const std::string &soc_version,
-                                    fe::PlatformInfo &platform_info, int32_t &virtual_type,
-                                    std::map<std::string, std::string> &options) const {
+Status ModelHelper::GetPlatformInfo(int32_t device_id, const std::string &soc_version, fe::PlatformInfo &platform_info,
+                                    int32_t &virtual_type, std::map<std::string, std::string> &options) const {
 #ifdef __GNUC__
   GE_ASSERT_SUCCESS(CoreNumUtils::GetGeDefaultPlatformInfo(soc_version, platform_info));
 #endif
@@ -1693,55 +1699,62 @@ Status ModelHelper::GetPlatformInfo(int32_t device_id, const std::string &soc_ve
   fe::PlatFormInfos platformInfos_device;
   GE_CHK_STATUS_RET(InitRuntimeAndGetDevicePlatformInfos(device_id, soc_version, platformInfos_device));
 
-  GE_CHK_STATUS_RET(UpdatePlatfromInfoWithRuntime(device_id, aicore_cnt_ini, vec_core_cnt_ini, platform_info,
-    virtual_type));
+  GE_CHK_STATUS_RET(
+      UpdatePlatfromInfoWithRuntime(device_id, aicore_cnt_ini, vec_core_cnt_ini, platform_info, virtual_type));
 
-  GE_CHK_STATUS_RET(UpdatePlatfromInfoWithDevice(platformInfos_device, aicore_cnt_ini, vec_core_cnt_ini, platform_info));
+  GE_CHK_STATUS_RET(
+      UpdatePlatfromInfoWithDevice(platformInfos_device, aicore_cnt_ini, vec_core_cnt_ini, platform_info));
 
   GE_CHK_STATUS_RET(UpdatePlatfromInfoWithOption(options, aicore_cnt_ini, vec_core_cnt_ini, platform_info));
 
-  GELOGI("Get platform info of device id: %d, aicore num: %u, vector core num: %u, l2size: %u bytes, memory_size: "
-         "%zu bytes, virtual_type: %d.", device_id, platform_info.soc_info.ai_core_cnt, platform_info.soc_info.vector_core_cnt,
-         platform_info.soc_info.l2_size, platform_info.soc_info.memory_size, virtual_type);
+  GELOGI(
+      "Get platform info of device id: %d, aicore num: %u, vector core num: %u, l2size: %u bytes, memory_size: "
+      "%zu bytes, virtual_type: %d.",
+      device_id, platform_info.soc_info.ai_core_cnt, platform_info.soc_info.vector_core_cnt,
+      platform_info.soc_info.l2_size, platform_info.soc_info.memory_size, virtual_type);
 
   return SUCCESS;
 }
 
-Status ModelHelper::UpdatePlatfromInfoWithOption(std::map<std::string, std::string> &options, const uint32_t ai_core_cnt_ini,
-  const uint32_t vector_core_cnt_ini, fe::PlatformInfo &platform_info) const {
+Status ModelHelper::UpdatePlatfromInfoWithOption(std::map<std::string, std::string> &options,
+                                                 const uint32_t ai_core_cnt_ini, const uint32_t vector_core_cnt_ini,
+                                                 fe::PlatformInfo &platform_info) const {
   // 用从option/context获取到的核数刷新platform info
-  GE_CHK_STATUS_RET(UpdateCoreCountWithOption(AICORE_NUM, AICORE_NUM, ai_core_cnt_ini,
-    platform_info.soc_info.ai_core_cnt, options));
+  GE_CHK_STATUS_RET(
+      UpdateCoreCountWithOption(AICORE_NUM, AICORE_NUM, ai_core_cnt_ini, platform_info.soc_info.ai_core_cnt, options));
   GE_CHK_STATUS_RET(UpdateCoreCountWithOption(kVectorCoreNum, kVectorCoreNum, vector_core_cnt_ini,
-    platform_info.soc_info.vector_core_cnt, options));
+                                              platform_info.soc_info.vector_core_cnt, options));
   return SUCCESS;
 }
 
-Status ModelHelper::UpdatePlatfromInfoWithDevice(fe::PlatFormInfos &platformInfos_device, const uint32_t ai_core_cnt_ini,
-  const uint32_t vector_core_cnt_ini, fe::PlatformInfo &platform_info) const {
+Status ModelHelper::UpdatePlatfromInfoWithDevice(fe::PlatFormInfos &platformInfos_device,
+                                                 const uint32_t ai_core_cnt_ini, const uint32_t vector_core_cnt_ini,
+                                                 fe::PlatformInfo &platform_info) const {
   std::map<std::string, std::string> res;
 
   (void)platformInfos_device.GetPlatformResWithLock(kSocInfoKey, res);
   std::string aicore_num_device = res[kAicCntKey];
   std::string vec_core_num_device = res[kVecCoreCntKey];
-  GELOGI("Get platform info from device, aicore_num: %s, vector_core_num: %s.",
-         aicore_num_device.c_str(), vec_core_num_device.c_str());
+  GELOGI("Get platform info from device, aicore_num: %s, vector_core_num: %s.", aicore_num_device.c_str(),
+         vec_core_num_device.c_str());
 
   GE_CHK_STATUS_RET(UpdateCoreCountWithDevice(kEnumNameCubeNum, ai_core_cnt_ini, aicore_num_device,
-    platform_info.soc_info.ai_core_cnt));
+                                              platform_info.soc_info.ai_core_cnt));
   GE_CHK_STATUS_RET(UpdateCoreCountWithDevice(kEnumNameVectorNum, vector_core_cnt_ini, vec_core_num_device,
-    platform_info.soc_info.vector_core_cnt));
+                                              platform_info.soc_info.vector_core_cnt));
   return SUCCESS;
 }
 
-Status ModelHelper::UpdatePlatfromInfoWithRuntime(const int32_t device_id, const uint32_t ai_core_cnt_ini, const uint32_t vector_core_cnt_ini,
-  fe::PlatformInfo &platform_info, int32_t &virtual_type) const {
+Status ModelHelper::UpdatePlatfromInfoWithRuntime(const int32_t device_id, const uint32_t ai_core_cnt_ini,
+                                                  const uint32_t vector_core_cnt_ini, fe::PlatformInfo &platform_info,
+                                                  int32_t &virtual_type) const {
   if (device_id < 0) {
     GELOGI("Offline scene, skip update platform info from runtime.");
     return SUCCESS;
   }
   int64_t aic_core_cnt = 0;
-  if (aclrtGetDeviceInfo(static_cast<uint32_t>(device_id), ACL_DEV_ATTR_AICORE_CORE_NUM, &aic_core_cnt) != ACL_SUCCESS) {
+  if (aclrtGetDeviceInfo(static_cast<uint32_t>(device_id), ACL_DEV_ATTR_AICORE_CORE_NUM, &aic_core_cnt) !=
+      ACL_SUCCESS) {
     GELOGE(FAILED, "Failed to get AICore count from device.");
     return FAILED;
   }
@@ -1755,18 +1768,17 @@ Status ModelHelper::UpdatePlatfromInfoWithRuntime(const int32_t device_id, const
   (void)aclrtGetDeviceInfo(static_cast<uint32_t>(device_id), ACL_DEV_ATTR_VECTOR_CORE_NUM, &vector_core_cnt);
 
   // 用从rts获取到的核数刷新platform info
-  UpdateCoreCountWithRuntime(AICORE_NUM, ai_core_cnt_ini, aic_core_cnt,
-    platform_info.soc_info.ai_core_cnt);
+  UpdateCoreCountWithRuntime(AICORE_NUM, ai_core_cnt_ini, aic_core_cnt, platform_info.soc_info.ai_core_cnt);
   UpdateCoreCountWithRuntime(kVectorCoreNum, vector_core_cnt_ini, vector_core_cnt,
-    platform_info.soc_info.vector_core_cnt);
+                             platform_info.soc_info.vector_core_cnt);
 
-   size_t free_mem = 0U;
-   size_t total_mem_size = 0U;
-   if (aclrtGetMemInfo(ACL_HBM_MEM, &free_mem, &total_mem_size) == ACL_SUCCESS) {
-     GELOGI("Change memory_size from platform %lu to rts %zu bytes.",
-            platform_info.soc_info.memory_size, total_mem_size);
-     platform_info.soc_info.memory_size = total_mem_size;
-   }
+  size_t free_mem = 0U;
+  size_t total_mem_size = 0U;
+  if (aclrtGetMemInfo(ACL_HBM_MEM, &free_mem, &total_mem_size) == ACL_SUCCESS) {
+    GELOGI("Change memory_size from platform %lu to rts %zu bytes.", platform_info.soc_info.memory_size,
+           total_mem_size);
+    platform_info.soc_info.memory_size = total_mem_size;
+  }
 
   return SUCCESS;
 }
@@ -1792,16 +1804,21 @@ Status ModelHelper::SetPlatformInfos(const std::string &soc_version, const fe::P
   res["l2_size"] = std::to_string(platform_info.soc_info.l2_size);
   res["memory_size"] = std::to_string(platform_info.soc_info.memory_size);
 
-  GELOGD("Begin to update platform infos, aicore_cnt: %d, vector_core_cnt: %d, cube_core_cnt: %s, l2_size: %d, memory_size: %d",
-         platform_info.soc_info.ai_core_cnt, platform_info.soc_info.vector_core_cnt, res["cube_core_cnt"].c_str(),
-         platform_info.soc_info.l2_size, platform_info.soc_info.memory_size);
+  GELOGD(
+      "Begin to update platform infos, aicore_cnt: %d, vector_core_cnt: %d, cube_core_cnt: %s, l2_size: %d, "
+      "memory_size: %d",
+      platform_info.soc_info.ai_core_cnt, platform_info.soc_info.vector_core_cnt, res["cube_core_cnt"].c_str(),
+      platform_info.soc_info.l2_size, platform_info.soc_info.memory_size);
 
   platform_infos.SetPlatformResWithLock("SoCInfo", res);
 
-  GE_ASSERT_TRUE(fe::PlatformInfoManager::GeInstance().UpdatePlatformInfos(soc_version, platform_infos) == 0U, "Update platform infos of GeInstance failed.");
+  GE_ASSERT_TRUE(fe::PlatformInfoManager::GeInstance().UpdatePlatformInfos(soc_version, platform_infos) == 0U,
+                 "Update platform infos of GeInstance failed.");
 
-  GE_ASSERT_TRUE(fe::PlatformInfoManager::Instance().InitializePlatformInfo() == 0U, "Initialize platform info of Instance failed.");
-  GE_ASSERT_TRUE(fe::PlatformInfoManager::Instance().UpdatePlatformInfos(soc_version, platform_infos) == 0U, "Update platform infos of Instance failed.");
+  GE_ASSERT_TRUE(fe::PlatformInfoManager::Instance().InitializePlatformInfo() == 0U,
+                 "Initialize platform info of Instance failed.");
+  GE_ASSERT_TRUE(fe::PlatformInfoManager::Instance().UpdatePlatformInfos(soc_version, platform_infos) == 0U,
+                 "Update platform infos of Instance failed.");
 #endif
   return SUCCESS;
 }
@@ -1869,8 +1886,9 @@ Status ModelHelper::EnsureKernelBuilt(const GeModelPtr &model) {
 }
 REGISTER_MODEL_SAVE_HELPER(OM_FORMAT_DEFAULT, ModelHelper);
 
-Status ModelHelper::UpdateCoreCountWithOption(const std::string &key, const std::string &context_key, uint32_t core_num_ini,
-                                            uint32_t &platform_info_count, std::map<std::string, std::string> &options) const {
+Status ModelHelper::UpdateCoreCountWithOption(const std::string &key, const std::string &context_key,
+                                              uint32_t core_num_ini, uint32_t &platform_info_count,
+                                              std::map<std::string, std::string> &options) const {
   std::string core_num_str;
   auto iter = options.find(key);
   if (iter != options.end()) {
@@ -1883,7 +1901,8 @@ Status ModelHelper::UpdateCoreCountWithOption(const std::string &key, const std:
 
   int32_t core_num = -1;
   if (!core_num_str.empty()) {
-    GE_CHK_STATUS_RET(CoreNumUtils::ParseAndValidateCoreNum(ge::GetContext().GetReadableName(AICORE_NUM), core_num_str, 0, core_num_ini, core_num));
+    GE_CHK_STATUS_RET(CoreNumUtils::ParseAndValidateCoreNum(ge::GetContext().GetReadableName(AICORE_NUM), core_num_str,
+                                                            0, core_num_ini, core_num));
   }
 
   if (core_num > 0) {
@@ -1894,10 +1913,11 @@ Status ModelHelper::UpdateCoreCountWithOption(const std::string &key, const std:
 }
 
 Status ModelHelper::UpdateCoreCountWithDevice(const std::string &key, uint32_t core_num_ini,
-                                            const std::string &core_num_str, uint32_t &platform_info_count) const {
+                                              const std::string &core_num_str, uint32_t &platform_info_count) const {
   int32_t core_num = -1;
   if (!core_num_str.empty()) {
-    GE_CHK_STATUS_RET(CoreNumUtils::ParseAndValidateCoreNum(ge::GetContext().GetReadableName(AICORE_NUM), core_num_str, 0, core_num_ini, core_num));
+    GE_CHK_STATUS_RET(CoreNumUtils::ParseAndValidateCoreNum(ge::GetContext().GetReadableName(AICORE_NUM), core_num_str,
+                                                            0, core_num_ini, core_num));
   }
 
   if (core_num > 0) {
@@ -1908,30 +1928,27 @@ Status ModelHelper::UpdateCoreCountWithDevice(const std::string &key, uint32_t c
   return SUCCESS;
 }
 
-void ModelHelper::UpdateCoreCountWithRuntime(const std::string &key, uint32_t platform_count, const int64_t core_num_rts,
-                                          uint32_t &platform_info_count) const {
+void ModelHelper::UpdateCoreCountWithRuntime(const std::string &key, uint32_t platform_count,
+                                             const int64_t core_num_rts, uint32_t &platform_info_count) const {
   GELOGI("Change %s from platform %u to rts %ld.", key.c_str(), platform_count, core_num_rts);
   platform_info_count = static_cast<uint32_t>(core_num_rts);
 }
 
-Status ModelHelper::UpdateGeRootModelTaskAddr(const GeRootModelPtr &ge_root_model,
-                                              const ComputeGraphPtr &root_graph,
-                                              std::set<ComputeGraph *> &refreshed_graphs,
-                                              const bool is_cache) {
+Status ModelHelper::UpdateGeRootModelTaskAddr(const GeRootModelPtr &ge_root_model, const ComputeGraphPtr &root_graph,
+                                              std::set<ComputeGraph *> &refreshed_graphs, const bool is_cache) {
   GE_ASSERT_NOTNULL(root_graph);
   GE_ASSERT_NOTNULL(ge_root_model);
   std::map<int64_t, int64_t> logical_addr_mapping;
   const auto session_id = root_graph->GetSessionID();
-  GE_CHK_STATUS_RET(
-      RefreshAndGetAddrMapping(root_graph, session_id, is_cache, logical_addr_mapping, refreshed_graphs),
-      "Refresh and get addr mapping in submodel graph failed. graph name %s", root_graph->GetName().c_str());
+  GE_CHK_STATUS_RET(RefreshAndGetAddrMapping(root_graph, session_id, is_cache, logical_addr_mapping, refreshed_graphs),
+                    "Refresh and get addr mapping in submodel graph failed. graph name %s",
+                    root_graph->GetName().c_str());
   GE_CHK_STATUS_RET(UpdateModelTaskAddr(ge_root_model, session_id, logical_addr_mapping, refreshed_graphs));
   return SUCCESS;
 }
 
 Status ModelHelper::RefreshAndGetAddrMapping(const ComputeGraphPtr &graph, const uint64_t session_id,
-                                             const bool is_cache,
-                                             std::map<int64_t, int64_t> &logical_addr_mapping,
+                                             const bool is_cache, std::map<int64_t, int64_t> &logical_addr_mapping,
                                              std::set<ComputeGraph *> &refreshed_graphs) {
   if (refreshed_graphs.find(graph.get()) != refreshed_graphs.cend()) {
     GELOGI("graph[%s] has been refreshed, no need refresh again", graph->GetName().c_str());
@@ -1950,7 +1967,7 @@ Status ModelHelper::RefreshAndGetAddrMapping(const ComputeGraphPtr &graph, const
       const auto &output_offsets = op_desc->GetOutputOffset();
       GE_CHK_BOOL_RET_STATUS(!output_offsets.empty(), FAILED, "Node:%s output offsets is empty",
                              node->GetName().c_str());
-      (void) unrefreshed_offsets.emplace(output_offsets[0U], node);
+      (void)unrefreshed_offsets.emplace(output_offsets[0U], node);
       if (node_type == VARIABLE) {
         const auto &name = node->GetName();
         const auto pos = name.find(kMultiBatchNodePostfix);
@@ -1964,8 +1981,8 @@ Status ModelHelper::RefreshAndGetAddrMapping(const ComputeGraphPtr &graph, const
   NodeRefreshInfo outputs_need_refresh;
   GE_CHK_STATUS_RET(RecordOffsetsRefreshInfo(graph, unrefreshed_offsets, inputs_need_refresh, outputs_need_refresh),
                     "Failed to record nodes need refresh offsets in graph:%s", graph->GetName().c_str());
-  GE_CHK_STATUS_RET(VarMemAssignUtil::AssignConstantOpMemory(graph),
-                    "assign constant op memory failed, graph_name=%s.", graph->GetName().c_str());
+  GE_CHK_STATUS_RET(VarMemAssignUtil::AssignConstantOpMemory(graph), "assign constant op memory failed, graph_name=%s.",
+                    graph->GetName().c_str());
   GE_CHK_STATUS_RET(RefreshNodeOffset(inputs_need_refresh, outputs_need_refresh, logical_addr_mapping),
                     "Failed to refresh node offset in graph:%s", graph->GetName().c_str());
   (void)refreshed_graphs.emplace(graph.get());
@@ -1987,9 +2004,9 @@ Status ModelHelper::RecordOffsetsRefreshInfo(const ComputeGraphPtr &graph,
     for (size_t i = 0U; i < input_offsets.size(); ++i) {
       auto offset = input_offsets[i];
       int64_t inner_offset = 0;
-      (void) ge::AttrUtils::GetInt(input_descs.at(i), ATTR_NAME_INNER_OFFSET, inner_offset);
-      GELOGD("Node[%s] input[%zu], offset = %ld, inner_offset = %ld, raw_offset = %ld",
-             op_desc->GetName().c_str(), i, inner_offset, offset, offset - inner_offset);
+      (void)ge::AttrUtils::GetInt(input_descs.at(i), ATTR_NAME_INNER_OFFSET, inner_offset);
+      GELOGD("Node[%s] input[%zu], offset = %ld, inner_offset = %ld, raw_offset = %ld", op_desc->GetName().c_str(), i,
+             inner_offset, offset, offset - inner_offset);
       GE_ASSERT_SUCCESS(CheckInt64SubOverflow(offset, inner_offset));
       offset -= inner_offset;
       const auto &var_node = TryGetVarNodeByOffset(unrefreshed_offsets, offset);
@@ -2005,10 +2022,10 @@ Status ModelHelper::RecordOffsetsRefreshInfo(const ComputeGraphPtr &graph,
     for (size_t i = 0U; i < output_offsets.size(); ++i) {
       auto offset = output_offsets[i];
       int64_t inner_offset = 0;
-      (void) ge::AttrUtils::GetInt(op_desc->GetOutputDesc(static_cast<uint32_t>(i)),
-                                  ATTR_NAME_INNER_OFFSET, inner_offset);
-      GELOGD("Node[%s] output[%zu], offset = %ld, inner_offset = %ld, raw_offset = %ld",
-             op_desc->GetName().c_str(), i, offset, inner_offset, offset - inner_offset);
+      (void)ge::AttrUtils::GetInt(op_desc->GetOutputDesc(static_cast<uint32_t>(i)), ATTR_NAME_INNER_OFFSET,
+                                  inner_offset);
+      GELOGD("Node[%s] output[%zu], offset = %ld, inner_offset = %ld, raw_offset = %ld", op_desc->GetName().c_str(), i,
+             offset, inner_offset, offset - inner_offset);
       GE_ASSERT_SUCCESS(CheckInt64SubOverflow(offset, inner_offset));
       offset -= inner_offset;
       const auto &var_node = TryGetVarNodeByOffset(unrefreshed_offsets, offset);
@@ -2047,9 +2064,7 @@ Status ModelHelper::RefreshNodeOffset(const NodeRefreshInfo &inputs_need_refresh
         const int64_t new_input_offset = var_offset + inner_offset;
         if (new_input_offset != orig_input_offset) {
           input_offsets[index] = new_input_offset;
-          GELOGI("Node:%s input:[%zu] offset use var offset:%ld",
-                 refresh_node->GetName().c_str(),
-                 index,
+          GELOGI("Node:%s input:[%zu] offset use var offset:%ld", refresh_node->GetName().c_str(), index,
                  new_input_offset);
           logical_addr_mapping[orig_input_offset] = new_input_offset;
           GELOGD("mapping [%ld] to [%ld]", orig_input_offset, new_input_offset);
@@ -2078,9 +2093,7 @@ Status ModelHelper::RefreshNodeOffset(const NodeRefreshInfo &inputs_need_refresh
         const int64_t new_output_offset = var_offset + inner_offset;
         if (new_output_offset != orig_output_offset) {
           output_offsets[index] = new_output_offset;
-          GELOGI("Node:%s output:[%zu] offset use var offset:%ld",
-                 refresh_node->GetName().c_str(),
-                 index,
+          GELOGI("Node:%s output:[%zu] offset use var offset:%ld", refresh_node->GetName().c_str(), index,
                  new_output_offset);
           logical_addr_mapping[orig_output_offset] = new_output_offset;
           GELOGD("mapping [%ld] to [%ld]", output_offsets[index], new_output_offset);
@@ -2113,17 +2126,17 @@ Status ModelHelper::UpdateModelTaskAddr(const GeRootModelPtr &ge_root_model, con
     GE_ASSERT_NOTNULL(model_graph);
     std::map<int64_t, int64_t> useless_mapping;
     GE_CHK_STATUS_RET(RefreshAndGetAddrMapping(model_graph, session_id, true, useless_mapping, refreshed_graphs),
-                      "Refresh and get addr mapping in ge model graph failed. graph name %s", model_graph->GetName().c_str());
+                      "Refresh and get addr mapping in ge model graph failed. graph name %s",
+                      model_graph->GetName().c_str());
   }
   return SUCCESS;
 }
 
-Status ModelHelper::UpdateSessionGraphId(const ComputeGraphPtr &graph,
-                                         const std::string &session_graph_id,
+Status ModelHelper::UpdateSessionGraphId(const ComputeGraphPtr &graph, const std::string &session_graph_id,
                                          bool &refreshed) {
   GE_CHECK_NOTNULL(graph);
   std::string value;
-  const std::string* value_ptr = AttrUtils::GetStr(*graph, ATTR_NAME_SESSION_GRAPH_ID);
+  const std::string *value_ptr = AttrUtils::GetStr(*graph, ATTR_NAME_SESSION_GRAPH_ID);
   if (value_ptr != nullptr) {
     value = *value_ptr;
     if (value == session_graph_id) {
@@ -2140,7 +2153,7 @@ Status ModelHelper::UpdateSessionGraphId(const ComputeGraphPtr &graph,
   for (const auto &node : graph->GetDirectNode()) {
     const auto &opdesc = node->GetOpDesc();
     GE_CHECK_NOTNULL(opdesc);
-    const std::string* op_session_graph_id = AttrUtils::GetStr(opdesc, ATTR_NAME_SESSION_GRAPH_ID);
+    const std::string *op_session_graph_id = AttrUtils::GetStr(opdesc, ATTR_NAME_SESSION_GRAPH_ID);
     // some op save session graph id in opdesc
     if (op_session_graph_id != nullptr && (*op_session_graph_id != session_graph_id)) {
       GE_CHK_BOOL_RET_STATUS(AttrUtils::SetStr(opdesc, ATTR_NAME_SESSION_GRAPH_ID, session_graph_id), FAILED,

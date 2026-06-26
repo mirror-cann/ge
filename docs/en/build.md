@@ -163,7 +163,7 @@ After compilation is complete, users can perform developer testing.
   **Output Location**: Generated coverage files are located in the `cov/` directory under the code root directory.
 
 - Execute specified test cases:
-  
+
   After UT/ST execution is complete, you can perform individual testing by directly executing test executable files.
 
   **Prerequisites**:
@@ -171,7 +171,7 @@ After compilation is complete, users can perform developer testing.
 
   **Usage**:
   - Example: Have executed `bash tests/run_test.sh --ut=ge_common`, and want to individually execute and verify `ut_libge_multiparts_utest`:
-  
+
   ```bash
   # UT/ST testing will stub some dependent .so files, need to clear LD_LIBRARY_PATH and ASCEND_OPP_PATH environment variables to avoid interference from CANN/Ascend environment already installed on host machine
   unset LD_LIBRARY_PATH

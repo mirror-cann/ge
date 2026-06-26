@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -56,26 +56,25 @@ void ExpectMatchedBoundaryEqualWith(const SubgraphBoundary &actual_boundary, con
     EXPECT_EQ(actual_outputs[i].GetOutput(actual_node_output), SUCCESS);
     NodeIo expect_node_output;
     EXPECT_EQ(expect_outputs[i].GetOutput(expect_node_output), SUCCESS);
-    EXPECT_EQ(NodeAdapter::GNode2Node(actual_node_output.node),
-              NodeAdapter::GNode2Node(expect_node_output.node));
+    EXPECT_EQ(NodeAdapter::GNode2Node(actual_node_output.node), NodeAdapter::GNode2Node(expect_node_output.node));
     EXPECT_EQ(actual_node_output.index, expect_node_output.index);
   }
 }
 
 /**
-*                          data3   data4
-*                              \     /
-*                     data2    add0
-*                        \      /
-*                          add
-*                           |
-*        data0  data1     cast1
-*            \     \      /
-*             addlayernorm
-*              /   |  |  |
-*           cast2  |  |  |
-*              \   |  | /
-*               netoutput
+ *                          data3   data4
+ *                              \     /
+ *                     data2    add0
+ *                        \      /
+ *                          add
+ *                           |
+ *        data0  data1     cast1
+ *            \     \      /
+ *             addlayernorm
+ *              /   |  |  |
+ *           cast2  |  |  |
+ *              \   |  | /
+ *               netoutput
  * @param cast_dst_type
  * @return
  */
@@ -89,7 +88,8 @@ std::unique_ptr<Graph> BuildPartialOutputAnchorsAsPatternOutputGraph(DataType ca
   auto data4 = EsCreateGraphInput(esb_graph, 4);
   auto add = EsAdd(data2, EsAdd(data3, data4));
   auto cast1 = EsCast(add, cast_dst_type);
-  auto add_layer_norm = EsAddLayerNorm(data0, data1, cast1, EsCreateScalarInt32(esb_graph, 1), EsCreateScalarInt32(esb_graph, 1), 0, 0);
+  auto add_layer_norm =
+      EsAddLayerNorm(data0, data1, cast1, EsCreateScalarInt32(esb_graph, 1), EsCreateScalarInt32(esb_graph, 1), 0, 0);
   auto cast2 = EsCast(add_layer_norm.x, cast_dst_type);
   esb_graph->SetGraphOutput(cast2, 0);
   esb_graph->SetGraphOutput(add_layer_norm.mean, 1);
@@ -109,6 +109,7 @@ class UtestPatternMatcher : public testing::Test {
 
  private:
   static std::unordered_map<std::string, EsCTensorHolder *> case_2_tensor_;
+
  protected:
   static Graph target_graph0;
   static Graph target_graph1;
@@ -117,28 +118,27 @@ class UtestPatternMatcher : public testing::Test {
 
                                                                                             g1
 
-                                                                   ┌──────────────┐     ┌─────────┐                                    ┌─────────────────┐
-                                                                   │   c2894_4    │     │ c2894_5 │                                    │ y_reshape_const │
-                                                                   └──────────────┘     └─────────┘                                    └─────────────────┘
-                                                                     │                    │                                              │
-                                                                     │ (0,2)              │ (0,5)                                        │ (0,1)
-                                                                     ∨                    ∨                                              ∨
-                                 ┌──────────────────────┐  (0,1)   ┌──────────────────────────────┐  (0,0)   ┌──────────────┐  (0,0)   ┌─────────────────┐  (0,0)   ┌───────────┐
-                                 │       c2894_3        │ ───────> │                              │ ───────> │ transdata_17 │ ───────> │    y_reshape    │ ───────> │ NetOutput │ <┐
-                                 └──────────────────────┘          │                              │          └──────────────┘          └─────────────────┘          └───────────┘  │
-    (0,3)    │                              │                                                                   ∧            │
-  ┌──────────────────────────────────────────────────────────────> │                              │                                                                   │            │
-  │                                                                │                              │                                                                   │            │
-  │                              ┌──────────────────────┐          │                              │  (2,0)   ┌──────────────┐  (0,2)                                  │            │
-  │                              │   x_reshape_const    │          │            drnnv3            │ ───────> │ transdata_13 │ ────────────────────────────────────────┘            │ (0,1)
-  │                              └──────────────────────┘          │                              │          └──────────────┘                                                      │
-  │                                │                               │                              │                                                                                │
-  │                                │ (0,1)                         │                              │                                                                                │
-  │                                ∨                               │                              │                                                                                │
-  │  ┌────────────────┐  (0,0)   ┌──────────────────────┐          │                              │  (1,0)   ┌──────────────┐                                                      │
-  │  │ inputs_float32 │ ───────> │      x_reshape       │          │                              │ ───────> │ transdata_15 │ ─────────────────────────────────────────────────────┘
-  │  └────────────────┘          └──────────────────────┘          └──────────────────────────────┘          └──────────────┘
-  │                                │                                 ∧                    ∧
+                                                                   ┌──────────────┐     ┌─────────┐ ┌─────────────────┐
+                                                                   │   c2894_4    │     │ c2894_5 │ │ y_reshape_const │
+                                                                   └──────────────┘     └─────────┘ └─────────────────┘
+                                                                     │                    │ │ │ (0,2)              │
+  (0,5)                                        │ (0,1) ∨                    ∨ ∨ ┌──────────────────────┐  (0,1)
+  ┌──────────────────────────────┐  (0,0)   ┌──────────────┐  (0,0)   ┌─────────────────┐  (0,0)   ┌───────────┐ │
+  c2894_3        │ ───────> │                              │ ───────> │ transdata_17 │ ───────> │    y_reshape    │
+  ───────> │ NetOutput │ <┐ └──────────────────────┘          │                              │          └──────────────┘
+  └─────────────────┘          └───────────┘  │ (0,3)    │                              │ ∧            │
+  ┌──────────────────────────────────────────────────────────────> │                              │ │            │ │ │
+  │                                                                   │            │ │ ┌──────────────────────┐ │ │
+  (2,0)   ┌──────────────┐  (0,2)                                  │            │ │                              │
+  x_reshape_const    │          │            drnnv3            │ ───────> │ transdata_13 │
+  ────────────────────────────────────────┘            │ (0,1) │                              └──────────────────────┘
+  │                              │          └──────────────┘                                                      │ │ │
+  │                              │                                                                                │ │ │
+  (0,1)                         │                              │ │ │                                ∨ │ │ │ │
+  ┌────────────────┐  (0,0)   ┌──────────────────────┐          │                              │  (1,0) ┌──────────────┐
+  │ │  │ inputs_float32 │ ───────> │      x_reshape       │          │                              │ ───────> │
+  transdata_15 │ ─────────────────────────────────────────────────────┘ │  └────────────────┘ └──────────────────────┘
+  └──────────────────────────────┘          └──────────────┘ │                                │ ∧                    ∧
   │                                │ (0,0)                           │ (0,0)              │ (0,4)
   │                                ∨                                 │                    │
   │                              ┌──────────────────────┐            │                    │
@@ -199,15 +199,17 @@ TEST_F(UtestPatternMatcher, SingleNode_1Input_1Output_Match) {
 
   EXPECT_EQ(match_ret.size(), 6);
   std::vector<std::string> expect_match_node_name = {"transdata_10", "transdata_13", "transdata_15",
-                                                    "transdata_17", "transdata_4",  "transdata_8"};
-  std::vector<std::string> expect_match_node_input_name = {"cell_state_float32", "drnnv3", "drnnv3",
-                                                    "drnnv3", "x_reshape",  "hidden_state_float32"};
+                                                     "transdata_17", "transdata_4",  "transdata_8"};
+  std::vector<std::string> expect_match_node_input_name = {
+      "cell_state_float32", "drnnv3", "drnnv3", "drnnv3", "x_reshape", "hidden_state_float32"};
   GNode transdata10;
   for (size_t i = 0u; i < match_ret.size(); ++i) {
     if (i == 0) {
-      match_ret[i]->GetMatchedNode(NodeAdapter::Node2GNode(NodeAdapter::GNode2Node(transdata->GetProducer())), transdata10);
+      match_ret[i]->GetMatchedNode(NodeAdapter::Node2GNode(NodeAdapter::GNode2Node(transdata->GetProducer())),
+                                   transdata10);
     }
-    ExpectMatchedNodeEqualWith(match_ret[i], NodeAdapter::GNode2Node(transdata->GetProducer()), expect_match_node_name[i]);
+    ExpectMatchedNodeEqualWith(match_ret[i], NodeAdapter::GNode2Node(transdata->GetProducer()),
+                               expect_match_node_name[i]);
     std::cout << match_ret[i]->ToAscendString().GetString() << std::endl;
   }
   auto actual_boundary = match_ret[0]->ToSubgraphBoundary();
@@ -239,7 +241,8 @@ TEST_F(UtestPatternMatcher, SingleNode_2Input_1Output_WithConst_Match) {
   std::vector<int64_t> x_reshape_const_data({-1, 1, 256});
   std::vector<int64_t> x_reshape_shape({3});
 
-  auto shape_const = EsCreateConstInt64(esb_graph, x_reshape_const_data.data(), x_reshape_shape.data(), x_reshape_shape.size());
+  auto shape_const =
+      EsCreateConstInt64(esb_graph, x_reshape_const_data.data(), x_reshape_shape.data(), x_reshape_shape.size());
   auto reshape = EsReshape(data, shape_const, 0, 0);
   esb_graph->SetGraphOutput(reshape, 0);
   auto graph = pattern_graph.BuildAndReset();
@@ -255,7 +258,8 @@ TEST_F(UtestPatternMatcher, SingleNode_2Input_1Output_WithConst_Match) {
   EXPECT_EQ(match_ret.size(), 2);
   std::vector<std::string> expect_match_node_name = {"x_reshape", "y_reshape"};
   for (size_t i = 0u; i < match_ret.size(); ++i) {
-    ExpectMatchedNodeEqualWith(match_ret[i], NodeAdapter::GNode2Node(reshape->GetProducer()), expect_match_node_name[i]);
+    ExpectMatchedNodeEqualWith(match_ret[i], NodeAdapter::GNode2Node(reshape->GetProducer()),
+                               expect_match_node_name[i]);
   }
 }
 
@@ -294,7 +298,6 @@ TEST_F(UtestPatternMatcher, SingleNode_2Input_1Output_WithConst_EnableValueMatch
   EXPECT_EQ(match_ret.size(), 0);
 }
 
-
 /**
  *      data    const
  *        |    /
@@ -312,7 +315,8 @@ TEST_F(UtestPatternMatcher, TwoNode_2Input_1Output_WithConst_Match) {
 
   std::vector<int64_t> x_reshape_const_data({-1, 1, 256});
   std::vector<int64_t> x_reshape_shape({3});
-  auto shape_const = EsCreateConstInt64(esb_graph, x_reshape_const_data.data(), x_reshape_shape.data(), x_reshape_shape.size());
+  auto shape_const =
+      EsCreateConstInt64(esb_graph, x_reshape_const_data.data(), x_reshape_shape.data(), x_reshape_shape.size());
   auto reshape = EsReshape(data, shape_const, 0, 0);
   auto transdata = EsTransData(reshape, "0", "29", 0, 0, 0);
   esb_graph->SetGraphOutput(transdata, 0);
@@ -352,7 +356,7 @@ TEST_F(UtestPatternMatcher, 3Node_1Input_2Output_Match) {
   auto esb_graph = pattern_graph.GetCGraphBuilder();
   auto data = EsCreateGraphInput(esb_graph, 0);
   auto abs1 = EsAbs(data);
-  auto exp = EsExp(abs1, 0 , 0, 0);
+  auto exp = EsExp(abs1, 0, 0, 0);
   auto relu = EsRelu(abs1);
   esb_graph->SetGraphOutput(exp, 0);
   esb_graph->SetGraphOutput(relu, 1);
@@ -391,7 +395,7 @@ TEST_F(UtestPatternMatcher, PatternInput_MultiConsumer_Match) {
   auto pattern_graph = es::EsGraphBuilder("pattern");
   auto esb_graph = pattern_graph.GetCGraphBuilder();
   auto data = EsCreateGraphInput(esb_graph, 0);
-  auto exp = EsExp(data, 0 , 0, 0);
+  auto exp = EsExp(data, 0, 0, 0);
   auto relu = EsRelu(data);
   esb_graph->SetGraphOutput(exp, 0);
   esb_graph->SetGraphOutput(relu, 1);
@@ -428,14 +432,14 @@ TEST_F(UtestPatternMatcher, PatternInput_MultiConsumer_Match) {
  *  exp  relu          exp   relu
  *                       \   /
  *                     netoutput
-*/
+ */
 // todo check later how can this ut work
 TEST_F(UtestPatternMatcher, PatternInput_MultiConsumer_TargetNode_ProducerIsDiff_Miss) {
   // build pattern graph
   auto pattern_graph = es::EsGraphBuilder("pattern");
   auto esb_graph = pattern_graph.GetCGraphBuilder();
   auto data = EsCreateGraphInput(esb_graph, 0);
-  auto exp = EsExp(data, 0 , 0, 0);
+  auto exp = EsExp(data, 0, 0, 0);
   auto relu = EsRelu(data);
   esb_graph->SetGraphOutput(exp, 0);
   esb_graph->SetGraphOutput(relu, 1);
@@ -448,7 +452,7 @@ TEST_F(UtestPatternMatcher, PatternInput_MultiConsumer_TargetNode_ProducerIsDiff
   auto t_data = EsCreateGraphInput(target_esb_graph, 0);
   auto t_abs1 = EsAbs(t_data);
   auto t_abs2 = EsAbs(t_data);
-  auto t_exp = EsExp(t_abs1, 0 , 0, 0);
+  auto t_exp = EsExp(t_abs1, 0, 0, 0);
   auto t_relu = EsRelu(t_abs2);
   target_esb_graph->SetGraphOutput(t_exp, 0);
   target_esb_graph->SetGraphOutput(t_relu, 1);
@@ -484,7 +488,7 @@ TEST_F(UtestPatternMatcher, 3Node_1Input_2Output_Miss) {
   auto esb_graph = pattern_graph.GetCGraphBuilder();
   auto data = EsCreateGraphInput(esb_graph, 0);
   auto abs1 = EsAbs(data);
-  auto exp = EsExp(abs1, 0 , 0, 0);
+  auto exp = EsExp(abs1, 0, 0, 0);
   auto relu = EsRelu(data);
   esb_graph->SetGraphOutput(exp, 0);
   esb_graph->SetGraphOutput(relu, 1);
@@ -519,7 +523,8 @@ TEST_F(UtestPatternMatcher, 2Patterns_Match) {
 
   std::vector<int64_t> x_reshape_const_data({-1, 1, 256});
   std::vector<int64_t> x_reshape_shape({3});
-  auto shape_const = EsCreateConstInt64(esb_graph, x_reshape_const_data.data(), x_reshape_shape.data(), x_reshape_shape.size());
+  auto shape_const =
+      EsCreateConstInt64(esb_graph, x_reshape_const_data.data(), x_reshape_shape.data(), x_reshape_shape.size());
   auto reshape = EsReshape(data, shape_const, 0, 0);
   auto transdata = EsTransData(reshape, "0", "29", 0, 0, 0);
   esb_graph->SetGraphOutput(transdata, 0);
@@ -527,7 +532,7 @@ TEST_F(UtestPatternMatcher, 2Patterns_Match) {
   auto pattern = std::make_unique<Pattern>(std::move(*graph));
 
   // build pattern graph1
-  auto pattern_graph1= es::EsGraphBuilder("pattern1");
+  auto pattern_graph1 = es::EsGraphBuilder("pattern1");
   auto esb_graph1 = pattern_graph1.GetCGraphBuilder();
   auto transdata1 = EsTransData(EsCreateGraphInput(esb_graph1, 0), "0", "29", 0, 0, 0);
   auto reshape1 = EsReshape(transdata1, EsCreateGraphInput(esb_graph1, 1), 0, 0);
@@ -562,7 +567,7 @@ TEST_F(UtestPatternMatcher, InvalidPattern_ContrlEdgeInPattern_Miss) {
   gert::GertRuntimeStub runtime_stub;
   PatternMatcher matcher(std::move(pattern), std::make_shared<Graph>(target_graph0));
   EXPECT_EQ(matcher.MatchNext(), nullptr);
-  EXPECT_TRUE(runtime_stub.GetSlogStub().FindLogRegex(DLOG_ERROR, "has control edge")>= 0);
+  EXPECT_TRUE(runtime_stub.GetSlogStub().FindLogRegex(DLOG_ERROR, "has control edge") >= 0);
 }
 
 TEST_F(UtestPatternMatcher, InvalidPattern_SubgraphInPattern_Miss) {
@@ -573,7 +578,7 @@ TEST_F(UtestPatternMatcher, InvalidPattern_SubgraphInPattern_Miss) {
   gert::GertRuntimeStub runtime_stub;
   PatternMatcher matcher(std::move(pattern), std::make_shared<Graph>(target_graph0));
   EXPECT_EQ(matcher.MatchNext(), nullptr);
-  EXPECT_TRUE(runtime_stub.GetSlogStub().FindLogRegex(DLOG_ERROR, "It has subgraph")>= 0);
+  EXPECT_TRUE(runtime_stub.GetSlogStub().FindLogRegex(DLOG_ERROR, "It has subgraph") >= 0);
 }
 
 TEST_F(UtestPatternMatcher, InvalidPattern_DynamicInputNodeInPattern_Miss) {
@@ -584,7 +589,7 @@ TEST_F(UtestPatternMatcher, InvalidPattern_DynamicInputNodeInPattern_Miss) {
   gert::GertRuntimeStub runtime_stub;
   PatternMatcher matcher(std::move(pattern), std::make_shared<Graph>(target_graph0));
   EXPECT_EQ(matcher.MatchNext(), nullptr);
-  EXPECT_TRUE(runtime_stub.GetSlogStub().FindLogRegex(DLOG_ERROR, "is dynamic input")>= 0);
+  EXPECT_TRUE(runtime_stub.GetSlogStub().FindLogRegex(DLOG_ERROR, "is dynamic input") >= 0);
 }
 
 TEST_F(UtestPatternMatcher, InvalidPattern_DynamicOutputNodeInPattern_Miss) {
@@ -595,7 +600,7 @@ TEST_F(UtestPatternMatcher, InvalidPattern_DynamicOutputNodeInPattern_Miss) {
   gert::GertRuntimeStub runtime_stub;
   PatternMatcher matcher(std::move(pattern), std::make_shared<Graph>(target_graph0));
   EXPECT_EQ(matcher.MatchNext(), nullptr);
-  EXPECT_TRUE(runtime_stub.GetSlogStub().FindLogRegex(DLOG_ERROR, "is dynamic output")>= 0);
+  EXPECT_TRUE(runtime_stub.GetSlogStub().FindLogRegex(DLOG_ERROR, "is dynamic output") >= 0);
 }
 
 /**
@@ -626,7 +631,8 @@ TEST_F(UtestPatternMatcher, PatternOutNode_PartialOutputAnchorsAsPatternOutput_M
   auto data4 = EsCreateGraphInput(esb_graph, 4);
   auto add = EsAdd(data2, EsAdd(data3, data4));
   auto cast1 = EsCast(add, DT_FLOAT);
-  auto add_layer_norm = EsAddLayerNorm(data0, data1, cast1, EsCreateScalarInt32(esb_graph, 1), EsCreateScalarInt32(esb_graph, 1), 0, 0);
+  auto add_layer_norm =
+      EsAddLayerNorm(data0, data1, cast1, EsCreateScalarInt32(esb_graph, 1), EsCreateScalarInt32(esb_graph, 1), 0, 0);
   auto cast2 = EsCast(add_layer_norm.x, DT_FLOAT);
   esb_graph->SetGraphOutput(cast2, 0);
   esb_graph->SetGraphOutput(add_layer_norm.mean, 1);
@@ -676,7 +682,8 @@ TEST_F(UtestPatternMatcher, PatternOutNode_PartialOutputAnchorsAsPatternOutput_E
   auto data4 = EsCreateGraphInput(esb_graph, 4);
   auto add = EsAdd(data2, EsAdd(data3, data4));
   auto cast1 = EsCast(add, DT_FLOAT);
-  auto add_layer_norm = EsAddLayerNorm(data0, data1, cast1, EsCreateScalarInt32(esb_graph, 1), EsCreateScalarInt32(esb_graph, 1), 0, 0);
+  auto add_layer_norm =
+      EsAddLayerNorm(data0, data1, cast1, EsCreateScalarInt32(esb_graph, 1), EsCreateScalarInt32(esb_graph, 1), 0, 0);
   auto cast2 = EsCast(add_layer_norm.x, DT_FLOAT);
   esb_graph->SetGraphOutput(cast2, 0);
   esb_graph->SetGraphOutput(add_layer_norm.mean, 1);
@@ -898,5 +905,5 @@ TEST_F(UtestPatternMatcher, MultiOutput_Output0MoreProducersThanOutput1_AllMatch
 
   EXPECT_EQ(match_ret.size(), static_cast<size_t>(kInstanceNum));
 }
-} // namespace fusion
-} // namespace ge
+}  // namespace fusion
+}  // namespace ge

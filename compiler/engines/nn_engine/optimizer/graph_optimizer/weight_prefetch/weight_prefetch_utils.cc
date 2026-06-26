@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,7 +24,7 @@ namespace {
 const uint32_t kWeightAlignSize = 4;
 const std::string kAttrIsGraphPrefetch = "_is_graph_prefetch";
 const std::unordered_set<std::string> kWeightOpTypeSet = {DATA, CONSTANT, CONSTANTOP, OP_TYPE_PLACE_HOLDER};
-}
+}  // namespace
 
 Status WeightPrefetchUtils::HandleWeightPrefetch(const ge::ComputeGraph &graph) {
   if (IsGraphWeightPrefetch(graph)) {
@@ -47,11 +47,12 @@ bool WeightPrefetchUtils::HasWeightPrefetchAttr(const ge::OpDescPtr &op_desc) {
   bool has_attr = ge::AttrUtils::GetListStr(op_desc, kAttrWeightPrefetchType, weight_prefetch_type);
   if (has_attr) {
     std::vector<int64_t> weight_prefetch_dst_offset;
-    (void) ge::AttrUtils::GetListInt(op_desc, kAttrWeightPrefetchDstOffset, weight_prefetch_dst_offset);
+    (void)ge::AttrUtils::GetListInt(op_desc, kAttrWeightPrefetchDstOffset, weight_prefetch_dst_offset);
     if (weight_prefetch_type.size() != weight_prefetch_dst_offset.size()) {
-      FE_LOGW("Size of weight prefetch type [%zu] and weight prefetch dst offset [%zu] for node [%s, %s] are not the same.",
-              weight_prefetch_type.size(), weight_prefetch_dst_offset.size(),
-              op_desc->GetName().c_str(), op_desc->GetType().c_str());
+      FE_LOGW(
+          "Size of weight prefetch type [%zu] and weight prefetch dst offset [%zu] for node [%s, %s] are not the same.",
+          weight_prefetch_type.size(), weight_prefetch_dst_offset.size(), op_desc->GetName().c_str(),
+          op_desc->GetType().c_str());
     }
   }
   return has_attr;
@@ -83,8 +84,8 @@ Status WeightPrefetchUtils::HandleGraphPrefetch(const ge::ComputeGraph &graph) {
   }
 
   if (SetWeightPrefetchAttr(prefetch_op_desc, weights_vec) != SUCCESS) {
-    FE_LOGE("Failed to set weight prefetch attr for op[%s, %s].",
-            prefetch_op_desc->GetName().c_str(), prefetch_op_desc->GetType().c_str());
+    FE_LOGE("Failed to set weight prefetch attr for op[%s, %s].", prefetch_op_desc->GetName().c_str(),
+            prefetch_op_desc->GetType().c_str());
     return FAILED;
   }
 
@@ -107,13 +108,13 @@ Status WeightPrefetchUtils::HandleNodesPrefetch(const ge::ComputeGraph &graph) {
 }
 
 Status WeightPrefetchUtils::SetNodePrefetchAttr(const ge::NodePtr &prefetch_node, const ge::ComputeGraph &graph) {
-  FE_LOGD("Begin to set weight prefetch attr for node[%s, %s].",
-          prefetch_node->GetName().c_str(), prefetch_node->GetType().c_str());
+  FE_LOGD("Begin to set weight prefetch attr for node[%s, %s].", prefetch_node->GetName().c_str(),
+          prefetch_node->GetType().c_str());
   std::vector<std::string> weight_prefetch_node_name;
   (void)ge::AttrUtils::GetListStr(prefetch_node->GetOpDesc(), kAttrWeightPrefetchNodeName, weight_prefetch_node_name);
   if (weight_prefetch_node_name.empty()) {
-    FE_LOGW("Weight prefetch node name list of node[%s, %s] is empty.",
-            prefetch_node->GetName().c_str(), prefetch_node->GetType().c_str());
+    FE_LOGW("Weight prefetch node name list of node[%s, %s] is empty.", prefetch_node->GetName().c_str(),
+            prefetch_node->GetType().c_str());
     return SUCCESS;
   }
 
@@ -122,8 +123,8 @@ Status WeightPrefetchUtils::SetNodePrefetchAttr(const ge::NodePtr &prefetch_node
     if (node == nullptr) {
       continue;
     }
-    if (std::find(weight_prefetch_node_name.begin(), weight_prefetch_node_name.end(), node->GetName())
-        != weight_prefetch_node_name.end()) {
+    if (std::find(weight_prefetch_node_name.begin(), weight_prefetch_node_name.end(), node->GetName()) !=
+        weight_prefetch_node_name.end()) {
       // GetWeights function will fetch the weight when op is placeholder, data, const and constant
       // but GetWeights function will only fetch the weight from input op who is placeholder or data
       // so it is necessary to get the input data nodes first
@@ -142,8 +143,8 @@ Status WeightPrefetchUtils::SetNodePrefetchAttr(const ge::NodePtr &prefetch_node
   }
 
   if (SetWeightPrefetchAttr(prefetch_node->GetOpDesc(), weights_vec) != SUCCESS) {
-    FE_LOGE("Failed to set weight prefetch attr for op[%s, %s].",
-            prefetch_node->GetName().c_str(), prefetch_node->GetType().c_str());
+    FE_LOGE("Failed to set weight prefetch attr for op[%s, %s].", prefetch_node->GetName().c_str(),
+            prefetch_node->GetType().c_str());
     return FAILED;
   }
   return SUCCESS;
@@ -168,12 +169,12 @@ Status WeightPrefetchUtils::SetWeightPrefetchAttr(const ge::OpDescPtr &op_desc,
   }
   (void)ge::AttrUtils::SetListInt(op_desc, kAttrWeightPrefetchSrcOffset, weight_prefetch_src_offset);
   FE_LOGD("Set weight prefetch src offset[%s] for op[%s, %s].",
-          StringUtils::IntegerVecToString(weight_prefetch_src_offset).c_str(),
-          op_desc->GetName().c_str(), op_desc->GetType().c_str());
+          StringUtils::IntegerVecToString(weight_prefetch_src_offset).c_str(), op_desc->GetName().c_str(),
+          op_desc->GetType().c_str());
   (void)ge::AttrUtils::SetListInt(op_desc, kAttrWeightPrefetchDataSize, weight_prefetch_data_size);
   FE_LOGD("Set weight prefetch data size[%s] for op[%s, %s].",
-          StringUtils::IntegerVecToString(weight_prefetch_data_size).c_str(),
-          op_desc->GetName().c_str(), op_desc->GetType().c_str());
+          StringUtils::IntegerVecToString(weight_prefetch_data_size).c_str(), op_desc->GetName().c_str(),
+          op_desc->GetType().c_str());
   return SUCCESS;
 }
-}
+}  // namespace fe

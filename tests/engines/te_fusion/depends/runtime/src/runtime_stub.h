@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,14 +20,14 @@ class RuntimeStub {
  public:
   virtual ~RuntimeStub() = default;
 
-  static RuntimeStub* GetInstance();
+  static RuntimeStub *GetInstance();
 
   static void SetInstance(const std::shared_ptr<RuntimeStub> &instance) {
     instance_ = instance;
   }
 
-  static void Install(RuntimeStub*);
-  static void UnInstall(RuntimeStub*);
+  static void Install(RuntimeStub *);
+  static void UnInstall(RuntimeStub *);
 
   static void Reset() {
     instance_.reset();
@@ -37,16 +37,12 @@ class RuntimeStub {
     return RT_ERROR_NONE;
   }
 
-  virtual rtError_t rtKernelLaunch(const void *stub_func,
-                                   uint32_t block_dim,
-                                   void *args,
-                                   uint32_t args_size,
-                                   rtSmDesc_t *sm_desc,
-                                   rtStream_t stream) {
+  virtual rtError_t rtKernelLaunch(const void *stub_func, uint32_t block_dim, void *args, uint32_t args_size,
+                                   rtSmDesc_t *sm_desc, rtStream_t stream) {
     return RT_ERROR_NONE;
   }
   virtual rtError_t rtKernelLaunchWithFlag(const void *stubFunc, uint32_t blockDim, rtArgsEx_t *argsInfo,
-                                   rtSmDesc_t *smDesc, rtStream_t stream, uint32_t flag) {
+                                           rtSmDesc_t *smDesc, rtStream_t stream, uint32_t flag) {
     return RT_ERROR_NONE;
   }
   virtual rtError_t rtKernelLaunchWithFlagV2(const void *stubFunc, uint32_t blockDim, rtArgsEx_t *argsInfo,
@@ -62,18 +58,18 @@ class RuntimeStub {
     return RT_ERROR_NONE;
   }
   virtual rtError_t rtCpuKernelLaunchWithFlag(const void *soName, const void *kernelName, uint32_t blockDim,
+                                              const rtArgsEx_t *args, rtSmDesc_t *smDesc, rtStream_t stream,
+                                              uint32_t flags) {
+    return RT_ERROR_NONE;
+  }
+  virtual rtError_t rtAicpuKernelLaunchWithFlag(const rtKernelLaunchNames_t *launchNames, uint32_t blockDim,
                                                 const rtArgsEx_t *args, rtSmDesc_t *smDesc, rtStream_t stream,
                                                 uint32_t flags) {
     return RT_ERROR_NONE;
   }
-  virtual rtError_t rtAicpuKernelLaunchWithFlag(const rtKernelLaunchNames_t *launchNames, uint32_t blockDim,
-                                                  const rtArgsEx_t *args, rtSmDesc_t *smDesc, rtStream_t stream,
-                                                  uint32_t flags) {
-    return RT_ERROR_NONE;
-  }
 
   virtual rtError_t rtKernelLaunchWithHandle(void *handle, uint64_t devFunc, uint32_t blockDim, rtArgsEx_t *args,
-                                     rtSmDesc_t *smDesc, rtStream_t stream, const void *kernelInfo) {
+                                             rtSmDesc_t *smDesc, rtStream_t stream, const void *kernelInfo) {
     return RT_ERROR_NONE;
   }
 
@@ -92,10 +88,10 @@ class RuntimeStub {
   }
 
   virtual rtError_t rtRegisterAllKernel(const rtDevBinary_t *bin, void **handle) {
-    *handle = (void*)0x12345678;
+    *handle = (void *)0x12345678;
     return RT_ERROR_NONE;
   }
-  virtual rtError_t rtDevBinaryRegister(const rtDevBinary_t *bin, void **handle){
+  virtual rtError_t rtDevBinaryRegister(const rtDevBinary_t *bin, void **handle) {
     return RT_ERROR_NONE;
   }
 
@@ -115,14 +111,10 @@ class RuntimeStub {
 
   virtual rtError_t rtFree(void *dev_ptr);
 
-  virtual rtError_t rtEschedWaitEvent(int32_t device_id,
-                                      uint32_t group_id,
-                                      uint32_t thread_id,
-                                      int32_t timeout,
+  virtual rtError_t rtEschedWaitEvent(int32_t device_id, uint32_t group_id, uint32_t thread_id, int32_t timeout,
                                       rtEschedEventSummary_t *event);
 
-  virtual rtError_t rtRegTaskFailCallbackByModule(const char *moduleName, 
-                                                  rtTaskFailCallback callback);
+  virtual rtError_t rtRegTaskFailCallbackByModule(const char *moduleName, rtTaskFailCallback callback);
 
   virtual rtError_t rtMemQueueDeQueue(int32_t device, uint32_t qid, void **mbuf);
 
@@ -134,9 +126,10 @@ class RuntimeStub {
 
   virtual rtError_t rtCpuKernelLaunch(const void *so_name, const void *kernel_name, uint32_t block_dim,
                                       const void *args, uint32_t args_size, rtSmDesc_t *sm_desc, rtStream_t stream);
+
  private:
   static std::shared_ptr<RuntimeStub> instance_;
-  static RuntimeStub* fake_instance_;
+  static RuntimeStub *fake_instance_;
 };
 }  // namespace ge
 
@@ -145,25 +138,25 @@ extern "C" {
 #endif
 void rtStubTearDown();
 
-#define RTS_STUB_SETUP()    \
-do {                        \
-  rtStubTearDown();         \
-} while (0)
+#define RTS_STUB_SETUP() \
+  do {                   \
+    rtStubTearDown();    \
+  } while (0)
 
 #define RTS_STUB_TEARDOWN() \
-do {                        \
-  rtStubTearDown();         \
-} while (0)
+  do {                      \
+    rtStubTearDown();       \
+  } while (0)
 
-#define RTS_STUB_RETURN_VALUE(FUNC, TYPE, VALUE)                          \
-do {                                                                      \
-  g_Stub_##FUNC##_RETURN.emplace(g_Stub_##FUNC##_RETURN.begin(), VALUE);  \
-} while (0)
+#define RTS_STUB_RETURN_VALUE(FUNC, TYPE, VALUE)                           \
+  do {                                                                     \
+    g_Stub_##FUNC##_RETURN.emplace(g_Stub_##FUNC##_RETURN.begin(), VALUE); \
+  } while (0)
 
-#define RTS_STUB_OUTBOUND_VALUE(FUNC, TYPE, NAME, VALUE)                          \
-do {                                                                              \
-  g_Stub_##FUNC##_OUT_##NAME.emplace(g_Stub_##FUNC##_OUT_##NAME.begin(), VALUE);  \
-} while (0)
+#define RTS_STUB_OUTBOUND_VALUE(FUNC, TYPE, NAME, VALUE)                           \
+  do {                                                                             \
+    g_Stub_##FUNC##_OUT_##NAME.emplace(g_Stub_##FUNC##_OUT_##NAME.begin(), VALUE); \
+  } while (0)
 
 extern std::string g_runtime_stub_mock;
 
@@ -204,4 +197,4 @@ RTS_STUB_RETURN_EXTERN(rtNpuClearFloatStatus, rtError_t);
 #ifdef __cplusplus
 }
 #endif
-#endif // __INC_LLT_RUNTIME_STUB_H
+#endif  // __INC_LLT_RUNTIME_STUB_H

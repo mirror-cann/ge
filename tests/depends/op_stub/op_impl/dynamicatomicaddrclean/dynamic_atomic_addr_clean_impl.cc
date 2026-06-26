@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,12 +25,12 @@ constexpr uint32_t BYTE_FP32 = 4;
 constexpr uint32_t MASK_FP32 = 64;
 constexpr uint32_t MAX_REPEAT_TIME = 255;
 
-#define CHECK(cond, log_func, expr)                                                                                    \
-  do {                                                                                                                 \
-    if (cond) {                                                                                                        \
-      log_func;                                                                                                        \
-      expr;                                                                                                            \
-    }                                                                                                                  \
+#define CHECK(cond, log_func, expr) \
+  do {                              \
+    if (cond) {                     \
+      log_func;                     \
+      expr;                         \
+    }                               \
   } while (0)
 
 ge::graphStatus InferShapeForDynamicAtomicAddrClean(InferShapeContext *context) {
@@ -206,7 +206,7 @@ ge::graphStatus TilingForDynamicAtomicAddrClean(TilingContext *context) {
   return ge::GRAPH_SUCCESS;
 }
 
-template<typename T>
+template <typename T>
 bool GetCompileValue(const nlohmann::json &all_vars, const char *name, T &value) {
   if (all_vars.count(name) == 0) {
     return false;
@@ -218,7 +218,7 @@ bool GetCompileValue(const nlohmann::json &all_vars, const char *name, T &value)
 
 #define GET_COMPILE_VALUE(vars, compile_info, name) GetCompileValue(vars, #name, (*compile_info).name)
 
-//TODO hardcode DynamicAtomicAddrClean
+// TODO hardcode DynamicAtomicAddrClean
 ge::graphStatus TilingPrepareForDynamicAtomicAddrClean(KernelContext *context) {
   auto compile_info = context->GetOutputPointer<DynamicAtomicAddrCleanCompileInfo>(0);
   auto json_str = context->GetInputStrPointer(0);
@@ -251,4 +251,4 @@ IMPL_OP(MemSet)
     .InferShape(InferShapeForDynamicAtomicAddrClean)
     .Tiling(TilingForDynamicAtomicAddrClean)
     .TilingParse<DynamicAtomicAddrCleanCompileInfo>(TilingPrepareForDynamicAtomicAddrClean);
-} // namespace gert
+}  // namespace gert

@@ -13,21 +13,16 @@
 """Base definitions for Python GE passes."""
 
 from __future__ import annotations
+
 from enum import Enum
 from typing import TYPE_CHECKING, Iterable, List, Optional, Union
 
-from ._native import MatchResult
-from ._native import PassContext
-from ._native import PatternMatcherConfig
-from ._native import PatternMatcherConfigBuilder
-from ._native import SubgraphInput
-from ._native import SubgraphOutput
-from ._native import SubgraphBoundary
-from ._native import SubgraphRewriter
+from ._native import MatchResult, PassContext, PatternMatcherConfig, PatternMatcherConfigBuilder, SubgraphInput, SubgraphOutput, SubgraphBoundary, SubgraphRewriter
 
 if TYPE_CHECKING:
     from ge.graph.graph import Graph
     from ge.graph.node import Node
+
     from .pattern import Pattern
 
 
@@ -85,9 +80,12 @@ class PatternFusionPass(FusionBasePass):
                 f"by the PatternFusionPass execution path. "
                 f"Implement patterns()/replacement() instead."
             )
-        from .pattern import _adapt_decorated_pattern_methods
-        from .pattern import _adapt_expression_replacement
-        from .pattern import _has_decorated_pattern_methods
+        from .pattern import (
+            _adapt_decorated_pattern_methods,
+            _adapt_expression_replacement,
+            _has_decorated_pattern_methods,
+        )
+
         if _has_decorated_pattern_methods(cls):
             if "patterns" in cls.__dict__:
                 raise TypeError(

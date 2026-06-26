@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,7 +32,7 @@ const std::string kSplitDim = "split_dim";
 const std::string kSplitNum = "num_split";
 const std::string kKeepOutputOffset = "keep_output_offset";
 const int64_t kAlignNum = 32;
-}
+}  // namespace
 
 Status GeLocalOpsKernelBuilderCalcOpParam::CheckDimAttrValid(const std::vector<int64_t> &dim_list,
                                                              const std::vector<int64_t> &num_list,
@@ -40,8 +40,8 @@ Status GeLocalOpsKernelBuilderCalcOpParam::CheckDimAttrValid(const std::vector<i
   const auto dim_list_size = dim_list.size();
   const auto num_list_size = num_list.size();
   GE_ASSERT_TRUE(dim_list_size != 0 && dim_list_size == num_list_size,
-                 "dim_list or num_list number invalid, dim_list size[%u], num_list size[%u].",
-                 dim_list_size, num_list_size);
+                 "dim_list or num_list number invalid, dim_list size[%u], num_list size[%u].", dim_list_size,
+                 num_list_size);
 
   uint32_t num_list_product = 1;
   for (size_t i = 0; i < num_list_size; ++i) {
@@ -66,8 +66,7 @@ Status GeLocalOpsKernelBuilderCalcOpParam::CheckDimAttrMatchTensor(std::vector<i
     }
 
     GE_ASSERT_TRUE(dim_list[i] >= 0 && static_cast<size_t>(dim_list[i]) < static_cast<size_t>(shape_size),
-                   "dim_list index[%u] value[%d] invalid, shape_size[%u].",
-                   i, dim_list[i], shape_size);
+                   "dim_list index[%u] value[%d] invalid, shape_size[%u].", i, dim_list[i], shape_size);
   }
 
   return SUCCESS;
@@ -142,7 +141,8 @@ Status GeLocalOpsKernelBuilderCalcOpParam::CheckPhonyConcatInputIs32Align(const 
 }
 
 int64_t GeLocalOpsKernelBuilderCalcOpParam::GetConcatOffset(const GeTensorDescPtr &tensor_desc, uint32_t node_idx,
-    const std::vector<int64_t> &concat_dim_list, const std::vector<int64_t> &concat_num_list) {
+                                                            const std::vector<int64_t> &concat_dim_list,
+                                                            const std::vector<int64_t> &concat_num_list) {
   std::vector<int64_t> output_shape = tensor_desc->GetShape().GetDims();
   const auto shape_size = output_shape.size();
   const auto dim_list_size = concat_dim_list.size();
@@ -252,8 +252,8 @@ graphStatus GeLocalOpsKernelBuilderCalcOpParam::CalcPhonyConcatNodeOffset(const 
     if (keep_input_offset) {
       ge::GeTensorDescPtr tensor_desc = peer_op_desc->MutableOutputDesc(out_anchor_idx);
       GE_ASSERT_SUCCESS(CheckDimAttrMatchTensor(concat_dim_list, tensor_desc),
-                        "PhonyConcat node[%s] attr not match [%d]th in node shape.",
-                        node.GetName().c_str(), in_data_anchor->GetIdx());
+                        "PhonyConcat node[%s] attr not match [%d]th in node shape.", node.GetName().c_str(),
+                        in_data_anchor->GetIdx());
 
       mem_offset = GetConcatOffset(tensor_desc, node_idx, concat_dim_list, concat_num_list);
     }
@@ -269,7 +269,8 @@ graphStatus GeLocalOpsKernelBuilderCalcOpParam::CalcPhonyConcatNodeOffset(const 
 }
 
 int64_t GeLocalOpsKernelBuilderCalcOpParam::GetSplitOffset(const GeTensorDescPtr &tensor_desc, uint32_t node_idx,
-    const std::vector<int64_t> &split_dim_list, const std::vector<int64_t> &split_num_list) {
+                                                           const std::vector<int64_t> &split_dim_list,
+                                                           const std::vector<int64_t> &split_num_list) {
   std::vector<int64_t> input_shape = tensor_desc->GetShape().GetDims();
   const auto shape_size = input_shape.size();
   const auto dim_list_size = split_dim_list.size();
@@ -340,8 +341,8 @@ graphStatus GeLocalOpsKernelBuilderCalcOpParam::CalcPhonySplitNodeOffset(const N
       if (keep_output_offset) {
         ge::GeTensorDescPtr tensor_desc = peer_op_desc->MutableInputDesc(in_anchor_idx);
         GE_ASSERT_SUCCESS(CheckDimAttrMatchTensor(split_dim_list, tensor_desc),
-                          "PhonySplit node[%s] attr not match [%d]th out node shape.",
-                          node.GetName().c_str(), out_data_anchor->GetIdx());
+                          "PhonySplit node[%s] attr not match [%d]th out node shape.", node.GetName().c_str(),
+                          out_data_anchor->GetIdx());
 
         mem_offset = GetSplitOffset(tensor_desc, node_idx, split_dim_list, split_num_list);
       }

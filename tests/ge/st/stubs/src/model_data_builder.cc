@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,7 +29,7 @@ namespace {
 struct AicpuTaskStruct {
   aicpu::AicpuParamHead head;
   uint64_t io_addrp[6];
-}__attribute__((packed));
+} __attribute__((packed));
 }  // namespace
 
 ModelDataBuilder::ModelDataBuilder(ModelData &model)
@@ -43,16 +43,16 @@ ModelDataBuilder::ModelDataBuilder(ModelData &model)
   Init();
 }
 
-void ModelDataBuilder::Init(){
-    mem_offset =
+void ModelDataBuilder::Init() {
+  mem_offset =
       sizeof(ModelFileHeader) + sizeof(TinyModelPartitionTable) + sizeof(TinyModelPartitionMemInfo) * PARTITION_SIZE;
-    memset(partition_table->partition, 0x00, sizeof(TinyModelPartitionMemInfo) * PARTITION_SIZE);
-    partition_table->num = PARTITION_SIZE;
-    partition_table->partition[0].type = ModelPartitionType::MODEL_DEF;
-    partition_table->partition[1].type = ModelPartitionType::WEIGHTS_DATA;
-    partition_table->partition[2].type = ModelPartitionType::TASK_INFO;
-    partition_table->partition[3].type = ModelPartitionType::TBE_KERNELS;
-    partition_table->partition[4].type = ModelPartitionType::CUST_AICPU_KERNELS;
+  memset(partition_table->partition, 0x00, sizeof(TinyModelPartitionMemInfo) * PARTITION_SIZE);
+  partition_table->num = PARTITION_SIZE;
+  partition_table->partition[0].type = ModelPartitionType::MODEL_DEF;
+  partition_table->partition[1].type = ModelPartitionType::WEIGHTS_DATA;
+  partition_table->partition[2].type = ModelPartitionType::TASK_INFO;
+  partition_table->partition[3].type = ModelPartitionType::TBE_KERNELS;
+  partition_table->partition[4].type = ModelPartitionType::CUST_AICPU_KERNELS;
 }
 
 ModelDataBuilder &ModelDataBuilder::AddGraph(const Graph &graph) {
@@ -79,7 +79,7 @@ ModelDataBuilder &ModelDataBuilder::AddTask() {
   string args(64, '1');
   kernel_def->set_args(args.data(), 64);
   domi::KernelContext *context = kernel_def->mutable_context();
-  context->set_kernel_type(2);    // ccKernelType::TE
+  context->set_kernel_type(2);  // ccKernelType::TE
   context->set_op_index(op_index_++);
   uint16_t args_offset[9] = {0};
   context->set_args_offset(args_offset, 9 * sizeof(uint16_t));
@@ -102,7 +102,7 @@ ModelDataBuilder &ModelDataBuilder::AddTask(int kernel_type, int op_index, size_
   string args(arg_size, '1');
   kernel_def->set_args(args.data(), arg_size);
   domi::KernelContext *context = kernel_def->mutable_context();
-  context->set_kernel_type(kernel_type);    // 2 means ccKernelType::TE
+  context->set_kernel_type(kernel_type);  // 2 means ccKernelType::TE
   context->set_op_index(op_index);
   uint16_t args_offset[9] = {0};
   context->set_args_offset(args_offset, 9 * sizeof(uint16_t));
@@ -144,34 +144,28 @@ ModelDataBuilder &ModelDataBuilder::AddAicpuTask(int op_index) {
   hybrid::AicpuShapeAndType typess;
   typess.type = 2;
 
-  char *ext_mem = (char*)malloc(3 * sizeof(ge::hybrid::AicpuExtInfo) + sizeof(int32_t) +
-                                2 * sizeof(hybrid::AicpuShapeAndType));
-  memcpy_s(ext_mem, sizeof(ge::hybrid::AicpuExtInfo), &aicpu_ext_info,
-           sizeof(ge::hybrid::AicpuExtInfo));
-  memcpy_s(ext_mem + sizeof(ge::hybrid::AicpuExtInfo), sizeof(int32_t), &type,
-           sizeof(int32_t));
+  char *ext_mem =
+      (char *)malloc(3 * sizeof(ge::hybrid::AicpuExtInfo) + sizeof(int32_t) + 2 * sizeof(hybrid::AicpuShapeAndType));
+  memcpy_s(ext_mem, sizeof(ge::hybrid::AicpuExtInfo), &aicpu_ext_info, sizeof(ge::hybrid::AicpuExtInfo));
+  memcpy_s(ext_mem + sizeof(ge::hybrid::AicpuExtInfo), sizeof(int32_t), &type, sizeof(int32_t));
 
-  memcpy_s(ext_mem + (sizeof(ge::hybrid::AicpuExtInfo) + sizeof(int32_t)),
-           sizeof(ge::hybrid::AicpuExtInfo), &aicpu_ext_info1,
-           sizeof(ge::hybrid::AicpuExtInfo));
-  memcpy_s(ext_mem + 2 * sizeof(ge::hybrid::AicpuExtInfo) + sizeof(int32_t),
-           sizeof(hybrid::AicpuShapeAndType), &types,
-           sizeof(hybrid::AicpuShapeAndType));
-  
-  memcpy_s(ext_mem + (2 * sizeof(ge::hybrid::AicpuExtInfo) + sizeof(int32_t)) +
-           sizeof(hybrid::AicpuShapeAndType), sizeof(ge::hybrid::AicpuExtInfo), &aicpu_ext_info2,
-           sizeof(ge::hybrid::AicpuExtInfo));     
-  memcpy_s(ext_mem + 3 * sizeof(ge::hybrid::AicpuExtInfo) + sizeof(int32_t) +
-           sizeof(hybrid::AicpuShapeAndType), sizeof(hybrid::AicpuShapeAndType), &typess,
+  memcpy_s(ext_mem + (sizeof(ge::hybrid::AicpuExtInfo) + sizeof(int32_t)), sizeof(ge::hybrid::AicpuExtInfo),
+           &aicpu_ext_info1, sizeof(ge::hybrid::AicpuExtInfo));
+  memcpy_s(ext_mem + 2 * sizeof(ge::hybrid::AicpuExtInfo) + sizeof(int32_t), sizeof(hybrid::AicpuShapeAndType), &types,
            sizeof(hybrid::AicpuShapeAndType));
 
-  kernel_def->set_kernel_ext_info(ext_mem, 3 * sizeof(ge::hybrid::AicpuExtInfo) +
-                                  sizeof(int32_t) + 2 * sizeof(hybrid::AicpuShapeAndType));
+  memcpy_s(ext_mem + (2 * sizeof(ge::hybrid::AicpuExtInfo) + sizeof(int32_t)) + sizeof(hybrid::AicpuShapeAndType),
+           sizeof(ge::hybrid::AicpuExtInfo), &aicpu_ext_info2, sizeof(ge::hybrid::AicpuExtInfo));
+  memcpy_s(ext_mem + 3 * sizeof(ge::hybrid::AicpuExtInfo) + sizeof(int32_t) + sizeof(hybrid::AicpuShapeAndType),
+           sizeof(hybrid::AicpuShapeAndType), &typess, sizeof(hybrid::AicpuShapeAndType));
+
+  kernel_def->set_kernel_ext_info(
+      ext_mem, 3 * sizeof(ge::hybrid::AicpuExtInfo) + sizeof(int32_t) + 2 * sizeof(hybrid::AicpuShapeAndType));
   free(ext_mem);
   kernel_def->set_kernel_ext_info_size(3 * sizeof(ge::hybrid::AicpuExtInfo) + sizeof(int32_t) +
                                        2 * sizeof(hybrid::AicpuShapeAndType));
   domi::KernelContext *context = kernel_def->mutable_context();
-  context->set_kernel_type(6);    // ccKernelType::AI_CPU
+  context->set_kernel_type(6);  // ccKernelType::AI_CPU
   context->set_op_index(op_index);
   uint16_t args_offset[9] = {0};
   context->set_args_offset(args_offset, 9 * sizeof(uint16_t));
@@ -184,7 +178,7 @@ ModelDataBuilder &ModelDataBuilder::AddAicpuTask(int op_index) {
   return *this;
 }
 
-void ModelDataBuilder::Build(){
+void ModelDataBuilder::Build() {
   model_header->length = mem_offset - sizeof(ModelFileHeader);
   model.model_len = mem_offset;
 }

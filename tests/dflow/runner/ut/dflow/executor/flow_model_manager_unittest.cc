@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -41,8 +41,7 @@ class UtestFlowModelManager : public testing::Test {
 namespace {
 class MockModelDeployer : public ModelDeployer {
  public:
-  Status DeployModel(const FlowModelPtr &flow_model,
-                     DeployResult &deploy_result) override {
+  Status DeployModel(const FlowModelPtr &flow_model, DeployResult &deploy_result) override {
     deploy_result.model_id = 1;
     return SUCCESS;
   }
@@ -52,9 +51,7 @@ class MockModelDeployer : public ModelDeployer {
 
 class MockExchangeService : public ExchangeService {
  public:
-  Status CreateQueue(int32_t device_id,
-                     const string &name,
-                     const MemQueueAttr &mem_queue_attr,
+  Status CreateQueue(int32_t device_id, const string &name, const MemQueueAttr &mem_queue_attr,
                      uint32_t &queue_id) override {
     return SUCCESS;
   }
@@ -118,7 +115,7 @@ class MockExecutionRuntime : public ExecutionRuntime {
   MockModelDeployer model_deployer_;
   MockExchangeService exchange_service_;
 };
-} // namespace
+}  // namespace
 
 TEST_F(UtestFlowModelManager, TestLoadFlowModel) {
   ExecutionRuntime::SetExecutionRuntime(make_shared<MockExecutionRuntime>());
@@ -131,8 +128,8 @@ TEST_F(UtestFlowModelManager, TestLoadFlowModel) {
   ge_model->SetModelTaskDef(model_task_def);
   ge_model->SetName(graph->GetName());
   ge_model->SetGraph(graph);
-  root_model->SetModelName(graph->GetName());	
-  root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);	
+  root_model->SetModelName(graph->GetName());
+  root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
   auto flow_root_model = ge::MakeShared<ge::FlowModel>();
   EXPECT_NE(flow_root_model, nullptr);
   flow_root_model->root_graph_ = std::make_shared<ComputeGraph>("root-graph");
@@ -141,15 +138,14 @@ TEST_F(UtestFlowModelManager, TestLoadFlowModel) {
   auto ret = root_model->CheckIsUnknownShape(is_unknown_shape);
   EXPECT_EQ(ret, SUCCESS);
   ModelBufferData model_buffer_data{};
-  const auto model_save_helper =
-    ModelSaveHelperFactory::Instance().Create(OfflineModelFormat::OM_FORMAT_DEFAULT);
+  const auto model_save_helper = ModelSaveHelperFactory::Instance().Create(OfflineModelFormat::OM_FORMAT_DEFAULT);
   EXPECT_NE(model_save_helper, nullptr);
   model_save_helper->SetSaveMode(false);
   ret = model_save_helper->SaveToOmRootModel(root_model, "NoUse", model_buffer_data, is_unknown_shape);
   EXPECT_EQ(ret, SUCCESS);
   ModelData model_data{};
   model_data.model_data = model_buffer_data.data.get();
-	model_data.model_len = model_buffer_data.length;
+  model_data.model_len = model_buffer_data.length;
   (void)flow_root_model->AddSubModel(FlowModelHelper::ToPneModel(model_data, graph));
 
   FlowModelManager model_manager;
@@ -173,13 +169,12 @@ TEST_F(UtestFlowModelManager, TestUnloadHeterogeneousModel) {
   ASSERT_NE(model_manager.Unload(model_id), SUCCESS);  // execution runtime not set
 
   ExecutionRuntime::SetExecutionRuntime(make_shared<MockExecutionRuntime>());
-  auto &model_deploy = (MockModelDeployer &) ExecutionRuntime::GetInstance()->GetModelDeployer();
+  auto &model_deploy = (MockModelDeployer &)ExecutionRuntime::GetInstance()->GetModelDeployer();
   EXPECT_CALL(model_deploy, Undeploy).Times(1).WillOnce(testing::Return(SUCCESS));
   EXPECT_EQ(model_manager.Unload(model_id), SUCCESS);
   EXPECT_EQ(model_manager.GetHeterogeneousModelExecutor(model_id), nullptr);
   ExecutionRuntime::SetExecutionRuntime(nullptr);
 }
-
 
 TEST_F(UtestFlowModelManager, TestExecuteHeterogeneousModel_InvalidModelId) {
   FlowModelManager model_manager;

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,7 +19,6 @@
 #include "nlohmann/json.hpp"
 #include "common/dump/dump_manager.h"
 
-
 namespace ge {
 class DeviceDebugConfig {
  public:
@@ -31,9 +30,9 @@ class DeviceDebugConfig {
   };
   DeviceDebugConfig() = default;
   virtual ~DeviceDebugConfig() = default;
-  static nlohmann::json global_configs_; // log is global conf
+  static nlohmann::json global_configs_;  // log is global conf
  protected:
-  mutable std::map<ConfigType, nlohmann::json> configs_{}; // dump and profiling is device conf
+  mutable std::map<ConfigType, nlohmann::json> configs_{};  // dump and profiling is device conf
 };
 
 class DeviceMaintenanceMasterCfg : public DeviceDebugConfig {
@@ -59,6 +58,7 @@ class DeviceMaintenanceCfgManager {
     static DeviceMaintenanceCfgManager instance;
     return instance;
   }
+
  private:
   std::mutex mu_;
   std::map<int32_t, std::unique_ptr<DeviceMaintenanceMasterCfg>> device_configs_;
@@ -73,6 +73,7 @@ class DeviceMaintenanceClientCfg : public DeviceDebugConfig {
   Status LoadJsonData(const std::string &data);
   static Status DecodeLogConfig(std::map<std::string, std::string> &env_option,
                                 std::map<std::string, std::string> &args_option);
+
  private:
   Status DecodeDumpConfig(std::map<std::string, std::string> &env_option,
                           std::map<std::string, std::string> &args_option) const;
@@ -86,10 +87,9 @@ class DevMaintenanceCfgUtils {
   ~DevMaintenanceCfgUtils() = default;
   static std::vector<std::string> TransArgsOption2Array(std::map<std::string, std::string> &args_option);
   static void GetLogEnvs(std::map<std::string, std::string> &log_envs);
-  static Status DecodeJsonConfig(const nlohmann::json &param_list_jsons,
-                                 std::map<std::string, std::string> &env_option,
+  static Status DecodeJsonConfig(const nlohmann::json &param_list_jsons, std::map<std::string, std::string> &env_option,
                                  std::map<std::string, std::string> &args_option);
 };
-} // namespace ge
+}  // namespace ge
 
 #endif  // AIR_DEVICE_DEBUG_CONFIG_H

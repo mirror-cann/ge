@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,8 +22,7 @@ Status ExchangeRoute::GetQueueId(int32_t queue_index, uint32_t &queue_id) const 
   GE_CHK_BOOL_RET_STATUS((endpoint->type == ExchangeEndpointType::kEndpointTypeQueue ||
                           endpoint->type == ExchangeEndpointType::kEndpointTypeRefQueue ||
                           endpoint->type == ExchangeEndpointType::kEndpointTypeDummyQueue),
-                         FAILED,
-                         "The type[%d] of endpoint index[%d] is not queue.",
+                         FAILED, "The type[%d] of endpoint index[%d] is not queue.",
                          static_cast<int32_t>(endpoint->type), queue_index);
   queue_id = endpoint->id;
   return SUCCESS;
@@ -69,8 +68,7 @@ Status ExchangeRoute::GetQueueAttr(int32_t queue_index, DeployQueueAttr &queue_a
   GE_CHK_BOOL_RET_STATUS((endpoint->type == ExchangeEndpointType::kEndpointTypeQueue ||
                           endpoint->type == ExchangeEndpointType::kEndpointTypeRefQueue ||
                           endpoint->type == ExchangeEndpointType::kEndpointTypeDummyQueue),
-                         FAILED,
-                         "The type[%d] of endpoint index[%d] is not queue.",
+                         FAILED, "The type[%d] of endpoint index[%d] is not queue.",
                          static_cast<int32_t>(endpoint->type), queue_index);
   queue_attr.queue_id = endpoint->id;
   queue_attr.device_id = endpoint->device_id;
@@ -124,11 +122,8 @@ ExchangeEndpoint *ExchangeRoute::MutableEndpoint(int32_t index, ExchangeEndpoint
   }
 
   if (it->second->type != expect_type) {
-    GELOGE(PARAM_INVALID,
-           "Endpoint type mismatches, index = %d, expect = %d, but = %d",
-           index,
-           static_cast<int32_t>(expect_type),
-           static_cast<int32_t>(it->second->type));
+    GELOGE(PARAM_INVALID, "Endpoint type mismatches, index = %d, expect = %d, but = %d", index,
+           static_cast<int32_t>(expect_type), static_cast<int32_t>(it->second->type));
     return nullptr;
   }
   return it->second.get();
@@ -145,13 +140,10 @@ ExchangeEndpoint *ExchangeRoute::MutableEndpoint(int32_t index) const {
 HeterogeneousExchangeDeployer::HeterogeneousExchangeDeployer(ExchangeService &exchange_service,
                                                              deployer::FlowRoutePlan route_plan,
                                                              FlowGwClientManager &client_manager)
-    : exchange_service_(exchange_service),
-      route_plan_(std::move(route_plan)),
-      client_manager_(client_manager) {
-}
+    : exchange_service_(exchange_service), route_plan_(std::move(route_plan)), client_manager_(client_manager) {}
 
 HeterogeneousExchangeDeployer::~HeterogeneousExchangeDeployer() {
-  (void) Undeploy(exchange_service_, deploying_, client_manager_);
+  (void)Undeploy(exchange_service_, deploying_, client_manager_);
 }
 
 Status HeterogeneousExchangeDeployer::PreDeploy() {
@@ -227,12 +219,11 @@ Status HeterogeneousExchangeDeployer::CreateExchangeEndpoints() {
       GE_CHK_STATUS_RET(RtsApiUtils::MemQueryGetQidByName(endpoint_desc.device_id(), endpoint.name, endpoint.id),
                         "Failed to get queue_id by name: %s", endpoint.name.c_str());
       GELOGD("External queue, queue_name = %s, queue_id = %u", endpoint.name.c_str(), endpoint.id);
-    }  else if (endpoint.type == ExchangeEndpointType::kEndpointTypeRefQueue) {
+    } else if (endpoint.type == ExchangeEndpointType::kEndpointTypeRefQueue) {
       auto ref_index = endpoint_desc.queue_desc().ref_index();
-      GE_CHK_BOOL_RET_STATUS((ref_index >= 0 && ref_index < static_cast<int32_t>(deploying_.endpoints_.size())),
-                             FAILED,
-                             "RefQueue index[%d] is invalid, must in range[0, %zu)",
-                             ref_index, deploying_.endpoints_.size());
+      GE_CHK_BOOL_RET_STATUS((ref_index >= 0 && ref_index < static_cast<int32_t>(deploying_.endpoints_.size())), FAILED,
+                             "RefQueue index[%d] is invalid, must in range[0, %zu)", ref_index,
+                             deploying_.endpoints_.size());
       endpoint.id = deploying_.endpoints_[ref_index]->id;
       endpoint.fusion_offset = endpoint_desc.queue_desc().fusion_offset();
       GELOGD("Ref queue, queue_name = %s, queue_id = %u", endpoint.name.c_str(), endpoint.id);
@@ -243,12 +234,11 @@ Status HeterogeneousExchangeDeployer::CreateExchangeEndpoints() {
       endpoint.instance_num = endpoint_desc.instance_num();
       endpoint.instance_idx = endpoint_desc.instance_idx();
       // only src group need check keep_out_of_order
-      if ((!endpoint.is_dynamic_sched) &&
-          (src_endpoint_indices.find(i) != src_endpoint_indices.end())) {
+      if ((!endpoint.is_dynamic_sched) && (src_endpoint_indices.find(i) != src_endpoint_indices.end())) {
         // src group is_dynamic_sched means whether keep out of order.
         endpoint.is_dynamic_sched = endpoint_desc.group_desc().keep_out_of_order();
-        GELOGD("update src group is_dynamic_sched to keep out of order, name=%s, value=%d",
-               endpoint.name.c_str(), static_cast<int32_t>(endpoint.is_dynamic_sched));
+        GELOGD("update src group is_dynamic_sched to keep out of order, name=%s, value=%d", endpoint.name.c_str(),
+               static_cast<int32_t>(endpoint.is_dynamic_sched));
       }
     } else if (endpoint.type == ExchangeEndpointType::kEndpointTypeDummyQueue) {
       endpoint.id = UINT32_MAX;
@@ -274,8 +264,7 @@ Status HeterogeneousExchangeDeployer::CreateGroups(const std::vector<int32_t> &g
   return SUCCESS;
 }
 
-Status HeterogeneousExchangeDeployer::DoCreateQueue(const deployer::QueueDesc &queue_desc,
-                                                    uint32_t work_mode,
+Status HeterogeneousExchangeDeployer::DoCreateQueue(const deployer::QueueDesc &queue_desc, uint32_t work_mode,
                                                     ExchangeEndpoint &endpoint) const {
   MemQueueAttr mem_queue_attr{};
   mem_queue_attr.work_mode = work_mode;
@@ -288,8 +277,7 @@ Status HeterogeneousExchangeDeployer::DoCreateQueue(const deployer::QueueDesc &q
   return SUCCESS;
 }
 
-Status HeterogeneousExchangeDeployer::DoCreateTag(const deployer::TagDesc &tag_desc,
-                                                  ExchangeEndpoint &endpoint) const {
+Status HeterogeneousExchangeDeployer::DoCreateTag(const deployer::TagDesc &tag_desc, ExchangeEndpoint &endpoint) const {
   endpoint.id = tag_desc.tag_id();
   endpoint.tag_id = tag_desc.tag_id();
   endpoint.peer_tag_id = tag_desc.tag_id();
@@ -303,16 +291,15 @@ Status HeterogeneousExchangeDeployer::DoCreateTag(const deployer::TagDesc &tag_d
   GE_CHK_STATUS_RET(client_manager_.GetHcomHandle(endpoint.device_id, endpoint.device_type, hcom_handle),
                     "get hcom handle failed");
   endpoint.hcom_handle = hcom_handle;
-  GELOGI("Create tag success, hcom_handle = %lu, device_id = %d, tag_id = %u, peer_tag_id = %u, "
-         "rank_id = %u, peer_rank_id = %u, depth = %u, peer_node_id = %d, peer_device_id = %d, peer_device_type = %d",
-         endpoint.hcom_handle, endpoint.device_id, endpoint.tag_id,
-         endpoint.peer_tag_id, endpoint.rank_id, endpoint.peer_rank_id, endpoint.depth, endpoint.peer_node_id,
-         endpoint.peer_device_id, endpoint.peer_device_type);
+  GELOGI(
+      "Create tag success, hcom_handle = %lu, device_id = %d, tag_id = %u, peer_tag_id = %u, "
+      "rank_id = %u, peer_rank_id = %u, depth = %u, peer_node_id = %d, peer_device_id = %d, peer_device_type = %d",
+      endpoint.hcom_handle, endpoint.device_id, endpoint.tag_id, endpoint.peer_tag_id, endpoint.rank_id,
+      endpoint.peer_rank_id, endpoint.depth, endpoint.peer_node_id, endpoint.peer_device_id, endpoint.peer_device_type);
   return SUCCESS;
 }
 
-Status HeterogeneousExchangeDeployer::CreateGroupTags(int32_t group_index,
-                                                      const deployer::EndpointDesc &endpoint_desc,
+Status HeterogeneousExchangeDeployer::CreateGroupTags(int32_t group_index, const deployer::EndpointDesc &endpoint_desc,
                                                       ExchangeEndpoint &endpoint) {
   auto &group_desc = endpoint_desc.group_desc();
   for (int32_t i = 0; i < group_desc.endpoint_indices_size(); ++i) {
@@ -324,14 +311,12 @@ Status HeterogeneousExchangeDeployer::CreateGroupTags(int32_t group_index,
   if (group_desc.endpoint_indices_size() > 1) {
     GE_CHK_STATUS_RET_NOLOG(CreateGroup(group_index, endpoint));
   }
-  GELOGI("Create group success, group index = %d, element size = %d.",
-         group_index, group_desc.endpoint_indices_size());
+  GELOGI("Create group success, group index = %d, element size = %d.", group_index, group_desc.endpoint_indices_size());
   return SUCCESS;
 }
 
 Status HeterogeneousExchangeDeployer::BindEndpoints(const std::vector<deployer::EndpointBinding> &bindings) {
-  std::vector<std::pair<const ExchangeEndpoint *,
-                        const ExchangeEndpoint *>> queue_routes;
+  std::vector<std::pair<const ExchangeEndpoint *, const ExchangeEndpoint *>> queue_routes;
   for (const auto &binding : bindings) {
     // pointers were checked in CreateTags
     auto src_queue_desc = GetEndpointDesc(binding.src_index());
@@ -350,10 +335,11 @@ Status HeterogeneousExchangeDeployer::BindEndpoints(const std::vector<deployer::
       GE_CHECK_NOTNULL(queue_desc);
       auto endpoint = deploying_.MutableEndpoint(src_endpoint->endpoint_indices[0], queue_desc->type());
       GE_CHECK_NOTNULL(endpoint);
-      GELOGI("Bind src endpoint is group, element size = 1, change src endpoint, "
-             "index[%d->%d], type[%d->%d], id[%u->%u]",
-             binding.src_index(), src_endpoint->endpoint_indices[0],
-             src_queue_desc->type(), queue_desc->type(), src_endpoint->id, endpoint->id);
+      GELOGI(
+          "Bind src endpoint is group, element size = 1, change src endpoint, "
+          "index[%d->%d], type[%d->%d], id[%u->%u]",
+          binding.src_index(), src_endpoint->endpoint_indices[0], src_queue_desc->type(), queue_desc->type(),
+          src_endpoint->id, endpoint->id);
       src_endpoint = endpoint;
     }
     queue_route.first = src_endpoint;
@@ -369,8 +355,8 @@ Status HeterogeneousExchangeDeployer::BindEndpoints(const std::vector<deployer::
       dst_endpoint = endpoint;
     }
     GEEVENT("[IO info] Add bind relation, relation info = [%s]->[%s], src info = [%s], dst info = [%s]",
-            src_endpoint->GetKey().c_str(), dst_endpoint->GetKey().c_str(),
-            src_endpoint->DebugString().c_str(), dst_endpoint->DebugString().c_str());
+            src_endpoint->GetKey().c_str(), dst_endpoint->GetKey().c_str(), src_endpoint->DebugString().c_str(),
+            dst_endpoint->DebugString().c_str());
     queue_route.second = dst_endpoint;
     queue_routes.emplace_back(queue_route);
     deploying_.queue_routes_.emplace_back(queue_route);
@@ -387,8 +373,7 @@ const deployer::EndpointDesc *HeterogeneousExchangeDeployer::GetEndpointDesc(int
   return &route_plan_.endpoints(index);
 }
 
-Status HeterogeneousExchangeDeployer::CreateGroup(int32_t group_index,
-                                                  ExchangeEndpoint &group_endpoint) {
+Status HeterogeneousExchangeDeployer::CreateGroup(int32_t group_index, ExchangeEndpoint &group_endpoint) {
   GELOGD("Start to create group, element count = %zu", group_endpoint.endpoint_indices.size());
   int32_t group_id = 0;
   std::vector<const ExchangeEndpoint *> endpoint_list;
@@ -404,9 +389,7 @@ Status HeterogeneousExchangeDeployer::CreateGroup(int32_t group_index,
     endpoint_list.emplace_back(endpoint);
   }
   GE_CHK_STATUS_RET(client_manager_.CreateFlowGwGroup(static_cast<uint32_t>(group_endpoint.device_id),
-                                                      group_endpoint.device_type,
-                                                      endpoint_list,
-                                                      group_id),
+                                                      group_endpoint.device_type, endpoint_list, group_id),
                     "Failed to create group, name = %s", group_endpoint.name.c_str());
   group_endpoint.id = static_cast<uint32_t>(group_id);
   deploying_.groups_[group_index] = endpoint_list;
@@ -417,45 +400,39 @@ Status HeterogeneousExchangeDeployer::CreateGroup(int32_t group_index,
     auto endpoint = deploying_.MutableEndpoint(index, endpoint_desc->type());
     GE_CHECK_NOTNULL(endpoint);
     GEEVENT("[IO info] Group element added, group = [%s], element = [%s], group info=[%s], element info=[%s]",
-            group_endpoint.GetKey().c_str(), endpoint->GetKey().c_str(),
-            group_endpoint.DebugString().c_str(), endpoint->DebugString().c_str());
+            group_endpoint.GetKey().c_str(), endpoint->GetKey().c_str(), group_endpoint.DebugString().c_str(),
+            endpoint->DebugString().c_str());
   }
   return SUCCESS;
 }
 
 Status HeterogeneousExchangeDeployer::BindRoute(
-    const std::vector<std::pair<const ExchangeEndpoint *,
-                                const ExchangeEndpoint *>> &queue_routes) {
+    const std::vector<std::pair<const ExchangeEndpoint *, const ExchangeEndpoint *>> &queue_routes) {
   GE_CHK_STATUS_RET(client_manager_.BindQueues(queue_routes), "Failed to bind routes.");
   return SUCCESS;
 }
 
 Status HeterogeneousExchangeDeployer::UnbindRoute(
-    const std::vector<std::pair<const ExchangeEndpoint *,
-                                const ExchangeEndpoint *>> &queue_routes,
+    const std::vector<std::pair<const ExchangeEndpoint *, const ExchangeEndpoint *>> &queue_routes,
     FlowGwClientManager &client_manager) {
   return client_manager.UnbindQueues(queue_routes);
 }
 
-Status HeterogeneousExchangeDeployer::Undeploy(ExchangeService &exchange_service,
-                                               const ExchangeRoute &deployed,
+Status HeterogeneousExchangeDeployer::Undeploy(ExchangeService &exchange_service, const ExchangeRoute &deployed,
                                                FlowGwClientManager &client_manager) {
   (void)UnbindRoute(deployed.queue_routes_, client_manager);
   for (const auto &it : deployed.groups_) {
     const auto &endpoint = deployed.endpoints_[it.first];
     GELOGI("[Destroy][Group] name = %s, id = %u", endpoint->name.c_str(), endpoint->id);
-    (void) client_manager.DestroyFlowGwGroup(endpoint->device_id,
-                                             endpoint->device_type,
-                                             static_cast<int32_t>(endpoint->id));
+    (void)client_manager.DestroyFlowGwGroup(endpoint->device_id, endpoint->device_type,
+                                            static_cast<int32_t>(endpoint->id));
   }
   for (const auto &it : deployed.endpoints_) {
     const auto &endpoint = it.second;
     if (endpoint->type == ExchangeEndpointType::kEndpointTypeQueue) {
       exchange_service.DestroyQueue(endpoint->device_id, endpoint->id);
     } else if (endpoint->type == ExchangeEndpointType::kEndpointTypeTag) {
-      GELOGD("[Destroy][Tag] name = %s, handle = %lu, id = %u",
-             endpoint->name.c_str(),
-             endpoint->hcom_handle,
+      GELOGD("[Destroy][Tag] name = %s, handle = %lu, id = %u", endpoint->name.c_str(), endpoint->hcom_handle,
              endpoint->id);
       // destroying tags are not supported with MPI
     } else {
@@ -465,8 +442,8 @@ Status HeterogeneousExchangeDeployer::Undeploy(ExchangeService &exchange_service
   return SUCCESS;
 }
 
-bool HeterogeneousExchangeDeployer::CheckExceptionEndpoint(const ExchangeEndpoint *endpoint,
-    const std::vector<FlowGwClient::ExceptionDeviceInfo> &devices) {
+bool HeterogeneousExchangeDeployer::CheckExceptionEndpoint(
+    const ExchangeEndpoint *endpoint, const std::vector<FlowGwClient::ExceptionDeviceInfo> &devices) {
   std::vector<FlowGwClient::ExceptionDeviceInfo> endpoint_devices;
   FlowGwClient::ExceptionDeviceInfo exception_device_info;
   exception_device_info.node_id = endpoint->node_id;
@@ -552,28 +529,29 @@ void HeterogeneousExchangeDeployer::DeleteExceptionGroup(
   }
 }
 
-Status HeterogeneousExchangeDeployer::UpdateExceptionRoutes(ExchangeRoute &deployed,
-    FlowGwClientManager &client_manager,
+Status HeterogeneousExchangeDeployer::UpdateExceptionRoutes(
+    ExchangeRoute &deployed, FlowGwClientManager &client_manager,
     const std::vector<FlowGwClient::ExceptionDeviceInfo> &exception_devices) {
   std::vector<const ExchangeEndpoint *> del_endpoints;
   std::vector<std::pair<const ExchangeEndpoint *, const ExchangeEndpoint *>> exception_routes;
   for (auto it = deployed.queue_routes_.begin(); it != deployed.queue_routes_.end();) {
     auto src = deployed.MutableEndpoint(it->first->index);
     GE_CHECK_NOTNULL(src);
-    auto dst =  deployed.MutableEndpoint(it->second->index);
+    auto dst = deployed.MutableEndpoint(it->second->index);
     GE_CHECK_NOTNULL(dst);
     auto src_is_exception = CheckExceptionBind(src, exception_devices, del_endpoints, deployed);
     auto dst_is_exception = CheckExceptionBind(dst, exception_devices, del_endpoints, deployed);
-    GELOGI("[UpdateExceptionRoutes] check exception route end, src endpoint = %s, dst endpoint = %s,"
-           " src is excepion = %d, dst is exception = %d, src is del = %d, dst is del = %d.",
-           src->DebugString().c_str(), dst->DebugString().c_str(), src_is_exception, dst_is_exception,
-           src->is_del, dst->is_del);
+    GELOGI(
+        "[UpdateExceptionRoutes] check exception route end, src endpoint = %s, dst endpoint = %s,"
+        " src is exception = %d, dst is exception = %d, src is del = %d, dst is del = %d.",
+        src->DebugString().c_str(), dst->DebugString().c_str(), src_is_exception, dst_is_exception, src->is_del,
+        dst->is_del);
     if (src->is_del || dst->is_del) {
       // 这个异常路由要解除绑定
       if (!(src->is_del && dst->is_del)) {
         exception_routes.emplace_back(*it);
       }
-      it = deployed.queue_routes_.erase(it); // 删除无效路由
+      it = deployed.queue_routes_.erase(it);  // 删除无效路由
       GELOGI("[UpdateExceptionRoutes] route info delete from deploy record: src endpoint = %s, dst endpoint = %s.",
              src->DebugString().c_str(), dst->DebugString().c_str());
     } else {
@@ -593,7 +571,7 @@ Status HeterogeneousExchangeDeployer::UpdateExceptionRoutes(ExchangeRoute &deplo
     GELOGI("[UpdateExceptionRoutes] invalid endpoint = %s.", endpoint->DebugString().c_str());
     auto mutable_endpoint = deployed.MutableEndpoint(endpoint->index);
     GE_CHECK_NOTNULL(mutable_endpoint);
-    mutable_endpoint->is_del = false; // 更新后的部署信息均为normal状态，绑定关系已经刷新
+    mutable_endpoint->is_del = false;  // 更新后的部署信息均为normal状态，绑定关系已经刷新
   }
   return SUCCESS;
 }
@@ -611,8 +589,8 @@ std::vector<deployer::EndpointBinding> HeterogeneousExchangeDeployer::GetBinding
 }
 
 std::vector<deployer::EndpointBinding> HeterogeneousExchangeDeployer::GetBindingsBeforeLoad() const {
-  std::vector<deployer::EndpointBinding>
-      bindings(route_plan_.bindings_before_load().cbegin(), route_plan_.bindings_before_load().cend());
+  std::vector<deployer::EndpointBinding> bindings(route_plan_.bindings_before_load().cbegin(),
+                                                  route_plan_.bindings_before_load().cend());
   return bindings;
 }
 
@@ -628,7 +606,7 @@ Status HeterogeneousExchangeDeployer::CreateHcomHandles() {
   for (int32_t i = 0; i < route_plan_.endpoints_size(); ++i) {
     const auto &endpoint_desc = route_plan_.endpoints(i);
     if (static_cast<ExchangeEndpointType>(endpoint_desc.type()) == ExchangeEndpointType::kEndpointTypeTag) {
-      (void) device_id_to_device_type.emplace(endpoint_desc.device_id(), endpoint_desc.device_type());
+      (void)device_id_to_device_type.emplace(endpoint_desc.device_id(), endpoint_desc.device_type());
     }
   }
   if (!device_id_to_device_type.empty()) {
@@ -638,10 +616,9 @@ Status HeterogeneousExchangeDeployer::CreateHcomHandles() {
     for (const auto &device_id_and_type : device_id_to_device_type) {
       auto fut = pool.commit([this, device_id_and_type]() -> ge::Status {
         uint64_t unused_handle;
-        GE_CHK_STATUS_RET(client_manager_.GetHcomHandle(device_id_and_type.first,
-                                                        device_id_and_type.second,
-                                                        unused_handle),
-                          "get hcom handle failed");
+        GE_CHK_STATUS_RET(
+            client_manager_.GetHcomHandle(device_id_and_type.first, device_id_and_type.second, unused_handle),
+            "get hcom handle failed");
         return ge::SUCCESS;
       });
       futs.emplace_back(std::move(fut));

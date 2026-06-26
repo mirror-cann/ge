@@ -97,4 +97,3 @@ graphStatus GetOutputAttr(const AscendString &name, uint32_t output_index, AttrV
 ## 约束说明<a name="section10221162313489"></a>
 
 无
-

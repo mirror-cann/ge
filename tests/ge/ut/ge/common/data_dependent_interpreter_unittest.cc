@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -102,10 +102,7 @@ ge::NodePtr FakeUbNode02OnlyHasTwoData() {
   node->GetOpDesc()->SetOpInferDepends({"x", "z"});
 
   auto ub_graph = std::make_shared<ge::ComputeGraph>("ub_graph");
-  auto data2 = ComputeNodeFaker(ub_graph)
-                   .NameAndType("const0", "Const")
-                   .IoNum(0, 1)
-                   .Build();
+  auto data2 = ComputeNodeFaker(ub_graph).NameAndType("const0", "Const").IoNum(0, 1).Build();
   auto data0 = ComputeNodeFaker(ub_graph)
                    .NameAndType("Data1", "Data")
                    .Attr<int64_t>(ge::ATTR_NAME_PARENT_NODE_INDEX.c_str(), 0)
@@ -153,18 +150,9 @@ ge::NodePtr FakeUbNode02DataDoesNotHasIndex() {
   node->GetOpDesc()->SetOpInferDepends({"x", "z"});
 
   auto ub_graph = std::make_shared<ge::ComputeGraph>("ub_graph");
-  auto data0 = ComputeNodeFaker(ub_graph)
-                   .NameAndType("Data0", "Data")
-                   .IoNum(0, 1)
-                   .Build();
-  auto data1 = ComputeNodeFaker(ub_graph)
-                   .NameAndType("Data1", "Data")
-                   .IoNum(0, 1)
-                   .Build();
-  auto data2 = ComputeNodeFaker(ub_graph)
-                   .NameAndType("Data2", "Data")
-                   .IoNum(0, 1)
-                   .Build();
+  auto data0 = ComputeNodeFaker(ub_graph).NameAndType("Data0", "Data").IoNum(0, 1).Build();
+  auto data1 = ComputeNodeFaker(ub_graph).NameAndType("Data1", "Data").IoNum(0, 1).Build();
+  auto data2 = ComputeNodeFaker(ub_graph).NameAndType("Data2", "Data").IoNum(0, 1).Build();
 
   auto ddit02 =
       ComputeNodeFaker(ub_graph).NameAndType("Test", "DDIT02").IoNum(3, 1).InputNames({"x", "y", "z"}).Build();
@@ -302,10 +290,12 @@ TEST_F(DataDependentInterpreterUT, SimpleNode_ReturnTrue_V2V1True) {
   stub.GetSlogStub().SetLevel(DLOG_WARN);
   stub.GetSlogStub().Clear();
   bool ret = false;
-  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), *space_registry_array).IsDataDependent(0, ret), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), *space_registry_array).IsDataDependent(0, ret),
+            ge::GRAPH_SUCCESS);
   ASSERT_TRUE(ret);
   ret = false;
-  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), *space_registry_array).IsDataDependent(2, ret), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), *space_registry_array).IsDataDependent(2, ret),
+            ge::GRAPH_SUCCESS);
   ASSERT_TRUE(ret);
   ASSERT_TRUE(stub.GetSlogStub().GetLogs(DLOG_WARN).empty());
 }
@@ -316,7 +306,8 @@ TEST_F(DataDependentInterpreterUT, SimpleNode_ReturnFalse_V2V1False) {
   bool ret = true;
   auto space_registry_array = SpaceRegistryFaker().BuildRegistryArray();
   ASSERT_NE(space_registry_array, nullptr);
-  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), *space_registry_array).IsDataDependent(1, ret), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), *space_registry_array).IsDataDependent(1, ret),
+            ge::GRAPH_SUCCESS);
   ASSERT_FALSE(ret);
 }
 TEST_F(DataDependentInterpreterUT, SimpleNode_ReturnTrueAndLogWarning_V2FalseV1True) {
@@ -369,10 +360,12 @@ TEST_F(DataDependentInterpreterUT, UbGraphNode_ReturnTrue_V2V1UbGraphTrue) {
   stub.GetSlogStub().SetLevel(DLOG_WARN);
   stub.GetSlogStub().Clear();
   bool ret = false;
-  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), *space_registry_array).IsDataDependent(0, ret), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), *space_registry_array).IsDataDependent(0, ret),
+            ge::GRAPH_SUCCESS);
   ASSERT_TRUE(ret);
   ret = false;
-  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), *space_registry_array).IsDataDependent(2, ret), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), *space_registry_array).IsDataDependent(2, ret),
+            ge::GRAPH_SUCCESS);
   ASSERT_TRUE(ret);
   ASSERT_TRUE(stub.GetSlogStub().GetLogs(DLOG_WARN).empty());
 }
@@ -386,7 +379,8 @@ TEST_F(DataDependentInterpreterUT, UbGraphNode_ReturnFalse_V2V1UbGraphFalse) {
   stub.GetSlogStub().SetLevel(DLOG_WARN);
   stub.GetSlogStub().Clear();
   bool ret = true;
-  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), *space_registry_array).IsDataDependent(1, ret), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), *space_registry_array).IsDataDependent(1, ret),
+            ge::GRAPH_SUCCESS);
   ASSERT_FALSE(ret);
   ASSERT_TRUE(stub.GetSlogStub().GetLogs(DLOG_WARN).empty());
 }
@@ -400,7 +394,8 @@ TEST_F(DataDependentInterpreterUT, UbGraphNode_ReturnTrueAndLogWarning_V2V1TrueU
   stub.GetSlogStub().SetLevel(DLOG_WARN);
   stub.GetSlogStub().Clear();
   bool ret = true;
-  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), *space_registry_array).IsDataDependent(1, ret), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), *space_registry_array).IsDataDependent(1, ret),
+            ge::GRAPH_SUCCESS);
   ASSERT_TRUE(ret);
   auto logs = stub.GetSlogStub().GetLogs(DLOG_WARN);
   ASSERT_EQ(logs.size(), 1);
@@ -443,7 +438,8 @@ TEST_F(DataDependentInterpreterUT, UbGraphNode_Failed_DataIndexMissmatch) {
   bool ret;
   auto space_registry_array = SpaceRegistryFaker().BuildRegistryArray();
   ASSERT_NE(space_registry_array, nullptr);
-  ASSERT_NE(DataDependentInterpreter(node->GetOpDesc(), *space_registry_array).IsDataDependent(2, ret), ge::GRAPH_SUCCESS);
+  ASSERT_NE(DataDependentInterpreter(node->GetOpDesc(), *space_registry_array).IsDataDependent(2, ret),
+            ge::GRAPH_SUCCESS);
 }
 #if 0
 TEST_F(DataDependentInterpreterUT, SimpleNode_With_EmptyRegistry) {
@@ -474,10 +470,12 @@ TEST_F(DataDependentInterpreterUT, OnlyV1Node_ReturnTrueAndLogWarning_V1True) {
   stub.GetSlogStub().SetLevel(DLOG_WARN);
   stub.GetSlogStub().Clear();
   bool ret = false;
-  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), *space_registry_array).IsDataDependent(0, ret), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), *space_registry_array).IsDataDependent(0, ret),
+            ge::GRAPH_SUCCESS);
   ASSERT_TRUE(ret);
   ret = false;
-  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), *space_registry_array).IsDataDependent(2, ret), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), *space_registry_array).IsDataDependent(2, ret),
+            ge::GRAPH_SUCCESS);
   ASSERT_TRUE(ret);
 
   auto logs = stub.GetSlogStub().GetLogs(DLOG_WARN);

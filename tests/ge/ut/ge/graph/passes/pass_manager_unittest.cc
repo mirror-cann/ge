@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,7 +34,7 @@ class SuccessGraphPass : public GraphPass {
  public:
   Status Run(ComputeGraphPtr graph) {
     ++run_count_;
-    return SUCCESS; 
+    return SUCCESS;
   }
   int32_t GetRunCount() const {
     return run_count_;
@@ -46,12 +46,16 @@ class SuccessGraphPass : public GraphPass {
 REG_PASS_OPTION("SuccessGraphPass").LEVELS(OoLevel::kO3);
 
 class NotChangedGraphPass : public GraphPass {
-  Status Run(ComputeGraphPtr graph) { return NOT_CHANGED; }
+  Status Run(ComputeGraphPtr graph) {
+    return NOT_CHANGED;
+  }
 };
 REG_PASS_OPTION("NotChangedGraphPass").LEVELS(OoLevel::kO3);
 
 class ErrorGraphPass : public GraphPass {
-  Status Run(ComputeGraphPtr graph) { return FAILED; }
+  Status Run(ComputeGraphPtr graph) {
+    return FAILED;
+  }
 };
 
 class UtestGraphPassesPassManagerPass : public testing::Test {
@@ -119,8 +123,8 @@ TEST_F(UtestGraphPassesPassManagerPass, test_disable_pass) {
 TEST_F(UtestGraphPassesPassManagerPass, graph_pass_not_changed) {
   ComputeGraphPtr graph = CreatePadGraph();
   NotChangedGraphPass pass;
-  std::vector<std::pair<string, GraphPass*>> passes = {{"NotChangedGraphPass", &pass}};
+  std::vector<std::pair<string, GraphPass *>> passes = {{"NotChangedGraphPass", &pass}};
   Status status = PassManager::Run(graph, passes);
-  //EXPECT_EQ(NOT_CHANGED, status);
+  // EXPECT_EQ(NOT_CHANGED, status);
   EXPECT_EQ(status, SUCCESS);
 }

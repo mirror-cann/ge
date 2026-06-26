@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -57,7 +57,7 @@ Status ScheculePolicyPassStub2(domi::TaskDef &, std::vector<ffts::FftsPlusContex
   return ffts::SUCCESS;
 }
 
-class FFTSPlusOpsKernelBuilderUTest : public testing::Test{
+class FFTSPlusOpsKernelBuilderUTest : public testing::Test {
  protected:
   static void SetUpTestCase() {
     cout << "FFTSPlusOpsKernelBuilder SetUpTestCase" << endl;
@@ -67,7 +67,7 @@ class FFTSPlusOpsKernelBuilderUTest : public testing::Test{
   }
 
   // Some expensive resource shared by all tests.
-  virtual void SetUp(){
+  virtual void SetUp() {
     ffts_plus_ops_kernel_builder_ptr = make_shared<FFTSPlusOpsKernelBuilder>();
     std::map<std::string, std::string> options;
     ffts_plus_ops_kernel_builder_ptr->Initialize(options);
@@ -75,28 +75,28 @@ class FFTSPlusOpsKernelBuilderUTest : public testing::Test{
     auto space_registry = std::make_shared<gert::OpImplSpaceRegistryV2>();
     gert::DefaultOpImplSpaceRegistryV2::GetInstance().SetSpaceRegistry(space_registry);
   }
-  virtual void TearDown(){
+  virtual void TearDown() {
     cout << "a test Tear Down" << endl;
     ffts_plus_ops_kernel_builder_ptr->Finalize();
   }
 
-  static RunContext CreateContext()
-  {
+  static RunContext CreateContext() {
     RunContext context;
     context.dataMemSize = 101;
-    context.dataMemBase = (uint8_t *) (intptr_t) 1000;
+    context.dataMemBase = (uint8_t *)(intptr_t)1000;
     context.weightMemSize = 200;
-    context.weightMemBase = (uint8_t *) (intptr_t) 1101;
+    context.weightMemBase = (uint8_t *)(intptr_t)1101;
     context.weightsBuffer = Buffer(20);
 
     return context;
   }
+
  public:
   FFTSPlusOpsKernelBuilderPtr ffts_plus_ops_kernel_builder_ptr;
   RunContext context_;
 };
 
-void SetOpDecSize(NodePtr& node) {
+void SetOpDecSize(NodePtr &node) {
   OpDesc::Vistor<GeTensorDesc> tensors = node->GetOpDesc()->GetAllInputsDesc();
   for (int i = 0; i < node->GetOpDesc()->GetAllInputsDesc().size(); i++) {
     ge::GeTensorDesc tensor = node->GetOpDesc()->GetAllInputsDesc().at(i);
@@ -126,20 +126,20 @@ static Status GenManAicAivCtxDef(NodePtr node) {
   aic_aiv_ctx_def->set_tail_block_dim(static_cast<uint32_t>(block_dim));
   aic_aiv_ctx_def->set_non_tail_block_dim(static_cast<uint32_t>(block_dim));
 
-  //input
+  // input
   aic_aiv_ctx_def->add_task_addr(111);
   aic_aiv_ctx_def->add_task_addr(222);
 
-  //output
+  // output
   aic_aiv_ctx_def->add_task_addr(333);
 
-  //workspace
+  // workspace
   aic_aiv_ctx_def->add_task_addr(444);
 
   auto op_desc = node->GetOpDesc();
   string attr_key_kernel_name = kKernelName;
   string attr_kernel_name;
-  (void) ge::AttrUtils::GetStr(op_desc, attr_key_kernel_name, attr_kernel_name);
+  (void)ge::AttrUtils::GetStr(op_desc, attr_key_kernel_name, attr_kernel_name);
   aic_aiv_ctx_def->add_kernel_name(attr_kernel_name);
   (void)ge::AttrUtils::SetInt(op_desc, ffts::kAttrAICoreCtxType,
                               static_cast<int64_t>(ffts::TaskBuilderType::EN_TASK_TYPE_AIC_AIV));
@@ -152,13 +152,13 @@ static Status GenManAicAivCtxDef(NodePtr node) {
 /*
  * Data -cast - netoutput
  */
-ComputeGraphPtr BuildGraph_Readonly_Subgraph(const string &subraph_name, const bool &thread_mode){
+ComputeGraphPtr BuildGraph_Readonly_Subgraph(const string &subraph_name, const bool &thread_mode) {
   auto sub_builder = ut::ComputeGraphBuilder(subraph_name);
-  auto data1 = sub_builder.AddNode("sdma1", "HcomAllReduce", 0,1);
-  auto cast = sub_builder.AddNode("sdma2", "HcomAllReduce", 1,1);
-  auto netoutput = sub_builder.AddNode("sdma3","HcomAllReduce", 1,1);
-  AttrUtils::SetInt(data1->GetOpDesc(),ATTR_NAME_PARENT_NODE_INDEX, 1);
-  AttrUtils::SetInt(netoutput->GetOpDesc(),ATTR_NAME_PARENT_NODE_INDEX,0);
+  auto data1 = sub_builder.AddNode("sdma1", "HcomAllReduce", 0, 1);
+  auto cast = sub_builder.AddNode("sdma2", "HcomAllReduce", 1, 1);
+  auto netoutput = sub_builder.AddNode("sdma3", "HcomAllReduce", 1, 1);
+  AttrUtils::SetInt(data1->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, 1);
+  AttrUtils::SetInt(netoutput->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, 0);
 
   ThreadSliceMap thread_slice_map;
   thread_slice_map.thread_mode = thread_mode;
@@ -167,8 +167,8 @@ ComputeGraphPtr BuildGraph_Readonly_Subgraph(const string &subraph_name, const b
   cast->GetOpDesc()->SetExtAttr(kAttrSgtStructInfo, thread_slice_map_ptr);
   netoutput->GetOpDesc()->SetExtAttr(kAttrSgtStructInfo, thread_slice_map_ptr);
 
-  sub_builder.AddDataEdge(data1,0,cast,0);
-  sub_builder.AddDataEdge(cast,0,netoutput,0);
+  sub_builder.AddDataEdge(data1, 0, cast, 0);
+  sub_builder.AddDataEdge(cast, 0, netoutput, 0);
   return sub_builder.GetGraph();
 }
 
@@ -182,7 +182,7 @@ ComputeGraphPtr BuildGraph_Readonly_ScopeWrite() {
   auto const1 = builder.AddNode("const1", CONSTANT, 0, 1);
   auto ctrl_const = builder.AddNode("ctrl_const", CONSTANT, 0, 1);
   auto allreduce = builder.AddNode("allreduce", "allreduce", 1, 1);
-  auto if_node = builder.AddNode("if", "if", 1,0);
+  auto if_node = builder.AddNode("if", "if", 1, 0);
 
   builder.AddDataEdge(const1, 0, allreduce, 0);
   builder.AddDataEdge(const1, 0, if_node, 0);
@@ -194,7 +194,7 @@ ComputeGraphPtr BuildGraph_Readonly_ScopeWrite() {
   then_branch_graph->SetParentNode(if_node);
   then_branch_graph->SetParentGraph(root_graph);
   if_node->GetOpDesc()->AddSubgraphName(subgraph_name);
-  if_node->GetOpDesc()->SetSubgraphInstanceName(0,subgraph_name);
+  if_node->GetOpDesc()->SetSubgraphInstanceName(0, subgraph_name);
   root_graph->AddSubgraph(subgraph_name, then_branch_graph);
   return root_graph;
 }
@@ -231,9 +231,9 @@ static Status GenManualMixAICAIVCtxDef(NodePtr node) {
     mix_aic_aiv_ctx_def->add_task_addr(modeArgs);
   }
 
-  //input
+  // input
   mix_aic_aiv_ctx_def->add_task_addr(222);
-  //output
+  // output
   mix_aic_aiv_ctx_def->add_task_addr(333);
 
   for (auto &prefix : kMixPrefixs) {
@@ -242,11 +242,11 @@ static Status GenManualMixAICAIVCtxDef(NodePtr node) {
     (void)ge::AttrUtils::GetStr(op_desc, attr_key_kernel_name, attr_kernel_name);
     mix_aic_aiv_ctx_def->add_kernel_name(attr_kernel_name);
   }
-  (void)ge::AttrUtils::SetInt(op_desc, ffts::kAttrAICoreCtxType, static_cast<int64_t>(ffts::TaskBuilderType::EN_TASK_TYPE_MIX_AIC_AIV));
+  (void)ge::AttrUtils::SetInt(op_desc, ffts::kAttrAICoreCtxType,
+                              static_cast<int64_t>(ffts::TaskBuilderType::EN_TASK_TYPE_MIX_AIC_AIV));
   (void)op_desc->SetExtAttr(ffts::kAttrAICoreCtxDef, ffts_plus_def_ptr);
   return ffts::SUCCESS;
 }
-
 
 ComputeGraphPtr BuildGraph_Mix_Subgraph(const string &subraph_name) {
   auto builder = ut::ComputeGraphBuilder(subraph_name);
@@ -293,7 +293,6 @@ ComputeGraphPtr BuildGraph_Mix_ScopeWrite() {
   return root_graph;
 }
 
-
 static Status GenAutoAicAivCtxDef(NodePtr node) {
   std::shared_ptr<domi::FftsPlusCtxDef> ffts_plus_def_ptr = make_shared<domi::FftsPlusCtxDef>();
   domi::FftsPlusAicAivCtxDef *aic_aiv_ctx_def = ffts_plus_def_ptr->mutable_aic_aiv_ctx();
@@ -309,20 +308,20 @@ static Status GenAutoAicAivCtxDef(NodePtr node) {
   aic_aiv_ctx_def->set_tail_block_dim(static_cast<uint32_t>(block_dim));
   aic_aiv_ctx_def->set_non_tail_block_dim(static_cast<uint32_t>(block_dim));
 
-  //input
+  // input
   aic_aiv_ctx_def->add_task_addr(111);
   aic_aiv_ctx_def->add_task_addr(222);
 
-  //output
+  // output
   aic_aiv_ctx_def->add_task_addr(333);
 
-  //workspace
+  // workspace
   aic_aiv_ctx_def->add_task_addr(444);
 
   auto op_desc = node->GetOpDesc();
   string attr_key_kernel_name = kKernelName;
   string attr_kernel_name;
-  (void) ge::AttrUtils::GetStr(op_desc, attr_key_kernel_name, attr_kernel_name);
+  (void)ge::AttrUtils::GetStr(op_desc, attr_key_kernel_name, attr_kernel_name);
   aic_aiv_ctx_def->add_kernel_name(attr_kernel_name);
   (void)ge::AttrUtils::SetInt(op_desc, ffts::kAttrAICoreCtxType,
                               static_cast<int64_t>(ffts::TaskBuilderType::EN_TASK_TYPE_AIC_AIV_AUTO));
@@ -340,7 +339,7 @@ static Status GenAutoAicAivCtxDef(NodePtr node) {
  *    netoutput
  */
 ComputeGraphPtr BuilGraph_Sgt_Subgraph_1(const string &subgraph_name, const uint32_t &thread_mode,
-                                        const uint32_t &window_size, uint32_t slice_num = 4) {
+                                         const uint32_t &window_size, uint32_t slice_num = 4) {
   auto builder = ut::ComputeGraphBuilder(subgraph_name);
   auto data1 = builder.AddNode("data1", DATA, 0, 1);
   auto data2 = builder.AddNode("data2", DATA, 0, 1);
@@ -357,8 +356,8 @@ ComputeGraphPtr BuilGraph_Sgt_Subgraph_1(const string &subgraph_name, const uint
   GenAutoAicAivCtxDef(add);
   GenAutoAicAivCtxDef(relu);
 
-  AttrUtils::SetInt(data1->GetOpDesc(),ATTR_NAME_PARENT_NODE_INDEX, 1);
-  AttrUtils::SetInt(data2->GetOpDesc(),ATTR_NAME_PARENT_NODE_INDEX, 1);
+  AttrUtils::SetInt(data1->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, 1);
+  AttrUtils::SetInt(data2->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, 1);
 
   ThreadSliceMap thread_slice_map;
   thread_slice_map.thread_mode = thread_mode;
@@ -367,7 +366,6 @@ ComputeGraphPtr BuilGraph_Sgt_Subgraph_1(const string &subgraph_name, const uint
   DimRange dim_rang;
   dim_rang.higher = 1;
   dim_rang.lower = 0;
-
 
   vector<vector<DimRange>> input_tensor_slice_vv;
   vector<DimRange> input_tensor_slice_v;
@@ -439,7 +437,7 @@ ComputeGraphPtr BuilGraph_Sgt_Subgraph_1(const string &subgraph_name, const uint
  * netoutput2   netoutput1
  */
 ComputeGraphPtr BuilGraph_Sgt_Subgraph_2(const string &subgraph_name, const bool &thread_mode,
-                                       const uint32_t &window_size) {
+                                         const uint32_t &window_size) {
   auto builder = ut::ComputeGraphBuilder(subgraph_name);
   auto data1 = builder.AddNode("data1", DATA, 0, 1);
   auto data2 = builder.AddNode("data2", DATA, 0, 1);
@@ -448,8 +446,8 @@ ComputeGraphPtr BuilGraph_Sgt_Subgraph_2(const string &subgraph_name, const bool
   auto netoutput1 = builder.AddNode("netoutput1", NETOUTPUT, 1, 1);
   auto netoutput2 = builder.AddNode("netoutput2", NETOUTPUT, 1, 1);
 
-  AttrUtils::SetInt(data1->GetOpDesc(),ATTR_NAME_PARENT_NODE_INDEX, 1);
-  AttrUtils::SetInt(data2->GetOpDesc(),ATTR_NAME_PARENT_NODE_INDEX, 1);
+  AttrUtils::SetInt(data1->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, 1);
+  AttrUtils::SetInt(data2->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, 1);
 
   ThreadSliceMap thread_slice_map;
   thread_slice_map.thread_mode = thread_mode;
@@ -476,7 +474,7 @@ ComputeGraphPtr BuilGraph_Sgt_Subgraph_2(const string &subgraph_name, const bool
   return sub_graph;
 }
 
-//graph with atomic node
+// graph with atomic node
 ComputeGraphPtr BuilGraph_Sgt_Subgraph_3(const string &subgraph_name, const bool &thread_mode,
                                          const uint32_t &window_size) {
   auto builder = ut::ComputeGraphBuilder(subgraph_name);
@@ -496,10 +494,10 @@ ComputeGraphPtr BuilGraph_Sgt_Subgraph_3(const string &subgraph_name, const bool
   ge::AttrUtils::SetStr(atomic_node->GetOpDesc(), "compile_info_json", json_str);
   (void)add1->GetOpDesc()->SetExtAttr("memset_node_ptr", atomic_node);
   (void)add2->GetOpDesc()->SetExtAttr("memset_node_ptr", atomic_node);
-  AttrUtils::SetInt(data1->GetOpDesc(),ATTR_NAME_PARENT_NODE_INDEX, 1);
-  AttrUtils::SetInt(data2->GetOpDesc(),ATTR_NAME_PARENT_NODE_INDEX, 1);
-  AttrUtils::SetInt(data3->GetOpDesc(),ATTR_NAME_PARENT_NODE_INDEX, 1);
-  AttrUtils::SetInt(data4->GetOpDesc(),ATTR_NAME_PARENT_NODE_INDEX, 1);
+  AttrUtils::SetInt(data1->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, 1);
+  AttrUtils::SetInt(data2->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, 1);
+  AttrUtils::SetInt(data3->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, 1);
+  AttrUtils::SetInt(data4->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, 1);
 
   ThreadSliceMap thread_slice_map;
   thread_slice_map.thread_mode = thread_mode;
@@ -547,8 +545,8 @@ ComputeGraphPtr BuilGraph_Sgt_Subgraph_4(const string &subgraph_name, const bool
   auto netoutput1 = builder.AddNode("netoutput1", NETOUTPUT, 1, 1);
   auto netoutput2 = builder.AddNode("netoutput2", NETOUTPUT, 1, 1);
 
-  AttrUtils::SetInt(data1->GetOpDesc(),ATTR_NAME_PARENT_NODE_INDEX, 1);
-  AttrUtils::SetInt(data2->GetOpDesc(),ATTR_NAME_PARENT_NODE_INDEX, 1);
+  AttrUtils::SetInt(data1->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, 1);
+  AttrUtils::SetInt(data2->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, 1);
 
   ThreadSliceMap thread_slice_map;
   thread_slice_map.thread_mode = thread_mode;
@@ -621,8 +619,8 @@ ComputeGraphPtr BuilGraph_Sgt_Subgraph_5(const string &subgraph_name, const uint
   GenAutoAicAivCtxDef(add);
   GenAutoAicAivCtxDef(relu);
 
-  AttrUtils::SetInt(data1->GetOpDesc(),ATTR_NAME_PARENT_NODE_INDEX, 1);
-  AttrUtils::SetInt(data2->GetOpDesc(),ATTR_NAME_PARENT_NODE_INDEX, 1);
+  AttrUtils::SetInt(data1->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, 1);
+  AttrUtils::SetInt(data2->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, 1);
 
   ThreadSliceMap thread_slice_map;
   thread_slice_map.thread_mode = thread_mode;
@@ -631,7 +629,6 @@ ComputeGraphPtr BuilGraph_Sgt_Subgraph_5(const string &subgraph_name, const uint
   DimRange dim_rang;
   dim_rang.higher = 1;
   dim_rang.lower = 0;
-
 
   vector<vector<DimRange>> input_tensor_slice_vv;
   vector<DimRange> input_tensor_slice_v;
@@ -714,20 +711,20 @@ static Status GenManualAICAIVCtxDef(NodePtr node) {
   aic_aiv_ctx_def->set_tail_block_dim(static_cast<uint32_t>(block_dim));
   aic_aiv_ctx_def->set_non_tail_block_dim(static_cast<uint32_t>(block_dim));
 
-  //input
+  // input
   aic_aiv_ctx_def->add_task_addr(111);
   aic_aiv_ctx_def->add_task_addr(222);
 
-  //output
+  // output
   aic_aiv_ctx_def->add_task_addr(333);
 
-  //workspace
+  // workspace
   aic_aiv_ctx_def->add_task_addr(444);
 
   auto op_desc = node->GetOpDesc();
   string attr_key_kernel_name = kKernelName;
   string attr_kernel_name;
-  (void) ge::AttrUtils::GetStr(op_desc, attr_key_kernel_name, attr_kernel_name);
+  (void)ge::AttrUtils::GetStr(op_desc, attr_key_kernel_name, attr_kernel_name);
   aic_aiv_ctx_def->add_kernel_name(attr_kernel_name);
   (void)ge::AttrUtils::SetInt(op_desc, ffts::kAttrAICoreCtxType,
                               static_cast<int64_t>(ffts::TaskBuilderType::EN_TASK_TYPE_AIC_AIV));
@@ -1030,8 +1027,7 @@ TEST_F(FFTSPlusOpsKernelBuilderUTest, Finalize_SUCCESS) {
   EXPECT_EQ(ffts::SUCCESS, ret);
 }
 
-TEST_F(FFTSPlusOpsKernelBuilderUTest, GenerateTask_SUCCESS)
-{
+TEST_F(FFTSPlusOpsKernelBuilderUTest, GenerateTask_SUCCESS) {
   ComputeGraphPtr graph = BuildGraph_Readonly_ScopeWrite();
   auto ifnode = graph->FindNode("if");
 
@@ -1042,8 +1038,7 @@ TEST_F(FFTSPlusOpsKernelBuilderUTest, GenerateTask_SUCCESS)
   EXPECT_EQ(ffts::SUCCESS, ret);
 }
 
-TEST_F(FFTSPlusOpsKernelBuilderUTest, GenerateTask_Greater26_SUCCESS)
-{
+TEST_F(FFTSPlusOpsKernelBuilderUTest, GenerateTask_Greater26_SUCCESS) {
   ComputeGraphPtr graph = BuildGraph_Greater26();
   auto sub_node = graph->FindNode("sub_node");
   for (auto &node : graph->GetDirectNode()) {
@@ -1056,16 +1051,15 @@ TEST_F(FFTSPlusOpsKernelBuilderUTest, GenerateTask_Greater26_SUCCESS)
   domi::FftsPlusTaskDef *ffts_plus_task_def = tasks[0].mutable_ffts_plus_task();
   ASSERT_EQ(ffts_plus_task_def->ffts_plus_ctx_size(), 33);
 
-  domi::FftsPlusCtxDef* label_ctx_def =
-          ffts_plus_task_def->mutable_ffts_plus_ctx(static_cast<int>(32));
-  domi::FftsPlusLabelCtxDef* label_ctx = label_ctx_def->mutable_label_ctx();
+  domi::FftsPlusCtxDef *label_ctx_def = ffts_plus_task_def->mutable_ffts_plus_ctx(static_cast<int>(32));
+  domi::FftsPlusLabelCtxDef *label_ctx = label_ctx_def->mutable_label_ctx();
   EXPECT_EQ(label_ctx_def->context_type(), RT_CTX_TYPE_LABEL);
   EXPECT_EQ(label_ctx->pred_cnt(), 1);
   EXPECT_EQ(label_ctx->successor_num(), 5);
   EXPECT_EQ(label_ctx->successor_list(0), 5);
 
-  domi::FftsPlusCtxDef* second_ctx_first =
-          ffts_plus_task_def->mutable_ffts_plus_ctx(static_cast<int>(RT_CTX_SUCCESSOR_NUM - 1));
+  domi::FftsPlusCtxDef *second_ctx_first =
+      ffts_plus_task_def->mutable_ffts_plus_ctx(static_cast<int>(RT_CTX_SUCCESSOR_NUM - 1));
   EXPECT_NE(second_ctx_first->context_type(), RT_CTX_TYPE_LABEL);
 }
 
@@ -1098,7 +1092,7 @@ Status ScheculePolicyPassStub3(domi::TaskDef &task_def, std::vector<ffts::FftsPl
   case_switch->set_pred_cnt_init(2);
   ffts_plus_ctx_def = ffts_plus_task_def->mutable_ffts_plus_ctx(29);
   ffts_plus_ctx_def->set_context_type(RT_CTX_TYPE_INVALIDATE_DATA);
-  auto nofity = ffts_plus_ctx_def->mutable_data_ctx();
+  auto notify = ffts_plus_ctx_def->mutable_data_ctx();
   nofity->set_cnt(2);
   nofity->set_cnt_init(2);
   ffts_plus_ctx_def = ffts_plus_task_def->mutable_ffts_plus_ctx(30);
@@ -1113,13 +1107,14 @@ Status ScheculePolicyPassStub3(domi::TaskDef &task_def, std::vector<ffts::FftsPl
   // 3--> 4,5,6,...,34,35,63(label)
   // 27=>28=>29=>30
   // construct ctx_path_vector ctx_id pre_cnt policy_pri max_pre_index cmo_list label_list pre_list succ_list
-  FftsPlusContextPath ctx_path0 = {0, 0, 55, 0, {50}, {}, {}, {1,1}};
-  FftsPlusContextPath ctx_path1 = {1, 2, 54, 1, {}, {62}, {0,0}, {2,2,3,4,5}};
-  FftsPlusContextPath ctx_path2 = {2, 2, 53, 2, {}, {}, {1,1}, {3,3}};
-  FftsPlusContextPath ctx_path3 = {3, 3, 52, 3, {}, {63}, {1,2,2}, {4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,
-                                                                    23,24,25,26,27,28,29,30,31,32,33,34,35}};
-  FftsPlusContextPath ctx_path4 = {4, 2, 51, 4, {}, {}, {1,3}, {}};
-  FftsPlusContextPath ctx_path5 = {5, 2, 51, 4, {}, {}, {1,3}, {}};
+  FftsPlusContextPath ctx_path0 = {0, 0, 55, 0, {50}, {}, {}, {1, 1}};
+  FftsPlusContextPath ctx_path1 = {1, 2, 54, 1, {}, {62}, {0, 0}, {2, 2, 3, 4, 5}};
+  FftsPlusContextPath ctx_path2 = {2, 2, 53, 2, {}, {}, {1, 1}, {3, 3}};
+  FftsPlusContextPath ctx_path3 = {
+      3, 3, 52, 3, {}, {63}, {1, 2, 2}, {4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+                                         20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35}};
+  FftsPlusContextPath ctx_path4 = {4, 2, 51, 4, {}, {}, {1, 3}, {}};
+  FftsPlusContextPath ctx_path5 = {5, 2, 51, 4, {}, {}, {1, 3}, {}};
   ctx_path_vector.emplace_back(ctx_path0);
   ctx_path_vector.emplace_back(ctx_path1);
   ctx_path_vector.emplace_back(ctx_path2);
@@ -1130,10 +1125,10 @@ Status ScheculePolicyPassStub3(domi::TaskDef &task_def, std::vector<ffts::FftsPl
     FftsPlusContextPath ctx_pathi = {i, 1, 51, 4, {}, {}, {3}, {}};
     ctx_path_vector.emplace_back(ctx_pathi);
   }
-  FftsPlusContextPath ctx_path27 = {27, 1, 51, 4, {}, {}, {3}, {28,28}};
-  FftsPlusContextPath ctx_path28 = {28, 3, 50, 5, {29}, {}, {27,27,3}, {29,29}};
-  FftsPlusContextPath ctx_path29 = {29, 3, 49, 6, {40}, {}, {28,28,3}, {30,30}};
-  FftsPlusContextPath ctx_path30 = {30, 3, 48, 7, {}, {}, {3,29,29}, {}};
+  FftsPlusContextPath ctx_path27 = {27, 1, 51, 4, {}, {}, {3}, {28, 28}};
+  FftsPlusContextPath ctx_path28 = {28, 3, 50, 5, {29}, {}, {27, 27, 3}, {29, 29}};
+  FftsPlusContextPath ctx_path29 = {29, 3, 49, 6, {40}, {}, {28, 28, 3}, {30, 30}};
+  FftsPlusContextPath ctx_path30 = {30, 3, 48, 7, {}, {}, {3, 29, 29}, {}};
   ctx_path_vector.emplace_back(ctx_path27);
   ctx_path_vector.emplace_back(ctx_path28);
   ctx_path_vector.emplace_back(ctx_path29);
@@ -1223,7 +1218,8 @@ Status CheckScheculePolicyPass(domi::FftsPlusTaskDef *ffts_plus_task_def) {
   for (auto succid : aicaiv->successor_list()) {
     succlist.emplace_back(succid);
   }
-  std::vector<uint32_t> target_succlist3 = {4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,31,62};
+  std::vector<uint32_t> target_succlist3 = {4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15, 16,
+                                            17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 31, 62};
   if (CheckVectorSame(succlist, target_succlist3) != ffts::SUCCESS) {
     cout << "check ctx 3 successlist failed" << endl;
     return ffts::FAILED;
@@ -1239,7 +1235,7 @@ Status CheckScheculePolicyPass(domi::FftsPlusTaskDef *ffts_plus_task_def) {
   for (auto succid : label->successor_list()) {
     succlist.emplace_back(succid);
   }
-  std::vector<uint32_t> target_succlist4 = {32,33,34,35};
+  std::vector<uint32_t> target_succlist4 = {32, 33, 34, 35};
   if (CheckVectorSame(succlist, target_succlist4) != ffts::SUCCESS) {
     cout << "check label 62 successlist failed" << endl;
     return ffts::FAILED;
@@ -1247,8 +1243,7 @@ Status CheckScheculePolicyPass(domi::FftsPlusTaskDef *ffts_plus_task_def) {
   return ffts::SUCCESS;
 }
 
-TEST_F(FFTSPlusOpsKernelBuilderUTest, GenerateTask_Greater60_Schecule_SUCCESS)
-{
+TEST_F(FFTSPlusOpsKernelBuilderUTest, GenerateTask_Greater60_Schecule_SUCCESS) {
   ComputeGraphPtr graph = BuildGraph_Greater60();
   auto sub_node = graph->FindNode("sub_node");
   vector<domi::TaskDef> tasks;
@@ -1276,10 +1271,10 @@ Status ScheculePolicyPassStub4(domi::TaskDef &task_def, std::vector<ffts::FftsPl
   ffts_plus_ctx_def->set_context_type(RT_CTX_TYPE_SDMA);
   auto sdma = ffts_plus_ctx_def->mutable_sdma_ctx();
   // construct ctx_path_vector ctx_id pre_cnt policy_pri max_pre_index cmo_list label_list pre_list succ_list
-  FftsPlusContextPath ctx_path0 = {0, 0, 55, 0, {50}, {}, {}, {1,1}};
-  FftsPlusContextPath ctx_path1 = {1, 2, 54, 1, {}, {62}, {}, {2,2,3,4,5}};
-  FftsPlusContextPath ctx_path2 = {2, 2, 53, 2, {}, {}, {1,1}, {3,3}};
- 
+  FftsPlusContextPath ctx_path0 = {0, 0, 55, 0, {50}, {}, {}, {1, 1}};
+  FftsPlusContextPath ctx_path1 = {1, 2, 54, 1, {}, {62}, {}, {2, 2, 3, 4, 5}};
+  FftsPlusContextPath ctx_path2 = {2, 2, 53, 2, {}, {}, {1, 1}, {3, 3}};
+
   ctx_path_vector.emplace_back(ctx_path0);
   ctx_path_vector.emplace_back(ctx_path1);
   ctx_path_vector.emplace_back(ctx_path2);
@@ -1287,8 +1282,7 @@ Status ScheculePolicyPassStub4(domi::TaskDef &task_def, std::vector<ffts::FftsPl
   return ffts::SUCCESS;
 }
 
-TEST_F(FFTSPlusOpsKernelBuilderUTest, GenerateTask_Greater60_Schecule_READYNUM_FAIL)
-{
+TEST_F(FFTSPlusOpsKernelBuilderUTest, GenerateTask_Greater60_Schecule_READYNUM_FAIL) {
   ComputeGraphPtr graph = BuildGraph_Greater60();
   auto sub_node = graph->FindNode("sub_node");
   vector<domi::TaskDef> tasks;
@@ -1297,8 +1291,7 @@ TEST_F(FFTSPlusOpsKernelBuilderUTest, GenerateTask_Greater60_Schecule_READYNUM_F
   EXPECT_EQ(ffts::FAILED, ret);
 }
 
-TEST_F(FFTSPlusOpsKernelBuilderUTest, GenerateTask_Greater60_SUCCESS)
-{
+TEST_F(FFTSPlusOpsKernelBuilderUTest, GenerateTask_Greater60_SUCCESS) {
   ComputeGraphPtr graph = BuildGraph_Greater60();
   auto sub_node = graph->FindNode("sub_node");
   vector<domi::TaskDef> tasks;
@@ -1309,8 +1302,7 @@ TEST_F(FFTSPlusOpsKernelBuilderUTest, GenerateTask_Greater60_SUCCESS)
   ASSERT_EQ(ffts_plus_task_def->ffts_plus_ctx_size(), 64);
 }
 
-TEST_F(FFTSPlusOpsKernelBuilderUTest, Mix_GenerateTask_SUCCESS)
-{
+TEST_F(FFTSPlusOpsKernelBuilderUTest, Mix_GenerateTask_SUCCESS) {
   ComputeGraphPtr graph = BuildGraph_Mix_ScopeWrite();
   cout << "========================MIX AIC/AIV GENTASK BEGIN========================" << endl;
   auto sub_node = graph->FindNode("sub_node");
@@ -1397,7 +1389,7 @@ ComputeGraphPtr BuildGraph_RuntimeOp_ScopeWrite(ComputeGraphPtr &func_op_branch_
   return root_graph;
 }
 
-//if
+// if
 
 ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_If_0_else_sub_graph(const string &subraph_name) {
   auto builder = ut::ComputeGraphBuilder(subraph_name);
@@ -1427,7 +1419,6 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_If_0_else_sub_graph(const string 
   (void)ge::AttrUtils::SetBool(labelset_2->GetOpDesc(), kTypeFFTSPlus, true);
   (void)ge::AttrUtils::SetInt(labelset_2->GetOpDesc(), ge::ATTR_NAME_THREAD_SCOPE_ID, 1);
 
-
   ge::AttrUtils::SetInt(labelset_2->GetOpDesc(), "_label_switch_index", 2);
   FftsPlusCtxDefPtr ctxDefPtr = std::make_shared<domi::FftsPlusCtxDef>();
   labeset_1->GetOpDesc()->SetExtAttr("FFTS_PLUS_TASK_DEF", ctxDefPtr);
@@ -1452,7 +1443,6 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_If_0_else_sub_graph(const string 
   return sub_graph;
 }
 
-
 ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_If_0_thensub_graph(const string &subraph_name) {
   auto builder = ut::ComputeGraphBuilder(subraph_name);
 
@@ -1471,7 +1461,7 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_If_0_thensub_graph(const string &
   tensor_desc->SetOriginFormat(ge::FORMAT_ND);
   (void)tensor_node->SetData(reinterpret_cast<uint8_t *>(&index), 4);
   ge::OpDescPtr newdatadesc = nullptr;
-  FE_MAKE_SHARED(newdatadesc = std::make_shared<ge::OpDesc>("data_2_1","Constant"), return nullptr);
+  FE_MAKE_SHARED(newdatadesc = std::make_shared<ge::OpDesc>("data_2_1", "Constant"), return nullptr);
   (void)ge::AttrUtils::SetBool(newdatadesc, "_is_single_op", true);
   (void)ge::AttrUtils::SetBool(newdatadesc, ge::ATTR_NAME_IS_ORIGINAL_INPUT, true);
   if (newdatadesc->AddOutputDesc(*tensor_desc) != ge::GRAPH_SUCCESS) {
@@ -1525,7 +1515,6 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_If_0_thensub_graph(const string &
   (void)ge::AttrUtils::SetBool(labegotoex1->GetOpDesc(), kTypeFFTSPlus, true);
   (void)ge::AttrUtils::SetInt(labegotoex1->GetOpDesc(), ge::ATTR_NAME_THREAD_SCOPE_ID, 1);
 
-
   ge::AttrUtils::SetInt(labegotoex1->GetOpDesc(), "_label_switch_index", 2);
   FftsPlusCtxDefPtr ctxDefPtr = std::make_shared<domi::FftsPlusCtxDef>();
   labelswitchbyindex1->GetOpDesc()->SetExtAttr("FFTS_PLUS_TASK_DEF", ctxDefPtr);
@@ -1541,7 +1530,6 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_If_0_thensub_graph(const string &
   ge::AttrUtils::SetInt(mul1->GetOpDesc(), ge::ATTR_NAME_THREAD_SCOPE_ID, 0);
   labegotoex1->GetOpDesc()->SetExtAttr(kAttrSgtStructInfo, threadSliceMap);
   ge::AttrUtils::SetInt(labegotoex1->GetOpDesc(), ge::ATTR_NAME_THREAD_SCOPE_ID, 0);
-
 
   builder.AddDataEdge(data1, 0, labelswitchbyindex1, 0);
   auto dataconstanchor = labelswitchbyindex1->GetAllInDataAnchors().at(0);
@@ -1568,7 +1556,6 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_If_0_root_graph(const string &sub
   auto variable = builder.AddNode("variable_0_1", "Variable", 0, 0);
   auto netoutput0 = builder.AddNode("netoutput_0_1", "NetOutput", 1, 0);
 
-
   (void)ge::AttrUtils::SetBool(data1->GetOpDesc(), kTypeFFTSPlus, true);
   (void)ge::AttrUtils::SetInt(data1->GetOpDesc(), ge::ATTR_NAME_THREAD_SCOPE_ID, 1);
 
@@ -1592,7 +1579,6 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_If_0_root_graph(const string &sub
 
   (void)ge::AttrUtils::SetBool(netoutput0->GetOpDesc(), kTypeFFTSPlus, true);
   (void)ge::AttrUtils::SetInt(netoutput0->GetOpDesc(), ge::ATTR_NAME_THREAD_SCOPE_ID, 1);
-
 
   FftsPlusCtxDefPtr ctxDefPtr = std::make_shared<domi::FftsPlusCtxDef>();
   if_0_node->GetOpDesc()->SetExtAttr("FFTS_PLUS_TASK_DEF", ctxDefPtr);
@@ -1661,8 +1647,7 @@ ComputeGraphPtr BuildGraph_RuntimeOp_If_ScopeWrite() {
   return root_graph;
 }
 
-
-//while
+// while
 ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_while_0_condi_sub_graph(const string &subraph_name) {
   auto builder = ut::ComputeGraphBuilder(subraph_name);
   auto labeset_1 = builder.AddNode("labelset_1_1", "LabelSet", 0, 0);
@@ -1688,7 +1673,7 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_while_0_condi_sub_graph(const str
   tensor_desc->SetOriginFormat(ge::FORMAT_ND);
   (void)tensor_node->SetData(reinterpret_cast<uint8_t *>(&index), 4);
   ge::OpDescPtr newdatadesc = nullptr;
-  FE_MAKE_SHARED(newdatadesc = std::make_shared<ge::OpDesc>("data_2_1","Constant"), return nullptr);
+  FE_MAKE_SHARED(newdatadesc = std::make_shared<ge::OpDesc>("data_2_1", "Constant"), return nullptr);
   (void)ge::AttrUtils::SetBool(newdatadesc, "_is_single_op", true);
   (void)ge::AttrUtils::SetBool(newdatadesc, ge::ATTR_NAME_IS_ORIGINAL_INPUT, true);
   if (newdatadesc->AddOutputDesc(*tensor_desc) != ge::GRAPH_SUCCESS) {
@@ -1708,7 +1693,6 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_while_0_condi_sub_graph(const str
   (void)ge::AttrUtils::SetBool(labeset_1->GetOpDesc(), kTypeFFTSPlus, true);
   (void)ge::AttrUtils::SetInt(labeset_1->GetOpDesc(), ge::ATTR_NAME_THREAD_SCOPE_ID, 1);
 
-
   (void)ge::AttrUtils::SetBool(streamactive1->GetOpDesc(), kTypeFFTSPlus, true);
   (void)ge::AttrUtils::SetInt(streamactive1->GetOpDesc(), ge::ATTR_NAME_THREAD_SCOPE_ID, 1);
 
@@ -1724,14 +1708,13 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_while_0_condi_sub_graph(const str
   (void)ge::AttrUtils::SetBool(cast->GetOpDesc(), kTypeFFTSPlus, true);
   (void)ge::AttrUtils::SetInt(cast->GetOpDesc(), ge::ATTR_NAME_THREAD_SCOPE_ID, 1);
 
-
   (void)ge::AttrUtils::SetBool(netoutput1->GetOpDesc(), kTypeFFTSPlus, true);
   (void)ge::AttrUtils::SetInt(netoutput1->GetOpDesc(), ge::ATTR_NAME_THREAD_SCOPE_ID, 1);
 
   (void)ge::AttrUtils::SetBool(labelswitchbyindex1->GetOpDesc(), kTypeFFTSPlus, true);
   (void)ge::AttrUtils::SetInt(labelswitchbyindex1->GetOpDesc(), ge::ATTR_NAME_THREAD_SCOPE_ID, 1);
 
-  //GenManAicAivCtxDef(less);
+  // GenManAicAivCtxDef(less);
   GenManAicAivCtxDef(cast);
 
   FftsPlusCtxDefPtr ctxDefPtr = std::make_shared<domi::FftsPlusCtxDef>();
@@ -1745,7 +1728,7 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_while_0_condi_sub_graph(const str
   ge::AttrUtils::SetInt(labeset_1->GetOpDesc(), ge::ATTR_NAME_THREAD_SCOPE_ID, 0);
   less->GetOpDesc()->SetExtAttr(kAttrSgtStructInfo, threadSliceMap);
   ge::AttrUtils::SetInt(less->GetOpDesc(), ge::ATTR_NAME_THREAD_SCOPE_ID, 0);
-   cast->GetOpDesc()->SetExtAttr(kAttrSgtStructInfo, threadSliceMap);
+  cast->GetOpDesc()->SetExtAttr(kAttrSgtStructInfo, threadSliceMap);
   ge::AttrUtils::SetInt(cast->GetOpDesc(), ge::ATTR_NAME_THREAD_SCOPE_ID, 0);
   netoutput1->GetOpDesc()->SetExtAttr(kAttrSgtStructInfo, threadSliceMap);
   ge::AttrUtils::SetInt(netoutput1->GetOpDesc(), ge::ATTR_NAME_THREAD_SCOPE_ID, 0);
@@ -1764,7 +1747,6 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_while_0_condi_sub_graph(const str
   builder.SetConstantInputOffset();
   return sub_graph;
 }
-
 
 ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_while_0_then_sub_graph(const string &subraph_name) {
   auto builder = ut::ComputeGraphBuilder(subraph_name);
@@ -1791,7 +1773,6 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_while_0_then_sub_graph(const stri
   identity2->GetOpDesc()->SetExtAttr("FFTS_PLUS_TASK_DEF", ctxDefPtr);
   labegotoex1->GetOpDesc()->SetExtAttr("FFTS_PLUS_TASK_DEF", ctxDefPtr);
   labelset_2->GetOpDesc()->SetExtAttr("FFTS_PLUS_TASK_DEF", ctxDefPtr);
-
 
   (void)ge::AttrUtils::SetBool(labeset_1->GetOpDesc(), kTypeFFTSPlus, true);
   (void)ge::AttrUtils::SetInt(labeset_1->GetOpDesc(), ge::ATTR_NAME_THREAD_SCOPE_ID, 1);
@@ -1820,7 +1801,6 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_while_0_then_sub_graph(const stri
   (void)ge::AttrUtils::SetBool(add2->GetOpDesc(), kTypeFFTSPlus, true);
   (void)ge::AttrUtils::SetInt(add2->GetOpDesc(), ge::ATTR_NAME_THREAD_SCOPE_ID, 1);
 
-
   (void)ge::AttrUtils::SetBool(identity2->GetOpDesc(), kTypeFFTSPlus, true);
   (void)ge::AttrUtils::SetInt(identity2->GetOpDesc(), ge::ATTR_NAME_THREAD_SCOPE_ID, 1);
 
@@ -1832,7 +1812,6 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_while_0_then_sub_graph(const stri
 
   (void)ge::AttrUtils::SetBool(labelset_2->GetOpDesc(), kTypeFFTSPlus, true);
   (void)ge::AttrUtils::SetInt(labelset_2->GetOpDesc(), ge::ATTR_NAME_THREAD_SCOPE_ID, 1);
-
 
   GenManAicAivCtxDef(add1);
   GenManAicAivCtxDef(add2);
@@ -1890,7 +1869,6 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_While_0_root_graph(const string &
   auto variabel = builder.AddNode("variable_1", "Variable", 0, 0);
   auto netoutput0 = builder.AddNode("netoutput_0_1", "NetOutput", 1, 0);
 
-
   (void)ge::AttrUtils::SetBool(data1->GetOpDesc(), kTypeFFTSPlus, true);
   (void)ge::AttrUtils::SetInt(data1->GetOpDesc(), ge::ATTR_NAME_THREAD_SCOPE_ID, 1);
 
@@ -1918,7 +1896,6 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_While_0_root_graph(const string &
   (void)ge::AttrUtils::SetBool(pack->GetOpDesc(), kTypeFFTSPlus, true);
   (void)ge::AttrUtils::SetInt(pack->GetOpDesc(), ge::ATTR_NAME_THREAD_SCOPE_ID, 1);
 
-
   (void)ge::AttrUtils::SetBool(add->GetOpDesc(), kTypeFFTSPlus, true);
   (void)ge::AttrUtils::SetInt(add->GetOpDesc(), ge::ATTR_NAME_THREAD_SCOPE_ID, 1);
 
@@ -1927,7 +1904,6 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_While_0_root_graph(const string &
 
   (void)ge::AttrUtils::SetBool(netoutput0->GetOpDesc(), kTypeFFTSPlus, true);
   (void)ge::AttrUtils::SetInt(netoutput0->GetOpDesc(), ge::ATTR_NAME_THREAD_SCOPE_ID, 1);
-
 
   FftsPlusCtxDefPtr ctxDefPtr = std::make_shared<domi::FftsPlusCtxDef>();
   identity->GetOpDesc()->SetExtAttr("FFTS_PLUS_TASK_DEF", ctxDefPtr);
@@ -2002,12 +1978,9 @@ ComputeGraphPtr BuildGraph_RuntimeOp_While_ScopeWrite() {
   root_graph->AddSubgraph(then_subgraph_name, then_branch_graph);
   builder.SetConstantInputOffset();
   return root_graph;
-
-
-
 }
 
-//case
+// case
 ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_case_0_condi_sub_graph1(const string &subraph_name) {
   auto builder = ut::ComputeGraphBuilder(subraph_name);
 
@@ -2026,7 +1999,7 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_case_0_condi_sub_graph1(const str
   tensor_desc->SetOriginFormat(ge::FORMAT_ND);
   (void)tensor_node->SetData(reinterpret_cast<uint8_t *>(&index), 4);
   ge::OpDescPtr newdatadesc = nullptr;
-  FE_MAKE_SHARED(newdatadesc = std::make_shared<ge::OpDesc>("data_1_1","Constant"), return nullptr);
+  FE_MAKE_SHARED(newdatadesc = std::make_shared<ge::OpDesc>("data_1_1", "Constant"), return nullptr);
   (void)ge::AttrUtils::SetBool(newdatadesc, "_is_single_op", true);
   (void)ge::AttrUtils::SetBool(newdatadesc, ge::ATTR_NAME_IS_ORIGINAL_INPUT, true);
   if (newdatadesc->AddOutputDesc(*tensor_desc) != ge::GRAPH_SUCCESS) {
@@ -2041,7 +2014,6 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_case_0_condi_sub_graph1(const str
   auto data1 = builder.AddNode("data_2_1", "Data", 0, 1);
   (void)ge::AttrUtils::SetInt(data1->GetOpDesc(), "_parent_node_index", 0);
 
-
   std::vector<uint32_t> index_list;
   index_list.push_back(0);
   index_list.push_back(1);
@@ -2049,7 +2021,6 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_case_0_condi_sub_graph1(const str
   ge::AttrUtils::SetListInt(labelswitchbyindex1->GetOpDesc(), "_label_switch_list", index_list);
   auto labeset_1 = builder.AddNode("labeset_2_1", "LabelSet", 0, 0);
   ge::AttrUtils::SetInt(labeset_1->GetOpDesc(), "_label_switch_index", 1);
-
 
   auto streamactive1 = builder.AddNode("streamactive_2_1", "StreamActive", 0, 0);
   auto partitioncall = builder.AddNode("constant_2_1", "Constant", 0, 1);
@@ -2088,8 +2059,6 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_case_0_condi_sub_graph1(const str
   labegotoex1->GetOpDesc()->SetExtAttr(kAttrSgtStructInfo, threadSliceMap);
   ge::AttrUtils::SetInt(labegotoex1->GetOpDesc(), ge::ATTR_NAME_THREAD_SCOPE_ID, 0);
 
-
-
   builder.AddDataEdge(data1, 0, labelswitchbyindex1, 0);
   auto dataconstanchor = labelswitchbyindex1->GetAllInDataAnchors().at(0);
   if (dataconstanchor == nullptr) {
@@ -2118,7 +2087,6 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_case_0_condi_sub_graph2(const str
   ge::AttrUtils::SetInt(labegotoex1->GetOpDesc(), "_label_switch_index", 0);
 
   FftsPlusCtxDefPtr ctxDefPtr = std::make_shared<domi::FftsPlusCtxDef>();
-
 
   labeset_1->GetOpDesc()->SetExtAttr("FFTS_PLUS_TASK_DEF", ctxDefPtr);
   labegotoex1->GetOpDesc()->SetExtAttr("FFTS_PLUS_TASK_DEF", ctxDefPtr);
@@ -2161,9 +2129,8 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_case_0_condi_sub_graph3(const str
   auto partitioncall = builder.AddNode("constant_3_1", "Constant", 0, 1);
   auto netoutput1 = builder.AddNode("netoutput_3_1", "NetOutput", 1, 0);
   auto labelset_2 = builder.AddNode("labelset_3_2", "LabelSet", 0, 0);
-  ge::AttrUtils::SetInt(labelset_2->GetOpDesc(), "_label_switch_index",  0);
+  ge::AttrUtils::SetInt(labelset_2->GetOpDesc(), "_label_switch_index", 0);
   FftsPlusCtxDefPtr ctxDefPtr = std::make_shared<domi::FftsPlusCtxDef>();
-
 
   (void)ge::AttrUtils::SetBool(labeset_1->GetOpDesc(), kTypeFFTSPlus, true);
   (void)ge::AttrUtils::SetInt(labeset_1->GetOpDesc(), ge::ATTR_NAME_THREAD_SCOPE_ID, 1);
@@ -2197,7 +2164,6 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_case_0_condi_sub_graph3(const str
   return sub_graph;
 }
 
-
 ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_Case_0_root_graph(const string &subraph_name) {
   auto builder = ut::ComputeGraphBuilder(subraph_name);
 
@@ -2205,7 +2171,6 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_Case_0_root_graph(const string &s
   auto case1 = builder.AddNode("Case", "Case", 1, 1);
   auto variabel = builder.AddNode("variable_1", "Variable", 0, 0);
   auto netoutput0 = builder.AddNode("netoutput_0_1", "NetOutput", 1, 0);
-
 
   (void)ge::AttrUtils::SetBool(data1->GetOpDesc(), kTypeFFTSPlus, true);
   (void)ge::AttrUtils::SetInt(data1->GetOpDesc(), ge::ATTR_NAME_THREAD_SCOPE_ID, 1);
@@ -2247,7 +2212,7 @@ ComputeGraphPtr BuildGraph_RuntimeOp_Case_ScopeWrite() {
   sub_node->GetOpDesc()->AddSubgraphName(subgraph_name);
   sub_node->GetOpDesc()->SetSubgraphInstanceName(0, subgraph_name);
   root_graph->AddSubgraph(subgraph_name, func_op_branch_graph);
-   auto case1 = func_op_branch_graph->FindNode("Case");
+  auto case1 = func_op_branch_graph->FindNode("Case");
   if (case1 == nullptr) {
     cout << "[ERROR] FE:sub node is nullptr";
     return root_graph;
@@ -2277,7 +2242,7 @@ ComputeGraphPtr BuildGraph_RuntimeOp_Case_ScopeWrite() {
   return root_graph;
 }
 
-//if_if
+// if_if
 ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_If_If_1_if_else_sub_graph(const string &subraph_name) {
   auto builder = ut::ComputeGraphBuilder(subraph_name);
   auto labeset_1 = builder.AddNode("labeset_1_1_1", "LabelSet", 0, 0);
@@ -2321,10 +2286,8 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_If_If_1_if_else_sub_graph(const s
   return sub_graph;
 }
 
-
 ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_If_If_1_if_thensub_graph(const string &subraph_name) {
   auto builder = ut::ComputeGraphBuilder(subraph_name);
-
 
   auto labelswitchbyindex1 = builder.AddNode("labelswitch_2_1", "LabelSwitchByIndex", 1, 0);
   ge::GeTensorDescPtr tensor_desc = labelswitchbyindex1->GetOpDesc()->MutableInputDesc(0);
@@ -2341,7 +2304,7 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_If_If_1_if_thensub_graph(const st
   tensor_desc->SetOriginFormat(ge::FORMAT_ND);
   (void)tensor_node->SetData(reinterpret_cast<uint8_t *>(&index), 4);
   ge::OpDescPtr newdatadesc = nullptr;
-  FE_MAKE_SHARED(newdatadesc = std::make_shared<ge::OpDesc>("data_2_1","Constant"), return nullptr);
+  FE_MAKE_SHARED(newdatadesc = std::make_shared<ge::OpDesc>("data_2_1", "Constant"), return nullptr);
   (void)ge::AttrUtils::SetBool(newdatadesc, "_is_single_op", true);
   (void)ge::AttrUtils::SetBool(newdatadesc, ge::ATTR_NAME_IS_ORIGINAL_INPUT, true);
   if (newdatadesc->AddOutputDesc(*tensor_desc) != ge::GRAPH_SUCCESS) {
@@ -2355,7 +2318,6 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_If_If_1_if_thensub_graph(const st
   auto sub_graph = builder.GetGraph();
   auto data1 = builder.AddNode("data_2_1_1", "Data", 0, 1);
   (void)ge::AttrUtils::SetInt(data1->GetOpDesc(), "_parent_node_index", 0);
-
 
   std::vector<uint32_t> index_list;
   index_list.push_back(0);
@@ -2378,7 +2340,7 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_If_If_1_if_thensub_graph(const st
   identity1->GetOpDesc()->SetExtAttr("FFTS_PLUS_TASK_DEF", ctxDefPtr);
   labegotoex1->GetOpDesc()->SetExtAttr("FFTS_PLUS_TASK_DEF", ctxDefPtr);
   GenManAicAivCtxDef(identity1);
-   GenManAicAivCtxDef(add1);
+  GenManAicAivCtxDef(add1);
   ThreadSliceMapPtr threadSliceMap = std::make_shared<ThreadSliceMap>();
   labelswitchbyindex1->GetOpDesc()->SetExtAttr(kAttrSgtStructInfo, threadSliceMap);
   ge::AttrUtils::SetInt(labelswitchbyindex1->GetOpDesc(), ge::ATTR_NAME_THREAD_SCOPE_ID, 0);
@@ -2391,9 +2353,8 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_If_If_1_if_thensub_graph(const st
   labegotoex1->GetOpDesc()->SetExtAttr(kAttrSgtStructInfo, threadSliceMap);
   ge::AttrUtils::SetInt(labegotoex1->GetOpDesc(), ge::ATTR_NAME_THREAD_SCOPE_ID, 0);
 
-
   builder.AddDataEdge(data1, 0, labelswitchbyindex1, 0);
-    auto dataconstanchor = labelswitchbyindex1->GetAllInDataAnchors().at(0);
+  auto dataconstanchor = labelswitchbyindex1->GetAllInDataAnchors().at(0);
   (void)ge::AnchorUtils::SetStatus(dataconstanchor, ge::ANCHOR_CONST);
   builder.AddControlEdge(labelswitchbyindex1, labeset_1);
   builder.AddControlEdge(labeset_1, streamactive1);
@@ -2421,7 +2382,6 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_If_IF_0_else_sub_graph(const stri
   auto square1 = builder.AddNode("square_1_1", "Square", 1, 1);
   auto netoutput0 = builder.AddNode("netoutput_0_1", "NetOutput", 1, 1);
 
-
   FftsPlusCtxDefPtr ctxDefPtr = std::make_shared<domi::FftsPlusCtxDef>();
   labeset_1->GetOpDesc()->SetExtAttr("FFTS_PLUS_TASK_DEF", ctxDefPtr);
   labelset_2->GetOpDesc()->SetExtAttr("FFTS_PLUS_TASK_DEF", ctxDefPtr);
@@ -2448,7 +2408,6 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_If_IF_0_else_sub_graph(const stri
 ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_If_IF_0_thensub_graph(const string &subraph_name) {
   auto builder = ut::ComputeGraphBuilder(subraph_name);
 
-
   auto labelswitchbyindex1 = builder.AddNode("labelswitch_2_1", "LabelSwitchByIndex", 1, 0);
   ge::GeTensorDescPtr tensor_desc = labelswitchbyindex1->GetOpDesc()->MutableInputDesc(0);
   ge::GeTensorPtr tensor_node = nullptr;
@@ -2464,7 +2423,7 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_If_IF_0_thensub_graph(const strin
   tensor_desc->SetOriginFormat(ge::FORMAT_ND);
   (void)tensor_node->SetData(reinterpret_cast<uint8_t *>(&index), 4);
   ge::OpDescPtr newdatadesc = nullptr;
-  FE_MAKE_SHARED(newdatadesc = std::make_shared<ge::OpDesc>("data_2_1","Constant"), return nullptr);
+  FE_MAKE_SHARED(newdatadesc = std::make_shared<ge::OpDesc>("data_2_1", "Constant"), return nullptr);
   (void)ge::AttrUtils::SetBool(newdatadesc, "_is_single_op", true);
   (void)ge::AttrUtils::SetBool(newdatadesc, ge::ATTR_NAME_IS_ORIGINAL_INPUT, true);
   if (newdatadesc->AddOutputDesc(*tensor_desc) != ge::GRAPH_SUCCESS) {
@@ -2478,7 +2437,6 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_If_IF_0_thensub_graph(const strin
   auto sub_graph = builder.GetGraph();
   auto data1 = builder.AddNode("data_2_3", "Data", 0, 1);
   (void)ge::AttrUtils::SetInt(data1->GetOpDesc(), "_parent_node_index", 0);
-
 
   std::vector<uint32_t> index_list;
   index_list.push_back(4);
@@ -2506,7 +2464,6 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_If_IF_0_thensub_graph(const strin
   if_1_node->GetOpDesc()->SetExtAttr("FFTS_PLUS_TASK_DEF", ctxDefPtr);
   labegotoex1->GetOpDesc()->SetExtAttr("FFTS_PLUS_TASK_DEF", ctxDefPtr);
 
-
   ThreadSliceMapPtr threadSliceMap = std::make_shared<ThreadSliceMap>();
   labelswitchbyindex1->GetOpDesc()->SetExtAttr(kAttrSgtStructInfo, threadSliceMap);
   ge::AttrUtils::SetInt(labelswitchbyindex1->GetOpDesc(), ge::ATTR_NAME_THREAD_SCOPE_ID, 0);
@@ -2526,7 +2483,7 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_If_IF_0_thensub_graph(const strin
   GenManAicAivCtxDef(add1);
   GenManAicAivCtxDef(mul1);
   builder.AddDataEdge(data1, 0, labelswitchbyindex1, 0);
-    auto dataconstanchor = labelswitchbyindex1->GetAllInDataAnchors().at(0);
+  auto dataconstanchor = labelswitchbyindex1->GetAllInDataAnchors().at(0);
   (void)ge::AnchorUtils::SetStatus(dataconstanchor, ge::ANCHOR_CONST);
   builder.AddControlEdge(labelswitchbyindex1, labeset_1);
   builder.AddControlEdge(labeset_1, streamactive1);
@@ -2551,7 +2508,6 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_If_IF_0_thensub_graph(const strin
   return sub_graph;
 }
 
-
 ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_If_If_0_root_graph(const string &subraph_name) {
   auto builder = ut::ComputeGraphBuilder(subraph_name);
   auto if_0_node = builder.AddNode("If", "If", 4, 1);
@@ -2562,7 +2518,6 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_If_If_0_root_graph(const string &
   auto add = builder.AddNode("add_0_1", "Add", 2, 1);
   auto variable = builder.AddNode("variable_0_1", "Variable", 0, 1);
   auto netoutput0 = builder.AddNode("netoutput_0_1", "NetOutput", 2, 0);
-
 
   FftsPlusCtxDefPtr ctxDefPtr = std::make_shared<domi::FftsPlusCtxDef>();
   if_0_node->GetOpDesc()->SetExtAttr("FFTS_PLUS_TASK_DEF", ctxDefPtr);
@@ -2587,7 +2542,7 @@ ComputeGraphPtr BuildGraph_RuntimeOp_TestCase1_If_If_0_root_graph(const string &
   builder.AddDataEdge(data2, 0, add, 1);
   builder.AddDataEdge(add, 0, netoutput0, 0);
   builder.AddControlEdge(variable, netoutput0);
-   GenManAicAivCtxDef(add);
+  GenManAicAivCtxDef(add);
   auto sub_if_graph = builder.GetGraph();
   builder.SetConstantInputOffset();
   return sub_if_graph;
@@ -2632,7 +2587,8 @@ ComputeGraphPtr BuildGraph_RuntimeOp_If_If_ScopeWrite() {
     return root_graph;
   }
   string then_then_subgraph_name = "then_then_sub_graph";
-  ComputeGraphPtr then_then_branch_graph = BuildGraph_RuntimeOp_TestCase1_If_If_1_if_thensub_graph(then_then_subgraph_name);
+  ComputeGraphPtr then_then_branch_graph =
+      BuildGraph_RuntimeOp_TestCase1_If_If_1_if_thensub_graph(then_then_subgraph_name);
   then_then_branch_graph->SetParentNode(if_1_node);
   then_then_branch_graph->SetParentGraph(then_branch_graph);
   if_1_node->GetOpDesc()->AddSubgraphName(then_then_subgraph_name);
@@ -2640,7 +2596,8 @@ ComputeGraphPtr BuildGraph_RuntimeOp_If_If_ScopeWrite() {
   root_graph->AddSubgraph(then_then_subgraph_name, then_then_branch_graph);
 
   string then_else_subgraph_name = "then_else_sub_graph";
-  ComputeGraphPtr then_else_branch_graph = BuildGraph_RuntimeOp_TestCase1_If_If_1_if_else_sub_graph(then_else_subgraph_name);
+  ComputeGraphPtr then_else_branch_graph =
+      BuildGraph_RuntimeOp_TestCase1_If_If_1_if_else_sub_graph(then_else_subgraph_name);
   then_else_branch_graph->SetParentNode(if_1_node);
   then_else_branch_graph->SetParentGraph(then_branch_graph);
   if_1_node->GetOpDesc()->AddSubgraphName(then_else_subgraph_name);
@@ -2649,8 +2606,7 @@ ComputeGraphPtr BuildGraph_RuntimeOp_If_If_ScopeWrite() {
   return root_graph;
 }
 
-TEST_F(FFTSPlusOpsKernelBuilderUTest, RTSOP_GenerateTask_SUCCESS)
-{
+TEST_F(FFTSPlusOpsKernelBuilderUTest, RTSOP_GenerateTask_SUCCESS) {
   ComputeGraphPtr func_op_branch_graph = nullptr;
   ComputeGraphPtr graph = BuildGraph_RuntimeOp_ScopeWrite(func_op_branch_graph, false);
   cout << "========================RTSOP GENTASK BEGIN========================" << endl;
@@ -2666,8 +2622,7 @@ TEST_F(FFTSPlusOpsKernelBuilderUTest, RTSOP_GenerateTask_SUCCESS)
   EXPECT_EQ(ffts::FAILED, ret);
 }
 
-TEST_F(FFTSPlusOpsKernelBuilderUTest, Auto_RTSOP_GenerateTask_SUCCESS)
-{
+TEST_F(FFTSPlusOpsKernelBuilderUTest, Auto_RTSOP_GenerateTask_SUCCESS) {
   ComputeGraphPtr func_op_branch_graph = nullptr;
   ComputeGraphPtr graph = BuildGraph_RuntimeOp_ScopeWrite(func_op_branch_graph, true);
   cout << "========================AUTO RTSOP GENTASK BEGIN========================" << endl;
@@ -2690,8 +2645,7 @@ TEST_F(FFTSPlusOpsKernelBuilderUTest, Auto_RTSOP_GenerateTask_SUCCESS)
   EXPECT_EQ(ffts::SUCCESS, ret);
 }
 
-TEST_F(FFTSPlusOpsKernelBuilderUTest, AICPU_GenerateTask_Schecule_Failed)
-{
+TEST_F(FFTSPlusOpsKernelBuilderUTest, AICPU_GenerateTask_Schecule_Failed) {
   ComputeGraphPtr graph = BuildGraph_AICPU_ScopeWrite();
   cout << "========================aicpu GENTASK BEGIN========================" << endl;
   auto sub_node = graph->FindNode("sub_node");
@@ -2707,8 +2661,7 @@ TEST_F(FFTSPlusOpsKernelBuilderUTest, AICPU_GenerateTask_Schecule_Failed)
   EXPECT_EQ(ffts::SUCCESS, ret);
 }
 
-TEST_F(FFTSPlusOpsKernelBuilderUTest, RTSOP_UNFOLDCALLONLYONEDEPTH)
-{
+TEST_F(FFTSPlusOpsKernelBuilderUTest, RTSOP_UNFOLDCALLONLYONEDEPTH) {
   ComputeGraphPtr func_op_branch_graph = nullptr;
   ComputeGraphPtr graph = BuildGraph_RuntimeOp_ScopeWrite(func_op_branch_graph, false);
   cout << "=======================RTSOP_UNFOLDCALLONLYONEDEPTH========================" << endl;
@@ -2724,8 +2677,7 @@ TEST_F(FFTSPlusOpsKernelBuilderUTest, RTSOP_UNFOLDCALLONLYONEDEPTH)
   EXPECT_EQ(ffts::FAILED, ret);
 }
 
-TEST_F(FFTSPlusOpsKernelBuilderUTest, RTSOP_GenerateTask_IF_SETIF)
-{
+TEST_F(FFTSPlusOpsKernelBuilderUTest, RTSOP_GenerateTask_IF_SETIF) {
   ComputeGraphPtr graph = BuildGraph_RuntimeOp_If_ScopeWrite();
   cout << "\n========================IF START ========================" << endl;
   auto sub_node = graph->FindNode("sub_node");
@@ -2740,9 +2692,7 @@ TEST_F(FFTSPlusOpsKernelBuilderUTest, RTSOP_GenerateTask_IF_SETIF)
   EXPECT_EQ(ffts::SUCCESS, ret);
 }
 
-
-TEST_F(FFTSPlusOpsKernelBuilderUTest, RTSOP_GenerateTask_CASE_SETIF)
-{
+TEST_F(FFTSPlusOpsKernelBuilderUTest, RTSOP_GenerateTask_CASE_SETIF) {
   ComputeGraphPtr graph = BuildGraph_RuntimeOp_Case_ScopeWrite();
   cout << "========================CASE START ========================" << endl;
   auto sub_node = graph->FindNode("sub_node");
@@ -2757,8 +2707,7 @@ TEST_F(FFTSPlusOpsKernelBuilderUTest, RTSOP_GenerateTask_CASE_SETIF)
   EXPECT_EQ(ffts::SUCCESS, ret);
 }
 
-TEST_F(FFTSPlusOpsKernelBuilderUTest, RTSOP_GenerateTask_While_SETIF)
-{
+TEST_F(FFTSPlusOpsKernelBuilderUTest, RTSOP_GenerateTask_While_SETIF) {
   ComputeGraphPtr graph = BuildGraph_RuntimeOp_While_ScopeWrite();
   cout << "========================WHILE START ========================" << endl;
   auto sub_node = graph->FindNode("sub_node");
@@ -2773,8 +2722,7 @@ TEST_F(FFTSPlusOpsKernelBuilderUTest, RTSOP_GenerateTask_While_SETIF)
   EXPECT_EQ(ffts::SUCCESS, ret);
 }
 
-TEST_F(FFTSPlusOpsKernelBuilderUTest, RTSOP_GenerateTask_If_If_SETIF)
-{
+TEST_F(FFTSPlusOpsKernelBuilderUTest, RTSOP_GenerateTask_If_If_SETIF) {
   ComputeGraphPtr graph = BuildGraph_RuntimeOp_If_If_ScopeWrite();
   cout << "========================If_If START ========================" << endl;
   auto sub_node = graph->FindNode("sub_node");
@@ -2789,8 +2737,7 @@ TEST_F(FFTSPlusOpsKernelBuilderUTest, RTSOP_GenerateTask_If_If_SETIF)
   EXPECT_EQ(ffts::SUCCESS, ret);
 }
 
-TEST_F(FFTSPlusOpsKernelBuilderUTest, AICPU_GenerateTask_SUCCESS)
-{
+TEST_F(FFTSPlusOpsKernelBuilderUTest, AICPU_GenerateTask_SUCCESS) {
   ComputeGraphPtr graph = BuildGraph_AICPU_ScopeWrite();
   cout << "========================aicpu GENTASK BEGIN========================" << endl;
   auto sub_node = graph->FindNode("sub_node");
@@ -2806,8 +2753,7 @@ TEST_F(FFTSPlusOpsKernelBuilderUTest, AICPU_GenerateTask_SUCCESS)
   EXPECT_EQ(ffts::SUCCESS, ret);
 }
 
-TEST_F(FFTSPlusOpsKernelBuilderUTest, HCCL_GenerateTask_SUCCESS)
-{
+TEST_F(FFTSPlusOpsKernelBuilderUTest, HCCL_GenerateTask_SUCCESS) {
   ComputeGraphPtr graph = BuildGraph_HCCL_Graph();
   cout << "========================hccl GENTASK BEGIN========================" << endl;
   auto sub_node = graph->FindNode("sub_node");
@@ -2832,8 +2778,7 @@ ge::Status TestOpExtGenTaskFail(const ge::Node &node, ge::RunContext &context, s
   return ge::FAILED;
 }
 
-TEST_F(FFTSPlusOpsKernelBuilderUTest, MIX_L2_GenerateTask_SUCCESS)
-{
+TEST_F(FFTSPlusOpsKernelBuilderUTest, MIX_L2_GenerateTask_SUCCESS) {
   RunContext context = CreateContext();
   vector<domi::TaskDef> tasks;
   auto builder = ut::ComputeGraphBuilder("test");
@@ -2854,10 +2799,10 @@ TEST_F(FFTSPlusOpsKernelBuilderUTest, MIX_L2_GenerateTask_SUCCESS)
   mix_l2_ctx->add_kernel_name("mix2");
   (void)sub_node->GetOpDesc()->SetExtAttr(kAttrAICoreCtxDef, ffts_plus_ctx_def);
   ge::ComputeGraphPtr tmp_graph = std::make_shared<ge::ComputeGraph>("OpCompileGraph");
-  ge::OpDescPtr memset_op_desc_ptr =  make_shared<ge::OpDesc>("memset_node", fe::MEMSET_OP_TYPE);
+  ge::OpDescPtr memset_op_desc_ptr = make_shared<ge::OpDesc>("memset_node", fe::MEMSET_OP_TYPE);
   ge::NodePtr memset_node = tmp_graph->AddNode(memset_op_desc_ptr, sub_node->GetOpDesc()->GetId());
   sub_node->GetOpDesc()->SetExtAttr(fe::ATTR_NAME_MEMSET_NODE, memset_node);
-  (void) ge::AttrUtils::SetInt(sub_node->GetOpDesc(), kModeInArgsFirstField, 1);
+  (void)ge::AttrUtils::SetInt(sub_node->GetOpDesc(), kModeInArgsFirstField, 1);
   ffts_plus_ops_kernel_builder_ptr->schecule_policy_pass_ = ScheculePolicyPassStub2;
   (void)ge::AttrUtils::SetBool(sub_node->GetOpDesc(), kFFTSPlusInDynamic, true);
 
@@ -2877,8 +2822,7 @@ TEST_F(FFTSPlusOpsKernelBuilderUTest, MIX_L2_GenerateTask_SUCCESS)
   EXPECT_EQ(fe::FAILED, ret);
 }
 
-TEST_F(FFTSPlusOpsKernelBuilderUTest, tiling_sink_gentask_for_ffts)
-{
+TEST_F(FFTSPlusOpsKernelBuilderUTest, tiling_sink_gentask_for_ffts) {
   RunContext context = CreateContext();
   vector<domi::TaskDef> tasks;
   auto builder = ut::ComputeGraphBuilder("test");
@@ -2899,10 +2843,10 @@ TEST_F(FFTSPlusOpsKernelBuilderUTest, tiling_sink_gentask_for_ffts)
   mix_l2_ctx->add_kernel_name("mix2");
   (void)sub_node->GetOpDesc()->SetExtAttr(kAttrAICoreCtxDef, ffts_plus_ctx_def);
   ge::ComputeGraphPtr tmp_graph = std::make_shared<ge::ComputeGraph>("OpCompileGraph");
-  ge::OpDescPtr memset_op_desc_ptr =  make_shared<ge::OpDesc>("memset_node", fe::MEMSET_OP_TYPE);
+  ge::OpDescPtr memset_op_desc_ptr = make_shared<ge::OpDesc>("memset_node", fe::MEMSET_OP_TYPE);
   ge::NodePtr memset_node = tmp_graph->AddNode(memset_op_desc_ptr, sub_node->GetOpDesc()->GetId());
   sub_node->GetOpDesc()->SetExtAttr(fe::ATTR_NAME_MEMSET_NODE, memset_node);
-  (void) ge::AttrUtils::SetInt(sub_node->GetOpDesc(), kModeInArgsFirstField, 1);
+  (void)ge::AttrUtils::SetInt(sub_node->GetOpDesc(), kModeInArgsFirstField, 1);
   ffts_plus_ops_kernel_builder_ptr->schecule_policy_pass_ = ScheculePolicyPassStub2;
   (void)ge::AttrUtils::SetBool(sub_node->GetOpDesc(), kFFTSPlusInDynamic, true);
 
@@ -2932,7 +2876,7 @@ TEST_F(FFTSPlusOpsKernelBuilderUTest, tiling_sink_gentask_for_ffts)
 }
 
 ge::graphStatus GenTaskKernelFuncFail(const gert::ExeResGenerationContext *context,
-                                  std::vector<std::vector<uint8_t>> &tasks) {
+                                      std::vector<std::vector<uint8_t>> &tasks) {
   return ge::GRAPH_FAILED;
 }
 
@@ -2942,17 +2886,16 @@ ge::graphStatus GenTaskKernelFunc(const gert::ExeResGenerationContext *context,
   return ge::GRAPH_SUCCESS;
 }
 
-TEST_F(FFTSPlusOpsKernelBuilderUTest, UpdateContextForRemoveDuplicate)
-{
+TEST_F(FFTSPlusOpsKernelBuilderUTest, UpdateContextForRemoveDuplicate) {
   domi::TaskDef task_def;
   domi::FftsPlusTaskDef *ffts_plus_task_def = task_def.mutable_ffts_plus_task();
   vector<FftsPlusContextPath> context_paths;
   map<uint32_t, vector<uint32_t>> real_ctx_succ_list;
   /*
-  *           0
-  * 1 2 3 4 5........256
-  *          257
-  */
+   *           0
+   * 1 2 3 4 5........256
+   *          257
+   */
   for (uint32_t i = 0; i <= 257; ++i) {
     auto ctx = ffts_plus_task_def->add_ffts_plus_ctx();
     ctx->set_context_type(RT_CTX_TYPE_AICORE);
@@ -2989,7 +2932,7 @@ TEST_F(FFTSPlusOpsKernelBuilderUTest, UpdateContextForRemoveDuplicate)
     context_paths.emplace_back(context_path);
   }
   for (uint32_t i = 258; i < 268; ++i) {
-    //256 outputs need 10 lable
+    // 256 outputs need 10 lable
     auto ctx = ffts_plus_task_def->add_ffts_plus_ctx();
     ctx->set_context_type(RT_CTX_TYPE_LABEL);
     auto &context_path = context_paths[0];
@@ -2998,9 +2941,10 @@ TEST_F(FFTSPlusOpsKernelBuilderUTest, UpdateContextForRemoveDuplicate)
   TimeLineOptimizerContext context;
   context.ctx_path_vector_ = context_paths;
   Status ret = ffts_plus_ops_kernel_builder_ptr->UpdateContexts(ffts_plus_task_def, real_ctx_succ_list, context);
-  ret = ffts_plus_ops_kernel_builder_ptr->UpdateContextsPreList(task_def, context.ctx_path_vector_, context.cmo_id_map_);
+  ret =
+      ffts_plus_ops_kernel_builder_ptr->UpdateContextsPreList(task_def, context.ctx_path_vector_, context.cmo_id_map_);
   EXPECT_EQ(ret, ffts::SUCCESS);
-  EXPECT_EQ(ffts_plus_task_def->ffts_plus_ctx_size(), 269); // add one label for precnt
+  EXPECT_EQ(ffts_plus_task_def->ffts_plus_ctx_size(), 269);  // add one label for precnt
   auto ctx_new = ffts_plus_task_def->mutable_ffts_plus_ctx(268);
   auto label_new = ctx_new->mutable_label_ctx();
   EXPECT_EQ(label_new->pred_cnt(), 255);
@@ -3033,8 +2977,7 @@ TEST_F(FFTSPlusOpsKernelBuilderUTest, UpdateContextForRemoveDuplicate)
  *                  |  /
  *                   1
  */
-TEST_F(FFTSPlusOpsKernelBuilderUTest, ReBuildCtxIdsRelationSucc)
-{
+TEST_F(FFTSPlusOpsKernelBuilderUTest, ReBuildCtxIdsRelationSucc) {
   domi::TaskDef task_def;
   domi::TaskDef task_def_new;
   domi::FftsPlusTaskDef *ffts_plus_task_def = task_def.mutable_ffts_plus_task();
@@ -3078,8 +3021,8 @@ TEST_F(FFTSPlusOpsKernelBuilderUTest, ReBuildCtxIdsRelationSucc)
   auto builder = ut::ComputeGraphBuilder("test");
   auto node = builder.AddNode("test", DATA, 0, 1);
 
-  ffts_plus_ops_kernel_builder_ptr->GenNewSubGraphTaskDef(*node.get(), task_def, task_def_new,
-      new_old_map, old_new_map);
+  ffts_plus_ops_kernel_builder_ptr->GenNewSubGraphTaskDef(*node.get(), task_def, task_def_new, new_old_map,
+                                                          old_new_map);
   domi::FftsPlusTaskDef *ffts_plus_task_def_new = task_def_new.mutable_ffts_plus_task();
   EXPECT_EQ(ffts_plus_task_def_new->ffts_plus_ctx_size(), 3);
   auto ctx_new = ffts_plus_task_def_new->mutable_ffts_plus_ctx(0);

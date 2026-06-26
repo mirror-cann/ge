@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -40,6 +40,7 @@ class StageSubject {
    public:
     void Release();
     Status Await();
+
    private:
     std::mutex cond_mu_;
     std::condition_variable cv_;
@@ -84,7 +85,9 @@ class StageExecutor {
 
   Status Synchronize();
 
-  void SetNext(StageExecutor *const next_executor) { next_executor_ = next_executor; }
+  void SetNext(StageExecutor *const next_executor) {
+    next_executor_ = next_executor;
+  }
 
  private:
   friend class HybridModelPipelineExecutor;
@@ -115,12 +118,12 @@ class HybridModelPipelineExecutor : public HybridModelExecutor {
 
   Status Execute(ExecuteArgs &args) override;
   Status Execute(const std::vector<gert::Tensor> &inputs, std::vector<gert::Tensor> &outputs,
-    CtrlArgs &ctrl_args) override;
+                 CtrlArgs &ctrl_args) override;
 
   Status InitStageExecutors();
-  Status ExecuteOnlineModel(const std::vector<gert::Tensor> &inputs,
-    std::shared_ptr<ModelListener> listener) override;
+  Status ExecuteOnlineModel(const std::vector<gert::Tensor> &inputs, std::shared_ptr<ModelListener> listener) override;
   void Stop() override;
+
  private:
   Status ProcessOnlineModel(const InputData &input_data, HybridModelExecutor::ExecuteArgs &args);
   Status PreRun(const InputData &current_data, HybridModelExecutor::ExecuteArgs &args);

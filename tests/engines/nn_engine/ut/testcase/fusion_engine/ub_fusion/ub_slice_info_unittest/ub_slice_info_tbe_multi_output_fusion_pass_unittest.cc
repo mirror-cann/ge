@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -48,24 +48,26 @@ using namespace ge;
 
 using OpSetterPtr = std::shared_ptr<OpSetter>;
 class TBE_MULTI_OUTPUT_FUSION_SLICE_INFO_UNITTEST : public testing::Test {
-public:
+ public:
   using AttrDefMap = ::google::protobuf::Map<::std::string, AttrDef>;
 
-protected:
-  static void SetUpTestCase() { std::cout << "UB fusion SetUp" << std::endl; }
+ protected:
+  static void SetUpTestCase() {
+    std::cout << "UB fusion SetUp" << std::endl;
+  }
 
-  static void TearDownTestCase() { std::cout << "UB fusion TearDown" << std::endl; }
+  static void TearDownTestCase() {
+    std::cout << "UB fusion TearDown" << std::endl;
+  }
 
-  void SetUp()
-  {
+  void SetUp() {
     std::map<std::string, std::string> options;
     fe_ops_kernel_info_store_ptr_ = make_shared<fe::FEOpsKernelInfoStore>();
-    FEOpsStoreInfo tbe_custom {
-            6,
-            "tbe-custom",
-            EN_IMPL_HW_TBE,
-            GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_slice_op_info/slice_success",
-            ""};
+    FEOpsStoreInfo tbe_custom{6, "tbe-custom", EN_IMPL_HW_TBE,
+                              GetCodeDir() +
+                                  "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/"
+                                  "tbe_slice_op_info/slice_success",
+                              ""};
     vector<FEOpsStoreInfo> store_info;
     store_info.emplace_back(tbe_custom);
     Configuration::Instance(fe::AI_CORE_NAME).ops_store_info_vector_ = (store_info);
@@ -81,7 +83,7 @@ protected:
   }
 
   void SetTvmType(ge::OpDescPtr opdef) {
-    ge::AttrUtils::SetInt(opdef, ge::ATTR_NAME_IMPLY_TYPE,static_cast<int64_t>(domi::ImplyType::TVM));
+    ge::AttrUtils::SetInt(opdef, ge::ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM));
   }
 
   shared_ptr<fe::FEOpsKernelInfoStore> fe_ops_kernel_info_store_ptr_;
@@ -122,7 +124,7 @@ protected:
     ge::AttrUtils::SetInt(eltwise4, FE_IMPLY_TYPE, EN_IMPL_HW_TBE);
     ge::AttrUtils::SetInt(eltwise5, FE_IMPLY_TYPE, EN_IMPL_HW_TBE);
     // add descriptor
-    GeTensorDesc tensor_desc(GeShape({3, 1, 5, 6, 16}), ge::FORMAT_NC1HWC0,ge::DT_FLOAT16);
+    GeTensorDesc tensor_desc(GeShape({3, 1, 5, 6, 16}), ge::FORMAT_NC1HWC0, ge::DT_FLOAT16);
     tensor_desc.SetOriginShape(GeShape({3, 4, 5, 6}));
     tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
 
@@ -150,7 +152,7 @@ protected:
     NodePtr end1_node = graph->AddNode(end1);
     NodePtr end2_node = graph->AddNode(end2);
     const char tbe_bin[] = "tbe_bin";
-    vector<char> buffer(tbe_bin, tbe_bin+strlen(tbe_bin));
+    vector<char> buffer(tbe_bin, tbe_bin + strlen(tbe_bin));
     ge::OpKernelBinPtr tbe_kernel_ptr = std::make_shared<ge::OpKernelBin>(eltwise1_node->GetName(), std::move(buffer));
     eltwise1_node->GetOpDesc()->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, tbe_kernel_ptr);
     GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), eltwise1_node->GetInDataAnchor(0));
@@ -190,7 +192,7 @@ protected:
     ge::AttrUtils::SetInt(eltwise4, FE_IMPLY_TYPE, EN_IMPL_HW_TBE);
     ge::AttrUtils::SetInt(eltwise5, FE_IMPLY_TYPE, EN_IMPL_HW_TBE);
     // add descriptor
-    GeTensorDesc tensor_desc(GeShape({3, 1, 5, 6, 16}), ge::FORMAT_NC1HWC0,ge::DT_FLOAT16);
+    GeTensorDesc tensor_desc(GeShape({3, 1, 5, 6, 16}), ge::FORMAT_NC1HWC0, ge::DT_FLOAT16);
     tensor_desc.SetOriginShape(GeShape({3, 4, 5, 6}));
     tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
 
@@ -205,14 +207,15 @@ protected:
     end1->AddOutputDesc(tensor_desc);
     end2->AddInputDesc(tensor_desc);
     end2->AddOutputDesc(tensor_desc);
-    NodePtr data_node = graph->AddNode(data);;
+    NodePtr data_node = graph->AddNode(data);
+    ;
     NodePtr eltwise3_node = graph->AddNode(eltwise3);
     NodePtr eltwise4_node = graph->AddNode(eltwise4);
     NodePtr eltwise5_node = graph->AddNode(eltwise5);
     NodePtr end1_node = graph->AddNode(end1);
     NodePtr end2_node = graph->AddNode(end2);
     const char tbe_bin[] = "tbe_bin";
-    vector<char> buffer(tbe_bin, tbe_bin+strlen(tbe_bin));
+    vector<char> buffer(tbe_bin, tbe_bin + strlen(tbe_bin));
     ge::OpKernelBinPtr tbe_kernel_ptr = std::make_shared<ge::OpKernelBin>(eltwise3_node->GetName(), std::move(buffer));
     eltwise3_node->GetOpDesc()->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, tbe_kernel_ptr);
     GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), eltwise3_node->GetInDataAnchor(0));
@@ -233,7 +236,7 @@ protected:
   //    {"inputList":[{"axis":[2],"headOverLap":[],"idx":0,"tailOverLap":[]}],"outputList":[{"axis":[2],"idx":0},{"axis":[2],"idx":1}]},
   //    {"inputList":[{"axis":[1],"headOverLap":[],"idx":0,"tailOverLap":[]}],"outputList":[{"axis":[1],"idx":0},{"axis":[1],"idx":1}]},
   //    {"inputList":[{"axis":[0],"headOverLap":[],"idx":0,"tailOverLap":[]}],"outputList":[{"axis":[0],"idx":0},{"axis":[0],"idx":1}]}]}}
-   void BuildGraphForTbeMultiOutputFusionPassOKCase3(ComputeGraphPtr &graph) {
+  void BuildGraphForTbeMultiOutputFusionPassOKCase3(ComputeGraphPtr &graph) {
     OpDescPtr data = std::make_shared<OpDesc>("DATA0", fe::DATA);
     OpDescPtr eltwise1 = std::make_shared<OpDesc>("eltwise1", "Eltwise");
     OpDescPtr eltwise2 = std::make_shared<OpDesc>("eltwise2", "Eltwise");
@@ -258,7 +261,7 @@ protected:
     ge::AttrUtils::SetInt(eltwise4, FE_IMPLY_TYPE, EN_IMPL_HW_TBE);
     ge::AttrUtils::SetInt(conv, FE_IMPLY_TYPE, EN_IMPL_HW_TBE);
     // add descriptor
-    GeTensorDesc tensor_desc(GeShape({3, 1, 5, 6, 16}), ge::FORMAT_NC1HWC0,ge::DT_FLOAT16);
+    GeTensorDesc tensor_desc(GeShape({3, 1, 5, 6, 16}), ge::FORMAT_NC1HWC0, ge::DT_FLOAT16);
     tensor_desc.SetOriginShape(GeShape({3, 4, 5, 6}));
     tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
     GeTensorDesc conv_tensor_desc_weight(GeShape({30, 1, 16, 16}), ge::FORMAT_FRACTAL_Z, ge::DT_FLOAT16);
@@ -284,7 +287,15 @@ protected:
     end1->AddOutputDesc(tensor_desc);
     end2->AddInputDesc(tensor_desc);
     end2->AddOutputDesc(tensor_desc);
-    string conv_op_slice_info = "{\"_op_slice_info\": {\"splitMaps\": [{\"inputList\": [{\"idx\": 0, \"axis\": [0], \"headOverLap\": [-1], \"tailOverLap\": [-1]}], \"outputList\": [{\"idx\": 0, \"axis\": [0]}]}, {\"inputList\": [{\"idx\": 0, \"axis\": [2], \"headOverLap\": [0], \"tailOverLap\": [0]}], \"outputList\": [{\"idx\": 0, \"axis\": [2]}]}, {\"inputList\": [{\"idx\": 0, \"axis\": [3], \"headOverLap\": [0], \"tailOverLap\": [0]}], \"outputList\": [{\"idx\": 0, \"axis\": [3]}]}, {\"inputList\": [{\"idx\": 1, \"axis\": [1], \"headOverLap\": [-1], \"tailOverLap\": [-1]}, {\"idx\": 2, \"axis\": [0], \"headOverLap\": [-1], \"tailOverLap\": [-1]}], \"outputList\": [{\"idx\": 0, \"axis\": [1]}]}], \"reduceMaps\": [], \"l1FusionEnable\": 2, \"minTbeL1Space\": 0}}";
+    string conv_op_slice_info =
+        "{\"_op_slice_info\": {\"splitMaps\": [{\"inputList\": [{\"idx\": 0, \"axis\": [0], \"headOverLap\": [-1], "
+        "\"tailOverLap\": [-1]}], \"outputList\": [{\"idx\": 0, \"axis\": [0]}]}, {\"inputList\": [{\"idx\": 0, "
+        "\"axis\": [2], \"headOverLap\": [0], \"tailOverLap\": [0]}], \"outputList\": [{\"idx\": 0, \"axis\": [2]}]}, "
+        "{\"inputList\": [{\"idx\": 0, \"axis\": [3], \"headOverLap\": [0], \"tailOverLap\": [0]}], \"outputList\": "
+        "[{\"idx\": 0, \"axis\": [3]}]}, {\"inputList\": [{\"idx\": 1, \"axis\": [1], \"headOverLap\": [-1], "
+        "\"tailOverLap\": [-1]}, {\"idx\": 2, \"axis\": [0], \"headOverLap\": [-1], \"tailOverLap\": [-1]}], "
+        "\"outputList\": [{\"idx\": 0, \"axis\": [1]}]}], \"reduceMaps\": [], \"l1FusionEnable\": 2, "
+        "\"minTbeL1Space\": 0}}";
     AttrUtils::SetStr(conv, OP_SLICE_INFO, conv_op_slice_info);
 
     NodePtr data_node = graph->AddNode(data);
@@ -296,7 +307,7 @@ protected:
     NodePtr end1_node = graph->AddNode(end1);
     NodePtr end2_node = graph->AddNode(end2);
     const char tbe_bin[] = "tbe_bin";
-    vector<char> buffer(tbe_bin, tbe_bin+strlen(tbe_bin));
+    vector<char> buffer(tbe_bin, tbe_bin + strlen(tbe_bin));
     ge::OpKernelBinPtr tbe_kernel_ptr = std::make_shared<ge::OpKernelBin>(eltwise1_node->GetName(), std::move(buffer));
     eltwise1_node->GetOpDesc()->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, tbe_kernel_ptr);
     GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), eltwise1_node->GetInDataAnchor(0));
@@ -309,11 +320,11 @@ protected:
   }
 
   /************************
-  *                     ElemWise_3-->ElemWise_4
-  *                                      |
-  *                                      V
-  *                                 OtherOutput
-  *************************/
+   *                     ElemWise_3-->ElemWise_4
+   *                                      |
+   *                                      V
+   *                                 OtherOutput
+   *************************/
   // {"_fusion_op_slice_info":{"l1FusionEnable":1,"minTbeL1Space":0,"reduceMaps":[],"splitMaps":[
   //   {"inputList":[{"axis":[3],"headOverLap":[],"idx":0,"tailOverLap":[]}],"outputList":[{"axis":[3],"idx":0},{"axis":[3],"idx":1}]},
   //   {"inputList":[{"axis":[2],"headOverLap":[],"idx":0,"tailOverLap":[]}],"outputList":[{"axis":[2],"idx":0},{"axis":[2],"idx":1}]},
@@ -336,7 +347,7 @@ protected:
     ge::AttrUtils::SetInt(eltwise4, FE_IMPLY_TYPE, EN_IMPL_HW_TBE);
     ge::AttrUtils::SetInt(conv, FE_IMPLY_TYPE, EN_IMPL_HW_TBE);
     // add descriptor
-    GeTensorDesc tensor_desc(GeShape({3, 1, 5, 6, 16}), ge::FORMAT_NC1HWC0,ge::DT_FLOAT16);
+    GeTensorDesc tensor_desc(GeShape({3, 1, 5, 6, 16}), ge::FORMAT_NC1HWC0, ge::DT_FLOAT16);
     tensor_desc.SetOriginShape(GeShape({3, 4, 5, 6}));
     tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
     GeTensorDesc conv_tensor_desc_weight(GeShape({30, 1, 16, 16}), ge::FORMAT_FRACTAL_Z, ge::DT_FLOAT16);
@@ -359,17 +370,26 @@ protected:
     end1->AddOutputDesc(tensor_desc);
     end2->AddInputDesc(tensor_desc);
     end2->AddOutputDesc(tensor_desc);
-    string conv_op_slice_info = "{\"_op_slice_info\": {\"splitMaps\": [{\"inputList\": [{\"idx\": 0, \"axis\": [0], \"headOverLap\": [-1], \"tailOverLap\": [-1]}], \"outputList\": [{\"idx\": 0, \"axis\": [0]}]}, {\"inputList\": [{\"idx\": 0, \"axis\": [2], \"headOverLap\": [0], \"tailOverLap\": [0]}], \"outputList\": [{\"idx\": 0, \"axis\": [2]}]}, {\"inputList\": [{\"idx\": 0, \"axis\": [3], \"headOverLap\": [0], \"tailOverLap\": [0]}], \"outputList\": [{\"idx\": 0, \"axis\": [3]}]}, {\"inputList\": [{\"idx\": 1, \"axis\": [1], \"headOverLap\": [-1], \"tailOverLap\": [-1]}, {\"idx\": 2, \"axis\": [0], \"headOverLap\": [-1], \"tailOverLap\": [-1]}], \"outputList\": [{\"idx\": 0, \"axis\": [1]}]}], \"reduceMaps\": [], \"l1FusionEnable\": 2, \"minTbeL1Space\": 0}}";
+    string conv_op_slice_info =
+        "{\"_op_slice_info\": {\"splitMaps\": [{\"inputList\": [{\"idx\": 0, \"axis\": [0], \"headOverLap\": [-1], "
+        "\"tailOverLap\": [-1]}], \"outputList\": [{\"idx\": 0, \"axis\": [0]}]}, {\"inputList\": [{\"idx\": 0, "
+        "\"axis\": [2], \"headOverLap\": [0], \"tailOverLap\": [0]}], \"outputList\": [{\"idx\": 0, \"axis\": [2]}]}, "
+        "{\"inputList\": [{\"idx\": 0, \"axis\": [3], \"headOverLap\": [0], \"tailOverLap\": [0]}], \"outputList\": "
+        "[{\"idx\": 0, \"axis\": [3]}]}, {\"inputList\": [{\"idx\": 1, \"axis\": [1], \"headOverLap\": [-1], "
+        "\"tailOverLap\": [-1]}, {\"idx\": 2, \"axis\": [0], \"headOverLap\": [-1], \"tailOverLap\": [-1]}], "
+        "\"outputList\": [{\"idx\": 0, \"axis\": [1]}]}], \"reduceMaps\": [], \"l1FusionEnable\": 2, "
+        "\"minTbeL1Space\": 0}}";
     AttrUtils::SetStr(conv, OP_SLICE_INFO, conv_op_slice_info);
 
-    NodePtr data_node = graph->AddNode(data);;
+    NodePtr data_node = graph->AddNode(data);
+    ;
     NodePtr eltwise3_node = graph->AddNode(eltwise3);
     NodePtr eltwise4_node = graph->AddNode(eltwise4);
     NodePtr conv_node = graph->AddNode(conv);
     NodePtr end1_node = graph->AddNode(end1);
     NodePtr end2_node = graph->AddNode(end2);
     const char tbe_bin[] = "tbe_bin";
-    vector<char> buffer(tbe_bin, tbe_bin+strlen(tbe_bin));
+    vector<char> buffer(tbe_bin, tbe_bin + strlen(tbe_bin));
 
     ge::OpKernelBinPtr tbe_kernel_ptr = std::make_shared<ge::OpKernelBin>(eltwise3_node->GetName(), std::move(buffer));
     eltwise3_node->GetOpDesc()->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, tbe_kernel_ptr);
@@ -393,11 +413,12 @@ TEST_F(TBE_MULTI_OUTPUT_FUSION_SLICE_INFO_UNITTEST, pass_case1) {
   std::shared_ptr<GraphComm> graph_comm_ptr = std::make_shared<GraphComm>("engineName");
   graph_comm_ptr->Initialize();
   std::shared_ptr<FusionPriorityManager> fusion_priority_mgr_ptr =
-          std::make_shared<FusionPriorityManager>("engineName", nullptr);
+      std::make_shared<FusionPriorityManager>("engineName", nullptr);
   std::vector<BufferFusionInfo> sorted_buffer_fusion_vec = SortedBufferFusionFun();
-  fusion_priority_mgr_ptr->sorted_buffer_fusion_map_[FusionPriorityManager::GetCurrentHashedKey()] = sorted_buffer_fusion_vec;
+  fusion_priority_mgr_ptr->sorted_buffer_fusion_map_[FusionPriorityManager::GetCurrentHashedKey()] =
+      sorted_buffer_fusion_vec;
   std::shared_ptr<BufferFusion> sub_graph_optimizer_ptr =
-          std::make_shared<BufferFusion>(graph_comm_ptr, fusion_priority_mgr_ptr, nullptr);
+      std::make_shared<BufferFusion>(graph_comm_ptr, fusion_priority_mgr_ptr, nullptr);
   uint32_t id = 0;
   cerr << endl;
   cerr << "TBE_MULTI_OUTPUT_FUSION_SLICE_INFO_UNITTEST::pass_case1 UB fusion before" << endl;
@@ -422,8 +443,9 @@ TEST_F(TBE_MULTI_OUTPUT_FUSION_SLICE_INFO_UNITTEST, pass_case1) {
   cerr << endl;
   cerr << "TBE_MULTI_OUTPUT_FUSION_SLICE_INFO_UNITTEST::pass_case1 UB fusion result" << endl;
   for (auto &node : graph_out->GetDirectNode()) {
-    cerr  << "name: " << node->GetName() << ", type:" << node->GetOpDesc()->GetType() << endl;
-    if (node->GetOpDesc()->GetType() == "Eltwise" && node->GetOpDesc()->GetName() == "eltwise1eltwise2eltwise3eltwise5eltwise4") {
+    cerr << "name: " << node->GetName() << ", type:" << node->GetOpDesc()->GetType() << endl;
+    if (node->GetOpDesc()->GetType() == "Eltwise" &&
+        node->GetOpDesc()->GetName() == "eltwise1eltwise2eltwise3eltwise5eltwise4") {
       AttrUtils::GetStr(node->GetOpDesc(), OP_SLICE_INFO, op_slice_info);
       cerr << "op slice info is :   " << endl << op_slice_info << endl;
       AttrUtils::GetStr(node->GetOpDesc(), FUSION_OP_SLICE_INFO, fusion_op_slice_info);
@@ -446,11 +468,12 @@ TEST_F(TBE_MULTI_OUTPUT_FUSION_SLICE_INFO_UNITTEST, pass_case2) {
   std::shared_ptr<GraphComm> graph_comm_ptr = std::make_shared<GraphComm>("engineName");
   graph_comm_ptr->Initialize();
   std::shared_ptr<FusionPriorityManager> fusion_priority_mgr_ptr =
-          std::make_shared<FusionPriorityManager>("engineName", nullptr);
+      std::make_shared<FusionPriorityManager>("engineName", nullptr);
   std::vector<BufferFusionInfo> sorted_buffer_fusion_vec = SortedBufferFusionFun();
-  fusion_priority_mgr_ptr->sorted_buffer_fusion_map_[FusionPriorityManager::GetCurrentHashedKey()] = sorted_buffer_fusion_vec;
+  fusion_priority_mgr_ptr->sorted_buffer_fusion_map_[FusionPriorityManager::GetCurrentHashedKey()] =
+      sorted_buffer_fusion_vec;
   std::shared_ptr<BufferFusion> sub_graph_optimizer_ptr =
-          std::make_shared<BufferFusion>(graph_comm_ptr, fusion_priority_mgr_ptr, nullptr);
+      std::make_shared<BufferFusion>(graph_comm_ptr, fusion_priority_mgr_ptr, nullptr);
   uint32_t id = 0;
   cerr << endl;
   cerr << "TBE_MULTI_OUTPUT_FUSION_SLICE_INFO_UNITTEST::pass_case2 UB fusion before" << endl;
@@ -475,7 +498,7 @@ TEST_F(TBE_MULTI_OUTPUT_FUSION_SLICE_INFO_UNITTEST, pass_case2) {
   cerr << endl;
   cerr << "TBE_MULTI_OUTPUT_FUSION_SLICE_INFO_UNITTEST::pass_case2 UB fusion result" << endl;
   for (auto &node : graph_out->GetDirectNode()) {
-    cerr  << "name: " << node->GetName() << ", type:" << node->GetOpDesc()->GetType() << endl;
+    cerr << "name: " << node->GetName() << ", type:" << node->GetOpDesc()->GetType() << endl;
     AttrUtils::GetStr(node->GetOpDesc(), OP_SLICE_INFO, op_slice_info);
     cerr << "op slice info is :   " << endl << op_slice_info << endl;
     AttrUtils::GetStr(node->GetOpDesc(), FUSION_OP_SLICE_INFO, fusion_op_slice_info);
@@ -499,11 +522,12 @@ TEST_F(TBE_MULTI_OUTPUT_FUSION_SLICE_INFO_UNITTEST, pass_case3) {
   std::shared_ptr<GraphComm> graph_comm_ptr = std::make_shared<GraphComm>("engineName");
   graph_comm_ptr->Initialize();
   std::shared_ptr<FusionPriorityManager> fusion_priority_mgr_ptr =
-          std::make_shared<FusionPriorityManager>("engineName", nullptr);
+      std::make_shared<FusionPriorityManager>("engineName", nullptr);
   std::vector<BufferFusionInfo> sorted_buffer_fusion_vec = SortedBufferFusionFun();
-  fusion_priority_mgr_ptr->sorted_buffer_fusion_map_[FusionPriorityManager::GetCurrentHashedKey()] = sorted_buffer_fusion_vec;
+  fusion_priority_mgr_ptr->sorted_buffer_fusion_map_[FusionPriorityManager::GetCurrentHashedKey()] =
+      sorted_buffer_fusion_vec;
   std::shared_ptr<BufferFusion> sub_graph_optimizer_ptr =
-          std::make_shared<BufferFusion>(graph_comm_ptr, fusion_priority_mgr_ptr, nullptr);
+      std::make_shared<BufferFusion>(graph_comm_ptr, fusion_priority_mgr_ptr, nullptr);
   uint32_t id = 0;
   cerr << endl;
   cerr << "TBE_MULTI_OUTPUT_FUSION_SLICE_INFO_UNITTEST::pass_case3 UB fusion before" << endl;
@@ -528,7 +552,7 @@ TEST_F(TBE_MULTI_OUTPUT_FUSION_SLICE_INFO_UNITTEST, pass_case3) {
   cerr << endl;
   cerr << "TBE_MULTI_OUTPUT_FUSION_SLICE_INFO_UNITTEST::pass_case3 UB fusion result" << endl;
   for (auto &node : graph_out->GetDirectNode()) {
-    cerr  << "name: " << node->GetName() << ", type:" << node->GetOpDesc()->GetType() << endl;
+    cerr << "name: " << node->GetName() << ", type:" << node->GetOpDesc()->GetType() << endl;
     if (node->GetOpDesc()->GetType() == "Eltwise" && node->GetName() == "eltwise1eltwise2eltwise3eltwise4") {
       AttrUtils::GetStr(node->GetOpDesc(), OP_SLICE_INFO, op_slice_info);
       cerr << "op slice info is :   " << endl << op_slice_info << endl;
@@ -552,11 +576,12 @@ TEST_F(TBE_MULTI_OUTPUT_FUSION_SLICE_INFO_UNITTEST, pass_case4) {
   std::shared_ptr<GraphComm> graph_comm_ptr = std::make_shared<GraphComm>("engineName");
   graph_comm_ptr->Initialize();
   std::shared_ptr<FusionPriorityManager> fusion_priority_mgr_ptr =
-          std::make_shared<FusionPriorityManager>("engineName", nullptr);
+      std::make_shared<FusionPriorityManager>("engineName", nullptr);
   std::vector<BufferFusionInfo> sorted_buffer_fusion_vec = SortedBufferFusionFun();
-  fusion_priority_mgr_ptr->sorted_buffer_fusion_map_[FusionPriorityManager::GetCurrentHashedKey()] = sorted_buffer_fusion_vec;
+  fusion_priority_mgr_ptr->sorted_buffer_fusion_map_[FusionPriorityManager::GetCurrentHashedKey()] =
+      sorted_buffer_fusion_vec;
   std::shared_ptr<BufferFusion> sub_graph_optimizer_ptr =
-          std::make_shared<BufferFusion>(graph_comm_ptr, fusion_priority_mgr_ptr, nullptr);
+      std::make_shared<BufferFusion>(graph_comm_ptr, fusion_priority_mgr_ptr, nullptr);
   uint32_t id = 0;
   cerr << endl;
   cerr << "TBE_MULTI_OUTPUT_FUSION_SLICE_INFO_UNITTEST::pass_case4 UB fusion before" << endl;
@@ -581,7 +606,7 @@ TEST_F(TBE_MULTI_OUTPUT_FUSION_SLICE_INFO_UNITTEST, pass_case4) {
   cerr << endl;
   cerr << "TBE_MULTI_OUTPUT_FUSION_SLICE_INFO_UNITTEST::pass_case4 UB fusion result" << endl;
   for (auto &node : graph_out->GetDirectNode()) {
-    cerr  << "name: " << node->GetName() << ", type:" << node->GetOpDesc()->GetType() << endl;
+    cerr << "name: " << node->GetName() << ", type:" << node->GetOpDesc()->GetType() << endl;
     if (node->GetOpDesc()->GetType() == "Eltwise" && node->GetName() == "eltwise3eltwise4") {
       AttrUtils::GetStr(node->GetOpDesc(), OP_SLICE_INFO, op_slice_info);
       cerr << "op slice info is :   " << endl << op_slice_info << endl;
@@ -639,7 +664,7 @@ TEST_F(TBE_MULTI_OUTPUT_FUSION_SLICE_INFO_UNITTEST, pass_case5) {
   fixpipeops2->AddOutputDesc("y", tensor2);
   SetPattern(conv1, "Convolution");
   SetPattern(fixpipeops1, "fixpipe");
-  SetPattern(fixpipeops2, "fixpipe");  
+  SetPattern(fixpipeops2, "fixpipe");
   NodePtr conv_node1 = graph_out->AddNode(conv1);
   NodePtr fixpipenode1 = graph_out->AddNode(fixpipeops1);
   NodePtr fixpipenode2 = graph_out->AddNode(fixpipeops2);
@@ -647,9 +672,24 @@ TEST_F(TBE_MULTI_OUTPUT_FUSION_SLICE_INFO_UNITTEST, pass_case5) {
   NodePtr data_node2 = graph_out->AddNode(data2);
   NodePtr data_node3 = graph_out->AddNode(data3);
   NodePtr data_node4 = graph_out->AddNode(data4);
-  string conv_op_slice_info = "{\"_op_slice_info\": {\"splitMaps\": [{\"inputList\": [{\"idx\": 0, \"axis\": [0], \"headOverLap\": [-1], \"tailOverLap\": [-1]}], \"outputList\": [{\"idx\": 0, \"axis\": [0]}]}, {\"inputList\": [{\"idx\": 0, \"axis\": [2], \"headOverLap\": [-1], \"tailOverLap\": [-1]}], \"outputList\": [{\"idx\": 0, \"axis\": [2]}]}, {\"inputList\": [{\"idx\": 0, \"axis\": [3], \"headOverLap\": [-1], \"tailOverLap\": [-1]}], \"outputList\": [{\"idx\": 0, \"axis\": [3]}]}]}}";
-  string fixpipe1_op_slice_info = "{\"_op_slice_info\": {\"splitMaps\": [{\"inputList\": [{\"idx\": 0, \"axis\": [0], \"headOverLap\": [-1], \"tailOverLap\": [-1]}], \"outputList\": [{\"idx\": 0, \"axis\": [0]}]}, {\"inputList\": [{\"idx\": 0, \"axis\": [2], \"headOverLap\": [-1], \"tailOverLap\": [-1]}], \"outputList\": [{\"idx\": 0, \"axis\": [2]}]}, {\"inputList\": [{\"idx\": 0, \"axis\": [3], \"headOverLap\": [-1], \"tailOverLap\": [-1]}], \"outputList\": [{\"idx\": 0, \"axis\": [3]}]}]}}";
-  string fixpipe2_op_slice_info = "{\"_op_slice_info\": {\"splitMaps\": [{\"inputList\": [{\"idx\": 0, \"axis\": [0], \"headOverLap\": [-1], \"tailOverLap\": [-1]}], \"outputList\": [{\"idx\": 0, \"axis\": [0]}]}, {\"inputList\": [{\"idx\": 0, \"axis\": [2], \"headOverLap\": [-1], \"tailOverLap\": [-1]}], \"outputList\": [{\"idx\": 0, \"axis\": [1]}]}, {\"inputList\": [{\"idx\": 0, \"axis\": [3], \"headOverLap\": [-1], \"tailOverLap\": [-1]}], \"outputList\": [{\"idx\": 0, \"axis\": [2]}]}]}}";
+  string conv_op_slice_info =
+      "{\"_op_slice_info\": {\"splitMaps\": [{\"inputList\": [{\"idx\": 0, \"axis\": [0], \"headOverLap\": [-1], "
+      "\"tailOverLap\": [-1]}], \"outputList\": [{\"idx\": 0, \"axis\": [0]}]}, {\"inputList\": [{\"idx\": 0, "
+      "\"axis\": [2], \"headOverLap\": [-1], \"tailOverLap\": [-1]}], \"outputList\": [{\"idx\": 0, \"axis\": [2]}]}, "
+      "{\"inputList\": [{\"idx\": 0, \"axis\": [3], \"headOverLap\": [-1], \"tailOverLap\": [-1]}], \"outputList\": "
+      "[{\"idx\": 0, \"axis\": [3]}]}]}}";
+  string fixpipe1_op_slice_info =
+      "{\"_op_slice_info\": {\"splitMaps\": [{\"inputList\": [{\"idx\": 0, \"axis\": [0], \"headOverLap\": [-1], "
+      "\"tailOverLap\": [-1]}], \"outputList\": [{\"idx\": 0, \"axis\": [0]}]}, {\"inputList\": [{\"idx\": 0, "
+      "\"axis\": [2], \"headOverLap\": [-1], \"tailOverLap\": [-1]}], \"outputList\": [{\"idx\": 0, \"axis\": [2]}]}, "
+      "{\"inputList\": [{\"idx\": 0, \"axis\": [3], \"headOverLap\": [-1], \"tailOverLap\": [-1]}], \"outputList\": "
+      "[{\"idx\": 0, \"axis\": [3]}]}]}}";
+  string fixpipe2_op_slice_info =
+      "{\"_op_slice_info\": {\"splitMaps\": [{\"inputList\": [{\"idx\": 0, \"axis\": [0], \"headOverLap\": [-1], "
+      "\"tailOverLap\": [-1]}], \"outputList\": [{\"idx\": 0, \"axis\": [0]}]}, {\"inputList\": [{\"idx\": 0, "
+      "\"axis\": [2], \"headOverLap\": [-1], \"tailOverLap\": [-1]}], \"outputList\": [{\"idx\": 0, \"axis\": [1]}]}, "
+      "{\"inputList\": [{\"idx\": 0, \"axis\": [3], \"headOverLap\": [-1], \"tailOverLap\": [-1]}], \"outputList\": "
+      "[{\"idx\": 0, \"axis\": [2]}]}]}}";
   AttrUtils::SetStr(conv1, OP_SLICE_INFO, conv_op_slice_info);
   AttrUtils::SetStr(fixpipeops1, OP_SLICE_INFO, fixpipe1_op_slice_info);
   AttrUtils::SetStr(fixpipeops2, OP_SLICE_INFO, fixpipe2_op_slice_info);
@@ -657,9 +697,9 @@ TEST_F(TBE_MULTI_OUTPUT_FUSION_SLICE_INFO_UNITTEST, pass_case5) {
   GraphUtils::AddEdge(data_node1->GetOutDataAnchor(0), conv_node1->GetInDataAnchor(0));
   GraphUtils::AddEdge(data_node2->GetOutDataAnchor(0), conv_node1->GetInDataAnchor(1));
   GraphUtils::AddEdge(data_node3->GetOutDataAnchor(0), fixpipenode1->GetInDataAnchor(1));
-  GraphUtils::AddEdge(conv_node1->GetOutDataAnchor(0),  fixpipenode1->GetInDataAnchor(0));
-  GraphUtils::AddEdge(data_node4->GetOutDataAnchor(0),  fixpipenode2->GetInDataAnchor(1));
-  GraphUtils::AddEdge(conv_node1->GetOutDataAnchor(0),  fixpipenode2->GetInDataAnchor(0));
+  GraphUtils::AddEdge(conv_node1->GetOutDataAnchor(0), fixpipenode1->GetInDataAnchor(0));
+  GraphUtils::AddEdge(data_node4->GetOutDataAnchor(0), fixpipenode2->GetInDataAnchor(1));
+  GraphUtils::AddEdge(conv_node1->GetOutDataAnchor(0), fixpipenode2->GetInDataAnchor(0));
 
   graph_out->TopologicalSorting();
   std::shared_ptr<GraphComm> graph_comm_ptr = std::make_shared<GraphComm>("engineName");

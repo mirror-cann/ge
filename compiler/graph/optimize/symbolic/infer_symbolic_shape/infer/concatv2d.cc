@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -99,7 +99,8 @@ graphStatus GetConcatDimValue(const gert::InferSymbolShapeContext *context, size
   GE_UNSUPPORTED_IF_NULL(concat_dim_tensor);
   auto concat_dim_value = concat_dim_tensor->GetSymbolicValue();
   if (concat_dim_value == nullptr) {
-    GELOGW("Symbol Infer unsupported, reason get symbolic value is nullptr, node %s[%s]", context->GetNodeName(), context->GetNodeType());
+    GELOGW("Symbol Infer unsupported, reason get symbolic value is nullptr, node %s[%s]", context->GetNodeName(),
+           context->GetNodeType());
     return UNSUPPORTED;
   }
   GE_ASSERT_EQ(static_cast<int32_t>(concat_dim_value->size()), 1);

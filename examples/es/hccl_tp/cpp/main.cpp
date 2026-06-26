@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
     return 0;
   } else if (command == "run") {
     // 先读取必需的 RANK_ID
-    const char* rank_id_env = std::getenv("RANK_ID");
+    const char *rank_id_env = std::getenv("RANK_ID");
     if (rank_id_env == nullptr) {
       std::cerr << "[Error] RANK_ID environment variable not set\n";
       return -1;
@@ -37,20 +37,18 @@ int main(int argc, char **argv) {
     ge::AscendString rank_id = rank_id_env;
 
     // 读取 DEVICE_ID，如果不存在则使用 RANK_ID
-    const char* device_id_env = std::getenv("DEVICE_ID");
+    const char *device_id_env = std::getenv("DEVICE_ID");
     if (device_id_env == nullptr) {
-      device_id_env = rank_id_env;  
+      device_id_env = rank_id_env;
     }
     ge::AscendString device_id = device_id_env;
 
     ge::AscendString rank_table_file = std::getenv("RANK_TABLE_FILE");
 
-    std::map<ge::AscendString, ge::AscendString> config = {
-      {"ge.exec.deviceId", device_id},
-      {"ge.graphRunMode", "0"},
-      {"ge.exec.rankTableFile", rank_table_file},
-      {"ge.exec.rankId", rank_id}
-    };
+    std::map<ge::AscendString, ge::AscendString> config = {{"ge.exec.deviceId", device_id},
+                                                           {"ge.graphRunMode", "0"},
+                                                           {"ge.exec.rankTableFile", rank_table_file},
+                                                           {"ge.exec.rankId", rank_id}};
     auto ret = ge::GEInitialize(config);
     if (ret != ge::SUCCESS) {
       std::cerr << "GE 初始化失败\n";

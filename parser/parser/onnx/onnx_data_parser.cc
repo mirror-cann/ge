@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,7 +25,7 @@ using namespace ge::parser;
 
 namespace ge {
 namespace {
-  const char *kData = "Data";
+const char *kData = "Data";
 }
 Status OnnxDataParser::ParseParams(const Message *op_src, ge::Operator &op_def) {
   GE_CHECK_NOTNULL(op_src);
@@ -128,8 +128,8 @@ Status OnnxDataParser::ParseInputFromUser(const ge::Operator &op_def) {
   std::vector<int64_t> designated_dims = input_dims.at(name);
   size_t input_dim_size = designated_dims.size();
   if (!(model_input_dims_v_.empty() || input_dim_size == model_input_dims_v_.size())) {
-    GELOGD("user designated input_dim_num %zu does match input_dim_num %zu defined by model",
-           input_dim_size, model_input_dims_v_.size());
+    GELOGD("user designated input_dim_num %zu does match input_dim_num %zu defined by model", input_dim_size,
+           model_input_dims_v_.size());
     return domi::PARAM_INVALID;
   }
 

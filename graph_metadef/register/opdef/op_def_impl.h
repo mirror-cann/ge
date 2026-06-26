@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,7 +23,7 @@ enum ListParamStatus : int32_t {
   NON_LIST = 2,
 };
 class OpParamDefImpl {
-public:
+ public:
   ge::AscendString name;
   Option param_type = Option::REQUIRED;
   std::vector<ge::DataType> types;
@@ -59,23 +59,23 @@ public:
 };
 
 class OpParamTrunk {
-public:
+ public:
   OpParamDef &Input(const char *name);
   OpParamDef &Output(const char *name);
   std::vector<OpParamDef> &GetInputs(void);
   std::vector<OpParamDef> &GetOutputs(void);
 
-private:
+ private:
   friend class OpDef;
   friend class OpProtoGenerator;
 
   ItemFindStatus ParamFind(const char *name, bool is_output, OpParamDef **param);
   OpParamDef &ParamAdd(OpParamDef &param, bool is_output);
   OpParamDef &ParamGetOrCreate(const char *name, bool is_output);
-  OpParamDef &GetParamDef(const ge::AscendString& name, OpDef::PortStat stat);
+  OpParamDef &GetParamDef(const ge::AscendString &name, OpDef::PortStat stat);
   void FollowMapUpdate(OpParamDef &param, bool is_output);
   void FollowDataImpl(void);
-  void DfsFollow(OpParamDef& op_param_def, OpDef::PortStat stat);
+  void DfsFollow(OpParamDef &op_param_def, OpDef::PortStat stat);
   void ParamFollow(OpParamDef &op_param_def, OpParamDef &target_param, OpDef::PortStat stat);
   void FollowListDataImpl(const OpDef::DfsParam &dfs_param, std::vector<OpParamDef> &input,
                           std::vector<OpParamDef> &output);
@@ -93,7 +93,7 @@ private:
 };
 
 class OpAttrDefImpl {
-public:
+ public:
   ge::AscendString name;
   AttrDataType data_type = AttrDataType::ATTR_DT_BOOL;
   bool required = true;
@@ -111,14 +111,14 @@ public:
 };
 
 class OpAICoreConfigImpl {
-public:
+ public:
   OpParamTrunk op_params;
   std::vector<ge::AscendString> cfg_keys;
   std::map<ge::AscendString, ge::AscendString> cfg_info;
 };
 
 class OpAICoreDefImpl {
-public:
+ public:
   gert::OpImplRegisterV2::TilingKernelFunc tiling_func = nullptr;
   gert::OpImplRegisterV2::TilingParseFunc tiling_parse = nullptr;
   gert::OpImplRegisterV2::CompileInfoCreatorFunc ci_creator = nullptr;
@@ -133,25 +133,25 @@ public:
 };
 
 class OpAICPUDefImpl {
-public:
+ public:
   std::vector<ge::AscendString> cfg_keys;
   std::map<ge::AscendString, ge::AscendString> cfg_info;
 };
 
 class OpHostCPUDefImpl {
-public:
+ public:
   std::vector<ge::AscendString> cfg_keys;
   std::map<ge::AscendString, ge::AscendString> cfg_info;
 };
 
 class OpMC2DefImpl {
-public:
+ public:
   std::vector<ge::AscendString> group_list = {};
   std::map<ge::AscendString, HcclServerType> server_type_ = {};
 };
 
 class OpDefImpl {
-public:
+ public:
   gert::OpImplRegisterV2::InferShapeKernelFunc infer_shape = nullptr;
   gert::OpImplRegisterV2::InferShapeRangeKernelFunc infer_shape_range = nullptr;
   gert::OpImplRegisterV2::InferDataTypeKernelFunc infer_data_type = nullptr;
@@ -163,12 +163,11 @@ public:
   ge::AscendString op_type;
   ge::AscendString category = "op_proto";
   std::map<ops::CommentSection, std::vector<ge::AscendString>> comment_map = {
-    {ops::CommentSection::BRIEF, {}},
-    {ops::CommentSection::CONSTRAINTS, {}},
-    {ops::CommentSection::RESTRICTIONS, {}},
-    {ops::CommentSection::SEE, {}},
-    {ops::CommentSection::THIRDPARTYFWKCOMPAT, {}}
-  };
+      {ops::CommentSection::BRIEF, {}},
+      {ops::CommentSection::CONSTRAINTS, {}},
+      {ops::CommentSection::RESTRICTIONS, {}},
+      {ops::CommentSection::SEE, {}},
+      {ops::CommentSection::THIRDPARTYFWKCOMPAT, {}}};
   bool has_workspace = true;
   uint32_t non_list_len = 0;
   OpMC2Def op_mc2;

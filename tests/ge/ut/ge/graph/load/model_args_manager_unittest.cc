@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -75,12 +75,10 @@ const gert::RuntimeStubImpl::MemoryInfo *FindMemoryInfo(const gert::GertRuntimeS
 bool ModelArgsHasPlacement(const gert::GertRuntimeStub &runtime_stub, StubMemoryBlockManager *allocator,
                            const std::vector<ModelArgsManager::ModelArgs> &model_args, ArgsPlacement placement,
                            std::string &ret) {
-  std::array<rtMemType_t, static_cast<int32_t>(ArgsPlacement::kEnd)> expect_placements = {
-      RT_MEMORY_HBM,  // hbm
-      RT_MEMORY_TS,   // ts
-      RT_MEMORY_HBM,  // sqe
-      RT_MEMORY_HOST_SVM
-  };
+  std::array<rtMemType_t, static_cast<int32_t>(ArgsPlacement::kEnd)> expect_placements = {RT_MEMORY_HBM,  // hbm
+                                                                                          RT_MEMORY_TS,   // ts
+                                                                                          RT_MEMORY_HBM,  // sqe
+                                                                                          RT_MEMORY_HOST_SVM};
   std::stringstream ss;
   for (const auto &arg : model_args) {
     gert::RuntimeStubImpl::MemoryInfo mem_info;
@@ -158,15 +156,27 @@ ge::NodePtr BuildTestNode() {
 
 class MockTaskInfoWithAllocResults : public TaskInfo {
  public:
-  explicit MockTaskInfoWithAllocResults(const std::vector<ArgsAllocationResult> &results)
-      : results_(results) {}
+  explicit MockTaskInfoWithAllocResults(const std::vector<ArgsAllocationResult> &results) : results_(results) {}
   Status Init(const domi::TaskDef &, DavinciModel *, const PisToArgs &, const PisToPersistentWorkspace &,
-              const IowAddrs &) override { return SUCCESS; }
-  Status Distribute() override { return SUCCESS; }
-  Status Release() override { return SUCCESS; }
-  int64_t ParseOpIndex(const domi::TaskDef &) const override { return 0; }
-  Status ParseTaskRunParam(const domi::TaskDef &, DavinciModel *, TaskRunParam &) override { return SUCCESS; }
-  const std::vector<ArgsAllocationResult>& GetArgsAllocationResults() const override { return results_; }
+              const IowAddrs &) override {
+    return SUCCESS;
+  }
+  Status Distribute() override {
+    return SUCCESS;
+  }
+  Status Release() override {
+    return SUCCESS;
+  }
+  int64_t ParseOpIndex(const domi::TaskDef &) const override {
+    return 0;
+  }
+  Status ParseTaskRunParam(const domi::TaskDef &, DavinciModel *, TaskRunParam &) override {
+    return SUCCESS;
+  }
+  const std::vector<ArgsAllocationResult> &GetArgsAllocationResults() const override {
+    return results_;
+  }
+
  private:
   std::vector<ArgsAllocationResult> results_;
 };
@@ -175,18 +185,30 @@ class MockCustomOpTaskInfo : public TaskInfo {
  public:
   explicit MockCustomOpTaskInfo() : update_host_args_void_calls_(0) {}
   Status Init(const domi::TaskDef &, DavinciModel *, const PisToArgs &, const PisToPersistentWorkspace &,
-              const IowAddrs &) override { return SUCCESS; }
-  Status Distribute() override { return SUCCESS; }
-  Status Release() override { return SUCCESS; }
-  int64_t ParseOpIndex(const domi::TaskDef &) const override { return 0; }
-  Status ParseTaskRunParam(const domi::TaskDef &, DavinciModel *, TaskRunParam &) override { return SUCCESS; }
+              const IowAddrs &) override {
+    return SUCCESS;
+  }
+  Status Distribute() override {
+    return SUCCESS;
+  }
+  Status Release() override {
+    return SUCCESS;
+  }
+  int64_t ParseOpIndex(const domi::TaskDef &) const override {
+    return 0;
+  }
+  Status ParseTaskRunParam(const domi::TaskDef &, DavinciModel *, TaskRunParam &) override {
+    return SUCCESS;
+  }
   Status UpdateHostArgs(void *base_addr, size_t mem_size) override {
     (void)base_addr;
     (void)mem_size;
     update_host_args_void_calls_++;
     return SUCCESS;
   }
-  bool NeedReserveArgsTable() const override { return true; }
+  bool NeedReserveArgsTable() const override {
+    return true;
+  }
   int update_host_args_void_calls_;
 };
 
@@ -221,9 +243,9 @@ TEST_F(ModelArgsManagerUT, InitV2_TaskInitParametersCorrect_AllRefreshable) {
 
   ASSERT_EQ(task_list.size(), 2UL);
 
-  auto checker = TASK_INFO_CHECKER(task_list, 0)
-                     .ArgsMemory(FindMemoryInfo(runtime_stub, allocator, mam.GetModelArgs(),
-                                                ArgsPlacement::kArgsPlacementHbm));
+  auto checker =
+      TASK_INFO_CHECKER(task_list, 0)
+          .ArgsMemory(FindMemoryInfo(runtime_stub, allocator, mam.GetModelArgs(), ArgsPlacement::kArgsPlacementHbm));
   std::string ret;
   ASSERT_TRUE(checker.GeneralCheck(ret)) << ret;
   ASSERT_TRUE(checker.CheckInputAddrs(
@@ -232,9 +254,9 @@ TEST_F(ModelArgsManagerUT, InitV2_TaskInitParametersCorrect_AllRefreshable) {
   ASSERT_TRUE(checker.CheckOutputAddrs(ret, {{MemoryAppType::kMemoryTypeFeatureMap, true}})) << ret;
   ASSERT_TRUE(checker.CheckWsAddrs(ret, {})) << ret;
 
-  checker = TASK_INFO_CHECKER(task_list, 1)
-                .ArgsMemory(FindMemoryInfo(runtime_stub, allocator, mam.GetModelArgs(),
-                                           ArgsPlacement::kArgsPlacementHbm));
+  checker =
+      TASK_INFO_CHECKER(task_list, 1)
+          .ArgsMemory(FindMemoryInfo(runtime_stub, allocator, mam.GetModelArgs(), ArgsPlacement::kArgsPlacementHbm));
   ASSERT_TRUE(checker.GeneralCheck(ret)) << ret;
   ASSERT_TRUE(checker.CheckInputAddrs(
       ret, {{MemoryAppType::kMemoryTypeModelIo, true}, {MemoryAppType::kMemoryTypeFeatureMap, true}}))
@@ -271,9 +293,9 @@ TEST_F(ModelArgsManagerUT, InitV2_TaskInitParametersCorrect_AllRefreshableAndFmN
 
   ASSERT_EQ(task_list.size(), 2UL);
 
-  auto checker = TASK_INFO_CHECKER(task_list, 0)
-                     .ArgsMemory(FindMemoryInfo(runtime_stub, allocator, mam.GetModelArgs(),
-                                                ArgsPlacement::kArgsPlacementHbm));
+  auto checker =
+      TASK_INFO_CHECKER(task_list, 0)
+          .ArgsMemory(FindMemoryInfo(runtime_stub, allocator, mam.GetModelArgs(), ArgsPlacement::kArgsPlacementHbm));
   std::string ret;
   ASSERT_TRUE(checker.GeneralCheck(ret)) << ret;
   ASSERT_TRUE(checker.CheckInputAddrs(
@@ -282,9 +304,9 @@ TEST_F(ModelArgsManagerUT, InitV2_TaskInitParametersCorrect_AllRefreshableAndFmN
   ASSERT_TRUE(checker.CheckOutputAddrs(ret, {{MemoryAppType::kMemoryTypeFeatureMap, false}})) << ret;
   ASSERT_TRUE(checker.CheckWsAddrs(ret, {})) << ret;
 
-  checker = TASK_INFO_CHECKER(task_list, 1)
-                .ArgsMemory(FindMemoryInfo(runtime_stub, allocator, mam.GetModelArgs(),
-                                           ArgsPlacement::kArgsPlacementHbm));
+  checker =
+      TASK_INFO_CHECKER(task_list, 1)
+          .ArgsMemory(FindMemoryInfo(runtime_stub, allocator, mam.GetModelArgs(), ArgsPlacement::kArgsPlacementHbm));
   ASSERT_TRUE(checker.GeneralCheck(ret)) << ret;
   ASSERT_TRUE(checker.CheckInputAddrs(
       ret, {{MemoryAppType::kMemoryTypeModelIo, true}, {MemoryAppType::kMemoryTypeFeatureMap, false}}))
@@ -330,15 +352,15 @@ TEST_F(ModelArgsManagerUT, InitV2_TaskInitParametersCorrect_HbmTsSqeArgs) {
   ASSERT_EQ(model_args.size(), 2UL);
   std::string ret;
   EXPECT_TRUE(ModelArgsHasPlacement(runtime_stub, allocator, model_args, ArgsPlacement::kArgsPlacementHbm, ret)) << ret;
-  EXPECT_TRUE(ModelArgsHasPlacement(runtime_stub, ts_allocator,
-                                    model_args, ArgsPlacement::kArgsPlacementTs, ret)) << ret;
+  EXPECT_TRUE(ModelArgsHasPlacement(runtime_stub, ts_allocator, model_args, ArgsPlacement::kArgsPlacementTs, ret))
+      << ret;
 
   ASSERT_EQ(mam.GetFixedAddrBulk().device_addr, nullptr);
 
   ASSERT_EQ(task_list.size(), 4UL);
-  auto checker = TASK_INFO_CHECKER(task_list, node_names_to_task_indexes.at("add1").at(0))
-                     .ArgsMemory(FindMemoryInfo(runtime_stub, allocator, mam.GetModelArgs(),
-                                                ArgsPlacement::kArgsPlacementHbm));
+  auto checker =
+      TASK_INFO_CHECKER(task_list, node_names_to_task_indexes.at("add1").at(0))
+          .ArgsMemory(FindMemoryInfo(runtime_stub, allocator, mam.GetModelArgs(), ArgsPlacement::kArgsPlacementHbm));
   ASSERT_TRUE(checker.GeneralCheck(ret)) << ret;
   ASSERT_TRUE(checker.CheckInputAddrs(
       ret, {{MemoryAppType::kMemoryTypeModelIo, true}, {MemoryAppType::kMemoryTypeModelIo, true}}))
@@ -346,9 +368,9 @@ TEST_F(ModelArgsManagerUT, InitV2_TaskInitParametersCorrect_HbmTsSqeArgs) {
   ASSERT_TRUE(checker.CheckOutputAddrs(ret, {{MemoryAppType::kMemoryTypeFeatureMap, false}})) << ret;
   ASSERT_TRUE(checker.CheckWsAddrs(ret, {})) << ret;
 
-  checker = TASK_INFO_CHECKER(task_list, node_names_to_task_indexes.at("add2").at(0))
-                .ArgsMemory(FindMemoryInfo(runtime_stub, allocator,
-                                           mam.GetModelArgs(), ArgsPlacement::kArgsPlacementHbm));
+  checker =
+      TASK_INFO_CHECKER(task_list, node_names_to_task_indexes.at("add2").at(0))
+          .ArgsMemory(FindMemoryInfo(runtime_stub, allocator, mam.GetModelArgs(), ArgsPlacement::kArgsPlacementHbm));
   ASSERT_TRUE(checker.GeneralCheck(ret)) << ret;
   ASSERT_TRUE(checker.CheckInputAddrs(
       ret, {{MemoryAppType::kMemoryTypeFeatureMap, false}, {MemoryAppType::kMemoryTypeFeatureMap, false}}))
@@ -366,10 +388,9 @@ TEST_F(ModelArgsManagerUT, InitV2_TaskInitParametersCorrect_HbmTsSqeArgs) {
   ASSERT_TRUE(checker.CheckOutputAddrs(ret, {{MemoryAppType::kMemoryTypeFeatureMap, false}})) << ret;
   ASSERT_TRUE(checker.CheckWsAddrs(ret, {})) << ret;
 
-
-  checker = TASK_INFO_CHECKER(task_list, node_names_to_task_indexes.at("id1").at(0))
-                .ArgsMemory(FindMemoryInfo(runtime_stub, ts_allocator, mam.GetModelArgs(),
-                                           ArgsPlacement::kArgsPlacementTs));
+  checker =
+      TASK_INFO_CHECKER(task_list, node_names_to_task_indexes.at("id1").at(0))
+          .ArgsMemory(FindMemoryInfo(runtime_stub, ts_allocator, mam.GetModelArgs(), ArgsPlacement::kArgsPlacementTs));
   ASSERT_TRUE(checker.GeneralCheck(ret)) << ret;
   ASSERT_TRUE(checker.CheckInputAddrs(ret, {{MemoryAppType::kMemoryTypeFeatureMap, false}})) << ret;
   ASSERT_TRUE(checker.CheckOutputAddrs(ret, {{MemoryAppType::kMemoryTypeModelIo, true}})) << ret;
@@ -413,8 +434,8 @@ TEST_F(ModelArgsManagerUT, InitV2_FixedAddrCorrect_NotSupportRefreshConnectToRef
   ASSERT_EQ(model_args.size(), 2UL);
   std::string ret;
   EXPECT_TRUE(ModelArgsHasPlacement(runtime_stub, allocator, model_args, ArgsPlacement::kArgsPlacementHbm, ret)) << ret;
-  EXPECT_TRUE(ModelArgsHasPlacement(runtime_stub, ts_allocator,
-                                    model_args, ArgsPlacement::kArgsPlacementTs, ret)) << ret;
+  EXPECT_TRUE(ModelArgsHasPlacement(runtime_stub, ts_allocator, model_args, ArgsPlacement::kArgsPlacementTs, ret))
+      << ret;
 
   auto &fixed_addr = mam.GetFixedAddrBulk();
   ASSERT_TRUE(FixedAddrBulkChecker(runtime_stub, ts_allocator, fixed_addr, node_names_to_task_indexes)
@@ -424,10 +445,10 @@ TEST_F(ModelArgsManagerUT, InitV2_FixedAddrCorrect_NotSupportRefreshConnectToRef
       << ret;
 
   ASSERT_EQ(task_list.size(), 4UL);
-  auto checker = TASK_INFO_CHECKER(task_list, node_names_to_task_indexes.at("add1").at(0))
-                     .ArgsMemory(FindMemoryInfo(runtime_stub, allocator,
-                                                mam.GetModelArgs(), ArgsPlacement::kArgsPlacementHbm))
-                     .FixedAddrBulk(fixed_addr);
+  auto checker =
+      TASK_INFO_CHECKER(task_list, node_names_to_task_indexes.at("add1").at(0))
+          .ArgsMemory(FindMemoryInfo(runtime_stub, allocator, mam.GetModelArgs(), ArgsPlacement::kArgsPlacementHbm))
+          .FixedAddrBulk(fixed_addr);
   ASSERT_TRUE(checker.GeneralCheck(ret)) << ret;
   ASSERT_TRUE(checker.CheckInputAddrs(
       ret, {{MemoryAppType::kMemoryTypeModelIo, true}, {MemoryAppType::kMemoryTypeModelIo, true}}))
@@ -435,10 +456,10 @@ TEST_F(ModelArgsManagerUT, InitV2_FixedAddrCorrect_NotSupportRefreshConnectToRef
   ASSERT_TRUE(checker.CheckOutputAddrs(ret, {{MemoryAppType::kMemoryTypeFeatureMap, true}})) << ret;
   ASSERT_TRUE(checker.CheckWsAddrs(ret, {})) << ret;
 
-  checker = TASK_INFO_CHECKER(task_list, node_names_to_task_indexes.at("add2").at(0))
-                .ArgsMemory(FindMemoryInfo(runtime_stub, allocator,
-                                           mam.GetModelArgs(), ArgsPlacement::kArgsPlacementHbm))
-                .FixedAddrBulk(fixed_addr);
+  checker =
+      TASK_INFO_CHECKER(task_list, node_names_to_task_indexes.at("add2").at(0))
+          .ArgsMemory(FindMemoryInfo(runtime_stub, allocator, mam.GetModelArgs(), ArgsPlacement::kArgsPlacementHbm))
+          .FixedAddrBulk(fixed_addr);
   ASSERT_TRUE(checker.GeneralCheck(ret)) << ret;
   ASSERT_TRUE(checker.CheckInputAddrs(
       ret, {{MemoryAppType::kMemoryTypeFeatureMap, true}, {MemoryAppType::kMemoryTypeFeatureMap, true}}))
@@ -448,20 +469,18 @@ TEST_F(ModelArgsManagerUT, InitV2_FixedAddrCorrect_NotSupportRefreshConnectToRef
 
   checker =
       TASK_INFO_CHECKER(task_list, node_names_to_task_indexes.at("dsa1").at(0))
-          .ArgsMemory(FindMemoryInfo(runtime_stub, allocator,
-                                     mam.GetModelArgs(), ArgsPlacement::kArgsPlacementHbm))
+          .ArgsMemory(FindMemoryInfo(runtime_stub, allocator, mam.GetModelArgs(), ArgsPlacement::kArgsPlacementHbm))
           // 虽然返回的有一块sqe内存，不过sqe内存在申请的时候是合并到hbm中一起申请的，因此从rts视角，看到的仍然是hbm内存
-          .ArgsMemory(FindMemoryInfo(runtime_stub, allocator,
-                                     mam.GetModelArgs(), ArgsPlacement::kArgsPlacementHbm))
+          .ArgsMemory(FindMemoryInfo(runtime_stub, allocator, mam.GetModelArgs(), ArgsPlacement::kArgsPlacementHbm))
           .FixedAddrBulk(fixed_addr);
   ASSERT_TRUE(checker.GeneralCheck(ret)) << ret;
   ASSERT_TRUE(checker.CheckInputAddrs(ret, {})) << ret;
   ASSERT_TRUE(checker.CheckOutputAddrs(ret, {{MemoryAppType::kMemoryTypeFix, false}})) << ret;
   ASSERT_TRUE(checker.CheckWsAddrs(ret, {})) << ret;
-  checker = TASK_INFO_CHECKER(task_list, node_names_to_task_indexes.at("id1").at(0))
-                .ArgsMemory(FindMemoryInfo(runtime_stub, ts_allocator,
-                                           mam.GetModelArgs(), ArgsPlacement::kArgsPlacementTs))
-                .FixedAddrBulk(fixed_addr);
+  checker =
+      TASK_INFO_CHECKER(task_list, node_names_to_task_indexes.at("id1").at(0))
+          .ArgsMemory(FindMemoryInfo(runtime_stub, ts_allocator, mam.GetModelArgs(), ArgsPlacement::kArgsPlacementTs))
+          .FixedAddrBulk(fixed_addr);
   ASSERT_TRUE(checker.GeneralCheck(ret)) << ret;
   ASSERT_TRUE(checker.CheckInputAddrs(ret, {{MemoryAppType::kMemoryTypeFix, false}})) << ret;
   ASSERT_TRUE(checker.CheckOutputAddrs(ret, {{MemoryAppType::kMemoryTypeFeatureMap, true}})) << ret;
@@ -499,10 +518,9 @@ TEST_F(ModelArgsManagerUT, InitV2_FixedAddrReplacedCorrectly_LabelSwitchTaskHasN
   auto &model_args = mam.GetModelArgs();
   ASSERT_EQ(model_args.size(), 2UL);
   std::string ret;
-  EXPECT_TRUE(ModelArgsHasPlacement(runtime_stub, allocator,
-                                    model_args, ArgsPlacement::kArgsPlacementHbm, ret)) << ret;
-  EXPECT_TRUE(ModelArgsHasPlacement(runtime_stub, ts_allocator,
-                                    model_args, ArgsPlacement::kArgsPlacementTs, ret)) << ret;
+  EXPECT_TRUE(ModelArgsHasPlacement(runtime_stub, allocator, model_args, ArgsPlacement::kArgsPlacementHbm, ret)) << ret;
+  EXPECT_TRUE(ModelArgsHasPlacement(runtime_stub, ts_allocator, model_args, ArgsPlacement::kArgsPlacementTs, ret))
+      << ret;
 
   auto &fixed_addr = mam.GetFixedAddrBulk();
   ASSERT_TRUE(FixedAddrBulkChecker(runtime_stub, ts_allocator, fixed_addr, node_names_to_task_indexes)
@@ -513,10 +531,10 @@ TEST_F(ModelArgsManagerUT, InitV2_FixedAddrReplacedCorrectly_LabelSwitchTaskHasN
       << ret;
 
   ASSERT_EQ(task_list.size(), 4UL);
-  auto checker = TASK_INFO_CHECKER(task_list, node_names_to_task_indexes.at("add1").at(0))
-                     .ArgsMemory(FindMemoryInfo(runtime_stub, allocator,
-                                                mam.GetModelArgs(), ArgsPlacement::kArgsPlacementHbm))
-                     .FixedAddrBulk(fixed_addr);
+  auto checker =
+      TASK_INFO_CHECKER(task_list, node_names_to_task_indexes.at("add1").at(0))
+          .ArgsMemory(FindMemoryInfo(runtime_stub, allocator, mam.GetModelArgs(), ArgsPlacement::kArgsPlacementHbm))
+          .FixedAddrBulk(fixed_addr);
   ASSERT_TRUE(checker.GeneralCheck(ret)) << ret;
   ASSERT_TRUE(checker.CheckInputAddrs(
       ret, {{MemoryAppType::kMemoryTypeModelIo, true}, {MemoryAppType::kMemoryTypeModelIo, true}}))
@@ -524,10 +542,10 @@ TEST_F(ModelArgsManagerUT, InitV2_FixedAddrReplacedCorrectly_LabelSwitchTaskHasN
   ASSERT_TRUE(checker.CheckOutputAddrs(ret, {{MemoryAppType::kMemoryTypeFeatureMap, true}})) << ret;
   ASSERT_TRUE(checker.CheckWsAddrs(ret, {})) << ret;
 
-  checker = TASK_INFO_CHECKER(task_list, node_names_to_task_indexes.at("add2").at(0))
-                .ArgsMemory(FindMemoryInfo(runtime_stub, allocator,
-                                           mam.GetModelArgs(), ArgsPlacement::kArgsPlacementHbm))
-                .FixedAddrBulk(fixed_addr);
+  checker =
+      TASK_INFO_CHECKER(task_list, node_names_to_task_indexes.at("add2").at(0))
+          .ArgsMemory(FindMemoryInfo(runtime_stub, allocator, mam.GetModelArgs(), ArgsPlacement::kArgsPlacementHbm))
+          .FixedAddrBulk(fixed_addr);
   ASSERT_TRUE(checker.GeneralCheck(ret)) << ret;
   ASSERT_TRUE(checker.CheckInputAddrs(
       ret, {{MemoryAppType::kMemoryTypeModelIo, true}, {MemoryAppType::kMemoryTypeFeatureMap, true}}))
@@ -541,10 +559,10 @@ TEST_F(ModelArgsManagerUT, InitV2_FixedAddrReplacedCorrectly_LabelSwitchTaskHasN
   ASSERT_TRUE(checker.CheckOutputAddrs(ret, {})) << ret;
   ASSERT_TRUE(checker.CheckWsAddrs(ret, {{MemoryAppType::kMemoryTypeFix, false}})) << ret;
 
-  checker = TASK_INFO_CHECKER(task_list, node_names_to_task_indexes.at("id1").at(0))
-                .ArgsMemory(FindMemoryInfo(runtime_stub, ts_allocator,
-                                           mam.GetModelArgs(), ArgsPlacement::kArgsPlacementTs))
-                .FixedAddrBulk(fixed_addr);
+  checker =
+      TASK_INFO_CHECKER(task_list, node_names_to_task_indexes.at("id1").at(0))
+          .ArgsMemory(FindMemoryInfo(runtime_stub, ts_allocator, mam.GetModelArgs(), ArgsPlacement::kArgsPlacementTs))
+          .FixedAddrBulk(fixed_addr);
   ASSERT_TRUE(checker.GeneralCheck(ret)) << ret;
   ASSERT_TRUE(checker.CheckInputAddrs(ret, {{MemoryAppType::kMemoryTypeFeatureMap, true}})) << ret;
   ASSERT_TRUE(checker.CheckOutputAddrs(ret, {{MemoryAppType::kMemoryTypeFix, false}})) << ret;
@@ -586,15 +604,15 @@ TEST_F(ModelArgsManagerUT, InitV2_AllOthersCorrect_EventTaskHasNoCorrospondingNo
   ASSERT_EQ(model_args.size(), 2UL);
   std::string ret;
   EXPECT_TRUE(ModelArgsHasPlacement(runtime_stub, allocator, model_args, ArgsPlacement::kArgsPlacementHbm, ret)) << ret;
-  EXPECT_TRUE(ModelArgsHasPlacement(runtime_stub, ts_allocator,
-                                    model_args, ArgsPlacement::kArgsPlacementTs, ret)) << ret;
+  EXPECT_TRUE(ModelArgsHasPlacement(runtime_stub, ts_allocator, model_args, ArgsPlacement::kArgsPlacementTs, ret))
+      << ret;
 
   ASSERT_EQ(mam.GetFixedAddrBulk().device_addr, nullptr);
 
   ASSERT_EQ(task_list.size(), 5UL);
-  auto checker = TASK_INFO_CHECKER(task_list, node_names_to_task_indexes.at("add1").at(0))
-                     .ArgsMemory(FindMemoryInfo(runtime_stub, allocator,
-                                                mam.GetModelArgs(), ArgsPlacement::kArgsPlacementHbm));
+  auto checker =
+      TASK_INFO_CHECKER(task_list, node_names_to_task_indexes.at("add1").at(0))
+          .ArgsMemory(FindMemoryInfo(runtime_stub, allocator, mam.GetModelArgs(), ArgsPlacement::kArgsPlacementHbm));
   ASSERT_TRUE(checker.GeneralCheck(ret)) << ret;
   ASSERT_TRUE(checker.CheckInputAddrs(
       ret, {{MemoryAppType::kMemoryTypeModelIo, true}, {MemoryAppType::kMemoryTypeModelIo, true}}))
@@ -602,9 +620,9 @@ TEST_F(ModelArgsManagerUT, InitV2_AllOthersCorrect_EventTaskHasNoCorrospondingNo
   ASSERT_TRUE(checker.CheckOutputAddrs(ret, {{MemoryAppType::kMemoryTypeFeatureMap, false}})) << ret;
   ASSERT_TRUE(checker.CheckWsAddrs(ret, {})) << ret;
 
-  checker = TASK_INFO_CHECKER(task_list, node_names_to_task_indexes.at("add2").at(0))
-                .ArgsMemory(FindMemoryInfo(runtime_stub, allocator,
-                                           mam.GetModelArgs(), ArgsPlacement::kArgsPlacementHbm));
+  checker =
+      TASK_INFO_CHECKER(task_list, node_names_to_task_indexes.at("add2").at(0))
+          .ArgsMemory(FindMemoryInfo(runtime_stub, allocator, mam.GetModelArgs(), ArgsPlacement::kArgsPlacementHbm));
   ASSERT_TRUE(checker.GeneralCheck(ret)) << ret;
   ASSERT_TRUE(checker.CheckInputAddrs(
       ret, {{MemoryAppType::kMemoryTypeFeatureMap, false}, {MemoryAppType::kMemoryTypeFeatureMap, false}}))
@@ -614,19 +632,17 @@ TEST_F(ModelArgsManagerUT, InitV2_AllOthersCorrect_EventTaskHasNoCorrospondingNo
 
   checker =
       TASK_INFO_CHECKER(task_list, node_names_to_task_indexes.at("dsa1").at(0))
-          .ArgsMemory(FindMemoryInfo(runtime_stub, allocator,
-                                     mam.GetModelArgs(), ArgsPlacement::kArgsPlacementHbm))
+          .ArgsMemory(FindMemoryInfo(runtime_stub, allocator, mam.GetModelArgs(), ArgsPlacement::kArgsPlacementHbm))
           // 虽然返回的有一块sqe内存，不过sqe内存在申请的时候是合并到hbm中一起申请的，因此从rts视角，看到的仍然是hbm内存
-          .ArgsMemory(FindMemoryInfo(runtime_stub, allocator,
-                                     mam.GetModelArgs(), ArgsPlacement::kArgsPlacementHbm));
+          .ArgsMemory(FindMemoryInfo(runtime_stub, allocator, mam.GetModelArgs(), ArgsPlacement::kArgsPlacementHbm));
   ASSERT_TRUE(checker.GeneralCheck(ret)) << ret;
   ASSERT_TRUE(checker.CheckInputAddrs(ret, {})) << ret;
   ASSERT_TRUE(checker.CheckOutputAddrs(ret, {{MemoryAppType::kMemoryTypeFeatureMap, false}})) << ret;
   ASSERT_TRUE(checker.CheckWsAddrs(ret, {})) << ret;
 
-  checker = TASK_INFO_CHECKER(task_list, node_names_to_task_indexes.at("id1").at(0))
-                .ArgsMemory(FindMemoryInfo(runtime_stub, ts_allocator,
-                                           mam.GetModelArgs(), ArgsPlacement::kArgsPlacementTs));
+  checker =
+      TASK_INFO_CHECKER(task_list, node_names_to_task_indexes.at("id1").at(0))
+          .ArgsMemory(FindMemoryInfo(runtime_stub, ts_allocator, mam.GetModelArgs(), ArgsPlacement::kArgsPlacementTs));
   ASSERT_TRUE(checker.GeneralCheck(ret)) << ret;
   ASSERT_TRUE(checker.CheckInputAddrs(ret, {{MemoryAppType::kMemoryTypeFeatureMap, false}})) << ret;
   ASSERT_TRUE(checker.CheckOutputAddrs(ret, {{MemoryAppType::kMemoryTypeModelIo, true}})) << ret;
@@ -675,7 +691,7 @@ TEST_F(ModelArgsManagerUT, UpdateForExecute_AllTaskInfoCalled_FirstTime) {
   rtStream_t stream = (rtStream_t)1;
   std::vector<uint64_t> active_mem_base_addr = ActiveMemBaseFaker(2, 1).FmBaseIndex(0).ModelIoBaseIndex(1).Build();
   mam.AllocKernelLaunchArgsHostMem(active_mem_base_addr.size());
-  uint64_t* active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
+  uint64_t *active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
   for (size_t i = 0; i < active_mem_base_addr.size(); i++) {
     active_mem_base_addr_temp[i] = active_mem_base_addr[i];
   }
@@ -718,13 +734,13 @@ TEST_F(ModelArgsManagerUT, UpdateForExecute_AllTaskInfoCalled_FirstTime_With_Upd
   std::vector<TaskInfoPtr> task_list;
   mam.SetAllocationHitCount(1U, 1U);
   std::string stub_func_str = "func_test";
-  mam.SetFuncHandle(static_cast<void*>(const_cast<char*>(stub_func_str.c_str())));
+  mam.SetFuncHandle(static_cast<void *>(const_cast<char *>(stub_func_str.c_str())));
   ASSERT_EQ(mam.Init(*(model->GetModelTaskDefPtr()), &task_list), SUCCESS);
 
   rtStream_t stream = (rtStream_t)1;
   std::vector<uint64_t> active_mem_base_addr = ActiveMemBaseFaker(2, 1).FmBaseIndex(0).ModelIoBaseIndex(1).Build();
   mam.AllocKernelLaunchArgsHostMem(active_mem_base_addr.size());
-  uint64_t* active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
+  uint64_t *active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
   for (size_t i = 0; i < active_mem_base_addr.size(); i++) {
     active_mem_base_addr_temp[i] = active_mem_base_addr[i];
   }
@@ -768,7 +784,7 @@ TEST_F(ModelArgsManagerUT, UpdateForExecute_AllTaskInfoCalled_FirstTime_Version_
   rtStream_t stream = (rtStream_t)1;
   std::vector<uint64_t> active_mem_base_addr = ActiveMemBaseFaker(2, 1).FmBaseIndex(0).ModelIoBaseIndex(1).Build();
   mam.AllocKernelLaunchArgsHostMem(active_mem_base_addr.size());
-  uint64_t* active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
+  uint64_t *active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
   for (size_t i = 0; i < active_mem_base_addr.size(); i++) {
     active_mem_base_addr_temp[i] = active_mem_base_addr[i];
   }
@@ -817,24 +833,25 @@ TEST_F(ModelArgsManagerUT, UpdateForExecute_AllTaskInfoCalled_FusionChanged) {
   mam.SetAllocationHitCount(1U, 1U);
   rtStream_t stream = (rtStream_t)1;
   std::vector<uint64_t> active_mem_base_addr = ActiveMemBaseFaker(fusion_lengths.size(), fm_lengths.size(), 2, 1)
-                                 .FusionBaseIndex(0).FmBaseIndex(0).ModelIoBaseIndex(1).Build();
+                                                   .FusionBaseIndex(0)
+                                                   .FmBaseIndex(0)
+                                                   .ModelIoBaseIndex(1)
+                                                   .Build();
   mam.AllocKernelLaunchArgsHostMem(active_mem_base_addr.size());
-  uint64_t* active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
+  uint64_t *active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
   for (size_t i = 0; i < active_mem_base_addr.size(); i++) {
     active_mem_base_addr_temp[i] = active_mem_base_addr[i];
   }
 
   uint32_t ret_up = 4;
-  ASSERT_EQ(mam.UpdateForExecute(ret_up, stream),
-            SUCCESS);
+  ASSERT_EQ(mam.UpdateForExecute(ret_up, stream), SUCCESS);
 
   for (const auto &task_info : task_list) {
     ASSERT_EQ(reinterpret_cast<StubTaskInfo *>(task_info.get())->GetUpdateDumpInfosCalls().size(), 1UL);
   }
   // fm base changed
   ret_up = 2;
-  ASSERT_EQ(mam.UpdateForExecute(ret_up, stream),
-            SUCCESS);
+  ASSERT_EQ(mam.UpdateForExecute(ret_up, stream), SUCCESS);
 
   // add1 will be updated in policies model-io,fm-and-model-io,all-one-time
   // add2 will be updated in policies model-io,fm-and-model-io,all-one-time
@@ -878,9 +895,10 @@ TEST_F(ModelArgsManagerUT, UpdateForExecute_AllTaskInfoCalled_SubFmChanged) {
   ASSERT_EQ(mam.Init(*(model->GetModelTaskDefPtr()), &task_list), SUCCESS);
 
   rtStream_t stream = (rtStream_t)1;
-  std::vector<uint64_t> active_mem_base_addr1 = ActiveMemBaseFaker(fm_lengths.size(), 2, 1).FmBaseIndex(0).ModelIoBaseIndex(1).Build();
+  std::vector<uint64_t> active_mem_base_addr1 =
+      ActiveMemBaseFaker(fm_lengths.size(), 2, 1).FmBaseIndex(0).ModelIoBaseIndex(1).Build();
   mam.AllocKernelLaunchArgsHostMem(active_mem_base_addr1.size());
-  uint64_t* active_mem_base_addr_temp1 = mam.GetActivateMemBaseAddrs();
+  uint64_t *active_mem_base_addr_temp1 = mam.GetActivateMemBaseAddrs();
   for (size_t i = 0; i < active_mem_base_addr1.size(); i++) {
     active_mem_base_addr_temp1[i] = active_mem_base_addr1[i];
   }
@@ -892,9 +910,10 @@ TEST_F(ModelArgsManagerUT, UpdateForExecute_AllTaskInfoCalled_SubFmChanged) {
     ASSERT_EQ(reinterpret_cast<StubTaskInfo *>(task_info.get())->GetUpdateDumpInfosCalls().size(), 1UL);
   }
   // fm base changed
-  std::vector<uint64_t> active_mem_base_addr2 = ActiveMemBaseFaker(fm_lengths.size(), 2, 1).FmBaseIndex(1).ModelIoBaseIndex(1).Build();
+  std::vector<uint64_t> active_mem_base_addr2 =
+      ActiveMemBaseFaker(fm_lengths.size(), 2, 1).FmBaseIndex(1).ModelIoBaseIndex(1).Build();
   mam.AllocKernelLaunchArgsHostMem(active_mem_base_addr2.size());
-  uint64_t* active_mem_base_addr_temp2 = mam.GetActivateMemBaseAddrs();
+  uint64_t *active_mem_base_addr_temp2 = mam.GetActivateMemBaseAddrs();
   for (size_t i = 0; i < active_mem_base_addr2.size(); i++) {
     active_mem_base_addr_temp2[i] = active_mem_base_addr2[i];
   }
@@ -935,18 +954,18 @@ TEST_F(ModelArgsManagerUT, UpdateForExecute_OnlyModelIoCalled_IoChanged) {
 
   ModelArgsManager mam(davinci_model.get());
   std::vector<TaskInfoPtr> task_list;
-  dlog_setlevel(0,0,0);
+  dlog_setlevel(0, 0, 0);
   ASSERT_EQ(mam.Init(*(model->GetModelTaskDefPtr()), &task_list), SUCCESS);
   mam.SetAllocationHitCount(1U, 1U);
   rtStream_t stream = (rtStream_t)1;
   std::vector<uint64_t> active_mem_base_addr = ActiveMemBaseFaker(2, 1).FmBaseIndex(0).ModelIoBaseIndex(1).Build();
   mam.AllocKernelLaunchArgsHostMem(active_mem_base_addr.size());
-  uint64_t* active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
+  uint64_t *active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
   for (size_t i = 0; i < active_mem_base_addr.size(); i++) {
     active_mem_base_addr_temp[i] = active_mem_base_addr[i];
   }
 
-  mam.SetFuncHandle((void*)100);
+  mam.SetFuncHandle((void *)100);
 
   uint32_t up = 2;
   ASSERT_EQ(mam.UpdateForExecute(up, stream), SUCCESS);
@@ -977,8 +996,7 @@ TEST_F(ModelArgsManagerUT, UpdateForExecute_OnlyModelIoCalled_IoChanged) {
   mam.update_version_ = 3U;
   up = 2;
   gert::GlobalProfilingWrapper::GetInstance()->SetEnableFlags(
-      gert::BuiltInSubscriberUtil::BuildEnableFlags<gert::ProfilingType>(
-          {gert::ProfilingType::kTaskTime}));
+      gert::BuiltInSubscriberUtil::BuildEnableFlags<gert::ProfilingType>({gert::ProfilingType::kTaskTime}));
   ASSERT_EQ(mam.UpdateForExecute(up, stream), SUCCESS);
 
   gert::GlobalProfilingWrapper::GetInstance()->SetEnableFlags(
@@ -993,9 +1011,8 @@ TEST_F(ModelArgsManagerUT, UpdateForExecute_OnlyModelIoCalled_IoChanged) {
 
   up = 0;
   ASSERT_EQ(mam.UpdateForExecute(up, stream), SUCCESS);
-  dlog_setlevel(0,3,0);
+  dlog_setlevel(0, 3, 0);
 }
-
 
 TEST_F(ModelArgsManagerUT, UpdateForExecute_OnlyModelIoCalled_IoChanged_NoModelIoHit) {
   gert::GertRuntimeStub runtime_stub;
@@ -1029,7 +1046,7 @@ TEST_F(ModelArgsManagerUT, UpdateForExecute_OnlyModelIoCalled_IoChanged_NoModelI
   rtStream_t stream = (rtStream_t)1;
   std::vector<uint64_t> active_mem_base_addr = ActiveMemBaseFaker(2, 1).FmBaseIndex(0).ModelIoBaseIndex(1).Build();
   mam.AllocKernelLaunchArgsHostMem(active_mem_base_addr.size());
-  uint64_t* active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
+  uint64_t *active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
   for (size_t i = 0; i < active_mem_base_addr.size(); i++) {
     active_mem_base_addr_temp[i] = active_mem_base_addr[i];
   }
@@ -1041,7 +1058,7 @@ TEST_F(ModelArgsManagerUT, UpdateForExecute_OnlyModelIoCalled_IoChanged_NoModelI
   CLEAR_ALL_TASK_INFO(task_list);
   std::vector<uint64_t> active_mem_base_addr1 = ActiveMemBaseFaker(2, 1).FmBaseIndex(0).ModelIoBaseIndex(2).Build();
   mam.AllocKernelLaunchArgsHostMem(active_mem_base_addr1.size());
-  uint64_t* active_mem_base_addr_temp1 = mam.GetActivateMemBaseAddrs();
+  uint64_t *active_mem_base_addr_temp1 = mam.GetActivateMemBaseAddrs();
   for (size_t i = 0; i < active_mem_base_addr1.size(); i++) {
     active_mem_base_addr_temp1[i] = active_mem_base_addr1[i];
   }
@@ -1090,7 +1107,7 @@ TEST_F(ModelArgsManagerUT, UpdateForExecute_SqeLaunchedCorrect_SqePlacementExist
   rtStream_t stream = (rtStream_t)1;
   std::vector<uint64_t> active_mem_base_addr = ActiveMemBaseFaker(2, 1).FmBaseIndex(0).ModelIoBaseIndex(1).Build();
   mam.AllocKernelLaunchArgsHostMem(active_mem_base_addr.size());
-  uint64_t* active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
+  uint64_t *active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
   for (size_t i = 0; i < active_mem_base_addr.size(); i++) {
     active_mem_base_addr_temp[i] = active_mem_base_addr[i];
   }
@@ -1140,7 +1157,7 @@ TEST_F(ModelArgsManagerUT, Compatibility_PrintWarningMessage_WhenHistoryTaskInfo
   rtStream_t stream = (rtStream_t)1;
   std::vector<uint64_t> active_mem_base_addr = ActiveMemBaseFaker(2, 1).FmBaseIndex(0).ModelIoBaseIndex(1).Build();
   mam.AllocKernelLaunchArgsHostMem(active_mem_base_addr.size());
-  uint64_t* active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
+  uint64_t *active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
   for (size_t i = 0; i < active_mem_base_addr.size(); i++) {
     active_mem_base_addr_temp[i] = active_mem_base_addr[i];
   }
@@ -1173,22 +1190,10 @@ TEST_F(ModelArgsManagerUT, GenModelArgsRefreshInfosForTask) {
   ModelArgsManager mam(davinci_model.get());
 
   TaskArgsRefreshInfo info_high_32_bit = {
-      0,
-      0x32,
-      0,
-      0x64,
-      ArgsPlacement::kArgsPlacementHbm,
-      ArgsFormatPolicy::kAddrHigh32Bit
-  };
+      0, 0x32, 0, 0x64, ArgsPlacement::kArgsPlacementHbm, ArgsFormatPolicy::kAddrHigh32Bit};
 
   TaskArgsRefreshInfo info_low_32_bit = {
-      0,
-      0x32,
-      0,
-      0x68,
-      ArgsPlacement::kArgsPlacementHbm,
-      ArgsFormatPolicy::kAddrLow32Bit
-  };
+      0, 0x32, 0, 0x68, ArgsPlacement::kArgsPlacementHbm, ArgsFormatPolicy::kAddrLow32Bit};
   std::vector<TaskArgsRefreshInfo> infos;
   infos.emplace_back(std::move(info_high_32_bit));
   infos.emplace_back(std::move(info_low_32_bit));
@@ -1223,38 +1228,19 @@ TEST_F(ModelArgsManagerUT, GenAddrRefreshOpKernelLaunchArgsInfo_Test) {
                            .GeModel(model)
                            .GenerateSymbolForTaskInfoFaker(&(runtime_stub.GetTaskInfoFactoryStub()))
                            .Build();
-  //davinci_model.init();
+  // davinci_model.init();
   ModelArgsManager mam(davinci_model.get());
   std::vector<TaskInfoPtr> task_list;
-  dlog_setlevel(0,0,0);
+  dlog_setlevel(0, 0, 0);
   ASSERT_EQ(mam.Init(*(model->GetModelTaskDefPtr()), &task_list), SUCCESS);
 
   TaskArgsRefreshInfo info_high_32_bit = {
-      0,
-      0,
-      0,
-      0,
-      ArgsPlacement::kArgsPlacementHbm,
-      ArgsFormatPolicy::kAddrHigh32Bit
-  };
+      0, 0, 0, 0, ArgsPlacement::kArgsPlacementHbm, ArgsFormatPolicy::kAddrHigh32Bit};
 
   TaskArgsRefreshInfo info_low_32_bit = {
-      0,
-      0x20,
-      0,
-      0x20,
-      ArgsPlacement::kArgsPlacementHbm,
-      ArgsFormatPolicy::kAddrLow32Bit
-  };
+      0, 0x20, 0, 0x20, ArgsPlacement::kArgsPlacementHbm, ArgsFormatPolicy::kAddrLow32Bit};
 
-  TaskArgsRefreshInfo info_all = {
-      1,
-      0x8,
-      1,
-      0x8,
-      ArgsPlacement::kArgsPlacementHbm,
-      ArgsFormatPolicy::kAddrAll
-  };
+  TaskArgsRefreshInfo info_all = {1, 0x8, 1, 0x8, ArgsPlacement::kArgsPlacementHbm, ArgsFormatPolicy::kAddrAll};
 
   std::vector<TaskArgsRefreshInfo> infos;
   infos.emplace_back(std::move(info_high_32_bit));
@@ -1272,13 +1258,13 @@ TEST_F(ModelArgsManagerUT, GenAddrRefreshOpKernelLaunchArgsInfo_Test) {
   uint64_t offset_num = 5;
   ASSERT_EQ(mam.GenModelArgsRefreshInfosForTask(infos, args, node), SUCCESS);
   mam.model_args_len_[0] = 40;
-  //ASSERT_EQ(mam.GenAddrRefreshOpKernelLaunchArgsInfo(pls), SUCCESS);
+  // ASSERT_EQ(mam.GenAddrRefreshOpKernelLaunchArgsInfo(pls), SUCCESS);
   mam.davinci_model_->logical_mem_allocations_.resize(40);
   ASSERT_EQ(mam.AllocKernelLaunchArgsHostMem(mam.davinci_model_->logical_mem_allocations_.size()), SUCCESS);
   ASSERT_EQ(mam.GenKernelLaunchArgs(offset_num), SUCCESS);
   ASSERT_EQ(mam.GenAddrRefreshIndexAndOffset(offset_num), SUCCESS);
   mam.launched_args_unique_ptr_ = nullptr;
-  dlog_setlevel(0,3,0);
+  dlog_setlevel(0, 3, 0);
 }
 
 TEST_F(ModelArgsManagerUT, GenKernelLaunchArgs_with_300_modelio_Test) {
@@ -1296,37 +1282,18 @@ TEST_F(ModelArgsManagerUT, GenKernelLaunchArgs_with_300_modelio_Test) {
                            .GeModel(model)
                            .GenerateSymbolForTaskInfoFaker(&(runtime_stub.GetTaskInfoFactoryStub()))
                            .Build();
-  //davinci_model.init();
+  // davinci_model.init();
   ModelArgsManager mam(davinci_model.get());
   std::vector<TaskInfoPtr> task_list;
   ASSERT_EQ(mam.Init(*(model->GetModelTaskDefPtr()), &task_list), SUCCESS);
 
   TaskArgsRefreshInfo info_high_32_bit = {
-      0,
-      0,
-      0,
-      0,
-      ArgsPlacement::kArgsPlacementHbm,
-      ArgsFormatPolicy::kAddrHigh32Bit
-  };
+      0, 0, 0, 0, ArgsPlacement::kArgsPlacementHbm, ArgsFormatPolicy::kAddrHigh32Bit};
 
   TaskArgsRefreshInfo info_low_32_bit = {
-      0,
-      0x4,
-      0,
-      0x4,
-      ArgsPlacement::kArgsPlacementHbm,
-      ArgsFormatPolicy::kAddrLow32Bit
-  };
+      0, 0x4, 0, 0x4, ArgsPlacement::kArgsPlacementHbm, ArgsFormatPolicy::kAddrLow32Bit};
 
-  TaskArgsRefreshInfo info_all = {
-      1,
-      0x8,
-      1,
-      0x8,
-      ArgsPlacement::kArgsPlacementHbm,
-      ArgsFormatPolicy::kAddrAll
-  };
+  TaskArgsRefreshInfo info_all = {1, 0x8, 1, 0x8, ArgsPlacement::kArgsPlacementHbm, ArgsFormatPolicy::kAddrAll};
 
   std::vector<TaskArgsRefreshInfo> infos;
   infos.emplace_back(std::move(info_high_32_bit));
@@ -1343,7 +1310,7 @@ TEST_F(ModelArgsManagerUT, GenKernelLaunchArgs_with_300_modelio_Test) {
   auto node = BuildTestNode();
   uint64_t offset_num = 300;
   mam.davinci_model_->logical_mem_allocations_.resize(300);
-  //ArgsPlacement pls = ArgsPlacement::kArgsPlacementHbm;
+  // ArgsPlacement pls = ArgsPlacement::kArgsPlacementHbm;
   ASSERT_EQ(mam.AllocKernelLaunchArgsHostMem(mam.davinci_model_->logical_mem_allocations_.size()), SUCCESS);
   ASSERT_EQ(mam.GenKernelLaunchArgs(offset_num), SUCCESS);
 }
@@ -1371,16 +1338,16 @@ TEST_F(ModelArgsManagerUT, GenAllocationToIowPaRemapInfos_TaskNoSupportPaRemap) 
   ASSERT_EQ(task_list.size(), 2UL);
 
   ASSERT_EQ(mam.allocation_ids_to_iow_pa_remap_infos_.size(), 5UL);
-  ASSERT_EQ(mam.allocation_ids_to_iow_pa_remap_infos_[0].size(), 3UL); // fm
-  ASSERT_EQ(mam.allocation_ids_to_iow_pa_remap_infos_[1].size(), 2UL); // input1
-  ASSERT_EQ(mam.allocation_ids_to_iow_pa_remap_infos_[2].size(), 1UL); // input2
-  ASSERT_EQ(mam.allocation_ids_to_iow_pa_remap_infos_[3].size(), 1UL); // output
-  ASSERT_EQ(mam.allocation_ids_to_iow_pa_remap_infos_[4].size(), 0UL); // absolute
+  ASSERT_EQ(mam.allocation_ids_to_iow_pa_remap_infos_[0].size(), 3UL);  // fm
+  ASSERT_EQ(mam.allocation_ids_to_iow_pa_remap_infos_[1].size(), 2UL);  // input1
+  ASSERT_EQ(mam.allocation_ids_to_iow_pa_remap_infos_[2].size(), 1UL);  // input2
+  ASSERT_EQ(mam.allocation_ids_to_iow_pa_remap_infos_[3].size(), 1UL);  // output
+  ASSERT_EQ(mam.allocation_ids_to_iow_pa_remap_infos_[4].size(), 0UL);  // absolute
 
   rtStream_t stream = (rtStream_t)1;
   std::vector<uint64_t> active_mem_base_addr = ActiveMemBaseFaker(2, 1).FmBaseIndex(0).ModelIoBaseIndex(1).Build();
   mam.AllocKernelLaunchArgsHostMem(active_mem_base_addr.size());
-  uint64_t* active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
+  uint64_t *active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
   for (size_t i = 0; i < active_mem_base_addr.size(); i++) {
     active_mem_base_addr_temp[i] = active_mem_base_addr[i];
   }
@@ -1388,7 +1355,7 @@ TEST_F(ModelArgsManagerUT, GenAllocationToIowPaRemapInfos_TaskNoSupportPaRemap) 
   uint32_t up = 3;
   ASSERT_EQ(mam.UpdateForExecute(up, stream), SUCCESS);
 
-  uint64_t va = mam.last_bases_[0]; //fm allocation
+  uint64_t va = mam.last_bases_[0];  // fm allocation
   uint64_t va_len = mam.id_to_len_[0];
   std::vector<std::pair<uint64_t, uint64_t>> overlap_range;
   ASSERT_EQ(mam.PaRemapped(va, 0, va_len, overlap_range), FAILED);
@@ -1439,7 +1406,7 @@ TEST_F(ModelArgsManagerUT, PaRemapped_NoVaCrossOver) {
   mam.AllocKernelLaunchArgsHostMem(mam.davinci_model_->GetLogicalMemAllocation().size());
   auto active_mem_base_ptr = mam.GetActivateMemBaseAddrs();
   for (size_t i = 0; i < mam.last_bases_.size(); i++) {
-    active_mem_base_ptr[i] =  mam.last_bases_[i];
+    active_mem_base_ptr[i] = mam.last_bases_[i];
   }
   // va [100, 200)
   std::vector<std::pair<uint64_t, uint64_t>> overlap_range;
@@ -1483,7 +1450,7 @@ TEST_F(ModelArgsManagerUT, PaRemapped_VaCrossOverWithNoTensor) {
   mam.AllocKernelLaunchArgsHostMem(mam.davinci_model_->GetLogicalMemAllocation().size());
   auto active_mem_base_ptr = mam.GetActivateMemBaseAddrs();
   for (size_t i = 0; i < mam.last_bases_.size(); i++) {
-    active_mem_base_ptr[i] =  mam.last_bases_[i];
+    active_mem_base_ptr[i] = mam.last_bases_[i];
   }
   // va [200, 300)
   std::vector<std::pair<uint64_t, uint64_t>> overlap_range;
@@ -1493,7 +1460,6 @@ TEST_F(ModelArgsManagerUT, PaRemapped_VaCrossOverWithNoTensor) {
   ASSERT_EQ(overlap_range[0].first, 200);
   ASSERT_EQ(overlap_range[0].second, 299);
 };
-
 
 //|-------va-----------|
 //    |------fm------------------|
@@ -1546,7 +1512,7 @@ TEST_F(ModelArgsManagerUT, PaRemapped_VaRightCrossOver) {
   mam.AllocKernelLaunchArgsHostMem(mam.davinci_model_->GetLogicalMemAllocation().size());
   auto active_mem_base_ptr = mam.GetActivateMemBaseAddrs();
   for (size_t i = 0; i < mam.last_bases_.size(); i++) {
-    active_mem_base_ptr[i] =  mam.last_bases_[i];
+    active_mem_base_ptr[i] = mam.last_bases_[i];
   }
   // va [100, 250)
   std::vector<std::pair<uint64_t, uint64_t>> overlap_range;
@@ -1556,7 +1522,6 @@ TEST_F(ModelArgsManagerUT, PaRemapped_VaRightCrossOver) {
   ASSERT_EQ(overlap_range[0].first, 200);
   ASSERT_EQ(overlap_range[0].second, 249);
 };
-
 
 //    |----------va-----------|
 //|--------------fm--------------------|
@@ -1606,7 +1571,7 @@ TEST_F(ModelArgsManagerUT, PaRemapped_VaAllCrossOver) {
   mam.AllocKernelLaunchArgsHostMem(mam.davinci_model_->GetLogicalMemAllocation().size());
   auto active_mem_base_ptr = mam.GetActivateMemBaseAddrs();
   for (size_t i = 0; i < mam.last_bases_.size(); i++) {
-    active_mem_base_ptr[i] =  mam.last_bases_[i];
+    active_mem_base_ptr[i] = mam.last_bases_[i];
   }
 
   // va [160, 250)
@@ -1617,7 +1582,6 @@ TEST_F(ModelArgsManagerUT, PaRemapped_VaAllCrossOver) {
   ASSERT_EQ(overlap_range[0].first, 160);
   ASSERT_EQ(overlap_range[0].second, 249);
 };
-
 
 //           |---va----------|
 //|---fm-----------------|
@@ -1663,7 +1627,7 @@ TEST_F(ModelArgsManagerUT, PaRemapped_VaLeftCrossOverWithHalfOpen) {
   mam.AllocKernelLaunchArgsHostMem(mam.davinci_model_->GetLogicalMemAllocation().size());
   auto active_mem_base_ptr = mam.GetActivateMemBaseAddrs();
   for (size_t i = 0; i < mam.last_bases_.size(); i++) {
-    active_mem_base_ptr[i] =  mam.last_bases_[i];
+    active_mem_base_ptr[i] = mam.last_bases_[i];
   }
   // va [180, 320)
   std::vector<std::pair<uint64_t, uint64_t>> overlap_range;
@@ -1673,7 +1637,6 @@ TEST_F(ModelArgsManagerUT, PaRemapped_VaLeftCrossOverWithHalfOpen) {
   ASSERT_EQ(overlap_range[0].first, 180);
   ASSERT_EQ(overlap_range[0].second, 299);
 };
-
 
 //           |---va----------|
 //|---fm-----------------|
@@ -1719,7 +1682,7 @@ TEST_F(ModelArgsManagerUT, PaRemapped_VaLeftCrossOver) {
   mam.AllocKernelLaunchArgsHostMem(mam.davinci_model_->GetLogicalMemAllocation().size());
   auto active_mem_base_ptr = mam.GetActivateMemBaseAddrs();
   for (size_t i = 0; i < mam.last_bases_.size(); i++) {
-    active_mem_base_ptr[i] =  mam.last_bases_[i];
+    active_mem_base_ptr[i] = mam.last_bases_[i];
   }
   // va [170, 320)
   std::vector<std::pair<uint64_t, uint64_t>> overlap_range;
@@ -1729,7 +1692,6 @@ TEST_F(ModelArgsManagerUT, PaRemapped_VaLeftCrossOver) {
   ASSERT_EQ(overlap_range[0].first, 170);
   ASSERT_EQ(overlap_range[0].second, 299);
 };
-
 
 //      |----------va------------------|
 //|-----fm1--------|    |---fm2-----------|
@@ -1779,7 +1741,7 @@ TEST_F(ModelArgsManagerUT, PaRemapped_VaCrossOverWithMultiFm) {
   mam.AllocKernelLaunchArgsHostMem(mam.davinci_model_->GetLogicalMemAllocation().size());
   auto active_mem_base_ptr = mam.GetActivateMemBaseAddrs();
   for (size_t i = 0; i < mam.last_bases_.size(); i++) {
-    active_mem_base_ptr[i] =  mam.last_bases_[i];
+    active_mem_base_ptr[i] = mam.last_bases_[i];
   }
   // va [170, 500)
   std::vector<std::pair<uint64_t, uint64_t>> overlap_range;
@@ -1837,7 +1799,7 @@ TEST_F(ModelArgsManagerUT, PaRemapped_VaCrossOverWithAbsolute) {
   mam.AllocKernelLaunchArgsHostMem(mam.davinci_model_->GetLogicalMemAllocation().size());
   auto active_mem_base_ptr = mam.GetActivateMemBaseAddrs();
   for (size_t i = 0; i < mam.last_bases_.size(); i++) {
-    active_mem_base_ptr[i] =  mam.last_bases_[i];
+    active_mem_base_ptr[i] = mam.last_bases_[i];
   }
   // va [350, 600)
   std::vector<std::pair<uint64_t, uint64_t>> overlap_range;
@@ -1895,7 +1857,7 @@ TEST_F(ModelArgsManagerUT, PaRemapped_VaAllCrossOverWithEmptyTensor) {
   mam.AllocKernelLaunchArgsHostMem(mam.davinci_model_->GetLogicalMemAllocation().size());
   auto active_mem_base_ptr = mam.GetActivateMemBaseAddrs();
   for (size_t i = 0; i < mam.last_bases_.size(); i++) {
-    active_mem_base_ptr[i] =  mam.last_bases_[i];
+    active_mem_base_ptr[i] = mam.last_bases_[i];
   }
   ASSERT_EQ(mam.PaRemapped(160, 0, 90, overlap_range), SUCCESS);
   ASSERT_EQ(overlap_range.size(), 1);
@@ -1954,10 +1916,10 @@ TEST_F(ModelArgsManagerUT, UpdateForExecute_AclrtMemcpyAsync_BulkIncrement) {
                    .Build();
 
   auto davinci_model = DavinciModelFaker()
-                            .SetFmRefreshable(true)
-                            .GeModel(model)
-                            .GenerateSymbolForTaskInfoFaker(&(runtime_stub.GetTaskInfoFactoryStub()))
-                            .Build();
+                           .SetFmRefreshable(true)
+                           .GeModel(model)
+                           .GenerateSymbolForTaskInfoFaker(&(runtime_stub.GetTaskInfoFactoryStub()))
+                           .Build();
 
   InsertStubAllocator(davinci_model.get());
   ModelArgsManager mam(davinci_model.get());
@@ -1967,15 +1929,15 @@ TEST_F(ModelArgsManagerUT, UpdateForExecute_AclrtMemcpyAsync_BulkIncrement) {
   rtStream_t stream = (rtStream_t)1;
   std::vector<uint64_t> active_mem_base_addr = ActiveMemBaseFaker(2, 1).FmBaseIndex(0).ModelIoBaseIndex(1).Build();
   mam.AllocKernelLaunchArgsHostMem(active_mem_base_addr.size());
-  uint64_t* active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
+  uint64_t *active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
   for (size_t i = 0; i < active_mem_base_addr.size(); i++) {
     active_mem_base_addr_temp[i] = active_mem_base_addr[i];
   }
 
   class MockAclRuntime : public ge::AclRuntimeStub {
    public:
-    aclError aclrtMemcpyAsync(void *dst, size_t dest_max, const void *src, size_t count,
-                              aclrtMemcpyKind kind, void *stream) override {
+    aclError aclrtMemcpyAsync(void *dst, size_t dest_max, const void *src, size_t count, aclrtMemcpyKind kind,
+                              void *stream) override {
       if (dst != nullptr && src != nullptr && count > 0) {
         memcpy_s(dst, dest_max, src, count);
       }
@@ -2008,10 +1970,10 @@ TEST_F(ModelArgsManagerUT, UpdateForExecute_AclrtMemcpyAsync_HostInputOnly) {
                    .Build();
 
   auto davinci_model = DavinciModelFaker()
-                            .SetFmRefreshable(true)
-                            .GeModel(model)
-                            .GenerateSymbolForTaskInfoFaker(&(runtime_stub.GetTaskInfoFactoryStub()))
-                            .Build();
+                           .SetFmRefreshable(true)
+                           .GeModel(model)
+                           .GenerateSymbolForTaskInfoFaker(&(runtime_stub.GetTaskInfoFactoryStub()))
+                           .Build();
 
   InsertStubAllocator(davinci_model.get());
   ModelArgsManager mam(davinci_model.get());
@@ -2021,7 +1983,7 @@ TEST_F(ModelArgsManagerUT, UpdateForExecute_AclrtMemcpyAsync_HostInputOnly) {
   rtStream_t stream = (rtStream_t)1;
   std::vector<uint64_t> active_mem_base_addr = ActiveMemBaseFaker(2, 1).FmBaseIndex(0).ModelIoBaseIndex(1).Build();
   mam.AllocKernelLaunchArgsHostMem(active_mem_base_addr.size());
-  uint64_t* active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
+  uint64_t *active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
   for (size_t i = 0; i < active_mem_base_addr.size(); i++) {
     active_mem_base_addr_temp[i] = active_mem_base_addr[i];
   }
@@ -2030,8 +1992,8 @@ TEST_F(ModelArgsManagerUT, UpdateForExecute_AclrtMemcpyAsync_HostInputOnly) {
 
   class MockAclRuntime : public ge::AclRuntimeStub {
    public:
-    aclError aclrtMemcpyAsync(void *dst, size_t dest_max, const void *src, size_t count,
-                              aclrtMemcpyKind kind, void *stream) override {
+    aclError aclrtMemcpyAsync(void *dst, size_t dest_max, const void *src, size_t count, aclrtMemcpyKind kind,
+                              void *stream) override {
       if (dst != nullptr && src != nullptr && count > 0) {
         memcpy_s(dst, dest_max, src, count);
       }
@@ -2058,10 +2020,10 @@ TEST_F(ModelArgsManagerUT, UpdateForExecute_AclrtMemcpyAsync_PartialUpdate) {
                    .Build();
 
   auto davinci_model = DavinciModelFaker()
-                            .SetFmRefreshable(true)
-                            .GeModel(model)
-                            .GenerateSymbolForTaskInfoFaker(&(runtime_stub.GetTaskInfoFactoryStub()))
-                            .Build();
+                           .SetFmRefreshable(true)
+                           .GeModel(model)
+                           .GenerateSymbolForTaskInfoFaker(&(runtime_stub.GetTaskInfoFactoryStub()))
+                           .Build();
 
   InsertStubAllocator(davinci_model.get());
   ModelArgsManager mam(davinci_model.get());
@@ -2071,15 +2033,15 @@ TEST_F(ModelArgsManagerUT, UpdateForExecute_AclrtMemcpyAsync_PartialUpdate) {
   rtStream_t stream = (rtStream_t)1;
   std::vector<uint64_t> active_mem_base_addr = ActiveMemBaseFaker(2, 1).FmBaseIndex(0).ModelIoBaseIndex(1).Build();
   mam.AllocKernelLaunchArgsHostMem(active_mem_base_addr.size());
-  uint64_t* active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
+  uint64_t *active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
   for (size_t i = 0; i < active_mem_base_addr.size(); i++) {
     active_mem_base_addr_temp[i] = active_mem_base_addr[i];
   }
 
   class MockAclRuntime : public ge::AclRuntimeStub {
    public:
-    aclError aclrtMemcpyAsync(void *dst, size_t dest_max, const void *src, size_t count,
-                              aclrtMemcpyKind kind, void *stream) override {
+    aclError aclrtMemcpyAsync(void *dst, size_t dest_max, const void *src, size_t count, aclrtMemcpyKind kind,
+                              void *stream) override {
       if (dst != nullptr && src != nullptr && count > 0) {
         memcpy_s(dst, dest_max, src, count);
       }
@@ -2114,10 +2076,10 @@ TEST_F(ModelArgsManagerUT, UpdateForExecute_AclrtMemcpy_SyncMode) {
                    .Build();
 
   auto davinci_model = DavinciModelFaker()
-                            .SetFmRefreshable(true)
-                            .GeModel(model)
-                            .GenerateSymbolForTaskInfoFaker(&(runtime_stub.GetTaskInfoFactoryStub()))
-                            .Build();
+                           .SetFmRefreshable(true)
+                           .GeModel(model)
+                           .GenerateSymbolForTaskInfoFaker(&(runtime_stub.GetTaskInfoFactoryStub()))
+                           .Build();
 
   InsertStubAllocator(davinci_model.get());
   ModelArgsManager mam(davinci_model.get());
@@ -2127,7 +2089,7 @@ TEST_F(ModelArgsManagerUT, UpdateForExecute_AclrtMemcpy_SyncMode) {
   rtStream_t stream = (rtStream_t)1;
   std::vector<uint64_t> active_mem_base_addr = ActiveMemBaseFaker(2, 1).FmBaseIndex(0).ModelIoBaseIndex(1).Build();
   mam.AllocKernelLaunchArgsHostMem(active_mem_base_addr.size());
-  uint64_t* active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
+  uint64_t *active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
   for (size_t i = 0; i < active_mem_base_addr.size(); i++) {
     active_mem_base_addr_temp[i] = active_mem_base_addr[i];
   }
@@ -2294,7 +2256,7 @@ TEST_F(ModelArgsManagerUT, CollectTaskAllocationResults_ClassifiesReservedAndExt
 
   // Task 0: 2 reserved results, 1 extra result
   ArgsAllocationResult reserved_result1;
-  reserved_result1.host_addr = reinterpret_cast<void*>(0x1000ULL);
+  reserved_result1.host_addr = reinterpret_cast<void *>(0x1000ULL);
   reserved_result1.device_addr = 0xA000ULL;
   reserved_result1.size = 32;
   reserved_result1.placement = ArgsPlacement::kArgsPlacementHbm;
@@ -2302,7 +2264,7 @@ TEST_F(ModelArgsManagerUT, CollectTaskAllocationResults_ClassifiesReservedAndExt
   reserved_result1.extra_pool_index = std::numeric_limits<uint32_t>::max();
 
   ArgsAllocationResult reserved_result2;
-  reserved_result2.host_addr = reinterpret_cast<void*>(0x1020ULL);
+  reserved_result2.host_addr = reinterpret_cast<void *>(0x1020ULL);
   reserved_result2.device_addr = 0xA020ULL;
   reserved_result2.size = 48;
   reserved_result2.placement = ArgsPlacement::kArgsPlacementHbm;
@@ -2310,16 +2272,15 @@ TEST_F(ModelArgsManagerUT, CollectTaskAllocationResults_ClassifiesReservedAndExt
   reserved_result2.extra_pool_index = std::numeric_limits<uint32_t>::max();
 
   ArgsAllocationResult extra_result;
-  extra_result.host_addr = reinterpret_cast<void*>(0x2000ULL);
+  extra_result.host_addr = reinterpret_cast<void *>(0x2000ULL);
   extra_result.device_addr = 0xD000ULL;
   extra_result.size = 64;
   extra_result.placement = ArgsPlacement::kArgsPlacementHbm;
   extra_result.is_from_reserved = false;
   extra_result.extra_pool_index = 0U;
 
-  mam.task_list_ptr_->push_back(
-      std::make_shared<MockTaskInfoWithAllocResults>(
-          std::vector<ArgsAllocationResult>{reserved_result1, reserved_result2, extra_result}));
+  mam.task_list_ptr_->push_back(std::make_shared<MockTaskInfoWithAllocResults>(
+      std::vector<ArgsAllocationResult>{reserved_result1, reserved_result2, extra_result}));
 
   std::unordered_map<size_t, std::vector<ArgsAllocationResult>> task_reserved_results;
   std::unordered_map<size_t, std::vector<ArgsAllocationResult>> task_extra_results;
@@ -2356,13 +2317,15 @@ TEST_F(ModelArgsManagerUT, IntegrateReservedH2DCopyDatas_CreatesH2DForReservedSe
   mam.reserved_segments_[hbm_idx].total_size = 128UL;
 
   // Initialize update_policies_to_model_data_ for ModelArgsManager::kUpdateModelIo (existing from built-in args)
-  mam.update_policies_to_model_data_[ModelArgsManager::kUpdateModelIo] = ge::MakeUnique<ModelArgsManager::ArgsUpdateData>();
+  mam.update_policies_to_model_data_[ModelArgsManager::kUpdateModelIo] =
+      ge::MakeUnique<ModelArgsManager::ArgsUpdateData>();
   ModelArgsManager::H2DCopyArg existing_h2d;
   existing_h2d.len = 64UL;
   existing_h2d.device_addr = 0xBEEF0000ULL;
   existing_h2d.host_addr = mam.model_args_[0].model_args_host_addr.get();
   existing_h2d.placement = ArgsPlacement::kArgsPlacementHbm;
-  mam.update_policies_to_model_data_[ModelArgsManager::kUpdateModelIo]->h2d_copy_datas.push_back(std::move(existing_h2d));
+  mam.update_policies_to_model_data_[ModelArgsManager::kUpdateModelIo]->h2d_copy_datas.push_back(
+      std::move(existing_h2d));
 
   ASSERT_EQ(mam.IntegrateReservedH2DCopyDatas(), SUCCESS);
 
@@ -2450,7 +2413,7 @@ TEST_F(ModelArgsManagerUT, IntegrateReservedUpdateDatas_PopulatesUpdateHostArgsA
   mam.task_list_ptr_ = &task_list;
 
   ArgsAllocationResult reserved_result;
-  reserved_result.host_addr = reinterpret_cast<void*>(0x1000ULL);
+  reserved_result.host_addr = reinterpret_cast<void *>(0x1000ULL);
   reserved_result.device_addr = 0xA000ULL;
   reserved_result.size = 64;
   reserved_result.placement = ArgsPlacement::kArgsPlacementHbm;
@@ -2458,8 +2421,7 @@ TEST_F(ModelArgsManagerUT, IntegrateReservedUpdateDatas_PopulatesUpdateHostArgsA
   reserved_result.extra_pool_index = std::numeric_limits<uint32_t>::max();
 
   mam.task_list_ptr_->push_back(
-      std::make_shared<MockTaskInfoWithAllocResults>(
-          std::vector<ArgsAllocationResult>{reserved_result}));
+      std::make_shared<MockTaskInfoWithAllocResults>(std::vector<ArgsAllocationResult>{reserved_result}));
 
   mam.custom_op_task_to_policies_[0] = {ModelArgsManager::kUpdateModelIo};
 
@@ -2475,7 +2437,7 @@ TEST_F(ModelArgsManagerUT, IntegrateReservedUpdateDatas_PopulatesUpdateHostArgsA
   EXPECT_EQ(model_data->update_datas[0].task_index, 0UL);
   ASSERT_NE(model_data->update_datas[0].task_info, nullptr);
   EXPECT_EQ(model_data->update_datas[0].host_args.size(), 1U);
-  EXPECT_EQ(model_data->update_datas[0].host_args[0].addr, reinterpret_cast<void*>(0x1000ULL));
+  EXPECT_EQ(model_data->update_datas[0].host_args[0].addr, reinterpret_cast<void *>(0x1000ULL));
   EXPECT_EQ(model_data->update_datas[0].host_args[0].len, 64);
   EXPECT_EQ(model_data->update_datas[0].host_args[0].placement, ArgsPlacement::kArgsPlacementHbm);
 
@@ -2491,7 +2453,7 @@ TEST_F(ModelArgsManagerUT, IntegrateReservedUpdateDatas_MultiplePolicies) {
   mam.task_list_ptr_ = &task_list;
 
   ArgsAllocationResult reserved_result;
-  reserved_result.host_addr = reinterpret_cast<void*>(0x1000ULL);
+  reserved_result.host_addr = reinterpret_cast<void *>(0x1000ULL);
   reserved_result.device_addr = 0xA000ULL;
   reserved_result.size = 64;
   reserved_result.placement = ArgsPlacement::kArgsPlacementHbm;
@@ -2499,12 +2461,10 @@ TEST_F(ModelArgsManagerUT, IntegrateReservedUpdateDatas_MultiplePolicies) {
   reserved_result.extra_pool_index = std::numeric_limits<uint32_t>::max();
 
   mam.task_list_ptr_->push_back(
-      std::make_shared<MockTaskInfoWithAllocResults>(
-          std::vector<ArgsAllocationResult>{reserved_result}));
+      std::make_shared<MockTaskInfoWithAllocResults>(std::vector<ArgsAllocationResult>{reserved_result}));
 
   // Custom op needs both kUpdateFmAndModelIo and kUpdateModelIo
-  mam.custom_op_task_to_policies_[0] = {ModelArgsManager::kUpdateFmAndModelIo,
-                                         ModelArgsManager::kUpdateModelIo};
+  mam.custom_op_task_to_policies_[0] = {ModelArgsManager::kUpdateFmAndModelIo, ModelArgsManager::kUpdateModelIo};
 
   std::unordered_map<size_t, std::vector<ArgsAllocationResult>> task_reserved_results;
   task_reserved_results[0] = {reserved_result};
@@ -2534,7 +2494,7 @@ TEST_F(ModelArgsManagerUT, IntegrateReservedUpdateDatas_SkipsTaskNotInPolicies) 
   mam.task_list_ptr_ = &task_list;
 
   ArgsAllocationResult reserved_result;
-  reserved_result.host_addr = reinterpret_cast<void*>(0x1000ULL);
+  reserved_result.host_addr = reinterpret_cast<void *>(0x1000ULL);
   reserved_result.device_addr = 0xA000ULL;
   reserved_result.size = 64;
   reserved_result.placement = ArgsPlacement::kArgsPlacementHbm;
@@ -2542,8 +2502,7 @@ TEST_F(ModelArgsManagerUT, IntegrateReservedUpdateDatas_SkipsTaskNotInPolicies) 
   reserved_result.extra_pool_index = std::numeric_limits<uint32_t>::max();
 
   mam.task_list_ptr_->push_back(
-      std::make_shared<MockTaskInfoWithAllocResults>(
-          std::vector<ArgsAllocationResult>{reserved_result}));
+      std::make_shared<MockTaskInfoWithAllocResults>(std::vector<ArgsAllocationResult>{reserved_result}));
 
   // No custom_op_task_to_policies_ entry — task should be skipped
   std::unordered_map<size_t, std::vector<ArgsAllocationResult>> task_reserved_results;
@@ -2563,7 +2522,7 @@ TEST_F(ModelArgsManagerUT, IntegrateExtraUpdateDatas_PopulatesPoolUpdateDatas) {
   mam.task_list_ptr_ = &task_list;
 
   ArgsAllocationResult extra_result;
-  extra_result.host_addr = reinterpret_cast<void*>(0x2000ULL);
+  extra_result.host_addr = reinterpret_cast<void *>(0x2000ULL);
   extra_result.device_addr = 0xD000ULL;
   extra_result.size = 32;
   extra_result.placement = ArgsPlacement::kArgsPlacementHbm;
@@ -2571,8 +2530,7 @@ TEST_F(ModelArgsManagerUT, IntegrateExtraUpdateDatas_PopulatesPoolUpdateDatas) {
   extra_result.extra_pool_index = 0U;
 
   mam.task_list_ptr_->push_back(
-      std::make_shared<MockTaskInfoWithAllocResults>(
-          std::vector<ArgsAllocationResult>{extra_result}));
+      std::make_shared<MockTaskInfoWithAllocResults>(std::vector<ArgsAllocationResult>{extra_result}));
 
   mam.custom_op_task_to_policies_[0] = {ModelArgsManager::kUpdateModelIo};
 
@@ -2595,7 +2553,7 @@ TEST_F(ModelArgsManagerUT, IntegrateExtraUpdateDatas_PopulatesPoolUpdateDatas) {
   ASSERT_EQ(extra_datas[0].update_datas.size(), 1U);
   EXPECT_EQ(extra_datas[0].update_datas[0].task_index, 0UL);
   EXPECT_EQ(extra_datas[0].update_datas[0].host_args.size(), 1U);
-  EXPECT_EQ(extra_datas[0].update_datas[0].host_args[0].addr, reinterpret_cast<void*>(0x2000ULL));
+  EXPECT_EQ(extra_datas[0].update_datas[0].host_args[0].addr, reinterpret_cast<void *>(0x2000ULL));
   EXPECT_EQ(extra_datas[0].update_datas[0].host_args[0].len, 32);
 }
 
@@ -2607,7 +2565,7 @@ TEST_F(ModelArgsManagerUT, IntegrateCustomOpArgs_FullPipeline_ReservedAndExtra) 
 
   // Task 0: 1 reserved + 1 extra
   ArgsAllocationResult reserved_result;
-  reserved_result.host_addr = reinterpret_cast<void*>(0x1000ULL);
+  reserved_result.host_addr = reinterpret_cast<void *>(0x1000ULL);
   reserved_result.device_addr = 0xBEEF0040ULL;
   reserved_result.size = 32;
   reserved_result.placement = ArgsPlacement::kArgsPlacementHbm;
@@ -2615,7 +2573,7 @@ TEST_F(ModelArgsManagerUT, IntegrateCustomOpArgs_FullPipeline_ReservedAndExtra) 
   reserved_result.extra_pool_index = std::numeric_limits<uint32_t>::max();
 
   ArgsAllocationResult extra_result;
-  extra_result.host_addr = reinterpret_cast<void*>(0x2000ULL);
+  extra_result.host_addr = reinterpret_cast<void *>(0x2000ULL);
   extra_result.device_addr = 0xD000ULL;
   extra_result.size = 64;
   extra_result.placement = ArgsPlacement::kArgsPlacementHbm;
@@ -2623,8 +2581,7 @@ TEST_F(ModelArgsManagerUT, IntegrateCustomOpArgs_FullPipeline_ReservedAndExtra) 
   extra_result.extra_pool_index = 0U;
 
   mam.task_list_ptr_->push_back(
-      std::make_shared<MockTaskInfoWithAllocResults>(
-          std::vector<ArgsAllocationResult>{reserved_result, extra_result}));
+      std::make_shared<MockTaskInfoWithAllocResults>(std::vector<ArgsAllocationResult>{reserved_result, extra_result}));
 
   // Set up model_args_ with HBM placement
   ModelArgsManager::ModelArgs model_arg;
@@ -2651,13 +2608,15 @@ TEST_F(ModelArgsManagerUT, IntegrateCustomOpArgs_FullPipeline_ReservedAndExtra) 
   mam.custom_op_task_to_policies_[0] = {ModelArgsManager::kUpdateModelIo};
 
   // Existing built-in update data for ModelArgsManager::kUpdateModelIo
-  mam.update_policies_to_model_data_[ModelArgsManager::kUpdateModelIo] = ge::MakeUnique<ModelArgsManager::ArgsUpdateData>();
+  mam.update_policies_to_model_data_[ModelArgsManager::kUpdateModelIo] =
+      ge::MakeUnique<ModelArgsManager::ArgsUpdateData>();
   ModelArgsManager::H2DCopyArg existing_h2d;
   existing_h2d.len = 64UL;
   existing_h2d.device_addr = 0xBEEF0000ULL;
   existing_h2d.host_addr = mam.model_args_[0].model_args_host_addr.get();
   existing_h2d.placement = ArgsPlacement::kArgsPlacementHbm;
-  mam.update_policies_to_model_data_[ModelArgsManager::kUpdateModelIo]->h2d_copy_datas.push_back(std::move(existing_h2d));
+  mam.update_policies_to_model_data_[ModelArgsManager::kUpdateModelIo]->h2d_copy_datas.push_back(
+      std::move(existing_h2d));
 
   ASSERT_EQ(mam.IntegrateCustomOpArgs(), SUCCESS);
 
@@ -2753,7 +2712,7 @@ TEST_F(ModelArgsManagerUT, CollectTaskAllocationResults_SeparatesReservedAndExtr
 
   ArgsAllocationResult reserved_result;
   reserved_result.is_from_reserved = true;
-  reserved_result.host_addr = reinterpret_cast<void*>(0x1000ULL);
+  reserved_result.host_addr = reinterpret_cast<void *>(0x1000ULL);
   reserved_result.device_addr = 0xA000ULL;
   reserved_result.size = 32;
   reserved_result.placement = ArgsPlacement::kArgsPlacementHbm;
@@ -2761,15 +2720,14 @@ TEST_F(ModelArgsManagerUT, CollectTaskAllocationResults_SeparatesReservedAndExtr
 
   ArgsAllocationResult extra_result;
   extra_result.is_from_reserved = false;
-  extra_result.host_addr = reinterpret_cast<void*>(0x2000ULL);
+  extra_result.host_addr = reinterpret_cast<void *>(0x2000ULL);
   extra_result.device_addr = 0xD000ULL;
   extra_result.size = 64;
   extra_result.placement = ArgsPlacement::kArgsPlacementHbm;
   extra_result.extra_pool_index = 0U;
 
   mam.task_list_ptr_->push_back(
-      std::make_shared<MockTaskInfoWithAllocResults>(
-          std::vector<ArgsAllocationResult>{reserved_result, extra_result}));
+      std::make_shared<MockTaskInfoWithAllocResults>(std::vector<ArgsAllocationResult>{reserved_result, extra_result}));
 
   std::unordered_map<size_t, std::vector<ArgsAllocationResult>> task_reserved_results;
   std::unordered_map<size_t, std::vector<ArgsAllocationResult>> task_extra_results;
@@ -2792,16 +2750,16 @@ TEST_F(ModelArgsManagerUT, FindOrCreateUpdateArg_CreatesNewAndFindsExisting) {
 
   ModelArgsManager::ArgsUpdateData update_data;
 
-  auto* arg1 = mam.FindOrCreateUpdateArg(update_data, 0UL, task_info.get());
+  auto *arg1 = mam.FindOrCreateUpdateArg(update_data, 0UL, task_info.get());
   ASSERT_NE(arg1, nullptr);
   EXPECT_EQ(arg1->task_index, 0UL);
   EXPECT_EQ(update_data.update_datas.size(), 1U);
 
-  auto* arg2 = mam.FindOrCreateUpdateArg(update_data, 0UL, task_info.get());
+  auto *arg2 = mam.FindOrCreateUpdateArg(update_data, 0UL, task_info.get());
   EXPECT_EQ(arg2, arg1);
   EXPECT_EQ(update_data.update_datas.size(), 1U);
 
-  auto* arg3 = mam.FindOrCreateUpdateArg(update_data, 1UL, nullptr);
+  auto *arg3 = mam.FindOrCreateUpdateArg(update_data, 1UL, nullptr);
   ASSERT_NE(arg3, nullptr);
   EXPECT_EQ(arg3->task_index, 1UL);
   EXPECT_EQ(update_data.update_datas.size(), 2U);
@@ -2812,16 +2770,16 @@ TEST_F(ModelArgsManagerUT, AppendHostArgs_AppendsCorrectly) {
   ModelArgsManager::UpdateHostArgsArg update_arg;
 
   ArgsAllocationResult result1;
-  result1.host_addr = reinterpret_cast<void*>(0x1000ULL);
+  result1.host_addr = reinterpret_cast<void *>(0x1000ULL);
   result1.size = 32;
   result1.placement = ArgsPlacement::kArgsPlacementHbm;
 
   ArgsAllocationResult result2;
-  result2.host_addr = reinterpret_cast<void*>(0x2000ULL);
+  result2.host_addr = reinterpret_cast<void *>(0x2000ULL);
   result2.size = 64;
   result2.placement = ArgsPlacement::kArgsPlacementHbm;
 
-mam.AppendHostArgs(&update_arg, {result1, result2});
+  mam.AppendHostArgs(&update_arg, {result1, result2});
   EXPECT_EQ(update_arg.host_args.size(), 2);
 }
 
@@ -2835,7 +2793,7 @@ TEST_F(ModelArgsManagerUT, IntegrateExtraUpdateDatas_SkipsUnknownTaskIndex) {
   std::unordered_map<size_t, std::vector<ArgsAllocationResult>> task_extra_results;
   ArgsAllocationResult result;
   result.is_from_reserved = false;
-  result.host_addr = reinterpret_cast<void*>(0x1000ULL);
+  result.host_addr = reinterpret_cast<void *>(0x1000ULL);
   result.device_addr = 0xD000ULL;
   result.size = 64;
   result.placement = ArgsPlacement::kArgsPlacementHbm;
@@ -2843,17 +2801,17 @@ TEST_F(ModelArgsManagerUT, IntegrateExtraUpdateDatas_SkipsUnknownTaskIndex) {
   task_extra_results[0UL] = {result};
 
   mam.custom_op_task_to_policies_[0UL] = {ModelArgsManager::kUpdateModelIo};
-  mam.extra_args_pools_.push_back({ge::MakeUnique<uint8_t[]>(256), 0xA000ULL, 256UL, 0UL, ArgsPlacement::kArgsPlacementHbm});
+  mam.extra_args_pools_.push_back(
+      {ge::MakeUnique<uint8_t[]>(256), 0xA000ULL, 256UL, 0UL, ArgsPlacement::kArgsPlacementHbm});
 
-ASSERT_EQ(mam.IntegrateExtraUpdateDatas(task_extra_results), SUCCESS);
+  ASSERT_EQ(mam.IntegrateExtraUpdateDatas(task_extra_results), SUCCESS);
   EXPECT_EQ(mam.custom_op_policies_to_task_infos_[ModelArgsManager::kUpdateModelIo].size(), 1U);
   EXPECT_EQ(mam.extra_policy_to_update_datas_[ModelArgsManager::kUpdateModelIo].size(), 1U);
 }
 
 TEST_F(ModelArgsManagerUT, Init_NeedReserveArgsTable_SetsFlagsAndReservedSegments) {
   gert::GertRuntimeStub runtime_stub;
-  runtime_stub.GetTaskInfoFactoryStub()
-      .StubTaskInfo<CustomReserveArgsStubTaskInfo>(ModelTaskType::MODEL_TASK_KERNEL);
+  runtime_stub.GetTaskInfoFactoryStub().StubTaskInfo<CustomReserveArgsStubTaskInfo>(ModelTaskType::MODEL_TASK_KERNEL);
   auto graph = gert::ShareGraph::BuildTwoAddNodeKnownShapeGraph();
   graph->TopologicalSorting();
   auto model = gert::GeModelBuilder(graph)
@@ -2886,7 +2844,7 @@ TEST_F(ModelArgsManagerUT, IntegrateExtraUpdateDatas_SkipsOutOfPoolRange) {
   std::unordered_map<size_t, std::vector<ArgsAllocationResult>> task_extra_results;
   ArgsAllocationResult result;
   result.is_from_reserved = false;
-  result.host_addr = reinterpret_cast<void*>(0x1000ULL);
+  result.host_addr = reinterpret_cast<void *>(0x1000ULL);
   result.device_addr = 0xD000ULL;
   result.size = 64;
   result.placement = ArgsPlacement::kArgsPlacementHbm;
@@ -2894,7 +2852,8 @@ TEST_F(ModelArgsManagerUT, IntegrateExtraUpdateDatas_SkipsOutOfPoolRange) {
   task_extra_results[0UL] = {result};
 
   mam.custom_op_task_to_policies_[0UL] = {ModelArgsManager::kUpdateModelIo};
-  mam.extra_args_pools_.push_back({ge::MakeUnique<uint8_t[]>(256), 0xA000ULL, 256UL, 0UL, ArgsPlacement::kArgsPlacementHbm});
+  mam.extra_args_pools_.push_back(
+      {ge::MakeUnique<uint8_t[]>(256), 0xA000ULL, 256UL, 0UL, ArgsPlacement::kArgsPlacementHbm});
 
   ASSERT_EQ(mam.IntegrateExtraUpdateDatas(task_extra_results), SUCCESS);
   auto &extra_datas = mam.extra_policy_to_update_datas_[ModelArgsManager::kUpdateModelIo];
@@ -2912,7 +2871,7 @@ TEST_F(ModelArgsManagerUT, IntegrateExtraUpdateDatas_SkipsTaskWithoutPolicy) {
   std::unordered_map<size_t, std::vector<ArgsAllocationResult>> task_extra_results;
   ArgsAllocationResult result;
   result.is_from_reserved = false;
-  result.host_addr = reinterpret_cast<void*>(0x1000ULL);
+  result.host_addr = reinterpret_cast<void *>(0x1000ULL);
   result.device_addr = 0xD000ULL;
   result.size = 64;
   result.placement = ArgsPlacement::kArgsPlacementHbm;
@@ -2951,7 +2910,7 @@ TEST_F(ModelArgsManagerUT, UpdateForExecute_CustomOpPoliciesTriggersUpdateHostAr
 
   std::vector<uint64_t> active_mem_base_addr = ActiveMemBaseFaker(2, 1).FmBaseIndex(0).ModelIoBaseIndex(1).Build();
   mam.AllocKernelLaunchArgsHostMem(active_mem_base_addr.size());
-  uint64_t* active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
+  uint64_t *active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
   for (size_t i = 0; i < active_mem_base_addr.size(); i++) {
     active_mem_base_addr_temp[i] = active_mem_base_addr[i];
   }
@@ -2988,7 +2947,7 @@ TEST_F(ModelArgsManagerUT, UpdateForExecute_CustomOpPoliciesEmptyDoesNotCrash) {
 
   std::vector<uint64_t> active_mem_base_addr = ActiveMemBaseFaker(2, 1).FmBaseIndex(0).ModelIoBaseIndex(1).Build();
   mam.AllocKernelLaunchArgsHostMem(active_mem_base_addr.size());
-  uint64_t* active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
+  uint64_t *active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
   for (size_t i = 0; i < active_mem_base_addr.size(); i++) {
     active_mem_base_addr_temp[i] = active_mem_base_addr[i];
   }
@@ -3004,7 +2963,7 @@ TEST_F(ModelArgsManagerUT, IntegrateCustomOpArgs_TaskWithBothReservedAndExtra_No
 
   ArgsAllocationResult reserved_result;
   reserved_result.is_from_reserved = true;
-  reserved_result.host_addr = reinterpret_cast<void*>(0x1000ULL);
+  reserved_result.host_addr = reinterpret_cast<void *>(0x1000ULL);
   reserved_result.device_addr = 0xA000ULL;
   reserved_result.size = 32;
   reserved_result.placement = ArgsPlacement::kArgsPlacementHbm;
@@ -3012,14 +2971,14 @@ TEST_F(ModelArgsManagerUT, IntegrateCustomOpArgs_TaskWithBothReservedAndExtra_No
 
   ArgsAllocationResult extra_result;
   extra_result.is_from_reserved = false;
-  extra_result.host_addr = reinterpret_cast<void*>(0x2000ULL);
+  extra_result.host_addr = reinterpret_cast<void *>(0x2000ULL);
   extra_result.device_addr = 0xD000ULL;
   extra_result.size = 64;
   extra_result.placement = ArgsPlacement::kArgsPlacementHbm;
   extra_result.extra_pool_index = 0U;
 
-  auto mock_task = std::make_shared<MockTaskInfoWithAllocResults>(
-      std::vector<ArgsAllocationResult>{reserved_result, extra_result});
+  auto mock_task =
+      std::make_shared<MockTaskInfoWithAllocResults>(std::vector<ArgsAllocationResult>{reserved_result, extra_result});
   task_list.push_back(mock_task);
 
   mam.custom_op_task_to_policies_[0UL] = {ModelArgsManager::kUpdateModelIo};
@@ -3073,7 +3032,7 @@ TEST_F(ModelArgsManagerUT, UpdateForExecute_MultipleCustomOps_AllCalledOnce) {
 
   std::vector<uint64_t> active_mem_base_addr = ActiveMemBaseFaker(2, 1).FmBaseIndex(0).ModelIoBaseIndex(1).Build();
   mam.AllocKernelLaunchArgsHostMem(active_mem_base_addr.size());
-  uint64_t* active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
+  uint64_t *active_mem_base_addr_temp = mam.GetActivateMemBaseAddrs();
   for (size_t i = 0; i < active_mem_base_addr.size(); i++) {
     active_mem_base_addr_temp[i] = active_mem_base_addr[i];
   }

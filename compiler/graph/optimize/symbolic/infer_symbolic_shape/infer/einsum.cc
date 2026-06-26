@@ -181,7 +181,8 @@ graphStatus InsertLabelToMap(const char label, const Expression &shape, std::map
 graphStatus MapInputWithoutEllipsis(const std::string &equation_part, const gert::SymbolShape *input_shape,
                                     std::map<char, Expression> &label_map) {
   if (input_shape->GetDimNum() != equation_part.size()) {
-    GELOGE(PARAM_INVALID, "Input dim num[%zu] not match equation[%s].", input_shape->GetDimNum(), equation_part.c_str());
+    GELOGE(PARAM_INVALID, "Input dim num[%zu] not match equation[%s].", input_shape->GetDimNum(),
+           equation_part.c_str());
     return PARAM_INVALID;
   }
   for (size_t i = 0U; i < equation_part.size(); ++i) {
@@ -216,8 +217,8 @@ graphStatus MapInputWithEllipsis(const std::string &equation_part, const gert::S
     ellipsis_dims.emplace_back(input_shape->GetDim(ellipsis_pos + i));
   }
   if (!ellipsis_inputs.empty()) {
-    GE_ASSERT_TRUE(ellipsis_inputs.front().size() == ellipsis_dims.size(),
-                   "Ellipsis dim num mismatch: %zu vs %zu.", ellipsis_inputs.front().size(), ellipsis_dims.size());
+    GE_ASSERT_TRUE(ellipsis_inputs.front().size() == ellipsis_dims.size(), "Ellipsis dim num mismatch: %zu vs %zu.",
+                   ellipsis_inputs.front().size(), ellipsis_dims.size());
   }
   ellipsis_inputs.emplace_back(std::move(ellipsis_dims));
   for (size_t i = ellipsis_pos + kEllipsisLength; i < equation_len; ++i) {
@@ -313,15 +314,16 @@ graphStatus InferShape4Einsum(gert::InferSymbolShapeContext *context) {
   const auto input_num = context->GetComputeNodeInputNum();
   GE_ASSERT_TRUE(input_num <= kInputNumLimitEinsum, "Einsum input num[%zu] should not exceed 2.", input_num);
   GE_ASSERT_TRUE(*n_ptr >= 0, "Einsum attr N[%ld] is invalid.", *n_ptr);
-  GE_ASSERT_TRUE(static_cast<size_t>(*n_ptr) == input_num, "Einsum attr N[%ld] mismatch input num[%zu].", *n_ptr, input_num);
+  GE_ASSERT_TRUE(static_cast<size_t>(*n_ptr) == input_num, "Einsum attr N[%ld] mismatch input num[%zu].", *n_ptr,
+                 input_num);
 
   std::string equation(equation_ptr);
   // host 对齐：先清理空格，防止 equation 解析歧义。
   TrimWhitespace(equation);
   std::vector<std::string> input_equation_parts;
   std::string output_equation;
-  GE_ASSERT_TRUE(CheckEquation(equation, input_num, input_equation_parts, output_equation), "Einsum equation[%s] is invalid.",
-                 equation.c_str());
+  GE_ASSERT_TRUE(CheckEquation(equation, input_num, input_equation_parts, output_equation),
+                 "Einsum equation[%s] is invalid.", equation.c_str());
 
   std::map<char, Expression> label_map;
   std::vector<std::vector<Expression>> ellipsis_inputs;
@@ -335,8 +337,8 @@ graphStatus InferShape4Einsum(gert::InferSymbolShapeContext *context) {
     }
     GE_ASSERT_GRAPH_SUCCESS(MapInputWithoutEllipsis(input_equation_parts[i], input_shape, label_map));
   }
-  GE_ASSERT_TRUE(CheckOutputNewLabel(output_equation, label_map),
-                 "Einsum output equation[%s] contains new label.", output_equation.c_str());
+  GE_ASSERT_TRUE(CheckOutputNewLabel(output_equation, label_map), "Einsum output equation[%s] contains new label.",
+                 output_equation.c_str());
 
   std::vector<Expression> ellipsis_output;
   GE_ASSERT_GRAPH_SUCCESS(MergeEllipsisDims(ellipsis_inputs, ellipsis_output));

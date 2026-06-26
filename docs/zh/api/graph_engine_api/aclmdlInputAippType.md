@@ -8,4 +8,3 @@ typedef enum {
     ACL_DYNAMIC_AIPP_NODE       //该输入本身就是动态AIPP输入，用于配置动态AIPP参数
 } aclmdlInputAippType;
 ```
-

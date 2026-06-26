@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -140,8 +140,7 @@ graphStatus CheckSliceMatchRequirements(const NodePtr &node_after_pad, std::vect
     std::vector<int64_t> sizes_value;
     GE_ASSERT_SUCCESS(AutofuseUtils::GetListIntByInputOrAttr(node_after_pad, offsets_value, "offsets", "offsets"));
     GE_ASSERT_SUCCESS(AutofuseUtils::GetListIntByInputOrAttr(node_after_pad, sizes_value, "size", "size"));
-    GE_ASSERT_TRUE(offsets_value.size() == sizes_value.size(),
-                   "begin_value size must be equal as size_value size");
+    GE_ASSERT_TRUE(offsets_value.size() == sizes_value.size(), "begin_value size must be equal as size_value size");
     GE_ASSERT_TRUE(offsets_value.size() == pad_input_shape.size(),
                    "begin_value size must be equal as pad_input_shape size");
     GE_ASSERT_TRUE(offsets_value.size() == paddings_value.size(),
@@ -170,14 +169,14 @@ graphStatus ExtractConstNodeDtype(const NodePtr &slice_node, DataType &dtype) {
   return GRAPH_SUCCESS;
 }
 
-graphStatus RefreshOffsetsValue(const NodePtr &slice_node, std::vector<int64_t> &before_paddings_value,
-                                DataType dtype, const std::vector<int64_t> &original_offsets_value) {
+graphStatus RefreshOffsetsValue(const NodePtr &slice_node, std::vector<int64_t> &before_paddings_value, DataType dtype,
+                                const std::vector<int64_t> &original_offsets_value) {
   GE_ASSERT_TRUE((original_offsets_value.size() == before_paddings_value.size()),
                  "original_offsets_value and before_paddings_value size is different.");
   std::vector<int64_t> new_offsets_value;
   for (size_t i = 0U; i < original_offsets_value.size(); i++) {
-    GELOGI("origin offsets value is %ld, new_offsets_value is %ld",
-           original_offsets_value[i], original_offsets_value[i] - before_paddings_value[i]);
+    GELOGI("origin offsets value is %ld, new_offsets_value is %ld", original_offsets_value[i],
+           original_offsets_value[i] - before_paddings_value[i]);
     new_offsets_value.emplace_back(original_offsets_value[i] - before_paddings_value[i]);
   }
 
@@ -198,7 +197,7 @@ graphStatus RefreshOffsetsValue(const NodePtr &slice_node, std::vector<int64_t> 
   GELOGI("Success to refresh input offsets constant node for slice node %s", slice_node->GetNamePtr());
   return GRAPH_SUCCESS;
 }
-}
+}  // namespace
 
 graphStatus PadSliceOptimizePass::Run(const ComputeGraphPtr &graph, bool &changed) {
   GE_CHECK_NOTNULL(graph);
@@ -269,15 +268,16 @@ graphStatus PadSliceOptimizePass::PostProcess(const ComputeGraphPtr &graph, cons
 
     auto offsets_const_node = node_after_pad->GetInDataNodes().at(1U);
     if (processed_offsets_nodes.find(offsets_const_node) != processed_offsets_nodes.end()) {
-      GELOGI("Offsets node %s has been processed, skip refresh for slice node %s",
-             offsets_const_node->GetNamePtr(), node_after_pad->GetNamePtr());
+      GELOGI("Offsets node %s has been processed, skip refresh for slice node %s", offsets_const_node->GetNamePtr(),
+             node_after_pad->GetNamePtr());
     } else {
       DataType offsets_dtype = DT_INT32;
       GE_ASSERT_SUCCESS(ExtractConstNodeDtype(node_after_pad, offsets_dtype));
       auto op_desc = node_after_pad->GetOpDesc();
       GE_CHECK_NOTNULL(op_desc);
       *op_desc->MutableInputDesc(0U) = node->GetOpDesc()->GetInputDesc(0U);
-      GE_ASSERT_SUCCESS(RefreshOffsetsValue(node_after_pad, before_paddings_value, offsets_dtype, original_offsets_values[out_idx]));
+      GE_ASSERT_SUCCESS(
+          RefreshOffsetsValue(node_after_pad, before_paddings_value, offsets_dtype, original_offsets_values[out_idx]));
       processed_offsets_nodes.insert(offsets_const_node);
     }
   }

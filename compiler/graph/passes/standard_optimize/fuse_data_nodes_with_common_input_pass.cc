@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,7 +19,6 @@
 #include "graph/utils/op_desc_utils.h"
 #include "graph/utils/type_utils.h"
 #include "graph/utils/node_utils.h"
-
 
 namespace ge {
 Status FuseDataNodesWithCommonInputPass::Run(ge::ComputeGraphPtr graph) {
@@ -38,9 +37,10 @@ Status FuseDataNodesWithCommonInputPass::Run(ge::ComputeGraphPtr graph) {
   return FuseDataNodes(subgraphs_to_need_fuse_nodes_info);
 }
 
-Status FuseDataNodesWithCommonInputPass::InitNeedFuseNodesInfo(ComputeGraphPtr &graph,
-    std::map<ComputeGraphPtr, std::map<OutDataAnchorPtr,
-    std::set<uint32_t>>> &subgraphs_to_need_fuse_nodes_info) const {
+Status FuseDataNodesWithCommonInputPass::InitNeedFuseNodesInfo(
+    ComputeGraphPtr &graph,
+    std::map<ComputeGraphPtr, std::map<OutDataAnchorPtr, std::set<uint32_t>>> &subgraphs_to_need_fuse_nodes_info)
+    const {
   for (const auto &subgraph : graph->GetAllSubgraphs()) {
     GE_CHECK_NOTNULL(subgraph);
     auto parent_node = subgraph->GetParentNode();
@@ -63,8 +63,8 @@ Status FuseDataNodesWithCommonInputPass::InitNeedFuseNodesInfo(ComputeGraphPtr &
 }
 
 Status FuseDataNodesWithCommonInputPass::FuseDataNodes(
-    const std::map<ComputeGraphPtr, std::map<OutDataAnchorPtr, std::set<uint32_t>>>
-        &subgraphs_to_need_fuse_nodes_info) const {
+    const std::map<ComputeGraphPtr, std::map<OutDataAnchorPtr, std::set<uint32_t>>> &subgraphs_to_need_fuse_nodes_info)
+    const {
   for (const auto &subgraph_to_need_fuse_nodes_info : subgraphs_to_need_fuse_nodes_info) {
     auto subgraph = subgraph_to_need_fuse_nodes_info.first;
     for (const auto &peer_out_anchors_to_parent_indexes : subgraph_to_need_fuse_nodes_info.second) {
@@ -95,21 +95,21 @@ Status FuseDataNodesWithCommonInputPass::FuseDataNodes(
           // the data node which can be fused has none input(both data and control in)
           if (GraphUtils::MoveOutCtrlEdges(node, first_node) != SUCCESS) {
             REPORT_INNER_ERR_MSG("E19999", "Move out control edge from node:%s(%s) to node:%s(%s) failed",
-                              node->GetName().c_str(), node->GetType().c_str(),
-                              first_node->GetName().c_str(), first_node->GetType().c_str());
+                                 node->GetName().c_str(), node->GetType().c_str(), first_node->GetName().c_str(),
+                                 first_node->GetType().c_str());
             return FAILED;
           }
           if (GraphUtils::ReplaceNodeDataAnchors(first_node, node, {}, {0}) != SUCCESS) {
             REPORT_INNER_ERR_MSG("E19999", "Replace data edge from node:%s(%s) to node:%s(%s) failed",
-                              node->GetName().c_str(), node->GetType().c_str(),
-                              first_node->GetName().c_str(), first_node->GetType().c_str());
+                                 node->GetName().c_str(), node->GetType().c_str(), first_node->GetName().c_str(),
+                                 first_node->GetType().c_str());
             return FAILED;
           }
           if (GraphUtils::RemoveNodeWithoutRelink(subgraph, node) != SUCCESS) {
             REPORT_INNER_ERR_MSG("E19999", "Remove node:%s(%s) without relink in graph:%s failed",
-                              node->GetName().c_str(), node->GetType().c_str(), subgraph->GetName().c_str());
-            GELOGE(FAILED, "[Remove][Node] %s(%s) without relink in graph:%s failed",
-                   node->GetName().c_str(), node->GetType().c_str(), subgraph->GetName().c_str());
+                                 node->GetName().c_str(), node->GetType().c_str(), subgraph->GetName().c_str());
+            GELOGE(FAILED, "[Remove][Node] %s(%s) without relink in graph:%s failed", node->GetName().c_str(),
+                   node->GetType().c_str(), subgraph->GetName().c_str());
             return FAILED;
           }
         }

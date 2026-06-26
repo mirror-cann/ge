@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,7 +18,7 @@ namespace memory {
 class MockL1Allocator : public ge::Allocator {
  public:
   MOCK_METHOD(ge::MemBlock *, Malloc, (size_t size));
-  MOCK_METHOD(void, Free, (ge::MemBlock *block));
+  MOCK_METHOD(void, Free, (ge::MemBlock * block));
 };
 class MultiStreamL1AllocatorUT : public testing::Test {};
 TEST_F(MultiStreamL1AllocatorUT, Alloc_Success) {
@@ -30,7 +30,8 @@ TEST_F(MultiStreamL1AllocatorUT, Alloc_Success) {
   GertRuntimeStub runtime_stub;
   runtime_stub.GetSlogStub().NoConsoleOut().SetLevelInfo();
   ASSERT_EQ(ms_l1a.Alloc(1000), &block);
-  ASSERT_TRUE(runtime_stub.GetSlogStub().FindInfoLogRegex(kPoolExpand, {{1, "0x100"}, {5, "0x1000"}, {6, "1000"}}) >= 0);
+  ASSERT_TRUE(runtime_stub.GetSlogStub().FindInfoLogRegex(kPoolExpand, {{1, "0x100"}, {5, "0x1000"}, {6, "1000"}}) >=
+              0);
 }
 TEST_F(MultiStreamL1AllocatorUT, Alloc_Success_NullStream) {
   MockL1Allocator l1a;
@@ -41,7 +42,8 @@ TEST_F(MultiStreamL1AllocatorUT, Alloc_Success_NullStream) {
   GertRuntimeStub runtime_stub;
   runtime_stub.GetSlogStub().NoConsoleOut().SetLevelInfo();
   ASSERT_EQ(ms_l1a.Alloc(1000), &block);
-  ASSERT_TRUE(runtime_stub.GetSlogStub().FindInfoLogRegex(kPoolExpand, {{1, "(nil)"}, {5, "0x1000"}, {6, "1000"}}) >= 0);
+  ASSERT_TRUE(runtime_stub.GetSlogStub().FindInfoLogRegex(kPoolExpand, {{1, "(nil)"}, {5, "0x1000"}, {6, "1000"}}) >=
+              0);
 }
 TEST_F(MultiStreamL1AllocatorUT, Free_Success) {
   MockL1Allocator l1a;

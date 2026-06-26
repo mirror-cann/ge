@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,28 +21,24 @@
 namespace ge {
 class ExeModelBuilder {
  public:
-  ExeModelBuilder& AddPartition(ModelPartitionType type,
-      std::function<void(std::vector<uint8_t> &data)> builder) {
+  ExeModelBuilder &AddPartition(ModelPartitionType type, std::function<void(std::vector<uint8_t> &data)> builder) {
     partitionBuilder_.emplace_back(type, builder);
     return *this;
   }
 
-  ExeModelBuilder& AddPartitionPos(ModelPartitionType type,
-      int64_t sizeDeviation, int64_t offsetDeviation = 0) {
+  ExeModelBuilder &AddPartitionPos(ModelPartitionType type, int64_t sizeDeviation, int64_t offsetDeviation = 0) {
     partitionPosDeviation_[type] = {sizeDeviation, offsetDeviation};
     return *this;
   }
 
-  ExeModelBuilder& AddInputDesc(std::string name, size_t size, Format format, DataType dt,
-      std::vector<uint64_t> dims1, std::vector<uint64_t> dims2,
-      std::vector<std::pair<uint64_t, uint64_t>> shapeRange) {
+  ExeModelBuilder &AddInputDesc(std::string name, size_t size, Format format, DataType dt, std::vector<uint64_t> dims1,
+                                std::vector<uint64_t> dims2, std::vector<std::pair<uint64_t, uint64_t>> shapeRange) {
     inputsDesc_.emplace_back(name, size, format, dt, dims1, dims2, shapeRange);
     return *this;
   }
 
-  ExeModelBuilder& AddOutputDesc(std::string name, size_t size, Format format, DataType dt,
-      std::vector<uint64_t> dims1, std::vector<uint64_t> dims2,
-      std::vector<std::pair<uint64_t, uint64_t>> shapeRange) {
+  ExeModelBuilder &AddOutputDesc(std::string name, size_t size, Format format, DataType dt, std::vector<uint64_t> dims1,
+                                 std::vector<uint64_t> dims2, std::vector<std::pair<uint64_t, uint64_t>> shapeRange) {
     outputsDesc_.emplace_back(name, size, format, dt, dims1, dims2, shapeRange);
     return *this;
   }
@@ -52,7 +48,7 @@ class ExeModelBuilder {
     AddModelIoDescPartition();
     BuildHead();
     BuildPartitionTable();
-    ModelFileHeader *head = reinterpret_cast<ModelFileHeader*>(model_.data());
+    ModelFileHeader *head = reinterpret_cast<ModelFileHeader *>(model_.data());
     head->length = model_.size() - sizeof(ModelFileHeader);
   }
   void BuildMdlErr() {
@@ -60,7 +56,7 @@ class ExeModelBuilder {
     AddModelIoDescPartition();
     BuildHeadErr();
     BuildPartitionTable();
-    ModelFileHeader *head = reinterpret_cast<ModelFileHeader*>(model_.data());
+    ModelFileHeader *head = reinterpret_cast<ModelFileHeader *>(model_.data());
     head->length = model_.size() - sizeof(ModelFileHeader);
   }
 
@@ -76,36 +72,37 @@ class ExeModelBuilder {
   void BuildHead() {
     ModelFileHeader head;
     head.magic = MODEL_FILE_MAGIC_NUM;
-    std::copy_n((uint8_t*)(&head), sizeof(ModelFileHeader), std::back_inserter(model_));
+    std::copy_n((uint8_t *)(&head), sizeof(ModelFileHeader), std::back_inserter(model_));
   }
 
   void BuildHeadErr() {
     ModelFileHeader head;
     head.magic = 0x1;
-    std::copy_n((uint8_t*)(&head), sizeof(ModelFileHeader), std::back_inserter(model_));
+    std::copy_n((uint8_t *)(&head), sizeof(ModelFileHeader), std::back_inserter(model_));
   }
 
   void BuildPartitionTable() {
-    model_.resize(model_.size() + sizeof(ModelPartitionTable) + sizeof(ModelPartitionMemInfo) * partitionBuilder_.size());
-    ModelFileHeader *head = reinterpret_cast<ModelFileHeader*>(model_.data());
-    ModelPartitionTable *table = reinterpret_cast<ModelPartitionTable*>(head + 1);
+    model_.resize(model_.size() + sizeof(ModelPartitionTable) +
+                  sizeof(ModelPartitionMemInfo) * partitionBuilder_.size());
+    ModelFileHeader *head = reinterpret_cast<ModelFileHeader *>(model_.data());
+    ModelPartitionTable *table = reinterpret_cast<ModelPartitionTable *>(head + 1);
     table->num = partitionBuilder_.size();
     int i = 0;
     size_t basicOffset = model_.size();
-    std::for_each(partitionBuilder_.begin(), partitionBuilder_.end(), [&i, this, basicOffset] (auto &it) mutable {
-    ModelPartitionMemInfo *memInfo = GetPartition(i);
-    memInfo->type = (ModelPartitionType)it.first;
-    memInfo->mem_offset = model_.size() - basicOffset;
-    it.second(model_);
-    memInfo = GetPartition(i);
-    memInfo->mem_size = model_.size() - basicOffset - memInfo->mem_offset;
+    std::for_each(partitionBuilder_.begin(), partitionBuilder_.end(), [&i, this, basicOffset](auto &it) mutable {
+      ModelPartitionMemInfo *memInfo = GetPartition(i);
+      memInfo->type = (ModelPartitionType)it.first;
+      memInfo->mem_offset = model_.size() - basicOffset;
+      it.second(model_);
+      memInfo = GetPartition(i);
+      memInfo->mem_size = model_.size() - basicOffset - memInfo->mem_offset;
 
-    auto deviation = partitionPosDeviation_.find(it.first);
-    if (deviation != partitionPosDeviation_.cend()) {
-      memInfo->mem_offset += deviation->second.second;
-      memInfo->mem_size += deviation->second.first;
-    }
-    i++;
+      auto deviation = partitionPosDeviation_.find(it.first);
+      if (deviation != partitionPosDeviation_.cend()) {
+        memInfo->mem_offset += deviation->second.second;
+        memInfo->mem_size += deviation->second.first;
+      }
+      i++;
     });
   }
 
@@ -124,14 +121,14 @@ class ExeModelBuilder {
           uint64_t offset = data.size();
           data.resize(data.size() + maxLen);
           uint8_t *tmp = data.data() + offset;
-          *(uint32_t*)tmp = tlvType;
+          *(uint32_t *)tmp = tlvType;
           tmp += sizeof(uint32_t);
-          *(uint32_t*)tmp = maxLen - (sizeof(uint32_t) * 2);
+          *(uint32_t *)tmp = maxLen - (sizeof(uint32_t) * 2);
           tmp += sizeof(uint32_t);
-          *(uint32_t*)tmp = ioInfo.size();
+          *(uint32_t *)tmp = ioInfo.size();
           tmp += sizeof(uint32_t);
           for (auto it : ioInfo) {
-            ModelTensorDescBaseInfo *pBaseInfo = (ModelTensorDescBaseInfo*)tmp;
+            ModelTensorDescBaseInfo *pBaseInfo = (ModelTensorDescBaseInfo *)tmp;
             pBaseInfo->size = it.size;
             pBaseInfo->format = it.format;
             pBaseInfo->dt = it.dt;
@@ -142,11 +139,11 @@ class ExeModelBuilder {
             tmp += sizeof(ModelTensorDescBaseInfo);
             std::copy_n(it.name.c_str(), pBaseInfo->name_len, tmp);
             tmp += pBaseInfo->name_len;
-            std::copy_n((uint8_t*)it.dims1.data(), pBaseInfo->dims_len, tmp);
+            std::copy_n((uint8_t *)it.dims1.data(), pBaseInfo->dims_len, tmp);
             tmp += pBaseInfo->dims_len;
-            std::copy_n((uint8_t*)it.dims2.data(), pBaseInfo->dimsV2_len, tmp);
+            std::copy_n((uint8_t *)it.dims2.data(), pBaseInfo->dimsV2_len, tmp);
             tmp += pBaseInfo->dimsV2_len;
-            std::copy_n((uint8_t*)it.shapeRange.data(), pBaseInfo->shape_range_len, tmp);
+            std::copy_n((uint8_t *)it.shapeRange.data(), pBaseInfo->shape_range_len, tmp);
             tmp += pBaseInfo->shape_range_len;
           }
         };
@@ -160,9 +157,9 @@ class ExeModelBuilder {
     }
   }
 
-  ModelPartitionMemInfo* GetPartition(int i) {
-    ModelFileHeader *head =  reinterpret_cast<ModelFileHeader*>(model_.data());
-    ModelPartitionTable *table = reinterpret_cast<ModelPartitionTable*>(head + 1);
+  ModelPartitionMemInfo *GetPartition(int i) {
+    ModelFileHeader *head = reinterpret_cast<ModelFileHeader *>(model_.data());
+    ModelPartitionTable *table = reinterpret_cast<ModelPartitionTable *>(head + 1);
     return &table->partition[i];
   }
 
@@ -175,11 +172,9 @@ class ExeModelBuilder {
     std::vector<uint64_t> dims2;
     std::vector<std::pair<uint64_t, uint64_t>> shapeRange;
 
-    IoDescInfo(std::string name_, size_t size_, Format format_, DataType dt_,
-    std::vector<uint64_t> dims1_, std::vector<uint64_t> dims2_,
-    std::vector<std::pair<uint64_t, uint64_t>> shapeRange_) :
-    name(name_), size(size_), format(format_), dt(dt_), dims1(dims1_), dims2(dims2_),
-    shapeRange(shapeRange_) {};
+    IoDescInfo(std::string name_, size_t size_, Format format_, DataType dt_, std::vector<uint64_t> dims1_,
+               std::vector<uint64_t> dims2_, std::vector<std::pair<uint64_t, uint64_t>> shapeRange_)
+        : name(name_), size(size_), format(format_), dt(dt_), dims1(dims1_), dims2(dims2_), shapeRange(shapeRange_) {};
   };
 
   std::vector<std::pair<ModelPartitionType, std::function<void(std::vector<uint8_t> &data)>>> partitionBuilder_;
@@ -188,5 +183,5 @@ class ExeModelBuilder {
   std::vector<IoDescInfo> outputsDesc_;
   std::vector<uint8_t> model_;
 };
-}
+}  // namespace ge
 #endif

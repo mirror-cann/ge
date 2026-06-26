@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -176,7 +176,7 @@ class OptimizeOriginalGraphProcess910BTest : public testing::Test {
     de_pool_op->AddOutputDesc("y", tensor_desc_fp);
     netoutput_op->AddInputDesc(tensor_desc_fp);
 
-    ge::AttrUtils::SetListInt(de_pool_op, "output_size", {1,1,1,1});
+    ge::AttrUtils::SetListInt(de_pool_op, "output_size", {1, 1, 1, 1});
 
     ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
     NodePtr data1_node = graph->AddNode(data1_op);
@@ -203,7 +203,7 @@ class OptimizeOriginalGraphProcess910BTest : public testing::Test {
     OpDescPtr cast2_op = std::make_shared<OpDesc>("cast", "Cast");
     OpDescPtr netoutput_op = std::make_shared<OpDesc>("netoutput", "NetOutput");
 
-    ge::GeShape shape({8,224,224,3});
+    ge::GeShape shape({8, 224, 224, 3});
     ge::GeTensorDesc tensor_nchw_fp32(shape, ge::FORMAT_NCHW, ge::DT_FLOAT);
     tensor_nchw_fp32.SetOriginShape(shape);
     tensor_nchw_fp32.SetOriginFormat(ge::FORMAT_NCHW);
@@ -226,9 +226,9 @@ class OptimizeOriginalGraphProcess910BTest : public testing::Test {
     cast2_op->AddOutputDesc("y", tensor_nchw_fp32);
     netoutput_op->AddInputDesc("x", tensor_nchw_fp32);
 
-    AttrUtils::SetListInt(conv_op, "filter_size", {1,1,1,1});
-    AttrUtils::SetListInt(conv_op, "strides", {1,1,1,1});
-    AttrUtils::SetListInt(conv_op, "pads", {1,1,1,1});
+    AttrUtils::SetListInt(conv_op, "filter_size", {1, 1, 1, 1});
+    AttrUtils::SetListInt(conv_op, "strides", {1, 1, 1, 1});
+    AttrUtils::SetListInt(conv_op, "pads", {1, 1, 1, 1});
 
     ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
     NodePtr data_node = graph->AddNode(data_op);
@@ -677,4 +677,4 @@ TEST_F(OptimizeOriginalGraphProcess910BTest, optimize_origin_graph_case_mixed_hi
   }
   EXPECT_EQ(cast_count, 3);
 }
-}
+}  // namespace fe

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,16 +27,16 @@ class FusionPassRegistry::FusionPassRegistryImpl {
     if (pass_descs_.find(pass_type) != pass_descs_.end()) {
       pass_descs_[pass_type][pass_name].attr = attr;
       pass_descs_[pass_type][pass_name].create_fn = create_fn;
-      GELOGD("GraphFusionPass[type=%d, name=%s, attr=%lu, module=%s]: the pass type has already existed.",
-             pass_type, pass_name.c_str(), attr, pass_module.c_str());
+      GELOGD("GraphFusionPass[type=%d, name=%s, attr=%lu, module=%s]: the pass type has already existed.", pass_type,
+             pass_name.c_str(), attr, pass_module.c_str());
       return;
     }
 
     std::map<std::string, PassDesc> pass_desc;
     pass_desc[pass_name] = {attr, create_fn};
     pass_descs_[pass_type] = pass_desc;
-    GELOGD("GraphFusionPass[type=%d, name=%s, attr=%lu, module=%s]: the pass type does not exist.",
-           pass_type, pass_name.c_str(), attr, pass_module.c_str());
+    GELOGD("GraphFusionPass[type=%d, name=%s, attr=%lu, module=%s]: the pass type does not exist.", pass_type,
+           pass_name.c_str(), attr, pass_module.c_str());
   }
 
   std::map<std::string, PassDesc> GetPassDesc(const GraphFusionPassType &pass_type) {
@@ -63,7 +63,8 @@ class FusionPassRegistry::FusionPassRegistryImpl {
     }
     return ret;
   }
-private:
+
+ private:
   std::mutex mu_;
   std::map<GraphFusionPassType, map<std::string, PassDesc>> pass_descs_;
 };
@@ -82,7 +83,8 @@ FusionPassRegistry &FusionPassRegistry::GetInstance() {
 void FusionPassRegistry::RegisterPass(const GraphFusionPassType &pass_type, const std::string &pass_name,
                                       CreateFn create_fn, PassAttr attr) const {
   if (impl_ == nullptr) {
-    GELOGE(ge::MEMALLOC_FAILED, "[Check][Param]param impl is nullptr, GraphFusionPass[type=%d,name=%s]: "
+    GELOGE(ge::MEMALLOC_FAILED,
+           "[Check][Param]param impl is nullptr, GraphFusionPass[type=%d,name=%s]: "
            "failed to register the graph fusion pass",
            pass_type, pass_name.c_str());
     return;
@@ -93,8 +95,10 @@ void FusionPassRegistry::RegisterPass(const GraphFusionPassType &pass_type, cons
 std::map<std::string, FusionPassRegistry::PassDesc> FusionPassRegistry::GetPassDesc(
     const GraphFusionPassType &pass_type) {
   if (impl_ == nullptr) {
-    GELOGE(ge::MEMALLOC_FAILED, "[Check][Param]param impl is nullptr, GraphFusionPass[type=%d]: "
-                                "failed to get pass desc.", pass_type);
+    GELOGE(ge::MEMALLOC_FAILED,
+           "[Check][Param]param impl is nullptr, GraphFusionPass[type=%d]: "
+           "failed to get pass desc.",
+           pass_type);
     std::map<std::string, PassDesc> ret;
     return ret;
   }
@@ -104,8 +108,10 @@ std::map<std::string, FusionPassRegistry::PassDesc> FusionPassRegistry::GetPassD
 std::map<std::string, FusionPassRegistry::CreateFn> FusionPassRegistry::GetCreateFnByType(
     const GraphFusionPassType &pass_type) {
   if (impl_ == nullptr) {
-    GELOGE(ge::MEMALLOC_FAILED, "[Check][Param]param impl is nullptr, GraphFusionPass[type=%d]: "
-           "failed to create the graph fusion pass.", pass_type);
+    GELOGE(ge::MEMALLOC_FAILED,
+           "[Check][Param]param impl is nullptr, GraphFusionPass[type=%d]: "
+           "failed to create the graph fusion pass.",
+           pass_type);
     return std::map<std::string, CreateFn>{};
   }
   return impl_->GetCreateFn(pass_type);
@@ -119,7 +125,8 @@ FusionPassRegistrar::FusionPassRegistrar(const GraphFusionPassType &pass_type, c
   }
 
   if (pass_name.empty()) {
-    GELOGE(ge::PARAM_INVALID, "[Check][Param:pass_name]Failed to register the graph fusion pass, "
+    GELOGE(ge::PARAM_INVALID,
+           "[Check][Param:pass_name]Failed to register the graph fusion pass, "
            "param pass_name is empty.");
     return;
   }

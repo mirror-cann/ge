@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -57,8 +57,7 @@ void MakeMiddleOptionalInput(const ge::NodePtr &node, const ge::GeTensorDesc &in
 }
 
 void PopExecuteGraph(const std::vector<bg::DevMemValueHolderPtr> &out_addrs,
-                     const std::vector<bg::ValueHolderPtr> &order_holders,
-                     ge::ExecuteGraphPtr &execute_graph) {
+                     const std::vector<bg::ValueHolderPtr> &order_holders, ge::ExecuteGraphPtr &execute_graph) {
   auto graph_frame = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(out_addrs), order_holders);
   ASSERT_NE(graph_frame, nullptr);
   execute_graph = graph_frame->GetExecuteGraph();
@@ -166,11 +165,13 @@ TEST_F(AicpuNodeConverterUT, ConvertAicpTfNode) {
 TEST_F(AicpuNodeConverterUT, TestAicpTfInitNode) {
   LowerResult add_ret;
   TestAicpuConvert("tf", add_ret);
-  
+
   auto exe_graph = add_ret.out_addrs[0]->GetFastNode()->GetExtendInfo()->GetOwnerGraphBarePtr();
   ASSERT_NE(exe_graph, nullptr);
 
-  auto execute_graph = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)->GetExecuteGraph();
+  auto execute_graph =
+      bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)
+          ->GetExecuteGraph();
   ASSERT_NE(execute_graph, nullptr);
 
   auto root_graph = execute_graph->GetParentGraphBarePtr();
@@ -195,11 +196,12 @@ TEST_F(AicpuNodeConverterUT, Convert_TensorListOp) {
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.AddTaskDef("EmptyTensorList", task_def)
-                              .AddTaskDef("TensorListPushBack", task_def)
-                              .AddTaskDef("TensorListPopBack", task_def)
-                              .BuildGeRootModel();
+                           .AddTaskDef("TensorListPushBack", task_def)
+                           .AddTaskDef("TensorListPopBack", task_def)
+                           .BuildGeRootModel();
 
-  while (bg::ValueHolder::PopGraphFrame() != nullptr) {}
+  while (bg::ValueHolder::PopGraphFrame() != nullptr) {
+  }
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model);
   ASSERT_NE(exe_graph, nullptr);
   ASSERT_EQ(3, exe_graph->GetDirectNodesSize());
@@ -214,7 +216,8 @@ TEST_F(AicpuNodeConverterUT, Convert_TensorListOp) {
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.GetTensorList(),
-                                    outputs.size()), ge::GRAPH_SUCCESS);
+                                    outputs.size()),
+            ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   aclrtDestroyStream(stream);
 }
@@ -227,11 +230,13 @@ TEST_F(AicpuNodeConverterUT, ConvertAicpuCCNode) {
 TEST_F(AicpuNodeConverterUT, TestAicpCCInitNode) {
   LowerResult add_ret;
   TestAicpuConvert("cc", add_ret);
-  
+
   auto exe_graph = add_ret.out_addrs[0]->GetFastNode()->GetExtendInfo()->GetOwnerGraphBarePtr();
   ASSERT_NE(exe_graph, nullptr);
 
-  auto execute_graph = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)->GetExecuteGraph();
+  auto execute_graph =
+      bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)
+          ->GetExecuteGraph();
   ASSERT_NE(execute_graph, nullptr);
 
   auto root_graph = execute_graph->GetParentGraphBarePtr();
@@ -296,7 +301,8 @@ TEST_F(AicpuNodeConverterUT, ConvertAicpuCCNodeWithMiddleOptionalInputInsertExpa
       bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)
           ->GetExecuteGraph();
   ASSERT_NE(execute_graph, nullptr);
-  auto expand_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(execute_graph.get(), "ExpandAicpuOptionalInputAddrs");
+  auto expand_node =
+      ge::ExecuteGraphUtils::FindFirstNodeMatchType(execute_graph.get(), "ExpandAicpuOptionalInputAddrs");
   auto update_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(execute_graph.get(), "UpdateAicpuIoAddr");
   ASSERT_NE(expand_node, nullptr);
   ASSERT_NE(update_node, nullptr);
@@ -341,7 +347,9 @@ TEST_F(AicpuNodeConverterUT, ConvertAicpuCCNodeWithWorkSpaceInfo) {
 
   auto exe_graph = add_ret.out_addrs[0]->GetFastNode()->GetExtendInfo()->GetOwnerGraphBarePtr();
   ASSERT_NE(exe_graph, nullptr);
-  auto execute_graph = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)->GetExecuteGraph();
+  auto execute_graph =
+      bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)
+          ->GetExecuteGraph();
   ASSERT_NE(execute_graph, nullptr);
   DumpGraph(execute_graph.get(), "GeneralCCAiCpuExe");
 }
@@ -382,7 +390,9 @@ TEST_F(AicpuNodeConverterUT, ConvertHostcpuCCNodeWithSmallShape) {
 
   auto exe_graph = add_ret.out_addrs[0]->GetFastNode()->GetExtendInfo()->GetOwnerGraphBarePtr();
   ASSERT_NE(exe_graph, nullptr);
-  auto execute_graph = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)->GetExecuteGraph();
+  auto execute_graph =
+      bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)
+          ->GetExecuteGraph();
   ASSERT_NE(execute_graph, nullptr);
   DumpGraph(execute_graph.get(), "GeneralHostAiCpuExe");
   ge::MmpaStub::GetInstance().Reset();
@@ -400,7 +410,8 @@ TEST_F(AicpuNodeConverterUT, ConvertHostcpuRefNodeWithSmallShape) {
   slice_write_op_desc->SetOpKernelLibName(ge::kEngineNameHostCpu.c_str());
   AiCpuCCTaskDefFaker aicpu_task_def_faker;
   auto root_model = GeModelBuilder(graph).BuildGeRootModel();
-  auto global_data = GlobalDataFaker(root_model).AddTaskDef("SliceWrite", aicpu_task_def_faker.SetNeedMemcpy(true)).Build();
+  auto global_data =
+      GlobalDataFaker(root_model).AddTaskDef("SliceWrite", aicpu_task_def_faker.SetNeedMemcpy(true)).Build();
   bg::LowerConstDataNode(global_data);
 
   LowerInput data_input = {{}, {}, &global_data};
@@ -419,7 +430,10 @@ TEST_F(AicpuNodeConverterUT, ConvertHostcpuRefNodeWithSmallShape) {
 
   auto exe_graph = slice_write_ret.out_addrs[0]->GetFastNode()->GetExtendInfo()->GetOwnerGraphBarePtr();
   ASSERT_NE(exe_graph, nullptr);
-  auto execute_graph = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(slice_write_ret.out_addrs), slice_write_ret.order_holders)->GetExecuteGraph();
+  auto execute_graph =
+      bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(slice_write_ret.out_addrs),
+                                     slice_write_ret.order_holders)
+          ->GetExecuteGraph();
   ASSERT_NE(execute_graph, nullptr);
   DumpGraph(execute_graph.get(), "GeneralHostCupRefExe");
   ge::MmpaStub::GetInstance().Reset();
@@ -452,7 +466,9 @@ TEST_F(AicpuNodeConverterUT, ConvertAicpuCC3rdNode) {
 
   auto exe_graph = add_ret.out_addrs[0]->GetFastNode()->GetExtendInfo()->GetOwnerGraphBarePtr();
   ASSERT_NE(exe_graph, nullptr);
-  auto execute_graph = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)->GetExecuteGraph();
+  auto execute_graph =
+      bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)
+          ->GetExecuteGraph();
   ASSERT_NE(execute_graph, nullptr);
   DumpGraph(execute_graph.get(), "GeneralCC3rdAiCpuExe");
 }
@@ -481,7 +497,9 @@ TEST_F(AicpuNodeConverterUT, BlockAiCpuTf_ExecuteSuccess) {
 
   auto exe_graph = add_ret.out_addrs[0]->GetFastNode()->GetExtendInfo()->GetOwnerGraphBarePtr();
   ASSERT_NE(exe_graph, nullptr);
-  auto execute_graph = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)->GetExecuteGraph();
+  auto execute_graph =
+      bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)
+          ->GetExecuteGraph();
   ASSERT_NE(execute_graph, nullptr);
   DumpGraph(execute_graph.get(), "GeneralBlockAiCpuExe");
 }
@@ -524,7 +542,9 @@ TEST_F(AicpuNodeConverterUT, ConvertAicpuHostCpu3rdNode) {
   ASSERT_TRUE(non_zero_ret.result.IsSuccess());
   auto exe_graph = non_zero_ret.out_addrs[0]->GetFastNode()->GetExtendInfo()->GetOwnerGraphBarePtr();
   ASSERT_NE(exe_graph, nullptr);
-  auto execute_graph = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(non_zero_ret.out_addrs), non_zero_ret.order_holders)->GetExecuteGraph();
+  auto execute_graph = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(non_zero_ret.out_addrs),
+                                                      non_zero_ret.order_holders)
+                           ->GetExecuteGraph();
   ASSERT_NE(execute_graph, nullptr);
   ge::MmpaStub::GetInstance().Reset();
 }

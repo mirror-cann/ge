@@ -153,7 +153,7 @@ Status ModelHelper::SerializeCustomOpKernel(PortableOp *serializable_op, const s
 }
 
 Status ModelHelper::SaveCustomOpsPartition(std::shared_ptr<OmFileSaveHelper> &om_file_save_helper,
-                                               const GeRootModelPtr &ge_root_model) const {
+                                           const GeRootModelPtr &ge_root_model) const {
   GE_ASSERT_NOTNULL(ge_root_model);
   const auto &registry = ge_root_model->GetCustomOpRegistry();
   if (registry == nullptr) {
@@ -187,8 +187,7 @@ Status ModelHelper::SaveCustomOpsPartition(std::shared_ptr<OmFileSaveHelper> &om
       serializable_ops.emplace_back(op_type_str, serializable_op);
     }
     if (has_serializable_custom_op && has_non_serializable_custom_op) {
-      GELOGE(FAILED,
-             "[CUSTOM OP] graph contains both serializable and non-serializable custom ops.");
+      GELOGE(FAILED, "[CUSTOM OP] graph contains both serializable and non-serializable custom ops.");
       return FAILED;
     }
   }
@@ -318,10 +317,10 @@ Status ModelHelper::LoadCustomOpSoBins(const std::vector<OpSoBinPtr> &custom_so_
 
 void ModelHelper::SaveOpSoInfo(const GeRootModelPtr &ge_root_model) const {
   SoInOmInfo so_info;
-  (void) ge::AttrUtils::GetStr(*(model_.get()), "host_env_os", so_info.os_info);
-  (void) ge::AttrUtils::GetStr(*(model_.get()), "host_env_cpu", so_info.cpu_info);
-  (void) ge::AttrUtils::GetStr(*(model_.get()), ATTR_MODEL_OPP_VERSION, so_info.opp_version);
-  (void) ge::AttrUtils::GetStr(*(model_.get()), ATTR_MODEL_COMPILER_VERSION, so_info.compiler_version);
+  (void)ge::AttrUtils::GetStr(*(model_.get()), "host_env_os", so_info.os_info);
+  (void)ge::AttrUtils::GetStr(*(model_.get()), "host_env_cpu", so_info.cpu_info);
+  (void)ge::AttrUtils::GetStr(*(model_.get()), ATTR_MODEL_OPP_VERSION, so_info.opp_version);
+  (void)ge::AttrUtils::GetStr(*(model_.get()), ATTR_MODEL_COMPILER_VERSION, so_info.compiler_version);
   GELOGD("Save so info with host_env_os:%s, host_env_cpu:%s, opp_version:%s, compiler_version:%s",
          so_info.os_info.c_str(), so_info.cpu_info.c_str(), so_info.opp_version.c_str(),
          so_info.compiler_version.c_str());

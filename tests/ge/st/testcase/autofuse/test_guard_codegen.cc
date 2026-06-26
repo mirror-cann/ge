@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -63,7 +63,7 @@ graphStatus InferShape4FooTestGuard(gert::InferSymbolShapeContext *context) {
   return ge::GRAPH_SUCCESS;
 }
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(FooTestGuard).InferSymbolShape(InferShape4FooTestGuard);
-}
+}  // namespace
 class GuardCodeGenST : public testing::Test {
  public:
   void SetUp() override {
@@ -91,8 +91,10 @@ class GuardCodeGenST : public testing::Test {
       setenv("LD_PRELOAD", env.c_str(), 1);
     }
   }
+
  protected:
   EsCGraphBuilder *graph_{nullptr};
+
  private:
   char old_opp_path_env_[MMPA_MAX_PATH] = {'\0'};
   char old_ld_path_env_[MMPA_MAX_PATH] = {'\0'};
@@ -110,12 +112,12 @@ REG_OP(FooTestGuard)
 TEST_F(GuardCodeGenST, GenGuardCodeAndSimpleTest1) {
   dlog_setlevel(0, 1, 0);
   auto data1 = OP_CFG(DATA)
-              .Attr(ATTR_NAME_INDEX, 0)
-              .InCnt(1)
-              .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
-              .OutCnt(1)
-              .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
-              .Build("data1");
+                   .Attr(ATTR_NAME_INDEX, 0)
+                   .InCnt(1)
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
+                   .OutCnt(1)
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
+                   .Build("data1");
   auto data2 = OP_CFG(DATA)
                    .Attr(ATTR_NAME_INDEX, 1)
                    .InCnt(1)
@@ -124,12 +126,12 @@ TEST_F(GuardCodeGenST, GenGuardCodeAndSimpleTest1) {
                    .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
                    .Build("data2");
   auto foo1 = OP_CFG("FooTestGuard")
-                   .InCnt(2)
-                   .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
-                   .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
-                   .OutCnt(1)
-                   .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
-                   .Build("foo1");
+                  .InCnt(2)
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
+                  .OutCnt(1)
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
+                  .Build("foo1");
 
   DEF_GRAPH(g_test_guard) {
     CHAIN(NODE(data1)->NODE(foo1)->NODE("NetOutput", "NetOutput"));
@@ -165,19 +167,19 @@ TEST_F(GuardCodeGenST, GenGuardCodeAndSimpleTest1) {
   // 通过/proc访问文件描述符对应的"文件"
   snprintf_s(so_path, sizeof(so_path), sizeof(so_path), "/proc/self/fd/%d", so_fd);
 
-  void* handle = dlopen(so_path, RTLD_NOW | RTLD_LOCAL);
+  void *handle = dlopen(so_path, RTLD_NOW | RTLD_LOCAL);
   ASSERT_NE(handle, nullptr);
   // 传入合法参数，校验返回值成功
-  void* func = dlsym(handle, "GuardCheckFunc");
-  gert::Tensor tensor0 = {{{1000, 1000, 1, 1000}, {3, 1000, 1, 1000}},                      // shape
-                          {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                          gert::kOnDeviceHbm,                          // placement
-                          ge::DT_FLOAT,                              // data type
+  void *func = dlsym(handle, "GuardCheckFunc");
+  gert::Tensor tensor0 = {{{1000, 1000, 1, 1000}, {3, 1000, 1, 1000}},  // shape
+                          {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},   // format
+                          gert::kOnDeviceHbm,                           // placement
+                          ge::DT_FLOAT,                                 // data type
                           (void *)0x0};
-  gert::Tensor tensor1 = {{{1000, 1, 1000, 1000}, {3, 1, 1000, 1000}},                      // shape
-                          {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                          gert::kOnDeviceHbm,                          // placement
-                          ge::DT_FLOAT,                              // data type
+  gert::Tensor tensor1 = {{{1000, 1, 1000, 1000}, {3, 1, 1000, 1000}},  // shape
+                          {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},   // format
+                          gert::kOnDeviceHbm,                           // placement
+                          ge::DT_FLOAT,                                 // data type
                           (void *)0x0};
   std::vector<gert::Tensor *> inputs;
   inputs.emplace_back(&tensor0);
@@ -200,7 +202,7 @@ TEST_F(GuardCodeGenST, GenGuardCodeAndSimpleTest1) {
 
 TEST_F(GuardCodeGenST, GenGuardCodeAndSimpleTest) {
   GuardCodegen codegen;
-  std::unique_ptr<Graph> graph(reinterpret_cast<Graph*>(EsBuildGraphAndReset(graph_)));
+  std::unique_ptr<Graph> graph(reinterpret_cast<Graph *>(EsBuildGraphAndReset(graph_)));
   auto compute_graph = GraphUtilsEx::GetComputeGraph(*graph);
   auto attr = compute_graph->GetOrCreateAttrsGroup<ShapeEnvAttr>();
   EXPECT_NE(attr, nullptr);
@@ -230,10 +232,10 @@ TEST_F(GuardCodeGenST, GenGuardCodeAndSimpleTest) {
   // 通过/proc访问文件描述符对应的"文件"
   snprintf_s(so_path, sizeof(so_path), sizeof(so_path), "/proc/self/fd/%d", so_fd);
 
-  void* handle = dlopen(so_path, RTLD_NOW | RTLD_LOCAL);
+  void *handle = dlopen(so_path, RTLD_NOW | RTLD_LOCAL);
   ASSERT_NE(handle, nullptr);
   // 传入合法参数，校验返回值成功
-  void* func = dlsym(handle, "GuardCheckFunc");
+  void *func = dlsym(handle, "GuardCheckFunc");
 
   gert::Tensor tensor0 = {{{3, 2, 9}, {3, 2, 9}},                      // shape
                           {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
@@ -265,18 +267,18 @@ TEST_F(GuardCodeGenST, GenGuardCodeAndSimpleTest) {
 
 TEST_F(GuardCodeGenST, GenGuardCodeWithInvalidIncludePath) {
   GuardCodegen codegen;
-  std::unique_ptr<Graph> graph(reinterpret_cast<Graph*>(EsBuildGraphAndReset(graph_)));
+  std::unique_ptr<Graph> graph(reinterpret_cast<Graph *>(EsBuildGraphAndReset(graph_)));
   auto compute_graph = GraphUtilsEx::GetComputeGraph(*graph);
   auto attr = compute_graph->GetOrCreateAttrsGroup<ShapeEnvAttr>();
   EXPECT_NE(attr, nullptr);
   ShapeEnvGuarder guard(attr);
 
   class MockMmpaRealPath : public ge::MmpaStubApiGe {
-  public:
+   public:
     int32_t RealPath(const CHAR *path, CHAR *realPath, INT32 realPathLen) override {
       // 1. 检查输入参数合法性
       if (path == nullptr || realPath == nullptr || realPathLen <= 0) {
-        return EN_INVALID_PARAM; // 假设 EN_INVALID_PARAM 是预定义错误码
+        return EN_INVALID_PARAM;  // 假设 EN_INVALID_PARAM 是预定义错误码
       }
 
       // 2. 计算 path 的长度（不含终止符）
@@ -284,12 +286,12 @@ TEST_F(GuardCodeGenST, GenGuardCodeWithInvalidIncludePath) {
 
       // 3. 检查目标缓冲区是否足够容纳路径（含终止符）
       if (static_cast<size_t>(realPathLen) < path_len + 1) {
-        return EN_ERROR; // 缓冲区不足
+        return EN_ERROR;  // 缓冲区不足
       }
 
       // 4. 直接拷贝 path 到 realPath
       strncpy(realPath, path, realPathLen);
-      realPath[realPathLen - 1] = '\0'; // 确保终止符
+      realPath[realPathLen - 1] = '\0';  // 确保终止符
 
       return EN_OK;
     };
@@ -310,4 +312,4 @@ TEST_F(GuardCodeGenST, GenGuardCodeWithInvalidIncludePath) {
   EXPECT_EQ(codegen.GuardFuncCodegenAndCompile(compute_graph), ge::GRAPH_SUCCESS);
   unsetenv("ASCEND_OPP_PATH");
 }
-}
+}  // namespace ge

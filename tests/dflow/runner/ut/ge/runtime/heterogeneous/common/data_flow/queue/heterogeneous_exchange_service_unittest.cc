@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,33 +31,31 @@ using namespace ::testing;
 bool enqueue_dequeue_error_flag = false;
 namespace ge {
 namespace {
-  class MockRuntime : public RuntimeStub {
-  public:
-    rtError_t rtMemQueueEnQueue(int32_t dev_id, uint32_t qid, void *mem_buf) override {
-      return 207014;
-    }
+class MockRuntime : public RuntimeStub {
+ public:
+  rtError_t rtMemQueueEnQueue(int32_t dev_id, uint32_t qid, void *mem_buf) override {
+    return 207014;
+  }
 
-    rtError_t rtMemQueueDeQueue(int32_t device, uint32_t qid, void **mbuf) override {
-      return 207013;
+  rtError_t rtMemQueueDeQueue(int32_t device, uint32_t qid, void **mbuf) override {
+    return 207013;
+  }
+};
+class MockRuntime2 : public RuntimeStub {
+ public:
+  rtError_t rtMemQueueEnQueueBuff(int32_t devId, uint32_t qid, rtMemQueueBuff_t *inBuf, int32_t timeout) {
+    if (!enqueue_dequeue_error_flag) {
+      return 0;
     }
-  };
-  class MockRuntime2 : public RuntimeStub {
-   public:
-    rtError_t rtMemQueueEnQueueBuff(int32_t devId, uint32_t qid, rtMemQueueBuff_t *inBuf, int32_t timeout) {
-      if (!enqueue_dequeue_error_flag) {
-        return 0;
-      }
-      return 207014;
-    }
-  };
-}
+    return 207014;
+  }
+};
+}  // namespace
 class HeterogeneousExchangeServiceTest : public testing::Test {
  protected:
-  void SetUp() override {
-  }
+  void SetUp() override {}
 
-  void TearDown() override {
-  }
+  void TearDown() override {}
 };
 
 TEST_F(HeterogeneousExchangeServiceTest, TestCreateClientQueue) {
@@ -89,7 +87,7 @@ TEST_F(HeterogeneousExchangeServiceTest, TestDestroyQueue) {
 }
 
 class TestClientQMockRuntime : public RuntimeStub {
-public:
+ public:
   rtError_t rtMemQueuePeek(int32_t device, uint32_t qid, size_t *bufLen, int32_t timeout) override {
     *bufLen = 1280;
     return 0;
@@ -160,10 +158,9 @@ TEST_F(HeterogeneousExchangeServiceTest, TestEnqueueAndDequeueTensor) {
   runtime_tensor_desc.shape[1] = 16;
   runtime_tensor_desc.original_shape[0] = 16;
   runtime_tensor_desc.original_shape[1] = 16;
-  const std::vector<ExchangeService::BuffInfo> buffs{
-      {.addr = &runtime_tensor_desc, .len = sizeof(runtime_tensor_desc)},
-      {.addr = ValueToPtr(PtrToValue(data)), .len = buffer_size},
-      {.addr = nullptr, .len = 0}};
+  const std::vector<ExchangeService::BuffInfo> buffs{{.addr = &runtime_tensor_desc, .len = sizeof(runtime_tensor_desc)},
+                                                     {.addr = ValueToPtr(PtrToValue(data)), .len = buffer_size},
+                                                     {.addr = nullptr, .len = 0}};
   ASSERT_EQ(exchange_service.Enqueue(0, queue_id, buffs, control_info), SUCCESS);
   // 避免直接使用私有成员，此处queue_id不应复用
   exchange_service.AddClientQueue(client_queue_id);
@@ -226,26 +223,22 @@ TEST_F(HeterogeneousExchangeServiceTest, TestHeterogeneousProfiler) {
   int32_t device_id = 1;
   HeterogeneousProfiler profiler;
   profiler.InitHeterogeneousPoriler();
-  profiler.RecordHeterogeneousProfilerEvent(ProfilerType::kStartPoint,
-                                                       ProfilerEvent::kMbufAlloc, device_id, queue_id);
-  profiler.RecordHeterogeneousProfilerEvent(ProfilerType::kEndPoint,
-                                                       ProfilerEvent::kMbufAlloc, device_id, queue_id);
-  profiler.RecordHeterogeneousProfilerEvent(ProfilerType::kStartPoint,
-                                                       ProfilerEvent::kMemCopyToMbuf, device_id, queue_id);
-  profiler.RecordHeterogeneousProfilerEvent(ProfilerType::kEndPoint,
-                                                       ProfilerEvent::kMemCopyToMbuf, device_id, queue_id);
-  profiler.RecordHeterogeneousProfilerEvent(ProfilerType::kStartPoint,
-                                                       ProfilerEvent::kMbufEnqueue, device_id, queue_id);
-  profiler.RecordHeterogeneousProfilerEvent(ProfilerType::kEndPoint,
-                                                       ProfilerEvent::kMbufEnqueue, device_id, queue_id);
-  profiler.RecordHeterogeneousProfilerEvent(ProfilerType::kStartPoint,
-                                                       ProfilerEvent::kMbufDequeue, device_id, queue_id);
-  profiler.RecordHeterogeneousProfilerEvent(ProfilerType::kEndPoint,
-                                                       ProfilerEvent::kMbufDequeue, device_id, queue_id);
-  profiler.RecordHeterogeneousProfilerEvent(ProfilerType::kStartPoint,
-                                                       ProfilerEvent::kMbufCopyToMem, device_id, queue_id);
-  profiler.RecordHeterogeneousProfilerEvent(ProfilerType::kEndPoint,
-                                                       ProfilerEvent::kMbufCopyToMem, device_id, queue_id);
+  profiler.RecordHeterogeneousProfilerEvent(ProfilerType::kStartPoint, ProfilerEvent::kMbufAlloc, device_id, queue_id);
+  profiler.RecordHeterogeneousProfilerEvent(ProfilerType::kEndPoint, ProfilerEvent::kMbufAlloc, device_id, queue_id);
+  profiler.RecordHeterogeneousProfilerEvent(ProfilerType::kStartPoint, ProfilerEvent::kMemCopyToMbuf, device_id,
+                                            queue_id);
+  profiler.RecordHeterogeneousProfilerEvent(ProfilerType::kEndPoint, ProfilerEvent::kMemCopyToMbuf, device_id,
+                                            queue_id);
+  profiler.RecordHeterogeneousProfilerEvent(ProfilerType::kStartPoint, ProfilerEvent::kMbufEnqueue, device_id,
+                                            queue_id);
+  profiler.RecordHeterogeneousProfilerEvent(ProfilerType::kEndPoint, ProfilerEvent::kMbufEnqueue, device_id, queue_id);
+  profiler.RecordHeterogeneousProfilerEvent(ProfilerType::kStartPoint, ProfilerEvent::kMbufDequeue, device_id,
+                                            queue_id);
+  profiler.RecordHeterogeneousProfilerEvent(ProfilerType::kEndPoint, ProfilerEvent::kMbufDequeue, device_id, queue_id);
+  profiler.RecordHeterogeneousProfilerEvent(ProfilerType::kStartPoint, ProfilerEvent::kMbufCopyToMem, device_id,
+                                            queue_id);
+  profiler.RecordHeterogeneousProfilerEvent(ProfilerType::kEndPoint, ProfilerEvent::kMbufCopyToMem, device_id,
+                                            queue_id);
   profiler.RecordHeterogeneousProfilerEvent(ProfilerType::kStartPoint, ProfilerEvent::kPrepareInputs);
   profiler.RecordHeterogeneousProfilerEvent(ProfilerType::kEndPoint, ProfilerEvent::kPrepareInputs);
   profiler.RecordHeterogeneousProfilerEvent(ProfilerType::kStartPoint, ProfilerEvent::kPrepareOutputs);
@@ -293,10 +286,9 @@ TEST_F(HeterogeneousExchangeServiceTest, TestBuffsEnqueueAndDequeue) {
   rtMbufGetBuffAddr(m_buf, &data);
 
   RuntimeTensorDesc runtime_tensor_desc;
-  const std::vector<ExchangeService::BuffInfo> buffs{
-      {.addr = &runtime_tensor_desc, .len = sizeof(runtime_tensor_desc)},
-      {.addr = ValueToPtr(PtrToValue(data)), .len = buffer_size},
-      {.addr = nullptr, .len = 0}};
+  const std::vector<ExchangeService::BuffInfo> buffs{{.addr = &runtime_tensor_desc, .len = sizeof(runtime_tensor_desc)},
+                                                     {.addr = ValueToPtr(PtrToValue(data)), .len = buffer_size},
+                                                     {.addr = nullptr, .len = 0}};
   // 场景1：成功执行,创建Mbuf并入Queue,最后出Queue释放
   ASSERT_EQ(exchange_service.Enqueue(0, queue_id, buffs, control_info), SUCCESS);
   rtMbufPtr_t read_buf = nullptr;
@@ -359,51 +351,51 @@ TEST_F(HeterogeneousExchangeServiceTest, check_gen_trans_id) {
   uint64_t expect_trans_id = 1;
   msg_info.trans_id = expect_trans_id;
   EXPECT_EQ(exchange_service.InitHeadInfo(control_info, m_buf), SUCCESS);
-  EXPECT_EQ(exchange_service.SetTransId(0, 0 , m_buf), SUCCESS);
+  EXPECT_EQ(exchange_service.SetTransId(0, 0, m_buf), SUCCESS);
   EXPECT_EQ(exchange_service.CheckResult(m_buf, control_info_ret), SUCCESS);
   EXPECT_EQ(msg_info_ret.trans_id, expect_trans_id);
 
   msg_info.trans_id = 0;
   // trans id auto increase by last trans id.
   EXPECT_EQ(exchange_service.InitHeadInfo(control_info, m_buf), SUCCESS);
-  EXPECT_EQ(exchange_service.SetTransId(0, 0 , m_buf), SUCCESS);
+  EXPECT_EQ(exchange_service.SetTransId(0, 0, m_buf), SUCCESS);
   EXPECT_EQ(exchange_service.CheckResult(m_buf, control_info_ret), SUCCESS);
   EXPECT_EQ(msg_info_ret.trans_id, expect_trans_id + 1);
 
   expect_trans_id = UINT32_MAX;
   msg_info.trans_id = expect_trans_id;
   EXPECT_EQ(exchange_service.InitHeadInfo(control_info, m_buf), SUCCESS);
-  EXPECT_EQ(exchange_service.SetTransId(0, 0 , m_buf), SUCCESS);
+  EXPECT_EQ(exchange_service.SetTransId(0, 0, m_buf), SUCCESS);
   EXPECT_EQ(exchange_service.CheckResult(m_buf, control_info_ret), SUCCESS);
   EXPECT_EQ(msg_info_ret.trans_id, expect_trans_id);
 
   msg_info.trans_id = 100;
   // trans id cannot change small
   EXPECT_EQ(exchange_service.InitHeadInfo(control_info, m_buf), SUCCESS);
-  EXPECT_NE(exchange_service.SetTransId(0, 0 , m_buf), SUCCESS);
+  EXPECT_NE(exchange_service.SetTransId(0, 0, m_buf), SUCCESS);
 
   msg_info.trans_id = UINT64_MAX;
   // trans id cannot be UINT64_MAX
   EXPECT_EQ(exchange_service.InitHeadInfo(control_info, m_buf), SUCCESS);
-  EXPECT_NE(exchange_service.SetTransId(0, 0 , m_buf), SUCCESS);
+  EXPECT_NE(exchange_service.SetTransId(0, 0, m_buf), SUCCESS);
 
   expect_trans_id = UINT64_MAX - 1;
   msg_info.trans_id = UINT64_MAX - 1;
   EXPECT_EQ(exchange_service.InitHeadInfo(control_info, m_buf), SUCCESS);
-  EXPECT_EQ(exchange_service.SetTransId(0, 0 , m_buf), SUCCESS);
+  EXPECT_EQ(exchange_service.SetTransId(0, 0, m_buf), SUCCESS);
   EXPECT_EQ(exchange_service.CheckResult(m_buf, control_info_ret), SUCCESS);
   EXPECT_EQ(msg_info_ret.trans_id, expect_trans_id);
 
   msg_info.trans_id = 0;
   EXPECT_EQ(exchange_service.InitHeadInfo(control_info, m_buf), SUCCESS);
-  EXPECT_NE(exchange_service.SetTransId(0, 0 , m_buf), SUCCESS);
+  EXPECT_NE(exchange_service.SetTransId(0, 0, m_buf), SUCCESS);
 
   HeterogeneousExchangeService exchange_service_new;
   // data_flag with out custom trans id, transId increase auto
   msg_info.data_flag = 0;
   msg_info.trans_id = 100;
   EXPECT_EQ(exchange_service_new.InitHeadInfo(control_info, m_buf), SUCCESS);
-  EXPECT_EQ(exchange_service_new.SetTransId(0, 0 , m_buf), SUCCESS);
+  EXPECT_EQ(exchange_service_new.SetTransId(0, 0, m_buf), SUCCESS);
   EXPECT_EQ(exchange_service_new.CheckResult(m_buf, control_info_ret), SUCCESS);
   EXPECT_EQ(msg_info_ret.trans_id, 1);
 
@@ -429,4 +421,4 @@ TEST_F(HeterogeneousExchangeServiceTest, MultiThreadCopy_big_memory) {
   EXPECT_EQ(exchange_service.MultiThreadCopy(dst.get(), size, src.get(), size), SUCCESS);
   EXPECT_EQ(memcmp(src.get(), dst.get(), size), 0);
 }
-}  // namesapce ge
+}  // namespace ge

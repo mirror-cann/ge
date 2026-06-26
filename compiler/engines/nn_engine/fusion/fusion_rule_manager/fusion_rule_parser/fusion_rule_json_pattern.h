@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -43,7 +43,7 @@ struct FusionRuleJsonStruct {
 };
 
 /** @brief Json file parse methods, parse json type fusion rule to c++ type,
-*        doing both json syntax check, and fusion rule format check */
+ *        doing both json syntax check, and fusion rule format check */
 class FusionRuleJsonPattern {
  public:
   FusionRuleJsonPattern()
@@ -59,15 +59,25 @@ class FusionRuleJsonPattern {
 
   Status ParseToJsonPattern(const nlohmann::json &json_object);
 
-  std::string GetName() const { return name_; }
+  std::string GetName() const {
+    return name_;
+  }
 
-  const std::vector<FusionRuleJsonOuterPtr> &GetInputInfos() const { return input_infos_; }
+  const std::vector<FusionRuleJsonOuterPtr> &GetInputInfos() const {
+    return input_infos_;
+  }
 
-  const std::vector<FusionRuleJsonOuterPtr> &GetOutputInfos() const { return output_infos_; }
+  const std::vector<FusionRuleJsonOuterPtr> &GetOutputInfos() const {
+    return output_infos_;
+  }
 
-  FusionRuleJsonGraphPtr GetOriginGraph() { return origin_graph_; }
+  FusionRuleJsonGraphPtr GetOriginGraph() {
+    return origin_graph_;
+  }
 
-  FusionRuleJsonGraphPtr GetFusionGraph() { return fusion_graph_; }
+  FusionRuleJsonGraphPtr GetFusionGraph() {
+    return fusion_graph_;
+  }
 
  private:
   /*
@@ -125,13 +135,21 @@ class FusionRuleJsonGraph {
    */
   Status GatherNode(map<string, vector<string>> &node_map);
 
-  bool HasAttrs() const { return has_attrs_; }
+  bool HasAttrs() const {
+    return has_attrs_;
+  }
 
-  const std::vector<FusionRuleJsonNodePtr> &GetNodes() const { return nodes_; }
+  const std::vector<FusionRuleJsonNodePtr> &GetNodes() const {
+    return nodes_;
+  }
 
-  const std::vector<FusionRuleJsonEdgePtr> &GetEdges() const { return edges_; }
+  const std::vector<FusionRuleJsonEdgePtr> &GetEdges() const {
+    return edges_;
+  }
 
-  const std::vector<AttrAssignmentExpressionPtr> &GetAttrAssigns() const { return attr_assigns_; }
+  const std::vector<AttrAssignmentExpressionPtr> &GetAttrAssigns() const {
+    return attr_assigns_;
+  }
 
  private:
   const std::string NODES;
@@ -162,9 +180,13 @@ class FusionRuleJsonEdge {
 
   Status ParseJson(const nlohmann::json &json_object);
 
-  FusionRuleJsonAnchorPtr GetSrc() { return src_; }
+  FusionRuleJsonAnchorPtr GetSrc() {
+    return src_;
+  }
 
-  FusionRuleJsonAnchorPtr GetDst() { return dst_; }
+  FusionRuleJsonAnchorPtr GetDst() {
+    return dst_;
+  }
 
  private:
   const std::string SRC;
@@ -190,9 +212,13 @@ class FusionRuleJsonNode {
 
   Status ParseJson(const nlohmann::json &json_object);
 
-  std::string GetName() { return name_; }
+  std::string GetName() {
+    return name_;
+  }
 
-  const std::vector<std::string> &GetTypes() const { return types_; }
+  const std::vector<std::string> &GetTypes() const {
+    return types_;
+  }
 
  private:
   const std::string NAME;
@@ -216,13 +242,21 @@ class FusionRuleJsonOuter {
    */
   Status ParseToJsonOuter(const nlohmann::json &json_object);
 
-  bool HasSrc() const { return has_src_; }
+  bool HasSrc() const {
+    return has_src_;
+  }
 
-  int GetSrcIndex() const { return src_index_; }
+  int GetSrcIndex() const {
+    return src_index_;
+  }
 
-  std::string GetSrcNode() const { return src_node_; }
+  std::string GetSrcNode() const {
+    return src_node_;
+  }
 
-  std::string GetName() const { return name_; }
+  std::string GetName() const {
+    return name_;
+  }
 
  private:
   const std::string NAME;
@@ -246,13 +280,21 @@ class FusionRuleJsonAnchor {
    */
   Status ParseToJsonAnchor(const nlohmann::json &json_object);
 
-  bool HasIndex() const { return has_index_; }
+  bool HasIndex() const {
+    return has_index_;
+  }
 
-  int GetSrcIndex() const { return src_index_; }
+  int GetSrcIndex() const {
+    return src_index_;
+  }
 
-  std::string GetSrcNode() { return src_node_; }
+  std::string GetSrcNode() {
+    return src_node_;
+  }
 
-  std::string GetName() { return name_; }
+  std::string GetName() {
+    return name_;
+  }
 
  private:
   bool has_index_;

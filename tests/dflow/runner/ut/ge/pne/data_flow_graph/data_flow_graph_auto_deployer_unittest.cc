@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -233,14 +233,13 @@ ComputeGraphPtr BuildFlowGraphWithTwoGraphPoints() {
   return root_graph;
 }
 
-
 }  // namespace
 
 class DataFlowGraphAutoDeployerTest : public Test {
  protected:
   void SetUp() {
     std::string cmd = "mkdir -p temp; cd temp; touch libtest.so";
-    (void) system(cmd.c_str());
+    (void)system(cmd.c_str());
     std::ofstream cmakefile("./temp/CMakeLists.txt");
     {
       cmakefile << "cmake_minimum_required(VERSION 3.5)\n";
@@ -259,9 +258,9 @@ class DataFlowGraphAutoDeployerTest : public Test {
 
   void TearDown() {
     std::string cmd = "rm -rf temp";
-    (void) system(cmd.c_str());
+    (void)system(cmd.c_str());
     cmd = "rm -rf ./pp0_config.json";
-    (void) system(cmd.c_str());
+    (void)system(cmd.c_str());
   }
 };
 
@@ -778,7 +777,7 @@ TEST_F(DataFlowGraphAutoDeployerTest, DataFlowGraphAutoDeployer_with_batch_deplo
   json_file.close();
   DataFlowGraph data_flow_graph(BuildFlowGraphWithOneGraphPoint());
   EXPECT_EQ(data_flow_graph.Initialize(), SUCCESS);
-  
+
   std::map<std::string, std::string> graph_options = {{"ge.experiment.data_flow_deploy_info_path", cfg_file_name}};
   GetThreadLocalContext().SetGraphOption(graph_options);
   std::string cfg_path = kDeployInfoFilePrefix + cfg_file_name;
@@ -986,10 +985,9 @@ TEST_F(DataFlowGraphAutoDeployerTest, DataFlowGraphAutoDeployer_mis_node_deploy_
   std::map<std::string, std::string> graph_options = {{"ge.experiment.data_flow_deploy_info_path", cfg_file_name}};
   GetThreadLocalContext().SetGraphOption(graph_options);
   std::string cfg_path = kDeployInfoFilePrefix + cfg_file_name;
-  EXPECT_EQ(DataFlowGraphAutoDeployer::AutoDeployDataFlowGraph(data_flow_graph,cfg_path), SUCCESS);
+  EXPECT_EQ(DataFlowGraphAutoDeployer::AutoDeployDataFlowGraph(data_flow_graph, cfg_path), SUCCESS);
   remove(cfg_file_name);
 }
-
 
 TEST_F(DataFlowGraphAutoDeployerTest, DataFlowGraphAutoDeployer_affinity_node_mis_node_deploy_info) {
   DEF_GRAPH(flow_graph) {
@@ -1471,8 +1469,8 @@ TEST_F(DataFlowGraphAutoDeployerTest, DataFlowGraphAutoDeployer_with_mem_limit) 
   {
     const auto root_graph = data_flow_graph.GetRootGraph();
     ASSERT_TRUE(root_graph != nullptr);
-    const auto &logic_dev_id_to_mem_cfg = root_graph->TryGetExtAttr("_dflow_logic_device_memory_config",
-      std::map<std::string, std::pair<uint32_t, uint32_t>>());
+    const auto &logic_dev_id_to_mem_cfg = root_graph->TryGetExtAttr(
+        "_dflow_logic_device_memory_config", std::map<std::string, std::pair<uint32_t, uint32_t>>());
     EXPECT_EQ(logic_dev_id_to_mem_cfg.size(), 5);
     const std::pair<uint32_t, uint32_t> pair1 = std::make_pair(1024, 1024);
     const std::pair<uint32_t, uint32_t> pair2 = std::make_pair(2048, 2048);

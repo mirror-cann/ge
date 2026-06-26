@@ -1,15 +1,17 @@
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 
-import os
 import logging
-import tensorflow as tf
+import os
+
 import numpy as np
+import tensorflow as tf
+
 tf.enable_resource_variables()
 logging.basicConfig(level=logging.INFO)
 
@@ -20,7 +22,7 @@ RTOL = 0.001
 
 
 def main(unused_argv):
-    custom_op_lib = tf.load_op_library(os.path.join("./outputs/libcustom_ops.so")) # 加载自定义算子库
+    custom_op_lib = tf.load_op_library(os.path.join("./outputs/libcustom_ops.so"))  # 加载自定义算子库
     # 定义输入数据
     shape_params = (8, 2048)
     dtype_params = np.float32
@@ -32,7 +34,7 @@ def main(unused_argv):
     y = tf.compat.v1.placeholder(dtype_params, shape=shape_params)
 
     tf_z = tf.math.add(x, y)
-    ac_z = custom_op_lib.add_custom(x, y)    # 调用Ascend C AddCustom自定义算子
+    ac_z = custom_op_lib.add_custom(x, y)  # 调用Ascend C AddCustom自定义算子
 
     config = tf.ConfigProto()
     custom_op = config.graph_options.rewrite_options.custom_optimizers.add()
@@ -60,5 +62,5 @@ def main(unused_argv):
         logging.info("The result of tf and ac is different.")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     tf.app.run()

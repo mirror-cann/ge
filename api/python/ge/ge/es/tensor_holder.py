@@ -3,10 +3,10 @@
 # -------------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
@@ -14,16 +14,16 @@
 """TensorHolder module for tensor operations in eager-style graph construction."""
 
 import ctypes
-from typing import List, Optional, TYPE_CHECKING, Union
-from ge._capi.pyes_graph_builder_wrapper import (
-    esb_lib,
-    EsCTensorHolderPtr,
-    get_generated_lib,
-    c_int64,
-    DEFAULT_GENERATED_LIB_NAME,
-    MATH_LIB_NAME
-)
+from typing import TYPE_CHECKING, List, Union
 
+from ge._capi.pyes_graph_builder_wrapper import (
+    DEFAULT_GENERATED_LIB_NAME,
+    MATH_LIB_NAME,
+    EsCTensorHolderPtr,
+    c_int64,
+    esb_lib,
+    get_generated_lib,
+)
 from ge.es.tensor_like import convert_to_tensor_holder
 from ge.graph.types import DataType, Format
 
@@ -35,10 +35,10 @@ if TYPE_CHECKING:
 
 class TensorHolder:
     """TensorHolder for tensor operations in eager-style graph construction.
-    
+
     This class provides a Pythonic interface for tensor operations using
     the eager-style graph builder C API.
-    
+
     The TensorHolder automatically resolves and maintains a strong reference to its
     GraphBuilder to ensure that the underlying C++ resources remain valid as long
     as the TensorHolder object exists. This prevents dangling references when the
@@ -62,10 +62,10 @@ class TensorHolder:
         raise RuntimeError("TensorHolder objects should not be created directly")
 
     @classmethod
-    def _create_from(cls, handle: EsCTensorHolderPtr, owner_builder: 'GraphBuilder') -> 'TensorHolder':
+    def _create_from(cls, handle: EsCTensorHolderPtr, owner_builder: "GraphBuilder") -> "TensorHolder":
         """Create TensorHolder object from C++ pointer. (internal use only by e.g GraphBuilder.create_input(),
          do not use this method directly)
-        
+
         Args:
             handle: C++ EsCTensorHolder object pointer.
             owner_builder: The GraphBuilder that owns this tensor.
@@ -89,13 +89,13 @@ class TensorHolder:
 
     def _check_usable(self, operation: str) -> None:
         """Check if tensor holder is usable.
-        
+
         Args:
             operation: Operation name.
         """
         self._builder._check_usable(operation)
 
-    def _validate_operation(self, other: 'TensorHolder', op_name: str) -> None:
+    def _validate_operation(self, other: "TensorHolder", op_name: str) -> None:
         """Validate operation between two tensor holders.
 
         Args:
@@ -113,21 +113,21 @@ class TensorHolder:
     @property
     def name(self) -> str:
         """Get node name.
-        
+
         Returns:
             Producer node name.
         """
         return self._get_node_snapshot().name
 
-    def set_data_type(self, data_type: DataType) -> 'TensorHolder':
+    def set_data_type(self, data_type: DataType) -> "TensorHolder":
         """Set tensor data type.
-        
+
         Args:
             data_type: Data type using DataType enum.
 
         Returns:
             TensorHolder object.
-            
+
         Raises:
             TypeError: If data_type is not a DataType enum.
             RuntimeError: If operation fails.
@@ -138,19 +138,19 @@ class TensorHolder:
             raise TypeError("Data type must be a DataType enum")
 
         if esb_lib.EsSetDataType(self._handle, ctypes.c_int(data_type.value)) != 0:
-            raise RuntimeError(f"Failed to set data type")
+            raise RuntimeError("Failed to set data type")
 
         return self
 
-    def set_format(self, format: Format) -> 'TensorHolder':
+    def set_format(self, format: Format) -> "TensorHolder":
         """Set tensor data format.
-        
+
         Args:
             format: Data format using Format enum.
 
         Returns:
             TensorHolder object.
-            
+
         Raises:
             TypeError: If format is not a Format enum.
             RuntimeError: If operation fails.
@@ -161,19 +161,19 @@ class TensorHolder:
             raise TypeError("Format must be a Format enum")
 
         if esb_lib.EsSetFormat(self._handle, ctypes.c_int(format.value)) != 0:
-            raise RuntimeError(f"Failed to set format")
+            raise RuntimeError("Failed to set format")
 
         return self
 
-    def set_shape(self, shape: List[int]) -> 'TensorHolder':
+    def set_shape(self, shape: List[int]) -> "TensorHolder":
         """Set tensor shape.
-        
+
         Args:
             shape: List of shape dimensions.
-            
+
         Returns:
             TensorHolder object.
-            
+
         Raises:
             TypeError: If shape is not a list of integers.
             RuntimeError: If operation fails.
@@ -189,18 +189,18 @@ class TensorHolder:
         dim_num = len(shape)
         shape_array = (c_int64 * dim_num)(*shape)
         if esb_lib.EsSetShape(self._handle, shape_array, c_int64(dim_num)) != 0:
-            raise RuntimeError(f"Failed to set shape")
+            raise RuntimeError("Failed to set shape")
 
         return self
 
     def _get_math_operator_lib(self):
         """Get library containing math operators (Add/Sub/Mul/Div).
-        
+
         Tries libes_math.so first, falls back to default library if unavailable.
-        
+
         Returns:
             ctypes library object containing EsAdd/EsSub/EsMul/EsDiv.
-            
+
         Raises:
             RuntimeError: If neither library is available.
         """
@@ -216,41 +216,41 @@ class TensorHolder:
                 ) from exc
 
     # Operator overloading support
-    def __add__(self, other: Union['TensorHolder', 'TensorLike']) -> 'TensorHolder':
+    def __add__(self, other: Union["TensorHolder", "TensorLike"]) -> "TensorHolder":
         """Support + operator."""
         return self.add(other)
 
-    def __sub__(self, other: Union['TensorHolder', 'TensorLike']) -> 'TensorHolder':
+    def __sub__(self, other: Union["TensorHolder", "TensorLike"]) -> "TensorHolder":
         """Support - operator."""
         return self.sub(other)
 
-    def __mul__(self, other: Union['TensorHolder', 'TensorLike']) -> 'TensorHolder':
+    def __mul__(self, other: Union["TensorHolder", "TensorLike"]) -> "TensorHolder":
         """Support * operator."""
         return self.mul(other)
 
-    def __truediv__(self, other: Union['TensorHolder', 'TensorLike']) -> 'TensorHolder':
+    def __truediv__(self, other: Union["TensorHolder", "TensorLike"]) -> "TensorHolder":
         """Support / operator."""
         return self.div(other)
 
-    def __radd__(self, other: Union['TensorHolder', 'TensorLike']) -> 'TensorHolder':
+    def __radd__(self, other: Union["TensorHolder", "TensorLike"]) -> "TensorHolder":
         """Support right addition operator."""
         return self.add(other)
 
-    def __rsub__(self, other: Union['TensorHolder', 'TensorLike']) -> 'TensorHolder':
+    def __rsub__(self, other: Union["TensorHolder", "TensorLike"]) -> "TensorHolder":
         """Support right subtraction operator."""
         other = convert_to_tensor_holder(other, self._builder)
         return other.sub(self)
 
-    def __rmul__(self, other: Union['TensorHolder', 'TensorLike']) -> 'TensorHolder':
+    def __rmul__(self, other: Union["TensorHolder", "TensorLike"]) -> "TensorHolder":
         """Support right multiplication operator."""
         return self.mul(other)
 
-    def __rtruediv__(self, other: Union['TensorHolder', 'TensorLike']) -> 'TensorHolder':
+    def __rtruediv__(self, other: Union["TensorHolder", "TensorLike"]) -> "TensorHolder":
         """Support right division operator."""
         other = convert_to_tensor_holder(other, self._builder)
         return other.div(self)
 
-    def add(self, other: Union['TensorHolder', 'TensorLike']) -> 'TensorHolder':
+    def add(self, other: Union["TensorHolder", "TensorLike"]) -> "TensorHolder":
         """Add two tensors.
 
         Args:
@@ -274,7 +274,7 @@ class TensorHolder:
 
         return self._builder._apply_scope_infos_to_node(TensorHolder._create_from(result_handle, self._builder))
 
-    def sub(self, other: Union['TensorHolder', 'TensorLike']) -> 'TensorHolder':
+    def sub(self, other: Union["TensorHolder", "TensorLike"]) -> "TensorHolder":
         """Subtract two tensors.
 
         Args:
@@ -298,7 +298,7 @@ class TensorHolder:
 
         return self._builder._apply_scope_infos_to_node(TensorHolder._create_from(result_handle, self._builder))
 
-    def mul(self, other: Union['TensorHolder', 'TensorLike']) -> 'TensorHolder':
+    def mul(self, other: Union["TensorHolder", "TensorLike"]) -> "TensorHolder":
         """Multiply two tensors.
 
         Args:
@@ -322,7 +322,7 @@ class TensorHolder:
 
         return self._builder._apply_scope_infos_to_node(TensorHolder._create_from(result_handle, self._builder))
 
-    def div(self, other: Union['TensorHolder', 'TensorLike']) -> 'TensorHolder':
+    def div(self, other: Union["TensorHolder", "TensorLike"]) -> "TensorHolder":
         """Divide two tensors.
 
         Args:
@@ -349,13 +349,13 @@ class TensorHolder:
     def get_owner_builder(self):
         return self._builder
 
-    def _get_node_snapshot(self) -> 'Node':
+    def _get_node_snapshot(self) -> "Node":
         """Get a snapshot of the producer node of this tensor. (internal use by internal api)
-        
+
         Returns:
             Node object representing the producer node snapshot.
             The returned Node object is a snapshot and does not own the underlying pointer.
-            
+
         Raises:
             RuntimeError: If getting node snapshot fails.
         """
@@ -366,4 +366,3 @@ class TensorHolder:
             raise RuntimeError("Failed to get producer node")
 
         return Node._create_from(ctypes.c_void_p(node_ptr), owns_handle=False)
-

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -16,8 +16,7 @@
 #include "slice/data_slice_adapter.h"
 
 namespace ge {
-Status DataSliceHelper::SetInputSlice(OpDescPtr &op, const AxisTypeInfo &slice_info, DataSliceType &input_slice)
-{
+Status DataSliceHelper::SetInputSlice(OpDescPtr &op, const AxisTypeInfo &slice_info, DataSliceType &input_slice) {
   if (input_slice.size() == slice_info.GetRelateInputs().size()) {
     for (size_t tensor_slice_idx = 0; tensor_slice_idx < input_slice.size(); tensor_slice_idx++) {
       int64_t tensor_idx = slice_info.GetRelateInputs()[tensor_slice_idx].first;
@@ -34,8 +33,7 @@ Status DataSliceHelper::SetInputSlice(OpDescPtr &op, const AxisTypeInfo &slice_i
 }
 
 // infer input slice by output slice
-Status DataSliceHelper::InferAxisSlice(OpDescPtr &op, const AxisTypeInfo &slice_info)
-{
+Status DataSliceHelper::InferAxisSlice(OpDescPtr &op, const AxisTypeInfo &slice_info) {
   DataSliceType output_slice;
   for (const auto &tensor_slice : slice_info.GetRelateOutputs()) {
     GeTensorDesc tensor_desc = op->GetOutputDesc(tensor_slice.first);
@@ -49,8 +47,8 @@ Status DataSliceHelper::InferAxisSlice(OpDescPtr &op, const AxisTypeInfo &slice_
     GELOGD("[DataSlice][Status] special node %s start infer axis slice", op->GetName().c_str());
     DataSliceType input_slice;
     Operator op_proxy = OpDescUtils::CreateOperatorFromOpDesc(op);
-    const graphStatus ret = static_cast<graphStatus>(node_slice_infer_ptr(op_proxy,
-        slice_info, output_slice, input_slice));
+    const graphStatus ret =
+        static_cast<graphStatus>(node_slice_infer_ptr(op_proxy, slice_info, output_slice, input_slice));
     if (ret != GRAPH_SUCCESS) {
       GELOGE(FAILED, "[DataSlice][Status]special node %s infer axis slice failed", op->GetName().c_str());
       return FAILED;
@@ -82,8 +80,7 @@ Status DataSliceHelper::InferAxisSlice(OpDescPtr &op, const AxisTypeInfo &slice_
 }
 
 // get op axis slice info
-Status DataSliceHelper::GetSliceInfo(OpDescPtr &op, std::vector<AxisTypeInfo> &axis_type_vec)
-{
+Status DataSliceHelper::GetSliceInfo(OpDescPtr &op, std::vector<AxisTypeInfo> &axis_type_vec) {
   // call register to get axis slice info
   auto axis_slice_info_ptr = OperatorFactoryImpl::GetInferAxisTypeInfoFunc(op->GetType());
   if (axis_slice_info_ptr == nullptr) {
@@ -101,8 +98,7 @@ Status DataSliceHelper::GetSliceInfo(OpDescPtr &op, std::vector<AxisTypeInfo> &a
   return SUCCESS;
 }
 
-Status DataSliceHelper::GetSliceInfo(const NodePtr &node, std::vector<AxisTypeInfo> &axis_type_vec)
-{
+Status DataSliceHelper::GetSliceInfo(const NodePtr &node, std::vector<AxisTypeInfo> &axis_type_vec) {
   // call register to get axis slice info
   auto axis_slice_info_ptr = OperatorFactoryImpl::GetInferAxisTypeInfoFunc(node->GetType());
   if (axis_slice_info_ptr == nullptr) {
@@ -121,8 +117,7 @@ Status DataSliceHelper::GetSliceInfo(const NodePtr &node, std::vector<AxisTypeIn
 }
 
 Status DataSliceHelper::InferDavinciSpecialOpSlice(OpDescPtr &op, const AxisTypeInfo &slice_info,
-    const InferAxisSliceFunc &node_slice_infer_ptr)
-{
+                                                   const InferAxisSliceFunc &node_slice_infer_ptr) {
   Operator op_proxy;
   DataSliceType ori_input_slice;
   DataSliceType ori_output_slice;
@@ -138,8 +133,8 @@ Status DataSliceHelper::InferDavinciSpecialOpSlice(OpDescPtr &op, const AxisType
     DataSliceAdapter::SetOriOpInfo(op, cache_input_info, cache_output_info);
     op_proxy = OpDescUtils::CreateOperatorFromOpDesc(op);
     GELOGD("[DataSlice][Status] special node %s start infer axis slice", op->GetName().c_str());
-    const graphStatus ret = static_cast<graphStatus>(node_slice_infer_ptr(op_proxy, tmp_axis_type_info,
-        ori_output_slice, ori_input_slice));
+    const graphStatus ret =
+        static_cast<graphStatus>(node_slice_infer_ptr(op_proxy, tmp_axis_type_info, ori_output_slice, ori_input_slice));
     DataSliceAdapter::SetCurOpInfo(op, cache_input_info, cache_output_info);
     if (ret != GRAPH_SUCCESS) {
       GELOGE(FAILED, "[DataSlice][Status]special node %s infer axis slice failed", op->GetName().c_str());
@@ -157,13 +152,12 @@ Status DataSliceHelper::InferDavinciSpecialOpSlice(OpDescPtr &op, const AxisType
   }
   if (SetInputSlice(op, slice_info, cur_input_slice) != SUCCESS) {
     GELOGE(FAILED, "[DataSlice][Status]special node %s set axis slice failed", op->GetName().c_str());
-      return FAILED;
+    return FAILED;
   }
   return SUCCESS;
 }
 
-Status DataSliceHelper::InferDavinciCommonOpSlice(OpDescPtr &op, const AxisTypeInfo &slice_info)
-{
+Status DataSliceHelper::InferDavinciCommonOpSlice(OpDescPtr &op, const AxisTypeInfo &slice_info) {
   auto data_slice_infer_ptr = DataSliceFactory::GetInstance()->GetClassByAxisType(slice_info.GetAxisType());
   if (data_slice_infer_ptr == nullptr) {
     return FAILED;
@@ -207,8 +201,7 @@ Status DataSliceHelper::InferDavinciCommonOpSlice(OpDescPtr &op, const AxisTypeI
 }
 
 // infer input slice by output slice with format transformation
-Status DataSliceHelper::InferDavinciAxisSlice(OpDescPtr &op, const AxisTypeInfo &slice_info)
-{
+Status DataSliceHelper::InferDavinciAxisSlice(OpDescPtr &op, const AxisTypeInfo &slice_info) {
   DataSliceAdapter::PrintOp(op);
   DataSliceAdapter::PrintAxis(op, {slice_info}, "current", true);
 
@@ -220,9 +213,8 @@ Status DataSliceHelper::InferDavinciAxisSlice(OpDescPtr &op, const AxisTypeInfo 
   return InferDavinciCommonOpSlice(op, slice_info);
 }
 
-// get axis_type_info with currnet format
-Status DataSliceHelper::GetDavinciSliceInfo(const NodePtr &node, std::vector<AxisTypeInfo> &axis_type_vec)
-{
+// get axis_type_info with current format
+Status DataSliceHelper::GetDavinciSliceInfo(const NodePtr &node, std::vector<AxisTypeInfo> &axis_type_vec) {
   // call register to get axis slice info
   auto axis_slice_info_ptr = OperatorFactoryImpl::GetInferAxisTypeInfoFunc(node->GetType());
   if (axis_slice_info_ptr == nullptr) {
@@ -257,4 +249,4 @@ Status DataSliceHelper::GetDavinciSliceInfo(const NodePtr &node, std::vector<Axi
   DataSliceAdapter::PrintAxis(op, axis_type_vec, "current", false);
   return SUCCESS;
 }
-}
+}  // namespace ge

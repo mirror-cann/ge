@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,14 +19,14 @@
 #include "graph/def_types.h"
 
 using namespace ge::parser;
-using domi::caffe::BlobProto;
 using domi::CAFFE;
+using domi::caffe::BlobProto;
 
 namespace ge {
 namespace {
-  const char *kNetOutput = "NetOutput";
-  const char *kDropout = "Dropout";
-}
+const char *kNetOutput = "NetOutput";
+const char *kDropout = "Dropout";
+}  // namespace
 Status CaffeOpParser::ParseParams(const Message *op_src, ge::OpDescPtr &op_dest) {
   (void)op_src;
   (void)op_dest;
@@ -71,14 +71,15 @@ Status CaffeOpParser::ConvertWeight(const BlobProto &proto, const string &lay_na
   for (size_t i = 0; i < shape.GetDimNum(); ++i) {
     int32_t dim = static_cast<int32_t>(shape.GetDim(i));
     if (dim <= 0) {
-      REPORT_INNER_ERR_MSG("E19999", "Convert weight fail, dim:%d of layer:%s <=0, check invalid", dim, lay_name.c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Convert weight fail, dim:%d of layer:%s <=0, check invalid", dim,
+                           lay_name.c_str());
       GELOGE(FAILED, "[Check][Size]Convert weight fail, dim:%d of layer:%s <=0, check invalid", dim, lay_name.c_str());
       return FAILED;
     }
 
     if (dim >= INT32_MAX / count) {
       REPORT_INNER_ERR_MSG("E19999", "Convert weight fail, shape:%s of layer:%s will overflow after multi",
-                         shape.ToString().c_str(), lay_name.c_str());
+                           shape.ToString().c_str(), lay_name.c_str());
       GELOGE(FAILED, "[Check][Size]Convert weight fail, Blob size exceeds INT64_MAX, dim:%d, count:%d, layer name:%s",
              dim, count, lay_name.c_str());
       return FAILED;
@@ -93,11 +94,14 @@ Status CaffeOpParser::CheckSizeInvalid(const string &lay_name, const int32_t blo
   if (blob_size == size) {
     return SUCCESS;
   }
-  REPORT_PREDEFINED_ERR_MSG("E11033", std::vector<const char *>({"opname", "blobsize", "reason"}),
-                            std::vector<const char *>({lay_name.c_str(), std::to_string(blob_size).c_str(),
-                                                      ("It does not match shape size " + std::to_string(size)).c_str()}));
-  GELOGE(FAILED, "[Check][Param]Convert weight fail, Blob size does not match shape size, "
-         "shape size:%d, blob size:%d, layer name:%s", size, blob_size, lay_name.c_str());
+  REPORT_PREDEFINED_ERR_MSG(
+      "E11033", std::vector<const char *>({"opname", "blobsize", "reason"}),
+      std::vector<const char *>({lay_name.c_str(), std::to_string(blob_size).c_str(),
+                                 ("It does not match shape size " + std::to_string(size)).c_str()}));
+  GELOGE(FAILED,
+         "[Check][Param]Convert weight fail, Blob size does not match shape size, "
+         "shape size:%d, blob size:%d, layer name:%s",
+         size, blob_size, lay_name.c_str());
   return FAILED;
 }
 
@@ -120,8 +124,9 @@ Status CaffeOpParser::ParseWeightType(const BlobProto &proto, const ge::GeShape 
     GE_CHK_STATUS_RET_NOLOG(CheckSizeInvalid(lay_name, static_cast<int32_t>(proto.int8_data().length()), size));
     const char *data_ptr = proto.int8_data().data();
     GE_CHECK_NOTNULL(data_ptr);
-    GE_IF_BOOL_EXEC(weight->SetData(PtrToPtr<const char, const uint8_t>(data_ptr), size * sizeof(int8_t)) !=
-                    ge::GRAPH_SUCCESS, GELOGW("SetData failed for GeTensor."););  // no need to return
+    GE_IF_BOOL_EXEC(
+        weight->SetData(PtrToPtr<const char, const uint8_t>(data_ptr), size * sizeof(int8_t)) != ge::GRAPH_SUCCESS,
+        GELOGW("SetData failed for GeTensor."););  // no need to return
     dtype = ge::DT_INT8;
   } else if (proto.int32_data_size() > 0) {
     GE_CHK_STATUS_RET_NOLOG(CheckSizeInvalid(lay_name, static_cast<int32_t>(proto.int32_data_size()), size));
@@ -131,7 +136,8 @@ Status CaffeOpParser::ParseWeightType(const BlobProto &proto, const ge::GeShape 
       int32_weight_buf[i] = proto.int32_data(i);
     }
     GE_IF_BOOL_EXEC(weight->SetData(PtrToPtr<int32_t, uint8_t>(int32_weight_buf.get()), size * sizeof(int32_t)) !=
-                    ge::GRAPH_SUCCESS, GELOGW("SetData failed for GeTensor."););  // no need to return
+                        ge::GRAPH_SUCCESS,
+                    GELOGW("SetData failed for GeTensor."););  // no need to return
     dtype = ge::DT_INT32;
   } else if (proto.uint64_data_size() > 0) {
     GE_CHK_STATUS_RET_NOLOG(CheckSizeInvalid(lay_name, static_cast<int32_t>(proto.uint64_data_size()), size));
@@ -141,15 +147,17 @@ Status CaffeOpParser::ParseWeightType(const BlobProto &proto, const ge::GeShape 
       uint64_weight_buf[i] = proto.uint64_data(i);
     }
     GE_IF_BOOL_EXEC(weight->SetData(PtrToPtr<uint64_t, uint8_t>(uint64_weight_buf.get()), size * sizeof(uint64_t)) !=
-                    ge::GRAPH_SUCCESS, GELOGW("SetData failed for GeTensor."););  // no need to return
+                        ge::GRAPH_SUCCESS,
+                    GELOGW("SetData failed for GeTensor."););  // no need to return
     dtype = ge::DT_UINT64;
   } else {
     // Convert by float type
     GE_CHK_STATUS_RET_NOLOG(CheckSizeInvalid(lay_name, static_cast<int32_t>(proto.data_size()), size));
     const float *data_ptr = proto.data().data();
     GE_CHECK_NOTNULL(data_ptr);
-    GE_IF_BOOL_EXEC(weight->SetData(PtrToPtr<const float, const uint8_t>(data_ptr), size * sizeof(float)) !=
-                    ge::GRAPH_SUCCESS, GELOGW("SetData failed for GeTensor."););  // no need to return
+    GE_IF_BOOL_EXEC(
+        weight->SetData(PtrToPtr<const float, const uint8_t>(data_ptr), size * sizeof(float)) != ge::GRAPH_SUCCESS,
+        GELOGW("SetData failed for GeTensor."););  // no need to return
   }
   ge::GeTensorDesc weight_desc = ge::GeTensorDesc();
   weight_desc.Update(shape, ge::FORMAT_NCHW, dtype);

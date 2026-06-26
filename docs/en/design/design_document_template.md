@@ -244,7 +244,7 @@ Key focus whether old om can execute under new version, new om executing under o
 
 **Case types: UT, ST, BBIT**
 
-      
+
 
 | **Test Category** | **Key Test Items** | **Test Method** | **Case Type** |
 | ------------ | -------------- | ------------ | ------------ |

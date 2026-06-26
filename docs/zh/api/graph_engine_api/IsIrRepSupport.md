@@ -90,4 +90,3 @@ bool IsIrRepSupport(const char *rep)
 #include "ge/ge_api_v2.h"
 bool existingFeature = IsIrRepSupport("_inference_rule");
 ```
-

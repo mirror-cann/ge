@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,15 +25,13 @@ using namespace std;
 using namespace fe;
 using namespace ge;
 
-
 static const std::string OPDESC_SRC_NAME = "opdesc_src_name";
 static const std::string OPDESC_DST_NAME = "opdesc_dst_name";
 
 typedef struct {
-    string targetname;
-    uint32_t index;
+  string targetname;
+  uint32_t index;
 } desc_info;
-
 
 void CreateModelGraph(ComputeGraphPtr model_graph, vector<OpDescPtr> &op_list, map<string, vector<desc_info>> &src_map,
                       map<string, vector<desc_info>> &dst_map);
@@ -49,7 +47,7 @@ std::vector<BufferFusionInfo> SortedBufferFusionFun();
 #ifndef DAVINCI_LITE
 void SetTvmType(OpDescPtr opdef);
 #endif
-//void AllocScopeId(OpDescPtr opdef, uint32_t scopeid);
+// void AllocScopeId(OpDescPtr opdef, uint32_t scopeid);
 
 void SetPattern(OpDescPtr opdef, string optype);
 
@@ -62,7 +60,5 @@ void SetAICoreOp(OpDescPtr opdef);
 #endif
 
 void PrintGraph(ComputeGraphPtr graph);
-
-
 
 #endif

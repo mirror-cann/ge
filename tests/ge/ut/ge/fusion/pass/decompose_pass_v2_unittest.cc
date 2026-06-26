@@ -36,8 +36,12 @@ class ProbeDecomposeV2Pass : public DecomposePassV2 {
 
   explicit ProbeDecomposeV2Pass(const std::vector<AscendString> &op_types) : DecomposePassV2(op_types) {}
 
-  void SetMeetRequirementsProbe(MeetReqProbe probe) { meet_req_probe_ = std::move(probe); }
-  void SetReplacementProbe(ReplacementProbe probe) { replacement_probe_ = std::move(probe); }
+  void SetMeetRequirementsProbe(MeetReqProbe probe) {
+    meet_req_probe_ = std::move(probe);
+  }
+  void SetReplacementProbe(ReplacementProbe probe) {
+    replacement_probe_ = std::move(probe);
+  }
 
  protected:
   bool MeetRequirements(const GNode &matched_node, CustomPassContext &pass_context) override {
@@ -72,7 +76,7 @@ GraphPtr MakeTargetGraph() {
   auto target_compute_graph = gert::ShareGraph::LstmpGraph();
   return GraphUtilsEx::CreateGraphPtrFromComputeGraph(target_compute_graph);
 }
-} // namespace
+}  // namespace
 
 TEST_F(UtestDecomposePassV2, RunSuccess_BasicV2Flow) {
   auto target_graph = MakeTargetGraph();
@@ -185,5 +189,5 @@ TEST_F(UtestDecomposePassV2, NoMatch_ReturnsNotChanged) {
   EXPECT_EQ(pass.Run(target_graph, context), NOT_CHANGED);
   EXPECT_FALSE(any_hook_invoked);
 }
-} // namespace fusion
-} // namespace ge
+}  // namespace fusion
+}  // namespace ge

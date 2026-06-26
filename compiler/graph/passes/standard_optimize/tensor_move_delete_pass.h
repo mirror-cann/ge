@@ -1,6 +1,6 @@
-/* Copyright (c) 2026 Huawei Technologies Co., Ltd.
+/* Copyright (c) 2025 Huawei Technologies Co., Ltd.
  * This file is a part of the CANN Open Software.
- * Licensed under CANN Open Software License Agreement Version 1.0 (the "License").
+ * Licensed under CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
  * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
@@ -42,10 +42,11 @@ namespace ge {
  * 【典型优化场景】
  * 1. 计算节点直连: Relu -> TensorMove -> NetOutput  ==>  Relu -> NetOutput
  * 2. 零拷贝输出: Data -> TensorMove -> NetOutput (需配置内存复用)  ==>  Data -> NetOutput
- * 3. 跨子图优化: Root_Data -> SubGraph(Data->TensorMove->NetOutput)(需配置内存复用) -> Root_NetOutput ==> 删除TensorMove
+ * 3. 跨子图优化: Root_Data -> SubGraph(Data->TensorMove->NetOutput)(需配置内存复用) -> Root_NetOutput ==>
+ * 删除TensorMove
  */
-class TensorMoveDeletePass : public BaseNodePass  {
-  public:
+class TensorMoveDeletePass : public BaseNodePass {
+ public:
   TensorMoveDeletePass() = default;
   ~TensorMoveDeletePass() override = default;
 
@@ -58,7 +59,7 @@ class TensorMoveDeletePass : public BaseNodePass  {
 
   Status Run(NodePtr &node) override;
 
-  private:
+ private:
   AnchorToSymbol anchor_to_symbol_;
   SymbolToAnchors symbol_to_anchors_;
   bool has_symbol_table_ = false;
@@ -66,4 +67,3 @@ class TensorMoveDeletePass : public BaseNodePass  {
 }  // namespace ge
 
 #endif  // GE_GRAPH_PASSES_TENSOR_MOVE_DELETE_PASS_H_
-

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -67,8 +67,7 @@ ge::graphStatus CreateVariableOutputs(const ge::FastNode *node, KernelContext *c
   GE_ASSERT_NOTNULL(extend_context);
   auto output_desc = extend_context->GetOutputDesc(0UL);
   GE_ASSERT_NOTNULL(output_desc);
-  auto shape_tensor = new (std::nothrow) Tensor(StorageShape(),
-      output_desc->GetFormat(), output_desc->GetDataType());
+  auto shape_tensor = new (std::nothrow) Tensor(StorageShape(), output_desc->GetFormat(), output_desc->GetDataType());
   shape_chain->SetWithDefaultDeleter(shape_tensor);
 
   auto tensor_data_chain = context->GetOutput(static_cast<size_t>(SplitVariableOutputs::kTensorData));

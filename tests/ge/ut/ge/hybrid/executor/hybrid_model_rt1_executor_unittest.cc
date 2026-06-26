@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,8 +34,8 @@ size_t AlignSize(size_t data_size) {
   return (data_size + 32 - 1) / 32 * 32;
 }
 
-std::unique_ptr<uint8_t []> CreateBuffer(size_t size) {
-  std::unique_ptr<uint8_t []> buffer(new uint8_t[size]);
+std::unique_ptr<uint8_t[]> CreateBuffer(size_t size) {
+  std::unique_ptr<uint8_t[]> buffer(new uint8_t[size]);
   int32_t *data = reinterpret_cast<int32_t *>(buffer.get());
   for (int32_t i = 0; i < static_cast<int32_t>(size / sizeof(int32_t)); i++) {
     data[i] = i;
@@ -54,15 +54,13 @@ bool CheckData(const void *buffer, size_t size) {
   return true;
 }
 
-gert::Tensor CreateGertTensor(const std::initializer_list<int64_t> &dims, Format format, DataType type,
-  void *buffer, size_t size) {
-  auto tensor = gert::Tensor({dims, dims},
-                 {format, format, {}},
-                 gert::kOnDeviceHbm, type, buffer);
+gert::Tensor CreateGertTensor(const std::initializer_list<int64_t> &dims, Format format, DataType type, void *buffer,
+                              size_t size) {
+  auto tensor = gert::Tensor({dims, dims}, {format, format, {}}, gert::kOnDeviceHbm, type, buffer);
   tensor.SetSize(size);
   return tensor;
 }
-}
+}  // namespace
 using namespace hybrid;
 class MockMalloc : public RuntimeStub {
  public:
@@ -89,7 +87,7 @@ class MockAclMalloc : public AclRuntimeStub {
 
   aclError aclrtFree(void *devPtr) override {
     malloc_flag -= 1;
-    delete[](uint8_t *) devPtr;
+    delete[] (uint8_t *)devPtr;
     return ACL_ERROR_NONE;
   }
 
@@ -102,7 +100,7 @@ class UtestHybridRt1Executor : public testing::Test {
     unsetenv("ENABLE_RUNTIME_V2");
   }
 
-  void TearDown() { }
+  void TearDown() {}
 };
 
 TEST_F(UtestHybridRt1Executor, Test_execute_for_singleop) {
@@ -222,11 +220,11 @@ TEST_F(UtestHybridRt1Executor, Test_prepare_dynamic_input_success) {
   tensor_desc->SetDataType(DT_INT32);
   executor.index_to_tensor_desc_[0] = tensor_desc;
   int64_t tensor_size = 0L;
-  EXPECT_EQ(executor.PrepareDynamicInput(args, 0, shape,
-            DataBuffer(data_buf.get(), 3072, false), tensor_size), SUCCESS);
+  EXPECT_EQ(executor.PrepareDynamicInput(args, 0, shape, DataBuffer(data_buf.get(), 3072, false), tensor_size),
+            SUCCESS);
   const GeShape shape1({11, 16, 16, 3});
-  EXPECT_EQ(executor.PrepareDynamicInput(args, 0, shape1,
-            DataBuffer(data_buf.get(), 3072, false), tensor_size), PARAM_INVALID);
+  EXPECT_EQ(executor.PrepareDynamicInput(args, 0, shape1, DataBuffer(data_buf.get(), 3072, false), tensor_size),
+            PARAM_INVALID);
 }
 
 TEST_F(UtestHybridRt1Executor, Test_copy_input_success) {
@@ -348,9 +346,9 @@ TEST_F(UtestHybridRt1Executor, CopyOutputs_success) {
 
 /*
  * 背景：
- * 当用户调用RunGraph(uint32_t graph_id, const std::vector<gert::Tensor> &inputs, std::vector<gert::Tensor> &outputs)时，
- * 最终执行器产生的输出是device上的gert::Tensor inner_outputs, 会调用CopyOutputs拷贝到host上，该host上的gert::Tensor就是要返回给
- * 用户的。
+ * 当用户调用RunGraph(uint32_t graph_id, const std::vector<gert::Tensor> &inputs, std::vector<gert::Tensor>
+ * &outputs)时， 最终执行器产生的输出是device上的gert::Tensor inner_outputs,
+ * 会调用CopyOutputs拷贝到host上，该host上的gert::Tensor就是要返回给 用户的。
  *
  * 步骤：
  * 1. inner_outputs 模拟执行器申请的device上的gert::Tensor，通过CopyOutputs获得 user_outputs.
@@ -403,7 +401,8 @@ TEST_F(UtestHybridRt1Executor, CopyOutputsGertTensor_Success_CheckValueAndTestSh
   }
 
   // 测试share_from, user_outputs释放，还可以访问user_output_share
-  gert::Tensor user_output_share(user_outputs[0].GetShape(), user_outputs[0].GetFormat(), user_outputs[0].GetDataType());
+  gert::Tensor user_output_share(user_outputs[0].GetShape(), user_outputs[0].GetFormat(),
+                                 user_outputs[0].GetDataType());
   user_output_share.MutableTensorData().ShareFrom(user_outputs[0].GetTensorData());
   user_outputs.clear();
 
@@ -421,8 +420,7 @@ TEST_F(UtestHybridRt1Executor, CopyOutputsGertTensor_Success_DeviceMemory) {
 
   // 构造输出需要device内存的option
   std::map<std::string, std::string> options(
-    {{OPTION_EXEC_DYNAMIC_EXECUTE_MODE, "lazy_recompile"},
-    {OPTION_EXEC_ENABLE_COPY_OUTPUT_ADDR, "1"}});
+      {{OPTION_EXEC_DYNAMIC_EXECUTE_MODE, "lazy_recompile"}, {OPTION_EXEC_ENABLE_COPY_OUTPUT_ADDR, "1"}});
   OptionSetter temp_option(options);
 
   std::vector<gert::Tensor> inner_outputs(2);
@@ -450,8 +448,8 @@ TEST_F(UtestHybridRt1Executor, CopyOutputsGertTensor_Success_DeviceMemory) {
     EXPECT_EQ(inner_outputs[i].GetShape(), user_outputs[i].GetShape());
     EXPECT_EQ(inner_outputs[i].GetDataType(), user_outputs[i].GetDataType());
     EXPECT_EQ(inner_outputs[i].GetStorageFormat(), user_outputs[i].GetStorageFormat());
-    EXPECT_EQ(user_outputs[i].GetPlacement(), gert::TensorPlacement::kOnDeviceHbm); // 校验placement为hbm
-    EXPECT_EQ(user_outputs[i].GetAddr(), inner_outputs[i].GetAddr()); // 校验地址一致
+    EXPECT_EQ(user_outputs[i].GetPlacement(), gert::TensorPlacement::kOnDeviceHbm);  // 校验placement为hbm
+    EXPECT_EQ(user_outputs[i].GetAddr(), inner_outputs[i].GetAddr());                // 校验地址一致
   }
 }
 
@@ -482,7 +480,8 @@ TEST_F(UtestHybridRt1Executor, CopyOutputsGertTensor_Success_StringDataTypeCheck
   ASSERT_EQ(ret, SUCCESS);
   ASSERT_EQ(user_outputs.size(), inner_outputs.size());
   for (size_t i = 0; i < inner_outputs.size(); i++) {
-    EXPECT_EQ(user_outputs[i].GetSize(), aligned_size); // String类型的并没有重新计算size，而是使用执行器输出tensor的size
+    EXPECT_EQ(user_outputs[i].GetSize(),
+              aligned_size);  // String类型的并没有重新计算size，而是使用执行器输出tensor的size
     EXPECT_EQ(inner_outputs[i].GetShape(), user_outputs[i].GetShape());
     EXPECT_EQ(inner_outputs[i].GetDataType(), user_outputs[i].GetDataType());
     EXPECT_EQ(inner_outputs[i].GetStorageFormat(), user_outputs[i].GetStorageFormat());
@@ -502,7 +501,6 @@ TEST_F(UtestHybridRt1Executor, CopyOutputsGertTensor_Success_ZeroSize) {
   std::vector<gert::Tensor> inner_outputs(1);
   std::vector<gert::Tensor> user_outputs;
 
-
   const std::initializer_list<int64_t> dims = {0};
   GeShape shape(dims);
   Format format(ge::FORMAT_ND);
@@ -518,7 +516,7 @@ TEST_F(UtestHybridRt1Executor, CopyOutputsGertTensor_Success_ZeroSize) {
   ASSERT_EQ(ret, SUCCESS);
   ASSERT_EQ(user_outputs.size(), inner_outputs.size());
   for (size_t i = 0; i < inner_outputs.size(); i++) {
-    EXPECT_EQ(user_outputs[i].GetSize(), 0); // size 为0
+    EXPECT_EQ(user_outputs[i].GetSize(), 0);  // size 为0
     EXPECT_EQ(inner_outputs[i].GetShape(), user_outputs[i].GetShape());
     EXPECT_EQ(inner_outputs[i].GetDataType(), user_outputs[i].GetDataType());
     EXPECT_EQ(inner_outputs[i].GetStorageFormat(), user_outputs[i].GetStorageFormat());
@@ -607,10 +605,10 @@ TEST_F(UtestHybridRt1Executor, test_ExecuteWithStreamAsync) {
   GeModelPtr ge_sub_model = make_shared<GeModel>();
   HybridModel hybrid_model(ge_root_model);
   HybridModelRtV1Executor executor(&hybrid_model, 0, nullptr);
-  
+
   std::vector<gert::Tensor> gert_input;
   std::vector<gert::Tensor> gert_output;
   rtStream_t stream = nullptr;
   EXPECT_EQ(executor.ExecuteWithStreamAsync(gert_input, gert_output, stream), ge::FAILED);
 }
-} // namespace ge
+}  // namespace ge

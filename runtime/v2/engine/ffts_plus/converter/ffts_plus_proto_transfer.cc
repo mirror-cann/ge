@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -41,14 +41,14 @@ constexpr int32_t kAutoNonTailAivCtxIndexVal2 = 2;
 constexpr int32_t kAutoTailAivCtxIndex = 3;
 constexpr int32_t kAutoMixAicAivCtxPcNum = 4;
 
-constexpr uint32_t k1BitMask = 0x00000001U;    // 1  bit , 0000,0001
-constexpr uint32_t k2BitsMask = 0x00000003U;   // 2  bits, 0000,0011
-constexpr uint32_t k3BitsMask = 0x00000007U;   // 3  bits, 0000,0111
-constexpr uint32_t k4BitsMask = 0x0000000FU;   // 4  bits, 0000,1111
-constexpr uint32_t k5BitsMask = 0x0000001FU;   // 5  bits, 0001,1111
-constexpr uint32_t k6BitsMask = 0x0000003FU;   // 6  bits, 0011,1111
-constexpr uint32_t k7BitsMask = 0x0000007FU;   // 7  bits, 0111,1111
-constexpr uint32_t k8BitsMask = 0x000000FFU;   // 8  bits, 1111,1111
+constexpr uint32_t k1BitMask = 0x00000001U;   // 1  bit , 0000,0001
+constexpr uint32_t k2BitsMask = 0x00000003U;  // 2  bits, 0000,0011
+constexpr uint32_t k3BitsMask = 0x00000007U;  // 3  bits, 0000,0111
+constexpr uint32_t k4BitsMask = 0x0000000FU;  // 4  bits, 0000,1111
+constexpr uint32_t k5BitsMask = 0x0000001FU;  // 5  bits, 0001,1111
+constexpr uint32_t k6BitsMask = 0x0000003FU;  // 6  bits, 0011,1111
+constexpr uint32_t k7BitsMask = 0x0000007FU;  // 7  bits, 0111,1111
+constexpr uint32_t k8BitsMask = 0x000000FFU;  // 8  bits, 1111,1111
 
 constexpr uint32_t k12BitsMask = 0x00000FFFU;  // 12 bits, 0000,1111,1111,1111
 constexpr uint32_t k16BitsMask = 0x0000FFFFU;  // 16 bits, 1111,1111,1111,1111
@@ -61,39 +61,33 @@ constexpr uint32_t kCustomAicpuKernelType = 4U;
 const std::string kMixl2PrefixMixAic = "_mix_aic";
 const std::string kMixl2PrefixMixAiv = "_mix_aiv";
 
-const std::set<rtFftsPlusContextType_t> kSaveArgsCtxType = {
-    RT_CTX_TYPE_AICORE,
-    RT_CTX_TYPE_AIV,
-    RT_CTX_TYPE_MIX_AIC,
-    RT_CTX_TYPE_MIX_AIV,
-    RT_CTX_TYPE_AICPU
-};
-constexpr uint32_t kModeInArgsFirstFieldVal0 = 0U; // mode addr at args field
-constexpr uint32_t kArgsSkipFirstField = 1U; // mix ctx args first addr is not input/output addr
+const std::set<rtFftsPlusContextType_t> kSaveArgsCtxType = {RT_CTX_TYPE_AICORE, RT_CTX_TYPE_AIV, RT_CTX_TYPE_MIX_AIC,
+                                                            RT_CTX_TYPE_MIX_AIV, RT_CTX_TYPE_AICPU};
+constexpr uint32_t kModeInArgsFirstFieldVal0 = 0U;  // mode addr at args field
+constexpr uint32_t kArgsSkipFirstField = 1U;        // mix ctx args first addr is not input/output addr
 constexpr uint32_t kSaveTaskAddr = 1U;
-}
+}  // namespace
 
 namespace gert {
-std::map<rtFftsPlusContextType_t, FftsPlusProtoTransfer::CtxHandle> FftsPlusProtoTransfer::init_ctx_fun_ {
-    { RT_CTX_TYPE_AICORE, &FftsPlusProtoTransfer::InitAicAivCtx },
-    { RT_CTX_TYPE_AIV, &FftsPlusProtoTransfer::InitAicAivCtx },
-    { RT_CTX_TYPE_PERSISTENT_CACHE, &FftsPlusProtoTransfer::InitPersistentCacheCtx },
-    { RT_CTX_TYPE_NOTIFY_WAIT, &FftsPlusProtoTransfer::InitNotifyCtx },
-    { RT_CTX_TYPE_NOTIFY_RECORD, &FftsPlusProtoTransfer::InitNotifyCtx },
-    { RT_CTX_TYPE_WRITE_VALUE, &FftsPlusProtoTransfer::InitWriteValueCtx },
-    { RT_CTX_TYPE_MIX_AIC, &FftsPlusProtoTransfer::InitMixAicAivCtx },
-    { RT_CTX_TYPE_MIX_AIV, &FftsPlusProtoTransfer::InitMixAicAivCtx },
-    { RT_CTX_TYPE_SDMA, &FftsPlusProtoTransfer::InitSdmaCtx },
-    { RT_CTX_TYPE_FLUSH_DATA, &FftsPlusProtoTransfer::InitDataCtx },
-    { RT_CTX_TYPE_INVALIDATE_DATA, &FftsPlusProtoTransfer::InitDataCtx },
-    { RT_CTX_TYPE_WRITEBACK_DATA, &FftsPlusProtoTransfer::InitDataCtx },
-    { RT_CTX_TYPE_AICPU, &FftsPlusProtoTransfer::InitAicpuCtx },
-    { RT_CTX_TYPE_COND_SWITCH, &FftsPlusProtoTransfer::InitCondSwitchCtx },
-    { RT_CTX_TYPE_CASE_SWITCH, &FftsPlusProtoTransfer::InitCaseCtx },
-    { RT_CTX_TYPE_AT_START, &FftsPlusProtoTransfer::InitAtStartCtx },
-    { RT_CTX_TYPE_AT_END, &FftsPlusProtoTransfer::InitAtEndCtx },
-    { RT_CTX_TYPE_LABEL, &FftsPlusProtoTransfer::InitLabelCtx }
-};
+std::map<rtFftsPlusContextType_t, FftsPlusProtoTransfer::CtxHandle> FftsPlusProtoTransfer::init_ctx_fun_{
+    {RT_CTX_TYPE_AICORE, &FftsPlusProtoTransfer::InitAicAivCtx},
+    {RT_CTX_TYPE_AIV, &FftsPlusProtoTransfer::InitAicAivCtx},
+    {RT_CTX_TYPE_PERSISTENT_CACHE, &FftsPlusProtoTransfer::InitPersistentCacheCtx},
+    {RT_CTX_TYPE_NOTIFY_WAIT, &FftsPlusProtoTransfer::InitNotifyCtx},
+    {RT_CTX_TYPE_NOTIFY_RECORD, &FftsPlusProtoTransfer::InitNotifyCtx},
+    {RT_CTX_TYPE_WRITE_VALUE, &FftsPlusProtoTransfer::InitWriteValueCtx},
+    {RT_CTX_TYPE_MIX_AIC, &FftsPlusProtoTransfer::InitMixAicAivCtx},
+    {RT_CTX_TYPE_MIX_AIV, &FftsPlusProtoTransfer::InitMixAicAivCtx},
+    {RT_CTX_TYPE_SDMA, &FftsPlusProtoTransfer::InitSdmaCtx},
+    {RT_CTX_TYPE_FLUSH_DATA, &FftsPlusProtoTransfer::InitDataCtx},
+    {RT_CTX_TYPE_INVALIDATE_DATA, &FftsPlusProtoTransfer::InitDataCtx},
+    {RT_CTX_TYPE_WRITEBACK_DATA, &FftsPlusProtoTransfer::InitDataCtx},
+    {RT_CTX_TYPE_AICPU, &FftsPlusProtoTransfer::InitAicpuCtx},
+    {RT_CTX_TYPE_COND_SWITCH, &FftsPlusProtoTransfer::InitCondSwitchCtx},
+    {RT_CTX_TYPE_CASE_SWITCH, &FftsPlusProtoTransfer::InitCaseCtx},
+    {RT_CTX_TYPE_AT_START, &FftsPlusProtoTransfer::InitAtStartCtx},
+    {RT_CTX_TYPE_AT_END, &FftsPlusProtoTransfer::InitAtEndCtx},
+    {RT_CTX_TYPE_LABEL, &FftsPlusProtoTransfer::InitLabelCtx}};
 
 FftsPlusProtoTransfer::~FftsPlusProtoTransfer() {
   for (auto &ext_info_addr : ext_info_addrs_) {
@@ -101,7 +95,7 @@ FftsPlusProtoTransfer::~FftsPlusProtoTransfer() {
   }
 }
 
-void InitMixSqeSubType(rtFftsPlusSqe_t * const sqe, uint8_t sub_type) {
+void InitMixSqeSubType(rtFftsPlusSqe_t *const sqe, uint8_t sub_type) {
   if (sub_type != std::numeric_limits<uint8_t>::max()) {
     sqe->subType = sub_type;
   }
@@ -109,7 +103,8 @@ void InitMixSqeSubType(rtFftsPlusSqe_t * const sqe, uint8_t sub_type) {
 }
 
 std::unique_ptr<uint8_t[]> FftsPlusProtoTransfer::Transfer(const ge::OpDescPtr &op_desc,
-    const domi::FftsPlusTaskDef &ffts_plus_task_def, size_t &total_size) {
+                                                           const domi::FftsPlusTaskDef &ffts_plus_task_def,
+                                                           size_t &total_size) {
   FE_ASSERT_NOTNULL(find_node_handle_);
   FE_ASSERT_NOTNULL(op_desc);
   logic_stream_id_ = static_cast<uint32_t>(op_desc->GetStreamId());
@@ -120,7 +115,7 @@ std::unique_ptr<uint8_t[]> FftsPlusProtoTransfer::Transfer(const ge::OpDescPtr &
   GELOGD("Alloc task info buf len: %zu, total size: %zu.", descBufLen, total_size);
   auto holder = ge::MakeUnique<uint8_t[]>(total_size);
   FE_ASSERT_NOTNULL(holder);
-  TransTaskInfo *task_info_ptr = reinterpret_cast<TransTaskInfo*>(holder.get());
+  TransTaskInfo *task_info_ptr = reinterpret_cast<TransTaskInfo *>(holder.get());
   task_info_ptr->rt_task_info.descBufLen = descBufLen;
   uint8_t *sqe_base = task_info_ptr->args;
   auto *const ffts_plus_sqe = ge::PtrToPtr<uint8_t, rtFftsPlusSqe_t>(sqe_base);
@@ -138,7 +133,7 @@ std::unique_ptr<uint8_t[]> FftsPlusProtoTransfer::Transfer(const ge::OpDescPtr &
   return holder;
 }
 
-void FftsPlusProtoTransfer::InitFftsPlusSqe(const domi::FftsPlusSqeDef &sqe_def, rtFftsPlusSqe_t * const sqe) const {
+void FftsPlusProtoTransfer::InitFftsPlusSqe(const domi::FftsPlusSqeDef &sqe_def, rtFftsPlusSqe_t *const sqe) const {
   InitFftsPlusSqeHeader(sqe_def.sqe_header(), sqe->sqeHeader);
 
   sqe->wrrRatio = static_cast<uint16_t>(sqe_def.wrr_ratio() & k4BitsMask);
@@ -188,15 +183,15 @@ void FftsPlusProtoTransfer::FusionOpPreProc(const ge::OpDescPtr op_desc, const d
     if ((it != ctx_additional_data_.cend()) && (it->second.count(ctx_def.context_id()) > 0U)) {
       dump_args_offset += kArgsSkipFirstField;
     }
-    GELOGD("save ctx args, op idx: %u, ctx type: %u, ctx id: %u", ctx_def.op_index(),
-           ctx_def.context_type(), ctx_def.context_id());
+    GELOGD("save ctx args, op idx: %u, ctx type: %u, ctx id: %u", ctx_def.op_index(), ctx_def.context_type(),
+           ctx_def.context_id());
     save_ctx_args_handle_(op_desc, dump_args_offset);
   }
   return;
 }
 
-ge::Status FftsPlusProtoTransfer::InitFftsPlusCtx(const domi::FftsPlusTaskDef &task_def,
-    uint8_t *const ctx, const int32_t num) {
+ge::Status FftsPlusProtoTransfer::InitFftsPlusCtx(const domi::FftsPlusTaskDef &task_def, uint8_t *const ctx,
+                                                  const int32_t num) {
   InitAdditionalData(task_def);
   rtFftsPlusComCtx_t *const com_ctx = ge::PtrToPtr<uint8_t, rtFftsPlusComCtx_t>(ctx);
   FE_ASSERT_NOTNULL(com_ctx);
@@ -224,7 +219,7 @@ ge::Status FftsPlusProtoTransfer::InitFftsPlusCtx(const domi::FftsPlusTaskDef &t
 }
 
 ge::Status FftsPlusProtoTransfer::InitPersistentCacheCtx(const domi::FftsPlusCtxDef &task_def,
-    rtFftsPlusComCtx_t *const com_ctx) const {
+                                                         rtFftsPlusComCtx_t *const com_ctx) const {
   rtFftsPlusPersistentCacheCtx_t *const ctx = ge::PtrToPtr<rtFftsPlusComCtx_t, rtFftsPlusPersistentCacheCtx_t>(com_ctx);
   FE_ASSERT_NOTNULL(ctx);
   const domi::FftsPlusCachePersistCtxDef &ctx_def = task_def.cache_persist_ctx();
@@ -236,8 +231,8 @@ ge::Status FftsPlusProtoTransfer::InitPersistentCacheCtx(const domi::FftsPlusCtx
 
   if (ctx_def.successor_list_size() > RT_CTX_SUCCESSOR_NUM) {
     REPORT_INNER_ERR_MSG("E19999",
-                       "Size of successor_list in FftsPlusPersistentCacheCtxDef should not > %d, it is %d actually",
-                       RT_CTX_SUCCESSOR_NUM, ctx_def.successor_list_size());
+                         "Size of successor_list in FftsPlusPersistentCacheCtxDef should not > %d, it is %d actually",
+                         RT_CTX_SUCCESSOR_NUM, ctx_def.successor_list_size());
     GELOGE(ge::FAILED,
            "[Check][Param] Size of successor_list in FftsPlusPersistentCacheCtxDef should not > %d, it is %d actually",
            RT_CTX_SUCCESSOR_NUM, ctx_def.successor_list_size());
@@ -254,7 +249,7 @@ ge::Status FftsPlusProtoTransfer::InitPersistentCacheCtx(const domi::FftsPlusCtx
 }
 
 ge::Status FftsPlusProtoTransfer::InitAicAivCtx(const domi::FftsPlusCtxDef &task_def,
-    rtFftsPlusComCtx_t *const com_ctx) const {
+                                                rtFftsPlusComCtx_t *const com_ctx) const {
   rtFftsPlusAicAivCtx_t *const ctx = ge::PtrToPtr<rtFftsPlusComCtx_t, rtFftsPlusAicAivCtx_t>(com_ctx);
   FE_ASSERT_NOTNULL(ctx);
   const domi::FftsPlusAicAivCtxDef &ctx_def = task_def.aic_aiv_ctx();
@@ -265,7 +260,7 @@ ge::Status FftsPlusProtoTransfer::InitAicAivCtx(const domi::FftsPlusCtxDef &task
   ctx->predCnt = static_cast<uint8_t>(ctx_def.pred_cnt());
   if (ctx_def.successor_list_size() > RT_CTX_SUCCESSOR_NUM) {
     REPORT_INNER_ERR_MSG("E19999", "Size of successor_list in FftsPlusAicAivCtxDef should not > %d, but %d exactly",
-                       RT_CTX_SUCCESSOR_NUM, ctx_def.successor_list_size());
+                         RT_CTX_SUCCESSOR_NUM, ctx_def.successor_list_size());
     GELOGE(ge::FAILED, "[Check][Param] Size of successor_list in FftsPlusAicAivCtxDef should not > %d, but %d exactly",
            RT_CTX_SUCCESSOR_NUM, ctx_def.successor_list_size());
     return ge::FAILED;
@@ -292,7 +287,7 @@ ge::Status FftsPlusProtoTransfer::InitAicAivCtx(const domi::FftsPlusCtxDef &task
 
   if (ctx_def.src_slot_size() > kSrcSlotNum) {
     REPORT_INNER_ERR_MSG("E19999", "Size of src_slot in FftsPlusAicAivCtxDef should not > %d, but %d exactly",
-                       kSrcSlotNum, ctx_def.src_slot_size());
+                         kSrcSlotNum, ctx_def.src_slot_size());
     GELOGE(ge::FAILED, "[Check][Param] Size of src_slot in FftsPlusAicAivCtxDef should not > %d, but %d exactly",
            kSrcSlotNum, ctx_def.src_slot_size());
     return ge::FAILED;
@@ -316,7 +311,7 @@ ge::Status FftsPlusProtoTransfer::InitAicAivCtx(const domi::FftsPlusCtxDef &task
 }
 
 ge::Status FftsPlusProtoTransfer::InitManualAicAivCtx(const domi::FftsPlusAicAivCtxDef &ctx_def,
-    rtFftsPlusAicAivCtx_t &ctx) const {
+                                                      rtFftsPlusAicAivCtx_t &ctx) const {
   for (auto i = 0; i < ctx_def.task_addr_size(); ++i) {
     GELOGD("index %d, task addr is 0x%lx", i, ctx_def.task_addr(i));
     io_addrs_.emplace_back(ctx_def.task_addr(i));
@@ -325,7 +320,7 @@ ge::Status FftsPlusProtoTransfer::InitManualAicAivCtx(const domi::FftsPlusAicAiv
   // PcL for low 32 bits of pc, PcH for high 16 bits of pc
   if (ctx_def.kernel_name_size() != kManualAicAivCtxPcNum) {
     REPORT_INNER_ERR_MSG("E19999", "Size of kernel_name in FftsPlusAicAivCtxDef should be %d, but %d exactly",
-                       kManualAicAivCtxPcNum, ctx_def.kernel_name_size());
+                         kManualAicAivCtxPcNum, ctx_def.kernel_name_size());
     GELOGE(ge::FAILED, "[Check][Param] Size of kernel_name in FftsPlusAicAivCtxDef should be %d, but %d exactly",
            kManualAicAivCtxPcNum, ctx_def.kernel_name_size());
     return ge::FAILED;
@@ -346,14 +341,13 @@ ge::Status FftsPlusProtoTransfer::InitManualAicAivCtx(const domi::FftsPlusAicAiv
 }
 
 ge::Status FftsPlusProtoTransfer::InitAutoAicAivCtx(const domi::FftsPlusAicAivCtxDef &ctx_def,
-    rtFftsPlusAicAivCtx_t &ctx) const {
+                                                    rtFftsPlusAicAivCtx_t &ctx) const {
   if (ctx_def.save_task_addr() == kSaveTaskAddr) {
     for (uint16_t i = 0U; i < (ctx.threadDim - 1U); ++i) {
       GE_RETURN_IF_ERROR(InitThrdIoAddrs(ctx_def, i, ctx_def.task_addr_offset_size()));
     }
     GE_RETURN_IF_ERROR(
-        InitThrdIoAddrs(ctx_def, ctx.threadDim - 1U,
-                        static_cast<int32_t>(ctx_def.input_output_count())));
+        InitThrdIoAddrs(ctx_def, ctx.threadDim - 1U, static_cast<int32_t>(ctx_def.input_output_count())));
     for (auto k = 0; k < (ctx_def.task_addr_size() - ctx_def.task_addr_offset_size()); ++k) {
       auto logic_addr = static_cast<uintptr_t>(ctx_def.task_addr(ctx_def.task_addr_offset_size() + k));
       io_addrs_.emplace_back(logic_addr);
@@ -363,7 +357,7 @@ ge::Status FftsPlusProtoTransfer::InitAutoAicAivCtx(const domi::FftsPlusAicAivCt
   // PcL for low 32 bits of pc, PcH for high 16 bits of pc
   if (ctx_def.kernel_name_size() != kAutoAicAivCtxPcNum) {
     REPORT_INNER_ERR_MSG("E19999", "Size of kernel_name in FftsPlusAicAivCtxDef should be %d, but %d exactly",
-                       kAutoAicAivCtxPcNum, ctx_def.kernel_name_size());
+                         kAutoAicAivCtxPcNum, ctx_def.kernel_name_size());
     GELOGE(ge::FAILED, "[Check][Param] Size of kernel_name in FftsPlusAicAivCtxDef should be %d, but %d exactly",
            kAutoAicAivCtxPcNum, ctx_def.kernel_name_size());
     return ge::FAILED;
@@ -394,7 +388,7 @@ ge::Status FftsPlusProtoTransfer::InitAutoAicAivCtx(const domi::FftsPlusAicAivCt
 }
 
 ge::Status FftsPlusProtoTransfer::InitNotifyCtx(const domi::FftsPlusCtxDef &task_def,
-    rtFftsPlusComCtx_t *const com_ctx) const {
+                                                rtFftsPlusComCtx_t *const com_ctx) const {
   rtFftsPlusNotifyCtx_t *const ctx = ge::PtrToPtr<rtFftsPlusComCtx_t, rtFftsPlusNotifyCtx_t>(com_ctx);
   FE_ASSERT_NOTNULL(ctx);
   const domi::FftsPlusNotifyCtxDef &ctx_def = task_def.notify_ctx();
@@ -405,7 +399,7 @@ ge::Status FftsPlusProtoTransfer::InitNotifyCtx(const domi::FftsPlusCtxDef &task
 
   if (ctx_def.successor_list_size() > RT_CTX_SUCCESSOR_NUM) {
     REPORT_INNER_ERR_MSG("E19999", "Size of successor_list in FftsPlusNotifyCtxDef should not > %d, but %d exactly",
-                       RT_CTX_SUCCESSOR_NUM, ctx_def.successor_list_size());
+                         RT_CTX_SUCCESSOR_NUM, ctx_def.successor_list_size());
     GELOGE(ge::FAILED, "[Check][Param] Size of successor_list in FftsPlusNotifyCtxDef should not > %d, but %d exactly",
            RT_CTX_SUCCESSOR_NUM, ctx_def.successor_list_size());
     return ge::FAILED;
@@ -423,7 +417,7 @@ ge::Status FftsPlusProtoTransfer::InitNotifyCtx(const domi::FftsPlusCtxDef &task
 
   if (ctx_def.notify_id_size() > kNotifyIdNum) {
     REPORT_INNER_ERR_MSG("E19999", "Size of notify_id in FftsPlusNotifyCtxDef should not > %d, but %d exactly",
-                       kNotifyIdNum, ctx_def.notify_id_size());
+                         kNotifyIdNum, ctx_def.notify_id_size());
     GELOGE(ge::FAILED, "[Check][Param] Size of notify_id in FftsPlusNotifyCtxDef should not > %d, but %d exactly",
            kNotifyIdNum, ctx_def.notify_id_size());
     return ge::FAILED;
@@ -436,7 +430,7 @@ ge::Status FftsPlusProtoTransfer::InitNotifyCtx(const domi::FftsPlusCtxDef &task
 }
 
 ge::Status FftsPlusProtoTransfer::InitWriteValueCtx(const domi::FftsPlusCtxDef &task_def,
-    rtFftsPlusComCtx_t *const com_ctx) const {
+                                                    rtFftsPlusComCtx_t *const com_ctx) const {
   rtFftsPlusWriteValueCtx_t *const ctx = ge::PtrToPtr<rtFftsPlusComCtx_t, rtFftsPlusWriteValueCtx_t>(com_ctx);
   FE_ASSERT_NOTNULL(ctx);
   const domi::FftsPlusWriteValueCtxDef &ctx_def = task_def.write_value_ctx();
@@ -447,7 +441,7 @@ ge::Status FftsPlusProtoTransfer::InitWriteValueCtx(const domi::FftsPlusCtxDef &
 
   if (ctx_def.successor_list_size() > RT_CTX_SUCCESSOR_NUM) {
     REPORT_INNER_ERR_MSG("E19999", "Size of successor_list in FftsPlusWriteValueCtxDef should not > %d, but %d exactly",
-                       RT_CTX_SUCCESSOR_NUM, ctx_def.successor_list_size());
+                         RT_CTX_SUCCESSOR_NUM, ctx_def.successor_list_size());
     GELOGE(ge::FAILED, "[Check][Param] Size of list in FftsPlusWriteValueCtxDef should not > %d, but %d exactly",
            RT_CTX_SUCCESSOR_NUM, ctx_def.successor_list_size());
     return ge::FAILED;
@@ -483,7 +477,7 @@ ge::Status FftsPlusProtoTransfer::InitWriteValueCtx(const domi::FftsPlusCtxDef &
 
   if (ctx_def.write_value_size() > kWriteValueNum) {
     REPORT_INNER_ERR_MSG("E19999", "Size of write_value in FftsPlusWriteValueCtxDef should not > %d, but %d exactly",
-                       kWriteValueNum, ctx_def.write_value_size());
+                         kWriteValueNum, ctx_def.write_value_size());
     GELOGE(ge::FAILED, "[Check][Param] Size of write_value in FftsPlusWriteValueCtxDef should not > %d, but %d exactly",
            kWriteValueNum, ctx_def.write_value_size());
     return ge::FAILED;
@@ -496,7 +490,7 @@ ge::Status FftsPlusProtoTransfer::InitWriteValueCtx(const domi::FftsPlusCtxDef &
 }
 
 ge::Status FftsPlusProtoTransfer::InitMixAicAivCtx(const domi::FftsPlusCtxDef &task_def,
-    rtFftsPlusComCtx_t *const com_ctx) const {
+                                                   rtFftsPlusComCtx_t *const com_ctx) const {
   rtFftsPlusMixAicAivCtx_t *const ctx = ge::PtrToPtr<rtFftsPlusComCtx_t, rtFftsPlusMixAicAivCtx_t>(com_ctx);
   FE_ASSERT_NOTNULL(ctx);
   const domi::FftsPlusMixAicAivCtxDef &ctx_def = task_def.mix_aic_aiv_ctx();
@@ -507,7 +501,7 @@ ge::Status FftsPlusProtoTransfer::InitMixAicAivCtx(const domi::FftsPlusCtxDef &t
   ctx->predCnt = static_cast<uint8_t>(ctx_def.pred_cnt());
   if (ctx_def.successor_list_size() > RT_CTX_SUCCESSOR_NUM) {
     REPORT_INNER_ERR_MSG("E19999", "Size of successor_list in FftsPlusMixAicAivCtxDef should not > %d, but %d exactly",
-                       RT_CTX_SUCCESSOR_NUM, ctx_def.successor_list_size());
+                         RT_CTX_SUCCESSOR_NUM, ctx_def.successor_list_size());
     GELOGE(ge::FAILED, "[Check][Param] Size of list in FftsPlusMixAicAivCtxDef should not > %d, but %d exactly",
            RT_CTX_SUCCESSOR_NUM, ctx_def.successor_list_size());
     return ge::FAILED;
@@ -557,7 +551,7 @@ ge::Status FftsPlusProtoTransfer::InitMixAicAivCtx(const domi::FftsPlusCtxDef &t
 
   if (ctx_def.src_slot_size() > kSrcSlotNum) {
     REPORT_INNER_ERR_MSG("E19999", "Size of src_slot in FftsPlusMixAicAivCtxDef should not > %d, but %d exactly",
-                       kSrcSlotNum, ctx_def.src_slot_size());
+                         kSrcSlotNum, ctx_def.src_slot_size());
     GELOGE(ge::FAILED, "[Check][Param] Size of src_slot in FftsPlusMixAicAivCtxDef should not > %d, but %d exactly",
            kSrcSlotNum, ctx_def.src_slot_size());
     return ge::FAILED;
@@ -584,8 +578,8 @@ ge::Status FftsPlusProtoTransfer::InitMixAicAivCtx(const domi::FftsPlusCtxDef &t
 }
 
 ge::Status FftsPlusProtoTransfer::InitManualMixAicAivCtx(const domi::FftsPlusMixAicAivCtxDef &ctx_def,
-    const std::vector<std::string> &kernel_name_prefixes,
-    rtFftsPlusMixAicAivCtx_t &ctx, const int32_t start_idx) const {
+                                                         const std::vector<std::string> &kernel_name_prefixes,
+                                                         rtFftsPlusMixAicAivCtx_t &ctx, const int32_t start_idx) const {
   for (int32_t i = start_idx; i < ctx_def.task_addr_size(); ++i) {
     GELOGD("index %u, task addr is 0x%lx", i, ctx_def.task_addr(i));
     io_addrs_.emplace_back(ctx_def.task_addr(i));
@@ -595,7 +589,7 @@ ge::Status FftsPlusProtoTransfer::InitManualMixAicAivCtx(const domi::FftsPlusMix
   // PcL for low 32 bits of pc, PcH for high 16 bits of pc
   if (static_cast<size_t>(ctx_def.kernel_name_size()) != prefix_size) {
     REPORT_INNER_ERR_MSG("E19999", "Size of kernel_name in FftsPlusMixAicAivCtxDef should be %zu, but %d exactly",
-                       prefix_size, ctx_def.kernel_name_size());
+                         prefix_size, ctx_def.kernel_name_size());
     GELOGE(ge::FAILED, "[Check][Param] Size of kernel_name in FftsPlusMixAicAivCtxDef should be %zu, but %d exactly",
            prefix_size, ctx_def.kernel_name_size());
     return ge::FAILED;
@@ -635,14 +629,13 @@ ge::Status FftsPlusProtoTransfer::InitManualMixAicAivCtx(const domi::FftsPlusMix
 }
 
 ge::Status FftsPlusProtoTransfer::InitAutoMixAicAivCtx(const domi::FftsPlusMixAicAivCtxDef &ctx_def,
-    rtFftsPlusMixAicAivCtx_t &ctx, const int32_t start_idx) const {
+                                                       rtFftsPlusMixAicAivCtx_t &ctx, const int32_t start_idx) const {
   if (ctx_def.save_task_addr() == kSaveTaskAddr) {
     for (uint16_t i = 0U; i < (ctx.threadDim - 1U); ++i) {
       GE_RETURN_IF_ERROR(InitThrdIoAddrs(ctx_def, i, ctx_def.task_addr_offset_size(), start_idx));
     }
-    GE_RETURN_IF_ERROR(InitThrdIoAddrs(
-        ctx_def, ctx.threadDim - 1U,
-        static_cast<int32_t>(ctx_def.input_output_count()), start_idx));
+    GE_RETURN_IF_ERROR(
+        InitThrdIoAddrs(ctx_def, ctx.threadDim - 1U, static_cast<int32_t>(ctx_def.input_output_count()), start_idx));
     const int32_t last_thread_workspace_size = ctx_def.task_addr_size() - ctx_def.task_addr_offset_size() - start_idx;
     for (auto k = 0; k < last_thread_workspace_size; ++k) {
       uintptr_t logic_addr = ctx_def.task_addr(ctx_def.task_addr_offset_size() + k);
@@ -653,7 +646,7 @@ ge::Status FftsPlusProtoTransfer::InitAutoMixAicAivCtx(const domi::FftsPlusMixAi
   // PcL for low 32 bits of pc, PcH for high 16 bits of pc
   if (ctx_def.kernel_name_size() != kAutoMixAicAivCtxPcNum) {
     REPORT_INNER_ERR_MSG("E19999", "Size of kernel_name in FftsPlusMixAicAivCtxDef should be %d, but %d exactly",
-                       kAutoMixAicAivCtxPcNum, ctx_def.kernel_name_size());
+                         kAutoMixAicAivCtxPcNum, ctx_def.kernel_name_size());
     GELOGE(ge::FAILED, "[Check][Param] Size of kernel_name in FftsPlusMixAicAivCtxDef should be %d, but %d exactly",
            kAutoMixAicAivCtxPcNum, ctx_def.kernel_name_size());
     return ge::FAILED;
@@ -712,7 +705,7 @@ ge::Status FftsPlusProtoTransfer::InitAutoMixAicAivCtx(const domi::FftsPlusMixAi
 }
 
 ge::Status FftsPlusProtoTransfer::InitSdmaCtx(const domi::FftsPlusCtxDef &task_def,
-    rtFftsPlusComCtx_t *const com_ctx) const {
+                                              rtFftsPlusComCtx_t *const com_ctx) const {
   rtFftsPlusSdmaCtx_t *const ctx = ge::PtrToPtr<rtFftsPlusComCtx_t, rtFftsPlusSdmaCtx_t>(com_ctx);
   FE_ASSERT_NOTNULL(ctx);
   const domi::FftsPlusSdmaCtxDef &ctx_def = task_def.sdma_ctx();
@@ -722,7 +715,7 @@ ge::Status FftsPlusProtoTransfer::InitSdmaCtx(const domi::FftsPlusCtxDef &task_d
   ctx->predCnt = static_cast<uint8_t>(ctx_def.pred_cnt());
   if (ctx_def.successor_list_size() > RT_CTX_SUCCESSOR_NUM) {
     REPORT_INNER_ERR_MSG("E19999", "Size of successor_list in FftsPlusSdmaCtxDef should not > %d, but %d exactly",
-                       RT_CTX_SUCCESSOR_NUM, ctx_def.successor_list_size());
+                         RT_CTX_SUCCESSOR_NUM, ctx_def.successor_list_size());
     GELOGE(ge::FAILED, "[Check][Param] Size of successor_list in FftsPlusSdmaCtxDef should not > %d, but %d exactly",
            RT_CTX_SUCCESSOR_NUM, ctx_def.successor_list_size());
     return ge::FAILED;
@@ -772,7 +765,7 @@ ge::Status FftsPlusProtoTransfer::InitSdmaCtx(const domi::FftsPlusCtxDef &task_d
 }
 
 ge::Status FftsPlusProtoTransfer::InitDataCtx(const domi::FftsPlusCtxDef &task_def,
-    rtFftsPlusComCtx_t *const com_ctx) const {
+                                              rtFftsPlusComCtx_t *const com_ctx) const {
   rtFftsPlusDataCtx_t *const ctx = ge::PtrToPtr<rtFftsPlusComCtx_t, rtFftsPlusDataCtx_t>(com_ctx);
   FE_ASSERT_NOTNULL(ctx);
   const domi::FftsPlusDataCtxDef &ctx_def = task_def.data_ctx();
@@ -782,7 +775,7 @@ ge::Status FftsPlusProtoTransfer::InitDataCtx(const domi::FftsPlusCtxDef &task_d
   ctx->cnt = static_cast<uint8_t>(ctx_def.cnt());
   if (ctx_def.successor_list_size() > RT_CTX_SUCCESSOR_NUM) {
     REPORT_INNER_ERR_MSG("E19999", "Size of successor_list in FftsPlusDataCtxDef should not > %d, but %d exactly",
-                       RT_CTX_SUCCESSOR_NUM, ctx_def.successor_list_size());
+                         RT_CTX_SUCCESSOR_NUM, ctx_def.successor_list_size());
     GELOGE(ge::FAILED, "[Check][Param] Size of successor_list in FftsPlusDataCtxDef should not > %d, but %d exactly",
            RT_CTX_SUCCESSOR_NUM, ctx_def.successor_list_size());
     return ge::FAILED;
@@ -827,7 +820,7 @@ ge::Status FftsPlusProtoTransfer::InitDataCtx(const domi::FftsPlusCtxDef &task_d
 }
 
 ge::Status FftsPlusProtoTransfer::InitAicpuCtx(const domi::FftsPlusCtxDef &task_def,
-    rtFftsPlusComCtx_t *const com_ctx) const {
+                                               rtFftsPlusComCtx_t *const com_ctx) const {
   rtFftsPlusAiCpuCtx_t *const ctx = ge::PtrToPtr<rtFftsPlusComCtx_t, rtFftsPlusAiCpuCtx_t>(com_ctx);
   FE_ASSERT_NOTNULL(ctx);
   const domi::FftsPlusAicpuCtxDef &ctx_def = task_def.aicpu_ctx();
@@ -838,7 +831,7 @@ ge::Status FftsPlusProtoTransfer::InitAicpuCtx(const domi::FftsPlusCtxDef &task_
 
   if (ctx_def.successor_list_size() > RT_CTX_SUCCESSOR_NUM) {
     REPORT_INNER_ERR_MSG("E19999", "Size of successor_list in FftsPlusAicpuCtxDef should not > %d, but %d exactly",
-                       RT_CTX_SUCCESSOR_NUM, ctx_def.successor_list_size());
+                         RT_CTX_SUCCESSOR_NUM, ctx_def.successor_list_size());
     GELOGE(ge::FAILED, "[Check][Param] Size of successor_list in FftsPlusAicpuCtxDef should not > %d, but %d exactly",
            RT_CTX_SUCCESSOR_NUM, ctx_def.successor_list_size());
     return ge::FAILED;
@@ -870,12 +863,14 @@ ge::Status FftsPlusProtoTransfer::InitAicpuCtx(const domi::FftsPlusCtxDef &task_
 }
 
 ge::Status FftsPlusProtoTransfer::InitAicpuCtxUserData(const ge::OpDescPtr &op_desc,
-    const domi::FftsPlusAicpuCtxDef &ctx_def, rtFftsPlusAiCpuCtx_t &ctx) const {
+                                                       const domi::FftsPlusAicpuCtxDef &ctx_def,
+                                                       rtFftsPlusAiCpuCtx_t &ctx) const {
   FE_ASSERT_NOTNULL(op_desc);
   const auto user_data_len = sizeof(ctx.usrData) / sizeof(uint32_t);
   if (user_data_len < static_cast<uint64_t>(kRequiredUserDataNum)) {
-    REPORT_INNER_ERR_MSG("E19999", "Length of user_data in rtFftsPlusAiCpuCtx_t should not < %d, but %" PRIu64 " exactly",
-        kRequiredUserDataNum, static_cast<uint64_t>(user_data_len));
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Length of user_data in rtFftsPlusAiCpuCtx_t should not < %d, but %" PRIu64 " exactly",
+                         kRequiredUserDataNum, static_cast<uint64_t>(user_data_len));
     GELOGE(ge::FAILED, "[Check][Param] Length of user_data in rtFftsPlusAiCpuCtx_t should not < %d, but %lu exactly",
            kRequiredUserDataNum, user_data_len);
     return ge::FAILED;
@@ -890,13 +885,13 @@ ge::Status FftsPlusProtoTransfer::InitAicpuCtxUserData(const ge::OpDescPtr &op_d
   // 适配aicpu vf场景，把userdata6刷新成hostpid
   ctx.usrData[kHostPidIndex] = static_cast<uint32_t>(mmGetPid());
 
-  GELOGD("Init aicpu ctx user data success, node is [%s], type is [%s].",
-         op_desc->GetName().c_str(), op_desc->GetType().c_str());
+  GELOGD("Init aicpu ctx user data success, node is [%s], type is [%s].", op_desc->GetName().c_str(),
+         op_desc->GetType().c_str());
   return ge::SUCCESS;
 }
 
 ge::Status FftsPlusProtoTransfer::InitAicpuInfo(const ge::OpDescPtr &op_desc, const domi::FftsPlusAicpuCtxDef &ctx_def,
-    void *&addr) const {
+                                                void *&addr) const {
   if (ctx_def.kernel_type() == kCustomAicpuKernelType) {
     GELOGE(ge::FAILED, "Not support custom aicpu op.");
     // load custom aicpu so need move to other position
@@ -906,19 +901,19 @@ ge::Status FftsPlusProtoTransfer::InitAicpuInfo(const ge::OpDescPtr &op_desc, co
 }
 
 ge::Status FftsPlusProtoTransfer::InitAicpuExtInfo(const ge::OpDescPtr &op_desc,
-    const domi::FftsPlusAicpuCtxDef &ctx_def, const void* const& addr) const {
+                                                   const domi::FftsPlusAicpuCtxDef &ctx_def,
+                                                   const void *const &addr) const {
   (void)addr;
   GELOGI("Begin to initialize aicpu op extra info, thread dim is %u.", ctx_def.thread_dim());
-  if (ctx_def.thread_dim() == 0U) {   // Zero mark for dynamic.
+  if (ctx_def.thread_dim() == 0U) {  // Zero mark for dynamic.
     return save_aicpu_ctx_handle_(op_desc, ctx_def.kernel());
   }
   GELOGI("Init aicpu op context info success");
   return ge::SUCCESS;
 }
 
-
 ge::Status FftsPlusProtoTransfer::InitCondSwitchCtx(const domi::FftsPlusCtxDef &task_def,
-    rtFftsPlusComCtx_t *const com_ctx) const {
+                                                    rtFftsPlusComCtx_t *const com_ctx) const {
   rtFftsPlusCondSwitchCtx_t *const ctx = ge::PtrToPtr<rtFftsPlusComCtx_t, rtFftsPlusCondSwitchCtx_t>(com_ctx);
   FE_ASSERT_NOTNULL(ctx);
   const domi::FftsPlusCondSwitchCtxDef &ctx_def = task_def.cond_switch_ctx();
@@ -937,8 +932,8 @@ ge::Status FftsPlusProtoTransfer::InitCondSwitchCtx(const domi::FftsPlusCtxDef &
 
   if (ctx_def.true_successor_list_size() > RT_CTX_TRUE_SUCCESSOR_NUM) {
     REPORT_INNER_ERR_MSG("E19999",
-                       "Size of true_successor_list in FftsPlusCondSwitchCtxDef should not > %d, but %d exactly",
-                       RT_CTX_TRUE_SUCCESSOR_NUM, ctx_def.true_successor_list_size());
+                         "Size of true_successor_list in FftsPlusCondSwitchCtxDef should not > %d, but %d exactly",
+                         RT_CTX_TRUE_SUCCESSOR_NUM, ctx_def.true_successor_list_size());
     GELOGE(ge::FAILED,
            "[Check][Param] Size of true_successor_list in FftsPlusCondSwitchCtxDef should not > %d, but %d exactly",
            RT_CTX_TRUE_SUCCESSOR_NUM, ctx_def.true_successor_list_size());
@@ -950,8 +945,8 @@ ge::Status FftsPlusProtoTransfer::InitCondSwitchCtx(const domi::FftsPlusCtxDef &
 
   if (ctx_def.false_successor_list_size() > RT_CTX_FALSE_SUCCESSOR_NUM) {
     REPORT_INNER_ERR_MSG("E19999",
-                       "Size of false_successor_list in FftsPlusCondSwitchCtxDef should not > %d, but %d exactly",
-                       RT_CTX_FALSE_SUCCESSOR_NUM, ctx_def.false_successor_list_size());
+                         "Size of false_successor_list in FftsPlusCondSwitchCtxDef should not > %d, but %d exactly",
+                         RT_CTX_FALSE_SUCCESSOR_NUM, ctx_def.false_successor_list_size());
     GELOGE(ge::FAILED,
            "[Check][Param] Size of false_successor_list in FftsPlusCondSwitchCtxDef should not > %d, but %d exactly",
            RT_CTX_FALSE_SUCCESSOR_NUM, ctx_def.false_successor_list_size());
@@ -998,7 +993,7 @@ ge::Status FftsPlusProtoTransfer::InitCondSwitchCtx(const domi::FftsPlusCtxDef &
 }
 
 ge::Status FftsPlusProtoTransfer::InitCaseSwitchCtx(const domi::FftsPlusCtxDef &task_def,
-    rtFftsPlusComCtx_t *const com_ctx) const {
+                                                    rtFftsPlusComCtx_t *const com_ctx) const {
   rtFftsPlusCaseSwitchCtx_t *const ctx = ge::PtrToPtr<rtFftsPlusComCtx_t, rtFftsPlusCaseSwitchCtx_t>(com_ctx);
   FE_ASSERT_NOTNULL(ctx);
   const domi::FftsPlusCaseSwitchCtxDef &ctx_def = task_def.case_switch_ctx();
@@ -1011,8 +1006,9 @@ ge::Status FftsPlusProtoTransfer::InitCaseSwitchCtx(const domi::FftsPlusCtxDef &
   ctx->predCnt = static_cast<uint8_t>(ctx_def.pred_cnt());
 
   if (ctx_def.successor_list_size() > RT_CTX_SUCCESSOR_NUM) {
-    REPORT_INNER_ERR_MSG("E19999", "Size of successor_list in FftsPlusCaseDefaultCtxDef should not > %d, but %d exactly",
-                       RT_CTX_SUCCESSOR_NUM, ctx_def.successor_list_size());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Size of successor_list in FftsPlusCaseDefaultCtxDef should not > %d, but %d exactly",
+                         RT_CTX_SUCCESSOR_NUM, ctx_def.successor_list_size());
     GELOGE(ge::FAILED, "[Check][Param] Size of list in FftsPlusCaseDefaultCtxDef should not > %d, but %d exactly",
            RT_CTX_SUCCESSOR_NUM, ctx_def.successor_list_size());
     return ge::FAILED;
@@ -1055,7 +1051,7 @@ ge::Status FftsPlusProtoTransfer::InitCaseSwitchCtx(const domi::FftsPlusCtxDef &
 }
 
 ge::Status FftsPlusProtoTransfer::InitCaseDefaultCtx(const domi::FftsPlusCtxDef &task_def,
-    rtFftsPlusComCtx_t *const com_ctx) const {
+                                                     rtFftsPlusComCtx_t *const com_ctx) const {
   rtFftsPlusCaseDefCtx_t *const ctx = ge::PtrToPtr<rtFftsPlusComCtx_t, rtFftsPlusCaseDefCtx_t>(com_ctx);
   FE_ASSERT_NOTNULL(ctx);
   const domi::FftsPlusCaseDefaultCtxDef &ctx_def = task_def.case_default_ctx();
@@ -1068,8 +1064,9 @@ ge::Status FftsPlusProtoTransfer::InitCaseDefaultCtx(const domi::FftsPlusCtxDef 
   ctx->predCnt = static_cast<uint8_t>(ctx_def.pred_cnt());
 
   if (ctx_def.successor_list_size() > RT_CTX_SUCCESSOR_NUM) {
-    REPORT_INNER_ERR_MSG("E19999", "Size of successor_list in FftsPlusCaseDefaultCtxDef should not > %d, but %d exactly",
-                       RT_CTX_SUCCESSOR_NUM, ctx_def.successor_list_size());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Size of successor_list in FftsPlusCaseDefaultCtxDef should not > %d, but %d exactly",
+                         RT_CTX_SUCCESSOR_NUM, ctx_def.successor_list_size());
     GELOGE(ge::FAILED, "[Check][Param] Size of list in FftsPlusCaseDefaultCtxDef should not > %d, but %d exactly",
            RT_CTX_SUCCESSOR_NUM, ctx_def.successor_list_size());
     return ge::FAILED;
@@ -1082,11 +1079,11 @@ ge::Status FftsPlusProtoTransfer::InitCaseDefaultCtx(const domi::FftsPlusCtxDef 
 }
 
 ge::Status FftsPlusProtoTransfer::InitCaseCtx(const domi::FftsPlusCtxDef &task_def,
-    rtFftsPlusComCtx_t *const com_ctx) const {
+                                              rtFftsPlusComCtx_t *const com_ctx) const {
   if (static_cast<int32_t>(task_def.has_case_switch_ctx()) == static_cast<int32_t>(task_def.has_case_default_ctx())) {
     REPORT_INNER_ERR_MSG("E19999", "case_switch_ctx %s and case_default_ctx %s when software ctx type is case",
-                       task_def.has_case_switch_ctx() ? "exist" : "does not exist",
-                       task_def.has_case_default_ctx() ? "exist" : "does not exist");
+                         task_def.has_case_switch_ctx() ? "exist" : "does not exist",
+                         task_def.has_case_default_ctx() ? "exist" : "does not exist");
     GELOGE(ge::FAILED, "[Check][Ctx] case_switch_ctx %s and case_default_ctx %s when software ctx type is case",
            task_def.has_case_switch_ctx() ? "exist" : "does not exist",
            task_def.has_case_default_ctx() ? "exist" : "does not exist");
@@ -1103,7 +1100,7 @@ ge::Status FftsPlusProtoTransfer::InitCaseCtx(const domi::FftsPlusCtxDef &task_d
 }
 
 ge::Status FftsPlusProtoTransfer::InitAtStartCtx(const domi::FftsPlusCtxDef &task_def,
-    rtFftsPlusComCtx_t *const com_ctx) const {
+                                                 rtFftsPlusComCtx_t *const com_ctx) const {
   rtFftsPlusAtStartCtx_t *const ctx = ge::PtrToPtr<rtFftsPlusComCtx_t, rtFftsPlusAtStartCtx_t>(com_ctx);
   FE_ASSERT_NOTNULL(ctx);
   const domi::FftsPlusAtStartCtxDef &ctx_def = task_def.at_start_ctx();
@@ -1114,7 +1111,7 @@ ge::Status FftsPlusProtoTransfer::InitAtStartCtx(const domi::FftsPlusCtxDef &tas
 
   if (ctx_def.successor_list_size() > RT_CTX_SUCCESSOR_NUM) {
     REPORT_INNER_ERR_MSG("E19999", "Size of successor_list in FftsPlusAtStartCtxDef should not > %d, but %d exactly",
-                       RT_CTX_SUCCESSOR_NUM, ctx_def.successor_list_size());
+                         RT_CTX_SUCCESSOR_NUM, ctx_def.successor_list_size());
     GELOGE(ge::FAILED, "[Check][Param] Size of successor_list in FftsPlusAtStartCtxDef should not > %d, but %d exactly",
            RT_CTX_SUCCESSOR_NUM, ctx_def.successor_list_size());
     return ge::FAILED;
@@ -1133,7 +1130,7 @@ ge::Status FftsPlusProtoTransfer::InitAtStartCtx(const domi::FftsPlusCtxDef &tas
 }
 
 ge::Status FftsPlusProtoTransfer::InitAtEndCtx(const domi::FftsPlusCtxDef &task_def,
-    rtFftsPlusComCtx_t *const com_ctx) const {
+                                               rtFftsPlusComCtx_t *const com_ctx) const {
   rtFftsPlusAtEndCtx_t *const ctx = ge::PtrToPtr<rtFftsPlusComCtx_t, rtFftsPlusAtEndCtx_t>(com_ctx);
   FE_ASSERT_NOTNULL(ctx);
   const domi::FftsPlusAtEndCtxDef &ctx_def = task_def.at_end_ctx();
@@ -1146,7 +1143,7 @@ ge::Status FftsPlusProtoTransfer::InitAtEndCtx(const domi::FftsPlusCtxDef &task_
 
   if (ctx_def.succ_at_start_slot_size() > RT_CTX_SUCC_AT_START_SLOT_NUM) {
     REPORT_INNER_ERR_MSG("E19999", "Size of succ_at_start_slot in FftsPlusAtEndCtxDef should not > %d, but %d exactly",
-                       RT_CTX_SUCC_AT_START_SLOT_NUM, ctx_def.succ_at_start_slot_size());
+                         RT_CTX_SUCC_AT_START_SLOT_NUM, ctx_def.succ_at_start_slot_size());
     GELOGE(ge::FAILED, "[Check][Param] Size of succ in FftsPlusAtStartCtxDef should not > %d, but %d exactly",
            RT_CTX_SUCC_AT_START_SLOT_NUM, ctx_def.succ_at_start_slot_size());
     return ge::FAILED;
@@ -1157,7 +1154,7 @@ ge::Status FftsPlusProtoTransfer::InitAtEndCtx(const domi::FftsPlusCtxDef &task_
 
   if (ctx_def.succ_out_label_slot_size() > RT_CTX_SUCC_OUT_LABEL_SLOT_NUM) {
     REPORT_INNER_ERR_MSG("E19999", "Size of succ_out_label_slot in FftsPlusAtEndCtxDef should not > %d, but %d exactly",
-                       RT_CTX_SUCC_OUT_LABEL_SLOT_NUM, ctx_def.succ_out_label_slot_size());
+                         RT_CTX_SUCC_OUT_LABEL_SLOT_NUM, ctx_def.succ_out_label_slot_size());
     GELOGE(ge::FAILED,
            "[Check][Param] Size of succ_out_label_slot in FftsPlusAtStartCtxDef should not > %d, but %d exactly",
            RT_CTX_SUCC_OUT_LABEL_SLOT_NUM, ctx_def.succ_out_label_slot_size());
@@ -1173,7 +1170,7 @@ ge::Status FftsPlusProtoTransfer::InitAtEndCtx(const domi::FftsPlusCtxDef &task_
 }
 
 ge::Status FftsPlusProtoTransfer::InitLabelCtx(const domi::FftsPlusCtxDef &task_def,
-    rtFftsPlusComCtx_t *const com_ctx) const {
+                                               rtFftsPlusComCtx_t *const com_ctx) const {
   rtFftsPlusLabelCtx_t *const ctx = ge::PtrToPtr<rtFftsPlusComCtx_t, rtFftsPlusLabelCtx_t>(com_ctx);
   FE_ASSERT_NOTNULL(ctx);
   const domi::FftsPlusLabelCtxDef &ctx_def = task_def.label_ctx();
@@ -1186,7 +1183,7 @@ ge::Status FftsPlusProtoTransfer::InitLabelCtx(const domi::FftsPlusCtxDef &task_
   ctx->threadDim = static_cast<uint16_t>(ctx_def.thread_dim());
   if (ctx_def.successor_list_size() > RT_CTX_SUCCESSOR_NUM) {
     REPORT_INNER_ERR_MSG("E19999", "Size of successor_list in FftsPlusLabelCtxDef should not > %d, but %d exactly",
-                       RT_CTX_SUCCESSOR_NUM, ctx_def.successor_list_size());
+                         RT_CTX_SUCCESSOR_NUM, ctx_def.successor_list_size());
     GELOGE(ge::FAILED, "[Check][Param] Size of successor_list in FftsPlusLabelCtxDef should not > %d, but %d exactly",
            RT_CTX_SUCCESSOR_NUM, ctx_def.successor_list_size());
     return ge::FAILED;
@@ -1219,16 +1216,15 @@ ge::Status FftsPlusProtoTransfer::InitThrdIoAddrs(const T &ctx_def, const uint16
     GELOGE(ge::FAILED,
            "task_addr start_idx[%i], size[%i], task_addr_offset size[%i], but "
            "need read count[%i]",
-           start_idx, ctx_def.task_addr_size(), ctx_def.task_addr_offset_size(),
-           addr_count);
+           start_idx, ctx_def.task_addr_size(), ctx_def.task_addr_offset_size(), addr_count);
     return ge::FAILED;
   }
   for (int32_t i = 0; i < addr_count; ++i) {
     uintptr_t logic_addr = ctx_def.task_addr(start_idx + i) + (thread_id * ctx_def.task_addr_offset(i));
-    GELOGD("task base addr is %lu, offset is %lu, thread id is %u, logic addr is 0x%lx",
-           ctx_def.task_addr(i), ctx_def.task_addr_offset(i), static_cast<uint32_t>(thread_id), logic_addr);
+    GELOGD("task base addr is %lu, offset is %lu, thread id is %u, logic addr is 0x%lx", ctx_def.task_addr(i),
+           ctx_def.task_addr_offset(i), static_cast<uint32_t>(thread_id), logic_addr);
     io_addrs_.emplace_back(logic_addr);
   }
   return ge::SUCCESS;
 }
-}  // namespace ge
+}  // namespace gert

@@ -471,14 +471,14 @@ TEST_F(UtestGeTensor, test_ge_tensor_desc) {
   GeTensorDesc b(shape, FORMAT_NC1HWC0);
   b.SetOriginShape(ori_shape);
 
-  GeShape ret_ori =  b.GetOriginShape();
+  GeShape ret_ori = b.GetOriginShape();
   EXPECT_EQ(ret_ori.GetDimNum(), ori_shape.GetDimNum());
   for (size_t i = 0U; i < ret_ori.GetDimNum(); ++i) {
     EXPECT_EQ(ret_ori.GetDim(i), ori_shape.GetDim(i));
   }
   GeShape ori_shape2({3, 4});
   b.MutableOriginShape() = ori_shape2;
-  GeShape ret_ori2 =  b.GetOriginShape();
+  GeShape ret_ori2 = b.GetOriginShape();
   EXPECT_EQ(ret_ori2.GetDimNum(), ori_shape2.GetDimNum());
   for (size_t i = 0U; i < ret_ori2.GetDimNum(); ++i) {
     EXPECT_EQ(ret_ori2.GetDim(i), ori_shape2.GetDim(i));
@@ -506,7 +506,7 @@ TEST_F(UtestGeTensor, test_is_shape_equal_unknown_shape) {
 TEST_F(UtestGeTensor, test_is_memory_size_calc_type_always_empty) {
   GeTensorDesc a;
   (void)ge::AttrUtils::SetInt(a, ge::ATTR_NAME_MEMORY_SIZE_CALC_TYPE,
-    static_cast<int64_t>(ge::MemorySizeCalcType::ALWAYS_EMPTY));
+                              static_cast<int64_t>(ge::MemorySizeCalcType::ALWAYS_EMPTY));
   EXPECT_EQ(TensorUtils::IsMemorySizeCalcTypeAlwaysEmpty(a), true);
 
   GeTensorDesc b;

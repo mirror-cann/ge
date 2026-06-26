@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -37,8 +37,7 @@ Status MultiBatchPass::Run(ComputeGraphPtr graph) {
         GELOGD("Graph: %s not multi-batch, case node: %s", graph->GetName().c_str(), node->GetName().c_str());
         return SUCCESS;
       }
-      GE_CHK_STATUS_RET(SetCaseLabel(graph, node),
-                        "[Set][CaseLabel] for node:%s(%s) in graph:%s failed",
+      GE_CHK_STATUS_RET(SetCaseLabel(graph, node), "[Set][CaseLabel] for node:%s(%s) in graph:%s failed",
                         node->GetName().c_str(), node->GetType().c_str(), graph->GetName().c_str());
     }
   }
@@ -68,7 +67,8 @@ Status MultiBatchPass::SetCaseLabel(const ComputeGraphPtr &graph, const NodePtr 
   return SUCCESS;
 }
 
-void MultiBatchPass::GetAllGenMaskNodes(const ComputeGraphPtr &graph,
+void MultiBatchPass::GetAllGenMaskNodes(
+    const ComputeGraphPtr &graph,
     std::unordered_map<ComputeGraphPtr, std::vector<NodePtr>> &subgraph_to_gen_mask_nodes) {
   for (const auto &sub_graph : graph->GetAllSubgraphs()) {
     for (const auto &node : sub_graph->GetDirectNode()) {
@@ -101,8 +101,8 @@ Status MultiBatchPass::TryToReplaceConstInput(const ComputeGraphPtr &graph,
       GeTensorPtr weight = nullptr;
       const bool get_weight = AttrUtils::MutableTensor(in_node->GetOpDesc(), ATTR_NAME_WEIGHTS, weight);
       if (!get_weight) {
-        GELOGE(INTERNAL_ERROR, "Failed to get weight from node:%s, type:%s",
-               in_node->GetName().c_str(), in_node->GetType().c_str());
+        GELOGE(INTERNAL_ERROR, "Failed to get weight from node:%s, type:%s", in_node->GetName().c_str(),
+               in_node->GetType().c_str());
         return INTERNAL_ERROR;
       }
       const auto &const_desc = OpDescUtils::CreateConstOp(weight);
@@ -113,13 +113,12 @@ Status MultiBatchPass::TryToReplaceConstInput(const ComputeGraphPtr &graph,
       const auto ret = GraphUtils::ReplaceEdgeSrc(peer_out_anchor, in_anchor, const_node->GetOutDataAnchor(0));
       if (ret != GRAPH_SUCCESS) {
         GELOGE(INTERNAL_ERROR, "Failed to replace edge, src node:%s, new src node:%s, dst node:%s, dst input idx:%d.",
-               in_node->GetName().c_str(), const_node->GetName().c_str(),
-               gen_mask_node->GetName().c_str(), in_anchor->GetIdx());
+               in_node->GetName().c_str(), const_node->GetName().c_str(), gen_mask_node->GetName().c_str(),
+               in_anchor->GetIdx());
         return INTERNAL_ERROR;
       }
-      GELOGI("Replace edge, src node:%s, new src node:%s, dst node:%s, dst input idx:%d.",
-             in_node->GetName().c_str(), const_node->GetName().c_str(),
-             gen_mask_node->GetName().c_str(), in_anchor->GetIdx());
+      GELOGI("Replace edge, src node:%s, new src node:%s, dst node:%s, dst input idx:%d.", in_node->GetName().c_str(),
+             const_node->GetName().c_str(), gen_mask_node->GetName().c_str(), in_anchor->GetIdx());
     }
   }
   return SUCCESS;
@@ -130,8 +129,7 @@ Status MultiBatchPass::PreparingForGenMaskParallel(const ComputeGraphPtr &graph)
   GetAllGenMaskNodes(graph, subgraph_to_gen_mask_nodes);
   for (const auto &item : subgraph_to_gen_mask_nodes) {
     if (TryToReplaceConstInput(item.first, item.second) != SUCCESS) {
-      GELOGE(FAILED, "[Replace][ConstInput] Failed to replace const input, graph:%s.",
-             item.first->GetName().c_str());
+      GELOGE(FAILED, "[Replace][ConstInput] Failed to replace const input, graph:%s.", item.first->GetName().c_str());
       return FAILED;
     }
   }

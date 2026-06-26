@@ -72,9 +72,8 @@ Expr *TaskCodeBuilderUtil::BuildTaskIoEntries(AstBuildContext &ast, const std::v
     if (!addr.tensor_info.has_value()) {
       continue;
     }
-    (void)entries.emplace_back(std::vector<Arg>{
-        ast.Var("Om2Tensor", addr.symbol_hint).Addr(),
-        std::to_string(addr.tensor_info->args_offset) + "U"});
+    (void)entries.emplace_back(std::vector<Arg>{ast.Var("Om2Tensor", addr.symbol_hint).Addr(),
+                                                std::to_string(addr.tensor_info->args_offset) + "U"});
   }
   return ast.InitList(entries);
 }
@@ -97,8 +96,7 @@ Expr *TaskCodeBuilderUtil::BuildWorkspaceSizes(AstBuildContext &ast, const std::
   return ast.InitList(entries);
 }
 
-Expr *TaskCodeBuilderUtil::BuildL0ArgSlotEntries(AstBuildContext &ast,
-                                                 const std::vector<AddrSemantic> &ordered_args) {
+Expr *TaskCodeBuilderUtil::BuildL0ArgSlotEntries(AstBuildContext &ast, const std::vector<AddrSemantic> &ordered_args) {
   std::vector<Arg> entries;
   entries.reserve(ordered_args.size());
   uint64_t args_offset = 0U;
@@ -111,29 +109,19 @@ Expr *TaskCodeBuilderUtil::BuildL0ArgSlotEntries(AstBuildContext &ast,
                                          ? Arg(std::to_string(addr.tensor_info->args_offset / sizeof(uint64_t)) + "U")
                                          : Arg("0U"));
     (void)entries.emplace_back(std::vector<Arg>{
-        ToOm2L0ArgKind(addr.kind),
-        "0U",
-        std::to_string(args_offset) + "U",
-        std::to_string(value) + "UL",
-        related_index,
-        std::to_string(addr.event_id) + "U",
-        std::to_string(addr.level1_target_offset.value_or(0U)) + "U"});
+        ToOm2L0ArgKind(addr.kind), "0U", std::to_string(args_offset) + "U", std::to_string(value) + "UL", related_index,
+        std::to_string(addr.event_id) + "U", std::to_string(addr.level1_target_offset.value_or(0U)) + "U"});
     args_offset += GetOrderedArgByteSizeForL0(addr);
   }
   return ast.InitList(entries);
 }
 
-Status TaskCodeBuilderUtil::AppendReportLaunchedTaskCall(AstBuildContext &ast, std::vector<BodyItem> &items,
-                                                         const std::string &var_prefix,
-                                                         const TaskSemanticHeader &header,
-                                                         const ArgsTableEntrySemantic *args_table_entry,
-                                                         const std::vector<AddrSemantic> &input_addrs,
-                                                         const std::vector<AddrSemantic> &output_addrs,
-                                                         const std::vector<AddrSemantic> &workspace_addrs,
-                                                         ModelTaskType task_type, uint32_t block_dim, Arg stream,
-                                                         const VarRef &model_id, const VarRef &instance_handle,
-                                                         const VarRef &args_table, bool use_args_info_size,
-                                                         bool is_raw_address) {
+Status TaskCodeBuilderUtil::AppendReportLaunchedTaskCall(
+    AstBuildContext &ast, std::vector<BodyItem> &items, const std::string &var_prefix, const TaskSemanticHeader &header,
+    const ArgsTableEntrySemantic *args_table_entry, const std::vector<AddrSemantic> &input_addrs,
+    const std::vector<AddrSemantic> &output_addrs, const std::vector<AddrSemantic> &workspace_addrs,
+    ModelTaskType task_type, uint32_t block_dim, Arg stream, const VarRef &model_id, const VarRef &instance_handle,
+    const VarRef &args_table, bool use_args_info_size, bool is_raw_address) {
   std::vector<Arg> args;
   args.reserve(17U);
   (void)args.emplace_back(Arg::StringLiteral(header.op_name));
@@ -143,7 +131,7 @@ Status TaskCodeBuilderUtil::AppendReportLaunchedTaskCall(AstBuildContext &ast, s
     auto args_info = args_table.Attr("GetArgsInfo")(static_cast<int64_t>(args_table_entry->table_index));
     (void)args.emplace_back(ast.ReinterpretCast("uintptr_t", args_info.Arrow("dev_addr")));
     (void)args.emplace_back(use_args_info_size ? Arg(args_info.Arrow("size"))
-                                         : Arg(std::to_string(args_table_entry->args_size) + "U"));
+                                               : Arg(std::to_string(args_table_entry->args_size) + "U"));
   } else {
     (void)args.emplace_back(ast.UInt(0U));
     (void)args.emplace_back("0U");
@@ -219,7 +207,7 @@ ExprRef TaskCodeBuilderUtil::BuildReportTaskPreprocessCall(
     auto args_info = args_table.Attr("GetArgsInfo")(static_cast<int64_t>(args_table_entry->table_index));
     (void)args.emplace_back(ast.ReinterpretCast("uintptr_t", args_info.Arrow("dev_addr")));
     (void)args.emplace_back(use_args_info_size ? Arg(args_info.Arrow("size"))
-                                         : Arg(std::to_string(args_table_entry->args_size) + "U"));
+                                               : Arg(std::to_string(args_table_entry->args_size) + "U"));
   } else {
     (void)args.emplace_back(ast.UInt(0U));
     (void)args.emplace_back("0U");

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -53,13 +53,13 @@ ComputeGraphPtr BuildGraphWithMultiAttachedStream() {
   named_attrs.emplace_back(named_attr);
 
   DEF_GRAPH(g1) {
-                  const auto data_0 = OP_CFG(DATA);
-                  auto mc2 = OP_CFG(MATMUL).Attr(ATTR_NAME_ATTACHED_STREAM_INFO_LIST, named_attrs);
-                  CHAIN(NODE("data0", data_0)->EDGE(0, 0)->NODE("mc2", mc2)->EDGE(0, 0)->NODE("output0", NETOUTPUT));
-                };
+    const auto data_0 = OP_CFG(DATA);
+    auto mc2 = OP_CFG(MATMUL).Attr(ATTR_NAME_ATTACHED_STREAM_INFO_LIST, named_attrs);
+    CHAIN(NODE("data0", data_0)->EDGE(0, 0)->NODE("mc2", mc2)->EDGE(0, 0)->NODE("output0", NETOUTPUT));
+  };
   return ToComputeGraph(g1);
 }
-}
+}  // namespace
 class UtestStreamAllocator : public testing::Test {
  protected:
   void SetUp() {}
@@ -219,8 +219,11 @@ ComputeGraphPtr MakeMultiDimsGraph() {
   };
 
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data0", data1)->EDGE(0, 0)->NODE("add1", add1)->NODE("case", case1, batch_0, batch_1)
-        ->NODE("netoutput", netoutput1));
+    CHAIN(NODE("data0", data1)
+              ->EDGE(0, 0)
+              ->NODE("add1", add1)
+              ->NODE("case", case1, batch_0, batch_1)
+              ->NODE("netoutput", netoutput1));
     CHAIN(NODE("data1", data1)->EDGE(0, 1)->NODE("add1")->NODE("case"));
   };
 
@@ -243,24 +246,27 @@ ComputeGraphPtr MakeMultiDimsGraphWithStreamLabel() {
   auto sub_output1 = OP_CFG(NETOUTPUT).StreamId(1);
   auto sub_output2 = OP_CFG(NETOUTPUT).StreamId(2);
   DEF_GRAPH(batch_0) {
-                       CHAIN(NODE("sub_data1", sub_data)
-                                 ->NODE("sub_relu1", sub_relu1)
-                                 ->NODE("sub_relu2", sub_relu2)
-                                 ->NODE("Sub_Output1", sub_output1));
-                     };
+    CHAIN(NODE("sub_data1", sub_data)
+              ->NODE("sub_relu1", sub_relu1)
+              ->NODE("sub_relu2", sub_relu2)
+              ->NODE("Sub_Output1", sub_output1));
+  };
 
   DEF_GRAPH(batch_1) {
-                       CHAIN(NODE("sub_data2", sub_data)
-                                 ->NODE("sub_relu3", sub_relu3)
-                                 ->NODE("sub_relu4", sub_relu4)
-                                 ->NODE("Sub_Output2", sub_output2));
-                     };
+    CHAIN(NODE("sub_data2", sub_data)
+              ->NODE("sub_relu3", sub_relu3)
+              ->NODE("sub_relu4", sub_relu4)
+              ->NODE("Sub_Output2", sub_output2));
+  };
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data0", data1)->EDGE(0, 0)->NODE("add1", add1)->NODE("case", case1, batch_0, batch_1)
-                            ->NODE("netoutput", netoutput1));
-                  CHAIN(NODE("data1", data1)->EDGE(0, 1)->NODE("add1")->NODE("case"));
-                };
+    CHAIN(NODE("data0", data1)
+              ->EDGE(0, 0)
+              ->NODE("add1", add1)
+              ->NODE("case", case1, batch_0, batch_1)
+              ->NODE("netoutput", netoutput1));
+    CHAIN(NODE("data1", data1)->EDGE(0, 1)->NODE("add1")->NODE("case"));
+  };
 
   return ToComputeGraph(g1);
 }
@@ -468,7 +474,8 @@ void MakeRefNodeGraphWithAttachedStream(const ge::ComputeGraphPtr &graph) {
 
 // 需要确保graph里没有重名节点
 std::unordered_map<int64_t, std::vector<domi::TaskDef>> MakeTaskDefsByGraph(const ComputeGraphPtr &graph,
-                                                                                size_t per_node_task_num, size_t pre_task_sqe_num = 1U) {
+                                                                            size_t per_node_task_num,
+                                                                            size_t pre_task_sqe_num = 1U) {
   std::unordered_map<int64_t, std::vector<domi::TaskDef>> node_id_to_node_tasks;
   if (graph == nullptr) {
     return node_id_to_node_tasks;
@@ -492,7 +499,7 @@ std::unordered_map<int64_t, std::vector<domi::TaskDef>> MakeTaskDefsByGraph(cons
 }
 
 std::unordered_map<int64_t, std::vector<domi::TaskDef>> MakeTaskDefsByGraphWithoutData(const ComputeGraphPtr &graph,
-                                                                            size_t per_node_task_num) {
+                                                                                       size_t per_node_task_num) {
   std::unordered_map<int64_t, std::vector<domi::TaskDef>> node_id_to_node_tasks;
   if (graph == nullptr) {
     return node_id_to_node_tasks;
@@ -536,7 +543,7 @@ std::unordered_map<int64_t, std::vector<domi::TaskDef>> MakeTaskDefsByGraphForAt
         node_id_to_node_tasks[node_id].emplace_back(task);
       }
       if (node->GetOpDesc()->HasValidAttachedStreamId()) {
-        for (auto attached_stream: attached_stream_list) {
+        for (auto attached_stream : attached_stream_list) {
           for (size_t i = 0U; i < task_num; i++) {
             auto task = domi::TaskDef();
             task.set_stream_id(attached_stream);
@@ -549,13 +556,13 @@ std::unordered_map<int64_t, std::vector<domi::TaskDef>> MakeTaskDefsByGraphForAt
   return node_id_to_node_tasks;
 }
 
-void CheckTaskDefStreamId(const std::unordered_map<int64_t , std::vector<domi::TaskDef>> &node_id_to_node_tasks,
+void CheckTaskDefStreamId(const std::unordered_map<int64_t, std::vector<domi::TaskDef>> &node_id_to_node_tasks,
                           const ComputeGraphPtr &graph) {
-  for (const auto &iter: node_id_to_node_tasks) {
-    for (const auto &task: iter.second) {
+  for (const auto &iter : node_id_to_node_tasks) {
+    for (const auto &task : iter.second) {
       const auto &all_nodes = graph->GetAllNodes();
       NodePtr node = nullptr;
-      for(auto n : all_nodes) {
+      for (auto n : all_nodes) {
         if (n->GetOpDesc()->GetId() == iter.first) {
           node = n;
           break;
@@ -674,8 +681,8 @@ TEST_F(UtestStreamAllocator, OptimizeBySendEvents_success) {
   EXPECT_EQ(allocator.node_to_send_events_[node_0][0], 1);
   EXPECT_EQ(allocator.node_to_send_events_[node_0][1], 2);
 
-  EXPECT_EQ(StreamUtils::OptimizeBySendEvents(stream_nodes, allocator.node_to_send_events_,
-                                           allocator.node_to_recv_events_),
+  EXPECT_EQ(
+      StreamUtils::OptimizeBySendEvents(stream_nodes, allocator.node_to_send_events_, allocator.node_to_recv_events_),
       SUCCESS);
   EXPECT_EQ(allocator.node_to_send_events_[node_0].size(), 1);  // event 2 is optimized
   EXPECT_EQ(allocator.node_to_send_events_[node_0][0], 1);
@@ -718,8 +725,8 @@ TEST_F(UtestStreamAllocator, OptimizeByRecvEvents_success) {
   EXPECT_EQ(allocator.node_to_recv_events_[node_2][0], 1);
   EXPECT_EQ(allocator.node_to_recv_events_[node_2][1], 2);
 
-  EXPECT_EQ(StreamUtils::OptimizeByRecvEvents(stream_nodes, allocator.node_to_send_events_,
-                                           allocator.node_to_recv_events_),
+  EXPECT_EQ(
+      StreamUtils::OptimizeByRecvEvents(stream_nodes, allocator.node_to_send_events_, allocator.node_to_recv_events_),
       SUCCESS);
   // event 1 is optimized，the optimization result is related to the topological order of the nodes.
   EXPECT_EQ(allocator.node_to_recv_events_[node_2].size(), 1);
@@ -844,7 +851,7 @@ TEST_F(UtestStreamAllocator, SplitStreams_with_attached_stream_success) {
   EXPECT_EQ(ret, GRAPH_SUCCESS);
   // 附属流的last node跟模型输出节点之间同步, 所以event资源变成2+1
   EXPECT_EQ(stream_allocator->event_num_, 1U);
-  EXPECT_EQ(stream_allocator->attached_node_to_stream_id_to_send_event_id_.size(),1U);
+  EXPECT_EQ(stream_allocator->attached_node_to_stream_id_to_send_event_id_.size(), 1U);
   EXPECT_EQ(stream_allocator->node_to_recv_events_.size(), 1U);
   EXPECT_NE(stream_allocator->attached_node_to_stream_id_to_send_event_id_.find(graph->FindNode("A_344")),
             stream_allocator->attached_node_to_stream_id_to_send_event_id_.end());
@@ -860,7 +867,7 @@ TEST_F(UtestStreamAllocator, SplitStreams_with_attached_stream_success) {
   CheckTaskDefStreamId(node_id_to_node_tasks, graph);
   int i = 0;
   for (const auto &cur_node : graph->GetDirectNode()) {
-    if (cur_node->GetType() ==NETOUTPUT) {
+    if (cur_node->GetType() == NETOUTPUT) {
       continue;
     }
     int64_t stream_id = cur_node->GetOpDesc()->GetStreamId();
@@ -894,7 +901,7 @@ TEST_F(UtestStreamAllocator, SplitStreams_with_attached_stream_success) {
   EXPECT_EQ(stream_allocator->attached_node_to_stream_id_to_send_event_id_.size(), 2U);
   EXPECT_EQ(stream_allocator->attached_node_to_stream_id_to_recv_event_id_.begin()->first->GetName(), "A_332");
   EXPECT_EQ(stream_allocator->attached_node_to_stream_id_to_send_event_id_.begin()->first->GetName(), "A_331");
-  EXPECT_EQ(stream_allocator->node_to_recv_events_.size(), 1U+1U);
+  EXPECT_EQ(stream_allocator->node_to_recv_events_.size(), 1U + 1U);
   EXPECT_EQ(stream_allocator->node_to_send_events_.size(), 1U);
   auto A_332_node = graph->FindNode("A_332");
   EXPECT_TRUE(stream_allocator->node_to_recv_events_.find(A_332_node) != stream_allocator->node_to_recv_events_.end());
@@ -938,7 +945,7 @@ TEST_F(UtestStreamAllocator, SplitStreams_with_multi_attached_stream_success) {
   EXPECT_EQ(ret, GRAPH_SUCCESS);
   int i = 0;
   for (const auto &cur_node : graph->GetDirectNode()) {
-    if (cur_node->GetType() ==NETOUTPUT) {
+    if (cur_node->GetType() == NETOUTPUT) {
       continue;
     }
     int64_t stream_id = cur_node->GetOpDesc()->GetStreamId();
@@ -1008,8 +1015,8 @@ TEST_F(UtestStreamAllocator, FindSwitchNodeBeforeLoopActiveNode_iterator_loop) {
 
 TEST_F(UtestStreamAllocator, AfterSplitStreams_FindSwitchNodeBeforeLoopActiveNode_iterator_loop) {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("StreamSwitch", STREAMSWITCH)->Ctrl()->NODE("StreamActive", STREAMACTIVE));
-                };
+    CHAIN(NODE("StreamSwitch", STREAMSWITCH)->Ctrl()->NODE("StreamActive", STREAMACTIVE));
+  };
   auto graph = ToComputeGraph(g1);
   auto stream_active_node = graph->FindNode("StreamActive");
   (void)AttrUtils::SetBool(stream_active_node->GetOpDesc(), ATTR_NAME_IS_LOOP_ACTIVE, true);
@@ -1674,7 +1681,7 @@ TEST_F(UtestStreamAllocator, OptimizeByRecvNotifies_Success_EnableNotify) {
   EXPECT_EQ(allocator.node_to_recv_notifies_[node_3][2], 3);
 
   EXPECT_EQ(StreamUtils::OptimizeByRecvEvents(stream_nodes, allocator.node_to_send_notifies_,
-                                           allocator.node_to_recv_notifies_),
+                                              allocator.node_to_recv_notifies_),
             SUCCESS);
   EXPECT_EQ(allocator.node_to_send_notifies_[node_0].size(), 0);  // notify1 notify2 is optimized
   EXPECT_EQ(allocator.node_to_send_notifies_[node_1].size(), 0);
@@ -1743,7 +1750,7 @@ TEST_F(UtestStreamAllocator, SetLogicStreamAttr_Ok_OnRefreshRealStream) {
   int64_t notify_num;
   int64_t event_num;
   std::unordered_map<std::string, int64_t> names_to_stream_ids{};
-  for(auto &node: graph->GetAllNodes()) {
+  for (auto &node : graph->GetAllNodes()) {
     names_to_stream_ids[node->GetName()] = node->GetOpDesc()->GetStreamId();
   }
   ret = stream_allocator->InsertSyncNodesByLogicStream(stream_num, event_num, notify_num);
@@ -1752,7 +1759,7 @@ TEST_F(UtestStreamAllocator, SetLogicStreamAttr_Ok_OnRefreshRealStream) {
   ret = stream_allocator->SplitStreamAndRefreshTaskDef(node_id_to_node_tasks, stream_num, event_num, notify_num);
   EXPECT_EQ(ret, GRAPH_SUCCESS);
   std::vector<int64_t> actual_stream_id;
-  for(auto &node: graph->GetAllNodes()) {
+  for (auto &node : graph->GetAllNodes()) {
     if (names_to_stream_ids.find(node->GetName()) != names_to_stream_ids.end()) {
       int64_t logic_stream_id = -1;
       AttrUtils::GetInt(node->GetOpDesc(), "_logic_stream_id", logic_stream_id);
@@ -2002,7 +2009,7 @@ TEST_F(UtestStreamAllocator, RefreshTaskDefStreamId_NoAttachedStream_success) {
   AddTaskDefWithStreamId(task_defs, 0);
   AddTaskDefWithStreamId(task_defs, 0);
   RefreshTaskDefStreamId(false, 0, 1, task_defs);
-  for (const auto &task: task_defs) {
+  for (const auto &task : task_defs) {
     ASSERT_EQ(task.stream_id(), 1);
   }
 }

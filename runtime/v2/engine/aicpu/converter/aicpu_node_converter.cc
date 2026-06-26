@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -94,8 +94,8 @@ bg::ValueHolderPtr UpdateWorkSpaceSizeAndAddr(const ge::NodePtr &node, const Low
 NodeOutput UpdateOutputShapeAndAddr(const ge::NodePtr &node, const LowerInput &lower_input,
                                     const bg::AicpuArgs &aicpu_args, bg::ValueHolderPtr &update_holder,
                                     bg::ValueHolderPtr &workspace_addr_holder) {
-  auto node_output = GetOutputShapeAndAddr(node, lower_input.input_shapes, lower_input.input_addrs,
-                                           *(lower_input.global_data));
+  auto node_output =
+      GetOutputShapeAndAddr(node, lower_input.input_shapes, lower_input.input_addrs, *(lower_input.global_data));
 
   const auto &op_desc = node->GetOpDesc();
 
@@ -120,8 +120,8 @@ NodeOutput UpdateOutputShapeAndAddr(const ge::NodePtr &node, const LowerInput &l
       expanded_input_addrs_holder = update_input_addrs.front();
     }
   }
-  auto update_ext = bg::UpdateExtInfo(op_desc, {update_input_shapes, node_output.shapes},
-                                      aicpu_args.ext_info_handler, lower_input.global_data->GetStream());
+  auto update_ext = bg::UpdateExtInfo(op_desc, {update_input_shapes, node_output.shapes}, aicpu_args.ext_info_handler,
+                                      lower_input.global_data->GetStream());
   update_holder = bg::UpdateAicpuIoAddr(aicpu_args.args_handler, update_input_addrs, node_output.addrs);
   if (optional_input_placeholder && expanded_input_addrs_holder != nullptr) {
     bg::ValueHolder::AddDependency(expanded_input_addrs_holder, update_holder);
@@ -138,13 +138,13 @@ NodeOutput UpdateOutputShapeAndAddr(const ge::NodePtr &node, const LowerInput &l
   }
   return node_output;
 }
-} // namespace
+}  // namespace
 
 LowerResult LoweringAiCpuTfNode(const ge::NodePtr &node, const LowerInput &lower_input) {
   auto compile_result = lower_input.global_data->FindCompiledResult(node);
   const domi::TaskDef *task_def = GetTaskDef(node, compile_result, TaskDefType::kAICpu);
   if (task_def == nullptr) {
-    return {HyperStatus::ErrorStatus(static_cast<const char*>("Not find AI cpu Tf taskdef.")), {}, {}, {}};
+    return {HyperStatus::ErrorStatus(static_cast<const char *>("Not find AI cpu Tf taskdef.")), {}, {}, {}};
   }
   auto &kernel_ex_def = task_def->kernel_ex();
   auto session_id = bg::GetSessionId(*lower_input.global_data);
@@ -163,7 +163,8 @@ LowerResult LoweringAiCpuTfNode(const ge::NodePtr &node, const LowerInput &lower
   auto node_output = UpdateOutputShapeAndAddr(node, lower_input, aicpu_args, update_holder, workspace_addr_holder);
 
   // launch
-  auto launch_holder = bg::AicpuTfLaunchKernel(aicpu_args.args_handler, lower_input.global_data->GetStream(), rts_args.bin_handle, node);
+  auto launch_holder =
+      bg::AicpuTfLaunchKernel(aicpu_args.args_handler, lower_input.global_data->GetStream(), rts_args.bin_handle, node);
   bg::ValueHolder::AddDependency(update_holder, launch_holder);
 
   SetReleaseAfter(lower_input.input_addrs, launch_holder);
@@ -194,7 +195,7 @@ LowerResult LoweringAiCpuCCNode(const ge::NodePtr &node, const LowerInput &lower
   auto compile_result = lower_input.global_data->FindCompiledResult(node);
   const domi::TaskDef *task_def = GetTaskDef(node, compile_result, TaskDefType::kAICpu);
   if (task_def == nullptr) {
-    return {HyperStatus::ErrorStatus(static_cast<const char*>("Not find AI cpu CC taskdef.")), {}, {}, {}};
+    return {HyperStatus::ErrorStatus(static_cast<const char *>("Not find AI cpu CC taskdef.")), {}, {}, {}};
   }
   auto &kernel_def = task_def->kernel();
   const auto &op_desc = node->GetOpDesc();
@@ -210,8 +211,8 @@ LowerResult LoweringAiCpuCCNode(const ge::NodePtr &node, const LowerInput &lower
   (void)ge::AttrUtils::GetBool(node->GetOpDescBarePtr(), bg::kOptionalInputPlaceholder, optional_input_placeholder);
   if (optional_input_placeholder) {
     in_num = node->GetOpDescBarePtr()->GetAllInputsSize();
-    GELOGI("Op %s type %s in all input size is %zu, all input data anchors size is %zu.",
-         node->GetName().c_str(), ge::NodeUtils::GetNodeType(node).c_str(), in_num, node->GetInDataNodesAndAnchors().size());
+    GELOGI("Op %s type %s in all input size is %zu, all input data anchors size is %zu.", node->GetName().c_str(),
+           ge::NodeUtils::GetNodeType(node).c_str(), in_num, node->GetInDataNodesAndAnchors().size());
   }
   auto io_num = in_num + node->GetAllOutDataAnchorsSize();
   auto aicpu_args = bg::BuildCCAicpuArg(node, kernel_def, io_num, session_id, false);
@@ -246,7 +247,7 @@ LowerResult LoweringHostAiCpuNode(const ge::NodePtr &node, const LowerInput &low
   auto compile_result = lower_input.global_data->FindCompiledResult(node);
   const domi::TaskDef *task_def = GetTaskDef(node, compile_result, TaskDefType::kAICpu);
   if (task_def == nullptr) {
-    return {HyperStatus::ErrorStatus(static_cast<const char*>("Not find host AI cpu taskdef.")), {}, {}, {}};
+    return {HyperStatus::ErrorStatus(static_cast<const char *>("Not find host AI cpu taskdef.")), {}, {}, {}};
   }
   auto &kernel_def = task_def->kernel();
   auto session_id = bg::GetSessionId(*lower_input.global_data);
@@ -257,8 +258,8 @@ LowerResult LoweringHostAiCpuNode(const ge::NodePtr &node, const LowerInput &low
   (void)ge::AttrUtils::GetBool(node->GetOpDescBarePtr(), bg::kOptionalInputPlaceholder, optional_input_placeholder);
   if (optional_input_placeholder) {
     in_num = node->GetOpDescBarePtr()->GetAllInputsSize();
-    GELOGI("Op %s type %s in all input size is %zu, all input data anchors size is %zu.",
-           node->GetName().c_str(), ge::NodeUtils::GetNodeType(node).c_str(), in_num, node->GetInDataNodesAndAnchors().size());
+    GELOGI("Op %s type %s in all input size is %zu, all input data anchors size is %zu.", node->GetName().c_str(),
+           ge::NodeUtils::GetNodeType(node).c_str(), in_num, node->GetInDataNodesAndAnchors().size());
   }
   auto io_num = in_num + node->GetAllOutDataAnchorsSize();
   auto aicpu_args = bg::BuildHostCCAicpuArg(node, kernel_def, io_num, session_id);
@@ -269,8 +270,9 @@ LowerResult LoweringHostAiCpuNode(const ge::NodePtr &node, const LowerInput &low
 
   // compute
   std::vector<bg::DevMemValueHolderPtr> output_addrs;
-  auto compute_holder = bg::AicpuHostCompute(node, aicpu_args, {lower_input.input_addrs, lower_input.input_shapes,
-      output_sizes, output_shapes}, *lower_input.global_data, output_addrs);
+  auto compute_holder = bg::AicpuHostCompute(
+      node, aicpu_args, {lower_input.input_addrs, lower_input.input_shapes, output_sizes, output_shapes},
+      *lower_input.global_data, output_addrs);
 
   auto after_compute_addrs = IdentityAddr(output_addrs, node->GetOpDescBarePtr()->GetStreamId());
   for (auto addr : after_compute_addrs) {
@@ -284,14 +286,14 @@ LowerResult LoweringAiCpuNode(const ge::NodePtr &node, const LowerInput &lower_i
   if ((node == nullptr) || (node->GetOpDescBarePtr() == nullptr)) {
     GELOGE(ge::PARAM_INVALID, "[Check][Op]Can not find op.");
     REPORT_INNER_ERR_MSG("E19999", "Can not find op.");
-    return {HyperStatus::ErrorStatus(static_cast<const char*>("Can not find op")), {}, {}, {}};
+    return {HyperStatus::ErrorStatus(static_cast<const char *>("Can not find op")), {}, {}, {}};
   }
   auto ret = CheckLowerInput(lower_input);
   if (!ret.IsSuccess()) {
     GELOGE(ge::PARAM_INVALID, "[Check][LowerInput]Op %s type %s lower_input is invalid.", node->GetName().c_str(),
            ge::NodeUtils::GetNodeType(node).c_str());
     REPORT_INNER_ERR_MSG("E19999", "Op %s type %s lower_input is invalid.", node->GetName().c_str(),
-                       ge::NodeUtils::GetNodeType(node).c_str());
+                         ge::NodeUtils::GetNodeType(node).c_str());
     return {ret, {}, {}, {}};
   }
   auto compile_result = lower_input.global_data->FindCompiledResult(node);
@@ -299,25 +301,24 @@ LowerResult LoweringAiCpuNode(const ge::NodePtr &node, const LowerInput &lower_i
     GELOGE(ge::PARAM_INVALID, "[Check][CompileResult]Can not find compile result for node %s type %s",
            node->GetName().c_str(), ge::NodeUtils::GetNodeType(node).c_str());
     REPORT_INNER_ERR_MSG("E19999", "[Check][CompileResult]Can not find compile result for node %s type %s",
-                       node->GetName().c_str(), ge::NodeUtils::GetNodeType(node).c_str());
-    return {HyperStatus::ErrorStatus(static_cast<const char*>("Can not find compile result")), {}, {}, {}};
+                         node->GetName().c_str(), ge::NodeUtils::GetNodeType(node).c_str());
+    return {HyperStatus::ErrorStatus(static_cast<const char *>("Can not find compile result")), {}, {}, {}};
   }
   if (compile_result->task_defs.empty()) {
     GELOGE(ge::PARAM_INVALID, "[Check][TaskDef]Unexpected task defs count %zu", compile_result->task_defs.size());
     REPORT_INNER_ERR_MSG("E19999", "Unexpected task defs count %zu", compile_result->task_defs.size());
-    return {HyperStatus::ErrorStatus(static_cast<const char*>("Unexpected task defs count")), {}, {}, {}};
+    return {HyperStatus::ErrorStatus(static_cast<const char *>("Unexpected task defs count")), {}, {}, {}};
   }
   int32_t unknown_shape_type_val = 0;
-  (void) ge::AttrUtils::GetInt(node->GetOpDescBarePtr(), ge::ATTR_NAME_UNKNOWN_SHAPE_TYPE, unknown_shape_type_val);
-  if ((bg::IsAicpuUnknownShape(node)) &&
-      (unknown_shape_type_val == static_cast<int32_t>(ge::DEPEND_COMPUTE))) {
+  (void)ge::AttrUtils::GetInt(node->GetOpDescBarePtr(), ge::ATTR_NAME_UNKNOWN_SHAPE_TYPE, unknown_shape_type_val);
+  if ((bg::IsAicpuUnknownShape(node)) && (unknown_shape_type_val == static_cast<int32_t>(ge::DEPEND_COMPUTE))) {
     // when the operator is the fourth type, and corresponding node is unknown, then 2 tasks are required.
     if (compile_result->task_defs.size() != 2U) {
       GELOGE(ge::PARAM_INVALID, "[Check][TaskDef]Op %s type %s is 4th op, unexpected task defs count %zu",
              node->GetName().c_str(), ge::NodeUtils::GetNodeType(node).c_str(), compile_result->task_defs.size());
       REPORT_INNER_ERR_MSG("E19999", "Op %s type %s is 4th op, unexpected task defs count %zu", node->GetName().c_str(),
-                         ge::NodeUtils::GetNodeType(node).c_str(), compile_result->task_defs.size());
-      return {HyperStatus::ErrorStatus(static_cast<const char*>("Unexpected task defs count")), {}, {}, {}};
+                           ge::NodeUtils::GetNodeType(node).c_str(), compile_result->task_defs.size());
+      return {HyperStatus::ErrorStatus(static_cast<const char *>("Unexpected task defs count")), {}, {}, {}};
     }
   }
 

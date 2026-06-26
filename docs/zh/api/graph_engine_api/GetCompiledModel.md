@@ -123,4 +123,3 @@ Status GetCompiledModel(uint32_t graph_id, ModelDataBuffer &model_buffer)
         -   保存离线模型：在GeSession析构之前，调用aclgrphSaveModel接口，将已编译好的模型（包含权重）序列化保存为独立的om离线模型文件。
 
         通过以上方式，可以有效管理外置权重文件的生命周期，确保其不会因GeSession的销毁而意外丢失。
-

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,11 +32,9 @@ bool QueryOpPattern_True(std::vector<std::pair<std::string, std::string>> &ops_p
   return true;
 }
 
-class fusion_manager_unittest : public testing::Test
-{
-protected:
-  static void TearDownTestCase()
-  {
+class fusion_manager_unittest : public testing::Test {
+ protected:
+  static void TearDownTestCase() {
     string path = GetCodeDir() + "/tests/engines/nn_engine/config/data/platform_config/Ascend910B1.ini";
     string real_path = fe::RealPath(path);
     fe::PlatformInfoManager::Instance().platform_info_map_.clear();
@@ -53,11 +51,10 @@ protected:
     fe::OpStoreAdapterManager::Instance(fe::kDsaCoreName).Initialize(options);
   }
 
-// AUTO GEN PLEASE DO NOT MODIFY IT
+  // AUTO GEN PLEASE DO NOT MODIFY IT
 };
 
-TEST_F(fusion_manager_unittest, initialize_and_finalize)
-{
+TEST_F(fusion_manager_unittest, initialize_and_finalize) {
   FusionManager fm;
 
   map<string, string> options;
@@ -65,7 +62,8 @@ TEST_F(fusion_manager_unittest, initialize_and_finalize)
   std::string engine_name;
   std::string soc_version;
   Configuration::Instance(engine_name).is_init_ = false;
-  Configuration::Instance(engine_name).lib_path_ = GetCodeDir() + "/tests/engines/nn_engine/depends/CANN_910b_stub/cann/x86_64-linux/lib64/";
+  Configuration::Instance(engine_name).lib_path_ =
+      GetCodeDir() + "/tests/engines/nn_engine/depends/CANN_910b_stub/cann/x86_64-linux/lib64/";
   Configuration::Instance(engine_name).ascend_ops_path_ = GetCodeDir();
   Status ret = fm.Initialize(engine_name, options);
   ret = fm.Initialize(engine_name, options);
@@ -76,155 +74,147 @@ TEST_F(fusion_manager_unittest, initialize_and_finalize)
   EXPECT_EQ(ret, fe::SUCCESS);
 }
 
-TEST_F(fusion_manager_unittest, dsa_instance)
-{
-    FusionManager fm = FusionManager::Instance(kDsaCoreName);
-    fm.ops_kernel_info_store_ = make_shared<FEOpsKernelInfoStore>(fe::kDsaCoreName);
-    fm.dsa_graph_opt_ = make_shared<DSAGraphOptimizer>(fm.ops_kernel_info_store_, fe::kDsaCoreName);
-    map<string, GraphOptimizerPtr> graph_optimizers;
-    std::string AIcoreEngine = "DSAEngine";
-    fm.GetGraphOptimizerObjs(graph_optimizers, AIcoreEngine);
-    EXPECT_EQ(graph_optimizers.size(), 1);
+TEST_F(fusion_manager_unittest, dsa_instance) {
+  FusionManager fm = FusionManager::Instance(kDsaCoreName);
+  fm.ops_kernel_info_store_ = make_shared<FEOpsKernelInfoStore>(fe::kDsaCoreName);
+  fm.dsa_graph_opt_ = make_shared<DSAGraphOptimizer>(fm.ops_kernel_info_store_, fe::kDsaCoreName);
+  map<string, GraphOptimizerPtr> graph_optimizers;
+  std::string AIcoreEngine = "DSAEngine";
+  fm.GetGraphOptimizerObjs(graph_optimizers, AIcoreEngine);
+  EXPECT_EQ(graph_optimizers.size(), 1);
 }
 
-TEST_F(fusion_manager_unittest, fm_init)
-{
-    FusionManager fm = FusionManager::Instance(kDsaCoreName);
-    fm.ops_kernel_info_store_ = make_shared<FEOpsKernelInfoStore>(fe::kDsaCoreName);
-    fm.dsa_graph_opt_ = make_shared<DSAGraphOptimizer>(fm.ops_kernel_info_store_, fe::kDsaCoreName);
-    map<string, GraphOptimizerPtr> graph_optimizers;
-    std::string AIcoreEngine = "DSAEngine";
-    fm.GetGraphOptimizerObjs(graph_optimizers, AIcoreEngine);
-    EXPECT_EQ(graph_optimizers.size(), 1);
+TEST_F(fusion_manager_unittest, fm_init) {
+  FusionManager fm = FusionManager::Instance(kDsaCoreName);
+  fm.ops_kernel_info_store_ = make_shared<FEOpsKernelInfoStore>(fe::kDsaCoreName);
+  fm.dsa_graph_opt_ = make_shared<DSAGraphOptimizer>(fm.ops_kernel_info_store_, fe::kDsaCoreName);
+  map<string, GraphOptimizerPtr> graph_optimizers;
+  std::string AIcoreEngine = "DSAEngine";
+  fm.GetGraphOptimizerObjs(graph_optimizers, AIcoreEngine);
+  EXPECT_EQ(graph_optimizers.size(), 1);
 }
 
-TEST_F(fusion_manager_unittest, get_ops_kernel_info_stores_success)
-{
-    FusionManager fm;
-    map<string, OpsKernelInfoStorePtr> op_kern_infos;
-    fm.ops_kernel_info_store_ = make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
-    std::string AIcoreEngine = "AIcoreEngine";
-    fm.GetOpsKernelInfoStores(op_kern_infos, AIcoreEngine);
-    EXPECT_EQ(op_kern_infos.size(), 1);
+TEST_F(fusion_manager_unittest, get_ops_kernel_info_stores_success) {
+  FusionManager fm;
+  map<string, OpsKernelInfoStorePtr> op_kern_infos;
+  fm.ops_kernel_info_store_ = make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
+  std::string AIcoreEngine = "AIcoreEngine";
+  fm.GetOpsKernelInfoStores(op_kern_infos, AIcoreEngine);
+  EXPECT_EQ(op_kern_infos.size(), 1);
 }
 
-TEST_F(fusion_manager_unittest, get_graph_optimizer_objs_failed)
-{
-    FusionManager fm;
-    fm.ops_kernel_info_store_ = make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
-    map<string, GraphOptimizerPtr> graph_optimizers;
-    std::string AIcoreEngine = "AIcoreEngine";
-    fm.graph_opt_ = nullptr;
-    fm.GetGraphOptimizerObjs(graph_optimizers, AIcoreEngine);
-    EXPECT_EQ(graph_optimizers.size(), 0);
+TEST_F(fusion_manager_unittest, get_graph_optimizer_objs_failed) {
+  FusionManager fm;
+  fm.ops_kernel_info_store_ = make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
+  map<string, GraphOptimizerPtr> graph_optimizers;
+  std::string AIcoreEngine = "AIcoreEngine";
+  fm.graph_opt_ = nullptr;
+  fm.GetGraphOptimizerObjs(graph_optimizers, AIcoreEngine);
+  EXPECT_EQ(graph_optimizers.size(), 0);
 }
 
-TEST_F(fusion_manager_unittest, get_graph_optimizer_objs_success)
-{
-    FusionManager fm;
-    fm.ops_kernel_info_store_ = make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
-    fm.graph_opt_ = make_shared<FEGraphOptimizer>(fm.ops_kernel_info_store_, fe::AI_CORE_NAME);
-    map<string, GraphOptimizerPtr> graph_optimizers;
-    std::string AIcoreEngine = "AIcoreEngine";
-    fm.GetGraphOptimizerObjs(graph_optimizers, AIcoreEngine);
-    EXPECT_EQ(graph_optimizers.size(), 1);
+TEST_F(fusion_manager_unittest, get_graph_optimizer_objs_success) {
+  FusionManager fm;
+  fm.ops_kernel_info_store_ = make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
+  fm.graph_opt_ = make_shared<FEGraphOptimizer>(fm.ops_kernel_info_store_, fe::AI_CORE_NAME);
+  map<string, GraphOptimizerPtr> graph_optimizers;
+  std::string AIcoreEngine = "AIcoreEngine";
+  fm.GetGraphOptimizerObjs(graph_optimizers, AIcoreEngine);
+  EXPECT_EQ(graph_optimizers.size(), 1);
 }
 
-TEST_F(fusion_manager_unittest, platform_info_manager_test2)
-{
-    PlatformInfoManager pm;
-    std::string path = GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_manager/platform_config_new";
-    std::string real_path = RealPath(path);
-    Status ret = pm.LoadIniFile(real_path);
-    EXPECT_EQ(ret, fe::FAILED);
+TEST_F(fusion_manager_unittest, platform_info_manager_test2) {
+  PlatformInfoManager pm;
+  std::string path =
+      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_manager/platform_config_new";
+  std::string real_path = RealPath(path);
+  Status ret = pm.LoadIniFile(real_path);
+  EXPECT_EQ(ret, fe::FAILED);
 
-    path = GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_manager";
-    real_path = RealPath(path);
-    ret = pm.LoadIniFile(real_path);
-    EXPECT_EQ(ret, fe::SUCCESS);
+  path = GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_manager";
+  real_path = RealPath(path);
+  ret = pm.LoadIniFile(real_path);
+  EXPECT_EQ(ret, fe::SUCCESS);
 
-    path = GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_manager/Ascend000.ini";
-    real_path = RealPath(path);
-    ret = pm.LoadIniFile(real_path);
-    EXPECT_EQ(ret, fe::FAILED);
+  path = GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_manager/Ascend000.ini";
+  real_path = RealPath(path);
+  ret = pm.LoadIniFile(real_path);
+  EXPECT_EQ(ret, fe::FAILED);
 
+  map<string, string> new_map;
+  map<string, map<string, string>> content_map1_;
+  content_map1_.emplace("test", new_map);
+  ret = pm.AssemblePlatformInfoVector(content_map1_);
+  EXPECT_EQ(ret, fe::SUCCESS);
 
-    map<string, string> new_map;
-    map<string, map<string, string>> content_map1_;
-    content_map1_.emplace("test", new_map);
-    ret = pm.AssemblePlatformInfoVector(content_map1_);
-    EXPECT_EQ(ret, fe::SUCCESS);
+  pm.init_flag_ = true;
+  ret = pm.InitializePlatformInfo();
+  EXPECT_EQ(ret, fe::SUCCESS);
 
-    pm.init_flag_ = true;
-    ret = pm.InitializePlatformInfo();
-    EXPECT_EQ(ret, fe::SUCCESS);
+  pm.init_flag_ = true;
+  ret = pm.Finalize();
+  EXPECT_EQ(ret, fe::SUCCESS);
+  ret = pm.Finalize();
+  EXPECT_EQ(ret, fe::SUCCESS);
 
-    pm.init_flag_ = true;
-    ret = pm.Finalize();
-    EXPECT_EQ(ret, fe::SUCCESS);
-    ret = pm.Finalize();
-    EXPECT_EQ(ret, fe::SUCCESS);
+  ret = pm.Finalize();
+  EXPECT_EQ(ret, fe::SUCCESS);
 
-    ret = pm.Finalize();
-    EXPECT_EQ(ret, fe::SUCCESS);
+  string str = "";
+  pm.Trim(str);
 
-    string str = "";
-    pm.Trim(str);
+  str = " ";
+  pm.Trim(str);
 
-    str = " ";
-    pm.Trim(str);
+  path = GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_manager/Ascend001.ini";
+  real_path = RealPath(path);
+  ret = pm.LoadIniFile(real_path);
+  EXPECT_EQ(ret, fe::FAILED);
 
-    path = GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_manager/Ascend001.ini";
-    real_path = RealPath(path);
-    ret = pm.LoadIniFile(real_path);
-    EXPECT_EQ(ret, fe::FAILED);
+  path = GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_manager/Ascend002.ini";
+  real_path = RealPath(path);
+  ret = pm.LoadIniFile(real_path);
+  EXPECT_EQ(ret, fe::FAILED);
 
-    path = GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_manager/Ascend002.ini";
-    real_path = RealPath(path);
-    ret = pm.LoadIniFile(real_path);
-    EXPECT_EQ(ret, fe::FAILED);
+  map<string, string> ai_coreintrinsic_dtype_map;
+  PlatformInfo platform_info_temp;
+  ai_coreintrinsic_dtype_map.emplace(make_pair("1", "Intrinsic_vcmpv_ne"));
+  pm.ParseAICoreintrinsicDtypeMap(ai_coreintrinsic_dtype_map, platform_info_temp);
+  pm.ParseVectorCoreintrinsicDtypeMap(ai_coreintrinsic_dtype_map, platform_info_temp);
 
-    map<string, string> ai_coreintrinsic_dtype_map;
-    PlatformInfo platform_info_temp;
-    ai_coreintrinsic_dtype_map.emplace(make_pair("1", "Intrinsic_vcmpv_ne"));
-    pm.ParseAICoreintrinsicDtypeMap(ai_coreintrinsic_dtype_map, platform_info_temp);
-    pm.ParseVectorCoreintrinsicDtypeMap(ai_coreintrinsic_dtype_map, platform_info_temp);
-
-    map<string, string> content_info_temp;
-    content_info_temp.emplace(make_pair("123", "456"));
-    map<string, map<string, string>> content_info_map;
-    content_info_map.emplace(make_pair("test", content_info_temp));
-    string soc_version;
-    ret = pm.ParsePlatformInfoFromStrToStruct(content_info_map, soc_version, platform_info_temp);
-    EXPECT_EQ(fe::SUCCESS, ret);
+  map<string, string> content_info_temp;
+  content_info_temp.emplace(make_pair("123", "456"));
+  map<string, map<string, string>> content_info_map;
+  content_info_map.emplace(make_pair("test", content_info_temp));
+  string soc_version;
+  ret = pm.ParsePlatformInfoFromStrToStruct(content_info_map, soc_version, platform_info_temp);
+  EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-TEST_F(fusion_manager_unittest, platform_info_manager_test3)
-{
-    PlatformInfoManager pm;
-    map<string, string> ai_core_spec_map;
-    ai_core_spec_map.emplace(make_pair("unzip_engines", "1"));
-    ai_core_spec_map.emplace(make_pair("unzip_max_ratios", "64"));
-    ai_core_spec_map.emplace(make_pair("unzip_channels", "4"));
-    ai_core_spec_map.emplace(make_pair("unzip_is_tight", "0"));
-    // AICoreSpec
-    map<string, string> content_info_temp;
-    content_info_temp.emplace(make_pair("123", "456"));
-    map<string, map<string, string>> content_info_map;
-    content_info_map.emplace(make_pair("test", content_info_temp));
-    content_info_map.emplace(make_pair("AICoreSpec", ai_core_spec_map));
-    string soc_version;
-    PlatformInfo platform_info_temp;
-    Status ret = pm.ParsePlatformInfoFromStrToStruct(content_info_map, soc_version, platform_info_temp);
-    EXPECT_EQ(fe::SUCCESS, ret);
-    EXPECT_EQ(platform_info_temp.ai_core_spec.unzip_engines, 1);
-    EXPECT_EQ(platform_info_temp.ai_core_spec.unzip_max_ratios, 64);
-    EXPECT_EQ(platform_info_temp.ai_core_spec.unzip_channels, 4);
-    EXPECT_EQ(platform_info_temp.ai_core_spec.unzip_is_tight, 0);
+TEST_F(fusion_manager_unittest, platform_info_manager_test3) {
+  PlatformInfoManager pm;
+  map<string, string> ai_core_spec_map;
+  ai_core_spec_map.emplace(make_pair("unzip_engines", "1"));
+  ai_core_spec_map.emplace(make_pair("unzip_max_ratios", "64"));
+  ai_core_spec_map.emplace(make_pair("unzip_channels", "4"));
+  ai_core_spec_map.emplace(make_pair("unzip_is_tight", "0"));
+  // AICoreSpec
+  map<string, string> content_info_temp;
+  content_info_temp.emplace(make_pair("123", "456"));
+  map<string, map<string, string>> content_info_map;
+  content_info_map.emplace(make_pair("test", content_info_temp));
+  content_info_map.emplace(make_pair("AICoreSpec", ai_core_spec_map));
+  string soc_version;
+  PlatformInfo platform_info_temp;
+  Status ret = pm.ParsePlatformInfoFromStrToStruct(content_info_map, soc_version, platform_info_temp);
+  EXPECT_EQ(fe::SUCCESS, ret);
+  EXPECT_EQ(platform_info_temp.ai_core_spec.unzip_engines, 1);
+  EXPECT_EQ(platform_info_temp.ai_core_spec.unzip_max_ratios, 64);
+  EXPECT_EQ(platform_info_temp.ai_core_spec.unzip_channels, 4);
+  EXPECT_EQ(platform_info_temp.ai_core_spec.unzip_is_tight, 0);
 }
 
-TEST_F(fusion_manager_unittest, platform_info_manager_testfieldvalue)
-{
+TEST_F(fusion_manager_unittest, platform_info_manager_testfieldvalue) {
   fe::InitPlatformInfo("Ascend310P3", true);
   string path = GetCodeDir() + "/tests/engines/nn_engine/config/data/platform_config/Ascend310P3.ini";
   string real_path = RealPath(path);
@@ -236,7 +226,8 @@ TEST_F(fusion_manager_unittest, platform_info_manager_testfieldvalue)
   PlatformInfo platform_info;
   OptionalInfo opti_compilation_info;
 
-  uint32_t get_ret = PlatformInfoManager::Instance().GetPlatformInfo("Ascend310P3", platform_info, opti_compilation_info);
+  uint32_t get_ret =
+      PlatformInfoManager::Instance().GetPlatformInfo("Ascend310P3", platform_info, opti_compilation_info);
   EXPECT_EQ(init_ret, ge::GRAPH_SUCCESS);
 
   EXPECT_EQ(platform_info.str_info.aic_version, "AIC-M-200");
@@ -299,8 +290,8 @@ TEST_F(fusion_manager_unittest, platform_info_manager_testfieldvalue)
   EXPECT_EQ(platform_info.vector_core_spec.ubbank_group_num, 16);
   EXPECT_EQ(platform_info.vector_core_spec.vector_reg_size, 2048);
   EXPECT_EQ(platform_info.vector_core_spec.predicate_reg_size, 256);
-//  EXPECT_EQ(platform_info.vector_core_spec.address_reg_size, 32);
-//  EXPECT_EQ(platform_info.vector_core_spec.alignment_reg_size, 257);
+  //  EXPECT_EQ(platform_info.vector_core_spec.address_reg_size, 32);
+  //  EXPECT_EQ(platform_info.vector_core_spec.alignment_reg_size, 257);
 
   EXPECT_EQ(platform_info.vector_core_memory_rates.ddr_rate, 9);
   EXPECT_EQ(platform_info.vector_core_memory_rates.ddr_read_rate, 9);
@@ -368,23 +359,22 @@ TEST_F(fusion_manager_unittest, platform_info_manager_testfieldvalue)
   EXPECT_EQ(val, "9");
 }
 
-TEST_F(fusion_manager_unittest, init_platform_info_test)
-{
-    PlatformInfoManager::Instance().platform_info_map_.clear();
-    PlatformInfoManager::Instance().platform_infos_map_.clear();
-    PlatformInfoManager::Instance().init_flag_ = true;
-    PlatformInfo tmp;
-    PlatFormInfos tmp_platform_infos;
-    (void)tmp_platform_infos.Init();
-    PlatformInfoManager::Instance().platform_info_map_.emplace("Ascend310", tmp);
-    PlatformInfoManager::Instance().platform_info_map_.emplace("Ascend910B", tmp);
-    PlatformInfoManager::Instance().platform_infos_map_.emplace("Ascend310", tmp_platform_infos);
-    PlatformInfoManager::Instance().platform_infos_map_.emplace("Ascend910B", tmp_platform_infos);
+TEST_F(fusion_manager_unittest, init_platform_info_test) {
+  PlatformInfoManager::Instance().platform_info_map_.clear();
+  PlatformInfoManager::Instance().platform_infos_map_.clear();
+  PlatformInfoManager::Instance().init_flag_ = true;
+  PlatformInfo tmp;
+  PlatFormInfos tmp_platform_infos;
+  (void)tmp_platform_infos.Init();
+  PlatformInfoManager::Instance().platform_info_map_.emplace("Ascend310", tmp);
+  PlatformInfoManager::Instance().platform_info_map_.emplace("Ascend910B", tmp);
+  PlatformInfoManager::Instance().platform_infos_map_.emplace("Ascend310", tmp_platform_infos);
+  PlatformInfoManager::Instance().platform_infos_map_.emplace("Ascend910B", tmp_platform_infos);
 
-    PlatformInfoManager::Instance().platform_info_map_.clear();
-    PlatformInfoManager::Instance().platform_infos_map_.clear();
-    PlatformInfoManager::Instance().init_flag_ = false;
-    EXPECT_EQ(PlatformInfoManager::Instance().init_flag_, false);
+  PlatformInfoManager::Instance().platform_info_map_.clear();
+  PlatformInfoManager::Instance().platform_infos_map_.clear();
+  PlatformInfoManager::Instance().init_flag_ = false;
+  EXPECT_EQ(PlatformInfoManager::Instance().init_flag_, false);
 }
 
 TEST_F(fusion_manager_unittest, platform_info_manager_test6) {
@@ -398,35 +388,34 @@ TEST_F(fusion_manager_unittest, platform_info_manager_test6) {
   PlatformInfo platform_info;
   OptionalInfo opti_compilation_info;
   uint32_t get_ret =
-      PlatformInfoManager::Instance().GetPlatformInfoWithOutSocVersion(
-          platform_info, opti_compilation_info);
+      PlatformInfoManager::Instance().GetPlatformInfoWithOutSocVersion(platform_info, opti_compilation_info);
   PlatformInfoManager::Instance().platform_info_map_.clear();
   PlatformInfoManager::Instance().platform_infos_map_.clear();
   EXPECT_EQ(init_ret, ge::GRAPH_SUCCESS);
 }
 
-TEST_F(fusion_manager_unittest, init_bin_kernel_info)
-{
+TEST_F(fusion_manager_unittest, init_bin_kernel_info) {
   FusionManager fm = FusionManager::Instance(kDsaCoreName);
   std::string AIcoreEngine = "DSAEngine";
   auto res = fm.InitBinKernelInfoStore(AIcoreEngine);
   EXPECT_EQ(res, fe::SUCCESS);
 }
 
-TEST_F(fusion_manager_unittest, update_ops_kernel)
-{
+TEST_F(fusion_manager_unittest, update_ops_kernel) {
   FusionManager fm = FusionManager::Instance(AI_CORE_NAME);
   map<string, string> options;
   options.emplace("ge.socVersion", "Ascend910B1");
   fm.inited_ = false;
 
   OpStoreAdapterPtr my_adapter = std::make_shared<TbeOpStoreAdapter>(AI_CORE_NAME);
-  (void)OpStoreAdapterManager::Instance(AI_CORE_NAME).map_all_op_store_adapter_.emplace(std::make_pair("tbe_op_adapter", my_adapter));
+  (void)OpStoreAdapterManager::Instance(AI_CORE_NAME)
+      .map_all_op_store_adapter_.emplace(std::make_pair("tbe_op_adapter", my_adapter));
   auto tbe_adapter_ptr = std::dynamic_pointer_cast<TbeOpStoreAdapter>(my_adapter);
   tbe_adapter_ptr->QueryOpPattern = QueryOpPattern_True;
 
   Configuration::Instance(AI_CORE_NAME).is_init_ = false;
-  Configuration::Instance(AI_CORE_NAME).lib_path_ = GetCodeDir() + "/tests/engines/nn_engine/depends/CANN_910b_stub/cann/x86_64-linux/lib64/";
+  Configuration::Instance(AI_CORE_NAME).lib_path_ =
+      GetCodeDir() + "/tests/engines/nn_engine/depends/CANN_910b_stub/cann/x86_64-linux/lib64/";
   Configuration::Instance(AI_CORE_NAME).ascend_ops_path_ = GetCodeDir();
   auto res = fm.Initialize(AI_CORE_NAME, options);
 }

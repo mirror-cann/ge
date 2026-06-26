@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -71,7 +71,7 @@ class StringUtils {
   }
 
   static bool IsValidOutputInplace(const char &ch, std::vector<int64_t> &output_inplace,
-                                   std::vector<std::vector<int64_t>> &res, uint32_t &left_brace_num) {                      
+                                   std::vector<std::vector<int64_t>> &res, uint32_t &left_brace_num) {
     if (ch != '}') {
       return true;
     }
@@ -163,14 +163,16 @@ class StringUtils {
    *  @param [in] s : the string need to be trim
    *  @return the string after trim
    */
-  static string &Trim(string &s) { return Ltrim(Rtrim(s)); }
+  static string &Trim(string &s) {
+    return Ltrim(Rtrim(s));
+  }
 
   /** @ingroup domi_common
-  *  @brief whether a string is start with a specific string（prefix）
-  *  @param [in] str    : a string to be compared
-  *  @param [in] prefix : a string prefix
-  *  @return true else false
-  */
+   *  @brief whether a string is start with a specific string（prefix）
+   *  @param [in] str    : a string to be compared
+   *  @param [in] prefix : a string prefix
+   *  @return true else false
+   */
   static bool StartWith(const string &str, const string prefix) {
     return ((str.size() >= prefix.size()) && (str.compare(0, prefix.size(), prefix) == 0));
   }
@@ -184,18 +186,22 @@ class StringUtils {
   }
 
   /** @ingroup fe
-  *  @brief transfer a string to upper string
-  *  @param [in] str : a string to be transfer
-  *  @return None
-  */
-  static void ToUpperString(string &str) { transform(str.begin(), str.end(), str.begin(), (int (*)(int))toupper); }
+   *  @brief transfer a string to upper string
+   *  @param [in] str : a string to be transfer
+   *  @return None
+   */
+  static void ToUpperString(string &str) {
+    transform(str.begin(), str.end(), str.begin(), (int (*)(int))toupper);
+  }
 
   /** @ingroup fe
-  *  @brief transfer a string to lower string
-  *  @param [in] str : a string to be transfer
-  *  @return None
-  */
-  static void ToLowerString(string &str) { transform(str.begin(), str.end(), str.begin(), (int (*)(int))tolower); }
+   *  @brief transfer a string to lower string
+   *  @param [in] str : a string to be transfer
+   *  @return None
+   */
+  static void ToLowerString(string &str) {
+    transform(str.begin(), str.end(), str.begin(), (int (*)(int))tolower);
+  }
 
   /** @ingroup fe
    *  @brief whether a string match another string, after triming space
@@ -220,10 +226,10 @@ class StringUtils {
   }
 
   /**
- * check whether the input str is integer
- * @param[in] str input string
- * @param[out] true/false
- */
+   * check whether the input str is integer
+   * @param[in] str input string
+   * @param[out] true/false
+   */
   static bool IsInteger(const string &str) {
     if (str.empty()) {
       return false;
@@ -246,7 +252,7 @@ class StringUtils {
         if (std::is_same<ge::Format, DT>::value) {
           ele_str = ge::TypeUtils::FormatToSerialString(static_cast<ge::Format>(ele));
         } else if (std::is_same<ge::DataType, DT>::value) {
-          ele_str = ge::TypeUtils::DataTypeToSerialString(static_cast<ge::DataType >(ele));
+          ele_str = ge::TypeUtils::DataTypeToSerialString(static_cast<ge::DataType>(ele));
         } else {
           ele_str = std::to_string(ele);
         }
@@ -287,7 +293,7 @@ class StringUtils {
   static string MapKeyToString(const std::map<string, T> &map) {
     string result = "[";
     bool is_first = true;
-    for (const auto& pair : map) {
+    for (const auto &pair : map) {
       if (is_first) {
         is_first = false;
       } else {

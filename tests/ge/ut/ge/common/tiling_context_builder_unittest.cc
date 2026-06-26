@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -69,8 +69,8 @@ ge::Status AddDataNodeForAtomic(ge::ComputeGraphPtr &graph, ge::NodePtr &clean_n
 }
 
 ge::NodePtr BuildAtomicNode(ge::ComputeGraphPtr &graph) {
-  std::vector<int64_t> workspace_indexes = {1,2};
-  std::vector<int64_t> outputs_indexes = {0,2};
+  std::vector<int64_t> workspace_indexes = {1, 2};
+  std::vector<int64_t> outputs_indexes = {0, 2};
 
   auto atomic_op_desc = std::make_shared<ge::OpDesc>("AtomicClean", "DynamicAtomicAddrClean");
 
@@ -96,7 +96,7 @@ ge::NodePtr BuildAtomicNode(ge::ComputeGraphPtr &graph) {
   }
   return clean_node;
 }
-} // namespace
+}  // namespace
 
 // 校验 input/output shape，compile info, tiling相关的输出可以正常地设置和读取
 TEST_F(TilingContextBuilderUT, BuildTilingContextHolderSuccess) {
@@ -113,13 +113,14 @@ TEST_F(TilingContextBuilderUT, BuildTilingContextHolderSuccess) {
   auto builder = TilingContextBuilder();
   auto space_registry_v2 = DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry(
       static_cast<gert::OppImplVersionTag>(concatv2_node->GetOpDesc()->GetOppImplVersion()));
-  auto tiling_context_holder = builder
-      .CompileInfo(&compile_info_holder)
-      .PlatformInfo(reinterpret_cast<void *>(&platform_infos))
-      .TilingData(tiling_data.get())
-      .Workspace(reinterpret_cast<gert::ContinuousVector *>(workspace_size.get()))
-      .SetSpaceRegistryV2(space_registry_v2, static_cast<gert::OppImplVersionTag>(concatv2_node->GetOpDesc()->GetOppImplVersion()))
-      .Build(op);
+  auto tiling_context_holder =
+      builder.CompileInfo(&compile_info_holder)
+          .PlatformInfo(reinterpret_cast<void *>(&platform_infos))
+          .TilingData(tiling_data.get())
+          .Workspace(reinterpret_cast<gert::ContinuousVector *>(workspace_size.get()))
+          .SetSpaceRegistryV2(space_registry_v2,
+                              static_cast<gert::OppImplVersionTag>(concatv2_node->GetOpDesc()->GetOppImplVersion()))
+          .Build(op);
 
   auto tiling_context = reinterpret_cast<TilingContext *>(tiling_context_holder.context_);
   // check content in context
@@ -139,12 +140,12 @@ TEST_F(TilingContextBuilderUT, BuildTilingContextHolderSuccess) {
     EXPECT_EQ(input_shape_origin0.GetDim(i), origin_shape_dims[i]);
   }
 
-  auto input_shape1 = tiling_context->GetDynamicInputShape(0,1);
+  auto input_shape1 = tiling_context->GetDynamicInputShape(0, 1);
   EXPECT_NE(input_shape1, nullptr);
   EXPECT_EQ((*input_shape1).GetStorageShape(), (*input_shape0).GetStorageShape());
   auto input_tensor1 = tiling_context->GetDynamicInputTensor(0, 1);
   EXPECT_NE(input_tensor1, nullptr);
-  EXPECT_EQ(input_tensor1->GetAddr(),nullptr);
+  EXPECT_EQ(input_tensor1->GetAddr(), nullptr);
 
   // 2.check output shape
   auto output_shape = tiling_context->GetOutputShape(0);
@@ -210,17 +211,17 @@ TEST_F(TilingContextBuilderUT, BuildTilingContextHolderWithMultiOutputSuccess) {
   fe::PlatFormInfos platform_infos;
   auto concatv2_node = graph->FindNode("concatv2");
   auto op = ge::OpDescUtils::CreateOperatorFromNode(concatv2_node);
-  auto space_registry =
-      DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry(
-          static_cast<gert::OppImplVersionTag>(concatv2_node->GetOpDesc()->GetOppImplVersion()));
+  auto space_registry = DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry(
+      static_cast<gert::OppImplVersionTag>(concatv2_node->GetOpDesc()->GetOppImplVersion()));
   auto builder = TilingContextBuilder();
-  auto tiling_context_holder = builder
-      .CompileInfo(&compile_info_holder)
-      .PlatformInfo(reinterpret_cast<void *>(&platform_infos))
-      .TilingData(tiling_data.get())
-      .Workspace(reinterpret_cast<gert::ContinuousVector *>(workspace_size.get()))
-      .SetSpaceRegistryV2(space_registry, static_cast<gert::OppImplVersionTag>(concatv2_node->GetOpDesc()->GetOppImplVersion()))
-      .Build(op);
+  auto tiling_context_holder =
+      builder.CompileInfo(&compile_info_holder)
+          .PlatformInfo(reinterpret_cast<void *>(&platform_infos))
+          .TilingData(tiling_data.get())
+          .Workspace(reinterpret_cast<gert::ContinuousVector *>(workspace_size.get()))
+          .SetSpaceRegistryV2(space_registry,
+                              static_cast<gert::OppImplVersionTag>(concatv2_node->GetOpDesc()->GetOppImplVersion()))
+          .Build(op);
 
   auto tiling_context = reinterpret_cast<TilingContext *>(tiling_context_holder.context_);
   // check content in context
@@ -237,12 +238,12 @@ TEST_F(TilingContextBuilderUT, BuildTilingContextHolderWithMultiOutputSuccess) {
   auto input_shape_origin0 = input_shape0->GetOriginShape();
   EXPECT_EQ(input_shape_origin0, input_shape_storage0);
 
-  auto input_shape1 = tiling_context->GetDynamicInputShape(0,1);
+  auto input_shape1 = tiling_context->GetDynamicInputShape(0, 1);
   EXPECT_NE(input_shape1, nullptr);
   EXPECT_EQ(*input_shape1, *input_shape0);
   auto input_tensor1 = tiling_context->GetDynamicInputTensor(0, 1);
   EXPECT_NE(input_tensor1, nullptr);
-  EXPECT_EQ(input_tensor1->GetAddr(),nullptr);
+  EXPECT_EQ(input_tensor1->GetAddr(), nullptr);
 
   // 2.check output shape
   auto output_shape = tiling_context->GetOutputShape(0);
@@ -277,16 +278,16 @@ TEST_F(TilingContextBuilderUT, BuildWithInputConstSuccess) {
   auto builder = TilingContextBuilder();
   auto concatv2_node = graph->FindNode("concatv2");
   auto op = ge::OpDescUtils::CreateOperatorFromNode(concatv2_node);
-  auto space_registry =
-      DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry(
-          static_cast<gert::OppImplVersionTag>(concatv2_node->GetOpDesc()->GetOppImplVersion()));
-  auto tiling_context_holder = builder
-                               .CompileInfo(const_cast<char *>(op_compile_info_json.c_str()))
-                               .PlatformInfo(reinterpret_cast<void *>(&platform_infos))
-                               .TilingData(tiling_data.get())
-                               .Workspace(reinterpret_cast<gert::ContinuousVector *>(workspace_size.get()))
-                               .SetSpaceRegistryV2(space_registry, static_cast<gert::OppImplVersionTag>(concatv2_node->GetOpDesc()->GetOppImplVersion()))
-                               .Build(op);
+  auto space_registry = DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry(
+      static_cast<gert::OppImplVersionTag>(concatv2_node->GetOpDesc()->GetOppImplVersion()));
+  auto tiling_context_holder =
+      builder.CompileInfo(const_cast<char *>(op_compile_info_json.c_str()))
+          .PlatformInfo(reinterpret_cast<void *>(&platform_infos))
+          .TilingData(tiling_data.get())
+          .Workspace(reinterpret_cast<gert::ContinuousVector *>(workspace_size.get()))
+          .SetSpaceRegistryV2(space_registry,
+                              static_cast<gert::OppImplVersionTag>(concatv2_node->GetOpDesc()->GetOppImplVersion()))
+          .Build(op);
 
   auto tiling_context = reinterpret_cast<TilingContext *>(tiling_context_holder.context_);
   // check content in context
@@ -294,7 +295,7 @@ TEST_F(TilingContextBuilderUT, BuildWithInputConstSuccess) {
   auto input_tensor2 = tiling_context->GetInputTensor(2);
   EXPECT_NE(input_tensor2, nullptr);
   EXPECT_EQ(input_tensor2->GetDataType(), ge::DT_INT32);
-  const uint8_t * concat_dim_data_ptr = input_tensor2->GetData<uint8_t>();
+  const uint8_t *concat_dim_data_ptr = input_tensor2->GetData<uint8_t>();
   EXPECT_EQ(concat_dim_data_ptr[0], 1);
 }
 
@@ -310,13 +311,14 @@ TEST_F(TilingContextBuilderUT, BuildWithInputDataDependencySuccess) {
   auto space_registry = DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry(
       static_cast<gert::OppImplVersionTag>(concatv2_node->GetOpDesc()->GetOppImplVersion()));
   auto builder = TilingContextBuilder();
-  auto tiling_context_holder = builder
-      .CompileInfo(const_cast<char *>(op_compile_info_json.c_str()))
-      .PlatformInfo(reinterpret_cast<void *>(&platform_infos))
-      .TilingData(tiling_data.get())
-      .Workspace(reinterpret_cast<gert::ContinuousVector *>(workspace_size.get()))
-      .SetSpaceRegistryV2(space_registry, static_cast<gert::OppImplVersionTag>(concatv2_node->GetOpDesc()->GetOppImplVersion()))
-      .Build(op);
+  auto tiling_context_holder =
+      builder.CompileInfo(const_cast<char *>(op_compile_info_json.c_str()))
+          .PlatformInfo(reinterpret_cast<void *>(&platform_infos))
+          .TilingData(tiling_data.get())
+          .Workspace(reinterpret_cast<gert::ContinuousVector *>(workspace_size.get()))
+          .SetSpaceRegistryV2(space_registry,
+                              static_cast<gert::OppImplVersionTag>(concatv2_node->GetOpDesc()->GetOppImplVersion()))
+          .Build(op);
 
   auto context = reinterpret_cast<TilingContext *>(tiling_context_holder.context_);
   // check content in context
@@ -346,19 +348,19 @@ TEST_F(TilingContextBuilderUT, BuildAtomicTilingContextSuccess) {
 
   auto op = ge::OpDescUtils::CreateOperatorFromNode(tmp_graph->FindNode("AtomicClean"));
   auto builder = AtomicTilingContextBuilder();
-  auto tiling_context_holder = builder
-      .CompileInfo(const_cast<char *>(op_compile_info_json.c_str()))
-      .CleanWorkspaceSizes(reinterpret_cast<gert::ContinuousVector *>(clean_workspace_size.get()))
-      .CleanOutputSizes(output_clean_sizes)
-      .TilingData(tiling_data.get())
-      .Workspace(reinterpret_cast<gert::ContinuousVector *>(workspace_size.get()))
-      .Build(op);
+  auto tiling_context_holder =
+      builder.CompileInfo(const_cast<char *>(op_compile_info_json.c_str()))
+          .CleanWorkspaceSizes(reinterpret_cast<gert::ContinuousVector *>(clean_workspace_size.get()))
+          .CleanOutputSizes(output_clean_sizes)
+          .TilingData(tiling_data.get())
+          .Workspace(reinterpret_cast<gert::ContinuousVector *>(workspace_size.get()))
+          .Build(op);
 
   auto context = reinterpret_cast<AtomicCleanTilingContext *>(tiling_context_holder.context_);
   // check content in context
   auto clean_workspace_size_in_context = context->GetCleanWorkspaceSizes();
   EXPECT_EQ(clean_workspace_size_in_context->GetSize(), 2);
-  auto ws_size_data = reinterpret_cast<const uint64_t*>(clean_workspace_size_in_context->GetData());
+  auto ws_size_data = reinterpret_cast<const uint64_t *>(clean_workspace_size_in_context->GetData());
   EXPECT_EQ(ws_size_data[0], 22);
   EXPECT_EQ(ws_size_data[1], 33);
 

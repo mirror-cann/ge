@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -43,11 +43,10 @@ using TransformerShape = transformer::ShapeTransferAccordingToFormat;
 #define IS_INPUT_TO_STRING(is_input) ((is_input) ? "input" : "output")
 
 const std::unordered_map<ge::Format, std::unordered_set<ge::Format>> kValidTransFormat = {
-        {ge::FORMAT_ND, {ge::FORMAT_FRACTAL_NZ}},
-        {ge::FORMAT_NHWC, {ge::FORMAT_NC1HWC0, ge::FORMAT_FRACTAL_Z}},
-        {ge::FORMAT_FRACTAL_NZ, {ge::FORMAT_ND}},
-        {ge::FORMAT_NC1HWC0, {ge::FORMAT_NHWC}}
-};
+    {ge::FORMAT_ND, {ge::FORMAT_FRACTAL_NZ}},
+    {ge::FORMAT_NHWC, {ge::FORMAT_NC1HWC0, ge::FORMAT_FRACTAL_Z}},
+    {ge::FORMAT_FRACTAL_NZ, {ge::FORMAT_ND}},
+    {ge::FORMAT_NC1HWC0, {ge::FORMAT_NHWC}}};
 
 struct UpdateInfo {
   const OpKernelInfoPtr &op_kernel_info_ptr;             // op kernel info
@@ -59,7 +58,7 @@ struct UpdateInfo {
   const bool &is_input;
 };
 
-Status GetDefaultReshapeType(const ge::Format& original_format, size_t old_dims_size, std::string& reshape_type);
+Status GetDefaultReshapeType(const ge::Format &original_format, size_t old_dims_size, std::string &reshape_type);
 
 void ExpandDimension(const ge::Format &origin_format, const ge::Format &format, const string &reshape_type,
                      ge::GeShape &shape, const ge::GeTensorDescPtr tensor_desc = nullptr);
@@ -68,8 +67,8 @@ void ExpandDimension(const ge::Format &origin_format, const ge::Format &format, 
                      const ge::GeShape &origin_shape, ge::GeShape &shape,
                      const ge::GeTensorDescPtr tensor_desc = nullptr);
 
-void GetReshapeAxisValueByName(const ge::Format &origin_format, const ge::GeShape &shape,
-                               char axic_name, ge::GeTensorDesc &tensor_desc);
+void GetReshapeAxisValueByName(const ge::Format &origin_format, const ge::GeShape &shape, char axic_name,
+                               ge::GeTensorDesc &tensor_desc);
 
 Status GetShapeAccordingToFormat(ShapeAndFormat &shape_and_format);
 
@@ -111,7 +110,7 @@ void CheckStridedReadInConv2d(const vector<ge::NodePtr> &conv_nodes, vector<ge::
 
 bool IsTbeOp(ge::NodePtr node);
 
-bool IsSupportedTransType(const ge::Format& ori_format, const ge::Format& final_format);
+bool IsSupportedTransType(const ge::Format &ori_format, const ge::Format &final_format);
 
 bool CheckOpConstOrVariableInOriGraph(const ge::OpDescPtr &op_desc);
 
@@ -123,7 +122,7 @@ void LogFormatMap(const map<string, vector<ge::Format>> &format_map);
 
 void LogDataTypeMap(const map<string, vector<ge::DataType>> &data_type_map);
 
-void LogSubformatMap(const map<string, vector<uint32_t>>& subformat_map);
+void LogSubformatMap(const map<string, vector<uint32_t>> &subformat_map);
 /**
  * if old_formats is NCHW,NHWC, old_data_types is float16,
  * then new_formats is NCHW,NHWC, new_data_types is float16,float16
@@ -136,7 +135,7 @@ void LogSubformatMap(const map<string, vector<uint32_t>>& subformat_map);
 Status GenerateUnionFormatDtype(const vector<ge::Format> &old_formats, const vector<ge::DataType> &old_data_types,
                                 vector<ge::Format> &new_formats, vector<ge::DataType> &new_data_types);
 
-bool IsScalarInputOrOutput(const ge::GeShape& shape, ge::Format format);
+bool IsScalarInputOrOutput(const ge::GeShape &shape, ge::Format format);
 
 bool IsScalarShape(const ge::GeShape &shape);
 bool IsSameShape(const ge::GeShape &first_shape, const ge::GeShape &second_shape);
@@ -160,19 +159,19 @@ std::string GetRealNodeType(ge::OpDescPtr OpDescPtr);
 /* Only when the weight node or its predecessor(s) is(are) expected, it's a qualified weight.
  * Because first layer conv feature can only be effective when it's inference scenario.
  * If weight is not expected, we will traverse all the way to the top input node. */
-bool CheckWeightTypeQualified(const ge::NodePtr &weight_node, const string& expected_type);
+bool CheckWeightTypeQualified(const ge::NodePtr &weight_node, const string &expected_type);
 
 void CheckHasNoFather(bool is_input, int32_t index, const ge::NodePtr &node, ge::InDataAnchorPtr &in_data_anchor,
                       bool &has_no_father);
 
 // If a subgraph has been optimized by L2fusion, some nodes in the subgraph will have the lx_fusion_pass attribute
-bool CheckL2FusionFusionStrategy(const ge::ComputeGraph& graph);
+bool CheckL2FusionFusionStrategy(const ge::ComputeGraph &graph);
 
 // If a subgraph has been optimized by L2buffer, all nodes in the subgraph should have lx_fusion_pass attr:false
-bool CheckL2BufferFusionStrategy(ge::ComputeGraph& graph);
+bool CheckL2BufferFusionStrategy(ge::ComputeGraph &graph);
 
 // is need to reshape when format is fz or fz_3d
-bool IsNeedReshape(const ge::OpDescPtr& op_desc_ptr);
+bool IsNeedReshape(const ge::OpDescPtr &op_desc_ptr);
 
 // if parent node of place holder is const, copy weight attr value of const node to place holder node
 void CopyWeightAttrToPlaceHolder(ge::NodePtr &node);
@@ -225,9 +224,9 @@ bool IsTbeOp(const ge::OpDescPtr &op_desc);
 
 bool IsNoTaskOp(const ge::NodePtr &node);
 
-bool IsSingleOpGraph(const ge::ComputeGraph& graph);
+bool IsSingleOpGraph(const ge::ComputeGraph &graph);
 
-bool IsSingleOpGraphWithCache(ge::ComputeGraph& graph);
+bool IsSingleOpGraphWithCache(ge::ComputeGraph &graph);
 
 bool IsStcToDynSoftSyncOp(const ge::OpDescPtr &op_desc);
 
@@ -255,14 +254,14 @@ bool IsDumpableOp(const ge::OpDescPtr &op_desc);
 
 std::string GetFusionNodesDescStr(const std::vector<ge::NodePtr> &fusion_nodes);
 
-std::string GetFusionNodesDescStr(const std::vector<ge::Node*> &fusion_nodes);
+std::string GetFusionNodesDescStr(const std::vector<ge::Node *> &fusion_nodes);
 
-bool CheckWeightTypeQualifiedWithCount(const ge::NodePtr& weight_node, const string& expected_type,
-                                       uint32_t& recursion_count);
+bool CheckWeightTypeQualifiedWithCount(const ge::NodePtr &weight_node, const string &expected_type,
+                                       uint32_t &recursion_count);
 
-bool GetIsSingleOpFlag(const ge::ComputeGraph& graph, bool &isSingleFlag);
+bool GetIsSingleOpFlag(const ge::ComputeGraph &graph, bool &isSingleFlag);
 
-void SetIsSingleOpFlag(ge::ComputeGraph& graph, const bool &isSingleFlag);
+void SetIsSingleOpFlag(ge::ComputeGraph &graph, const bool &isSingleFlag);
 
 bool VerifyCastC0Format(const ge::OpDescPtr op_desc_ptr, ge::Format new_format = ge::FORMAT_MAX);
 }  // namespace fe

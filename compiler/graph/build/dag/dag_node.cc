@@ -12,8 +12,7 @@
 #include "graph/build/dag/dag_edge.h"
 
 namespace minidag {
-DAGNode::DAGNode(const std::string &name, const std::string &type)
-    : name_(name), type_(type) {}
+DAGNode::DAGNode(const std::string &name, const std::string &type) : name_(name), type_(type) {}
 
 std::string DAGNode::GetName() const {
   return name_;
@@ -49,7 +48,7 @@ size_t DAGNode::GetOutputCount() const {
 
 std::vector<std::shared_ptr<DAGEdge>> DAGNode::GetInputEdges() const {
   std::vector<std::shared_ptr<DAGEdge>> edges;
-  for (const auto& weak_edge : in_edges_) {
+  for (const auto &weak_edge : in_edges_) {
     auto edge = weak_edge.lock();
     if (edge != nullptr) {
       edges.push_back(edge);
@@ -60,7 +59,7 @@ std::vector<std::shared_ptr<DAGEdge>> DAGNode::GetInputEdges() const {
 
 std::vector<std::shared_ptr<DAGEdge>> DAGNode::GetOutputEdges() const {
   std::vector<std::shared_ptr<DAGEdge>> edges;
-  for (const auto& weak_edge : out_edges_) {
+  for (const auto &weak_edge : out_edges_) {
     auto edge = weak_edge.lock();
     if (edge != nullptr) {
       edges.push_back(edge);
@@ -71,7 +70,7 @@ std::vector<std::shared_ptr<DAGEdge>> DAGNode::GetOutputEdges() const {
 
 std::vector<std::shared_ptr<DAGNode>> DAGNode::GetInputNodes() const {
   std::vector<std::shared_ptr<DAGNode>> nodes;
-  for (const auto& edge : GetInputEdges()) {
+  for (const auto &edge : GetInputEdges()) {
     auto node = edge->GetSrcNode();
     if (node != nullptr) {
       nodes.push_back(node);
@@ -82,7 +81,7 @@ std::vector<std::shared_ptr<DAGNode>> DAGNode::GetInputNodes() const {
 
 std::vector<std::shared_ptr<DAGNode>> DAGNode::GetOutputNodes() const {
   std::vector<std::shared_ptr<DAGNode>> nodes;
-  for (const auto& edge : GetOutputEdges()) {
+  for (const auto &edge : GetOutputEdges()) {
     auto node = edge->GetDstNode();
     if (node != nullptr) {
       nodes.push_back(node);
@@ -91,19 +90,19 @@ std::vector<std::shared_ptr<DAGNode>> DAGNode::GetOutputNodes() const {
   return nodes;
 }
 
-const NodeCost& DAGNode::GetCost() const {
+const NodeCost &DAGNode::GetCost() const {
   return cost_;
 }
 
-void DAGNode::SetCost(const NodeCost& cost) {
+void DAGNode::SetCost(const NodeCost &cost) {
   cost_ = cost;
 }
 
-void DAGNode::AddInputEdge(const std::shared_ptr<DAGEdge>& edge) {
+void DAGNode::AddInputEdge(const std::shared_ptr<DAGEdge> &edge) {
   in_edges_.push_back(edge);
 }
 
-void DAGNode::AddOutputEdge(const std::shared_ptr<DAGEdge>& edge) {
+void DAGNode::AddOutputEdge(const std::shared_ptr<DAGEdge> &edge) {
   out_edges_.push_back(edge);
 }
 

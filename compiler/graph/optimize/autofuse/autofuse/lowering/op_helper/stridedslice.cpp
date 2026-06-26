@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,12 +33,15 @@ Status NormalizeInput(std::vector<Expression> &input_indexes, const std::vector<
 
 // 如果new_axis_mask和shrink_axis_mask的bit位与ellipsis_mask冲突，则不生效
 void HandleMaskConflict(StridedSliceMaskAttr &mask_attr) {
-  mask_attr.new_axis_mask = static_cast<int64_t>((static_cast<uint64_t>(mask_attr.new_axis_mask) &
-    static_cast<uint64_t>(mask_attr.ellipsis_mask)) ^ static_cast<uint64_t>(mask_attr.new_axis_mask));
-  mask_attr.shrink_axis_mask = static_cast<int64_t>((static_cast<uint64_t>(mask_attr.shrink_axis_mask) &
-    static_cast<uint64_t>(mask_attr.ellipsis_mask)) ^ static_cast<uint64_t>(mask_attr.shrink_axis_mask));
-  mask_attr.shrink_axis_mask = static_cast<int64_t>((static_cast<uint64_t>(mask_attr.shrink_axis_mask) &
-    static_cast<uint64_t>(mask_attr.new_axis_mask)) ^ static_cast<uint64_t>(mask_attr.shrink_axis_mask));
+  mask_attr.new_axis_mask = static_cast<int64_t>(
+      (static_cast<uint64_t>(mask_attr.new_axis_mask) & static_cast<uint64_t>(mask_attr.ellipsis_mask)) ^
+      static_cast<uint64_t>(mask_attr.new_axis_mask));
+  mask_attr.shrink_axis_mask = static_cast<int64_t>(
+      (static_cast<uint64_t>(mask_attr.shrink_axis_mask) & static_cast<uint64_t>(mask_attr.ellipsis_mask)) ^
+      static_cast<uint64_t>(mask_attr.shrink_axis_mask));
+  mask_attr.shrink_axis_mask = static_cast<int64_t>(
+      (static_cast<uint64_t>(mask_attr.shrink_axis_mask) & static_cast<uint64_t>(mask_attr.new_axis_mask)) ^
+      static_cast<uint64_t>(mask_attr.shrink_axis_mask));
   GELOGI("handle mask conflict, new_axis_mask: %lld, shrink_axis_mask: %lld", mask_attr.new_axis_mask,
          mask_attr.shrink_axis_mask);
 }
@@ -90,8 +93,8 @@ Status AppendNewAxis(const std::pair<int64_t, int64_t> &ellipsis_mask_range, con
   return SUCCESS;
 }
 
-std::pair<int64_t, int64_t> GetEllipsisMaskRange(const StridedSliceMaskAttr &mask_attr,
-                                                 const int64_t slice_dim_num, const int64_t input_size) {
+std::pair<int64_t, int64_t> GetEllipsisMaskRange(const StridedSliceMaskAttr &mask_attr, const int64_t slice_dim_num,
+                                                 const int64_t input_size) {
   const int64_t bit_count = CountBitNum(mask_attr.new_axis_mask);
   const int64_t ellipsis_mask_num = input_size + bit_count - slice_dim_num + 1;
   int64_t pos = 0L;

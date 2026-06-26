@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,16 +33,19 @@ class Deployer {
   virtual Status Initialize() = 0;
   virtual Status Finalize() = 0;
   virtual Status GetDevStat() = 0;
-  virtual void AddAbnormalNodeConfig() { return; }
+  virtual void AddAbnormalNodeConfig() {
+    return;
+  }
   virtual void AddAbnormalDeviceInfo(int32_t device_id, int32_t device_type) {
-    (void) device_id;
-    (void) device_type;
+    (void)device_id;
+    (void)device_type;
     return;
   }
   void FormatAndAddAbnormalDeviceInfo(int32_t node_id, int32_t device_id, int32_t device_type);
   void ParseRsponse(deployer::DeployerResponse &response);
   void ParseAbnormalDevice(const deployer::DeployerResponse &response);
   Status GetDeviceAbnormalCode();
+
  private:
   std::mutex dev_abnormal_mutex_;
   std::map<uint32_t, std::vector<uint32_t>> dev_abnormal_info_;
@@ -61,6 +64,7 @@ class LocalDeployer : public Deployer {
 
   void AddAbnormalDeviceInfo(int32_t device_id, int32_t device_type);
   Status Process(deployer::DeployerRequest &request, deployer::DeployerResponse &response) override;
+
  private:
   void Keepalive();
   NodeInfo node_info_;
@@ -82,15 +86,14 @@ class RemoteDeployer : public Deployer {
   Status GetDevStat() override {
     return dev_status_;
   }
+
  protected:
   virtual std::unique_ptr<DeployerClient> CreateClient();
 
  private:
   Status Connect();
   Status Disconnect();
-  Status Process(deployer::DeployerRequest &request,
-                 deployer::DeployerResponse &response,
-                 const int64_t timeout_sec,
+  Status Process(deployer::DeployerRequest &request, deployer::DeployerResponse &response, const int64_t timeout_sec,
                  const int32_t retry_times);
   void AddAbnormalNodeConfig();
   void AddAbnormalDeviceInfo(int32_t device_id, int32_t device_type);
@@ -100,8 +103,7 @@ class RemoteDeployer : public Deployer {
   Status InitNodeInfoByDeviceList();
   Status InitNodeInfoByChipCount();
   void UpdateNodeInfo(const ::deployer::InitResponse &init_response);
-  Status SendInitRequest(const deployer::DeployerRequest request,
-                         deployer::DeployerResponse &response);
+  Status SendInitRequest(const deployer::DeployerRequest request, deployer::DeployerResponse &response);
   void SetDevStat(Status status) {
     dev_status_ = status;
   }

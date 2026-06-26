@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -42,7 +42,7 @@ class RuntimeMock910B2 : public RuntimeStub {
     (void)strcpy_s(version, maxLen, "Ascend910B2");
     return RT_ERROR_NONE;
   }
-  rtError_t rtGetSocSpec(const char* label, const char* key, char* val, const uint32_t maxLen) override {
+  rtError_t rtGetSocSpec(const char *label, const char *key, char *val, const uint32_t maxLen) override {
     (void)label;
     (void)key;
     (void)strcpy_s(val, maxLen, "2201");
@@ -443,7 +443,7 @@ TEST_F(TestCanfusePass, test_canfuse_bro_and_bro_horizontal_fusion) {
     node_types_to_count0.emplace("AscBackend", 2);
     node_types_to_count0.emplace("NetOutput", 1);
     std::string str = gert::SummaryChecker(graph).StrictDirectNodeTypes(node_types_to_count0);
-    EXPECT_NE(str, "success"); // 恢复线上阻塞，临时修改
+    EXPECT_NE(str, "success");  // 恢复线上阻塞，临时修改
   };
 
   auto asc_bc = compute_graph->FindFirstNodeMatchType("AscBackend");

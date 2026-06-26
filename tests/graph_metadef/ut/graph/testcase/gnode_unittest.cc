@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -739,11 +739,7 @@ TEST_F(GNodeTest, ExternC_GNode_SetInputAttr_EmptyGNode) {
   EXPECT_NE(aclCom_GNode_SetInputAttr(&empty_gnode, "test_input_attr", 0, &attr_value), GRAPH_SUCCESS);
 }
 
-REG_OP(subTest)
-    .INPUT(inx, TensorType::ALL())
-    .OUTPUT(y, TensorType::ALL())
-    .GRAPH(subgraph)
-    .OP_END_FACTORY_REG(subTest);
+REG_OP(subTest).INPUT(inx, TensorType::ALL()).OUTPUT(y, TensorType::ALL()).GRAPH(subgraph).OP_END_FACTORY_REG(subTest);
 
 REG_OP(dynamicSubTest)
     .INPUT(inx, TensorType::ALL())
@@ -751,10 +747,7 @@ REG_OP(dynamicSubTest)
     .DYNAMIC_GRAPH(subgraphs)
     .OP_END_FACTORY_REG(dynamicSubTest);
 
-REG_OP(dataOp)
-    .OUTPUT(y, TensorType::ALL())
-    .ATTR(value, Int, 0)
-    .OP_END_FACTORY_REG(dataOp);
+REG_OP(dataOp).OUTPUT(y, TensorType::ALL()).ATTR(value, Int, 0).OP_END_FACTORY_REG(dataOp);
 
 TEST_F(GNodeTest, TestAddSubGraph_success) {
   auto op = op::subTest("subTest");

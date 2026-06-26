@@ -48,7 +48,7 @@
 1. 设置变量 && 引入cmake函数
 2. 定义算子原型库
     ```cmake
-    # 注意: 
+    # 注意:
     # 当前为开箱即用示例, 即定义INTERFACE使用已有的原型so
     # 正常使用不会是用现有的so，更普遍的方式是直接使用项目中已有的so的target
     # 使用项目中已有的so方式:
@@ -73,9 +73,9 @@
     ```cmake
     file(GLOB CPP_FILES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/custom/*.cpp")
     add_library(self_defined_es_lib SHARED ${CPP_FILES})
-    
+
     find_library(GRAPH_LIB NAMES graph)
-    
+
     # 添加头文件路径
     target_include_directories(self_defined_es_lib
         PUBLIC
@@ -85,9 +85,9 @@
 5. 自定义 API包 link
     ```cmake
     target_link_libraries(self_defined_es_lib PUBLIC es_all)
-    
+
     add_dependencies(self_defined_es_lib es_all)
-    ``` 
+    ```
 
 ## 注意事项
 1. 确保环境变量已正确设置

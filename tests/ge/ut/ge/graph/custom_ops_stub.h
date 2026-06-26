@@ -24,7 +24,7 @@ class MyEagerExecuteOp : public EagerExecuteOp {
   }
 };
 
-class MyCompilableOp: public EagerExecuteOp, public CompilableOp {
+class MyCompilableOp : public EagerExecuteOp, public CompilableOp {
  public:
   graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
     (void)ctx;

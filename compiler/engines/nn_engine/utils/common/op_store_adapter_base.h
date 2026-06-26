@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -46,8 +46,8 @@ struct CompileInfoParam {
   bool is_fusion_check;
   explicit CompileInfoParam(std::vector<ge::NodePtr> &buff_fus_compile_failed_nodes_param)
       : buff_fus_compile_failed_nodes(buff_fus_compile_failed_nodes_param),
-        compile_strategy(CompileStrategy::COMPILE_STRATEGY_OP_SPEC), is_fusion_check(false) {
-  }
+        compile_strategy(CompileStrategy::COMPILE_STRATEGY_OP_SPEC),
+        is_fusion_check(false) {}
 };
 
 class OpStoreAdapterBase {
@@ -69,8 +69,8 @@ class OpStoreAdapterBase {
   virtual Status Finalize() = 0;
 
   virtual Status CompileOp(ScopeNodeIdMap &fusion_nodes_map, map<int64_t, std::string> &json_path_map,
-                            std::vector<ge::NodePtr> &buff_fus_compile_failed_nodes,
-                            const std::vector<ge::NodePtr> &buff_fus_to_del_nodes) {
+                           std::vector<ge::NodePtr> &buff_fus_compile_failed_nodes,
+                           const std::vector<ge::NodePtr> &buff_fus_to_del_nodes) {
     (void)fusion_nodes_map;
     (void)json_path_map;
     (void)buff_fus_compile_failed_nodes;

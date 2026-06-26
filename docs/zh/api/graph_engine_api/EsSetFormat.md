@@ -99,4 +99,3 @@ EsCGraphBuilder *builder = EsCreateGraphBuilder("graph_name");
 EsCTensorHolder *data0 = EsCreateInput(builder, 0); // 添加第 0 个输入节点, 默认为ND格式
 EsSetFormat(data0, C_FORMAT_NCHW); //设置第0个输入节点的数据格式为NCHW
 ```
-

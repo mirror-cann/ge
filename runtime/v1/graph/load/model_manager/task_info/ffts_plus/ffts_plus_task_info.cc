@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,7 +34,7 @@ constexpr int32_t kHexDumpWidth = 8;
 constexpr uint32_t kAicpuTfKernel = 1U;
 constexpr int64_t kDefaultDimInfo = 0x100000001;
 constexpr uint64_t kDefaultShapeNum = 0x100000000U;
-constexpr uint64_t kDsaWorkspaceMaxSize = 16U; // dsa workspace数组最后一个值指向的内存最多保存两个地址
+constexpr uint64_t kDsaWorkspaceMaxSize = 16U;  // dsa workspace数组最后一个值指向的内存最多保存两个地址
 const std::set<rtFftsPlusContextType_t> kCalTilingSizeCtxType = {
     RT_CTX_TYPE_AICORE,
     RT_CTX_TYPE_AIV,
@@ -138,7 +138,7 @@ Status FftsPlusTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *const
   GE_CHECK_NOTNULL(ffts_proto_transfer_);
   SetTransferCallback(*ffts_proto_transfer_);
   ffts_proto_transfer_->SetPisArgsHostBase(
-    static_cast<uintptr_t>(PtrToValue(PtrToPtr<uint8_t, void>(pis_args_host_base_))));
+      static_cast<uintptr_t>(PtrToValue(PtrToPtr<uint8_t, void>(pis_args_host_base_))));
 
   InitDescBufInfo();
   GE_ASSERT_SUCCESS(ffts_proto_transfer_->Transfer(op_desc_, task_def.ffts_plus_task(), ffts_plus_task_info_,
@@ -151,8 +151,7 @@ Status FftsPlusTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *const
   // adapter zero copy for helper
   const std::vector<bool> need_raw_data_list = ModelUtils::GetInputTensorNeedRawData(op_desc_);
   davinci_model_->SetZeroCopyAddr(op_desc_, ffts_flus_args_helper_->GetIoAddr(),
-                                  ffts_flus_args_helper_->GetIoAddr().data(),
-                                  static_cast<uintptr_t>(PtrToValue(args_)),
+                                  ffts_flus_args_helper_->GetIoAddr().data(), static_cast<uintptr_t>(PtrToValue(args_)),
                                   args_size_, 0UL, need_raw_data_list);
   GELOGI("FftsPlusTaskInfo Init Success, node: %s.", op_desc_->GetNamePtr());
   return SUCCESS;
@@ -290,9 +289,7 @@ void FftsPlusTaskInfo::SetTransferCallback(FftsPlusProtoTransfer &transfer) {
     InitDumpArgs(descriptor, op_args, args_offset, first_level_args);
   };
 
-  const auto ffts_get_session_id = [this]() -> uint64_t {
-    return davinci_model_->GetSessionId();
-  };
+  const auto ffts_get_session_id = [this]() -> uint64_t { return davinci_model_->GetSessionId(); };
 
   const auto ffts_create_aicpu_session = [this](STR_FWK_OP_KERNEL &fwk_op_kernel) -> Status {
     return this->CreateAicpuSession(fwk_op_kernel);
@@ -307,9 +304,7 @@ void FftsPlusTaskInfo::SetTransferCallback(FftsPlusProtoTransfer &transfer) {
     return this->LoadCustAicpuSo(op_desc, ctx_def);
   };
 
-  const auto ffts_is_dump = [this](const OpDescPtr &op_desc) -> bool {
-    return davinci_model_->OpNeedDump(op_desc);
-  };
+  const auto ffts_is_dump = [this](const OpDescPtr &op_desc) -> bool { return davinci_model_->OpNeedDump(op_desc); };
 
   const auto ffts_save_l0_dump_info_handle = [this](const std::vector<uint64_t> &l0_dump_list) {
     l0_dump_list_.insert(l0_dump_list_.end(), l0_dump_list.begin(), l0_dump_list.end());
@@ -415,7 +410,7 @@ Status FftsPlusTaskInfo::Distribute() {
   GE_CHK_RT_RET(ge::rtFftsPlusTaskLaunchWithFlag(&ffts_plus_task_info_, stream_, dump_flag_));
   GE_CHECK_NOTNULL(davinci_model_);
   GE_CHK_ACL_RET(aclrtGetThreadLastTaskId(&task_id_));
-  GE_CHK_ACL_RET(aclrtStreamGetId(stream_, reinterpret_cast<int32_t*>(&stream_id_)));
+  GE_CHK_ACL_RET(aclrtStreamGetId(stream_, reinterpret_cast<int32_t *>(&stream_id_)));
 
   std::shared_ptr<TilingContextAddr> default_ctx_ptr = nullptr;
   std::shared_ptr<TilingContextAddr> tiling_context_addr =
@@ -509,8 +504,8 @@ void FftsPlusTaskInfo::PostProcess(const domi::TaskDef &task_def) {
     const domi::FftsPlusCtxDef &ctx_def = ffts_plus_task_def.ffts_plus_ctx(i);
     const auto ctx_type = static_cast<rtFftsPlusContextType_t>(ctx_def.context_type());
     if (kUnsupportedDumpCtxTypes.count(ctx_type) > 0UL) {
-      GELOGD("ctx op type %u is not supported, ctx id:%u, op index:%u", ctx_type,
-             ctx_def.context_id(), ctx_def.op_index());
+      GELOGD("ctx op type %u is not supported, ctx id:%u, op index:%u", ctx_type, ctx_def.context_id(),
+             ctx_def.op_index());
       continue;
     }
     const OpDescPtr op_desc = davinci_model_->GetOpByIndex(ctx_def.op_index());
@@ -581,12 +576,13 @@ void FftsPlusTaskInfo::SavePrintOrDumpTask(const OpDescPtr &op_desc, const domi:
 
     if (need_dump) {
       davinci_model_->SaveDumpTask({task_id_, stream_id_, context_id, static_cast<uint32_t>(slice_idx)}, op_desc,
-          arg_addr, first_level_address_info, ffts_flus_args_helper_->GetCustToRelevantOffset(), task_type, stream_);
+                                   arg_addr, first_level_address_info,
+                                   ffts_flus_args_helper_->GetCustToRelevantOffset(), task_type, stream_);
     }
 
     if (need_print) {
       davinci_model_->SavePrintDumpTask({task_id_, stream_id_, context_id, static_cast<uint32_t>(slice_idx)}, op_desc,
-          arg_addr, first_level_address_info, task_type, stream_);
+                                        arg_addr, first_level_address_info, task_type, stream_);
       davinci_model_->SavePrintWorkInfo(op_desc);
     }
 
@@ -602,20 +598,19 @@ int64_t FftsPlusTaskInfo::ParseOpIndex(const domi::TaskDef &task_def) const {
 
 Status FftsPlusTaskInfo::InitTilingInfo() {
   ffts_flus_args_helper_->SetTilingDataLen(tiling_data_len_);
-  void *tiling_data_dev = davinci_model_->MallocDynamicMemory(
-      static_cast<size_t>(tiling_data_len_ + kDescBufAlignedBytes));
+  void *tiling_data_dev =
+      davinci_model_->MallocDynamicMemory(static_cast<size_t>(tiling_data_len_ + kDescBufAlignedBytes));
   GE_ASSERT_NOTNULL(tiling_data_dev);
   ext_info_addrs_.emplace_back(tiling_data_dev);
   ffts_flus_args_helper_->SetTilingDataDev(tiling_data_dev);
   return SUCCESS;
 }
 
-Status FftsPlusTaskInfo::TilingDataHandle(const domi::FftsPlusCtxDef &ctx_def,
-                                          const OpDescPtr &op_desc) const {
+Status FftsPlusTaskInfo::TilingDataHandle(const domi::FftsPlusCtxDef &ctx_def, const OpDescPtr &op_desc) const {
   GE_CHECK_NOTNULL(op_desc);
   const auto ctx_type = static_cast<rtFftsPlusContextType_t>(ctx_def.context_type());
-  GE_ASSERT_SUCCESS(HandleSoftSyncOp(ctx_def.op_index(), op_desc),
-                    "Handle soft sync op %s failed.", op_desc->GetNamePtr());
+  GE_ASSERT_SUCCESS(HandleSoftSyncOp(ctx_def.op_index(), op_desc), "Handle soft sync op %s failed.",
+                    op_desc->GetNamePtr());
   if ((ctx_type == RT_CTX_TYPE_MIX_AIC) || (ctx_type == RT_CTX_TYPE_MIX_AIV)) {
     std::shared_ptr<optiling::utils::OpRunInfo> tiling_info = nullptr;
     tiling_info = op_desc->TryGetExtAttr(ATTR_NAME_OP_RUN_INFO, tiling_info);
@@ -623,11 +618,11 @@ Status FftsPlusTaskInfo::TilingDataHandle(const domi::FftsPlusCtxDef &ctx_def,
     if (tiling_info != nullptr) {
       ArgsFormatHolder args_format_holder;
       (void)ffts_flus_args_helper_->CheckAndGetArgsFormats(static_cast<int64_t>(ctx_def.op_index()),
-          args_format_holder);
+                                                           args_format_holder);
       std::string memcheck_info;
       GE_ASSERT_SUCCESS(optiling::TilingMemCheck::ConstructMemCheckInfo(op_desc, *tiling_info,
-          args_format_holder.arg_descs, memcheck_info),
-          "Append Memcheck info to tiling data: %s failed.", op_desc->GetNamePtr());
+                                                                        args_format_holder.arg_descs, memcheck_info),
+                        "Append Memcheck info to tiling data: %s failed.", op_desc->GetNamePtr());
       ffts_flus_args_helper_->SaveMemCheckInfo(op_desc->GetName(), memcheck_info);
     }
   }
@@ -665,13 +660,13 @@ Status FftsPlusTaskInfo::PrePareForTransfer(const domi::TaskDef &task_def) {
                         "[Calc][CalculateTilingSize] failed, node:%s", sub_op_desc->GetName().c_str());
     }
     if (ctx_type == RT_CTX_TYPE_DSA) {
-        dsa_ctx_num++;
+      dsa_ctx_num++;
     }
   }
   GE_ASSERT_SUCCESS(InitTilingInfo());
   GE_ASSERT_TRUE(!ge::MulOverflow(dsa_ctx_num, kDsaWorkspaceMaxSize, dsa_workspace_size_));
   GELOGI("Prepare for task transfer-ing success, node: %s, ctx num: %d, dsa workspace size: %zu.",
-    op_desc_->GetNamePtr(), ctx_num, dsa_workspace_size_);
+         op_desc_->GetNamePtr(), ctx_num, dsa_workspace_size_);
 
   GE_ASSERT_TRUE(!ge::MulOverflow(sizeof(void *), ffts_plus_task_def.addr_size(), args_size_));
   GE_ASSERT_TRUE(!ge::AddOverflow(args_size_, dsa_workspace_size_, args_size_));
@@ -683,9 +678,8 @@ Status FftsPlusTaskInfo::PrePareForTransfer(const domi::TaskDef &task_def) {
 }
 
 void FftsPlusTaskInfo::InitDescBufInfo() {
-  uint8_t *const aligned_base = PtrToPtr<void, uint8_t>(ValueToPtr(static_cast<uint64_t>(
-      MemSizeAlign(static_cast<size_t>(PtrToValue(PtrToPtr<uint8_t, void>(pis_args_dev_base_))),
-                   kDescBufAlignedBytes))));
+  uint8_t *const aligned_base = PtrToPtr<void, uint8_t>(ValueToPtr(static_cast<uint64_t>(MemSizeAlign(
+      static_cast<size_t>(PtrToValue(PtrToPtr<uint8_t, void>(pis_args_dev_base_))), kDescBufAlignedBytes))));
   ffts_plus_task_info_.descBuf = aligned_base;
   desc_buf_host_ = aligned_base - pis_args_dev_base_ + pis_args_host_base_;
   GELOGI("Descbuf addr:[%p], 128-aligned addr:[%p], aligned_host:[%p].", pis_args_dev_base_,

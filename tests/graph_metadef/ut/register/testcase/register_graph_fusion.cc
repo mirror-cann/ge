@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,19 +25,14 @@ using namespace testing;
 using namespace ge;
 using namespace fe;
 
-namespace fe{
-
+namespace fe {
 
 class UTESTGraphFusionPass : public testing::Test {
  public:
-
  protected:
-  void SetUp() {
+  void SetUp() {}
 
-  }
-
-  void TearDown() {
-  }
+  void TearDown() {}
 
   static ComputeGraphPtr CreateCastReluCastGraph1() {
     ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test1");
@@ -47,7 +42,7 @@ class UTESTGraphFusionPass : public testing::Test {
     OpDescPtr op_desc_output = std::make_shared<OpDesc>("output", "NetOutput");
     OpDescPtr op_desc_input = std::make_shared<OpDesc>("other", "Other");
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim_a = {8, 4, 16, 16};
     GeShape shape_a(dim_a);
     GeTensorDesc tensor_desc_a(shape_a);
@@ -72,7 +67,7 @@ class UTESTGraphFusionPass : public testing::Test {
     tensor_desc_c.SetDataType(DT_FLOAT);
     tensor_desc_c.SetOriginDataType(DT_FLOAT);
 
-    //vector<int64_t> dim_d;
+    // vector<int64_t> dim_d;
     GeShape shape_d(dim_a);
     GeTensorDesc tensor_desc_d(shape_d);
     tensor_desc_d.SetFormat(FORMAT_NCHW);
@@ -117,7 +112,7 @@ class UTESTGraphFusionPass : public testing::Test {
     OpDescPtr op_desc_output = std::make_shared<OpDesc>("output", "NetOutput");
     OpDescPtr op_desc_input = std::make_shared<OpDesc>("other", "Other");
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim_a = {8, 4, 16, 16};
     GeShape shape_a(dim_a);
     GeTensorDesc tensor_desc_a(shape_a);
@@ -142,7 +137,7 @@ class UTESTGraphFusionPass : public testing::Test {
     tensor_desc_c.SetDataType(DT_FLOAT);
     tensor_desc_c.SetOriginDataType(DT_FLOAT);
 
-    //vector<int64_t> dim_d;
+    // vector<int64_t> dim_d;
     GeShape shape_d(dim_a);
     GeTensorDesc tensor_desc_d(shape_d);
     tensor_desc_d.SetFormat(FORMAT_NCHW);
@@ -186,7 +181,7 @@ class UTESTGraphFusionPass : public testing::Test {
     OpDescPtr op_desc_output = std::make_shared<OpDesc>("output", "NetOutput");
     OpDescPtr op_desc_input = std::make_shared<OpDesc>("other", "Other");
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim_a = {8, 4, 16, 16};
     GeShape shape_a(dim_a);
     GeTensorDesc tensor_desc_a(shape_a);
@@ -241,7 +236,7 @@ class UTESTGraphFusionPass : public testing::Test {
     OpDescPtr op_desc_output = std::make_shared<OpDesc>("output", "NetOutput");
     OpDescPtr op_desc_input = std::make_shared<OpDesc>("other", "Other");
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim_a = {8, 4, 16, 16};
     GeShape shape_a(dim_a);
     GeTensorDesc tensor_desc_a(shape_a);
@@ -266,7 +261,7 @@ class UTESTGraphFusionPass : public testing::Test {
     tensor_desc_c.SetDataType(DT_FLOAT);
     tensor_desc_c.SetOriginDataType(DT_FLOAT);
 
-    //vector<int64_t> dim_d;
+    // vector<int64_t> dim_d;
     GeShape shape_d(dim_a);
     GeTensorDesc tensor_desc_d(shape_d);
     tensor_desc_d.SetFormat(FORMAT_NCHW);
@@ -317,7 +312,7 @@ class UTESTGraphFusionPass : public testing::Test {
     OpDescPtr op_desc_output = std::make_shared<OpDesc>("output", "NetOutput");
     OpDescPtr op_desc_input = std::make_shared<OpDesc>("other", "Other");
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim_a = {8, 4, 16, 16};
     GeShape shape_a(dim_a);
     GeTensorDesc tensor_desc_a(shape_a);
@@ -342,7 +337,7 @@ class UTESTGraphFusionPass : public testing::Test {
     tensor_desc_c.SetDataType(DT_FLOAT);
     tensor_desc_c.SetOriginDataType(DT_FLOAT);
 
-    //vector<int64_t> dim_d;
+    // vector<int64_t> dim_d;
     GeShape shape_d(dim_a);
     GeTensorDesc tensor_desc_d(shape_d);
     tensor_desc_d.SetFormat(FORMAT_NCHW);
@@ -400,7 +395,7 @@ class UTESTGraphFusionPass : public testing::Test {
     OpDescPtr op_desc_output = std::make_shared<OpDesc>("output", "NetOutput");
     OpDescPtr op_desc_input = std::make_shared<OpDesc>("other", "Other");
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim_a = {8, 4, 16, 16};
     GeShape shape_a(dim_a);
     GeTensorDesc tensor_desc_a(shape_a);
@@ -425,7 +420,7 @@ class UTESTGraphFusionPass : public testing::Test {
     tensor_desc_c.SetDataType(DT_FLOAT);
     tensor_desc_c.SetOriginDataType(DT_FLOAT);
 
-    //vector<int64_t> dim_d;
+    // vector<int64_t> dim_d;
     GeShape shape_d(dim_a);
     GeTensorDesc tensor_desc_d(shape_d);
     tensor_desc_d.SetFormat(FORMAT_NCHW);
@@ -479,11 +474,8 @@ class UTESTGraphFusionPass : public testing::Test {
       printf("node name = %s.\n", node->GetName().c_str());
       for (ge::OutDataAnchorPtr anchor : node->GetAllOutDataAnchors()) {
         for (ge::InDataAnchorPtr peer_in_anchor : anchor->GetPeerInDataAnchors()) {
-          printf("    node name = %s[%d], out data node name = %s[%d].\n",
-                 node->GetName().c_str(),
-                 anchor->GetIdx(),
-                 peer_in_anchor->GetOwnerNode()->GetName().c_str(),
-                 peer_in_anchor->GetIdx());
+          printf("    node name = %s[%d], out data node name = %s[%d].\n", node->GetName().c_str(), anchor->GetIdx(),
+                 peer_in_anchor->GetOwnerNode()->GetName().c_str(), peer_in_anchor->GetIdx());
         }
       }
       if (node->GetOutControlAnchor() != nullptr) {
@@ -496,9 +488,7 @@ class UTESTGraphFusionPass : public testing::Test {
 
     return;
   }
-
 };
-
 
 const char *kOpTypeCast = "Cast";
 const char *kOpTypeRelu = "Relu";
@@ -514,24 +504,24 @@ const char *kPatternRelu = "Relu";
     }                                         \
   } while (0)
 
-#define UT_CHECK_NOTNULL(val)                           \
-  do {                                                  \
-    if ((val) == nullptr) {                             \
+#define UT_CHECK_NOTNULL(val)                          \
+  do {                                                 \
+    if ((val) == nullptr) {                            \
       GELOGD("Parameter[%s] must not be null.", #val); \
-      return fe::PARAM_INVALID;                         \
-    }                                                   \
+      return fe::PARAM_INVALID;                        \
+    }                                                  \
   } while (0)
 
 string pass_name_test = "CastCastFusionPass";
 class TestPass : public fe::PatternFusionBasePass {
   using Mapping = std::map<const std::shared_ptr<OpDesc>, std::vector<ge::NodePtr>, fe::CmpKey>;
+
  protected:
   vector<FusionPattern *> DefinePatterns() override {
     vector<FusionPattern *> patterns;
 
-    FusionPattern *pattern = new(std::nothrow) FusionPattern("CastCastFusionPass");
-    UT_CHECK(pattern == nullptr, GELOGD(" Fail to create a new pattern object."),
-             return patterns);
+    FusionPattern *pattern = new (std::nothrow) FusionPattern("CastCastFusionPass");
+    UT_CHECK(pattern == nullptr, GELOGD(" Fail to create a new pattern object."), return patterns);
     pattern->AddOpDesc(kPatternCast0, {kOpTypeCast})
         .AddOpDesc(kPatternRelu, {kOpTypeRelu})
         .AddOpDesc(kPatternCast1, {kOpTypeCast})
@@ -544,7 +534,7 @@ class TestPass : public fe::PatternFusionBasePass {
     return patterns;
   }
 
-  Status Fusion(ge::ComputeGraph &graph, Mapping &mapping, vector <ge::NodePtr> &new_nodes) override {
+  Status Fusion(ge::ComputeGraph &graph, Mapping &mapping, vector<ge::NodePtr> &new_nodes) override {
     FusionPattern pattern("CastCastFusionPass");
     DumpMapping(pattern, mapping);
 
@@ -554,18 +544,14 @@ class TestPass : public fe::PatternFusionBasePass {
     CheckOpSupported(cast_Node0->GetOpDesc());
     CheckAccuracySupported(cast_Node0);
 
-    UT_CHECK(cast_Node0 == nullptr, GELOGD("cast_Node0 is null,fusion failed."),
-             return NOT_CHANGED);
+    UT_CHECK(cast_Node0 == nullptr, GELOGD("cast_Node0 is null,fusion failed."), return NOT_CHANGED);
     ge::OpDescPtr cast_desc0 = cast_Node0->GetOpDesc();
-    UT_CHECK(cast_desc0 == nullptr, GELOGD("cast_Node0's Desc is null,fusion failed."),
-             return NOT_CHANGED);
+    UT_CHECK(cast_desc0 == nullptr, GELOGD("cast_Node0's Desc is null,fusion failed."), return NOT_CHANGED);
 
     ge::NodePtr relu_Node = GetNodeFromMapping(kPatternRelu, mapping);
-    UT_CHECK(relu_Node == nullptr, GELOGD("relu_Node is null,fusion failed."),
-             return NOT_CHANGED);
+    UT_CHECK(relu_Node == nullptr, GELOGD("relu_Node is null,fusion failed."), return NOT_CHANGED);
     ge::OpDescPtr relu_desc = relu_Node->GetOpDesc();
-    UT_CHECK(cast_desc0 == nullptr, GELOGD("relu_Node's Desc is null,fusion failed."),
-             return NOT_CHANGED);
+    UT_CHECK(cast_desc0 == nullptr, GELOGD("relu_Node's Desc is null,fusion failed."), return NOT_CHANGED);
 
     auto relu_input = relu_desc->MutableInputDesc(0);
     UT_CHECK_NOTNULL(relu_input);
@@ -580,11 +566,9 @@ class TestPass : public fe::PatternFusionBasePass {
     }
 
     ge::NodePtr cast_Node1 = GetNodeFromMapping(kPatternCast1, mapping);
-    UT_CHECK(cast_Node1 == nullptr, GELOGD("cast_Node1 is null,fusion failed."),
-             return NOT_CHANGED);
+    UT_CHECK(cast_Node1 == nullptr, GELOGD("cast_Node1 is null,fusion failed."), return NOT_CHANGED);
     ge::OpDescPtr cast_desc1 = cast_Node1->GetOpDesc();
-    UT_CHECK(cast_desc0 == nullptr, GELOGD("cast_Node1's Desc is null,fusion failed."),
-             return NOT_CHANGED);
+    UT_CHECK(cast_desc0 == nullptr, GELOGD("cast_Node1's Desc is null,fusion failed."), return NOT_CHANGED);
 
     auto cast0_input = cast_desc0->MutableInputDesc(0);
     UT_CHECK_NOTNULL(cast0_input);
@@ -594,7 +578,7 @@ class TestPass : public fe::PatternFusionBasePass {
     DataType cast1_out_d_type = cast1_output->GetDataType();
     if (cast0_in_d_type != cast1_out_d_type) {
       GELOGD("Cast Node0 [%s] input data type is not equal to Cast Node1 [%s] output data type ",
-              cast_Node0->GetName().c_str(), cast_Node1->GetName().c_str());
+             cast_Node0->GetName().c_str(), cast_Node1->GetName().c_str());
       return NOT_CHANGED;
     }
 
@@ -602,7 +586,7 @@ class TestPass : public fe::PatternFusionBasePass {
     UT_CHECK_NOTNULL(cast0_out_data_anchor);
     if (cast0_out_data_anchor->GetPeerInDataAnchors().size() > 1) {
       GELOGD("The first output anchor of Cast node[%s] has more than one peer in anchor.",
-              cast_Node0->GetName().c_str());
+             cast_Node0->GetName().c_str());
       return NOT_CHANGED;
     }
 
@@ -612,7 +596,7 @@ class TestPass : public fe::PatternFusionBasePass {
       for (auto node : relu_Node->GetOutAllNodes()) {
         if (node->GetType() != "Cast") {
           GELOGD("The  output anchor of Relu node has not Cast node,name is [%s] Type is [%s].",
-                  node->GetName().c_str(), node->GetType().c_str());
+                 node->GetName().c_str(), node->GetType().c_str());
           return NOT_CHANGED;
         }
         auto node_desc = node->GetOpDesc();
@@ -621,7 +605,7 @@ class TestPass : public fe::PatternFusionBasePass {
         auto out_dtype = node_desc->MutableOutputDesc(0)->GetDataType();
         if (in_dtype != DT_FLOAT || out_dtype != DT_FLOAT16) {
           GELOGD("The Cast node [%s]'s indatatype is not equal to DT_FLOAT or outdatatype is not equal to DT_FLOAT16.",
-                  node->GetName().c_str());
+                 node->GetName().c_str());
           return NOT_CHANGED;
         }
       }
@@ -634,8 +618,8 @@ class TestPass : public fe::PatternFusionBasePass {
       return FAILED;
     }
     if (GraphUtils::RemoveNodeWithoutRelink(graphPtr, cast_Node0) != GRAPH_SUCCESS) {
-      GELOGD("[Remove][Node] %s, type:%s without relink in graph:%s failed",
-                      cast_Node0->GetName().c_str(), cast_Node0->GetType().c_str(), graph.GetName().c_str());
+      GELOGD("[Remove][Node] %s, type:%s without relink in graph:%s failed", cast_Node0->GetName().c_str(),
+             cast_Node0->GetType().c_str(), graph.GetName().c_str());
       return FAILED;
     }
     for (auto inAnchor : relu_out_data_anchor->GetPeerInDataAnchors()) {
@@ -646,8 +630,8 @@ class TestPass : public fe::PatternFusionBasePass {
         return FAILED;
       }
       if (GraphUtils::RemoveNodeWithoutRelink(graphPtr, node) != GRAPH_SUCCESS) {
-        GELOGD("[Remove][Node] %s, type:%s without relink in graph:%s failed",
-                        node->GetName().c_str(), node->GetType().c_str(), graph.GetName().c_str());
+        GELOGD("[Remove][Node] %s, type:%s without relink in graph:%s failed", node->GetName().c_str(),
+               node->GetType().c_str(), graph.GetName().c_str());
         return FAILED;
       }
     }
@@ -658,8 +642,7 @@ class TestPass : public fe::PatternFusionBasePass {
   }
 };
 
-TEST_F(UTESTGraphFusionPass, cast_relu_cast_01)
-{
+TEST_F(UTESTGraphFusionPass, cast_relu_cast_01) {
   ComputeGraphPtr graph = CreateCastReluCastGraph1();
   TestPass pass;
   DumpGraph(graph, "test1");
@@ -670,7 +653,7 @@ TEST_F(UTESTGraphFusionPass, cast_relu_cast_01)
   vector<int64_t> dim_a = {8, 4, 16, 16};
   vector<int64_t> dim_b = {1, 4, 64, 64};
 
-  for(auto node : graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     OpDescPtr op_desc = node->GetOpDesc();
     if (op_desc->GetType() == "Relu") {
       EXPECT_EQ(op_desc->MutableInputDesc(0)->GetDataType(), DT_FLOAT16);
@@ -678,15 +661,14 @@ TEST_F(UTESTGraphFusionPass, cast_relu_cast_01)
 
       EXPECT_EQ(op_desc->MutableOutputDesc(0)->GetDataType(), DT_FLOAT16);
       EXPECT_EQ(op_desc->MutableOutputDesc(0)->MutableShape().GetDims(), dim_b);
-      NodePtr node_out=node->GetOutDataNodes().at(0);
-      EXPECT_EQ(node_out->GetOpDesc()->GetType(),"NetOutput");
-      EXPECT_EQ(node_out->GetOpDesc()->MutableInputDesc(0)->GetDataType(),DT_FLOAT16);
-      EXPECT_EQ(node_out->GetOpDesc()->MutableInputDesc(0)->MutableShape().GetDims(),dim_a);
-      NodePtr  node0=node->GetInDataNodes().at(0);
-      EXPECT_EQ(node0->GetOpDesc()->GetType(),"Other");
-      EXPECT_EQ(node0->GetOpDesc()->MutableOutputDesc(0)->GetDataType(),DT_FLOAT16);
+      NodePtr node_out = node->GetOutDataNodes().at(0);
+      EXPECT_EQ(node_out->GetOpDesc()->GetType(), "NetOutput");
+      EXPECT_EQ(node_out->GetOpDesc()->MutableInputDesc(0)->GetDataType(), DT_FLOAT16);
+      EXPECT_EQ(node_out->GetOpDesc()->MutableInputDesc(0)->MutableShape().GetDims(), dim_a);
+      NodePtr node0 = node->GetInDataNodes().at(0);
+      EXPECT_EQ(node0->GetOpDesc()->GetType(), "Other");
+      EXPECT_EQ(node0->GetOpDesc()->MutableOutputDesc(0)->GetDataType(), DT_FLOAT16);
       EXPECT_EQ(node0->GetOpDesc()->MutableOutputDesc(0)->MutableShape().GetDims(), dim_a);
-
     }
   }
 }
@@ -711,8 +693,7 @@ class UtOpsKernel : public OpsKernelInfoStore {
   }
 };
 
-TEST_F(UTESTGraphFusionPass, cast_relu_cast_02)
-{
+TEST_F(UTESTGraphFusionPass, cast_relu_cast_02) {
   ComputeGraphPtr graph = CreateCastReluCastGraph2();
   TestPass pass;
   std::shared_ptr<UtOpsKernel> ops_kernel = std::make_shared<UtOpsKernel>();
@@ -720,10 +701,8 @@ TEST_F(UTESTGraphFusionPass, cast_relu_cast_02)
   std::shared_ptr<OpsKernelInfoStore> base = ops_kernel;
   fe::Status status = pass.Run(*graph, base);
   EXPECT_EQ(fe::NOT_CHANGED, status);
-
 }
-TEST_F(UTESTGraphFusionPass, cast_relu_cast_03)
-{
+TEST_F(UTESTGraphFusionPass, cast_relu_cast_03) {
   ComputeGraphPtr graph = CreateCastReluCastGraph3();
 
   TestPass pass;
@@ -732,10 +711,8 @@ TEST_F(UTESTGraphFusionPass, cast_relu_cast_03)
   std::shared_ptr<OpsKernelInfoStore> base = ops_kernel;
   fe::Status status = pass.Run(*graph, base);
   EXPECT_EQ(fe::NOT_CHANGED, status);
-
 }
-TEST_F(UTESTGraphFusionPass, cast_relu_cast_04)
-{
+TEST_F(UTESTGraphFusionPass, cast_relu_cast_04) {
   ComputeGraphPtr graph = CreateCastReluCastGraph4();
   TestPass pass;
   std::shared_ptr<UtOpsKernel> ops_kernel = std::make_shared<UtOpsKernel>();
@@ -743,10 +720,8 @@ TEST_F(UTESTGraphFusionPass, cast_relu_cast_04)
   std::shared_ptr<OpsKernelInfoStore> base = ops_kernel;
   fe::Status status = pass.Run(*graph, base);
   EXPECT_EQ(fe::NOT_CHANGED, status);
-
 }
-TEST_F(UTESTGraphFusionPass, cast_relu_cast_05)
-{
+TEST_F(UTESTGraphFusionPass, cast_relu_cast_05) {
   ComputeGraphPtr graph = CreateCastReluCastGraph5();
   TestPass pass;
   DumpGraph(graph, "test1");
@@ -756,11 +731,8 @@ TEST_F(UTESTGraphFusionPass, cast_relu_cast_05)
   fe::Status status = pass.Run(*graph, base);
   EXPECT_EQ(fe::SUCCESS, status);
   DumpGraph(graph, "test1");
-
 }
-TEST_F(UTESTGraphFusionPass, cast_relu_cast_06)
-{
-
+TEST_F(UTESTGraphFusionPass, cast_relu_cast_06) {
   ComputeGraphPtr graph = CreateCastReluCastGraph6();
   TestPass pass;
   std::shared_ptr<UtOpsKernel> ops_kernel = std::make_shared<UtOpsKernel>();
@@ -768,7 +740,6 @@ TEST_F(UTESTGraphFusionPass, cast_relu_cast_06)
   std::shared_ptr<OpsKernelInfoStore> base = ops_kernel;
   fe::Status status = pass.Run(*graph, base);
   EXPECT_EQ(fe::NOT_CHANGED, status);
-
 }
 
 TEST_F(UTESTGraphFusionPass, coverage_01) {
@@ -777,10 +748,7 @@ TEST_F(UTESTGraphFusionPass, coverage_01) {
   REGISTER_PASS(pass_name_test, BUILT_IN_GRAPH_PASS, TestPass);
   REGISTER_PASS(pass_name_test, BUILT_IN_GRAPH_PASS, TestPass);
   std::map<string, FusionPassRegistry::CreateFn> create_fns =
-    FusionPassRegistry::GetInstance().GetCreateFnByType(SECOND_ROUND_BUILT_IN_GRAPH_PASS);
-  EXPECT_NO_THROW(
-    create_fns =
-      FusionPassRegistry::GetInstance().GetCreateFnByType(BUILT_IN_GRAPH_PASS);
-  );
+      FusionPassRegistry::GetInstance().GetCreateFnByType(SECOND_ROUND_BUILT_IN_GRAPH_PASS);
+  EXPECT_NO_THROW(create_fns = FusionPassRegistry::GetInstance().GetCreateFnByType(BUILT_IN_GRAPH_PASS););
 }
-}
+}  // namespace fe

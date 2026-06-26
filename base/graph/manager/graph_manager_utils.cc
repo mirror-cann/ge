@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,21 +30,22 @@ Status IsDigitStrings(const std::vector<std::string> &input_vec) {
     for (const char ch : input) {
       if (ch != ' ' && (static_cast<bool>(isdigit(static_cast<unsigned char>(ch))) == false)) {
         (void)REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char_t *>({"parameter", "value", "reason"}),
-                           std::vector<const char_t *>({kFrozenInputIndexes, input.c_str(),
-                           "The frozen input index is not a digit."}));
+                                        std::vector<const char_t *>({kFrozenInputIndexes, input.c_str(),
+                                                                     "The frozen input index is not a digit."}));
         return GE_GRAPH_OPTIONS_INVALID;
       }
     }
   }
   return SUCCESS;
 }
-}
+}  // namespace
 const char_t *GetRunGraphModeStr(RunGraphMode mode) {
   static constexpr const char_t *run_graph_mode_str[] = {"RunGraph", "RunGraphAsync", "RunGraphWithStreamAsync",
-    "InitRunGraphMode"};
+                                                         "InitRunGraphMode"};
 
   static_assert(sizeof(run_graph_mode_str) / sizeof(run_graph_mode_str[0]) ==
-    (static_cast<size_t>(RunGraphMode::kRunGraphModeEnd) + 1U), "RunGraphMode enum and string array size mismatch");
+                    (static_cast<size_t>(RunGraphMode::kRunGraphModeEnd) + 1U),
+                "RunGraphMode enum and string array size mismatch");
 
   const auto index = static_cast<size_t>(mode);
   if (index >= static_cast<size_t>(RunGraphMode::kRunGraphModeEnd)) {
@@ -102,9 +103,9 @@ Status GraphNode::ParseFrozenInputIndex() {
   for (auto &frozen_info : frozen_input_vec) {
     std::vector<std::string> frozen_info_vec = StringUtils::Split(frozen_info, ',');
     GE_ASSERT_TRUE((frozen_info_vec.size() == 1UL) || (frozen_info_vec.size() == 3UL),
-        "frozen info vector size should be 1 or 3 parsed by [%s]", frozen_info.c_str());
-    GE_ASSERT_SUCCESS(IsDigitStrings(frozen_info_vec),
-        "There are some invalid characters in frozen option value[%s].", frozen_input.c_str());
+                   "frozen info vector size should be 1 or 3 parsed by [%s]", frozen_info.c_str());
+    GE_ASSERT_SUCCESS(IsDigitStrings(frozen_info_vec), "There are some invalid characters in frozen option value[%s].",
+                      frozen_input.c_str());
     int32_t frozen_input_index = -1;
     GE_ASSERT_SUCCESS(ConvertToInt32(frozen_info_vec[kIndexOfFrozenDataIndex], frozen_input_index));
     GE_ASSERT_TRUE((frozen_input_index >= 0), "Frozen_input_index must be greater than zero: %u", frozen_input_index);
@@ -154,10 +155,13 @@ std::shared_ptr<GraphNode> GraphNode::Fork(uint32_t forked_graph_id) {
   GE_ASSERT_NOTNULL(forked_root_model);
   graph_node->ge_root_model_ = forked_root_model;
   graph_node->is_feature_base_refreshable_ = this->is_feature_base_refreshable_;
-  // 如下三个数据结构跨越了编译与加载， first是地址属于加载阶段数据，second是size属于编译阶段数据（虽然是在loadgraph接口中生成的）
-  // 在当前的实现中， loadgraph接口生成compile summary，并将如下三个数据结构中的size字段设置好。在加载时分配内存的时候，直接读数据结构中的size字段
+  // 如下三个数据结构跨越了编译与加载，
+  // first是地址属于加载阶段数据，second是size属于编译阶段数据（虽然是在loadgraph接口中生成的） 在当前的实现中，
+  // loadgraph接口生成compile
+  // summary，并将如下三个数据结构中的size字段设置好。在加载时分配内存的时候，直接读数据结构中的size字段
   // 并且loadgraph接口判断若已存在compile summary，便不再生成summary，也不再设置size
-  // 这样意味着，如下三个数据结构中的size字段和compile summary数据存在冗余，且数据是不同步的。坏味道：编译、加载阶段数据没有解耦
+  // 这样意味着，如下三个数据结构中的size字段和compile
+  // summary数据存在冗余，且数据是不同步的。坏味道：编译、加载阶段数据没有解耦
   // 对于fork接口，需要全盘接收编译时信息。如下三个size字段也算。
   // 临时方案：fork这里先复制
   // 正式方案：将如上的数据解耦
@@ -226,10 +230,10 @@ void RunAsyncListener::SetCallback(const RunAsyncCallbackV2 &callback) {
 
 Status RunAsyncListener::OnComputeDone(const uint32_t model_id, const uint32_t data_index, const uint32_t result_code,
                                        std::vector<gert::Tensor> &outputs) {
-  GELOGI("[GraphManager] run graph async call back, modelId:%u, taskId:%u, resultCode:%u.",
-         model_id, data_index, result_code);
+  GELOGI("[GraphManager] run graph async call back, modelId:%u, taskId:%u, resultCode:%u.", model_id, data_index,
+         result_code);
   RunAsyncCallbackV2 callback;
-  (void)sem_v2_.Pop(callback, 0U); // pop with no wait
+  (void)sem_v2_.Pop(callback, 0U);  // pop with no wait
   GE_CHECK_NOTNULL(callback);
   callback(result_code, outputs);
   return SUCCESS;

@@ -34,4 +34,3 @@ add_es_library(
 add_subdirectory(src)
 add_executable(sample main.cpp)
 target_link_libraries(sample PRIVATE es_showcase ${GE_RUNNER} ${GE_COMPILE})
-

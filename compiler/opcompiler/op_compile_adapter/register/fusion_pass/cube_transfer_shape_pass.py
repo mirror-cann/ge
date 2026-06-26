@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
@@ -14,12 +14,10 @@
 cube trans shape fusion pass
 """
 
-
-from tbe.common.register import register_pass_for_fusion
-from tbe.common.register import register_fusion_pass
+from tbe.common.register import register_fusion_pass, register_pass_for_fusion
 
 
-@register_pass_for_fusion(match_condition={"op_type":"Conv3D"})
+@register_pass_for_fusion(match_condition={"op_type": "Conv3D"})
 def trans_shape_of_conv3d(graph_info):
     """
     tranform shape for Conv3D
@@ -49,7 +47,12 @@ def trans_shape_of_conv3d(graph_info):
                 continue
             peer_out_shape = peer_output_info.get_shape()
             if len(peer_out_shape) == 4:
-                new_shape = [peer_out_shape[0], peer_out_shape[1], peer_out_shape[2], peer_out_shape[3]]
+                new_shape = [
+                    peer_out_shape[0],
+                    peer_out_shape[1],
+                    peer_out_shape[2],
+                    peer_out_shape[3],
+                ]
                 peer_output_info.set_shape(new_shape)
 
 
@@ -102,22 +105,56 @@ def trans_shape_depthwise_conv2d(op_list):
                 total_shape = data_output["total_shape"]
                 valid_shape = data_output["valid_shape"]
                 if idx == 0 and len(shape) == 5:
-                    data_output["shape"] = [shape[0], shape[1], shape[2], shape[3], shape[4]]
-                    data_output["total_shape"] = [total_shape[0], total_shape[1], 1,
-                                                  total_shape[2], total_shape[3], total_shape[4]]
+                    data_output["shape"] = [
+                        shape[0],
+                        shape[1],
+                        shape[2],
+                        shape[3],
+                        shape[4],
+                    ]
+                    data_output["total_shape"] = [
+                        total_shape[0],
+                        total_shape[1],
+                        1,
+                        total_shape[2],
+                        total_shape[3],
+                        total_shape[4],
+                    ]
                     input_desc["shape"] = data_output["shape"]
                     input_desc["total_shape"] = data_output["total_shape"]
                     if not any(valid_shape):
-                        data_output["valid_shape"] = [valid_shape[0], valid_shape[1], 1,
-                                                      valid_shape[2], valid_shape[3], valid_shape[4]]
+                        data_output["valid_shape"] = [
+                            valid_shape[0],
+                            valid_shape[1],
+                            1,
+                            valid_shape[2],
+                            valid_shape[3],
+                            valid_shape[4],
+                        ]
                         input_desc["valid_shape"] = data_output["valid_shape"]
                 if idx == 1 and len(shape) == 6:
-                    data_output["shape"] = [shape[0], shape[1], shape[2], shape[4], shape[5]]
-                    data_output["total_shape"] = [total_shape[0], total_shape[1], total_shape[2],
-                                                  total_shape[4], total_shape[5]]
+                    data_output["shape"] = [
+                        shape[0],
+                        shape[1],
+                        shape[2],
+                        shape[4],
+                        shape[5],
+                    ]
+                    data_output["total_shape"] = [
+                        total_shape[0],
+                        total_shape[1],
+                        total_shape[2],
+                        total_shape[4],
+                        total_shape[5],
+                    ]
                     input_desc["shape"] = data_output["shape"]
                     input_desc["total_shape"] = data_output["total_shape"]
                     if not any(valid_shape):
-                        data_output["valid_shape"] = [valid_shape[0], valid_shape[1],
-                                                      valid_shape[2], valid_shape[4], valid_shape[5]]
+                        data_output["valid_shape"] = [
+                            valid_shape[0],
+                            valid_shape[1],
+                            valid_shape[2],
+                            valid_shape[4],
+                            valid_shape[5],
+                        ]
                         input_desc["valid_shape"] = data_output["valid_shape"]

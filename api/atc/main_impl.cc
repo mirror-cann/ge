@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -69,8 +69,7 @@ const char *const kModelToJsonSupport =
     "The framework must be selected from {0(Caffe), 3(TensorFlow), 5(Onnx)} when model is set to 1(JSON).";
 const char *const kCaffeFormatSupport = "The value must be NCHW or ND in Caffe model.";
 const char *const kCaffeSupport = "Caffe is not supported in the current soc version";
-const char *const kTFFormatSupport =
-    "The value must be NCHW, NHWC, ND, NCDHW or NDHWC in TF model.";
+const char *const kTFFormatSupport = "The value must be NCHW, NHWC, ND, NCDHW or NDHWC in TF model.";
 const char *const kONNXFormatSupport = "The value must be NCHW, ND or NCDHW in ONNX model.";
 const char *const kOptionBuildConfig = "ge.buildConfig";
 // limit available mem size 2G
@@ -92,8 +91,8 @@ const std::string kOffline = "offline";
 void SetSingleCompileThread(std::map<std::string, std::string> &options) {
   const char_t *compile_thread_env = nullptr;
   MM_SYS_GET_ENV(MM_ENV_MULTI_THREAD_COMPILE, compile_thread_env);
-  int64_t compile_thread = (compile_thread_env != nullptr) ? std::strtol(compile_thread_env, nullptr, kBaseOfIntergerValue)
-      : kEnableFlag;
+  int64_t compile_thread =
+      (compile_thread_env != nullptr) ? std::strtol(compile_thread_env, nullptr, kBaseOfIntergerValue) : kEnableFlag;
   options.emplace("MULTI_THREAD_COMPILE", std::to_string(compile_thread));
 }
 struct SrcModelAbstract {
@@ -168,8 +167,8 @@ bool IsPyatcModuleCommand(const std::string &argv0) {
   if (argv0.size() < kPyatcModuleCommandSuffix.size()) {
     return false;
   }
-  return argv0.compare(argv0.size() - kPyatcModuleCommandSuffix.size(),
-                       kPyatcModuleCommandSuffix.size(), kPyatcModuleCommandSuffix) == 0;
+  return argv0.compare(argv0.size() - kPyatcModuleCommandSuffix.size(), kPyatcModuleCommandSuffix.size(),
+                       kPyatcModuleCommandSuffix) == 0;
 }
 
 std::string ResolveUsageCommand(int32_t argc, char *argv[]) {
@@ -223,7 +222,8 @@ std::map<std::string, std::string> BuildRawGeOptionToCliNameMap() {
   return option_to_cli_name;
 }
 
-bool IsCliOptionExplicitlySet(const std::string &ge_option, const std::map<std::string, std::string> &option_to_cli_name,
+bool IsCliOptionExplicitlySet(const std::string &ge_option,
+                              const std::map<std::string, std::string> &option_to_cli_name,
                               const std::unordered_map<std::string, std::string> &user_options) {
   const auto cli_name_iter = option_to_cli_name.find(ge_option);
   if (cli_name_iter == option_to_cli_name.end()) {
@@ -277,8 +277,8 @@ Status ParseRawCompileOptionLevel(const nlohmann::json &compile_options, const s
       return FAILED;
     }
     if (!option_iter.value().is_string()) {
-      GELOGE(FAILED, "[Check][RawGeOptions]option [%s] in level [%s] must be string.",
-             option_iter.key().c_str(), level.c_str());
+      GELOGE(FAILED, "[Check][RawGeOptions]option [%s] in level [%s] must be string.", option_iter.key().c_str(),
+             level.c_str());
       return FAILED;
     }
     raw_options[option_iter.key()] = option_iter.value().get<std::string>();
@@ -305,15 +305,15 @@ Status ParseRawCompileOptions(const nlohmann::json &raw_json, std::map<std::stri
   }
 
   // 根据优先级倒序解析option
-  GE_ASSERT_SUCCESS(ParseRawCompileOptionLevel(*compile_options_iter, kRawCompileOptionsGlobal, raw_options,
-                                               raw_option_levels),
-                    "[Parse][RawCompileOptionLevel]global failed.");
-  GE_ASSERT_SUCCESS(ParseRawCompileOptionLevel(*compile_options_iter, kRawCompileOptionsSession, raw_options,
-                                               raw_option_levels),
-                    "[Parse][RawCompileOptionLevel]session failed.");
-  GE_ASSERT_SUCCESS(ParseRawCompileOptionLevel(*compile_options_iter, kRawCompileOptionsGraph, raw_options,
-                                               raw_option_levels),
-                    "[Parse][RawCompileOptionLevel]graph failed.");
+  GE_ASSERT_SUCCESS(
+      ParseRawCompileOptionLevel(*compile_options_iter, kRawCompileOptionsGlobal, raw_options, raw_option_levels),
+      "[Parse][RawCompileOptionLevel]global failed.");
+  GE_ASSERT_SUCCESS(
+      ParseRawCompileOptionLevel(*compile_options_iter, kRawCompileOptionsSession, raw_options, raw_option_levels),
+      "[Parse][RawCompileOptionLevel]session failed.");
+  GE_ASSERT_SUCCESS(
+      ParseRawCompileOptionLevel(*compile_options_iter, kRawCompileOptionsGraph, raw_options, raw_option_levels),
+      "[Parse][RawCompileOptionLevel]graph failed.");
   return SUCCESS;
 }
 
@@ -330,8 +330,8 @@ Status CheckRawRegisteredOptimizationOptionValue(const std::string &option_name,
     if (visible_opt.second.checker(option_value, reason)) {
       return SUCCESS;
     }
-    GELOGE(PARAM_INVALID, "[Check][RawGeOptions]option [%s] value [%s] is invalid. %s",
-           option_name.c_str(), option_value.c_str(), reason.c_str());
+    GELOGE(PARAM_INVALID, "[Check][RawGeOptions]option [%s] value [%s] is invalid. %s", option_name.c_str(),
+           option_value.c_str(), reason.c_str());
     return PARAM_INVALID;
   }
   return SUCCESS;
@@ -342,8 +342,8 @@ Status ValidateRawGeOptionByCliParser(const std::string &option_name, const std:
   const std::string flag_name = StripCliOptionPrefix(cli_name);
   const flgs::GfStatus ret = flgs::CheckFlagValue(flag_name, option_value);
   if (ret == flgs::GF_FAILED) {
-    GELOGE(FAILED, "[Check][RawGeOptions]option [%s] value [%s] is invalid by cli option [%s].",
-           option_name.c_str(), option_value.c_str(), cli_name.c_str());
+    GELOGE(FAILED, "[Check][RawGeOptions]option [%s] value [%s] is invalid by cli option [%s].", option_name.c_str(),
+           option_value.c_str(), cli_name.c_str());
     return FAILED;
   }
   return SUCCESS;
@@ -355,8 +355,7 @@ Status ValidateRawGeOptionValue(const std::string &option_name, const std::strin
                     "[Check][RawGeOptionByCliParser]failed.");
 
   if (option_name == OPTION_STATIC_MODEL_OPS_LOWER_LIMIT) {
-    GE_ASSERT_SUCCESS(CheckValidValueRange(cli_name, option_value, -1L,
-                                           std::numeric_limits<int64_t>::max()),
+    GE_ASSERT_SUCCESS(CheckValidValueRange(cli_name, option_value, -1L, std::numeric_limits<int64_t>::max()),
                       "[Check][RawGeOptions]static_model_ops_lower_limit failed.");
   }
   GE_ASSERT_SUCCESS(CheckRawRegisteredOptimizationOptionValue(option_name, option_value),
@@ -377,12 +376,14 @@ Status ApplyRawGeOptionsToFlags(const std::map<std::string, std::string> &raw_op
     }
     const std::string flag_name = StripCliOptionPrefix(cli_name);
     if (IsRawNonReplaceableCliOption(flag_name)) {
-      const std::string reason = "This option must be set explicitly by command line and cannot be replaced by "
-                                 "raw_ge_options.";
-      REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"parameter", "value", "reason"}),
-                                std::vector<const char *>({cli_name.c_str(), raw_option.second.c_str(),
-                                                           reason.c_str()}));
-      GELOGE(FAILED, "[Check][RawGeOptions]raw option [%s] maps to required cli option [%s], "
+      const std::string reason =
+          "This option must be set explicitly by command line and cannot be replaced by "
+          "raw_ge_options.";
+      REPORT_PREDEFINED_ERR_MSG(
+          "E10001", std::vector<const char *>({"parameter", "value", "reason"}),
+          std::vector<const char *>({cli_name.c_str(), raw_option.second.c_str(), reason.c_str()}));
+      GELOGE(FAILED,
+             "[Check][RawGeOptions]raw option [%s] maps to required cli option [%s], "
              "which must be set explicitly by command line.",
              raw_option.first.c_str(), cli_name.c_str());
       return FAILED;
@@ -408,15 +409,15 @@ Status FilterAndValidateRawGeOptions(std::map<std::string, std::string> &raw_opt
       const auto level_iter = raw_option_levels.find(option_iter->first);
       const std::string level = (level_iter == raw_option_levels.end()) ? "" : level_iter->second;
       if (!FLAGS_raw_ge_options_ignore_unsupported) {
-        const std::string reason = "RawGeOptions[" + option_iter->first + ":" + 
-          option_iter->second + "] in level [" + level + "] is not supported in ATC. Please do not set it.";
+        const std::string reason = "RawGeOptions[" + option_iter->first + ":" + option_iter->second + "] in level [" +
+                                   level + "] is not supported in ATC. Please do not set it.";
         REPORT_PREDEFINED_ERR_MSG("E10055", std::vector({"reason"}), std::vector({reason.c_str()}));
         GELOGE(FAILED, "[Check][RawGeOptions]option [%s] in level [%s] is not supported by atc. value: %s",
                option_iter->first.c_str(), level.c_str(), option_iter->second.c_str());
         return FAILED;
       }
-      GELOGW("[Check][RawGeOptions]ignore unsupported option [%s] in level [%s]. value: %s",
-             option_iter->first.c_str(), level.c_str(), option_iter->second.c_str());
+      GELOGW("[Check][RawGeOptions]ignore unsupported option [%s] in level [%s]. value: %s", option_iter->first.c_str(),
+             level.c_str(), option_iter->second.c_str());
       (void)raw_option_levels.erase(option_iter->first);
       option_iter = raw_options.erase(option_iter);
       continue;
@@ -488,12 +489,15 @@ class GFlagUtils {
     }
     g_usage_command = ResolveUsageCommand(argc, argv);
     flgs::SetUsageMessage(
-        "usage: " + g_usage_command + " <args>\n"
+        "usage: " + g_usage_command +
+        " <args>\n"
         "generate offline model example:\n" +
         g_usage_command +
-        " --model=./alexnet.prototxt --weight=./alexnet.caffemodel --framework=0 --output=./domi --soc_version=<soc_version> \n"
+        " --model=./alexnet.prototxt --weight=./alexnet.caffemodel --framework=0 --output=./domi "
+        "--soc_version=<soc_version> \n"
         "generate offline model for single op example:\n" +
-        g_usage_command + " --singleop=./op_list.json --output=./op_model --soc_version=<soc_version> \n"
+        g_usage_command +
+        " --singleop=./op_list.json --output=./op_model --soc_version=<soc_version> \n"
         "\n===== Basic Functionality =====\n"
         "[General]\n"
         "  --h/help            Show this help message\n"
@@ -506,8 +510,8 @@ class GFlagUtils {
         "                       30: convert original graph to execute-om for nano(offline model)\n"
         "  --raw_ge_options    Raw GE options json file path. Only \"compile options\" will be parsed.\n"
         "  --raw_ge_options_ignore_unsupported    Ignore unsupported raw GE options. false(default): report error; "
-        "true: ignore unsupported options.\n"
-        + oo_help_info[static_cast<size_t>(OoCategory::kGeneral)] +
+        "true: ignore unsupported options.\n" +
+        oo_help_info[static_cast<size_t>(OoCategory::kGeneral)] +
         "\n[Input]\n"
         "  --model             Model file\n"
         "  --weight            Weight file. Required when framework is Caffe\n"
@@ -536,8 +540,8 @@ class GFlagUtils {
         "Use double quotation marks (\") to enclose each argument.\n"
         "                       E.g.: \"dims1_n1,dims1_n2;dims2_n1,dims2_n2\"\n"
         "  --singleop          Single op definition file. atc will generate offline."
-        "model(s) for single op if --singleop is set.\n"
-        + oo_help_info[static_cast<size_t>(OoCategory::kInput)] +
+        "model(s) for single op if --singleop is set.\n" +
+        oo_help_info[static_cast<size_t>(OoCategory::kInput)] +
         "\n[Output]\n"
         "  --output            Output file path&name(needn't suffix, will add .om/.exeom automatically).\n"
         "                      If --mode is set to 30, an additional dbg file will be generated.\n"
@@ -556,8 +560,8 @@ class GFlagUtils {
         "                      0 (default) : Disable virtualization; 1 : Enable virtualization.\n"
         "  --core_type         Set core type AiCore or VectorCore. VectorCore: use vector core. "
         "Default value is: AiCore\n"
-        "  --aicore_num        Set aicore num\n"
-        + oo_help_info[static_cast<size_t>(OoCategory::kTarget)] +
+        "  --aicore_num        Set aicore num\n" +
+        oo_help_info[static_cast<size_t>(OoCategory::kTarget)] +
         "===== Advanced Functionality =====\n"
         "[Feature]\n"
         "  --out_nodes         Output nodes designated by users. Separate multiple nodes with semicolons (;)."
@@ -575,8 +579,9 @@ class GFlagUtils {
         "  --is_output_adjust_hw_layout   Net output node datatype is fp16 and format is NC1HWC0, used with out_nodes. "
         "true: enable; false(default): disable. E.g.: \"true,true,false,true\"\n"
         "  --external_weight        Convert const to file constant, and save weight in file.\n"
-        "                           0 (default): save weight in om.  1: save weight in file.  2: save all weights in one file.\n"
-        + oo_help_info[static_cast<size_t>(OoCategory::kFeature)] +
+        "                           0 (default): save weight in om.  1: save weight in file.  2: save all weights in "
+        "one file.\n" +
+        oo_help_info[static_cast<size_t>(OoCategory::kFeature)] +
         "\n[Model Tuning]\n"
         "  --disable_reuse_memory    The switch of reuse memory. Default value is : 0. "
         "0 means reuse memory, 1 means do not reuse memory.\n"
@@ -590,7 +595,8 @@ class GFlagUtils {
         "  --tiling_schedule_optimize Enable tiling schedule optimize. 1: enable; 0(default): disable\n"
         "  --quant_dumpable          Ensure that the input and output of quant nodes can be dumped. "
         "1: enable; 0(default): disable.\n"
-        "  --cluster_config          Set the path of cluster configuration file for target execute logic device info to generate hccl tasks.\n"
+        "  --cluster_config          Set the path of cluster configuration file for target execute logic device info "
+        "to generate hccl tasks.\n"
         "  --hccl_sub_comm_config  Set the path of HCCL sub-communication configuration file.\n"
         "                           Used to configure HCCL sub-communication parameters.\n"
         "  --enable_small_channel    Set enable small channel. 0(default): disable; 1: enable\n"
@@ -602,21 +608,22 @@ class GFlagUtils {
         "  --buffer_optimize         Set buffer optimize. Support \"l2_optimize\" (default), "
         "\"l1_optimize\", \"off_optimize\"\n"
         "  --mdl_bank_path           Set the path of the custom repository generated after model tuning.\n" +
-        "  --oo_level                The graph optimization level. Support \"O1\", \"O3\"(default).\n"
-        + oo_help_info[static_cast<size_t>(OoCategory::kModelTuning)] +
+        "  --oo_level                The graph optimization level. Support \"O1\", \"O3\"(default).\n" +
+        oo_help_info[static_cast<size_t>(OoCategory::kModelTuning)] +
         "\n[Operator Tuning]\n"
         "  --op_precision_mode     Set the path of operator precision mode configuration file (.ini)\n"
         "  --allow_hf32            enable hf32. false: disable; true: enable. (not support, reserved)\n"
         "  --precision_mode        precision mode, support force_fp16(default), force_fp32, cube_fp16in_fp32out, "
         "allow_mix_precision, allow_fp32_to_fp16, must_keep_origin_dtype, allow_mix_precision_fp16, "
         "allow_mix_precision_bf16, allow_fp32_to_bf16.\n"
-        "  --precision_mode_v2     precision mode v2, support fp16(default), origin, cube_fp16in_fp32out, mixed_float16, "
+        "  --precision_mode_v2     precision mode v2, support fp16(default), origin, cube_fp16in_fp32out, "
+        "mixed_float16, "
         "mixed_bfloat16, cube_hif8, mixed_hif8.\n"
         "  --modify_mixlist        Set the path of operator mixed precision configuration file.\n"
         "  --keep_dtype            Retains the precision of certain operators in inference "
         "scenarios by using a configuration file.\n"
         "  --customize_dtypes      Set the path of custom dtypes configuration file.\n"
-        "  --is_weight_clip        Ensure weight is finite by cliped when its datatype is floating-point data, "
+        "  --is_weight_clip        Ensure weight is finite by clipped when its datatype is floating-point data, "
         "0: disable; 1(default): enable.\n"
         "  --op_bank_path          Set the path of the custom repository generated after operator tuning with Auto "
         "Tune.\n"
@@ -630,8 +637,8 @@ class GFlagUtils {
         "high_precision_for_all, high_performance_for_all. default: high_performance\n"
         "  --optypelist_for_implmode    Appoint which op to select implmode, cooperated with op_select_implmode.\n"
         "                               Separate multiple nodes with commas (,). Use double quotation marks (\") "
-        "to enclose each argument. E.g.: \"node_name1,node_name2\"\n"
-        + oo_help_info[static_cast<size_t>(OoCategory::kOperatorTuning)] +
+        "to enclose each argument. E.g.: \"node_name1,node_name2\"\n" +
+        oo_help_info[static_cast<size_t>(OoCategory::kOperatorTuning)] +
         "\n[Debug]\n"
         "  --op_debug_level        Debug enable for TBE operator building.\n"
         "                          0 (default): Disable debug; 1: Enable TBE pipe_all, "
@@ -668,8 +675,8 @@ class GFlagUtils {
         "  --deterministic          For deterministic calculation.\n"
         "                           0 (default): deterministic off. 1: deterministic on.\n"
         "  --deterministic_level    For deterministic and strong consistency calculation.\n"
-        "                           0 (default): deterministic off. 1: deterministic on. 2: strong consistency on.\n"
-        + oo_help_info[static_cast<size_t>(OoCategory::kDebug)]);
+        "                           0 (default): deterministic off. 1: deterministic on. 2: strong consistency on.\n" +
+        oo_help_info[static_cast<size_t>(OoCategory::kDebug)]);
 
     return flgs::ParseCommandLine(argc, argv);
   }
@@ -680,9 +687,10 @@ class GFlagUtils {
     std::string default_cpu;
     PluginManager::GetOppSupportedOsAndCpuType(opp_supported_os_cpu);
     PluginManager::GetCurEnvPackageOsAndCpuType(default_os, default_cpu);
-    host_env_os_info << "  --host_env_os            OS type of the target execution environment.\n"
-        "                           The parameters that support setting are the OS types of the opp package\n"
-        "                           Supported host env os as list:\n";
+    host_env_os_info
+        << "  --host_env_os            OS type of the target execution environment.\n"
+           "                           The parameters that support setting are the OS types of the opp package\n"
+           "                           Supported host env os as list:\n";
     host_env_os_info << "                           ";
     for (const auto &it : opp_supported_os_cpu) {
       host_env_os_info << it.first << " ";
@@ -690,9 +698,10 @@ class GFlagUtils {
     host_env_os_info << "\n";
     host_env_os_info << "                           default: " << default_os << "\n";
 
-    host_env_cpu_info << "  --host_env_cpu           CPU type of the target execution environment.\n"
-        "                           The parameters that support setting are the CPU types of the opp package\n"
-        "                           Supported host env cpu as list:\n";
+    host_env_cpu_info
+        << "  --host_env_cpu           CPU type of the target execution environment.\n"
+           "                           The parameters that support setting are the CPU types of the opp package\n"
+           "                           Supported host env cpu as list:\n";
     for (const auto &it0 : opp_supported_os_cpu) {
       host_env_cpu_info << "                           support cpu: ";
       for (const auto &it1 : opp_supported_os_cpu[it0.first]) {
@@ -704,15 +713,14 @@ class GFlagUtils {
     return;
   }
 
-  static bool IsRequiredParameterExists(const char* const param_name, const std::string& param_value) {
+  static bool IsRequiredParameterExists(const char *const param_name, const std::string &param_value) {
     if (!param_value.empty()) {
       return true;
     }
-    REPORT_PREDEFINED_ERR_MSG(
-        "E10054", std::vector<const char *>({"parameter"}),
-        std::vector<const char *>({param_name}));
+    REPORT_PREDEFINED_ERR_MSG("E10054", std::vector<const char *>({"parameter"}),
+                              std::vector<const char *>({param_name}));
     GELOGE(FAILED,
-           "The requied parameter [%s] for ATC is empty. "
+           "The required parameter [%s] for ATC is empty. "
            "Another possible reason is that the value of some parameters is not enclosed by quotation marks (\"\").",
            param_name);
     return false;
@@ -755,18 +763,16 @@ class GFlagUtils {
     }
     if (FLAGS_framework == -1) {
       const std::string support = "0(Caffe) or 1(MindSpore) or 3(TensorFlow) or 5(Onnx)";
-      REPORT_PREDEFINED_ERR_MSG(
-          "E10007", std::vector<const char *>({"parameter", "support"}),
-          std::vector<const char *>({"framework", support.c_str()}));
+      REPORT_PREDEFINED_ERR_MSG("E10007", std::vector<const char *>({"parameter", "support"}),
+                                std::vector<const char *>({"framework", support.c_str()}));
       DOMI_LOGE("[Check][Parameter] When --mode=%d, the value of --framework must be[%s].", FLAGS_mode,
                 support.c_str());
       return false;
     } else if (FLAGS_framework == static_cast<int32_t>(domi::CAFFE)) {
       // The Soc Version check for caffe model conversion has been removed, so errors may occur in later processes.
       if (FLAGS_weight.empty()) {
-        REPORT_PREDEFINED_ERR_MSG(
-            "E10008", std::vector<const char *>({"parameter"}),
-            std::vector<const char *>({"--weight"}));
+        REPORT_PREDEFINED_ERR_MSG("E10008", std::vector<const char *>({"parameter"}),
+                                  std::vector<const char *>({"--weight"}));
         DOMI_LOGE("Input parameter[--weight]'s value is empty when framework is 0(CAFFE)!");
         return false;
       }
@@ -820,7 +826,7 @@ class GFlagUtils {
     }
     GE_CHK_BOOL_RET_STATUS_NOLOG(IsRequiredParameterExists("--model", FLAGS_model), FAILED);
     GE_CHK_BOOL_RET_STATUS(CheckInputPathValid(FLAGS_model, "--model"), FAILED,
-                            "[Check][InputPath]model file %s not found!!", FLAGS_model.c_str());
+                           "[Check][InputPath]model file %s not found!!", FLAGS_model.c_str());
 
     is_invalid_input =
         is_mode_om && (!CheckOutputPathWithSuffix(FLAGS_output, "--output") || !CheckPathWithName(FLAGS_output));
@@ -846,10 +852,9 @@ class GFlagUtils {
     is_invalid_input =
         (!FLAGS_op_precision_mode.empty()) && (!CheckInputPathValid(FLAGS_op_precision_mode, "--op_precision_mode"));
     if (is_invalid_input) {
-      REPORT_PREDEFINED_ERR_MSG(
-          "E10001", std::vector<const char *>({"parameter", "value", "reason"}),
-          std::vector<const char *>({"--op_precision_mode", FLAGS_op_precision_mode.c_str(),
-                                    "Path defined by op precision mode is not found."}));
+      REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"parameter", "value", "reason"}),
+                                std::vector<const char *>({"--op_precision_mode", FLAGS_op_precision_mode.c_str(),
+                                                           "Path defined by op precision mode is not found."}));
       GELOGE(FAILED, "[Check][op_precision_mode] %s not found", FLAGS_op_precision_mode.c_str());
       return FAILED;
     }
@@ -858,31 +863,30 @@ class GFlagUtils {
     GE_ASSERT_SUCCESS(CheckPrecisionModeV2ParamValid(FLAGS_precision_mode_v2), "[Check][PrecisionModeV2]failed!");
     GE_ASSERT_SUCCESS(CheckPrecisionModeV2Conflict(FLAGS_precision_mode, FLAGS_precision_mode_v2),
                       "[Check][PrecisionModeV2Conflict]failed!");
-    if (CheckModifyMixlistParamValid(FLAGS_precision_mode, FLAGS_precision_mode_v2,
-                                     FLAGS_modify_mixlist) != SUCCESS) {
+    if (CheckModifyMixlistParamValid(FLAGS_precision_mode, FLAGS_precision_mode_v2, FLAGS_modify_mixlist) != SUCCESS) {
       return FAILED;
     }
 
-    if (CheckAndTransferInputShapeToRange(FLAGS_input_shape, FLAGS_input_shape_range,
-        FLAGS_dynamic_batch_size, FLAGS_dynamic_image_size, FLAGS_dynamic_dims) != SUCCESS) {
+    if (CheckAndTransferInputShapeToRange(FLAGS_input_shape, FLAGS_input_shape_range, FLAGS_dynamic_batch_size,
+                                          FLAGS_dynamic_image_size, FLAGS_dynamic_dims) != SUCCESS) {
       GELOGE(FAILED, "[Check][TransferShapeAndRange] Transfer shape to shape range failed!");
       return FAILED;
     }
     GE_ASSERT_SUCCESS(CheckHintShapeConflictWithDynamicParam(FLAGS_input_hint_shape, FLAGS_dynamic_batch_size,
-                      FLAGS_dynamic_image_size, FLAGS_dynamic_dims), "[Check][input hint shape] failed!");
-    if (CheckDynamicInputParamValid(FLAGS_dynamic_batch_size, FLAGS_dynamic_image_size,
-                                    FLAGS_dynamic_dims, FLAGS_input_shape, FLAGS_input_shape_range,
-                                    FLAGS_input_format, is_dynamic_input) != SUCCESS) {
+                                                             FLAGS_dynamic_image_size, FLAGS_dynamic_dims),
+                      "[Check][input hint shape] failed!");
+    if (CheckDynamicInputParamValid(FLAGS_dynamic_batch_size, FLAGS_dynamic_image_size, FLAGS_dynamic_dims,
+                                    FLAGS_input_shape, FLAGS_input_shape_range, FLAGS_input_format,
+                                    is_dynamic_input) != SUCCESS) {
       GELOGE(FAILED, "[Check][DynamicInput]dynamic size(batch size, image size or dims) invalid!");
       return FAILED;
     }
 
     is_invalid_input = !FLAGS_insert_op_conf.empty() && !FLAGS_dynamic_dims.empty();
     if (is_invalid_input) {
-      REPORT_PREDEFINED_ERR_MSG(
-          "E10001", std::vector<const char *>({"parameter", "value", "reason"}),
-          std::vector<const char *>({"--insert_op_conf", FLAGS_insert_op_conf.c_str(),
-                                    "The dynamic dims function does not support AIPP."}));
+      REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"parameter", "value", "reason"}),
+                                std::vector<const char *>({"--insert_op_conf", FLAGS_insert_op_conf.c_str(),
+                                                           "The dynamic dims function does not support AIPP."}));
       GELOGE(FAILED, "[Check][Param]dynamic dims function does not support aipp");
       return FAILED;
     }
@@ -905,48 +909,47 @@ class GFlagUtils {
       return FAILED;
     }
 
-    GE_CHK_BOOL_EXEC(CheckInsertOpConfParamValid(std::string(FLAGS_insert_op_conf)) == SUCCESS,
-                     return FAILED, "[Check][InsertOpConf]failed!");
+    GE_CHK_BOOL_EXEC(CheckInsertOpConfParamValid(std::string(FLAGS_insert_op_conf)) == SUCCESS, return FAILED,
+                     "[Check][InsertOpConf]failed!");
 
     GE_CHK_BOOL_EXEC(CheckCompressWeightParamValid(FLAGS_enable_compress_weight, FLAGS_compress_weight_conf) == SUCCESS,
                      return FAILED, "[Check][CompressWeight]failed!");
 
-    GE_CHK_BOOL_EXEC(CheckKeepTypeParamValid(FLAGS_keep_dtype) == SUCCESS,
-                     return FAILED, "[Check][KeepType]failed!");
+    GE_CHK_BOOL_EXEC(CheckKeepTypeParamValid(FLAGS_keep_dtype) == SUCCESS, return FAILED, "[Check][KeepType]failed!");
 
-    GE_CHK_BOOL_EXEC(CheckOutputPathValid(FLAGS_check_report, "--check_report"),
-                     return FAILED, "[Check][OutputPath]]check_report file %s not found!!", FLAGS_check_report.c_str());
+    GE_CHK_BOOL_EXEC(CheckOutputPathValid(FLAGS_check_report, "--check_report"), return FAILED,
+                     "[Check][OutputPath]]check_report file %s not found!!", FLAGS_check_report.c_str());
 
-    is_invalid_input = (!FLAGS_save_original_model.empty()) &&
-                       (FLAGS_save_original_model != "true") && (FLAGS_save_original_model != "false");
+    is_invalid_input = (!FLAGS_save_original_model.empty()) && (FLAGS_save_original_model != "true") &&
+                       (FLAGS_save_original_model != "false");
     if (is_invalid_input) {
-      REPORT_PREDEFINED_ERR_MSG(
-          "E10005", std::vector<const char *>({"parameter", "value"}),
-          std::vector<const char *>({"save_original_model", FLAGS_save_original_model.c_str()}));
+      REPORT_PREDEFINED_ERR_MSG("E10005", std::vector<const char *>({"parameter", "value"}),
+                                std::vector<const char *>({"save_original_model", FLAGS_save_original_model.c_str()}));
       GELOGE(FAILED, "[Check][Parameter]Input parameter[--save_original_model]'s value[%s] must be true or false.",
              FLAGS_save_original_model.c_str());
       return FAILED;
     }
-    GE_CHK_BOOL_EXEC(CheckBufferOptimizeParamValid(FLAGS_buffer_optimize) == SUCCESS,
-                     return FAILED, "[Check][BufferOptimize]check output type failed!");
+    GE_CHK_BOOL_EXEC(CheckBufferOptimizeParamValid(FLAGS_buffer_optimize) == SUCCESS, return FAILED,
+                     "[Check][BufferOptimize]check output type failed!");
 
     GE_CHK_BOOL_EXEC(CheckEnableSingleStreamParamValid(std::string(FLAGS_enable_single_stream)) == SUCCESS,
                      return FAILED, "[Check][EnableSingleStream]failed!");
 
-    GE_CHK_BOOL_EXEC(CheckExternalWeightParamValid(std::string(FLAGS_external_weight)) == SUCCESS,
-                     return FAILED, "[Check][ExternalWeight]failed!");
+    GE_CHK_BOOL_EXEC(CheckExternalWeightParamValid(std::string(FLAGS_external_weight)) == SUCCESS, return FAILED,
+                     "[Check][ExternalWeight]failed!");
 
-    GE_CHK_BOOL_EXEC(CheckAcParallelEnableParamValid(std::string(FLAGS_ac_parallel_enable)) == SUCCESS,
-                     return FAILED, "[Check][AcParallelEnable] failed!");
+    GE_CHK_BOOL_EXEC(CheckAcParallelEnableParamValid(std::string(FLAGS_ac_parallel_enable)) == SUCCESS, return FAILED,
+                     "[Check][AcParallelEnable] failed!");
     GE_CHK_BOOL_EXEC(CheckTilingScheduleOptimizeParamValid(std::string(FLAGS_tiling_schedule_optimize)) == SUCCESS,
                      return FAILED, "[Check][TilingScheduleOptimize] failed!");
 
     is_invalid_input = ((FLAGS_mode == RunMode::GEN_EXE_OM_FOR_NANO) || (FLAGS_mode == RunMode::GEN_EXE_OM)) &&
                        (FLAGS_display_model_info == "1");
     if (is_invalid_input) {
-      REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char_t *>({"parameter", "value", "reason"}),
-                         std::vector<const char_t *>({"--display_model_info", FLAGS_display_model_info.c_str(),
-                           "Parameter display_model_info does not support execute-om for nano."}));
+      REPORT_PREDEFINED_ERR_MSG(
+          "E10001", std::vector<const char_t *>({"parameter", "value", "reason"}),
+          std::vector<const char_t *>({"--display_model_info", FLAGS_display_model_info.c_str(),
+                                       "Parameter display_model_info does not support execute-om for nano."}));
       GELOGE(FAILED, "[Check][Parameter]Input parameter[--display_model_info] does not support execute-om nano.");
       return FAILED;
     }
@@ -954,7 +957,8 @@ class GFlagUtils {
     if (FLAGS_mode == static_cast<int32_t>(RunMode::GEN_OM2_MODEL)) {
       // OM2: 跳过 OPP 白名单校验，依赖 CheckOm2HostEnvValid（方向检查）+ 编译阶段自然报错
       GE_ASSERT_SUCCESS(CheckOm2UserOptionsValid(ge::flgs::GetUserOptions()), "[Check][OM2][UserOptions] failed!");
-      GE_ASSERT_SUCCESS(ge::CheckOm2HostEnvValid(FLAGS_host_env_os, FLAGS_host_env_cpu), "[Check][OM2][HostEnv] failed!");
+      GE_ASSERT_SUCCESS(ge::CheckOm2HostEnvValid(FLAGS_host_env_os, FLAGS_host_env_cpu),
+                        "[Check][OM2][HostEnv] failed!");
       if (!FLAGS_insert_op_conf.empty()) {
         GE_CHK_BOOL_EXEC(ge::InsertAippOpUtil::ValidateStaticAippOnly(FLAGS_insert_op_conf) == ge::SUCCESS,
                          return FAILED, "[Check][OM2][InsertOpConf] Dynamic AIPP is not supported in OM2 mode.");
@@ -967,8 +971,8 @@ class GFlagUtils {
 
     GE_ASSERT_SUCCESS(CheckAllowHF32ParamValid(FLAGS_allow_hf32), "[Check][AllowHF32]failed!");
     GE_ASSERT_SUCCESS(CheckQuantDumpableParamValid(FLAGS_quant_dumpable), "[Check][QuantDumpable] failed!");
-    GE_CHK_BOOL_EXEC(CheckAttrCompressionParamValid(FLAGS_enable_attr_compression) == SUCCESS,
-                     return FAILED, "[Check][AttrCompression]failed!");
+    GE_CHK_BOOL_EXEC(CheckAttrCompressionParamValid(FLAGS_enable_attr_compression) == SUCCESS, return FAILED,
+                     "[Check][AttrCompression]failed!");
     if (!FLAGS_static_model_ops_lower_limit.empty()) {
       GE_ASSERT_SUCCESS(CheckValidValueRange("--static_model_ops_lower_limit", FLAGS_static_model_ops_lower_limit, -1L,
                                              std::numeric_limits<int64_t>::max()),
@@ -987,8 +991,7 @@ class GFlagUtils {
 
     // No model path passed in
     if (FLAGS_om.empty()) {
-      REPORT_PREDEFINED_ERR_MSG("E10004", std::vector<const char *>({"parameter"}),
-                                std::vector<const char *>({"om"}));
+      REPORT_PREDEFINED_ERR_MSG("E10004", std::vector<const char *>({"parameter"}), std::vector<const char *>({"om"}));
       GELOGE(FAILED, "[Check][Parameter]Input parameter[--om]'s value is empty!!");
       ret = FAILED;
     }
@@ -1055,9 +1058,8 @@ class GFlagUtils {
   static bool CheckPathWithName(const std::string &fileName) {
     // Determine file path length
     if (fileName.size() > static_cast<int32_t>(PATH_MAX)) {
-      REPORT_PREDEFINED_ERR_MSG(
-          "E10021", std::vector<const char *>({"parameter", "size"}),
-          std::vector<const char *>({"output", std::to_string(PATH_MAX).c_str()}));
+      REPORT_PREDEFINED_ERR_MSG("E10021", std::vector<const char *>({"parameter", "size"}),
+                                std::vector<const char *>({"output", std::to_string(PATH_MAX).c_str()}));
       GELOGE(FAILED, "[Check][Path]Input parameter[--output]'s path is too long, it must be less than %d", PATH_MAX);
       return false;
     }
@@ -1129,7 +1131,7 @@ static bool CheckInputFormat() {
     }
     return true;
   }
-  if ((FLAGS_framework == static_cast<int32_t>(domi::CAFFE))) { // caffe
+  if ((FLAGS_framework == static_cast<int32_t>(domi::CAFFE))) {  // caffe
     if (caffe_support_input_format.find(FLAGS_input_format) != caffe_support_input_format.end()) {
       return true;
     }
@@ -1137,11 +1139,11 @@ static bool CheckInputFormat() {
     REPORT_PREDEFINED_ERR_MSG(
         "E10001", std::vector<const char *>({"parameter", "value", "reason"}),
         std::vector<const char *>({"--input_format", FLAGS_input_format.c_str(), kCaffeFormatSupport}));
-    GELOGE(FAILED, "[Check][InputFormat]Invalid value for --input_format[%s], %s.",
-           FLAGS_input_format.c_str(), kCaffeFormatSupport);
+    GELOGE(FAILED, "[Check][InputFormat]Invalid value for --input_format[%s], %s.", FLAGS_input_format.c_str(),
+           kCaffeFormatSupport);
     return false;
   }
-  if ((FLAGS_framework == static_cast<int32_t>(domi::TENSORFLOW))) { // tf
+  if ((FLAGS_framework == static_cast<int32_t>(domi::TENSORFLOW))) {  // tf
     if (tf_support_input_format.find(FLAGS_input_format) != tf_support_input_format.end()) {
       return true;
     }
@@ -1149,8 +1151,8 @@ static bool CheckInputFormat() {
     REPORT_PREDEFINED_ERR_MSG(
         "E10001", std::vector<const char *>({"parameter", "value", "reason"}),
         std::vector<const char *>({"--input_format", FLAGS_input_format.c_str(), kTFFormatSupport}));
-    GELOGE(FAILED, "[Check][InputFormat]Invalid value for --input_format[%s], %s.",
-           FLAGS_input_format.c_str(), kTFFormatSupport);
+    GELOGE(FAILED, "[Check][InputFormat]Invalid value for --input_format[%s], %s.", FLAGS_input_format.c_str(),
+           kTFFormatSupport);
     return false;
   }
   if (FLAGS_framework == static_cast<int32_t>(domi::ONNX)) {
@@ -1161,8 +1163,8 @@ static bool CheckInputFormat() {
     REPORT_PREDEFINED_ERR_MSG(
         "E10001", std::vector<const char *>({"parameter", "value", "reason"}),
         std::vector<const char *>({"--input_format", FLAGS_input_format.c_str(), kONNXFormatSupport}));
-    GELOGE(FAILED, "[Check][InputFormat]Invalid value for --input_format[%s], %s.",
-           FLAGS_input_format.c_str(), kONNXFormatSupport);
+    GELOGE(FAILED, "[Check][InputFormat]Invalid value for --input_format[%s], %s.", FLAGS_input_format.c_str(),
+           kONNXFormatSupport);
     return false;
   }
   return true;
@@ -1368,7 +1370,7 @@ Status CreateInputsForInference(const Graph &graph, std::vector<GeTensor> &input
     GE_ASSERT_NOTNULL(op);
     if (OpTypeUtils::IsDataNode(op->GetType())) {
       int64_t index = std::numeric_limits<int64_t>::max();
-      (void) AttrUtils::GetInt(op, ATTR_NAME_INDEX, index);
+      (void)AttrUtils::GetInt(op, ATTR_NAME_INDEX, index);
       (void)indexes.insert(index);
       data_op_desc.emplace_back(op);
     }
@@ -1481,13 +1483,13 @@ static Status SetAttrOptions(Graph &graph) {
 
   return SUCCESS;
 }
-}
+}  // namespace
 
 Status CallAmctInterface(Graph &graph, std::map<std::string, std::string> &options) {
   auto it = options.find(std::string(ge::COMPRESSION_OPTIMIZE_CONF));
   if ((it != options.end()) && (!it->second.empty())) {
     options.insert(std::pair<std::string, std::string>("build_graph_already_initialized", "1"));
-    void* handle = mmDlopen(kAmctSo, static_cast<int32_t>(MMPA_RTLD_NOW));
+    void *handle = mmDlopen(kAmctSo, static_cast<int32_t>(MMPA_RTLD_NOW));
     GE_CHECK_NOTNULL(handle);
     GE_MAKE_GUARD(close_handle, [&handle]() {
       // dlClose 前先析构 IAmctCalibration
@@ -1506,8 +1508,9 @@ Status CallAmctInterface(Graph &graph, std::map<std::string, std::string> &optio
     }
 
     // 计划：需要待AMCT组件合入后，再删除原始流程。
-    const auto amctGraphCalibration = reinterpret_cast<amctStatus (*)
-            (ge::Graph &, const std::map<std::string, std::string> &)>(mmDlsym(handle, "amctGraphCalibration"));
+    const auto amctGraphCalibration =
+        reinterpret_cast<amctStatus (*)(ge::Graph &, const std::map<std::string, std::string> &)>(
+            mmDlsym(handle, "amctGraphCalibration"));
     if (amctGraphCalibration == nullptr) {
       DOMI_LOGE("[Check][Param] Symbol amctGraphCalibration can't find in %s", kAmctSo);
       return FAILED;
@@ -1523,11 +1526,11 @@ Status CallAmctInterface(Graph &graph, std::map<std::string, std::string> &optio
 }
 
 namespace {
-static Status GenerateOfflineModel(GeGenerator &ge_generator, Graph graph,
-                                   std::string output, std::vector<GeTensor> inputs) {
+static Status GenerateOfflineModel(GeGenerator &ge_generator, Graph graph, std::string output,
+                                   std::vector<GeTensor> inputs) {
   std::map<int32_t, OfflineModelFormat> flags_mode_map = {
-    {GEN_EXE_OM_FOR_NANO, OfflineModelFormat::OM_FORMAT_NANO},
-    {GEN_OM2_MODEL, OfflineModelFormat::OM_FORMAT_OM2},
+      {GEN_EXE_OM_FOR_NANO, OfflineModelFormat::OM_FORMAT_NANO},
+      {GEN_OM2_MODEL, OfflineModelFormat::OM_FORMAT_OM2},
   };
 
   if (flags_mode_map.find(FLAGS_mode) != flags_mode_map.end()) {
@@ -1537,18 +1540,17 @@ static Status GenerateOfflineModel(GeGenerator &ge_generator, Graph graph,
 }
 
 void SetAtcParams(std::map<std::string, std::string> &atc_params, const std::string &output) {
-    atc_params.insert(std::pair<std::string, std::string>("input_shape", FLAGS_input_shape));
-    atc_params.insert(std::pair<std::string, std::string>(INPUT_SHAPE_RANGE, FLAGS_input_shape_range));
-    atc_params.insert(std::pair<std::string, std::string>("out_nodes", FLAGS_out_nodes));
-    atc_params.insert(std::pair<std::string, std::string>("input_format", FLAGS_input_format));
-    atc_params.insert(std::pair<std::string, std::string>("check_report", FLAGS_check_report));
-    atc_params.insert(std::pair<std::string, std::string>("input_fp16_nodes", FLAGS_input_fp16_nodes));
-    atc_params.insert(std::pair<std::string, std::string>("is_input_adjust_hw_layout",
-                                                          FLAGS_is_input_adjust_hw_layout));
-    atc_params.insert(std::pair<std::string, std::string>("is_output_adjust_hw_layout",
-                                                          FLAGS_is_output_adjust_hw_layout));
-    atc_params.insert(std::pair<std::string, std::string>(string(OUTPUT_DATATYPE), FLAGS_output_type));
-    atc_params.insert(std::pair<std::string, std::string>("output", output));
+  atc_params.insert(std::pair<std::string, std::string>("input_shape", FLAGS_input_shape));
+  atc_params.insert(std::pair<std::string, std::string>(INPUT_SHAPE_RANGE, FLAGS_input_shape_range));
+  atc_params.insert(std::pair<std::string, std::string>("out_nodes", FLAGS_out_nodes));
+  atc_params.insert(std::pair<std::string, std::string>("input_format", FLAGS_input_format));
+  atc_params.insert(std::pair<std::string, std::string>("check_report", FLAGS_check_report));
+  atc_params.insert(std::pair<std::string, std::string>("input_fp16_nodes", FLAGS_input_fp16_nodes));
+  atc_params.insert(std::pair<std::string, std::string>("is_input_adjust_hw_layout", FLAGS_is_input_adjust_hw_layout));
+  atc_params.insert(
+      std::pair<std::string, std::string>("is_output_adjust_hw_layout", FLAGS_is_output_adjust_hw_layout));
+  atc_params.insert(std::pair<std::string, std::string>(string(OUTPUT_DATATYPE), FLAGS_output_type));
+  atc_params.insert(std::pair<std::string, std::string>("output", output));
 }
 
 Status GenerateModelBySingleGraph(GeGenerator &ge_generator, const std::string &output,
@@ -1572,8 +1574,8 @@ Status GenerateModelBySingleGraph(GeGenerator &ge_generator, const std::string &
 
     graph = GraphUtilsEx::CreateGraphFromComputeGraph(load_model.GetGraph());
 
-    GE_CHK_STATUS_EXEC(InitDomiOmgContext(FLAGS_input_shape, FLAGS_input_format, "", is_dynamic_input),
-                       return FAILED, "[Init][DomiOmgContext]ATC Generate call InitDomiOmgContext ret fail");
+    GE_CHK_STATUS_EXEC(InitDomiOmgContext(FLAGS_input_shape, FLAGS_input_format, "", is_dynamic_input), return FAILED,
+                       "[Init][DomiOmgContext]ATC Generate call InitDomiOmgContext ret fail");
     GE_ASSERT_SUCCESS(CheckParamForAirInput(graph));
     ret = CreateInputsForInference(graph, inputs);
     if (ret != SUCCESS) {
@@ -1614,8 +1616,8 @@ Status GenerateModelBySingleGraph(GeGenerator &ge_generator, const std::string &
     return FAILED;
   }
 
-  GE_CHK_STATUS_EXEC(CallAmctInterface(graph, options),
-                     return FAILED, "[Call][AmctInterface]ATC Generate call AmctInterface ret fail");
+  GE_CHK_STATUS_EXEC(CallAmctInterface(graph, options), return FAILED,
+                     "[Call][AmctInterface]ATC Generate call AmctInterface ret fail");
   ret = GenerateOfflineModel(ge_generator, graph, output, inputs);
   if (ret != SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "GE GenerateOfflineModel execute failed.");
@@ -1695,7 +1697,7 @@ static void SetEnvForSingleOp(std::map<std::string, std::string> &options) {
   SetOptionNameMap(options);
 }
 
-Status GenerateSingleOp(const std::string& json_file_path) {
+Status GenerateSingleOp(const std::string &json_file_path) {
   if ((!GFlagUtils::IsRequiredParameterExists("--output", FLAGS_output)) ||
       (!GFlagUtils::IsRequiredParameterExists("--soc_version", FLAGS_soc_version))) {
     return FAILED;
@@ -1723,8 +1725,7 @@ Status GenerateSingleOp(const std::string& json_file_path) {
   GE_ASSERT_SUCCESS(CheckPrecisionModeV2ParamValid(FLAGS_precision_mode_v2), "[Check][PrecisionModeV2]failed!");
   GE_ASSERT_SUCCESS(CheckPrecisionModeV2Conflict(FLAGS_precision_mode, FLAGS_precision_mode_v2),
                     "[Check][PrecisionModeV2Conflict]failed!");
-  if (CheckModifyMixlistParamValid(FLAGS_precision_mode, FLAGS_precision_mode_v2,
-                                   FLAGS_modify_mixlist) != SUCCESS) {
+  if (CheckModifyMixlistParamValid(FLAGS_precision_mode, FLAGS_precision_mode_v2, FLAGS_modify_mixlist) != SUCCESS) {
     return FAILED;
   }
   GE_ASSERT_SUCCESS(CheckAllowHF32ParamValid(FLAGS_allow_hf32), "[Check][AllowHF32]failed!");
@@ -1824,8 +1825,8 @@ void SetAtcBasicOptions(std::map<std::string, std::string> &options) {
 
 void SetAtcTargetOptions(std::map<std::string, std::string> &options) {
   options.insert(std::pair<std::string, std::string>(std::string(OP_SELECT_IMPL_MODE), FLAGS_op_select_implmode));
-  options.insert(std::pair<std::string, std::string>(std::string(OPTYPELIST_FOR_IMPLMODE),
-                                                     FLAGS_optypelist_for_implmode));
+  options.insert(
+      std::pair<std::string, std::string>(std::string(OPTYPELIST_FOR_IMPLMODE), FLAGS_optypelist_for_implmode));
 
   if (!FLAGS_input_fp16_nodes.empty()) {
     GELOGI("FLAGS_input_fp16_nodes : %s .", FLAGS_input_fp16_nodes.c_str());
@@ -1845,21 +1846,19 @@ void SetAtcTuningOptions(std::map<std::string, std::string> &options) {
   options.insert(std::pair<std::string, std::string>(std::string(BUFFER_OPTIMIZE), FLAGS_buffer_optimize));
   options.insert(std::pair<std::string, std::string>(std::string(ENABLE_SMALL_CHANNEL), FLAGS_enable_small_channel));
   options.insert(std::pair<std::string, std::string>(std::string(FUSION_SWITCH_FILE), FLAGS_fusion_switch_file));
-  options.insert(std::pair<std::string, std::string>(std::string(ge::COMPRESSION_OPTIMIZE_CONF),
-                                                     FLAGS_compression_optimize_conf));
-  options.insert(std::pair<std::string, std::string>(std::string(ge::CUSTOMIZE_DTYPES),
-                                                     FLAGS_customize_dtypes));
+  options.insert(
+      std::pair<std::string, std::string>(std::string(ge::COMPRESSION_OPTIMIZE_CONF), FLAGS_compression_optimize_conf));
+  options.insert(std::pair<std::string, std::string>(std::string(ge::CUSTOMIZE_DTYPES), FLAGS_customize_dtypes));
   options.insert(std::pair<std::string, std::string>(std::string(OP_DEBUG_CONFIG), FLAGS_op_debug_config));
   options.insert(std::pair<std::string, std::string>(
       std::string(ENABLE_COMPRESS_WEIGHT),
       (FLAGS_enable_compress_weight == "true") ? kEnableCompressWeightTrue : kEnableCompressWeightFalse));
-  options.insert(std::pair<std::string, std::string>(std::string(ENABLE_SPARSE_MATRIX_WEIGHT),
-                                                     std::to_string(FLAGS_sparsity)));
-  options.insert(std::pair<std::string, std::string>(std::string(ENABLE_SINGLE_STREAM),
-                                                     FLAGS_enable_single_stream));
+  options.insert(
+      std::pair<std::string, std::string>(std::string(ENABLE_SPARSE_MATRIX_WEIGHT), std::to_string(FLAGS_sparsity)));
+  options.insert(std::pair<std::string, std::string>(std::string(ENABLE_SINGLE_STREAM), FLAGS_enable_single_stream));
   options.insert(std::pair<std::string, std::string>(std::string(AC_PARALLEL_ENABLE), FLAGS_ac_parallel_enable));
-  options.insert(std::pair<std::string, std::string>(std::string(TILING_SCHEDULE_OPTIMIZE),
-                                                     FLAGS_tiling_schedule_optimize));
+  options.insert(
+      std::pair<std::string, std::string>(std::string(TILING_SCHEDULE_OPTIMIZE), FLAGS_tiling_schedule_optimize));
   options.insert(std::pair<std::string, std::string>(std::string(QUANT_DUMPABLE), FLAGS_quant_dumpable));
 }
 
@@ -1875,24 +1874,22 @@ void SetAtcDebugOptions(std::map<std::string, std::string> &options) {
     options.insert(std::pair<std::string, std::string>(std::string(STATUS_CHECK), FLAGS_status_check));
   }
 
-  options.insert(std::pair<std::string,
-                 std::string>(std::string(OP_COMPILER_CACHE_DIR), FLAGS_op_compiler_cache_dir));
+  options.insert(std::pair<std::string, std::string>(std::string(OP_COMPILER_CACHE_DIR), FLAGS_op_compiler_cache_dir));
 
-  options.insert(std::pair<std::string, std::string>(std::string(OP_COMPILER_CACHE_MODE),
-                                                     FLAGS_op_compiler_cache_mode));
+  options.insert(
+      std::pair<std::string, std::string>(std::string(OP_COMPILER_CACHE_MODE), FLAGS_op_compiler_cache_mode));
 }
 
 void SetAtcSaveAndBankOptions(std::map<std::string, std::string> &options) {
   SetDynamicInputSizeOptions();
   if (!FLAGS_save_original_model.empty()) {
-    options.insert(std::pair<std::string, std::string>(std::string(SAVE_ORIGINAL_MODEL),
-                                                       FLAGS_save_original_model));
-    options.insert(std::pair<std::string, std::string>(std::string(ORIGINAL_MODEL_FILE),
-                                                       FLAGS_output + "_original.om"));
+    options.insert(std::pair<std::string, std::string>(std::string(SAVE_ORIGINAL_MODEL), FLAGS_save_original_model));
+    options.insert(
+        std::pair<std::string, std::string>(std::string(ORIGINAL_MODEL_FILE), FLAGS_output + "_original.om"));
   }
 
-  options.insert(std::pair<std::string, std::string>(std::string(OP_DEBUG_LEVEL),
-                                                     std::to_string(FLAGS_op_debug_level)));
+  options.insert(
+      std::pair<std::string, std::string>(std::string(OP_DEBUG_LEVEL), std::to_string(FLAGS_op_debug_level)));
   options.insert(std::pair<std::string, std::string>(std::string(MDL_BANK_PATH_FLAG), FLAGS_mdl_bank_path));
   options.insert(std::pair<std::string, std::string>(std::string(OP_BANK_PATH_FLAG), FLAGS_op_bank_path));
   options.insert(std::pair<std::string, std::string>(std::string(DISPLAY_MODEL_INFO), FLAGS_display_model_info));
@@ -1910,7 +1907,8 @@ void SetAtcEnvironmentOptions(std::map<std::string, std::string> &options) {
   options.insert(std::pair<std::string, std::string>(std::string(OPTION_HOST_ENV_CPU), FLAGS_host_env_cpu));
   options.insert(std::pair<std::string, std::string>("ge.is_weight_clip", FLAGS_is_weight_clip));
   options.insert(std::pair<std::string, std::string>(std::string(CLUSTER_CONFIG), FLAGS_cluster_config));
-  options.insert(std::pair<std::string, std::string>(std::string("ge.hccl_sub_comm_config"), FLAGS_hccl_sub_comm_config));
+  options.insert(
+      std::pair<std::string, std::string>(std::string("ge.hccl_sub_comm_config"), FLAGS_hccl_sub_comm_config));
   if (!FLAGS_build_config.empty()) {
     options.insert(std::pair<std::string, std::string>(std::string(kOptionBuildConfig), FLAGS_build_config));
   }
@@ -2022,12 +2020,14 @@ Status DisplayModelInfo() {
   }
 
   REPORT_PREDEFINED_ERR_MSG("E10057", std::vector<const char *>({"parameter0", "parameter1"}),
-      std::vector<const char *>({"om", "mode"}));
-  GELOGE(FAILED, "[Check][Parameter][--mode] and [--om], if the value of [--mode] is %u,"
-         "it can be used only with the [--om] parameter!", static_cast<uint32_t>(RunMode::DISPLAY_OM_INFO));
+                            std::vector<const char *>({"om", "mode"}));
+  GELOGE(FAILED,
+         "[Check][Parameter][--mode] and [--om], if the value of [--mode] is %u,"
+         "it can be used only with the [--om] parameter!",
+         static_cast<uint32_t>(RunMode::DISPLAY_OM_INFO));
   return FAILED;
 }
-}
+}  // namespace
 
 Status ConvertPbtxtToJson();
 
@@ -2067,7 +2067,7 @@ Status ConvertPbtxtToJson() {
   return SUCCESS;
 }
 
-namespace{
+namespace {
 int32_t init() {
   domi::GetContext().atc_cmdline = flgs::GetArgv();
   // set log level
@@ -2139,14 +2139,14 @@ int32_t OutputErrMessageToStdout() {
 
 Status CheckRet(Status ret) {
   static std::map<int32_t, string> flags_mode_info_map = {
-    {RunMode::GEN_OM_MODEL, "ATC generate offline model "},
-    {RunMode::MODEL_TO_JSON, "ATC convert model to json file "},
-    {RunMode::ONLY_PRE_CHECK, "ATC precheck "},
-    {RunMode::PBTXT_TO_JSON, "ATC convert pbtxt to json file "},
-    {RunMode::GEN_EXE_OM, "ATC generate execute-om "},
-    {RunMode::MODEL_TO_EXE_OM, "ATC convert model to execute-om "},
-    {RunMode::GEN_EXE_OM_FOR_NANO, "ATC generate execute-om for nano "},
-    {RunMode::GEN_OM2_MODEL, "ATC generate OM2 model "},
+      {RunMode::GEN_OM_MODEL, "ATC generate offline model "},
+      {RunMode::MODEL_TO_JSON, "ATC convert model to json file "},
+      {RunMode::ONLY_PRE_CHECK, "ATC precheck "},
+      {RunMode::PBTXT_TO_JSON, "ATC convert pbtxt to json file "},
+      {RunMode::GEN_EXE_OM, "ATC generate execute-om "},
+      {RunMode::MODEL_TO_EXE_OM, "ATC convert model to execute-om "},
+      {RunMode::GEN_EXE_OM_FOR_NANO, "ATC generate execute-om for nano "},
+      {RunMode::GEN_OM2_MODEL, "ATC generate OM2 model "},
   };
   string info = "";
   if (flags_mode_info_map.find(FLAGS_mode) != flags_mode_info_map.end()) {
@@ -2199,9 +2199,9 @@ Status CheckDeprecatedAutoTuneMode() {
     return SUCCESS;
   }
   std::string reason("The Auto Tune function has been deprecated. Please use the AOE tool for tuning.");
-  REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"parameter", "value", "reason"}),
-                            std::vector<const char *>({"--auto_tune_mode", FLAGS_auto_tune_mode.c_str(),
-                                                       reason.c_str()}));
+  REPORT_PREDEFINED_ERR_MSG(
+      "E10001", std::vector<const char *>({"parameter", "value", "reason"}),
+      std::vector<const char *>({"--auto_tune_mode", FLAGS_auto_tune_mode.c_str(), reason.c_str()}));
   GELOGE(FAILED, "[Check][Parameter]%s", reason.c_str());
   return FAILED;
 }
@@ -2210,8 +2210,8 @@ Status CheckInputHintShapeUnsupported() {
   if (FLAGS_input_hint_shape.empty()) {
     return SUCCESS;
   }
-  const std::string reason = "Option[input_hint_shape: " + FLAGS_input_hint_shape +
-                             "] is not supported in ATC. Please do not set it.";
+  const std::string reason =
+      "Option[input_hint_shape: " + FLAGS_input_hint_shape + "] is not supported in ATC. Please do not set it.";
   REPORT_PREDEFINED_ERR_MSG("E10055", std::vector({"reason"}), std::vector({reason.c_str()}));
   GELOGE(FAILED, "[Check][Param] %s", reason.c_str());
   return FAILED;
@@ -2232,15 +2232,14 @@ bool IsGenerateOmMode() {
 }
 
 Status ReportInvalidRunMode() {
-  REPORT_PREDEFINED_ERR_MSG(
-      "E10001", std::vector<const char *>({"parameter", "value", "reason"}),
-      std::vector<const char *>({"--mode", std::to_string(FLAGS_mode).c_str(), kModeSupport}));
+  REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"parameter", "value", "reason"}),
+                            std::vector<const char *>({"--mode", std::to_string(FLAGS_mode).c_str(), kModeSupport}));
   GELOGE(PARAM_INVALID, "[Check][Parameter]Invalid value for --mode[%d], %s.", FLAGS_mode, kModeSupport);
   return FAILED;
 }
 
 Status RunAtcByMode(const std::map<std::string, std::string> &raw_options) {
-  //备份并清空注册信息map
+  // 备份并清空注册信息map
   OperatorFactoryImpl::BackupAndClearRegInfoOnce();
   if (!FLAGS_singleop.empty()) {
     return CheckAndRunSingleOp();
@@ -2265,9 +2264,9 @@ Status RunAtcByMode(const std::map<std::string, std::string> &raw_options) {
   }
   return ReportInvalidRunMode();
 }
-}
+}  // namespace
 
-int32_t main_impl(int32_t argc, char* argv[]) {
+int32_t main_impl(int32_t argc, char *argv[]) {
   Status ret = SUCCESS;
   std::cout << "ATC start working now, please wait for a moment." << std::endl;
   // Initialize
@@ -2284,8 +2283,8 @@ int32_t main_impl(int32_t argc, char* argv[]) {
   }
   ret = (CheckGlobalOptionsBeforeRun() == SUCCESS && RunAtcByMode(raw_options) == SUCCESS) ? SUCCESS : FAILED;
 
-  // Tbe may print ... whitout Enter when some op compile slow, here atc add "...\n" to display better at last
+  // Tbe may print ... without Enter when some op compile slow, here atc add "...\n" to display better at last
   std::cout << "..." << std::endl;
   return static_cast<int32_t>(CheckRet(ret));
 } /*lint +e530*/
-} // namespace ge
+}  // namespace ge

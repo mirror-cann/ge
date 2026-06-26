@@ -103,18 +103,14 @@ class AtcCommonSTest : public AtcTest {
   }
 
   int32_t RunAtcWithRawOptions(const std::string &output_name, const std::string &raw_options_path,
-                               const std::vector<std::string> &extra_args = {},
-                               bool add_default_input_shape = true, bool add_default_framework = true,
-                               bool add_default_soc_version = true) const {
+                               const std::vector<std::string> &extra_args = {}, bool add_default_input_shape = true,
+                               bool add_default_framework = true, bool add_default_soc_version = true) const {
     auto om_path = PathJoin(GetRunPath().c_str(), "temp");
     Mkdir(om_path.c_str());
     om_path = PathJoin(om_path.c_str(), output_name.c_str());
 
-    std::vector<std::string> args = {"atc",
-                                     "--model=st_run_data/origin_model/add.pb",
-                                     "--output=" + om_path,
-                                     "--input_format=NCHW",
-                                     "--raw_ge_options=" + raw_options_path};
+    std::vector<std::string> args = {"atc", "--model=st_run_data/origin_model/add.pb", "--output=" + om_path,
+                                     "--input_format=NCHW", "--raw_ge_options=" + raw_options_path};
     if (add_default_framework) {
       args.push_back("--framework=3");
     }
@@ -156,46 +152,45 @@ amctStatus amctGraphCalibration(ge::Graph &graph, const std::map<std::string, st
 }
 
 class MockMmpa : public ge::MmpaStubApiGe {
-public:
-    void *DlOpen(const char *file_name, int32_t mode) override {
-      if (string("libamctacl.so") == file_name) {
-        return (void *) &g_handleStub;
-      }
-
-      if (string(file_name).find("liboptiling.so") != std::string::npos) {
-        return (void *) &g_handleStub;
-      }
-      return MmpaStubApiGe::DlOpen(file_name, mode);
+ public:
+  void *DlOpen(const char *file_name, int32_t mode) override {
+    if (string("libamctacl.so") == file_name) {
+      return (void *)&g_handleStub;
     }
 
-    void *DlSym(void *handle, const char *func_name) override {
-      if (g_dlsymError) {
-        return nullptr;
-      }
-      if (std::string(func_name) == "amctGraphCalibration") {
-        return (void *) &amctGraphCalibration;
-      }
-      return dlsym(handle, func_name);
+    if (string(file_name).find("liboptiling.so") != std::string::npos) {
+      return (void *)&g_handleStub;
     }
+    return MmpaStubApiGe::DlOpen(file_name, mode);
+  }
+
+  void *DlSym(void *handle, const char *func_name) override {
+    if (g_dlsymError) {
+      return nullptr;
+    }
+    if (std::string(func_name) == "amctGraphCalibration") {
+      return (void *)&amctGraphCalibration;
+    }
+    return dlsym(handle, func_name);
+  }
 };
 
 class AmctCalibrationTest : public IAmctCalibration {
-public:
-  graphStatus Calibrate(Graph& graph, const std::map<std::string, std::string>& options) override {
+ public:
+  graphStatus Calibrate(Graph &graph, const std::map<std::string, std::string> &options) override {
     if (g_amctError) {
-	return ge::GRAPH_FAILED;
+      return ge::GRAPH_FAILED;
     }
     return ge::GRAPH_SUCCESS;
   }
 };
 
 class AmctCalibrationTest2 : public IAmctCalibration {
-public:
-  graphStatus Calibrate(Graph& graph, const std::map<std::string, std::string>& options) override {
+ public:
+  graphStatus Calibrate(Graph &graph, const std::map<std::string, std::string> &options) override {
     return ge::GRAPH_SUCCESS;
   }
 };
-
 
 TEST_F(AtcCommonSTest, pb_model_common_1) {
   std::vector<OpRegistrationData> registrationDatas = domi::OpRegistry::Instance()->registrationDatas;
@@ -212,23 +207,24 @@ TEST_F(AtcCommonSTest, pb_model_common_1) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_common_1");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
+  std::string output_arg = "--output=" + om_path;
   std::string op_name_map = "--op_name_map=st_run_data/config/opname_map.cfg";
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--input_format=NCHW",
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  //"--out_nodes=add_test_1:0",
-                  "--input_shape=Placeholder_1:1,256,256,3",
-                  const_cast<char *>(op_name_map.c_str()),
-                  };
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--input_format=NCHW",
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      //"--out_nodes=add_test_1:0",
+      "--input_shape=Placeholder_1:1,256,256,3",
+      const_cast<char *>(op_name_map.c_str()),
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_model_status_check_error) {
@@ -246,26 +242,27 @@ TEST_F(AtcCommonSTest, pb_model_status_check_error) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_common_1");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
+  std::string output_arg = "--output=" + om_path;
   std::string op_name_map = "--op_name_map=st_run_data/config/opname_map.cfg";
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--input_format=NCHW",
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  //"--out_nodes=add_test_1:0",
-                  "--input_shape=Placeholder_1:1,256,256,3",
-                  "--status_check=3",
-                  const_cast<char *>(op_name_map.c_str()),
-                  };
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--input_format=NCHW",
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      //"--out_nodes=add_test_1:0",
+      "--input_shape=Placeholder_1:1,256,256,3",
+      "--status_check=3",
+      const_cast<char *>(op_name_map.c_str()),
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
   MmpaStub::GetInstance().SetImpl(std::make_shared<MockMmpa>());
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
   MmpaStub::GetInstance().Reset();
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_model_set_out_tensor_names) {
@@ -283,23 +280,24 @@ TEST_F(AtcCommonSTest, pb_model_set_out_tensor_names) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_common_1");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
+  std::string output_arg = "--output=" + om_path;
   std::string op_name_map = "--op_name_map=st_run_data/config/opname_map.cfg";
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--input_format=NCHW",
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  //"--out_nodes=add_test_1:0",
-                  "--input_shape=Placeholder_1:1,256,256,3",
-                  const_cast<char *>(op_name_map.c_str()),
-                  };
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--input_format=NCHW",
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      //"--out_nodes=add_test_1:0",
+      "--input_shape=Placeholder_1:1,256,256,3",
+      const_cast<char *>(op_name_map.c_str()),
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, ConvertPbModel_Ok_SetOutNodeAndOutType) {
@@ -308,28 +306,29 @@ TEST_F(AtcCommonSTest, ConvertPbModel_Ok_SetOutNodeAndOutType) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_common_2");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
+  std::string output_arg = "--output=" + om_path;
   std::string keep_dtype = "--keep_dtype=st_run_data/config/keep_dtype.cfg";
   domi::GetContext().final_out_nodes_map = {std::make_pair("add_test_1:0", std::make_pair("add_test_1", 0))};
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--out_nodes=add_test_1:0",
-                  "--soc_version=Ascend310",
-                  "--output_type=add_test_1:0:FP16",
-                  "--input_shape=Placeholder_1:1,256,256,3",
-                  "--display_model_info=1",
-                  "--precision_mode=force_fp16",
-                  "--input_fp16_nodes=Placeholder_1",
-                  "--save_original_model=true",
-                  const_cast<char *>(keep_dtype.c_str()),
-                  };
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--out_nodes=add_test_1:0",
+      "--soc_version=Ascend310",
+      "--output_type=add_test_1:0:FP16",
+      "--input_shape=Placeholder_1:1,256,256,3",
+      "--display_model_info=1",
+      "--precision_mode=force_fp16",
+      "--input_fp16_nodes=Placeholder_1",
+      "--save_original_model=true",
+      const_cast<char *>(keep_dtype.c_str()),
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
-  domi::GetContext().final_out_nodes_map .clear();
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  domi::GetContext().final_out_nodes_map.clear();
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 void MainImplSetUp() {
@@ -366,8 +365,7 @@ void MainImplTearDown() {
   std::string opp_path = "./opp/";
   system(("rm -r " + opp_path).c_str());
 }
-void CheckPrecisionModeParamValid_Failed_WhenValueInvalid(const std::string &om_arg,
-                                                          const std::string &output_arg) {
+void CheckPrecisionModeParamValid_Failed_WhenValueInvalid(const std::string &om_arg, const std::string &output_arg) {
   char *argv[] = {"atc",
                   "--mode=0",
                   "--framework=3",
@@ -379,13 +377,12 @@ void CheckPrecisionModeParamValid_Failed_WhenValueInvalid(const std::string &om_
                   "--host_env_os=linux",
                   "--host_env_cpu=x86_64",
                   "--precision_mode=invalid"};
-  (void) main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  (void)main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   std::string ge_option;
   EXPECT_NE(ge::GetThreadLocalContext().GetOption(ge::PRECISION_MODE, ge_option), ge::GRAPH_SUCCESS);
 }
 
-void CheckPrecisionModeV2ParamValid_Failed_WhenValueInvalid(const std::string &om_arg,
-                                                            const std::string &output_arg) {
+void CheckPrecisionModeV2ParamValid_Failed_WhenValueInvalid(const std::string &om_arg, const std::string &output_arg) {
   char *argv[] = {"atc",
                   "--mode=0",
                   "--framework=3",
@@ -397,13 +394,12 @@ void CheckPrecisionModeV2ParamValid_Failed_WhenValueInvalid(const std::string &o
                   "--host_env_os=linux",
                   "--host_env_cpu=x86_64",
                   "--precision_mode_v2=invalid"};
-  (void) main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  (void)main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   std::string ge_option;
   EXPECT_NE(ge::GetThreadLocalContext().GetOption(ge::PRECISION_MODE_V2, ge_option), ge::GRAPH_SUCCESS);
 }
 
-void CheckPrecisionModev2ParamValid_Failed_WhenConfigBoth(const std::string &om_arg,
-                                                          const std::string &output_arg) {
+void CheckPrecisionModev2ParamValid_Failed_WhenConfigBoth(const std::string &om_arg, const std::string &output_arg) {
   char *argv[] = {"atc",
                   "--mode=0",
                   "--framework=3",
@@ -416,7 +412,7 @@ void CheckPrecisionModev2ParamValid_Failed_WhenConfigBoth(const std::string &om_
                   "--host_env_cpu=x86_64",
                   "--precision_mode_v2=fp16",
                   "--precision_mode=force_fp16"};
-  (void) main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  (void)main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   std::string ge_option;
   EXPECT_NE(ge::GetThreadLocalContext().GetOption(ge::PRECISION_MODE_V2, ge_option), ge::GRAPH_SUCCESS);
   EXPECT_NE(ge::GetThreadLocalContext().GetOption(ge::PRECISION_MODE, ge_option), ge::GRAPH_SUCCESS);
@@ -424,8 +420,7 @@ void CheckPrecisionModev2ParamValid_Failed_WhenConfigBoth(const std::string &om_
   FLAGS_precision_mode_v2 = "";
 }
 
-void CheckPrecisionModeParamValid_Success(const std::string &om_arg,
-                                          const std::string &output_arg) {
+void CheckPrecisionModeParamValid_Success(const std::string &om_arg, const std::string &output_arg) {
   char *argv[] = {"atc",
                   "--mode=0",
                   "--framework=3",
@@ -438,7 +433,7 @@ void CheckPrecisionModeParamValid_Success(const std::string &om_arg,
                   "--host_env_cpu=x86_64",
                   "--precision_mode=force_fp16"};
   ge::GEFinalize();
-  (void) main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  (void)main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   std::string ge_option;
   EXPECT_EQ(ge::GetThreadLocalContext().GetOption(ge::PRECISION_MODE, ge_option), ge::GRAPH_SUCCESS);
   EXPECT_STREQ(ge_option.c_str(), "force_fp16");
@@ -446,8 +441,7 @@ void CheckPrecisionModeParamValid_Success(const std::string &om_arg,
   FLAGS_precision_mode_v2 = "";
 }
 
-void CheckPrecisionModeV2ParamValid_Success(const std::string &om_arg,
-                                            const std::string &output_arg) {
+void CheckPrecisionModeV2ParamValid_Success(const std::string &om_arg, const std::string &output_arg) {
   char *argv[] = {"atc",
                   "--mode=0",
                   "--framework=3",
@@ -460,7 +454,7 @@ void CheckPrecisionModeV2ParamValid_Success(const std::string &om_arg,
                   "--host_env_os=linux",
                   "--host_env_cpu=x86_64",
                   "--precision_mode_v2=fp16"};
-  (void) main_impl(sizeof(argv) / sizeof(argv[0]), argv);
+  (void)main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   std::string ge_option;
   EXPECT_EQ(ge::GetThreadLocalContext().GetOption(ge::PRECISION_MODE_V2, ge_option), ge::GRAPH_SUCCESS);
   EXPECT_STREQ(ge_option.c_str(), "fp16");
@@ -497,26 +491,27 @@ TEST_F(AtcCommonSTest, pb_keep_dtype_invalid) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_common_2");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
+  std::string output_arg = "--output=" + om_path;
   std::string keep_dtype = "--keep_dtype=invalid";
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--out_nodes=add_test_1:0",
-                  "--soc_version=Ascend310",
-                  "--output_type=add_test_1:0",
-                  "--input_shape=Placeholder_1:1,256,256,3",
-                  "--display_model_info=1",
-                  "--precision_mode=force_fp16",
-                  "--input_fp16_nodes=Placeholder_1",
-                  "--save_original_model=true",
-                  const_cast<char *>(keep_dtype.c_str()),
-                  };
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--out_nodes=add_test_1:0",
+      "--soc_version=Ascend310",
+      "--output_type=add_test_1:0",
+      "--input_shape=Placeholder_1:1,256,256,3",
+      "--display_model_info=1",
+      "--precision_mode=force_fp16",
+      "--input_fp16_nodes=Placeholder_1",
+      "--save_original_model=true",
+      const_cast<char *>(keep_dtype.c_str()),
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_model_input_fp16_and_NCIHWC0) {
@@ -528,11 +523,11 @@ TEST_F(AtcCommonSTest, pb_model_input_fp16_and_NCIHWC0) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_common_2");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
+  std::string output_arg = "--output=" + om_path;
   char *argv[] = {"atc",
                   const_cast<char *>(model_arg.c_str()),
                   const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
+                  "--framework=3",  // FrameworkType
                   "--out_nodes=add_test_1:0",
                   "--soc_version=Ascend310",
                   "--output_type=FP32",
@@ -540,16 +535,15 @@ TEST_F(AtcCommonSTest, pb_model_input_fp16_and_NCIHWC0) {
                   "--input_fp16_nodes=Placeholder_1",
                   "--is_input_adjust_hw_layout=true",
                   "--is_output_adjust_hw_layout=true",
-                  "--status_check=0"
-                  };
+                  "--status_check=0"};
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
   std::string check_report_path = current_path;
   check_report_path += "/check_result.json";
   EXPECT_EQ(mmAccess(check_report_path.c_str()), EN_OK);
   unsetenv("ASCEND_WORK_PATH");
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
   CHECK_GRAPH(PreRunBegin) {
     EXPECT_EQ(graph->GetDirectNodesSize(), 4);
   };
@@ -613,22 +607,21 @@ TEST_F(AtcCommonSTest, pb_model_auto_tune_mode) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_common_1");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
+  std::string output_arg = "--output=" + om_path;
   char *argv[] = {"atc",
                   const_cast<char *>(model_arg.c_str()),
                   const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
+                  "--framework=3",  // FrameworkType
                   "--out_nodes=add_test_1:0",
                   "--soc_version=Ascend310",
                   "--output_type=FP32",
                   "--input_shape=Placeholder_1:1,256,256,3",
                   "--auto_tune_mode=RL,GA",
-                  "--status_check=0"
-                  };
+                  "--status_check=0"};
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_model_exeom_for_nano_mode) {
@@ -643,20 +636,19 @@ TEST_F(AtcCommonSTest, pb_model_exeom_for_nano_mode) {
                   const_cast<char *>(model_arg.c_str()),
                   const_cast<char *>(output_arg.c_str()),
                   "--out_nodes=add_test_1:0",
-                  "--framework=3", // FrameworkType
+                  "--framework=3",  // FrameworkType
                   "--soc_version=Ascend035",
                   "--output_type=FP32",
                   "--input_shape=Placeholder_1:1,256,256,3",
                   "--input_fp16_nodes=Placeholder_1",
                   "--is_input_adjust_hw_layout=true",
                   "--is_output_adjust_hw_layout=true",
-                  "--status_check=0"
-                  };
+                  "--status_check=0"};
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
   EXPECT_EQ(IsFile((om_path + ".dbg").c_str()), true);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_model_exeom_for_nano_mode_fail01) {
@@ -671,18 +663,17 @@ TEST_F(AtcCommonSTest, pb_model_exeom_for_nano_mode_fail01) {
                   const_cast<char *>(model_arg.c_str()),
                   const_cast<char *>(output_arg.c_str()),
                   "--out_nodes=add_test_1:0",
-                  "--framework=3", // FrameworkType
+                  "--framework=3",  // FrameworkType
                   "--output_type=FP32",
                   "--input_shape=Placeholder_1:1,256,256,3",
                   "--input_fp16_nodes=Placeholder_1",
                   "--is_input_adjust_hw_layout=true",
                   "--is_output_adjust_hw_layout=true",
-                  "--status_check=0"
-                  };
+                  "--status_check=0"};
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_model_exeom_for_nano_mode_fail02) {
@@ -696,19 +687,18 @@ TEST_F(AtcCommonSTest, pb_model_exeom_for_nano_mode_fail02) {
                   const_cast<char *>(model_arg.c_str()),
                   const_cast<char *>(output_arg.c_str()),
                   "--out_nodes=add_test_1:0",
-                  "--framework=3", // FrameworkType
+                  "--framework=3",  // FrameworkType
                   "--soc_version=Ascend035",
                   "--output_type=FP32",
                   "--input_shape=Placeholder_1:1,256,256,3",
                   "--input_fp16_nodes=Placeholder_1",
                   "--is_input_adjust_hw_layout=true",
                   "--is_output_adjust_hw_layout=true",
-                  "--status_check=0"
-                  };
+                  "--status_check=0"};
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_model_exeom_for_nano_mode_fail03) {
@@ -716,18 +706,19 @@ TEST_F(AtcCommonSTest, pb_model_exeom_for_nano_mode_fail03) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_abnormal");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
-  char *argv[] = {"atc",
-                  "--mode=30",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=0", // FrameworkType
-                  "--soc_version=Ascend035",
-                  "--weight=",
-                  };
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {
+      "atc",
+      "--mode=30",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=0",  // FrameworkType
+      "--soc_version=Ascend035",
+      "--weight=",
+  };
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_model_only_precheck) {
@@ -735,25 +726,26 @@ TEST_F(AtcCommonSTest, pb_model_only_precheck) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_common_1");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
+  std::string output_arg = "--output=" + om_path;
   std::string op_name_map = "--op_name_map=st_run_data/config/opname_map.cfg";
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--mode=3", // FrameworkType
-                  "--framework=3", // FrameworkType
-                  "--weight=st_run_data/not_exist",
-                  "--input_format=NCHW",
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--out_nodes=add_test_1:0",
-                  "--input_shape=Placeholder_1:1,256,256,3",
-                  const_cast<char *>(op_name_map.c_str()),
-                  };
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--mode=3",       // FrameworkType
+      "--framework=3",  // FrameworkType
+      "--weight=st_run_data/not_exist",
+      "--input_format=NCHW",
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--out_nodes=add_test_1:0",
+      "--input_shape=Placeholder_1:1,256,256,3",
+      const_cast<char *>(op_name_map.c_str()),
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 TEST_F(AtcCommonSTest, pb_model_precheck_fail) {
   ReInitGe();
@@ -761,21 +753,21 @@ TEST_F(AtcCommonSTest, pb_model_precheck_fail) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_invalid");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
+  std::string output_arg = "--output=" + om_path;
   char *argv[] = {"atc",
                   "--model=3",
                   const_cast<char *>(model_arg.c_str()),
                   const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
+                  "--framework=3",  // FrameworkType
                   "--out_nodes=relu:0",
                   "--soc_version=Ascend310",
                   "--input_format=NCHW",
                   "--output_type=FP32",
                   "--status_check=0"};
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_model_amct_interface) {
@@ -783,7 +775,7 @@ TEST_F(AtcCommonSTest, pb_model_amct_interface) {
 
   // 注册具体的AmctCalibration
   REG_AMCT_CALIBRATION(AmctCalibrationTest);
-  REG_AMCT_CALIBRATION(AmctCalibrationTest2); // 仅保留首次注册的
+  REG_AMCT_CALIBRATION(AmctCalibrationTest2);  // 仅保留首次注册的
 
   MmpaStub::GetInstance().SetImpl(std::make_shared<MockMmpa>());
   auto om_path = PathJoin(GetRunPath().c_str(), "temp");
@@ -794,17 +786,16 @@ TEST_F(AtcCommonSTest, pb_model_amct_interface) {
   char *argv[] = {"atc",
                   const_cast<char *>(model_arg.c_str()),
                   const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
+                  "--framework=3",  // FrameworkType
                   "--out_nodes=add_test_1:0",
                   "--soc_version=Ascend910B2",
                   "--output_type=FP32",
                   "--input_shape=Placeholder_1:1,256,256,3",
                   "--status_check=0",
-                  "--compression_optimize_conf=./"
-                  };
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+                  "--compression_optimize_conf=./"};
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_model_amct_interface_dlsymError) {
@@ -819,18 +810,17 @@ TEST_F(AtcCommonSTest, pb_model_amct_interface_dlsymError) {
   char *argv[] = {"atc",
                   const_cast<char *>(model_arg.c_str()),
                   const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
+                  "--framework=3",  // FrameworkType
                   "--out_nodes=add_test_1:0",
                   "--soc_version=Ascend910B2",
                   "--output_type=FP32",
                   "--input_shape=Placeholder_1:1,256,256,3",
                   "--status_check=0",
-                  "--compression_optimize_conf=./"
-  };
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+                  "--compression_optimize_conf=./"};
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
   g_dlsymError = false;
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_model_amct_interface_amctError) {
@@ -845,18 +835,17 @@ TEST_F(AtcCommonSTest, pb_model_amct_interface_amctError) {
   char *argv[] = {"atc",
                   const_cast<char *>(model_arg.c_str()),
                   const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
+                  "--framework=3",  // FrameworkType
                   "--out_nodes=add_test_1:0",
                   "--soc_version=Ascend910B2",
                   "--output_type=FP32",
                   "--input_shape=Placeholder_1:1,256,256,3",
                   "--status_check=0",
-                  "--compression_optimize_conf=./"
-  };
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+                  "--compression_optimize_conf=./"};
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
   g_amctError = false;
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_model_with_weight_invalid) {
@@ -864,24 +853,25 @@ TEST_F(AtcCommonSTest, pb_model_with_weight_invalid) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_common_1");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
+  std::string output_arg = "--output=" + om_path;
   std::string op_name_map = "--op_name_map=st_run_data/config/opname_map.cfg";
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--weight=st_run_data/not_exist",
-                  "--input_format=NCHW",
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--out_nodes=add_test_1:0",
-                  "--input_shape=Placeholder_1:1,256,256,3",
-                  const_cast<char *>(op_name_map.c_str()),
-                  };
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--weight=st_run_data/not_exist",
+      "--input_format=NCHW",
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--out_nodes=add_test_1:0",
+      "--input_shape=Placeholder_1:1,256,256,3",
+      const_cast<char *>(op_name_map.c_str()),
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 // TEST_F(AtcCommonSTest, pb_model_generate_om_model_autofuse) {
@@ -919,23 +909,22 @@ TEST_F(AtcCommonSTest, pb_model_sparse_weight) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_common_1");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
+  std::string output_arg = "--output=" + om_path;
   char *argv[] = {"atc",
                   const_cast<char *>(model_arg.c_str()),
                   const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
+                  "--framework=3",  // FrameworkType
                   "--out_nodes=add_test_1:0",
                   "--soc_version=Ascend910B2",
                   "--output_type=FP32",
                   "--input_shape=Placeholder_1:1,256,256,3",
                   "--sparsity=1",
                   "--allow_hf32=true",
-                  "--status_check=0"
-                  };
+                  "--status_check=0"};
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_model_weight_compress_both_exist) {
@@ -944,23 +933,24 @@ TEST_F(AtcCommonSTest, pb_model_weight_compress_both_exist) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_common_1");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
+  std::string output_arg = "--output=" + om_path;
   std::string compress_weight_conf = "--compress_weight_conf=st_run_data/config/compress_weight_nodes.cfg";
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--out_nodes=add_test_1:0",
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--input_shape=Placeholder_1:1,256,256,3",
-                  "--enable_compress_weight=true",
-                  const_cast<char *>(compress_weight_conf.c_str()),
-                  };
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--out_nodes=add_test_1:0",
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--input_shape=Placeholder_1:1,256,256,3",
+      "--enable_compress_weight=true",
+      const_cast<char *>(compress_weight_conf.c_str()),
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_model_weight_compress_conf_invalid) {
@@ -969,23 +959,24 @@ TEST_F(AtcCommonSTest, pb_model_weight_compress_conf_invalid) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_common_1");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
+  std::string output_arg = "--output=" + om_path;
   std::string compress_weight_conf = "--compress_weight_conf=st_run_data/invalid";
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--out_nodes=add_test_1:0",
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--input_shape=Placeholder_1:1,256,256,3",
-                  "--enable_compress_weight=true",
-                  const_cast<char *>(compress_weight_conf.c_str()),
-                  };
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--out_nodes=add_test_1:0",
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--input_shape=Placeholder_1:1,256,256,3",
+      "--enable_compress_weight=true",
+      const_cast<char *>(compress_weight_conf.c_str()),
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_model_weight_compress_enable_invalid) {
@@ -994,21 +985,22 @@ TEST_F(AtcCommonSTest, pb_model_weight_compress_enable_invalid) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_common_1");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--out_nodes=add_test_1:0",
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--input_shape=Placeholder_1:1,256,256,3",
-                  "--enable_compress_weight=invalid",
-                  };
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--out_nodes=add_test_1:0",
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--input_shape=Placeholder_1:1,256,256,3",
+      "--enable_compress_weight=invalid",
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_model_out_node_invalid) {
@@ -1016,24 +1008,25 @@ TEST_F(AtcCommonSTest, pb_model_out_node_invalid) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_common_1");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
+  std::string output_arg = "--output=" + om_path;
   std::string op_name_map = "--op_name_map=st_run_data/config/opname_map.cfg";
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--weight=st_run_data/not_exist",
-                  "--input_format=NCHW",
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--out_nodes=invalid:0",
-                  "--input_shape=Placeholder_1:1,256,256,3",
-                  const_cast<char *>(op_name_map.c_str()),
-                  };
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--weight=st_run_data/not_exist",
+      "--input_format=NCHW",
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--out_nodes=invalid:0",
+      "--input_shape=Placeholder_1:1,256,256,3",
+      const_cast<char *>(op_name_map.c_str()),
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_model_out_node_leak_port) {
@@ -1041,24 +1034,25 @@ TEST_F(AtcCommonSTest, pb_model_out_node_leak_port) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_common_1");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
+  std::string output_arg = "--output=" + om_path;
   std::string op_name_map = "--op_name_map=st_run_data/config/opname_map.cfg";
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--weight=st_run_data/not_exist",
-                  "--input_format=NCHW",
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--out_nodes=add_test_1",
-                  "--input_shape=Placeholder_1:1,256,256,3",
-                  const_cast<char *>(op_name_map.c_str()),
-                  };
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--weight=st_run_data/not_exist",
+      "--input_format=NCHW",
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--out_nodes=add_test_1",
+      "--input_shape=Placeholder_1:1,256,256,3",
+      const_cast<char *>(op_name_map.c_str()),
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_model_out_node_port_not_digit) {
@@ -1066,24 +1060,25 @@ TEST_F(AtcCommonSTest, pb_model_out_node_port_not_digit) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_common_1");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
+  std::string output_arg = "--output=" + om_path;
   std::string op_name_map = "--op_name_map=st_run_data/config/opname_map.cfg";
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--weight=st_run_data/not_exist",
-                  "--input_format=NCHW",
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--out_nodes=add_test_1:a",
-                  "--input_shape=Placeholder_1:1,256,256,3",
-                  const_cast<char *>(op_name_map.c_str()),
-                  };
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--weight=st_run_data/not_exist",
+      "--input_format=NCHW",
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--out_nodes=add_test_1:a",
+      "--input_shape=Placeholder_1:1,256,256,3",
+      const_cast<char *>(op_name_map.c_str()),
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, onnx_model_common) {
@@ -1091,21 +1086,22 @@ TEST_F(AtcCommonSTest, onnx_model_common) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "onnx_common_1");
   std::string model_arg = "--model=st_run_data/origin_model/test.onnx";
-  std::string output_arg = "--output="+om_path;
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=5", // FrameworkType
-                  "--weight=st_run_data/not_exist",
-                  "--out_nodes=Conv_0:0;Add_0:0",
-                  "--soc_version=Ascend310",
-                  "--output_type=Conv_0:0:FP32;Add_0:0:FP16",
-                  "--input_shape=x:1,3,640,640",
-                  };
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=5",  // FrameworkType
+      "--weight=st_run_data/not_exist",
+      "--out_nodes=Conv_0:0;Add_0:0",
+      "--soc_version=Ascend310",
+      "--output_type=Conv_0:0:FP32;Add_0:0:FP16",
+      "--input_shape=x:1,3,640,640",
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, onnx_model_common_2) {
@@ -1113,22 +1109,23 @@ TEST_F(AtcCommonSTest, onnx_model_common_2) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "onnx_common_1");
   std::string model_arg = "--model=st_run_data/origin_model/test.onnx";
-  std::string output_arg = "--output="+om_path;
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=5", // FrameworkType
-                  "--weight=st_run_data/not_exist",
-                  "--out_nodes=Conv_0:0;Add_0:0",
-                  "--soc_version=Ascend310",
-                  "--input_format=NCHW",
-                  "--output_type=Conv_0:0:FP32;Add_0:0:FP16",
-                  "--input_shape=x:1,3,640,640",
-                  };
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=5",  // FrameworkType
+      "--weight=st_run_data/not_exist",
+      "--out_nodes=Conv_0:0;Add_0:0",
+      "--soc_version=Ascend310",
+      "--input_format=NCHW",
+      "--output_type=Conv_0:0:FP32;Add_0:0:FP16",
+      "--input_shape=x:1,3,640,640",
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, onnx_model_input_format_invalid) {
@@ -1136,22 +1133,23 @@ TEST_F(AtcCommonSTest, onnx_model_input_format_invalid) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "onnx_common_1");
   std::string model_arg = "--model=st_run_data/origin_model/test.onnx";
-  std::string output_arg = "--output="+om_path;
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=5", // FrameworkType
-                  "--weight=st_run_data/not_exist",
-                  "--out_nodes=Conv_0:0;Add_0:0",
-                  "--soc_version=Ascend310",
-                  "--input_format=NC1HWC0",
-                  "--output_type=Conv_0:0:FP32;Add_0:0:FP16",
-                  "--input_shape=x:1,3,640,640",
-                  };
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=5",  // FrameworkType
+      "--weight=st_run_data/not_exist",
+      "--out_nodes=Conv_0:0;Add_0:0",
+      "--soc_version=Ascend310",
+      "--input_format=NC1HWC0",
+      "--output_type=Conv_0:0:FP32;Add_0:0:FP16",
+      "--input_shape=x:1,3,640,640",
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, mindspore_model_common) {
@@ -1159,56 +1157,57 @@ TEST_F(AtcCommonSTest, mindspore_model_common) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "ms_1");
   auto path = ModelFactory::GenerateModel_1(true, true);
-  std::string model_arg = "--model="+path;
-  std::string output_arg = "--output="+om_path;
+  std::string model_arg = "--model=" + path;
+  std::string output_arg = "--output=" + om_path;
   char *argv[] = {"atc",
                   const_cast<char *>(model_arg.c_str()),
                   const_cast<char *>(output_arg.c_str()),
-                  "--framework=1", // FrameworkType
+                  "--framework=1",  // FrameworkType
                   "--out_nodes=relu:0",
                   "--soc_version=Ascend310",
                   "--input_format=NCHW",
                   "--output_type=FP32",
                   "--status_check=0",
                   "--host_env_os=linux",
-                  "--host_env_cpu=x86_64"
-                  };
+                  "--host_env_cpu=x86_64"};
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
 
-  char *argv_invalid_name[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=1", // FrameworkType
-                  "--out_nodes=relu:0",
-                  "--soc_version=Ascend310",
-                  "--input_format=NCHW",
-                  "--output_type=FP32",
-                  "--status_check=0",
-                  "--host_env_os=linux",
-                  "--host_env_cpu=x86_64",
-                  "--input_shape=data_invalid:1,1",
+  char *argv_invalid_name[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=1",  // FrameworkType
+      "--out_nodes=relu:0",
+      "--soc_version=Ascend310",
+      "--input_format=NCHW",
+      "--output_type=FP32",
+      "--status_check=0",
+      "--host_env_os=linux",
+      "--host_env_cpu=x86_64",
+      "--input_shape=data_invalid:1,1",
   };
-  ret = main_impl(sizeof(argv_invalid_name)/sizeof(argv_invalid_name[0]), argv_invalid_name);
+  ret = main_impl(sizeof(argv_invalid_name) / sizeof(argv_invalid_name[0]), argv_invalid_name);
   EXPECT_NE(ret, 0);
 
-  char *argv_invalid_type[] = {"atc",
-                               const_cast<char *>(model_arg.c_str()),
-                               const_cast<char *>(output_arg.c_str()),
-                               "--framework=1", // FrameworkType
-                               "--out_nodes=relu:0",
-                               "--soc_version=Ascend310",
-                               "--input_format=NCHW",
-                               "--output_type=FP32",
-                               "--status_check=0",
-                               "--host_env_os=linux",
-                               "--host_env_cpu=x86_64",
-                               "--input_shape=relu1:1,1",
+  char *argv_invalid_type[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=1",  // FrameworkType
+      "--out_nodes=relu:0",
+      "--soc_version=Ascend310",
+      "--input_format=NCHW",
+      "--output_type=FP32",
+      "--status_check=0",
+      "--host_env_os=linux",
+      "--host_env_cpu=x86_64",
+      "--input_shape=relu1:1,1",
   };
-  ret = main_impl(sizeof(argv_invalid_type)/sizeof(argv_invalid_type[0]), argv_invalid_type);
+  ret = main_impl(sizeof(argv_invalid_type) / sizeof(argv_invalid_type[0]), argv_invalid_type);
   EXPECT_NE(ret, 0);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 
   CHECK_GRAPH(PreRunBegin) {
     EXPECT_EQ(graph->GetDirectNodesSize(), 5);
@@ -1219,10 +1218,11 @@ TEST_F(AtcCommonSTest, mindspore_model_common) {
     auto origin_shape = data->GetOpDesc()->MutableInputDesc(0)->GetOriginShape();
     auto origin_format = data->GetOpDesc()->MutableInputDesc(0)->GetOriginFormat();
     bool is_origin_format_set = false;
-    (void)AttrUtils::GetBool(data->GetOpDesc()->MutableInputDesc(0), ATTR_NAME_ORIGIN_FORMAT_IS_SET, is_origin_format_set);
+    (void)AttrUtils::GetBool(data->GetOpDesc()->MutableInputDesc(0), ATTR_NAME_ORIGIN_FORMAT_IS_SET,
+                             is_origin_format_set);
     EXPECT_EQ(origin_format, FORMAT_NC1HWC0);
     EXPECT_TRUE(is_origin_format_set);
-    EXPECT_EQ(origin_shape.GetDims(), std::vector<int64_t>({1,2,3,4,5}));
+    EXPECT_EQ(origin_shape.GetDims(), std::vector<int64_t>({1, 2, 3, 4, 5}));
   };
 }
 
@@ -1231,19 +1231,18 @@ TEST_F(AtcCommonSTest, TestAtc_Ok_MindsporeModelWithRefData) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "ms_1");
   auto path = ModelFactory::GenerateModel_refdata(false, false);
-  std::string model_arg = "--model="+path;
-  std::string output_arg = "--output="+om_path;
+  std::string model_arg = "--model=" + path;
+  std::string output_arg = "--output=" + om_path;
   char *argv[] = {"atc",
                   const_cast<char *>(model_arg.c_str()),
                   const_cast<char *>(output_arg.c_str()),
-                  "--framework=1", // FrameworkType
+                  "--framework=1",  // FrameworkType
                   "--soc_version=Ascend310P",
                   "--status_check=0",
                   "--host_env_os=linux",
-                  "--host_env_cpu=x86_64"
-                  };
+                  "--host_env_cpu=x86_64"};
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
 }
 
@@ -1261,7 +1260,7 @@ TEST_F(AtcCommonSTest, TestAtc_Ok_MindsporeModelWithRefData) {
  */
 TEST_F(AtcCommonSTest, mindspore_model_data_to_netoutput) {
   // 设置环境变量
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
   const std::string fail_collect_path = (std::string(&npu_collect_path[0U]) + "/mock_fail");
@@ -1271,13 +1270,13 @@ TEST_F(AtcCommonSTest, mindspore_model_data_to_netoutput) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "ms_data_to_netoutput");
   auto path = ModelFactory::GenerateModel_data_to_netoutput(false, false);
-  std::string model_arg = "--model="+path;
-  std::string output_arg = "--output="+om_path;
+  std::string model_arg = "--model=" + path;
+  std::string output_arg = "--output=" + om_path;
 
   char *argv[] = {"atc",
                   const_cast<char *>(model_arg.c_str()),
                   const_cast<char *>(output_arg.c_str()),
-                  "--framework=1", // FrameworkType
+                  "--framework=1",  // FrameworkType
                   "--out_nodes=relu:0",
                   "--soc_version=Ascend310",
                   "--input_format=NCHW",
@@ -1285,16 +1284,15 @@ TEST_F(AtcCommonSTest, mindspore_model_data_to_netoutput) {
                   "--status_check=0",
                   "--host_env_os=linux",
                   "--host_env_cpu=x86_64",
-                  "--log=debug"
-                  };
+                  "--log=debug"};
 
   DUMP_GRAPH_WHEN("PreRunAfterOptimize2")
   ge::GEFinalize();
   GeRunningEnvFaker ge_env;
   ge_env.InstallDefault();
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 
   CHECK_GRAPH(PreRunAfterOptimize2) {
     EXPECT_EQ(graph->GetDirectNodesSize(), 3);
@@ -1305,7 +1303,7 @@ TEST_F(AtcCommonSTest, mindspore_model_data_to_netoutput) {
 
 TEST_F(AtcCommonSTest, mindspore_model_atc_scalar_inputshape) {
   // 设置环境变量
-  const char_t * const kEnvValue = "SET_CAPA_VALUE";
+  const char_t *const kEnvValue = "SET_CAPA_VALUE";
   char_t npu_collect_path[MMPA_MAX_PATH] = {};
   mmRealPath(".", &npu_collect_path[0U], MMPA_MAX_PATH);
   const std::string fail_collect_path = (std::string(&npu_collect_path[0U]) + "/mock_fail");
@@ -1315,13 +1313,13 @@ TEST_F(AtcCommonSTest, mindspore_model_atc_scalar_inputshape) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "ms_data_to_netoutput");
   auto path = ModelFactory::GenerateModel_data_to_netoutput(false, false);
-  std::string model_arg = "--model="+path;
-  std::string output_arg = "--output="+om_path;
+  std::string model_arg = "--model=" + path;
+  std::string output_arg = "--output=" + om_path;
 
   char *argv[] = {"atc",
                   const_cast<char *>(model_arg.c_str()),
                   const_cast<char *>(output_arg.c_str()),
-                  "--framework=1", // FrameworkType
+                  "--framework=1",  // FrameworkType
                   "--out_nodes=relu:0",
                   "--soc_version=Ascend310",
                   "--input_format=NCHW",
@@ -1329,46 +1327,43 @@ TEST_F(AtcCommonSTest, mindspore_model_atc_scalar_inputshape) {
                   "--input_shape=data;data1:-1,3,2",
                   "--status_check=0",
                   "--host_env_os=linux",
-                  "--host_env_cpu=x86_64"
-                  };
+                  "--host_env_cpu=x86_64"};
 
   DUMP_GRAPH_WHEN("PreRunAfterOptimize2")
   ge::GEFinalize();
   GeRunningEnvFaker ge_env;
   ge_env.InstallDefault();
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
   char *argv2[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=1", // FrameworkType
-                  "--out_nodes=relu:0",
-                  "--soc_version=Ascend310",
-                  "--input_format=NCHW",
-                  "--output_type=FP32",
-                  "--input_shape=:;data1:-1,3,2",
-                  "--status_check=0",
-                  "--host_env_os=linux",
-                  "--host_env_cpu=x86_64"
-                  };
-  ret = main_impl(sizeof(argv2)/sizeof(argv2[0]), argv2);
+                   const_cast<char *>(model_arg.c_str()),
+                   const_cast<char *>(output_arg.c_str()),
+                   "--framework=1",  // FrameworkType
+                   "--out_nodes=relu:0",
+                   "--soc_version=Ascend310",
+                   "--input_format=NCHW",
+                   "--output_type=FP32",
+                   "--input_shape=:;data1:-1,3,2",
+                   "--status_check=0",
+                   "--host_env_os=linux",
+                   "--host_env_cpu=x86_64"};
+  ret = main_impl(sizeof(argv2) / sizeof(argv2[0]), argv2);
   EXPECT_NE(ret, 0);
   char *argv3[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=1", // FrameworkType
-                  "--out_nodes=relu:0",
-                  "--soc_version=Ascend310",
-                  "--input_format=NCHW",
-                  "--output_type=FP32",
-                  "--input_shape=data:-1,3,2;data1:",
-                  "--status_check=0",
-                  "--host_env_os=linux",
-                  "--host_env_cpu=x86_64"
-                  };
-  ret = main_impl(sizeof(argv3)/sizeof(argv3[0]), argv3);
+                   const_cast<char *>(model_arg.c_str()),
+                   const_cast<char *>(output_arg.c_str()),
+                   "--framework=1",  // FrameworkType
+                   "--out_nodes=relu:0",
+                   "--soc_version=Ascend310",
+                   "--input_format=NCHW",
+                   "--output_type=FP32",
+                   "--input_shape=data:-1,3,2;data1:",
+                   "--status_check=0",
+                   "--host_env_os=linux",
+                   "--host_env_cpu=x86_64"};
+  ret = main_impl(sizeof(argv3) / sizeof(argv3[0]), argv3);
   EXPECT_EQ(ret, 0);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 
   // 清理环境变量
   mmSetEnv(kEnvValue, "", 1);
@@ -1382,23 +1377,22 @@ TEST_F(AtcCommonSTest, pb_model_generate_om_model_autofuse_shpae_index_invalid) 
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_common_1");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
+  std::string output_arg = "--output=" + om_path;
   char *argv[] = {"atc",
                   const_cast<char *>(model_arg.c_str()),
                   const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
+                  "--framework=3",  // FrameworkType
                   "--out_nodes=add_test_1:0",
                   "--soc_version=Ascend910B2",
                   "--output_type=FP32",
                   "--input_hint_shape=-1:[2]",
                   "--sparsity=1",
                   "--allow_hf32=true",
-                  "--status_check=0"
-  };
+                  "--status_check=0"};
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
   unsetenv("AUTOFUSE_FLAGS");
   unsetenv("ASCEND_OPP_PATH");
 }
@@ -1412,11 +1406,11 @@ TEST_F(AtcCommonSTest, pb_model_generate_om_model_autofuse_dyna_shape_failed) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_common_1");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
+  std::string output_arg = "--output=" + om_path;
   char *argv[] = {"atc",
                   const_cast<char *>(model_arg.c_str()),
                   const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
+                  "--framework=3",  // FrameworkType
                   "--out_nodes=add_test_1:0",
                   "--soc_version=Ascend910B2",
                   "--output_type=FP32",
@@ -1424,12 +1418,11 @@ TEST_F(AtcCommonSTest, pb_model_generate_om_model_autofuse_dyna_shape_failed) {
                   "--input_hint_shape=0:[2];1:[3]",
                   "--sparsity=1",
                   "--allow_hf32=true",
-                  "--status_check=0"
-  };
+                  "--status_check=0"};
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
   unsetenv("AUTOFUSE_FLAGS");
   unsetenv("ASCEND_OPP_PATH");
 }
@@ -1443,11 +1436,11 @@ TEST_F(AtcCommonSTest, pb_model_generate_om_model_hint_shape_with_dyna_param_fai
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_common_1");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
+  std::string output_arg = "--output=" + om_path;
   char *argv[] = {"atc",
                   const_cast<char *>(model_arg.c_str()),
                   const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
+                  "--framework=3",  // FrameworkType
                   "--out_nodes=add_test_1:0",
                   "--soc_version=Ascend910B2",
                   "--output_type=FP32",
@@ -1456,12 +1449,11 @@ TEST_F(AtcCommonSTest, pb_model_generate_om_model_hint_shape_with_dyna_param_fai
                   "--dynamic_dims=4;8;16;64",
                   "--sparsity=1",
                   "--allow_hf32=true",
-                  "--status_check=0"
-  };
+                  "--status_check=0"};
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
   unsetenv("AUTOFUSE_FLAGS");
   unsetenv("ASCEND_OPP_PATH");
 }
@@ -1473,17 +1465,13 @@ TEST_F(AtcCommonSTest, om_convert_to_json) {
 
   // test convert to json
   std::string om_arg = "--om=" + om_path + ".om";
-  std::string json_arg = "--json="+om_path+".json";
-  char *convert_to_json_argv[] = {"atc",
-                                  const_cast<char *>(om_arg.c_str()),
-                                  const_cast<char *>(json_arg.c_str()),
-                                  "--mode=1",
-                                  "--status_check=0"
-                                  };
-  auto ret = main_impl(sizeof(convert_to_json_argv)/sizeof(convert_to_json_argv[0]), convert_to_json_argv);
+  std::string json_arg = "--json=" + om_path + ".json";
+  char *convert_to_json_argv[] = {"atc", const_cast<char *>(om_arg.c_str()), const_cast<char *>(json_arg.c_str()),
+                                  "--mode=1", "--status_check=0"};
+  auto ret = main_impl(sizeof(convert_to_json_argv) / sizeof(convert_to_json_argv[0]), convert_to_json_argv);
   EXPECT_EQ(ret, 0);
   EXPECT_EQ(IsFile((om_path + ".json").c_str()), true);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, om_fusion_convert_to_json) {
@@ -1493,13 +1481,11 @@ TEST_F(AtcCommonSTest, om_fusion_convert_to_json) {
   // test convert to json
   std::string om_arg = "--om=" + om_path + ".txt";
   std::string json_arg = "--json=" + om_path + ".json";
-  char *convert_to_json_argv[] = {"atc",
-                                  const_cast<char *>(om_arg.c_str()),
-                                  const_cast<char *>(json_arg.c_str()),
+  char *convert_to_json_argv[] = {"atc", const_cast<char *>(om_arg.c_str()), const_cast<char *>(json_arg.c_str()),
                                   "--mode=5"};
   EXPECT_EQ(main_impl(sizeof(convert_to_json_argv) / sizeof(convert_to_json_argv[0]), convert_to_json_argv), SUCCESS);
   EXPECT_TRUE(IsFile((om_path + ".json").c_str()));
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, om_fusion_convert_to_json_fail) {
@@ -1509,14 +1495,12 @@ TEST_F(AtcCommonSTest, om_fusion_convert_to_json_fail) {
   // test convert to json
   std::string om_arg = "--om=" + om_path + ".prototxt";
   std::string json_arg = "--json=" + om_path + ".json";
-  char *convert_to_json_argv[] = {"atc",
-                                  const_cast<char *>(om_arg.c_str()),
-                                  const_cast<char *>(json_arg.c_str()),
+  char *convert_to_json_argv[] = {"atc", const_cast<char *>(om_arg.c_str()), const_cast<char *>(json_arg.c_str()),
                                   "--mode=5"};
   auto ret = main_impl(sizeof(convert_to_json_argv) / sizeof(convert_to_json_argv[0]), convert_to_json_argv);
-  EXPECT_EQ(ret, -1); // invalid om
+  EXPECT_EQ(ret, -1);  // invalid om
   EXPECT_TRUE(IsFile((om_path + ".json").c_str()));
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, empty_om_fusion_convert_to_json_fail) {
@@ -1524,12 +1508,10 @@ TEST_F(AtcCommonSTest, empty_om_fusion_convert_to_json_fail) {
   om_path = PathJoin(om_path.c_str(), "ms1_1");
 
   std::string json_arg = "--json=" + om_path + ".json";
-  char *convert_to_json_argv[] = {"atc",
-                                  const_cast<char *>(json_arg.c_str()),
-                                  "--mode=5"};
+  char *convert_to_json_argv[] = {"atc", const_cast<char *>(json_arg.c_str()), "--mode=5"};
   auto ret = main_impl(sizeof(convert_to_json_argv) / sizeof(convert_to_json_argv[0]), convert_to_json_argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, om_convert_to_json_fail) {
@@ -1538,15 +1520,16 @@ TEST_F(AtcCommonSTest, om_convert_to_json_fail) {
 
   // test convert to json
   std::string om_arg = "--om=st_run_data/origin_model/not_exist.om";
-  std::string json_arg = "--json="+om_path+".json";
-  char *convert_to_json_argv[] = {"atc",
-                                  const_cast<char *>(om_arg.c_str()),
-                                  const_cast<char *>(json_arg.c_str()),
-                                  "--mode=1",
-                                  };
-  auto ret = main_impl(sizeof(convert_to_json_argv)/sizeof(convert_to_json_argv[0]), convert_to_json_argv);
+  std::string json_arg = "--json=" + om_path + ".json";
+  char *convert_to_json_argv[] = {
+      "atc",
+      const_cast<char *>(om_arg.c_str()),
+      const_cast<char *>(json_arg.c_str()),
+      "--mode=1",
+  };
+  auto ret = main_impl(sizeof(convert_to_json_argv) / sizeof(convert_to_json_argv[0]), convert_to_json_argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, om_display_info) {
@@ -1555,14 +1538,10 @@ TEST_F(AtcCommonSTest, om_display_info) {
 
   // test convert to json
   std::string om_arg = "--om=" + om_path + ".om";
-  char *convert_to_json_argv[] = {"atc",
-                                  const_cast<char *>(om_arg.c_str()),
-                                  "--mode=6",
-                                  "--status_check=0"
-                                  };
-  auto ret = main_impl(sizeof(convert_to_json_argv)/sizeof(convert_to_json_argv[0]), convert_to_json_argv);
+  char *convert_to_json_argv[] = {"atc", const_cast<char *>(om_arg.c_str()), "--mode=6", "--status_check=0"};
+  auto ret = main_impl(sizeof(convert_to_json_argv) / sizeof(convert_to_json_argv[0]), convert_to_json_argv);
   EXPECT_EQ(ret, 0);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, origin_model_convert_to_json_without_dump_mode) {
@@ -1570,17 +1549,16 @@ TEST_F(AtcCommonSTest, origin_model_convert_to_json_without_dump_mode) {
   std::string model_arg = "--om=st_run_data/origin_model/add.pb";
   auto om_path = PathJoin(GetRunPath().c_str(), "temp");
   om_path = PathJoin(om_path.c_str(), "pb_json_1");
-  std::string json_arg = "--json="+om_path+".json";
-  char *convert_to_json_argv[] = {"atc",
-                                  const_cast<char *>(model_arg.c_str()),
-                                  const_cast<char *>(json_arg.c_str()),
-                                  "--framework=3", // FrameworkType
-                                  "--mode=1",
-                                  };
-  auto ret = main_impl(sizeof(convert_to_json_argv)/sizeof(convert_to_json_argv[0]), convert_to_json_argv);
+  std::string json_arg = "--json=" + om_path + ".json";
+  char *convert_to_json_argv[] = {
+      "atc",           const_cast<char *>(model_arg.c_str()), const_cast<char *>(json_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--mode=1",
+  };
+  auto ret = main_impl(sizeof(convert_to_json_argv) / sizeof(convert_to_json_argv[0]), convert_to_json_argv);
   EXPECT_EQ(ret, 0);
   EXPECT_EQ(IsFile((om_path + ".json").c_str()), true);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, origin_model_convert_to_json_with_dump_mode) {
@@ -1588,20 +1566,21 @@ TEST_F(AtcCommonSTest, origin_model_convert_to_json_with_dump_mode) {
   std::string model_arg = "--om=st_run_data/origin_model/add.pb";
   auto om_path = PathJoin(GetRunPath().c_str(), "temp");
   om_path = PathJoin(om_path.c_str(), "pb_json_1");
-  std::string json_arg = "--json="+om_path+".json";
-  char *convert_to_json_argv[] = {"atc",
-                                  const_cast<char *>(model_arg.c_str()),
-                                  const_cast<char *>(json_arg.c_str()),
-                                  "--framework=3", // FrameworkType
-                                  "--mode=1",
-                                  "--dump_mode=1",
-                                  "--out_nodes=add_test_1:0",
-                                  "--input_shape=Placeholder_1:1,256,256,3",
-                                  };
-  auto ret = main_impl(sizeof(convert_to_json_argv)/sizeof(convert_to_json_argv[0]), convert_to_json_argv);
+  std::string json_arg = "--json=" + om_path + ".json";
+  char *convert_to_json_argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(json_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--mode=1",
+      "--dump_mode=1",
+      "--out_nodes=add_test_1:0",
+      "--input_shape=Placeholder_1:1,256,256,3",
+  };
+  auto ret = main_impl(sizeof(convert_to_json_argv) / sizeof(convert_to_json_argv[0]), convert_to_json_argv);
   EXPECT_EQ(ret, 0);
   EXPECT_EQ(IsFile((om_path + ".json").c_str()), true);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, origin_model_convert_to_json_invalid_framework) {
@@ -1609,18 +1588,19 @@ TEST_F(AtcCommonSTest, origin_model_convert_to_json_invalid_framework) {
   std::string model_arg = "--om=st_run_data/origin_model/add.pb";
   auto om_path = PathJoin(GetRunPath().c_str(), "temp");
   om_path = PathJoin(om_path.c_str(), "pb_json_1");
-  std::string json_arg = "--json="+om_path+".json";
-  char *convert_to_json_argv[] = {"atc",
-                                  const_cast<char *>(model_arg.c_str()),
-                                  const_cast<char *>(json_arg.c_str()),
-                                  "--framework=10", // FrameworkType
-                                  "--mode=1",
-                                  "--out_nodes=add_test_1:0",
-                                  "--input_shape=Placeholder_1:1,256,256,3",
-                                  };
-  auto ret = main_impl(sizeof(convert_to_json_argv)/sizeof(convert_to_json_argv[0]), convert_to_json_argv);
+  std::string json_arg = "--json=" + om_path + ".json";
+  char *convert_to_json_argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(json_arg.c_str()),
+      "--framework=10",  // FrameworkType
+      "--mode=1",
+      "--out_nodes=add_test_1:0",
+      "--input_shape=Placeholder_1:1,256,256,3",
+  };
+  auto ret = main_impl(sizeof(convert_to_json_argv) / sizeof(convert_to_json_argv[0]), convert_to_json_argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, origin_model_convert_to_json_invalid_dump_mode) {
@@ -1628,19 +1608,20 @@ TEST_F(AtcCommonSTest, origin_model_convert_to_json_invalid_dump_mode) {
   std::string model_arg = "--om=st_run_data/origin_model/add.pb";
   auto om_path = PathJoin(GetRunPath().c_str(), "temp");
   om_path = PathJoin(om_path.c_str(), "pb_json_1");
-  std::string json_arg = "--json="+om_path+".json";
-  char *convert_to_json_argv[] = {"atc",
-                                  const_cast<char *>(model_arg.c_str()),
-                                  const_cast<char *>(json_arg.c_str()),
-                                  "--framework=10", // FrameworkType
-                                  "--mode=1",
-                                  "--dump_mode=10",
-                                  "--out_nodes=add_test_1:0",
-                                  "--input_shape=Placeholder_1:1,256,256,3",
-                                  };
-  auto ret = main_impl(sizeof(convert_to_json_argv)/sizeof(convert_to_json_argv[0]), convert_to_json_argv);
+  std::string json_arg = "--json=" + om_path + ".json";
+  char *convert_to_json_argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(json_arg.c_str()),
+      "--framework=10",  // FrameworkType
+      "--mode=1",
+      "--dump_mode=10",
+      "--out_nodes=add_test_1:0",
+      "--input_shape=Placeholder_1:1,256,256,3",
+  };
+  auto ret = main_impl(sizeof(convert_to_json_argv) / sizeof(convert_to_json_argv[0]), convert_to_json_argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pbtxt_convert_to_json) {
@@ -1648,16 +1629,17 @@ TEST_F(AtcCommonSTest, pbtxt_convert_to_json) {
   std::string model_arg = "--om=st_run_data/origin_model/origin.txt";
   auto om_path = PathJoin(GetRunPath().c_str(), "temp");
   om_path = PathJoin(om_path.c_str(), "pbtxt_json");
-  std::string json_arg = "--json="+om_path+".json";
-  char *convert_to_json_argv[] = {"atc",
-                                  const_cast<char *>(model_arg.c_str()),
-                                  const_cast<char *>(json_arg.c_str()),
-                                  "--mode=5",
-                                  };
-  auto ret = main_impl(sizeof(convert_to_json_argv)/sizeof(convert_to_json_argv[0]), convert_to_json_argv);
+  std::string json_arg = "--json=" + om_path + ".json";
+  char *convert_to_json_argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(json_arg.c_str()),
+      "--mode=5",
+  };
+  auto ret = main_impl(sizeof(convert_to_json_argv) / sizeof(convert_to_json_argv[0]), convert_to_json_argv);
   EXPECT_EQ(ret, 0);
   EXPECT_EQ(IsFile((om_path + ".json").c_str()), true);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pbtxt_convert_to_json_file_not_exist) {
@@ -1665,15 +1647,16 @@ TEST_F(AtcCommonSTest, pbtxt_convert_to_json_file_not_exist) {
   std::string model_arg = "--om=st_run_data/invalid";
   auto om_path = PathJoin(GetRunPath().c_str(), "temp");
   om_path = PathJoin(om_path.c_str(), "pbtxt_json");
-  std::string json_arg = "--json="+om_path+".json";
-  char *convert_to_json_argv[] = {"atc",
-                                  const_cast<char *>(model_arg.c_str()),
-                                  const_cast<char *>(json_arg.c_str()),
-                                  "--mode=5",
-                                  };
-  auto ret = main_impl(sizeof(convert_to_json_argv)/sizeof(convert_to_json_argv[0]), convert_to_json_argv);
+  std::string json_arg = "--json=" + om_path + ".json";
+  char *convert_to_json_argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(json_arg.c_str()),
+      "--mode=5",
+  };
+  auto ret = main_impl(sizeof(convert_to_json_argv) / sizeof(convert_to_json_argv[0]), convert_to_json_argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_model_input_shape_dynamic) {
@@ -1681,22 +1664,21 @@ TEST_F(AtcCommonSTest, pb_model_input_shape_dynamic) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_common_1");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
+  std::string output_arg = "--output=" + om_path;
 
   char *argv[] = {"atc",
                   const_cast<char *>(model_arg.c_str()),
                   const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
+                  "--framework=3",  // FrameworkType
                   "--soc_version=Ascend310",
                   "--output_type=FP32",
                   "--out_nodes=add_test_1:0",
                   "--input_shape_range=Placeholder_1:[-1]",
-                  "--log=debug"
-                  };
+                  "--log=debug"};
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
   CHECK_GRAPH(PreRunBegin) {
     EXPECT_EQ(graph->GetDirectNodesSize(), 4);
   };
@@ -1737,21 +1719,22 @@ TEST_F(AtcCommonSTest, pb_model_input_shape_range) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_common_1");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
+  std::string output_arg = "--output=" + om_path;
 
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--out_nodes=add_test_1:0",
-                  "--input_shape_range=Placeholder_1:[-1]",
-                  };
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--out_nodes=add_test_1:0",
+      "--input_shape_range=Placeholder_1:[-1]",
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
   CHECK_GRAPH(PreRunBegin) {
     EXPECT_EQ(graph->GetDirectNodesSize(), 4);
   };
@@ -1762,21 +1745,22 @@ TEST_F(AtcCommonSTest, pb_model_input_shape_with_invalid_input_op) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_common_1");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
+  std::string output_arg = "--output=" + om_path;
 
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--input_shape=add_test_1:[-1]",
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--out_nodes=add_test_1:0",
-                  "--input_shape_range=add_test_1:[-1]",
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--input_shape=add_test_1:[-1]",
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--out_nodes=add_test_1:0",
+      "--input_shape_range=add_test_1:[-1]",
   };
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_model_input_shape_range_node_not_exist) {
@@ -1784,20 +1768,21 @@ TEST_F(AtcCommonSTest, pb_model_input_shape_range_node_not_exist) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_common_1");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--out_nodes=add_test_1:0",
-                  "--input_shape_range=invalid:[1~8,256,256,-1]",
-                  };
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--out_nodes=add_test_1:0",
+      "--input_shape_range=invalid:[1~8,256,256,-1]",
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_model_input_shape_range_invalid) {
@@ -1805,20 +1790,21 @@ TEST_F(AtcCommonSTest, pb_model_input_shape_range_invalid) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_common_1");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--out_nodes=add_test_1:0",
-                  "--input_shape_range=add_test_1:[1~-1,256,256,-1]",
-                  };
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--out_nodes=add_test_1:0",
+      "--input_shape_range=add_test_1:[1~-1,256,256,-1]",
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_model_input_shape_range_lead_brace) {
@@ -1826,20 +1812,21 @@ TEST_F(AtcCommonSTest, pb_model_input_shape_range_lead_brace) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_common_1");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--out_nodes=add_test_1:0",
-                  "--input_shape_range=add_test_1:1~8,256,256,-1]",
-                  };
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--out_nodes=add_test_1:0",
+      "--input_shape_range=add_test_1:1~8,256,256,-1]",
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_model_input_shape_range_lead_node) {
@@ -1847,20 +1834,21 @@ TEST_F(AtcCommonSTest, pb_model_input_shape_range_lead_node) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_common_1");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--out_nodes=add_test_1:0",
-                  "--input_shape_range=:[1~8,256,256,-1]",
-                  };
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--out_nodes=add_test_1:0",
+      "--input_shape_range=:[1~8,256,256,-1]",
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_model_input_shape_range_more_node) {
@@ -1868,41 +1856,42 @@ TEST_F(AtcCommonSTest, pb_model_input_shape_range_more_node) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_common_1");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--out_nodes=add_test_1:0",
-                  "--input_shape_range=a:b:[1~8,256,256,-1]",
-                  };
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--out_nodes=add_test_1:0",
+      "--input_shape_range=a:b:[1~8,256,256,-1]",
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
-
 
 TEST_F(AtcCommonSTest, pb_op_precision_mode_fail) {
   auto om_path = PathJoin(GetRunPath().c_str(), "temp");
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_abnormal");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--out_nodes=add_test_1:0",
-                  "--op_precision_mode=st_run_data/not_exist",
-                  };
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--out_nodes=add_test_1:0",
+      "--op_precision_mode=st_run_data/not_exist",
+  };
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_modify_mixlist_fail) {
@@ -1910,20 +1899,21 @@ TEST_F(AtcCommonSTest, pb_modify_mixlist_fail) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_abnormal");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--out_nodes=add_test_1:0",
-                  "--modify_mixlist=st_run_data/not_exist",
-                  "--precision_mode=force_fp16",
-                  };
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--out_nodes=add_test_1:0",
+      "--modify_mixlist=st_run_data/not_exist",
+      "--precision_mode=force_fp16",
+  };
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_op_select_implmode_fail) {
@@ -1931,20 +1921,21 @@ TEST_F(AtcCommonSTest, pb_op_select_implmode_fail) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_abnormal");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--out_nodes=add_test_1:0",
-                  "--op_select_implmode=invalid",
-                  "--optypelist_for_implmode=invalid",
-                  };
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--out_nodes=add_test_1:0",
+      "--op_select_implmode=invalid",
+      "--optypelist_for_implmode=invalid",
+  };
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_optypelist_for_implmode_fail) {
@@ -1952,19 +1943,20 @@ TEST_F(AtcCommonSTest, pb_optypelist_for_implmode_fail) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_abnormal");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--out_nodes=add_test_1:0",
-                  "--op_select_implmode=invalid",
-                  };
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--out_nodes=add_test_1:0",
+      "--op_select_implmode=invalid",
+  };
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_framework_fail) {
@@ -1972,18 +1964,19 @@ TEST_F(AtcCommonSTest, pb_framework_fail) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_abnormal");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=10", // FrameworkType
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--out_nodes=add_test_1:0",
-                  };
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=10",  // FrameworkType
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--out_nodes=add_test_1:0",
+  };
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_framework_caffe_fail) {
@@ -1991,53 +1984,56 @@ TEST_F(AtcCommonSTest, pb_framework_caffe_fail) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_abnormal");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=0", // FrameworkType
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--out_nodes=add_test_1:0",
-                  };
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=0",  // FrameworkType
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--out_nodes=add_test_1:0",
+  };
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_output_exceed_max_len) {
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
   std::string om_path(4097, 'a');
-  std::string output_arg = "--output="+om_path;
+  std::string output_arg = "--output=" + om_path;
 
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--out_nodes=add_test_1:0",
-                  };
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--out_nodes=add_test_1:0",
+  };
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_output_not_file) {
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
   std::string output_arg = "--output=st_run_data/";
 
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--out_nodes=add_test_1:0",
-                  };
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--out_nodes=add_test_1:0",
+  };
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_tensorflow_format_invalid) {
@@ -2045,20 +2041,21 @@ TEST_F(AtcCommonSTest, pb_tensorflow_format_invalid) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_abnormal");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
+  std::string output_arg = "--output=" + om_path;
 
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--input_format=NC1HWC0",
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--out_nodes=add_test_1:0",
-                  };
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--input_format=NC1HWC0",
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--out_nodes=add_test_1:0",
+  };
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_caffe_format_invalid) {
@@ -2066,20 +2063,21 @@ TEST_F(AtcCommonSTest, pb_caffe_format_invalid) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_abnormal");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
+  std::string output_arg = "--output=" + om_path;
 
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=0", // FrameworkType
-                  "--input_format=NHWC",
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--out_nodes=add_test_1:0",
-                  };
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=0",  // FrameworkType
+      "--input_format=NHWC",
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--out_nodes=add_test_1:0",
+  };
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_caffe_model_failed) {
@@ -2102,20 +2100,21 @@ TEST_F(AtcCommonSTest, pb_caffe_model_failed) {
 
   auto om_path = PathJoin(base_path.c_str(), "pb_abnormal");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
+  std::string output_arg = "--output=" + om_path;
 
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=0", // FrameworkType
-                  "--weight=st_run_data/origin_model/add.pb",
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--out_nodes=add_test_1:0",
-                  };
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=0",  // FrameworkType
+      "--weight=st_run_data/origin_model/add.pb",
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--out_nodes=add_test_1:0",
+  };
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
   unsetenv("ASCEND_OPP_PATH");
 }
 
@@ -2124,20 +2123,21 @@ TEST_F(AtcCommonSTest, pb_log_level_invalid) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_abnormal");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
+  std::string output_arg = "--output=" + om_path;
 
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--log=invalid",
-                  "--out_nodes=add_test_1:0",
-                  };
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--log=invalid",
+      "--out_nodes=add_test_1:0",
+  };
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, mode_invalid) {
@@ -2145,20 +2145,21 @@ TEST_F(AtcCommonSTest, mode_invalid) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_abnormal");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
+  std::string output_arg = "--output=" + om_path;
 
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--mode=10",
-                  "--out_nodes=add_test_1:0",
-                  };
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--mode=10",
+      "--out_nodes=add_test_1:0",
+  };
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, single_op) {
@@ -2166,17 +2167,18 @@ TEST_F(AtcCommonSTest, single_op) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "singleop");
   std::string single_op = "--singleop=st_run_data/json/single_op/add_op.json";
-  std::string output_arg = "--output="+om_path;
+  std::string output_arg = "--output=" + om_path;
 
-  char *argv[] = {"atc",
-                  const_cast<char *>(single_op.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--allow_hf32=true",
-                  "--soc_version=Ascend310",
-                  };
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(single_op.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--allow_hf32=true",
+      "--soc_version=Ascend310",
+  };
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 // TEST_F(AtcCommonSTest, single_op_output_invalid) {
@@ -2196,17 +2198,18 @@ TEST_F(AtcCommonSTest, single_op_op_precision_mode_invalid) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "singleop");
   std::string single_op = "--singleop=st_run_data/json/single_op/add_op.json";
-  std::string output_arg = "--output="+om_path;
+  std::string output_arg = "--output=" + om_path;
 
-  char *argv[] = {"atc",
-                  const_cast<char *>(single_op.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--soc_version=Ascend310",
-                  "--op_precision_mode=st_run_data/not_exist",
-                  };
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(single_op.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--soc_version=Ascend310",
+      "--op_precision_mode=st_run_data/not_exist",
+  };
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, single_op_modify_mixlist_invalid) {
@@ -2214,17 +2217,18 @@ TEST_F(AtcCommonSTest, single_op_modify_mixlist_invalid) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "singleop");
   std::string single_op = "--singleop=st_run_data/json/single_op/add_op.json";
-  std::string output_arg = "--output="+om_path;
+  std::string output_arg = "--output=" + om_path;
 
-  char *argv[] = {"atc",
-                  const_cast<char *>(single_op.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--soc_version=Ascend310",
-                  "--modify_mixlist=st_run_data/not_exist",
-                  };
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(single_op.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--soc_version=Ascend310",
+      "--modify_mixlist=st_run_data/not_exist",
+  };
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_model_is_input_adjust_hw_layout_invalid) {
@@ -2233,23 +2237,24 @@ TEST_F(AtcCommonSTest, pb_model_is_input_adjust_hw_layout_invalid) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_invalid");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--out_nodes=add_test_1:0",
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--input_shape=Placeholder_1:1,256,256,3",
-                  "--input_fp16_nodes=Placeholder_1",
-                  "--is_input_adjust_hw_layout=invalid",
-                  "--is_output_adjust_hw_layout=true",
-                  };
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--out_nodes=add_test_1:0",
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--input_shape=Placeholder_1:1,256,256,3",
+      "--input_fp16_nodes=Placeholder_1",
+      "--is_input_adjust_hw_layout=invalid",
+      "--is_output_adjust_hw_layout=true",
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_model_input_fp16_nodes_not_exist) {
@@ -2258,21 +2263,22 @@ TEST_F(AtcCommonSTest, pb_model_input_fp16_nodes_not_exist) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_invalid");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--out_nodes=add_test_1:0",
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--input_shape=Placeholder_1:1,256,256,3",
-                  "--input_fp16_nodes=invalid",
-                  };
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--out_nodes=add_test_1:0",
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--input_shape=Placeholder_1:1,256,256,3",
+      "--input_fp16_nodes=invalid",
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_model_input_fp16_nodes_not_data) {
@@ -2281,21 +2287,22 @@ TEST_F(AtcCommonSTest, pb_model_input_fp16_nodes_not_data) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_invalid");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--out_nodes=add_test_1:0",
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--input_shape=Placeholder_1:1,256,256,3",
-                  "--input_fp16_nodes=add_test_1",
-                  };
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--out_nodes=add_test_1:0",
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--input_shape=Placeholder_1:1,256,256,3",
+      "--input_fp16_nodes=add_test_1",
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_input_shape_negative) {
@@ -2303,21 +2310,22 @@ TEST_F(AtcCommonSTest, pb_input_shape_negative) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_invalid");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--input_format=NCHW",
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--out_nodes=add_test_1:0",
-                  "--input_shape=Placeholder_1:-1,256,256,3",
-                  };
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--input_format=NCHW",
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--out_nodes=add_test_1:0",
+      "--input_shape=Placeholder_1:-1,256,256,3",
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_input_shape_float) {
@@ -2325,21 +2333,22 @@ TEST_F(AtcCommonSTest, pb_input_shape_float) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_invalid");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--input_format=NCHW",
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--out_nodes=add_test_1:0",
-                  "--input_shape=Placeholder_1:1.1,256,256,3",
-                  };
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--input_format=NCHW",
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--out_nodes=add_test_1:0",
+      "--input_shape=Placeholder_1:1.1,256,256,3",
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_input_shape_node_not_exist) {
@@ -2347,21 +2356,22 @@ TEST_F(AtcCommonSTest, pb_input_shape_node_not_exist) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_invalid");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--input_format=NCHW",
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--out_nodes=add_test_1:0",
-                  "--input_shape=invalid:1,256,256,3",
-                  };
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--input_format=NCHW",
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--out_nodes=add_test_1:0",
+      "--input_shape=invalid:1,256,256,3",
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_input_shape_content_invalid) {
@@ -2369,21 +2379,22 @@ TEST_F(AtcCommonSTest, pb_input_shape_content_invalid) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_invalid");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--input_format=NCHW",
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--out_nodes=add_test_1:0",
-                  "--input_shape=,:",
-                  };
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--input_format=NCHW",
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--out_nodes=add_test_1:0",
+      "--input_shape=,:",
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_input_shape_type_not_data) {
@@ -2391,21 +2402,22 @@ TEST_F(AtcCommonSTest, pb_input_shape_type_not_data) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_invalid");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--input_format=NCHW",
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--out_nodes=add_test_1:0",
-                  "--input_shape=add_test_1:1,256,256,3",
-                  };
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--input_format=NCHW",
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--out_nodes=add_test_1:0",
+      "--input_shape=add_test_1:1,256,256,3",
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_input_shape_not_digit) {
@@ -2413,21 +2425,22 @@ TEST_F(AtcCommonSTest, pb_input_shape_not_digit) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_invalid");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--input_format=NCHW",
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--out_nodes=add_test_1:0",
-                  "--input_shape=Placeholder_1:a,256,256,3",
-                  };
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--input_format=NCHW",
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--out_nodes=add_test_1:0",
+      "--input_shape=Placeholder_1:a,256,256,3",
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_input_shape_exceed) {
@@ -2435,21 +2448,22 @@ TEST_F(AtcCommonSTest, pb_input_shape_exceed) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_invalid");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--input_format=NCHW",
-                  "--soc_version=Ascend310",
-                  "--output_type=FP32",
-                  "--out_nodes=add_test_1:0",
-                  "--input_shape=Placeholder_1:2147483648,256,256,3",
-                  };
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--input_format=NCHW",
+      "--soc_version=Ascend310",
+      "--output_type=FP32",
+      "--out_nodes=add_test_1:0",
+      "--input_shape=Placeholder_1:2147483648,256,256,3",
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_output_type_invalid) {
@@ -2457,21 +2471,22 @@ TEST_F(AtcCommonSTest, pb_output_type_invalid) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_invalid");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--input_format=NCHW",
-                  "--soc_version=Ascend310",
-                  "--output_type=invalid",
-                  "--out_nodes=add_test_1:0",
-                  "--input_shape=Placeholder_1:1,256,256,3",
-                  };
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--input_format=NCHW",
+      "--soc_version=Ascend310",
+      "--output_type=invalid",
+      "--out_nodes=add_test_1:0",
+      "--input_shape=Placeholder_1:1,256,256,3",
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_output_type_node_not_exist) {
@@ -2479,21 +2494,22 @@ TEST_F(AtcCommonSTest, pb_output_type_node_not_exist) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_invalid");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--input_format=NCHW",
-                  "--soc_version=Ascend310",
-                  "--output_type=invalid:0:FP32",
-                  "--out_nodes=add_test_1:0",
-                  "--input_shape=Placeholder_1:1,256,256,3",
-                  };
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--input_format=NCHW",
+      "--soc_version=Ascend310",
+      "--output_type=invalid:0:FP32",
+      "--out_nodes=add_test_1:0",
+      "--input_shape=Placeholder_1:1,256,256,3",
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_output_type_content_invalid) {
@@ -2501,21 +2517,22 @@ TEST_F(AtcCommonSTest, pb_output_type_content_invalid) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_invalid");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--input_format=NCHW",
-                  "--soc_version=Ascend310",
-                  "--output_type=invalid:FP32",
-                  "--out_nodes=add_test_1:0",
-                  "--input_shape=Placeholder_1:1,256,256,3",
-                  };
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--input_format=NCHW",
+      "--soc_version=Ascend310",
+      "--output_type=invalid:FP32",
+      "--out_nodes=add_test_1:0",
+      "--input_shape=Placeholder_1:1,256,256,3",
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_output_type_not_digit) {
@@ -2523,21 +2540,22 @@ TEST_F(AtcCommonSTest, pb_output_type_not_digit) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_invalid");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--input_format=NCHW",
-                  "--soc_version=Ascend310",
-                  "--output_type=invalid:a:FP32",
-                  "--out_nodes=add_test_1:0",
-                  "--input_shape=Placeholder_1:1,256,256,3",
-                  };
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--input_format=NCHW",
+      "--soc_version=Ascend310",
+      "--output_type=invalid:a:FP32",
+      "--out_nodes=add_test_1:0",
+      "--input_shape=Placeholder_1:1,256,256,3",
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, pb_output_type_port_invalid) {
@@ -2545,21 +2563,22 @@ TEST_F(AtcCommonSTest, pb_output_type_port_invalid) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_invalid");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--input_format=NCHW",
-                  "--soc_version=Ascend310",
-                  "--output_type=invalid:-1:FP32",
-                  "--out_nodes=add_test_1:0",
-                  "--input_shape=Placeholder_1:1,256,256,3",
-                  };
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--input_format=NCHW",
+      "--soc_version=Ascend310",
+      "--output_type=invalid:-1:FP32",
+      "--out_nodes=add_test_1:0",
+      "--input_shape=Placeholder_1:1,256,256,3",
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, virtual_type_invalid) {
@@ -2567,115 +2586,104 @@ TEST_F(AtcCommonSTest, virtual_type_invalid) {
   Mkdir(om_path.c_str());
   om_path = PathJoin(om_path.c_str(), "pb_invalid");
   std::string model_arg = "--model=st_run_data/origin_model/add.pb";
-  std::string output_arg = "--output="+om_path;
-  char *argv[] = {"atc",
-                  const_cast<char *>(model_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--framework=3", // FrameworkType
-                  "--input_format=NCHW",
-                  "--soc_version=Ascend310",
-                  "--virtual_type=2",
-                  "--output_type=invalid:-1:FP32",
-                  "--out_nodes=add_test_1:0",
-                  "--input_shape=Placeholder_1:1,256,256,3",
-                  };
+  std::string output_arg = "--output=" + om_path;
+  char *argv[] = {
+      "atc",
+      const_cast<char *>(model_arg.c_str()),
+      const_cast<char *>(output_arg.c_str()),
+      "--framework=3",  // FrameworkType
+      "--input_format=NCHW",
+      "--soc_version=Ascend310",
+      "--virtual_type=2",
+      "--output_type=invalid:-1:FP32",
+      "--out_nodes=add_test_1:0",
+      "--input_shape=Placeholder_1:1,256,256,3",
+  };
   DUMP_GRAPH_WHEN("PreRunBegin")
-  auto ret = main_impl(sizeof(argv)/sizeof(argv[0]), argv);
+  auto ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, SingCheck_Param_Failed) {
-  char *argv[] = {"atc", "--singleop=add_int.json", "--output=./",
-                  "--display_model_info=1", "--soc_version=\"Ascend310\""};
+  char *argv[] = {"atc", "--singleop=add_int.json", "--output=./", "--display_model_info=1",
+                  "--soc_version=\"Ascend310\""};
   // --singleop与--display_model_info参数冲突
   int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
 
-  char *argv1[] = {"atc", "--singleop=add_int.json", "--output=",
-                  "--display_model_info=0", "--soc_version=\"Ascend310\""};
+  char *argv1[] = {"atc", "--singleop=add_int.json", "--output=", "--display_model_info=0",
+                   "--soc_version=\"Ascend310\""};
   // --singleop中--output参数必选
   ret = main_impl(sizeof(argv1) / sizeof(argv1[0]), argv1);
   EXPECT_EQ(ret, -1);
-  ReInitGe(); // the main_impl will call GEFinalize, so re-init after call it
+  ReInitGe();  // the main_impl will call GEFinalize, so re-init after call it
 }
 
 TEST_F(AtcCommonSTest, GeFlags_param_ok01) {
-  char *argv[] = {"atc",
-                  "--virtual_type=0"};
+  char *argv[] = {"atc", "--virtual_type=0"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
 }
 
 TEST_F(AtcCommonSTest, GeFlags_param_ok02) {
-  char *argv[] = {"atc",
-                  "--virtual_type=1"};
+  char *argv[] = {"atc", "--virtual_type=1"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
   EXPECT_EQ(FLAGS_virtual_type, 1);
 }
 
 TEST_F(AtcCommonSTest, GeFlags_param_ok03) {
-  char *argv[] = {"atc",
-                  "--model=model_value"};
+  char *argv[] = {"atc", "--model=model_value"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
   EXPECT_EQ(FLAGS_model, "model_value");
 }
 
 TEST_F(AtcCommonSTest, GeFlags_param_ok04) {
-  char *argv[] = {"atc",
-                  "--model",
-                  "model_value"};
+  char *argv[] = {"atc", "--model", "model_value"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
   EXPECT_EQ(FLAGS_model, "model_value");
 }
 
 TEST_F(AtcCommonSTest, GeFlags_param_jit_compile_ok) {
-  char *argv[] = {"atc",
-                  "--jit_compile=2"};
+  char *argv[] = {"atc", "--jit_compile=2"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
   EXPECT_EQ(ge::flgs::GetUserOptions()["jit_compile"], "2");
 }
 
 TEST_F(AtcCommonSTest, GeFlags_param_optimization_switch_ok) {
-  char *argv[] = {"atc",
-                  "--optimization_switch=PassA:on;PassB:off"};
+  char *argv[] = {"atc", "--optimization_switch=PassA:on;PassB:off"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
   EXPECT_EQ(ge::flgs::GetUserOptions()["optimization_switch"], "PassA:on;PassB:off");
 }
 
 TEST_F(AtcCommonSTest, GeFlags_param_static_model_ops_lower_limit_ok) {
-  char *argv[] = {"atc",
-                  "--static_model_ops_lower_limit=-1"};
+  char *argv[] = {"atc", "--static_model_ops_lower_limit=-1"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
   EXPECT_EQ(ge::flgs::GetUserOptions()["static_model_ops_lower_limit"], "-1");
 }
 
 TEST_F(AtcCommonSTest, GeFlags_param_raw_ge_options_ok) {
-  char *argv[] = {"atc",
-                  "--raw_ge_options=/tmp/options.json"};
+  char *argv[] = {"atc", "--raw_ge_options=/tmp/options.json"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
   EXPECT_EQ(ge::flgs::GetUserOptions()["raw_ge_options"], "/tmp/options.json");
 }
 
 TEST_F(AtcCommonSTest, GeFlags_param_raw_ge_options_ignore_unsupported_ok) {
-  char *argv[] = {"atc",
-                  "--raw_ge_options_ignore_unsupported=true"};
+  char *argv[] = {"atc", "--raw_ge_options_ignore_unsupported=true"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
   EXPECT_EQ(ge::flgs::GetUserOptions()["raw_ge_options_ignore_unsupported"], "true");
 }
 
 TEST_F(AtcCommonSTest, GeFlags_teardown_resets_raw_ge_options_flag_state) {
-  char *argv[] = {"atc",
-                  "--raw_ge_options=/tmp/options.json",
-                  "--raw_ge_options_ignore_unsupported=true"};
+  char *argv[] = {"atc", "--raw_ge_options=/tmp/options.json", "--raw_ge_options_ignore_unsupported=true"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
   EXPECT_TRUE(FLAGS_raw_ge_options_ignore_unsupported);
@@ -2874,8 +2882,8 @@ TEST_F(AtcCommonSTest, GeFlags_raw_ge_options_output_type_node_format_success) {
       }
     }
   })");
-  const int32_t ret = RunAtcWithRawOptions("raw_ge_options_output_type_node_format", raw_path,
-                                           {"--out_nodes=add_test_1:0"});
+  const int32_t ret =
+      RunAtcWithRawOptions("raw_ge_options_output_type_node_format", raw_path, {"--out_nodes=add_test_1:0"});
   EXPECT_EQ(ret, 0);
   domi::GetContext().final_out_nodes_map.clear();
   ReInitGe();
@@ -2962,8 +2970,8 @@ TEST_F(AtcCommonSTest, GeFlags_raw_ge_options_required_soc_version_not_replaced_
       }
     }
   })");
-  const int32_t ret = RunAtcWithRawOptions("raw_ge_options_required_soc_version_not_replaced", raw_path, {}, true,
-                                           true, false);
+  const int32_t ret =
+      RunAtcWithRawOptions("raw_ge_options_required_soc_version_not_replaced", raw_path, {}, true, true, false);
   EXPECT_NE(ret, 0);
   ReInitGe();
 }
@@ -2976,8 +2984,8 @@ TEST_F(AtcCommonSTest, GeFlags_raw_ge_options_required_framework_not_replaced_fa
       }
     }
   })");
-  const int32_t ret = RunAtcWithRawOptions("raw_ge_options_required_framework_not_replaced", raw_path, {}, true,
-                                           false, true);
+  const int32_t ret =
+      RunAtcWithRawOptions("raw_ge_options_required_framework_not_replaced", raw_path, {}, true, false, true);
   EXPECT_NE(ret, 0);
   ReInitGe();
 }
@@ -2990,8 +2998,8 @@ TEST_F(AtcCommonSTest, GeFlags_raw_ge_options_invalid_value_not_skipped_by_cli_f
       }
     }
   })");
-  const int32_t ret = RunAtcWithRawOptions("raw_ge_options_invalid_value_not_skipped_by_cli", raw_path,
-                                           {"--jit_compile=2"});
+  const int32_t ret =
+      RunAtcWithRawOptions("raw_ge_options_invalid_value_not_skipped_by_cli", raw_path, {"--jit_compile=2"});
   EXPECT_NE(ret, 0);
   ReInitGe();
 }
@@ -3158,8 +3166,7 @@ TEST_F(AtcCommonSTest, GeFlags_param_jit_compile_invalid) {
 
 TEST_F(AtcCommonSTest, GeFlags_param_help01) {
   FLAGS_help = false;
-  char *argv[] = {"atc",
-                  "--help"};
+  char *argv[] = {"atc", "--help"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
   EXPECT_EQ(FLAGS_help, true);
@@ -3167,8 +3174,7 @@ TEST_F(AtcCommonSTest, GeFlags_param_help01) {
 
 TEST_F(AtcCommonSTest, GeFlags_param_help02) {
   FLAGS_help = false;
-  char *argv[] = {"atc",
-                  "-help"};
+  char *argv[] = {"atc", "-help"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
   EXPECT_EQ(FLAGS_help, true);
@@ -3187,8 +3193,7 @@ TEST_F(AtcCommonSTest, GeFlags_param_help03) {
 
 TEST_F(AtcCommonSTest, GeFlags_param_help04) {
   FLAGS_help = false;
-  char *argv[] = {"atc",
-                  "--help=true"};
+  char *argv[] = {"atc", "--help=true"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
   EXPECT_EQ(FLAGS_help, true);
@@ -3196,8 +3201,7 @@ TEST_F(AtcCommonSTest, GeFlags_param_help04) {
 
 TEST_F(AtcCommonSTest, GeFlags_param_help05) {
   FLAGS_help = false;
-  char *argv[] = {"atc",
-                  "--help=True"};
+  char *argv[] = {"atc", "--help=True"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
   EXPECT_EQ(FLAGS_help, true);
@@ -3205,8 +3209,7 @@ TEST_F(AtcCommonSTest, GeFlags_param_help05) {
 
 TEST_F(AtcCommonSTest, GeFlags_param_help06) {
   FLAGS_help = false;
-  char *argv[] = {"atc",
-                  "--help=T"};
+  char *argv[] = {"atc", "--help=T"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
   EXPECT_EQ(FLAGS_help, true);
@@ -3214,8 +3217,7 @@ TEST_F(AtcCommonSTest, GeFlags_param_help06) {
 
 TEST_F(AtcCommonSTest, GeFlags_param_help07) {
   FLAGS_help = false;
-  char *argv[] = {"atc",
-                  "--help=y"};
+  char *argv[] = {"atc", "--help=y"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
   EXPECT_EQ(FLAGS_help, true);
@@ -3223,8 +3225,7 @@ TEST_F(AtcCommonSTest, GeFlags_param_help07) {
 
 TEST_F(AtcCommonSTest, GeFlags_param_help08) {
   FLAGS_help = false;
-  char *argv[] = {"atc",
-                  "--help=yes"};
+  char *argv[] = {"atc", "--help=yes"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
   EXPECT_EQ(FLAGS_help, true);
@@ -3232,8 +3233,7 @@ TEST_F(AtcCommonSTest, GeFlags_param_help08) {
 
 TEST_F(AtcCommonSTest, GeFlags_param_help09) {
   FLAGS_help = false;
-  char *argv[] = {"atc",
-                  "--help=1"};
+  char *argv[] = {"atc", "--help=1"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
   EXPECT_EQ(FLAGS_help, true);
@@ -3241,8 +3241,7 @@ TEST_F(AtcCommonSTest, GeFlags_param_help09) {
 
 TEST_F(AtcCommonSTest, GeFlags_param_help10) {
   FLAGS_help = false;
-  char *argv[] = {"atc",
-                  "--help=false"};
+  char *argv[] = {"atc", "--help=false"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
   EXPECT_EQ(FLAGS_help, false);
@@ -3250,8 +3249,7 @@ TEST_F(AtcCommonSTest, GeFlags_param_help10) {
 
 TEST_F(AtcCommonSTest, GeFlags_param_help11) {
   FLAGS_help = false;
-  char *argv[] = {"atc",
-                  "--help=f"};
+  char *argv[] = {"atc", "--help=f"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
   EXPECT_EQ(FLAGS_help, false);
@@ -3259,8 +3257,7 @@ TEST_F(AtcCommonSTest, GeFlags_param_help11) {
 
 TEST_F(AtcCommonSTest, GeFlags_param_help12) {
   FLAGS_help = false;
-  char *argv[] = {"atc",
-                  "--help=n"};
+  char *argv[] = {"atc", "--help=n"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
   EXPECT_EQ(FLAGS_help, false);
@@ -3268,8 +3265,7 @@ TEST_F(AtcCommonSTest, GeFlags_param_help12) {
 
 TEST_F(AtcCommonSTest, GeFlags_param_help13) {
   FLAGS_help = false;
-  char *argv[] = {"atc",
-                  "--help=no"};
+  char *argv[] = {"atc", "--help=no"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
   EXPECT_EQ(FLAGS_help, false);
@@ -3277,8 +3273,7 @@ TEST_F(AtcCommonSTest, GeFlags_param_help13) {
 
 TEST_F(AtcCommonSTest, GeFlags_param_help14) {
   FLAGS_help = false;
-  char *argv[] = {"atc",
-                  "--help=0"};
+  char *argv[] = {"atc", "--help=0"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
   EXPECT_EQ(FLAGS_help, false);
@@ -3286,118 +3281,97 @@ TEST_F(AtcCommonSTest, GeFlags_param_help14) {
 
 TEST_F(AtcCommonSTest, GeFlags_param_help15) {
   FLAGS_help = false;
-  char *argv[] = {"atc",
-                  "--help=invalid_bool"};
+  char *argv[] = {"atc", "--help=invalid_bool"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
   EXPECT_EQ(FLAGS_help, false);
 }
 
 TEST_F(AtcCommonSTest, GeFlags_param_include_dash) {
-  char *argv[] = {"atc",
-                  "--virtual-type=0"};
+  char *argv[] = {"atc", "--virtual-type=0"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
 }
 
 TEST_F(AtcCommonSTest, GeFlags_param_single_minus) {
-  char *argv[] = {"atc",
-                  "-virtual_type=0"};
+  char *argv[] = {"atc", "-virtual_type=0"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
 }
 
 TEST_F(AtcCommonSTest, GeFlags_flag_value_empty01) {
-  char *argv[] = {"atc",
-                  "--virtual_type="};
+  char *argv[] = {"atc", "--virtual_type="};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
 }
 
 TEST_F(AtcCommonSTest, GeFlags_flag_value_empty02) {
-  char *argv[] = {"atc",
-                  "--model="};
+  char *argv[] = {"atc", "--model="};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
 }
 
 TEST_F(AtcCommonSTest, GeFlags_no_flag_value) {
-  char *argv[] = {"atc",
-                  "--virtual_type"};
+  char *argv[] = {"atc", "--virtual_type"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
 }
 
 TEST_F(AtcCommonSTest, GeFlags_data_type_error) {
-  char *argv[] = {"atc",
-                  "--virtual_type=string_value"};
+  char *argv[] = {"atc", "--virtual_type=string_value"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
 }
 
 TEST_F(AtcCommonSTest, GeFlags_flag_name_error01) {
-  char *argv[] = {"atc",
-                  "--virtual_type_err=0"};
+  char *argv[] = {"atc", "--virtual_type_err=0"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
 }
 
 TEST_F(AtcCommonSTest, GeFlags_flag_name_error02) {
-  char *argv[] = {"atc",
-                  "--virtual_type_err"};
+  char *argv[] = {"atc", "--virtual_type_err"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
 }
 
 TEST_F(AtcCommonSTest, GeFlags_non_option_parameter01) {
-  char *argv[] = {"atc",
-                  "virtual_type=0"};
+  char *argv[] = {"atc", "virtual_type=0"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
 }
 
 TEST_F(AtcCommonSTest, GeFlags_non_option_parameter02) {
-  char *argv[] = {"atc",
-                  "virtual_type=0",
-                  "--mode=0",
-                  "--framework=5"};
+  char *argv[] = {"atc", "virtual_type=0", "--mode=0", "--framework=5"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
 }
 
 TEST_F(AtcCommonSTest, GeFlags_mode_1_framework_error) {
-  char *argv[] = {"atc",
-                  "--mode=1",
-                  "--framework=1",};
+  char *argv[] = {
+      "atc",
+      "--mode=1",
+      "--framework=1",
+  };
   int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
 }
 
 TEST_F(AtcCommonSTest, GeFlags_framework_0_weight_error) {
-  char *argv[] = {"atc",
-                  "--mode=0",
-                  "--framework=0",
-                  "--weight=***",
-                  "--soc_version=\"Ascend310\""};
+  char *argv[] = {"atc", "--mode=0", "--framework=0", "--weight=***", "--soc_version=\"Ascend310\""};
   int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
 }
 
 TEST_F(AtcCommonSTest, GeFlags_framework_0_weight_none) {
-  char *argv[] = {"atc",
-                  "--mode=0",
-                  "--framework=0",
-                  "--soc_version=\"Ascend310\""};
+  char *argv[] = {"atc", "--mode=0", "--framework=0", "--soc_version=\"Ascend310\""};
   int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
 }
 
 TEST_F(AtcCommonSTest, GeFlags_framework_3_weight_warn) {
   std::string weight = "--weight=st_run_data/origin_model/add.pb";
-  char *argv[] = {"atc",
-                  "--mode=0",
-                  "--framework=3",
-                  const_cast<char *>(weight.c_str()),
+  char *argv[] = {"atc", "--mode=0", "--framework=3", const_cast<char *>(weight.c_str()),
                   "--soc_version=\"Ascend310\""};
   int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
@@ -3405,10 +3379,7 @@ TEST_F(AtcCommonSTest, GeFlags_framework_3_weight_warn) {
 
 TEST_F(AtcCommonSTest, GeFlags_framework_5_weight_warn) {
   std::string weight = "--weight=st_run_data/origin_model/add.pb";
-  char *argv[] = {"atc",
-                  "--mode=0",
-                  "--framework=5",
-                  const_cast<char *>(weight.c_str()),
+  char *argv[] = {"atc", "--mode=0", "--framework=5", const_cast<char *>(weight.c_str()),
                   "--soc_version=\"Ascend310\""};
   int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
@@ -3421,25 +3392,28 @@ TEST_F(AtcCommonSTest, GeFlags_no_param_framework_error) {
 }
 
 TEST_F(AtcCommonSTest, GeFlags_singleop_framework_error) {
-  char *argv[] = {"atc"
-                  "--singleop=op.json",
-                  "--framework=5"};
+  char *argv[] = {
+      "atc"
+      "--singleop=op.json",
+      "--framework=5"};
   int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
 }
 
 TEST_F(AtcCommonSTest, GeFlags_singleop_mode_error) {
-  char *argv[] = {"atc"
-                  "--singleop=op.json",
-                  "--mode=1"};
+  char *argv[] = {
+      "atc"
+      "--singleop=op.json",
+      "--mode=1"};
   int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
 }
 
 TEST_F(AtcCommonSTest, GeFlags_singleop_insertopconf_error) {
-  char *argv[] = {"atc"
-                  "--singleop=op.json",
-                  "--insert_op_conf=op.cfg"};
+  char *argv[] = {
+      "atc"
+      "--singleop=op.json",
+      "--insert_op_conf=op.cfg"};
   int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
 }
@@ -3453,7 +3427,7 @@ TEST_F(AtcCommonSTest, CheckDisplayModelInfo_Failed) {
 
   // test convert to json
   std::string om_arg = "--om=" + om_path + ".om";
-  std::string json_arg = "--json="+om_path+".json";
+  std::string json_arg = "--json=" + om_path + ".json";
 
   char *argv[] = {"atc",
                   "--mode=6",
@@ -3470,8 +3444,9 @@ TEST_F(AtcCommonSTest, CheckDisplayModelInfo_Failed) {
 }
 
 TEST_F(AtcCommonSTest, GeFlags_set_input_hint_shpae_failed) {
-  char *argv[] = {"atc"
-                  "--input_hint_shape=0:[3];1:[3]"};
+  char *argv[] = {
+      "atc"
+      "--input_hint_shape=0:[3];1:[3]"};
   int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
 }
@@ -3508,4 +3483,4 @@ TEST_F(AtcCommonSTest, TestAtc_Ok_Om2) {
     EXPECT_EQ(graph->GetDirectNodesSize(), 4);
   };
 }
-}
+}  // namespace ge

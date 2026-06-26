@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,29 +21,34 @@ using namespace ge;
 namespace gert {
 class GraphUnfolderTest : public testing::Test {};
 
-void UpdateUnkownFlag(const ge::ComputeGraphPtr &root_graph){
+void UpdateUnkownFlag(const ge::ComputeGraphPtr &root_graph) {
   for (auto &sub_graph : root_graph->GetAllSubgraphs()) {
     sub_graph->SetGraphUnknownFlag(true);
   }
   int stage = 0;
-  for (const auto &node : root_graph->GetDirectNode()){
+  for (const auto &node : root_graph->GetDirectNode()) {
     AttrUtils::SetInt(node->GetOpDesc(), ATTR_STAGE_LEVEL, stage);
   }
 }
 
-TEST_F(GraphUnfolderTest, test_subgraph_unford_success){
+TEST_F(GraphUnfolderTest, test_subgraph_unford_success) {
   DEF_GRAPH(sub_1) {
-    CHAIN(NODE("data_i", OP_CFG(ge::DATA_TYPE).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0))->NODE("less", ge::LESS)->NODE("netoutput", ge::NETOUTPUT));
+    CHAIN(NODE("data_i", OP_CFG(ge::DATA_TYPE).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0))
+              ->NODE("less", ge::LESS)
+              ->NODE("netoutput", ge::NETOUTPUT));
     CHAIN(NODE("const_5", ge::CONSTANT)->NODE("less"));
   };
 
   DEF_GRAPH(sub_2) {
-    CHAIN(NODE("data_a", OP_CFG(ge::DATA_TYPE).Attr(ATTR_NAME_PARENT_NODE_INDEX, 1))->NODE("mul", ge::MUL)->NODE("netoutput", ge::NETOUTPUT));
+    CHAIN(NODE("data_a", OP_CFG(ge::DATA_TYPE).Attr(ATTR_NAME_PARENT_NODE_INDEX, 1))
+              ->NODE("mul", ge::MUL)
+              ->NODE("netoutput", ge::NETOUTPUT));
     CHAIN(NODE("const_2", ge::CONSTANT)->NODE("mul"));
   };
 
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data_a", OP_CFG(ge::DATA_TYPE).Attr(ATTR_NAME_INDEX, 0))->NODE("partition_call", ge::PARTITIONEDCALL, sub_1, sub_2));
+    CHAIN(NODE("data_a", OP_CFG(ge::DATA_TYPE).Attr(ATTR_NAME_INDEX, 0))
+              ->NODE("partition_call", ge::PARTITIONEDCALL, sub_1, sub_2));
     CHAIN(NODE("data_i", OP_CFG(ge::DATA_TYPE).Attr(ATTR_NAME_INDEX, 1))->NODE("partition_call"));
   };
 
@@ -54,14 +59,17 @@ TEST_F(GraphUnfolderTest, test_subgraph_unford_success){
   ASSERT_EQ(flatten_graph->GetAllNodesSize(), 4);
 }
 
-TEST_F(GraphUnfolderTest, test_known_shape_subgraph_unford_success){
+TEST_F(GraphUnfolderTest, test_known_shape_subgraph_unford_success) {
   DEF_GRAPH(sub_1) {
-    CHAIN(NODE("data_i", OP_CFG(ge::DATA_TYPE).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0))->NODE("less", ge::LESS)->NODE("netoutput", ge::NETOUTPUT));
+    CHAIN(NODE("data_i", OP_CFG(ge::DATA_TYPE).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0))
+              ->NODE("less", ge::LESS)
+              ->NODE("netoutput", ge::NETOUTPUT));
     CHAIN(NODE("const_5", ge::CONSTANT)->NODE("less"));
   };
 
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data_a", OP_CFG(ge::DATA_TYPE).Attr(ATTR_NAME_INDEX, 0))->NODE("partition_call", ge::PARTITIONEDCALL, sub_1));
+    CHAIN(NODE("data_a", OP_CFG(ge::DATA_TYPE).Attr(ATTR_NAME_INDEX, 0))
+              ->NODE("partition_call", ge::PARTITIONEDCALL, sub_1));
     CHAIN(NODE("data_i", OP_CFG(ge::DATA_TYPE).Attr(ATTR_NAME_INDEX, 1))->NODE("partition_call"));
   };
 
@@ -154,7 +162,7 @@ ComputeGraphPtr BuildCaseSubGraph() {
     };
 
     auto sub_builder_case = [&sub_graph_builder](bool unknown_flag) {
-      std::string graph_name = "case" + std::to_string(static_cast<int32_t>(unknown_flag)); 
+      std::string graph_name = "case" + std::to_string(static_cast<int32_t>(unknown_flag));
       auto graph = std::make_shared<ge::ComputeGraph>(graph_name);
       auto data = NodeBuilder("data1", ge::DATA)
                       .Attr(ge::ATTR_NAME_INDEX, 0)
@@ -162,14 +170,17 @@ ComputeGraphPtr BuildCaseSubGraph() {
                       .Output()
                       .Build(graph);
       auto data2 = NodeBuilder("data2", ge::DATA)
-                      .Attr(ge::ATTR_NAME_INDEX, 1)
-                      .Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 2)
-                      .Output()
-                      .Build(graph);
+                       .Attr(ge::ATTR_NAME_INDEX, 1)
+                       .Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 2)
+                       .Output()
+                       .Build(graph);
       auto add2 = NodeBuilder("add2", ADD).Input(data).Input(data2).Output().Build(graph);
       std::string known_node_name = graph_name + "known";
       auto nested_known = NodeBuilder("nested_known", ge::PARTITIONEDCALL)
-          .Input(add2).Output().Attr("subgraph_known", sub_graph_builder(false, known_node_name)).Build(graph);
+                              .Input(add2)
+                              .Output()
+                              .Attr("subgraph_known", sub_graph_builder(false, known_node_name))
+                              .Build(graph);
       auto output = NodeBuilder("output2", ge::NETOUTPUT).Input(nested_known).Build(graph);
       graph->SetGraphUnknownFlag(unknown_flag);
       return graph;
@@ -182,30 +193,40 @@ ComputeGraphPtr BuildCaseSubGraph() {
                     .Output()
                     .Build(graph);
     auto data2 = NodeBuilder("data2", ge::DATA)
-                    .Attr(ge::ATTR_NAME_INDEX, 1)
-                    .Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 1)
-                    .Output()
-                    .Build(graph);
+                     .Attr(ge::ATTR_NAME_INDEX, 1)
+                     .Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 1)
+                     .Output()
+                     .Build(graph);
     auto data3 = NodeBuilder("data3", ge::DATA)
-                    .Attr(ge::ATTR_NAME_INDEX, 2)
-                    .Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 2)
-                    .Output()
-                    .Build(graph);
+                     .Attr(ge::ATTR_NAME_INDEX, 2)
+                     .Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 2)
+                     .Output()
+                     .Build(graph);
     auto op = NodeBuilder("case", "Case")
-        .Input(data).Input(data2).Input(data3).Output()
-        .Output()
-        .Attr("batch1", sub_builder_case(false))
-        .Attr("batch2", sub_builder_case(true))
-        .Build(graph);
+                  .Input(data)
+                  .Input(data2)
+                  .Input(data3)
+                  .Output()
+                  .Output()
+                  .Attr("batch1", sub_builder_case(false))
+                  .Attr("batch2", sub_builder_case(true))
+                  .Build(graph);
     auto nested_1 = NodeBuilder("nested_call1_known", ge::PARTITIONEDCALL)
-        .Input(op).Output().Attr("known", sub_graph_builder(false, "unknown_graph_new")).Build(graph);
+                        .Input(op)
+                        .Output()
+                        .Attr("known", sub_graph_builder(false, "unknown_graph_new"))
+                        .Build(graph);
     auto output = NodeBuilder("output1", ge::NETOUTPUT).Input(nested_1).Build(graph);
     graph->SetGraphUnknownFlag(true);
     return graph;
   };
   auto nested = NodeBuilder("nested_call_unknown", ge::PARTITIONEDCALL)
-      .Input(add1).Input(data).Input(data2).Output()
-      .Attr("subgrah", sub_builder()).Build(main_graph);
+                    .Input(add1)
+                    .Input(data)
+                    .Input(data2)
+                    .Output()
+                    .Attr("subgrah", sub_builder())
+                    .Build(main_graph);
   auto output = NodeBuilder("output", ge::NETOUTPUT).Input(nested).Build(main_graph);
   return main_graph;
 }
@@ -241,7 +262,12 @@ ComputeGraphPtr BuildIfSubGraph() {
   };
 
   auto nested_1 = NodeBuilder("If", ge::IF)
-      .Input(data).Input(data2).Output().Attr("unknown", sub_builder_unknown()).Attr("unknown", sub_builder_known()).Build(main_graph);
+                      .Input(data)
+                      .Input(data2)
+                      .Output()
+                      .Attr("unknown", sub_builder_unknown())
+                      .Attr("unknown", sub_builder_known())
+                      .Build(main_graph);
   auto output = NodeBuilder("output", ge::NETOUTPUT).Input(nested_1).Build(main_graph);
   return main_graph;
 }
@@ -316,8 +342,6 @@ TEST_F(GraphUnfolderTest, test_if_sub_graph) {
 
 // 在原图上展开partitioncall子图
 TEST_F(GraphUnfolderTest, test_inplace_nested_once_graph) {
-
-
   auto graph = BuildNestedOnceGraph();
   ASSERT_EQ(GraphUnfolder::UnfoldAllPartitioncallInPlace(graph), ge::GRAPH_SUCCESS);
   ASSERT_EQ(graph->GetDirectNodesSize(), 3U);
@@ -350,9 +374,9 @@ TEST_F(GraphUnfolderTest, test_inplace_nested_twice_graph) {
 
 // 在原图上展开case子图
 TEST_F(GraphUnfolderTest, test_inplace_case_sub_graph) {
-  auto graph =  ShareGraph::BuildCaseWithNestedPartitionedCall();
+  auto graph = ShareGraph::BuildCaseWithNestedPartitionedCall();
   ASSERT_EQ(GraphUnfolder::UnfoldAllPartitioncallInPlace(graph), ge::GRAPH_SUCCESS);
-  auto case_node =  graph->FindFirstNodeMatchType(CASE);
+  auto case_node = graph->FindFirstNodeMatchType(CASE);
   ASSERT_NE(case_node, nullptr);
   std::vector<ge::ComputeGraphPtr> subgraphs;
   ge::NodeUtils::GetDirectSubgraphs(case_node, subgraphs);
@@ -379,5 +403,4 @@ TEST_F(GraphUnfolderTest, test_inplace_if_sub_graph) {
     ASSERT_NE(subgraph->FindFirstNodeMatchType(SQRT), nullptr);
   }
 }
-} // namespace gert
-
+}  // namespace gert

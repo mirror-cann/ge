@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -37,13 +37,14 @@ using namespace gert::bg;
 namespace gert {
 extern ge::Status AddDataNodeForAtomic(ge::ComputeGraphPtr &graph, ge::NodePtr &clean_node, size_t output_size);
 extern ge::NodePtr BuildAtomicNode(const ge::NodePtr &origin_node,
-                        const gert::bg::AtomicLoweringArg &atomic_lowering_arg,
-                        std::vector<gert::bg::ValueHolderPtr> &output_clean_sizes,
-                        std::vector<gert::bg::ValueHolderPtr> &output_clean_addrs,
-                        ComputeGraphPtr &graph);
+                                   const gert::bg::AtomicLoweringArg &atomic_lowering_arg,
+                                   std::vector<gert::bg::ValueHolderPtr> &output_clean_sizes,
+                                   std::vector<gert::bg::ValueHolderPtr> &output_clean_addrs, ComputeGraphPtr &graph);
 
 namespace {
-ge::graphStatus InferShapeStub(InferShapeContext *context) { return SUCCESS;}
+ge::graphStatus InferShapeStub(InferShapeContext *context) {
+  return SUCCESS;
+}
 IMPL_OP(Conv2d).InferShape(InferShapeStub);
 IMPL_OP(Relu).InferShape(InferShapeStub);
 
@@ -66,72 +67,67 @@ IMPL_OP(Relu).InferShape(InferShapeStub);
 -----------------------------------------------------------------------------
 */
 ge::ComputeGraphPtr BuildGraphWithUBfusion() {
-   std::vector<int64_t> shape = {2,2,3,2};  // NCHW
-   std::vector<int64_t> unknown_shape = {2,2,-1,2};  // NCHW
+  std::vector<int64_t> shape = {2, 2, 3, 2};           // NCHW
+  std::vector<int64_t> unknown_shape = {2, 2, -1, 2};  // NCHW
 
   auto data1 = OP_CFG("Data")
-        .TensorDesc(FORMAT_NCHW, DT_FLOAT, unknown_shape)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
-        .Attr("OwnerGraphIsUnknown", true)
-        .Build("data1");
+                   .TensorDesc(FORMAT_NCHW, DT_FLOAT, unknown_shape)
+                   .InCnt(1)
+                   .OutCnt(1)
+                   .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
+                   .Attr("OwnerGraphIsUnknown", true)
+                   .Build("data1");
 
-  vector<int64_t> test_int64_list_attr = {1,2,3};
+  vector<int64_t> test_int64_list_attr = {1, 2, 3};
   auto conv2d = OP_CFG("Conv2d")
-        .TensorDesc(FORMAT_NCHW, DT_FLOAT, unknown_shape)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr("string_attr", "test")
-        .Attr("int32_attr", (int32_t)1)
-        .Attr("uint32_attr", (uint32_t)1)
-        .Attr("data_format", "NHWC")  // attr on operator
-        .Attr("dilations", test_int64_list_attr)
-        .Attr("groups", (int32_t)1)
-        .Attr("offset_x", (int32_t)1)
-        .Build("conv2d");
+                    .TensorDesc(FORMAT_NCHW, DT_FLOAT, unknown_shape)
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .Attr("string_attr", "test")
+                    .Attr("int32_attr", (int32_t)1)
+                    .Attr("uint32_attr", (uint32_t)1)
+                    .Attr("data_format", "NHWC")  // attr on operator
+                    .Attr("dilations", test_int64_list_attr)
+                    .Attr("groups", (int32_t)1)
+                    .Attr("offset_x", (int32_t)1)
+                    .Build("conv2d");
   conv2d->SetOpEngineName("AIcoreEngine");
   conv2d->SetOpKernelLibName("AIcoreEngine");
 
-  auto relu = OP_CFG("Relu")
-        .TensorDesc(FORMAT_NCHW, DT_FLOAT, unknown_shape)
-        .InCnt(1)
-        .OutCnt(1)
-        .Build("relu");
+  auto relu = OP_CFG("Relu").TensorDesc(FORMAT_NCHW, DT_FLOAT, unknown_shape).InCnt(1).OutCnt(1).Build("relu");
   relu->SetOpEngineName("AIcoreEngine");
   relu->SetOpKernelLibName("AIcoreEngine");
 
   auto netoutput_sub = OP_CFG("_RetVal")
-        .TensorDesc(FORMAT_NCHW, DT_FLOAT, unknown_shape)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
-        .Build("netoutput_sub");
+                           .TensorDesc(FORMAT_NCHW, DT_FLOAT, unknown_shape)
+                           .InCnt(1)
+                           .OutCnt(1)
+                           .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
+                           .Build("netoutput_sub");
 
   DEF_GRAPH(fuse_origin_graph) {
     CHAIN(NODE(data1)->NODE(conv2d)->NODE(relu)->NODE(netoutput_sub));
   };
 
   auto data_a = OP_CFG("Data")
-        .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .Build("data_a");
+                    .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .Attr(ATTR_NAME_INDEX, 0)
+                    .Build("data_a");
 
   auto conv2d_fused = OP_CFG("Conv2d")
-        .TensorDesc(FORMAT_NCHW, DT_FLOAT, unknown_shape)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr("data_format", "NHWC")  // attr on operator
-        .Attr("dilations", test_int64_list_attr)
-        .Attr("groups", (int32_t)1)
-        .Attr("offset_x", (int32_t)1)
-        .Attr("_original_fusion_graph", fuse_origin_graph)
-        .Build("conv2d_fused");
+                          .TensorDesc(FORMAT_NCHW, DT_FLOAT, unknown_shape)
+                          .InCnt(1)
+                          .OutCnt(1)
+                          .Attr("data_format", "NHWC")  // attr on operator
+                          .Attr("dilations", test_int64_list_attr)
+                          .Attr("groups", (int32_t)1)
+                          .Attr("offset_x", (int32_t)1)
+                          .Attr("_original_fusion_graph", fuse_origin_graph)
+                          .Build("conv2d_fused");
   conv2d_fused->SetOpEngineName("AIcoreEngine");
   conv2d_fused->SetOpKernelLibName("AIcoreEngine");  // fake op cannot do that?
-  
 
   DEF_GRAPH(g1) {
     CHAIN(NODE(data_a)->NODE(conv2d_fused)->NODE("netoutput", "NetOutput"));
@@ -152,12 +148,12 @@ ge::ComputeGraphPtr BuildGraphWithUBfusion() {
   AddCompileResult(conv2d_fused_node, false);
   return compute_graph;
 }
-} // namespace
+}  // namespace
 
 class AicoreNodeConverterUT : public bg::BgTestAutoCreate3StageFrame {
  protected:
   void SetUp() override {
-    //BgTest::SetUp();
+    // BgTest::SetUp();
     BgTestAutoCreate3StageFrame::SetUp();
   }
   void TearDown() override {
@@ -244,7 +240,8 @@ class AicoreNodeConverterUT : public bg::BgTestAutoCreate3StageFrame {
     // graph compare
 
     auto execute_graph = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs),
-                                                        add_ret.order_holders)->GetExecuteGraph();
+                                                        add_ret.order_holders)
+                             ->GetExecuteGraph();
     ASSERT_NE(execute_graph, nullptr);
     DumpGraph(execute_graph.get(), "GeneralAiCoreExe");
     gert::GlobalDumper::GetInstance()->SetEnableFlags(0UL);
@@ -281,7 +278,9 @@ TEST_F(AicoreNodeConverterUT, ConvertGeneralAicoreNode) {
   ASSERT_NE(exe_graph, nullptr);
   // graph compare
 
-  auto execute_graph = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)->GetExecuteGraph();
+  auto execute_graph =
+      bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)
+          ->GetExecuteGraph();
   ASSERT_NE(execute_graph, nullptr);
   DumpGraph(execute_graph.get(), "GeneralAiCoreExe");
   gert::GlobalDumper::GetInstance()->SetEnableFlags(0UL);
@@ -296,7 +295,7 @@ TEST_F(AicoreNodeConverterUT, ConvertSoftAicoreNode) {
   auto compile_result = global_data.FindCompiledResult(add_node);
   // 0. alloc rt arg
   const domi::TaskDef *task_def = GetTaskDef(add_node, compile_result, TaskDefType::kAICore);
-  auto task_def_t = const_cast<domi::TaskDef*>(task_def);
+  auto task_def_t = const_cast<domi::TaskDef *>(task_def);
   uint16_t args_offset[9] = {0};
   task_def_t->mutable_kernel()->mutable_context()->set_args_offset(args_offset, 9 * sizeof(uint16_t));
   task_def_t->mutable_kernel()->set_args_size(64);
@@ -337,7 +336,9 @@ TEST_F(AicoreNodeConverterUT, ConvertSoftAicoreNode) {
   ASSERT_NE(exe_graph, nullptr);
   // graph compare
 
-  auto execute_graph = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)->GetExecuteGraph();
+  auto execute_graph =
+      bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)
+          ->GetExecuteGraph();
   ASSERT_NE(execute_graph, nullptr);
   DumpGraph(execute_graph.get(), "GeneralAiCoreExe");
 }
@@ -357,7 +358,9 @@ TEST_F(AicoreNodeConverterUT, ConvertAtomicAicoreNode) {
   ASSERT_TRUE(ret.result.IsSuccess());
   // todo check graph
 
-  auto execute_graph = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(ret.out_addrs), ret.order_holders)->GetExecuteGraph();
+  auto execute_graph =
+      bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(ret.out_addrs), ret.order_holders)
+          ->GetExecuteGraph();
   ASSERT_NE(execute_graph, nullptr);
   // GraphUtils::DumpGEGraph(execute_graph, "", true, "./atomic_exe_graph.txt");
   DumpGraph(execute_graph.get(), "AtomicAiCoreExe");
@@ -375,12 +378,14 @@ TEST_F(AicoreNodeConverterUT, ConvertStaticMemSetAicoreNode) {
 
   LowerInput inputs = {data1_ret.out_shapes, data1_ret.out_addrs, &global_data};
   auto trans1 = graph->FindNode("trans1");
-  trans1->GetOpDesc()->DelAttr( "_atomic_compile_info_json");
+  trans1->GetOpDesc()->DelAttr("_atomic_compile_info_json");
   auto ret = LoweringAiCoreNode(trans1, inputs);
   ASSERT_TRUE(ret.result.IsSuccess());
   // todo check graph
 
-  auto execute_graph = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(ret.out_addrs), ret.order_holders)->GetExecuteGraph();
+  auto execute_graph =
+      bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(ret.out_addrs), ret.order_holders)
+          ->GetExecuteGraph();
   ASSERT_NE(execute_graph, nullptr);
   // GraphUtils::DumpGEGraph(execute_graph, "", true, "./atomic_exe_graph.txt");
   DumpGraph(execute_graph.get(), "MemSetAiCoreExe");
@@ -402,7 +407,9 @@ TEST_F(AicoreNodeConverterUT, ConvertDynamicMemSetAicoreNode) {
   ASSERT_TRUE(ret.result.IsSuccess());
   // todo check graph
 
-  auto execute_graph = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(ret.out_addrs), ret.order_holders)->GetExecuteGraph();
+  auto execute_graph =
+      bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(ret.out_addrs), ret.order_holders)
+          ->GetExecuteGraph();
   ASSERT_NE(execute_graph, nullptr);
   // GraphUtils::DumpGEGraph(execute_graph, "", true, "./atomic_exe_graph.txt");
   DumpGraph(execute_graph.get(), "MemSetAiCoreExe");
@@ -430,7 +437,8 @@ TEST_F(AicoreNodeConverterUT, ConvertStaticNode) {
   ASSERT_EQ(add_ret.order_holders.size(), 1);
   FastNodeTopoChecker checker(add_ret.out_addrs[0]);
   ge::DumpGraph(add_ret.out_addrs[0]->GetFastNode()->GetExtendInfo()->GetOwnerGraphBarePtr(), "demo");
-  EXPECT_EQ(checker.StrictConnectFrom(std::vector<FastSrcNode>({{"SelectL2Allocator", 0}, {"CalcTensorSizeFromStorage", 0}}), true),
+  EXPECT_EQ(checker.StrictConnectFrom(
+                std::vector<FastSrcNode>({{"SelectL2Allocator", 0}, {"CalcTensorSizeFromStorage", 0}}), true),
             "success");
   EXPECT_EQ(checker.StrictConnectTo(0, std::vector<FastSrcNode>({{"FreeMemory", 0}, {"LaunchKernelWithFlag", 13}})),
             "success");
@@ -456,7 +464,9 @@ TEST_F(AicoreNodeConverterUT, ConvertStaticNode) {
   EXPECT_EQ(ge::ExecuteGraphUtils::FindFirstNodeMatchType(exe_graph, "InferShape"), nullptr);
   EXPECT_EQ(ge::ExecuteGraphUtils::FindFirstNodeMatchType(exe_graph, "Tiling"), nullptr);
 
-  auto execute_graph = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)->GetExecuteGraph();
+  auto execute_graph =
+      bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)
+          ->GetExecuteGraph();
   ASSERT_NE(execute_graph, nullptr);
   DumpGraph(execute_graph.get(), "StaticAiCoreExe");
 }
@@ -471,9 +481,7 @@ TEST_F(AicoreNodeConverterUT, ConstructUbFusionNodeInferShapeOk) {
   auto data_a_ret = LoweringDataNode(graph->FindNode("data_a"), data_input);
   ASSERT_TRUE(data_a_ret.result.IsSuccess());
   ASSERT_EQ(data_a_ret.out_shapes.size(), 1);
-  LowerInput conv2d_input = {{data_a_ret.out_shapes[0]},
-                           {data_a_ret.out_addrs[0]},
-                           &global_data};
+  LowerInput conv2d_input = {{data_a_ret.out_shapes[0]}, {data_a_ret.out_addrs[0]}, &global_data};
 
   auto conv_ret = LoweringAiCoreNode(ub_fusion_node, conv2d_input);
   ASSERT_TRUE(conv_ret.result.IsSuccess());
@@ -567,7 +575,9 @@ TEST_F(AicoreNodeConverterUT, ConvertThirdClassAicoreNode) {
   ASSERT_NE(exe_graph, nullptr);
   // graph compare
 
-  auto execute_graph = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)->GetExecuteGraph();
+  auto execute_graph =
+      bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)
+          ->GetExecuteGraph();
   ASSERT_NE(execute_graph, nullptr);
   DumpGraph(execute_graph.get(), "GeneralAiCoreExe");
 }
@@ -600,7 +610,9 @@ TEST_F(AicoreNodeConverterUT, ConvertAicoreNodeWithOverflow) {
   auto exe_graph = add_ret.out_addrs[0]->GetFastNode()->GetExtendInfo()->GetOwnerGraphBarePtr();
   ASSERT_NE(exe_graph, nullptr);
   // graph compare
-  auto execute_graph = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)->GetExecuteGraph();
+  auto execute_graph =
+      bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)
+          ->GetExecuteGraph();
   ASSERT_NE(execute_graph, nullptr);
   DumpGraph(execute_graph.get(), "GeneralAiCoreExe");
 }
@@ -643,7 +655,9 @@ TEST_F(AicoreNodeConverterUT, ConvertPartSupportAicoreNode1) {
   ASSERT_NE(aicore_launch_node, nullptr);
   ASSERT_NE(cpu_launch_node, nullptr);
 
-  auto execute_graph = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)->GetExecuteGraph();
+  auto execute_graph =
+      bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)
+          ->GetExecuteGraph();
   ASSERT_NE(execute_graph, nullptr);
   DumpGraph(execute_graph.get(), "GeneralPartSupportAiCoreExe");
 }
@@ -687,7 +701,9 @@ TEST_F(AicoreNodeConverterUT, ConvertPartSupportAicoreNode2) {
   ASSERT_NE(aicore_launch_node, nullptr);
   ASSERT_NE(cpu_launch_node, nullptr);
 
-  auto execute_graph = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)->GetExecuteGraph();
+  auto execute_graph =
+      bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)
+          ->GetExecuteGraph();
   ASSERT_NE(execute_graph, nullptr);
   DumpGraph(execute_graph.get(), "GeneralPartSupportAiCoreExe");
 }
@@ -721,16 +737,18 @@ TEST_F(AicoreNodeConverterUT, ConvertPartSupportAicoreNode3) {
   FastNode *aicore_launch_node = nullptr;
   FastNode *cpu_launch_node = nullptr;
   for (auto &node : exe_graph->GetAllNodes()) {
-  if (node->GetType() == "LaunchKernelWithHandle") {
-    aicore_launch_node = node;
-  } else if (node->GetType() == "AicpuLaunchTfKernel") {
-    cpu_launch_node = node;
-  }
+    if (node->GetType() == "LaunchKernelWithHandle") {
+      aicore_launch_node = node;
+    } else if (node->GetType() == "AicpuLaunchTfKernel") {
+      cpu_launch_node = node;
+    }
   }
   ASSERT_NE(aicore_launch_node, nullptr);
   ASSERT_EQ(cpu_launch_node, nullptr);
 
-  auto execute_graph = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)->GetExecuteGraph();
+  auto execute_graph =
+      bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)
+          ->GetExecuteGraph();
   ASSERT_NE(execute_graph, nullptr);
   DumpGraph(execute_graph.get(), "GeneralPartSupportAiCoreExe");
 }
@@ -769,16 +787,18 @@ TEST_F(AicoreNodeConverterUT, ConvertPartSupportAicoreNode4) {
   FastNode *aicore_launch_node = nullptr;
   FastNode *cpu_launch_node = nullptr;
   for (auto &node : exe_graph->GetAllNodes()) {
-  if (node->GetType() == "LaunchKernelWithHandle") {
-    aicore_launch_node = node;
-  } else if (node->GetType() == "AicpuLaunchTfKernel") {
-    cpu_launch_node = node;
-  }
+    if (node->GetType() == "LaunchKernelWithHandle") {
+      aicore_launch_node = node;
+    } else if (node->GetType() == "AicpuLaunchTfKernel") {
+      cpu_launch_node = node;
+    }
   }
   ASSERT_NE(aicore_launch_node, nullptr);
   ASSERT_EQ(cpu_launch_node, nullptr);
   NodeConverterRegistry::GetInstance().Register(ge::kEngineNameAiCpuTf, ori_data);
-  auto execute_graph = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)->GetExecuteGraph();
+  auto execute_graph =
+      bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)
+          ->GetExecuteGraph();
   ASSERT_NE(execute_graph, nullptr);
   DumpGraph(execute_graph.get(), "GeneralPartSupportAiCoreExe");
 }
@@ -814,109 +834,115 @@ TEST_F(AicoreNodeConverterUT, ConvertPartSupportAicoreNode5) {
   FastNode *aicore_launch_node = nullptr;
   FastNode *cpu_launch_node = nullptr;
   for (auto &node : exe_graph->GetAllNodes()) {
-  if (node->GetType() == "LaunchKernelWithFlag") {
-  aicore_launch_node = node;
-  } else if (node->GetType() == "AicpuLaunchTfKernel") {
-  cpu_launch_node = node;
-  }
+    if (node->GetType() == "LaunchKernelWithFlag") {
+      aicore_launch_node = node;
+    } else if (node->GetType() == "AicpuLaunchTfKernel") {
+      cpu_launch_node = node;
+    }
   }
   ASSERT_NE(aicore_launch_node, nullptr);
   ASSERT_EQ(cpu_launch_node, nullptr);
 
-  auto execute_graph = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)->GetExecuteGraph();
+  auto execute_graph =
+      bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)
+          ->GetExecuteGraph();
   ASSERT_NE(execute_graph, nullptr);
 }
 
 TEST_F(AicoreNodeConverterUT, AicoreEmptyTensorTest1) {
-    auto graph = ShareGraph::AicoreGraph();
-    auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto graph = ShareGraph::AicoreGraph();
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Add", false).Build();
-    bg::LowerConstDataNode(global_data);
-    LowerInput data_input = {{}, {}, &global_data};
+  bg::LowerConstDataNode(global_data);
+  LowerInput data_input = {{}, {}, &global_data};
 
-    auto data1_ret = LoweringDataNode(graph->FindNode("data1"), data_input);
-    auto data2_ret = LoweringDataNode(graph->FindNode("data2"), data_input);
-    ASSERT_TRUE(data1_ret.result.IsSuccess());
-    ASSERT_TRUE(data2_ret.result.IsSuccess());
+  auto data1_ret = LoweringDataNode(graph->FindNode("data1"), data_input);
+  auto data2_ret = LoweringDataNode(graph->FindNode("data2"), data_input);
+  ASSERT_TRUE(data1_ret.result.IsSuccess());
+  ASSERT_TRUE(data2_ret.result.IsSuccess());
 
-    LowerInput add_input = {{data1_ret.out_shapes[0], data2_ret.out_shapes[0]},
-      {data1_ret.out_addrs[0], data2_ret.out_addrs[0]},
-      &global_data};
+  LowerInput add_input = {{data1_ret.out_shapes[0], data2_ret.out_shapes[0]},
+                          {data1_ret.out_addrs[0], data2_ret.out_addrs[0]},
+                          &global_data};
 
-    auto add_node = graph->FindNode("add1");
-    std::vector<std::pair<int64_t, int64_t>> shape_range = {{1, 10}, {1, 10}, {1, 10}, {1, 10}};
-    for (auto &output_tensor : add_node->GetOpDesc()->GetAllOutputsDescPtr()) {
-      output_tensor->SetShapeRange(shape_range);
+  auto add_node = graph->FindNode("add1");
+  std::vector<std::pair<int64_t, int64_t>> shape_range = {{1, 10}, {1, 10}, {1, 10}, {1, 10}};
+  for (auto &output_tensor : add_node->GetOpDesc()->GetAllOutputsDescPtr()) {
+    output_tensor->SetShapeRange(shape_range);
+  }
+
+  auto add_ret = LoweringAiCoreNode(add_node, add_input);
+  ASSERT_TRUE(add_ret.result.IsSuccess());
+  ASSERT_EQ(add_ret.out_addrs.size(), 1);
+  ASSERT_EQ(add_ret.out_shapes.size(), 1);
+  ASSERT_EQ(add_ret.order_holders.size(), 1);
+
+  auto exe_graph = add_ret.out_addrs[0]->GetFastNode()->GetExtendInfo()->GetOwnerGraphBarePtr();
+  ASSERT_NE(exe_graph, nullptr);
+  // graph compare
+
+  FastNode *check_shape_node = nullptr;
+  for (auto &node : exe_graph->GetAllNodes()) {
+    if (node->GetType() == "CheckOutputShapesEmpty") {
+      check_shape_node = node;
+      break;
     }
+  }
+  ASSERT_EQ(check_shape_node, nullptr);
 
-    auto add_ret = LoweringAiCoreNode(add_node, add_input);
-    ASSERT_TRUE(add_ret.result.IsSuccess());
-    ASSERT_EQ(add_ret.out_addrs.size(), 1);
-    ASSERT_EQ(add_ret.out_shapes.size(), 1);
-    ASSERT_EQ(add_ret.order_holders.size(), 1);
-
-    auto exe_graph = add_ret.out_addrs[0]->GetFastNode()->GetExtendInfo()->GetOwnerGraphBarePtr();
-    ASSERT_NE(exe_graph, nullptr);
-    // graph compare
-
-    FastNode *check_shape_node = nullptr;
-    for (auto &node : exe_graph->GetAllNodes()) {
-      if (node->GetType() == "CheckOutputShapesEmpty") {
-        check_shape_node = node;
-        break;
-      }
-    }
-    ASSERT_EQ(check_shape_node, nullptr);
-
-    auto execute_graph = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)->GetExecuteGraph();
-    ASSERT_NE(execute_graph, nullptr);
-    DumpGraph(execute_graph.get(), "GeneralAiCoreExe");
+  auto execute_graph =
+      bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)
+          ->GetExecuteGraph();
+  ASSERT_NE(execute_graph, nullptr);
+  DumpGraph(execute_graph.get(), "GeneralAiCoreExe");
 }
 
 TEST_F(AicoreNodeConverterUT, AicoreEmptyTensorTest2) {
-    auto graph = ShareGraph::AicoreGraph();
-    auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto graph = ShareGraph::AicoreGraph();
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Add", false).Build();
-    bg::LowerConstDataNode(global_data);
-    LowerInput data_input = {{}, {}, &global_data};
+  bg::LowerConstDataNode(global_data);
+  LowerInput data_input = {{}, {}, &global_data};
 
-    auto data1_ret = LoweringDataNode(graph->FindNode("data1"), data_input);
-    auto data2_ret = LoweringDataNode(graph->FindNode("data2"), data_input);
-    ASSERT_TRUE(data1_ret.result.IsSuccess());
-    ASSERT_TRUE(data2_ret.result.IsSuccess());
+  auto data1_ret = LoweringDataNode(graph->FindNode("data1"), data_input);
+  auto data2_ret = LoweringDataNode(graph->FindNode("data2"), data_input);
+  ASSERT_TRUE(data1_ret.result.IsSuccess());
+  ASSERT_TRUE(data2_ret.result.IsSuccess());
 
-    LowerInput add_input = {{data1_ret.out_shapes[0], data2_ret.out_shapes[0]},
-      {data1_ret.out_addrs[0], data2_ret.out_addrs[0]},
-      &global_data};
+  LowerInput add_input = {{data1_ret.out_shapes[0], data2_ret.out_shapes[0]},
+                          {data1_ret.out_addrs[0], data2_ret.out_addrs[0]},
+                          &global_data};
 
-    auto add_node = graph->FindNode("add1");
-    std::vector<std::pair<int64_t, int64_t>> shape_range = {{1, 10}, {1, 10}, {0, 10}, {1, 10}};
-    for (auto &output_tensor : add_node->GetOpDesc()->GetAllOutputsDescPtr()) {
-      output_tensor->SetShapeRange(shape_range);
+  auto add_node = graph->FindNode("add1");
+  std::vector<std::pair<int64_t, int64_t>> shape_range = {{1, 10}, {1, 10}, {0, 10}, {1, 10}};
+  for (auto &output_tensor : add_node->GetOpDesc()->GetAllOutputsDescPtr()) {
+    output_tensor->SetShapeRange(shape_range);
+  }
+
+  auto add_ret = LoweringAiCoreNode(add_node, add_input);
+  ASSERT_TRUE(add_ret.result.IsSuccess());
+  ASSERT_EQ(add_ret.out_addrs.size(), 1);
+  ASSERT_EQ(add_ret.out_shapes.size(), 1);
+  ASSERT_EQ(add_ret.order_holders.size(), 1);
+
+  auto exe_graph = add_ret.out_addrs[0]->GetFastNode()->GetExtendInfo()->GetOwnerGraphBarePtr();
+  ASSERT_NE(exe_graph, nullptr);
+  // graph compare
+
+  FastNode *check_shape_node = nullptr;
+  for (auto &node : exe_graph->GetAllNodes()) {
+    if (node->GetType() == "CheckOutputShapesEmpty") {
+      check_shape_node = node;
+      break;
     }
+  }
+  ASSERT_NE(check_shape_node, nullptr);
 
-    auto add_ret = LoweringAiCoreNode(add_node, add_input);
-    ASSERT_TRUE(add_ret.result.IsSuccess());
-    ASSERT_EQ(add_ret.out_addrs.size(), 1);
-    ASSERT_EQ(add_ret.out_shapes.size(), 1);
-    ASSERT_EQ(add_ret.order_holders.size(), 1);
-
-    auto exe_graph = add_ret.out_addrs[0]->GetFastNode()->GetExtendInfo()->GetOwnerGraphBarePtr();
-    ASSERT_NE(exe_graph, nullptr);
-    // graph compare
-
-    FastNode * check_shape_node = nullptr;
-    for (auto &node : exe_graph->GetAllNodes()) {
-      if (node->GetType() == "CheckOutputShapesEmpty") {
-        check_shape_node = node;
-        break;
-      }
-    }
-    ASSERT_NE(check_shape_node, nullptr);
-
-    auto execute_graph = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)->GetExecuteGraph();
-    ASSERT_NE(execute_graph, nullptr);
-    DumpGraph(execute_graph.get(), "GeneralAiCoreExe");
+  auto execute_graph =
+      bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)
+          ->GetExecuteGraph();
+  ASSERT_NE(execute_graph, nullptr);
+  DumpGraph(execute_graph.get(), "GeneralAiCoreExe");
 }
 
 TEST_F(AicoreNodeConverterUT, AicoreEmptyTensorTest3) {
@@ -948,7 +974,7 @@ TEST_F(AicoreNodeConverterUT, AicoreEmptyTensorTest3) {
   auto exe_graph = add_ret.out_addrs[0]->GetFastNode()->GetExtendInfo()->GetOwnerGraphBarePtr();
   ASSERT_NE(exe_graph, nullptr);
 
-  FastNode * check_shape_node = nullptr;
+  FastNode *check_shape_node = nullptr;
   for (auto &node : exe_graph->GetAllNodes()) {
     if (node->GetType() == "CheckOutputShapesEmpty") {
       check_shape_node = node;
@@ -957,7 +983,9 @@ TEST_F(AicoreNodeConverterUT, AicoreEmptyTensorTest3) {
   }
   ASSERT_EQ(check_shape_node, nullptr);
 
-  auto execute_graph = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)->GetExecuteGraph();
+  auto execute_graph =
+      bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)
+          ->GetExecuteGraph();
   ASSERT_NE(execute_graph, nullptr);
   DumpGraph(execute_graph.get(), "GeneralPartSupportAiCoreExe");
 }
@@ -991,7 +1019,7 @@ TEST_F(AicoreNodeConverterUT, AicoreEmptyTensorTest4) {
   auto exe_graph = add_ret.out_addrs[0]->GetFastNode()->GetExtendInfo()->GetOwnerGraphBarePtr();
   ASSERT_NE(exe_graph, nullptr);
 
-  FastNode * check_shape_node = nullptr;
+  FastNode *check_shape_node = nullptr;
   for (auto &node : exe_graph->GetAllNodes()) {
     if (node->GetType() == "CheckOutputShapesEmpty") {
       check_shape_node = node;
@@ -1000,7 +1028,9 @@ TEST_F(AicoreNodeConverterUT, AicoreEmptyTensorTest4) {
   }
   ASSERT_NE(check_shape_node, nullptr);
 
-  auto execute_graph = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)->GetExecuteGraph();
+  auto execute_graph =
+      bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)
+          ->GetExecuteGraph();
   ASSERT_NE(execute_graph, nullptr);
   DumpGraph(execute_graph.get(), "GeneralPartSupportAiCoreExe");
 }
@@ -1038,7 +1068,7 @@ TEST_F(AicoreNodeConverterUT, AicoreEmptyTensorTest5) {
   ASSERT_NE(exe_graph, nullptr);
   // graph compare
 
-  FastNode * check_shape_node = nullptr;
+  FastNode *check_shape_node = nullptr;
   for (auto &node : exe_graph->GetAllNodes()) {
     if (node->GetType() == "CheckOutputShapesEmpty") {
       check_shape_node = node;
@@ -1047,7 +1077,9 @@ TEST_F(AicoreNodeConverterUT, AicoreEmptyTensorTest5) {
   }
   ASSERT_NE(check_shape_node, nullptr);
 
-  auto execute_graph = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)->GetExecuteGraph();
+  auto execute_graph =
+      bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)
+          ->GetExecuteGraph();
   ASSERT_NE(execute_graph, nullptr);
   DumpGraph(execute_graph.get(), "GeneralAiCoreExe");
 }
@@ -1070,7 +1102,7 @@ TEST_F(AicoreNodeConverterUT, AicoreEmptyTensorTest6) {
   std::vector<std::pair<int64_t, int64_t>> shape_range = {{}};
   auto add_node = graph->FindNode("add1");
   for (auto &output_tensor : add_node->GetOpDesc()->GetAllOutputsDescPtr()) {
-    output_tensor->SetShape(GeShape({1,10}));
+    output_tensor->SetShape(GeShape({1, 10}));
     output_tensor->SetShapeRange(shape_range);
   }
 
@@ -1084,7 +1116,7 @@ TEST_F(AicoreNodeConverterUT, AicoreEmptyTensorTest6) {
   ASSERT_NE(exe_graph, nullptr);
   // graph compare
 
-  FastNode * check_shape_node = nullptr;
+  FastNode *check_shape_node = nullptr;
   for (auto &node : exe_graph->GetAllNodes()) {
     if (node->GetType() == "CheckOutputShapesEmpty") {
       check_shape_node = node;
@@ -1093,7 +1125,9 @@ TEST_F(AicoreNodeConverterUT, AicoreEmptyTensorTest6) {
   }
   ASSERT_NE(check_shape_node, nullptr);
 
-  auto execute_graph = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)->GetExecuteGraph();
+  auto execute_graph =
+      bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)
+          ->GetExecuteGraph();
   ASSERT_NE(execute_graph, nullptr);
   DumpGraph(execute_graph.get(), "GeneralAiCoreExe");
 }
@@ -1135,10 +1169,12 @@ TEST_F(AicoreNodeConverterUT, AicoreEmptyTensorTest7) {
   ASSERT_NE(exe_graph, nullptr);
   // graph compare
 
-  FastNode * check_shape_node = ExecuteGraphUtils::FindFirstNodeMatchType(exe_graph, "CheckOutputShapesEmpty");
+  FastNode *check_shape_node = ExecuteGraphUtils::FindFirstNodeMatchType(exe_graph, "CheckOutputShapesEmpty");
   ASSERT_EQ(check_shape_node, nullptr);
 
-  auto execute_graph = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)->GetExecuteGraph();
+  auto execute_graph =
+      bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)
+          ->GetExecuteGraph();
   ASSERT_NE(execute_graph, nullptr);
   DumpGraph(execute_graph.get(), "GeneralNoEmptyTensorAiCoreExe");
 }
@@ -1152,8 +1188,9 @@ TEST_F(AicoreNodeConverterUT, ConvertStaticNodeReuseBinary) {
       output_tensor->SetShapeRange({{1, 100}});
     }
     if (node->GetName() == "add1") {
-      std::shared_ptr<optiling::utils::OpRunInfo> tiling_info = std::make_shared<optiling::utils::OpRunInfo>(0, false, 0);
-      vector<int64_t> work_space_vec = {1,3,5};
+      std::shared_ptr<optiling::utils::OpRunInfo> tiling_info =
+          std::make_shared<optiling::utils::OpRunInfo>(0, false, 0);
+      vector<int64_t> work_space_vec = {1, 3, 5};
       tiling_info->SetWorkspaces(work_space_vec);
       node->GetOpDesc()->SetExtAttr(ge::ATTR_NAME_OP_RUN_INFO, tiling_info);
     }
@@ -1179,7 +1216,8 @@ TEST_F(AicoreNodeConverterUT, ConvertStaticNodeReuseBinary) {
   ASSERT_EQ(add_ret.out_shapes.size(), 1);
   ASSERT_EQ(add_ret.order_holders.size(), 1);
   FastNodeTopoChecker checker(add_ret.out_addrs[0]);
-  EXPECT_EQ(checker.StrictConnectFrom(std::vector<FastSrcNode>({{"SelectL2Allocator", 0}, {"CalcTensorSizeFromStorage", 0}}), true),
+  EXPECT_EQ(checker.StrictConnectFrom(
+                std::vector<FastSrcNode>({{"SelectL2Allocator", 0}, {"CalcTensorSizeFromStorage", 0}}), true),
             "success");
   EXPECT_EQ(checker.StrictConnectTo(0, std::vector<FastSrcNode>({{"FreeMemory", 0}, {"LaunchKernelWithFlag", 13}})),
             "success");

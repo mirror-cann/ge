@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,19 +17,19 @@
 
 namespace fe_env {
 class FeEnvUtils {
-  public:
+ public:
   static std::string GetAscendPath() {
     const char *ascend_custom_path_ptr = std::getenv("ASCEND_INSTALL_PATH");
     string ascend_path = "/mnt/d/Ascend";
     if (ascend_custom_path_ptr != nullptr) {
-        ascend_path = fe::GetRealPath(string(ascend_custom_path_ptr));
+      ascend_path = fe::GetRealPath(string(ascend_custom_path_ptr));
     } else {
-        const char *ascend_home_path_ptr = std::getenv("ASCEND_HOME");
-        if (ascend_home_path_ptr != nullptr) {
+      const char *ascend_home_path_ptr = std::getenv("ASCEND_HOME");
+      if (ascend_home_path_ptr != nullptr) {
         ascend_path = fe::GetRealPath(string(ascend_home_path_ptr));
-        } else {
+      } else {
         ascend_path = "/mnt/d/Ascend";
-        }
+      }
     }
     return ascend_path;
   }
@@ -47,7 +47,7 @@ class FeEnvUtils {
       google::protobuf::TextFormat::PrintToString(task_iter, &task_def_str_temp);
       task_def_str.append(task_def_str_temp);
     }
-    
+
     std::string ascend_path = GetAscendPath();
     std::string file_name = ascend_path + "/task_def_context.txt";
     std::ofstream ofs;
@@ -98,5 +98,5 @@ class FeEnvUtils {
     }
   }
 };
-}
+}  // namespace fe_env
 #endif

@@ -34,8 +34,8 @@ Status BarrierTaskCodeBuilder::Contribute(TaskSemanticContributeContext &context
     barrier_task_info_.cmoInfo[index].logicId = barrier_info_def.logic_id();
   }
 
-  GELOGI("BarrierTaskCodeBuilder: logicIdNum[%u], barrier_info_count[%d], stream_id[%u]",
-         barrier_task_info_.logicIdNum, barrier_info_count_, header_.stream_id);
+  GELOGI("BarrierTaskCodeBuilder: logicIdNum[%u], barrier_info_count[%d], stream_id[%u]", barrier_task_info_.logicIdNum,
+         barrier_info_count_, header_.stream_id);
 
   return SUCCESS;
 }
@@ -47,16 +47,14 @@ Status BarrierTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &items) 
   std::vector<Arg> cmo_info_init;
   cmo_info_init.reserve(static_cast<size_t>(barrier_info_count_));
   for (int32_t i = 0; i < barrier_info_count_; ++i) {
-    cmo_info_init.push_back(ast_.InitList(
-        {ast_.StaticCast("uint16_t", barrier_task_info_.cmoInfo[i].cmoType),
-         ast_.UInt(static_cast<uint64_t>(barrier_task_info_.cmoInfo[i].logicId))}));
+    cmo_info_init.push_back(ast_.InitList({ast_.StaticCast("uint16_t", barrier_task_info_.cmoInfo[i].cmoType),
+                                           ast_.UInt(static_cast<uint64_t>(barrier_task_info_.cmoInfo[i].logicId))}));
   }
 
   auto barrier_info_var = ast_.Var("rtBarrierTaskInfo_t", "barrier_info");
-  items.push_back(
-      ast_.VarDecl(barrier_info_var,
-                   ast_.InitList({ast_.StaticCast("uint8_t", barrier_task_info_.logicIdNum),
-                                  ast_.InitList(cmo_info_init)})));
+  items.push_back(ast_.VarDecl(
+      barrier_info_var,
+      ast_.InitList({ast_.StaticCast("uint8_t", barrier_task_info_.logicIdNum), ast_.InitList(cmo_info_init)})));
 
   items.push_back(
       ChkStatus(ast_.Call("KernelBarrierTaskDistribute",
@@ -76,8 +74,7 @@ Status BarrierTaskCodeBuilder::RenderDistHelper(std::vector<DeclNode *> &items) 
       {ast_.VarDecl(inputs,
                     ast_.InitList({ast_.ReinterpretCast("uintptr_t", barrier_info.Addr()),
                                    ast_.ReinterpretCast("uintptr_t", stream), ast_.StaticCast("uintptr_t", flag)})),
-       ChkRt(RtGeneralCtrl(inputs[0].Addr(), ast_.StaticCast("uint32_t", 3),
-                         "RT_GNL_CTRL_TYPE_BARRIER_TSK")),
+       ChkRt(RtGeneralCtrl(inputs[0].Addr(), ast_.StaticCast("uint32_t", 3), "RT_GNL_CTRL_TYPE_BARRIER_TSK")),
        ast_.Return("ACL_SUCCESS")}));
 
   return SUCCESS;

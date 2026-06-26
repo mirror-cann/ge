@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -37,16 +37,15 @@ using namespace ge;
 using TransNodeReformatGeneratorPtr = shared_ptr<TransNodeReformatGenerator>;
 using TransNodeInsertionPtr = shared_ptr<TransNodeInsertion>;
 
-class TRANS_NODE_REFORMAT_GENERATOR_UTEST: public testing::Test {
+class TRANS_NODE_REFORMAT_GENERATOR_UTEST : public testing::Test {
  protected:
   void SetUp() {
-        std::map<std::string, std::string> options;
+    std::map<std::string, std::string> options;
     fe_ops_kernel_info_store_ptr_ = make_shared<fe::FEOpsKernelInfoStore>();
-    FEOpsStoreInfo tbe_custom {
-        6,
-        "tbe-custom",
-        EN_IMPL_HW_TBE,
-        GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
+    FEOpsStoreInfo tbe_custom{
+        6, "tbe-custom", EN_IMPL_HW_TBE,
+        GetCodeDir() +
+            "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
         ""};
     vector<FEOpsStoreInfo> store_info;
     store_info.emplace_back(tbe_custom);
@@ -90,7 +89,7 @@ class TRANS_NODE_REFORMAT_GENERATOR_UTEST: public testing::Test {
     auto data_node = graph->AddNode(data_op);
 
     OpDescPtr conv_o_p = std::make_shared<OpDesc>("FullyConnection", "FullyConnection");
-    GeTensorDesc conv_tensor_desc1(GeShape({8, 32, 1, 1, 32}), ge::FORMAT_NC1HWC0,ge::DT_INT32);
+    GeTensorDesc conv_tensor_desc1(GeShape({8, 32, 1, 1, 32}), ge::FORMAT_NC1HWC0, ge::DT_INT32);
     conv_tensor_desc1.SetOriginShape(GeShape({8, 1, 1, 1024}));
     conv_tensor_desc1.SetOriginFormat(ge::FORMAT_NCHW);
     conv_tensor_desc1.SetOriginDataType(ge::DT_INT32);
@@ -123,7 +122,8 @@ class TRANS_NODE_REFORMAT_GENERATOR_UTEST: public testing::Test {
 TEST_F(TRANS_NODE_REFORMAT_GENERATOR_UTEST, AddTransNode_suc) {
   FEOpsKernelInfoStorePtr fe_ops_store_ptr = make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
   TransInfoPtr trans_info_ptr = make_shared<TransInfo>();
-  TransNodeReformatGeneratorPtr trans_node_reformat_generator = make_shared<TransNodeReformatGenerator>(fe_ops_store_ptr, trans_info_ptr);
+  TransNodeReformatGeneratorPtr trans_node_reformat_generator =
+      make_shared<TransNodeReformatGenerator>(fe_ops_store_ptr, trans_info_ptr);
 
   ComputeGraphPtr fused_graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr op_desc_0 = std::make_shared<OpDesc>("add", "Add");
@@ -152,7 +152,8 @@ TEST_F(TRANS_NODE_REFORMAT_GENERATOR_UTEST, AddTransNode_suc) {
 TEST_F(TRANS_NODE_REFORMAT_GENERATOR_UTEST, AddTransNode_suc1) {
   FEOpsKernelInfoStorePtr fe_ops_store_ptr = make_shared<FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
   TransInfoPtr trans_info_ptr = make_shared<TransInfo>();
-  TransNodeReformatGeneratorPtr trans_node_reformat_generator = make_shared<TransNodeReformatGenerator>(fe_ops_store_ptr, trans_info_ptr);
+  TransNodeReformatGeneratorPtr trans_node_reformat_generator =
+      make_shared<TransNodeReformatGenerator>(fe_ops_store_ptr, trans_info_ptr);
 
   ComputeGraphPtr fused_graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr op_desc_ref0 = std::make_shared<OpDesc>("ref0", "RefData");

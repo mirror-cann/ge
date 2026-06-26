@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -49,14 +49,13 @@ HcclResult HcomExecEnqueueOperation(HcomOperation opInfo, std::function<void(Hcc
   return HCCL_SUCCESS;
 }
 
-HcclResult HcomExecEnqueueRemoteOperation(HcomRemoteOperation opInfo,
-                                          std::function<void(HcclResult status)> callback) {
+HcclResult HcomExecEnqueueRemoteOperation(HcomRemoteOperation opInfo, std::function<void(HcclResult status)> callback) {
   callback(HCCL_SUCCESS);
   return HCCL_SUCCESS;
 }
 
-HcclResult HcomExecEnqueueRemoteAccess(const std::string& remoteAccessType,
-                                       const std::vector<HcomRemoteAccessAddrInfo>& addrInfos,
+HcclResult HcomExecEnqueueRemoteAccess(const std::string &remoteAccessType,
+                                       const std::vector<HcomRemoteAccessAddrInfo> &addrInfos,
                                        std::function<void(HcclResult status)> callback) {
   callback(HCCL_SUCCESS);
   return HCCL_SUCCESS;
@@ -130,7 +129,7 @@ Status GenerateTaskForAicpuDependRange(const Node &node, RunContext &context, st
   return SUCCESS;
 }
 
-}
+}  // namespace
 class DynamicHcclTest : public testing::Test {
  protected:
   static void SetUpTestCase() {
@@ -185,12 +184,18 @@ class DynamicHcclTest : public testing::Test {
         .Install(FakeOp(ADD).InfoStoreAndBuilder("AIcoreEngine").InferShape(infer_fun))
         .Install(FakeOp(NEG).InfoStoreAndBuilder("AIcoreEngine").InferShape(infer_fun))
         .Install(FakeOp(HCOMALLREDUCE).InfoStoreAndBuilder(kEngineNameHccl).InferShape(infer_fun))
-        .Install(FakeOp(HCOMREMOTEWRITE).Inputs({"remote", "local", "local_offset"})
-                                                .InfoStoreAndBuilder(kEngineNameHccl).InferShape(infer_depend1_fun))
-        .Install(FakeOp(HCOMREMOTEREFREAD).Inputs({"remote"})
-                                                  .InfoStoreAndBuilder(kEngineNameHccl).InferShape(infer_depend2_fun))
-        .Install(FakeOp(HCOMREMOTEREAD).Inputs({"remote"})
-                     .InfoStoreAndBuilder(kEngineNameHccl).InferShape(infer_depend2_fun))
+        .Install(FakeOp(HCOMREMOTEWRITE)
+                     .Inputs({"remote", "local", "local_offset"})
+                     .InfoStoreAndBuilder(kEngineNameHccl)
+                     .InferShape(infer_depend1_fun))
+        .Install(FakeOp(HCOMREMOTEREFREAD)
+                     .Inputs({"remote"})
+                     .InfoStoreAndBuilder(kEngineNameHccl)
+                     .InferShape(infer_depend2_fun))
+        .Install(FakeOp(HCOMREMOTEREAD)
+                     .Inputs({"remote"})
+                     .InfoStoreAndBuilder(kEngineNameHccl)
+                     .InferShape(infer_depend2_fun))
         .Install(FakeOp(HCOMGATHERALLTOALLV).InfoStoreAndBuilder(kEngineNameHccl).InferShape(infer_fun))
         .Install(FakeOp(DATA).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE").InferShape(infer_fun))
         .Install(FakeOp(VARIABLE).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
@@ -220,32 +225,21 @@ static void BuildHcclAllReduceGraph(Graph &ge_graph, uint32_t &mem_offset) {
   GeTensorDesc tensor_desc(GeShape{});
   GeTensor tensor(tensor_desc);
   DEF_GRAPH(g0) {
-    auto data0 = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto data0 = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto add = OP_CFG(ADD)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto add = OP_CFG(ADD).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
     auto hcom_allreduce = OP_CFG(HCOMALLREDUCE)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16})
-        .Attr(ATTR_NAME_FORCE_UNKNOWN_SHAPE, true)
-        .Attr(HCOM_ATTR_REDUCE_TYPE, "min");
+                              .InCnt(1)
+                              .OutCnt(1)
+                              .TensorDesc(FORMAT_ND, DT_FLOAT, {16})
+                              .Attr(ATTR_NAME_FORCE_UNKNOWN_SHAPE, true)
+                              .Attr(HCOM_ATTR_REDUCE_TYPE, "min");
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {});
 
-    CHAIN(NODE("_arg_0", data0)->NODE("add0", add)->NODE("allreduce", hcom_allreduce)
-              ->NODE("Node_Output", net_output));
-//    CHAIN(NODE("const_0", const_0)->NODE("Node_Output", net_output));
+    CHAIN(NODE("_arg_0", data0)->NODE("add0", add)->NODE("allreduce", hcom_allreduce)->NODE("Node_Output", net_output));
+    //    CHAIN(NODE("const_0", const_0)->NODE("Node_Output", net_output));
   };
   ComputeGraphPtr graph = ToComputeGraph(g0);
   ge_graph = ToGeGraph(g0);
@@ -265,23 +259,20 @@ static void BuildHcclRefReadGraph(Graph &ge_graph, uint32_t &mem_offset) {
   tensor.SetData(data);
   DEF_GRAPH(g0) {
     auto const0 = OP_CFG(CONSTANTOP)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_WEIGHTS, tensor)
-        .Attr(ATTR_NAME_FORCE_UNKNOWN_SHAPE, true)
-        .TensorDesc(FORMAT_ND, DT_UINT64, {3, 3});
+                      .InCnt(1)
+                      .OutCnt(1)
+                      .Attr(ATTR_NAME_WEIGHTS, tensor)
+                      .Attr(ATTR_NAME_FORCE_UNKNOWN_SHAPE, true)
+                      .TensorDesc(FORMAT_ND, DT_UINT64, {3, 3});
 
     auto hcom_remote_refread = OP_CFG(HCOMREMOTEREFREAD)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_UINT64, {3, 3})
-        .Attr(ATTR_NAME_FORCE_UNKNOWN_SHAPE, true)
-        .Attr(HCOM_ATTR_REDUCE_TYPE, "min");
+                                   .InCnt(1)
+                                   .OutCnt(1)
+                                   .TensorDesc(FORMAT_ND, DT_UINT64, {3, 3})
+                                   .Attr(ATTR_NAME_FORCE_UNKNOWN_SHAPE, true)
+                                   .Attr(HCOM_ATTR_REDUCE_TYPE, "min");
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_UINT64, {3, 3});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_UINT64, {3, 3});
 
     CHAIN(NODE("_arg_0", const0)->NODE("refread", hcom_remote_refread)->NODE("Node_Output", net_output));
   };
@@ -300,23 +291,20 @@ static void BuildHcclReadGraph(Graph &ge_graph, uint32_t &mem_offset) {
   tensor.SetData(data);
   DEF_GRAPH(g0) {
     auto const0 = OP_CFG(CONSTANTOP)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_WEIGHTS, tensor)
-        .Attr(ATTR_NAME_FORCE_UNKNOWN_SHAPE, true)
-        .TensorDesc(FORMAT_ND, DT_UINT64, {3, 3});
+                      .InCnt(1)
+                      .OutCnt(1)
+                      .Attr(ATTR_NAME_WEIGHTS, tensor)
+                      .Attr(ATTR_NAME_FORCE_UNKNOWN_SHAPE, true)
+                      .TensorDesc(FORMAT_ND, DT_UINT64, {3, 3});
 
     auto hcom_remote_read = OP_CFG(HCOMREMOTEREAD)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_UINT64, {3, 3})
-        .Attr(ATTR_NAME_FORCE_UNKNOWN_SHAPE, true)
-        .Attr(HCOM_ATTR_REDUCE_TYPE, "min");
+                                .InCnt(1)
+                                .OutCnt(1)
+                                .TensorDesc(FORMAT_ND, DT_UINT64, {3, 3})
+                                .Attr(ATTR_NAME_FORCE_UNKNOWN_SHAPE, true)
+                                .Attr(HCOM_ATTR_REDUCE_TYPE, "min");
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_UINT64, {3, 3});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_UINT64, {3, 3});
 
     CHAIN(NODE("_arg_0", const0)->NODE("refread", hcom_remote_read)->NODE("Node_Output", net_output));
   };
@@ -328,47 +316,31 @@ static void BuildHcclGatherAlltoAllGraph(Graph &ge_graph, uint32_t &mem_offset) 
   GeTensorDesc tensor_desc(GeShape{});
   GeTensor tensor(tensor_desc);
   DEF_GRAPH(g0) {
-    auto data0 = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto data0 = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto add1 = OP_CFG(ADD)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
-    auto add2 = OP_CFG(ADD)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
-    auto add3 = OP_CFG(ADD)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
-    auto add4 = OP_CFG(ADD)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
-    auto add5 = OP_CFG(ADD)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto add1 = OP_CFG(ADD).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto add2 = OP_CFG(ADD).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto add3 = OP_CFG(ADD).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto add4 = OP_CFG(ADD).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto add5 = OP_CFG(ADD).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
     auto hcom_all_to_allv = OP_CFG(HCOMGATHERALLTOALLV)
-        .InCnt(5)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16})
-        .Attr(ATTR_NAME_FORCE_UNKNOWN_SHAPE, true)
-        .Attr(HCOM_ATTR_REDUCE_TYPE, "min");
+                                .InCnt(5)
+                                .OutCnt(1)
+                                .TensorDesc(FORMAT_ND, DT_FLOAT, {16})
+                                .Attr(ATTR_NAME_FORCE_UNKNOWN_SHAPE, true)
+                                .Attr(HCOM_ATTR_REDUCE_TYPE, "min");
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {});
 
-    CHAIN(NODE("_arg_0", data0)->NODE("add1", add1)->NODE("all_to_all", hcom_all_to_allv)->NODE("Node_Output", net_output));
-    CHAIN(NODE("_arg_0", data0)->NODE("add2", add2)->NODE("all_to_all", hcom_all_to_allv)->NODE("Node_Output", net_output));
+    CHAIN(NODE("_arg_0", data0)
+              ->NODE("add1", add1)
+              ->NODE("all_to_all", hcom_all_to_allv)
+              ->NODE("Node_Output", net_output));
+    CHAIN(NODE("_arg_0", data0)
+              ->NODE("add2", add2)
+              ->NODE("all_to_all", hcom_all_to_allv)
+              ->NODE("Node_Output", net_output));
     CHAIN(NODE("_arg_0", data0)->NODE("add3", add3)->NODE("all_to_all", hcom_all_to_allv));
     CHAIN(NODE("_arg_0", data0)->NODE("add4", add4)->NODE("all_to_all", hcom_all_to_allv));
     CHAIN(NODE("_arg_0", data0)->NODE("add5", add5)->NODE("all_to_all", hcom_all_to_allv));
@@ -384,46 +356,27 @@ static void BuildHcclAlltoAllGraph(Graph &ge_graph, uint32_t &mem_offset) {
   GeTensorDesc tensor_desc(GeShape{});
   GeTensor tensor(tensor_desc);
   DEF_GRAPH(g0) {
-    auto data0 = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto data0 = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto add1 = OP_CFG(ADD)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
-    auto add2 = OP_CFG(ADD)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
-    auto add3 = OP_CFG(ADD)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
-    auto add4 = OP_CFG(ADD)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
-    auto add5 = OP_CFG(ADD)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto add1 = OP_CFG(ADD).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto add2 = OP_CFG(ADD).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto add3 = OP_CFG(ADD).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto add4 = OP_CFG(ADD).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto add5 = OP_CFG(ADD).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
     auto hcom_all_to_allv = OP_CFG(HCOMALLTOALLV)
-        .InCnt(5)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16})
-        .Attr(ATTR_NAME_FORCE_UNKNOWN_SHAPE, true)
-        .Attr(HCOM_ATTR_REDUCE_TYPE, "min");
+                                .InCnt(5)
+                                .OutCnt(1)
+                                .TensorDesc(FORMAT_ND, DT_FLOAT, {16})
+                                .Attr(ATTR_NAME_FORCE_UNKNOWN_SHAPE, true)
+                                .Attr(HCOM_ATTR_REDUCE_TYPE, "min");
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {});
 
-    CHAIN(NODE("_arg_0", data0)->NODE("add1", add1)->NODE("all_to_all", hcom_all_to_allv)->NODE("Node_Output", net_output));
+    CHAIN(NODE("_arg_0", data0)
+              ->NODE("add1", add1)
+              ->NODE("all_to_all", hcom_all_to_allv)
+              ->NODE("Node_Output", net_output));
     CHAIN(NODE("_arg_0", data0)->NODE("add2", add2)->NODE("all_to_all", hcom_all_to_allv));
     CHAIN(NODE("_arg_0", data0)->NODE("add3", add3)->NODE("all_to_all", hcom_all_to_allv));
     CHAIN(NODE("_arg_0", data0)->NODE("add4", add4)->NODE("all_to_all", hcom_all_to_allv));
@@ -440,34 +393,24 @@ static void BuildHcclAlltoAllVCGraph(Graph &ge_graph, uint32_t &mem_offset) {
   GeTensorDesc tensor_desc(GeShape{});
   GeTensor tensor(tensor_desc);
   DEF_GRAPH(g0) {
-    auto data0 = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto data0 = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
-    auto add1 = OP_CFG(ADD)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
-    auto add2 = OP_CFG(ADD)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto add1 = OP_CFG(ADD).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
+    auto add2 = OP_CFG(ADD).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {16});
 
     auto hcom_all_to_allv = OP_CFG(HCOMALLTOALLVC)
-        .InCnt(2)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {16})
-        .Attr(ATTR_NAME_FORCE_UNKNOWN_SHAPE, true)
-        .Attr(HCOM_ATTR_REDUCE_TYPE, "min");
+                                .InCnt(2)
+                                .OutCnt(1)
+                                .TensorDesc(FORMAT_ND, DT_FLOAT, {16})
+                                .Attr(ATTR_NAME_FORCE_UNKNOWN_SHAPE, true)
+                                .Attr(HCOM_ATTR_REDUCE_TYPE, "min");
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {});
 
-    CHAIN(NODE("_arg_0", data0)->NODE("add1", add1)->NODE("all_to_all", hcom_all_to_allv)->NODE("Node_Output", net_output));
+    CHAIN(NODE("_arg_0", data0)
+              ->NODE("add1", add1)
+              ->NODE("all_to_all", hcom_all_to_allv)
+              ->NODE("Node_Output", net_output));
     CHAIN(NODE("_arg_0", data0)->NODE("add2", add2)->NODE("all_to_all", hcom_all_to_allv));
   };
   ComputeGraphPtr graph = ToComputeGraph(g0);
@@ -476,9 +419,10 @@ static void BuildHcclAlltoAllVCGraph(Graph &ge_graph, uint32_t &mem_offset) {
 
 /*******************************************************************************
 
-┌────────┐  (0,0)   ┌──────┐  (0,0)   ┌──────────────┐  (0,0)   ┌─────────┐  (0,0)   ┌───────────┐  (0,0)   ┌───────────┐  (0,0)   ┌─────────────┐
-│ _arg_0 │ ───────> │ add0 │ ───────> │ remote_write │ ───────> │ refread │ ───────> │ alltoallv │ ───────> │ allreduce │ ───────> │ Node_Output │
-└────────┘          └──────┘          └──────────────┘          └─────────┘          └───────────┘          └───────────┘          └─────────────┘
+┌────────┐  (0,0)   ┌──────┐  (0,0)   ┌──────────────┐  (0,0)   ┌─────────┐  (0,0)   ┌───────────┐  (0,0) ┌───────────┐
+(0,0)   ┌─────────────┐ │ _arg_0 │ ───────> │ add0 │ ───────> │ remote_write │ ───────> │ refread │ ───────> │ alltoallv
+│ ───────> │ allreduce │ ───────> │ Node_Output │ └────────┘          └──────┘          └──────────────┘ └─────────┘
+└───────────┘          └───────────┘          └─────────────┘
 
 ******************************************************************************/
 static void BuildHcclRemoteWriteGraph(Graph &ge_graph, uint32_t &mem_offset) {
@@ -493,40 +437,37 @@ static void BuildHcclRemoteWriteGraph(Graph &ge_graph, uint32_t &mem_offset) {
   tensor.SetData(data);
   DEF_GRAPH(g0) {
     auto const0 = OP_CFG(CONSTANTOP)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_WEIGHTS, tensor)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_UINT64, {3,3})
-        .Attr(ATTR_NAME_FORCE_UNKNOWN_SHAPE, true);
+                      .InCnt(1)
+                      .OutCnt(1)
+                      .Attr(ATTR_NAME_WEIGHTS, tensor)
+                      .Attr(ATTR_NAME_INDEX, 0)
+                      .TensorDesc(FORMAT_ND, DT_UINT64, {3, 3})
+                      .Attr(ATTR_NAME_FORCE_UNKNOWN_SHAPE, true);
 
     auto const1 = OP_CFG(CONSTANTOP)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_WEIGHTS, tensor)
-        .Attr(ATTR_NAME_INDEX, 1)
-        .TensorDesc(FORMAT_ND, DT_UINT64, {3})
-        .Attr(ATTR_NAME_FORCE_UNKNOWN_SHAPE, true);
+                      .InCnt(1)
+                      .OutCnt(1)
+                      .Attr(ATTR_NAME_WEIGHTS, tensor)
+                      .Attr(ATTR_NAME_INDEX, 1)
+                      .TensorDesc(FORMAT_ND, DT_UINT64, {3})
+                      .Attr(ATTR_NAME_FORCE_UNKNOWN_SHAPE, true);
 
     auto const2 = OP_CFG(CONSTANTOP)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_WEIGHTS, tensor)
-        .Attr(ATTR_NAME_INDEX, 2)
-        .TensorDesc(FORMAT_ND, DT_UINT64, {3})
-        .Attr(ATTR_NAME_FORCE_UNKNOWN_SHAPE, true);
+                      .InCnt(1)
+                      .OutCnt(1)
+                      .Attr(ATTR_NAME_WEIGHTS, tensor)
+                      .Attr(ATTR_NAME_INDEX, 2)
+                      .TensorDesc(FORMAT_ND, DT_UINT64, {3})
+                      .Attr(ATTR_NAME_FORCE_UNKNOWN_SHAPE, true);
 
     auto hcom_remote_write = OP_CFG(HCOMREMOTEWRITE)
-        .InCnt(3)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_UINT64, {3})
-        .Attr(ATTR_NAME_FORCE_UNKNOWN_SHAPE, true)
-        .Attr(HCOM_ATTR_REDUCE_TYPE, "min");
+                                 .InCnt(3)
+                                 .OutCnt(1)
+                                 .TensorDesc(FORMAT_ND, DT_UINT64, {3})
+                                 .Attr(ATTR_NAME_FORCE_UNKNOWN_SHAPE, true)
+                                 .Attr(HCOM_ATTR_REDUCE_TYPE, "min");
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_UINT64, {3});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_UINT64, {3});
 
     CHAIN(NODE("_arg_0", const0)->NODE("remote_write", hcom_remote_write)->NODE("Node_Output", net_output));
     CHAIN(NODE("_arg_1", const1)->NODE("remote_write", hcom_remote_write)->NODE("Node_Output", net_output));
@@ -573,13 +514,13 @@ TEST_F(DynamicHcclTest, TestDynamicOnlineTrainingRefRead) {
   BuildHcclRefReadGraph(graph, mem_offset);
 
   std::map<AscendString, AscendString> options;
-//  options[OPTION_GRAPH_RUN_MODE] = "1";  // train
+  //  options[OPTION_GRAPH_RUN_MODE] = "1";  // train
   Session session(options);
   GraphId graph_id = 1;
   EXPECT_EQ(session.AddGraph(graph_id, graph), SUCCESS);
 
   Shape shape({3});
-  uint8_t buffer[3 * 8] = {55,55,55,55};
+  uint8_t buffer[3 * 8] = {55, 55, 55, 55};
   TensorDesc tensor_desc(shape);
   Tensor input_0(tensor_desc);
   input_0.SetData(buffer, sizeof(buffer));
@@ -590,7 +531,6 @@ TEST_F(DynamicHcclTest, TestDynamicOnlineTrainingRefRead) {
   session.RemoveGraph(graph_id);
   EXPECT_EQ(GEFinalize(), SUCCESS);
 }
-
 
 TEST_F(DynamicHcclTest, TestDynamicOnlineTrainingRead) {
   MmpaStub::GetInstance().SetImpl(std::make_shared<MockMmpa>());
@@ -612,7 +552,7 @@ TEST_F(DynamicHcclTest, TestDynamicOnlineTrainingRead) {
   EXPECT_EQ(session.AddGraph(graph_id, graph), SUCCESS);
 
   Shape shape({3, 3});
-  uint8_t buffer[9 * 8] = {55,55,55,55};
+  uint8_t buffer[9 * 8] = {55, 55, 55, 55};
   TensorDesc tensor_desc(shape);
   Tensor input_0(tensor_desc);
   input_0.SetData(buffer, sizeof(buffer));
@@ -759,5 +699,4 @@ TEST_F(DynamicHcclTest, TestDynamicOnlineTrainingAllReduce) {
   session.RemoveGraph(graph_id);
   EXPECT_EQ(GEFinalize(), SUCCESS);
 }
-} // namespace ge
-
+}  // namespace ge

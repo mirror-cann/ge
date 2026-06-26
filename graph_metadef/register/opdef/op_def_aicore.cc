@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -13,13 +13,13 @@
 #include "framework/common/debug/ge_log.h"
 
 namespace ops {
-OpAICoreConfig::OpAICoreConfig() : impl_(new(std::nothrow) OpAICoreConfigImpl) {}
+OpAICoreConfig::OpAICoreConfig() : impl_(new (std::nothrow) OpAICoreConfigImpl) {}
 
-OpAICoreConfig::OpAICoreConfig(const char *soc) : impl_(new(std::nothrow) OpAICoreConfigImpl) {
+OpAICoreConfig::OpAICoreConfig(const char *soc) : impl_(new (std::nothrow) OpAICoreConfigImpl) {
   this->impl_->Construct(this, soc);
 }
 
-OpAICoreConfig::OpAICoreConfig(const OpAICoreConfig &aicore_config) : impl_(new(std::nothrow) OpAICoreConfigImpl) {
+OpAICoreConfig::OpAICoreConfig(const OpAICoreConfig &aicore_config) : impl_(new (std::nothrow) OpAICoreConfigImpl) {
   this->impl_->Construct(this, aicore_config);
 }
 
@@ -87,9 +87,9 @@ ge::AscendString &OpAICoreConfig::GetConfigValue(const char *key) {
   return this->impl_->cfg_info[key];
 }
 
-OpAICoreDef::OpAICoreDef() : impl_(new(std::nothrow) OpAICoreDefImpl) {}
+OpAICoreDef::OpAICoreDef() : impl_(new (std::nothrow) OpAICoreDefImpl) {}
 
-OpAICoreDef::OpAICoreDef(const OpAICoreDef &aicore_def) : impl_(new(std::nothrow) OpAICoreDefImpl) {
+OpAICoreDef::OpAICoreDef(const OpAICoreDef &aicore_def) : impl_(new (std::nothrow) OpAICoreDefImpl) {
   this->impl_->Construct(this, aicore_def);
 }
 
@@ -99,8 +99,7 @@ OpAICoreDef &OpAICoreDef::operator=(const OpAICoreDef &aicore_def) {
   return this->impl_->Eq(this, aicore_def);
 }
 
-ge::graphStatus TilingParsePlaceHolder(gert::TilingParseContext* context)
-{
+ge::graphStatus TilingParsePlaceHolder(gert::TilingParseContext *context) {
   (void)context;
   return ge::GRAPH_SUCCESS;
 }

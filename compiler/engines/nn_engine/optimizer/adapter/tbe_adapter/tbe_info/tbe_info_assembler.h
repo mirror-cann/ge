@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -43,8 +43,8 @@ struct TensorDescAndIndex {
   TensorDescAndIndex(const ge::GeTensorDescPtr &tensor_desc_ptr_param, const string &name_in_op_kernel_param,
                      size_t index_in_op_kernel_param, uint32_t index_in_opdesc_param, bool is_input_param,
                      ge::Format propagat_heavy_format_param = ge::FORMAT_RESERVED,
-                     int32_t propagat_sub_format_param = 0, bool is_first_layer_conv_param = false) :
-        tensor_desc_ptr(tensor_desc_ptr_param),
+                     int32_t propagat_sub_format_param = 0, bool is_first_layer_conv_param = false)
+      : tensor_desc_ptr(tensor_desc_ptr_param),
         name_in_op_kernel(name_in_op_kernel_param),
         index_in_op_kernel(index_in_op_kernel_param),
         index_in_opdesc(index_in_opdesc_param),
@@ -128,8 +128,7 @@ class TbeInfoAssembler {
   Status FeedInputsToTbeOpInfo(const ge::Node *node, IndexNameMap &input_idx_name_map,
                                OpKernelInfoPtr op_kernel_info_ptr, te::TbeOpInfo &op_info) const;
 
-  Status FeedAutoFuseInoutputsToTbeOpInfo(const ge::Node *node, const bool is_input,
-                                         te::TbeOpInfo &tbe_op_info) const;
+  Status FeedAutoFuseInoutputsToTbeOpInfo(const ge::Node *node, const bool is_input, te::TbeOpInfo &tbe_op_info) const;
 
   /*
    *  @ingroup fe
@@ -190,38 +189,36 @@ class TbeInfoAssembler {
   Status ConvertParameterInfoForInput(InputOrOutputInfoPtr info_ptr, te::TbeOpParam &input,
                                       te::TbeOpTensor &input_tensor, te::TbeOpInfo &op_info, bool last_item_flag) const;
 
-  void FeedL1InputTensor(const ToOpStructPtr &l1_info, const ge::OpDescPtr &op_desc,
-                         IndexNameMap &input_idx_name_map, const uint32_t &index_in_opdesc,
-                         te::TbeOpTensor &input_tensor) const;
-  void FeedL2InputTensor(const ToOpStructPtr &l2_info, const ge::OpDescPtr &op_desc,
-                         IndexNameMap &input_idx_name_map, const uint32_t &index_in_opdesc,
-                         te::TbeOpTensor &input_tensor) const;
+  void FeedL1InputTensor(const ToOpStructPtr &l1_info, const ge::OpDescPtr &op_desc, IndexNameMap &input_idx_name_map,
+                         const uint32_t &index_in_opdesc, te::TbeOpTensor &input_tensor) const;
+  void FeedL2InputTensor(const ToOpStructPtr &l2_info, const ge::OpDescPtr &op_desc, IndexNameMap &input_idx_name_map,
+                         const uint32_t &index_in_opdesc, te::TbeOpTensor &input_tensor) const;
 
   Status SetInputTensorBaseInfo(const ge::OpDescPtr &op_desc, const uint32_t &index_in_opdesc,
                                 te::TbeOpTensor &input_tensor) const;
 
-  void FeedFusionOutputTensor(const ToOpStructPtr &fusion_info, const ge::OpDescPtr &op_desc, IndexNameMap &output_idx_name_map,
-                              const uint32_t &index_in_opdesc, te::TbeOpTensor &output_tensor) const;
+  void FeedFusionOutputTensor(const ToOpStructPtr &fusion_info, const ge::OpDescPtr &op_desc,
+                              IndexNameMap &output_idx_name_map, const uint32_t &index_in_opdesc,
+                              te::TbeOpTensor &output_tensor) const;
 
   void GetOpInputL1Attr(const ge::OpDescPtr &op_desc, std::vector<int64_t> &op_input_l1_flag,
                         std::vector<int64_t> &op_input_l1_addr, std::vector<int64_t> &op_input_l1_valid_size) const;
 
-  Status JudgeShapeToSetFlag(const ge::OpDescPtr &op_desc, const bool& is_input,
-                             te::TbeOpInfo &op_info, bool &flag) const;
+  Status JudgeShapeToSetFlag(const ge::OpDescPtr &op_desc, const bool &is_input, te::TbeOpInfo &op_info,
+                             bool &flag) const;
 
   void SetInplaceAttr(const ge::OpDescPtr &op_desc, const IndexNameMap &input_map,
                       const IndexNameMap &output_map) const;
 
-  map<std::string, std::string> GetAllOptionsForTBE(const ge::OpDesc &op_desc,
-                                                    const string &engine_name,
+  map<std::string, std::string> GetAllOptionsForTBE(const ge::OpDesc &op_desc, const string &engine_name,
                                                     const OpKernelInfoPtr &op_kernel_info_ptr);
 
   void SetExtraParams(const ge::OpDesc &op_desc, te::TbeOpInfo &op_info) const;
 
   void SetHashedExtraParams(const ge::OpDesc &op_desc, te::TbeOpInfo &op_info) const;
-  
+
   void SetCustCoreNum(const ge::OpDesc &op_desc, te::TbeOpInfo &op_info) const;
-  
+
   void SetSingleOpScene(const ge::Node *node, te::TbeOpInfo &op_info) const;
 
   void SetOpDynamicRank(const OpKernelInfoPtr &op_kernel_info_ptr, te::TbeOpInfo &op_info) const;
@@ -245,18 +242,15 @@ class TbeInfoAssembler {
                                      std::map<size_t, std::pair<size_t, size_t>> &output_ir_real_index,
                                      vector<vector<int64_t>> &real_output_inplace) const;
 
-  void TransIOIrIndxToRealIndex(const std::vector<size_t> &output_real_idex,
-                                const std::vector<size_t> &input_real_idex,
+  void TransIOIrIndxToRealIndex(const std::vector<size_t> &output_real_idex, const std::vector<size_t> &input_real_idex,
                                 vector<vector<int64_t>> &real_output_inplace) const;
 
   void GetPrivateAttrsList(const ge::OpDesc &op_desc, std::vector<te::TbeAttrValue> &private_attrs_list) const;
-                           
-  void GenerateTbePrivateAttrValue(const ge::OpDesc &op_desc,
-                                   const ge::AnyValue &value_type,
+
+  void GenerateTbePrivateAttrValue(const ge::OpDesc &op_desc, const ge::AnyValue &value_type,
                                    te::TbeAttrValue &tbe_attr_value, const string &attr_name) const;
 
-  void CalibrateCoreNum(const ge::OpDesc &op_desc, const string &engine_name,
-                        const OpKernelInfoPtr &op_kernel_info_ptr,
+  void CalibrateCoreNum(const ge::OpDesc &op_desc, const string &engine_name, const OpKernelInfoPtr &op_kernel_info_ptr,
                         map<std::string, std::string> &options);
 
   void SetL1Info(te::TbeOpTensor &input_tensor, const std::vector<int64_t> &op_input_l1_flag,
@@ -268,15 +262,15 @@ class TbeInfoAssembler {
                           vector<uint32_t> &specific_input_index) const;
 
   Status FindAndCheckEndNodeForConstValue(const ge::Node *node, const uint32_t &tensor_index,
-                                          InputOrOutputInfoPtr tensor_info_ptr,
-                                          ge::NodePtr &other_end_node, bool &is_const_node) const;
+                                          InputOrOutputInfoPtr tensor_info_ptr, ge::NodePtr &other_end_node,
+                                          bool &is_const_node) const;
 
   void SetInputDdrBaseProp(const ge::Node *node, const uint32_t &tensor_index, te::TbeOpTensor &input_tensor) const;
 
   void SetOutputDdrBaseProp(const ge::Node *node, const uint32_t &tensor_index, te::TbeOpTensor &output_tensor) const;
 
-  void SetIsConstInputFlag(const ge::Node *node, const ge::OpDesc &op_desc,
-                           const uint32_t &tensor_index, te::TbeOpTensor &input_tensor) const;
+  void SetIsConstInputFlag(const ge::Node *node, const ge::OpDesc &op_desc, const uint32_t &tensor_index,
+                           te::TbeOpTensor &input_tensor) const;
 
   void SetIsNullOutputFlag(const ge::Node *node, const uint32_t &tensor_index, te::TbeOpTensor &output_tensor) const;
 
@@ -306,12 +300,9 @@ class TbeInfoAssembler {
   template <typename T>
   static void GetConstValueVec(ge::GeTensorPtr &const_tensor_ptr, vector<T> &const_data_vec);
 
-  void FindAmplifiedCoreNum(uint64_t exec_time,
-                            string &final_core_num_str);
+  void FindAmplifiedCoreNum(uint64_t exec_time, string &final_core_num_str);
 
-  bool NeedCalibration(const string &engine_name,
-                       map<std::string, std::string> &options,
-                       string &default_core_num_str);
+  bool NeedCalibration(const string &engine_name, map<std::string, std::string> &options, string &default_core_num_str);
 
   void FeedOutputTensorAtomicAttr(const ffts::ThreadSliceMapPtr &slice_info, te::TbeOpTensor &output_tensor,
                                   const uint32_t &index_in_opdesc) const;

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -36,8 +36,10 @@ const string kOpMaster = "libopmaster_rt2.0.so";
 const string kInner = "built-in";
 const string kOpsProtoPath = "/op_proto/lib/linux/x86_64/";
 const string kOpMasterPath = "/op_impl/ai_core/tbe/op_tiling/lib/linux/x86_64/";
-graphStatus InferFunctionStub(Operator &op) { return GRAPH_SUCCESS; }
+graphStatus InferFunctionStub(Operator &op) {
+  return GRAPH_SUCCESS;
 }
+}  // namespace
 const char *const kKernelLibName = "DNN_VM_GE_LOCAL";
 class UtestGeGenerator : public testing::Test {
  protected:
@@ -83,7 +85,9 @@ class UtestGeGenerator : public testing::Test {
 
   class FakeOpsKernelInfoStore : public OpsKernelInfoStore {
    public:
-    FakeOpsKernelInfoStore() {supported_ = true;};
+    FakeOpsKernelInfoStore() {
+      supported_ = true;
+    };
     bool supported_;
     std::map<std::string, OpInfo> op_info_map_;
 
@@ -105,6 +109,7 @@ class UtestGeGenerator : public testing::Test {
   class FakeOpsKernelBuilder : public OpsKernelBuilder {
    public:
     FakeOpsKernelBuilder() = default;
+
    private:
     Status Initialize(const map<std::string, std::string> &options) override {
       return SUCCESS;
@@ -178,9 +183,12 @@ ComputeGraphPtr MakeGraph() {
 }
 }  // namespace
 
-
-graphStatus TestFunc(Operator &op) { return 0; }
-graphStatus TestFunc1(Operator &op) { return 1; }
+graphStatus TestFunc(Operator &op) {
+  return 0;
+}
+graphStatus TestFunc1(Operator &op) {
+  return 1;
+}
 TEST_F(UtestGeGenerator, test_infer_format_for_single_op) {
   ComputeGraphPtr compute_graph = MakeShared<ComputeGraph>("graph_name");
   auto graph = GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
@@ -214,8 +222,8 @@ TEST_F(UtestGeGenerator, test_build_single_op_online) {
   op_desc->AddOutputDesc(tensor_desc);
 
   GeTensor tensor(tensor_desc);
-  const vector<GeTensor> inputs = { tensor, tensor };
-  const vector<GeTensor> outputs = { tensor };
+  const vector<GeTensor> inputs = {tensor, tensor};
+  const vector<GeTensor> outputs = {tensor};
 
   GeGenerator generator;
   generator.Initialize({});
@@ -261,7 +269,7 @@ TEST_F(UtestGeGenerator, test_remove_const) {
 TEST_F(UtestGeGenerator, test_generate_online_model) {
   GeTensorDesc tensor_desc;
   GeTensor tensor(tensor_desc);
-  const vector<GeTensor> inputs = { tensor, tensor };
+  const vector<GeTensor> inputs = {tensor, tensor};
   auto compute_graph = MakeGraph();
   compute_graph->TopologicalSorting();
   Graph graph = ge::GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
@@ -489,34 +497,34 @@ TEST_F(UtestGeGenerator, CreateGeneralizedBuildAttrs_GeneralizedAttrsIsZero_Inpu
 }
 
 TEST_F(UtestGeGenerator, CreateGeneralizedBuildAttrs_GeneralizedAttrsIsZero_InputOutputShapeAllknow) {
-    GeGenerator generator;
-    auto ret = generator.Initialize({});
-    ASSERT_EQ(ret, SUCCESS);
-    GeRootModelPtr ge_root_model = std::make_shared<GeRootModel>();
-    ge_root_model->root_graph_ = MakeGraph();
-    NodePtr data_node = ge_root_model->root_graph_->FindNode("data");
-    NodePtr output_node = ge_root_model->root_graph_->FindNode("output");
-    ASSERT_NE(data_node, nullptr);
-    ASSERT_NE(data_node->GetOpDesc(), nullptr);
-    auto in_desc = data_node->GetOpDesc()->MutableInputDesc(0);
-    ASSERT_NE(output_node, nullptr);
-    ASSERT_NE(output_node->GetOpDesc(), nullptr);
-    auto out_desc = output_node->GetOpDesc()->MutableInputDesc(0);
+  GeGenerator generator;
+  auto ret = generator.Initialize({});
+  ASSERT_EQ(ret, SUCCESS);
+  GeRootModelPtr ge_root_model = std::make_shared<GeRootModel>();
+  ge_root_model->root_graph_ = MakeGraph();
+  NodePtr data_node = ge_root_model->root_graph_->FindNode("data");
+  NodePtr output_node = ge_root_model->root_graph_->FindNode("output");
+  ASSERT_NE(data_node, nullptr);
+  ASSERT_NE(data_node->GetOpDesc(), nullptr);
+  auto in_desc = data_node->GetOpDesc()->MutableInputDesc(0);
+  ASSERT_NE(output_node, nullptr);
+  ASSERT_NE(output_node->GetOpDesc(), nullptr);
+  auto out_desc = output_node->GetOpDesc()->MutableInputDesc(0);
 
-    GeTensorDesc tensor_desc(GeShape({1, 2}));
-    GeTensor tensor(tensor_desc);
+  GeTensorDesc tensor_desc(GeShape({1, 2}));
+  GeTensor tensor(tensor_desc);
 
-    in_desc->SetShape(GeShape({1, 2}));
-    in_desc->SetOriginShape(GeShape({1, 2}));
-    out_desc->SetShape(GeShape({1, 2}));
-    out_desc->SetOriginShape(GeShape({2}));
-    const vector<GeTensor> inputs = {tensor, tensor};
-    const vector<GeTensor> outputs = {tensor};
-    const vector<pair<string, string>> inputs_name_type = {{"data", DATA}, {"", CONSTANT}};
-    std::vector<NamedAttrs> generalized_attrs;
-    ret = generator.CreateGeneralizedBuildAttrs(ge_root_model, inputs, outputs, inputs_name_type, generalized_attrs);
-    EXPECT_EQ(ret, SUCCESS);
-    EXPECT_EQ(generalized_attrs.size(), 0);
+  in_desc->SetShape(GeShape({1, 2}));
+  in_desc->SetOriginShape(GeShape({1, 2}));
+  out_desc->SetShape(GeShape({1, 2}));
+  out_desc->SetOriginShape(GeShape({2}));
+  const vector<GeTensor> inputs = {tensor, tensor};
+  const vector<GeTensor> outputs = {tensor};
+  const vector<pair<string, string>> inputs_name_type = {{"data", DATA}, {"", CONSTANT}};
+  std::vector<NamedAttrs> generalized_attrs;
+  ret = generator.CreateGeneralizedBuildAttrs(ge_root_model, inputs, outputs, inputs_name_type, generalized_attrs);
+  EXPECT_EQ(ret, SUCCESS);
+  EXPECT_EQ(generalized_attrs.size(), 0);
 }
 
 TEST_F(UtestGeGenerator, test_create_generalized_build_attrs_failed) {
@@ -566,8 +574,8 @@ TEST_F(UtestGeGenerator, test_build_single_op_online_success) {
   op_desc->AddInferFunc(InferFunctionStub);
 
   GeTensor tensor(tensor_desc);
-  const vector<GeTensor> inputs = { tensor, tensor };
-  const vector<GeTensor> outputs = { tensor };
+  const vector<GeTensor> inputs = {tensor, tensor};
+  const vector<GeTensor> outputs = {tensor};
 
   GeGenerator generator;
   generator.Initialize({});
@@ -584,8 +592,8 @@ TEST_F(UtestGeGenerator, test_build_single_op_online_success) {
   GeShape shape2(std::vector<int64_t>{});
   GeTensorDesc tensor_desc2(shape2);
   GeTensor tensor2(tensor_desc2);
-  const vector<GeTensor> inputs2 = { tensor2, tensor2 };
-  const vector<GeTensor> outputs2 = { tensor2 };
+  const vector<GeTensor> inputs2 = {tensor2, tensor2};
+  const vector<GeTensor> outputs2 = {tensor2};
   ret = generator.BuildSingleOpModel(op_desc, inputs2, outputs2, "file_name", false);
 
   AttrUtils::SetBool(op_desc, "_AllShape", true);
@@ -607,8 +615,8 @@ TEST_F(UtestGeGenerator, test_get_single_op_build_stage_graph_success) {
   op_desc->AddOutputDesc(tensor_desc);
 
   GeTensor tensor(tensor_desc);
-  const vector<GeTensor> inputs = { tensor, tensor };
-  const vector<GeTensor> outputs = { tensor };
+  const vector<GeTensor> inputs = {tensor, tensor};
+  const vector<GeTensor> outputs = {tensor};
 
   GeGenerator generator;
   generator.Initialize({});
@@ -684,8 +692,8 @@ TEST_F(UtestGeGenerator, BuildSingleOp) {
   op_desc->AddInputDesc(tensor_desc);
   op_desc->AddOutputDesc(tensor_desc);
   GeTensor tensor(tensor_desc);
-  vector<GeTensor> inputs = { tensor, tensor };
-  vector<GeTensor> outputs = { tensor };
+  vector<GeTensor> inputs = {tensor, tensor};
+  vector<GeTensor> outputs = {tensor};
   std::string model_file_name = "online";
   OpEngineType engine_type = ENGINE_AICORE;
   ModelBufferData model_buff;
@@ -693,8 +701,9 @@ TEST_F(UtestGeGenerator, BuildSingleOp) {
   bool is_offline = false;
   int32_t compile_flag = 0;
   GraphStage graph_stage = GraphStage::GRAPH_STAGE_FUZZ;
-  EXPECT_NE(instance.BuildSingleOp(op_desc, inputs, outputs, model_file_name, engine_type,
-                                   model_buff, comp_graph, is_offline, compile_flag, graph_stage), SUCCESS);
+  EXPECT_NE(instance.BuildSingleOp(op_desc, inputs, outputs, model_file_name, engine_type, model_buff, comp_graph,
+                                   is_offline, compile_flag, graph_stage),
+            SUCCESS);
   EXPECT_EQ(instance.Finalize(), SUCCESS);
   FinalizeGeLib();
 }
@@ -744,8 +753,8 @@ TEST_F(UtestGeGenerator, BuildSingleOpAttr_unregst_oppath) {
   op_desc->AddOutputDesc(tensor_desc);
   op_desc->SetAttr("_unregst_oppath", AnyValue::CreateFrom<int>(1));
   GeTensor tensor(tensor_desc);
-  vector<GeTensor> inputs = { tensor, tensor };
-  vector<GeTensor> outputs = { tensor };
+  vector<GeTensor> inputs = {tensor, tensor};
+  vector<GeTensor> outputs = {tensor};
   std::string model_file_name = "online";
   OpEngineType engine_type = ENGINE_AICORE;
   ModelBufferData model_buff;
@@ -753,8 +762,9 @@ TEST_F(UtestGeGenerator, BuildSingleOpAttr_unregst_oppath) {
   bool is_offline = false;
   int32_t compile_flag = 0;
   GraphStage graph_stage = GraphStage::GRAPH_STAGE_FUZZ;
-  EXPECT_NE(instance.BuildSingleOp(op_desc, inputs, outputs, model_file_name, engine_type,
-                                   model_buff, comp_graph, is_offline, compile_flag, graph_stage), SUCCESS);
+  EXPECT_NE(instance.BuildSingleOp(op_desc, inputs, outputs, model_file_name, engine_type, model_buff, comp_graph,
+                                   is_offline, compile_flag, graph_stage),
+            SUCCESS);
   EXPECT_EQ(instance.Finalize(), SUCCESS);
   FinalizeGeLib();
 }
@@ -771,8 +781,8 @@ TEST_F(UtestGeGenerator, BuildSingleOpOpInfo) {
   op_desc->AddOutputDesc(tensor_desc);
   op_desc->AddInferFunc(InferFunctionStub);
   GeTensor tensor(tensor_desc);
-  vector<GeTensor> inputs = { tensor, tensor };
-  vector<GeTensor> outputs = { tensor };
+  vector<GeTensor> inputs = {tensor, tensor};
+  vector<GeTensor> outputs = {tensor};
   std::string model_file_name = "online";
   OpEngineType engine_type = ENGINE_AICORE;
   ModelBufferData model_buff;
@@ -785,20 +795,23 @@ TEST_F(UtestGeGenerator, BuildSingleOpOpInfo) {
   OpInfo oi;
   ops_kernel_manager.ops_kernel_info_[op_desc->GetType()] = vec;
 
-  EXPECT_NE(instance.BuildSingleOp(op_desc, inputs, outputs, model_file_name, engine_type,
-                                   model_buff, comp_graph, is_offline, compile_flag, graph_stage), SUCCESS);
+  EXPECT_NE(instance.BuildSingleOp(op_desc, inputs, outputs, model_file_name, engine_type, model_buff, comp_graph,
+                                   is_offline, compile_flag, graph_stage),
+            SUCCESS);
   oi.engine = "AIcoreEngine";
   oi.opKernelLib = "opKernelLib";
   vec.push_back(oi);
   ops_kernel_manager.ops_kernel_info_[op_desc->GetType()] = vec;
   auto p = std::make_shared<FakeOpsKernelInfoStore>();
   ops_kernel_manager.ops_kernel_store_["opKernelLib"] = p;
-  EXPECT_EQ(instance.BuildSingleOp(op_desc, inputs, outputs, model_file_name, engine_type,
-                                   model_buff, comp_graph, is_offline, compile_flag, graph_stage), SUCCESS);
+  EXPECT_EQ(instance.BuildSingleOp(op_desc, inputs, outputs, model_file_name, engine_type, model_buff, comp_graph,
+                                   is_offline, compile_flag, graph_stage),
+            SUCCESS);
   p->supported_ = false;
   ops_kernel_manager.ops_kernel_store_[oi.opKernelLib] = p;
-  EXPECT_NE(instance.BuildSingleOp(op_desc, inputs, outputs, model_file_name, engine_type,
-                                   model_buff, comp_graph, is_offline, compile_flag, graph_stage), SUCCESS);
+  EXPECT_NE(instance.BuildSingleOp(op_desc, inputs, outputs, model_file_name, engine_type, model_buff, comp_graph,
+                                   is_offline, compile_flag, graph_stage),
+            SUCCESS);
   EXPECT_EQ(instance.Finalize(), SUCCESS);
   FinalizeGeLib();
 }
@@ -814,8 +827,8 @@ TEST_F(UtestGeGenerator, BuildSingleOpOpInfoNoLib) {
   op_desc->AddInputDesc(tensor_desc);
   op_desc->AddOutputDesc(tensor_desc);
   GeTensor tensor(tensor_desc);
-  vector<GeTensor> inputs = { tensor, tensor };
-  vector<GeTensor> outputs = { tensor };
+  vector<GeTensor> inputs = {tensor, tensor};
+  vector<GeTensor> outputs = {tensor};
   std::string model_file_name = "online";
   OpEngineType engine_type = ENGINE_AICORE;
   ModelBufferData model_buff;
@@ -830,8 +843,9 @@ TEST_F(UtestGeGenerator, BuildSingleOpOpInfoNoLib) {
   oi.opKernelLib = "";
   vec.push_back(oi);
   ops_kernel_manager.ops_kernel_info_[op_desc->GetType()] = vec;
-  EXPECT_NE(instance.BuildSingleOp(op_desc, inputs, outputs, model_file_name, engine_type,
-                                   model_buff, comp_graph, is_offline, compile_flag, graph_stage), SUCCESS);
+  EXPECT_NE(instance.BuildSingleOp(op_desc, inputs, outputs, model_file_name, engine_type, model_buff, comp_graph,
+                                   is_offline, compile_flag, graph_stage),
+            SUCCESS);
   EXPECT_EQ(instance.Finalize(), SUCCESS);
   FinalizeGeLib();
 }
@@ -848,8 +862,8 @@ TEST_F(UtestGeGenerator, CheckForSingleOp) {
   op_desc->AddInputDesc(tensor_desc);
   op_desc->AddOutputDesc(tensor_desc);
   GeTensor tensor(tensor_desc);
-  vector<GeTensor> inputs = { tensor };
-  vector<GeTensor> outputs = { tensor };
+  vector<GeTensor> inputs = {tensor};
+  vector<GeTensor> outputs = {tensor};
   EXPECT_EQ(instance.CheckForSingleOp(op_desc, inputs, outputs), PARAM_INVALID);
   inputs.push_back(tensor);
   outputs.push_back(tensor);
@@ -961,8 +975,8 @@ TEST_F(UtestGeGenerator, test_build_single_op_online_with_qos_before) {
   op_desc->AddInferFunc(InferFunctionStub);
 
   GeTensor tensor(tensor_desc);
-  const vector<GeTensor> inputs = { tensor, tensor };
-  const vector<GeTensor> outputs = { tensor };
+  const vector<GeTensor> inputs = {tensor, tensor};
+  const vector<GeTensor> outputs = {tensor};
 
   GeGenerator generator;
   generator.Initialize({});
@@ -977,8 +991,8 @@ TEST_F(UtestGeGenerator, test_build_single_op_online_with_qos_before) {
   GeShape shape2(std::vector<int64_t>{});
   GeTensorDesc tensor_desc2(shape2);
   GeTensor tensor2(tensor_desc2);
-  const vector<GeTensor> inputs2 = { tensor2, tensor2 };
-  const vector<GeTensor> outputs2 = { tensor2 };
+  const vector<GeTensor> inputs2 = {tensor2, tensor2};
+  const vector<GeTensor> outputs2 = {tensor2};
   ret = generator.BuildSingleOpModel(op_desc, inputs2, outputs2, "file_name", false);
 
   AttrUtils::SetBool(op_desc, "_AllShape", true);
@@ -1002,8 +1016,8 @@ TEST_F(UtestGeGenerator, test_build_single_op_online_with_qos_after) {
   op_desc->AddOutputDesc(tensor_desc);
 
   GeTensor tensor(tensor_desc);
-  const vector<GeTensor> inputs = { tensor, tensor };
-  const vector<GeTensor> outputs = { tensor };
+  const vector<GeTensor> inputs = {tensor, tensor};
+  const vector<GeTensor> outputs = {tensor};
 
   GeGenerator generator;
   generator.Initialize({});

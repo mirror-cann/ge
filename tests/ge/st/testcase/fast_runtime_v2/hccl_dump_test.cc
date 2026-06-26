@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -45,20 +45,20 @@ class ExecutorDumperST : public bg::BgTest {
 };
 
 /**
-* 用例描述：hccl算子的datadump
-*
-* 预置条件：
-* 1. hccl算子的dumpunit
-*
-* 测试步骤：
-* 1. 构造hccl算子的dumpunit
-* 2. 构造executorDump类
-* 3. 使能datadump
-* 4. 构造输入Tensor，shape为[1024]，输出Tensor的shape为[1024]，执行
-*
-* 预期结果：
-* 1. 执行成功
-*/
+ * 用例描述：hccl算子的datadump
+ *
+ * 预置条件：
+ * 1. hccl算子的dumpunit
+ *
+ * 测试步骤：
+ * 1. 构造hccl算子的dumpunit
+ * 2. 构造executorDump类
+ * 3. 使能datadump
+ * 4. 构造输入Tensor，shape为[1024]，输出Tensor的shape为[1024]，执行
+ *
+ * 预期结果：
+ * 1. 执行成功
+ */
 TEST_F(ExecutorDumperST, DoHcclDataDump_Ok) {
   StorageShape storage_shape{{4}, {4, 1}};
   kernel::BuildTensorAttr attr{kOnDeviceHbm, ge::DT_FLOAT16, {ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0, ExpandDimsType()}};
@@ -66,8 +66,7 @@ TEST_F(ExecutorDumperST, DoHcclDataDump_Ok) {
   tensor_holder.MutableTensorData() = TensorData{(void *)1024, nullptr, 0, kOnDeviceHbm};
   GertTensorData tensor_data;
   TensorUtils::RefTdToGtd(tensor_holder.GetTensorData(), -1, tensor_data);
-  auto context_holder_1 =
-      KernelRunContextFaker().KernelIONum(1, 2).Outputs({&tensor_holder, &tensor_data}).Build();
+  auto context_holder_1 = KernelRunContextFaker().KernelIONum(1, 2).Outputs({&tensor_holder, &tensor_data}).Build();
   const auto &sub_extend_info = ge::MakeShared<const SubscriberExtendInfo>();
   GlobalDumper::GetInstance()->SetEnableFlags(20);
   ExecutorDumper dumper(sub_extend_info);
@@ -104,10 +103,10 @@ TEST_F(ExecutorDumperST, DoHcclDataDump_Ok) {
   size_t total_size = 0UL;
   ComputeNodeInfo::CalcSize(1, 1, 1, total_size);
   auto compute_node_info_holder = ge::ComGraphMakeUnique<uint8_t[]>(total_size);
-  ComputeNodeInfo* compute_node_info = ge::PtrToPtr<uint8_t, ComputeNodeInfo>(compute_node_info_holder.get());
+  ComputeNodeInfo *compute_node_info = ge::PtrToPtr<uint8_t, ComputeNodeInfo>(compute_node_info_holder.get());
   compute_node_info->Init(1, 1, 1, "hcom_reduce", "HcomReduce");
   uint8_t holder[sizeof(KernelExtendInfo)];
-  KernelExtendInfo* extend_kernel_info = reinterpret_cast<KernelExtendInfo *>(holder);
+  KernelExtendInfo *extend_kernel_info = reinterpret_cast<KernelExtendInfo *>(holder);
   extend_kernel_info->SetKernelName("hcom_kernel_launch");
   extend_kernel_info->SetKernelType("LaunchHcomKernel");
   KernelRunContext kernel_run_context;
@@ -121,4 +120,4 @@ TEST_F(ExecutorDumperST, DoHcclDataDump_Ok) {
   EXPECT_EQ(dumper.DataDump(&node, kExecuteStart), ge::SUCCESS);
   EXPECT_EQ(dumper.DataDump(&node, kExecuteEnd), ge::SUCCESS);
 }
-}
+}  // namespace gert

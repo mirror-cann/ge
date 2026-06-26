@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,53 +29,51 @@ using namespace ge_local;
 
 class UtestGeLocalEngine : public testing::Test {
  protected:
-  void SetUp() {
-  }
-  void TearDown() {
-  }
+  void SetUp() {}
+  void TearDown() {}
 };
 
 TEST_F(UtestGeLocalEngine, Initialize) {
-    auto &instance = GeLocalEngine::Instance();
-    std::map<std::string, std::string> options;
-    EXPECT_EQ(instance.Initialize(options), SUCCESS);
-    EXPECT_EQ(Initialize(options), SUCCESS);
+  auto &instance = GeLocalEngine::Instance();
+  std::map<std::string, std::string> options;
+  EXPECT_EQ(instance.Initialize(options), SUCCESS);
+  EXPECT_EQ(Initialize(options), SUCCESS);
 }
 
 TEST_F(UtestGeLocalEngine, GetOpsKernelInfoStores) {
-    auto &instance = GeLocalEngine::Instance();
-    std::map<std::string, OpsKernelInfoStorePtr> ops_kernel_map;
-    instance.GetOpsKernelInfoStores(ops_kernel_map);
-    EXPECT_NO_THROW(GetOpsKernelInfoStores(ops_kernel_map));
+  auto &instance = GeLocalEngine::Instance();
+  std::map<std::string, OpsKernelInfoStorePtr> ops_kernel_map;
+  instance.GetOpsKernelInfoStores(ops_kernel_map);
+  EXPECT_NO_THROW(GetOpsKernelInfoStores(ops_kernel_map));
 }
 
 TEST_F(UtestGeLocalEngine, GetGraphOptimizerObjs) {
-    auto &instance = GeLocalEngine::Instance();
-    std::map<std::string, GraphOptimizerPtr> grpgh_opt_map;
-    instance.GetGraphOptimizerObjs(grpgh_opt_map);
-    EXPECT_NO_THROW(GetGraphOptimizerObjs(grpgh_opt_map));
+  auto &instance = GeLocalEngine::Instance();
+  std::map<std::string, GraphOptimizerPtr> grpgh_opt_map;
+  instance.GetGraphOptimizerObjs(grpgh_opt_map);
+  EXPECT_NO_THROW(GetGraphOptimizerObjs(grpgh_opt_map));
 }
 
 TEST_F(UtestGeLocalEngine, Finalize) {
-    auto &instance = GeLocalEngine::Instance();
-    EXPECT_EQ(instance.Finalize(), SUCCESS);
-    EXPECT_EQ(Finalize(), SUCCESS);
+  auto &instance = GeLocalEngine::Instance();
+  EXPECT_EQ(instance.Finalize(), SUCCESS);
+  EXPECT_EQ(Finalize(), SUCCESS);
 }
 
 TEST_F(UtestGeLocalEngine, GeLocalGraphOptimizer_Normal) {
-    GeLocalGraphOptimizer optimizer;
-    std::map<std::string, std::string> options;
-    EXPECT_EQ(optimizer.Initialize(options, nullptr), SUCCESS);
-    
-    ComputeGraph *graph = nullptr;
-    EXPECT_EQ(optimizer.OptimizeOriginalGraph(*graph), SUCCESS);
-    EXPECT_EQ(optimizer.OptimizeFusedGraph(*graph), SUCCESS);
-    EXPECT_EQ(optimizer.OptimizeWholeGraph(*graph), SUCCESS);
+  GeLocalGraphOptimizer optimizer;
+  std::map<std::string, std::string> options;
+  EXPECT_EQ(optimizer.Initialize(options, nullptr), SUCCESS);
 
-    GraphOptimizerAttribute attrs;
-    EXPECT_EQ(optimizer.GetAttributes(attrs), SUCCESS);
+  ComputeGraph *graph = nullptr;
+  EXPECT_EQ(optimizer.OptimizeOriginalGraph(*graph), SUCCESS);
+  EXPECT_EQ(optimizer.OptimizeFusedGraph(*graph), SUCCESS);
+  EXPECT_EQ(optimizer.OptimizeWholeGraph(*graph), SUCCESS);
 
-    EXPECT_EQ(optimizer.Finalize(), SUCCESS);
+  GraphOptimizerAttribute attrs;
+  EXPECT_EQ(optimizer.GetAttributes(attrs), SUCCESS);
+
+  EXPECT_EQ(optimizer.Finalize(), SUCCESS);
 }
 
 TEST_F(UtestGeLocalEngine, GeLocalGraphOptimizer_JudegInsert) {
@@ -100,7 +98,8 @@ TEST_F(UtestGeLocalEngine, GeLocalGraphOptimizer_JudegInsert) {
   EXPECT_EQ(optimizer.OptimizeOriginalGraphJudgeInsert(*compute_graph1.get()), SUCCESS);
   EXPECT_EQ(ge::AttrUtils::GetBool(node_phony_concat->GetOpDesc(), ATTR_NAME_NOTASK, bool_attr), true);
   EXPECT_EQ(bool_attr, true);
-  EXPECT_EQ(ge::AttrUtils::GetBool(node_phony_concat->GetOpDesc(), ATTR_NAME_NOPADDING_CONTINUOUS_INPUT, bool_attr), true);
+  EXPECT_EQ(ge::AttrUtils::GetBool(node_phony_concat->GetOpDesc(), ATTR_NAME_NOPADDING_CONTINUOUS_INPUT, bool_attr),
+            true);
   EXPECT_EQ(bool_attr, true);
   EXPECT_EQ(ge::AttrUtils::GetBool(node_phony_concat->GetOpDesc(), ATTR_NAME_OUTPUT_REUSE_INPUT, bool_attr), true);
   EXPECT_EQ(bool_attr, true);
@@ -111,7 +110,8 @@ TEST_F(UtestGeLocalEngine, GeLocalGraphOptimizer_JudegInsert) {
   EXPECT_EQ(optimizer.OptimizeOriginalGraphJudgeInsert(*compute_graph2.get()), SUCCESS);
   EXPECT_EQ(ge::AttrUtils::GetBool(node_phony_split->GetOpDesc(), ATTR_NAME_NOTASK, bool_attr), true);
   EXPECT_EQ(bool_attr, true);
-  EXPECT_EQ(ge::AttrUtils::GetBool(node_phony_split->GetOpDesc(), ATTR_NAME_NOPADDING_CONTINUOUS_OUTPUT, bool_attr), true);
+  EXPECT_EQ(ge::AttrUtils::GetBool(node_phony_split->GetOpDesc(), ATTR_NAME_NOPADDING_CONTINUOUS_OUTPUT, bool_attr),
+            true);
   EXPECT_EQ(bool_attr, true);
   EXPECT_EQ(ge::AttrUtils::GetBool(node_phony_split->GetOpDesc(), ATTR_NAME_OUTPUT_REUSE_INPUT, bool_attr), true);
   EXPECT_EQ(bool_attr, true);
@@ -119,4 +119,4 @@ TEST_F(UtestGeLocalEngine, GeLocalGraphOptimizer_JudegInsert) {
   EXPECT_EQ(int_attr, 0);
 }
 
-} // namespace ge
+}  // namespace ge

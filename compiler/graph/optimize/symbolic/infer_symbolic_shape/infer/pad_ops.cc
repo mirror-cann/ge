@@ -1,13 +1,12 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
-
 
 #include <cstdlib>
 #include "graph/compute_graph.h"
@@ -42,7 +41,8 @@ graphStatus InferShape4Pad(gert::InferSymbolShapeContext *context) {
   const auto paddings_tensor = context->GetInputSymbolTensor(1);
   GE_UNSUPPORTED_IF_NULL(paddings_tensor);
   if (paddings_tensor->GetSymbolicValue() == nullptr) {
-    GELOGW("Symbol Infer unsupported, get symbolic value is nullptr, node %s[%s]", context->GetNodeName(), context->GetNodeType());
+    GELOGW("Symbol Infer unsupported, get symbolic value is nullptr, node %s[%s]", context->GetNodeName(),
+           context->GetNodeType());
     return UNSUPPORTED;
   }
 
@@ -96,8 +96,8 @@ graphStatus InferShape4PadD(gert::InferSymbolShapeContext *context) {
   return GRAPH_SUCCESS;
 }
 
-graphStatus PadV3InferShape(const gert::InferSymbolShapeContext* context, const gert::SymbolShape* x_shape,
-                            const gert::SymbolTensor* paddings_tensor, gert::SymbolShape* y_shape) {
+graphStatus PadV3InferShape(const gert::InferSymbolShapeContext *context, const gert::SymbolShape *x_shape,
+                            const gert::SymbolTensor *paddings_tensor, gert::SymbolShape *y_shape) {
   const auto paddings_value = paddings_tensor->GetSymbolicValue();
   GE_ASSERT_NOTNULL(paddings_value);
   const auto attrs = context->GetAttrs();
@@ -125,7 +125,7 @@ graphStatus PadV3InferShape(const gert::InferSymbolShapeContext* context, const 
   return GRAPH_SUCCESS;
 }
 
-graphStatus InferShape4PadV3(gert::InferSymbolShapeContext* context) {
+graphStatus InferShape4PadV3(gert::InferSymbolShapeContext *context) {
   const auto x_shape = context->GetInputSymbolShape(0);
   GE_UNSUPPORTED_IF_NULL(x_shape);
   auto y_shape = context->GetOutputSymbolShape(0);
@@ -135,7 +135,8 @@ graphStatus InferShape4PadV3(gert::InferSymbolShapeContext* context) {
   const auto paddings_desc = context->GetInputDesc(1);
   GE_ASSERT_NOTNULL(paddings_desc);
   const auto paddings_dtype = paddings_desc->GetDataType();
-  GE_ASSERT(paddings_dtype == DT_INT32 || paddings_dtype == DT_INT64, "paddings data type must is int32 or int64, it is %d", paddings_dtype);
+  GE_ASSERT(paddings_dtype == DT_INT32 || paddings_dtype == DT_INT64,
+            "paddings data type must is int32 or int64, it is %d", paddings_dtype);
   return PadV3InferShape(context, x_shape, paddings_tensor, y_shape);
 }
 

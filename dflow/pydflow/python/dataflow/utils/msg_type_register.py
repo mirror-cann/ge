@@ -2,15 +2,16 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
 
 import sys
+
 import dataflow.utils.utils as utils
 
 
@@ -24,20 +25,11 @@ class MsgTypeRegister:
 
     def register(self, msg_type, clz, serialize_func, deserialize_func, size_func=None):
         int_msg_type = int(msg_type)
-        if (
-                int_msg_type in self._registered_msg
-                and self._registered_msg[int_msg_type] != clz
-        ):
+        if int_msg_type in self._registered_msg and self._registered_msg[int_msg_type] != clz:
+            raise utils.DfException(f"msg_type:{msg_type} has been registered, class:{clz}.")
+        if clz in self._registered_clz_to_msg_type and int_msg_type != self._registered_clz_to_msg_type[clz]:
             raise utils.DfException(
-                f"msg_type:{msg_type} has been registered, class:{clz}."
-            )
-        if (
-                clz in self._registered_clz_to_msg_type
-                and int_msg_type != self._registered_clz_to_msg_type[clz]
-        ):
-            raise utils.DfException(
-                f"class:{clz} has been registered, "
-                f"msg_type:{self._registered_clz_to_msg_type[clz]}."
+                f"class:{clz} has been registered, msg_type:{self._registered_clz_to_msg_type[clz]}."
             )
         self._registered_msg[int_msg_type] = clz
         self._registered_clz_to_msg_type[clz] = int_msg_type

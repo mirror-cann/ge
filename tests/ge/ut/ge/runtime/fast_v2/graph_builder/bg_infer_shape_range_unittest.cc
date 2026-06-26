@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,7 +39,7 @@ ge::graphStatus InferShapeForAdd(InferShapeContext *context) {
   return SUCCESS;
 }
 IMPL_OP(Add).InferShape(InferShapeForAdd);
-} // namespace
+}  // namespace
 class BgInferShapeRangeUT : public BgTestAutoCreate3StageFrame {};
 
 TEST_F(BgInferShapeRangeUT, NodeNullFailed) {
@@ -84,9 +84,8 @@ TEST_F(BgInferShapeRangeUT, ConstructInferShapeRangeOk) {
 
   auto non_zero_node = graph->FindNode("nonzero");
 
-  auto infer_shape_range_result = bg::InferShapeRange(non_zero_node,
-                                                      {add_ret.out_shapes[0], data2_ret.out_shapes[0]},
-                                                      global_data);
+  auto infer_shape_range_result =
+      bg::InferShapeRange(non_zero_node, {add_ret.out_shapes[0], data2_ret.out_shapes[0]}, global_data);
   ASSERT_TRUE(infer_shape_range_result.IsSuccess());
   auto max_shapes = infer_shape_range_result.GetAllMaxShapes();
   ASSERT_EQ(max_shapes.size(), 1);
@@ -110,7 +109,7 @@ TEST_F(BgInferShapeRangeUT, ConstructInferShapeRangeOk) {
 
 TEST_F(BgInferShapeRangeUT, ConstructInferShapeRangeNullNodeFailed) {
   LoweringGlobalData global_data;
-    auto space_registry_array = OpImplSpaceRegistryV2Array();
+  auto space_registry_array = OpImplSpaceRegistryV2Array();
   space_registry_array[static_cast<size_t>(gert::OppImplVersionTag::kOpp)] = SpaceRegistryFaker().Build();
   global_data.SetSpaceRegistriesV2(space_registry_array);
   auto result = bg::InferShapeRange(nullptr, {}, global_data);
@@ -122,7 +121,7 @@ TEST_F(BgInferShapeRangeUT, ConstructInferShapeRangeInputsNumNotMatchFailed) {
   auto add_node = graph->FindNode("add1");
 
   LoweringGlobalData global_data;
-    auto space_registry_array = OpImplSpaceRegistryV2Array();
+  auto space_registry_array = OpImplSpaceRegistryV2Array();
   space_registry_array[static_cast<size_t>(gert::OppImplVersionTag::kOpp)] = SpaceRegistryFaker().Build();
   global_data.SetSpaceRegistriesV2(space_registry_array);
   auto result = bg::InferShapeRange(add_node, {}, global_data);
@@ -134,7 +133,7 @@ TEST_F(BgInferShapeRangeUT, GetAllShapeRangesOk) {
 
   auto add_op_desc = graph->FindNode("add1")->GetOpDesc();
   add_op_desc->SetOpKernelLibName(ge::kEngineNameAiCore.c_str());
-auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Add", false).Build();
   bg::LowerConstDataNode(global_data);
   LowerInput data_input = {{}, {}, &global_data};
@@ -151,9 +150,8 @@ auto root_model = GeModelBuilder(graph).BuildGeRootModel();
 
   auto non_zero_node = graph->FindNode("nonzero");
 
-  auto infer_shape_range_result = bg::InferShapeRange(non_zero_node,
-                                                      {data1_ret.out_shapes[0], data2_ret.out_shapes[0]},
-                                                      global_data);
+  auto infer_shape_range_result =
+      bg::InferShapeRange(non_zero_node, {data1_ret.out_shapes[0], data2_ret.out_shapes[0]}, global_data);
   ASSERT_TRUE(infer_shape_range_result.IsSuccess());
   auto shape_ranges = infer_shape_range_result.GetAllShapeRanges();
   ASSERT_EQ(shape_ranges.size(), 1U);
@@ -166,7 +164,7 @@ TEST_F(BgInferShapeRangeUT, GetMinShapeRangesOk) {
 
   auto add_op_desc = graph->FindNode("add1")->GetOpDesc();
   add_op_desc->SetOpKernelLibName(ge::kEngineNameAiCore.c_str());
-auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Add", false).Build();
   bg::LowerConstDataNode(global_data);
   LowerInput data_input = {{}, {}, &global_data};
@@ -183,9 +181,8 @@ auto root_model = GeModelBuilder(graph).BuildGeRootModel();
 
   auto non_zero_node = graph->FindNode("nonzero");
 
-  auto infer_shape_range_result = bg::InferShapeRange(non_zero_node,
-                                                      {data1_ret.out_shapes[0], data2_ret.out_shapes[0]},
-                                                      global_data);
+  auto infer_shape_range_result =
+      bg::InferShapeRange(non_zero_node, {data1_ret.out_shapes[0], data2_ret.out_shapes[0]}, global_data);
   ASSERT_TRUE(infer_shape_range_result.IsSuccess());
   auto shape_ranges = infer_shape_range_result.GetAllMinShapes();
   ASSERT_EQ(shape_ranges.size(), 1U);
@@ -193,13 +190,12 @@ auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   EXPECT_EQ(shape_ranges[0]->GetFastNode()->GetType(), "InferShapeRange");
 }
 
-
 TEST_F(BgInferShapeRangeUT, InferMaxShapeOk) {
   auto graph = ShareGraph::ThirdAicpuOpGraph();
 
   auto add_op_desc = graph->FindNode("add1")->GetOpDesc();
   add_op_desc->SetOpKernelLibName(ge::kEngineNameAiCore.c_str());
-auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Add", false).Build();
   bg::LowerConstDataNode(global_data);
   LowerInput data_input = {{}, {}, &global_data};
@@ -216,9 +212,8 @@ auto root_model = GeModelBuilder(graph).BuildGeRootModel();
 
   auto non_zero_node = graph->FindNode("nonzero");
 
-  auto max_shape_holders = bg::InferMaxShape(non_zero_node,
-                                             {data1_ret.out_shapes[0], data2_ret.out_shapes[0]},
-                                             global_data);
+  auto max_shape_holders =
+      bg::InferMaxShape(non_zero_node, {data1_ret.out_shapes[0], data2_ret.out_shapes[0]}, global_data);
   ASSERT_EQ(max_shape_holders.size(), 1U);
 
   EXPECT_EQ(max_shape_holders[0]->GetFastNode()->GetType(), "InferShapeRange");
@@ -226,13 +221,12 @@ auto root_model = GeModelBuilder(graph).BuildGeRootModel();
 
 TEST_F(BgInferShapeRangeUT, InferMaxShapeNullNodeFailed) {
   LoweringGlobalData global_data;
-    auto space_registry_array = OpImplSpaceRegistryV2Array();
+  auto space_registry_array = OpImplSpaceRegistryV2Array();
   space_registry_array[static_cast<size_t>(gert::OppImplVersionTag::kOpp)] = SpaceRegistryFaker().Build();
   global_data.SetSpaceRegistriesV2(space_registry_array);
   auto max_shape_holders = bg::InferMaxShape(nullptr, {}, global_data);
   ASSERT_TRUE(max_shape_holders.empty());
 }
-
 
 /**
  * 测试当mul算子不支持新版infershape函数时，lowering产生v1版本的infershape执行图
@@ -253,7 +247,7 @@ TEST_F(BgInferShapeRangeUT, InferMaxShapeNullNodeFailed) {
 TEST_F(BgInferShapeRangeUT, ConstructV1InferShapeRangeOk) {
   auto graph = ShareGraph::BuildCompatibleInferShapeRangeGraph();
 
-auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("TestNoInferShapeRange", false).Build();
   bg::LowerConstDataNode(global_data);
   LowerInput data_input = {{}, {}, &global_data};
@@ -264,8 +258,8 @@ auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   ASSERT_EQ(data2_ret.out_shapes.size(), 1);
 
   auto test_no_infer = graph->FindNode("test_no_infer");
-  auto max_shape_holders = bg::InferMaxShape(test_no_infer, {data1_ret.out_shapes[0], data2_ret.out_shapes[0]},
-                                             global_data);
+  auto max_shape_holders =
+      bg::InferMaxShape(test_no_infer, {data1_ret.out_shapes[0], data2_ret.out_shapes[0]}, global_data);
   ASSERT_EQ(max_shape_holders.size(), 1U);
   EXPECT_EQ(max_shape_holders[0]->GetFastNode()->GetType(), "CompatibleInferShapeRange");
   auto exe_graph = max_shape_holders[0]->GetFastNode()->GetExtendInfo()->GetOwnerGraphBarePtr();

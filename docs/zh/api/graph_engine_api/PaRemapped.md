@@ -101,4 +101,3 @@ Status PaRemapped(const uint64_t va, const uint64_t new_pa, const uint64_t len)
 -   不支持Session中存在Host调度的场景，若Session中存在Host调度图，接口返回失败。
 -   不支持静态shape图allocation表中的绝对地址段。
 -   该接口只适用于静态编译图，可以通过[GetCompiledGraphSummary](GetCompiledGraphSummary.md)接口中的IsStatic接口获取图是否为静态编译。
-

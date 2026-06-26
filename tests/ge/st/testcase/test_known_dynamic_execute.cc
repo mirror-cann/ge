@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -36,32 +36,44 @@ class DynamicKnownTest : public testing::Test {
 
 static void BuildSampleGraph(ComputeGraphPtr &graph0, ComputeGraphPtr &graph1, ComputeGraphPtr &graph2,
                              ComputeGraphPtr &graph3, ComputeGraphPtr &graph3_then, ComputeGraphPtr &graph3_else,
-                             ComputeGraphPtr &graph4,  uint32_t &mem_offset) {
-  DEF_GRAPH(g0) { // Root Graph.
+                             ComputeGraphPtr &graph4, uint32_t &mem_offset) {
+  DEF_GRAPH(g0) {  // Root Graph.
     auto data_0 = OP_CFG(DATA).Attr(ATTR_NAME_INDEX, 0);
     auto data_1 = OP_CFG(DATA).Attr(ATTR_NAME_INDEX, 1);
     auto data_2 = OP_CFG(DATA).Attr(ATTR_NAME_INDEX, 2);
     auto data_3 = OP_CFG(DATA).Attr(ATTR_NAME_INDEX, 3);
-    CHAIN(NODE("PartitionedCall_i", PARTITIONEDCALL)->EDGE(0, 0)->
-          NODE("PartitionedCall_d", PARTITIONEDCALL)->EDGE(0, 0)->
-          NODE("PartitionedCall_s", PARTITIONEDCALL)->EDGE(0, 0)->
-          NODE(NODE_NAME_NET_OUTPUT, NETOUTPUT));
-    CHAIN(NODE("PartitionedCall_i")->EDGE(0, 0)->
-          NODE("PartitionedCall_k", PARTITIONEDCALL)->EDGE(0, 1)->
-          NODE("PartitionedCall_s")->EDGE(1, 1)->
-          NODE(NODE_NAME_NET_OUTPUT));
+    CHAIN(NODE("PartitionedCall_i", PARTITIONEDCALL)
+              ->EDGE(0, 0)
+              ->NODE("PartitionedCall_d", PARTITIONEDCALL)
+              ->EDGE(0, 0)
+              ->NODE("PartitionedCall_s", PARTITIONEDCALL)
+              ->EDGE(0, 0)
+              ->NODE(NODE_NAME_NET_OUTPUT, NETOUTPUT));
+    CHAIN(NODE("PartitionedCall_i")
+              ->EDGE(0, 0)
+              ->NODE("PartitionedCall_k", PARTITIONEDCALL)
+              ->EDGE(0, 1)
+              ->NODE("PartitionedCall_s")
+              ->EDGE(1, 1)
+              ->NODE(NODE_NAME_NET_OUTPUT));
 
     CHAIN(NODE("_arg_0", data_0)->EDGE(0, 0)->NODE("PartitionedCall_i")->EDGE(1, 1)->NODE("PartitionedCall_d"));
     CHAIN(NODE("_arg_1", data_1)->EDGE(0, 1)->NODE("PartitionedCall_i")->EDGE(2, 2)->NODE("PartitionedCall_d"));
 
-    CHAIN(NODE("_arg_2", data_2)->EDGE(0, 2)->NODE("PartitionedCall_i")->EDGE(2, 1)->NODE("PartitionedCall_k")->EDGE(1, 2)->NODE("PartitionedCall_s"));
+    CHAIN(NODE("_arg_2", data_2)
+              ->EDGE(0, 2)
+              ->NODE("PartitionedCall_i")
+              ->EDGE(2, 1)
+              ->NODE("PartitionedCall_k")
+              ->EDGE(1, 2)
+              ->NODE("PartitionedCall_s"));
     CHAIN(NODE("_arg_3", data_3)->EDGE(0, 3)->NODE("PartitionedCall_i")->EDGE(3, 2)->NODE("PartitionedCall_k"));
   };
   graph0 = ToComputeGraph(g0);
   graph0->SetGraphUnknownFlag(true);
   SetUnknownOpKernel(graph0, mem_offset, true);
 
-  DEF_GRAPH(g1) { // Input Graph.
+  DEF_GRAPH(g1) {  // Input Graph.
     auto data_0 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);
     auto data_1 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 1);
     auto data_2 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 2);
@@ -76,7 +88,7 @@ static void BuildSampleGraph(ComputeGraphPtr &graph0, ComputeGraphPtr &graph1, C
   SetUnknownOpKernel(graph1, mem_offset);
   AddPartitionedCall(graph0, "PartitionedCall_i", graph1);
 
-  DEF_GRAPH(g2) { // Unknown Graph.
+  DEF_GRAPH(g2) {  // Unknown Graph.
     auto data_0 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);
     auto data_1 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 1);
     auto data_2 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 2);
@@ -91,14 +103,18 @@ static void BuildSampleGraph(ComputeGraphPtr &graph0, ComputeGraphPtr &graph1, C
   SetUnknownOpKernel(graph2, mem_offset);
   AddPartitionedCall(graph0, "PartitionedCall_d", graph2);
 
-  DEF_GRAPH(g3) { // Known Graph.
+  DEF_GRAPH(g3) {  // Known Graph.
     auto data_0 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);
     auto data_1 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 1);
     auto data_2 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 2);
     const auto add_node = OP_CFG(ADD).Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF_AIVEC");
     const auto relu_node = OP_CFG(RELU).Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF_AIVEC");
     const auto pow_node = OP_CFG(POW).Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF_AIVEC");
-    CHAIN(NODE("davinci/_arg_0", data_0)->EDGE(0, 0)->NODE("davinci/add", add_node)->NODE("davinci/relu", relu_node)->NODE("davinci/Node_Output", NETOUTPUT));
+    CHAIN(NODE("davinci/_arg_0", data_0)
+              ->EDGE(0, 0)
+              ->NODE("davinci/add", add_node)
+              ->NODE("davinci/relu", relu_node)
+              ->NODE("davinci/Node_Output", NETOUTPUT));
     CHAIN(NODE("davinci/_arg_1", data_1)->EDGE(0, 1)->NODE("davinci/add", add_node));
     CHAIN(NODE("davinci/add")->EDGE(0, 0)->NODE("davinci/pow", pow_node)->NODE("davinci/Node_Output", NETOUTPUT));
     CHAIN(NODE("davinci/_arg_0", data_0)->EDGE(0, 0)->NODE("davinci/if_node", IF));
@@ -111,7 +127,7 @@ static void BuildSampleGraph(ComputeGraphPtr &graph0, ComputeGraphPtr &graph1, C
   SetUnknownOpKernel(graph3, mem_offset, true);
   AddPartitionedCall(graph0, "PartitionedCall_k", graph3);
 
-  DEF_GRAPH(g3_then) { // Known Graph - then_branch.
+  DEF_GRAPH(g3_then) {  // Known Graph - then_branch.
     auto data_0 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);
     auto data_1 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 1);
     auto data_2 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 2);
@@ -119,13 +135,22 @@ static void BuildSampleGraph(ComputeGraphPtr &graph0, ComputeGraphPtr &graph1, C
     auto label_01 = OP_CFG(LABELSET).Attr(ATTR_NAME_LABEL_SWITCH_INDEX, 1);
     auto label_go = OP_CFG(LABELGOTOEX).Attr(ATTR_NAME_LABEL_SWITCH_INDEX, 2);
     const auto add_node = OP_CFG(ADD).Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF_AIVEC");
-    CHAIN(NODE("then_branch/SwitchIndexData", data_0)->EDGE(0, 0)->
-          NODE("label_sw_input0_memcpy", MEMCPYASYNC)->EDGE(0, 0)->   // 增加memcpy
-          NODE("then_branch/switch", label_sw)->CTRL_EDGE()->
-          NODE("then_branch/label_1", label_01)->CTRL_EDGE()->NODE("then_branch/_arg_1", data_1));
+    CHAIN(NODE("then_branch/SwitchIndexData", data_0)
+              ->EDGE(0, 0)
+              ->NODE("label_sw_input0_memcpy", MEMCPYASYNC)
+              ->EDGE(0, 0)
+              ->  // 增加memcpy
+          NODE("then_branch/switch", label_sw)
+              ->CTRL_EDGE()
+              ->NODE("then_branch/label_1", label_01)
+              ->CTRL_EDGE()
+              ->NODE("then_branch/_arg_1", data_1));
     CHAIN(NODE("then_branch/label_1", label_01)->CTRL_EDGE()->NODE("then_branch/_arg_2", data_2));
 
-    CHAIN(NODE("then_branch/_arg_1", data_1)->EDGE(0, 0)->NODE("then_branch/add", add_node)->NODE("then_branch/Node_Output", NETOUTPUT));
+    CHAIN(NODE("then_branch/_arg_1", data_1)
+              ->EDGE(0, 0)
+              ->NODE("then_branch/add", add_node)
+              ->NODE("then_branch/Node_Output", NETOUTPUT));
     CHAIN(NODE("then_branch/_arg_2", data_2)->EDGE(0, 1)->NODE("then_branch/add", add_node));
 
     CHAIN(NODE("then_branch/Node_Output", NETOUTPUT)->CTRL_EDGE()->NODE("then_branch/goto", label_go));
@@ -134,7 +159,7 @@ static void BuildSampleGraph(ComputeGraphPtr &graph0, ComputeGraphPtr &graph1, C
   graph3_then->SetGraphUnknownFlag(false);
   SetUnknownOpKernel(graph3_then, mem_offset);
 
-  DEF_GRAPH(g3_else) { // Known Graph - else_branch.
+  DEF_GRAPH(g3_else) {  // Known Graph - else_branch.
     auto data_1 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 1);
     auto data_2 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 2);
     auto label_00 = OP_CFG(LABELSET).Attr(ATTR_NAME_LABEL_SWITCH_INDEX, 0);
@@ -143,7 +168,10 @@ static void BuildSampleGraph(ComputeGraphPtr &graph0, ComputeGraphPtr &graph1, C
     CHAIN(NODE("else_branch/label_0", label_00)->CTRL_EDGE()->NODE("else_branch/_arg_1", data_1));
     CHAIN(NODE("else_branch/label_0", label_00)->CTRL_EDGE()->NODE("else_branch/_arg_2", data_2));
 
-    CHAIN(NODE("else_branch/_arg_1", data_1)->EDGE(0, 0)->NODE("else_branch/sub", sub_node)->NODE("else_branch/Node_Output", NETOUTPUT));
+    CHAIN(NODE("else_branch/_arg_1", data_1)
+              ->EDGE(0, 0)
+              ->NODE("else_branch/sub", sub_node)
+              ->NODE("else_branch/Node_Output", NETOUTPUT));
     CHAIN(NODE("else_branch/_arg_2", data_2)->EDGE(0, 1)->NODE("else_branch/sub", sub_node));
 
     CHAIN(NODE("else_branch/Node_Output", NETOUTPUT)->CTRL_EDGE()->NODE("else_branch/label_2", label_02));
@@ -153,7 +181,7 @@ static void BuildSampleGraph(ComputeGraphPtr &graph0, ComputeGraphPtr &graph1, C
   SetUnknownOpKernel(graph3_else, mem_offset);
   AddIfBranchs(graph3, "davinci/if_node", graph3_then, graph3_else);
 
-  DEF_GRAPH(g4) { // Known Graph.
+  DEF_GRAPH(g4) {  // Known Graph.
     const auto data_0 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);
     const auto data_1 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 1);
     const auto data_2 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 2);
@@ -170,43 +198,66 @@ static void BuildSampleGraph(ComputeGraphPtr &graph0, ComputeGraphPtr &graph1, C
     auto w_tensor_f = MakeShared<GeTensor>(data_tensor_desc, (uint8_t *)&const_value_f, sizeof(int64_t));
     const auto const_op_f = OP_CFG(CONSTANT).Weight(w_tensor_f);
     // cond
-    CHAIN(NODE("collect/_arg_0", data_0)->EDGE(0, 0)->NODE("collect/less", less_node)->NODE("collect/less_cast", cast_node));
+    CHAIN(NODE("collect/_arg_0", data_0)
+              ->EDGE(0, 0)
+              ->NODE("collect/less", less_node)
+              ->NODE("collect/less_cast", cast_node));
     CHAIN(NODE("collect/_arg_1", data_1)->EDGE(0, 1)->NODE("collect/less"));
     const auto active_s = OP_CFG(STREAMACTIVE).Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{1});
     CHAIN(NODE("collect/less_cast", cast_node)->CTRL_EDGE()->NODE("collect/active_s", active_s));
 
     // true branch
-    const auto switch_t = OP_CFG(STREAMSWITCH).Attr(ATTR_NAME_STREAM_SWITCH_COND, static_cast<uint32_t>(RT_EQUAL))
-                                              .Attr(ATTR_NAME_SWITCH_DATA_TYPE, static_cast<int64_t>(RT_SWITCH_INT64))
-                                              .Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{2});
+    const auto switch_t = OP_CFG(STREAMSWITCH)
+                              .Attr(ATTR_NAME_STREAM_SWITCH_COND, static_cast<uint32_t>(RT_EQUAL))
+                              .Attr(ATTR_NAME_SWITCH_DATA_TYPE, static_cast<int64_t>(RT_SWITCH_INT64))
+                              .Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{2});
     CHAIN(NODE("collect/active_s", active_s)->CTRL_EDGE()->NODE("collect/switch_t", switch_t));
-    CHAIN(NODE("collect/less_cast", cast_node)->EDGE(0, 0)->
-         NODE("switch_t_input0_memcpy", MEMCPYASYNC)->EDGE(0, 0)->   // 增加memcpy
-         NODE("collect/switch_t", switch_t));
-    CHAIN(NODE("collect/const_t", const_op_t)->EDGE(0, 0)->
-         NODE("switch_t_input1_memcpy", MEMCPYASYNC)->EDGE(0, 1)->   // 增加memcpy
-         NODE("collect/switch_t", switch_t));
+    CHAIN(NODE("collect/less_cast", cast_node)
+              ->EDGE(0, 0)
+              ->NODE("switch_t_input0_memcpy", MEMCPYASYNC)
+              ->EDGE(0, 0)
+              ->  // 增加memcpy
+          NODE("collect/switch_t", switch_t));
+    CHAIN(NODE("collect/const_t", const_op_t)
+              ->EDGE(0, 0)
+              ->NODE("switch_t_input1_memcpy", MEMCPYASYNC)
+              ->EDGE(0, 1)
+              ->  // 增加memcpy
+          NODE("collect/switch_t", switch_t));
 
     CHAIN(NODE("collect/switch_t", switch_t)->CTRL_EDGE()->NODE("collect/add", add_node));
-    CHAIN(NODE("collect/_arg_0", data_0)->EDGE(0, 0)->NODE("collect/add", add_node)->NODE("collect/output_t", MEMCPYASYNC));
+    CHAIN(NODE("collect/_arg_0", data_0)
+              ->EDGE(0, 0)
+              ->NODE("collect/add", add_node)
+              ->NODE("collect/output_t", MEMCPYASYNC));
     CHAIN(NODE("collect/_arg_2", data_2)->EDGE(0, 1)->NODE("collect/add"));
 
     const auto active_t = OP_CFG(STREAMACTIVE).Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{4});
     CHAIN(NODE("collect/output_t", MEMCPYASYNC)->CTRL_EDGE()->NODE("collect/active_t", active_t));
 
     // false branch
-    const auto switch_f = OP_CFG(STREAMSWITCH).Attr(ATTR_NAME_STREAM_SWITCH_COND, static_cast<uint32_t>(RT_EQUAL))
-                                              .Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{3});
+    const auto switch_f = OP_CFG(STREAMSWITCH)
+                              .Attr(ATTR_NAME_STREAM_SWITCH_COND, static_cast<uint32_t>(RT_EQUAL))
+                              .Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{3});
     CHAIN(NODE("collect/active_s", active_s)->CTRL_EDGE()->NODE("collect/switch_f", switch_f));
-    CHAIN(NODE("collect/less_cast", cast_node)->EDGE(0, 0)->
-          NODE("switch_f_input0_memcpy", MEMCPYASYNC)->EDGE(0, 0)->   // 增加memcpy
+    CHAIN(NODE("collect/less_cast", cast_node)
+              ->EDGE(0, 0)
+              ->NODE("switch_f_input0_memcpy", MEMCPYASYNC)
+              ->EDGE(0, 0)
+              ->  // 增加memcpy
           NODE("collect/switch_f", switch_f));
-    CHAIN(NODE("collect/const_f", const_op_f)->EDGE(0, 0)->
-          NODE("switch_f_input1_memcpy", MEMCPYASYNC)->EDGE(0, 1)->   // 增加memcpy
+    CHAIN(NODE("collect/const_f", const_op_f)
+              ->EDGE(0, 0)
+              ->NODE("switch_f_input1_memcpy", MEMCPYASYNC)
+              ->EDGE(0, 1)
+              ->  // 增加memcpy
           NODE("collect/switch_f", switch_f));
 
     CHAIN(NODE("collect/switch_f", switch_f)->CTRL_EDGE()->NODE("collect/sub", sub_node));
-    CHAIN(NODE("collect/_arg_1", data_1)->EDGE(0, 0)->NODE("collect/sub", sub_node)->NODE("collect/output_f", MEMCPYASYNC));
+    CHAIN(NODE("collect/_arg_1", data_1)
+              ->EDGE(0, 0)
+              ->NODE("collect/sub", sub_node)
+              ->NODE("collect/output_f", MEMCPYASYNC));
     CHAIN(NODE("collect/_arg_2", data_2)->EDGE(0, 1)->NODE("collect/sub"));
 
     const auto active_f = OP_CFG(STREAMACTIVE).Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{4});
@@ -217,7 +268,7 @@ static void BuildSampleGraph(ComputeGraphPtr &graph0, ComputeGraphPtr &graph1, C
     CHAIN(NODE("collect/output_f")->EDGE(0, 1)->NODE("collect/merge", STREAMMERGE));
     CHAIN(NODE("collect/active_t", active_t)->CTRL_EDGE()->NODE("collect/merge", STREAMMERGE));
     CHAIN(NODE("collect/active_f", active_f)->CTRL_EDGE()->NODE("collect/merge", STREAMMERGE));
-    CHAIN(NODE("collect/relu", relu_node)->EDGE(0, 0)->NODE("collect/output", NETOUTPUT)); // for: AICPU --> NETOUPUT
+    CHAIN(NODE("collect/relu", relu_node)->EDGE(0, 0)->NODE("collect/output", NETOUTPUT));  // for: AICPU --> NETOUPUT
   };
   graph4 = ToComputeGraph(g4);
   graph4->SetGraphUnknownFlag(false);
@@ -424,7 +475,7 @@ Status KnownDynamicRunSync(ComputeGraphPtr &graph, const GeRootModelPtr &ge_root
   GeTensor sync_tensor_2(sync_tensor_desc, (uint8_t *)&value_2, sizeof(value_2));
   int64_t value_3 = 100;
   GeTensor sync_tensor_3(sync_tensor_desc, (uint8_t *)&value_3, sizeof(value_3));
-  const std::vector<GeTensor> sync_input_tensors{ sync_tensor_0, sync_tensor_1, sync_tensor_2, sync_tensor_3 };
+  const std::vector<GeTensor> sync_input_tensors{sync_tensor_0, sync_tensor_1, sync_tensor_2, sync_tensor_3};
 
   std::vector<gert::Tensor> inputs(4);
   TensorCheckUtils::ConstructGertTensor(inputs[0], {1}, DT_INT64, FORMAT_ND);
@@ -437,7 +488,7 @@ Status KnownDynamicRunSync(ComputeGraphPtr &graph, const GeRootModelPtr &ge_root
   // not support rt1, return failed
   std::vector<GeTensor> sync_outputs;
   EXPECT_NE(model_executor.RunGraphWithStream(graph_node, graph_id, run_stream, sync_input_tensors, sync_outputs),
-	    SUCCESS);
+            SUCCESS);
 
   EXPECT_EQ(model_executor.UnloadGraph(ge_root_model, graph_id), SUCCESS);
   EXPECT_EQ(model_executor.Finalize(), SUCCESS);
@@ -477,4 +528,4 @@ TEST_F(DynamicKnownTest, execute_known_from_dynamic) {
   runtime2_env[0] = {'1'};
   mmSetEnv("ENABLE_RUNTIME_V2", &(runtime2_env[0U]), static_cast<uint32_t>(MMPA_MAX_PATH));
 }
-} // namespace ge
+}  // namespace ge

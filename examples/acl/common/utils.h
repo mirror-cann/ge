@@ -35,45 +35,40 @@
 
 #define INFO_LOG(fmt, ...) fprintf(stdout, "[INFO]  " fmt "\n", ##__VA_ARGS__)
 #define WARN_LOG(fmt, ...) fprintf(stdout, "[WARN]  " fmt "\n", ##__VA_ARGS__)
-#define ERROR_LOG(fmt, ...)fprintf(stderr, "[ERROR] " fmt "\n", ##__VA_ARGS__)
+#define ERROR_LOG(fmt, ...) fprintf(stderr, "[ERROR] " fmt "\n", ##__VA_ARGS__)
 
-#define CHECK(status)                                                                              \
-    do                                                                                                                 \
-    {                                                                                                                  \
-        if ((status) != ACL_SUCCESS)                                                                                   \
-        {                                                                                                              \
-            std::cerr << "Ascendcl failure at " << __FILE__ << ":" << __LINE__ << ": " << status                          \
-                   << std::endl;                                                                                       \
-            exit(EXIT_FAILURE);                                                                                        \
-        }                                                                                                              \
-    } while (0)
+#define CHECK(status)                                                                                    \
+  do {                                                                                                   \
+    if ((status) != ACL_SUCCESS) {                                                                       \
+      std::cerr << "Ascendcl failure at " << __FILE__ << ":" << __LINE__ << ": " << status << std::endl; \
+      exit(EXIT_FAILURE);                                                                                \
+    }                                                                                                    \
+  } while (0)
 
-#define CHECK_NOT_NULL(val) \
-    do { \
-        if (UNLIKELY((val) == nullptr)) { \
-            std::cerr << "Ascendcl failure, [%s] param must not be null." << val << std::endl; \
-            exit(EXIT_FAILURE);     \
-        } \
-    } while (0)
+#define CHECK_NOT_NULL(val)                                                              \
+  do {                                                                                   \
+    if (UNLIKELY((val) == nullptr)) {                                                    \
+      std::cerr << "Ascendcl failure, [%s] param must not be null." << val << std::endl; \
+      exit(EXIT_FAILURE);                                                                \
+    }                                                                                    \
+  } while (0)
 
-enum Result {
-    SUCCESS = 0,
-    FAILED = 1
-};
+enum Result { SUCCESS = 0, FAILED = 1 };
 
 class Utils {
-public:
-    static Result ReadBinFile(const std::string &fileName, void *&inputBuff, uint32_t &fileSize, bool isDevice);
-    static void* MemcpyToDeviceBuffer(const void* data, uint32_t size, aclrtRunMode runMode);
-    static void GetAllFiles(const std::string &pathList, std::vector<std::string> &fileVec);
-    static void SplitPath(const std::string &path, std::vector<std::string> &pathVec);
-    static void GetPathFiles(const std::string &path, std::vector<std::string> &fileVec);
-    static bool IsDirectory(const std::string &path);
-    static bool IsPathExist(const std::string &path);
-    static Result CheckPathIsFile(const std::string &fileName);
-    static Result MemcpyFileToDeviceBuffer(const std::string &fileName, void *&picDevBuffer, size_t inputBuffSize, bool isDevice);
-    static Result MemcpyFilesToDeviceBuffer(const std::vector<std::string> &fileNames, void **picDevBuffer,
-                                            size_t &inputBuffSize, uint64_t batchSize, bool isDevice);
+ public:
+  static Result ReadBinFile(const std::string &fileName, void *&inputBuff, uint32_t &fileSize, bool isDevice);
+  static void *MemcpyToDeviceBuffer(const void *data, uint32_t size, aclrtRunMode runMode);
+  static void GetAllFiles(const std::string &pathList, std::vector<std::string> &fileVec);
+  static void SplitPath(const std::string &path, std::vector<std::string> &pathVec);
+  static void GetPathFiles(const std::string &path, std::vector<std::string> &fileVec);
+  static bool IsDirectory(const std::string &path);
+  static bool IsPathExist(const std::string &path);
+  static Result CheckPathIsFile(const std::string &fileName);
+  static Result MemcpyFileToDeviceBuffer(const std::string &fileName, void *&picDevBuffer, size_t inputBuffSize,
+                                         bool isDevice);
+  static Result MemcpyFilesToDeviceBuffer(const std::vector<std::string> &fileNames, void **picDevBuffer,
+                                          size_t &inputBuffSize, uint64_t batchSize, bool isDevice);
 };
 
 #endif  // SAMPLE_ACL_COMMON_UTILS_H_

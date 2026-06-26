@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -44,66 +44,66 @@ void ParerSTestsUtils::ClearParserInnerCtx() {
   GELOGI("Clear parser inner context successfully.");
 }
 
-MemBuffer* ParerSTestsUtils::MemBufferFromFile(const char *path) {
-    char path_temp[PATH_MAX + 1] = {0x00};
-    if(strlen(path) > PATH_MAX || nullptr == realpath(path, path_temp)) {
-        return nullptr;
-    }
-    FILE *fp = fopen(path_temp, "r+");
-    if (fp == nullptr) {
-        return nullptr;
-    }
+MemBuffer *ParerSTestsUtils::MemBufferFromFile(const char *path) {
+  char path_temp[PATH_MAX + 1] = {0x00};
+  if (strlen(path) > PATH_MAX || nullptr == realpath(path, path_temp)) {
+    return nullptr;
+  }
+  FILE *fp = fopen(path_temp, "r+");
+  if (fp == nullptr) {
+    return nullptr;
+  }
 
-    // get model file length
-    if (0 != fseek(fp, 0, SEEK_END)) {
-        fclose(fp);
-        return nullptr;
-    }
-    long file_length = ftell(fp);
-    if (fseek(fp, 0, SEEK_SET)) {
-        fclose(fp);
-        return nullptr;
-    }
-    if (file_length <= 0) {
-        fclose(fp);
-        return nullptr;
-    }
-
-    // alloc model buffer
-    void *data = malloc((unsigned int)file_length);
-    if (!data) {
-        fclose(fp);
-        return nullptr;
-    }
-
-    // read file into memory
-    uint32_t read_size = (uint32_t)fread(data, 1, (unsigned int)file_length, fp);
-
-    // check if read success
-    if ((long)read_size != file_length) {
-        free(data);
-        data = nullptr;
-        fclose(fp);
-        return nullptr;
-    }
-
-    // close model file
+  // get model file length
+  if (0 != fseek(fp, 0, SEEK_END)) {
     fclose(fp);
+    return nullptr;
+  }
+  long file_length = ftell(fp);
+  if (fseek(fp, 0, SEEK_SET)) {
+    fclose(fp);
+    return nullptr;
+  }
+  if (file_length <= 0) {
+    fclose(fp);
+    return nullptr;
+  }
 
-    // create an MemBuffer
-    MemBuffer* membuf = new MemBuffer();
-    if (!membuf) {
-        free(data);
-        data = nullptr;
-        return nullptr;
-    }
-    membuf->data = malloc((unsigned int)read_size);
+  // alloc model buffer
+  void *data = malloc((unsigned int)file_length);
+  if (!data) {
+    fclose(fp);
+    return nullptr;
+  }
 
-    // set size && data
-    membuf->size = (uint32_t)read_size;
-    memcpy((char*)membuf->data, (char*)data, read_size);
+  // read file into memory
+  uint32_t read_size = (uint32_t)fread(data, 1, (unsigned int)file_length, fp);
+
+  // check if read success
+  if ((long)read_size != file_length) {
     free(data);
-    return membuf;
+    data = nullptr;
+    fclose(fp);
+    return nullptr;
+  }
+
+  // close model file
+  fclose(fp);
+
+  // create an MemBuffer
+  MemBuffer *membuf = new MemBuffer();
+  if (!membuf) {
+    free(data);
+    data = nullptr;
+    return nullptr;
+  }
+  membuf->data = malloc((unsigned int)read_size);
+
+  // set size && data
+  membuf->size = (uint32_t)read_size;
+  memcpy((char *)membuf->data, (char *)data, read_size);
+  free(data);
+  return membuf;
 }
 
 bool ParerSTestsUtils::ReadProtoFromText(const char *file, google::protobuf::Message *message) {

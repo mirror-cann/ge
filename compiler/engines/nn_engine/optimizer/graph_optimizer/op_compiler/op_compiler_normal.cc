@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -14,9 +14,9 @@
 
 using namespace std;
 namespace fe {
-OpCompilerNormal::OpCompilerNormal(const std::string& compiler_name, const std::string& engine_name,
+OpCompilerNormal::OpCompilerNormal(const std::string &compiler_name, const std::string &engine_name,
                                    const LxFusionOptimizerPtr &lx_fusion_optimizer)
-    :OpCompiler(compiler_name, engine_name, lx_fusion_optimizer) {}
+    : OpCompiler(compiler_name, engine_name, lx_fusion_optimizer) {}
 
 OpCompilerNormal::~OpCompilerNormal() {}
 
@@ -35,7 +35,7 @@ bool OpCompilerNormal::HasCompileStrategy(const vector<ge::NodePtr> &nodes_be_co
   return false;
 }
 
-Status OpCompilerNormal::PreCompileProcess(ge::ComputeGraph& graph, bool &sgt_flag) {
+Status OpCompilerNormal::PreCompileProcess(ge::ComputeGraph &graph, bool &sgt_flag) {
   /* Some nodes needs to be re-pre-compiled after Ub fusion matching.
    * Because there format or data type. */
   Status ret;
@@ -61,7 +61,7 @@ Status OpCompilerNormal::PreCompileProcess(ge::ComputeGraph& graph, bool &sgt_fl
   return SUCCESS;
 }
 
-Status OpCompilerNormal::ReCompileWithNoFusionStrategy(const ge::ComputeGraph& graph,
+Status OpCompilerNormal::ReCompileWithNoFusionStrategy(const ge::ComputeGraph &graph,
                                                        const vector<ge::NodePtr> &nodes_be_compiled,
                                                        CompileInfoParam &compile_info) {
   // if nodes has compile strategy, try to compile
@@ -83,7 +83,7 @@ Status OpCompilerNormal::ReCompileWithNoFusionStrategy(const ge::ComputeGraph& g
   return SUCCESS;
 }
 
-Status OpCompilerNormal::RunCompileProcess(ge::ComputeGraph& graph) {
+Status OpCompilerNormal::RunCompileProcess(ge::ComputeGraph &graph) {
   FE_LOGD("Run compile process graph %s for normal.", graph.GetName().c_str());
   bool sgt_flag = false;
   Status ret = PreCompileProcess(graph, sgt_flag);
@@ -127,7 +127,7 @@ Status OpCompilerNormal::RunCompileProcess(ge::ComputeGraph& graph) {
                       graph.GetName().c_str(), ret);
       return FAILED;
     }
-    
+
     if (GenerateFormatTuneResult(graph, buffer_ret, need_re_compile) != SUCCESS) {
       REPORT_FE_ERROR("[SubGraphOpt][FormatTune] Failed to update tuneFormat by cannkb result for graph %s",
                       graph.GetName().c_str());
@@ -157,11 +157,10 @@ Status OpCompilerNormal::RunCompileProcess(ge::ComputeGraph& graph) {
   }
   ret = PostCompileOp(graph, buff_fus_compile_failed_nodes);
   if (ret != SUCCESS) {
-    REPORT_FE_ERROR("[SubGraphOpt][Compile][Baseline] Failed to post compile for graph[%s].",
-                    graph.GetName().c_str());
+    REPORT_FE_ERROR("[SubGraphOpt][Compile][Baseline] Failed to post compile for graph[%s].", graph.GetName().c_str());
     return ret;
   }
   FE_LOGI("Successfully compiled op in normal mode: graph[%s].", graph.GetName().c_str());
   return SUCCESS;
 }
-}
+}  // namespace fe

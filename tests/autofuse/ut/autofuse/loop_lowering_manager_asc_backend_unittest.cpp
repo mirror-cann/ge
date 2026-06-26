@@ -1,10 +1,10 @@
 
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -147,8 +147,8 @@ class LoopLoweringToAscBackendUT : public testing::Test {
 };
 
 class LoopLoweringToAscBackendUTV1 : public testing::Test {
-public:
-protected:
+ public:
+ protected:
   void SetUp() override {
     dlog_setlevel(GE_MODULE_NAME, DLOG_INFO, 0);
     ge::PlatformContext::GetInstance().Reset();
@@ -983,7 +983,7 @@ TEST_F(LoopLoweringToAscBackendUT, LoweringSoftmaxLikeExample) {
   ASSERT_NE(fuse_attr, nullptr);
   EXPECT_EQ(fuse_attr->GetFuseType(), loop::FuseType::kReduction);
   EXPECT_EQ(ReadableAscGraph(*fuse_attr->GetAscGraph()),
-          R"(AscGraph(SoftmaxV2_0_out0_graph, axis=[0:s0, 1:s1])
+            R"(AscGraph(SoftmaxV2_0_out0_graph, axis=[0:s0, 1:s1])
 tmp0 = ascir.Data(Data_0, [])
 tmp0.attr = {axis = [0, 1], repeats = [s0, s1], strides = [s1, 1]}
 tmp1 = ascir.Load(Load_0, [tmp0])
@@ -1756,30 +1756,21 @@ TEST_F(LoopLoweringToAscBackendUTV1, TestSplitDLoweringSplitOutputEndDimHasOne) 
     auto data0 = es_graph_->CreateInput(0, "data0", nullptr);
     data0.SetSymbolShape({"192", "64", "3"});
   }();
-  auto desc = ge::CompliantOpDescBuilder().OpType("SplitD")
-  .Name("SplitD")
-  .IrDefInputs({
-  {"x", ge::kIrInputRequired, ""},
-  })
-  .IrDefOutputs({
-  {"y", ge::kIrOutputDynamic, ""},
-  })
-  .InstanceDynamicOutputNum("y", 3)
-  .IrDefAttrs({
-    {
-    "split_dim",
-    ge::kAttrRequired,
-    "VT_INT",
-    ge::AnyValue::CreateFrom(static_cast<int64_t>(2))
-    },
-  {
-  "num_split",
-  ge::kAttrRequired,
-  "VT_INT",
-  ge::AnyValue::CreateFrom(static_cast<int64_t>(3))
-  },
-  })
-  .Build();
+  auto desc = ge::CompliantOpDescBuilder()
+                  .OpType("SplitD")
+                  .Name("SplitD")
+                  .IrDefInputs({
+                      {"x", ge::kIrInputRequired, ""},
+                  })
+                  .IrDefOutputs({
+                      {"y", ge::kIrOutputDynamic, ""},
+                  })
+                  .InstanceDynamicOutputNum("y", 3)
+                  .IrDefAttrs({
+                      {"split_dim", ge::kAttrRequired, "VT_INT", ge::AnyValue::CreateFrom(static_cast<int64_t>(2))},
+                      {"num_split", ge::kAttrRequired, "VT_INT", ge::AnyValue::CreateFrom(static_cast<int64_t>(3))},
+                  })
+                  .Build();
   auto graph = es_graph_->Build();
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
   auto node = cg->AddNode(desc);
@@ -1895,30 +1886,21 @@ TEST_F(LoopLoweringToAscBackendUT, TestSplitDLoweringSplitInputDimNotEqOutputDim
     auto data0 = es_graph_->CreateInput(0, "data0", nullptr);
     data0.SetSymbolShape({"192", "64", "30"});
   }();
-  auto desc = ge::CompliantOpDescBuilder().OpType("SplitD")
-  .Name("SplitD")
-  .IrDefInputs({
-  {"x", ge::kIrInputRequired, ""},
-  })
-  .IrDefOutputs({
-  {"y", ge::kIrOutputDynamic, ""},
-  })
-  .InstanceDynamicOutputNum("y", 3)
-  .IrDefAttrs({
-    {
-    "split_dim",
-    ge::kAttrRequired,
-    "VT_INT",
-    ge::AnyValue::CreateFrom(static_cast<int64_t>(-1))
-    },
-  {
-  "num_split",
-  ge::kAttrRequired,
-  "VT_INT",
-  ge::AnyValue::CreateFrom(static_cast<int64_t>(3))
-  },
-  })
-  .Build();
+  auto desc = ge::CompliantOpDescBuilder()
+                  .OpType("SplitD")
+                  .Name("SplitD")
+                  .IrDefInputs({
+                      {"x", ge::kIrInputRequired, ""},
+                  })
+                  .IrDefOutputs({
+                      {"y", ge::kIrOutputDynamic, ""},
+                  })
+                  .InstanceDynamicOutputNum("y", 3)
+                  .IrDefAttrs({
+                      {"split_dim", ge::kAttrRequired, "VT_INT", ge::AnyValue::CreateFrom(static_cast<int64_t>(-1))},
+                      {"num_split", ge::kAttrRequired, "VT_INT", ge::AnyValue::CreateFrom(static_cast<int64_t>(3))},
+                  })
+                  .Build();
   auto graph = es_graph_->Build();
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
   auto node = cg->AddNode(desc);
@@ -2045,7 +2027,7 @@ TEST_F(LoopLoweringToAscBackendUT, SimpleFill) {
 
     auto data8 = es_graph_->CreateInput(8, "data8", nullptr);
     data8.SetSymbolShape({"s0", "s1", "s2"});
-    auto value8 = CreateConst(*es_graph_, DT_FLOAT, {}, std::vector<float>{1.0f/0.0f});
+    auto value8 = CreateConst(*es_graph_, DT_FLOAT, {}, std::vector<float>{1.0f / 0.0f});
     value8.SetSymbolShape({});
     auto tmp8 = es::Fill(data8, value8);
     tmp8.SetSymbolShape({"s0", "s1", "s2"});
@@ -2099,10 +2081,10 @@ tmp2 = ascir.Output(Output_0, [tmp1])
 )");
   }
 
-    loop::KernelBox asc_kernel1 = ge::loop::GetKernelBox(tmp7->GetOutDataAnchor(0));
-    auto asc_graph1 = asc_kernel1.Realize<loop::AscOverrides>("graph");
-    ASSERT_NE(asc_graph1, nullptr);
-    EXPECT_EQ(ReadableAscGraph(asc_graph1->Graph()), R"(AscGraph(graph, axis=[0:s0, 1:s1, 2:s2])
+  loop::KernelBox asc_kernel1 = ge::loop::GetKernelBox(tmp7->GetOutDataAnchor(0));
+  auto asc_graph1 = asc_kernel1.Realize<loop::AscOverrides>("graph");
+  ASSERT_NE(asc_graph1, nullptr);
+  EXPECT_EQ(ReadableAscGraph(asc_graph1->Graph()), R"(AscGraph(graph, axis=[0:s0, 1:s1, 2:s2])
 tmp0 = ascir.Data(Data_0, [])
 tmp0.attr = {axis = [0, 1, 2], repeats = [1, 1, 1], strides = [0, 0, 0]}
 tmp1 = ascir.Load(Load_0, [tmp0])
@@ -2205,7 +2187,8 @@ TEST_F(LoopLoweringToAscBackendUT, LoweringDim0GatherV2) {
   ASSERT_NE(fused_attrs->GetAscGraph(), nullptr);
   EXPECT_EQ(fused_attrs->GetFuseType(), loop::FuseType::kGather);
 
-  EXPECT_EQ(ReadableAscGraph(*fused_attrs->GetAscGraph()), R"(AscGraph(GatherV2_1_out0_graph, axis=[0:s0, 1:s1, 2:s3, 3:s4])
+  EXPECT_EQ(ReadableAscGraph(*fused_attrs->GetAscGraph()),
+            R"(AscGraph(GatherV2_1_out0_graph, axis=[0:s0, 1:s1, 2:s3, 3:s4])
 tmp0 = ascir.Data(Data_0, [])
 tmp0.attr = {axis = [0, 1, 2], repeats = [s0, s1, s2], strides = [(s1 * s2), s2, 1]}
 tmp1 = ascir.Data(Data_1, [])
@@ -2256,7 +2239,8 @@ TEST_F(LoopLoweringToAscBackendUT, LoweringDim0Gather) {
   ASSERT_NE(fused_attrs->GetAscGraph(), nullptr);
   EXPECT_EQ(fused_attrs->GetFuseType(), loop::FuseType::kGather);
 
-  EXPECT_EQ(ReadableAscGraph(*fused_attrs->GetAscGraph()), R"(AscGraph(Gather_0_out0_graph, axis=[0:s3, 1:s4, 2:s1, 3:s2])
+  EXPECT_EQ(ReadableAscGraph(*fused_attrs->GetAscGraph()),
+            R"(AscGraph(Gather_0_out0_graph, axis=[0:s3, 1:s4, 2:s1, 3:s2])
 tmp0 = ascir.Data(Data_0, [])
 tmp0.attr = {axis = [0, 1, 2], repeats = [s0, s1, s2], strides = [(s1 * s2), s2, 1]}
 tmp1 = ascir.Data(Data_1, [])
@@ -2271,15 +2255,15 @@ tmp4 = ascir.Output(Output_0, [tmp3])
 
 TEST_F(LoopLoweringToAscBackendUT, LoweringIndicesScalarGatherV2) {
   [this]() {
-  auto data0 = es_graph_->CreateInput(0, "data0", nullptr);
-  data0.SetSymbolShape({"s0", "s1", "s2"});
-  auto data1 = CreateConst(*es_graph_, ge::DT_INT64, {1}, std::vector<int64_t>{-1});
-  data1.SetSymbolShape({});
-  auto axis = CreateConst(*es_graph_, ge::DT_INT64, {1}, std::vector<int64_t>{-1});
-  axis.SetSymbolShape({"0"});
-  auto gather = es::GatherV2(data0, data1, axis);
-  gather.SetSymbolShape({"s0", "s1"});
-  es_graph_->SetOutput(gather, 0);
+    auto data0 = es_graph_->CreateInput(0, "data0", nullptr);
+    data0.SetSymbolShape({"s0", "s1", "s2"});
+    auto data1 = CreateConst(*es_graph_, ge::DT_INT64, {1}, std::vector<int64_t>{-1});
+    data1.SetSymbolShape({});
+    auto axis = CreateConst(*es_graph_, ge::DT_INT64, {1}, std::vector<int64_t>{-1});
+    axis.SetSymbolShape({"0"});
+    auto gather = es::GatherV2(data0, data1, axis);
+    gather.SetSymbolShape({"s0", "s1"});
+    es_graph_->SetOutput(gather, 0);
   }();
   auto graph = es_graph_->Build();
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
@@ -2314,7 +2298,7 @@ TEST_F(LoopLoweringToAscBackendUT, FallBackTransposeOK) {
   ASSERT_EQ(LoweringManager::FusedLoopToAscBackendOp(cg), GRAPH_SUCCESS);
   NodePtr asc_node = nullptr;
   for (const auto &node : cg->GetAllNodes()) {
-    if(node->GetType() == "AscBackend") {
+    if (node->GetType() == "AscBackend") {
       asc_node = node;
     }
   }
@@ -2331,16 +2315,16 @@ TEST_F(LoopLoweringToAscBackendUT, FallBackTransposeOK) {
   // 替换为 Load_X_11
   std::string sanitized_actual = std::regex_replace(actual, load_transpose_regex, "Load_$1_11");
   EXPECT_EQ(sanitized_actual,
-    "AscGraph(Transpose_1_out0_graph, axis=[0:s2, 1:s1, 2:s0])\n"
-    "tmp0 = ascir.Data(Data_0, [])\n"
-    "tmp0.attr = {axis = [2, 1, 0], repeats = [s0, s1, s2], strides = [(s1 * s2), s2, 1]}\n"
-    "tmp1 = ascir.Load(Load_0, [tmp0])\n"
-    "tmp1.attr = {axis = [2, 1, 0], repeats = [s0, s1, s2], strides = [(s1 * s2), s2, 1]}\n"
-    "tmp2 = ascir.Transpose(Load_0_11, [tmp1])\n"
-    "tmp2.attr = {axis = [0, 1, 2], repeats = [s2, s1, s0], strides = [(s0 * s1), s0, 1]}\n"
-    "tmp3 = ascir.Store(Store_0, [tmp2])\n"
-    "tmp3.attr = {axis = [0, 1, 2], repeats = [s2, s1, s0], strides = [(s0 * s1), s0, 1]}\n"
-    "tmp4 = ascir.Output(Output_0, [tmp3])\n");
+            "AscGraph(Transpose_1_out0_graph, axis=[0:s2, 1:s1, 2:s0])\n"
+            "tmp0 = ascir.Data(Data_0, [])\n"
+            "tmp0.attr = {axis = [2, 1, 0], repeats = [s0, s1, s2], strides = [(s1 * s2), s2, 1]}\n"
+            "tmp1 = ascir.Load(Load_0, [tmp0])\n"
+            "tmp1.attr = {axis = [2, 1, 0], repeats = [s0, s1, s2], strides = [(s1 * s2), s2, 1]}\n"
+            "tmp2 = ascir.Transpose(Load_0_11, [tmp1])\n"
+            "tmp2.attr = {axis = [0, 1, 2], repeats = [s2, s1, s0], strides = [(s0 * s1), s0, 1]}\n"
+            "tmp3 = ascir.Store(Store_0, [tmp2])\n"
+            "tmp3.attr = {axis = [0, 1, 2], repeats = [s2, s1, s0], strides = [(s0 * s1), s0, 1]}\n"
+            "tmp4 = ascir.Output(Output_0, [tmp3])\n");
   SetCurShapeEnvContext(nullptr);
   AutoFuseConfig::MutableConfig().MutableLoweringConfig().experimental_lowering_transpose = true;
 }
@@ -2370,7 +2354,7 @@ TEST_F(LoopLoweringToAscBackendUT, FallBackTransposeOK1) {
   ASSERT_EQ(LoweringManager::FusedLoopToAscBackendOp(cg), GRAPH_SUCCESS);
   NodePtr asc_node = nullptr;
   for (const auto &node : cg->GetAllNodes()) {
-    if(node->GetType() == "AscBackend") {
+    if (node->GetType() == "AscBackend") {
       asc_node = node;
     }
   }
@@ -2777,7 +2761,7 @@ TEST_F(LoopLoweringToAscBackendUT, LoweringMatmulOffset) {
     auto mm = es::MatMulV2(data0, data1, nullptr, offset_w);
     mm.SetSymbolShape({"4", "4"});
     es_graph_->SetOutput(mm, 0);
-}();
+  }();
 
   auto graph = es_graph_->Build();
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
@@ -3430,14 +3414,11 @@ TEST_F(LoopLoweringToAscBackendUT, SimpleApplyAdamDFloat16ScalarInputs) {
   ASSERT_NE(nodeptr, nullptr);
 
   ASSERT_EQ(LoweringManager::LoweringGraph(cg), GRAPH_SUCCESS);
-  auto asc_graph =
-    ge::loop::GetKernelBox(nodeptr->GetOutDataAnchor(0)).Realize<loop::AscOverrides>("graph");
+  auto asc_graph = ge::loop::GetKernelBox(nodeptr->GetOutDataAnchor(0)).Realize<loop::AscOverrides>("graph");
   ASSERT_NE(asc_graph, nullptr);
-  auto asc_graph1 =
-    ge::loop::GetKernelBox(nodeptr->GetOutDataAnchor(1)).Realize<loop::AscOverrides>("graph");
+  auto asc_graph1 = ge::loop::GetKernelBox(nodeptr->GetOutDataAnchor(1)).Realize<loop::AscOverrides>("graph");
   ASSERT_NE(asc_graph1, nullptr);
-  auto asc_graph2 =
-    ge::loop::GetKernelBox(nodeptr->GetOutDataAnchor(2)).Realize<loop::AscOverrides>("graph");
+  auto asc_graph2 = ge::loop::GetKernelBox(nodeptr->GetOutDataAnchor(2)).Realize<loop::AscOverrides>("graph");
   ASSERT_NE(asc_graph2, nullptr);
 }
 

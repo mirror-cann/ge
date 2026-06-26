@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,7 +19,7 @@
 #include "formats/utils/formats_trans_utils.h"
 
 namespace ge {
-ge::Status GetConstPlaceHolderAddr(const OpDescPtr &op_desc, uint8_t* &dev_address) {
+ge::Status GetConstPlaceHolderAddr(const OpDescPtr &op_desc, uint8_t *&dev_address) {
   vector<int64_t> storage_shape;
   GE_ASSERT_TRUE(ge::AttrUtils::GetListInt(op_desc, "storage_shape", storage_shape));
   DataType data_type = DT_UNDEFINED;
@@ -32,14 +32,17 @@ ge::Status GetConstPlaceHolderAddr(const OpDescPtr &op_desc, uint8_t* &dev_addre
     element_cnt *= dim;
   }
   const int64_t size = ge::GetSizeInBytes(static_cast<int64_t>(element_cnt), data_type);
-  GE_ASSERT_TRUE(data_length >= size, "GetConstPlaceHolder check data_lengths failed, attr size is [%zu], "
+  GE_ASSERT_TRUE(data_length >= size,
+                 "GetConstPlaceHolder check data_lengths failed, attr size is [%zu], "
                  "size calculated by shape and data type is [%zu], shape is %s, data_type is %d.",
                  data_length, size, ge::formats::JoinToString(storage_shape).c_str(), data_type);
 
   int64_t placement = 0L;
   GE_ASSERT_TRUE(ge::AttrUtils::GetInt(op_desc, "placement", placement));
-  GE_ASSERT_TRUE(placement == ge::Placement::kPlacementDevice, "GetConstPlaceHolderAttr placement expect %d, "
-                 "but got %d.", ge::Placement::kPlacementDevice, placement);
+  GE_ASSERT_TRUE(placement == ge::Placement::kPlacementDevice,
+                 "GetConstPlaceHolderAttr placement expect %d, "
+                 "but got %d.",
+                 ge::Placement::kPlacementDevice, placement);
 
   int64_t device_addr = 0L;
   GE_ASSERT_TRUE(ge::AttrUtils::GetInt(op_desc, "addr", device_addr));

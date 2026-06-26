@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -109,7 +109,8 @@ class AddCustom : public EagerExecuteOp {
 
     // 拼装 args
     // args 的前3个参数和后3个参数是固定的，中间的是用户自定义的，要求是和核函数的签名里的变量顺序以及类型严格一致
-    // 按照当前的样例中的 Kernel 实现，要求 AddCustom 的两个输入的shape必须相同，不支持BroadCast的方式，例如 Shape1 = [2,3,4],Shape2=[4],这种就不支持
+    // 按照当前的样例中的 Kernel 实现，要求 AddCustom 的两个输入的shape必须相同，不支持BroadCast的方式，例如 Shape1 =
+    // [2,3,4],Shape2=[4],这种就不支持
     struct __attribute__((packed)) {
       // void *ffts_addr __attribute__((aligned(8)));  // 注意：如果设备是A3，则需要加上这个参数
       void *sync_block_lock __attribute__((aligned(8)));
@@ -123,8 +124,8 @@ class AddCustom : public EagerExecuteOp {
       int32_t grid_z __attribute__((aligned(4)));
     } args = {
         // nullptr, // 如果设备是 A3 则需要传递这个参数
-        nullptr, nullptr, input_x->GetAddr(), input_y->GetAddr(), z_addr, static_cast<int32_t>(n_elements),
-        grid_x,  grid_y,  grid_z,
+        nullptr, nullptr, input_x->GetAddr(), input_y->GetAddr(), z_addr, static_cast<int32_t>(n_elements), grid_x,
+        grid_y,  grid_z,
     };
     // 获取 stream
     void *stream = ctx->GetStream();

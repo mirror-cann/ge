@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -43,13 +43,13 @@ class UdfModelBuilder {
   Status SetFuncNameAndInputOutputMaps(const OpDescPtr &op_desc, udf::UdfDef &udf_def) const;
 
   Status GenReleasePackageForUserDefineFunc(UdfModel &udf_model, const OpDescPtr &op_desc,
-      const std::string &resource_type, const ComputeGraphPtr &graph) const;
+                                            const std::string &resource_type, const ComputeGraphPtr &graph) const;
 
-  Status GetAndCheckAttrs(const OpDescPtr &op_desc, const ComputeGraphPtr &graph,
-      std::string &release_pkg_path, std::string &cache_release_info, std::string &om_model_file) const;
+  Status GetAndCheckAttrs(const OpDescPtr &op_desc, const ComputeGraphPtr &graph, std::string &release_pkg_path,
+                          std::string &cache_release_info, std::string &om_model_file) const;
 
   Status GenReleasePackage(UdfModel &udf_model, const OpDescPtr &op_desc, const std::string &resource_type,
-      const ComputeGraphPtr &graph) const;
+                           const ComputeGraphPtr &graph) const;
 
   Status SetAttr(const std::string &attr_name, const AnyValue &value, UdfAttrMap &udf_attrs) const;
 
@@ -71,6 +71,7 @@ class UdfModelBuilder {
   static Status PackReleaseWithoutHash(const std::string &release_pkg_path, const std::string &normalize_name);
   std::string GenNormalizeModelName(const std::string &model_name) const;
   Status ProcessForCache(UdfModel &udf_model, const std::string &om_model_file) const;
+
  private:
   UdfModelBuilder() = default;
   ~UdfModelBuilder() = default;

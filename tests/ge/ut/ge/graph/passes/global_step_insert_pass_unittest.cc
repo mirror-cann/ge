@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -75,11 +75,10 @@ TEST_F(UtestGlobalStepInsertPass, InsertOp) {
   tensor_desc_h.SetDataType(DT_FLOAT);
   input_list.push_back(tensor_desc_h);
   output_list.push_back(tensor_desc_h);
- 
+
   NodePtr ptr = pass.InsertOp(graph, "node_type", "node_name", input_list, output_list);
   // EXPECT_EQ(status, SUCCESS);
 
-  
   GeTensorDesc tensor_desc;
   input_list.push_back(tensor_desc);
   output_list.push_back(tensor_desc);

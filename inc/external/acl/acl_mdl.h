@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,20 +21,20 @@
 extern "C" {
 #endif
 
-#define ACL_DIM_ENDPOINTS        2
-#define ACL_MAX_DIM_CNT          128
-#define ACL_MAX_TENSOR_NAME_LEN  128
-#define ACL_MAX_BATCH_NUM        128
-#define ACL_MAX_HW_NUM           128
-#define ACL_MAX_SHAPE_COUNT      128
-#define ACL_INVALID_NODE_INDEX   0xFFFFFFFF
+#define ACL_DIM_ENDPOINTS 2
+#define ACL_MAX_DIM_CNT 128
+#define ACL_MAX_TENSOR_NAME_LEN 128
+#define ACL_MAX_BATCH_NUM 128
+#define ACL_MAX_HW_NUM 128
+#define ACL_MAX_SHAPE_COUNT 128
+#define ACL_INVALID_NODE_INDEX 0xFFFFFFFF
 
-#define ACL_MDL_LOAD_FROM_FILE            1
-#define ACL_MDL_LOAD_FROM_FILE_WITH_MEM   2
-#define ACL_MDL_LOAD_FROM_MEM             3
-#define ACL_MDL_LOAD_FROM_MEM_WITH_MEM    4
-#define ACL_MDL_LOAD_FROM_FILE_WITH_Q     5
-#define ACL_MDL_LOAD_FROM_MEM_WITH_Q      6
+#define ACL_MDL_LOAD_FROM_FILE 1
+#define ACL_MDL_LOAD_FROM_FILE_WITH_MEM 2
+#define ACL_MDL_LOAD_FROM_MEM 3
+#define ACL_MDL_LOAD_FROM_MEM_WITH_MEM 4
+#define ACL_MDL_LOAD_FROM_FILE_WITH_Q 5
+#define ACL_MDL_LOAD_FROM_MEM_WITH_Q 6
 
 #define ACL_DYNAMIC_TENSOR_NAME "ascend_mbatch_shape_data"
 #define ACL_DYNAMIC_AIPP_NAME "ascend_dynamic_aipp_data"
@@ -45,7 +45,7 @@ extern "C" {
 #define ACL_WORKSPACE_MEM_OPTIMIZE_INPUTOUTPUT 1
 
 // for model stream
-#define ACL_MODEL_STREAM_FLAG_HEAD    0x00000000U // first stream
+#define ACL_MODEL_STREAM_FLAG_HEAD 0x00000000U  // first stream
 #define ACL_MODEL_STREAM_FLAG_DEFAULT 0x7FFFFFFFU
 
 typedef struct aclmdlDataset aclmdlDataset;
@@ -55,171 +55,169 @@ typedef struct aclAippExtendInfo aclAippExtendInfo;
 typedef struct aclmdlConfigHandle aclmdlConfigHandle;
 typedef struct aclmdlExecConfigHandle aclmdlExecConfigHandle;
 typedef struct aclmdlBundleQueryInfo aclmdlBundleQueryInfo;
-typedef void* aclmdlModel;
+typedef void *aclmdlModel;
 
 typedef enum {
-    ACL_YUV420SP_U8 = 1,
-    ACL_XRGB8888_U8 = 2,
-    ACL_RGB888_U8 = 3,
-    ACL_YUV400_U8 = 4,
-    ACL_NC1HWC0DI_FP16 = 5,
-    ACL_NC1HWC0DI_S8 = 6,
-    ACL_ARGB8888_U8 = 7,
-    ACL_YUYV_U8 = 8,
-    ACL_YUV422SP_U8 = 9,
-    ACL_AYUV444_U8 = 10,
-    ACL_RAW10 = 11,
-    ACL_RAW12 = 12,
-    ACL_RAW16 = 13,
-    ACL_RAW24 = 14,
-    ACL_AIPP_RESERVED = 0xFFFF,
+  ACL_YUV420SP_U8 = 1,
+  ACL_XRGB8888_U8 = 2,
+  ACL_RGB888_U8 = 3,
+  ACL_YUV400_U8 = 4,
+  ACL_NC1HWC0DI_FP16 = 5,
+  ACL_NC1HWC0DI_S8 = 6,
+  ACL_ARGB8888_U8 = 7,
+  ACL_YUYV_U8 = 8,
+  ACL_YUV422SP_U8 = 9,
+  ACL_AYUV444_U8 = 10,
+  ACL_RAW10 = 11,
+  ACL_RAW12 = 12,
+  ACL_RAW16 = 13,
+  ACL_RAW24 = 14,
+  ACL_AIPP_RESERVED = 0xFFFF,
 } aclAippInputFormat;
 
 typedef enum {
-    ACL_MDL_PRIORITY_INT32 = 0,
-    ACL_MDL_LOAD_TYPE_SIZET,
-    ACL_MDL_PATH_PTR, /**< pointer to model load path with deep copy */
-    ACL_MDL_MEM_ADDR_PTR, /**< pointer to model memory with shallow copy */
-    ACL_MDL_MEM_SIZET,
-    ACL_MDL_WEIGHT_ADDR_PTR, /**< pointer to weight memory of model with shallow copy */
-    ACL_MDL_WEIGHT_SIZET,
-    ACL_MDL_WORKSPACE_ADDR_PTR, /**< pointer to worksapce memory of model with shallow copy */
-    ACL_MDL_WORKSPACE_SIZET,
-    ACL_MDL_INPUTQ_NUM_SIZET,
-    ACL_MDL_INPUTQ_ADDR_PTR, /**< pointer to inputQ with shallow copy */
-    ACL_MDL_OUTPUTQ_NUM_SIZET,
-    ACL_MDL_OUTPUTQ_ADDR_PTR, /**< pointer to outputQ with shallow copy */
-    ACL_MDL_WORKSPACE_MEM_OPTIMIZE,
-    ACL_MDL_WEIGHT_PATH_PTR, /**< pointer to weight path with deep copy */
-    ACL_MDL_MODEL_DESC_PTR, /**< pointer to model desc of model with shallow copy */
-    ACL_MDL_MODEL_DESC_SIZET,
-    ACL_MDL_KERNEL_PTR, /**< pointer to kernel bin of model with shallow copy */
-    ACL_MDL_KERNEL_SIZET,
-    ACL_MDL_KERNEL_ARGS_PTR, /**< pointer to kernel args of model with shallow copy */
-    ACL_MDL_KERNEL_ARGS_SIZET,
-    ACL_MDL_STATIC_TASK_PTR, /**< pointer to static task desc of model with shallow copy */
-    ACL_MDL_STATIC_TASK_SIZET,
-    ACL_MDL_DYNAMIC_TASK_PTR, /**< pointer to dynamic task desc of model with shallow copy */
-    ACL_MDL_DYNAMIC_TASK_SIZET,
-    ACL_MDL_MEM_MALLOC_POLICY_SIZET,
-    ACL_MDL_FIFO_PTR, /**< pointer to fifo memory of model with shallow copy */
-    ACL_MDL_FIFO_SIZET,
-    ACL_MDL_WITHOUT_GRAPH_INT32,
-    ACL_NPU_PERF_MODE,
-    ACL_MDL_RESERVED = 0xFFFF
+  ACL_MDL_PRIORITY_INT32 = 0,
+  ACL_MDL_LOAD_TYPE_SIZET,
+  ACL_MDL_PATH_PTR,     /**< pointer to model load path with deep copy */
+  ACL_MDL_MEM_ADDR_PTR, /**< pointer to model memory with shallow copy */
+  ACL_MDL_MEM_SIZET,
+  ACL_MDL_WEIGHT_ADDR_PTR, /**< pointer to weight memory of model with shallow copy */
+  ACL_MDL_WEIGHT_SIZET,
+  ACL_MDL_WORKSPACE_ADDR_PTR, /**< pointer to worksapce memory of model with shallow copy */
+  ACL_MDL_WORKSPACE_SIZET,
+  ACL_MDL_INPUTQ_NUM_SIZET,
+  ACL_MDL_INPUTQ_ADDR_PTR, /**< pointer to inputQ with shallow copy */
+  ACL_MDL_OUTPUTQ_NUM_SIZET,
+  ACL_MDL_OUTPUTQ_ADDR_PTR, /**< pointer to outputQ with shallow copy */
+  ACL_MDL_WORKSPACE_MEM_OPTIMIZE,
+  ACL_MDL_WEIGHT_PATH_PTR, /**< pointer to weight path with deep copy */
+  ACL_MDL_MODEL_DESC_PTR,  /**< pointer to model desc of model with shallow copy */
+  ACL_MDL_MODEL_DESC_SIZET,
+  ACL_MDL_KERNEL_PTR, /**< pointer to kernel bin of model with shallow copy */
+  ACL_MDL_KERNEL_SIZET,
+  ACL_MDL_KERNEL_ARGS_PTR, /**< pointer to kernel args of model with shallow copy */
+  ACL_MDL_KERNEL_ARGS_SIZET,
+  ACL_MDL_STATIC_TASK_PTR, /**< pointer to static task desc of model with shallow copy */
+  ACL_MDL_STATIC_TASK_SIZET,
+  ACL_MDL_DYNAMIC_TASK_PTR, /**< pointer to dynamic task desc of model with shallow copy */
+  ACL_MDL_DYNAMIC_TASK_SIZET,
+  ACL_MDL_MEM_MALLOC_POLICY_SIZET,
+  ACL_MDL_FIFO_PTR, /**< pointer to fifo memory of model with shallow copy */
+  ACL_MDL_FIFO_SIZET,
+  ACL_MDL_WITHOUT_GRAPH_INT32,
+  ACL_NPU_PERF_MODE,
+  ACL_MDL_RESERVED = 0xFFFF
 } aclmdlConfigAttr;
 
-typedef enum {
-    ACL_MDL_ATTR_PRIORITY_INT32 = 0
-} aclmdlAttr;
+typedef enum { ACL_MDL_ATTR_PRIORITY_INT32 = 0 } aclmdlAttr;
 
 typedef union {
-    uint32_t mdlPriority; /**< model priority, smaller value indicates higher priority, default is 0 */
-    uint32_t reserved[8]; /**< reserved for future extension */
+  uint32_t mdlPriority; /**< model priority, smaller value indicates higher priority, default is 0 */
+  uint32_t reserved[8]; /**< reserved for future extension */
 } aclmdlAttrValue_t;
 
 typedef enum {
-    ACL_MDL_STREAM_SYNC_TIMEOUT = 0,
-    ACL_MDL_EVENT_SYNC_TIMEOUT,
-    ACL_MDL_WORK_ADDR_PTR, /**< param */
-    ACL_MDL_WORK_SIZET, /**< param */
-    ACL_MDL_MPAIMID_SIZET, /**< param reserved */
-    ACL_MDL_AICQOS_SIZET, /**< param reserved */
-    ACL_MDL_AICOST_SIZET, /**< param reserved */
-    ACL_MDL_MEC_TIMETHR_SIZET, /**< param reserved */
-    ACL_MDL_EXEC_PRIORITY_INT32,
-    ACL_MDL_NPU_PERF_MODE
+  ACL_MDL_STREAM_SYNC_TIMEOUT = 0,
+  ACL_MDL_EVENT_SYNC_TIMEOUT,
+  ACL_MDL_WORK_ADDR_PTR,     /**< param */
+  ACL_MDL_WORK_SIZET,        /**< param */
+  ACL_MDL_MPAIMID_SIZET,     /**< param reserved */
+  ACL_MDL_AICQOS_SIZET,      /**< param reserved */
+  ACL_MDL_AICOST_SIZET,      /**< param reserved */
+  ACL_MDL_MEC_TIMETHR_SIZET, /**< param reserved */
+  ACL_MDL_EXEC_PRIORITY_INT32,
+  ACL_MDL_NPU_PERF_MODE
 } aclmdlExecConfigAttr;
 
 typedef enum {
-    ACL_DATA_WITHOUT_AIPP = 0,
-    ACL_DATA_WITH_STATIC_AIPP,
-    ACL_DATA_WITH_DYNAMIC_AIPP,
-    ACL_DYNAMIC_AIPP_NODE
+  ACL_DATA_WITHOUT_AIPP = 0,
+  ACL_DATA_WITH_STATIC_AIPP,
+  ACL_DATA_WITH_DYNAMIC_AIPP,
+  ACL_DYNAMIC_AIPP_NODE
 } aclmdlInputAippType;
 
 typedef struct aclmdlIODims {
-    char name[ACL_MAX_TENSOR_NAME_LEN]; /**< tensor name */
-    size_t dimCount; /**< dim array count */
-    int64_t dims[ACL_MAX_DIM_CNT]; /**< dim data array */
+  char name[ACL_MAX_TENSOR_NAME_LEN]; /**< tensor name */
+  size_t dimCount;                    /**< dim array count */
+  int64_t dims[ACL_MAX_DIM_CNT];      /**< dim data array */
 } aclmdlIODims;
 
 typedef struct aclmdlIODimsRange {
-    size_t rangeCount; /**< dim range array count */
-    int64_t range[ACL_MAX_DIM_CNT][ACL_DIM_ENDPOINTS]; /**< range data array */
+  size_t rangeCount;                                 /**< dim range array count */
+  int64_t range[ACL_MAX_DIM_CNT][ACL_DIM_ENDPOINTS]; /**< range data array */
 } aclmdlIODimsRange;
 
 typedef struct aclAippDims {
-    aclmdlIODims srcDims; /**< input dims before model transform */
-    size_t srcSize; /**< input size before model transform */
-    aclmdlIODims aippOutdims; /**< aipp output dims */
-    size_t aippOutSize; /**< aipp output size */
+  aclmdlIODims srcDims;     /**< input dims before model transform */
+  size_t srcSize;           /**< input size before model transform */
+  aclmdlIODims aippOutdims; /**< aipp output dims */
+  size_t aippOutSize;       /**< aipp output size */
 } aclAippDims;
 
 typedef struct aclmdlBatch {
-    size_t batchCount; /**< batch array count */
-    uint64_t batch[ACL_MAX_BATCH_NUM]; /**< batch data array */
+  size_t batchCount;                 /**< batch array count */
+  uint64_t batch[ACL_MAX_BATCH_NUM]; /**< batch data array */
 } aclmdlBatch;
 
 typedef struct aclmdlHW {
-    size_t hwCount; /**< height&width array count */
-    uint64_t hw[ACL_MAX_HW_NUM][2]; /**< height&width data array */
+  size_t hwCount;                 /**< height&width array count */
+  uint64_t hw[ACL_MAX_HW_NUM][2]; /**< height&width data array */
 } aclmdlHW;
 
 typedef struct aclAippInfo {
-    aclAippInputFormat inputFormat;
-    int32_t srcImageSizeW;
-    int32_t srcImageSizeH;
-    int8_t cropSwitch;
-    int32_t loadStartPosW;
-    int32_t loadStartPosH;
-    int32_t cropSizeW;
-    int32_t cropSizeH;
-    int8_t resizeSwitch;
-    int32_t resizeOutputW;
-    int32_t resizeOutputH;
-    int8_t paddingSwitch;
-    int32_t leftPaddingSize;
-    int32_t rightPaddingSize;
-    int32_t topPaddingSize;
-    int32_t bottomPaddingSize;
-    int8_t cscSwitch;
-    int8_t rbuvSwapSwitch;
-    int8_t axSwapSwitch;
-    int8_t singleLineMode;
-    int32_t matrixR0C0;
-    int32_t matrixR0C1;
-    int32_t matrixR0C2;
-    int32_t matrixR1C0;
-    int32_t matrixR1C1;
-    int32_t matrixR1C2;
-    int32_t matrixR2C0;
-    int32_t matrixR2C1;
-    int32_t matrixR2C2;
-    int32_t outputBias0;
-    int32_t outputBias1;
-    int32_t outputBias2;
-    int32_t inputBias0;
-    int32_t inputBias1;
-    int32_t inputBias2;
-    int32_t meanChn0;
-    int32_t meanChn1;
-    int32_t meanChn2;
-    int32_t meanChn3;
-    float minChn0;
-    float minChn1;
-    float minChn2;
-    float minChn3;
-    float varReciChn0;
-    float varReciChn1;
-    float varReciChn2;
-    float varReciChn3;
-    aclFormat srcFormat;
-    aclDataType srcDatatype;
-    size_t srcDimNum;
-    size_t shapeCount;
-    aclAippDims outDims[ACL_MAX_SHAPE_COUNT];
-    aclAippExtendInfo *aippExtend; /**< reserved parameters, current version needs to be null */
+  aclAippInputFormat inputFormat;
+  int32_t srcImageSizeW;
+  int32_t srcImageSizeH;
+  int8_t cropSwitch;
+  int32_t loadStartPosW;
+  int32_t loadStartPosH;
+  int32_t cropSizeW;
+  int32_t cropSizeH;
+  int8_t resizeSwitch;
+  int32_t resizeOutputW;
+  int32_t resizeOutputH;
+  int8_t paddingSwitch;
+  int32_t leftPaddingSize;
+  int32_t rightPaddingSize;
+  int32_t topPaddingSize;
+  int32_t bottomPaddingSize;
+  int8_t cscSwitch;
+  int8_t rbuvSwapSwitch;
+  int8_t axSwapSwitch;
+  int8_t singleLineMode;
+  int32_t matrixR0C0;
+  int32_t matrixR0C1;
+  int32_t matrixR0C2;
+  int32_t matrixR1C0;
+  int32_t matrixR1C1;
+  int32_t matrixR1C2;
+  int32_t matrixR2C0;
+  int32_t matrixR2C1;
+  int32_t matrixR2C2;
+  int32_t outputBias0;
+  int32_t outputBias1;
+  int32_t outputBias2;
+  int32_t inputBias0;
+  int32_t inputBias1;
+  int32_t inputBias2;
+  int32_t meanChn0;
+  int32_t meanChn1;
+  int32_t meanChn2;
+  int32_t meanChn3;
+  float minChn0;
+  float minChn1;
+  float minChn2;
+  float minChn3;
+  float varReciChn0;
+  float varReciChn1;
+  float varReciChn2;
+  float varReciChn3;
+  aclFormat srcFormat;
+  aclDataType srcDatatype;
+  size_t srcDimNum;
+  size_t shapeCount;
+  aclAippDims outDims[ACL_MAX_SHAPE_COUNT];
+  aclAippExtendInfo *aippExtend; /**< reserved parameters, current version needs to be null */
 } aclAippInfo;
 
 typedef struct aclmdlExeOMDesc {
@@ -399,8 +397,7 @@ ACL_FUNC_VISIBILITY aclError aclmdlAddDatasetBuffer(aclmdlDataset *dataset, aclD
  * @retval ACL_SUCCESS The function is successfully executed.
  * @retval OtherValues Failure
  */
-ACL_FUNC_VISIBILITY aclError aclmdlSetDatasetTensorDesc(aclmdlDataset *dataset,
-                                                        aclTensorDesc *tensorDesc,
+ACL_FUNC_VISIBILITY aclError aclmdlSetDatasetTensorDesc(aclmdlDataset *dataset, aclTensorDesc *tensorDesc,
                                                         size_t index);
 
 /**
@@ -493,7 +490,7 @@ ACL_FUNC_VISIBILITY aclError aclmdlBundleLoadFromFile(const char *modelPath, uin
  * @retval ACL_SUCCESS The function is successfully executed.
  * @retval OtherValues Failure
  */
-ACL_FUNC_VISIBILITY aclError aclmdlBundleLoadFromMem(const void *model,  size_t modelSize, uint32_t *bundleId);
+ACL_FUNC_VISIBILITY aclError aclmdlBundleLoadFromMem(const void *model, size_t modelSize, uint32_t *bundleId);
 
 /**
  * @ingroup AscendCL
@@ -562,7 +559,7 @@ ACL_FUNC_VISIBILITY aclError aclmdlBundleDestroyQueryInfo(aclmdlBundleQueryInfo 
  * @retval ACL_SUCCESS The function is successfully executed.
  * @retval OtherValues Failure
  */
-ACL_FUNC_VISIBILITY aclError aclmdlBundleQueryInfoFromFile(const char* fileName, aclmdlBundleQueryInfo *queryInfo);
+ACL_FUNC_VISIBILITY aclError aclmdlBundleQueryInfoFromFile(const char *fileName, aclmdlBundleQueryInfo *queryInfo);
 
 /**
  * @ingroup AscendCL
@@ -615,8 +612,8 @@ ACL_FUNC_VISIBILITY aclError aclmdlBundleGetVarWeightSize(const aclmdlBundleQuer
  * @retval ACL_SUCCESS The function is successfully executed.
  * @retval OtherValues Failure
  */
-ACL_FUNC_VISIBILITY aclError aclmdlBundleGetSize(const aclmdlBundleQueryInfo *queryInfo, size_t index,
-                                                 size_t *workSize, size_t *constWeightSize);
+ACL_FUNC_VISIBILITY aclError aclmdlBundleGetSize(const aclmdlBundleQueryInfo *queryInfo, size_t index, size_t *workSize,
+                                                 size_t *constWeightSize);
 
 /**
  * @ingroup AscendCL
@@ -635,8 +632,8 @@ ACL_FUNC_VISIBILITY aclError aclmdlBundleGetSize(const aclmdlBundleQueryInfo *qu
  * @retval ACL_SUCCESS The function is successfully executed.
  * @retval OtherValues Failure
  */
-ACL_FUNC_VISIBILITY aclError aclmdlBundleInitFromFile(const char* modelPath, void *varWeightPtr,
-                                                      size_t varWeightSize, uint32_t *bundleId);
+ACL_FUNC_VISIBILITY aclError aclmdlBundleInitFromFile(const char *modelPath, void *varWeightPtr, size_t varWeightSize,
+                                                      uint32_t *bundleId);
 
 /**
  * @ingroup AscendCL
@@ -656,7 +653,7 @@ ACL_FUNC_VISIBILITY aclError aclmdlBundleInitFromFile(const char* modelPath, voi
  * @retval ACL_SUCCESS The function is successfully executed.
  * @retval OtherValues Failure
  */
-ACL_FUNC_VISIBILITY aclError aclmdlBundleInitFromMem(const void* model, size_t modelSize, void *varWeightPtr,
+ACL_FUNC_VISIBILITY aclError aclmdlBundleInitFromMem(const void *model, size_t modelSize, void *varWeightPtr,
                                                      size_t varWeightSize, uint32_t *bundleId);
 
 /**
@@ -690,8 +687,8 @@ ACL_FUNC_VISIBILITY aclError aclmdlBundleLoadModel(uint32_t bundleId, size_t ind
  * @retval OtherValues Failure
  */
 ACL_FUNC_VISIBILITY aclError aclmdlBundleLoadModelWithMem(uint32_t bundleId, size_t index, void *workPtr,
-                                                          size_t workSize, void *weightPtr,
-                                                          size_t weightSize, uint32_t *modelId);
+                                                          size_t workSize, void *weightPtr, size_t weightSize,
+                                                          uint32_t *modelId);
 
 /**
  * @ingroup AscendCL
@@ -738,7 +735,7 @@ ACL_FUNC_VISIBILITY aclError aclmdlBundleUnloadModel(uint32_t bundleId, uint32_t
  * @retval ACL_SUCCESS The function is successfully executed.
  * @retval OtherValues Failure
  */
-ACL_FUNC_VISIBILITY aclError aclmdlLoadFromMem(const void *model,  size_t modelSize, uint32_t *modelId);
+ACL_FUNC_VISIBILITY aclError aclmdlLoadFromMem(const void *model, size_t modelSize, uint32_t *modelId);
 
 /**
  * @ingroup AscendCL
@@ -760,9 +757,8 @@ ACL_FUNC_VISIBILITY aclError aclmdlLoadFromMem(const void *model,  size_t modelS
  * @retval ACL_SUCCESS The function is successfully executed.
  * @retval OtherValues Failure
  */
-ACL_FUNC_VISIBILITY aclError aclmdlLoadFromFileWithMem(const char *modelPath,
-                                                       uint32_t *modelId, void *workPtr, size_t workSize,
-                                                       void *weightPtr, size_t weightSize);
+ACL_FUNC_VISIBILITY aclError aclmdlLoadFromFileWithMem(const char *modelPath, uint32_t *modelId, void *workPtr,
+                                                       size_t workSize, void *weightPtr, size_t weightSize);
 
 /**
  * @ingroup AscendCL
@@ -785,9 +781,9 @@ ACL_FUNC_VISIBILITY aclError aclmdlLoadFromFileWithMem(const char *modelPath,
  * @retval ACL_SUCCESS The function is successfully executed.
  * @retval OtherValues Failure
  */
-ACL_FUNC_VISIBILITY aclError aclmdlLoadFromMemWithMem(const void *model, size_t modelSize,
-                                                      uint32_t *modelId, void *workPtr, size_t workSize,
-                                                      void *weightPtr, size_t weightSize);
+ACL_FUNC_VISIBILITY aclError aclmdlLoadFromMemWithMem(const void *model, size_t modelSize, uint32_t *modelId,
+                                                      void *workPtr, size_t workSize, void *weightPtr,
+                                                      size_t weightSize);
 
 /**
  * @ingroup AscendCL
@@ -822,8 +818,8 @@ ACL_FUNC_VISIBILITY aclError aclmdlLoadFromFileWithQ(const char *modelPath, uint
  * @retval OtherValues Failure
  */
 ACL_FUNC_VISIBILITY aclError aclmdlLoadFromMemWithQ(const void *model, size_t modelSize, uint32_t *modelId,
-                                                    const uint32_t *inputQ, size_t inputQNum,
-                                                    const uint32_t *outputQ, size_t outputQNum);
+                                                    const uint32_t *inputQ, size_t inputQNum, const uint32_t *outputQ,
+                                                    size_t outputQNum);
 
 /**
  * @ingroup AscendCL
@@ -867,8 +863,8 @@ ACL_FUNC_VISIBILITY aclError aclmdlExecuteV2(uint32_t modelId, const aclmdlDatas
  * @retval ACL_SUCCESS The function is successfully executed.
  * @retval OtherValues Failure
  */
-ACL_FUNC_VISIBILITY  aclError aclmdlExecuteAsyncV2(uint32_t modelId, const aclmdlDataset *input, aclmdlDataset *output,
-                                                   aclrtStream stream, const aclmdlExecConfigHandle *handle);
+ACL_FUNC_VISIBILITY aclError aclmdlExecuteAsyncV2(uint32_t modelId, const aclmdlDataset *input, aclmdlDataset *output,
+                                                  aclrtStream stream, const aclmdlExecConfigHandle *handle);
 /**
  * @ingroup AscendCL
  * @brief Execute model asynchronous inference until the inference result is returned
@@ -884,8 +880,8 @@ ACL_FUNC_VISIBILITY  aclError aclmdlExecuteAsyncV2(uint32_t modelId, const aclmd
  * @see aclmdlLoadFromFile | aclmdlLoadFromMem | aclmdlLoadFromFileWithMem |
  * aclmdlLoadFromMemWithMem
  */
-ACL_FUNC_VISIBILITY aclError aclmdlExecuteAsync(uint32_t modelId, const aclmdlDataset *input,
-                                                aclmdlDataset *output, aclrtStream stream);
+ACL_FUNC_VISIBILITY aclError aclmdlExecuteAsync(uint32_t modelId, const aclmdlDataset *input, aclmdlDataset *output,
+                                                aclrtStream stream);
 
 /**
  * @ingroup AscendCL
@@ -1337,11 +1333,11 @@ ACL_FUNC_VISIBILITY aclError aclmdlSetAIPPInputFormat(aclmdlAIPP *aippParmsSet, 
  * @retval OtherValues Failure
  *
  * @see aclmdlCreateAIPP
-*/
-ACL_FUNC_VISIBILITY aclError aclmdlSetAIPPCscParams(aclmdlAIPP *aippParmsSet, int8_t cscSwitch,
-                                                    int16_t cscMatrixR0C0, int16_t cscMatrixR0C1, int16_t cscMatrixR0C2,
-                                                    int16_t cscMatrixR1C0, int16_t cscMatrixR1C1, int16_t cscMatrixR1C2,
-                                                    int16_t cscMatrixR2C0, int16_t cscMatrixR2C1, int16_t cscMatrixR2C2,
+ */
+ACL_FUNC_VISIBILITY aclError aclmdlSetAIPPCscParams(aclmdlAIPP *aippParmsSet, int8_t cscSwitch, int16_t cscMatrixR0C0,
+                                                    int16_t cscMatrixR0C1, int16_t cscMatrixR0C2, int16_t cscMatrixR1C0,
+                                                    int16_t cscMatrixR1C1, int16_t cscMatrixR1C2, int16_t cscMatrixR2C0,
+                                                    int16_t cscMatrixR2C1, int16_t cscMatrixR2C2,
                                                     uint8_t cscOutputBiasR0, uint8_t cscOutputBiasR1,
                                                     uint8_t cscOutputBiasR2, uint8_t cscInputBiasR0,
                                                     uint8_t cscInputBiasR1, uint8_t cscInputBiasR2);
@@ -1357,7 +1353,7 @@ ACL_FUNC_VISIBILITY aclError aclmdlSetAIPPCscParams(aclmdlAIPP *aippParmsSet, in
  * @retval OtherValues Failure
  *
  * @see aclmdlCreateAIPP
-*/
+ */
 ACL_FUNC_VISIBILITY aclError aclmdlSetAIPPRbuvSwapSwitch(aclmdlAIPP *aippParmsSet, int8_t rbuvSwapSwitch);
 
 /**
@@ -1371,7 +1367,7 @@ ACL_FUNC_VISIBILITY aclError aclmdlSetAIPPRbuvSwapSwitch(aclmdlAIPP *aippParmsSe
  * @retval OtherValues Failure
  *
  * @see aclmdlCreateAIPP
-*/
+ */
 ACL_FUNC_VISIBILITY aclError aclmdlSetAIPPAxSwapSwitch(aclmdlAIPP *aippParmsSet, int8_t axSwapSwitch);
 
 /**
@@ -1386,7 +1382,7 @@ ACL_FUNC_VISIBILITY aclError aclmdlSetAIPPAxSwapSwitch(aclmdlAIPP *aippParmsSet,
  * @retval OtherValues Failure
  *
  * @see aclmdlCreateAIPP
-*/
+ */
 ACL_FUNC_VISIBILITY aclError aclmdlSetAIPPSrcImageSize(aclmdlAIPP *aippParmsSet, int32_t srcImageSizeW,
                                                        int32_t srcImageSizeH);
 
@@ -1406,14 +1402,10 @@ ACL_FUNC_VISIBILITY aclError aclmdlSetAIPPSrcImageSize(aclmdlAIPP *aippParmsSet,
  * @retval OtherValues Failure
  *
  * @see aclmdlCreateAIPP
-*/
-ACL_FUNC_VISIBILITY aclError aclmdlSetAIPPScfParams(aclmdlAIPP *aippParmsSet,
-                                                    int8_t scfSwitch,
-                                                    int32_t scfInputSizeW,
-                                                    int32_t scfInputSizeH,
-                                                    int32_t scfOutputSizeW,
-                                                    int32_t scfOutputSizeH,
-                                                    uint64_t batchIndex);
+ */
+ACL_FUNC_VISIBILITY aclError aclmdlSetAIPPScfParams(aclmdlAIPP *aippParmsSet, int8_t scfSwitch, int32_t scfInputSizeW,
+                                                    int32_t scfInputSizeH, int32_t scfOutputSizeW,
+                                                    int32_t scfOutputSizeH, uint64_t batchIndex);
 
 /**
  * @ingroup AscendCL
@@ -1431,13 +1423,9 @@ ACL_FUNC_VISIBILITY aclError aclmdlSetAIPPScfParams(aclmdlAIPP *aippParmsSet,
  * @retval OtherValues Failure
  *
  * @see aclmdlCreateAIPP
-*/
-ACL_FUNC_VISIBILITY aclError aclmdlSetAIPPCropParams(aclmdlAIPP *aippParmsSet,
-                                                     int8_t cropSwitch,
-                                                     int32_t cropStartPosW,
-                                                     int32_t cropStartPosH,
-                                                     int32_t cropSizeW,
-                                                     int32_t cropSizeH,
+ */
+ACL_FUNC_VISIBILITY aclError aclmdlSetAIPPCropParams(aclmdlAIPP *aippParmsSet, int8_t cropSwitch, int32_t cropStartPosW,
+                                                     int32_t cropStartPosH, int32_t cropSizeW, int32_t cropSizeH,
                                                      uint64_t batchIndex);
 
 /**
@@ -1456,7 +1444,7 @@ ACL_FUNC_VISIBILITY aclError aclmdlSetAIPPCropParams(aclmdlAIPP *aippParmsSet,
  * @retval OtherValues Failure
  *
  * @see aclmdlCreateAIPP
-*/
+ */
 ACL_FUNC_VISIBILITY aclError aclmdlSetAIPPPaddingParams(aclmdlAIPP *aippParmsSet, int8_t paddingSwitch,
                                                         int32_t paddingSizeTop, int32_t paddingSizeBottom,
                                                         int32_t paddingSizeLeft, int32_t paddingSizeRight,
@@ -1477,13 +1465,10 @@ ACL_FUNC_VISIBILITY aclError aclmdlSetAIPPPaddingParams(aclmdlAIPP *aippParmsSet
  * @retval OtherValues Failure
  *
  * @see aclmdlCreateAIPP
-*/
-ACL_FUNC_VISIBILITY aclError aclmdlSetAIPPDtcPixelMean(aclmdlAIPP *aippParmsSet,
-                                                       int16_t dtcPixelMeanChn0,
-                                                       int16_t dtcPixelMeanChn1,
-                                                       int16_t dtcPixelMeanChn2,
-                                                       int16_t dtcPixelMeanChn3,
-                                                       uint64_t batchIndex);
+ */
+ACL_FUNC_VISIBILITY aclError aclmdlSetAIPPDtcPixelMean(aclmdlAIPP *aippParmsSet, int16_t dtcPixelMeanChn0,
+                                                       int16_t dtcPixelMeanChn1, int16_t dtcPixelMeanChn2,
+                                                       int16_t dtcPixelMeanChn3, uint64_t batchIndex);
 
 /**
  * @ingroup AscendCL
@@ -1500,13 +1485,10 @@ ACL_FUNC_VISIBILITY aclError aclmdlSetAIPPDtcPixelMean(aclmdlAIPP *aippParmsSet,
  * @retval OtherValues Failure
  *
  * @see aclmdlCreateAIPP
-*/
-ACL_FUNC_VISIBILITY aclError aclmdlSetAIPPDtcPixelMin(aclmdlAIPP *aippParmsSet,
-                                                      float dtcPixelMinChn0,
-                                                      float dtcPixelMinChn1,
-                                                      float dtcPixelMinChn2,
-                                                      float dtcPixelMinChn3,
-                                                      uint64_t batchIndex);
+ */
+ACL_FUNC_VISIBILITY aclError aclmdlSetAIPPDtcPixelMin(aclmdlAIPP *aippParmsSet, float dtcPixelMinChn0,
+                                                      float dtcPixelMinChn1, float dtcPixelMinChn2,
+                                                      float dtcPixelMinChn3, uint64_t batchIndex);
 
 /**
  * @ingroup AscendCL
@@ -1523,13 +1505,10 @@ ACL_FUNC_VISIBILITY aclError aclmdlSetAIPPDtcPixelMin(aclmdlAIPP *aippParmsSet,
  * @retval OtherValues Failure
  *
  * @see aclmdlCreateAIPP
-*/
-ACL_FUNC_VISIBILITY aclError aclmdlSetAIPPPixelVarReci(aclmdlAIPP *aippParmsSet,
-                                                       float dtcPixelVarReciChn0,
-                                                       float dtcPixelVarReciChn1,
-                                                       float dtcPixelVarReciChn2,
-                                                       float dtcPixelVarReciChn3,
-                                                       uint64_t batchIndex);
+ */
+ACL_FUNC_VISIBILITY aclError aclmdlSetAIPPPixelVarReci(aclmdlAIPP *aippParmsSet, float dtcPixelVarReciChn0,
+                                                       float dtcPixelVarReciChn1, float dtcPixelVarReciChn2,
+                                                       float dtcPixelVarReciChn3, uint64_t batchIndex);
 
 /**
  * @ingroup AscendCL
@@ -1545,10 +1524,8 @@ ACL_FUNC_VISIBILITY aclError aclmdlSetAIPPPixelVarReci(aclmdlAIPP *aippParmsSet,
  *
  * @see aclmdlLoadFromFile | aclmdlLoadFromMem | aclmdlLoadFromFileWithMem |
  * aclmdlLoadFromMemWithMem | aclmdlGetInputIndexByName | aclmdlCreateAIPP
-*/
-ACL_FUNC_VISIBILITY aclError aclmdlSetInputAIPP(uint32_t modelId,
-                                                aclmdlDataset *dataset,
-                                                size_t index,
+ */
+ACL_FUNC_VISIBILITY aclError aclmdlSetInputAIPP(uint32_t modelId, aclmdlDataset *dataset, size_t index,
                                                 const aclmdlAIPP *aippParmsSet);
 
 /**
@@ -1565,10 +1542,8 @@ ACL_FUNC_VISIBILITY aclError aclmdlSetInputAIPP(uint32_t modelId,
  *
  * @see aclmdlLoadFromFile | aclmdlLoadFromMem | aclmdlLoadFromFileWithMem |
  * aclmdlLoadFromMemWithMem | aclmdlGetInputIndexByName | aclmdlCreateAIPP
-*/
-ACL_FUNC_VISIBILITY aclError aclmdlSetAIPPByInputIndex(uint32_t modelId,
-                                                       aclmdlDataset *dataset,
-                                                       size_t index,
+ */
+ACL_FUNC_VISIBILITY aclError aclmdlSetAIPPByInputIndex(uint32_t modelId, aclmdlDataset *dataset, size_t index,
                                                        const aclmdlAIPP *aippParmsSet);
 
 /**
@@ -1586,10 +1561,8 @@ ACL_FUNC_VISIBILITY aclError aclmdlSetAIPPByInputIndex(uint32_t modelId,
  *
  * @see aclmdlLoadFromFile | aclmdlLoadFromMem | aclmdlLoadFromFileWithMem |
  * aclmdlLoadFromMemWithMem | aclmdlGetInputIndexByName | aclmdlCreateAIPP
-*/
-ACL_FUNC_VISIBILITY aclError aclmdlGetAippType(uint32_t modelId,
-                                               size_t index,
-                                               aclmdlInputAippType *type,
+ */
+ACL_FUNC_VISIBILITY aclError aclmdlGetAippType(uint32_t modelId, size_t index, aclmdlInputAippType *type,
                                                size_t *dynamicAttachedDataIndex);
 
 /**
@@ -1606,7 +1579,7 @@ ACL_FUNC_VISIBILITY aclError aclmdlGetAippType(uint32_t modelId,
  *
  * @see aclmdlLoadFromFile | aclmdlLoadFromMem | aclmdlLoadFromFileWithMem |
  * aclmdlLoadFromMemWithMem | aclmdlGetInputIndexByName
-*/
+ */
 ACL_FUNC_VISIBILITY aclError aclmdlGetFirstAippInfo(uint32_t modelId, size_t index, aclAippInfo *aippInfo);
 
 /**
@@ -1625,10 +1598,11 @@ ACL_FUNC_VISIBILITY aclError aclmdlGetFirstAippInfo(uint32_t modelId, size_t ind
  *
  * @retval ACL_SUCCESS The function is successfully executed
  * @retval OtherValues Failure
-*/
-ACL_FUNC_VISIBILITY aclError aclmdlCreateAndGetOpDesc(uint32_t deviceId, uint32_t streamId,
-    uint32_t taskId, char *opName, size_t opNameLen, aclTensorDesc **inputDesc, size_t *numInputs,
-    aclTensorDesc **outputDesc, size_t *numOutputs);
+ */
+ACL_FUNC_VISIBILITY aclError aclmdlCreateAndGetOpDesc(uint32_t deviceId, uint32_t streamId, uint32_t taskId,
+                                                      char *opName, size_t opNameLen, aclTensorDesc **inputDesc,
+                                                      size_t *numInputs, aclTensorDesc **outputDesc,
+                                                      size_t *numOutputs);
 
 /**
  * @ingroup AscendCL
@@ -1639,7 +1613,7 @@ ACL_FUNC_VISIBILITY aclError aclmdlCreateAndGetOpDesc(uint32_t deviceId, uint32_
  *
  * @retval ACL_SUCCESS The function is successfully executed.
  * @retval OtherValues Failure
-*/
+ */
 ACL_FUNC_VISIBILITY aclError aclmdlLoadWithConfig(const aclmdlConfigHandle *handle, uint32_t *modelId);
 
 /**
@@ -1649,7 +1623,7 @@ ACL_FUNC_VISIBILITY aclError aclmdlLoadWithConfig(const aclmdlConfigHandle *hand
  * @retval the aclmdlConfigHandle pointer
  *
  * @see aclmdlDestroyConfigHandle
-*/
+ */
 ACL_FUNC_VISIBILITY aclmdlConfigHandle *aclmdlCreateConfigHandle();
 
 /**
@@ -1678,7 +1652,7 @@ ACL_FUNC_VISIBILITY aclError aclmdlDestroyConfigHandle(aclmdlConfigHandle *handl
  * @retval OtherValues Failure
  */
 ACL_FUNC_VISIBILITY aclError aclmdlSetConfigOpt(aclmdlConfigHandle *handle, aclmdlConfigAttr attr,
-    const void *attrValue, size_t valueSize);
+                                                const void *attrValue, size_t valueSize);
 
 /**
  * @ingroup AscendCL
@@ -1695,7 +1669,7 @@ ACL_FUNC_VISIBILITY aclError aclmdlSetConfigOpt(aclmdlConfigHandle *handle, aclm
 ACL_FUNC_VISIBILITY aclError aclmdlSetExecConfigOpt(aclmdlExecConfigHandle *handle, aclmdlExecConfigAttr attr,
                                                     const void *attrValue, size_t valueSize);
 
-                                                    /**
+/**
  * @ingroup AscendCL
  * @brief set config for model load
  *
@@ -1741,10 +1715,11 @@ ACL_FUNC_VISIBILITY aclError aclRecoverAllHcclTasks(int32_t deviceId);
  * @retval ACL_SUCCESS The function is successfully executed.
  * @retval otherValues Failure
  */
-ACL_FUNC_VISIBILITY aclError aclmdlLoadFromModel(const aclmdlModel *model, const aclmdlConfigHandle *handle, uint32_t *modelId);
+ACL_FUNC_VISIBILITY aclError aclmdlLoadFromModel(const aclmdlModel *model, const aclmdlConfigHandle *handle,
+                                                 uint32_t *modelId);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // INC_EXTERNAL_ACL_ACL_MODEL_H_
+#endif  // INC_EXTERNAL_ACL_ACL_MODEL_H_

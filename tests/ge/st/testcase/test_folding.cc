@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -51,7 +51,7 @@ class TestClipByValue : public Kernel {
 
 const char *kFakeWhere = "FakeWhere";
 class TestWhereKernelAicpu : public Kernel {
-public:
+ public:
   Status Compute(const ge::OpDescPtr op_desc_ptr, const std::vector<ge::ConstGeTensorPtr> &input,
                  std::vector<ge::GeTensorPtr> &v_output) override {
     auto output = std::make_shared<GeTensor>();
@@ -66,15 +66,17 @@ public:
 };
 
 namespace {
-  graphStatus StubInferFunction(Operator &op) { return GRAPH_SUCCESS; }
+graphStatus StubInferFunction(Operator &op) {
+  return GRAPH_SUCCESS;
+}
 // Transpose infer
 REG_OP(Transpose)
-  .INPUT(x, TensorType::BasicType())
-  .INPUT(perm, TensorType::IndexNumberType())
-  .OUTPUT(y, TensorType::BasicType())
-  .OP_END_FACTORY_REG(Transpose)
+    .INPUT(x, TensorType::BasicType())
+    .INPUT(perm, TensorType::IndexNumberType())
+    .OUTPUT(y, TensorType::BasicType())
+    .OP_END_FACTORY_REG(Transpose)
 
-const auto TransposeInfer = [](Operator &op) {
+        const auto TransposeInfer = [](Operator &op) {
   auto op_info = OpDescUtils::GetOpDescFromOperator(op);
   auto input_desc = op_info->MutableInputDesc(0);
   auto &input_shape = input_desc->GetShape();
@@ -90,20 +92,19 @@ INFER_FUNC_REG(Transpose, TransposeInfer);
 
 // Cast infer
 REG_OP(Cast)
-  .INPUT(x, TensorType::BasicType())
-  .OUTPUT(y, TensorType::BasicType())
-  .REQUIRED_ATTR(dst_type, Int)
-  .OP_END_FACTORY_REG(Cast)
+    .INPUT(x, TensorType::BasicType())
+    .OUTPUT(y, TensorType::BasicType())
+    .REQUIRED_ATTR(dst_type, Int)
+    .OP_END_FACTORY_REG(Cast)
 
-
-const auto CastInfer = [](Operator &op) {
+        const auto CastInfer = [](Operator &op) {
   auto op_info = OpDescUtils::GetOpDescFromOperator(op);
   auto input_desc = op_info->MutableInputDesc(0);
   auto &input_shape = input_desc->GetShape();
 
   auto output_desc = op_info->MutableOutputDesc(0);
   output_desc->SetShape(input_shape);
-  
+
   DataType type;
   op.GetAttr("dst_type", type);
   output_desc->SetDataType(type);
@@ -119,13 +120,14 @@ class ConstantFoldingTest : public testing::Test {
   void SetUp() {
     std::cout << "Enter constant folding st" << std::endl;
     GeRunningEnvFaker ge_env;
-    ge_env.InstallDefault().Install(FakeOp(GATHERSHAPES).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE").InferShape(StubInferFunction))
-    .Install(FakeOp(FLATTENV2).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE").InferShape(StubInferFunction))
-    .Install(FakeOp(FLATTEN).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE").InferShape(StubInferFunction))
-    .Install(FakeOp(SQUEEZEV3).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE").InferShape(StubInferFunction))
-    .Install(FakeOp(ClipByValue).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE").InferShape(StubInferFunction))
-    .Install(FakeOp(CAST).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE").InferShape(StubInferFunction))
-    .Install(FakeOp("FakeWhere").InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE").InferShape(StubInferFunction));
+    ge_env.InstallDefault()
+        .Install(FakeOp(GATHERSHAPES).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE").InferShape(StubInferFunction))
+        .Install(FakeOp(FLATTENV2).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE").InferShape(StubInferFunction))
+        .Install(FakeOp(FLATTEN).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE").InferShape(StubInferFunction))
+        .Install(FakeOp(SQUEEZEV3).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE").InferShape(StubInferFunction))
+        .Install(FakeOp(ClipByValue).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE").InferShape(StubInferFunction))
+        .Install(FakeOp(CAST).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE").InferShape(StubInferFunction))
+        .Install(FakeOp("FakeWhere").InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE").InferShape(StubInferFunction));
   }
   void TearDown() {
     std::cout << "End constant folding st" << std::endl;
@@ -153,8 +155,8 @@ static void BuildGatherShapesGraph(std::vector<std::vector<int64_t>> &axes, Grap
 
 static void BuildGatherShapesGraph1(std::vector<std::vector<int64_t>> &axes, Graph &graph) {
   auto gathershapes = OP_CFG(GATHERSHAPES)
-                              .TensorDesc(FORMAT_NCHW, DT_INT32, {-1})
-                              .Attr<std::vector<std::vector<int64_t>>>("axes", axes);
+                          .TensorDesc(FORMAT_NCHW, DT_INT32, {-1})
+                          .Attr<std::vector<std::vector<int64_t>>>("axes", axes);
   auto netoutput = OP_CFG(NETOUTPUT).TensorDesc(FORMAT_NCHW, DT_INT32, {-1});
   auto constant_1 = OP_CFG(CONSTANT).TensorDesc(FORMAT_NCHW, DT_INT32, {1, 2, 3});
   auto constant_2 = OP_CFG(CONSTANT).TensorDesc(FORMAT_NCHW, DT_INT32, {2, 3, 4});
@@ -338,15 +340,11 @@ TEST_F(ConstantFoldingTest, test_squeezev3_folding) {
   weight_desc.SetOriginShape(GeShape({2, 3, 4}));
   weight.SetTensorDesc(weight_desc);
 
-  auto data_x = OP_CFG(DATA)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 2, 3, 4})
-        .InCnt(1)
-        .OutCnt(1);
+  auto data_x =
+      OP_CFG(DATA).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 2, 3, 4}).InCnt(1).OutCnt(1);
 
-  auto squeezev3 =
-      OP_CFG(SQUEEZEV3).TensorDesc(FORMAT_NCHW, DT_INT32, {1, 2, 3});
-  std::vector<uint8_t> data_2 = {0};    
+  auto squeezev3 = OP_CFG(SQUEEZEV3).TensorDesc(FORMAT_NCHW, DT_INT32, {1, 2, 3});
+  std::vector<uint8_t> data_2 = {0};
   weight.SetData(data_2);
   auto constant_axes =
       OP_CFG(CONSTANT).TensorDesc(FORMAT_NCHW, DT_INT32, {1}).Attr<GeTensor>(ATTR_NAME_WEIGHTS, weight);
@@ -354,7 +352,7 @@ TEST_F(ConstantFoldingTest, test_squeezev3_folding) {
   auto netouput = OP_CFG(NETOUTPUT).TensorDesc(FORMAT_NCHW, DT_INT32, {1, 2, 3});
   DEF_GRAPH(graph_squeezev3) {
     CHAIN(NODE("data_x", data_x)->EDGE(0, 0)->NODE("squeezev3", squeezev3));
-    CHAIN(NODE("constant_axes",constant_axes)->EDGE(0,1)->NODE("squeezev3", squeezev3));
+    CHAIN(NODE("constant_axes", constant_axes)->EDGE(0, 1)->NODE("squeezev3", squeezev3));
     CHAIN(NODE("squeezev3", squeezev3)->EDGE(0, 0)->NODE("netoutput", netouput));
   };
 
@@ -396,15 +394,11 @@ TEST_F(ConstantFoldingTest, test_unsqueezev3_folding) {
   weight_desc.SetOriginShape(GeShape({2, 3, 4}));
   weight.SetTensorDesc(weight_desc);
 
-  auto data_x = OP_CFG(DATA)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 2, 3, 4})
-        .InCnt(1)
-        .OutCnt(1);
+  auto data_x =
+      OP_CFG(DATA).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 2, 3, 4}).InCnt(1).OutCnt(1);
 
-  auto unsqueezev3 =
-      OP_CFG(UNSQUEEZEV3).TensorDesc(FORMAT_NCHW, DT_INT32, {1, 2, 3});
-  std::vector<uint8_t> data_2 = {0};    
+  auto unsqueezev3 = OP_CFG(UNSQUEEZEV3).TensorDesc(FORMAT_NCHW, DT_INT32, {1, 2, 3});
+  std::vector<uint8_t> data_2 = {0};
   weight.SetData(data_2);
   auto constant_axes =
       OP_CFG(CONSTANT).TensorDesc(FORMAT_NCHW, DT_INT32, {1}).Attr<GeTensor>(ATTR_NAME_WEIGHTS, weight);
@@ -412,7 +406,7 @@ TEST_F(ConstantFoldingTest, test_unsqueezev3_folding) {
   auto netouput = OP_CFG(NETOUTPUT).TensorDesc(FORMAT_NCHW, DT_INT32, {1, 2, 3, 4});
   DEF_GRAPH(graph_unsqueezev3) {
     CHAIN(NODE("data_x", data_x)->EDGE(0, 0)->NODE("unsqueezev3", unsqueezev3));
-    CHAIN(NODE("constant_axes",constant_axes)->EDGE(0,1)->NODE("unsqueezev3", unsqueezev3));
+    CHAIN(NODE("constant_axes", constant_axes)->EDGE(0, 1)->NODE("unsqueezev3", unsqueezev3));
     CHAIN(NODE("unsqueezev3", unsqueezev3)->EDGE(0, 0)->NODE("netoutput", netouput));
   };
 
@@ -450,16 +444,16 @@ TEST_F(ConstantFoldingTest, test_unchanged_transpose_remove_pass) {
   vector<int64_t> perm{1, 0, 2, 3};
   GeTensorDesc tensor_desc(GeShape(vector<int64_t>{4}), FORMAT_NCHW, DT_INT64);
   GeTensorPtr const_tensor =
-      std::make_shared<GeTensor>(tensor_desc, reinterpret_cast<uint8_t *>(perm.data()) , sizeof(int64_t)*perm.size());
+      std::make_shared<GeTensor>(tensor_desc, reinterpret_cast<uint8_t *>(perm.data()), sizeof(int64_t) * perm.size());
   auto constant = OP_CFG(CONSTANT).TensorDesc(FORMAT_NCHW, DT_INT64, {4}).Weight(const_tensor);
 
   auto transpose = OP_CFG(TRANSPOSE).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 3, 4});
 
   DEF_GRAPH(g) {
-                  CHAIN(NODE("data_x", data_x)->EDGE(0, 0)->NODE("transpose", transpose));
-                  CHAIN(NODE("constant", constant)->EDGE(0, 1)->NODE("transpose", transpose));
-                  CHAIN(NODE("transpose", transpose)->EDGE(0, 0)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("data_x", data_x)->EDGE(0, 0)->NODE("transpose", transpose));
+    CHAIN(NODE("constant", constant)->EDGE(0, 1)->NODE("transpose", transpose));
+    CHAIN(NODE("transpose", transpose)->EDGE(0, 0)->NODE("netoutput", NETOUTPUT));
+  };
 
   auto graph = ToGeGraph(g);
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
@@ -488,16 +482,16 @@ TEST_F(ConstantFoldingTest, test_unchanged_transpose_remove_pass_invalid) {
   vector<int64_t> perm{0, 2, 1, 3};
   GeTensorDesc tensor_desc(GeShape(vector<int64_t>{4}), FORMAT_NCHW, DT_INT64);
   GeTensorPtr const_tensor =
-      std::make_shared<GeTensor>(tensor_desc, reinterpret_cast<uint8_t *>(perm.data()) , sizeof(int64_t)*perm.size());
+      std::make_shared<GeTensor>(tensor_desc, reinterpret_cast<uint8_t *>(perm.data()), sizeof(int64_t) * perm.size());
   auto constant = OP_CFG(CONSTANT).TensorDesc(FORMAT_NCHW, DT_INT64, {4}).Weight(const_tensor);
 
   auto transpose = OP_CFG(TRANSPOSE).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 2, 3, 4});
 
   DEF_GRAPH(g) {
-                 CHAIN(NODE("data_x", data_x)->EDGE(0, 0)->NODE("transpose", transpose));
-                 CHAIN(NODE("constant", constant)->EDGE(0, 1)->NODE("transpose", transpose));
-                 CHAIN(NODE("transpose", transpose)->EDGE(0, 0)->NODE("netoutput", NETOUTPUT));
-               };
+    CHAIN(NODE("data_x", data_x)->EDGE(0, 0)->NODE("transpose", transpose));
+    CHAIN(NODE("constant", constant)->EDGE(0, 1)->NODE("transpose", transpose));
+    CHAIN(NODE("transpose", transpose)->EDGE(0, 0)->NODE("netoutput", NETOUTPUT));
+  };
 
   auto graph = ToGeGraph(g);
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
@@ -527,7 +521,7 @@ TEST_F(ConstantFoldingTest, test_cast_float32toint32) {
   val1 = src;
 
   GeTensor weight;
-  //std::vector<uint8_t> data = {2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 2, 2, 3, 3, 3, 3};
+  // std::vector<uint8_t> data = {2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 2, 2, 3, 3, 3, 3};
   std::vector<uint8_t> data = {2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 2, 2};
   weight.SetData(data);
   GeTensorDesc weight_desc;
@@ -536,8 +530,7 @@ TEST_F(ConstantFoldingTest, test_cast_float32toint32) {
   weight.SetTensorDesc(weight_desc);
   auto constant =
       OP_CFG(CONSTANT).TensorDesc(FORMAT_NCHW, DT_FLOAT16, {2, 3}).Attr<GeTensor>(ATTR_NAME_WEIGHTS, weight);
-  auto cast =
-      OP_CFG(CAST).TensorDesc(FORMAT_NCHW, DT_FLOAT16, {2, 3}).Attr("dst_type", DT_INT32);
+  auto cast = OP_CFG(CAST).TensorDesc(FORMAT_NCHW, DT_FLOAT16, {2, 3}).Attr("dst_type", DT_INT32);
   auto netouput = OP_CFG(NETOUTPUT).TensorDesc(FORMAT_NCHW, DT_INT32, {-1});
   DEF_GRAPH(g1) {
     CHAIN(NODE("constant", constant)->EDGE(0, 0)->NODE("cast", cast));
@@ -550,7 +543,7 @@ TEST_F(ConstantFoldingTest, test_cast_float32toint32) {
 
   auto node_ptr = compute_graph->FindNode("cast");
   auto op_desc_ptr = node_ptr->GetOpDesc();
-  //op_desc_ptr->SetOpKernelLibName("aicpu_ascend_kernel");
+  // op_desc_ptr->SetOpKernelLibName("aicpu_ascend_kernel");
   GE_DUMP(compute_graph, "test_cast");
   std::map<string, uint32_t> name_idx_map = {{"x", 0}};
   op_desc_ptr->UpdateInputName(name_idx_map);
@@ -583,10 +576,8 @@ TEST_F(ConstantFoldingTest, test_cast_float32tofloat16_inf) {
   weight_desc.SetDataType(DT_FLOAT);
   weight_desc.SetOriginShape(GeShape());
   weight.SetTensorDesc(weight_desc);
-  auto constant =
-      OP_CFG(CONSTANT).TensorDesc(FORMAT_ND, DT_FLOAT16, {}).Attr<GeTensor>(ATTR_NAME_WEIGHTS, weight);
-  auto cast =
-      OP_CFG(CAST).TensorDesc(FORMAT_ND, DT_FLOAT16, {}).Attr("dst_type", DT_FLOAT16);
+  auto constant = OP_CFG(CONSTANT).TensorDesc(FORMAT_ND, DT_FLOAT16, {}).Attr<GeTensor>(ATTR_NAME_WEIGHTS, weight);
+  auto cast = OP_CFG(CAST).TensorDesc(FORMAT_ND, DT_FLOAT16, {}).Attr("dst_type", DT_FLOAT16);
   auto netouput = OP_CFG(NETOUTPUT).TensorDesc(FORMAT_ND, DT_FLOAT16, {-1});
   DEF_GRAPH(g1) {
     CHAIN(NODE("constant", constant)->EDGE(0, 0)->NODE("cast", cast));
@@ -599,7 +590,7 @@ TEST_F(ConstantFoldingTest, test_cast_float32tofloat16_inf) {
 
   auto node_ptr = compute_graph->FindNode("cast");
   auto op_desc_ptr = node_ptr->GetOpDesc();
-  //op_desc_ptr->SetOpKernelLibName("aicpu_ascend_kernel");
+  // op_desc_ptr->SetOpKernelLibName("aicpu_ascend_kernel");
   std::map<string, uint32_t> name_idx_map = {{"x", 0}};
   op_desc_ptr->UpdateInputName(name_idx_map);
 
@@ -651,11 +642,11 @@ static void BuildNotFoldGraph(Graph &graph) {
   auto netouput = OP_CFG(NETOUTPUT).TensorDesc(FORMAT_ND, DT_INT32, {2, 5});
   auto flatten1 = OP_CFG(FLATTEN).TensorDesc(FORMAT_ND, DT_INT32, {10});
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("constant_1", constant_1)->EDGE(0, 0)->NODE("add1", add1));
-                  CHAIN(NODE("constant_2", constant_2)->EDGE(0, 1)->NODE("add1", add1));
-                  CHAIN(NODE("add1", add1)->EDGE(0, 0)->NODE("netoutput", netouput));
-                  CHAIN(NODE("constant_1", constant_1)->EDGE(0, 0)->NODE("flatten1", flatten1));
-                };
+    CHAIN(NODE("constant_1", constant_1)->EDGE(0, 0)->NODE("add1", add1));
+    CHAIN(NODE("constant_2", constant_2)->EDGE(0, 1)->NODE("add1", add1));
+    CHAIN(NODE("add1", add1)->EDGE(0, 0)->NODE("netoutput", netouput));
+    CHAIN(NODE("constant_1", constant_1)->EDGE(0, 0)->NODE("flatten1", flatten1));
+  };
   graph = ToGeGraph(g1);
 }
 

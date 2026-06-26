@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -113,12 +113,10 @@ void CheckComputeNodeOrderEqualToExecuteNodeOrder(const ge::ComputeGraphPtr &gra
       ess->GetExecuteIndexByNodeNameAndKernelType("transdata_10", "LaunchKernelWithHandle"));
   execute_node_order.emplace_back(
       ess->GetExecuteIndexByNodeNameAndKernelType("transdata_8_AtomicClean", "AtomicLaunchKernelWithFlag"));
-  execute_node_order.emplace_back(
-      ess->GetExecuteIndexByNodeNameAndKernelType("transdata_8", "LaunchKernelWithHandle"));
+  execute_node_order.emplace_back(ess->GetExecuteIndexByNodeNameAndKernelType("transdata_8", "LaunchKernelWithHandle"));
   execute_node_order.emplace_back(
       ess->GetExecuteIndexByNodeNameAndKernelType("transdata_4_AtomicClean", "AtomicLaunchKernelWithFlag"));
-  execute_node_order.emplace_back(
-      ess->GetExecuteIndexByNodeNameAndKernelType("transdata_4", "LaunchKernelWithHandle"));
+  execute_node_order.emplace_back(ess->GetExecuteIndexByNodeNameAndKernelType("transdata_4", "LaunchKernelWithHandle"));
   execute_node_order.emplace_back(
       ess->GetExecuteIndexByNodeNameAndKernelType("transdata_13_AtomicClean", "AtomicLaunchKernelWithFlag"));
   execute_node_order.emplace_back(
@@ -411,8 +409,8 @@ TEST_F(PriorityExecutionST, Check_Priority_With_ThirdNode_success) {
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
-      .AddTaskDef("NonZero", AiCoreTaskDefFaker("NonZeroStubBin").WithHandle())
-      .BuildGeRootModel();
+                           .AddTaskDef("NonZero", AiCoreTaskDefFaker("NonZeroStubBin").WithHandle())
+                           .BuildGeRootModel();
 
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model);
   ASSERT_NE(exe_graph, nullptr);

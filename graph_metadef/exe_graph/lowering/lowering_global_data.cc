@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -90,8 +90,8 @@ bg::ValueHolderPtr GetOrCreateL2Allocators(const AllocatorDesc desc, LoweringGlo
       GE_ASSERT_NOTNULL(stream_num);
       // CreateL2Allocators第一个输出是AllL2Allocators，表示所有二级内存池；
       // 第二个输出是AllL2MemPools，表示所有二级内存池里实际申请内存的allocator；
-      auto l2_allocators_on_init = bg::ValueHolder::CreateDataOutput("CreateL2Allocators",
-                                                                     {stream_num, placement_holder}, 2)[0];
+      auto l2_allocators_on_init =
+          bg::ValueHolder::CreateDataOutput("CreateL2Allocators", {stream_num, placement_holder}, 2)[0];
       bg::ValueHolder::AddDependency(init_l1_allocator, l2_allocators_on_init);
       return {l2_allocators_on_init};
     });
@@ -172,8 +172,8 @@ LoweringGlobalData &LoweringGlobalData::SetExternalAllocator(bg::ValueHolderPtr 
 
 bool LoweringGlobalData::CanUseExternalAllocator(const ExecuteGraphType &graph_type,
                                                  const TensorPlacement placement) const {
-  return IsPlacementSupportExternalAllocator(placement)
-      && (external_allocators_.holders[static_cast<size_t>(graph_type)] != nullptr);
+  return IsPlacementSupportExternalAllocator(placement) &&
+         (external_allocators_.holders[static_cast<size_t>(graph_type)] != nullptr);
 }
 
 bg::ValueHolderPtr LoweringGlobalData::GetExternalAllocator(const bool from_init, const string &key,
@@ -186,8 +186,7 @@ bg::ValueHolderPtr LoweringGlobalData::GetExternalAllocator(const bool from_init
         if (CanUseExternalAllocator(ExecuteGraphType::kInit, desc.placement)) {
           init_selected_allocator = bg::ValueHolder::CreateSingleDataOutput(
               "GetExternalL1Allocator",
-              {placement_holder,
-               external_allocators_.holders[static_cast<size_t>(ExecuteGraphType::kInit)]});
+              {placement_holder, external_allocators_.holders[static_cast<size_t>(ExecuteGraphType::kInit)]});
         } else {
           GELOGE(ge::PARAM_INVALID, "always_external_allocator option is true but external_allocators is nullptr!");
         }
@@ -322,8 +321,8 @@ bg::ValueHolderPtr LoweringGlobalData::GetOrCreateL1Allocator(const AllocatorDes
       if (CanUseExternalAllocator(ExecuteGraphType::kMain, desc.placement)) {
         const auto main_external_allocator = external_allocators_.holders[static_cast<size_t>(ExecuteGraphType::kMain)];
         main_selected_allocator = bg::ValueHolder::CreateSingleDataOutput(
-            "SelectL1Allocator", {init_out[1], main_external_allocator, init_out[0],
-                                  GetStreamById(kDefaultMainStreamId)});
+            "SelectL1Allocator",
+            {init_out[1], main_external_allocator, init_out[0], GetStreamById(kDefaultMainStreamId)});
       }
       return {main_selected_allocator};
     });
@@ -395,28 +394,28 @@ void LoweringGlobalData::SetLoweringOption(const LoweringOption &lowering_option
 }
 
 /*
-* init_graph
-*                                                +--------------------------+
-*                                                |          |               |
-*  Const(placement)  Const(stream_num)    Const(placement)  Const(usage)    |
-*          \          /                            \        /               |       Data(externel_allocator)
-*           CreateL2Allocators                 CreateL1Allocator ----------+-----+      |       Data(external_stream)
-*                             \                     /                       |     \    |       /
-*                              \                   /                        |    SelectAllocator
-*                                  InnerNetOutput <-------------------------+         /      \
-*                                                                    CreateHostL2Allocator   CreateInitL2Allocator
-*
-*
-* main_graph
-*                                              SelectL1Allocator
-*                  Data(rt_streams)            /                \
-*                        |                    /  InnerData     CreateHostL2Allocator
-*                 SplitRtStreams             /(l2 allocators)
-*                              \            /   /
-*                              SelectL2Allocator
-*
-*   有外置allocator场景下的L2 allocator
-*/
+ * init_graph
+ *                                                +--------------------------+
+ *                                                |          |               |
+ *  Const(placement)  Const(stream_num)    Const(placement)  Const(usage)    |
+ *          \          /                            \        /               |       Data(externel_allocator)
+ *           CreateL2Allocators                 CreateL1Allocator ----------+-----+      |       Data(external_stream)
+ *                             \                     /                       |     \    |       /
+ *                              \                   /                        |    SelectAllocator
+ *                                  InnerNetOutput <-------------------------+         /      \
+ *                                                                    CreateHostL2Allocator   CreateInitL2Allocator
+ *
+ *
+ * main_graph
+ *                                              SelectL1Allocator
+ *                  Data(rt_streams)            /                \
+ *                        |                    /  InnerData     CreateHostL2Allocator
+ *                 SplitRtStreams             /(l2 allocators)
+ *                              \            /   /
+ *                              SelectL2Allocator
+ *
+ *   有外置allocator场景下的L2 allocator
+ */
 bg::ValueHolderPtr LoweringGlobalData::GetOrCreateL2Allocator(int64_t logic_stream_id, AllocatorDesc desc) {
   if (CurrentOnInitGraph()) {
     // 在init图也可能有申请内存的行为，也需要使用l2 allocator来申请。
@@ -443,10 +442,8 @@ bg::ValueHolderPtr LoweringGlobalData::GetOrCreateL2Allocator(int64_t logic_stre
 
   // main图中创建host allocator时确保init图中也创建相应的host allocator,为CEM做准备
   if (TensorPlacementUtils::IsOnHost(desc.placement)) {
-    auto init_l2_host_allocator =
-      bg::FrameSelector::OnInitRoot([&desc, this]() -> std::vector<bg::ValueHolderPtr> {
-        return {GetOrCreateInitL2Allocator(desc)};
-    });
+    auto init_l2_host_allocator = bg::FrameSelector::OnInitRoot(
+        [&desc, this]() -> std::vector<bg::ValueHolderPtr> { return {GetOrCreateInitL2Allocator(desc)}; });
     GE_ASSERT_TRUE(init_l2_host_allocator.size() == 1U);
   }
   return tmp_l2_allocators[0];
@@ -477,8 +474,7 @@ bg::ValueHolderPtr LoweringGlobalData::GetOrCreateInitL2Allocator(const Allocato
   bg::ValueHolderPtr init_l2_allocator = nullptr;
   if (TensorPlacementUtils::IsOnHost(desc.placement)) {
     auto builder = [&]() -> bg::ValueHolderPtr {
-      return bg::ValueHolder::CreateSingleDataOutput("CreateHostL2Allocator",
-                                                     {GetOrCreateL1Allocator(desc)});
+      return bg::ValueHolder::CreateSingleDataOutput("CreateHostL2Allocator", {GetOrCreateL1Allocator(desc)});
     };
     init_l2_allocator = GetOrCreateUniqueValueHolder(init_l2_allocator_key, builder);
   } else if (TensorPlacementUtils::IsOnDevice(desc.placement)) {
@@ -498,9 +494,8 @@ bg::ValueHolderPtr LoweringGlobalData::GetOrCreateInitL2Allocator(const Allocato
   GE_ASSERT_NOTNULL(init_l2_allocator);
 
   // 将InitL2Allocator放到init的输出上，保证其在根图析构时 析构
-  bg::FrameSelector::OnInitRoot([&init_l2_allocator]()->std::vector<bg::ValueHolderPtr> {
-    return {init_l2_allocator};
-  });
+  bg::FrameSelector::OnInitRoot(
+      [&init_l2_allocator]() -> std::vector<bg::ValueHolderPtr> { return {init_l2_allocator}; });
   return init_l2_allocator;
 }
 

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,7 +26,7 @@ constexpr uint64_t kProfilingIterStartLogid = 5UL;
 constexpr uint64_t kProfilingIterEndLogid = 4UL;
 constexpr uint64_t kProfilingArStartLogid = 10000UL;
 constexpr uint64_t kProfilingArMaxLogid = 19999UL;
-} // namespace
+}  // namespace
 namespace ge {
 namespace hybrid {
 REGISTER_NODE_EXECUTOR_BUILDER(NodeExecutorManager::ExecutorType::RTS, RtsNodeExecutor);
@@ -55,12 +55,8 @@ Status IdentityNodeTask::DoCopyTensor(const TaskContext &context, const int32_t 
     const auto output = context.MutableOutput(index);
     GE_CHECK_NOTNULL(input);
     GE_CHECK_NOTNULL(output);
-    GE_CHK_ACL_RET(aclrtMemcpyAsync(output->MutableData(),
-                                output->GetSize(),
-                                input->GetData(),
-                                static_cast<uint64_t>(copy_size),
-                                kind_,
-                                context.GetStream()));
+    GE_CHK_ACL_RET(aclrtMemcpyAsync(output->MutableData(), output->GetSize(), input->GetData(),
+                                    static_cast<uint64_t>(copy_size), kind_, context.GetStream()));
   } else {
     GELOGW("[%s] index = %d, copy size = 0", context.GetNodeName(), index);
   }
@@ -81,7 +77,7 @@ Status NpuGetFloatStatusTask::ExecuteAsync(TaskContext &context, const std::func
     GE_CHK_ACL_RET(ge::AclrtMalloc(&args_, args_size, RT_MEMORY_HBM, GE_MODULE_NAME_U16));
   }
   GE_CHK_ACL_RET(aclrtMemcpyAsync(args_, args_size, &output_addr, args_size, ACL_MEMCPY_HOST_TO_BUF_TO_DEVICE,
-                       context.GetStream()));
+                                  context.GetStream()));
 
   const uint32_t mode = 0U;
   GE_CHK_RT_RET(ge::rtNpuGetFloatStatus(args_, output->GetSize(), mode, context.GetStream()));
@@ -156,8 +152,7 @@ Status ProfilingTraceNodeTask::Init(const HybridModel &model, const NodePtr &nod
   }
   GE_CHECK_NOTNULL(model.GetRootGraph());
   model_id_ = model.GetModelId();
-  GELOGD("The model is online:%d, model id is %u",
-         static_cast<int32_t>(domi::GetContext().is_online_model), model_id_);
+  GELOGD("The model is online:%d, model id is %u", static_cast<int32_t>(domi::GetContext().is_online_model), model_id_);
   task_defs_ = *task_defs;
   GELOGD("[%s] Done initialization successfully.", node->GetName().c_str());
   return SUCCESS;
@@ -177,13 +172,10 @@ Status ProfilingTraceNodeTask::ExecuteAsync(TaskContext &context, const std::fun
       GELOGD("ProfilerTraceNodeTask log id:%lu out of range.", log_time_stamp_id);
       continue;
     }
-    gert::rtProfTraceUserData userData = {
-      .id = index_id,
-      .model_id = static_cast<uint64_t>(model_id_),
-      .tag_id = static_cast<uint16_t>(log_time_stamp_id)
-    };
-    const auto rt_ret = aclrtProfTrace(&userData, sizeof(gert::rtProfTraceUserData),
-      context.GetStream());
+    gert::rtProfTraceUserData userData = {.id = index_id,
+                                          .model_id = static_cast<uint64_t>(model_id_),
+                                          .tag_id = static_cast<uint16_t>(log_time_stamp_id)};
+    const auto rt_ret = aclrtProfTrace(&userData, sizeof(gert::rtProfTraceUserData), context.GetStream());
     if (rt_ret != ACL_SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "Call aclrtProfTrace failed, ret:%d", rt_ret);
       GELOGE(RT_FAILED, "[Call][aclrtProfTrace] failed, ret:%d", rt_ret);
@@ -198,8 +190,7 @@ Status ProfilingTraceNodeTask::ExecuteAsync(TaskContext &context, const std::fun
 Status StartOfSequenceTask::Init(const HybridModel &model, const NodePtr &node) {
   GE_CHECK_NOTNULL(model.GetRootGraph());
   model_id_ = model.GetModelId();
-  GELOGD("The model is online:%d, model id is %u",
-         static_cast<int32_t>(domi::GetContext().is_online_model), model_id_);
+  GELOGD("The model is online:%d, model id is %u", static_cast<int32_t>(domi::GetContext().is_online_model), model_id_);
   GELOGD("[%s] Done initialization successfully.", node->GetName().c_str());
   return SUCCESS;
 }
@@ -209,11 +200,9 @@ Status StartOfSequenceTask::ExecuteAsync(TaskContext &context, const std::functi
   const uint64_t index_id = 1UL;
   GELOGD("StartOfSequenceTask execute async start. logid = %lu", kProfilingIterStartLogid);
 
-  gert::rtProfTraceUserData userData = {
-    .id = index_id,
-    .model_id = static_cast<uint64_t>(model_id_),
-    .tag_id = static_cast<uint16_t>(kProfilingIterStartLogid)
-  };
+  gert::rtProfTraceUserData userData = {.id = index_id,
+                                        .model_id = static_cast<uint64_t>(model_id_),
+                                        .tag_id = static_cast<uint16_t>(kProfilingIterStartLogid)};
   const auto rt_ret = aclrtProfTrace(&userData, sizeof(gert::rtProfTraceUserData), context.GetStream());
   if (rt_ret != ACL_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Call aclrtProfTrace failed, ret:%d", rt_ret);
@@ -236,8 +225,8 @@ Status RtsNodeExecutor::LoadTask(const HybridModel &model, const NodePtr &node, 
   const RtsNodeTaskPtr rts_task = RtsTaskFactory::GetInstance().Create(node_type);
   if (rts_task == nullptr) {
     REPORT_INNER_ERR_MSG("E19999", "[%s] Unsupported RTS op type:%s", node->GetName().c_str(), node_type.c_str());
-    GELOGE(UNSUPPORTED, "[Create][Task] failed, as [%s] Unsupported RTS op type:%s",
-           node->GetName().c_str(), node_type.c_str());
+    GELOGE(UNSUPPORTED, "[Create][Task] failed, as [%s] Unsupported RTS op type:%s", node->GetName().c_str(),
+           node_type.c_str());
     return UNSUPPORTED;
   }
 
@@ -246,4 +235,3 @@ Status RtsNodeExecutor::LoadTask(const HybridModel &model, const NodePtr &node, 
 }
 }  // namespace hybrid
 }  // namespace ge
-

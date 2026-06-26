@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,7 +25,8 @@
 
 namespace ge {
 namespace {
-static NodePtr CreateNode(const ComputeGraphPtr &graph, const string &name, const string &type, int in_num, int out_num) {
+static NodePtr CreateNode(const ComputeGraphPtr &graph, const string &name, const string &type, int in_num,
+                          int out_num) {
   OpDescPtr op_desc = std::make_shared<OpDesc>(name, type);
   op_desc->SetStreamId(0);
   static int32_t index = 0;
@@ -290,7 +291,7 @@ ComputeGraphPtr BuildSimpleWhileGraph2() {
 
   return main_graph;
 }
-} // namespace
+}  // namespace
 
 class UtestShapeRefiner : public testing::Test {
  protected:
@@ -302,7 +303,8 @@ class UtestShapeRefiner : public testing::Test {
   void TearDown() {
     OperatorFactoryImpl::operator_infershape_funcs_ = operator_infershape_funcs_bak_;
   }
-private:
+
+ private:
   shared_ptr<map<string, InferShapeFunc>> operator_infershape_funcs_bak_;
 };
 
@@ -323,7 +325,7 @@ TEST_F(UtestShapeRefiner, InferShapeAndTypeForRunning_Success) {
 
 TEST_F(UtestShapeRefiner, InferShapeAndTypeForRunning_Failure_NullInferFunc) {
   const auto graph = std::make_shared<ComputeGraph>("test_infer_shape");
-  
+
   OperatorFactoryImpl::operator_infershape_funcs_.reset(new (std::nothrow) std::map<string, InferShapeFunc>());
   auto merge1 = CreateNode(graph, "merge1", "StreamMerge", 2, 2);
   auto op = OpDescUtils::CreateOperatorFromNode(merge1);
@@ -475,4 +477,4 @@ TEST_F(UtestShapeRefiner, InferShapeAndType_UpdateSubGraphDataNodes) {
   (void)AttrUtils::SetBool(p1_node->GetOpDesc(), ATTR_NAME_NEED_INFER_AGAIN, true);
   EXPECT_EQ(ShapeRefiner::InferShapeAndType(p1_node, true), GRAPH_SUCCESS);
 }
-} // namespace ge
+}  // namespace ge

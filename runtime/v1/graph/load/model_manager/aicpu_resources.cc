@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -45,7 +45,7 @@ struct TlvBuf {
   uint32_t len;
   const void *data;
 };
-}
+}  // namespace
 
 AiCpuResources::~AiCpuResources() noexcept {
   if ((!aicpu_queues_.empty()) || (!aicpu_channels_.empty()) || (!aicpu_vdec_channels_.empty())) {
@@ -58,21 +58,16 @@ Status AiCpuResources::CreateQueue(const std::string &name, const uint32_t depth
   std::vector<uint8_t> task_args;
   void *queue_id_dev = nullptr;
   GE_CHK_ACL_RET(ge::AclrtMalloc(&queue_id_dev, sizeof(queue_id), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
-  GE_MAKE_GUARD(queue_id_dev, [&queue_id_dev]() {
-    GE_CHK_RT(aclrtFree(queue_id_dev));
-  });
+  GE_MAKE_GUARD(queue_id_dev, [&queue_id_dev]() { GE_CHK_RT(aclrtFree(queue_id_dev)); });
   GE_CHK_STATUS_RET_NOLOG(
       BuildCreateQueueTask(static_cast<uintptr_t>(PtrToValue(queue_id_dev)), name, depth, task_args));
   GE_CHK_STATUS_RET(ExecuteKernel(kKernelNameCreateQueue, task_args));
-  GE_CHK_ACL_RET(aclrtMemcpy(&queue_id, sizeof(queue_id), queue_id_dev,
-      sizeof(queue_id), ACL_MEMCPY_DEVICE_TO_HOST));
+  GE_CHK_ACL_RET(aclrtMemcpy(&queue_id, sizeof(queue_id), queue_id_dev, sizeof(queue_id), ACL_MEMCPY_DEVICE_TO_HOST));
   GELOGD("Queue created successfully, name = %s, queue id = %u", name.c_str(), queue_id);
   return SUCCESS;
 }
 
-Status AiCpuResources::BuildCreateQueueTask(const uintptr_t queue_id_dev,
-                                            const std::string &name,
-                                            const uint32_t depth,
+Status AiCpuResources::BuildCreateQueueTask(const uintptr_t queue_id_dev, const std::string &name, const uint32_t depth,
                                             std::vector<uint8_t> &task_args) {
   constexpr size_t args_size = sizeof(aicpu::AicpuParamHead) + sizeof(uintptr_t) + kNameMaxLength + sizeof(uint32_t);
   GE_CHK_STATUS_RET(Resize(task_args, args_size), "Failed to resize task args, args_size=%zu", args_size);
@@ -109,8 +104,7 @@ Status AiCpuResources::CreateChannel(const int32_t rt_stream_id) {
   return SUCCESS;
 }
 
-Status AiCpuResources::BuildCreateChannelTask(const int32_t rt_stream_id,
-                                              std::vector<uint8_t> &task_args) {
+Status AiCpuResources::BuildCreateChannelTask(const int32_t rt_stream_id, std::vector<uint8_t> &task_args) {
   constexpr size_t args_size = sizeof(aicpu::AicpuParamHead) + sizeof(int32_t);
   GE_CHK_STATUS_RET(Resize(task_args, args_size), "Failed to resize task args, args_size=%zu", args_size);
 
@@ -133,8 +127,7 @@ Status AiCpuResources::CreateVdecChannel(const int32_t rt_stream_id) {
   return SUCCESS;
 }
 
-Status AiCpuResources::BuildCreateVdecChannelTask(const int32_t rt_stream_id,
-                                                  std::vector<uint8_t> &task_args) {
+Status AiCpuResources::BuildCreateVdecChannelTask(const int32_t rt_stream_id, std::vector<uint8_t> &task_args) {
   constexpr size_t args_size = sizeof(aicpu::AicpuParamHead) + sizeof(int32_t);
   GE_CHK_STATUS_RET(Resize(task_args, args_size), "Failed to resize task args, args_size=%zu", args_size);
 
@@ -148,8 +141,7 @@ Status AiCpuResources::BuildCreateVdecChannelTask(const int32_t rt_stream_id,
   return SUCCESS;
 }
 
-Status AiCpuResources::ExecuteKernel(const char_t *const so_name,
-                                     const std::string &kernel_name,
+Status AiCpuResources::ExecuteKernel(const char_t *const so_name, const std::string &kernel_name,
                                      const std::vector<uint8_t> &task_args) {
   aclrtStream stream = nullptr;
   GE_CHK_ACL_RET(aclrtCreateStream(&stream));
@@ -158,16 +150,15 @@ Status AiCpuResources::ExecuteKernel(const char_t *const so_name,
   args_info.args = const_cast<void *>(static_cast<const void *>(task_args.data()));
   args_info.argsSize = static_cast<uint32_t>(task_args.size());
   args_info.isNoNeedH2DCopy = 0U;
-  GE_CHK_RT_RET(rtCpuKernelLaunchWithFlag(so_name,
-      kernel_name.c_str(), kKernelBlockDim, &args_info, nullptr, stream, RT_KERNEL_DEFAULT));
+  GE_CHK_RT_RET(rtCpuKernelLaunchWithFlag(so_name, kernel_name.c_str(), kKernelBlockDim, &args_info, nullptr, stream,
+                                          RT_KERNEL_DEFAULT));
   GELOGD("Launch kernel successfully, kernel name = %s", kernel_name.c_str());
   GE_CHK_ACL_RET(aclrtSynchronizeStream(stream));
   GELOGD("Sync stream successfully, kernel name = %s", kernel_name.c_str());
   return SUCCESS;
 }
 
-Status AiCpuResources::ExecuteKernel(const std::string &kernel_name,
-                                     const std::vector<uint8_t> &task_args) {
+Status AiCpuResources::ExecuteKernel(const std::string &kernel_name, const std::vector<uint8_t> &task_args) {
   return ExecuteKernel(nullptr, kernel_name, task_args);
 }
 
@@ -251,10 +242,8 @@ const std::string &AiCpuResources::ResourceTypeVdecChannel() {
   return kResourceTypeVdecChannel;
 }
 
-Status AiCpuResources::AllocateQueueResource(const OpDescPtr &op_desc,
-                                             const NamedAttrs &resource_attr,
-                                             int32_t &input_idx,
-                                             uint32_t &queue_id) {
+Status AiCpuResources::AllocateQueueResource(const OpDescPtr &op_desc, const NamedAttrs &resource_attr,
+                                             int32_t &input_idx, uint32_t &queue_id) {
   std::string queue_name;
   int64_t input_index = -1;
   if (!AttrUtils::GetStr(resource_attr, kAttrFieldQueueName, queue_name)) {
@@ -262,8 +251,8 @@ Status AiCpuResources::AllocateQueueResource(const OpDescPtr &op_desc,
     return PARAM_INVALID;
   }
   if (!AttrUtils::GetInt(resource_attr, kAttrFieldQueueIdIdx, input_index)) {
-    GELOGE(PARAM_INVALID, "[%s] Failed to get input index for queue %s",
-           op_desc->GetName().c_str(), queue_name.c_str());
+    GELOGE(PARAM_INVALID, "[%s] Failed to get input index for queue %s", op_desc->GetName().c_str(),
+           queue_name.c_str());
     return PARAM_INVALID;
   }
   uint32_t queue_depth = kAiCpuQueueDepth;
@@ -285,15 +274,13 @@ Status AiCpuResources::GetOrCreateQueue(const std::string &queue_name, const uin
     GELOGD("Queue [%s] already created, queue_id = %u", queue_name.c_str(), queue_id);
     return SUCCESS;
   }
-  GE_CHK_STATUS_RET(CreateQueue(queue_name, queue_depth, queue_id),
-                    "Failed to create queue, name = %s",
+  GE_CHK_STATUS_RET(CreateQueue(queue_name, queue_depth, queue_id), "Failed to create queue, name = %s",
                     queue_name.c_str());
   (void)aicpu_queues_.emplace(queue_name, queue_id);
   return SUCCESS;
 }
 
-Status AiCpuResources::AllocateChannelResource(const OpDescPtr &op_desc,
-                                               const int32_t rt_stream_id) {
+Status AiCpuResources::AllocateChannelResource(const OpDescPtr &op_desc, const int32_t rt_stream_id) {
   const std::lock_guard<std::mutex> lk(mu_);
   const auto it = aicpu_channels_.find(rt_stream_id);
   if (it != aicpu_channels_.end()) {
@@ -305,8 +292,7 @@ Status AiCpuResources::AllocateChannelResource(const OpDescPtr &op_desc,
   return SUCCESS;
 }
 
-Status AiCpuResources::AllocateVdecChannelResource(const OpDescPtr &op_desc,
-                                                   const int32_t rt_stream_id) {
+Status AiCpuResources::AllocateVdecChannelResource(const OpDescPtr &op_desc, const int32_t rt_stream_id) {
   const std::lock_guard<std::mutex> lk(mu_);
   const auto it = aicpu_vdec_channels_.find(rt_stream_id);
   if (it != aicpu_vdec_channels_.end()) {
@@ -322,8 +308,8 @@ void AiCpuResources::ReleaseResources() {
   const std::lock_guard<std::mutex> lk(mu_);
   GELOGD("Release queue resource started, size = %zu", aicpu_queues_.size());
   for (const auto &it : aicpu_queues_) {
-    GE_CHK_STATUS(DestroyQueue(it.second),
-                  "Failed to destroy queue, name = %s, queue id = %u", it.first.c_str(), it.second);
+    GE_CHK_STATUS(DestroyQueue(it.second), "Failed to destroy queue, name = %s, queue id = %u", it.first.c_str(),
+                  it.second);
   }
   aicpu_queues_.clear();
 
@@ -359,8 +345,7 @@ Status AiCpuResources::SetModelConfig(const AiCpuModelConfig &config) const {
   GELOGD("Start to model config");
   std::vector<uint8_t> task_args;
   GE_CHK_STATUS_RET(BuildModelConfigTask(config, task_args), "Failed to init task args");
-  GE_CHK_STATUS_RET(ExecuteKernel(kKernelNameModelConfig, task_args),
-                    "Failed to launch kernel");
+  GE_CHK_STATUS_RET(ExecuteKernel(kKernelNameModelConfig, task_args), "Failed to launch kernel");
   GELOGD("Model config successfully");
   return SUCCESS;
 }
@@ -386,7 +371,7 @@ Status AiCpuResources::SetStaticModelShapeConfig(const AiCpuModelShapeConfig &co
                                                  const std::vector<InputOutputDescInfo> &input_desc_list) {
   const std::function<bool(std::vector<int64_t>)> is_static_shape = [](const std::vector<int64_t> &dims) -> bool {
     GELOGI("Input shape is %s", ToString(dims).c_str());
-    return std::all_of(dims.begin(), dims.end(), [](int64_t dim) ->bool { return dim >= 0; });
+    return std::all_of(dims.begin(), dims.end(), [](int64_t dim) -> bool { return dim >= 0; });
   };
   static_model_shape_config_result_ = false;
   // value agreed with aicpu  1000  10001
@@ -409,8 +394,8 @@ Status AiCpuResources::SetStaticModelShapeConfig(const AiCpuModelShapeConfig &co
         .type = kTagType, .len = static_cast<uint32_t>(sizeof(uint32_t)), .data = &input_desc.data_type};
     tlv_data.emplace_back(shape_tlv);
     tlv_data.emplace_back(type_tlv);
-    tlv_data_len += (sizeof(TlvHead) + sizeof(TlvHead) +
-                     static_cast<size_t>(shape_tlv.len) + static_cast<size_t>(type_tlv.len));
+    tlv_data_len +=
+        (sizeof(TlvHead) + sizeof(TlvHead) + static_cast<size_t>(shape_tlv.len) + static_cast<size_t>(type_tlv.len));
   }
   if (tlv_data_len == 0U) {
     return SUCCESS;
@@ -426,8 +411,8 @@ Status AiCpuResources::SetStaticModelShapeConfig(const AiCpuModelShapeConfig &co
     config_tlv_begin += sizeof(TlvHead);
     if (tlv_item.len > 0U) {
       left_size = config_tlv_end - config_tlv_begin;
-      ret = memcpy_s(config_tlv_begin, static_cast<size_t>(left_size),
-                     tlv_item.data, static_cast<size_t>(tlv_item.len));
+      ret =
+          memcpy_s(config_tlv_begin, static_cast<size_t>(left_size), tlv_item.data, static_cast<size_t>(tlv_item.len));
       GE_CHK_BOOL_RET_STATUS(ret == EOK, FAILED, "copy tlv data failed");
     }
     config_tlv_begin += tlv_item.len;
@@ -436,8 +421,8 @@ Status AiCpuResources::SetStaticModelShapeConfig(const AiCpuModelShapeConfig &co
   void *tlv_device_addr = nullptr;
   GE_CHK_ACL_RET(ge::AclrtMalloc(&tlv_device_addr, config_buff.size(), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
   GE_MAKE_GUARD(tlv_device_addr, [&tlv_device_addr]() { GE_CHK_RT(aclrtFree(tlv_device_addr)); });
-  GE_CHK_ACL_RET(aclrtMemcpy(tlv_device_addr, config_buff.size(), config_buff.data(),
-      config_buff.size(), ACL_MEMCPY_HOST_TO_DEVICE));
+  GE_CHK_ACL_RET(aclrtMemcpy(tlv_device_addr, config_buff.size(), config_buff.data(), config_buff.size(),
+                             ACL_MEMCPY_HOST_TO_DEVICE));
   AiCpuModelShapeConfig config_with_input_desc = config;
   GE_CHK_BOOL_RET_STATUS(tlv_data_len <= UINT32_MAX, FAILED, "tlv_data_len %zu greater than uint32_max.", tlv_data_len);
   config_with_input_desc.data_len = static_cast<uint32_t>(tlv_data_len);

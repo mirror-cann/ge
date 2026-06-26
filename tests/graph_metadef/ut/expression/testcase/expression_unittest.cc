@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -185,7 +185,8 @@ TEST_F(UtestExpression, GetExprType) {
 
   // -2
   expr3 = Neg(symbol1);
-  EXPECT_EQ(expr3.GetExprType(), ExprType::kExprConstantInteger);;
+  EXPECT_EQ(expr3.GetExprType(), ExprType::kExprConstantInteger);
+  ;
   EXPECT_EQ(std::string(expr3.Serialize().get()), "-2");
 
   // -x
@@ -319,7 +320,6 @@ TEST_F(UtestExpression, TestExpressionInvalid) {
   EXPECT_EQ(expr.Subs({}).IsValid(), false);
 }
 
-
 TEST_F(UtestExpression, FalseConstSerializeAndDeserialize_Succ) {
   auto expr = Not(Le(Symbol(2), Symbol(3)));
   const std::string expr_str = std::string(expr.Serialize().get());
@@ -408,8 +408,7 @@ TEST_F(UtestExpression, Str) {
   auto b_max_c = Max(b_div_c, var_c);
   EXPECT_EQ(std::string(b_max_c.Serialize().get()), "Max(c, (b / (c)))");
 
-
-//  EXPECT_EQ(Rational(2, 3)->Serialize(), "(double)(2)/(double)(3)");
+  //  EXPECT_EQ(Rational(2, 3)->Serialize(), "(double)(2)/(double)(3)");
   EXPECT_EQ(std::string(Pow(var_b, Rational(1, 2)).Serialize().get()), "Sqrt(b)");
   EXPECT_EQ(std::string(Pow(var_b, Symbol(3)).Serialize().get()), "(b * b * b)");
   EXPECT_EQ(std::string(Pow(var_b, var_c).Serialize().get()), "Pow(b, c)");
@@ -417,10 +416,8 @@ TEST_F(UtestExpression, Str) {
   EXPECT_EQ(std::string(Ceiling(var_b).Serialize().get()), "Ceiling(b)");
   EXPECT_EQ(std::string(Abs(var_b).Serialize().get()), "Abs(b)");
   EXPECT_EQ(std::string(Sub(Symbol(2), Symbol(3) * var_b).Serialize().get()), "(2 - (3 * b))");
-  EXPECT_EQ(std::string(Max(Max(var_b, var_c), Symbol("d")).Serialize().get()),
-    "Max(Max(b, c), d)");
-  EXPECT_EQ(std::string(Min(Min(var_b, var_c), Symbol("d")).Serialize().get()),
-    "Min(Min(b, c), d)");
+  EXPECT_EQ(std::string(Max(Max(var_b, var_c), Symbol("d")).Serialize().get()), "Max(Max(b, c), d)");
+  EXPECT_EQ(std::string(Min(Min(var_b, var_c), Symbol("d")).Serialize().get()), "Min(Min(b, c), d)");
 }
 
 TEST_F(UtestExpression, Parser) {
@@ -437,7 +434,8 @@ TEST_F(UtestExpression, Parser) {
   EXPECT_EQ(std::string(double_2_3.Serialize().get()), "Rational(2 , 3)");
   auto double_2_3_parser = Expression::Parse(double_2_3.Serialize().get());
   // todo: 对于表达式2/3，当前的序列化为了给c++编译器编译，搞成了(double)(2)/(double)(3)，是一个Rational
-  //       本次修改为采用Rational(a, b)表达的方式，来表达分子分母，当前只支持int类型的分子分母，给c++编译时，写一个Rational函数，
+  //       本次修改为采用Rational(a,
+  //       b)表达的方式，来表达分子分母，当前只支持int类型的分子分母，给c++编译时，写一个Rational函数，
   //       函数里面做double的cast转换
   EXPECT_EQ(double_2_3_parser, double_2_3);
 
@@ -527,7 +525,8 @@ TEST_F(UtestExpression, Serialize_And_Deserialize) {
   EXPECT_EQ(std::string(double_2_3.Serialize().get()), "Rational(2 , 3)");
   auto double_2_3_parser = Expression::Deserialize(double_2_3.Serialize().get());
   // todo: 对于表达式2/3，当前的序列化为了给c++编译器编译，搞成了(double)(2)/(double)(3)，是一个Rational
-  //       本次修改为采用Rational(a, b)表达的方式，来表达分子分母，当前只支持int类型的分子分母，给c++编译时，写一个Rational函数，
+  //       本次修改为采用Rational(a,
+  //       b)表达的方式，来表达分子分母，当前只支持int类型的分子分母，给c++编译时，写一个Rational函数，
   //       函数里面做double的cast转换
   EXPECT_EQ(double_2_3_parser, double_2_3);
 
@@ -627,7 +626,7 @@ TEST_F(UtestExpression, SymbolCheckWithoutContext) {
   auto var_b = Symbol("b");
   auto ret = EXPECT_SYMBOL_EQ(var_b, var_a);
   EXPECT_EQ(ret, false);
-  bool guard_res0 = [&var_a, &var_b] () -> bool {
+  bool guard_res0 = [&var_a, &var_b]() -> bool {
     ASSERT_SYMBOL_EQ(var_a, var_b);
     return true;
   }();
@@ -935,7 +934,7 @@ TEST_F(UtestExpression, TestAlgin) {
 
   auto const_16 = Symbol(32);
   auto const_1 = Symbol(1);
-  auto expr4 = (const_16 * Ceiling((Rational(1 , 32) * s0)));
+  auto expr4 = (const_16 * Ceiling((Rational(1, 32) * s0)));
   EXPECT_EQ(expr1, expr4);
 }
 
@@ -1145,8 +1144,7 @@ TEST_F(UtestExpression, SymbolCheckBroadCast_Succ) {
                             .Outputs({&out_shape})
                             .Build();
   auto context = context_holder.GetContext<gert::InferSymbolShapeContext>();
-  EXPECT_EQ(InferAddSymbolShapeStub(context),
-      GRAPH_SUCCESS);
+  EXPECT_EQ(InferAddSymbolShapeStub(context), GRAPH_SUCCESS);
   auto output_shape = context->GetOutputSymbolShape(0);
   EXPECT_NE(output_shape, nullptr);
   EXPECT_EQ(output_shape->GetDimNum(), 4);
@@ -1175,49 +1173,49 @@ TEST_F(UtestExpression, SymbolAssertCheck_Succ) {
   Symbol sym5 = shape_env.CreateSymbol(6, MakeShared<GraphInputShapeSourceStub>(0, 5));
   Symbol sym6 = shape_env.CreateSymbol(7, MakeShared<GraphInputShapeSourceStub>(0, 6));
 
-  bool guard_res0 = [&sym1] () -> bool {
+  bool guard_res0 = [&sym1]() -> bool {
     ASSERT_SYMBOL_EQ(sym::Rational(4, 2), sym1);
     return true;
   }();
   EXPECT_EQ(guard_res0, true);
 
-  bool guard_res0_1 = [&sym1, &sym2] () -> bool {
+  bool guard_res0_1 = [&sym1, &sym2]() -> bool {
     ASSERT_SYMBOL_EQ(sym2, sym1);
     return true;
   }();
   EXPECT_EQ(guard_res0_1, false);
 
-  bool guard_res1 = [&sym0, &sym2] () -> bool {
+  bool guard_res1 = [&sym0, &sym2]() -> bool {
     ASSERT_SYMBOL_NE(sym::Ceiling(sym0), sym2);
     return true;
   }();
   EXPECT_EQ(guard_res1, true);
 
-  bool guard_res2 = [&sym1, &sym4] () -> bool {
+  bool guard_res2 = [&sym1, &sym4]() -> bool {
     ASSERT_SYMBOL_LT(sym::Log(sym1, sym1), sym4);
     return true;
   }();
   EXPECT_EQ(guard_res2, true);
 
-  bool guard_res3 = [&sym4, &sym3, &sym0] () -> bool {
+  bool guard_res3 = [&sym4, &sym3, &sym0]() -> bool {
     ASSERT_SYMBOL_LE(sym4 - sym3, sym0);
     return true;
   }();
   EXPECT_EQ(guard_res3, true);
 
-  bool guard_res4 = [&sym4, &sym5, &sym1, &sym2] () -> bool {
+  bool guard_res4 = [&sym4, &sym5, &sym1, &sym2]() -> bool {
     ASSERT_SYMBOL_GT(sym::Pow(sym1, sym2), sym::Max(sym5, sym4));
     return true;
   }();
   EXPECT_EQ(guard_res4, true);
 
-  bool guard_res5 = [&sym6, &sym1, &sym2] () -> bool {
+  bool guard_res5 = [&sym6, &sym1, &sym2]() -> bool {
     ASSERT_SYMBOL_GE(sym::Min(sym1, sym2), sym::Abs(sym6));
     return true;
   }();
   EXPECT_EQ(guard_res5, false);
 
-  bool guard_res6 = [] () -> bool {
+  bool guard_res6 = []() -> bool {
     ASSERT_SYMBOL_GE(Symbol(5), Symbol(2));
     return true;
   }();
@@ -1318,7 +1316,7 @@ TEST_F(UtestExpression, SimplifyVariable2_Succ) {
 
   auto expr1 = Symbol(2) * (sym0 + sym3) + sym::Max(sym5 * sym4, sym1 + sym2);
   EXPECT_EQ(std::string(expr1.Simplify().Str().get()),
-      "((2 * s0) + (2 * s3) + Max(((2 * s0) + (2 * s3)), ((s0 + s3) * (s0 + s3))))");
+            "((2 * s0) + (2 * s3) + Max(((2 * s0) + (2 * s3)), ((s0 + s3) * (s0 + s3))))");
   SetCurShapeEnvContext(nullptr);
 }
 
@@ -1335,8 +1333,7 @@ TEST_F(UtestExpression, SimplifyVariable3_Succ) {
   EXPECT_SYMBOL_EQ(sym0 + sym2, sym4);
 
   auto expr1 = sym3 * sym4 + sym1 * Symbol(2) + sym2;
-  EXPECT_EQ(std::string(expr1.Simplify().Str().get()),
-            "(((s2 * s2) * 2) + (3 * s0 * s2) + (3 * s2) + (s0 * s0))");
+  EXPECT_EQ(std::string(expr1.Simplify().Str().get()), "(((s2 * s2) * 2) + (3 * s0 * s2) + (3 * s2) + (s0 * s0))");
   SetCurShapeEnvContext(nullptr);
 }
 
@@ -1353,8 +1350,7 @@ TEST_F(UtestExpression, SimplifyVariable4_Succ) {
   EXPECT_SYMBOL_EQ(sym0 + sym3, sym2);
 
   auto expr1 = sym3 + sym1 * Symbol(2) + sym2;
-  EXPECT_EQ(std::string(expr1.Simplify().Str().get()),
-            "((3 * s0) + 8)");
+  EXPECT_EQ(std::string(expr1.Simplify().Str().get()), "((3 * s0) + 8)");
   SetCurShapeEnvContext(nullptr);
 }
 
@@ -1465,7 +1461,7 @@ TEST_F(UtestExpression, TestExpressionUnorderdMap) {
   map1[s1] = 2;
 
   EXPECT_NE(map1.find(s0), map1.end());
-  EXPECT_EQ(map1.find(s0)->second, 1); // 被更新了
+  EXPECT_EQ(map1.find(s0)->second, 1);  // 被更新了
   EXPECT_EQ(map1.find(s1)->second, 2);
   auto s3 = Symbol("s3");
   auto s4 = Symbol("s4");
@@ -1488,7 +1484,7 @@ TEST_F(UtestExpression, TestExpressionMap) {
   map1[s0_bak] = 1;
   map1[s1] = 2;
   EXPECT_NE(map1.find(s0), map1.end());
-  EXPECT_EQ(map1.find(s0)->second, 1); // 被更新了
+  EXPECT_EQ(map1.find(s0)->second, 1);  // 被更新了
   EXPECT_EQ(map1.find(s1)->second, 2);
   EXPECT_EQ(map1.begin()->first, s0);
 }
@@ -1531,7 +1527,7 @@ TEST_F(UtestExpression, TestSimplifyCeiling_Floor) {
   auto s6 = Symbol("s0");
   auto s0 = Symbol(0);
   auto s192 = Symbol(192);
-  auto expr1 = Ceiling((Min(s192, s6)- Min(s0, s6)));
+  auto expr1 = Ceiling((Min(s192, s6) - Min(s0, s6)));
   auto expr2 = (Symbol(-1) * Floor(((Min(s192, s6) - Min(s0, s6)) * Symbol(-1))));
   EXPECT_EQ(expr1.Simplify(), expr2);
 }
@@ -1600,9 +1596,8 @@ TEST_F(UtestExpression, CoeffTest_Succ) {
   EXPECT_EQ(expr1, 2);
 
   // 3*x**y + 2*x*y + 2**x * 4
-  auto expr_coeff_base =
-      Symbol(const_sym3) * sym::Pow(sym0, sym1) + Symbol(const_sym2) * sym0 * sym1 +
-      Symbol(const_sym4) * sym::Pow(Symbol(const_sym2), sym0);
+  auto expr_coeff_base = Symbol(const_sym3) * sym::Pow(sym0, sym1) + Symbol(const_sym2) * sym0 * sym1 +
+                         Symbol(const_sym4) * sym::Pow(Symbol(const_sym2), sym0);
   auto expr2 = sym::Coeff(expr_coeff_base, sym0, sym1);
   EXPECT_EQ(expr2, 3);
 
@@ -1823,7 +1818,8 @@ TEST_F(UtestExpression, Parser_Minus) {
 TEST_F(UtestExpression, Parser_Minus1) {
   std::string str = "((-((8+s2)*s3)-(-1-((8+s2)*s3)-s3)-s3)*(8+s1)*(8+s2)*s3)";
   Expression expr = Expression::Parse(str.c_str());
-  EXPECT_EQ(std::string(expr.Serialize().get()), "(( - ((8 + s2) * s3) - (-1 - ((8 + s2) * s3) - s3) - s3) * (8 + s1) * (8 + s2) * s3)");
+  EXPECT_EQ(std::string(expr.Serialize().get()),
+            "(( - ((8 + s2) * s3) - (-1 - ((8 + s2) * s3) - s3) - s3) * (8 + s1) * (8 + s2) * s3)");
 
   str = "-(s1 + s2)";
   expr = Expression::Parse(str.c_str());
@@ -2139,7 +2135,7 @@ TEST_F(UtestExpression, SimplifyWithShapeEnv) {
   ShapeEnvAttr shape_env;
   SetCurShapeEnvContext(&shape_env);
 
-  auto expr = sym::Ceiling(sym::Sub(sym::Ceiling(sym::Mul(sym::Rational(1,2), Symbol("s0"))), Symbol(20)));
+  auto expr = sym::Ceiling(sym::Sub(sym::Ceiling(sym::Mul(sym::Rational(1, 2), Symbol("s0"))), Symbol(20)));
   auto expr1 = Expression::Deserialize(expr.Str().get());
   EXPECT_EQ(expr1.impl_, nullptr);
   auto expr2 = Expression::Deserialize(expr.Simplify().Str().get());
@@ -2164,7 +2160,7 @@ TEST_F(UtestExpression, ExpandSimplifyTest) {
   auto c5 = Symbol(5);
   auto expr1 = c2 * s1 * s2 * s3;
   auto expr2 = c5 * s2 * s3;
-  auto expr3 = c5 *s3;
+  auto expr3 = c5 * s3;
 
   expr = expr1 + expr2 + expr3 + c5 - (expr1 + expr2 + expr3 + c5);
   EXPECT_NE(expr, Symbol(0));
@@ -2222,7 +2218,7 @@ TEST_F(UtestExpression, Expect_Add_Replacement_And_Simplify_When_Input_Two_Var_N
   EXPECT_EQ(shape_env.HasSymbolCheckInfo(sym::Eq(s0, s1)), true);
 
   EXPECT_EQ(shape_env.Simplify(s0), s1);
-  EXPECT_EQ(shape_env.Simplify(s1), s1); // 当前的replace如果都为符号，且rank一样的情况下，后面的是前面replace
+  EXPECT_EQ(shape_env.Simplify(s1), s1);  // 当前的replace如果都为符号，且rank一样的情况下，后面的是前面replace
 }
 
 TEST_F(UtestExpression, Expect_Add_Replacement_And_Simplify_When_Input_One_Var_One_Const_NE_False) {
@@ -2262,7 +2258,7 @@ TEST_F(UtestExpression, Expect_Add_Replacement_And_Simplify_When_Input_Two_Exper
 
   auto exp1 = s0 + Symbol(1);
   auto exp2 = s1 + Symbol(2);
-  EXPECT_EQ(exp1.Simplify(), exp2); // 标准化后：s0 == s1 + 1
+  EXPECT_EQ(exp1.Simplify(), exp2);  // 标准化后：s0 == s1 + 1
 }
 
 TEST_F(UtestExpression, Expect_Not_Add_Replacement_And_Simplify_When_Input_One_Exper_One_Const_NE_False) {
@@ -2275,7 +2271,7 @@ TEST_F(UtestExpression, Expect_Not_Add_Replacement_And_Simplify_When_Input_One_E
   EXPECT_EQ(shape_env.HasSymbolCheckInfo(sym::Eq(s0 + s1, Symbol(3))), true);
 
   auto exp = s0 + s1;
-  EXPECT_EQ(exp.Simplify(), exp); // 表达式与常量间不支持replace
+  EXPECT_EQ(exp.Simplify(), exp);  // 表达式与常量间不支持replace
 }
 
 TEST_F(UtestExpression, Expect_Simplify_All_Guard_When_Input_Replacement_By_EQ) {
@@ -2286,7 +2282,7 @@ TEST_F(UtestExpression, Expect_Simplify_All_Guard_When_Input_Replacement_By_EQ) 
   EXPECT_EQ(EXPECT_SYMBOL_EQ(s0 + s1, Symbol(3)), true);
   EXPECT_EQ(shape_env.GetAllSymbolCheckInfos().size(), 1);
   EXPECT_EQ(EXPECT_SYMBOL_EQ(s0, Symbol(2)), true);
-  EXPECT_EQ(shape_env.GetAllSymbolCheckInfos().size(), 3); // 新增加replacement会化简第一个guard并插入
+  EXPECT_EQ(shape_env.GetAllSymbolCheckInfos().size(), 3);  // 新增加replacement会化简第一个guard并插入
 
   EXPECT_EQ(shape_env.HasSymbolCheckInfo(sym::Eq(s0 + s1, Symbol(3))), true);
   EXPECT_EQ(shape_env.HasSymbolCheckInfo(sym::Eq(s0, Symbol(2))), true);
@@ -2301,7 +2297,7 @@ TEST_F(UtestExpression, Expect_Simplify_All_Guard_When_Input_Replacement_By_NE) 
   EXPECT_EQ(EXPECT_SYMBOL_NE(s0 + s1, Symbol(3)), false);
   EXPECT_EQ(shape_env.GetAllSymbolCheckInfos().size(), 1);
   EXPECT_EQ(EXPECT_SYMBOL_NE(s0, Symbol(2)), false);
-  EXPECT_EQ(shape_env.GetAllSymbolCheckInfos().size(), 3); // 新增加replacement会化简第一个guard并插入
+  EXPECT_EQ(shape_env.GetAllSymbolCheckInfos().size(), 3);  // 新增加replacement会化简第一个guard并插入
 
   EXPECT_EQ(shape_env.HasSymbolCheckInfo(sym::Eq(s0 + s1, Symbol(3))), true);
   EXPECT_EQ(shape_env.HasSymbolCheckInfo(sym::Eq(s0, Symbol(2))), true);
@@ -2330,14 +2326,14 @@ TEST_F(UtestExpression, Expect_Static_EQ_True_When_Input_Replacement_By_EQ) {
   EXPECT_EQ(EXPECT_SYMBOL_EQ(s0 + s1, Symbol(3)), true);
   EXPECT_EQ(shape_env.GetAllSymbolCheckInfos().size(), 1);
   EXPECT_EQ(EXPECT_SYMBOL_EQ(s0, Symbol(2)), true);
-  EXPECT_EQ(shape_env.GetAllSymbolCheckInfos().size(), 3); // 新增加replacement会化简第一个guard并插入
+  EXPECT_EQ(shape_env.GetAllSymbolCheckInfos().size(), 3);  // 新增加replacement会化简第一个guard并插入
 
   EXPECT_EQ(shape_env.HasSymbolCheckInfo(sym::Eq(s0 + s1, Symbol(3))), true);
   EXPECT_EQ(shape_env.HasSymbolCheckInfo(sym::Eq(s0, Symbol(2))), true);
   EXPECT_EQ(shape_env.HasSymbolCheckInfo(sym::Eq(s1, Symbol(1))), true);
 
   EXPECT_EQ(SymbolicUtils::StaticCheckEq(s1, Symbol(1)), TriBool::kTrue);
-  EXPECT_EQ(shape_env.GetAllSymbolCheckInfos().size(), 3); // 不会再全量化简
+  EXPECT_EQ(shape_env.GetAllSymbolCheckInfos().size(), 3);  // 不会再全量化简
 }
 TEST_F(UtestExpression, AsNumerDenomToStringTest) {
   auto s0 = Symbol("s0");

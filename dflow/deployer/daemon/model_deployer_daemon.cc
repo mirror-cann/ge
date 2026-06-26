@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,7 +33,7 @@ std::atomic_bool g_is_shutdown(false);
 constexpr int32_t kShutdownThreadWaitTimeInSec = 1;
 constexpr int32_t kExpectedArgCount = 4;
 constexpr int32_t kDefaultTimeout = 10 * 1000;  // 10s
-}
+}  // namespace
 
 ge::DeployerServer ModelDeployerDaemon::grpc_server_{};
 
@@ -97,7 +97,7 @@ Status ModelDeployerDaemon::StartSubDeployer(int32_t argc, char_t **argv) {
 }
 
 void ModelDeployerDaemon::SignalHandler(int32_t sig_num) {
-  (void) sig_num;
+  (void)sig_num;
   g_is_shutdown.store(true);
 }
 

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,7 +20,7 @@
 
 namespace ge {
 namespace {
-auto ins = ge::SlogStub::GetInstance(); // 让log提前初始化
+auto ins = ge::SlogStub::GetInstance();  // 让log提前初始化
 }
 class DefaultSlogStub : public SlogStub {
  public:
@@ -75,7 +75,8 @@ void SlogStub::SetInstance(std::shared_ptr<SlogStub> stub) {
 int EraseFolderFromPath(char *buff, int len) {
   int i = 0;
   // 跳过第一组[LogLevel]，下面一组方框就是[/path/to/file]了
-  while (buff[i++] != ' ' && i < len) {}
+  while (buff[i++] != ' ' && i < len) {
+  }
 
   int first_pos = -1;
   int last_pos = -1;

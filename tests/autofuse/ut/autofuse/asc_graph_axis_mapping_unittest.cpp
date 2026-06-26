@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -570,7 +570,7 @@ static std::shared_ptr<ge::AscGraph> CreatSplitAscGraphSame(ge::AscGraph &graph)
   *x1.y.repeats = {A, B, C, D, E};
   *x1.y.strides = {B * C * D * E, TWO * C * D * E, D * E, E, ONE};
 
-  af::ascir_op::Load x1Local((graph.GetName()+ "_load1").c_str());
+  af::ascir_op::Load x1Local((graph.GetName() + "_load1").c_str());
   x1Local.x = x1.y;
   x1Local.attr.sched.axis = {a.id, b.id, c.id, d.id, e.id};
   *x1Local.y.axis = {a.id, b.id, c.id, d.id, e.id};
@@ -1168,14 +1168,23 @@ static Status SetAttrsGroup(const NodePtr &node) {
  * const1   const2
  */
 ComputeGraphPtr BuildGraph1(const std::string node_type = "") {
-  auto data1 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1)
-                   .OutNames({"y"}).Build("Data1");
-  auto data2 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1)
-                   .OutNames({"y"}).Build("Data2");
-  auto addn1 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {2,2,3,4}).InCnt(2).OutCnt(1).OutNames({"y"})
+  auto data1 =
+      OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4}).InCnt(0).OutCnt(1).OutNames({"y"}).Build("Data1");
+  auto data2 =
+      OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4}).InCnt(0).OutCnt(1).OutNames({"y"}).Build("Data2");
+  auto addn1 = OP_CFG(kAscBackendType)
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {2, 2, 3, 4})
+                   .InCnt(2)
+                   .OutCnt(1)
+                   .OutNames({"y"})
                    .Build("AddN1");
-  auto shape = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("Shape");
+  auto shape = OP_CFG(kAscBackendType)
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(1)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("Shape");
   DEF_GRAPH(g) {
     CHAIN(NODE(data1)->EDGE(0, 0)->NODE(addn1));
     CHAIN(NODE(data2)->EDGE(0, 1)->NODE(addn1));
@@ -1201,14 +1210,23 @@ ComputeGraphPtr BuildGraph1(const std::string node_type = "") {
  * const1   const2
  */
 ComputeGraphPtr BuildGraph1_1(const std::string node_type = "") {
-  auto data1 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1)
-                   .OutNames({"y"}).Build("Data1");
-  auto data2 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1)
-                   .OutNames({"y"}).Build("Data2");
-  auto addn1 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {2,2,3,4}).InCnt(2).OutCnt(1).OutNames({"y"})
+  auto data1 =
+      OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4}).InCnt(0).OutCnt(1).OutNames({"y"}).Build("Data1");
+  auto data2 =
+      OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4}).InCnt(0).OutCnt(1).OutNames({"y"}).Build("Data2");
+  auto addn1 = OP_CFG(kAscBackendType)
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {2, 2, 3, 4})
+                   .InCnt(2)
+                   .OutCnt(1)
+                   .OutNames({"y"})
                    .Build("AddN1");
-  auto shape1 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("Shape1");
+  auto shape1 = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Shape1");
   DEF_GRAPH(g) {
     CHAIN(NODE(data1)->EDGE(0, 0)->NODE(addn1));
     CHAIN(NODE(data2)->EDGE(0, 1)->NODE(addn1));
@@ -1235,16 +1253,30 @@ ComputeGraphPtr BuildGraph1_1(const std::string node_type = "") {
  * const2   const1
  */
 ComputeGraphPtr BuildGraph1_2(const std::string node_type = "") {
-  auto data1 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1)
-                   .OutNames({"y"}).Build("Data1");
-  auto data2 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1)
-                   .OutNames({"y"}).Build("Data2");
-  auto addn1 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {2,2,3,4}).InCnt(2).OutCnt(1).OutNames({"y"})
+  auto data1 =
+      OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4}).InCnt(0).OutCnt(1).OutNames({"y"}).Build("Data1");
+  auto data2 =
+      OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4}).InCnt(0).OutCnt(1).OutNames({"y"}).Build("Data2");
+  auto addn1 = OP_CFG(kAscBackendType)
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {2, 2, 3, 4})
+                   .InCnt(2)
+                   .OutCnt(1)
+                   .OutNames({"y"})
                    .Build("AddN1");
-  auto shape1 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("Shape1");
-  auto abs = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("AbsN1");
+  auto shape1 = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("Shape1");
+  auto abs = OP_CFG(kAscBackendType)
+                 .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                 .InCnt(1)
+                 .OutCnt(1)
+                 .InNames({"x"})
+                 .OutNames({"y"})
+                 .Build("AbsN1");
   DEF_GRAPH(g) {
     CHAIN(NODE(data1)->EDGE(0, 0)->NODE(abs));
     CHAIN(NODE(data1)->EDGE(0, 0)->NODE(addn1));
@@ -1269,18 +1301,47 @@ ComputeGraphPtr BuildGraph1_2(const std::string node_type = "") {
  * var1  var2    const1  var3
  */
 ComputeGraphPtr BuildGraph2(const std::string node_type = "") {
-  auto data1 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("Data1");
-  auto data2 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("Data2");
-  auto data3 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("Data3");
-  auto data4 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("Data4");
-  auto addn1 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {2,2,3,4}).InCnt(2).OutCnt(1).OutNames({"y"})
+  auto data1 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("Data1");
+  auto data2 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("Data2");
+  auto data3 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("Data3");
+  auto data4 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("Data4");
+  auto addn1 = OP_CFG(kAscBackendType)
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {2, 2, 3, 4})
+                   .InCnt(2)
+                   .OutCnt(1)
+                   .OutNames({"y"})
                    .Build("AddN1");
-  auto assign1 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(2).OutCnt(1).InNames({"x"})
-                     .OutNames({"y"}).Build("Assign1");
+  auto assign1 = OP_CFG(kAscBackendType)
+                     .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                     .InCnt(2)
+                     .OutCnt(1)
+                     .InNames({"x"})
+                     .OutNames({"y"})
+                     .Build("Assign1");
   DEF_GRAPH(g) {
     CHAIN(NODE(data1)->EDGE(0, 0)->NODE(addn1));
     CHAIN(NODE(data2)->EDGE(0, 1)->NODE(addn1));
@@ -1307,9 +1368,13 @@ ComputeGraphPtr BuildGraph2(const std::string node_type = "") {
  *      const1
  */
 ComputeGraphPtr BuildGraph3(const std::string node_type = "") {
-  auto data1 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1)
-                   .OutNames({"y"}).Build("Data1");
-  auto add1 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {2,2,3,4}).InCnt(1).OutCnt(1).OutNames({"y"})
+  auto data1 =
+      OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4}).InCnt(0).OutCnt(1).OutNames({"y"}).Build("Data1");
+  auto add1 = OP_CFG(kAscBackendType)
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {2, 2, 3, 4})
+                  .InCnt(1)
+                  .OutCnt(1)
+                  .OutNames({"y"})
                   .Build("Add1");
 
   DEF_GRAPH(g) {
@@ -1325,113 +1390,114 @@ ComputeGraphPtr BuildGraph3(const std::string node_type = "") {
 
 // 这里将decider中的FuseNode函数及其相关函数移植过来，用于生成一个类型是FusedAscBackend的节点
 class MockAscBackendFusionDecider {
-  public:
+ public:
   Status UpdateNewNodeAttrInTest(const OpDescPtr op, const NodePtr &node1, const NodePtr &node2,
-                                                  const NodeFuseInfo &node_fuse_info) {
-  auto attr = GetOrCreateAutoFuseAttrs(op);
-  GE_ASSERT_NOTNULL(attr);
-  auto autofuse_attr1 = BackendUtils::GetNodeAutoFuseAttr(node1);
-  GE_ASSERT_NOTNULL(autofuse_attr1);
-  auto autofuse_attr2 = BackendUtils::GetNodeAutoFuseAttr(node2);
-  GE_ASSERT_NOTNULL(autofuse_attr2);
-  GetInterAttrs(attr).origin_nodes = GetInterAttrs(autofuse_attr1).origin_nodes;
-  GetInterAttrs(attr).origin_nodes.insert(GetInterAttrs(attr).origin_nodes.end(),
-                                          GetInterAttrs(autofuse_attr2).origin_nodes.begin(),
-                                          GetInterAttrs(autofuse_attr2).origin_nodes.end());
-  GetInterAttrs(autofuse_attr1).origin_nodes.clear();
-  GetInterAttrs(autofuse_attr2).origin_nodes.clear();
+                                 const NodeFuseInfo &node_fuse_info) {
+    auto attr = GetOrCreateAutoFuseAttrs(op);
+    GE_ASSERT_NOTNULL(attr);
+    auto autofuse_attr1 = BackendUtils::GetNodeAutoFuseAttr(node1);
+    GE_ASSERT_NOTNULL(autofuse_attr1);
+    auto autofuse_attr2 = BackendUtils::GetNodeAutoFuseAttr(node2);
+    GE_ASSERT_NOTNULL(autofuse_attr2);
+    GetInterAttrs(attr).origin_nodes = GetInterAttrs(autofuse_attr1).origin_nodes;
+    GetInterAttrs(attr).origin_nodes.insert(GetInterAttrs(attr).origin_nodes.end(),
+                                            GetInterAttrs(autofuse_attr2).origin_nodes.begin(),
+                                            GetInterAttrs(autofuse_attr2).origin_nodes.end());
+    GetInterAttrs(autofuse_attr1).origin_nodes.clear();
+    GetInterAttrs(autofuse_attr2).origin_nodes.clear();
 
-  auto merge_output_buffer = [](const std::vector<ge::OutDataAnchor *> &vec, const std::vector<int32_t> &indices,
-                                std::vector<ge::OutDataAnchor *> &result) -> Status {
-    if (vec.empty()) {
-      return SUCCESS;
-    }
-    for (const auto &index : indices) {
-      if (index == -1) {
-        continue;
+    auto merge_output_buffer = [](const std::vector<ge::OutDataAnchor *> &vec, const std::vector<int32_t> &indices,
+                                  std::vector<ge::OutDataAnchor *> &result) -> Status {
+      if (vec.empty()) {
+        return SUCCESS;
       }
-      GE_ASSERT_TRUE(static_cast<size_t>(index) < vec.size());
-      result.push_back(vec[index]);
-    }
+      for (const auto &index : indices) {
+        if (index == -1) {
+          continue;
+        }
+        GE_ASSERT_TRUE(static_cast<size_t>(index) < vec.size());
+        result.push_back(vec[index]);
+      }
+      return SUCCESS;
+    };
+    GE_ASSERT_SUCCESS(merge_output_buffer(GetInterAttrs(autofuse_attr1).output_buffers,
+                                          node_fuse_info.GetNode1OutputMap(), GetInterAttrs(attr).output_buffers));
+    GE_ASSERT_SUCCESS(merge_output_buffer(GetInterAttrs(autofuse_attr2).output_buffers,
+                                          node_fuse_info.GetNode2OutputMap(), GetInterAttrs(attr).output_buffers));
+
+    auto &subgraph1_output_nodes = GetInterAttrs(autofuse_attr1).fused_subgraph_outputs;
+    auto &subgraph2_output_nodes = GetInterAttrs(autofuse_attr2).fused_subgraph_outputs;
+    GetInterAttrs(attr).fused_subgraph_outputs = subgraph1_output_nodes;
+    GetInterAttrs(attr).fused_subgraph_outputs.insert(GetInterAttrs(attr).fused_subgraph_outputs.end(),
+                                                      subgraph2_output_nodes.begin(), subgraph2_output_nodes.end());
+
+    auto fuse_type = MergeFuseType(GetInterAttrs(autofuse_attr1).fuse_type, GetInterAttrs(autofuse_attr1).fuse_type);
+    attr->SetAscGraph(BackendUtils::GetNodeFusedAscGraph(node1));
+    GetInterAttrs(attr).fuse_type = fuse_type;
+
     return SUCCESS;
-  };
-  GE_ASSERT_SUCCESS(merge_output_buffer(GetInterAttrs(autofuse_attr1).output_buffers,
-                                        node_fuse_info.GetNode1OutputMap(), GetInterAttrs(attr).output_buffers));
-  GE_ASSERT_SUCCESS(merge_output_buffer(GetInterAttrs(autofuse_attr2).output_buffers,
-                                        node_fuse_info.GetNode2OutputMap(), GetInterAttrs(attr).output_buffers));
+  }
 
-  auto &subgraph1_output_nodes = GetInterAttrs(autofuse_attr1).fused_subgraph_outputs;
-  auto &subgraph2_output_nodes = GetInterAttrs(autofuse_attr2).fused_subgraph_outputs;
-  GetInterAttrs(attr).fused_subgraph_outputs = subgraph1_output_nodes;
-  GetInterAttrs(attr).fused_subgraph_outputs.insert(GetInterAttrs(attr).fused_subgraph_outputs.end(),
-                                                    subgraph2_output_nodes.begin(), subgraph2_output_nodes.end());
+  NodePtr FuseNodeTest(NodePtr node1, NodePtr node2, const ComputeGraphPtr merged_graph,
+                       const NodeFuseInfo &node_fuse_info) {
+    auto graph = node1->GetOwnerComputeGraph();
+    GE_ASSERT_EQ(graph, node2->GetOwnerComputeGraph());
 
-  auto fuse_type =
-      MergeFuseType(GetInterAttrs(autofuse_attr1).fuse_type, GetInterAttrs(autofuse_attr1).fuse_type);
-  attr->SetAscGraph(BackendUtils::GetNodeFusedAscGraph(node1));
-  GetInterAttrs(attr).fuse_type = fuse_type;
+    // 创建一个融合node
+    auto node_name = "fused_graph_" + std::to_string(AutofuseUtils::GenUniqueNumber());
+    auto op =
+        ComGraphMakeShared<OpDesc>(node_name, ((merged_graph == nullptr) ? kFusedAscBackendType : kAscBackendType));
+    GE_ASSERT_NOTNULL(op);
+    GE_ASSERT_SUCCESS(UpdateNewNodeAttrInTest(op, node1, node2, node_fuse_info));
+    auto new_node = graph->AddNode(op);
+    GE_ASSERT_NOTNULL(new_node);
+    GE_ASSERT_SUCCESS(new_node->SetOwnerComputeGraph(graph));
 
-  return SUCCESS;
-}
+    GE_ASSERT_GRAPH_SUCCESS(ge::NodeUtils::AppendInputAnchor(new_node, node_fuse_info.GetNode2InputMap().size()));
+    GE_ASSERT_GRAPH_SUCCESS(ge::NodeUtils::AppendOutputAnchor(new_node, node_fuse_info.GetNode2OutputMap().size()));
 
-NodePtr FuseNodeTest(NodePtr node1, NodePtr node2, const ComputeGraphPtr merged_graph, const NodeFuseInfo &node_fuse_info) {
-  auto graph = node1->GetOwnerComputeGraph();
-  GE_ASSERT_EQ(graph, node2->GetOwnerComputeGraph());
+    GELOGI("replace data anchord from node %s(%s) to node %s(%s), input map %s, output map %s.", node1->GetNamePtr(),
+           node1->GetType().c_str(), new_node->GetNamePtr(), new_node->GetType().c_str(),
+           AutofuseUtils::VectorToStr(node_fuse_info.GetNode1InputMap()).c_str(),
+           AutofuseUtils::VectorToStr(node_fuse_info.GetNode1OutputMap()).c_str());
+    GELOGI("replace data anchord from node %s(%s) to node %s(%s), input map %s, output map %s.", node2->GetNamePtr(),
+           node2->GetType().c_str(), new_node->GetNamePtr(), new_node->GetType().c_str(),
+           AutofuseUtils::VectorToStr(node_fuse_info.GetNode2InputMap()).c_str(),
+           AutofuseUtils::VectorToStr(node_fuse_info.GetNode2OutputMap()).c_str());
+    // 为新节点的每个输出描述创建属性组
+    GE_ASSERT_SUCCESS(BackendUtils::CreateNewNodeOutputDescAttr(
+        new_node, node1, node2, node_fuse_info.GetNode1OutputMap(), node_fuse_info.GetNode2OutputMap()));
 
-  // 创建一个融合node
-  auto node_name = "fused_graph_" + std::to_string(AutofuseUtils::GenUniqueNumber());
-  auto op = ComGraphMakeShared<OpDesc>(node_name, ((merged_graph == nullptr) ? kFusedAscBackendType : kAscBackendType));
-  GE_ASSERT_NOTNULL(op);
-  GE_ASSERT_SUCCESS(UpdateNewNodeAttrInTest(op, node1, node2, node_fuse_info));
-  auto new_node = graph->AddNode(op);
-  GE_ASSERT_NOTNULL(new_node);
-  GE_ASSERT_SUCCESS(new_node->SetOwnerComputeGraph(graph));
+    GE_ASSERT_GRAPH_SUCCESS(GraphUtils::ReplaceNodeDataAnchors(new_node, node1, node_fuse_info.GetNode1InputMap(),
+                                                               node_fuse_info.GetNode1OutputMap()));
+    GE_ASSERT_GRAPH_SUCCESS(GraphUtils::ReplaceNodeDataAnchors(new_node, node2, node_fuse_info.GetNode2InputMap(),
+                                                               node_fuse_info.GetNode2OutputMap()));
+    GE_ASSERT_SUCCESS(BackendUtils::TryRemoveNodesCtrEdges(node1, node2));
+    GE_ASSERT_SUCCESS(BackendUtils::TryRemoveNodesCtrEdges(node2, node1));
+    GE_ASSERT_GRAPH_SUCCESS(GraphUtils::MoveInCtrlEdges(node1, new_node));
+    GE_ASSERT_GRAPH_SUCCESS(GraphUtils::MoveInCtrlEdges(node2, new_node));
+    GE_ASSERT_GRAPH_SUCCESS(GraphUtils::MoveOutCtrlEdges(node1, new_node));
+    GE_ASSERT_GRAPH_SUCCESS(GraphUtils::MoveOutCtrlEdges(node2, new_node));
+    GELOGI("node %s(%s) and node %s(%s) fuse success.", node1->GetNamePtr(), node1->GetType().c_str(),
+           node2->GetNamePtr(), node2->GetType().c_str());
+    // 原图上清理掉融合后的节点
+    GE_ASSERT_GRAPH_SUCCESS(GraphUtils::RemoveJustNodes(graph, {node1, node2}));
+    NodeUtils::UnlinkAll(*node1);
+    NodeUtils::UnlinkAll(*node2);
+    return new_node;
+  }
 
-  GE_ASSERT_GRAPH_SUCCESS(ge::NodeUtils::AppendInputAnchor(new_node, node_fuse_info.GetNode2InputMap().size()));
-  GE_ASSERT_GRAPH_SUCCESS(ge::NodeUtils::AppendOutputAnchor(new_node, node_fuse_info.GetNode2OutputMap().size()));
-
-  GELOGI("replace data anchord from node %s(%s) to node %s(%s), input map %s, output map %s.", node1->GetNamePtr(),
-         node1->GetType().c_str(), new_node->GetNamePtr(), new_node->GetType().c_str(),
-         AutofuseUtils::VectorToStr(node_fuse_info.GetNode1InputMap()).c_str(),
-         AutofuseUtils::VectorToStr(node_fuse_info.GetNode1OutputMap()).c_str());
-  GELOGI("replace data anchord from node %s(%s) to node %s(%s), input map %s, output map %s.", node2->GetNamePtr(),
-         node2->GetType().c_str(), new_node->GetNamePtr(), new_node->GetType().c_str(),
-         AutofuseUtils::VectorToStr(node_fuse_info.GetNode2InputMap()).c_str(),
-         AutofuseUtils::VectorToStr(node_fuse_info.GetNode2OutputMap()).c_str());
-  // 为新节点的每个输出描述创建属性组
-  GE_ASSERT_SUCCESS(BackendUtils::CreateNewNodeOutputDescAttr(
-      new_node, node1, node2, node_fuse_info.GetNode1OutputMap(), node_fuse_info.GetNode2OutputMap()));
-
-  GE_ASSERT_GRAPH_SUCCESS(GraphUtils::ReplaceNodeDataAnchors(new_node, node1, node_fuse_info.GetNode1InputMap(),
-                                                             node_fuse_info.GetNode1OutputMap()));
-  GE_ASSERT_GRAPH_SUCCESS(GraphUtils::ReplaceNodeDataAnchors(new_node, node2, node_fuse_info.GetNode2InputMap(),
-                                                             node_fuse_info.GetNode2OutputMap()));
-  GE_ASSERT_SUCCESS(BackendUtils::TryRemoveNodesCtrEdges(node1, node2));
-  GE_ASSERT_SUCCESS(BackendUtils::TryRemoveNodesCtrEdges(node2, node1));
-  GE_ASSERT_GRAPH_SUCCESS(GraphUtils::MoveInCtrlEdges(node1, new_node));
-  GE_ASSERT_GRAPH_SUCCESS(GraphUtils::MoveInCtrlEdges(node2, new_node));
-  GE_ASSERT_GRAPH_SUCCESS(GraphUtils::MoveOutCtrlEdges(node1, new_node));
-  GE_ASSERT_GRAPH_SUCCESS(GraphUtils::MoveOutCtrlEdges(node2, new_node));
-  GELOGI("node %s(%s) and node %s(%s) fuse success.", node1->GetNamePtr(), node1->GetType().c_str(),
-         node2->GetNamePtr(), node2->GetType().c_str());
-  // 原图上清理掉融合后的节点
-  GE_ASSERT_GRAPH_SUCCESS(GraphUtils::RemoveJustNodes(graph, {node1, node2}));
-  NodeUtils::UnlinkAll(*node1);
-  NodeUtils::UnlinkAll(*node2);
-  return new_node;
-}
-
-ComputeGraphPtr CreateAscBackendNodeSubGraphTest(const NodePtr &node, uint32_t in_nums, uint32_t out_nums,
-                                                 const std::vector<uint32_t> &node_output_index,
-                                                 const std::vector<std::pair<ge::NodePtr, int32_t>> &pre_nodes) {
-  const auto &sub_graph =
-      ComGraphMakeShared<ComputeGraph>("FusedAscBackendNode_graph_" + std::to_string(AutofuseUtils::GenUniqueNumber()));
-  GE_ASSERT_NOTNULL(sub_graph);
-  GE_ASSERT_GRAPH_SUCCESS(GraphUtils::MoveNodeToGraph(node, *sub_graph));
-  GE_ASSERT_SUCCESS(BackendUtils::CreateSubGraphInput(sub_graph, node, in_nums, pre_nodes));
-  GE_ASSERT_SUCCESS(BackendUtils::CreateSubGraphOutput(sub_graph, node, out_nums, node_output_index));
-  return sub_graph;
-}
+  ComputeGraphPtr CreateAscBackendNodeSubGraphTest(const NodePtr &node, uint32_t in_nums, uint32_t out_nums,
+                                                   const std::vector<uint32_t> &node_output_index,
+                                                   const std::vector<std::pair<ge::NodePtr, int32_t>> &pre_nodes) {
+    const auto &sub_graph = ComGraphMakeShared<ComputeGraph>("FusedAscBackendNode_graph_" +
+                                                             std::to_string(AutofuseUtils::GenUniqueNumber()));
+    GE_ASSERT_NOTNULL(sub_graph);
+    GE_ASSERT_GRAPH_SUCCESS(GraphUtils::MoveNodeToGraph(node, *sub_graph));
+    GE_ASSERT_SUCCESS(BackendUtils::CreateSubGraphInput(sub_graph, node, in_nums, pre_nodes));
+    GE_ASSERT_SUCCESS(BackendUtils::CreateSubGraphOutput(sub_graph, node, out_nums, node_output_index));
+    return sub_graph;
+  }
 };
 
 TEST_F(AscGraphAxisMappingTest, NodeFuseInfo_RollbackNode2InputMap_ok) {
@@ -1522,10 +1588,8 @@ TEST_F(AscGraphAxisMappingTest, AscGraphAxisMapping_CreateSubGraphAxisMapInfo_Fo
   ASSERT_EQ(node_fuse_info.UpdateNodeFuseInfo(add1, assign1), SUCCESS);
   AscGraphAxisMapping asc_graph_axis_map;
   EXPECT_EQ(asc_graph_axis_map.CreateSubGraphAxisMapInfo(add1, assign1, node_fuse_info), SUCCESS);
-  EXPECT_EQ(asc_graph_axis_map.FlushSubGraphAxisInfo(add1, asc_graph_axis_map.GetNode1AxisMap(), true),
-    SUCCESS);
-  EXPECT_EQ(asc_graph_axis_map.FlushSubGraphAxisInfo(assign1, asc_graph_axis_map.GetNode2AxisMap(), true),
-    SUCCESS);
+  EXPECT_EQ(asc_graph_axis_map.FlushSubGraphAxisInfo(add1, asc_graph_axis_map.GetNode1AxisMap(), true), SUCCESS);
+  EXPECT_EQ(asc_graph_axis_map.FlushSubGraphAxisInfo(assign1, asc_graph_axis_map.GetNode2AxisMap(), true), SUCCESS);
 }
 
 TEST_F(AscGraphAxisMappingTest, AscGraphAxisMapping_CreateSubGraphAxisMapInfo_For_Vertical_Merge_ok1) {
@@ -1553,10 +1617,8 @@ TEST_F(AscGraphAxisMappingTest, AscGraphAxisMapping_CreateSubGraphAxisMapInfo_Fo
   ASSERT_EQ(node_fuse_info.UpdateNodeFuseInfo(addn1, shape1), SUCCESS);
   AscGraphAxisMapping asc_graph_axis_map;
   EXPECT_EQ(asc_graph_axis_map.CreateSubGraphAxisMapInfo(addn1, shape1, node_fuse_info), SUCCESS);
-  EXPECT_EQ(asc_graph_axis_map.FlushSubGraphAxisInfo(addn1, asc_graph_axis_map.GetNode1AxisMap(), true),
-    SUCCESS);
-  EXPECT_EQ(asc_graph_axis_map.FlushSubGraphAxisInfo(shape1, asc_graph_axis_map.GetNode2AxisMap(), true),
-    SUCCESS);
+  EXPECT_EQ(asc_graph_axis_map.FlushSubGraphAxisInfo(addn1, asc_graph_axis_map.GetNode1AxisMap(), true), SUCCESS);
+  EXPECT_EQ(asc_graph_axis_map.FlushSubGraphAxisInfo(shape1, asc_graph_axis_map.GetNode2AxisMap(), true), SUCCESS);
 }
 
 // 测试node1 repeats < node2 repeats场景
@@ -1615,8 +1677,9 @@ TEST_F(AscGraphAxisMappingTest, AscGraphAxisMapping_CreateSubGraphAxisMapInfo_fa
   auto fused_node = fusion_decider.FuseNodeTest(const1, addn1, nullptr, node_fuse_info);
   ASSERT_EQ(fused_node->GetType(), kFusedAscBackendType);
   auto attr3 = BackendUtils::GetNodeAutoFuseAttr(fused_node);
-  attr3->SetFuseComputeGraph(fusion_decider.CreateAscBackendNodeSubGraphTest(addn1, node_fuse_info.GetNode1InDataSize(),
-    node_fuse_info.GetNode1OutNodeSize(), node_fuse_info.GetNode1OutputIndex(), node_fuse_info.GetNode1PreNodes()));
+  attr3->SetFuseComputeGraph(fusion_decider.CreateAscBackendNodeSubGraphTest(
+      addn1, node_fuse_info.GetNode1InDataSize(), node_fuse_info.GetNode1OutNodeSize(),
+      node_fuse_info.GetNode1OutputIndex(), node_fuse_info.GetNode1PreNodes()));
 
   auto shape1 = compute_graph->FindNode("Shape");
   ASSERT_NE(shape1, nullptr);
@@ -1670,8 +1733,7 @@ TEST_F(AscGraphAxisMappingTest, AscGraphAxisMapping_CreateSubGraphAxisMapInfo_fa
   ge::AscGraph add_graph2("add");
   attr4->SetAscGraph(CreatAddAscGraph(add_graph2));
   EXPECT_EQ(asc_graph_axis_map.CreateSubGraphAxisMapInfo(const1, fused_node, node_fuse_info), FAILED);
-  EXPECT_EQ(asc_graph_axis_map.FlushSubGraphAxisInfo(fused_node, asc_graph_axis_map.GetNode2AxisMap(), false),
-    SUCCESS);
+  EXPECT_EQ(asc_graph_axis_map.FlushSubGraphAxisInfo(fused_node, asc_graph_axis_map.GetNode2AxisMap(), false), SUCCESS);
 }
 
 // 测试前置node是输出多引用, 后续node是带有broadcast，不能循环合并
@@ -1701,7 +1763,8 @@ TEST_F(AscGraphAxisMappingTest, AscGraphAxisMapping_CreateSubGraphAxisMapInfo_fa
   ASSERT_EQ(fused_node, nullptr);
 }
 
-// 测试垂直融合node1两个输出data anchor，其中第0个data anchor没有连接下一个node,循环合并node1 to node2 output map映射为(1，0)
+// 测试垂直融合node1两个输出data anchor，其中第0个data anchor没有连接下一个node,循环合并node1 to node2 output
+// map映射为(1，0)
 TEST_F(AscGraphAxisMappingTest, AscGraphAxisMapping_Node1ToNode2LinkMap) {
   ComputeGraphPtr compute_graph = BuildGraph1_2("AscBackend");
   EXPECT_EQ(compute_graph->GetAllNodesSize(), 6);
@@ -1844,16 +1907,41 @@ TEST_F(AscGraphAxisMappingTest, AscBackendFusionDecider_CreateSubGraphAxisMapInf
   EXPECT_EQ(asc_graph_axis_map.CreateSubGraphAxisMapInfo(addn1, shape1, node_fuse_info), FAILED);
 }
 TEST_F(AscGraphAxisMappingTest, AscBackendFusionDecider_Slice_Horizontal_Has_Same_Load_Fuse) {
-  auto data1 = OP_CFG("Data").TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(0).OutCnt(1).InNames({"x"})
-                   .OutNames({"y"}).Build("data1");
-  auto slice1 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-                    .OutNames({"y"}).Build("SliceNodeSame1");
-  auto slice2 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-                    .OutNames({"y"}).Build("SliceNodeSame2");
-  auto slice3 = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(1).OutCnt(1).InNames({"x"})
-                    .OutNames({"y"}).Build("SliceNodeSame3"); 
-  auto concat = OP_CFG(kAscBackendType).TensorDesc(FORMAT_ND, DT_FLOAT, {1,2,3,4}).InCnt(3).OutCnt(1).InNames({"x"})
-                    .OutNames({"y"}).Build("ConcatNode");
+  auto data1 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                   .InCnt(0)
+                   .OutCnt(1)
+                   .InNames({"x"})
+                   .OutNames({"y"})
+                   .Build("data1");
+  auto slice1 = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("SliceNodeSame1");
+  auto slice2 = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("SliceNodeSame2");
+  auto slice3 = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("SliceNodeSame3");
+  auto concat = OP_CFG(kAscBackendType)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
+                    .InCnt(3)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("ConcatNode");
   DEF_GRAPH(g) {
     CHAIN(NODE(data1)->EDGE(0, 0)->NODE(slice1));
     CHAIN(NODE(data1)->EDGE(0, 0)->NODE(slice2));

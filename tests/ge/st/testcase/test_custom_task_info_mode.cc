@@ -30,9 +30,7 @@
 namespace ge {
 namespace {
 
-Status GenerateTaskForCustomOp(const Node &node,
-                                RunContext &run_context,
-                                std::vector<domi::TaskDef> &tasks) {
+Status GenerateTaskForCustomOp(const Node &node, RunContext &run_context, std::vector<domi::TaskDef> &tasks) {
   domi::TaskDef task_def = {};
   task_def.set_stream_id(node.GetOpDesc()->GetStreamId());
   task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_CUSTOM_KERNEL));
@@ -46,18 +44,18 @@ Status GenerateTaskForCustomOp(const Node &node,
 
 class TestArgsUpdaterCustomOp : public ArgsUpdater, public EagerExecuteOp {
  public:
-  graphStatus Execute(gert::EagerOpExecutionContext* ctx) override {
+  graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
     return GRAPH_SUCCESS;
   }
-  
-  graphStatus UpdateHostArgs(gert::UpdateArgsContext* ctx) override {
-    const auto* input_tensor = ctx->GetInputTensor(0);
-    const auto* output_tensor = ctx->GetOutputTensor(0);
-    const auto* host_args = ctx->GetKernelArgs(gert::Placement::kPlacementHost, 0);
 
-    if (host_args != nullptr && host_args->args_size >= sizeof(uint64_t) * 2 &&
-        input_tensor != nullptr && output_tensor != nullptr) {
-      auto* args = static_cast<uint64_t*>(host_args->args_data);
+  graphStatus UpdateHostArgs(gert::UpdateArgsContext *ctx) override {
+    const auto *input_tensor = ctx->GetInputTensor(0);
+    const auto *output_tensor = ctx->GetOutputTensor(0);
+    const auto *host_args = ctx->GetKernelArgs(gert::Placement::kPlacementHost, 0);
+
+    if (host_args != nullptr && host_args->args_size >= sizeof(uint64_t) * 2 && input_tensor != nullptr &&
+        output_tensor != nullptr) {
+      auto *args = static_cast<uint64_t *>(host_args->args_data);
       args[0] = reinterpret_cast<uint64_t>(input_tensor->GetData<void>());
       args[1] = reinterpret_cast<uint64_t>(output_tensor->GetData<void>());
     }
@@ -74,59 +72,59 @@ class CustomTaskInfoModeTest : public testing::Test {
     MockForGenerateTask("DNN_VM_CUSTOM_OP_STORE", GenerateTaskForCustomOp);
     ReInitGe();
   }
-  
+
   void TearDown() {
     ReInitGe();
   }
 };
 
 TEST_F(CustomTaskInfoModeTest, ArgsUpdater_Detection_ViaArgsUpdateOp) {
-  CustomOpFactory::RegisterCustomOpCreator("ArgsUpdaterTestOp", []()->std::unique_ptr<BaseCustomOp> {
+  CustomOpFactory::RegisterCustomOpCreator("ArgsUpdaterTestOp", []() -> std::unique_ptr<BaseCustomOp> {
     return std::make_unique<TestArgsUpdaterCustomOp>();
   });
 
   auto custom_op_ptr = CustomOpFactory::CreateOrGetCustomOp(AscendString("ArgsUpdaterTestOp"));
   ASSERT_NE(custom_op_ptr, nullptr);
-  
-  auto* args_update_op = dynamic_cast<ArgsUpdater*>(custom_op_ptr);
+
+  auto *args_update_op = dynamic_cast<ArgsUpdater *>(custom_op_ptr);
   ASSERT_NE(args_update_op, nullptr);
 }
 
 TEST_F(CustomTaskInfoModeTest, CustomOpFactory_RegisterArgsUpdater_Success) {
-  CustomOpFactory::RegisterCustomOpCreator("ArgsUpdaterTestOp2", []()->std::unique_ptr<BaseCustomOp> {
+  CustomOpFactory::RegisterCustomOpCreator("ArgsUpdaterTestOp2", []() -> std::unique_ptr<BaseCustomOp> {
     return std::make_unique<TestArgsUpdaterCustomOp>();
   });
 
   auto custom_op_ptr = CustomOpFactory::CreateOrGetCustomOp(AscendString("ArgsUpdaterTestOp2"));
   ASSERT_NE(custom_op_ptr, nullptr);
-  
-  auto* eager_execute_op = dynamic_cast<EagerExecuteOp*>(custom_op_ptr);
+
+  auto *eager_execute_op = dynamic_cast<EagerExecuteOp *>(custom_op_ptr);
   ASSERT_NE(eager_execute_op, nullptr);
-  
-  auto* args_update_op = dynamic_cast<ArgsUpdater*>(custom_op_ptr);
+
+  auto *args_update_op = dynamic_cast<ArgsUpdater *>(custom_op_ptr);
   ASSERT_NE(args_update_op, nullptr);
 }
 
 TEST_F(CustomTaskInfoModeTest, TaskDef_Generation_Success) {
   DavinciModel model(0, nullptr);
   domi::ModelTaskDef model_task_def;
-  domi::TaskDef* task = model_task_def.add_task();
+  domi::TaskDef *task = model_task_def.add_task();
   task->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_CUSTOM_KERNEL));
-  
-  domi::KernelDef* kernel_def = task->mutable_kernel();
-  domi::KernelContext* ctx = kernel_def->mutable_context();
-  
+
+  domi::KernelDef *kernel_def = task->mutable_kernel();
+  domi::KernelContext *ctx = kernel_def->mutable_context();
+
   auto op_desc = std::make_shared<OpDesc>("custom_test", "CustomOp");
   op_desc->SetId(0);
   model.op_list_[op_desc->GetId()] = op_desc;
   ctx->set_op_index(op_desc->GetId());
-  
+
   EXPECT_EQ(ctx->op_index(), 0U);
   EXPECT_EQ(task->type(), static_cast<uint32_t>(ModelTaskType::MODEL_TASK_CUSTOM_KERNEL));
 }
 
 TEST_F(CustomTaskInfoModeTest, IsAddressRefreshable_ArgsUpdaterOp_ReturnsTrue) {
-  CustomOpFactory::RegisterCustomOpCreator("IsRefreshableTestOp", []()->std::unique_ptr<BaseCustomOp> {
+  CustomOpFactory::RegisterCustomOpCreator("IsRefreshableTestOp", []() -> std::unique_ptr<BaseCustomOp> {
     return std::make_unique<TestArgsUpdaterCustomOp>();
   });
 
@@ -136,10 +134,12 @@ TEST_F(CustomTaskInfoModeTest, IsAddressRefreshable_ArgsUpdaterOp_ReturnsTrue) {
 TEST_F(CustomTaskInfoModeTest, IsAddressRefreshable_NonArgsUpdaterOp_ReturnsFalse) {
   class TestNonArgsUpdaterOp : public EagerExecuteOp {
    public:
-    graphStatus Execute(gert::EagerOpExecutionContext* ctx) override { return GRAPH_SUCCESS; }
+    graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
+      return GRAPH_SUCCESS;
+    }
   };
 
-  CustomOpFactory::RegisterCustomOpCreator("NonRefreshableTestOp", []()->std::unique_ptr<BaseCustomOp> {
+  CustomOpFactory::RegisterCustomOpCreator("NonRefreshableTestOp", []() -> std::unique_ptr<BaseCustomOp> {
     return std::make_unique<TestNonArgsUpdaterOp>();
   });
 
@@ -151,7 +151,7 @@ TEST_F(CustomTaskInfoModeTest, IsAddressRefreshable_UnregisteredOp_ReturnsFalse)
 }
 
 TEST_F(CustomTaskInfoModeTest, NeedReserveArgsTable_MatchesIsAddressRefreshable) {
-  CustomOpFactory::RegisterCustomOpCreator("NeedReserveTestOp", []()->std::unique_ptr<BaseCustomOp> {
+  CustomOpFactory::RegisterCustomOpCreator("NeedReserveTestOp", []() -> std::unique_ptr<BaseCustomOp> {
     return std::make_unique<TestArgsUpdaterCustomOp>();
   });
 

@@ -96,4 +96,3 @@ uint32_t EsSetBoolAttrForNode(EsCTensorHolder *tensor, const char *attr_name, bo
 ## 约束说明<a name="section24049039"></a>
 
 无
-

@@ -48,14 +48,20 @@ constexpr const char *kOm2DumpDir = "/tmp/.tmp_om2_workspace";
 
 static void SyncKernelNameFromOpDesc(const GeModelPtr &ge_model) {
   auto model_task_def = ge_model->GetModelTaskDefPtr();
-  if (model_task_def == nullptr) { return; }
+  if (model_task_def == nullptr) {
+    return;
+  }
   const auto &graph = ge_model->GetGraph();
-  if (graph == nullptr) { return; }
+  if (graph == nullptr) {
+    return;
+  }
   for (int i = 0; i < model_task_def->task_size(); ++i) {
     auto *task_def = model_task_def->mutable_task(i);
     for (const auto &node : graph->GetDirectNode()) {
       auto op_desc = node->GetOpDesc();
-      if (op_desc == nullptr) { continue; }
+      if (op_desc == nullptr) {
+        continue;
+      }
       std::string kernel_name;
       if (ge::AttrUtils::GetStr(op_desc, "_kernelname", kernel_name)) {
         task_def->mutable_kernel()->set_kernel_name(kernel_name);
@@ -65,7 +71,9 @@ static void SyncKernelNameFromOpDesc(const GeModelPtr &ge_model) {
 }
 
 static void SyncKernelNameForAllModels(const GeRootModelPtr &ge_root_model) {
-  if (ge_root_model == nullptr) { return; }
+  if (ge_root_model == nullptr) {
+    return;
+  }
   for (const auto &kv : ge_root_model->GetSubgraphInstanceNameToModel()) {
     SyncKernelNameFromOpDesc(kv.second);
   }
@@ -397,36 +405,36 @@ TEST_F(Om2PackageHelperUt, ConvertOm2Model_Ok_GenOm2WithAicoreNode) {
   EXPECT_EQ(model_meta_json.Raw().at("user_designate_shape_order"), JsonFile::json::array());
 
   const JsonFile::json expected_inputs = JsonFile::json::array({
-                                                                   {{"data_type", "DT_FLOAT"},
-                                                                       {"format", "ND"},
-                                                                       {"index", 0},
-                                                                       {"name", "data1"},
-                                                                       {"shape", JsonFile::json::array({1, 2, 3, 4})},
-                                                                       {"shape_range", JsonFile::json::array()},
-                                                                       {"shape_v2", JsonFile::json::array({1, 2, 3, 4})},
-                                                                       {"origin_input_dims", JsonFile::json::array({1, 2, 3, 4})},
-                                                                       {"size", 0}},
-                                                                   {{"data_type", "DT_FLOAT"},
-                                                                       {"format", "NCHW"},
-                                                                       {"index", 1},
-                                                                       {"name", "data2"},
-                                                                       {"shape", JsonFile::json::array({1, 1, 224, 224})},
-                                                                       {"shape_range", JsonFile::json::array()},
-                                                                       {"shape_v2", JsonFile::json::array({1, 1, 224, 224})},
-                                                                       {"origin_input_dims", JsonFile::json::array({1, 1, 224, 224})},
-                                                                       {"size", 0}},
-                                                               });
+      {{"data_type", "DT_FLOAT"},
+       {"format", "ND"},
+       {"index", 0},
+       {"name", "data1"},
+       {"shape", JsonFile::json::array({1, 2, 3, 4})},
+       {"shape_range", JsonFile::json::array()},
+       {"shape_v2", JsonFile::json::array({1, 2, 3, 4})},
+       {"origin_input_dims", JsonFile::json::array({1, 2, 3, 4})},
+       {"size", 0}},
+      {{"data_type", "DT_FLOAT"},
+       {"format", "NCHW"},
+       {"index", 1},
+       {"name", "data2"},
+       {"shape", JsonFile::json::array({1, 1, 224, 224})},
+       {"shape_range", JsonFile::json::array()},
+       {"shape_v2", JsonFile::json::array({1, 1, 224, 224})},
+       {"origin_input_dims", JsonFile::json::array({1, 1, 224, 224})},
+       {"size", 0}},
+  });
   EXPECT_EQ(model_meta_json.Raw().at("inputs"), expected_inputs);
 
   const JsonFile::json expected_outputs = JsonFile::json::array({
-                                                                    {{"data_type", "DT_FLOAT"},
-                                                                        {"format", "ND"},
-                                                                        {"index", 0},
-                                                                        {"name", "output_0_reshape1_0"},
-                                                                        {"shape", JsonFile::json::array()},
-                                                                        {"shape_range", JsonFile::json::array()},
-                                                                        {"size", 4}},
-                                                                });
+      {{"data_type", "DT_FLOAT"},
+       {"format", "ND"},
+       {"index", 0},
+       {"name", "output_0_reshape1_0"},
+       {"shape", JsonFile::json::array()},
+       {"shape_range", JsonFile::json::array()},
+       {"size", 4}},
+  });
   EXPECT_EQ(model_meta_json.Raw().at("outputs"), expected_outputs);
 
   size_t constants_config_size = 0;
@@ -518,8 +526,7 @@ TEST_F(Om2PackageHelperUt, SaveToOmModel_SaveModeFalse_FallbacksToOutputFileWhen
   const auto file_names = archive.ListFiles();
   EXPECT_NE(std::find(file_names.begin(), file_names.end(), "fake_test_empty_name_buffer/manifest.json"),
             file_names.end());
-  EXPECT_NE(std::find(file_names.begin(), file_names.end(),
-                      "fake_test_empty_name_buffer/data/model_0/model_meta.json"),
+  EXPECT_NE(std::find(file_names.begin(), file_names.end(), "fake_test_empty_name_buffer/data/model_0/model_meta.json"),
             file_names.end());
 }
 
@@ -605,12 +612,8 @@ TEST_F(Om2PackageHelperUt, ConvertOm2Model_Fail_GenFailedAndRemoveOm2File) {
 
 TEST_F(Om2PackageHelperUt, Om2CodegenAndCompile_Fail_DumpGeneratedFiles) {
   const std::vector<std::string> dump_files = {
-      "g1_kernel_reg.cpp",
-      "g1_resources.cpp",
-      "g1_args_manager.cpp",
-      "g1_load_and_run.cpp",
-      "g1_interface.h",
-      "Makefile",
+      "g1_kernel_reg.cpp",   "g1_resources.cpp", "g1_args_manager.cpp",
+      "g1_load_and_run.cpp", "g1_interface.h",   "Makefile",
   };
   for (const auto &file_name : dump_files) {
     RemoveOm2DumpFile(file_name);
@@ -760,8 +763,8 @@ TEST_F(Om2PackageHelperUt, RelocateExternalWeights_SkipInvalidConstItemsAndCompr
     ASSERT_TRUE(zip_writer.WriteBytes("data/constants/model_2_constants_config.json", skipped_consts_config.data(),
                                       skipped_consts_config.size(), false));
     const std::string runtime_entry = "runtime";
-    ASSERT_TRUE(zip_writer.WriteBytes("data/model_0/runtime/libfake.so", runtime_entry.data(), runtime_entry.size(),
-                                      false));
+    ASSERT_TRUE(
+        zip_writer.WriteBytes("data/model_0/runtime/libfake.so", runtime_entry.data(), runtime_entry.size(), false));
     const std::string manifest = R"({"archive_version":"1.0","model_num":3})";
     ASSERT_TRUE(zip_writer.WriteBytes("manifest.json", manifest.data(), manifest.size(), false));
     ASSERT_TRUE(zip_writer.SaveModelData(model, false));
@@ -782,11 +785,9 @@ TEST_F(Om2PackageHelperUt, RelocateExternalWeights_SkipInvalidConstItemsAndCompr
   const auto file_names = archive.ListFiles();
   EXPECT_NE(std::find(file_names.begin(), file_names.end(), "saved_model/data/model_0/runtime/libfake.so"),
             file_names.end());
-  EXPECT_NE(std::find(file_names.begin(), file_names.end(),
-                      "saved_model/data/constants/model_1_constants_config.json"),
+  EXPECT_NE(std::find(file_names.begin(), file_names.end(), "saved_model/data/constants/model_1_constants_config.json"),
             file_names.end());
-  EXPECT_NE(std::find(file_names.begin(), file_names.end(),
-                      "saved_model/data/constants/model_2_constants_config.json"),
+  EXPECT_NE(std::find(file_names.begin(), file_names.end(), "saved_model/data/constants/model_2_constants_config.json"),
             file_names.end());
 
   size_t constants_config_size = 0;
@@ -1104,7 +1105,9 @@ TEST_F(Om2PackageHelperUt, SaveTbeKernels_AtomicKernel_Ok) {
   std::string atomic_entry;
   for (const auto &name : file_names) {
     if (name.find(kernel_bin_dir) != std::string::npos) {
-      if (name.find("normal_kernel") != std::string::npos) { found_normal = true; }
+      if (name.find("normal_kernel") != std::string::npos) {
+        found_normal = true;
+      }
       if (name.find("atomic_kernel") != std::string::npos) {
         found_atomic = true;
         atomic_entry = name;
@@ -1165,8 +1168,7 @@ TEST_F(Om2PackageHelperUt, SaveTbeKernels_AtomicKernel_DuplicateNotSavedTwice) {
   const auto kernel_bin_dir = FormatOm2Path(OM2_KERNELS_DIR_FORMAT, "npu_arch");
   int atomic_count = 0;
   for (const auto &name : file_names) {
-    if (name.find(kernel_bin_dir) != std::string::npos &&
-        name.find("atomic_kernel") != std::string::npos) {
+    if (name.find(kernel_bin_dir) != std::string::npos && name.find("atomic_kernel") != std::string::npos) {
       ++atomic_count;
     }
   }
@@ -1211,8 +1213,12 @@ TEST_F(Om2PackageHelperUt, SaveTbeKernels_AtomicKernel_NotInStore) {
   bool found_atomic = false;
   for (const auto &name : file_names) {
     if (name.find(kernel_bin_dir) != std::string::npos) {
-      if (name.find("normal_kernel") != std::string::npos) { found_normal = true; }
-      if (name.find("missing_atomic") != std::string::npos) { found_atomic = true; }
+      if (name.find("normal_kernel") != std::string::npos) {
+        found_normal = true;
+      }
+      if (name.find("missing_atomic") != std::string::npos) {
+        found_atomic = true;
+      }
     }
   }
   EXPECT_TRUE(found_normal) << "Normal kernel should still be saved";
@@ -1255,8 +1261,7 @@ TEST_F(Om2PackageHelperUt, SaveTbeKernels_AtomicKernel_EmptyName) {
   const auto kernel_bin_dir = FormatOm2Path(OM2_KERNELS_DIR_FORMAT, "npu_arch");
   bool found_normal = false;
   for (const auto &name : file_names) {
-    if (name.find(kernel_bin_dir) != std::string::npos &&
-        name.find("normal_kernel") != std::string::npos) {
+    if (name.find(kernel_bin_dir) != std::string::npos && name.find("normal_kernel") != std::string::npos) {
       found_normal = true;
     }
   }

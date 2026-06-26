@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -36,12 +36,12 @@ struct CacheTensorDescObserver : ChangeObserver, private GeTensorDesc {
     return *this;
   }
 
-private:
+ private:
   virtual void Changed() override {
     is_changed_.store(true);
   };
 
-private:
+ private:
   TensorDescHolder dest_;
   std::atomic<bool> is_changed_;
 };
@@ -54,11 +54,9 @@ bool DoNotNeedShapePropagate(const NodeItem &next_node, const int32_t input_inde
   const auto &input_desc = next_node.MutableInputDesc(input_index);
   return input_desc == nullptr;
 }
-} // namespace
+}  // namespace
 
-Status GraphStageCache::CreatePropagator(NodeItem &cur_node,
-                                         const int32_t output_index,
-                                         NodeItem &next_node,
+Status GraphStageCache::CreatePropagator(NodeItem &cur_node, const int32_t output_index, NodeItem &next_node,
                                          const int32_t input_index) {
   if (DoNotNeedShapePropagate(next_node, input_index)) {
     return SUCCESS;
@@ -97,5 +95,5 @@ Status GraphStageCache::DoPropagate(const int32_t stage) {
   }
   return GetOrCreate(stage).DoPropagate();
 }
-} // namespace hybrid
-} // namespace ge
+}  // namespace hybrid
+}  // namespace ge

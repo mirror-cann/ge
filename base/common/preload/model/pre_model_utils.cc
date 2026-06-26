@@ -90,8 +90,8 @@ std::vector<std::pair<uint64_t, uint32_t>> PreModelUtils::GetInputDataAddrOffset
   const bool check_failed = has_mem_type_attr && (v_memory_type.size() != inputs_size);
   if (check_failed) {
     REPORT_INNER_ERR_MSG("E19999", "Attr:%s, memory_type.size:%zu != input_desc.size:%zu, op:%s(%s), check invalid",
-                       ATTR_NAME_INPUT_MEM_TYPE_LIST.c_str(), v_memory_type.size(), inputs_size,
-                       op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                         ATTR_NAME_INPUT_MEM_TYPE_LIST.c_str(), v_memory_type.size(), inputs_size,
+                         op_desc->GetName().c_str(), op_desc->GetType().c_str());
     GELOGE(PARAM_INVALID, "[Check][Param] Attr:%s, memory_type.size:%zu != input_desc.size:%zu, op:%s(%s)",
            ATTR_NAME_INPUT_MEM_TYPE_LIST.c_str(), v_memory_type.size(), inputs_size, op_desc->GetName().c_str(),
            op_desc->GetType().c_str());
@@ -110,8 +110,8 @@ std::vector<std::pair<uint64_t, uint32_t>> PreModelUtils::GetInputDataAddrOffset
       GE_CHK_STATUS_EXEC(
           GetInputConstAddrOffset(op_desc, model_param, tensor_desc, v_input_offset[non_const_index], arg_param),
           return {});
-      GELOGI("[IMAS]GetInputDataAddrs type[C] name[%s] input[%zu] data_offset[%lu]",
-              op_desc->GetName().c_str(), i, arg_param.offset.offset);
+      GELOGI("[IMAS]GetInputDataAddrs type[C] name[%s] input[%zu] data_offset[%lu]", op_desc->GetName().c_str(), i,
+             arg_param.offset.offset);
       RefreshData(arg_param, args_param, args_offset_values, v_input_data_addr);
       non_const_index++;
       continue;
@@ -155,8 +155,8 @@ std::vector<std::pair<uint64_t, uint32_t>> PreModelUtils::GetOutputDataAddrOffse
   const bool has_mem_type_attr = AttrUtils::GetListInt(op_desc, ATTR_NAME_OUTPUT_MEM_TYPE_LIST, v_memory_type);
   if (has_mem_type_attr && (v_memory_type.size() != outputs_size)) {
     REPORT_INNER_ERR_MSG("E19999", "Attr:%s, memory_type.size:%zu != output_desc.size:%zu, op:%s(%s), check invalid",
-                       ATTR_NAME_OUTPUT_MEM_TYPE_LIST.c_str(), v_memory_type.size(), outputs_size,
-                       op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                         ATTR_NAME_OUTPUT_MEM_TYPE_LIST.c_str(), v_memory_type.size(), outputs_size,
+                         op_desc->GetName().c_str(), op_desc->GetType().c_str());
     GELOGE(PARAM_INVALID, "[Check][Param] Attr:%s, memory_type.size:%zu != output_desc.size:%zu, op:%s(%s)",
            ATTR_NAME_OUTPUT_MEM_TYPE_LIST.c_str(), v_memory_type.size(), outputs_size, op_desc->GetName().c_str(),
            op_desc->GetType().c_str());
@@ -219,11 +219,11 @@ std::vector<std::pair<uint64_t, uint32_t>> PreModelUtils::GetWorkspaceDataAddrOf
   if ((has_mem_type_attr && (v_memory_type.size() != v_workspace_offset.size())) ||
       (has_mem_type_workspace && (workspace_memory_type.size() != v_workspace_offset.size()))) {
     REPORT_INNER_ERR_MSG("E19999",
-                       "Attr:%s, memory_type.size:%zu and %s, memory_type.size:%zu and workspaces num:%zu should be "
-                       "same, op:%s(%s), check invalid",
-                       TVM_ATTR_NAME_WORKSPACE_TYPE.c_str(), v_memory_type.size(),
-                       ATTR_NAME_WORKSPACE_TYPE_LIST.c_str(), workspace_memory_type.size(), v_workspace_offset.size(),
-                       op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                         "Attr:%s, memory_type.size:%zu and %s, memory_type.size:%zu and workspaces num:%zu should be "
+                         "same, op:%s(%s), check invalid",
+                         TVM_ATTR_NAME_WORKSPACE_TYPE.c_str(), v_memory_type.size(),
+                         ATTR_NAME_WORKSPACE_TYPE_LIST.c_str(), workspace_memory_type.size(), v_workspace_offset.size(),
+                         op_desc->GetName().c_str(), op_desc->GetType().c_str());
     GELOGE(PARAM_INVALID,
            "[Check][Param] Attr:%s, memory_type.size:%zu and %s, memory_type.size:%zu and workspaces num:%zu should be "
            "same, op:%s(%s), check invalid",
@@ -248,8 +248,8 @@ std::vector<std::pair<uint64_t, uint32_t>> PreModelUtils::GetWorkspaceDataAddrOf
         has_mem_type_workspace && (static_cast<uint64_t>(workspace_memory_type[i]) == RT_MEMORY_P2P_DDR);
     const bool is_l1_memory = has_mem_type_attr && (static_cast<uint64_t>(v_memory_type[i]) == RT_MEMORY_L1);
     const bool is_ub_memory = has_mem_type_attr && (static_cast<uint64_t>(v_memory_type[i]) == kRtMemoryUB);
-    const uint64_t mem_type = GetWorkspaceMemTypeByPriority(is_p2p_memory, is_l1_memory, is_ub_memory,
-                                                            session_scope_memory);
+    const uint64_t mem_type =
+        GetWorkspaceMemTypeByPriority(is_p2p_memory, is_l1_memory, is_ub_memory, session_scope_memory);
     const NodeMemInfo node_mem_info{mem_type, op_desc, i, kWorkSpace, v_workspace_bytes[i], v_workspace_offset[i]};
     if (RefreshAddressByMemType(model_param, node_mem_info, arg_param) != SUCCESS) {
       GELOGE(FAILED, "failed refresh addr.");
@@ -319,10 +319,10 @@ bool PreModelUtils::ValidateMemRange(const ConstOpDescPtr &op_desc, const uint64
   const int64_t mem_range = offset + size;
   if (total_size < static_cast<uint64_t>(mem_range)) {
     REPORT_INNER_ERR_MSG("E19999",
-                       "Node:%s(%s) memory out of range, offset:%" PRId64
-                       ", size:"
-                       "%" PRId64 ", exceed total size:%" PRIu64 ".",
-                       op_desc->GetName().c_str(), op_desc->GetType().c_str(), offset, size, total_size);
+                         "Node:%s(%s) memory out of range, offset:%" PRId64
+                         ", size:"
+                         "%" PRId64 ", exceed total size:%" PRIu64 ".",
+                         op_desc->GetName().c_str(), op_desc->GetType().c_str(), offset, size, total_size);
     GELOGE(OUT_OF_MEMORY, "[Check][Param]Node:%s(%s) memory out of range, offset:%ld, size:%ld, exceed total size:%lu.",
            op_desc->GetName().c_str(), op_desc->GetType().c_str(), offset, size, total_size);
     return false;

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -53,7 +53,8 @@ class AtcFileFactory {
  public:
   static std::string GetFileRealName(const std::string &file_name);
   static std::string Generatefile1(const std::string &file_type, const std::string &file_name);
-  static std::string GenerateModel(const std::string &file_type, const std::string &file_name, bool with_fusion = false);
+  static std::string GenerateModel(const std::string &file_type, const std::string &file_name,
+                                   bool with_fusion = false);
   static void RemoveFile(const char *path) {
     remove(path);
   }
@@ -74,7 +75,8 @@ std::string AtcFileFactory::Generatefile1(const std::string &file_type, const st
   return file_type + om_file;
 }
 
-std::string AtcFileFactory::GenerateModel(const std::string &file_type, const std::string &file_name, bool with_fusion) {
+std::string AtcFileFactory::GenerateModel(const std::string &file_type, const std::string &file_name,
+                                          bool with_fusion) {
   std::string pwd = __FILE__;
   std::size_t idx = pwd.find_last_of("/");
   pwd = pwd.substr(0, idx);
@@ -106,7 +108,7 @@ std::string AtcFileFactory::GenerateModel(const std::string &file_type, const st
 
   ModelSerialize serialize;
   proto::ModelDef model_def;
-  serialize.SerializeModel(model, false, model_def); //success
+  serialize.SerializeModel(model, false, model_def);  // success
   GraphUtils::WriteProtoToTextFile(model_def, om_file.c_str());
   return file_type + om_file;
 }
@@ -155,7 +157,7 @@ class StubWeightsParser : public domi::WeightsParser {
   domi::Status Parse(const char *file, ge::Graph &graph) {
     return ge::SUCCESS;
   }
-  domi::Status ParseFromMemory(const char *input, uint32_t lengt, ge::ComputeGraphPtr &graph) {
+  domi::Status ParseFromMemory(const char *input, uint32_t length, ge::ComputeGraphPtr &graph) {
     return ge::SUCCESS;
   }
 };
@@ -236,7 +238,7 @@ TEST_F(UtestMain, MainImplTest_singleop) {
   std::string output_arg = AtcFileFactory::Generatefile1("--output=", "./");
   char *argv[] = {"atc", const_cast<char *>(singleop_arg.c_str()), const_cast<char *>(output_arg.c_str()),
                   "--soc_version=\"Ascend310\""};
-  //未打桩，st里面覆盖全流程，当前ut只是覆盖此文件相关代码
+  // 未打桩，st里面覆盖全流程，当前ut只是覆盖此文件相关代码
   int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
 }
@@ -259,8 +261,8 @@ TEST_F(UtestMain, MainImplTest_singleopFail) {
   int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, -1);
 
-  char *argv1[] = {"atc", const_cast<char *>(singleop_arg.c_str()), "--output=",
-                  "--display_model_info=0", "--soc_version=\"Ascend310\""};
+  char *argv1[] = {"atc", const_cast<char *>(singleop_arg.c_str()), "--output=", "--display_model_info=0",
+                   "--soc_version=\"Ascend310\""};
   // --singleop中--output参数必选
   ret = main_impl(sizeof(argv1) / sizeof(argv1[0]), argv1);
   EXPECT_EQ(ret, -1);
@@ -350,7 +352,8 @@ TEST_F(UtestMain, MainImplTest_global_options) {
   it = options.find(ge::OP_PRECISION_MODE);
   EXPECT_NE(it, options.end());
   if (it != options.end()) {
-    EXPECT_EQ(it->second == AtcFileFactory::GetFileRealName("op_precision.ini"), true);  }
+    EXPECT_EQ(it->second == AtcFileFactory::GetFileRealName("op_precision.ini"), true);
+  }
   it = options.find("ge.buildConfig");
   EXPECT_NE(it, options.end());
   if (it != options.end()) {
@@ -582,32 +585,27 @@ TEST_F(UtestMain, MainImplTest_generate_om_model_virtual_type) {
 }
 
 TEST_F(UtestMain, GeFlags_param_ok01) {
-  char *argv[] = {"atc",
-                  "--virtual_type=0"};
+  char *argv[] = {"atc", "--virtual_type=0"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
 }
 
 TEST_F(UtestMain, GeFlags_param_ok02) {
-  char *argv[] = {"atc",
-                  "--virtual_type=1"};
+  char *argv[] = {"atc", "--virtual_type=1"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
   EXPECT_EQ(FLAGS_virtual_type, 1);
 }
 
 TEST_F(UtestMain, GeFlags_param_ok03) {
-  char *argv[] = {"atc",
-                  "--model=model_value"};
+  char *argv[] = {"atc", "--model=model_value"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
   EXPECT_EQ(FLAGS_model, "model_value");
 }
 
 TEST_F(UtestMain, GeFlags_param_ok04) {
-  char *argv[] = {"atc",
-                  "--model",
-                  "model_value"};
+  char *argv[] = {"atc", "--model", "model_value"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
   EXPECT_EQ(FLAGS_model, "model_value");
@@ -615,8 +613,7 @@ TEST_F(UtestMain, GeFlags_param_ok04) {
 
 TEST_F(UtestMain, GeFlags_param_help01) {
   FLAGS_help = false;
-  char *argv[] = {"atc",
-                  "--help"};
+  char *argv[] = {"atc", "--help"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
   EXPECT_EQ(FLAGS_help, true);
@@ -624,8 +621,7 @@ TEST_F(UtestMain, GeFlags_param_help01) {
 
 TEST_F(UtestMain, GeFlags_param_help02) {
   FLAGS_help = false;
-  char *argv[] = {"atc",
-                  "-help"};
+  char *argv[] = {"atc", "-help"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
   EXPECT_EQ(FLAGS_help, true);
@@ -633,8 +629,7 @@ TEST_F(UtestMain, GeFlags_param_help02) {
 
 TEST_F(UtestMain, GeFlags_param_help03) {
   FLAGS_help = false;
-  char *argv[] = {"atc",
-                  "-h"};
+  char *argv[] = {"atc", "-h"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
   EXPECT_EQ(FLAGS_help, true);
@@ -642,8 +637,7 @@ TEST_F(UtestMain, GeFlags_param_help03) {
 
 TEST_F(UtestMain, GeFlags_param_help04) {
   FLAGS_help = false;
-  char *argv[] = {"atc",
-                  "--help=true"};
+  char *argv[] = {"atc", "--help=true"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
   EXPECT_EQ(FLAGS_help, true);
@@ -651,8 +645,7 @@ TEST_F(UtestMain, GeFlags_param_help04) {
 
 TEST_F(UtestMain, GeFlags_param_help05) {
   FLAGS_help = false;
-  char *argv[] = {"atc",
-                  "--help=True"};
+  char *argv[] = {"atc", "--help=True"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
   EXPECT_EQ(FLAGS_help, true);
@@ -660,8 +653,7 @@ TEST_F(UtestMain, GeFlags_param_help05) {
 
 TEST_F(UtestMain, GeFlags_param_help06) {
   FLAGS_help = false;
-  char *argv[] = {"atc",
-                  "--help=T"};
+  char *argv[] = {"atc", "--help=T"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
   EXPECT_EQ(FLAGS_help, true);
@@ -669,8 +661,7 @@ TEST_F(UtestMain, GeFlags_param_help06) {
 
 TEST_F(UtestMain, GeFlags_param_help07) {
   FLAGS_help = false;
-  char *argv[] = {"atc",
-                  "--help=y"};
+  char *argv[] = {"atc", "--help=y"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
   EXPECT_EQ(FLAGS_help, true);
@@ -678,8 +669,7 @@ TEST_F(UtestMain, GeFlags_param_help07) {
 
 TEST_F(UtestMain, GeFlags_param_help08) {
   FLAGS_help = false;
-  char *argv[] = {"atc",
-                  "--help=yes"};
+  char *argv[] = {"atc", "--help=yes"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
   EXPECT_EQ(FLAGS_help, true);
@@ -687,8 +677,7 @@ TEST_F(UtestMain, GeFlags_param_help08) {
 
 TEST_F(UtestMain, GeFlags_param_help09) {
   FLAGS_help = false;
-  char *argv[] = {"atc",
-                  "--help=1"};
+  char *argv[] = {"atc", "--help=1"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
   EXPECT_EQ(FLAGS_help, true);
@@ -696,8 +685,7 @@ TEST_F(UtestMain, GeFlags_param_help09) {
 
 TEST_F(UtestMain, GeFlags_param_help10) {
   FLAGS_help = false;
-  char *argv[] = {"atc",
-                  "--help=false"};
+  char *argv[] = {"atc", "--help=false"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
   EXPECT_EQ(FLAGS_help, false);
@@ -705,8 +693,7 @@ TEST_F(UtestMain, GeFlags_param_help10) {
 
 TEST_F(UtestMain, GeFlags_param_help11) {
   FLAGS_help = false;
-  char *argv[] = {"atc",
-                  "--help=f"};
+  char *argv[] = {"atc", "--help=f"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
   EXPECT_EQ(FLAGS_help, false);
@@ -714,8 +701,7 @@ TEST_F(UtestMain, GeFlags_param_help11) {
 
 TEST_F(UtestMain, GeFlags_param_help12) {
   FLAGS_help = false;
-  char *argv[] = {"atc",
-                  "--help=n"};
+  char *argv[] = {"atc", "--help=n"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
   EXPECT_EQ(FLAGS_help, false);
@@ -723,8 +709,7 @@ TEST_F(UtestMain, GeFlags_param_help12) {
 
 TEST_F(UtestMain, GeFlags_param_help13) {
   FLAGS_help = false;
-  char *argv[] = {"atc",
-                  "--help=no"};
+  char *argv[] = {"atc", "--help=no"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
   EXPECT_EQ(FLAGS_help, false);
@@ -732,8 +717,7 @@ TEST_F(UtestMain, GeFlags_param_help13) {
 
 TEST_F(UtestMain, GeFlags_param_help14) {
   FLAGS_help = false;
-  char *argv[] = {"atc",
-                  "--help=0"};
+  char *argv[] = {"atc", "--help=0"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
   EXPECT_EQ(FLAGS_help, false);
@@ -741,81 +725,68 @@ TEST_F(UtestMain, GeFlags_param_help14) {
 
 TEST_F(UtestMain, GeFlags_param_help15) {
   FLAGS_help = false;
-  char *argv[] = {"atc",
-                  "--help=invalid_bool"};
+  char *argv[] = {"atc", "--help=invalid_bool"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
   EXPECT_EQ(FLAGS_help, false);
 }
 
 TEST_F(UtestMain, GeFlags_param_include_dash) {
-  char *argv[] = {"atc",
-                  "--virtual-type=0"};
+  char *argv[] = {"atc", "--virtual-type=0"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
 }
 
 TEST_F(UtestMain, GeFlags_param_single_minus) {
-  char *argv[] = {"atc",
-                  "-virtual_type=0"};
+  char *argv[] = {"atc", "-virtual_type=0"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
 }
 
 TEST_F(UtestMain, GeFlags_flag_value_empty01) {
-  char *argv[] = {"atc",
-                  "--virtual_type="};
+  char *argv[] = {"atc", "--virtual_type="};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
 }
 
 TEST_F(UtestMain, GeFlags_flag_value_empty02) {
-  char *argv[] = {"atc",
-                  "--model="};
+  char *argv[] = {"atc", "--model="};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
 }
 
 TEST_F(UtestMain, GeFlags_no_flag_value) {
-  char *argv[] = {"atc",
-                  "--virtual_type"};
+  char *argv[] = {"atc", "--virtual_type"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
 }
 
 TEST_F(UtestMain, GeFlags_data_type_error) {
-  char *argv[] = {"atc",
-                  "--virtual_type=string_value"};
+  char *argv[] = {"atc", "--virtual_type=string_value"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
 }
 
 TEST_F(UtestMain, GeFlags_flag_name_error01) {
-  char *argv[] = {"atc",
-                  "--virtual_type_err=0"};
+  char *argv[] = {"atc", "--virtual_type_err=0"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
 }
 
 TEST_F(UtestMain, GeFlags_flag_name_error02) {
-  char *argv[] = {"atc",
-                  "--virtual_type_err"};
+  char *argv[] = {"atc", "--virtual_type_err"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
 }
 
 TEST_F(UtestMain, GeFlags_non_option_parameter01) {
-  char *argv[] = {"atc",
-                  "virtual_type=0"};
+  char *argv[] = {"atc", "virtual_type=0"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
 }
 
 TEST_F(UtestMain, GeFlags_non_option_parameter02) {
-  char *argv[] = {"atc",
-                  "virtual_type=0",
-                  "--mode=0",
-                  "--framework=5"};
+  char *argv[] = {"atc", "virtual_type=0", "--mode=0", "--framework=5"};
   int32_t ret = ge::flgs::ParseCommandLine(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
 }
@@ -851,60 +822,45 @@ TEST_F(UtestMain, GeFlags_op_debug_level_error) {
 }
 
 TEST_F(UtestMain, GeFlags_mode_1_framework_error) {
-  char *argv[] = {"atc",
-                  "--mode=1",
-                  "--framework=1",};
+  char *argv[] = {
+      "atc",
+      "--mode=1",
+      "--framework=1",
+  };
   int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
 }
 
 TEST_F(UtestMain, GeFlags_framework_0_version_error) {
   std::string weight = AtcFileFactory::Generatefile1("--weight=", "add.pb");
-  char *argv[] = {"atc",
-                  "--mode=0",
-                  "--framework=0",
-                  const_cast<char *>(weight.c_str()),
-                  "--soc_version=Ascend910B1"};
+  char *argv[] = {"atc", "--mode=0", "--framework=0", const_cast<char *>(weight.c_str()), "--soc_version=Ascend910B1"};
   int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
 }
 
 TEST_F(UtestMain, GeFlagsFramework0_Fail_UnsupportedVersion) {
   std::string weight = AtcFileFactory::Generatefile1("--weight=", "add.pb");
-  char *argv[] = {"atc",
-                  "--mode=0",
-                  "--framework=0",
-                  const_cast<char *>(weight.c_str()),
+  char *argv[] = {"atc", "--mode=0", "--framework=0", const_cast<char *>(weight.c_str()),
                   "--soc_version=Ascend910_9391"};
   int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
 }
 
 TEST_F(UtestMain, GeFlags_framework_0_weight_error) {
-  char *argv[] = {"atc",
-                  "--mode=0",
-                  "--framework=0",
-                  "--weight=***",
-                  "--soc_version=\"Ascend310\""};
+  char *argv[] = {"atc", "--mode=0", "--framework=0", "--weight=***", "--soc_version=\"Ascend310\""};
   int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
 }
 
 TEST_F(UtestMain, GeFlags_framework_0_weight_none) {
-  char *argv[] = {"atc",
-                  "--mode=0",
-                  "--framework=0",
-                  "--soc_version=\"Ascend310\""};
+  char *argv[] = {"atc", "--mode=0", "--framework=0", "--soc_version=\"Ascend310\""};
   int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
 }
 
 TEST_F(UtestMain, GeFlags_framework_3_weight_warn) {
   std::string weight = AtcFileFactory::Generatefile1("--weight=", "add.pb");
-  char *argv[] = {"atc",
-                  "--mode=0",
-                  "--framework=3",
-                  const_cast<char *>(weight.c_str()),
+  char *argv[] = {"atc", "--mode=0", "--framework=3", const_cast<char *>(weight.c_str()),
                   "--soc_version=\"Ascend310\""};
   int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
@@ -912,10 +868,7 @@ TEST_F(UtestMain, GeFlags_framework_3_weight_warn) {
 
 TEST_F(UtestMain, GeFlags_framework_5_weight_warn) {
   std::string weight = AtcFileFactory::Generatefile1("--weight=", "add.pb");
-  char *argv[] = {"atc",
-                  "--mode=0",
-                  "--framework=5",
-                  const_cast<char *>(weight.c_str()),
+  char *argv[] = {"atc", "--mode=0", "--framework=5", const_cast<char *>(weight.c_str()),
                   "--soc_version=\"Ascend310\""};
   int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
@@ -984,22 +937,16 @@ ComputeGraphPtr MakeGraph() {
   builder.AddDataEdge(addn1, 0, output, 0);
   return builder.GetGraph();
 }
-}
+}  // namespace
 
 TEST_F(UtestMain, MainImplTest_single_air_graph) {
   map<std::string, std::string> graph_options = ge::GetThreadLocalContext().GetAllGraphOptions();
   map<std::string, std::string> sess_options = ge::GetThreadLocalContext().GetAllSessionOptions();
   map<std::string, std::string> global_options = ge::GetThreadLocalContext().GetAllGlobalOptions();
-  GE_MAKE_GUARD(recover_graph_cfg, [&graph_options](){
-    GetThreadLocalContext().SetGraphOption(graph_options);
-  });
-  GE_MAKE_GUARD(recover_sess_cfg, [&sess_options](){
-    GetThreadLocalContext().SetSessionOption(sess_options);
-  });
-  GE_MAKE_GUARD(recover_global_cfg, [&global_options](){
-    GetThreadLocalContext().SetGlobalOption(global_options);
-  });
-  GE_MAKE_GUARD(recover_context_cfg, [&](){
+  GE_MAKE_GUARD(recover_graph_cfg, [&graph_options]() { GetThreadLocalContext().SetGraphOption(graph_options); });
+  GE_MAKE_GUARD(recover_sess_cfg, [&sess_options]() { GetThreadLocalContext().SetSessionOption(sess_options); });
+  GE_MAKE_GUARD(recover_global_cfg, [&global_options]() { GetThreadLocalContext().SetGlobalOption(global_options); });
+  GE_MAKE_GUARD(recover_context_cfg, [&]() {
     auto &global_options_mutex = GetGlobalOptionsMutex();
     const std::lock_guard<std::mutex> lock(global_options_mutex);
     GetThreadLocalContext().SetGlobalOption(GetMutableGlobalOptions());
@@ -1038,12 +985,13 @@ TEST_F(UtestMain, MainImplTest_single_air_graph) {
   auto data = compute_graph->FindNode("data");
   EXPECT_NE(data, nullptr);
   EXPECT_NE(data->GetOpDesc()->MutableInputDesc(0), nullptr);
-  data->GetOpDesc()->MutableInputDesc(0)->SetOriginShape(GeShape({1,2,3,4,5}));
+  data->GetOpDesc()->MutableInputDesc(0)->SetOriginShape(GeShape({1, 2, 3, 4, 5}));
   data->GetOpDesc()->MutableInputDesc(0)->SetOriginFormat(FORMAT_NC1HWC0);
   bool enable_storage_format_spread = true;
   (void)AttrUtils::SetBool(data->GetOpDesc(), "_enable_storage_format_spread", enable_storage_format_spread);
   bool is_origin_format_set = true;
-  (void)AttrUtils::SetBool(data->GetOpDesc()->MutableInputDesc(0), ATTR_NAME_ORIGIN_FORMAT_IS_SET, is_origin_format_set);
+  (void)AttrUtils::SetBool(data->GetOpDesc()->MutableInputDesc(0), ATTR_NAME_ORIGIN_FORMAT_IS_SET,
+                           is_origin_format_set);
   Graph graph = ge::GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
   graph.SaveToFile(model_1.c_str());
   std::string output_arg = AtcFileFactory::Generatefile1("--output=", "tmp");
@@ -1055,8 +1003,7 @@ TEST_F(UtestMain, MainImplTest_single_air_graph) {
                   "--host_env_os=linux",
                   "--host_env_cpu=x86_64",
                   "--log=error",
-                  "--allow_hf32=false"
-                  };
+                  "--allow_hf32=false"};
   int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
   AtcFileFactory::RemoveFile(AtcFileFactory::Generatefile1("", "tmp.om").c_str());
@@ -1067,16 +1014,10 @@ TEST_F(UtestMain, MainImplTest_MindSpore_Input_Shape) {
   map<std::string, std::string> graph_options = ge::GetThreadLocalContext().GetAllGraphOptions();
   map<std::string, std::string> sess_options = ge::GetThreadLocalContext().GetAllSessionOptions();
   map<std::string, std::string> global_options = ge::GetThreadLocalContext().GetAllGlobalOptions();
-  GE_MAKE_GUARD(recover_graph_cfg, [&graph_options](){
-    GetThreadLocalContext().SetGraphOption(graph_options);
-  });
-  GE_MAKE_GUARD(recover_sess_cfg, [&sess_options](){
-    GetThreadLocalContext().SetSessionOption(sess_options);
-  });
-  GE_MAKE_GUARD(recover_global_cfg, [&global_options](){
-    GetThreadLocalContext().SetGlobalOption(global_options);
-  });
-  GE_MAKE_GUARD(recover_context_cfg, [&](){
+  GE_MAKE_GUARD(recover_graph_cfg, [&graph_options]() { GetThreadLocalContext().SetGraphOption(graph_options); });
+  GE_MAKE_GUARD(recover_sess_cfg, [&sess_options]() { GetThreadLocalContext().SetSessionOption(sess_options); });
+  GE_MAKE_GUARD(recover_global_cfg, [&global_options]() { GetThreadLocalContext().SetGlobalOption(global_options); });
+  GE_MAKE_GUARD(recover_context_cfg, [&]() {
     auto &global_options_mutex = GetGlobalOptionsMutex();
     const std::lock_guard<std::mutex> lock(global_options_mutex);
     GetThreadLocalContext().SetGlobalOption(GetMutableGlobalOptions());
@@ -1122,8 +1063,7 @@ TEST_F(UtestMain, MainImplTest_MindSpore_Input_Shape) {
                   "--soc_version=\"Ascend910\"",
                   "--model=model1",
                   "--input_shape=data:-1,1",
-                  "--dynamic_batch_size=1,2"
-  };
+                  "--dynamic_batch_size=1,2"};
   int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_NE(ret, 0);
   AtcFileFactory::RemoveFile(AtcFileFactory::Generatefile1("", "tmp.om").c_str());
@@ -1134,16 +1074,10 @@ TEST_F(UtestMain, MainImplTest_MindSpore_Invalid_Input_Shape) {
   map<std::string, std::string> graph_options = ge::GetThreadLocalContext().GetAllGraphOptions();
   map<std::string, std::string> sess_options = ge::GetThreadLocalContext().GetAllSessionOptions();
   map<std::string, std::string> global_options = ge::GetThreadLocalContext().GetAllGlobalOptions();
-  GE_MAKE_GUARD(recover_graph_cfg, [&graph_options](){
-    GetThreadLocalContext().SetGraphOption(graph_options);
-  });
-  GE_MAKE_GUARD(recover_sess_cfg, [&sess_options](){
-    GetThreadLocalContext().SetSessionOption(sess_options);
-  });
-  GE_MAKE_GUARD(recover_global_cfg, [&global_options](){
-    GetThreadLocalContext().SetGlobalOption(global_options);
-  });
-  GE_MAKE_GUARD(recover_context_cfg, [&](){
+  GE_MAKE_GUARD(recover_graph_cfg, [&graph_options]() { GetThreadLocalContext().SetGraphOption(graph_options); });
+  GE_MAKE_GUARD(recover_sess_cfg, [&sess_options]() { GetThreadLocalContext().SetSessionOption(sess_options); });
+  GE_MAKE_GUARD(recover_global_cfg, [&global_options]() { GetThreadLocalContext().SetGlobalOption(global_options); });
+  GE_MAKE_GUARD(recover_context_cfg, [&]() {
     auto &global_options_mutex = GetGlobalOptionsMutex();
     const std::lock_guard<std::mutex> lock(global_options_mutex);
     GetThreadLocalContext().SetGlobalOption(GetMutableGlobalOptions());
@@ -1184,24 +1118,22 @@ TEST_F(UtestMain, MainImplTest_MindSpore_Invalid_Input_Shape) {
   graph.SaveToFile(model_1.c_str());
   std::string output_arg = AtcFileFactory::Generatefile1("--output=", "tmp");
   char *argv_invalid_type[] = {"atc",
-                  "--framework=1",
-                  const_cast<char *>(output_arg.c_str()),
-                  "--soc_version=\"Ascend910\"",
-                  "--model=model1",
-                  "--input_shape=addn1:-1,1",
-                  "--dynamic_batch_size=1,2"
-  };
+                               "--framework=1",
+                               const_cast<char *>(output_arg.c_str()),
+                               "--soc_version=\"Ascend910\"",
+                               "--model=model1",
+                               "--input_shape=addn1:-1,1",
+                               "--dynamic_batch_size=1,2"};
   int32_t ret = main_impl(sizeof(argv_invalid_type) / sizeof(argv_invalid_type[0]), argv_invalid_type);
   EXPECT_NE(ret, 0);
 
   char *argv_invalid_name[] = {"atc",
-                  "--framework=1",
-                  const_cast<char *>(output_arg.c_str()),
-                  "--soc_version=\"Ascend910\"",
-                  "--model=model1",
-                  "--input_shape=data1:-1,1",
-                  "--dynamic_batch_size=1,2"
-  };
+                               "--framework=1",
+                               const_cast<char *>(output_arg.c_str()),
+                               "--soc_version=\"Ascend910\"",
+                               "--model=model1",
+                               "--input_shape=data1:-1,1",
+                               "--dynamic_batch_size=1,2"};
   ret = main_impl(sizeof(argv_invalid_name) / sizeof(argv_invalid_name[0]), argv_invalid_name);
   EXPECT_NE(ret, 0);
   AtcFileFactory::RemoveFile(AtcFileFactory::Generatefile1("", "tmp.om").c_str());
@@ -1225,8 +1157,8 @@ amctStatus amctGraphCalibration(ge::Graph &graph, const std::map<std::string, st
 }
 
 class AmctCalibration : public IAmctCalibration {
-public:
-  graphStatus Calibrate(Graph& graph, const std::map<std::string, std::string>& options) override {
+ public:
+  graphStatus Calibrate(Graph &graph, const std::map<std::string, std::string> &options) override {
     auto compute_graph = ge::GraphUtilsEx::GetComputeGraph(graph);
     if (compute_graph != nullptr) {
       return ge::GRAPH_SUCCESS;
@@ -1239,7 +1171,7 @@ class MockMmpa : public ge::MmpaStubApiGe {
  public:
   void *DlOpen(const char *file_name, int32_t mode) override {
     if (string("libamctacl.so") == file_name) {
-      return (void *) &g_handleStub;
+      return (void *)&g_handleStub;
     }
     return MmpaStubApiGe::DlOpen(file_name, mode);
   }
@@ -1249,7 +1181,7 @@ class MockMmpa : public ge::MmpaStubApiGe {
       return nullptr;
     }
     if (std::string(func_name) == "amctGraphCalibration") {
-      return (void *) &amctGraphCalibration;
+      return (void *)&amctGraphCalibration;
     }
     return dlsym(handle, func_name);
   }
@@ -1266,7 +1198,7 @@ TEST_F(UtestMain, MainImplTest_amct_interface) {
   EXPECT_EQ(ret, 0);
 
   options[COMPRESSION_OPTIMIZE_CONF] = "path_test";
-  REG_AMCT_CALIBRATION(AmctCalibration); // 执行一次CallAmctInterface后就会unregister
+  REG_AMCT_CALIBRATION(AmctCalibration);  // 执行一次CallAmctInterface后就会unregister
   g_isError = true;
   ret = CallAmctInterface(graph, options);
   EXPECT_NE(ret, 0);
@@ -1283,8 +1215,7 @@ TEST_F(UtestMain, MainImplTest_amct_interface) {
 }
 
 TEST_F(UtestMain, GeFlags_oo_help) {
-  char *argv[] = {"atc",
-                  "--help"};
+  char *argv[] = {"atc", "--help"};
   int32_t ret = main_impl(sizeof(argv) / sizeof(argv[0]), argv);
   EXPECT_EQ(ret, 0);
 }
@@ -1321,12 +1252,12 @@ TEST_F(UtestMain, GeFlags_oo_init_param_valid) {
   std::string opt_value;
 
   char *argv1[] = {"atc",
-                  "--framework=3",
-                  const_cast<char *>(om_arg.c_str()),
-                  const_cast<char *>(output_arg.c_str()),
-                  "--soc_version=Ascend910B",
-                  "--oo_level=O1",
-                  "--oo_constant_folding=T"};
+                   "--framework=3",
+                   const_cast<char *>(om_arg.c_str()),
+                   const_cast<char *>(output_arg.c_str()),
+                   "--soc_version=Ascend910B",
+                   "--oo_level=O1",
+                   "--oo_constant_folding=T"};
   auto ret = main_impl(sizeof(argv1) / sizeof(argv1[0]), argv1);
   EXPECT_NE(ret, 0);
   EXPECT_EQ(FLAGS_oo_level, "O1");

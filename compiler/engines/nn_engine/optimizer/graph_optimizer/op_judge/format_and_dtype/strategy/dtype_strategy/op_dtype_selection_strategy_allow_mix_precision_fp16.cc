@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -16,20 +16,17 @@ namespace fe {
 const string KMixPrecisionType = "Fp16";
 const ge::DataType KDataType = ge::DT_FLOAT16;
 OpDtypeSelectionStrategyAllowMixPrecisionFp16::OpDtypeSelectionStrategyAllowMixPrecisionFp16(
-    const std::string& engine_name,
-    FormatDtypeQuerierPtr format_dtype_querier_ptr,
-    OpDtypeMixPrecisionMatcherPtr op_dtype_mixed_precision_matcher_ptr,
-    OpDtypeRiseMatcherPtr op_dtype_rise_matcher_ptr,
+    const std::string &engine_name, FormatDtypeQuerierPtr format_dtype_querier_ptr,
+    OpDtypeMixPrecisionMatcherPtr op_dtype_mixed_precision_matcher_ptr, OpDtypeRiseMatcherPtr op_dtype_rise_matcher_ptr,
     OpDtypeReduceMatcherPtr op_dtype_reduce_matcher_ptr)
-    : OpDtypeSelectionStrategyAllowMixPrecisionBase(engine_name,
-        format_dtype_querier_ptr, op_dtype_mixed_precision_matcher_ptr,
-        op_dtype_rise_matcher_ptr, op_dtype_reduce_matcher_ptr,
-        KMixPrecisionType, KDataType) {}
+    : OpDtypeSelectionStrategyAllowMixPrecisionBase(engine_name, format_dtype_querier_ptr,
+                                                    op_dtype_mixed_precision_matcher_ptr, op_dtype_rise_matcher_ptr,
+                                                    op_dtype_reduce_matcher_ptr, KMixPrecisionType, KDataType) {}
 
 OpDtypeSelectionStrategyAllowMixPrecisionFp16::~OpDtypeSelectionStrategyAllowMixPrecisionFp16() {}
 
 /* In this mode we will match the dtype fp16 first. If the */
-Status OpDtypeSelectionStrategyAllowMixPrecisionFp16::Run(FormatDtypeSelectionBasicInfo& basic_info,
+Status OpDtypeSelectionStrategyAllowMixPrecisionFp16::Run(FormatDtypeSelectionBasicInfo &basic_info,
                                                           ForbiddenDtype forbidden_dtype) {
   FE_CHECK_NOTNULL(basic_info.node);
   auto cur_op_desc_ptr = basic_info.node->GetOpDesc();
@@ -39,7 +36,8 @@ Status OpDtypeSelectionStrategyAllowMixPrecisionFp16::Run(FormatDtypeSelectionBa
 
   PrecisionPolicy precision_policy;
   if (GetOpPrecisionPolicy(basic_info.node, basic_info.op_kernel_info_ptr, precision_policy) != SUCCESS) {
-    FE_LOGD("Op[name=%s, type=%s]: Failed to get precision policy.", cur_op_desc_name.c_str(), cur_op_desc_type.c_str());
+    FE_LOGD("Op[name=%s, type=%s]: Failed to get precision policy.", cur_op_desc_name.c_str(),
+            cur_op_desc_type.c_str());
     return FAILED;
   }
 
@@ -54,4 +52,4 @@ Status OpDtypeSelectionStrategyAllowMixPrecisionFp16::Run(FormatDtypeSelectionBa
     return RunForOpInGrayList(basic_info, forbidden_dtype);
   }
 }
-}
+}  // namespace fe

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -117,7 +117,7 @@ class FftsPlusTest : public testing::Test {
  *                                                |                                    |
  *                                                |                                NetOutput
  *                                            NetOutput
-***********************************************************************************************************************/
+ ***********************************************************************************************************************/
 static void BuildFftsDynamicGraph(ComputeGraphPtr &root_graph, ComputeGraphPtr &dsp_graph, ComputeGraphPtr &ffts_graph,
                                   bool is_ffts_dynamic, uint32_t &mem_offset) {
   int64_t max_size = 1;
@@ -126,10 +126,10 @@ static void BuildFftsDynamicGraph(ComputeGraphPtr &root_graph, ComputeGraphPtr &
   const auto const_op = OP_CFG(CONSTANTOP).OutCnt(1).Weight(const_tensor);
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("_arg_0", DATA)->NODE("PartitionedCall_0", PARTITIONEDCALL)->NODE(NODE_NAME_NET_OUTPUT, NETOUTPUT));
-                  CHAIN(NODE("_arg_1", DATA)->NODE("PartitionedCall_0"));
-                  CHAIN(NODE("weight", const_op)->NODE("PartitionedCall_0"));
-                };
+    CHAIN(NODE("_arg_0", DATA)->NODE("PartitionedCall_0", PARTITIONEDCALL)->NODE(NODE_NAME_NET_OUTPUT, NETOUTPUT));
+    CHAIN(NODE("_arg_1", DATA)->NODE("PartitionedCall_0"));
+    CHAIN(NODE("weight", const_op)->NODE("PartitionedCall_0"));
+  };
   root_graph = ToComputeGraph(g1);
   root_graph->SetGraphUnknownFlag(true);
   SetUnknownOpKernel(root_graph, mem_offset, true);
@@ -137,21 +137,25 @@ static void BuildFftsDynamicGraph(ComputeGraphPtr &root_graph, ComputeGraphPtr &
   EXPECT_NE(root_call_0, nullptr);
 
   DEF_GRAPH(g2) {
-                  const auto data_0 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);
-                  const auto data_1 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 1);
-                  const auto data_2 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 2);
-                  CHAIN(NODE("dsp_graph/_arg_0", data_0)->EDGE(0, 0)->
-                      NODE("dsp_graph/trans_TransData_0", IDENTITY)->EDGE(0, 0)->
-                      NODE("dsp_graph/PartitionedCall_0", PARTITIONEDCALL)->EDGE(0, 0)->
-                      NODE("dsp_graph/trans_TransData_2", IDENTITY)->EDGE(0, 0)->
-                      NODE("dsp_graph/Node_Output", NETOUTPUT)
-                  );
-                  CHAIN(NODE("dsp_graph/_arg_1", data_1)->EDGE(0, 0)->
-                      NODE("dsp_graph/trans_TransData_1", IDENTITY)->EDGE(0, 1)->
-                      NODE("dsp_graph/PartitionedCall_0")
-                  );
-                  CHAIN(NODE("dsp_graph/_arg_2", data_2)->EDGE(0, 2)->NODE("dsp_graph/PartitionedCall_0"));
-                };
+    const auto data_0 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);
+    const auto data_1 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 1);
+    const auto data_2 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 2);
+    CHAIN(NODE("dsp_graph/_arg_0", data_0)
+              ->EDGE(0, 0)
+              ->NODE("dsp_graph/trans_TransData_0", IDENTITY)
+              ->EDGE(0, 0)
+              ->NODE("dsp_graph/PartitionedCall_0", PARTITIONEDCALL)
+              ->EDGE(0, 0)
+              ->NODE("dsp_graph/trans_TransData_2", IDENTITY)
+              ->EDGE(0, 0)
+              ->NODE("dsp_graph/Node_Output", NETOUTPUT));
+    CHAIN(NODE("dsp_graph/_arg_1", data_1)
+              ->EDGE(0, 0)
+              ->NODE("dsp_graph/trans_TransData_1", IDENTITY)
+              ->EDGE(0, 1)
+              ->NODE("dsp_graph/PartitionedCall_0"));
+    CHAIN(NODE("dsp_graph/_arg_2", data_2)->EDGE(0, 2)->NODE("dsp_graph/PartitionedCall_0"));
+  };
   dsp_graph = ToComputeGraph(g2);
   dsp_graph->SetGraphUnknownFlag(is_ffts_dynamic);
   SetUnknownOpKernel(dsp_graph, mem_offset);
@@ -162,28 +166,34 @@ static void BuildFftsDynamicGraph(ComputeGraphPtr &root_graph, ComputeGraphPtr &
   AttrUtils::SetBool(ffts_call_node->GetOpDesc(), ATTR_NAME_FFTS_PLUS_SUB_GRAPH, true);
 
   DEF_GRAPH(g3) {
-                  const auto data_0 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);
-                  const auto data_1 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 1);
-                  const auto data_2 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 2);
-                  const auto conv_0 = OP_CFG(CONV2D).Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIC")
-                      .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
-                      .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF")
-                      .Attr("_mix_with_enhanced_kernel", true);
-                  const auto relu_0 = OP_CFG(RELU).Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "MIX_AIV")
-                      .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
-                      .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
-                  const auto gather = OP_CFG(GATHERV2).Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AICPU")
-                      .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::AI_CPU))
-                      .Attr("_AllShape", true);
-                  CHAIN(NODE("sgt_graph/_arg_0", data_0)->EDGE(0, 0)->
-                      NODE("sgt_graph/Conv2D", conv_0)->EDGE(0, 0)->
-                      NODE("sgt_graph/Relu", relu_0)->EDGE(0, 0)->
-                      NODE("sgt_graph/Gather", gather)->EDGE(0, 0)->
-                      NODE("sgt_graph/Node_Output", NETOUTPUT)
-                  );
-                  CHAIN(NODE("sgt_graph/_arg_1", data_1)->EDGE(0, 1)->NODE("sgt_graph/Conv2D", conv_0));
-                  CHAIN(NODE("sgt_graph/_arg_2", data_2)->EDGE(0, 2)->NODE("sgt_graph/Conv2D", conv_0));
-                };
+    const auto data_0 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);
+    const auto data_1 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 1);
+    const auto data_2 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 2);
+    const auto conv_0 = OP_CFG(CONV2D)
+                            .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIC")
+                            .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
+                            .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF")
+                            .Attr("_mix_with_enhanced_kernel", true);
+    const auto relu_0 = OP_CFG(RELU)
+                            .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "MIX_AIV")
+                            .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
+                            .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
+    const auto gather = OP_CFG(GATHERV2)
+                            .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AICPU")
+                            .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::AI_CPU))
+                            .Attr("_AllShape", true);
+    CHAIN(NODE("sgt_graph/_arg_0", data_0)
+              ->EDGE(0, 0)
+              ->NODE("sgt_graph/Conv2D", conv_0)
+              ->EDGE(0, 0)
+              ->NODE("sgt_graph/Relu", relu_0)
+              ->EDGE(0, 0)
+              ->NODE("sgt_graph/Gather", gather)
+              ->EDGE(0, 0)
+              ->NODE("sgt_graph/Node_Output", NETOUTPUT));
+    CHAIN(NODE("sgt_graph/_arg_1", data_1)->EDGE(0, 1)->NODE("sgt_graph/Conv2D", conv_0));
+    CHAIN(NODE("sgt_graph/_arg_2", data_2)->EDGE(0, 2)->NODE("sgt_graph/Conv2D", conv_0));
+  };
   ffts_graph = ToComputeGraph(g3);
   ffts_graph->SetGraphUnknownFlag(is_ffts_dynamic);
   ffts_graph->TopologicalSorting();
@@ -204,7 +214,7 @@ static void BuildFftsDynamicGraph(ComputeGraphPtr &root_graph, ComputeGraphPtr &
   std::vector<char> conv_bin(64, '\0');
   TBEKernelPtr conv_kernel = MakeShared<ge::OpKernelBin>("sgt/conv", std::move(conv_bin));
   ffts_conv0->GetOpDesc()->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, conv_kernel);
-  ffts_conv0->GetOpDesc()->SetOpInferDepends({"__input2"}); // Not IR Build... Test Data Callback.
+  ffts_conv0->GetOpDesc()->SetOpInferDepends({"__input2"});  // Not IR Build... Test Data Callback.
   AttrUtils::SetStr(ffts_conv0->GetOpDesc(), ffts_conv0->GetName() + "_kernelname", "sgt/conv");
 
   std::vector<char> relu_bin(64, '\0');
@@ -214,8 +224,8 @@ static void BuildFftsDynamicGraph(ComputeGraphPtr &root_graph, ComputeGraphPtr &
 
   const auto &sgt_nodes = ffts_graph->GetDirectNode();
   std::for_each(sgt_nodes.begin(), sgt_nodes.end(), [](const NodePtr &n) {
-    (void)AttrUtils::SetBool(n->GetOpDesc(), "_kernel_list_first_name", true); // for call rtallkernel register
-    (void)AttrUtils::SetInt(n->GetOpDesc(), "op_para_size", 2); // for tiling
+    (void)AttrUtils::SetBool(n->GetOpDesc(), "_kernel_list_first_name", true);  // for call rtallkernel register
+    (void)AttrUtils::SetInt(n->GetOpDesc(), "op_para_size", 2);                 // for tiling
   });
 }
 
@@ -232,8 +242,7 @@ static void SetAicAivOpKernel(const ComputeGraphPtr &graph, const std::string na
 
   std::vector<TBEKernelPtr> tbe_kernel_vec{
       std::make_shared<ge::OpKernelBin>(thread_kernel_names[0], std::move(aic_kernel_bin)),
-      std::make_shared<ge::OpKernelBin>(thread_kernel_names[1], std::move(aiv_kernel_bin))
-  };
+      std::make_shared<ge::OpKernelBin>(thread_kernel_names[1], std::move(aiv_kernel_bin))};
   if (kernel_store == nullptr) {
     op_desc->SetExtAttr(OP_EXTATTR_NAME_THREAD_TBE_KERNEL, tbe_kernel_vec);
   } else {
@@ -241,22 +250,22 @@ static void SetAicAivOpKernel(const ComputeGraphPtr &graph, const std::string na
     kernel_store->AddTBEKernel(tbe_kernel_vec[1]);
   }
 
-  std::vector<string> bin_file_keys{ op_desc->GetName() + "_aic", op_desc->GetName() + "_aiv" };
+  std::vector<string> bin_file_keys{op_desc->GetName() + "_aic", op_desc->GetName() + "_aiv"};
   (void)AttrUtils::SetListStr(op_desc, "_register_stub_func", bin_file_keys);
   (void)AttrUtils::SetStr(op_desc, op_desc->GetName() + "_kernelname", op_desc->GetName());
   (void)AttrUtils::SetInt(op_desc, ATTR_NAME_THREAD_MODE, 1);
   (void)AttrUtils::SetInt(op_desc, ATTR_NAME_THREAD_SCOPE_ID, 1);
   (void)ge::AttrUtils::SetStr(op_desc, ATTR_NAME_KERNEL_BIN_ID, op_desc->GetName() + "_aic");
   // Init Binary Magic
-  std::vector<std::string> json_list{ "RT_DEV_BINARY_MAGIC_ELF_AIVEC", "RT_DEV_BINARY_MAGIC_ELF_AICUBE" };
+  std::vector<std::string> json_list{"RT_DEV_BINARY_MAGIC_ELF_AIVEC", "RT_DEV_BINARY_MAGIC_ELF_AICUBE"};
   (void)AttrUtils::SetListStr(op_desc, "_thread_tvm_magic", json_list);
   // Init meta data
-  std::vector<std::string> meta_data_list{ "AIVEC_META_DATA", "AICUBE_META_DATA" };
+  std::vector<std::string> meta_data_list{"AIVEC_META_DATA", "AICUBE_META_DATA"};
   (void)AttrUtils::SetListStr(op_desc, "_thread_tvm_metadata", meta_data_list);
 }
 
 static void SetManualAicAivOpKernel(const ComputeGraphPtr &graph, const std::string name,
-                              TBEKernelStore *kernel_store = nullptr) {
+                                    TBEKernelStore *kernel_store = nullptr) {
   const auto &node = graph->FindNode(name);
   EXPECT_NE(node, nullptr);
   const auto &op_desc = node->GetOpDesc();
@@ -270,10 +279,10 @@ static void SetManualAicAivOpKernel(const ComputeGraphPtr &graph, const std::str
   }
   (void)AttrUtils::SetStr(op_desc, "_kernelname", conv_kernel->GetName());
   // Init Binary Magic
-  std::vector<std::string> json_list{ "RT_DEV_BINARY_MAGIC_ELF_AIVEC", "RT_DEV_BINARY_MAGIC_ELF_AICUBE" };
+  std::vector<std::string> json_list{"RT_DEV_BINARY_MAGIC_ELF_AIVEC", "RT_DEV_BINARY_MAGIC_ELF_AICUBE"};
   (void)AttrUtils::SetListStr(op_desc, "_thread_tvm_magic", json_list);
   // Init meta data
-  std::vector<std::string> meta_data_list{ "AIVEC_META_DATA", "AICUBE_META_DATA" };
+  std::vector<std::string> meta_data_list{"AIVEC_META_DATA", "AICUBE_META_DATA"};
   (void)AttrUtils::SetListStr(op_desc, "_thread_tvm_metadata", meta_data_list);
 }
 
@@ -290,8 +299,7 @@ static void SetMixL2AicAivOpKernel(const ComputeGraphPtr &graph, const std::stri
 
   std::vector<TBEKernelPtr> tbe_kernel_vec{
       std::make_shared<ge::OpKernelBin>(thread_kernel_names[0], std::move(aic_kernel_bin)),
-      std::make_shared<ge::OpKernelBin>(thread_kernel_names[1], std::move(aiv_kernel_bin))
-  };
+      std::make_shared<ge::OpKernelBin>(thread_kernel_names[1], std::move(aiv_kernel_bin))};
   if (kernel_store == nullptr) {
     op_desc->SetExtAttr(OP_EXTATTR_NAME_THREAD_TBE_KERNEL, tbe_kernel_vec);
   } else {
@@ -302,16 +310,16 @@ static void SetMixL2AicAivOpKernel(const ComputeGraphPtr &graph, const std::stri
   std::vector<std::string> name_prefix = {"_mix_aic", "_mix_aiv"};
   (void)AttrUtils::SetListStr(op_desc, ATTR_NAME_KERNEL_NAMES_PREFIX, name_prefix);
 
-  std::vector<string> bin_file_keys{ op_desc->GetName() + "_aic", op_desc->GetName() + "_aiv" };
+  std::vector<string> bin_file_keys{op_desc->GetName() + "_aic", op_desc->GetName() + "_aiv"};
   (void)AttrUtils::SetListStr(op_desc, "_register_stub_func", bin_file_keys);
   (void)AttrUtils::SetStr(op_desc, op_desc->GetName() + "_kernelname", op_desc->GetName());
   (void)AttrUtils::SetInt(op_desc, ATTR_NAME_THREAD_MODE, 1);
   (void)AttrUtils::SetInt(op_desc, ATTR_NAME_THREAD_SCOPE_ID, 1);
   // Init Binary Magic
-  std::vector<std::string> json_list{ "RT_DEV_BINARY_MAGIC_ELF_AIVEC", "RT_DEV_BINARY_MAGIC_ELF_AICUBE" };
+  std::vector<std::string> json_list{"RT_DEV_BINARY_MAGIC_ELF_AIVEC", "RT_DEV_BINARY_MAGIC_ELF_AICUBE"};
   (void)AttrUtils::SetListStr(op_desc, "_thread_tvm_magic", json_list);
   // Init meta data
-  std::vector<std::string> meta_data_list{ "AIVEC_META_DATA", "AICUBE_META_DATA" };
+  std::vector<std::string> meta_data_list{"AIVEC_META_DATA", "AICUBE_META_DATA"};
   (void)AttrUtils::SetListStr(op_desc, "_thread_tvm_metadata", meta_data_list);
 }
 
@@ -339,42 +347,45 @@ static void BuildFftsPlusGraph(ComputeGraphPtr &root_graph, ComputeGraphPtr &fft
                                TBEKernelStore *kernel_store = nullptr, bool is_mixl2 = false, bool is_auto = true) {
   uint32_t mem_offset = 0U;
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("_arg_0", DATA)->NODE("PartitionedCall_0", PARTITIONEDCALL)->NODE("Node_Output", NETOUTPUT));
-                  CHAIN(NODE("_arg_1", DATA)->NODE("PartitionedCall_0"));
-                  CHAIN(NODE("_arg_2", DATA)->NODE("PartitionedCall_0"));
-                };
+    CHAIN(NODE("_arg_0", DATA)->NODE("PartitionedCall_0", PARTITIONEDCALL)->NODE("Node_Output", NETOUTPUT));
+    CHAIN(NODE("_arg_1", DATA)->NODE("PartitionedCall_0"));
+    CHAIN(NODE("_arg_2", DATA)->NODE("PartitionedCall_0"));
+  };
   root_graph = ToComputeGraph(g1);
   SetUnknownOpKernel(root_graph, mem_offset, true);
 
   DEF_GRAPH(g2) {
-                  auto data_0 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);
-                  auto data_1 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 1);
-                  auto data_2 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 2);
-                  auto conv_0 = OP_CFG(CONV2D)
+    auto data_0 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);
+    auto data_1 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 1);
+    auto data_2 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 2);
+    auto conv_0 = OP_CFG(CONV2D)
                       .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
                       .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIC")
                       .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF")
                       .Attr("_mix_with_enhanced_kernel", true);
-                  auto relu_0 = OP_CFG(RELU).Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::AI_CPU));
-                  auto add_0 = OP_CFG(ADD).Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::AI_CPU)).Attr("_is_blocking_op", true);
-                  CHAIN(NODE("sgt_graph/_arg_0", data_0)
-                            ->EDGE(0, 0)
-                            ->NODE("sgt_graph/Conv2D", conv_0)
-                            ->EDGE(0, 0)
-                            ->NODE("sgt_graph/Add", add_0)
-                            ->EDGE(0, 0)
-                            ->NODE("sgt_graph/Relu", relu_0)
-                            ->EDGE(0, 0)
-                            ->NODE("sgt_graph/Node_Output", NETOUTPUT));
-                  auto const_0 = OP_CFG(CONSTANT);
-                  CHAIN(NODE("sgt_graph/_arg_1", data_1)->EDGE(0, 1)->NODE("sgt_graph/Conv2D", conv_0));
-                  CHAIN(NODE("sgt_graph/_const_0", const_0)->EDGE(0, 2)->NODE("sgt_graph/Conv2D", conv_0));
-                  CHAIN(NODE("sgt_graph/_arg_2", data_2)->EDGE(0, 1)->NODE("sgt_graph/Add", add_0));
-                };
+    auto relu_0 = OP_CFG(RELU).Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::AI_CPU));
+    auto add_0 = OP_CFG(ADD)
+                     .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::AI_CPU))
+                     .Attr("_is_blocking_op", true);
+    CHAIN(NODE("sgt_graph/_arg_0", data_0)
+              ->EDGE(0, 0)
+              ->NODE("sgt_graph/Conv2D", conv_0)
+              ->EDGE(0, 0)
+              ->NODE("sgt_graph/Add", add_0)
+              ->EDGE(0, 0)
+              ->NODE("sgt_graph/Relu", relu_0)
+              ->EDGE(0, 0)
+              ->NODE("sgt_graph/Node_Output", NETOUTPUT));
+    auto const_0 = OP_CFG(CONSTANT);
+    CHAIN(NODE("sgt_graph/_arg_1", data_1)->EDGE(0, 1)->NODE("sgt_graph/Conv2D", conv_0));
+    CHAIN(NODE("sgt_graph/_const_0", const_0)->EDGE(0, 2)->NODE("sgt_graph/Conv2D", conv_0));
+    CHAIN(NODE("sgt_graph/_arg_2", data_2)->EDGE(0, 1)->NODE("sgt_graph/Add", add_0));
+  };
   ffts_plus_graph = ToComputeGraph(g2);
   SetUnknownOpKernel(ffts_plus_graph, mem_offset);
   AddPartitionedCall(root_graph, "PartitionedCall_0", ffts_plus_graph);
-  (void)AttrUtils::SetListInt(ffts_plus_graph->FindNode("sgt_graph/Conv2D")->GetOpDesc(), gert::kContextIdList, {0, 1, 2, 3});
+  (void)AttrUtils::SetListInt(ffts_plus_graph->FindNode("sgt_graph/Conv2D")->GetOpDesc(), gert::kContextIdList,
+                              {0, 1, 2, 3});
 
   if (is_mixl2) {
     SetMixL2AicAivOpKernel(ffts_plus_graph, "sgt_graph/Conv2D", kernel_store);
@@ -407,7 +418,8 @@ static void RunPureStaticFftsPlusGraph(const ComputeGraphPtr &root_graph, const 
 
   GraphId graph_id = 1001;
   GraphNodePtr graph_node = MakeShared<GraphNode>(graph_id);
-  graph_node->SetGeRootModel(ge_root_model);;
+  graph_node->SetGeRootModel(ge_root_model);
+  ;
   graph_node->SetLoadFlag(true);
   graph_node->SetAsync(true);
 
@@ -452,7 +464,8 @@ static void RunDynamicStaticFftsPlusGraph(const ComputeGraphPtr &root_graph,
 
   GraphId graph_id = 1001;
   GraphNodePtr graph_node = MakeShared<GraphNode>(graph_id);
-  graph_node->SetGeRootModel(ge_root_model);;
+  graph_node->SetGeRootModel(ge_root_model);
+  ;
   graph_node->SetLoadFlag(true);
   graph_node->IncreaseLoadCount();
   graph_node->SetAsync(true);
@@ -516,10 +529,10 @@ TEST_F(FftsPlusTest, ffts_plus_dynamic_static_subgraph) {
 static void BuildDSAGraph(ComputeGraphPtr &root_graph) {
   uint32_t mem_offset = 0U;
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("_arg_0", DATA)->NODE("PartitionedCall_0", PARTITIONEDCALL)->NODE("Node_Output", NETOUTPUT));
-                  CHAIN(NODE("_arg_1", DATA)->NODE("PartitionedCall_0"));
-                  CHAIN(NODE("_arg_2", DATA)->NODE("PartitionedCall_0"));
-                };
+    CHAIN(NODE("_arg_0", DATA)->NODE("PartitionedCall_0", PARTITIONEDCALL)->NODE("Node_Output", NETOUTPUT));
+    CHAIN(NODE("_arg_1", DATA)->NODE("PartitionedCall_0"));
+    CHAIN(NODE("_arg_2", DATA)->NODE("PartitionedCall_0"));
+  };
   root_graph = ToComputeGraph(g1);
   SetUnknownOpKernel(root_graph, mem_offset, true);
 }
@@ -527,25 +540,30 @@ static void BuildDSAGraph(ComputeGraphPtr &root_graph) {
 static void BuildDSAUnknownGraph(ComputeGraphPtr &root_graph, ComputeGraphPtr &sub_graph) {
   uint32_t mem_offset = 0U;
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("_arg_0", DATA)->NODE("PartitionedCall_0", PARTITIONEDCALL)->NODE("Node_Output", NETOUTPUT));
-                  CHAIN(NODE("_arg_1", DATA)->NODE("PartitionedCall_0"));
-                  CHAIN(NODE("_arg_2", DATA)->NODE("PartitionedCall_0"));
-                };
+    CHAIN(NODE("_arg_0", DATA)->NODE("PartitionedCall_0", PARTITIONEDCALL)->NODE("Node_Output", NETOUTPUT));
+    CHAIN(NODE("_arg_1", DATA)->NODE("PartitionedCall_0"));
+    CHAIN(NODE("_arg_2", DATA)->NODE("PartitionedCall_0"));
+  };
   root_graph = ToComputeGraph(g1);
   root_graph->SetGraphUnknownFlag(true);
   SetUnknownOpKernel(root_graph, mem_offset, true);
 
+  DEF_GRAPH(g2) {  // Known Graph
+    auto data_0 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);
+    auto data_1 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 1);
+    auto data_2 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 2);
 
-  DEF_GRAPH(g2) { // Known Graph
-                  auto data_0 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);
-                  auto data_1 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 1);
-                  auto data_2 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 2);
-
-                  CHAIN(NODE("data0", data_0)->EDGE(0, 0)->NODE("memcpy0", MEMCPYASYNC)->EDGE(0, 0)->NODE("dsa", "DSARandomUniform")
-                            ->EDGE(0, 0)->NODE("memcpy3", MEMCPYASYNC)->NODE("sub_Node_Output", NETOUTPUT));
-                  CHAIN(NODE("data1", data_1)->EDGE(0, 0)->NODE("memcpy1", MEMCPYASYNC)->EDGE(0, 1)->NODE("dsa", "DSARandomUniform"));
-                  CHAIN(NODE("data2", data_2)->EDGE(0, 0)->NODE("memcpy2", MEMCPYASYNC)->EDGE(0, 2)->NODE("dsa", "DSARandomUniform"));
-                };
+    CHAIN(NODE("data0", data_0)
+              ->EDGE(0, 0)
+              ->NODE("memcpy0", MEMCPYASYNC)
+              ->EDGE(0, 0)
+              ->NODE("dsa", "DSARandomUniform")
+              ->EDGE(0, 0)
+              ->NODE("memcpy3", MEMCPYASYNC)
+              ->NODE("sub_Node_Output", NETOUTPUT));
+    CHAIN(NODE("data1", data_1)->EDGE(0, 0)->NODE("memcpy1", MEMCPYASYNC)->EDGE(0, 1)->NODE("dsa", "DSARandomUniform"));
+    CHAIN(NODE("data2", data_2)->EDGE(0, 0)->NODE("memcpy2", MEMCPYASYNC)->EDGE(0, 2)->NODE("dsa", "DSARandomUniform"));
+  };
   sub_graph = ToComputeGraph(g2);
   sub_graph->SetGraphUnknownFlag(false);
   SetUnknownOpKernel(sub_graph, mem_offset, true);
@@ -580,10 +598,10 @@ TEST_F(FftsPlusTest, dsa_graph) {
   RTS_STUB_RETURN_VALUE(rtQueryFunctionRegistered, rtError_t, 0x78000001);
   RTS_STUB_RETURN_VALUE(rtQueryFunctionRegistered, rtError_t, 0x78000001);
 
-
   GraphId graph_id = 1001;
   GraphNodePtr graph_node = MakeShared<GraphNode>(graph_id);
-  graph_node->SetGeRootModel(ge_root_model);;
+  graph_node->SetGeRootModel(ge_root_model);
+  ;
   graph_node->SetLoadFlag(true);
   graph_node->SetAsync(true);
 
@@ -625,7 +643,8 @@ TEST_F(FftsPlusTest, dsa_graph_set_input1_value) {
 
   GraphId graph_id = 1001;
   GraphNodePtr graph_node = MakeShared<GraphNode>(graph_id);
-  graph_node->SetGeRootModel(ge_root_model);;
+  graph_node->SetGeRootModel(ge_root_model);
+  ;
   graph_node->SetLoadFlag(true);
   graph_node->SetAsync(true);
 
@@ -665,7 +684,8 @@ TEST_F(FftsPlusTest, dsa_graph_with_dump) {
 
   GraphId graph_id = 1001;
   GraphNodePtr graph_node = MakeShared<GraphNode>(graph_id);
-  graph_node->SetGeRootModel(ge_root_model);;
+  graph_node->SetGeRootModel(ge_root_model);
+  ;
   graph_node->SetLoadFlag(true);
   graph_node->SetAsync(true);
 
@@ -694,7 +714,7 @@ TEST_F(FftsPlusTest, ffts_plus_graph_load_success) {
   BuildFftsPlusGraph(root_graph, ffts_plus_graph, &tbe_kernel_store);
 
   // Build FftsTaskDef.
-  std::shared_ptr<domi::ModelTaskDef> model_task_def= MakeShared<domi::ModelTaskDef>();
+  std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   auto &task_def = *model_task_def->add_task();
   InitFftsplusTaskDef(ffts_plus_graph, task_def);
   auto &ffts_plus_task_def = *task_def.mutable_ffts_plus_task();
@@ -727,7 +747,8 @@ TEST_F(FftsPlusTest, ffts_plus_graph_load_success) {
   EXPECT_NE(aic_node, nullptr);
   std::vector<uint32_t> ctx_ids = {20, 21};
   (void)ge::AttrUtils::SetListInt(aic_node->GetOpDescBarePtr()->MutableOutputDesc(0), gert::kTensorCtxId, ctx_ids);
-  (void)ge::AttrUtils::SetListInt(aic_node->GetOpDescBarePtr()->MutableOutputDesc(0), ge::ATTR_NAME_FFTS_SUB_TASK_TENSOR_OFFSETS, {20, 40, 2, 100, 200});
+  (void)ge::AttrUtils::SetListInt(aic_node->GetOpDescBarePtr()->MutableOutputDesc(0),
+                                  ge::ATTR_NAME_FFTS_SUB_TASK_TENSOR_OFFSETS, {20, 40, 2, 100, 200});
   std::string json_str =
       "{\"dependencies\":[],\"thread_scopeId\":200,\"is_first_node_in_topo_order\":false,\"node_num_in_thread_scope\":"
       "0,"
@@ -737,10 +758,12 @@ TEST_F(FftsPlusTest, ffts_plus_graph_load_success) {
       "],\"original_node\":\"\",\"core_num\":[],\"cutType\":[{\"splitCutIndex\":1,\"reduceCutIndex\":2,\"cutId\":3}],"
       "\"atomic_types\":[],\"thread_id\":0,\"same_atomic_clean_"
       "nodes\":[],\"input_axis\":[],\"output_axis\":[],\"input_tensor_indexes\":[],\"output_tensor_indexes\":[],"
-      "\"input_tensor_slice\":[[[{\"lower\":1, \"higher\":2}, {\"lower\":3, \"higher\":4}, {\"lower\":3, \"higher\":4}]],"
+      "\"input_tensor_slice\":[[[{\"lower\":1, \"higher\":2}, {\"lower\":3, \"higher\":4}, {\"lower\":3, "
+      "\"higher\":4}]],"
       "[[{\"lower\":9, \"higher\":10}, {\"lower\":11, \"higher\":12}, {\"lower\":11, \"higher\":12}]],"
       "[[{\"lower\":9, \"higher\":10}, {\"lower\":11, \"higher\":12}, {\"lower\":11, \"higher\":12}]]],"
-      "\"output_tensor_slice\":[[[{\"lower\":1, \"higher\":2}, {\"lower\":3, \"higher\":4}, {\"lower\":3, \"higher\":4}]],"
+      "\"output_tensor_slice\":[[[{\"lower\":1, \"higher\":2}, {\"lower\":3, \"higher\":4}, {\"lower\":3, "
+      "\"higher\":4}]],"
       "[[{\"lower\":9, \"higher\":10}, {\"lower\":11, \"higher\":12}, {\"lower\":11, \"higher\":12}]],"
       "[[{\"lower\":9, \"higher\":10}, {\"lower\":11, \"higher\":12}, {\"lower\":11, \"higher\":12}]]],"
       "\"ori_input_tensor_slice\":[],\"ori_output_tensor_slice\":["
@@ -788,7 +811,8 @@ TEST_F(FftsPlusTest, ffts_plus_graph_load_success) {
 
     GraphId graph_id = 1001;
     GraphNodePtr graph_node = MakeShared<GraphNode>(graph_id);
-    graph_node->SetGeRootModel(ge_root_model);;
+    graph_node->SetGeRootModel(ge_root_model);
+    ;
     graph_node->SetLoadFlag(true);
     graph_node->SetAsync(true);
 
@@ -830,7 +854,8 @@ TEST_F(FftsPlusTest, ffts_plus_graph_load_success) {
 
     GraphId graph_id = 1001;
     GraphNodePtr graph_node = MakeShared<GraphNode>(graph_id);
-    graph_node->SetGeRootModel(ge_root_model);;
+    graph_node->SetGeRootModel(ge_root_model);
+    ;
     graph_node->SetLoadFlag(true);
     graph_node->SetAsync(true);
 
@@ -851,7 +876,6 @@ TEST_F(FftsPlusTest, ffts_plus_graph_load_success) {
 
     DumpManager::GetInstance().RemoveDumpProperties(session_id);
   }
-
 }
 
 TEST_F(FftsPlusTest, ffts_plus_error_tracking_test) {
@@ -861,7 +885,7 @@ TEST_F(FftsPlusTest, ffts_plus_error_tracking_test) {
   BuildFftsPlusGraph(root_graph, ffts_plus_graph, &tbe_kernel_store);
 
   // Build FftsTaskDef.
-  std::shared_ptr<domi::ModelTaskDef> model_task_def= MakeShared<domi::ModelTaskDef>();
+  std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   auto &task_def = *model_task_def->add_task();
   InitFftsplusTaskDef(ffts_plus_graph, task_def);
   auto &ffts_plus_task_def = *task_def.mutable_ffts_plus_task();
@@ -873,7 +897,8 @@ TEST_F(FftsPlusTest, ffts_plus_error_tracking_test) {
   AttrUtils::SetListStr(aic_node->GetOpDesc(), ATTR_NAME_DATA_DUMP_ORIGIN_OP_NAMES, {"op1", "op2", "op3"});
   std::vector<uint32_t> ctx_ids = {20, 21};
   (void)ge::AttrUtils::SetListInt(aic_node->GetOpDescBarePtr()->MutableOutputDesc(0), gert::kTensorCtxId, ctx_ids);
-  (void)ge::AttrUtils::SetListInt(aic_node->GetOpDescBarePtr()->MutableOutputDesc(0), ge::ATTR_NAME_FFTS_SUB_TASK_TENSOR_OFFSETS, {20, 40, 2, 100, 200});
+  (void)ge::AttrUtils::SetListInt(aic_node->GetOpDescBarePtr()->MutableOutputDesc(0),
+                                  ge::ATTR_NAME_FFTS_SUB_TASK_TENSOR_OFFSETS, {20, 40, 2, 100, 200});
   std::string json_str =
       "{\"dependencies\":[],\"thread_scopeId\":200,\"is_first_node_in_topo_order\":false,\"node_num_in_thread_scope\":"
       "0,"
@@ -883,10 +908,12 @@ TEST_F(FftsPlusTest, ffts_plus_error_tracking_test) {
       "],\"original_node\":\"\",\"core_num\":[],\"cutType\":[{\"splitCutIndex\":1,\"reduceCutIndex\":2,\"cutId\":3}],"
       "\"atomic_types\":[],\"thread_id\":0,\"same_atomic_clean_"
       "nodes\":[],\"input_axis\":[],\"output_axis\":[],\"input_tensor_indexes\":[],\"output_tensor_indexes\":[],"
-      "\"input_tensor_slice\":[[[{\"lower\":1, \"higher\":2}, {\"lower\":3, \"higher\":4}, {\"lower\":3, \"higher\":4}]],"
+      "\"input_tensor_slice\":[[[{\"lower\":1, \"higher\":2}, {\"lower\":3, \"higher\":4}, {\"lower\":3, "
+      "\"higher\":4}]],"
       "[[{\"lower\":9, \"higher\":10}, {\"lower\":11, \"higher\":12}, {\"lower\":11, \"higher\":12}]],"
       "[[{\"lower\":9, \"higher\":10}, {\"lower\":11, \"higher\":12}, {\"lower\":11, \"higher\":12}]]],"
-      "\"output_tensor_slice\":[[[{\"lower\":1, \"higher\":2}, {\"lower\":3, \"higher\":4}, {\"lower\":3, \"higher\":4}]],"
+      "\"output_tensor_slice\":[[[{\"lower\":1, \"higher\":2}, {\"lower\":3, \"higher\":4}, {\"lower\":3, "
+      "\"higher\":4}]],"
       "[[{\"lower\":9, \"higher\":10}, {\"lower\":11, \"higher\":12}, {\"lower\":11, \"higher\":12}]],"
       "[[{\"lower\":9, \"higher\":10}, {\"lower\":11, \"higher\":12}, {\"lower\":11, \"higher\":12}]]],"
       "\"ori_input_tensor_slice\":[],\"ori_output_tensor_slice\":["
@@ -934,7 +961,8 @@ TEST_F(FftsPlusTest, ffts_plus_error_tracking_test) {
 
   GraphId graph_id = 1001;
   GraphNodePtr graph_node = MakeShared<GraphNode>(graph_id);
-  graph_node->SetGeRootModel(ge_root_model);;
+  graph_node->SetGeRootModel(ge_root_model);
+  ;
   graph_node->SetLoadFlag(true);
   graph_node->SetAsync(true);
 
@@ -969,7 +997,7 @@ TEST_F(FftsPlusTest, ffts_plus_graph_manual_load_success) {
   BuildFftsPlusGraph(root_graph, ffts_plus_graph, &tbe_kernel_store);
 
   // Build FftsTaskDef.
-  std::shared_ptr<domi::ModelTaskDef> model_task_def= MakeShared<domi::ModelTaskDef>();
+  std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   auto &task_def = *model_task_def->add_task();
   InitFftsplusTaskDef(ffts_plus_graph, task_def);
   auto &ffts_plus_task_def = *task_def.mutable_ffts_plus_task();
@@ -1000,7 +1028,8 @@ TEST_F(FftsPlusTest, ffts_plus_graph_manual_load_success) {
 
   GraphId graph_id = 1001;
   GraphNodePtr graph_node = MakeShared<GraphNode>(graph_id);
-  graph_node->SetGeRootModel(ge_root_model);;
+  graph_node->SetGeRootModel(ge_root_model);
+  ;
   graph_node->SetLoadFlag(true);
   graph_node->SetAsync(true);
 
@@ -1028,7 +1057,7 @@ TEST_F(FftsPlusTest, ffts_plus_graph_load_success_with_tiling_data) {
   BuildFftsPlusGraph(root_graph, ffts_plus_graph, &tbe_kernel_store, false, false);
 
   // Build FftsTaskDef.
-  std::shared_ptr<domi::ModelTaskDef> model_task_def= MakeShared<domi::ModelTaskDef>();
+  std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   auto &task_def = *model_task_def->add_task();
   InitFftsplusTaskDef(ffts_plus_graph, task_def);
   auto &ffts_plus_task_def = *task_def.mutable_ffts_plus_task();
@@ -1067,7 +1096,8 @@ TEST_F(FftsPlusTest, ffts_plus_graph_load_success_with_tiling_data) {
 
   GraphId graph_id = 1001;
   GraphNodePtr graph_node = MakeShared<GraphNode>(graph_id);
-  graph_node->SetGeRootModel(ge_root_model);;
+  graph_node->SetGeRootModel(ge_root_model);
+  ;
   graph_node->SetLoadFlag(true);
   graph_node->SetAsync(true);
 
@@ -1089,7 +1119,7 @@ TEST_F(FftsPlusTest, ffts_plus_graph_load_success_with_tiling_data) {
 }
 
 TEST_F(FftsPlusTest, ffts_plus_graph_load_with_exceptiondump) {
-  const char_t * const kEnvRecordPath = "NPU_COLLECT_PATH";
+  const char_t *const kEnvRecordPath = "NPU_COLLECT_PATH";
   char_t npu_collect_path[MMPA_MAX_PATH] = "valid_path";
   mmSetEnv(kEnvRecordPath, &npu_collect_path[0U], MMPA_MAX_PATH);
 
@@ -1099,7 +1129,7 @@ TEST_F(FftsPlusTest, ffts_plus_graph_load_with_exceptiondump) {
   BuildFftsPlusGraph(root_graph, ffts_plus_graph, &tbe_kernel_store);
 
   // Build FftsTaskDef.
-  std::shared_ptr<domi::ModelTaskDef> model_task_def= MakeShared<domi::ModelTaskDef>();
+  std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   auto &task_def = *model_task_def->add_task();
   InitFftsplusTaskDef(ffts_plus_graph, task_def);
   auto &ffts_plus_task_def = *task_def.mutable_ffts_plus_task();
@@ -1125,7 +1155,8 @@ TEST_F(FftsPlusTest, ffts_plus_graph_load_with_exceptiondump) {
 
   GraphId graph_id = 1001;
   GraphNodePtr graph_node = MakeShared<GraphNode>(graph_id);
-  graph_node->SetGeRootModel(ge_root_model);;
+  graph_node->SetGeRootModel(ge_root_model);
+  ;
   graph_node->SetLoadFlag(true);
   graph_node->SetAsync(true);
 
@@ -1148,7 +1179,7 @@ TEST_F(FftsPlusTest, ffts_plus_graph_with_aicpu_load_success) {
   BuildFftsPlusGraph(root_graph, ffts_plus_graph);
 
   // Build FftsTaskDef.
-  std::shared_ptr<domi::ModelTaskDef> model_task_def= MakeShared<domi::ModelTaskDef>();
+  std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   auto &task_def = *model_task_def->add_task();
   InitFftsplusTaskDef(ffts_plus_graph, task_def);
   auto &ffts_plus_task_def = *task_def.mutable_ffts_plus_task();
@@ -1162,7 +1193,7 @@ TEST_F(FftsPlusTest, ffts_plus_graph_with_aicpu_load_success) {
   auto &custom_aicpu_ctx_def = *ffts_plus_task_def.add_ffts_plus_ctx();
   InitCustomFftsPlusAicpuCtxDef(ffts_plus_graph, custom_aicpu_ctx_def, "sgt_graph/Relu");
   ProfilingProperties::Instance().SetLoadProfiling(true);
-  auto hash_func = [](const char_t * info, size_t length)->uint64_t {return 0;};
+  auto hash_func = [](const char_t *info, size_t length) -> uint64_t { return 0; };
   ge::ProfilingTestUtil::Instance().hash_func_ = hash_func;
   RunPureStaticFftsPlusGraph(root_graph, ffts_plus_graph, model_task_def);
   ge::ProfilingTestUtil::Instance().hash_func_ = nullptr;
@@ -1174,7 +1205,7 @@ TEST_F(FftsPlusTest, ffts_plus_graph_with_aicpu_load_no_block_success) {
   BuildFftsPlusGraph(root_graph, ffts_plus_graph);
 
   // Build FftsTaskDef.
-  std::shared_ptr<domi::ModelTaskDef> model_task_def= MakeShared<domi::ModelTaskDef>();
+  std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   auto &task_def = *model_task_def->add_task();
   InitFftsplusTaskDef(ffts_plus_graph, task_def);
   auto &ffts_plus_task_def = *task_def.mutable_ffts_plus_task();
@@ -1203,7 +1234,8 @@ TEST_F(FftsPlusTest, ffts_plus_graph_with_aicpu_load_no_block_success) {
 
   GraphId graph_id = 1001;
   GraphNodePtr graph_node = MakeShared<GraphNode>(graph_id);
-  graph_node->SetGeRootModel(ge_root_model);;
+  graph_node->SetGeRootModel(ge_root_model);
+  ;
   graph_node->SetLoadFlag(true);
   graph_node->SetAsync(true);
 
@@ -1222,7 +1254,7 @@ TEST_F(FftsPlusTest, ffts_plus_graph_with_aicpu_load_failed) {
   BuildFftsPlusGraph(root_graph, ffts_plus_graph);
 
   // Build FftsTaskDef.
-  std::shared_ptr<domi::ModelTaskDef> model_task_def= MakeShared<domi::ModelTaskDef>();
+  std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   auto &task_def = *model_task_def->add_task();
   InitFftsplusTaskDef(ffts_plus_graph, task_def);
   auto &ffts_plus_task_def = *task_def.mutable_ffts_plus_task();
@@ -1251,7 +1283,8 @@ TEST_F(FftsPlusTest, ffts_plus_graph_with_aicpu_load_failed) {
 
   GraphId graph_id = 1001;
   GraphNodePtr graph_node = MakeShared<GraphNode>(graph_id);
-  graph_node->SetGeRootModel(ge_root_model);;
+  graph_node->SetGeRootModel(ge_root_model);
+  ;
   graph_node->SetLoadFlag(true);
   graph_node->SetAsync(true);
 
@@ -1271,7 +1304,7 @@ TEST_F(FftsPlusTest, ffts_plus_graph_init) {
   BuildFftsPlusGraph(root_graph, ffts_plus_graph);
 
   // Build FftsTaskDef.
-  std::shared_ptr<domi::ModelTaskDef> model_task_def= MakeShared<domi::ModelTaskDef>();
+  std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   auto &task_def = *model_task_def->add_task();
   InitFftsplusTaskDef(ffts_plus_graph, task_def);
   auto &ffts_plus_task_def = *task_def.mutable_ffts_plus_task();
@@ -1291,7 +1324,7 @@ TEST_F(FftsPlusTest, ffts_plus_graph_init_task_def) {
   AttrUtils::SetInt(ffts_plus_graph->GetParentNode()->GetOpDesc(), "_parallel_group_id", 0);
 
   // Build FftsTaskDef.
-  std::shared_ptr<domi::ModelTaskDef> model_task_def= MakeShared<domi::ModelTaskDef>();
+  std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   auto &task_def = *model_task_def->add_task();
   InitFftsplusTaskDef(ffts_plus_graph, task_def);
   auto &ffts_plus_task_def = *task_def.mutable_ffts_plus_task();
@@ -1312,7 +1345,7 @@ TEST_F(FftsPlusTest, ffts_plus_graph_dsa_task_def) {
   BuildFftsPlusGraph(root_graph, ffts_plus_graph);
 
   // Build FftsTaskDef.
-  std::shared_ptr<domi::ModelTaskDef> model_task_def= MakeShared<domi::ModelTaskDef>();
+  std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   auto &task_def = *model_task_def->add_task();
   InitFftsplusTaskDef(ffts_plus_graph, task_def);
   auto &ffts_plus_task_def = *task_def.mutable_ffts_plus_task();
@@ -1335,7 +1368,7 @@ TEST_F(FftsPlusTest, ffts_plus_graph_dsa_task_def_with_ptr) {
   BuildFftsPlusGraph(root_graph, ffts_plus_graph);
 
   // Build FftsTaskDef.
-  std::shared_ptr<domi::ModelTaskDef> model_task_def= MakeShared<domi::ModelTaskDef>();
+  std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   auto &task_def = *model_task_def->add_task();
   InitFftsplusTaskDef(ffts_plus_graph, task_def);
   auto &ffts_plus_task_def = *task_def.mutable_ffts_plus_task();
@@ -1359,7 +1392,7 @@ TEST_F(FftsPlusTest, ffts_plus_graph_dsa_task_def_with_dump) {
   BuildFftsPlusGraph(root_graph, ffts_plus_graph);
 
   // Build FftsTaskDef.
-  std::shared_ptr<domi::ModelTaskDef> model_task_def= MakeShared<domi::ModelTaskDef>();
+  std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   auto &task_def = *model_task_def->add_task();
   InitFftsplusTaskDef(ffts_plus_graph, task_def);
   auto &ffts_plus_task_def = *task_def.mutable_ffts_plus_task();
@@ -1369,7 +1402,6 @@ TEST_F(FftsPlusTest, ffts_plus_graph_dsa_task_def_with_dump) {
   InitDataCtx(ffts_plus_graph, data_def, "sgt_graph/Add");
   auto &switch_def = *ffts_plus_task_def.add_ffts_plus_ctx();
   InitCondSwitchCtx(ffts_plus_graph, switch_def, "sgt_graph/Relu");
-
 
   const uint64_t session_id = GetContext().SessionId();
   DumpManager::GetInstance().RemoveDumpProperties(session_id);
@@ -1390,7 +1422,7 @@ TEST_F(FftsPlusTest, ffts_plus_graph_cache_persist) {
   BuildFftsPlusGraph(root_graph, ffts_plus_graph);
 
   // Build FftsTaskDef.
-  std::shared_ptr<domi::ModelTaskDef> model_task_def= MakeShared<domi::ModelTaskDef>();
+  std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   auto &task_def = *model_task_def->add_task();
   InitFftsplusTaskDef(ffts_plus_graph, task_def);
   auto &ffts_plus_task_def = *task_def.mutable_ffts_plus_task();
@@ -1406,7 +1438,7 @@ TEST_F(FftsPlusTest, FftsPlusTest_ffts_plus_auto_graph_with_mix_load_fail) {
   BuildFftsPlusGraph(root_graph, ffts_plus_graph, &tbe_kernel_store);
 
   // Build FftsTaskDef.
-  std::shared_ptr<domi::ModelTaskDef> model_task_def= MakeShared<domi::ModelTaskDef>();
+  std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   auto &task_def = *model_task_def->add_task();
   InitFftsplusTaskDef(ffts_plus_graph, task_def);
   auto &ffts_plus_task_def = *task_def.mutable_ffts_plus_task();
@@ -1437,7 +1469,8 @@ TEST_F(FftsPlusTest, FftsPlusTest_ffts_plus_auto_graph_with_mix_load_fail) {
 
   GraphId graph_id = 1001;
   GraphNodePtr graph_node = MakeShared<GraphNode>(graph_id);
-  graph_node->SetGeRootModel(ge_root_model);;
+  graph_node->SetGeRootModel(ge_root_model);
+  ;
   graph_node->SetLoadFlag(true);
   graph_node->SetAsync(true);
 
@@ -1457,7 +1490,7 @@ TEST_F(FftsPlusTest, FftsPlusTest_ffts_plus_auto_graph_with_mix_load_success) {
   BuildFftsPlusGraph(root_graph, ffts_plus_graph, &tbe_kernel_store, true);
 
   // Build FftsTaskDef.
-  std::shared_ptr<domi::ModelTaskDef> model_task_def= MakeShared<domi::ModelTaskDef>();
+  std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   auto &task_def = *model_task_def->add_task();
   InitFftsplusTaskDef(ffts_plus_graph, task_def);
   auto &ffts_plus_task_def = *task_def.mutable_ffts_plus_task();
@@ -1489,7 +1522,8 @@ TEST_F(FftsPlusTest, FftsPlusTest_ffts_plus_auto_graph_with_mix_load_success) {
 
   GraphId graph_id = 1001;
   GraphNodePtr graph_node = MakeShared<GraphNode>(graph_id);
-  graph_node->SetGeRootModel(ge_root_model);;
+  graph_node->SetGeRootModel(ge_root_model);
+  ;
   graph_node->SetLoadFlag(true);
   graph_node->SetAsync(true);
 
@@ -1516,8 +1550,8 @@ UINT32 StubTilingParseFFTSST(gert::KernelContext *context) {
   return ge::GRAPH_SUCCESS;
 }
 
-void* CompileInfoCreatorFFTSST() {
-  auto tmp =  ge::MakeUnique<char>();
+void *CompileInfoCreatorFFTSST() {
+  auto tmp = ge::MakeUnique<char>();
   return tmp.get();
 }
 
@@ -1547,7 +1581,7 @@ TEST_F(FftsPlusTest, FftsPlusTest_ffts_plus_graph_mix_prof_Test) {
   AttrUtils::SetStr(op_desc, TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
 
   // Build FftsTaskDef.
-  std::shared_ptr<domi::ModelTaskDef> model_task_def= MakeShared<domi::ModelTaskDef>();
+  std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   auto &task_def = *model_task_def->add_task();
   InitFftsplusTaskDef(ffts_plus_graph, task_def);
   auto &ffts_plus_task_def = *task_def.mutable_ffts_plus_task();
@@ -1578,7 +1612,8 @@ TEST_F(FftsPlusTest, FftsPlusTest_ffts_plus_graph_mix_prof_Test) {
 
   GraphId graph_id = 1001;
   GraphNodePtr graph_node = MakeShared<GraphNode>(graph_id);
-  graph_node->SetGeRootModel(ge_root_model);;
+  graph_node->SetGeRootModel(ge_root_model);
+  ;
   graph_node->SetLoadFlag(true);
   graph_node->SetAsync(true);
 
@@ -1614,7 +1649,7 @@ TEST_F(FftsPlusTest, ffts_plus_graph_load_with_level1update) {
   BuildFftsPlusGraph(root_graph, ffts_plus_graph, &tbe_kernel_store);
 
   // Build FftsTaskDef.
-  std::shared_ptr<domi::ModelTaskDef> model_task_def= MakeShared<domi::ModelTaskDef>();
+  std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   auto &task_def = *model_task_def->add_task();
   InitFftsplusTaskDef(ffts_plus_graph, task_def);
   auto &ffts_plus_task_def = *task_def.mutable_ffts_plus_task();
@@ -1647,7 +1682,8 @@ TEST_F(FftsPlusTest, ffts_plus_graph_load_with_level1update) {
 
   GraphId graph_id = 1001;
   GraphNodePtr graph_node = MakeShared<GraphNode>(graph_id);
-  graph_node->SetGeRootModel(ge_root_model);;
+  graph_node->SetGeRootModel(ge_root_model);
+  ;
   graph_node->SetLoadFlag(true);
   graph_node->SetAsync(true);
 
@@ -1668,4 +1704,4 @@ TEST_F(FftsPlusTest, ffts_plus_graph_load_with_level1update) {
   EXPECT_EQ(model_executor.UnloadGraph(ge_root_model, graph_id), SUCCESS);
   ASSERT_EQ(model_executor.Finalize(), SUCCESS);
 }
-} // namespace ge
+}  // namespace ge

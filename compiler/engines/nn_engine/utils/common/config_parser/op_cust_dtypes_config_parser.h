@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,12 +38,10 @@ class OpCustDtypesConfigParser : public BaseConfigParser {
   bool SplitNameOrType(const string &line_str, string &name_or_type) const;
   bool SplitInoutDtype(const string &line_str, std::vector<string> &input_dtype,
                        std::vector<string> &output_dtype) const;
-  bool FeedOpCustomizeDtype(const string &op_type, const bool &is_type,
-                            const std::vector<string> &input_dtype,
+  bool FeedOpCustomizeDtype(const string &op_type, const bool &is_type, const std::vector<string> &input_dtype,
                             const std::vector<string> &output_dtype);
   bool CheckValidAndTrans(string &dtype_str, ge::DataType &ge_dtype) const;
-  void CheckAndSetCustomizeDtype(const bool &is_type, const string &op_type,
-                                 const OpCustomizeDtype &custom_dtype_vec);
+  void CheckAndSetCustomizeDtype(const bool &is_type, const string &op_type, const OpCustomizeDtype &custom_dtype_vec);
 
   string cust_dtypes_path_;
   std::map<string, OpCustomizeDtype> op_name_cust_dtypes_;

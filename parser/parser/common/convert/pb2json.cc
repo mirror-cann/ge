@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,7 +31,7 @@ const int kSignificantDigits = 10;
 const int kMaxParseDepth = 20;
 const int NO_COMPRESS = 0;
 const int USE_OM_COMPRESS = 1;
-}
+}  // namespace
 // JSON parses non utf8 character throwing exceptions, so some fields need to be shielded through black fields
 FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY void Pb2Json::Message2Json(const ProtobufMsg &message,
                                                                             const set<string> &black_fields, Json &json,
@@ -291,8 +291,7 @@ int Pb2Json::DictInit(Json &json, std::vector<string> &idx2name, std::vector<str
   return om_compress_version;
 }
 
-int Pb2Json::AttrReplaceKV(Json &json, const std::vector<string> &idx2name,
-                           const std::vector<string> &idx2value,
+int Pb2Json::AttrReplaceKV(Json &json, const std::vector<string> &idx2name, const std::vector<string> &idx2value,
                            const std::vector<bool> &use_string_val) {
   if (!json.is_array() && !json.is_object()) {
     return 0;
@@ -306,9 +305,9 @@ int Pb2Json::AttrReplaceKV(Json &json, const std::vector<string> &idx2name,
     std::string attr_name;
     auto ret = EnumAttrUtils::GetAttrName(idx2name, use_string_val, key, attr_name, is_value_string);
     if (ret != GRAPH_SUCCESS) {
-      REPORT_PREDEFINED_ERR_MSG("E10059", std::vector<const char *>({"stage", "reason"}),
-                                std::vector<const char *>({"Decode attr in pb2json",
-                                                           "failed to get attr name for the 'key' field"}));
+      REPORT_PREDEFINED_ERR_MSG(
+          "E10059", std::vector<const char *>({"stage", "reason"}),
+          std::vector<const char *>({"Decode attr in pb2json", "failed to get attr name for the 'key' field"}));
       return -1;
     }
     key = attr_name;
@@ -317,20 +316,20 @@ int Pb2Json::AttrReplaceKV(Json &json, const std::vector<string> &idx2name,
       return 0;
     }
 
-    if (value.find("i") != value.end()) { // value->i
+    if (value.find("i") != value.end()) {  // value->i
       std::string attr_value;
       ret = EnumAttrUtils::GetAttrValue(idx2value, value["i"], attr_value);
       value["s"] = attr_value;
       value.erase("i");
     }
-    if (value.find("list") != value.end()) { // value->list
-      if (value["list"].find("i") != value["list"].end()) { // list->i
+    if (value.find("list") != value.end()) {                 // value->list
+      if (value["list"].find("i") != value["list"].end()) {  // list->i
         std::vector<std::string> attr_values;
         ret = EnumAttrUtils::GetAttrValues(idx2value, value["list"]["i"], attr_values);
         value["list"]["s"] = attr_values;
         value["list"].erase("i");
       }
-      if (value["list"].find("val_type") != value["list"].end()) { // list->val_type
+      if (value["list"].find("val_type") != value["list"].end()) {  // list->val_type
         value["list"]["val_type"] = "VT_LIST_STRING";
       }
     }
@@ -346,7 +345,7 @@ int Pb2Json::AttrReplaceKV(Json &json, const std::vector<string> &idx2name,
   for (auto &sub_json : json) {
     if (AttrReplaceKV(sub_json, idx2name, idx2value, use_string_val) < 0) {
       GELOGE(FAILED, "EnumJson convert failed.");
-      return  -1;
+      return -1;
     }
   }
   return 0;

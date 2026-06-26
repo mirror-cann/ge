@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -40,12 +40,11 @@ const int RESERVED_TILING_DATA_SIZE = 8;
 const int RESERVED_GLOBALWORKSPACE_SIZE = 8;
 const uint32_t DEFAULT_KERNEL_BLOCK_DIM = 1;
 const int ONE_MEM_TYPE_SIZE = 1;
-const std::unordered_set<std::string> DEV_BINARY_MAGIC_TYPE {
-        "RT_DEV_BINARY_MAGIC_ELF",              "RT_DEV_BINARY_MAGIC_ELF_AIVEC",
-        "RT_DEV_BINARY_MAGIC_ELF_AICUBE",       "FFTS_BINARY_MAGIC_ELF_MIX_AIC",
-        "FFTS_BINARY_MAGIC_ELF_MIX_AIV",        "RT_DEV_BINARY_MAGIC_OM"};
+const std::unordered_set<std::string> DEV_BINARY_MAGIC_TYPE{
+    "RT_DEV_BINARY_MAGIC_ELF",       "RT_DEV_BINARY_MAGIC_ELF_AIVEC", "RT_DEV_BINARY_MAGIC_ELF_AICUBE",
+    "FFTS_BINARY_MAGIC_ELF_MIX_AIC", "FFTS_BINARY_MAGIC_ELF_MIX_AIV", "RT_DEV_BINARY_MAGIC_OM"};
 const std::string kStrValidBinaryMagic = "RT_DEV_BINARY_MAGIC_(ELF/ELF_AIVEC/ELF_AICUBE)";
-}
+}  // namespace
 
 thread_local rtL2Ctrl_t g_tel2ctrl;
 
@@ -56,8 +55,8 @@ void TbeTaskBuilderAdapter::MemCpyForL2IdAndL2Addr(uint64_t &cur_ptr, uint32_t &
                     op_desc_->GetName().c_str(), op_desc_->GetType().c_str(), l2_args_size);
     return;
   }
-  errno_t ret = memcpy_s(reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(cur_ptr)),
-                         l2_args_size, &data_in_l2_id, sizeof(int64_t));
+  errno_t ret = memcpy_s(reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(cur_ptr)), l2_args_size, &data_in_l2_id,
+                         sizeof(int64_t));
   if (ret != EOK) {
     REPORT_FE_ERROR("[GenTask][Memcpy][Node %s type %s] Failed to memcpy data in l2 id, error num is %d.",
                     op_desc_->GetName().c_str(), op_desc_->GetType().c_str(), ret);
@@ -71,8 +70,8 @@ void TbeTaskBuilderAdapter::MemCpyForL2IdAndL2Addr(uint64_t &cur_ptr, uint32_t &
                     op_desc_->GetName().c_str(), op_desc_->GetType().c_str(), l2_args_size);
     return;
   }
-  ret = memcpy_s(reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(cur_ptr)),
-                 l2_args_size, &data_in_l2_addr, sizeof(uint64_t));
+  ret = memcpy_s(reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(cur_ptr)), l2_args_size, &data_in_l2_addr,
+                 sizeof(uint64_t));
   if (ret != EOK) {
     REPORT_FE_ERROR("[GenTask][Memcpy][Node %s type %s] Failed to memcpy data in l2 addr, error num is %d.",
                     op_desc_->GetName().c_str(), op_desc_->GetType().c_str(), ret);
@@ -82,17 +81,15 @@ void TbeTaskBuilderAdapter::MemCpyForL2IdAndL2Addr(uint64_t &cur_ptr, uint32_t &
   cur_ptr = cur_ptr + sizeof(uint64_t);
 }
 
-void TbeTaskBuilderAdapter::DealInputOutputWithDdr(int32_t data_num, uint64_t &cur_ptr,
-                                                   uint32_t &l2_args_size) const {
+void TbeTaskBuilderAdapter::DealInputOutputWithDdr(int32_t data_num, uint64_t &cur_ptr, uint32_t &l2_args_size) const {
   for (int i = 0; i != data_num; ++i) {
     MemCpyForL2IdAndL2Addr(cur_ptr, l2_args_size, -1, 0);
   }
 }
 
 template <typename T>
-void TbeTaskBuilderAdapter::DealInputOutputL2DataMap(const T &l2datamap, int32_t data_num,
-                                                     const void *x[], const void *y[], uint64_t &cur_ptr,
-                                                     uint32_t &l2_args_size,
+void TbeTaskBuilderAdapter::DealInputOutputL2DataMap(const T &l2datamap, int32_t data_num, const void *x[],
+                                                     const void *y[], uint64_t &cur_ptr, uint32_t &l2_args_size,
                                                      bool is_input) const {
   for (int i = 0; i < data_num; ++i) {
     typename T::const_iterator iter;
@@ -194,29 +191,29 @@ void TbeTaskBuilderAdapter::DisplayRtL2CtrlInfo(const rtL2Ctrl_t &l2ctrl, bool e
   }
 }
 
-Status TbeTaskBuilderAdapter::CheckArrayValue(const void *array[], int32_t array_size,
-                                              int32_t num, const string& name) const {
+Status TbeTaskBuilderAdapter::CheckArrayValue(const void *array[], int32_t array_size, int32_t num,
+                                              const string &name) const {
   if (array == nullptr) {
     FE_LOGD("%s is nullptr! Please check.", name.c_str());
   } else {
     int32_t check_size = num;
     if (array_size < num) {
       check_size = array_size;
-      FE_LOGD("[GenTask][TbeFwd][Check][Node %s type %s] The %s array_size[%d] < num[%d].",
-              op_desc_->GetName().c_str(), op_desc_->GetType().c_str(), name.c_str(), array_size, num);
+      FE_LOGD("[GenTask][TbeFwd][Check][Node %s type %s] The %s array_size[%d] < num[%d].", op_desc_->GetName().c_str(),
+              op_desc_->GetType().c_str(), name.c_str(), array_size, num);
     }
     for (int i = 0; i < check_size; i++) {
       if (array[i] == nullptr) {
-        FE_LOGD("[GenTask][TbeFwd][Check][Node %s type %s] The %s[%d] now is nullptr.",
-                op_desc_->GetName().c_str(), op_desc_->GetType().c_str(), name.c_str(), i);
+        FE_LOGD("[GenTask][TbeFwd][Check][Node %s type %s] The %s[%d] now is nullptr.", op_desc_->GetName().c_str(),
+                op_desc_->GetType().c_str(), name.c_str(), i);
       }
     }
   }
   return SUCCESS;
 }
 
-Status TbeTaskBuilderAdapter::CheckForForward(const void *args, const void *x[], int32_t x_array_size,
-                                              const void *y[], int32_t input_num, int32_t output_num) const {
+Status TbeTaskBuilderAdapter::CheckForForward(const void *args, const void *x[], int32_t x_array_size, const void *y[],
+                                              int32_t input_num, int32_t output_num) const {
   FE_CHECK_NOTNULL(args);
   string x_name = "x";
   Status result = CheckArrayValue(x, x_array_size, input_num, x_name);
@@ -246,17 +243,17 @@ Status TbeTaskBuilderAdapter::CheckForForward(const void *args, const void *x[],
 }
 
 Status TbeTaskBuilderAdapter::DealKernelLaunchForL2Buffer(int32_t input_num, int32_t output_num, uint64_t cur_ptr,
-                                                          const void *x[], const void *y[],  rtL2Ctrl_t &tel2ctrl,
+                                                          const void *x[], const void *y[], rtL2Ctrl_t &tel2ctrl,
                                                           uint32_t args_size, uint32_t l2_args_size,
                                                           const std::string &stub_func, const uint32_t core_dim,
                                                           const void *tmp_buf, int32_t workspace_num,
                                                           domi::TaskDef &task_def) {
   bool kernelRet = false;
   std::string first_kernel_name;
-  Status ret = SaveTeCoreL2FlowDataForL2Buffer(input_num, output_num, cur_ptr, x, y, tel2ctrl, l2_args_size,
-                                               workspace_num);
+  Status ret =
+      SaveTeCoreL2FlowDataForL2Buffer(input_num, output_num, cur_ptr, x, y, tel2ctrl, l2_args_size, workspace_num);
   if (ret == SUCCESS) {
-    FE_LOGD("Node[type=%s,name=%s]: L2 alloc infomation get success, core_dim=%u, args_size=%u, l2_args_size=%u.",
+    FE_LOGD("Node[type=%s,name=%s]: L2 alloc information get success, core_dim=%u, args_size=%u, l2_args_size=%u.",
             node_.GetTypePtr(), node_.GetNamePtr(), core_dim, args_size, l2_args_size);
 
     for (uint64_t idx = 0; idx < ((args_size) / sizeof(uint64_t)); ++idx) {
@@ -280,14 +277,14 @@ Status TbeTaskBuilderAdapter::DealKernelLaunchForL2Buffer(int32_t input_num, int
       }
     }
     if (ge::AttrUtils::GetStr(node_.GetOpDesc(), ATTR_NAME_KERNEL_LIST_FIRST_NAME, first_kernel_name)) {
-      kernelRet = TbeKernelLaunch::KernelLaunchWithHandle(core_dim, tmp_buf, args_size + l2_args_size, &tel2ctrl,
-                                                          task_def);
+      kernelRet =
+          TbeKernelLaunch::KernelLaunchWithHandle(core_dim, tmp_buf, args_size + l2_args_size, &tel2ctrl, task_def);
     } else {
-      kernelRet = TbeKernelLaunch::KernelLaunch(stub_func, core_dim, tmp_buf, args_size + l2_args_size, &tel2ctrl,
-                                                task_def);
+      kernelRet =
+          TbeKernelLaunch::KernelLaunch(stub_func, core_dim, tmp_buf, args_size + l2_args_size, &tel2ctrl, task_def);
     }
   } else {
-    FE_LOGD("Node[type=%s,name=%s]: cannot find L2 alloc infomation and use the ddr address.", node_.GetTypePtr(),
+    FE_LOGD("Node[type=%s,name=%s]: cannot find L2 alloc information and use the ddr address.", node_.GetTypePtr(),
             node_.GetNamePtr());
     if (ge::AttrUtils::GetStr(node_.GetOpDesc(), ATTR_NAME_KERNEL_LIST_FIRST_NAME, first_kernel_name)) {
       kernelRet = TbeKernelLaunch::KernelLaunchWithHandle(core_dim, tmp_buf, args_size, nullptr, task_def);
@@ -302,20 +299,20 @@ Status TbeTaskBuilderAdapter::DealKernelLaunchForL2Buffer(int32_t input_num, int
   return SUCCESS;
 }
 
-Status TbeTaskBuilderAdapter::DealKernelLaunchForL2Fusion(int32_t input_num, int32_t output_num,
-                                                          uint64_t cur_ptr, const void *x[],
-                                                          const void *y[], rtL2Ctrl_t &tel2ctrl, uint32_t args_size,
-                                                          uint32_t l2_args_size, const std::string &stub_func,
-                                                          const uint32_t core_dim, const void *tmp_buf,
-                                                          int32_t workspace_num, domi::TaskDef &task_def) {
+Status TbeTaskBuilderAdapter::DealKernelLaunchForL2Fusion(int32_t input_num, int32_t output_num, uint64_t cur_ptr,
+                                                          const void *x[], const void *y[], rtL2Ctrl_t &tel2ctrl,
+                                                          uint32_t args_size, uint32_t l2_args_size,
+                                                          const std::string &stub_func, const uint32_t core_dim,
+                                                          const void *tmp_buf, int32_t workspace_num,
+                                                          domi::TaskDef &task_def) {
   auto op_name = node_.GetName();
   auto op_type = node_.GetType();
   bool kernelRet = false;
-  Status ret = SaveTeCoreL2FlowDataForL2Fusion(input_num, output_num, cur_ptr, x, y, tel2ctrl,
-                                               l2_args_size, workspace_num);
+  Status ret =
+      SaveTeCoreL2FlowDataForL2Fusion(input_num, output_num, cur_ptr, x, y, tel2ctrl, l2_args_size, workspace_num);
   string first_kernel_name;
   if (ret == SUCCESS) {
-    FE_LOGD("Node[type=%s,name=%s]: L2 alloc infomation get success, core_dim=%u, args_size=%u, l2_args_size=%u.",
+    FE_LOGD("Node[type=%s,name=%s]: L2 alloc information get success, core_dim=%u, args_size=%u, l2_args_size=%u.",
             op_type.c_str(), op_name.c_str(), core_dim, args_size, l2_args_size);
 
     for (uint64_t idx = 0; idx < ((args_size) / sizeof(uint64_t)); ++idx) {
@@ -338,24 +335,24 @@ Status TbeTaskBuilderAdapter::DealKernelLaunchForL2Fusion(int32_t input_num, int
       }
     }
     if (ge::AttrUtils::GetStr(node_.GetOpDesc(), ATTR_NAME_KERNEL_LIST_FIRST_NAME, first_kernel_name)) {
-      kernelRet = TbeKernelLaunch::KernelLaunchWithHandle(core_dim, tmp_buf, args_size + l2_args_size,
-                                                          &tel2ctrl, task_def);
+      kernelRet =
+          TbeKernelLaunch::KernelLaunchWithHandle(core_dim, tmp_buf, args_size + l2_args_size, &tel2ctrl, task_def);
     } else {
-      kernelRet = TbeKernelLaunch::KernelLaunch(stub_func, core_dim, tmp_buf, args_size + l2_args_size, &tel2ctrl,
-                                                task_def);
-  }
+      kernelRet =
+          TbeKernelLaunch::KernelLaunch(stub_func, core_dim, tmp_buf, args_size + l2_args_size, &tel2ctrl, task_def);
+    }
   } else {
-    FE_LOGD("Node[type=%s,name=%s]: cannot find L2 Alloc infomation and use the ddr address(l2_index=-1,l2_offset=0).",
+    FE_LOGD("Node[type=%s,name=%s]: cannot find L2 Alloc information and use the ddr address(l2_index=-1,l2_offset=0).",
             op_type.c_str(), op_name.c_str());
     DealInputOutputWithDdr(input_num, cur_ptr, l2_args_size);
     DealInputOutputWithDdr(output_num, cur_ptr, l2_args_size);
     DealInputOutputWithDdr(workspace_num, cur_ptr, l2_args_size);
     if (ge::AttrUtils::GetStr(node_.GetOpDesc(), ATTR_NAME_KERNEL_LIST_FIRST_NAME, first_kernel_name)) {
-      kernelRet = TbeKernelLaunch::KernelLaunchWithHandle(core_dim, tmp_buf, args_size + l2_args_size, nullptr,
-                                                          task_def);
+      kernelRet =
+          TbeKernelLaunch::KernelLaunchWithHandle(core_dim, tmp_buf, args_size + l2_args_size, nullptr, task_def);
     } else {
-      kernelRet = TbeKernelLaunch::KernelLaunch(stub_func, core_dim, tmp_buf, args_size + l2_args_size, nullptr,
-                                                task_def);
+      kernelRet =
+          TbeKernelLaunch::KernelLaunch(stub_func, core_dim, tmp_buf, args_size + l2_args_size, nullptr, task_def);
     }
   }
   if (!kernelRet) {
@@ -366,9 +363,8 @@ Status TbeTaskBuilderAdapter::DealKernelLaunchForL2Fusion(int32_t input_num, int
 }
 
 Status TbeTaskBuilderAdapter::TbeForward(const uint32_t core_dim, const void *args, uint32_t args_size,
-                                         int32_t input_num, const void *x[], int32_t x_array_size,
-                                         int32_t output_num,const void *y[], int32_t workspace_num,
-                                         domi::TaskDef &task_def) {
+                                         int32_t input_num, const void *x[], int32_t x_array_size, int32_t output_num,
+                                         const void *y[], int32_t workspace_num, domi::TaskDef &task_def) {
   Status ret = CheckForForward(args, x, x_array_size, const_cast<const void **>(y), input_num, output_num);
   if (ret != SUCCESS) {
     return ret;
@@ -378,26 +374,25 @@ Status TbeTaskBuilderAdapter::TbeForward(const uint32_t core_dim, const void *ar
   if (!ge::AttrUtils::GetStr(op_desc_, ATTR_NAME_KERNEL_LIST_FIRST_NAME, stub_func)) {
     stub_func = GetUniqueGraphIdForNode();
   }
-  FE_LOGD("Generate stub func string[%s] of node[%s, %s].",
-          stub_func.c_str(), op_desc_->GetNamePtr(), op_desc_->GetTypePtr());
+  FE_LOGD("Generate stub func string[%s] of node[%s, %s].", stub_func.c_str(), op_desc_->GetNamePtr(),
+          op_desc_->GetTypePtr());
 
   // l2 buffer or l2 fusion
   bool is_l2_buffer = fe::GetFunctionState(fe::FuncParamType::FUSION_L2);
   bool lx_fusion_pass = false;
   (void)ge::AttrUtils::GetBool(op_desc_, ATTR_NAME_LX_FUSION_PASS, lx_fusion_pass);
-  bool is_l2_fusion =
-      (Configuration::Instance(AI_CORE_NAME).EnableL2Fusion() && lx_fusion_pass) ||
-      (FEContextUtils::GetBuildMode() == ge::BUILD_MODE_TUNING);
+  bool is_l2_fusion = (Configuration::Instance(AI_CORE_NAME).EnableL2Fusion() && lx_fusion_pass) ||
+                      (FEContextUtils::GetBuildMode() == ge::BUILD_MODE_TUNING);
   if (is_l2_fusion || is_l2_buffer) {
     if (CheckUint32AddOverflow(static_cast<uint32_t>(input_num), static_cast<uint32_t>(output_num)) != SUCCESS) {
       REPORT_FE_ERROR(
           "[GenTask][TbeFwd][L2Check][Node %s type %s] Unsigned Integer %u and %u addition can result in overflow!",
-          op_desc_->GetName().c_str(), op_desc_->GetType().c_str(),
-          static_cast<uint32_t>(input_num), static_cast<uint32_t>(output_num));
+          op_desc_->GetName().c_str(), op_desc_->GetType().c_str(), static_cast<uint32_t>(input_num),
+          static_cast<uint32_t>(output_num));
       return TASK_BUILDER_STATUS_BAD_PARAM;
     }
-    if (CheckUint32AddOverflow(static_cast<uint32_t>(input_num + output_num),
-                               static_cast<uint32_t>(workspace_num)) != SUCCESS) {
+    if (CheckUint32AddOverflow(static_cast<uint32_t>(input_num + output_num), static_cast<uint32_t>(workspace_num)) !=
+        SUCCESS) {
       REPORT_FE_ERROR(
           "[GenTask][TbeFwd][L2Check][Node %s type %s] Unsigned Integer %u and %u addition can result in overflow!",
           op_desc_->GetName().c_str(), op_desc_->GetType().c_str(), static_cast<uint32_t>(input_num + output_num),
@@ -414,11 +409,11 @@ Status TbeTaskBuilderAdapter::TbeForward(const uint32_t core_dim, const void *ar
 
     uint64_t cur_ptr = ge::PtrToValue(tmp_buf.data()) + args_size;
     if (is_l2_buffer) {
-      ret = DealKernelLaunchForL2Buffer(input_num, output_num, cur_ptr, x, y, g_tel2ctrl, args_size,
-                                        l2_args_size, stub_func, core_dim, tmp_buf.data(), workspace_num, task_def);
+      ret = DealKernelLaunchForL2Buffer(input_num, output_num, cur_ptr, x, y, g_tel2ctrl, args_size, l2_args_size,
+                                        stub_func, core_dim, tmp_buf.data(), workspace_num, task_def);
     } else {
-      ret = DealKernelLaunchForL2Fusion(input_num, output_num, cur_ptr, x, y, g_tel2ctrl, args_size,
-                                        l2_args_size, stub_func, core_dim, tmp_buf.data(), workspace_num, task_def);
+      ret = DealKernelLaunchForL2Fusion(input_num, output_num, cur_ptr, x, y, g_tel2ctrl, args_size, l2_args_size,
+                                        stub_func, core_dim, tmp_buf.data(), workspace_num, task_def);
     }
     return ret;
   }
@@ -432,8 +427,8 @@ Status TbeTaskBuilderAdapter::TbeForward(const uint32_t core_dim, const void *ar
   }
 }
 
-Status TbeTaskBuilderAdapter::CheckTensorSize(const ge::GeTensorDesc &tensor_desc,
-                                              uint32_t i, bool is_input, int32_t output_real_calc_flag) const {
+Status TbeTaskBuilderAdapter::CheckTensorSize(const ge::GeTensorDesc &tensor_desc, uint32_t i, bool is_input,
+                                              int32_t output_real_calc_flag) const {
   auto op_type = op_desc_->GetType();
   auto op_name = op_desc_->GetName();
   int64_t tensor_size = 0;
@@ -444,8 +439,8 @@ Status TbeTaskBuilderAdapter::CheckTensorSize(const ge::GeTensorDesc &tensor_des
   }
   int64_t size_output = 0;
   if (ge::TensorUtils::GetSize(tensor_desc, size_output) != ge::GRAPH_SUCCESS) {
-    REPORT_FE_ERROR("[GenTask][CheckTensorSize][Node %s type %s]:Get size input[%u] tensor failed!",
-                    op_name.c_str(), op_type.c_str(), i);
+    REPORT_FE_ERROR("[GenTask][CheckTensorSize][Node %s type %s]:Get size input[%u] tensor failed!", op_name.c_str(),
+                    op_type.c_str(), i);
     return fe::FAILED;
   }
   string input_or_output = is_input ? "Input" : "Output";
@@ -489,8 +484,7 @@ Status TbeTaskBuilderAdapter::CheckInputAndOutputSize() {
 }
 
 TbeTaskBuilderAdapter::TbeTaskBuilderAdapter(const ge::Node &node, TaskBuilderContext &context)
-    : TaskBuilderAdapter(node, context),
-      block_dim_(DEFAULT_KERNEL_BLOCK_DIM) {}
+    : TaskBuilderAdapter(node, context), block_dim_(DEFAULT_KERNEL_BLOCK_DIM) {}
 
 TbeTaskBuilderAdapter::~TbeTaskBuilderAdapter() {}
 
@@ -517,8 +511,8 @@ Status TbeTaskBuilderAdapter::Init() {
   // Common initialization
   Status status = TaskBuilderAdapter::Init();
   if (status != SUCCESS) {
-    REPORT_FE_ERROR("[GenTask][Init][Node %s type %s]:TaskBuilderAdapter::Init failed.",
-                    op_name.c_str(), op_type.c_str());
+    REPORT_FE_ERROR("[GenTask][Init][Node %s type %s]:TaskBuilderAdapter::Init failed.", op_name.c_str(),
+                    op_type.c_str());
     return status;
   }
 
@@ -533,8 +527,8 @@ Status TbeTaskBuilderAdapter::Init() {
   string bin_magic;
   (void)ge::AttrUtils::GetStr(op_desc_, ge::TVM_ATTR_NAME_MAGIC, bin_magic);
   if (DEV_BINARY_MAGIC_TYPE.find(bin_magic) == DEV_BINARY_MAGIC_TYPE.end()) {
-    REPORT_FE_ERROR("[GenTask][Init] Node[%s, %s]: binary magic %s is unsupported. Only support %s.",
-                    op_name.c_str(), op_type.c_str(), bin_magic.c_str(), kStrValidBinaryMagic.c_str());
+    REPORT_FE_ERROR("[GenTask][Init] Node[%s, %s]: binary magic %s is unsupported. Only support %s.", op_name.c_str(),
+                    op_type.c_str(), bin_magic.c_str(), kStrValidBinaryMagic.c_str());
     return PARAM_INVALID;
   }
 
@@ -570,12 +564,12 @@ Status TbeTaskBuilderAdapter::HandleAnchorWeight(const size_t &anchor_index) {
   auto in_desc_ptr = op_desc_->MutableInputDesc(static_cast<uint32_t>(anchor_index));
 
   int64_t weight_offset = 0;
-  if(in_desc_ptr == nullptr) {
+  if (in_desc_ptr == nullptr) {
     return FAILED;
   }
   if (ge::TensorUtils::GetDataOffset(*in_desc_ptr, weight_offset) != ge::GRAPH_SUCCESS) {
-    REPORT_FE_ERROR("[GenTask][HandleAnchor][Node %s type %s]: Get weight offset failed.",
-                    op_name.c_str(), op_type.c_str());
+    REPORT_FE_ERROR("[GenTask][HandleAnchor][Node %s type %s]: Get weight offset failed.", op_name.c_str(),
+                    op_type.c_str());
     return FAILED;
   }
 
@@ -593,14 +587,14 @@ Status TbeTaskBuilderAdapter::HandleAnchorWeight(const size_t &anchor_index) {
 }
 
 Status TbeTaskBuilderAdapter::FeedInputAddrByAnchor(const ge::InDataAnchorPtr &anchor,
-    InputIndexOffsetInfo &index_offset_info, bool is_gen_place_holder) {
+                                                    InputIndexOffsetInfo &index_offset_info, bool is_gen_place_holder) {
   auto op_type = op_desc_->GetType();
   auto op_name = op_desc_->GetName();
   if (ge::AnchorUtils::GetStatus(anchor) == ge::ANCHOR_SUSPEND || anchor->GetPeerOutAnchor() == nullptr) {
-    FE_LOGD("Node[type=%s,name=%s]:anchor %zu is suspend or peer anchor is null with gen flag:%d.",
-            op_type.c_str(), op_name.c_str(), index_offset_info.anchor_index, is_gen_place_holder);
+    FE_LOGD("Node[type=%s,name=%s]:anchor %zu is suspend or peer anchor is null with gen flag:%d.", op_type.c_str(),
+            op_name.c_str(), index_offset_info.anchor_index, is_gen_place_holder);
     if (is_gen_place_holder) {
-      input_addrs_.push_back(reinterpret_cast<void*>(kTaskPlaceHolderAddr));
+      input_addrs_.push_back(reinterpret_cast<void *>(kTaskPlaceHolderAddr));
     }
     index_offset_info.anchor_index++;
     return SUCCESS;
@@ -695,7 +689,7 @@ void TbeTaskBuilderAdapter::InsertMissOptAddr(size_t &arg_idx, std::vector<uint3
   for (auto insert_pos : insert_pos_vec) {
     if (arg_idx == insert_pos) {
       FE_LOGD("Insert optional input in pos %u.", insert_pos);
-      input_addrs_.push_back(reinterpret_cast<void*>(kTaskPlaceHolderAddr));
+      input_addrs_.push_back(reinterpret_cast<void *>(kTaskPlaceHolderAddr));
       FeedArgsInfo(domi::ArgsInfo_ArgsType_INPUT, domi::ArgsInfo_ArgsFormat_DIRECT_ADDR, 0xFFFFFFFFU);
       arg_idx++;
     }
@@ -742,8 +736,8 @@ Status TbeTaskBuilderAdapter::InitInputGenPlaceholder() {
   (void)ge::AttrUtils::GetInt(op_desc_, kDyInputsAddNum, dyn_add_num);
   size_t all_kernel_size = ops_in_size + dyn_add_num;
   if (all_kernel_size != arg_idx) {
-    REPORT_FE_ERROR("[GenTask][InitInput]Node[type=%s,name=%s]:Expect In addr size:%zu with real:%zu.",
-                    op_type.c_str(), op_name.c_str(), all_kernel_size, arg_idx);
+    REPORT_FE_ERROR("[GenTask][InitInput]Node[type=%s,name=%s]:Expect In addr size:%zu with real:%zu.", op_type.c_str(),
+                    op_name.c_str(), all_kernel_size, arg_idx);
     return FAILED;
   }
   return SUCCESS;
@@ -754,8 +748,8 @@ Status TbeTaskBuilderAdapter::InitInput() {
   const auto &op_name = op_desc_->GetName();
   std::string core_type;
   (void)ge::AttrUtils::GetStr(op_desc_, ATTR_NAME_CUBE_VECTOR_CORE_TYPE, core_type);
-  bool need_sync = (core_type == kCoreTypeMixEnhance) &&
-                   (PlatformUtils::Instance().GetFftsMode() == FFTS_MODE_FFTS_PLUS);
+  bool need_sync =
+      (core_type == kCoreTypeMixEnhance) && (PlatformUtils::Instance().GetFftsMode() == FFTS_MODE_FFTS_PLUS);
   need_sync |= op_desc_->HasAttr(ATTR_NAME_ALIAS_ENGINE_NAME);
   if (need_sync) {
     FE_LOGD("Node[type=%s,name=%s]:Mix add sync addr.", op_type.c_str(), op_name.c_str());
@@ -779,8 +773,8 @@ bool TbeTaskBuilderAdapter::GetUnknownShapeFlag() {
   bool is_support_unknown_shape = false;
   (void)ge::AttrUtils::GetBool(op_desc_, ATTR_NAME_SUPPORT_DYNAMIC_SHAPE, is_support_unknown_shape);
   bool is_unknown_shape = UnknownShapeUtils::IsUnknownShapeOp(*node_.GetOpDesc());
-  FE_LOGD("Node[type=%s,name=%s]: is_unknown_shape flag is %ld.", op_desc_->GetTypePtr(),
-          op_desc_->GetNamePtr(), is_unknown_shape);
+  FE_LOGD("Node[type=%s,name=%s]: is_unknown_shape flag is %ld.", op_desc_->GetTypePtr(), op_desc_->GetNamePtr(),
+          is_unknown_shape);
   bool unknown_shape_flag = (is_support_unknown_shape && is_unknown_shape);
   return unknown_shape_flag;
 }
@@ -811,8 +805,8 @@ void TbeTaskBuilderAdapter::AppendGlobalData(vector<void *> &device_addrs) {
   int64_t globalworkspace_type = 0;
   if (ge::AttrUtils::GetInt(op_desc_, kGlobalworkspaceSize, globalworkspace_size)) {
     (void)ge::AttrUtils::GetInt(op_desc_, kGlobalworkspaceType, globalworkspace_type);
-    FE_LOGD("Get Globalworkspace size[%ld] and type[%ld] from node[%s, %s].", globalworkspace_size, globalworkspace_type,
-            op_desc_->GetName().c_str(), op_desc_->GetType().c_str());
+    FE_LOGD("Get Globalworkspace size[%ld] and type[%ld] from node[%s, %s].", globalworkspace_size,
+            globalworkspace_type, op_desc_->GetName().c_str(), op_desc_->GetType().c_str());
     if (globalworkspace_size > 0) {
       uint8_t *globalworkspace_data_ptr = nullptr;
       device_addrs.push_back(static_cast<void *>(globalworkspace_data_ptr));
@@ -840,14 +834,14 @@ Status TbeTaskBuilderAdapter::Run(domi::TaskDef &task_def) {
   FE_LOGD("Node[%s, %s]: input_num=%zu, output_num=%zu, workspace_addrs_size=%zu, device_addrs_size=%zu.",
           op_type.c_str(), op_name.c_str(), input_num, output_num, workspace_addrs_.size(), device_addrs.size());
 
-  Status ret = TbeForward(block_dim_, device_addrs.data(), sizeof(void *) * device_addrs.size(),
-                          static_cast<int32_t>(input_num), const_cast<const void **>(input_addrs_.data()),
-                          static_cast<int32_t>(input_addrs_.size()), static_cast<int32_t>(output_num),
-                          const_cast<const void **>(output_addrs_.data()), 
-                          static_cast<int32_t>(workspace_addrs_.size()), task_def);
+  Status ret =
+      TbeForward(block_dim_, device_addrs.data(), sizeof(void *) * device_addrs.size(), static_cast<int32_t>(input_num),
+                 const_cast<const void **>(input_addrs_.data()), static_cast<int32_t>(input_addrs_.size()),
+                 static_cast<int32_t>(output_num), const_cast<const void **>(output_addrs_.data()),
+                 static_cast<int32_t>(workspace_addrs_.size()), task_def);
   if (ret != SUCCESS) {
-    REPORT_FE_ERROR("[GenTask][Run][Node %s type %s] TbeForward failed, ret[0x%X]",
-                    op_name.c_str(), op_type.c_str(), ret);
+    REPORT_FE_ERROR("[GenTask][Run][Node %s type %s] TbeForward failed, ret[0x%X]", op_name.c_str(), op_type.c_str(),
+                    ret);
     return FAILED;
   }
   if (task_def.type() == ACL_RT_MODEL_TASK_KERNEL) {

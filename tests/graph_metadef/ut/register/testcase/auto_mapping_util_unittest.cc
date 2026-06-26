@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -94,21 +94,21 @@ void CreateTFGraphDef(domi::tensorflow::GraphDef &graph_def) {
 }
 
 TEST_F(AutoMappingUtils, FindAttrValueFalse) {
-    domi::tensorflow::GraphDef graph_def;
-    domi::tensorflow::AttrValue attr_num;
-    CreateTFGraphDef(graph_def);
-    bool ret;
-    domi::tensorflow::NodeDef *node0 = nullptr;
-    ret = ge::AutoMappingUtil::FindAttrValue(node0, string(""), attr_num);
-    EXPECT_FALSE(ret);
+  domi::tensorflow::GraphDef graph_def;
+  domi::tensorflow::AttrValue attr_num;
+  CreateTFGraphDef(graph_def);
+  bool ret;
+  domi::tensorflow::NodeDef *node0 = nullptr;
+  ret = ge::AutoMappingUtil::FindAttrValue(node0, string(""), attr_num);
+  EXPECT_FALSE(ret);
 
-    domi::tensorflow::NodeDef node1;
-    ret = ge::AutoMappingUtil::FindAttrValue(&node1, string(""), attr_num);
-    EXPECT_FALSE(ret);
+  domi::tensorflow::NodeDef node1;
+  ret = ge::AutoMappingUtil::FindAttrValue(&node1, string(""), attr_num);
+  EXPECT_FALSE(ret);
 
-    const domi::tensorflow::NodeDef *node2 = graph_def.mutable_node(0);
-    ret = ge::AutoMappingUtil::FindAttrValue(node2, node2->name(), attr_num);
-    EXPECT_FALSE(ret);
+  const domi::tensorflow::NodeDef *node2 = graph_def.mutable_node(0);
+  ret = ge::AutoMappingUtil::FindAttrValue(node2, node2->name(), attr_num);
+  EXPECT_FALSE(ret);
 }
 
 TEST_F(AutoMappingUtils, ConvertShape) {
@@ -153,15 +153,11 @@ TEST_F(AutoMappingUtils, ConvertTensorList) {
 }
 
 TEST_F(AutoMappingUtils, ConvertFunc) {
-  EXPECT_NO_THROW(
-    domi::tensorflow::NameAttrList tf_func;
-    ge::NamedAttrs ge_func;
-    const int32_t kInvalidFuncRecursiveDepth = 31;
+  EXPECT_NO_THROW(domi::tensorflow::NameAttrList tf_func; ge::NamedAttrs ge_func;
+                  const int32_t kInvalidFuncRecursiveDepth = 31;
 
-    tf_func.set_name("test_fun");
-    ge::AutoMappingUtil::ConvertFunc(tf_func, ge_func);
-    ge::AutoMappingUtil::ConvertFunc(tf_func, ge_func, kInvalidFuncRecursiveDepth);
-  );
+                  tf_func.set_name("test_fun"); ge::AutoMappingUtil::ConvertFunc(tf_func, ge_func);
+                  ge::AutoMappingUtil::ConvertFunc(tf_func, ge_func, kInvalidFuncRecursiveDepth););
 }
 
 TEST_F(AutoMappingUtils, ConvertDataTypeList) {
@@ -201,172 +197,181 @@ const int INT_TEST_NUM = 0;
 const unsigned int UNSIGNED_INT_TEST_NUM = 0;
 
 TEST_F(AutoMappingUtils, CopyAttrValueInputTest) {
-    ut::GraphBuilder builder("graph");
-    NodePtr node_src = builder.AddNode("ParseSingleNode", "ParseSingleType", 3, 0, FORMAT_ALL);
+  ut::GraphBuilder builder("graph");
+  NodePtr node_src = builder.AddNode("ParseSingleNode", "ParseSingleType", 3, 0, FORMAT_ALL);
 
-    ge::Operator op_src = OpDescUtils::CreateOperatorFromNode(node_src);
-    ge::Operator op_dst = ge::Operator("ParseSingleExample");
-    std::shared_ptr<ge::OpDesc> op_desc_dst = ge::OpDescUtils::GetOpDescFromOperator(op_dst);
-    std::vector<domi::DynamicInputOutputInfo> value;
-    EXPECT_EQ(op_dst.GetInputsSize(), 0);
+  ge::Operator op_src = OpDescUtils::CreateOperatorFromNode(node_src);
+  ge::Operator op_dst = ge::Operator("ParseSingleExample");
+  std::shared_ptr<ge::OpDesc> op_desc_dst = ge::OpDescUtils::GetOpDescFromOperator(op_dst);
+  std::vector<domi::DynamicInputOutputInfo> value;
+  EXPECT_EQ(op_dst.GetInputsSize(), 0);
 
-    const char_t *testName1 = "type_str";
-    const char_t *testPort1 = "port_str";
-    AttrUtils::SetStr(node_src->GetOpDesc(), testName1, "str_shapes");
-    op_desc_dst->AddRegisterInputName(testPort1);
-    domi::DynamicInputOutputInfo input1(kInput, testPort1, strlen(testPort1), testName1, strlen(testName1));
-    value.push_back(input1);
+  const char_t *testName1 = "type_str";
+  const char_t *testPort1 = "port_str";
+  AttrUtils::SetStr(node_src->GetOpDesc(), testName1, "str_shapes");
+  op_desc_dst->AddRegisterInputName(testPort1);
+  domi::DynamicInputOutputInfo input1(kInput, testPort1, strlen(testPort1), testName1, strlen(testName1));
+  value.push_back(input1);
 
-    const char_t *testName2 = "type_int";
-    const char_t *testPort2 = "port_int";
-    AttrUtils::SetInt(node_src->GetOpDesc(), testName2, INT_TEST_NUM);
-    op_desc_dst->AddRegisterInputName(testPort2);
-    domi::DynamicInputOutputInfo input2(kInput, testPort2, strlen(testPort2), testName2, strlen(testName2));
-    value.push_back(input2);
+  const char_t *testName2 = "type_int";
+  const char_t *testPort2 = "port_int";
+  AttrUtils::SetInt(node_src->GetOpDesc(), testName2, INT_TEST_NUM);
+  op_desc_dst->AddRegisterInputName(testPort2);
+  domi::DynamicInputOutputInfo input2(kInput, testPort2, strlen(testPort2), testName2, strlen(testName2));
+  value.push_back(input2);
 
-    const char_t *testName3 = "type_float";
-    const char_t *testPort3 = "port_float";
-    AttrUtils::SetFloat(node_src->GetOpDesc(), testName3, FLOAT_TEST_NUM);
-    op_desc_dst->AddRegisterInputName(testPort3);
-    domi::DynamicInputOutputInfo input3(kInput, testPort3, strlen(testPort3), testName3, strlen(testName3));
-    value.push_back(input3);
+  const char_t *testName3 = "type_float";
+  const char_t *testPort3 = "port_float";
+  AttrUtils::SetFloat(node_src->GetOpDesc(), testName3, FLOAT_TEST_NUM);
+  op_desc_dst->AddRegisterInputName(testPort3);
+  domi::DynamicInputOutputInfo input3(kInput, testPort3, strlen(testPort3), testName3, strlen(testName3));
+  value.push_back(input3);
 
-    const char_t *listName = "Name_inputlist1";
-    const char_t *listPort = "port_inputlist1";
-    vector<DataType> InListDataType = {DT_STRING, DT_INT32, DT_FLOAT};
-    AttrUtils::SetListDataType(node_src->GetOpDesc(), listName, InListDataType);
-    op_desc_dst->AddRegisterInputName(listPort);
-    domi::DynamicInputOutputInfo input4(kInput, listPort, strlen(listPort), listName, strlen(listName));
-    value.push_back(input4);
+  const char_t *listName = "Name_inputlist1";
+  const char_t *listPort = "port_inputlist1";
+  vector<DataType> InListDataType = {DT_STRING, DT_INT32, DT_FLOAT};
+  AttrUtils::SetListDataType(node_src->GetOpDesc(), listName, InListDataType);
+  op_desc_dst->AddRegisterInputName(listPort);
+  domi::DynamicInputOutputInfo input4(kInput, listPort, strlen(listPort), listName, strlen(listName));
+  value.push_back(input4);
 
-    auto ret = domi::AutoMappingByOpFnDynamic(op_src, op_dst, value);
-    EXPECT_EQ(ret, domi::SUCCESS);
-    EXPECT_EQ(op_dst.GetInputsSize(), 3);
+  auto ret = domi::AutoMappingByOpFnDynamic(op_src, op_dst, value);
+  EXPECT_EQ(ret, domi::SUCCESS);
+  EXPECT_EQ(op_dst.GetInputsSize(), 3);
 }
 
 TEST_F(AutoMappingUtils, CopyAttrValueInputListTest) {
-    ut::GraphBuilder builder("graph");
-    NodePtr node_src = builder.AddNode("ParseSingleNode", "ParseSingleType", 6, 0, FORMAT_ALL);
+  ut::GraphBuilder builder("graph");
+  NodePtr node_src = builder.AddNode("ParseSingleNode", "ParseSingleType", 6, 0, FORMAT_ALL);
 
-    ge::Operator op_src = OpDescUtils::CreateOperatorFromNode(node_src);
-    ge::Operator op_dst = ge::Operator("ParseSingleExample");
-    std::shared_ptr<ge::OpDesc> op_desc_dst = ge::OpDescUtils::GetOpDescFromOperator(op_dst);
-    std::vector<domi::DynamicInputOutputInfo> value;
-    EXPECT_EQ(op_dst.GetInputsSize(), 0);
+  ge::Operator op_src = OpDescUtils::CreateOperatorFromNode(node_src);
+  ge::Operator op_dst = ge::Operator("ParseSingleExample");
+  std::shared_ptr<ge::OpDesc> op_desc_dst = ge::OpDescUtils::GetOpDescFromOperator(op_dst);
+  std::vector<domi::DynamicInputOutputInfo> value;
+  EXPECT_EQ(op_dst.GetInputsSize(), 0);
 
-    const char_t *testlistName1 = "listName_str";
-    const char_t *testlistPort1 = "listport_str";
-    vector<std::string> attrStrList = {"image/class/label","image/encode", "image/format"};
-    AttrUtils::SetListStr(node_src->GetOpDesc(), testlistName1, attrStrList);
-    op_desc_dst->AddRegisterInputName(testlistPort1);
-    domi::DynamicInputOutputInfo input1(kInput, testlistPort1, strlen(testlistPort1), testlistName1, strlen(testlistName1));
-    value.push_back(input1);
+  const char_t *testlistName1 = "listName_str";
+  const char_t *testlistPort1 = "listport_str";
+  vector<std::string> attrStrList = {"image/class/label", "image/encode", "image/format"};
+  AttrUtils::SetListStr(node_src->GetOpDesc(), testlistName1, attrStrList);
+  op_desc_dst->AddRegisterInputName(testlistPort1);
+  domi::DynamicInputOutputInfo input1(kInput, testlistPort1, strlen(testlistPort1), testlistName1,
+                                      strlen(testlistName1));
+  value.push_back(input1);
 
-    const char_t *testlistName2 = "listName_Int";
-    const char_t *testlistPort2 = "listport_Int";
-    vector<int64_t> attrIntList = {0, 1, 2, 3};
-    AttrUtils::SetListInt(node_src->GetOpDesc(), testlistName2, attrIntList);
-    op_desc_dst->AddRegisterInputName(testlistPort2);
-    domi::DynamicInputOutputInfo input2(kInput, testlistPort2, strlen(testlistPort2), testlistName2, strlen(testlistName2));
-    value.push_back(input2);
+  const char_t *testlistName2 = "listName_Int";
+  const char_t *testlistPort2 = "listport_Int";
+  vector<int64_t> attrIntList = {0, 1, 2, 3};
+  AttrUtils::SetListInt(node_src->GetOpDesc(), testlistName2, attrIntList);
+  op_desc_dst->AddRegisterInputName(testlistPort2);
+  domi::DynamicInputOutputInfo input2(kInput, testlistPort2, strlen(testlistPort2), testlistName2,
+                                      strlen(testlistName2));
+  value.push_back(input2);
 
-    const char_t *testlistName3 = "listName_Float";
-    const char_t *testlistPort3 = "listport_Float";
-    vector<float> attrFloatList = {0.0, 0.1, 0.2, 0.3};
-    AttrUtils::SetListFloat(node_src->GetOpDesc(), testlistName3, attrFloatList);
-    op_desc_dst->AddRegisterInputName(testlistPort3);
-    domi::DynamicInputOutputInfo input3(kInput, testlistPort3, strlen(testlistPort3), testlistName3, strlen(testlistName3));
-    value.push_back(input3);
+  const char_t *testlistName3 = "listName_Float";
+  const char_t *testlistPort3 = "listport_Float";
+  vector<float> attrFloatList = {0.0, 0.1, 0.2, 0.3};
+  AttrUtils::SetListFloat(node_src->GetOpDesc(), testlistName3, attrFloatList);
+  op_desc_dst->AddRegisterInputName(testlistPort3);
+  domi::DynamicInputOutputInfo input3(kInput, testlistPort3, strlen(testlistPort3), testlistName3,
+                                      strlen(testlistName3));
+  value.push_back(input3);
 
-    const char_t *testlistName4 = "listName_Bool";
-    const char_t *testlistPort4 = "listport_Bool";
-    vector<bool> attrBoolList = {true, false, false, true};
-    AttrUtils::SetListBool(node_src->GetOpDesc(), testlistName4, attrBoolList);
-    op_desc_dst->AddRegisterInputName(testlistPort4);
-    domi::DynamicInputOutputInfo input4(kInput, testlistPort4, strlen(testlistPort4), testlistName4, strlen(testlistName4));
-    value.push_back(input4);
+  const char_t *testlistName4 = "listName_Bool";
+  const char_t *testlistPort4 = "listport_Bool";
+  vector<bool> attrBoolList = {true, false, false, true};
+  AttrUtils::SetListBool(node_src->GetOpDesc(), testlistName4, attrBoolList);
+  op_desc_dst->AddRegisterInputName(testlistPort4);
+  domi::DynamicInputOutputInfo input4(kInput, testlistPort4, strlen(testlistPort4), testlistName4,
+                                      strlen(testlistName4));
+  value.push_back(input4);
 
-    const char_t *testlistName5 = "listName_NamedAttrs";
-    const char_t *testlistPort5 = "listport_NamedAttrs";
-    NamedAttrs name1; NamedAttrs name2;
-    vector<NamedAttrs> attrNamedAttrsList = {name1, name2};
-    AttrUtils::SetListNamedAttrs(node_src->GetOpDesc(), testlistName5, attrNamedAttrsList);
-    op_desc_dst->AddRegisterInputName(testlistPort5);
-    domi::DynamicInputOutputInfo input5(kInput, testlistPort5, strlen(testlistPort5), testlistName5, strlen(testlistName5));
-    value.push_back(input5);
+  const char_t *testlistName5 = "listName_NamedAttrs";
+  const char_t *testlistPort5 = "listport_NamedAttrs";
+  NamedAttrs name1;
+  NamedAttrs name2;
+  vector<NamedAttrs> attrNamedAttrsList = {name1, name2};
+  AttrUtils::SetListNamedAttrs(node_src->GetOpDesc(), testlistName5, attrNamedAttrsList);
+  op_desc_dst->AddRegisterInputName(testlistPort5);
+  domi::DynamicInputOutputInfo input5(kInput, testlistPort5, strlen(testlistPort5), testlistName5,
+                                      strlen(testlistName5));
+  value.push_back(input5);
 
-    const char_t *testlistName6 = "listName_Int";
-    const char_t *testlistPort6 = "listport_Int";
-    vector<vector<int64_t>> attrIntListList = {attrIntList, attrIntList};
-    AttrUtils::SetListListInt(node_src->GetOpDesc(), testlistName6, attrIntListList);
-    op_desc_dst->AddRegisterInputName(testlistPort6);
-    domi::DynamicInputOutputInfo input6(kInput, testlistPort6, strlen(testlistPort6), testlistName6, strlen(testlistName6));
-    value.push_back(input6);
+  const char_t *testlistName6 = "listName_Int";
+  const char_t *testlistPort6 = "listport_Int";
+  vector<vector<int64_t>> attrIntListList = {attrIntList, attrIntList};
+  AttrUtils::SetListListInt(node_src->GetOpDesc(), testlistName6, attrIntListList);
+  op_desc_dst->AddRegisterInputName(testlistPort6);
+  domi::DynamicInputOutputInfo input6(kInput, testlistPort6, strlen(testlistPort6), testlistName6,
+                                      strlen(testlistName6));
+  value.push_back(input6);
 
-    const char_t *testlist_ListName = "listName_ListData";
-    const char_t *testlist_ListPort = "listport_ListData";
-    vector<DataType> InListDataType = {DT_STRING, DT_INT32, DT_FLOAT, DT_BOOL, DT_UNDEFINED, DT_UNDEFINED};
-    AttrUtils::SetListDataType(node_src->GetOpDesc(), testlist_ListName, InListDataType);
-    op_desc_dst->AddRegisterInputName(testlist_ListPort);
-    domi::DynamicInputOutputInfo input7(kInput, testlist_ListPort, strlen(testlist_ListPort), testlist_ListName, strlen(testlist_ListName));
-    value.push_back(input7);
+  const char_t *testlist_ListName = "listName_ListData";
+  const char_t *testlist_ListPort = "listport_ListData";
+  vector<DataType> InListDataType = {DT_STRING, DT_INT32, DT_FLOAT, DT_BOOL, DT_UNDEFINED, DT_UNDEFINED};
+  AttrUtils::SetListDataType(node_src->GetOpDesc(), testlist_ListName, InListDataType);
+  op_desc_dst->AddRegisterInputName(testlist_ListPort);
+  domi::DynamicInputOutputInfo input7(kInput, testlist_ListPort, strlen(testlist_ListPort), testlist_ListName,
+                                      strlen(testlist_ListName));
+  value.push_back(input7);
 
-    auto ret = domi::AutoMappingByOpFnDynamic(op_src, op_dst, value);
-    EXPECT_EQ(ret, domi::SUCCESS);
-    EXPECT_EQ(op_dst.GetInputsSize(), 6);
+  auto ret = domi::AutoMappingByOpFnDynamic(op_src, op_dst, value);
+  EXPECT_EQ(ret, domi::SUCCESS);
+  EXPECT_EQ(op_dst.GetInputsSize(), 6);
 }
 
 TEST_F(AutoMappingUtils, CopyAttrValueOutputTest) {
-    ut::GraphBuilder builder("graph");
-    NodePtr node_src = builder.AddNode("ParseSingleNode", "ParseSingleType", 0, 4, FORMAT_ALL);
+  ut::GraphBuilder builder("graph");
+  NodePtr node_src = builder.AddNode("ParseSingleNode", "ParseSingleType", 0, 4, FORMAT_ALL);
 
-    ge::Operator op_src = OpDescUtils::CreateOperatorFromNode(node_src);
-    ge::Operator op_dst = ge::Operator("ParseSingleExample");
-    std::shared_ptr<ge::OpDesc> op_desc_dst = ge::OpDescUtils::GetOpDescFromOperator(op_dst);
-    std::vector<domi::DynamicInputOutputInfo> value;
-    EXPECT_EQ(op_dst.GetInputsSize(), 0);
+  ge::Operator op_src = OpDescUtils::CreateOperatorFromNode(node_src);
+  ge::Operator op_dst = ge::Operator("ParseSingleExample");
+  std::shared_ptr<ge::OpDesc> op_desc_dst = ge::OpDescUtils::GetOpDescFromOperator(op_dst);
+  std::vector<domi::DynamicInputOutputInfo> value;
+  EXPECT_EQ(op_dst.GetInputsSize(), 0);
 
-    const char_t *testName1 = "Name_attrBool";
-    const char_t *testPort1 = "port_attrBool";
-    AttrUtils::SetBool(node_src->GetOpDesc(), testName1, true);
-    op_desc_dst->AddRegisterOutputName(testPort1);
-    domi::DynamicInputOutputInfo output1(kOutput, testPort1, strlen(testPort1), testName1, strlen(testName1));
-    value.push_back(output1);
+  const char_t *testName1 = "Name_attrBool";
+  const char_t *testPort1 = "port_attrBool";
+  AttrUtils::SetBool(node_src->GetOpDesc(), testName1, true);
+  op_desc_dst->AddRegisterOutputName(testPort1);
+  domi::DynamicInputOutputInfo output1(kOutput, testPort1, strlen(testPort1), testName1, strlen(testName1));
+  value.push_back(output1);
 
-    const char_t *testName2 = "Name_attrName";
-    const char_t *testPort2 = "port_attrName";
-    NamedAttrs NamedAttr; NamedAttr.SetName("NamedAttr");
-    AttrUtils::SetNamedAttrs(node_src->GetOpDesc(), testName2, NamedAttr);
-    op_desc_dst->AddRegisterOutputName(testPort2);
-    domi::DynamicInputOutputInfo output2(kOutput, testPort2, strlen(testPort2), testName2, strlen(testName2));
-    value.push_back(output2);
+  const char_t *testName2 = "Name_attrName";
+  const char_t *testPort2 = "port_attrName";
+  NamedAttrs NamedAttr;
+  NamedAttr.SetName("NamedAttr");
+  AttrUtils::SetNamedAttrs(node_src->GetOpDesc(), testName2, NamedAttr);
+  op_desc_dst->AddRegisterOutputName(testPort2);
+  domi::DynamicInputOutputInfo output2(kOutput, testPort2, strlen(testPort2), testName2, strlen(testName2));
+  value.push_back(output2);
 
-    const char_t *testName3 = "Name_attrDataType";
-    const char_t *testPort3 = "port_attrDataType";
-    AttrUtils::SetDataType(node_src->GetOpDesc(), testName3, DT_INT16);
-    op_desc_dst->AddRegisterOutputName(testPort3);
-    domi::DynamicInputOutputInfo output3(domi::kOutput, testPort3, strlen(testPort3), testName3, strlen(testName3));
-    value.push_back(output3);
+  const char_t *testName3 = "Name_attrDataType";
+  const char_t *testPort3 = "port_attrDataType";
+  AttrUtils::SetDataType(node_src->GetOpDesc(), testName3, DT_INT16);
+  op_desc_dst->AddRegisterOutputName(testPort3);
+  domi::DynamicInputOutputInfo output3(domi::kOutput, testPort3, strlen(testPort3), testName3, strlen(testName3));
+  value.push_back(output3);
 
-    const char_t *testName4 = "Name_attrGraph";
-    const char_t *testPort4 = "port_attrGraph";
-    ComputeGraphPtr graph = builder.GetGraph();
-    AttrUtils::SetGraph(node_src->GetOpDesc(), testName4, graph);
-    op_desc_dst->AddRegisterOutputName(testPort4);
-    domi::DynamicInputOutputInfo output4(kOutput, testPort4, strlen(testPort4), testName4, strlen(testName4));
-    value.push_back(output4);
+  const char_t *testName4 = "Name_attrGraph";
+  const char_t *testPort4 = "port_attrGraph";
+  ComputeGraphPtr graph = builder.GetGraph();
+  AttrUtils::SetGraph(node_src->GetOpDesc(), testName4, graph);
+  op_desc_dst->AddRegisterOutputName(testPort4);
+  domi::DynamicInputOutputInfo output4(kOutput, testPort4, strlen(testPort4), testName4, strlen(testName4));
+  value.push_back(output4);
 
-    const char_t *testName5 = "Name_attrDataTypeList";
-    const char_t *testPort5 = "port_attrDataTypeList";
-    vector<DataType> OutListDataType = {DT_BOOL, DT_STRING, DT_INT16, DT_RESOURCE};
-    AttrUtils::SetListDataType(node_src->GetOpDesc(), testName5, OutListDataType);
-    op_desc_dst->AddRegisterOutputName(testPort5);
-    domi::DynamicInputOutputInfo output5(kOutput, testPort5, strlen(testPort5), testName5, strlen(testName5));
-    value.push_back(output5);
+  const char_t *testName5 = "Name_attrDataTypeList";
+  const char_t *testPort5 = "port_attrDataTypeList";
+  vector<DataType> OutListDataType = {DT_BOOL, DT_STRING, DT_INT16, DT_RESOURCE};
+  AttrUtils::SetListDataType(node_src->GetOpDesc(), testName5, OutListDataType);
+  op_desc_dst->AddRegisterOutputName(testPort5);
+  domi::DynamicInputOutputInfo output5(kOutput, testPort5, strlen(testPort5), testName5, strlen(testName5));
+  value.push_back(output5);
 
-    auto ret = domi::AutoMappingByOpFnDynamic(op_src, op_dst, value);
-    EXPECT_EQ(ret, domi::SUCCESS);
-    EXPECT_EQ(op_dst.GetOutputsSize(), 4);
+  auto ret = domi::AutoMappingByOpFnDynamic(op_src, op_dst, value);
+  EXPECT_EQ(ret, domi::SUCCESS);
+  EXPECT_EQ(op_dst.GetOutputsSize(), 4);
 }
 
 TEST_F(AutoMappingUtils, ConvertValueTest) {
@@ -380,10 +385,9 @@ TEST_F(AutoMappingUtils, ConvertValueTest) {
   ge::AutoMappingUtil::ConvertValue(convertName, value, op_desc, 0);
   std::string valueStr;
   ge::AttrUtils::GetStr(op_desc, convertName, valueStr);
-  EXPECT_EQ(valueStr=="valueString", true);
+  EXPECT_EQ(valueStr == "valueString", true);
 
   ge::AutoMappingUtil::ConvertValue(convertName, value, ge_func, 0);
   ge::AttrUtils::GetStr(ge_func, convertName, valueStr);
-  EXPECT_EQ(valueStr=="valueString", true);
+  EXPECT_EQ(valueStr == "valueString", true);
 }
-

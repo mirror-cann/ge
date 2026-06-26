@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -43,7 +43,6 @@
 #include "depends/profiler/src/profiling_test_util.h"
 #include "register/register_custom_pass.h"
 
-
 namespace ge {
 namespace {
 
@@ -58,13 +57,11 @@ class SliceSchedulerMultiInstanceTest : public testing::Test {
 
     auto unique_infer_fun = [](Operator &op) -> graphStatus {
       auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
-      const auto& input_desc = op_desc->GetInputDesc(0);
+      const auto &input_desc = op_desc->GetInputDesc(0);
       const auto input_shape = input_desc.GetShape().GetDims();
       auto output0_desc = op_desc->MutableOutputDesc(0);
       output0_desc->SetShape(GeShape({-1}));
-      output0_desc->SetShapeRange({
-          {1, input_shape[0]}
-      });
+      output0_desc->SetShapeRange({{1, input_shape[0]}});
       op_desc->MutableOutputDesc(1)->SetDataType(DT_INT32);
       op_desc->MutableOutputDesc(1)->SetShape({});
       return GRAPH_SUCCESS;
@@ -155,15 +152,15 @@ template <typename Func, typename... Args>
 using invoke_result = typename std::result_of<Func(Args...)>::type;
 
 template <typename Func, typename... Args>
-std::map<int, invoke_result<Func, Args...>> ConcurrentProcess(Func&& func, int thread_nums, Args&&... args) {
+std::map<int, invoke_result<Func, Args...>> ConcurrentProcess(Func &&func, int thread_nums, Args &&...args) {
   typedef invoke_result<Func, Args...> ResultType;
   std::map<int, std::future<ResultType>> futureMap;
 
   for (int i = 0; i < thread_nums; ++i) {
-    futureMap.insert(std::make_pair(i,std::async(std::launch::async, std::bind(func, std::forward<Args>(args)...))));
+    futureMap.insert(std::make_pair(i, std::async(std::launch::async, std::bind(func, std::forward<Args>(args)...))));
   }
   std::map<int, ResultType> resultMap;
-  for (auto& entry : futureMap) {
+  for (auto &entry : futureMap) {
     ResultType result = entry.second.get();
     resultMap.insert(std::make_pair(entry.first, result));
   }
@@ -174,7 +171,7 @@ std::map<AscendString, AscendString> DefaultOptions() {
   std::map<AscendString, AscendString> options;
   options[OPTION_EXEC_ENABLE_DUMP_DEBUG] = "1";
   options[OPTION_EXEC_DUMP_PATH] = "./";
-  options[OPTION_EXEC_DUMP_DEBUG_MODE] = "aicore_overflow"; // OP_DEBUG_ATOMIC /  OP_DEBUG_ALL
+  options[OPTION_EXEC_DUMP_DEBUG_MODE] = "aicore_overflow";  // OP_DEBUG_ATOMIC /  OP_DEBUG_ALL
   options[VARIABLE_MEMORY_MAX_SIZE] = "12800";
   options[ge::OPTION_CONST_LIFECYCLE] = "graph";
   options[JIT_COMPILE.c_str()] = "1";
@@ -216,7 +213,8 @@ Tensor CreateTensor(const std::vector<int64_t> &dims, Format format = FORMAT_ND,
   return CreateTensor(TensorDesc(Shape(dims), format, data_type));
 }
 
-Status EXPECT_AddGraph(std::mutex &mutex, Session &session, GraphId graph_id, Graph &recover_ir_graph, std::map<AscendString, AscendString> &graph_options) {
+Status EXPECT_AddGraph(std::mutex &mutex, Session &session, GraphId graph_id, Graph &recover_ir_graph,
+                       std::map<AscendString, AscendString> &graph_options) {
   std::lock_guard<std::mutex> lock(mutex);
   GELOGT(TRACE_RUNNING, "Thread %d AddGraph start session addr is %d", std::this_thread::get_id(), &session);
   Status ret = session.AddGraph(graph_id, recover_ir_graph, graph_options);
@@ -225,7 +223,8 @@ Status EXPECT_AddGraph(std::mutex &mutex, Session &session, GraphId graph_id, Gr
   return ret;
 }
 
-std::vector<Tensor> EXPECT_RunGraphAsync_withStatus(std::mutex &mutex, Session &session, GraphId graph_id, const std::vector<Tensor> &inputs, Status expectStatus) {
+std::vector<Tensor> EXPECT_RunGraphAsync_withStatus(std::mutex &mutex, Session &session, GraphId graph_id,
+                                                    const std::vector<Tensor> &inputs, Status expectStatus) {
   std::lock_guard<std::mutex> lock(mutex);
   GELOGT(TRACE_RUNNING, "Thread %d RunGraphAsync start session addr is %d", std::this_thread::get_id(), &session);
   std::mutex mu;
@@ -253,7 +252,8 @@ std::vector<Tensor> EXPECT_RunGraphAsync_withStatus(std::mutex &mutex, Session &
   return outputs;
 }
 
-std::vector<Tensor> EXPECT_RunGraphAsync(std::mutex &mutex, Session &session, GraphId graph_id, const std::vector<Tensor> &inputs) {
+std::vector<Tensor> EXPECT_RunGraphAsync(std::mutex &mutex, Session &session, GraphId graph_id,
+                                         const std::vector<Tensor> &inputs) {
   return EXPECT_RunGraphAsync_withStatus(mutex, session, graph_id, inputs, SUCCESS);
 }
 
@@ -270,16 +270,9 @@ Status GenerateTaskForAicpuDependRange(const Node &node, RunContext &context, st
 
 Graph BuildStaticInputGraph() {
   DEF_GRAPH(slice_scheduler_static_graph) {
-    auto data1 = OP_CFG(DATA)
-                     .InCnt(1)
-                     .OutCnt(1)
-                     .TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 24, 24});
-    auto data2 = OP_CFG(DATA)
-                     .TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 24, 24});
-    auto add1 = OP_CFG(ADD)
-                    .InCnt(2)
-                    .OutCnt(1)
-                    .TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 24, 24});
+    auto data1 = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 24, 24});
+    auto data2 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 24, 24});
+    auto add1 = OP_CFG(ADD).InCnt(2).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 24, 24});
     CHAIN(NODE("data_1", data1)->EDGE(0, 0)->NODE("add_1", add1));
     CHAIN(NODE("data_2", data2)->EDGE(0, 1)->NODE("add_1", add1));
   };
@@ -304,42 +297,19 @@ Graph BuildDynamicInputGraph() {
     float32_t value = 6.3f;
     tensor.SetData((uint8_t *)&value, sizeof(value));
 
-    auto data_0 = OP_CFG(DATA)
-                      .InCnt(1)
-                      .OutCnt(1)
-                      .Attr(ATTR_NAME_INDEX, 0)
-                      .TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
+    auto data_0 = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
 
-    auto data_1 = OP_CFG(DATA).InCnt(1)
-                      .OutCnt(1)
-                      .Attr(ATTR_NAME_INDEX, 1)
-                      .TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
+    auto data_1 = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 1).TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
 
-    auto add = OP_CFG(ADD)
-                   .InCnt(2)
-                   .OutCnt(1)
-                   .TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
+    auto add = OP_CFG(ADD).InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
 
-    auto unique_op = OP_CFG("Unique")
-                         .InCnt(1)
-                         .OutCnt(2)
-                         .TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
+    auto unique_op = OP_CFG("Unique").InCnt(1).OutCnt(2).TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
 
-    auto add_1 = OP_CFG(ADD)
-                     .InCnt(2)
-                     .OutCnt(1)
-                     .TensorDesc(FORMAT_ND, DT_FLOAT, {-1})
-                     .Build("add1");
+    auto add_1 = OP_CFG(ADD).InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {-1}).Build("add1");
 
-    auto const_0 = OP_CFG(CONSTANTOP)
-                       .OutCnt(1)
-                       .Attr(ATTR_NAME_WEIGHTS, tensor)
-                       .TensorDesc(FORMAT_ND, DT_FLOAT, {1});
+    auto const_0 = OP_CFG(CONSTANTOP).OutCnt(1).Attr(ATTR_NAME_WEIGHTS, tensor).TensorDesc(FORMAT_ND, DT_FLOAT, {1});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-                          .InCnt(1)
-                          .OutCnt(1)
-                          .TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {-1});
 
     CHAIN(NODE("_arg_0", data_0)
               ->NODE("add", add)
@@ -358,7 +328,8 @@ Graph BuildLargeDynamicInputGraph() {
     vector<int64_t> dims_vec_0 = {2, 3, 4};
     vector<int32_t> data_vec_0 = {2, 1, 4, 1, 2, -2, 3, 9, 1, 2, 0, 7, 5};
     GeTensorDesc tensor_desc_0(GeShape(dims_vec_0), FORMAT_ND, DT_FLOAT);
-    GeTensorPtr tensor = std::make_shared<GeTensor>(tensor_desc_0, (uint8_t *)data_vec_0.data(), data_vec_0.size() * sizeof(int32_t));
+    GeTensorPtr tensor =
+        std::make_shared<GeTensor>(tensor_desc_0, (uint8_t *)data_vec_0.data(), data_vec_0.size() * sizeof(int32_t));
 
     auto data_0 = OP_CFG(DATA)
                       .InCnt(1)
@@ -379,61 +350,29 @@ Graph BuildLargeDynamicInputGraph() {
                       .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1})
                       .Build("_arg_2");
 
-    auto const_0 = OP_CFG(CONSTANTOP)
-                       .OutCnt(1)
-                       .Weight(tensor)
-                       .TensorDesc(FORMAT_ND, DT_FLOAT, {})
-                       .Build("const_0");
+    auto const_0 = OP_CFG(CONSTANTOP).OutCnt(1).Weight(tensor).TensorDesc(FORMAT_ND, DT_FLOAT, {}).Build("const_0");
 
-    auto add_0 = OP_CFG(ADD)
-                     .InCnt(2)
-                     .OutCnt(1)
-                     .TensorDesc(FORMAT_ND, DT_INT32, {-1, -1, -1})
-                     .Build("add_0");
+    auto add_0 = OP_CFG(ADD).InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {-1, -1, -1}).Build("add_0");
 
-    auto add_1 = OP_CFG(ADD)
-                     .InCnt(2)
-                     .OutCnt(1)
-                     .TensorDesc(FORMAT_ND, DT_INT32, {-1, -1, -1})
-                     .Build("add_1");
+    auto add_1 = OP_CFG(ADD).InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {-1, -1, -1}).Build("add_1");
 
-    auto abs_0 = OP_CFG("Abs")
-                     .InCnt(1)
-                     .OutCnt(1)
-                     .TensorDesc(FORMAT_ND, DT_INT32, {-1, -1, -1})
-                     .Build("abs_0");
+    auto abs_0 = OP_CFG("Abs").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {-1, -1, -1}).Build("abs_0");
 
-    auto abs_1 = OP_CFG("Abs")
-                     .InCnt(1)
-                     .OutCnt(1)
-                     .TensorDesc(FORMAT_ND, DT_INT32, {-1, -1, -1})
-                     .Build("abs_1");
+    auto abs_1 = OP_CFG("Abs").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {-1, -1, -1}).Build("abs_1");
 
-    auto abs_2 = OP_CFG("Abs")
-                     .InCnt(1)
-                     .OutCnt(1)
-                     .TensorDesc(FORMAT_ND, DT_INT32, {-1, -1, -1})
-                     .Build("abs_2");
+    auto abs_2 = OP_CFG("Abs").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {-1, -1, -1}).Build("abs_2");
 
-    auto relu_0 = OP_CFG(RELU)
-                     .InCnt(1)
-                     .OutCnt(1)
-                     .TensorDesc(FORMAT_NCHW, DT_FLOAT, {-1, -1, -1})
-                      .Build("relu_0");
+    auto relu_0 = OP_CFG(RELU).InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_FLOAT, {-1, -1, -1}).Build("relu_0");
 
-    auto relu_1 = OP_CFG(RELU)
-                      .InCnt(1)
-                      .OutCnt(1)
-                      .TensorDesc(FORMAT_NCHW, DT_FLOAT, {-1, -1, -1})
-                      .Build("relu_1");
+    auto relu_1 = OP_CFG(RELU).InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_FLOAT, {-1, -1, -1}).Build("relu_1");
 
     auto shape_0 = OP_CFG(SHAPE)
-                     .InCnt(1)
-                     .OutCnt(1)
-                     .Attr("_ge_attr_op_kernel_lib_name", "DNN_VM_GE_LOCAL_OP_STORE")
-                     .Attr("_force_infershape_when_running", true)
-                     .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1})
-                     .Build("shape_0");
+                       .InCnt(1)
+                       .OutCnt(1)
+                       .Attr("_ge_attr_op_kernel_lib_name", "DNN_VM_GE_LOCAL_OP_STORE")
+                       .Attr("_force_infershape_when_running", true)
+                       .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1})
+                       .Build("shape_0");
 
     auto shape_1 = OP_CFG(SHAPE)
                        .InCnt(1)
@@ -452,12 +391,12 @@ Graph BuildLargeDynamicInputGraph() {
                        .Build("shape_2");
 
     auto reshape_0 = OP_CFG(RESHAPE)
-                       .InCnt(2)
-                       .OutCnt(1)
-                       .Attr("_ge_attr_op_kernel_lib_name", "DNN_VM_GE_LOCAL_OP_STORE")
-                       .Attr("_force_infershape_when_running", true)
-                       .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1})
-                       .Build("reshape_0");
+                         .InCnt(2)
+                         .OutCnt(1)
+                         .Attr("_ge_attr_op_kernel_lib_name", "DNN_VM_GE_LOCAL_OP_STORE")
+                         .Attr("_force_infershape_when_running", true)
+                         .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1})
+                         .Build("reshape_0");
 
     auto reshape_1 = OP_CFG(RESHAPE)
                          .InCnt(2)
@@ -475,21 +414,31 @@ Graph BuildLargeDynamicInputGraph() {
                          .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1})
                          .Build("reshape_2");
 
-    auto net_output = OP_CFG(NETOUTPUT)
-                          .InCnt(1)
-                          .OutCnt(1)
-                          .TensorDesc(FORMAT_ND, DT_INT32, {-1, -1, -1})
-                          .Build("net_output");
+    auto net_output =
+        OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {-1, -1, -1}).Build("net_output");
 
-    CHAIN(NODE(data_0) -> EDGE(0, 0) -> NODE(add_0) -> NODE(abs_0) -> EDGE(0, 0) -> NODE(reshape_0)
-              -> NODE(abs_1) -> NODE(relu_0) -> EDGE(0, 0) -> NODE(reshape_1)
-              -> EDGE(0, 0) -> NODE(add_1) -> NODE(relu_1) -> EDGE(0, 0) -> NODE(reshape_2)
-              -> NODE(abs_2)-> NODE(net_output));
-    CHAIN(NODE(const_0) -> EDGE(0, 1) -> NODE(add_0));
-    CHAIN(NODE(const_0) -> EDGE(0, 1) -> NODE(add_1));
-    CHAIN(NODE(data_1) -> EDGE(0, 0) -> NODE(shape_1) -> EDGE(0, 1) -> NODE(reshape_0));
-    CHAIN(NODE(data_0) -> EDGE(0, 0) -> NODE(shape_0) -> EDGE(0, 1) -> NODE(reshape_1));
-    CHAIN(NODE(data_2) -> EDGE(0, 0) -> NODE(shape_2) -> EDGE(0, 1) -> NODE(reshape_2));
+    CHAIN(NODE(data_0)
+              ->EDGE(0, 0)
+              ->NODE(add_0)
+              ->NODE(abs_0)
+              ->EDGE(0, 0)
+              ->NODE(reshape_0)
+              ->NODE(abs_1)
+              ->NODE(relu_0)
+              ->EDGE(0, 0)
+              ->NODE(reshape_1)
+              ->EDGE(0, 0)
+              ->NODE(add_1)
+              ->NODE(relu_1)
+              ->EDGE(0, 0)
+              ->NODE(reshape_2)
+              ->NODE(abs_2)
+              ->NODE(net_output));
+    CHAIN(NODE(const_0)->EDGE(0, 1)->NODE(add_0));
+    CHAIN(NODE(const_0)->EDGE(0, 1)->NODE(add_1));
+    CHAIN(NODE(data_1)->EDGE(0, 0)->NODE(shape_1)->EDGE(0, 1)->NODE(reshape_0));
+    CHAIN(NODE(data_0)->EDGE(0, 0)->NODE(shape_0)->EDGE(0, 1)->NODE(reshape_1));
+    CHAIN(NODE(data_2)->EDGE(0, 0)->NODE(shape_2)->EDGE(0, 1)->NODE(reshape_2));
   };
   return ToGeGraph(dynamic_graph_reshape);
 }
@@ -499,57 +448,25 @@ Graph BuildDynamicInputGraphWithVarAndConst() {
     GeTensorDesc tensor_desc(GeShape({1}), FORMAT_ND, DT_INT32);
     GeTensor tensor(tensor_desc);
     int32_t value = 2;
-    tensor.SetData((uint8_t *) &value, sizeof(int32_t));
+    tensor.SetData((uint8_t *)&value, sizeof(int32_t));
 
-    auto data_0 = OP_CFG(DATA)
-                      .InCnt(1)
-                      .OutCnt(1)
-                      .Attr(ATTR_NAME_INDEX, 0)
-                      .TensorDesc(FORMAT_ND, DT_FLOAT, {-1})
-                      .Build("_arg_0");
+    auto data_0 =
+        OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT, {-1}).Build("_arg_0");
 
-    auto data_1 = OP_CFG(DATA)
-                      .InCnt(1)
-                      .OutCnt(1)
-                      .Attr(ATTR_NAME_INDEX, 1)
-                      .TensorDesc(FORMAT_ND, DT_FLOAT, {-1})
-                      .Build("_arg_1");
+    auto data_1 =
+        OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 1).TensorDesc(FORMAT_ND, DT_FLOAT, {-1}).Build("_arg_1");
 
-    auto unique_2 = OP_CFG("Unique")
-                        .InCnt(1)
-                        .OutCnt(2)
-                        .TensorDesc(FORMAT_ND, DT_FLOAT, {-1})
-                        .Build("unique_2");
+    auto unique_2 = OP_CFG("Unique").InCnt(1).OutCnt(2).TensorDesc(FORMAT_ND, DT_FLOAT, {-1}).Build("unique_2");
 
-    auto unique_3 = OP_CFG("Unique")
-                        .InCnt(1)
-                        .OutCnt(2)
-                        .TensorDesc(FORMAT_ND, DT_FLOAT, {-1})
-                        .Build("unique_3");
+    auto unique_3 = OP_CFG("Unique").InCnt(1).OutCnt(2).TensorDesc(FORMAT_ND, DT_FLOAT, {-1}).Build("unique_3");
 
-    auto unique_4 = OP_CFG("Unique")
-                        .InCnt(1)
-                        .OutCnt(2)
-                        .TensorDesc(FORMAT_ND, DT_FLOAT, {-1})
-                        .Build("unique_4");
+    auto unique_4 = OP_CFG("Unique").InCnt(1).OutCnt(2).TensorDesc(FORMAT_ND, DT_FLOAT, {-1}).Build("unique_4");
 
-    auto add_bridge1 = OP_CFG(ADD)
-                           .InCnt(2)
-                           .OutCnt(1)
-                           .TensorDesc(FORMAT_ND, DT_FLOAT, {-1})
-                           .Build("add_bridge1");
+    auto add_bridge1 = OP_CFG(ADD).InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {-1}).Build("add_bridge1");
 
-    auto add_bridge2 = OP_CFG(ADD)
-                           .InCnt(2)
-                           .OutCnt(1)
-                           .TensorDesc(FORMAT_ND, DT_FLOAT, {-1})
-                           .Build("add_bridge2");
+    auto add_bridge2 = OP_CFG(ADD).InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {-1}).Build("add_bridge2");
 
-    auto add_bridge3 = OP_CFG(ADD)
-                           .InCnt(2)
-                           .OutCnt(1)
-                           .TensorDesc(FORMAT_ND, DT_FLOAT, {-1})
-                           .Build("add_bridge3");
+    auto add_bridge3 = OP_CFG(ADD).InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {-1}).Build("add_bridge3");
 
     auto const_0 = OP_CFG(CONSTANTOP)
                        .OutCnt(1)
@@ -557,30 +474,28 @@ Graph BuildDynamicInputGraphWithVarAndConst() {
                        .TensorDesc(FORMAT_ND, DT_FLOAT, {1})
                        .Build("const_0");  // 添加Build()
 
-    auto net_output = OP_CFG(NETOUTPUT)
-                          .InCnt(1)
-                          .OutCnt(1)
-                          .TensorDesc(FORMAT_ND, DT_FLOAT, {-1})
-                          .Build("net_output");
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {-1}).Build("net_output");
 
     CHAIN(NODE(data_0)
-              -> NODE(add_bridge1)
-              -> NODE(unique_2) -> EDGE(0, 0)
-              -> NODE(add_bridge2)
-              -> NODE(unique_3) -> EDGE(0, 0)
-              -> NODE(add_bridge3)
-              -> NODE(unique_4) -> EDGE(0, 0)
-              -> NODE(net_output));
+              ->NODE(add_bridge1)
+              ->NODE(unique_2)
+              ->EDGE(0, 0)
+              ->NODE(add_bridge2)
+              ->NODE(unique_3)
+              ->EDGE(0, 0)
+              ->NODE(add_bridge3)
+              ->NODE(unique_4)
+              ->EDGE(0, 0)
+              ->NODE(net_output));
 
-    CHAIN(NODE(data_1) -> EDGE(0, 1) -> NODE(add_bridge1));
-    CHAIN(NODE(const_0) -> EDGE(0, 1) -> NODE(add_bridge2));
-    CHAIN(NODE(const_0) -> EDGE(0, 1)-> NODE(add_bridge3));
+    CHAIN(NODE(data_1)->EDGE(0, 1)->NODE(add_bridge1));
+    CHAIN(NODE(const_0)->EDGE(0, 1)->NODE(add_bridge2));
+    CHAIN(NODE(const_0)->EDGE(0, 1)->NODE(add_bridge3));
   };
   return ToGeGraph(slice_scheduler_dynamic_graph_deep2);
 }
 
-} // namespace
-
+}  // namespace
 
 TEST_F(SliceSchedulerMultiInstanceTest, TestSliceScheduler_ForDynamicGraph_DisableJIT) {
   MockForGenerateTask("AIcoreEngine", GenerateTaskForAiCore);
@@ -602,12 +517,13 @@ TEST_F(SliceSchedulerMultiInstanceTest, TestSliceScheduler_ForDynamicGraph_Disab
   inputs.emplace_back(CreateTensor({16}));
   // add graph
   std::mutex mtx;
-  std::map<int, Status> addResultMap = ConcurrentProcess(EXPECT_AddGraph, 3, std::ref(mtx), std::ref(session),
-                                                         graph_id, std::ref(ir_graph), std::ref(graph_options));
+  std::map<int, Status> addResultMap = ConcurrentProcess(EXPECT_AddGraph, 3, std::ref(mtx), std::ref(session), graph_id,
+                                                         std::ref(ir_graph), std::ref(graph_options));
   // build graph
   EXPECT_EQ(session.BuildGraph(graph_id, inputs), SUCCESS);
   // run graph
-  std::map<int, std::vector<Tensor>> resultMap = ConcurrentProcess(EXPECT_RunGraphAsync, 3, std::ref(mtx), std::ref(session), graph_id, inputs);
+  std::map<int, std::vector<Tensor>> resultMap =
+      ConcurrentProcess(EXPECT_RunGraphAsync, 3, std::ref(mtx), std::ref(session), graph_id, inputs);
   // 检测未走断图流程
   EXPECT_EQ(slogStub->FindLog(DLOG_DEBUG, "Start to commit user graph execution task"), -1);
   EXPECT_EQ(slogStub->FindLog(DLOG_DEBUG, "GetRemainingNodes completed. uninfer nodes size"), -1);
@@ -638,12 +554,13 @@ TEST_F(SliceSchedulerMultiInstanceTest, TestSliceScheduler_ForDynamicGraph_Enabl
 
   // add graph
   std::mutex mtx;
-  std::map<int, Status> addResultMap = ConcurrentProcess(EXPECT_AddGraph, 3, std::ref(mtx), std::ref(session),
-                                                         graph_id, std::ref(ir_graph), std::ref(graph_options));
+  std::map<int, Status> addResultMap = ConcurrentProcess(EXPECT_AddGraph, 3, std::ref(mtx), std::ref(session), graph_id,
+                                                         std::ref(ir_graph), std::ref(graph_options));
   // build graph
   EXPECT_EQ(session.BuildGraph(graph_id, inputs), SUCCESS);
   // run graph
-  std::map<int, std::vector<Tensor>> resultMap = ConcurrentProcess(EXPECT_RunGraphAsync, 3, std::ref(mtx), std::ref(session), graph_id, inputs);
+  std::map<int, std::vector<Tensor>> resultMap =
+      ConcurrentProcess(EXPECT_RunGraphAsync, 3, std::ref(mtx), std::ref(session), graph_id, inputs);
   // 检测未走断图流程
   EXPECT_EQ(slogStub->FindLog(DLOG_DEBUG, "Start to commit user graph execution task"), -1);
   EXPECT_EQ(slogStub->FindLog(DLOG_DEBUG, "GetRemainingNodes completed. uninfer nodes size"), -1);
@@ -674,12 +591,13 @@ TEST_F(SliceSchedulerMultiInstanceTest, TestSliceScheduler_ForStaticGraph) {
 
   // add graph
   std::mutex mtx;
-  std::map<int, Status> addResultMap = ConcurrentProcess(EXPECT_AddGraph, 3, std::ref(mtx), std::ref(session),
-                                                         graph_id, std::ref(ir_graph), std::ref(graph_options));
+  std::map<int, Status> addResultMap = ConcurrentProcess(EXPECT_AddGraph, 3, std::ref(mtx), std::ref(session), graph_id,
+                                                         std::ref(ir_graph), std::ref(graph_options));
   // build graph
   EXPECT_EQ(session.BuildGraph(graph_id, inputs), SUCCESS);
   // run graph
-  std::map<int, std::vector<Tensor>> resultMap = ConcurrentProcess(EXPECT_RunGraphAsync, 3, std::ref(mtx), std::ref(session), graph_id, inputs);
+  std::map<int, std::vector<Tensor>> resultMap =
+      ConcurrentProcess(EXPECT_RunGraphAsync, 3, std::ref(mtx), std::ref(session), graph_id, inputs);
   // 检测未走断图流程
   EXPECT_EQ(slogStub->FindLog(DLOG_DEBUG, "Start to commit user graph execution task"), -1);
   EXPECT_EQ(slogStub->FindLog(DLOG_DEBUG, "GetRemainingNodes completed. uninfer nodes size"), -1);
@@ -709,13 +627,13 @@ TEST_F(SliceSchedulerMultiInstanceTest, TestSliceScheduler_ForDynamicGraph) {
   inputs.emplace_back(CreateTensor({16}));
   // add graph
   std::mutex mtx;
-  std::map<int, Status> addResultMap = ConcurrentProcess(EXPECT_AddGraph, 3, std::ref(mtx), std::ref(session),
-                                                         graph_id, std::ref(ir_graph), std::ref(graph_options));
+  std::map<int, Status> addResultMap = ConcurrentProcess(EXPECT_AddGraph, 3, std::ref(mtx), std::ref(session), graph_id,
+                                                         std::ref(ir_graph), std::ref(graph_options));
   // build graph
   EXPECT_EQ(session.BuildGraph(graph_id, inputs), SUCCESS);
   // run graph
-  std::map<int, std::vector<Tensor>> resultMap = ConcurrentProcess(EXPECT_RunGraphAsync, 3, std::ref(mtx),
-                                                                   std::ref(session), graph_id, inputs);
+  std::map<int, std::vector<Tensor>> resultMap =
+      ConcurrentProcess(EXPECT_RunGraphAsync, 3, std::ref(mtx), std::ref(session), graph_id, inputs);
   // 检测进入断图
   EXPECT_TRUE(slogStub->FindLog(DLOG_DEBUG, "Start to commit user graph execution task") >= 0);
   // 校验切图
@@ -754,7 +672,8 @@ TEST_F(SliceSchedulerMultiInstanceTest, TestSliceScheduler_ForLargeDynamicGraph)
   // build graph
   EXPECT_EQ(session.BuildGraph(graph_id, inputs), SUCCESS);
   // run graph
-  std::map<int, std::vector<Tensor>> resultMap = ConcurrentProcess(EXPECT_RunGraphAsync, thread_num, std::ref(mtx), std::ref(session), graph_id, inputs);
+  std::map<int, std::vector<Tensor>> resultMap =
+      ConcurrentProcess(EXPECT_RunGraphAsync, thread_num, std::ref(mtx), std::ref(session), graph_id, inputs);
   // 检测进入断图
   EXPECT_TRUE(slogStub->FindLog(DLOG_DEBUG, "Start to commit user graph execution task") >= 0);
   // 校验切图
@@ -796,11 +715,11 @@ TEST_F(SliceSchedulerMultiInstanceTest, TestSliceScheduler_ForRemovingGraph) {
   std::mutex mtx;
   // process graph 1
   auto ir_graph_1 = BuildLargeDynamicInputGraph();
-  ConcurrentProcess(EXPECT_AddGraph, 3, std::ref(mtx), std::ref(session), graph_id_1,
-                    std::ref(ir_graph_1), std::ref(graph_options));
+  ConcurrentProcess(EXPECT_AddGraph, 3, std::ref(mtx), std::ref(session), graph_id_1, std::ref(ir_graph_1),
+                    std::ref(graph_options));
   EXPECT_EQ(session.BuildGraph(graph_id_1, inputs1), SUCCESS);
-  std::map<int, std::vector<Tensor>> result_map_1 = ConcurrentProcess(EXPECT_RunGraphAsync, 3, std::ref(mtx),
-                                                                      std::ref(session), graph_id_1, inputs1);
+  std::map<int, std::vector<Tensor>> result_map_1 =
+      ConcurrentProcess(EXPECT_RunGraphAsync, 3, std::ref(mtx), std::ref(session), graph_id_1, inputs1);
   // 检测进入断图
   EXPECT_TRUE(slogStub->FindLog(DLOG_DEBUG, "Start to commit user graph execution task") >= 0);
   // 校验切图
@@ -812,11 +731,11 @@ TEST_F(SliceSchedulerMultiInstanceTest, TestSliceScheduler_ForRemovingGraph) {
   inputs2.emplace_back(CreateTensor({16}));
   inputs2.emplace_back(CreateTensor({16}));
   auto ir_graph_2 = BuildDynamicInputGraphWithVarAndConst();
-  ConcurrentProcess(EXPECT_AddGraph, 3, std::ref(mtx), std::ref(session),graph_id_2,
-                    std::ref(ir_graph_2), std::ref(graph_options));
+  ConcurrentProcess(EXPECT_AddGraph, 3, std::ref(mtx), std::ref(session), graph_id_2, std::ref(ir_graph_2),
+                    std::ref(graph_options));
   EXPECT_EQ(session.BuildGraph(graph_id_2, inputs2), SUCCESS);
-  std::map<int, std::vector<Tensor>> result_map_2 = ConcurrentProcess(EXPECT_RunGraphAsync, 3,std::ref(mtx),
-                                                                      std::ref(session), graph_id_2, inputs2);
+  std::map<int, std::vector<Tensor>> result_map_2 =
+      ConcurrentProcess(EXPECT_RunGraphAsync, 3, std::ref(mtx), std::ref(session), graph_id_2, inputs2);
   // 检测进入断图
   EXPECT_TRUE(slogStub->FindLog(DLOG_DEBUG, "Start to commit user graph execution task") >= 0);
   // 校验切图
@@ -846,8 +765,8 @@ TEST_F(SliceSchedulerMultiInstanceTest, TestSliceScheduler_ForDynamicGraph_WithE
   std::mutex mtx;
   auto ir_graph_1 = BuildDynamicInputGraph();
   GraphId graph_id_1 = 101;
-  ConcurrentProcess(EXPECT_AddGraph, 3, std::ref(mtx), std::ref(session1), graph_id_1,
-                    std::ref(ir_graph_1), std::ref(graph_options));
+  ConcurrentProcess(EXPECT_AddGraph, 3, std::ref(mtx), std::ref(session1), graph_id_1, std::ref(ir_graph_1),
+                    std::ref(graph_options));
 
   // incorrect build
   std::vector<Tensor> build_inputs;
@@ -861,8 +780,8 @@ TEST_F(SliceSchedulerMultiInstanceTest, TestSliceScheduler_ForDynamicGraph_WithE
   Session session2(options);
   auto ir_graph_2 = BuildDynamicInputGraph();
   GraphId graph_id = 103;
-  ConcurrentProcess(EXPECT_AddGraph, 3, std::ref(mtx), std::ref(session2), graph_id,
-                    std::ref(ir_graph_2), std::ref(graph_options));
+  ConcurrentProcess(EXPECT_AddGraph, 3, std::ref(mtx), std::ref(session2), graph_id, std::ref(ir_graph_2),
+                    std::ref(graph_options));
   EXPECT_EQ(SUCCESS, session2.BuildGraph(graph_id, build_inputs));
   std::vector<ge::Tensor> inputs;
   // incorrect input

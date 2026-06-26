@@ -123,8 +123,8 @@ class ScopedTempDir {
  public:
   explicit ScopedTempDir(const std::string &root) {
     for (int32_t i = 0; i < 100; ++i) {
-      const std::string candidate = PathUtils::Join({root, "om2_cross_compile_" + std::to_string(getpid()) + "_" +
-                                                           std::to_string(i)});
+      const std::string candidate =
+          PathUtils::Join({root, "om2_cross_compile_" + std::to_string(getpid()) + "_" + std::to_string(i)});
       if (mkdir(candidate.c_str(), S_IRWXU) == 0) {
         path_ = candidate;
         return;
@@ -146,7 +146,9 @@ class ScopedTempDir {
     return PathUtils::Join({path_, relative});
   }
 
-  bool IsValid() const { return !path_.empty(); }
+  bool IsValid() const {
+    return !path_.empty();
+  }
 
   bool Mkdirs(const std::string &relative) const {
     return CreateDir(Path(relative)) == 0;
@@ -177,14 +179,20 @@ class ScopedTempDir {
 
 static void SyncKernelNameFromOpDesc(const GeModelPtr &ge_model) {
   auto model_task_def = ge_model->GetModelTaskDefPtr();
-  if (model_task_def == nullptr) { return; }
+  if (model_task_def == nullptr) {
+    return;
+  }
   const auto &graph = ge_model->GetGraph();
-  if (graph == nullptr) { return; }
+  if (graph == nullptr) {
+    return;
+  }
   for (int i = 0; i < model_task_def->task_size(); ++i) {
     auto *task_def = model_task_def->mutable_task(i);
     for (const auto &node : graph->GetDirectNode()) {
       auto op_desc = node->GetOpDesc();
-      if (op_desc == nullptr) { continue; }
+      if (op_desc == nullptr) {
+        continue;
+      }
       std::string kernel_name;
       if (ge::AttrUtils::GetStr(op_desc, "_kernelname", kernel_name)) {
         task_def->mutable_kernel()->set_kernel_name(kernel_name);
@@ -194,7 +202,9 @@ static void SyncKernelNameFromOpDesc(const GeModelPtr &ge_model) {
 }
 
 static void SyncKernelNameForAllModels(const GeRootModelPtr &ge_root_model) {
-  if (ge_root_model == nullptr) { return; }
+  if (ge_root_model == nullptr) {
+    return;
+  }
   for (const auto &kv : ge_root_model->GetSubgraphInstanceNameToModel()) {
     SyncKernelNameFromOpDesc(kv.second);
   }
@@ -324,8 +334,8 @@ GeRootModelPtr CreateGeRootModelWithAtomicAicoreOp() {
   gert::GeModelBuilder builder(graph);
   auto ge_root_model =
       builder
-          .AddTaskDef("Add", gert::AiCoreTaskDefFaker("add_stub").AtomicStubNum("atomic_add_stub")
-                                 .ArgsFormat(args_format))
+          .AddTaskDef("Add",
+                      gert::AiCoreTaskDefFaker("add_stub").AtomicStubNum("atomic_add_stub").ArgsFormat(args_format))
           .FakeTbeBin({gert::GeModelBuilder::TbeConfig("Add", true)})
           .BuildGeRootModel();
   auto &compute_graph = ge_root_model->GetRootGraph();
@@ -365,8 +375,8 @@ GeRootModelPtr CreateGeRootModelWithAtomicAicoreOp() {
   auto *model_task_def = ge_model->GetModelTaskDefPtr().get();
   const auto kernel_name_ptr = AttrUtils::GetStr(add_desc, "_kernelname");
   const auto atomic_kernel_name_ptr = AttrUtils::GetStr(add_desc, ATOMIC_ATTR_TBE_KERNEL_NAME);
-  if ((model_task_def == nullptr) || (model_task_def->task_size() < 2) ||
-      (kernel_name_ptr == nullptr) || (atomic_kernel_name_ptr == nullptr)) {
+  if ((model_task_def == nullptr) || (model_task_def->task_size() < 2) || (kernel_name_ptr == nullptr) ||
+      (atomic_kernel_name_ptr == nullptr)) {
     return nullptr;
   }
   model_task_def->mutable_task(0)->mutable_kernel()->set_kernel_name(*atomic_kernel_name_ptr);
@@ -453,9 +463,7 @@ GeRootModelPtr CreateGeRootModelWithAicoreOp2() {
   }
   gert::GeModelBuilder builder(graph);
   auto ge_root_model =
-      builder
-          .AddTaskDef("Add",
-                      gert::AiCoreTaskDefFaker("add_stub").ArgsFormat("{i0*}{i1*}{o0*}{ws0*}"))
+      builder.AddTaskDef("Add", gert::AiCoreTaskDefFaker("add_stub").ArgsFormat("{i0*}{i1*}{o0*}{ws0*}"))
           .FakeTbeBin({"Add"})
           .BuildGeRootModel();
   auto &compute_graph = ge_root_model->GetRootGraph();
@@ -496,8 +504,8 @@ GeRootModelPtr CreateGeRootModelWithAicpuOp() {
   gert::GeModelBuilder builder(graph);
   gert::AiCpuCCTaskDefFaker aicpu_task_def_faker;
   auto ge_root_model = builder.AddTaskDef("add1", aicpu_task_def_faker.SetNeedMemcpy(false))
-                              .AddTaskDef("add2", aicpu_task_def_faker.SetNeedMemcpy(false))
-                              .BuildGeRootModel();
+                           .AddTaskDef("add2", aicpu_task_def_faker.SetNeedMemcpy(false))
+                           .BuildGeRootModel();
   auto &compute_graph = ge_root_model->GetRootGraph();
 
   compute_graph->SetGraphUnknownFlag(false);
@@ -552,8 +560,8 @@ GeRootModelPtr CreateGeRootModelWithCustAicpuOp() {
   gert::GeModelBuilder builder(graph);
   gert::AiCpuCCTaskDefFaker aicpu_task_def_faker;
   auto ge_root_model = builder.AddTaskDef("add1", aicpu_task_def_faker.SetNeedMemcpy(false))
-                              .AddTaskDef("add2", aicpu_task_def_faker.SetNeedMemcpy(false))
-                              .BuildGeRootModel();
+                           .AddTaskDef("add2", aicpu_task_def_faker.SetNeedMemcpy(false))
+                           .BuildGeRootModel();
   auto &compute_graph = ge_root_model->GetRootGraph();
 
   compute_graph->SetGraphUnknownFlag(false);
@@ -633,8 +641,8 @@ GeRootModelPtr CreateGeRootModelWithTfAicpuOp() {
   gert::AiCpuTfTaskDefFaker tf_aicpu_task_def_faker;
   gert::AiCpuCCTaskDefFaker aicpu_task_def_faker;
   auto ge_root_model = builder.AddTaskDef("add1", tf_aicpu_task_def_faker.SetNeedMemcpy(false))
-                              .AddTaskDef("add2", aicpu_task_def_faker.SetNeedMemcpy(false))
-                              .BuildGeRootModel();
+                           .AddTaskDef("add2", aicpu_task_def_faker.SetNeedMemcpy(false))
+                           .BuildGeRootModel();
   auto &compute_graph = ge_root_model->GetRootGraph();
 
   compute_graph->SetGraphUnknownFlag(false);
@@ -737,9 +745,7 @@ GeRootModelPtr CreateGeRootModelWithAicoreOpOfDynamicIo() {
   graph->TopologicalSorting();
   gert::GeModelBuilder builder(graph);
   auto ge_root_model =
-      builder
-          .AddTaskDef("Add",
-                      gert::AiCoreTaskDefFaker("add_stub").ArgsFormat("{i_desc0}{i_desc1}{o_desc0}"))
+      builder.AddTaskDef("Add", gert::AiCoreTaskDefFaker("add_stub").ArgsFormat("{i_desc0}{i_desc1}{o_desc0}"))
           .FakeTbeBin({"Add"})
           .BuildGeRootModel();
   auto &compute_graph = ge_root_model->GetRootGraph();
@@ -801,8 +807,8 @@ void WriteBinaryFile(const std::string &file_path, const std::vector<uint8_t> &c
 }
 
 void RunCommandOrAssert(const std::string &command) {
-  const std::string wrapped_command = "env ASAN_OPTIONS=detect_leaks=0:halt_on_error=0 LSAN_OPTIONS=exitcode=0 " +
-                                      command;
+  const std::string wrapped_command =
+      "env ASAN_OPTIONS=detect_leaks=0:halt_on_error=0 LSAN_OPTIONS=exitcode=0 " + command;
   ASSERT_EQ(system(wrapped_command.c_str()), 0) << wrapped_command;
 }
 
@@ -1042,8 +1048,7 @@ void ExpectGeneratedMakefileSupportsEnvCompiler(const RAIIZipArchive &archive, c
   EXPECT_NE(makefile.find("LDFLAGS := -shared -L$(LIB_PATH) -Wl,--no-as-needed"), std::string::npos);
   EXPECT_NE(makefile.find("ifndef LDLIBS"), std::string::npos);
   EXPECT_NE(makefile.find("LDLIBS := -lacl_rt -Wl,--as-needed"), std::string::npos);
-  EXPECT_NE(makefile.find("$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ $^ $(LDFLAGS) $(LDLIBS)"),
-            std::string::npos);
+  EXPECT_NE(makefile.find("$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ $^ $(LDFLAGS) $(LDLIBS)"), std::string::npos);
 }
 
 JsonFile ExtractConstantsConfig(const RAIIZipArchive &archive, const std::string &zip_base_name) {
@@ -1066,15 +1071,12 @@ GeRootModelPtr CreateGeRootModelWithSeparatelyCleanAicoreOp() {
   auto graph = gert::ShareGraph::AicoreStaticGraph();
   graph->TopologicalSorting();
   gert::GeModelBuilder builder(graph);
-  auto ge_root_model =
-      builder
-          .AddTaskDef(
-              "Add",
-              gert::AiCoreTaskDefFaker("add_stub")
-                  .AtomicStubNum("add_atomic_stub")
-                  .ArgsFormat("{i_instance0*}{i_instance1*}{o_instance0*}{ws0*}"))
-          .FakeTbeBin({gert::GeModelBuilder::TbeConfig("Add", true)})
-          .BuildGeRootModel();
+  auto ge_root_model = builder
+                           .AddTaskDef("Add", gert::AiCoreTaskDefFaker("add_stub")
+                                                  .AtomicStubNum("add_atomic_stub")
+                                                  .ArgsFormat("{i_instance0*}{i_instance1*}{o_instance0*}{ws0*}"))
+                           .FakeTbeBin({gert::GeModelBuilder::TbeConfig("Add", true)})
+                           .BuildGeRootModel();
   auto &compute_graph = ge_root_model->GetRootGraph();
 
   compute_graph->SetGraphUnknownFlag(false);
@@ -1158,8 +1160,7 @@ GeRootModelPtr CreateGeRootModelWithSeparatelyCleanAicoreOp() {
 // -----------------------------------------------------------------------
 // Helper: 在现有 AiCore 模型上添加 CMO task_def
 // -----------------------------------------------------------------------
-GeRootModelPtr CreateGeRootModelWithCmoTask(uint32_t cmo_type = 1U,
-                                             uint32_t op_code = 3U) {
+GeRootModelPtr CreateGeRootModelWithCmoTask(uint32_t cmo_type = 1U, uint32_t op_code = 3U) {
   auto ge_root_model = CreateGeRootModelWithAicoreOp();
   GE_ASSERT_NOTNULL(ge_root_model);
   const auto ge_model = ge_root_model->GetSubgraphInstanceNameToModel().begin()->second;
@@ -1292,18 +1293,12 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithAicoreNode) {
   RAIIZipArchive archive(reinterpret_cast<const uint8_t *>(model_buf.get()), model_buf_size);
   ASSERT_TRUE(archive.IsGood());
   const std::set<std::string> expect_files = {
-      "fake_test/data/model_0/runtime/g1_kernel_reg.cpp",
-      "fake_test/data/model_0/runtime/g1_resources.cpp",
-      "fake_test/data/model_0/runtime/g1_args_manager.cpp",
-      "fake_test/data/model_0/runtime/g1_load_and_run.cpp",
-      "fake_test/data/model_0/runtime/g1_interface.h",
-      "fake_test/data/model_0/runtime/Makefile",
-      "fake_test/data/model_0/runtime/libg1_om2.so",
-      "fake_test/data/constants/model_0_constants_config.json",
-      "fake_test/data/kernels_npu_arch/add1_faked_kernel.o",
-      "fake_test/data/model_0/model_meta.json",
-      "fake_test/data/model_0/debug/op_attr.json",
-      "fake_test/manifest.json",
+      "fake_test/data/model_0/runtime/g1_kernel_reg.cpp",    "fake_test/data/model_0/runtime/g1_resources.cpp",
+      "fake_test/data/model_0/runtime/g1_args_manager.cpp",  "fake_test/data/model_0/runtime/g1_load_and_run.cpp",
+      "fake_test/data/model_0/runtime/g1_interface.h",       "fake_test/data/model_0/runtime/Makefile",
+      "fake_test/data/model_0/runtime/libg1_om2.so",         "fake_test/data/constants/model_0_constants_config.json",
+      "fake_test/data/kernels_npu_arch/add1_faked_kernel.o", "fake_test/data/model_0/model_meta.json",
+      "fake_test/data/model_0/debug/op_attr.json",           "fake_test/manifest.json",
   };
   ExpectOm2ArchiveFiles(archive, expect_files);
   ExpectGeneratedMakefileSupportsEnvCompiler(archive, kZipFileBaseName);
@@ -1373,7 +1368,7 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithInternalConst) {
       "fake_test/data/constants/model_0_constants_config.json",
       "fake_test/data/kernels_npu_arch/add1_faked_kernel.o",
       "fake_test/data/model_0/model_meta.json",
-    "fake_test/data/model_0/debug/op_attr.json",
+      "fake_test/data/model_0/debug/op_attr.json",
       "fake_test/manifest.json",
   };
   ExpectOm2ArchiveFiles(archive, expect_files);
@@ -1511,8 +1506,8 @@ TEST_F(Om2St, SaveOm2Model_Ok_RelocateExternalWeightsWithAclgrphSaveModel) {
     ASSERT_TRUE(zip_writer.WriteBytes("data/constants/model_2_constants_config.json", skipped_consts_config.data(),
                                       skipped_consts_config.size(), false));
     const std::string runtime_entry = "runtime";
-    ASSERT_TRUE(zip_writer.WriteBytes("data/model_0/runtime/libfake.so", runtime_entry.data(), runtime_entry.size(),
-                                      false));
+    ASSERT_TRUE(
+        zip_writer.WriteBytes("data/model_0/runtime/libfake.so", runtime_entry.data(), runtime_entry.size(), false));
     const std::string manifest = R"({"archive_version":"1.0","model_num":3})";
     ASSERT_TRUE(zip_writer.WriteBytes("manifest.json", manifest.data(), manifest.size(), false));
     ASSERT_TRUE(zip_writer.SaveModelData(model, false));
@@ -1530,11 +1525,9 @@ TEST_F(Om2St, SaveOm2Model_Ok_RelocateExternalWeightsWithAclgrphSaveModel) {
   const auto file_names = archive.ListFiles();
   EXPECT_NE(std::find(file_names.begin(), file_names.end(), "saved_model/data/model_0/runtime/libfake.so"),
             file_names.end());
-  EXPECT_NE(std::find(file_names.begin(), file_names.end(),
-                      "saved_model/data/constants/model_1_constants_config.json"),
+  EXPECT_NE(std::find(file_names.begin(), file_names.end(), "saved_model/data/constants/model_1_constants_config.json"),
             file_names.end());
-  EXPECT_NE(std::find(file_names.begin(), file_names.end(),
-                      "saved_model/data/constants/model_2_constants_config.json"),
+  EXPECT_NE(std::find(file_names.begin(), file_names.end(), "saved_model/data/constants/model_2_constants_config.json"),
             file_names.end());
   const JsonFile constants_json = ExtractConstantsConfig(archive, "saved_model");
   ASSERT_TRUE(constants_json.IsValid());
@@ -1564,18 +1557,12 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithAicoreOp2) {
   ASSERT_TRUE(archive.IsGood());
   const auto file_names = archive.ListFiles();
   const std::set<std::string> expect_files = {
-      "fake_test/data/model_0/runtime/g1_kernel_reg.cpp",
-      "fake_test/data/model_0/runtime/g1_resources.cpp",
-      "fake_test/data/model_0/runtime/g1_args_manager.cpp",
-      "fake_test/data/model_0/runtime/g1_load_and_run.cpp",
-      "fake_test/data/model_0/runtime/g1_interface.h",
-      "fake_test/data/model_0/runtime/Makefile",
-      "fake_test/data/model_0/runtime/libg1_om2.so",
-      "fake_test/data/constants/model_0_constants_config.json",
-      "fake_test/data/kernels_npu_arch/add1_faked_kernel.o",
-      "fake_test/data/model_0/model_meta.json",
-      "fake_test/data/model_0/debug/op_attr.json",
-      "fake_test/manifest.json",
+      "fake_test/data/model_0/runtime/g1_kernel_reg.cpp",    "fake_test/data/model_0/runtime/g1_resources.cpp",
+      "fake_test/data/model_0/runtime/g1_args_manager.cpp",  "fake_test/data/model_0/runtime/g1_load_and_run.cpp",
+      "fake_test/data/model_0/runtime/g1_interface.h",       "fake_test/data/model_0/runtime/Makefile",
+      "fake_test/data/model_0/runtime/libg1_om2.so",         "fake_test/data/constants/model_0_constants_config.json",
+      "fake_test/data/kernels_npu_arch/add1_faked_kernel.o", "fake_test/data/model_0/model_meta.json",
+      "fake_test/data/model_0/debug/op_attr.json",           "fake_test/manifest.json",
   };
   EXPECT_EQ(file_names.size(), expect_files.size());
   for (const auto &file_name : file_names) {
@@ -1599,18 +1586,12 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithAicoreOpOfDynamicIo) {
   ASSERT_TRUE(archive.IsGood());
   const auto file_names = archive.ListFiles();
   const std::set<std::string> expect_files = {
-      "fake_test/data/model_0/runtime/g1_kernel_reg.cpp",
-      "fake_test/data/model_0/runtime/g1_resources.cpp",
-      "fake_test/data/model_0/runtime/g1_args_manager.cpp",
-      "fake_test/data/model_0/runtime/g1_load_and_run.cpp",
-      "fake_test/data/model_0/runtime/g1_interface.h",
-      "fake_test/data/model_0/runtime/Makefile",
-      "fake_test/data/model_0/runtime/libg1_om2.so",
-      "fake_test/data/constants/model_0_constants_config.json",
-      "fake_test/data/kernels_npu_arch/add1_faked_kernel.o",
-      "fake_test/data/model_0/model_meta.json",
-      "fake_test/data/model_0/debug/op_attr.json",
-      "fake_test/manifest.json",
+      "fake_test/data/model_0/runtime/g1_kernel_reg.cpp",    "fake_test/data/model_0/runtime/g1_resources.cpp",
+      "fake_test/data/model_0/runtime/g1_args_manager.cpp",  "fake_test/data/model_0/runtime/g1_load_and_run.cpp",
+      "fake_test/data/model_0/runtime/g1_interface.h",       "fake_test/data/model_0/runtime/Makefile",
+      "fake_test/data/model_0/runtime/libg1_om2.so",         "fake_test/data/constants/model_0_constants_config.json",
+      "fake_test/data/kernels_npu_arch/add1_faked_kernel.o", "fake_test/data/model_0/model_meta.json",
+      "fake_test/data/model_0/debug/op_attr.json",           "fake_test/manifest.json",
   };
   EXPECT_EQ(file_names.size(), expect_files.size());
   for (const auto &file_name : file_names) {
@@ -1853,18 +1834,12 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithCmoTask) {
   RAIIZipArchive archive(reinterpret_cast<const uint8_t *>(model_buf.get()), model_buf_size);
   ASSERT_TRUE(archive.IsGood());
   const std::set<std::string> expect_files = {
-      "fake_test/data/model_0/runtime/g1_kernel_reg.cpp",
-      "fake_test/data/model_0/runtime/g1_resources.cpp",
-      "fake_test/data/model_0/runtime/g1_args_manager.cpp",
-      "fake_test/data/model_0/runtime/g1_load_and_run.cpp",
-      "fake_test/data/model_0/runtime/g1_interface.h",
-      "fake_test/data/model_0/runtime/Makefile",
-      "fake_test/data/model_0/runtime/libg1_om2.so",
-      "fake_test/data/constants/model_0_constants_config.json",
-      "fake_test/data/kernels_npu_arch/add1_faked_kernel.o",
-      "fake_test/data/model_0/model_meta.json",
-      "fake_test/data/model_0/debug/op_attr.json",
-      "fake_test/manifest.json",
+      "fake_test/data/model_0/runtime/g1_kernel_reg.cpp",    "fake_test/data/model_0/runtime/g1_resources.cpp",
+      "fake_test/data/model_0/runtime/g1_args_manager.cpp",  "fake_test/data/model_0/runtime/g1_load_and_run.cpp",
+      "fake_test/data/model_0/runtime/g1_interface.h",       "fake_test/data/model_0/runtime/Makefile",
+      "fake_test/data/model_0/runtime/libg1_om2.so",         "fake_test/data/constants/model_0_constants_config.json",
+      "fake_test/data/kernels_npu_arch/add1_faked_kernel.o", "fake_test/data/model_0/model_meta.json",
+      "fake_test/data/model_0/debug/op_attr.json",           "fake_test/manifest.json",
   };
   ExpectOm2ArchiveFiles(archive, expect_files);
   GELOGI("Om2St: CMO task packaging succeeded.");
@@ -1885,18 +1860,12 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithBarrierTask) {
   RAIIZipArchive archive(reinterpret_cast<const uint8_t *>(model_buf.get()), model_buf_size);
   ASSERT_TRUE(archive.IsGood());
   const std::set<std::string> expect_files = {
-      "fake_test/data/model_0/runtime/g1_kernel_reg.cpp",
-      "fake_test/data/model_0/runtime/g1_resources.cpp",
-      "fake_test/data/model_0/runtime/g1_args_manager.cpp",
-      "fake_test/data/model_0/runtime/g1_load_and_run.cpp",
-      "fake_test/data/model_0/runtime/g1_interface.h",
-      "fake_test/data/model_0/runtime/Makefile",
-      "fake_test/data/model_0/runtime/libg1_om2.so",
-      "fake_test/data/constants/model_0_constants_config.json",
-      "fake_test/data/kernels_npu_arch/add1_faked_kernel.o",
-      "fake_test/data/model_0/model_meta.json",
-      "fake_test/data/model_0/debug/op_attr.json",
-      "fake_test/manifest.json",
+      "fake_test/data/model_0/runtime/g1_kernel_reg.cpp",    "fake_test/data/model_0/runtime/g1_resources.cpp",
+      "fake_test/data/model_0/runtime/g1_args_manager.cpp",  "fake_test/data/model_0/runtime/g1_load_and_run.cpp",
+      "fake_test/data/model_0/runtime/g1_interface.h",       "fake_test/data/model_0/runtime/Makefile",
+      "fake_test/data/model_0/runtime/libg1_om2.so",         "fake_test/data/constants/model_0_constants_config.json",
+      "fake_test/data/kernels_npu_arch/add1_faked_kernel.o", "fake_test/data/model_0/model_meta.json",
+      "fake_test/data/model_0/debug/op_attr.json",           "fake_test/manifest.json",
   };
   ExpectOm2ArchiveFiles(archive, expect_files);
   GELOGI("Om2St: Barrier task packaging succeeded.");
@@ -1917,18 +1886,12 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithCmoAddrTask) {
   RAIIZipArchive archive(reinterpret_cast<const uint8_t *>(model_buf.get()), model_buf_size);
   ASSERT_TRUE(archive.IsGood());
   const std::set<std::string> expect_files = {
-      "fake_test/data/model_0/runtime/g1_kernel_reg.cpp",
-      "fake_test/data/model_0/runtime/g1_resources.cpp",
-      "fake_test/data/model_0/runtime/g1_args_manager.cpp",
-      "fake_test/data/model_0/runtime/g1_load_and_run.cpp",
-      "fake_test/data/model_0/runtime/g1_interface.h",
-      "fake_test/data/model_0/runtime/Makefile",
-      "fake_test/data/model_0/runtime/libg1_om2.so",
-      "fake_test/data/constants/model_0_constants_config.json",
-      "fake_test/data/kernels_npu_arch/add1_faked_kernel.o",
-      "fake_test/data/model_0/model_meta.json",
-      "fake_test/data/model_0/debug/op_attr.json",
-      "fake_test/manifest.json",
+      "fake_test/data/model_0/runtime/g1_kernel_reg.cpp",    "fake_test/data/model_0/runtime/g1_resources.cpp",
+      "fake_test/data/model_0/runtime/g1_args_manager.cpp",  "fake_test/data/model_0/runtime/g1_load_and_run.cpp",
+      "fake_test/data/model_0/runtime/g1_interface.h",       "fake_test/data/model_0/runtime/Makefile",
+      "fake_test/data/model_0/runtime/libg1_om2.so",         "fake_test/data/constants/model_0_constants_config.json",
+      "fake_test/data/kernels_npu_arch/add1_faked_kernel.o", "fake_test/data/model_0/model_meta.json",
+      "fake_test/data/model_0/debug/op_attr.json",           "fake_test/manifest.json",
   };
   ExpectOm2ArchiveFiles(archive, expect_files);
   GELOGI("Om2St: CMO_ADDR task packaging succeeded (auto format).");
@@ -1949,18 +1912,12 @@ TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithCmoAddrTaskExplicitFormat) {
   RAIIZipArchive archive(reinterpret_cast<const uint8_t *>(model_buf.get()), model_buf_size);
   ASSERT_TRUE(archive.IsGood());
   const std::set<std::string> expect_files = {
-      "fake_test/data/model_0/runtime/g1_kernel_reg.cpp",
-      "fake_test/data/model_0/runtime/g1_resources.cpp",
-      "fake_test/data/model_0/runtime/g1_args_manager.cpp",
-      "fake_test/data/model_0/runtime/g1_load_and_run.cpp",
-      "fake_test/data/model_0/runtime/g1_interface.h",
-      "fake_test/data/model_0/runtime/Makefile",
-      "fake_test/data/model_0/runtime/libg1_om2.so",
-      "fake_test/data/constants/model_0_constants_config.json",
-      "fake_test/data/kernels_npu_arch/add1_faked_kernel.o",
-      "fake_test/data/model_0/model_meta.json",
-      "fake_test/data/model_0/debug/op_attr.json",
-      "fake_test/manifest.json",
+      "fake_test/data/model_0/runtime/g1_kernel_reg.cpp",    "fake_test/data/model_0/runtime/g1_resources.cpp",
+      "fake_test/data/model_0/runtime/g1_args_manager.cpp",  "fake_test/data/model_0/runtime/g1_load_and_run.cpp",
+      "fake_test/data/model_0/runtime/g1_interface.h",       "fake_test/data/model_0/runtime/Makefile",
+      "fake_test/data/model_0/runtime/libg1_om2.so",         "fake_test/data/constants/model_0_constants_config.json",
+      "fake_test/data/kernels_npu_arch/add1_faked_kernel.o", "fake_test/data/model_0/model_meta.json",
+      "fake_test/data/model_0/debug/op_attr.json",           "fake_test/manifest.json",
   };
   ExpectOm2ArchiveFiles(archive, expect_files);
   GELOGI("Om2St: CMO_ADDR task packaging succeeded (explicit format).");
@@ -1995,8 +1952,7 @@ TEST_F(Om2St, SaveModelInfo_WithMbatchOriginInputDims_SerializesOriginDims) {
   ASSERT_TRUE(archive.IsGood());
 
   size_t model_meta_size = 0;
-  const auto model_meta_buf =
-      archive.ExtractToMem("test_origin_dims/data/model_0/model_meta.json", model_meta_size);
+  const auto model_meta_buf = archive.ExtractToMem("test_origin_dims/data/model_0/model_meta.json", model_meta_size);
   ASSERT_NE(model_meta_buf, nullptr);
   const JsonFile model_meta_json(reinterpret_cast<const uint8_t *>(model_meta_buf.get()), model_meta_size);
   ASSERT_TRUE(model_meta_json.IsValid());
@@ -2048,8 +2004,7 @@ TEST_F(Om2St, SaveModelInfo_WithDynamicBatchCase_WritesDynamicBatchInfo) {
   ASSERT_TRUE(archive.IsGood());
 
   size_t model_meta_size = 0;
-  const auto model_meta_buf =
-      archive.ExtractToMem("test_dynamic_batch/data/model_0/model_meta.json", model_meta_size);
+  const auto model_meta_buf = archive.ExtractToMem("test_dynamic_batch/data/model_0/model_meta.json", model_meta_size);
   ASSERT_NE(model_meta_buf, nullptr);
   const JsonFile model_meta_json(reinterpret_cast<const uint8_t *>(model_meta_buf.get()), model_meta_size);
   ASSERT_TRUE(model_meta_json.IsValid());
@@ -2063,7 +2018,6 @@ TEST_F(Om2St, SaveModelInfo_WithDynamicBatchCase_WritesDynamicBatchInfo) {
   EXPECT_EQ(raw.at("user_designate_shape_order")[0], JsonFile::json("data1"));
   EXPECT_EQ(raw.at("user_designate_shape_order")[1], JsonFile::json("data2"));
 }
-
 
 TEST_F(Om2St, ConvertOm2Model_Ok_GenOm2WithSeparatelyCleanTask) {
   Om2PackageHelper om2_packager;
@@ -2110,7 +2064,10 @@ class ScopedGraphOptions {
       : old_options_(GetThreadLocalContext().GetAllGraphOptions()) {
     GetThreadLocalContext().SetGraphOption(options);
   }
-  ~ScopedGraphOptions() { GetThreadLocalContext().SetGraphOption(old_options_); }
+  ~ScopedGraphOptions() {
+    GetThreadLocalContext().SetGraphOption(old_options_);
+  }
+
  private:
   std::map<std::string, std::string> old_options_;
 };
@@ -2192,8 +2149,8 @@ bool PrepareFakeCompiler(ScopedTempDir &temp_dir, const std::string &relative_pa
     return false;
   }
   const char *path_env = getenv("PATH");
-  const std::string script = "#!/bin/sh\nexport PATH=" + ShellQuote((path_env == nullptr) ? "" : path_env) +
-                             "\nexec " + ShellQuote(cxx) + " \"$@\"\n";
+  const std::string script = "#!/bin/sh\nexport PATH=" + ShellQuote((path_env == nullptr) ? "" : path_env) + "\nexec " +
+                             ShellQuote(cxx) + " \"$@\"\n";
   return temp_dir.WriteText(relative_path, script, S_IRWXU);
 }
 
@@ -2215,7 +2172,7 @@ bool PrepareAclRtStub(ScopedTempDir &temp_dir, const std::string &devlib_relativ
 }
 
 Status SaveAicoreOm2WithGraphOptions(const std::string &work_dir, const std::map<std::string, std::string> &options,
-                                      const std::string &output_name) {
+                                     const std::string &output_name) {
   Om2PackageHelper om2_packager;
   const auto ge_root_model = CreateGeRootModelWithAicoreOp();
   if (ge_root_model == nullptr) {
@@ -2291,8 +2248,16 @@ TEST_F(Om2St, BuildConfig_EnvVariableIsolation_Ok) {
   setenv("CXX", "/nonexistent/compiler", 1);
   setenv("CXXFLAGS", "-invalid-flag-xyz", 1);
   auto cleanup = [&old_cxx, &old_cxxflags]() {
-    if (old_cxx != nullptr) { setenv("CXX", old_cxx, 1); } else { unsetenv("CXX"); }
-    if (old_cxxflags != nullptr) { setenv("CXXFLAGS", old_cxxflags, 1); } else { unsetenv("CXXFLAGS"); }
+    if (old_cxx != nullptr) {
+      setenv("CXX", old_cxx, 1);
+    } else {
+      unsetenv("CXX");
+    }
+    if (old_cxxflags != nullptr) {
+      setenv("CXXFLAGS", old_cxxflags, 1);
+    } else {
+      unsetenv("CXXFLAGS");
+    }
   };
 
   ModelBufferData model_data;
@@ -2316,9 +2281,8 @@ TEST_F(Om2St, HostEnvValidation_CoversOm2Directions) {
 }
 
 TEST_F(Om2St, HostEnvNonArmTarget_DoesNotInjectCrossCompiler) {
-  const std::map<std::string, std::string> options = {
-      {std::string(OPTION_HOST_ENV_OS), "linux"},
-      {std::string(OPTION_HOST_ENV_CPU), "riscv64"}};
+  const std::map<std::string, std::string> options = {{std::string(OPTION_HOST_ENV_OS), "linux"},
+                                                      {std::string(OPTION_HOST_ENV_CPU), "riscv64"}};
   EXPECT_EQ(SaveAicoreOm2WithGraphOptions(test_work_dir, options, "host_env_riscv.om2"), SUCCESS);
 }
 
@@ -2337,9 +2301,8 @@ TEST_F(Om2St, CrossCompileSystemCompiler_Ok) {
   ScopedEnvVar lsan_guard("LSAN_OPTIONS", "exitcode=0");
   ScopedEnvVar path_guard("PATH", temp_dir.Path("bin").c_str());
   ScopedEnvVar ascend_home_guard("ASCEND_HOME_PATH", temp_dir.Path("ascend").c_str());
-  const std::map<std::string, std::string> options = {
-      {std::string(OPTION_HOST_ENV_OS), "linux"},
-      {std::string(OPTION_HOST_ENV_CPU), "arm64"}};
+  const std::map<std::string, std::string> options = {{std::string(OPTION_HOST_ENV_OS), "linux"},
+                                                      {std::string(OPTION_HOST_ENV_CPU), "arm64"}};
   EXPECT_EQ(SaveAicoreOm2WithGraphOptions(test_work_dir, options, "cross_system.om2"), SUCCESS);
 }
 
@@ -2360,9 +2323,8 @@ TEST_F(Om2St, CrossCompileCannCompiler_Ok) {
     ScopedEnvVar lsan_guard("LSAN_OPTIONS", "exitcode=0");
     ScopedEnvVar path_guard("PATH", temp_dir.Path("empty_bin").c_str());
     ScopedEnvVar ascend_home_guard("ASCEND_HOME_PATH", temp_dir.Path("ascend").c_str());
-    const std::map<std::string, std::string> options = {
-        {std::string(OPTION_HOST_ENV_OS), "linux"},
-        {std::string(OPTION_HOST_ENV_CPU), "aarch64"}};
+    const std::map<std::string, std::string> options = {{std::string(OPTION_HOST_ENV_OS), "linux"},
+                                                        {std::string(OPTION_HOST_ENV_CPU), "aarch64"}};
     // CI 环境可能缺少 rt.h 等头文件，不校验编译结果，仅保证覆盖交叉编译注入路径
     (void)SaveAicoreOm2WithGraphOptions(test_work_dir, options, "cross_cann.om2");
   }
@@ -2381,9 +2343,8 @@ TEST_F(Om2St, CrossCompileCompilerMissing_Rejected) {
 
   ScopedEnvVar path_guard("PATH", temp_dir.Path("empty_bin").c_str());
   ScopedEnvVar ascend_home_guard("ASCEND_HOME_PATH", temp_dir.Path("ascend").c_str());
-  const std::map<std::string, std::string> options = {
-      {std::string(OPTION_HOST_ENV_OS), "linux"},
-      {std::string(OPTION_HOST_ENV_CPU), "aarch64"}};
+  const std::map<std::string, std::string> options = {{std::string(OPTION_HOST_ENV_OS), "linux"},
+                                                      {std::string(OPTION_HOST_ENV_CPU), "aarch64"}};
   EXPECT_NE(SaveAicoreOm2WithGraphOptions(test_work_dir, options, "cross_compiler_missing.om2"), SUCCESS);
 }
 
@@ -2399,9 +2360,8 @@ TEST_F(Om2St, CrossCompileDevlibMissing_Rejected) {
 
   ScopedEnvVar path_guard("PATH", temp_dir.Path("bin").c_str());
   ScopedEnvVar ascend_home_guard("ASCEND_HOME_PATH", temp_dir.Path("ascend").c_str());
-  const std::map<std::string, std::string> options = {
-      {std::string(OPTION_HOST_ENV_OS), "linux"},
-      {std::string(OPTION_HOST_ENV_CPU), "aarch64"}};
+  const std::map<std::string, std::string> options = {{std::string(OPTION_HOST_ENV_OS), "linux"},
+                                                      {std::string(OPTION_HOST_ENV_CPU), "aarch64"}};
   EXPECT_NE(SaveAicoreOm2WithGraphOptions(test_work_dir, options, "cross_devlib_missing.om2"), SUCCESS);
 }
 

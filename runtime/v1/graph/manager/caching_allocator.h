@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,27 +22,20 @@
 #include "acl/acl_rt.h"
 
 namespace ge {
-constexpr size_t kRoundBlockSize = 512U;         // all block sizes are rounded to at least 512 bytes
+constexpr size_t kRoundBlockSize = 512U;  // all block sizes are rounded to at least 512 bytes
 constexpr size_t kBinSizeUnit8 = 8U;
 constexpr size_t kBinSizeUnit32 = 32U;
 constexpr size_t kBinSizeUnit128 = 128U;
 constexpr size_t kBinSizeUnit256 = 256U;
 constexpr size_t kBinSizeUnit512 = 512U;
 
-constexpr float64_t kSplitThreshold = 0.5;         // split when malloc size <= small block size * kSpliThreshold
+constexpr float64_t kSplitThreshold = 0.5;  // split when malloc size <= small block size * kSpliThreshold
 constexpr size_t kKByteSize = 1024U;
-constexpr size_t kMByteSize = 1048576U;   // 1024 * 1024
-constexpr size_t kGByteSize = 1073741824U;   // 1024 * 1024 * 1024
+constexpr size_t kMByteSize = 1048576U;     // 1024 * 1024
+constexpr size_t kGByteSize = 1073741824U;  // 1024 * 1024 * 1024
 
 constexpr uint32_t kNumBins = 7U;
-enum class GeLogLevel : int32_t {
-  kDebug = 0,
-  kInfo = 1,
-  kWarn = 2,
-  kError = 3,
-  kNull = 4,
-  kEvent = 10
-};
+enum class GeLogLevel : int32_t { kDebug = 0, kInfo = 1, kWarn = 2, kError = 3, kNull = 4, kEvent = 10 };
 
 class CachingAllocator {
  public:
@@ -94,8 +87,8 @@ class CachingAllocator {
   /// @brief Set whether the allocator is binding to a stream
   /// @return void
   void SetBindStream(const bool bind_stream);
- private:
 
+ private:
   /// @ingroup ge_graph
   /// @brief extend cache by size
   /// @param [in] memory size

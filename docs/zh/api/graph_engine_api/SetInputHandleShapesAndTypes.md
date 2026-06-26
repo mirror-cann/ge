@@ -68,4 +68,3 @@ void SetInputHandleShapesAndTypes(std::vector<std::vector<ShapeAndType>> &&shape
 ## 约束说明<a name="zh-cn_topic_0000001264924914_section56191280481"></a>
 
 无。
-

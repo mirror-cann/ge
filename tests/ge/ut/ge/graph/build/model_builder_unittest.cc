@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -191,7 +191,7 @@ class UtestModelBuilderTest : public testing::Test {
     graph->TopologicalSorting();
   }
 
-void MakeSessionScopeReuseGraph(ge::ComputeGraphPtr graph) {
+  void MakeSessionScopeReuseGraph(ge::ComputeGraphPtr graph) {
     ge::OpDescPtr op_def_a = CreateOpWithWsSize("A", 512);
     ge::OpDescPtr op_def_b = CreateOpWithWsSize("B", 0);
     ge::OpDescPtr op_def_c = CreateOpWithWsSize("C", 512);
@@ -204,10 +204,10 @@ void MakeSessionScopeReuseGraph(ge::ComputeGraphPtr graph) {
     workspace_bytes.push_back(1024);
     workspace_bytes.push_back(512);
     op_def_c->SetWorkspaceBytes(workspace_bytes);
-    vector<int32_t> workspace_no_reuse_scope = { 0 , 1 };
+    vector<int32_t> workspace_no_reuse_scope = {0, 1};
     (void)ge::AttrUtils::SetListInt(op_def_c, ATTR_NAME_WORKSPACE_MEMORY_NO_REUSE_SCOPE, workspace_no_reuse_scope);
 
-    vector<int32_t> workspace_no_reuse_scope_e = { 1 };
+    vector<int32_t> workspace_no_reuse_scope_e = {1};
     (void)ge::AttrUtils::SetListInt(op_def_e, ATTR_NAME_WORKSPACE_MEMORY_NO_REUSE_SCOPE, workspace_no_reuse_scope_e);
 
     ge::NodePtr node_a = graph->AddNode(op_def_a);
@@ -232,11 +232,15 @@ void MakeSessionScopeReuseGraph(ge::ComputeGraphPtr graph) {
     SetLocalOmgContext(domi::GetContext());
   }
 
-  void TearDown() { GetContext().out_nodes_map.clear(); }
+  void TearDown() {
+    GetContext().out_nodes_map.clear();
+  }
 
   class FakeOpsKernelInfoStore : public OpsKernelInfoStore {
    public:
-    FakeOpsKernelInfoStore(){supported_ = true;};
+    FakeOpsKernelInfoStore() {
+      supported_ = true;
+    };
     bool supported_;
 
    private:
@@ -255,6 +259,7 @@ void MakeSessionScopeReuseGraph(ge::ComputeGraphPtr graph) {
   class FakeOpsKernelBuilder : public OpsKernelBuilder {
    public:
     FakeOpsKernelBuilder() = default;
+
    private:
     Status Initialize(const map<std::string, std::string> &options) override {
       return SUCCESS;
@@ -320,20 +325,20 @@ TEST_F(UtestModelBuilderTest, SetInputIsConst) {
   EXPECT_EQ(builder.PreBuildModel(), SUCCESS);
 }
 
-TEST_F(UtestModelBuilderTest,test_sava_atomic_workspace) {
+TEST_F(UtestModelBuilderTest, test_sava_atomic_workspace) {
   Graph2SubGraphInfoList subgraphs;
   std::map<std::string, int> stream_max_parallel_num;
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("");
   ge::ModelBuilder builder(0, graph, subgraphs, stream_max_parallel_num, false);
 
   auto atomic_op_desc = std::make_shared<OpDesc>("Atomic", "Atomic");
-  auto op_desc=std::make_shared<OpDesc>("Sum", "Sum");
+  auto op_desc = std::make_shared<OpDesc>("Sum", "Sum");
 
   map<string, map<int64_t, int64_t>> workspace_info;
   map<int64_t, int64_t> workspace_info_pair;
   workspace_info_pair.insert(std::make_pair(1, 1));
   workspace_info.insert(std::make_pair("1", workspace_info_pair));
-  op_desc->SetExtAttr(EXT_ATTR_ATOMIC_WORKSPACE_INFO,workspace_info);
+  op_desc->SetExtAttr(EXT_ATTR_ATOMIC_WORKSPACE_INFO, workspace_info);
   EXPECT_EQ(builder.SavaAtomicWorkspace(op_desc), SUCCESS);
 }
 
@@ -416,7 +421,7 @@ TEST_F(UtestModelBuilderTest, test_model_save) {
   size_t tbe_kernel_len = 0U;
   size_t cpu_kernel_len = 0U;
   const Buffer kernel_buffer(20U, 0x11U);
-  (void) AttrUtils::SetStr(relu_desc, ATTR_NAME_CUBE_VECTOR_CORE_TYPE, std::string("MIX_AIC"));
+  (void)AttrUtils::SetStr(relu_desc, ATTR_NAME_CUBE_VECTOR_CORE_TYPE, std::string("MIX_AIC"));
   std::vector<std::string> name_prefix = {"_mix_aic", "_mix_aiv"};
   AttrUtils::SetListStr(relu_desc, ATTR_NAME_KERNEL_NAMES_PREFIX, name_prefix);
   AttrUtils::SetStr(relu_desc, std::string("_mix_aic") + ATTR_NAME_TBE_KERNEL_NAME, "relu_aic");
@@ -475,7 +480,7 @@ TEST_F(UtestModelBuilderTest, test_model_save) {
 
   EXPECT_FALSE(builder.cust_aicpu_kernel_store_.kernels_.empty());
   EXPECT_FALSE(ge_gemodel.cust_aicpu_kernel_store_.kernels_.empty());
-  EXPECT_EQ(ge_gemodel.cust_aicpu_kernel_store_.buffer_.size(), cpu_kernel_len); // framework
+  EXPECT_EQ(ge_gemodel.cust_aicpu_kernel_store_.buffer_.size(), cpu_kernel_len);  // framework
 
   std::set<std::string> aicpu_name_set;
   EXPECT_EQ(builder.SaveCustAiCpuKernel(cust_desc, aicpu_name_set), SUCCESS);
@@ -551,8 +556,11 @@ TEST_F(UtestModelBuilderTest, build_model_fail_for_l1fusiong_virtual) {
 TEST_F(UtestModelBuilderTest, SaveSoftSyncOpWeight_success) {
   std::vector<int64_t> shape = {16};
   DEF_GRAPH(add_graph) {
-    auto add = OP_CFG(ADDN).Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF").TensorDesc(FORMAT_ND, DT_INT32, shape)
-        .InCnt(3).Build("add");
+    auto add = OP_CFG(ADDN)
+                   .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF")
+                   .TensorDesc(FORMAT_ND, DT_INT32, shape)
+                   .InCnt(3)
+                   .Build("add");
     auto data1 =
         OP_CFG(DATA).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_INT32, shape).InCnt(1).OutCnt(1).Build("data1");
     data1->SetOutputOffset({0});
@@ -641,4 +649,4 @@ TEST_F(UtestModelBuilderTest, AssignStreamForDynamicShapeGraph_EnableCvParallel_
 
   unsetenv("ENABLE_DYNAMIC_SHAPE_MULTI_STREAM");
 }
-} // namespace ge
+}  // namespace ge

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -101,14 +101,11 @@ std::string Configurations::GetHostDirByEnv() {
 }
 
 std::vector<NodeConfig> Configurations::GetAllNodeConfigs() const {
-  std::vector<NodeConfig> configs {information_.node_config};
-  configs.insert(configs.cend(),
-                 information_.remote_node_config_list.cbegin(),
+  std::vector<NodeConfig> configs{information_.node_config};
+  configs.insert(configs.cend(), information_.remote_node_config_list.cbegin(),
                  information_.remote_node_config_list.cend());
   std::sort(configs.begin(), configs.end(),
-            [](const NodeConfig &lhs, const NodeConfig &rhs) -> bool {
-              return (lhs.node_id < rhs.node_id);
-            });
+            [](const NodeConfig &lhs, const NodeConfig &rhs) -> bool { return (lhs.node_id < rhs.node_id); });
   return configs;
 }
 
@@ -130,9 +127,8 @@ Status Configurations::GetResourceConfigPath(std::string &config_dir) {
     GEEVENT("Get config dir[%s] success from env[%s]", resource_path.c_str(), kResourceConfigPath);
   }
   const std::string real_path = RealPath(resource_path.c_str());
-  GE_CHK_BOOL_RET_STATUS(!real_path.empty(),
-                         ACL_ERROR_GE_PARAM_INVALID,
-                         "The path[%s] is invalid", resource_path.c_str());
+  GE_CHK_BOOL_RET_STATUS(!real_path.empty(), ACL_ERROR_GE_PARAM_INVALID, "The path[%s] is invalid",
+                         resource_path.c_str());
   config_dir = resource_path;
   return SUCCESS;
 }

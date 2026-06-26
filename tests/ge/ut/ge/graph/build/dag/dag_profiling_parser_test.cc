@@ -124,13 +124,7 @@ TEST_F(ProfilingParserTest, CalculateCoreCounts_ZeroBlockNum) {
 }
 
 TEST_F(ProfilingParserTest, ParseRow_NormalData) {
-  std::vector<std::string> fields = {
-    "conv1",
-    "AI_CORE",
-    "100.5",
-    "8",
-    "0"
-  };
+  std::vector<std::string> fields = {"conv1", "AI_CORE", "100.5", "8", "0"};
 
   std::vector<int32_t> col_indices = {0, 1, 2, 3, 4};
 
@@ -145,13 +139,7 @@ TEST_F(ProfilingParserTest, ParseRow_NormalData) {
 }
 
 TEST_F(ProfilingParserTest, ParseRow_AiVectorCore) {
-  std::vector<std::string> fields = {
-    "vec_op",
-    "AI_VECTOR_CORE",
-    "50.0",
-    "4",
-    "0"
-  };
+  std::vector<std::string> fields = {"vec_op", "AI_VECTOR_CORE", "50.0", "4", "0"};
 
   std::vector<int32_t> col_indices = {0, 1, 2, 3, 4};
 
@@ -164,13 +152,7 @@ TEST_F(ProfilingParserTest, ParseRow_AiVectorCore) {
 }
 
 TEST_F(ProfilingParserTest, ParseRow_MixAicType) {
-  std::vector<std::string> fields = {
-    "mix_aic_op",
-    "MIX_AIC",
-    "200.0",
-    "10",
-    "5"
-  };
+  std::vector<std::string> fields = {"mix_aic_op", "MIX_AIC", "200.0", "10", "5"};
 
   std::vector<int32_t> col_indices = {0, 1, 2, 3, 4};
 
@@ -183,13 +165,7 @@ TEST_F(ProfilingParserTest, ParseRow_MixAicType) {
 }
 
 TEST_F(ProfilingParserTest, ParseRow_MixAivType) {
-  std::vector<std::string> fields = {
-    "mix_aiv_op",
-    "MIX_AIV",
-    "150.0",
-    "8",
-    "3"
-  };
+  std::vector<std::string> fields = {"mix_aiv_op", "MIX_AIV", "150.0", "8", "3"};
 
   std::vector<int32_t> col_indices = {0, 1, 2, 3, 4};
 
@@ -267,11 +243,12 @@ class ProfilingParserFileTest : public testing::Test {
 };
 
 TEST_F(ProfilingParserFileTest, Parse_NormalCsv_ReturnsProfiles) {
-  CreateTestCsv("Op Name,Task Type,Task Duration(us),Block Num,Mix Block Num\n"
-                "conv1,AI_CORE,100.5,8,0\n"
-                "vec_op,AI_VECTOR_CORE,50.0,4,0\n"
-                "mix_aic_op,MIX_AIC,200.0,10,5\n"
-                "mix_aiv_op,MIX_AIV,150.0,8,3\n");
+  CreateTestCsv(
+      "Op Name,Task Type,Task Duration(us),Block Num,Mix Block Num\n"
+      "conv1,AI_CORE,100.5,8,0\n"
+      "vec_op,AI_VECTOR_CORE,50.0,4,0\n"
+      "mix_aic_op,MIX_AIC,200.0,10,5\n"
+      "mix_aiv_op,MIX_AIV,150.0,8,3\n");
 
   std::unordered_map<std::string, ProfilingData> profiles;
   graphStatus ret = ProfilingParser::Parse(test_csv_path_, profiles);
@@ -292,8 +269,9 @@ TEST_F(ProfilingParserFileTest, Parse_NormalCsv_ReturnsProfiles) {
 }
 
 TEST_F(ProfilingParserFileTest, Parse_MissingRequiredColumn_ReturnsFailed) {
-  CreateTestCsv("Op Name,Task Type,Block Num\n"
-                "conv1,AI_CORE,8\n");
+  CreateTestCsv(
+      "Op Name,Task Type,Block Num\n"
+      "conv1,AI_CORE,8\n");
 
   std::unordered_map<std::string, ProfilingData> profiles;
   graphStatus ret = ProfilingParser::Parse(test_csv_path_, profiles);
@@ -303,8 +281,9 @@ TEST_F(ProfilingParserFileTest, Parse_MissingRequiredColumn_ReturnsFailed) {
 }
 
 TEST_F(ProfilingParserFileTest, Parse_ColumnOrderChanged_ReturnsProfiles) {
-  CreateTestCsv("Task Type,Op Name,Block Num,Task Duration(us),Mix Block Num\n"
-                "AI_CORE,conv1,8,100.5,0\n");
+  CreateTestCsv(
+      "Task Type,Op Name,Block Num,Task Duration(us),Mix Block Num\n"
+      "AI_CORE,conv1,8,100.5,0\n");
 
   std::unordered_map<std::string, ProfilingData> profiles;
   graphStatus ret = ProfilingParser::Parse(test_csv_path_, profiles);
@@ -332,10 +311,11 @@ TEST_F(ProfilingParserFileTest, Parse_EmptyFile_ReturnsFailed) {
 }
 
 TEST_F(ProfilingParserFileTest, Parse_EmptyLineAndInvalidRow_SkipsInvalidEntries) {
-  CreateTestCsv("Op Name,Task Type,Task Duration(us),Block Num,Mix Block Num\n"
-                "\n"
-                "conv1,AI_CORE,100.5,8,0\n"
-                "bad_row,AI_CORE,invalid,8,0\n");
+  CreateTestCsv(
+      "Op Name,Task Type,Task Duration(us),Block Num,Mix Block Num\n"
+      "\n"
+      "conv1,AI_CORE,100.5,8,0\n"
+      "bad_row,AI_CORE,invalid,8,0\n");
 
   std::unordered_map<std::string, ProfilingData> profiles;
   graphStatus ret = ProfilingParser::Parse(test_csv_path_, profiles);

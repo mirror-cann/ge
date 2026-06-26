@@ -25,11 +25,12 @@ Status ProfilingConfig::Enable(const ProfilingOptions &options) {
   options_ = options;
   enabled_ = options_.model_load_enabled || options_.model_execute_enabled || options_.task_time_enabled ||
              options_.task_time_l1_enabled || options_.op_detail_enabled || options_.device_enabled;
-  GELOGD("Enable OM2 profiling config, enabled=%u, model_load=%u, model_execute=%u, task_time=%u, "
-         "task_time_l1=%u, op_detail=%u, device=%u, module=%llu, cache_flag=%u, device_num=%zu", enabled_,
-         options_.model_load_enabled, options_.model_execute_enabled, options_.task_time_enabled,
-         options_.task_time_l1_enabled, options_.op_detail_enabled, options_.device_enabled,
-         static_cast<unsigned long long>(options_.module), options_.cache_flag, options_.device_list.size());
+  GELOGD(
+      "Enable OM2 profiling config, enabled=%u, model_load=%u, model_execute=%u, task_time=%u, "
+      "task_time_l1=%u, op_detail=%u, device=%u, module=%llu, cache_flag=%u, device_num=%zu",
+      enabled_, options_.model_load_enabled, options_.model_execute_enabled, options_.task_time_enabled,
+      options_.task_time_l1_enabled, options_.op_detail_enabled, options_.device_enabled,
+      static_cast<unsigned long long>(options_.module), options_.cache_flag, options_.device_list.size());
   return SUCCESS;
 }
 

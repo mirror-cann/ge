@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -56,13 +56,13 @@ struct GertStreamStub {
     return rt_streams;
   }
   void CreateStream(rtStream_t *stream) {
-    const std::lock_guard<std::mutex>lock(mtx_);
+    const std::lock_guard<std::mutex> lock(mtx_);
     *stream = reinterpret_cast<rtStream_t>(++g_rtstream_id);
     rt_streams.emplace_back(*stream);
     rt_stream_2_index.insert(std::make_pair(*stream, rt_streams.size() - 1));
   }
   void DestoryStream(rtStream_t stream) {
-    const std::lock_guard<std::mutex>lock(mtx_);
+    const std::lock_guard<std::mutex> lock(mtx_);
     if (rt_stream_2_index.find(stream) == rt_stream_2_index.cend()) {
       return;
     }
@@ -148,6 +148,7 @@ class RuntimeStubImpl : public ge::RuntimeStub {
   void LaunchTaskToStream(TaskTypeOnStream task_type, rtStream_t stream) {
     stream_stub_.LaunchTaskToStream(task_type, stream);
   }
+
  protected:
   rtError_t rtKernelLaunchWithHandle(void *handle, uint64_t devFunc, uint32_t blockDim, rtArgsEx_t *args,
                                      rtSmDesc_t *smDesc, rtStream_t stream, const void *kernelInfo) override;
@@ -184,7 +185,7 @@ class RuntimeStubImpl : public ge::RuntimeStub {
   rtError_t rtLaunchSqeUpdateTask(uint32_t streamId, uint32_t taskId, void *src, uint64_t cnt, rtStream_t stm) override;
   rtError_t rtModelCreate(rtModel_t *model, uint32_t flag) override;
   rtError_t rtModelGetTaskId(void *handle, uint32_t *task_id, uint32_t *stream_id) override;
-  rtError_t rtSetExceptionExtInfo(const rtArgsSizeInfo_t * const sizeInfo) override;
+  rtError_t rtSetExceptionExtInfo(const rtArgsSizeInfo_t *const sizeInfo) override;
 
   rtError_t rtModelExecute(rtModel_t model, rtStream_t stream, uint32_t flag) override;
   rtError_t rtEventRecord(rtEvent_t event, rtStream_t stream) override;
@@ -193,6 +194,7 @@ class RuntimeStubImpl : public ge::RuntimeStub {
   rtError_t rtStreamDestroyForce(rtStream_t stream) override;
   rtError_t rtEventCreateWithFlag(rtEvent_t *event, uint32_t flag) override;
   rtError_t rtStreamTaskClean(rtStream_t stm) override;
+
  public:
   rtError_t rtSetTaskTag(const char *taskTag) override;
   rtError_t rtGetAvailStreamNum(uint32_t streamType, uint32_t *const streamCount) override;

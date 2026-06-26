@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -47,10 +47,9 @@ const char *const kAicoreEngine = "AIcoreEngine";
          "    \"name\" : \"1980_hwts\",\n"
          "    \"ex_attrs\" : \"\",\n"
          "    \"cal_engines\" : [\n"
-         "      {\"id\" : \"DNN_VM_GE_LOCAL\", \"name\" : \"GE_LOCAL\", \"independent\" : false, \"attch\" : true, \"skip_assign_stream\" : true },\n"
-         "      {\"id\" : \"AIcoreEngine\", \"name\" : \"AICORE\", \"independent\" : false, \"attch\" : false, \"skip_assign_stream\" : false}\n"
-         "    ]\n"
-         "  } ]\n"
+         "      {\"id\" : \"DNN_VM_GE_LOCAL\", \"name\" : \"GE_LOCAL\", \"independent\" : false, \"attach\" : true,
+\"skip_assign_stream\" : true },\n" "      {\"id\" : \"AIcoreEngine\", \"name\" : \"AICORE\", \"independent\" : false,
+\"attach\" : false, \"skip_assign_stream\" : false}\n" "    ]\n" "  } ]\n"
          "}";
   ofs.close();
   GELOGI("Json config file %s has been written.", file_path.c_str());
@@ -62,7 +61,7 @@ void DeleteFile(const string &file_name) {
     GELOGI("Delete file successfully, file:%s.", file_name.c_str());
   }
 }
-}
+}  // namespace
 class UtestGraphOptimizeTest : public testing::Test {
  protected:
   void SetUp() {
@@ -76,8 +75,9 @@ class UtestGraphOptimizeTest : public testing::Test {
     DNNEngineManager::GetInstance().engines_map_.clear();
     OpsKernelManager::GetInstance().atomic_first_optimizers_by_priority_.clear();
   }
+
  public:
-  NodePtr UtAddNode(ComputeGraphPtr &graph, std::string name, std::string type, int in_cnt, int out_cnt){
+  NodePtr UtAddNode(ComputeGraphPtr &graph, std::string name, std::string type, int in_cnt, int out_cnt) {
     auto tensor_desc = std::make_shared<GeTensorDesc>();
     std::vector<int64_t> shape = {1, 1, 224, 224};
     tensor_desc->SetShape(GeShape(shape));
@@ -88,10 +88,10 @@ class UtestGraphOptimizeTest : public testing::Test {
     tensor_desc->SetOriginDataType(DT_FLOAT);
     auto op_desc = std::make_shared<OpDesc>(name, type);
     for (int i = 0; i < in_cnt; ++i) {
-        op_desc->AddInputDesc(tensor_desc->Clone());
+      op_desc->AddInputDesc(tensor_desc->Clone());
     }
     for (int i = 0; i < out_cnt; ++i) {
-        op_desc->AddOutputDesc(tensor_desc->Clone());
+      op_desc->AddOutputDesc(tensor_desc->Clone());
     }
     return graph->AddNode(op_desc);
   }
@@ -114,7 +114,7 @@ class TestGraphOptimizerSuccess : public GraphOptimizer {
     return SUCCESS;
   }
 
-  Status OptimizeGraphInit(ComputeGraph& graph) override {
+  Status OptimizeGraphInit(ComputeGraph &graph) override {
     ++optimize_graph_init_cnt_;
     return SUCCESS;
   }
@@ -346,7 +346,7 @@ TEST_F(UtestGraphOptimizeTest, test_optimizers_fail) {
 }
 
 TEST_F(UtestGraphOptimizeTest, test_optimizers_composite) {
-  OpsKernelManager::GetInstance().composite_engines_["composite_test"] = std::set<string>{ "composite_test" };
+  OpsKernelManager::GetInstance().composite_engines_["composite_test"] = std::set<string>{"composite_test"};
   OpsKernelManager::GetInstance().composite_engine_kernel_lib_names_["composite_test"] = "composite_test";
 
   map<string, string> options;
@@ -453,8 +453,9 @@ class TestGraphOptimizerWithInfer : public GraphOptimizer {
   Status OptimizeAfterStage1(ComputeGraph &graph) override {
     return FAILED;
   }
-  private:
-   OptimizeUtility *optimize_utility_;
+
+ private:
+  OptimizeUtility *optimize_utility_;
 };
 
 namespace {
@@ -478,7 +479,7 @@ ComputeGraphPtr BuildGraphWithConstantFolding() {
   builder.AddDataEdge(addn1, 0, netoutput1, 0);
   return builder.GetGraph();
 }
-} // namespace
+}  // namespace
 
 class TestAddNKernel : public Kernel {
  public:
@@ -497,7 +498,7 @@ class TestAddNKernel : public Kernel {
 REGISTER_COMPUTE_NODE_KERNEL(AddNYes, TestAddNKernel);
 
 TEST_F(UtestGraphOptimizeTest, test_optimizers_initialize_with_infer_func) {
-  OperatorFactoryImpl::RegisterInferShapeFunc("Const", [](Operator &op) {return GRAPH_SUCCESS;});
+  OperatorFactoryImpl::RegisterInferShapeFunc("Const", [](Operator &op) { return GRAPH_SUCCESS; });
   ComputeGraphPtr compute_graph = BuildGraphWithConstantFolding();
   EXPECT_EQ(compute_graph->GetAllNodesSize(), 4);
   GraphOptimize base_optimize;
@@ -512,7 +513,7 @@ TEST_F(UtestGraphOptimizeTest, test_optimizers_initialize_with_infer_func) {
   // give optimize utility to test_optimizer
   graph_opt->Initialize(options, &optimzie_utility);
 
-  // test optimize_prepare inferface by ge_optimize
+  // test optimize_prepare interface by ge_optimize
   ret = base_optimize.OptimizeOriginalGraphForQuantize(compute_graph);
   EXPECT_EQ(ret, SUCCESS);
   EXPECT_EQ(compute_graph->GetAllNodesSize(), 2);
@@ -602,5 +603,4 @@ TEST_F(UtestGraphOptimizeTest, SetOptionsFailed) {
   EXPECT_EQ(base_optimize.SetOptions(opt), GE_GRAPH_OPTIONS_INVALID);
 }
 
-
-} // namespace ge
+}  // namespace ge

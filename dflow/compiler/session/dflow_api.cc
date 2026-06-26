@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,7 +21,7 @@
 namespace ge {
 namespace dflow {
 namespace {
-constexpr uint32_t kExternalErrorCodeMaxValue = 9999999U; // user define error code max value
+constexpr uint32_t kExternalErrorCodeMaxValue = 9999999U;  // user define error code max value
 constexpr uint64_t INVALID_SESSION_ID = 0xFFFFFFFFFFFFFFFFULL;
 std::atomic<bool> acl_initialized{false};
 
@@ -42,7 +42,7 @@ void ConvertAscendStringMap(const std::map<ge::AscendString, ge::AscendString> &
 std::atomic_bool g_dflow_ge_initialized{false};
 std::mutex g_dflow_ge_release_mutex;  // GEFinalize and ~DFlowSession use
 std::shared_ptr<DFlowSessionManager> g_dflow_session_manager;
-}
+}  // namespace
 
 Status DFlowInitialize(const std::map<AscendString, AscendString> &options) {
   if (g_dflow_ge_initialized) {
@@ -121,7 +121,8 @@ void ConstructSession(const std::map<std::string, std::string> &options, Session
   uint64_t tmp_session_id = 0UL;
   session_impl = g_dflow_session_manager->CreateSession(options, tmp_session_id);
   // failed guarder, should call GE_DISMISS_GUARD if success
-  GE_DISMISSABLE_GUARD(create_failed, ([tmp_session_id]() {g_dflow_session_manager->DestroySession(tmp_session_id);}));
+  GE_DISMISSABLE_GUARD(create_failed,
+                       ([tmp_session_id]() { g_dflow_session_manager->DestroySession(tmp_session_id); }));
   if (session_impl == nullptr) {
     GELOGE(FAILED, "Construct session failed.");
     REPORT_INNER_ERR_MSG("E19999", "Construct session failed.");
@@ -130,7 +131,7 @@ void ConstructSession(const std::map<std::string, std::string> &options, Session
   GE_DISMISS_GUARD(create_failed);
   GELOGT(TRACE_STOP, "DFlowSession construct finished, session id is %" PRIu64 "", tmp_session_id);
 }
-} // namespace
+}  // namespace
 
 DFlowSession::DFlowSession(const std::map<AscendString, AscendString> &options) {
   std::map<std::string, std::string> str_options;
@@ -170,7 +171,8 @@ DFlowSession::~DFlowSession() {
   GELOGT(TRACE_STOP, "DFlowSession has been successfully destroyed");
 }
 
-Status DFlowSession::AddGraph(uint32_t graph_id, const FlowGraph &graph, const std::map<AscendString, AscendString> &options) {
+Status DFlowSession::AddGraph(uint32_t graph_id, const FlowGraph &graph,
+                              const std::map<AscendString, AscendString> &options) {
   if (!g_dflow_ge_initialized) {
     GELOGE(GE_CLI_GE_NOT_INITIALIZED, "[Construct][DFlowSession]Failed because GEInitialize was not called before.");
     REPORT_INNER_ERR_MSG("E19999", "Creating session failed because GEInitialize was not called before.");
@@ -180,8 +182,8 @@ Status DFlowSession::AddGraph(uint32_t graph_id, const FlowGraph &graph, const s
   const auto &session_id = dflow_session_impl_->GetSessionId();
   const std::string graph_name = graph.GetName();
   GE_ASSERT_TRUE((!graph_name.empty()), "Add graph failed, get graph name failed.");
-  GELOGT(TRACE_INIT, "Start to add graph in DFlowSession. graph_id: %u, graph_name: %s, session_id: %" PRIu64 ".", graph_id,
-         graph_name.c_str(), session_id);
+  GELOGT(TRACE_INIT, "Start to add graph in DFlowSession. graph_id: %u, graph_name: %s, session_id: %" PRIu64 ".",
+         graph_id, graph_name.c_str(), session_id);
 
   std::map<std::string, std::string> str_options;
   ConvertAscendStringMap(options, str_options);
@@ -190,8 +192,9 @@ Status DFlowSession::AddGraph(uint32_t graph_id, const FlowGraph &graph, const s
   }
   GELOGD("Adding graph to session");
   const Status ret = dflow_session_impl_->AddGraph(graph_id, graph, str_options);
-  GE_CHK_BOOL_RET_STATUS(ret == SUCCESS, FAILED, "Add graph failed, error code:%u, session_id:%" PRIu64 ", graph_id:%u.", ret,
-                         session_id, graph_id);
+  GE_CHK_BOOL_RET_STATUS(ret == SUCCESS, FAILED,
+                         "Add graph failed, error code:%u, session_id:%" PRIu64 ", graph_id:%u.", ret, session_id,
+                         graph_id);
 
   GELOGI("AddGraph finished in DFlowSession, graph_id: %u, session_id: %" PRIu64 ".", graph_id, session_id);
   return SUCCESS;
@@ -210,8 +213,9 @@ Status DFlowSession::RemoveGraph(uint32_t graph_id) {
 
   // call RemoveGraph
   const Status ret = dflow_session_impl_->RemoveGraph(graph_id);
-  GE_CHK_BOOL_RET_STATUS(ret == SUCCESS, FAILED, "Remove graph failed, error code:%u, session_id:%" PRIu64 ", graph_id:%u.",
-                         ret, session_id, graph_id);
+  GE_CHK_BOOL_RET_STATUS(ret == SUCCESS, FAILED,
+                         "Remove graph failed, error code:%u, session_id:%" PRIu64 ", graph_id:%u.", ret, session_id,
+                         graph_id);
 
   GELOGT(TRACE_STOP, "DFlowSession RemoveGraph finished, graph_id: %u, session_id:%" PRIu64 "", graph_id, session_id);
   return ret;
@@ -227,18 +231,19 @@ Status DFlowSession::BuildGraph(uint32_t graph_id, const std::vector<ge::Tensor>
   GE_CHECK_NOTNULL(dflow_session_impl_);
   const auto &session_id = dflow_session_impl_->GetSessionId();
   GRAPH_PROFILING_REG(gert::GeProfInfoType::kBuildGraph);
-  GELOGT(TRACE_INIT, "start to build graph, session_id: %" PRIu64 ", graph_id: %u, input size %zu",
-         session_id, graph_id, inputs.size());
+  GELOGT(TRACE_INIT, "start to build graph, session_id: %" PRIu64 ", graph_id: %u, input size %zu", session_id,
+         graph_id, inputs.size());
 
   const Status ret = dflow_session_impl_->BuildGraph(graph_id, inputs);
-  GE_CHK_BOOL_RET_STATUS(ret == SUCCESS, FAILED, "Build graph failed, error code:%u, session_id:%" PRIu64 ", graph_id:%u.", ret,
-                         session_id, graph_id);
+  GE_CHK_BOOL_RET_STATUS(ret == SUCCESS, FAILED,
+                         "Build graph failed, error code:%u, session_id:%" PRIu64 ", graph_id:%u.", ret, session_id,
+                         graph_id);
   GELOGD("BuildGraph finished in DFlowSession, graph_id: %u", graph_id);
   return SUCCESS;
 }
 
 uint64_t DFlowSession::GetSessionId() const {
-  if (dflow_session_impl_ != nullptr)  {
+  if (dflow_session_impl_ != nullptr) {
     return dflow_session_impl_->GetSessionId();
   }
   return INVALID_SESSION_ID;
@@ -250,7 +255,7 @@ Status DFlowSession::FeedDataFlowGraph(uint32_t graph_id, const std::vector<Tens
 }
 
 Status DFlowSession::FeedDataFlowGraph(uint32_t graph_id, const std::vector<uint32_t> &indexes,
-                                  const std::vector<Tensor> &inputs, const DataFlowInfo &info, int32_t timeout) {
+                                       const std::vector<Tensor> &inputs, const DataFlowInfo &info, int32_t timeout) {
   if (!g_dflow_ge_initialized) {
     GELOGE(GE_CLI_GE_NOT_INITIALIZED, "[Feed][Data]Failed because GEInitialize was not called before.");
     REPORT_INNER_ERR_MSG("E19999", "Feed data failed because GEInitialize was not called before.");
@@ -264,8 +269,8 @@ Status DFlowSession::FeedDataFlowGraph(uint32_t graph_id, const std::vector<uint
   const Status ret = dflow_session_impl_->FeedDataFlowGraph(graph_id, indexes, inputs, info, timeout);
   if (ret != SUCCESS && ret != ACL_ERROR_GE_REDEPLOYING && ret != ACL_ERROR_GE_SUBHEALTHY) {
     GELOGE(ret, "[Feed][Data]Failed, error code:%u, session_id:%" PRIu64 ", graph_id:%u.", ret, session_id, graph_id);
-    REPORT_INNER_ERR_MSG("E19999", "Feed data flow graph failed , error code:%u, session_id:%" PRIu64 ", graph_id:%u", ret,
-                      session_id, graph_id);
+    REPORT_INNER_ERR_MSG("E19999", "Feed data flow graph failed , error code:%u, session_id:%" PRIu64 ", graph_id:%u",
+                         ret, session_id, graph_id);
     return (ret > kExternalErrorCodeMaxValue) ? FAILED : ret;
   }
   return ret;
@@ -276,7 +281,7 @@ Status DFlowSession::FeedDataFlowGraph(uint32_t graph_id, const std::vector<Flow
 }
 
 Status DFlowSession::FeedDataFlowGraph(uint32_t graph_id, const std::vector<uint32_t> &indexes,
-                                  const std::vector<FlowMsgPtr> &inputs, int32_t timeout) {
+                                       const std::vector<FlowMsgPtr> &inputs, int32_t timeout) {
   GE_CHK_BOOL_RET_STATUS(g_dflow_ge_initialized, FAILED,
                          "[Feed][FlowMsg]Failed because GEInitialize was not called before.");
 
@@ -286,14 +291,14 @@ Status DFlowSession::FeedDataFlowGraph(uint32_t graph_id, const std::vector<uint
   GELOGI("Feed flow msg, graph_id: %u, timeout: %d ms", graph_id, timeout);
   const Status ret = dflow_session_impl_->FeedDataFlowGraph(graph_id, indexes, inputs, timeout);
   const auto status = ret > kExternalErrorCodeMaxValue ? FAILED : ret;
-  GE_CHK_BOOL_RET_STATUS((ret == SUCCESS || ret == ACL_ERROR_GE_REDEPLOYING || ret == ACL_ERROR_GE_SUBHEALTHY),
-                         status, "[Feed][FlowMsg]Failed, error code:%u, session_id:%" PRIu64 ", graph_id:%u.",
-                         ret, session_id, graph_id);
+  GE_CHK_BOOL_RET_STATUS((ret == SUCCESS || ret == ACL_ERROR_GE_REDEPLOYING || ret == ACL_ERROR_GE_SUBHEALTHY), status,
+                         "[Feed][FlowMsg]Failed, error code:%u, session_id:%" PRIu64 ", graph_id:%u.", ret, session_id,
+                         graph_id);
   return ret;
 }
 
 Status DFlowSession::FeedRawData(uint32_t graph_id, const std::vector<RawData> &raw_data_list, uint32_t index,
-                            const DataFlowInfo &info, int32_t timeout) {
+                                 const DataFlowInfo &info, int32_t timeout) {
   if (!g_dflow_ge_initialized) {
     GELOGE(GE_CLI_GE_NOT_INITIALIZED, "[Feed][RawData]Failed because GEInitialize was not called before.");
     REPORT_INNER_ERR_MSG("E19999", "Feed raw data failed because GEInitialize was not called before.");
@@ -306,20 +311,20 @@ Status DFlowSession::FeedRawData(uint32_t graph_id, const std::vector<RawData> &
   const Status ret = dflow_session_impl_->FeedRawData(graph_id, raw_data_list, index, info, timeout);
   if (ret != SUCCESS && ret != ACL_ERROR_GE_REDEPLOYING && ret != ACL_ERROR_GE_SUBHEALTHY) {
     GELOGE(ret, "[Feed][Data]Failed, error code:%u, session_id:%" PRIu64 ", graph_id:%u.", ret, session_id, graph_id);
-    REPORT_INNER_ERR_MSG("E19999", "Feed data flow graph failed , error code:%u, session_id:%" PRIu64 ", graph_id:%u", ret,
-                      session_id, graph_id);
+    REPORT_INNER_ERR_MSG("E19999", "Feed data flow graph failed , error code:%u, session_id:%" PRIu64 ", graph_id:%u",
+                         ret, session_id, graph_id);
     return (ret > kExternalErrorCodeMaxValue) ? FAILED : ret;
   }
   return ret;
 }
 
 Status DFlowSession::FetchDataFlowGraph(uint32_t graph_id, std::vector<Tensor> &outputs, DataFlowInfo &info,
-                                   int32_t timeout) {
+                                        int32_t timeout) {
   return FetchDataFlowGraph(graph_id, {}, outputs, info, timeout);
 }
 
 Status DFlowSession::FetchDataFlowGraph(uint32_t graph_id, const std::vector<uint32_t> &indexes,
-                                   std::vector<Tensor> &outputs, DataFlowInfo &info, int32_t timeout) {
+                                        std::vector<Tensor> &outputs, DataFlowInfo &info, int32_t timeout) {
   if (!g_dflow_ge_initialized) {
     GELOGE(GE_CLI_GE_NOT_INITIALIZED, "[Fetch][Data]Failed because GEInitialize was not called before.");
     REPORT_INNER_ERR_MSG("E19999", "Fetch data failed because GEInitialize was not called before.");
@@ -335,8 +340,8 @@ Status DFlowSession::FetchDataFlowGraph(uint32_t graph_id, const std::vector<uin
   ret = need_convert_error_code ? ACL_ERROR_GE_MODEL_EXECUTE_TIMEOUT : ret;
   if (ret != SUCCESS && ret != ACL_ERROR_GE_REDEPLOYING && ret != ACL_ERROR_GE_SUBHEALTHY) {
     GELOGE(ret, "[Fetch][Data]Failed, error code:%u, session_id:%" PRIu64 ", graph_id:%u.", ret, session_id, graph_id);
-    REPORT_INNER_ERR_MSG("E19999", "Fetch data flow graph failed , error code:%u, session_id:%" PRIu64 ", graph_id:%u", ret,
-                      session_id, graph_id);
+    REPORT_INNER_ERR_MSG("E19999", "Fetch data flow graph failed , error code:%u, session_id:%" PRIu64 ", graph_id:%u",
+                         ret, session_id, graph_id);
     return (ret > kExternalErrorCodeMaxValue) ? FAILED : ret;
   }
   return ret;
@@ -347,7 +352,7 @@ Status DFlowSession::FetchDataFlowGraph(uint32_t graph_id, std::vector<FlowMsgPt
 }
 
 Status DFlowSession::FetchDataFlowGraph(uint32_t graph_id, const std::vector<uint32_t> &indexes,
-                                   std::vector<FlowMsgPtr> &outputs, int32_t timeout) {
+                                        std::vector<FlowMsgPtr> &outputs, int32_t timeout) {
   GE_CHK_BOOL_RET_STATUS(g_dflow_ge_initialized, FAILED,
                          "[Fetch][FlowMsg]Failed because GEInitialize was not called before.");
   GE_CHECK_NOTNULL(dflow_session_impl_);
@@ -358,10 +363,10 @@ Status DFlowSession::FetchDataFlowGraph(uint32_t graph_id, const std::vector<uin
   const bool need_convert_error_code = ((ret == RT_ERROR_TO_GE_STATUS(ACL_ERROR_RT_QUEUE_EMPTY)) && timeout != 0);
   ret = need_convert_error_code ? ACL_ERROR_GE_MODEL_EXECUTE_TIMEOUT : ret;
   const auto status = ret > kExternalErrorCodeMaxValue ? FAILED : ret;
-  GE_CHK_BOOL_RET_STATUS((ret == SUCCESS || ret == ACL_ERROR_GE_REDEPLOYING || ret == ACL_ERROR_GE_SUBHEALTHY),
-                         status, "[Fetch][FlowMsg]Failed, error code:%u, session_id:%" PRIu64 ", graph_id:%u.",
-                         ret, session_id, graph_id);
+  GE_CHK_BOOL_RET_STATUS((ret == SUCCESS || ret == ACL_ERROR_GE_REDEPLOYING || ret == ACL_ERROR_GE_SUBHEALTHY), status,
+                         "[Fetch][FlowMsg]Failed, error code:%u, session_id:%" PRIu64 ", graph_id:%u.", ret, session_id,
+                         graph_id);
   return ret;
 }
-} // namespace dflow
-} // namespace ge
+}  // namespace dflow
+}  // namespace ge

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -35,8 +35,8 @@ class TransformerExpandDimsUT : public testing::Test {
     EXPECT_EQ(shape.GetDims(), expect_dims);
 
     ge::GeShape new_shape(dims);
-    int64_t int_reshape_type = ExpandDimension::GenerateReshapeType(origin_format, format, new_shape.GetDimNum(),
-                                                                    reshape_type);
+    int64_t int_reshape_type =
+        ExpandDimension::GenerateReshapeType(origin_format, format, new_shape.GetDimNum(), reshape_type);
     if (int_reshape_type != 0) {
       size_t full_size = static_cast<size_t>(int_reshape_type >> 56);
       size_t expect_full_size = 0;
@@ -53,13 +53,14 @@ class TransformerExpandDimsUT : public testing::Test {
     EXPECT_EQ(shape_2.GetDims(), expect_dims);
   }
 
-  void EXPECT_RunNewExpandDimsCase(const ge::Format &origin_format, const ge::Format &format, const string &reshape_type,
-                                   const vector<int64_t> &dims, const vector<int64_t> &expect_dims) {
-    std::cout << "origin_format=" << origin_format << ", format=" << format
-              << ", reahpe type=" << reshape_type << ", dim size=" << dims.size() << std::endl;
+  void EXPECT_RunNewExpandDimsCase(const ge::Format &origin_format, const ge::Format &format,
+                                   const string &reshape_type, const vector<int64_t> &dims,
+                                   const vector<int64_t> &expect_dims) {
+    std::cout << "origin_format=" << origin_format << ", format=" << format << ", reahpe type=" << reshape_type
+              << ", dim size=" << dims.size() << std::endl;
     ge::GeShape new_shape(dims);
-    int64_t int_reshape_type = ExpandDimension::GenerateReshapeType(origin_format, format, new_shape.GetDimNum(),
-                                                                    reshape_type);
+    int64_t int_reshape_type =
+        ExpandDimension::GenerateReshapeType(origin_format, format, new_shape.GetDimNum(), reshape_type);
     if (int_reshape_type != 0) {
       size_t full_size = static_cast<size_t>(int_reshape_type >> 56);
       size_t expect_full_size = 0;
@@ -71,11 +72,14 @@ class TransformerExpandDimsUT : public testing::Test {
   }
 
   void RunReshapeTypeCase(const ge::Format &format, const size_t &dims_size, const std::string &reshape_type) {
-    std::cout << "RunReshapeTypeCase: origin format=" << format << ", dims size=" << dims_size << ", reshape_type=" << reshape_type << std::endl;
-    int64_t reshape_mask = transformer::ExpandDimension::GenerateReshapeType(format, ge::FORMAT_NC1HWC0, dims_size, reshape_type);
+    std::cout << "RunReshapeTypeCase: origin format=" << format << ", dims size=" << dims_size
+              << ", reshape_type=" << reshape_type << std::endl;
+    int64_t reshape_mask =
+        transformer::ExpandDimension::GenerateReshapeType(format, ge::FORMAT_NC1HWC0, dims_size, reshape_type);
     std::string ret_shape_type;
     std::string fail_reason;
-    bool ret = transformer::ExpandDimension::GenerateReshapeTypeByMask(format, dims_size, reshape_mask, ret_shape_type, fail_reason);
+    bool ret = transformer::ExpandDimension::GenerateReshapeTypeByMask(format, dims_size, reshape_mask, ret_shape_type,
+                                                                       fail_reason);
     EXPECT_EQ(ret, true);
     EXPECT_EQ(fail_reason.empty(), true);
     EXPECT_EQ(reshape_type, ret_shape_type);
@@ -168,7 +172,7 @@ TEST_F(TransformerExpandDimsUT, default_reshape_type_cases) {
   EXPECT_RunExpandDimsCase(ge::FORMAT_DHWCN, ge::FORMAT_NC1HWC0, "ND", {5, 6}, {1, 1, 1, 5, 6});
   EXPECT_RunExpandDimsCase(ge::FORMAT_DHWNC, ge::FORMAT_NC1HWC0, "CD", {5, 6}, {1, 1, 1, 5, 6});
 
-  EXPECT_RunExpandDimsCase(ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0, "WHN", {5, 6, 7}, {1, 5, 6, 7});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0, "WHEN", {5, 6, 7}, {1, 5, 6, 7});
   EXPECT_RunExpandDimsCase(ge::FORMAT_NHWC, ge::FORMAT_NC1HWC0, "CWN", {5, 6, 7}, {1, 5, 6, 7});
   EXPECT_RunExpandDimsCase(ge::FORMAT_HWCN, ge::FORMAT_NC1HWC0, "NHW", {5, 6, 7}, {1, 5, 6, 7});
   EXPECT_RunExpandDimsCase(ge::FORMAT_CHWN, ge::FORMAT_NC1HWC0, "CNW", {5, 6, 7}, {1, 5, 6, 7});
@@ -221,7 +225,7 @@ TEST_F(TransformerExpandDimsUT, default_reshape_type_cases) {
   EXPECT_RunExpandDimsCase(ge::FORMAT_DHWNC, ge::FORMAT_DHWNC, "D", {5}, {5, 1, 1, 1, 1});
   EXPECT_RunExpandDimsCase(ge::FORMAT_DHWNC, ge::FORMAT_NCDHW, "H", {5}, {1, 5, 1, 1, 1});
   EXPECT_RunExpandDimsCase(ge::FORMAT_DHWNC, ge::FORMAT_NDHWC, "W", {5}, {1, 1, 5, 1, 1});
-  EXPECT_RunExpandDimsCase(ge::FORMAT_DHWNC, ge::FORMAT_DHWCN, "N", {5}, {1, 1, 1, 5, 1});  
+  EXPECT_RunExpandDimsCase(ge::FORMAT_DHWNC, ge::FORMAT_DHWCN, "N", {5}, {1, 1, 1, 5, 1});
   EXPECT_RunExpandDimsCase(ge::FORMAT_DHWNC, ge::FORMAT_NDHWC, "DH", {6, 5}, {6, 5, 1, 1, 1});
   EXPECT_RunExpandDimsCase(ge::FORMAT_DHWNC, ge::FORMAT_NCDHW, "WN", {6, 5}, {1, 1, 6, 5, 1});
   EXPECT_RunExpandDimsCase(ge::FORMAT_DHWNC, ge::FORMAT_DHWCN, "DC", {6, 5}, {6, 1, 1, 1, 5});
@@ -404,21 +408,21 @@ TEST_F(TransformerExpandDimsUT, chwn_reshape_type) {
 }
 
 TEST_F(TransformerExpandDimsUT, ndhwc_reshape_type) {
-  EXPECT_RunExpandDimsCase(ge::FORMAT_NDHWC, ge::FORMAT_NDC1HWC0, "", {}, {1, 1, 1, 1 ,1});
-  EXPECT_RunExpandDimsCase(ge::FORMAT_NDHWC, ge::FORMAT_NDC1HWC0, "C", {}, {1, 1, 1, 1 ,1});
-  EXPECT_RunExpandDimsCase(ge::FORMAT_NDHWC, ge::FORMAT_NDC1HWC0, "HW", {}, {1, 1, 1, 1 ,1});
-  EXPECT_RunExpandDimsCase(ge::FORMAT_NDHWC, ge::FORMAT_NDC1HWC0, "NHW", {}, {1, 1, 1, 1 ,1});
-  EXPECT_RunExpandDimsCase(ge::FORMAT_NDHWC, ge::FORMAT_NDC1HWC0, "NDWC", {}, {1, 1, 1, 1 ,1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_NDHWC, ge::FORMAT_NDC1HWC0, "", {}, {1, 1, 1, 1, 1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_NDHWC, ge::FORMAT_NDC1HWC0, "C", {}, {1, 1, 1, 1, 1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_NDHWC, ge::FORMAT_NDC1HWC0, "HW", {}, {1, 1, 1, 1, 1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_NDHWC, ge::FORMAT_NDC1HWC0, "NHW", {}, {1, 1, 1, 1, 1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_NDHWC, ge::FORMAT_NDC1HWC0, "NDWC", {}, {1, 1, 1, 1, 1});
 
-  EXPECT_RunExpandDimsCase(ge::FORMAT_NDHWC, ge::FORMAT_NDC1HWC0, "N", {5}, {5, 1, 1, 1 ,1});
-  EXPECT_RunExpandDimsCase(ge::FORMAT_NDHWC, ge::FORMAT_NDC1HWC0, "D", {5}, {1, 5, 1, 1 ,1});
-  EXPECT_RunExpandDimsCase(ge::FORMAT_NDHWC, ge::FORMAT_NDC1HWC0, "H", {5}, {1, 1, 5, 1 ,1});
-  EXPECT_RunExpandDimsCase(ge::FORMAT_NDHWC, ge::FORMAT_NDC1HWC0, "W", {5}, {1, 1, 1, 5 ,1});
-  EXPECT_RunExpandDimsCase(ge::FORMAT_NDHWC, ge::FORMAT_NDC1HWC0, "C", {5}, {1, 1, 1, 1 ,5});
-  EXPECT_RunExpandDimsCase(ge::FORMAT_NDHWC, ge::FORMAT_NDC1HWC0, "NDHWC", {5}, {5, 1, 1, 1 ,1});
-  EXPECT_RunExpandDimsCase(ge::FORMAT_NDHWC, ge::FORMAT_NDC1HWC0, "DHWC", {5}, {1, 5, 1, 1 ,1});
-  EXPECT_RunExpandDimsCase(ge::FORMAT_NDHWC, ge::FORMAT_NDC1HWC0, "HWC", {5}, {1, 1, 5, 1 ,1});
-  EXPECT_RunExpandDimsCase(ge::FORMAT_NDHWC, ge::FORMAT_NDC1HWC0, "WC", {5}, {1, 1, 1, 5 ,1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_NDHWC, ge::FORMAT_NDC1HWC0, "N", {5}, {5, 1, 1, 1, 1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_NDHWC, ge::FORMAT_NDC1HWC0, "D", {5}, {1, 5, 1, 1, 1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_NDHWC, ge::FORMAT_NDC1HWC0, "H", {5}, {1, 1, 5, 1, 1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_NDHWC, ge::FORMAT_NDC1HWC0, "W", {5}, {1, 1, 1, 5, 1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_NDHWC, ge::FORMAT_NDC1HWC0, "C", {5}, {1, 1, 1, 1, 5});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_NDHWC, ge::FORMAT_NDC1HWC0, "NDHWC", {5}, {5, 1, 1, 1, 1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_NDHWC, ge::FORMAT_NDC1HWC0, "DHWC", {5}, {1, 5, 1, 1, 1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_NDHWC, ge::FORMAT_NDC1HWC0, "HWC", {5}, {1, 1, 5, 1, 1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_NDHWC, ge::FORMAT_NDC1HWC0, "WC", {5}, {1, 1, 1, 5, 1});
 
   EXPECT_RunExpandDimsCase(ge::FORMAT_NDHWC, ge::FORMAT_NDC1HWC0, "N", {5, 6}, {5, 6});
   EXPECT_RunExpandDimsCase(ge::FORMAT_NDHWC, ge::FORMAT_NDC1HWC0, "D", {5, 6}, {5, 6});
@@ -468,21 +472,21 @@ TEST_F(TransformerExpandDimsUT, ndhwc_reshape_type) {
 }
 
 TEST_F(TransformerExpandDimsUT, ncdhw_reshape_type) {
-  EXPECT_RunExpandDimsCase(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, "", {}, {1, 1, 1, 1 ,1});
-  EXPECT_RunExpandDimsCase(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, "C", {}, {1, 1, 1, 1 ,1});
-  EXPECT_RunExpandDimsCase(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, "HW", {}, {1, 1, 1, 1 ,1});
-  EXPECT_RunExpandDimsCase(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, "NHW", {}, {1, 1, 1, 1 ,1});
-  EXPECT_RunExpandDimsCase(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, "NDHW", {}, {1, 1, 1, 1 ,1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, "", {}, {1, 1, 1, 1, 1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, "C", {}, {1, 1, 1, 1, 1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, "HW", {}, {1, 1, 1, 1, 1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, "NHW", {}, {1, 1, 1, 1, 1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, "NDHW", {}, {1, 1, 1, 1, 1});
 
-  EXPECT_RunExpandDimsCase(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, "N", {5}, {5, 1, 1, 1 ,1});
-  EXPECT_RunExpandDimsCase(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, "C", {5}, {1, 5, 1, 1 ,1});
-  EXPECT_RunExpandDimsCase(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, "D", {5}, {1, 1, 5, 1 ,1});
-  EXPECT_RunExpandDimsCase(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, "H", {5}, {1, 1, 1, 5 ,1});
-  EXPECT_RunExpandDimsCase(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, "W", {5}, {1, 1, 1, 1 ,5});
-  EXPECT_RunExpandDimsCase(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, "NCDHW", {5}, {5, 1, 1, 1 ,1});
-  EXPECT_RunExpandDimsCase(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, "CDHW", {5}, {1, 5, 1, 1 ,1});
-  EXPECT_RunExpandDimsCase(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, "DHW", {5}, {1, 1, 5, 1 ,1});
-  EXPECT_RunExpandDimsCase(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, "HW", {5}, {1, 1, 1, 5 ,1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, "N", {5}, {5, 1, 1, 1, 1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, "C", {5}, {1, 5, 1, 1, 1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, "D", {5}, {1, 1, 5, 1, 1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, "H", {5}, {1, 1, 1, 5, 1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, "W", {5}, {1, 1, 1, 1, 5});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, "NCDHW", {5}, {5, 1, 1, 1, 1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, "CDHW", {5}, {1, 5, 1, 1, 1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, "DHW", {5}, {1, 1, 5, 1, 1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, "HW", {5}, {1, 1, 1, 5, 1});
 
   EXPECT_RunExpandDimsCase(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, "N", {5, 6}, {5, 6});
   EXPECT_RunExpandDimsCase(ge::FORMAT_NCDHW, ge::FORMAT_NDC1HWC0, "C", {5, 6}, {5, 6});
@@ -533,21 +537,21 @@ TEST_F(TransformerExpandDimsUT, ncdhw_reshape_type) {
 }
 
 TEST_F(TransformerExpandDimsUT, dhwcn_reshape_type) {
-  EXPECT_RunExpandDimsCase(ge::FORMAT_DHWCN, ge::FORMAT_NDC1HWC0, "", {}, {1, 1, 1, 1 ,1});
-  EXPECT_RunExpandDimsCase(ge::FORMAT_DHWCN, ge::FORMAT_NDC1HWC0, "C", {}, {1, 1, 1, 1 ,1});
-  EXPECT_RunExpandDimsCase(ge::FORMAT_DHWCN, ge::FORMAT_NDC1HWC0, "HW", {}, {1, 1, 1, 1 ,1});
-  EXPECT_RunExpandDimsCase(ge::FORMAT_DHWCN, ge::FORMAT_NDC1HWC0, "HWC", {}, {1, 1, 1, 1 ,1});
-  EXPECT_RunExpandDimsCase(ge::FORMAT_DHWCN, ge::FORMAT_NDC1HWC0, "DHWN", {}, {1, 1, 1, 1 ,1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_DHWCN, ge::FORMAT_NDC1HWC0, "", {}, {1, 1, 1, 1, 1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_DHWCN, ge::FORMAT_NDC1HWC0, "C", {}, {1, 1, 1, 1, 1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_DHWCN, ge::FORMAT_NDC1HWC0, "HW", {}, {1, 1, 1, 1, 1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_DHWCN, ge::FORMAT_NDC1HWC0, "HWC", {}, {1, 1, 1, 1, 1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_DHWCN, ge::FORMAT_NDC1HWC0, "DHWN", {}, {1, 1, 1, 1, 1});
 
-  EXPECT_RunExpandDimsCase(ge::FORMAT_DHWCN, ge::FORMAT_NDC1HWC0, "D", {5}, {5, 1, 1, 1 ,1});
-  EXPECT_RunExpandDimsCase(ge::FORMAT_DHWCN, ge::FORMAT_NDC1HWC0, "H", {5}, {1, 5, 1, 1 ,1});
-  EXPECT_RunExpandDimsCase(ge::FORMAT_DHWCN, ge::FORMAT_NDC1HWC0, "W", {5}, {1, 1, 5, 1 ,1});
-  EXPECT_RunExpandDimsCase(ge::FORMAT_DHWCN, ge::FORMAT_NDC1HWC0, "C", {5}, {1, 1, 1, 5 ,1});
-  EXPECT_RunExpandDimsCase(ge::FORMAT_DHWCN, ge::FORMAT_NDC1HWC0, "N", {5}, {1, 1, 1, 1 ,5});
-  EXPECT_RunExpandDimsCase(ge::FORMAT_DHWCN, ge::FORMAT_NDC1HWC0, "DHWCN", {5}, {5, 1, 1, 1 ,1});
-  EXPECT_RunExpandDimsCase(ge::FORMAT_DHWCN, ge::FORMAT_NDC1HWC0, "HWCN", {5}, {1, 5, 1, 1 ,1});
-  EXPECT_RunExpandDimsCase(ge::FORMAT_DHWCN, ge::FORMAT_NDC1HWC0, "WCN", {5}, {1, 1, 5, 1 ,1});
-  EXPECT_RunExpandDimsCase(ge::FORMAT_DHWCN, ge::FORMAT_NDC1HWC0, "CN", {5}, {1, 1, 1, 5 ,1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_DHWCN, ge::FORMAT_NDC1HWC0, "D", {5}, {5, 1, 1, 1, 1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_DHWCN, ge::FORMAT_NDC1HWC0, "H", {5}, {1, 5, 1, 1, 1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_DHWCN, ge::FORMAT_NDC1HWC0, "W", {5}, {1, 1, 5, 1, 1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_DHWCN, ge::FORMAT_NDC1HWC0, "C", {5}, {1, 1, 1, 5, 1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_DHWCN, ge::FORMAT_NDC1HWC0, "N", {5}, {1, 1, 1, 1, 5});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_DHWCN, ge::FORMAT_NDC1HWC0, "DHWCN", {5}, {5, 1, 1, 1, 1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_DHWCN, ge::FORMAT_NDC1HWC0, "HWCN", {5}, {1, 5, 1, 1, 1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_DHWCN, ge::FORMAT_NDC1HWC0, "WCN", {5}, {1, 1, 5, 1, 1});
+  EXPECT_RunExpandDimsCase(ge::FORMAT_DHWCN, ge::FORMAT_NDC1HWC0, "CN", {5}, {1, 1, 1, 5, 1});
 
   EXPECT_RunExpandDimsCase(ge::FORMAT_DHWCN, ge::FORMAT_NDC1HWC0, "D", {5, 6}, {5, 6});
   EXPECT_RunExpandDimsCase(ge::FORMAT_DHWCN, ge::FORMAT_NDC1HWC0, "H", {5, 6}, {5, 6});
@@ -633,13 +637,15 @@ TEST_F(TransformerExpandDimsUT, reshape_type_case2) {
   EXPECT_EQ(reshape_type.empty(), true);
 
   int64_t reshape_mask = 3;
-  ret = transformer::ExpandDimension::GenerateReshapeTypeByMask(ge::FORMAT_NHWC, 2, reshape_mask, reshape_type, failed_reason);
+  ret = transformer::ExpandDimension::GenerateReshapeTypeByMask(ge::FORMAT_NHWC, 2, reshape_mask, reshape_type,
+                                                                failed_reason);
   EXPECT_EQ(ret, false);
   EXPECT_EQ(reshape_type.empty(), true);
 
   reshape_mask = 3;
-  ret = transformer::ExpandDimension::GenerateReshapeTypeByMask(ge::FORMAT_NHWC, 3, reshape_mask, reshape_type, failed_reason);
+  ret = transformer::ExpandDimension::GenerateReshapeTypeByMask(ge::FORMAT_NHWC, 3, reshape_mask, reshape_type,
+                                                                failed_reason);
   EXPECT_EQ(ret, false);
   EXPECT_EQ(reshape_type.empty(), true);
 }
-}  // namespace ge
+}  // namespace transformer

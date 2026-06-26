@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -81,24 +81,16 @@ bool ReadProtoFromText(const char_t *const file, google::protobuf::Message *cons
     char_t err_buf[kMaxErrorStrLength + 1U] = {};
     const auto err_msg = mmGetErrorFormatMessage(mmGetErrorCode(), &err_buf[0], kMaxErrorStrLength);
     const std::string errmsg = FormatErrnoReason(mmGetErrorCode(), err_msg);
-    (void)REPORT_PREDEFINED_ERR_MSG(
-        "E13001",
-        std::vector<const char *>({"file", "errmsg"}),
-        std::vector<const char *>({real_path.c_str(), errmsg.c_str()})
-    );
-    GELOGE(ge::FAILED, "[Open][ProtoFile]Failed, real path %s, orginal file path %s",
-           real_path.c_str(), file);
+    (void)REPORT_PREDEFINED_ERR_MSG("E13001", std::vector<const char *>({"file", "errmsg"}),
+                                    std::vector<const char *>({real_path.c_str(), errmsg.c_str()}));
+    GELOGE(ge::FAILED, "[Open][ProtoFile]Failed, real path %s, original file path %s", real_path.c_str(), file);
     return false;
   }
 
   google::protobuf::io::IstreamInputStream input(&fs);
   const bool ret = google::protobuf::TextFormat::Parse(&input, message);
   if (!ret) {
-    (void)REPORT_PREDEFINED_ERR_MSG(
-        "E13005",
-        std::vector<const char *>({"file"}),
-        std::vector<const char *>({file})
-    );
+    (void)REPORT_PREDEFINED_ERR_MSG("E13005", std::vector<const char *>({"file"}), std::vector<const char *>({file}));
     GELOGE(ge::FAILED, "[Parse][File]invoke [google::protobuf::TextFormat::Parse] failed, file %s", file);
   }
   fs.close();

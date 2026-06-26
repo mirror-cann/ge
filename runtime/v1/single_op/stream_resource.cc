@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -76,8 +76,7 @@ MemBlock *InternalAllocator::Malloc(size_t size) {
   return memory_list_.back().get();
 }
 
-StreamResource::StreamResource(const uintptr_t resource_id) : resource_id_(resource_id) {
-}
+StreamResource::StreamResource(const uintptr_t resource_id) : resource_id_(resource_id) {}
 
 StreamResource::~StreamResource() noexcept {
   for (const auto weight : weight_list_) {
@@ -202,8 +201,7 @@ uint8_t *StreamResource::MallocWeight(const std::string &purpose, const size_t s
   return buffer;
 }
 
-Status StreamResource::BuildDynamicOperator(const ModelData &model_data,
-                                            DynamicSingleOp **const single_op,
+Status StreamResource::BuildDynamicOperator(const ModelData &model_data, DynamicSingleOp **const single_op,
                                             const uint64_t model_id) {
   const std::string &model_name = std::to_string(model_id);
   const std::lock_guard<std::mutex> lk(mu_);

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -64,8 +64,8 @@ inline ge::graphStatus CheckModelInputsNum(const void *void_ed, size_t tensor_nu
   auto ed = static_cast<const SequentialExecutionData *>(void_ed);
   size_t total_num;
   GE_ASSERT_TRUE(!ge::AddOverflow(tensor_num, append_num, total_num),
-                 "Check model input num failed, add overflow, input tensor num(%zu), append input num(%zu)",
-                 tensor_num, append_num);
+                 "Check model input num failed, add overflow, input tensor num(%zu), append input num(%zu)", tensor_num,
+                 append_num);
   GE_ASSERT_TRUE((total_num == ed->input_num),
                  "Check model input num failed, input num not match, expect input num(%zu), "
                  "current total inputs num(%zu) = input tensor num(%zu) + append input num(%zu)",
@@ -278,8 +278,7 @@ void ModelV2Executor::SetModelDesc(ModelDesc *model_desc) {
 }
 
 std::unique_ptr<ModelV2Executor> ModelV2Executor::Create(const ge::ExecuteGraphPtr &exe_graph,
-                                                         const ge::GeRootModelPtr &root_model,
-                                                         RtSession *session) {
+                                                         const ge::GeRootModelPtr &root_model, RtSession *session) {
   if (exe_graph == nullptr) {
     return nullptr;
   }
@@ -287,8 +286,7 @@ std::unique_ptr<ModelV2Executor> ModelV2Executor::Create(const ge::ExecuteGraphP
 }
 std::unique_ptr<ModelV2Executor> ModelV2Executor::Create(const ge::ExecuteGraphPtr &exe_graph,
                                                          const ExecutorOption &option,
-                                                         const ge::GeRootModelPtr &root_model,
-                                                         RtSession *session) {
+                                                         const ge::GeRootModelPtr &root_model, RtSession *session) {
   if (exe_graph == nullptr) {
     return nullptr;
   }
@@ -296,8 +294,7 @@ std::unique_ptr<ModelV2Executor> ModelV2Executor::Create(const ge::ExecuteGraphP
 }
 std::unique_ptr<ModelV2Executor> ModelV2Executor::Create(const ge::ExecuteGraphPtr &exe_graph,
                                                          const ge::ModelData &model_data,
-                                                         const ge::GeRootModelPtr &root_model,
-                                                         RtSession *session) {
+                                                         const ge::GeRootModelPtr &root_model, RtSession *session) {
   if (exe_graph == nullptr) {
     return nullptr;
   }
@@ -367,9 +364,9 @@ ge::Status ModelV2Executor::InitAipp(const ge::ComputeGraphPtr &root_graph) {
   for (const auto &data_node : root_graph->GetInputNodes()) {
     GE_ASSERT_NOTNULL(data_node);
     GE_ASSERT_SUCCESS(ge::AippUtils::SetAippInfoAndTypeFromOpDesc(data_index_map, data_node->GetOpDesc(), data_index,
-        aipp_info_list_, aipp_type_list_));
+                                                                  aipp_info_list_, aipp_type_list_));
     GE_ASSERT_SUCCESS(ge::AippUtils::SetAippInputOutputInfoFromOpDesc(data_node->GetOpDesc(), data_index,
-        orig_aipp_input_info_, aipp_dims_info_));
+                                                                      orig_aipp_input_info_, aipp_dims_info_));
     ++data_index;
   }
   return ge::SUCCESS;
@@ -384,12 +381,13 @@ ge::Status ModelV2Executor::GetAippType(const uint32_t index, ge::InputAippType 
 }
 
 ge::Status ModelV2Executor::GetOriginAippInputInfo(const uint32_t index,
-    ge::OriginInputInfo &orig_aipp_input_info) const {
+                                                   ge::OriginInputInfo &orig_aipp_input_info) const {
   return ge::AippUtils::GetOrigInputInfo(orig_aipp_input_info_, index, orig_aipp_input_info);
 }
 
 ge::Status ModelV2Executor::GetAllAippInputOutputDims(const uint32_t index,
-    std::vector<ge::InputOutputDims> &input_dims, std::vector<ge::InputOutputDims> &output_dims) const {
+                                                      std::vector<ge::InputOutputDims> &input_dims,
+                                                      std::vector<ge::InputOutputDims> &output_dims) const {
   return ge::AippUtils::GetAllAippInputOutputDims(aipp_dims_info_, index, input_dims, output_dims);
 }
 
@@ -401,8 +399,8 @@ uint32_t ModelV2Executor::GetIterationNum() const {
   return cann_profiler->GetIterationNum();
 }
 
-ge::graphStatus ModelV2Executor::CheckIoReuseAddrs(Tensor **inputs, size_t input_num,
-                                                    Tensor **outputs, size_t output_num) const {
+ge::graphStatus ModelV2Executor::CheckIoReuseAddrs(Tensor **inputs, size_t input_num, Tensor **outputs,
+                                                   size_t output_num) const {
   if (io_same_addr_pairs_.empty()) {
     return ge::GRAPH_SUCCESS;
   }
@@ -422,8 +420,7 @@ ge::graphStatus ModelV2Executor::CheckIoReuseAddrs(Tensor **inputs, size_t input
     output_getter = [&](size_t i) { return outputs[i]->GetAddr(); };
   }
 
-  GE_ASSERT_SUCCESS(ge::CheckIoReuseAddrPairs(io_same_addr_pairs_, input_getter, input_num,
-                                              output_getter, output_num));
+  GE_ASSERT_SUCCESS(ge::CheckIoReuseAddrPairs(io_same_addr_pairs_, input_getter, input_num, output_getter, output_num));
   return ge::GRAPH_SUCCESS;
 }
 }  // namespace gert

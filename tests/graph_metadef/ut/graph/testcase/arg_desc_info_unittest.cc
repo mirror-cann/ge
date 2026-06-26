@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -12,7 +12,6 @@
 #include "graph/arg_desc_info.h"
 #include "graph/utils/args_format_desc_utils.h"
 #include "ge_common/ge_api_error_codes.h"
-
 
 namespace ge {
 class TestArgDescInfo : public testing::Test {
@@ -110,7 +109,8 @@ TEST_F(TestArgDescInfo, ArgDescInfoSerialize) {
   args_desc.emplace_back(ArgDescInfo(ArgDescType::kWorkspace));
   args_desc.emplace_back(ArgDescInfo(ArgDescType::kTiling));
   auto args_format_str = ArgsFormatSerializer::Serialize(args_desc);
-  EXPECT_EQ(std::string(args_format_str.GetString()), "{#2}{#0}{hi.hcom0*}{hi.hcom1*}{i0*}{i_desc1}{o0*}{o_desc1}{ws*}{t}");
+  EXPECT_EQ(std::string(args_format_str.GetString()),
+            "{#2}{#0}{hi.hcom0*}{hi.hcom1*}{i0*}{i_desc1}{o0*}{o_desc1}{ws*}{t}");
 }
 
 // 验证ArgDescInfo的反序列化能力,args序列中有InputInstance和OutputInstance
@@ -201,7 +201,7 @@ TEST_F(TestArgDescInfo, ArgDescInfoWithInstanceSerialize) {
   args_desc.emplace_back(ArgDescInfo(ArgDescType::kTiling));
   auto args_format_str = ArgsFormatSerializer::Serialize(args_desc);
   EXPECT_EQ(std::string(args_format_str.GetString()),
-      "{#2}{#0}{hi.hcom0*}{hi.hcom1*}{i_instance0*}{i_instance1*}{o_instance0*}{o_instance1*}{ws*}{t}");
+            "{#2}{#0}{hi.hcom0*}{hi.hcom1*}{i_instance0*}{i_instance1*}{o_instance0*}{o_instance1*}{ws*}{t}");
 }
 
 // 验证ArgDescInfo的拷贝赋值函数
@@ -308,4 +308,4 @@ TEST_F(TestArgDescInfo, ArgDescInfoMoveConstructFunc) {
   EXPECT_EQ(args_desc_3.GetCustomValue(), 0);
   EXPECT_EQ(args_desc_3.GetHiddenInputSubType(), HiddenInputSubType::kHcom);
 }
-}
+}  // namespace ge

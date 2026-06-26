@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,39 +19,37 @@
 #include "tensorflow/parser_graph_optimizer.h"
 
 namespace ge {
-  class UtestGraphOptimizer : public testing::Test {
-   protected:
-    void SetUp() {}
-    void TearDown() {}
-  };
+class UtestGraphOptimizer : public testing::Test {
+ protected:
+  void SetUp() {}
+  void TearDown() {}
+};
 namespace {
-  ComputeGraphPtr MakeGraph() {
+ComputeGraphPtr MakeGraph() {
   ge::ut::GraphBuilder builder("graph");
   std::string name = "graph";
   std::string original_type;
-  original_type = "IteratorV2"; //
+  original_type = "IteratorV2";  //
   auto data1 = builder.AddNode(name + "_" + original_type, ge::parser::FRAMEWORKOP, 1, 1);
   ge::AttrUtils::SetStr(data1->GetOpDesc(), ge::ATTR_NAME_FRAMEWORK_ORIGINAL_TYPE, original_type);
   original_type = "IteratorGetNext";
   auto data2 = builder.AddNode(name + "_" + original_type + "2", ge::parser::FRAMEWORKOP, 1, 2);
   ge::AttrUtils::SetStr(data2->GetOpDesc(), ge::ATTR_NAME_FRAMEWORK_ORIGINAL_TYPE, original_type);
   string nodefStr;
-  AttrUtils::SetZeroCopyBytes(
-  data2->GetOpDesc(), ge::ATTR_NAME_FRAMEWORK_NODE_DEF,
-  Buffer::CopyFrom(reinterpret_cast<const uint8_t *>(nodefStr.data()), nodefStr.length()));
+  AttrUtils::SetZeroCopyBytes(data2->GetOpDesc(), ge::ATTR_NAME_FRAMEWORK_NODE_DEF,
+                              Buffer::CopyFrom(reinterpret_cast<const uint8_t *>(nodefStr.data()), nodefStr.length()));
   original_type = "IteratorGetNext";
   auto data3 = builder.AddNode(name + "_" + original_type + "3", ge::parser::FRAMEWORKOP, 2, 1);
   ge::AttrUtils::SetStr(data3->GetOpDesc(), ge::ATTR_NAME_FRAMEWORK_ORIGINAL_TYPE, original_type);
-  AttrUtils::SetZeroCopyBytes(
-  data3->GetOpDesc(), ge::ATTR_NAME_FRAMEWORK_NODE_DEF,
-  Buffer::CopyFrom(reinterpret_cast<const uint8_t *>(nodefStr.data()), nodefStr.length()));
+  AttrUtils::SetZeroCopyBytes(data3->GetOpDesc(), ge::ATTR_NAME_FRAMEWORK_NODE_DEF,
+                              Buffer::CopyFrom(reinterpret_cast<const uint8_t *>(nodefStr.data()), nodefStr.length()));
 
   builder.AddDataEdge(data1, 0, data2, 0);
   builder.AddDataEdge(data2, 0, data3, 0);
   builder.AddDataEdge(data2, 1, data3, 1);
   return builder.GetGraph();
-  }
 }
+}  // namespace
 TEST_F(UtestGraphOptimizer, graph_optimizer) {
   ge::ComputeGraphPtr graph = MakeGraph();
   ge::IteratorFusionPass iteratorFusionPass(domi::TENSORFLOW);
@@ -68,4 +66,4 @@ TEST_F(UtestGraphOptimizer, graph_optimizer_output) {
   EXPECT_NE(parserGraphOptimizer.RebuildInputAnchors(input_anchors, fusion_op_desc), ge::SUCCESS);
   EXPECT_NE(parserGraphOptimizer.RebuildOutputAnchors(output_anchors, fusion_op_desc), ge::SUCCESS);
 }
-}
+}  // namespace ge

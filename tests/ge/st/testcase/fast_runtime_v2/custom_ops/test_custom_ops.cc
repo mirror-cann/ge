@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -49,7 +49,7 @@ void *output_addr = nullptr;
 uint32_t custom_shape_infer_count = 0U;
 uint32_t custom_shape_infer_execute_count = 0U;
 
-class TestBaseCustomOp : public EagerExecuteOp{
+class TestBaseCustomOp : public EagerExecuteOp {
  public:
   graphStatus Execute(gert::EagerOpExecutionContext *ctx) override {
     auto input_tensor0 = ctx->GetInputTensor(0);
@@ -70,7 +70,7 @@ class TestBaseCustomOp : public EagerExecuteOp{
     auto workspaces = ctx->MallocWorkSpace(1024);
     GE_ASSERT_NOTNULL(workspaces);
     auto output_tensor = ctx->MallocOutputTensor(0, StorageShape({2048}, {2048}),
-        StorageFormat(FORMAT_ND, FORMAT_ND, ExpandDimsType()), DT_FLOAT);
+                                                 StorageFormat(FORMAT_ND, FORMAT_ND, ExpandDimsType()), DT_FLOAT);
     GE_ASSERT_NOTNULL(output_tensor);
     auto output_shape = output_tensor->GetShape().GetStorageShape();
     GE_ASSERT_TRUE(output_shape.GetDimNum() == 1);
@@ -97,7 +97,8 @@ class TestCompilableCustomOp : public EagerExecuteOp, CompilableOp {
     mock_compile_path_ = MockCompile();
     return SUCCESS;
   }
-private:
+
+ private:
   std::string mock_compile_path_;
 };
 
@@ -110,8 +111,8 @@ class TestCustomOpWithShapeInfer : public EagerExecuteOp, public ShapeInferOp {
     auto output_shape = output_desc->GetStorageShape();
     GE_ASSERT_TRUE(output_shape.GetDimNum() == 1);
     GE_ASSERT_TRUE(output_shape.GetDim(0) == 2048);
-    auto output_tensor = ctx->MallocOutputTensor(0, output_desc->GetShape(), output_desc->GetFormat(),
-                                                 output_desc->GetDataType());
+    auto output_tensor =
+        ctx->MallocOutputTensor(0, output_desc->GetShape(), output_desc->GetFormat(), output_desc->GetDataType());
     GE_ASSERT_NOTNULL(output_tensor);
     return SUCCESS;
   }
@@ -189,34 +190,33 @@ class TestEmptyOutputInstanceCompileCustomOp : public EagerExecuteOp, Compilable
 };
 
 REG_OP(CustomOp)
-  .INPUT(x1, TensorType::BasicType())
-  .INPUT(x2, TensorType::BasicType())
-  .INPUT(x3, TensorType::BasicType())
-  .OUTPUT(y, TensorType::BasicType())
-  .OP_END_FACTORY_REG(CustomOp)
+    .INPUT(x1, TensorType::BasicType())
+    .INPUT(x2, TensorType::BasicType())
+    .INPUT(x3, TensorType::BasicType())
+    .OUTPUT(y, TensorType::BasicType())
+    .OP_END_FACTORY_REG(CustomOp)
 
-REG_OP(NoInputCompileOutputCustomOp)
-  .OUTPUT(y, TensorType::BasicType())
-  .DYNAMIC_OUTPUT(dy, TensorType::BasicType())
-  .OP_END_FACTORY_REG(NoInputCompileOutputCustomOp)
+        REG_OP(NoInputCompileOutputCustomOp)
+    .OUTPUT(y, TensorType::BasicType())
+    .DYNAMIC_OUTPUT(dy, TensorType::BasicType())
+    .OP_END_FACTORY_REG(NoInputCompileOutputCustomOp)
 
-REG_OP(EmptyOutputInstanceCompileCustomOp)
-  .OUTPUT(y, TensorType::BasicType())
-  .OP_END_FACTORY_REG(EmptyOutputInstanceCompileCustomOp)
+        REG_OP(EmptyOutputInstanceCompileCustomOp)
+    .OUTPUT(y, TensorType::BasicType())
+    .OP_END_FACTORY_REG(EmptyOutputInstanceCompileCustomOp)
 
-REG_OP(StCustomOpWithShapeInfer)
-  .INPUT(x1, TensorType::BasicType())
-  .INPUT(x2, TensorType::BasicType())
-  .INPUT(x3, TensorType::BasicType())
-  .OUTPUT(y, TensorType::BasicType())
-  .OP_END_FACTORY_REG(StCustomOpWithShapeInfer)
+        REG_OP(StCustomOpWithShapeInfer)
+    .INPUT(x1, TensorType::BasicType())
+    .INPUT(x2, TensorType::BasicType())
+    .INPUT(x3, TensorType::BasicType())
+    .OUTPUT(y, TensorType::BasicType())
+    .OP_END_FACTORY_REG(StCustomOpWithShapeInfer)
 
-TEST_F(TestCustomNodeKernel, custom_op_kernel_execute_test) {
+        TEST_F(TestCustomNodeKernel, custom_op_kernel_execute_test) {
   auto graph = ShareGraph::BuildCustomOpGraph();
   graph->TopologicalSorting();
-  CustomOpFactory::RegisterCustomOpCreator("CustomOp", []()->std::unique_ptr<BaseCustomOp> {
-    return std::make_unique<TestBaseCustomOp>();
-  });
+  CustomOpFactory::RegisterCustomOpCreator(
+      "CustomOp", []() -> std::unique_ptr<BaseCustomOp> { return std::make_unique<TestBaseCustomOp>(); });
   GertRuntimeStub runtime_stub;
   runtime_stub.GetKernelStub().StubTiling();
   GeModelBuilder builder(graph);
@@ -227,8 +227,8 @@ TEST_F(TestCustomNodeKernel, custom_op_kernel_execute_test) {
   ASSERT_EQ(3, exe_graph->GetDirectNodesSize());
   TaskProducerFactory::GetInstance().SetProducerType(TaskProducerType::KERNEL);
   ASSERT_EQ(TaskProducerFactory::GetInstance().GetProducerType(), TaskProducerType::KERNEL);
-  auto model_executor = ModelV2Executor::Create(exe_graph,
-      ExecutorOption(ExecutorType::kTopologicalPriority), ge_root_model);
+  auto model_executor =
+      ModelV2Executor::Create(exe_graph, ExecutorOption(ExecutorType::kTopologicalPriority), ge_root_model);
   ASSERT_NE(model_executor, nullptr);
   ASSERT_EQ(model_executor->Load(), GRAPH_SUCCESS);
 
@@ -251,9 +251,9 @@ TEST_F(TestCustomNodeKernel, custom_op_kernel_execute_test) {
   EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("CustomOp", "FreeCustomOpWorkspaces"), 1);
   EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("CustomOp", "FreeMemory"), 1);
   EXPECT_TRUE(MemoryTraceChecker(runtime_stub.GetSlogStub(), output_addr)
-      .AppendExpectEvent(kAllocRe, 0) // (1) alloc in stream 0
-      .AppendExpectEvent(kFreeRe, 0)  // (3) free on stream 0, trigger LocalRecycle
-      .AsYouWish());
+                  .AppendExpectEvent(kAllocRe, 0)  // (1) alloc in stream 0
+                  .AppendExpectEvent(kFreeRe, 0)   // (3) free on stream 0, trigger LocalRecycle
+                  .AsYouWish());
   ge::diagnoseSwitch::DisableProfiling();
   aclrtDestroyStream(stream);
 }
@@ -333,10 +333,9 @@ TEST_F(TestCustomNodeKernel, custom_op_compile_get_output_tensor_nullptr_without
 
   auto custom_node = graph->AddNode(op_desc);
   ASSERT_NE(custom_node, nullptr);
-  CustomOpFactory::RegisterCustomOpCreator("EmptyOutputInstanceCompileCustomOp",
-      []() -> std::unique_ptr<BaseCustomOp> {
-        return std::make_unique<TestEmptyOutputInstanceCompileCustomOp>();
-      });
+  CustomOpFactory::RegisterCustomOpCreator("EmptyOutputInstanceCompileCustomOp", []() -> std::unique_ptr<BaseCustomOp> {
+    return std::make_unique<TestEmptyOutputInstanceCompileCustomOp>();
+  });
 
   ge::CustomGraphOptimizer optimizer;
   ASSERT_EQ(optimizer.OptimizeSubgraphPostProc(*graph), ge::GRAPH_SUCCESS);
@@ -349,9 +348,10 @@ TEST_F(TestCustomNodeKernel, custom_op_shape_infer_op_execute_test) {
   ASSERT_NE(custom_op, nullptr);
   custom_op->GetOpDesc()->SetType(op_type);
   graph->TopologicalSorting();
-  ASSERT_EQ(CustomOpFactory::RegisterCustomOpCreator(op_type, []() -> std::unique_ptr<BaseCustomOp> {
-    return std::make_unique<TestCustomOpWithShapeInfer>();
-  }), GRAPH_SUCCESS);
+  ASSERT_EQ(
+      CustomOpFactory::RegisterCustomOpCreator(
+          op_type, []() -> std::unique_ptr<BaseCustomOp> { return std::make_unique<TestCustomOpWithShapeInfer>(); }),
+      GRAPH_SUCCESS);
 
   GertRuntimeStub runtime_stub;
   runtime_stub.GetKernelStub().StubTiling();
@@ -361,8 +361,8 @@ TEST_F(TestCustomNodeKernel, custom_op_shape_infer_op_execute_test) {
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model, {});
   ASSERT_NE(exe_graph, nullptr);
   TaskProducerFactory::GetInstance().SetProducerType(TaskProducerType::KERNEL);
-  auto model_executor = ModelV2Executor::Create(exe_graph,
-      ExecutorOption(ExecutorType::kTopologicalPriority), ge_root_model);
+  auto model_executor =
+      ModelV2Executor::Create(exe_graph, ExecutorOption(ExecutorType::kTopologicalPriority), ge_root_model);
   ASSERT_NE(model_executor, nullptr);
   ASSERT_EQ(model_executor->Load(), GRAPH_SUCCESS);
 
@@ -387,5 +387,5 @@ TEST_F(TestCustomNodeKernel, custom_op_shape_infer_op_execute_test) {
   EXPECT_EQ(model_executor->UnLoad(), GRAPH_SUCCESS);
   aclrtDestroyStream(stream);
 }
-}
-}
+}  // namespace kernel
+}  // namespace gert

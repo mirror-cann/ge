@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -40,7 +40,7 @@ Status GetPredNode(const NodePtr &switch_node, PredNodeAndOut &pred_node_index) 
   auto pred_in_anchor = switch_node->GetInDataAnchor(kSwitchPredIndex);
   if (pred_in_anchor == nullptr) {
     REPORT_INNER_ERR_MSG("E19999", "Node:%s(%s) has no index:%d in data anchor, check invalid",
-                       switch_node->GetName().c_str(), switch_node->GetType().c_str(), kSwitchPredIndex);
+                         switch_node->GetName().c_str(), switch_node->GetType().c_str(), kSwitchPredIndex);
     GELOGE(INTERNAL_ERROR, "[Get][InDataAnchor] failed, Node:%s(%s) has no index:%d in data anchor",
            switch_node->GetName().c_str(), switch_node->GetType().c_str(), kSwitchPredIndex);
     return INTERNAL_ERROR;
@@ -48,7 +48,7 @@ Status GetPredNode(const NodePtr &switch_node, PredNodeAndOut &pred_node_index) 
   auto pred_node_anchor = pred_in_anchor->GetPeerOutAnchor();
   if (pred_node_anchor == nullptr) {
     REPORT_INNER_ERR_MSG("E19999", "Node:%s(%s)'s index:%d in data anchor, its peer anchor is nullptr, check invalid",
-                       switch_node->GetName().c_str(), switch_node->GetType().c_str(), kSwitchPredIndex);
+                         switch_node->GetName().c_str(), switch_node->GetType().c_str(), kSwitchPredIndex);
     GELOGE(INTERNAL_ERROR,
            "[Get][PeerOutAnchor] failed, Node:%s(%s)'s index:%d in data anchor, its peer anchor is nullptr",
            switch_node->GetName().c_str(), switch_node->GetType().c_str(), kSwitchPredIndex);
@@ -97,8 +97,8 @@ Status SwitchLogicRemovePass::Run(NodePtr &node) {
         continue;
       }
       GELOGI("The switch nodes cascaded %s and %s have the save pred node %s, the %s can be remove",
-             node->GetName().c_str(), dst_node->GetName().c_str(),
-             pred_node_and_out.first->GetName().c_str(), dst_node->GetName().c_str());
+             node->GetName().c_str(), dst_node->GetName().c_str(), pred_node_and_out.first->GetName().c_str(),
+             dst_node->GetName().c_str());
       ret = RemoveSwitchNodeLogically(i, dst_node);
       if (ret != SUCCESS) {
         return ret;
@@ -123,35 +123,33 @@ Status SwitchLogicRemovePass::RemoveSwitchNodeLogically(int32_t parent_index, No
       continue;
     }
 
-    GELOGI("Remove inactivate branch %s(%d) from switch %s",
-           GetOutputNameFromIndex(i), i, switch_node->GetName().c_str());
+    GELOGI("Remove deactivate branch %s(%d) from switch %s", GetOutputNameFromIndex(i), i,
+           switch_node->GetName().c_str());
     std::vector<NodePtr> deleted_nodes;
     std::vector<NodePtr> end_nodes;
     auto ret = PassUtils::RemoveInactiveBranchToMerge(out_anchor, deleted_nodes, end_nodes);
     if (ret != SUCCESS) {
-      GELOGE(FAILED, "[Remove][InactiveBranch] from node:%s(%s) to merge failed",
-             switch_node->GetName().c_str(), switch_node->GetType().c_str());
+      GELOGE(FAILED, "[Remove][InactiveBranch] from node:%s(%s) to merge failed", switch_node->GetName().c_str(),
+             switch_node->GetType().c_str());
       return ret;
     }
 
     for (auto &node : deleted_nodes) {
       GE_CHECK_NOTNULL(node);
-      GELOGD("Remove node %s from inactivate branch from switch %s",
-             node->GetName().c_str(), switch_node->GetName().c_str());
+      GELOGD("Remove node %s from deactivate branch from switch %s", node->GetName().c_str(),
+             switch_node->GetName().c_str());
       AddNodeDeleted(node);
     }
     for (auto &node : end_nodes) {
       GE_CHECK_NOTNULL(node);
-      GELOGD("Add end node %s to re-pass list, for inactivate branch from switch %s",
-             node->GetName().c_str(), switch_node->GetName().c_str());
+      GELOGD("Add end node %s to re-pass list, for deactivate branch from switch %s", node->GetName().c_str(),
+             switch_node->GetName().c_str());
       AddRePassNode(node);
     }
   }
-  GELOGI("Remove switch node cascaded %s, replace out index %d",
-         switch_node->GetName().c_str(), parent_index);
+  GELOGI("Remove switch node cascaded %s, replace out index %d", switch_node->GetName().c_str(), parent_index);
   return IsolateAndDeleteNode(switch_node, isolate_map);
 }
 
 REG_PASS_OPTION("SwitchLogicRemovePass").LEVELS(OoLevel::kO3);
 }  // namespace ge
-

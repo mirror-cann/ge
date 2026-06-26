@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,9 +34,10 @@ class GE_FUNC_VISIBILITY GeLocalOpsKernelBuilderCalcOpParam {
   static Status CheckPhonyConcatInputIs32Align(const ConstOpDescPtr &op_desc);
 
   static int64_t GetSplitOffset(const GeTensorDescPtr &tensor_desc, uint32_t node_idx,
-      const std::vector<int64_t> &split_dim_list, const std::vector<int64_t> &split_num_list);
+                                const std::vector<int64_t> &split_dim_list, const std::vector<int64_t> &split_num_list);
   static int64_t GetConcatOffset(const GeTensorDescPtr &tensor_desc, uint32_t node_idx,
-      const std::vector<int64_t> &concat_dim_list, const std::vector<int64_t> &concat_num_list);
+                                 const std::vector<int64_t> &concat_dim_list,
+                                 const std::vector<int64_t> &concat_num_list);
   static graphStatus HasBufferFusionOffset(const Node &node, bool &has_fusion_offset);
 };
 }  // namespace ge_local

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,15 +17,15 @@ namespace ge {
 struct InputNodeInfo {
   std::string node_name;
   NodePtr cur_node;
-  size_t out_data_anchor_id; // 输入节点的输出anchor id
-  size_t in_data_anchor_id; // 本阶段的输入anchor_id
+  size_t out_data_anchor_id;  // 输入节点的输出anchor id
+  size_t in_data_anchor_id;   // 本阶段的输入anchor_id
 };
-  
+
 struct OutputNodeInfo {
   std::string node_name;
   NodePtr cur_node;
-  size_t in_data_anchor_id; // 输出节点输入anchor_id
-  size_t out_data_anchor_id; // 本节点的输出anchor id
+  size_t in_data_anchor_id;   // 输出节点输入anchor_id
+  size_t out_data_anchor_id;  // 本节点的输出anchor id
 };
 
 struct EventNodeInfo {
@@ -76,17 +76,17 @@ class SuperKernelPass : public GraphPass {
 };
 
 class SuperKernelScope {
-public:
+ public:
   SuperKernelScope() {}
   virtual ~SuperKernelScope() {}
-  
+
   Status Init(const std::string &name, const std::vector<NodePtr> &sk_nodes, uint32_t event_begin_id);
-  
+
   Status MergeSuperKernelsToSubgraph();
 
   size_t GetScopeEventSize() const;
-  
-private:
+
+ private:
   Status RecordSendInfo(const NodePtr &send_node);
 
   Status RecordRcvInfo(const NodePtr &rcv_node);
@@ -102,7 +102,7 @@ private:
   Status GetSkBoundaryEventInfo();
 
   NodePtr ConstructSkNode();
-  
+
   Status ConstructSubgraph();
 
   Status LinkSkInputNode();

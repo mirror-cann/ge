@@ -23,7 +23,7 @@
    <img src="./figures/cloudIDE.png" alt="云平台"  width="750px" height="90px">
 
 2. 根据页面提示创建NPU环境并配置规格，启动云开发环境后，单击“`连接 > WebIDE`”进入一站式开发平台。
-  
+
    当前开源项目资源默认在`/mnt/workspace/gitCode/${gitCode_id}`目录下，\$\{gitCode\_id\}表示开发者个人gitCode账号。
 
    <img src="./figures/webIDE.png" alt="云平台"  width="1000px" height="150px">
@@ -120,7 +120,7 @@ docker run --name cann_container \
 
 ### 方式三：手动安装软件包
 
-- **场景1：体验master版本能力或基于master版本进行开发**   
+- **场景1：体验master版本能力或基于master版本进行开发**
 
     1. **安装驱动与固件（可选，仅运行[样例](../../examples/README.md)依赖）**
 
@@ -142,7 +142,7 @@ docker run --name cann_container \
             - `${cann_version}`：表示CANN包版本号。
             - `${arch}`：表示CPU架构，如`aarch64`、`x86_64`。
             - `${install_path}`：表示指定安装路径，需要与Toolkit包安装在相同路径，root用户默认安装在`/usr/local/Ascend`目录。
-    
+
          - 安装CANN ops算子包（可选，仅运行[样例](../../examples/README.md)依赖）。
 
             ```bash
@@ -162,4 +162,4 @@ docker run --name cann_container \
 
 - **场景2：体验已发布版本能力或基于已发布版本进行开发**
 
-    如果您想体验**官网正式发布的CANN包**能力，请访问[CANN官网下载中心](https://www.hiascend.com/cann/download)，选择对应版本CANN软件包（仅支持CANN 8.5.0及后续版本）进行安装。   
+    如果您想体验**官网正式发布的CANN包**能力，请访问[CANN官网下载中心](https://www.hiascend.com/cann/download)，选择对应版本CANN软件包（仅支持CANN 8.5.0及后续版本）进行安装。

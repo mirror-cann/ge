@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -14,14 +14,12 @@
 namespace ffts {
 OutTaskBuilder::OutTaskBuilder() {}
 
-OutTaskBuilder::OutTaskBuilder(CACHE_OPERATION operation)
-    : DataTaskBuilder(operation) {}
+OutTaskBuilder::OutTaskBuilder(CACHE_OPERATION operation) : DataTaskBuilder(operation) {}
 
 OutTaskBuilder::~OutTaskBuilder() {}
 
 Status OutTaskBuilder::UptSuccListOfRelatedNode(const ge::NodePtr &node, const std::vector<uint32_t> &succ_list,
-                                                int &data_ctx_id,
-                                                domi::FftsPlusTaskDef *ffts_plus_task_def) const {
+                                                int &data_ctx_id, domi::FftsPlusTaskDef *ffts_plus_task_def) const {
   /* If original context size is 9 and after generate this out data context,
    * the total size is 10. So the context id of this out data context is 10 - 1 = 9; */
   data_ctx_id = ffts_plus_task_def->ffts_plus_ctx_size() - 1;
@@ -46,8 +44,10 @@ Status OutTaskBuilder::GetSuccessorContextIdSpecial(uint32_t out_anchor_index, c
   auto anchors = node->GetAllOutDataAnchors();
   auto output_size = anchors.size();
   if (out_anchor_index >= output_size) {
-    REPORT_FFTS_ERROR("[GenTask][DataTskBuilder][GetSuccessorContextIdSpecial]Output "
-        "anchor index %u >= output size %zu of %s.", out_anchor_index, output_size, node->GetName().c_str());
+    REPORT_FFTS_ERROR(
+        "[GenTask][DataTskBuilder][GetSuccessorContextIdSpecial]Output "
+        "anchor index %u >= output size %zu of %s.",
+        out_anchor_index, output_size, node->GetName().c_str());
     return FAILED;
   }
 
@@ -70,9 +70,10 @@ Status OutTaskBuilder::GetSuccessorContextIdSpecial(uint32_t out_anchor_index, c
         FFTS_CHECK_NOTNULL(src_out_anchor);
         auto py_in_node = src_out_anchor->GetOwnerNode();
         auto py_in_node_idx = src_out_anchor->GetIdx();
-        FFTS_LOGD("Py op %s' peer input op %s's output %d need become the pred of invalidate which node %s's output %u.",
-                  peer_in_node->GetName().c_str(),
-                  py_in_node->GetName().c_str(), py_in_node_idx, node->GetName().c_str(), out_anchor_index);
+        FFTS_LOGD(
+            "Py op %s' peer input op %s's output %d need become the pred of invalidate which node %s's output %u.",
+            peer_in_node->GetName().c_str(), py_in_node->GetName().c_str(), py_in_node_idx, node->GetName().c_str(),
+            out_anchor_index);
         GetSuccessorContextId(py_in_node_idx, py_in_node, succ_list, cons_cnt);
       }
     } else {
@@ -86,7 +87,8 @@ Status OutTaskBuilder::GetPeerInputContextId(const ge::NodePtr &node, const ge::
                                              vector<uint32_t> &peer_in_context_id) {
   uint32_t ctx_id_tmp = 0;
   if (IsPhonyOp(peer_in_node->GetOpDesc())) {
-    FFTS_LOGD("Peer input operation for %s is PhonyConcat %s.", node->GetName().c_str(), peer_in_node->GetName().c_str());
+    FFTS_LOGD("Peer input operation for %s is PhonyConcat %s.", node->GetName().c_str(),
+              peer_in_node->GetName().c_str());
     // special process for concat(no task)->phonyConnnat->mish->transdata
     //                     concat(no task) - /              \ - transdata
     auto peer_nodes = peer_in_node->GetOutDataNodes();
@@ -109,8 +111,10 @@ Status OutTaskBuilder::GetPeerInputContextId(const ge::NodePtr &node, const ge::
           for (const auto &peer_peer_node_of_pc : peer_node_of_pc->GetOutDataNodes()) {
             auto peer_peer_op_of_pc = peer_peer_node_of_pc->GetOpDesc();
             if (!ge::AttrUtils::GetInt(peer_peer_op_of_pc, kContextId, ctx_id_tmp)) {
-              FFTS_LOGI("The 2nd layer PhonyConcat %s peer op %s needs a successor list but does not "
-                        "have a context id.", peer_op_of_pc->GetName().c_str(), peer_peer_op_of_pc->GetName().c_str());
+              FFTS_LOGI(
+                  "The 2nd layer PhonyConcat %s peer op %s needs a successor list but does not "
+                  "have a context id.",
+                  peer_op_of_pc->GetName().c_str(), peer_peer_op_of_pc->GetName().c_str());
               continue;
             }
             FFTS_LOGD("Peer input op for the 2nd layer PhonyConcat is %s; context ID is %u.",
@@ -120,8 +124,8 @@ Status OutTaskBuilder::GetPeerInputContextId(const ge::NodePtr &node, const ge::
         }
         continue;
       }
-      FFTS_LOGD("Peer input op for PhonyConcat is '%s', with context ID %u.",
-                peer_op_of_pc->GetName().c_str(), ctx_id_tmp);
+      FFTS_LOGD("Peer input op for PhonyConcat is '%s', with context ID %u.", peer_op_of_pc->GetName().c_str(),
+                ctx_id_tmp);
       peer_in_context_id.emplace_back(ctx_id_tmp);
     }
   } else {
@@ -130,8 +134,8 @@ Status OutTaskBuilder::GetPeerInputContextId(const ge::NodePtr &node, const ge::
                 node->GetName().c_str(), peer_in_node->GetName().c_str());
       return NOT_CHANGED;
     }
-    FFTS_LOGD("Peer input operation for %s is %s, with context ID %u.",
-              node->GetName().c_str(), peer_in_node->GetName().c_str(), ctx_id_tmp);
+    FFTS_LOGD("Peer input operation for %s is %s, with context ID %u.", node->GetName().c_str(),
+              peer_in_node->GetName().c_str(), ctx_id_tmp);
     peer_in_context_id.emplace_back(ctx_id_tmp);
   }
   return SUCCESS;
@@ -142,8 +146,10 @@ Status OutTaskBuilder::GetSuccessorContextId(uint32_t out_anchor_index, const ge
   auto anchors = node->GetAllOutDataAnchors();
   auto output_size = anchors.size();
   if (out_anchor_index >= output_size) {
-    REPORT_FFTS_ERROR("[GenTask][DataTskBuilder][GetSuccList] Output anchor index %u is greater than or equal to the output size %zu for %s.",
-                      out_anchor_index, output_size, node->GetName().c_str());
+    REPORT_FFTS_ERROR(
+        "[GenTask][DataTskBuilder][GetSuccList] Output anchor index %u is greater than or equal to the output size %zu "
+        "for %s.",
+        out_anchor_index, output_size, node->GetName().c_str());
     return FAILED;
   }
 
@@ -231,8 +237,10 @@ Status OutTaskBuilder::FillManualDataCtx(size_t out_anchor_index, const ge::Node
   UptSuccListOfRelatedNode(node, succ_list, data_ctx_id, ffts_plus_task_def);
 
   if (out_anchor_index >= output_addrs.size()) {
-    REPORT_FFTS_ERROR("[GenTsk][DataTsk][FillCtxt][node %s, type %s] out anchor %zu is greater than or equal to the size of output_addrs %zu.",
-                      node->GetName().c_str(), node->GetType().c_str(), out_anchor_index, output_addrs.size());
+    REPORT_FFTS_ERROR(
+        "[GenTsk][DataTsk][FillCtxt][node %s, type %s] out anchor %zu is greater than or equal to the size of "
+        "output_addrs %zu.",
+        node->GetName().c_str(), node->GetType().c_str(), out_anchor_index, output_addrs.size());
     return FAILED;
   }
   data_ctx_def->set_addr_base(output_addrs[out_anchor_index]);
@@ -251,8 +259,7 @@ Status OutTaskBuilder::FillManualDataCtx(size_t out_anchor_index, const ge::Node
   return SUCCESS;
 }
 
-Status OutTaskBuilder::UpdateInvalidCtxWithMemReuse(const ge::NodePtr &node, int &data_ctx_id,
-                                                    const size_t &window_id,
+Status OutTaskBuilder::UpdateInvalidCtxWithMemReuse(const ge::NodePtr &node, int &data_ctx_id, const size_t &window_id,
                                                     domi::FftsPlusTaskDef *ffts_plus_task_def) {
   (void)window_id;
   ge::NodePtr phony_op = nullptr;
@@ -295,4 +302,4 @@ Status OutTaskBuilder::UpdateInvalidCtxWithMemReuse(const ge::NodePtr &node, int
   }
   return SUCCESS;
 }
-}
+}  // namespace ffts

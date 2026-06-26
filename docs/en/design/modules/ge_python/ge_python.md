@@ -35,14 +35,14 @@ graph TB
         Placement[Placement<br/>Data storage location enum]
         AttrValue[_AttrValue<br/>Attribute value class]
     end
-    
+
     subgraph "C API Wrapper Layer"
         GraphLib[graph<br/>C library wrapper]
         ESBLib[esb_lib<br/>Base library wrapper]
         PyGraphWrapper[pygraph_wrapper<br/>Python C API wrapper]
         PyESWrapper[pyes_graph_builder_wrapper<br/>Python C API wrapper]
     end
-    
+
     subgraph "C++ Backend"
         CGraph[ge::Graph<br/>C++ graph object]
         CGNode[ge::GNode<br/>C++ node object]
@@ -50,7 +50,7 @@ graph TB
         CTensor[ge::EsCTensor<br/>C++ Tensor object]
         CTensorDesc[ge::TensorDesc<br/>C++ tensor metadata object]
     end
-    
+
     %% Python layer relationships
     Graph -->|"contains multiple"| Node
     Graph -->|"uses"| DataType
@@ -65,7 +65,7 @@ graph TB
     TensorDesc -->|"contains"| Format
     Node -->|"uses"| AttrValue
     Node -->|"gets/updates input output desc"| TensorDesc
-    
+
     %% Python to C API
     Graph -.->|"through"| GraphLib
     Node -.->|"through"| GraphLib
@@ -74,7 +74,7 @@ graph TB
     Tensor -.->|"through"| ESBLib
     GraphLib -->|"calls"| PyGraphWrapper
     ESBLib -->|"calls"| PyESWrapper
-    
+
     %% C API to C++
     PyGraphWrapper -->|"converts to"| CGraph
     PyGraphWrapper -->|"converts to"| CGNode

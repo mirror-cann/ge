@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -121,7 +121,7 @@ TEST_F(UtestFP16, OperatorEqualToTagFp16_success) {
   test1 = val_f32;
   EXPECT_EQ(test1.val, 31743);
 
-  float64_t val_f64= 8589934592;
+  float64_t val_f64 = 8589934592;
   test1 = val_f64;
   EXPECT_EQ(test1.val, 31743);
 
@@ -136,21 +136,21 @@ TEST_F(UtestFP16, OperatorEqualToTagFp16_success) {
 
 TEST_F(UtestFP16, OperatorEqualTofloat32_t_success) {
   fp16_t test1(1);
-  float32_t test2= 2.0F;
+  float32_t test2 = 2.0F;
   test1 = test2;
   EXPECT_EQ(test1.val, 16384);
 }
 
 TEST_F(UtestFP16, OperatorEqualTofloat64_t_success) {
   fp16_t test1(1);
-  float64_t test2= 2.0F;
+  float64_t test2 = 2.0F;
   test1 = test2;
   EXPECT_EQ(test1.val, 16384);
 }
 
 TEST_F(UtestFP16, OperatorEqualToint32_t_success) {
   fp16_t test1(1);
-  int32_t test2= 2;
+  int32_t test2 = 2;
   test1 = test2;
   EXPECT_EQ(test1.val, 16384);
 }

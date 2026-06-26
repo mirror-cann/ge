@@ -19,11 +19,10 @@
 namespace ge {
 
 class LargeMemoryOps {
-public:
-    static bool Copy(void* dst_buffer, const size_t dst_size,
-        const void* src_buffer, const size_t src_size);
+ public:
+  static bool Copy(void *dst_buffer, const size_t dst_size, const void *src_buffer, const size_t src_size);
 };
 
-} // namespace ge
+}  // namespace ge
 
-#endif // BASE_COMMON_HELPER_MOBILE_LARGE_MEMORY_OPS_H
+#endif  // BASE_COMMON_HELPER_MOBILE_LARGE_MEMORY_OPS_H

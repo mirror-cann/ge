@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -175,13 +175,9 @@ Status SsdPriorboxKernel::SetVariance(const std::vector<float> &variance, const 
   return SUCCESS;
 }
 
-Status SsdPriorboxKernel::GetNumPriorAndDimSize(uint32_t aspect_ratios_size,
-                                                uint32_t min_sizes_size,
-                                                uint32_t max_sizes_size,
-                                                int32_t layer_width,
-                                                int32_t layer_height,
-                                                int32_t &num_priors,
-                                                int32_t &dim_size) const {
+Status SsdPriorboxKernel::GetNumPriorAndDimSize(uint32_t aspect_ratios_size, uint32_t min_sizes_size,
+                                                uint32_t max_sizes_size, int32_t layer_width, int32_t layer_height,
+                                                int32_t &num_priors, int32_t &dim_size) const {
   if (ge::CheckUint32MulOverflow(min_sizes_size, aspect_ratios_size) != SUCCESS) {
     return PARAM_INVALID;
   }

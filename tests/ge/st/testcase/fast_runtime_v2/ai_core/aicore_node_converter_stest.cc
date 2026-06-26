@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -70,12 +70,14 @@ inline void LowerConstDataNode(LoweringGlobalData &global_data) {
     global_data.SetUniqueValueHolder(const_data_name, const_data_outputs[i]);
   }
 }
-}
+}  // namespace bg
 namespace {
-ge::graphStatus InferShapeStub(InferShapeContext *context) { return SUCCESS;}
+ge::graphStatus InferShapeStub(InferShapeContext *context) {
+  return SUCCESS;
+}
 IMPL_OP(Conv2d).InferShape(InferShapeStub);
 IMPL_OP(Relu).InferShape(InferShapeStub);
-} // namespace
+}  // namespace
 extern LowerResult LoweringStaticAicoreNode(const ge::NodePtr &node, const LowerInput &lower_input);
 inline void LowerConstDataNode(LoweringGlobalData &global_data) {
   size_t const_data_num = static_cast<size_t>(ConstDataType::kTypeEnd);
@@ -94,7 +96,7 @@ inline void LowerConstDataNode(LoweringGlobalData &global_data) {
 }
 
 class AicoreNodeConverterST : public bg::BgTestAutoCreate3StageFrame {
-public:
+ public:
   bg::ValueHolderPtr node_para_;
   std::unique_ptr<uint8_t[]> host_holder_;
 
@@ -174,7 +176,7 @@ public:
     auto main_node = bg::ValueHolder::CreateVoid<bg::ValueHolder>(GetExecuteGraphTypeStr(ExecuteGraphType::kMain), {});
     bg::ValueHolder::PushGraphFrame(main_node, "Main");
     auto root_model = GeModelBuilder(graph).BuildGeRootModel();
-  auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Add", false).Build(3);
+    auto global_data = GlobalDataFaker(root_model).FakeWithHandleAiCore("Add", false).Build(3);
     std::vector<bg::ValueHolderPtr> notifies;
     int64_t block_dim = 5;
     auto notify = bg::ValueHolder::CreateConst(&block_dim, sizeof(block_dim));
@@ -207,7 +209,8 @@ public:
     // graph compare
 
     auto execute_graph = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs),
-                                                        add_ret.order_holders)->GetExecuteGraph();
+                                                        add_ret.order_holders)
+                             ->GetExecuteGraph();
     ASSERT_NE(execute_graph, nullptr);
     DumpGraph(execute_graph.get(), "GeneralAiCoreExe");
     gert::GlobalDumper::GetInstance()->SetEnableFlags(0UL);
@@ -215,7 +218,7 @@ public:
 };
 TEST_F(AicoreNodeConverterST, ConvertGeneralAicoreNode) {
   gert::SpaceRegistryFaker::CreateDefaultSpaceRegistry();
-  auto conv2d_op_impl= const_cast<OpImplKernelRegistry::OpImplFunctionsV2 *>(
+  auto conv2d_op_impl = const_cast<OpImplKernelRegistry::OpImplFunctionsV2 *>(
       DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->GetOpImpl("Conv2d"));
   auto conv2d_infer_func = conv2d_op_impl->infer_shape;
   conv2d_op_impl->infer_shape = InferShapeStub;
@@ -233,7 +236,7 @@ TEST_F(AicoreNodeConverterST, ConvertGeneralAicoreNode) {
   auto compile_result = global_data.FindCompiledResult(add_node);
   // 0. alloc rt arg
   const domi::TaskDef *task_def = GetTaskDef(add_node, compile_result, TaskDefType::kAICore);
-  auto task_def_t = const_cast<domi::TaskDef*>(task_def);
+  auto task_def_t = const_cast<domi::TaskDef *>(task_def);
   uint16_t args_offset[9] = {0};
   task_def_t->mutable_kernel()->mutable_context()->set_args_offset(args_offset, 9 * sizeof(uint16_t));
   task_def_t->mutable_kernel()->set_args_size(64);
@@ -355,8 +358,9 @@ TEST_F(AicoreNodeConverterST, ConvertStaticNodeReuseBinary) {
       output_tensor->SetShapeRange({{1, 100}});
     }
     if (node->GetName() == "add1") {
-      std::shared_ptr<optiling::utils::OpRunInfo> tiling_info = std::make_shared<optiling::utils::OpRunInfo>(0, false, 0);
-      vector<int64_t> work_space_vec = {1,3,5};
+      std::shared_ptr<optiling::utils::OpRunInfo> tiling_info =
+          std::make_shared<optiling::utils::OpRunInfo>(0, false, 0);
+      vector<int64_t> work_space_vec = {1, 3, 5};
       tiling_info->SetWorkspaces(work_space_vec);
       node->GetOpDesc()->SetExtAttr(ge::ATTR_NAME_OP_RUN_INFO, tiling_info);
     }
@@ -378,7 +382,8 @@ TEST_F(AicoreNodeConverterST, ConvertStaticNodeReuseBinary) {
   ASSERT_EQ(add_ret.out_shapes.size(), 1);
   ASSERT_EQ(add_ret.order_holders.size(), 1);
   FastNodeTopoChecker checker(add_ret.out_addrs[0]);
-  EXPECT_EQ(checker.StrictConnectFrom(std::vector<FastSrcNode>({{"SelectL2Allocator", 0}, {"CalcTensorSizeFromStorage", 0}}), true),
+  EXPECT_EQ(checker.StrictConnectFrom(
+                std::vector<FastSrcNode>({{"SelectL2Allocator", 0}, {"CalcTensorSizeFromStorage", 0}}), true),
             "success");
   EXPECT_EQ(checker.StrictConnectTo(0, std::vector<FastSrcNode>({{"FreeMemory", 0}, {"LaunchKernelWithFlag", 13}})),
             "success");
@@ -417,16 +422,18 @@ TEST_F(AicoreNodeConverterST, ConvertPartSupportAicoreNode) {
   FastNode *aicore_launch_node = nullptr;
   FastNode *cpu_launch_node = nullptr;
   for (auto &node : exe_graph->GetAllNodes()) {
-  if (node->GetType() == "LaunchKernelWithFlag") {
-  aicore_launch_node = node;
-  } else if (node->GetType() == "AicpuLaunchTfKernel") {
-  cpu_launch_node = node;
-  }
+    if (node->GetType() == "LaunchKernelWithFlag") {
+      aicore_launch_node = node;
+    } else if (node->GetType() == "AicpuLaunchTfKernel") {
+      cpu_launch_node = node;
+    }
   }
   ASSERT_NE(aicore_launch_node, nullptr);
   ASSERT_EQ(cpu_launch_node, nullptr);
 
-  auto execute_graph = bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)->GetExecuteGraph();
+  auto execute_graph =
+      bg::ValueHolder::PopGraphFrame(ConvertDevMemValueHoldersToValueHolders(add_ret.out_addrs), add_ret.order_holders)
+          ->GetExecuteGraph();
   ASSERT_NE(execute_graph, nullptr);
 }
 

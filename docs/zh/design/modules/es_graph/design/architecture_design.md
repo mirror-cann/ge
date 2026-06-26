@@ -12,7 +12,7 @@ std::unique_ptr<ge::Graph> BuildAddGraph() {
   auto add = op::Add("add").set_input_x1(data0).set_input_x2(data1);
   graph->SetInputs({data0, data1}).SetOutputs({add});
   return graph;
-} 
+}
 ```
 
 现阶段构图接口优点：
@@ -243,7 +243,7 @@ auto foo = Foo(x, nullptr, xo2);  // 无法检测
 
 因此，尽管在 API 设计中已尽力防范误用，仍建议在开发文档与使用说明中明确提示用户：**避免使用超出目标部署环境的重载接口，尤其是在未启用对应 IR 能力时。**
 
-注1：上述伪代码中类型命名等可能有变化，以真实代码为准; 
+注1：上述伪代码中类型命名等可能有变化，以真实代码为准;
 
 注2：c++重载机制的设计单独成文，参考[es_cxx_compatibility_design.md](es_cxx_compatibility_design.md)
 
@@ -427,14 +427,14 @@ EsDestroyGraphBuilder(builder);
 ```
 
 > [!Note]
-> 
+>
 > **资源管理说明**
-> 
+>
 > - 构图过程中，所有通过 `es` 接口创建的中间资源（如 `EsCTensorHolder*` 类型的 `data0`、`add` 等）由 `EsCGraphBuilder` 统一管理，其生命周期与 `builder` 一致。在调用 `EsDestroyGraphBuilder()` 后，这些资源将随 `builder` 一并释放。
 > - 用户仅需管理两个对象的生命周期：`EsCGraphBuilder*` 和最终生成的 `EsCGraph*`。
 
 > [!Note]
-> 
+>
 > **类型封装说明**
 > 为确保接口兼容性和封装性，`es` 所返回的对象类型（如 `EsCGraphBuilder`、`EsCTensorHolder`）对用户侧保持不透明。它们通过 `extern struct xxx;` 的声明方式暴露，仅提供不完整类型定义，应用侧无法访问其内部结构，只能通过 `es` 提供的接口进行操作。
 
@@ -472,10 +472,10 @@ REG_OP(Foo)
 转换为 `C API` 为：
 
 ```c
-EsCTensorHolder Foo(EsCTensorHolder *x, 
-                     int64_t a1, 
-                     const int64_t ** a2, 
-                     int64_t a2_size, 
+EsCTensorHolder Foo(EsCTensorHolder *x,
+                     int64_t a1,
+                     const int64_t ** a2,
+                     int64_t a2_size,
                      const int64_t *a2_inner_size);
 ```
 
@@ -528,8 +528,8 @@ EsCTensorHolder *EsFoo(EsCTensorHolder *x1, EsCTensorHolder *x2, int64_t a1, flo
  * @param ctrl_tensors_num 控制边数量
  * @return 成功为0，其他失败
  */
-uint32_t EsAddControlEdge(EsCTensorHolder *dest_ctrl_tensor, 
-                          EsCTensorHolder **src_ctrl_tensors, 
+uint32_t EsAddControlEdge(EsCTensorHolder *dest_ctrl_tensor,
+                          EsCTensorHolder **src_ctrl_tensors,
                           int64_t ctrl_tensors_num);
 ```
 
@@ -558,9 +558,9 @@ FooOutput EsFoo(EsCTensorHolder *x);
 该结构体用于表示 `Foo` 算子的多输出，结构体成员名称与 `REG_OP` 中的输出名称保持一致，便于语义对应与自动生成。
 
 > [!Note]
-> 
+>
 > **资源管理说明**
-> 与 `C API` 的整体资源管理策略一致，`EsFoo` 返回的结构体内部成员由 `EsCGraphBuilder` 管理，调用方无需手动释放， 即`EsCTensorHolder*` 指向的资源将在 
+> 与 `C API` 的整体资源管理策略一致，`EsFoo` 返回的结构体内部成员由 `EsCGraphBuilder` 管理，调用方无需手动释放， 即`EsCTensorHolder*` 指向的资源将在
 > `EsCGraphBuilder` 销毁时一并释放。
 
 #### 动态输入与动态输出
@@ -585,14 +585,14 @@ typedef struct {
 IdentityNOutput EsIdentityN(EsCTensorHolder ** x,  // 动态输入 x
                             int64_t x_num,         // 输入张量数量
                             int64_t y_num          // 输出张量 y 的数量
-                            );            
+                            );
 ```
 
 > [!Note]
 >
 > **资源管理说明**
 > 与 `C API` 的整体资源管理策略一致，返回的 `IdentityNOutput` 结构体其内部的 `EsCTensorHolder** y` 成员由 `EsCGraphBuilder` 管理，无需用户手动释放，它们将在 `EsCGraphBuilder` 销毁时一并释放。
-> 
+>
 > 输入参数 `x` 所指向的指针数组由调用方管理，需自行申请与释放。
 
 ##### 动态输出的个数
@@ -730,13 +730,13 @@ typedef struct {
  *   decoded_shape_num: dynamic output number of decoded_shape
  */
 EsCTCBeamSearchDecoderOutput EsCTCBeamSearchDecoder(
-    EsCTensorHolder *inputs, 
-    EsCTensorHolder *sequence_length, 
-    int64_t decoded_indices_num, 
-    int64_t decoded_values_num, 
-    int64_t decoded_shape_num, 
-    int64_t beam_width, 
-    int64_t top_paths, 
+    EsCTensorHolder *inputs,
+    EsCTensorHolder *sequence_length,
+    int64_t decoded_indices_num,
+    int64_t decoded_values_num,
+    int64_t decoded_shape_num,
+    int64_t beam_width,
+    int64_t top_paths,
     bool merge_repeated);
 }
 ```
@@ -827,17 +827,17 @@ EsCaseOutput EsCase(EsCTensorHolder *branch_index, EsCTensorHolder **input, int6
 ```
 
 > [!Note]
-> 
+>
 > **资源管理说明**
-> 
+>
 > 与 `C API` 的整体资源管理策略一致，返回的 `EsCaseOutput` 结构体内部的 `EsCTensorHolder** output` 成员由 `EsCGraphBuilder` 管理，无需用户手动释放，它们将在 `EsCGraphBuilder` 销毁时一并释放。
-> 
+>
 > 子图入参 `branches` 在用户创建好并传入接口后，其生命周期会在函数内部转移给对应的 `EsCGraphBuilder` 并由其统一管理，用户不应在传入子图后再对其进行操作。
-> 
+>
 > 输入参数 `input` 所指向的指针数组由调用方管理，需自行申请与释放。
-> 
+>
 > **输入输出个数说明**
-> 
+>
 > 详见附录[子图内外index映射关系表达](#子图内外index映射关系表达)章节
 
 #### `Tensor` 属性语法
@@ -856,9 +856,9 @@ EsCaseOutput EsCase(EsCTensorHolder *branch_index, EsCTensorHolder **input, int6
  * @param format 张量格式
  * @return 张量的匿名指针，所有权交给调用方控制, 失败时返回nullptr
  */
-EsCTensor *EsCreateEsCTensor(const void *data, 
-                             const int64_t *dim, 
-                             int64_t dim_num, 
+EsCTensor *EsCreateEsCTensor(const void *data,
+                             const int64_t *dim,
+                             int64_t dim_num,
                              C_DataType data_type,
                              C_Format format);
 /**
@@ -870,10 +870,10 @@ EsCTensor *EsCreateEsCTensor(const void *data,
  * @param format 张量格式
  * @return 张量的匿名指针，所有权交给调用方控制, 失败时返回nullptr
  */
-EsCTensor *EsCreateEsCTensorFromFile(const char *data_file_path, 
-                                     const int64_t *dim, 
+EsCTensor *EsCreateEsCTensorFromFile(const char *data_file_path,
+                                     const int64_t *dim,
                                      int64_t dim_num,
-                                     C_DataType data_type, 
+                                     C_DataType data_type,
                                      C_Format format);
 ```
 
@@ -886,7 +886,7 @@ EsCTensor *EsCreateEsCTensorFromFile(const char *data_file_path,
 - **`format`**：数据格式，使用 `C_Format` 枚举，定义与 `ge::Format` 保持一致。
 
 > [!Note]
-> 
+>
 > **资源管理说明**
 > `EsCreateEsCTensor` / `EsCreateEsCTensorFromFile`返回的结构体指针由调用方进行管理。
 
@@ -906,25 +906,25 @@ EsCTensorHolder *Const(EsCGraphBuilder *builder, EsCTensor *value);
 针对 `Const` 算子，为了便于使用，我们在 `C/C++` 中都提供了直接的接口：
 
 ```c
-EsCTensorHolder *EsCreateConstInt64(EsCGraphBuilder *graph, 
-                                    const int64_t *value, 
-                                    const int64_t *dims, 
-                                    int64_t dim_num);
-EsCTensorHolder *EsCreateConstInt32(EsCGraphBuilder *graph, 
-                                    const int32_t *value, 
-                                    const int64_t *dims, 
-                                    int64_t dim_num);
-EsCTensorHolder *EsCreateConstUInt64(EsCGraphBuilder *graph, 
-                                    const uint64_t *value, 
+EsCTensorHolder *EsCreateConstInt64(EsCGraphBuilder *graph,
+                                    const int64_t *value,
                                     const int64_t *dims,
                                     int64_t dim_num);
-EsCTensorHolder *EsCreateConstUInt32(EsCGraphBuilder *graph, 
-                                    const uint32_t *value, 
+EsCTensorHolder *EsCreateConstInt32(EsCGraphBuilder *graph,
+                                    const int32_t *value,
                                     const int64_t *dims,
                                     int64_t dim_num);
-EsCTensorHolder *EsCreateConstFloat(EsCGraphBuilder *graph, 
-                                    const float *value, 
-                                    const int64_t *dims, 
+EsCTensorHolder *EsCreateConstUInt64(EsCGraphBuilder *graph,
+                                    const uint64_t *value,
+                                    const int64_t *dims,
+                                    int64_t dim_num);
+EsCTensorHolder *EsCreateConstUInt32(EsCGraphBuilder *graph,
+                                    const uint32_t *value,
+                                    const int64_t *dims,
+                                    int64_t dim_num);
+EsCTensorHolder *EsCreateConstFloat(EsCGraphBuilder *graph,
+                                    const float *value,
+                                    const int64_t *dims,
                                     int64_t dim_num);
 ```
 
@@ -1021,8 +1021,8 @@ REG_OP(Foo)
 
 ```C++
 namespace es {
-EsCTensorHolder Foo(const EsTensorHolder &x, 
-             int64_t a1 = 10, 
+EsCTensorHolder Foo(const EsTensorHolder &x,
+             int64_t a1 = 10,
              const std::vector<std::vector<int64_t>> &a2 = {{}, {}});
 }
 ```
@@ -1128,13 +1128,13 @@ struct CTCBeamSearchDecoderOutput {
  *   decoded_shape_num: dynamic output number of decoded_shape
  */
 inline CTCBeamSearchDecoderOutput CTCBeamSearchDecoder(
-    const EsTensorHolder &inputs, 
-    const EsTensorHolder &sequence_length, 
-    int64_t decoded_indices_num, 
-    int64_t decoded_values_num, 
-    int64_t decoded_shape_num, 
-    int64_t beam_width, 
-    int64_t top_paths, 
+    const EsTensorHolder &inputs,
+    const EsTensorHolder &sequence_length,
+    int64_t decoded_indices_num,
+    int64_t decoded_values_num,
+    int64_t decoded_shape_num,
+    int64_t beam_width,
+    int64_t top_paths,
     bool merge_repeated=true);
 ```
 
@@ -1147,19 +1147,19 @@ inline CTCBeamSearchDecoderOutput CTCBeamSearchDecoder(
 ```c++
 namespace es {
 inline std::vector<EsCTensorHolder> Case(
-    const EsTensorHolder &branch_index, 
-    const std::vector<EsTensorHolder> &input, 
-    int64_t output_num, 
+    const EsTensorHolder &branch_index,
+    const std::vector<EsTensorHolder> &input,
+    int64_t output_num,
     std::vector<std::unique_ptr<ge::Graph>> branches)
     );
 }
 ```
 
 > [!Note]
-> 
+>
 > **资源管理说明**
 > 子图`vecotr`的生命周期会在函数内部转移，最终由`EsCGraphBuilder`进行管理。
-> 
+>
 
 #### 运算符重载
 
@@ -1208,7 +1208,7 @@ EsTensorLike(const std::nullptr_t);
 
 ##### 适用范围与约束
 
-1. C++ 向量不支持隐式类型转换，因此动态输入参数不支持传入数值类型 
+1. C++ 向量不支持隐式类型转换，因此动态输入参数不支持传入数值类型
 2. 满足以下任一条件的算子支持数值输入:
 - 输入数量超过一个，且不全为动态输入（传参时至少包含一个 `EsTensorHolder` 类型的输入参数，可从该参数解析图构建器）
 - 所有输入都是可选参数（该场景下，API 会提供可选的 `owner_builder` 参数用于显式传入 `EsGraphBuilder*`。传参时至少包含一个 `EsTensorHolder` 类型的输入参数，或者传入`owner_builder`）
@@ -1361,12 +1361,12 @@ API，并将其编译为二进制文件。
 所谓“历史原型库”，相较于原型定义，具有以下显著差异：
 
 - **定义方式不同**：
-  
+
   原型定义通过 `C++` 代码中的 `REG_OP` 宏进行注册，需经编译后方可使用；而历史原型信息采用结构化文本格式描述，可直接解析，无需编译，适合在构建流程中快速读取和处理。
 
 - **数据内容不同**
   “历史原型库”按商发版本组织，记录了历史上每个商发版本的完整原型定义，用于支持多版本对比与兼容性判断。
-  
+
   按照兼容性规范，商发版本中的接口（包括构图接口）需在发布后**向后兼容一年，向前兼容一年**。例如，2025 年 6 月 30 日发布的版本应向后兼容至 2024 年 3 月 30 日之前的版本，向前兼容至 2026 年 9 月 30
   日之后的版本。 鉴于兼容周期可能因规范调整而变化，历史原型库需**完整保留所有历史版本的 API 定义**，以便灵活适应未来兼容性策略的演进。
 
@@ -1757,8 +1757,8 @@ REG_OP(Foo)
 转换为`C API`为：
 
 ```C
-EsCTensorHolder Foo(EsCTensorHolder *x, 
-                    const C_DataType *a1, 
+EsCTensorHolder Foo(EsCTensorHolder *x,
+                    const C_DataType *a1,
                     int64_t a1_size);
 ```
 
@@ -1766,7 +1766,7 @@ EsCTensorHolder Foo(EsCTensorHolder *x,
 
 ```C++
 namespace es {
-EsTensorHolder Foo(const EsTensorHolder &x, 
+EsTensorHolder Foo(const EsTensorHolder &x,
                    const std::vector<ge::DataType> &a1 = {});
 }
 ```
@@ -1785,7 +1785,7 @@ EsTensorHolder Foo(const EsTensorHolder &x,
 对于 C 语言接口，处理方式有两种：
 
 1. 在 C 语言接口中，将 `std::vector<int64_t>` 转换为 `Struct` 结构（参考 `output` 构造方式），之后将 `VT_LIST_LIST_INT` 转换为 `list of struct`：
-   
+
    ```c++
    // C语言接口生成的结构体代码
    typedef struct {
@@ -1795,19 +1795,19 @@ EsTensorHolder Foo(const EsTensorHolder &x,
    // C语言接口形参
    ...EsListListInt *input_list, int64_t input_list_size...
    ```
-   
+
    之后在函数声明与内部实现时适配对应逻辑。
 
 2. 将多层 `vector` 类型形参拆分为三部分：对应类型的二级指针，外层 `list` 大小，各内部 `list` 大小：
-   
+
    ```c++
    ...
-   const int64_t **attr_name, 
-   int64_t outer_size, 
+   const int64_t **attr_name,
+   int64_t outer_size,
    const int64_t *inner_size,
    ...
    ```
-   
+
    之后在内部生成double pointer与vector转换等逻辑。
 
 为使接口清晰便于使用，同时减少形参数量，**目前采取第二种方式**。
@@ -1826,9 +1826,9 @@ REG_OP(Foo)
 转换为`C API`为：
 
 ```C
-EsCTensorHolder Foo(EsCTensorHolder *x, 
-                    const int64_t **a1, 
-                    int64_t a1_size, 
+EsCTensorHolder Foo(EsCTensorHolder *x,
+                    const int64_t **a1,
+                    int64_t a1_size,
                     const int64_t *a1_inner_size);
 ```
 
@@ -1836,7 +1836,7 @@ EsCTensorHolder Foo(EsCTensorHolder *x,
 
 ```C++
 namespace es {
-EsTensorHolder Foo(const EsTensorHolder &x, 
+EsTensorHolder Foo(const EsTensorHolder &x,
                     const std::vector<std::vector<int64_t>> &a1 = {{}, {}});
 }
 ```
@@ -1846,7 +1846,7 @@ EsTensorHolder Foo(const EsTensorHolder &x,
 与非`List`属性类似，区别为`Tensor`类型属性入参在传入后，其生命周期会被转移给算子对应的`EsCGraphBuilder`进行管理，用户不应在传入`Tensor`类型属性后再对传入的入参进行操作。
 
 > [!CAUTION]
-> 
+>
 > 对于`Tensor`类型的属性, 目前仅支持`Tensor()`一种默认值。
 
 对于C++接口用户，可以直接传入`ge::Tensor`类型的属性；而对于C接口用户，ES会提供接创建匿名指针`EsCTensor *`的接口作为C接口形式的`Tensor`类型属性指针。
@@ -1854,7 +1854,7 @@ EsTensorHolder Foo(const EsTensorHolder &x,
 `C/C++`接口的`Tensor`类型属性生命周期都会被转移给`EsCGraphBuilder`进行管理。
 
 > [!Note]
-> 
+>
 > 对于C++接口传入的`ge::Tensor`属性，在内部处理时会将其转换为`EsCTensor`类型之后传递给C接口，用户不感知该转换。
 
 ##### 举例
@@ -1871,7 +1871,7 @@ REG_OP(Foo)
 转换为`C API`为：
 
 ```C
-EsCTensorHolder Foo(EsCTensorHolder *x, 
+EsCTensorHolder Foo(EsCTensorHolder *x,
                     EsCTensor *a1);
 ```
 
@@ -1879,7 +1879,7 @@ EsCTensorHolder Foo(EsCTensorHolder *x,
 
 ```C++
 namespace es {
-EsTensorHolder Foo(const EsTensorHolder &x, 
+EsTensorHolder Foo(const EsTensorHolder &x,
                    std::unique_ptr<ge::Tensor> a1=std::make_unique<ge::Tensor>(ge::Tensor()));
 }
 ```
@@ -1912,7 +1912,7 @@ REG_OP(Foo)
 转换为`C API`为：
 
 ```C
-EsCTensorHolder Foo(EsCTensorHolder *x, 
+EsCTensorHolder Foo(EsCTensorHolder *x,
                     const char **a1, // 因AscendString包含char *的构造函数，不需要传入ListString内部每个string对应char *的长度
                     const int64_t a1_size);
 ```
@@ -1921,7 +1921,7 @@ EsCTensorHolder Foo(EsCTensorHolder *x,
 
 ```C++
 namespace es {
-EsTensorHolder Foo(const EsTensorHolder &x, 
+EsTensorHolder Foo(const EsTensorHolder &x,
                    const std::vector<const char *> &a1 = {});
 }
 ```

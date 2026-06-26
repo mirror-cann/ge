@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,27 +18,13 @@
 namespace {
 const std::string kPassName = "ReplaceWithEmptyConstPass";
 const std::unordered_set<std::string> kControlFlowOps = {
-    ge::SWITCH,
-    ge::REFSWITCH,
-    ge::MERGE,
-    ge::REFMERGE,
-    ge::ENTER,
-    ge::REFENTER,
-    ge::NEXTITERATION,
-    ge::REFNEXTITERATION,
-    ge::EXIT,
-    ge::REFEXIT,
-    ge::LOOPCOND
-};
-// tmp solution, when IR support is_stateful interface, here change to inferface
-// resource op always show up on pair, once only one resouce op has empty output tensor,
+    ge::SWITCH,        ge::REFSWITCH,        ge::MERGE, ge::REFMERGE, ge::ENTER,   ge::REFENTER,
+    ge::NEXTITERATION, ge::REFNEXTITERATION, ge::EXIT,  ge::REFEXIT,  ge::LOOPCOND};
+// tmp solution, when IR support is_stateful interface, here change to interface
+// resource op always show up on pair, once only one resource op has empty output tensor,
 // we should consider remove them together.
 // Currently, we ignore resource op, let them run with empty tensor.
-const std::unordered_set<std::string> kResourceOps = {
-    ge::STACK,
-    ge::STACKPOP,
-    ge::STACKPUSH
-};
+const std::unordered_set<std::string> kResourceOps = {ge::STACK, ge::STACKPOP, ge::STACKPUSH};
 
 bool IsControlFlowOp(const std::string &node_type) {
   return kControlFlowOps.count(node_type) != 0;
@@ -51,7 +37,7 @@ bool IsResourceOp(const std::string &node_type) {
 bool IsHcomOp(const std::string &node_type) {
   return node_type.find("Hcom") != std::string::npos;
 }
-} // namespace
+}  // namespace
 namespace ge {
 bool ReplaceWithEmptyConstPass::NeedIgnorePass(const NodePtr &node) {
   const std::set<std::string> constant_like_task_ops = {CONSTANT, CONSTANTOP, FILECONSTANT};

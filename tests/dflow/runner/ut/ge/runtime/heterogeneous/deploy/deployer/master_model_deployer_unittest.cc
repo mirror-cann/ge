@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -50,19 +50,19 @@ class MockMmpa : public MmpaStubApiGe {
  public:
   void *DlSym(void *handle, const char *func_name) override {
     if (std::string(func_name) == "TsdFileLoad") {
-      return (void *) &TsdFileLoad;
+      return (void *)&TsdFileLoad;
     } else if (std::string(func_name) == "TsdFileUnLoad") {
-      return (void *) &TsdFileUnLoad;
+      return (void *)&TsdFileUnLoad;
     } else if (std::string(func_name) == "TsdGetProcListStatus") {
-      return (void *) &TsdGetProcListStatus;
+      return (void *)&TsdGetProcListStatus;
     } else if (std::string(func_name) == "TsdProcessOpen") {
-      return (void *) &TsdProcessOpen;
+      return (void *)&TsdProcessOpen;
     } else if (std::string(func_name) == "ProcessCloseSubProcList") {
-      return (void *) &ProcessCloseSubProcList;
+      return (void *)&ProcessCloseSubProcList;
     } else if (std::string(func_name) == "TsdCapabilityGet") {
-      return (void *) &TsdCapabilityGet;
+      return (void *)&TsdCapabilityGet;
     } else if (std::string(func_name) == "TsdInitFlowGw") {
-      return (void *) &TsdInitFlowGw;
+      return (void *)&TsdInitFlowGw;
     }
     std::cout << "func name:" << func_name << " not stub\n";
     return dlsym(handle, func_name);
@@ -105,6 +105,7 @@ class MockRuntime : public RuntimeStub {
     mem_bufs.emplace_back(mem_buf);
     return RT_ERROR_NONE;
   }
+
  private:
   std::vector<void *> mem_bufs;
 };
@@ -137,16 +138,16 @@ class MockRuntimeNoLeaks : public RuntimeStub {
 class MockMasterModelDeployer : public MasterModelDeployer {
  public:
   MOCK_CONST_METHOD2(DeployLocalExchangePlan, Status(const deployer::FlowRoutePlan &, ExchangeRoute &));
-  MOCK_METHOD3(DeployRemoteVarManager, Status(const DeployPlan &,
-      const std::map<int32_t, std::vector<ConstSubmodelInfoPtr>> &,
-      MasterModelDeployer::DeployedModel &));
+  MOCK_METHOD3(DeployRemoteVarManager,
+               Status(const DeployPlan &, const std::map<int32_t, std::vector<ConstSubmodelInfoPtr>> &,
+                      MasterModelDeployer::DeployedModel &));
 };
 }  // namespace
 
 class MasterModelDeployerTest : public testing::Test {
  protected:
   void SetUp() override {
-    mock_handle = (void *) 0x8888;
+    mock_handle = (void *)0x8888;
     MmpaStub::GetInstance().SetImpl(std::make_shared<MockMmpa>());
     // 用例依赖下面的状态，本文件中未初始化SubprocessManager，依赖前面SubprocessManager的UT
     SubprocessManager::GetInstance().executable_paths_.emplace("queue_schedule", "/var/queue_schedule");
@@ -170,7 +171,7 @@ class MasterModelDeployerTest : public testing::Test {
  *  data1  data2
  */
 TEST_F(MasterModelDeployerTest, TestDeployModel_Success) {
-  mock_handle = (void *) 0x8888;
+  mock_handle = (void *)0x8888;
   EXPECT_EQ(VarManager::Instance(0)->Init(0, 0, 1, 0), SUCCESS);
   auto &exchange_service =
       reinterpret_cast<stub::MockExchangeService &>(ExecutionRuntime::GetInstance()->GetExchangeService());
@@ -178,9 +179,7 @@ TEST_F(MasterModelDeployerTest, TestDeployModel_Success) {
   EXPECT_CALL(exchange_service, DestroyQueue).WillRepeatedly(Return(SUCCESS));
 
   map<std::string, std::string> sess_options = ge::GetThreadLocalContext().GetAllSessionOptions();
-  GE_MAKE_GUARD(recover_sess_cfg, [&sess_options](){
-    GetThreadLocalContext().SetSessionOption(sess_options);
-  });
+  GE_MAKE_GUARD(recover_sess_cfg, [&sess_options]() { GetThreadLocalContext().SetSessionOption(sess_options); });
 
   map<std::string, std::string> options{{"TestSessionOption", "TestSessionOptionValue"}};
   GetThreadLocalContext().SetSessionOption(options);
@@ -188,13 +187,12 @@ TEST_F(MasterModelDeployerTest, TestDeployModel_Success) {
   DeployContext deploy_context;
   deploy_context.Initialize();
   deploy_context.SetName("RemoteContext");
-  auto stub_func = [&deploy_context](deployer::DeployerRequest &request, deployer::DeployerResponse &response) -> Status{
+  auto stub_func = [&deploy_context](deployer::DeployerRequest &request,
+                                     deployer::DeployerResponse &response) -> Status {
     return DeployerServiceImpl::GetInstance().Process(deploy_context, request, response);
   };
-  auto &remote_device =
-      reinterpret_cast<stub::MockRemoteDeployer &>(*DeployerProxy::GetInstance().deployers_[1]);
-  EXPECT_CALL(remote_device, Process)
-      .WillRepeatedly(Invoke(stub_func));
+  auto &remote_device = reinterpret_cast<stub::MockRemoteDeployer &>(*DeployerProxy::GetInstance().deployers_[1]);
+  EXPECT_CALL(remote_device, Process).WillRepeatedly(Invoke(stub_func));
 
   auto flow_model = StubModels::BuildFlowModel(StubModels::BuildGraphWithoutNeedForBindingQueues());
   AttrUtils::SetInt(flow_model->GetRootGraph(), "_inputs_align_max_cache_num", 100);
@@ -338,10 +336,8 @@ TEST_F(MasterModelDeployerTest, TestUndeployModel_InvalidModelId) {
 TEST_F(MasterModelDeployerTest, TestDeployRemoteVarManager) {
   EXPECT_EQ(VarManager::Instance(0)->Init(0, 0, 1, 0), SUCCESS);
   auto deploy_plan = StubModels::BuildSimpleDeployPlan();
-  auto &remote_device =
-      reinterpret_cast<stub::MockRemoteDeployer &>(*DeployerProxy::GetInstance().deployers_[1]);
-  EXPECT_CALL(remote_device, Process)
-      .WillRepeatedly(Return(SUCCESS));
+  auto &remote_device = reinterpret_cast<stub::MockRemoteDeployer &>(*DeployerProxy::GetInstance().deployers_[1]);
+  EXPECT_CALL(remote_device, Process).WillRepeatedly(Return(SUCCESS));
   DeployState deploy_state;
   deploy_state.SetDeployPlan(std::move(deploy_plan));
   FlowModelSender flow_model_sender;
@@ -355,10 +351,8 @@ TEST_F(MasterModelDeployerTest, TestDeployRemoteVarManagerWithFileConstant) {
   client_manager.GetOrCreateClient(0, 0, {0}, false);
   (void)system("echo 1 > hello.bin");
   auto deploy_plan = StubModels::BuildSingleModelWithFileConstDeployPlan("hello.bin");
-  auto &remote_device =
-      reinterpret_cast<stub::MockRemoteDeployer &>(*DeployerProxy::GetInstance().deployers_[1]);
-  EXPECT_CALL(remote_device, Process)
-      .WillRepeatedly(Return(SUCCESS));
+  auto &remote_device = reinterpret_cast<stub::MockRemoteDeployer &>(*DeployerProxy::GetInstance().deployers_[1]);
+  EXPECT_CALL(remote_device, Process).WillRepeatedly(Return(SUCCESS));
   DeployState deploy_state;
   deploy_state.SetDeployPlan(std::move(deploy_plan));
   FlowModelSender flow_model_sender;
@@ -374,10 +368,8 @@ TEST_F(MasterModelDeployerTest, TestTransferFileConstants) {
   RuntimeStub::SetInstance(mock_runtime);
   auto &client_manager = DeployContext::LocalContext().GetFlowGwClientManager();
   client_manager.GetOrCreateClient(0, 0, {0}, false);
-  auto &remote_device =
-      reinterpret_cast<stub::MockRemoteDeployer &>(*DeployerProxy::GetInstance().deployers_[1]);
-  EXPECT_CALL(remote_device, Process)
-      .WillRepeatedly(Return(SUCCESS));
+  auto &remote_device = reinterpret_cast<stub::MockRemoteDeployer &>(*DeployerProxy::GetInstance().deployers_[1]);
+  EXPECT_CALL(remote_device, Process).WillRepeatedly(Return(SUCCESS));
   (void)system("echo 1 > hello.bin");
   auto op_desc = make_shared<OpDesc>("var_name", FILECONSTANT);
   AttrUtils::SetStr(op_desc, ATTR_NAME_LOCATION, "hello.bin");
@@ -412,10 +404,8 @@ TEST_F(MasterModelDeployerTest, TestCopyOneWeightToTransfer) {
   RuntimeStub::SetInstance(mock_runtime);
   auto &client_manager = DeployContext::LocalContext().GetFlowGwClientManager();
   client_manager.GetOrCreateClient(0, 0, {0}, false);
-  auto &remote_device =
-      reinterpret_cast<stub::MockRemoteDeployer &>(*DeployerProxy::GetInstance().deployers_[1]);
-  EXPECT_CALL(remote_device, Process)
-      .WillRepeatedly(Return(SUCCESS));
+  auto &remote_device = reinterpret_cast<stub::MockRemoteDeployer &>(*DeployerProxy::GetInstance().deployers_[1]);
+  EXPECT_CALL(remote_device, Process).WillRepeatedly(Return(SUCCESS));
   auto op_desc = make_shared<OpDesc>("var_name", FILECONSTANT);
   GeShape shape({16, 16});
   GeTensorDesc tensor_desc(shape, FORMAT_ND, DT_INT16);
@@ -455,7 +445,7 @@ TEST_F(MasterModelDeployerTest, TestInitFlowGwInfoSuccess) {
  */
 TEST_F(MasterModelDeployerTest, TestDynamicSchedDeployModel_Success) {
   MmpaStub::GetInstance().SetImpl(std::make_shared<MockMmpa>());
-  mock_handle = (void *) 0x8888;
+  mock_handle = (void *)0x8888;
   EXPECT_EQ(VarManager::Instance(0)->Init(0, 0, 1, 0), SUCCESS);
   auto &exchange_service =
       reinterpret_cast<stub::MockExchangeService &>(ExecutionRuntime::GetInstance()->GetExchangeService());
@@ -463,9 +453,7 @@ TEST_F(MasterModelDeployerTest, TestDynamicSchedDeployModel_Success) {
   EXPECT_CALL(exchange_service, DestroyQueue).WillRepeatedly(Return(SUCCESS));
 
   map<std::string, std::string> sess_options = ge::GetThreadLocalContext().GetAllSessionOptions();
-  GE_MAKE_GUARD(recover_sess_cfg, [&sess_options](){
-    GetThreadLocalContext().SetSessionOption(sess_options);
-  });
+  GE_MAKE_GUARD(recover_sess_cfg, [&sess_options]() { GetThreadLocalContext().SetSessionOption(sess_options); });
 
   map<std::string, std::string> options{{"TestSessionOption", "TestSessionOptionValue"}};
   GetThreadLocalContext().SetSessionOption(options);
@@ -473,14 +461,13 @@ TEST_F(MasterModelDeployerTest, TestDynamicSchedDeployModel_Success) {
   DeployContext deploy_context;
   deploy_context.Initialize();
   deploy_context.SetName("RemoteContext");
-  auto stub_func = [&deploy_context](deployer::DeployerRequest &request, deployer::DeployerResponse &response) -> Status{
+  auto stub_func = [&deploy_context](deployer::DeployerRequest &request,
+                                     deployer::DeployerResponse &response) -> Status {
     return DeployerServiceImpl::GetInstance().Process(deploy_context, request, response);
   };
-  
-  auto &remote_device =
-      reinterpret_cast<stub::MockRemoteDeployer &>(*DeployerProxy::GetInstance().deployers_[1]);
-  EXPECT_CALL(remote_device, Process)
-      .WillRepeatedly(Invoke(stub_func));
+
+  auto &remote_device = reinterpret_cast<stub::MockRemoteDeployer &>(*DeployerProxy::GetInstance().deployers_[1]);
+  EXPECT_CALL(remote_device, Process).WillRepeatedly(Invoke(stub_func));
 
   auto flow_model = StubModels::BuildFlowModel(StubModels::BuildGraphWithoutNeedForBindingQueues());
   MasterModelDeployer::DeployedModel deployed_model;
@@ -499,7 +486,7 @@ TEST_F(MasterModelDeployerTest, TestDynamicSchedDeployModel_Success) {
 
 TEST_F(MasterModelDeployerTest, TestExceptionClearDeployModel_Success) {
   MmpaStub::GetInstance().SetImpl(std::make_shared<MockMmpa>());
-  mock_handle = (void *) 0x8888;
+  mock_handle = (void *)0x8888;
   EXPECT_EQ(VarManager::Instance(0)->Init(0, 0, 1, 0), SUCCESS);
   auto &exchange_service =
       reinterpret_cast<stub::MockExchangeService &>(ExecutionRuntime::GetInstance()->GetExchangeService());
@@ -507,9 +494,7 @@ TEST_F(MasterModelDeployerTest, TestExceptionClearDeployModel_Success) {
   EXPECT_CALL(exchange_service, DestroyQueue).WillRepeatedly(Return(SUCCESS));
 
   map<std::string, std::string> sess_options = ge::GetThreadLocalContext().GetAllSessionOptions();
-  GE_MAKE_GUARD(recover_sess_cfg, [&sess_options](){
-    GetThreadLocalContext().SetSessionOption(sess_options);
-  });
+  GE_MAKE_GUARD(recover_sess_cfg, [&sess_options]() { GetThreadLocalContext().SetSessionOption(sess_options); });
 
   map<std::string, std::string> options{{"TestSessionOption", "TestSessionOptionValue"}};
   GetThreadLocalContext().SetSessionOption(options);
@@ -517,13 +502,10 @@ TEST_F(MasterModelDeployerTest, TestExceptionClearDeployModel_Success) {
   DeployContext deploy_context;
   deploy_context.Initialize();
   deploy_context.SetName("RemoteContext");
-  auto stub_func = [&deploy_context](deployer::DeployerRequest &request, deployer::DeployerResponse &response) -> Status{
-    return SUCCESS;
-  };
-  auto &remote_device =
-      reinterpret_cast<stub::MockRemoteDeployer &>(*DeployerProxy::GetInstance().deployers_[1]);
-  EXPECT_CALL(remote_device, Process)
-      .WillRepeatedly(Invoke(stub_func));
+  auto stub_func = [&deploy_context](deployer::DeployerRequest &request,
+                                     deployer::DeployerResponse &response) -> Status { return SUCCESS; };
+  auto &remote_device = reinterpret_cast<stub::MockRemoteDeployer &>(*DeployerProxy::GetInstance().deployers_[1]);
+  EXPECT_CALL(remote_device, Process).WillRepeatedly(Invoke(stub_func));
 
   auto flow_model = StubModels::BuildFlowModel(StubModels::BuildGraphWithoutNeedForBindingQueues());
   MasterModelDeployer::DeployedModel deployed_model;
@@ -546,7 +528,7 @@ TEST_F(MasterModelDeployerTest, TestExceptionClearDeployModel_Success) {
 
 TEST_F(MasterModelDeployerTest, TestExceptionClearDeployModelOneModel_Success) {
   MmpaStub::GetInstance().SetImpl(std::make_shared<MockMmpa>());
-  mock_handle = (void *) 0x8888;
+  mock_handle = (void *)0x8888;
   EXPECT_EQ(VarManager::Instance(0)->Init(0, 0, 1, 0), SUCCESS);
   auto &exchange_service =
       reinterpret_cast<stub::MockExchangeService &>(ExecutionRuntime::GetInstance()->GetExchangeService());
@@ -554,9 +536,7 @@ TEST_F(MasterModelDeployerTest, TestExceptionClearDeployModelOneModel_Success) {
   EXPECT_CALL(exchange_service, DestroyQueue).WillRepeatedly(Return(SUCCESS));
 
   map<std::string, std::string> sess_options = ge::GetThreadLocalContext().GetAllSessionOptions();
-  GE_MAKE_GUARD(recover_sess_cfg, [&sess_options](){
-    GetThreadLocalContext().SetSessionOption(sess_options);
-  });
+  GE_MAKE_GUARD(recover_sess_cfg, [&sess_options]() { GetThreadLocalContext().SetSessionOption(sess_options); });
 
   map<std::string, std::string> options{{"TestSessionOption", "TestSessionOptionValue"}};
   GetThreadLocalContext().SetSessionOption(options);
@@ -564,13 +544,10 @@ TEST_F(MasterModelDeployerTest, TestExceptionClearDeployModelOneModel_Success) {
   DeployContext deploy_context;
   deploy_context.Initialize();
   deploy_context.SetName("RemoteContext");
-  auto stub_func = [&deploy_context](deployer::DeployerRequest &request, deployer::DeployerResponse &response) -> Status{
-    return SUCCESS;
-  };
-  auto &remote_device =
-      reinterpret_cast<stub::MockRemoteDeployer &>(*DeployerProxy::GetInstance().deployers_[1]);
-  EXPECT_CALL(remote_device, Process)
-      .WillRepeatedly(Invoke(stub_func));
+  auto stub_func = [&deploy_context](deployer::DeployerRequest &request,
+                                     deployer::DeployerResponse &response) -> Status { return SUCCESS; };
+  auto &remote_device = reinterpret_cast<stub::MockRemoteDeployer &>(*DeployerProxy::GetInstance().deployers_[1]);
+  EXPECT_CALL(remote_device, Process).WillRepeatedly(Invoke(stub_func));
 
   auto flow_model = StubModels::BuildFlowModel(StubModels::BuildGraphWithoutNeedForBindingQueues());
   MasterModelDeployer::DeployedModel deployed_model;
@@ -604,7 +581,7 @@ TEST_F(MasterModelDeployerTest, ClearModelExceptionData_mul_node) {
   ASSERT_EQ(model_deployer.abnormal_status_handler_.ClearModelExceptionData(0, device_infos), SUCCESS);
 }
 
-void DeleteLines(const char* real_path, const std::vector<int>& lineNumbers) {
+void DeleteLines(const char *real_path, const std::vector<int> &lineNumbers) {
   std::ifstream inputFile(real_path);
   if (!inputFile.is_open()) {
     std::cerr << "Failed to open input file: " << real_path << std::endl;
@@ -623,14 +600,14 @@ void DeleteLines(const char* real_path, const std::vector<int>& lineNumbers) {
     std::cerr << "Failed to open output file: " << ss.str() << std::endl;
     return;
   }
-  for (const auto& line : fileContent) {
+  for (const auto &line : fileContent) {
     outputFile << line << std::endl;
   }
   outputFile.close();
 
   std::vector<std::string> newContent;
   int lineNumber = 1;
-  for (const auto& line : fileContent) {
+  for (const auto &line : fileContent) {
     if (std::find(lineNumbers.begin(), lineNumbers.end(), lineNumber) == lineNumbers.end()) {
       newContent.push_back(line);
     }
@@ -641,26 +618,25 @@ void DeleteLines(const char* real_path, const std::vector<int>& lineNumbers) {
     std::cerr << "Failed to open input file: " << real_path << std::endl;
     return;
   }
-  for (const auto& line : newContent) {
+  for (const auto &line : newContent) {
     inputFile2 << line << std::endl;
   }
   inputFile2.close();
 }
 
-void CreateRedeployFile(const char* real_path) {
+void CreateRedeployFile(const char *real_path) {
   std::string parent_path = real_path;
   parent_path = parent_path.substr(0, parent_path.find_last_of("/\\") + 1);
   std::ofstream redeploy_file(parent_path + "redeploy");
   if (redeploy_file.is_open()) {
     std::cout << "redeploy file created!" << std::endl;
     redeploy_file.close();
-  }
-  else {
+  } else {
     std::cerr << "Error creating redeploy file!" << std::endl;
   }
 }
 
-void RestoreFile(const char* path) {
+void RestoreFile(const char *path) {
   std::string str_path(path);
   size_t pos = str_path.find_last_of("/\\");
   if (pos == std::string::npos) {
@@ -708,15 +684,16 @@ TEST_F(MasterModelDeployerTest, TestFileMonitorWithResourceConfigPath_Success) {
   model_deployer.abnormal_status_handler_.is_dynamic_sched_ = true;
   DeployPlan::AbnormalStatusCallbackInfo abnormal_status_callback_info;
   {
-    DeployPlan::AbnormalStatusCallback abnormal_status_clear_callback = [this](
-        uint32_t abnormal_status_operation_type, RootModelId2SubmodelName &abnormal_submodel_instances_name)
-        -> Status {
-      (void) abnormal_submodel_instances_name;
-      (void) abnormal_status_operation_type;
+    DeployPlan::AbnormalStatusCallback abnormal_status_clear_callback =
+        [this](uint32_t abnormal_status_operation_type,
+               RootModelId2SubmodelName &abnormal_submodel_instances_name) -> Status {
+      (void)abnormal_submodel_instances_name;
+      (void)abnormal_status_operation_type;
       return SUCCESS;
     };
     std::lock_guard<std::mutex> lk(model_deployer.abnormal_status_handler_.abnormal_status_callback_info_.mu);
-    (model_deployer.abnormal_status_handler_.abnormal_status_callback_info_.callback_list)[0U] = abnormal_status_clear_callback;
+    (model_deployer.abnormal_status_handler_.abnormal_status_callback_info_.callback_list)[0U] =
+        abnormal_status_clear_callback;
   }
   AbnormalStatusHandler::DeployedModel deploy_model;
   DeployPlan::DeviceInfo local_device1(NPU, 0, 0);
@@ -738,7 +715,7 @@ TEST_F(MasterModelDeployerTest, TestFileMonitorWithResourceConfigPath_Success) {
   model_deployer.abnormal_status_handler_.deployed_models_[0] = deploy_model;
   // 更改numa_config.json
   std::string config_path = PathUtils::Join(
-    {EnvPath().GetAirBasePath(), "tests/dflow/runner/ut/ge/runtime/data/redeploy/server/numa_config.json"});
+      {EnvPath().GetAirBasePath(), "tests/dflow/runner/ut/ge/runtime/data/redeploy/server/numa_config.json"});
   char real_path[200];
   realpath(config_path.c_str(), real_path);
   std::vector<int> lineNumbers = {45, 46, 47, 48, 49};
@@ -759,16 +736,18 @@ TEST_F(MasterModelDeployerTest, TestFileMonitorWithMulRootModel_Success) {
   model_deployer.abnormal_status_handler_.is_dynamic_sched_ = true;
   DeployPlan::AbnormalStatusCallbackInfo abnormal_status_callback_info;
   {
-    DeployPlan::AbnormalStatusCallback abnormal_status_clear_callback = [this](
-        uint32_t abnormal_status_operation_type, RootModelId2SubmodelName &abnormal_submodel_instances_name)
-        -> Status {
-      (void) abnormal_submodel_instances_name;
-      (void) abnormal_status_operation_type;
+    DeployPlan::AbnormalStatusCallback abnormal_status_clear_callback =
+        [this](uint32_t abnormal_status_operation_type,
+               RootModelId2SubmodelName &abnormal_submodel_instances_name) -> Status {
+      (void)abnormal_submodel_instances_name;
+      (void)abnormal_status_operation_type;
       return SUCCESS;
     };
     std::lock_guard<std::mutex> lk(model_deployer.abnormal_status_handler_.abnormal_status_callback_info_.mu);
-    (model_deployer.abnormal_status_handler_.abnormal_status_callback_info_.callback_list)[0U] = abnormal_status_clear_callback;
-    (model_deployer.abnormal_status_handler_.abnormal_status_callback_info_.callback_list)[1U] = abnormal_status_clear_callback;
+    (model_deployer.abnormal_status_handler_.abnormal_status_callback_info_.callback_list)[0U] =
+        abnormal_status_clear_callback;
+    (model_deployer.abnormal_status_handler_.abnormal_status_callback_info_.callback_list)[1U] =
+        abnormal_status_clear_callback;
   }
   AbnormalStatusHandler::DeployedModel deploy_model;
   DeployPlan::DeviceInfo local_device1(NPU, 0, 0);
@@ -802,7 +781,7 @@ TEST_F(MasterModelDeployerTest, TestFileMonitorWithMulRootModel_Success) {
 
   // 更改numa_config.json
   std::string config_path = PathUtils::Join(
-    {EnvPath().GetAirBasePath(), "tests/dflow/runner/ut/ge/runtime/data/redeploy/server/numa_config.json"});
+      {EnvPath().GetAirBasePath(), "tests/dflow/runner/ut/ge/runtime/data/redeploy/server/numa_config.json"});
   char real_path[200];
   realpath(config_path.c_str(), real_path);
   std::vector<int> lineNumbers = {45, 46, 47, 48, 49};
@@ -821,11 +800,11 @@ TEST_F(MasterModelDeployerTest, TestFileMonitorWithResourceConfigPath_FAILED) {
   ASSERT_EQ(model_deployer.Initialize({}), SUCCESS);
   model_deployer.abnormal_status_handler_.is_dynamic_sched_ = false;
   {
-    DeployPlan::AbnormalStatusCallback abnormal_status_clear_callback = [this](
-        uint32_t abnormal_status_operation_type, RootModelId2SubmodelName &abnormal_submodel_instances_name)
-        -> Status {
-      (void) abnormal_submodel_instances_name;
-      (void) abnormal_status_operation_type;
+    DeployPlan::AbnormalStatusCallback abnormal_status_clear_callback =
+        [this](uint32_t abnormal_status_operation_type,
+               RootModelId2SubmodelName &abnormal_submodel_instances_name) -> Status {
+      (void)abnormal_submodel_instances_name;
+      (void)abnormal_status_operation_type;
       return SUCCESS;
     };
     std::lock_guard<std::mutex> lk(model_deployer.abnormal_status_handler_.abnormal_status_callback_info_.mu);
@@ -838,7 +817,7 @@ TEST_F(MasterModelDeployerTest, TestFileMonitorWithResourceConfigPath_FAILED) {
   model_deployer.abnormal_status_handler_.deployed_models_[0U] = deploy_model;
   // 更改numa_config.json
   std::string config_path = PathUtils::Join(
-    {EnvPath().GetAirBasePath(), "tests/dflow/runner/ut/ge/runtime/data/redeploy/server/numa_config.json"});
+      {EnvPath().GetAirBasePath(), "tests/dflow/runner/ut/ge/runtime/data/redeploy/server/numa_config.json"});
   char real_path[200];
   (void)realpath(config_path.c_str(), real_path);
   std::vector<int> lineNumbers = {45, 46, 47, 48, 49};
@@ -858,15 +837,16 @@ TEST_F(MasterModelDeployerTest, TestHeartbeatMonitor_Success) {
   model_deployer.abnormal_status_handler_.is_dynamic_sched_ = true;
   DeployPlan::AbnormalStatusCallbackInfo abnormal_status_callback_info;
   {
-    DeployPlan::AbnormalStatusCallback abnormal_status_clear_callback = [](
-        uint32_t abnormal_status_operation_type, RootModelId2SubmodelName &abnormal_submodel_instances_name)
-        -> Status {
-      (void) abnormal_submodel_instances_name;
-      (void) abnormal_status_operation_type;
+    DeployPlan::AbnormalStatusCallback abnormal_status_clear_callback =
+        [](uint32_t abnormal_status_operation_type,
+           RootModelId2SubmodelName &abnormal_submodel_instances_name) -> Status {
+      (void)abnormal_submodel_instances_name;
+      (void)abnormal_status_operation_type;
       return SUCCESS;
     };
     std::lock_guard<std::mutex> lk(model_deployer.abnormal_status_handler_.abnormal_status_callback_info_.mu);
-    (model_deployer.abnormal_status_handler_.abnormal_status_callback_info_.callback_list)[0U] = abnormal_status_clear_callback;
+    (model_deployer.abnormal_status_handler_.abnormal_status_callback_info_.callback_list)[0U] =
+        abnormal_status_clear_callback;
   }
   AbnormalStatusHandler::DeployedModel deploy_model;
   deploy_model.model_id = 0;
@@ -878,7 +858,7 @@ TEST_F(MasterModelDeployerTest, TestHeartbeatMonitor_Success) {
   auto &deploy_context = DeployContext::LocalContext();
   {
     std::lock_guard<std::mutex> lk(deploy_context.GetAbnormalHeartbeatInfoMu());
-    deploy_context.AddAbnormalSubmodelInstanceName(0,"model1_1_0_0_pid1");
+    deploy_context.AddAbnormalSubmodelInstanceName(0, "model1_1_0_0_pid1");
   }
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   ASSERT_EQ(model_deployer.Finalize(), SUCCESS);
@@ -893,15 +873,16 @@ TEST_F(MasterModelDeployerTest, TestHeartbeatMonitorFailedWithNode0CpuAbnormal) 
   model_deployer.abnormal_status_handler_.is_dynamic_sched_ = true;
   DeployPlan::AbnormalStatusCallbackInfo abnormal_status_callback_info;
   {
-    DeployPlan::AbnormalStatusCallback abnormal_status_clear_callback = [](
-        uint32_t abnormal_status_operation_type, RootModelId2SubmodelName &abnormal_submodel_instances_name)
-        -> Status {
-      (void) abnormal_submodel_instances_name;
-      (void) abnormal_status_operation_type;
+    DeployPlan::AbnormalStatusCallback abnormal_status_clear_callback =
+        [](uint32_t abnormal_status_operation_type,
+           RootModelId2SubmodelName &abnormal_submodel_instances_name) -> Status {
+      (void)abnormal_submodel_instances_name;
+      (void)abnormal_status_operation_type;
       return SUCCESS;
     };
     std::lock_guard<std::mutex> lk(model_deployer.abnormal_status_handler_.abnormal_status_callback_info_.mu);
-    (model_deployer.abnormal_status_handler_.abnormal_status_callback_info_.callback_list)[0U] = abnormal_status_clear_callback;
+    (model_deployer.abnormal_status_handler_.abnormal_status_callback_info_.callback_list)[0U] =
+        abnormal_status_clear_callback;
   }
   AbnormalStatusHandler::DeployedModel deploy_model;
   deploy_model.model_id = 0;
@@ -912,9 +893,9 @@ TEST_F(MasterModelDeployerTest, TestHeartbeatMonitorFailedWithNode0CpuAbnormal) 
   auto &deploy_context = DeployContext::LocalContext();
   {
     std::lock_guard<std::mutex> lk(deploy_context.GetAbnormalHeartbeatInfoMu());
-    deploy_context.AddAbnormalSubmodelInstanceName(0,"model1_1_0_0");
-    deploy_context.AddAbnormalSubmodelInstanceName(0,"model2");
-    deploy_context.AddAbnormalSubmodelInstanceName(0,"model3");
+    deploy_context.AddAbnormalSubmodelInstanceName(0, "model1_1_0_0");
+    deploy_context.AddAbnormalSubmodelInstanceName(0, "model2");
+    deploy_context.AddAbnormalSubmodelInstanceName(0, "model3");
     NodeConfig node_config0;
     node_config0.node_id = 0;
     DeviceConfig device_info0;
@@ -945,15 +926,16 @@ TEST_F(MasterModelDeployerTest, TestHeartbeatMonitorFailedWithDevice0) {
   model_deployer.abnormal_status_handler_.is_dynamic_sched_ = true;
   DeployPlan::AbnormalStatusCallbackInfo abnormal_status_callback_info;
   {
-    DeployPlan::AbnormalStatusCallback abnormal_status_clear_callback = [](
-        uint32_t abnormal_status_operation_type, RootModelId2SubmodelName &abnormal_submodel_instances_name)
-        -> Status {
-      (void) abnormal_submodel_instances_name;
-      (void) abnormal_status_operation_type;
+    DeployPlan::AbnormalStatusCallback abnormal_status_clear_callback =
+        [](uint32_t abnormal_status_operation_type,
+           RootModelId2SubmodelName &abnormal_submodel_instances_name) -> Status {
+      (void)abnormal_submodel_instances_name;
+      (void)abnormal_status_operation_type;
       return SUCCESS;
     };
     std::lock_guard<std::mutex> lk(model_deployer.abnormal_status_handler_.abnormal_status_callback_info_.mu);
-    (model_deployer.abnormal_status_handler_.abnormal_status_callback_info_.callback_list)[0U] = abnormal_status_clear_callback;
+    (model_deployer.abnormal_status_handler_.abnormal_status_callback_info_.callback_list)[0U] =
+        abnormal_status_clear_callback;
   }
   AbnormalStatusHandler::DeployedModel deploy_model;
   deploy_model.model_id = 0;
@@ -980,15 +962,16 @@ TEST_F(MasterModelDeployerTest, TestHeartbeatMonitorWithNoNewAbnormal) {
   model_deployer.abnormal_status_handler_.is_dynamic_sched_ = true;
   DeployPlan::AbnormalStatusCallbackInfo abnormal_status_callback_info;
   {
-    DeployPlan::AbnormalStatusCallback abnormal_status_clear_callback = [](
-        uint32_t abnormal_status_operation_type, RootModelId2SubmodelName &abnormal_submodel_instances_name)
-        -> Status {
-      (void) abnormal_submodel_instances_name;
-      (void) abnormal_status_operation_type;
+    DeployPlan::AbnormalStatusCallback abnormal_status_clear_callback =
+        [](uint32_t abnormal_status_operation_type,
+           RootModelId2SubmodelName &abnormal_submodel_instances_name) -> Status {
+      (void)abnormal_submodel_instances_name;
+      (void)abnormal_status_operation_type;
       return SUCCESS;
     };
     std::lock_guard<std::mutex> lk(model_deployer.abnormal_status_handler_.abnormal_status_callback_info_.mu);
-    (model_deployer.abnormal_status_handler_.abnormal_status_callback_info_.callback_list)[0U] = abnormal_status_clear_callback;
+    (model_deployer.abnormal_status_handler_.abnormal_status_callback_info_.callback_list)[0U] =
+        abnormal_status_clear_callback;
   }
   AbnormalStatusHandler::DeployedModel deploy_model;
   deploy_model.model_id = 0;
@@ -999,7 +982,7 @@ TEST_F(MasterModelDeployerTest, TestHeartbeatMonitorWithNoNewAbnormal) {
   auto &deploy_context = DeployContext::LocalContext();
   {
     std::lock_guard<std::mutex> lk(deploy_context.GetAbnormalHeartbeatInfoMu());
-    deploy_context.AddAbnormalSubmodelInstanceName(0,"model0");
+    deploy_context.AddAbnormalSubmodelInstanceName(0, "model0");
   }
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   ASSERT_EQ(model_deployer.Finalize(), SUCCESS);
@@ -1014,16 +997,18 @@ TEST_F(MasterModelDeployerTest, TestHeartbeatMonitorWithMulRootModel_Success) {
   model_deployer.abnormal_status_handler_.is_dynamic_sched_ = true;
   DeployPlan::AbnormalStatusCallbackInfo abnormal_status_callback_info;
   {
-    DeployPlan::AbnormalStatusCallback abnormal_status_clear_callback = [](
-        uint32_t abnormal_status_operation_type, RootModelId2SubmodelName &abnormal_submodel_instances_name)
-        -> Status {
-      (void) abnormal_submodel_instances_name;
-      (void) abnormal_status_operation_type;
+    DeployPlan::AbnormalStatusCallback abnormal_status_clear_callback =
+        [](uint32_t abnormal_status_operation_type,
+           RootModelId2SubmodelName &abnormal_submodel_instances_name) -> Status {
+      (void)abnormal_submodel_instances_name;
+      (void)abnormal_status_operation_type;
       return SUCCESS;
     };
     std::lock_guard<std::mutex> lk(model_deployer.abnormal_status_handler_.abnormal_status_callback_info_.mu);
-    (model_deployer.abnormal_status_handler_.abnormal_status_callback_info_.callback_list)[0U] = abnormal_status_clear_callback;
-    (model_deployer.abnormal_status_handler_.abnormal_status_callback_info_.callback_list)[1U] = abnormal_status_clear_callback;
+    (model_deployer.abnormal_status_handler_.abnormal_status_callback_info_.callback_list)[0U] =
+        abnormal_status_clear_callback;
+    (model_deployer.abnormal_status_handler_.abnormal_status_callback_info_.callback_list)[1U] =
+        abnormal_status_clear_callback;
   }
   AbnormalStatusHandler::DeployedModel deploy_model;
   deploy_model.model_id = 0;
@@ -1096,8 +1081,9 @@ TEST_F(MasterModelDeployerTest, TestFindAbnormalDeviceOnServer) {
   information_old.remote_node_config_list.push_back(node_config1);
   information_old.remote_node_config_list.push_back(node_config2);
   information_old.remote_node_config_list.push_back(node_config3);
-  ASSERT_EQ(model_deployer.abnormal_status_handler_.FindAbnormalDeviceOnServer(device_state_list,
-      information_new, information_old), SUCCESS);
+  ASSERT_EQ(model_deployer.abnormal_status_handler_.FindAbnormalDeviceOnServer(device_state_list, information_new,
+                                                                               information_old),
+            SUCCESS);
   ASSERT_EQ(model_deployer.Finalize(), SUCCESS);
 }
 
@@ -1112,12 +1098,12 @@ TEST_F(MasterModelDeployerTest, TestPreHandleAbnormalInfo) {
   model_deployer.abnormal_status_handler_.deployed_models_[1U] = deployed_model;
   std::thread thread_run;
   thread_run = std::thread([&model_deployer]() {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100)); // 等待0.1秒进行下一次读取
-    DeployPlan::AbnormalStatusCallback abnormal_status_clear_callback = [&model_deployer](
-        uint32_t abnormal_status_operation_type, RootModelId2SubmodelName &abnormal_submodel_instances_name)
-        -> Status {
-      (void) abnormal_status_operation_type;
-      (void) abnormal_submodel_instances_name;
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));  // 等待0.1秒进行下一次读取
+    DeployPlan::AbnormalStatusCallback abnormal_status_clear_callback =
+        [&model_deployer](uint32_t abnormal_status_operation_type,
+                          RootModelId2SubmodelName &abnormal_submodel_instances_name) -> Status {
+      (void)abnormal_status_operation_type;
+      (void)abnormal_submodel_instances_name;
       return SUCCESS;
     };
     std::lock_guard<std::mutex> lk(model_deployer.abnormal_status_handler_.abnormal_status_callback_info_.mu);

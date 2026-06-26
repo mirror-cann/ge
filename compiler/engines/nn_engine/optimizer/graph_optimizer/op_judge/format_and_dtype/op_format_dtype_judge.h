@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,13 +32,12 @@ struct OpJudgeParam {
   IndexNameMap output_index_map;
   std::map<uint32_t, int> prio_index_map;
   OpJudgeParam(ge::NodePtr node_param, OpKernelInfoPtr op_kernel_info_ptr_param)
-      : node_ptr(std::move(node_param)),
-        op_kernel_info_ptr(std::move(op_kernel_info_ptr_param)) {}
+      : node_ptr(std::move(node_param)), op_kernel_info_ptr(std::move(op_kernel_info_ptr_param)) {}
 };
 
 class OpFormatDtypeJudge : public OpJudgeBase {
  public:
-  OpFormatDtypeJudge(const std::string& engine_name, RefRelationsPtr reflection_builder_ptr);
+  OpFormatDtypeJudge(const std::string &engine_name, RefRelationsPtr reflection_builder_ptr);
 
   virtual ~OpFormatDtypeJudge() override;
 
@@ -92,8 +91,7 @@ class OpFormatDtypeJudge : public OpJudgeBase {
    * @param matched_index_vec: the vector which stores matched dtype index
    * @return SUCCESS or FAIL
    */
-  Status GetInputAndOutputFormatIndex(const OpJudgeParam &judge_param,
-                                      vector<uint32_t> &matched_index_vec);
+  Status GetInputAndOutputFormatIndex(const OpJudgeParam &judge_param, vector<uint32_t> &matched_index_vec);
   /**
    * @brief set node attr that whether support fp16 in and fp32 out at the same time
    *
@@ -185,31 +183,23 @@ class OpFormatDtypeJudge : public OpJudgeBase {
    */
   bool IsNoNeedJudge(const ge::OpDescPtr &op_desc_ptr, int64_t &imply_type) const;
 
-  Status InitMatchedIndexByCustomDtype(const ge::NodePtr &node,
-                                       const OpKernelInfoPtr &op_kernel_info_ptr,
-                                       const IndexNameMap &input_index_map,
-                                       const IndexNameMap &output_index_map,
+  Status InitMatchedIndexByCustomDtype(const ge::NodePtr &node, const OpKernelInfoPtr &op_kernel_info_ptr,
+                                       const IndexNameMap &input_index_map, const IndexNameMap &output_index_map,
                                        vector<uint32_t> &matched_index_vec) const;
 
-  void FilterDtypeIndexByCustom(const ge::NodePtr &node,
-                                const OpKernelInfoPtr &op_kernel_info_ptr,
-                                const vector<ge::DataType> &cust_dtypes,
-                                const IndexNameMap &index_map,
-                                const bool &is_input,
-                                vector<bool> &filter_index_vec) const;
+  void FilterDtypeIndexByCustom(const ge::NodePtr &node, const OpKernelInfoPtr &op_kernel_info_ptr,
+                                const vector<ge::DataType> &cust_dtypes, const IndexNameMap &index_map,
+                                const bool &is_input, vector<bool> &filter_index_vec) const;
 
   uint32_t GetMatchedIndex(const vector<uint32_t> &matched_index_vec,
-                           const vector<uint32_t> &cust_filter_matched_index_vec,
-                           const string &op_name, const string &op_type) const;
+                           const vector<uint32_t> &cust_filter_matched_index_vec, const string &op_name,
+                           const string &op_type) const;
 
-  void RecordC04FormatForSingleTensor(const ge::NodePtr &node_ptr,
-                                      const OpKernelInfoPtr &op_kernel_info_ptr,
-                                      const InputOrOutputInfoPtr &tensor_info,
-                                      set<uint32_t> &matched_index_set,
+  void RecordC04FormatForSingleTensor(const ge::NodePtr &node_ptr, const OpKernelInfoPtr &op_kernel_info_ptr,
+                                      const InputOrOutputInfoPtr &tensor_info, set<uint32_t> &matched_index_set,
                                       unordered_set<uint32_t> &c04_format_index_set) const;
 
-  void RecordC04FormatIndex(const vector<ge::Format> &input_or_output_format,
-                            const set<uint32_t> &matched_index_set,
+  void RecordC04FormatIndex(const vector<ge::Format> &input_or_output_format, const set<uint32_t> &matched_index_set,
                             unordered_set<uint32_t> &c04_format_index_set) const;
 
   void FilterBySmallChannel(const ge::NodePtr &node_ptr, const OpKernelInfoPtr &op_kernel_info_ptr,
@@ -242,16 +232,17 @@ class OpFormatDtypeJudge : public OpJudgeBase {
   void DoPromoteMatch(const OpJudgeParam &op_judge_param, bool must_promote_flag, vector<uint32_t> &matched_index_vec);
 
   Status PromoteTypeMatch(const OpJudgeParam &op_judge_param,
-      const std::vector<std::vector<int>> &promote_inputs_indexes, vector<uint32_t> &matched_index_vec) const;
+                          const std::vector<std::vector<int>> &promote_inputs_indexes,
+                          vector<uint32_t> &matched_index_vec) const;
 
   Status MatchForPromoteInput(const OpJudgeParam &op_judge_param, const std::vector<int> &promote_index,
-      const ge::DataType &target_dtype, vector<uint32_t> &matched_index_vec) const;
+                              const ge::DataType &target_dtype, vector<uint32_t> &matched_index_vec) const;
 
   static void FindPromoteDtype(const std::vector<ge::DataType> &input_dtype_vec, const ge::DataType &target_dtype,
-      std::vector<uint32_t> &matched_index_vec);
+                               std::vector<uint32_t> &matched_index_vec);
 
   Status JudgeByPrecisionMode(const OpJudgeParam &op_judge_param, bool must_promote_flag,
-      vector<uint32_t> &matched_index_vec);
+                              vector<uint32_t> &matched_index_vec);
 
   RefRelationsPtr reflection_builder_ptr_;
   OpFormatDtypeStrategyManagerPtr op_format_dtype_strategy_manager_ptr_;

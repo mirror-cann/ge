@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,7 +25,7 @@ NodePtr StubNode(const char *node_type = "DefaultNodeType") {
   return ComputeNodeFaker().NameAndType(node_type, node_type).IoNum(0, 4).Build();
 }
 void InitTestFramesWithStream(LoweringGlobalData &global_data, int64_t stream_num = 1) {
-  auto init_out = bg::FrameSelector::OnInitRoot([&stream_num, &global_data]()-> std::vector<bg::ValueHolderPtr> {
+  auto init_out = bg::FrameSelector::OnInitRoot([&stream_num, &global_data]() -> std::vector<bg::ValueHolderPtr> {
     global_data.LoweringAndSplitRtStreams(1);
     auto stream_num_holder = bg::ValueHolder::CreateConst(&stream_num, sizeof(stream_num));
     global_data.SetUniqueValueHolder(kGlobalDataModelStreamNum, stream_num_holder);
@@ -39,7 +39,10 @@ TEST_F(PlacedLowerResultUT, ResultSetAndGet) {
   auto node = StubNode();
   ASSERT_NE(node, nullptr);
 
-  LowerResult lower_result = {HyperStatus::Success(), {}, {ValueHolder::CreateFeed(0)}, {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
+  LowerResult lower_result = {HyperStatus::Success(),
+                              {},
+                              {ValueHolder::CreateFeed(0)},
+                              {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
   PlacedLoweringResult plr(node, std::move(lower_result));
   ASSERT_NE(plr.GetResult(), nullptr);
   EXPECT_TRUE(plr.GetResult()->result.IsSuccess());
@@ -51,10 +54,11 @@ TEST_F(PlacedLowerResultUT, ResultGet_SamePlacement) {
   auto node = StubNode();
   ASSERT_NE(node, nullptr);
   LoweringGlobalData global_data;
-  
 
-  LowerResult lower_result = {
-      HyperStatus::Success(), {ValueHolder::CreateFeed(2)}, {ValueHolder::CreateFeed(0)}, {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
+  LowerResult lower_result = {HyperStatus::Success(),
+                              {ValueHolder::CreateFeed(2)},
+                              {ValueHolder::CreateFeed(0)},
+                              {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
   lower_result.out_addrs[0]->SetPlacement(kOnDeviceHbm);
   auto order_holder = lower_result.order_holders[0].get();
   auto shape = lower_result.out_shapes[0].get();
@@ -74,8 +78,10 @@ TEST_F(PlacedLowerResultUT, ResultGet2_DevicePlacement) {
   ASSERT_NE(node, nullptr);
   LoweringGlobalData global_data;
 
-  LowerResult lower_result = {
-      HyperStatus::Success(), {ValueHolder::CreateFeed(2)}, {ValueHolder::CreateFeed(0)}, {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
+  LowerResult lower_result = {HyperStatus::Success(),
+                              {ValueHolder::CreateFeed(2)},
+                              {ValueHolder::CreateFeed(0)},
+                              {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
   lower_result.out_addrs[0]->SetPlacement(kOnDeviceHbm);
   auto order_holder = lower_result.order_holders[0].get();
 
@@ -92,8 +98,10 @@ TEST_F(PlacedLowerResultUT, ResultGet2_PlacementEndToP2p) {
   LoweringGlobalData global_data;
   InitTestFramesWithStream(global_data, 1);
 
-  LowerResult lower_result = {
-      HyperStatus::Success(), {ValueHolder::CreateFeed(2)}, {ValueHolder::CreateFeed(0)}, {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
+  LowerResult lower_result = {HyperStatus::Success(),
+                              {ValueHolder::CreateFeed(2)},
+                              {ValueHolder::CreateFeed(0)},
+                              {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
   lower_result.out_addrs[0]->SetPlacement(kTensorPlacementEnd);
   auto order_holder = lower_result.order_holders[0].get();
 
@@ -109,8 +117,10 @@ TEST_F(PlacedLowerResultUT, ResultGet2_HbmToP2p) {
   ASSERT_NE(node, nullptr);
   LoweringGlobalData global_data;
   InitTestFramesWithStream(global_data, 1);
-  LowerResult lower_result = {
-      HyperStatus::Success(), {ValueHolder::CreateFeed(2)}, {ValueHolder::CreateFeed(0)}, {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
+  LowerResult lower_result = {HyperStatus::Success(),
+                              {ValueHolder::CreateFeed(2)},
+                              {ValueHolder::CreateFeed(0)},
+                              {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
   lower_result.out_addrs[0]->SetPlacement(kOnDeviceHbm);
   auto order_holder = lower_result.order_holders[0].get();
 
@@ -126,8 +136,10 @@ TEST_F(PlacedLowerResultUT, ResultGet2_HostToP2p) {
   ASSERT_NE(node, nullptr);
   LoweringGlobalData global_data;
   InitTestFramesWithStream(global_data, 1);
-  LowerResult lower_result = {
-      HyperStatus::Success(), {ValueHolder::CreateFeed(2)}, {ValueHolder::CreateFeed(0)}, {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
+  LowerResult lower_result = {HyperStatus::Success(),
+                              {ValueHolder::CreateFeed(2)},
+                              {ValueHolder::CreateFeed(0)},
+                              {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
   lower_result.out_addrs[0]->SetPlacement(kOnHost);
 
   PlacedLoweringResult plr(node, std::move(lower_result));
@@ -141,8 +153,10 @@ TEST_F(PlacedLowerResultUT, ResultGet2_P2pToHost) {
   ASSERT_NE(node, nullptr);
   LoweringGlobalData global_data;
   InitTestFramesWithStream(global_data, 1);
-  LowerResult lower_result = {
-      HyperStatus::Success(), {ValueHolder::CreateFeed(2)}, {ValueHolder::CreateFeed(0)}, {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
+  LowerResult lower_result = {HyperStatus::Success(),
+                              {ValueHolder::CreateFeed(2)},
+                              {ValueHolder::CreateFeed(0)},
+                              {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
   lower_result.out_addrs[0]->SetPlacement(kOnDeviceP2p);
 
   PlacedLoweringResult plr(node, std::move(lower_result));
@@ -157,8 +171,10 @@ TEST_F(PlacedLowerResultUT, ResultGet2_P2pToHbm) {
   ASSERT_NE(node, nullptr);
   LoweringGlobalData global_data;
   InitTestFramesWithStream(global_data, 1);
-  LowerResult lower_result = {
-      HyperStatus::Success(), {ValueHolder::CreateFeed(2)}, {ValueHolder::CreateFeed(0)}, {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
+  LowerResult lower_result = {HyperStatus::Success(),
+                              {ValueHolder::CreateFeed(2)},
+                              {ValueHolder::CreateFeed(0)},
+                              {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
   lower_result.out_addrs[0]->SetPlacement(kOnDeviceP2p);
 
   PlacedLoweringResult plr(node, std::move(lower_result));
@@ -176,8 +192,10 @@ TEST_F(PlacedLowerResultUT, ResultGet2_DevicePlacementWithGuard) {
   auto root_model = GeModelBuilder(compute_graph).BuildGeRootModel();
   LoweringGlobalData global_data = GlobalDataFaker(root_model).Build();
 
-  LowerResult lower_result = {
-      HyperStatus::Success(), {ValueHolder::CreateFeed(2)}, {ValueHolder::CreateFeed(0)}, {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
+  LowerResult lower_result = {HyperStatus::Success(),
+                              {ValueHolder::CreateFeed(2)},
+                              {ValueHolder::CreateFeed(0)},
+                              {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
   lower_result.out_addrs[0]->SetPlacement(kOnHost);
 
   PlacedLoweringResult plr(node, std::move(lower_result));
@@ -189,11 +207,13 @@ TEST_F(PlacedLowerResultUT, ResultGet_HostPlacement) {
   auto node = StubNode();
   ASSERT_NE(node, nullptr);
   LoweringGlobalData global_data;
-  
+
   auto streams = global_data.LoweringAndSplitRtStreams(1);
 
-  LowerResult lower_result = {
-      HyperStatus::Success(), {ValueHolder::CreateFeed(2)}, {ValueHolder::CreateFeed(0)}, {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
+  LowerResult lower_result = {HyperStatus::Success(),
+                              {ValueHolder::CreateFeed(2)},
+                              {ValueHolder::CreateFeed(0)},
+                              {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
   lower_result.out_addrs[0]->SetPlacement(kOnDeviceHbm);
 
   PlacedLoweringResult plr(node, std::move(lower_result));
@@ -206,11 +226,13 @@ TEST_F(PlacedLowerResultUT, ResultGet2_DevicePlacementMulti) {
   auto node = StubNode();
   ASSERT_NE(node, nullptr);
   LoweringGlobalData global_data;
-  
+
   auto streams = global_data.LoweringAndSplitRtStreams(1);
 
-  LowerResult lower_result = {
-      HyperStatus::Success(), {ValueHolder::CreateFeed(2)}, {ValueHolder::CreateFeed(0)}, {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
+  LowerResult lower_result = {HyperStatus::Success(),
+                              {ValueHolder::CreateFeed(2)},
+                              {ValueHolder::CreateFeed(0)},
+                              {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
   lower_result.out_addrs[0]->SetPlacement(kOnDeviceHbm);
   auto order_holder = lower_result.order_holders[0].get();
 
@@ -229,11 +251,13 @@ TEST_F(PlacedLowerResultUT, ResultGet_InvalidIndex) {
   auto node = StubNode();
   ASSERT_NE(node, nullptr);
   LoweringGlobalData global_data;
-  
+
   auto streams = global_data.LoweringAndSplitRtStreams(1);
 
-  LowerResult lower_result = {
-      HyperStatus::Success(), {ValueHolder::CreateFeed(2)}, {ValueHolder::CreateFeed(0)}, {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
+  LowerResult lower_result = {HyperStatus::Success(),
+                              {ValueHolder::CreateFeed(2)},
+                              {ValueHolder::CreateFeed(0)},
+                              {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
   lower_result.out_addrs[0]->SetPlacement(kOnDeviceHbm);
 
   PlacedLoweringResult plr(node, std::move(lower_result));
@@ -259,8 +283,10 @@ TEST_F(PlacedLowerResultUT, ResultGet_DataDependentyFromHbm) {
   LoweringGlobalData global_data;
   auto streams = global_data.LoweringAndSplitRtStreams(1);
 
-  LowerResult lower_result = {
-      HyperStatus::Success(), {ValueHolder::CreateFeed(2)}, {ValueHolder::CreateFeed(0)}, {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
+  LowerResult lower_result = {HyperStatus::Success(),
+                              {ValueHolder::CreateFeed(2)},
+                              {ValueHolder::CreateFeed(0)},
+                              {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
   lower_result.out_addrs[0]->SetPlacement(kOnDeviceHbm);
   auto order_holders = lower_result.order_holders;
   auto shape = lower_result.out_shapes[0];
@@ -303,8 +329,10 @@ TEST_F(PlacedLowerResultUT, ResultGet_DataDependentFromHost) {
   LoweringGlobalData global_data;
   auto streams = global_data.LoweringAndSplitRtStreams(1);
 
-  LowerResult lower_result = {
-      HyperStatus::Success(), {ValueHolder::CreateFeed(2)}, {ValueHolder::CreateFeed(0)}, {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
+  LowerResult lower_result = {HyperStatus::Success(),
+                              {ValueHolder::CreateFeed(2)},
+                              {ValueHolder::CreateFeed(0)},
+                              {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
   lower_result.out_addrs[0]->SetPlacement(kOnHost);
 
   auto order_holders = lower_result.order_holders;
@@ -343,8 +371,10 @@ TEST_F(PlacedLowerResultUT, ResultGet_HbmToHost) {
   LoweringGlobalData global_data;
   auto streams = global_data.LoweringAndSplitRtStreams(1);
 
-  LowerResult lower_result = {
-      HyperStatus::Success(), {ValueHolder::CreateFeed(2)}, {ValueHolder::CreateFeed(0)}, {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
+  LowerResult lower_result = {HyperStatus::Success(),
+                              {ValueHolder::CreateFeed(2)},
+                              {ValueHolder::CreateFeed(0)},
+                              {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
   lower_result.out_addrs[0]->SetPlacement(kOnDeviceHbm);
 
   auto order_holders = lower_result.order_holders;
@@ -366,7 +396,8 @@ TEST_F(PlacedLowerResultUT, ResultGet_HbmToHost) {
             })),
             "success");
 
-  auto sync_stream = ge::ExecuteGraphUtils::FindFirstNodeMatchType(result->address->GetCurrentExecuteGraph(), "SyncStream");
+  auto sync_stream =
+      ge::ExecuteGraphUtils::FindFirstNodeMatchType(result->address->GetCurrentExecuteGraph(), "SyncStream");
   ASSERT_NE(sync_stream, nullptr);
   checker = FastNodeTopoChecker(sync_stream);
   std::vector<FastSrcNode> sync_stream_inputs;
@@ -381,9 +412,11 @@ TEST_F(PlacedLowerResultUT, ResultGet_HbmToHost_Twice) {
   auto node = StubNode();
   LoweringGlobalData global_data;
   auto streams = global_data.LoweringAndSplitRtStreams(1);
-  LowerResult lower_result = {
-      HyperStatus::Success(), {ValueHolder::CreateFeed(4)}, {ValueHolder::CreateFeed(0), ValueHolder::CreateFeed(1)},
-      {DevMemValueHolder::CreateSingleDataOutput("data",{},0), DevMemValueHolder::CreateSingleDataOutput("data",{},0)}};
+  LowerResult lower_result = {HyperStatus::Success(),
+                              {ValueHolder::CreateFeed(4)},
+                              {ValueHolder::CreateFeed(0), ValueHolder::CreateFeed(1)},
+                              {DevMemValueHolder::CreateSingleDataOutput("data", {}, 0),
+                               DevMemValueHolder::CreateSingleDataOutput("data", {}, 0)}};
   lower_result.out_addrs[0]->SetPlacement(kOnDeviceHbm);
   lower_result.out_addrs[1]->SetPlacement(kOnDeviceHbm);
 
@@ -398,7 +431,7 @@ TEST_F(PlacedLowerResultUT, ResultGet_HbmToHost_Twice) {
     EXPECT_EQ(result->address->GetFastNode()->GetType(), "CopyD2H");
     FastNodeTopoChecker checker(result->address);
     EXPECT_EQ(checker.StrictConnectFrom(std::vector<FastSrcNode>({
-                  address[i],                        // address
+                  address[i],                     // address
                   {"CalcTensorSizeFromStorage"},  // tensor size
                   {"CreateHostL2Allocator"},
                   {"SyncStream", -1}  // 来自流同步的控制边
@@ -433,8 +466,10 @@ TEST_F(PlacedLowerResultUT, ResultGet_HbmToHost_DataDependent) {
   LoweringGlobalData global_data;
   auto streams = global_data.LoweringAndSplitRtStreams(1);
 
-  LowerResult lower_result = {
-      HyperStatus::Success(), {ValueHolder::CreateFeed(2)}, {ValueHolder::CreateFeed(0)}, {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
+  LowerResult lower_result = {HyperStatus::Success(),
+                              {ValueHolder::CreateFeed(2)},
+                              {ValueHolder::CreateFeed(0)},
+                              {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
   lower_result.out_addrs[0]->SetPlacement(kOnDeviceHbm);
 
   auto order_holders = lower_result.order_holders;
@@ -447,7 +482,8 @@ TEST_F(PlacedLowerResultUT, ResultGet_HbmToHost_DataDependent) {
   // 数据依赖+OnHost：address应该在host，同时shape输入是一个Tensor
   EXPECT_FALSE(result->order_holders.empty());
   auto copy_d2h = ge::ExecuteGraphUtils::FindFirstNodeMatchType(result->address->GetCurrentExecuteGraph(), "CopyD2H");
-  auto sync_stream = ge::ExecuteGraphUtils::FindFirstNodeMatchType(result->address->GetCurrentExecuteGraph(), "SyncStream");
+  auto sync_stream =
+      ge::ExecuteGraphUtils::FindFirstNodeMatchType(result->address->GetCurrentExecuteGraph(), "SyncStream");
   ASSERT_NE(copy_d2h, nullptr);
   ASSERT_NE(sync_stream, nullptr);
 
@@ -521,7 +557,7 @@ TEST_F(PlacedLowerResultUT, ResultGet_HostToHbm) {
   dependency_node.emplace_back(address);
   dependency_node.emplace_back("CalcUnalignedTensorSizeFromStorage", 0);
   dependency_node.emplace_back(shape);
-  dependency_node.emplace_back("Const", 0); // DATA TYPE
+  dependency_node.emplace_back("Const", 0);  // DATA TYPE
   for (auto holder : order_holders) {
     dependency_node.emplace_back(holder->GetFastNode()->GetType(), -1);
   }
@@ -548,7 +584,10 @@ TEST_F(PlacedLowerResultUT, ResultGet_HostToHbmOnInit_Const) {
   ASSERT_EQ(shape_and_addr[0]->GetPlacement(), kOnHost);
   ASSERT_EQ(shape_and_addr[1]->GetPlacement(), kOnHost);
 
-  LowerResult lower_result = {HyperStatus::Success(), {}, {shape_and_addr[0]}, {std::dynamic_pointer_cast<DevMemValueHolder>(shape_and_addr[1])}};
+  LowerResult lower_result = {HyperStatus::Success(),
+                              {},
+                              {shape_and_addr[0]},
+                              {std::dynamic_pointer_cast<DevMemValueHolder>(shape_and_addr[1])}};
 
   auto shape = lower_result.out_shapes[0];
   auto address = lower_result.out_addrs[0];
@@ -561,7 +600,8 @@ TEST_F(PlacedLowerResultUT, ResultGet_HostToHbmOnInit_Const) {
   EXPECT_EQ(result->address->GetFastNode()->GetType(), "Init");
   EXPECT_EQ(result->shape->GetFastNode()->GetType(), "Init");
 
-  auto netoutput_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_frame_->GetExecuteGraph().get(), "InnerNetOutput");
+  auto netoutput_node =
+      ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_frame_->GetExecuteGraph().get(), "InnerNetOutput");
   ASSERT_NE(netoutput_node, nullptr);
   auto in_data_edge = netoutput_node->GetInDataEdgeByIndex(result->address->GetOutIndex());
   ASSERT_NE(in_data_edge->src, nullptr);
@@ -577,8 +617,12 @@ TEST_F(PlacedLowerResultUT, ResultGet_HostToHbmOnInit_Const) {
   ASSERT_NE(copy_h2d_node, nullptr);
 
   EXPECT_EQ(FastNodeTopoChecker(copy_h2d_node)
-                .StrictConnectFrom(
-                    {{"SplitRtStreams"}, {"CreateInitL2Allocator"}, HolderOnInit(shape_and_addr[1]), {"CalcUnalignedTensorSizeFromStorage"}, HolderOnInit(shape_and_addr[0]), {"Const"}}),
+                .StrictConnectFrom({{"SplitRtStreams"},
+                                    {"CreateInitL2Allocator"},
+                                    HolderOnInit(shape_and_addr[1]),
+                                    {"CalcUnalignedTensorSizeFromStorage"},
+                                    HolderOnInit(shape_and_addr[0]),
+                                    {"Const"}}),
             "success");
 }
 
@@ -588,7 +632,7 @@ TEST_F(PlacedLowerResultUT, ResultGet_PassThrowOrderedHolders_WhenConstHasCtrlIn
   graph->AddNode(node);
   auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   LoweringGlobalData global_data = GlobalDataFaker(root_model).Build();
-  
+
   auto shape_and_addr = bg::FrameSelector::OnInitRoot([&]() -> std::vector<bg::ValueHolderPtr> {
     auto c1 = ValueHolder::CreateConst("Hello", 5);
     auto ret = ValueHolder::CreateDataOutput("SplitTensor", {c1}, 2);
@@ -602,7 +646,10 @@ TEST_F(PlacedLowerResultUT, ResultGet_PassThrowOrderedHolders_WhenConstHasCtrlIn
   auto holder0 = bg::ValueHolder::CreateFeed(0);
   auto holder1 = bg::ValueHolder::CreateFeed(1);
 
-  LowerResult lower_result = {HyperStatus::Success(), {holder0, holder1}, {shape_and_addr[0]}, {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
+  LowerResult lower_result = {HyperStatus::Success(),
+                              {holder0, holder1},
+                              {shape_and_addr[0]},
+                              {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
 
   PlacedLoweringResult plr(node, std::move(lower_result));
   auto result = plr.GetOutputResult(global_data, 0, {kOnDeviceHbm, bg::kMainStream}, false);
@@ -615,7 +662,7 @@ TEST_F(PlacedLowerResultUT, ResultGet_GenOnInit_WhenCtrlInFromInitNode) {
   graph->AddNode(node);
   auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   LoweringGlobalData global_data = GlobalDataFaker(root_model).Build();
-  
+
   auto shape_and_addr = bg::FrameSelector::OnInitRoot([&]() -> std::vector<bg::ValueHolderPtr> {
     global_data.LoweringAndSplitRtStreams(1);
     auto c1 = ValueHolder::CreateConst("Hello", 5);
@@ -629,7 +676,10 @@ TEST_F(PlacedLowerResultUT, ResultGet_GenOnInit_WhenCtrlInFromInitNode) {
   ASSERT_EQ(shape_and_addr[0]->GetPlacement(), kOnHost);
   ASSERT_EQ(shape_and_addr[1]->GetPlacement(), kOnHost);
 
-  LowerResult lower_result = {HyperStatus::Success(), {shape_and_addr[0]}, {shape_and_addr[0]}, {std::dynamic_pointer_cast<DevMemValueHolder>(shape_and_addr[1])}};
+  LowerResult lower_result = {HyperStatus::Success(),
+                              {shape_and_addr[0]},
+                              {shape_and_addr[0]},
+                              {std::dynamic_pointer_cast<DevMemValueHolder>(shape_and_addr[1])}};
 
   auto shape = lower_result.out_shapes[0];
 
@@ -658,15 +708,17 @@ TEST_F(PlacedLowerResultUT, ResultGet_GenOnInit_WhenCtrlInFromInitNode) {
 TEST_F(PlacedLowerResultUT, MultipleOuptuts_ResultGet_HbmToHost_DataDependent) {
   auto node = StubNode();
   LoweringGlobalData global_data;
-  
+
   auto streams = global_data.LoweringAndSplitRtStreams(1);
 
   LowerResult lower_result = {
       HyperStatus::Success(),
       {ValueHolder::CreateFeed(8), ValueHolder::CreateFeed(9)},
       {ValueHolder::CreateFeed(0), ValueHolder::CreateFeed(1), ValueHolder::CreateFeed(2), ValueHolder::CreateFeed(3)},
-      {DevMemValueHolder::CreateSingleDataOutput("data",{},0), DevMemValueHolder::CreateSingleDataOutput("data",{},0),
-       DevMemValueHolder::CreateSingleDataOutput("data",{},0), DevMemValueHolder::CreateSingleDataOutput("data",{},0)}};
+      {DevMemValueHolder::CreateSingleDataOutput("data", {}, 0),
+       DevMemValueHolder::CreateSingleDataOutput("data", {}, 0),
+       DevMemValueHolder::CreateSingleDataOutput("data", {}, 0),
+       DevMemValueHolder::CreateSingleDataOutput("data", {}, 0)}};
   lower_result.out_addrs[0]->SetPlacement(kOnDeviceHbm);
 
   auto order_holders = lower_result.order_holders;
@@ -679,7 +731,8 @@ TEST_F(PlacedLowerResultUT, MultipleOuptuts_ResultGet_HbmToHost_DataDependent) {
   // 数据依赖+OnHost：address应该在host，同时shape输入是一个Tensor
   EXPECT_FALSE(result->order_holders.empty());
   auto copy_d2h = ge::ExecuteGraphUtils::FindFirstNodeMatchType(result->address->GetCurrentExecuteGraph(), "CopyD2H");
-  auto sync_stream = ge::ExecuteGraphUtils::FindFirstNodeMatchType(result->address->GetCurrentExecuteGraph(), "SyncStream");
+  auto sync_stream =
+      ge::ExecuteGraphUtils::FindFirstNodeMatchType(result->address->GetCurrentExecuteGraph(), "SyncStream");
   ASSERT_NE(copy_d2h, nullptr);
   ASSERT_NE(sync_stream, nullptr);
 
@@ -731,8 +784,10 @@ TEST_F(PlacedLowerResultUT, ResultGet_HostToHbm_DataDependent) {
   LoweringGlobalData global_data = GlobalDataFaker(root_model).Build();
   auto streams = global_data.LoweringAndSplitRtStreams(1);
 
-  LowerResult lower_result = {
-      HyperStatus::Success(), {ValueHolder::CreateFeed(2)}, {ValueHolder::CreateFeed(0)}, {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
+  LowerResult lower_result = {HyperStatus::Success(),
+                              {ValueHolder::CreateFeed(2)},
+                              {ValueHolder::CreateFeed(0)},
+                              {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
   lower_result.out_addrs[0]->SetPlacement(kOnHost);
 
   auto order_holders = lower_result.order_holders;
@@ -776,11 +831,13 @@ TEST_F(PlacedLowerResultUT, ResultGet_DataDependentyFromPlacemenEnd) {
   auto node = StubNode();
   ASSERT_NE(node, nullptr);
   LoweringGlobalData global_data;
-  
+
   auto streams = global_data.LoweringAndSplitRtStreams(1);
 
-  LowerResult lower_result = {
-      HyperStatus::Success(), {ValueHolder::CreateFeed(2)}, {ValueHolder::CreateFeed(0)}, {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
+  LowerResult lower_result = {HyperStatus::Success(),
+                              {ValueHolder::CreateFeed(2)},
+                              {ValueHolder::CreateFeed(0)},
+                              {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
   lower_result.out_addrs[0]->SetPlacement(kTensorPlacementEnd);
   auto order_holders = lower_result.order_holders;
   auto shape = lower_result.out_shapes[0];
@@ -822,11 +879,13 @@ TEST_F(PlacedLowerResultUT, ResultGet_StringDataDependentyFromPlacemenEnd) {
   compute_graph->AddNode(node);
   auto root_model = GeModelBuilder(compute_graph).BuildGeRootModel();
   LoweringGlobalData global_data = GlobalDataFaker(root_model).Build();
-  
+
   auto streams = global_data.LoweringAndSplitRtStreams(1);
 
-  LowerResult lower_result = {
-      HyperStatus::Success(), {ValueHolder::CreateFeed(2)}, {ValueHolder::CreateFeed(0)}, {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
+  LowerResult lower_result = {HyperStatus::Success(),
+                              {ValueHolder::CreateFeed(2)},
+                              {ValueHolder::CreateFeed(0)},
+                              {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
   lower_result.out_addrs[0]->SetPlacement(kTensorPlacementEnd);
   auto order_holders = lower_result.order_holders;
   auto shape = lower_result.out_shapes[0];
@@ -840,14 +899,12 @@ TEST_F(PlacedLowerResultUT, ResultGet_StringDataDependentyFromPlacemenEnd) {
   ASSERT_NE(result->shape, nullptr);
   EXPECT_EQ(result->shape->GetFastNode()->GetType(), "Data");
   FastNodeTopoChecker tensor_checker(result->address);
-  EXPECT_EQ(tensor_checker.StrictConnectFrom(std::vector<FastSrcNode>({
-                {"SplitRtStreams", 0},
-                {"SelectL2Allocator", 0},
-                {"Data", 0},
-                {"CalcStringTensorSize", 0}, 
-                {"Data", 0},
-                {"Const", 0}
-            })),
+  EXPECT_EQ(tensor_checker.StrictConnectFrom(std::vector<FastSrcNode>({{"SplitRtStreams", 0},
+                                                                       {"SelectL2Allocator", 0},
+                                                                       {"Data", 0},
+                                                                       {"CalcStringTensorSize", 0},
+                                                                       {"Data", 0},
+                                                                       {"Const", 0}})),
             "success");
   EXPECT_EQ(tensor_checker.InChecker().DataFromByType("CalcStringTensorSize").DataFrom(address).Result(), "success");
 }
@@ -857,8 +914,10 @@ TEST_F(PlacedLowerResultUT, ResultGet_StringDataHbmToHost) {
   LoweringGlobalData global_data;
   auto streams = global_data.LoweringAndSplitRtStreams(1);
 
-  LowerResult lower_result = {
-      HyperStatus::Success(), {ValueHolder::CreateFeed(2)}, {ValueHolder::CreateFeed(0)}, {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
+  LowerResult lower_result = {HyperStatus::Success(),
+                              {ValueHolder::CreateFeed(2)},
+                              {ValueHolder::CreateFeed(0)},
+                              {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
   lower_result.out_addrs[0]->SetPlacement(kOnDeviceHbm);
 
   auto order_holders = lower_result.order_holders;
@@ -873,14 +932,15 @@ TEST_F(PlacedLowerResultUT, ResultGet_StringDataHbmToHost) {
   EXPECT_EQ(result->address->GetFastNode()->GetType(), "CopyD2H");
   FastNodeTopoChecker checker(result->address);
   EXPECT_EQ(checker.StrictConnectFrom(std::vector<FastSrcNode>({
-                address,                        // address
+                address,                   // address
                 {"CalcStringTensorSize"},  // tensor size
                 {"CreateHostL2Allocator"},
                 {"SyncStream", -1}  // 来自流同步的控制边
             })),
             "success");
 
-  auto sync_stream = ge::ExecuteGraphUtils::FindFirstNodeMatchType(result->address->GetCurrentExecuteGraph(), "SyncStream");
+  auto sync_stream =
+      ge::ExecuteGraphUtils::FindFirstNodeMatchType(result->address->GetCurrentExecuteGraph(), "SyncStream");
   ASSERT_NE(sync_stream, nullptr);
   checker = FastNodeTopoChecker(sync_stream);
   std::vector<FastSrcNode> sync_stream_inputs;
@@ -909,11 +969,13 @@ TEST_F(PlacedLowerResultUT, ResultGet_StringDataHostToHbm) {
   compute_graph->AddNode(node);
   auto root_model = GeModelBuilder(compute_graph).BuildGeRootModel();
   LoweringGlobalData global_data = GlobalDataFaker(root_model).Build();
-  
+
   auto streams = global_data.LoweringAndSplitRtStreams(1);
 
-  LowerResult lower_result = {
-      HyperStatus::Success(), {ValueHolder::CreateFeed(2)}, {ValueHolder::CreateFeed(0)}, {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
+  LowerResult lower_result = {HyperStatus::Success(),
+                              {ValueHolder::CreateFeed(2)},
+                              {ValueHolder::CreateFeed(0)},
+                              {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
   lower_result.out_addrs[0]->SetPlacement(kOnHost);
 
   auto order_holders = lower_result.order_holders;
@@ -961,8 +1023,10 @@ TEST_F(PlacedLowerResultUT, ResultGet_PlacementEndToHbm) {
   ge::DataType data_type = ge::DT_FLOAT;
   auto dt_holder = bg::ValueHolder::CreateConst(&data_type, sizeof(data_type));
 
-  LowerResult lower_result = {
-      HyperStatus::Success(), {ValueHolder::CreateFeed(2)}, {ValueHolder::CreateFeed(0)}, {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
+  LowerResult lower_result = {HyperStatus::Success(),
+                              {ValueHolder::CreateFeed(2)},
+                              {ValueHolder::CreateFeed(0)},
+                              {DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
   lower_result.out_addrs[0]->SetPlacement(kTensorPlacementEnd);
 
   auto order_holders = lower_result.order_holders;
@@ -975,11 +1039,11 @@ TEST_F(PlacedLowerResultUT, ResultGet_PlacementEndToHbm) {
   EXPECT_EQ(result->address->GetFastNode()->GetType(), "MakeSureTensorAtDevice");
   FastNodeTopoChecker checker(result->address);
   EXPECT_EQ(checker.StrictConnectFrom(std::vector<FastSrcNode>({{"SplitRtStreams", 0},
-                                                            {{"SelectL2Allocator"}, 0},
-                                                            {"Data", 0},
-                                                            {"CalcTensorSizeFromStorage", 0},
-                                                            {"Data", 0},
-                                                            {"Const", 0}}),
+                                                                {{"SelectL2Allocator"}, 0},
+                                                                {"Data", 0},
+                                                                {"CalcTensorSizeFromStorage", 0},
+                                                                {"Data", 0},
+                                                                {"Const", 0}}),
                                       true),
             "success");
 }

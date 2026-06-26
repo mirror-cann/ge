@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,7 +25,8 @@ class AssignWeightMemUT : public testing::Test {
     InitFrame();
   }
   void TearDown() override {
-    while (bg::ValueHolder::PopGraphFrame() != nullptr) {}
+    while (bg::ValueHolder::PopGraphFrame() != nullptr) {
+    }
   }
   void InitFrame() {
     bg::ValueHolder::PushGraphFrame();
@@ -48,7 +49,7 @@ class AssignWeightMemUT : public testing::Test {
 
 TEST_F(AssignWeightMemUT, GetOrCreateMemAssignerSuccess) {
   auto graph = ShareGraph::BuildShapeToReshapeGraph();
-auto root_model = GeModelBuilder(graph).BuildGeRootModel();
+  auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto global_data = GlobalDataFaker(root_model).Build();
   auto const_node = graph->FindFirstNodeMatchType("Const");
   ASSERT_NE(const_node, nullptr);
@@ -63,7 +64,7 @@ auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto holder = AssignDeviceMem::GetOrCreateMemAssigner(global_data);
   ASSERT_NE(holder, nullptr);
   auto create_allocator_node =
-    ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_frame->GetExecuteGraph().get(), "CreateMemAssigner");
+      ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_frame->GetExecuteGraph().get(), "CreateMemAssigner");
   ASSERT_NE(create_allocator_node, nullptr);
 }
-} // namespace gert
+}  // namespace gert

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -11,9 +11,8 @@
 #include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
 
-
 #define protected public
-//#include "graph_optimizer/graph_fusion/fusion_pass_manager/builtin_pass/batchnorm_bninfer_fusion_pass.h"
+// #include "graph_optimizer/graph_fusion/fusion_pass_manager/builtin_pass/batchnorm_bninfer_fusion_pass.h"
 #include "graph/compute_graph.h"
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/op_desc_utils.h"
@@ -32,33 +31,31 @@ static const char *IS_TRAINING = "is_training";
 static const char *EPSILON = "epsilon";
 
 class UTEST_fusion_engine_batchnorm_bninfer_fusion_pass : public testing::Test {
-protected:
+ protected:
   void SetUp() {}
   void TearDown() {}
 
-  static NodePtr CreateConstNode(string name, GeTensorDescPtr out_desc_ptr, ComputeGraphPtr graph)
-  {
-      OpDescPtr constant = std::make_shared<OpDesc>(name, "Const");
-      //set OpDesc
-      AttrUtils::SetStr(out_desc_ptr, "name", name + "Out0");
-      constant->AddOutputDesc(out_desc_ptr->Clone());
-      // set attr
-      AttrUtils::SetInt(constant, ATTR_DATA_TYPE, DT_FLOAT);
-      NodePtr node_const = graph->AddNode(constant);
+  static NodePtr CreateConstNode(string name, GeTensorDescPtr out_desc_ptr, ComputeGraphPtr graph) {
+    OpDescPtr constant = std::make_shared<OpDesc>(name, "Const");
+    // set OpDesc
+    AttrUtils::SetStr(out_desc_ptr, "name", name + "Out0");
+    constant->AddOutputDesc(out_desc_ptr->Clone());
+    // set attr
+    AttrUtils::SetInt(constant, ATTR_DATA_TYPE, DT_FLOAT);
+    NodePtr node_const = graph->AddNode(constant);
 
-      return node_const;
+    return node_const;
   }
 
-  static NodePtr CreateDataNode(string name, GeTensorDescPtr out_desc_ptr, ComputeGraphPtr graph)
-  {
-      OpDescPtr constant = std::make_shared<OpDesc>(name, "Data");
-      //set OpDesc
-      AttrUtils::SetStr(out_desc_ptr, "name", name + "Out0");
-      constant->AddOutputDesc(out_desc_ptr->Clone());
+  static NodePtr CreateDataNode(string name, GeTensorDescPtr out_desc_ptr, ComputeGraphPtr graph) {
+    OpDescPtr constant = std::make_shared<OpDesc>(name, "Data");
+    // set OpDesc
+    AttrUtils::SetStr(out_desc_ptr, "name", name + "Out0");
+    constant->AddOutputDesc(out_desc_ptr->Clone());
 
-      NodePtr node_const = graph->AddNode(constant);
+    NodePtr node_const = graph->AddNode(constant);
 
-      return node_const;
+    return node_const;
   }
 
   ComputeGraphPtr CreatePadGraph(string opdesc_type_0) {
@@ -99,24 +96,18 @@ protected:
     AttrUtils::SetFloat(opdesc_0, EPSILON, 0.001);
     NodePtr node_0 = graph->AddNode(opdesc_0);
 
-    GraphUtils::AddEdge(node_const0->GetOutDataAnchor(0),
-                        node_0->GetInDataAnchor(0));
-    GraphUtils::AddEdge(node_const1->GetOutDataAnchor(0),
-                        node_0->GetInDataAnchor(1));
-    GraphUtils::AddEdge(node_const2->GetOutDataAnchor(0),
-                        node_0->GetInDataAnchor(2));
-    GraphUtils::AddEdge(node_const3->GetOutDataAnchor(0),
-                        node_0->GetInDataAnchor(3));
-    GraphUtils::AddEdge(node_const4->GetOutDataAnchor(0),
-                        node_0->GetInDataAnchor(4));
+    GraphUtils::AddEdge(node_const0->GetOutDataAnchor(0), node_0->GetInDataAnchor(0));
+    GraphUtils::AddEdge(node_const1->GetOutDataAnchor(0), node_0->GetInDataAnchor(1));
+    GraphUtils::AddEdge(node_const2->GetOutDataAnchor(0), node_0->GetInDataAnchor(2));
+    GraphUtils::AddEdge(node_const3->GetOutDataAnchor(0), node_0->GetInDataAnchor(3));
+    GraphUtils::AddEdge(node_const4->GetOutDataAnchor(0), node_0->GetInDataAnchor(4));
 
     OpDescPtr opdesc_1 = make_shared<OpDesc>("Relu", "Relu");
     opdesc_1->AddInputDesc(tensor_desc->Clone());
     opdesc_1->AddOutputDesc(tensor_desc->Clone());
     NodePtr node_1 = graph->AddNode(opdesc_1);
 
-    GraphUtils::AddEdge(node_0->GetOutDataAnchor(0),
-                        node_1->GetInDataAnchor(0));
+    GraphUtils::AddEdge(node_0->GetOutDataAnchor(0), node_1->GetInDataAnchor(0));
 
     return graph;
   }
@@ -159,26 +150,19 @@ protected:
     AttrUtils::SetFloat(opdesc_0, EPSILON, 0.001);
     NodePtr node_0 = graph->AddNode(opdesc_0);
 
-    GraphUtils::AddEdge(node_const0->GetOutDataAnchor(0),
-                        node_0->GetInDataAnchor(0));
-    GraphUtils::AddEdge(node_const1->GetOutDataAnchor(0),
-                        node_0->GetInDataAnchor(1));
-    GraphUtils::AddEdge(node_const2->GetOutDataAnchor(0),
-                        node_0->GetInDataAnchor(2));
-    GraphUtils::AddEdge(node_const3->GetOutDataAnchor(0),
-                        node_0->GetInDataAnchor(3));
-    GraphUtils::AddEdge(node_const4->GetOutDataAnchor(0),
-                        node_0->GetInDataAnchor(4));
+    GraphUtils::AddEdge(node_const0->GetOutDataAnchor(0), node_0->GetInDataAnchor(0));
+    GraphUtils::AddEdge(node_const1->GetOutDataAnchor(0), node_0->GetInDataAnchor(1));
+    GraphUtils::AddEdge(node_const2->GetOutDataAnchor(0), node_0->GetInDataAnchor(2));
+    GraphUtils::AddEdge(node_const3->GetOutDataAnchor(0), node_0->GetInDataAnchor(3));
+    GraphUtils::AddEdge(node_const4->GetOutDataAnchor(0), node_0->GetInDataAnchor(4));
 
     OpDescPtr opdesc_1 = make_shared<OpDesc>("Relu", "Relu");
     opdesc_1->AddInputDesc(tensor_desc->Clone());
     opdesc_1->AddOutputDesc(tensor_desc->Clone());
     NodePtr node_1 = graph->AddNode(opdesc_1);
 
-    GraphUtils::AddEdge(node_0->GetOutDataAnchor(0),
-                        node_1->GetInDataAnchor(0));
+    GraphUtils::AddEdge(node_0->GetOutDataAnchor(0), node_1->GetInDataAnchor(0));
 
     return graph;
   }
-
 };

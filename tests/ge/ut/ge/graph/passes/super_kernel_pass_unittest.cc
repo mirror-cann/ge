@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,10 +30,10 @@ class SuperKernelPassTest : public testing::Test {
     auto netoutput = builder.AddNode("netoutput", NETOUTPUT, 1, 0);
     // set transdata1 format&shape
     auto transdata1_input_desc = transdata1->GetOpDesc()->MutableInputDesc(0);
-    transdata1_input_desc->SetFormat(FORMAT_FRACTAL_Z);  //src format
-    transdata1_input_desc->SetShape(GeShape({1, 1, 16, 16})); //src shape
-    transdata1_input_desc->SetOriginFormat(FORMAT_NCHW); // src origin format
-    transdata1_input_desc->SetOriginShape(GeShape({16, 1})); // src orgin shape
+    transdata1_input_desc->SetFormat(FORMAT_FRACTAL_Z);        // src format
+    transdata1_input_desc->SetShape(GeShape({1, 1, 16, 16}));  // src shape
+    transdata1_input_desc->SetOriginFormat(FORMAT_NCHW);       // src origin format
+    transdata1_input_desc->SetOriginShape(GeShape({16, 1}));   // src origin shape
     auto transdata1_output_desc = transdata1->GetOpDesc()->MutableOutputDesc(0);
     transdata1_output_desc->SetFormat(FORMAT_NCHW);
     transdata1_output_desc->SetShape(GeShape({1, 16, 1, 1}));
@@ -46,10 +46,10 @@ class SuperKernelPassTest : public testing::Test {
     transdata2_input_desc->SetOriginFormat(FORMAT_NCHW);
     transdata2_input_desc->SetOriginShape(GeShape({16, 1, 1, 1}));
     auto transdata2_output_desc = transdata2->GetOpDesc()->MutableOutputDesc(0);
-    transdata2_output_desc->SetFormat(FORMAT_FRACTAL_Z); // dst format
-    transdata2_output_desc->SetShape(GeShape({1, 1, 16, 16})); // dst shape
-    transdata2_output_desc->SetOriginFormat(FORMAT_NCHW); // dst origin format
-    transdata2_output_desc->SetOriginShape(GeShape({16, 1, 1, 1})); //dst origin shape, only orgin shape not symmetry
+    transdata2_output_desc->SetFormat(FORMAT_FRACTAL_Z);             // dst format
+    transdata2_output_desc->SetShape(GeShape({1, 1, 16, 16}));       // dst shape
+    transdata2_output_desc->SetOriginFormat(FORMAT_NCHW);            // dst origin format
+    transdata2_output_desc->SetOriginShape(GeShape({16, 1, 1, 1}));  // dst origin shape, only origin shape not symmetry
 
     builder.AddDataEdge(data, 0, transdata1, 0);
     builder.AddDataEdge(transdata1, 0, transdata2, 0);
@@ -81,7 +81,6 @@ class SuperKernelPassTest : public testing::Test {
     AttrUtils::SetInt(transdata2->GetOpDesc(), "supportSuperKernel", 1);
     return builder.GetGraph();
   }
-
 };
 }  // namespace
 
@@ -112,7 +111,6 @@ TEST_F(SuperKernelPassTest, super_kernel_pass_run_success) {
   sub_graph = sk_node->GetOpDesc()->TryGetExtAttr("_sk_sub_graph", sub_graph);
   EXPECT_NE(sub_graph, nullptr);
   EXPECT_TRUE(sub_graph->GetDirectNodesSize() == 4);
-
 }
 
 TEST_F(SuperKernelPassTest, super_kernel_pass_run_stream_id_not_equal) {
@@ -142,12 +140,19 @@ TEST_F(SuperKernelPassTest, super_kernel_verify_abort) {
   DEF_GRAPH(g1) {
     const auto BatchMatMul1 = OP_CFG(BATCHMATMUL).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
     const auto Dequantize1 = OP_CFG(DEQUANTIZE).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
-    const auto cast1= OP_CFG(CAST).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
+    const auto cast1 = OP_CFG(CAST).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
     const auto send1 = OP_CFG(SEND).Attr(SEND_ATTR_EVENT_ID, 1);
     const auto rcv2 = OP_CFG(RECV).Attr(RECV_ATTR_EVENT_ID, 1);
-    CHAIN(NODE("data1", DATA)->EDGE(0, 0)->NODE("BatchMatMul1", BatchMatMul1)->EDGE(0, 0)->
-        EDGE(0, 0)->NODE("Dequantize1", Dequantize1)->EDGE(0, 0)->
-        NODE("cast1", cast1)->EDGE(0, 0)->NODE("net_output", NETOUTPUT));
+    CHAIN(NODE("data1", DATA)
+              ->EDGE(0, 0)
+              ->NODE("BatchMatMul1", BatchMatMul1)
+              ->EDGE(0, 0)
+              ->EDGE(0, 0)
+              ->NODE("Dequantize1", Dequantize1)
+              ->EDGE(0, 0)
+              ->NODE("cast1", cast1)
+              ->EDGE(0, 0)
+              ->NODE("net_output", NETOUTPUT));
     CHAIN(NODE("data2", DATA)->EDGE(0, 0)->NODE("Cmo2", CMO)->EDGE(0, 1)->NODE("net_output", NETOUTPUT));
     CHAIN(NODE("BatchMatMul1")->CTRL_EDGE()->NODE("Cmo2"));
     CHAIN(NODE("BatchMatMul1")->CTRL_EDGE()->NODE("send1", send1));
@@ -206,10 +211,17 @@ TEST_F(SuperKernelPassTest, super_kernel_not_fusion_data) {
   DEF_GRAPH(g1) {
     const auto BatchMatMul1 = OP_CFG(BATCHMATMUL).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
     const auto Dequantize1 = OP_CFG(DEQUANTIZE).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
-    const auto cast1= OP_CFG(CAST).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
-    CHAIN(NODE("data1", DATA)->EDGE(0, 0)->NODE("BatchMatMul1", BatchMatMul1)->EDGE(0, 0)->
-        EDGE(0, 0)->NODE("Dequantize1", Dequantize1)->EDGE(0, 0)->
-        NODE("cast1", cast1)->EDGE(0, 0)->NODE("net_output", NETOUTPUT));
+    const auto cast1 = OP_CFG(CAST).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
+    CHAIN(NODE("data1", DATA)
+              ->EDGE(0, 0)
+              ->NODE("BatchMatMul1", BatchMatMul1)
+              ->EDGE(0, 0)
+              ->EDGE(0, 0)
+              ->NODE("Dequantize1", Dequantize1)
+              ->EDGE(0, 0)
+              ->NODE("cast1", cast1)
+              ->EDGE(0, 0)
+              ->NODE("net_output", NETOUTPUT));
   };
   auto compute_graph = ToComputeGraph(g1);
   compute_graph->TopologicalSorting();
@@ -245,13 +257,22 @@ TEST_F(SuperKernelPassTest, super_kernel_verify_bypass) {
   DEF_GRAPH(g1) {
     const auto BatchMatMul1 = OP_CFG(BATCHMATMUL).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
     const auto Dequantize1 = OP_CFG(DEQUANTIZE).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
-    const auto cast1= OP_CFG(CAST).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
-    const auto cast2= OP_CFG(CAST).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
+    const auto cast1 = OP_CFG(CAST).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
+    const auto cast2 = OP_CFG(CAST).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
     const auto send1 = OP_CFG(SEND).Attr(SEND_ATTR_EVENT_ID, 1);
     const auto rcv2 = OP_CFG(RECV).Attr(RECV_ATTR_EVENT_ID, 1);
-    CHAIN(NODE("data1", DATA)->EDGE(0, 0)->NODE("BatchMatMul1", BatchMatMul1)->EDGE(0, 0)->
-        EDGE(0, 0)->NODE("Dequantize1", Dequantize1)->EDGE(0, 0)->
-        NODE("cast1", cast1)->EDGE(0, 0)->NODE("cast2", cast2)->EDGE(0, 0)->NODE("net_output", NETOUTPUT));
+    CHAIN(NODE("data1", DATA)
+              ->EDGE(0, 0)
+              ->NODE("BatchMatMul1", BatchMatMul1)
+              ->EDGE(0, 0)
+              ->EDGE(0, 0)
+              ->NODE("Dequantize1", Dequantize1)
+              ->EDGE(0, 0)
+              ->NODE("cast1", cast1)
+              ->EDGE(0, 0)
+              ->NODE("cast2", cast2)
+              ->EDGE(0, 0)
+              ->NODE("net_output", NETOUTPUT));
     CHAIN(NODE("data2", DATA)->EDGE(0, 0)->NODE("Cmo2", CMO)->EDGE(0, 1)->NODE("net_output", NETOUTPUT));
     CHAIN(NODE("BatchMatMul1")->CTRL_EDGE()->NODE("Cmo2"));
     CHAIN(NODE("BatchMatMul1")->CTRL_EDGE()->NODE("send1", send1));
@@ -329,12 +350,19 @@ TEST_F(SuperKernelPassTest, super_kernel_verify_single_stream_not_match) {
   DEF_GRAPH(g1) {
     const auto BatchMatMul1 = OP_CFG(BATCHMATMUL).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
     const auto Dequantize1 = OP_CFG(DEQUANTIZE).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
-    const auto cast1= OP_CFG(CAST).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
+    const auto cast1 = OP_CFG(CAST).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
     const auto send1 = OP_CFG(SEND).Attr(SEND_ATTR_EVENT_ID, 1);
     const auto rcv2 = OP_CFG(RECV).Attr(RECV_ATTR_EVENT_ID, 1);
-    CHAIN(NODE("data1", DATA)->EDGE(0, 0)->NODE("BatchMatMul1", BatchMatMul1)->EDGE(0, 0)->
-        EDGE(0, 0)->NODE("Dequantize1", Dequantize1)->EDGE(0, 0)->
-        NODE("cast1", cast1)->EDGE(0, 0)->NODE("net_output", NETOUTPUT));
+    CHAIN(NODE("data1", DATA)
+              ->EDGE(0, 0)
+              ->NODE("BatchMatMul1", BatchMatMul1)
+              ->EDGE(0, 0)
+              ->EDGE(0, 0)
+              ->NODE("Dequantize1", Dequantize1)
+              ->EDGE(0, 0)
+              ->NODE("cast1", cast1)
+              ->EDGE(0, 0)
+              ->NODE("net_output", NETOUTPUT));
     CHAIN(NODE("data2", DATA)->EDGE(0, 0)->NODE("Cmo2", CMO)->EDGE(0, 1)->NODE("net_output", NETOUTPUT));
     CHAIN(NODE("BatchMatMul1")->CTRL_EDGE()->NODE("Cmo2"));
     CHAIN(NODE("BatchMatMul1")->CTRL_EDGE()->NODE("send1", send1));
@@ -372,12 +400,19 @@ TEST_F(SuperKernelPassTest, super_kernel_select_non_hccl_stream) {
   DEF_GRAPH(g1) {
     const auto hcom_all_gather1 = OP_CFG(HCOMALLGATHER).Attr("_super_kernel_scope", "scope1");
     const auto Dequantize1 = OP_CFG(DEQUANTIZE).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
-    const auto cast1= OP_CFG(CAST).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
+    const auto cast1 = OP_CFG(CAST).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
     const auto send1 = OP_CFG(SEND).Attr(SEND_ATTR_EVENT_ID, 100);
     const auto rcv2 = OP_CFG(RECV).Attr(RECV_ATTR_EVENT_ID, 100);
-    CHAIN(NODE("data1", DATA)->EDGE(0, 0)->NODE("hcom_all_gather1", hcom_all_gather1)->EDGE(0, 0)->
-        EDGE(0, 0)->NODE("Dequantize1", Dequantize1)->EDGE(0, 0)->
-        NODE("cast1", cast1)->EDGE(0, 0)->NODE("net_output", NETOUTPUT));
+    CHAIN(NODE("data1", DATA)
+              ->EDGE(0, 0)
+              ->NODE("hcom_all_gather1", hcom_all_gather1)
+              ->EDGE(0, 0)
+              ->EDGE(0, 0)
+              ->NODE("Dequantize1", Dequantize1)
+              ->EDGE(0, 0)
+              ->NODE("cast1", cast1)
+              ->EDGE(0, 0)
+              ->NODE("net_output", NETOUTPUT));
     CHAIN(NODE("hcom_all_gather1")->CTRL_EDGE()->NODE("Dequantize1"));
     CHAIN(NODE("hcom_all_gather1")->CTRL_EDGE()->NODE("send1", send1));
     CHAIN(NODE("rcv2", rcv2)->CTRL_EDGE()->NODE("Dequantize1"));
@@ -413,12 +448,19 @@ TEST_F(SuperKernelPassTest, super_kernel_cmo_scene) {
   DEF_GRAPH(g1) {
     const auto BatchMatMul1 = OP_CFG(BATCHMATMUL).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
     const auto Dequantize1 = OP_CFG(DEQUANTIZE).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
-    const auto cast1= OP_CFG(CAST).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
+    const auto cast1 = OP_CFG(CAST).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
     const auto send1 = OP_CFG(SEND).Attr(SEND_ATTR_EVENT_ID, 100);
     const auto rcv2 = OP_CFG(RECV).Attr(RECV_ATTR_EVENT_ID, 100);
-    CHAIN(NODE("data1", DATA)->EDGE(0, 0)->NODE("BatchMatMul1", BatchMatMul1)->EDGE(0, 0)->
-        EDGE(0, 0)->NODE("Dequantize1", Dequantize1)->EDGE(0, 0)->
-        NODE("cast1", cast1)->EDGE(0, 0)->NODE("net_output", NETOUTPUT));
+    CHAIN(NODE("data1", DATA)
+              ->EDGE(0, 0)
+              ->NODE("BatchMatMul1", BatchMatMul1)
+              ->EDGE(0, 0)
+              ->EDGE(0, 0)
+              ->NODE("Dequantize1", Dequantize1)
+              ->EDGE(0, 0)
+              ->NODE("cast1", cast1)
+              ->EDGE(0, 0)
+              ->NODE("net_output", NETOUTPUT));
     CHAIN(NODE("data2", DATA)->EDGE(0, 0)->NODE("Cmo2", CMO)->EDGE(0, 1)->NODE("net_output", NETOUTPUT));
     CHAIN(NODE("BatchMatMul1")->CTRL_EDGE()->NODE("Cmo2"));
     CHAIN(NODE("BatchMatMul1")->CTRL_EDGE()->NODE("send1", send1));
@@ -477,17 +519,30 @@ TEST_F(SuperKernelPassTest, super_kernel_cmo_scene) {
 TEST_F(SuperKernelPassTest, super_kernel_multi_stream_no_fusion) {
   DEF_GRAPH(g1) {
     const auto ffn1_1 = OP_CFG("Ffn");
-    const auto hcom_all_gather1 = OP_CFG(HCOMALLGATHER).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
+    const auto hcom_all_gather1 =
+        OP_CFG(HCOMALLGATHER).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
     const auto attn1_1 = OP_CFG("Attn");
-    const auto hcom_reduce_scatter1 = OP_CFG(HCOMREDUCESCATTER).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
-    const auto ffn1_2 = OP_CFG("Ffn").Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1").Attr("_ge_attr_op_kernel_lib_name", "AIcoreEngine");
+    const auto hcom_reduce_scatter1 =
+        OP_CFG(HCOMREDUCESCATTER).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
+    const auto ffn1_2 = OP_CFG("Ffn")
+                            .Attr("supportSuperKernel", 1)
+                            .Attr("_super_kernel_scope", "scope1")
+                            .Attr("_ge_attr_op_kernel_lib_name", "AIcoreEngine");
     const auto attn1_2 = OP_CFG("Attn");
 
     const auto attn2_1 = OP_CFG("Attn");
-    const auto ffn2_1 = OP_CFG("Ffn").Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1").Attr("_ge_attr_op_kernel_lib_name", "AIcoreEngine");
-    const auto hcom_all_gather2 = OP_CFG(HCOMALLGATHER).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
-    const auto attn2_2 = OP_CFG("Attn").Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1").Attr("_ge_attr_op_kernel_lib_name", "AIcoreEngine");
-    const auto hcom_reduce_scatter2 = OP_CFG(HCOMREDUCESCATTER).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
+    const auto ffn2_1 = OP_CFG("Ffn")
+                            .Attr("supportSuperKernel", 1)
+                            .Attr("_super_kernel_scope", "scope1")
+                            .Attr("_ge_attr_op_kernel_lib_name", "AIcoreEngine");
+    const auto hcom_all_gather2 =
+        OP_CFG(HCOMALLGATHER).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
+    const auto attn2_2 = OP_CFG("Attn")
+                             .Attr("supportSuperKernel", 1)
+                             .Attr("_super_kernel_scope", "scope1")
+                             .Attr("_ge_attr_op_kernel_lib_name", "AIcoreEngine");
+    const auto hcom_reduce_scatter2 =
+        OP_CFG(HCOMREDUCESCATTER).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
     const auto ffn2_2 = OP_CFG("Ffn");
 
     const auto send1_1 = OP_CFG(SEND).Attr(SEND_ATTR_EVENT_ID, 100);
@@ -496,15 +551,37 @@ TEST_F(SuperKernelPassTest, super_kernel_multi_stream_no_fusion) {
     const auto send1_2 = OP_CFG(SEND).Attr(SEND_ATTR_EVENT_ID, 101);
     const auto rcv2_2 = OP_CFG(RECV).Attr(RECV_ATTR_EVENT_ID, 101);
 
-    CHAIN(NODE("data1", DATA)->EDGE(0, 0)->NODE("ffn1_1", ffn1_1)->EDGE(0, 0)->
-        NODE("hcom_all_gather1", hcom_all_gather1)->EDGE(0, 0)->
-        NODE("attn1_1", attn1_1)->EDGE(0, 0)->NODE("hcom_reduce_scatter1", hcom_reduce_scatter1)->EDGE(0, 0)->
-        NODE("ffn1_2", ffn1_2)->EDGE(0, 0)->NODE("attn1_2", attn1_2)->EDGE(0, 0)->NODE("net_output", NETOUTPUT));
+    CHAIN(NODE("data1", DATA)
+              ->EDGE(0, 0)
+              ->NODE("ffn1_1", ffn1_1)
+              ->EDGE(0, 0)
+              ->NODE("hcom_all_gather1", hcom_all_gather1)
+              ->EDGE(0, 0)
+              ->NODE("attn1_1", attn1_1)
+              ->EDGE(0, 0)
+              ->NODE("hcom_reduce_scatter1", hcom_reduce_scatter1)
+              ->EDGE(0, 0)
+              ->NODE("ffn1_2", ffn1_2)
+              ->EDGE(0, 0)
+              ->NODE("attn1_2", attn1_2)
+              ->EDGE(0, 0)
+              ->NODE("net_output", NETOUTPUT));
 
-    CHAIN(NODE("data2", DATA)->EDGE(0, 0)->NODE("attn2_1", attn2_1)->EDGE(0, 0)->NODE("ffn2_1", ffn2_1)->EDGE(0, 0)->
-        NODE("hcom_all_gather2", hcom_all_gather2)->EDGE(0, 0)->
-        NODE("attn2_2", attn2_2)->EDGE(0, 0)->NODE("hcom_reduce_scatter2", hcom_reduce_scatter2)->EDGE(0, 0)->
-        NODE("ffn2_2", ffn2_2)->EDGE(0, 1)->NODE("net_output", NETOUTPUT));
+    CHAIN(NODE("data2", DATA)
+              ->EDGE(0, 0)
+              ->NODE("attn2_1", attn2_1)
+              ->EDGE(0, 0)
+              ->NODE("ffn2_1", ffn2_1)
+              ->EDGE(0, 0)
+              ->NODE("hcom_all_gather2", hcom_all_gather2)
+              ->EDGE(0, 0)
+              ->NODE("attn2_2", attn2_2)
+              ->EDGE(0, 0)
+              ->NODE("hcom_reduce_scatter2", hcom_reduce_scatter2)
+              ->EDGE(0, 0)
+              ->NODE("ffn2_2", ffn2_2)
+              ->EDGE(0, 1)
+              ->NODE("net_output", NETOUTPUT));
 
     CHAIN(NODE("attn1_1")->CTRL_EDGE()->NODE("send1_1", send1_1));
     CHAIN(NODE("rcv2_1", rcv2_1)->CTRL_EDGE()->NODE("attn2_2"));
@@ -570,9 +647,20 @@ TEST_F(SuperKernelPassTest, super_kernel_multi_stream_no_fusion) {
 
 TEST_F(SuperKernelPassTest, super_kernel_pass_multi_scope) {
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data1", DATA)->EDGE(0, 0)->NODE("trans1", TRANSDATA)->EDGE(0, 0)->NODE("reshape", RESHAPE)
-              ->EDGE(0, 0)->NODE("trans2", TRANSDATA)->EDGE(0, 0)->NODE("trans3", TRANSDATA)->EDGE(0, 0)->
-        EDGE(0, 0)->NODE("trans4", TRANSDATA)->EDGE(0, 0)->NODE("net_output", NETOUTPUT));
+    CHAIN(NODE("data1", DATA)
+              ->EDGE(0, 0)
+              ->NODE("trans1", TRANSDATA)
+              ->EDGE(0, 0)
+              ->NODE("reshape", RESHAPE)
+              ->EDGE(0, 0)
+              ->NODE("trans2", TRANSDATA)
+              ->EDGE(0, 0)
+              ->NODE("trans3", TRANSDATA)
+              ->EDGE(0, 0)
+              ->EDGE(0, 0)
+              ->NODE("trans4", TRANSDATA)
+              ->EDGE(0, 0)
+              ->NODE("net_output", NETOUTPUT));
     CHAIN(NODE("const1", CONSTANT)->EDGE(0, 1)->NODE("reshape", RESHAPE));
   };
   auto compute_graph = ToComputeGraph(g1);
@@ -631,9 +719,17 @@ TEST_F(SuperKernelPassTest, super_kernel_ringing) {
     const auto send2_1 = OP_CFG(SEND).Attr(SEND_ATTR_EVENT_ID, 101);
     const auto rcv2_1 = OP_CFG(RECV).Attr(RECV_ATTR_EVENT_ID, 101);
 
-    CHAIN(NODE("data1", DATA)->EDGE(0, 0)->NODE("matmul_1", matmul_1)->EDGE(0, 0)->
-        NODE("dequant_1", dequant_1)->EDGE(0, 0)->NODE("hcom_reduce_scatter_2", hcom_reduce_scatter_2)->EDGE(0, 0)->
-        NODE("batch_matmul_1", batch_matmul_1)->EDGE(0, 0)->NODE("net_output", NETOUTPUT));
+    CHAIN(NODE("data1", DATA)
+              ->EDGE(0, 0)
+              ->NODE("matmul_1", matmul_1)
+              ->EDGE(0, 0)
+              ->NODE("dequant_1", dequant_1)
+              ->EDGE(0, 0)
+              ->NODE("hcom_reduce_scatter_2", hcom_reduce_scatter_2)
+              ->EDGE(0, 0)
+              ->NODE("batch_matmul_1", batch_matmul_1)
+              ->EDGE(0, 0)
+              ->NODE("net_output", NETOUTPUT));
 
     CHAIN(NODE("dequant_1")->CTRL_EDGE()->NODE("send1_2", send1_2));
     CHAIN(NODE("rcv1_2", rcv1_2)->CTRL_EDGE()->NODE("hcom_reduce_scatter_2"));
@@ -729,12 +825,19 @@ TEST_F(SuperKernelPassTest, super_kernel_two_graph) {
   DEF_GRAPH(g1) {
     const auto BatchMatMul1 = OP_CFG(BATCHMATMUL).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
     const auto Dequantize1 = OP_CFG(DEQUANTIZE).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
-    const auto cast1= OP_CFG(CAST).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
+    const auto cast1 = OP_CFG(CAST).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
     const auto send1 = OP_CFG(SEND).Attr(SEND_ATTR_EVENT_ID, 100);
     const auto rcv2 = OP_CFG(RECV).Attr(RECV_ATTR_EVENT_ID, 100);
-    CHAIN(NODE("data1", DATA)->EDGE(0, 0)->NODE("BatchMatMul1", BatchMatMul1)->EDGE(0, 0)->
-        EDGE(0, 0)->NODE("Dequantize1", Dequantize1)->EDGE(0, 0)->
-        NODE("cast1", cast1)->EDGE(0, 0)->NODE("net_output", NETOUTPUT));
+    CHAIN(NODE("data1", DATA)
+              ->EDGE(0, 0)
+              ->NODE("BatchMatMul1", BatchMatMul1)
+              ->EDGE(0, 0)
+              ->EDGE(0, 0)
+              ->NODE("Dequantize1", Dequantize1)
+              ->EDGE(0, 0)
+              ->NODE("cast1", cast1)
+              ->EDGE(0, 0)
+              ->NODE("net_output", NETOUTPUT));
     CHAIN(NODE("data2", DATA)->EDGE(0, 0)->NODE("Cmo2", CMO)->EDGE(0, 1)->NODE("net_output", NETOUTPUT));
     CHAIN(NODE("BatchMatMul1")->CTRL_EDGE()->NODE("Cmo2"));
     CHAIN(NODE("BatchMatMul1")->CTRL_EDGE()->NODE("send1", send1));
@@ -807,17 +910,35 @@ TEST_F(SuperKernelPassTest, super_kernel_two_sk_sync_end) {
     const auto send_1 = OP_CFG(SEND).Attr(SEND_ATTR_EVENT_ID, 100);
     const auto rcv_1 = OP_CFG(RECV).Attr(RECV_ATTR_EVENT_ID, 100);
 
-    CHAIN(NODE("data1", DATA)->EDGE(0, 0)->NODE("matmul_1", matmul_1)->EDGE(0, 0)->
-        NODE("dequant_1", dequant_1)->EDGE(0, 0)->
-        NODE("batch_matmul_1", batch_matmul_1)->EDGE(0, 0)->NODE("net_output", NETOUTPUT));
+    CHAIN(NODE("data1", DATA)
+              ->EDGE(0, 0)
+              ->NODE("matmul_1", matmul_1)
+              ->EDGE(0, 0)
+              ->NODE("dequant_1", dequant_1)
+              ->EDGE(0, 0)
+              ->NODE("batch_matmul_1", batch_matmul_1)
+              ->EDGE(0, 0)
+              ->NODE("net_output", NETOUTPUT));
 
-    CHAIN(NODE("data2", DATA)->EDGE(0, 0)->NODE("matmul_2", matmul_2)->EDGE(0, 0)->
-        NODE("dequant_2", dequant_2)->EDGE(0, 0)->
-        NODE("batch_matmul_2", batch_matmul_2)->EDGE(0, 1)->NODE("net_output", NETOUTPUT));
+    CHAIN(NODE("data2", DATA)
+              ->EDGE(0, 0)
+              ->NODE("matmul_2", matmul_2)
+              ->EDGE(0, 0)
+              ->NODE("dequant_2", dequant_2)
+              ->EDGE(0, 0)
+              ->NODE("batch_matmul_2", batch_matmul_2)
+              ->EDGE(0, 1)
+              ->NODE("net_output", NETOUTPUT));
 
-    CHAIN(NODE("data3", DATA)->EDGE(0, 0)->NODE("matmul_3", matmul_3)->EDGE(0, 0)->
-        NODE("dequant_3", dequant_3)->EDGE(0, 0)->
-        NODE("batch_matmul_3", batch_matmul_3)->EDGE(0, 2)->NODE("net_output", NETOUTPUT));
+    CHAIN(NODE("data3", DATA)
+              ->EDGE(0, 0)
+              ->NODE("matmul_3", matmul_3)
+              ->EDGE(0, 0)
+              ->NODE("dequant_3", dequant_3)
+              ->EDGE(0, 0)
+              ->NODE("batch_matmul_3", batch_matmul_3)
+              ->EDGE(0, 2)
+              ->NODE("net_output", NETOUTPUT));
 
     CHAIN(NODE("batch_matmul_1")->CTRL_EDGE()->NODE("send_1", send_1));
     CHAIN(NODE("rcv_1", rcv_1)->CTRL_EDGE()->NODE("matmul_2"));
@@ -913,17 +1034,35 @@ TEST_F(SuperKernelPassTest, super_kernel_two_sk_sync_split_logic_stream) {
     const auto send_2 = OP_CFG(SEND).Attr(SEND_ATTR_EVENT_ID, 101);
     const auto rcv_2 = OP_CFG(RECV).Attr(RECV_ATTR_EVENT_ID, 101);
 
-    CHAIN(NODE("data1", DATA)->EDGE(0, 0)->NODE("matmul_1", matmul_1)->EDGE(0, 0)->
-        NODE("dequant_1", dequant_1)->EDGE(0, 0)->
-        NODE("batch_matmul_1", batch_matmul_1)->EDGE(0, 0)->NODE("net_output", NETOUTPUT));
+    CHAIN(NODE("data1", DATA)
+              ->EDGE(0, 0)
+              ->NODE("matmul_1", matmul_1)
+              ->EDGE(0, 0)
+              ->NODE("dequant_1", dequant_1)
+              ->EDGE(0, 0)
+              ->NODE("batch_matmul_1", batch_matmul_1)
+              ->EDGE(0, 0)
+              ->NODE("net_output", NETOUTPUT));
 
-    CHAIN(NODE("data2", DATA)->EDGE(0, 0)->NODE("matmul_2", matmul_2)->EDGE(0, 0)->
-        NODE("dequant_2", dequant_2)->EDGE(0, 0)->
-        NODE("batch_matmul_2", batch_matmul_2)->EDGE(0, 1)->NODE("net_output", NETOUTPUT));
+    CHAIN(NODE("data2", DATA)
+              ->EDGE(0, 0)
+              ->NODE("matmul_2", matmul_2)
+              ->EDGE(0, 0)
+              ->NODE("dequant_2", dequant_2)
+              ->EDGE(0, 0)
+              ->NODE("batch_matmul_2", batch_matmul_2)
+              ->EDGE(0, 1)
+              ->NODE("net_output", NETOUTPUT));
 
-    CHAIN(NODE("data3", DATA)->EDGE(0, 0)->NODE("matmul_3", matmul_3)->EDGE(0, 0)->
-        NODE("dequant_3", dequant_3)->EDGE(0, 0)->
-        NODE("batch_matmul_3", batch_matmul_3)->EDGE(0, 2)->NODE("net_output", NETOUTPUT));
+    CHAIN(NODE("data3", DATA)
+              ->EDGE(0, 0)
+              ->NODE("matmul_3", matmul_3)
+              ->EDGE(0, 0)
+              ->NODE("dequant_3", dequant_3)
+              ->EDGE(0, 0)
+              ->NODE("batch_matmul_3", batch_matmul_3)
+              ->EDGE(0, 2)
+              ->NODE("net_output", NETOUTPUT));
 
     CHAIN(NODE("batch_matmul_1")->CTRL_EDGE()->NODE("send_1", send_1));
     CHAIN(NODE("rcv_1", rcv_1)->CTRL_EDGE()->NODE("matmul_2"));
@@ -1017,7 +1156,6 @@ TEST_F(SuperKernelPassTest, super_kernel_two_sk_sync_split_logic_stream) {
   EXPECT_EQ(sk_rcv_event_ids.size(), 1);
 }
 
-
 TEST_F(SuperKernelPassTest, super_kernel_sk_split_test) {
   DEF_GRAPH(g1) {
     const auto matmul_1 = OP_CFG(MATMUL).Attr("supportSuperKernel", 1).Attr("_super_kernel_scope", "scope1");
@@ -1027,14 +1165,18 @@ TEST_F(SuperKernelPassTest, super_kernel_sk_split_test) {
     const auto send_1 = OP_CFG(SEND).Attr(SEND_ATTR_EVENT_ID, 100);
     const auto rcv_1 = OP_CFG(RECV).Attr(RECV_ATTR_EVENT_ID, 100);
 
-
-    CHAIN(NODE("data1", DATA)->EDGE(0, 0)->NODE("matmul_1", matmul_1)->EDGE(0, 0)->
-        NODE("dequant_1", dequant_1)->EDGE(0, 0)->
-        NODE("batch_matmul_1", batch_matmul_1)->EDGE(0, 0)->NODE("net_output", NETOUTPUT));
+    CHAIN(NODE("data1", DATA)
+              ->EDGE(0, 0)
+              ->NODE("matmul_1", matmul_1)
+              ->EDGE(0, 0)
+              ->NODE("dequant_1", dequant_1)
+              ->EDGE(0, 0)
+              ->NODE("batch_matmul_1", batch_matmul_1)
+              ->EDGE(0, 0)
+              ->NODE("net_output", NETOUTPUT));
 
     CHAIN(NODE("matmul_1")->CTRL_EDGE()->NODE("send_1", send_1));
     CHAIN(NODE("rcv_1", rcv_1)->CTRL_EDGE()->NODE("dequant_1"));
-
   };
   auto compute_graph = ToComputeGraph(g1);
   EXPECT_EQ(compute_graph->TopologicalSorting(), GRAPH_SUCCESS);
@@ -1051,7 +1193,7 @@ TEST_F(SuperKernelPassTest, super_kernel_sk_split_test) {
   dequant_1->GetOpDesc()->SetStreamId(2);
   batch_matmul_1->GetOpDesc()->SetStreamId(2);
 
-  dlog_setlevel(1,1,1);
+  dlog_setlevel(1, 1, 1);
   SuperKernelPass super_kernel_pass;
   auto ret = super_kernel_pass.Run(compute_graph);
   EXPECT_EQ(ret, SUCCESS);
@@ -1066,9 +1208,20 @@ TEST_F(SuperKernelPassTest, super_kernel_sk_split_test) {
 }
 TEST_F(SuperKernelPassTest, super_kernel_pass_simt) {
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data1", DATA)->EDGE(0, 0)->NODE("trans1", TRANSDATA)->EDGE(0, 0)->NODE("reshape", RESHAPE)
-              ->EDGE(0, 0)->NODE("trans2", TRANSDATA)->EDGE(0, 0)->NODE("trans3", TRANSDATA)->EDGE(0, 0)->
-        EDGE(0, 0)->NODE("trans4", TRANSDATA)->EDGE(0, 0)->NODE("net_output", NETOUTPUT));
+    CHAIN(NODE("data1", DATA)
+              ->EDGE(0, 0)
+              ->NODE("trans1", TRANSDATA)
+              ->EDGE(0, 0)
+              ->NODE("reshape", RESHAPE)
+              ->EDGE(0, 0)
+              ->NODE("trans2", TRANSDATA)
+              ->EDGE(0, 0)
+              ->NODE("trans3", TRANSDATA)
+              ->EDGE(0, 0)
+              ->EDGE(0, 0)
+              ->NODE("trans4", TRANSDATA)
+              ->EDGE(0, 0)
+              ->NODE("net_output", NETOUTPUT));
     CHAIN(NODE("const1", CONSTANT)->EDGE(0, 1)->NODE("reshape", RESHAPE));
   };
   auto compute_graph = ToComputeGraph(g1);
@@ -1223,4 +1376,4 @@ TEST_F(SuperKernelPassTest, simt_op_with_tiling_sink_excluded_from_fusion) {
   EXPECT_FALSE(AttrUtils::GetStr(op1->GetOpDesc(), "_super_kernel_scope", scope_attr));
 }
 
-} // namespace ge
+}  // namespace ge

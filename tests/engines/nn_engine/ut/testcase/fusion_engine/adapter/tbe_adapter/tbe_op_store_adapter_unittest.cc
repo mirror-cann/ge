@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -44,16 +44,13 @@ using namespace ge;
 using namespace fe;
 using namespace te;
 
-
 class UTEST_tbe_op_store_adapter : public testing::Test {
  protected:
-  void SetUp() {
-  }
+  void SetUp() {}
 
-  void TearDown() {
-  }
+  void TearDown() {}
 
-protected:
+ protected:
   static bool GetOpSpecificInfoSub(const te::TbeOpInfo &tbeOpInfo, std::string &opSpecificInfoString) {
     nlohmann::json op_specific_info;
     op_specific_info["rangeLimit"] = "limited";
@@ -76,13 +73,13 @@ protected:
   }
 };
 
-TEST_F(UTEST_tbe_op_store_adapter, parse_hardwareinfos_01)
-{
+TEST_F(UTEST_tbe_op_store_adapter, parse_hardwareinfos_01) {
   TbeOpStoreAdapterPtr tbe_adapter_ptr = std::make_shared<TbeOpStoreAdapter>(AI_CORE_NAME);
   std::map<string, string> ge_options = {{"ge.aicoreNum", "16"},
                                          {"ge.hardwareInfo", "ai_core_cnt:12;vector_core_cnt:16"}};
-  Configuration& config = Configuration::Instance(fe::AI_CORE_NAME);
-  config.config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::HardwareInfo)] = "ai_core_cnt:12;vector_core_cnt:16";
+  Configuration &config = Configuration::Instance(fe::AI_CORE_NAME);
+  config.config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::HardwareInfo)] =
+      "ai_core_cnt:12;vector_core_cnt:16";
   config.ParseHardwareInfo();
   std::map<string, string> options = {{"ge.aicoreNum", "16"}};
   tbe_adapter_ptr->ParseHardwareInfos(options);
@@ -91,13 +88,13 @@ TEST_F(UTEST_tbe_op_store_adapter, parse_hardwareinfos_01)
   EXPECT_EQ(options["vector_core_cnt"], "16");
 }
 
-TEST_F(UTEST_tbe_op_store_adapter, parse_hardwareinfos_02)
-{
+TEST_F(UTEST_tbe_op_store_adapter, parse_hardwareinfos_02) {
   TbeOpStoreAdapterPtr tbe_adapter_ptr = std::make_shared<TbeOpStoreAdapter>(AI_CORE_NAME);
   std::map<string, string> ge_options = {{"ge.aicoreNum", "16"},
                                          {"ge.hardwareInfo", "ai_core_cnt:12;vector_core_cnt:16"}};
-  Configuration& config = Configuration::Instance(fe::AI_CORE_NAME);
-  config.config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::HardwareInfo)] = "ai_core_cnt:12;vector_core_cnt:16";
+  Configuration &config = Configuration::Instance(fe::AI_CORE_NAME);
+  config.config_str_param_vec_[static_cast<size_t>(CONFIG_STR_PARAM::HardwareInfo)] =
+      "ai_core_cnt:12;vector_core_cnt:16";
   config.ParseHardwareInfo();
   std::map<string, string> options = {};
   tbe_adapter_ptr->ParseHardwareInfos(options);
@@ -106,10 +103,10 @@ TEST_F(UTEST_tbe_op_store_adapter, parse_hardwareinfos_02)
   EXPECT_EQ(options["vector_core_cnt"], "16");
 }
 
-TEST_F(UTEST_tbe_op_store_adapter, GetRangeLimitedType_1)
-{
+TEST_F(UTEST_tbe_op_store_adapter, GetRangeLimitedType_1) {
   PlatformUtils::Instance().soc_version_ = "Ascend310B1";
-  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::IsaArchVersion)] = static_cast<int64_t>(ISAArchVersion::EN_ISA_ARCH_V300);
+  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::IsaArchVersion)] =
+      static_cast<int64_t>(ISAArchVersion::EN_ISA_ARCH_V300);
   PlatformInfoManager::Instance().opti_compilation_info_.soc_version = "Ascend310B1";
   PlatformInfoManager::Instance().opti_compilation_infos_.SetSocVersion("Ascend310B1");
   TbeOpStoreAdapterPtr tbe_adapter_ptr = std::make_shared<TbeOpStoreAdapter>(AI_CORE_NAME);
@@ -119,10 +116,7 @@ TEST_F(UTEST_tbe_op_store_adapter, GetRangeLimitedType_1)
   ge::OpDescPtr op_desc = make_shared<ge::OpDesc>("relu", "Relu");
   ge::NodePtr node = graph->AddNode(op_desc);
 
-  te::TbeOpInfo info("test",
-                     "test1",
-                     "DynamicCompileStatic",
-                     fe::AI_CORE_NAME);
+  te::TbeOpInfo info("test", "test1", "DynamicCompileStatic", fe::AI_CORE_NAME);
   bool is_limited = false;
   Status ret = tbe_adapter_ptr->GetRangeLimitType(node, info, is_limited);
   EXPECT_EQ(ret, fe::SUCCESS);
@@ -141,7 +135,8 @@ TEST_F(UTEST_tbe_op_store_adapter, GetRangeLimitedType_1)
 
 TEST_F(UTEST_tbe_op_store_adapter, UpdateTensorByMixPrecisionMode_1) {
   PlatformUtils::Instance().soc_version_ = "Ascend310B1";
-  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::IsaArchVersion)] = static_cast<int64_t>(ISAArchVersion::EN_ISA_ARCH_V300);
+  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::IsaArchVersion)] =
+      static_cast<int64_t>(ISAArchVersion::EN_ISA_ARCH_V300);
   PlatformInfoManager::Instance().opti_compilation_info_.soc_version = "Ascend310B1";
   PlatformInfoManager::Instance().opti_compilation_infos_.SetSocVersion("Ascend310B1");
   TbeOpStoreAdapterPtr tbe_adapter_ptr = std::make_shared<TbeOpStoreAdapter>(AI_CORE_NAME);
@@ -175,7 +170,8 @@ TEST_F(UTEST_tbe_op_store_adapter, UpdateTensorByMixPrecisionMode_1) {
 
 TEST_F(UTEST_tbe_op_store_adapter, UpdateTensorByMixPrecisionMode_2) {
   PlatformUtils::Instance().soc_version_ = "Ascend310B1";
-  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::IsaArchVersion)] = static_cast<int64_t>(ISAArchVersion::EN_ISA_ARCH_V300);
+  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::IsaArchVersion)] =
+      static_cast<int64_t>(ISAArchVersion::EN_ISA_ARCH_V300);
   PlatformInfoManager::Instance().opti_compilation_info_.soc_version = "Ascend310B1";
   PlatformInfoManager::Instance().opti_compilation_infos_.SetSocVersion("Ascend310B1");
   TbeOpStoreAdapterPtr tbe_adapter_ptr = std::make_shared<TbeOpStoreAdapter>(AI_CORE_NAME);
@@ -209,7 +205,8 @@ TEST_F(UTEST_tbe_op_store_adapter, UpdateTensorByMixPrecisionMode_2) {
 
 TEST_F(UTEST_tbe_op_store_adapter, DealOpDebugDir_success) {
   PlatformUtils::Instance().soc_version_ = "Ascend310B1";
-  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::IsaArchVersion)] = static_cast<int64_t>(ISAArchVersion::EN_ISA_ARCH_V300);
+  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::IsaArchVersion)] =
+      static_cast<int64_t>(ISAArchVersion::EN_ISA_ARCH_V300);
   PlatformInfoManager::Instance().opti_compilation_info_.soc_version = "Ascend310B1";
   PlatformInfoManager::Instance().opti_compilation_infos_.SetSocVersion("Ascend310B1");
   TbeOpStoreAdapterPtr tbe_adapter_ptr = std::make_shared<TbeOpStoreAdapter>(AI_CORE_NAME);
@@ -220,7 +217,7 @@ TEST_F(UTEST_tbe_op_store_adapter, DealOpDebugDir_success) {
   ge::NodePtr node = graph->AddNode(op_desc);
 
   std::map<std::string, std::string> options;
-  char *path = new(std::nothrow) char[1024];
+  char *path = new (std::nothrow) char[1024];
   getcwd(path, 1024);
   tbe_adapter_ptr->DealOpDebugDir(options);
   string value = options[ge::DEBUG_DIR];
@@ -288,7 +285,7 @@ TEST_F(UTEST_tbe_op_store_adapter, wait_task_debug_message) {
   te::FinComTask fin_task3;
   fin_task3.teNodeOpDesc = std::make_shared<ge::OpDesc>("op1", "test");
   fin_task3.taskId = 996;
-  fin_task3.status = 1; 
+  fin_task3.status = 1;
 
   std::vector<te::FinComTask> fin_tasks = {fin_task1, fin_task2, fin_task3};
   std::string res = GetStrByFinComTaskVec(fin_tasks);
@@ -323,11 +320,11 @@ TEST_F(UTEST_tbe_op_store_adapter, trans_dtype_to_string01) {
 }
 
 TEST_F(UTEST_tbe_op_store_adapter, test_set_extra_params) {
-  std::string op_name    = "conv";
-  std::string op_module   = "";
-  std::string op_type     = "tbe";
-  std::string core_type   = "AIcoreEngine";
-OpDescPtr conv_op = std::make_shared<OpDesc>("Conv", "conv");
+  std::string op_name = "conv";
+  std::string op_module = "";
+  std::string op_type = "tbe";
+  std::string core_type = "AIcoreEngine";
+  OpDescPtr conv_op = std::make_shared<OpDesc>("Conv", "conv");
 
   TbeInfoAssembler tbe;
   TbeOpInfo op_info(op_name, op_module, op_type, core_type);
@@ -336,42 +333,39 @@ OpDescPtr conv_op = std::make_shared<OpDesc>("Conv", "conv");
   tbe.SetCustCoreNum(*(conv_op.get()), op_info);
 }
 
-TEST_F(UTEST_tbe_op_store_adapter, serial_pre_build_op_failed_coverage)
-{
+TEST_F(UTEST_tbe_op_store_adapter, serial_pre_build_op_failed_coverage) {
   TbeOpStoreAdapterPtr tbe_adapter_ptr = std::make_shared<TbeOpStoreAdapter>(AI_CORE_NAME);
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
   OpDescPtr op_desc = std::make_shared<OpDesc>("test_op", "Add");
   NodePtr node = graph->AddNode(op_desc);
-  
+
   vector<PreCompileNodePara> compile_para_vec;
   PreCompileNodePara comp_para;
   comp_para.node = node.get();
   comp_para.tbe_op_info_ptr = nullptr;
   compile_para_vec.push_back(comp_para);
-  
+
   Status status = tbe_adapter_ptr->SerialPreCompileOp(compile_para_vec);
 }
 
-TEST_F(UTEST_tbe_op_store_adapter, parallel_pre_compile_coverage)
-{
+TEST_F(UTEST_tbe_op_store_adapter, parallel_pre_compile_coverage) {
   TbeOpStoreAdapterPtr tbe_adapter_ptr = std::make_shared<TbeOpStoreAdapter>(AI_CORE_NAME);
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
-  
+
   vector<PreCompileNodePara> compile_para_vec;
   PreCompileNodePara comp_para;
   OpDescPtr op_desc = std::make_shared<OpDesc>("test_op", "Add");
   NodePtr node = graph->AddNode(op_desc);
   comp_para.node = node.get();
   compile_para_vec.push_back(comp_para);
-  
+
   Status status = tbe_adapter_ptr->ParallelPreCompileOp(compile_para_vec);
 }
 
-TEST_F(UTEST_tbe_op_store_adapter, serial_pre_compile_with_multiple_nodes)
-{
+TEST_F(UTEST_tbe_op_store_adapter, serial_pre_compile_with_multiple_nodes) {
   TbeOpStoreAdapterPtr tbe_adapter_ptr = std::make_shared<TbeOpStoreAdapter>(AI_CORE_NAME);
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
-  
+
   vector<PreCompileNodePara> compile_para_vec;
   for (int i = 0; i < 3; ++i) {
     PreCompileNodePara comp_para;
@@ -380,22 +374,21 @@ TEST_F(UTEST_tbe_op_store_adapter, serial_pre_compile_with_multiple_nodes)
     comp_para.node = node.get();
     compile_para_vec.push_back(comp_para);
   }
-  
+
   Status status = tbe_adapter_ptr->SerialPreCompileOp(compile_para_vec);
 }
 
-TEST_F(UTEST_tbe_op_store_adapter, task_fusion_basic_coverage)
-{
+TEST_F(UTEST_tbe_op_store_adapter, task_fusion_basic_coverage) {
   TbeOpStoreAdapterPtr tbe_adapter_ptr = std::make_shared<TbeOpStoreAdapter>(AI_CORE_NAME);
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
-  
+
   ScopeNodeIdMap fusion_nodes_map;
   CompileResultMap compile_ret_map;
-  
+
   OpDescPtr op_desc = std::make_shared<OpDesc>("fusion_op", "Add");
   NodePtr node = graph->AddNode(op_desc);
-  vector<ge::Node*> nodes = {node.get()};
+  vector<ge::Node *> nodes = {node.get()};
   fusion_nodes_map[0] = nodes;
-  
+
   Status status = tbe_adapter_ptr->TaskFusion(fusion_nodes_map, compile_ret_map);
 }

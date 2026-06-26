@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,8 +31,9 @@
 namespace gert {
 namespace bg {
 namespace {
-const char *kLaunchKernelTypes[] = {"LaunchKernelWithFlag", "LaunchKernelWithHandle", "AtomicLaunchKernelWithFlag", "AtomicLaunchKernelWithHandle",
-                                    "LaunchMixKernelWithHandle", "LaunchMixKernelWithFlag"};
+const char *kLaunchKernelTypes[] = {"LaunchKernelWithFlag",       "LaunchKernelWithHandle",
+                                    "AtomicLaunchKernelWithFlag", "AtomicLaunchKernelWithHandle",
+                                    "LaunchMixKernelWithHandle",  "LaunchMixKernelWithFlag"};
 
 bool IsTargetLaunchNode(const ge::FastNode *const node) {
   const auto node_type = node->GetTypePtr();
@@ -225,7 +226,7 @@ ge::graphStatus AddInputDesc(const ge::OpDescPtr &op_desc, const std::vector<Cop
   return ge::GRAPH_SUCCESS;
 }
 
-ge::graphStatus AddOutputDesc(const ge::OpDescPtr &op_desc, const std::vector<CopyNode> &copy_nodes)  {
+ge::graphStatus AddOutputDesc(const ge::OpDescPtr &op_desc, const std::vector<CopyNode> &copy_nodes) {
   // CopyFlowLaunchOutputs::kAddress
   for (const auto &proc_node : copy_nodes) {
     auto copy_node = proc_node.copy_node;
@@ -397,7 +398,7 @@ ge::graphStatus ReplaceCopyFlowLaunchNode(const ge::FastNode *launch_node, CopyN
 }
 
 ge::graphStatus AddEdgeFromTilingNode(ge::FastNode *const copy_flow_launch_node,
-                                          const ge::FastNode *const kernel_launch_node) {
+                                      const ge::FastNode *const kernel_launch_node) {
   std::set<ge::FastNode *> memcheck_nodes;
   for (const auto src_node : kernel_launch_node->GetInDataNodes()) {
     GELOGD("src node name %s, src node type %s", src_node->GetNamePtr(), src_node->GetTypePtr());
@@ -521,7 +522,8 @@ ge::graphStatus CopyFlowLaunchFuse::Run(ge::ExecuteGraph *const graph, bool &cha
   for (const auto node : kernel_launch_nodes) {
     std::vector<CopyNode> copy_nodes = {};
     GE_ASSERT_SUCCESS(FindCopyNodes(node, copy_nodes));
-    GE_ASSERT_SUCCESS(RemoveRedundanceCtrlFromCopyToConsumer(node->GetExtendInfo()->GetOwnerGraphBarePtr(), copy_nodes));
+    GE_ASSERT_SUCCESS(
+        RemoveRedundanceCtrlFromCopyToConsumer(node->GetExtendInfo()->GetOwnerGraphBarePtr(), copy_nodes));
     GE_ASSERT_SUCCESS(FuseCopyNodes(node, copy_nodes, changed));
   }
   if (changed) {

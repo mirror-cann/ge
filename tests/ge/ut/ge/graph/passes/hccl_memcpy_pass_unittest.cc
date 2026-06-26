@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -59,14 +59,13 @@ class UtestGraphPassesHcclMemcpyPass : public testing::Test {
     add_op->AddOutputDesc(scalarTensorDesc);
     auto add_node = graph->AddNode(add_op);
 
-    (void) GraphUtils::AddEdge(input_node->GetOutDataAnchor(0), allreduce_node->GetInDataAnchor(0));
-    (void) GraphUtils::AddEdge(input_node->GetOutDataAnchor(0), relu_node->GetInDataAnchor(0));
+    (void)GraphUtils::AddEdge(input_node->GetOutDataAnchor(0), allreduce_node->GetInDataAnchor(0));
+    (void)GraphUtils::AddEdge(input_node->GetOutDataAnchor(0), relu_node->GetInDataAnchor(0));
 
-    (void) GraphUtils::AddEdge(allreduce_node->GetOutDataAnchor(0), add_node->GetInDataAnchor(0));
-    (void) GraphUtils::AddEdge(relu_node->GetOutDataAnchor(0), add_node->GetInDataAnchor(1));
-    (void) GraphUtils::AddEdge(allreduce_node->GetOutControlAnchor(), relu_node->GetInControlAnchor());
+    (void)GraphUtils::AddEdge(allreduce_node->GetOutDataAnchor(0), add_node->GetInDataAnchor(0));
+    (void)GraphUtils::AddEdge(relu_node->GetOutDataAnchor(0), add_node->GetInDataAnchor(1));
+    (void)GraphUtils::AddEdge(allreduce_node->GetOutControlAnchor(), relu_node->GetInControlAnchor());
   }
-
 
   void make_sub_graph(ComputeGraphPtr graph, bool match = true) {
     GeTensorDesc scalarTensorDesc(GeShape({7, 7, 3, 1}));
@@ -86,8 +85,8 @@ class UtestGraphPassesHcclMemcpyPass : public testing::Test {
     relu_op->AddOutputDesc(scalarTensorDesc);
     auto relu_node = graph->AddNode(relu_op);
 
-    (void) GraphUtils::AddEdge(input_node->GetOutDataAnchor(0), allreduce_node->GetInDataAnchor(0));
-    (void) GraphUtils::AddEdge(allreduce_node->GetOutDataAnchor(0), relu_node->GetInDataAnchor(0));
+    (void)GraphUtils::AddEdge(input_node->GetOutDataAnchor(0), allreduce_node->GetInDataAnchor(0));
+    (void)GraphUtils::AddEdge(allreduce_node->GetOutDataAnchor(0), relu_node->GetInDataAnchor(0));
   }
 };
 namespace {
@@ -102,7 +101,7 @@ namespace {
  *        |
  *       netoutput
  */
-ComputeGraphPtr BuildGraph_Two_Allreduce_Read_OneOutput(){
+ComputeGraphPtr BuildGraph_Two_Allreduce_Read_OneOutput() {
   auto builder = ut::GraphBuilder("test");
   auto data = builder.AddNode("data", DATA, 0, 1);
   auto allreduce1 = builder.AddNode("allreduce1", HCOMALLREDUCE, 1, 1);
@@ -129,7 +128,7 @@ ComputeGraphPtr BuildGraph_Two_Allreduce_Read_OneOutput(){
  *        |    /
  *       netoutput
  */
-ComputeGraphPtr BuildGraph_Allreduce_Noneed_Insert(){
+ComputeGraphPtr BuildGraph_Allreduce_Noneed_Insert() {
   auto builder = ut::GraphBuilder("test");
   auto data = builder.AddNode("data", DATA, 0, 1);
   auto allreduce1 = builder.AddNode("allreduce1", HCOMALLREDUCE, 1, 1);
@@ -156,7 +155,7 @@ ComputeGraphPtr BuildGraph_Allreduce_Noneed_Insert(){
  *        |     /
  *       netoutput
  */
-ComputeGraphPtr BuildGraph_Allreduce_Noneed_Insert_Shape_Sibling(){
+ComputeGraphPtr BuildGraph_Allreduce_Noneed_Insert_Shape_Sibling() {
   auto builder = ut::GraphBuilder("test");
   auto data = builder.AddNode("data", DATA, 0, 1);
   auto allreduce1 = builder.AddNode("allreduce1", HCOMALLREDUCE, 1, 1);
@@ -185,7 +184,7 @@ ComputeGraphPtr BuildGraph_Allreduce_Noneed_Insert_Shape_Sibling(){
  *                                         |
  *                                      netoutput
  */
-ComputeGraphPtr BuildGraph_Allreduce_Read_Var_After_Assign(){
+ComputeGraphPtr BuildGraph_Allreduce_Read_Var_After_Assign() {
   auto builder = ut::GraphBuilder("test");
   auto var = builder.AddNode("var", VARIABLE, 0, 1);
   auto assign = builder.AddNode("assign", ASSIGN, 1, 1);
@@ -193,7 +192,7 @@ ComputeGraphPtr BuildGraph_Allreduce_Read_Var_After_Assign(){
   auto netoutput1 = builder.AddNode("netoutput", NETOUTPUT, 1, 0);
 
   builder.AddDataEdge(var, 0, assign, 0);
-  builder.AddDataEdge(var,0,allreduce,0);
+  builder.AddDataEdge(var, 0, allreduce, 0);
   builder.AddControlEdge(assign, allreduce);
   return builder.GetGraph();
 }
@@ -207,8 +206,7 @@ TEST_F(UtestGraphPassesHcclMemcpyPass, testInsertIdentityBeforeHccl) {
   auto dst_node = graph->FindNode("allreduce");
   // test InsertIdentityBeforeHccl
   HcclMemcpyPass hccl_memcpy_pass;
-  hccl_memcpy_pass.InsertIdentityBeforeHccl(src_node->GetOutDataAnchor(0),
-                                            dst_node->GetInDataAnchor(0));
+  hccl_memcpy_pass.InsertIdentityBeforeHccl(src_node->GetOutDataAnchor(0), dst_node->GetInDataAnchor(0));
 
   // check
   dst_node = graph->FindNode("allreduce");
@@ -218,23 +216,21 @@ TEST_F(UtestGraphPassesHcclMemcpyPass, testInsertIdentityBeforeHccl) {
   EXPECT_EQ(in_node_before_dst_node->GetInControlNodes().at(0)->GetName(), "assign");
 }
 
-TEST_F(UtestGraphPassesHcclMemcpyPass, run_empty_graph_failed)
-{
+TEST_F(UtestGraphPassesHcclMemcpyPass, run_empty_graph_failed) {
   ComputeGraphPtr graph = nullptr;
 
   HcclMemcpyPass hcclMemcpyPass;
-  std::vector<std::pair<string, GraphPass*>> passes;
+  std::vector<std::pair<string, GraphPass *>> passes;
   passes.emplace_back("", &hcclMemcpyPass);
   EXPECT_EQ(hcclMemcpyPass.Run(graph), ge::PARAM_INVALID);
 }
 
-TEST_F(UtestGraphPassesHcclMemcpyPass, run_success)
-{
+TEST_F(UtestGraphPassesHcclMemcpyPass, run_success) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
   make_graph(graph);
 
   HcclMemcpyPass hcclMemcpyPass;
-  std::vector<std::pair<string, GraphPass*>> passes;
+  std::vector<std::pair<string, GraphPass *>> passes;
   passes.emplace_back("", &hcclMemcpyPass);
   EXPECT_EQ(hcclMemcpyPass.Run(graph), ge::SUCCESS);
 
@@ -257,13 +253,13 @@ TEST_F(UtestGraphPassesHcclMemcpyPass, run_sub_graph_success) {
   make_sub_graph(graph);
 
   HcclMemcpyPass hcclMemcpyPass;
-  std::vector<std::pair<string, GraphPass*>> passes;
+  std::vector<std::pair<string, GraphPass *>> passes;
   passes.emplace_back("", &hcclMemcpyPass);
   EXPECT_EQ(hcclMemcpyPass.Run(graph), ge::SUCCESS);
 
   bool has_memcpy_async = false;
   std::string node_type;
-  for (const ge::NodePtr& node : graph->GetDirectNode()) {
+  for (const ge::NodePtr &node : graph->GetDirectNode()) {
     OpDescPtr tmp_desc = node->GetOpDesc();
     node_type = tmp_desc->GetType();
     if (node_type == IDENTITY) {
@@ -275,27 +271,24 @@ TEST_F(UtestGraphPassesHcclMemcpyPass, run_sub_graph_success) {
   EXPECT_TRUE(has_memcpy_async == true);
 }
 
-TEST_F(UtestGraphPassesHcclMemcpyPass, create_memcpy_node_success)
-{
+TEST_F(UtestGraphPassesHcclMemcpyPass, create_memcpy_node_success) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
   make_graph(graph);
   HcclMemcpyPass hcclMemcpyPass;
-  std::vector<std::pair<string, GraphPass*>> passes;
+  std::vector<std::pair<string, GraphPass *>> passes;
   passes.emplace_back("", &hcclMemcpyPass);
   std::shared_ptr<ge::Node> null_Node;
 
   EXPECT_EQ(hcclMemcpyPass.Run(graph), SUCCESS);
 }
 
-TEST_F(UtestGraphPassesHcclMemcpyPass, ClearStatus)
-{
+TEST_F(UtestGraphPassesHcclMemcpyPass, ClearStatus) {
   HcclMemcpyPass hcclMemcpyPass;
   Status ret = hcclMemcpyPass.ClearStatus();
   EXPECT_EQ(ret, SUCCESS);
 }
 
-TEST_F(UtestGraphPassesHcclMemcpyPass, Run_test)
-{
+TEST_F(UtestGraphPassesHcclMemcpyPass, Run_test) {
   HcclMemcpyPass hcclMemcpyPass;
   GeTensorDesc scalarTensorDesc(GeShape({7, 7, 3, 1}));
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
@@ -316,8 +309,8 @@ TEST_F(UtestGraphPassesHcclMemcpyPass, Run_test)
   add_op->AddInputDesc(scalarTensorDesc);
   add_op->AddOutputDesc(scalarTensorDesc);
   auto add_node = graph->AddNode(add_op);
-  (void) GraphUtils::AddEdge(input_node->GetOutDataAnchor(0), hcomBroadcast_node->GetInDataAnchor(0));
-  (void) GraphUtils::AddEdge(hcomBroadcast_node->GetOutDataAnchor(0), add_node->GetInDataAnchor(0));
+  (void)GraphUtils::AddEdge(input_node->GetOutDataAnchor(0), hcomBroadcast_node->GetInDataAnchor(0));
+  (void)GraphUtils::AddEdge(hcomBroadcast_node->GetOutDataAnchor(0), add_node->GetInDataAnchor(0));
   ret = hcclMemcpyPass.Run(graph);
   EXPECT_EQ(ret, PARAM_INVALID);
 
@@ -326,13 +319,12 @@ TEST_F(UtestGraphPassesHcclMemcpyPass, Run_test)
   variable_op->AddInputDesc(scalarTensorDesc);
   auto variable_node = graph->AddNode(variable_op);
 
-  (void) GraphUtils::AddEdge(variable_node->GetOutDataAnchor(0), hcomBroadcast_node->GetInDataAnchor(1));
+  (void)GraphUtils::AddEdge(variable_node->GetOutDataAnchor(0), hcomBroadcast_node->GetInDataAnchor(1));
   ret = hcclMemcpyPass.Run(graph);
   EXPECT_EQ(ret, PARAM_INVALID);
 }
 
-TEST_F(UtestGraphPassesHcclMemcpyPass, Insert_assign_test)
-{
+TEST_F(UtestGraphPassesHcclMemcpyPass, Insert_assign_test) {
   HcclMemcpyPass hcclMemcpyPass;
   GeTensorDesc scalarTensorDesc(GeShape({7, 7, 3, 1}));
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
@@ -348,13 +340,13 @@ TEST_F(UtestGraphPassesHcclMemcpyPass, Insert_assign_test)
   variable_op->AddInputDesc(scalarTensorDesc);
   auto variable_node = graph->AddNode(variable_op);
 
-  (void) GraphUtils::AddEdge(variable_node->GetOutDataAnchor(0), hcomBroadcast_node->GetInDataAnchor(0));
-  auto ret = hcclMemcpyPass.InsertAssignAfterBroadcastIfNeed(graph, variable_node->GetOutDataAnchor(0), hcomBroadcast_node->GetInDataAnchor(0));
+  (void)GraphUtils::AddEdge(variable_node->GetOutDataAnchor(0), hcomBroadcast_node->GetInDataAnchor(0));
+  auto ret = hcclMemcpyPass.InsertAssignAfterBroadcastIfNeed(graph, variable_node->GetOutDataAnchor(0),
+                                                             hcomBroadcast_node->GetInDataAnchor(0));
   EXPECT_EQ(ret, SUCCESS);
 }
 
-TEST_F(UtestGraphPassesHcclMemcpyPass, Avoid_too_many_identity)
-{
+TEST_F(UtestGraphPassesHcclMemcpyPass, Avoid_too_many_identity) {
   HcclMemcpyPass hcclMemcpyPass;
   ComputeGraphPtr graph = BuildGraph_Two_Allreduce_Read_OneOutput();
   EXPECT_EQ(graph->GetDirectNodesSize(), 4);
@@ -363,8 +355,7 @@ TEST_F(UtestGraphPassesHcclMemcpyPass, Avoid_too_many_identity)
   EXPECT_EQ(graph->GetDirectNodesSize(), 5);
 }
 
-TEST_F(UtestGraphPassesHcclMemcpyPass, Noneed_insert_identity)
-{
+TEST_F(UtestGraphPassesHcclMemcpyPass, Noneed_insert_identity) {
   HcclMemcpyPass hcclMemcpyPass;
   ComputeGraphPtr graph = BuildGraph_Allreduce_Noneed_Insert();
   EXPECT_EQ(graph->GetDirectNodesSize(), 4);
@@ -373,8 +364,7 @@ TEST_F(UtestGraphPassesHcclMemcpyPass, Noneed_insert_identity)
   EXPECT_EQ(graph->GetDirectNodesSize(), 4);
 }
 
-TEST_F(UtestGraphPassesHcclMemcpyPass, Noneed_insert_identity_ShapeComputingSibling)
-{
+TEST_F(UtestGraphPassesHcclMemcpyPass, Noneed_insert_identity_ShapeComputingSibling) {
   HcclMemcpyPass hcclMemcpyPass;
   ComputeGraphPtr graph = BuildGraph_Allreduce_Noneed_Insert_Shape_Sibling();
   EXPECT_EQ(graph->GetDirectNodesSize(), 5);

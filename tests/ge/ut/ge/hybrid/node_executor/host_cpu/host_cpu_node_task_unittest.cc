@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,7 +33,7 @@ namespace {
 struct AicpuTaskStruct {
   aicpu::AicpuParamHead head;
   uint64_t io_addrp[2];
-}__attribute__((packed));
+} __attribute__((packed));
 }  // namespace
 
 class UtestHostCpuNodeTask : public testing::Test {
@@ -96,7 +96,7 @@ TEST_F(UtestHostCpuNodeTask, test_load) {
   host_task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_KERNEL));
   ASSERT_EQ(node_executor.LoadTask(hybrid_model, node, task), INTERNAL_ERROR);
   domi::KernelContext *context = host_task_def.mutable_kernel()->mutable_context();
-  context->set_kernel_type(8);    // ccKernelType::HOST_CPU
+  context->set_kernel_type(8);  // ccKernelType::HOST_CPU
   ASSERT_EQ(node_executor.LoadTask(hybrid_model, node, task), INTERNAL_ERROR);
   HostCpuEngine::GetInstance().constant_folding_handle_ = (void *)0x01;
   ASSERT_EQ(node_executor.LoadTask(hybrid_model, node, task), INTERNAL_ERROR);
@@ -111,13 +111,13 @@ TEST_F(UtestHostCpuNodeTask, test_execute) {
   auto node_item = graphItem.GetNodeItem();
   SubgraphContext subgraph_context(&graphItem, nullptr);
   HostAicpuNodeTask task(node_item, task_def);
-  std::function<void()> call_back = []{};
+  std::function<void()> call_back = [] {};
   FrameState frame_state;
   NodeState node_state(*node_item, &subgraph_context, frame_state);
   TaskContext context(nullptr, &node_state, &subgraph_context);
   ASSERT_EQ(task.ExecuteAsync(context, call_back), INTERNAL_ERROR);
 
-  std::function<uint32_t (void *)> run_cpu_kernel = [](void *){ return 0; };
+  std::function<uint32_t(void *)> run_cpu_kernel = [](void *) { return 0; };
   task.SetRunKernel(run_cpu_kernel);
   ASSERT_EQ(task.ExecuteAsync(context, call_back), SUCCESS);
 }
@@ -149,9 +149,9 @@ TEST_F(UtestHostCpuNodeTask, test_update_args) {
   ASSERT_EQ(task.UpdateArgs(context), INTERNAL_ERROR);
 
   task.args_size_ = sizeof(AicpuTaskStruct);
-  task.args_.reset(new(std::nothrow) uint8_t[task.args_size_]());
+  task.args_.reset(new (std::nothrow) uint8_t[task.args_size_]());
   task.args_ex_.args = task.args_.get();
   task.args_ex_.argsSize = task.args_size_;
   ASSERT_EQ(task.UpdateArgs(context), SUCCESS);
 }
-} // namespace ge
+}  // namespace ge

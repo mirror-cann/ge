@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,23 +30,28 @@ namespace {
 // var->cast1->transdata1->cast2->transdata2->conv2d
 static ComputeGraphPtr BuildGraph1() {
   auto builder = ut::GraphBuilder("g1");
-  auto var = builder.AddNode("var", VARIABLE, 1, 1, FORMAT_NC1HWC0, DT_FLOAT16, std::vector<int64_t>({1, 1, 224, 224, 16}));
+  auto var =
+      builder.AddNode("var", VARIABLE, 1, 1, FORMAT_NC1HWC0, DT_FLOAT16, std::vector<int64_t>({1, 1, 224, 224, 16}));
   var->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({1, 1, 224, 224, 16}));
-  auto cast1 = builder.AddNode("cast1", CAST, 1, 1, FORMAT_NC1HWC0, DT_FLOAT16, std::vector<int64_t>({1, 1, 224, 224, 16}));
+  auto cast1 =
+      builder.AddNode("cast1", CAST, 1, 1, FORMAT_NC1HWC0, DT_FLOAT16, std::vector<int64_t>({1, 1, 224, 224, 16}));
   cast1->GetOpDesc()->MutableOutputDesc(0)->SetDataType(DT_FLOAT);
 
-  auto transdata1 = builder.AddNode("transdata1", "TransData", 1, 1, FORMAT_NC1HWC0, DT_FLOAT, std::vector<int64_t>({1, 1, 224, 224, 16}));
+  auto transdata1 = builder.AddNode("transdata1", "TransData", 1, 1, FORMAT_NC1HWC0, DT_FLOAT,
+                                    std::vector<int64_t>({1, 1, 224, 224, 16}));
   transdata1->GetOpDesc()->MutableOutputDesc(0)->SetFormat(FORMAT_NHWC);
   transdata1->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape(std::vector<int64_t>({1, 224, 224, 3})));
 
   auto cast2 = builder.AddNode("cast2", CAST, 1, 1, FORMAT_NHWC, DT_FLOAT, std::vector<int64_t>({1, 224, 224, 3}));
   cast2->GetOpDesc()->MutableOutputDesc(0)->SetDataType(DT_FLOAT16);
 
-  auto transdata2 = builder.AddNode("transdata2", "TransData", 1, 1, FORMAT_NHWC, DT_FLOAT16, std::vector<int64_t>({1, 224, 224, 3}));
+  auto transdata2 =
+      builder.AddNode("transdata2", "TransData", 1, 1, FORMAT_NHWC, DT_FLOAT16, std::vector<int64_t>({1, 224, 224, 3}));
   transdata2->GetOpDesc()->MutableOutputDesc(0)->SetFormat(FORMAT_NC1HWC0);
   transdata2->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape(std::vector<int64_t>({1, 1, 224, 224, 16})));
 
-  auto conv2d = builder.AddNode("conv2d", "Conv2D", 1, 1, FORMAT_NC1HWC0, DT_FLOAT16, std::vector<int64_t>({1, 1, 224, 224, 16}));
+  auto conv2d =
+      builder.AddNode("conv2d", "Conv2D", 1, 1, FORMAT_NC1HWC0, DT_FLOAT16, std::vector<int64_t>({1, 1, 224, 224, 16}));
   conv2d->GetOpDesc()->MutableInputDesc(0)->SetOriginShape(GeShape({1, 1, 224, 224, 16}));
 
   builder.AddDataEdge(var, 0, cast1, 0);
@@ -63,19 +68,24 @@ static ComputeGraphPtr BuildGraph1() {
 // var->transdata1->transdata2>cast->conv2d
 static ComputeGraphPtr BuildGraphWithRing() {
   auto builder = ut::GraphBuilder("g1");
-  auto var = builder.AddNode("var", VARIABLE, 1, 1, FORMAT_NC1HWC0, DT_FLOAT16, std::vector<int64_t>({1, 1, 224, 224, 16}));
+  auto var =
+      builder.AddNode("var", VARIABLE, 1, 1, FORMAT_NC1HWC0, DT_FLOAT16, std::vector<int64_t>({1, 1, 224, 224, 16}));
   var->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(GeShape({1, 1, 224, 224, 16}));
 
-  auto transdata1 = builder.AddNode("transdata1", "TransData", 1, 1, FORMAT_NC1HWC0, DT_FLOAT16, std::vector<int64_t>({1, 1, 224, 224, 16}));
+  auto transdata1 = builder.AddNode("transdata1", "TransData", 1, 1, FORMAT_NC1HWC0, DT_FLOAT16,
+                                    std::vector<int64_t>({1, 1, 224, 224, 16}));
   transdata1->GetOpDesc()->MutableOutputDesc(0)->SetFormat(FORMAT_NHWC);
   transdata1->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape(std::vector<int64_t>({1, 224, 224, 16})));
-  auto transdata2 = builder.AddNode("transdata2", "TransData", 1, 1, FORMAT_NHWC, DT_FLOAT16, std::vector<int64_t>({1, 224, 224, 16}));
+  auto transdata2 = builder.AddNode("transdata2", "TransData", 1, 1, FORMAT_NHWC, DT_FLOAT16,
+                                    std::vector<int64_t>({1, 224, 224, 16}));
   transdata2->GetOpDesc()->MutableOutputDesc(0)->SetFormat(FORMAT_NC1HWC0);
   transdata2->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape(std::vector<int64_t>({1, 1, 224, 224, 16})));
-  auto cast1 = builder.AddNode("cast1", CAST, 1, 1, FORMAT_NC1HWC0, DT_FLOAT16, std::vector<int64_t>({1, 1, 224, 224, 16}));
+  auto cast1 =
+      builder.AddNode("cast1", CAST, 1, 1, FORMAT_NC1HWC0, DT_FLOAT16, std::vector<int64_t>({1, 1, 224, 224, 16}));
   cast1->GetOpDesc()->MutableOutputDesc(0)->SetDataType(DT_FLOAT);
 
-  auto conv2d = builder.AddNode("conv2d", "Conv2D", 1, 1, FORMAT_NC1HWC0, DT_FLOAT, std::vector<int64_t>({1, 1, 224, 224, 16}));
+  auto conv2d =
+      builder.AddNode("conv2d", "Conv2D", 1, 1, FORMAT_NC1HWC0, DT_FLOAT, std::vector<int64_t>({1, 1, 224, 224, 16}));
   conv2d->GetOpDesc()->MutableInputDesc(0)->SetOriginShape(GeShape({1, 1, 224, 224, 16}));
   auto const1 = builder.AddNode("const1", CONSTANT, 0, 1);
 
@@ -89,97 +99,122 @@ static ComputeGraphPtr BuildGraphWithRing() {
 }
 
 REG_OP(Cast)
-  .INPUT(x, TensorType({DT_BOOL, DT_FLOAT16, DT_FLOAT, DT_INT8, DT_INT32, DT_UINT32, DT_UINT8, DT_INT64,
-                        DT_UINT64, DT_INT16, DT_UINT16, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128,
-                        DT_QINT8, DT_QUINT8, DT_QINT16, DT_QUINT16, DT_QINT32})) /* input tensor */
-  .OUTPUT(y, TensorType({DT_BOOL, DT_FLOAT16, DT_FLOAT, DT_INT8, DT_INT32, DT_UINT32, DT_UINT8, DT_INT64,
-                        DT_UINT64, DT_INT16, DT_UINT16, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128,
-                        DT_QINT8, DT_QUINT8, DT_QINT16, DT_QUINT16, DT_QINT32})) /* output tensor */
-  .ATTR(dst_type, Int, 0)
-  .ATTR(truncate, Bool, false)
-  .OP_END_FACTORY_REG(Cast)
+    .INPUT(x, TensorType({DT_BOOL, DT_FLOAT16, DT_FLOAT, DT_INT8, DT_INT32, DT_UINT32, DT_UINT8, DT_INT64, DT_UINT64,
+                          DT_INT16, DT_UINT16, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128, DT_QINT8, DT_QUINT8, DT_QINT16,
+                          DT_QUINT16, DT_QINT32})) /* input tensor */
+    .OUTPUT(y, TensorType({DT_BOOL, DT_FLOAT16, DT_FLOAT, DT_INT8, DT_INT32, DT_UINT32, DT_UINT8, DT_INT64, DT_UINT64,
+                           DT_INT16, DT_UINT16, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128, DT_QINT8, DT_QUINT8, DT_QINT16,
+                           DT_QUINT16, DT_QINT32})) /* output tensor */
+    .ATTR(dst_type, Int, 0)
+    .ATTR(truncate, Bool, false)
+    .OP_END_FACTORY_REG(Cast)
 
-// stub fe opskernel info store
-class FEOpsKernelInfoStore : public ge::OpsKernelInfoStore {
-public:
-    FEOpsKernelInfoStore() {};
-    ~FEOpsKernelInfoStore() {};
-    FEOpsKernelInfoStore(const FEOpsKernelInfoStore &) = delete;
-    FEOpsKernelInfoStore &operator=(const FEOpsKernelInfoStore &) = delete;
-    Status Initialize(const map<string, string> &options) {return 0;}
-    Status Finalize() { return 0;}
-    Status CreateSession(const std::map<std::string, std::string> &sessionOptions) {return 0;}
-    Status DestroySession(const std::map<std::string, std::string> &sessionOptions) {return 0;}
-    Status CalcOpRunningParam(Node& node){ return 0;}
-    Status GenerateTask(const Node &node,
-                        RunContext &context,
-                        std::vector<domi::TaskDef> &tasks){ return 0;}
-    bool CheckSupported(const ge::OpDescPtr &opDescPtr, std::string& unSupportReason) const {return true;}
-    bool CheckAccuracySupported(const OpDescPtr &opDescPtr, std::string &un_supported_reason,
-                                      const bool realQuery = false) const { return true;}
-    void GetAllOpsKernelInfo(std::map<std::string, ge::OpInfo> &infos) const override;
+    // stub fe opskernel info store
+    class FEOpsKernelInfoStore : public ge::OpsKernelInfoStore {
+ public:
+  FEOpsKernelInfoStore() {};
+  ~FEOpsKernelInfoStore() {};
+  FEOpsKernelInfoStore(const FEOpsKernelInfoStore &) = delete;
+  FEOpsKernelInfoStore &operator=(const FEOpsKernelInfoStore &) = delete;
+  Status Initialize(const map<string, string> &options) {
+    return 0;
+  }
+  Status Finalize() {
+    return 0;
+  }
+  Status CreateSession(const std::map<std::string, std::string> &sessionOptions) {
+    return 0;
+  }
+  Status DestroySession(const std::map<std::string, std::string> &sessionOptions) {
+    return 0;
+  }
+  Status CalcOpRunningParam(Node &node) {
+    return 0;
+  }
+  Status GenerateTask(const Node &node, RunContext &context, std::vector<domi::TaskDef> &tasks) {
+    return 0;
+  }
+  bool CheckSupported(const ge::OpDescPtr &opDescPtr, std::string &unSupportReason) const {
+    return true;
+  }
+  bool CheckAccuracySupported(const OpDescPtr &opDescPtr, std::string &un_supported_reason,
+                              const bool realQuery = false) const {
+    return true;
+  }
+  void GetAllOpsKernelInfo(std::map<std::string, ge::OpInfo> &infos) const override;
 };
 
-void FEOpsKernelInfoStore::GetAllOpsKernelInfo(map<string, ge::OpInfo> &infos) const
-{
-    map<string, OpInfo> opkInfos{};
-    OpInfo aicore_op = {"v100", "FEOpsStore", 0, true, false};
-    infos.emplace(std::make_pair("Flatten", aicore_op));
-    infos.emplace(std::make_pair("FullConnection", aicore_op));
-    infos.emplace(std::make_pair("Permute", aicore_op));
-    infos.emplace(std::make_pair("Transpose", aicore_op));
-    infos.emplace(std::make_pair("Cast", aicore_op));
-    infos.emplace(std::make_pair("TransData", aicore_op));
+void FEOpsKernelInfoStore::GetAllOpsKernelInfo(map<string, ge::OpInfo> &infos) const {
+  map<string, OpInfo> opkInfos{};
+  OpInfo aicore_op = {"v100", "FEOpsStore", 0, true, false};
+  infos.emplace(std::make_pair("Flatten", aicore_op));
+  infos.emplace(std::make_pair("FullConnection", aicore_op));
+  infos.emplace(std::make_pair("Permute", aicore_op));
+  infos.emplace(std::make_pair("Transpose", aicore_op));
+  infos.emplace(std::make_pair("Cast", aicore_op));
+  infos.emplace(std::make_pair("TransData", aicore_op));
 }
 
 // stub aicpu opskernel info store
 class AICPUOpsKernelInfoStore : public ge::OpsKernelInfoStore {
-public:
-    AICPUOpsKernelInfoStore() {};
-    ~AICPUOpsKernelInfoStore() {};
-    AICPUOpsKernelInfoStore(const AICPUOpsKernelInfoStore &) = delete;
-    AICPUOpsKernelInfoStore &operator=(const AICPUOpsKernelInfoStore &) = delete;
-    Status Initialize(const map<string, string> &options) {return 0;}
-    Status Finalize() { return 0;}
-    Status CreateSession(const std::map<std::string, std::string> &sessionOptions) {return 0;}
-    Status DestroySession(const std::map<std::string, std::string> &sessionOptions) {return 0;}
-    Status CalcOpRunningParam(Node& node){ return 0;}
-    Status GenerateTask(const Node &node,
-                                RunContext &context,
-                                std::vector<domi::TaskDef> &tasks){ return 0;}
-    bool CheckSupported(const ge::OpDescPtr &opDescPtr, std::string& unSupportReason) const {return true;}
-    bool CheckAccuracySupported(const OpDescPtr &opDescPtr, std::string &un_supported_reason,
-                                      const bool realQuery = false) const { return true;}
-    void GetAllOpsKernelInfo(std::map<std::string, ge::OpInfo> &infos) const override;
+ public:
+  AICPUOpsKernelInfoStore() {};
+  ~AICPUOpsKernelInfoStore() {};
+  AICPUOpsKernelInfoStore(const AICPUOpsKernelInfoStore &) = delete;
+  AICPUOpsKernelInfoStore &operator=(const AICPUOpsKernelInfoStore &) = delete;
+  Status Initialize(const map<string, string> &options) {
+    return 0;
+  }
+  Status Finalize() {
+    return 0;
+  }
+  Status CreateSession(const std::map<std::string, std::string> &sessionOptions) {
+    return 0;
+  }
+  Status DestroySession(const std::map<std::string, std::string> &sessionOptions) {
+    return 0;
+  }
+  Status CalcOpRunningParam(Node &node) {
+    return 0;
+  }
+  Status GenerateTask(const Node &node, RunContext &context, std::vector<domi::TaskDef> &tasks) {
+    return 0;
+  }
+  bool CheckSupported(const ge::OpDescPtr &opDescPtr, std::string &unSupportReason) const {
+    return true;
+  }
+  bool CheckAccuracySupported(const OpDescPtr &opDescPtr, std::string &un_supported_reason,
+                              const bool realQuery = false) const {
+    return true;
+  }
+  void GetAllOpsKernelInfo(std::map<std::string, ge::OpInfo> &infos) const override;
 };
 
-void AICPUOpsKernelInfoStore::GetAllOpsKernelInfo(map<string, ge::OpInfo> &infos) const
-{
-    map<string, OpInfo> opkInfos{};
-    OpInfo aicpu_op = {"DNN_VM_TF", "aicpu_kernel", 0, false, false};
-    infos.emplace(std::make_pair("Flatten", aicpu_op));
-    infos.emplace(std::make_pair("FullConnection", aicpu_op));
-    infos.emplace(std::make_pair("Permute", aicpu_op));
-    infos.emplace(std::make_pair("Transpose", aicpu_op));
-    infos.emplace(std::make_pair("Cast", aicpu_op));
+void AICPUOpsKernelInfoStore::GetAllOpsKernelInfo(map<string, ge::OpInfo> &infos) const {
+  map<string, OpInfo> opkInfos{};
+  OpInfo aicpu_op = {"DNN_VM_TF", "aicpu_kernel", 0, false, false};
+  infos.emplace(std::make_pair("Flatten", aicpu_op));
+  infos.emplace(std::make_pair("FullConnection", aicpu_op));
+  infos.emplace(std::make_pair("Permute", aicpu_op));
+  infos.emplace(std::make_pair("Transpose", aicpu_op));
+  infos.emplace(std::make_pair("Cast", aicpu_op));
 }
 
 extern "C" void GetDNNEngineObjs(std::map<std::string, DNNEnginePtr> &engines);
 
-void InitOpsKernelInfoStub()
-{
-    auto &opsKernelStore = OpsKernelManager::GetInstance().ops_kernel_store_;
+void InitOpsKernelInfoStub() {
+  auto &opsKernelStore = OpsKernelManager::GetInstance().ops_kernel_store_;
 
-    // init opsKernelStore
-    auto aicpu_kernel_store = MakeShared<AICPUOpsKernelInfoStore>();
-    auto aicore_kernel_store = MakeShared<FEOpsKernelInfoStore>();
-    opsKernelStore.emplace(std::pair<string, OpsKernelInfoStorePtr>("aicpu_kernel", aicpu_kernel_store));
-    opsKernelStore.emplace(std::pair<string, OpsKernelInfoStorePtr>("FEOpsStore", aicore_kernel_store));
+  // init opsKernelStore
+  auto aicpu_kernel_store = MakeShared<AICPUOpsKernelInfoStore>();
+  auto aicore_kernel_store = MakeShared<FEOpsKernelInfoStore>();
+  opsKernelStore.emplace(std::pair<string, OpsKernelInfoStorePtr>("aicpu_kernel", aicpu_kernel_store));
+  opsKernelStore.emplace(std::pair<string, OpsKernelInfoStorePtr>("FEOpsStore", aicore_kernel_store));
 
-    // rebuild ops_kernel_info_ from stores
-    OpsKernelManager::GetInstance().RefreshOpsKernelInfo();
+  // rebuild ops_kernel_info_ from stores
+  OpsKernelManager::GetInstance().RefreshOpsKernelInfo();
 }
-} // namespace
+}  // namespace
 class UtestTransopWithoutReshapeFusionPass : public testing::Test {
  protected:
   void SetUp() {
@@ -212,7 +247,7 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, Run0) {
   AttrUtils::SetBool(sgt_node->GetOpDesc(), ATTR_NAME_FFTS_PLUS_SUB_GRAPH, true);
   AttrUtils::SetStr(sub_node->GetOpDesc(), ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIC");
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////////////////////////
 
   graphStatus retGraphStatus;
   TransOpWithoutReshapeFusionPass transOp;
@@ -225,7 +260,6 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, Run0) {
 
   retGraphStatus = transOp.Run(sub_graph);
   EXPECT_EQ(retGraphStatus, GRAPH_SUCCESS);
-
 }
 
 TEST_F(UtestTransopWithoutReshapeFusionPass, SetRemainNode) {
@@ -284,35 +318,33 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, remove_all_duplicate_trans_op_with_
   TransOpWithoutReshapeFusionPass trans_op_fusion_pass;
   auto ret = trans_op_fusion_pass.Run(graph);
   EXPECT_EQ(ret, SUCCESS);
-  EXPECT_EQ(graph->TopologicalSorting(), SUCCESS); // topo success, no cycle
+  EXPECT_EQ(graph->TopologicalSorting(), SUCCESS);  // topo success, no cycle
 }
 
 class NodeBuilder {
  public:
-  NodeBuilder(const std::string& name, const std::string& type) {
+  NodeBuilder(const std::string &name, const std::string &type) {
     op_desc_ = std::make_shared<OpDesc>(name, type);
   }
 
-  NodeBuilder& AddInputDesc(std::initializer_list<int64_t> shape,
-                            ge::Format format = FORMAT_NCHW,
+  NodeBuilder &AddInputDesc(std::initializer_list<int64_t> shape, ge::Format format = FORMAT_NCHW,
                             ge::DataType data_type = DT_FLOAT) {
     op_desc_->AddInputDesc(*CreateTensorDesc(shape, format, data_type));
     return *this;
   }
 
-  NodeBuilder& AddOutputDesc(std::initializer_list<int64_t> shape,
-                             ge::Format format = FORMAT_NCHW,
+  NodeBuilder &AddOutputDesc(std::initializer_list<int64_t> shape, ge::Format format = FORMAT_NCHW,
                              ge::DataType data_type = DT_FLOAT) {
     op_desc_->AddOutputDesc(*CreateTensorDesc(shape, format, data_type));
     return *this;
   }
 
-  ge::NodePtr Build(const ge::ComputeGraphPtr& graph) {
+  ge::NodePtr Build(const ge::ComputeGraphPtr &graph) {
     return graph->AddNode(op_desc_);
   }
+
  private:
-  ge::GeTensorDescPtr CreateTensorDesc(std::initializer_list<int64_t> shape,
-                                       ge::Format format = FORMAT_NCHW,
+  ge::GeTensorDescPtr CreateTensorDesc(std::initializer_list<int64_t> shape, ge::Format format = FORMAT_NCHW,
                                        ge::DataType data_type = DT_FLOAT) {
     GeShape ge_shape{std::vector<int64_t>(shape)};
     ge::GeTensorDescPtr tensor_desc = std::make_shared<ge::GeTensorDesc>();
@@ -334,50 +366,47 @@ class NodeBuilder {
             \/
     Node---transdata---cast---cast---transdata---A
 */
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_input_output_format_not_support)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_input_output_format_not_support) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
-  ge::NodePtr node = NodeBuilder("Data4D", DATA)
-      .AddOutputDesc({1,2,3,4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+  ge::NodePtr node =
+      NodeBuilder("Data4D", DATA).AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16).Build(graph);
 
   ge::NodePtr transdata_5d_2_4d = NodeBuilder("transdata_5d_2_4d", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                            .Build(graph);
+                                      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                      .Build(graph);
 
   ge::NodePtr transdata_4d_2_nz = NodeBuilder("transdata_4d_2_nz", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_FRACTAL_NZ, DT_FLOAT16)
-                            .Build(graph);
+                                      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_FRACTAL_NZ, DT_FLOAT16)
+                                      .Build(graph);
 
   ge::NodePtr cast_fp16_2_fp32 = NodeBuilder("cast_fp16_2_fp32", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                                .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                     .Build(graph);
   ge::NodePtr cast_fp32_2_fp16 = NodeBuilder("cast_fp32_2_fp16", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                                .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                     .Build(graph);
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
   ge::NodePtr node_relu_b = NodeBuilder("relu_b", RELU)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
   ge::NodePtr node_relu_c = NodeBuilder("relu_c", RELU)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_FRACTAL_NZ, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_FRACTAL_NZ, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_FRACTAL_NZ, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_FRACTAL_NZ, DT_FLOAT16)
+                                .Build(graph);
 
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), transdata_5d_2_4d->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(transdata_5d_2_4d->GetOutDataAnchor(0), cast_fp16_2_fp32->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(cast_fp16_2_fp32->GetOutDataAnchor(0), cast_fp32_2_fp16->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(cast_fp32_2_fp16->GetOutDataAnchor(0), transdata_4d_2_nz->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(transdata_4d_2_nz->GetOutDataAnchor(0), node_relu_1->GetInDataAnchor(0));
-
 
   ge::TransOpWithoutReshapeFusionPass pass;
   uint32_t status = pass.Run(graph);
@@ -393,24 +422,20 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_input_output_format_not_suppor
             \/
     Node---transpose---C
 */
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_transpose_output_ND)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_transpose_output_ND) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
 
-  ge::NodePtr node = NodeBuilder("Data4D", DATA)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-      .Build(graph);
+  ge::NodePtr node = NodeBuilder("Data4D", DATA).AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16).Build(graph);
 
   ge::NodePtr transpose_node = NodeBuilder("transpose_node", TRANSPOSE)
-                               .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-                               .AddOutputDesc({1, 2, 3, 4}, FORMAT_ND, DT_FLOAT16)
-                               .Build(graph);
-
+                                   .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
+                                   .AddOutputDesc({1, 2, 3, 4}, FORMAT_ND, DT_FLOAT16)
+                                   .Build(graph);
 
   ge::NodePtr node_c = NodeBuilder("node_c", MUL)
-                       .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-                       .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-                       .Build(graph);
+                           .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
+                           .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
+                           .Build(graph);
 
   // shape different,but format and datatype are equal
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), transpose_node->GetInDataAnchor(0));
@@ -433,24 +458,20 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_transpose_output_ND)
             \/
     Node---transpose---C
 */
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_transpose_input_ND)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_transpose_input_ND) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
 
-  ge::NodePtr node = NodeBuilder("Data4D", DATA)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_ND, DT_FLOAT16)
-      .Build(graph);
+  ge::NodePtr node = NodeBuilder("Data4D", DATA).AddOutputDesc({1, 2, 3, 4}, FORMAT_ND, DT_FLOAT16).Build(graph);
 
   ge::NodePtr transpose_node = NodeBuilder("transpose_node", TRANSPOSE)
-                               .AddInputDesc({1, 2, 3, 4}, FORMAT_ND, DT_FLOAT16)
-                               .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-                               .Build(graph);
-
+                                   .AddInputDesc({1, 2, 3, 4}, FORMAT_ND, DT_FLOAT16)
+                                   .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
+                                   .Build(graph);
 
   ge::NodePtr node_c = NodeBuilder("node_c", MUL)
-                       .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-                       .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-                       .Build(graph);
+                           .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
+                           .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
+                           .Build(graph);
 
   // shape different,but format and datatype are equal
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), transpose_node->GetInDataAnchor(0));
@@ -473,24 +494,20 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_transpose_input_ND)
             \/
     Node---transpose---C
 */
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_not_continuous)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_not_continuous) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
 
-  ge::NodePtr node = NodeBuilder("Data4D", DATA)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-      .Build(graph);
+  ge::NodePtr node = NodeBuilder("Data4D", DATA).AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16).Build(graph);
 
   ge::NodePtr transpose_node = NodeBuilder("transpose_node", TRANSPOSE)
-                               .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                               .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-                               .Build(graph);
-
+                                   .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                   .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
+                                   .Build(graph);
 
   ge::NodePtr node_c = NodeBuilder("node_c", MUL)
-                       .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-                       .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-                       .Build(graph);
+                           .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
+                           .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
+                           .Build(graph);
 
   // shape different,but format and datatype are equal
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), transpose_node->GetInDataAnchor(0));
@@ -505,45 +522,41 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_not_continuous)
     EXPECT_EQ(out_node0->GetOpDesc()->GetType(), TRANSPOSE);
   }
 }
-    /*
-        Node---transpose---C
+/*
+    Node---transpose---C
 
-                ||
-                \/
-        Node---transpose---C
-    */
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_transpose_unknown_shape)
-{
-    ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
+            ||
+            \/
+    Node---transpose---C
+*/
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_transpose_unknown_shape) {
+  ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
 
-    ge::NodePtr node = NodeBuilder("Data4D", DATA)
-        .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-        .Build(graph);
+  ge::NodePtr node = NodeBuilder("Data4D", DATA).AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16).Build(graph);
 
-    ge::NodePtr transpose_node = NodeBuilder("transpose_node", TRANSPOSE)
-                                 .AddInputDesc({1, -1, -1, 4}, FORMAT_NHWC, DT_FLOAT16)
-                                 .AddOutputDesc({1, -1, -1, 4}, FORMAT_NHWC, DT_FLOAT16)
-                                 .Build(graph);
+  ge::NodePtr transpose_node = NodeBuilder("transpose_node", TRANSPOSE)
+                                   .AddInputDesc({1, -1, -1, 4}, FORMAT_NHWC, DT_FLOAT16)
+                                   .AddOutputDesc({1, -1, -1, 4}, FORMAT_NHWC, DT_FLOAT16)
+                                   .Build(graph);
 
+  ge::NodePtr node_c = NodeBuilder("node_c", MUL)
+                           .AddInputDesc({1, -1, -1, 4}, FORMAT_NHWC, DT_FLOAT16)
+                           .AddOutputDesc({1, -1, -1, 4}, FORMAT_NHWC, DT_FLOAT16)
+                           .Build(graph);
 
-    ge::NodePtr node_c = NodeBuilder("node_c", MUL)
-                         .AddInputDesc({1, -1, -1, 4}, FORMAT_NHWC, DT_FLOAT16)
-                         .AddOutputDesc({1, -1, -1, 4}, FORMAT_NHWC, DT_FLOAT16)
-                         .Build(graph);
+  // shape different,but format and datatype are equal
+  ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), transpose_node->GetInDataAnchor(0));
+  ge::GraphUtils::AddEdge(transpose_node->GetOutDataAnchor(0), node_c->GetInDataAnchor(0));
 
-    // shape different,but format and datatype are equal
-    ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), transpose_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(transpose_node->GetOutDataAnchor(0), node_c->GetInDataAnchor(0));
-
-    ge::TransOpWithoutReshapeFusionPass pass;
-    dlog_setlevel(GE_MODULE_NAME, 0, 0);
-    uint32_t status = pass.Run(graph);
-    EXPECT_EQ(domi::SUCCESS, status);
-    EXPECT_EQ(node->GetOutDataNodes().size(), 1);
-    if (node->GetOutDataNodes().size() == 1) {
-        NodePtr out_node0 = node->GetOutDataNodes().at(0);
-        EXPECT_EQ(out_node0->GetOpDesc()->GetType(), TRANSPOSE);
-    }
+  ge::TransOpWithoutReshapeFusionPass pass;
+  dlog_setlevel(GE_MODULE_NAME, 0, 0);
+  uint32_t status = pass.Run(graph);
+  EXPECT_EQ(domi::SUCCESS, status);
+  EXPECT_EQ(node->GetOutDataNodes().size(), 1);
+  if (node->GetOutDataNodes().size() == 1) {
+    NodePtr out_node0 = node->GetOutDataNodes().at(0);
+    EXPECT_EQ(out_node0->GetOpDesc()->GetType(), TRANSPOSE);
+  }
 }
 
 TEST_F(UtestTransopWithoutReshapeFusionPass, test_add_node_1) {
@@ -569,35 +582,33 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_add_node_1) {
 
 
 */
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_output_ctrl_in_ctrl)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_output_ctrl_in_ctrl) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
-  ge::NodePtr node = NodeBuilder("Data4D", DATA)
-      .AddOutputDesc({1,2,3,4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+  ge::NodePtr node =
+      NodeBuilder("Data4D", DATA).AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16).Build(graph);
 
   ge::NodePtr transdata_5d_2_4d = NodeBuilder("transdata_5d_2_4d", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                            .Build(graph);
+                                      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                      .Build(graph);
 
   ge::NodePtr transdata_4d_2_5d = NodeBuilder("transdata_4d_2_5d", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                      .Build(graph);
 
   ge::NodePtr cast_fp16_2_fp32 = NodeBuilder("cast_fp16_2_fp32", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                                .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                     .Build(graph);
   ge::NodePtr cast_fp32_2_fp16 = NodeBuilder("cast_fp32_2_fp16", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                                .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                     .Build(graph);
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), transdata_5d_2_4d->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(transdata_5d_2_4d->GetOutDataAnchor(0), cast_fp16_2_fp32->GetInDataAnchor(0));
@@ -632,43 +643,41 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_output_ctrl_in_ctrl)
             |+++C
 
 */
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_same_input_output_in_data_ctrl)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_same_input_output_in_data_ctrl) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
-  ge::NodePtr node = NodeBuilder("Data4D", DATA)
-      .AddOutputDesc({1,2,3,4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+  ge::NodePtr node =
+      NodeBuilder("Data4D", DATA).AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16).Build(graph);
 
   ge::NodePtr transdata_5d_2_4d = NodeBuilder("transdata_5d_2_4d", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                            .Build(graph);
+                                      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                      .Build(graph);
 
   ge::NodePtr transdata_4d_2_5d = NodeBuilder("transdata_4d_2_5d", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                      .Build(graph);
 
   ge::NodePtr cast_fp16_2_fp32 = NodeBuilder("cast_fp16_2_fp32", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                                .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                     .Build(graph);
   ge::NodePtr cast_fp32_2_fp16 = NodeBuilder("cast_fp32_2_fp16", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                                .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                     .Build(graph);
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
   ge::NodePtr node_relu_b = NodeBuilder("relu_b", RELU)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
   ge::NodePtr node_relu_c = NodeBuilder("relu_c", RELU)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), transdata_5d_2_4d->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(transdata_5d_2_4d->GetOutDataAnchor(0), cast_fp16_2_fp32->GetInDataAnchor(0));
@@ -687,8 +696,7 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_same_input_output_in_data_ctrl
   EXPECT_EQ(node->GetOutControlNodes().at(0)->GetOpDesc()->GetType(), RELU);
 }
 
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_run_graph_nullptr)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_run_graph_nullptr) {
   ge::TransOpWithoutReshapeFusionPass pass;
   uint32_t status = pass.Run(nullptr);
   EXPECT_EQ(domi::SUCCESS, status);
@@ -709,39 +717,37 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_run_graph_nullptr)
 
 
 */
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_output_ctrl_peer_in_ctrl)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_output_ctrl_peer_in_ctrl) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
-  ge::NodePtr node = NodeBuilder("Data4D", DATA)
-      .AddOutputDesc({1,2,3,4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+  ge::NodePtr node =
+      NodeBuilder("Data4D", DATA).AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16).Build(graph);
 
   ge::NodePtr transdata_5d_2_4d = NodeBuilder("transdata_5d_2_4d", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                            .Build(graph);
+                                      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                      .Build(graph);
 
   ge::NodePtr transdata_4d_2_5d = NodeBuilder("transdata_4d_2_5d", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                      .Build(graph);
 
   ge::NodePtr cast_fp16_2_fp32 = NodeBuilder("cast_fp16_2_fp32", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                                .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                     .Build(graph);
   ge::NodePtr cast_fp32_2_fp16 = NodeBuilder("cast_fp32_2_fp16", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                                .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                     .Build(graph);
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
   ge::NodePtr node_b = NodeBuilder("node_b", SOFTMAX)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                           .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                           .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                           .Build(graph);
 
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), transdata_5d_2_4d->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(transdata_5d_2_4d->GetOutDataAnchor(0), cast_fp16_2_fp32->GetInDataAnchor(0));
@@ -773,39 +779,37 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_output_ctrl_peer_in_ctrl)
 
 
 */
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_output_ctrl_peer_in_data1)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_output_ctrl_peer_in_data1) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
-  ge::NodePtr node = NodeBuilder("Data4D", DATA)
-      .AddOutputDesc({1,2,3,4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+  ge::NodePtr node =
+      NodeBuilder("Data4D", DATA).AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16).Build(graph);
 
   ge::NodePtr transdata_5d_2_4d = NodeBuilder("transdata_5d_2_4d", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                            .Build(graph);
+                                      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                      .Build(graph);
 
   ge::NodePtr transdata_4d_2_5d = NodeBuilder("transdata_4d_2_5d", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                      .Build(graph);
 
   ge::NodePtr cast_fp16_2_fp32 = NodeBuilder("cast_fp16_2_fp32", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                                .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                     .Build(graph);
   ge::NodePtr cast_fp32_2_fp16 = NodeBuilder("cast_fp32_2_fp16", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                                .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                     .Build(graph);
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
   ge::NodePtr node_b = NodeBuilder("node_b", SOFTMAX)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                           .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                           .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                           .Build(graph);
 
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), transdata_5d_2_4d->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(transdata_5d_2_4d->GetOutDataAnchor(0), cast_fp16_2_fp32->GetInDataAnchor(0));
@@ -832,40 +836,38 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_output_ctrl_peer_in_data1)
     Node---transdata---cast---transpose---cast---transdata---A
 
 */
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_can_not_fusion_format)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_can_not_fusion_format) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
-  ge::NodePtr node = NodeBuilder("Data4D", DATA)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+  ge::NodePtr node =
+      NodeBuilder("Data4D", DATA).AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16).Build(graph);
 
   ge::NodePtr transdata_5d_2_4d = NodeBuilder("transdata_5d_2_4d", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                            .Build(graph);
+                                      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                      .Build(graph);
 
   ge::NodePtr transdata_4d_2_5d = NodeBuilder("transdata_4d_2_5d", TRANSDATA)
-                            .AddInputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 5, 2}, FORMAT_FRACTAL_NZ, DT_FLOAT16)
-                            .Build(graph);
+                                      .AddInputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT16)
+                                      .AddOutputDesc({1, 3, 4, 5, 2}, FORMAT_FRACTAL_NZ, DT_FLOAT16)
+                                      .Build(graph);
 
   ge::NodePtr cast_fp16_2_fp32 = NodeBuilder("cast_fp16_2_fp32", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                                .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                     .Build(graph);
   ge::NodePtr transpose_nchw_2_nhwc = NodeBuilder("transpose_nchw_2_nhwc", TRANSPOSE)
-                                      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                                      .AddOutputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT)
-                                      .Build(graph);
+                                          .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                          .AddOutputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT)
+                                          .Build(graph);
   ge::NodePtr cast_fp32_2_fp16 = NodeBuilder("cast_fp32_2_fp16", CAST)
-                                .AddInputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT16)
-                                .AddOutputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT16)
-                                .Build(graph);
+                                     .AddInputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT16)
+                                     .AddOutputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT16)
+                                     .Build(graph);
 
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-                            .AddInputDesc({1, 3, 4, 5, 2}, FORMAT_FRACTAL_NZ, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 5, 2}, FORMAT_FRACTAL_NZ, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 3, 4, 5, 2}, FORMAT_FRACTAL_NZ, DT_FLOAT16)
+                                .AddOutputDesc({1, 3, 4, 5, 2}, FORMAT_FRACTAL_NZ, DT_FLOAT16)
+                                .Build(graph);
 
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), transdata_5d_2_4d->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(transdata_5d_2_4d->GetOutDataAnchor(0), cast_fp16_2_fp32->GetInDataAnchor(0));
@@ -892,40 +894,38 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_can_not_fusion_format)
     Node---transdata---cast---transpose---cast---transdata---A
 
 */
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_format_same_shape_different)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_format_same_shape_different) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
-  ge::NodePtr node = NodeBuilder("Data4D", DATA)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+  ge::NodePtr node =
+      NodeBuilder("Data4D", DATA).AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16).Build(graph);
 
   ge::NodePtr transdata_5d_2_4d = NodeBuilder("transdata_5d_2_4d", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                            .Build(graph);
+                                      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                      .Build(graph);
 
   ge::NodePtr transdata_4d_2_5d = NodeBuilder("transdata_4d_2_5d", TRANSDATA)
-                            .AddInputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 5, 2}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                      .AddInputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT16)
+                                      .AddOutputDesc({1, 3, 4, 5, 2}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                      .Build(graph);
 
   ge::NodePtr cast_fp16_2_fp32 = NodeBuilder("cast_fp16_2_fp32", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                                .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                     .Build(graph);
   ge::NodePtr transpose_nchw_2_nhwc = NodeBuilder("transpose_nchw_2_nhwc", TRANSPOSE)
-                                      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                                      .AddOutputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT)
-                                      .Build(graph);
+                                          .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                          .AddOutputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT)
+                                          .Build(graph);
   ge::NodePtr cast_fp32_2_fp16 = NodeBuilder("cast_fp32_2_fp16", CAST)
-                                .AddInputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT16)
-                                .AddOutputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT16)
-                                .Build(graph);
+                                     .AddInputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT16)
+                                     .AddOutputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT16)
+                                     .Build(graph);
 
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-                            .AddInputDesc({1, 3, 4, 5, 2}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 5, 2}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 3, 4, 5, 2}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 3, 4, 5, 2}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), transdata_5d_2_4d->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(transdata_5d_2_4d->GetOutDataAnchor(0), cast_fp16_2_fp32->GetInDataAnchor(0));
@@ -952,27 +952,25 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_format_same_shape_different)
     Node---transdata---cast---A
 
 */
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_can_not_fusion)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_can_not_fusion) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
-  ge::NodePtr node = NodeBuilder("Data4D", DATA)
-      .AddOutputDesc({1,2,3,4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+  ge::NodePtr node =
+      NodeBuilder("Data4D", DATA).AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16).Build(graph);
 
   ge::NodePtr transdata_5d_2_4d = NodeBuilder("transdata_5d_2_4d", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                            .Build(graph);
+                                      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                      .Build(graph);
 
   ge::NodePtr cast_fp16_2_fp32 = NodeBuilder("cast_fp16_2_fp32", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                                .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                     .Build(graph);
 
   ge::NodePtr node_a = NodeBuilder("node_a", RELU)
-                            .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                            .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                            .Build(graph);
+                           .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                           .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                           .Build(graph);
 
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), transdata_5d_2_4d->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(transdata_5d_2_4d->GetOutDataAnchor(0), cast_fp16_2_fp32->GetInDataAnchor(0));
@@ -1033,39 +1031,37 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_can_not_fusion_format_not_cont
         Node-_a---Node_b---A
 
 */
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_one_output)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_one_output) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
-  ge::NodePtr node_a = NodeBuilder("Data4D_a", DATA)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+  ge::NodePtr node_a =
+      NodeBuilder("Data4D_a", DATA).AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16).Build(graph);
   ge::NodePtr node_b = NodeBuilder("Data4D_b", DATA)
-      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+                           .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                           .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                           .Build(graph);
 
   ge::NodePtr transdata_1 = NodeBuilder("transdata_1", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                            .Build(graph);
-
-  ge::NodePtr transdata_2 = NodeBuilder("transdata_2", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
-
-  ge::NodePtr cast_1 = NodeBuilder("cast_1", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                                .Build(graph);
-  ge::NodePtr cast_2 = NodeBuilder("cast_2", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
                                 .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
                                 .Build(graph);
+
+  ge::NodePtr transdata_2 = NodeBuilder("transdata_2", TRANSDATA)
+                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
+
+  ge::NodePtr cast_1 = NodeBuilder("cast_1", CAST)
+                           .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                           .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                           .Build(graph);
+  ge::NodePtr cast_2 = NodeBuilder("cast_2", CAST)
+                           .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                           .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                           .Build(graph);
   ge::NodePtr node_A = NodeBuilder("node_A", RELU)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                           .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                           .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                           .Build(graph);
 
   ge::GraphUtils::AddEdge(node_a->GetOutDataAnchor(0), node_b->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(node_b->GetOutDataAnchor(0), transdata_1->GetInDataAnchor(0));
@@ -1097,39 +1093,37 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_one_output)
 
 
 */
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_output_ctrl_in_data)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_output_ctrl_in_data) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
-  ge::NodePtr node = NodeBuilder("Data4D", DATA)
-      .AddOutputDesc({1,2,3,4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+  ge::NodePtr node =
+      NodeBuilder("Data4D", DATA).AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16).Build(graph);
 
   ge::NodePtr transdata_5d_2_4d = NodeBuilder("transdata_5d_2_4d", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                            .Build(graph);
+                                      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                      .Build(graph);
 
   ge::NodePtr transdata_4d_2_5d = NodeBuilder("transdata_4d_2_5d", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                      .Build(graph);
 
   ge::NodePtr cast_fp16_2_fp32 = NodeBuilder("cast_fp16_2_fp32", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                                .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                     .Build(graph);
   ge::NodePtr cast_fp32_2_fp16 = NodeBuilder("cast_fp32_2_fp16", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                                .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                     .Build(graph);
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
   ge::NodePtr node_b = NodeBuilder("node_b", SOFTMAX)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                           .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                           .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                           .Build(graph);
 
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), transdata_5d_2_4d->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(transdata_5d_2_4d->GetOutDataAnchor(0), cast_fp16_2_fp32->GetInDataAnchor(0));
@@ -1153,35 +1147,33 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_output_ctrl_in_data)
         Node---A
 
 */
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_same_input_output)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_same_input_output) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
-  ge::NodePtr node = NodeBuilder("Data4D", DATA)
-      .AddOutputDesc({1,2,3,4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+  ge::NodePtr node =
+      NodeBuilder("Data4D", DATA).AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16).Build(graph);
 
   ge::NodePtr transdata_1 = NodeBuilder("transdata_1", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                            .Build(graph);
-
-  ge::NodePtr transdata_2 = NodeBuilder("transdata_2", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
-
-  ge::NodePtr cast_1 = NodeBuilder("cast_1", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                                .Build(graph);
-  ge::NodePtr cast_2 = NodeBuilder("cast_2", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
                                 .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
                                 .Build(graph);
+
+  ge::NodePtr transdata_2 = NodeBuilder("transdata_2", TRANSDATA)
+                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
+
+  ge::NodePtr cast_1 = NodeBuilder("cast_1", CAST)
+                           .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                           .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                           .Build(graph);
+  ge::NodePtr cast_2 = NodeBuilder("cast_2", CAST)
+                           .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                           .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                           .Build(graph);
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), transdata_1->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(transdata_1->GetOutDataAnchor(0), cast_1->GetInDataAnchor(0));
@@ -1205,63 +1197,61 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_same_input_output)
            |---transdata--cast--reshape--cast--transdata---B
 
 */
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_has_reshpae)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_has_reshpae) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
 
-  ge::NodePtr node = NodeBuilder("Data4D", DATA)
-      .AddOutputDesc({1,2,3,4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+  ge::NodePtr node =
+      NodeBuilder("Data4D", DATA).AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16).Build(graph);
 
   ge::NodePtr transdata_1 = NodeBuilder("transdata_1", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                            .Build(graph);
-
-  ge::NodePtr transdata_2 = NodeBuilder("transdata_2", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
-
-  ge::NodePtr transdata_3 = NodeBuilder("transdata_3", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                            .Build(graph);
-
-  ge::NodePtr cast_1 = NodeBuilder("cast_1", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                                .Build(graph);
-
-  ge::NodePtr cast_2 = NodeBuilder("cast_2", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
                                 .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
                                 .Build(graph);
 
-  ge::NodePtr reshape_1 = NodeBuilder("reshape_1", RESHAPE)
+  ge::NodePtr transdata_2 = NodeBuilder("transdata_2", TRANSDATA)
                                 .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                                .AddOutputDesc({1, 2, 2, 6}, FORMAT_NCHW, DT_FLOAT)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
                                 .Build(graph);
+
+  ge::NodePtr transdata_3 = NodeBuilder("transdata_3", TRANSDATA)
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                .Build(graph);
+
+  ge::NodePtr cast_1 = NodeBuilder("cast_1", CAST)
+                           .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                           .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                           .Build(graph);
+
+  ge::NodePtr cast_2 = NodeBuilder("cast_2", CAST)
+                           .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                           .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                           .Build(graph);
+
+  ge::NodePtr reshape_1 = NodeBuilder("reshape_1", RESHAPE)
+                              .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                              .AddOutputDesc({1, 2, 2, 6}, FORMAT_NCHW, DT_FLOAT)
+                              .Build(graph);
 
   ge::NodePtr cast_3 = NodeBuilder("cast_3", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                                .Build(graph);
+                           .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                           .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                           .Build(graph);
 
   ge::NodePtr cast_4 = NodeBuilder("cast_4", CAST)
-                                .AddInputDesc({1, 2, 2, 6}, FORMAT_NCHW, DT_FLOAT)
-                                .AddOutputDesc({1, 2, 2, 6}, FORMAT_NCHW, DT_FLOAT16)
-                                .Build(graph);
+                           .AddInputDesc({1, 2, 2, 6}, FORMAT_NCHW, DT_FLOAT)
+                           .AddOutputDesc({1, 2, 2, 6}, FORMAT_NCHW, DT_FLOAT16)
+                           .Build(graph);
 
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   ge::NodePtr node_relu_2 = NodeBuilder("relu_2", RELU)
-                            .AddInputDesc({1, 2, 2, 6}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 2, 6}, FORMAT_NCHW, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 2, 2, 6}, FORMAT_NCHW, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 2, 6}, FORMAT_NCHW, DT_FLOAT16)
+                                .Build(graph);
 
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), transdata_1->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), transdata_3->GetInDataAnchor(0));
@@ -1288,41 +1278,39 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_has_reshpae)
     Node---formattransfer---C
 
 */
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_format_transfer)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_format_transfer) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
 
-  ge::NodePtr node = NodeBuilder("Data4D", DATA)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+  ge::NodePtr node =
+      NodeBuilder("Data4D", DATA).AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16).Build(graph);
 
   ge::NodePtr cast_fp16_2_fp32 = NodeBuilder("cast_fp16_2_fp32", CAST)
-                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
-                                .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                     .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
+                                     .Build(graph);
 
   ge::NodePtr transdata_5d_2_4d = NodeBuilder("transdata_5d_2_4d", TRANSDATA)
-                                  .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
-                                  .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                                  .Build(graph);
+                                      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
+                                      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                      .Build(graph);
 
   ge::NodePtr transpose_nchw_2_nhwc = NodeBuilder("transpose_nchw_2_nhwc", TRANSPOSE)
-                                      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                                      .AddOutputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT)
-                                      .Build(graph);
+                                          .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                          .AddOutputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT)
+                                          .Build(graph);
   ge::NodePtr cast_fp32_2_fp16 = NodeBuilder("cast_fp32_2_fp16", CAST)
-                                .AddInputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT)
-                                .AddOutputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT16)
-                                .Build(graph);
+                                     .AddInputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT)
+                                     .AddOutputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT16)
+                                     .Build(graph);
   ge::NodePtr transdata_4d_2_5d = NodeBuilder("transdata_4d_2_5d", TRANSDATA)
-                            .AddInputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_FRACTAL_Z, DT_FLOAT16)
-                            .Build(graph);
+                                      .AddInputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT16)
+                                      .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_FRACTAL_Z, DT_FLOAT16)
+                                      .Build(graph);
 
   ge::NodePtr node_relu_3 = NodeBuilder("relu_3", RELU)
-                            .AddInputDesc({1, 3, 4, 2, 5}, FORMAT_FRACTAL_Z, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_FRACTAL_Z, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 3, 4, 2, 5}, FORMAT_FRACTAL_Z, DT_FLOAT16)
+                                .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_FRACTAL_Z, DT_FLOAT16)
+                                .Build(graph);
 
   // shape different,but format and datatype are equal
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), cast_fp16_2_fp32->GetInDataAnchor(0));
@@ -1350,28 +1338,26 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_format_transfer)
     Node---formattransfer---C
 
 */
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_dynamic_format_transfer)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_dynamic_format_transfer) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
 
-  ge::NodePtr node = NodeBuilder("Data4D", DATA)
-      .AddOutputDesc({-1, -1, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+  ge::NodePtr node =
+      NodeBuilder("Data4D", DATA).AddOutputDesc({-1, -1, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16).Build(graph);
 
   ge::NodePtr cast_fp16_2_fp32 = NodeBuilder("cast_fp16_2_fp32", CAST)
-                                .AddInputDesc({-1, -1, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                                .AddOutputDesc({-1, -1, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
-                                .Build(graph);
+                                     .AddInputDesc({-1, -1, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                     .AddOutputDesc({-1, -1, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
+                                     .Build(graph);
 
   ge::NodePtr transdata_5d_2_4d = NodeBuilder("transdata_5d_2_4d", TRANSDATA)
-                                  .AddInputDesc({-1, -1, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
-                                  .AddOutputDesc({-1, -1, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                                  .Build(graph);
+                                      .AddInputDesc({-1, -1, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
+                                      .AddOutputDesc({-1, -1, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                      .Build(graph);
 
   ge::NodePtr transpose_nchw_2_nhwc = NodeBuilder("transpose_nchw_2_nhwc", TRANSPOSE)
-                                      .AddInputDesc({-1, -1, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                                      .AddOutputDesc({-1, -1, 4, 2}, FORMAT_NHWC, DT_FLOAT)
-                                      .Build(graph);
+                                          .AddInputDesc({-1, -1, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                          .AddOutputDesc({-1, -1, 4, 2}, FORMAT_NHWC, DT_FLOAT)
+                                          .Build(graph);
 
   // shape different,but format and datatype are equal
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), cast_fp16_2_fp32->GetInDataAnchor(0));
@@ -1404,90 +1390,87 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_dynamic_format_transfer)
            |---formattransfer---C
 
 */
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_mixed_reshape_formattransfer)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_mixed_reshape_formattransfer) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
 
-  ge::NodePtr node = NodeBuilder("Data4D", DATA)
-      .AddOutputDesc({1,2,3,4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+  ge::NodePtr node =
+      NodeBuilder("Data4D", DATA).AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16).Build(graph);
 
   ge::NodePtr transdata_1 = NodeBuilder("transdata_1", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                            .Build(graph);
-
-  ge::NodePtr transdata_2 = NodeBuilder("transdata_2", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
-
-  ge::NodePtr transdata_3 = NodeBuilder("transdata_3", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                            .Build(graph);
-
-
-  ge::NodePtr cast_1 = NodeBuilder("cast_1", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                                .Build(graph);
-
-  ge::NodePtr cast_2 = NodeBuilder("cast_2", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
                                 .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
                                 .Build(graph);
 
-  ge::NodePtr reshape_1 = NodeBuilder("reshape_1", RESHAPE)
+  ge::NodePtr transdata_2 = NodeBuilder("transdata_2", TRANSDATA)
                                 .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                                .AddOutputDesc({1, 2, 2, 6}, FORMAT_NCHW, DT_FLOAT)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
                                 .Build(graph);
+
+  ge::NodePtr transdata_3 = NodeBuilder("transdata_3", TRANSDATA)
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                .Build(graph);
+
+  ge::NodePtr cast_1 = NodeBuilder("cast_1", CAST)
+                           .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                           .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                           .Build(graph);
+
+  ge::NodePtr cast_2 = NodeBuilder("cast_2", CAST)
+                           .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                           .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                           .Build(graph);
+
+  ge::NodePtr reshape_1 = NodeBuilder("reshape_1", RESHAPE)
+                              .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                              .AddOutputDesc({1, 2, 2, 6}, FORMAT_NCHW, DT_FLOAT)
+                              .Build(graph);
 
   ge::NodePtr cast_3 = NodeBuilder("cast_3", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                                .Build(graph);
+                           .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                           .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                           .Build(graph);
 
   ge::NodePtr cast_4 = NodeBuilder("cast_4", CAST)
-                                .AddInputDesc({1, 2, 2, 6}, FORMAT_NCHW, DT_FLOAT)
-                                .AddOutputDesc({1, 2, 2, 6}, FORMAT_NCHW, DT_FLOAT16)
-                                .Build(graph);
+                           .AddInputDesc({1, 2, 2, 6}, FORMAT_NCHW, DT_FLOAT)
+                           .AddOutputDesc({1, 2, 2, 6}, FORMAT_NCHW, DT_FLOAT16)
+                           .Build(graph);
 
   ge::NodePtr cast_fp16_2_fp32_5 = NodeBuilder("cast_fp16_2_fp32_5", CAST)
-                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
-                                .Build(graph);
+                                       .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                       .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
+                                       .Build(graph);
 
   ge::NodePtr transdata_5d_2_4d_5 = NodeBuilder("transdata_5d_2_4d_5", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
-                            .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                            .Build(graph);
+                                        .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
+                                        .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                        .Build(graph);
 
   ge::NodePtr transpose_nchw_2_nhwc_1 = NodeBuilder("transpose_nchw_2_nhwc_1", TRANSPOSE)
-                            .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                            .AddOutputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT)
-                            .Build(graph);
+                                            .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                            .AddOutputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT)
+                                            .Build(graph);
   ge::NodePtr cast_fp32_2_fp16_6 = NodeBuilder("cast_fp32_2_fp16_6", CAST)
-                                .AddInputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT)
-                                .AddOutputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT16)
-                                .Build(graph);
+                                       .AddInputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT)
+                                       .AddOutputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT16)
+                                       .Build(graph);
   ge::NodePtr transdata_4d_2_5d_6 = NodeBuilder("transdata_4d_2_5d_6", TRANSDATA)
-                            .AddInputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_FRACTAL_Z, DT_FLOAT16)
-                            .Build(graph);
+                                        .AddInputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT16)
+                                        .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_FRACTAL_Z, DT_FLOAT16)
+                                        .Build(graph);
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   ge::NodePtr node_relu_2 = NodeBuilder("relu_2", RELU)
-                            .AddInputDesc({1, 2, 2, 6}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 2, 6}, FORMAT_NCHW, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 2, 2, 6}, FORMAT_NCHW, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 2, 6}, FORMAT_NCHW, DT_FLOAT16)
+                                .Build(graph);
   ge::NodePtr node_relu_3 = NodeBuilder("relu_3", RELU)
-                            .AddInputDesc({1, 3, 4, 2, 5}, FORMAT_FRACTAL_Z, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_FRACTAL_Z, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 3, 4, 2, 5}, FORMAT_FRACTAL_Z, DT_FLOAT16)
+                                .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_FRACTAL_Z, DT_FLOAT16)
+                                .Build(graph);
 
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), transdata_1->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), transdata_3->GetInDataAnchor(0));
@@ -1522,33 +1505,30 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_mixed_reshape_formattransfer)
             \/
     Node---cast---formattransfer---C
 */
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_cast_formattransfer)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_cast_formattransfer) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
 
-  ge::NodePtr node = NodeBuilder("Data4D", DATA)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
-      .Build(graph);
+  ge::NodePtr node = NodeBuilder("Data4D", DATA).AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT).Build(graph);
 
   ge::NodePtr cast_fp32_2_fp16 = NodeBuilder("cast_fp32_2_fp16", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-                                .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
+                                     .Build(graph);
 
   ge::NodePtr transpose_nhwc_2_nchw = NodeBuilder("transpose_nhwc_2_nchw", TRANSPOSE)
-                                      .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-                                      .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                                      .Build(graph);
+                                          .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
+                                          .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                          .Build(graph);
 
   ge::NodePtr transdata_4d_2_5d = NodeBuilder("transdata_4d_2_5d", TRANSDATA)
-                            .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                      .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                      .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                      .Build(graph);
 
   ge::NodePtr node_relu_3 = NodeBuilder("relu_3", RELU)
-                            .AddInputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   // shape different,but format and datatype are equal
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), cast_fp32_2_fp16->GetInDataAnchor(0));
@@ -1582,86 +1562,84 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_cast_formattransfer)
            |---formattransfer---cast---C
 
 */
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_mixed_formattransfer_and_cast)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_mixed_formattransfer_and_cast) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
 
-  ge::NodePtr node = NodeBuilder("Data4D", DATA)
-      .AddOutputDesc({1,2,3,4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+  ge::NodePtr node =
+      NodeBuilder("Data4D", DATA).AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16).Build(graph);
 
   ge::NodePtr transdata_1 = NodeBuilder("transdata_1", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                            .Build(graph);
-
-  ge::NodePtr transdata_2 = NodeBuilder("transdata_2", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
-
-  ge::NodePtr transdata_3 = NodeBuilder("transdata_3", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                            .Build(graph);
-
-  ge::NodePtr cast_1 = NodeBuilder("cast_1", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                                .Build(graph);
-
-  ge::NodePtr cast_2 = NodeBuilder("cast_2", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
                                 .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
                                 .Build(graph);
 
-  ge::NodePtr reshape_1 = NodeBuilder("reshape_1", RESHAPE)
+  ge::NodePtr transdata_2 = NodeBuilder("transdata_2", TRANSDATA)
                                 .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                                .AddOutputDesc({1, 2, 2, 6}, FORMAT_NCHW, DT_FLOAT)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
                                 .Build(graph);
+
+  ge::NodePtr transdata_3 = NodeBuilder("transdata_3", TRANSDATA)
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                .Build(graph);
+
+  ge::NodePtr cast_1 = NodeBuilder("cast_1", CAST)
+                           .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                           .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                           .Build(graph);
+
+  ge::NodePtr cast_2 = NodeBuilder("cast_2", CAST)
+                           .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                           .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                           .Build(graph);
+
+  ge::NodePtr reshape_1 = NodeBuilder("reshape_1", RESHAPE)
+                              .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                              .AddOutputDesc({1, 2, 2, 6}, FORMAT_NCHW, DT_FLOAT)
+                              .Build(graph);
 
   ge::NodePtr cast_3 = NodeBuilder("cast_3", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                                .Build(graph);
+                           .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                           .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                           .Build(graph);
 
   ge::NodePtr cast_4 = NodeBuilder("cast_4", CAST)
-                                .AddInputDesc({1, 2, 2, 6}, FORMAT_NCHW, DT_FLOAT)
-                                .AddOutputDesc({1, 2, 2, 6}, FORMAT_NCHW, DT_FLOAT16)
-                                .Build(graph);
+                           .AddInputDesc({1, 2, 2, 6}, FORMAT_NCHW, DT_FLOAT)
+                           .AddOutputDesc({1, 2, 2, 6}, FORMAT_NCHW, DT_FLOAT16)
+                           .Build(graph);
 
   ge::NodePtr cast_fp16_2_fp32_5 = NodeBuilder("cast_fp16_2_fp32_5", CAST)
-                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
-                                .Build(graph);
+                                       .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                       .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
+                                       .Build(graph);
 
   ge::NodePtr transdata_5d_2_4d_5 = NodeBuilder("transdata_5d_2_4d_5", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
-                            .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                            .Build(graph);
+                                        .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
+                                        .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                        .Build(graph);
 
   ge::NodePtr transpose_nchw_2_nhwc_1 = NodeBuilder("transpose_nchw_2_nhwc_1", TRANSPOSE)
-                            .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                            .AddOutputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT)
-                            .Build(graph);
+                                            .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                            .AddOutputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT)
+                                            .Build(graph);
 
   ge::NodePtr transdata_4d_2_5d_6 = NodeBuilder("transdata_4d_2_5d_6", TRANSDATA)
-                            .AddInputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT)
-                            .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_FRACTAL_Z, DT_FLOAT)
-                            .Build(graph);
+                                        .AddInputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT)
+                                        .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_FRACTAL_Z, DT_FLOAT)
+                                        .Build(graph);
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   ge::NodePtr node_relu_2 = NodeBuilder("relu_2", RELU)
-                            .AddInputDesc({1, 2, 2, 6}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 2, 6}, FORMAT_NCHW, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 2, 2, 6}, FORMAT_NCHW, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 2, 6}, FORMAT_NCHW, DT_FLOAT16)
+                                .Build(graph);
   ge::NodePtr node_relu_3 = NodeBuilder("relu_3", RELU)
-                            .AddInputDesc({1, 3, 4, 2, 5}, FORMAT_FRACTAL_Z, DT_FLOAT)
-                            .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_FRACTAL_Z, DT_FLOAT)
-                            .Build(graph);
+                                .AddInputDesc({1, 3, 4, 2, 5}, FORMAT_FRACTAL_Z, DT_FLOAT)
+                                .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_FRACTAL_Z, DT_FLOAT)
+                                .Build(graph);
 
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), transdata_1->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), transdata_3->GetInDataAnchor(0));
@@ -1702,39 +1680,37 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_mixed_formattransfer_and_cast)
             |+++B
 
 */
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_same_input_output_in_ctrl)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_same_input_output_in_ctrl) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
-  ge::NodePtr node = NodeBuilder("Data4D", DATA)
-      .AddOutputDesc({1,2,3,4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+  ge::NodePtr node =
+      NodeBuilder("Data4D", DATA).AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16).Build(graph);
 
   ge::NodePtr transdata_5d_2_4d = NodeBuilder("transdata_5d_2_4d", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                            .Build(graph);
+                                      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                      .Build(graph);
 
   ge::NodePtr transdata_4d_2_5d = NodeBuilder("transdata_4d_2_5d", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                      .Build(graph);
 
   ge::NodePtr cast_fp16_2_fp32 = NodeBuilder("cast_fp16_2_fp32", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                                .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                     .Build(graph);
   ge::NodePtr cast_fp32_2_fp16 = NodeBuilder("cast_fp32_2_fp16", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                                .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                     .Build(graph);
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
   ge::NodePtr node_b = NodeBuilder("softmax_1", SOFTMAX)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                           .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                           .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                           .Build(graph);
 
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), transdata_5d_2_4d->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(transdata_5d_2_4d->GetOutDataAnchor(0), cast_fp16_2_fp32->GetInDataAnchor(0));
@@ -1747,7 +1723,8 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_same_input_output_in_ctrl)
   uint32_t status = pass.Run(graph);
   EXPECT_EQ(domi::SUCCESS, status);
   EXPECT_EQ(node->GetOutControlAnchor()->GetPeerInControlAnchors().size(), 1);
-  EXPECT_EQ(node->GetOutControlAnchor()->GetPeerInControlAnchors().at(0)->GetOwnerNode()->GetOpDesc()->GetType(), SOFTMAX);
+  EXPECT_EQ(node->GetOutControlAnchor()->GetPeerInControlAnchors().at(0)->GetOwnerNode()->GetOpDesc()->GetType(),
+            SOFTMAX);
 }
 
 /*
@@ -1766,43 +1743,41 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_same_input_output_in_ctrl)
             |+++C
 
 */
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_same_input_output_out_data_ctrl)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_same_input_output_out_data_ctrl) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
-  ge::NodePtr node = NodeBuilder("Data4D", DATA)
-      .AddOutputDesc({1,2,3,4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+  ge::NodePtr node =
+      NodeBuilder("Data4D", DATA).AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16).Build(graph);
 
   ge::NodePtr transdata_5d_2_4d = NodeBuilder("transdata_5d_2_4d", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                            .Build(graph);
+                                      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                      .Build(graph);
 
   ge::NodePtr transdata_4d_2_5d = NodeBuilder("transdata_4d_2_5d", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                      .Build(graph);
 
   ge::NodePtr cast_fp16_2_fp32 = NodeBuilder("cast_fp16_2_fp32", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                                .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                     .Build(graph);
   ge::NodePtr cast_fp32_2_fp16 = NodeBuilder("cast_fp32_2_fp16", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                                .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                     .Build(graph);
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
   ge::NodePtr node_relu_b = NodeBuilder("relu_b", RELU)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
   ge::NodePtr node_relu_c = NodeBuilder("relu_c", RELU)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), transdata_5d_2_4d->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(transdata_5d_2_4d->GetOutDataAnchor(0), cast_fp16_2_fp32->GetInDataAnchor(0));
@@ -1817,7 +1792,8 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_same_input_output_out_data_ctr
   EXPECT_EQ(node_relu_c->GetInControlNodes().size(), 2);
   EXPECT_EQ(node_relu_c->GetInControlNodes().at(0)->GetOpDesc()->GetType(), DATA);
   EXPECT_EQ(node_relu_b->GetOutControlAnchor()->GetPeerInControlAnchors().size(), 2);
-  EXPECT_EQ(node_relu_b->GetOutControlAnchor()->GetPeerInControlAnchors().at(0)->GetOwnerNode()->GetOpDesc()->GetType(), RELU);
+  EXPECT_EQ(node_relu_b->GetOutControlAnchor()->GetPeerInControlAnchors().at(0)->GetOwnerNode()->GetOpDesc()->GetType(),
+            RELU);
 }
 
 /*
@@ -1842,66 +1818,63 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_same_input_output_out_data_ctr
          |      |
          |++++++|
 */
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_cast_formattransfer_out_data_in_ctrl)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_cast_formattransfer_out_data_in_ctrl) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
 
-  ge::NodePtr node = NodeBuilder("Data4D", DATA)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
-      .Build(graph);
+  ge::NodePtr node = NodeBuilder("Data4D", DATA).AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT).Build(graph);
 
   ge::NodePtr cast_fp32_2_fp16 = NodeBuilder("cast_fp32_2_fp16", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-                                .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
+                                     .Build(graph);
   ge::NodePtr cast_fp32_2_fp16_2 = NodeBuilder("cast_fp32_2_fp16_2", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-                                .Build(graph);
+                                       .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
+                                       .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
+                                       .Build(graph);
 
   ge::NodePtr transpose_nhwc_2_nchw = NodeBuilder("transpose_nhwc_2_nchw", TRANSPOSE)
-                                      .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-                                      .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                                      .Build(graph);
+                                          .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
+                                          .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                          .Build(graph);
 
   ge::NodePtr transpose_nhwc_2_nchw_2 = NodeBuilder("transpose_nhwc_2_nchw_2", TRANSPOSE)
-                                      .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-                                      .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                                      .Build(graph);
+                                            .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
+                                            .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                            .Build(graph);
 
   ge::NodePtr transdata_4d_2_5d = NodeBuilder("transdata_4d_2_5d", TRANSDATA)
-                            .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                      .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                      .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                      .Build(graph);
   ge::NodePtr transdata_4d_2_5d_2 = NodeBuilder("transdata_4d_2_5d_2", TRANSDATA)
-                            .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                        .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                        .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                        .Build(graph);
 
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-                            .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                .Build(graph);
 
   ge::NodePtr node_relu_2 = NodeBuilder("relu_2", RELU)
-                            .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                .Build(graph);
 
   ge::NodePtr node_relu_3 = NodeBuilder("relu_3", RELU)
-                            .AddInputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   ge::NodePtr node_relu_d = NodeBuilder("relu_d", RELU)
-                            .AddInputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
- ge::NodePtr node_relu_a = NodeBuilder("relu_a", RELU)
-                            .AddInputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+  ge::NodePtr node_relu_a = NodeBuilder("relu_a", RELU)
+                                .AddInputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   // shape different,but format and datatype are equal
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), cast_fp32_2_fp16->GetInDataAnchor(0));
@@ -1954,43 +1927,40 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_cast_formattransfer_out_data_i
        |   |
        |+++|
 */
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_cast_formattransfer_out_ctrl_in_data)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_cast_formattransfer_out_ctrl_in_data) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
 
-  ge::NodePtr node = NodeBuilder("Data4D", DATA)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
-      .Build(graph);
+  ge::NodePtr node = NodeBuilder("Data4D", DATA).AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT).Build(graph);
 
   ge::NodePtr cast_fp32_2_fp16 = NodeBuilder("cast_fp32_2_fp16", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-                                .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
+                                     .Build(graph);
 
   ge::NodePtr transpose_nhwc_2_nchw = NodeBuilder("transpose_nhwc_2_nchw", TRANSPOSE)
-                                      .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-                                      .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                                      .Build(graph);
+                                          .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
+                                          .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                          .Build(graph);
 
   ge::NodePtr transdata_4d_2_5d = NodeBuilder("transdata_4d_2_5d", TRANSDATA)
-                            .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                      .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                      .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                      .Build(graph);
 
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-                            .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                .Build(graph);
 
   ge::NodePtr node_relu_2 = NodeBuilder("relu_2", RELU)
-                            .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                .Build(graph);
 
   ge::NodePtr node_relu_3 = NodeBuilder("relu_3", RELU)
-                            .AddInputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   // shape different,but format and datatype are equal
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), cast_fp32_2_fp16->GetInDataAnchor(0));
@@ -2036,43 +2006,40 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_cast_formattransfer_out_ctrl_i
        |   |
        |+++|
 */
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_cast_formattransfer_out_and_in_control)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_cast_formattransfer_out_and_in_control) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
 
-  ge::NodePtr node = NodeBuilder("Data4D", DATA)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
-      .Build(graph);
+  ge::NodePtr node = NodeBuilder("Data4D", DATA).AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT).Build(graph);
 
   ge::NodePtr cast_fp32_2_fp16 = NodeBuilder("cast_fp32_2_fp16", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-                                .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
+                                     .Build(graph);
 
   ge::NodePtr transpose_nhwc_2_nchw = NodeBuilder("transpose_nhwc_2_nchw", TRANSPOSE)
-                                      .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-                                      .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                                      .Build(graph);
+                                          .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
+                                          .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                          .Build(graph);
 
   ge::NodePtr transdata_4d_2_5d = NodeBuilder("transdata_4d_2_5d", TRANSDATA)
-                            .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                      .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                      .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                      .Build(graph);
 
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-                            .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                .Build(graph);
 
   ge::NodePtr node_relu_2 = NodeBuilder("relu_2", RELU)
-                            .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                .Build(graph);
 
   ge::NodePtr node_relu_3 = NodeBuilder("relu_3", RELU)
-                            .AddInputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   // shape different,but format and datatype are equal
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), cast_fp32_2_fp16->GetInDataAnchor(0));
@@ -2139,38 +2106,35 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_cast_formattransfer_out_and_in
        |   |
        |+++|
 */
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_cast_formattransfer_in_control1)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_cast_formattransfer_in_control1) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
 
-  ge::NodePtr node = NodeBuilder("Data4D", DATA)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
-      .Build(graph);
+  ge::NodePtr node = NodeBuilder("Data4D", DATA).AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT).Build(graph);
 
   ge::NodePtr cast_fp32_2_fp16 = NodeBuilder("cast_fp32_2_fp16", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-                                .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
+                                     .Build(graph);
 
   ge::NodePtr transpose_nhwc_2_nchw = NodeBuilder("transpose_nhwc_2_nchw", TRANSPOSE)
-                                      .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-                                      .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                                      .Build(graph);
+                                          .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
+                                          .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                          .Build(graph);
 
   ge::NodePtr transdata_4d_2_5d = NodeBuilder("transdata_4d_2_5d", TRANSDATA)
-                            .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                      .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                      .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                      .Build(graph);
 
   ge::NodePtr node_relu_2 = NodeBuilder("relu_2", RELU)
-                            .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                .Build(graph);
 
   ge::NodePtr node_relu_3 = NodeBuilder("relu_3", RELU)
-                            .AddInputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   // shape different,but format and datatype are equal
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), cast_fp32_2_fp16->GetInDataAnchor(0));
@@ -2201,38 +2165,35 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_cast_formattransfer_in_control
           |
     Node---cast---formattransfer-|--C
 */
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_cast_formattransfer_in_control2)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_cast_formattransfer_in_control2) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
 
-  ge::NodePtr node = NodeBuilder("Data4D", DATA)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
-      .Build(graph);
+  ge::NodePtr node = NodeBuilder("Data4D", DATA).AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT).Build(graph);
 
   ge::NodePtr cast_fp32_2_fp16 = NodeBuilder("cast_fp32_2_fp16", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-                                .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
+                                     .Build(graph);
 
   ge::NodePtr transpose_nhwc_2_nchw = NodeBuilder("transpose_nhwc_2_nchw", TRANSPOSE)
-                                      .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-                                      .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                                      .Build(graph);
+                                          .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
+                                          .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                          .Build(graph);
 
   ge::NodePtr transdata_4d_2_5d = NodeBuilder("transdata_4d_2_5d", TRANSDATA)
-                            .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                      .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                      .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                      .Build(graph);
 
   ge::NodePtr node_relu_2 = NodeBuilder("relu_2", RELU)
-                            .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                .Build(graph);
 
   ge::NodePtr node_relu_3 = NodeBuilder("relu_3", RELU)
-                            .AddInputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   // shape different,but format and datatype are equal
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), cast_fp32_2_fp16->GetInDataAnchor(0));
@@ -2262,38 +2223,35 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_cast_formattransfer_in_control
                                  |
     Node---cast---formattransfer-|--C
 */
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_cast_formattransfer_out_control)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_cast_formattransfer_out_control) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
 
-  ge::NodePtr node = NodeBuilder("Data4D", DATA)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
-      .Build(graph);
+  ge::NodePtr node = NodeBuilder("Data4D", DATA).AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT).Build(graph);
 
   ge::NodePtr cast_fp32_2_fp16 = NodeBuilder("cast_fp32_2_fp16", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-                                .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
+                                     .Build(graph);
 
   ge::NodePtr transpose_nhwc_2_nchw = NodeBuilder("transpose_nhwc_2_nchw", TRANSPOSE)
-                                      .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-                                      .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                                      .Build(graph);
+                                          .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
+                                          .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                          .Build(graph);
 
   ge::NodePtr transdata_4d_2_5d = NodeBuilder("transdata_4d_2_5d", TRANSDATA)
-                            .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                      .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                      .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                      .Build(graph);
 
   ge::NodePtr node_relu_2 = NodeBuilder("relu_2", RELU)
-                            .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                .Build(graph);
 
   ge::NodePtr node_relu_3 = NodeBuilder("relu_3", RELU)
-                            .AddInputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   // shape different,but format and datatype are equal
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), cast_fp32_2_fp16->GetInDataAnchor(0));
@@ -2327,35 +2285,33 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_cast_formattransfer_out_contro
 
 
 */
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_output_data_in_ctrl)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_output_data_in_ctrl) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
-  ge::NodePtr node = NodeBuilder("Data4D", DATA)
-      .AddOutputDesc({1,2,3,4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+  ge::NodePtr node =
+      NodeBuilder("Data4D", DATA).AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16).Build(graph);
 
   ge::NodePtr transdata_5d_2_4d = NodeBuilder("transdata_5d_2_4d", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                            .Build(graph);
+                                      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                      .Build(graph);
 
   ge::NodePtr transdata_4d_2_5d = NodeBuilder("transdata_4d_2_5d", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                      .Build(graph);
 
   ge::NodePtr cast_fp16_2_fp32 = NodeBuilder("cast_fp16_2_fp32", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                                .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                     .Build(graph);
   ge::NodePtr cast_fp32_2_fp16 = NodeBuilder("cast_fp32_2_fp16", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
-                                .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT16)
+                                     .Build(graph);
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), transdata_5d_2_4d->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(transdata_5d_2_4d->GetOutDataAnchor(0), cast_fp16_2_fp32->GetInDataAnchor(0));
@@ -2393,34 +2349,30 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_op_accuracy_ability_check_succ
             \/
     Node---cast---transpose----transdata---C
 */
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_fusion_fail_shape_uncontinuous)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_fusion_fail_shape_uncontinuous) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
 
-  ge::NodePtr node = NodeBuilder("Data4D", DATA)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
-      .Build(graph);
+  ge::NodePtr node = NodeBuilder("Data4D", DATA).AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT).Build(graph);
 
   ge::NodePtr cast_fp32_2_fp16 = NodeBuilder("cast_fp32_2_fp16", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-                                .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
+                                     .Build(graph);
 
   ge::NodePtr transpose_nhwc_2_nchw = NodeBuilder("transpose_nhwc_2_nchw", TRANSPOSE)
-                                      .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-                                      .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                                      .Build(graph);
+                                          .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
+                                          .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                          .Build(graph);
 
   ge::NodePtr transdata_4d_2_5d = NodeBuilder("transdata_4d_2_5d", TRANSDATA)
-                            .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                      .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                      .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                      .Build(graph);
 
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-                            .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                            .Build(graph);
-
+                                .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                .Build(graph);
 
   // shape different,but format and datatype are equal
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), cast_fp32_2_fp16->GetInDataAnchor(0));
@@ -2445,34 +2397,31 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_fusion_fail_shape_uncontinuous
             \/
     Node---cast---transpose----transdata---C
 */
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_fusion_fail_format_unsupport)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_fusion_fail_format_unsupport) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
 
-  ge::NodePtr node = NodeBuilder("Data4D", DATA)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_FRACTAL_Z_C04, DT_FLOAT)
-      .Build(graph);
+  ge::NodePtr node =
+      NodeBuilder("Data4D", DATA).AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_FRACTAL_Z_C04, DT_FLOAT).Build(graph);
 
   ge::NodePtr transdata_5d_2_4d = NodeBuilder("transdata_5d_2_4d", TRANSDATA)
-                           .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_FRACTAL_Z_C04, DT_FLOAT16)
-                           .AddOutputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT16)
-                           .Build(graph);
-
-  ge::NodePtr cast_fp32_2_fp16 = NodeBuilder("cast_fp32_2_fp16", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-                                .Build(graph);
-
-  ge::NodePtr transpose_nhwc_2_nchw = NodeBuilder("transpose_nhwc_2_nchw", TRANSPOSE)
-                                      .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-                                      .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_FRACTAL_Z_C04, DT_FLOAT16)
+                                      .AddOutputDesc({1, 3, 4, 2}, FORMAT_NHWC, DT_FLOAT16)
                                       .Build(graph);
 
-  ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-                            .AddInputDesc({1, 3, 4, 2, 5}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NCHW, DT_FLOAT16)
-                            .Build(graph);
+  ge::NodePtr cast_fp32_2_fp16 = NodeBuilder("cast_fp32_2_fp16", CAST)
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
+                                     .Build(graph);
 
+  ge::NodePtr transpose_nhwc_2_nchw = NodeBuilder("transpose_nhwc_2_nchw", TRANSPOSE)
+                                          .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
+                                          .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                          .Build(graph);
+
+  ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
+                                .AddInputDesc({1, 3, 4, 2, 5}, FORMAT_NCHW, DT_FLOAT16)
+                                .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NCHW, DT_FLOAT16)
+                                .Build(graph);
 
   // shape different,but format and datatype are equal
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), transdata_5d_2_4d->GetInDataAnchor(0));
@@ -2493,36 +2442,30 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_fusion_fail_format_unsupport)
             \/
     Node---cast---transpose----transdata---C
 */
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_fusion_fail_format_nd_unsupport)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_fusion_fail_format_nd_unsupport) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
 
-  ge::NodePtr node = NodeBuilder("Data4D", DATA)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_ND, DT_FLOAT)
-      .Build(graph);
+  ge::NodePtr node = NodeBuilder("Data4D", DATA).AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_ND, DT_FLOAT).Build(graph);
 
   ge::NodePtr transdata_5d_2_4d = NodeBuilder("transdata_5d_2_4d", TRANSDATA)
-                           .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_ND, DT_FLOAT16)
-                           .AddOutputDesc({1, 3, 4, 2}, FORMAT_NC1HWC0, DT_FLOAT16)
-                           .Build(graph);
-
-  ge::NodePtr cast_fp32_2_fp16 = NodeBuilder("cast_fp32_2_fp16", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NC1HWC0, DT_FLOAT)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NC1HWC0, DT_FLOAT16)
-                                .Build(graph);
-
-  ge::NodePtr transpose_nhwc_2_nchw = NodeBuilder("transpose_nhwc_2_nchw", TRANSPOSE)
-                                      .AddInputDesc({1, 2, 3, 4}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_ND, DT_FLOAT16)
                                       .AddOutputDesc({1, 3, 4, 2}, FORMAT_NC1HWC0, DT_FLOAT16)
                                       .Build(graph);
 
+  ge::NodePtr cast_fp32_2_fp16 = NodeBuilder("cast_fp32_2_fp16", CAST)
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NC1HWC0, DT_FLOAT)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                     .Build(graph);
 
+  ge::NodePtr transpose_nhwc_2_nchw = NodeBuilder("transpose_nhwc_2_nchw", TRANSPOSE)
+                                          .AddInputDesc({1, 2, 3, 4}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                          .AddOutputDesc({1, 3, 4, 2}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                          .Build(graph);
 
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-                            .AddInputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
-
+                                .AddInputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   // shape different,but format and datatype are equal
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), transdata_5d_2_4d->GetInDataAnchor(0));
@@ -2551,43 +2494,40 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_fusion_fail_format_nd_unsuppor
        |   |
        |+++|
 */
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_cast_formattransfer_out_data_in_control)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_cast_formattransfer_out_data_in_control) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
 
-  ge::NodePtr node = NodeBuilder("Data4D", DATA)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
-      .Build(graph);
+  ge::NodePtr node = NodeBuilder("Data4D", DATA).AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT).Build(graph);
 
   ge::NodePtr cast_fp32_2_fp16 = NodeBuilder("cast_fp32_2_fp16", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-                                .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
+                                     .Build(graph);
 
   ge::NodePtr transpose_nhwc_2_nchw = NodeBuilder("transpose_nhwc_2_nchw", TRANSPOSE)
-                                      .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
-                                      .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                                      .Build(graph);
+                                          .AddInputDesc({1, 2, 3, 4}, FORMAT_NHWC, DT_FLOAT16)
+                                          .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                          .Build(graph);
 
   ge::NodePtr transdata_4d_2_5d = NodeBuilder("transdata_4d_2_5d", TRANSDATA)
-                            .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                      .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                      .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                      .Build(graph);
 
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-                            .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                .Build(graph);
 
   ge::NodePtr node_relu_2 = NodeBuilder("relu_2", RELU)
-                            .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                .AddOutputDesc({1, 3, 4, 2}, FORMAT_NCHW, DT_FLOAT16)
+                                .Build(graph);
 
   ge::NodePtr node_relu_3 = NodeBuilder("relu_3", RELU)
-                            .AddInputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 3, 4, 2, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   // shape different,but format and datatype are equal
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), cast_fp32_2_fp16->GetInDataAnchor(0));
@@ -2662,23 +2602,34 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_cast_formattransfer_out_data_i
  */
 TEST_F(UtestTransopWithoutReshapeFusionPass, test_remain_node_control_not_change) {
   DEF_GRAPH(g1) {
-    auto data1 = OP_CFG(DATA).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_NHWC, DT_FLOAT, {1, 128, 192, 1})
-                 .InCnt(1).OutCnt(1).Build("data1");
-    auto transdata1 = OP_CFG(TRANSDATA).TensorDesc(FORMAT_NC1HWC0, DT_FLOAT, {1, 1, 128, 192, 1})
-                      .InCnt(1).OutCnt(1).Build("transdata1");
-    auto transdata2 = OP_CFG(TRANSDATA).TensorDesc(FORMAT_NHWC, DT_FLOAT, {1, 128, 192, 1})
-                      .InCnt(1).OutCnt(1).Build("transdata2");
-    auto cast1 = OP_CFG(CAST).TensorDesc(FORMAT_NC1HWC0, DT_FLOAT16, {1, 1, 128, 192, 1})
-                 .InCnt(1).OutCnt(1).Build("cast1");
-    auto relu1 = OP_CFG(RELU).TensorDesc(FORMAT_NHWC, DT_FLOAT, {1, 128, 192, 1})
-                 .InCnt(1).OutCnt(1).Build("relu1");
-    auto relu2 = OP_CFG(RELU).TensorDesc(FORMAT_NHWC, DT_FLOAT16, {1, 128, 192, 1})
-                 .InCnt(1).OutCnt(1).Build("relu2");
+    auto data1 = OP_CFG(DATA)
+                     .Attr(ATTR_NAME_INDEX, 0)
+                     .TensorDesc(FORMAT_NHWC, DT_FLOAT, {1, 128, 192, 1})
+                     .InCnt(1)
+                     .OutCnt(1)
+                     .Build("data1");
+    auto transdata1 = OP_CFG(TRANSDATA)
+                          .TensorDesc(FORMAT_NC1HWC0, DT_FLOAT, {1, 1, 128, 192, 1})
+                          .InCnt(1)
+                          .OutCnt(1)
+                          .Build("transdata1");
+    auto transdata2 =
+        OP_CFG(TRANSDATA).TensorDesc(FORMAT_NHWC, DT_FLOAT, {1, 128, 192, 1}).InCnt(1).OutCnt(1).Build("transdata2");
+    auto cast1 =
+        OP_CFG(CAST).TensorDesc(FORMAT_NC1HWC0, DT_FLOAT16, {1, 1, 128, 192, 1}).InCnt(1).OutCnt(1).Build("cast1");
+    auto relu1 = OP_CFG(RELU).TensorDesc(FORMAT_NHWC, DT_FLOAT, {1, 128, 192, 1}).InCnt(1).OutCnt(1).Build("relu1");
+    auto relu2 = OP_CFG(RELU).TensorDesc(FORMAT_NHWC, DT_FLOAT16, {1, 128, 192, 1}).InCnt(1).OutCnt(1).Build("relu2");
 
     CHAIN(NODE(data1)->NODE(transdata1)->EDGE(0, 0)->NODE("switch1", SWITCH)->EDGE(0, 0)->NODE("identity1", IDENTITY));
     CHAIN(NODE("data2", DATA)->EDGE(0, 1)->NODE("switch1")->EDGE(1, 0)->NODE("identity2", IDENTITY));
-    CHAIN(NODE(transdata1)->EDGE(0, 0)->NODE(cast1)->NODE("transdata3", TRANSDATA)->NODE(relu2)->EDGE(0, 0)->
-          NODE("merge1", MERGE)->NODE("output", NETOUTPUT));
+    CHAIN(NODE(transdata1)
+              ->EDGE(0, 0)
+              ->NODE(cast1)
+              ->NODE("transdata3", TRANSDATA)
+              ->NODE(relu2)
+              ->EDGE(0, 0)
+              ->NODE("merge1", MERGE)
+              ->NODE("output", NETOUTPUT));
     CHAIN(NODE(transdata1)->EDGE(0, 0)->NODE(transdata2)->NODE(relu1)->EDGE(0, 1)->NODE("merge1"));
     CTRL_CHAIN(NODE(transdata1)->NODE("const1", CONSTANT));
     CTRL_CHAIN(NODE("identity1")->NODE(cast1));
@@ -2725,26 +2676,22 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_remain_node_control_not_change
 
 
 */
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_cast_fusion_no_need_check_format_nd)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_cast_fusion_no_need_check_format_nd) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
-  ge::NodePtr node = NodeBuilder("Data4D", DATA)
-      .AddOutputDesc({1,2,3,4}, FORMAT_ND, DT_BOOL)
-      .Build(graph);
-
+  ge::NodePtr node = NodeBuilder("Data4D", DATA).AddOutputDesc({1, 2, 3, 4}, FORMAT_ND, DT_BOOL).Build(graph);
 
   ge::NodePtr cast_bool_2_fp32 = NodeBuilder("cast_bool_2_fp32", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_ND, DT_BOOL)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_ND, DT_FLOAT)
-                                .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_ND, DT_BOOL)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_ND, DT_FLOAT)
+                                     .Build(graph);
   ge::NodePtr cast_fp32_2_fp16 = NodeBuilder("cast_fp32_2_fp16", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_ND, DT_FLOAT)
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_ND, DT_FLOAT)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_ND, DT_FLOAT16)
+                                     .Build(graph);
+  ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
+                                .AddInputDesc({1, 2, 3, 4}, FORMAT_ND, DT_FLOAT16)
                                 .AddOutputDesc({1, 2, 3, 4}, FORMAT_ND, DT_FLOAT16)
                                 .Build(graph);
-  ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-                            .AddInputDesc({1, 2, 3, 4}, FORMAT_ND, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4}, FORMAT_ND, DT_FLOAT16)
-                            .Build(graph);
 
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), cast_bool_2_fp32->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(cast_bool_2_fp32->GetOutDataAnchor(0), cast_fp32_2_fp16->GetInDataAnchor(0));
@@ -2762,25 +2709,22 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_cast_fusion_no_need_check_form
   EXPECT_EQ(fusion_cast->GetOpDesc()->GetOutputDesc(0).GetDataType(), DT_FLOAT16);
 }
 
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_cast_fusion_skip_when_input_dtype_not_continuous)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_cast_fusion_skip_when_input_dtype_not_continuous) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
-  ge::NodePtr node = NodeBuilder("Data4D", DATA)
-      .AddOutputDesc({1, 2, 3, 4}, FORMAT_ND, DT_FLOAT16)
-      .Build(graph);
+  ge::NodePtr node = NodeBuilder("Data4D", DATA).AddOutputDesc({1, 2, 3, 4}, FORMAT_ND, DT_FLOAT16).Build(graph);
 
   ge::NodePtr cast_bool_2_fp32 = NodeBuilder("cast_bool_2_fp32", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_ND, DT_BOOL)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_ND, DT_FLOAT)
-                                .Build(graph);
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_ND, DT_BOOL)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_ND, DT_FLOAT)
+                                     .Build(graph);
   ge::NodePtr cast_fp32_2_fp16 = NodeBuilder("cast_fp32_2_fp16", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_ND, DT_FLOAT)
+                                     .AddInputDesc({1, 2, 3, 4}, FORMAT_ND, DT_FLOAT)
+                                     .AddOutputDesc({1, 2, 3, 4}, FORMAT_ND, DT_FLOAT16)
+                                     .Build(graph);
+  ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
+                                .AddInputDesc({1, 2, 3, 4}, FORMAT_ND, DT_FLOAT16)
                                 .AddOutputDesc({1, 2, 3, 4}, FORMAT_ND, DT_FLOAT16)
                                 .Build(graph);
-  ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-                            .AddInputDesc({1, 2, 3, 4}, FORMAT_ND, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4}, FORMAT_ND, DT_FLOAT16)
-                            .Build(graph);
 
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), cast_bool_2_fp32->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(cast_bool_2_fp32->GetOutDataAnchor(0), cast_fp32_2_fp16->GetInDataAnchor(0));
@@ -2795,25 +2739,23 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_cast_fusion_skip_when_input_dt
   EXPECT_EQ(node_relu_1->GetInDataNodes().at(0), cast_fp32_2_fp16);
 }
 
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_transdata_fusion_skip_when_input_dtype_not_continuous)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_transdata_fusion_skip_when_input_dtype_not_continuous) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
-  ge::NodePtr node = NodeBuilder("Data4D", DATA)
-      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-      .Build(graph);
+  ge::NodePtr node =
+      NodeBuilder("Data4D", DATA).AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16).Build(graph);
 
   ge::NodePtr transdata_5d_2_4d = NodeBuilder("transdata_5d_2_4d", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
-                            .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                            .Build(graph);
+                                      .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT)
+                                      .AddOutputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                      .Build(graph);
   ge::NodePtr transdata_4d_2_5d = NodeBuilder("transdata_4d_2_5d", TRANSDATA)
-                            .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                      .AddInputDesc({1, 2, 3, 4}, FORMAT_NCHW, DT_FLOAT)
+                                      .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                      .Build(graph);
   ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-                            .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
-                            .Build(graph);
+                                .AddInputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .AddOutputDesc({1, 2, 3, 4, 5}, FORMAT_NC1HWC0, DT_FLOAT16)
+                                .Build(graph);
 
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), transdata_5d_2_4d->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(transdata_5d_2_4d->GetOutDataAnchor(0), transdata_4d_2_5d->GetInDataAnchor(0));
@@ -2839,30 +2781,26 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_transdata_fusion_skip_when_inp
 
 
 */
-TEST_F(UtestTransopWithoutReshapeFusionPass, test_cast_fusion_has_precision_loss)
-{
+TEST_F(UtestTransopWithoutReshapeFusionPass, test_cast_fusion_has_precision_loss) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("graph_test");
-  ge::NodePtr node = NodeBuilder("Data4D", DATA)
-      .AddOutputDesc({1,2,3,4}, FORMAT_ND, DT_FLOAT)
-      .Build(graph);
-
+  ge::NodePtr node = NodeBuilder("Data4D", DATA).AddOutputDesc({1, 2, 3, 4}, FORMAT_ND, DT_FLOAT).Build(graph);
 
   ge::NodePtr cast_fp32_2_int32 = NodeBuilder("cast_fp32_2_int32", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_ND, DT_FLOAT)
+                                      .AddInputDesc({1, 2, 3, 4}, FORMAT_ND, DT_FLOAT)
+                                      .AddOutputDesc({1, 2, 3, 4}, FORMAT_ND, DT_INT32)
+                                      .Build(graph);
+  ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
+                                .AddInputDesc({1, 2, 3, 4}, FORMAT_ND, DT_INT32)
                                 .AddOutputDesc({1, 2, 3, 4}, FORMAT_ND, DT_INT32)
                                 .Build(graph);
-  ge::NodePtr node_relu_1 = NodeBuilder("relu_1", RELU)
-          .AddInputDesc({1, 2, 3, 4}, FORMAT_ND, DT_INT32)
-          .AddOutputDesc({1, 2, 3, 4}, FORMAT_ND, DT_INT32)
-          .Build(graph);
   ge::NodePtr cast_int32_2_bool = NodeBuilder("cast_fp32_2_int64", CAST)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_ND, DT_INT32)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_ND, DT_BOOL)
-                                .Build(graph);
-    ge::NodePtr netoutput = NodeBuilder("netoutput", NETOUTPUT)
-                                .AddInputDesc({1, 2, 3, 4}, FORMAT_ND, DT_BOOL)
-                                .AddOutputDesc({1, 2, 3, 4}, FORMAT_ND, DT_BOOL)
-                                .Build(graph);
+                                      .AddInputDesc({1, 2, 3, 4}, FORMAT_ND, DT_INT32)
+                                      .AddOutputDesc({1, 2, 3, 4}, FORMAT_ND, DT_BOOL)
+                                      .Build(graph);
+  ge::NodePtr netoutput = NodeBuilder("netoutput", NETOUTPUT)
+                              .AddInputDesc({1, 2, 3, 4}, FORMAT_ND, DT_BOOL)
+                              .AddOutputDesc({1, 2, 3, 4}, FORMAT_ND, DT_BOOL)
+                              .Build(graph);
 
   ge::GraphUtils::AddEdge(node->GetOutDataAnchor(0), cast_fp32_2_int32->GetInDataAnchor(0));
   ge::GraphUtils::AddEdge(cast_fp32_2_int32->GetOutDataAnchor(0), node_relu_1->GetInDataAnchor(0));
@@ -2875,4 +2813,4 @@ TEST_F(UtestTransopWithoutReshapeFusionPass, test_cast_fusion_has_precision_loss
   EXPECT_EQ(domi::SUCCESS, status);
   EXPECT_EQ(graph->GetDirectNodesSize(), 5);
 }
-} // namespace ge
+}  // namespace ge

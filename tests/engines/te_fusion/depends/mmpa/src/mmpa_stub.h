@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,8 +30,7 @@ class MmpaStubApi {
     return dlsym(handle, func_name);
   }
 
-  virtual INT32 GetEnv(const CHAR *name, CHAR *value, UINT32 len)
-  {
+  virtual INT32 GetEnv(const CHAR *name, CHAR *value, UINT32 len) {
     const char *env = getenv(name);
     if (env == nullptr) {
       return EN_ERROR;
@@ -46,7 +45,7 @@ class MmpaStubApi {
   }
 
   virtual int32_t DlAddr(VOID *addr, mmDlInfo *info) {
-    return dladdr(addr, (Dl_info*)info);
+    return dladdr(addr, (Dl_info *)info);
   }
 
   virtual int32_t RealPath(const CHAR *path, CHAR *realPath, INT32 realPathLen) {
@@ -60,7 +59,7 @@ class MmpaStubApi {
 
   virtual INT32 WaitPid(mmProcess pid, INT32 *status, INT32 options) {
     if ((options != MMPA_ZERO) && (options != M_WAIT_NOHANG) && (options != M_WAIT_UNTRACED)) {
-    return EN_INVALID_PARAM;
+      return EN_INVALID_PARAM;
     }
 
     INT32 ret = waitpid(pid, status, options);
@@ -72,7 +71,7 @@ class MmpaStubApi {
         if (WIFEXITED(*status)) {
           *status = WEXITSTATUS(*status);
         }
-        if(WIFSIGNALED(*status)) {
+        if (WIFSIGNALED(*status)) {
           *status = WTERMSIG(*status);
         }
       }
@@ -84,7 +83,7 @@ class MmpaStubApi {
 
 class MmpaStub {
  public:
-  static MmpaStub& GetInstance() {
+  static MmpaStub &GetInstance() {
     static MmpaStub instance;
     return instance;
   }
@@ -97,7 +96,7 @@ class MmpaStub {
     return impl_;
   }
 
-  MmpaStubApi* GetImpl() {
+  MmpaStubApi *GetImpl() {
     return impl_.get();
   }
 
@@ -106,8 +105,7 @@ class MmpaStub {
   }
 
  private:
-  MmpaStub(): impl_(std::make_shared<MmpaStubApi>()) {
-  }
+  MmpaStub() : impl_(std::make_shared<MmpaStubApi>()) {}
 
   std::shared_ptr<MmpaStubApi> impl_;
 };

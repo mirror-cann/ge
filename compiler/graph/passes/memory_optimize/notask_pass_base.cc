@@ -76,22 +76,22 @@ constexpr int32_t NOTASK_TENSOR_ALIGN_SIZE = 32;
 const int32_t kNotaskDeepth = 100;
 const std::string kNotaskLxSlice = "lxslice";
 
-bool NotaskPassBase::CheckDimAlignment(const ge::OpDescPtr &op_desc, const gert::Shape &align_shape,
-  const int64_t dim, const ge::GeShape &ori_shape) const {
+bool NotaskPassBase::CheckDimAlignment(const ge::OpDescPtr &op_desc, const gert::Shape &align_shape, const int64_t dim,
+                                       const ge::GeShape &ori_shape) const {
   GE_ASSERT_TRUE(!(ori_shape.GetDimNum() <= static_cast<size_t>(dim) ||
-    align_shape.GetDimNum() <= static_cast<size_t>(dim) || align_shape[dim] <= 0),
-    "notask [%s] dim %lld, ori shape size %zu, align shape size %zu, dim value %lld.",
-      op_desc->GetName().c_str(), dim, ori_shape.GetDimNum(), align_shape.GetDimNum(), align_shape[dim]);
+                   align_shape.GetDimNum() <= static_cast<size_t>(dim) || align_shape[dim] <= 0),
+                 "notask [%s] dim %lld, ori shape size %zu, align shape size %zu, dim value %lld.",
+                 op_desc->GetName().c_str(), dim, ori_shape.GetDimNum(), align_shape.GetDimNum(), align_shape[dim]);
   if ((ori_shape.GetDim(dim) % align_shape[dim]) != 0) {
-    GELOGD("notask [%s] dim %lld, ori shape %lld, align shape %lld.",
-      op_desc->GetName().c_str(), dim, ori_shape.GetDim(dim), align_shape[dim]);
+    GELOGD("notask [%s] dim %lld, ori shape %lld, align shape %lld.", op_desc->GetName().c_str(), dim,
+           ori_shape.GetDim(dim), align_shape[dim]);
     return false;
   }
   return true;
 }
 
 void NotaskPassBase::PrintTransferDims(const std::string name,
-  const std::vector<std::vector<int32_t>> &transfer_dims) const {
+                                       const std::vector<std::vector<int32_t>> &transfer_dims) const {
   std::stringstream ss;
   ss << "{";
   for (size_t i = 0; i < transfer_dims.size(); i++) {
@@ -104,8 +104,8 @@ void NotaskPassBase::PrintTransferDims(const std::string name,
     }
     ss << "}";
     if (i != transfer_dims.size() - 1) {
-    ss << ",";
-  }
+      ss << ",";
+    }
   }
   ss << "}";
   GELOGI("[%s]: %s", name.c_str(), ss.str().c_str());
@@ -125,7 +125,8 @@ void NotaskPassBase::PrintShape(const std::string name, const gert::Shape &shape
 }
 
 bool NotaskPassBase::CheckSplitAxis(const std::vector<int32_t> &src_axes, const int64_t &axis_idx,
-  const int32_t &from_axis, const gert::Shape &align_shape, const gert::Shape &src_shape) const {
+                                    const int32_t &from_axis, const gert::Shape &align_shape,
+                                    const gert::Shape &src_shape) const {
   const auto out = src_axes[0];
   if (out == axis_idx) {
     return src_shape.GetDim(from_axis) <= align_shape.GetDim(from_axis);
@@ -134,15 +135,15 @@ bool NotaskPassBase::CheckSplitAxis(const std::vector<int32_t> &src_axes, const 
   }
 }
 
-bool NotaskPassBase::IsFromAxisOne(const int64_t &axis_idx,
-  const transformer::AxisIndexMapping &axis_index_mapping,
-  const gert::Shape &align_shape, const gert::Shape &src_shape, const int32_t &from_axis) const {
+bool NotaskPassBase::IsFromAxisOne(const int64_t &axis_idx, const transformer::AxisIndexMapping &axis_index_mapping,
+                                   const gert::Shape &align_shape, const gert::Shape &src_shape,
+                                   const int32_t &from_axis) const {
   GE_ASSERT_TRUE(axis_index_mapping.src_to_dst_transfer_dims.size() > static_cast<size_t>(from_axis));
   if (axis_index_mapping.src_to_dst_transfer_dims[from_axis].size() > 1) {
-    if (!CheckSplitAxis(axis_index_mapping.src_to_dst_transfer_dims[from_axis], axis_idx,
-      from_axis, align_shape, src_shape)) {
-      GELOGD("The value of from axis[%d] is %lld, align shape is %lld, [%s] not meet optimize condition.",
-        from_axis, src_shape.GetDim(from_axis), align_shape.GetDim(from_axis), cur_pro_node_name_.c_str());
+    if (!CheckSplitAxis(axis_index_mapping.src_to_dst_transfer_dims[from_axis], axis_idx, from_axis, align_shape,
+                        src_shape)) {
+      GELOGD("The value of from axis[%d] is %lld, align shape is %lld, [%s] not meet optimize condition.", from_axis,
+             src_shape.GetDim(from_axis), align_shape.GetDim(from_axis), cur_pro_node_name_.c_str());
       return false;
     }
   } else {
@@ -152,22 +153,21 @@ bool NotaskPassBase::IsFromAxisOne(const int64_t &axis_idx,
   return true;
 }
 
-bool NotaskPassBase::IsMergedAxisAllOnes(const int64_t &axis_idx,
-  const std::vector<int64_t> &shape) const {
+bool NotaskPassBase::IsMergedAxisAllOnes(const int64_t &axis_idx, const std::vector<int64_t> &shape) const {
   return shape[axis_idx] == 1;
 }
 
 bool NotaskPassBase::IsFrontDimsAllOnesInMergedAxis(const gert::Shape &align_shape, const gert::Shape &src_shape,
-  const transformer::AxisIndexMapping &axis_index_mapping, const int64_t &real_dim,
-   const int64_t &dim) const {
+                                                    const transformer::AxisIndexMapping &axis_index_mapping,
+                                                    const int64_t &real_dim, const int64_t &dim) const {
   const auto src_axes = axis_index_mapping.dst_to_src_transfer_dims[real_dim];
   const auto merge_it = std::find(src_axes.begin(), src_axes.end(), dim);
   GE_ASSERT_TRUE(merge_it != src_axes.end());
   for (auto it = src_axes.begin(); it != merge_it; it++) {
     const auto from_axis = *it;
     if (!IsFromAxisOne(real_dim, axis_index_mapping, align_shape, src_shape, from_axis)) {
-      GELOGD("The value of from axis[%d] is %lld, [%s] not meet optimize condition.",
-        from_axis, src_shape.GetDim(from_axis), cur_pro_node_name_.c_str());
+      GELOGD("The value of from axis[%d] is %lld, [%s] not meet optimize condition.", from_axis,
+             src_shape.GetDim(from_axis), cur_pro_node_name_.c_str());
       return false;
     }
   }
@@ -175,18 +175,19 @@ bool NotaskPassBase::IsFrontDimsAllOnesInMergedAxis(const gert::Shape &align_sha
 }
 
 bool NotaskPassBase::IsFrontDimsAllOnes(const transformer::AxisIndexMapping &axis_index_mapping,
-  const std::vector<int64_t> &shape, const int64_t &real_dim) const {
+                                        const std::vector<int64_t> &shape, const int64_t &real_dim) const {
   for (auto axis = 0; axis < real_dim; axis++) {
     const auto src_axes = axis_index_mapping.dst_to_src_transfer_dims[axis];
     if (src_axes.size() > 1) {
       if (!IsMergedAxisAllOnes(axis, shape)) {
-        GELOGD("The value of Merged axis[%d] is %lld, [%s] not meet optimize condition.",
-          axis, shape[axis], cur_pro_node_name_.c_str());
+        GELOGD("The value of Merged axis[%d] is %lld, [%s] not meet optimize condition.", axis, shape[axis],
+               cur_pro_node_name_.c_str());
         return false;
       }
     } else {
       if (shape[axis] != 1) {
-        GELOGD("The value of axis[%d] is %lld, [%s] not meet optimize condition.", axis, shape[axis], cur_pro_node_name_.c_str());
+        GELOGD("The value of axis[%d] is %lld, [%s] not meet optimize condition.", axis, shape[axis],
+               cur_pro_node_name_.c_str());
         return false;
       }
     }
@@ -196,8 +197,8 @@ bool NotaskPassBase::IsFrontDimsAllOnes(const transformer::AxisIndexMapping &axi
 }
 
 bool NotaskPassBase::CheckRealDim(const gert::Shape &align_shape, const gert::Shape &src_shape,
-  const transformer::AxisIndexMapping &axis_index_mapping, const int64_t &dim,
-  const ge::GeTensorDesc &input_tensor) const {
+                                  const transformer::AxisIndexMapping &axis_index_mapping, const int64_t &dim,
+                                  const ge::GeTensorDesc &input_tensor) const {
   int64_t real_dim = 0;
 
   GE_ASSERT_TRUE(axis_index_mapping.src_to_dst_transfer_dims[dim].size() > 0);
@@ -208,15 +209,15 @@ bool NotaskPassBase::CheckRealDim(const gert::Shape &align_shape, const gert::Sh
   const auto src_real_dims = axis_index_mapping.dst_to_src_transfer_dims[real_dim];
   if (src_real_dims.size() > 1) {
     return IsFrontDimsAllOnes(axis_index_mapping, shape, real_dim) &&
-      IsFrontDimsAllOnesInMergedAxis(align_shape, src_shape, axis_index_mapping, real_dim, dim);
+           IsFrontDimsAllOnesInMergedAxis(align_shape, src_shape, axis_index_mapping, real_dim, dim);
   } else {
     return IsFrontDimsAllOnes(axis_index_mapping, shape, real_dim);
   }
 }
 
 bool NotaskPassBase::GetTransferDims(const ge::OpDescPtr &op_desc, const gert::Shape &src_shape,
-  const int64_t &reshape_type_mask,
-  const ge::GeTensorDesc &input_tensor, transformer::AxisIndexMapping &axis_index_mapping) const {
+                                     const int64_t &reshape_type_mask, const ge::GeTensorDesc &input_tensor,
+                                     transformer::AxisIndexMapping &axis_index_mapping) const {
   const auto input_format = input_tensor.GetFormat();
   const ge::Format input_orinal_format = input_tensor.GetOriginFormat();
   transformer::TransferDimsInfo transfer_dims_info;
@@ -226,7 +227,7 @@ bool NotaskPassBase::GetTransferDims(const ge::OpDescPtr &op_desc, const gert::S
   transfer_dims_info.reshape_type_mask = reshape_type_mask;
 
   GELOGD("Node [%s] original_format=%d, format=%d, reshape_type_mask=%lld.", op_desc->GetName().c_str(),
-    input_orinal_format, input_format, reshape_type_mask);
+         input_orinal_format, input_format, reshape_type_mask);
   if (!transformer::TransferShapeUtils::TransferDims(transfer_dims_info, axis_index_mapping)) {
     GELOGD("[%s] notask transfer dims failed.", op_desc->GetName().c_str());
     return false;
@@ -240,13 +241,13 @@ bool NotaskPassBase::GetTransferDims(const ge::OpDescPtr &op_desc, const gert::S
 }
 
 bool NotaskPassBase::GetAlignedShape(const ge::OpDescPtr &op_desc, const gert::Shape &src_shape,
-  const int64_t &reshape_type_mask,
-  const ge::GeTensorDesc &input_tensor, gert::Shape &align_shape) const {
+                                     const int64_t &reshape_type_mask, const ge::GeTensorDesc &input_tensor,
+                                     gert::Shape &align_shape) const {
   const auto input_format = input_tensor.GetFormat();
   const ge::Format input_orinal_format = input_tensor.GetOriginFormat();
 
-  GELOGD("[%s] original_format=%d, format=%d, data_type=%d, reshape_type_mask=%lld.",
-    op_desc->GetName().c_str(), input_orinal_format, input_format, input_tensor.GetDataType(), reshape_type_mask);
+  GELOGD("[%s] original_format=%d, format=%d, data_type=%d, reshape_type_mask=%lld.", op_desc->GetName().c_str(),
+         input_orinal_format, input_format, input_tensor.GetDataType(), reshape_type_mask);
   transformer::AlignShapeInfo align_shape_info;
   align_shape_info.src_format = input_orinal_format;
   align_shape_info.dst_format = input_format;
@@ -301,7 +302,7 @@ bool NotaskPassBase::OutputCheck(const ge::NodePtr &node) const {
       const bool is_virtual_op = no_task || output_reuse_input || no_padding_continuous_input;
       if (is_virtual_op) {
         GELOGD("Next node %s has _no_task attribute, %s can't optimize.", next_node_name.c_str(),
-                node->GetName().c_str());
+               node->GetName().c_str());
         return false;
       }
     }
@@ -427,7 +428,7 @@ bool NotaskPassBase::InputCheck(const ge::NodePtr &node) {
 
     if (!IsPreOutAnchorValidMultiRef(pre_out_anchor)) {
       GELOGD("Previous node [%s] connect to netoutput, [%s] can't optimize.", pre_node->GetName().c_str(),
-        cur_pro_node_name_.c_str());
+             cur_pro_node_name_.c_str());
       return false;
     }
 
@@ -456,8 +457,7 @@ bool NotaskPassBase::CheckTensorAlign(const ge::NodePtr &node, const size_t inpu
   const auto td = node->GetOpDesc()->GetInputDesc(input_index);
   const auto shape_size = td.GetShape().GetShapeSize();
   if (ge::GetSizeByDataType(td.GetDataType()) < 0) {
-    GELOGI("Get data type[%s] size less than zero.",
-           ge::TypeUtils::DataTypeToSerialString(td.GetDataType()).c_str());
+    GELOGI("Get data type[%s] size less than zero.", ge::TypeUtils::DataTypeToSerialString(td.GetDataType()).c_str());
     return false;
   }
   const auto tensor_size = ge::GetSizeInBytes(shape_size, td.GetDataType());
@@ -465,7 +465,7 @@ bool NotaskPassBase::CheckTensorAlign(const ge::NodePtr &node, const size_t inpu
 }
 
 bool NotaskPassBase::HasSameSourceAnchor(const ge::InDataAnchorPtr &in_anchor,
-                         std::set<ge::OutDataAnchorPtr> &src_anchors) const {
+                                         std::set<ge::OutDataAnchorPtr> &src_anchors) const {
   ge::OutDataAnchorPtr src_anchor = nullptr;
   GetFirstOutAnchorNotInRefNode(in_anchor, src_anchor, 0);
   const bool has_same_src_anchor = (src_anchors.count(src_anchor) == 1U);
@@ -494,8 +494,8 @@ bool NotaskPassBase::IsPreNodeTypeValid(const ge::InDataAnchorPtr &in_anchor) {
   const std::string op_type = node->GetType();
   static std::set<std::string> not_support_type = {DATA, REFDATA, VARIABLE, CONSTANTOP, CONSTANT};
   if (not_support_type.count(op_type) != 0U) {
-    GELOGD("node [%s] pre node [%s] opType is %s.", cur_pro_node_name_.c_str(),
-      node->GetName().c_str(), op_type.c_str());
+    GELOGD("node [%s] pre node [%s] opType is %s.", cur_pro_node_name_.c_str(), node->GetName().c_str(),
+           op_type.c_str());
     return false;
   }
 
@@ -546,10 +546,11 @@ bool NotaskPassBase::IsPreNodeAttrValid(const ge::OpDescPtr &pre_op_desc) {
   (void)ge::AttrUtils::GetBool(pre_op_desc, ge::ATTR_NAME_NOPADDING_CONTINUOUS_INPUT, no_padding_continuous_input);
 
   if (is_continous_input || is_continous_output || is_ref) {
-    GELOGD("Previous node %s attribute: continuous_input %s, continuous_output %s,"
-      " reference %s, node %s can't optimize.",
-      pre_node_name.c_str(), is_continous_input ? "true" : "false", is_continous_output ? "true" : "false",
-      is_ref ? "true" : "false", cur_pro_node_name_.c_str());
+    GELOGD(
+        "Previous node %s attribute: continuous_input %s, continuous_output %s,"
+        " reference %s, node %s can't optimize.",
+        pre_node_name.c_str(), is_continous_input ? "true" : "false", is_continous_output ? "true" : "false",
+        is_ref ? "true" : "false", cur_pro_node_name_.c_str());
     return false;
   }
 
@@ -583,18 +584,18 @@ bool NotaskPassBase::IsSameInputMemType(const ge::OpDescPtr &pre_op_desc, const 
   return (mem_types.size() == 1);
 }
 
-void NotaskPassBase::GetFirstOutAnchorNotInRefNode(const ge::InDataAnchorPtr &input_anchor, ge::OutDataAnchorPtr &src_anchor,
-                                                   int32_t current_deep) const {
+void NotaskPassBase::GetFirstOutAnchorNotInRefNode(const ge::InDataAnchorPtr &input_anchor,
+                                                   ge::OutDataAnchorPtr &src_anchor, int32_t current_deep) const {
   if (current_deep >= kNotaskDeepth) {
     return;
   }
   auto peer_out_anchor = input_anchor->GetPeerOutAnchor();
   if (peer_out_anchor == nullptr) {
-      return;
+    return;
   }
   auto peer_node = peer_out_anchor->GetOwnerNode();
   if (peer_node == nullptr) {
-      return;
+    return;
   }
   int32_t reuse_in_index = -1;
   const bool reuse_input_flag = GraphUtils::IsRefFromInput(peer_out_anchor, reuse_in_index);
@@ -610,16 +611,14 @@ void NotaskPassBase::GetFirstOutAnchorNotInRefNode(const ge::InDataAnchorPtr &in
   return;
 }
 
-void NotaskPassBase::GetFirstNotRefNode(const ge::InDataAnchorPtr &input_anchor,
-                                      ge::NodePtr &node) const {
+void NotaskPassBase::GetFirstNotRefNode(const ge::InDataAnchorPtr &input_anchor, ge::NodePtr &node) const {
   ge::OutDataAnchorPtr src_anchor = nullptr;
   GetFirstOutAnchorNotInRefNode(input_anchor, src_anchor, 0);
   node = (src_anchor != nullptr) ? src_anchor->GetOwnerNode() : nullptr;
   return;
 }
 
-bool NotaskPassBase::CheckDimForInput(const ge::OpDescPtr &op_desc, int64_t check_dim,
-  size_t input_idx) const {
+bool NotaskPassBase::CheckDimForInput(const ge::OpDescPtr &op_desc, int64_t check_dim, size_t input_idx) const {
   ge::GeTensorDesc input_tensor = op_desc->GetInputDesc(input_idx);
   ge::GeShape input_orinal_shape = input_tensor.GetOriginShape();
   gert::Shape src_shape;

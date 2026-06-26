@@ -35,14 +35,14 @@ graph TB
         Placement[Placement<br/>数据存储位置枚举]
         AttrValue[_AttrValue<br/>属性值类]
     end
-    
+
     subgraph "C API Wrapper Layer"
         GraphLib[graph<br/>C库包装器]
         ESBLib[esb_lib<br/>基础库包装器]
         PyGraphWrapper[pygraph_wrapper<br/>Python C API包装]
         PyESWrapper[pyes_graph_builder_wrapper<br/>Python C API包装]
     end
-    
+
     subgraph "C++ Backend"
         CGraph[ge::Graph<br/>C++图对象]
         CGNode[ge::GNode<br/>C++节点对象]
@@ -50,7 +50,7 @@ graph TB
         CTensor[ge::EsCTensor<br/>C++Tenor对象]
         CTensorDesc[ge::TensorDesc<br/>C++张量元信息对象]
     end
-    
+
     %% Python层关系
     Graph -->|"包含多个"| Node
     Graph -->|"使用"| DataType
@@ -65,7 +65,7 @@ graph TB
     TensorDesc -->|"包含"| Format
     Node -->|"使用"| AttrValue
     Node -->|"获取/更新输入输出描述"| TensorDesc
-    
+
     %% Python到C API
     Graph -.->|"通过"| GraphLib
     Node -.->|"通过"| GraphLib
@@ -74,7 +74,7 @@ graph TB
     Tensor -.->|"通过"| ESBLib
     GraphLib -->|"调用"| PyGraphWrapper
     ESBLib -->|"调用"| PyESWrapper
-    
+
     %% C API到C++
     PyGraphWrapper -->|"转换为"| CGraph
     PyGraphWrapper -->|"转换为"| CGNode

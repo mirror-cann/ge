@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,15 +19,7 @@
 #include "graph/passes/graph_pass.h"
 
 namespace ge {
-enum ControlNodeType {
-  kNotControlOp,
-  kCondSwitch,
-  kCondMerge,
-  kLoopSwitchT,
-  kLoopSwitchF,
-  kEnter,
-  kInvalidType
-};
+enum ControlNodeType { kNotControlOp, kCondSwitch, kCondMerge, kLoopSwitchT, kLoopSwitchF, kEnter, kInvalidType };
 
 class ControlTriggerPass : public GraphPass {
  public:
@@ -44,8 +36,8 @@ class ControlTriggerPass : public GraphPass {
   NodePtr InsertMergeNode(ComputeGraphPtr &graph, NodePtr &node, NodePtr &in_ctrl_node, const GeTensorDesc &data_desc,
                           const NodePtr &cond_node) const;
   NodePtr InsertConstNode(ComputeGraphPtr &graph, NodePtr &merge_node, const GeTensorDesc &data_desc, bool flag) const;
-  NodePtr InsertIdentityNode(ComputeGraphPtr &graph, const std::string &name,
-                             const GeTensorDesc &data_desc, NodePtr &switch_node) const;
+  NodePtr InsertIdentityNode(ComputeGraphPtr &graph, const std::string &name, const GeTensorDesc &data_desc,
+                             NodePtr &switch_node) const;
   Status FindPredInput(const NodePtr &switch_node);
 
   // <switch_node, pred_node>

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,8 +20,8 @@ ge::MemBlock *ExternalAllocator::Malloc(size_t size) {
   }
   GELOGD("Malloc memory by external allocator success, block:%p, size: %zu", block, size);
 
-  auto mem_block = new (external_mem_block_.Alloc()) ExternalMemBlock(*this,
-      allocator_desc_.get_addr_from_block_func(block), size, block);
+  auto mem_block = new (external_mem_block_.Alloc())
+      ExternalMemBlock(*this, allocator_desc_.get_addr_from_block_func(block), size, block);
   GELOGD("Malloc MemBlock by GE, MemBlock:%p.", mem_block);
   return dynamic_cast<ge::MemBlock *>(mem_block);
 }
@@ -53,8 +53,8 @@ ge::MemBlock *ExternalAllocator::MallocAdvise(size_t size, void *addr) {
   }
   GELOGD("Malloc advise memory by external allocator success, block:%p, size: %zu", block, size);
 
-  auto mem_block = new (external_mem_block_.Alloc()) ExternalMemBlock(*this,
-      allocator_desc_.get_addr_from_block_func(block), size, block);
+  auto mem_block = new (external_mem_block_.Alloc())
+      ExternalMemBlock(*this, allocator_desc_.get_addr_from_block_func(block), size, block);
   GELOGD("Malloc MemBlock by GE, MemBlock:%p.", mem_block);
   return dynamic_cast<ge::MemBlock *>(mem_block);
 }

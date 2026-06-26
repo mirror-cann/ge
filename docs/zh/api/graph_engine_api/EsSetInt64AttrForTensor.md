@@ -104,4 +104,3 @@ EsCGraphBuilder *graph = EsCreateGraphBuilder("test_graph");
 auto *tensor = EsCreateGraphInput(graph, 0);
 uint32_t result = EsSetInt64AttrForTensor(tensor, "int64_attr", 10);
 ```
-

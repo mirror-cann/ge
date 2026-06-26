@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -160,11 +160,9 @@ Status DFlowInitialize(const std::map<AscendString, AscendString> &options) {
 Status DFlowFinalize() {
   return SUCCESS;
 }
-DFlowSession::DFlowSession(const std::map<ge::AscendString, ge::AscendString> &options) {
-}
+DFlowSession::DFlowSession(const std::map<ge::AscendString, ge::AscendString> &options) {}
 
-DFlowSession::~DFlowSession() {
-}
+DFlowSession::~DFlowSession() {}
 
 Status DFlowSession::AddGraph(uint32_t graph_id, const FlowGraph &graph,
                               const std::map<ge::AscendString, ge::AscendString> &options) {
@@ -192,7 +190,7 @@ Status DFlowSession::FetchDataFlowGraph(uint32_t graph_id, const std::vector<uin
   outputs.emplace_back(std::make_shared<FlowMsgStub>(std::make_shared<Tensor>()));
   return SUCCESS;
 }
-}
+}  // namespace dflow
 
 Operator::Operator(const char_t *name, const char_t *type) {}
 

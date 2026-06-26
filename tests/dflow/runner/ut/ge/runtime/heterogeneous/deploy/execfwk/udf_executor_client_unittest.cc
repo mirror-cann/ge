@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -42,13 +42,13 @@ class MockMmpaUdfClient : public ge::MmpaStubApiGe {
     if (std::string(func_name) == "TsdFileLoad") {
       return (void *)&TsdFileLoad;
     } else if (std::string(func_name) == "TsdFileUnLoad") {
-      return (void *) &TsdFileUnLoad;
+      return (void *)&TsdFileUnLoad;
     } else if (std::string(func_name) == "TsdGetProcListStatus") {
       return get_proc_status_func_;
     } else if (std::string(func_name) == "TsdProcessOpen") {
-      return (void *) &TsdProcessOpen;
+      return (void *)&TsdProcessOpen;
     } else if (std::string(func_name) == "ProcessCloseSubProcList") {
-      return (void *) &ProcessCloseSubProcList;
+      return (void *)&ProcessCloseSubProcList;
     } else if (std::string(func_name) == "TsdCapabilityGet") {
       return get_tsd_capability_func_;
     }
@@ -124,6 +124,7 @@ class MockRuntime2 : public RuntimeStub {
 class MockUdfExecutorClient : public UdfExecutorClient {
  public:
   explicit MockUdfExecutorClient(int32_t device_id) : UdfExecutorClient(device_id) {}
+
  protected:
   Status CreateAndInitMessageClient(const uint32_t model_id, const pid_t child_pid, const uint32_t req_msg_queue_id,
                                     const uint32_t rsp_msg_queue_id) {
@@ -138,10 +139,10 @@ class MockUdfExecutorClient : public UdfExecutorClient {
 class MockUdfExecutorClientError : public UdfExecutorClient {
  public:
   explicit MockUdfExecutorClientError(int32_t device_id) : UdfExecutorClient(device_id) {}
+
  protected:
-  Status ForkChildProcess(const deployer::ExecutorRequest_LoadModelRequest &model_req,
-      const std::string &file_path, const std::string &group_name,
-      const SubProcessParams &params, pid_t &child_pid) {
+  Status ForkChildProcess(const deployer::ExecutorRequest_LoadModelRequest &model_req, const std::string &file_path,
+                          const std::string &group_name, const SubProcessParams &params, pid_t &child_pid) {
     return FAILED;
   }
 };
@@ -432,7 +433,7 @@ TEST_F(UdfExecutorClientTest, batch_untar_success_with_all_builtin_udf) {
 }
 
 TEST_F(UdfExecutorClientTest, batch_untar_success) {
- std::string untar_cmd = R"(
+  std::string untar_cmd = R"(
 mkdir -p ./ut_udf_models/batch_untar_succes
 cd ./ut_udf_models/batch_untar_succes
 touch test1.om
@@ -446,7 +447,8 @@ cd ../..
   EXPECT_EQ(cmd_ret, 0);
   std::set<std::string> local_udf_saved_path = {"./ut_udf_models/batch_untar_succes/test1_release.tar.gz"};
   // all tar is 0 size
-  EXPECT_EQ(UdfExecutorClient::PreprocessUdfTarPackage(local_udf_saved_path, "./ut_udf_models/batch_untar_result/"), SUCCESS);
+  EXPECT_EQ(UdfExecutorClient::PreprocessUdfTarPackage(local_udf_saved_path, "./ut_udf_models/batch_untar_result/"),
+            SUCCESS);
   system("rm -rf ./ut_udf_models");
 }
 
@@ -551,7 +553,7 @@ TEST_F(UdfExecutorClientTest, ForkProcess_with_args) {
   id_params.npu_sched_model = "1";
   SubprocessManager::GetInstance().excpt_handle_callbacks_.clear();
   deployer::ExecutorRequest_LoadModelRequest model_req;
-  Status ret =client.ForkChildProcess(model_req, "", "1", id_params, child_pid);
+  Status ret = client.ForkChildProcess(model_req, "", "1", id_params, child_pid);
   for (auto callback : SubprocessManager::GetInstance().excpt_handle_callbacks_) {
     callback.second(ProcStatus::NORMAL);
   }
@@ -616,6 +618,7 @@ class MockRuntimeNoLeaks : public RuntimeStub {
     mem_bufs_.emplace_back(mem_buf);
     return RT_ERROR_NONE;
   }
+
  private:
   std::mutex mu_;
   std::vector<void *> mem_bufs_;
@@ -625,8 +628,8 @@ TEST_F(UdfExecutorClientTest, Send_clear_data_request) {
   MockUdfExecutorClient client(0);
   client.model_id_to_pids_[0].emplace_back(100);
   client.model_id_to_pids_[0].emplace_back(101);
-  client.pid_to_message_client_[100] =  MakeUnique<MockExecutorMessageClient>();
-  client.pid_to_message_client_[101] =  MakeUnique<MockExecutorMessageClient>(false);
+  client.pid_to_message_client_[100] = MakeUnique<MockExecutorMessageClient>();
+  client.pid_to_message_client_[101] = MakeUnique<MockExecutorMessageClient>(false);
   auto mock_runtime = std::make_shared<MockRuntimeNoLeaks>();
   RuntimeStub::SetInstance(mock_runtime);
   EXPECT_EQ(client.ClearModelRunningData(0, 1, {}), FAILED);
@@ -637,8 +640,8 @@ TEST_F(UdfExecutorClientTest, Send_notify_exception) {
   MockUdfExecutorClient client(0);
   client.model_id_to_pids_[0].emplace_back(100);
   client.model_id_to_pids_[0].emplace_back(101);
-  client.pid_to_message_client_[100] =  MakeUnique<MockExecutorMessageClient>();
-  client.pid_to_message_client_[101] =  MakeUnique<MockExecutorMessageClient>(false);
+  client.pid_to_message_client_[100] = MakeUnique<MockExecutorMessageClient>();
+  client.pid_to_message_client_[101] = MakeUnique<MockExecutorMessageClient>(false);
   auto mock_runtime = std::make_shared<MockRuntimeNoLeaks>();
   RuntimeStub::SetInstance(mock_runtime);
   deployer::DataFlowExceptionNotifyRequest req_body;
@@ -662,8 +665,8 @@ TEST_F(UdfExecutorClientTest, Send_clear_data_request_not_related_abnormal_devid
   MockUdfExecutorClient client(0);
   client.model_id_to_pids_[0].emplace_back(100);
   client.model_id_to_pids_[0].emplace_back(101);
-  client.pid_to_message_client_[100] =  MakeUnique<MockExecutorMessageClient>();
-  client.pid_to_message_client_[101] =  MakeUnique<MockExecutorMessageClient>();
+  client.pid_to_message_client_[100] = MakeUnique<MockExecutorMessageClient>();
+  client.pid_to_message_client_[101] = MakeUnique<MockExecutorMessageClient>();
   auto mock_runtime = std::make_shared<MockRuntimeNoLeaks>();
   RuntimeStub::SetInstance(mock_runtime);
   std::set<int32_t> device_ids = {2, 3};
@@ -675,9 +678,9 @@ TEST_F(UdfExecutorClientTest, Send_clear_data_request_related_abnormal_devids) {
   MockUdfExecutorClient client(0);
   client.model_id_to_pids_[0].emplace_back(100);
   client.model_id_to_pids_[0].emplace_back(101);
-  client.pid_to_message_client_[100] =  MakeUnique<MockExecutorMessageClient>();
-  client.pid_to_message_client_[101] =  MakeUnique<MockExecutorMessageClient>();
-  client.pid_to_message_client_[103] =  MakeUnique<MockExecutorMessageClient>();
+  client.pid_to_message_client_[100] = MakeUnique<MockExecutorMessageClient>();
+  client.pid_to_message_client_[101] = MakeUnique<MockExecutorMessageClient>();
+  client.pid_to_message_client_[103] = MakeUnique<MockExecutorMessageClient>();
   auto mock_runtime = std::make_shared<MockRuntimeNoLeaks>();
   client.npu_device_id_related_pids_[2].insert(100);
   client.npu_device_id_related_pids_[4].insert(103);
@@ -695,9 +698,7 @@ TEST_F(UdfExecutorClientTest, Wait_rsp_failed) {
   handler.pid_ = 101;
   handler.req_msg_queue_id_ = 100;
   handler.rsp_msg_queue_id_ = 101;
-  handler.get_stat_func_ = []() -> Status {
-    return SUCCESS;
-  };
+  handler.get_stat_func_ = []() -> Status { return SUCCESS; };
   deployer::ExecutorResponse executor_response;
   EXPECT_EQ(handler.WaitResponse(executor_response, 1), SUCCESS);
   RuntimeStub::Reset();

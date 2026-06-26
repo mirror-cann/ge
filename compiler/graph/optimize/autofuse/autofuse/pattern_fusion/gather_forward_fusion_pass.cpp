@@ -22,7 +22,7 @@
 #include "shape_refiner.h"
 #include "backend/backend_spec.h"
 
-namespace  ge {
+namespace ge {
 using namespace autofuse;
 std::string GetFuseType(const NodePtr &node) {
   LoweringManager::Lowering(node);
@@ -33,7 +33,7 @@ std::string GetFuseType(const NodePtr &node) {
   return fuse_type;
 }
 
-ge::SymbolicDescAttr* GetNodeMutableOutputAttr(const NodePtr &node) {
+ge::SymbolicDescAttr *GetNodeMutableOutputAttr(const NodePtr &node) {
   auto node_op_desc = node->GetOpDescBarePtr();
   GE_ASSERT_NOTNULL(node_op_desc);
   auto node_output_desc = node_op_desc->MutableOutputDesc(0);
@@ -42,7 +42,7 @@ ge::SymbolicDescAttr* GetNodeMutableOutputAttr(const NodePtr &node) {
   return node_output_attr;
 }
 
-ge::SymbolicDescAttr* GetNodeMutableInputAttr(const NodePtr &node) {
+ge::SymbolicDescAttr *GetNodeMutableInputAttr(const NodePtr &node) {
   auto node_op_desc = node->GetOpDescBarePtr();
   GE_ASSERT_NOTNULL(node_op_desc);
   auto node_input_desc = node_op_desc->MutableInputDesc(0);
@@ -72,8 +72,8 @@ bool CheckShape(const NodePtr &node) {
     GELOGD("now ele node %s's input or output symbolic shape is null", node->GetType().c_str());
     return false;
   }
-  auto node_mutable_output_symbolic_shape = node_mutable_output_attr->symbolic_tensor.MutableOriginSymbolShape() ;
-  auto node_mutable_input_symbolic_shape = node_mutable_input_attr->symbolic_tensor.MutableOriginSymbolShape() ;
+  auto node_mutable_output_symbolic_shape = node_mutable_output_attr->symbolic_tensor.MutableOriginSymbolShape();
+  auto node_mutable_input_symbolic_shape = node_mutable_input_attr->symbolic_tensor.MutableOriginSymbolShape();
   if (node_mutable_input_symbolic_shape != node_mutable_output_symbolic_shape) {
     return false;
   }
@@ -86,32 +86,41 @@ bool NodeForwardFusionJudge(const NodePtr &node) {
     return false;
   }
   if (node->GetInNodesSize() != 1 || node->GetOutNodesSize() != 1) {
-    GELOGD("now node's input node's num is %lu, output node's num is %u", node->GetInNodesSize(), node->GetOutNodesSize());
+    GELOGD("now node's input node's num is %lu, output node's num is %u", node->GetInNodesSize(),
+           node->GetOutNodesSize());
     return false;
   }
   if (!CheckShape(node)) {
-    GELOGD("now node %s's input shape and output shape do not match exactly or once input or output symbolic shape is null", node->GetType().c_str());
+    GELOGD(
+        "now node %s's input shape and output shape do not match exactly or once input or output symbolic shape is "
+        "null",
+        node->GetType().c_str());
     return false;
   }
-  std::set<ge::DataType> gather_param_support_dtype = {DT_FLOAT, DT_FLOAT16, DT_INT32, DT_INT16, DT_UINT16, DT_UINT32, DT_BF16};
+  std::set<ge::DataType> gather_param_support_dtype = {DT_FLOAT,  DT_FLOAT16, DT_INT32, DT_INT16,
+                                                       DT_UINT16, DT_UINT32,  DT_BF16};
   auto node_op_desc = node->GetOpDesc();
   GE_ASSERT_NOTNULL(node_op_desc);
   auto node_input_desc = node_op_desc->MutableInputDesc(0);
   GE_ASSERT_NOTNULL(node_input_desc);
   auto node_input_desc_dtype = node_input_desc->GetDataType();
-  if (gather_param_support_dtype.find(node_input_desc_dtype) == gather_param_support_dtype.end())
-  {
+  if (gather_param_support_dtype.find(node_input_desc_dtype) == gather_param_support_dtype.end()) {
     std::vector<DataType> node_input_dtypes = {node_input_desc_dtype};
-    GELOGD("elementwise_node's name = %s, elementwise_node's type = %s, node's input dtype is %s, which is not suitable for being gather's input",
-    node->GetName().c_str(), node->GetType().c_str(), loop::StrJoin(node_input_dtypes).c_str());
+    GELOGD(
+        "elementwise_node's name = %s, elementwise_node's type = %s, node's input dtype is %s, which is not suitable "
+        "for being gather's input",
+        node->GetName().c_str(), node->GetType().c_str(), loop::StrJoin(node_input_dtypes).c_str());
     return false;
   }
   auto node_output_desc = node_op_desc->MutableOutputDesc(0);
   GE_ASSERT_NOTNULL(node_output_desc);
   auto node_output_desc_dtype = node_output_desc->GetDataType();
   if (node_input_desc_dtype != node_output_desc_dtype) {
-    GELOGD("elementwise_node's name = %s, elementwise_node's type = %s, input dtype(%d) != output dtype(%d), stop gather forward fusion",
-    node->GetName().c_str(), node->GetType().c_str(), static_cast<int32_t>(node_input_desc_dtype), static_cast<int32_t>(node_output_desc_dtype));
+    GELOGD(
+        "elementwise_node's name = %s, elementwise_node's type = %s, input dtype(%d) != output dtype(%d), stop gather "
+        "forward fusion",
+        node->GetName().c_str(), node->GetType().c_str(), static_cast<int32_t>(node_input_desc_dtype),
+        static_cast<int32_t>(node_output_desc_dtype));
     return false;
   }
   return true;
@@ -125,24 +134,26 @@ graphStatus GatherForwardFusionPass::Run(const ComputeGraphPtr &graph) const {
   GE_CHECK_NOTNULL(backend_spec);
   const auto do_gather_elementwise_forward_fusion = backend_spec->gather_spec.enable_gather_elementwise_forward_fusion;
   if (!do_gather_elementwise_forward_fusion || !ge::AutoFuseConfig::LoweringConfig().experimental_lowering_gather) {
-    GELOGD("No elementwise node can be forward fused with gather node because the env is not suitable or the switch is off");
+    GELOGD(
+        "No elementwise node can be forward fused with gather node because the env is not suitable or the switch is "
+        "off");
     return GRAPH_SUCCESS;
   }
   std::vector<NodePtr> forward_fused_pointwise_nodes;
-  for (auto node:graph->GetAllNodes()) {
-    if ((node->GetType() != "GatherV2" && node->GetType() != "Gather" && node->GetType() != "GatherV2D") || GetNodeMutableOutputAttr(node) == nullptr)
-    {
+  for (auto node : graph->GetAllNodes()) {
+    if ((node->GetType() != "GatherV2" && node->GetType() != "Gather" && node->GetType() != "GatherV2D") ||
+        GetNodeMutableOutputAttr(node) == nullptr) {
       continue;
     }
     auto gather_origin_symbolic_shape = GetNodeSymbolShape(node);
 
-    auto node_gather_input_anchor_0 = node->GetInDataAnchor(0); //gather param的in_anchor
+    auto node_gather_input_anchor_0 = node->GetInDataAnchor(0);  // gather param的in_anchor
     auto node_gather_output_anchor_0 = node->GetOutDataAnchor(0);
     auto node_now = node;
     auto node_pre = node->GetInAllNodes().begin()[0];
     while (NodeForwardFusionJudge(node_pre)) {
-      GELOGD("elementwise_node's name = %s, elementwise_node's type = %s",
-      node_pre->GetName().c_str(), node_pre->GetType().c_str());
+      GELOGD("elementwise_node's name = %s, elementwise_node's type = %s", node_pre->GetName().c_str(),
+             node_pre->GetType().c_str());
       node_now = node_pre;
       node_pre = node_pre->GetInAllNodes().begin()[0];
       forward_fused_pointwise_nodes.push_back(node_now);
@@ -152,11 +163,11 @@ graphStatus GatherForwardFusionPass::Run(const ComputeGraphPtr &graph) const {
       GELOGD("No elementwise node can be forward fuse with gather");
       continue;
     }
-    auto node_now_input_anchor = node_now->GetInDataAnchor(0); //起始点的输入anchor
-    auto node_now_input_peer_anchor = node_now_input_anchor->GetPeerOutAnchor(); //起始点前一个点的输出anchor
+    auto node_now_input_anchor = node_now->GetInDataAnchor(0);                    // 起始点的输入anchor
+    auto node_now_input_peer_anchor = node_now_input_anchor->GetPeerOutAnchor();  // 起始点前一个点的输出anchor
     auto node_gather_input_anchor_0_peer = node_gather_input_anchor_0->GetPeerOutAnchor();
     GELOGD("Now gather node has %zu outputs", node_gather_output_anchor_0->GetPeerInDataAnchors().size());
-    for (auto node_gather_out_anchor_peer:node_gather_output_anchor_0->GetPeerInDataAnchors()) {
+    for (auto node_gather_out_anchor_peer : node_gather_output_anchor_0->GetPeerInDataAnchors()) {
       GE_ASSERT_GRAPH_SUCCESS(node_gather_output_anchor_0->Unlink(node_gather_out_anchor_peer));
       GE_ASSERT_GRAPH_SUCCESS(node_gather_input_anchor_0_peer->LinkTo(node_gather_out_anchor_peer));
     }
@@ -164,14 +175,15 @@ graphStatus GatherForwardFusionPass::Run(const ComputeGraphPtr &graph) const {
     GE_ASSERT_GRAPH_SUCCESS(node_now_input_peer_anchor->Unlink(node_now_input_anchor));
     GE_ASSERT_GRAPH_SUCCESS(node_gather_output_anchor_0->LinkTo(node_now_input_anchor));
     GE_ASSERT_GRAPH_SUCCESS(node_now_input_peer_anchor->LinkTo(node_gather_input_anchor_0));
-    GELOGD("Graph modification is complete. Gather node %s can be forward fused with the elementwise node before it", node->GetName().c_str());
+    GELOGD("Graph modification is complete. Gather node %s can be forward fused with the elementwise node before it",
+           node->GetName().c_str());
   }
   GE_ASSERT_GRAPH_SUCCESS(graph->TopologicalSorting());
   std::reverse(forward_fused_pointwise_nodes.begin(), forward_fused_pointwise_nodes.end());
-  for(const auto &node:forward_fused_pointwise_nodes) {
+  for (const auto &node : forward_fused_pointwise_nodes) {
     GE_ASSERT_GRAPH_SUCCESS(ShapeRefiner::InferShapeAndType(node));
   }
   GELOGD("Graph changing of gather's forward fusion with elementwise is end");
   return GRAPH_SUCCESS;
 }
-}
+}  // namespace ge

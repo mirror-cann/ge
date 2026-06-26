@@ -12,64 +12,58 @@
 #include <map>
 #include <vector>
 
-int main()
-{
-    INFO_LOG("SAMPLE start to execute.");
+int main() {
+  INFO_LOG("SAMPLE start to execute.");
 
-    const std::map<ge::AscendString, ge::AscendString> options{
-            {"ge.graphRunMode", "0"}
-    };
-    std::unique_ptr<SampleDynamicBatch> sampleDynamicBatchPtr = nullptr;
-    try {
-        sampleDynamicBatchPtr = std::make_unique<SampleDynamicBatch>(options);
-    } catch (std::runtime_error &e) {
-        ERROR_LOG("SampleDynamicBatch creation failed");
-        return FAILED;
-    }
-    if (!sampleDynamicBatchPtr) {
-        ERROR_LOG("SampleDynamicBatch creation failed");
-        return FAILED;
-    }
+  const std::map<ge::AscendString, ge::AscendString> options{{"ge.graphRunMode", "0"}};
+  std::unique_ptr<SampleDynamicBatch> sampleDynamicBatchPtr = nullptr;
+  try {
+    sampleDynamicBatchPtr = std::make_unique<SampleDynamicBatch>(options);
+  } catch (std::runtime_error &e) {
+    ERROR_LOG("SampleDynamicBatch creation failed");
+    return FAILED;
+  }
+  if (!sampleDynamicBatchPtr) {
+    ERROR_LOG("SampleDynamicBatch creation failed");
+    return FAILED;
+  }
 
-    // resnet50_Opset16.onnx is static model, input node is x:[1, 3, 224, 224]
-    const std::string modelPath = "../model/resnet50_Opset16.onnx";
-    // parse onnx model and build ge graph
-    auto ret = sampleDynamicBatchPtr->ParseModelAndBuildGraph(modelPath);
-    if (ret != SUCCESS) {
-        ERROR_LOG("Parse onnx model failed, model:%s", modelPath.c_str());
-        return FAILED;
-    }
-    INFO_LOG("Parse model %s success", modelPath.c_str());
+  // resnet50_Opset16.onnx is static model, input node is x:[1, 3, 224, 224]
+  const std::string modelPath = "../model/resnet50_Opset16.onnx";
+  // parse onnx model and build ge graph
+  auto ret = sampleDynamicBatchPtr->ParseModelAndBuildGraph(modelPath);
+  if (ret != SUCCESS) {
+    ERROR_LOG("Parse onnx model failed, model:%s", modelPath.c_str());
+    return FAILED;
+  }
+  INFO_LOG("Parse model %s success", modelPath.c_str());
 
-    // enable dynamic batch
-    const std::map<ge::AscendString, ge::AscendString> graph_options{
-        {"ge.inputShape", "x:-1,3,224,224"},
-        {"ge.dynamicDims", "1;2;4;8"},
-        {"ge.dynamicNodeType", "1"}
-    };
-    // set specific input tensor
-    std::vector<ge::Tensor> input_tensors;
-    const std::initializer_list<int64_t> dims{2, 3, 224, 224};
-    const ge::Shape input_shape(dims); // batchSize:2
-    const ge::Tensor input_tensor(ge::TensorDesc(input_shape, ge::FORMAT_NCHW, ge::DT_FLOAT));
-    input_tensors.push_back(input_tensor);
+  // enable dynamic batch
+  const std::map<ge::AscendString, ge::AscendString> graph_options{
+      {"ge.inputShape", "x:-1,3,224,224"}, {"ge.dynamicDims", "1;2;4;8"}, {"ge.dynamicNodeType", "1"}};
+  // set specific input tensor
+  std::vector<ge::Tensor> input_tensors;
+  const std::initializer_list<int64_t> dims{2, 3, 224, 224};
+  const ge::Shape input_shape(dims);  // batchSize:2
+  const ge::Tensor input_tensor(ge::TensorDesc(input_shape, ge::FORMAT_NCHW, ge::DT_FLOAT));
+  input_tensors.push_back(input_tensor);
 
-    ret = sampleDynamicBatchPtr->CompileGraph(graph_options, input_tensors);
-    if (ret != SUCCESS) {
-        ERROR_LOG("SampleDynamicBatch compile graph failed");
-        return FAILED;
-    }
+  ret = sampleDynamicBatchPtr->CompileGraph(graph_options, input_tensors);
+  if (ret != SUCCESS) {
+    ERROR_LOG("SampleDynamicBatch compile graph failed");
+    return FAILED;
+  }
 
-    const std::vector<std::string> testFiles = {"../data/dog1_1024_683.bin","../data/dog2_1024_683.bin"};
-    ret = sampleDynamicBatchPtr->Process(testFiles, dims);
-    if (ret != SUCCESS) {
-        ERROR_LOG("SampleDynamicBatch process graph failed");
-        return FAILED;
-    }
+  const std::vector<std::string> testFiles = {"../data/dog1_1024_683.bin", "../data/dog2_1024_683.bin"};
+  ret = sampleDynamicBatchPtr->Process(testFiles, dims);
+  if (ret != SUCCESS) {
+    ERROR_LOG("SampleDynamicBatch process graph failed");
+    return FAILED;
+  }
 
-    // print output result
-    sampleDynamicBatchPtr->OutputModelResult();
+  // print output result
+  sampleDynamicBatchPtr->OutputModelResult();
 
-    INFO_LOG("SAMPLE PASSED.");
-    return SUCCESS;
+  INFO_LOG("SAMPLE PASSED.");
+  return SUCCESS;
 }

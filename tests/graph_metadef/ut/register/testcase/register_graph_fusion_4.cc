@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -112,7 +112,7 @@ static const string TYPE_G = "TypeG";
 vector<FusionPattern *> TestSetOutputsPass1::DefinePatterns() {
   vector<FusionPattern *> patterns;
 
-  FusionPattern *pattern = new(std::nothrow) FusionPattern("TestSetOutputsFusionPattern");
+  FusionPattern *pattern = new (std::nothrow) FusionPattern("TestSetOutputsFusionPattern");
 
   pattern->AddOpDesc(OP_A, {TYPE_A})
       .AddOpDesc(OP_B, {TYPE_B})
@@ -136,7 +136,7 @@ Status TestSetOutputsPass1::Fusion(ge::ComputeGraph &graph, Mapping &mapping, ve
 vector<FusionPattern *> TestSetOutputsPass2::DefinePatterns() {
   vector<FusionPattern *> patterns;
 
-  FusionPattern *pattern = new(std::nothrow) FusionPattern("TestSetOutputsFusionPattern");
+  FusionPattern *pattern = new (std::nothrow) FusionPattern("TestSetOutputsFusionPattern");
 
   pattern->AddOpDesc(OP_A, {TYPE_A})
       .AddOpDesc(OP_B, {TYPE_B})
@@ -159,7 +159,7 @@ Status TestSetOutputsPass2::Fusion(ge::ComputeGraph &graph, Mapping &mapping, ve
 vector<FusionPattern *> TestSetOutputsPass3::DefinePatterns() {
   vector<FusionPattern *> patterns;
 
-  FusionPattern *pattern = new(std::nothrow) FusionPattern("TestSetOutputsFusionPattern");
+  FusionPattern *pattern = new (std::nothrow) FusionPattern("TestSetOutputsFusionPattern");
 
   pattern->AddOpDesc(OP_A, {TYPE_A})
       .AddOpDesc(OP_B, {TYPE_B})
@@ -184,7 +184,7 @@ Status TestSetOutputsPass3::Fusion(ge::ComputeGraph &graph, Mapping &mapping, ve
 vector<FusionPattern *> TestSetOutputsPassFuzzy::DefinePatterns() {
   vector<FusionPattern *> patterns;
 
-  FusionPattern *pattern = new(std::nothrow) FusionPattern("TestSetOutputsFusionPattern");
+  FusionPattern *pattern = new (std::nothrow) FusionPattern("TestSetOutputsFusionPattern");
 
   pattern->AddOpDesc(OP_A, {TYPE_A})
       .AddOpDesc(OP_B, {TYPE_B})
@@ -208,7 +208,7 @@ Status TestSetOutputsPassFuzzy::Fusion(ge::ComputeGraph &graph, Mapping &mapping
 vector<FusionPattern *> TestSetOutputsPassFuzzy2::DefinePatterns() {
   vector<FusionPattern *> patterns;
 
-  FusionPattern *pattern = new(std::nothrow) FusionPattern("TestSetOutputsFusionPattern");
+  FusionPattern *pattern = new (std::nothrow) FusionPattern("TestSetOutputsFusionPattern");
 
   pattern->AddOpDesc(OP_A, {TYPE_A})
       .AddOpDesc(OP_B, {TYPE_B})
@@ -216,9 +216,12 @@ vector<FusionPattern *> TestSetOutputsPassFuzzy2::DefinePatterns() {
       .AddOpDesc(OP_D, {TYPE_D})
       .AddOpDesc(OP_E, {TYPE_E})
       .SetInputs(OP_B, {OP_A})
-      .SetOutputs(OP_B, {{kFuzzyOutIndex, {OP_C.c_str()}}, {kFuzzyOutIndex, {OP_D.c_str(), OP_E.c_str()}},
-                         {0, {OP_C.c_str()}},
-                         {2, {OP_E.c_str()}}}, true)
+      .SetOutputs(OP_B,
+                  {{kFuzzyOutIndex, {OP_C.c_str()}},
+                   {kFuzzyOutIndex, {OP_D.c_str(), OP_E.c_str()}},
+                   {0, {OP_C.c_str()}},
+                   {2, {OP_E.c_str()}}},
+                  true)
       .SetInputs(OP_C, {OP_B})
       .SetOutput(OP_C);
 
@@ -234,7 +237,7 @@ Status TestSetOutputsPassFuzzy2::Fusion(ge::ComputeGraph &graph, Mapping &mappin
 vector<FusionPattern *> TestSetOutputsPassFuzzy3::DefinePatterns() {
   vector<FusionPattern *> patterns;
 
-  FusionPattern *pattern = new(std::nothrow) FusionPattern("TestSetOutputsFusionPattern");
+  FusionPattern *pattern = new (std::nothrow) FusionPattern("TestSetOutputsFusionPattern");
 
   pattern->AddOpDesc(OP_A, {TYPE_A})
       .AddOpDesc(OP_B, {TYPE_B})
@@ -243,8 +246,8 @@ vector<FusionPattern *> TestSetOutputsPassFuzzy3::DefinePatterns() {
       .AddOpDesc(OP_D, {TYPE_D})
       .AddOpDesc(OP_E, {TYPE_E})
       .SetInputs(OP_B, {OP_A})
-      .SetOutputs(OP_B, {{kFuzzyOutIndex, {OP_C.c_str()}}, {kFuzzyOutIndex, {OP_D.c_str(), OP_E.c_str()}},
-                         {2, {OP_F.c_str()}}})
+      .SetOutputs(
+          OP_B, {{kFuzzyOutIndex, {OP_C.c_str()}}, {kFuzzyOutIndex, {OP_D.c_str(), OP_E.c_str()}}, {2, {OP_F.c_str()}}})
       .SetInputs(OP_C, {OP_B})
       .SetOutput(OP_C);
 
@@ -257,11 +260,10 @@ Status TestSetOutputsPassFuzzy3::Fusion(ge::ComputeGraph &graph, Mapping &mappin
   return fe::SUCCESS;
 }
 
-
 vector<FusionPattern *> TestSetOutputsPassFuzzy5::DefinePatterns() {
   vector<FusionPattern *> patterns;
 
-  FusionPattern *pattern = new(std::nothrow) FusionPattern("TestSetOutputsFusionPattern");
+  FusionPattern *pattern = new (std::nothrow) FusionPattern("TestSetOutputsFusionPattern");
 
   pattern->AddOpDesc(OP_A, {TYPE_A})
       .AddOpDesc(OP_B, {})
@@ -286,7 +288,7 @@ Status TestSetOutputsPassFuzzy5::Fusion(ge::ComputeGraph &graph, Mapping &mappin
 vector<FusionPattern *> TestSetOutputsPassFuzzy6::DefinePatterns() {
   vector<FusionPattern *> patterns;
 
-  FusionPattern *pattern = new(std::nothrow) FusionPattern("TestSetOutputsFusionPattern");
+  FusionPattern *pattern = new (std::nothrow) FusionPattern("TestSetOutputsFusionPattern");
 
   pattern->AddOpDesc(OP_A, {TYPE_A})
       .AddOpDesc(OP_B, {})
@@ -312,99 +314,96 @@ Status TestSetOutputsPassFuzzy6::Fusion(ge::ComputeGraph &graph, Mapping &mappin
 }
 
 class UTESTGraphFusionPass4 : public testing::Test {
-  protected:
-    void SetUp() {
-    }
+ protected:
+  void SetUp() {}
 
-    void TearDown() {
+  void TearDown() {}
 
-    }
+ protected:
+  static ge::ComputeGraphPtr CreateTestOutputGraph1() {
+    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test1");
+    ge::OpDescPtr op_desc_a = std::make_shared<ge::OpDesc>("A", TYPE_A);
+    ge::OpDescPtr op_desc_b = std::make_shared<ge::OpDesc>("B", TYPE_B);
+    ge::OpDescPtr op_desc_c = std::make_shared<ge::OpDesc>("C", TYPE_C);
+    ge::OpDescPtr op_desc_out = std::make_shared<ge::OpDesc>("NetOut", "NetOut");
 
-  protected:
-    static ge::ComputeGraphPtr CreateTestOutputGraph1() {
-      ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test1");
-      ge::OpDescPtr op_desc_a = std::make_shared<ge::OpDesc>("A", TYPE_A);
-      ge::OpDescPtr op_desc_b = std::make_shared<ge::OpDesc>("B", TYPE_B);
-      ge::OpDescPtr op_desc_c = std::make_shared<ge::OpDesc>("C", TYPE_C);
-      ge::OpDescPtr op_desc_out = std::make_shared<ge::OpDesc>("NetOut", "NetOut");
+    // add descriptor
+    vector<int64_t> dim_a = {8, 4, 16, 16};
+    GeShape shape_a(dim_a);
+    GeTensorDesc tensor_desc_a(shape_a);
+    tensor_desc_a.SetFormat(FORMAT_NCHW);
+    tensor_desc_a.SetOriginFormat(FORMAT_NCHW);
+    tensor_desc_a.SetDataType(DT_FLOAT16);
+    tensor_desc_a.SetOriginDataType(DT_FLOAT);
 
-      //add descriptor
-      vector<int64_t> dim_a = {8, 4, 16, 16};
-      GeShape shape_a(dim_a);
-      GeTensorDesc tensor_desc_a(shape_a);
-      tensor_desc_a.SetFormat(FORMAT_NCHW);
-      tensor_desc_a.SetOriginFormat(FORMAT_NCHW);
-      tensor_desc_a.SetDataType(DT_FLOAT16);
-      tensor_desc_a.SetOriginDataType(DT_FLOAT);
+    op_desc_a->AddOutputDesc(tensor_desc_a);
 
-      op_desc_a->AddOutputDesc(tensor_desc_a);
+    op_desc_b->AddInputDesc(tensor_desc_a);
+    op_desc_b->AddOutputDesc(tensor_desc_a);
 
-      op_desc_b->AddInputDesc(tensor_desc_a);
-      op_desc_b->AddOutputDesc(tensor_desc_a);
+    op_desc_c->AddInputDesc(tensor_desc_a);
+    op_desc_c->AddOutputDesc(tensor_desc_a);
 
-      op_desc_c->AddInputDesc(tensor_desc_a);
-      op_desc_c->AddOutputDesc(tensor_desc_a);
+    op_desc_out->AddInputDesc(tensor_desc_a);
 
-      op_desc_out->AddInputDesc(tensor_desc_a);
+    ge::NodePtr node_a = graph->AddNode(op_desc_a);
+    ge::NodePtr node_b = graph->AddNode(op_desc_b);
+    ge::NodePtr node_c = graph->AddNode(op_desc_c);
+    ge::NodePtr node_out = graph->AddNode(op_desc_out);
 
-      ge::NodePtr node_a = graph->AddNode(op_desc_a);
-      ge::NodePtr node_b = graph->AddNode(op_desc_b);
-      ge::NodePtr node_c = graph->AddNode(op_desc_c);
-      ge::NodePtr node_out = graph->AddNode(op_desc_out);
+    ge::GraphUtils::AddEdge(node_a->GetOutDataAnchor(0), node_b->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(node_b->GetOutDataAnchor(0), node_c->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(node_c->GetOutDataAnchor(0), node_out->GetInDataAnchor(0));
+    return graph;
+  }
 
-      ge::GraphUtils::AddEdge(node_a->GetOutDataAnchor(0), node_b->GetInDataAnchor(0));
-      ge::GraphUtils::AddEdge(node_b->GetOutDataAnchor(0), node_c->GetInDataAnchor(0));
-      ge::GraphUtils::AddEdge(node_c->GetOutDataAnchor(0), node_out->GetInDataAnchor(0));
-      return graph;
-   }
+  static ge::ComputeGraphPtr CreateTestOutputGraph2() {
+    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test1");
+    ge::OpDescPtr op_desc_a = std::make_shared<ge::OpDesc>("A", TYPE_A);
+    ge::OpDescPtr op_desc_b = std::make_shared<ge::OpDesc>("B", TYPE_B);
+    ge::OpDescPtr op_desc_c = std::make_shared<ge::OpDesc>("C", TYPE_C);
+    ge::OpDescPtr op_desc_d = std::make_shared<ge::OpDesc>("D", TYPE_D);
+    ge::OpDescPtr op_desc_e = std::make_shared<ge::OpDesc>("E", TYPE_E);
+    ge::OpDescPtr op_desc_out = std::make_shared<ge::OpDesc>("NetOut", "NetOut");
 
-    static ge::ComputeGraphPtr CreateTestOutputGraph2() {
-      ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test1");
-      ge::OpDescPtr op_desc_a = std::make_shared<ge::OpDesc>("A", TYPE_A);
-      ge::OpDescPtr op_desc_b = std::make_shared<ge::OpDesc>("B", TYPE_B);
-      ge::OpDescPtr op_desc_c = std::make_shared<ge::OpDesc>("C", TYPE_C);
-      ge::OpDescPtr op_desc_d = std::make_shared<ge::OpDesc>("D", TYPE_D);
-      ge::OpDescPtr op_desc_e = std::make_shared<ge::OpDesc>("E", TYPE_E);
-      ge::OpDescPtr op_desc_out = std::make_shared<ge::OpDesc>("NetOut", "NetOut");
+    // add descriptor
+    vector<int64_t> dim_a = {8, 4, 16, 16};
+    GeShape shape_a(dim_a);
+    GeTensorDesc tensor_desc_a(shape_a);
+    tensor_desc_a.SetFormat(FORMAT_NCHW);
+    tensor_desc_a.SetOriginFormat(FORMAT_NCHW);
+    tensor_desc_a.SetDataType(DT_FLOAT16);
+    tensor_desc_a.SetOriginDataType(DT_FLOAT);
 
-      //add descriptor
-      vector<int64_t> dim_a = {8, 4, 16, 16};
-      GeShape shape_a(dim_a);
-      GeTensorDesc tensor_desc_a(shape_a);
-      tensor_desc_a.SetFormat(FORMAT_NCHW);
-      tensor_desc_a.SetOriginFormat(FORMAT_NCHW);
-      tensor_desc_a.SetDataType(DT_FLOAT16);
-      tensor_desc_a.SetOriginDataType(DT_FLOAT);
+    op_desc_a->AddOutputDesc(tensor_desc_a);
 
-      op_desc_a->AddOutputDesc(tensor_desc_a);
+    op_desc_b->AddInputDesc(tensor_desc_a);
+    op_desc_b->AddOutputDesc(tensor_desc_a);
+    op_desc_b->AddOutputDesc(tensor_desc_a);
 
-      op_desc_b->AddInputDesc(tensor_desc_a);
-      op_desc_b->AddOutputDesc(tensor_desc_a);
-      op_desc_b->AddOutputDesc(tensor_desc_a);
+    op_desc_c->AddInputDesc(tensor_desc_a);
+    op_desc_c->AddOutputDesc(tensor_desc_a);
 
-      op_desc_c->AddInputDesc(tensor_desc_a);
-      op_desc_c->AddOutputDesc(tensor_desc_a);
+    op_desc_d->AddInputDesc(tensor_desc_a);
+    op_desc_e->AddInputDesc(tensor_desc_a);
 
-      op_desc_d->AddInputDesc(tensor_desc_a);
-      op_desc_e->AddInputDesc(tensor_desc_a);
+    op_desc_out->AddInputDesc(tensor_desc_a);
 
-      op_desc_out->AddInputDesc(tensor_desc_a);
+    ge::NodePtr node_a = graph->AddNode(op_desc_a);
+    ge::NodePtr node_b = graph->AddNode(op_desc_b);
+    ge::NodePtr node_c = graph->AddNode(op_desc_c);
+    ge::NodePtr node_d = graph->AddNode(op_desc_d);
+    ge::NodePtr node_e = graph->AddNode(op_desc_e);
+    ge::NodePtr node_out = graph->AddNode(op_desc_out);
 
-      ge::NodePtr node_a = graph->AddNode(op_desc_a);
-      ge::NodePtr node_b = graph->AddNode(op_desc_b);
-      ge::NodePtr node_c = graph->AddNode(op_desc_c);
-      ge::NodePtr node_d = graph->AddNode(op_desc_d);
-      ge::NodePtr node_e = graph->AddNode(op_desc_e);
-      ge::NodePtr node_out = graph->AddNode(op_desc_out);
+    ge::GraphUtils::AddEdge(node_a->GetOutDataAnchor(0), node_b->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(node_b->GetOutDataAnchor(0), node_c->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(node_b->GetOutDataAnchor(1), node_d->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(node_b->GetOutDataAnchor(1), node_e->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(node_c->GetOutDataAnchor(0), node_out->GetInDataAnchor(0));
 
-      ge::GraphUtils::AddEdge(node_a->GetOutDataAnchor(0), node_b->GetInDataAnchor(0));
-      ge::GraphUtils::AddEdge(node_b->GetOutDataAnchor(0), node_c->GetInDataAnchor(0));
-      ge::GraphUtils::AddEdge(node_b->GetOutDataAnchor(1), node_d->GetInDataAnchor(0));
-      ge::GraphUtils::AddEdge(node_b->GetOutDataAnchor(1), node_e->GetInDataAnchor(0));
-      ge::GraphUtils::AddEdge(node_c->GetOutDataAnchor(0), node_out->GetInDataAnchor(0));
-
-      return graph;
-    }
+    return graph;
+  }
 
   static ge::ComputeGraphPtr CreateTestOutputGraph2_1() {
     ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test1");
@@ -414,7 +413,7 @@ class UTESTGraphFusionPass4 : public testing::Test {
     ge::OpDescPtr op_desc_d = std::make_shared<ge::OpDesc>("D", TYPE_D);
     ge::OpDescPtr op_desc_out = std::make_shared<ge::OpDesc>("NetOut", "NetOut");
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim_a = {8, 4, 16, 16};
     GeShape shape_a(dim_a);
     GeTensorDesc tensor_desc_a(shape_a);
@@ -459,7 +458,7 @@ class UTESTGraphFusionPass4 : public testing::Test {
     ge::OpDescPtr op_desc_e2 = std::make_shared<ge::OpDesc>("E2", TYPE_E);
     ge::OpDescPtr op_desc_out = std::make_shared<ge::OpDesc>("NetOut", "NetOut");
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim_a = {8, 4, 16, 16};
     GeShape shape_a(dim_a);
     GeTensorDesc tensor_desc_a(shape_a);
@@ -511,7 +510,7 @@ class UTESTGraphFusionPass4 : public testing::Test {
     ge::OpDescPtr op_desc_e = std::make_shared<ge::OpDesc>("E", TYPE_E);
     ge::OpDescPtr op_desc_out = std::make_shared<ge::OpDesc>("NetOut", "NetOut");
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim_a = {8, 4, 16, 16};
     GeShape shape_a(dim_a);
     GeTensorDesc tensor_desc_a(shape_a);
@@ -562,7 +561,7 @@ class UTESTGraphFusionPass4 : public testing::Test {
     ge::OpDescPtr op_desc_e2 = std::make_shared<ge::OpDesc>("E2", TYPE_E);
     ge::OpDescPtr op_desc_out = std::make_shared<ge::OpDesc>("NetOut", "NetOut");
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim_a = {8, 4, 16, 16};
     GeShape shape_a(dim_a);
     GeTensorDesc tensor_desc_a(shape_a);
@@ -609,7 +608,6 @@ class UTESTGraphFusionPass4 : public testing::Test {
     return graph;
   }
 
-
   static ge::ComputeGraphPtr CreateTestOutputGraph2_5() {
     ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test1");
     ge::OpDescPtr op_desc_a = std::make_shared<ge::OpDesc>("A", TYPE_A);
@@ -620,7 +618,7 @@ class UTESTGraphFusionPass4 : public testing::Test {
     ge::OpDescPtr op_desc_f = std::make_shared<ge::OpDesc>("F", TYPE_F);
     ge::OpDescPtr op_desc_out = std::make_shared<ge::OpDesc>("NetOut", "NetOut");
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim_a = {8, 4, 16, 16};
     GeShape shape_a(dim_a);
     GeTensorDesc tensor_desc_a(shape_a);
@@ -673,7 +671,7 @@ class UTESTGraphFusionPass4 : public testing::Test {
     ge::OpDescPtr op_desc_f = std::make_shared<ge::OpDesc>("F", TYPE_F);
     ge::OpDescPtr op_desc_out = std::make_shared<ge::OpDesc>("NetOut", "NetOut");
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim_a = {8, 4, 16, 16};
     GeShape shape_a(dim_a);
     GeTensorDesc tensor_desc_a(shape_a);
@@ -728,7 +726,7 @@ class UTESTGraphFusionPass4 : public testing::Test {
     ge::OpDescPtr op_desc_g = std::make_shared<ge::OpDesc>("G", TYPE_G);
     ge::OpDescPtr op_desc_out = std::make_shared<ge::OpDesc>("NetOut", "NetOut");
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim_a = {8, 4, 16, 16};
     GeShape shape_a(dim_a);
     GeTensorDesc tensor_desc_a(shape_a);
@@ -784,61 +782,60 @@ class UTESTGraphFusionPass4 : public testing::Test {
     return graph;
   }
 
-   static ge::ComputeGraphPtr CreateTestOutputGraph3() {
-      ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test1");
-      ge::OpDescPtr op_desc_a = std::make_shared<ge::OpDesc>("A", TYPE_A);
-      ge::OpDescPtr op_desc_b = std::make_shared<ge::OpDesc>("B", TYPE_B);
-      ge::OpDescPtr op_desc_c = std::make_shared<ge::OpDesc>("C", TYPE_C);
-      ge::OpDescPtr op_desc_d = std::make_shared<ge::OpDesc>("D", TYPE_D);
-      ge::OpDescPtr op_desc_e = std::make_shared<ge::OpDesc>("E", TYPE_E);
-      ge::OpDescPtr op_desc_f = std::make_shared<ge::OpDesc>("F", TYPE_F);
-      ge::OpDescPtr op_desc_out = std::make_shared<ge::OpDesc>("NetOut", "NetOut");
+  static ge::ComputeGraphPtr CreateTestOutputGraph3() {
+    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test1");
+    ge::OpDescPtr op_desc_a = std::make_shared<ge::OpDesc>("A", TYPE_A);
+    ge::OpDescPtr op_desc_b = std::make_shared<ge::OpDesc>("B", TYPE_B);
+    ge::OpDescPtr op_desc_c = std::make_shared<ge::OpDesc>("C", TYPE_C);
+    ge::OpDescPtr op_desc_d = std::make_shared<ge::OpDesc>("D", TYPE_D);
+    ge::OpDescPtr op_desc_e = std::make_shared<ge::OpDesc>("E", TYPE_E);
+    ge::OpDescPtr op_desc_f = std::make_shared<ge::OpDesc>("F", TYPE_F);
+    ge::OpDescPtr op_desc_out = std::make_shared<ge::OpDesc>("NetOut", "NetOut");
 
-      //add descriptor
-      vector<int64_t> dim_a = {8, 4, 16, 16};
-      GeShape shape_a(dim_a);
-      GeTensorDesc tensor_desc_a(shape_a);
-      tensor_desc_a.SetFormat(FORMAT_NCHW);
-      tensor_desc_a.SetOriginFormat(FORMAT_NCHW);
-      tensor_desc_a.SetDataType(DT_FLOAT16);
-      tensor_desc_a.SetOriginDataType(DT_FLOAT);
+    // add descriptor
+    vector<int64_t> dim_a = {8, 4, 16, 16};
+    GeShape shape_a(dim_a);
+    GeTensorDesc tensor_desc_a(shape_a);
+    tensor_desc_a.SetFormat(FORMAT_NCHW);
+    tensor_desc_a.SetOriginFormat(FORMAT_NCHW);
+    tensor_desc_a.SetDataType(DT_FLOAT16);
+    tensor_desc_a.SetOriginDataType(DT_FLOAT);
 
-      op_desc_a->AddOutputDesc(tensor_desc_a);
-      op_desc_a->AddOutputDesc(tensor_desc_a);
+    op_desc_a->AddOutputDesc(tensor_desc_a);
+    op_desc_a->AddOutputDesc(tensor_desc_a);
 
-      op_desc_f->AddInputDesc(tensor_desc_a);
+    op_desc_f->AddInputDesc(tensor_desc_a);
 
-      op_desc_b->AddInputDesc(tensor_desc_a);
-      op_desc_b->AddOutputDesc(tensor_desc_a);
-      op_desc_b->AddOutputDesc(tensor_desc_a);
+    op_desc_b->AddInputDesc(tensor_desc_a);
+    op_desc_b->AddOutputDesc(tensor_desc_a);
+    op_desc_b->AddOutputDesc(tensor_desc_a);
 
-      op_desc_c->AddInputDesc(tensor_desc_a);
-      op_desc_c->AddOutputDesc(tensor_desc_a);
+    op_desc_c->AddInputDesc(tensor_desc_a);
+    op_desc_c->AddOutputDesc(tensor_desc_a);
 
-      op_desc_d->AddInputDesc(tensor_desc_a);
-      op_desc_e->AddInputDesc(tensor_desc_a);
+    op_desc_d->AddInputDesc(tensor_desc_a);
+    op_desc_e->AddInputDesc(tensor_desc_a);
 
-      op_desc_out->AddInputDesc(tensor_desc_a);
+    op_desc_out->AddInputDesc(tensor_desc_a);
 
-      ge::NodePtr node_a = graph->AddNode(op_desc_a);
-      ge::NodePtr node_b = graph->AddNode(op_desc_b);
-      ge::NodePtr node_c = graph->AddNode(op_desc_c);
-      ge::NodePtr node_d = graph->AddNode(op_desc_d);
-      ge::NodePtr node_e = graph->AddNode(op_desc_e);
-      ge::NodePtr node_f = graph->AddNode(op_desc_f);
-      ge::NodePtr node_out = graph->AddNode(op_desc_out);
+    ge::NodePtr node_a = graph->AddNode(op_desc_a);
+    ge::NodePtr node_b = graph->AddNode(op_desc_b);
+    ge::NodePtr node_c = graph->AddNode(op_desc_c);
+    ge::NodePtr node_d = graph->AddNode(op_desc_d);
+    ge::NodePtr node_e = graph->AddNode(op_desc_e);
+    ge::NodePtr node_f = graph->AddNode(op_desc_f);
+    ge::NodePtr node_out = graph->AddNode(op_desc_out);
 
-      ge::GraphUtils::AddEdge(node_a->GetOutDataAnchor(0), node_b->GetInDataAnchor(0));
-      ge::GraphUtils::AddEdge(node_a->GetOutDataAnchor(1), node_f->GetInDataAnchor(0));
-      ge::GraphUtils::AddEdge(node_b->GetOutDataAnchor(0), node_c->GetInDataAnchor(0));
-      ge::GraphUtils::AddEdge(node_b->GetOutDataAnchor(1), node_d->GetInDataAnchor(0));
-      ge::GraphUtils::AddEdge(node_b->GetOutDataAnchor(1), node_e->GetInDataAnchor(0));
-      ge::GraphUtils::AddEdge(node_c->GetOutDataAnchor(0), node_out->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(node_a->GetOutDataAnchor(0), node_b->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(node_a->GetOutDataAnchor(1), node_f->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(node_b->GetOutDataAnchor(0), node_c->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(node_b->GetOutDataAnchor(1), node_d->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(node_b->GetOutDataAnchor(1), node_e->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(node_c->GetOutDataAnchor(0), node_out->GetInDataAnchor(0));
 
-      return graph;
-    }
-
-  };
+    return graph;
+  }
+};
 
 TEST_F(UTESTGraphFusionPass4, UTESTGraphFusionPass4_1) {
   ge::ComputeGraphPtr graph = CreateTestOutputGraph1();
@@ -930,7 +927,6 @@ TEST_F(UTESTGraphFusionPass4, UTESTGraphFusionPassFuzzy_4) {
   EXPECT_EQ(status, fe::SUCCESS);
 }
 
-
 TEST_F(UTESTGraphFusionPass4, UTESTGraphFusionPassFuzzy_5) {
   ge::ComputeGraphPtr graph = CreateTestOutputGraph2_5();
   TestSetOutputsPassFuzzy3 pass;
@@ -970,4 +966,4 @@ TEST_F(UTESTGraphFusionPass4, UTESTGraphFusionPassFuzzy_8) {
   status = pass.Run(*graph);
   EXPECT_EQ(status, fe::SUCCESS);
 }
-}
+}  // namespace fe

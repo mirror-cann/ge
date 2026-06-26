@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,12 +21,12 @@
 #include "register/op_registry.h"
 #include "parser/common/parser_utils.h"
 
+using domi::CAFFE;
 using domi::ParseParamByOpFunc;
 using domi::ParseParamFunc;
-using domi::CAFFE;
-using domi::caffe::LayerParameter;
-using domi::caffe::InnerProductParameter;
 using domi::caffe::ConvolutionParameter;
+using domi::caffe::InnerProductParameter;
+using domi::caffe::LayerParameter;
 using std::vector;
 
 namespace ge {
@@ -49,8 +49,8 @@ Status CaffeCustomParserAdapter::ParseParams(const Message *op_src, ge::OpDescPt
   op_dest->SetName(layer->name());
   ge::Operator op = ge::OpDescUtils::CreateOperatorFromOpDesc(op_dest);
   GE_CHK_BOOL_RET_STATUS(customOpParser(op_src, op) == SUCCESS, FAILED,
-                         "[Invoke][CustomOpParser] failed, layer name:%s, layer type:%s",
-                         layer->name().c_str(), layer->type().c_str());
+                         "[Invoke][CustomOpParser] failed, layer name:%s, layer type:%s", layer->name().c_str(),
+                         layer->type().c_str());
   return SUCCESS;
 }
 
@@ -59,8 +59,8 @@ Status CaffeCustomParserAdapter::ParseParams(const Operator &op_src, const ge::O
          ParserUtils::GetOperatorName(op_src).c_str(), ParserUtils::GetOperatorType(op_src).c_str());
   GE_CHECK_NOTNULL(op_dest);
 
-  ParseParamByOpFunc custom_op_parser = domi::OpRegistry::Instance()->GetParseParamByOperatorFunc(
-      ParserUtils::GetOperatorType(op_src));
+  ParseParamByOpFunc custom_op_parser =
+      domi::OpRegistry::Instance()->GetParseParamByOperatorFunc(ParserUtils::GetOperatorType(op_src));
   GE_CHECK_NOTNULL(custom_op_parser);
 
   op_dest->SetName(ParserUtils::GetOperatorName(op_src));
@@ -82,14 +82,14 @@ Status CaffeCustomParserAdapter::AddEdgeFromConstNode(const NodePtr &const_node,
   if (update_in_turn || valid_input_name.empty()) {
     if (node->AddLinkFrom(static_cast<const uint32_t &>(index), const_node) != GRAPH_SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "AddEdge failed of from Node %s output to Node %s input %d",
-                        const_node->GetName().c_str(), node->GetName().c_str(), index);
+                           const_node->GetName().c_str(), node->GetName().c_str(), index);
       GELOGE(GRAPH_FAILED, "[Invoke][AddLinkFrom] AddEdge failed of from Node %s output to Node %s input %d",
              const_node->GetName().c_str(), node->GetName().c_str(), index);
     }
   } else {
     if (node->AddLinkFrom(valid_input_name, const_node) != GRAPH_SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "AddEdge failed of from Node %s output to Node %s input %s",
-                        const_node->GetName().c_str(), node->GetName().c_str(), valid_input_name.c_str());
+                           const_node->GetName().c_str(), node->GetName().c_str(), valid_input_name.c_str());
       GELOGE(GRAPH_FAILED, "[Invoke][AddLinkFrom] AddEdge failed of from Node %s output to Node %s input %s",
              const_node->GetName().c_str(), node->GetName().c_str(), valid_input_name.c_str());
     }
@@ -111,7 +111,7 @@ Status CaffeCustomParserAdapter::ParseWeights(const Message *op_src, ge::NodePtr
   }
 
   bool bias_en = false;
-  bool update_in_turn = (static_cast<int64_t >(op->GetAllInputsSize()) == (layer->bottom_size() + layer->blobs_size()));
+  bool update_in_turn = (static_cast<int64_t>(op->GetAllInputsSize()) == (layer->bottom_size() + layer->blobs_size()));
   int start_pos = layer->bottom_size();
   for (int i = 0; i < layer->blobs_size(); ++i) {
     ge::GeTensorPtr weight = ge::parser::MakeShared<ge::GeTensor>();
@@ -119,13 +119,11 @@ Status CaffeCustomParserAdapter::ParseWeights(const Message *op_src, ge::NodePtr
     GE_CHK_STATUS_RET(ConvertWeight(layer->blobs(i), layer->name(), weight),
                       "[Convert][Blobs] (%d) for layer %s failed", i, layer->name().c_str());
     GE_IF_BOOL_EXEC(layer->type() == kConvolution && i == kBlobIndexOne,
-                    bias_en = layer->convolution_param().bias_term();
-                   );
+                    bias_en = layer->convolution_param().bias_term(););
     GE_IF_BOOL_EXEC(layer->type() == kInnerProduct && i == kBlobIndexOne,
-                    bias_en = layer->inner_product_param().bias_term();
-                    );
+                    bias_en = layer->inner_product_param().bias_term(););
     auto bias_shape = weight->MutableTensorDesc().GetShape();
-    // The num 0, 1, 2, 3 represet the dim index.
+    // The num 0, 1, 2, 3 represent the dim index.
     bool matched = bias_en && bias_shape.GetDimNum() == static_cast<size_t>(ge::parser::DIM_DEFAULT_SIZE) &&
                    bias_shape.GetDim(0) == 1 && bias_shape.GetDim(1) == 1 && bias_shape.GetDim(2) == 1;
     if (matched) {

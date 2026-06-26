@@ -72,4 +72,3 @@ void GetMarks(std::vector<AscendString> &marks) const
 ## 约束说明<a name="zh-cn_topic_0000001264924930_section1286618413401"></a>
 
 无。
-

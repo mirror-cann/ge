@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,7 +19,6 @@
 #include "rt_external_device.h"
 #include "common/ge_rts_decl.h"
 
- 
 using namespace ge;
 
 namespace gert {
@@ -28,27 +27,24 @@ constexpr size_t kSocVersionLen = 128U;
 constexpr int32_t kCpuKernelModeJson = 0;
 constexpr int32_t kCpuKernelModeData = 2;
 const std::string kAicpuBuiltInCustKernelFile = "/built-in/op_impl/aicpu/kernel/";
-}
+}  // namespace
 
 bool OpJsonBinHandler::is_support_ = true;
 std::once_flag OpJsonBinHandler::init_flag_;
 
-bool OpJsonBinHandler::IsSupportBinHandle()
-{
-  std::call_once(init_flag_,
-    []() {
-      char soc_version[kSocVersionLen] = {0};
-      if (rtGetSocVersion(soc_version, kSocVersionLen) != ge::GRAPH_SUCCESS) {
-        GELOGE(ge::FAILED, "Get soc version failed.");
-        return;
-      }
-
-      if (strncmp(soc_version, "Ascend910_96", (sizeof("Ascend910_96") - 1UL)) == 0) {
-        is_support_ = false;
-      }
-      GELOGI("Init bin handle support status, val=%u, socVersion=%s", static_cast<uint32_t>(is_support_), soc_version);
+bool OpJsonBinHandler::IsSupportBinHandle() {
+  std::call_once(init_flag_, []() {
+    char soc_version[kSocVersionLen] = {0};
+    if (rtGetSocVersion(soc_version, kSocVersionLen) != ge::GRAPH_SUCCESS) {
+      GELOGE(ge::FAILED, "Get soc version failed.");
+      return;
     }
-  );
+
+    if (strncmp(soc_version, "Ascend910_96", (sizeof("Ascend910_96") - 1UL)) == 0) {
+      is_support_ = false;
+    }
+    GELOGI("Init bin handle support status, val=%u, socVersion=%s", static_cast<uint32_t>(is_support_), soc_version);
+  });
   return is_support_;
 }
 
@@ -61,7 +57,7 @@ ge::graphStatus OpJsonBinHandler::LoadBinary(const std::string &json_path) {
 
   if (json_path.empty()) {
     GELOGE(ge::FAILED, "Load binary failed by json path is empty.");
-    return ge::FAILED; 
+    return ge::FAILED;
   }
 
   aclrtBinaryLoadOption bin_option = {};
@@ -76,30 +72,29 @@ ge::graphStatus OpJsonBinHandler::LoadBinary(const std::string &json_path) {
   return ge::GRAPH_SUCCESS;
 }
 
-ge::graphStatus OpDataBinHandler::LoadBinary(const std::string &so_name, const ge::OpKernelBinPtr &kernel_bin)
-{
+ge::graphStatus OpDataBinHandler::LoadBinary(const std::string &so_name, const ge::OpKernelBinPtr &kernel_bin) {
   std::unique_lock lock(bin_mutex_);
-    if (bin_handle_ != nullptr) {
+  if (bin_handle_ != nullptr) {
     GELOGI("Load binary from data success, no need to load again. so=%s", so_name.c_str());
     return ge::GRAPH_SUCCESS;
   }
 
   if (kernel_bin == nullptr) {
-      GELOGE(ge::FAILED, "Load custom aicpu binary failed by nullptr. so=%s", so_name.c_str());
-      return ge::FAILED; 
+    GELOGE(ge::FAILED, "Load custom aicpu binary failed by nullptr. so=%s", so_name.c_str());
+    return ge::FAILED;
   }
 
   if (so_name.empty()) {
     GELOGE(ge::FAILED, "Load custom aicpu binary failed by so name is empty.");
-    return ge::FAILED; 
+    return ge::FAILED;
   }
 
   aclrtBinaryLoadOption bin_option = {};
   bin_option.type = ACL_RT_BINARY_LOAD_OPT_CPU_KERNEL_MODE;
   bin_option.value.cpuKernelMode = kCpuKernelModeData;
   const aclrtBinaryLoadOptions load_bin_cfg = {&bin_option, 1U};
-  GE_ASSERT_SUCCESS(aclrtBinaryLoadFromData(kernel_bin->GetBinData(), kernel_bin->GetBinDataSize(),
-                                            &load_bin_cfg, &bin_handle_));
+  GE_ASSERT_SUCCESS(
+      aclrtBinaryLoadFromData(kernel_bin->GetBinData(), kernel_bin->GetBinDataSize(), &load_bin_cfg, &bin_handle_));
   GE_ASSERT_NOTNULL(bin_handle_);
 
   GELOGI("Load data binary success for %s.", so_name.c_str());
@@ -117,14 +112,13 @@ AicpuJsonBinHandler &AicpuJsonBinHandler::Instance() {
   return inst;
 }
 
-CustBinHandlerManager &CustBinHandlerManager::Instance()
-{
+CustBinHandlerManager &CustBinHandlerManager::Instance() {
   static CustBinHandlerManager inst;
   return inst;
 }
 
 ge::graphStatus CustBinHandlerManager::LoadAndGetBinHandle(const std::string &so_name,
-  const ge::OpKernelBinPtr &kernel_bin, rtBinHandle &handle) {
+                                                           const ge::OpKernelBinPtr &kernel_bin, rtBinHandle &handle) {
   handle = nullptr;
   if ((so_name.empty()) || (kernel_bin == nullptr)) {
     GELOGE(ge::FAILED, "Load bin failed by so name is empty or bin is nullptr, so_name=%s", so_name.c_str());
@@ -143,8 +137,8 @@ ge::graphStatus CustBinHandlerManager::LoadAndGetBinHandle(const std::string &so
     GE_ASSERT_SUCCESS(bin_handler->LoadBinary(so_name, kernel_bin));
     bin_manager_.emplace(resource_id, std::unordered_map<std::string, OpDataBinHandlerPtr>{{so_name, bin_handler}});
     handle = bin_handler->GetBinHandle();
-    GELOGI("Add resource and bin handle success, resource_id=%lu, so=%s, size=%lu",
-      resource_id, so_name.c_str(), bin_manager_.size());
+    GELOGI("Add resource and bin handle success, resource_id=%lu, so=%s, size=%lu", resource_id, so_name.c_str(),
+           bin_manager_.size());
     return ge::GRAPH_SUCCESS;
   }
 
@@ -155,13 +149,12 @@ ge::graphStatus CustBinHandlerManager::LoadAndGetBinHandle(const std::string &so
     GE_ASSERT_SUCCESS(bin_handler->LoadBinary(so_name, kernel_bin));
     so_bin_maps->second.emplace(so_name, bin_handler);
     handle = bin_handler->GetBinHandle();
-    GELOGI("Add bin handle for so %s success, resource_id=%lu, size=%lu",
-      so_name.c_str(), resource_id, so_bin_maps->second.size());
+    GELOGI("Add bin handle for so %s success, resource_id=%lu, size=%lu", so_name.c_str(), resource_id,
+           so_bin_maps->second.size());
     return ge::GRAPH_SUCCESS;
   }
 
-  GELOGI("Bin handle for so %s already exists, will not repeat load. resource_id=%lu",
-         so_name.c_str(), resource_id);
+  GELOGI("Bin handle for so %s already exists, will not repeat load. resource_id=%lu", so_name.c_str(), resource_id);
   handle = iter->second->GetBinHandle();
 
   return ge::GRAPH_SUCCESS;
@@ -180,12 +173,12 @@ ge::graphStatus CustBinHandlerManager::GetBinHandle(const std::string &so_name, 
 
   const std::lock_guard<std::recursive_mutex> lk(mutex_);
   const auto &so_bin_maps = bin_manager_.find(resource_id);
-  if (so_bin_maps == bin_manager_.end()) { // no resource id
+  if (so_bin_maps == bin_manager_.end()) {  // no resource id
     ge::OpKernelBinPtr kernel_bin = GetKernelBin(so_name);
     GE_ASSERT_NOTNULL(kernel_bin);
     (void)LoadAndGetBinHandle(so_name, kernel_bin, handle);
     GELOGI("Bin handle is not found in resource id, but reading so succeeds, resource_id=%lu, so=%s, size=%lu",
-      resource_id, so_name.c_str(), bin_manager_.size());
+           resource_id, so_name.c_str(), bin_manager_.size());
     return ge::SUCCESS;
   }
 
@@ -194,8 +187,8 @@ ge::graphStatus CustBinHandlerManager::GetBinHandle(const std::string &so_name, 
     ge::OpKernelBinPtr kernel_bin = GetKernelBin(so_name);
     GE_ASSERT_NOTNULL(kernel_bin);
     (void)LoadAndGetBinHandle(so_name, kernel_bin, handle);
-    GELOGI("Bin handle in current resource id, but read so success, resource_id=%lu, so=%s, size=%lu",
-      resource_id, so_name.c_str(), so_bin_maps->second.size());
+    GELOGI("Bin handle in current resource id, but read so success, resource_id=%lu, so=%s, size=%lu", resource_id,
+           so_name.c_str(), so_bin_maps->second.size());
     return ge::GRAPH_SUCCESS;
   }
 
@@ -244,7 +237,7 @@ bool CustBinHandlerManager::GetCustAicpuBinFromFile(const std::string &so_name, 
     return false;
   }
 
-  std::vector<char_t> buffer(bin_data.get(), bin_data.get()+len);
+  std::vector<char_t> buffer(bin_data.get(), bin_data.get() + len);
   kernel_bin = std::make_shared<ge::OpKernelBin>(so_name, std::move(buffer));
   if (kernel_bin == nullptr) {
     GELOGE(ge::FAILED, "Malloc memory for cust so failed, so=%s, len=%u", file_path.c_str(), len);
@@ -272,4 +265,4 @@ std::string CustBinHandlerManager::GetCustSoFolderPath() const {
 
   return dir_path;
 }
-} // namespace gert
+}  // namespace gert

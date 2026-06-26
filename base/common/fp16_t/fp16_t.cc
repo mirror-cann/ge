@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -136,7 +136,7 @@ static uint8_t GetUint8ValByMan(uint8_t s_ret, const uint64_t long_int_m, const 
   bool need_round = Fp16IsRoundOne(long_int_m, shift_out + kFp16ManLen);
   uint8_t m_ret = static_cast<uint8_t>((long_int_m >> (kFp16ManLen + shift_out)) & kBitLen8Max);
   need_round = need_round && (((s_ret == 0U) && (static_cast<int32_t>(m_ret) < kInt8Max)) ||
-		              ((s_ret == 1U) && (static_cast<int32_t>(m_ret) <= kInt8Max)));
+                              ((s_ret == 1U) && (static_cast<int32_t>(m_ret) <= kInt8Max)));
   if (need_round) {
     m_ret++;
   }
@@ -178,11 +178,11 @@ static int8_t Fp16ToInt8(const uint16_t fp_val) {
         hf_e--;
         long_int_m = long_int_m << 1U;
         if ((s_ret == 1U) && (long_int_m >= 0x20000U)) {  // sign=1,negative number(<0)
-          long_int_m = 0x20000U;                     // 10 0000 0000 0000 0000  10(fp16_t-man)+7(int8)=17bit
+          long_int_m = 0x20000U;                          // 10 0000 0000 0000 0000  10(fp16_t-man)+7(int8)=17bit
           overflow_flag = 1U;
           break;
         } else if ((s_ret != 1U) && (long_int_m >= 0x1FFFFU)) {  // sign=0,positive number(>0)
-          long_int_m = 0x1FFFFU;                            // 01 1111 1111 1111 1111  10(fp16_t-man)+7(int8)
+          long_int_m = 0x1FFFFU;                                 // 01 1111 1111 1111 1111  10(fp16_t-man)+7(int8)
           overflow_flag = 1U;
           break;
         } else {
@@ -306,11 +306,11 @@ static int16_t Fp16ToInt16(const uint16_t fp_val) {
         hf_e--;
         long_int_m = long_int_m << 1U;
         if ((s_ret == 1U) && (long_int_m > 0x2000000UL)) {  // sign=1,negative number(<0)
-          long_int_m = 0x2000000UL;                    // 10(fp16_t-man)+15(int16)=25bit
+          long_int_m = 0x2000000UL;                         // 10(fp16_t-man)+15(int16)=25bit
           overflow_flag = 1U;
           break;
         } else if ((s_ret != 1U) && (long_int_m >= 0x1FFFFFFUL)) {  // sign=0,positive number(>0) Overflow
-          long_int_m = 0x1FFFFFFUL;                            // 10(fp16_t-man)+15(int16)=25bit
+          long_int_m = 0x1FFFFFFUL;                                 // 10(fp16_t-man)+15(int16)=25bit
           overflow_flag = 1U;
           break;
         } else {
@@ -402,8 +402,7 @@ static int32_t Fp16ToInt32(const uint16_t fp_val) {
       }
     }
     const bool need_round = Fp16IsRoundOne(long_int_m, shift_out + kFp16ManLen);
-    uint32_t m_ret =
-        static_cast<uint32_t>((long_int_m >> (kFp16ManLen + shift_out)) & kBitLen32Max);
+    uint32_t m_ret = static_cast<uint32_t>((long_int_m >> (kFp16ManLen + shift_out)) & kBitLen32Max);
     if (need_round && (m_ret < 0x7FFFFFFFU)) {
       m_ret++;
     }
@@ -548,7 +547,7 @@ static uint16_t Fp16Add(const uint16_t v_1, const uint16_t v_2) {
     m_trunc = (m_a << (static_cast<uint32_t>(BitShift::kBitShift32) - static_cast<uint32_t>(e_tmp)));
     m_a = RightShift(m_a, e_tmp);
   } else {
-      // do nothing
+    // do nothing
   }
   // calculate mantissav
   const uint16_t m_ret = static_cast<uint16_t>(m_a + m_b);
@@ -676,7 +675,7 @@ bool operator>(const TagFp16 lhs, const TagFp16 rhs) noexcept {
     // -0=0
     result = !(Fp16IsZero(lhs.val) && Fp16IsZero(rhs.val));
   } else if ((s_a == 0U) && (s_b == 0U)) {  // + +
-    if (e_a > e_b) {                      // e_a - e_b >= 1; Va always larger than Vb
+    if (e_a > e_b) {                        // e_a - e_b >= 1; Va always larger than Vb
       result = true;
     } else if (e_a == e_b) {
       result = m_a > m_b;
@@ -843,7 +842,7 @@ TagFp16 &TagFp16::operator=(const float64_t d_val) & {
 
   s_ret = static_cast<uint16_t>((ui64_v & kFp64SignMask) >> static_cast<uint16_t>(kFp64SignIndex));  // 4Byte
   e_d = (ui64_v & kFp64ExpMask) >> static_cast<uint32_t>(kFp64ManLen);                               // 10 bit exponent
-  m_d = (ui64_v & kFp64ManMask);                                              // 52 bit mantissa
+  m_d = (ui64_v & kFp64ManMask);                                                                     // 52 bit mantissa
   m_len_delta = kFp64ManLen - kFp16ManLen;
 
   bool need_round = false;

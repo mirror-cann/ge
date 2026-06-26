@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -65,11 +65,10 @@ bool IsGeLocalOp(const ge::ConstOpDescPtr &op_desc) {
     ge::GeTensorDesc output_desc = op_desc->GetOutputDesc(0);
     return !(output_desc.GetDataType() == ge::DT_STRING);
   }
-  const std::set<std::string> ge_local_set = {ge::STREAMMERGE, ge::MEMCPYASYNC, ge::STREAMACTIVE,  ge::STREAMSWITCH,
-                                              ge::VARIABLE,    ge::NOOP,        ge::CONSTANT,      ge::ENTER,
-                                              ge::REFENTER,    ge::LOOPCOND,    ge::NEXTITERATION, ge::FILECONSTANT,
-                                              ge::EXIT,        ge::REFEXIT,     ge::MERGE,         ge::MEMCPYADDRASYNC,
-                                              ge::REFNEXTITERATION};
+  const std::set<std::string> ge_local_set = {
+      ge::STREAMMERGE, ge::MEMCPYASYNC, ge::STREAMACTIVE, ge::STREAMSWITCH,    ge::VARIABLE,        ge::NOOP,
+      ge::CONSTANT,    ge::ENTER,       ge::REFENTER,     ge::LOOPCOND,        ge::NEXTITERATION,   ge::FILECONSTANT,
+      ge::EXIT,        ge::REFEXIT,     ge::MERGE,        ge::MEMCPYADDRASYNC, ge::REFNEXTITERATION};
   return (ge_local_set.find(type) != ge_local_set.end());
 }
 
@@ -117,10 +116,9 @@ ge::Status SaveSoftSyncOpWeightByDependNames(const ge::NodePtr &node, const std:
 }  // namespace
 
 namespace ge {
-ModelBuilder::ModelBuilder(uint64_t session_id, ComputeGraphPtr compute_graph,
-                           const Graph2SubGraphInfoList &subgraphs,
-                           const std::map<std::string, int32_t> &stream_max_parallel_num,
-                           bool hcom_parallel, int32_t mode)
+ModelBuilder::ModelBuilder(uint64_t session_id, ComputeGraphPtr compute_graph, const Graph2SubGraphInfoList &subgraphs,
+                           const std::map<std::string, int32_t> &stream_max_parallel_num, bool hcom_parallel,
+                           int32_t mode)
     : session_id_(session_id),
       weight_offset_(kWeightsStartOffset),
       compute_graph_(std::move(compute_graph)),
@@ -160,7 +158,7 @@ Status ModelBuilder::CalcOutputSize(const ge::NodePtr &n) const {
     graphStatus graph_status = TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(desc_temp, size_temp);
     if (graph_status != GRAPH_SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "Get tensor size in bytes failed for op:%s(%s) index:%u",
-                        node_op_desc->GetName().c_str(), node_op_desc->GetType().c_str(), index);
+                           node_op_desc->GetName().c_str(), node_op_desc->GetType().c_str(), index);
       GELOGE(graph_status, "[Get][TensorMemorySize] In Bytes failed for op:%s(%s) index:%u",
              node_op_desc->GetName().c_str(), node_op_desc->GetType().c_str(), index);
       return FAILED;
@@ -219,8 +217,7 @@ void ModelBuilder::SetInputIsConst(const ge::NodePtr &n) const {
     const auto &peer_out_anchor = in_data_anchor->GetPeerOutAnchor();
     GE_IF_BOOL_EXEC(peer_out_anchor == nullptr, continue);
     const auto &src_node = peer_out_anchor->GetOwnerNode();
-    if ((!NodeUtils::GetConstOpType(src_node, const_type)) ||
-        gert::GraphUnfolder::IsDataNotNeedRefConst(src_node)) {
+    if ((!NodeUtils::GetConstOpType(src_node, const_type)) || gert::GraphUnfolder::IsDataNotNeedRefConst(src_node)) {
       continue;
     }
 
@@ -235,13 +232,12 @@ void ModelBuilder::SetInputIsConst(const ge::NodePtr &n) const {
     }
   }
 
-  GELOGD("Update opdesc:%s InputConst:%s", node_op_desc->GetName().c_str(),
-         ToString(is_input_const).c_str());
+  GELOGD("Update opdesc:%s InputConst:%s", node_op_desc->GetName().c_str(), ToString(is_input_const).c_str());
   node_op_desc->SetIsInputConst(is_input_const);
 }
 
-void ModelBuilder::ReuseWeightMem(const size_t output_size, GeTensorPtr &weight,
-                                  bool &find_same_const, size_t &current_mem_offset) {
+void ModelBuilder::ReuseWeightMem(const size_t output_size, GeTensorPtr &weight, bool &find_same_const,
+                                  size_t &current_mem_offset) {
   if (ExecutionRuntimeUtils::IsHeterogeneous()) {
     // helper is not supported due to some bug
     weight_offset_need_feeded_.insert(current_mem_offset);
@@ -251,15 +247,14 @@ void ModelBuilder::ReuseWeightMem(const size_t output_size, GeTensorPtr &weight,
   if (it == reuse_weight_map_.end()) {
     GELOGD("cannot find same size %zu", output_size);
     std::vector<std::pair<void *, size_t>> tmp_weight_info;
-    tmp_weight_info.emplace_back(std::make_pair(static_cast<void *>(weight->MutableData().data()),
-        current_mem_offset));
+    tmp_weight_info.emplace_back(std::make_pair(static_cast<void *>(weight->MutableData().data()), current_mem_offset));
     reuse_weight_map_.insert({output_size, tmp_weight_info});
     weight_offset_need_feeded_.insert(current_mem_offset);
   } else {
     auto &weights_info = it->second;
     for (auto &weight_info : weights_info) {
-      if (memcmp(reinterpret_cast<void *>(weight->MutableData().data()),
-          reinterpret_cast<void *>(weight_info.first), output_size) == 0) {
+      if (memcmp(reinterpret_cast<void *>(weight->MutableData().data()), reinterpret_cast<void *>(weight_info.first),
+                 output_size) == 0) {
         current_mem_offset = weight_info.second;
         find_same_const = true;
         break;
@@ -267,8 +262,7 @@ void ModelBuilder::ReuseWeightMem(const size_t output_size, GeTensorPtr &weight,
     }
     if (!find_same_const) {
       GELOGD("Cannot find same const value, size is %zu", output_size);
-      weights_info.emplace_back(std::make_pair(static_cast<void *>(weight->MutableData().data()),
-          current_mem_offset));
+      weights_info.emplace_back(std::make_pair(static_cast<void *>(weight->MutableData().data()), current_mem_offset));
       weight_offset_need_feeded_.insert(current_mem_offset);
     }
   }
@@ -279,15 +273,15 @@ Status ModelBuilder::AdjustConstWeightSize(const ge::NodePtr &node, size_t &mem_
   if (node->GetType() == CONSTANT) {
     std::vector<GeTensorPtr> weights = OpDescUtils::MutableWeights(node);
     if (weights.empty()) {
-      REPORT_INNER_ERR_MSG("E19999", "Check weights size of node %s(%s) is empty",
-                         node->GetName().c_str(), node->GetType().c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Check weights size of node %s(%s) is empty", node->GetName().c_str(),
+                           node->GetType().c_str());
       GELOGE(FAILED, "[Check][Param] weights size of node %s is empty", node->GetName().c_str());
       return FAILED;
     }
     GeTensorPtr weight = weights[0];
     if (weight == nullptr) {
-      REPORT_INNER_ERR_MSG("E19999", "Check weight of node %s(%s) is nullptr",
-                         node->GetName().c_str(), node->GetType().c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Check weight of node %s(%s) is nullptr", node->GetName().c_str(),
+                           node->GetType().c_str());
       GELOGE(FAILED, "[Check][Param] weights[0] is null, node:%s.", node->GetName().c_str());
       return FAILED;
     }
@@ -297,8 +291,8 @@ Status ModelBuilder::AdjustConstWeightSize(const ge::NodePtr &node, size_t &mem_
     bool find_same_const = false;
     ReuseWeightMem(output_size, weight, find_same_const, current_mem_offset);
     TensorUtils::SetDataOffset(tensor_desc, current_mem_offset);
-    GELOGD("Node: %s, weight size: %zu, current_mem_offset: %zu",
-        node->GetName().c_str(), output_size, current_mem_offset);
+    GELOGD("Node: %s, weight size: %zu, current_mem_offset: %zu", node->GetName().c_str(), output_size,
+           current_mem_offset);
     if (!find_same_const) {
       mem_offset += output_size;
     }
@@ -329,8 +323,9 @@ Status ModelBuilder::SetNodeFormatToND(const ge::OpDescPtr &node_op_desc) const 
   return SUCCESS;
 }
 
-// 图编译后期，在 CalcOutputSize里面对opdesc上面的输出size进行了padding 32操作，但是实际weight申请内存时并没有做padding32操作
-// 导致在加载期，会存在拷贝越界情况。实际修改我们padding 32后做了512对齐，目的是确保下一个子图起始地址是512对齐的，不然copy性能会变差
+// 图编译后期，在 CalcOutputSize里面对opdesc上面的输出size进行了padding
+// 32操作，但是实际weight申请内存时并没有做padding32操作 导致在加载期，会存在拷贝越界情况。实际修改我们padding
+// 32后做了512对齐，目的是确保下一个子图起始地址是512对齐的，不然copy性能会变差
 Status ModelBuilder::AlignWeightOffset() {
   GELOGD("Before alignment processing, weight_offset_ is %zu", weight_offset_);
   if (weight_offset_ > 0U) {
@@ -348,16 +343,15 @@ Status ModelBuilder::SetInputOutputDesc() {
   for (const ge::NodePtr &n : compute_graph_->GetNodes(compute_graph_->GetGraphUnknownFlag())) {
     auto node_op_desc = n->GetOpDesc();
     GE_IF_BOOL_EXEC(node_op_desc == nullptr, continue);
-    const auto& type = node_op_desc->GetType();
+    const auto &type = node_op_desc->GetType();
     if (!is_loop_graph_ && (type == LOOPCOND)) {
       is_loop_graph_ = true;
     }
     // if user set input node format ND, the expected node for data and netoutput format is ND in
     // final graph.
     bool set_nd = (compute_graph_->GetParentGraph() == nullptr) &&
-        (GetLocalOmgContext().format == domi::DOMI_TENSOR_ND) &&
-        (!node_op_desc->HasAttr("_is_single_op")) &&
-        (OpTypeUtils::IsDataNode(type) || (type == NETOUTPUT));
+                  (GetLocalOmgContext().format == domi::DOMI_TENSOR_ND) && (!node_op_desc->HasAttr("_is_single_op")) &&
+                  (OpTypeUtils::IsDataNode(type) || (type == NETOUTPUT));
     if (set_nd) {
       GE_CHK_STATUS_RET(SetNodeFormatToND(node_op_desc), "[Set][NodeFormatToND] failed");
     }
@@ -380,8 +374,7 @@ Status ModelBuilder::SetInputOutputDesc() {
                     weight_offset_ = (weight_offset_ + MEM_ALIGN_SIZE - 1) / MEM_ALIGN_SIZE * MEM_ALIGN_SIZE);
   }
   GE_CHK_STATUS_RET(AlignWeightOffset(), "[Align][WeightOffset] failed");
-  GE_CHK_STATUS_RET(compute_graph_->TopologicalSorting(),
-                    "[Call][TopologicalSorting] failed, graph:%s",
+  GE_CHK_STATUS_RET(compute_graph_->TopologicalSorting(), "[Call][TopologicalSorting] failed, graph:%s",
                     compute_graph_->GetName().c_str());
   return SUCCESS;
 }
@@ -396,7 +389,7 @@ void ModelBuilder::AddNodeInputProperty() const {
     src_index_list.reserve(node->GetInNodesSize());
 
     for (const auto in_data_anchor : node->GetAllInDataAnchorsPtr()) {
-      const auto& peer_out_anchor = in_data_anchor->GetPeerOutAnchor();
+      const auto &peer_out_anchor = in_data_anchor->GetPeerOutAnchor();
       GE_IF_BOOL_EXEC(peer_out_anchor == nullptr, continue);
       GE_IF_BOOL_EXEC(node_op_desc->HasAttr(MERGE_PRENODE_FLAG), continue);
 
@@ -418,7 +411,7 @@ void ModelBuilder::AddNodeInputProperty() const {
   }
 
   for (const ge::NodePtr &node : compute_graph_->GetNodes(compute_graph_->GetGraphUnknownFlag())) {
-    const auto& node_op_desc = node->GetOpDesc();
+    const auto &node_op_desc = node->GetOpDesc();
     GE_IF_BOOL_EXEC(node_op_desc == nullptr, GELOGW("node_op_desc is nullptr!"); return);
     GE_IF_BOOL_EXEC(node_op_desc->GetType() == NETOUTPUT, continue);
     auto out_control_anchor = node->GetOutControlAnchor();
@@ -429,7 +422,7 @@ void ModelBuilder::AddNodeInputProperty() const {
     dst_index_list.reserve(node->GetOutNodesSize());
     std::string dst_name_temp;
     for (const auto in_control_anchor : out_control_anchor->GetPeerInControlAnchorsPtr()) {
-      const auto dst_node = in_control_anchor->GetOwnerNodeBarePtr(); // dst_node must not be null
+      const auto dst_node = in_control_anchor->GetOwnerNodeBarePtr();  // dst_node must not be null
       dst_name_temp += dst_name_temp.empty() ? dst_node->GetName() : ":" + dst_node->GetName();
     }
     GE_IF_BOOL_EXEC(!dst_name_temp.empty(), dst_name_list.emplace_back(dst_name_temp));
@@ -443,7 +436,7 @@ void ModelBuilder::AddNodeInputProperty() const {
       int64_t dst_index = kWrongIndex;  // assign an impossible value to dst_index.
       for (const auto in_data_anchor : out_data_anchor->GetPeerInDataAnchorsPtr()) {
         GE_IF_BOOL_EXEC(in_data_anchor == nullptr, GELOGW("in_data_anchor is nullptr!"); return);
-        const auto dst_node = in_data_anchor->GetOwnerNodeBarePtr(); // dst_node must not be null
+        const auto dst_node = in_data_anchor->GetOwnerNodeBarePtr();  // dst_node must not be null
         dst_name_temp += dst_name_temp.empty() ? dst_node->GetName() : ":" + dst_node->GetName();
         dst_index = in_data_anchor->GetIdx();
       }
@@ -464,7 +457,7 @@ Status ModelBuilder::AdjustInputTensorFlag() const {
           GE_IF_BOOL_EXEC(in_anchors == nullptr, continue);
           auto owner_node_op_desc = in_anchors->GetOwnerNodeBarePtr()->GetOpDesc();
           GE_IF_BOOL_EXEC(owner_node_op_desc == nullptr, continue);
-          const auto& input_desc = owner_node_op_desc->MutableInputDesc(in_anchors->GetIdx());
+          const auto &input_desc = owner_node_op_desc->MutableInputDesc(in_anchors->GetIdx());
           if (input_desc == nullptr) {
             continue;
           }
@@ -479,7 +472,7 @@ Status ModelBuilder::InitL1FusionOption() {
   std::string buffer_optimize = "off_optimize";
   graphStatus ret = ge::GetContext().GetOption(BUFFER_OPTIMIZE, buffer_optimize);
   if (ret == GRAPH_SUCCESS) {
-    bool off_superkernel = true; // 默认关闭
+    bool off_superkernel = true;  // 默认关闭
     (void)AttrUtils::GetBool(compute_graph_, ATTR_NAME_OFF_SUPERKERNEL_ATTR, off_superkernel);
     // l1fusion只有小海思才会使能，l1 fusion依赖superkernel使能进行绑核
     // 如果l1fusion的代码要使能，sgat组件会同步设置ATTR_NAME_OFF_SUPERKERNEL_ATTR为false来使能superkernel
@@ -495,11 +488,11 @@ Status ModelBuilder::InitL1FusionOption() {
     std::string virtual_type = "0";
     ret = ge::GetContext().GetOption(VIRTUAL_TYPE, virtual_type);
     if ((ret == GRAPH_SUCCESS) && (virtual_type == "1")) {
-        std::string situation = "L1_fusion is not supported in the virtual instance scenario";
-        REPORT_PREDEFINED_ERR_MSG("E13024", std::vector<const char_t *>({"value", "env", "situation"}),
-                                   std::vector<const char_t *>({virtual_type.c_str(), "VIRTUAL_TYPE", situation.c_str()}));
-        GELOGE(FAILED, "BuildModelDef fail because l1fusion enable and virtual type is %s.", virtual_type.c_str());
-        return FAILED;
+      std::string situation = "L1_fusion is not supported in the virtual instance scenario";
+      REPORT_PREDEFINED_ERR_MSG("E13024", std::vector<const char_t *>({"value", "env", "situation"}),
+                                std::vector<const char_t *>({virtual_type.c_str(), "VIRTUAL_TYPE", situation.c_str()}));
+      GELOGE(FAILED, "BuildModelDef fail because l1fusion enable and virtual type is %s.", virtual_type.c_str());
+      return FAILED;
     }
     GELOGW("Get virtual type ret %d , the type is %s.", ret, virtual_type.c_str());
   }
@@ -519,8 +512,7 @@ Status ModelBuilder::BuildModelDefForMem(ge::Model &model) {
   max_mem_offset_ = mem_type_to_mem_offset_[RT_MEMORY_HBM];
   GE_CHK_BOOL_EXEC(ge::AttrUtils::SetInt(&model, ATTR_MODEL_MEMORY_SIZE, max_mem_offset_),
                    REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s in model failed", ATTR_MODEL_MEMORY_SIZE.c_str());
-                   GELOGE(FAILED, "[Set][Attr] %s in model failed", ATTR_MODEL_MEMORY_SIZE.c_str());
-                   return FAILED);
+                   GELOGE(FAILED, "[Set][Attr] %s in model failed", ATTR_MODEL_MEMORY_SIZE.c_str()); return FAILED);
   auto mem_type_session_scope = (kSessionScopeMemory | RT_MEMORY_HBM);
   size_t session_scope_mem_offset = 0;
   std::map<uint64_t, size_t>::const_iterator it = mem_type_to_mem_offset_.find(mem_type_session_scope);
@@ -537,70 +529,61 @@ Status ModelBuilder::BuildModelDefForMem(ge::Model &model) {
     host_svm_max_mem_offset_ = mem_type_to_mem_offset_[RT_MEMORY_HOST_SVM];
   }
 
-  GE_CHK_BOOL_EXEC(ge::AttrUtils::SetInt(&model, ATTR_MODEL_SESSION_SCOPE_MEMORY_SIZE, session_scope_mem_offset),
-                   REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s in model failed",
-                                      ATTR_MODEL_SESSION_SCOPE_MEMORY_SIZE.c_str());
-  GELOGE(FAILED, "SetInt of ATTR_NAME_SESSION_SCOPE_MEMORY_SIZE failed.");
-  return FAILED);
-  GE_CHK_BOOL_EXEC(ge::AttrUtils::SetInt(&model, MODEL_ATTR_TASK_GEN_HOST_BASE_ADDR, kMemoryHostFeatureMapLogicBase),
-     REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s in model failed", MODEL_ATTR_TASK_GEN_HOST_BASE_ADDR.c_str());
-     GELOGE(FAILED, "[Set][Attr] %s in model failed", MODEL_ATTR_TASK_GEN_HOST_BASE_ADDR.c_str());
-     return FAILED);
+  GE_CHK_BOOL_EXEC(
+      ge::AttrUtils::SetInt(&model, ATTR_MODEL_SESSION_SCOPE_MEMORY_SIZE, session_scope_mem_offset),
+      REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s in model failed", ATTR_MODEL_SESSION_SCOPE_MEMORY_SIZE.c_str());
+      GELOGE(FAILED, "SetInt of ATTR_NAME_SESSION_SCOPE_MEMORY_SIZE failed."); return FAILED);
+  GE_CHK_BOOL_EXEC(
+      ge::AttrUtils::SetInt(&model, MODEL_ATTR_TASK_GEN_HOST_BASE_ADDR, kMemoryHostFeatureMapLogicBase),
+      REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s in model failed", MODEL_ATTR_TASK_GEN_HOST_BASE_ADDR.c_str());
+      GELOGE(FAILED, "[Set][Attr] %s in model failed", MODEL_ATTR_TASK_GEN_HOST_BASE_ADDR.c_str()); return FAILED);
   GE_CHECK_GE(host_max_mem_offset_, kMemoryHostFeatureMapLogicBase);
   const auto host_memory_size = host_max_mem_offset_ - kMemoryHostFeatureMapLogicBase;
   GE_CHK_BOOL_EXEC(ge::AttrUtils::SetInt(&model, MODEL_ATTR_HOST_MEMORY_SIZE, host_memory_size),
-     REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s in model failed", MODEL_ATTR_HOST_MEMORY_SIZE.c_str());
-     GELOGE(FAILED, "[Set][Attr] %s in model failed", MODEL_ATTR_HOST_MEMORY_SIZE.c_str());
-     return FAILED);
+                   REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s in model failed", MODEL_ATTR_HOST_MEMORY_SIZE.c_str());
+                   GELOGE(FAILED, "[Set][Attr] %s in model failed", MODEL_ATTR_HOST_MEMORY_SIZE.c_str());
+                   return FAILED);
   GE_CHK_BOOL_EXEC(
-     ge::AttrUtils::SetInt(&model, MODEL_ATTR_TASK_GEN_HOST_SVM_BASE_ADDR, kMemoryHostSVMFeatureMapLogicBase),
-     REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s in model failed", MODEL_ATTR_TASK_GEN_HOST_SVM_BASE_ADDR.c_str());
-     GELOGE(FAILED, "[Set][Attr] %s in model failed", MODEL_ATTR_TASK_GEN_HOST_SVM_BASE_ADDR.c_str());
-     return FAILED);
+      ge::AttrUtils::SetInt(&model, MODEL_ATTR_TASK_GEN_HOST_SVM_BASE_ADDR, kMemoryHostSVMFeatureMapLogicBase),
+      REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s in model failed", MODEL_ATTR_TASK_GEN_HOST_SVM_BASE_ADDR.c_str());
+      GELOGE(FAILED, "[Set][Attr] %s in model failed", MODEL_ATTR_TASK_GEN_HOST_SVM_BASE_ADDR.c_str()); return FAILED);
   GE_CHECK_GE(host_svm_max_mem_offset_, kMemoryHostSVMFeatureMapLogicBase);
   const auto host_svm_memory_size = host_svm_max_mem_offset_ - kMemoryHostSVMFeatureMapLogicBase;
   GE_CHK_BOOL_EXEC(ge::AttrUtils::SetInt(&model, MODEL_ATTR_HOST_SVM_SIZE, host_svm_memory_size),
                    REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s in model failed", MODEL_ATTR_HOST_SVM_SIZE.c_str());
-                   GELOGE(FAILED, "[Set][Attr] %s in model failed", MODEL_ATTR_HOST_SVM_SIZE.c_str());
-                   return FAILED);
+                   GELOGE(FAILED, "[Set][Attr] %s in model failed", MODEL_ATTR_HOST_SVM_SIZE.c_str()); return FAILED);
   GE_CHK_BOOL_EXEC(ge::AttrUtils::SetInt(&model, ATTR_MODEL_P2P_MEMORY_SIZE, p2p_mem_offset_),
                    REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s in model failed", ATTR_MODEL_P2P_MEMORY_SIZE.c_str());
-                   GELOGE(FAILED, "[Set][Attr] %s in model failed", ATTR_MODEL_P2P_MEMORY_SIZE.c_str());
-                   return FAILED);
+                   GELOGE(FAILED, "[Set][Attr] %s in model failed", ATTR_MODEL_P2P_MEMORY_SIZE.c_str()); return FAILED);
   GE_CHK_BOOL_EXEC(ge::AttrUtils::SetInt(&model, ATTR_MODEL_WEIGHT_SIZE, weight_offset_),
                    REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s in model failed", ATTR_MODEL_WEIGHT_SIZE.c_str());
-                   GELOGE(FAILED, "[Set][Attr] %s in model failed", ATTR_MODEL_WEIGHT_SIZE.c_str());
-                   return FAILED);
+                   GELOGE(FAILED, "[Set][Attr] %s in model failed", ATTR_MODEL_WEIGHT_SIZE.c_str()); return FAILED);
   GE_CHK_BOOL_EXEC(ge::AttrUtils::SetInt(&model, ATTR_MODEL_NOTIFY_NUM, notify_num_),
                    REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s in model failed", ATTR_MODEL_NOTIFY_NUM.c_str());
-                       GELOGE(FAILED, "[Set][Attr] %s in model failed", ATTR_MODEL_NOTIFY_NUM.c_str());
-                       return FAILED);
+                   GELOGE(FAILED, "[Set][Attr] %s in model failed", ATTR_MODEL_NOTIFY_NUM.c_str()); return FAILED);
   GE_ASSERT_TRUE(ge::AttrUtils::SetListInt(&model, ATTR_MODEL_NOTIFY_TYPES, notify_types_));
   GE_CHK_BOOL_EXEC(ge::AttrUtils::SetInt(&model, ATTR_MODEL_EVENT_NUM, event_num_),
                    REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s in model failed", ATTR_MODEL_EVENT_NUM.c_str());
-                       GELOGE(FAILED, "[Set][Attr] %s in model failed", ATTR_MODEL_EVENT_NUM.c_str());
-                       return FAILED);
+                   GELOGE(FAILED, "[Set][Attr] %s in model failed", ATTR_MODEL_EVENT_NUM.c_str()); return FAILED);
   GE_CHK_BOOL_EXEC(ge::AttrUtils::SetInt(&model, ATTR_MODEL_LABEL_NUM, label_num_),
                    REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s in model failed", ATTR_MODEL_LABEL_NUM.c_str());
-                   GELOGE(FAILED, "[Set][Attr] %s in model failed", ATTR_MODEL_LABEL_NUM.c_str());
-                   return FAILED);
-  GE_CHK_BOOL_EXEC(ge::AttrUtils::SetInt(&model, ATTR_MODEL_ZERO_COPY_MEMORY_SIZE, zero_copy_mem_size_),
-                   REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s in model failed",
-                                      ATTR_MODEL_ZERO_COPY_MEMORY_SIZE.c_str());
-                   GELOGE(FAILED, "[Set][Attr] %s in model failed.", ATTR_MODEL_ZERO_COPY_MEMORY_SIZE.c_str());
-                   return FAILED);
+                   GELOGE(FAILED, "[Set][Attr] %s in model failed", ATTR_MODEL_LABEL_NUM.c_str()); return FAILED);
+  GE_CHK_BOOL_EXEC(
+      ge::AttrUtils::SetInt(&model, ATTR_MODEL_ZERO_COPY_MEMORY_SIZE, zero_copy_mem_size_),
+      REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s in model failed", ATTR_MODEL_ZERO_COPY_MEMORY_SIZE.c_str());
+      GELOGE(FAILED, "[Set][Attr] %s in model failed.", ATTR_MODEL_ZERO_COPY_MEMORY_SIZE.c_str()); return FAILED);
   GE_CHK_BOOL_EXEC(ge::AttrUtils::SetListStr(&model, ATTR_MODEL_OUT_NODES_NAME, GetLocalOmgContext().net_out_nodes),
                    REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s in model failed", ATTR_MODEL_OUT_NODES_NAME.c_str());
-                   GELOGE(FAILED, "[Set][Str] %s in model failed.", ATTR_MODEL_OUT_NODES_NAME.c_str());
-                   return FAILED);
-  (void) ge::AttrUtils::SetListListInt(&model, ATTR_MODEL_SUB_MEMORY_INFO, sub_mem_offsets_);
+                   GELOGE(FAILED, "[Set][Str] %s in model failed.", ATTR_MODEL_OUT_NODES_NAME.c_str()); return FAILED);
+  (void)ge::AttrUtils::SetListListInt(&model, ATTR_MODEL_SUB_MEMORY_INFO, sub_mem_offsets_);
 
   // Set output reuse input memory indexes from option
   std::string output_reuse_input_mem_indexes;
   if (ge::GetContext().GetOption(OPTION_OUTPUT_REUSE_INPUT_MEM_INDEXES, output_reuse_input_mem_indexes) == SUCCESS) {
     if (!output_reuse_input_mem_indexes.empty()) {
       if (!ge::AttrUtils::SetStr(&model, ATTR_MODEL_OUTPUT_REUSE_INPUT_MEM_INDEXES, output_reuse_input_mem_indexes)) {
-        REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s in model failed", ATTR_MODEL_OUTPUT_REUSE_INPUT_MEM_INDEXES.c_str());
+        REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s in model failed",
+                             ATTR_MODEL_OUTPUT_REUSE_INPUT_MEM_INDEXES.c_str());
         GELOGE(FAILED, "[Set][Str] %s in model failed", ATTR_MODEL_OUTPUT_REUSE_INPUT_MEM_INDEXES.c_str());
         return FAILED;
       }
@@ -637,10 +620,10 @@ Status ModelBuilder::BuildModelDefForMem(ge::Model &model) {
   }
   GE_CHK_STATUS_RET_NOLOG(InitL1FusionOption());
 
-  GE_CHK_BOOL_EXEC(ge::AttrUtils::SetBool(&model, ATTR_NAME_SWITCH_FOR_L1_FUSION, is_l1_fusion_enable_),
-                   REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s in model failed", ATTR_NAME_SWITCH_FOR_L1_FUSION.c_str());
-                   GELOGE(FAILED, "[Set][Attr] %s in model failed.", ATTR_NAME_SWITCH_FOR_L1_FUSION.c_str());
-                   return FAILED);
+  GE_CHK_BOOL_EXEC(
+      ge::AttrUtils::SetBool(&model, ATTR_NAME_SWITCH_FOR_L1_FUSION, is_l1_fusion_enable_),
+      REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s in model failed", ATTR_NAME_SWITCH_FOR_L1_FUSION.c_str());
+      GELOGE(FAILED, "[Set][Attr] %s in model failed.", ATTR_NAME_SWITCH_FOR_L1_FUSION.c_str()); return FAILED);
 
   model.SetName(compute_graph_->GetName());
   model.SetGraph(compute_graph_);
@@ -665,22 +648,22 @@ void ModelBuilder::ClearOriginalFormat() const {
       }
 
       GE_IF_BOOL_EXEC(
-        node_op_desc->HasAttr(ATTR_NAME_INFERRED_FORMAT),
-        if (node_op_desc->DelAttr(ATTR_NAME_INFERRED_FORMAT) != SUCCESS) {
-          GELOGW("DelAttr ATTR_NAME_INFERRED_FORMAT failed.");
-        });
+          node_op_desc->HasAttr(ATTR_NAME_INFERRED_FORMAT),
+          if (node_op_desc->DelAttr(ATTR_NAME_INFERRED_FORMAT) != SUCCESS) {
+            GELOGW("DelAttr ATTR_NAME_INFERRED_FORMAT failed.");
+          });
 
       GE_IF_BOOL_EXEC(
-        node_op_desc->HasAttr(ATTR_NAME_PRED_PERMUTE_DELETED),
-        if (node_op_desc->DelAttr(ATTR_NAME_PRED_PERMUTE_DELETED) != SUCCESS) {
-          GELOGW("DelAttr ATTR_NAME_PRED_PERMUTE_DELETED failed.");
-        });
+          node_op_desc->HasAttr(ATTR_NAME_PRED_PERMUTE_DELETED),
+          if (node_op_desc->DelAttr(ATTR_NAME_PRED_PERMUTE_DELETED) != SUCCESS) {
+            GELOGW("DelAttr ATTR_NAME_PRED_PERMUTE_DELETED failed.");
+          });
 
       GE_IF_BOOL_EXEC(
-        node_op_desc->HasAttr(ATTR_NAME_IGNORE_PRED_FORMAT),
-        if (node_op_desc->DelAttr(ATTR_NAME_IGNORE_PRED_FORMAT) != SUCCESS) {
-          GELOGW("DelAttr ATTR_NAME_IGNORE_PRED_FORMAT failed.");
-        });
+          node_op_desc->HasAttr(ATTR_NAME_IGNORE_PRED_FORMAT),
+          if (node_op_desc->DelAttr(ATTR_NAME_IGNORE_PRED_FORMAT) != SUCCESS) {
+            GELOGW("DelAttr ATTR_NAME_IGNORE_PRED_FORMAT failed.");
+          });
     }
   }
 }
@@ -706,8 +689,8 @@ Status ModelBuilder::MergeWeights() {
     // If MutableTensor failed, weight is nullptr.
     (void)ge::AttrUtils::MutableTensor(op_desc, ATTR_NAME_WEIGHTS, weight);
     if (weight == nullptr) {
-      REPORT_INNER_ERR_MSG("E19999", "Can't get const weight in op:%s(%s)",
-                         op_desc->GetName().c_str(), op_desc->GetType().c_str());
+      REPORT_INNER_ERR_MSG("E19999", "Can't get const weight in op:%s(%s)", op_desc->GetName().c_str(),
+                           op_desc->GetType().c_str());
       GELOGE(FAILED, "[Call][MutableTensor] Can't get const op weight, name:%s", node->GetName().c_str());
       return FAILED;
     }
@@ -730,21 +713,21 @@ Status ModelBuilder::MergeWeights() {
       continue;
     }
     if (weight_offset_need_feeded_.find(static_cast<size_t>(offset)) == weight_offset_need_feeded_.end()) {
-      GELOGI("name %s weight offset mem %ld has been feeded, no need feeded again", node->GetName().c_str(), offset);
+      GELOGI("name %s weight offset mem %ld has been fed, no need fed again", node->GetName().c_str(), offset);
       weight->ClearData();
       continue;
     }
     if (weight_data.data() != nullptr) {
       GE_IF_BOOL_EXEC(base_addr == nullptr,
-                      REPORT_INNER_ERR_MSG("E19999", "Check weight in op:%s(%s) is nullptr",
-                                         op_desc->GetName().c_str(), op_desc->GetType().c_str());
-                      GELOGE(FAILED, "[Check][Param] weight in op:%s(%s) is nullptr",
-                             op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                      REPORT_INNER_ERR_MSG("E19999", "Check weight in op:%s(%s) is nullptr", op_desc->GetName().c_str(),
+                                           op_desc->GetType().c_str());
+                      GELOGE(FAILED, "[Check][Param] weight in op:%s(%s) is nullptr", op_desc->GetName().c_str(),
+                             op_desc->GetType().c_str());
                       return FAILED);
       if (weight_offset_ - offset < weight_data.size()) {
         REPORT_INNER_ERR_MSG("E19999", "left weight size not enough for op:%s(%s) left_size:%zu, weight_size:%zu",
-                           op_desc->GetName().c_str(), op_desc->GetType().c_str(),
-                           weight_offset_ - offset, weight_data.size());
+                             op_desc->GetName().c_str(), op_desc->GetType().c_str(), weight_offset_ - offset,
+                             weight_data.size());
         GELOGE(FAILED, "[Check][Param] left weight size not enough for op:%s(%s). left_size:%lu, weight_size:%lu",
                op_desc->GetName().c_str(), op_desc->GetType().c_str(), weight_offset_ - offset, weight_data.size());
         return FAILED;
@@ -773,8 +756,8 @@ Status ModelBuilder::MergeWeights() {
 }
 
 Status ModelBuilder::SavaAtomicWorkspace(const OpDescPtr &op_desc) const {
-  auto workspace_info = op_desc->TryGetExtAttr(
-      EXT_ATTR_ATOMIC_WORKSPACE_INFO, std::map<std::string, std::map<int64_t, int64_t>>{});
+  auto workspace_info =
+      op_desc->TryGetExtAttr(EXT_ATTR_ATOMIC_WORKSPACE_INFO, std::map<std::string, std::map<int64_t, int64_t>>{});
   if (workspace_info.empty()) {
     return SUCCESS;
   }
@@ -806,8 +789,8 @@ Status ModelBuilder::SaveAtomicTBEKernel(const OpDescPtr &op_desc) {
   if (tbe_kernel == nullptr) {
     std::string kernel_name;
     Buffer kernel_buffer;
-    (void) AttrUtils::GetStr(atomic_op_desc, ATTR_NAME_TBE_KERNEL_NAME, kernel_name);
-    (void) AttrUtils::GetBytes(atomic_op_desc, ATTR_NAME_TBE_KERNEL_BUFFER, kernel_buffer);
+    (void)AttrUtils::GetStr(atomic_op_desc, ATTR_NAME_TBE_KERNEL_NAME, kernel_name);
+    (void)AttrUtils::GetBytes(atomic_op_desc, ATTR_NAME_TBE_KERNEL_BUFFER, kernel_buffer);
     if (!kernel_name.empty() && (kernel_buffer.GetSize() > 0)) {
       GE_CHECK_NOTNULL(kernel_buffer.GetData());
       std::vector<char> data(kernel_buffer.GetData(), kernel_buffer.GetData() + kernel_buffer.GetSize());
@@ -835,31 +818,31 @@ Status ModelBuilder::SaveAtomicTBEKernel(const OpDescPtr &op_desc) {
 
   tbe_kernel_store_.AddTBEKernel(tbe_kernel);
   GELOGD("Atomic_clean_node tbe_kernel_name %s!", tbe_kernel->GetName().c_str());
-  (void) AttrUtils::SetStr(op_desc, ATOMIC_ATTR_TBE_KERNEL_NAME, tbe_kernel->GetName());
+  (void)AttrUtils::SetStr(op_desc, ATOMIC_ATTR_TBE_KERNEL_NAME, tbe_kernel->GetName());
 
   std::string kernel_name;
-  (void) AttrUtils::GetStr(atomic_op_desc, atomic_op_desc->GetName() + "_kernelname", kernel_name);
+  (void)AttrUtils::GetStr(atomic_op_desc, atomic_op_desc->GetName() + "_kernelname", kernel_name);
   // Compat for compiler changes: remove prefix (node name) of attr name for symbol of kernel elf
   if (kernel_name.empty()) {
-    (void) AttrUtils::GetStr(atomic_op_desc, kAttrEntrySymbolOfElf, kernel_name);
+    (void)AttrUtils::GetStr(atomic_op_desc, kAttrEntrySymbolOfElf, kernel_name);
   }
-  (void) AttrUtils::SetStr(op_desc, op_desc->GetName() + "_atomic_kernelname", kernel_name);
+  (void)AttrUtils::SetStr(op_desc, op_desc->GetName() + "_atomic_kernelname", kernel_name);
   std::string kernel_name_for_atomic = kAtomicPrefix + op_desc->GetName() + "_kernelname";
-  (void) AttrUtils::SetStr(op_desc, kernel_name_for_atomic, kernel_name);
+  (void)AttrUtils::SetStr(op_desc, kernel_name_for_atomic, kernel_name);
   GELOGI("op %s set attr name %s", op_desc->GetName().c_str(), kernel_name_for_atomic.c_str());
 
   std::string meta_data;
-  (void) AttrUtils::GetStr(atomic_op_desc, TVM_ATTR_NAME_METADATA, meta_data);
-  (void) AttrUtils::SetStr(op_desc, ATOMIC_ATTR_TVM_METADATA, meta_data);
+  (void)AttrUtils::GetStr(atomic_op_desc, TVM_ATTR_NAME_METADATA, meta_data);
+  (void)AttrUtils::SetStr(op_desc, ATOMIC_ATTR_TVM_METADATA, meta_data);
   std::string meta_data_for_atomic = kAtomicPrefix + TVM_ATTR_NAME_METADATA;
-  (void) AttrUtils::SetStr(op_desc, meta_data_for_atomic, meta_data);
+  (void)AttrUtils::SetStr(op_desc, meta_data_for_atomic, meta_data);
   GELOGI("op %s set attr name %s", op_desc->GetName().c_str(), meta_data_for_atomic.c_str());
 
   std::string json_string;
-  (void) AttrUtils::GetStr(atomic_op_desc, TVM_ATTR_NAME_MAGIC, json_string);
-  (void) AttrUtils::SetStr(op_desc, ATOMIC_ATTR_TVM_MAGIC, json_string);
+  (void)AttrUtils::GetStr(atomic_op_desc, TVM_ATTR_NAME_MAGIC, json_string);
+  (void)AttrUtils::SetStr(op_desc, ATOMIC_ATTR_TVM_MAGIC, json_string);
   std::string json_string_for_atomic = kAtomicPrefix + TVM_ATTR_NAME_MAGIC;
-  (void) AttrUtils::SetStr(op_desc, json_string_for_atomic, json_string);
+  (void)AttrUtils::SetStr(op_desc, json_string_for_atomic, json_string);
   GELOGI("op %s set attr name %s", op_desc->GetName().c_str(), json_string_for_atomic.c_str());
   return SUCCESS;
 }
@@ -870,7 +853,7 @@ Status ModelBuilder::SaveNormalTBEKernel(const OpDescPtr &op_desc) {
     tbe_kernel = CreateOpTBEKernel(op_desc, "");
   }
   if (tbe_kernel == nullptr) {
-    return SUCCESS; // Not TBE node.
+    return SUCCESS;  // Not TBE node.
   }
   (void)AttrUtils::SetStr(op_desc, "_kernelname", tbe_kernel->GetName());
   tbe_kernel_store_.AddTBEKernel(tbe_kernel);
@@ -886,13 +869,14 @@ Status ModelBuilder::SaveNormalTBEKernel(const OpDescPtr &op_desc) {
 Status ModelBuilder::SaveCustAiCpuKernel(const OpDescPtr &op_desc, std::set<std::string> &aicpu_name_set) {
   const auto cust_aicpu_kernel = op_desc->TryGetExtAttr(OP_EXTATTR_CUSTAICPU_KERNEL, CustAICPUKernelPtr());
   if (cust_aicpu_kernel == nullptr) {
-    return SUCCESS; // Not cust aicpu node.
+    return SUCCESS;  // Not cust aicpu node.
   }
 
   if (aicpu_name_set.count(cust_aicpu_kernel->GetName()) > 0) {
-    REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char_t *>({"value", "parameter", "reason"}),
-                       std::vector<const char_t *>({cust_aicpu_kernel->GetName().c_str(), op_desc->GetName().c_str(),
-                                                "Parameter aicpu_kernel_name must be unique."}));
+    REPORT_PREDEFINED_ERR_MSG(
+        "E10001", std::vector<const char_t *>({"value", "parameter", "reason"}),
+        std::vector<const char_t *>({cust_aicpu_kernel->GetName().c_str(), op_desc->GetName().c_str(),
+                                     "Parameter aicpu_kernel_name must be unique."}));
     GELOGE(FAILED, "[Check][Param] aicpu_kernel name %s can't be the same, judge for op:%s(%s)",
            cust_aicpu_kernel->GetName().c_str(), op_desc->GetName().c_str(), op_desc->GetType().c_str());
     return FAILED;
@@ -950,8 +934,8 @@ TBEKernelPtr ModelBuilder::CreateOpTBEKernel(const OpDescPtr &op_desc, const std
     GE_CHK_BOOL_EXEC(tbe_kernel != nullptr, return nullptr, "[Create][TBEKernel] failed");
     const std::string ext_attr_name = prefix_kernel_name + OP_EXTATTR_NAME_TBE_KERNEL;
     if (!op_desc->SetExtAttr(ext_attr_name, tbe_kernel)) {
-      GELOGW("set ext attr:%s for op:%s(%s) failed", ext_attr_name.c_str(),
-             op_desc->GetName().c_str(), op_desc->GetType().c_str());
+      GELOGW("set ext attr:%s for op:%s(%s) failed", ext_attr_name.c_str(), op_desc->GetName().c_str(),
+             op_desc->GetType().c_str());
       return nullptr;
     }
   }
@@ -1093,16 +1077,14 @@ Status ModelBuilder::PreBuildModel() {
     return FAILED;
   }
 
-  GE_CHK_STATUS_RET(SetInputOutputDesc(),
-                    "[Set][InputOutputDesc] Failed! graph:%s", compute_graph_->GetName().c_str());
+  GE_CHK_STATUS_RET(SetInputOutputDesc(), "[Set][InputOutputDesc] Failed! graph:%s", compute_graph_->GetName().c_str());
 
   AddNodeInputProperty();
 
   return SUCCESS;
 }
 
-Status ModelBuilder::RefreshRealStream(
-    std::unordered_map<int64_t, std::vector<domi::TaskDef>> &node_id_2_node_tasks) {
+Status ModelBuilder::RefreshRealStream(std::unordered_map<int64_t, std::vector<domi::TaskDef>> &node_id_2_node_tasks) {
   GE_ASSERT_SUCCESS(
       stream_allocator_.SplitStreamAndRefreshTaskDef(node_id_2_node_tasks, stream_num_, event_num_, notify_num_),
       "SplitStreamAndRefreshTaskDef failed, graph:%s", compute_graph_->GetName().c_str());
@@ -1219,7 +1201,9 @@ Status ModelBuilder::BuildModelForGetDynShapeTask(ge::Model &model_def) {
   return SUCCESS;
 }
 
-ge::Buffer ModelBuilder::GetWeightBuffer() const { return weight_buffer_; }
+ge::Buffer ModelBuilder::GetWeightBuffer() const {
+  return weight_buffer_;
+}
 Status ModelBuilder::CompileSingleOp() const {
   GELOGD("Begin to compile single op.");
   // Create ge instance
@@ -1246,8 +1230,8 @@ Status ModelBuilder::CompileSingleOp() const {
         (void)instance->DNNEngineManagerObj().GetDNNEngineName(node);
         kernel_lib_name = op_desc->GetOpKernelLibName();
         if (kernel_lib_name.empty()) {
-          REPORT_INNER_ERR_MSG("E19999", "Check kernel lib name empty of op:%s(%s)",
-                             node->GetName().c_str(), node->GetType().c_str());
+          REPORT_INNER_ERR_MSG("E19999", "Check kernel lib name empty of op:%s(%s)", node->GetName().c_str(),
+                               node->GetType().c_str());
           GELOGE(ge::INTERNAL_ERROR, "[Get][Name] of node:%s(%s) kernel lib failed.", node->GetName().c_str(),
                  node->GetType().c_str());
           return ge::INTERNAL_ERROR;
@@ -1260,7 +1244,7 @@ Status ModelBuilder::CompileSingleOp() const {
         node_vector_map[kernel_lib_name].emplace_back(node);
       } else {
         REPORT_INNER_ERR_MSG("E19999", "Get ops kernel info store failed for op:%s(%s), op_kernel_name:%s,",
-                           node->GetName().c_str(), node->GetType().c_str(), kernel_lib_name.c_str());
+                             node->GetName().c_str(), node->GetType().c_str(), kernel_lib_name.c_str());
         GELOGE(ge::GE_GRAPH_PARAM_NULLPTR, "[Get][OpsKernelInfoStore] for op %s failed", node->GetName().c_str());
         return ge::GE_GRAPH_PARAM_NULLPTR;
       }
@@ -1276,8 +1260,7 @@ Status ModelBuilder::CompileSingleOp() const {
     GELOGI("[GEPERFTRACE] The node size of compile op of %s is %zu", kernel_lib_name.c_str(), node_vector.size());
     GE_TIMESTAMP_ADD(BatchCompileOp);
     if (ret != ge::SUCCESS) {
-      REPORT_INNER_ERR_MSG("E19999", "Batch compile op failed, kernel lib name, node size:%zu,",
-                        node_vector.size());
+      REPORT_INNER_ERR_MSG("E19999", "Batch compile op failed, kernel lib name, node size:%zu,", node_vector.size());
       GELOGE(ret, "[Compile][Op] failed, kernel lib name is %s", kernel_lib_name.c_str());
       return ret;
     }
@@ -1320,10 +1303,11 @@ void ModelBuilder::SetModelCheckAicpuAttr(ge::Model &model, std::set<std::string
   // reset list with set
   aicpu_optype_list.assign(aicpu_op_types.begin(), aicpu_op_types.end());
   aicpu_tf_optype_list.assign(aicpu_tf_op_types.begin(), aicpu_tf_op_types.end());
-  GELOGI("Check Aicpu op types ComputeGraph: %s aicpu_op_types: %zu, aicpu_optype_list: %zu, aicpu_tf_op_types: %zu, "
-         "aicpu_tf_optype_list:%zu.",
-         compute_graph_->GetName().c_str(), aicpu_op_types.size(), aicpu_optype_list.size(), aicpu_tf_op_types.size(),
-         aicpu_tf_optype_list.size());
+  GELOGI(
+      "Check Aicpu op types ComputeGraph: %s aicpu_op_types: %zu, aicpu_optype_list: %zu, aicpu_tf_op_types: %zu, "
+      "aicpu_tf_optype_list:%zu.",
+      compute_graph_->GetName().c_str(), aicpu_op_types.size(), aicpu_optype_list.size(), aicpu_tf_op_types.size(),
+      aicpu_tf_optype_list.size());
   GE_CHK_BOOL_EXEC(ge::AttrUtils::SetListStr(&model, "needCheckCpu", aicpu_optype_list), return,
                    "[Set][Attr] needCheckCpu fail.");
 
@@ -1373,8 +1357,9 @@ Status ModelBuilder::AssignStreamForDynamicShapeGraph(ComputeGraphPtr &compute_g
     auto readable_name = ge::GetContext().GetReadableName("ge.autoMultistreamParallelMode");
     REPORT_PREDEFINED_ERR_MSG(
         "E10001", std::vector<const char *>({"parameter", "value", "reason"}),
-        std::vector<const char *>({readable_name.c_str(), multi_stream_mode.c_str(),
-          "Dynamic multi-stream and auto multi-stream parallel mode could not both enabled."}));
+        std::vector<const char *>(
+            {readable_name.c_str(), multi_stream_mode.c_str(),
+             "Dynamic multi-stream and auto multi-stream parallel mode could not both enabled."}));
     GELOGE(FAILED, "dynamic multi stream and multi-stream parallel mode could not both enable.");
     return FAILED;
   }

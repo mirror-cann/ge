@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -672,7 +672,8 @@ TEST_F(ConstantExpressionsMotionUT, If_Success_CeOnThen) {
 }
 
 TEST_F(ConstantExpressionsMotionUT, If_Success_OnlyConstConnectToIf) {
-  auto c0 = ValueHolder::CreateConst("Hello", 5, true);;
+  auto c0 = ValueHolder::CreateConst("Hello", 5, true);
+  ;
   auto if_outputs = bg::If<bg::ValueHolder>(
       c0,
       [&]() -> std::vector<ValueHolderPtr> {
@@ -725,7 +726,6 @@ TEST_F(ConstantExpressionsMotionUT, If_Success_OnlyConstConnectToIf) {
   ASSERT_EQ(ConstantExpressionMotion(&global_data).Run(root_frame->GetExecuteGraph().get(), changed),
             ge::GRAPH_SUCCESS);
   ASSERT_FALSE(changed);
-
 }
 /*
  * main graph:
@@ -988,9 +988,7 @@ TEST_F(ConstantExpressionsMotionUT, If_RemainNodesConnectToNetOutput_AllNodesCe)
         const3_name = c3->GetFastNode()->GetName();
         return {foo2, data};
       },
-      [&]() -> std::vector<ValueHolderPtr> {
-        return {ValueHolder::CreateSingleDataOutput("Foo", {data}), data};
-      });
+      [&]() -> std::vector<ValueHolderPtr> { return {ValueHolder::CreateSingleDataOutput("Foo", {data}), data}; });
   auto main_frame = ValueHolder::PopGraphFrame(if_outputs, {}, "NetOutput");
   auto root_frame = ValueHolder::PopGraphFrame();
   ASSERT_NE(root_frame, nullptr);
@@ -1091,7 +1089,7 @@ TEST_F(ConstantExpressionsMotionUT, CemSuccess_ConstFromInit) {
                     {{"Bar1", 1}, {"Bar2", 1}, {"InnerNetOutput", 1}, {"Const", 2}, {"Foo", 1}, {"NoOp", 1}}),
             "success");
 
-  // init grpah connection ok
+  // init graph connection ok
   auto bar1_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_frame_->GetExecuteGraph().get(), "Bar1");
   auto bar2_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_frame_->GetExecuteGraph().get(), "Bar2");
   ASSERT_NE(bar1_node, nullptr);
@@ -1164,7 +1162,7 @@ TEST_F(ConstantExpressionsMotionUT, CemSuccess_CheckNoOpConnect) {
               {{"Bar1", 1}, {"Bar2", 1}, {"InnerNetOutput", 1}, {"Const", 3}, {"Foo", 1}, {"NoOp", 1}, {"Func", 1}}),
       "success");
 
-  // init grpah connection ok
+  // init graph connection ok
   auto bar1_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_frame_->GetExecuteGraph().get(), "Bar1");
   auto bar2_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_frame_->GetExecuteGraph().get(), "Bar2");
   auto no_op_node = ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_frame_->GetExecuteGraph().get(), "NoOp");
@@ -1510,8 +1508,7 @@ TEST_F(ConstantExpressionsMotionUT, While_CemSuccess_WhenCondGraphHasCe) {
   ConnectFromInitToMain(bar_node, 0, launch_node, 0);
 }
 TEST_F(ConstantExpressionsMotionUT, While_NoEffectToCondNetOutput_OnlyBodyCem) {
-  while (ValueHolder::PopGraphFrame() != nullptr)
-    ;
+  while (ValueHolder::PopGraphFrame() != nullptr);
   auto compute_graph = ShareGraph::WhileGraph2();
   ASSERT_NE(compute_graph, nullptr);
   compute_graph->TopologicalSorting();
@@ -1548,8 +1545,7 @@ TEST_F(ConstantExpressionsMotionUT, While_NoEffectToCondNetOutput_OnlyBodyCem) {
   EXPECT_EQ(FastNodeTopoChecker(netoutput).StrictConnectFrom({{"GenCondForWhile"}}), "success");
 }
 TEST_F(ConstantExpressionsMotionUT, While_AllCem_CondAndBodyContainsCE) {
-  while (ValueHolder::PopGraphFrame() != nullptr)
-    ;
+  while (ValueHolder::PopGraphFrame() != nullptr);
   auto compute_graph = ShareGraph::WhileGraph2();
   ASSERT_NE(compute_graph, nullptr);
   compute_graph->TopologicalSorting();

@@ -97,4 +97,3 @@ graphStatus SetInputAttr(const AscendString &name, uint32_t input_index, const A
 ## 约束说明<a name="section10221162313489"></a>
 
 无
-

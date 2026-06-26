@@ -1,10 +1,10 @@
 
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -56,8 +56,7 @@ REGISTER_LOWERING(DynamicQuantStub) {
 
 class ScopedSubgraphRecoverFlag {
  public:
-  ScopedSubgraphRecoverFlag()
-      : flag_(AutoFuseConfig::MutableLoweringConfig().enable_subgraph_recover), old_(flag_) {}
+  ScopedSubgraphRecoverFlag() : flag_(AutoFuseConfig::MutableLoweringConfig().enable_subgraph_recover), old_(flag_) {}
   ~ScopedSubgraphRecoverFlag() {
     flag_ = old_;
   }
@@ -668,7 +667,8 @@ void MakeConcatLiftingGraph(std::string &readable_lifting) {
   int current_j = j;
   int pre_j = j - 1;
   j++;
-  readable_lifting += "tmp" + to_string(current_j) + " = ge.AscBackend(autofuse_pointwise_2_2Abs, [tmp" + to_string(pre_j) + "])\n";
+  readable_lifting +=
+      "tmp" + to_string(current_j) + " = ge.AscBackend(autofuse_pointwise_2_2Abs, [tmp" + to_string(pre_j) + "])\n";
   current_j = j;
   pre_j = j - 1;
   j++;
@@ -881,13 +881,15 @@ ununsed nodes: []
   AutoFuseConfig::MutableLoweringConfig().experimental_disable_lifting = false;
 }
 
-
 class TestCounter : public Counter {
-public:
+ public:
   TestCounter() = default;
   virtual ~TestCounter() = default;
-  virtual int64_t NextId() { return id_++;};
-private:
+  virtual int64_t NextId() {
+    return id_++;
+  };
+
+ private:
   int64_t id_ = 0;
 };
 

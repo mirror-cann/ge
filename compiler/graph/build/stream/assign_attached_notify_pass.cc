@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -95,7 +95,7 @@ Status AssignAttachedNotifyPass::CheckAndGetNotifyType(const AttachedNotifys2Nod
       GE_ASSERT_NOTNULL(node->GetOpDesc());
       uint32_t notify_type_of_this_node = 0U;
       // 新的流程下，不再使用这个属性，因此默认用0U即可，不必校验报错
-      (void) AttrUtils::GetInt(node->GetOpDesc(), ATTR_NAME_ATTACHED_NOTIFY_TYPE, notify_type_of_this_node);
+      (void)AttrUtils::GetInt(node->GetOpDesc(), ATTR_NAME_ATTACHED_NOTIFY_TYPE, notify_type_of_this_node);
       notify_type_of_this_attach_notify.insert(notify_type_of_this_node);
     }
     // 复用一个notify id的算子, 其notify type应该要一样
@@ -156,7 +156,7 @@ Status AssignAttachedNotifyPass::SetAttachedNotifyV2(const OpDescPtr &op_desc, c
   GELOGD("Try set attached notify id %d with reuse_key %s, op %s [%s]", notify_id, reuse_key.c_str(),
          op_desc->GetName().c_str(), op_desc->GetType().c_str());
   if (!AttrUtils::GetListNamedAttrs(op_desc, ATTR_NAME_ATTACHED_SYNC_RES_INFO_LIST,
-                                              attached_sync_res_info_list_from_attr)) {
+                                    attached_sync_res_info_list_from_attr)) {
     return SUCCESS;
   }
 

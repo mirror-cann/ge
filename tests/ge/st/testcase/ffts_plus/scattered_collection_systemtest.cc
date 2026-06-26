@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -438,8 +438,8 @@ TEST_F(StestScatteredCollection, mixl2_mem_check_success) {
   mixctx_def->add_task_addr(0);
   mixctx_def->add_task_addr(11000);
   mixctx_def->add_task_addr(12000);
-  mixctx_def->add_task_addr(0);              // tiling
-  mixctx_def->add_task_addr(0);              // hidden_input
+  mixctx_def->add_task_addr(0);  // tiling
+  mixctx_def->add_task_addr(0);  // hidden_input
 
   ge::ArgsFormatDesc args_format;
   size_t arg_id = 0;
@@ -510,24 +510,24 @@ TEST_F(StestScatteredCollection, ifa_aicore_with_args_format_graph_load_and_succ
   REG_HIDDEN_INPUTS_FUNC(HiddenInputsType::HCOM, hcom_hidden_func);
 
   DEF_GRAPH(g1) {
-                  auto data_0 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);  // query
-                  auto data_1 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 1);  // k0
-                  auto data_2 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 2);  // k1
-                  auto data_3 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 3);  // value0
-                  auto data_4 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 4);  // value1
-                  auto data_5 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 5);  // attention_mask
-                  auto ifa = OP_CFG("IncreFlashAttention_T")
-                      .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
-                      .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIV")
-                      .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
-                  CHAIN(NODE("_arg_0", data_0)->EDGE(0, 0)->NODE("ifa", ifa)->EDGE(0, 0)->NODE("Node_Output", NETOUTPUT));
-                  CHAIN(NODE("_arg_1", data_1)->EDGE(0, 1)->NODE("ifa", ifa));
-                  CHAIN(NODE("_arg_2", data_2)->EDGE(0, 2)->NODE("ifa", ifa));
-                  CHAIN(NODE("_arg_3", data_3)->EDGE(0, 3)->NODE("ifa", ifa));
-                  CHAIN(NODE("_arg_4", data_4)->EDGE(0, 4)->NODE("ifa", ifa));
-                  CHAIN(NODE("_arg_5", data_5)->EDGE(0, 6)->NODE("ifa", ifa));
-                  CHAIN(NODE("ifa", ifa)->EDGE(1, 1)->NODE("Node_Output", NETOUTPUT));
-                };
+    auto data_0 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);  // query
+    auto data_1 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 1);  // k0
+    auto data_2 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 2);  // k1
+    auto data_3 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 3);  // value0
+    auto data_4 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 4);  // value1
+    auto data_5 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 5);  // attention_mask
+    auto ifa = OP_CFG("IncreFlashAttention_T")
+                   .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
+                   .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIV")
+                   .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
+    CHAIN(NODE("_arg_0", data_0)->EDGE(0, 0)->NODE("ifa", ifa)->EDGE(0, 0)->NODE("Node_Output", NETOUTPUT));
+    CHAIN(NODE("_arg_1", data_1)->EDGE(0, 1)->NODE("ifa", ifa));
+    CHAIN(NODE("_arg_2", data_2)->EDGE(0, 2)->NODE("ifa", ifa));
+    CHAIN(NODE("_arg_3", data_3)->EDGE(0, 3)->NODE("ifa", ifa));
+    CHAIN(NODE("_arg_4", data_4)->EDGE(0, 4)->NODE("ifa", ifa));
+    CHAIN(NODE("_arg_5", data_5)->EDGE(0, 6)->NODE("ifa", ifa));
+    CHAIN(NODE("ifa", ifa)->EDGE(1, 1)->NODE("Node_Output", NETOUTPUT));
+  };
 
   auto root_graph = ToComputeGraph(g1);
   EXPECT_NE(root_graph, nullptr);
@@ -596,7 +596,6 @@ TEST_F(StestScatteredCollection, ifa_aicore_with_args_format_graph_load_and_succ
   (void)AttrUtils::SetStr(ifa_node->GetOpDesc(), ATOMIC_ATTR_TBE_KERNEL_NAME, test_kernel->GetName());
   (void)AttrUtils::SetStr(ifa_node->GetOpDesc(), ATTR_NAME_KERNEL_BIN_ID, "_fake_ifa_kernel_bin_id");
   ifa_node->GetOpDesc()->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, test_kernel);
-
 
   std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
 
@@ -830,22 +829,22 @@ TEST_F(StestScatteredCollection, ifa_aicore_with_tiling_sink_graph_load_and_succ
 }
 
 UINT32 StubTilingMC2(gert::TilingContext *context) {
-    context->SetNeedAtomic(false);
-    context->SetTilingKey(666U);
-    context->SetBlockDim(666U);
-    size_t *workspace_size = context->GetWorkspaceSizes(1);
-    *workspace_size = 66U;
-    return ge::GRAPH_SUCCESS;
+  context->SetNeedAtomic(false);
+  context->SetTilingKey(666U);
+  context->SetBlockDim(666U);
+  size_t *workspace_size = context->GetWorkspaceSizes(1);
+  *workspace_size = 66U;
+  return ge::GRAPH_SUCCESS;
 }
 
 UINT32 StubTilingParseMC2(gert::KernelContext *context) {
-    (void)context;
-    return ge::GRAPH_SUCCESS;
+  (void)context;
+  return ge::GRAPH_SUCCESS;
 }
 
-void* CompileInfoCreatorMC2() {
-    auto tmp =  ge::MakeUnique<char>();
-    return tmp.get();
+void *CompileInfoCreatorMC2() {
+  auto tmp = ge::MakeUnique<char>();
+  return tmp.get();
 }
 
 /**
@@ -876,17 +875,17 @@ TEST_F(StestScatteredCollection, mc2kernel_runtime_tiling_success) {
   REG_HIDDEN_INPUTS_FUNC(HiddenInputsType::HCOM, hcom_hidden_func);
 
   DEF_GRAPH(g1) {
-          auto data_0 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);  // x1
-          auto data_1 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 1);  // x2
-          auto data_2 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 2);  // bias
-          auto mc2 = OP_CFG("MC2_T")
-          .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
-          .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIC")
-          .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
-          CHAIN(NODE("_arg_0", data_0)->EDGE(0, 0)->NODE("mc2", mc2)->EDGE(0, 0)->NODE("Node_Output", NETOUTPUT));  // y
-          CHAIN(NODE("_arg_1", data_1)->EDGE(0, 1)->NODE("mc2", mc2));
-          CHAIN(NODE("_arg_2", data_2)->EDGE(0, 2)->NODE("mc2", mc2));
-          CHAIN(NODE("mc2", mc2)->EDGE(1, 1)->NODE("Node_Output", NETOUTPUT));  // attention_out
+    auto data_0 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);  // x1
+    auto data_1 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 1);  // x2
+    auto data_2 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 2);  // bias
+    auto mc2 = OP_CFG("MC2_T")
+                   .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
+                   .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIC")
+                   .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
+    CHAIN(NODE("_arg_0", data_0)->EDGE(0, 0)->NODE("mc2", mc2)->EDGE(0, 0)->NODE("Node_Output", NETOUTPUT));  // y
+    CHAIN(NODE("_arg_1", data_1)->EDGE(0, 1)->NODE("mc2", mc2));
+    CHAIN(NODE("_arg_2", data_2)->EDGE(0, 2)->NODE("mc2", mc2));
+    CHAIN(NODE("mc2", mc2)->EDGE(1, 1)->NODE("Node_Output", NETOUTPUT));  // attention_out
   };
 
   auto root_graph = ToComputeGraph(g1);

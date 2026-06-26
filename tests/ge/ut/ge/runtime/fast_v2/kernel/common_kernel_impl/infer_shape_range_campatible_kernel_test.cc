@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -36,7 +36,7 @@ struct InferShapeRangeCompatibleKernelTest : public testing::Test {
 
 ge::graphStatus StubCopyInferShapeRangeV1(ge::Operator &op) {
   std::vector<std::pair<int64_t, int64_t>> input_ranges;
-  (void) op.GetInputDesc(0).GetShapeRange(input_ranges);
+  (void)op.GetInputDesc(0).GetShapeRange(input_ranges);
   const auto &op_dsec = ge::OpDescUtils::GetOpDescFromOperator(op);
   const auto &output_name = op_dsec->GetOutputNameByIndex(0);
   auto output_tensor = op.GetOutputDesc(0);
@@ -59,11 +59,11 @@ ge::graphStatus StubInferShapeRangeDependV1(ge::Operator &op) {
 
   ge::GeShape output_shape;
   auto shape_tensor_desc = op_desc->MutableInputDesc("shape");
-  const int64_t* shape_data = const_cast<int64_t *>(reinterpret_cast<const int64_t *>(shape_tensor.GetData()));
+  const int64_t *shape_data = const_cast<int64_t *>(reinterpret_cast<const int64_t *>(shape_tensor.GetData()));
   GE_CHECK_NOTNULL(shape_data);
   std::vector<int64_t> out_dims;
   std::vector<std::pair<int64_t, int64_t>> input_ranges;
-  (void) x_desc->GetShapeRange(input_ranges);
+  (void)x_desc->GetShapeRange(input_ranges);
   std::vector<std::pair<int64_t, int64_t>> output_ranges;
   // 输出range为输入range+value
   for (size_t i = 0U; i < input_ranges.size(); ++i) {
@@ -97,11 +97,12 @@ ge::graphStatus StubReshapeInferShapeRangeV1WithOpDescUtils(ge::Operator &op) {
 
   ge::GeShape output_shape;
   auto shape_tensor_desc = op_desc->MutableInputDesc("shape");
-  const int64_t* shape_data = const_cast<int64_t *>(reinterpret_cast<const int64_t *>(shape_tensor->GetData().GetData()));
+  const int64_t *shape_data =
+      const_cast<int64_t *>(reinterpret_cast<const int64_t *>(shape_tensor->GetData().GetData()));
   GE_CHECK_NOTNULL(shape_data);
   std::vector<int64_t> out_dims;
   std::vector<std::pair<int64_t, int64_t>> input_ranges;
-  (void) x_desc->GetShapeRange(input_ranges);
+  (void)x_desc->GetShapeRange(input_ranges);
   std::vector<std::pair<int64_t, int64_t>> output_ranges;
   // 输出range为输入range+value
   for (size_t i = 0U; i < input_ranges.size(); ++i) {
@@ -134,7 +135,7 @@ TEST_F(InferShapeRangeCompatibleKernelTest, test_find_InferShapeFuncV1_fail) {
 TEST_F(InferShapeRangeCompatibleKernelTest, test_find_InferShapeFuncV1_success) {
   auto run_context = BuildKernelRunContext(1, 1);
   std::string node_type = "stub_infershape";
-  auto a = [](ge::Operator &v) { return StubInfershapeRangeV1(v);}; // simulate operator_reg
+  auto a = [](ge::Operator &v) { return StubInfershapeRangeV1(v); };  // simulate operator_reg
   ge::InferShapeFuncRegister(node_type.c_str(), a);
   ge::InferShapeFunc target_infer_func;
   run_context.value_holder[0].Set(const_cast<char *>(node_type.c_str()), nullptr);
@@ -153,8 +154,10 @@ TEST_F(InferShapeRangeCompatibleKernelTest, test_infershape_InferShapeRangeFuncV
   // build operator with single input and single output
   ge::ComputeGraphPtr test_graph = std::make_shared<ge::ComputeGraph>("test");
   ge::OpDescPtr desc_ptr = std::make_shared<ge::OpDesc>("test", "Test");
-  EXPECT_EQ(desc_ptr->AddInputDesc("x", ge::GeTensorDesc(ge::GeShape({1, -1, 16, 16}), ge::FORMAT_NCHW)), ge::GRAPH_SUCCESS);
-  EXPECT_EQ(desc_ptr->AddOutputDesc("y", ge::GeTensorDesc(ge::GeShape({1, -1, 8, 8}), ge::FORMAT_NCHW)), ge::GRAPH_SUCCESS);
+  EXPECT_EQ(desc_ptr->AddInputDesc("x", ge::GeTensorDesc(ge::GeShape({1, -1, 16, 16}), ge::FORMAT_NCHW)),
+            ge::GRAPH_SUCCESS);
+  EXPECT_EQ(desc_ptr->AddOutputDesc("y", ge::GeTensorDesc(ge::GeShape({1, -1, 8, 8}), ge::FORMAT_NCHW)),
+            ge::GRAPH_SUCCESS);
   auto test_node = test_graph->AddNode(desc_ptr);
 
   auto op_desc_data = std::make_shared<ge::OpDesc>("op_desc_data", "Data");
@@ -162,7 +165,7 @@ TEST_F(InferShapeRangeCompatibleKernelTest, test_infershape_InferShapeRangeFuncV
   auto data = test_graph->AddNode(op_desc_data);
   ge::GraphUtils::AddEdge(data->GetOutDataAnchor(0), test_node->GetInDataAnchor(0));
 
-  ge::InferShapeFunc a = [](ge::Operator &v) { return StubCopyInferShapeRangeV1(v);}; // simulate operator_reg
+  ge::InferShapeFunc a = [](ge::Operator &v) { return StubCopyInferShapeRangeV1(v); };  // simulate operator_reg
   auto op = ge::OpDescUtils::CreateOperatorFromNode(test_node);
 
   auto run_context = KernelRunContextFaker()
@@ -180,8 +183,7 @@ TEST_F(InferShapeRangeCompatibleKernelTest, test_infershape_InferShapeRangeFuncV
   run_context.value_holder[2].Set(reinterpret_cast<void *>(&input_range), nullptr);
   ASSERT_EQ(registry.FindKernelFuncs("CompatibleInferShapeRange")->outputs_creator(nullptr, run_context),
             ge::GRAPH_SUCCESS);
-  ASSERT_EQ(registry.FindKernelFuncs("CompatibleInferShapeRange")->run_func(run_context),
-            ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("CompatibleInferShapeRange")->run_func(run_context), ge::GRAPH_SUCCESS);
   auto out1 = run_context.value_holder[3].GetPointer<Range<Shape>>();
   auto out2 = run_context.value_holder[4].GetPointer<Shape>();
   auto out3 = run_context.value_holder[5].GetPointer<Shape>();
@@ -203,9 +205,12 @@ TEST_F(InferShapeRangeCompatibleKernelTest, test_infershape_InferShapeRangeFuncV
 TEST_F(InferShapeRangeCompatibleKernelTest, test_infershape_InferShapeRangeFuncV1_with_dependency_success) {
   // build TestNoInferShapeRange operator
   ge::OpDescPtr desc_ptr = std::make_shared<ge::OpDesc>("test", "ReShape");
-  EXPECT_EQ(desc_ptr->AddInputDesc("x", ge::GeTensorDesc(ge::GeShape({1, -1, 16, 16}), ge::FORMAT_NCHW)), ge::GRAPH_SUCCESS);
-  EXPECT_EQ(desc_ptr->AddInputDesc("shape", ge::GeTensorDesc(ge::GeShape({1}), ge::FORMAT_ND, ge::DT_INT64)), ge::GRAPH_SUCCESS);
-  EXPECT_EQ(desc_ptr->AddOutputDesc("y", ge::GeTensorDesc(ge::GeShape({1, -1, 8, 8}), ge::FORMAT_NCHW)), ge::GRAPH_SUCCESS);
+  EXPECT_EQ(desc_ptr->AddInputDesc("x", ge::GeTensorDesc(ge::GeShape({1, -1, 16, 16}), ge::FORMAT_NCHW)),
+            ge::GRAPH_SUCCESS);
+  EXPECT_EQ(desc_ptr->AddInputDesc("shape", ge::GeTensorDesc(ge::GeShape({1}), ge::FORMAT_ND, ge::DT_INT64)),
+            ge::GRAPH_SUCCESS);
+  EXPECT_EQ(desc_ptr->AddOutputDesc("y", ge::GeTensorDesc(ge::GeShape({1, -1, 8, 8}), ge::FORMAT_NCHW)),
+            ge::GRAPH_SUCCESS);
   desc_ptr->SetOpInferDepends({"shape"});
 
   auto tmp_graph = std::make_shared<ge::ComputeGraph>("tmp-graph");
@@ -220,7 +225,7 @@ TEST_F(InferShapeRangeCompatibleKernelTest, test_infershape_InferShapeRangeFuncV
   ge::GraphUtils::AddEdge(data2->GetOutDataAnchor(0), test->GetInDataAnchor(1));
   auto op = ge::OpDescUtils::CreateOperatorFromNode(test);
 
-  ge::InferShapeFunc a = [](ge::Operator &v) { return StubInferShapeRangeDependV1(v);}; // simulate operator_reg
+  ge::InferShapeFunc a = [](ge::Operator &v) { return StubInferShapeRangeDependV1(v); };  // simulate operator_reg
 
   auto run_context = KernelRunContextFaker()
                          .IrInstanceNum({2})
@@ -234,10 +239,10 @@ TEST_F(InferShapeRangeCompatibleKernelTest, test_infershape_InferShapeRangeFuncV
                                    kOnDeviceHbm,                        // placement
                                    ge::DT_FLOAT16,                      // data type
                                    (void *)0x0};
-  gert::Tensor max_range_tensor = {{{16, 64, 64, 64}, {16, 64, 64, 64}},   // shape
-                                   {ge::FORMAT_ND, ge::FORMAT_ND, {}},     // format
-                                   kOnDeviceHbm,                           // placement
-                                   ge::DT_FLOAT16,                         // data type
+  gert::Tensor max_range_tensor = {{{16, 64, 64, 64}, {16, 64, 64, 64}},  // shape
+                                   {ge::FORMAT_ND, ge::FORMAT_ND, {}},    // format
+                                   kOnDeviceHbm,                          // placement
+                                   ge::DT_FLOAT16,                        // data type
                                    (void *)0x0};
   TensorRange input_range{&min_range_tensor, &max_range_tensor};
 
@@ -263,8 +268,7 @@ TEST_F(InferShapeRangeCompatibleKernelTest, test_infershape_InferShapeRangeFuncV
 
   ASSERT_EQ(registry.FindKernelFuncs("CompatibleInferShapeRange")->outputs_creator(nullptr, run_context),
             ge::GRAPH_SUCCESS);
-  ASSERT_EQ(registry.FindKernelFuncs("CompatibleInferShapeRange")->run_func(run_context),
-            ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("CompatibleInferShapeRange")->run_func(run_context), ge::GRAPH_SUCCESS);
   ASSERT_FALSE(registry.FindKernelFuncs("CompatibleInferShapeRange")->trace_printer(run_context).empty());
   for (auto &s : registry.FindKernelFuncs("CompatibleInferShapeRange")->trace_printer(run_context)) {
     std::cout << s << std::endl;
@@ -288,4 +292,4 @@ TEST_F(InferShapeRangeCompatibleKernelTest, test_infershape_InferShapeRangeFuncV
   EXPECT_EQ(tensor_range->GetMax()->GetAddr(), nullptr);
   run_context.FreeAll();
 }
-}
+}  // namespace gert

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -16,35 +16,28 @@ namespace {
 const std::map<rtMemType_t, MemoryType> kRtMemTypeToExternalMemType = {
     {RT_MEMORY_DEFAULT, MemoryType::MEMORY_TYPE_DEFAULT},
     {RT_MEMORY_HBM, MemoryType::MEMORY_TYPE_DEFAULT},
-    {RT_MEMORY_P2P_DDR, MemoryType::MEMORY_TYPE_P2P}
-};
+    {RT_MEMORY_P2P_DDR, MemoryType::MEMORY_TYPE_P2P}};
 
 const std::map<MemoryType, rtMemType_t> kExternalMemTypeToRtMemType = {
-    {MemoryType::MEMORY_TYPE_DEFAULT, RT_MEMORY_HBM},
-    {MemoryType::MEMORY_TYPE_P2P, RT_MEMORY_P2P_DDR}
-};
+    {MemoryType::MEMORY_TYPE_DEFAULT, RT_MEMORY_HBM}, {MemoryType::MEMORY_TYPE_P2P, RT_MEMORY_P2P_DDR}};
 
 const std::map<MemoryType, std::string> kExternalMemTypeToString = {
-    {MemoryType::MEMORY_TYPE_DEFAULT, "MEMORY_TYPE_DEFAULT"},
-    {MemoryType::MEMORY_TYPE_P2P, "MEMORY_TYPE_P2P"}
-};
+    {MemoryType::MEMORY_TYPE_DEFAULT, "MEMORY_TYPE_DEFAULT"}, {MemoryType::MEMORY_TYPE_P2P, "MEMORY_TYPE_P2P"}};
 
-const std::map<rtMemType_t, std::string> kRtMemTypeToString = {
-    {RT_MEMORY_DEFAULT, "RT_MEMORY_DEFAULT"},
-    {RT_MEMORY_HBM, "RT_MEMORY_HBM"},
-    {RT_MEMORY_RDMA_HBM, "RT_MEMORY_RDMA_HBM"},
-    {RT_MEMORY_DDR, "RT_MEMORY_DDR"},
-    {RT_MEMORY_SPM, "RT_MEMORY_SPM"},
-    {RT_MEMORY_P2P_HBM, "RT_MEMORY_P2P_HBM"},
-    {RT_MEMORY_P2P_DDR, "RT_MEMORY_P2P_DDR"},
-    {RT_MEMORY_DDR_NC, "RT_MEMORY_DDR_NC"},
-    {RT_MEMORY_TS, "RT_MEMORY_TS"},
-    {RT_MEMORY_TS_4G, "RT_MEMORY_TS_4G"},
-    {RT_MEMORY_HOST, "RT_MEMORY_HOST"},
-    {RT_MEMORY_SVM, "RT_MEMORY_SVM"},
-    {RT_MEMORY_HOST_SVM, "RT_MEMORY_HOST_SVM"}
-};
-}
+const std::map<rtMemType_t, std::string> kRtMemTypeToString = {{RT_MEMORY_DEFAULT, "RT_MEMORY_DEFAULT"},
+                                                               {RT_MEMORY_HBM, "RT_MEMORY_HBM"},
+                                                               {RT_MEMORY_RDMA_HBM, "RT_MEMORY_RDMA_HBM"},
+                                                               {RT_MEMORY_DDR, "RT_MEMORY_DDR"},
+                                                               {RT_MEMORY_SPM, "RT_MEMORY_SPM"},
+                                                               {RT_MEMORY_P2P_HBM, "RT_MEMORY_P2P_HBM"},
+                                                               {RT_MEMORY_P2P_DDR, "RT_MEMORY_P2P_DDR"},
+                                                               {RT_MEMORY_DDR_NC, "RT_MEMORY_DDR_NC"},
+                                                               {RT_MEMORY_TS, "RT_MEMORY_TS"},
+                                                               {RT_MEMORY_TS_4G, "RT_MEMORY_TS_4G"},
+                                                               {RT_MEMORY_HOST, "RT_MEMORY_HOST"},
+                                                               {RT_MEMORY_SVM, "RT_MEMORY_SVM"},
+                                                               {RT_MEMORY_HOST_SVM, "RT_MEMORY_HOST_SVM"}};
+}  // namespace
 
 graphStatus MemTypeUtils::RtMemTypeToExternalMemType(const rtMemType_t rt_mem_type, MemoryType &external_mem_type) {
   const decltype(kRtMemTypeToExternalMemType)::const_iterator iter = kRtMemTypeToExternalMemType.find(rt_mem_type);
@@ -91,4 +84,4 @@ bool MemTypeUtils::IsMemoryTypeSpecial(const int64_t memory_type) {
     return true;
   }
 }
-} // namespace ge
+}  // namespace ge

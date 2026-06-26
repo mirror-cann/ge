@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,7 +38,7 @@ TEST_F(UtestSharedMemAllocatorTest, malloc_zero_size) {
   std::shared_ptr<AlignedPtr> aligned_ptr = std::make_shared<AlignedPtr>(100, 16);
 
   info.host_aligned_ptr = aligned_ptr;
-  info.fd=0;
+  info.fd = 0;
   info.mem_size = 100;
   info.op_name = var_name;
   info.shm_name = var_name;
@@ -156,8 +156,7 @@ TEST_F(UtestAclrtMallocHostSharedMemTest, host_register_fail) {
   void *host_ptr = nullptr;
   void *dev_ptr = nullptr;
   const uint64_t size = 4096U;
-  EXPECT_EQ(AclrtMallocHostSharedMemory(name.c_str(), size, &fd, &host_ptr, &dev_ptr),
-            ACL_ERROR_RT_INTERNAL_ERROR);
+  EXPECT_EQ(AclrtMallocHostSharedMemory(name.c_str(), size, &fd, &host_ptr, &dev_ptr), ACL_ERROR_RT_INTERNAL_ERROR);
 }
 
 TEST_F(UtestAclrtMallocHostSharedMemTest, host_unregister_fail) {
@@ -295,4 +294,4 @@ TEST_F(UtestAclrtMallocHostSharedMemTest, free_fd_neg1_skip_close_and_unlink) {
   }
   close(fd);
 }
-} // namespace ge
+}  // namespace ge

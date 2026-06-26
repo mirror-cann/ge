@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,21 +21,21 @@
 
 namespace fe {
 OpFormatDtypeUpdateDesc::OpFormatDtypeUpdateDesc(FormatDtypeQuerierPtr format_dtype_querier_ptr)
-    : op_format_dtype_update_tensor_desc_ptr_(nullptr),
-      format_dtype_querier_ptr_(format_dtype_querier_ptr) {}
+    : op_format_dtype_update_tensor_desc_ptr_(nullptr), format_dtype_querier_ptr_(format_dtype_querier_ptr) {}
 OpFormatDtypeUpdateDesc::~OpFormatDtypeUpdateDesc() {}
 
 Status OpFormatDtypeUpdateDesc::Initialize() {
   FE_MAKE_SHARED(op_format_dtype_update_tensor_desc_ptr_ =
-      std::make_shared<OpFormatDtypeUpdateDescBase>(format_dtype_querier_ptr_), return FAILED);
+                     std::make_shared<OpFormatDtypeUpdateDescBase>(format_dtype_querier_ptr_),
+                 return FAILED);
   FE_CHECK_NOTNULL(op_format_dtype_update_tensor_desc_ptr_);
   return SUCCESS;
 }
 
-Status OpFormatDtypeUpdateDesc::UpdateTensorDescInfo(const OpKernelInfoPtr& op_kernel_info_ptr,
-                                                    const uint32_t& matched_index,
-                                                    const IndexNameMap& tensor_index_name_map, const bool& is_input,
-                                                    ge::NodePtr& node_ptr, const bool is_dtype) {
+Status OpFormatDtypeUpdateDesc::UpdateTensorDescInfo(const OpKernelInfoPtr &op_kernel_info_ptr,
+                                                     const uint32_t &matched_index,
+                                                     const IndexNameMap &tensor_index_name_map, const bool &is_input,
+                                                     ge::NodePtr &node_ptr, const bool is_dtype) {
   FE_CHECK_NOTNULL(node_ptr);
   ge::OpDescPtr op_desc_ptr = node_ptr->GetOpDesc();
   FE_CHECK_NOTNULL(op_desc_ptr);
@@ -78,7 +78,7 @@ Status OpFormatDtypeUpdateDesc::UpdateTensorDescInfo(const OpKernelInfoPtr& op_k
     }
     if (ret != SUCCESS) {
       REPORT_FE_ERROR("[GraphOptJdgInst][UpdFmtAndDtype][UpdTensorDesc] Failed to update %s for node [%s, %s].",
-                     DtypeFormatToString(is_dtype).c_str(), node_ptr->GetName().c_str(), node_ptr->GetType().c_str());
+                      DtypeFormatToString(is_dtype).c_str(), node_ptr->GetName().c_str(), node_ptr->GetType().c_str());
       return ret;
     }
   }
@@ -86,19 +86,17 @@ Status OpFormatDtypeUpdateDesc::UpdateTensorDescInfo(const OpKernelInfoPtr& op_k
 }
 
 Status OpFormatDtypeUpdateDesc::UpdateTensorDtypeInfo(const OpKernelInfoPtr &op_kernel_info_ptr,
-                                                     const uint32_t &matched_index,
-                                                     const IndexNameMap &tensor_index_name_map, const bool &is_input,
-                                                     ge::NodePtr &node_ptr) {
-  return UpdateTensorDescInfo(op_kernel_info_ptr, matched_index, tensor_index_name_map,
-                              is_input, node_ptr);
-}
-
-Status OpFormatDtypeUpdateDesc::UpdateTensorFormatInfo(const OpKernelInfoPtr &op_kernel_info_ptr,
                                                       const uint32_t &matched_index,
                                                       const IndexNameMap &tensor_index_name_map, const bool &is_input,
                                                       ge::NodePtr &node_ptr) {
-  return UpdateTensorDescInfo(op_kernel_info_ptr, matched_index, tensor_index_name_map,
-                              is_input, node_ptr, false);
+  return UpdateTensorDescInfo(op_kernel_info_ptr, matched_index, tensor_index_name_map, is_input, node_ptr);
+}
+
+Status OpFormatDtypeUpdateDesc::UpdateTensorFormatInfo(const OpKernelInfoPtr &op_kernel_info_ptr,
+                                                       const uint32_t &matched_index,
+                                                       const IndexNameMap &tensor_index_name_map, const bool &is_input,
+                                                       ge::NodePtr &node_ptr) {
+  return UpdateTensorDescInfo(op_kernel_info_ptr, matched_index, tensor_index_name_map, is_input, node_ptr, false);
 }
 
 const std::string OpFormatDtypeUpdateDesc::DtypeFormatToString(bool is_dtype) {

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -320,8 +320,8 @@ TEST_F(TilingContextBuilderUT, BuildDependInputTensorSizeSuccess) {
 
   int32_t weight[1] = {1};
   ge::GeTensorDesc weight_desc(ge::GeShape({1}), ge::FORMAT_ND, ge::DT_INT32);
-  ge::GeTensorPtr weight_tensor = std::make_shared<ge::GeTensor>(weight_desc, reinterpret_cast<uint8_t *>(weight),
-                                                                 sizeof(weight));
+  ge::GeTensorPtr weight_tensor =
+      std::make_shared<ge::GeTensor>(weight_desc, reinterpret_cast<uint8_t *>(weight), sizeof(weight));
   ge::OpDescUtils::SetWeights(const_node, {weight_tensor});
 
   auto op_desc = node->GetOpDesc();
@@ -603,7 +603,7 @@ TEST_F(TilingContextBuilderUT, GetDependInputTensorAddr_Const_Input_Success) {
   ge::GraphUtils::AddEdge(const1->GetOutDataAnchor(0), node->GetInDataAnchor(0));
   int32_t weight[1] = {1};
   ge::GeTensorDesc weight_desc(ge::GeShape({1}), ge::FORMAT_NHWC, ge::DT_INT32);
-  ge::GeTensorPtr tensor0 = std::make_shared<ge::GeTensor>(weight_desc, (uint8_t *) weight, sizeof(weight));
+  ge::GeTensorPtr tensor0 = std::make_shared<ge::GeTensor>(weight_desc, (uint8_t *)weight, sizeof(weight));
   ge::OpDescUtils::SetWeights(const1, {tensor0});
   auto builder = TilingContextBuilder();
   TensorAddress address = 0x0;

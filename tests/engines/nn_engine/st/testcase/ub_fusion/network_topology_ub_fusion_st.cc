@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -42,8 +42,9 @@ using namespace fe;
 class UB_FUSION_ST_NETWORK_TOPOLOGY : public testing::Test {
  public:
  protected:
-
-  static void SetUpTestCase() { std::cout << "UB fusion SetUp" << std::endl; }
+  static void SetUpTestCase() {
+    std::cout << "UB fusion SetUp" << std::endl;
+  }
 
   static void TearDownTestCase() {
     std::cout << "UB fusion TearDown" << std::endl;
@@ -52,14 +53,11 @@ class UB_FUSION_ST_NETWORK_TOPOLOGY : public testing::Test {
   virtual void SetUp() {
     graph_comm_ptr_ = std::make_shared<GraphComm>("engineName");
     graph_comm_ptr_->Initialize();
-    sub_graph_optimizer_ptr_ =
-        std::make_shared<BufferFusion>(graph_comm_ptr_, nullptr, nullptr);
+    sub_graph_optimizer_ptr_ = std::make_shared<BufferFusion>(graph_comm_ptr_, nullptr, nullptr);
     auto_buffer_fusion_ptr_ = std::make_shared<AutomaticBufferFusion>(nullptr);
   }
 
-  virtual void TearDown() {
-
- }
+  virtual void TearDown() {}
 
   std::shared_ptr<GraphComm> graph_comm_ptr_;
   std::shared_ptr<AutomaticBufferFusion> auto_buffer_fusion_ptr_;
@@ -67,10 +65,9 @@ class UB_FUSION_ST_NETWORK_TOPOLOGY : public testing::Test {
 
   void BuildGraph(ge::ComputeGraphPtr &graph) {
     ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                          original_shape);
+    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
 
-                //   impl_type    pattern    op_name  op_type inputs_size outputs_size
+    //   impl_type    pattern    op_name  op_type inputs_size outputs_size
     // AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "add1",  ADD,      2,         1)
     test.AddOpDesc(EN_IMPL_HW_TBE, "aipp", "aipp1", "Aipp", 1, 1)
         .AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv1", "Conv2D", 3, 1)
@@ -168,8 +165,8 @@ class UB_FUSION_ST_NETWORK_TOPOLOGY : public testing::Test {
         .AddOpDesc(EN_IMPL_HW_TBE, "dequant", "dequant20", "AscendDequant", 2, 1)
         .AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "eltwise8", "Eltwise", 2, 1)
         .AddOpDesc(EN_IMPL_HW_TBE, "quant", "quant16", "AscendQuant", 1, 1)
-                // dst_name,    src_name
-        //SetInput("add1:0",   "Data_1")
+        // dst_name,    src_name
+        // SetInput("add1:0",   "Data_1")
         .SetInput("aipp1", "PlaceHolder_1")
         .SetInputs("conv1", {"aipp1", "PlaceHolder_2", "PlaceHolder_3"})
         .SetInput("leakyRelu1", "conv1")
@@ -219,7 +216,7 @@ class UB_FUSION_ST_NETWORK_TOPOLOGY : public testing::Test {
         .SetInput("quant7", "leakyRelu9")
         .SetInputs("conv14", {"quant7", "PlaceHolder_33", "PlaceHolder_34"})
         .SetInputs("dequant9", {"conv14", "PlaceHolder_35"})
-        .SetInput("conv15", "PlaceHolder_36", ge::FORMAT_NCHW, ge::FORMAT_NCHW, {34,66,70,90})
+        .SetInput("conv15", "PlaceHolder_36", ge::FORMAT_NCHW, ge::FORMAT_NCHW, {34, 66, 70, 90})
         .SetInputs("dequant10", {"conv15", "PlaceHolder_37"})
         .SetInputs("eltwise6", {"dequant9", "dequant10"})
         .SetInput("leakyRelu10", "eltwise6")
@@ -271,10 +268,9 @@ class UB_FUSION_ST_NETWORK_TOPOLOGY : public testing::Test {
 
   void AfterMatchGraph(ge::ComputeGraphPtr &graph) {
     ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-                          original_shape);
+    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
 
-                //   impl_type    pattern    op_name  op_type inputs_size outputs_size
+    //   impl_type    pattern    op_name  op_type inputs_size outputs_size
     // AddOpDesc(EN_IMPL_HW_TBE, "ElemWise", "add1",  ADD,      2,         1)
     test.AddOpDesc(EN_IMPL_HW_TBE, "aipp", "aipp1", "Aipp", 1, 1)
         .AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv1leakyRelu1", "Conv2D", 3, 1)
@@ -318,22 +314,20 @@ class UB_FUSION_ST_NETWORK_TOPOLOGY : public testing::Test {
         .AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv21dequant18eltwise7leakyRelu12quant14", "Conv2D", 5, 2)
         .AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv22dequant19quant15", "Conv2D", 4, 1)
         .AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv23dequant20eltwise8", "Conv2D", 5, 1)
-                // dst_name,    src_name
-        //SetInput("add1:0",   "Data_1")
+        // dst_name,    src_name
+        // SetInput("add1:0",   "Data_1")
         .SetInput("aipp1", "PlaceHolder_1")
         .SetInputs("conv1leakyRelu1", {"aipp1", "PlaceHolder_2", "PlaceHolder_3"})
         .SetInput("conv2leakyRelu2", "conv1leakyRelu1")
         .SetInputs("conv3leakyRelu3", {"conv2leakyRelu2", "PlaceHolder_4", "PlaceHolder_5"})
-        .SetInputs("conv4leakyRelu4eltwise1",
-                   {"conv3leakyRelu3", "PlaceHolder_6", "PlaceHolder_7", "conv2leakyRelu2"})
+        .SetInputs("conv4leakyRelu4eltwise1", {"conv3leakyRelu3", "PlaceHolder_6", "PlaceHolder_7", "conv2leakyRelu2"})
         .SetInputs("conv5dequant1eltwise2leakyRelu5quant1",
                    {"conv4leakyRelu4eltwise1", "PlaceHolder_8", "PlaceHolder_9", "PlaceHolder_10"})
         .SetInputs("conv6dequant2quant2",
                    {"conv5dequant1eltwise2leakyRelu5quant1:1", "PlaceHolder_11", "PlaceHolder_12", "PlaceHolder_13"})
-        .SetInputs("conv7dequant3quant3",
-                   {"conv6dequant2quant2", "PlaceHolder_14", "PlaceHolder_15", "PlaceHolder_16"})
-        .SetInputs("conv8dequant4leakyRelu6eltwise3",
-                   {"conv7dequant3quant3", "PlaceHolder_17", "PlaceHolder_18", "PlaceHolder_19", "conv5dequant1eltwise2leakyRelu5quant1:0"})
+        .SetInputs("conv7dequant3quant3", {"conv6dequant2quant2", "PlaceHolder_14", "PlaceHolder_15", "PlaceHolder_16"})
+        .SetInputs("conv8dequant4leakyRelu6eltwise3", {"conv7dequant3quant3", "PlaceHolder_17", "PlaceHolder_18",
+                                                       "PlaceHolder_19", "conv5dequant1eltwise2leakyRelu5quant1:0"})
         .SetInput("pooling1quant4", "conv8dequant4leakyRelu6eltwise3")
         .SetInputs("aipp2", {"pooling1quant4", "PlaceHolder_20"})
         .SetInputs("conv9leakyRelu7", {"aipp2", "PlaceHolder_21", "PlaceHolder_22"})
@@ -343,15 +337,16 @@ class UB_FUSION_ST_NETWORK_TOPOLOGY : public testing::Test {
                    {"conv10dequant5quant6", "PlaceHolder_26", "PlaceHolder_27", "PlaceHolder_64", "conv12dequant7"})
         .SetInputs("conv12dequant7", {"pooling2quant5", "PlaceHolder_28", "PlaceHolder_29", "PlaceHolder_65"})
         .SetInputs("conv13dequant8readSelect1eltwise5leakyRelu9quant7",
-                   {"conv11dequant6eltwise4leakyRelu8:0", "PlaceHolder_30", "PlaceHolder_31", "PlaceHolder_32", "conv11dequant6eltwise4leakyRelu8:0"})
-        .SetInputs("conv14dequant9",
-                   {"conv13dequant8readSelect1eltwise5leakyRelu9quant7", "PlaceHolder_33", "PlaceHolder_34", "PlaceHolder_35"})
+                   {"conv11dequant6eltwise4leakyRelu8:0", "PlaceHolder_30", "PlaceHolder_31", "PlaceHolder_32",
+                    "conv11dequant6eltwise4leakyRelu8:0"})
+        .SetInputs("conv14dequant9", {"conv13dequant8readSelect1eltwise5leakyRelu9quant7", "PlaceHolder_33",
+                                      "PlaceHolder_34", "PlaceHolder_35"})
         .SetInput("eltwise6conv15dequant10leakyRelu10quant16", "conv14dequant9")
-        .SetInput("eltwise6conv15dequant10leakyRelu10quant16",
-                    "PlaceHolder_36", ge::FORMAT_NCHW, ge::FORMAT_NCHW, {34, 66, 70, 90})
+        .SetInput("eltwise6conv15dequant10leakyRelu10quant16", "PlaceHolder_36", ge::FORMAT_NCHW, ge::FORMAT_NCHW,
+                  {34, 66, 70, 90})
         .SetInput("eltwise6conv15dequant10leakyRelu10quant16", "PlaceHolder_37")
         .SetInputs("depthwiseConv2D1dequant11quant8",
-                  {"eltwise6conv15dequant10leakyRelu10quant16", "PlaceHolder_38", "PlaceHolder_39", "PlaceHolder_66"})
+                   {"eltwise6conv15dequant10leakyRelu10quant16", "PlaceHolder_38", "PlaceHolder_39", "PlaceHolder_66"})
         .SetInputs("conv16dequant12", {"depthwiseConv2D1dequant11quant8", "PlaceHolder_67"})
         .SetInput("pooling3quant9", "conv16dequant12")
         .SetInputs("fullyConnection1", {"pooling3quant9", "PlaceHolder_40", "PlaceHolder_41"})
@@ -361,7 +356,7 @@ class UB_FUSION_ST_NETWORK_TOPOLOGY : public testing::Test {
         .SetInput("quant10", "maxPool1")
         .SetInputs("conv17stridedWrite1dequant14", {"quant10", "PlaceHolder_68"})
         .SetInputs("conv18dequant15stridedWrite2",
-                    {"PlaceHolder_43", "PlaceHolder_44", "PlaceHolder_45", "PlaceHolder_46"})
+                   {"PlaceHolder_43", "PlaceHolder_44", "PlaceHolder_45", "PlaceHolder_46"})
         .SetInputs("concatV2D1", {"conv18dequant15stridedWrite2", "conv17stridedWrite1dequant14"})
         .SetInput("reduceMeanD1", "concatV2D1")
         .SetInput("quant11", "reduceMeanD1")
@@ -371,14 +366,13 @@ class UB_FUSION_ST_NETWORK_TOPOLOGY : public testing::Test {
         .SetInputs("conv19leakyRelu11", {"transData1", "PlaceHolder_50", "PlaceHolder_51"})
         .SetInput("pooling4", "conv19leakyRelu11")
         .SetInput("quant12", "pooling4")
-        .SetInputs("conv20dequant17quant13",
-                   {"quant12", "PlaceHolder_52", "PlaceHolder_53", "PlaceHolder_54"})
+        .SetInputs("conv20dequant17quant13", {"quant12", "PlaceHolder_52", "PlaceHolder_53", "PlaceHolder_54"})
         .SetInputs("conv21dequant18eltwise7leakyRelu12quant14",
                    {"conv20dequant17quant13", "PlaceHolder_55", "PlaceHolder_56", "PlaceHolder_57", "pooling4"})
-        .SetInputs("conv22dequant19quant15",
-                  {"conv21dequant18eltwise7leakyRelu12quant14:1", "PlaceHolder_58", "PlaceHolder_59", "PlaceHolder_60"})
-        .SetInputs("conv23dequant20eltwise8",
-                  {"conv22dequant19quant15", "PlaceHolder_61", "PlaceHolder_62", "PlaceHolder_63", "conv21dequant18eltwise7leakyRelu12quant14:0"})
+        .SetInputs("conv22dequant19quant15", {"conv21dequant18eltwise7leakyRelu12quant14:1", "PlaceHolder_58",
+                                              "PlaceHolder_59", "PlaceHolder_60"})
+        .SetInputs("conv23dequant20eltwise8", {"conv22dequant19quant15", "PlaceHolder_61", "PlaceHolder_62",
+                                               "PlaceHolder_63", "conv21dequant18eltwise7leakyRelu12quant14:0"})
         .SetInput("End_1", "conv23dequant20eltwise8");
   }
 };
@@ -399,7 +393,7 @@ TEST_F(UB_FUSION_ST_NETWORK_TOPOLOGY, network_topology) {
   std::shared_ptr<GraphComm> graph_comm_ptr = std::make_shared<GraphComm>("engineName");
   graph_comm_ptr->Initialize();
   std::shared_ptr<FusionPriorityManager> fusion_priority_mgr_ptr =
-      std::make_shared<FusionPriorityManager>("engineName",nullptr);
+      std::make_shared<FusionPriorityManager>("engineName", nullptr);
   std::shared_ptr<BufferFusion> sub_graph_optimizer_ptr =
       std::make_shared<BufferFusion>(graph_comm_ptr, fusion_priority_mgr_ptr, nullptr);
 
@@ -417,7 +411,7 @@ TEST_F(UB_FUSION_ST_NETWORK_TOPOLOGY, network_topology) {
     if (ge::AttrUtils::GetInt(node->GetOpDesc(), SCOPE_ID_ATTR, scope_id)) {
       cerr << "scope id : " << scope_id << endl;
     } else {
-      cout <<"=====no scope ID" << endl;
+      cout << "=====no scope ID" << endl;
     }
     id++;
   }
@@ -433,7 +427,7 @@ TEST_F(UB_FUSION_ST_NETWORK_TOPOLOGY, network_topology) {
     if (ge::AttrUtils::GetInt(node->GetOpDesc(), SCOPE_ID_ATTR, scope_id)) {
       cerr << "scope id : " << scope_id << endl;
     } else {
-      cout <<"=====no scope ID" << endl;
+      cout << "=====no scope ID" << endl;
     }
   }
 
@@ -447,7 +441,7 @@ TEST_F(UB_FUSION_ST_NETWORK_TOPOLOGY, network_topology) {
     if (ge::AttrUtils::GetInt(node->GetOpDesc(), SCOPE_ID_ATTR, scope_id)) {
       cerr << "scope id : " << scope_id << endl;
     } else {
-      cout <<"=====no scope ID" << endl;
+      cout << "=====no scope ID" << endl;
     }
   }
 

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -67,7 +67,7 @@ std::unique_ptr<gert::Allocators> CreateDefaultAllocators() {
   }
   return allocators;
 }
-}
+}  // namespace
 class MemoryKernelUT : public testing::Test {
  public:
   KernelRunContextHolder Alloc(memory::SingleStreamL2Allocator &gert_mem_allocator) {
@@ -100,8 +100,10 @@ TEST_F(MemoryKernelUT, AllocFreeSuccess) {
   ASSERT_NE(registry.FindKernelFuncs("FreeMemHbm")->run_func, nullptr);
 
   // alloc
-  auto alloc_context_holder =
-      KernelRunContextFaker().KernelIONum(2, 1).Inputs({&single_stream_l2_allocator, reinterpret_cast<void *>(0x64)}).Build();
+  auto alloc_context_holder = KernelRunContextFaker()
+                                  .KernelIONum(2, 1)
+                                  .Inputs({&single_stream_l2_allocator, reinterpret_cast<void *>(0x64)})
+                                  .Build();
   auto alloc_context = alloc_context_holder.GetContext<KernelContext>();
 
   ASSERT_EQ(registry.FindKernelFuncs("AllocMemHbm")->outputs_creator(nullptr, alloc_context), ge::GRAPH_SUCCESS);
@@ -135,7 +137,7 @@ TEST_F(MemoryKernelUT, FreeHoldAddrSuccess) {
 
   auto tensor_data = single_stream_l2_allocator.MallocTensorData(1);
   auto addr = tensor_data.GetAddr();
-  
+
   auto free_context_holder = KernelRunContextFaker().KernelIONum(1, 0).Inputs({&tensor_data}).Build();
   auto free_context = free_context_holder.GetContext<KernelContext>();
 
@@ -345,8 +347,10 @@ TEST_F(MemoryKernelUT, FreeTensorMemory) {
   ASSERT_NE(registry.FindKernelFuncs("FreeTensorMemory")->run_func, nullptr);
 
   // alloc
-  auto alloc_context_holder =
-      KernelRunContextFaker().KernelIONum(2, 1).Inputs({&single_stream_l2_allocator, reinterpret_cast<void *>(0x64)}).Build();
+  auto alloc_context_holder = KernelRunContextFaker()
+                                  .KernelIONum(2, 1)
+                                  .Inputs({&single_stream_l2_allocator, reinterpret_cast<void *>(0x64)})
+                                  .Build();
   auto alloc_context = alloc_context_holder.GetContext<KernelContext>();
 
   ASSERT_EQ(registry.FindKernelFuncs("AllocMemHbm")->outputs_creator(nullptr, alloc_context), ge::GRAPH_SUCCESS);
@@ -402,18 +406,21 @@ TEST_F(MemoryKernelUT, GetUserAllocatorOrFixedBaseAllocator_Success_DeviceHbmOut
 
   uint32_t session_id = 12051502;
   int stream = 0x12;
-  auto hbm_context_holder =
-      KernelRunContextFaker()
-          .KernelIONum(2, 1)
-          .Inputs({reinterpret_cast<void *>(kOnDeviceHbm), reinterpret_cast<void *>(session_id), reinterpret_cast<void *>(stream)})
-          .Build();
+  auto hbm_context_holder = KernelRunContextFaker()
+                                .KernelIONum(2, 1)
+                                .Inputs({reinterpret_cast<void *>(kOnDeviceHbm), reinterpret_cast<void *>(session_id),
+                                         reinterpret_cast<void *>(stream)})
+                                .Build();
   auto create_hbm_context = hbm_context_holder.GetContext<KernelContext>();
-  ASSERT_EQ(registry.FindKernelFuncs("GetUserAllocatorOrFixedBaseAllocator")->run_func(create_hbm_context), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("GetUserAllocatorOrFixedBaseAllocator")->run_func(create_hbm_context),
+            ge::GRAPH_SUCCESS);
   auto chain = create_hbm_context->GetOutput(0);
   auto allocator_in_chain = chain->GetValue<ge::Allocator *>();
   int32_t device_id = 0;
   aclrtGetDevice(&device_id);
-  ge::Allocator *allocator = ge::SessionMemAllocator<ge::FixedBaseExpandableAllocator>::Instance().GetMemAllocator(session_id, device_id).get();
+  ge::Allocator *allocator = ge::SessionMemAllocator<ge::FixedBaseExpandableAllocator>::Instance()
+                                 .GetMemAllocator(session_id, device_id)
+                                 .get();
 
   EXPECT_EQ(ge::PtrToValue(allocator_in_chain), ge::PtrToValue(allocator));
   ge::SessionMemAllocator<ge::FixedBaseExpandableAllocator>::Instance().RemoveAllocator(session_id, device_id);
@@ -426,21 +433,25 @@ TEST_F(MemoryKernelUT, GerUserAllocatorOrFixedBaseAllocator_Success_DeviceP2pOut
 
   uint32_t session_id = 12051502;
   int stream = 0x12;
-  auto context_holder =
-      KernelRunContextFaker()
-          .KernelIONum(2, 1)
-          .Inputs({reinterpret_cast<void *>(kOnDeviceP2p), reinterpret_cast<void *>(session_id), reinterpret_cast<void *>(stream)})
-          .Build();
+  auto context_holder = KernelRunContextFaker()
+                            .KernelIONum(2, 1)
+                            .Inputs({reinterpret_cast<void *>(kOnDeviceP2p), reinterpret_cast<void *>(session_id),
+                                     reinterpret_cast<void *>(stream)})
+                            .Build();
   auto context = context_holder.GetContext<KernelContext>();
   ASSERT_EQ(registry.FindKernelFuncs("GetUserAllocatorOrFixedBaseAllocator")->run_func(context), ge::GRAPH_SUCCESS);
   auto chain = context->GetOutput(0);
   auto allocator_in_chain = chain->GetValue<ge::Allocator *>();
   int32_t device_id = 0;
   aclrtGetDevice(&device_id);
-  ge::Allocator *hbm_allocator = ge::SessionMemAllocator<ge::FixedBaseExpandableAllocator>::Instance().GetMemAllocator(session_id, device_id).get();
+  ge::Allocator *hbm_allocator = ge::SessionMemAllocator<ge::FixedBaseExpandableAllocator>::Instance()
+                                     .GetMemAllocator(session_id, device_id)
+                                     .get();
   EXPECT_NE(allocator_in_chain, hbm_allocator);
 
-  ge::Allocator *p2p_allocator = ge::SessionMemAllocator<ge::FixedBaseExpandableAllocator>::Instance().GetMemAllocator(session_id, device_id, RT_MEMORY_P2P_DDR).get();
+  ge::Allocator *p2p_allocator = ge::SessionMemAllocator<ge::FixedBaseExpandableAllocator>::Instance()
+                                     .GetMemAllocator(session_id, device_id, RT_MEMORY_P2P_DDR)
+                                     .get();
   EXPECT_EQ(ge::PtrToValue(allocator_in_chain), ge::PtrToValue(p2p_allocator));
   ge::SessionMemAllocator<ge::FixedBaseExpandableAllocator>::Instance().RemoveAllocator(session_id, device_id);
 }
@@ -452,11 +463,11 @@ TEST_F(MemoryKernelUT, GerUserAllocatorOrFixedBaseAllocator_Failed_InvalidParam)
 
   uint32_t session_id = 12051502;
   int stream = 0x12;
-  auto context_holder =
-      KernelRunContextFaker()
-          .KernelIONum(2, 1)
-          .Inputs({reinterpret_cast<void *>(kOnHost), reinterpret_cast<void *>(session_id), reinterpret_cast<void *>(stream)})
-          .Build();
+  auto context_holder = KernelRunContextFaker()
+                            .KernelIONum(2, 1)
+                            .Inputs({reinterpret_cast<void *>(kOnHost), reinterpret_cast<void *>(session_id),
+                                     reinterpret_cast<void *>(stream)})
+                            .Build();
   auto context = context_holder.GetContext<KernelContext>();
   ASSERT_NE(registry.FindKernelFuncs("GetUserAllocatorOrFixedBaseAllocator")->run_func(context), ge::GRAPH_SUCCESS);
 }
@@ -470,7 +481,8 @@ TEST_F(MemoryKernelUT, AllocFixedFeatureMemory_Success_CheckAddress) {
   int32_t device_id = 0;
   uint32_t mem_size = 4U * 1024U * 1024U;
   aclrtGetDevice(&device_id);
-  auto allocator = ge::SessionMemAllocator<ge::FixedBaseExpandableAllocator>::Instance().GetMemAllocator(session_id, device_id);
+  auto allocator =
+      ge::SessionMemAllocator<ge::FixedBaseExpandableAllocator>::Instance().GetMemAllocator(session_id, device_id);
   memory::CachingMemAllocator caching_mem_allocator(0, RT_MEMORY_HBM);
   memory::SingleStreamL2Allocator single_stream_l2_allocator(&caching_mem_allocator);
   ge::Allocator *interface_allocator = allocator.get();
@@ -520,7 +532,8 @@ TEST_F(MemoryKernelUT, FreeFixedFeatureMemory_Success) {
   int32_t device_id = 0;
   uint32_t mem_size = 4U * 1024U * 1024U;
   aclrtGetDevice(&device_id);
-  auto allocator = ge::SessionMemAllocator<ge::FixedBaseExpandableAllocator>::Instance().GetMemAllocator(session_id, device_id);
+  auto allocator =
+      ge::SessionMemAllocator<ge::FixedBaseExpandableAllocator>::Instance().GetMemAllocator(session_id, device_id);
   ge::Allocator *interface_allocator = allocator.get();
   memory::CachingMemAllocator caching_mem_allocator(0, RT_MEMORY_HBM);
   memory::SingleStreamL2Allocator single_stream_l2_allocator(&caching_mem_allocator);
@@ -589,7 +602,7 @@ TEST_F(MemoryKernelUT, CreateInitL2Allocator_Success_DeviceHbmOutput) {
 
   auto caching_mem_allocator = std::make_shared<memory::CachingMemAllocator>(0, RT_MEMORY_HBM);
   std::unique_ptr<memory::SingleStreamL2Allocator> l1_allocator =
-    std::make_unique<memory::SingleStreamL2Allocator>(caching_mem_allocator.get());
+      std::make_unique<memory::SingleStreamL2Allocator>(caching_mem_allocator.get());
 
   const size_t stream_num = 2UL;
   auto l2_allocators_holder = ContinuousVector::Create<memory::MultiStreamL2Allocator *>(stream_num);
@@ -600,21 +613,22 @@ TEST_F(MemoryKernelUT, CreateInitL2Allocator_Success_DeviceHbmOutput) {
 
   auto multi_stream_allocator = std::make_shared<memory::MultiStreamL2Allocator>(nullptr, kOnDeviceHbm);
   l2_allocators->MutableData()[0] = multi_stream_allocator.get();
-  auto hbm_context_holder =
-      KernelRunContextFaker()
-          .KernelIONum(3, 2)
-          .Inputs({reinterpret_cast<void *>(l1_allocator.get()),
-              reinterpret_cast<void *>(l2_allocators), reinterpret_cast<void *>(0)})
-          .Build();
+  auto hbm_context_holder = KernelRunContextFaker()
+                                .KernelIONum(3, 2)
+                                .Inputs({reinterpret_cast<void *>(l1_allocator.get()),
+                                         reinterpret_cast<void *>(l2_allocators), reinterpret_cast<void *>(0)})
+                                .Build();
   auto create_hbm_context = hbm_context_holder.GetContext<KernelContext>();
-  ASSERT_EQ(registry.FindKernelFuncs("CreateInitL2Allocator")->outputs_creator(nullptr, create_hbm_context), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("CreateInitL2Allocator")->outputs_creator(nullptr, create_hbm_context),
+            ge::GRAPH_SUCCESS);
   ASSERT_EQ(registry.FindKernelFuncs("CreateInitL2Allocator")->run_func(create_hbm_context), ge::GRAPH_SUCCESS);
 
   auto output_allocator = create_hbm_context->GetOutputPointer<memory::MultiStreamL2Allocator>(0);
-  auto output_l2_allocators = create_hbm_context->GetOutputPointer<TypedContinuousVector<memory::MultiStreamL2Allocator *>>(1);
+  auto output_l2_allocators =
+      create_hbm_context->GetOutputPointer<TypedContinuousVector<memory::MultiStreamL2Allocator *>>(1);
   ASSERT_NE(output_allocator, nullptr);
   ASSERT_EQ(output_allocator->GetPlacement(), kOnDeviceHbm);
-  ASSERT_NE(output_allocator, l2_allocators->MutableData()[0]); // 需要复制一份，不能修改输入
+  ASSERT_NE(output_allocator, l2_allocators->MutableData()[0]);  // 需要复制一份，不能修改输入
   ASSERT_NE(output_l2_allocators, nullptr);
   ASSERT_EQ(output_l2_allocators->GetSize(), stream_num);
   ASSERT_EQ(output_l2_allocators->MutableData()[0], output_allocator);
@@ -638,21 +652,22 @@ TEST_F(MemoryKernelUT, CreateInitL2Allocator_Success_DeviceP2pOutput) {
 
   auto multi_stream_allocator = std::make_shared<memory::MultiStreamL2Allocator>(nullptr, kOnDeviceP2p);
   l2_allocators->MutableData()[0] = multi_stream_allocator.get();
-  auto hbm_context_holder =
-      KernelRunContextFaker()
-          .KernelIONum(3, 2)
-          .Inputs({reinterpret_cast<void *>(l1_allocator.get()),
-                   reinterpret_cast<void *>(l2_allocators), reinterpret_cast<void *>(0)})
-          .Build();
+  auto hbm_context_holder = KernelRunContextFaker()
+                                .KernelIONum(3, 2)
+                                .Inputs({reinterpret_cast<void *>(l1_allocator.get()),
+                                         reinterpret_cast<void *>(l2_allocators), reinterpret_cast<void *>(0)})
+                                .Build();
   auto create_hbm_context = hbm_context_holder.GetContext<KernelContext>();
-  ASSERT_EQ(registry.FindKernelFuncs("CreateInitL2Allocator")->outputs_creator(nullptr, create_hbm_context), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("CreateInitL2Allocator")->outputs_creator(nullptr, create_hbm_context),
+            ge::GRAPH_SUCCESS);
   ASSERT_EQ(registry.FindKernelFuncs("CreateInitL2Allocator")->run_func(create_hbm_context), ge::GRAPH_SUCCESS);
 
   auto output_allocator = create_hbm_context->GetOutputPointer<memory::MultiStreamL2Allocator>(0);
-  auto output_l2_allocators = create_hbm_context->GetOutputPointer<TypedContinuousVector<memory::MultiStreamL2Allocator *>>(1);
+  auto output_l2_allocators =
+      create_hbm_context->GetOutputPointer<TypedContinuousVector<memory::MultiStreamL2Allocator *>>(1);
   ASSERT_NE(output_allocator, nullptr);
   ASSERT_EQ(output_allocator->GetPlacement(), kOnDeviceP2p);
-  ASSERT_NE(output_allocator, l2_allocators->MutableData()[0]); // 需要复制一份，不能修改输入
+  ASSERT_NE(output_allocator, l2_allocators->MutableData()[0]);  // 需要复制一份，不能修改输入
   ASSERT_NE(output_l2_allocators, nullptr);
   ASSERT_EQ(output_l2_allocators->GetSize(), stream_num);
   ASSERT_EQ(output_l2_allocators->MutableData()[0], output_allocator);
@@ -665,15 +680,14 @@ TEST_F(MemoryKernelUT, CreateL2Allocators_Success_DeviceHbmOutput) {
 
   auto stream_num = 2UL;
   auto hbm_context_holder =
-      KernelRunContextFaker()
-          .KernelIONum(1, 2)
-          .Inputs({reinterpret_cast<void *>(stream_num)})
-          .Build();
+      KernelRunContextFaker().KernelIONum(1, 2).Inputs({reinterpret_cast<void *>(stream_num)}).Build();
   auto create_hbm_context = hbm_context_holder.GetContext<KernelContext>();
-  ASSERT_EQ(registry.FindKernelFuncs("CreateL2Allocators")->outputs_creator(nullptr, create_hbm_context), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("CreateL2Allocators")->outputs_creator(nullptr, create_hbm_context),
+            ge::GRAPH_SUCCESS);
   ASSERT_EQ(registry.FindKernelFuncs("CreateL2Allocators")->run_func(create_hbm_context), ge::GRAPH_SUCCESS);
 
-  auto output_allocator = create_hbm_context->GetOutputPointer<TypedContinuousVector<memory::MultiStreamL2Allocator *>>(0);
+  auto output_allocator =
+      create_hbm_context->GetOutputPointer<TypedContinuousVector<memory::MultiStreamL2Allocator *>>(0);
   ASSERT_EQ(output_allocator->GetSize(), stream_num);
   auto all_l2_mem_pool = create_hbm_context->GetOutputPointer<TypedContinuousVector<memory::L2MemPool *>>(1U);
   ASSERT_EQ(all_l2_mem_pool->GetSize(), stream_num);
@@ -689,16 +703,17 @@ TEST_F(MemoryKernelUT, CreateL2Allocators_Success_DeviceP2pOutput) {
   ASSERT_NE(registry.FindKernelFuncs("CreateL2Allocators")->run_func, nullptr);
 
   size_t stream_num = 2UL;
-  auto hbm_context_holder =
-      KernelRunContextFaker()
-          .KernelIONum(2, 2)
-          .Inputs({reinterpret_cast<void *>(stream_num), reinterpret_cast<void *>(kOnDeviceP2p)})
-          .Build();
+  auto hbm_context_holder = KernelRunContextFaker()
+                                .KernelIONum(2, 2)
+                                .Inputs({reinterpret_cast<void *>(stream_num), reinterpret_cast<void *>(kOnDeviceP2p)})
+                                .Build();
   auto create_hbm_context = hbm_context_holder.GetContext<KernelContext>();
-  ASSERT_EQ(registry.FindKernelFuncs("CreateL2Allocators")->outputs_creator(nullptr, create_hbm_context), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("CreateL2Allocators")->outputs_creator(nullptr, create_hbm_context),
+            ge::GRAPH_SUCCESS);
   ASSERT_EQ(registry.FindKernelFuncs("CreateL2Allocators")->run_func(create_hbm_context), ge::GRAPH_SUCCESS);
 
-  auto output_allocator = create_hbm_context->GetOutputPointer<TypedContinuousVector<memory::MultiStreamL2Allocator *>>(0);
+  auto output_allocator =
+      create_hbm_context->GetOutputPointer<TypedContinuousVector<memory::MultiStreamL2Allocator *>>(0);
   ASSERT_EQ(output_allocator->GetSize(), stream_num);
   auto all_l2_mem_pool = create_hbm_context->GetOutputPointer<TypedContinuousVector<memory::L2MemPool *>>(1U);
   ASSERT_EQ(all_l2_mem_pool->GetSize(), stream_num);
@@ -716,10 +731,10 @@ TEST_F(MemoryKernelUT, SelectL2Allocator_Device_Success_SingleStream) {
   auto l2_allocators_holder = ContinuousVector::Create<memory::SingleStreamL2Allocator *>(stream_num);
   ASSERT_NE(l2_allocators_holder, nullptr);
   auto l2_allocators =
-    reinterpret_cast<TypedContinuousVector<memory::SingleStreamL2Allocator *> *>(l2_allocators_holder.get());
+      reinterpret_cast<TypedContinuousVector<memory::SingleStreamL2Allocator *> *>(l2_allocators_holder.get());
   l2_allocators->SetSize(stream_num);
   std::unique_ptr<memory::SingleStreamL2Allocator> l2_allocator =
-    std::make_unique<memory::SingleStreamL2Allocator>(caching_mem_allocator.get());
+      std::make_unique<memory::SingleStreamL2Allocator>(caching_mem_allocator.get());
   l2_allocators->MutableData()[0] = l2_allocator.get();
   auto host_context_holder =
       KernelRunContextFaker()
@@ -766,11 +781,12 @@ TEST_F(MemoryKernelUT, SelectL2Allocator_Device_Success_MultiStream) {
   auto caching_mem_allocator = std::make_shared<memory::CachingMemAllocator>(0, RT_MEMORY_P2P_DDR);
   const size_t stream_num = 2UL;
   auto holder = memory::MultiStreamAllocatorFaker().StreamNum(stream_num).L1Allocator(caching_mem_allocator).Build();
-  auto host_context_holder = KernelRunContextFaker()
-                                 .KernelIONum(4, 1)
-                                 .Inputs({reinterpret_cast<void *>(1), reinterpret_cast<void *>(1),
-                                          reinterpret_cast<void *>(caching_mem_allocator.get()), holder.l2_allocators_holder.get()})
-                                 .Build();
+  auto host_context_holder =
+      KernelRunContextFaker()
+          .KernelIONum(4, 1)
+          .Inputs({reinterpret_cast<void *>(1), reinterpret_cast<void *>(1),
+                   reinterpret_cast<void *>(caching_mem_allocator.get()), holder.l2_allocators_holder.get()})
+          .Build();
   auto host_context = host_context_holder.GetContext<KernelContext>();
   ASSERT_EQ(registry.FindKernelFuncs("SelectL2Allocator")->run_func(host_context), ge::GRAPH_SUCCESS);
   auto ret = host_context->GetOutput(0)->GetValue<GertAllocator *>();
@@ -782,12 +798,17 @@ TEST_F(MemoryKernelUT, SelectL2Allocator_Device_Success_MultiStream) {
 TEST_F(MemoryKernelUT, SelectL2Allocator_DeviceP2p_Success_MultiStream) {
   auto caching_mem_allocator = std::make_shared<memory::CachingMemAllocator>(0, RT_MEMORY_P2P_DDR);
   const size_t stream_num = 2UL;
-  auto holder = memory::MultiStreamAllocatorFaker().StreamNum(stream_num).Placement(kOnDeviceP2p).L1Allocator(caching_mem_allocator).Build();
-  auto host_context_holder = KernelRunContextFaker()
-      .KernelIONum(4, 1)
-      .Inputs({reinterpret_cast<void *>(1), reinterpret_cast<void *>(1),
-               reinterpret_cast<void *>(caching_mem_allocator.get()), holder.l2_allocators_holder.get()})
-      .Build();
+  auto holder = memory::MultiStreamAllocatorFaker()
+                    .StreamNum(stream_num)
+                    .Placement(kOnDeviceP2p)
+                    .L1Allocator(caching_mem_allocator)
+                    .Build();
+  auto host_context_holder =
+      KernelRunContextFaker()
+          .KernelIONum(4, 1)
+          .Inputs({reinterpret_cast<void *>(1), reinterpret_cast<void *>(1),
+                   reinterpret_cast<void *>(caching_mem_allocator.get()), holder.l2_allocators_holder.get()})
+          .Build();
   auto host_context = host_context_holder.GetContext<KernelContext>();
   ASSERT_EQ(registry.FindKernelFuncs("SelectL2Allocator")->run_func(host_context), ge::GRAPH_SUCCESS);
   auto ret = host_context->GetOutput(0)->GetValue<GertAllocator *>();
@@ -817,8 +838,8 @@ TEST_F(MemoryKernelUT, SelectL1Allocator_SelectExternal_DeviceExternalNotNull) {
   auto host_context_holder =
       KernelRunContextFaker()
           .KernelIONum(4, 1)
-          .Inputs({reinterpret_cast<void *>(kOnDeviceHbm),
-                   reinterpret_cast<void *>(allocators.get()), reinterpret_cast<void *>(created_allocator.get())})
+          .Inputs({reinterpret_cast<void *>(kOnDeviceHbm), reinterpret_cast<void *>(allocators.get()),
+                   reinterpret_cast<void *>(created_allocator.get())})
           .Build();
   auto device_context = host_context_holder.GetContext<KernelContext>();
   ASSERT_NE(registry.FindKernelFuncs("SelectL1Allocator")->outputs_creator, nullptr);
@@ -828,20 +849,20 @@ TEST_F(MemoryKernelUT, SelectL1Allocator_SelectExternal_DeviceExternalNotNull) {
 }
 TEST_F(MemoryKernelUT, SelectL1Allocator_WorkspaceAndOutputUseSameALlocator) {
   std::unique_ptr<Allocators> allocators(CreateDefaultAllocators().release());
-  auto context_node_output = KernelRunContextFaker()
-      .KernelIONum(4, 1)
-      .Inputs({reinterpret_cast<void *>(kOnDeviceHbm),
-               reinterpret_cast<void *>(allocators.get()), nullptr})
-      .Build();
+  auto context_node_output =
+      KernelRunContextFaker()
+          .KernelIONum(4, 1)
+          .Inputs({reinterpret_cast<void *>(kOnDeviceHbm), reinterpret_cast<void *>(allocators.get()), nullptr})
+          .Build();
   auto context1 = context_node_output.GetContext<KernelContext>();
   ASSERT_NE(registry.FindKernelFuncs("SelectL1Allocator")->outputs_creator, nullptr);
   ASSERT_EQ(registry.FindKernelFuncs("SelectL1Allocator")->run_func(context1), ge::GRAPH_SUCCESS);
   auto allocator_node_output = context1->GetOutput(0)->GetValue<memory::SingleStreamL2Allocator *>();
-  auto context_workspace = KernelRunContextFaker()
-      .KernelIONum(4, 1)
-      .Inputs({reinterpret_cast<void *>(kOnDeviceHbm),
-               reinterpret_cast<void *>(allocators.get()), nullptr})
-      .Build();
+  auto context_workspace =
+      KernelRunContextFaker()
+          .KernelIONum(4, 1)
+          .Inputs({reinterpret_cast<void *>(kOnDeviceHbm), reinterpret_cast<void *>(allocators.get()), nullptr})
+          .Build();
   auto context2 = context_workspace.GetContext<KernelContext>();
   EXPECT_NE(registry.FindKernelFuncs("SelectL1Allocator")->outputs_creator, nullptr);
   ASSERT_EQ(registry.FindKernelFuncs("SelectL1Allocator")->run_func(context2), ge::GRAPH_SUCCESS);
@@ -876,17 +897,15 @@ TEST_F(MemoryKernelUT, SelectL1Allocator_SelectInner_HostInnerNotNull) {
     GELOGE(ge::PARAM_INVALID, "allocators is nullptr");
   }
   std::unique_ptr<memory::HostMemAllocator> created_allocator = std::make_unique<memory::HostMemAllocator>();
-  auto host_context_holder =
-      KernelRunContextFaker()
-          .KernelIONum(4, 1)
-          .Inputs({reinterpret_cast<void *>(kOnHost),
-                   reinterpret_cast<void *>(allocators.get()), reinterpret_cast<void *>(created_allocator.get())})
-          .Build();
+  auto host_context_holder = KernelRunContextFaker()
+                                 .KernelIONum(4, 1)
+                                 .Inputs({reinterpret_cast<void *>(kOnHost), reinterpret_cast<void *>(allocators.get()),
+                                          reinterpret_cast<void *>(created_allocator.get())})
+                                 .Build();
   auto host_context = host_context_holder.GetContext<KernelContext>();
   ASSERT_NE(registry.FindKernelFuncs("SelectL1Allocator")->outputs_creator, nullptr);
   ASSERT_EQ(registry.FindKernelFuncs("SelectL1Allocator")->run_func(host_context), ge::GRAPH_SUCCESS);
-  ASSERT_EQ(host_context->GetOutput(0)->GetValue<ge::Allocator *>(),
-            created_allocator.get());
+  ASSERT_EQ(host_context->GetOutput(0)->GetValue<ge::Allocator *>(), created_allocator.get());
 }
 TEST_F(MemoryKernelUT, SelectL1Allocator_SelectInner_DeviceInnerNotNull) {
   std::unique_ptr<Allocators> allocators = std::make_unique<Allocators>();
@@ -898,8 +917,8 @@ TEST_F(MemoryKernelUT, SelectL1Allocator_SelectInner_DeviceInnerNotNull) {
   auto host_context_holder =
       KernelRunContextFaker()
           .KernelIONum(4, 1)
-          .Inputs({reinterpret_cast<void *>(kOnDeviceHbm),
-                   reinterpret_cast<void *>(allocators.get()), reinterpret_cast<void *>(created_allocator.get())})
+          .Inputs({reinterpret_cast<void *>(kOnDeviceHbm), reinterpret_cast<void *>(allocators.get()),
+                   reinterpret_cast<void *>(created_allocator.get())})
           .Build();
   auto host_context = host_context_holder.GetContext<KernelContext>();
   ASSERT_NE(registry.FindKernelFuncs("SelectL1Allocator")->outputs_creator, nullptr);
@@ -918,8 +937,8 @@ TEST_F(MemoryKernelUT, SelectL1Allocator_ExternalCachingMemAllocator_SetStreamSu
   auto host_context_holder =
       KernelRunContextFaker()
           .KernelIONum(4, 1)
-          .Inputs({reinterpret_cast<void *>(kOnDeviceHbm),
-                   reinterpret_cast<void *>(allocators.get()), reinterpret_cast<void *>(created_allocator.get()), stream})
+          .Inputs({reinterpret_cast<void *>(kOnDeviceHbm), reinterpret_cast<void *>(allocators.get()),
+                   reinterpret_cast<void *>(created_allocator.get()), stream})
           .Build();
   auto context = host_context_holder.GetContext<KernelContext>();
   ASSERT_NE(registry.FindKernelFuncs("SelectL1Allocator")->outputs_creator, nullptr);
@@ -950,8 +969,8 @@ TEST_F(MemoryKernelUT, SelectL1Allocator_SelectInner_ExternalNull) {
   auto host_context_holder =
       KernelRunContextFaker()
           .KernelIONum(4, 1)
-          .Inputs({reinterpret_cast<void *>(kOnDeviceHbm),
-                   reinterpret_cast<void *>(allocators.get()), reinterpret_cast<void *>(created_allocator.get())})
+          .Inputs({reinterpret_cast<void *>(kOnDeviceHbm), reinterpret_cast<void *>(allocators.get()),
+                   reinterpret_cast<void *>(created_allocator.get())})
           .Build();
   auto host_context = host_context_holder.GetContext<KernelContext>();
   ASSERT_NE(registry.FindKernelFuncs("SelectL1Allocator")->outputs_creator, nullptr);
@@ -1000,8 +1019,8 @@ TEST_F(MemoryKernelUT, CreateAndRecycleFftsMem) {
   ASSERT_NE(registry.FindKernelFuncs("RecycleFftsMems"), nullptr);
   ASSERT_NE(registry.FindKernelFuncs("RecycleFftsMems")->run_func, nullptr);
 
-  auto create_context_holder = KernelRunContextFaker().KernelIONum(2, 1)
-      .Inputs({&allocator, reinterpret_cast<void *>(0x2)}).Build();
+  auto create_context_holder =
+      KernelRunContextFaker().KernelIONum(2, 1).Inputs({&allocator, reinterpret_cast<void *>(0x2)}).Build();
   auto create_context = create_context_holder.GetContext<KernelContext>();
 
   ASSERT_EQ(registry.FindKernelFuncs("CreateFftsMemAllocator")->run_func(create_context), ge::GRAPH_SUCCESS);
@@ -1028,15 +1047,17 @@ TEST_F(MemoryKernelUT, AllocAndFreeFftsMem) {
   auto level_2_allocator = memory::FftsMemAllocator::GetAllocator(*level_1_allocator, 2U);
   ASSERT_NE(level_2_allocator, nullptr);
 
-// allocate & free
+  // allocate & free
   ASSERT_NE(registry.FindKernelFuncs("AllocateFftsMem"), nullptr);
   ASSERT_NE(registry.FindKernelFuncs("AllocateFftsMem")->run_func, nullptr);
 
   ASSERT_NE(registry.FindKernelFuncs("FreeFftsMem"), nullptr);
   ASSERT_NE(registry.FindKernelFuncs("FreeFftsMem")->run_func, nullptr);
 
-  auto allocate_context_holder = KernelRunContextFaker().KernelIONum(2, 1)
-      .Inputs({level_2_allocator.get(), reinterpret_cast<void *>(0x10)}).Build();
+  auto allocate_context_holder = KernelRunContextFaker()
+                                     .KernelIONum(2, 1)
+                                     .Inputs({level_2_allocator.get(), reinterpret_cast<void *>(0x10)})
+                                     .Build();
   auto allocate_context = allocate_context_holder.GetContext<KernelContext>();
   ASSERT_EQ(registry.FindKernelFuncs("AllocateFftsMem")->run_func(allocate_context), ge::GRAPH_SUCCESS);
 
@@ -1044,12 +1065,11 @@ TEST_F(MemoryKernelUT, AllocAndFreeFftsMem) {
   ASSERT_NE(block_holder, nullptr);
   ASSERT_NE(*block_holder, nullptr);
 
-  auto free_context_holder = KernelRunContextFaker().KernelIONum(1, 0)
-      .Inputs({*block_holder}).Build();
+  auto free_context_holder = KernelRunContextFaker().KernelIONum(1, 0).Inputs({*block_holder}).Build();
   auto free_context = free_context_holder.GetContext<KernelContext>();
   ASSERT_EQ(registry.FindKernelFuncs("FreeFftsMem")->run_func(free_context), ge::GRAPH_SUCCESS);
 
-// allocate & free batch
+  // allocate & free batch
   ASSERT_NE(registry.FindKernelFuncs("AllocateBatchFftsMems"), nullptr);
   ASSERT_NE(registry.FindKernelFuncs("AllocateBatchFftsMems")->run_func, nullptr);
   ASSERT_NE(registry.FindKernelFuncs("AllocateBatchFftsMems")->outputs_creator, nullptr);
@@ -1063,11 +1083,11 @@ TEST_F(MemoryKernelUT, AllocAndFreeFftsMem) {
   sizes->MutableData()[0UL] = 128UL;
   sizes->MutableData()[1UL] = 128UL;
 
-  auto batch_alloc_context_holder = KernelRunContextFaker().KernelIONum(2, 1)
-      .Inputs({level_2_allocator.get(), sizes_holder.get()}).Build();
+  auto batch_alloc_context_holder =
+      KernelRunContextFaker().KernelIONum(2, 1).Inputs({level_2_allocator.get(), sizes_holder.get()}).Build();
   auto batch_alloc_context = batch_alloc_context_holder.GetContext<KernelContext>();
-  ASSERT_EQ(registry.FindKernelFuncs("AllocateBatchFftsMems")->outputs_creator(
-      nullptr, batch_alloc_context), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("AllocateBatchFftsMems")->outputs_creator(nullptr, batch_alloc_context),
+            ge::GRAPH_SUCCESS);
   ASSERT_EQ(registry.FindKernelFuncs("AllocateBatchFftsMems")->run_func(batch_alloc_context), ge::GRAPH_SUCCESS);
 
   auto blocks = batch_alloc_context->GetOutputPointer<TypedContinuousVector<memory::FftsMemBlock *>>(0UL);
@@ -1076,8 +1096,7 @@ TEST_F(MemoryKernelUT, AllocAndFreeFftsMem) {
   ASSERT_NE(blocks->MutableData()[0], nullptr);
   ASSERT_NE(blocks->MutableData()[1], nullptr);
 
-  auto batch_free_context_holder = KernelRunContextFaker().KernelIONum(1, 0)
-      .Inputs({blocks}).Build();
+  auto batch_free_context_holder = KernelRunContextFaker().KernelIONum(1, 0).Inputs({blocks}).Build();
   auto batch_free_context = batch_free_context_holder.GetContext<KernelContext>();
   ASSERT_EQ(registry.FindKernelFuncs("FreeBatchFftsMems")->run_func(batch_free_context), ge::GRAPH_SUCCESS);
 
@@ -1087,11 +1106,11 @@ TEST_F(MemoryKernelUT, AllocAndFreeFftsMem) {
 
 TEST_F(MemoryKernelUT, GetAllocator_GetAllocatorSuccess) {
   std::unique_ptr<Allocators> allocators(CreateDefaultAllocators().release());
-  auto context_node_output = KernelRunContextFaker()
-      .KernelIONum(2, 1)
-      .Inputs({reinterpret_cast<void *>(kOnDeviceHbm),
-               reinterpret_cast<void *>(allocators.get())})
-      .Build();
+  auto context_node_output =
+      KernelRunContextFaker()
+          .KernelIONum(2, 1)
+          .Inputs({reinterpret_cast<void *>(kOnDeviceHbm), reinterpret_cast<void *>(allocators.get())})
+          .Build();
   auto context1 = context_node_output.GetContext<KernelContext>();
   ASSERT_NE(registry.FindKernelFuncs("GetExternalL1Allocator")->outputs_creator, nullptr);
   ASSERT_EQ(registry.FindKernelFuncs("GetExternalL1Allocator")->run_func(context1), ge::GRAPH_SUCCESS);
@@ -1102,11 +1121,11 @@ TEST_F(MemoryKernelUT, GetAllocator_GetAllocatorSuccess) {
 
 TEST_F(MemoryKernelUT, GetAllocator_GetAllocatorFailed) {
   std::unique_ptr<Allocators> allocators1(nullptr);
-  auto context_node_output = KernelRunContextFaker()
-      .KernelIONum(2, 1)
-      .Inputs({reinterpret_cast<void *>(kOnDeviceHbm),
-               reinterpret_cast<void *>(allocators1.get())})
-      .Build();
+  auto context_node_output =
+      KernelRunContextFaker()
+          .KernelIONum(2, 1)
+          .Inputs({reinterpret_cast<void *>(kOnDeviceHbm), reinterpret_cast<void *>(allocators1.get())})
+          .Build();
   auto context = context_node_output.GetContext<KernelContext>();
   ASSERT_NE(registry.FindKernelFuncs("GetExternalL1Allocator")->outputs_creator, nullptr);
   ASSERT_NE(registry.FindKernelFuncs("GetExternalL1Allocator")->run_func(context), ge::GRAPH_SUCCESS);
@@ -1116,11 +1135,11 @@ TEST_F(MemoryKernelUT, GetAllocator_GetAllocatorFailed) {
 
 TEST_F(MemoryKernelUT, GetAllocator_GetExternalAllocatorFailed) {
   std::unique_ptr<Allocators> allocators1(nullptr);
-  auto context_node_output = KernelRunContextFaker()
-      .KernelIONum(2, 1)
-      .Inputs({reinterpret_cast<void *>(kOnDeviceHbm),
-               reinterpret_cast<void *>(allocators1.get())})
-      .Build();
+  auto context_node_output =
+      KernelRunContextFaker()
+          .KernelIONum(2, 1)
+          .Inputs({reinterpret_cast<void *>(kOnDeviceHbm), reinterpret_cast<void *>(allocators1.get())})
+          .Build();
   auto context = context_node_output.GetContext<KernelContext>();
   ASSERT_NE(registry.FindKernelFuncs("GetExternalL1Allocator")->outputs_creator, nullptr);
   ASSERT_NE(registry.FindKernelFuncs("GetExternalL1Allocator")->run_func(context), ge::GRAPH_SUCCESS);
@@ -1133,12 +1152,12 @@ TEST_F(MemoryKernelUT, AccessMemCrossStream_Success) {
   auto td = allocators.Alloc(0, 1024);
   auto context = KernelRunContextFaker().KernelIONum(2, 1).Inputs({&td, (void *)1}).Build();
 
-  ASSERT_EQ(registry.FindKernelFuncs("AccessMemCrossStream")->outputs_creator(nullptr, context),
-            ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("AccessMemCrossStream")->outputs_creator(nullptr, context), ge::GRAPH_SUCCESS);
   GertRuntimeStub runtime_stub;
   runtime_stub.GetSlogStub().NoConsoleOut().SetLevelInfo();
   ASSERT_EQ(registry.FindKernelFuncs("AccessMemCrossStream")->run_func(context), ge::GRAPH_SUCCESS);
-  EXPECT_TRUE(runtime_stub.GetSlogStub().FindInfoLogRegex(kWander, {{2, "0"}, {3, "1"}, {4, ToHex(td.GetAddr())}}) >= 0);
+  EXPECT_TRUE(runtime_stub.GetSlogStub().FindInfoLogRegex(kWander, {{2, "0"}, {3, "1"}, {4, ToHex(td.GetAddr())}}) >=
+              0);
 
   auto dst_td = context.GetContext<KernelContext>()->GetOutputPointer<GertTensorData>(0);
   ASSERT_NE(dst_td, nullptr);

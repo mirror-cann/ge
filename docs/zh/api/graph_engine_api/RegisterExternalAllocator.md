@@ -96,4 +96,3 @@ Status RegisterExternalAllocator(const void *const stream, AllocatorPtr allocato
 -   将Allocator中的内存释放给操作系统前，需要先调用“aclrtSynchronizeStream”接口执行流同步，确保Stream中的任务已执行完成。
 
     acl接口详细说明请参见《应用开发指南 \(C&C++\)》。
-

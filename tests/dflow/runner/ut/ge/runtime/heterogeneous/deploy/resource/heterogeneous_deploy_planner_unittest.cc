@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,7 +34,7 @@ using namespace std;
 namespace ge {
 namespace {
 class MockMmpa : public MmpaStubApiGe {
-public:
+ public:
   int32_t RealPath(const CHAR *path, CHAR *realPath, INT32 realPathLen) override {
     (void)strncpy_s(realPath, realPathLen, path, strlen(path));
     return EN_OK;
@@ -44,7 +44,7 @@ public:
     return 0;
   }
 };
-}
+}  // namespace
 class HeterogeneousDeployPlannerTest : public testing::Test {
  protected:
   void SetUp() override {
@@ -55,16 +55,12 @@ class HeterogeneousDeployPlannerTest : public testing::Test {
     RuntimeStub::Reset();
   }
 
-  std::vector<DeployPlan::DeviceInfo> double_device_list{DeployPlan::DeviceInfo{1, 0, 0},
-                                                         DeployPlan::DeviceInfo{0, 0, 0},
-                                                         DeployPlan::DeviceInfo{0, 0, 1}};
+  std::vector<DeployPlan::DeviceInfo> double_device_list{
+      DeployPlan::DeviceInfo{1, 0, 0}, DeployPlan::DeviceInfo{0, 0, 0}, DeployPlan::DeviceInfo{0, 0, 1}};
 
-  std::vector<DeployPlan::DeviceInfo> four_device_with_cpu_list{DeployPlan::DeviceInfo{1, 0, 0},
-                                                                DeployPlan::DeviceInfo{0, 0, 0},
-                                                                DeployPlan::DeviceInfo{0, 0, 1},
-                                                                DeployPlan::DeviceInfo{1, 1, 0},
-                                                                DeployPlan::DeviceInfo{0, 1, 0},
-                                                                DeployPlan::DeviceInfo{0, 1, 1}};
+  std::vector<DeployPlan::DeviceInfo> four_device_with_cpu_list{
+      DeployPlan::DeviceInfo{1, 0, 0}, DeployPlan::DeviceInfo{0, 0, 0}, DeployPlan::DeviceInfo{0, 0, 1},
+      DeployPlan::DeviceInfo{1, 1, 0}, DeployPlan::DeviceInfo{0, 1, 0}, DeployPlan::DeviceInfo{0, 1, 1}};
 
   std::vector<DeployPlan::DeviceInfo> single_device_list{DeployPlan::DeviceInfo{1, 0, 0},
                                                          DeployPlan::DeviceInfo{0, 0, 0}};
@@ -103,10 +99,8 @@ class HeterogeneousDeployPlannerTest : public testing::Test {
       if (type != NPU) {
         mock_device_list_[device_index].SetSupportFlowgw(has_host_flowgw);
       }
-      std::cout << "device mesh = " << mock_device_list_[device_index].ToIndex().c_str()
-                << ", type = " << type
-                << ", node_id = " << node_id
-                << ", device_id = " << device_id
+      std::cout << "device mesh = " << mock_device_list_[device_index].ToIndex().c_str() << ", type = " << type
+                << ", node_id = " << node_id << ", device_id = " << device_id
                 << ", device_index = " << mock_device_list_[device_index].GetDeviceIndex()
                 << ", index = " << device_index << std::endl;
       ResourceManager::GetInstance().device_info_map_[node_id][device_id][type] = &(mock_device_list_[device_index]);
@@ -121,12 +115,10 @@ class HeterogeneousDeployPlannerTest : public testing::Test {
 namespace {
 class MockHeterogeneousExchangeDeployer : public HeterogeneousExchangeDeployer {
  public:
-  MockHeterogeneousExchangeDeployer(ExchangeService &exchange_service,
-                             deployer::FlowRoutePlan route_plan,
-                             FlowGwClientManager &client_manager)
+  MockHeterogeneousExchangeDeployer(ExchangeService &exchange_service, deployer::FlowRoutePlan route_plan,
+                                    FlowGwClientManager &client_manager)
       : HeterogeneousExchangeDeployer(exchange_service, std::move(route_plan), client_manager) {}
-  MOCK_METHOD1(BindRoute, Status(const std::vector<std::pair<const ExchangeEndpoint *,
-                                                             const ExchangeEndpoint *>> &));
+  MOCK_METHOD1(BindRoute, Status(const std::vector<std::pair<const ExchangeEndpoint *, const ExchangeEndpoint *>> &));
 };
 }  // namespace
 
@@ -181,25 +173,23 @@ TEST_F(HeterogeneousDeployPlannerTest, TestBuildServerDynamicSchedDeployPlanWith
   DeployPlan deploy_plan;
   deploy_plan.SetIsDynamicSched(true);
   std::vector<GeRootModelPtr> models;
-  std::vector<DeployPlan::DeviceInfo> node_list = {DeployPlan::DeviceInfo{1, 0, 0},
-                                                   DeployPlan::DeviceInfo{0, 0, 0},
-                                                   DeployPlan::DeviceInfo{1, 1, 0},
-                                                   DeployPlan::DeviceInfo{0, 1, 0},
+  std::vector<DeployPlan::DeviceInfo> node_list = {DeployPlan::DeviceInfo{1, 0, 0}, DeployPlan::DeviceInfo{0, 0, 0},
+                                                   DeployPlan::DeviceInfo{1, 1, 0}, DeployPlan::DeviceInfo{0, 1, 0},
                                                    DeployPlan::DeviceInfo{0, 1, 1}};
   BuildDeviceInfos(node_list, false);
   auto ret = HeterogeneousDeployPlanner(flow_model, node_list).BuildPlan(deploy_plan);
   ASSERT_EQ(ret, SUCCESS);
-  std::cout << "GetQueueInfoList" << deploy_plan.GetQueueInfoList().size() <<
-    "GetQueueBindings" << deploy_plan.GetQueueBindings().size();
-  std::cout << "GetInputQueueIndices" << deploy_plan.GetInputQueueIndices().size() <<
-    "GetOutputQueueIndices" << deploy_plan.GetOutputQueueIndices().size() <<
-    "GetStatusOutputQueueIndices" << deploy_plan.GetDynamicSchedPlan().GetStatusOutputQueueIndices().size() <<
-    "GetSchedInputQueueIndices" << deploy_plan.GetDynamicSchedPlan().GetSchedInputQueueIndices().size() <<
-    "GetSchedOutputQueueIndices" << deploy_plan.GetDynamicSchedPlan().GetSchedOutputQueueIndices().size() <<
-    "GetDatagwRequestBindings" << deploy_plan.GetDynamicSchedPlan().GetDatagwRequestBindings().size() <<
-    "GetEntryBindings" << deploy_plan.GetDynamicSchedPlan().GetEntryBindings().size() <<
-    "GetModelIndexInfo" << deploy_plan.GetDynamicSchedPlan().GetModelIndexInfo().size() <<
-    "GetModelInstanceNum" << deploy_plan.GetDynamicSchedPlan().GetModelInstanceNum().size();
+  std::cout << "GetQueueInfoList" << deploy_plan.GetQueueInfoList().size() << "GetQueueBindings"
+            << deploy_plan.GetQueueBindings().size();
+  std::cout << "GetInputQueueIndices" << deploy_plan.GetInputQueueIndices().size() << "GetOutputQueueIndices"
+            << deploy_plan.GetOutputQueueIndices().size() << "GetStatusOutputQueueIndices"
+            << deploy_plan.GetDynamicSchedPlan().GetStatusOutputQueueIndices().size() << "GetSchedInputQueueIndices"
+            << deploy_plan.GetDynamicSchedPlan().GetSchedInputQueueIndices().size() << "GetSchedOutputQueueIndices"
+            << deploy_plan.GetDynamicSchedPlan().GetSchedOutputQueueIndices().size() << "GetDatagwRequestBindings"
+            << deploy_plan.GetDynamicSchedPlan().GetDatagwRequestBindings().size() << "GetEntryBindings"
+            << deploy_plan.GetDynamicSchedPlan().GetEntryBindings().size() << "GetModelIndexInfo"
+            << deploy_plan.GetDynamicSchedPlan().GetModelIndexInfo().size() << "GetModelInstanceNum"
+            << deploy_plan.GetDynamicSchedPlan().GetModelInstanceNum().size();
   EXPECT_EQ(deploy_plan.GetQueueInfoList().size(), 64);
   EXPECT_EQ(deploy_plan.GetInputQueueIndices().size(), 2);
   EXPECT_EQ(deploy_plan.GetOutputQueueIndices().size(), 1);
@@ -221,10 +211,8 @@ TEST_F(HeterogeneousDeployPlannerTest, TestBuildDeployPlanWithProxyAndMultipleDe
 
   DeployPlan deploy_plan;
   std::vector<GeRootModelPtr> models;
-  std::vector<DeployPlan::DeviceInfo> node_list = {DeployPlan::DeviceInfo{1, 0, 0},
-                                                   DeployPlan::DeviceInfo{0, 0, 0},
-                                                   DeployPlan::DeviceInfo{0, 1, 0},
-                                                   DeployPlan::DeviceInfo{0, 1, 1}};
+  std::vector<DeployPlan::DeviceInfo> node_list = {DeployPlan::DeviceInfo{1, 0, 0}, DeployPlan::DeviceInfo{0, 0, 0},
+                                                   DeployPlan::DeviceInfo{0, 1, 0}, DeployPlan::DeviceInfo{0, 1, 1}};
   BuildDeviceInfos(node_list);
   auto ret = HeterogeneousDeployPlanner(flow_model, node_list).BuildPlan(deploy_plan);
   ASSERT_EQ(ret, SUCCESS);
@@ -305,18 +293,18 @@ TEST_F(HeterogeneousDeployPlannerTest, TestDynamicSchedBuildDeployPlan) {
   BuildDeviceInfos(single_device_list);
   auto ret = HeterogeneousDeployPlanner(flow_model, single_device_list).BuildPlan(deploy_plan);
   ASSERT_EQ(ret, SUCCESS);
-  std::cout << "GetQueueInfoList" << deploy_plan.GetQueueInfoList().size() <<
-    "GetQueueBindings" << deploy_plan.GetQueueBindings().size() <<
-    "GetGroupEntryInfoList" << deploy_plan.GetGroupEntryInfoList().size();
-  std::cout << "GetInputQueueIndices" << deploy_plan.GetInputQueueIndices().size() <<
-    "GetOutputQueueIndices" << deploy_plan.GetOutputQueueIndices().size() <<
-    "GetStatusOutputQueueIndices" << deploy_plan.GetDynamicSchedPlan().GetStatusOutputQueueIndices().size() <<
-    "GetSchedInputQueueIndices" << deploy_plan.GetDynamicSchedPlan().GetSchedInputQueueIndices().size() <<
-    "GetSchedOutputQueueIndices" << deploy_plan.GetDynamicSchedPlan().GetSchedOutputQueueIndices().size() <<
-    "GetDatagwRequestBindings" << deploy_plan.GetDynamicSchedPlan().GetDatagwRequestBindings().size() <<
-    "GetEntryBindings" << deploy_plan.GetDynamicSchedPlan().GetEntryBindings().size() <<
-    "GetModelIndexInfo" << deploy_plan.GetDynamicSchedPlan().GetModelIndexInfo().size() <<
-    "GetModelInstanceNum" << deploy_plan.GetDynamicSchedPlan().GetModelInstanceNum().size();
+  std::cout << "GetQueueInfoList" << deploy_plan.GetQueueInfoList().size() << "GetQueueBindings"
+            << deploy_plan.GetQueueBindings().size() << "GetGroupEntryInfoList"
+            << deploy_plan.GetGroupEntryInfoList().size();
+  std::cout << "GetInputQueueIndices" << deploy_plan.GetInputQueueIndices().size() << "GetOutputQueueIndices"
+            << deploy_plan.GetOutputQueueIndices().size() << "GetStatusOutputQueueIndices"
+            << deploy_plan.GetDynamicSchedPlan().GetStatusOutputQueueIndices().size() << "GetSchedInputQueueIndices"
+            << deploy_plan.GetDynamicSchedPlan().GetSchedInputQueueIndices().size() << "GetSchedOutputQueueIndices"
+            << deploy_plan.GetDynamicSchedPlan().GetSchedOutputQueueIndices().size() << "GetDatagwRequestBindings"
+            << deploy_plan.GetDynamicSchedPlan().GetDatagwRequestBindings().size() << "GetEntryBindings"
+            << deploy_plan.GetDynamicSchedPlan().GetEntryBindings().size() << "GetModelIndexInfo"
+            << deploy_plan.GetDynamicSchedPlan().GetModelIndexInfo().size() << "GetModelInstanceNum"
+            << deploy_plan.GetDynamicSchedPlan().GetModelInstanceNum().size();
 
   EXPECT_EQ(deploy_plan.GetQueueInfoList().size(), 16);
   EXPECT_EQ(deploy_plan.GetGroupEntryInfoList().size(), 2);
@@ -373,9 +361,9 @@ TEST_F(HeterogeneousDeployPlannerTest, TestBuildDeployPlanInputsFusion) {
  *  NetOutput
  *     |
  *    PC_2
- *     |  
+ *     |
  *    PC_1
- *     |  
+ *     |
  *   data1
  */
 TEST_F(HeterogeneousDeployPlannerTest, TestBuildDeployPlanWithSeriesModel) {
@@ -413,37 +401,37 @@ TEST_F(HeterogeneousDeployPlannerTest, TestBuildDeployPlanWithSeriesModel) {
 }
 
 TEST_F(HeterogeneousDeployPlannerTest, TestBuildDeployPlanWithLogicDeviceId1) {
-    auto flow_model = StubModels::BuildFlowModel(StubModels::BuildSinglePartitionedCallGraph());
-    ASSERT_TRUE(flow_model != nullptr);
-    EXPECT_EQ(flow_model->GetSubmodels().size(), 1);
-    auto model_relation = flow_model->GetModelRelation();
-    ASSERT_TRUE(model_relation != nullptr);
-    ASSERT_EQ(model_relation->submodel_endpoint_infos.size(), 1);
+  auto flow_model = StubModels::BuildFlowModel(StubModels::BuildSinglePartitionedCallGraph());
+  ASSERT_TRUE(flow_model != nullptr);
+  EXPECT_EQ(flow_model->GetSubmodels().size(), 1);
+  auto model_relation = flow_model->GetModelRelation();
+  ASSERT_TRUE(model_relation != nullptr);
+  ASSERT_EQ(model_relation->submodel_endpoint_infos.size(), 1);
 
-    auto model_iter = flow_model->GetSubmodels().begin();
-    auto submodel1 = model_iter->second.get();
-    submodel1->SetLogicDeviceId("0:0:0,0:0:1");
-    DeployPlan deploy_plan;
-    BuildDeviceInfos(double_device_list);
-    auto ret = HeterogeneousDeployPlanner(flow_model, double_device_list).BuildPlan(deploy_plan);
-    ASSERT_EQ(ret, SUCCESS);
+  auto model_iter = flow_model->GetSubmodels().begin();
+  auto submodel1 = model_iter->second.get();
+  submodel1->SetLogicDeviceId("0:0:0,0:0:1");
+  DeployPlan deploy_plan;
+  BuildDeviceInfos(double_device_list);
+  auto ret = HeterogeneousDeployPlanner(flow_model, double_device_list).BuildPlan(deploy_plan);
+  ASSERT_EQ(ret, SUCCESS);
 }
 
 TEST_F(HeterogeneousDeployPlannerTest, TestBuildDeployPlanWithLogicDeviceId2) {
-    auto flow_model = StubModels::BuildFlowModel(StubModels::BuildSinglePartitionedCallGraph());
-    ASSERT_TRUE(flow_model != nullptr);
-    EXPECT_EQ(flow_model->GetSubmodels().size(), 1);
-    auto model_relation = flow_model->GetModelRelation();
-    ASSERT_TRUE(model_relation != nullptr);
-    ASSERT_EQ(model_relation->submodel_endpoint_infos.size(), 1);
+  auto flow_model = StubModels::BuildFlowModel(StubModels::BuildSinglePartitionedCallGraph());
+  ASSERT_TRUE(flow_model != nullptr);
+  EXPECT_EQ(flow_model->GetSubmodels().size(), 1);
+  auto model_relation = flow_model->GetModelRelation();
+  ASSERT_TRUE(model_relation != nullptr);
+  ASSERT_EQ(model_relation->submodel_endpoint_infos.size(), 1);
 
-    auto model_iter = flow_model->GetSubmodels().begin();
-    auto submodel1 = model_iter->second.get();
-    submodel1->SetModelType(PNE_ID_CPU);
-    DeployPlan deploy_plan;
-    BuildDeviceInfos(single_host_list);
-    auto ret = HeterogeneousDeployPlanner(flow_model, single_host_list).BuildPlan(deploy_plan);
-    ASSERT_EQ(ret, SUCCESS);
+  auto model_iter = flow_model->GetSubmodels().begin();
+  auto submodel1 = model_iter->second.get();
+  submodel1->SetModelType(PNE_ID_CPU);
+  DeployPlan deploy_plan;
+  BuildDeviceInfos(single_host_list);
+  auto ret = HeterogeneousDeployPlanner(flow_model, single_host_list).BuildPlan(deploy_plan);
+  ASSERT_EQ(ret, SUCCESS);
 }
 
 /**
@@ -542,7 +530,6 @@ TEST_F(HeterogeneousDeployPlannerTest, TestBuildPlanForSingleModel_host) {
   EXPECT_EQ(submodel_info.is_head, true);
 }
 
-
 TEST_F(HeterogeneousDeployPlannerTest, TestFailedDueToTheAbsenceOfModel) {
   auto flow_model = std::make_shared<FlowModel>();
   HeterogeneousDeployPlanner planner(flow_model, single_device_list);
@@ -577,7 +564,9 @@ TEST_F(HeterogeneousDeployPlannerTest, TestBuildDeployPlan_2_dev) {
   auto model_relation_ptr = std::make_shared<ModelRelation>();
   ASSERT_TRUE(model_relation_ptr != nullptr);
   ModelRelation &model_relation = *model_relation_ptr;
-  model_relation.root_model_endpoint_info.input_endpoint_names = {"in-queue-1",};
+  model_relation.root_model_endpoint_info.input_endpoint_names = {
+      "in-queue-1",
+  };
   model_relation.root_model_endpoint_info.output_endpoint_names = {"out-queue-1"};
   model_relation.submodel_endpoint_infos["submodel-1"].model_name = "submodel-1";
   model_relation.submodel_endpoint_infos["submodel-1"].input_endpoint_names = {"in-queue-1"};
@@ -631,7 +620,8 @@ TEST_F(HeterogeneousDeployPlannerTest, TestBuildDeployPlan_AllRawModel) {
   auto model_relation_ptr = std::make_shared<ModelRelation>();
   ASSERT_TRUE(model_relation_ptr != nullptr);
   ModelRelation &model_relation = *model_relation_ptr;
-  model_relation.root_model_endpoint_info.input_endpoint_names = {"in-queue-1", "in-queue-2", "in-queue-3", "in-queue-4"};
+  model_relation.root_model_endpoint_info.input_endpoint_names = {"in-queue-1", "in-queue-2", "in-queue-3",
+                                                                  "in-queue-4"};
   model_relation.root_model_endpoint_info.output_endpoint_names = {"out-queue-1"};
   model_relation.submodel_endpoint_infos["submodel-1"].model_name = "submodel-1";
   model_relation.submodel_endpoint_infos["submodel-1"].input_endpoint_names = {"in-queue-1", "in-queue-2"};
@@ -699,7 +689,8 @@ TEST_F(HeterogeneousDeployPlannerTest, TestBuildDeployPlan_AllWrappedModels) {
   auto model_relation_ptr = std::make_shared<ModelRelation>();
   ASSERT_TRUE(model_relation_ptr != nullptr);
   ModelRelation &model_relation = *model_relation_ptr;
-  model_relation.root_model_endpoint_info.input_endpoint_names = {"in-queue-1", "in-queue-2", "in-queue-3", "in-queue-4"};
+  model_relation.root_model_endpoint_info.input_endpoint_names = {"in-queue-1", "in-queue-2", "in-queue-3",
+                                                                  "in-queue-4"};
   model_relation.root_model_endpoint_info.output_endpoint_names = {"out-queue-1"};
   model_relation.submodel_endpoint_infos["submodel-1"].input_endpoint_names = {"in-queue-1", "in-queue-2"};
   model_relation.submodel_endpoint_infos["submodel-1"].output_endpoint_names = {"inner-queue-1"};
@@ -716,7 +707,7 @@ TEST_F(HeterogeneousDeployPlannerTest, TestBuildDeployPlan_AllWrappedModels) {
   AddQueueDef(model_relation, "inner-queue-2");
 
   DeployPlan deploy_plan;
-  HeterogeneousDeployPlanner planner({submodel_1, submodel_2, submodel_3}, &model_relation,single_device_list);
+  HeterogeneousDeployPlanner planner({submodel_1, submodel_2, submodel_3}, &model_relation, single_device_list);
   BuildDeviceInfos(single_device_list);
   auto ret = planner.BuildPlan(deploy_plan);
   ASSERT_EQ(ret, SUCCESS);
@@ -759,7 +750,8 @@ TEST_F(HeterogeneousDeployPlannerTest, TestBuildDeployPlan_Mixed) {
   auto model_relation_ptr = std::make_shared<ModelRelation>();
   ASSERT_TRUE(model_relation_ptr != nullptr);
   ModelRelation &model_relation = *model_relation_ptr;
-  model_relation.root_model_endpoint_info.input_endpoint_names = {"in-queue-1", "in-queue-2", "in-queue-3", "in-queue-4"};
+  model_relation.root_model_endpoint_info.input_endpoint_names = {"in-queue-1", "in-queue-2", "in-queue-3",
+                                                                  "in-queue-4"};
   model_relation.root_model_endpoint_info.output_endpoint_names = {"out-queue-1"};
   model_relation.submodel_endpoint_infos["submodel-1"].input_endpoint_names = {"in-queue-1", "in-queue-2"};
   model_relation.submodel_endpoint_infos["submodel-1"].output_endpoint_names = {"inner-queue-1"};
@@ -788,7 +780,8 @@ TEST_F(HeterogeneousDeployPlannerTest, TestBuildDeployPlan_Mixed) {
 
 TEST_F(HeterogeneousDeployPlannerTest, TestBuildDeployPlan_NoModel) {
   DeployPlan deploy_plan;
-  ASSERT_EQ(HeterogeneousDeployPlanner(nullptr, {DeployPlan::DeviceInfo{0, 0, 0}}).BuildPlan(deploy_plan), PARAM_INVALID);
+  ASSERT_EQ(HeterogeneousDeployPlanner(nullptr, {DeployPlan::DeviceInfo{0, 0, 0}}).BuildPlan(deploy_plan),
+            PARAM_INVALID);
 }
 
 TEST_F(HeterogeneousDeployPlannerTest, TestBuildDeployPlan_MultiplyModelWithNoRelation) {
@@ -803,7 +796,8 @@ TEST_F(HeterogeneousDeployPlannerTest, TestBuildDeployPlan_MultiplyModelWithNoRe
   ASSERT_TRUE(flow_model != nullptr);
   flow_model->AddSubModel(submodel_1, PNE_ID_NPU);
   flow_model->AddSubModel(submodel_2, PNE_ID_NPU);
-  ASSERT_EQ(HeterogeneousDeployPlanner(flow_model, {DeployPlan::DeviceInfo{0, 0, 0}}).BuildPlan(deploy_plan), PARAM_INVALID);
+  ASSERT_EQ(HeterogeneousDeployPlanner(flow_model, {DeployPlan::DeviceInfo{0, 0, 0}}).BuildPlan(deploy_plan),
+            PARAM_INVALID);
 }
 
 /**
@@ -853,8 +847,8 @@ TEST_F(HeterogeneousDeployPlannerTest, TestBuildPlanForSingleModel_DeployResourc
   DeviceInfo remote_device_1(0, NPU, 1);
   remote_device_1.SetResourceType("Aarch64");
   std::vector<DeviceInfo> device_info_list = std::move(ResourceManager::GetInstance().device_info_list_);
-  std::map<int32_t, std::map<int32_t, std::map<DeviceType, const DeviceInfo *>>> device_info_map = std::move(
-    ResourceManager::GetInstance().device_info_map_);
+  std::map<int32_t, std::map<int32_t, std::map<DeviceType, const DeviceInfo *>>> device_info_map =
+      std::move(ResourceManager::GetInstance().device_info_map_);
   ResourceManager::GetInstance().device_info_list_.emplace_back(local_device);
   ResourceManager::GetInstance().device_info_list_.emplace_back(remote_device_0);
   ResourceManager::GetInstance().device_info_list_.emplace_back(remote_device_1);
@@ -862,8 +856,7 @@ TEST_F(HeterogeneousDeployPlannerTest, TestBuildPlanForSingleModel_DeployResourc
   ResourceManager::GetInstance().device_info_map_[1][0][NPU] = &remote_device_0;
   ResourceManager::GetInstance().device_info_map_[1][1][NPU] = &remote_device_1;
 
-  std::vector<DeployPlan::DeviceInfo> device_list{DeployPlan::DeviceInfo{1, 0, 0},
-                                                  DeployPlan::DeviceInfo{0, 1, 0},
+  std::vector<DeployPlan::DeviceInfo> device_list{DeployPlan::DeviceInfo{1, 0, 0}, DeployPlan::DeviceInfo{0, 1, 0},
                                                   DeployPlan::DeviceInfo{0, 1, 1}};
   HeterogeneousDeployPlanner planner(flow_model, device_list);
   DeployPlan deploy_plan;
@@ -891,8 +884,7 @@ TEST_F(HeterogeneousDeployPlannerTest, TestBuildPlanForSingleModel_2PG_UseNode0)
   options.insert(std::pair<std::string, std::string>("ge.exec.logicalDeviceClusterDeployMode", "SINGLE"));
   options.insert(std::pair<std::string, std::string>("ge.exec.logicalDeviceId", "[0:0]"));
   ge::GetThreadLocalContext().SetGraphOption(options);
-  std::vector<DeployPlan::DeviceInfo> device_list{DeployPlan::DeviceInfo{1, 0, 0},
-                                                  DeployPlan::DeviceInfo{0, 1, 0},
+  std::vector<DeployPlan::DeviceInfo> device_list{DeployPlan::DeviceInfo{1, 0, 0}, DeployPlan::DeviceInfo{0, 1, 0},
                                                   DeployPlan::DeviceInfo{0, 1, 1}};
   HeterogeneousDeployPlanner planner(flow_model, device_list);
   DeployPlan deploy_plan;
@@ -985,10 +977,9 @@ TEST_F(HeterogeneousDeployPlannerTest, TestBuildPlanFor2Models_2PG) {
   DeployContext::LocalContext().GetRankTableBuilder().ip_rank_map_["127.0.0.2:1"] = &hcom_rank_2;
 
   auto CountEndpointByType = [](const deployer::FlowRoutePlan &exchange_plan, int32_t type) {
-    return std::count_if(exchange_plan.endpoints().begin(), exchange_plan.endpoints().end(),
-                         [type](const deployer::EndpointDesc &endpoint_desc) -> bool {
-                           return endpoint_desc.type() == type;
-                         });
+    return std::count_if(
+        exchange_plan.endpoints().begin(), exchange_plan.endpoints().end(),
+        [type](const deployer::EndpointDesc &endpoint_desc) -> bool { return endpoint_desc.type() == type; });
   };
   {
     deployer::FlowRoutePlan exchange_plan{};
@@ -1014,8 +1005,8 @@ TEST_F(HeterogeneousDeployPlannerTest, TestBuildPlanFor2Models_2PG) {
     MockHeterogeneousExchangeDeployer route_deployer(exchange_service, exchange_plan, client_manager);
     ExchangeRoute flow_route;
 
-    auto check_func = [](const std::vector<std::pair<const ExchangeEndpoint *,
-                                                     const ExchangeEndpoint *>> &routes) -> Status {
+    auto check_func =
+        [](const std::vector<std::pair<const ExchangeEndpoint *, const ExchangeEndpoint *>> &routes) -> Status {
       for (auto &route : routes) {
         auto &src_endpoint = route.first;
         auto &dst_endpoint = route.second;
@@ -1024,8 +1015,7 @@ TEST_F(HeterogeneousDeployPlannerTest, TestBuildPlanFor2Models_2PG) {
       }
       return SUCCESS;
     };
-    EXPECT_CALL(route_deployer, BindRoute)
-        .WillRepeatedly(testing::Invoke(check_func));
+    EXPECT_CALL(route_deployer, BindRoute).WillRepeatedly(testing::Invoke(check_func));
     EXPECT_EQ(route_deployer.Deploy(flow_route), SUCCESS);
     client_manager.Finalize();
   }
@@ -1085,10 +1075,9 @@ TEST_F(HeterogeneousDeployPlannerTest, TestBuildPlanFor2Models_Host) {
   DeployContext::LocalContext().GetRankTableBuilder().ip_rank_map_["127.0.0.1:0"] = &hcom_rank;
 
   auto CountEndpointByType = [](const deployer::FlowRoutePlan &exchange_plan, int32_t type) {
-    return std::count_if(exchange_plan.endpoints().begin(), exchange_plan.endpoints().end(),
-                         [type](const deployer::EndpointDesc &endpoint_desc) -> bool {
-                           return endpoint_desc.type() == type;
-                         });
+    return std::count_if(
+        exchange_plan.endpoints().begin(), exchange_plan.endpoints().end(),
+        [type](const deployer::EndpointDesc &endpoint_desc) -> bool { return endpoint_desc.type() == type; });
   };
   deployer::FlowRoutePlan exchange_plan{};
   DeployPlan::DeviceInfo target_device_info(1, 0, 0);
@@ -1106,8 +1095,8 @@ TEST_F(HeterogeneousDeployPlannerTest, TestBuildPlanFor2Models_Host) {
   MockHeterogeneousExchangeDeployer route_deployer(exchange_service, exchange_plan, client_manager);
   ExchangeRoute flow_route;
 
-  auto check_func = [](const std::vector<std::pair<const ExchangeEndpoint *,
-                                                   const ExchangeEndpoint *>> &routes) -> Status {
+  auto check_func =
+      [](const std::vector<std::pair<const ExchangeEndpoint *, const ExchangeEndpoint *>> &routes) -> Status {
     for (auto &route : routes) {
       auto &src_endpoint = route.first;
       auto &dst_endpoint = route.second;
@@ -1116,8 +1105,7 @@ TEST_F(HeterogeneousDeployPlannerTest, TestBuildPlanFor2Models_Host) {
     }
     return SUCCESS;
   };
-  EXPECT_CALL(route_deployer, BindRoute)
-      .WillRepeatedly(testing::Invoke(check_func));
+  EXPECT_CALL(route_deployer, BindRoute).WillRepeatedly(testing::Invoke(check_func));
   EXPECT_EQ(route_deployer.Deploy(flow_route), SUCCESS);
   client_manager.Finalize();
 }
@@ -1154,7 +1142,8 @@ TEST_F(HeterogeneousDeployPlannerTest, TestFlattenModelRelation_2_level) {
   auto model_relation_ptr = std::make_shared<ModelRelation>();
   ASSERT_TRUE(model_relation_ptr != nullptr);
   ModelRelation &model_relation = *model_relation_ptr;
-  model_relation.root_model_endpoint_info.input_endpoint_names = {"in-queue-1", "in-queue-2", "in-queue-3", "in-queue-4"};
+  model_relation.root_model_endpoint_info.input_endpoint_names = {"in-queue-1", "in-queue-2", "in-queue-3",
+                                                                  "in-queue-4"};
   model_relation.root_model_endpoint_info.output_endpoint_names = {"out-queue-1"};
   model_relation.submodel_endpoint_infos["submodel-1"].model_name = "submodel-1";
   model_relation.submodel_endpoint_infos["submodel-1"].input_endpoint_names = {"in-queue-1", "in-queue-2"};
@@ -1184,11 +1173,19 @@ TEST_F(HeterogeneousDeployPlannerTest, TestFlattenModelRelation_2_level) {
   EXPECT_EQ(flattener.Flatten(flattened_model_relation, models), SUCCESS);
   EXPECT_EQ(models.size(), 9);
   EXPECT_EQ(flattened_model_relation.submodel_endpoint_infos.size(), 9);
-  std::set<std::string> expected_queue_names = {
-      "in-queue-1", "in-queue-2", "in-queue-3", "in-queue-4", "out-queue-1", "inner-queue-1", "inner-queue-2",
-      "sub1_PartitionedCall1:0", "sub1_PartitionedCall2:0",
-      "sub2_PartitionedCall1:0", "sub2_PartitionedCall2:0",
-      "sub3_PartitionedCall1:0", "sub3_PartitionedCall2:0"};
+  std::set<std::string> expected_queue_names = {"in-queue-1",
+                                                "in-queue-2",
+                                                "in-queue-3",
+                                                "in-queue-4",
+                                                "out-queue-1",
+                                                "inner-queue-1",
+                                                "inner-queue-2",
+                                                "sub1_PartitionedCall1:0",
+                                                "sub1_PartitionedCall2:0",
+                                                "sub2_PartitionedCall1:0",
+                                                "sub2_PartitionedCall2:0",
+                                                "sub3_PartitionedCall1:0",
+                                                "sub3_PartitionedCall2:0"};
   std::set<std::string> queue_names;
   for (const auto &queue_def : flattened_model_relation.endpoints) {
     queue_names.emplace(queue_def.GetName());
@@ -1228,7 +1225,8 @@ TEST_F(HeterogeneousDeployPlannerTest, TestFlattenModelRelation_Mixed) {
   auto model_relation_ptr = std::make_shared<ModelRelation>();
   ASSERT_TRUE(model_relation_ptr != nullptr);
   ModelRelation &model_relation = *model_relation_ptr;
-  model_relation.root_model_endpoint_info.input_endpoint_names = {"in-queue-1", "in-queue-2", "in-queue-3", "in-queue-4"};
+  model_relation.root_model_endpoint_info.input_endpoint_names = {"in-queue-1", "in-queue-2", "in-queue-3",
+                                                                  "in-queue-4"};
   model_relation.root_model_endpoint_info.output_endpoint_names = {"out-queue-1"};
   model_relation.submodel_endpoint_infos["submodel-1"].model_name = "submodel-1";
   model_relation.submodel_endpoint_infos["submodel-1"].input_endpoint_names = {"in-queue-1", "in-queue-2"};
@@ -1258,10 +1256,17 @@ TEST_F(HeterogeneousDeployPlannerTest, TestFlattenModelRelation_Mixed) {
   EXPECT_EQ(flattener.Flatten(flattened_model_relation, models), SUCCESS);
   EXPECT_EQ(models.size(), 7);
   EXPECT_EQ(flattened_model_relation.submodel_endpoint_infos.size(), 7);
-  std::set<std::string> expected_queue_names = {
-      "in-queue-1", "in-queue-2", "in-queue-3", "in-queue-4", "out-queue-1", "inner-queue-1", "inner-queue-2",
-      "sub1_PartitionedCall1:0", "sub1_PartitionedCall2:0",
-      "sub3_PartitionedCall1:0", "sub3_PartitionedCall2:0"};
+  std::set<std::string> expected_queue_names = {"in-queue-1",
+                                                "in-queue-2",
+                                                "in-queue-3",
+                                                "in-queue-4",
+                                                "out-queue-1",
+                                                "inner-queue-1",
+                                                "inner-queue-2",
+                                                "sub1_PartitionedCall1:0",
+                                                "sub1_PartitionedCall2:0",
+                                                "sub3_PartitionedCall1:0",
+                                                "sub3_PartitionedCall2:0"};
   std::set<std::string> queue_names;
   for (const auto &queue_def : flattened_model_relation.endpoints) {
     queue_names.emplace(queue_def.GetName());
@@ -1317,8 +1322,8 @@ TEST_F(HeterogeneousDeployPlannerTest, TestFlattenModelRelation_1_level) {
   EXPECT_EQ(flattener.Flatten(flattened_model_relation, models), SUCCESS);
   EXPECT_EQ(models.size(), 3);
   EXPECT_EQ(flattened_model_relation.submodel_endpoint_infos.size(), 3);
-  std::set<std::string>
-      expected_queue_names = {"in-queue-1", "in-queue-2", "out-queue-1", "inner-queue-1", "inner-queue-2"};
+  std::set<std::string> expected_queue_names = {"in-queue-1", "in-queue-2", "out-queue-1", "inner-queue-1",
+                                                "inner-queue-2"};
   std::set<std::string> queue_names;
   for (const auto &queue_def : flattened_model_relation.endpoints) {
     queue_names.emplace(queue_def.GetName());
@@ -1400,8 +1405,7 @@ TEST_F(HeterogeneousDeployPlannerTest, TestFlattenModelRelation_3_level) {
   EXPECT_EQ(flattener.Flatten(flattened_model_relation, models), SUCCESS);
   EXPECT_EQ(models.size(), 1);
   EXPECT_EQ(flattened_model_relation.submodel_endpoint_infos.size(), 1);
-  std::set<std::string>
-      expected_queue_names = {"input_0", "output_0"};
+  std::set<std::string> expected_queue_names = {"input_0", "output_0"};
   std::set<std::string> queue_names;
   for (const auto &queue_def : flattened_model_relation.endpoints) {
     queue_names.emplace(queue_def.GetName());
@@ -1455,7 +1459,7 @@ TEST_F(HeterogeneousDeployPlannerTest, ReindexNpuDevices) {
   EXPECT_EQ(ret, SUCCESS);
   EXPECT_EQ(planner.index_to_devices_.size(), 4);
   std::set<std::string> keys;
-  std::set<std::string> expected_keys {"0:0:0:0", "0:0:1:0", "0:1:0:0", "0:1:1:0"};
+  std::set<std::string> expected_keys{"0:0:0:0", "0:0:1:0", "0:1:0:0", "0:1:1:0"};
   for (auto &it : planner.index_to_devices_) {
     keys.emplace(it.first);
   }
@@ -1467,8 +1471,7 @@ TEST_F(HeterogeneousDeployPlannerTest, TestBuildPlanForSingleModel_Without_Compi
   ASSERT_TRUE(flow_model != nullptr);
   std::map<std::string, std::string> options;
   ge::GetThreadLocalContext().SetGraphOption(options);
-  std::vector<DeployPlan::DeviceInfo> device_list{DeployPlan::DeviceInfo{0, 0, 0},
-                                                  DeployPlan::DeviceInfo{0, 1, 0},
+  std::vector<DeployPlan::DeviceInfo> device_list{DeployPlan::DeviceInfo{0, 0, 0}, DeployPlan::DeviceInfo{0, 1, 0},
                                                   DeployPlan::DeviceInfo{0, 1, 1}};
   HeterogeneousDeployPlanner planner(flow_model, device_list);
   DeployPlan deploy_plan;
@@ -1504,8 +1507,8 @@ TEST_F(HeterogeneousDeployPlannerTest, TestBuildPlanForHeavyLoadUdf) {
   remote_device_1.SetResourceType("Ascend");
   // backup
   std::vector<DeviceInfo> device_info_list = std::move(ResourceManager::GetInstance().device_info_list_);
-  std::map<int32_t, std::map<int32_t, std::map<DeviceType, const DeviceInfo *>>> device_info_map = std::move(
-    ResourceManager::GetInstance().device_info_map_);
+  std::map<int32_t, std::map<int32_t, std::map<DeviceType, const DeviceInfo *>>> device_info_map =
+      std::move(ResourceManager::GetInstance().device_info_map_);
 
   ResourceManager::GetInstance().device_info_list_.emplace_back(local_device);
   ResourceManager::GetInstance().device_info_list_.emplace_back(remote_device_0);
@@ -1514,8 +1517,7 @@ TEST_F(HeterogeneousDeployPlannerTest, TestBuildPlanForHeavyLoadUdf) {
   ResourceManager::GetInstance().device_info_map_[0][0][NPU] = &remote_device_0;
   ResourceManager::GetInstance().device_info_map_[0][1][NPU] = &remote_device_1;
 
-  std::vector<DeployPlan::DeviceInfo> device_list{DeployPlan::DeviceInfo{1, 0, 0},
-                                                  DeployPlan::DeviceInfo{0, 0, 0},
+  std::vector<DeployPlan::DeviceInfo> device_list{DeployPlan::DeviceInfo{1, 0, 0}, DeployPlan::DeviceInfo{0, 0, 0},
                                                   DeployPlan::DeviceInfo{0, 0, 1}};
   HeterogeneousDeployPlanner planner(flow_model, device_list);
   DeployPlan deploy_plan;
@@ -1559,8 +1561,8 @@ TEST_F(HeterogeneousDeployPlannerTest, TestBuildPlanForHeavyLoadUdf_cannot_assig
   remote_device_1.SetResourceType("Ascend");
   // backup
   std::vector<DeviceInfo> device_info_list = std::move(ResourceManager::GetInstance().device_info_list_);
-  std::map<int32_t, std::map<int32_t, std::map<DeviceType, const DeviceInfo *>>> device_info_map = std::move(
-    ResourceManager::GetInstance().device_info_map_);
+  std::map<int32_t, std::map<int32_t, std::map<DeviceType, const DeviceInfo *>>> device_info_map =
+      std::move(ResourceManager::GetInstance().device_info_map_);
 
   ResourceManager::GetInstance().device_info_list_.emplace_back(local_device);
   ResourceManager::GetInstance().device_info_list_.emplace_back(remote_device_0);
@@ -1569,8 +1571,7 @@ TEST_F(HeterogeneousDeployPlannerTest, TestBuildPlanForHeavyLoadUdf_cannot_assig
   ResourceManager::GetInstance().device_info_map_[0][0][NPU] = &remote_device_0;
   ResourceManager::GetInstance().device_info_map_[0][1][NPU] = &remote_device_1;
 
-  std::vector<DeployPlan::DeviceInfo> device_list{DeployPlan::DeviceInfo{1, 0, 0},
-                                                  DeployPlan::DeviceInfo{0, 0, 0},
+  std::vector<DeployPlan::DeviceInfo> device_list{DeployPlan::DeviceInfo{1, 0, 0}, DeployPlan::DeviceInfo{0, 0, 0},
                                                   DeployPlan::DeviceInfo{0, 0, 1}};
   HeterogeneousDeployPlanner planner(flow_model, device_list);
   DeployPlan deploy_plan;
@@ -1604,8 +1605,8 @@ TEST_F(HeterogeneousDeployPlannerTest, TestBuildPlanForHeavyLoadUdf_without_logi
   remote_device_1.SetResourceType("Ascend");
   // backup
   std::vector<DeviceInfo> device_info_list = std::move(ResourceManager::GetInstance().device_info_list_);
-  std::map<int32_t, std::map<int32_t, std::map<DeviceType, const DeviceInfo *>>> device_info_map = std::move(
-    ResourceManager::GetInstance().device_info_map_);
+  std::map<int32_t, std::map<int32_t, std::map<DeviceType, const DeviceInfo *>>> device_info_map =
+      std::move(ResourceManager::GetInstance().device_info_map_);
 
   ResourceManager::GetInstance().device_info_list_.emplace_back(local_device);
   ResourceManager::GetInstance().device_info_list_.emplace_back(remote_device_0);
@@ -1614,8 +1615,7 @@ TEST_F(HeterogeneousDeployPlannerTest, TestBuildPlanForHeavyLoadUdf_without_logi
   ResourceManager::GetInstance().device_info_map_[0][0][NPU] = &remote_device_0;
   ResourceManager::GetInstance().device_info_map_[0][1][NPU] = &remote_device_1;
 
-  std::vector<DeployPlan::DeviceInfo> device_list{DeployPlan::DeviceInfo{1, 0, 0},
-                                                  DeployPlan::DeviceInfo{0, 0, 0},
+  std::vector<DeployPlan::DeviceInfo> device_list{DeployPlan::DeviceInfo{1, 0, 0}, DeployPlan::DeviceInfo{0, 0, 0},
                                                   DeployPlan::DeviceInfo{0, 0, 1}};
   HeterogeneousDeployPlanner planner(flow_model, device_list);
   DeployPlan deploy_plan;
@@ -1690,14 +1690,12 @@ TEST_F(HeterogeneousDeployPlannerTest, TestBuildDynamicSchedDeployPlanWithProxyA
   DeployPlan deploy_plan;
   deploy_plan.SetIsDynamicSched(true);
   std::vector<GeRootModelPtr> models;
-  std::vector<DeployPlan::DeviceInfo> node_list = {DeployPlan::DeviceInfo{1, 0, 0},
-                                                   DeployPlan::DeviceInfo{0, 0, 0},
-                                                   DeployPlan::DeviceInfo{0, 1, 0},
-                                                   DeployPlan::DeviceInfo{0, 1, 1}};
+  std::vector<DeployPlan::DeviceInfo> node_list = {DeployPlan::DeviceInfo{1, 0, 0}, DeployPlan::DeviceInfo{0, 0, 0},
+                                                   DeployPlan::DeviceInfo{0, 1, 0}, DeployPlan::DeviceInfo{0, 1, 1}};
   BuildDeviceInfos(node_list);
   auto ret = HeterogeneousDeployPlanner(flow_model, node_list).BuildPlan(deploy_plan);
   ASSERT_EQ(ret, SUCCESS);
-  
+
   cout << deploy_plan.GetQueueInfoList().size() << endl;
   cout << deploy_plan.GetQueueBindings().size() << endl;
   cout << deploy_plan.GetInputQueueIndices().size() << endl;

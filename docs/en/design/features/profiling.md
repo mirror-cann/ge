@@ -66,38 +66,38 @@ graph TB
         A[User code] --> B[ACL API]
         A --> C[GE API]
     end
-    
+
     subgraph "API Layer Profiling"
         B --> D[AclProfilingReporter]
         C --> E[GraphProfilingReporter]
         D --> F[MsprofReportApi]
         E --> F
     end
-    
+
     subgraph "Host Layer Profiling"
         G[ProfilingProperties] --> H[GlobalProfilingWrapper]
         H --> I[GlobalProfiler]
         I --> J[ScopeProfiler RAII]
     end
-    
+
     subgraph "Compilation Layer Profiling"
         K[ProfilingTaskUtils] --> L[Insert ProfilerTrace Task]
         L --> M[domi::TaskDef]
     end
-    
+
     subgraph "Runtime V1 (Hybrid)"
         N[HybridProfiler] --> O[CannTracingProfiler]
         O --> P[ProfilerCollector]
         P --> Q[RecordStart/RecordEnd]
     end
-    
+
     subgraph "Runtime V2 (Model Executor)"
         R[CannProfilerV2] --> S[CannHostProfiler]
         R --> T[GeHostProfiler]
         R --> U[CannMemoryProfiler]
         R --> V[BaseExecutorProfiler]
     end
-    
+
     subgraph "Unified Reporting Layer"
         F --> W[msprof library]
         Q --> W
@@ -106,12 +106,12 @@ graph TB
         U --> W
         M --> W
     end
-    
+
     subgraph "Analysis Tools"
         W --> X[MSProfiler tool]
         X --> Y[Visual analysis]
     end
-    
+
     style A fill:#e1f5fe
     style W fill:#fff3e0
     style X fill:#e8f5e9
@@ -268,31 +268,31 @@ graph TB
         A[User code] --> B[ACL API]
         A --> C[GE API]
     end
-    
+
     subgraph "API Layer Profiling"
         B --> D[AclProfilingReporter]
         C --> E[GraphProfilingReporter]
         D --> F[MsprofReportApi]
         E --> F
     end
-    
+
     subgraph "Host Layer Profiling"
         G[ProfilingProperties] --> H[GlobalProfilingWrapper]
         H --> I[GlobalProfiler]
         I --> J[ScopeProfiler RAII]
     end
-    
+
     subgraph "Compilation Layer Profiling"
         K[ProfilingTaskUtils] --> L[Insert ProfilerTrace Task]
         L --> M[domi::TaskDef]
     end
-    
+
     subgraph "Runtime V1 (Hybrid)"
         N[HybridProfiler] --> O[CannTracingProfiler]
         O --> P[ProfilerCollector]
         P --> Q[RecordStart/RecordEnd]
     end
-    
+
     subgraph "Runtime V2 (Model Executor)"
         R[CannProfilerV2] --> S[CannHostProfiler]
         R --> T[GeHostProfiler]### 4.3 API Layer Profiling
@@ -427,26 +427,26 @@ sequenceDiagram
     GE->>Msprof: MsprofInit()
     GE->>Msprof: MsprofRegisterCallback(GE, ProfCtrlHandle)
     GE-->>API: SUCCESS
-    
+
     Note over User,Compiler: Compilation phase
     User->>GE: BuildGraph / AddGraph
     GE->>Compiler: ProfilingTaskUtils::FindProfilingTaskIndex()
     Compiler->>Compiler: Find FP/BP points
     Compiler->>Compiler: Insert ProfilerTrace Task
     Compiler-->>GE: Compilation complete (with profiling tasks)
-    
+
     Note over User,Device: Execution phase - API layer
     User->>API: aclmdlExecute()
     API->>API: ACL_PROFILING_REG record start time
     API->>GE: Execute model
     API->>API: ~AclProfilingReporter record end time
     API->>Msprof: MsprofReportApi()
-    
+
     Note over User,Device: Execution phase - Host layer
     GE->>GE: PROFILING_SCOPE(InferShape)
     GE->>GE: ScopeProfiler RAII record duration
     GE->>GE: GlobalProfiler::Record()
-    
+
     Note over User,Device: Execution phase - Runtime V2
     GE->>Runtime: CannProfilerV2::OnExecuteEvent(kExecuteStart)
     Runtime->>Runtime: RecordLaunchBeginTime()
@@ -456,11 +456,11 @@ sequenceDiagram
     Runtime->>Msprof: MsprofReportApi()
     Runtime->>Msprof: MsprofReportCompactInfo()
     Runtime->>Msprof: MsprofReportAdditionalInfo()
-    
+
     Note over User,Device: Execution phase - Device layer
     Device->>Device: Execute ProfilerTrace Task
     Device->>Msprof: Report timestamps (FP/BP/AR/IterEnd)
-    
+
     Note over User,Tool: End phase
     User->>API: aclgrphProfStop()
     API->>GE: ProfilingManager::ProfStopProfiling()

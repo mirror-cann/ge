@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -245,18 +245,19 @@ TEST_F(ProcessPointUTest, FunctionPpNullPpName) {
   list_str_value.emplace_back(str_value);
   list_str_value.emplace_back(str_value);
 
-  auto pp1 = FunctionPp(nullptr).SetCompileConfig("./pp1.json")
-                                .SetInitParam("_batchsize", batch_value)
-                                .SetInitParam("_list_int", list_int)
-                                .SetInitParam("_list_list_int", list_list_int)
-                                .SetInitParam("_bool_attr", bool_attr)
-                                .SetInitParam("_list_bool", list_bool)
-                                .SetInitParam("_float_attr", float_attr)
-                                .SetInitParam("_list_float", list_float)
-                                .SetInitParam("_data_type_attr", dt)
-                                .SetInitParam("_list_dt", list_dt)
-                                .SetInitParam("_str_value", str_value)
-                                .SetInitParam("_list_str_value", list_str_value);
+  auto pp1 = FunctionPp(nullptr)
+                 .SetCompileConfig("./pp1.json")
+                 .SetInitParam("_batchsize", batch_value)
+                 .SetInitParam("_list_int", list_int)
+                 .SetInitParam("_list_list_int", list_list_int)
+                 .SetInitParam("_bool_attr", bool_attr)
+                 .SetInitParam("_list_bool", list_bool)
+                 .SetInitParam("_float_attr", float_attr)
+                 .SetInitParam("_list_float", list_float)
+                 .SetInitParam("_data_type_attr", dt)
+                 .SetInitParam("_list_dt", list_dt)
+                 .SetInitParam("_str_value", str_value)
+                 .SetInitParam("_list_str_value", list_str_value);
   ASSERT_EQ(pp1.GetProcessPointName(), nullptr);
   ASSERT_EQ(pp1.GetProcessPointType(), ProcessPointType::INVALID);
   ASSERT_EQ(pp1.GetCompileConfig(), nullptr);
@@ -268,13 +269,11 @@ TEST_F(ProcessPointUTest, FunctionPpInvokedPp) {
   GraphBuilder graph_build2 = []() { return ge::Graph("ge_graph2"); };
   auto graphPp1 = GraphPp("graphPp_1", graph_build).SetCompileConfig("./graph.json");
   auto graphPp2 = GraphPp("graphPp_2", graph_build2).SetCompileConfig("./graph2.json");
-  auto pp1 = FunctionPp("pp1").AddInvokedClosure("graph1", graphPp1)
-                              .AddInvokedClosure("graph1", graphPp2);
+  auto pp1 = FunctionPp("pp1").AddInvokedClosure("graph1", graphPp1).AddInvokedClosure("graph1", graphPp2);
   auto invoked_pp = FlowGraphUtils::GetInvokedClosures(dynamic_cast<const FunctionPp *>(&pp1));
   ASSERT_EQ(invoked_pp.size(), 1);
 
-  auto pp2 = FunctionPp("pp2").AddInvokedClosure("graph1", graphPp1)
-                              .AddInvokedClosure("graph2", graphPp2);
+  auto pp2 = FunctionPp("pp2").AddInvokedClosure("graph1", graphPp1).AddInvokedClosure("graph2", graphPp2);
   auto invoked_pp2 = FlowGraphUtils::GetInvokedClosures(dynamic_cast<const FunctionPp *>(&pp2));
   ASSERT_EQ(invoked_pp2.size(), 2);
 
@@ -501,7 +500,8 @@ TEST_F(ProcessPointUTest, AddInvokedClosureFailed) {
   auto funcpp = FunctionPp("funcpp").AddInvokedClosure(nullptr, graphpp).AddInvokedClosure("graph", graphpp);
   ASSERT_EQ(FlowGraphUtils::GetInvokedClosures(dynamic_cast<const FunctionPp *>(&funcpp)).size(), 0);
   auto flowgraphpp = FlowGraphPp("flowgraphpp", nullptr);
-  auto flowfuncpp = FunctionPp("flowfuncpp").AddInvokedClosure(nullptr, flowgraphpp).AddInvokedClosure("graph", flowgraphpp);
+  auto flowfuncpp =
+      FunctionPp("flowfuncpp").AddInvokedClosure(nullptr, flowgraphpp).AddInvokedClosure("graph", flowgraphpp);
   ASSERT_EQ(FlowGraphUtils::GetInvokedFlowClosures(dynamic_cast<const FunctionPp *>(&flowfuncpp)).size(), 0);
 }
 
@@ -510,18 +510,16 @@ TEST_F(ProcessPointUTest, FunctionPpInvokedFlowGraphPp) {
   GraphBuilder graph_build = [ge_graph]() { return ge_graph; };
   FlowGraph flow_graph("flow_graph");
   FlowGraphBuilder flow_graph_build = [flow_graph]() { return flow_graph; };
-  
+
   auto graphPp1 = GraphPp("graphPp_1", graph_build).SetCompileConfig("./graph.json");
   auto flowGraphPp2 = FlowGraphPp("graphPp_2", flow_graph_build).SetCompileConfig("./flowgraph.json");
-  auto pp1 = FunctionPp("pp1").AddInvokedClosure("graph2", flowGraphPp2)
-                              .AddInvokedClosure("graph2", flowGraphPp2);
+  auto pp1 = FunctionPp("pp1").AddInvokedClosure("graph2", flowGraphPp2).AddInvokedClosure("graph2", flowGraphPp2);
   auto invoked_pp = FlowGraphUtils::GetInvokedClosures(dynamic_cast<const FunctionPp *>(&pp1));
   auto invoked_flow_pp = FlowGraphUtils::GetInvokedFlowClosures(dynamic_cast<const FunctionPp *>(&pp1));
   ASSERT_EQ(invoked_pp.size(), 0);
   ASSERT_EQ(invoked_flow_pp.size(), 1);
 
-  auto pp2 = FunctionPp("pp2").AddInvokedClosure("graph1", graphPp1)
-                              .AddInvokedClosure("graph2", flowGraphPp2);
+  auto pp2 = FunctionPp("pp2").AddInvokedClosure("graph1", graphPp1).AddInvokedClosure("graph2", flowGraphPp2);
   auto invoked_pp2 = FlowGraphUtils::GetInvokedClosures(dynamic_cast<const FunctionPp *>(&pp2));
   auto invoked_flow_pp2 = FlowGraphUtils::GetInvokedFlowClosures(dynamic_cast<const FunctionPp *>(&pp2));
   ASSERT_EQ(invoked_pp2.size(), 1);
@@ -549,4 +547,4 @@ TEST_F(ProcessPointUTest, FunctionPpInvokedFlowGraphPp) {
   ASSERT_EQ(invoke_pp1.graphs(0), "graphPp_2");
 }
 
-} // namespace ge
+}  // namespace ge

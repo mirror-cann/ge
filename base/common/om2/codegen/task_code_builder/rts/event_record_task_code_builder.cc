@@ -17,18 +17,20 @@ Status EventRecordTaskCodeBuilder::Contribute(TaskSemanticContributeContext &con
   FillTaskSemanticHeader(context, header_);
   GE_ASSERT_NOTNULL(context.runtime);
   event_id_ = context.task_def.event_id();
-  GE_ASSERT_TRUE(event_id_ < context.runtime->event_num,
-                 "[OM2][Check][Param] event list size:%u, cur:%u!", context.runtime->event_num, event_id_);
+  GE_ASSERT_TRUE(event_id_ < context.runtime->event_num, "[OM2][Check][Param] event list size:%u, cur:%u!",
+                 context.runtime->event_num, event_id_);
   return SUCCESS;
 }
 
 Status EventRecordTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &items) {
-  items.push_back(ast_.Comment("============================= " + header_.op_name + " ==============================="));
-  items.push_back(ChkStatus(ast_.Call("KernelEventRecordDistribute", {
-      ast_.Str(header_.op_name),
-      event_list_[static_cast<int32_t>(event_id_)],
-      stream_list_[static_cast<int32_t>(header_.stream_id)],
-  })));
+  items.push_back(
+      ast_.Comment("============================= " + header_.op_name + " ==============================="));
+  items.push_back(
+      ChkStatus(ast_.Call("KernelEventRecordDistribute", {
+                                                             ast_.Str(header_.op_name),
+                                                             event_list_[static_cast<int32_t>(event_id_)],
+                                                             stream_list_[static_cast<int32_t>(header_.stream_id)],
+                                                         })));
   return SUCCESS;
 }
 
@@ -36,11 +38,12 @@ Status EventRecordTaskCodeBuilder::RenderDistHelper(std::vector<DeclNode *> &ite
   auto op_name = ast_.Var("const char_t *const", "op_name");
   auto event = ast_.Var("aclrtEvent", "event");
   auto stream = ast_.Var("aclrtStream", "stream");
-  items.push_back(ast_.DefineFunction("KernelEventRecordDistribute", {op_name, event, stream}, "aclError", {
-      ChkRt(RtSetTaskTag(op_name)),
-      ChkStatus(AclrtRecordEvent(event, stream)),
-      ast_.Return("ACL_SUCCESS"),
-  }));
+  items.push_back(ast_.DefineFunction("KernelEventRecordDistribute", {op_name, event, stream}, "aclError",
+                                      {
+                                          ChkRt(RtSetTaskTag(op_name)),
+                                          ChkStatus(AclrtRecordEvent(event, stream)),
+                                          ast_.Return("ACL_SUCCESS"),
+                                      }));
   return SUCCESS;
 }
 

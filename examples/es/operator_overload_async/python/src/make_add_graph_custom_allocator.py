@@ -12,16 +12,19 @@
 from typing import Dict, List
 
 import acl
-
+from common import (
+    ACL_MEM_MALLOC_NORMAL_ONLY,
+    ACL_SUCCESS,
+    GRAPH_ID,
+    build_overload_graph,
+    check_ret,
+    create_input_tensors,
+    dump_overload_graph,
+    run_graph,
+)
 from ge.allocator import Allocator, MemBlock
 from ge.graph import Graph
 from ge.session import Session
-
-from common import (
-    ACL_SUCCESS, GRAPH_ID, ACL_MEM_MALLOC_NORMAL_ONLY,
-    check_ret, build_overload_graph, dump_overload_graph,
-    create_input_tensors, run_graph,
-)
 
 
 class SamplePoolAllocator(Allocator):

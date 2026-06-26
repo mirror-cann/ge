@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,8 +23,8 @@ Status PotentialFoldingPass::Run(ge::NodePtr &node) {
   GE_CHECK_NOTNULL(node);
   GE_CHECK_NOTNULL(node->GetOpDesc());
   if (folding_pass::IsUserSpecifiedSkipConstantFold(node)) {
-    GELOGI("Attr[%s] of the node[%s] is set to true, will not be folded.",
-           ATTR_NAME_DO_NOT_CONSTANT_FOLDING.c_str(), node->GetNamePtr());
+    GELOGI("Attr[%s] of the node[%s] is set to true, will not be folded.", ATTR_NAME_DO_NOT_CONSTANT_FOLDING.c_str(),
+           node->GetNamePtr());
     return SUCCESS;
   }
   if (NeedIgnorePass(node)) {
@@ -74,7 +74,7 @@ Status PotentialFoldingPass::FoldingConstByComputeRet(const Status compute_ret, 
   }
   if (outputs.empty()) {
     REPORT_INNER_ERR_MSG("E19999", "After calculate for node %s(%s), output weight is empty, check invalid",
-                       node->GetName().c_str(), node->GetType().c_str());
+                         node->GetName().c_str(), node->GetType().c_str());
     GELOGE(INTERNAL_ERROR, "[Check][Param] After calculate for node %s(%s), output weight is empty",
            node->GetName().c_str(), node->GetType().c_str());
     return INTERNAL_ERROR;
@@ -99,7 +99,7 @@ Status PotentialFoldingPass::UpdatePotentialConstMark(const Status compute_ret, 
         // so remove mark of potential const.
         GELOGI("After %s compute, node %s is not potential const, unmark.", GetPassName().c_str(),
                node->GetName().c_str());
-        (void) UnMarkPotentialConstWithPassName(op_desc);
+        (void)UnMarkPotentialConstWithPassName(op_desc);
         AddRePassNodesWithInOut(node);
       }
       return SUCCESS;
@@ -107,7 +107,7 @@ Status PotentialFoldingPass::UpdatePotentialConstMark(const Status compute_ret, 
     case SUCCESS: {
       if (outputs.empty()) {
         REPORT_INNER_ERR_MSG("E19999", "After calculate for node %s(%s), output weight is empty, check invalid",
-                           node->GetName().c_str(), node->GetType().c_str());
+                             node->GetName().c_str(), node->GetType().c_str());
         GELOGE(INTERNAL_ERROR, "[Check][Param] After calculate for node %s(%s), output weight is empty",
                node->GetName().c_str(), node->GetType().c_str());
         return INTERNAL_ERROR;
@@ -118,8 +118,8 @@ Status PotentialFoldingPass::UpdatePotentialConstMark(const Status compute_ret, 
       std::vector<int> out_indices(outputs.size());
       iota(out_indices.begin(), out_indices.end(), 0);
       if (MarkPotentialConstWithPassName(op_desc, out_indices, outputs)) {
-        GELOGI("After %s compute, node %s is potential const, it will be fold later.",
-               GetPassName().c_str(), node->GetName().c_str());
+        GELOGI("After %s compute, node %s is potential const, it will be fold later.", GetPassName().c_str(),
+               node->GetName().c_str());
       }
       return SUCCESS;
     }
@@ -156,10 +156,10 @@ bool PotentialFoldingPass::IsKnownEmptyTenor(const ge::GeShape &shape) const {
 }
 
 Status PotentialFoldingPass::UpdatePeerShapeIfChanged(const NodePtr &node,
-    const std::vector<GeTensorPtr> &outputs) const {
+                                                      const std::vector<GeTensorPtr> &outputs) const {
   if (node->GetOpDesc()->GetOutputsSize() != outputs.size()) {
-    GELOGE(INTERNAL_ERROR, "Out anchor size %zu, outputs size %zu, not match.",
-           node->GetOpDesc()->GetOutputsSize(), outputs.size());
+    GELOGE(INTERNAL_ERROR, "Out anchor size %zu, outputs size %zu, not match.", node->GetOpDesc()->GetOutputsSize(),
+           outputs.size());
     return INTERNAL_ERROR;
   }
 
@@ -196,19 +196,19 @@ Status PotentialFoldingPass::UpdatePeerShapeIfChanged(const NodePtr &node,
 
 bool PotentialFoldingPass::IsCurPassSameWithSource(const OpDescPtr &op_desc) const {
   string source_pass_name;
-  (void) AttrUtils::GetStr(op_desc, kAttrNameSourcePass, source_pass_name);
+  (void)AttrUtils::GetStr(op_desc, kAttrNameSourcePass, source_pass_name);
   return (source_pass_name == GetPassName());
 }
 
 bool PotentialFoldingPass::MarkPotentialConstWithPassName(OpDescPtr &op_desc, const std::vector<int> out_indices,
                                                           const std::vector<GeTensorPtr> &outputs) const {
-  return ConstantUtils::MarkPotentialConst(op_desc, out_indices, outputs)
-          && AttrUtils::SetStr(op_desc, kAttrNameSourcePass, GetPassName());
+  return ConstantUtils::MarkPotentialConst(op_desc, out_indices, outputs) &&
+         AttrUtils::SetStr(op_desc, kAttrNameSourcePass, GetPassName());
 }
 
 bool PotentialFoldingPass::UnMarkPotentialConstWithPassName(OpDescPtr &op_desc) {
-  (void) ConstantUtils::UnMarkPotentialConst(op_desc);
-  (void) op_desc->DelAttr(kAttrNameSourcePass);
+  (void)ConstantUtils::UnMarkPotentialConst(op_desc);
+  (void)op_desc->DelAttr(kAttrNameSourcePass);
   return true;
 }
 
@@ -232,4 +232,3 @@ Status PotentialFoldingPass::IsAnyOutputShapeUnknown(const NodePtr &node, const 
   return SUCCESS;
 }
 }  // namespace ge
-

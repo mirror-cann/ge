@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -78,7 +78,8 @@ TEST_F(DynamicRNNV3UT, TilingOk) {
                     .Build();
 
   ASSERT_NE(gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->GetOpImpl("DynamicRNNV3"), nullptr);
-  auto tiling_func = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->GetOpImpl("DynamicRNNV3")->tiling;
+  auto tiling_func =
+      gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->GetOpImpl("DynamicRNNV3")->tiling;
   ASSERT_NE(tiling_func, nullptr);
 
   EXPECT_EQ(tiling_func(holder.GetContext<gert::TilingContext>()), ge::GRAPH_SUCCESS);
@@ -96,19 +97,32 @@ TEST_F(DynamicRNNV3UT, TilingParseOk) {
                     .Build();
 
   ASSERT_NE(gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->GetOpImpl("DynamicRNNV3"), nullptr);
-  auto tiling_parse_func = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->GetOpImpl("DynamicRNNV3")->tiling_parse;
+  auto tiling_parse_func =
+      gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->GetOpImpl("DynamicRNNV3")->tiling_parse;
   ASSERT_NE(tiling_parse_func, nullptr);
 
   EXPECT_EQ(tiling_parse_func(holder.GetContext<gert::KernelContext>()), ge::GRAPH_SUCCESS);
-  std::vector<std::vector<int64_t>> expect_value{{-1,-1,0}};
+  std::vector<std::vector<int64_t>> expect_value{{-1, -1, 0}};
   EXPECT_EQ(compile_info.tune_shape_list, expect_value);
 }
 
 TEST_F(DynamicRNNV3UT, DetaDepencyOk) {
   ASSERT_NE(gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->GetOpImpl("DynamicRNNV3"), nullptr);
-  EXPECT_FALSE(gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->GetOpImpl("DynamicRNNV3")->IsInputDataDependency(0));
-  EXPECT_FALSE(gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->GetOpImpl("DynamicRNNV3")->IsInputDataDependency(1));
-  EXPECT_FALSE(gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->GetOpImpl("DynamicRNNV3")->IsInputDataDependency(2));
-  EXPECT_FALSE(gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->GetOpImpl("DynamicRNNV3")->IsInputDataDependency(3));
+  EXPECT_FALSE(gert::DefaultOpImplSpaceRegistryV2::GetInstance()
+                   .GetSpaceRegistry()
+                   ->GetOpImpl("DynamicRNNV3")
+                   ->IsInputDataDependency(0));
+  EXPECT_FALSE(gert::DefaultOpImplSpaceRegistryV2::GetInstance()
+                   .GetSpaceRegistry()
+                   ->GetOpImpl("DynamicRNNV3")
+                   ->IsInputDataDependency(1));
+  EXPECT_FALSE(gert::DefaultOpImplSpaceRegistryV2::GetInstance()
+                   .GetSpaceRegistry()
+                   ->GetOpImpl("DynamicRNNV3")
+                   ->IsInputDataDependency(2));
+  EXPECT_FALSE(gert::DefaultOpImplSpaceRegistryV2::GetInstance()
+                   .GetSpaceRegistry()
+                   ->GetOpImpl("DynamicRNNV3")
+                   ->IsInputDataDependency(3));
 }
 }  // namespace gert_test

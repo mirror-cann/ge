@@ -14,8 +14,8 @@
 """Allocator package for external memory allocation in GraphEngine."""
 
 __all__ = [
-    'Allocator',
-    'MemBlock',
+    "Allocator",
+    "MemBlock",
 ]
 
 

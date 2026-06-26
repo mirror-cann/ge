@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,7 +31,7 @@ const string kaarch64OpsProtoPath = "/op_proto/lib/linux/aarch64/";
 const string kaarch64OpMasterPath = "/op_impl/ai_core/tbe/op_tiling/lib/linux/aarch64/";
 
 struct InitEnv {
-  static InitEnv& GetInstance() {
+  static InitEnv &GetInstance() {
     static InitEnv instance;
     return instance;
   }
@@ -58,7 +58,7 @@ struct InitEnv {
       engines.erase(info_name);
     }
 
-    for (auto iter = ops_kernel_optimizers.begin(); iter != ops_kernel_optimizers.end(); ) {
+    for (auto iter = ops_kernel_optimizers.begin(); iter != ops_kernel_optimizers.end();) {
       if (optimizer_names.count(iter->first) == 0) {
         iter = ops_kernel_optimizers.erase(iter);
       } else {
@@ -66,7 +66,7 @@ struct InitEnv {
       }
     }
 
-    for (auto iter = optimizers_by_priority.begin(); iter != optimizers_by_priority.end(); ) {
+    for (auto iter = optimizers_by_priority.begin(); iter != optimizers_by_priority.end();) {
       if (optimizer_names.count(iter->first) == 0) {
         iter = optimizers_by_priority.erase(iter);
       } else {
@@ -92,37 +92,38 @@ struct InitEnv {
 }  // namespace
 
 GeRunningEnvFaker::GeRunningEnvFaker()
-    : op_kernel_info_(const_cast<std::map<std::string, vector<OpInfo>>&>(
-          OpsKernelManager::GetInstance().GetAllOpsKernelInfo())),
-      ops_kernel_info_stores_(const_cast<std::map<std::string, OpsKernelInfoStorePtr>&>(
+    : op_kernel_info_(
+          const_cast<std::map<std::string, vector<OpInfo>> &>(OpsKernelManager::GetInstance().GetAllOpsKernelInfo())),
+      ops_kernel_info_stores_(const_cast<std::map<std::string, OpsKernelInfoStorePtr> &>(
           OpsKernelManager::GetInstance().GetAllOpsKernelInfoStores())),
-      ops_kernel_optimizers_(const_cast<std::map<std::string, GraphOptimizerPtr>&>(
+      ops_kernel_optimizers_(const_cast<std::map<std::string, GraphOptimizerPtr> &>(
           OpsKernelManager::GetInstance().GetAllGraphOptimizerObjs())),
-      optimizers_by_priority_(const_cast<std::vector<std::pair<std::string, GraphOptimizerPtr>>&>(
+      optimizers_by_priority_(const_cast<std::vector<std::pair<std::string, GraphOptimizerPtr>> &>(
           OpsKernelManager::GetInstance().GetAllGraphOptimizerObjsByPriority())),
-      ops_kernel_builders_(const_cast<std::map<std::string, OpsKernelBuilderPtr>&>(
-        OpsKernelBuilderManager::Instance().GetAllOpsKernelBuilders())),
-      composite_engines_(const_cast<std::map<std::string, std::set<std::string>>&>(
+      ops_kernel_builders_(const_cast<std::map<std::string, OpsKernelBuilderPtr> &>(
+          OpsKernelBuilderManager::Instance().GetAllOpsKernelBuilders())),
+      composite_engines_(const_cast<std::map<std::string, std::set<std::string>> &>(
           OpsKernelManager::GetInstance().GetCompositeEngines())),
-      composite_engine_kernel_lib_names_(const_cast<std::map<std::string, std::string>&>(
+      composite_engine_kernel_lib_names_(const_cast<std::map<std::string, std::string> &>(
           OpsKernelManager::GetInstance().GetCompositeEngineKernelLibNames())),
-      engine_map_(const_cast<std::map<std::string, DNNEnginePtr>&>(DNNEngineManager::GetInstance().GetAllEngines())) {
+      engine_map_(const_cast<std::map<std::string, DNNEnginePtr> &>(DNNEngineManager::GetInstance().GetAllEngines())) {
   Reset();
 }
 
-GeRunningEnvFaker& GeRunningEnvFaker::Reset() {
-  InitEnv& init_env = InitEnv::GetInstance();
+GeRunningEnvFaker &GeRunningEnvFaker::Reset() {
+  InitEnv &init_env = InitEnv::GetInstance();
   FakeOpRepo::Reset();
-  init_env.reset(ops_kernel_info_stores_, ops_kernel_builders_,
-                 ops_kernel_optimizers_, optimizers_by_priority_,
+  init_env.reset(ops_kernel_info_stores_, ops_kernel_builders_, ops_kernel_optimizers_, optimizers_by_priority_,
                  composite_engines_, composite_engine_kernel_lib_names_, engine_map_);
   flush();
   return *this;
 }
 
-void GeRunningEnvFaker::BackupEnv() { InitEnv::GetInstance(); }
+void GeRunningEnvFaker::BackupEnv() {
+  InitEnv::GetInstance();
+}
 
-GeRunningEnvFaker& GeRunningEnvFaker::Install(const EnvInstaller& installer) {
+GeRunningEnvFaker &GeRunningEnvFaker::Install(const EnvInstaller &installer) {
   installer.Install();
   installer.InstallTo(ops_kernel_info_stores_);
   installer.InstallTo(ops_kernel_optimizers_, optimizers_by_priority_);
@@ -140,7 +141,7 @@ void GeRunningEnvFaker::flush() {
   OpsKernelManager::GetInstance().RefreshOpsKernelInfo();
 }
 
-GeRunningEnvFaker& GeRunningEnvFaker::InstallDefault() {
+GeRunningEnvFaker &GeRunningEnvFaker::InstallDefault() {
   Reset();
   GeDefaultRunningEnv::InstallTo(*this);
   return *this;

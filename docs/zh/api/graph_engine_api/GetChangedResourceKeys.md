@@ -49,4 +49,3 @@ const std::set<ge::AscendString>& GetChangedResourceKeys() const
 ## 约束说明<a name="zh-cn_topic_0000001265084802_section1286618413401"></a>
 
 无。
-

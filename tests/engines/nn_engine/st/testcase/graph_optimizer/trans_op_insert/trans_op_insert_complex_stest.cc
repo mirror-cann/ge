@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -16,7 +16,7 @@
 #include "graph/utils/op_desc_utils.h"
 #include "graph/utils/attr_utils.h"
 #define protected public
-#define private   public
+#define private public
 #include "adapter/common/op_store_adapter_manager.h"
 #include "adapter/tbe_adapter/tbe_op_store_adapter.h"
 #include "ops_kernel_store/fe_ops_kernel_info_store.h"
@@ -42,15 +42,13 @@ using namespace fe;
 
 class STEST_FE_TRANSOP_INSERT_COMPLEX : public testing::Test {
  protected:
-  void SetUp()
-  {
+  void SetUp() {
     std::map<std::string, std::string> options;
     fe_ops_kernel_info_store_ptr_ = make_shared<fe::FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
-    FEOpsStoreInfo tbe_custom {
-        6,
-        "tbe-custom",
-        EN_IMPL_HW_TBE,
-        GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
+    FEOpsStoreInfo tbe_custom{
+        6, "tbe-custom", EN_IMPL_HW_TBE,
+        GetCodeDir() +
+            "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
         ""};
     vector<FEOpsStoreInfo> store_info;
     store_info.emplace_back(tbe_custom);
@@ -61,14 +59,11 @@ class STEST_FE_TRANSOP_INSERT_COMPLEX : public testing::Test {
     RegisterOpCreator("Transpose", {"x", "perm"}, {"y"});
   }
 
-  void TearDown()
-  {
+  void TearDown() {
     fe_ops_kernel_info_store_ptr_->Finalize();
-
   }
 
-  static void RegisterOpCreator(const std::string &op_type,
-                                const std::vector<std::string> &input_names,
+  static void RegisterOpCreator(const std::string &op_type, const std::vector<std::string> &input_names,
                                 const std::vector<std::string> &output_names) {
     auto op_creator = [op_type, input_names, output_names](const std::string &name) -> Operator {
       auto op_desc = make_shared<OpDesc>(name, op_type);
@@ -86,13 +81,13 @@ class STEST_FE_TRANSOP_INSERT_COMPLEX : public testing::Test {
   shared_ptr<fe::FEOpsKernelInfoStore> fe_ops_kernel_info_store_ptr_;
 };
 
-Status QueryHighPrioOpImplTypeStubTbeSt(FEOpsKernelInfoStore* This, const ge::OpDescPtr& op_desc_ptr,
+Status QueryHighPrioOpImplTypeStubTbeSt(FEOpsKernelInfoStore *This, const ge::OpDescPtr &op_desc_ptr,
                                         OpImplType &impl_type, OpKernelInfoPtr &op_kernel_ptr) {
   impl_type = EN_IMPL_HW_TBE;
   return fe::SUCCESS;
 }
 
-Status QueryHighPrioOpImplTypeStubRsvd1(FEOpsKernelInfoStore* This, const ge::OpDescPtr& op_desc_ptr,
+Status QueryHighPrioOpImplTypeStubRsvd1(FEOpsKernelInfoStore *This, const ge::OpDescPtr &op_desc_ptr,
                                         OpImplType &impl_type, OpKernelInfoPtr &op_kernel_ptr) {
   impl_type = EN_RESERVED;
   return fe::SUCCESS;
@@ -179,7 +174,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_01) {
         EXPECT_EQ(shape.GetDim(3), 128);
         EXPECT_EQ(node->GetOpDesc()->GetInputDescPtr(0)->GetDataType(), ge::DT_FLOAT);
       }
-
     }
   }
   EXPECT_EQ(count_node, 4);
@@ -187,7 +181,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_01) {
 
 /* NC1HWC0(fp16) -> NC1HWC0(fp32)-> NHWC (fp32)
  * The Program will insert Cast->Transdata ops.
- * Orignal format of A is NHWC*/
+ * Original format of A is NHWC*/
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_01_2) {
   // src:cce op, dst:cce op
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
@@ -268,7 +262,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_01_2) {
         EXPECT_EQ(shape.GetDim(3), 2);
         EXPECT_EQ(node->GetOpDesc()->GetInputDescPtr(0)->GetDataType(), ge::DT_FLOAT);
       }
-
     }
   }
   EXPECT_EQ(count_node, 4);
@@ -276,7 +269,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_01_2) {
 
 /* NC1HWC0(fp16) -> NC1HWC0(fp32)-> NHWC (fp32)
  * The Program will insert Cast->Transdata ops.
- * Orignal format of A is NHWC, And it's Tbe Op*/
+ * Original format of A is NHWC, And it's Tbe Op*/
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_01_3) {
   // src:cce op, dst:cce op
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
@@ -357,21 +350,19 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_01_3) {
         EXPECT_EQ(shape.GetDim(3), 512);
         EXPECT_EQ(node->GetOpDesc()->GetInputDescPtr(0)->GetDataType(), ge::DT_FLOAT);
       }
-
     }
   }
   EXPECT_EQ(count_node, 4);
 }
 
-
 /* NC1HWC0(fp16) -> NC1HWC0(fp32) -> NHWC (fp32)
  * The Program will insert Cast->Transdata ops.
- * Orignal format of A is NCHW, And it's Tbe Op*/
+ * Original format of A is NCHW, And it's Tbe Op*/
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_01_4) {
   // src:cce op, dst:cce op
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr src_op = std::make_shared<OpDesc>("A", "A");
-  GeTensorDesc src_tensor_desc(GeShape({32, 4, 109, 109,16}), ge::FORMAT_NC1HWC0, ge::DT_FLOAT16);
+  GeTensorDesc src_tensor_desc(GeShape({32, 4, 109, 109, 16}), ge::FORMAT_NC1HWC0, ge::DT_FLOAT16);
   src_tensor_desc.SetOriginShape(GeShape({32, 64, 109, 109}));
   src_tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
   src_op->AddOutputDesc(src_tensor_desc);
@@ -417,7 +408,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_01_4) {
         EXPECT_EQ(shape.GetDim(1), 64);
         EXPECT_EQ(shape.GetDim(2), 109);
         EXPECT_EQ(shape.GetDim(3), 109);
-
       }
     }
     if (node->GetType() == "Cast") {
@@ -448,16 +438,14 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_01_4) {
         EXPECT_EQ(shape.GetDim(3), 2);
         EXPECT_EQ(node->GetOpDesc()->GetInputDescPtr(0)->GetDataType(), ge::DT_FLOAT);
       }
-
     }
   }
   EXPECT_EQ(count_node, 4);
 }
 
-
 /* NC1HWC0(fp16) -> NCHW(fp16) -> NHWC (fp32)
  * The Program will insert Transdata->Cast->Permute ops.
- * Orignal format of A is NCHW and original shape of A is 5D.
+ * Original format of A is NCHW and original shape of A is 5D.
  * Transdata is Tbe Op*/
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_01_5) {
   // src:cce op, dst:cce op
@@ -509,7 +497,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_01_5) {
         EXPECT_EQ(shape.GetDim(1), 64);
         EXPECT_EQ(shape.GetDim(2), 109);
         EXPECT_EQ(shape.GetDim(3), 109);
-
       }
     }
     if (node->GetType() == "Cast") {
@@ -540,7 +527,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_01_5) {
         EXPECT_EQ(shape.GetDim(3), 2);
         EXPECT_EQ(node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType(), ge::DT_FLOAT);
       }
-
     }
   }
   EXPECT_EQ(count_node, 4);
@@ -581,8 +567,8 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_02) {
     ASSERT_NE(node, nullptr);
     count_node++;
     if (node->GetType() == fe::SQUEEZE_V2) {
-      vector<int64_t> input_dim = {100,256,256,512};
-      vector<int64_t> output_dim = {1,3};
+      vector<int64_t> input_dim = {100, 256, 256, 512};
+      vector<int64_t> output_dim = {1, 3};
       {
         ge::GeShape shape = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
         EXPECT_EQ(shape.GetDimNum(), 4);
@@ -597,7 +583,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_02) {
         EXPECT_EQ(node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType(), ge::DT_FLOAT16);
         EXPECT_EQ(node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat(), ge::FORMAT_NCHW);
       }
-
     }
   }
   EXPECT_EQ(count_node, 5);
@@ -619,7 +604,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_03) {
   ge::AttrUtils::SetInt(src_op, FE_IMPLY_TYPE, 6);
 
   OpDescPtr dst_op = std::make_shared<OpDesc>("FF", "FF");
-  GeTensorDesc dst_tensor_desc(GeShape({1, 3}), ge::FORMAT_NCHW, ge::DT_FLOAT); //Reshape type nw
+  GeTensorDesc dst_tensor_desc(GeShape({1, 3}), ge::FORMAT_NCHW, ge::DT_FLOAT);  // Reshape type nw
   dst_tensor_desc.SetOriginShape(GeShape({100, 1, 1, 258}));
   dst_tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
   dst_op->AddInputDesc(dst_tensor_desc);
@@ -678,7 +663,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_03) {
         EXPECT_EQ(shape.GetDim(1), 3);
         EXPECT_EQ(node->GetOpDesc()->GetInputDescPtr(0)->GetDataType(), ge::DT_FLOAT);
       }
-
     }
   }
   EXPECT_EQ(count_node, 5);
@@ -757,12 +741,10 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_06) {
         EXPECT_EQ(shape.GetDim(3), 2);
         EXPECT_EQ(node->GetOpDesc()->GetInputDescPtr(0)->GetDataType(), ge::DT_FLOAT);
       }
-
     }
   }
   EXPECT_EQ(count_node, 6);
 }
-
 
 /* FRACTAL_Z(fp16) -> NCHW(fp16) -> NCHW (fp32)
  * The Program will insert Transdata->Cast->Reshape ops.
@@ -804,7 +786,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_07) {
   EXPECT_EQ(count_node, 4);
 }
 
-
 /* FRACTAL_Z(fp16) -> FRACTAL_Z(fp32) -> NCHW (fp32)
  * The Program will insert Cast->Transdata ops.
  * Reshape successfully.*/
@@ -821,7 +802,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_08) {
   ge::AttrUtils::SetInt(src_op, FE_IMPLY_TYPE, 6);
 
   OpDescPtr dst_op = std::make_shared<OpDesc>("FF", "FF");
-  GeTensorDesc dst_tensor_desc(GeShape({1, 3}), ge::FORMAT_NCHW, ge::DT_FLOAT); //Reshape type nw
+  GeTensorDesc dst_tensor_desc(GeShape({1, 3}), ge::FORMAT_NCHW, ge::DT_FLOAT);  // Reshape type nw
   dst_tensor_desc.SetOriginShape(GeShape({1, 3}));
   dst_tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
   dst_op->AddInputDesc(dst_tensor_desc);
@@ -873,7 +854,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_08) {
         EXPECT_EQ(shape.GetDim(1), 3);
         EXPECT_EQ(node->GetOpDesc()->GetInputDescPtr(0)->GetDataType(), ge::DT_FLOAT);
       }
-
     }
   }
   EXPECT_EQ(count_node, 4);
@@ -956,7 +936,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_11) {
         EXPECT_EQ(shape.GetDim(3), 2);
         EXPECT_EQ(node->GetOpDesc()->GetInputDescPtr(0)->GetDataType(), ge::DT_FLOAT16);
       }
-
     }
   }
   EXPECT_EQ(count_node, 3);
@@ -1006,7 +985,8 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_12) {
       }
       {
         ge::GeShape shape = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
-        ge::Format format_out = static_cast<ge::Format>(GetPrimaryFormat(node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat()));
+        ge::Format format_out =
+            static_cast<ge::Format>(GetPrimaryFormat(node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat()));
 
         EXPECT_EQ(shape.GetDimNum(), 4);
         EXPECT_EQ(shape.GetDim(0), 204800);
@@ -1036,7 +1016,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_12) {
         EXPECT_EQ(shape.GetDim(3), 2);
         EXPECT_EQ(node->GetOpDesc()->GetInputDescPtr(0)->GetDataType(), ge::DT_FLOAT16);
       }
-
     }
   }
   EXPECT_EQ(count_node, 3);
@@ -1116,7 +1095,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_13) {
         EXPECT_EQ(shape.GetDim(3), 2);
         EXPECT_EQ(node->GetOpDesc()->GetInputDescPtr(0)->GetDataType(), ge::DT_FLOAT);
       }
-
     }
   }
   EXPECT_EQ(count_node, 4);
@@ -1195,7 +1173,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_13_1) {
         EXPECT_EQ(shape.GetDim(3), 2);
         EXPECT_EQ(node->GetOpDesc()->GetInputDescPtr(0)->GetDataType(), ge::DT_FLOAT);
       }
-
     }
   }
   EXPECT_EQ(count_node, 4);
@@ -1275,12 +1252,10 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_13_2) {
         EXPECT_EQ(shape.GetDim(3), 2);
         EXPECT_EQ(node->GetOpDesc()->GetInputDescPtr(0)->GetDataType(), ge::DT_FLOAT);
       }
-
     }
   }
   EXPECT_EQ(count_node, 4);
 }
-
 
 /* NC1HWC0(fp16) -> HWCN(fp16) -> HWCN (fp32)
  * The Program will insert Transdata->Cast->Reshape ops.
@@ -1297,9 +1272,9 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_14) {
   src_op->AddInputDesc(src_tensor_desc);
   auto src_node = graph->AddNode(src_op);
   ge::AttrUtils::SetInt(src_op, FE_IMPLY_TYPE, 6);
-  vector<int64_t> dim_f = {1,3};
+  vector<int64_t> dim_f = {1, 3};
   OpDescPtr dst_op = std::make_shared<OpDesc>("FF", "FF");
-  GeTensorDesc dst_tensor_desc(GeShape(dim_f), ge::FORMAT_HWCN, ge::DT_FLOAT); //Reshape type nw
+  GeTensorDesc dst_tensor_desc(GeShape(dim_f), ge::FORMAT_HWCN, ge::DT_FLOAT);  // Reshape type nw
   dst_tensor_desc.SetOriginShape(GeShape(dim_a));
   dst_tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
   dst_op->AddInputDesc(dst_tensor_desc);
@@ -1327,7 +1302,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_14) {
       EXPECT_EQ(shape.GetDim(2), 1);
       EXPECT_EQ(shape.GetDim(3), 258);
       EXPECT_EQ(ge::FORMAT_NCHW, node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat());
-
     }
     if (node->GetType() == TRANSPOSE) {
       ge::GeShape shape = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
@@ -1337,7 +1311,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_14) {
       EXPECT_EQ(shape.GetDim(2), 1);
       EXPECT_EQ(shape.GetDim(3), 100);
       EXPECT_EQ(ge::FORMAT_HWCN, node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat());
-
     }
     if (node->GetType() == "Cast") {
       ge::GeShape shape = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
@@ -1370,7 +1343,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_14) {
         EXPECT_EQ(shape.GetDim(1), 3);
         EXPECT_EQ(node->GetOpDesc()->GetInputDescPtr(0)->GetDataType(), ge::DT_FLOAT);
       }
-
     }
   }
   EXPECT_EQ(count_node, 7);
@@ -1390,9 +1362,9 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_14_1) {
   src_op->AddInputDesc(src_tensor_desc);
   auto src_node = graph->AddNode(src_op);
   ge::AttrUtils::SetInt(src_op, FE_IMPLY_TYPE, 6);
-  vector<int64_t> dims_f = {1,2,3,4};
+  vector<int64_t> dims_f = {1, 2, 3, 4};
   OpDescPtr dst_op = std::make_shared<OpDesc>("FF", "FF");
-  GeTensorDesc dst_tensor_desc(GeShape(dims_f), ge::FORMAT_NC1HWC0, ge::DT_FLOAT); //Reshape type nw
+  GeTensorDesc dst_tensor_desc(GeShape(dims_f), ge::FORMAT_NC1HWC0, ge::DT_FLOAT);  // Reshape type nw
   dst_tensor_desc.SetOriginShape(GeShape({5, 6, 7, 8}));
   dst_tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
   dst_op->AddInputDesc(dst_tensor_desc);
@@ -1421,7 +1393,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_14_1) {
       EXPECT_EQ(shape.GetDim(3), 1);
       EXPECT_EQ(shape.GetDim(4), 16);
       EXPECT_EQ(ge::FORMAT_NC1HWC0, GetPrimaryFormat(node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat()));
-
     }
     if (node->GetType() == TRANSPOSE) {
       ge::GeShape shape = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
@@ -1431,7 +1402,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_14_1) {
       EXPECT_EQ(shape.GetDim(2), 100);
       EXPECT_EQ(shape.GetDim(3), 1);
       EXPECT_EQ(ge::FORMAT_NCHW, node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat());
-
     }
     if (node->GetType() == "Cast") {
       ge::GeShape shape = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
@@ -1458,7 +1428,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_14_1) {
         EXPECT_EQ(shape.GetDims(), dims_f);
         EXPECT_EQ(node->GetOpDesc()->GetInputDescPtr(0)->GetDataType(), ge::DT_FLOAT);
       }
-
     }
   }
   EXPECT_EQ(count_node, 6);
@@ -1468,8 +1437,8 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_15) {
   // src:cce op, dst:cce op
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr src_op = std::make_shared<OpDesc>("var1", "Variable");
-  vector<int64_t> dims4_d = {100,200,300,400};
-  vector<int64_t> dimsfz = {380000,25,16,16};
+  vector<int64_t> dims4_d = {100, 200, 300, 400};
+  vector<int64_t> dimsfz = {380000, 25, 16, 16};
   GeTensorDesc src_tensor_desc(GeShape(dimsfz), ge::FORMAT_FRACTAL_Z, ge::DT_FLOAT);
   src_tensor_desc.SetOriginShape(GeShape(dims4_d));
   src_tensor_desc.SetOriginFormat(ge::FORMAT_HWCN);
@@ -1525,35 +1494,32 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_15) {
   for (auto node : graph->GetDirectNode()) {
     ASSERT_NE(node, nullptr);
     count_node++;
-    EXPECT_NE(node->GetName(),"transdata_0");
-    EXPECT_NE(node->GetName(),"transdata_1");
+    EXPECT_NE(node->GetName(), "transdata_0");
+    EXPECT_NE(node->GetName(), "transdata_1");
     if (node->GetName() == "apply") {
       {
         ge::GeShape shape = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
         EXPECT_EQ(shape.GetDimNum(), 4);
         EXPECT_EQ(shape.GetDims(), dimsfz);
-        EXPECT_EQ(ge::FORMAT_FRACTAL_Z,
-                  node->GetOpDesc()->GetInputDescPtr(0)->GetFormat());
+        EXPECT_EQ(ge::FORMAT_FRACTAL_Z, node->GetOpDesc()->GetInputDescPtr(0)->GetFormat());
       }
       {
         ge::GeShape shape = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
         EXPECT_EQ(shape.GetDimNum(), 4);
         EXPECT_EQ(shape.GetDims(), dimsfz);
-        EXPECT_EQ(ge::FORMAT_FRACTAL_Z,
-                  node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat());
+        EXPECT_EQ(ge::FORMAT_FRACTAL_Z, node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat());
       }
     }
   }
   EXPECT_EQ(count_node, 3);
 }
 
-
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_16) {
   // src:cce op, dst:cce op
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr src_op = std::make_shared<OpDesc>("var1", "Variable");
-  vector<int64_t> dims4_d = {100,200,300,400};
-  vector<int64_t> dimsfz = {380000,25,16,16};
+  vector<int64_t> dims4_d = {100, 200, 300, 400};
+  vector<int64_t> dimsfz = {380000, 25, 16, 16};
   GeTensorDesc src_tensor_desc(GeShape(dimsfz), ge::FORMAT_FRACTAL_Z, ge::DT_FLOAT16);
   src_tensor_desc.SetOriginShape(GeShape(dims4_d));
   src_tensor_desc.SetOriginFormat(ge::FORMAT_HWCN);
@@ -1613,26 +1579,22 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_16) {
   for (auto node : graph->GetDirectNode()) {
     ASSERT_NE(node, nullptr);
     count_node++;
-    EXPECT_NE(node->GetName(),"transdata_0");
-    EXPECT_NE(node->GetName(),"transdata_1");
+    EXPECT_NE(node->GetName(), "transdata_0");
+    EXPECT_NE(node->GetName(), "transdata_1");
     if (node->GetName() == "apply") {
       {
         ge::GeShape shape = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
         EXPECT_EQ(shape.GetDimNum(), 4);
         EXPECT_EQ(shape.GetDims(), dimsfz);
-        EXPECT_EQ(ge::FORMAT_FRACTAL_Z,
-                  node->GetOpDesc()->GetInputDescPtr(0)->GetFormat());
-        EXPECT_EQ(ge::DT_FLOAT,
-                  node->GetOpDesc()->GetInputDescPtr(0)->GetDataType());
+        EXPECT_EQ(ge::FORMAT_FRACTAL_Z, node->GetOpDesc()->GetInputDescPtr(0)->GetFormat());
+        EXPECT_EQ(ge::DT_FLOAT, node->GetOpDesc()->GetInputDescPtr(0)->GetDataType());
       }
       {
         ge::GeShape shape = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
         EXPECT_EQ(shape.GetDimNum(), 4);
         EXPECT_EQ(shape.GetDims(), dimsfz);
-        EXPECT_EQ(ge::FORMAT_FRACTAL_Z,
-                  node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat());
-        EXPECT_EQ(ge::DT_FLOAT,
-                  node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType());
+        EXPECT_EQ(ge::FORMAT_FRACTAL_Z, node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat());
+        EXPECT_EQ(ge::DT_FLOAT, node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType());
       }
     }
     if (node->GetType() == "Cast") {
@@ -1641,19 +1603,15 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_16) {
           ge::GeShape shape = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
           EXPECT_EQ(shape.GetDimNum(), 4);
           EXPECT_EQ(shape.GetDims(), dimsfz);
-          EXPECT_EQ(ge::FORMAT_FRACTAL_Z,
-                    node->GetOpDesc()->GetInputDescPtr(0)->GetFormat());
-          EXPECT_EQ(ge::DT_FLOAT16,
-                    node->GetOpDesc()->GetInputDescPtr(0)->GetDataType());
+          EXPECT_EQ(ge::FORMAT_FRACTAL_Z, node->GetOpDesc()->GetInputDescPtr(0)->GetFormat());
+          EXPECT_EQ(ge::DT_FLOAT16, node->GetOpDesc()->GetInputDescPtr(0)->GetDataType());
         }
         {
           ge::GeShape shape = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
           EXPECT_EQ(shape.GetDimNum(), 4);
           EXPECT_EQ(shape.GetDims(), dimsfz);
-          EXPECT_EQ(ge::FORMAT_FRACTAL_Z,
-                    node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat());
-          EXPECT_EQ(ge::DT_FLOAT,
-                    node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType());
+          EXPECT_EQ(ge::FORMAT_FRACTAL_Z, node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat());
+          EXPECT_EQ(ge::DT_FLOAT, node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType());
         }
         index++;
       } else {
@@ -1661,19 +1619,15 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_16) {
           ge::GeShape shape = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
           EXPECT_EQ(shape.GetDimNum(), 4);
           EXPECT_EQ(shape.GetDims(), dimsfz);
-          EXPECT_EQ(ge::FORMAT_FRACTAL_Z,
-                    node->GetOpDesc()->GetInputDescPtr(0)->GetFormat());
-          EXPECT_EQ(ge::DT_FLOAT,
-                    node->GetOpDesc()->GetInputDescPtr(0)->GetDataType());
+          EXPECT_EQ(ge::FORMAT_FRACTAL_Z, node->GetOpDesc()->GetInputDescPtr(0)->GetFormat());
+          EXPECT_EQ(ge::DT_FLOAT, node->GetOpDesc()->GetInputDescPtr(0)->GetDataType());
         }
         {
           ge::GeShape shape = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
           EXPECT_EQ(shape.GetDimNum(), 4);
           EXPECT_EQ(shape.GetDims(), dimsfz);
-          EXPECT_EQ(ge::FORMAT_FRACTAL_Z,
-                    node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat());
-          EXPECT_EQ(ge::DT_FLOAT16,
-                    node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType());
+          EXPECT_EQ(ge::FORMAT_FRACTAL_Z, node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat());
+          EXPECT_EQ(ge::DT_FLOAT16, node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType());
         }
       }
     }
@@ -1703,7 +1657,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_Converage_03) {
   vector<bool> input_const_vector = {false};
   dst_op->SetIsInputConst(input_const_vector);
 
-
   GraphUtils::AddEdge(src_node->GetOutDataAnchor(0), dst_node->GetInDataAnchor(0));
   /* Set trans_data op as tbe op */
   TransNodeManager trans_op_insert(fe_ops_kernel_info_store_ptr_);
@@ -1721,8 +1674,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_Converage_03) {
         EXPECT_EQ(shape.GetDimNum(), 2);
         EXPECT_EQ(shape.GetDim(0), 256);
         EXPECT_EQ(shape.GetDim(1), 512);
-        EXPECT_EQ(node->GetOpDesc()->GetInputDescPtr(0)->GetDataType(),
-                  ge::DT_FLOAT16);
+        EXPECT_EQ(node->GetOpDesc()->GetInputDescPtr(0)->GetDataType(), ge::DT_FLOAT16);
       }
       {
         ge::GeShape shape = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
@@ -1731,8 +1683,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_Converage_03) {
         EXPECT_EQ(shape.GetDim(1), 256);
         EXPECT_EQ(shape.GetDim(2), 512);
         EXPECT_EQ(shape.GetDim(3), 1);
-        EXPECT_EQ(node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType(),
-                  ge::DT_FLOAT16);
+        EXPECT_EQ(node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType(), ge::DT_FLOAT16);
       }
     }
     if (node->GetType() == "TransData") {
@@ -1802,11 +1753,9 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_Converage_03) {
         EXPECT_EQ(shape.GetDim(4), 1);
         EXPECT_EQ(node->GetOpDesc()->GetInputDescPtr(0)->GetDataType(), ge::DT_FLOAT);
       }
-
     }
   }
   EXPECT_EQ(count_node, 5);
-
 }
 
 /* NHWC(fp32) -> NC1HWC0(fp32) -> NC1HWC0(fp16)
@@ -1816,7 +1765,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_Converage_04) {
   // src:cce op, dst:cce op
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr src_op = std::make_shared<OpDesc>("B", "B");
-  GeTensorDesc src_tensor_desc(GeShape({256,512}), ge::FORMAT_NHWC, ge::DT_FLOAT16);
+  GeTensorDesc src_tensor_desc(GeShape({256, 512}), ge::FORMAT_NHWC, ge::DT_FLOAT16);
   src_op->AddOutputDesc(src_tensor_desc);
   src_op->AddInputDesc(src_tensor_desc);
   auto src_node = graph->AddNode(src_op);
@@ -1848,8 +1797,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_Converage_04) {
         EXPECT_EQ(shape.GetDimNum(), 2);
         EXPECT_EQ(shape.GetDim(0), 256);
         EXPECT_EQ(shape.GetDim(1), 512);
-        EXPECT_EQ(node->GetOpDesc()->GetInputDescPtr(0)->GetDataType(),
-                  ge::DT_FLOAT16);
+        EXPECT_EQ(node->GetOpDesc()->GetInputDescPtr(0)->GetDataType(), ge::DT_FLOAT16);
       }
       {
         ge::GeShape shape = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
@@ -1858,8 +1806,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_Converage_04) {
         EXPECT_EQ(shape.GetDim(1), 256);
         EXPECT_EQ(shape.GetDim(2), 512);
         EXPECT_EQ(shape.GetDim(3), 1);
-        EXPECT_EQ(node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType(),
-                  ge::DT_FLOAT16);
+        EXPECT_EQ(node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType(), ge::DT_FLOAT16);
       }
     }
     if (node->GetType() == "TransData") {
@@ -1884,7 +1831,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_Converage_04) {
         EXPECT_EQ(node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType(), ge::DT_FLOAT16);
         EXPECT_EQ(GetPrimaryFormat(node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat()), ge::FORMAT_NC1HWC0);
       }
-
     }
     if (node->GetType() == "Cast") {
       {
@@ -1929,11 +1875,9 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_Converage_04) {
         EXPECT_EQ(shape.GetDim(4), 1);
         EXPECT_EQ(node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType(), ge::DT_FLOAT);
       }
-
     }
   }
   EXPECT_EQ(count_node, 5);
-
 }
 
 /* NHWC(fp16) -> NC1HWC0(fp16) -> NC1HWC0(fp32)
@@ -1942,10 +1886,8 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_Converage_05) {
   // src:cce op, dst:cce op
   std::map<std::string, std::string> options;
   fe_ops_kernel_info_store_ptr_ = make_shared<fe::FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
-  FEOpsStoreInfo tbe_custom {
-      2,
-      "tbe-custom",
-      EN_IMPL_CUSTOM_TBE,
+  FEOpsStoreInfo tbe_custom{
+      2, "tbe-custom", EN_IMPL_CUSTOM_TBE,
       GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
       ""};
   vector<FEOpsStoreInfo> store_info;
@@ -1954,7 +1896,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_Converage_05) {
   fe_ops_kernel_info_store_ptr_->Initialize(options);
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr src_op = std::make_shared<OpDesc>("B", "B");
-  GeTensorDesc src_tensor_desc(GeShape({256,512}), ge::FORMAT_NHWC, ge::DT_FLOAT16);
+  GeTensorDesc src_tensor_desc(GeShape({256, 512}), ge::FORMAT_NHWC, ge::DT_FLOAT16);
   src_op->AddOutputDesc(src_tensor_desc);
   src_op->AddInputDesc(src_tensor_desc);
   auto src_node = graph->AddNode(src_op);
@@ -1986,8 +1928,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_Converage_05) {
         EXPECT_EQ(shape.GetDimNum(), 2);
         EXPECT_EQ(shape.GetDim(0), 256);
         EXPECT_EQ(shape.GetDim(1), 512);
-        EXPECT_EQ(node->GetOpDesc()->GetInputDescPtr(0)->GetDataType(),
-                  ge::DT_FLOAT16);
+        EXPECT_EQ(node->GetOpDesc()->GetInputDescPtr(0)->GetDataType(), ge::DT_FLOAT16);
       }
       {
         ge::GeShape shape = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
@@ -1996,8 +1937,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_Converage_05) {
         EXPECT_EQ(shape.GetDim(1), 256);
         EXPECT_EQ(shape.GetDim(2), 512);
         EXPECT_EQ(shape.GetDim(3), 1);
-        EXPECT_EQ(node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType(),
-                  ge::DT_FLOAT16);
+        EXPECT_EQ(node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType(), ge::DT_FLOAT16);
       }
     }
     if (node->GetType() == "TransData") {
@@ -2066,14 +2006,10 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_Converage_05) {
         EXPECT_EQ(shape.GetDim(4), 1);
         EXPECT_EQ(node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType(), ge::DT_FLOAT);
       }
-
     }
   }
   EXPECT_EQ(count_node, 5);
-
 }
-
-
 
 /* NCHW 2D(fp16) -> NC1HWC0 2D(fp16) -> NC1HWC0 5D(fp32)
  * The Program will insert TransData->Cast->TransData ops.
@@ -2082,7 +2018,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_Converage_06) {
   // src:cce op, dst:cce op
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr src_op = std::make_shared<OpDesc>("B", "B");
-  auto in_shape = GeShape({256,512});
+  auto in_shape = GeShape({256, 512});
   GeTensorDesc src_tensor_desc(in_shape, ge::FORMAT_NCHW, ge::DT_FLOAT16);
   src_tensor_desc.SetOriginShape(in_shape);
   src_tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
@@ -2103,7 +2039,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_Converage_06) {
   vector<bool> input_const_vector = {false};
   dst_op->SetIsInputConst(input_const_vector);
 
-
   GraphUtils::AddEdge(src_node->GetOutDataAnchor(0), dst_node->GetInDataAnchor(0));
   /* Set trans_data op as tbe op */
   TransNodeManager trans_op_insert(fe_ops_kernel_info_store_ptr_);
@@ -2121,8 +2056,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_Converage_06) {
         EXPECT_EQ(shape.GetDimNum(), 2);
         EXPECT_EQ(shape.GetDim(0), 256);
         EXPECT_EQ(shape.GetDim(1), 512);
-        EXPECT_EQ(node->GetOpDesc()->GetInputDescPtr(0)->GetDataType(),
-                  ge::DT_FLOAT16);
+        EXPECT_EQ(node->GetOpDesc()->GetInputDescPtr(0)->GetDataType(), ge::DT_FLOAT16);
       }
       {
         ge::GeShape shape = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
@@ -2130,8 +2064,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_Converage_06) {
         EXPECT_EQ(shape.GetDim(1), 256);
         EXPECT_EQ(shape.GetDim(2), 512);
         EXPECT_EQ(shape.GetDim(3), 1);
-        EXPECT_EQ(node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType(),
-                  ge::DT_FLOAT16);
+        EXPECT_EQ(node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType(), ge::DT_FLOAT16);
 
         ge::GeShape original_shape = node->GetOpDesc()->GetOutputDescPtr(0)->GetOriginShape();
         ASSERT_EQ(original_shape.GetDimNum(), 2);
@@ -2207,11 +2140,9 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, InsertAllTransop_Converage_06) {
         EXPECT_EQ(shape.GetDim(4), 1);
         EXPECT_EQ(node->GetOpDesc()->GetInputDescPtr(0)->GetDataType(), ge::DT_FLOAT);
       }
-
     }
   }
   EXPECT_EQ(count_node, 5);
-
 }
 
 /*  Test Merging transop of the following case
@@ -2257,7 +2188,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeThreeCastOp) {
   dst_op_cast3->AddOutputDesc(src_tensor_desc_16);
   auto trandata_node3 = graph->AddNode(dst_op_cast3);
 
-
   GraphUtils::AddEdge(src_node->GetOutDataAnchor(0), trandata_node1->GetInDataAnchor(0));
   GraphUtils::AddEdge(trandata_node1->GetOutDataAnchor(0), trandata_node2->GetInDataAnchor(0));
   GraphUtils::AddEdge(trandata_node1->GetOutDataAnchor(0), trandata_node3->GetInDataAnchor(0));
@@ -2267,7 +2197,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeThreeCastOp) {
   TransNodeMerging trans_op_merger;
   trans_op_merger.MergeAllTransOps(*(graph.get()), {}, false);
   uint32_t count_node = 0;
-  for (auto node: graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     EXPECT_NE(node, nullptr);
     string name = node->GetName();
 
@@ -2285,7 +2215,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeThreeCastOp) {
       EXPECT_EQ("A", node->GetOpDesc()->GetSrcName().at(0));
       EXPECT_EQ("A", node->GetOpDesc()->GetInputName().at(0));
       EXPECT_EQ(node->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetName(), "A");
-
     }
     if (name == "B2") {
       EXPECT_EQ(1, node->GetOpDesc()->GetSrcName().size());
@@ -2299,18 +2228,17 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeThreeCastOp) {
 
     count_node++;
   }
-  EXPECT_EQ(count_node,3);
+  EXPECT_EQ(count_node, 3);
 }
 
-
 /*  Test Merging transop of the following case
-*        A (16out)
-*        |
-*      Cast1 (16->32)
-*        |
-*      Cast2 (32->16)
-*      /  \
-*    B1    B2 (16in)*/
+ *        A (16out)
+ *        |
+ *      Cast1 (16->32)
+ *        |
+ *      Cast2 (32->16)
+ *      /  \
+ *    B1    B2 (16in)*/
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeTwoCastOp) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
 
@@ -2341,7 +2269,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeTwoCastOp) {
   dst_op_cast2->AddOutputDesc(src_tensor_desc_16);
   auto trandata_node2 = graph->AddNode(dst_op_cast2);
 
-
   GraphUtils::AddEdge(src_node->GetOutDataAnchor(0), trandata_node1->GetInDataAnchor(0));
   GraphUtils::AddEdge(trandata_node1->GetOutDataAnchor(0), trandata_node2->GetInDataAnchor(0));
   GraphUtils::AddEdge(trandata_node2->GetOutDataAnchor(0), dst_node1->GetInDataAnchor(0));
@@ -2350,7 +2277,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeTwoCastOp) {
   TransNodeMerging trans_op_merger;
   trans_op_merger.MergeAllTransOps(*(graph.get()), {}, false);
   uint32_t count_node = 0;
-  for (auto node: graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     EXPECT_NE(node, nullptr);
     string name = node->GetName();
 
@@ -2367,7 +2294,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeTwoCastOp) {
       EXPECT_EQ("A", node->GetOpDesc()->GetSrcName().at(0));
       EXPECT_EQ("A", node->GetOpDesc()->GetInputName().at(0));
       EXPECT_EQ(node->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetName(), "A");
-
     }
     if (name == "B2") {
       EXPECT_EQ(1, node->GetOpDesc()->GetSrcName().size());
@@ -2381,18 +2307,17 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeTwoCastOp) {
 
     count_node++;
   }
-  EXPECT_EQ(count_node,3);
+  EXPECT_EQ(count_node, 3);
 }
 
-
 /*  Test Merging transop of the following case
-*            A  (16out)
-*            |
-*           Cast (16->32)
-*        /       \
-*    Cast(to16)  Cast (to Int32)
-*    /  \           \
-*  B     C (16in)  D (INT32 in) */
+ *            A  (16out)
+ *            |
+ *           Cast (16->32)
+ *        /       \
+ *    Cast(to16)  Cast (to Int32)
+ *    /  \           \
+ *  B     C (16in)  D (INT32 in) */
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeThreeCastOp2) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
 
@@ -2437,7 +2362,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeThreeCastOp2) {
   dst_op_cast3->AddOutputDesc(dst_tensor_desc_int32);
   auto trandata_node3 = graph->AddNode(dst_op_cast3);
 
-
   GraphUtils::AddEdge(src_node->GetOutDataAnchor(0), trandata_node1->GetInDataAnchor(0));
   GraphUtils::AddEdge(trandata_node1->GetOutDataAnchor(0), trandata_node2->GetInDataAnchor(0));
   GraphUtils::AddEdge(trandata_node1->GetOutDataAnchor(0), trandata_node3->GetInDataAnchor(0));
@@ -2448,7 +2372,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeThreeCastOp2) {
   TransNodeMerging trans_op_merger;
   trans_op_merger.MergeAllTransOps(*(graph.get()), {}, false);
   uint32_t count_node = 0;
-  for (auto node: graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     EXPECT_NE(node, nullptr);
     string name = node->GetName();
 
@@ -2466,7 +2390,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeThreeCastOp2) {
       EXPECT_EQ("A", node->GetOpDesc()->GetSrcName().at(0));
       EXPECT_EQ("A", node->GetOpDesc()->GetInputName().at(0));
       EXPECT_EQ(node->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetName(), "A");
-
     }
     if (name == "B2") {
       EXPECT_EQ(1, node->GetOpDesc()->GetSrcName().size());
@@ -2490,27 +2413,27 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeThreeCastOp2) {
 
     count_node++;
   }
-  EXPECT_EQ(count_node,6);
+  EXPECT_EQ(count_node, 6);
 }
 
 /*  Test Merging transop of the following case
-*           A (16out)
-*           |
-*          Cast1 (16->32)
-*      /    |       \
-*   Cast2  Cast3     B3
-* (32->16) (32->16)  /  \
-*    |      |       /    \
-*    B1     B2    Cast4  Cast5(32->16)
-*    |      |   (32->16)  |
-*    |      |      |      |
-*    \    Cast6   Cast7  Cast8(16->int32)
-*     \  (16->32)(16->32) |
-*      \    |    /        |
-*       \   |   /         |
-*        \  |  /          |
-*          B4             B5(int32)
-*/
+ *           A (16out)
+ *           |
+ *          Cast1 (16->32)
+ *      /    |       \
+ *   Cast2  Cast3     B3
+ * (32->16) (32->16)  /  \
+ *    |      |       /    \
+ *    B1     B2    Cast4  Cast5(32->16)
+ *    |      |   (32->16)  |
+ *    |      |      |      |
+ *    \    Cast6   Cast7  Cast8(16->int32)
+ *     \  (16->32)(16->32) |
+ *      \    |    /        |
+ *       \   |   /         |
+ *        \  |  /          |
+ *          B4             B5(int32)
+ */
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeMultipleCastOp) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
 
@@ -2586,7 +2509,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeMultipleCastOp) {
   dst_op_cast8->AddOutputDesc(dst_tensor_desc_int32);
   auto trandata_node8 = graph->AddNode(dst_op_cast8);
 
-
   GraphUtils::AddEdge(src_node->GetOutDataAnchor(0), trandata_node1->GetInDataAnchor(0));
   GraphUtils::AddEdge(trandata_node1->GetOutDataAnchor(0), trandata_node2->GetInDataAnchor(0));
   GraphUtils::AddEdge(trandata_node1->GetOutDataAnchor(0), trandata_node3->GetInDataAnchor(0));
@@ -2611,7 +2533,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeMultipleCastOp) {
   trans_op_merger.MergeAllTransOps(*(graph.get()), {}, false);
   uint32_t count_node = 0;
   uint32_t count_b4 = 0;
-  for (auto node: graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     EXPECT_NE(node, nullptr);
     string name = node->GetName();
     if (name == "A") {
@@ -2627,7 +2549,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeMultipleCastOp) {
       EXPECT_EQ("A", node->GetOpDesc()->GetSrcName().at(0));
       EXPECT_EQ("A", node->GetOpDesc()->GetInputName().at(0));
       EXPECT_EQ(node->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetName(), "A");
-
     }
     if (name == "B2") {
       EXPECT_EQ(1, node->GetOpDesc()->GetSrcName().size());
@@ -2683,20 +2604,18 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeMultipleCastOp) {
     }
     count_node++;
   }
-  EXPECT_EQ(count_node,10);
-  EXPECT_EQ(count_b4,1);
+  EXPECT_EQ(count_node, 10);
+  EXPECT_EQ(count_b4, 1);
 }
 
-
-
 /*  Test Merging transop of the following case
-*              A (32out)
-*              |
-*           Cast1 (32->16)
-*       /               \
-* Cast2 (16->INT32)   Cast3(16->32)
-*   |                    |
-*  B1                    B2*/
+ *              A (32out)
+ *              |
+ *           Cast1 (32->16)
+ *       /               \
+ * Cast2 (16->INT32)   Cast3(16->32)
+ *   |                    |
+ *  B1                    B2*/
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeMultipleCastOp2) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
 
@@ -2742,7 +2661,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeMultipleCastOp2) {
   TransNodeMerging trans_op_merger;
   trans_op_merger.MergeAllTransOps(*(graph.get()), {}, false);
   uint32_t count_node = 0;
-  for (auto node: graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     EXPECT_NE(node, nullptr);
     string name = node->GetName();
 
@@ -2752,7 +2671,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeMultipleCastOp2) {
     }
     if (name == "B1") {
       EXPECT_EQ(node->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetName(), "Cast2");
-
     }
     if (name == "B2") {
       EXPECT_EQ(1, node->GetOpDesc()->GetSrcName().size());
@@ -2772,18 +2690,17 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeMultipleCastOp2) {
     }
     count_node++;
   }
-  EXPECT_EQ(count_node,5);
+  EXPECT_EQ(count_node, 5);
 }
 
-
 /*  Test Merging transop of the following case
-*                       A (32out)
-*                       |
-*                      Cast1 (32->16)
-*       /               |              \
-* Cast2 (16->INT32)   Cast3(16->32)   Cast4(16->32)
-*   |                    |              |
-*  B1                    B2             B3*/
+ *                       A (32out)
+ *                       |
+ *                      Cast1 (32->16)
+ *       /               |              \
+ * Cast2 (16->INT32)   Cast3(16->32)   Cast4(16->32)
+ *   |                    |              |
+ *  B1                    B2             B3*/
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeMultipleCastOp3) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
 
@@ -2841,7 +2758,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeMultipleCastOp3) {
   TransNodeMerging trans_op_merger;
   trans_op_merger.MergeAllTransOps(*(graph.get()), {}, false);
   uint32_t count_node = 0;
-  for (auto node: graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     EXPECT_NE(node, nullptr);
     string name = node->GetName();
 
@@ -2852,7 +2769,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeMultipleCastOp3) {
     }
     if (name == "B1") {
       EXPECT_EQ(node->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetName(), "Cast2");
-
     }
     if (name == "B2") {
       EXPECT_EQ(1, node->GetOpDesc()->GetSrcName().size());
@@ -2882,23 +2798,22 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeMultipleCastOp3) {
 
     count_node++;
   }
-  EXPECT_EQ(count_node,6);
+  EXPECT_EQ(count_node, 6);
 }
 
-
 /*  Test Merging transop of the following case
-*                       A (32out)
-*                       |
-*                      Cast1 (32->16)
-*       /               |                     \
-* Cast2 (16->INT32)   Cast3(16->32)          Cast4(16->32)
-*   |                    |                /      |         \
-*  B1                    B2         Cast5   Cast7(32->Int) Cast8
-*                                     |          |          |
-*                                   Cast6       B4        Cast9
-*                                     |                     |
-*                                     B3                    B5
-*/
+ *                       A (32out)
+ *                       |
+ *                      Cast1 (32->16)
+ *       /               |                     \
+ * Cast2 (16->INT32)   Cast3(16->32)          Cast4(16->32)
+ *   |                    |                /      |         \
+ *  B1                    B2         Cast5   Cast7(32->Int) Cast8
+ *                                     |          |          |
+ *                                   Cast6       B4        Cast9
+ *                                     |                     |
+ *                                     B3                    B5
+ */
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeMultipleCastOp4) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
 
@@ -2999,11 +2914,10 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeMultipleCastOp4) {
   GraphUtils::AddEdge(trandata_node6->GetOutDataAnchor(0), dst_node3->GetInDataAnchor(0));
   GraphUtils::AddEdge(trandata_node9->GetOutDataAnchor(0), dst_node5->GetInDataAnchor(0));
 
-
   TransNodeMerging trans_op_merger;
   trans_op_merger.MergeAllTransOps(*(graph.get()), {}, false);
   uint32_t count_node = 0;
-  for (auto node: graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     EXPECT_NE(node, nullptr);
     string name = node->GetName();
 
@@ -3013,11 +2927,9 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeMultipleCastOp4) {
       EXPECT_EQ(node->GetOutDataAnchor(0)->GetPeerInDataAnchors().at(2)->GetOwnerNode()->GetName(), "B3");
       EXPECT_EQ(node->GetOutDataAnchor(0)->GetPeerInDataAnchors().at(3)->GetOwnerNode()->GetName(), "Cast7");
       EXPECT_EQ(node->GetOutDataAnchor(0)->GetPeerInDataAnchors().at(4)->GetOwnerNode()->GetName(), "B5");
-
     }
     if (name == "B1") {
       EXPECT_EQ(node->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetName(), "Cast2");
-
     }
     if (name == "B2") {
       EXPECT_EQ(1, node->GetOpDesc()->GetSrcName().size());
@@ -3063,7 +2975,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeMultipleCastOp4) {
     }
     count_node++;
   }
-  EXPECT_EQ(count_node,9);
+  EXPECT_EQ(count_node, 9);
 }
 
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeMultipleCastOp5) {
@@ -3096,7 +3008,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeMultipleCastOp5) {
   dst_op4->AddInputDesc(tensor_desc_32);
   dst_op4->AddOutputDesc(tensor_desc_32);
   auto dst_node4 = graph->AddNode(dst_op4);
-
 
   OpDescPtr dst_op_cast1 = std::make_shared<OpDesc>("Cast1", "Cast");
   dst_op_cast1->AddInputDesc(tensor_desc_32);
@@ -3175,17 +3086,15 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeMultipleCastOp5) {
   TransNodeMerging trans_op_merger;
   trans_op_merger.MergeAllTransOps(*(graph.get()), {}, false);
   uint32_t count_node = 0;
-  for (auto node: graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     EXPECT_NE(node, nullptr);
     string name = node->GetName();
 
     if (name == "A") {
       EXPECT_EQ(node->GetOutDataAnchor(0)->GetPeerInDataAnchors().at(0)->GetOwnerNode()->GetName(), "Cast1");
-
     }
     if (name == "B1") {
       EXPECT_EQ(node->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetName(), "Cast8");
-
     }
     if (name == "B2") {
       EXPECT_EQ(node->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetName(), "Cast9");
@@ -3203,7 +3112,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeMultipleCastOp5) {
   }
   EXPECT_EQ(count_node, 16);
 }
-
 
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeMultipleCastOp6) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
@@ -3338,7 +3246,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeMultipleCastOp6) {
   TransNodeMerging trans_op_merger;
   trans_op_merger.MergeAllTransOps(*(graph.get()), {}, true);
   uint32_t count_node = 0;
-  for (auto node: graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     EXPECT_NE(node, nullptr);
     string name = node->GetName();
 
@@ -3347,11 +3255,9 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeMultipleCastOp6) {
       EXPECT_EQ(node->GetOutDataAnchor(0)->GetPeerInDataAnchors().at(1)->GetOwnerNode()->GetName(), "B2");
       EXPECT_EQ(node->GetOutDataAnchor(0)->GetPeerInDataAnchors().at(2)->GetOwnerNode()->GetName(), "B3");
       EXPECT_EQ(node->GetOutDataAnchor(0)->GetPeerInDataAnchors().at(3)->GetOwnerNode()->GetName(), "B4");
-
     }
     if (name == "B1") {
       EXPECT_EQ(node->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetName(), "A");
-
     }
     if (name == "B2") {
       EXPECT_EQ(1, node->GetOpDesc()->GetSrcName().size());
@@ -3377,9 +3283,8 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeMultipleCastOp6) {
 
     count_node++;
   }
-  EXPECT_EQ(count_node,5);
+  EXPECT_EQ(count_node, 5);
 }
-
 
 TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeMultipleCastOp7) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
@@ -3432,17 +3337,15 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeMultipleCastOp7) {
   TransNodeMerging trans_op_merger;
   trans_op_merger.MergeAllTransOps(*(graph.get()), {}, false);
   uint32_t count_node = 0;
-  for (auto node: graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     EXPECT_NE(node, nullptr);
     string name = node->GetName();
 
     if (name == "A") {
       EXPECT_EQ(node->GetOutDataAnchor(0)->GetPeerInDataAnchors().at(0)->GetOwnerNode()->GetName(), "Reshape");
-
     }
     if (name == "B1") {
       EXPECT_EQ(node->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetName(), "Reshape");
-
     }
     if (name == "Reshape") {
       EXPECT_EQ(1, node->GetOpDesc()->GetSrcName().size());
@@ -3455,5 +3358,5 @@ TEST_F(STEST_FE_TRANSOP_INSERT_COMPLEX, MergeMultipleCastOp7) {
 
     count_node++;
   }
-  EXPECT_EQ(count_node,3);
+  EXPECT_EQ(count_node, 3);
 }

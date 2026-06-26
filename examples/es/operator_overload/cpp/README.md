@@ -23,7 +23,7 @@ cpp/
 - 通过安装指导 [环境准备](../../../../docs/zh/build.md#1-环境准备)正确安装`toolkit`和`ops`包
 - 设置环境变量 (假设包安装在/usr/local/Ascend/)
 ```
-source /usr/local/Ascend/cann/set_env.sh 
+source /usr/local/Ascend/cann/set_env.sh
 ```
 ### 3.2、编译和执行
 
@@ -66,7 +66,7 @@ export ASCEND_GLOBAL_LOG_LEVEL=0 #日志级别为debug级别
 ### 3.4、图编译流程中DUMP图
 可执行程序执行过程中，如果需要DUMP图来辅助定位图编译流程，可以在 bash run_sample.sh -t sample_and_run 之前设置如下环境变量来DUMP图到执行路径下
 ```bash
-export DUMP_GE_GRAPH=2 
+export DUMP_GE_GRAPH=2
 ```
 
 ## 4、核心概念介绍

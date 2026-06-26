@@ -422,7 +422,7 @@ flowchart TD
     A[L1: CachingMemAllocator] --> B[Physical memory management,带 cache/queue reuse]
     C[L2: L2MemPool] --> D[Stream-aware memory pool,管理 block allocation, versioning和 recycle]
     E[L3: BorrowAllocator] --> F[Cross-stream memory sharing pool, reuse other stream释放 blocks]
-    
+
     B --> G[HBM/Host physical memory]
     D --> H[MultiStreamL2Allocator: multi-stream coordination]
     D --> I[SingleStreamL2Allocator: single stream]
@@ -460,7 +460,7 @@ sequenceDiagram
     participant Runtime as Runtime
     participant StreamA as Source Stream A
     participant StreamB as Target Stream B
-    
+
     Lowering->>Runtime: Detect cross-stream access
     Lowering->>Runtime: Create AccessMemCrossStream node
     Runtime->>StreamA: Execute WanderFrom()
@@ -480,10 +480,10 @@ sequenceDiagram
     participant SrcStream as Source Stream
     participant Event as Hardware Event
     participant DstStream as Target Stream
-    
+
     SrcStream->>Event: SendEvents kernel
     Note over SrcStream,Event: Collect待回收 blocks + borrow blocks<br/>Pack到 GertEvent::space<br/>Call aclrtRecordEvent()
-    
+
     Event->>DstStream: WaitEvents kernel
     Note over DstStream: Call rtStreamWaitEvent()<br/>SyncLocalRecycleStatus: Merge source stream recycle status<br/>BirthRecycle: Fully release回归 birth stream blocks<br/>Version match: Ignore expired events
 ```
@@ -565,40 +565,40 @@ flowchart TD
         P3[InplaceSupportCheckPass: mark Inplace candidates]
         P4[AtomicAddrCleanPass: atomic operation zero clear]
     end
-    
+
     subgraph "Compiler - Optimization Stage"
         P5[HcclMemcpyPass second run]
         P6[MemcpyAddrAsyncPass: zero copy address pass]
         P7[MarkSameAddrPass: fixed address mark]
     end
-    
+
     subgraph "Compiler - Memory Conflict Handling"
         P8[HandleMemoryRWConflict: semantic-level conflict detection]
         P9[HandleMemoryLayoutConflict: symbol-level conflict detection]
     end
-    
+
     subgraph "Compiler - Memory Allocation Stage"
         P10[ProcessInplace: Inplace memory reuse + conflict check]
         P11[SetInputOutputOffsetPass: offset setting]
     end
-    
+
     subgraph "Compiler - Verification"
         P12[GraphLint: final conflict verification]
     end
-    
+
     subgraph "Runtime - Graph Build"
         R1[CalcChainConflictSolvePolicy: conditional branch conflict]
         R2[CalcSubgraphGuardersPolicy: resource lifecycle extension]
         R3[AccessMemCrossStream: cross-stream memory tracking]
     end
-    
+
     subgraph "Runtime - Execution"
         R4[SendEvents/WaitEvents: event-driven sync]
         R5[MIF bitmap: multi-stream occupancy tracking]
         R6[VersionBlocks: expired event filter]
         R7[CheckIoReuseAddrs: IO address reuse verification]
     end
-    
+
     P1 --> P2 --> P3 --> P4 --> P5 --> P6 --> P7
     P7 --> P8 --> P9 --> P10 --> P11 --> P12
     P12 --> R1 --> R2 --> R3 --> R4
@@ -620,4 +620,3 @@ GE's memory conflict protection and address isolation system reflects the follow
 **Symbol Equivalence Class-driven Memory Planning**: Through `SymbolToAnchors`/`AnchorToSymbol`, all anchors sharing the same physical address are organized into equivalence classes. Conflict detection is performed within equivalence classes, ensuring incompatible memory attributes do not share the same address.
 
 **Inplace Reuse and Conflict Protection Balance**: Inplace optimization reduces memory footprint by reusing input memory, but must pass strict conflict checks (read-only symbol protection, continuous memory constraint, symbol merge conflict detection), ensuring reuse does not introduce new conflicts.
-

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,16 +18,16 @@
 #include "rt_external.h"
 
 class GeExecutorStubMock {
-public:
-  static GeExecutorStubMock& GetInstance() {
+ public:
+  static GeExecutorStubMock &GetInstance() {
     static GeExecutorStubMock mock;
     return mock;
   }
 
   MOCK_METHOD2(GetPartitionSize, Status(const char *fileName, GePartitionSize *mdlPartitionSize));
   MOCK_METHOD3(GetMemAndWeightSize, Status(const char *fileName, size_t *workSize, size_t *weightSize));
-  MOCK_METHOD5(ExecModel, Status(uint32_t modelId, ExecHandleDesc *execDesc, bool sync,
-               const InputData *inputData, OutputData *outputData));
+  MOCK_METHOD5(ExecModel, Status(uint32_t modelId, ExecHandleDesc *execDesc, bool sync, const InputData *inputData,
+                                 OutputData *outputData));
   MOCK_METHOD2(GeLoadModelFromData, Status(uint32_t *modelId, const ModelData *modelData));
   MOCK_METHOD1(UnloadModel, Status(uint32_t modelId));
   MOCK_METHOD1(DestroyModelInOutInfo, Status(ModelInOutInfo *info));

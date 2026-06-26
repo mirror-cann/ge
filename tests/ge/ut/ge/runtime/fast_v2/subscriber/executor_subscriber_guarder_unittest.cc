@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -13,7 +13,7 @@
 namespace gert {
 namespace {
 void TestSubscriberFunc(int32_t type, void *arg, ExecutorEvent event, const void *node, KernelStatus result) {}
-}
+}  // namespace
 class ExecutorSubscriberGuarderUT : public testing::Test {};
 TEST_F(ExecutorSubscriberGuarderUT, NoLeaks) {
   EXPECT_NO_THROW(ExecutorSubscriberGuarder g1(TestSubscriberFunc, malloc(10), free));
@@ -26,16 +26,11 @@ TEST_F(ExecutorSubscriberGuarderUT, GetMembersOk) {
 }
 
 TEST_F(ExecutorSubscriberGuarderUT, MoveConstructOk) {
-  EXPECT_NO_THROW(
-    ExecutorSubscriberGuarder g1(TestSubscriberFunc, malloc(10), free);
-    ExecutorSubscriberGuarder g2(std::move(g1));
-  );
+  EXPECT_NO_THROW(ExecutorSubscriberGuarder g1(TestSubscriberFunc, malloc(10), free);
+                  ExecutorSubscriberGuarder g2(std::move(g1)););
 }
 TEST_F(ExecutorSubscriberGuarderUT, MoveAssignmentOk) {
-  EXPECT_NO_THROW(
-    ExecutorSubscriberGuarder g1(TestSubscriberFunc, malloc(10), free);
-    ExecutorSubscriberGuarder g2(nullptr, nullptr, nullptr);
-    g2 = std::move(g1);
-  );
+  EXPECT_NO_THROW(ExecutorSubscriberGuarder g1(TestSubscriberFunc, malloc(10), free);
+                  ExecutorSubscriberGuarder g2(nullptr, nullptr, nullptr); g2 = std::move(g1););
 }
 }  // namespace gert

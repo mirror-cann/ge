@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,57 +30,56 @@ using AttrValueMap = google::protobuf::Map<std::string, domi::tensorflow::AttrVa
 /**
  * filter attrs which in attr_whitelist.
  */
-const std::set<std::string> kConstAttrBlacklist = {
-    "workspace_memsize",
-    "workspace_alignment",
-    "output_memsize_vector",
-    "output_alignment_vector",
-    "original_type",
-    "FrameworkOp",
-    "node_def",
-    "framework_type",
-    "t_in_datatype",
-    "t_out_datatype",
-    "is_input_const",
-    "format",
-    "inferred_format",
-    "net_output_datatype",
-    "net_output_format",
-    "isCheckSupported",
-    "op_def",
-    "original_op_names",
-    "imply_type",
-    "_coretype",
-    "_ge_attr_op_kernel_lib_name",
-    "_is_unknown_shape",
-    "_aicpu_unknown_shape",
-    "_lxfusion_engine_name",
-    "_lxfusion_op_kernel_lib_name",
-    "_unknown_shape",
-    "OwnerGraphIsUnknown",
-    aicpu::kAicpuPrivate,
-    "_datadump_original_op_names",
-    "_datadump_original_op_types",
-    "needCheckTf",
-    "reference",
-    "attr_name_engine_async_flag_",
-    "async_flag",
-    "INPUT_IS_VAR",
-    "OUTPUT_IS_VAR",
-    "_tbe_kernel_buffer",
-    "ub_atomic_params",
-    "_l2fusion_ToOpStruct",
-    "_composite_engine_name",
-    "_composite_engine_kernel_lib_name",
-    "LxFusionOptimized",
-    "is_first_node",
-    "is_last_node",
-    "_ffts_plus",
-    "_op_slice_info",
-    "_thread_scope_id",
-    "_thread_mode",
-    "_sgt_json_info",
-    "cut_type"};
+const std::set<std::string> kConstAttrBlacklist = {"workspace_memsize",
+                                                   "workspace_alignment",
+                                                   "output_memsize_vector",
+                                                   "output_alignment_vector",
+                                                   "original_type",
+                                                   "FrameworkOp",
+                                                   "node_def",
+                                                   "framework_type",
+                                                   "t_in_datatype",
+                                                   "t_out_datatype",
+                                                   "is_input_const",
+                                                   "format",
+                                                   "inferred_format",
+                                                   "net_output_datatype",
+                                                   "net_output_format",
+                                                   "isCheckSupported",
+                                                   "op_def",
+                                                   "original_op_names",
+                                                   "imply_type",
+                                                   "_coretype",
+                                                   "_ge_attr_op_kernel_lib_name",
+                                                   "_is_unknown_shape",
+                                                   "_aicpu_unknown_shape",
+                                                   "_lxfusion_engine_name",
+                                                   "_lxfusion_op_kernel_lib_name",
+                                                   "_unknown_shape",
+                                                   "OwnerGraphIsUnknown",
+                                                   aicpu::kAicpuPrivate,
+                                                   "_datadump_original_op_names",
+                                                   "_datadump_original_op_types",
+                                                   "needCheckTf",
+                                                   "reference",
+                                                   "attr_name_engine_async_flag_",
+                                                   "async_flag",
+                                                   "INPUT_IS_VAR",
+                                                   "OUTPUT_IS_VAR",
+                                                   "_tbe_kernel_buffer",
+                                                   "ub_atomic_params",
+                                                   "_l2fusion_ToOpStruct",
+                                                   "_composite_engine_name",
+                                                   "_composite_engine_kernel_lib_name",
+                                                   "LxFusionOptimized",
+                                                   "is_first_node",
+                                                   "is_last_node",
+                                                   "_ffts_plus",
+                                                   "_op_slice_info",
+                                                   "_thread_scope_id",
+                                                   "_thread_mode",
+                                                   "_sgt_json_info",
+                                                   "cut_type"};
 
 // json config:represent input/output data type are list
 const std::string kInOutAttrDataTypeList = "list";
@@ -95,15 +94,13 @@ const int kErrorOutputIndex = -1;
 const std::string kTfShapeType = "tf_shape";
 
 const std::string kTfEnumType = "tf_enum";
-} // namespace
+}  // namespace
 
 namespace aicpu {
 std::shared_ptr<Ir2tfBaseParser> Ir2tfBaseParser::Instance() {
   static std::shared_ptr<Ir2tfBaseParser> instance;
   static std::once_flag flag;
-  std::call_once(flag, [&]() {
-    instance.reset(new(std::nothrow) Ir2tfBaseParser);
-  });
+  std::call_once(flag, [&]() { instance.reset(new (std::nothrow) Ir2tfBaseParser); });
   return instance;
 }
 
@@ -111,11 +108,11 @@ ge::Status Ir2tfBaseParser::ParseNodeDef(const ge::Node &node, domi::tensorflow:
   AICPU_CHECK_NOTNULL_ERRCODE(node_def, ErrorCode::INPUT_PARAM_NULL)
   node_def->set_name(node.GetName());
   AICPU_CHECK_RES_WITH_LOG(ParseAttr(node, node_def),
-      "Call Ir2tfBaseParser::ParseAttr function failed, op[%s], op type[%s].",
-      node.GetName().c_str(), node.GetType().c_str())
+                           "Call Ir2tfBaseParser::ParseAttr function failed, op[%s], op type[%s].",
+                           node.GetName().c_str(), node.GetType().c_str())
   AICPU_CHECK_RES_WITH_LOG(ParseInput(node, node_def),
-      "Call Ir2tfBaseParser::ParseInput function failed, op[%s], op type[%s].",
-      node.GetName().c_str(), node.GetType().c_str())
+                           "Call Ir2tfBaseParser::ParseInput function failed, op[%s], op type[%s].",
+                           node.GetName().c_str(), node.GetType().c_str())
   return ge::SUCCESS;
 }
 
@@ -134,15 +131,13 @@ ge::Status Ir2tfBaseParser::LoadMappingConfig() {
     REPORT_PREDEFINED_ERR_MSG(GetViewErrorCodeStr(ViewErrorCode::LOAD_IR_CONFIG_ERR).c_str(),
                               std::vector<const char *>({"filename", "reason"}),
                               std::vector<const char *>({real_config_file_path.c_str(), state.msg.c_str()}));
-    AICPUE_LOGE("Parse ir2tf config file[%s] failed, %s.",
-        real_config_file_path.c_str(), state.msg.c_str());
+    AICPUE_LOGE("Parse ir2tf config file[%s] failed, %s.", real_config_file_path.c_str(), state.msg.c_str());
     return ErrorCode::IR2TF_FILE_PARSE_FAILED;
   }
 
   AICPU_IF_BOOL_EXEC(json_read.find(kIrMappingConfigIr2Tf) == json_read.end(),
-      AICPU_REPORT_INNER_ERR_MSG("json file[%s] does not have IR2TF.",
-          real_config_file_path.c_str());
-      return ErrorCode::IR2TF_CONFIG_INVALID)
+                     AICPU_REPORT_INNER_ERR_MSG("json file[%s] does not have IR2TF.", real_config_file_path.c_str());
+                     return ErrorCode::IR2TF_CONFIG_INVALID)
   aicpu::IRFMKOpMapLib ir_mapping_lib = json_read;
 
   AICPU_CHECK_RES(ValidateOpMappingConfig(ir_mapping_lib.ir2tf))
@@ -183,21 +178,21 @@ ge::Status Ir2tfBaseParser::ParseAttr(const ge::Node &node, domi::tensorflow::No
   auto iter = ir2tf_map_.find(node.GetType());
   if (iter != ir2tf_map_.end()) {
     AICPU_CHECK_RES_WITH_LOG(ParseConfigAttr(node, node_def, &(iter->second)),
-        "Call Ir2tfBaseParser::ParseConfigAttr function failed, op[%s], op type[%s].",
-        node.GetName().c_str(), node.GetType().c_str())
+                             "Call Ir2tfBaseParser::ParseConfigAttr function failed, op[%s], op type[%s].",
+                             node.GetName().c_str(), node.GetType().c_str())
     AICPU_CHECK_RES_WITH_LOG(ParseBaseAttr(node, node_def),
-        "Call Ir2tfBaseParser::ParseBaseAttr function failed, op[%s], op type[%s].",
-        node.GetName().c_str(), node.GetType().c_str())
+                             "Call Ir2tfBaseParser::ParseBaseAttr function failed, op[%s], op type[%s].",
+                             node.GetName().c_str(), node.GetType().c_str())
     AICPU_CHECK_RES_WITH_LOG(ParseExtendAttr(node, node_def, &(iter->second)),
-        "Call Ir2tfBaseParser::ParseExtendAttr function failed, op[%s], op type[%s].",
-        node.GetName().c_str(), node.GetType().c_str())
+                             "Call Ir2tfBaseParser::ParseExtendAttr function failed, op[%s], op type[%s].",
+                             node.GetName().c_str(), node.GetType().c_str())
     return ge::SUCCESS;
   }
   AICPUE_LOGW("Op[%s] does not exist in ir2tf json config.", node.GetType().c_str());
   node_def->set_op(node.GetType());
   AICPU_CHECK_RES_WITH_LOG(ParseBaseAttr(node, node_def),
-      "Call Ir2tfBaseParser::ParseBaseAttr function failed, op[%s], op type[%s].",
-      node.GetName().c_str(), node.GetType().c_str());
+                           "Call Ir2tfBaseParser::ParseBaseAttr function failed, op[%s], op type[%s].",
+                           node.GetName().c_str(), node.GetType().c_str());
   return ge::SUCCESS;
 }
 
@@ -223,29 +218,27 @@ ge::Status Ir2tfBaseParser::ParseBaseAttr(const ge::Node &node, domi::tensorflow
 
     domi::tensorflow::AttrValue attr_value;
     const ge::GeAttrValue::ValueType ge_value_type = (iter->second).GetValueType();
-    AICPUE_LOGD("Get attr: [%s] value from op[%s], ge_value_type is [%d].",
-                ge_attr_name.c_str(), node.GetType().c_str(), ge_value_type);
+    AICPUE_LOGD("Get attr: [%s] value from op[%s], ge_value_type is [%d].", ge_attr_name.c_str(),
+                node.GetType().c_str(), ge_value_type);
 
     // If get attr value failed, no need to insert the attr. Only print log
     if (GetAttrValueFromGe(node, ge_attr_name, ge_value_type, attr_value) != ge::SUCCESS) {
-      AICPU_REPORT_INNER_ERR_MSG(
-          "Call Ir2tfBaseParser::GetAttrValueFromGe failed, op[%s], op type[%s].",
-          node.GetName().c_str(), node.GetType().c_str());
+      AICPU_REPORT_INNER_ERR_MSG("Call Ir2tfBaseParser::GetAttrValueFromGe failed, op[%s], op type[%s].",
+                                 node.GetName().c_str(), node.GetType().c_str());
       continue;
     }
 
     AICPU_CHECK_NOTNULL(node_def->mutable_attr())
     auto pair = node_def->mutable_attr()->insert(AttrValueMap::value_type(ge_attr_name, attr_value));
     if (!pair.second) {
-      AICPUE_LOGW("Op[%s] insert attr[%s] to node_def failed, op type[%s].",
-                  node.GetName().c_str(), ge_attr_name.c_str(), node.GetType().c_str());
+      AICPUE_LOGW("Op[%s] insert attr[%s] to node_def failed, op type[%s].", node.GetName().c_str(),
+                  ge_attr_name.c_str(), node.GetType().c_str());
     }
   }
   return ge::SUCCESS;
 }
 
-ge::Status Ir2tfBaseParser::ParseConfigAttr(const ge::Node &node,
-                                            domi::tensorflow::NodeDef *node_def,
+ge::Status Ir2tfBaseParser::ParseConfigAttr(const ge::Node &node, domi::tensorflow::NodeDef *node_def,
                                             const OpMapInfo *ir2tf) {
   AICPU_CHECK_NOTNULL_ERRCODE(ir2tf, ErrorCode::INPUT_PARAM_NULL)
   AICPU_CHECK_NOTNULL_ERRCODE(node_def, ErrorCode::INPUT_PARAM_NULL)
@@ -253,23 +246,22 @@ ge::Status Ir2tfBaseParser::ParseConfigAttr(const ge::Node &node,
 
   for (const ParserExpDesc &attr_mapping : ir2tf->attrs_map_desc) {
     AICPU_CHECK_RES_WITH_LOG(HandleAttrMapping(node, node_def, attr_mapping),
-        "Call Ir2tfBaseParser::HandleAttrMapping function failed, op[%s], op type[%s].",
-        node.GetName().c_str(), node.GetType().c_str())
+                             "Call Ir2tfBaseParser::HandleAttrMapping function failed, op[%s], op type[%s].",
+                             node.GetName().c_str(), node.GetType().c_str())
   }
 
   // parse input_attr_map_desc and output_attr_map_desc config
   AICPU_CHECK_RES_WITH_LOG(HandleInputAttrMapping(node, node_def, ir2tf),
-      "Call Ir2tfBaseParser::HandleInputAttrMapping function failed, op[%s], op type[%s].",
-      node.GetName().c_str(), node.GetType().c_str())
+                           "Call Ir2tfBaseParser::HandleInputAttrMapping function failed, op[%s], op type[%s].",
+                           node.GetName().c_str(), node.GetType().c_str())
 
   AICPU_CHECK_RES_WITH_LOG(HandleOutputAttrMapping(node, node_def, ir2tf),
-      "Call Ir2tfBaseParser::HandleOutputAttrMapping function failed, op[%s], op type[%s].",
-      node.GetName().c_str(), node.GetType().c_str())
+                           "Call Ir2tfBaseParser::HandleOutputAttrMapping function failed, op[%s], op type[%s].",
+                           node.GetName().c_str(), node.GetType().c_str())
   return ge::SUCCESS;
 }
 
-ge::Status Ir2tfBaseParser::HandleAttrMapping(const ge::Node &node,
-                                              domi::tensorflow::NodeDef *node_def,
+ge::Status Ir2tfBaseParser::HandleAttrMapping(const ge::Node &node, domi::tensorflow::NodeDef *node_def,
                                               const ParserExpDesc &attr_mapping) {
   ge::OpDescPtr op_desc_ptr = node.GetOpDesc();
   AICPU_CHECK_NOTNULL(op_desc_ptr);
@@ -282,20 +274,18 @@ ge::Status Ir2tfBaseParser::HandleAttrMapping(const ge::Node &node,
     if (iter != attr_map.end()) {
       const ge::GeAttrValue::ValueType ge_value_type = (iter->second).GetValueType();
       AICPU_CHECK_RES_WITH_LOG(GetAttrValueFromGe(node, iter->first, ge_value_type, attr_value),
-          "Call Ir2tfBaseParser::GetAttrValueFromGe function failed,"
-          " attr[%s], op[%s], op type[%s]",
-          (iter->first).c_str(), node.GetName().c_str(), node.GetType().c_str())
+                               "Call Ir2tfBaseParser::GetAttrValueFromGe function failed,"
+                               " attr[%s], op[%s], op type[%s]",
+                               (iter->first).c_str(), node.GetName().c_str(), node.GetType().c_str())
     } else {
-      AICPU_REPORT_INNER_ERR_MSG("Cannot find attr[%s], op[%s], op type[%s].",
-          attr_mapping.src_field_name.c_str(), node.GetName().c_str(),
-          node.GetType().c_str());
+      AICPU_REPORT_INNER_ERR_MSG("Cannot find attr[%s], op[%s], op type[%s].", attr_mapping.src_field_name.c_str(),
+                                 node.GetName().c_str(), node.GetType().c_str());
       return ErrorCode::IR2TF_SRC_ATTR_MISSING;
     }
 
     auto pair = node_def->mutable_attr()->insert(AttrValueMap::value_type(attr_mapping.dst_field_name, attr_value));
     if (!pair.second) {
-      AICPUE_LOGW("Op[%s] insert attr[%s] failed, op type[%s].",
-                  node.GetName().c_str(),
+      AICPUE_LOGW("Op[%s] insert attr[%s] failed, op type[%s].", node.GetName().c_str(),
                   attr_mapping.dst_field_name.c_str(), node.GetType().c_str());
     }
     return ge::SUCCESS;
@@ -314,35 +304,29 @@ ge::Status Ir2tfBaseParser::HandleAttrMapping(const ge::Node &node,
   return SetTfAttrType(op_desc_ptr, node_def, attr_mapping);
 }
 
-ge::Status Ir2tfBaseParser::SetTfAttrType(const ge::OpDescPtr &op_desc_ptr,
-                                          domi::tensorflow::NodeDef *node_def,
+ge::Status Ir2tfBaseParser::SetTfAttrType(const ge::OpDescPtr &op_desc_ptr, domi::tensorflow::NodeDef *node_def,
                                           const ParserExpDesc &attr_mapping) {
-  // The configuration is like input_xx, proctected by internal ,no need to validate
+  // The configuration is like input_xx, protected by internal ,no need to validate
   std::string expression = attr_mapping.parser_express;
   size_t first_underline_pos = expression.find_first_of('_');
-  CHECK_RES_BOOL(first_underline_pos != std::string::npos,
-      ErrorCode::IR2TF_CONFIG_PARSE_FAILED,
-      AICPU_REPORT_INNER_ERR_MSG(
-          "Invalid parser express[%s] shoule be contain '-'. op[%s], op type[%s].",
-          expression.c_str(), op_desc_ptr->GetName().c_str(),
-          op_desc_ptr->GetType().c_str()))
+  CHECK_RES_BOOL(
+      first_underline_pos != std::string::npos, ErrorCode::IR2TF_CONFIG_PARSE_FAILED,
+      AICPU_REPORT_INNER_ERR_MSG("Invalid parser express[%s] should be contain '-'. op[%s], op type[%s].",
+                                 expression.c_str(), op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str()))
 
   std::string src_anchor = expression.substr(0, first_underline_pos);
   std::string anchor_index = expression.substr(first_underline_pos + 1, expression.length());
   int index = 0;
   aicpu::State state = StringToNum(anchor_index, index);
   if (state.state != ge::SUCCESS) {
-      AICPU_REPORT_INNER_ERR_MSG(
-          "Convert %s to int failed, %s, when paser expression[%s], op[%s]",
-          anchor_index.c_str(), state.msg.c_str(), expression.c_str(),
-          op_desc_ptr->GetName().c_str());
-      return ErrorCode::IR2TF_CONFIG_INVALID;
+    AICPU_REPORT_INNER_ERR_MSG("Convert %s to int failed, %s, when parser expression[%s], op[%s]", anchor_index.c_str(),
+                               state.msg.c_str(), expression.c_str(), op_desc_ptr->GetName().c_str());
+    return ErrorCode::IR2TF_CONFIG_INVALID;
   }
 
   if (index < 0) {
-    AICPU_REPORT_INNER_ERR_MSG("invalid index of expression[%s], op[%s], op type[%s].",
-        expression.c_str(), op_desc_ptr->GetName().c_str(),
-        op_desc_ptr->GetType().c_str());
+    AICPU_REPORT_INNER_ERR_MSG("invalid index of expression[%s], op[%s], op type[%s].", expression.c_str(),
+                               op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
     return ErrorCode::IR2TF_CONFIG_INVALID;
   }
 
@@ -355,17 +339,16 @@ ge::Status Ir2tfBaseParser::SetTfAttrType(const ge::OpDescPtr &op_desc_ptr,
     int index_dynamic = 0;
     state = StringToNum(dynamic_attr.index, index_dynamic);
     if (state.state != ge::SUCCESS) {
-        AICPU_REPORT_INNER_ERR_MSG(
-            "Convert %s to int failed, %s, when paser[attrsDynamicDesc] index,"
-            " op[%s].", dynamic_attr.index.c_str(), state.msg.c_str(),
-            op_desc_ptr->GetName().c_str());
-        return ErrorCode::IR2TF_CONFIG_INVALID;
+      AICPU_REPORT_INNER_ERR_MSG(
+          "Convert %s to int failed, %s, when parser[attrsDynamicDesc] index,"
+          " op[%s].",
+          dynamic_attr.index.c_str(), state.msg.c_str(), op_desc_ptr->GetName().c_str());
+      return ErrorCode::IR2TF_CONFIG_INVALID;
     }
 
     if (index_dynamic < 0) {
-      AICPU_REPORT_INNER_ERR_MSG("invalid dynamic index[%s], op[%s], op type[%s].",
-          dynamic_attr.index.c_str(), op_desc_ptr->GetName().c_str(),
-          op_type.c_str());
+      AICPU_REPORT_INNER_ERR_MSG("invalid dynamic index[%s], op[%s], op type[%s].", dynamic_attr.index.c_str(),
+                                 op_desc_ptr->GetName().c_str(), op_type.c_str());
       return ErrorCode::IR2TF_CONFIG_INVALID;
     }
     if (dynamic_attr.type == src_anchor) {
@@ -393,21 +376,19 @@ ge::Status Ir2tfBaseParser::SetTfAttrType(const ge::OpDescPtr &op_desc_ptr,
   attr_value.set_type(data_type);
   auto pair = node_def->mutable_attr()->insert(AttrValueMap::value_type(attr_mapping.dst_field_name, attr_value));
   if (!pair.second) {
-    AICPUE_LOGW("Op[%s] insert attr[%s] failed, op type[%s].",
-                op_desc_ptr->GetName().c_str(), attr_mapping.dst_field_name.c_str(), op_type.c_str());
+    AICPUE_LOGW("Op[%s] insert attr[%s] failed, op type[%s].", op_desc_ptr->GetName().c_str(),
+                attr_mapping.dst_field_name.c_str(), op_type.c_str());
   }
   return ge::SUCCESS;
 }
 
-ge::Status Ir2tfBaseParser::SetTfAttrShape(const ge::OpDescPtr &op_desc_ptr,
-                                           domi::tensorflow::NodeDef *node_def,
+ge::Status Ir2tfBaseParser::SetTfAttrShape(const ge::OpDescPtr &op_desc_ptr, domi::tensorflow::NodeDef *node_def,
                                            const ParserExpDesc &attr_mapping) const {
   std::vector<int32_t> shape_value;
   CHECK_RES_BOOL(ge::AttrUtils::GetListInt(op_desc_ptr, attr_mapping.src_field_name, shape_value),
-      ErrorCode::DATA_TYPE_UNDEFILED,
-      AICPU_REPORT_INNER_ERR_MSG(
-          "Call ge::AttrUtils::GetListInt failed to get attr[%s], op[%s]",
-          attr_mapping.src_field_name.c_str(), op_desc_ptr->GetName().c_str()))
+                 ErrorCode::DATA_TYPE_UNDEFILED,
+                 AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::GetListInt failed to get attr[%s], op[%s]",
+                                            attr_mapping.src_field_name.c_str(), op_desc_ptr->GetName().c_str()))
 
   domi::tensorflow::AttrValue attr_value;
   domi::tensorflow::TensorShapeProto *shape_tensor = attr_value.mutable_shape();
@@ -423,49 +404,47 @@ ge::Status Ir2tfBaseParser::SetTfAttrShape(const ge::OpDescPtr &op_desc_ptr,
 
   auto pair = node_def->mutable_attr()->insert(AttrValueMap::value_type(attr_mapping.dst_field_name, attr_value));
   if (!pair.second) {
-    AICPUE_LOGW("Op[%s] insert attr[%s] failed, op type[%s].",
-                op_desc_ptr->GetName().c_str(), attr_mapping.dst_field_name.c_str(), op_desc_ptr->GetType().c_str());
+    AICPUE_LOGW("Op[%s] insert attr[%s] failed, op type[%s].", op_desc_ptr->GetName().c_str(),
+                attr_mapping.dst_field_name.c_str(), op_desc_ptr->GetType().c_str());
   }
   return ge::SUCCESS;
 }
-ge::Status Ir2tfBaseParser::SetTfAttrEnum(const ge::OpDescPtr &op_desc_ptr,
-                                          domi::tensorflow::NodeDef *node_def,
+ge::Status Ir2tfBaseParser::SetTfAttrEnum(const ge::OpDescPtr &op_desc_ptr, domi::tensorflow::NodeDef *node_def,
                                           const ParserExpDesc &attr_mapping) const {
   ge::DataType ge_data_type = ge::DT_UNDEFINED;
   CHECK_RES_BOOL(ge::AttrUtils::GetDataType(op_desc_ptr, attr_mapping.src_field_name, ge_data_type),
-      ErrorCode::DATA_TYPE_UNDEFILED,
-      AICPU_REPORT_INNER_ERR_MSG(
-          "Call ge::AttrUtils::GetDataType failed to get attr[%s], op[%s]",
-          attr_mapping.src_field_name.c_str(), op_desc_ptr->GetName().c_str()))
+                 ErrorCode::DATA_TYPE_UNDEFILED,
+                 AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::GetDataType failed to get attr[%s], op[%s]",
+                                            attr_mapping.src_field_name.c_str(), op_desc_ptr->GetName().c_str()))
   AICPUE_LOGD("SetTfAttrEnum ge_data_type = %ld.", static_cast<int64_t>(ge_data_type));
   domi::tensorflow::DataType data_type = ConvertGeDataType2TfDataType(ge_data_type);
-  int64_t type_enmu = (ge_data_type == ge::DT_UINT1) ?
-                      (static_cast<int64_t>(ge::DT_UINT1)) : (static_cast<int64_t>(data_type));
+  int64_t type_enmu =
+      (ge_data_type == ge::DT_UINT1) ? (static_cast<int64_t>(ge::DT_UINT1)) : (static_cast<int64_t>(data_type));
   AICPUE_LOGD("SetTfAttrEnum type_enmu = %ld.", type_enmu);
   domi::tensorflow::AttrValue attr_value;
   attr_value.set_i(type_enmu);
 
   auto pair = node_def->mutable_attr()->insert(AttrValueMap::value_type(attr_mapping.dst_field_name, attr_value));
   if (!pair.second) {
-    AICPUE_LOGW("Op[%s] insert attr[%s] failed, op type[%s].",
-                op_desc_ptr->GetName().c_str(), attr_mapping.dst_field_name.c_str(), op_desc_ptr->GetType().c_str());
+    AICPUE_LOGW("Op[%s] insert attr[%s] failed, op type[%s].", op_desc_ptr->GetName().c_str(),
+                attr_mapping.dst_field_name.c_str(), op_desc_ptr->GetType().c_str());
   }
   return ge::SUCCESS;
 }
 
 ge::Status Ir2tfBaseParser::ValidateOpMappingConfig(const std::vector<OpMapInfo> &op_map_info_list) const {
   if (op_map_info_list.empty()) {
-      return ge::SUCCESS;
+    return ge::SUCCESS;
   }
 
   for (const OpMapInfo &op_map_info : op_map_info_list) {
     AICPU_IF_BOOL_EXEC(op_map_info.src_op_type.empty(),
-        AICPU_REPORT_INNER_ERR_MSG("IR2TF config srcOpType should not be empty.");
-        return ErrorCode::IR2TF_CONFIG_INVALID)
+                       AICPU_REPORT_INNER_ERR_MSG("IR2TF config srcOpType should not be empty.");
+                       return ErrorCode::IR2TF_CONFIG_INVALID)
 
     AICPU_IF_BOOL_EXEC(op_map_info.dst_op_type.empty(),
-        AICPU_REPORT_INNER_ERR_MSG("IR2TF config dstOpType should not be empty.");
-        return ErrorCode::IR2TF_CONFIG_INVALID)
+                       AICPU_REPORT_INNER_ERR_MSG("IR2TF config dstOpType should not be empty.");
+                       return ErrorCode::IR2TF_CONFIG_INVALID)
     // validate attr mapping
     AICPU_CHECK_RES(ValidateAttrMapConfig(op_map_info))
 
@@ -487,15 +466,16 @@ ge::Status Ir2tfBaseParser::ValidateAttrMapConfig(const OpMapInfo &op_map_info) 
 
   for (const ParserExpDesc &exp_desc : attr_mapping_list) {
     AICPU_IF_BOOL_EXEC(exp_desc.dst_field_name.empty(),
-        AICPU_REPORT_INNER_ERR_MSG("dstFieldName of attrsMapDesc in IR config "
-            "can not be empty, op type[%s]", op_map_info.src_op_type.c_str());
-        return ErrorCode::IR2TF_CONFIG_INVALID)
+                       AICPU_REPORT_INNER_ERR_MSG("dstFieldName of attrsMapDesc in IR config "
+                                                  "can not be empty, op type[%s]",
+                                                  op_map_info.src_op_type.c_str());
+                       return ErrorCode::IR2TF_CONFIG_INVALID)
 
     AICPU_IF_BOOL_EXEC(exp_desc.parser_express.empty() && exp_desc.src_field_name.empty(),
-        AICPU_REPORT_INNER_ERR_MSG("parserExpress and srcFieldName of attrsMapDesc"
-            " in IR config can not be empty at the same time, op type[%s].",
-            op_map_info.src_op_type.c_str());
-        return ErrorCode::IR2TF_CONFIG_INVALID)
+                       AICPU_REPORT_INNER_ERR_MSG("parserExpress and srcFieldName of attrsMapDesc"
+                                                  " in IR config can not be empty at the same time, op type[%s].",
+                                                  op_map_info.src_op_type.c_str());
+                       return ErrorCode::IR2TF_CONFIG_INVALID)
   }
   return ge::SUCCESS;
 }
@@ -506,14 +486,16 @@ ge::Status Ir2tfBaseParser::ValidateOutputAttrMapConfig(const OpMapInfo &op_map_
 
   for (const ParserExpDesc &exp_desc : output_attr_map_desc_list) {
     AICPU_IF_BOOL_EXEC(exp_desc.src_field_name.empty(),
-        AICPU_REPORT_INNER_ERR_MSG("srcFieldName of outputAttrMapDesc in IR config"
-            " can not be empty, op type[%s].", op_map_info.src_op_type.c_str());
-        return ErrorCode::IR2TF_CONFIG_INVALID)
+                       AICPU_REPORT_INNER_ERR_MSG("srcFieldName of outputAttrMapDesc in IR config"
+                                                  " can not be empty, op type[%s].",
+                                                  op_map_info.src_op_type.c_str());
+                       return ErrorCode::IR2TF_CONFIG_INVALID)
 
     AICPU_IF_BOOL_EXEC(exp_desc.parser_express.empty(),
-        AICPU_REPORT_INNER_ERR_MSG("parserExpress of outputAttrMapDesc in IR config"
-            " can not be empty, op type[%s].", op_map_info.src_op_type.c_str());
-        return ErrorCode::IR2TF_CONFIG_INVALID)
+                       AICPU_REPORT_INNER_ERR_MSG("parserExpress of outputAttrMapDesc in IR config"
+                                                  " can not be empty, op type[%s].",
+                                                  op_map_info.src_op_type.c_str());
+                       return ErrorCode::IR2TF_CONFIG_INVALID)
   }
   return ge::SUCCESS;
 }
@@ -524,19 +506,22 @@ ge::Status Ir2tfBaseParser::ValidateInputAttrMapConfig(const OpMapInfo &op_map_i
 
   for (const ParserExpDesc &exp_desc : input_attr_map_desc_list) {
     AICPU_IF_BOOL_EXEC(exp_desc.src_field_name.empty(),
-        AICPU_REPORT_INNER_ERR_MSG("srcFieldName of inputAttrMapDesc in IR config"
-            " is empty, op type[%s].", op_map_info.src_op_type.c_str());
-        return ErrorCode::IR2TF_CONFIG_INVALID)
+                       AICPU_REPORT_INNER_ERR_MSG("srcFieldName of inputAttrMapDesc in IR config"
+                                                  " is empty, op type[%s].",
+                                                  op_map_info.src_op_type.c_str());
+                       return ErrorCode::IR2TF_CONFIG_INVALID)
 
     AICPU_IF_BOOL_EXEC(exp_desc.parser_express.empty(),
-        AICPU_REPORT_INNER_ERR_MSG(" parserExpress of inputAttrMapDesc in IR "
-            "config is empty, op type[%s].", op_map_info.src_op_type.c_str());
-        return ErrorCode::IR2TF_CONFIG_INVALID)
+                       AICPU_REPORT_INNER_ERR_MSG(" parserExpress of inputAttrMapDesc in IR "
+                                                  "config is empty, op type[%s].",
+                                                  op_map_info.src_op_type.c_str());
+                       return ErrorCode::IR2TF_CONFIG_INVALID)
 
     AICPU_IF_BOOL_EXEC(exp_desc.dst_field_name.empty(),
-        AICPU_REPORT_INNER_ERR_MSG("dstFieldName of inputAttrMapDesc in IR config"
-            " is empty, op type[%s].", op_map_info.src_op_type.c_str());
-        return ErrorCode::IR2TF_CONFIG_INVALID)
+                       AICPU_REPORT_INNER_ERR_MSG("dstFieldName of inputAttrMapDesc in IR config"
+                                                  " is empty, op type[%s].",
+                                                  op_map_info.src_op_type.c_str());
+                       return ErrorCode::IR2TF_CONFIG_INVALID)
   }
   return ge::SUCCESS;
 }
@@ -556,8 +541,7 @@ ge::Status Ir2tfBaseParser::ParseInput(const ge::Node &node, domi::tensorflow::N
   return ge::SUCCESS;
 }
 
-ge::Status Ir2tfBaseParser::GetAttrValueFromGe(const ge::Node &node,
-                                               const std::string &attr_name,
+ge::Status Ir2tfBaseParser::GetAttrValueFromGe(const ge::Node &node, const std::string &attr_name,
                                                const ge::GeAttrValue::ValueType ge_value_type,
                                                domi::tensorflow::AttrValue &attr_value) {
   ge::OpDescPtr op_desc_ptr = node.GetOpDesc();
@@ -565,41 +549,33 @@ ge::Status Ir2tfBaseParser::GetAttrValueFromGe(const ge::Node &node,
   switch (ge_value_type) {
     case ge::GeAttrValue::ValueType::VT_STRING: {
       const std::string *string_value = ge::AttrUtils::GetStr(op_desc_ptr, attr_name);
-      CHECK_RES_BOOL((string_value != nullptr),
-          ErrorCode::DATA_TYPE_UNDEFILED,
-          AICPU_REPORT_INNER_ERR_MSG(
-              "Call ge::AttrUtils::GetStr failed to get attr[%s], op[%s].",
-              attr_name.c_str(), node.GetName().c_str()))
+      CHECK_RES_BOOL((string_value != nullptr), ErrorCode::DATA_TYPE_UNDEFILED,
+                     AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::GetStr failed to get attr[%s], op[%s].",
+                                                attr_name.c_str(), node.GetName().c_str()))
       attr_value.set_s(*string_value);
       break;
     }
     case ge::GeAttrValue::ValueType::VT_FLOAT: {
       float float_value = 0.0;
-      CHECK_RES_BOOL(ge::AttrUtils::GetFloat(op_desc_ptr, attr_name, float_value),
-          ErrorCode::DATA_TYPE_UNDEFILED,
-          AICPU_REPORT_INNER_ERR_MSG(
-              "Call ge::AttrUtils::GetFloat failed to get attr[%s], op[%s].",
-              attr_name.c_str(), node.GetName().c_str()))
+      CHECK_RES_BOOL(ge::AttrUtils::GetFloat(op_desc_ptr, attr_name, float_value), ErrorCode::DATA_TYPE_UNDEFILED,
+                     AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::GetFloat failed to get attr[%s], op[%s].",
+                                                attr_name.c_str(), node.GetName().c_str()))
       attr_value.set_f(float_value);
       break;
     }
     case ge::GeAttrValue::ValueType::VT_BOOL: {
       bool bool_value = false;
-      CHECK_RES_BOOL(ge::AttrUtils::GetBool(op_desc_ptr, attr_name, bool_value),
-          ErrorCode::DATA_TYPE_UNDEFILED,
-          AICPU_REPORT_INNER_ERR_MSG(
-              "Call ge::AttrUtils::GetBool failed to get attr[%s], op[%s].",
-              attr_name.c_str(), node.GetName().c_str()))
+      CHECK_RES_BOOL(ge::AttrUtils::GetBool(op_desc_ptr, attr_name, bool_value), ErrorCode::DATA_TYPE_UNDEFILED,
+                     AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::GetBool failed to get attr[%s], op[%s].",
+                                                attr_name.c_str(), node.GetName().c_str()))
       attr_value.set_b(bool_value);
       break;
     }
     case ge::GeAttrValue::ValueType::VT_INT: {
       int64_t int_value = 0;
-      CHECK_RES_BOOL(ge::AttrUtils::GetInt(op_desc_ptr, attr_name, int_value),
-          ErrorCode::DATA_TYPE_UNDEFILED,
-          AICPU_REPORT_INNER_ERR_MSG(
-              "Call ge::AttrUtils::GetInt failed to get attr[%s], op[%s].",
-              attr_name.c_str(), node.GetName().c_str()))
+      CHECK_RES_BOOL(ge::AttrUtils::GetInt(op_desc_ptr, attr_name, int_value), ErrorCode::DATA_TYPE_UNDEFILED,
+                     AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::GetInt failed to get attr[%s], op[%s].",
+                                                attr_name.c_str(), node.GetName().c_str()))
       attr_value.set_i(int_value);
       break;
     }
@@ -609,11 +585,9 @@ ge::Status Ir2tfBaseParser::GetAttrValueFromGe(const ge::Node &node,
     }
     case ge::GeAttrValue::ValueType::VT_LIST_FLOAT: {
       std::vector<float> float_list;
-      CHECK_RES_BOOL(ge::AttrUtils::GetListFloat(op_desc_ptr, attr_name, float_list),
-          ErrorCode::DATA_TYPE_UNDEFILED,
-          AICPU_REPORT_INNER_ERR_MSG(
-              "Call ge::AttrUtils::GetListFloat failed to get attr[%s], op[%s].",
-              attr_name.c_str(), node.GetName().c_str()))
+      CHECK_RES_BOOL(ge::AttrUtils::GetListFloat(op_desc_ptr, attr_name, float_list), ErrorCode::DATA_TYPE_UNDEFILED,
+                     AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::GetListFloat failed to get attr[%s], op[%s].",
+                                                attr_name.c_str(), node.GetName().c_str()))
 
       for (const float &float_element : float_list) {
         attr_value.mutable_list()->add_f(float_element);
@@ -641,23 +615,19 @@ ge::Status Ir2tfBaseParser::GetAttrValueFromGe(const ge::Node &node,
       break;
     }
     default: {
-      AICPU_REPORT_INNER_ERR_MSG("Currently ir2tf cannot support attr type[%d].",
-          ge_value_type);
+      AICPU_REPORT_INNER_ERR_MSG("Currently ir2tf cannot support attr type[%d].", ge_value_type);
       return ErrorCode::UNKNOWN_ATTR_TYPE;
     }
   }
   return ge::SUCCESS;
 }
 
-ge::Status Ir2tfBaseParser::SetTfTensorValue(const ge::OpDescPtr &op_desc_ptr,
-                                             const std::string &attr_name,
+ge::Status Ir2tfBaseParser::SetTfTensorValue(const ge::OpDescPtr &op_desc_ptr, const std::string &attr_name,
                                              domi::tensorflow::AttrValue &attr_value) const {
   ge::ConstGeTensorPtr ge_tensor;
-  CHECK_RES_BOOL(ge::AttrUtils::GetTensor(op_desc_ptr, attr_name, ge_tensor),
-      ErrorCode::DATA_TYPE_UNDEFILED,
-      AICPU_REPORT_INNER_ERR_MSG(
-          "Call ge::AttrUtils::GetTensor failed to get attr[%s], op[%s].",
-          attr_name.c_str(), op_desc_ptr->GetName().c_str()))
+  CHECK_RES_BOOL(ge::AttrUtils::GetTensor(op_desc_ptr, attr_name, ge_tensor), ErrorCode::DATA_TYPE_UNDEFILED,
+                 AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::GetTensor failed to get attr[%s], op[%s].",
+                                            attr_name.c_str(), op_desc_ptr->GetName().c_str()))
 
   // 1.Get tensor of attr_value
   ge::DataType ge_data_type = ge_tensor->GetTensorDesc().GetDataType();
@@ -671,23 +641,19 @@ ge::Status Ir2tfBaseParser::SetTfTensorValue(const ge::OpDescPtr &op_desc_ptr,
   }
 
   int32_t data_size = GetDataTypeSize(ge_data_type);
-  AICPU_CHECK_GREATER_THAN_ZERO(data_size, ErrorCode::DATA_TYPE_UNDEFILED,
-      "Invalid data type[%s], op[%s].",
-      ge::TypeUtils::DataTypeToSerialString(ge_data_type).c_str(),
-      op_desc_ptr->GetName().c_str())
+  AICPU_CHECK_GREATER_THAN_ZERO(data_size, ErrorCode::DATA_TYPE_UNDEFILED, "Invalid data type[%s], op[%s].",
+                                ge::TypeUtils::DataTypeToSerialString(ge_data_type).c_str(),
+                                op_desc_ptr->GetName().c_str())
   int32_t data_count = ge_tensor->GetData().size() / data_size;
   return SetTfTensorValue(ge_tensor, tf_tensor, data_count);
 }
 
-ge::Status Ir2tfBaseParser::SetTfListShape(const ge::OpDescPtr &op_desc_ptr,
-                                           const std::string &attr_name,
+ge::Status Ir2tfBaseParser::SetTfListShape(const ge::OpDescPtr &op_desc_ptr, const std::string &attr_name,
                                            domi::tensorflow::AttrValue &attr_value) const {
   std::vector<std::vector<int64_t>> shape_value;
-  CHECK_RES_BOOL(ge::AttrUtils::GetListListInt(op_desc_ptr, attr_name, shape_value),
-      ErrorCode::DATA_TYPE_UNDEFILED,
-      AICPU_REPORT_INNER_ERR_MSG(
-          "Call ge::AttrUtils::GetListListInt failed to get attr[%s], op[%s].",
-          attr_name.c_str(), op_desc_ptr->GetName().c_str()))
+  CHECK_RES_BOOL(ge::AttrUtils::GetListListInt(op_desc_ptr, attr_name, shape_value), ErrorCode::DATA_TYPE_UNDEFILED,
+                 AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::GetListListInt failed to get attr[%s], op[%s].",
+                                            attr_name.c_str(), op_desc_ptr->GetName().c_str()))
 
   auto attr_list = attr_value.mutable_list();
   for (const std::vector<int64_t> &shape : shape_value) {
@@ -705,17 +671,13 @@ ge::Status Ir2tfBaseParser::SetTfListShape(const ge::OpDescPtr &op_desc_ptr,
   return ge::SUCCESS;
 }
 
-ge::Status Ir2tfBaseParser::SetTfListType(const ge::OpDescPtr &op_desc_ptr,
-                                          const std::string &attr_name,
+ge::Status Ir2tfBaseParser::SetTfListType(const ge::OpDescPtr &op_desc_ptr, const std::string &attr_name,
                                           domi::tensorflow::AttrValue &attr_value) const {
-  AICPUE_LOGD("Get op type[%s] attr name[%s] data type list.",
-              op_desc_ptr->GetName().c_str(), attr_name.c_str());
+  AICPUE_LOGD("Get op type[%s] attr name[%s] data type list.", op_desc_ptr->GetName().c_str(), attr_name.c_str());
   std::vector<ge::DataType> ge_type_list;
-  CHECK_RES_BOOL(ge::AttrUtils::GetListDataType(op_desc_ptr, attr_name, ge_type_list),
-      ErrorCode::DATA_TYPE_UNDEFILED,
-      AICPU_REPORT_INNER_ERR_MSG(
-          "Call ge::AttrUtils::GetListDataType failed to get attr[%s], op[%s].",
-          attr_name.c_str(), op_desc_ptr->GetName().c_str()))
+  CHECK_RES_BOOL(ge::AttrUtils::GetListDataType(op_desc_ptr, attr_name, ge_type_list), ErrorCode::DATA_TYPE_UNDEFILED,
+                 AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::GetListDataType failed to get attr[%s], op[%s].",
+                                            attr_name.c_str(), op_desc_ptr->GetName().c_str()))
 
   AICPU_CHECK_NOTNULL(attr_value.mutable_list());
   for (ge::DataType &ge_type : ge_type_list) {
@@ -726,8 +688,7 @@ ge::Status Ir2tfBaseParser::SetTfListType(const ge::OpDescPtr &op_desc_ptr,
   return ge::SUCCESS;
 }
 
-ge::Status Ir2tfBaseParser::SetTfType(const ge::OpDescPtr &op_desc_ptr,
-                                      const std::string &attr_name,
+ge::Status Ir2tfBaseParser::SetTfType(const ge::OpDescPtr &op_desc_ptr, const std::string &attr_name,
                                       domi::tensorflow::AttrValue &attr_value) const {
   AICPUE_LOGD("Attr name[%s] ge op[%s].", attr_name.c_str(), op_desc_ptr->GetName().c_str());
   auto iter = ir2tf_map_.find(op_desc_ptr->GetType());
@@ -735,8 +696,7 @@ ge::Status Ir2tfBaseParser::SetTfType(const ge::OpDescPtr &op_desc_ptr,
     // foreach attrs_map_desc, find attr_name from src_field_name
     // if find, parser_express is tf_enum, the attr is dtype type
     for (const ParserExpDesc &attr_mapping : iter->second.attrs_map_desc) {
-      if ((attr_mapping.src_field_name == attr_name) &&
-          (attr_mapping.parser_express == kTfEnumType)) {
+      if ((attr_mapping.src_field_name == attr_name) && (attr_mapping.parser_express == kTfEnumType)) {
         AICPUE_LOGD("Op type[%s] attr name[%s] is in the attrs_map_desc config, represent is enum type.",
                     op_desc_ptr->GetType().c_str(), attr_name.c_str());
         return ge::SUCCESS;
@@ -745,11 +705,9 @@ ge::Status Ir2tfBaseParser::SetTfType(const ge::OpDescPtr &op_desc_ptr,
   }
 
   ge::DataType ge_type;
-  CHECK_RES_BOOL(ge::AttrUtils::GetDataType(op_desc_ptr, attr_name, ge_type),
-      ErrorCode::DATA_TYPE_UNDEFILED,
-      AICPU_REPORT_INNER_ERR_MSG(
-          "Call ge::AttrUtils::GetDataType failed to get attr[%s], op[%s].",
-          attr_name.c_str(), op_desc_ptr->GetName().c_str()))
+  CHECK_RES_BOOL(ge::AttrUtils::GetDataType(op_desc_ptr, attr_name, ge_type), ErrorCode::DATA_TYPE_UNDEFILED,
+                 AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::GetDataType failed to get attr[%s], op[%s].",
+                                            attr_name.c_str(), op_desc_ptr->GetName().c_str()))
   domi::tensorflow::DataType data_type = ConvertGeDataType2TfDataType(ge_type);
   AICPUE_LOGD("ge::AttrUtils:: attr[%s] op[%s] value[%ld]", attr_name.c_str(), op_desc_ptr->GetName().c_str(),
               static_cast<int64_t>(ge_type));
@@ -757,16 +715,14 @@ ge::Status Ir2tfBaseParser::SetTfType(const ge::OpDescPtr &op_desc_ptr,
   return ge::SUCCESS;
 }
 
-ge::Status Ir2tfBaseParser::SetTfListInt(const ge::Node &node,
-                                         const std::string &attr_name,
+ge::Status Ir2tfBaseParser::SetTfListInt(const ge::Node &node, const std::string &attr_name,
                                          domi::tensorflow::AttrValue &attr_value) {
   auto iter = ir2tf_map_.find(node.GetType());
   if (iter != ir2tf_map_.end()) {
     // foreach attrs_map_desc, find attr_name from src_field_name
     // if find, parser_express is tf_shape, the attr is shape type
     for (const ParserExpDesc &attr_mapping : iter->second.attrs_map_desc) {
-      if ((attr_mapping.src_field_name == attr_name) &&
-          (attr_mapping.parser_express == kTfShapeType)) {
+      if ((attr_mapping.src_field_name == attr_name) && (attr_mapping.parser_express == kTfShapeType)) {
         AICPUE_LOGI("Op type[%s] attr name[%s] is in the attrs_map_desc config, represent is shape type.",
                     node.GetType().c_str(), attr_name.c_str());
         return ge::SUCCESS;
@@ -774,14 +730,12 @@ ge::Status Ir2tfBaseParser::SetTfListInt(const ge::Node &node,
     }
   }
 
-  // if not find in json file, the attr is truely list_int
+  // if not find in json file, the attr is truly list_int
   std::vector<int32_t> list_int_value;
   ge::OpDescPtr op_desc_ptr = node.GetOpDesc();
-  CHECK_RES_BOOL(ge::AttrUtils::GetListInt(op_desc_ptr, attr_name, list_int_value),
-      ErrorCode::DATA_TYPE_UNDEFILED,
-      AICPU_REPORT_INNER_ERR_MSG(
-          "Call ge::AttrUtils::GetListInt failed to get attr[%s], op[%s].",
-          attr_name.c_str(), op_desc_ptr->GetName().c_str()))
+  CHECK_RES_BOOL(ge::AttrUtils::GetListInt(op_desc_ptr, attr_name, list_int_value), ErrorCode::DATA_TYPE_UNDEFILED,
+                 AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::GetListInt failed to get attr[%s], op[%s].",
+                                            attr_name.c_str(), op_desc_ptr->GetName().c_str()))
 
   for (int32_t value : list_int_value) {
     attr_value.mutable_list()->add_i(value);
@@ -789,15 +743,12 @@ ge::Status Ir2tfBaseParser::SetTfListInt(const ge::Node &node,
   return ge::SUCCESS;
 }
 
-ge::Status Ir2tfBaseParser::SetTfListString(const ge::OpDescPtr &op_desc_ptr,
-                                            const std::string &attr_name,
+ge::Status Ir2tfBaseParser::SetTfListString(const ge::OpDescPtr &op_desc_ptr, const std::string &attr_name,
                                             domi::tensorflow::AttrValue &attr_value) const {
   std::vector<std::string> list_string_value;
-  CHECK_RES_BOOL(ge::AttrUtils::GetListStr(op_desc_ptr, attr_name, list_string_value),
-      ErrorCode::DATA_TYPE_UNDEFILED,
-      AICPU_REPORT_INNER_ERR_MSG(
-          "Call ge::AttrUtils::GetListStr failed to get attr[%s], op[%s].",
-          attr_name.c_str(), op_desc_ptr->GetName().c_str()))
+  CHECK_RES_BOOL(ge::AttrUtils::GetListStr(op_desc_ptr, attr_name, list_string_value), ErrorCode::DATA_TYPE_UNDEFILED,
+                 AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::GetListStr failed to get attr[%s], op[%s].",
+                                            attr_name.c_str(), op_desc_ptr->GetName().c_str()))
 
   for (std::string value : list_string_value) {
     attr_value.mutable_list()->add_s(value);
@@ -806,11 +757,9 @@ ge::Status Ir2tfBaseParser::SetTfListString(const ge::OpDescPtr &op_desc_ptr,
 }
 
 ge::Status Ir2tfBaseParser::SetTfTensorValue(const ge::ConstGeTensorPtr &ge_tensor,
-                                             domi::tensorflow::TensorProto *tf_tensor,
-                                             int32_t data_count) const {
-  CHECK_RES_BOOL((ge_tensor->GetData().data() != nullptr),
-      ErrorCode::INPUT_PARAM_NULL,
-      AICPU_REPORT_INNER_ERR_MSG("Tensor data is null."));
+                                             domi::tensorflow::TensorProto *tf_tensor, int32_t data_count) const {
+  CHECK_RES_BOOL((ge_tensor->GetData().data() != nullptr), ErrorCode::INPUT_PARAM_NULL,
+                 AICPU_REPORT_INNER_ERR_MSG("Tensor data is null."));
 
   if (data_count > 1) {
     tf_tensor->set_tensor_content(reinterpret_cast<const void *>(ge_tensor->GetData().data()),
@@ -846,7 +795,7 @@ ge::Status Ir2tfBaseParser::SetTfTensorValue(const ge::ConstGeTensorPtr &ge_tens
     }
     default: {
       AICPU_REPORT_INNER_ERR_MSG("data type[%s] not supported.",
-          ge::TypeUtils::DataTypeToSerialString(ge_dtype).c_str());
+                                 ge::TypeUtils::DataTypeToSerialString(ge_dtype).c_str());
     }
   }
   return ge::SUCCESS;
@@ -855,13 +804,12 @@ ge::Status Ir2tfBaseParser::SetTfTensorValue(const ge::ConstGeTensorPtr &ge_tens
 ge::Status Ir2tfBaseParser::ParseOutputArgs(const ge::NodePtr &node, const std::string &op_type,
                                             NameRangeMap &outputs) {
   AICPU_CHECK_NOTNULL(node);
-  AICPUE_LOGI("Get op[%s] op type[%s] index range from ir2tf config file.",
-              op_type.c_str(), node->GetType().c_str());
+  AICPUE_LOGI("Get op[%s] op type[%s] index range from ir2tf config file.", op_type.c_str(), node->GetType().c_str());
 
   auto iter = ir2tf_map_.find(op_type);
   if (iter == ir2tf_map_.end()) {
-    AICPU_REPORT_INNER_ERR_MSG("Op type[%s] does not exist in ir2tf config file. op[%s].",
-        op_type.c_str(), node->GetName().c_str());
+    AICPU_REPORT_INNER_ERR_MSG("Op type[%s] does not exist in ir2tf config file. op[%s].", op_type.c_str(),
+                               node->GetName().c_str());
     return ErrorCode::OP_NOT_EXIST_IN_IR2TF_CONFIG_FILE;
   }
 
@@ -877,8 +825,7 @@ ge::Status Ir2tfBaseParser::ParseOutputArgs(const ge::NodePtr &node, const std::
 }
 
 ge::Status Ir2tfBaseParser::GetSingleOutputNameRange(const std::vector<RefTransDesc> &ref_trans_list,
-                                                     NameRangeMap &outputs,
-                                                     const OpMapInfo &op_map_info,
+                                                     NameRangeMap &outputs, const OpMapInfo &op_map_info,
                                                      const ge::NodePtr &node) const {
   int start = 0;
   const std::vector<DynamicExpDesc> &dynamic_desc_list = op_map_info.attrs_dynamic_desc;
@@ -903,22 +850,19 @@ ge::Status Ir2tfBaseParser::ValidateRefTransDesc(const OpMapInfo &op_map_info) c
 
   for (const RefTransDesc &ref_trans_desc : ref_trans_list) {
     AICPU_IF_BOOL_EXEC(ref_trans_desc.src_inout_name.empty(),
-        AICPU_REPORT_INNER_ERR_MSG(
-            "srcInOutputName of outputRefDesc in IR config can not be empty.");
-        return ErrorCode::IR2TF_CONFIG_INVALID)
+                       AICPU_REPORT_INNER_ERR_MSG("srcInOutputName of outputRefDesc in IR config can not be empty.");
+                       return ErrorCode::IR2TF_CONFIG_INVALID)
 
     AICPU_IF_BOOL_EXEC(ref_trans_desc.dst_inout_name.empty(),
-        AICPU_REPORT_INNER_ERR_MSG(
-            "dstInOutputName of outputRefDesc in IR config can not be empty.");
-        return ErrorCode::IR2TF_CONFIG_INVALID)
+                       AICPU_REPORT_INNER_ERR_MSG("dstInOutputName of outputRefDesc in IR config can not be empty.");
+                       return ErrorCode::IR2TF_CONFIG_INVALID)
   }
   return ge::SUCCESS;
 }
 
 ge::Status Ir2tfBaseParser::GetListOutputNameRange(const std::vector<ParserExpDesc> &output_attr_list,
                                                    const std::vector<RefTransDesc> &ref_trans_list,
-                                                   const ge::NodePtr &node,
-                                                   NameRangeMap &outputs) const {
+                                                   const ge::NodePtr &node, NameRangeMap &outputs) const {
   std::unordered_map<std::string, ParserExpDesc> output_attr_map;
   for (const ParserExpDesc &attr_mapping : output_attr_list) {
     output_attr_map[attr_mapping.src_field_name] = attr_mapping;
@@ -941,20 +885,17 @@ ge::Status Ir2tfBaseParser::GetListOutputNameRange(const std::vector<ParserExpDe
       if (expression == kInOutAttrDataTypeList) {
         index = GetOutputListSize(node, ge_output_name);
       } else {
-        AICPUE_LOGI("Get op[%s] output[%s] index range from attr[%s].",
-                    node->GetType().c_str(), ge_output_name.c_str(), expression.c_str());
-        CHECK_RES_BOOL(ge::AttrUtils::GetInt(op_desc_ptr, expression, index),
-            ErrorCode::DATA_TYPE_UNDEFILED,
-            AICPU_REPORT_INNER_ERR_MSG(
-                "Call ge::AttrUtils::GetInt failed to get attr[%s], op[%s].",
-                expression.c_str(), node->GetName().c_str()))
+        AICPUE_LOGI("Get op[%s] output[%s] index range from attr[%s].", node->GetType().c_str(), ge_output_name.c_str(),
+                    expression.c_str());
+        CHECK_RES_BOOL(ge::AttrUtils::GetInt(op_desc_ptr, expression, index), ErrorCode::DATA_TYPE_UNDEFILED,
+                       AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::GetInt failed to get attr[%s], op[%s].",
+                                                  expression.c_str(), node->GetName().c_str()))
       }
 
       AICPU_IF_BOOL_EXEC(index < 0,
-          AICPU_REPORT_INNER_ERR_MSG(
-              "Get list output index range failed, op[%s], op type[%s].",
-              node->GetName().c_str(), node->GetType().c_str());
-          return IR2TF_CONFIG_PARSE_FAILED)
+                         AICPU_REPORT_INNER_ERR_MSG("Get list output index range failed, op[%s], op type[%s].",
+                                                    node->GetName().c_str(), node->GetType().c_str());
+                         return IR2TF_CONFIG_PARSE_FAILED)
     }
 
     int end = start + index;
@@ -968,8 +909,7 @@ ge::Status Ir2tfBaseParser::GetListOutputNameRange(const std::vector<ParserExpDe
 int Ir2tfBaseParser::GetOutputListSize(const ge::NodePtr &node, const std::string &dest_name) const {
   ge::OpDescPtr op_desc_ptr = node->GetOpDesc();
   AICPU_CHECK_NOTNULL(op_desc_ptr)
-  AICPUE_LOGI("Get op[%s] output[%s] index range from output name.",
-              node->GetType().c_str(), dest_name.c_str());
+  AICPUE_LOGI("Get op[%s] output[%s] index range from output name.", node->GetType().c_str(), dest_name.c_str());
 
   int max_index = -1;
   auto anchor_vistor = node->GetAllOutDataAnchors();
@@ -981,7 +921,7 @@ int Ir2tfBaseParser::GetOutputListSize(const ge::NodePtr &node, const std::strin
 
     int output_index = GetListIndex(name_idx, dest_name.length(), name_idx.length());
     if (output_index == kErrorOutputIndex) {
-        return output_index;
+      return output_index;
     }
     max_index = max_index < output_index ? output_index : max_index;
   }
@@ -991,8 +931,7 @@ int Ir2tfBaseParser::GetOutputListSize(const ge::NodePtr &node, const std::strin
   return max_index;
 }
 
-ge::Status Ir2tfBaseParser::HandleInputAttrMapping(const ge::Node &node,
-                                                   domi::tensorflow::NodeDef *node_def,
+ge::Status Ir2tfBaseParser::HandleInputAttrMapping(const ge::Node &node, domi::tensorflow::NodeDef *node_def,
                                                    const OpMapInfo *ir2tf) const {
   if (ir2tf->input_attr_map_desc.empty()) {
     return ge::SUCCESS;
@@ -1027,11 +966,10 @@ ge::Status Ir2tfBaseParser::HandleInputAttrMapping(const ge::Node &node,
   return ge::SUCCESS;
 }
 
-ge::Status Ir2tfBaseParser::HandleOutputAttrMapping(const ge::Node &node,
-                                                    domi::tensorflow::NodeDef *node_def,
+ge::Status Ir2tfBaseParser::HandleOutputAttrMapping(const ge::Node &node, domi::tensorflow::NodeDef *node_def,
                                                     const OpMapInfo *ir2tf) const {
   if (ir2tf->output_attr_map_desc.empty()) {
-      return ge::SUCCESS;
+    return ge::SUCCESS;
   }
 
   // get output_attr_map_desc src_field_name and dst_field_name
@@ -1062,13 +1000,13 @@ ge::Status Ir2tfBaseParser::HandleOutputAttrMapping(const ge::Node &node,
 
     ge::DataType ge_data_type = op_desc_ptr->GetOutputDesc(index).GetDataType();
     AICPU_CHECK_RES_WITH_LOG(GetDataTypeList(ge_data_type, dst_field_name, output_data_type_map),
-        "Call Ir2tfBaseParser::GetDataTypeList function failed, op[%s], op type[%s]",
-        node.GetName().c_str(), node.GetType().c_str())
+                             "Call Ir2tfBaseParser::GetDataTypeList function failed, op[%s], op type[%s]",
+                             node.GetName().c_str(), node.GetType().c_str())
   }
 
   AICPU_CHECK_RES_WITH_LOG(SetAttrTypeList(node_def, output_data_type_map),
-      "Call Ir2tfBaseParser::SetAttrTypeList function failed, op[%s], op type[%s]",
-      node.GetName().c_str(), node.GetType().c_str())
+                           "Call Ir2tfBaseParser::SetAttrTypeList function failed, op[%s], op type[%s]",
+                           node.GetName().c_str(), node.GetType().c_str())
   return ge::SUCCESS;
 }
 
@@ -1087,10 +1025,9 @@ void Ir2tfBaseParser::GetSrcAndDstFieldName(const std::vector<ParserExpDesc> &ex
   }
 }
 
-ge::Status Ir2tfBaseParser::GetDataTypeList(const ge::DataType ge_data_type,
-                                            const std::string &dst_attr_name,
-                                            std::unordered_map<std::string,
-                                            std::vector<domi::tensorflow::DataType>> &data_type_map) const {
+ge::Status Ir2tfBaseParser::GetDataTypeList(
+    const ge::DataType ge_data_type, const std::string &dst_attr_name,
+    std::unordered_map<std::string, std::vector<domi::tensorflow::DataType>> &data_type_map) const {
   domi::tensorflow::DataType data_type = ConvertGeDataType2TfDataType(ge_data_type);
   AICPUE_LOGI("Input/Output attr[%s], datatype [%d].", dst_attr_name.c_str(), data_type);
 
@@ -1122,8 +1059,8 @@ bool Ir2tfBaseParser::IsListType(const std::unordered_map<std::string, std::stri
 }
 
 bool Ir2tfBaseParser::IsListType(const std::string &name_idx, const std::string &config_name) const {
-  AICPUE_LOGD("Check Input/Output is list or not, name_idx: [%s], config name: [%s].",
-              name_idx.c_str(), config_name.c_str());
+  AICPUE_LOGD("Check Input/Output is list or not, name_idx: [%s], config name: [%s].", name_idx.c_str(),
+              config_name.c_str());
 
   int config_len = config_name.length();
   int name_len = name_idx.length();
@@ -1147,7 +1084,7 @@ bool Ir2tfBaseParser::IsListType(const std::string &name_idx, const std::string 
 int Ir2tfBaseParser::GetListIndex(const std::string &name_idx, int start, int end) const {
   std::string anchor_index = name_idx.substr(start, end);
   int index = -1;
-  (void) StringToNum(anchor_index, index);
+  (void)StringToNum(anchor_index, index);
   if (index < 0) {
     AICPU_REPORT_INNER_ERR_MSG("invalid output name[%s].", name_idx.c_str());
     return kErrorOutputIndex;
@@ -1157,9 +1094,9 @@ int Ir2tfBaseParser::GetListIndex(const std::string &name_idx, int start, int en
   return index;
 }
 
-ge::Status Ir2tfBaseParser::SetAttrTypeList(domi::tensorflow::NodeDef *node_def,
-                                            std::unordered_map<std::string,
-                                            std::vector<domi::tensorflow::DataType>> &data_type_map) const {
+ge::Status Ir2tfBaseParser::SetAttrTypeList(
+    domi::tensorflow::NodeDef *node_def,
+    std::unordered_map<std::string, std::vector<domi::tensorflow::DataType>> &data_type_map) const {
   if (data_type_map.empty()) {
     return ge::SUCCESS;
   }
@@ -1183,7 +1120,7 @@ void Ir2tfBaseParser::GetOpBlacklist(std::string op_type, std::set<std::string> 
     const OpMapInfo &op_map_info = iter->second;
     const std::string &backlist = op_map_info.attrs_blacklist;
     if (backlist.empty()) {
-      return ;
+      return;
     }
 
     SplitSequence(backlist, kConfigItemSeparator, attr_blacklist);
@@ -1209,8 +1146,7 @@ bool Ir2tfBaseParser::InputHaveRef(const std::string &op_type) {
   return (iter != ref_input_map_.end());
 }
 
-ge::Status Ir2tfBaseParser::ParseExtendAttr(const ge::Node &node,
-                                            domi::tensorflow::NodeDef *node_def,
+ge::Status Ir2tfBaseParser::ParseExtendAttr(const ge::Node &node, domi::tensorflow::NodeDef *node_def,
                                             const OpMapInfo *ir2tf) const {
   AICPU_CHECK_NOTNULL_ERRCODE(ir2tf, ErrorCode::INPUT_PARAM_NULL)
   AICPU_CHECK_NOTNULL_ERRCODE(node_def, ErrorCode::INPUT_PARAM_NULL)
@@ -1228,15 +1164,13 @@ ge::Status Ir2tfBaseParser::ParseExtendAttr(const ge::Node &node,
       }
     }
 
-    AICPU_CHECK_RES_WITH_LOG(
-        HandleDefaultAttrType(node_def, attr_default_value, node.GetName()),
-        "Call Ir2tfBaseParser::HandleDefaultAttrType function failed, op[%s].",
-        node.GetName().c_str())
+    AICPU_CHECK_RES_WITH_LOG(HandleDefaultAttrType(node_def, attr_default_value, node.GetName()),
+                             "Call Ir2tfBaseParser::HandleDefaultAttrType function failed, op[%s].",
+                             node.GetName().c_str())
   }
   return ge::SUCCESS;
 }
-void Ir2tfBaseParser::SetDefaultString(domi::tensorflow::AttrValue &attr_value,
-                                       const std::string &default_value_str,
+void Ir2tfBaseParser::SetDefaultString(domi::tensorflow::AttrValue &attr_value, const std::string &default_value_str,
                                        const std::string &node_name) const {
   AICPUE_LOGI("default_value is [%s].", default_value_str.c_str());
   if (default_value_str == "resource_name") {
@@ -1254,12 +1188,10 @@ ge::Status Ir2tfBaseParser::HandleDefaultAttrType(domi::tensorflow::NodeDef *nod
   const std::string field_name = attr_default_value.field_name;
 
   DefaultType index = DefaultType::DEFAULT_UNDEFIN;
-  static const map<std::string, DefaultType> DataTypeMap = {{"string", DefaultType::DEFAULT_STRING},
-                                                              {"int", DefaultType::DEFAULT_INT},
-                                                              {"float", DefaultType::DEFAULT_FLOAT},
-                                                              {"bool", DefaultType::DEFAULT_BOOL},
-                                                              {"type", DefaultType::DEFAULT_TYPE},
-                                                              {"list", DefaultType::DEFAULT_LIST}};
+  static const map<std::string, DefaultType> DataTypeMap = {
+      {"string", DefaultType::DEFAULT_STRING}, {"int", DefaultType::DEFAULT_INT},
+      {"float", DefaultType::DEFAULT_FLOAT},   {"bool", DefaultType::DEFAULT_BOOL},
+      {"type", DefaultType::DEFAULT_TYPE},     {"list", DefaultType::DEFAULT_LIST}};
   auto default_data_type = DataTypeMap.find(attr_default_value.data_type);
   if (default_data_type != DataTypeMap.end()) {
     index = default_data_type->second;
@@ -1275,9 +1207,9 @@ ge::Status Ir2tfBaseParser::HandleDefaultAttrType(domi::tensorflow::NodeDef *nod
       if (!default_value_str.empty()) {
         aicpu::State ret = StringToNum(default_value_str, int_value);
         AICPU_IF_BOOL_EXEC(ret.state != ge::SUCCESS,
-            AICPU_REPORT_INNER_ERR_MSG("invalid default value[%s] of [%s], %s.",
-                default_value_str.c_str(), field_name.c_str(), ret.msg.c_str());
-            return ErrorCode::IR2TF_CONFIG_INVALID)
+                           AICPU_REPORT_INNER_ERR_MSG("invalid default value[%s] of [%s], %s.",
+                                                      default_value_str.c_str(), field_name.c_str(), ret.msg.c_str());
+                           return ErrorCode::IR2TF_CONFIG_INVALID)
       }
       AICPUE_LOGI("default_value is [%ld].", int_value);
       attr_value.set_i(int_value);
@@ -1288,9 +1220,9 @@ ge::Status Ir2tfBaseParser::HandleDefaultAttrType(domi::tensorflow::NodeDef *nod
       if (!default_value_str.empty()) {
         aicpu::State ret = StringToNum(default_value_str, float_value);
         AICPU_IF_BOOL_EXEC(ret.state != ge::SUCCESS,
-            AICPU_REPORT_INNER_ERR_MSG("invalid default value[%s] of [%s], %s.",
-                default_value_str.c_str(), field_name.c_str(), ret.msg.c_str());
-            return ErrorCode::IR2TF_CONFIG_INVALID)
+                           AICPU_REPORT_INNER_ERR_MSG("invalid default value[%s] of [%s], %s.",
+                                                      default_value_str.c_str(), field_name.c_str(), ret.msg.c_str());
+                           return ErrorCode::IR2TF_CONFIG_INVALID)
       }
       AICPUE_LOGI("default_value is [%f].", float_value);
       attr_value.set_f(float_value);
@@ -1301,9 +1233,9 @@ ge::Status Ir2tfBaseParser::HandleDefaultAttrType(domi::tensorflow::NodeDef *nod
       if (!default_value_str.empty()) {
         aicpu::State ret = StringToBool(default_value_str, bool_value);
         AICPU_IF_BOOL_EXEC(ret.state != ge::SUCCESS,
-            AICPU_REPORT_INNER_ERR_MSG("invalid default value[%s] of [%s], %s.",
-                default_value_str.c_str(), field_name.c_str(), ret.msg.c_str());
-            return ErrorCode::IR2TF_CONFIG_INVALID)
+                           AICPU_REPORT_INNER_ERR_MSG("invalid default value[%s] of [%s], %s.",
+                                                      default_value_str.c_str(), field_name.c_str(), ret.msg.c_str());
+                           return ErrorCode::IR2TF_CONFIG_INVALID)
       }
       AICPUE_LOGI("default_value is [%d].", bool_value);
       attr_value.set_b(bool_value);
@@ -1313,10 +1245,9 @@ ge::Status Ir2tfBaseParser::HandleDefaultAttrType(domi::tensorflow::NodeDef *nod
       domi::tensorflow::DataType data_type = TFDataType::DT_FLOAT;
       if (!default_value_str.empty()) {
         bool ret = ConvertString2TfDataType(default_value_str, data_type);
-        AICPU_IF_BOOL_EXEC(!(ret),
-            AICPU_REPORT_INNER_ERR_MSG("invalid default value[%s] of [%s].",
-                default_value_str.c_str(), field_name.c_str());
-            return ErrorCode::IR2TF_CONFIG_INVALID)
+        AICPU_IF_BOOL_EXEC(!(ret), AICPU_REPORT_INNER_ERR_MSG("invalid default value[%s] of [%s].",
+                                                              default_value_str.c_str(), field_name.c_str());
+                           return ErrorCode::IR2TF_CONFIG_INVALID)
       }
       AICPUE_LOGI("default_value is [%d].", data_type);
       attr_value.set_type(data_type);
@@ -1327,9 +1258,8 @@ ge::Status Ir2tfBaseParser::HandleDefaultAttrType(domi::tensorflow::NodeDef *nod
       break;
     }
     default: {
-      AICPU_REPORT_INNER_ERR_MSG(
-          "Invalid attr type[%s] in IR config, field name[%s].",
-          attr_default_value.data_type.c_str(), field_name.c_str());
+      AICPU_REPORT_INNER_ERR_MSG("Invalid attr type[%s] in IR config, field name[%s].",
+                                 attr_default_value.data_type.c_str(), field_name.c_str());
       return ErrorCode::IR2TF_CONFIG_INVALID;
     }
   }
@@ -1337,8 +1267,7 @@ ge::Status Ir2tfBaseParser::HandleDefaultAttrType(domi::tensorflow::NodeDef *nod
   auto pair = node_def->mutable_attr()->insert(AttrValueMap::value_type(attr_default_value.field_name, attr_value));
   if (!pair.second) {
     AICPUE_LOGW("Node insert attr[%s] failed.", attr_default_value.field_name.c_str());
-  }
-  else {
+  } else {
     AICPUE_LOGI("Node insert attr[%s] success.", attr_default_value.field_name.c_str());
   }
   return ge::SUCCESS;

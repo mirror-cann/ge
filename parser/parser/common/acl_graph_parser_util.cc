@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -52,8 +52,8 @@ const std::string kGraphDefaultName = "domi_default";
 /// Based on the security coding specification and the current actual (protobuf) model size, it is determined as 2G-1
 const int kMaxFileSizeLimit = INT_MAX;
 const int kMaxBuffSize = 256;
-const int kProtoReadBytesLimit = INT_MAX;    // Max size of 2 GB minus 1 byte.
-const int kWarningThreshold = 536870912 * 2; // 536870912 represent 512M
+const int kProtoReadBytesLimit = INT_MAX;     // Max size of 2 GB minus 1 byte.
+const int kWarningThreshold = 536870912 * 2;  // 536870912 represent 512M
 const uint32_t kSetOutputWithNodeAndIndex = 0x1;
 const uint32_t kSetOutputWithTensorName = 0x2;
 const uint32_t kSetOutputModeMixed = 0x3;
@@ -61,11 +61,8 @@ const size_t kInputShapePairSize = 2U;
 const char *const kInputShapeSample1 = "\"input_name1:n1,c1,h1,w1\"";
 const char *const kInputShapeSample2 = "\"input_name1:1,3,224,224\"";
 const char *const kSplitError1 = "The shape must contain two parts: name and value";
-const std::set<domi::FrameworkType> kSupportTensorAsOutput = {
-    domi::CAFFE,
-    domi::ONNX
-};
-std::atomic<uint32_t> graph_name_index {};
+const std::set<domi::FrameworkType> kSupportTensorAsOutput = {domi::CAFFE, domi::ONNX};
+std::atomic<uint32_t> graph_name_index{};
 
 static string GetSoPath() {
   Dl_info dl_info;
@@ -145,7 +142,7 @@ vector<std::string> SplitInputShape(const std::string &input_shape) {
   }
   return shape_pair_vec;
 }
-} // namespace
+}  // namespace
 
 namespace ge {
 static bool CheckInputTrueOrFalse(const std::string &s, const std::string &atc_param) {
@@ -154,8 +151,8 @@ static bool CheckInputTrueOrFalse(const std::string &s, const std::string &atc_p
   } else {
     REPORT_PREDEFINED_ERR_MSG("E10005", std::vector<const char *>({"parameter", "value"}),
                               std::vector<const char *>({atc_param.c_str(), s.c_str()}));
-    GELOGE(PARAM_INVALID, "[Check][Param] Input parameter[%s]'s value[%s] must be true or false.",
-           atc_param.c_str(), s.c_str());
+    GELOGE(PARAM_INVALID, "[Check][Param] Input parameter[%s]'s value[%s] must be true or false.", atc_param.c_str(),
+           s.c_str());
     return false;
   }
 }
@@ -163,8 +160,10 @@ static bool CheckInputTrueOrFalse(const std::string &s, const std::string &atc_p
 static Status CheckOutNode(ge::OpDescPtr op_desc, int32_t index) {
   int32_t out_size = op_desc->GetOutputsSize();
   if (index < 0 || index >= out_size) {
-    GELOGE(domi::FAILED, "[Check][Param]out_node [%s] output index:%d must be smaller "
-           "than node output size:%d and cannot be negative!", op_desc->GetName().c_str(), index, out_size);
+    GELOGE(domi::FAILED,
+           "[Check][Param]out_node [%s] output index:%d must be smaller "
+           "than node output size:%d and cannot be negative!",
+           op_desc->GetName().c_str(), index, out_size);
     std::string fail_reason = "Output index:\"" + to_string(index) +
                               "\" must be smaller than output size:" + to_string(out_size) + " and cannot be negative.";
     REPORT_PREDEFINED_ERR_MSG(
@@ -191,7 +190,7 @@ domi::Status AclGraphParserUtil::LoadOpsProtoLib() {
   bool is_proto_init = manager->Initialize(option_tmp);
   if (!is_proto_init) {
     REPORT_INNER_ERR_MSG("E19999", "OpsProtoManager init failed because ops proto path:%s is invalid.",
-                       opsproto_path.c_str());
+                         opsproto_path.c_str());
     GELOGE(FAILED, "[Invoke][Initialize] Load ops_proto lib failed, ops proto path:%s is invalid.",
            opsproto_path.c_str());
     return FAILED;
@@ -222,11 +221,11 @@ domi::Status AclGraphParserUtil::AclParserInitialize(const std::map<std::string,
     return SUCCESS;
   }
 
-  //备份并清空注册信息map
+  // 备份并清空注册信息map
   ge::OperatorFactoryImpl::BackupAndClearRegInfoOnce();
 
   GE_ASSERT_GRAPH_SUCCESS(OpLibRegistry::GetInstance().PreProcessForCustomOp());
-  
+
   // load and save custom op proto for prediction
   (void)LoadOpsProtoLib();
   SaveCustomCaffeProtoPath();
@@ -249,8 +248,8 @@ domi::Status AclGraphParserUtil::AclParserInitialize(const std::map<std::string,
   GELOGI("The size of registrationDatas in parser is: %zu", registrationDatas.size());
   for (OpRegistrationData &reg_data : registrationDatas) {
     if (std::to_string(reg_data.GetFrameworkType()) == fmk_type) {
-      (void) OpRegistrationTbe::Instance()->Finalize(reg_data, is_train);
-      (void) domi::OpRegistry::Instance()->Register(reg_data);
+      (void)OpRegistrationTbe::Instance()->Finalize(reg_data, is_train);
+      (void)domi::OpRegistry::Instance()->Register(reg_data);
     }
   }
   // 将备份的注册信息低优先级merge到当前map
@@ -286,7 +285,7 @@ domi::Status AclGraphParserUtil::ParseAclOutputNodes(const string &out_nodes) co
       vector<string> nodes_v = StringUtils::Split(out_nodes, ';');
       for (const string &node : nodes_v) {
         vector<string> key_value_v = StringUtils::Split(node, ':');
-        if (key_value_v.size() != 2) { // The size must be 2.
+        if (key_value_v.size() != 2) {  // The size must be 2.
           if (key_value_v.size() == 1 && kSupportTensorAsOutput.count(ge::GetParserContext().type) > 0) {
             set_output_mode |= kSetOutputWithTensorName;
             if (set_output_mode == kSetOutputModeMixed) {
@@ -297,9 +296,10 @@ domi::Status AclGraphParserUtil::ParseAclOutputNodes(const string &out_nodes) co
           }
           REPORT_PREDEFINED_ERR_MSG(
               "E10001", std::vector<const char *>({"parameter", "value", "reason"}),
-              std::vector<const char *>({"out_nodes", node.c_str(),
-                                        "The correct format is \"node_name1:0; node_name1:1; node_name2:0\"."}));
-          GELOGE(PARAM_INVALID, "[Check][Param] The input format of out_nodes is invalid, the correct format is "
+              std::vector<const char *>(
+                  {"out_nodes", node.c_str(), "The correct format is \"node_name1:0; node_name1:1; node_name2:0\"."}));
+          GELOGE(PARAM_INVALID,
+                 "[Check][Param] The input format of out_nodes is invalid, the correct format is "
                  "\"node_name1:0; node_name1:1; node_name2:0\", while the actual input is %s.",
                  node.c_str());
           return PARAM_INVALID;
@@ -333,9 +333,12 @@ domi::Status AclGraphParserUtil::ParseAclOutputNodes(const string &out_nodes) co
       if (set_output_mode == kSetOutputModeMixed) {
         REPORT_PREDEFINED_ERR_MSG(
             "E10001", std::vector<const char *>({"parameter", "value", "reason"}),
-            std::vector<const char *>({"--out_nodes", out_nodes.c_str(), "Only one of index, top_name and output_name can be used."}));
-        GELOGE(PARAM_INVALID, "[Parse][Param]This out_nodes str must be all index or tensor_name, "
-                              "while the actual input is %s", out_nodes.c_str());
+            std::vector<const char *>(
+                {"--out_nodes", out_nodes.c_str(), "Only one of index, top_name and output_name can be used."}));
+        GELOGE(PARAM_INVALID,
+               "[Parse][Param]This out_nodes str must be all index or tensor_name, "
+               "while the actual input is %s",
+               out_nodes.c_str());
         return PARAM_INVALID;
       }
     }
@@ -364,8 +367,10 @@ domi::Status AclGraphParserUtil::ParseAclOutputFp16NodesFormat(const string &is_
   for (auto &is_fp16 : node_format_vec) {
     StringUtils::Trim(is_fp16);
     if (!CheckInputTrueOrFalse(is_fp16, "is_output_adjust_hw_layout")) {
-      GELOGE(PARAM_INVALID, "[Check][Param]Invalid Param, is_output_adjust_hw_layout "
-             "only support true/false: but is [%s]", is_output_fp16.c_str());
+      GELOGE(PARAM_INVALID,
+             "[Check][Param]Invalid Param, is_output_adjust_hw_layout "
+             "only support true/false: but is [%s]",
+             is_output_fp16.c_str());
       return PARAM_INVALID;
     }
     if (is_fp16 == "false") {
@@ -407,8 +412,10 @@ domi::Status AclGraphParserUtil::ParseAclInputFp16Nodes(const ComputeGraphPtr &g
     for (auto &s : adjust_fp16_format_vec) {
       StringUtils::Trim(s);
       if (!CheckInputTrueOrFalse(s, "is_input_adjust_hw_layout")) {
-        GELOGE(PARAM_INVALID, "[Check][Param] Invalid Param, is_input_adjust_hw_layout "
-               "only support true/false: but is [%s]", is_input_adjust_hw_layout.c_str());
+        GELOGE(PARAM_INVALID,
+               "[Check][Param] Invalid Param, is_input_adjust_hw_layout "
+               "only support true/false: but is [%s]",
+               is_input_adjust_hw_layout.c_str());
         return PARAM_INVALID;
       }
     }
@@ -442,7 +449,7 @@ domi::Status AclGraphParserUtil::ParseAclInputFp16Nodes(const ComputeGraphPtr &g
 }
 
 domi::Status AclGraphParserUtil::SetSpecifyIndexAttrByInputNames(const ComputeGraphPtr &graph,
-    const std::string &input_data_names) const {
+                                                                 const std::string &input_data_names) const {
   std::vector<std::string> input_names = StringUtils::Split(input_data_names, ',');
   std::unordered_map<std::string, size_t> name_to_index;
   for (auto &input_name : input_names) {
@@ -459,16 +466,14 @@ domi::Status AclGraphParserUtil::SetSpecifyIndexAttrByInputNames(const ComputeGr
     auto op_desc = node->GetOpDesc();
     GE_CHECK_NOTNULL(op_desc);
     auto iter = name_to_index.find(node->GetName());
-    if (iter== name_to_index.cend()) {
-      GELOGE(PARAM_INVALID, "[Check][Param] Input name[%s] is not in input_data_names",
-             node->GetName().c_str());
+    if (iter == name_to_index.cend()) {
+      GELOGE(PARAM_INVALID, "[Check][Param] Input name[%s] is not in input_data_names", node->GetName().c_str());
       return FAILED;
     }
-    GELOGI("[SetSpecifyIndexAttr] set node(%s) index attr, index is %ld",
-           op_desc->GetName().c_str(), iter->second);
+    GELOGI("[SetSpecifyIndexAttr] set node(%s) index attr, index is %ld", op_desc->GetName().c_str(), iter->second);
     if (!AttrUtils::SetInt(op_desc, ATTR_NAME_INDEX, iter->second)) {
-      REPORT_INNER_ERR_MSG("E19999", "set attr %s failed for node:%s",
-          ATTR_NAME_INDEX.c_str(), op_desc->GetName().c_str());
+      REPORT_INNER_ERR_MSG("E19999", "set attr %s failed for node:%s", ATTR_NAME_INDEX.c_str(),
+                           op_desc->GetName().c_str());
       GELOGE(FAILED, "set attr %s failed for node:%s", ATTR_NAME_INDEX.c_str(), op_desc->GetName().c_str());
       return FAILED;
     }
@@ -538,8 +543,8 @@ domi::Status AclGraphParserUtil::GetOutputLeaf(NodePtr node,
   return SUCCESS;
 }
 
-domi::Status AclGraphParserUtil::GetDefaultOutInfo(ge::ComputeGraphPtr &compute_graph,
-    std::vector<std::pair<ge::NodePtr, int32_t>> &output_nodes_info) const {
+domi::Status AclGraphParserUtil::GetDefaultOutInfo(
+    ge::ComputeGraphPtr &compute_graph, std::vector<std::pair<ge::NodePtr, int32_t>> &output_nodes_info) const {
   std::vector<std::pair<std::string, int32_t>> default_out_nodes = ge::GetParserContext().default_out_nodes;
   if (!default_out_nodes.empty()) {
     for (size_t i = 0; i < default_out_nodes.size(); ++i) {
@@ -578,8 +583,8 @@ domi::Status AclGraphParserUtil::SetOutputNodeInfo(ge::Graph &graph,
     if (out_node == nullptr) {
       REPORT_PREDEFINED_ERR_MSG("E10016", std::vector<const char *>({"parameter", "opname"}),
                                 std::vector<const char *>({"out_nodes", user_out_nodes[i].first.c_str()}));
-      GELOGE(domi::FAILED, "[Check][Param] Cannot find out_nodes(%d) (%s) in graph.",
-             i, user_out_nodes[i].first.c_str());
+      GELOGE(domi::FAILED, "[Check][Param] Cannot find out_nodes(%d) (%s) in graph.", i,
+             user_out_nodes[i].first.c_str());
       return domi::FAILED;
     }
     auto op_desc = out_node->GetOpDesc();
@@ -679,8 +684,10 @@ domi::Status AclGraphParserUtil::ParseParamsBeforeGraph(const std::map<AscendStr
 
   string tmp_name;
   GetAclParams(parser_params, ge::ir_option::OUTPUT, tmp_name);
-  graph_name = tmp_name.empty() ? (kGraphDefaultName + "_" +
-    ge::parser::CurrentTimeInStr() + "_" + std::to_string(graph_name_index++)) : tmp_name;
+  graph_name =
+      tmp_name.empty()
+          ? (kGraphDefaultName + "_" + ge::parser::CurrentTimeInStr() + "_" + std::to_string(graph_name_index++))
+          : tmp_name;
 
   string enable_scope_fusion_passes;
   GetAclParams(parser_params, ge::ir_option::ENABLE_SCOPE_FUSION_PASSES, enable_scope_fusion_passes);
@@ -699,8 +706,8 @@ domi::Status AclGraphParserUtil::ParseParamsBeforeGraph(const std::map<AscendStr
   return SUCCESS;
 }
 
-domi::Status AclGraphParserUtil::ParseParamsAfterGraph(ge::Graph &graph,
-    const std::map<AscendString, AscendString> &parser_params) const {
+domi::Status AclGraphParserUtil::ParseParamsAfterGraph(
+    ge::Graph &graph, const std::map<AscendString, AscendString> &parser_params) const {
   // support paragrams: input_fp16_nodes, is_input_adjust_hw_layout,
   ComputeGraphPtr compute_graph = GraphUtilsEx::GetComputeGraph(graph);
   GE_CHECK_NOTNULL(compute_graph);
@@ -720,8 +727,7 @@ domi::Status AclGraphParserUtil::ParseParamsAfterGraph(ge::Graph &graph,
   GetAclParams(parser_params, ge::ir_option::INPUT_DATA_NAMES, input_data_names);
   if (!input_data_names.empty()) {
     if (SetSpecifyIndexAttrByInputNames(compute_graph, input_data_names) != SUCCESS) {
-      GELOGE(FAILED, "[Invoke][SetIndexAttr] set index attr failed, graph:%s",
-             compute_graph->GetName().c_str());
+      GELOGE(FAILED, "[Invoke][SetIndexAttr] set index attr failed, graph:%s", compute_graph->GetName().c_str());
       return PARAM_INVALID;
     }
   }
@@ -746,12 +752,12 @@ domi::Status AclGraphParserUtil::ParseAclInputShape(const string &input_shape) c
       return FAILED;
     }
     // 支持设置成标量: []
-	if (shape_pair_vec[1].empty()) {
-	  const auto node_name = StringUtils::Trim(shape_pair_vec[0]);
-	  ge::GetParserContext().input_dims.emplace(make_pair(node_name, std::vector<int64_t>{}));
-	  GELOGD("Input node name:%s, with shape:[]", node_name.c_str());
-	  continue;
-	}
+    if (shape_pair_vec[1].empty()) {
+      const auto node_name = StringUtils::Trim(shape_pair_vec[0]);
+      ge::GetParserContext().input_dims.emplace(make_pair(node_name, std::vector<int64_t>{}));
+      GELOGD("Input node name:%s, with shape:[]", node_name.c_str());
+      continue;
+    }
 
     std::vector<std::string> shape_value_split = StringUtils::Split(shape_pair_vec[1], ',');
     std::vector<int64_t> shape_values;
@@ -819,8 +825,8 @@ FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY long GetFileLength(const std::s
     REPORT_PREDEFINED_ERR_MSG("E13015", std::vector<const char *>({"file", "size", "maxsize"}),
                               std::vector<const char *>({input_file.c_str(), std::to_string(file_length).c_str(),
                                                          std::to_string(kMaxFileSizeLimit).c_str()}));
-    GELOGE(FAILED, "[Check][Param] File[%s] size %lld is out of range(0,%d).",
-           input_file.c_str(), file_length, kMaxFileSizeLimit);
+    GELOGE(FAILED, "[Check][Param] File[%s] size %lld is out of range(0,%d).", input_file.c_str(), file_length,
+           kMaxFileSizeLimit);
     return -1;
   }
   return static_cast<long>(file_length);
@@ -866,8 +872,7 @@ FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY bool ReadProtoFromBinaryFile(co
   bool ret = proto->ParseFromBoundedZeroCopyStream(&istream, len);
   fs.close();
   if (!ret) {
-    REPORT_PREDEFINED_ERR_MSG("E13005", std::vector<const char *>({"file"}),
-                              std::vector<const char *>({file}));
+    REPORT_PREDEFINED_ERR_MSG("E13005", std::vector<const char *>({"file"}), std::vector<const char *>({file}));
     GELOGE(ge::FAILED, "[Read][Proto] Parse file[%s] failed.", file);
     return ret;
   }
@@ -912,7 +917,7 @@ FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY bool ReadProtoFromText(const ch
   if (!fs.is_open()) {
     REPORT_PREDEFINED_ERR_MSG("E13001", std::vector<const char *>({"file", "errmsg"}),
                               std::vector<const char *>({real_path.c_str(), reason.c_str()}));
-    GELOGE(ge::FAILED, "[Open][ProtoFile] failed, real path is '%s' when orginal file path is '%s'.",
+    GELOGE(ge::FAILED, "[Open][ProtoFile] failed, real path is '%s' when original file path is '%s'.",
            real_path.c_str(), file);
     return false;
   }
@@ -921,8 +926,10 @@ FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY bool ReadProtoFromText(const ch
   bool ret = google::protobuf::TextFormat::Parse(&input, message);
   GE_IF_BOOL_EXEC(!ret, REPORT_PREDEFINED_ERR_MSG("E13018", std::vector<const char *>({"protofile"}),
                                                   std::vector<const char *>({file}));
-                  GELOGE(ret, "[Parse][File] [%s] through [google::protobuf::TextFormat::Parse] failed, "
-                         "please check whether the file is a valid protobuf format file.", file));
+                  GELOGE(ret,
+                         "[Parse][File] [%s] through [google::protobuf::TextFormat::Parse] failed, "
+                         "please check whether the file is a valid protobuf format file.",
+                         file));
   fs.close();
 
   return ret;
@@ -940,8 +947,9 @@ FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY bool ReadProtoFromMem(const cha
 
   google::protobuf::io::IstreamInputStream input(&fs);
   bool ret = google::protobuf::TextFormat::Parse(&input, message);
-  GE_IF_BOOL_EXEC(!ret, REPORT_PREDEFINED_ERR_MSG("E13001", std::vector<const char *>({"file", "errmsg"}),
-                                                  std::vector<const char *>({"memory", "parse failed, please check your text file"}));
+  GE_IF_BOOL_EXEC(!ret, REPORT_PREDEFINED_ERR_MSG(
+                            "E13001", std::vector<const char *>({"file", "errmsg"}),
+                            std::vector<const char *>({"memory", "parse failed, please check your text file"}));
                   GELOGE(ret, "[Call][Parse] ret fail, please check your text file."));
 
   return ret;
@@ -958,10 +966,10 @@ Status GetOriginalType(const ge::NodePtr &node, string &type) {
   GE_CHECK_NOTNULL(node->GetOpDesc());
   bool ret = ge::AttrUtils::GetStr(node->GetOpDesc(), ATTR_NAME_FRAMEWORK_ORIGINAL_TYPE, type);
   if (!ret) {
-    REPORT_INNER_ERR_MSG("E19999", "Get FrameWorkOp original type [%s] from node:%s failed.",
-                      type.c_str(), node->GetName().c_str());
-    GELOGE(INTERNAL_ERROR, "[Invoke][GetStr] Get FrameWorkOp original type [%s] from node:%s failed",
-           type.c_str(), node->GetName().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Get FrameWorkOp original type [%s] from node:%s failed.", type.c_str(),
+                         node->GetName().c_str());
+    GELOGE(INTERNAL_ERROR, "[Invoke][GetStr] Get FrameWorkOp original type [%s] from node:%s failed", type.c_str(),
+           node->GetName().c_str());
     return INTERNAL_ERROR;
   }
   GELOGD("Get FrameWorkOp original type [%s]", type.c_str());

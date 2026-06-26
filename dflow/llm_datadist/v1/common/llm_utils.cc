@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -41,9 +41,9 @@ ge::Status CheckBlocksContinuous(const std::vector<std::pair<int64_t, int64_t>> 
       ((current_group.back().first - current_group.front().first) == static_cast<int64_t>(current_group.size() - 1U)) &&
       ((current_group.back().second - current_group.front().second) == static_cast<int64_t>(current_group.size() - 1U));
   LLM_CHK_BOOL_RET_STATUS(is_contiguous, ge::FAILED,
-                         "aggregate contiguous block failed, src index[%ld-%ld], dst index[%ld-%ld], group size:%zu",
-                         current_group.front().first, current_group.back().first, current_group.front().second,
-                         current_group.back().second, current_group.size());
+                          "aggregate contiguous block failed, src index[%ld-%ld], dst index[%ld-%ld], group size:%zu",
+                          current_group.front().first, current_group.back().first, current_group.front().second,
+                          current_group.back().second, current_group.size());
   return ge::SUCCESS;
 }
 }  // namespace
@@ -54,24 +54,23 @@ ge::Status LLMUtils::ParserWaitTimeInfo(const std::map<ge::AscendString, ge::Asc
   if (sync_kv_wait_time_iter != options.cend()) {
     LLMLOGI("get sync kv wait time:%s ms.", sync_kv_wait_time_iter->second.GetString());
     LLM_CHK_BOOL_RET_STATUS(IsPositiveInteger(sync_kv_wait_time_iter->second.GetString()) == ge::SUCCESS,
-                           ge::LLM_PARAM_INVALID,
-                           "sync kv wait time:%s is invalid, wait time value should be a positive integer.",
-                           sync_kv_wait_time_iter->second.GetString());
+                            ge::LLM_PARAM_INVALID,
+                            "sync kv wait time:%s is invalid, wait time value should be a positive integer.",
+                            sync_kv_wait_time_iter->second.GetString());
     wait_time_info.sync_kv_wait_time = std::atoi(sync_kv_wait_time_iter->second.GetString());
   }
   return ge::SUCCESS;
 }
 
 ge::Status LLMUtils::ParseFlag(const std::string &option_name,
-                               const std::map<ge::AscendString, ge::AscendString> &options,
-                               bool &enabled) {
+                               const std::map<ge::AscendString, ge::AscendString> &options, bool &enabled) {
   enabled = false;
   const auto iter = options.find(option_name.c_str());
   if (iter != options.cend()) {
     const std::string &value = iter->second.GetString();
     LLM_ASSERT_TRUE((value == kEnableFlag) || (value == kDisableFlag),
-                   "Option %s value (\"%s\") is invalid, should be \"0\" or \"1\"",
-                   option_name.c_str(), value.c_str());
+                    "Option %s value (\"%s\") is invalid, should be \"0\" or \"1\"", option_name.c_str(),
+                    value.c_str());
     LLMLOGI("Option %s = %s", option_name.c_str(), iter->second.GetString());
     enabled = (iter->second == kEnableFlag);
     return ge::SUCCESS;
@@ -86,8 +85,7 @@ std::string LLMUtils::DebugString(const CacheKey &cache_key) {
   if (cache_key.prompt_cache_id == -1) {
     ss << ", model_id=" << cache_key.model_id;
   } else {
-    ss << ", prompt_cache_id=" << cache_key.prompt_cache_id
-       << ", prompt_batch_index=" << cache_key.prompt_batch_index;
+    ss << ", prompt_cache_id=" << cache_key.prompt_cache_id << ", prompt_batch_index=" << cache_key.prompt_batch_index;
   }
   return ss.str();
 }
@@ -124,7 +122,7 @@ ge::Status LLMUtils::FindContiguousBlockIndexPair(const std::vector<std::pair<in
   }
   const auto end = std::chrono::steady_clock::now();
   LLMLOGI("[LlmPerf] find contiguous block index pair cost time:%zu us",
-         std::chrono::duration_cast<std::chrono::microseconds>(end - start).count());
+          std::chrono::duration_cast<std::chrono::microseconds>(end - start).count());
   return ge::SUCCESS;
 }
 
@@ -132,7 +130,7 @@ ge::Status LLMUtils::FindContiguousBlockIndexPair(const std::vector<uint64_t> &s
                                                   const std::vector<uint64_t> &dst_blocks,
                                                   std::vector<std::vector<std::pair<int64_t, int64_t>>> &result) {
   LLM_CHK_BOOL_RET_STATUS(src_blocks.size() == dst_blocks.size(), ge::LLM_PARAM_INVALID,
-                         "src_block num:%zu not match dst_block num:%zu", src_blocks.size(), dst_blocks.size());
+                          "src_block num:%zu not match dst_block num:%zu", src_blocks.size(), dst_blocks.size());
   std::vector<std::pair<int64_t, int64_t>> block_mapping;
   for (size_t i = 0UL; i < src_blocks.size(); ++i) {
     block_mapping.emplace_back(std::make_pair(src_blocks[i], dst_blocks[i]));
@@ -145,7 +143,7 @@ ge::Status LLMUtils::IpToInt(const std::string &ip, uint32_t &ip_int) {
   constexpr uint32_t kNumBits = 8U;
   struct in_addr addr;
   LLM_CHK_BOOL_RET_STATUS(inet_pton(AF_INET, ip.c_str(), &addr) == 1, ge::LLM_PARAM_INVALID,
-                         "%s is not a valid ip address", ip.c_str());
+                          "%s is not a valid ip address", ip.c_str());
   const auto items = llm::StringUtils::Split(ip, '.');
   ip_int = 0;
   uint32_t shift = 0;
@@ -169,8 +167,8 @@ ge::Status LLMUtils::ParseDeviceId(const std::map<ge::AscendString, ge::AscendSt
   for (const auto &item : items) {
     int32_t device_id = -1;
     LLM_CHK_STATUS_RET(llm::LLMUtils::ToNumber(item, device_id),
-                      "%s:%s is invalid, it should be composed of numbers, separated by semicolons.", option,
-                      it->second.GetString());
+                       "%s:%s is invalid, it should be composed of numbers, separated by semicolons.", option,
+                       it->second.GetString());
     LLM_CHK_BOOL_RET_STATUS(device_id >= 0, ge::LLM_PARAM_INVALID, "Invalid device_id: %s", it->second.GetString());
     LLMLOGI("Parse device success, device_id = %d", device_id);
     device_ids.emplace_back(device_id);
@@ -178,14 +176,12 @@ ge::Status LLMUtils::ParseDeviceId(const std::map<ge::AscendString, ge::AscendSt
   return ge::SUCCESS;
 }
 
-ge::Status LLMUtils::GenerateClusterInfo(uint64_t cluster_id,
-                                         bool need_listen_ip,
-                                         size_t device_num,
+ge::Status LLMUtils::GenerateClusterInfo(uint64_t cluster_id, bool need_listen_ip, size_t device_num,
                                          std::map<ge::AscendString, ge::AscendString> &options) {
   std::stringstream ss;
   ss << "{\"cluster_id\": " << cluster_id << ", \"logic_device_id\": [";
   for (size_t i = 0; i < device_num; ++i) {
-    ss << "\"0:0:" << i <<":0\"";
+    ss << "\"0:0:" << i << ":0\"";
     if (i != (device_num - 1U)) {
       ss << ", ";
     }
@@ -197,8 +193,8 @@ ge::Status LLMUtils::GenerateClusterInfo(uint64_t cluster_id,
     LLMLOGI("Option %s = %s", llm_datadist::OPTION_LISTEN_IP_INFO, it->second.GetString());
     const auto ip_infos = llm::StringUtils::Split(it->second.GetString(), ';');
     LLM_CHK_BOOL_RET_STATUS(ip_infos.size() == device_num, ge::LLM_PARAM_INVALID,
-                           "ip info num:%zu in llm.ListenIpInfo is not equal to device num:%zu", ip_infos.size(),
-                           device_num);
+                            "ip info num:%zu in llm.ListenIpInfo is not equal to device num:%zu", ip_infos.size(),
+                            device_num);
     ss << ", \"listen_ip_info\": [";
     for (size_t i = 0; i < ip_infos.size(); ++i) {
       const auto &ip_info = ip_infos[i];
@@ -219,8 +215,7 @@ ge::Status LLMUtils::GenerateClusterInfo(uint64_t cluster_id,
   return ge::SUCCESS;
 }
 
-ge::Status LLMUtils::ParseListenIpInfo(const std::map<ge::AscendString, ge::AscendString> &options,
-                                       uint32_t &ip_int,
+ge::Status LLMUtils::ParseListenIpInfo(const std::map<ge::AscendString, ge::AscendString> &options, uint32_t &ip_int,
                                        uint32_t &port) {
   auto it = options.find(llm_datadist::OPTION_LISTEN_IP_INFO);
   LLM_CHK_BOOL_RET_STATUS(it != options.cend(), ge::LLM_PARAM_INVALID, "option llm.ListenIpInfo not set");
@@ -234,14 +229,14 @@ ge::Status LLMUtils::ParseListenIpInfo(const std::string &option, uint32_t &ip_i
   constexpr size_t kValidItemNum = 2U;
   const auto ip_and_port = llm::StringUtils::Split(option, ':');
   LLM_CHK_BOOL_RET_STATUS(ip_and_port.size() == kValidItemNum, ge::LLM_PARAM_INVALID,
-                         "llm.ListenIpInfo is invalid: %s, expect ${ip}:${port}", option.c_str());
+                          "llm.ListenIpInfo is invalid: %s, expect ${ip}:${port}", option.c_str());
   LLM_CHK_STATUS_RET(IpToInt(ip_and_port.front(), ip_int), "IP is invalid: %s, option_val = %s", ip_and_port[0].c_str(),
-                    option.c_str());
+                     option.c_str());
   int64_t port_val = -1;
   LLM_CHK_STATUS_RET(ToNumber(ip_and_port.back(), port_val), "port is invalid: %s, option_val = %s",
-                    ip_and_port[1].c_str(), option.c_str());
+                     ip_and_port[1].c_str(), option.c_str());
   LLM_CHK_BOOL_RET_STATUS((port_val >= 0) && (port_val <= UINT32_MAX), ge::LLM_PARAM_INVALID,
-                         "port is invalid: %s, option_val = %s", ip_and_port[1].c_str(), option.c_str());
+                          "port is invalid: %s, option_val = %s", ip_and_port[1].c_str(), option.c_str());
   port = static_cast<uint32_t>(port_val);
   return ge::SUCCESS;
 }
@@ -280,11 +275,11 @@ ge::Status LLMUtils::CalcElementCntByDims(const std::vector<int64_t> &dims, int6
   element_cnt = 1;
   for (const int64_t dim : dims) {
     LLM_CHK_BOOL_RET_STATUS(dim > 0, ge::LLM_PARAM_INVALID,
-                           "[Check][Dim] CalcElementCntByDims failed, dim value:%ld must > 0", dim);
+                            "[Check][Dim] CalcElementCntByDims failed, dim value:%ld must > 0", dim);
     LLM_CHK_BOOL_RET_STATUS(!CheckMultiplyOverflowInt64(element_cnt, dim), ge::LLM_PARAM_INVALID,
-                           "[Check][Overflow] CalcElementCntByDims failed, "
-                           "when multiplying %" PRId64 " and %" PRId64 ".",
-                           element_cnt, dim);
+                            "[Check][Overflow] CalcElementCntByDims failed, "
+                            "when multiplying %" PRId64 " and %" PRId64 ".",
+                            element_cnt, dim);
     element_cnt *= dim;
   }
   return ge::SUCCESS;
@@ -306,36 +301,32 @@ bool LLMUtils::GetDataTypeLength(const ge::DataType data_type, uint32_t &length)
     length = static_cast<uint32_t>(size);
     return true;
   }
-  LLMLOGE(ge::LLM_PARAM_INVALID, "[Check][Param] data_type not support [%d]",
-         static_cast<int32_t>(data_type));
+  LLMLOGE(ge::LLM_PARAM_INVALID, "[Check][Param] data_type not support [%d]", static_cast<int32_t>(data_type));
   return false;
 }
 
 ge::Status LLMUtils::GetSizeInBytes(int64_t element_count, ge::DataType data_type, int64_t &mem_size) {
   LLM_CHK_BOOL_RET_STATUS(element_count >= 0, ge::LLM_PARAM_INVALID,
-                         "GetSizeInBytes failed, element_count:%" PRId64 " less than 0.", element_count);
+                          "GetSizeInBytes failed, element_count:%" PRId64 " less than 0.", element_count);
   uint32_t type_size = 0U;
   LLM_CHK_BOOL_RET_STATUS(GetDataTypeLength(data_type, type_size), ge::LLM_PARAM_INVALID,
-                         "Failed to get type length, data_type:%d not support.", data_type);
+                          "Failed to get type length, data_type:%d not support.", data_type);
   if (type_size > ge::kDataTypeSizeBitOffset) {
     const auto bit_size = type_size - ge::kDataTypeSizeBitOffset;
     LLM_CHK_BOOL_RET_STATUS(!CheckMultiplyOverflowInt64(element_count, static_cast<int64_t>(bit_size)),
-                           ge::LLM_PARAM_INVALID,
-                           "Multiply overflow, when multiplying %" PRId64 " and %u.",
-                           element_count, bit_size);
+                            ge::LLM_PARAM_INVALID, "Multiply overflow, when multiplying %" PRId64 " and %u.",
+                            element_count, bit_size);
     mem_size = CeilDiv(element_count * bit_size, ge::kBitNumOfOneByte);
   } else {
     LLM_CHK_BOOL_RET_STATUS(!CheckMultiplyOverflowInt64(element_count, static_cast<int64_t>(type_size)),
-                           ge::LLM_PARAM_INVALID,
-                           "Multiply overflow, when multiplying %" PRId64 " and %u.",
-                           element_count, type_size);
+                            ge::LLM_PARAM_INVALID, "Multiply overflow, when multiplying %" PRId64 " and %u.",
+                            element_count, type_size);
     mem_size = element_count * type_size;
   }
   return ge::SUCCESS;
 }
 
-ge::Status LLMUtils::CalcTensorMemSize(const std::vector<int64_t> &dims,
-                                       const ge::DataType data_type,
+ge::Status LLMUtils::CalcTensorMemSize(const std::vector<int64_t> &dims, const ge::DataType data_type,
                                        int64_t &mem_size) {
   int64_t element_cnt = 0;
   LLM_CHK_STATUS_RET(CalcElementCntByDims(dims, element_cnt), "Failed to calc element cnt.");
@@ -400,11 +391,11 @@ ge::Status ConvertToInt64(const std::string &str, int64_t &val) {
     val = std::stoll(str);
   } catch (std::invalid_argument &) {
     LLMLOGE(ge::FAILED, "[Parse][Param]Failed, digit str:%s is invalid", str.c_str());
-        REPORT_INNER_ERR_MSG("E19999", "Parse param failed, digit str:%s is invalid", str.c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Parse param failed, digit str:%s is invalid", str.c_str());
     return ge::FAILED;
   } catch (std::out_of_range &) {
     LLMLOGE(ge::FAILED, "[Parse][Param]Failed, digit str:%s cannot change to int", str.c_str());
-        REPORT_INNER_ERR_MSG("E19999", "Parse param failed, digit str:%s cannot change to int", str.c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Parse param failed, digit str:%s cannot change to int", str.c_str());
     return ge::FAILED;
   }
   return ge::SUCCESS;

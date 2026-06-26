@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,8 +19,8 @@
 #include "dflow/base/utils/data_flow_utils.h"
 
 namespace ge {
-FunctionCompile::FunctionCompile(const std::string &pp_name, const CompileConfigJson::FunctionPpConfig &func_pp_cfg) :
-                                 function_pp_name_(pp_name), func_pp_cfg_{func_pp_cfg}, compile_result_{} {}
+FunctionCompile::FunctionCompile(const std::string &pp_name, const CompileConfigJson::FunctionPpConfig &func_pp_cfg)
+    : function_pp_name_(pp_name), func_pp_cfg_{func_pp_cfg}, compile_result_{} {}
 
 Status FunctionCompile::GetPathToSource(std::string &src_path) const {
   std::regex pattern(R"([A-Za-z0-9./+\-_]+)");
@@ -107,9 +107,8 @@ Status FunctionCompile::CompileSingleResourceType(const std::string &toolchain, 
 
   cmd = "cd " + build_dir + "; make 2>> output.log";
   sys_ret = system(cmd.c_str());
-  GE_CHK_BOOL_RET_STATUS(sys_ret == 0, FAILED,
-                         "Failed to execute cmd[%s] for pp[%s], ret=%d, see also %s/output.log.", cmd.c_str(),
-                         function_pp_name_.c_str(), sys_ret, build_dir.c_str());
+  GE_CHK_BOOL_RET_STATUS(sys_ret == 0, FAILED, "Failed to execute cmd[%s] for pp[%s], ret=%d, see also %s/output.log.",
+                         cmd.c_str(), function_pp_name_.c_str(), sys_ret, build_dir.c_str());
   GELOGI("Execute cmd[%s]", cmd.c_str());
   return SUCCESS;
 }
@@ -252,4 +251,4 @@ Status FunctionCompile::GetBuiltInFuncCompileResult(CompileResult &compile_resul
   compile_result = built_in_func_compile_result;
   return SUCCESS;
 }
-} // namespace ge
+}  // namespace ge

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,7 +30,9 @@ class UtestGraphPassesTransOpBreadthFusionPass : public testing::Test {
 
 class NodeBuilder {
  public:
-  NodeBuilder(const std::string &name, const std::string &type) { op_desc_ = std::make_shared<OpDesc>(name, type); }
+  NodeBuilder(const std::string &name, const std::string &type) {
+    op_desc_ = std::make_shared<OpDesc>(name, type);
+  }
 
   NodeBuilder &AddInputDesc(std::initializer_list<int64_t> shape, ge::Format format = FORMAT_NCHW,
                             ge::DataType data_type = DT_FLOAT) {
@@ -44,7 +46,9 @@ class NodeBuilder {
     return *this;
   }
 
-  ge::NodePtr Build(const ge::ComputeGraphPtr &graph) { return graph->AddNode(op_desc_); }
+  ge::NodePtr Build(const ge::ComputeGraphPtr &graph) {
+    return graph->AddNode(op_desc_);
+  }
 
  private:
   ge::GeTensorDescPtr CreateTensorDesc(std::initializer_list<int64_t> shape, ge::Format format = FORMAT_NCHW,
@@ -73,16 +77,16 @@ TEST_F(UtestGraphPassesTransOpBreadthFusionPass, delete_reshape_and_relink_const
   ge::NodePtr node1 = NodeBuilder("node1", DATA).AddOutputDesc({1}, FORMAT_NCHW, DT_INT32).Build(graph);
 
   ge::NodePtr reshape_node_1 = NodeBuilder("reshape_node_1", RESHAPE)
-      .AddInputDesc({1}, FORMAT_NCHW, DT_FLOAT)
-      .AddInputDesc({1}, FORMAT_NCHW, DT_INT32)
-      .AddOutputDesc({1, 1}, FORMAT_NC1HWC0, DT_INT32)
-      .Build(graph);
+                                   .AddInputDesc({1}, FORMAT_NCHW, DT_FLOAT)
+                                   .AddInputDesc({1}, FORMAT_NCHW, DT_INT32)
+                                   .AddOutputDesc({1, 1}, FORMAT_NC1HWC0, DT_INT32)
+                                   .Build(graph);
 
   ge::NodePtr reshape_node_2 = NodeBuilder("reshape_node_2", RESHAPE)
-      .AddInputDesc({1}, FORMAT_NCHW, DT_FLOAT)
-      .AddInputDesc({1}, FORMAT_NCHW, DT_INT32)
-      .AddOutputDesc({1, 1}, FORMAT_NC1HWC0, DT_INT32)
-      .Build(graph);
+                                   .AddInputDesc({1}, FORMAT_NCHW, DT_FLOAT)
+                                   .AddInputDesc({1}, FORMAT_NCHW, DT_INT32)
+                                   .AddOutputDesc({1, 1}, FORMAT_NC1HWC0, DT_INT32)
+                                   .Build(graph);
 
   ge::NodePtr node_2 = NodeBuilder("node2", RELU).AddInputDesc({1, 1}, FORMAT_NC1HWC0, DT_INT32).Build(graph);
 
@@ -122,16 +126,16 @@ TEST_F(UtestGraphPassesTransOpBreadthFusionPass, check_loop_success) {
   ge::NodePtr node1 = NodeBuilder("node1", DATA).AddOutputDesc({1}, FORMAT_NCHW, DT_INT32).Build(graph);
 
   ge::NodePtr reshape_node_1 = NodeBuilder("reshape_node_1", RESHAPE)
-      .AddInputDesc({1}, FORMAT_NCHW, DT_FLOAT)
-      .AddInputDesc({1}, FORMAT_NCHW, DT_INT32)
-      .AddOutputDesc({1, 1}, FORMAT_NC1HWC0, DT_INT32)
-      .Build(graph);
+                                   .AddInputDesc({1}, FORMAT_NCHW, DT_FLOAT)
+                                   .AddInputDesc({1}, FORMAT_NCHW, DT_INT32)
+                                   .AddOutputDesc({1, 1}, FORMAT_NC1HWC0, DT_INT32)
+                                   .Build(graph);
 
   ge::NodePtr reshape_node_2 = NodeBuilder("reshape_node_2", RESHAPE)
-      .AddInputDesc({1}, FORMAT_NCHW, DT_FLOAT)
-      .AddInputDesc({1}, FORMAT_NCHW, DT_INT32)
-      .AddOutputDesc({1, 1}, FORMAT_NC1HWC0, DT_INT32)
-      .Build(graph);
+                                   .AddInputDesc({1}, FORMAT_NCHW, DT_FLOAT)
+                                   .AddInputDesc({1}, FORMAT_NCHW, DT_INT32)
+                                   .AddOutputDesc({1, 1}, FORMAT_NC1HWC0, DT_INT32)
+                                   .Build(graph);
 
   ge::NodePtr node_2 = NodeBuilder("node2", RELU).AddInputDesc({1, 1}, FORMAT_NC1HWC0, DT_INT32).Build(graph);
 
@@ -152,7 +156,7 @@ TEST_F(UtestGraphPassesTransOpBreadthFusionPass, check_loop_success) {
   ge::TransOpBreadthFusionPass pass;
   Status status = pass.Run(graph);
   EXPECT_EQ(SUCCESS, status);
-  ASSERT_EQ(graph->TopologicalSorting(), SUCCESS); // check loop
+  ASSERT_EQ(graph->TopologicalSorting(), SUCCESS);  // check loop
   ASSERT_EQ(node1->GetOutDataNodesSize(), 1U);
   ASSERT_EQ(constant_2->GetOutControlNodes().size(), 1U);
   ASSERT_EQ(constant_2->GetOutControlNodes().at(0), node_3);
@@ -317,16 +321,16 @@ static ComputeGraphPtr BuildGraph2() {
  *                         var
  */
 static ComputeGraphPtr BuildGraph3() {
- vector<int64_t> perm1{0, 3, 1, 2};
+  vector<int64_t> perm1{0, 3, 1, 2};
   GeTensorDesc tensor_desc1(GeShape(vector<int64_t>{4}), FORMAT_ND, DT_INT64);
-  GeTensorPtr const_tensor1 = 
-    std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()) , sizeof(int64_t)*perm1.size());
+  GeTensorPtr const_tensor1 = std::make_shared<GeTensor>(tensor_desc1, reinterpret_cast<uint8_t *>(perm1.data()),
+                                                         sizeof(int64_t) * perm1.size());
   auto const1 = OP_CFG(CONSTANT).Weight(const_tensor1);
 
   vector<int32_t> perm2{0, 2, 1, 3};
   GeTensorDesc tensor_desc2(GeShape(vector<int64_t>{4}), FORMAT_ND, DT_INT32);
-  GeTensorPtr const_tensor2 = 
-    std::make_shared<GeTensor>(tensor_desc2, reinterpret_cast<uint8_t *>(perm2.data()), sizeof(int32_t)*perm2.size());
+  GeTensorPtr const_tensor2 = std::make_shared<GeTensor>(tensor_desc2, reinterpret_cast<uint8_t *>(perm2.data()),
+                                                         sizeof(int32_t) * perm2.size());
   auto const2 = OP_CFG(CONSTANT).Weight(const_tensor2);
 
   auto transpose1 = OP_CFG(TRANSPOSE).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 128, 52, 52});
@@ -361,17 +365,17 @@ static ComputeGraphPtr BuildGraph3() {
 }
 
 /*
-*  if we want to fusion cast1 and cast2
-*  it will cause a cycle between fusion_cast and transdata
-*       data1
-*       /    \
-*      /      \
-*    cast1     \
-*      |        \
-*   trandata---> cast2
-*                 |
-*                relu
-*/
+ *  if we want to fusion cast1 and cast2
+ *  it will cause a cycle between fusion_cast and transdata
+ *       data1
+ *       /    \
+ *      /      \
+ *    cast1     \
+ *      |        \
+ *   trandata---> cast2
+ *                 |
+ *                relu
+ */
 static ComputeGraphPtr BuildGraphMayCauseCycleWhenFusion() {
   auto root_builder = ut::GraphBuilder("root");
   const auto &data1 = root_builder.AddNode("data1", "Data", 1, 1);
@@ -389,15 +393,15 @@ static ComputeGraphPtr BuildGraphMayCauseCycleWhenFusion() {
 }
 
 /*
-*  if we want to fusion cast1 and cast2
-*  it will cause a cycle between fusion_cast and transdata
-*       data1
-*       /     \
-*      /       \
-*    cast1 --->cast2
-*      |         |
-*  trandata1    relu
-*/
+ *  if we want to fusion cast1 and cast2
+ *  it will cause a cycle between fusion_cast and transdata
+ *       data1
+ *       /     \
+ *      /       \
+ *    cast1 --->cast2
+ *      |         |
+ *  trandata1    relu
+ */
 static ComputeGraphPtr BuildGraphWithCtrlEdgeBetweenTransop() {
   auto root_builder = ut::GraphBuilder("root");
   const auto &data1 = root_builder.AddNode("data1", "Data", 1, 1);
@@ -486,7 +490,7 @@ TEST_F(UtestGraphPassesTransOpBreadthFusionPass, undirect_control_relation_may_c
   Status status = pass.Run(graph);
   EXPECT_EQ(SUCCESS, status);
   EXPECT_EQ(graph->GetDirectNodesSize(), 4);
-  EXPECT_EQ(graph->TopologicalSorting(), SUCCESS); // topo success, no cycle
+  EXPECT_EQ(graph->TopologicalSorting(), SUCCESS);  // topo success, no cycle
   // check relu in_ctrl now is transdata
   const auto &relu = graph->FindNode("relu");
   EXPECT_EQ(relu->GetInControlNodes().at(0)->GetName(), "transdata");
@@ -500,38 +504,17 @@ TEST_F(UtestGraphPassesTransOpBreadthFusionPass, direct_control_relation_may_cau
   Status status = pass.Run(graph);
   EXPECT_EQ(SUCCESS, status);
   EXPECT_EQ(graph->GetDirectNodesSize(), 4);
-  EXPECT_EQ(graph->TopologicalSorting(), SUCCESS); // topo success, no cycle
+  EXPECT_EQ(graph->TopologicalSorting(), SUCCESS);  // topo success, no cycle
 }
 
 TEST_F(UtestGraphPassesTransOpBreadthFusionPass, reshape_with_unknown_input) {
   DEF_GRAPH(reshape_unknown_input) {
-    auto data0 = OP_CFG(DATA)
-      .InCnt(1)
-      .OutCnt(1)
-      .TensorDesc(FORMAT_ND, DT_FLOAT, {1})
-      .Build("data0");
-    auto data1 = OP_CFG(DATA)
-      .InCnt(1)
-      .OutCnt(1)
-      .TensorDesc(FORMAT_ND, DT_FLOAT, {1})
-      .Build("data1");
-    auto data2 = OP_CFG(DATA)
-      .InCnt(1)
-      .OutCnt(1)
-      .TensorDesc(FORMAT_ND, DT_FLOAT, {1})
-      .Build("data2");
-    auto reshape0 = OP_CFG(RESHAPE)
-      .InCnt(2)
-      .OutCnt(1)
-      .Build("reshape0");
-    auto reshape1 = OP_CFG(RESHAPE)
-      .InCnt(2)
-      .OutCnt(1)
-      .Build("reshape1");
-    auto netoutput = OP_CFG(NETOUTPUT)
-      .InCnt(1)
-      .OutCnt(1)
-      .Build("reshnetoutputape");
+    auto data0 = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {1}).Build("data0");
+    auto data1 = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {1}).Build("data1");
+    auto data2 = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {1}).Build("data2");
+    auto reshape0 = OP_CFG(RESHAPE).InCnt(2).OutCnt(1).Build("reshape0");
+    auto reshape1 = OP_CFG(RESHAPE).InCnt(2).OutCnt(1).Build("reshape1");
+    auto netoutput = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).Build("reshnetoutputape");
     CHAIN(NODE(data0)->EDGE(0, 0)->NODE(reshape0)->EDGE(0, 0)->NODE(netoutput));
     CHAIN(NODE(data0)->EDGE(0, 0)->NODE(reshape1)->EDGE(0, 1)->NODE(netoutput));
     CHAIN(NODE(data1)->EDGE(0, 1)->NODE(reshape0));

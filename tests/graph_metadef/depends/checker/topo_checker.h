@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -599,7 +599,7 @@ class FastOutChecker : public BaseFastIoChecker<FastOutChecker> {
 
   FastOutChecker DataToByType(const std::string &node_type) {
     MUST_OK()
-    return CheckByType(node_type, node_->GetOutDataNodes()); // todo：confirm
+    return CheckByType(node_type, node_->GetOutDataNodes());  // todo：confirm
   }
   FastOutChecker CtrlToByType(const std::string &node_type) {
     MUST_OK()
@@ -608,7 +608,7 @@ class FastOutChecker : public BaseFastIoChecker<FastOutChecker> {
 
   FastOutChecker DataTo(const bg::ValueHolderPtr &holder) {
     MUST_OK()
-    return CheckByName(holder->GetFastNode()->GetName(), node_->GetOutDataNodes()); // todo：confirm
+    return CheckByName(holder->GetFastNode()->GetName(), node_->GetOutDataNodes());  // todo：confirm
   }
   FastOutChecker CtrlTo(const bg::ValueHolderPtr &holder) {
     MUST_OK()
@@ -862,7 +862,8 @@ class FastNodeTopoChecker {
     }
     return dst_nodes;
   }
-  std::string PrintInNodesComparedTable(std::stringstream &error_msg, const std::vector<SrcFastNode> &expect_nodes) const {
+  std::string PrintInNodesComparedTable(std::stringstream &error_msg,
+                                        const std::vector<SrcFastNode> &expect_nodes) const {
     PrettyTable pt;
     pt.SetHeader({"Actual Node", "Actual Index", "Compare Type", "Expect Node", "Expect Index"});
     auto row_num = std::max(node_->GetAllInNodes().size(), expect_nodes.size());
@@ -970,9 +971,10 @@ inline OrderedSet<ge::FastNode *> FastNodeTopoChecker::GetInNodes<ge::FastNode *
 }
 
 template <>
-inline OrderedSet<std::pair<ge::FastNode *, int32_t>> FastNodeTopoChecker::GetInNodes<std::pair<ge::FastNode *, int32_t>>() {
+inline OrderedSet<std::pair<ge::FastNode *, int32_t>>
+FastNodeTopoChecker::GetInNodes<std::pair<ge::FastNode *, int32_t>>() {
   OrderedSet<std::pair<ge::FastNode *, int32_t>> in_nodes_set;
-  for (const auto edge : node_->GetAllInDataEdges()) { // todo : confirm
+  for (const auto edge : node_->GetAllInDataEdges()) {  // todo : confirm
     in_nodes_set.insert(std::make_pair(edge->src, edge->src_output));
   }
   return in_nodes_set;

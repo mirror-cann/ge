@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,71 +31,58 @@ using namespace fe;
 
 namespace fe {
 REG_OP(Const)
-    .OUTPUT(y,
-            TensorType({DT_FLOAT, DT_FLOAT16, DT_INT8, DT_INT16, DT_UINT16, DT_UINT8, DT_INT32, DT_INT64, DT_UINT32,
-                        DT_UINT64, DT_BOOL, DT_DOUBLE}))
+    .OUTPUT(y, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT8, DT_INT16, DT_UINT16, DT_UINT8, DT_INT32, DT_INT64, DT_UINT32,
+                           DT_UINT64, DT_BOOL, DT_DOUBLE}))
     .ATTR(value, Tensor, Tensor())
     .OP_END_FACTORY_REG(Const);
 
 REG_OP(Transpose)
-    .INPUT(x,
-           TensorType({DT_FLOAT, DT_FLOAT16, DT_INT8, DT_INT16, DT_UINT16, DT_UINT8, DT_INT32, DT_INT64, DT_UINT32,
-                       DT_UINT64, DT_BOOL, DT_DOUBLE}))
+    .INPUT(x, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT8, DT_INT16, DT_UINT16, DT_UINT8, DT_INT32, DT_INT64, DT_UINT32,
+                          DT_UINT64, DT_BOOL, DT_DOUBLE}))
     .INPUT(shape, TensorType({DT_INT32, DT_INT64}))
-    .OUTPUT(y,
-            TensorType({DT_FLOAT, DT_FLOAT16, DT_INT8, DT_INT16, DT_UINT16, DT_UINT8, DT_INT32, DT_INT64, DT_UINT32,
-                        DT_UINT64, DT_BOOL, DT_DOUBLE}))
+    .OUTPUT(y, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT8, DT_INT16, DT_UINT16, DT_UINT8, DT_INT32, DT_INT64, DT_UINT32,
+                           DT_UINT64, DT_BOOL, DT_DOUBLE}))
     .ATTR(axis, Int, 0)
     .ATTR(num_axes, Int, -1)
     .OP_END_FACTORY_REG(Transpose);
 
 REG_OP(Add)
-    .INPUT(x1, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16,
-                           DT_INT8, DT_UINT8, DT_DOUBLE, DT_COMPLEX128,
-                           DT_COMPLEX64, DT_STRING}))
-    .INPUT(x2, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16,
-                           DT_INT8, DT_UINT8, DT_DOUBLE, DT_COMPLEX128,
-                           DT_COMPLEX64, DT_STRING}))
-    .OUTPUT(y, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16,
-                           DT_INT8, DT_UINT8, DT_DOUBLE, DT_COMPLEX128,
-                           DT_COMPLEX64, DT_STRING}))
+    .INPUT(x1, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16, DT_INT8, DT_UINT8, DT_DOUBLE,
+                           DT_COMPLEX128, DT_COMPLEX64, DT_STRING}))
+    .INPUT(x2, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16, DT_INT8, DT_UINT8, DT_DOUBLE,
+                           DT_COMPLEX128, DT_COMPLEX64, DT_STRING}))
+    .OUTPUT(y, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16, DT_INT8, DT_UINT8, DT_DOUBLE,
+                           DT_COMPLEX128, DT_COMPLEX64, DT_STRING}))
     .OP_END_FACTORY_REG(Add)
 
-REG_OP(MultiAdd)
-    .INPUT(x1, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16,
-                           DT_INT8, DT_UINT8, DT_DOUBLE, DT_COMPLEX128,
-                           DT_COMPLEX64, DT_STRING}))
-    .INPUT(x2, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16,
-                           DT_INT8, DT_UINT8, DT_DOUBLE, DT_COMPLEX128,
-                           DT_COMPLEX64, DT_STRING}))
-    .INPUT(x3, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16,
-                           DT_INT8, DT_UINT8, DT_DOUBLE, DT_COMPLEX128,
-                           DT_COMPLEX64, DT_STRING}))
-    .INPUT(x4, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16,
-                           DT_INT8, DT_UINT8, DT_DOUBLE, DT_COMPLEX128,
-                           DT_COMPLEX64, DT_STRING}))
-    .OUTPUT(y, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16,
-                           DT_INT8, DT_UINT8, DT_DOUBLE, DT_COMPLEX128,
-                           DT_COMPLEX64, DT_STRING}))
+        REG_OP(MultiAdd)
+    .INPUT(x1, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16, DT_INT8, DT_UINT8, DT_DOUBLE,
+                           DT_COMPLEX128, DT_COMPLEX64, DT_STRING}))
+    .INPUT(x2, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16, DT_INT8, DT_UINT8, DT_DOUBLE,
+                           DT_COMPLEX128, DT_COMPLEX64, DT_STRING}))
+    .INPUT(x3, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16, DT_INT8, DT_UINT8, DT_DOUBLE,
+                           DT_COMPLEX128, DT_COMPLEX64, DT_STRING}))
+    .INPUT(x4, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16, DT_INT8, DT_UINT8, DT_DOUBLE,
+                           DT_COMPLEX128, DT_COMPLEX64, DT_STRING}))
+    .OUTPUT(y, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16, DT_INT8, DT_UINT8, DT_DOUBLE,
+                           DT_COMPLEX128, DT_COMPLEX64, DT_STRING}))
     .OP_END_FACTORY_REG(MultiAdd)
 
-REG_OP(Relu)
-    .INPUT(x, TensorType({DT_FLOAT, DT_FLOAT16, DT_DOUBLE,
-                          DT_INT8, DT_INT32, DT_INT16, DT_INT64,
-                          DT_UINT8, DT_UINT16, DT_QINT8}))
-    .OUTPUT(y, TensorType({DT_FLOAT, DT_FLOAT16, DT_DOUBLE,
-                           DT_INT8, DT_INT32, DT_INT16, DT_INT64,
-                           DT_UINT8, DT_UINT16, DT_QINT8}))
+        REG_OP(Relu)
+    .INPUT(x, TensorType({DT_FLOAT, DT_FLOAT16, DT_DOUBLE, DT_INT8, DT_INT32, DT_INT16, DT_INT64, DT_UINT8, DT_UINT16,
+                          DT_QINT8}))
+    .OUTPUT(y, TensorType({DT_FLOAT, DT_FLOAT16, DT_DOUBLE, DT_INT8, DT_INT32, DT_INT16, DT_INT64, DT_UINT8, DT_UINT16,
+                           DT_QINT8}))
     .OP_END_FACTORY_REG(Relu)
 
-REG_OP(End)
+        REG_OP(End)
     .INPUT(x, TensorType::ALL())
     .OUTPUT(y, TensorType::ALL())
     .ATTR(peerIndex, Int, 0)
     .ATTR(parentOpType, String, "")
     .OP_END_FACTORY_REG(End)
 
-REG_OP(LarsV2Update)
+        REG_OP(LarsV2Update)
     .INPUT(w, TensorType(DT_FLOAT))
     .INPUT(g, TensorType(DT_FLOAT))
     .INPUT(w_square_sum, TensorType(DT_FLOAT))
@@ -108,14 +95,14 @@ REG_OP(LarsV2Update)
     .ATTR(use_clip, Bool, false)
     .OP_END_FACTORY_REG(LarsV2Update)
 
-REG_OP(SquareSumAll)
+        REG_OP(SquareSumAll)
     .INPUT(x1, TensorType({DT_FLOAT}))
     .INPUT(x2, TensorType({DT_FLOAT}))
     .OUTPUT(y1, TensorType({DT_FLOAT}))
     .OUTPUT(y2, TensorType({DT_FLOAT}))
     .OP_END_FACTORY_REG(SquareSumAll)
 
-REG_OP(LarsV2)
+        REG_OP(LarsV2)
     .INPUT(w, TensorType(DT_FLOAT))
     .INPUT(g, TensorType(DT_FLOAT))
     .INPUT(weight_decay, TensorType(DT_FLOAT))
@@ -126,17 +113,12 @@ REG_OP(LarsV2)
     .ATTR(use_clip, Bool, false)
     .OP_END_FACTORY_REG(LarsV2)
 
-class UTestFusionTurbo2 : public testing::Test {
+        class UTestFusionTurbo2 : public testing::Test {
  public:
-
  protected:
+  void SetUp() {}
 
-
-  void SetUp() {
-  }
-
-  void TearDown() {
-  }
+  void TearDown() {}
 
   ge::NodePtr GetNode(ComputeGraphPtr &graph, const string &name) {
     for (auto &node : graph->GetDirectNode()) {
@@ -154,7 +136,7 @@ class UTestFusionTurbo2 : public testing::Test {
     OpDescPtr op_desc_relu2 = std::make_shared<OpDesc>("relu2", "Relu");
     OpDescPtr op_desc_output = std::make_shared<OpDesc>("output", "NetOutput");
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim_a = {8, 4, 16, 16};
     GeShape shape_a(dim_a);
     GeTensorDesc tensor_desc_a(shape_a);
@@ -192,7 +174,7 @@ class UTestFusionTurbo2 : public testing::Test {
     Relations rl(0, {node_relu1, 0});
     acc.LinkInput(rl, node_add);
 
-    unique_ptr<int32_t[]> data(new(std::nothrow) int32_t[4096]);
+    unique_ptr<int32_t[]> data(new (std::nothrow) int32_t[4096]);
     WeightInfo w(tensor_desc_a, data.get());
     acc.AddWeight(node_relu1, 0, w);
     acc.AddWeight(node_relu2, 0, w);
@@ -206,7 +188,7 @@ class UTestFusionTurbo2 : public testing::Test {
     OpDescPtr op_desc_relu2 = std::make_shared<OpDesc>("relu2", "Relu");
     OpDescPtr op_desc_output = std::make_shared<OpDesc>("output", "NetOutput");
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim_a = {8, 4, 16, 16};
     GeShape shape_a(dim_a);
     GeTensorDesc tensor_desc_a(shape_a);
@@ -248,7 +230,7 @@ class UTestFusionTurbo2 : public testing::Test {
 
     auto relu2_front = acc.InsertNodeBefore("relu2_front", "Relu", node_relu2, 0);
 
-    unique_ptr<int32_t[]> data(new(std::nothrow) int32_t[4096]);
+    unique_ptr<int32_t[]> data(new (std::nothrow) int32_t[4096]);
     WeightInfo w(tensor_desc_a, data.get());
     acc.AddWeight(relu1_front, 0, w);
     acc.AddWeight(relu2_front, 0, w);
@@ -261,11 +243,8 @@ class UTestFusionTurbo2 : public testing::Test {
       printf("node name = %s.\n", node->GetName().c_str());
       for (ge::OutDataAnchorPtr anchor : node->GetAllOutDataAnchors()) {
         for (ge::InDataAnchorPtr peer_in_anchor : anchor->GetPeerInDataAnchors()) {
-          printf("    node name = %s[%d], out data node name = %s[%d].\n",
-                 node->GetName().c_str(),
-                 anchor->GetIdx(),
-                 peer_in_anchor->GetOwnerNode()->GetName().c_str(),
-                 peer_in_anchor->GetIdx());
+          printf("    node name = %s[%d], out data node name = %s[%d].\n", node->GetName().c_str(), anchor->GetIdx(),
+                 peer_in_anchor->GetOwnerNode()->GetName().c_str(), peer_in_anchor->GetIdx());
         }
       }
       if (node->GetOutControlAnchor() != nullptr) {
@@ -276,7 +255,6 @@ class UTestFusionTurbo2 : public testing::Test {
       }
     }
   }
-
 };
 
 TEST_F(UTestFusionTurbo2, test_case_01) {
@@ -295,8 +273,7 @@ TEST_F(UTestFusionTurbo2, test_case_01) {
   auto relu1_input = relu1->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode();
   auto relu2_input = relu2->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode();
 
-  Relations input_relations = {{0, {relu1_input, 0}},
-                               {1, {relu2_input, 0}}};
+  Relations input_relations = {{0, {relu1_input, 0}}, {1, {relu2_input, 0}}};
   Relations output_relations = {0, {out, 0}};
   Status ret = acc.MultiInOne(node, input_relations, output_relations, {relu1, relu2, add}, true);
   EXPECT_EQ(ret, SUCCESS);
@@ -330,8 +307,7 @@ TEST_F(UTestFusionTurbo2, test_case_01_1) {
   auto relu1_input = relu1->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode();
   auto relu2_input = relu2->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode();
 
-  Relations input_relations = {{0, {relu1_input, 0}},
-                               {1, {relu2_input, 0}}};
+  Relations input_relations = {{0, {relu1_input, 0}}, {1, {relu2_input, 0}}};
   Relations output_relations = {0, {out, 0}};
   Status ret = acc.MultiInOne(node, input_relations, output_relations, {}, false);
   EXPECT_EQ(ret, SUCCESS);
@@ -373,9 +349,7 @@ TEST_F(UTestFusionTurbo2, test_case_01_2) {
   auto relu1_input = relu1->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode();
   auto relu2_input = relu2->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode();
 
-  Relations input_relations = {{0, {relu1_input, 0}},
-                               {0, {relu1_input, 0}},
-                               {1, {relu2_input, 0}}};
+  Relations input_relations = {{0, {relu1_input, 0}}, {0, {relu1_input, 0}}, {1, {relu2_input, 0}}};
   Relations output_relations = {0, {out, 0}};
   Status ret = acc.MultiInOne(node, input_relations, output_relations, {}, false);
   EXPECT_EQ(ret, SUCCESS);
@@ -417,9 +391,7 @@ TEST_F(UTestFusionTurbo2, test_case_01_3) {
   auto relu1_input = relu1->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode();
   auto relu2_input = relu2->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode();
 
-  Relations input_relations = {{0, {relu1_input, 0}},
-                               {2, {relu1_input, 0}},
-                               {1, {relu2_input, 0}}};
+  Relations input_relations = {{0, {relu1_input, 0}}, {2, {relu1_input, 0}}, {1, {relu2_input, 0}}};
   Relations output_relations = {0, {out, 0}};
   Status ret = acc.MultiInOne(node, input_relations, output_relations, {}, false);
   EXPECT_EQ(ret, FAILED);
@@ -442,7 +414,6 @@ TEST_F(UTestFusionTurbo2, test_case_01_3) {
   EXPECT_EQ(add_in_nodes.at(1)->GetName(), "relu2");
 }
 
-
 TEST_F(UTestFusionTurbo2, test_case_01_4) {
   auto graph = CreateComplexGraph();
   FusionTurbo acc(graph);
@@ -459,10 +430,8 @@ TEST_F(UTestFusionTurbo2, test_case_01_4) {
   auto relu1_input = relu1->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode();
   auto relu2_input = relu2->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode();
 
-  Relations input_relations = {{0, {relu1_input, 0}},
-                               {1, {relu2_input, 0}}};
-  Relations output_relations = {{0, {out, 0}},
-                                {1, {out, 1}}};
+  Relations input_relations = {{0, {relu1_input, 0}}, {1, {relu2_input, 0}}};
+  Relations output_relations = {{0, {out, 0}}, {1, {out, 1}}};
   Status ret = acc.MultiInOne(node, input_relations, output_relations, {}, false);
   EXPECT_EQ(ret, FAILED);
 
@@ -485,7 +454,6 @@ TEST_F(UTestFusionTurbo2, test_case_01_4) {
   EXPECT_EQ(graph->GetDirectNodesSize(), 7);
 }
 
-
 TEST_F(UTestFusionTurbo2, test_case_01_5) {
   auto graph = CreateComplexGraph();
   FusionTurbo acc(graph);
@@ -502,8 +470,7 @@ TEST_F(UTestFusionTurbo2, test_case_01_5) {
   auto relu1_input = relu1->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode();
   auto relu2_input = relu2->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode();
 
-  Relations input_relations = {{0, {relu1_input, 0}},
-                               {1, {relu2_input, 0}}};
+  Relations input_relations = {{0, {relu1_input, 0}}, {1, {relu2_input, 0}}};
   Relations output_relations = {0, {out, 0}};
   ge::GraphUtils::AddEdge(relu1->GetOutControlAnchor(), add->GetInControlAnchor());
   ge::GraphUtils::AddEdge(node->GetOutControlAnchor(), relu1->GetInControlAnchor());
@@ -546,10 +513,8 @@ TEST_F(UTestFusionTurbo2, test_case_2) {
   auto relu1_input = relu1->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode();
   auto relu2_front_input = relu2_front->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode();
 
-  Relations input_relations = {{0, {relu1_input, 0}},
-                               {1, {relu2_front_input, 0}}};
-  Relations output_relations = {{0, {add, 0}},
-                                {0, {relu2, 0}}};
+  Relations input_relations = {{0, {relu1_input, 0}}, {1, {relu2_front_input, 0}}};
+  Relations output_relations = {{0, {add, 0}}, {0, {relu2, 0}}};
   Status ret = acc.MultiInOne(node, input_relations, output_relations, {relu1, relu2_front}, true);
   EXPECT_EQ(ret, SUCCESS);
 
@@ -569,7 +534,6 @@ TEST_F(UTestFusionTurbo2, test_case_2) {
   EXPECT_EQ(add_new_out_nodes.at(0)->GetName(), "add");
   EXPECT_EQ(add_new_out_nodes.at(1)->GetName(), "relu2");
 }
-
 
 TEST_F(UTestFusionTurbo2, test_case_3) {
   auto graph = CreateComplexGraph2();
@@ -591,14 +555,10 @@ TEST_F(UTestFusionTurbo2, test_case_3) {
   auto relu2_input = relu2->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode();
   auto relu2_front_input = relu2_front->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode();
 
-  Relations input_relations = {{0, {relu1_input, 0}},
-                               {1, {relu1_front_input, 0}},
-                               {2, {relu2_input, 0}},
-                               {3, {relu2_front_input, 0}}};
-  Relations output_relations = {{0, {add, 0}},
-                                {0, {add, 1}}};
-  Status ret = acc.MultiInOne(node, input_relations, output_relations,
-                              {relu1, relu1_front, relu2, relu2_front}, true);
+  Relations input_relations = {
+      {0, {relu1_input, 0}}, {1, {relu1_front_input, 0}}, {2, {relu2_input, 0}}, {3, {relu2_front_input, 0}}};
+  Relations output_relations = {{0, {add, 0}}, {0, {add, 1}}};
+  Status ret = acc.MultiInOne(node, input_relations, output_relations, {relu1, relu1_front, relu2, relu2_front}, true);
   EXPECT_EQ(ret, SUCCESS);
 
   auto out_nodes1 = relu1_front_input->GetOutDataNodes();
@@ -637,14 +597,11 @@ TEST_F(UTestFusionTurbo2, test_case_4) {
   auto relu2_input = relu2->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode();
   auto relu2_front_input = relu2_front->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode();
 
-  Relations input_relations = {{0, {relu1_input, 0}},
-                               {1, {relu1_front_input, 0}},
-                               {2, {relu2_input, 0}},
-                               {3, {relu2_front_input, 0}}};
-  Relations output_relations = {{0, {add, 0}},
-                                {0, {add, 1}}};
-  auto node = acc.MultiInOne(name, type, input_relations, output_relations,
-                              {relu1, relu1_front, relu2, relu2_front}, true);
+  Relations input_relations = {
+      {0, {relu1_input, 0}}, {1, {relu1_front_input, 0}}, {2, {relu2_input, 0}}, {3, {relu2_front_input, 0}}};
+  Relations output_relations = {{0, {add, 0}}, {0, {add, 1}}};
+  auto node =
+      acc.MultiInOne(name, type, input_relations, output_relations, {relu1, relu1_front, relu2, relu2_front}, true);
   EXPECT_NE(node, nullptr);
 
   auto out_nodes1 = relu1_front_input->GetOutDataNodes();
@@ -681,14 +638,11 @@ TEST_F(UTestFusionTurbo2, test_case_4_1) {
   auto relu1_front_input = relu1_front->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode();
   auto relu2_front_input = relu2_front->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode();
 
-  Relations input_relations = {{0, {relu1, 0, PEER}},
-                               {1, {relu1_front, 0, PEER}},
-                               {2, {relu2, 0, PEER}},
-                               {3, {relu2_front, 0, PEER}}};
-  Relations output_relations = {{0, {add, 1}},
-                                {0, {relu2, 0, PEER}}};
-  auto node = acc.MultiInOne(name, type, input_relations, output_relations,
-                             {relu1, relu1_front, relu2, relu2_front}, true);
+  Relations input_relations = {
+      {0, {relu1, 0, PEER}}, {1, {relu1_front, 0, PEER}}, {2, {relu2, 0, PEER}}, {3, {relu2_front, 0, PEER}}};
+  Relations output_relations = {{0, {add, 1}}, {0, {relu2, 0, PEER}}};
+  auto node =
+      acc.MultiInOne(name, type, input_relations, output_relations, {relu1, relu1_front, relu2, relu2_front}, true);
   EXPECT_NE(node, nullptr);
 
   auto out_nodes1 = relu1_front_input->GetOutDataNodes();
@@ -709,7 +663,6 @@ TEST_F(UTestFusionTurbo2, test_case_4_1) {
   EXPECT_EQ(graph->GetDirectNodesSize(), 5);
 }
 
-
 TEST_F(UTestFusionTurbo2, test_case_4_2) {
   auto graph = CreateComplexGraph2();
   FusionTurbo acc(graph);
@@ -729,10 +682,9 @@ TEST_F(UTestFusionTurbo2, test_case_4_2) {
                                {1, {relu1_front, 0, PEER_SINGLE}},
                                {2, {relu2, 0, PEER_SINGLE}},
                                {3, {relu2_front, 0, PEER_SINGLE}}};
-  Relations output_relations = {{0, {add, 1, PEER}},
-                                {0, {relu2, 0, PEER}}};
-  auto node = acc.MultiInOne(name, type, input_relations, output_relations,
-                             {relu1, relu1_front, relu2, relu2_front}, true);
+  Relations output_relations = {{0, {add, 1, PEER}}, {0, {relu2, 0, PEER}}};
+  auto node =
+      acc.MultiInOne(name, type, input_relations, output_relations, {relu1, relu1_front, relu2, relu2_front}, true);
   EXPECT_NE(node, nullptr);
 
   auto input_nodes = node->GetInDataNodes();
@@ -755,7 +707,6 @@ TEST_F(UTestFusionTurbo2, test_case_4_2) {
   EXPECT_EQ(graph->GetDirectNodesSize(), 5);
 }
 
-
 TEST_F(UTestFusionTurbo2, test_case_4_3) {
   auto graph = CreateComplexGraph2();
   FusionTurbo acc(graph);
@@ -775,10 +726,9 @@ TEST_F(UTestFusionTurbo2, test_case_4_3) {
                                {1, {relu1_front, 0, PEER_SINGLE}},
                                {2, {relu2, 0, PEER_SINGLE}},
                                {3, {relu2_front, 0, PEER_SINGLE}}};
-  Relations output_relations = {{0, {add, 1, PEER_SINGLE}},
-                                {0, {relu2, 0, PEER_SINGLE}}};
-  auto node = acc.MultiInOne(name, type, input_relations, output_relations,
-                             {relu1, relu1_front, relu2, relu2_front}, true);
+  Relations output_relations = {{0, {add, 1, PEER_SINGLE}}, {0, {relu2, 0, PEER_SINGLE}}};
+  auto node =
+      acc.MultiInOne(name, type, input_relations, output_relations, {relu1, relu1_front, relu2, relu2_front}, true);
   EXPECT_NE(node, nullptr);
 
   auto out_nodes1 = relu1_front_input->GetOutDataNodes();
@@ -819,8 +769,7 @@ TEST_F(UTestFusionTurbo2, test_case_4_4) {
                                {1, {relu1_front, 0, PEER_SINGLE}},
                                {2, {relu2, 0, PEER_SINGLE}},
                                {3, {relu2_front, 0, PEER_SINGLE}}};
-  Relations output_relations = {{0, {add, 1, PEER_SINGLE}},
-                                {0, {relu2, 0, PEER_SINGLE}}};
+  Relations output_relations = {{0, {add, 1, PEER_SINGLE}}, {0, {relu2, 0, PEER_SINGLE}}};
   auto node = acc.MultiInOne(name, type, input_relations, output_relations);
   EXPECT_NE(node, nullptr);
   acc.RemoveMultiNodesOnly({nullptr});
@@ -855,12 +804,11 @@ void LarsV2UpdateFusion(const ComputeGraphPtr &graph) {
   auto square_sum_all_op_desc = square_sum_all_node->GetOpDesc();
 
   Relations square_sum_input_relation;
-  square_sum_input_relation.Add(0, {fused_node, 0, PEER})
-                           .Add(1, {fused_node, 1, PEER});
+  square_sum_input_relation.Add(0, {fused_node, 0, PEER}).Add(1, {fused_node, 1, PEER});
 
   Relations lars_v2_input_relation = {{2, {square_sum_all_node, 0}}, {3, {square_sum_all_node, 1}},
-                                      {0, {fused_node, 0, PEER}}, {1, {fused_node, 1, PEER}},
-                                      {4, {fused_node, 2, PEER}}, {5, {fused_node, 3, PEER}}};
+                                      {0, {fused_node, 0, PEER}},    {1, {fused_node, 1, PEER}},
+                                      {4, {fused_node, 2, PEER}},    {5, {fused_node, 3, PEER}}};
 
   Relations lars_v2_output_relation = {0, {fused_node, 0, PEER}};
   FusionTurbo::LinkInput(square_sum_input_relation, square_sum_all_node);
@@ -901,8 +849,7 @@ TEST_F(UTestFusionTurbo2, test_case_4_5) {
   end_input->SetShape(ge::GeShape(end_input_shape));
 
   auto lars_v2 = ft.AddNodeOnly("lars_v2", "LarsV2");
-  fe::Relations input_relation({{0, {data0, 0}}, {1, {data1, 0}},
-                                {2, {data2, 0}}, {3, {data3, 0}}});
+  fe::Relations input_relation({{0, {data0, 0}}, {1, {data1, 0}}, {2, {data2, 0}}, {3, {data3, 0}}});
   fe::Relations output_relation;
   output_relation.Add(0, {end, 0});
   fe::FusionTurbo::LinkInput(input_relation, lars_v2);
@@ -913,7 +860,7 @@ TEST_F(UTestFusionTurbo2, test_case_4_5) {
   EXPECT_EQ(graph->GetDirectNodesSize(), 7);
   size_t expected_op = 0;
   ge::NodePtr square_sum_all;
-  for (const auto &node: graph->GetDirectNode()) {
+  for (const auto &node : graph->GetDirectNode()) {
     if (node->GetType() == "SquareSumAll") {
       expected_op++;
       auto op_desc = node->GetOpDesc();
@@ -939,7 +886,7 @@ TEST_F(UTestFusionTurbo2, test_case_4_5) {
     }
   }
 
-  for (const auto &node: graph->GetDirectNode()) {
+  for (const auto &node : graph->GetDirectNode()) {
     if (node->GetType() == "LarsV2Update") {
       expected_op++;
       auto op_desc = node->GetOpDesc();
@@ -1001,10 +948,9 @@ TEST_F(UTestFusionTurbo2, test_case_multiinone_out_relaitons_empty) {
   auto relu1_input = relu1->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode();
   auto relu2_input = relu2->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode();
 
-  Relations input_relations = {{0, {relu1_input, 0}},
-                               {1, {relu2_input, 0}}};
+  Relations input_relations = {{0, {relu1_input, 0}}, {1, {relu2_input, 0}}};
   Relations output_relations = {};
   Status ret = acc.MultiInOne(node, input_relations, output_relations, {}, false);
   ASSERT_EQ(ret, SUCCESS);
 }
-}
+}  // namespace fe

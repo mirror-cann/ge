@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,14 +34,12 @@ Status DaemonClientManager::Initialize() {
     return INTERNAL_ERROR;
   }
   running_ = true;
-  (void) UpdateJsonFile();
+  (void)UpdateJsonFile();
   evict_thread_ = std::thread([this]() {
     SET_THREAD_NAME(pthread_self(), "ge_dpl_evict");
     while (running_) {
       std::unique_lock<std::mutex> lk(mu_cv_);
-      running_cv_.wait_for(lk, std::chrono::seconds(kHeartbeatIntervalSec), [this] {
-        return !running_;
-      });
+      running_cv_.wait_for(lk, std::chrono::seconds(kHeartbeatIntervalSec), [this] { return !running_; });
       EvictExpiredClients();
     }
   });
@@ -60,7 +58,7 @@ void DaemonClientManager::Finalize() {
       evict_thread_.join();
     }
     if (client_fd_ >= 0) {
-      (void) mmClose(client_fd_);
+      (void)mmClose(client_fd_);
       client_fd_ = -1;
     }
     DeleteAllClientInfo();
@@ -133,11 +131,9 @@ void DaemonClientManager::GenDgwPortOffset(const int32_t dev_count, int32_t &off
   dgw_port_offset_gen_ += dev_count;
 }
 
-Status DaemonClientManager::GetClientIpAndPort(const std::string &uri,
-                                               ClientAddr &client) {
+Status DaemonClientManager::GetClientIpAndPort(const std::string &uri, ClientAddr &client) {
   std::vector<std::string> address = StringUtils::Split(uri, ':');
-  if ((address.size() == kAddressSize) && (!address[kIpIndex].empty()) &&
-      (!address[kPortIndex].empty())) {
+  if ((address.size() == kAddressSize) && (!address[kIpIndex].empty()) && (!address[kPortIndex].empty())) {
     client.ip = address[kIpIndex];
     client.port = address[kPortIndex];
     return SUCCESS;
@@ -165,16 +161,14 @@ Status DaemonClientManager::UpdateJsonFile() {
       json["connections"].push_back(client_addr);
     }
     if (client_fd_ < 0) {
-      GE_CHK_BOOL_RET_STATUS(mmAccess2(dir.c_str(), M_F_OK) == EN_OK ||
-                            ProcessUtils::CreateDir(dir) == SUCCESS,
-                            FAILED,
-                            "Failed to create directory: %s", dir.c_str());
+      GE_CHK_BOOL_RET_STATUS(mmAccess2(dir.c_str(), M_F_OK) == EN_OK || ProcessUtils::CreateDir(dir) == SUCCESS, FAILED,
+                             "Failed to create directory: %s", dir.c_str());
       const mmMode_t kAccess = static_cast<mmMode_t>(M_IRUSR | M_IWUSR);
       client_fd_ = mmOpen2(kClientFile.c_str(), static_cast<int32_t>(M_WRONLY | M_CREAT | O_TRUNC), kAccess);
       if (client_fd_ < 0) {
         int32_t error_code = mmGetErrorCode();
         GELOGE(FAILED, "Open %s failed, ret = %d, error = %d(%s).", kClientFile.c_str(), client_fd_, error_code,
-              GetErrorNumStr(error_code).c_str());
+               GetErrorNumStr(error_code).c_str());
         return FAILED;
       }
     }
@@ -208,7 +202,7 @@ void DaemonClientManager::DeleteAllClientInfo() {
     return;
   }
   client_addrs_.clear();
-  (void) UpdateJsonFile();
+  (void)UpdateJsonFile();
 }
 
 void DaemonClientManager::EvictExpiredClients() {
@@ -228,7 +222,7 @@ void DaemonClientManager::EvictExpiredClients() {
   }
   for (int64_t client_id : expired_clients) {
     GEEVENT("Client expired, close it, client_id = %" PRId64 ".", client_id);
-    (void) CloseClient(client_id);
+    (void)CloseClient(client_id);
   }
 }
-} // namespace ge
+}  // namespace ge

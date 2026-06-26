@@ -18,8 +18,7 @@
 extern "C" {
 #endif
 void *CreatModelDbgHandle(void);
-Status LoadModelPreProcess(rtMdlLoad_t *mdlLoad, size_t taskDescSize, char *modelName,
-                           void *dbgHandle);
+Status LoadModelPreProcess(rtMdlLoad_t *mdlLoad, size_t taskDescSize, char *modelName, void *dbgHandle);
 void StepIdConuterPlus(void *dbgHandle);
 void DataFreeLoadDumpInfo(void *dbgHandle);
 bool GetProfEnable(void);

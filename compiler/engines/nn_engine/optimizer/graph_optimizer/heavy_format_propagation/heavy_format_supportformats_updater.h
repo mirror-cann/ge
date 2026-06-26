@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,16 +32,16 @@ class HeavyFormatSupportFormatsUpdater {
                                             FormatDtypeSetterPtr format_dtype_setter_ptr);
   ~HeavyFormatSupportFormatsUpdater();
 
-  Status UpdateSupportFormats(const ge::NodePtr& node_ptr, const OpKernelInfoPtr& op_kernel_info_ptr,
-                              const std::vector<IndexNameMap>& tensor_map, const HeavyFormatInfo& heavy_format_info);
+  Status UpdateSupportFormats(const ge::NodePtr &node_ptr, const OpKernelInfoPtr &op_kernel_info_ptr,
+                              const std::vector<IndexNameMap> &tensor_map, const HeavyFormatInfo &heavy_format_info);
 
  private:
-  bool NeedUpdateSupportFormats(const ge::OpDescPtr& op_desc_ptr, const HeavyFormatInfo& heavy_format_info,
-                                const vector<ge::Format>& kernel_formats, ge::Format propaga_heavy_format);
-  bool IsFzRelaFormat(const HeavyFormatInfo& heavy_format_info) const;
-  bool IsSelectFormatOrBroadcast(const ge::OpDescPtr& op_desc_ptr, const OpKernelInfoPtr& op_kernel_info_ptr);
+  bool NeedUpdateSupportFormats(const ge::OpDescPtr &op_desc_ptr, const HeavyFormatInfo &heavy_format_info,
+                                const vector<ge::Format> &kernel_formats, ge::Format propaga_heavy_format);
+  bool IsFzRelaFormat(const HeavyFormatInfo &heavy_format_info) const;
+  bool IsSelectFormatOrBroadcast(const ge::OpDescPtr &op_desc_ptr, const OpKernelInfoPtr &op_kernel_info_ptr);
 
-  void UpdateSubFormatForTensors(const ge::OpDescPtr &op_desc_ptr, const HeavyFormatInfo& heavy_format_info) const;
+  void UpdateSubFormatForTensors(const ge::OpDescPtr &op_desc_ptr, const HeavyFormatInfo &heavy_format_info) const;
   FormatDtypeQuerierPtr format_dtype_querier_ptr_;
   FormatDtypeSetterPtr format_dtype_setter_ptr_;
 };

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -224,15 +224,14 @@ ge::ComputeGraphPtr BuildDelayTopoGraphMultiInput(const std::string &name, bool 
   builder.AddControlEdge(node2, node3);
   return builder.GetGraph();
 }
-}
+}  // namespace
 
-namespace ge
-{
-  class UtestComputeGraph : public testing::Test {
-    protected:
-    void SetUp() override {}
-    void TearDown() override {}
-  };
+namespace ge {
+class UtestComputeGraph : public testing::Test {
+ protected:
+  void SetUp() override {}
+  void TearDown() override {}
+};
 
 TEST_F(UtestComputeGraph, GetAllNodes_success) {
   auto graph = std::make_shared<ComputeGraph>("graph");
@@ -246,8 +245,8 @@ TEST_F(UtestComputeGraph, GetAllNodes_success) {
   graph->AddNode(op_desc);
   graph->AddNode(op_desc);
 
-  auto node_filter = [](const Node &node){ return true;};
-  auto graph_filter = [](const Node &node, const char *str, const ComputeGraphPtr &graph){ return true;};
+  auto node_filter = [](const Node &node) { return true; };
+  auto graph_filter = [](const Node &node, const char *str, const ComputeGraphPtr &graph) { return true; };
   auto out_nodes = graph->GetAllNodes(node_filter, graph_filter);
   EXPECT_EQ(out_nodes.size(), 2);
 }
@@ -263,8 +262,8 @@ TEST_F(UtestComputeGraph, GetNodes_success) {
   op_desc->AddInputDesc(tensor_desc->Clone());
   graph->AddNode(op_desc);
   graph->AddNode(op_desc);
-  auto node_filter = [](const Node &node){ return true;};
-  auto graph_filter = [](const Node &node, const char *str, const ComputeGraphPtr &graph){ return true;};
+  auto node_filter = [](const Node &node) { return true; };
+  auto graph_filter = [](const Node &node, const char *str, const ComputeGraphPtr &graph) { return true; };
   auto out_nodes = graph->GetNodes(true, node_filter, graph_filter);
   EXPECT_EQ(out_nodes.size(), 2);
 }
@@ -305,7 +304,7 @@ TEST_F(UtestComputeGraph, AddNodeFront_success) {
        Output                                 Output
   * 在Relu4后插入一个append算子
 */
-TEST_F(UtestComputeGraph,InsertNode_success) {
+TEST_F(UtestComputeGraph, InsertNode_success) {
   // 开启稳定GE排序
   std::map<std::string, std::string> options_map;
   options_map["ge.topoSortingMode"] = "3";
@@ -340,8 +339,8 @@ TEST_F(UtestComputeGraph,InsertNode_success) {
   builder.AddDataEdge(add2_node, 0, netoutput, 0);
   auto graph = builder.GetGraph();
 
-  std::vector<std::string> expected_stable_rdfs_names =
-      {"Data1", "Data2", "Relu1", "Relu2", "Relu3", "Relu4", "Relu5", "Relu6", "Add", "Add2", "Netoutput"};
+  std::vector<std::string> expected_stable_rdfs_names = {"Data1", "Data2", "Relu1", "Relu2", "Relu3",    "Relu4",
+                                                         "Relu5", "Relu6", "Add",   "Add2",  "Netoutput"};
   EXPECT_EQ(graph->TopologicalSorting(), GRAPH_SUCCESS);
   std::vector<std::string> stable_rdfs_names;
   for (auto &node : graph->GetDirectNode()) {
@@ -368,9 +367,8 @@ TEST_F(UtestComputeGraph,InsertNode_success) {
   GraphUtils::RemoveEdge(add_node->GetOutAnchor(0), add2_node->GetInAnchor(1));
   builder.AddDataEdge(add_node, 0, append_node_2, 0);
   builder.AddDataEdge(append_node_2, 0, add2_node, 1);
-  expected_stable_rdfs_names =
-      {"Data1", "Data2", "Relu1", "Relu2", "Relu3", "Relu4", "append_1", "Relu5", "Relu6", "Add",
-       "append_2", "Add2", "Netoutput"};
+  expected_stable_rdfs_names = {"Data1", "Data2", "Relu1", "Relu2",    "Relu3", "Relu4",    "append_1",
+                                "Relu5", "Relu6", "Add",   "append_2", "Add2",  "Netoutput"};
   EXPECT_EQ(graph->TopologicalSorting(), GRAPH_SUCCESS);
   stable_rdfs_names.clear();
   for (auto &node : graph->GetDirectNode()) {
@@ -432,8 +430,8 @@ TEST_F(UtestComputeGraph, InsertNode_bigtopo_to_smalltopo) {
   builder.AddDataEdge(add2_node, 0, netoutput, 0);
   auto graph = builder.GetGraph();
 
-  std::vector<std::string> expected_stable_rdfs_names =
-      {"Data1", "Data2", "Relu1", "Relu2", "Relu3", "Relu4", "Relu5", "Relu6", "Add", "Add2", "Netoutput"};
+  std::vector<std::string> expected_stable_rdfs_names = {"Data1", "Data2", "Relu1", "Relu2", "Relu3",    "Relu4",
+                                                         "Relu5", "Relu6", "Add",   "Add2",  "Netoutput"};
   EXPECT_EQ(graph->TopologicalSorting(), GRAPH_SUCCESS);
   std::vector<std::string> stable_rdfs_names;
   for (auto &node : graph->GetDirectNode()) {
@@ -452,8 +450,8 @@ TEST_F(UtestComputeGraph, InsertNode_bigtopo_to_smalltopo) {
   builder.AddDataEdge(relu4, 0, append_node, 1);
   builder.AddDataEdge(append_node, 0, relu6, 0);
   // 由于存在大topo的有连边给小topo算子，所以顺序变化
-  expected_stable_rdfs_names =
-      {"Data1", "Data2", "Relu1", "Relu2", "Relu4", "append_1", "Relu3", "Relu5", "Relu6", "Add", "Add2", "Netoutput"};
+  expected_stable_rdfs_names = {"Data1", "Data2", "Relu1", "Relu2", "Relu4", "append_1",
+                                "Relu3", "Relu5", "Relu6", "Add",   "Add2",  "Netoutput"};
   EXPECT_EQ(graph->TopologicalSorting(), GRAPH_SUCCESS);
   stable_rdfs_names.clear();
   for (auto &node : graph->GetDirectNode()) {
@@ -463,13 +461,12 @@ TEST_F(UtestComputeGraph, InsertNode_bigtopo_to_smalltopo) {
 }
 
 /*
-    Data1     Data2                   Data1        Data2             Data1        Data2                Data1        Data2    
-      |         |                        |           |                 |            |                   |             |           
-    Relu1      Relu2                   Relu1        Relu2            Relu1        Relu2               Relu1         Relu2       
-     /  \       |                       /  \         |                /  \          |                  /  \           |
-  Relu3  Relu4  |                 fuse_node  Relu4     |      fuse_node  Relu4      |           fuse_node fuse_node2  |
-   |      |     |                     |       \      |              |       \       |                  |     \        |
-   |      |     |                     |        |     |     append_node1    Relu6    |          append_node1   |       |
+    Data1     Data2                   Data1        Data2             Data1        Data2                Data1 Data2 | |
+  |           |                 |            |                   |             | Relu1      Relu2 Relu1        Relu2
+  Relu1        Relu2               Relu1         Relu2 /  \       |                       /  \         | /  \          |
+  /  \           | Relu3  Relu4  |                 fuse_node  Relu4     |      fuse_node  Relu4      | fuse_node
+  fuse_node2  | |      |     |                     |       \      |              |       \       |                  | \
+  | |      |     |                     |        |     |     append_node1    Relu6    |          append_node1   |       |
    |      |     |                     |        |     |              |        |      |                  |      |       |
   Relu5  Relu6  |         --->        \       Relu6  |      -->     \ append_node2  |        ->         \    /        |
    \      /     |                      \       |     |               \     /        |                    Add          |
@@ -557,8 +554,8 @@ TEST_F(UtestComputeGraph, FuseNodeKeepTopo_success) {
   graph->RemoveNode(append_node_vec[1]);
 
   // 由于存在大topo的有连边给小topo算子，所以顺序变化
-  std::vector<std::string> expected_stable_rdfs_names =
-      {"Data1", "Data2", "Relu1", "Relu2", "fuse_node", "append_node", "fuse_node2", "Add", "Add2", "Netoutput"};
+  std::vector<std::string> expected_stable_rdfs_names = {"Data1",       "Data2",      "Relu1", "Relu2", "fuse_node",
+                                                         "append_node", "fuse_node2", "Add",   "Add2",  "Netoutput"};
   EXPECT_EQ(graph->TopologicalSorting(), GRAPH_SUCCESS);
   std::vector<std::string> stable_rdfs_names;
   for (auto &node : graph->GetDirectNode()) {
@@ -713,7 +710,7 @@ TEST_F(UtestComputeGraph, StreamLableNotSame_FuseNodeKeepTopo_failed) {
   op_desc_new->AddInputDesc(tensor_desc->Clone());
   op_desc_new->AddOutputDesc(tensor_desc->Clone());
   std::string not_support_reason;
-  EXPECT_FALSE(graph->IsSupportFuse({relu3, relu5},not_support_reason));
+  EXPECT_FALSE(graph->IsSupportFuse({relu3, relu5}, not_support_reason));
   EXPECT_TRUE(not_support_reason.find("test_stream1") > 0);
   EXPECT_TRUE(not_support_reason.find("test_stream2") > 0);
   auto fuse_node_vec = graph->FuseNodeKeepTopo({relu3, relu5}, {op_desc_new});
@@ -814,18 +811,18 @@ TEST_F(UtestComputeGraph, RemoveSubGraph_success) {
 
 TEST_F(UtestComputeGraph, Set_GetShareParamLayer_success) {
   auto graph = std::make_shared<ComputeGraph>("graph");
-  std::map<std::vector<std::string>, std::vector<std::string>> params_share_map{{{"test"},{"test"}}};
+  std::map<std::vector<std::string>, std::vector<std::string>> params_share_map{{{"test"}, {"test"}}};
   graph->SetShareParamLayer(params_share_map);
   EXPECT_EQ(graph->GetShareParamLayer().size(), 1);
 }
 
 TEST_F(UtestComputeGraph, Set_GetGraphOutNodes_success) {
   auto graph = std::make_shared<ComputeGraph>("graph");
-  std::map<std::string, std::vector<int32_t>> out_nodes_map{{"test",{1}}};
+  std::map<std::string, std::vector<int32_t>> out_nodes_map{{"test", {1}}};
   auto opdesc = std::make_shared<OpDesc>();
   graph->SetGraphOutNodes(out_nodes_map);
   EXPECT_EQ(graph->GetGraphOutNodes().size(), 1);
-  std::map<std::string, std::vector<int32_t>> append_out_nodes_map{{"test2",{2}}};
+  std::map<std::string, std::vector<int32_t>> append_out_nodes_map{{"test2", {2}}};
   graph->AppendGraphOutNodes(append_out_nodes_map);
   EXPECT_EQ(graph->GetGraphOutNodes().size(), 2);
 }
@@ -871,7 +868,7 @@ TEST_F(UtestComputeGraph, UpdateInputMapping_success) {
   ge::AttrUtils::SetInt(opdesc, ATTR_NAME_PARENT_NODE_INDEX, 1);
 
   graph->AddInputNode(node);
-  std::map<uint32_t, uint32_t> input_mapping{{0,1}};
+  std::map<uint32_t, uint32_t> input_mapping{{0, 1}};
   EXPECT_EQ(graph->UpdateInputMapping(input_mapping), GRAPH_SUCCESS);
 }
 
@@ -887,7 +884,7 @@ TEST_F(UtestComputeGraph, UpdateOutputMapping_success) {
   auto node = graph->AddNode(opdesc);
   ge::AttrUtils::SetInt(opdesc, ATTR_NAME_PARENT_NODE_INDEX, 1);
   graph->AddOutputNode(node);
-  std::map<uint32_t, uint32_t> output_mapping{{0,1}};
+  std::map<uint32_t, uint32_t> output_mapping{{0, 1}};
   EXPECT_EQ(graph->UpdateOutputMapping(output_mapping), GRAPH_SUCCESS);
 }
 
@@ -917,8 +914,7 @@ TEST_F(UtestComputeGraph, DFSTopologicalSorting_success) {
   std::vector<NodePtr> stack{};
   auto graph = builder.GetGraph();
   std::map<NodePtr, uint32_t> map_in_edge_num{};
-  EXPECT_EQ(graph->DFSTopologicalSorting(vec_nodes, map_in_edge_num, stack, false),
-    GRAPH_SUCCESS);
+  EXPECT_EQ(graph->DFSTopologicalSorting(vec_nodes, map_in_edge_num, stack, false), GRAPH_SUCCESS);
 }
 
 TEST_F(UtestComputeGraph, BFSTopologicalSorting_success) {
@@ -1063,8 +1059,8 @@ TEST_F(UtestComputeGraph, TrainTopologicalSortingInPriorityMode_BFS_success) {
   std::vector<std::string> expected_bfs_names = {"node1", "node2", "node3", "node4", "node5", "node6", "netoutput"};
   std::vector<std::string> bfs_names;
   std::vector<std::string> bfs_names1;
-  options_map["ge.graphRunMode"] = "1";  // tarin
-  options_map["ge.topoSortingMode"] = ""; // no topo sort mode
+  options_map["ge.graphRunMode"] = "1";    // tarin
+  options_map["ge.topoSortingMode"] = "";  // no topo sort mode
   options_map["ge.exec.memoryOptimizationPolicy"] = "MemoryPriority";
   GetThreadLocalContext().SetGraphOption(options_map);
   EXPECT_EQ(graph->TopologicalSorting(), GRAPH_SUCCESS);
@@ -1089,8 +1085,8 @@ TEST_F(UtestComputeGraph, TrainAndInvalidTopologicalSortingInPriorityMode_BFS_su
   std::vector<std::string> expected_bfs_names = {"node1", "node2", "node3", "node4", "node5", "node6", "netoutput"};
   std::vector<std::string> bfs_names;
   std::vector<std::string> bfs_names1;
-  options_map["ge.graphRunMode"] = "1";  // tarin
-  options_map["ge.topoSortingMode"] = "10"; // invalid topo sort mode
+  options_map["ge.graphRunMode"] = "1";      // tarin
+  options_map["ge.topoSortingMode"] = "10";  // invalid topo sort mode
   options_map["ge.exec.memoryOptimizationPolicy"] = "MemoryPriority";
   GetThreadLocalContext().SetGraphOption(options_map);
   EXPECT_EQ(graph->TopologicalSorting(), GRAPH_SUCCESS);
@@ -1194,7 +1190,7 @@ TEST_F(UtestComputeGraph, SortNodes_success) {
   builder.AddControlEdge(node3, node1);
   builder.AddControlEdge(node2, node4);
   auto graph = builder.GetGraph();
-  std::map<NodePtr, uint32_t> map_in_edge_num{{node1, 2},{node2, 2},{node3, 2}};
+  std::map<NodePtr, uint32_t> map_in_edge_num{{node1, 2}, {node2, 2}, {node3, 2}};
   std::vector<NodePtr> stack{};
   EXPECT_EQ(graph->SortNodes(stack, map_in_edge_num), GRAPH_SUCCESS);
 }
@@ -1393,7 +1389,6 @@ TEST_F(UtestComputeGraph, SetSummaryGraph_success) {
   auto summary_flag = !graph->IsSummaryGraph();
   graph->SetSummaryFlag(summary_flag);
   EXPECT_EQ(graph->IsSummaryGraph(), summary_flag);
-
 }
 namespace {
 void BuildComplexGraph(ut::GraphBuilder &builder) {
@@ -1449,18 +1444,14 @@ void BuildComplexGraph(ut::GraphBuilder &builder) {
 }
 void VerifyTopoSortingResult(const ComputeGraphPtr &graph) {
   const std::map<std::string, int> expected_ids = {
-      {"node1", 0}, {"node2", 2}, {"node3", 4}, {"node4", 6},
-      {"node5", 1}, {"node6", 3}, {"node7", 5}, {"node8", 7},
-      {"node9", 9}, {"node10", 10}, {"node11", 11}, {"node12", 12},
-      {"node13", 14}, {"node14", 15}, {"node15", 16}, {"node16", 17},
-      {"node17", 8}, {"node18", 13}, {"node19", 18}, {"node20", 19}
-  };
+      {"node1", 0},   {"node2", 2},   {"node3", 4},   {"node4", 6},   {"node5", 1},   {"node6", 3},   {"node7", 5},
+      {"node8", 7},   {"node9", 9},   {"node10", 10}, {"node11", 11}, {"node12", 12}, {"node13", 14}, {"node14", 15},
+      {"node15", 16}, {"node16", 17}, {"node17", 8},  {"node18", 13}, {"node19", 18}, {"node20", 19}};
 
   for (const auto &pair : expected_ids) {
     const auto node = graph->FindNode(pair.first);
     ASSERT_NE(node, nullptr) << "Missing node: " << pair.first;
-    EXPECT_EQ(node->GetOpDesc()->GetId(), pair.second)
-              << "ID mismatch for node: " << pair.first;
+    EXPECT_EQ(node->GetOpDesc()->GetId(), pair.second) << "ID mismatch for node: " << pair.first;
   }
 }
 
@@ -1485,7 +1476,7 @@ void TestTopoSortingWithDirectArg(TopoSortingMode mode) {
   EXPECT_EQ(graph->TopologicalSorting(mode), GRAPH_SUCCESS);
   VerifyTopoSortingResult(graph);
 }
-}
+}  // namespace
 TEST_F(UtestComputeGraph, DFSPOSTORDERTopologicalSorting_success) {
   TestTopoSortingWithOptions(TopoSortingMode::kRDFS);
 }
@@ -1664,8 +1655,8 @@ TEST_F(UtestComputeGraph, StableRDFSTopologicalSorting1_1) {
   GraphUtils::AddEdge(insert_node1->GetOutControlAnchor(), graph->FindNode("node4")->GetInControlAnchor());
   GraphUtils::AddEdge(graph->FindNode("data")->GetOutControlAnchor(), insert_node2->GetInControlAnchor());
   GraphUtils::AddEdge(insert_node2->GetOutControlAnchor(), graph->FindNode("node4")->GetInControlAnchor());
-  std::vector<std::string>
-      wrong_dfs_names = {"variable", "node2", "node1", "data", "node3", "node4", "node5", "noop1", "noop2"};
+  std::vector<std::string> wrong_dfs_names = {"variable", "node2", "node1", "data", "node3",
+                                              "node4",    "node5", "noop1", "noop2"};
 
   auto origin_dfs_nodes = graph->GetDirectNode();
   for (size_t i = 0; i < origin_dfs_nodes.size(); ++i) {
@@ -1676,8 +1667,8 @@ TEST_F(UtestComputeGraph, StableRDFSTopologicalSorting1_1) {
   // 调用Stable RDFS
   EXPECT_EQ(graph->TopologicalSorting(), GRAPH_SUCCESS);
   // topo调整后最大程度跟之前保持一致
-  std::vector<std::string>
-      expected_rdfs_names = {"variable", "node2", "node1", "data", "node3", "noop1", "noop2", "node4", "node5"};
+  std::vector<std::string> expected_rdfs_names = {"variable", "node2", "node1", "data", "node3",
+                                                  "noop1",    "noop2", "node4", "node5"};
   std::vector<std::string> rdfs_names;
   const auto &after_rdfs_topo = graph->GetDirectNode();
   EXPECT_EQ(after_rdfs_topo.size(), expected_rdfs_names.size());
@@ -1688,7 +1679,6 @@ TEST_F(UtestComputeGraph, StableRDFSTopologicalSorting1_1) {
   options_map.clear();
   GetThreadLocalContext().SetGraphOption(options_map);
 }
-
 
 // StableRDFSTopologicalSorting1_1用例的对照组
 TEST_F(UtestComputeGraph, StableRDFSTopologicalSorting1_2) {
@@ -1707,8 +1697,8 @@ TEST_F(UtestComputeGraph, StableRDFSTopologicalSorting1_2) {
   GraphUtils::AddEdge(insert_node1->GetOutControlAnchor(), graph->FindNode("node4")->GetInControlAnchor());
   GraphUtils::AddEdge(graph->FindNode("data")->GetOutControlAnchor(), insert_node2->GetInControlAnchor());
   GraphUtils::AddEdge(insert_node2->GetOutControlAnchor(), graph->FindNode("node4")->GetInControlAnchor());
-  std::vector<std::string>
-      wrong_dfs_names = {"variable", "node2", "node1", "data", "node3", "node4", "node5", "noop1", "noop2"};
+  std::vector<std::string> wrong_dfs_names = {"variable", "node2", "node1", "data", "node3",
+                                              "node4",    "node5", "noop1", "noop2"};
 
   auto origin_dfs_nodes = graph->GetDirectNode();
   for (size_t i = 0; i < origin_dfs_nodes.size(); ++i) {
@@ -1719,8 +1709,8 @@ TEST_F(UtestComputeGraph, StableRDFSTopologicalSorting1_2) {
   // 调用DFS
   EXPECT_EQ(graph->TopologicalSorting(), GRAPH_SUCCESS);
   // noop插入之后，造成了不依赖noop的node3的顺序排在了跟noop之后了
-  std::vector<std::string>
-      expected_rdfs_names = {"variable", "node2", "node1", "data", "noop2", "noop1", "node3", "node4", "node5"};
+  std::vector<std::string> expected_rdfs_names = {"variable", "node2", "node1", "data", "noop2",
+                                                  "noop1",    "node3", "node4", "node5"};
   std::vector<std::string> rdfs_names;
   const auto &after_rdfs_topo = graph->GetDirectNode();
   EXPECT_EQ(after_rdfs_topo.size(), expected_rdfs_names.size());
@@ -1740,8 +1730,8 @@ TEST_F(UtestComputeGraph, StableRDFSTopologicalSorting2_1) {
   GetThreadLocalContext().SetGraphOption(options_map);
   // 构图的原始topo为默认的DFS
   auto graph = BuildDelayTopoGraphMultiInput("test_stable_rdfs_graph");
-  std::vector<std::string>
-      origin_dfs_names = {"const", "constant", "variable", "node2", "node1", "data", "node3", "node4", "node5"};
+  std::vector<std::string> origin_dfs_names = {"const", "constant", "variable", "node2", "node1",
+                                               "data",  "node3",    "node4",    "node5"};
   auto origin_dfs_nodes = graph->GetDirectNode();
   for (size_t i = 0; i < origin_dfs_nodes.size(); ++i) {
     EXPECT_EQ(origin_dfs_nodes.at(i)->GetName(), origin_dfs_names.at(i));
@@ -1764,8 +1754,8 @@ TEST_F(UtestComputeGraph, StableRDFSTopologicalSorting2_1) {
   GetThreadLocalContext().SetGraphOption(options_map);
   // 调用StableRDFS，体现在"const", "constant", "variable"顺序稳定
   EXPECT_EQ(graph->TopologicalSorting(), GRAPH_SUCCESS);
-  std::vector<std::string>
-      expected_rdfs_names = {"const", "constant", "variable", "node1", "data", "fusion_2_3", "node4", "node5"};
+  std::vector<std::string> expected_rdfs_names = {"const", "constant",   "variable", "node1",
+                                                  "data",  "fusion_2_3", "node4",    "node5"};
   std::vector<std::string> rdfs_names;
   const auto &after_rdfs_topo = graph->GetDirectNode();
   EXPECT_EQ(after_rdfs_topo.size(), expected_rdfs_names.size());
@@ -1785,8 +1775,8 @@ TEST_F(UtestComputeGraph, StableRDFSTopologicalSorting2_2) {
   GetThreadLocalContext().SetGraphOption(options_map);
   // 构图的原始topo为默认的DFS
   auto graph = BuildDelayTopoGraphMultiInput("test_stable_rdfs_graph");
-  std::vector<std::string>
-      origin_dfs_names = {"const", "constant", "variable", "node2", "node1", "data", "node3", "node4", "node5"};
+  std::vector<std::string> origin_dfs_names = {"const", "constant", "variable", "node2", "node1",
+                                               "data",  "node3",    "node4",    "node5"};
   auto origin_dfs_nodes = graph->GetDirectNode();
   for (size_t i = 0; i < origin_dfs_nodes.size(); ++i) {
     EXPECT_EQ(origin_dfs_nodes.at(i)->GetName(), origin_dfs_names.at(i));
@@ -1809,8 +1799,8 @@ TEST_F(UtestComputeGraph, StableRDFSTopologicalSorting2_2) {
   GetThreadLocalContext().SetGraphOption(options_map);
   // 调用RDFS
   EXPECT_EQ(graph->TopologicalSorting(), GRAPH_SUCCESS);
-  std::vector<std::string>
-      expected_rdfs_names = {"data", "variable", "fusion_2_3", "const", "constant", "node4", "node1", "node5"};
+  std::vector<std::string> expected_rdfs_names = {"data",     "variable", "fusion_2_3", "const",
+                                                  "constant", "node4",    "node1",      "node5"};
   std::vector<std::string> rdfs_names;
   const auto &after_rdfs_topo = graph->GetDirectNode();
   EXPECT_EQ(after_rdfs_topo.size(), expected_rdfs_names.size());
@@ -1834,7 +1824,6 @@ TEST_F(UtestComputeGraph, StableRDFSTopologicalSorting2_2) {
  *                     node5
  */
 
-
 /*
  *    data
  *      \
@@ -1855,8 +1844,8 @@ TEST_F(UtestComputeGraph, StableRDFSTopologicalSorting2_3) {
   GetThreadLocalContext().SetGraphOption(options_map);
   // 构图的原始topo为默认的DFS
   auto graph = BuildDelayTopoGraphMultiInput("test_stable_rdfs_graph");
-  std::vector<std::string>
-      origin_dfs_names = {"const", "constant", "variable", "node2", "node1", "data", "node3", "node4", "node5"};
+  std::vector<std::string> origin_dfs_names = {"const", "constant", "variable", "node2", "node1",
+                                               "data",  "node3",    "node4",    "node5"};
   auto origin_dfs_nodes = graph->GetDirectNode();
   for (size_t i = 0; i < origin_dfs_nodes.size(); ++i) {
     EXPECT_EQ(origin_dfs_nodes.at(i)->GetName(), origin_dfs_names.at(i));
@@ -1872,8 +1861,8 @@ TEST_F(UtestComputeGraph, StableRDFSTopologicalSorting2_3) {
   GetThreadLocalContext().SetGraphOption(options_map);
   // 调用StableRDFS, 体现在"const", "variable", "node2"顺序稳定
   EXPECT_EQ(graph->TopologicalSorting(), GRAPH_SUCCESS);
-  std::vector<std::string>
-      expected_rdfs_names = {"const", "variable", "node2", "data", "node3", "node4", "node1", "node5"};
+  std::vector<std::string> expected_rdfs_names = {"const", "variable", "node2", "data",
+                                                  "node3", "node4",    "node1", "node5"};
   std::vector<std::string> rdfs_names;
   const auto &after_rdfs_topo = graph->GetDirectNode();
   EXPECT_EQ(after_rdfs_topo.size(), expected_rdfs_names.size());
@@ -1892,8 +1881,8 @@ TEST_F(UtestComputeGraph, StableRDFSTopologicalSorting2_4) {
   GetThreadLocalContext().SetGraphOption(options_map);
   // 构图的原始topo为默认的DFS
   auto graph = BuildDelayTopoGraphMultiInput("test_stable_rdfs_graph");
-  std::vector<std::string>
-      origin_dfs_names = {"const", "constant", "variable", "node2", "node1", "data", "node3", "node4", "node5"};
+  std::vector<std::string> origin_dfs_names = {"const", "constant", "variable", "node2", "node1",
+                                               "data",  "node3",    "node4",    "node5"};
   auto origin_dfs_nodes = graph->GetDirectNode();
   for (size_t i = 0; i < origin_dfs_nodes.size(); ++i) {
     EXPECT_EQ(origin_dfs_nodes.at(i)->GetName(), origin_dfs_names.at(i));
@@ -1909,8 +1898,8 @@ TEST_F(UtestComputeGraph, StableRDFSTopologicalSorting2_4) {
   GetThreadLocalContext().SetGraphOption(options_map);
   // 调用RDFS
   EXPECT_EQ(graph->TopologicalSorting(), GRAPH_SUCCESS);
-  std::vector<std::string>
-      expected_rdfs_names = {"const", "data", "variable", "node2", "node3", "node4", "node1", "node5"};
+  std::vector<std::string> expected_rdfs_names = {"const", "data",  "variable", "node2",
+                                                  "node3", "node4", "node1",    "node5"};
   std::vector<std::string> rdfs_names;
   const auto &after_rdfs_topo = graph->GetDirectNode();
   EXPECT_EQ(after_rdfs_topo.size(), expected_rdfs_names.size());
@@ -1951,8 +1940,8 @@ TEST_F(UtestComputeGraph, DelayTopologicalSortingMultiInput) {
   options_map["ge.exec.memoryOptimizationPolicy"] = "MemoryPriority";
   GetThreadLocalContext().SetGraphOption(options_map);
   EXPECT_EQ(graph->TopologicalSorting(), GRAPH_SUCCESS);
-  std::vector<std::string> expected_dfs_names =
-      {"const", "constant", "variable", "data", "node2", "node3", "node4", "node1", "node5"};
+  std::vector<std::string> expected_dfs_names = {"const", "constant", "variable", "data", "node2",
+                                                 "node3", "node4",    "node1",    "node5"};
   std::vector<std::string> dfs_names;
   const auto &graph_dfs_topo = graph->GetAllNodes();
   for (auto &node : graph_dfs_topo) {
@@ -1975,8 +1964,8 @@ TEST_F(UtestComputeGraph, NoDelayTopologicalSortingMultiInput) {
   options_map["ge.exec.memoryOptimizationPolicy"] = "MemoryPriority";
   GetThreadLocalContext().SetGraphOption(options_map);
   EXPECT_EQ(graph->TopologicalSorting(), GRAPH_SUCCESS);
-  std::vector<std::string> expected_dfs_names =
-    {"const", "constant", "variable", "node1", "data", "node2", "node3", "node4", "node5"};
+  std::vector<std::string> expected_dfs_names = {"const", "constant", "variable", "node1", "data",
+                                                 "node2", "node3",    "node4",    "node5"};
   std::vector<std::string> dfs_names;
   const auto &graph_dfs_topo = graph->GetAllNodes();
   for (auto &node : graph_dfs_topo) {
@@ -2084,7 +2073,6 @@ TEST_F(UtestComputeGraph, SetGraphOutNodesInfo_SetGraphTargetNodesInfo_NodeIsBot
   ASSERT_EQ(net_output->GetInDataNodes().at(0), node1);
   ASSERT_EQ(net_output->GetInControlNodesSize(), 0U);
 
-
   ASSERT_EQ(graph->SetGraphTargetNodesInfo({node1}), SUCCESS);
   ASSERT_EQ(net_output->GetInControlNodesSize(), 0U);
 }
@@ -2104,4 +2092,4 @@ TEST_F(UtestComputeGraph, BuildGraphWithNetOutput_CreateOrUpdateNetOutput_Succes
   ASSERT_EQ(net_output_node->GetInDataNodesSize(), 1U);
   ASSERT_EQ(net_output_node->GetInDataNodes().at(0), node3);
 }
-}
+}  // namespace ge

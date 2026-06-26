@@ -38,7 +38,7 @@ TuneResult_t CheckTimeSd(const std::vector<std::vector<uint64_t>> &time, std::ve
   double sd = 0.0;
 
   if (time.size() == 0 || time[0].size() == 0 || bpTimeInfo.size() != time[0].size()) {
-    TUNE_ERROR("time.size:%u <= 1 or time[0].size:%u or bpTimeInfo.size:%u != time[0].size, invlaid", time.size(),
+    TUNE_ERROR("time.size:%u <= 1 or time[0].size:%u or bpTimeInfo.size:%u != time[0].size, invalid", time.size(),
                time[0].size(), bpTimeInfo.size());
     return TUNE_E_PARA;
   }
@@ -71,7 +71,7 @@ TuneResult_t CheckTimeSd(const std::vector<std::vector<uint64_t>> &time, std::ve
 static TuneResult_t CheckTaskTBEList(const std::vector<std::vector<struct ProfilingMetric>> &taskTBEList, uint32_t &row,
                                      uint32_t &col) {
   if (taskTBEList.size() == 0) {
-    TUNE_ERROR("taskTBEList.size is 0, invlaid");
+    TUNE_ERROR("taskTBEList.size is 0, invalid");
     return TUNE_E_PARA;
   }
 
@@ -183,7 +183,7 @@ TuneResult_t GetBPTimeFromProfiling(const std::vector<std::vector<struct Profili
   std::vector<std::vector<struct ProfilingMetric>> taskTBEList;
 
   if (taskProfilingList.size() == 0 || taskProfilingList[0].size() == 0) {
-    TUNE_ERROR("taskProfilingList is invlaid para");
+    TUNE_ERROR("taskProfilingList is invalid para");
     return TUNE_E_PARA;
   }
 
@@ -207,7 +207,7 @@ TuneResult_t GetBPTimeFromProfiling(const std::vector<std::vector<struct Profili
       }
     }
     if (taskTBENode.size() == 0) {
-      TUNE_ERROR("cant not find TensorRedirect, error!");
+      TUNE_ERROR("can't not find TensorRedirect, error!");
       return TUNE_E_DATA_NOT_MATCH;
     }
     taskTBEList.push_back(taskTBENode);

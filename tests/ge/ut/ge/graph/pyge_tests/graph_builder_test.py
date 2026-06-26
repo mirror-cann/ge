@@ -3,10 +3,10 @@
 # -------------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
@@ -16,15 +16,15 @@ GraphBuilder 功能测试 - 使用 pytest 框架
 测试 graph_builder.py 中的 GraphBuilder 类的各种功能
 """
 
-import pytest
-import sys
 import os
+
+import pytest
 
 # 需要添加 ge 到 Python 路径，否则会报错
 try:
     from ge.es.graph_builder import GraphBuilder, TensorHolder
-    from ge.graph.types import DataType, Format
     from ge.graph import Graph
+    from ge.graph.types import DataType, Format
 except ImportError as e:
     pytest.skip(f"无法导入 ge 模块: {e}", allow_module_level=True)
 
@@ -41,7 +41,7 @@ class TestGraphBuilder:
         """测试 GraphBuilder 创建"""
         builder = GraphBuilder("my_graph")
         assert builder is not None
-        assert hasattr(builder, '_handle')
+        assert hasattr(builder, "_handle")
 
     def test_graph_builder_creation_with_default_name(self):
         """测试使用默认名称创建 GraphBuilder"""
@@ -83,7 +83,7 @@ class TestGraphBuilder:
             name="input_tensor",
             data_type=DataType.DT_FLOAT,
             format=Format.FORMAT_NCHW,
-            shape=[1, 3, 224, 224]
+            shape=[1, 3, 224, 224],
         )
         assert isinstance(input_tensor, TensorHolder)
         assert input_tensor._handle is not None
@@ -120,11 +120,11 @@ class TestGraphBuilder:
         # value 有 3 个元素，但 shape [2,2] 需要 4 个元素
         with pytest.raises(ValueError, match="Value count \\(3\\) doesn't match shape"):
             builder.create_const_int64([1, 2, 3], shape=[2, 2])
-        
+
         # value 有 5 个元素，但 shape [2,2] 需要 4 个元素
         with pytest.raises(ValueError, match="Value count \\(5\\) doesn't match shape"):
             builder.create_const_int64([1, 2, 3, 4, 5], shape=[2, 2])
-        
+
         # value 有 4 个元素，但 shape [3,3] 需要 9 个元素
         with pytest.raises(ValueError, match="Value count \\(4\\) doesn't match shape"):
             builder.create_const_int64([1, 2, 3, 4], shape=[3, 3])
@@ -221,7 +221,7 @@ class TestGraphBuilder:
         """测试无效值创建 uint64 标量"""
         with pytest.raises(TypeError, match="Value must be an integer"):
             builder.create_scalar_uint64("invalid")
-        
+
         with pytest.raises(ValueError, match="Value must be non-negative"):
             builder.create_scalar_uint64(-1)
 
@@ -247,10 +247,10 @@ class TestGraphBuilder:
         """测试无效值创建 uint32 标量"""
         with pytest.raises(TypeError, match="Value must be an integer"):
             builder.create_scalar_uint32("invalid")
-        
+
         with pytest.raises(ValueError, match="Value must be in range"):
             builder.create_scalar_uint32(-1)
-        
+
         with pytest.raises(ValueError, match="Value must be in range"):
             builder.create_scalar_uint32(0xFFFFFFFF + 1)
 
@@ -259,7 +259,7 @@ class TestGraphBuilder:
         # 当 dims 为空且只有一个值时，应该调用 scalar 方法
         const_tensor = builder.create_const_uint64(0)
         scalar_tensor = builder.create_scalar_uint64(0)
-        
+
         assert isinstance(const_tensor, TensorHolder)
         assert isinstance(scalar_tensor, TensorHolder)
         assert const_tensor._handle is not None
@@ -290,7 +290,7 @@ class TestGraphBuilder:
         # 当 dims 为空且只有一个值时，应该调用 scalar 方法
         const_tensor = builder.create_const_uint32(0)
         scalar_tensor = builder.create_scalar_uint32(0)
-        
+
         assert isinstance(const_tensor, TensorHolder)
         assert isinstance(scalar_tensor, TensorHolder)
         assert const_tensor._handle is not None
@@ -321,7 +321,7 @@ class TestGraphBuilder:
         # 当 dims 为空且只有一个值时，应该调用 scalar 方法
         const_tensor = builder.create_const_int64(0)
         scalar_tensor = builder.create_scalar_int64(0)
-        
+
         assert isinstance(const_tensor, TensorHolder)
         assert isinstance(scalar_tensor, TensorHolder)
         assert const_tensor._handle is not None
@@ -339,7 +339,7 @@ class TestGraphBuilder:
         # 当 dims 为空且只有一个值时，应该调用 scalar 方法
         const_tensor = builder.create_const_int32(0)
         scalar_tensor = builder.create_scalar_int32(0)
-        
+
         assert isinstance(const_tensor, TensorHolder)
         assert isinstance(scalar_tensor, TensorHolder)
         assert const_tensor._handle is not None
@@ -357,7 +357,7 @@ class TestGraphBuilder:
         # 当 dims 为空且只有一个值时，应该调用 scalar 方法
         const_tensor = builder.create_const_float(0.0)
         scalar_tensor = builder.create_scalar_float(0.0)
-        
+
         assert isinstance(const_tensor, TensorHolder)
         assert isinstance(scalar_tensor, TensorHolder)
         assert const_tensor._handle is not None
@@ -553,37 +553,37 @@ class TestGraphBuilder:
         with pytest.raises(RuntimeError, match="GraphBuilder does not support deepcopy"):
             builder.__deepcopy__({})
 
-    @pytest.mark.parametrize("data_type", [
-        DataType.DT_FLOAT,
-        DataType.DT_INT32,
-        DataType.DT_INT64,
-        DataType.DT_BOOL,
-        DataType.DT_STRING
-    ])
+    @pytest.mark.parametrize(
+        "data_type",
+        [
+            DataType.DT_FLOAT,
+            DataType.DT_INT32,
+            DataType.DT_INT64,
+            DataType.DT_BOOL,
+            DataType.DT_STRING,
+        ],
+    )
     def test_create_input_with_different_data_types(self, builder, data_type):
         """测试使用不同数据类型创建输入"""
         input_tensor = builder.create_input(0, data_type=data_type)
         assert isinstance(input_tensor, TensorHolder)
 
-    @pytest.mark.parametrize("format", [
-        Format.FORMAT_NCHW,
-        Format.FORMAT_NHWC,
-        Format.FORMAT_ND,
-        Format.FORMAT_NC1HWC0,
-        Format.FORMAT_FRACTAL_Z
-    ])
+    @pytest.mark.parametrize(
+        "format",
+        [
+            Format.FORMAT_NCHW,
+            Format.FORMAT_NHWC,
+            Format.FORMAT_ND,
+            Format.FORMAT_NC1HWC0,
+            Format.FORMAT_FRACTAL_Z,
+        ],
+    )
     def test_create_input_with_different_formats(self, builder, format):
         """测试使用不同格式创建输入"""
         input_tensor = builder.create_input(0, format=format)
         assert isinstance(input_tensor, TensorHolder)
 
-    @pytest.mark.parametrize("shape", [
-        [1],
-        [1, 2],
-        [1, 2, 3],
-        [1, 2, 3, 4],
-        [224, 224, 3]
-    ])
+    @pytest.mark.parametrize("shape", [[1], [1, 2], [1, 2, 3], [1, 2, 3, 4], [224, 224, 3]])
     def test_create_input_with_different_shapes(self, builder, shape):
         """测试使用不同形状创建输入"""
         input_tensor = builder.create_input(0, shape=shape)
@@ -592,10 +592,20 @@ class TestGraphBuilder:
     def test_complex_graph_construction(self, builder):
         """测试复杂图构建"""
         # 创建多个输入
-        input1 = builder.create_input(0, name="input1", data_type=DataType.DT_FLOAT, format=Format.FORMAT_NCHW,
-                                      shape=[1, 3, 224, 224])
-        input2 = builder.create_input(1, name="input2", data_type=DataType.DT_FLOAT, format=Format.FORMAT_NHWC,
-                                      shape=[1, 3, 224, 224])
+        input1 = builder.create_input(
+            0,
+            name="input1",
+            data_type=DataType.DT_FLOAT,
+            format=Format.FORMAT_NCHW,
+            shape=[1, 3, 224, 224],
+        )
+        input2 = builder.create_input(
+            1,
+            name="input2",
+            data_type=DataType.DT_FLOAT,
+            format=Format.FORMAT_NHWC,
+            shape=[1, 3, 224, 224],
+        )
 
         # 创建常量
         const1 = builder.create_const_float(1.0)
@@ -641,14 +651,16 @@ class TestGraphBuilder:
         producer1 = tensor1._get_node_snapshot()
 
         # 在属性作用域内创建tensor，应该有属性
-        with attr_scope({
-            "node_type": "custom_node",
-            "priority": 100,
-            "enabled": True,
-            "description": "test node",
-            "dimensions": [1, 2, 3],
-            "flags": [True, False, True]
-        }):
+        with attr_scope(
+            {
+                "node_type": "custom_node",
+                "priority": 100,
+                "enabled": True,
+                "description": "test node",
+                "dimensions": [1, 2, 3],
+                "flags": [True, False, True],
+            }
+        ):
             tensor2 = builder.create_const_float(2.0)
             producer2 = tensor2._get_node_snapshot()
 
@@ -672,12 +684,14 @@ class TestGraphBuilder:
         from ge.es.graph_builder import attr_scope
 
         # 外层作用域
-        with attr_scope({
-            "outer_attr": "outer_value",
-            "common_attr": "outer_common",
-            "outer_int": 10,
-            "outer_bool": True
-        }):
+        with attr_scope(
+            {
+                "outer_attr": "outer_value",
+                "common_attr": "outer_common",
+                "outer_int": 10,
+                "outer_bool": True,
+            }
+        ):
             # 在外层作用域创建tensor
             tensor1 = builder.create_const_float(1.0)
             producer1 = tensor1._get_node_snapshot()
@@ -689,13 +703,15 @@ class TestGraphBuilder:
             assert producer1.get_attr("outer_bool") == True
 
             # 内层作用域
-            with attr_scope({
-                "inner_attr": "inner_value",
-                "common_attr": "inner_common",  # 覆盖外层属性
-                "inner_int": 20,
-                "inner_bool": False,
-                "inner_list": [1, 2, 3, 4]
-            }):
+            with attr_scope(
+                {
+                    "inner_attr": "inner_value",
+                    "common_attr": "inner_common",  # 覆盖外层属性
+                    "inner_int": 20,
+                    "inner_bool": False,
+                    "inner_list": [1, 2, 3, 4],
+                }
+            ):
                 # 在内层作用域创建tensor
                 tensor2 = builder.create_const_float(2.0)
                 producer2 = tensor2._get_node_snapshot()
@@ -731,18 +747,19 @@ class TestGraphBuilder:
         """测试属性作用域中的多种数据类型"""
         from ge.es.graph_builder import attr_scope
 
-        with attr_scope({
-            # 基本类型
-            "int_attr": 42,
-            "bool_attr": True,
-            "string_attr": "hello world",
-
-            # 列表类型
-            "int_list": [1, 2, 3, 4, 5],
-            "float_list": [1.1, 2.2, 3.3],
-            "bool_list": [True, False, True, False],
-            "string_list": ["a", "b", "c"]
-        }):
+        with attr_scope(
+            {
+                # 基本类型
+                "int_attr": 42,
+                "bool_attr": True,
+                "string_attr": "hello world",
+                # 列表类型
+                "int_list": [1, 2, 3, 4, 5],
+                "float_list": [1.1, 2.2, 3.3],
+                "bool_list": [True, False, True, False],
+                "string_list": ["a", "b", "c"],
+            }
+        ):
             # 创建不同类型的tensor
             tensor1 = builder.create_const_float(1.0)
             tensor2 = builder.create_const_int64(100)
@@ -773,31 +790,36 @@ class TestGraphBuilder:
         from ge.es.graph_builder import attr_scope
 
         # 测试字典类型
-        with pytest.raises(ValueError, match="Unsupported attribute type: <class 'dict'> for value: {'key': 'value'}"):
+        with pytest.raises(
+            ValueError,
+            match="Unsupported attribute type: <class 'dict'> for value: {'key': 'value'}",
+        ):
             with attr_scope({"dict_attr": {"key": "value"}}):
                 builder.create_const_float(1.0)
 
         # 测试混合类型列表 - 会抛出ValueError因为不匹配任何特定的列表类型
-        with pytest.raises(ValueError,
-                           match="Unsupported attribute type: <class 'list'> for value: \\[1, 'hello', True, 3.14\\]"):
+        with pytest.raises(
+            ValueError,
+            match="Unsupported attribute type: <class 'list'> for value: \\[1, 'hello', True, 3.14\\]",
+        ):
             with attr_scope({"mixed_list": [1, "hello", True, 3.14]}):
                 builder.create_const_float(1.0)
 
     def test_control_dependency_scope_non_nested(self, builder, monkeypatch):
         """测试非嵌套控制依赖作用域"""
-        from ge.es.graph_builder import control_dependency_scope
         from ge._capi.pyes_graph_builder_wrapper import get_generated_lib
+        from ge.es.graph_builder import control_dependency_scope
+
         def mock_get_math_lib(self):
             return get_generated_lib("libes_ut_test.so")
 
-        monkeypatch.setattr(TensorHolder, '_get_math_operator_lib', mock_get_math_lib)
+        monkeypatch.setattr(TensorHolder, "_get_math_operator_lib", mock_get_math_lib)
 
         # 在控制依赖作用域外创建tensor，应该没有控制依赖
         tensor0 = builder.create_const_float(0.0)
         producer0 = tensor0._get_node_snapshot()
         tensor1 = builder.create_const_float(1.0)
         producer1 = tensor1._get_node_snapshot()
-
 
         # 在控制依赖作用域内创建tensor，应该有控制依赖
         with control_dependency_scope([tensor0, tensor1]):
@@ -814,6 +836,7 @@ class TestGraphBuilder:
     def test_control_dependency_scope_nested(self, builder):
         """测试嵌套控制依赖作用域"""
         from ge.es.graph_builder import control_dependency_scope
+
         tensor1 = builder.create_const_float(1.0)
         tensor2 = builder.create_const_float(2.0)
         producer1 = tensor1._get_node_snapshot()
@@ -849,8 +872,11 @@ class TestGraphBuilder:
 
     def test_generated_lib_with_absolute_path(self):
         """测试使用绝对路径加载库"""
-        from ge._capi.pyes_graph_builder_wrapper import get_generated_lib, _dir, _lib_cache
-        import os
+        from ge._capi.pyes_graph_builder_wrapper import (
+            _dir,
+            _lib_cache,
+            get_generated_lib,
+        )
 
         # 构造 libes_ut_test.so 的绝对路径
         abs_path = os.path.abspath(os.path.join(_dir, "libes_ut_test.so"))
@@ -882,7 +908,7 @@ class TestGraphBuilder:
         from ge._capi.pyes_graph_builder_wrapper import (
             _configure_generated_lib,
             _configured_lib_ids,
-            get_generated_lib
+            get_generated_lib,
         )
 
         # 加载 libes_ut_test.so
@@ -897,11 +923,11 @@ class TestGraphBuilder:
 
     def test_get_default_lib_from_cache(self):
         """测试从缓存中获取默认库"""
-        from ge._capi.pyes_graph_builder_wrapper import (
-            get_generated_lib,
-            DEFAULT_GENERATED_LIB_NAME
-        )
         import ge._capi.pyes_graph_builder_wrapper as wrapper
+        from ge._capi.pyes_graph_builder_wrapper import (
+            DEFAULT_GENERATED_LIB_NAME,
+            get_generated_lib,
+        )
 
         # 保存原始状态
         orig_lib = wrapper._default_lib
@@ -930,12 +956,12 @@ class TestGraphBuilder:
 
     def test_lib_cache_utilities(self):
         """测试库缓存工具函数"""
+        import ge._capi.pyes_graph_builder_wrapper as wrapper
         from ge._capi.pyes_graph_builder_wrapper import (
+            clear_lib_cache,
             get_generated_lib,
             get_loaded_lib_names,
-            clear_lib_cache
         )
-        import ge._capi.pyes_graph_builder_wrapper as wrapper
 
         # 保存原始缓存
         orig_cache = wrapper._lib_cache.copy()
@@ -966,6 +992,7 @@ class TestGraphBuilder:
         """测试 geapi 和 session 库工具函数"""
         # 测试 geapi_wrapper
         from ge._capi.pygeapi_wrapper import get_geapi_lib, is_geapi_lib_loaded
+
         # 检查库是否加载
         assert is_geapi_lib_loaded() == True
         # 获取库句柄
@@ -974,6 +1001,7 @@ class TestGraphBuilder:
 
         # 测试 session_wrapper
         from ge._capi.pysession_wrapper import get_session_lib, is_session_lib_loaded
+
         # 检查库是否加载
         assert is_session_lib_loaded() == True
         # 获取库句柄

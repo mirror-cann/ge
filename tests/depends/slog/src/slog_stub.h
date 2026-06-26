@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -78,20 +78,9 @@ class SlogStub {
   int log_level_ = DLOG_ERROR;
   int event_log_level_ = 0;
   int ge_log_level_ = DLOG_ERROR;
-  std::map<int, std::string> level_str = {
-      {DLOG_DEBUG, "[DEBUG]"},
-      {DLOG_INFO, "[INFO]"},
-      {DLOG_WARN, "[WARNING]"},
-      {DLOG_ERROR, "[ERROR]"},
-      {DLOG_DEBUG, "[TRACE]"},
-      {DLOG_NULL, "[NULL]"}
-  };
-  std::map<int, std::string> module_id_str = {
-      {GE, "GE"},
-      {FE, "FE"},
-      {HCCL, "HCCL"},
-      {RUNTIME, "RUNTIME"}
-  };
+  std::map<int, std::string> level_str = {{DLOG_DEBUG, "[DEBUG]"}, {DLOG_INFO, "[INFO]"},   {DLOG_WARN, "[WARNING]"},
+                                          {DLOG_ERROR, "[ERROR]"}, {DLOG_DEBUG, "[TRACE]"}, {DLOG_NULL, "[NULL]"}};
+  std::map<int, std::string> module_id_str = {{GE, "GE"}, {FE, "FE"}, {HCCL, "HCCL"}, {RUNTIME, "RUNTIME"}};
 };
 }  // namespace ge
 #endif  // AIR_CXX_TESTS_DEPENDS_SLOG_SRC_SLOG_STUB_H_

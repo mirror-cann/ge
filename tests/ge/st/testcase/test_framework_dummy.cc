@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -62,7 +62,7 @@ Graph BuildV1ControlFlowGraph() {
   vector<int32_t> data_value_vec(dims_size, 1);
   GeTensorDesc data_tensor_desc(GeShape(data_vec), FORMAT_NCHW, DT_INT32);
   GeTensorPtr data_tensor = std::make_shared<GeTensor>(data_tensor_desc, (uint8_t *)data_value_vec.data(),
-                                                  data_value_vec.size() * sizeof(int32_t));
+                                                       data_value_vec.size() * sizeof(int32_t));
 
   auto enter = OP_CFG(ENTER).Attr(ENTER_ATTR_FRAME_NAME, "1");
   auto const_op = OP_CFG(CONSTANT).Weight(data_tensor);
@@ -248,7 +248,7 @@ TEST_F(FrameworkTest, test_framework_v1_control_flow) {
   std::vector<InputTensorInfo> inputs;
   // build_graph through session
   ret = session.BuildGraph(2, inputs);
-  EXPECT_EQ(ret, SUCCESS); // todo fix ret fail because atomic clean
+  EXPECT_EQ(ret, SUCCESS);  // todo fix ret fail because atomic clean
   // check result
 }
 
@@ -261,10 +261,8 @@ TEST_F(FrameworkTest, test_framework_v1_control_flow) {
  */
 TEST_F(FrameworkTest, test_framework_add_fail) {
   setenv("ENABLE_DYNAMIC_SHAPE_MULTI_STREAM", "1", 0);
-  auto add1 = OP_CFG(ADD).TensorDesc(FORMAT_NCHW, DT_FLOAT, {-1})
-                         .Attr(ATTR_NAME_CONTROL_FLOW_GROUP, 0);
-  auto add2 = OP_CFG(ADD).TensorDesc(FORMAT_NCHW, DT_FLOAT, {-1})
-                         .Attr(ATTR_NAME_CONTROL_FLOW_GROUP, 0);
+  auto add1 = OP_CFG(ADD).TensorDesc(FORMAT_NCHW, DT_FLOAT, {-1}).Attr(ATTR_NAME_CONTROL_FLOW_GROUP, 0);
+  auto add2 = OP_CFG(ADD).TensorDesc(FORMAT_NCHW, DT_FLOAT, {-1}).Attr(ATTR_NAME_CONTROL_FLOW_GROUP, 0);
   DEF_GRAPH(g1) {
     CHAIN(NODE("data_1", DATA)->EDGE(0, 0)->NODE("add_1", add1));
     CHAIN(NODE("data_2", DATA)->EDGE(0, 1)->NODE("add_1", add1));
@@ -278,7 +276,7 @@ TEST_F(FrameworkTest, test_framework_add_fail) {
   add_1->GetOpDesc()->SetAttr("atomic_output_index", GeAttrValue::CreateFrom<GeAttrValue::LIST_INT>({0}));
   OpDescPtr op_desc = add_1->GetOpDesc();
   ge::AttrUtils::SetBool(op_desc, ge::ATTR_NAME_NOTASK, true);
-  
+
   map<AscendString, AscendString> options;
   Session session(options);
   session.AddGraph(3, graph, options);
@@ -322,9 +320,9 @@ TEST_F(FrameworkTest, AicoreParseAndTilingSuccessWithCoreNum) {
 
 TEST_F(FrameworkTest, AicoreWithAtomicParseAndTilingSuccess) {
   gert::SpaceRegistryFaker::CreateDefaultSpaceRegistry();
-  typedef void* (*CreateCompileInfo)();
+  typedef void *(*CreateCompileInfo)();
   typedef void (*DeleteCompileInfo)(void *obj);
-  CreateCompileInfo create_compile_info = []() -> void *{
+  CreateCompileInfo create_compile_info = []() -> void * {
     auto info = new DynamicAtomicAddrCleanCompileInfo();
     info->core_num = 8;
     info->ub_size = 131072;
@@ -349,10 +347,10 @@ TEST_F(FrameworkTest, AicoreWithAtomicParseAndTilingSuccess) {
 
   auto graph = gert::ShareGraph::BuildAtomicAicoreGraph();
   auto trans1_node = graph->FindNode("trans1");
-  trans1_node->GetOpDesc()->SetWorkspaceBytes({256,1,2}); // simulate trans1 node finished tiling
+  trans1_node->GetOpDesc()->SetWorkspaceBytes({256, 1, 2});  // simulate trans1 node finished tiling
   (void)ge::AttrUtils::SetListInt(trans1_node->GetOpDesc(), "tbe_op_atomic_dtypes", {0});
   ge::TensorUtils::SetSize(*trans1_node->GetOpDesc()->MutableOutputDesc(0), 128);
-  std::map<int64_t, int64_t> index_2_workspace_size = {{0,5}};
+  std::map<int64_t, int64_t> index_2_workspace_size = {{0, 5}};
   std::map<string, std::map<int64_t, int64_t>> atomic_workspace_info = {{"trans1", index_2_workspace_size}};
   trans1_node->GetOpDesc()->SetExtAttr(ge::EXT_ATTR_ATOMIC_WORKSPACE_INFO, atomic_workspace_info);
 

@@ -48,4 +48,3 @@ int64_t GetCurrMaxStreamId() const
 ## 约束说明<a name="section3659801615"></a>
 
 无
-

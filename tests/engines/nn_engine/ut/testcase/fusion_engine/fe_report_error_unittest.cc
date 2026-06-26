@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -36,7 +36,7 @@ TEST_F(UTestFeReportError, TestReportErrorMessage_Success) {
   error_detail.error_code = EM_COMPILE_FAILED;
   error_detail.arg_list.push_back("test_pass");
   error_detail.arg_list.push_back("test_type");
-  
+
   ReportErrorMessage(error_detail);
 }
 
@@ -46,7 +46,7 @@ TEST_F(UTestFeReportError, TestModifyArgsByErrorCode_InputOptionInvalid) {
   error_detail.arg_list.push_back("invalid_value");
   error_detail.arg_list.push_back("ge.op_compiler_cache_mode");
   error_detail.arg_list.push_back("invalid_reason");
-  
+
   error_detail.ModifyArgsByErrorCode();
 }
 
@@ -55,10 +55,10 @@ TEST_F(UTestFeReportError, TestToParamMap_ValidErrorCode) {
   error_detail.error_code = EM_COMPILE_FAILED;
   error_detail.arg_list.push_back("test_pass");
   error_detail.arg_list.push_back("test_type");
-  
+
   std::map<std::string, std::string> args_map;
   error_detail.ToParamMap(args_map);
-  
+
   EXPECT_TRUE(args_map.size() > 0);
 }
 
@@ -66,10 +66,10 @@ TEST_F(UTestFeReportError, TestToParamMap_InvalidErrorCode) {
   ErrorMessageDetail error_detail;
   error_detail.error_code = "INVALID_ERROR_CODE";
   error_detail.arg_list.push_back("test_arg");
-  
+
   std::map<std::string, std::string> args_map;
   error_detail.ToParamMap(args_map);
-  
+
   EXPECT_TRUE(args_map.empty());
 }
 
@@ -77,14 +77,14 @@ TEST_F(UTestFeReportError, TestReportErrorMessage_EmptyErrorCode) {
   ErrorMessageDetail error_detail;
   error_detail.error_code = "";
   error_detail.arg_list.push_back("test_arg");
-  
+
   ReportErrorMessage(error_detail);
 }
 
 TEST_F(UTestFeReportError, TestModifyArgsByErrorCode_EmptyArgList) {
   ErrorMessageDetail error_detail;
   error_detail.error_code = EM_INPUT_OPTION_INVALID;
-  
+
   error_detail.ModifyArgsByErrorCode();
 }
 
@@ -94,6 +94,6 @@ TEST_F(UTestFeReportError, TestModifyArgsByErrorCode_AiCoreNumOutOfRange) {
   error_detail.arg_list.push_back("invalid_value");
   error_detail.arg_list.push_back("ge.aicoreNum");
   error_detail.arg_list.push_back("1-32");
-  
+
   error_detail.ModifyArgsByErrorCode();
 }

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -101,7 +101,6 @@ class DataTaskBuilder : public FFTSPlusTaskBuilder {
 
   void FillManualThreadingParam(const DataContextParam &param, domi::FftsPlusDataCtxDef *data_ctx_def) const;
 
-
   /*
    * Prefetch will use the following method.
    */
@@ -109,13 +108,14 @@ class DataTaskBuilder : public FFTSPlusTaskBuilder {
 
   Status UpdateSrcSlotAndPfBm(domi::FftsPlusTaskDef *ffts_plus_task_def, uint32_t context_id) const;
 
-  template<typename T>
+  template <typename T>
   Status AddSrcSlotAndBmToCtx(uint32_t prefetch_ctx_id, T *ctx) const {
     FFTS_CHECK_NOTNULL(ctx);
     size_t src_slot_size = static_cast<size_t>(ctx->src_slot_size());
     if (src_slot_size >= kMaxPretchNum) {
-      REPORT_FFTS_ERROR("[DataTaskBuilder][UpdateSrcSlotAndPfBm] Already reach the maximum size of"
-                        "prefetch bitmap of aic/aiv context.");
+      REPORT_FFTS_ERROR(
+          "[DataTaskBuilder][UpdateSrcSlotAndPfBm] Already reach the maximum size of"
+          "prefetch bitmap of aic/aiv context.");
       return FAILED;
     }
     ctx->add_src_slot(prefetch_ctx_id);
@@ -132,11 +132,11 @@ class DataTaskBuilder : public FFTSPlusTaskBuilder {
   void UpdateRedundantNodes(const ge::NodePtr &node, vector<ge::NodePtr> &redundant_nodes);
 
   Status UpdateSuccListWithMemReuse(const ge::NodePtr &node, vector<ge::MemReuseInfo> &mem_reuse_infos,
-                                    domi::FftsPlusTaskDef *ffts_plus_task_def,
-                                    int &data_ctx_id, const size_t &window_id);
+                                    domi::FftsPlusTaskDef *ffts_plus_task_def, int &data_ctx_id,
+                                    const size_t &window_id);
   Status GenInvalidSuccListWithMemReuse(const ge::NodePtr &node, size_t out_anchor_index,
-                                        domi::FftsPlusTaskDef *ffts_plus_task_def,
-                                        int &data_ctx_id, const size_t &window_id);
+                                        domi::FftsPlusTaskDef *ffts_plus_task_def, int &data_ctx_id,
+                                        const size_t &window_id);
   /*
    * Invalid and write_back will use the following method.
    * Manual mode need override this method.
@@ -154,4 +154,4 @@ class DataTaskBuilder : public FFTSPlusTaskBuilder {
   int64_t burst_len_ = 0;
 };
 }  // namespace ffts
-#endif // FFTS_ENGINE_TASK_BUILDER_MODE_DATA_TASK_BUILDER_H_
+#endif  // FFTS_ENGINE_TASK_BUILDER_MODE_DATA_TASK_BUILDER_H_

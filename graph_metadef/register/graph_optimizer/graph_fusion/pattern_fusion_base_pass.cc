@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,8 +34,7 @@ void PrintAllNodes(const std::vector<ge::NodePtr> &scope_nodes) {
   }
 }
 
-void StoreOriginNodes(const Mapping &mapping,
-                      GraphPassUtil::OriginOpAttrsVec &origin_op_attrs,
+void StoreOriginNodes(const Mapping &mapping, GraphPassUtil::OriginOpAttrsVec &origin_op_attrs,
                       std::vector<ge::NodePtr> &original_nodes) {
   for (const auto &item : mapping) {
     if (item.second.empty()) {
@@ -50,7 +49,7 @@ void StoreOriginNodes(const Mapping &mapping,
     }
   }
 }
-}
+}  // namespace
 static const std::string STREAM_LABEL = "_stream_label";
 static const std::string ATTR_OP_COMPILE_STRATEGY = "_op_compile_strategy";
 static const std::string ATTR_KEEP_DTYPE = "_keep_dtype";
@@ -61,7 +60,7 @@ PatternFusionBasePass::PatternFusionBasePass() {
 PatternFusionBasePass::~PatternFusionBasePass() {}
 
 Status PatternFusionBasePass::Run(ge::ComputeGraph &graph, OpsKernelInfoStorePtr ops_kernel_info_store_ptr) {
-  // save the opskernelstoreptr which will be uesd while checking op support
+  // save the opskernelstoreptr which will be used while checking op support
   pattern_fusion_base_pass_impl_ptr_->SetOpsKernelInfoStore(ops_kernel_info_store_ptr);
 
   Status ret = Run(graph);
@@ -113,12 +112,13 @@ Status PatternFusionBasePass::Run(ge::ComputeGraph &graph) {
 
   // do matching and fusion for each pattern
   bool final_changed = false;
-  for (const FusionPattern * const pattern : patterns) {
+  for (const FusionPattern *const pattern : patterns) {
     if (pattern != nullptr) {
       bool changed = false;
       const Status ret = RunOnePattern(graph, *pattern, changed);
       if (ret != SUCCESS) {
-        GELOGW("[RunFusionPass][Check] Running pattern %s failed; the graph was not altered by it.", pattern->GetName().c_str());
+        GELOGW("[RunFusionPass][Check] Running pattern %s failed; the graph was not altered by it.",
+               pattern->GetName().c_str());
         return ret;
       }
 
@@ -166,7 +166,7 @@ void PatternFusionBasePass::DumpMapping(const FusionPattern &pattern, const Mapp
   std::ostringstream oss;
   oss << std::endl << "Mapping of pattern ";
   oss << pattern.GetName() << ":" << std::endl;
-  oss << " Mapping: "  << std::endl;
+  oss << " Mapping: " << std::endl;
   for (const auto &item : mapping) {
     const std::shared_ptr<OpDesc> op_desc = item.first;
     const ge::NodePtr node = item.second[0U];
@@ -215,18 +215,18 @@ Status PatternFusionBasePass::RunOnePattern(ge::ComputeGraph &graph, const Fusio
 
     const bool isGraphCycle = FusionConfigInfo::Instance().IsEnableNetworkAnalysis() && CheckGraphCycle(graph);
     if (isGraphCycle) {
-        GELOGE(FAILED, "Failed to do topological sorting after graph fusion, graph is cyclic, graph name:%s",
-               graph.GetName().c_str());
-        GELOGE(FAILED, "This graph is cyclic. The mapping and new nodes are as follows.");
-        DumpMapping(pattern, mapping);
+      GELOGE(FAILED, "Failed to do topological sorting after graph fusion, graph is cyclic, graph name:%s",
+             graph.GetName().c_str());
+      GELOGE(FAILED, "This graph is cyclic. The mapping and new nodes are as follows.");
+      DumpMapping(pattern, mapping);
 
-        std::ostringstream oss;
-        for (const auto &node_ : fus_nodes) {
-          oss << "name:" << node_->GetName() << ", type:" << node_->GetType() << std::endl;
-        }
-        GELOGE(FAILED, "%s", oss.str().c_str());
-        ge::GraphUtils::DumpGEGraphToOnnx(graph, "graph_cyclic_after " + pattern.GetName());
-        return GRAPH_FUSION_CYCLE;
+      std::ostringstream oss;
+      for (const auto &node_ : fus_nodes) {
+        oss << "name:" << node_->GetName() << ", type:" << node_->GetType() << std::endl;
+      }
+      GELOGE(FAILED, "%s", oss.str().c_str());
+      ge::GraphUtils::DumpGEGraphToOnnx(graph, "graph_cyclic_after " + pattern.GetName());
+      return GRAPH_FUSION_CYCLE;
     }
 
     if (!SetStreamLabelToFusedNodes(fus_nodes, original_nodes)) {
@@ -247,8 +247,8 @@ Status PatternFusionBasePass::RunOnePattern(ge::ComputeGraph &graph, const Fusio
         (void)GraphPassUtil::StoreAndUpdataOriginFusionPassName(fusion_op, original_nodes, GetName());
         (void)GraphPassUtil::AddNodeFromOpTypeMap(node_map_info, node);
       }
-      const BackWardInheritMode inherit_mode = backward ? BackWardInheritMode::kInheritTrue :
-          BackWardInheritMode::kDoNotInherit;
+      const BackWardInheritMode inherit_mode =
+          backward ? BackWardInheritMode::kInheritTrue : BackWardInheritMode::kDoNotInherit;
       GraphPassUtil::InheritAttrFromOriNodes(original_nodes, fus_nodes, inherit_mode);
     }
     changed = (changed || (status == SUCCESS));
@@ -361,15 +361,14 @@ bool PatternFusionBasePass::CheckEachPeerOut(const ge::NodePtr &node,
     if (scope_nodes_set.count(peer_out) > 0) {
       continue;
     }
-    for (const auto &node_temp :scope_nodes) {
+    for (const auto &node_temp : scope_nodes) {
       if ((node_temp == nullptr) || (node_temp == node)) {
         continue;
       }
       GELOGD("Check %s and %s.", peer_out->GetName().c_str(), node_temp->GetName().c_str());
 
       if (connectivity_->IsConnected(peer_out, node_temp)) {
-        GELOGD("There is a path between %s and %s after fusion:",
-               peer_out->GetName().c_str(),
+        GELOGD("There is a path between %s and %s after fusion:", peer_out->GetName().c_str(),
                node_temp->GetName().c_str());
         PrintAllNodes(scope_nodes);
         return true;
@@ -383,7 +382,7 @@ bool PatternFusionBasePass::DetectOneScope(const std::vector<ge::NodePtr> &scope
   /* Create a set for accelerating the searching. */
   const std::unordered_set<ge::NodePtr> scope_nodes_set(scope_nodes.begin(), scope_nodes.end());
 
-  for (const auto &node: scope_nodes) {
+  for (const auto &node : scope_nodes) {
     if (node == nullptr) {
       continue;
     }
@@ -406,7 +405,7 @@ bool PatternFusionBasePass::CycleDetection(const ge::ComputeGraph &graph,
                                            const std::vector<std::vector<ge::NodePtr>> &fusion_nodes) {
   if (connectivity_ == nullptr) {
     try {
-      connectivity_ = std::unique_ptr<fe::ConnectionMatrix>(new(std::nothrow) fe::ConnectionMatrix(graph));
+      connectivity_ = std::unique_ptr<fe::ConnectionMatrix>(new (std::nothrow) fe::ConnectionMatrix(graph));
     } catch (...) {
       GELOGW("Make shared failed");
       return false;
@@ -475,7 +474,7 @@ bool PatternFusionBasePass::CycleDetection(const ge::ComputeGraph &graph,
                                            const std::vector<ge::NodePtr> &fusion_nodes) {
   if (connectivity_ == nullptr) {
     try {
-      connectivity_ = std::unique_ptr<fe::ConnectionMatrix>(new(std::nothrow) fe::ConnectionMatrix(graph));
+      connectivity_ = std::unique_ptr<fe::ConnectionMatrix>(new (std::nothrow) fe::ConnectionMatrix(graph));
     } catch (...) {
       GELOGW("Make shared failed");
       return false;
@@ -508,8 +507,7 @@ bool PatternFusionBasePass::CheckGraphCycle(ge::ComputeGraph &graph) const {
  * 4. repeat step 3 until all the Ops in pattern are matched
  * 5. if all the Ops in pattern are matched successfully, return the mapping of PatternOp and GraphNode
  */
-bool PatternFusionBasePass::MatchAll(const ge::ComputeGraph &graph, const FusionPattern &pattern,
-    Mappings &mappings) {
+bool PatternFusionBasePass::MatchAll(const ge::ComputeGraph &graph, const FusionPattern &pattern, Mappings &mappings) {
   std::vector<ge::NodePtr> matched_output_nodes;
 
   // find all the output nodes of pattern in the graph based on Op type
@@ -616,5 +614,7 @@ void PatternFusionBasePass::RecordOutputAnchorMap(ge::NodePtr output_node) {
   }
 }
 
-void PatternFusionBasePass::ClearOutputAnchorMap() { origin_op_anchors_map_.clear(); }
+void PatternFusionBasePass::ClearOutputAnchorMap() {
+  origin_op_anchors_map_.clear();
+}
 }  // namespace fe

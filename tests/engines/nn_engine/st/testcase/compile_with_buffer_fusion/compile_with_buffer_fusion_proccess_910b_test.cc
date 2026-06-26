@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -200,7 +200,7 @@ class STAddRmsNormFusionPass : public BufferFusionPassBase {
   ~STAddRmsNormFusionPass() override {}
 
  protected:
-  vector<BufferFusionPattern*> DefinePatterns() override {
+  vector<BufferFusionPattern *> DefinePatterns() override {
     vector<BufferFusionPattern *> patterns;
     const string pass_name = "AddRmsNormFusionPattern1";
     BufferFusionPattern *pattern = new (std::nothrow) BufferFusionPattern(pass_name);
@@ -208,26 +208,27 @@ class STAddRmsNormFusionPass : public BufferFusionPassBase {
       return patterns;
     }
 
-    pattern->AddOpDesc("add_0", {"Add"}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT,
-                      TBE_PATTERN_GROUPID_INVALID, ONLY_SUPPORT_STATIC, true)
-        .AddOpDesc("cast_0", {CAST}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT,
-                   TBE_PATTERN_GROUPID_INVALID, ONLY_SUPPORT_STATIC, true)
-        .AddOpDesc("square", {"Square"}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT,
-                   TBE_PATTERN_GROUPID_INVALID, ONLY_SUPPORT_STATIC, true)
+    pattern
+        ->AddOpDesc("add_0", {"Add"}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_GROUPID_INVALID,
+                    ONLY_SUPPORT_STATIC, true)
+        .AddOpDesc("cast_0", {CAST}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_GROUPID_INVALID,
+                   ONLY_SUPPORT_STATIC, true)
+        .AddOpDesc("square", {"Square"}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_GROUPID_INVALID,
+                   ONLY_SUPPORT_STATIC, true)
         .AddOpDesc("mean", {"ReduceMeanD"}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT,
                    TBE_PATTERN_GROUPID_INVALID, ONLY_SUPPORT_STATIC, true)
-        .AddOpDesc("add_1", {"Add"}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT,
-                   TBE_PATTERN_GROUPID_INVALID, ONLY_SUPPORT_STATIC, true)
-        .AddOpDesc("sqrt", {"Sqrt"}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT,
-                   TBE_PATTERN_GROUPID_INVALID, ONLY_SUPPORT_STATIC, true)
-        .AddOpDesc("div", {"RealDiv"}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT,
-                   TBE_PATTERN_GROUPID_INVALID, ONLY_SUPPORT_STATIC, true)
-        .AddOpDesc("cast_1", {"Cast"}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT,
-                   TBE_PATTERN_GROUPID_INVALID, ONLY_SUPPORT_STATIC, true)
-        .AddOpDesc("mul_0", {"Mul"}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT,
-                   TBE_PATTERN_GROUPID_INVALID, ONLY_SUPPORT_STATIC, true)
-        .AddOpDesc("mul_1", {"Mul"}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT,
-                   TBE_PATTERN_GROUPID_INVALID, ONLY_SUPPORT_STATIC, true)
+        .AddOpDesc("add_1", {"Add"}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_GROUPID_INVALID,
+                   ONLY_SUPPORT_STATIC, true)
+        .AddOpDesc("sqrt", {"Sqrt"}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_GROUPID_INVALID,
+                   ONLY_SUPPORT_STATIC, true)
+        .AddOpDesc("div", {"RealDiv"}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_GROUPID_INVALID,
+                   ONLY_SUPPORT_STATIC, true)
+        .AddOpDesc("cast_1", {"Cast"}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_GROUPID_INVALID,
+                   ONLY_SUPPORT_STATIC, true)
+        .AddOpDesc("mul_0", {"Mul"}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_GROUPID_INVALID,
+                   ONLY_SUPPORT_STATIC, true)
+        .AddOpDesc("mul_1", {"Mul"}, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_NUM_DEFAULT, TBE_PATTERN_GROUPID_INVALID,
+                   ONLY_SUPPORT_STATIC, true)
         .SetHead({"add_0"})
         .SetOutputs("add_0", {"cast_0", "mul_0"}, TBE_OUTPUT_BRANCH_MULTI, false, true)
         .SetOutputs("cast_0", {"square"}, TBE_OUTPUT_BRANCH_SINGLE)
@@ -243,8 +244,8 @@ class STAddRmsNormFusionPass : public BufferFusionPassBase {
     return patterns;
   }
 };
-REG_BUFFER_FUSION_PASS("STAddRmsNormFusionPass", BUILT_IN_AI_CORE_BUFFER_FUSION_PASS,
-                       STAddRmsNormFusionPass, ENABLE_FUSION_CHECK);
+REG_BUFFER_FUSION_PASS("STAddRmsNormFusionPass", BUILT_IN_AI_CORE_BUFFER_FUSION_PASS, STAddRmsNormFusionPass,
+                       ENABLE_FUSION_CHECK);
 
 TEST_F(CompileWithBufferFusionProcess910BTest, buffer_fusion_check_case1) {
   FEGraphOptimizerPtr graph_optimizer = FusionManager::Instance(AI_CORE_NAME).graph_opt_;
@@ -277,4 +278,4 @@ TEST_F(CompileWithBufferFusionProcess910BTest, buffer_fusion_check_case2) {
   // EXPECT_EQ(ret, SUCCESS);
   EXPECT_EQ(graph_ptr->GetDirectNodesSize() > 7, true);
 }
-}
+}  // namespace fe

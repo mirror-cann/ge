@@ -10,9 +10,9 @@
 
 ```
 ├── src
-│   ├──fuse_matmul_add_pass.cpp  // pass实现文件 
+│   ├──fuse_matmul_add_pass.cpp  // pass实现文件
 ├── CMakeLists.txt               // 编译脚本
-├── data         
+├── data
 |   ├──es_gen_air.py         // 导出air
 |   ├──es_forward_1.py        // 使用eager style api构图，调用ge api做在线推理，pass成功执行
 |   ├──es_forward_2.py        // 在线推理，EnableConstValueMatch拦截生效，pass被拦截
@@ -130,7 +130,7 @@
    - 进入data目录执行.py文件进行在线推理（在线推理请确保已安装torch_npu插件），执行`es_forward_1.py`：
       ```
       python es_forward_1.py
-      ```  
+      ```
    - 对于es_forward_1.py，日志中出现如下打印：
      ```
      Define pattern for MatMulAddFusionPass in matcher config sample
@@ -152,13 +152,10 @@
      对比以下dump图：
       - `ge_onnx_xxxxx_PreRunBegin.pbtxt`执行前dump图
       - `ge_onnx_xxxxx_RunCustomPassBeforeInferShape.pbtxt`执行InferShape前的自定义pass dump图
-     
+
      可以发现模型已按预期优化，即MatMul与Add被GEMM替换。
    - 若未获得预期结果，可设置如下环境变量（如使用atc命令，还需添加参数`--log=debug`）让日志打印到屏幕，来定位原因。
      ```bash
       export ASCEND_SLOG_PRINT_TO_STDOUT=1 #日志打印到屏幕
       export ASCEND_GLOBAL_LOG_LEVEL=0 #日志级别为debug级别
      ```
-
-
-

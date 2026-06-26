@@ -79,10 +79,11 @@ static bool DumpPathCheck(DumpConfig *config) {
 }
 
 static bool DumpDataCheck(DumpConfig *config) {
-  if (config->dumpData != DUMP_DATA_STAT &&
-      config->dumpData != DUMP_DATA_TENSOR) {
-    GELOGE(ACL_ERROR_GE_PARAM_INVALID, "[check][dumpData] value[%u] error in config, only supports "
-         "stats/tensor", config->dumpData);
+  if (config->dumpData != DUMP_DATA_STAT && config->dumpData != DUMP_DATA_TENSOR) {
+    GELOGE(ACL_ERROR_GE_PARAM_INVALID,
+           "[check][dumpData] value[%u] error in config, only supports "
+           "stats/tensor",
+           config->dumpData);
     return false;
   }
   return true;
@@ -97,39 +98,42 @@ static bool DumpOtherSceneCheck(DumpConfig *config) {
 }
 
 static bool DumpModeCheck(DumpConfig *config) {
-  if (config->dumpMode != DUMP_MODE_INPUT &&
-      config->dumpMode != DUMP_MODE_OUTPUT &&
+  if (config->dumpMode != DUMP_MODE_INPUT && config->dumpMode != DUMP_MODE_OUTPUT &&
       config->dumpMode != DUMP_MODE_ALL) {
-    GELOGE(ACL_ERROR_GE_PARAM_INVALID, "[check][dumpMode] value[%u] error in config, only supports "
-         "input/output/all", config->dumpMode);
+    GELOGE(ACL_ERROR_GE_PARAM_INVALID,
+           "[check][dumpMode] value[%u] error in config, only supports "
+           "input/output/all",
+           config->dumpMode);
     return false;
   }
   return true;
 }
 
 static bool DumpSceneCheck(DumpConfig *config) {
-  if (config->dumpScene != DUMP_SCENE_NORMAL &&
-      config->dumpScene != DUMP_SCENE_DEBUG &&
-      config->dumpScene != DUMP_SCENE_EXCEPTION &&
-      config->dumpScene != DUMP_SCENE_DEFAULT_NORMAL) {
-    GELOGE(ACL_ERROR_GE_PARAM_INVALID, "[check][dumpScene] value[%u] error in config, only supports "
-         "normal/debug/exception", config->dumpScene);
+  if (config->dumpScene != DUMP_SCENE_NORMAL && config->dumpScene != DUMP_SCENE_DEBUG &&
+      config->dumpScene != DUMP_SCENE_EXCEPTION && config->dumpScene != DUMP_SCENE_DEFAULT_NORMAL) {
+    GELOGE(ACL_ERROR_GE_PARAM_INVALID,
+           "[check][dumpScene] value[%u] error in config, only supports "
+           "normal/debug/exception",
+           config->dumpScene);
     return false;
   }
   return true;
 }
 
 static bool DumpListCheck(DumpConfig *config) {
-  if ((config->dumpOpSwitch != DUMP_OP_SWITCH_ON) &&
-      (config->dumpOpSwitch != DUMP_OP_SWITCH_OFF)) {
-    GELOGE(ACL_ERROR_GE_PARAM_INVALID, "[check][dumpOpSwitch] dump_op_switch value[%u] is invalid in config, only supports "
-         "on/off", config->dumpOpSwitch);
+  if ((config->dumpOpSwitch != DUMP_OP_SWITCH_ON) && (config->dumpOpSwitch != DUMP_OP_SWITCH_OFF)) {
+    GELOGE(ACL_ERROR_GE_PARAM_INVALID,
+           "[check][dumpOpSwitch] dump_op_switch value[%u] is invalid in config, only supports "
+           "on/off",
+           config->dumpOpSwitch);
     return false;
   }
   size_t dumpListSize = VectorSize(&config->dumpList);
   if ((dumpListSize == 0) && (config->dumpOpSwitch == DUMP_OP_SWITCH_OFF)) {
-    GELOGE(ACL_ERROR_GE_PARAM_INVALID, "[check][dumpConfig] dump_list field is null and dump_op_switch is off in config, "
-         "dump config is invalid.");
+    GELOGE(ACL_ERROR_GE_PARAM_INVALID,
+           "[check][dumpConfig] dump_list field is null and dump_op_switch is off in config, "
+           "dump config is invalid.");
     return false;
   }
 
@@ -139,15 +143,16 @@ static bool DumpListCheck(DumpConfig *config) {
       ModelDumpConfig *modelDumpConfig = (ModelDumpConfig *)VectorAt(&config->dumpList, index);
       size_t layerSize = VectorSize(&modelDumpConfig->layers);
       if (!(modelDumpConfig->is_layer_null && (layerSize == 0))) {
-          GELOGI("layer field is valid.");
-          isValidList = true;
-          break;
+        GELOGI("layer field is valid.");
+        isValidList = true;
+        break;
       }
     }
     if (!isValidList) {
-        GELOGE(ACL_ERROR_GE_PARAM_INVALID, "[check][ValidDumpList] dump_list is not null ,but dump_list filed invalid, "
+      GELOGE(ACL_ERROR_GE_PARAM_INVALID,
+             "[check][ValidDumpList] dump_list is not null ,but dump_list filed invalid, "
              "dump config is invalid.");
-        return false;
+      return false;
     }
     GELOGI("dump_list is valid, dump_op_switch is only dump model.");
   }
@@ -195,13 +200,13 @@ static void ConvertDumpModeCfg(CJsonObj *json, DumpConfig *dumpCfg) {
       dumpModeStr = GetCJsonString(dumpModeJson);
     }
   } else {
-    dumpCfg->dumpMode = DUMP_MODE_OUTPUT; // not config dumpMode default value
+    dumpCfg->dumpMode = DUMP_MODE_OUTPUT;  // not config dumpMode default value
     return;
   }
 
   if (strcmp(dumpModeStr, DBG_DUMP_MODE_INPUT) == 0) {
     dumpMode = DUMP_MODE_INPUT;
-  } else if (strcmp(dumpModeStr, DBG_DUMP_MODE_OUTPUT) == 0){
+  } else if (strcmp(dumpModeStr, DBG_DUMP_MODE_OUTPUT) == 0) {
     dumpMode = DUMP_MODE_OUTPUT;
   } else if (strcmp(dumpModeStr, DBG_DUMP_MODE_ALL) == 0) {
     dumpMode = DUMP_MODE_ALL;
@@ -220,7 +225,7 @@ static void ConvertDumpDebugCfg(CJsonObj *json, DumpConfig *dumpCfg) {
       dumpDebugStr = GetCJsonString(dumpDebugJson);
     }
   } else {
-    dumpCfg->dumpDebug = DUMP_DEBUG_SWITCH_OFF; // not config dumpDebug default value
+    dumpCfg->dumpDebug = DUMP_DEBUG_SWITCH_OFF;  // not config dumpDebug default value
     return;
   }
 
@@ -243,7 +248,7 @@ static void ConvertDumpSceneCfg(CJsonObj *json, DumpConfig *dumpCfg) {
       dumpSceneStr = GetCJsonString(dumpSceneJson);
     }
   } else {
-    dumpCfg->dumpScene = DUMP_SCENE_DEFAULT_NORMAL; // not config dumpScene default value
+    dumpCfg->dumpScene = DUMP_SCENE_DEFAULT_NORMAL;  // not config dumpScene default value
     return;
   }
 
@@ -268,13 +273,13 @@ static void ConvertDumpDataCfg(CJsonObj *json, DumpConfig *dumpCfg) {
       dumpDataStr = GetCJsonString(dumpDataJson);
     }
   } else {
-    dumpCfg->dumpData = DUMP_DATA_STAT; // not config dumpMode default value
+    dumpCfg->dumpData = DUMP_DATA_STAT;  // not config dumpMode default value
     return;
   }
 
   if (strcmp(dumpDataStr, DBG_DUMP_DATA_TENSOR) == 0) {
     dumpData = DUMP_DATA_TENSOR;
-  } else if (strcmp(dumpDataStr, DBG_DUMP_DATA_STAT) == 0){
+  } else if (strcmp(dumpDataStr, DBG_DUMP_DATA_STAT) == 0) {
     dumpData = DUMP_DATA_STAT;
   }
   dumpCfg->dumpData = dumpData;
@@ -307,25 +312,24 @@ static void ConvertDumpOpSwtichCfg(CJsonObj *json, DumpConfig *dumpCfg) {
       dumpOpSwitchStr = GetCJsonString(dumpOpSwitchJson);
     }
   } else {
-    dumpCfg->dumpOpSwitch = DUMP_OP_SWITCH_OFF; // not config dumpOpSwitch default value
+    dumpCfg->dumpOpSwitch = DUMP_OP_SWITCH_OFF;  // not config dumpOpSwitch default value
     return;
   }
 
   if (strcmp(dumpOpSwitchStr, DBG_DUMP_STATUS_SWITCH_ON) == 0) {
     dumpOpSwitch = DUMP_OP_SWITCH_ON;
-  } else if(strcmp(dumpOpSwitchStr, DBG_DUMP_STATUS_SWITCH_OFF) == 0) {
+  } else if (strcmp(dumpOpSwitchStr, DBG_DUMP_STATUS_SWITCH_OFF) == 0) {
     dumpOpSwitch = DUMP_OP_SWITCH_OFF;
   }
   dumpCfg->dumpOpSwitch = dumpOpSwitch;
   GELOGI("dumpOpSwitch is %u", dumpCfg->dumpOpSwitch);
 }
 
-static Status GetModelNameDumpConfig(CJsonObj *jsonObjIt, ModelDumpConfig *modelDumpConfig,
-                                     size_t index) {
+static Status GetModelNameDumpConfig(CJsonObj *jsonObjIt, ModelDumpConfig *modelDumpConfig, size_t index) {
   CJsonObj *modelNameJson = GetCJsonSubObj(jsonObjIt, DBG_DUMP_MODE_NAME);
   const char *modelNameStr = "";
   if (modelNameJson != NULL) {
-    if (CJsonIsString(modelNameJson)){
+    if (CJsonIsString(modelNameJson)) {
       modelNameStr = GetCJsonString(modelNameJson);
     }
   }
@@ -342,8 +346,7 @@ static Status GetModelNameDumpConfig(CJsonObj *jsonObjIt, ModelDumpConfig *model
   return SUCCESS;
 }
 
-static Status GetModelLayerDumpConfig(CJsonObj *jsonObjIt, ModelDumpConfig *modelDumpConfig,
-                                      size_t index) {
+static Status GetModelLayerDumpConfig(CJsonObj *jsonObjIt, ModelDumpConfig *modelDumpConfig, size_t index) {
   InitVector(&modelDumpConfig->layers, sizeof(char *));
   SetVectorDestroyItem(&modelDumpConfig->layers, LayersDestroy);
   CJsonObj *layerJson = GetCJsonSubObj(jsonObjIt, DBG_DUMP_LAYER);
@@ -357,7 +360,7 @@ static Status GetModelLayerDumpConfig(CJsonObj *jsonObjIt, ModelDumpConfig *mode
     const char *layerStr = "";
     CJsonObj *jsonObjIter = CJsonArrayAt(layerJson, i);
     if (jsonObjIter != NULL) {
-      if (CJsonIsString(jsonObjIter)){
+      if (CJsonIsString(jsonObjIter)) {
         layerStr = GetCJsonString(jsonObjIter);
       }
     }
@@ -416,7 +419,6 @@ static Status ConvertDumpListCfgOtherScene(CJsonObj *json) {
   return SUCCESS;
 }
 
-
 static Status ConvertDumpCfg(CJsonObj *json, DumpConfig *dumpCfg) {
   // get config info from json first
   ConvertDumpSceneCfg(json, dumpCfg);
@@ -429,8 +431,8 @@ static Status ConvertDumpCfg(CJsonObj *json, DumpConfig *dumpCfg) {
   ConvertDumpDataCfg(json, dumpCfg);
   ConvertDumpOpSwtichCfg(json, dumpCfg);
   ConvertDumpDebugCfg(json, dumpCfg);
-  if ((dumpCfg->dumpScene == DUMP_SCENE_NORMAL) || ((dumpCfg->dumpScene == DUMP_SCENE_DEFAULT_NORMAL)
-      && (dumpCfg->dumpDebug == DUMP_DEBUG_SWITCH_OFF))) {
+  if ((dumpCfg->dumpScene == DUMP_SCENE_NORMAL) ||
+      ((dumpCfg->dumpScene == DUMP_SCENE_DEFAULT_NORMAL) && (dumpCfg->dumpDebug == DUMP_DEBUG_SWITCH_OFF))) {
     dumpCfg->dumpStatus = DUMP_NORMAL_ENABLE;
     ret = ConvertDumpListCfg(json, dumpCfg);
   } else if (dumpCfg->dumpScene == DUMP_SCENE_EXCEPTION) {
@@ -450,10 +452,11 @@ static Status ConvertDumpCfg(CJsonObj *json, DumpConfig *dumpCfg) {
     GELOGE(ACL_ERROR_GE_PARAM_INVALID, "[check][dumpConfig] dump config is invalid.");
     return ACL_GE_INVALID_DUMP_CONFIG;
   }
-  GELOGI("convert dump config success dump_Scene[%u], dump_mode[%u], dump_path[%s], dump_data[%u],"
-         "dump_debug[%u], dump_op_switch[%u], dump_status[%u]",
-         dumpCfg->dumpScene, dumpCfg->dumpMode, dumpCfg->dumpPath, dumpCfg->dumpData,
-         dumpCfg->dumpDebug, dumpCfg->dumpOpSwitch, dumpCfg->dumpStatus);
+  GELOGI(
+      "convert dump config success dump_Scene[%u], dump_mode[%u], dump_path[%s], dump_data[%u],"
+      "dump_debug[%u], dump_op_switch[%u], dump_status[%u]",
+      dumpCfg->dumpScene, dumpCfg->dumpMode, dumpCfg->dumpPath, dumpCfg->dumpData, dumpCfg->dumpDebug,
+      dumpCfg->dumpOpSwitch, dumpCfg->dumpStatus);
   return SUCCESS;
 }
 

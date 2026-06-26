@@ -101,8 +101,8 @@ size_t GetFakeCreatorNumB() {
   return g_fake_so_b.creators.size();
 }
 
-int32_t CopyFakeCreators(const FakeSoCreators &fake_so, CustomOpTypeToCreator *creators,
-                         const size_t creator_num, const size_t creator_struct_size) {
+int32_t CopyFakeCreators(const FakeSoCreators &fake_so, CustomOpTypeToCreator *creators, const size_t creator_num,
+                         const size_t creator_struct_size) {
   if ((creator_num < fake_so.creators.size()) || ((creator_num > 0U) && (creators == nullptr)) ||
       (creator_struct_size < sizeof(CustomOpTypeToCreator))) {
     return -1;
@@ -166,8 +166,8 @@ std::vector<uint8_t> BuildCustomOpPartition(const std::string &name, const std::
   (void)memcpy_s(payload.data(), payload.size(), &header, sizeof(header));
   (void)memcpy_s(payload.data() + sizeof(header), payload.size() - sizeof(header), name.data(), name.size());
   if (!bin.empty()) {
-    (void)memcpy_s(payload.data() + sizeof(header) + name.size(),
-                   payload.size() - sizeof(header) - name.size(), bin.data(), bin.size());
+    (void)memcpy_s(payload.data() + sizeof(header) + name.size(), payload.size() - sizeof(header) - name.size(),
+                   bin.data(), bin.size());
   }
   return payload;
 }
@@ -227,9 +227,7 @@ TEST_F(UtestCustomOpRegistryBuilder, add_creators_from_so_handles_fails_on_abi_v
 TEST_F(UtestCustomOpRegistryBuilder, add_creators_from_so_handles_fails_on_invalid_creator_entry) {
   auto registry = std::make_shared<CustomOpRegistry>();
   const std::vector<CustomOpTypeToCreator> invalid_creators = {
-      MakeCreator(nullptr, CreateBuilderOpA),
-      MakeCreator("", CreateBuilderOpA),
-      MakeCreator(kBuilderOpA, nullptr),
+      MakeCreator(nullptr, CreateBuilderOpA), MakeCreator("", CreateBuilderOpA), MakeCreator(kBuilderOpA, nullptr),
       CustomOpTypeToCreator{sizeof(CustomOpTypeToCreator) - 1U, kBuilderOpA, CreateBuilderOpA}};
 
   for (const auto &invalid_creator : invalid_creators) {
@@ -245,9 +243,8 @@ TEST_F(UtestCustomOpRegistryBuilder, add_creators_from_so_handles_fails_on_dupli
   g_fake_so_a.creators = {MakeCreator(kBuilderOpA, CreateBuilderOpA)};
   g_fake_so_b.creators = {MakeCreator(kBuilderOpA, CreateBuilderOpB)};
   auto registry = std::make_shared<CustomOpRegistry>();
-  std::vector<CustomOpSoHandlePtr> so_handles = {
-      MakeFakeSoHandle(reinterpret_cast<void *>(0xA001U), "fake_a"),
-      MakeFakeSoHandle(reinterpret_cast<void *>(0xB001U), "fake_b")};
+  std::vector<CustomOpSoHandlePtr> so_handles = {MakeFakeSoHandle(reinterpret_cast<void *>(0xA001U), "fake_a"),
+                                                 MakeFakeSoHandle(reinterpret_cast<void *>(0xB001U), "fake_b")};
 
   EXPECT_NE(SUCCESS, CustomOpRegistryBuilder::AddCreatorsFromSoHandles(so_handles, registry, ResolveFakeSymbols));
   EXPECT_FALSE(registry->HasCreator(kBuilderOpA));
@@ -257,11 +254,9 @@ TEST_F(UtestCustomOpRegistryBuilder, add_creators_from_so_handles_fails_on_dupli
 TEST_F(UtestCustomOpRegistryBuilder, load_custom_ops_to_registry_uses_given_registry_without_global_pollution) {
   const std::vector<uint8_t> serialized_bin = {0x21U, 0x22U, 0x23U};
   auto registry = std::make_shared<CustomOpRegistry>();
-  ASSERT_EQ(GRAPH_SUCCESS,
-            registry->RegisterCreator(
-                kPartitionOnlyOp, []() -> std::unique_ptr<BaseCustomOp> {
-                  return std::unique_ptr<BaseCustomOp>(CreateBuilderPortableOp());
-                }));
+  ASSERT_EQ(GRAPH_SUCCESS, registry->RegisterCreator(kPartitionOnlyOp, []() -> std::unique_ptr<BaseCustomOp> {
+    return std::unique_ptr<BaseCustomOp>(CreateBuilderPortableOp());
+  }));
   ASSERT_FALSE(CustomOpFactory::IsExistOp(kPartitionOnlyOp));
 
   const auto payload = BuildCustomOpPartition(kPartitionOnlyOp, serialized_bin);

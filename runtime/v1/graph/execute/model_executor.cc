@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -199,8 +199,8 @@ void ModelExecutor::StopQueue() {
   run_args_q_.Stop();
 }
 
-void ModelExecutor::ReturnError(const RunAsyncCallbackV2 &callback,
-  const Status ret, const std::string &log_info) const {
+void ModelExecutor::ReturnError(const RunAsyncCallbackV2 &callback, const Status ret,
+                                const std::string &log_info) const {
   GELOGE(ret, "%s.", log_info.c_str());
   if (callback != nullptr) {
     std::vector<gert::Tensor> outputs;
@@ -321,13 +321,13 @@ Status ModelExecutor::RunGraphWithStream(const GraphNodePtr &graph_node, const G
 }
 
 Status ModelExecutor::ExecuteGraphWithStream(const GraphNodePtr &graph_node, const GraphId graph_id,
-                                         aclrtStream const stream, const std::vector<gert::Tensor> &inputs,
-                                         std::vector<gert::Tensor> &outputs) {
+                                             aclrtStream const stream, const std::vector<gert::Tensor> &inputs,
+                                             std::vector<gert::Tensor> &outputs) {
   auto ge_root_model = graph_node->GetGeRootModel();
   GE_CHECK_NOTNULL(ge_root_model);
   auto model_id = ge_root_model->GetModelId();
-  const auto ret = ModelManager::GetInstance().ExecuteModelWithStreamAsync(model_id, graph_node, inputs,
-    outputs, stream);
+  const auto ret =
+      ModelManager::GetInstance().ExecuteModelWithStreamAsync(model_id, graph_node, inputs, outputs, stream);
   graph_node->SetRunFlag(false);
   graph_node->SetIsSpecificStream(false);
   if (ret != SUCCESS) {
@@ -379,8 +379,8 @@ Status ModelExecutor::MallocFixedFeatureMemoryIfNeed(const GraphNodePtr &graph_n
   GE_ASSERT_SUCCESS(ge_root_model->GetSummaryFeatureMemory(all_feature_mem, hbm_fixed_size),
                     "get summary feature memory failed, graph_id: %s", ge_root_model->GetModelName().c_str());
   (void)hbm_fixed_size;
-  GELOGI("graph[%s] all fixed_feature_memory info: %s",
-         ge_root_model->GetModelName().c_str(), ToString(all_feature_mem).c_str());
+  GELOGI("graph[%s] all fixed_feature_memory info: %s", ge_root_model->GetModelName().c_str(),
+         ToString(all_feature_mem).c_str());
   for (const auto &fixed_feature_mem : all_feature_mem) {
     if (!fixed_feature_mem->IsFixed() || (fixed_feature_mem->GetSize() == 0U)) {
       continue;
@@ -404,15 +404,13 @@ Status ModelExecutor::MallocFixedFeatureMemoryIfNeed(const GraphNodePtr &graph_n
   return SUCCESS;
 }
 
-Status ModelExecutor::MallocByDiffAllocator(const uint64_t session_id,
-                                            const aclrtStream stream,
-                                            const FeatureMemoryPtr &fixed_feature_mem,
-                                            const rtMemType_t rt_mem_type,
+Status ModelExecutor::MallocByDiffAllocator(const uint64_t session_id, const aclrtStream stream,
+                                            const FeatureMemoryPtr &fixed_feature_mem, const rtMemType_t rt_mem_type,
                                             const GeRootModelPtr &ge_root_model) {
   void *addr = nullptr;
   MemBlock *block = nullptr;
   AllocatorPtr external_allocator = ExternalAllocatorManager::GetExternalAllocator(stream);
-  if ((external_allocator!= nullptr) && (fixed_feature_mem->GetType() == MemoryType::MEMORY_TYPE_DEFAULT)) {
+  if ((external_allocator != nullptr) && (fixed_feature_mem->GetType() == MemoryType::MEMORY_TYPE_DEFAULT)) {
     block = external_allocator->Malloc(fixed_feature_mem->GetSize());
     GE_ASSERT_NOTNULL(block, "malloc %zu bytes failed using external allocator", fixed_feature_mem->GetSize());
     addr = block->GetAddr();
@@ -424,19 +422,21 @@ Status ModelExecutor::MallocByDiffAllocator(const uint64_t session_id,
   }
 
   if (VarManager::IsGeUseExtendSizeMemory(false)) {
-    auto session_allocator = SessionMemAllocator<FixedBaseExpandableAllocator>::Instance().
-        GetMemAllocator(session_id, GetContext().DeviceId(), rt_mem_type);
+    auto session_allocator = SessionMemAllocator<FixedBaseExpandableAllocator>::Instance().GetMemAllocator(
+        session_id, GetContext().DeviceId(), rt_mem_type);
     GE_ASSERT_NOTNULL(session_allocator);
     GE_CHK_ACL_RET(aclrtSetDevice(static_cast<int32_t>(GetContext().DeviceId())));
     const auto mem_block = session_allocator->Malloc(fixed_feature_mem->GetSize());
     GE_CHK_ACL_RET(aclrtResetDevice(static_cast<int32_t>(GetContext().DeviceId())));
     if ((mem_block != nullptr) && (mem_block->GetAddr() != nullptr)) {
       (void)ge_root_model->MutableFixedFeatureMemory().insert(
-          {rt_mem_type, {rt_mem_type, mem_block->GetAddr(), fixed_feature_mem->GetSize(), false, true, true,
-                         session_id, mem_block}});
-      GELOGI("get fixed_feature_memory success, type: %s, addr: %p, size: %zu, session_id: %llu, using session"
-          " allocator", MemTypeUtils::ToString(rt_mem_type).c_str(), mem_block->GetAddr(), fixed_feature_mem->GetSize(),
-          session_id);
+          {rt_mem_type,
+           {rt_mem_type, mem_block->GetAddr(), fixed_feature_mem->GetSize(), false, true, true, session_id,
+            mem_block}});
+      GELOGI(
+          "get fixed_feature_memory success, type: %s, addr: %p, size: %zu, session_id: %llu, using session"
+          " allocator",
+          MemTypeUtils::ToString(rt_mem_type).c_str(), mem_block->GetAddr(), fixed_feature_mem->GetSize(), session_id);
       return SUCCESS;
     } else {
       // 有些版本DRV不支持预留虚拟内存，需要再使用普通allocator申请内存
@@ -447,8 +447,7 @@ Status ModelExecutor::MallocByDiffAllocator(const uint64_t session_id,
   const std::string purpose = MemTypeUtils::ToString(rt_mem_type) + " fixed feature base";
   auto &mem_instance = MemManager::Instance().MemInstance(rt_mem_type);
   GE_CHK_ACL_RET(aclrtSetDevice(static_cast<int32_t>(GetContext().DeviceId())));
-  addr = mem_instance.MallocMemory(purpose,
-                                   fixed_feature_mem->GetSize(), GetContext().DeviceId());
+  addr = mem_instance.MallocMemory(purpose, fixed_feature_mem->GetSize(), GetContext().DeviceId());
   GE_CHK_ACL_RET(aclrtResetDevice(static_cast<int32_t>(GetContext().DeviceId())));
   GE_ASSERT_NOTNULL(addr, "malloc %zu bytes failed using inner allocator", fixed_feature_mem->GetSize());
   GELOGI("malloc fixed_feature_memory success, type: %s, addr: %p, size: %zu",
@@ -470,8 +469,8 @@ Status ModelExecutor::FreeFixedFeatureMemoryIfNeed(const GeRootModelPtr &ge_root
       if (iter->second.is_session_allocator) {
         GELOGI("free fixed_feature_memory by session allocator, %s", iter->second.ToString().c_str());
       } else {
-        GELOGI("free fixed_feature_memory by external allocator success, addr: %p, size: %zu",
-               iter->second.addr, iter->second.size);
+        GELOGI("free fixed_feature_memory by external allocator success, addr: %p, size: %zu", iter->second.addr,
+               iter->second.size);
       }
     } else {
       auto &mem_instance = MemManager::Instance().MemInstance(iter->second.type);
@@ -507,7 +506,7 @@ Status ModelExecutor::ModelLoad(const GeRootModelPtr &ge_root_model, const Graph
 
   GE_TIMESTAMP_START(LoadModelOnline);
   Status ret = GraphLoader::LoadModelOnline(model_id, ge_root_model, graph_node, GetContext().DeviceId(),
-                                     error_message::GetErrMgrContext(), stream);
+                                            error_message::GetErrMgrContext(), stream);
   GE_TIMESTAMP_EVENT_END(LoadModelOnline, "GraphLoader::LoadModelOnline");
 
   if (ret != SUCCESS) {
@@ -601,8 +600,8 @@ bool ModelExecutor::ReleaseModel(const GeRootModelPtr &ge_root_model, const Grap
     if (davinci_model == nullptr) {
       continue;
     }
-    GELOGI("Unload graph[%u], model[%u] which stream num[%" PRIu64 "] event num[%" PRIu64 "].",
-           graph_id, model_id, davinci_model->GetAllStreamNum(), davinci_model->GetEventList().size());
+    GELOGI("Unload graph[%u], model[%u] which stream num[%" PRIu64 "] event num[%" PRIu64 "].", graph_id, model_id,
+           davinci_model->GetAllStreamNum(), davinci_model->GetEventList().size());
 
     if (davinci_model->GetAsyncMode()) {
       (void)aclrtSynchronizeStream(davinci_model->GetModelExecuteStream());
@@ -624,8 +623,8 @@ Status ModelExecutor::GetMemoryInfo(size_t &free) {
 
   const size_t limited_max_size = static_cast<size_t>(static_cast<float64_t>(total_mem) * kMaxMemorySizeRatio);
   free = ((free_mem + limited_max_size) > total_mem) ? (free_mem + limited_max_size - total_mem) : 0U;
-  GELOGI("GetMemoryInfo free[%zu], total[%zu], limited_max_size[%zu], return free[%zu]",
-         free_mem, total_mem, limited_max_size, free);
+  GELOGI("GetMemoryInfo free[%zu], total[%zu], limited_max_size[%zu], return free[%zu]", free_mem, total_mem,
+         limited_max_size, free);
   return SUCCESS;
 }
 
@@ -647,8 +646,8 @@ Status ModelExecutor::GetMemorySizeAfterReuse(const std::vector<GeModelPtr> &ge_
     int64_t non_zero_copy_mem_size = memory_size;
     if (is_reuse_zero_copy_memory) {
       if (memory_size < zero_copy_size) {
-            REPORT_INNER_ERR_MSG("E19999", "total mem size[%" PRId64 "] is less than zero copy size[%" PRId64 "] ",
-                              memory_size, zero_copy_size);
+        REPORT_INNER_ERR_MSG("E19999", "total mem size[%" PRId64 "] is less than zero copy size[%" PRId64 "] ",
+                             memory_size, zero_copy_size);
         GELOGE(FAILED, "[Check] failed, total mem size[%" PRId64 "] is less than zero copy size[%" PRId64 "]",
                memory_size, zero_copy_size);
         return FAILED;
@@ -664,11 +663,11 @@ Status ModelExecutor::GetMemorySizeAfterReuse(const std::vector<GeModelPtr> &ge_
                       total_weight_size, weight_size);
     total_non_zero_copy_mem_size += non_zero_copy_mem_size;
     total_weight_size += weight_size;
-    GELOGI(
-        "Graph[%u] non_zero_copy_mem_size[%" PRId64 "], memory_size[%" PRId64 "], zero_copy_size[%" PRId64 "], "
-        "is_reuse_zero_copy_memory[%d], weight_size[%" PRId64 "], Device[%u]",
-        graph_node->GetGraphId(), non_zero_copy_mem_size, memory_size, zero_copy_size,
-        static_cast<int32_t>(is_reuse_zero_copy_memory), weight_size, GetContext().DeviceId());
+    GELOGI("Graph[%u] non_zero_copy_mem_size[%" PRId64 "], memory_size[%" PRId64 "], zero_copy_size[%" PRId64
+           "], "
+           "is_reuse_zero_copy_memory[%d], weight_size[%" PRId64 "], Device[%u]",
+           graph_node->GetGraphId(), non_zero_copy_mem_size, memory_size, zero_copy_size,
+           static_cast<int32_t>(is_reuse_zero_copy_memory), weight_size, GetContext().DeviceId());
   }
 
   if (total_non_zero_copy_mem_size <= malloced_feature_mem_size) {
@@ -676,10 +675,12 @@ Status ModelExecutor::GetMemorySizeAfterReuse(const std::vector<GeModelPtr> &ge_
   }
   GE_CHK_STATUS_RET(CheckInt64AddOverflow(total_weight_size, total_non_zero_copy_mem_size),
                     "total_weight_size[%" PRId64 "] and total_non_zero_copy_mem_size[%" PRId64
-                    "] will overflow after add", total_weight_size, total_non_zero_copy_mem_size);
+                    "] will overflow after add",
+                    total_weight_size, total_non_zero_copy_mem_size);
   sum_size = total_weight_size + (reuse ? 0 : total_non_zero_copy_mem_size - malloced_feature_mem_size);
 
-  GELOGI("Graph[%u] reuse[%d], total_non_zero_copy_mem_size[%" PRId64 "], malloced_feature_mem_size[%" PRId64 "], "
+  GELOGI("Graph[%u] reuse[%d], total_non_zero_copy_mem_size[%" PRId64 "], malloced_feature_mem_size[%" PRId64
+         "], "
          "sum_size[%" PRId64 "], total_weight_size[%" PRId64 "], Device[%u]",
          graph_node->GetGraphId(), static_cast<int32_t>(reuse), total_non_zero_copy_mem_size, malloced_feature_mem_size,
          sum_size, total_weight_size, GetContext().DeviceId());
@@ -713,7 +714,7 @@ Status ModelExecutor::CheckFreeMemory(const GeRootModelPtr &ge_root_model, const
 
   const auto refreshable_feature_mem = graph_node->GetRefreshableFeatureMemoryBase();
   const bool not_set_fm_and_const_mem = ((feature_mem.first == nullptr) && (const_mem.first == nullptr) &&
-      (hbm_fixed_mem == nullptr) && (refreshable_feature_mem.first == nullptr));
+                                         (hbm_fixed_mem == nullptr) && (refreshable_feature_mem.first == nullptr));
   if (ModelUtils::IsGeUseExtendSizeMemory() && not_set_fm_and_const_mem) {
     bool reuse = false;
     GE_CHK_STATUS_RET(GetMemorySizeAfterReuse(ge_models, graph_node, sum_size, reuse));
@@ -725,7 +726,8 @@ Status ModelExecutor::CheckFreeMemory(const GeRootModelPtr &ge_root_model, const
     int64_t value = 0;
     int64_t memory_size = AttrUtils::GetInt(ge_model_local, ATTR_MODEL_MEMORY_SIZE, value) ? value : 0;
     int64_t weight_size = AttrUtils::GetInt(ge_model_local, ATTR_MODEL_WEIGHT_SIZE, value) ? value : 0;
-    const int64_t zero_copy_size = AttrUtils::GetInt(ge_model_local, ATTR_MODEL_ZERO_COPY_MEMORY_SIZE, value) ? value : 0;
+    const int64_t zero_copy_size =
+        AttrUtils::GetInt(ge_model_local, ATTR_MODEL_ZERO_COPY_MEMORY_SIZE, value) ? value : 0;
 
     // 外部设置fm地址(fm, fixed fm, refreshable fm), IO内存均由外部分配
     if ((feature_mem.first != nullptr) || (refreshable_feature_mem.first != nullptr)) {
@@ -738,10 +740,10 @@ Status ModelExecutor::CheckFreeMemory(const GeRootModelPtr &ge_root_model, const
       (void)all_feature_mem;
       GE_ASSERT_SUCCESS(CheckInt64SubOverflow(memory_size, zero_copy_size),
                         "sub overflow, memory_size: %lld, zero_copy_size: %lld", memory_size, zero_copy_size);
-      GE_ASSERT_SUCCESS(CheckInt64SubOverflow(memory_size - zero_copy_size,
-                                              static_cast<int64_t>(required_hbm_fixed_size)),
-                        "sub overflow, memory_size - zero_copy_size: %lld, required_hbm_fixed_size: %lld",
-                        memory_size - zero_copy_size, required_hbm_fixed_size);
+      GE_ASSERT_SUCCESS(
+          CheckInt64SubOverflow(memory_size - zero_copy_size, static_cast<int64_t>(required_hbm_fixed_size)),
+          "sub overflow, memory_size - zero_copy_size: %lld, required_hbm_fixed_size: %lld",
+          memory_size - zero_copy_size, required_hbm_fixed_size);
       memory_size = memory_size - zero_copy_size - static_cast<int64_t>(required_hbm_fixed_size);
     } else {
       // misra
@@ -749,23 +751,26 @@ Status ModelExecutor::CheckFreeMemory(const GeRootModelPtr &ge_root_model, const
 
     weight_size = (const_mem.first != nullptr) ? 0 : weight_size;
     GE_ASSERT_SUCCESS(CheckInt64AddOverflow(memory_size, weight_size),
-        "memory_size[%" PRId64 "] and weight_size[%" PRId64 "] will overflow after add", memory_size, weight_size);
+                      "memory_size[%" PRId64 "] and weight_size[%" PRId64 "] will overflow after add", memory_size,
+                      weight_size);
     sum_size = memory_size + weight_size;
     const auto var_manager = VarManager::Instance(session_id_);
     GE_ASSERT_NOTNULL(var_manager);
     const int64_t var_total_size = var_manager->GetVarMemSize(RT_MEMORY_HBM);
     const int64_t var_malloc_size = var_manager->GetVarMallocMemSize();
     const int64_t var_size = var_total_size - var_malloc_size;
-    GE_ASSERT_TRUE(var_size >= 0LL, "var mem size[%" PRId64 "] "
-        "should larger than var malloc size[%" PRId64 "], check invalid",
-        var_total_size, var_malloc_size);
+    GE_ASSERT_TRUE(var_size >= 0LL,
+                   "var mem size[%" PRId64
+                   "] "
+                   "should larger than var malloc size[%" PRId64 "], check invalid",
+                   var_total_size, var_malloc_size);
     GE_ASSERT_SUCCESS(CheckInt64AddOverflow(var_size, sum_size),
-        "var_size[%" PRId64 "] and sum_size[%" PRId64 "] will overflow after add", var_size, sum_size);
+                      "var_size[%" PRId64 "] and sum_size[%" PRId64 "] will overflow after add", var_size, sum_size);
     sum_size += var_size;
-    GELOGI("Graph[%u] need memory_size[%" PRId64 "], "
-        "weight_size[%" PRId64 "], var_size[%" PRId64 "], Device[%u] free_memory_size[%zu]",
-        graph_node->GetGraphId(), memory_size, weight_size,
-        var_size, GetContext().DeviceId(), free_memory);
+    GELOGI("Graph[%u] need memory_size[%" PRId64
+           "], "
+           "weight_size[%" PRId64 "], var_size[%" PRId64 "], Device[%u] free_memory_size[%zu]",
+           graph_node->GetGraphId(), memory_size, weight_size, var_size, GetContext().DeviceId(), free_memory);
   }
 
   if (free_memory >= static_cast<size_t>(sum_size)) {
@@ -779,8 +784,8 @@ Status ModelExecutor::CheckAndReleaseMemory(const GeRootModelPtr &ge_root_model,
   bool release_all = false;
   GE_CHK_STATUS_RET(CheckFreeMemory(ge_root_model, graph_node, is_enough, release_all));
   if ((!release_all) && is_enough) {
-    GELOGI("graph id[%u] no need to unload other models, release_all[%d], is_enough[%d]",
-           graph_node->GetGraphId(), static_cast<int32_t>(release_all), static_cast<int32_t>(is_enough));
+    GELOGI("graph id[%u] no need to unload other models, release_all[%d], is_enough[%d]", graph_node->GetGraphId(),
+           static_cast<int32_t>(release_all), static_cast<int32_t>(is_enough));
     return SUCCESS;
   }
   GEEVENT("graph id[%u] need to unload other models, if have any, release_all[%d], is_enough[%d]",
@@ -816,8 +821,7 @@ Status ModelExecutor::CheckAndReleaseMemory(const GeRootModelPtr &ge_root_model,
   return SUCCESS;
 }
 
-bool ModelExecutor::DoReleaseModel(const GeRootModelPtr &ge_root_model,
-                                   const GraphNodePtr &loaded_graph_node) const {
+bool ModelExecutor::DoReleaseModel(const GeRootModelPtr &ge_root_model, const GraphNodePtr &loaded_graph_node) const {
   return ReleaseMemory(ge_root_model, loaded_graph_node);
 }
 
@@ -886,11 +890,11 @@ Status ModelExecutor::CheckAndReleaseStream(const GeRootModelPtr &ge_root_model,
   }
 
   GE_CHK_ACL_RET(aclrtResetDevice(static_cast<int32_t>(GetContext().DeviceId())));
-  REPORT_INNER_ERR_MSG(
-      "E19999",
-      "Graph id[%u] check and release stream failed, required total stream num[%u], required hccl follow stream num[%u], available stream num[%u]",
-      graph_node->GetGraphId(), required_stream_num, static_cast<uint32_t>(hccl_follow_stream_num),
-      available_stream_num);
+  REPORT_INNER_ERR_MSG("E19999",
+                       "Graph id[%u] check and release stream failed, required total stream num[%u], required hccl "
+                       "follow stream num[%u], available stream num[%u]",
+                       graph_node->GetGraphId(), required_stream_num, static_cast<uint32_t>(hccl_follow_stream_num),
+                       available_stream_num);
   GELOGE(FAILED,
          "Graph id[%u] check and release stream failed, required total stream num[%u], required hccl follow stream "
          "num[%u], available stream num[%u]",
@@ -911,9 +915,9 @@ Status ModelExecutor::GetEventNum(const GeRootModelPtr &ge_root_model, uint32_t 
 
   uint32_t hccl_group_ordered_event_num = 0U;
   GE_ASSERT_SUCCESS(ModelUtils::CalculateHcclGroupOrderedEventNum(ge_model, hccl_group_ordered_event_num),
-    "Calculate hccl group ordered event num failed");
-  GELOGI("Model event num[%u] aicpu blocking event num[%u], hccl group ordered event num[%u].",
-    event_num, aicpu_blocking_event_num, hccl_group_ordered_event_num);
+                    "Calculate hccl group ordered event num failed");
+  GELOGI("Model event num[%u] aicpu blocking event num[%u], hccl group ordered event num[%u].", event_num,
+         aicpu_blocking_event_num, hccl_group_ordered_event_num);
   event_num = event_num + aicpu_blocking_event_num + hccl_group_ordered_event_num;
   return SUCCESS;
 }
@@ -962,10 +966,9 @@ Status ModelExecutor::CheckAndReleaseEvent(const GeRootModelPtr &ge_root_model, 
   }
 
   GE_CHK_ACL_RET(aclrtResetDevice(static_cast<int32_t>(GetContext().DeviceId())));
-  REPORT_INNER_ERR_MSG(
-      "E19999",
-      "Graph id[%u] check and release event failed, required event nums[%u], available event nums[%u]",
-      graph_node->GetGraphId(), required_event_num, available_event_num);
+  REPORT_INNER_ERR_MSG("E19999",
+                       "Graph id[%u] check and release event failed, required event nums[%u], available event nums[%u]",
+                       graph_node->GetGraphId(), required_event_num, available_event_num);
   GELOGE(FAILED, "Graph id[%u] check and release event failed, required event nums[%u], available event nums[%u]",
          graph_node->GetGraphId(), required_event_num, available_event_num);
 
@@ -988,4 +991,4 @@ Status ModelExecutor::PaRemapped(const GraphNodePtr &graph_node, const uint64_t 
   return ModelManager::GetInstance().PaRemapped(model_id, va, new_pa, len, cross_ranges);
 }
 
-} // namespace ge
+}  // namespace ge

@@ -130,19 +130,19 @@ Field explanations:
     - `%ret/ret_#cnt`: Each output of a multi-output node uses the unified ret naming `ret, ret_1, ret_2, ...`.
     - `[#users=<consumer_count>]`: Number of consumers for this output.
     - `get_element[node=%<node_instance_name>](<output_index>)`: Uses `get_element` to represent "extract the `<output_index>`-th output from a multi-output node".
-- **Graph output**: `return (<output_list>)`  
+- **Graph output**: `return (<output_list>)`
   Represents graph output, corresponding to `NetOutput` node inputs.
     - **Single output**: `return (%<output_instance>)`.
     - **Multiple outputs**: `return (output_0=%<output_instance0>, output_1=%<output_instance1>, ...)`. Outputs use `output_#cnt` numbering format (`output_0, output_1, ...`).
-- **Subgraph representation**:  
+- **Subgraph representation**:
   Nodes containing subgraphs are represented according to the following rules:
     - **Subgraph declaration**: Declared in parent node's `attrs`: `attrs = {<subgraph_attribute_name>: %<subgraph_instance_name>, ... }`; when subgraph attribute name parsing fails, it falls back to `_graph_N` sequence.
-    - **Input correspondence**: Parent node input `input_#cnt` (or `args_#cnt`) corresponds to the `Data` node with `index` attribute value of `cnt` in the subgraph.  
+    - **Input correspondence**: Parent node input `input_#cnt` (or `args_#cnt`) corresponds to the `Data` node with `index` attribute value of `cnt` in the subgraph.
       For example: Parent node's `input_0` → Subgraph's `Data(attrs = {index: 0})`.
     - **Output correspondence**:
       - **Single output**: Subgraph return value directly serves as parent node output.
       - **Multiple outputs**: Subgraph output `output_#cnt` corresponds to parent node's `cnt`-th output. Parent node extracts corresponding output via `get_element[node=%<parent_node>](cnt)`.
-    - **Subgraph display position**:  
+    - **Subgraph display position**:
       Subgraph content is displayed separately after the main parent graph output ends; each subgraph starts with `graph("<subgraph_instance_name>"):`.
 
 ---

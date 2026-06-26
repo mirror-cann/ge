@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,17 +24,16 @@
 #include "register/graph_optimizer/graph_fusion/graph_fusion_pass_base.h"
 
 namespace fe {
-const std::map<OpImplType, domi::ImplyType> IMPL_TYPE_MAP{
-    {EN_IMPL_CUSTOM_TIK, domi::ImplyType::BUILDIN},
-    {EN_IMPL_CUSTOM_TBE, domi::ImplyType::TVM},
-    {EN_IMPL_HW_TIK, domi::ImplyType::BUILDIN},
-    {EN_IMPL_HW_TBE, domi::ImplyType::TVM},
-    {EN_IMPL_RL, domi::ImplyType::BUILDIN},
-    {EN_IMPL_PLUGIN_TBE, domi::ImplyType::TVM},
-    {EN_IMPL_VECTOR_CORE_HW_TBE, domi::ImplyType::TVM},
-    {EN_IMPL_VECTOR_CORE_CUSTOM_TBE, domi::ImplyType::TVM},
-    {EN_IMPL_NON_PERSISTENT_CUSTOM_TBE, domi::ImplyType::TVM},
-    {EN_IMPL_HW_DSA, domi::ImplyType::BUILDIN}};
+const std::map<OpImplType, domi::ImplyType> IMPL_TYPE_MAP{{EN_IMPL_CUSTOM_TIK, domi::ImplyType::BUILDIN},
+                                                          {EN_IMPL_CUSTOM_TBE, domi::ImplyType::TVM},
+                                                          {EN_IMPL_HW_TIK, domi::ImplyType::BUILDIN},
+                                                          {EN_IMPL_HW_TBE, domi::ImplyType::TVM},
+                                                          {EN_IMPL_RL, domi::ImplyType::BUILDIN},
+                                                          {EN_IMPL_PLUGIN_TBE, domi::ImplyType::TVM},
+                                                          {EN_IMPL_VECTOR_CORE_HW_TBE, domi::ImplyType::TVM},
+                                                          {EN_IMPL_VECTOR_CORE_CUSTOM_TBE, domi::ImplyType::TVM},
+                                                          {EN_IMPL_NON_PERSISTENT_CUSTOM_TBE, domi::ImplyType::TVM},
+                                                          {EN_IMPL_HW_DSA, domi::ImplyType::BUILDIN}};
 
 const std::map<domi::ImplyType, std::string> GE_IMPL_TYPE_STRING_MAP{
     {domi::ImplyType::BUILDIN, "BUILTIN"}, {domi::ImplyType::TVM, "TVM"},         {domi::ImplyType::CUSTOM, "CUSTOM"},
@@ -81,7 +80,7 @@ const int32_t HIGH_GAP = 10;
 const int32_t LOW_GAP_AMPLIFIED = 0;
 const int32_t CROSS_GAP_AMPLIFIED = 100;
 const int32_t HIGH_GAP_AMPLIFIED = 1000000;
-const std::map<ge::DataType, int32_t> DATATYPE_PRIORITY_MAP_AMPLIFIED {
+const std::map<ge::DataType, int32_t> DATATYPE_PRIORITY_MAP_AMPLIFIED{
     {ge::DT_FLOAT, 100000}, {ge::DT_BF16, 200000}, {ge::DT_FLOAT16, 200001}};
 
 enum class ForbiddenDtype { FORBIDDEN_NONE = 0, FORBIDDEN_BF16, FORBIDDEN_FP16, FORBIDDEN_DOUBLE };
@@ -158,7 +157,6 @@ const std::map<OpNotSupportedReasonID, std::string> ID_REASON_MAP{
      "This op which is dynamic shape is not configured to support dynamic shape in op store."},
     {OpNotSupportedReasonID::EN_NOT_SUPPORT_CUSTOM_DTYPE,
      "The custom dtypes for this op is not supported by op store."}};
-
 
 const std::string STR_SOC_VERSION = "soc_version";
 const std::string STR_NAME = "name";
@@ -372,16 +370,9 @@ constexpr char const *kFullyConnectionCompress = "FullyConnectionCompress";
 constexpr char const *kMatMulV2Compress = "MatMulV2Compress";
 constexpr char const *kConv2DTransposeDCompress = "Conv2DTransposeDCompress";
 constexpr char const *kBatchMatMulCompress = "BatchMatMulCompress";
-const unordered_set<std::string> kConvCompressOpList = {
-    kConv2DCompress, kConv2DTransposeDCompress
-};
-const unordered_set<std::string> kCubeCompressOpList = {
-    kConv2DCompress,
-    kFullyConnectionCompress,
-    kMatMulV2Compress,
-    kConv2DTransposeDCompress,
-    kBatchMatMulCompress
-};
+const unordered_set<std::string> kConvCompressOpList = {kConv2DCompress, kConv2DTransposeDCompress};
+const unordered_set<std::string> kCubeCompressOpList = {kConv2DCompress, kFullyConnectionCompress, kMatMulV2Compress,
+                                                        kConv2DTransposeDCompress, kBatchMatMulCompress};
 const std::string COMPRESSOP = "Compress";
 const std::string COMPRESSFCOP = "CompressFcOp";
 const std::string SWAPCO = "SwapCo";
@@ -410,22 +401,18 @@ constexpr char const *kIntrinsicND2NZ = "Intrinsic_data_move_out2l1_nd2nz";
 constexpr uint32_t kTransposeInputPerm = 1U;
 constexpr size_t kTransposeOutputSize = 1;
 
-const std::set<WeightCompressType> kWeightCompressTypes = {
-        WeightCompressType::LOW_SPARSE_COMPRESS,
-        WeightCompressType::HIGH_SPARSE_COMPRESS
-};
+const std::set<WeightCompressType> kWeightCompressTypes = {WeightCompressType::LOW_SPARSE_COMPRESS,
+                                                           WeightCompressType::HIGH_SPARSE_COMPRESS};
 
-const std::unordered_set<std::string> PLACE_OR_END_SET({
-    OP_TYPE_PLACE_HOLDER, OP_TYPE_END, DATA, REFDATA,
-    CONSTANT, CONSTANTOP, VARIABLE
-});
+const std::unordered_set<std::string> PLACE_OR_END_SET({OP_TYPE_PLACE_HOLDER, OP_TYPE_END, DATA, REFDATA, CONSTANT,
+                                                        CONSTANTOP, VARIABLE});
 
 const std::map<OpImplType, std::string> IMPL_TYPE_STRING_MAP{
-        {EN_IMPL_CUSTOM_TBE, "tbe-custom"},
-        {EN_IMPL_HW_TBE, "tbe-builtin"},
-        {EN_IMPL_VECTOR_CORE_HW_TBE, "tbe-builtin-vector-core"},
-        {EN_IMPL_VECTOR_CORE_CUSTOM_TBE, "tbe-custom-vector-core"},
-        {EN_IMPL_NON_PERSISTENT_CUSTOM_TBE, "tbe-custom-non-persistent"},
+    {EN_IMPL_CUSTOM_TBE, "tbe-custom"},
+    {EN_IMPL_HW_TBE, "tbe-builtin"},
+    {EN_IMPL_VECTOR_CORE_HW_TBE, "tbe-builtin-vector-core"},
+    {EN_IMPL_VECTOR_CORE_CUSTOM_TBE, "tbe-custom-vector-core"},
+    {EN_IMPL_NON_PERSISTENT_CUSTOM_TBE, "tbe-custom-non-persistent"},
 };
 
 // the origin fromat
@@ -440,62 +427,43 @@ const std::unordered_set<std::string> KFeFormatModeFilterOp = {"MatMul", "MatMul
 const std::vector<ge::Format> FE_GROUP_RELA_FORMAT_VECTOR = {ge::FORMAT_FRACTAL_Z, ge::FORMAT_FRACTAL_Z_3D};
 
 const std::unordered_set<int> BUILT_IN_IMPLY_TYPE{
-    EN_IMPL_HW_CONSTANT_CCE, EN_IMPL_HW_GENERAL_CCE, EN_IMPL_HW_TIK, EN_IMPL_HW_TBE,
-    EN_IMPL_RL, EN_IMPL_PLUGIN_TBE, EN_IMPL_VECTOR_CORE_HW_TBE};
+    EN_IMPL_HW_CONSTANT_CCE, EN_IMPL_HW_GENERAL_CCE,    EN_IMPL_HW_TIK, EN_IMPL_HW_TBE, EN_IMPL_RL,
+    EN_IMPL_PLUGIN_TBE,      EN_IMPL_VECTOR_CORE_HW_TBE};
 
 const std::unordered_set<std::string> kGeDeleteOpType = {
-        "Expanddims",
-        "Reshape",
-        "ReFormat",
-        "Squeeze",
-        "Unsqueeze",
-        "SqueezeV2",
-        "UnsqueezeV2",
-        "SqueezeV3",
-        "UnsqueezeV3",
-        "Size",
-        "Shape",
-        "ShapeN",
-        "Rank"
-};
+    "Expanddims", "Reshape",     "ReFormat", "Squeeze", "Unsqueeze", "SqueezeV2", "UnsqueezeV2",
+    "SqueezeV3",  "UnsqueezeV3", "Size",     "Shape",   "ShapeN",    "Rank"};
 
-const std::unordered_set<std::string> kConstFoldingOpType = {
-        "GroupPadding",
-        "ConvBnFilterHost",
-        "ConvScaleFilterHost",
-        "Concatv2HostCpuOp",
-        "RequantHostCpuOp",
-        "QuantWeightRollBack",
-        "GatherV2",
-        "GatherV2D",
-        "SwapCo",
-        "ReverseV2D",
-        "ConcatV2",
-        "TransData",
-        "Cast",
-        "Reshape",
-        "TransposeD",
-        "ReFormat",
-        "SqueezeV2",
-        "UnsqueezeV2",
-        "Maximum",
-        "Add",
-        "Mul",
-        "Sub",
-        "AscendWeightQuant"
-};
+const std::unordered_set<std::string> kConstFoldingOpType = {"GroupPadding",
+                                                             "ConvBnFilterHost",
+                                                             "ConvScaleFilterHost",
+                                                             "Concatv2HostCpuOp",
+                                                             "RequantHostCpuOp",
+                                                             "QuantWeightRollBack",
+                                                             "GatherV2",
+                                                             "GatherV2D",
+                                                             "SwapCo",
+                                                             "ReverseV2D",
+                                                             "ConcatV2",
+                                                             "TransData",
+                                                             "Cast",
+                                                             "Reshape",
+                                                             "TransposeD",
+                                                             "ReFormat",
+                                                             "SqueezeV2",
+                                                             "UnsqueezeV2",
+                                                             "Maximum",
+                                                             "Add",
+                                                             "Mul",
+                                                             "Sub",
+                                                             "AscendWeightQuant"};
 
 const std::unordered_set<std::string> kDSAStatelessOps = {"DSAStatelessRandomTruncatedNormal",
-                                                          "DSAStatelessRandomNormal",
-                                                          "DSAStatelessGenBitMask",
+                                                          "DSAStatelessRandomNormal", "DSAStatelessGenBitMask",
                                                           "DSAStatelessRandomUniform"};
 
-const std::unordered_set<std::string> kConcatCOptimizeOpType = {
-        "Conv2D",
-        "FixPipe",
-        "Conv2DTranspose",
-        "Conv2DTransposeD"
-};
+const std::unordered_set<std::string> kConcatCOptimizeOpType = {"Conv2D", "FixPipe", "Conv2DTranspose",
+                                                                "Conv2DTransposeD"};
 
 enum class LxFusionOptimizeResult {
   NO_FUSION_STRATEGY,
@@ -520,7 +488,7 @@ struct CompileResultInfo {
   ge::OpKernelBinPtr bin_ptr;
   CompileResultInfo() : json_file_path(), bin_file_path(), json_ptr(nullptr), bin_ptr(nullptr) {}
   CompileResultInfo(const std::string &new_json_file_path)
-    : json_file_path(new_json_file_path), bin_file_path(), json_ptr(nullptr), bin_ptr(nullptr) {}
+      : json_file_path(new_json_file_path), bin_file_path(), json_ptr(nullptr), bin_ptr(nullptr) {}
 };
 
 struct ShapeAndFormatInfo {
@@ -532,21 +500,33 @@ struct ShapeAndFormatInfo {
   int64_t group_count;
   CalcShapeExtraAttr extra_attr;
   ShapeAndFormatInfo(ge::GeShape old_shape_param, ge::GeShape &new_shape_param, ge::Format old_format_param,
-                     ge::Format new_format_param, ge::DataType current_data_type_param) :
-          old_shape(old_shape_param), new_shape(new_shape_param), old_format(old_format_param),
-          new_format(new_format_param), current_data_type(current_data_type_param), group_count(GROUPS_DEFAULT_VALUE),
-          extra_attr({1, 1, -1}) {}
+                     ge::Format new_format_param, ge::DataType current_data_type_param)
+      : old_shape(old_shape_param),
+        new_shape(new_shape_param),
+        old_format(old_format_param),
+        new_format(new_format_param),
+        current_data_type(current_data_type_param),
+        group_count(GROUPS_DEFAULT_VALUE),
+        extra_attr({1, 1, -1}) {}
   ShapeAndFormatInfo(ge::GeShape old_shape_param, ge::GeShape &new_shape_param, ge::Format old_format_param,
-                     ge::Format new_format_param, ge::DataType current_data_type_param, int64_t group_count_param) :
-          old_shape(old_shape_param), new_shape(new_shape_param), old_format(old_format_param),
-          new_format(new_format_param), current_data_type(current_data_type_param), group_count(group_count_param),
-          extra_attr({1, 1, -1}) {}
+                     ge::Format new_format_param, ge::DataType current_data_type_param, int64_t group_count_param)
+      : old_shape(old_shape_param),
+        new_shape(new_shape_param),
+        old_format(old_format_param),
+        new_format(new_format_param),
+        current_data_type(current_data_type_param),
+        group_count(group_count_param),
+        extra_attr({1, 1, -1}) {}
   ShapeAndFormatInfo(ge::GeShape old_shape_param, ge::GeShape &new_shape_param, ge::Format old_format_param,
                      ge::Format new_format_param, ge::DataType current_data_type_param, int64_t group_count_param,
-                     CalcShapeExtraAttr extra_attr_param) :
-          old_shape(old_shape_param), new_shape(new_shape_param), old_format(old_format_param),
-          new_format(new_format_param), current_data_type(current_data_type_param), group_count(group_count_param),
-          extra_attr(extra_attr_param) {}
+                     CalcShapeExtraAttr extra_attr_param)
+      : old_shape(old_shape_param),
+        new_shape(new_shape_param),
+        old_format(old_format_param),
+        new_format(new_format_param),
+        current_data_type(current_data_type_param),
+        group_count(group_count_param),
+        extra_attr(extra_attr_param) {}
 };
 
 using ShapeAndFormat = struct ShapeAndFormatInfo;

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,20 +30,20 @@ namespace fe {
 namespace {
 const std::string DATA = "Data";
 const std::map<ge::Format, std::map<std::string, int32_t>> AXIS_INDEX_OF_FORMAT = {
-        {ge::FORMAT_NCHW, {{"N", NCHW_DIM_N}, {"C", NCHW_DIM_C}, {"H", NCHW_DIM_H}, {"W", NCHW_DIM_W}}},
-        {ge::FORMAT_HWCN, {{"N", HWCN_DIM_N}, {"C", HWCN_DIM_C}, {"H", HWCN_DIM_H}, {"W", HWCN_DIM_W}}},
-        {ge::FORMAT_NHWC, {{"N", NHWC_DIM_N}, {"C", NHWC_DIM_C}, {"H", NHWC_DIM_H}, {"W", NHWC_DIM_W}}},
-        {ge::FORMAT_CHWN, {{"N", CHWN_DIM_N}, {"C", CHWN_DIM_C}, {"H", CHWN_DIM_H}, {"W", CHWN_DIM_W}}},
-        {ge::FORMAT_NDHWC, {{"N", NDHWC_DIM_N}, {"C", NDHWC_DIM_C}, {"H", NDHWC_DIM_H}, {"W", NDHWC_DIM_W},
-                                  {"D", NDHWC_DIM_D}}},
-        {ge::FORMAT_NCDHW, {{"N", NCDHW_DIM_N}, {"C", NCDHW_DIM_C}, {"H", NCDHW_DIM_H}, {"W", NCDHW_DIM_W},
-                                  {"D", NCDHW_DIM_D}}},
-        {ge::FORMAT_DHWCN, {{"N", DHWCN_DIM_N}, {"C", DHWCN_DIM_C}, {"H", DHWCN_DIM_H}, {"W", DHWCN_DIM_W},
-                                  {"D", DHWCN_DIM_D}}},
-        {ge::FORMAT_DHWNC, {{"N", DHWNC_DIM_N}, {"C", DHWNC_DIM_C}, {"H", DHWNC_DIM_H}, {"W", DHWNC_DIM_W},
-                                  {"D", DHWNC_DIM_D}}}};
+    {ge::FORMAT_NCHW, {{"N", NCHW_DIM_N}, {"C", NCHW_DIM_C}, {"H", NCHW_DIM_H}, {"W", NCHW_DIM_W}}},
+    {ge::FORMAT_HWCN, {{"N", HWCN_DIM_N}, {"C", HWCN_DIM_C}, {"H", HWCN_DIM_H}, {"W", HWCN_DIM_W}}},
+    {ge::FORMAT_NHWC, {{"N", NHWC_DIM_N}, {"C", NHWC_DIM_C}, {"H", NHWC_DIM_H}, {"W", NHWC_DIM_W}}},
+    {ge::FORMAT_CHWN, {{"N", CHWN_DIM_N}, {"C", CHWN_DIM_C}, {"H", CHWN_DIM_H}, {"W", CHWN_DIM_W}}},
+    {ge::FORMAT_NDHWC,
+     {{"N", NDHWC_DIM_N}, {"C", NDHWC_DIM_C}, {"H", NDHWC_DIM_H}, {"W", NDHWC_DIM_W}, {"D", NDHWC_DIM_D}}},
+    {ge::FORMAT_NCDHW,
+     {{"N", NCDHW_DIM_N}, {"C", NCDHW_DIM_C}, {"H", NCDHW_DIM_H}, {"W", NCDHW_DIM_W}, {"D", NCDHW_DIM_D}}},
+    {ge::FORMAT_DHWCN,
+     {{"N", DHWCN_DIM_N}, {"C", DHWCN_DIM_C}, {"H", DHWCN_DIM_H}, {"W", DHWCN_DIM_W}, {"D", DHWCN_DIM_D}}},
+    {ge::FORMAT_DHWNC,
+     {{"N", DHWNC_DIM_N}, {"C", DHWNC_DIM_C}, {"H", DHWNC_DIM_H}, {"W", DHWNC_DIM_W}, {"D", DHWNC_DIM_D}}}};
 
-}
+}  // namespace
 std::string GetRealPath(const std::string &path) {
   if (path.empty()) {
     FE_LOGI("path string is nullptr.");
@@ -61,7 +61,7 @@ std::string GetRealPath(const std::string &path) {
   std::string res;
 
   // path not exists or not allowed to read return nullptr
-  // path exists and readable, return the resoved path
+  // path exists and readable, return the resolved path
   if (realpath(path.c_str(), resoved_path) != nullptr) {
     res = resoved_path;
   } else {
@@ -89,7 +89,7 @@ std::string RemoveCharacters(const std::string &param_key) {
 }
 
 Status String2DataType(const std::string &dtype_str, ge::DataType &dtype) {
-  string fe_dtype_str = const_cast<string&>(dtype_str);
+  string fe_dtype_str = const_cast<string &>(dtype_str);
   if (fe_dtype_str == "float32") {
     dtype = ge::DT_FLOAT;
   } else {
@@ -113,7 +113,7 @@ Status String2Bool(const std::string &bool_str, bool &bool_res) {
   return fe::SUCCESS;
 }
 
-std::string GetStrByFormatVec(const std::vector<ge::Format>& format_vec) {
+std::string GetStrByFormatVec(const std::vector<ge::Format> &format_vec) {
   string result;
   size_t size = format_vec.size();
   for (size_t i = 0; i < size; ++i) {
@@ -126,7 +126,7 @@ std::string GetStrByFormatVec(const std::vector<ge::Format>& format_vec) {
   return result;
 }
 
-std::string GetStrBySubFormatVec(const std::vector<uint32_t>& sub_format_vec) {
+std::string GetStrBySubFormatVec(const std::vector<uint32_t> &sub_format_vec) {
   string result;
   size_t size = sub_format_vec.size();
   for (size_t i = 0; i < size; ++i) {
@@ -138,7 +138,7 @@ std::string GetStrBySubFormatVec(const std::vector<uint32_t>& sub_format_vec) {
   return result;
 }
 
-std::string GetStrByDataTypeVec(const std::vector<ge::DataType>& data_type_vec) {
+std::string GetStrByDataTypeVec(const std::vector<ge::DataType> &data_type_vec) {
   std::string result;
   size_t size = data_type_vec.size();
   for (size_t i = 0; i < size; ++i) {
@@ -186,18 +186,18 @@ std::string GetBufferOptimizeString(const BufferOptimize &buffer_optimize) {
 }
 
 bool IsMemoryEmpty(const ge::GeTensorDesc &tensor_desc) {
-    auto memory_size_calc_type = static_cast<int64_t>(ge::MemorySizeCalcType::NORMAL);
-    (void)ge::AttrUtils::GetInt(tensor_desc, ge::ATTR_NAME_MEMORY_SIZE_CALC_TYPE, memory_size_calc_type);
-    return memory_size_calc_type == static_cast<int64_t>(ge::MemorySizeCalcType::ALWAYS_EMPTY);
+  auto memory_size_calc_type = static_cast<int64_t>(ge::MemorySizeCalcType::NORMAL);
+  (void)ge::AttrUtils::GetInt(tensor_desc, ge::ATTR_NAME_MEMORY_SIZE_CALC_TYPE, memory_size_calc_type);
+  return memory_size_calc_type == static_cast<int64_t>(ge::MemorySizeCalcType::ALWAYS_EMPTY);
 }
 
 bool HasNullableOutput(const ge::GeTensorDesc &tensor_desc) {
- 	bool is_null_output = false;
- 	bool has_null_output_attr = ge::AttrUtils::GetBool(tensor_desc, ATTR_NAME_IS_NULL_OUTPUT, is_null_output);
- 	if (!has_null_output_attr) {
- 	  return false;
- 	}
- 	return is_null_output;
+  bool is_null_output = false;
+  bool has_null_output_attr = ge::AttrUtils::GetBool(tensor_desc, ATTR_NAME_IS_NULL_OUTPUT, is_null_output);
+  if (!has_null_output_attr) {
+    return false;
+  }
+  return is_null_output;
 }
 
 bool IsSubGraphData(const ge::OpDescPtr &op_desc_ptr) {
@@ -225,7 +225,7 @@ bool CheckFallbackAclnn(const ge::OpDescPtr &op_desc_ptr) {
   return fallback_aclnn_flag;
 }
 
-int32_t GetAxisIndexByFormat(const ge::Format& format, const string& axis) {
+int32_t GetAxisIndexByFormat(const ge::Format &format, const string &axis) {
   auto iter = AXIS_INDEX_OF_FORMAT.find(format);
   if (iter != AXIS_INDEX_OF_FORMAT.end()) {
     auto iter2 = iter->second.find(axis);

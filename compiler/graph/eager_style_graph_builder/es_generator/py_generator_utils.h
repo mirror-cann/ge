@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -215,7 +215,7 @@ class InputHandler {
       }
     }
     if (IsOpInputsAllOptional(input_infos)) {
-      ss << ", "<< PyGenConstants::kOwnerBuilder;
+      ss << ", " << PyGenConstants::kOwnerBuilder;
     }
     ss << ")" << std::endl;
   }
@@ -488,20 +488,20 @@ class StringConverter {
       return ConvertCppListToPython(default_val);
     } else if (av_type == "VT_LIST_BOOL") {
       return ConvertCppBoolListToPython(default_val);
-    } else if (av_type == "VT_LIST_LIST_INT"){
+    } else if (av_type == "VT_LIST_LIST_INT") {
       return ConvertCppListListIntToPython(default_val);
-    } else if (av_type == "VT_LIST_DATA_TYPE"){
+    } else if (av_type == "VT_LIST_DATA_TYPE") {
       return ConvertCppListDataTypeToPython(default_val);
-    } else if (av_type == "VT_LIST_STRING"){
+    } else if (av_type == "VT_LIST_STRING") {
       return ConvertCppListStringToPython(default_val);
-    } else if (av_type == "VT_TENSOR"){
+    } else if (av_type == "VT_TENSOR") {
       return ConvertCppTensorToPython();
     }
     return default_val;
   }
 
  private:
-   static std::string ConvertCppTensorToPython() {
+  static std::string ConvertCppTensorToPython() {
     return "Tensor()";
   }
 
@@ -510,16 +510,16 @@ class StringConverter {
       return PyGenConstants::kEmptyList;
     }
     if (default_val.front() == '{' && default_val.back() == '}') {
-        std::string content = default_val.substr(1U, default_val.length() - 2U);
-        ReplaceString(content, PyGenConstants::kLeftCurlyBracket, PyGenConstants::kLeftBracket);
-        ReplaceString(content, PyGenConstants::kRightCurlyBracket, PyGenConstants::kRightBracket);
-        return "[" + content + "]";
+      std::string content = default_val.substr(1U, default_val.length() - 2U);
+      ReplaceString(content, PyGenConstants::kLeftCurlyBracket, PyGenConstants::kLeftBracket);
+      ReplaceString(content, PyGenConstants::kRightCurlyBracket, PyGenConstants::kRightBracket);
+      return "[" + content + "]";
     }
     return default_val;
   }
 
   static std::string ConvertCppListDataTypeToPython(const std::string &default_val) {
-        if (default_val.empty() || default_val == "{}") {
+    if (default_val.empty() || default_val == "{}") {
       return PyGenConstants::kEmptyList;
     }
     if (default_val.front() == '{' && default_val.back() == '}') {
@@ -529,7 +529,7 @@ class StringConverter {
     }
     return default_val;
   }
-  
+
   static std::string ConvertCppListStringToPython(const std::string &default_val) {
     if (default_val.empty() || default_val == "{}") {
       return PyGenConstants::kEmptyList;
@@ -600,7 +600,7 @@ class StringConverter {
     return result;
   }
 
-  static void ReplaceString(std::string& str, const char *from, const char *to) {
+  static void ReplaceString(std::string &str, const char *from, const char *to) {
     // 避免空指针或空字符串
     if (from == nullptr || *from == '\0') {
       return;
@@ -610,8 +610,8 @@ class StringConverter {
 
     size_t pos = 0;
     while ((pos = str.find(from_str, pos)) != std::string::npos) {
-        str.replace(pos, from_str.length(), to_str);
-        pos += to_str.length(); // 跳过刚替换的部分，避免死循环
+      str.replace(pos, from_str.length(), to_str);
+      pos += to_str.length();  // 跳过刚替换的部分，避免死循环
     }
   }
 };

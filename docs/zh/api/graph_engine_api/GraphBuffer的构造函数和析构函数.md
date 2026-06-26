@@ -46,4 +46,3 @@ GraphBuffer &operator=(const GraphBuffer &) = delete
 ## 约束说明<a name="section5879623174510"></a>
 
 无
-

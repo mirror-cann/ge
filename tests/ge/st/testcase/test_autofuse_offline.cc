@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -78,24 +78,24 @@ static GeRootModelPtr ConstructGeRootModel(bool is_dynamic_shape = true,
   }
   return ge_root_model;
 }
-#endif 
+#endif
 std::string GetAutofuseSoPath() {
   std::string cmake_binary_path = CMAKE_BINARY_DIR;
   return cmake_binary_path + "/tests/depends/op_stub/libautofuse_stub.so";
 }
 
 ge::ComputeGraphPtr BuildAutofuseGraph() {
-    auto graph = gert::ShareGraph::AutoFuseNodeGraph();
-    (void)ge::AttrUtils::SetInt(graph, "_all_symbol_num", 8);
-    auto fused_graph_node = graph->FindNode("fused_graph");
-    auto fused_graph_node1 = graph->FindNode("fused_graph1");
+  auto graph = gert::ShareGraph::AutoFuseNodeGraph();
+  (void)ge::AttrUtils::SetInt(graph, "_all_symbol_num", 8);
+  auto fused_graph_node = graph->FindNode("fused_graph");
+  auto fused_graph_node1 = graph->FindNode("fused_graph1");
 
-    auto autofuse_stub_so = GetAutofuseSoPath();
-    std::cout << "bin path: " << autofuse_stub_so << std::endl;
-    (void)ge::AttrUtils::SetStr(fused_graph_node->GetOpDesc(), "bin_file_path", autofuse_stub_so);
-    (void)ge::AttrUtils::SetStr(fused_graph_node1->GetOpDesc(), "bin_file_path", autofuse_stub_so);
+  auto autofuse_stub_so = GetAutofuseSoPath();
+  std::cout << "bin path: " << autofuse_stub_so << std::endl;
+  (void)ge::AttrUtils::SetStr(fused_graph_node->GetOpDesc(), "bin_file_path", autofuse_stub_so);
+  (void)ge::AttrUtils::SetStr(fused_graph_node1->GetOpDesc(), "bin_file_path", autofuse_stub_so);
 
-    return graph;
+  return graph;
 }
 
 bool BuildSoBinsPayloadForAutofuseSt(std::vector<uint8_t> &payload) {
@@ -107,8 +107,8 @@ bool BuildSoBinsPayloadForAutofuseSt(std::vector<uint8_t> &payload) {
   so_data_buf[1] = static_cast<char_t>(0x22);
   so_data_buf[2] = static_cast<char_t>(0x33);
 
-  const auto so_bin = std::make_shared<OpSoBin>("libautofuse_stub.so", "vendor_ut", std::move(so_data_buf), 3U,
-                                                 SoBinType::kAutofuse);
+  const auto so_bin =
+      std::make_shared<OpSoBin>("libautofuse_stub.so", "vendor_ut", std::move(so_data_buf), 3U, SoBinType::kAutofuse);
   if (so_bin == nullptr) {
     return false;
   }
@@ -227,4 +227,4 @@ TEST_F(AutofuseOfflineSt, CheckSaveAutofuseSo) {
 //   EXPECT_EQ(res[SoBinType::kOpMasterDevice], 1U);
 //   system(("rm -rf " + opp_path).c_str());
 // }
-}
+}  // namespace ge

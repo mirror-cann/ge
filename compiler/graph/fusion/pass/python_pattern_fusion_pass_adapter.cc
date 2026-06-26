@@ -24,8 +24,8 @@ std::unique_ptr<PatternMatcherConfig> BuildDefaultPatternMatcherConfig() {
   return PatternMatcherConfigBuilder().Build();
 }
 
-std::pair<std::unique_ptr<PythonPassHolder>, std::unique_ptr<PatternMatcherConfig>>
-PreparePythonPatternPassAdapterInit(const PythonPassDescriptor &pass_desc) {
+std::pair<std::unique_ptr<PythonPassHolder>, std::unique_ptr<PatternMatcherConfig>> PreparePythonPatternPassAdapterInit(
+    const PythonPassDescriptor &pass_desc) {
   std::unique_ptr<PatternMatcherConfig> match_config;
   auto holder = ComGraphMakeUnique<PythonPassHolder>(pass_desc);
   if ((holder == nullptr) || (!holder->IsValid())) {
@@ -76,8 +76,7 @@ std::vector<PatternUniqPtr> PythonPatternFusionPassAdapter::Patterns() {
     return {};
   }
   GELOGI("PythonPatternFusionPassAdapter::Patterns end for pass[%s], pattern_count[%zu].",
-         holder_->GetPassDescriptor().pass_name.c_str(),
-         patterns.size());
+         holder_->GetPassDescriptor().pass_name.c_str(), patterns.size());
   return patterns;
 }
 
@@ -90,8 +89,7 @@ bool PythonPatternFusionPassAdapter::MeetRequirements(const std::unique_ptr<Matc
   }
   const bool ret = holder_->GetCallbacks().meet_requirements(holder_->GetHolder(), match_result);
   GELOGI("PythonPatternFusionPassAdapter::MeetRequirements for pass[%s] returned[%d].",
-         holder_->GetPassDescriptor().pass_name.c_str(),
-         ret ? 1 : 0);
+         holder_->GetPassDescriptor().pass_name.c_str(), ret ? 1 : 0);
   return ret;
 }
 
@@ -108,8 +106,7 @@ GraphUniqPtr PythonPatternFusionPassAdapter::Replacement(const std::unique_ptr<M
     return nullptr;
   }
   GELOGI("PythonPatternFusionPassAdapter::Replacement succeeded for pass[%s], graph[%p].",
-         holder_->GetPassDescriptor().pass_name.c_str(),
-         replacement_graph.get());
+         holder_->GetPassDescriptor().pass_name.c_str(), replacement_graph.get());
   return replacement_graph;
 }
 }  // namespace fusion

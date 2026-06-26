@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,9 +23,9 @@ using FormatDtypeQuerierPtr = std::shared_ptr<FormatDtypeQuerier>;
 using OpFormatMatcherPtr = std::shared_ptr<OpFormatMatcher>;
 
 /** @brief This class is created for selecting format in default mode.
-* Default mode is described as:
-* we prior to select the original format for all input and output.
-* @version 1.0 */
+ * Default mode is described as:
+ * we prior to select the original format for all input and output.
+ * @version 1.0 */
 class OpFormatSelectionStrategyDefaultMode {
  public:
   explicit OpFormatSelectionStrategyDefaultMode(FormatDtypeQuerierPtr format_dtype_querier_ptr);
@@ -39,12 +39,12 @@ class OpFormatSelectionStrategyDefaultMode {
    * @param basic_info: Basic information for format selection.
    * @return SUCCESS or FAIL
    */
-  Status Run(FormatDtypeSelectionBasicInfo& basic_info);
+  Status Run(FormatDtypeSelectionBasicInfo &basic_info);
 
  protected:
   // next strategy
   OpFormatMatcherPtr format_matcher_;
   FormatDtypeQuerierPtr format_dtype_querier_ptr_;
 };
-}
+}  // namespace fe
 #endif  // FUSION_ENGINE_OPTIMIZER_GRAPH_OPTIMIZER_OP_JUDGE_FORMAT_AND_DTYPE_STRATEGY_FORMAT_STRATEGY_OP_FORMAT_SELECTION_STRATEGY_DEFAULT_MODE_H_

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -79,8 +79,9 @@ Status CreateNewRequantHostCpuOp(const string &op_type, const ge::NodePtr &dequa
   }
 
   if (ge::GraphUtils::RemoveEdge(dequant_scale_peer_out_anchor, dequant_input_anchor) != ge::GRAPH_SUCCESS) {
-    REPORT_FE_ERROR("[GraphOpt][Quant][CrtNewRqtHsCpuOp] Failed to remove edge between dequant scale %s and its weight.",
-                    dequant_node->GetName().c_str());
+    REPORT_FE_ERROR(
+        "[GraphOpt][Quant][CrtNewRqtHsCpuOp] Failed to remove edge between dequant scale %s and its weight.",
+        dequant_node->GetName().c_str());
     return FAILED;
   }
 
@@ -94,8 +95,7 @@ Status CreateNewRequantHostCpuOp(const string &op_type, const ge::NodePtr &dequa
   // aipp + quant + conv2d: new modify deq_scale as q_scale
   float new_scale = scale_quant;
   float scale_rate = 0;
-  if (ge::AttrUtils::GetFloat(dequant_node->GetOpDesc(), kQuantScaleRate, scale_rate) &&
-      !FloatEqual(scale_rate, 0)) {
+  if (ge::AttrUtils::GetFloat(dequant_node->GetOpDesc(), kQuantScaleRate, scale_rate) && !FloatEqual(scale_rate, 0)) {
     new_scale = new_scale / scale_rate;
     FE_LOGD("Change dequant scale from:%f to %f.", scale_quant, new_scale);
   }
@@ -274,7 +274,7 @@ Status DealRelu(ge::ComputeGraph &graph, vector<ge::NodePtr> &relu_nodes, const 
 }
 void AippGetInt64Value(ge::NamedAttrs &aipp_attr, const std::string &key, int64_t &value) {
   if (aipp_attr.GetItem(key).GetValue<int64_t>(value) != SUCCESS) {
-     FE_LOGW("Aipp attr does not have the key: %s.", key.c_str());
+    FE_LOGW("Aipp attr does not have the key: %s.", key.c_str());
   }
   return;
 }

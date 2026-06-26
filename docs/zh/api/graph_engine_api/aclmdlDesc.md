@@ -1,58 +1,57 @@
 # aclmdlDesc<a name="ZH-CN_TOPIC_0000001264921542"></a>
 
--   **[aclmdlCreateDesc](aclmdlCreateDesc.md)**  
+-   **[aclmdlCreateDesc](aclmdlCreateDesc.md)**
 
--   **[aclmdlDestroyDesc](aclmdlDestroyDesc.md)**  
+-   **[aclmdlDestroyDesc](aclmdlDestroyDesc.md)**
 
--   **[aclmdlGetDesc](aclmdlGetDesc.md)**  
+-   **[aclmdlGetDesc](aclmdlGetDesc.md)**
 
--   **[aclmdlGetNumInputs](aclmdlGetNumInputs.md)**  
+-   **[aclmdlGetNumInputs](aclmdlGetNumInputs.md)**
 
--   **[aclmdlGetNumOutputs](aclmdlGetNumOutputs.md)**  
+-   **[aclmdlGetNumOutputs](aclmdlGetNumOutputs.md)**
 
--   **[aclmdlGetInputSizeByIndex](aclmdlGetInputSizeByIndex.md)**  
+-   **[aclmdlGetInputSizeByIndex](aclmdlGetInputSizeByIndex.md)**
 
--   **[aclmdlGetOutputSizeByIndex](aclmdlGetOutputSizeByIndex.md)**  
+-   **[aclmdlGetOutputSizeByIndex](aclmdlGetOutputSizeByIndex.md)**
 
--   **[aclmdlGetInputDims](aclmdlGetInputDims.md)**  
+-   **[aclmdlGetInputDims](aclmdlGetInputDims.md)**
 
--   **[aclmdlGetInputDimsV2](aclmdlGetInputDimsV2.md)**  
+-   **[aclmdlGetInputDimsV2](aclmdlGetInputDimsV2.md)**
 
--   **[aclmdlGetOutputDims](aclmdlGetOutputDims.md)**  
+-   **[aclmdlGetOutputDims](aclmdlGetOutputDims.md)**
 
--   **[aclmdlGetInputNameByIndex](aclmdlGetInputNameByIndex.md)**  
+-   **[aclmdlGetInputNameByIndex](aclmdlGetInputNameByIndex.md)**
 
--   **[aclmdlGetOutputNameByIndex](aclmdlGetOutputNameByIndex.md)**  
+-   **[aclmdlGetOutputNameByIndex](aclmdlGetOutputNameByIndex.md)**
 
--   **[aclmdlGetInputFormat](aclmdlGetInputFormat.md)**  
+-   **[aclmdlGetInputFormat](aclmdlGetInputFormat.md)**
 
--   **[aclmdlGetOutputFormat](aclmdlGetOutputFormat.md)**  
+-   **[aclmdlGetOutputFormat](aclmdlGetOutputFormat.md)**
 
--   **[aclmdlGetInputDataType](aclmdlGetInputDataType.md)**  
+-   **[aclmdlGetInputDataType](aclmdlGetInputDataType.md)**
 
--   **[aclmdlGetOutputDataType](aclmdlGetOutputDataType.md)**  
+-   **[aclmdlGetOutputDataType](aclmdlGetOutputDataType.md)**
 
--   **[aclmdlGetInputIndexByName](aclmdlGetInputIndexByName.md)**  
+-   **[aclmdlGetInputIndexByName](aclmdlGetInputIndexByName.md)**
 
--   **[aclmdlGetOutputIndexByName](aclmdlGetOutputIndexByName.md)**  
+-   **[aclmdlGetOutputIndexByName](aclmdlGetOutputIndexByName.md)**
 
--   **[aclmdlGetDynamicBatch](aclmdlGetDynamicBatch.md)**  
+-   **[aclmdlGetDynamicBatch](aclmdlGetDynamicBatch.md)**
 
--   **[aclmdlGetDynamicHW](aclmdlGetDynamicHW.md)**  
+-   **[aclmdlGetDynamicHW](aclmdlGetDynamicHW.md)**
 
--   **[aclmdlGetCurOutputDims](aclmdlGetCurOutputDims.md)**  
+-   **[aclmdlGetCurOutputDims](aclmdlGetCurOutputDims.md)**
 
--   **[aclmdlGetInputDynamicGearCount](aclmdlGetInputDynamicGearCount.md)**  
+-   **[aclmdlGetInputDynamicGearCount](aclmdlGetInputDynamicGearCount.md)**
 
--   **[aclmdlGetInputDynamicDims](aclmdlGetInputDynamicDims.md)**  
+-   **[aclmdlGetInputDynamicDims](aclmdlGetInputDynamicDims.md)**
 
--   **[aclmdlGetTensorRealName](aclmdlGetTensorRealName.md)**  
+-   **[aclmdlGetTensorRealName](aclmdlGetTensorRealName.md)**
 
--   **[aclmdlGetOpAttr](aclmdlGetOpAttr.md)**  
+-   **[aclmdlGetOpAttr](aclmdlGetOpAttr.md)**
 
--   **[aclmdlGetDescFromFile](aclmdlGetDescFromFile.md)**  
+-   **[aclmdlGetDescFromFile](aclmdlGetDescFromFile.md)**
 
--   **[aclmdlGetDescFromMem](aclmdlGetDescFromMem.md)**  
+-   **[aclmdlGetDescFromMem](aclmdlGetDescFromMem.md)**
 
--   **[aclmdlGetInputDimsRange](aclmdlGetInputDimsRange.md)**  
-
+-   **[aclmdlGetInputDimsRange](aclmdlGetInputDimsRange.md)**

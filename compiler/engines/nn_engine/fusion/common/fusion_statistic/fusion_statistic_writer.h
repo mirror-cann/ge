@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -45,13 +45,13 @@ class FusionStatisticWriter {
 
   void SaveFusionInfoToJson(const std::string &session_and_graph_id, json &json_data) const;
 
-  void SaveFusionTimesToJson(const std::map<std::string, FusionInfo> &fusion_info_map,
-                             const string &graph_type, json &json_data) const;
+  void SaveFusionTimesToJson(const std::map<std::string, FusionInfo> &fusion_info_map, const string &graph_type,
+                             json &json_data) const;
 
   std::mutex file_mutex_;
 
   std::string fusion_result_path_ = "";
 };
-}
+}  // namespace fe
 
 #endif  // FUSION_ENGINE_FUSION_COMMON_FUSION_STATISTIC_FUSION_STATISTIC_WRITER_H_

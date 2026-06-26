@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,9 +17,9 @@
 namespace ge {
 namespace {
 constexpr std::array<const char *, static_cast<size_t>(ArgsPlacement::kEnd) + 1U> g_placement_str = {
-    "hbm",  // kArgsPlacementHbm
-    "ts",   // kArgsPlacementTs
-    "sqe",  // kArgsPlacementSqe
+    "hbm",       // kArgsPlacementHbm
+    "ts",        // kArgsPlacementTs
+    "sqe",       // kArgsPlacementSqe
     "host_svm",  // kArgsPlacementHostSvm
     "unknown"};
 }
@@ -40,8 +40,7 @@ Status TaskInfo::SetStream(const uint32_t stream_id, const std::vector<aclrtStre
 void TaskInfo::SetTaskTag(const char_t *const op_name) {
   GE_CHK_RT(rtSetTaskTag(op_name));
 }
-void TaskInfo::CacheLastTaskExtendInfoIfCollective(const std::string &op_name,
-                                                  const std::string &op_type) {
+void TaskInfo::CacheLastTaskExtendInfoIfCollective(const std::string &op_name, const std::string &op_type) {
   if (!HcomOmeUtil::IsCollectiveCommOp(op_type)) {
     return;
   }
@@ -51,8 +50,8 @@ void TaskInfo::CacheLastTaskExtendInfoIfCollective(const std::string &op_name,
 
   const auto rt_ret = aclrtCacheLastTaskExtendInfo(kCommunicationTaskType, strlen(kCommunicationTaskType));
   if (rt_ret != RT_ERROR_NONE) {
-    GELOGW("[Call][aclrtCacheLastTaskExtendInfo] failed, op:%s(%s), extend info:%s, ret:%d",
-           op_name.c_str(), op_type.c_str(), kCommunicationTaskType, rt_ret);
+    GELOGW("[Call][aclrtCacheLastTaskExtendInfo] failed, op:%s(%s), extend info:%s, ret:%d", op_name.c_str(),
+           op_type.c_str(), kCommunicationTaskType, rt_ret);
   }
 }
 

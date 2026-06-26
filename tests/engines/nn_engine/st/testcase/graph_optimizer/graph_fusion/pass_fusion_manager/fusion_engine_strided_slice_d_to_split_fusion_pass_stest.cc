@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,20 +30,21 @@ using namespace ge;
 using namespace fe;
 
 namespace fe {
-class STEST_fusion_engine_strided_slice_d_to_split_pass : public testing::Test
-{
-protected:
-  void SetUp()
-  {
+class STEST_fusion_engine_strided_slice_d_to_split_pass : public testing::Test {
+ protected:
+  void SetUp() {
     ops_kernel_info_store_ = std::make_shared<OpsKernelInfoStoreStub>();
   }
   void TearDown() {}
   std::shared_ptr<ge::OpsKernelInfoStore> ops_kernel_info_store_;
 
   static ge::ComputeGraphPtr CreateTestGraph1(std::vector<int64_t> dims = {2, 4, 9, 16}, Format format = FORMAT_NCHW,
-      std::vector<int64_t> begins = {0, 0, 0, 0}, std::vector<int64_t> ends = {1, 4, 9, 16},
-      std::vector<int64_t> strides = {1, 1, 1, 1}, int64_t new_axis_mask = 0, int64_t shrink_axis_mask = 0,
-      int64_t begin_mask = 0, int64_t end_mask = 0, int64_t ellipsis_mask = 0, bool supported_flag = true) {
+                                              std::vector<int64_t> begins = {0, 0, 0, 0},
+                                              std::vector<int64_t> ends = {1, 4, 9, 16},
+                                              std::vector<int64_t> strides = {1, 1, 1, 1}, int64_t new_axis_mask = 0,
+                                              int64_t shrink_axis_mask = 0, int64_t begin_mask = 0,
+                                              int64_t end_mask = 0, int64_t ellipsis_mask = 0,
+                                              bool supported_flag = true) {
     ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
     OpDescPtr data = std::make_shared<OpDesc>("const", DATA);
     OpDescPtr stridedsliced = std::make_shared<OpDesc>("stridedsliced", STRIDEDSLICED);
@@ -79,12 +80,9 @@ protected:
     NodePtr netoutput_node = graph->AddNode(netoutput);
 
     // link edge
-    ge::GraphUtils::AddEdge(data_node->GetOutDataAnchor(0),
-                            strided_slice_d_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(strided_slice_d_node->GetOutDataAnchor(0),
-                            relu_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(relu_node->GetOutDataAnchor(0),
-                            netoutput_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), strided_slice_d_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(strided_slice_d_node->GetOutDataAnchor(0), relu_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(relu_node->GetOutDataAnchor(0), netoutput_node->GetInDataAnchor(0));
 
     // set attr
     (void)ge::AttrUtils::SetListInt(strided_slice_d_node->GetOpDesc(), "begin", begins);
@@ -112,7 +110,7 @@ protected:
     OpDescPtr netoutput = std::make_shared<OpDesc>("netoutput", NETOUTPUT);
 
     // add descriptor
-    ge::GeShape shape1({2,4,9,16});
+    ge::GeShape shape1({2, 4, 9, 16});
     GeTensorDesc tensor_desc1(shape1, ge::FORMAT_NCHW, ge::DT_FLOAT);
     tensor_desc1.SetOriginFormat(ge::FORMAT_NCHW);
     tensor_desc1.SetOriginDataType(ge::DT_FLOAT);
@@ -123,7 +121,7 @@ protected:
     concat->AddOutputDesc(tensor_desc1);
     netoutput->AddInputDesc(tensor_desc1);
 
-    ge::GeShape shape2({1,4,9,16});
+    ge::GeShape shape2({1, 4, 9, 16});
     GeTensorDesc tensor_desc2(shape2, ge::FORMAT_NCHW, ge::DT_FLOAT);
     tensor_desc2.SetOriginFormat(ge::FORMAT_NCHW);
     tensor_desc2.SetOriginDataType(ge::DT_FLOAT);
@@ -146,18 +144,12 @@ protected:
     NodePtr netoutput_node = graph->AddNode(netoutput);
 
     // link edge
-    ge::GraphUtils::AddEdge(data_node->GetOutDataAnchor(0),
-                            strided_slice_d_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(strided_slice_d_node->GetOutDataAnchor(0),
-                            relu1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(strided_slice_d_node->GetOutDataAnchor(0),
-                            relu2_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(relu1_node->GetOutDataAnchor(0),
-                            concat_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(relu2_node->GetOutDataAnchor(0),
-                            concat_node->GetInDataAnchor(1));
-    ge::GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0),
-                            netoutput_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), strided_slice_d_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(strided_slice_d_node->GetOutDataAnchor(0), relu1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(strided_slice_d_node->GetOutDataAnchor(0), relu2_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(relu1_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(relu2_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
+    ge::GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0), netoutput_node->GetInDataAnchor(0));
 
     // set attr
     std::vector<int64_t> begins = {0, 0, 0, 0};
@@ -170,9 +162,10 @@ protected:
   }
 
   static ge::ComputeGraphPtr CreateTestGraph3(std::vector<int64_t> begins = {0, 0, 0, 0},
-      std::vector<int64_t> ends = {1, 4, 9, 16}, std::vector<int64_t> strides = {1, 2, 3, 4},
-      int64_t new_axis_mask = 0, int64_t shrink_axis_mask = 0,
-      int64_t begin_mask = 0, int64_t end_mask = 0, int64_t ellipsis_mask = 0) {
+                                              std::vector<int64_t> ends = {1, 4, 9, 16},
+                                              std::vector<int64_t> strides = {1, 2, 3, 4}, int64_t new_axis_mask = 0,
+                                              int64_t shrink_axis_mask = 0, int64_t begin_mask = 0,
+                                              int64_t end_mask = 0, int64_t ellipsis_mask = 0) {
     ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_strid_slice");
     OpDescPtr data = std::make_shared<OpDesc>("const", DATA);
     OpDescPtr stridedsliced = std::make_shared<OpDesc>("stridedsliced", "StridedSliceD");
@@ -180,7 +173,7 @@ protected:
     OpDescPtr netoutput = std::make_shared<OpDesc>("netoutput", "NetOutput");
 
     // add descriptor
-    ge::GeShape shape1({2,4,9,16});
+    ge::GeShape shape1({2, 4, 9, 16});
     GeTensorDesc tensor_desc1(shape1, ge::FORMAT_NCHW, ge::DT_FLOAT);
     tensor_desc1.SetOriginFormat(ge::FORMAT_NCHW);
     tensor_desc1.SetOriginDataType(ge::DT_FLOAT);
@@ -189,7 +182,7 @@ protected:
     data->AddOutputDesc(tensor_desc1);
     stridedsliced->AddInputDesc(tensor_desc1);
 
-    ge::GeShape shape2({1,4,9,16});
+    ge::GeShape shape2({1, 4, 9, 16});
     GeTensorDesc tensor_desc2(shape2, ge::FORMAT_NCHW, ge::DT_FLOAT);
     tensor_desc2.SetOriginFormat(ge::FORMAT_NCHW);
     tensor_desc2.SetOriginDataType(ge::DT_FLOAT);
@@ -207,12 +200,9 @@ protected:
     NodePtr netoutput_node = graph->AddNode(netoutput);
 
     // link edge
-    ge::GraphUtils::AddEdge(data_node->GetOutDataAnchor(0),
-                            strided_slice_d_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(strided_slice_d_node->GetOutDataAnchor(0),
-                            relu_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(relu_node->GetOutDataAnchor(0),
-                            netoutput_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), strided_slice_d_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(strided_slice_d_node->GetOutDataAnchor(0), relu_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(relu_node->GetOutDataAnchor(0), netoutput_node->GetInDataAnchor(0));
 
     // set attr
     (void)ge::AttrUtils::SetListInt(strided_slice_d_node->GetOpDesc(), "begin", begins);
@@ -236,7 +226,7 @@ protected:
     OpDescPtr netoutput = std::make_shared<OpDesc>("netoutput", NETOUTPUT);
 
     // add descriptor
-    ge::GeShape shape1({2,4,9,16});
+    ge::GeShape shape1({2, 4, 9, 16});
     GeTensorDesc tensor_desc1(shape1, ge::FORMAT_NCHW, ge::DT_FLOAT);
     tensor_desc1.SetOriginFormat(ge::FORMAT_NCHW);
     tensor_desc1.SetOriginDataType(ge::DT_FLOAT);
@@ -247,7 +237,7 @@ protected:
     concat->AddOutputDesc(tensor_desc1);
     netoutput->AddInputDesc(tensor_desc1);
 
-    ge::GeShape shape2({1,4,9,16});
+    ge::GeShape shape2({1, 4, 9, 16});
     GeTensorDesc tensor_desc2(shape2, ge::FORMAT_NCHW, ge::DT_FLOAT);
     tensor_desc2.SetOriginFormat(ge::FORMAT_NCHW);
     tensor_desc2.SetOriginDataType(ge::DT_FLOAT);
@@ -270,18 +260,12 @@ protected:
     NodePtr netoutput_node = graph->AddNode(netoutput);
 
     // link edge
-    ge::GraphUtils::AddEdge(data_node->GetOutDataAnchor(0),
-                            strided_slice_d_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(strided_slice_d_node->GetOutDataAnchor(0),
-                            relu1_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(strided_slice_d_node->GetOutDataAnchor(0),
-                            relu2_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(relu1_node->GetOutDataAnchor(0),
-                            concat_node->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(relu2_node->GetOutDataAnchor(0),
-                            concat_node->GetInDataAnchor(1));
-    ge::GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0),
-                            netoutput_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), strided_slice_d_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(strided_slice_d_node->GetOutDataAnchor(0), relu1_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(strided_slice_d_node->GetOutDataAnchor(0), relu2_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(relu1_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(0));
+    ge::GraphUtils::AddEdge(relu2_node->GetOutDataAnchor(0), concat_node->GetInDataAnchor(1));
+    ge::GraphUtils::AddEdge(concat_node->GetOutDataAnchor(0), netoutput_node->GetInDataAnchor(0));
 
     // set attr
     std::vector<int64_t> begins = {0, 0, 0, 0};
@@ -294,13 +278,12 @@ protected:
   }
 };
 
-//unknown_shape
-TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_01)
-{
+// unknown_shape
+TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_01) {
   std::vector<int64_t> dims = {2, -1, 9, 16};
   ComputeGraphPtr graph = CreateTestGraph1(dims);
   StridedSliceDToSplitFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes, ops_kernel_info_store_);
   EXPECT_EQ(status, fe::NOT_CHANGED);
 
@@ -313,8 +296,7 @@ TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_01)
 }
 
 // new_axis_mask != 0
-TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_02)
-{
+TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_02) {
   std::vector<int64_t> dims = {2, 4, 9, 16};
   Format format = FORMAT_NCHW;
   std::vector<int64_t> begins = {0, 0, 0, 0};
@@ -323,7 +305,7 @@ TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_02)
   int64_t new_axis_mask = 1;
   ComputeGraphPtr graph = CreateTestGraph1(dims, format, begins, ends, strides, new_axis_mask);
   StridedSliceDToSplitFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes, ops_kernel_info_store_);
   EXPECT_EQ(status, fe::NOT_CHANGED);
 
@@ -336,8 +318,7 @@ TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_02)
 }
 
 // shrink_axis_mask != 0
-TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_03)
-{
+TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_03) {
   std::vector<int64_t> dims = {2, 4, 9, 16};
   Format format = FORMAT_NCHW;
   std::vector<int64_t> begins = {0, 0, 0, 0};
@@ -347,7 +328,7 @@ TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_03)
   int64_t shrink_axis_mask = 1;
   ComputeGraphPtr graph = CreateTestGraph1(dims, format, begins, ends, strides, new_axis_mask, shrink_axis_mask);
   StridedSliceDToSplitFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes, ops_kernel_info_store_);
   EXPECT_EQ(status, fe::NOT_CHANGED);
 
@@ -360,15 +341,14 @@ TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_03)
 }
 
 // begin size != end size
-TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_04)
-{
+TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_04) {
   std::vector<int64_t> dims = {2, 4, 9, 16};
   Format format = FORMAT_NCHW;
   std::vector<int64_t> begins = {0, 0, 0};
   std::vector<int64_t> ends = {1, 4, 9, 16};
   ComputeGraphPtr graph = CreateTestGraph1(dims, format, begins, ends);
   StridedSliceDToSplitFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes, ops_kernel_info_store_);
   EXPECT_EQ(status, fe::NOT_CHANGED);
 
@@ -381,14 +361,13 @@ TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_04)
 }
 
 // begin size > shape size
-TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_05)
-{
+TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_05) {
   std::vector<int64_t> dims = {2, 4, 9, 16};
   Format format = FORMAT_NCHW;
   std::vector<int64_t> begins = {0, 0, 0, 0, 0};
   ComputeGraphPtr graph = CreateTestGraph1(dims, format, begins);
   StridedSliceDToSplitFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes, ops_kernel_info_store_);
   EXPECT_EQ(status, fe::NOT_CHANGED);
 
@@ -401,8 +380,7 @@ TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_05)
 }
 
 // stride != 1
-TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_06)
-{
+TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_06) {
   std::vector<int64_t> dims = {2, 4, 9, 16};
   Format format = FORMAT_NCHW;
   std::vector<int64_t> begins = {0, 0, 0, 0};
@@ -410,7 +388,7 @@ TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_06)
   std::vector<int64_t> strides = {2, 1, 1, 1};
   ComputeGraphPtr graph = CreateTestGraph1(dims, format, begins, ends, strides);
   StridedSliceDToSplitFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes, ops_kernel_info_store_);
   EXPECT_EQ(status, fe::NOT_CHANGED);
 
@@ -423,8 +401,7 @@ TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_06)
 }
 
 // ellipsis_mask < 0
-TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_07)
-{
+TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_07) {
   std::vector<int64_t> dims = {2, 4, 9, 16};
   Format format = FORMAT_NCHW;
   std::vector<int64_t> begins = {0, 0, 0, 0};
@@ -435,10 +412,10 @@ TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_07)
   int64_t begin_mask = 0;
   int64_t end_mask = 0;
   int64_t ellipsis_mask = -1;
-  ComputeGraphPtr graph = CreateTestGraph1(dims, format, begins, ends, strides,
-                                           new_axis_mask, shrink_axis_mask, begin_mask, end_mask, ellipsis_mask);
+  ComputeGraphPtr graph = CreateTestGraph1(dims, format, begins, ends, strides, new_axis_mask, shrink_axis_mask,
+                                           begin_mask, end_mask, ellipsis_mask);
   StridedSliceDToSplitFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes, ops_kernel_info_store_);
   EXPECT_EQ(status, fe::NOT_CHANGED);
 
@@ -451,8 +428,7 @@ TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_07)
 }
 
 // ellipsis_mask has multiple non-zero bits
-TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_08)
-{
+TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_08) {
   std::vector<int64_t> dims = {2, 4, 9, 16};
   Format format = FORMAT_NCHW;
   std::vector<int64_t> begins = {0, 0, 0, 0};
@@ -463,10 +439,10 @@ TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_08)
   int64_t begin_mask = 0;
   int64_t end_mask = 0;
   int64_t ellipsis_mask = 3;
-  ComputeGraphPtr graph = CreateTestGraph1(dims, format, begins, ends, strides,
-                                           new_axis_mask, shrink_axis_mask, begin_mask, end_mask, ellipsis_mask);
+  ComputeGraphPtr graph = CreateTestGraph1(dims, format, begins, ends, strides, new_axis_mask, shrink_axis_mask,
+                                           begin_mask, end_mask, ellipsis_mask);
   StridedSliceDToSplitFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes, ops_kernel_info_store_);
   EXPECT_EQ(status, fe::NOT_CHANGED);
 
@@ -479,8 +455,7 @@ TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_08)
 }
 
 // num_split > 63
-TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_09)
-{
+TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_09) {
   std::vector<int64_t> dims = {2, 4, 9, 160};
   Format format = FORMAT_NCHW;
   std::vector<int64_t> begins = {0, 0, 0, 0};
@@ -488,7 +463,7 @@ TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_09)
   ComputeGraphPtr graph = CreateTestGraph1(dims, format, begins, ends);
   FEGraphOptimizerPtr graph_optimizer_ptr = FusionManager::Instance(AI_CORE_NAME).graph_opt_;
   StridedSliceDToSplitFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes, ops_kernel_info_store_);
   EXPECT_EQ(status, fe::NOT_CHANGED);
 
@@ -501,15 +476,14 @@ TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_09)
 }
 
 // unaligned
-TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_10)
-{
+TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_10) {
   std::vector<int64_t> dims = {2, 4, 9, 16};
   Format format = FORMAT_NCHW;
   std::vector<int64_t> begins = {0, 0, 0, 0};
   std::vector<int64_t> ends = {2, 4, 2, 16};
   ComputeGraphPtr graph = CreateTestGraph1(dims, format, begins, ends);
   StridedSliceDToSplitFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes, ops_kernel_info_store_);
   EXPECT_EQ(status, fe::NOT_CHANGED);
 
@@ -522,15 +496,14 @@ TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_10)
 }
 
 // unaligned
-TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_11)
-{
+TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_11) {
   std::vector<int64_t> dims = {2, 4, 9, 16};
   Format format = FORMAT_NCHW;
   std::vector<int64_t> begins = {0, 0, 2, 0};
   std::vector<int64_t> ends = {2, 4, 9, 16};
   ComputeGraphPtr graph = CreateTestGraph1(dims, format, begins, ends);
   StridedSliceDToSplitFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes, ops_kernel_info_store_);
   EXPECT_EQ(status, fe::NOT_CHANGED);
 
@@ -543,15 +516,14 @@ TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_11)
 }
 
 // multi-dims slice
-TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_12)
-{
+TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_12) {
   std::vector<int64_t> dims = {2, 4, 9, 16};
   Format format = FORMAT_NCHW;
   std::vector<int64_t> begins = {0, 0, 0, 0};
   std::vector<int64_t> ends = {1, 2, 3, 4};
   ComputeGraphPtr graph = CreateTestGraph1(dims, format, begins, ends);
   StridedSliceDToSplitFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes, ops_kernel_info_store_);
   EXPECT_EQ(status, fe::NOT_CHANGED);
 
@@ -564,8 +536,7 @@ TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_12)
 }
 
 // not support
-TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_13)
-{
+TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_13) {
   std::vector<int64_t> dims = {2, 4, 9, 16};
   Format format = FORMAT_RESERVED;
   std::vector<int64_t> begins = {0, 0, 0, 0};
@@ -576,10 +547,10 @@ TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_13)
   int64_t begin_mask = 0;
   int64_t end_mask = 0;
   int64_t ellipsis_mask = -1;
-  ComputeGraphPtr graph = CreateTestGraph1(dims, format, begins, ends, strides,
-                                           new_axis_mask, shrink_axis_mask, begin_mask, end_mask, ellipsis_mask, false);
+  ComputeGraphPtr graph = CreateTestGraph1(dims, format, begins, ends, strides, new_axis_mask, shrink_axis_mask,
+                                           begin_mask, end_mask, ellipsis_mask, false);
   StridedSliceDToSplitFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes, ops_kernel_info_store_);
   EXPECT_EQ(status, fe::NOT_CHANGED);
 
@@ -591,11 +562,10 @@ TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, not_changed_13)
   }
 }
 
-TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, succ_01)
-{
+TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, succ_01) {
   ComputeGraphPtr graph = CreateTestGraph1();
   StridedSliceDToSplitFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes, ops_kernel_info_store_);
   EXPECT_EQ(status, fe::SUCCESS);
 
@@ -607,15 +577,14 @@ TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, succ_01)
   }
 }
 
-TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, succ_02)
-{
+TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, succ_02) {
   std::vector<int64_t> dims = {2, 4, 9, 16};
   Format format = FORMAT_NCHW;
   std::vector<int64_t> begins = {0, 0, 0, 0};
   std::vector<int64_t> ends = {2, 1, 9, 16};
   ComputeGraphPtr graph = CreateTestGraph1(dims, format, begins, ends);
   StridedSliceDToSplitFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes, ops_kernel_info_store_);
   EXPECT_EQ(status, fe::SUCCESS);
 
@@ -627,8 +596,7 @@ TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, succ_02)
   }
 }
 
-TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, succ_03)
-{
+TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, succ_03) {
   std::vector<int64_t> dims = {2, 4, 9, 16};
   Format format = FORMAT_NCHW;
   std::vector<int64_t> begins = {0, 0, 0};
@@ -636,7 +604,7 @@ TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, succ_03)
   std::vector<int64_t> strides = {1, 1, 1};
   ComputeGraphPtr graph = CreateTestGraph1(dims, format, begins, ends, strides);
   StridedSliceDToSplitFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes, ops_kernel_info_store_);
   EXPECT_EQ(status, fe::SUCCESS);
 
@@ -648,8 +616,7 @@ TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, succ_03)
   }
 }
 
-TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, succ_04)
-{
+TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, succ_04) {
   std::vector<int64_t> dims = {2, 4, 9, 16};
   Format format = FORMAT_NCHW;
   std::vector<int64_t> begins = {0, 0, 0, 0};
@@ -660,10 +627,10 @@ TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, succ_04)
   int64_t begin_mask = 0;
   int64_t end_mask = 0;
   int64_t ellipsis_mask = 1;
-  ComputeGraphPtr graph = CreateTestGraph1(dims, format, begins, ends, strides,
-                                           new_axis_mask, shrink_axis_mask, begin_mask, end_mask, ellipsis_mask);
+  ComputeGraphPtr graph = CreateTestGraph1(dims, format, begins, ends, strides, new_axis_mask, shrink_axis_mask,
+                                           begin_mask, end_mask, ellipsis_mask);
   StridedSliceDToSplitFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes, ops_kernel_info_store_);
   EXPECT_EQ(status, fe::SUCCESS);
 
@@ -675,8 +642,7 @@ TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, succ_04)
   }
 }
 
-TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, succ_05)
-{
+TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, succ_05) {
   std::vector<int64_t> dims = {2, 4, 9, 16};
   Format format = FORMAT_NCHW;
   std::vector<int64_t> begins = {0, 0, 0, 1};
@@ -686,10 +652,10 @@ TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, succ_05)
   int64_t shrink_axis_mask = 0;
   int64_t begin_mask = 1;
   int64_t end_mask = 3;
-  ComputeGraphPtr graph = CreateTestGraph1(dims, format, begins, ends, strides,
-                                           new_axis_mask, shrink_axis_mask, begin_mask, end_mask);
+  ComputeGraphPtr graph =
+      CreateTestGraph1(dims, format, begins, ends, strides, new_axis_mask, shrink_axis_mask, begin_mask, end_mask);
   StridedSliceDToSplitFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes, ops_kernel_info_store_);
   EXPECT_EQ(status, fe::SUCCESS);
 
@@ -701,15 +667,14 @@ TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, succ_05)
   }
 }
 
-TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, succ_06)
-{
+TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, succ_06) {
   std::vector<int64_t> dims = {2, 4, 9, 16};
   Format format = FORMAT_NCHW;
   std::vector<int64_t> begins = {0, 0, 0, 0};
   std::vector<int64_t> ends = {2, 1, 9, 100};
   ComputeGraphPtr graph = CreateTestGraph1(dims, format, begins, ends);
   StridedSliceDToSplitFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes, ops_kernel_info_store_);
   EXPECT_EQ(status, fe::SUCCESS);
 
@@ -721,15 +686,14 @@ TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, succ_06)
   }
 }
 
-TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, succ_07)
-{
+TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, succ_07) {
   std::vector<int64_t> dims = {2, 4, 9, 16};
   Format format = FORMAT_NCHW;
   std::vector<int64_t> begins = {-2, -4, 0, 0};
   std::vector<int64_t> ends = {2, -2, 9, 16};
   ComputeGraphPtr graph = CreateTestGraph1(dims, format, begins, ends);
   StridedSliceDToSplitFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes, ops_kernel_info_store_);
   EXPECT_EQ(status, fe::SUCCESS);
 
@@ -741,11 +705,10 @@ TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, succ_07)
   }
 }
 
-TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, succ_08)
-{
+TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, succ_08) {
   ComputeGraphPtr graph = CreateTestGraph2();
   StridedSliceDToSplitFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes, ops_kernel_info_store_);
   EXPECT_EQ(status, fe::SUCCESS);
 
@@ -757,8 +720,7 @@ TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, succ_08)
   }
 }
 
-TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, fail_01)
-{
+TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, fail_01) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr stridedsliced = std::make_shared<OpDesc>("stridedsliced", STRIDEDSLICED);
   OpDescPtr concat = std::make_shared<OpDesc>("concat", CONCATV2D);
@@ -793,6 +755,5 @@ TEST_F(STEST_fusion_engine_strided_slice_d_to_split_pass, fail_01)
   SplitInfo split_info;
   bool ret = pass.CheckCommonCondition(strided_slice_d_node, stridedsliced, split_info);
   EXPECT_EQ(ret, false);
-
 }
-}
+}  // namespace fe

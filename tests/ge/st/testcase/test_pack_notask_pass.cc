@@ -214,33 +214,85 @@ Graph BuildPackConnectBatchMatmulSplitReshapeGraph(GeTensorPtr const_weight, GeT
                                  OP_CFG(DATA).TensorDesc(FORMAT_ND, DT_FLOAT16, {100, 256}).Build("data1"),
                                  OP_CFG(DATA).TensorDesc(FORMAT_ND, DT_FLOAT16, {100, 256}).Build("data2"),
                                  OP_CFG(DATA).TensorDesc(FORMAT_ND, DT_FLOAT16, {100, 256}).Build("data3")};
-    auto const_nodes = std::array{OP_CFG(CONSTANT).Weight(const_weight).TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 192}).InCnt(0).OutCnt(1).Build("const0"),
-                                  OP_CFG(CONSTANT).Weight(const_weight).TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 192}).InCnt(0).OutCnt(1).Build("const1"),
-                                  OP_CFG(CONSTANT).Weight(const_weight).TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 192}).InCnt(0).OutCnt(1).Build("const2"),
-                                  OP_CFG(CONSTANT).Weight(const_weight).TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 192}).InCnt(0).OutCnt(1).Build("const3")};
-    auto data_pre_nodes = std::array{OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {100, 256}).InCnt(1).OutCnt(1).Build("data_pre0"),
-                                     OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {100, 256}).InCnt(1).OutCnt(1).Build("data_pre1"),
-                                     OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {100, 256}).InCnt(1).OutCnt(1).Build("data_pre2"),
-                                     OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {100, 256}).InCnt(1).OutCnt(1).Build("data_pre3")};
-    auto const_pre_nodes = std::array{OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 192}).InCnt(1).OutCnt(1).Build("const_pre0"),
-                                      OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 192}).InCnt(1).OutCnt(1).Build("const_pre1"),
-                                      OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 192}).InCnt(1).OutCnt(1).Build("const_pre2"),
-                                      OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 192}).InCnt(1).OutCnt(1).Build("const_pre3")};
-    auto pack_data = OP_CFG("Pack").InCnt(kPackInputNum).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT16, {4, 100, 256}).Attr("axis", 0).Attr("N", kPackInputNum).Build(kDataPackNode);
-    auto pack_const = OP_CFG("Pack").InCnt(kPackInputNum).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT16, {4, 256, 192}).Attr("axis", 0).Attr("N", kPackInputNum).Build(kConstPackNode);
-    auto batch_matmul = OP_CFG(BATCHMATMUL).InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT16, {4, 100, 192}).Build("batch_matmul");
-    auto split = OP_CFG("SplitD").InCnt(1).OutCnt(kPackInputNum).TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 100, 192}).Attr("split_dim", 0).Attr("num_split", kPackInputNum).Build("split");
-    auto shape_nodes = std::array{OP_CFG(CONSTANT).Weight(reshape_shape).TensorDesc(FORMAT_ND, DT_INT64, {2}).InCnt(0).OutCnt(1).Build("shape0"),
-                                  OP_CFG(CONSTANT).Weight(reshape_shape).TensorDesc(FORMAT_ND, DT_INT64, {2}).InCnt(0).OutCnt(1).Build("shape1"),
-                                  OP_CFG(CONSTANT).Weight(reshape_shape).TensorDesc(FORMAT_ND, DT_INT64, {2}).InCnt(0).OutCnt(1).Build("shape2"),
-                                  OP_CFG(CONSTANT).Weight(reshape_shape).TensorDesc(FORMAT_ND, DT_INT64, {2}).InCnt(0).OutCnt(1).Build("shape3")};
-    auto reshape_nodes = std::array{OP_CFG(RESHAPE).InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT16, {100, 192}).Build("reshape0"),
-                                    OP_CFG(RESHAPE).InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT16, {100, 192}).Build("reshape1"),
-                                    OP_CFG(RESHAPE).InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT16, {100, 192}).Build("reshape2"),
-                                    OP_CFG(RESHAPE).InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT16, {100, 192}).Build("reshape3")};
-    for (size_t i = 0U; i < data_nodes.size(); ++i) { CHAIN(NODE(data_nodes[i])->NODE(data_pre_nodes[i])->EDGE(0, static_cast<int32_t>(i))->NODE(pack_data)); CHAIN(NODE(const_nodes[i])->NODE(const_pre_nodes[i])->EDGE(0, static_cast<int32_t>(i))->NODE(pack_const)); }
-    CHAIN(NODE(pack_data)->EDGE(0, 0)->NODE(batch_matmul)); CHAIN(NODE(pack_const)->EDGE(0, 1)->NODE(batch_matmul)); CHAIN(NODE(batch_matmul)->NODE(split));
-    for (size_t i = 0U; i < reshape_nodes.size(); ++i) { CHAIN(NODE(split)->EDGE(static_cast<int32_t>(i), 0)->NODE(reshape_nodes[i])); CHAIN(NODE(shape_nodes[i])->EDGE(0, 1)->NODE(reshape_nodes[i])); ADD_OUTPUT(reshape_nodes[i], 0); }
+    auto const_nodes = std::array{OP_CFG(CONSTANT)
+                                      .Weight(const_weight)
+                                      .TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 192})
+                                      .InCnt(0)
+                                      .OutCnt(1)
+                                      .Build("const0"),
+                                  OP_CFG(CONSTANT)
+                                      .Weight(const_weight)
+                                      .TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 192})
+                                      .InCnt(0)
+                                      .OutCnt(1)
+                                      .Build("const1"),
+                                  OP_CFG(CONSTANT)
+                                      .Weight(const_weight)
+                                      .TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 192})
+                                      .InCnt(0)
+                                      .OutCnt(1)
+                                      .Build("const2"),
+                                  OP_CFG(CONSTANT)
+                                      .Weight(const_weight)
+                                      .TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 192})
+                                      .InCnt(0)
+                                      .OutCnt(1)
+                                      .Build("const3")};
+    auto data_pre_nodes =
+        std::array{OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {100, 256}).InCnt(1).OutCnt(1).Build("data_pre0"),
+                   OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {100, 256}).InCnt(1).OutCnt(1).Build("data_pre1"),
+                   OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {100, 256}).InCnt(1).OutCnt(1).Build("data_pre2"),
+                   OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {100, 256}).InCnt(1).OutCnt(1).Build("data_pre3")};
+    auto const_pre_nodes =
+        std::array{OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 192}).InCnt(1).OutCnt(1).Build("const_pre0"),
+                   OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 192}).InCnt(1).OutCnt(1).Build("const_pre1"),
+                   OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 192}).InCnt(1).OutCnt(1).Build("const_pre2"),
+                   OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 192}).InCnt(1).OutCnt(1).Build("const_pre3")};
+    auto pack_data = OP_CFG("Pack")
+                         .InCnt(kPackInputNum)
+                         .OutCnt(1)
+                         .TensorDesc(FORMAT_ND, DT_FLOAT16, {4, 100, 256})
+                         .Attr("axis", 0)
+                         .Attr("N", kPackInputNum)
+                         .Build(kDataPackNode);
+    auto pack_const = OP_CFG("Pack")
+                          .InCnt(kPackInputNum)
+                          .OutCnt(1)
+                          .TensorDesc(FORMAT_ND, DT_FLOAT16, {4, 256, 192})
+                          .Attr("axis", 0)
+                          .Attr("N", kPackInputNum)
+                          .Build(kConstPackNode);
+    auto batch_matmul =
+        OP_CFG(BATCHMATMUL).InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT16, {4, 100, 192}).Build("batch_matmul");
+    auto split = OP_CFG("SplitD")
+                     .InCnt(1)
+                     .OutCnt(kPackInputNum)
+                     .TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 100, 192})
+                     .Attr("split_dim", 0)
+                     .Attr("num_split", kPackInputNum)
+                     .Build("split");
+    auto shape_nodes = std::array{
+        OP_CFG(CONSTANT).Weight(reshape_shape).TensorDesc(FORMAT_ND, DT_INT64, {2}).InCnt(0).OutCnt(1).Build("shape0"),
+        OP_CFG(CONSTANT).Weight(reshape_shape).TensorDesc(FORMAT_ND, DT_INT64, {2}).InCnt(0).OutCnt(1).Build("shape1"),
+        OP_CFG(CONSTANT).Weight(reshape_shape).TensorDesc(FORMAT_ND, DT_INT64, {2}).InCnt(0).OutCnt(1).Build("shape2"),
+        OP_CFG(CONSTANT).Weight(reshape_shape).TensorDesc(FORMAT_ND, DT_INT64, {2}).InCnt(0).OutCnt(1).Build("shape3")};
+    auto reshape_nodes =
+        std::array{OP_CFG(RESHAPE).InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT16, {100, 192}).Build("reshape0"),
+                   OP_CFG(RESHAPE).InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT16, {100, 192}).Build("reshape1"),
+                   OP_CFG(RESHAPE).InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT16, {100, 192}).Build("reshape2"),
+                   OP_CFG(RESHAPE).InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT16, {100, 192}).Build("reshape3")};
+    for (size_t i = 0U; i < data_nodes.size(); ++i) {
+      CHAIN(NODE(data_nodes[i])->NODE(data_pre_nodes[i])->EDGE(0, static_cast<int32_t>(i))->NODE(pack_data));
+      CHAIN(NODE(const_nodes[i])->NODE(const_pre_nodes[i])->EDGE(0, static_cast<int32_t>(i))->NODE(pack_const));
+    }
+    CHAIN(NODE(pack_data)->EDGE(0, 0)->NODE(batch_matmul));
+    CHAIN(NODE(pack_const)->EDGE(0, 1)->NODE(batch_matmul));
+    CHAIN(NODE(batch_matmul)->NODE(split));
+    for (size_t i = 0U; i < reshape_nodes.size(); ++i) {
+      CHAIN(NODE(split)->EDGE(static_cast<int32_t>(i), 0)->NODE(reshape_nodes[i]));
+      CHAIN(NODE(shape_nodes[i])->EDGE(0, 1)->NODE(reshape_nodes[i]));
+      ADD_OUTPUT(reshape_nodes[i], 0);
+    }
   };
   return ToGeGraph(g1);
 }
@@ -316,14 +368,10 @@ TEST_F(PackNotaskPassTest, pack_connect_batch_matmul_split_reshape_success) {
   auto graph = BuildPackConnectBatchMatmulSplitReshapeGraph(const_weight, reshape_shape);
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
   ASSERT_NE(compute_graph, nullptr);
-  SetAiCoreEngine(compute_graph, {kDataPackNode, kConstPackNode,
-                                  "data_pre0", "data_pre1", "data_pre2", "data_pre3",
-                                  "const_pre0", "const_pre1", "const_pre2", "const_pre3",
-                                  "batch_matmul", "split", "reshape0", "reshape1", "reshape2", "reshape3"});
-  std::map<AscendString, AscendString> options = {
-      {ge::OO_LEVEL, "O3"},
-      {ge::OO_CONSTANT_FOLDING, "false"}
-  };
+  SetAiCoreEngine(compute_graph, {kDataPackNode, kConstPackNode, "data_pre0", "data_pre1", "data_pre2", "data_pre3",
+                                  "const_pre0", "const_pre1", "const_pre2", "const_pre3", "batch_matmul", "split",
+                                  "reshape0", "reshape1", "reshape2", "reshape3"});
+  std::map<AscendString, AscendString> options = {{ge::OO_LEVEL, "O3"}, {ge::OO_CONSTANT_FOLDING, "false"}};
   Session session(options);
   ASSERT_EQ(session.AddGraph(1, graph, options), SUCCESS);
 
@@ -357,9 +405,12 @@ TEST_F(PackNotaskPassTest, pack_fractal_nz_format_success) {
     auto pre2 = OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 2048}).InCnt(1).OutCnt(1).Build("pre2");
 
     auto pack_nz = OP_CFG("Pack")
-        .InCnt(kNzInputNum).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT16, {3, 1, 2048})
-        .Attr("axis", 0).Attr("N", kNzInputNum)
-        .Build("pack_nz");
+                       .InCnt(kNzInputNum)
+                       .OutCnt(1)
+                       .TensorDesc(FORMAT_ND, DT_FLOAT16, {3, 1, 2048})
+                       .Attr("axis", 0)
+                       .Attr("N", kNzInputNum)
+                       .Build("pack_nz");
     auto post = OP_CFG("Identity").TensorDesc(FORMAT_ND, DT_FLOAT16, {3, 1, 2048}).InCnt(1).OutCnt(1).Build("post");
 
     CHAIN(NODE(data0)->NODE(pre0)->EDGE(0, 0)->NODE(pack_nz));
@@ -386,10 +437,7 @@ TEST_F(PackNotaskPassTest, pack_fractal_nz_format_success) {
 
   SetAiCoreEngine(compute_graph, {"pack_nz", "pre0", "pre1", "pre2", "post"});
 
-  std::map<AscendString, AscendString> options = {
-      {ge::OO_LEVEL, "O3"},
-      {ge::OO_CONSTANT_FOLDING, "false"}
-  };
+  std::map<AscendString, AscendString> options = {{ge::OO_LEVEL, "O3"}, {ge::OO_CONSTANT_FOLDING, "false"}};
   Session session(options);
   ASSERT_EQ(session.AddGraph(2, graph, options), SUCCESS);
 
@@ -423,10 +471,14 @@ TEST_F(PackNotaskPassTest, pack_nc1hwc0_format_reject) {
     auto pre1 = OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 32, 16, 16}).InCnt(1).OutCnt(1).Build("pre1");
 
     auto pack_5hd = OP_CFG("Pack")
-        .InCnt(kInputNum).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT16, {2, 1, 32, 16, 16})
-        .Attr("axis", 0).Attr("N", kInputNum)
-        .Build("pack_5hd");
-    auto post = OP_CFG("Identity").TensorDesc(FORMAT_ND, DT_FLOAT16, {2, 1, 32, 16, 16}).InCnt(1).OutCnt(1).Build("post");
+                        .InCnt(kInputNum)
+                        .OutCnt(1)
+                        .TensorDesc(FORMAT_ND, DT_FLOAT16, {2, 1, 32, 16, 16})
+                        .Attr("axis", 0)
+                        .Attr("N", kInputNum)
+                        .Build("pack_5hd");
+    auto post =
+        OP_CFG("Identity").TensorDesc(FORMAT_ND, DT_FLOAT16, {2, 1, 32, 16, 16}).InCnt(1).OutCnt(1).Build("post");
 
     CHAIN(NODE(data0)->NODE(pre0)->EDGE(0, 0)->NODE(pack_5hd));
     CHAIN(NODE(data1)->NODE(pre1)->EDGE(0, 1)->NODE(pack_5hd));
@@ -451,10 +503,7 @@ TEST_F(PackNotaskPassTest, pack_nc1hwc0_format_reject) {
 
   SetAiCoreEngine(compute_graph, {"pack_5hd", "pre0", "pre1", "post"});
 
-  std::map<AscendString, AscendString> options = {
-      {ge::OO_LEVEL, "O3"},
-      {ge::OO_CONSTANT_FOLDING, "false"}
-  };
+  std::map<AscendString, AscendString> options = {{ge::OO_LEVEL, "O3"}, {ge::OO_CONSTANT_FOLDING, "false"}};
   Session session(options);
   ASSERT_EQ(session.AddGraph(3, graph, options), SUCCESS);
 
@@ -486,9 +535,12 @@ TEST_F(PackNotaskPassTest, pack_axis1_dim0_is1_nd_success) {
     auto pre1 = OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 256}).InCnt(1).OutCnt(1).Build("pre1");
 
     auto pack_axis1 = OP_CFG("Pack")
-        .InCnt(kInputNum).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 2, 256})
-        .Attr("axis", 1).Attr("N", kInputNum)
-        .Build("pack_axis1");
+                          .InCnt(kInputNum)
+                          .OutCnt(1)
+                          .TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 2, 256})
+                          .Attr("axis", 1)
+                          .Attr("N", kInputNum)
+                          .Build("pack_axis1");
     auto post = OP_CFG("Identity").TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 2, 256}).InCnt(1).OutCnt(1).Build("post");
 
     CHAIN(NODE(data0)->NODE(pre0)->EDGE(0, 0)->NODE(pack_axis1));
@@ -502,10 +554,7 @@ TEST_F(PackNotaskPassTest, pack_axis1_dim0_is1_nd_success) {
   ASSERT_NE(compute_graph, nullptr);
   SetAiCoreEngine(compute_graph, {"pack_axis1", "pre0", "pre1", "post"});
 
-  std::map<AscendString, AscendString> options = {
-      {ge::OO_LEVEL, "O3"},
-      {ge::OO_CONSTANT_FOLDING, "false"}
-  };
+  std::map<AscendString, AscendString> options = {{ge::OO_LEVEL, "O3"}, {ge::OO_CONSTANT_FOLDING, "false"}};
   Session session(options);
   ASSERT_EQ(session.AddGraph(4, graph, options), SUCCESS);
 
@@ -539,9 +588,12 @@ TEST_F(PackNotaskPassTest, pack_axis1_dim0_not1_nd_reject) {
     auto pre1 = OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {8, 256}).InCnt(1).OutCnt(1).Build("pre1");
 
     auto pack_axis1_fail = OP_CFG("Pack")
-        .InCnt(kInputNum).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT16, {8, 2, 256})
-        .Attr("axis", 1).Attr("N", kInputNum)
-        .Build("pack_axis1_fail");
+                               .InCnt(kInputNum)
+                               .OutCnt(1)
+                               .TensorDesc(FORMAT_ND, DT_FLOAT16, {8, 2, 256})
+                               .Attr("axis", 1)
+                               .Attr("N", kInputNum)
+                               .Build("pack_axis1_fail");
     auto post = OP_CFG("Identity").TensorDesc(FORMAT_ND, DT_FLOAT16, {8, 2, 256}).InCnt(1).OutCnt(1).Build("post");
 
     CHAIN(NODE(data0)->NODE(pre0)->EDGE(0, 0)->NODE(pack_axis1_fail));
@@ -555,10 +607,7 @@ TEST_F(PackNotaskPassTest, pack_axis1_dim0_not1_nd_reject) {
   ASSERT_NE(compute_graph, nullptr);
   SetAiCoreEngine(compute_graph, {"pack_axis1_fail", "pre0", "pre1", "post"});
 
-  std::map<AscendString, AscendString> options = {
-      {ge::OO_LEVEL, "O3"},
-      {ge::OO_CONSTANT_FOLDING, "false"}
-  };
+  std::map<AscendString, AscendString> options = {{ge::OO_LEVEL, "O3"}, {ge::OO_CONSTANT_FOLDING, "false"}};
   Session session(options);
   ASSERT_EQ(session.AddGraph(5, graph, options), SUCCESS);
 
@@ -592,9 +641,12 @@ TEST_F(PackNotaskPassTest, pack_negative_axis_nd_success) {
     auto pre1 = OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 256}).InCnt(1).OutCnt(1).Build("pre1");
 
     auto pack_neg = OP_CFG("Pack")
-        .InCnt(kInputNum).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 2, 256})
-        .Attr("axis", static_cast<int64_t>(-2)).Attr("N", kInputNum)
-        .Build("pack_neg_axis");
+                        .InCnt(kInputNum)
+                        .OutCnt(1)
+                        .TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 2, 256})
+                        .Attr("axis", static_cast<int64_t>(-2))
+                        .Attr("N", kInputNum)
+                        .Build("pack_neg_axis");
     auto post = OP_CFG("Identity").TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 2, 256}).InCnt(1).OutCnt(1).Build("post");
 
     CHAIN(NODE(data0)->NODE(pre0)->EDGE(0, 0)->NODE(pack_neg));
@@ -608,10 +660,7 @@ TEST_F(PackNotaskPassTest, pack_negative_axis_nd_success) {
   ASSERT_NE(compute_graph, nullptr);
   SetAiCoreEngine(compute_graph, {"pack_neg_axis", "pre0", "pre1", "post"});
 
-  std::map<AscendString, AscendString> options = {
-      {ge::OO_LEVEL, "O3"},
-      {ge::OO_CONSTANT_FOLDING, "false"}
-  };
+  std::map<AscendString, AscendString> options = {{ge::OO_LEVEL, "O3"}, {ge::OO_CONSTANT_FOLDING, "false"}};
   Session session(options);
   ASSERT_EQ(session.AddGraph(6, graph, options), SUCCESS);
 
@@ -640,9 +689,12 @@ TEST_F(PackNotaskPassTest, pack_single_input_success) {
     auto pre0 = OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {100, 192}).InCnt(1).OutCnt(1).Build("pre0");
 
     auto pack_single = OP_CFG("Pack")
-        .InCnt(kInputNum).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 100, 192})
-        .Attr("axis", 0).Attr("N", kInputNum)
-        .Build("pack_single");
+                           .InCnt(kInputNum)
+                           .OutCnt(1)
+                           .TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 100, 192})
+                           .Attr("axis", 0)
+                           .Attr("N", kInputNum)
+                           .Build("pack_single");
     auto post = OP_CFG("Identity").TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 100, 192}).InCnt(1).OutCnt(1).Build("post");
 
     CHAIN(NODE(data0)->NODE(pre0)->EDGE(0, 0)->NODE(pack_single));
@@ -655,10 +707,7 @@ TEST_F(PackNotaskPassTest, pack_single_input_success) {
   ASSERT_NE(compute_graph, nullptr);
   SetAiCoreEngine(compute_graph, {"pack_single", "pre0", "post"});
 
-  std::map<AscendString, AscendString> options = {
-      {ge::OO_LEVEL, "O3"},
-      {ge::OO_CONSTANT_FOLDING, "false"}
-  };
+  std::map<AscendString, AscendString> options = {{ge::OO_LEVEL, "O3"}, {ge::OO_CONSTANT_FOLDING, "false"}};
   Session session(options);
   ASSERT_EQ(session.AddGraph(7, graph, options), SUCCESS);
 
@@ -691,10 +740,14 @@ TEST_F(PackNotaskPassTest, pack_fractal_z_format_reject) {
     auto pre1 = OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 32, 16, 16}).InCnt(1).OutCnt(1).Build("pre1");
 
     auto pack_fz = OP_CFG("Pack")
-        .InCnt(kInputNum).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT16, {2, 1, 32, 16, 16})
-        .Attr("axis", 0).Attr("N", kInputNum)
-        .Build("pack_fz");
-    auto post = OP_CFG("Identity").TensorDesc(FORMAT_ND, DT_FLOAT16, {2, 1, 32, 16, 16}).InCnt(1).OutCnt(1).Build("post");
+                       .InCnt(kInputNum)
+                       .OutCnt(1)
+                       .TensorDesc(FORMAT_ND, DT_FLOAT16, {2, 1, 32, 16, 16})
+                       .Attr("axis", 0)
+                       .Attr("N", kInputNum)
+                       .Build("pack_fz");
+    auto post =
+        OP_CFG("Identity").TensorDesc(FORMAT_ND, DT_FLOAT16, {2, 1, 32, 16, 16}).InCnt(1).OutCnt(1).Build("post");
 
     CHAIN(NODE(data0)->NODE(pre0)->EDGE(0, 0)->NODE(pack_fz));
     CHAIN(NODE(data1)->NODE(pre1)->EDGE(0, 1)->NODE(pack_fz));
@@ -718,10 +771,7 @@ TEST_F(PackNotaskPassTest, pack_fractal_z_format_reject) {
 
   SetAiCoreEngine(compute_graph, {"pack_fz", "pre0", "pre1", "post"});
 
-  std::map<AscendString, AscendString> options = {
-      {ge::OO_LEVEL, "O3"},
-      {ge::OO_CONSTANT_FOLDING, "false"}
-  };
+  std::map<AscendString, AscendString> options = {{ge::OO_LEVEL, "O3"}, {ge::OO_CONSTANT_FOLDING, "false"}};
   Session session(options);
   ASSERT_EQ(session.AddGraph(8, graph, options), SUCCESS);
 
@@ -758,13 +808,19 @@ TEST_F(PackNotaskPassTest, pack_cascaded_second_pack_reject) {
     auto pre2 = OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {100, 256}).InCnt(1).OutCnt(1).Build("pre2");
 
     auto pack1 = OP_CFG("Pack")
-        .InCnt(kInputNum).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT16, {2, 100, 256})
-        .Attr("axis", 0).Attr("N", kInputNum)
-        .Build("pack1");
+                     .InCnt(kInputNum)
+                     .OutCnt(1)
+                     .TensorDesc(FORMAT_ND, DT_FLOAT16, {2, 100, 256})
+                     .Attr("axis", 0)
+                     .Attr("N", kInputNum)
+                     .Build("pack1");
     auto pack2 = OP_CFG("Pack")
-        .InCnt(kInputNum).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT16, {2, 100, 256})
-        .Attr("axis", 0).Attr("N", kInputNum)
-        .Build("pack2");
+                     .InCnt(kInputNum)
+                     .OutCnt(1)
+                     .TensorDesc(FORMAT_ND, DT_FLOAT16, {2, 100, 256})
+                     .Attr("axis", 0)
+                     .Attr("N", kInputNum)
+                     .Build("pack2");
     auto post = OP_CFG("Identity").TensorDesc(FORMAT_ND, DT_FLOAT16, {2, 100, 256}).InCnt(1).OutCnt(1).Build("post");
 
     CHAIN(NODE(data0)->NODE(pre0)->EDGE(0, 0)->NODE(pack1));
@@ -780,10 +836,7 @@ TEST_F(PackNotaskPassTest, pack_cascaded_second_pack_reject) {
   ASSERT_NE(compute_graph, nullptr);
   SetAiCoreEngine(compute_graph, {"pack1", "pack2", "pre0", "pre1", "pre2", "post"});
 
-  std::map<AscendString, AscendString> options = {
-      {ge::OO_LEVEL, "O3"},
-      {ge::OO_CONSTANT_FOLDING, "false"}
-  };
+  std::map<AscendString, AscendString> options = {{ge::OO_LEVEL, "O3"}, {ge::OO_CONSTANT_FOLDING, "false"}};
   Session session(options);
   ASSERT_EQ(session.AddGraph(9, graph, options), SUCCESS);
 
@@ -833,10 +886,14 @@ TEST_F(PackNotaskPassTest, pack_notask_zero_copy_address_layout) {
     auto pre2 = OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {1, 256}).InCnt(1).OutCnt(1).Build("pre2");
 
     auto pack_zc = OP_CFG("Pack")
-        .InCnt(kInputNum).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT16, {kInputNum, 1, 256})
-        .Attr("axis", 0).Attr("N", kInputNum)
-        .Build(kPackNode);
-    auto post = OP_CFG("Identity").TensorDesc(FORMAT_ND, DT_FLOAT16, {kInputNum, 1, 256}).InCnt(1).OutCnt(1).Build("post");
+                       .InCnt(kInputNum)
+                       .OutCnt(1)
+                       .TensorDesc(FORMAT_ND, DT_FLOAT16, {kInputNum, 1, 256})
+                       .Attr("axis", 0)
+                       .Attr("N", kInputNum)
+                       .Build(kPackNode);
+    auto post =
+        OP_CFG("Identity").TensorDesc(FORMAT_ND, DT_FLOAT16, {kInputNum, 1, 256}).InCnt(1).OutCnt(1).Build("post");
 
     CHAIN(NODE(data0)->NODE(pre0)->EDGE(0, 0)->NODE(pack_zc));
     CHAIN(NODE(data1)->NODE(pre1)->EDGE(0, 1)->NODE(pack_zc));
@@ -850,10 +907,7 @@ TEST_F(PackNotaskPassTest, pack_notask_zero_copy_address_layout) {
   ASSERT_NE(compute_graph, nullptr);
   SetAiCoreEngine(compute_graph, {kPackNode, "pre0", "pre1", "pre2", "post"});
 
-  std::map<AscendString, AscendString> options = {
-      {ge::OO_LEVEL, "O3"},
-      {ge::OO_CONSTANT_FOLDING, "false"}
-  };
+  std::map<AscendString, AscendString> options = {{ge::OO_LEVEL, "O3"}, {ge::OO_CONSTANT_FOLDING, "false"}};
   Session session(options);
   ASSERT_EQ(session.AddGraph(10, graph, options), SUCCESS);
 

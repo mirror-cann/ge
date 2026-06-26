@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,10 +28,10 @@
 
 namespace ge {
 class AclRuntimeStub {
-public:
+ public:
   virtual ~AclRuntimeStub() = default;
 
-  static AclRuntimeStub* GetInstance();
+  static AclRuntimeStub *GetInstance();
   void SetDeviceId(int64_t device_id) {
     device_id_ = device_id;
   }
@@ -40,36 +40,32 @@ public:
     instance_ = instance;
   }
 
-  static void Install(AclRuntimeStub*);
-  static void UnInstall(AclRuntimeStub*);
+  static void Install(AclRuntimeStub *);
+  static void UnInstall(AclRuntimeStub *);
 
   static void Reset() {
     instance_.reset();
   }
 
   virtual aclError aclrtRecordNotify(aclrtNotify notify, aclrtStream stream);
-  virtual aclError aclrtBinaryGetFunctionByEntry(aclrtBinHandle binHandle,
-                                                 uint64_t funcEntry,
+  virtual aclError aclrtBinaryGetFunctionByEntry(aclrtBinHandle binHandle, uint64_t funcEntry,
                                                  aclrtFuncHandle *funcHandle);
-  virtual aclError aclrtLaunchKernel(aclrtFuncHandle funcHandle,
-                                     uint32_t blockDim,
-                                     const void *argsData,
-                                     size_t argsSize,
-                                     aclrtStream stream);
+  virtual aclError aclrtLaunchKernel(aclrtFuncHandle funcHandle, uint32_t blockDim, const void *argsData,
+                                     size_t argsSize, aclrtStream stream);
   virtual aclError aclrtBinaryUnLoad(aclrtBinHandle binHandle);
-  virtual aclError aclrtBinaryLoadFromFile(const char* binPath, aclrtBinaryLoadOptions *options,
-      aclrtBinHandle *binHandle);
-  virtual aclError aclrtBinaryLoadFromData(const void *data, size_t length,
-      const aclrtBinaryLoadOptions *options, aclrtBinHandle *binHandle);
-  virtual aclError aclrtLaunchKernelV2(aclrtFuncHandle funcHandle, uint32_t numBlocks,
-      const void *argsData, size_t argsSize, aclrtLaunchKernelCfg *cfg, aclrtStream stream);
-  virtual aclError aclrtRegisterCpuFunc(const aclrtBinHandle handle, const char *funcName,
-      const char *kernelName, aclrtFuncHandle *funcHandle);
+  virtual aclError aclrtBinaryLoadFromFile(const char *binPath, aclrtBinaryLoadOptions *options,
+                                           aclrtBinHandle *binHandle);
+  virtual aclError aclrtBinaryLoadFromData(const void *data, size_t length, const aclrtBinaryLoadOptions *options,
+                                           aclrtBinHandle *binHandle);
+  virtual aclError aclrtLaunchKernelV2(aclrtFuncHandle funcHandle, uint32_t numBlocks, const void *argsData,
+                                       size_t argsSize, aclrtLaunchKernelCfg *cfg, aclrtStream stream);
+  virtual aclError aclrtRegisterCpuFunc(const aclrtBinHandle handle, const char *funcName, const char *kernelName,
+                                        aclrtFuncHandle *funcHandle);
   virtual aclError aclrtBinaryGetFunction(const aclrtBinHandle binHandle, const char *kernelName,
-      aclrtFuncHandle *funcHandle);
-  virtual aclError aclrtLaunchKernelWithHostArgs(aclrtFuncHandle funcHandle, uint32_t numBlocks,
-      aclrtStream stream, aclrtLaunchKernelCfg *cfg, void *hostArgs, size_t argsSize,
-      aclrtPlaceHolderInfo *placeHolderArray, size_t placeHolderNum);
+                                          aclrtFuncHandle *funcHandle);
+  virtual aclError aclrtLaunchKernelWithHostArgs(aclrtFuncHandle funcHandle, uint32_t numBlocks, aclrtStream stream,
+                                                 aclrtLaunchKernelCfg *cfg, void *hostArgs, size_t argsSize,
+                                                 aclrtPlaceHolderInfo *placeHolderArray, size_t placeHolderNum);
   virtual aclError aclrtStreamGetId(aclrtStream stream, int32_t *streamId);
   virtual aclError aclrtWaitAndResetNotify(aclrtNotify notify, aclrtStream stream, uint32_t timeout);
   virtual aclError aclrtSetDevice(int32_t deviceId);
@@ -98,24 +94,17 @@ public:
   virtual aclError aclrtFree(void *devPtr);
   virtual aclError aclrtFreeHost(void *devPtr);
   virtual aclError aclrtMemcpy(void *dst, size_t dest_max, const void *src, size_t count, aclrtMemcpyKind kind);
-  virtual aclError aclrtMemcpyAsync(void *dst,
-                    size_t dest_max,
-                    const void *src,
-                    size_t src_count,
-                    aclrtMemcpyKind kind,
-                    aclrtStream stream);
-  virtual aclError aclrtMemcpyAsyncWithCondition(void *dst,
-                          size_t destMax,
-                          const void *src,
-                          size_t count,
-                          aclrtMemcpyKind kind,
-                          aclrtStream stream);
+  virtual aclError aclrtMemcpyAsync(void *dst, size_t dest_max, const void *src, size_t src_count, aclrtMemcpyKind kind,
+                                    aclrtStream stream);
+  virtual aclError aclrtMemcpyAsyncWithCondition(void *dst, size_t destMax, const void *src, size_t count,
+                                                 aclrtMemcpyKind kind, aclrtStream stream);
   virtual aclError aclrtGetMemInfo(aclrtMemAttr attr, size_t *free_size, size_t *total);
-  virtual const char* aclrtGetSocName();
+  virtual const char *aclrtGetSocName();
   virtual aclError aclrtGetDeviceInfo(uint32_t deviceId, aclrtDevAttr attr, int64_t *value);
   virtual aclError aclrtGetPhyDevIdByLogicDevId(const int32_t logicDevId, int32_t *const phyDevId);
   virtual aclError aclrtMemcpyBatch(void **dsts, size_t *destMax, void **srcs, size_t *sizes, size_t numBatches,
-                                    aclrtMemcpyBatchAttr *attrs, size_t *attrsIndexex, size_t numAttrs, size_t *failIndex);
+                                    aclrtMemcpyBatchAttr *attrs, size_t *attrsIndexex, size_t numAttrs,
+                                    size_t *failIndex);
   virtual aclError aclrtCheckArchCompatibility(const char *socVersion, int32_t *canCompatible);
   virtual aclError aclrtSetStreamFailureMode(aclrtStream stream, uint64_t mode);
   virtual aclError aclrtActiveStream(aclrtStream activeStream, aclrtStream stream);
@@ -200,17 +189,17 @@ public:
 };
 
 class AclApiStub {
-public:
+ public:
   virtual ~AclApiStub() = default;
 
-  static AclApiStub* GetInstance();
+  static AclApiStub *GetInstance();
 
   static void SetInstance(const std::shared_ptr<AclApiStub> &instance) {
     instance_ = instance;
   }
 
-  static void Install(AclApiStub*);
-  static void UnInstall(AclApiStub*);
+  static void Install(AclApiStub *);
+  static void UnInstall(AclApiStub *);
 
   static void Reset() {
     instance_.reset();
@@ -219,10 +208,7 @@ public:
   virtual aclError aclInit(const char *configPath);
   virtual aclError aclFinalize();
   virtual aclDataBuffer *aclCreateDataBuffer(void *data, size_t size);
-  virtual aclTensorDesc *aclCreateTensorDesc(aclDataType dataType,
-                                    int numDims,
-                                    const int64_t *dims,
-                                    aclFormat format);
+  virtual aclTensorDesc *aclCreateTensorDesc(aclDataType dataType, int numDims, const int64_t *dims, aclFormat format);
   virtual void *aclGetDataBufferAddr(const aclDataBuffer *dataBuffer);
   virtual size_t aclGetDataBufferSizeV2(const aclDataBuffer *dataBuffer);
   virtual aclError aclGetTensorDescDimV2(const aclTensorDesc *desc, size_t index, int64_t *dimSize);
@@ -239,27 +225,25 @@ public:
   virtual aclDataBuffer *aclmdlGetDatasetBuffer(const aclmdlDataset *dataset, size_t index);
   virtual aclTensorDesc *aclmdlGetDatasetTensorDesc(const aclmdlDataset *dataset, size_t index);
   virtual aclError aclmdlGetDesc(aclmdlDesc *modelDesc, uint32_t modelId);
-  virtual aclError aclmdlLoadFromMem(const void *model,  size_t modelSize, uint32_t *modelId);
+  virtual aclError aclmdlLoadFromMem(const void *model, size_t modelSize, uint32_t *modelId);
   virtual aclError aclmdlLoadWithConfig(const aclmdlConfigHandle *handle, uint32_t *modelId);
-  virtual aclError aclmdlSetConfigOpt(aclmdlConfigHandle *handle, aclmdlConfigAttr attr,
-                                    const void *attrValue, size_t valueSize);
-  virtual aclError aclmdlSetDatasetTensorDesc(aclmdlDataset *dataset,
-                                      aclTensorDesc *tensorDesc,
-                                      size_t index);
-  virtual aclError aclmdlSetExternalWeightAddress(aclmdlConfigHandle *handle, const char *weightFileName,
-                                          void *devPtr, size_t size);
+  virtual aclError aclmdlSetConfigOpt(aclmdlConfigHandle *handle, aclmdlConfigAttr attr, const void *attrValue,
+                                      size_t valueSize);
+  virtual aclError aclmdlSetDatasetTensorDesc(aclmdlDataset *dataset, aclTensorDesc *tensorDesc, size_t index);
+  virtual aclError aclmdlSetExternalWeightAddress(aclmdlConfigHandle *handle, const char *weightFileName, void *devPtr,
+                                                  size_t size);
   virtual aclError aclmdlUnload(uint32_t modelId);
   virtual aclError aclmdlDestroyConfigHandle(aclmdlConfigHandle *handle);
   virtual void aclDestroyTensorDesc(const aclTensorDesc *desc);
   virtual aclError aclDestroyDataBuffer(const aclDataBuffer *dataBuffer);
 
-private:
+ private:
   static std::mutex mutex_;
   static std::shared_ptr<AclApiStub> instance_;
   static thread_local AclApiStub *fake_instance_;
   std::mutex mtx_;
 };
-}
+}  // namespace ge
 
 #ifdef __cplusplus
 extern "C" {
@@ -272,4 +256,4 @@ extern std::string g_acl_stub_mock_v2;
 }
 #endif
 
-#endif // INC_EXTERNAL_ACL_ACL_RT_STUB_H_
+#endif  // INC_EXTERNAL_ACL_ACL_RT_STUB_H_

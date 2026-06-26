@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -40,15 +40,15 @@ namespace airut {
 
 class GraphBuilder {
  public:
-  explicit GraphBuilder(const std::string &name) { graph_ = std::make_shared<ComputeGraph>(name); }
+  explicit GraphBuilder(const std::string &name) {
+    graph_ = std::make_shared<ComputeGraph>(name);
+  }
   NodePtr AddNode(const std::string &name, const std::string &type, int in_cnt, int out_cnt,
                   Format format = FORMAT_NCHW, DataType data_type = DT_FLOAT,
                   std::vector<int64_t> shape = {1, 1, 224, 224});
-  NodePtr AddNode(const std::string &name, const std::string &type,
-                  std::initializer_list<std::string> input_names,
-                  std::initializer_list<std::string> output_names,
-                  Format format = FORMAT_NCHW, DataType data_type = DT_FLOAT,
-                  std::vector<int64_t> shape = {1, 1, 224, 224});
+  NodePtr AddNode(const std::string &name, const std::string &type, std::initializer_list<std::string> input_names,
+                  std::initializer_list<std::string> output_names, Format format = FORMAT_NCHW,
+                  DataType data_type = DT_FLOAT, std::vector<int64_t> shape = {1, 1, 224, 224});
   void AddDataEdge(const NodePtr &src_node, int src_idx, const NodePtr &dst_node, int dst_idx);
   void AddControlEdge(const NodePtr &src_node, const NodePtr &dst_node);
   ComputeGraphPtr GetGraph() {
@@ -101,7 +101,7 @@ NodePtr GraphBuilder::AddNode(const string &name, const string &type, std::initi
   for (auto &input_name : input_names) {
     op_desc->AddInputDesc(input_name, tensor_desc->Clone());
   }
-  for (auto &output_name :output_names) {
+  for (auto &output_name : output_names) {
     op_desc->AddOutputDesc(output_name, tensor_desc->Clone());
   }
 
@@ -122,7 +122,9 @@ GeTensorDescPtr CreateTensorDesc(std::initializer_list<int64_t> shape, Format fo
 
 class NodeBuilder {
  public:
-  NodeBuilder(const std::string &name, const std::string &type) { op_desc_ = std::make_shared<OpDesc>(name, type); }
+  NodeBuilder(const std::string &name, const std::string &type) {
+    op_desc_ = std::make_shared<OpDesc>(name, type);
+  }
 
   NodeBuilder &AddInputDesc(std::initializer_list<int64_t> shape = {1, 1, 224, 224}, Format format = FORMAT_NCHW,
                             DataType data_type = DT_FLOAT) {
@@ -151,18 +153,18 @@ class NodeBuilder {
 };
 
 /*                                  -------------------------
-*                                  |  partitioncall_0_const1* |
-*     partitioncall_0--------------|             |           |
-*           |                      |          netoutput      |
-*           |                      --------------------------
-*           |                       ------------------         -------------
-*           |                      |        data      |       |    data     |
-*           |                      |          |       |       |     |       |
-*     partitioncall_1--------------|        case -----|-------|   squeeze*  |
-*                                  |          |       |       |     |       |
-*                                  |      netoutput   |       |  netoutput  |
-*                                   ------------------         -------------
-*/
+ *                                  |  partitioncall_0_const1* |
+ *     partitioncall_0--------------|             |           |
+ *           |                      |          netoutput      |
+ *           |                      --------------------------
+ *           |                       ------------------         -------------
+ *           |                      |        data      |       |    data     |
+ *           |                      |          |       |       |     |       |
+ *     partitioncall_1--------------|        case -----|-------|   squeeze*  |
+ *                                  |          |       |       |     |       |
+ *                                  |      netoutput   |       |  netoutput  |
+ *                                   ------------------         -------------
+ */
 ComputeGraphPtr BuildGraphPartitionCall() {
   auto root_builder = airut::GraphBuilder("root");
   const auto &partitioncall_0 = root_builder.AddNode("partitioncall_0", PARTITIONEDCALL, 0, 1);
@@ -219,28 +221,28 @@ ComputeGraphPtr BuildGraphPartitionCall() {
 
 using namespace airut;
 class UtestGraphPartition : public testing::Test {
-  protected:
-    void SetUp() {
-     std::map<std::string, std::string> options;
-      EXPECT_EQ(ge::GELib::Initialize(options), SUCCESS);
-      auto ge_dev = GeRunningEnvFaker();
-      ge_dev.Reset()
-          .Install(FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE"))
-          .Install(FakeEngine("AIcoreEngine").KernelInfoStore("AIcoreEngine"))
-          .Install(FakeEngine("DNN_VM_RTS").KernelInfoStore("DNN_VM_RTS_OP_STORE"))
-          .Install(FakeOp(DATA).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-          .Install(FakeOp("FakeOpNpu").InfoStoreAndBuilder("AIcoreEngine"))
-          .Install(FakeOp("FakeOpRts").InfoStoreAndBuilder("DNN_VM_RTS_OP_STORE"))
-          .Install(FakeOp(NETOUTPUT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"));
-    }
+ protected:
+  void SetUp() {
+    std::map<std::string, std::string> options;
+    EXPECT_EQ(ge::GELib::Initialize(options), SUCCESS);
+    auto ge_dev = GeRunningEnvFaker();
+    ge_dev.Reset()
+        .Install(FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(FakeEngine("AIcoreEngine").KernelInfoStore("AIcoreEngine"))
+        .Install(FakeEngine("DNN_VM_RTS").KernelInfoStore("DNN_VM_RTS_OP_STORE"))
+        .Install(FakeOp(DATA).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(FakeOp("FakeOpNpu").InfoStoreAndBuilder("AIcoreEngine"))
+        .Install(FakeOp("FakeOpRts").InfoStoreAndBuilder("DNN_VM_RTS_OP_STORE"))
+        .Install(FakeOp(NETOUTPUT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"));
+  }
 
-    void TearDown() {
-      if (GELib::GetInstance() != nullptr) {
-        GELib::GetInstance()->Finalize();
-      }
-      auto ge_dev = GeRunningEnvFaker();
-      ge_dev.Reset();
+  void TearDown() {
+    if (GELib::GetInstance() != nullptr) {
+      GELib::GetInstance()->Finalize();
     }
+    auto ge_dev = GeRunningEnvFaker();
+    ge_dev.Reset();
+  }
 };
 
 TEST_F(UtestGraphPartition, check_if_end2pld_empty_test) {
@@ -250,11 +252,11 @@ TEST_F(UtestGraphPartition, check_if_end2pld_empty_test) {
   EnginePartitioner::GraphPartitionInfo graph_info;
   EXPECT_NE(EnginePartitioner.CheckValidIfEnd2PldEmpty(graph_info, graph), SUCCESS);
   ge::PartitionMap partitionMap;
-  partitionMap[graph] =  1;
+  partitionMap[graph] = 1;
   graph_info.partitions_ = partitionMap;
   EXPECT_NE(EnginePartitioner.CheckValidIfEnd2PldEmpty(graph_info, graph), SUCCESS);
   ge::PartitionMap partitionMap1;
-  partitionMap1[graph1] =  2;
+  partitionMap1[graph1] = 2;
   graph_info.partitions_ = partitionMap1;
   EXPECT_EQ(EnginePartitioner.CheckValidIfEnd2PldEmpty(graph_info, graph), SUCCESS);
 }
@@ -336,7 +338,7 @@ TEST_F(UtestGraphPartition, merge_overflow_attr) {
   EXPECT_NE(EnginePartitioner.MergeOverflowAttr(graph, graph1), SUCCESS);
   graph1 = std::make_shared<ComputeGraph>("default1");
   EXPECT_EQ(EnginePartitioner.MergeOverflowAttr(graph, graph1), SUCCESS);
-  
+
   EnginePartitioner.global_workspace_size_ = 1;
   EnginePartitioner.global_workspace_type_ = 0;
   AttrUtils::SetInt(graph, "globalworkspace_type", 0);
@@ -365,7 +367,7 @@ TEST_F(UtestGraphPartition, merge_after_sub_graph_optimization_test) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("default");
   ComputeGraphPtr graph1 = nullptr;
   EXPECT_NE(EnginePartitioner.MergeAfterSubGraphOptimization(graph, graph1), SUCCESS);
-  graph1 = std::make_shared<ComputeGraph>("default1"); 
+  graph1 = std::make_shared<ComputeGraph>("default1");
   EXPECT_EQ(EnginePartitioner.MergeAfterSubGraphOptimization(graph, graph1), SUCCESS);
 }
 
@@ -412,11 +414,10 @@ TEST_F(UtestGraphPartition, update_pld_op_desc_test) {
   EXPECT_EQ(EnginePartitioner.UpdatePldOpDesc(add_n_node, 1, add_n_node->GetOpDesc()), SUCCESS);
 }
 
-
 TEST_F(UtestGraphPartition, link_input2_end_remove_orginal_linktest) {
   EnginePartitioner EnginePartitioner;
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("default");
-  ComputeGraphPtr graph1 = nullptr;  
+  ComputeGraphPtr graph1 = nullptr;
   EXPECT_NE(EnginePartitioner.MergeAfterSubGraphOptimization(graph, graph1), SUCCESS);
   graph1 = std::make_shared<ComputeGraph>("default1");
   NodePtr node1 =
@@ -434,12 +435,12 @@ TEST_F(UtestGraphPartition, link_input2_end_remove_orginal_linktest) {
   EXPECT_EQ(EnginePartitioner.LinkInput2EndRemoveOrginalLink(add_n_node, graph, graph1), SUCCESS);
 }
 
-
 TEST_F(UtestGraphPartition, put_input_nodes_in_sub_graph_test) {
   EnginePartitioner EnginePartitioner;
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("default");
   ComputeGraphPtr graph1 = nullptr;
-  EXPECT_NE(EnginePartitioner.PutInputNodesInSubGraph(graph, graph1), SUCCESS);  ;
+  EXPECT_NE(EnginePartitioner.PutInputNodesInSubGraph(graph, graph1), SUCCESS);
+  ;
   graph1 = std::make_shared<ComputeGraph>("default1");
   EXPECT_EQ(EnginePartitioner.PutInputNodesInSubGraph(graph, graph1), SUCCESS);
 }
@@ -477,17 +478,17 @@ TEST_F(UtestGraphPartition, add_place_holder_end_test) {
   ASSERT_NE(ret, SUCCESS);
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("default");
   ge::NodePtr aipp1 = NodeBuilder("aipp1", AIPP)
-                  .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
-                  .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
-                  .Build(graph);
+                          .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
+                          .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
+                          .Build(graph);
   ge::NodePtr data1 = NodeBuilder("data1", DATA)
-                  .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
-                  .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
-                  .Build(graph);
+                          .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
+                          .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
+                          .Build(graph);
   OutDataAnchorPtr outptr = std::make_shared<OutDataAnchor>(aipp1, 0);
   OutDataAnchorPtr inptr = std::make_shared<OutDataAnchor>(data1, 0);
   ret = EnginePartitioner.AddPlaceHolderEnd(outptr->GetFirstPeerAnchor(), inptr->GetFirstPeerAnchor());
-  ASSERT_NE(ret, SUCCESS);  
+  ASSERT_NE(ret, SUCCESS);
 }
 
 TEST_F(UtestGraphPartition, sort_sub_graphs_test) {
@@ -534,43 +535,21 @@ TEST_F(UtestGraphPartition, partition_with_empty_graph) {
   ASSERT_NE(ret, SUCCESS);
 }
 
-TEST_F(UtestGraphPartition, partition_with_graph)
-{
+TEST_F(UtestGraphPartition, partition_with_graph) {
   DEF_GRAPH(graph) {
-    auto data_0 = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto data_0 = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op1 = OP_CFG("FakeOpNpu")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op1 = OP_CFG("FakeOpNpu").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op2 = OP_CFG("FakeOpNpu")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op2 = OP_CFG("FakeOpNpu").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op3 = OP_CFG("FakeOpRts")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op3 = OP_CFG("FakeOpRts").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op4 = OP_CFG("FakeOpRts")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op4 = OP_CFG("FakeOpRts").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op5 = OP_CFG("FakeOpRts")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op5 = OP_CFG("FakeOpRts").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {-1});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {-1});
 
     CHAIN(NODE("_arg_0", data_0)
               ->NODE("fused_op1", fake_type2_op1)
@@ -581,7 +560,7 @@ TEST_F(UtestGraphPartition, partition_with_graph)
               ->NODE("Node_Output", net_output));
   };
   auto root_graph = ToComputeGraph(graph);
-  (void) AttrUtils::SetStr(*root_graph, ATTR_NAME_SESSION_GRAPH_ID, "0");
+  (void)AttrUtils::SetStr(*root_graph, ATTR_NAME_SESSION_GRAPH_ID, "0");
   map<string, string> options;
   EXPECT_EQ(ge::GELib::Initialize(options), SUCCESS);
   EnginePartitioner EnginePartitioner;
@@ -619,7 +598,7 @@ TEST_F(UtestGraphPartition, second_partition_graph_with_user_stream_label) {
   graph_builder.AddDataEdge(fake_type2_op5, 0, net_output, 0);
 
   auto root_graph = graph_builder.GetGraph();
-  (void) AttrUtils::SetStr(*root_graph, ATTR_NAME_SESSION_GRAPH_ID, "0");
+  (void)AttrUtils::SetStr(*root_graph, ATTR_NAME_SESSION_GRAPH_ID, "0");
   map<string, string> options;
   EXPECT_EQ(ge::GELib::Initialize(options), SUCCESS);
   EnginePartitioner EnginePartitioner;
@@ -638,76 +617,45 @@ TEST_F(UtestGraphPartition, second_partition_graph_with_user_stream_label) {
 
 TEST_F(UtestGraphPartition, partition_with_graph_stable_topo_bfs) {
   DEF_GRAPH(graph) {
-    auto data_0 = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto data_0 = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op1 = OP_CFG("FakeOpNpu")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op1 = OP_CFG("FakeOpNpu").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op2 = OP_CFG("FakeOpNpu")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op2 = OP_CFG("FakeOpNpu").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op3 = OP_CFG("FakeOpRts")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op3 = OP_CFG("FakeOpRts").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op4 = OP_CFG("FakeOpNpu")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op4 = OP_CFG("FakeOpNpu").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto data_1 = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto data_1 = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op5 = OP_CFG("FakeOpRts")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op5 = OP_CFG("FakeOpRts").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op6 = OP_CFG("FakeOpRts")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op6 = OP_CFG("FakeOpRts").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op7 = OP_CFG("FakeOpNpu")
-        .InCnt(2)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op7 = OP_CFG("FakeOpNpu").InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op8 = OP_CFG("FakeOpNpu")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op8 = OP_CFG("FakeOpNpu").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {-1});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {-1});
 
     CHAIN(NODE("_arg_0", data_0)
               ->NODE("fused_op1", fake_type2_op1)
               ->NODE("fused_op2", fake_type2_op2)
               ->NODE("fused_op3", fake_type2_op3)
               ->NODE("fused_op4", fake_type2_op4)
-              ->EDGE(0, 0)->NODE("fused_op7", fake_type2_op7)
+              ->EDGE(0, 0)
+              ->NODE("fused_op7", fake_type2_op7)
               ->NODE("fused_op8", fake_type2_op8)
               ->NODE("Node_Output", net_output));
     CHAIN(NODE("_arg_1", data_1)
               ->NODE("fused_op5", fake_type2_op5)
               ->NODE("fused_op6", fake_type2_op6)
-              ->EDGE(0, 1)->NODE("fused_op7"));
+              ->EDGE(0, 1)
+              ->NODE("fused_op7"));
   };
   auto root_graph = ToComputeGraph(graph);
-  (void) AttrUtils::SetStr(*root_graph, ATTR_NAME_SESSION_GRAPH_ID, "0");
+  (void)AttrUtils::SetStr(*root_graph, ATTR_NAME_SESSION_GRAPH_ID, "0");
   map<string, string> options = {};
   EXPECT_EQ(ge::GELib::Initialize(options), SUCCESS);
   EnginePartitioner EnginePartitioner;
@@ -726,8 +674,7 @@ TEST_F(UtestGraphPartition, partition_with_graph_stable_topo_bfs) {
       {"partition0_rank3_new_sub_graph3", {"fused_op4"}},
       {"partition0_rank4_new_sub_graph5", {"fused_op5", "fused_op6"}},
       {"partition0_rank5_new_sub_graph6", {"fused_op7", "fused_op8"}},
-      {"partition0_rank6_new_sub_graph7", {}}
-  };
+      {"partition0_rank6_new_sub_graph7", {}}};
   ASSERT_EQ(EnginePartitioner.Partition(root_graph, mode), SUCCESS);
   EXPECT_EQ(EnginePartitioner.GetSubGraphMap().begin()->second.size(), 6);
   for (const auto &sub_info : EnginePartitioner.GetSubGraphMap().begin()->second) {
@@ -739,7 +686,7 @@ TEST_F(UtestGraphPartition, partition_with_graph_stable_topo_bfs) {
       if (sub_node->GetType() != PLACEHOLDER && sub_node->GetType() != END && sub_node->GetType() != NETOUTPUT) {
         subgraph_node_num++;
         EXPECT_NE(subgraph_to_node[subgraph->GetName()].find(sub_node->GetName()),
-            subgraph_to_node[subgraph->GetName()].end());
+                  subgraph_to_node[subgraph->GetName()].end());
       }
     }
     EXPECT_EQ(subgraph_node_num, subgraph_to_node[subgraph->GetName()].size());
@@ -753,76 +700,41 @@ TEST_F(UtestGraphPartition, partition_with_graph_stable_topo_bfs) {
 
 TEST_F(UtestGraphPartition, partition_with_graph_stable_topo_bfs2) {
   DEF_GRAPH(graph) {
-    auto data_0 = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto data_0 = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto data_1 = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto data_1 = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto data_2 = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto data_2 = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op1 = OP_CFG("FakeOpNpu")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op1 = OP_CFG("FakeOpNpu").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op2 = OP_CFG("FakeOpNpu")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op2 = OP_CFG("FakeOpNpu").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op3 = OP_CFG("FakeOpNpu")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op3 = OP_CFG("FakeOpNpu").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op4 = OP_CFG("FakeOpNpu")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op4 = OP_CFG("FakeOpNpu").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op5 = OP_CFG("FakeOpNpu")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op5 = OP_CFG("FakeOpNpu").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op6 = OP_CFG("FakeOpNpu")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op6 = OP_CFG("FakeOpNpu").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op7 = OP_CFG("FakeOpNpu")
-        .InCnt(3)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op7 = OP_CFG("FakeOpNpu").InCnt(3).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {-1});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {-1});
 
-    CHAIN(NODE("_arg_0", data_0)
-          ->NODE("fused_op1", fake_type2_op1));
-    CHAIN(NODE("_arg_1", data_1)
-          ->NODE("fused_op2", fake_type2_op2));
-    CHAIN(NODE("_arg_2", data_2)
-          ->NODE("fused_op3", fake_type2_op3));
-    CHAIN(NODE("fused_op1")->NODE("fused_op4", fake_type2_op4)
-          ->EDGE(0, 0)->NODE("fused_op7", fake_type2_op7)->NODE("Node_Output", net_output));
-    CHAIN(NODE("fused_op2")->NODE("fused_op5", fake_type2_op5)
-          ->EDGE(0, 1)->NODE("fused_op7"));
-    CHAIN(NODE("fused_op3")->NODE("fused_op6", fake_type2_op6)
-          ->EDGE(0, 2)->NODE("fused_op7"));
+    CHAIN(NODE("_arg_0", data_0)->NODE("fused_op1", fake_type2_op1));
+    CHAIN(NODE("_arg_1", data_1)->NODE("fused_op2", fake_type2_op2));
+    CHAIN(NODE("_arg_2", data_2)->NODE("fused_op3", fake_type2_op3));
+    CHAIN(NODE("fused_op1")
+              ->NODE("fused_op4", fake_type2_op4)
+              ->EDGE(0, 0)
+              ->NODE("fused_op7", fake_type2_op7)
+              ->NODE("Node_Output", net_output));
+    CHAIN(NODE("fused_op2")->NODE("fused_op5", fake_type2_op5)->EDGE(0, 1)->NODE("fused_op7"));
+    CHAIN(NODE("fused_op3")->NODE("fused_op6", fake_type2_op6)->EDGE(0, 2)->NODE("fused_op7"));
   };
   auto root_graph = ToComputeGraph(graph);
-  (void) AttrUtils::SetStr(*root_graph, ATTR_NAME_SESSION_GRAPH_ID, "0");
+  (void)AttrUtils::SetStr(*root_graph, ATTR_NAME_SESSION_GRAPH_ID, "0");
   map<string, string> options = {};
   EXPECT_EQ(ge::GELib::Initialize(options), SUCCESS);
   EnginePartitioner EnginePartitioner;
@@ -838,9 +750,8 @@ TEST_F(UtestGraphPartition, partition_with_graph_stable_topo_bfs2) {
   ASSERT_EQ(EnginePartitioner.Partition(root_graph, mode), SUCCESS);
   std::map<std::string, std::set<std::string>> subgraph_to_node = {
       {"partition1_rank1_new_sub_graph1",
-          {"fused_op1", "fused_op2", "fused_op3", "fused_op4", "fused_op5", "fused_op6", "fused_op7"}},
-      {"partition1_rank2_new_sub_graph4", {}}
-  };
+       {"fused_op1", "fused_op2", "fused_op3", "fused_op4", "fused_op5", "fused_op6", "fused_op7"}},
+      {"partition1_rank2_new_sub_graph4", {}}};
   ASSERT_EQ(EnginePartitioner.Partition(root_graph, mode), SUCCESS);
   EXPECT_EQ(EnginePartitioner.GetSubGraphMap().begin()->second.size(), 2);
   for (const auto &sub_info : EnginePartitioner.GetSubGraphMap().begin()->second) {
@@ -852,7 +763,7 @@ TEST_F(UtestGraphPartition, partition_with_graph_stable_topo_bfs2) {
       if (sub_node->GetType() != PLACEHOLDER && sub_node->GetType() != END && sub_node->GetType() != NETOUTPUT) {
         subgraph_node_num++;
         EXPECT_NE(subgraph_to_node[subgraph->GetName()].find(sub_node->GetName()),
-            subgraph_to_node[subgraph->GetName()].end());
+                  subgraph_to_node[subgraph->GetName()].end());
       }
     }
     EXPECT_EQ(subgraph_node_num, subgraph_to_node[subgraph->GetName()].size());
@@ -866,76 +777,41 @@ TEST_F(UtestGraphPartition, partition_with_graph_stable_topo_bfs2) {
 
 TEST_F(UtestGraphPartition, partition_with_graph_stable_topo_dfs) {
   DEF_GRAPH(graph) {
-    auto data_0 = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto data_0 = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto data_1 = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto data_1 = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto data_2 = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto data_2 = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op1 = OP_CFG("FakeOpNpu")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op1 = OP_CFG("FakeOpNpu").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op2 = OP_CFG("FakeOpNpu")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op2 = OP_CFG("FakeOpNpu").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op3 = OP_CFG("FakeOpNpu")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op3 = OP_CFG("FakeOpNpu").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op4 = OP_CFG("FakeOpNpu")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op4 = OP_CFG("FakeOpNpu").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op5 = OP_CFG("FakeOpNpu")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op5 = OP_CFG("FakeOpNpu").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op6 = OP_CFG("FakeOpNpu")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op6 = OP_CFG("FakeOpNpu").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op7 = OP_CFG("FakeOpNpu")
-        .InCnt(3)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op7 = OP_CFG("FakeOpNpu").InCnt(3).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {-1});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {-1});
 
-    CHAIN(NODE("_arg_0", data_0)
-          ->NODE("fused_op1", fake_type2_op1));
-    CHAIN(NODE("_arg_1", data_1)
-          ->NODE("fused_op2", fake_type2_op2));
-    CHAIN(NODE("_arg_2", data_2)
-          ->NODE("fused_op3", fake_type2_op3));
-    CHAIN(NODE("fused_op1")->NODE("fused_op4", fake_type2_op4)
-          ->EDGE(0, 0)->NODE("fused_op7", fake_type2_op7)->NODE("Node_Output", net_output));
-    CHAIN(NODE("fused_op2")->NODE("fused_op5", fake_type2_op5)
-          ->EDGE(0, 1)->NODE("fused_op7"));
-    CHAIN(NODE("fused_op3")->NODE("fused_op6", fake_type2_op6)
-          ->EDGE(0, 2)->NODE("fused_op7"));
+    CHAIN(NODE("_arg_0", data_0)->NODE("fused_op1", fake_type2_op1));
+    CHAIN(NODE("_arg_1", data_1)->NODE("fused_op2", fake_type2_op2));
+    CHAIN(NODE("_arg_2", data_2)->NODE("fused_op3", fake_type2_op3));
+    CHAIN(NODE("fused_op1")
+              ->NODE("fused_op4", fake_type2_op4)
+              ->EDGE(0, 0)
+              ->NODE("fused_op7", fake_type2_op7)
+              ->NODE("Node_Output", net_output));
+    CHAIN(NODE("fused_op2")->NODE("fused_op5", fake_type2_op5)->EDGE(0, 1)->NODE("fused_op7"));
+    CHAIN(NODE("fused_op3")->NODE("fused_op6", fake_type2_op6)->EDGE(0, 2)->NODE("fused_op7"));
   };
   auto root_graph = ToComputeGraph(graph);
-  (void) AttrUtils::SetStr(*root_graph, ATTR_NAME_SESSION_GRAPH_ID, "0");
+  (void)AttrUtils::SetStr(*root_graph, ATTR_NAME_SESSION_GRAPH_ID, "0");
   map<string, string> options = {};
   EXPECT_EQ(ge::GELib::Initialize(options), SUCCESS);
   EnginePartitioner EnginePartitioner;
@@ -951,9 +827,8 @@ TEST_F(UtestGraphPartition, partition_with_graph_stable_topo_dfs) {
   ASSERT_EQ(EnginePartitioner.Partition(root_graph, mode), SUCCESS);
   std::map<std::string, std::set<std::string>> subgraph_to_node = {
       {"partition1_rank1_new_sub_graph1",
-          {"fused_op1", "fused_op2", "fused_op3", "fused_op4", "fused_op5", "fused_op6", "fused_op7"}},
-      {"partition1_rank2_new_sub_graph4", {}}
-  };
+       {"fused_op1", "fused_op2", "fused_op3", "fused_op4", "fused_op5", "fused_op6", "fused_op7"}},
+      {"partition1_rank2_new_sub_graph4", {}}};
   ASSERT_EQ(EnginePartitioner.Partition(root_graph, mode), SUCCESS);
   EXPECT_EQ(EnginePartitioner.GetSubGraphMap().begin()->second.size(), 2);
   for (const auto &sub_info : EnginePartitioner.GetSubGraphMap().begin()->second) {
@@ -965,7 +840,7 @@ TEST_F(UtestGraphPartition, partition_with_graph_stable_topo_dfs) {
       if (sub_node->GetType() != PLACEHOLDER && sub_node->GetType() != END && sub_node->GetType() != NETOUTPUT) {
         subgraph_node_num++;
         EXPECT_NE(subgraph_to_node[subgraph->GetName()].find(sub_node->GetName()),
-            subgraph_to_node[subgraph->GetName()].end());
+                  subgraph_to_node[subgraph->GetName()].end());
       }
     }
     EXPECT_EQ(subgraph_node_num, subgraph_to_node[subgraph->GetName()].size());
@@ -979,76 +854,41 @@ TEST_F(UtestGraphPartition, partition_with_graph_stable_topo_dfs) {
 
 TEST_F(UtestGraphPartition, partition_with_graph_stable_topo_rdfs) {
   DEF_GRAPH(graph) {
-    auto data_0 = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto data_0 = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto data_1 = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto data_1 = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto data_2 = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto data_2 = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op1 = OP_CFG("FakeOpNpu")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op1 = OP_CFG("FakeOpNpu").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op2 = OP_CFG("FakeOpNpu")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op2 = OP_CFG("FakeOpNpu").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op3 = OP_CFG("FakeOpNpu")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op3 = OP_CFG("FakeOpNpu").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op4 = OP_CFG("FakeOpNpu")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op4 = OP_CFG("FakeOpNpu").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op5 = OP_CFG("FakeOpNpu")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op5 = OP_CFG("FakeOpNpu").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op6 = OP_CFG("FakeOpNpu")
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op6 = OP_CFG("FakeOpNpu").InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto fake_type2_op7 = OP_CFG("FakeOpNpu")
-        .InCnt(3)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto fake_type2_op7 = OP_CFG("FakeOpNpu").InCnt(3).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {-1});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {-1});
 
-    CHAIN(NODE("_arg_0", data_0)
-          ->NODE("fused_op1", fake_type2_op1));
-    CHAIN(NODE("_arg_1", data_1)
-          ->NODE("fused_op2", fake_type2_op2));
-    CHAIN(NODE("_arg_2", data_2)
-          ->NODE("fused_op3", fake_type2_op3));
-    CHAIN(NODE("fused_op1")->NODE("fused_op4", fake_type2_op4)
-          ->EDGE(0, 0)->NODE("fused_op7", fake_type2_op7)->NODE("Node_Output", net_output));
-    CHAIN(NODE("fused_op2")->NODE("fused_op5", fake_type2_op5)
-          ->EDGE(0, 1)->NODE("fused_op7"));
-    CHAIN(NODE("fused_op3")->NODE("fused_op6", fake_type2_op6)
-          ->EDGE(0, 2)->NODE("fused_op7"));
+    CHAIN(NODE("_arg_0", data_0)->NODE("fused_op1", fake_type2_op1));
+    CHAIN(NODE("_arg_1", data_1)->NODE("fused_op2", fake_type2_op2));
+    CHAIN(NODE("_arg_2", data_2)->NODE("fused_op3", fake_type2_op3));
+    CHAIN(NODE("fused_op1")
+              ->NODE("fused_op4", fake_type2_op4)
+              ->EDGE(0, 0)
+              ->NODE("fused_op7", fake_type2_op7)
+              ->NODE("Node_Output", net_output));
+    CHAIN(NODE("fused_op2")->NODE("fused_op5", fake_type2_op5)->EDGE(0, 1)->NODE("fused_op7"));
+    CHAIN(NODE("fused_op3")->NODE("fused_op6", fake_type2_op6)->EDGE(0, 2)->NODE("fused_op7"));
   };
   auto root_graph = ToComputeGraph(graph);
-  (void) AttrUtils::SetStr(*root_graph, ATTR_NAME_SESSION_GRAPH_ID, "0");
+  (void)AttrUtils::SetStr(*root_graph, ATTR_NAME_SESSION_GRAPH_ID, "0");
   map<string, string> options = {};
   EXPECT_EQ(ge::GELib::Initialize(options), SUCCESS);
   EnginePartitioner EnginePartitioner;
@@ -1064,9 +904,8 @@ TEST_F(UtestGraphPartition, partition_with_graph_stable_topo_rdfs) {
   ASSERT_EQ(EnginePartitioner.Partition(root_graph, mode), SUCCESS);
   std::map<std::string, std::set<std::string>> subgraph_to_node = {
       {"partition1_rank1_new_sub_graph1",
-          {"fused_op1", "fused_op2", "fused_op3", "fused_op4", "fused_op5", "fused_op6", "fused_op7"}},
-      {"partition1_rank2_new_sub_graph4", {}}
-  };
+       {"fused_op1", "fused_op2", "fused_op3", "fused_op4", "fused_op5", "fused_op6", "fused_op7"}},
+      {"partition1_rank2_new_sub_graph4", {}}};
   ASSERT_EQ(EnginePartitioner.Partition(root_graph, mode), SUCCESS);
   EXPECT_EQ(EnginePartitioner.GetSubGraphMap().begin()->second.size(), 2);
   for (const auto &sub_info : EnginePartitioner.GetSubGraphMap().begin()->second) {
@@ -1078,7 +917,7 @@ TEST_F(UtestGraphPartition, partition_with_graph_stable_topo_rdfs) {
       if (sub_node->GetType() != PLACEHOLDER && sub_node->GetType() != END && sub_node->GetType() != NETOUTPUT) {
         subgraph_node_num++;
         EXPECT_NE(subgraph_to_node[subgraph->GetName()].find(sub_node->GetName()),
-            subgraph_to_node[subgraph->GetName()].end());
+                  subgraph_to_node[subgraph->GetName()].end());
       }
     }
     EXPECT_EQ(subgraph_node_num, subgraph_to_node[subgraph->GetName()].size());
@@ -1155,7 +994,7 @@ TEST_F(UtestGraphPartition, partition_sub_graph_test_second_path) {
     CHAIN(NODE("fused_op1")->NODE("fused_op3"));
   };
   auto root_graph = ToComputeGraph(graph);
-  (void) AttrUtils::SetStr(*root_graph, ATTR_NAME_SESSION_GRAPH_ID, "0");
+  (void)AttrUtils::SetStr(*root_graph, ATTR_NAME_SESSION_GRAPH_ID, "0");
   map<string, string> options;
   EXPECT_EQ(ge::GELib::Initialize(options), SUCCESS);
   EnginePartitioner EnginePartitioner;
@@ -1193,10 +1032,8 @@ TEST_F(UtestGraphPartition, HasNoInput) {
 TEST_F(UtestGraphPartition, DataShouldClearUserStreamLabel) {
   EnginePartitioner EnginePartitioner;
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("default");
-  NodePtr data =
-      NodeBuilder("data", DATA).AddInputDesc({1, 1, 224, 224}).AddOutputDesc({1, 1, 224, 224}).Build(graph);
-  NodePtr relu =
-      NodeBuilder("relu", RELU).AddInputDesc({1, 1, 224, 224}).AddOutputDesc({1, 1, 224, 224}).Build(graph);
+  NodePtr data = NodeBuilder("data", DATA).AddInputDesc({1, 1, 224, 224}).AddOutputDesc({1, 1, 224, 224}).Build(graph);
+  NodePtr relu = NodeBuilder("relu", RELU).AddInputDesc({1, 1, 224, 224}).AddOutputDesc({1, 1, 224, 224}).Build(graph);
   NodePtr netoutput =
       NodeBuilder("netoutput", NETOUTPUT).AddInputDesc({1, 1, 224, 224}).AddOutputDesc({1, 1, 224, 224}).Build(graph);
   GraphUtils::AddEdge(data->GetOutDataAnchor(0), relu->GetInDataAnchor(0));
@@ -1211,4 +1048,4 @@ TEST_F(UtestGraphPartition, DataShouldClearUserStreamLabel) {
   AttrUtils::GetStr(data->GetOpDesc(), public_attr::USER_STREAM_LABEL, user_stream_label);
   EXPECT_TRUE(user_stream_label.empty());
 }
-} // namespace ge
+}  // namespace ge

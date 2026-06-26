@@ -105,8 +105,8 @@ static bool IsValidSocVersion(const std::string &socVersion) {
     return false;
   }
   for (const char ch : socVersion) {
-    if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9') || ch == '_' ||
-        ch == '.' || ch == '-') {
+    if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9') || ch == '_' || ch == '.' ||
+        ch == '-') {
       continue;
     }
     return false;
@@ -127,9 +127,7 @@ static bool CompileSingleOpOm() {
   }
 
   std::stringstream command;
-  command << "atc --singleop=" << kJsonPath
-          << " --soc_version=" << soc
-          << " --op_select_implmode=high_precision"
+  command << "atc --singleop=" << kJsonPath << " --soc_version=" << soc << " --op_select_implmode=high_precision"
           << " --precision_mode=must_keep_origin_dtype"
           << " --output=" << kModelDir;
   std::cout << "[INFO] " << command.str() << std::endl;
@@ -169,13 +167,10 @@ static void FreeDeviceMem(void *&devPtr) {
   }
 }
 
-static bool RunAclblasGemm(aclrtStream stream, 
-                           const std::vector<uint16_t> &hostA, 
-                           const std::vector<uint16_t> &hostB, 
-                           const std::vector<uint16_t> &hostC,
-                           std::vector<uint16_t> &result) {
+static bool RunAclblasGemm(aclrtStream stream, const std::vector<uint16_t> &hostA, const std::vector<uint16_t> &hostB,
+                           const std::vector<uint16_t> &hostC, std::vector<uint16_t> &result) {
   std::cout << "[INFO] Running ACLBLAS GEMM..." << std::endl;
-  
+
   void *devA = nullptr;
   void *devB = nullptr;
   void *devC = nullptr;
@@ -210,12 +205,10 @@ static bool RunAclblasGemm(aclrtStream stream,
       break;
     }
 
-    ok = CheckAcl(aclblasGemmEx(ACL_TRANS_N, ACL_TRANS_N, ACL_TRANS_N, kM, kN, kK,
-                                devAlpha, devA, -1, ACL_FLOAT16,
-                                devB, -1, ACL_FLOAT16,
-                                devBeta, devC, -1, ACL_FLOAT16,
-                                ACL_COMPUTE_HIGH_PRECISION, stream),
-                  "aclblasGemmEx");
+    ok =
+        CheckAcl(aclblasGemmEx(ACL_TRANS_N, ACL_TRANS_N, ACL_TRANS_N, kM, kN, kK, devAlpha, devA, -1, ACL_FLOAT16, devB,
+                               -1, ACL_FLOAT16, devBeta, devC, -1, ACL_FLOAT16, ACL_COMPUTE_HIGH_PRECISION, stream),
+                 "aclblasGemmEx");
     if (!ok) {
       break;
     }
@@ -225,8 +218,7 @@ static bool RunAclblasGemm(aclrtStream stream,
       break;
     }
 
-    ok = CheckAcl(aclrtMemcpy(result.data(), bytesC, devC, bytesC, ACL_MEMCPY_DEVICE_TO_HOST),
-                  "aclrtMemcpy result");
+    ok = CheckAcl(aclrtMemcpy(result.data(), bytesC, devC, bytesC, ACL_MEMCPY_DEVICE_TO_HOST), "aclrtMemcpy result");
   } while (0);
 
   FreeDeviceMem(devA);
@@ -251,13 +243,10 @@ static void DestroyTensorDesc(aclTensorDesc *&desc) {
   }
 }
 
-static bool RunAclopGemm(aclrtStream stream, 
-                         const std::vector<uint16_t> &hostA, 
-                         const std::vector<uint16_t> &hostB, 
-                         const std::vector<uint16_t> &hostC,
-                         std::vector<uint16_t> &result) {
+static bool RunAclopGemm(aclrtStream stream, const std::vector<uint16_t> &hostA, const std::vector<uint16_t> &hostB,
+                         const std::vector<uint16_t> &hostC, std::vector<uint16_t> &result) {
   std::cout << "[INFO] Running ACLOP GEMM..." << std::endl;
-  
+
   void *devA = nullptr;
   void *devB = nullptr;
   void *devC = nullptr;
@@ -355,8 +344,7 @@ static bool RunAclopGemm(aclrtStream stream,
       break;
     }
 
-    ok = CheckAcl(aclrtMemcpy(result.data(), bytesC, devC, bytesC, ACL_MEMCPY_DEVICE_TO_HOST),
-                  "aclrtMemcpy result");
+    ok = CheckAcl(aclrtMemcpy(result.data(), bytesC, devC, bytesC, ACL_MEMCPY_DEVICE_TO_HOST), "aclrtMemcpy result");
   } while (0);
 
   if (attr != nullptr) {
@@ -401,13 +389,10 @@ static void DestroyExecutor(aclOpExecutor *&executor) {
   }
 }
 
-static bool RunAclnnGemm(aclrtStream stream, 
-                         const std::vector<uint16_t> &hostA, 
-                         const std::vector<uint16_t> &hostB, 
-                         const std::vector<uint16_t> &hostC,
-                         std::vector<uint16_t> &result) {
+static bool RunAclnnGemm(aclrtStream stream, const std::vector<uint16_t> &hostA, const std::vector<uint16_t> &hostB,
+                         const std::vector<uint16_t> &hostC, std::vector<uint16_t> &result) {
   std::cout << "[INFO] Running ACLNN GEMM..." << std::endl;
-  
+
   void *devA = nullptr;
   void *devB = nullptr;
   void *devC = nullptr;
@@ -468,8 +453,10 @@ static bool RunAclnnGemm(aclrtStream stream,
     tensorB = aclCreateTensor(shapeB, kNumDims, ACL_FLOAT16, stride, 0, ACL_FORMAT_ND, shapeB, kNumDims, devB);
     tensorC = aclCreateTensor(shapeC, kNumDims, ACL_FLOAT16, stride, 0, ACL_FORMAT_ND, shapeC, kNumDims, devC);
     tensorOut = aclCreateTensor(shapeC, kNumDims, ACL_FLOAT16, stride, 0, ACL_FORMAT_ND, shapeC, kNumDims, devOut);
-    tensorMulAlpha = aclCreateTensor(shapeC, kNumDims, ACL_FLOAT16, stride, 0, ACL_FORMAT_ND, shapeC, kNumDims, devMulAlpha);
-    tensorMulBeta = aclCreateTensor(shapeC, kNumDims, ACL_FLOAT16, stride, 0, ACL_FORMAT_ND, shapeC, kNumDims, devMulBeta);
+    tensorMulAlpha =
+        aclCreateTensor(shapeC, kNumDims, ACL_FLOAT16, stride, 0, ACL_FORMAT_ND, shapeC, kNumDims, devMulAlpha);
+    tensorMulBeta =
+        aclCreateTensor(shapeC, kNumDims, ACL_FLOAT16, stride, 0, ACL_FORMAT_ND, shapeC, kNumDims, devMulBeta);
     if (tensorA == nullptr || tensorB == nullptr || tensorC == nullptr || tensorOut == nullptr ||
         tensorMulAlpha == nullptr || tensorMulBeta == nullptr) {
       std::cerr << "[ERROR] aclCreateTensor failed" << std::endl;
@@ -545,31 +532,29 @@ static bool RunAclnnGemm(aclrtStream stream,
   return ok;
 }
 
-static bool CompareResults(const std::vector<uint16_t> &r1, 
-                           const std::vector<uint16_t> &r2, 
-                           const std::vector<uint16_t> &r3,
-                           float &max_error) {
+static bool CompareResults(const std::vector<uint16_t> &r1, const std::vector<uint16_t> &r2,
+                           const std::vector<uint16_t> &r3, float &max_error) {
   std::cout << "[INFO] Comparing results..." << std::endl;
-  
+
   max_error = 0.0f;
   for (size_t i = 0; i < r1.size(); ++i) {
     const float v1 = aclFloat16ToFloat(r1[i]);
     const float v2 = aclFloat16ToFloat(r2[i]);
     const float v3 = aclFloat16ToFloat(r3[i]);
-    
+
     const float err12 = std::abs(v1 - v2);
     const float err13 = std::abs(v1 - v3);
     const float err23 = std::abs(v2 - v3);
-    
+
     max_error = std::max(max_error, std::max(err12, std::max(err13, err23)));
   }
-  
+
   return max_error == 0.0f;
 }
 
 int main() {
   std::cout << "[INFO] ACL GEMM sample starts" << std::endl;
-  
+
   if (!CompileSingleOpOm()) {
     return 1;
   }

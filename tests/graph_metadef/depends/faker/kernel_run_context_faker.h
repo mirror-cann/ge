@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,9 +25,9 @@
 
 namespace gert {
 struct FakeKernelContextHolder {
-  template<typename T>
+  template <typename T>
   T *GetContext() {
-    return reinterpret_cast<T*>(holder.context_);
+    return reinterpret_cast<T *>(holder.context_);
   }
   ComputeNodeInfo *MutableComputeNodeInfo() {
     return reinterpret_cast<ComputeNodeInfo *>(holder.compute_node_extend_holder_.get());
@@ -145,12 +145,12 @@ class InferShapeRangeContextFaker {
     return *this;
   }
   InferShapeRangeContextFaker &NodeInputTd(int32_t index, ge::DataType dt, ge::Format origin_format,
-                                      ge::Format storage_format) {
+                                           ge::Format storage_format) {
     base_faker_.NodeInputTd(index, dt, origin_format, storage_format);
     return *this;
   }
   InferShapeRangeContextFaker &NodeOutputTd(int32_t index, ge::DataType dt, ge::Format origin_format,
-                                       ge::Format storage_format) {
+                                            ge::Format storage_format) {
     base_faker_.NodeOutputTd(index, dt, origin_format, storage_format);
     return *this;
   }
@@ -183,12 +183,12 @@ class InferDataTypeContextFaker {
     return *this;
   }
   InferDataTypeContextFaker &NodeInputTd(int32_t index, ge::DataType dt, ge::Format origin_format,
-                                      ge::Format storage_format) {
+                                         ge::Format storage_format) {
     base_faker_.NodeInputTd(index, dt, origin_format, storage_format);
     return *this;
   }
   InferDataTypeContextFaker &NodeOutputTd(int32_t index, ge::DataType dt, ge::Format origin_format,
-                                       ge::Format storage_format) {
+                                          ge::Format storage_format) {
     base_faker_.NodeOutputTd(index, dt, origin_format, storage_format);
     return *this;
   }
@@ -253,7 +253,7 @@ class TilingContextFaker {
   KernelRunContextFaker base_faker_;
   std::vector<gert::StorageShape *> input_shapes_;
   std::vector<gert::StorageShape *> output_shapes_;
-  std::vector<void *> outputs_ {TilingContext::kOutputNum};
+  std::vector<void *> outputs_{TilingContext::kOutputNum};
 
   void *compile_info_;
   void *platform_info_;
@@ -274,13 +274,13 @@ class OpExecuteContextFaker {
     base_faker_.IrOutputInstanceNum(std::move(output_instance_num));
     return *this;
   }
-  OpExecuteContextFaker &NodeInputTd(int32_t index, ge::DataType dt,
-      ge::Format origin_format, ge::Format storage_format) {
+  OpExecuteContextFaker &NodeInputTd(int32_t index, ge::DataType dt, ge::Format origin_format,
+                                     ge::Format storage_format) {
     base_faker_.NodeInputTd(index, dt, origin_format, storage_format);
     return *this;
   }
   OpExecuteContextFaker &NodeOutputTd(int32_t index, ge::DataType dt, ge::Format origin_format,
-                                   ge::Format storage_format) {
+                                      ge::Format storage_format) {
     base_faker_.NodeOutputTd(index, dt, origin_format, storage_format);
     return *this;
   }
@@ -304,8 +304,19 @@ class OpExecuteContextFaker {
  private:
   void UpdateInputs();
   void UpdateOutputs();
+
  private:
-  enum InputsAppend {kAllocate, kStream, kExecuteOption, kExecuteFunc, kOpAicoreNum, kOpVecCoreNum, kGlobalAicoreNum, kGlobalVecCoreNum, kEnd};
+  enum InputsAppend {
+    kAllocate,
+    kStream,
+    kExecuteOption,
+    kExecuteFunc,
+    kOpAicoreNum,
+    kOpVecCoreNum,
+    kGlobalAicoreNum,
+    kGlobalVecCoreNum,
+    kEnd
+  };
 
   KernelRunContextFaker base_faker_;
   std::vector<gert::Tensor *> input_tensor_;
@@ -323,7 +334,6 @@ class OpExecuteContextFaker {
 
 class OpExecutePrepareContextFaker {
  public:
-
   OpExecutePrepareContextFaker &NodeIoNum(size_t input_num, size_t output_num);
   OpExecutePrepareContextFaker &IrInputNum(size_t input_num) {
     base_faker_.IrInputNum(input_num);
@@ -337,13 +347,13 @@ class OpExecutePrepareContextFaker {
     base_faker_.IrOutputInstanceNum(std::move(output_instance_num));
     return *this;
   }
-  OpExecutePrepareContextFaker &NodeInputTd(int32_t index, ge::DataType dt,
-                                     ge::Format origin_format, ge::Format storage_format) {
+  OpExecutePrepareContextFaker &NodeInputTd(int32_t index, ge::DataType dt, ge::Format origin_format,
+                                            ge::Format storage_format) {
     base_faker_.NodeInputTd(index, dt, origin_format, storage_format);
     return *this;
   }
   OpExecutePrepareContextFaker &NodeOutputTd(int32_t index, ge::DataType dt, ge::Format origin_format,
-                                      ge::Format storage_format) {
+                                             ge::Format storage_format) {
     base_faker_.NodeOutputTd(index, dt, origin_format, storage_format);
     return *this;
   }
@@ -353,10 +363,11 @@ class OpExecutePrepareContextFaker {
   OpExecutePrepareContextFaker &ExecuteOption(void *execute_option);
   OpExecutePrepareContextFaker &ExecuteFunc(void *execute_func);
   OpExecutePrepareContextFaker &OpApiParams(void *param);
-  OpExecutePrepareContextFaker &WorkspaceSize(uint8_t* ws_size_vec);
+  OpExecutePrepareContextFaker &WorkspaceSize(uint8_t *ws_size_vec);
   FakeKernelContextHolder Build();
+
  private:
-  enum InputsAppend {kExecuteOption, kExecuteFunc, kEnd};
+  enum InputsAppend { kExecuteOption, kExecuteFunc, kEnd };
   void UpdateInputs();
   void UpdateOutputs();
 
@@ -366,12 +377,11 @@ class OpExecutePrepareContextFaker {
   void *execute_option_ = nullptr;
   void *execute_func_ = nullptr;
   void *param_ = nullptr;
-  uint8_t* ws_size_;
+  uint8_t *ws_size_;
 };
 
 class OpExecuteLaunchContextFaker {
  public:
-
   OpExecuteLaunchContextFaker &NodeIoNum(size_t input_num, size_t output_num);
   OpExecuteLaunchContextFaker &IrInputNum(size_t input_num) {
     base_faker_.IrInputNum(input_num);
@@ -385,13 +395,13 @@ class OpExecuteLaunchContextFaker {
     base_faker_.IrOutputInstanceNum(std::move(output_instance_num));
     return *this;
   }
-  OpExecuteLaunchContextFaker &NodeInputTd(int32_t index, ge::DataType dt,
-                                            ge::Format origin_format, ge::Format storage_format) {
+  OpExecuteLaunchContextFaker &NodeInputTd(int32_t index, ge::DataType dt, ge::Format origin_format,
+                                           ge::Format storage_format) {
     base_faker_.NodeInputTd(index, dt, origin_format, storage_format);
     return *this;
   }
   OpExecuteLaunchContextFaker &NodeOutputTd(int32_t index, ge::DataType dt, ge::Format origin_format,
-                                             ge::Format storage_format) {
+                                            ge::Format storage_format) {
     base_faker_.NodeOutputTd(index, dt, origin_format, storage_format);
     return *this;
   }
@@ -399,12 +409,13 @@ class OpExecuteLaunchContextFaker {
   OpExecuteLaunchContextFaker &InputTensor(std::vector<gert::Tensor *> input_tensor);
   OpExecuteLaunchContextFaker &OutputTensor(std::vector<gert::Tensor *> output_tensor);
   OpExecuteLaunchContextFaker &OpApiParams(void *param);
-  OpExecuteLaunchContextFaker &WorkspaceSize(uint8_t* ws_size_vec);
-  OpExecuteLaunchContextFaker &WorkspaceAddr(uint8_t* ws_addr_vec);
-  OpExecuteLaunchContextFaker &Stream(void* stream);
+  OpExecuteLaunchContextFaker &WorkspaceSize(uint8_t *ws_size_vec);
+  OpExecuteLaunchContextFaker &WorkspaceAddr(uint8_t *ws_addr_vec);
+  OpExecuteLaunchContextFaker &Stream(void *stream);
   FakeKernelContextHolder Build();
+
  private:
-  enum InputsAppend {kOpApiParams, kWorkspaceSize, kWorkspaceAddr, kStream, kEnd};
+  enum InputsAppend { kOpApiParams, kWorkspaceSize, kWorkspaceAddr, kStream, kEnd };
   void UpdateInputs();
   void UpdateOutputs();
 
@@ -421,7 +432,6 @@ struct DummyOpApiParams {
   uint8_t *dummy_data;
 };
 
-
 class EagerOpExecutionContextFaker {
  public:
   EagerOpExecutionContextFaker &NodeIoNum(size_t input_num, size_t output_num);
@@ -437,8 +447,8 @@ class EagerOpExecutionContextFaker {
     base_faker_.IrOutputInstanceNum(std::move(output_instance_num));
     return *this;
   }
-  EagerOpExecutionContextFaker &NodeInputTd(int32_t index, ge::DataType dt,
-                                            ge::Format origin_format, ge::Format storage_format) {
+  EagerOpExecutionContextFaker &NodeInputTd(int32_t index, ge::DataType dt, ge::Format origin_format,
+                                            ge::Format storage_format) {
     base_faker_.NodeInputTd(index, dt, origin_format, storage_format);
     return *this;
   }
@@ -463,8 +473,9 @@ class EagerOpExecutionContextFaker {
  private:
   void UpdateInputs();
   void UpdateOutputs();
+
  private:
-  enum InputsAppend {kAllocator, kStream, kOpDesc, kExecuteFunc, kEnd};
+  enum InputsAppend { kAllocator, kStream, kOpDesc, kExecuteFunc, kEnd };
 
   KernelRunContextFaker base_faker_;
   std::vector<gert::Tensor *> input_tensor_;
@@ -476,4 +487,4 @@ class EagerOpExecutionContextFaker {
   void *execute_func_ = nullptr;
 };
 }  // namespace gert
-#endif  //AIR_CXX_TESTS_UT_GE_RUNTIME_V2_FAKER_KERNEL_RUN_CONTEXT_FACKER_H_
+#endif  // AIR_CXX_TESTS_UT_GE_RUNTIME_V2_FAKER_KERNEL_RUN_CONTEXT_FACKER_H_

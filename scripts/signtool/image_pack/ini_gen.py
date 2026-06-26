@@ -2,30 +2,52 @@
 # -*- coding: UTF-8 -*-
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
 
-import xml.etree.ElementTree as ET
-import hashlib
 import argparse
-import textwrap
+import hashlib
 import os
+import textwrap
+import xml.etree.ElementTree as ET
 
 
 def get_args():
-    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
-                                     description=textwrap.dedent('''
-                                     A tool to generate a image ini file'''))
-    parser.add_argument('-in_xml', required=True, dest='inFilePath', help='The xml for get image list')
-    parser.add_argument('--hash_list', required=False, help="gen cms image hash_list file", action="store_true")
-    parser.add_argument('-hash_dest', required=False, dest='hash_list_path', help='hash_list file dest address')
-    parser.add_argument('--hash_update', required=False, dest='new_image_name', help="update image hash to hashlist")
-    parser.add_argument('-hash_list_img', required=False, dest='hash_list_img_path', help='hash_list img file path to add new hash')
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=textwrap.dedent("""
+                                     A tool to generate a image ini file"""),
+    )
+    parser.add_argument("-in_xml", required=True, dest="inFilePath", help="The xml for get image list")
+    parser.add_argument(
+        "--hash_list",
+        required=False,
+        help="gen cms image hash_list file",
+        action="store_true",
+    )
+    parser.add_argument(
+        "-hash_dest",
+        required=False,
+        dest="hash_list_path",
+        help="hash_list file dest address",
+    )
+    parser.add_argument(
+        "--hash_update",
+        required=False,
+        dest="new_image_name",
+        help="update image hash to hashlist",
+    )
+    parser.add_argument(
+        "-hash_list_img",
+        required=False,
+        dest="hash_list_img_path",
+        help="hash_list img file path to add new hash",
+    )
     return parser.parse_args()
 
 
@@ -37,6 +59,7 @@ def cal_image_hash(filepath):
             sha256_hash.update(byte_block)
     return sha256_hash.hexdigest()
 
+
 def cal_fs_image_hash(filepath, roothash):
     sha256_hash = hashlib.sha256()
     with open(filepath, "rb") as f:
@@ -47,70 +70,80 @@ def cal_fs_image_hash(filepath, roothash):
     print(hash_val)
     return hash_val
 
+
 def gen_ini():
     args = get_args()
     tree = ET.ElementTree(file=args.inFilePath)
-    if tree.getroot().tag != 'image_info':
+    if tree.getroot().tag != "image_info":
         print("error in input xml file")
     if args.hash_list:
-        hash_list_path = os.path.join(args.hash_list_path, ('{}.img'.format('hash-list')))
-        if (os.path.exists(hash_list_path)) :
+        hash_list_path = os.path.join(args.hash_list_path, ("{}.img".format("hash-list")))
+        if os.path.exists(hash_list_path):
             os.remove(hash_list_path)
-        for elem in tree.iter(tag='image'):
-            if elem.attrib['tag'] == 'hashlist':
+        for elem in tree.iter(tag="image"):
+            if elem.attrib["tag"] == "hashlist":
                 continue
-            position = elem.get('position', 'after_header')
-            if position == 'before_header':
-                roothash = elem.get('roothash')
-                hashVal = cal_fs_image_hash(elem.attrib['path'], roothash)
+            position = elem.get("position", "after_header")
+            if position == "before_header":
+                roothash = elem.get("roothash")
+                hashVal = cal_fs_image_hash(elem.attrib["path"], roothash)
             else:
-                hashVal = cal_image_hash(elem.attrib['path'])
-            with open(hash_list_path, 'a+') as f:
-                line_elem = [elem.attrib['tag'], hashVal]
-                line = '{};'.format(','.join(line_elem))
+                hashVal = cal_image_hash(elem.attrib["path"])
+            with open(hash_list_path, "a+") as f:
+                line_elem = [elem.attrib["tag"], hashVal]
+                line = "{};".format(",".join(line_elem))
                 f.write(line)
     else:
-        for elem in tree.iter(tag='image'):
-            position = elem.get('position', 'after_header')
-            if position == 'before_header':
-                roothash = elem.get('roothash')
-                hashVal = cal_fs_image_hash(elem.attrib['path'], roothash)
+        for elem in tree.iter(tag="image"):
+            position = elem.get("position", "after_header")
+            if position == "before_header":
+                roothash = elem.get("roothash")
+                hashVal = cal_fs_image_hash(elem.attrib["path"], roothash)
             else:
-                hashVal = cal_image_hash(elem.attrib['path'])
+                hashVal = cal_image_hash(elem.attrib["path"])
             if hashVal == "":
                 return -1
-            if 'ini_name' in elem.attrib:
-                file_name = os.path.join(elem.attrib['out'], f'{elem.attrib["ini_name"]}.ini')
+            if "ini_name" in elem.attrib:
+                file_name = os.path.join(elem.attrib["out"], f"{elem.attrib['ini_name']}.ini")
             else:
-                file_name = os.path.join(elem.attrib['out'], ('{}.ini'.format(elem.attrib['tag'])))
+                file_name = os.path.join(elem.attrib["out"], ("{}.ini".format(elem.attrib["tag"])))
             # print(file_name)
-            with open(file_name, 'w+') as f:
-                line_elem = [elem.attrib['tag'], hashVal]
-                line = '{};\n'.format(',   '.join(line_elem))
+            with open(file_name, "w+") as f:
+                line_elem = [elem.attrib["tag"], hashVal]
+                line = "{};\n".format(",   ".join(line_elem))
                 f.write(line)
     return 0
+
 
 def update_hash():
     args = get_args()
     tree = ET.ElementTree(file=args.inFilePath)
     print("update_hash")
-    if tree.getroot().tag != 'image_info':
+    if tree.getroot().tag != "image_info":
         print("error in input xml file")
     if args.new_image_name:
         hash_list_path = args.hash_list_img_path
-        if (os.path.exists(hash_list_path)) :
-            for elem in tree.iter(tag='image'):
-                if elem.attrib['tag'] == args.new_image_name:
-                    hashVal = cal_image_hash(elem.attrib['path'])
-                    with open(hash_list_path, 'a+') as f:
-                        line_elem = [elem.attrib['tag'], hashVal]
-                        line = '{};'.format(','.join(line_elem))
+        if os.path.exists(hash_list_path):
+            for elem in tree.iter(tag="image"):
+                if elem.attrib["tag"] == args.new_image_name:
+                    hashVal = cal_image_hash(elem.attrib["path"])
+                    with open(hash_list_path, "a+") as f:
+                        line_elem = [elem.attrib["tag"], hashVal]
+                        line = "{};".format(",".join(line_elem))
                         f.write(line)
-                        print('add',args.new_image_name,'hash val',hashVal,'to',hash_list_path)
+                        print(
+                            "add",
+                            args.new_image_name,
+                            "hash val",
+                            hashVal,
+                            "to",
+                            hash_list_path,
+                        )
         else:
             print("input hashlist file not exist")
             return 1
     return 0
+
 
 def main():
     args = get_args()
@@ -119,5 +152,6 @@ def main():
     else:
         gen_ini()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

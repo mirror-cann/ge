@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -37,7 +37,7 @@ FlowData::FlowData(const char *name, int64_t index) : FlowOperator(name, "Data")
 FlowData::~FlowData() = default;
 
 class FlowNodeImpl {
-public:
+ public:
   explicit FlowNodeImpl(OpDescPtr op_desc, uint32_t input_num, uint32_t output_num)
       : op_desc_(op_desc), input_num_(input_num), output_num_(output_num) {}
   ~FlowNodeImpl() = default;
@@ -47,6 +47,7 @@ public:
   graphStatus AddPp(const ProcessPoint &pp);
   graphStatus SetBalanceScatter();
   graphStatus SetBalanceGather();
+
  private:
   graphStatus AddInEdges(uint32_t node_input_index, const ProcessPoint &pp, uint32_t pp_input_index);
   graphStatus AddOutEdges(uint32_t node_output_index, const ProcessPoint &pp, uint32_t pp_output_index);
@@ -69,13 +70,13 @@ graphStatus FlowNodeImpl::AddInEdges(uint32_t node_input_index, const ProcessPoi
   for (std::string &pp_str : pps) {
     GE_ASSERT_TRUE(process_point.ParseFromString(pp_str));
     if (process_point.name() != pp.GetProcessPointName()) {
-      GELOGD("current pp(%s) is skipped for it's not equal to MapInput pp name(%s).",
-             process_point.name().c_str(), pp.GetProcessPointName());
+      GELOGD("current pp(%s) is skipped for it's not equal to MapInput pp name(%s).", process_point.name().c_str(),
+             pp.GetProcessPointName());
       continue;
     }
     // duplicate check
     if ((pp_input_index < static_cast<uint32_t>(process_point.in_edges_size())) &&
-       (process_point.in_edges(pp_input_index).node_name() != "")) {
+        (process_point.in_edges(pp_input_index).node_name() != "")) {
       GELOGE(GRAPH_FAILED, "pp name(%s) has duplicate map input index(%u).", pp.GetProcessPointName(), pp_input_index);
       return ge::GRAPH_FAILED;
     }
@@ -119,8 +120,8 @@ graphStatus FlowNodeImpl::AddOutEdges(uint32_t node_output_index, const ProcessP
   for (std::string &pp_str : pps) {
     GE_ASSERT_TRUE(process_point.ParseFromString(pp_str));
     if (process_point.name() != pp.GetProcessPointName()) {
-      GELOGD("current pp(%s) is skipped for it's not equal to MapInput pp name(%s)",
-             process_point.name().c_str(), pp.GetProcessPointName());
+      GELOGD("current pp(%s) is skipped for it's not equal to MapInput pp name(%s)", process_point.name().c_str(),
+             pp.GetProcessPointName());
       continue;
     }
     // duplicate check
@@ -146,8 +147,8 @@ graphStatus FlowNodeImpl::AddOutEdges(uint32_t node_output_index, const ProcessP
         auto out_edge = process_point.mutable_out_edges(it->first);
         out_edge->set_node_name(name.c_str());
         out_edge->set_index(it->second);
-        GELOGI("add pp(%s) output index(%u) map node(%s) index(%u)", pp.GetProcessPointName(), it->first,
-               name.c_str(), it->second);
+        GELOGI("add pp(%s) output index(%u) map node(%s) index(%u)", pp.GetProcessPointName(), it->first, name.c_str(),
+               it->second);
         out_edges_[pp.GetProcessPointName()].erase(it++);
       } else {
         it++;
@@ -233,7 +234,7 @@ graphStatus FlowNodeImpl::AddPp(const ProcessPoint &pp) {
 
 graphStatus FlowNodeImpl::SetBalanceScatter() {
   bool is_gather_node = false;
-  (void) ge::AttrUtils::GetBool(op_desc_, ATTR_NAME_BALANCE_GATHER, is_gather_node);
+  (void)ge::AttrUtils::GetBool(op_desc_, ATTR_NAME_BALANCE_GATHER, is_gather_node);
   if (is_gather_node) {
     GELOGE(GRAPH_FAILED, "op[%s] is set balance gather, can't set balance sactter", op_desc_->GetNamePtr());
     return GRAPH_FAILED;
@@ -246,7 +247,7 @@ graphStatus FlowNodeImpl::SetBalanceScatter() {
 
 graphStatus FlowNodeImpl::SetBalanceGather() {
   bool is_scatter_node = false;
-  (void) ge::AttrUtils::GetBool(op_desc_, ATTR_NAME_BALANCE_SCATTER, is_scatter_node);
+  (void)ge::AttrUtils::GetBool(op_desc_, ATTR_NAME_BALANCE_SCATTER, is_scatter_node);
   if (is_scatter_node) {
     GELOGE(GRAPH_FAILED, "op[%s] is set balance scatter, can't set balance gather", op_desc_->GetNamePtr());
     return GRAPH_FAILED;
@@ -321,7 +322,7 @@ FlowNode &FlowNode::AddPp(const ProcessPoint &pp) {
     const auto &invoked_closures = FlowGraphUtils::GetInvokedClosures(function_pp);
     const auto &invoked_flow_closures = FlowGraphUtils::GetInvokedFlowClosures(function_pp);
     if (invoked_closures.empty() && invoked_flow_closures.empty()) {
-      (void) impl_->AddPp(pp);
+      (void)impl_->AddPp(pp);
       return *this;
     }
     this->SubgraphRegister(pp.GetProcessPointName(), true);
@@ -351,18 +352,18 @@ FlowNode &FlowNode::AddPp(const ProcessPoint &pp) {
     if (builder == nullptr) {
       GELOGE(GRAPH_FAILED, "GraphPp(%s)'s graph builder is nullptr.", graph_pp->GetProcessPointName());
       REPORT_INNER_ERR_MSG("E18888", "AddPp failed: GraphPp(%s)'s graph builder is nullptr.",
-                         graph_pp->GetProcessPointName());
+                           graph_pp->GetProcessPointName());
       return *this;
     }
     this->SetSubgraphBuilder(pp.GetProcessPointName(), 0, builder);
   } else {
     GELOGE(GRAPH_FAILED, "process point type[%u] is invalid.", static_cast<uint32_t>(pp.GetProcessPointType()));
     REPORT_INNER_ERR_MSG("E18888", "AddPp failed: Process point type[%u] is invalid.",
-                       static_cast<uint32_t>(pp.GetProcessPointType()));
+                         static_cast<uint32_t>(pp.GetProcessPointType()));
     return *this;
   }
 
-  (void) impl_->AddPp(pp);
+  (void)impl_->AddPp(pp);
   return *this;
 }
 
@@ -395,7 +396,7 @@ FlowNode &FlowNode::SetBalanceGather() {
 }
 
 class FlowGraphImpl {
-public:
+ public:
   explicit FlowGraphImpl(const char *name) : name_(name), graph_(Graph(name)) {}
   ~FlowGraphImpl() = default;
 
@@ -460,32 +461,32 @@ public:
 
   void SetContainsNMappingNode(bool contains_n_mapping_node) {
     const auto compute_graph = ge::GraphUtilsEx::GetComputeGraph(graph_);
-    (void) AttrUtils::SetBool(compute_graph, ATTR_NAME_DATA_FLOW_CONTAINS_N_MAPPING_NODE, contains_n_mapping_node);
+    (void)AttrUtils::SetBool(compute_graph, ATTR_NAME_DATA_FLOW_CONTAINS_N_MAPPING_NODE, contains_n_mapping_node);
     GELOGI("Flow graph[%s] set attr[%s]=%d", name_.c_str(), ATTR_NAME_DATA_FLOW_CONTAINS_N_MAPPING_NODE,
            static_cast<int32_t>(contains_n_mapping_node));
   }
 
   void SetExceptionCatch(bool enable_exception_catch) {
     const auto compute_graph = ge::GraphUtilsEx::GetComputeGraph(graph_);
-    (void) AttrUtils::SetBool(compute_graph, ATTR_NAME_DATA_FLOW_ENABLE_EXCEPTION_CATCH, enable_exception_catch);
+    (void)AttrUtils::SetBool(compute_graph, ATTR_NAME_DATA_FLOW_ENABLE_EXCEPTION_CATCH, enable_exception_catch);
     GELOGI("Flow graph[%s] set attr[%s]=%d", name_.c_str(), ATTR_NAME_DATA_FLOW_ENABLE_EXCEPTION_CATCH,
            static_cast<int32_t>(enable_exception_catch));
   }
 
   void SetInputsAlignAttrs(uint32_t align_max_cache_num, int32_t align_timeout, bool dropout_when_not_align) {
     const auto compute_graph = ge::GraphUtilsEx::GetComputeGraph(graph_);
-    (void) AttrUtils::SetInt(compute_graph, ATTR_NAME_DATA_FLOW_INPUTS_ALIGN_MAX_CACHE_NUM,
-                             static_cast<int64_t>(align_max_cache_num));
-    (void) AttrUtils::SetInt(compute_graph, ATTR_NAME_DATA_FLOW_INPUTS_ALIGN_TIMEOUT,
-                             static_cast<int64_t>(align_timeout));
-    (void) AttrUtils::SetBool(compute_graph, ATTR_NAME_DATA_FLOW_INPUTS_ALIGN_DROPOUT, dropout_when_not_align);
+    (void)AttrUtils::SetInt(compute_graph, ATTR_NAME_DATA_FLOW_INPUTS_ALIGN_MAX_CACHE_NUM,
+                            static_cast<int64_t>(align_max_cache_num));
+    (void)AttrUtils::SetInt(compute_graph, ATTR_NAME_DATA_FLOW_INPUTS_ALIGN_TIMEOUT,
+                            static_cast<int64_t>(align_timeout));
+    (void)AttrUtils::SetBool(compute_graph, ATTR_NAME_DATA_FLOW_INPUTS_ALIGN_DROPOUT, dropout_when_not_align);
     GELOGI("Flow graph[%s] set attr[%s]=%u, [%s]=%d, [%s]=%d", name_.c_str(),
            ATTR_NAME_DATA_FLOW_INPUTS_ALIGN_MAX_CACHE_NUM, align_max_cache_num,
            ATTR_NAME_DATA_FLOW_INPUTS_ALIGN_TIMEOUT, align_timeout, ATTR_NAME_DATA_FLOW_INPUTS_ALIGN_DROPOUT,
            static_cast<int32_t>(dropout_when_not_align));
   }
 
-private:
+ private:
   const std::string name_;
   ge::Graph graph_;
   bool graphpp_builder_async_ = false;
@@ -605,7 +606,6 @@ FlowGraph &FlowGraph::SetInputsAlignAttrs(uint32_t align_max_cache_num, int32_t 
   impl_->SetInputsAlignAttrs(align_max_cache_num, align_timeout, dropout_when_not_align);
   return *this;
 }
-
 
 FlowGraph &FlowGraph::SetExceptionCatch(bool enable_exception_catch) {
   if (impl_ == nullptr) {

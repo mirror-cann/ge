@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -845,7 +845,7 @@ class FastSrcNode {
     return node;
   }
 
-  bool TryMatch(const ge::FastNode* node, int32_t index, std::stringstream &ss) const {
+  bool TryMatch(const ge::FastNode *node, int32_t index, std::stringstream &ss) const {
     if (check_name_) {
       if (node->GetName() != check_element_) {
         ss << "Expect node name " << check_element_ << ", get node " << node->GetName() << '(' << node->GetType()
@@ -934,7 +934,8 @@ class FastSrcNode {
     }
     return {in_edge->src, in_edge->src_output};
   }
-  static std::pair<const ge::FastNode *, int32_t> LookupToInit(const ge::FastNode *inner_data_node, std::stringstream &ss) {
+  static std::pair<const ge::FastNode *, int32_t> LookupToInit(const ge::FastNode *inner_data_node,
+                                                               std::stringstream &ss) {
     auto node = inner_data_node;
     int32_t src_index = -1;
     while (node != nullptr && node->GetType() == "InnerData") {
@@ -1178,7 +1179,8 @@ class FastNodeTopoChecker {
     }
     return dst_nodes;
   }
-  std::string PrintInNodesComparedTable(std::stringstream &error_msg, const std::vector<FastSrcNode> &expect_nodes) const {
+  std::string PrintInNodesComparedTable(std::stringstream &error_msg,
+                                        const std::vector<FastSrcNode> &expect_nodes) const {
     PrettyTable pt;
     pt.SetHeader({"Actual Node", "Actual Index", "Compare Type", "Expect Node", "Expect Index"});
     auto row_num = std::max(node_->GetAllInEdgeSize(), expect_nodes.size());

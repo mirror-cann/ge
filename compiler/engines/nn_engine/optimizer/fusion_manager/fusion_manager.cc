@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,8 +34,7 @@ namespace fe {
 static const string FE_OPTIMIZER_NAME = "FEOptimizer";
 static const string SINGLE_OP_FLAG_DEFAULT = "0";
 
-FusionManager::FusionManager()
-    : ops_kernel_info_store_(nullptr), graph_opt_(nullptr), inited_(false) {}
+FusionManager::FusionManager() : ops_kernel_info_store_(nullptr), graph_opt_(nullptr), inited_(false) {}
 
 FusionManager::~FusionManager() {}
 
@@ -46,7 +45,8 @@ FusionManager &FusionManager::Instance(const std::string &engine_name) {
 
   if (engine_name == VECTOR_CORE_NAME) {
     return vector_core_fm;
-  } if (engine_name == kDsaCoreName) {
+  }
+  if (engine_name == kDsaCoreName) {
     return dsa_core_fm;
   } else {
     return ai_core_fm;
@@ -64,7 +64,8 @@ Status FusionManager::InitBinKernelInfoStore(const std::string &engine_name) con
   return bin_kernel_info.Initialize(bin_cfg_file);
 }
 
-void FusionManager::UpdateOpsKernelInfo(const std::string &engine_name, const FEOpsKernelInfoStorePtr ops_kernel_info_store) {
+void FusionManager::UpdateOpsKernelInfo(const std::string &engine_name,
+                                        const FEOpsKernelInfoStorePtr ops_kernel_info_store) {
   FE_TIMECOST_START(UpdateOpsKernelInfo);
   if (engine_name != AI_CORE_NAME) {
     FE_LOGI("[Init][UpdateOpsKernelInfo] No need to update ops kernel info for engine[%s].", engine_name.c_str());
@@ -119,26 +120,21 @@ Status FusionManager::Initialize(const std::string &engine_name, const map<strin
     return OP_STORE_ADAPTER_MANAGER_INIT_FAILED;
   }
 
-  FE_MAKE_SHARED(ops_kernel_info_store_ = make_shared<FEOpsKernelInfoStore>(engine_name),
-                 return FAILED);
+  FE_MAKE_SHARED(ops_kernel_info_store_ = make_shared<FEOpsKernelInfoStore>(engine_name), return FAILED);
   ret = ops_kernel_info_store_->Initialize(options);
   if (ret != fe::SUCCESS) {
     REPORT_FE_ERROR("[FusionMngr][Init] OpInfoKernelStores init failed! Ret [%u]", ret);
     return OPINFO_STORES_INIT_FAILED;
   }
   if (engine_name == kDsaCoreName) {
-    FE_MAKE_SHARED(
-        dsa_graph_opt_ = make_shared<DSAGraphOptimizer>(ops_kernel_info_store_, engine_name),
-        return FAILED);
+    FE_MAKE_SHARED(dsa_graph_opt_ = make_shared<DSAGraphOptimizer>(ops_kernel_info_store_, engine_name), return FAILED);
     ret = dsa_graph_opt_->Initialize(options, nullptr);
     if (ret != fe::SUCCESS) {
       REPORT_FE_ERROR("[FusionMngr][Init] DSAGraphOptimizer init failed.");
       return GRAPH_OPTIMIZER_INIT_FAILED;
     }
   } else {
-    FE_MAKE_SHARED(
-        graph_opt_ = make_shared<FEGraphOptimizer>(ops_kernel_info_store_, engine_name),
-        return FAILED);
+    FE_MAKE_SHARED(graph_opt_ = make_shared<FEGraphOptimizer>(ops_kernel_info_store_, engine_name), return FAILED);
   }
   UpdateOpsKernelInfo(engine_name, ops_kernel_info_store_);
 
@@ -187,8 +183,8 @@ Status FusionManager::Finalize() {
     Status ret5 = CMOIdGenStrategy::Instance().Finalize();
     FE_LOGE_IF(ret5 != SUCCESS, "Finalize CMOIdGenStrategy failed.");
 
-    bool ret_status = ((ret1 != SUCCESS) || (ret2 != SUCCESS) || (ret3 != SUCCESS) || (ret4 != SUCCESS) ||
-                       (ret5 != SUCCESS));
+    bool ret_status =
+        ((ret1 != SUCCESS) || (ret2 != SUCCESS) || (ret3 != SUCCESS) || (ret4 != SUCCESS) || (ret5 != SUCCESS));
     if (ret_status) {
       FE_LOGW("FusionManager finalization did not succeed.");
       return FAILED;
@@ -241,7 +237,7 @@ void FusionManager::GetGraphOptimizerObjs(map<string, GraphOptimizerPtr> &graph_
     (void)dsa_graph_opt_->GetAttributes(attrs);
     graph_optimizers[attrs.engineName] = dsa_graph_opt_;
   } else {
-    (void) graph_opt_->GetAttributes(attrs);
+    (void)graph_opt_->GetAttributes(attrs);
     graph_optimizers[attrs.engineName] = graph_opt_;
   }
   FE_LOGD("Get GraphOptimizer success.");

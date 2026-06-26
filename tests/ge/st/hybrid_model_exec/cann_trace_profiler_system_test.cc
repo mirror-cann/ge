@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -57,8 +57,9 @@ class CannProfilerST : public bg::BgTest {
     auto graph = ShareGraph::BuildTwoAddNodeGraph();
     graph->TopologicalSorting();
     GeModelBuilder builder(graph);
-    auto ge_root_model = builder.AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle()).
-        AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle()).BuildGeRootModel();
+    auto ge_root_model = builder.AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
+                             .AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
+                             .BuildGeRootModel();
     ModelConverter::Args args{option, nullptr, nullptr, nullptr, nullptr};
     auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model, args);
     ASSERT_NE(exe_graph, nullptr);
@@ -123,8 +124,8 @@ TEST_F(CannProfilerST, CannTracingProfiler_Test_single_op) {
   extend_info.node_names_to_attrs["add1"] = {true, true, 20002};
   model_executor->GetSubscribers().AddSubscriber<CannTracingProfiler>(kMainExeGraph, extend_info);
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
-            reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
-  ge::GRAPH_SUCCESS);
+                                    reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
+            ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   aclrtDestroyStream(stream);
 }
@@ -159,8 +160,8 @@ TEST_F(CannProfilerST, CannTracingProfiler_Test_graph) {
   extend_info.node_names_to_attrs["add2"] = {true, true, -1};
   model_executor->GetSubscribers().AddSubscriber<CannTracingProfiler>(kMainExeGraph, extend_info);
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(),
-            reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
-  ge::GRAPH_SUCCESS);
+                                    reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
+            ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   aclrtDestroyStream(stream);
 }
@@ -188,8 +189,7 @@ TEST_F(CannProfilerST, CannTracingProfiler_Test_profiler_null_ptr) {
   extend_info.executor->GetExeGraphExecutor(kMainExeGraph)->SetExecutionData(nullptr, nullptr);
   extend_info.node_names_to_attrs["add1"] = {true, false, 20002};
   extend_info.node_names_to_attrs["add2"] = {true, true, -1};
-  auto subscriber = model_executor->GetSubscribers().AddSubscriber<CannTracingProfiler>(
-      kMainExeGraph, extend_info);
+  auto subscriber = model_executor->GetSubscribers().AddSubscriber<CannTracingProfiler>(kMainExeGraph, extend_info);
   subscriber->OnExecuteEvent(0, nullptr, kExecuteStart, nullptr, 0);
 
   auto execution_data_holder = std::unique_ptr<uint8_t[]>(new (std::nothrow) uint8_t[sizeof(ExecutionData)]);

@@ -104,4 +104,3 @@ ge::Status GetRegisteredIrDef(const char *op_type, std::vector<std::pair<ge::Asc
 ## 约束说明<a name="section24049039"></a>
 
 无
-

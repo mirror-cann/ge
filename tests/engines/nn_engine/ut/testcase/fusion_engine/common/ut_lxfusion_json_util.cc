@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,22 +22,16 @@ using namespace std;
 using namespace ge;
 using namespace fe;
 
-class lxfusion_json_util_unittest : public testing::Test
-{
-protected:
-    void SetUp()
-    {
-    }
+class lxfusion_json_util_unittest : public testing::Test {
+ protected:
+  void SetUp() {}
 
-    void TearDown()
-    {
-    }
+  void TearDown() {}
 
-// AUTO GEN PLEASE DO NOT MODIFY IT
+  // AUTO GEN PLEASE DO NOT MODIFY IT
 };
 
-TEST_F(lxfusion_json_util_unittest, get_l1_info_from_json)
-{
+TEST_F(lxfusion_json_util_unittest, get_l1_info_from_json) {
   OpDescPtr op_desc_ptr = nullptr;
   Status ret = GetL1InfoFromJson(op_desc_ptr);
   EXPECT_EQ(ret, FAILED);
@@ -52,8 +46,7 @@ TEST_F(lxfusion_json_util_unittest, get_l1_info_from_json)
   EXPECT_EQ(ret, FAILED);
 }
 
-TEST_F(lxfusion_json_util_unittest, get_l2_info_from_json)
-{
+TEST_F(lxfusion_json_util_unittest, get_l2_info_from_json) {
   OpDescPtr op_desc_ptr = nullptr;
   Status ret = GetL2InfoFromJson(op_desc_ptr);
   EXPECT_EQ(ret, FAILED);
@@ -136,8 +129,7 @@ TEST_F(lxfusion_json_util_unittest, write_graph_infoto_json) {
   GetL1ToOpStructFromJson(op_desc_ptr, tmp_l1_info_ptr);
 }
 
-TEST_F(lxfusion_json_util_unittest, L2_fusion_info)
-{
+TEST_F(lxfusion_json_util_unittest, L2_fusion_info) {
   OpDescPtr op_desc_ptr = std::make_shared<OpDesc>("relu1", "Relu");
   L2FusionInfoPtr l2_fusion_info_ptr = nullptr;
   SetL2FusionInfoToNode(op_desc_ptr, l2_fusion_info_ptr);
@@ -186,8 +178,7 @@ TEST_F(lxfusion_json_util_unittest, L2_fusion_info)
   EXPECT_EQ(ret, SUCCESS);
 }
 
-TEST_F(lxfusion_json_util_unittest, write_op_slice_info_to_json)
-{
+TEST_F(lxfusion_json_util_unittest, write_op_slice_info_to_json) {
   OpDescPtr op_desc_ptr = std::make_shared<OpDesc>("relu1", "Relu");
   GeTensorDesc tensor_desc;
   op_desc_ptr->AddInputDesc(tensor_desc);
@@ -204,7 +195,7 @@ TEST_F(lxfusion_json_util_unittest, write_op_slice_info_to_json)
   op_calc_info_ptr->Initialize();
   AxisReduceMapPtr axis_reduce_map_ptr = std::make_shared<fe::AxisReduceMap>();
   axis_reduce_map_ptr->Initialize();
-  std::vector<int64_t> axis = {1,2,3,4};
+  std::vector<int64_t> axis = {1, 2, 3, 4};
   InputReduceInfoPtr input_reduce_ptr = std::make_shared<fe::InputReduceInfo>();
   input_reduce_ptr->Initialize();
   input_reduce_ptr->SetIndex(0);

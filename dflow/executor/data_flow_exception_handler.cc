@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,9 +33,7 @@ Status DataFlowExceptionHandler::Initialize(InnerProcessMsgForwarding &process_f
     SET_THREAD_NAME(pthread_self(), "ge_dpl_exhd");
     Process();
   });
-  auto func = [this](const domi::SubmodelStatus &request) {
-    return NotifyException(request.exception());
-  };
+  auto func = [this](const domi::SubmodelStatus &request) { return NotifyException(request.exception()); };
   return process_forwarding.RegisterCallBackFunc(StatusQueueMsgType::EXCEPTION, func);
 }
 
@@ -78,7 +76,8 @@ void DataFlowExceptionHandler::ProcessException(const domi::DataFlowException &d
     }
     if (all_exceptions_.size() >= kMaxExceptionCacheNum) {
       auto &expired = all_exceptions_.cbegin()->second;
-      GELOGI("over max, expire the oldest exception, trans_id=%" PRIu64 ", scope=%s, "
+      GELOGI("over max, expire the oldest exception, trans_id=%" PRIu64
+             ", scope=%s, "
              "exception_code=%d, user_context_id=%" PRIu64 ".",
              expired.trans_id(), expired.scope().c_str(), expired.exception_code(), expired.user_context_id());
       NotifyModelIO(expired, kExceptionTypeExpired);

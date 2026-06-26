@@ -173,9 +173,9 @@ Status ProfilingImpl::ReportModelLoadEnd(const ModelDumpInfo &model_info) const 
   graph_id_data->graphId = UINT32_MAX;
   graph_id_data->modelName = MsprofGetHashId(model_name, strlen(model_name));
   graph_id_data->modelId = model_info.model_id;
-  GE_CHK_STATUS_RET(CheckMsprofRet(MsprofReportAdditionalInfo(kNonAgingFlag, &graph_id_info,
-                                                              static_cast<uint32_t>(sizeof(MsprofAdditionalInfo))),
-                                   "Report model graph id map", model_name));
+  GE_CHK_STATUS_RET(CheckMsprofRet(
+      MsprofReportAdditionalInfo(kNonAgingFlag, &graph_id_info, static_cast<uint32_t>(sizeof(MsprofAdditionalInfo))),
+      "Report model graph id map", model_name));
 
   MsprofEvent model_load_event{};
   model_load_event.type = kOm1ModelLoadType;
@@ -195,11 +195,12 @@ Status ProfilingImpl::SaveTaskInfo(const Om2TaskInfo &task_info, const ModelDump
     return SUCCESS;
   }
 
-  GELOGD("Save OM2 profiling task info, op_name=%s, op_type=%s, task_type=%u, task_id=%u, stream_id=%u, "
-         "block_dim=%u, input_num=%llu, output_num=%u, workspace_num=%u, context_id=%u, thread_id=%u", op_name,
-         task_info.op_type != nullptr ? task_info.op_type : "", task_info.task_type, task_info.task_id,
-         task_info.stream_id, task_info.block_dim, static_cast<unsigned long long>(task_info.input_num),
-         task_info.output_num, task_info.workspace_num, task_info.context_id, task_info.thread_id);
+  GELOGD(
+      "Save OM2 profiling task info, op_name=%s, op_type=%s, task_type=%u, task_id=%u, stream_id=%u, "
+      "block_dim=%u, input_num=%llu, output_num=%u, workspace_num=%u, context_id=%u, thread_id=%u",
+      op_name, task_info.op_type != nullptr ? task_info.op_type : "", task_info.task_type, task_info.task_id,
+      task_info.stream_id, task_info.block_dim, static_cast<unsigned long long>(task_info.input_num),
+      task_info.output_num, task_info.workspace_num, task_info.context_id, task_info.thread_id);
   TaskDescInfo task_desc_info{};
   uint32_t prof_task_type = static_cast<uint32_t>(MSPROF_GE_TASK_TYPE_INVALID);
   GE_CHK_STATUS_RET(BuildTaskDescInfo(task_info, model_info, task_desc_info, prof_task_type));
@@ -212,7 +213,7 @@ Status ProfilingImpl::SaveTaskInfo(const Om2TaskInfo &task_info, const ModelDump
 }
 
 Status ProfilingImpl::BuildTaskDescInfo(const Om2TaskInfo &task_info, const ModelDumpInfo &model_info,
-                                                TaskDescInfo &task_desc_info, uint32_t &prof_task_type) const {
+                                        TaskDescInfo &task_desc_info, uint32_t &prof_task_type) const {
   const auto model_task_type = static_cast<ModelTaskType>(task_info.task_type);
   const auto iter = kModelTaskTypeToProfTaskType.find(model_task_type);
   if (iter == kModelTaskTypeToProfTaskType.end()) {
@@ -244,7 +245,7 @@ Status ProfilingImpl::BuildTaskDescInfo(const Om2TaskInfo &task_info, const Mode
 }
 
 Status ProfilingImpl::ReportTaskDescInfo(const TaskDescInfo &task_desc_info, uint32_t prof_task_type,
-                                          uint32_t tid) const {
+                                         uint32_t tid) const {
   MsprofCompactInfo node_basic_info{};
   node_basic_info.level = static_cast<uint16_t>(MSPROF_REPORT_NODE_LEVEL);
   node_basic_info.type = MSPROF_REPORT_NODE_BASIC_INFO_TYPE;
@@ -255,11 +256,13 @@ Status ProfilingImpl::ReportTaskDescInfo(const TaskDescInfo &task_desc_info, uin
   prof_node_basic_info.opType = MsprofGetHashId(task_desc_info.op_type.c_str(), task_desc_info.op_type.length());
   prof_node_basic_info.taskType = prof_task_type;
   prof_node_basic_info.blockDim = task_desc_info.block_dim;
-  GELOGD("Report OM2 profiling compact info, op_name=%s, prof_task_type=%u, block_dim=%u, task_id=%u, "
-         "stream_id=%u, tid=%u", task_desc_info.op_name.c_str(), prof_task_type, task_desc_info.block_dim,
-         task_desc_info.task_id, task_desc_info.stream_id, tid);
-  const int32_t ret = MsprofReportCompactInfo(kAgingFlag, &node_basic_info,
-                                              static_cast<uint32_t>(sizeof(MsprofCompactInfo)));
+  GELOGD(
+      "Report OM2 profiling compact info, op_name=%s, prof_task_type=%u, block_dim=%u, task_id=%u, "
+      "stream_id=%u, tid=%u",
+      task_desc_info.op_name.c_str(), prof_task_type, task_desc_info.block_dim, task_desc_info.task_id,
+      task_desc_info.stream_id, tid);
+  const int32_t ret =
+      MsprofReportCompactInfo(kAgingFlag, &node_basic_info, static_cast<uint32_t>(sizeof(MsprofCompactInfo)));
   if ((ret != MSPROF_ERROR_NONE) && (ret != MSPROF_ERROR_UNINITIALIZE)) {
     GELOGW("Report profiling compact info failed, op_name=%s, ret=%d", task_desc_info.op_name.c_str(), ret);
     return FAILED;
@@ -278,9 +281,9 @@ Status ProfilingImpl::ReportTensorInfo(const TaskDescInfo &task_desc_info, uint3
   for (size_t i = 0U; i < batch_num; ++i) {
     MsprofAdditionalInfo tensor_info{};
     BuildSingleTensorInfo(task_desc_info, tid, i, static_cast<uint32_t>(MSPROF_GE_TENSOR_DATA_NUM), tensor_info);
-    GE_CHK_STATUS_RET(CheckMsprofRet(MsprofReportAdditionalInfo(kAgingFlag, &tensor_info,
-                                                                static_cast<uint32_t>(sizeof(MsprofAdditionalInfo))),
-                                     "Report profiling tensor info", task_desc_info.op_name.c_str()));
+    GE_CHK_STATUS_RET(CheckMsprofRet(
+        MsprofReportAdditionalInfo(kAgingFlag, &tensor_info, static_cast<uint32_t>(sizeof(MsprofAdditionalInfo))),
+        "Report profiling tensor info", task_desc_info.op_name.c_str()));
   }
 
   const size_t remain_num = total_num % static_cast<size_t>(MSPROF_GE_TENSOR_DATA_NUM);
@@ -289,9 +292,9 @@ Status ProfilingImpl::ReportTensorInfo(const TaskDescInfo &task_desc_info, uint3
   }
   MsprofAdditionalInfo tensor_info{};
   BuildSingleTensorInfo(task_desc_info, tid, batch_num, static_cast<uint32_t>(remain_num), tensor_info);
-  return CheckMsprofRet(MsprofReportAdditionalInfo(kAgingFlag, &tensor_info,
-                                                   static_cast<uint32_t>(sizeof(MsprofAdditionalInfo))),
-                        "Report profiling tensor info", task_desc_info.op_name.c_str());
+  return CheckMsprofRet(
+      MsprofReportAdditionalInfo(kAgingFlag, &tensor_info, static_cast<uint32_t>(sizeof(MsprofAdditionalInfo))),
+      "Report profiling tensor info", task_desc_info.op_name.c_str());
 }
 
 Status ProfilingImpl::ReportContextIdInfo(const TaskDescInfo &task_desc_info, uint32_t tid) const {
@@ -313,9 +316,9 @@ Status ProfilingImpl::ReportContextIdInfo(const TaskDescInfo &task_desc_info, ui
   context_data->opName = MsprofGetHashId(task_desc_info.op_name.c_str(), task_desc_info.op_name.length());
   context_data->ctxIdNum = 1U;
   context_data->ctxIds[0] = task_desc_info.context_id;
-  return CheckMsprofRet(MsprofReportAdditionalInfo(kAgingFlag, &context_info,
-                                                   static_cast<uint32_t>(sizeof(MsprofAdditionalInfo))),
-                        "Report profiling context id info", task_desc_info.op_name.c_str());
+  return CheckMsprofRet(
+      MsprofReportAdditionalInfo(kAgingFlag, &context_info, static_cast<uint32_t>(sizeof(MsprofAdditionalInfo))),
+      "Report profiling context id info", task_desc_info.op_name.c_str());
 }
 
 }  // namespace dump

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,12 +21,7 @@
 #include "exe_graph/lowering/bg_kernel_context_extend.h"
 namespace gert {
 namespace {
-enum class InputType : int32_t {
-  kNode,
-  kInputNum,
-  kOutputNum,
-  kShapeStart
-};
+enum class InputType : int32_t { kNode, kInputNum, kOutputNum, kShapeStart };
 void GeShapeToGertShape(const ge::GeShape &ge_shape, gert::Shape &gert_shape) {
   gert_shape.SetDimNum(ge_shape.GetDimNum());
   for (size_t i = 0; i < ge_shape.GetDimNum(); ++i) {
@@ -34,7 +29,7 @@ void GeShapeToGertShape(const ge::GeShape &ge_shape, gert::Shape &gert_shape) {
     gert_shape.SetDim(i, ge_shape.GetDim(i));
   }
 }
-}
+}  // namespace
 
 void ExeResGenerationCtxBuilder::CreateShapesInputs(const ge::Node &node, std::vector<void *> &inputs) {
   auto op_desc = node.GetOpDesc();
@@ -161,39 +156,41 @@ bool ExeResGenerationContext::IsConstInput(const ge::AscendString &name) const {
     return false;
   }
   const bool ret = (op_desc->GetInputDesc(static_cast<uint32_t>(index)).IsValid() == ge::GRAPH_SUCCESS) &&
-      (ge::OpDescUtils::GetInputConstData(op, static_cast<uint32_t>(index)) != nullptr);
+                   (ge::OpDescUtils::GetInputConstData(op, static_cast<uint32_t>(index)) != nullptr);
   GELOGD("Node[%s] input[%d] is const flag:%d.", op_desc->GetNamePtr(), index, ret);
   return ret;
 }
 
-const gert::StorageShape* ExeResGenerationContext::GetInputShape(int64_t index) const {
+const gert::StorageShape *ExeResGenerationContext::GetInputShape(int64_t index) const {
   auto node_ptr = MutableInputPointer<ge::Node>(0);
   GE_ASSERT_NOTNULL(node_ptr);
   const auto input_num = GetInputValue<size_t>(static_cast<uint32_t>(InputType::kInputNum));
   GELOGD("Node[%s] input index[%" PRId64 "] with input num:%zu.", node_ptr->GetNamePtr(), index, input_num);
   if (index < 0 || static_cast<size_t>(index) >= input_num) {
     GE_LOGE("Op[%s] input index %" PRId64 " is invalid, input num is %zu.", node_ptr->GetNamePtr(), index, input_num);
-    REPORT_INNER_ERR_MSG("E29999", "Node[%s][%s] input index %" PRId64 " is invalid, input num is %zu.", node_ptr->GetNamePtr(),
-                         node_ptr->GetTypePtr(), index, input_num);
+    REPORT_INNER_ERR_MSG("E29999", "Node[%s][%s] input index %" PRId64 " is invalid, input num is %zu.",
+                         node_ptr->GetNamePtr(), node_ptr->GetTypePtr(), index, input_num);
     return nullptr;
   }
   return GetInputPointer<StorageShape>(static_cast<size_t>(InputType::kShapeStart) + static_cast<size_t>(index));
 }
 
-const gert::StorageShape* ExeResGenerationContext::GetOutputShape(int64_t index) const {
+const gert::StorageShape *ExeResGenerationContext::GetOutputShape(int64_t index) const {
   auto node_ptr = MutableInputPointer<ge::Node>(0);
   GE_ASSERT_NOTNULL(node_ptr);
   const auto input_num = GetInputValue<size_t>(static_cast<uint32_t>(InputType::kInputNum));
   const auto output_num = GetInputValue<size_t>(static_cast<uint32_t>(InputType::kOutputNum));
-  GELOGD("Node[%s] output index[%" PRId64 "] with input num:%zu, out num:%zu.", node_ptr->GetNamePtr(), index, input_num,
-         output_num);
+  GELOGD("Node[%s] output index[%" PRId64 "] with input num:%zu, out num:%zu.", node_ptr->GetNamePtr(), index,
+         input_num, output_num);
   if (index < 0 || static_cast<size_t>(index) >= output_num) {
-    GE_LOGE("Op[%s] output index %" PRId64 " is invalid, output num is %zu.", node_ptr->GetNamePtr(), index, output_num);
+    GE_LOGE("Op[%s] output index %" PRId64 " is invalid, output num is %zu.", node_ptr->GetNamePtr(), index,
+            output_num);
     REPORT_INNER_ERR_MSG("E29999", "Node[%s][%s] output index %" PRId64 " is invalid, output num is %zu.",
                          node_ptr->GetNamePtr(), node_ptr->GetTypePtr(), index, output_num);
     return nullptr;
   }
-  return GetInputPointer<StorageShape>(static_cast<size_t>(InputType::kShapeStart) + input_num + static_cast<size_t>(index));
+  return GetInputPointer<StorageShape>(static_cast<size_t>(InputType::kShapeStart) + input_num +
+                                       static_cast<size_t>(index));
 }
 
 ge::graphStatus ExeResGenerationContext::SetAttachedStreamInfos(std::vector<StreamInfo> &stream_info_vec) const {
@@ -212,8 +209,7 @@ ge::graphStatus ExeResGenerationContext::SetAttachedStreamInfos(std::vector<Stre
       return ge::GRAPH_FAILED;
     }
     ge::GeAttrValue::NAMED_ATTRS attached_stream;
-    (void)ge::AttrUtils::SetStr(attached_stream, ge::ATTR_NAME_ATTACHED_RESOURCE_NAME,
-                                stream_info.name.GetString());
+    (void)ge::AttrUtils::SetStr(attached_stream, ge::ATTR_NAME_ATTACHED_RESOURCE_NAME, stream_info.name.GetString());
     (void)ge::AttrUtils::SetStr(attached_stream, ge::ATTR_NAME_ATTACHED_RESOURCE_REUSE_KEY,
                                 stream_info.reuse_key.GetString());
     // ge::ATTR_NAME_ATTACHED_STREAM_DEPEND_VALUE_LIST
@@ -252,13 +248,12 @@ std::vector<StreamInfo> ExeResGenerationContext::GetAttachedStreamInfos() const 
     stream_info.reuse_key = tmp_str.c_str();
     (void)ge::AttrUtils::GetListInt(stream_info_attr, ge::ATTR_NAME_ATTACHED_RESOURCE_DEPEND_VALUE_LIST_INT,
                                     stream_info.depend_value_input_indices);
-    (void)ge::AttrUtils::GetBool(stream_info_attr, ge::ATTR_NAME_ATTACHED_RESOURCE_REQUIRED_FLAG,
-                                 stream_info.required);
+    (void)ge::AttrUtils::GetBool(stream_info_attr, ge::ATTR_NAME_ATTACHED_RESOURCE_REQUIRED_FLAG, stream_info.required);
     (void)ge::AttrUtils::GetBool(stream_info_attr, ge::ATTR_NAME_ATTACHED_RESOURCE_IS_VALID, stream_info.is_valid);
     (void)ge::AttrUtils::GetInt(stream_info_attr, ge::ATTR_NAME_ATTACHED_RESOURCE_ID, stream_info.stream_id);
     GELOGD("Get stream info:name[%s], reuse_key[%s], stream_id[%" PRId64 "], required[%d], is_valid[%d].",
-           stream_info.name.GetString(), stream_info.reuse_key.GetString(), stream_info.stream_id,
-           stream_info.required, stream_info.is_valid);
+           stream_info.name.GetString(), stream_info.reuse_key.GetString(), stream_info.stream_id, stream_info.required,
+           stream_info.is_valid);
     stream_info_vec.emplace_back(stream_info);
   }
   return stream_info_vec;
@@ -273,8 +268,7 @@ ge::graphStatus ExeResGenerationContext::SetListStr(const std::string &attr_name
   return ge::GRAPH_SUCCESS;
 }
 
-bool ExeResGenerationContext::GetStrAttrVal(const char *attr_name,
-    ge::AscendString &val) const {
+bool ExeResGenerationContext::GetStrAttrVal(const char *attr_name, ge::AscendString &val) const {
   auto node_ptr = MutableInputPointer<ge::Node>(0);
   GE_ASSERT_NOTNULL(node_ptr);
   std::string val_str;
@@ -324,9 +318,8 @@ ge::graphStatus ExeResGenerationContext::SetSyncResInfos(std::vector<SyncResInfo
     (void)ge::AttrUtils::SetStr(sync_info_attr, ge::ATTR_NAME_ATTACHED_RESOURCE_REUSE_KEY,
                                 sync_info.reuse_key.GetString());
     (void)ge::AttrUtils::SetBool(sync_info_attr, ge::ATTR_NAME_ATTACHED_RESOURCE_REQUIRED_FLAG, sync_info.required);
-    GELOGD("Sync info:name[%s], reuse_key[%s], type[%d], required[%d].",
-           sync_info.name.GetString(), sync_info.reuse_key.GetString(), sync_info.type,
-           sync_info.required);
+    GELOGD("Sync info:name[%s], reuse_key[%s], type[%d], required[%d].", sync_info.name.GetString(),
+           sync_info.reuse_key.GetString(), sync_info.type, sync_info.required);
     sync_info_attrs.emplace_back(sync_info_attr);
   }
   // ge::ATTR_NAME_ATTACHED_SYNC_RES_INFO
@@ -364,8 +357,8 @@ std::vector<SyncResInfo> ExeResGenerationContext::GetSyncResInfos() const {
     (void)ge::AttrUtils::GetInt(sync_info_attr, ge::ATTR_NAME_ATTACHED_RESOURCE_ID, sync_info.sync_res_id);
     sync_info_vec.emplace_back(sync_info);
     GELOGD("Sync info:name[%s], reuse_key[%s], type[%d], required[%d], is_valid[%d], sync_id[%" PRId64 "].",
-           sync_info.name.GetString(), sync_info.reuse_key.GetString(), sync_info.type,
-           sync_info.required, sync_info.is_valid, sync_info.sync_res_id);
+           sync_info.name.GetString(), sync_info.reuse_key.GetString(), sync_info.type, sync_info.required,
+           sync_info.is_valid, sync_info.sync_res_id);
   }
   return sync_info_vec;
 }
@@ -414,39 +407,41 @@ bool OpCheckContext::IsConstInput(const ge::AscendString &name) const {
     return false;
   }
   const bool ret = (op_desc->GetInputDesc(static_cast<uint32_t>(index)).IsValid() == ge::GRAPH_SUCCESS) &&
-      (ge::OpDescUtils::GetInputConstData(op, static_cast<uint32_t>(index)) != nullptr);
+                   (ge::OpDescUtils::GetInputConstData(op, static_cast<uint32_t>(index)) != nullptr);
   GELOGD("Node[%s] input[%d] is const flag:%d.", op_desc->GetNamePtr(), index, ret);
   return ret;
 }
 
-const StorageShape* OpCheckContext::GetInputShape(int64_t index) const {
+const StorageShape *OpCheckContext::GetInputShape(int64_t index) const {
   auto node_ptr = MutableInputPointer<ge::Node>(0);
   GE_ASSERT_NOTNULL(node_ptr);
   const auto input_num = GetInputValue<size_t>(static_cast<uint32_t>(InputType::kInputNum));
   GELOGD("Node[%s] input index[%" PRId64 "] with input num:%zu.", node_ptr->GetNamePtr(), index, input_num);
   if (index < 0 || static_cast<size_t>(index) >= input_num) {
     GE_LOGE("Op[%s] input index %" PRId64 " is invalid, input num is %zu.", node_ptr->GetNamePtr(), index, input_num);
-    REPORT_INNER_ERR_MSG("E29999", "Node[%s][%s] input index %" PRId64 " is invalid, input num is %zu.", node_ptr->GetNamePtr(),
-                         node_ptr->GetTypePtr(), index, input_num);
+    REPORT_INNER_ERR_MSG("E29999", "Node[%s][%s] input index %" PRId64 " is invalid, input num is %zu.",
+                         node_ptr->GetNamePtr(), node_ptr->GetTypePtr(), index, input_num);
     return nullptr;
   }
   return GetInputPointer<StorageShape>(static_cast<size_t>(InputType::kShapeStart) + static_cast<size_t>(index));
 }
 
-const StorageShape* OpCheckContext::GetOutputShape(int64_t index) const {
+const StorageShape *OpCheckContext::GetOutputShape(int64_t index) const {
   auto node_ptr = MutableInputPointer<ge::Node>(0);
   GE_ASSERT_NOTNULL(node_ptr);
   const auto input_num = GetInputValue<size_t>(static_cast<uint32_t>(InputType::kInputNum));
   const auto output_num = GetInputValue<size_t>(static_cast<uint32_t>(InputType::kOutputNum));
-  GELOGD("Node[%s] output index[%" PRId64 "] with input num:%zu, out num:%zu.", node_ptr->GetNamePtr(), index, input_num,
-         output_num);
+  GELOGD("Node[%s] output index[%" PRId64 "] with input num:%zu, out num:%zu.", node_ptr->GetNamePtr(), index,
+         input_num, output_num);
   if (index < 0 || static_cast<size_t>(index) >= output_num) {
-    GE_LOGE("Op[%s] output index %" PRId64 " is invalid, output num is %zu.", node_ptr->GetNamePtr(), index, output_num);
+    GE_LOGE("Op[%s] output index %" PRId64 " is invalid, output num is %zu.", node_ptr->GetNamePtr(), index,
+            output_num);
     REPORT_INNER_ERR_MSG("E29999", "Node[%s][%s] output index %" PRId64 " is invalid, output num is %zu.",
                          node_ptr->GetNamePtr(), node_ptr->GetTypePtr(), index, output_num);
     return nullptr;
   }
-  return GetInputPointer<StorageShape>(static_cast<size_t>(InputType::kShapeStart) + input_num + static_cast<size_t>(index));
+  return GetInputPointer<StorageShape>(static_cast<size_t>(InputType::kShapeStart) + input_num +
+                                       static_cast<size_t>(index));
 }
 
 bool OpCheckContext::CheckContextValid() const {
@@ -459,4 +454,4 @@ bool OpCheckContext::CheckContextValid() const {
   return true;
 }
 
-} // namespace gert
+}  // namespace gert

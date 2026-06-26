@@ -65,4 +65,3 @@ aclDataBuffer* aclmdlGetDatasetBuffer(const aclmdlDataset *dataset, size_t index
 
 -   获取成功，返回aclDataBuffer的地址。
 -   获取失败返回空地址。
-

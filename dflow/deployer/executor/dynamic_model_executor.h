@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,17 +27,16 @@
 
 namespace ge {
 class DynamicModelExecutor {
- public:  
+ public:
   explicit DynamicModelExecutor(bool is_host);
   virtual ~DynamicModelExecutor() noexcept;
   virtual Status Initialize();
   virtual void Finalize();
-  virtual Status LoadModel(const ModelData &model_data,
-                           const ComputeGraphPtr &root_graph,
+  virtual Status LoadModel(const ModelData &model_data, const ComputeGraphPtr &root_graph,
                            const ModelQueueParam &model_queue_param);
 
-  virtual Status ExecuteAsync(const std::function<void(Status, void *, void *)> &callback,
-                              void *req_mbuf = nullptr, void *resp_mbuf = nullptr);
+  virtual Status ExecuteAsync(const std::function<void(Status, void *, void *)> &callback, void *req_mbuf = nullptr,
+                              void *resp_mbuf = nullptr);
   Status ExecuteInternal();
   virtual Status ExecuteDirectly();
   virtual void UnloadModel();
@@ -46,13 +45,17 @@ class DynamicModelExecutor {
   virtual Status ClearModel(const int32_t clear_type);
   virtual Status ExceptionNotify(uint32_t type, uint64_t trans_id);
   Status CheckLocalAicpuSupportExceptionNotify() const;
-  static Status GenerateLoadConfig(const ModelData &model_data, const std::vector<FileConstantMem> &external_weight_mem_data, aclmdlConfigHandle *handle);
-  static Status InitExternalWeightMem(const ComputeGraphPtr &root_graph, std::vector<FileConstantMem> &external_weight_mem_data);
+  static Status GenerateLoadConfig(const ModelData &model_data,
+                                   const std::vector<FileConstantMem> &external_weight_mem_data,
+                                   aclmdlConfigHandle *handle);
+  static Status InitExternalWeightMem(const ComputeGraphPtr &root_graph,
+                                      std::vector<FileConstantMem> &external_weight_mem_data);
   struct ModelExecuteParam {
     std::function<void(Status, void *, void *)> callback;
     void *req_mbuf;
     void *resp_mbuf;
   };
+
  protected:
   void Run();
   void DestroyDatasetResource();
@@ -95,8 +98,10 @@ class DynamicModelExecutor {
   Status ParseModelOutputToTensorDesc(const aclTensorDesc *acl_tensor_desc, GeTensorDesc &tensor_desc) const;
   Status CreateInputDataset(const std::vector<DataBuffer> &inputs);
   Status CreateOutputDataset(const std::vector<DataBuffer> &outputs);
+
  private:
   void FinalizeInternal();
+
  protected:
   std::thread run_thread_;
   BlockingQueue<ModelExecuteParam> task_queue_;
@@ -149,13 +154,13 @@ class DynamicModelExecutor {
   void *aicpu_handle_ = nullptr;
   int32_t execute_times_ = -1;
   void *new_allocated_global_step_ = nullptr;
-  bool is_need_alloc_output_mbuf_ = true;  // no need alloc mbuf for output in ps model
-  ModelExecuteParam model_execute_param_;   // record current model execute param
-  int32_t status_output_queue_device_id_ = 0; // status queue device id
-  uint32_t status_output_queue_id_ = 0U; // output queue for report status
-  int32_t model_uuid_ = 0U; // model uuid
-  bool need_report_status_ = false; // whether to report status
-  uint32_t input_consume_num_ = 0U; // num of times when report status fail
+  bool is_need_alloc_output_mbuf_ = true;      // no need alloc mbuf for output in ps model
+  ModelExecuteParam model_execute_param_;      // record current model execute param
+  int32_t status_output_queue_device_id_ = 0;  // status queue device id
+  uint32_t status_output_queue_id_ = 0U;       // output queue for report status
+  int32_t model_uuid_ = 0U;                    // model uuid
+  bool need_report_status_ = false;            // whether to report status
+  uint32_t input_consume_num_ = 0U;            // num of times when report status fail
   std::atomic<bool> stop_schedule_flag_{false};
   std::atomic<bool> has_stop_schedule_{false};
   std::vector<uint32_t> aicpu_model_ids_;

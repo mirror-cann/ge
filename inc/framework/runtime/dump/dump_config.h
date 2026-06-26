@@ -82,7 +82,7 @@ const std::string GE_DUMP_SCENE_DEFAULT = "";
 
 class DumpConfig {
  public:
-  static DumpConfig& Instance();
+  static DumpConfig &Instance();
 
   // 开关
   bool IsDataDumpEnabled() const;
@@ -94,80 +94,79 @@ class DumpConfig {
   void SetOverflowDumpEnabled(bool enabled);
 
   // 配置项
-  const std::string& GetDumpPath() const;
-  const std::string& GetDumpStep() const;
-  const std::string& GetDumpMode() const;
-  const std::string& GetDumpData() const;
-  const std::unordered_set<std::string>& GetOpList() const;
+  const std::string &GetDumpPath() const;
+  const std::string &GetDumpStep() const;
+  const std::string &GetDumpMode() const;
+  const std::string &GetDumpData() const;
+  const std::unordered_set<std::string> &GetOpList() const;
 
-  void SetDumpPath(const std::string& path);
-  void SetDumpStep(const std::string& step);
-  void SetDumpMode(const std::string& mode);
-  void SetDumpData(const std::string& data);
-  void SetOpList(const std::unordered_set<std::string>& op_list);
+  void SetDumpPath(const std::string &path);
+  void SetDumpStep(const std::string &step);
+  void SetDumpMode(const std::string &mode);
+  void SetDumpData(const std::string &data);
+  void SetOpList(const std::unordered_set<std::string> &op_list);
 
   // 重置配置
   void Reset();
 
   // 新增：完整配置解析与校验
-  Status ParseAndValidate(const char* dumpData, int32_t size);
-  bool IsValidDumpConfig(const nlohmann::json& js) const;
+  Status ParseAndValidate(const char *dumpData, int32_t size);
+  bool IsValidDumpConfig(const nlohmann::json &js) const;
 
   // 新增：完整 Dump 支持的配置获取接口
-  const std::string& GetDumpLevel() const;
-  const std::string& GetDumpStatus() const;
-  const std::string& GetDumpOpSwitch() const;
-  const std::string& GetDumpDebug() const;
+  const std::string &GetDumpLevel() const;
+  const std::string &GetDumpStatus() const;
+  const std::string &GetDumpOpSwitch() const;
+  const std::string &GetDumpDebug() const;
   uint32_t GetOpDebugMode() const;
-  const std::vector<std::string>& GetDumpStats() const;
-  const std::string& GetDumpScene() const;
-  const std::vector<ModelDumpConfig>& GetModelDumpConfigList() const;
+  const std::vector<std::string> &GetDumpStats() const;
+  const std::string &GetDumpScene() const;
+  const std::vector<ModelDumpConfig> &GetModelDumpConfigList() const;
 
   // 配置是否需要 Dump
   bool NeedDump() const;
 
   // 判断某个算子是否需要 dump
-  bool IsOpNeedDump(const std::string& op_name) const;
+  bool IsOpNeedDump(const std::string &op_name) const;
 
  private:
   DumpConfig() = default;
   ~DumpConfig() = default;
 
   // 检查 OM2 不支持的配置项并打印 warning
-  static void CheckUnsupportedConfigs(const nlohmann::json& jsDumpConfig);
+  static void CheckUnsupportedConfigs(const nlohmann::json &jsDumpConfig);
 
   // 校验辅助函数
-  static bool CheckDumpSceneSwitch(const nlohmann::json& jsDumpConfig, std::string& dumpScene);
-  static bool CheckDumpPath(const nlohmann::json& jsDumpConfig);
-  static bool CheckDumpStep(const nlohmann::json& jsDumpConfig);
-  static bool CheckDumplist(const nlohmann::json& jsDumpConfig, const std::string& dumpLevel);
-  static bool CheckDumpOpSwitch(const std::string& dumpOpSwitch);
-  static bool CheckIpAddress(const DumpConfig& config);
-  static bool ValidateIpAddress(const std::string& ipAddress);
-  static bool IsDumpPathValid(const std::string& dumpPath);
-  static bool DumpDebugCheck(const nlohmann::json& jsDumpConfig);
-  static bool DumpStatsCheck(const nlohmann::json& jsDumpConfig);
-  static bool IsDumpDebugEnabled(const nlohmann::json& jsDumpConfig);
-  static bool ValidateNormalDumpConfig(const nlohmann::json& jsDumpConfig);
-  static bool ValidateDumpPath(const nlohmann::json& jsDumpConfig);
-  static bool ValidateDumpMode(const nlohmann::json& jsDumpConfig);
-  static bool ValidateDumpLevel(const nlohmann::json& jsDumpConfig);
-  static bool ValidateOtherDumpConfigs(const nlohmann::json& jsDumpConfig);
-  static std::string GetDumpLevel(const nlohmann::json& jsDumpConfig);
-  static bool CheckDumpModelConfig(const nlohmann::json& modelJson);
+  static bool CheckDumpSceneSwitch(const nlohmann::json &jsDumpConfig, std::string &dumpScene);
+  static bool CheckDumpPath(const nlohmann::json &jsDumpConfig);
+  static bool CheckDumpStep(const nlohmann::json &jsDumpConfig);
+  static bool CheckDumplist(const nlohmann::json &jsDumpConfig, const std::string &dumpLevel);
+  static bool CheckDumpOpSwitch(const std::string &dumpOpSwitch);
+  static bool CheckIpAddress(const DumpConfig &config);
+  static bool ValidateIpAddress(const std::string &ipAddress);
+  static bool IsDumpPathValid(const std::string &dumpPath);
+  static bool DumpDebugCheck(const nlohmann::json &jsDumpConfig);
+  static bool DumpStatsCheck(const nlohmann::json &jsDumpConfig);
+  static bool IsDumpDebugEnabled(const nlohmann::json &jsDumpConfig);
+  static bool ValidateNormalDumpConfig(const nlohmann::json &jsDumpConfig);
+  static bool ValidateDumpPath(const nlohmann::json &jsDumpConfig);
+  static bool ValidateDumpMode(const nlohmann::json &jsDumpConfig);
+  static bool ValidateDumpLevel(const nlohmann::json &jsDumpConfig);
+  static bool ValidateOtherDumpConfigs(const nlohmann::json &jsDumpConfig);
+  static std::string GetDumpLevel(const nlohmann::json &jsDumpConfig);
+  static bool CheckDumpModelConfig(const nlohmann::json &modelJson);
 
   // 解析辅助函数
-  Status ParseDumpConfigFromJson(const nlohmann::json& dumpJson);
-  void ParseBasicConfigurations(const nlohmann::json& dumpJson);
-  void ParseComplexConfigs(const nlohmann::json& dumpJson);
-  static bool ParseModelDumpConfig(const nlohmann::json& modelJson, ModelDumpConfig& modelConfig);
-  static void ParseBlacklist(const nlohmann::json& blacklistJson, DumpBlacklist& blacklist);
-  static void ParseStringArray(const nlohmann::json& jsonArray, std::vector<std::string>& output);
-  static void ParseModelDumpConfigList(const nlohmann::json& jsonArray, std::vector<ModelDumpConfig>& output);
-  static std::string GetConfigWithDefault(const nlohmann::json& json,
-                                          const std::string& key,
-                                          const std::string& defaultValue);
-  static std::vector<std::string> Split(const std::string &str, const char_t * const delimiter);
+  Status ParseDumpConfigFromJson(const nlohmann::json &dumpJson);
+  void ParseBasicConfigurations(const nlohmann::json &dumpJson);
+  void ParseComplexConfigs(const nlohmann::json &dumpJson);
+  static bool ParseModelDumpConfig(const nlohmann::json &modelJson, ModelDumpConfig &modelConfig);
+  static void ParseBlacklist(const nlohmann::json &blacklistJson, DumpBlacklist &blacklist);
+  static void ParseStringArray(const nlohmann::json &jsonArray, std::vector<std::string> &output);
+  static void ParseModelDumpConfigList(const nlohmann::json &jsonArray, std::vector<ModelDumpConfig> &output);
+  static std::string GetConfigWithDefault(const nlohmann::json &json, const std::string &key,
+                                          const std::string &defaultValue);
+  static std::vector<std::string> Split(const std::string &str, const char_t *const delimiter);
 
   mutable std::mutex mutex_;
 

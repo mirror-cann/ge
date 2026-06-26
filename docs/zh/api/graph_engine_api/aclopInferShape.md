@@ -132,4 +132,3 @@ aclSetTensorDescName(inputTensorDesc[1], "y0");
 aclSetTensorDescName(inputTensorDesc[2], "y1");
 aclSetTensorDescName(outputTensorDesc[0], "z");
 ```
-

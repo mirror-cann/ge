@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,10 +22,8 @@
 namespace ge {
 class FlowModelSenderTest : public testing::Test {
  protected:
-  void SetUp() override {
-  }
-  void TearDown() override {
-  }
+  void SetUp() override {}
+  void TearDown() override {}
 };
 
 TEST_F(FlowModelSenderTest, AddDynamicSchedInfo) {
@@ -60,10 +58,8 @@ TEST_F(FlowModelSenderTest, AddErrDynamicSchedInfo) {
 
 TEST_F(FlowModelSenderTest, CacheLocalModel) {
   int32_t local_node_id = ResourceManager::GetInstance().GetLocalNodeId();
-  GE_MAKE_GUARD(recover, [local_node_id]() {
-    ResourceManager::GetInstance().local_node_id_ = local_node_id;
-  });
-  
+  GE_MAKE_GUARD(recover, [local_node_id]() { ResourceManager::GetInstance().local_node_id_ = local_node_id; });
+
   ResourceManager::GetInstance().local_node_id_ = 0;
   FlowModelSender flow_model_sender;
   DeployPlan::SubmodelInfo model_info;
@@ -80,7 +76,8 @@ TEST_F(FlowModelSenderTest, TestGetSavedModelPath) {
   auto graph = MakeShared<ComputeGraph>("g1");
   (void)AttrUtils::SetBool(graph, ATTR_NAME_DYNAMIC_SHAPE_PARTITIONED, false);
   graph->SetGraphUnknownFlag(false);
-  model_info.model =  MakeShared<FlowModel>(graph);;
+  model_info.model = MakeShared<FlowModel>(graph);
+  ;
   model_info.model->SetIsBuiltinModel(true);
   model_info.model->SetModelType(PNE_ID_UDF);
   model_info.device_info = DeployPlan::DeviceInfo(0, 0, 0);
@@ -92,7 +89,7 @@ TEST_F(FlowModelSenderTest, TestGetSavedModelPath) {
   const auto back_up = ResourceManager::GetInstance().local_node_id_;
   ResourceManager::GetInstance().local_node_id_ = 0;
   ASSERT_EQ(flow_model_sender.GetSavedFilePath(model_info, model_file, saved_path), FAILED);
-  
+
   model_info.model->SetSavedModelPath("save_path");
   ASSERT_EQ(flow_model_sender.GetSavedFilePath(model_info, model_file, saved_path), SUCCESS);
   ASSERT_EQ(saved_path, "save_path");
@@ -118,11 +115,11 @@ TEST_F(FlowModelSenderTest, BuildDeployPlanOptions) {
   map<std::string, std::string> global_options = ge::GetThreadLocalContext().GetAllGlobalOptions();
   map<std::string, std::string> sess_options = ge::GetThreadLocalContext().GetAllSessionOptions();
   map<std::string, std::string> graph_options = ge::GetThreadLocalContext().GetAllGraphOptions();
-  GE_MAKE_GUARD(recover_sess_cfg, ([&graph_options, &global_options, &sess_options](){
-    GetThreadLocalContext().SetGlobalOption(global_options);
-    GetThreadLocalContext().SetSessionOption(sess_options);
-    GetThreadLocalContext().SetGraphOption(graph_options);
-  }));
+  GE_MAKE_GUARD(recover_sess_cfg, ([&graph_options, &global_options, &sess_options]() {
+                  GetThreadLocalContext().SetGlobalOption(global_options);
+                  GetThreadLocalContext().SetSessionOption(sess_options);
+                  GetThreadLocalContext().SetGraphOption(graph_options);
+                }));
 
   map<std::string, std::string> global_mock_options{{OP_WAIT_TIMEOUT, "0"}};
   GetThreadLocalContext().SetGlobalOption(global_mock_options);

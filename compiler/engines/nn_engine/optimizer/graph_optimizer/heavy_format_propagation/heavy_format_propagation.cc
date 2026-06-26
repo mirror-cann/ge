@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -163,7 +163,7 @@ bool IsNextNodeVisitedOrNull(const ge::NodePtr &last_node, const ge::NodePtr &ne
   if (last_node != nullptr && next_node != nullptr &&
       (next_node->GetOwnerComputeGraph()->GetName() == last_node->GetOwnerComputeGraph()->GetName()) &&
       (next_node->GetOpDesc()->GetId() == last_node->GetOpDesc()->GetId())) {
-    /* This means we are travering from this last_node, and we won't
+    /* This means we are traversing from this last_node, and we won't
      * traverse forwards to this last_node again. */
     FE_LOGD("This node %s has been visited; the last node was %s.", next_node->GetName().c_str(),
             last_node->GetName().c_str());
@@ -192,13 +192,13 @@ bool IsFEInsertedReshape(const ge::OpDescPtr &op_desc_ptr) {
  * use the int64 TransData which is not supported. */
 void CorrectFmtAgnosticType(const ge::OpDescPtr &op_desc_ptr) {
   if (IsDtypeSensitiveOp(op_desc_ptr->GetType()) &&
-      ((op_desc_ptr->GetInputDescPtr(0) != nullptr &&
-        op_desc_ptr->GetInputDescPtr(0)->GetDataType() == ge::DT_INT64) ||
+      ((op_desc_ptr->GetInputDescPtr(0) != nullptr && op_desc_ptr->GetInputDescPtr(0)->GetDataType() == ge::DT_INT64) ||
        (op_desc_ptr->GetOutputDescPtr(0) != nullptr &&
         op_desc_ptr->GetOutputDescPtr(0)->GetDataType() == ge::DT_INT64))) {
-    FE_LOGI("Cast operation with %s contains int64 input or output is not allowed as a format-agnostic operator.", op_desc_ptr->GetName().c_str());
-    (void)ge::AttrUtils::SetInt(op_desc_ptr, FORMAT_AGNOSTIC, static_cast<int64_t>(
-      FormatSelectionType::FORMAT_DEPENDS_ON_OP_KERNEL_INFO));
+    FE_LOGI("Cast operation with %s contains int64 input or output is not allowed as a format-agnostic operator.",
+            op_desc_ptr->GetName().c_str());
+    (void)ge::AttrUtils::SetInt(op_desc_ptr, FORMAT_AGNOSTIC,
+                                static_cast<int64_t>(FormatSelectionType::FORMAT_DEPENDS_ON_OP_KERNEL_INFO));
   }
 }
 }  // namespace
@@ -208,7 +208,7 @@ HeavyFormatPropagation::HeavyFormatPropagation(const std::string &engine_name, R
 
 HeavyFormatPropagation::~HeavyFormatPropagation() {}
 
-Status HeavyFormatPropagation::Initialize() {
+Status HeavyFormatPropagation::Initalize() {
   FE_MAKE_SHARED(format_dtype_querier_ptr_ = std::make_shared<FormatDtypeQuerier>(engine_name_), return FAILED);
   FE_MAKE_SHARED(format_dtype_setter_ptr_ = std::make_shared<FormatDtypeSetter>(engine_name_), return FAILED);
   FE_MAKE_SHARED(supportformats_updater_ptr_ = std::make_shared<HeavyFormatSupportFormatsUpdater>(
@@ -327,8 +327,8 @@ Status HeavyFormatPropagation::GetFormatAndDtypeFromOpKernel(const ge::NodePtr &
     return FAILED;
   }
   vector<ge::Format> format_vec;
-  if (format_dtype_querier_ptr_->GetSupportFormats(op_kernel_info_ptr, input_or_output_info,
-                                                   current_node, format_vec) != SUCCESS) {
+  if (format_dtype_querier_ptr_->GetSupportFormats(op_kernel_info_ptr, input_or_output_info, current_node,
+                                                   format_vec) != SUCCESS) {
     FE_LOGW("Failed to retrieve supported formats, node: [%s].", current_node->GetName().c_str());
     return FAILED;
   }
@@ -343,15 +343,14 @@ Status HeavyFormatPropagation::GetFormatAndDtypeFromOpKernel(const ge::NodePtr &
     tensor_info_ptr->heavy_format = static_cast<ge::Format>(ge::GetPrimaryFormat(current_tensor->GetFormat()));
   }
   vector<ge::DataType> data_type_vec;
-  if (format_dtype_querier_ptr_->GetSupportDataTypes(op_kernel_info_ptr, input_or_output_info,
-                                                     current_node, data_type_vec) != SUCCESS) {
+  if (format_dtype_querier_ptr_->GetSupportDataTypes(op_kernel_info_ptr, input_or_output_info, current_node,
+                                                     data_type_vec) != SUCCESS) {
     FE_LOGW("Failed to retrieve supported data types, returning FAILED.");
     return FAILED;
   }
   if (static_cast<size_t>(tensor_info_ptr->format_index) >= data_type_vec.size()) {
-    FE_LOGW("FormatIndex %d exceeds data type size %zu: %s | %s", tensor_info_ptr->format_index,
-            data_type_vec.size(), current_node->GetName().c_str(),
-            current_node->GetType().c_str());
+    FE_LOGW("FormatIndex %d exceeds data type size %zu: %s | %s", tensor_info_ptr->format_index, data_type_vec.size(),
+            current_node->GetName().c_str(), current_node->GetType().c_str());
     return FAILED;
   }
   tensor_info_ptr->data_type = data_type_vec.at(tensor_info_ptr->format_index);
@@ -371,8 +370,7 @@ Status HeavyFormatPropagation::CheckSpecificSubGraphDataOrNetoutput(
   is_sub_graph_data_or_net_output = FeGraphUtils::IsSubGraphDataOrNetOutput(tensor_info_ptr->op_desc_ptr);
   if (is_sub_graph_data_or_net_output) {
     FE_LOGD("Begin to get relations, node: %s, is_input: %d, anchor_index: %d.",
-            tensor_info_ptr->node_ptr->GetName().c_str(),
-            tensor_info_ptr->is_input, tensor_info_ptr->anchor_index);
+            tensor_info_ptr->node_ptr->GetName().c_str(), tensor_info_ptr->is_input, tensor_info_ptr->anchor_index);
 
     auto status = reflection_builder_ptr_->LookUpRefRelations(key, reflections);
     if (status != ge::GRAPH_SUCCESS) {
@@ -403,8 +401,10 @@ void HeavyFormatPropagation::FindSameNameVariableNodes(const ge::NodePtr &node_p
   ge::RefCell key(node_ptr->GetName(), node_ptr, ge::NODE_OUT, 0);
   std::unordered_set<ge::RefCell, ge::RefCellHash> reflections;
   if (reflection_builder_ptr_->LookUpRefRelations(key, reflections) != ge::GRAPH_SUCCESS || reflections.empty()) {
-    FE_LOGD("[GraphOptJdgInst][FmtPropagate][FindSameNmVarNd] failed to look up the relationship of the same name node [%s].",
-           node_ptr->GetName().c_str());
+    FE_LOGD(
+        "[GraphOptJdgInst][FmtPropagate][FindSameNmVarNd] failed to look up the relationship of the same name node "
+        "[%s].",
+        node_ptr->GetName().c_str());
     return;
   }
 
@@ -424,17 +424,17 @@ Status HeavyFormatPropagation::SetNewShape(const TensorInfoPtr &tensor_info_ptr,
   auto op_type = op_desc->GetType();
   int64_t group = GROUPS_DEFAULT_VALUE;
   ge::Format new_heavy_format = GetNewHeavyFormat(tensor_info_ptr, group);
-  FE_LOGD("Op[%s, %s]: new_heavy_format is %s, the group is %ld for the %s with ID [%d].",
-          op_name.c_str(), op_type.c_str(), FormatToStr(new_heavy_format).c_str(), group,
-          IS_INPUT_TO_STRING(tensor_info_ptr->is_input), tensor_info_ptr->anchor_index);
+  FE_LOGD("Op[%s, %s]: new_heavy_format is %s, the group is %ld for the %s with ID [%d].", op_name.c_str(),
+          op_type.c_str(), FormatToStr(new_heavy_format).c_str(), group, IS_INPUT_TO_STRING(tensor_info_ptr->is_input),
+          tensor_info_ptr->anchor_index);
   int32_t c0_bit_val = GetC0BitByDataType(current_tensor->GetDataType());
   new_heavy_format = static_cast<ge::Format>(ge::GetFormatFromC0(new_heavy_format, c0_bit_val));
   if (original_shape.GetDimNum() == 0) {
     new_shape = original_shape;
     current_tensor->SetFormat(new_heavy_format);
-    FE_LOGD("Op[%s, %s]: -2 dims, only set new_heavy_format to %s for the %s [%d].",
-            op_name.c_str(), op_type.c_str(), FormatToStr(new_heavy_format).c_str(),
-            IS_INPUT_TO_STRING(tensor_info_ptr->is_input), tensor_info_ptr->anchor_index);
+    FE_LOGD("Op[%s, %s]: -2 dims, only set new_heavy_format to %s for the %s [%d].", op_name.c_str(), op_type.c_str(),
+            FormatToStr(new_heavy_format).c_str(), IS_INPUT_TO_STRING(tensor_info_ptr->is_input),
+            tensor_info_ptr->anchor_index);
     return SUCCESS;
   }
 
@@ -459,25 +459,23 @@ Status HeavyFormatPropagation::SetNewShape(const TensorInfoPtr &tensor_info_ptr,
   }
   original_shape = new_shape;
   ge::Format original_format = current_tensor->GetOriginFormat();
-  ShapeAndFormat shape_and_format_info = {original_shape, new_shape, original_format, new_heavy_format,
-                                          tensor_info_ptr->data_type, group};
+  ShapeAndFormat shape_and_format_info = {
+      original_shape, new_shape, original_format, new_heavy_format, tensor_info_ptr->data_type, group};
   (void)GetShapeAccordingToFormat(shape_and_format_info);
   current_tensor->SetShape(new_shape);
   current_tensor->SetFormat(new_heavy_format);
 
   /* update shape range for unknown op */
   if (CalcShapeRange(op_desc, tensor_info_ptr->heavy_format, original_shape, *current_tensor) != SUCCESS) {
-    FE_LOGI("Set shape range of op[name:%s,type:%s] not successfully.", op_name.c_str(),
-            op_type.c_str());
+    FE_LOGI("Set shape range of op[name:%s,type:%s] not successfully.", op_name.c_str(), op_type.c_str());
     return FAILED;
   }
   GetReshapeAxisValueByName(current_tensor->GetOriginFormat(), origin_shape_before_reshape, 'C', *current_tensor);
   FE_LOGW("Set format %s with datatype %u and original shape %s to new shape %s for the %u %s of node %s.",
-          FormatToStr(new_heavy_format).c_str(),
-          tensor_info_ptr->data_type,
+          FormatToStr(new_heavy_format).c_str(), tensor_info_ptr->data_type,
           StringUtils::IntegerVecToString(origin_shape_before_reshape.GetDims()).c_str(),
-          StringUtils::IntegerVecToString(new_shape.GetDims()).c_str(),
-          tensor_info_ptr->anchor_index, IS_INPUT_TO_STRING(tensor_info_ptr->is_input), op_name.c_str());
+          StringUtils::IntegerVecToString(new_shape.GetDims()).c_str(), tensor_info_ptr->anchor_index,
+          IS_INPUT_TO_STRING(tensor_info_ptr->is_input), op_name.c_str());
   return SUCCESS;
 }
 
@@ -486,8 +484,8 @@ Status HeavyFormatPropagation::SetFormatAndDTypeToOpdesc(const TensorInfoPtr &te
                                                          Status set_format_result) {
   /* We will update the shape and format and datatype according
    * to the AnchorIndex */
-  FE_LOGD("Begin to set format and dtype for node: %s, anchor index: %d.",
-          tensor_info_ptr->node_ptr->GetName().c_str(), tensor_info_ptr->anchor_index);
+  FE_LOGD("Begin to set format and dtype for node: %s, anchor index: %d.", tensor_info_ptr->node_ptr->GetName().c_str(),
+          tensor_info_ptr->anchor_index);
   ge::GeTensorDescPtr current_tensor;
   if (GetCurrentTensor(tensor_info_ptr, current_tensor) != SUCCESS) {
     return FAILED;
@@ -526,8 +524,9 @@ Status HeavyFormatPropagation::SetFormatAndDTypeToOpdesc(const TensorInfoPtr &te
         (void)FeGraphUtils::UpdateFormatOfRelatedEdges(reflections, relation_update_info);
       }
     } else {
-      FE_LOGW("Dimension of %s %u for node %s is 0, stopping propagation.", IS_INPUT_TO_STRING(tensor_info_ptr->is_input),
-              tensor_info_ptr->anchor_index, tensor_info_ptr->op_desc_ptr->GetName().c_str());
+      FE_LOGW("Dimension of %s %u for node %s is 0, stopping propagation.",
+              IS_INPUT_TO_STRING(tensor_info_ptr->is_input), tensor_info_ptr->anchor_index,
+              tensor_info_ptr->op_desc_ptr->GetName().c_str());
       return FAILED;
     }
   } else {
@@ -570,8 +569,7 @@ void HeavyFormatPropagation::SetFormatAgnosticType(const ge::OpDescPtr &op_desc_
       return;
     }
     if (ge::AttrUtils::GetInt(op_desc_ptr, FORMAT_AGNOSTIC, format_agnostic)) {
-      if (format_agnostic >= static_cast<int64_t>(FormatSelectionType::FORMAT_AGNOSTIC_BOTTOM) ||
-          format_agnostic < 0) {
+      if (format_agnostic >= static_cast<int64_t>(FormatSelectionType::FORMAT_AGNOSTIC_BOTTOM) || format_agnostic < 0) {
         node_info->format_selection = FormatSelectionType::FORMAT_DEPENDS_ON_OP_KERNEL_INFO;
       } else {
         FE_LOGD("Put this %s Op's format_agnostic(%ld) into vector.",
@@ -591,8 +589,8 @@ void HeavyFormatPropagation::SetFormatAgnosticType(const ge::OpDescPtr &op_desc_
 }
 
 Status HeavyFormatPropagation::SetOpKernelAndTensorMap(const NodeInfoPtr &node_info) {
-  node_info->current_node_op_kernel_ptr = OpsKernelManager::Instance(engine_name_).GetOpKernelInfoByOpDesc(
-      node_info->current_node->GetOpDesc());
+  node_info->current_node_op_kernel_ptr =
+      OpsKernelManager::Instance(engine_name_).GetOpKernelInfoByOpDesc(node_info->current_node->GetOpDesc());
   if (node_info->current_node_op_kernel_ptr == nullptr) {
     FE_LOGD("Cannot find op kernel for current node %s.", node_info->current_node->GetName().c_str());
     FE_LOGD("Heavy format is %s for %s[%d] of node %s, sub format is %d, reshape type is %s.",
@@ -637,18 +635,17 @@ void HeavyFormatPropagation::AddNodeInfoToQueue(NodeInfoPtr &node_info, std::deq
   } else {
     ret = GetNodeReshapeType(node_info, next_node_reshape_type, true);
   }
-  if ((ret == SUCCESS) && !CheckIsNeedHeavy(node_info->last_node, node_info->last_node_info, node_info,
-      next_node_reshape_type)) {
+  if ((ret == SUCCESS) &&
+      !CheckIsNeedHeavy(node_info->last_node, node_info->last_node_info, node_info, next_node_reshape_type)) {
     return;
   }
 
   if (node_info->format_selection == FormatSelectionType::FORMAT_DEPENDS_ON_OP_KERNEL_INFO) {
-    if ((ret == SUCCESS) && !IsOpKernelHeavyOp(node_info->current_node,
-        node_info->current_node_op_kernel_ptr)) {
+    if ((ret == SUCCESS) && !IsOpKernelHeavyOp(node_info->current_node, node_info->current_node_op_kernel_ptr)) {
       FE_LOGD("Next node %s: %d, heavy_format is %s, sub_format is %d, c0_format is %d.",
               node_info->current_node->GetName().c_str(), node_info->anchor_index_of_curr_node,
-              FormatToStr(node_info->propagation_info.heavy_format).c_str(),
-              node_info->propagation_info.sub_format, node_info->propagation_info.c0_format);
+              FormatToStr(node_info->propagation_info.heavy_format).c_str(), node_info->propagation_info.sub_format,
+              node_info->propagation_info.c0_format);
 
       HeavyFormatInfo heavy_format_info(node_info->propagation_info.heavy_format,
                                         node_info->propagation_info.sub_format, node_info->propagation_info.c0_format,
@@ -658,8 +655,7 @@ void HeavyFormatPropagation::AddNodeInfoToQueue(NodeInfoPtr &node_info, std::deq
                                                             node_info->tensor_map, heavy_format_info) != SUCCESS) {
         FE_LOGW("UpdateSupportFormats failed: next node %s. It index is %d, heavy_format is %s, sub_format is %d.",
                 node_info->current_node->GetName().c_str(), node_info->anchor_index_of_curr_node,
-                FormatToStr(node_info->propagation_info.heavy_format).c_str(),
-                node_info->propagation_info.sub_format);
+                FormatToStr(node_info->propagation_info.heavy_format).c_str(), node_info->propagation_info.sub_format);
       }
     }
   }
@@ -703,9 +699,10 @@ Status HeavyFormatPropagation::GetNodeReshapeType(const NodeInfoPtr &node_info, 
       return FAILED;
     }
     if (node_info->current_node_op_kernel_ptr->GetTensorInfoByName(node_info->is_input_of_curr_node, iter->second,
-        input_or_output_info_ptr) != SUCCESS) {
-      REPORT_FE_ERROR("[GraphOptJdgInst][FmtPropagate][GetRespTyp] Node[%s]: Input value %d was not found in the operation store.",
-                      node->GetName().c_str(), anchor_index);
+                                                                   input_or_output_info_ptr) != SUCCESS) {
+      REPORT_FE_ERROR(
+          "[GraphOptJdgInst][FmtPropagate][GetRespTyp] Node[%s]: Input value %d was not found in the operation store.",
+          node->GetName().c_str(), anchor_index);
       return FAILED;
     }
     if (!input_or_output_info_ptr->GetReshapeType().empty()) {
@@ -720,8 +717,8 @@ Status HeavyFormatPropagation::GetNodeReshapeType(const NodeInfoPtr &node_info, 
             node->GetName().c_str());
     return FAILED;
   }
-  FE_LOGD("[GraphOptJdgInst][FmtPropagate][GetRespTyp] Node [%s] has the default reshape_type of %s.", node->GetName().c_str(),
-          reshape_type.c_str());
+  FE_LOGD("[GraphOptJdgInst][FmtPropagate][GetRespTyp] Node [%s] has the default reshape_type of %s.",
+          node->GetName().c_str(), reshape_type.c_str());
   return SUCCESS;
 }
 
@@ -753,8 +750,7 @@ bool HeavyFormatPropagation::CheckIsNeedHeavy(const ge::NodePtr &last_node, cons
 void HeavyFormatPropagation::CreateNextNodeInfo(const ge::NodePtr &next_node, const NodeInfoPtr &last_node_info,
                                                 ge::Format heavy_format, int32_t sub_format, int32_t c0_format,
                                                 PropagationInfo &propagation_info, int32_t anchor_index, bool is_input,
-                                                NodeInfoPtr &next_node_info,
-                                                std::deque<NodeInfoPtr> &next_node_queue) {
+                                                NodeInfoPtr &next_node_info, std::deque<NodeInfoPtr> &next_node_queue) {
   if (IsStaticZeroShapeOp(next_node->GetOpDesc())) {
     FE_LOGD("Skip %s because %s is an zero shape op.", next_node->GetName().c_str(), next_node->GetName().c_str());
     return;
@@ -938,9 +934,9 @@ Status HeavyFormatPropagation::RunPropagation(const NodeInfoPtr &node_info, std:
   return SUCCESS;
 }
 
-Status HeavyFormatPropagation::UpdateOutputFormatAndShape(const ge::NodePtr &current_node,
-    const vector<int64_t> &input_non_format_agnostic_index, const vector<int64_t> &output_non_format_agnostic_index
-    ) const {
+Status HeavyFormatPropagation::UpdateOutputFormatAndShape(
+    const ge::NodePtr &current_node, const vector<int64_t> &input_non_format_agnostic_index,
+    const vector<int64_t> &output_non_format_agnostic_index) const {
   PeerFormatAndShapeInfo peer_in_format_and_shape(current_node, ge::FORMAT_RESERVED, 0, 0);
   Status ret = GetPeerInFormat(output_non_format_agnostic_index, peer_in_format_and_shape);
   if (ret != SUCCESS) {
@@ -966,8 +962,8 @@ Status HeavyFormatPropagation::UpdateOutputFormatAndShape(const ge::NodePtr &cur
     if (output_desc_ptr == nullptr) {
       continue;
     }
-    ge::Format new_format = static_cast<ge::Format>(ge::GetFormatFromSub(peer_in_format_and_shape.peer_primary_format,
-        peer_in_format_and_shape.peer_sub_format));
+    ge::Format new_format = static_cast<ge::Format>(
+        ge::GetFormatFromSub(peer_in_format_and_shape.peer_primary_format, peer_in_format_and_shape.peer_sub_format));
     if (IsHeavyFormat(peer_in_format_and_shape.peer_primary_format)) {
       int32_t c0_bit_val = GetC0BitByDataType(output_desc_ptr->GetDataType());
       new_format = static_cast<ge::Format>(ge::GetFormatFromC0(new_format, c0_bit_val));
@@ -1024,8 +1020,8 @@ Status HeavyFormatPropagation::UpdateOutputFormatAndShape(const ge::NodePtr &cur
     if (input_desc_ptr == nullptr) {
       continue;
     }
-    ge::Format new_format = static_cast<ge::Format>(ge::GetFormatFromSub(peer_in_format_and_shape.peer_primary_format,
-        peer_in_format_and_shape.peer_sub_format));
+    ge::Format new_format = static_cast<ge::Format>(
+        ge::GetFormatFromSub(peer_in_format_and_shape.peer_primary_format, peer_in_format_and_shape.peer_sub_format));
     if (IsHeavyFormat(peer_in_format_and_shape.peer_primary_format)) {
       int32_t c0_bit_val = GetC0BitByDataType(input_desc_ptr->GetDataType());
       new_format = static_cast<ge::Format>(ge::GetFormatFromC0(new_format, c0_bit_val));
@@ -1043,9 +1039,9 @@ Status HeavyFormatPropagation::UpdateOutputFormatAndShape(const ge::NodePtr &cur
   return SUCCESS;
 }
 
-Status HeavyFormatPropagation::UpdateInputFormatAndShape(ge::NodePtr &current_node,
-    const vector<int64_t> &input_non_format_agnostic_index, const vector<int64_t> &output_non_format_agnostic_index
-    ) const {
+Status HeavyFormatPropagation::UpdateInputFormatAndShape(
+    ge::NodePtr &current_node, const vector<int64_t> &input_non_format_agnostic_index,
+    const vector<int64_t> &output_non_format_agnostic_index) const {
   PeerFormatAndShapeInfo peer_out_format_and_shape(current_node, ge::FORMAT_RESERVED, 0, 0);
   Status ret = GetPeerOutFormat(input_non_format_agnostic_index, peer_out_format_and_shape);
   if (ret != SUCCESS) {
@@ -1072,8 +1068,8 @@ Status HeavyFormatPropagation::UpdateInputFormatAndShape(ge::NodePtr &current_no
     if (input_desc_ptr == nullptr) {
       continue;
     }
-    auto new_format = static_cast<ge::Format>(ge::GetFormatFromSub(peer_out_format_and_shape.peer_primary_format,
-                                                                   peer_out_format_and_shape.peer_sub_format));
+    auto new_format = static_cast<ge::Format>(
+        ge::GetFormatFromSub(peer_out_format_and_shape.peer_primary_format, peer_out_format_and_shape.peer_sub_format));
     if (IsHeavyFormat(peer_out_format_and_shape.peer_primary_format)) {
       int32_t c0_bit_val = GetC0BitByDataType(input_desc_ptr->GetDataType());
       new_format = static_cast<ge::Format>(ge::GetFormatFromC0(new_format, c0_bit_val));
@@ -1127,8 +1123,8 @@ Status HeavyFormatPropagation::UpdateInputFormatAndShape(ge::NodePtr &current_no
     if (output_desc_ptr == nullptr) {
       continue;
     }
-    auto new_format = static_cast<ge::Format>(ge::GetFormatFromSub(peer_out_format_and_shape.peer_primary_format,
-                                                                   peer_out_format_and_shape.peer_sub_format));
+    auto new_format = static_cast<ge::Format>(
+        ge::GetFormatFromSub(peer_out_format_and_shape.peer_primary_format, peer_out_format_and_shape.peer_sub_format));
     if (IsHeavyFormat(peer_out_format_and_shape.peer_primary_format)) {
       int32_t c0_bit_val = GetC0BitByDataType(output_desc_ptr->GetDataType());
       new_format = static_cast<ge::Format>(ge::GetFormatFromC0(new_format, c0_bit_val));
@@ -1149,8 +1145,8 @@ Status HeavyFormatPropagation::UpdateInputFormatAndShape(ge::NodePtr &current_no
 bool HeavyFormatPropagation::CheckFormatCompatible(const ge::Format &primary_format,
                                                    const ge::Format &origin_format) const {
   if (primary_format == ge::FORMAT_NC1HWC0 && origin_format == ge::FORMAT_ND) {
-    FE_LOGD("Primary format [%s] and origin format [%s] are not compatible.",
-            FormatToStr(primary_format).c_str(), FormatToStr(origin_format).c_str());
+    FE_LOGD("Primary format [%s] and origin format [%s] are not compatible.", FormatToStr(primary_format).c_str(),
+            FormatToStr(origin_format).c_str());
     return false;
   }
   return true;
@@ -1162,8 +1158,8 @@ Status HeavyFormatPropagation::GetPeerInFormat(const vector<int64_t> &output_non
   ge::OpDescPtr op_desc_ptr = peer_in_format_and_shape.current_node->GetOpDesc();
   for (ge::OutDataAnchorPtr &out_data_anchor : peer_in_format_and_shape.current_node->GetAllOutDataAnchors()) {
     int64_t output_index = static_cast<int64_t>(out_data_anchor->GetIdx());
-    if (std::find(output_non_format_agnostic_index.begin(), output_non_format_agnostic_index.end(), output_index)
-        != output_non_format_agnostic_index.end()) {
+    if (std::find(output_non_format_agnostic_index.begin(), output_non_format_agnostic_index.end(), output_index) !=
+        output_non_format_agnostic_index.end()) {
       FE_LOGD("Output anchor %ld of %s is not format-agnostic!", output_index, node_name.c_str());
       continue;
     }
@@ -1204,8 +1200,8 @@ Status HeavyFormatPropagation::GetPeerInFormat(const vector<int64_t> &output_non
     }
     if (!CheckFormatCompatible(peer_in_format_and_shape.peer_primary_format, output_desc_ptr->GetOriginFormat())) {
       FE_LOGD("Output[%u] of node[%s, %s] has an origin format[%s] that is not compatible with peer in format[%s]",
-              out_anchor_index, op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str(), 
-              FormatToStr(output_desc_ptr->GetOriginFormat()).c_str(), 
+              out_anchor_index, op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str(),
+              FormatToStr(output_desc_ptr->GetOriginFormat()).c_str(),
               FormatToStr(peer_in_format_and_shape.peer_primary_format).c_str());
       return NOT_CHANGED;
     }
@@ -1219,8 +1215,8 @@ Status HeavyFormatPropagation::GetPeerOutFormat(const vector<int64_t> &input_non
   ge::OpDescPtr op_desc_ptr = peer_out_format_and_shape.current_node->GetOpDesc();
   for (ge::InDataAnchorPtr &in_data_anchor : peer_out_format_and_shape.current_node->GetAllInDataAnchors()) {
     int64_t input_index = static_cast<int64_t>(in_data_anchor->GetIdx());
-    if (std::find(input_non_format_agnostic_index.begin(), input_non_format_agnostic_index.end(), input_index)
-        != input_non_format_agnostic_index.end()) {
+    if (std::find(input_non_format_agnostic_index.begin(), input_non_format_agnostic_index.end(), input_index) !=
+        input_non_format_agnostic_index.end()) {
       FE_LOGD("Input anchor %ld of %s is not format-agnostic!", input_index, node_name.c_str());
       continue;
     }
@@ -1245,7 +1241,7 @@ Status HeavyFormatPropagation::GetPeerOutFormat(const vector<int64_t> &input_non
 
     auto peer_out_anchor = in_data_anchor->GetPeerOutAnchor();
     /* If the peer out node is variable or constant, we do not need to use this attribute.
-     * Becuase weight will always be the original format and if we use continuous attribute, switch
+     * Because weight will always be the original format and if we use continuous attribute, switch
      * will never be inferred as heavy format(5HD or Fz). */
     auto owner_node = peer_out_anchor->GetOwnerNode();
     if (owner_node == nullptr) {
@@ -1300,8 +1296,8 @@ Status HeavyFormatPropagation::UpdateInputForPairType(const ge::NodePtr &current
   ge::OpDescPtr op_desc_ptr = current_node->GetOpDesc();
   for (ge::InDataAnchorPtr &in_data_anchor : current_node->GetAllInDataAnchors()) {
     int64_t input_index = static_cast<int64_t>(in_data_anchor->GetIdx());
-    if (std::find(input_non_format_agnostic_index.begin(), input_non_format_agnostic_index.end(), input_index)
-        != input_non_format_agnostic_index.end()) {
+    if (std::find(input_non_format_agnostic_index.begin(), input_non_format_agnostic_index.end(), input_index) !=
+        input_non_format_agnostic_index.end()) {
       FE_LOGD("Input anchor %ld of %s is not format-agnostic!", input_index, node_name.c_str());
       continue;
     }
@@ -1318,8 +1314,9 @@ Status HeavyFormatPropagation::UpdateInputForPairType(const ge::NodePtr &current
       continue;
     }
     if (in_data_anchor->GetPeerOutAnchor() == nullptr) {
-      REPORT_FE_ERROR("[GraphOptJdgInst][FmtPropagate][UpdPairTypeIn] Input anchor %u of %s's output anchor is nullptr!",
-                      in_anchor_index, node_name.c_str());
+      REPORT_FE_ERROR(
+          "[GraphOptJdgInst][FmtPropagate][UpdPairTypeIn] Input anchor %u of %s's output anchor is nullptr!",
+          in_anchor_index, node_name.c_str());
       return FAILED;
     }
 
@@ -1359,10 +1356,13 @@ Status HeavyFormatPropagation::UpdateInputForPairType(const ge::NodePtr &current
       (void)ge::AttrUtils::GetInt(op_desc_ptr, "input_size", input_size);
       (void)ge::AttrUtils::GetInt(op_desc_ptr, "state_size", state_size);
       CalcShapeExtraAttr extra_attr = {hidden_size, input_size, state_size};
-      ShapeAndFormat input_and_output_info = {output_desc.GetOriginShape(),  new_shape,
-                                              output_desc.GetOriginFormat(), curr_peer_out_primary_format,
+      ShapeAndFormat input_and_output_info = {output_desc.GetOriginShape(),
+                                              new_shape,
+                                              output_desc.GetOriginFormat(),
+                                              curr_peer_out_primary_format,
                                               output_desc.GetDataType(),
-                                              curr_peer_out_sub_format,      extra_attr};
+                                              curr_peer_out_sub_format,
+                                              extra_attr};
       (void)GetShapeAccordingToFormat(input_and_output_info);
       auto output_desc_ptr = op_desc_ptr->MutableOutputDesc(in_anchor_index);
       if (output_desc_ptr == nullptr) {
@@ -1383,8 +1383,8 @@ Status HeavyFormatPropagation::UpdateOutputForPairType(const ge::NodePtr &curren
   ge::OpDescPtr op_desc_ptr = current_node->GetOpDesc();
   for (ge::OutDataAnchorPtr &out_data_anchor : current_node->GetAllOutDataAnchors()) {
     int64_t output_index = static_cast<int64_t>(out_data_anchor->GetIdx());
-    if (std::find(output_non_format_agnostic_index.begin(), output_non_format_agnostic_index.end(), output_index)
-        != output_non_format_agnostic_index.end()) {
+    if (std::find(output_non_format_agnostic_index.begin(), output_non_format_agnostic_index.end(), output_index) !=
+        output_non_format_agnostic_index.end()) {
       FE_LOGD("Output anchor %ld of %s is not format-agnostic!", output_index, node_name.c_str());
       continue;
     }
@@ -1502,8 +1502,8 @@ Status HeavyFormatPropagation::UpdateForOneNode(const NodeInfoPtr &node_info) co
     if (res_output_all_type == NOT_CHANGED) {
       return SUCCESS;
     }
-  } else if (format_agnostic == static_cast<int64_t>(
-             FormatSelectionType::FORMAT_AGNOSTIC_FOR_PAIRED_INPUT_AND_OUTPUT)) {
+  } else if (format_agnostic ==
+             static_cast<int64_t>(FormatSelectionType::FORMAT_AGNOSTIC_FOR_PAIRED_INPUT_AND_OUTPUT)) {
     FE_LOGD("%s Op's format_agnostic is %ld.", node_name.c_str(), format_agnostic);
     // for this node 's all input data
     if (UpdateInputForPairType(current_node, input_non_format_agnostic_index, output_non_format_agnostic_index) !=
@@ -1639,8 +1639,8 @@ bool HeavyFormatPropagation::CheckOriFormatEqual(const ge::NodePtr &next_node,
   }
   if (is_forwards) {
     ge::Format input_format = next_node->GetOpDesc()->GetInputDesc(next_data_anchor->GetIdx()).GetOriginFormat();
-    ge::Format output_format = current_node->GetOpDesc()->
-        GetOutputDesc(tensor_info_ptr->anchor_index).GetOriginFormat();
+    ge::Format output_format =
+        current_node->GetOpDesc()->GetOutputDesc(tensor_info_ptr->anchor_index).GetOriginFormat();
     if (current_node->GetOpDesc()->GetType() == NETOUTPUT) {
       output_format = current_node->GetOpDesc()->GetInputDesc(tensor_info_ptr->anchor_index).GetOriginFormat();
     }
@@ -1652,8 +1652,7 @@ bool HeavyFormatPropagation::CheckOriFormatEqual(const ge::NodePtr &next_node,
     }
   } else {
     ge::Format output_format = next_node->GetOpDesc()->GetOutputDesc(next_data_anchor->GetIdx()).GetOriginFormat();
-    ge::Format input_format = current_node->GetOpDesc()->
-        GetInputDesc(tensor_info_ptr->anchor_index).GetOriginFormat();
+    ge::Format input_format = current_node->GetOpDesc()->GetInputDesc(tensor_info_ptr->anchor_index).GetOriginFormat();
     if (output_format != input_format) {
       FE_LOGI("Next node name:[%s], index %d, origin format %s; last node name:[%s], index %d, origin format %s.",
               next_node->GetName().c_str(), next_data_anchor->GetIdx(), FormatToStr(output_format).c_str(),
@@ -1696,18 +1695,16 @@ Status HeavyFormatPropagation::GetNextNodesInfoForwards(std::deque<NodeInfoPtr> 
       ge::NodePtr data_next_node = peer_out_anchor->GetOwnerNode();
       NodeInfoPtr next_node_info;
       CreateNextNodeInfo(data_next_node, last_node_info, tensor_info_ptr->heavy_format, tensor_info_ptr->sub_format,
-                         tensor_info_ptr->c0_format,
-                         tensor_info_ptr->propagation_info, peer_out_anchor->GetIdx(), false, next_node_info,
-                         next_node_queue);
+                         tensor_info_ptr->c0_format, tensor_info_ptr->propagation_info, peer_out_anchor->GetIdx(),
+                         false, next_node_info, next_node_queue);
     }
   } else {
     FE_LOGD("Add node %s into queue with reshape type %s.", next_node->GetName().c_str(),
             last_node_info->propagation_info.reshape_type.c_str());
     NodeInfoPtr next_node_info;
     CreateNextNodeInfo(next_node, last_node_info, tensor_info_ptr->heavy_format, tensor_info_ptr->sub_format,
-                       tensor_info_ptr->c0_format,
-                       tensor_info_ptr->propagation_info, peer_in_data_anchor->GetIdx(), true, next_node_info,
-                       next_node_queue);
+                       tensor_info_ptr->c0_format, tensor_info_ptr->propagation_info, peer_in_data_anchor->GetIdx(),
+                       true, next_node_info, next_node_queue);
   }
   return SUCCESS;
 }
@@ -1741,8 +1738,8 @@ Status HeavyFormatPropagation::GetTensorKernelInfo(const ge::NodePtr &current_no
     FE_LOGD("The op kernel of node %s is null.", current_node->GetName().c_str());
     return FAILED;
   }
-  std::map<uint32_t, std::string>::const_iterator iter = tensor_info_ptr->tensor_map.find(
-      tensor_info_ptr->anchor_index);
+  std::map<uint32_t, std::string>::const_iterator iter =
+      tensor_info_ptr->tensor_map.find(tensor_info_ptr->anchor_index);
   if (iter == tensor_info_ptr->tensor_map.end()) {
     FE_LOGW("Anchor index %u is not found in the output index map of size %zu.", tensor_info_ptr->anchor_index,
             tensor_info_ptr->tensor_map.size());
@@ -1835,7 +1832,8 @@ Status HeavyFormatPropagation::PropagateNormalNodeForwards(const NodeInfoPtr &cu
     if (SetReshapeType(op_desc_ptr, curr_node_info->current_node_op_kernel_ptr, ori_format, tensor_info_ptr) !=
             SUCCESS &&
         tensor_info_ptr->heavy_format != ge::FORMAT_FRACTAL_NZ) {
-      FE_LOGD("Failed to get reshape type of op [name: %s, type: %s].", node_name.c_str(), op_desc_ptr->GetType().c_str());
+      FE_LOGD("Failed to get reshape type of op [name: %s, type: %s].", node_name.c_str(),
+              op_desc_ptr->GetType().c_str());
       return SUCCESS;
     }
 
@@ -1982,8 +1980,9 @@ void HeavyFormatPropagation::GetNextNodesInfoBackWards(std::deque<NodeInfoPtr> &
     std::unordered_set<ge::RefCell, ge::RefCellHash> reflections;
 
     if (reflection_builder_ptr_->LookUpRefRelations(key, reflections) != ge::GRAPH_SUCCESS || reflections.empty()) {
-      FE_LOGD("[GraphOptJdgInst][FmtPropagate][GetNextNdInfoBkwd] Node[%s]: failed to look up relation of input edge %d.",
-              next_node_name.c_str(), key.in_out_idx);
+      FE_LOGD(
+          "[GraphOptJdgInst][FmtPropagate][GetNextNdInfoBkwd] Node[%s]: failed to look up relation of input edge %d.",
+          next_node_name.c_str(), key.in_out_idx);
       return;
     }
 
@@ -1998,16 +1997,14 @@ void HeavyFormatPropagation::GetNextNodesInfoBackWards(std::deque<NodeInfoPtr> &
       ge::NodePtr data_next_node = peer_in_anchor->GetOwnerNode();
       NodeInfoPtr next_node_info;
       CreateNextNodeInfo(data_next_node, last_node_info, tensor_info_ptr->heavy_format, tensor_info_ptr->sub_format,
-                         tensor_info_ptr->c0_format,
-                         tensor_info_ptr->propagation_info, peer_in_anchor->GetIdx(), true, next_node_info,
-                         next_node_queue);
+                         tensor_info_ptr->c0_format, tensor_info_ptr->propagation_info, peer_in_anchor->GetIdx(), true,
+                         next_node_info, next_node_queue);
     }
   } else {
     NodeInfoPtr next_node_info;
     CreateNextNodeInfo(next_node, last_node_info, tensor_info_ptr->heavy_format, tensor_info_ptr->sub_format,
-                       tensor_info_ptr->c0_format,
-                       tensor_info_ptr->propagation_info, peer_out_anchor->GetIdx(), false, next_node_info,
-                       next_node_queue);
+                       tensor_info_ptr->c0_format, tensor_info_ptr->propagation_info, peer_out_anchor->GetIdx(), false,
+                       next_node_info, next_node_queue);
   }
   return;
 }
@@ -2122,8 +2119,8 @@ Status HeavyFormatPropagation::PropagateSubDataBackwards(const NodeInfoPtr &curr
   tensor_info_ptr->heavy_format = curr_node_info->propagation_info.heavy_format;
   tensor_info_ptr->sub_format = curr_node_info->propagation_info.sub_format;
   FE_CHECK_NOTNULL(current_tensor);
-  if (!HeavyFormatSelector::IsHeavyFormatConsistentWithOriFormat(current_tensor, tensor_info_ptr->heavy_format,
-      current_tensor->GetDataType(), current_node->GetOpDesc())) {
+  if (!HeavyFormatSelector::IsHeavyFormatConsistentWithOriFormat(
+          current_tensor, tensor_info_ptr->heavy_format, current_tensor->GetDataType(), current_node->GetOpDesc())) {
     FE_LOGD("Original format %u is inconsistent with heavy format %u.", current_tensor->GetOriginFormat(),
             tensor_info_ptr->heavy_format);
     return FAILED;
@@ -2185,8 +2182,7 @@ std::string HeavyFormatPropagation::GetPropagationReshapeType(const TensorInfoPt
 }
 
 Status HeavyFormatPropagation::SetReshapeType(const ge::OpDescPtr &op_desc_ptr,
-                                              const OpKernelInfoPtr &op_kernel_info_ptr,
-                                              const ge::Format &ori_format,
+                                              const OpKernelInfoPtr &op_kernel_info_ptr, const ge::Format &ori_format,
                                               const TensorInfoPtr &tensor_info_ptr) const {
   ge::GeTensorDescPtr tensor_desc_ptr = nullptr;
   if (tensor_info_ptr->is_input) {
@@ -2199,7 +2195,7 @@ Status HeavyFormatPropagation::SetReshapeType(const ge::OpDescPtr &op_desc_ptr,
             op_desc_ptr->GetType().c_str());
     if (HasHeavyOpAttr(op_desc_ptr)) {
       std::string reshape_infer_type;
-      (void) ge::AttrUtils::GetStr(tensor_desc_ptr, ge::ATTR_NAME_RESHAPE_INFER_TYPE, reshape_infer_type);
+      (void)ge::AttrUtils::GetStr(tensor_desc_ptr, ge::ATTR_NAME_RESHAPE_INFER_TYPE, reshape_infer_type);
       if (!reshape_infer_type.empty()) {
         tensor_info_ptr->propagation_info.reshape_type = reshape_infer_type;
       }
@@ -2212,8 +2208,8 @@ Status HeavyFormatPropagation::SetReshapeType(const ge::OpDescPtr &op_desc_ptr,
     (void)ge::AttrUtils::GetListInt(op_desc_ptr, AXES_ATTR_NAME, axis_values);
     std::string reshape_type = AxisNameUtil::GetReshapeType(ori_format, axis_values);
     tensor_info_ptr->propagation_info.reshape_type = reshape_type;
-    FE_LOGD("Operator [name: %s, type: %s] has a new reshape type of %s, with the original format being %d.", op_desc_ptr->GetName().c_str(),
-            op_desc_ptr->GetType().c_str(), reshape_type.c_str(), ori_format);
+    FE_LOGD("Operator [name: %s, type: %s] has a new reshape type of %s, with the original format being %d.",
+            op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str(), reshape_type.c_str(), ori_format);
   } else {
     bool kernel_reshape_empty = tensor_info_ptr->op_kernel_tensor_info->GetReshapeType().empty();
     bool prop_reshape_empty = tensor_info_ptr->propagation_info.reshape_type.empty();
@@ -2323,7 +2319,8 @@ bool HeavyFormatPropagation::IsHeavyFormatSupported(const ge::NodePtr &current_n
 
   Status ret = next_node_info->current_node_op_kernel_ptr->GetInputInfoByName(iter->second, input_info);
   if (ret != SUCCESS) {
-    FE_LOGW("Cannot obtain information for input %u of node %s in the ops kernel store.", index, next_op_desc->GetName().c_str());
+    FE_LOGW("Cannot obtain information for input %u of node %s in the ops kernel store.", index,
+            next_op_desc->GetName().c_str());
     return false;
   }
 
@@ -2337,8 +2334,9 @@ bool HeavyFormatPropagation::IsHeavyFormatSupported(const ge::NodePtr &current_n
   if (format_dtype_querier_ptr_->GetSupportFormatSubFormat(next_node_info->current_node_op_kernel_ptr, input_info,
                                                            next_node_info->current_node, input_formats,
                                                            input_sub_formats, sub_format) != SUCCESS) {
-    REPORT_FE_ERROR("[GraphOptJdgInst][FmtPropagate][IsHeavyFmtSupted] Failed to obtain format and sub_format for [%s].",
-                    next_op_desc->GetName().c_str());
+    REPORT_FE_ERROR(
+        "[GraphOptJdgInst][FmtPropagate][IsHeavyFmtSupted] Failed to obtain format and sub_format for [%s].",
+        next_op_desc->GetName().c_str());
     return false;
   }
 
@@ -2348,9 +2346,9 @@ bool HeavyFormatPropagation::IsHeavyFormatSupported(const ge::NodePtr &current_n
     return true;
   }
   FE_LOGD(
-    "Stop propagation by heavy format %s, sub_format %u from weight %s because its user %s cannot support this "
-    "format.",
-    FormatToStr(heavy_format).c_str(), sub_format, current_node->GetName().c_str(), next_op_desc->GetName().c_str());
+      "Stop propagation by heavy format %s, sub_format %u from weight %s because its user %s cannot support this "
+      "format.",
+      FormatToStr(heavy_format).c_str(), sub_format, current_node->GetName().c_str(), next_op_desc->GetName().c_str());
   return false;
 }
 

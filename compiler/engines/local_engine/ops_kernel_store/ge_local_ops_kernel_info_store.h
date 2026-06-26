@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -70,14 +70,14 @@ class GE_FUNC_VISIBILITY GeLocalOpsKernelInfoStore : public OpsKernelInfoStore {
    * Create session
    * @param session_options Session Options
    * @return status whether this operation success
-  */
+   */
   Status CreateSession(const std::map<std::string, std::string> &session_options) override;
 
   /**
    * Destroy session
    * @param session_options Session Options
    * @return status whether this operation success
-  */
+   */
   Status DestroySession(const std::map<std::string, std::string> &session_options) override;
 
   // Copy prohibited
@@ -93,7 +93,6 @@ class GE_FUNC_VISIBILITY GeLocalOpsKernelInfoStore : public OpsKernelInfoStore {
   GeLocalOpsKernelInfoStore &operator=(GeLocalOpsKernelInfoStore &&ops_kernel_store) = delete;
 
  private:
-
   // store op name and OpInfo key-value pair
   std::map<std::string, ge::OpInfo> op_info_map_;
 };

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -49,8 +49,8 @@ PageSpan *RtsCachingMemAllocator::FetchNewSpan(ge::Allocator &allocator, const M
     return ScalableAllocator::FetchNewSpan(allocator, size, page_len);
   }
   if (IsThresholdExceeded(huge_page_mem_size)) {
-    GELOGI("OccupiedSize:%llu add size:%llu exceed total_threshold:%llu.",
-                device_allocator_.GetOccupiedSize(), huge_page_mem_size, config_.page_mem_size_total_threshold);
+    GELOGI("OccupiedSize:%llu add size:%llu exceed total_threshold:%llu.", device_allocator_.GetOccupiedSize(),
+           huge_page_mem_size, config_.page_mem_size_total_threshold);
 
     // has freed memory, return nullptr and try recycle
     if (GetIdleMemSize() > 0U) {
@@ -62,8 +62,8 @@ PageSpan *RtsCachingMemAllocator::FetchNewSpan(ge::Allocator &allocator, const M
     return nullptr;
   }
 
-  const auto span = BlockAlloc(allocator, addr, reinterpret_cast<MemAddr>(addr->GetAddr()),
-                               static_cast<size_t>(huge_page_mem_size));
+  const auto span =
+      BlockAlloc(allocator, addr, reinterpret_cast<MemAddr>(addr->GetAddr()), static_cast<size_t>(huge_page_mem_size));
   if (span == nullptr) {
     device_allocator_.Free(addr);
     return nullptr;
@@ -83,8 +83,10 @@ ge::MemBlock *RtsCachingMemAllocator::AllocateWithTryRecycle(size_t size) {
     return addr;
   }
 
-  GELOGW("%s Failed to apply for memory. We will try to free memory from memory pool, the above warning log can be "
-         "ignored. Try to free cached memory...", GetId().c_str());
+  GELOGW(
+      "%s Failed to apply for memory. We will try to free memory from memory pool, the above warning log can be "
+      "ignored. Try to free cached memory...",
+      GetId().c_str());
   PrintDetails(DLOG_INFO);
 
   Recycle();
@@ -98,7 +100,7 @@ ge::MemBlock *RtsCachingMemAllocator::Malloc(size_t size) {
 }
 
 ge::Status RtsCachingMemAllocator::Initialize(const std::vector<rtMemType_t> &memory_types) {
-  (void) memory_types;
+  (void)memory_types;
   return ge::SUCCESS;
 }
 
@@ -125,8 +127,7 @@ std::shared_ptr<RtsCachingMemAllocator> RtsCachingMemAllocator::GetAllocator(con
   return allocator;
 }
 
-RtsAllocatorManager::~RtsAllocatorManager() {
-}
+RtsAllocatorManager::~RtsAllocatorManager() {}
 
 ge::Status RtsAllocatorManager::Initialize(const std::vector<rtMemType_t> &memory_types) {
   GELOGI("RtsAllocatorManager Initialize.");

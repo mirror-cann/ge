@@ -31,11 +31,37 @@
                 <filteritem type="filename" name="*.cce" desc="skip cce files"/>
                 <filteritem type="filename" name="*.pbtxt" desc="skip pbtxt files"/>
                 <filteritem type="filename" name="*.caffemodel" desc="skip caffemodel files"/>
+                <filteritem type="filename" name="*.excalidraw" desc="skip excalidraw files"/>
                 <!--filteritem type="filename" name="*.uvwxyz" desc="Describe the reason for filtering scan results"/-->
                 <!--filteritem type="filepath" name="abcdefg/.*.uvwxyz" desc="Describe the reason for filtering scan results"/-->
+                <filteritem type="filepath" name="tests/depends/op_stub/autofuse_impl/.*" desc="test stub with GPL license"/>
+                <filteritem type="filepath" name="tests/engines/rts_engine/ut/.*" desc="test stub files without license headers"/>
+                <filteritem type="filepath" name="tests/parser/.*custom\.proto" desc="test proto fixtures"/>
+                <filteritem type="filepath" name="tests/parser/.*caffe\.proto" desc="test proto fixtures"/>
+                <filteritem type="filepath" name="tests/acl_ut/.*" desc="test stub files"/>
+                <filteritem type="filepath" name="tests/autofuse/.*" desc="test files with legacy licenses"/>
+                <filteritem type="filepath" name="graph_metadef/proto/attr_group_base\.proto" desc="legacy proto without license"/>
                 <!--filteritem type="filepath" name="projectroot/[a-zA-Z0-9]{20,}.sh" desc="Temp files"/-->
             </filefilter>
             <filefilter name="defaultPolicyFilter" desc="Filters for compatibility，license header policies">
+                <filteritem type="filepath" name="tests/depends/op_stub/autofuse_impl/.*" desc="test stub with GPL license"/>
+                <filteritem type="filepath" name="tests/engines/rts_engine/ut/.*" desc="test stub files without license headers"/>
+                <filteritem type="filepath" name="tests/parser/.*custom\.proto" desc="test proto fixtures"/>
+                <filteritem type="filepath" name="tests/parser/.*caffe\.proto" desc="test proto fixtures"/>
+                <filteritem type="filepath" name="tests/acl_ut/.*" desc="test stub files"/>
+                <filteritem type="filepath" name="tests/autofuse/.*" desc="test files with legacy licenses"/>
+                <filteritem type="filepath" name="tests/dflow/.*" desc="test files with CANN-1.0 license"/>
+                <filteritem type="filepath" name="tests/framework/ge_runtime_stub/.*" desc="test stub with CANN-1.0 license"/>
+                <filteritem type="filepath" name="tests/ge/.*tensor_move.*" desc="test files with CANN-1.0 license"/>
+                <filteritem type="filepath" name="graph_metadef/proto/attr_group_base\.proto" desc="legacy proto without license"/>
+                <filteritem type="filepath" name="graph_metadef/proto/tensorflow/.*" desc="third-party TensorFlow proto files"/>
+                <filteritem type="filepath" name="graph_metadef/proto/onnx/.*" desc="third-party ONNX proto files"/>
+                <filteritem type="filepath" name="graph_metadef/proto/caffe/.*" desc="third-party caffe proto files"/>
+                <filteritem type="filepath" name="compiler/engines/cpu_engine/tf_engine/.*" desc="third-party TensorFlow source files"/>
+                <filteritem type="filepath" name="parser/parser/tensorflow/.*" desc="third-party TensorFlow source files"/>
+                <filteritem type="filepath" name="compiler/graph/optimize/symbolic/infer_symbolic_shape/infer/dynamic_stitch\.cc" desc="third-party derived implementation"/>
+                <filteritem type="filepath" name="compiler/graph/eager_style_graph_builder/es_generator/utils\.h" desc="file with mixed copyright"/>
+                <filteritem type="filename" name="*.excalidraw" desc="skip excalidraw files"/>
                 <filteritem type="filename" name="LICENSE" desc="skip LICENSE file"/>
                 <filteritem type="filename" name="*.info" desc="skip info files"/>
                 <filteritem type="filename" name="*.xml" desc="skip xml files"/>
@@ -84,6 +110,24 @@
                 <!--filteritem type="filepath" name="projectroot/[a-zA-Z0-9]{20,}.sh" desc="Temp files"/-->
             </filefilter>
             <filefilter name="copyrightPolicyFilter" desc="Filters for copyright header policies">
+                <filteritem type="filepath" name="tests/depends/op_stub/autofuse_impl/.*" desc="test stub with GPL license"/>
+                <filteritem type="filepath" name="tests/engines/rts_engine/ut/.*" desc="test stub files without license headers"/>
+                <filteritem type="filepath" name="tests/parser/.*custom\.proto" desc="test proto fixtures"/>
+                <filteritem type="filepath" name="tests/parser/.*caffe\.proto" desc="test proto fixtures"/>
+                <filteritem type="filepath" name="tests/acl_ut/.*" desc="test stub files"/>
+                <filteritem type="filepath" name="tests/autofuse/.*" desc="test files with legacy licenses"/>
+                <filteritem type="filepath" name="tests/dflow/.*" desc="test files with CANN-1.0 license"/>
+                <filteritem type="filepath" name="tests/framework/ge_runtime_stub/.*" desc="test stub with CANN-1.0 license"/>
+                <filteritem type="filepath" name="tests/ge/.*tensor_move.*" desc="test files with CANN-1.0 license"/>
+                <filteritem type="filepath" name="graph_metadef/proto/attr_group_base\.proto" desc="legacy proto without license"/>
+                <filteritem type="filepath" name="graph_metadef/proto/tensorflow/.*" desc="third-party TensorFlow proto files"/>
+                <filteritem type="filepath" name="graph_metadef/proto/onnx/.*" desc="third-party ONNX proto files"/>
+                <filteritem type="filepath" name="graph_metadef/proto/caffe/.*" desc="third-party caffe proto files"/>
+                <filteritem type="filepath" name="compiler/engines/cpu_engine/tf_engine/.*" desc="third-party TensorFlow source files"/>
+                <filteritem type="filepath" name="parser/parser/tensorflow/.*" desc="third-party TensorFlow source files"/>
+                <filteritem type="filepath" name="compiler/graph/optimize/symbolic/infer_symbolic_shape/infer/dynamic_stitch\.cc" desc="third-party derived implementation"/>
+                <filteritem type="filepath" name="compiler/graph/eager_style_graph_builder/es_generator/utils\.h" desc="file with mixed copyright"/>
+                <filteritem type="filename" name="*.excalidraw" desc="skip excalidraw files"/>
                 <filteritem type="filename" name="*.info" desc="skip info files"/>
                 <filteritem type="filename" name="*.xml" desc="skip xml files"/>
                 <filteritem type="filename" name="*.csv" desc="skip csv files"/>

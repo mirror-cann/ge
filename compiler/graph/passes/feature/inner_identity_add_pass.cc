@@ -58,7 +58,7 @@ bool IsNoNeedInsertIdentity(const OutDataAnchorPtr &anchor) {
   }
   return OpTypeUtils::IsVarLikeNode(input_node->GetType()) || IsChangedByRefNode(input_node);
 }
-}
+}  // namespace
 Status InnerIdentityAddPass::Run(ComputeGraphPtr graph) {
   GE_ASSERT_NOTNULL(graph);
   if (connectivity_ == nullptr) {
@@ -103,7 +103,7 @@ Status InnerIdentityAddPass::Run(ComputeGraphPtr graph) {
         continue;
       }
 
-      std::vector<InDataAnchorPtr> target_in_data_anchors; // 记录ref_input_node多引用时需要重新连边的输入inanchor
+      std::vector<InDataAnchorPtr> target_in_data_anchors;  // 记录ref_input_node多引用时需要重新连边的输入inanchor
       for (const auto &peer_in_data_anchor : peer_out_data_anchor->GetPeerInDataAnchors()) {
         GE_ASSERT_NOTNULL(peer_in_data_anchor);
         if ((peer_in_data_anchor == in_data_anchor) || (node == peer_in_data_anchor->GetOwnerNode())) {
@@ -119,11 +119,10 @@ Status InnerIdentityAddPass::Run(ComputeGraphPtr graph) {
       // ref_input_node多引用断边重新从Identity连边过去
       for (const auto &peer_in_data_anchor : target_in_data_anchors) {
         GE_ASSERT_SUCCESS(GraphUtils::RemoveEdge(peer_out_data_anchor, peer_in_data_anchor),
-                            "RemoveEdge from %s to %s failed", ref_input_node->GetNamePtr(),
-                            peer_in_data_anchor->GetOwnerNode()->GetNamePtr());
+                          "RemoveEdge from %s to %s failed", ref_input_node->GetNamePtr(),
+                          peer_in_data_anchor->GetOwnerNode()->GetNamePtr());
         GE_ASSERT_SUCCESS(GraphUtils::AddEdge(identity->GetOutDataAnchor(0), peer_in_data_anchor));
-        GELOGD("Add edge from %s to %s", identity->GetNamePtr(),
-               peer_in_data_anchor->GetOwnerNode()->GetNamePtr());
+        GELOGD("Add edge from %s to %s", identity->GetNamePtr(), peer_in_data_anchor->GetOwnerNode()->GetNamePtr());
       }
     }
   }
@@ -131,7 +130,7 @@ Status InnerIdentityAddPass::Run(ComputeGraphPtr graph) {
 }
 
 NodePtr InnerIdentityAddPass::AddIdentity(const ComputeGraphPtr &graph, const OutDataAnchorPtr &src_anchor,
-                                         const InDataAnchorPtr &dst_anchor) {
+                                          const InDataAnchorPtr &dst_anchor) {
   static size_t identity_count = 0;
   std::string name = "inner_identity_" + std::to_string(identity_count++);
   const auto identity_op = OperatorFactory::CreateOperator(name.c_str(), IDENTITY);

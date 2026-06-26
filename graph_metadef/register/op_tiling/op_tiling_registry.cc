@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -50,7 +50,8 @@ std::unordered_map<std::string, OpTilingFuncV2> &OpTilingRegistryInterf_V2::Regi
 OpTilingRegistryInterf_V2::OpTilingRegistryInterf_V2(const std::string &op_type, OpTilingFuncV2 func) {
   auto &interf = RegisteredOpInterf();
   (void)interf.emplace(op_type, std::move(func));
-  GELOGI("Registering tiling function with new method: op_type=%s, registered_count=%zu", op_type.c_str(), interf.size());
+  GELOGI("Registering tiling function with new method: op_type=%s, registered_count=%zu", op_type.c_str(),
+         interf.size());
 }
 
 OpTilingFuncInfo::OpTilingFuncInfo(const std::string &op_type)
@@ -86,22 +87,22 @@ void OpTilingFuncInfo::SetOpTilingFuncV4(OpTilingFuncV4 &tiling_func, OpParseFun
   this->tiling_func_v4_ = tiling_func;
   this->parse_func_v4_ = parse_func;
 }
-const OpTilingFunc& OpTilingFuncInfo::GetOpTilingFunc() {
+const OpTilingFunc &OpTilingFuncInfo::GetOpTilingFunc() {
   return this->tiling_func_;
 }
-const OpTilingFuncV2& OpTilingFuncInfo::GetOpTilingFuncV2() {
+const OpTilingFuncV2 &OpTilingFuncInfo::GetOpTilingFuncV2() {
   return this->tiling_func_v2_;
 }
-const OpTilingFuncV3& OpTilingFuncInfo::GetOpTilingFuncV3() {
+const OpTilingFuncV3 &OpTilingFuncInfo::GetOpTilingFuncV3() {
   return this->tiling_func_v3_;
 }
-const OpParseFuncV3& OpTilingFuncInfo::GetOpParseFuncV3() {
+const OpParseFuncV3 &OpTilingFuncInfo::GetOpParseFuncV3() {
   return this->parse_func_v3_;
 }
-const OpTilingFuncV4& OpTilingFuncInfo::GetOpTilingFuncV4() {
+const OpTilingFuncV4 &OpTilingFuncInfo::GetOpTilingFuncV4() {
   return this->tiling_func_v4_;
 }
-const OpParseFuncV4& OpTilingFuncInfo::GetOpParseFuncV4() {
+const OpParseFuncV4 &OpTilingFuncInfo::GetOpParseFuncV4() {
   return this->parse_func_v4_;
 }
 
@@ -135,8 +136,8 @@ OpTilingFuncRegistry::OpTilingFuncRegistry(const std::string &op_type, OpTilingF
   GELOGI("Register op tiling function V2 for op_type:%s", op_type.c_str());
 }
 
-OpTilingFuncRegistry::OpTilingFuncRegistry(const std::string &op_type,
-                                           OpTilingFuncV3 tiling_func, OpParseFuncV3 parse_func) {
+OpTilingFuncRegistry::OpTilingFuncRegistry(const std::string &op_type, OpTilingFuncV3 tiling_func,
+                                           OpParseFuncV3 parse_func) {
   auto &op_func_map = RegisteredOpFuncInfo();
   const auto iter = op_func_map.find(op_type);
   if (iter == op_func_map.end()) {
@@ -149,8 +150,8 @@ OpTilingFuncRegistry::OpTilingFuncRegistry(const std::string &op_type,
   GELOGI("Register op tiling and parse function V3 for op_type:%s", op_type.c_str());
 }
 
-OpTilingFuncRegistry::OpTilingFuncRegistry(const std::string &op_type,
-                                           OpTilingFuncV4 tiling_func, OpParseFuncV4 parse_func) {
+OpTilingFuncRegistry::OpTilingFuncRegistry(const std::string &op_type, OpTilingFuncV4 tiling_func,
+                                           OpParseFuncV4 parse_func) {
   auto &op_func_map = RegisteredOpFuncInfo();
   const auto iter = op_func_map.find(op_type);
   if (iter == op_func_map.end()) {

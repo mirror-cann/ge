@@ -76,4 +76,3 @@ aclError aclmdlGetInputDynamicGearCount(const aclmdlDesc *modelDesc, size_t inde
 ## 约束说明<a name="section12234208171"></a>
 
 如果模型构建时没有设置动态维度的分档，那么通过该接口获取的动态维度档位数为0。
-

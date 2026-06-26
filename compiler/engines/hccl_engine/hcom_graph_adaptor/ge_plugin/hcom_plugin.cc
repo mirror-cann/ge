@@ -190,7 +190,7 @@ ge::Status HcomPlugin::ProfilingModeParser(const std::map<string, string> &optio
                                  "profiling mode failed.",
                                  HCOM_ERROR_CODE(ret)),
                       ge::INTERNAL_ERROR);
-          HCCL_INFO("option task_trace is setted. ");
+          HCCL_INFO("option task_trace is set. ");
         } else {
           HCCL_WARNING("profiling options profiling task_trace is not found.");
         }

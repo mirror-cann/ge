@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,8 +32,8 @@
 #include <gmock/gmock.h>
 
 extern "C" {
-#endif // __cplusplus
-#endif // __cplusplus
+#endif  // __cplusplus
+#endif  // __cplusplus
 #define EN_OK 0
 #define EN_ERROR (-1)
 #define EN_INVALID_PARAM (-2)
@@ -48,11 +48,7 @@ typedef FILE mmFileHandle;
 #define MM_SEEK_FILE_END SEEK_END
 #define MM_TASK_ID_INVALID 0
 
-typedef enum {
-  FILE_READ = 0,
-  FILE_READ_BIN,
-  FILE_MODE_BUTT
-} MM_FILE_MODE;
+typedef enum { FILE_READ = 0, FILE_READ_BIN, FILE_MODE_BUTT } MM_FILE_MODE;
 
 typedef pthread_mutex_t mmMutex_t;
 typedef uint32_t mmAtomicType;
@@ -84,13 +80,13 @@ void mmFree(void *ptr);
 }
 
 class MmpaStubMock {
-public:
-  static MmpaStubMock& GetInstance() {
+ public:
+  static MmpaStubMock &GetInstance() {
     static MmpaStubMock mock;
     return mock;
   }
-  MOCK_METHOD1(mmTellFile, long(mmFileHandle *fd)); 
-  MOCK_METHOD1(mmMalloc, void*(unsigned long long size));
+  MOCK_METHOD1(mmTellFile, long(mmFileHandle *fd));
+  MOCK_METHOD1(mmMalloc, void *(unsigned long long size));
   MOCK_METHOD4(mmReadFile, size_t(void *ptr, int32_t size, int32_t nitems, mmFileHandle *fd));
 };
 
@@ -100,7 +96,7 @@ size_t mmReadFile_Normal_Invoke(void *ptr, int32_t size, int32_t nitems, mmFileH
 size_t mmReadFile_Abnormal_Invoke(void *ptr, int32_t size, int32_t nitems, mmFileHandle *fd);
 long mmTellFile_Normal_Invoke(mmFileHandle *fd);
 long mmTellFile_Abnormal_Invoke(mmFileHandle *fd);
-#endif /* __cplusplus */
-#endif // __cplusplus
+#endif  /* __cplusplus */
+#endif  // __cplusplus
 
-#endif // __INC_LLT_MMPA_API_H
+#endif  // __INC_LLT_MMPA_API_H

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -334,11 +334,11 @@ TEST_F(UtestFastNodeUtils, UnlinkAll_Ok_UnlinkAllAndCheckEdgeNum) {
   // case1: null input, no return value
   FastNodeUtils::UnlinkAll(nullptr);
 
-  // case2: remove all the edges connecting to the second node, 2 data egde and 1 control edge
+  // case2: remove all the edges connecting to the second node, 2 data edge and 1 control edge
   auto exe_graph = BuildSimpleLineGraph("simple_graph", 3, 1);
   auto node1 = exe_graph->GetDirectNode()[0];
   auto node2 = exe_graph->GetDirectNode()[1];
-  (void) exe_graph->AddEdge(node1, kControlEdgeIndex, node2, kControlEdgeIndex);
+  (void)exe_graph->AddEdge(node1, kControlEdgeIndex, node2, kControlEdgeIndex);
   EXPECT_EQ(exe_graph->GetAllEdges().size(), 3);
   FastNodeUtils::UnlinkAll(node2);
   EXPECT_EQ(exe_graph->GetAllEdges().size(), 0);

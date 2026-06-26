@@ -87,8 +87,7 @@ inline py::object BuildPythonNode(const GNode &node) {
   py::module_ graph_module = py::module_::import("ge.graph");
   py::object node_type = graph_module.attr("Node");
   py::object python_node =
-      node_type.attr("_create_from")(BuildPointerObject(reinterpret_cast<uintptr_t>(node_copy.get())),
-                                     py::bool_(true));
+      node_type.attr("_create_from")(BuildPointerObject(reinterpret_cast<uintptr_t>(node_copy.get())), py::bool_(true));
   (void)node_copy.release();
   return python_node;
 }

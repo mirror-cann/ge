@@ -69,8 +69,7 @@ GNode *GetProducer() const
 ## 调用示例<a name="section16305113853313"></a>
 
 ```
-  auto builder = std::make_unique<ge::EsGraphBuilder>("graph");  
+  auto builder = std::make_unique<ge::EsGraphBuilder>("graph");
   auto tensor0 = builder->CreateInput(0);
   GNode *data0 = tensor0.GetProducer(); // 获取输出tensor0的节点data0
 ```
-

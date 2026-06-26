@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -155,9 +155,9 @@ ut::GraphBuilder ParentGraphBuilder6() {
   return builder;
 }
 
-/*   
+/*
  *   data1   data2
- *     \      / 
+ *     \      /
  *      switch
  *     /      \
  *   relu1   relu2
@@ -212,21 +212,20 @@ void AddCaseSubgraph(ComputeGraphPtr &parent_graph, uint32_t branch_num) {
   EXPECT_NE(case_node, nullptr);
 
   for (uint32_t i = 0; i < branch_num; ++i) {
-  	string name = "Branch_Graph_" + std::to_string(i);
+    string name = "Branch_Graph_" + std::to_string(i);
 
-  	auto builder_subgraph = SwitchSubgraphBuilder(name, i);
-  	auto switch_subgraph = builder_subgraph.GetGraph();
+    auto builder_subgraph = SwitchSubgraphBuilder(name, i);
+    auto switch_subgraph = builder_subgraph.GetGraph();
 
-  	case_node->GetOpDesc()->AddSubgraphName(switch_subgraph->GetName());
-  	case_node->GetOpDesc()->SetSubgraphInstanceName(i, switch_subgraph->GetName());
+    case_node->GetOpDesc()->AddSubgraphName(switch_subgraph->GetName());
+    case_node->GetOpDesc()->SetSubgraphInstanceName(i, switch_subgraph->GetName());
 
-  	switch_subgraph->SetParentNode(case_node);
-  	switch_subgraph->SetParentGraph(parent_graph);
-  	EXPECT_EQ(parent_graph->AddSubgraph(switch_subgraph->GetName(), switch_subgraph), GRAPH_SUCCESS);
+    switch_subgraph->SetParentNode(case_node);
+    switch_subgraph->SetParentGraph(parent_graph);
+    EXPECT_EQ(parent_graph->AddSubgraph(switch_subgraph->GetName(), switch_subgraph), GRAPH_SUCCESS);
   }
 }
 }  // namespace
-
 
 TEST_F(UtestSwitchDeadBranchElimination, switch_dead_branch_elimination_across_case_success) {
   auto builder = ParentGraphBuilder();
@@ -243,7 +242,7 @@ TEST_F(UtestSwitchDeadBranchElimination, switch_dead_branch_elimination_across_c
       EXPECT_EQ(switch_pass.Run(switch_node), SUCCESS);
     }
   }
-  
+
   auto all_nodes = parent_graph->GetAllNodes();
   EXPECT_EQ(all_nodes.size(), 15);
 
@@ -257,8 +256,7 @@ TEST_F(UtestSwitchDeadBranchElimination, switch_dead_branch_elimination_across_c
   }
 }
 
-TEST_F(UtestSwitchDeadBranchElimination, DeleteSwitchNode_Test)
-{
+TEST_F(UtestSwitchDeadBranchElimination, DeleteSwitchNode_Test) {
   SwitchDeadBranchElimination switch_pass;
   NodePtr node = nullptr;
   NodePtr pred_node = nullptr;
@@ -268,8 +266,7 @@ TEST_F(UtestSwitchDeadBranchElimination, DeleteSwitchNode_Test)
   EXPECT_EQ(ret, FAILED);
 }
 
-TEST_F(UtestSwitchDeadBranchElimination, Run_Test)
-{
+TEST_F(UtestSwitchDeadBranchElimination, Run_Test) {
   SwitchDeadBranchElimination switch_pass;
   NodePtr node = nullptr;
 
@@ -292,7 +289,7 @@ TEST_F(UtestSwitchDeadBranchElimination, ParsePred_DT_FLOAT) {
       EXPECT_EQ(switch_pass.Run(switch_node), SUCCESS);
     }
   }
-  
+
   auto all_nodes = parent_graph->GetAllNodes();
   EXPECT_EQ(all_nodes.size(), 15);
 
@@ -321,7 +318,7 @@ TEST_F(UtestSwitchDeadBranchElimination, ParsePred_DT_FLOAT2) {
       EXPECT_EQ(switch_pass.Run(switch_node), SUCCESS);
     }
   }
-  
+
   auto all_nodes = parent_graph->GetAllNodes();
   EXPECT_EQ(all_nodes.size(), 15);
 
@@ -350,7 +347,7 @@ TEST_F(UtestSwitchDeadBranchElimination, ParsePred_DT_INT8) {
       EXPECT_EQ(switch_pass.Run(switch_node), SUCCESS);
     }
   }
-  
+
   auto all_nodes = parent_graph->GetAllNodes();
   EXPECT_EQ(all_nodes.size(), 15);
 
@@ -379,7 +376,7 @@ TEST_F(UtestSwitchDeadBranchElimination, ParsePred_DT_INT64) {
       EXPECT_EQ(switch_pass.Run(switch_node), SUCCESS);
     }
   }
-  
+
   auto all_nodes = parent_graph->GetAllNodes();
   EXPECT_EQ(all_nodes.size(), 15);
 
@@ -408,7 +405,7 @@ TEST_F(UtestSwitchDeadBranchElimination, ParsePred_DT_FLOAT3) {
       EXPECT_EQ(switch_pass.Run(switch_node), SUCCESS);
     }
   }
-  
+
   auto all_nodes = parent_graph->GetAllNodes();
   EXPECT_EQ(all_nodes.size(), 15);
 

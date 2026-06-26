@@ -20,7 +20,7 @@ namespace gert {
 using rtStream = void *;
 
 class EagerOpExecutionContext : public ExtendedKernelContext {
-public:
+ public:
   /**
    * 获取所属的执行流
    * @return
@@ -32,7 +32,7 @@ public:
    * @param index 输入index
    * @return Tensor指针，异常时返回空指针
    */
-  const Tensor *GetInputTensor(size_t index) const  {
+  const Tensor *GetInputTensor(size_t index) const {
     if (static_cast<int64_t>(index) >= GetAdditionalInputStartIndex()) {
       return nullptr;
     }
@@ -60,7 +60,8 @@ public:
   /**
    * 基于算子IR原型定义，获取`DYNAMIC_INPUT`类型的输入Tensor指针
    * @param ir_index IR原型定义中的index
-   * @param relative_index 该输入实例化后的相对index，例如某个DYNAMIC_INPUT实例化了3个输入，那么relative_index的有效范围是[0,2]
+   * @param relative_index
+   * 该输入实例化后的相对index，例如某个DYNAMIC_INPUT实例化了3个输入，那么relative_index的有效范围是[0,2]
    * @return Tensor指针，异常时返回空指针
    */
   const Tensor *GetDynamicInputTensor(size_t ir_index, size_t relative_index) const {
@@ -119,20 +120,17 @@ public:
    * @return 只读 KernelArgs 指针，args_data 字段为设备侧 args 地址，
    *         失败返回 nullptr。
    */
-  const KernelArgs* MallocReadOnlyDevArgs(void *host_args, size_t args_size) const;
+  const KernelArgs *MallocReadOnlyDevArgs(void *host_args, size_t args_size) const;
 
   enum class AdditionalInputIndex : uint32_t {
     kDeviceAllocator = 0,
     kStream,
-    kArgsHandler   // Args handler base class pointer
+    kArgsHandler  // Args handler base class pointer
   };
 
-  enum class AdditionalOutputIndex : uint32_t {
-    kWorkSpace = 0,
-    kNum
-  };
+  enum class AdditionalOutputIndex : uint32_t { kWorkSpace = 0, kNum };
 
-protected:
+ protected:
   int64_t GetAdditionalInputStartIndex() const {
     const auto compute_node_info = GetComputeNodeInfo();
     if (compute_node_info == nullptr) {

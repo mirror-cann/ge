@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -528,8 +528,8 @@ TEST_F(KnownSubgraphNodeConverterUT, KnownSubgraph_WithFixedFeatureMemory_UseFix
   auto init_graph =
       ge::FastNodeUtils::GetSubgraphFromNode(ge::ExecuteGraphUtils::FindFirstNodeMatchType(exe_graph.get(), "Init"), 0);
   ASSERT_NE(init_graph, nullptr);
-  auto deinit_graph =
-      ge::FastNodeUtils::GetSubgraphFromNode(ge::ExecuteGraphUtils::FindFirstNodeMatchType(exe_graph.get(), "DeInit"), 0);
+  auto deinit_graph = ge::FastNodeUtils::GetSubgraphFromNode(
+      ge::ExecuteGraphUtils::FindFirstNodeMatchType(exe_graph.get(), "DeInit"), 0);
   ASSERT_NE(deinit_graph, nullptr);
 
   EXPECT_NE(ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_graph, "GetUserAllocatorOrFixedBaseAllocator"), nullptr);
@@ -560,7 +560,8 @@ TEST_F(KnownSubgraphNodeConverterUT, KnownSubgraph_WithFixedFeatureMemory_AddrNo
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle()).BuildGeRootModel();
   int8_t mem[64];
-  ge_root_model->MutableFixedFeatureMemory().insert({RT_MEMORY_HBM, {RT_MEMORY_HBM, &mem, 64, true, false, false, 0U, nullptr}});
+  ge_root_model->MutableFixedFeatureMemory().insert(
+      {RT_MEMORY_HBM, {RT_MEMORY_HBM, &mem, 64, true, false, false, 0U, nullptr}});
 
   for (const auto &name_to_model : ge_root_model->GetSubgraphInstanceNameToModel()) {
     const auto &ge_model_temp = name_to_model.second;
@@ -607,7 +608,8 @@ TEST_F(KnownSubgraphNodeConverterUT, KnownSubgraph_UserSetFileConstantDeviceMem)
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle()).BuildGeRootModel();
   int8_t mem[64];
-  ge_root_model->MutableFixedFeatureMemory().insert({RT_MEMORY_HBM, {RT_MEMORY_HBM, &mem, 64, true, false, false, 0U, nullptr}});
+  ge_root_model->MutableFixedFeatureMemory().insert(
+      {RT_MEMORY_HBM, {RT_MEMORY_HBM, &mem, 64, true, false, false, 0U, nullptr}});
 
   for (const auto &name_to_model : ge_root_model->GetSubgraphInstanceNameToModel()) {
     const auto &ge_model_temp = name_to_model.second;

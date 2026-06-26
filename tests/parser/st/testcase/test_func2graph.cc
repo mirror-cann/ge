@@ -1,5 +1,5 @@
 /**
-* Copyright (c) 2026 Huawei Technologies Co., Ltd.
+ * Copyright (c) 2026 Huawei Technologies Co., Ltd.
  * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ using namespace domi::tensorflow;
 
 namespace ge {
 class STestFuncToGraph : public ::testing::Test {
-protected:
+ protected:
   void SetUp() override {}
 
   void TearDown() override {}
@@ -32,7 +32,7 @@ TEST_F(STestFuncToGraph, GraphDefLibrary_construct_success) {
 
   // create graph
   GraphDef graphDef;
-  VersionDef* versionDef = new VersionDef();
+  VersionDef *versionDef = new VersionDef();
   versionDef->set_producer(134);
   graphDef.set_allocated_versions(versionDef);
 
@@ -41,7 +41,7 @@ TEST_F(STestFuncToGraph, GraphDefLibrary_construct_success) {
   EXPECT_TRUE(graphDef.SerializeToArray(buffer.data(), size));
   GeGraphDefSetGraph(geGraphDef, buffer.data(), size);
 
-  auto *graph = static_cast<GeGraphDef*>(geGraphDef);
+  auto *graph = static_cast<GeGraphDef *>(geGraphDef);
   EXPECT_EQ(graph->name(), graphName);
   EXPECT_EQ(graph->graph().versions().producer(), 134);
 
@@ -57,11 +57,10 @@ TEST_F(STestFuncToGraph, GraphDefLibrary_construct_success) {
 
   EXPECT_EQ(debugString, ss.str());
 
-
   // add GeGraphDef to GraphDefLibrary
   GraphDefLibAddGraphDef(graphDefLib, geGraphDef);
 
-  auto* pbtxt = GraphDefLibGetPbtxt(graphDefLib);
+  auto *pbtxt = GraphDefLibGetPbtxt(graphDefLib);
 
   std::stringstream pbSS;
   pbSS << "graph_def {\n";
@@ -102,4 +101,4 @@ TEST_F(STestFuncToGraph, GeGraphDef_construct_test) {
   GeGraphDefDestroy(&geGraphDef);
 }
 
-} // namespace ge
+}  // namespace ge

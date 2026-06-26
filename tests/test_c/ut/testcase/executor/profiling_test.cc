@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,11 +33,11 @@ class UtestGEProfilingTest : public testing::Test {
   void SetUp() {
     ON_CALL(MmpaStubMock::GetInstance(), mmMalloc(_)).WillByDefault(Invoke(mmMalloc_Normal_Invoke));
     ON_CALL(MmpaStubMock::GetInstance(), mmTellFile(_)).WillByDefault(Invoke(mmTellFile_Normal_Invoke));
-    ON_CALL(MmpaStubMock::GetInstance(), mmReadFile(_,_,_,_)).WillByDefault(Invoke(mmReadFile_Normal_Invoke));
+    ON_CALL(MmpaStubMock::GetInstance(), mmReadFile(_, _, _, _)).WillByDefault(Invoke(mmReadFile_Normal_Invoke));
     ON_CALL(RtStubMock::GetInstance(), rtDumpInit()).WillByDefault(Return(0));
-    ON_CALL(RtStubMock::GetInstance(), access(_,_)).WillByDefault(Return(0));
-    ON_CALL(RtStubMock::GetInstance(), rtMalloc(_,_,_,_)).WillByDefault(Invoke(rtMalloc_Normal_Invoke));
-    ON_CALL(RtStubMock::GetInstance(), rtMemcpy(_,_,_,_,_)).WillByDefault(Invoke(rtMemcpy_Normal_Invoke));
+    ON_CALL(RtStubMock::GetInstance(), access(_, _)).WillByDefault(Return(0));
+    ON_CALL(RtStubMock::GetInstance(), rtMalloc(_, _, _, _)).WillByDefault(Invoke(rtMalloc_Normal_Invoke));
+    ON_CALL(RtStubMock::GetInstance(), rtMemcpy(_, _, _, _, _)).WillByDefault(Invoke(rtMemcpy_Normal_Invoke));
   }
   void TearDown() {
     Mock::VerifyAndClearExpectations(&MmpaStubMock::GetInstance());
@@ -163,9 +163,7 @@ TEST_F(UtestGEProfilingTest, profiling_so_test_with_null_initFunc) {
   int testNum = 1;
   void *ptr = &testNum;
   EXPECT_CALL(RtStubMock::GetInstance(), dlopen(_, _)).Times(1).WillOnce(Return(ptr));
-  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_, _))
-      .Times(1)
-      .WillOnce(Return(nullptr));
+  EXPECT_CALL(RtStubMock::GetInstance(), dlsym(_, _)).Times(1).WillOnce(Return(nullptr));
   EXPECT_CALL(RtStubMock::GetInstance(), dlclose(_)).Times(1).WillOnce(Return(0));
 
   const char *filePath = "../tests/test_c/ut/testcase/executor/data/acl_profiling.json";
@@ -355,7 +353,7 @@ TEST_F(UtestGEProfilingTest, profiling_so_test_with_invalid_reportFunc) {
       .WillOnce(Return((void *)msprof_register_callback))
       .WillOnce(Return((void *)msprof_gethashid))
       .WillOnce(Return((void *)msprof_gettime))
-      .WillOnce(Return(nullptr)); // test reportFunc is null
+      .WillOnce(Return(nullptr));  // test reportFunc is null
   EXPECT_CALL(RtStubMock::GetInstance(), dlclose(_)).Times(1).WillOnce(Return(0));
 
   const char *filePath = "../tests/test_c/ut/testcase/executor/data/acl_profiling.json";

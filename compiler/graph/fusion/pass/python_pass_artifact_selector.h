@@ -62,8 +62,8 @@ struct PythonRuntimeKey {
       return source.empty() ? "unresolved" : source;
     }
     return "source[" + (source.empty() ? "unknown" : source) + "], python_tag[" +
-           (python_tag.empty() ? "unknown" : python_tag) + "], initialized[" +
-           (is_initialized ? "1" : "0") + "], version[" + version + "]";
+           (python_tag.empty() ? "unknown" : python_tag) + "], initialized[" + (is_initialized ? "1" : "0") +
+           "], version[" + version + "]";
   }
 };
 
@@ -128,7 +128,7 @@ inline std::string JoinPath(const std::string &dir, const std::string &name) {
 }
 
 inline std::string CurrentPlatformTag() {
-  struct utsname uts {};
+  struct utsname uts{};
   if ((uname(&uts) != 0) || (uts.machine[0] == '\0')) {
     return "linux-unknown";
   }
@@ -194,7 +194,7 @@ inline bool LoadArtifactManifest(const std::string &manifest_path, PythonPassArt
   }
 
   const auto real_manifest_path = ResolveRealPath(manifest_path.c_str());
-  artifact = PythonPassArtifactSet {};
+  artifact = PythonPassArtifactSet{};
   artifact.manifest_path = real_manifest_path;
   artifact.root = DirName(real_manifest_path);
   std::string bridge_rel_path;
@@ -345,22 +345,23 @@ inline BridgeLibraryCandidate LoadBridgeCandidateFromArtifactRoot(const std::str
                                                                   const PythonRuntimeKey &runtime_key,
                                                                   const uint32_t expected_bridge_abi) {
   if (artifact_root.empty() || runtime_key.python_tag.empty()) {
-    return BridgeLibraryCandidate {};
+    return BridgeLibraryCandidate{};
   }
   PythonPassArtifactSet artifact;
   if (!LoadArtifactManifest(JoinPath(artifact_root, kArtifactManifestName), artifact)) {
-    return BridgeLibraryCandidate {};
+    return BridgeLibraryCandidate{};
   }
   std::vector<BridgeLibraryCandidate> candidates;
   AppendMatchedArtifactCandidate(runtime_key, artifact, CurrentPlatformTag(), expected_bridge_abi, candidates);
   if (candidates.empty()) {
-    return BridgeLibraryCandidate {};
+    return BridgeLibraryCandidate{};
   }
   return candidates.front();
 }
 
 inline std::vector<BridgeLibraryCandidate> BuildPrebuiltBridgeLibraryCandidates(const PythonRuntimeKey &runtime_key,
-    const std::string &loader_library_path, const uint32_t expected_bridge_abi) {
+                                                                                const std::string &loader_library_path,
+                                                                                const uint32_t expected_bridge_abi) {
   std::vector<BridgeLibraryCandidate> candidates;
   if (runtime_key.python_tag.empty()) {
     return candidates;

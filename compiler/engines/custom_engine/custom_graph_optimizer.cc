@@ -29,8 +29,7 @@ namespace {
 uint32_t GetThreadNum() {
   const char_t *value = nullptr;
   MM_SYS_GET_ENV(MM_ENV_MAX_COMPILE_CORE_NUMBER, value);
-  const int64_t thread_num = ((value != nullptr) && (value[0U] != '\0')) ?
-    std::strtol(value, nullptr, 10) : 16;
+  const int64_t thread_num = ((value != nullptr) && (value[0U] != '\0')) ? std::strtol(value, nullptr, 10) : 16;
   if (thread_num <= 0) {
     GELOGW("Get invalid MAX_COMPILE_CORE_NUMBER env value %s, use default thread number 16", value);
   }
@@ -72,9 +71,8 @@ ge::Status ConstructCustomCompileContextInputs(const ge::OpDescPtr &op_desc,
     GetStorageShape(*input_desc, storage_shape);
     std::unique_ptr<uint8_t[]> tensor_holder = ge::ComGraphMakeUnique<uint8_t[]>(sizeof(gert::Tensor));
     GE_ASSERT_NOTNULL(tensor_holder, "Create compile context input tensor holder failed.");
-    new (tensor_holder.get())
-        gert::Tensor(storage_shape, {input_desc->GetOriginFormat(), input_desc->GetFormat(), {}},
-                     input_desc->GetDataType());
+    new (tensor_holder.get()) gert::Tensor(storage_shape, {input_desc->GetOriginFormat(), input_desc->GetFormat(), {}},
+                                           input_desc->GetDataType());
     (void)inputs.emplace_back(std::move(tensor_holder));
   }
   return ge::SUCCESS;
@@ -89,9 +87,8 @@ ge::Status ConstructCustomCompileContextOutputs(const ge::OpDescPtr &op_desc,
     GetStorageShape(*output_desc, storage_shape);
     auto tensor_holder = ge::ComGraphMakeUnique<uint8_t[]>(sizeof(gert::Tensor));
     GE_ASSERT_NOTNULL(tensor_holder, "Create compile context output tensor holder failed.");
-    new (tensor_holder.get())
-        gert::Tensor(storage_shape, {output_desc->GetOriginFormat(), output_desc->GetFormat(), {}},
-                     output_desc->GetDataType());
+    new (tensor_holder.get()) gert::Tensor(
+        storage_shape, {output_desc->GetOriginFormat(), output_desc->GetFormat(), {}}, output_desc->GetDataType());
     (void)outputs.emplace_back(std::move(tensor_holder));
   }
   return ge::SUCCESS;
@@ -136,8 +133,8 @@ ge::Status CompileCustomOpSerially(const std::vector<CompileTask *> *tasks) {
   for (auto *task : *tasks) {
     const auto ret = CompileCustomOp(task);
     if (ret != ge::SUCCESS) {
-      GELOGE(ret, "[Compile][CustomOp] compile failed, op_name:%s, op_type:%s",
-             task->op_name.c_str(), task->op_type.c_str());
+      GELOGE(ret, "[Compile][CustomOp] compile failed, op_name:%s, op_type:%s", task->op_name.c_str(),
+             task->op_type.c_str());
       return ret;
     }
   }
@@ -153,8 +150,8 @@ ge::Status AppendCompileTaskIfNeeded(const ge::NodePtr &node, std::vector<Compil
   GELOGI("during optimize whole graph, %s is custom op", op_type_ascend.GetString());
   auto *const base_custom_op_ptr = ge::CustomOpFactory::CreateOrGetCustomOp(op_type_ascend);
   if (base_custom_op_ptr == nullptr) {
-    GELOGE(ge::FAILED, "[Compile][CustomOp] create custom op failed, op_name:%s, op_type:%s",
-           node->GetName().c_str(), op_type.c_str());
+    GELOGE(ge::FAILED, "[Compile][CustomOp] create custom op failed, op_name:%s, op_type:%s", node->GetName().c_str(),
+           op_type.c_str());
     return ge::FAILED;
   }
   auto *const compilable_op_ptr = dynamic_cast<ge::CompilableOp *>(base_custom_op_ptr);
@@ -168,12 +165,12 @@ ge::Status AppendCompileTaskIfNeeded(const ge::NodePtr &node, std::vector<Compil
   GE_ASSERT_SUCCESS(ConstructCustomCompileContextInputs(node->GetOpDesc(), op_compile_inputs_holder));
   GE_ASSERT_SUCCESS(ConstructCustomCompileContextOutputs(node->GetOpDesc(), op_compile_outputs_holder));
   auto op_compile_context_holder = gert::KernelRunContextBuilder()
-      .Inputs(GetHoldersRawPtr(op_compile_inputs_holder))
-      .Outputs(GetHoldersRawPtr(op_compile_outputs_holder))
-      .Build(node->GetOpDesc());
+                                       .Inputs(GetHoldersRawPtr(op_compile_inputs_holder))
+                                       .Outputs(GetHoldersRawPtr(op_compile_outputs_holder))
+                                       .Build(node->GetOpDesc());
   compile_tasks.emplace_back(compilable_op_ptr, std::move(op_compile_inputs_holder),
-                             std::move(op_compile_outputs_holder),
-                             std::move(op_compile_context_holder), node->GetName(), op_type);
+                             std::move(op_compile_outputs_holder), std::move(op_compile_context_holder),
+                             node->GetName(), op_type);
   return ge::SUCCESS;
 }
 
@@ -224,12 +221,12 @@ ge::Status CompileCustomOpsInParallel(std::vector<CompileTask> &compile_tasks) {
   }
   return ge::SUCCESS;
 }
-}
+}  // namespace
 namespace ge {
 CustomGraphOptimizer::~CustomGraphOptimizer() = default;
 
 Status CustomGraphOptimizer::Initialize(const std::map<std::string, std::string> &options,
-    ge::OptimizeUtility *const optimize_utility) {
+                                        ge::OptimizeUtility *const optimize_utility) {
   (void)options;
   (void)optimize_utility;
   return SUCCESS;
@@ -264,4 +261,4 @@ ge::Status CustomGraphOptimizer::GetAttributes(ge::GraphOptimizerAttribute &attr
   return SUCCESS;
 }
 
-} // namespace ge
+}  // namespace ge

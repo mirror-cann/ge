@@ -53,4 +53,3 @@ VerifyFuncRegister构造函数返回VerifyFuncRegister类型的对象。
 ## 约束说明<a name="zh-cn_topic_0000001312724801_zh-cn_topic_0204328224_zh-cn_topic_0182636384_section62768825"></a>
 
 算子verifyFunc函数注册接口，此接口被其他头文件引用，一般不用由算子开发者直接调用。
-

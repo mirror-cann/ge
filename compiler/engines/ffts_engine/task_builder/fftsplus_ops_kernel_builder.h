@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -87,10 +87,8 @@ class FFTSPlusOpsKernelBuilder : public ge::OpsKernelBuilder {
   Status InitLibPath();
   Status SetSingleCtxPolicyPri(uint32_t type, domi::FftsPlusCtxDef *ffts_plus_ctx_def,
                                FftsPlusContextPath &ctx_path) const;
-  Status SetCtxsPolicyPri(uint64_t ready_context_num, domi::TaskDef &task_def,
-                          TimeLineOptimizerContext &timeCtx) const;
-  Status UpdateContextForRemoveDuplicate(domi::FftsPlusTaskDef *ffts_plus_task_def,
-                                         const ContextParam &ctx_param,
+  Status SetCtxsPolicyPri(uint64_t ready_context_num, domi::TaskDef &task_def, TimeLineOptimizerContext &timeCtx) const;
+  Status UpdateContextForRemoveDuplicate(domi::FftsPlusTaskDef *ffts_plus_task_def, const ContextParam &ctx_param,
                                          const std::unordered_map<uint32_t, size_t> &ctx_index_map,
                                          TimeLineOptimizerContext &timeCtx) const;
   Status RemoveDuplicateDependencies(domi::TaskDef &task_def, TimeLineOptimizerContext &timeCtx) const;
@@ -101,11 +99,9 @@ class FFTSPlusOpsKernelBuilder : public ge::OpsKernelBuilder {
                                     vector<FftsPlusContextPath> &sort_context_paths) const;
   void TransitiveReductionContextPath(const vector<FftsPlusContextPath> &sort_context_paths,
                                       map<uint32_t, vector<uint32_t>> &real_ctx_succ_list) const;
-  Status InsertCmoCtxToSucclist(domi::FftsPlusTaskDef *ffts_plus_task_def,
-                                uint32_t cmo_id, ContextParam &ctx_param,
+  Status InsertCmoCtxToSucclist(domi::FftsPlusTaskDef *ffts_plus_task_def, uint32_t cmo_id, ContextParam &ctx_param,
                                 std::unordered_map<uint32_t, size_t> &ctx_index_map) const;
-  Status UpdateContexts(domi::FftsPlusTaskDef *ffts_plus_task_def,
-                        map<uint32_t, vector<uint32_t>> &real_ctx_succ_list,
+  Status UpdateContexts(domi::FftsPlusTaskDef *ffts_plus_task_def, map<uint32_t, vector<uint32_t>> &real_ctx_succ_list,
                         TimeLineOptimizerContext &timeCtx) const;
   Status InsertCxtListByPriority(const vector<FftsPlusContextPath> &context_paths, uint32_t insert_ctx_id,
                                  vector<uint32_t> &ctx_list,
@@ -122,16 +118,12 @@ class FFTSPlusOpsKernelBuilder : public ge::OpsKernelBuilder {
   Status GetIndexByCtxId(uint32_t ctx_id, size_t &path_index,
                          const std::unordered_map<uint32_t, size_t> &ctx_index_map) const;
 
-  Status ReBuildCtxIdsRelation(domi::TaskDef &task_def,
+  Status ReBuildCtxIdsRelation(domi::TaskDef &task_def, std::unordered_map<uint32_t, uint32_t> &new_old_map,
+                               std::unordered_map<uint32_t, uint32_t> &old_new_map) const;
+  Status GenNewSubGraphTaskDef(const ge::Node &node, domi::TaskDef &task_def, domi::TaskDef &task_def_new,
                                std::unordered_map<uint32_t, uint32_t> &new_old_map,
                                std::unordered_map<uint32_t, uint32_t> &old_new_map) const;
-  Status GenNewSubGraphTaskDef(const ge::Node &node,
-                               domi::TaskDef &task_def,
-                               domi::TaskDef &task_def_new,
-                               std::unordered_map<uint32_t, uint32_t> &new_old_map,
-                               std::unordered_map<uint32_t, uint32_t> &old_new_map) const;
-  Status ConvertOldCtxInfoToNewCtx(domi::FftsPlusCtxDef *ctx_def_old,
-                                   domi::FftsPlusCtxDef *ctx_def_new,
+  Status ConvertOldCtxInfoToNewCtx(domi::FftsPlusCtxDef *ctx_def_old, domi::FftsPlusCtxDef *ctx_def_new,
                                    std::unordered_map<uint32_t, uint32_t> &old_new_map) const;
   Status GenerateExtTask(const ge::Node &node, ge::RunContext &context, std::vector<domi::TaskDef> &task_defs);
   Status UpdateCtxSuccList(domi::FftsPlusCtxDef *ctx_def_old, domi::FftsPlusCtxDef *ctx_def_new,
@@ -172,6 +164,7 @@ class FFTSPlusOpsKernelBuilder : public ge::OpsKernelBuilder {
     }
     return SUCCESS;
   }
+
  private:
   PluginManagerPtr sch_policy_pass_plugin_;
   ScheculePolicyPassFunc schecule_policy_pass_{nullptr};

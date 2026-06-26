@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -198,14 +198,14 @@ class TestBaseCustomOpWithInferShape : public EagerExecuteOp {
     auto workspaces = ctx->MallocWorkSpace(1024);
     GE_ASSERT_NOTNULL(workspaces);
 
-    const gert::Tensor* output_desc_0 = ctx->GetOutputTensor(0);
+    const gert::Tensor *output_desc_0 = ctx->GetOutputTensor(0);
     GE_ASSERT_NOTNULL(output_desc_0);
     gert::StorageShape out_shape_0 = output_desc_0->GetShape();
     GE_ASSERT_TRUE(out_shape_0.GetStorageShape().GetDimNum() == 1);
     GE_ASSERT_TRUE(out_shape_0.GetStorageShape().GetDim(0) == 2048);
     ge::DataType out_dtype_0 = output_desc_0->GetDataType();
     gert::StorageFormat out_format_0 = output_desc_0->GetFormat();
-    gert::Tensor* ge_output_0 = ctx->MallocOutputTensor(0, out_shape_0, out_format_0, out_dtype_0);
+    gert::Tensor *ge_output_0 = ctx->MallocOutputTensor(0, out_shape_0, out_format_0, out_dtype_0);
     GE_ASSERT_NOTNULL(ge_output_0);
     return SUCCESS;
   }
@@ -243,8 +243,8 @@ static void RegisterInferShapeByRuleKernel() {
       GE_ASSERT_NOTNULL(chain);
       auto output_desc = extend_context->GetOutputDesc(index);
       GE_ASSERT_NOTNULL(output_desc);
-      chain->SetWithDefaultDeleter(new (std::nothrow) Tensor(StorageShape(),
-          output_desc->GetFormat(), output_desc->GetDataType()));
+      chain->SetWithDefaultDeleter(new (std::nothrow)
+                                       Tensor(StorageShape(), output_desc->GetFormat(), output_desc->GetDataType()));
     }
     return ge::GRAPH_SUCCESS;
   };
@@ -494,9 +494,8 @@ TEST_F(CustomOpWithInferRuleST, CustomOpShapeInferenceByRule) {
                       ge::Buffer::CopyFrom(binary.data(), binary.size()));
   graph->TopologicalSorting();
 
-  CustomOpFactory::RegisterCustomOpCreator("CustomOp", []()->std::unique_ptr<BaseCustomOp> {
-    return std::make_unique<TestBaseCustomOpWithInferShape>();
-  });
+  CustomOpFactory::RegisterCustomOpCreator(
+      "CustomOp", []() -> std::unique_ptr<BaseCustomOp> { return std::make_unique<TestBaseCustomOpWithInferShape>(); });
 
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.BuildGeRootModel();

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,7 +38,7 @@ void SubprocessManager::MonitorSubprocess() {
     {
       std::lock_guard<std::mutex> lk(callbacks_mu_);
       for (auto excpt_handle_callback = excpt_handle_callbacks_.begin();
-            excpt_handle_callback != excpt_handle_callbacks_.end();) {
+           excpt_handle_callback != excpt_handle_callbacks_.end();) {
         const pid_t pid = excpt_handle_callback->first;
         int32_t wait_status = 0;
         const pid_t wait_pid = ProcessUtils::WaitPid(pid, &wait_status, WNOHANG | WUNTRACED | WCONTINUED);
@@ -52,7 +52,7 @@ void SubprocessManager::MonitorSubprocess() {
           planned_shutdown_.erase(pid);
           continue;
         } else if (WIFSTOPPED(wait_status)) {
-          GEEVENT("Sub process[%d] stoped.", static_cast<int32_t>(pid));
+          GEEVENT("Sub process[%d] stopped.", static_cast<int32_t>(pid));
           excpt_handle_callback->second(ProcStatus::STOPPED);
         } else if (WIFCONTINUED(wait_status)) {
           GEEVENT("Sub process[%d] continued.", static_cast<int32_t>(pid));
@@ -62,7 +62,7 @@ void SubprocessManager::MonitorSubprocess() {
           GEEVENT("Sub process[%d] was terminated by a signal[%d], status[%d]", static_cast<int32_t>(pid),
                   static_cast<int32_t>(signal_num), wait_status);
           GE_LOGE_IF(!planned_shutdown_[pid], "Sub process[%d] was terminated by a signal[%d], status[%d]",
-                      static_cast<int32_t>(pid), static_cast<int32_t>(signal_num), wait_status);
+                     static_cast<int32_t>(pid), static_cast<int32_t>(signal_num), wait_status);
         } else {
           // do nothing
         }
@@ -202,8 +202,7 @@ void SubprocessManager::UnRegExcptHandleCallback(pid_t pid) {
   excpt_handle_callbacks_.erase(pid);
 }
 
-Status SubprocessManager::Execute(const std::string &path,
-                                  const SubprocessManager::SubprocessConfig &subprocess_config,
+Status SubprocessManager::Execute(const std::string &path, const SubprocessManager::SubprocessConfig &subprocess_config,
                                   char_t *const argv[]) {
   if (subprocess_config.death_signal > 0) {
     // swap user will clean PR_SET_PDEATHSIG,so need after swap user.
@@ -215,20 +214,20 @@ Status SubprocessManager::Execute(const std::string &path,
   // it can be deleted when mbuf support double page table (all supported drivers).
   int32_t mmRet = 0;
   MM_SYS_SET_ENV(MM_ENV_AUTO_USE_UC_MEMORY, "0", kEnvNoOverwrite, mmRet);
-  (void) mmRet;
+  (void)mmRet;
 
   // set env variables
   for (const auto &kv : subprocess_config.envs) {
     const std::string &env_name = kv.first;
     const std::string &env_value = kv.second;
     const int32_t is_override = 1;
-    (void) mmSetEnv(env_name.c_str(), env_value.c_str(), is_override);
+    (void)mmSetEnv(env_name.c_str(), env_value.c_str(), is_override);
     GELOGI("Set env[%s], value[%s].", env_name.c_str(), env_value.c_str());
   }
 
   // unset env variables
   for (const auto &env_name : subprocess_config.unset_envs) {
-    (void) unsetenv(env_name.c_str());
+    (void)unsetenv(env_name.c_str());
     GELOGI("unset env[%s] success.", env_name.c_str());
   }
 
@@ -238,7 +237,7 @@ Status SubprocessManager::Execute(const std::string &path,
 }
 
 std::vector<std::string> SubprocessManager::FormatArgs(const SubprocessManager::SubprocessConfig &subprocess_config) {
-  std::vector<std::string> args_strings = subprocess_config.args; // copy
+  std::vector<std::string> args_strings = subprocess_config.args;  // copy
   FormatKvArgs(subprocess_config.kv_args, args_strings);
   return args_strings;
 }
@@ -254,11 +253,10 @@ void SubprocessManager::FormatKvArgs(const std::map<std::string, std::string> &k
   }
 }
 
-Status SubprocessManager::ToCmdlineArgs(const std::vector<std::string> &args_strings,
-                                        char_t *var_args[]) {
+Status SubprocessManager::ToCmdlineArgs(const std::vector<std::string> &args_strings, char_t *var_args[]) {
   if ((args_strings.size()) >= kMaxArgsSize) {
-    GELOGE(FAILED, "too many args size, var_args_size=%zu, var_args_size cannot above %zu.",
-           args_strings.size(), kMaxArgsSize);
+    GELOGE(FAILED, "too many args size, var_args_size=%zu, var_args_size cannot above %zu.", args_strings.size(),
+           kMaxArgsSize);
     return FAILED;
   }
   // variable args
@@ -274,9 +272,9 @@ Status SubprocessManager::ToCmdlineArgs(const std::vector<std::string> &args_str
 bool SubprocessManager::FileExist(const std::string &file_path) {
   mmStat_t sb = {};
   if (mmStatGet(file_path.c_str(), &sb) != 0) {
-    return false; // 文件不存在或无法访问
+    return false;  // 文件不存在或无法访问
   }
-  return S_ISREG(sb.st_mode); // 检查是否是常规文件（非目录）
+  return S_ISREG(sb.st_mode);  // 检查是否是常规文件（非目录）
 }
 
 Status SubprocessManager::GetFlowGwBinDir(const std::string &bin_dir, std::string &flowgw_bin_dir) {

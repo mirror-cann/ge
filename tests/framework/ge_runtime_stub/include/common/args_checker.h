@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -35,12 +35,9 @@ struct AddrSegment {
 
 class ArgsChecker {
  public:
-  explicit ArgsChecker(ComputeGraphPtr graph, const uint32_t graph_id,
-                       const uint64_t session_id, const gert::GertRuntimeStub &stub)
-      : graph_(std::move(graph)),
-        graph_id_(graph_id),
-        session_id_(session_id),
-        stub_(stub) {
+  explicit ArgsChecker(ComputeGraphPtr graph, const uint32_t graph_id, const uint64_t session_id,
+                       const gert::GertRuntimeStub &stub)
+      : graph_(std::move(graph)), graph_id_(graph_id), session_id_(session_id), stub_(stub) {
     if (BuildOpIndexToArgsParserMap() != SUCCESS) {
       throw std::invalid_argument("build op index to task type map failed");
     }
@@ -87,8 +84,8 @@ class ArgsChecker {
             const std::vector<int64_t> &output_offset = op_desc->GetOutputOffset();
             AddrSegment addr_segment = {addr, length, output_offset[0]};
 
-            GELOGD("set addr segment data op name:%s, addr:%lu, length:%lu, offset:%ld",
-              op_desc->GetName().c_str(), addr, length, output_offset[0]);
+            GELOGD("set addr segment data op name:%s, addr:%lu, length:%lu, offset:%ld", op_desc->GetName().c_str(),
+                   addr, length, output_offset[0]);
 
             addr_segments_.emplace_back(addr_segment);
             break;
@@ -115,7 +112,7 @@ class ArgsChecker {
         const std::vector<int64_t> &output_offset = op_desc->GetInputOffset();
         for (const int64_t &index : output_index) {
           if (index >= (int64_t)outputs.size()) {
-             GELOGE(FAILED, "index:%lu exceed outputs size:%z", index, outputs.size());
+            GELOGE(FAILED, "index:%lu exceed outputs size:%z", index, outputs.size());
             return FAILED;
           }
           auto [addr, length] = ParseFromTensor(outputs[index]);
@@ -124,7 +121,7 @@ class ArgsChecker {
             if (index == (int64_t)i) {
               AddrSegment addr_segment = {addr, length, output_offset[i]};
               GELOGD("set addr segment netoutput op name:%s, addr:%lu, length:%lu, offset:%ld",
-                op_desc->GetName().c_str(), addr, length, output_offset[i]);
+                     op_desc->GetName().c_str(), addr, length, output_offset[i]);
 
               addr_segments_.emplace_back(addr_segment);
               break;
@@ -158,8 +155,8 @@ class ArgsChecker {
 
     for (const auto &node : graph_->GetAllNodes()) {
       const auto &op_desc = node->GetOpDesc();
-      GELOGD("op name:%s op type:%s libname:%s start to check.",
-        op_desc->GetName().c_str(), op_desc->GetType().c_str(), op_desc->GetOpKernelLibName().c_str());
+      GELOGD("op name:%s op type:%s libname:%s start to check.", op_desc->GetName().c_str(), op_desc->GetType().c_str(),
+             op_desc->GetOpKernelLibName().c_str());
 
       if (op_desc->GetType() == VARIABLE) {
         GELOGD("op name :%s is variable.", op_desc->GetName().c_str());
@@ -207,7 +204,7 @@ class ArgsChecker {
 
     for (auto &node_name : node_names) {
       const auto node = graph_->FindNode(node_name);
-      if (node == nullptr ||  node->GetOpDesc() == nullptr) {
+      if (node == nullptr || node->GetOpDesc() == nullptr) {
         GELOGE(FAILED, "cannot find node name:%s", node_name.c_str());
         return FAILED;
       }
@@ -216,13 +213,13 @@ class ArgsChecker {
       uint64_t args_addr = op_name_to_args_addr_[op_desc->GetName()];
       uint64_t dst_address = PtrToValue(rt_memcpy_args->dst_address);
       if ((args_addr < dst_address) || (args_addr >= dst_address + rt_memcpy_args->copy_len)) {
-        GELOGE(FAILED, "node name:%s, args addr:%lu mismatching copy dst addr:%lu, len:%u",
-          node_name.c_str(), args_addr, dst_address,  rt_memcpy_args->copy_len);
+        GELOGE(FAILED, "node name:%s, args addr:%lu mismatching copy dst addr:%lu, len:%u", node_name.c_str(),
+               args_addr, dst_address, rt_memcpy_args->copy_len);
         return FAILED;
       }
 
-      GELOGD("node name:%s, args addr:%lu matching copy dst addr:%lu, len:%u",
-        node_name.c_str(), args_addr, dst_address,  rt_memcpy_args->copy_len);
+      GELOGD("node name:%s, args addr:%lu matching copy dst addr:%lu, len:%u", node_name.c_str(), args_addr,
+             dst_address, rt_memcpy_args->copy_len);
     }
 
     return SUCCESS;
@@ -241,7 +238,7 @@ class ArgsChecker {
 
     for (auto &node_name : node_names) {
       const auto node = graph_->FindNode(node_name);
-      if (node == nullptr ||  node->GetOpDesc() == nullptr) {
+      if (node == nullptr || node->GetOpDesc() == nullptr) {
         return FAILED;
       }
 
@@ -249,19 +246,19 @@ class ArgsChecker {
       uint64_t args_addr = op_name_to_args_addr_[op_desc->GetName()];
       uint64_t dst_address = PtrToValue(rt_memcpy_args->dst_address);
       if ((args_addr >= dst_address) && (args_addr < dst_address + rt_memcpy_args->copy_len)) {
-        GELOGE(FAILED, "node name:%s, args addr:%lu matching copy dst addr:%lu, len:%u",
-          node_name.c_str(), args_addr, dst_address, rt_memcpy_args->copy_len);
+        GELOGE(FAILED, "node name:%s, args addr:%lu matching copy dst addr:%lu, len:%u", node_name.c_str(), args_addr,
+               dst_address, rt_memcpy_args->copy_len);
         return FAILED;
       }
 
-      GELOGD("node name:%s, args addr:%lu mismatching copy dst addr:%lu, len:%u",
-        node_name.c_str(), args_addr, dst_address,  rt_memcpy_args->copy_len);
+      GELOGD("node name:%s, args addr:%lu mismatching copy dst addr:%lu, len:%u", node_name.c_str(), args_addr,
+             dst_address, rt_memcpy_args->copy_len);
     }
 
     return SUCCESS;
   }
 
-private:
+ private:
   /**
    * 构建opindex和task info的映射
    * @param
@@ -274,7 +271,7 @@ private:
     SessionPtr session = session_manager->GetSession(session_id_);
     GE_CHECK_NOTNULL(session);
 
-    const GraphManager &graph_manager = session->getGraphManagerObj(); // 当前无函数可以获取graph manager
+    const GraphManager &graph_manager = session->getGraphManagerObj();  // 当前无函数可以获取graph manager
     GraphNodePtr graph_node;
     Status ret = graph_manager.GetGraphNode(graph_id_, graph_node);
     if (ret != SUCCESS) {
@@ -302,8 +299,7 @@ private:
     const size_t task_size = static_cast<size_t>(model_task_def->task_size());
     for (size_t i = 0; i < task_size; ++i) {
       const auto &task_def = model_task_def->task(i);
-      const auto &task_info = TaskInfoFactory::Instance().Create(
-          static_cast<ModelTaskType>(task_def.type()));
+      const auto &task_info = TaskInfoFactory::Instance().Create(static_cast<ModelTaskType>(task_def.type()));
       GE_CHECK_NOTNULL(task_info);
       const auto op_index = task_info->ParseOpIndex(task_def);
       auto parser = ArgsParserFactory::CreateBy(task_def, std::move(index_to_desc[op_index]));
@@ -328,12 +324,12 @@ private:
 
       addresses = switch_arg.switch_addr_;
       if (addresses == 0) {
-          GELOGE(FAILED, "switch node:%s addr is 0.", (*node_name).c_str(), addresses);
-          return FAILED;
+        GELOGE(FAILED, "switch node:%s addr is 0.", (*node_name).c_str(), addresses);
+        return FAILED;
       }
 
       const auto node = graph_->FindNode(*node_name);
-      if (node == nullptr ||  node->GetOpDesc() == nullptr) {
+      if (node == nullptr || node->GetOpDesc() == nullptr) {
         GELOGE(FAILED, "switch node:%s cannot find address.", (*node_name).c_str());
         return FAILED;
       }
@@ -357,18 +353,18 @@ private:
 
       addresses = PtrToValue(launch_arg.args_addr_);
       if (addresses == 0) {
-          GELOGE(FAILED, "launch node:%s addr is 0.", (*node_name).c_str(), addresses);
-          return FAILED;
+        GELOGE(FAILED, "launch node:%s addr is 0.", (*node_name).c_str(), addresses);
+        return FAILED;
       }
 
       const auto node = graph_->FindNode(*node_name);
-      if (node == nullptr ||  node->GetOpDesc() == nullptr) {
+      if (node == nullptr || node->GetOpDesc() == nullptr) {
         GELOGE(FAILED, "launch node:%s cannot find address.", (*node_name).c_str());
         return FAILED;
       }
 
-      GELOGD("launch node:%s addr:%lu, stream id:%u, task id:%u.",
-        (*node_name).c_str(), addresses, launch_arg.GetStreamId(), launch_arg.GetTaskId());
+      GELOGD("launch node:%s addr:%lu, stream id:%u, task id:%u.", (*node_name).c_str(), addresses,
+             launch_arg.GetStreamId(), launch_arg.GetTaskId());
 
       std::string node_name_str = *node_name;
       op_name_to_args_addr_[node_name_str] = addresses;
@@ -376,9 +372,9 @@ private:
       // todo：MemcpyAsync为条件算子或者dsa插入的op, st使用ts内存, 不在hbm里
       if (node_name_str.find("MemcpyAsync") == std::string::npos) {
         op_args_addr_min =
-          op_args_addr_min == 0 ? addresses : (addresses < op_args_addr_min ? addresses : op_args_addr_min);
+            op_args_addr_min == 0 ? addresses : (addresses < op_args_addr_min ? addresses : op_args_addr_min);
         op_args_addr_max =
-          op_args_addr_max == 0 ? addresses : (addresses > op_args_addr_max ? addresses : op_args_addr_max);
+            op_args_addr_max == 0 ? addresses : (addresses > op_args_addr_max ? addresses : op_args_addr_max);
       }
     }
     GELOGD("op args addr min:%lu, addr max:%lu.", op_args_addr_min, op_args_addr_max);
@@ -393,17 +389,16 @@ private:
   Status BuildOpNameToArgsAddrMap() {
     op_args_addr_min_ = 0;
     op_args_addr_max_ = 0;
-    
+
     auto ret = rtSwitchArgsTraversal(op_args_addr_min_, op_args_addr_max_);
     if (ret != SUCCESS) {
       return ret;
     }
-  
+
     ret = rtLaunchArgsTraversal(op_args_addr_min_, op_args_addr_max_);
 
     return ret;
   }
-
 
   /**
    * 校验同一symbol下所有anchor的地址是否一致
@@ -422,21 +417,21 @@ private:
     for (const auto &[symbol, anchors] : symbol_to_anchors) {
       uint64_t addr_reference = 0;
       for (const auto &node_index_io : anchors) {
-        std::string node_name  = node_index_io.node_ptr_->GetName();
+        std::string node_name = node_index_io.node_ptr_->GetName();
         std::string op_desc_name = node_index_io.node_ptr_->GetOpDesc()->GetName();
         int64_t op_index = node_index_io.node_ptr_->GetOpDesc()->GetId();
         IOType io_type = node_index_io.io_type_;
-        uint32_t io_index =  node_index_io.index_;
+        uint32_t io_index = node_index_io.index_;
         uint64_t addr = 0;
 
-        GELOGD("symbol:%s, node name:%s, op index:%ld, opdesc name:%s, io index:%u, io type:%d",
-          symbol.c_str(), node_name.c_str(), op_index, op_desc_name.c_str(), io_index, io_type);
+        GELOGD("symbol:%s, node name:%s, op index:%ld, opdesc name:%s, io index:%u, io type:%d", symbol.c_str(),
+               node_name.c_str(), op_index, op_desc_name.c_str(), io_index, io_type);
 
         // data op的input offset以及netoutput的outoffset 为0，过滤掉
         if ((io_type == kIn && node_index_io.node_ptr_->GetOpDesc()->GetInputOffset().size() == 0) ||
-          (io_type == kOut && node_index_io.node_ptr_->GetOpDesc()->GetOutputOffset().size() == 0)) {
-          GELOGD("symbol:%s, node name:%s, op index:%ld, opdesc name:%s has no offset",
-            symbol.c_str(), node_name.c_str(), op_index, op_desc_name.c_str());
+            (io_type == kOut && node_index_io.node_ptr_->GetOpDesc()->GetOutputOffset().size() == 0)) {
+          GELOGD("symbol:%s, node name:%s, op index:%ld, opdesc name:%s has no offset", symbol.c_str(),
+                 node_name.c_str(), op_index, op_desc_name.c_str());
           continue;
         }
 
@@ -452,9 +447,9 @@ private:
 
         // todo st用例中，data op在args table中输出填入的地址为0，过滤掉； dsa 的input2/input3未解析，过滤掉
         if (addr == 0) {
-            GELOGD("symbol:%s, node name:%s, op index:%ld, io index:%u, io type:%d, addr:%lu",
-              symbol.c_str(), node_name.c_str(), op_index, io_index, io_type, addr);
-            continue;
+          GELOGD("symbol:%s, node name:%s, op index:%ld, io index:%u, io type:%d, addr:%lu", symbol.c_str(),
+                 node_name.c_str(), op_index, io_index, io_type, addr);
+          continue;
         }
 
         if (addr_reference == 0) {
@@ -462,21 +457,22 @@ private:
         }
 
         if (addr_reference != addr) {
-          GELOGE(FAILED, "symbol:%s, node name:%s, op index:%ld, " \
-            "io index:%u, io type:%d, addr_reference:%lu, addr:%lu, addr check failed.",
-            symbol.c_str(), node_name.c_str(), op_index, io_index, io_type, addr_reference, addr);
+          GELOGE(FAILED,
+                 "symbol:%s, node name:%s, op index:%ld, "
+                 "io index:%u, io type:%d, addr_reference:%lu, addr:%lu, addr check failed.",
+                 symbol.c_str(), node_name.c_str(), op_index, io_index, io_type, addr_reference, addr);
           return FAILED;
         }
 
-        GELOGD("symbol:%s, node name:%s, op index:%ld, " \
-          "io index:%u, io type:%d, addr_reference:%lu, addr:%lu, addr check success",
-          symbol.c_str(), node_name.c_str(), op_index, io_index, io_type, addr_reference, addr);
+        GELOGD(
+            "symbol:%s, node name:%s, op index:%ld, "
+            "io index:%u, io type:%d, addr_reference:%lu, addr:%lu, addr check success",
+            symbol.c_str(), node_name.c_str(), op_index, io_index, io_type, addr_reference, addr);
       }
     }
 
     return SUCCESS;
   }
-
 
   /**
    * 判断实际IO地址推算的offset和编译态生成的opdesc里的offset是否一致
@@ -501,16 +497,18 @@ private:
         if (addr >= addr_segments_[j].addr && addr < addr_segments_[j].addr + addr_segments_[j].length) {
           addr_segments_match = 1;
           // 根据实际地址 - 段实际起始地址 + 段的逻辑偏移，推算逻辑offset
-          uint64_t addr_offset = addr -  addr_segments_[j].addr + addr_segments_[j].offset;
+          uint64_t addr_offset = addr - addr_segments_[j].addr + addr_segments_[j].offset;
           if (addr_offset != (uint64_t)offset[i]) {
-            GELOGE(FAILED, "node name:%s, op index:%ld, io index:%u, io type:%d, addr:%lu, offset:%lu, " \
-              "is inconsistent with compiled offset:%lu",
-              op_desc->GetName().c_str(), op_desc->GetId(), i, io_type, addr, addr_offset, offset[i]);
+            GELOGE(FAILED,
+                   "node name:%s, op index:%ld, io index:%u, io type:%d, addr:%lu, offset:%lu, "
+                   "is inconsistent with compiled offset:%lu",
+                   op_desc->GetName().c_str(), op_desc->GetId(), i, io_type, addr, addr_offset, offset[i]);
             return FAILED;
           } else {
-            GELOGD("node name:%s, op index:%ld, io index:%u, io type:%d, addr:%lu, offset:%lu, " \
-              "is consistent with compiled offset:%lu",
-              op_desc->GetName().c_str(), op_desc->GetId(), i, io_type, addr, addr_offset, offset[i]);
+            GELOGD(
+                "node name:%s, op index:%ld, io index:%u, io type:%d, addr:%lu, offset:%lu, "
+                "is consistent with compiled offset:%lu",
+                op_desc->GetName().c_str(), op_desc->GetId(), i, io_type, addr, addr_offset, offset[i]);
           }
         }
       }
@@ -519,8 +517,8 @@ private:
         // dt中data的output addr为0
         // 非fm和io段的地址，比如fix地址，不在addr segments内
         // todo ：增加地址是否在fm和io段内校验的公共接口， 用例里面新增该校验点
-        GELOGD("op name:%s io type:%d, addr:%lu is no matching addr segment.",
-            op_desc->GetName().c_str(), io_type, addr);
+        GELOGD("op name:%s io type:%d, addr:%lu is no matching addr segment.", op_desc->GetName().c_str(), io_type,
+               addr);
       }
     }
 
@@ -537,8 +535,7 @@ private:
       uint64_t dst_address = PtrToValue(args.dst_address);
       if (dst_address >= op_args_addr_min_ && dst_address <= op_args_addr_max_) {
         rt_memcpy_args = &args;
-        GELOGD("rt memcpy args addr:%lu, len:%u",
-          PtrToValue(rt_memcpy_args->dst_address), rt_memcpy_args->copy_len);
+        GELOGD("rt memcpy args addr:%lu, len:%u", PtrToValue(rt_memcpy_args->dst_address), rt_memcpy_args->copy_len);
         return SUCCESS;
       }
     }
@@ -565,5 +562,5 @@ private:
   uint64_t op_args_addr_max_;
   std::unordered_map<int64_t, std::unique_ptr<ArgsParser>> op_index_to_parser_;
 };
-} // namespace ge
+}  // namespace ge
 #endif  // AIR_CXX_TESTS_FRAMEWORK_GE_RUNTIME_STUB_INCLUDE_COMMON_ARGS_CHECKER_H_

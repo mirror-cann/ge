@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,58 +25,44 @@ enum class CACHE_OPERATION {
   CACHE_OPERATION_BOTTOM = 4
 };
 
-enum class ThreadMode {
-  MANUAL_THREAD = 0,
-  AUTO_THREAD,
-  THREAD_MODE_RESERVED
-};
+enum class ThreadMode { MANUAL_THREAD = 0, AUTO_THREAD, THREAD_MODE_RESERVED };
 
-enum class FFTSMode {
-  FFTS_MODE_NO_FFTS = 0,
-  FFTS_MODE_FFTS,
-  FFTS_MODE_FFTS_PLUS,
-  FFTS_MODE_RESERVED
-};
+enum class FFTSMode { FFTS_MODE_NO_FFTS = 0, FFTS_MODE_FFTS, FFTS_MODE_FFTS_PLUS, FFTS_MODE_RESERVED };
 
-enum class ModeType {
-  MANUAL_MODE_TYPE = 0,
-  AUTO_MODE_TYPE,
-  DYNAMIC_MODE_TYPE,
-  MIX_L2_MODE_TYPE
-};
+enum class ModeType { MANUAL_MODE_TYPE = 0, AUTO_MODE_TYPE, DYNAMIC_MODE_TYPE, MIX_L2_MODE_TYPE };
 
 enum class TaskBuilderType {
-  EN_TASK_TYPE_AIC_AIV = 0,   // ai core op, aic or aiv
+  EN_TASK_TYPE_AIC_AIV = 0,  // ai core op, aic or aiv
   EN_TASK_TYPE_AIC_AIV_AUTO,
-  EN_TASK_TYPE_MIX_AIC_AIV,   // mix op, contain aic & aiv
+  EN_TASK_TYPE_MIX_AIC_AIV,  // mix op, contain aic & aiv
   EN_TASK_TYPE_MIX_AIC_AIV_AUTO,
   EN_TASK_TYPE_MIX_AIC_AIV_DYNAMIC,
   EN_TASK_TYPE_AIC_AIV_DYNAMIC,
   EN_TASK_TYPE_MIX_L2_AIC_AIV,
-  EN_TASK_TYPE_COLLECTION_COMMICATE,   // collection ops
-  EN_TASK_TYPE_AICPU,                  // aicpu ops
+  EN_TASK_TYPE_COLLECTION_COMMICATE,  // collection ops
+  EN_TASK_TYPE_AICPU,                 // aicpu ops
   EN_TASK_TYPE_AICPU_AUTO,
-  EN_TASK_TYPE_RUNTIME_CONTROL,   // runtime ops
-  EN_TASK_TYPE_RUNTIME_CONTROL_AUTO,   // runtime ops
+  EN_TASK_TYPE_RUNTIME_CONTROL,       // runtime ops
+  EN_TASK_TYPE_RUNTIME_CONTROL_AUTO,  // runtime ops
   EN_TASK_TYPE_DSA,
   EN_TASK_TYPE_DSA_AUTO,
-  EN_TASK_TYPE_RESERVED                 // reserved value
+  EN_TASK_TYPE_RESERVED  // reserved value
 };
 
 enum class OpImplType {
-  EN_IMPL_CUSTOM_CONSTANT_CCE = 0,   // custom constant op
-  EN_IMPL_CUSTOM_TIK,                // custom tik op
-  EN_IMPL_CUSTOM_TBE,                // custom tbe op
-  EN_IMPL_HW_CONSTANT_CCE,           // Huawei built-in constant op
-  EN_IMPL_HW_GENERAL_CCE,            // Huawei built-in cce op
-  EN_IMPL_HW_TIK,                    // Huawei built-in tik op
-  EN_IMPL_HW_TBE,                    // Huawei built-in tbe op
-  EN_IMPL_RL,                        // RL op
-  EN_IMPL_PLUGIN_TBE,                // Huawei built-in tbe plugin op
-  EN_IMPL_VECTOR_CORE_HW_TBE,        // Huawei built-in tbe op
-  EN_IMPL_VECTOR_CORE_CUSTOM_TBE,    // custom tbe op
-  EN_IMPL_NON_PERSISTENT_CUSTOM_TBE, // custom tbe op
-  EN_RESERVED                        // reserved value
+  EN_IMPL_CUSTOM_CONSTANT_CCE = 0,    // custom constant op
+  EN_IMPL_CUSTOM_TIK,                 // custom tik op
+  EN_IMPL_CUSTOM_TBE,                 // custom tbe op
+  EN_IMPL_HW_CONSTANT_CCE,            // Huawei built-in constant op
+  EN_IMPL_HW_GENERAL_CCE,             // Huawei built-in cce op
+  EN_IMPL_HW_TIK,                     // Huawei built-in tik op
+  EN_IMPL_HW_TBE,                     // Huawei built-in tbe op
+  EN_IMPL_RL,                         // RL op
+  EN_IMPL_PLUGIN_TBE,                 // Huawei built-in tbe plugin op
+  EN_IMPL_VECTOR_CORE_HW_TBE,         // Huawei built-in tbe op
+  EN_IMPL_VECTOR_CORE_CUSTOM_TBE,     // custom tbe op
+  EN_IMPL_NON_PERSISTENT_CUSTOM_TBE,  // custom tbe op
+  EN_RESERVED                         // reserved value
 };
 
 const std::string kFftsSwitch = "_ffts_switch";
@@ -346,5 +332,5 @@ extern const std::string kFFTSThreadDim;
 extern const std::string kFFTSWindowSize;
 extern const std::string kFftsFlagDefault;
 extern const std::string kFftsFlagAllSubgraph;
-}
-#endif // FFTS_ENGINE_INC_FFTS_TYPE_H
+}  // namespace ffts
+#endif  // FFTS_ENGINE_INC_FFTS_TYPE_H

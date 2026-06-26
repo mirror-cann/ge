@@ -103,4 +103,3 @@ EsCTensorHolder *EsCreateVariable(EsCGraphBuilder *graph, int32_t index, const c
 EsCGraphBuilder *graph = EsCreateGraphBuilder("test_graph");
 auto variable = EsCreateVariable(graph, 0, "var0");
 ```
-

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,9 +30,7 @@ KernelInfoPtr TfKernelInfo::instance_ = nullptr;
 
 inline KernelInfoPtr TfKernelInfo::Instance() {
   static std::once_flag flag;
-  std::call_once(flag, [&]() {
-    instance_.reset(new (std::nothrow) TfKernelInfo);
-  });
+  std::call_once(flag, [&]() { instance_.reset(new (std::nothrow) TfKernelInfo); });
   return instance_;
 }
 
@@ -52,7 +50,7 @@ ge::Status TfKernelInfo::Initialize(const std::map<std::string, std::string> &op
 
 bool TfKernelInfo::ReadOpInfoFromJsonFile() {
   std::string real_tf_ops_file_path;
-  const char* path_env = nullptr;
+  const char *path_env = nullptr;
   MM_SYS_GET_ENV(MM_ENV_ASCEND_OPP_PATH, path_env);
   std::string path;
   std::string env_path;
@@ -65,7 +63,7 @@ bool TfKernelInfo::ReadOpInfoFromJsonFile() {
       real_tf_ops_file_path = env_path + kTfOpsFileBasedOnEnvPathOld;
     }
   } else {
-    std::string file_path = GetOpsPath(reinterpret_cast<void*>(&TfKernelInfo::Instance));
+    std::string file_path = GetOpsPath(reinterpret_cast<void *>(&TfKernelInfo::Instance));
     path = file_path + kTfOpsFileRelativePath;
     if (IsPathExist(path)) {
       real_tf_ops_file_path = path;
@@ -81,10 +79,9 @@ bool TfKernelInfo::ReadOpInfoFromJsonFile() {
     err_map["filename"] = real_tf_ops_file_path;
     err_map["reason"] = ret.msg;
     REPORT_PREDEFINED_ERR_MSG(GetViewErrorCodeStr(ViewErrorCode::LOAD_AICPU_KERNEL_INFO_ERR).c_str()),
-                              std::vector<const char *>({"filename", "reason"}),
-                              std::vector<const char *>({real_tf_ops_file_path.c_str(), ret.msg.c_str()});
-    AICPUE_LOGE("load tf kernel info file[%s] failed, %s",
-        real_tf_ops_file_path.c_str(), ret.msg.c_str());
+        std::vector<const char *>({"filename", "reason"}),
+        std::vector<const char *>({real_tf_ops_file_path.c_str(), ret.msg.c_str()});
+    AICPUE_LOGE("load tf kernel info file[%s] failed, %s", real_tf_ops_file_path.c_str(), ret.msg.c_str());
   }
   return ret.state == ge::SUCCESS;
 }
@@ -98,10 +95,8 @@ ge::Status TfKernelInfo::CompileOp(ge::NodePtr &node) {
   AICPU_CHECK_NOTNULL_ERRCODE(node, INPUT_PARAM_NULL)
 
   map<string, OpFullInfo> all_op_info;
-  AICPU_CHECK_RES_WITH_LOG(GetOpInfos(all_op_info), "Get op infos failed, op[%s].",
-                           node->GetName().c_str())
-  AICPU_CHECK_RES_WITH_LOG(UpdataOpInfo(*node, all_op_info),
-                           "Updata function attr failed, op[%s].",
+  AICPU_CHECK_RES_WITH_LOG(GetOpInfos(all_op_info), "Get op infos failed, op[%s].", node->GetName().c_str())
+  AICPU_CHECK_RES_WITH_LOG(UpdataOpInfo(*node, all_op_info), "Updata function attr failed, op[%s].",
                            node->GetName().c_str())
 
   // create nodedef
@@ -129,7 +124,7 @@ ge::Status TfKernelInfo::CompileOp(ge::NodePtr &node) {
 
 void TfKernelInfo::LoadSupportedOps() {
   std::string supported_ops_json;
-  const char* path_env = nullptr;
+  const char *path_env = nullptr;
   MM_SYS_GET_ENV(MM_ENV_ASCEND_OPP_PATH, path_env);
   std::string path;
   std::string env_path;
@@ -142,7 +137,7 @@ void TfKernelInfo::LoadSupportedOps() {
       supported_ops_json = env_path + kOpsInfoJsonOld;
     }
   } else {
-    std::string file_path = GetOpsPath(reinterpret_cast<void*>(&TfKernelInfo::Instance));
+    std::string file_path = GetOpsPath(reinterpret_cast<void *>(&TfKernelInfo::Instance));
     path = file_path + kOpsJsonRelativePath;
     if (IsPathExist(path)) {
       supported_ops_json = path;
@@ -178,4 +173,4 @@ bool TfKernelInfo::IsSupportedOps(const std::string &op) const {
 }
 
 FACTORY_KERNELINFO_CLASS_KEY(TfKernelInfo, kTfKernelInfoChoice)
-} // namespace aicpu
+}  // namespace aicpu

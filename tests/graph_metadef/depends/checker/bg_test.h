@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,8 +28,7 @@ class BgTest : public testing::Test {
   }
   void TearDown() override {
     Test::TearDown();
-    while (bg::ValueHolder::PopGraphFrame())
-      ;
+    while (bg::ValueHolder::PopGraphFrame());
   }
 
  public:
@@ -124,109 +123,110 @@ class BgTest : public testing::Test {
   }
 
   void ConnectFromInit(const ge::Node *src_node, int32_t src_index, const ge::Node *dst_node, int32_t dst_index,
-                         const char *dst_graph_type) {
-      ge::InDataAnchorPtr top_dst_anchor = dst_node->GetInDataAnchor(dst_index);
-      ASSERT_NE(top_dst_anchor, nullptr);
-      ge::OutDataAnchorPtr top_src_anchor;
-      while (true) {
-        top_src_anchor = top_dst_anchor->GetPeerOutAnchor();
-        ASSERT_NE(top_src_anchor, nullptr);
+                       const char *dst_graph_type) {
+    ge::InDataAnchorPtr top_dst_anchor = dst_node->GetInDataAnchor(dst_index);
+    ASSERT_NE(top_dst_anchor, nullptr);
+    ge::OutDataAnchorPtr top_src_anchor;
+    while (true) {
+      top_src_anchor = top_dst_anchor->GetPeerOutAnchor();
+      ASSERT_NE(top_src_anchor, nullptr);
 
-        auto tmp_src_node = top_src_anchor->GetOwnerNode();
-        ASSERT_NE(tmp_src_node, nullptr);
-        if (tmp_src_node->GetType() != "InnerData") {
-          break;
-        }
-        int32_t tmp_index;
-        ASSERT_TRUE(ge::AttrUtils::GetInt(tmp_src_node->GetOpDesc(), "index", tmp_index));
-
-        auto tmp_graph = tmp_src_node->GetOwnerComputeGraph();
-        ASSERT_NE(tmp_graph, nullptr);
-        auto tmp_parent_node = tmp_graph->GetParentNode();
-        ASSERT_NE(tmp_parent_node, nullptr);
-
-        top_dst_anchor = tmp_parent_node->GetInDataAnchor(tmp_index);
-        ASSERT_NE(top_dst_anchor, nullptr) << "Failed to get in anchor from node " << tmp_parent_node->GetName()
-                                           << ", index " << tmp_index;
+      auto tmp_src_node = top_src_anchor->GetOwnerNode();
+      ASSERT_NE(tmp_src_node, nullptr);
+      if (tmp_src_node->GetType() != "InnerData") {
+        break;
       }
+      int32_t tmp_index;
+      ASSERT_TRUE(ge::AttrUtils::GetInt(tmp_src_node->GetOpDesc(), "index", tmp_index));
 
-      auto top_src_node = top_src_anchor->GetOwnerNode();
-      ASSERT_NE(top_src_node, nullptr);
-      ASSERT_EQ(top_src_node->GetType(), "Init");
-      auto top_dst_node = top_dst_anchor->GetOwnerNode();
-      ASSERT_NE(top_dst_node, nullptr);
-      ASSERT_EQ(top_dst_node->GetType(), dst_graph_type);
+      auto tmp_graph = tmp_src_node->GetOwnerComputeGraph();
+      ASSERT_NE(tmp_graph, nullptr);
+      auto tmp_parent_node = tmp_graph->GetParentNode();
+      ASSERT_NE(tmp_parent_node, nullptr);
 
-      auto init_graph = ge::NodeUtils::GetSubgraph(*top_src_node, 0);
-      ASSERT_NE(init_graph, nullptr);
-      auto init_output = init_graph->FindFirstNodeMatchType("InnerNetOutput");
-      ASSERT_NE(init_output, nullptr);
-      auto dst_anchor_on_init = init_output->GetInDataAnchor(top_src_anchor->GetIdx());
-      ASSERT_NE(dst_anchor_on_init, nullptr);
-      auto src_anchor = dst_anchor_on_init->GetPeerOutAnchor();
-      ASSERT_NE(src_anchor, nullptr);
-      EXPECT_EQ(src_anchor->GetIdx(), src_index);
-      EXPECT_EQ(src_anchor->GetOwnerNode().get(), src_node);
-      EXPECT_EQ(src_anchor->GetOwnerNode()->GetName(), src_node->GetName());
+      top_dst_anchor = tmp_parent_node->GetInDataAnchor(tmp_index);
+      ASSERT_NE(top_dst_anchor, nullptr) << "Failed to get in anchor from node " << tmp_parent_node->GetName()
+                                         << ", index " << tmp_index;
     }
-    void ConnectFromInit(const ge::FastNode *src_node, int32_t src_index, const ge::FastNode *dst_node,
-                         int32_t dst_index, const char *dst_graph_type) {
-      auto top_edge = dst_node->GetInDataEdgeByIndex(dst_index);
-      ASSERT_NE(top_edge, nullptr);
-      while (true) {
-        auto tmp_src_node = top_edge->src;
-        ASSERT_NE(tmp_src_node, nullptr);
-        if (tmp_src_node->GetType() != "InnerData") {
-          break;
-        }
-        int32_t tmp_index;
-        ASSERT_TRUE(ge::AttrUtils::GetInt(tmp_src_node->GetOpDescBarePtr(), "index", tmp_index));
 
-        auto tmp_graph = tmp_src_node->GetExtendInfo()->GetOwnerGraphBarePtr();
-        ASSERT_NE(tmp_graph, nullptr);
-        auto tmp_parent_node = tmp_graph->GetParentNodeBarePtr();
-        ASSERT_NE(tmp_parent_node, nullptr);
+    auto top_src_node = top_src_anchor->GetOwnerNode();
+    ASSERT_NE(top_src_node, nullptr);
+    ASSERT_EQ(top_src_node->GetType(), "Init");
+    auto top_dst_node = top_dst_anchor->GetOwnerNode();
+    ASSERT_NE(top_dst_node, nullptr);
+    ASSERT_EQ(top_dst_node->GetType(), dst_graph_type);
 
-        top_edge = tmp_parent_node->GetInDataEdgeByIndex(tmp_index);
-        ASSERT_NE(top_edge, nullptr) << "Failed to get in edge point from node " << tmp_parent_node->GetName()
-                                     << ", index " << tmp_index;
+    auto init_graph = ge::NodeUtils::GetSubgraph(*top_src_node, 0);
+    ASSERT_NE(init_graph, nullptr);
+    auto init_output = init_graph->FindFirstNodeMatchType("InnerNetOutput");
+    ASSERT_NE(init_output, nullptr);
+    auto dst_anchor_on_init = init_output->GetInDataAnchor(top_src_anchor->GetIdx());
+    ASSERT_NE(dst_anchor_on_init, nullptr);
+    auto src_anchor = dst_anchor_on_init->GetPeerOutAnchor();
+    ASSERT_NE(src_anchor, nullptr);
+    EXPECT_EQ(src_anchor->GetIdx(), src_index);
+    EXPECT_EQ(src_anchor->GetOwnerNode().get(), src_node);
+    EXPECT_EQ(src_anchor->GetOwnerNode()->GetName(), src_node->GetName());
+  }
+  void ConnectFromInit(const ge::FastNode *src_node, int32_t src_index, const ge::FastNode *dst_node, int32_t dst_index,
+                       const char *dst_graph_type) {
+    auto top_edge = dst_node->GetInDataEdgeByIndex(dst_index);
+    ASSERT_NE(top_edge, nullptr);
+    while (true) {
+      auto tmp_src_node = top_edge->src;
+      ASSERT_NE(tmp_src_node, nullptr);
+      if (tmp_src_node->GetType() != "InnerData") {
+        break;
       }
+      int32_t tmp_index;
+      ASSERT_TRUE(ge::AttrUtils::GetInt(tmp_src_node->GetOpDescBarePtr(), "index", tmp_index));
 
-      auto top_src_node = top_edge->src;
-      ASSERT_NE(top_src_node, nullptr);
-      ASSERT_EQ(top_src_node->GetType(), "Init");
-      auto top_dst_node = top_edge->dst;
-      ASSERT_NE(top_dst_node, nullptr);
-      ASSERT_EQ(top_dst_node->GetType(), dst_graph_type);
+      auto tmp_graph = tmp_src_node->GetExtendInfo()->GetOwnerGraphBarePtr();
+      ASSERT_NE(tmp_graph, nullptr);
+      auto tmp_parent_node = tmp_graph->GetParentNodeBarePtr();
+      ASSERT_NE(tmp_parent_node, nullptr);
 
-      auto init_graph = ge::FastNodeUtils::GetSubgraphFromNode(top_src_node, 0);
-      ASSERT_NE(init_graph, nullptr);
-      auto init_output = ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_graph, "InnerNetOutput");
-      ASSERT_NE(init_output, nullptr);
-      auto edge_on_init = init_output->GetInDataEdgeByIndex(top_edge->src_output);
-      ASSERT_NE(edge_on_init, nullptr);
-      EXPECT_EQ(edge_on_init->src_output, src_index);
-      EXPECT_EQ(edge_on_init->src, src_node);
-      EXPECT_EQ(edge_on_init->src->GetName(), src_node->GetName());
+      top_edge = tmp_parent_node->GetInDataEdgeByIndex(tmp_index);
+      ASSERT_NE(top_edge, nullptr) << "Failed to get in edge point from node " << tmp_parent_node->GetName()
+                                   << ", index " << tmp_index;
     }
 
-    void ConnectFromInitToMain(const ge::Node *init_node, int32_t src_index, const ge::Node *main_node,
+    auto top_src_node = top_edge->src;
+    ASSERT_NE(top_src_node, nullptr);
+    ASSERT_EQ(top_src_node->GetType(), "Init");
+    auto top_dst_node = top_edge->dst;
+    ASSERT_NE(top_dst_node, nullptr);
+    ASSERT_EQ(top_dst_node->GetType(), dst_graph_type);
+
+    auto init_graph = ge::FastNodeUtils::GetSubgraphFromNode(top_src_node, 0);
+    ASSERT_NE(init_graph, nullptr);
+    auto init_output = ge::ExecuteGraphUtils::FindFirstNodeMatchType(init_graph, "InnerNetOutput");
+    ASSERT_NE(init_output, nullptr);
+    auto edge_on_init = init_output->GetInDataEdgeByIndex(top_edge->src_output);
+    ASSERT_NE(edge_on_init, nullptr);
+    EXPECT_EQ(edge_on_init->src_output, src_index);
+    EXPECT_EQ(edge_on_init->src, src_node);
+    EXPECT_EQ(edge_on_init->src->GetName(), src_node->GetName());
+  }
+
+  void ConnectFromInitToMain(const ge::Node *init_node, int32_t src_index, const ge::Node *main_node,
+                             int32_t dst_index) {
+    ConnectFromInit(init_node, src_index, main_node, dst_index, "Main");
+  }
+  void ConnectFromInitToMain(const ge::FastNode *init_node, int32_t src_index, const ge::FastNode *main_node,
+                             int32_t dst_index) {
+    ConnectFromInit(init_node, src_index, main_node, dst_index, "Main");
+  }
+
+  void ConnectFromInitToDeInit(const ge::Node *init_node, int32_t src_index, const ge::Node *main_node,
                                int32_t dst_index) {
-      ConnectFromInit(init_node, src_index, main_node, dst_index, "Main");
-    }
-    void ConnectFromInitToMain(const ge::FastNode *init_node, int32_t src_index, const ge::FastNode *main_node,
+    ConnectFromInit(init_node, src_index, main_node, dst_index, "DeInit");
+  }
+  void ConnectFromInitToDeInit(const ge::FastNode *init_node, int32_t src_index, const ge::FastNode *main_node,
                                int32_t dst_index) {
-      ConnectFromInit(init_node, src_index, main_node, dst_index, "Main");
-    }
+    ConnectFromInit(init_node, src_index, main_node, dst_index, "DeInit");
+  }
 
-    void ConnectFromInitToDeInit(const ge::Node *init_node, int32_t src_index, const ge::Node *main_node,
-                                 int32_t dst_index) {
-      ConnectFromInit(init_node, src_index, main_node, dst_index, "DeInit");
-    }
-    void ConnectFromInitToDeInit(const ge::FastNode *init_node, int32_t src_index, const ge::FastNode *main_node,
-                                 int32_t dst_index) {
-      ConnectFromInit(init_node, src_index, main_node, dst_index, "DeInit");
-    }
  private:
   void CheckDataIndex(const ge::ComputeGraph &graph) {
     std::map<int32_t, std::string> indexes_to_name;
@@ -462,4 +462,4 @@ class BgTest : public testing::Test {
   }
 };
 }  // namespace gert
-#endif  //AIR_CXX_TESTS_UT_GE_RUNTIME_V2_COMMON_BG_TEST_H_
+#endif  // AIR_CXX_TESTS_UT_GE_RUNTIME_V2_COMMON_BG_TEST_H_

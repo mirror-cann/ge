@@ -94,4 +94,3 @@ Status GetVariables(const std::vector<AscendString> &var_names, std::vector<Tens
 ## 约束说明<a name="section8332830"></a>
 
 无
-

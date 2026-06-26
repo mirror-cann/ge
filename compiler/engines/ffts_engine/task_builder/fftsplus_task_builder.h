@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,10 +26,10 @@
 namespace ffts {
 
 using FftsPlusComCtx_t = struct tagFftsPlusComCtx {
-    uint16_t contextType;
-    uint8_t successorNum;
-    uint32_t pred_cnt;
-    vector<uint32_t> succ_list;
+  uint16_t contextType;
+  uint8_t successorNum;
+  uint32_t pred_cnt;
+  vector<uint32_t> succ_list;
 };
 
 using FftsPlusCtxDefPtr = std::shared_ptr<domi::FftsPlusCtxDef>;
@@ -41,22 +41,15 @@ class FFTSPlusTaskBuilder {
 
   Status GenFftsPlusTaskCommonInfo(const ge::NodePtr &node, vector<FftsPlusComCtx_t> &sub_ffts_plus_context) const;
 
-
   Status GenFftsPlusDependencyInfo(const ge::NodePtr &node, vector<FftsPlusComCtx_t> &sub_ffts_plus_context) const;
-  Status FillProducersInfoForLabelX(const ge::NodePtr &node,
-                                    FftsPlusComCtx_t &ffts_plus_context,
-                                    uint32_t &pred_cnt,
-                                    const std::string &node_type,
-                                    const ge::OpDescPtr &op_desc) const;
-  void FillManualCustomersInfoForLabelX(const ge::NodePtr &node,
-                                        FftsPlusComCtx_t &sub_ffts_plus_context_elem,
+  Status FillProducersInfoForLabelX(const ge::NodePtr &node, FftsPlusComCtx_t &ffts_plus_context, uint32_t &pred_cnt,
+                                    const std::string &node_type, const ge::OpDescPtr &op_desc) const;
+  void FillManualCustomersInfoForLabelX(const ge::NodePtr &node, FftsPlusComCtx_t &sub_ffts_plus_context_elem,
                                         uint32_t &jumplabel_context_id) const;
-  void FillManualCustomersInfoForLabelSet(const ge::NodePtr &node,
-                                          FftsPlusComCtx_t &sub_ffts_plus_context_elem) const;
+  void FillManualCustomersInfoForLabelSet(const ge::NodePtr &node, FftsPlusComCtx_t &sub_ffts_plus_context_elem) const;
   void FillManualCustomersInfoForLabelSwitch(const ge::NodePtr &node,
                                              FftsPlusComCtx_t &sub_ffts_plus_context_elem) const;
-  void FillManualCustomersInfoForLabelGoto(const ge::NodePtr &node,
-                                           FftsPlusComCtx_t &sub_ffts_plus_context_elem,
+  void FillManualCustomersInfoForLabelGoto(const ge::NodePtr &node, FftsPlusComCtx_t &sub_ffts_plus_context_elem,
                                            uint32_t &jumplabel_context_id) const;
   Status FillProducersInfo(const ge::NodePtr &node, FftsPlusComCtx_t &ffts_plus_context) const;
   Status FillCommonProducersInfo(const ge::NodePtr &node, uint32_t &pred_cnt,
@@ -66,11 +59,8 @@ class FFTSPlusTaskBuilder {
   Status FillManualCustomersInfo(const ge::NodePtr &node, FftsPlusComCtx_t &sub_ffts_plus_context_elem) const;
   Status FillCustomersInfo(const ge::NodePtr &node, FftsPlusComCtx_t &sub_ffts_plus_context_elem,
                            vector<FftsPlusComCtx_t> &sub_ffts_plus_context) const;
-  bool GetJumpLabelSetContextid(const ge::NodePtr &node,
-                                uint32_t &jumplabel_context_id,
-                                bool &has_jumpnode) const;
-  void FillManualCustomersInfoCommon(const ge::NodePtr &up_node,
-                                     ge::OpDescPtr up_op_desc,
+  bool GetJumpLabelSetContextid(const ge::NodePtr &node, uint32_t &jumplabel_context_id, bool &has_jumpnode) const;
+  void FillManualCustomersInfoCommon(const ge::NodePtr &up_node, ge::OpDescPtr up_op_desc,
                                      FftsPlusComCtx_t &sub_ffts_plus_context_elem) const;
   /*
    * @ingroup ffts
@@ -99,13 +89,11 @@ class FFTSPlusTaskBuilder {
                          domi::FftsPlusTaskDef *ffts_plus_task_def) const;
   /* Create a label context and move the last succ id to this context. */
   template <typename T>
-  static Status GenerateNewLabelCtx(domi::FftsPlusTaskDef *ffts_plus_task_def,
-                                    uint32_t last_succ_id,
-                                    T *pred_ctx,
+  static Status GenerateNewLabelCtx(domi::FftsPlusTaskDef *ffts_plus_task_def, uint32_t last_succ_id, T *pred_ctx,
                                     domi::FftsPlusLabelCtxDef **new_label) {
     uint32_t new_ctx_id = ffts_plus_task_def->ffts_plus_ctx_size();
     FFTS_LOGD("Generate a new label context. last_succ_id %u, new context id %u.", last_succ_id, new_ctx_id);
-    domi::FftsPlusCtxDef* new_ctx = ffts_plus_task_def->add_ffts_plus_ctx();
+    domi::FftsPlusCtxDef *new_ctx = ffts_plus_task_def->add_ffts_plus_ctx();
     FFTS_CHECK_NOTNULL(new_ctx);
     new_ctx->set_context_type(RT_CTX_TYPE_LABEL);
     *new_label = new_ctx->mutable_label_ctx();
@@ -123,8 +111,7 @@ class FFTSPlusTaskBuilder {
 
   static Status GetFirstAvailableLabel(domi::FftsPlusTaskDef *ffts_plus_task_def,
                                        domi::FftsPlusLabelCtxDef *pred_label_ctx,
-                                       domi::FftsPlusLabelCtxDef **avl_label_context,
-                                       uint32_t &recursion_count);
+                                       domi::FftsPlusLabelCtxDef **avl_label_context, uint32_t &recursion_count);
 
   /* If the ctx have 25 or less successor, we just add the successsor's id into it's
    * successor list.
@@ -146,8 +133,8 @@ class FFTSPlusTaskBuilder {
    *      is the size of all context - 1) into the 26th position of
    *      the normal context. */
   template <typename T>
-  static Status AddOneId(domi::FftsPlusTaskDef *ffts_plus_task_def, uint32_t succ_id, T *ctx,
-                         size_t thread_id, bool is_auto) {
+  static Status AddOneId(domi::FftsPlusTaskDef *ffts_plus_task_def, uint32_t succ_id, T *ctx, size_t thread_id,
+                         bool is_auto) {
     uint32_t succ_num = ctx->successor_num();
     if (succ_num == RT_CTX_SUCCESSOR_NUM) {
       uint32_t last_succ_id = ctx->successor_list(RT_CTX_SUCCESSOR_NUM - 1);
@@ -156,13 +143,12 @@ class FFTSPlusTaskBuilder {
         REPORT_FFTS_ERROR("[FFTSPLUS][AddOneId] last_succ_id %u, ctx_size:%u", last_succ_id, ctx_size);
         return FAILED;
       }
-      domi::FftsPlusCtxDef* last_succ_ctx =
-          ffts_plus_task_def->mutable_ffts_plus_ctx(static_cast<int>(last_succ_id));
+      domi::FftsPlusCtxDef *last_succ_ctx = ffts_plus_task_def->mutable_ffts_plus_ctx(static_cast<int>(last_succ_id));
       FFTS_CHECK_NOTNULL(last_succ_ctx);
-      domi::FftsPlusLabelCtxDef* avl_label_ctx = nullptr;
+      domi::FftsPlusLabelCtxDef *avl_label_ctx = nullptr;
       if (last_succ_ctx->context_type() == RT_CTX_TYPE_LABEL) {
         FFTS_LOGD("last context is label, keep seaching its succesorrs.");
-        domi::FftsPlusLabelCtxDef* pre_label = last_succ_ctx->mutable_label_ctx();
+        domi::FftsPlusLabelCtxDef *pre_label = last_succ_ctx->mutable_label_ctx();
         uint32_t recursion_count = 0;
         if (GetFirstAvailableLabel(ffts_plus_task_def, pre_label, &avl_label_ctx, recursion_count) != SUCCESS ||
             avl_label_ctx == nullptr) {
@@ -211,7 +197,7 @@ class FFTSPlusTaskBuilder {
     uint32_t succ_num = ctx->successor_num();
     if (succ_num == RT_CTX_SUCCESSOR_NUM) {
       uint32_t last_succ_id = ctx->successor_list(RT_CTX_SUCCESSOR_NUM - 1);
-      domi::FftsPlusCtxDef* last_succ_ctx = ffts_plus_task_def->mutable_ffts_plus_ctx(static_cast<int>(last_succ_id));
+      domi::FftsPlusCtxDef *last_succ_ctx = ffts_plus_task_def->mutable_ffts_plus_ctx(static_cast<int>(last_succ_id));
       FFTS_CHECK_NOTNULL(last_succ_ctx);
       if (last_succ_ctx->context_type() == RT_CTX_TYPE_LABEL) {
         return ReplaceOneId(ffts_plus_task_def, succ_id, new_succ_id, last_succ_ctx->mutable_label_ctx());
@@ -259,7 +245,7 @@ class FFTSPlusTaskBuilder {
     return SUCCESS;
   }
 
-  static Status ClearLabelList(domi::FftsPlusTaskDef* ffts_plus_task_def, const vector<uint32_t> &label_list,
+  static Status ClearLabelList(domi::FftsPlusTaskDef *ffts_plus_task_def, const vector<uint32_t> &label_list,
                                size_t iLabel) {
     for (size_t i = iLabel; i < label_list.size(); i++) {
       if (label_list[i] >= static_cast<uint32_t>(ffts_plus_task_def->ffts_plus_ctx_size())) {
@@ -283,9 +269,9 @@ class FFTSPlusTaskBuilder {
   }
 
   template <typename T>
-  static Status UpdateIncludeLabelSuccList(domi::FftsPlusTaskDef* ffts_plus_task_def, T *ctx,
-                                           const vector<uint32_t> &reserve_ctx_list,
-                                           const vector<uint32_t> &label_list, size_t &iLabel) {
+  static Status UpdateIncludeLabelSuccList(domi::FftsPlusTaskDef *ffts_plus_task_def, T *ctx,
+                                           const vector<uint32_t> &reserve_ctx_list, const vector<uint32_t> &label_list,
+                                           size_t &iLabel) {
     ctx->set_successor_num(RT_CTX_SUCCESSOR_NUM);
     ctx->clear_successor_list();
     FFTS_CHECK(label_list.empty(), FFTS_LOGD("Label list is empty."), return FAILED);
@@ -315,8 +301,8 @@ class FFTSPlusTaskBuilder {
         iLabel++;
         if (iLabel >= label_list.size() ||
             label_list[iLabel] >= static_cast<uint32_t>(ffts_plus_task_def->ffts_plus_ctx_size())) {
-          FFTS_LOGD("Label list %zu is bigger than label_list size %zu, or ctxid is bigger than fftsctx size.",
-                    iLabel, label_list.size());
+          FFTS_LOGD("Label list %zu is bigger than label_list size %zu, or ctxid is bigger than fftsctx size.", iLabel,
+                    label_list.size());
           return FAILED;
         }
         in_label_ctx_def->add_successor_list(label_list[iLabel]);
@@ -340,7 +326,7 @@ class FFTSPlusTaskBuilder {
   }
 
   template <typename T>
-  static Status UpdateSuccList(domi::FftsPlusTaskDef* ffts_plus_task_def, T *ctx,
+  static Status UpdateSuccList(domi::FftsPlusTaskDef *ffts_plus_task_def, T *ctx,
                                const vector<uint32_t> &reserve_ctx_list, const vector<uint32_t> &label_list) {
     FFTS_CHECK_NOTNULL(ctx);
     size_t level = (reserve_ctx_list.empty()) ? 0 : ((reserve_ctx_list.size() - 1) / (RT_CTX_SUCCESSOR_NUM - 1));
@@ -374,17 +360,17 @@ class FFTSPlusTaskBuilder {
     uint32_t succ_num = ctx->successor_num();
     for (size_t i = 0; i < static_cast<size_t>(succ_num); i++) {
       uint32_t cur_succ_id = ctx->successor_list(i);
-      domi::FftsPlusCtxDef* cur_succ_ctx = ffts_plus_task_def->mutable_ffts_plus_ctx(static_cast<int>(cur_succ_id));
+      domi::FftsPlusCtxDef *cur_succ_ctx = ffts_plus_task_def->mutable_ffts_plus_ctx(static_cast<int>(cur_succ_id));
       FFTS_CHECK_NOTNULL(cur_succ_ctx);
       auto type = cur_succ_ctx->context_type();
       if (type == RT_HW_CTX_TYPE_WRITEBACK_DATA) {
-        domi::FftsPlusDataCtxDef* write_back_ctx = cur_succ_ctx->mutable_data_ctx();
+        domi::FftsPlusDataCtxDef *write_back_ctx = cur_succ_ctx->mutable_data_ctx();
         write_back_ctx->add_successor_list(at_end_ctx_id);
         write_back_ctx->set_successor_num(1);
         if (already_add) {
-          domi::FftsPlusCtxDef* common_ctx = ffts_plus_task_def->mutable_ffts_plus_ctx(static_cast<int>(at_end_ctx_id));
+          domi::FftsPlusCtxDef *common_ctx = ffts_plus_task_def->mutable_ffts_plus_ctx(static_cast<int>(at_end_ctx_id));
           FFTS_CHECK_NOTNULL(common_ctx);
-          domi::FftsPlusAtEndCtxDef* at_end_ctx = common_ctx->mutable_at_end_ctx();
+          domi::FftsPlusAtEndCtxDef *at_end_ctx = common_ctx->mutable_at_end_ctx();
           at_end_ctx->set_pred_cnt(at_end_ctx->pred_cnt() + 1);
           at_end_ctx->set_pred_cnt_init(at_end_ctx->pred_cnt_init() + 1);
         }
@@ -411,8 +397,9 @@ class FFTSPlusTaskBuilder {
 
   Status FillContextData(const domi::FftsPlusAicpuCtxDef *aicpu_ctx_def_ptr,
                          domi::FftsPlusAicpuCtxDef *aicpu_ctx_def) const;
-  const std::unordered_set<std::string> LABELX_NODE_TYPE = {"LabelSet", "LabelGotoEx",
-                                                            "LabelGoto", "LabelSwitchByIndex"};
+  const std::unordered_set<std::string> LABELX_NODE_TYPE = {"LabelSet", "LabelGotoEx", "LabelGoto",
+                                                            "LabelSwitchByIndex"};
+
  private:
   FFTSPlusTaskBuilder(const FFTSPlusTaskBuilder &builder) = delete;
 

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -135,15 +135,15 @@ inline bool UnimplementInferDatatype(const std::vector<DataType> &inputs, std::v
 #define MAKE_POINTWISE_DTYPE_INST1(OP) MAKE_POINTWISE_DTYPE_BASE_INST1(OP, ASCIR_INFERDTYPE_2_OP_INFERDTYPE(OP))
 #define MAKE_POINTWISE_DTYPE_UNIMPLEMENT_INST1(OP) MAKE_POINTWISE_DTYPE_BASE_INST1(OP, UnimplementInferDatatype)
 
-#define LOWERING_ASSERT_NOTNULL(PRT)                 \
-  if ((PRT) == nullptr) {                                               \
+#define LOWERING_ASSERT_NOTNULL(PRT)                                  \
+  if ((PRT) == nullptr) {                                             \
     GELOGW("Create default kernelbox, because the " #PRT " is null"); \
-    return KernelBox(nullptr, std::make_shared<KernelBoxMeta>());      \
+    return KernelBox(nullptr, std::make_shared<KernelBoxMeta>());     \
   }
 
 LoopVar Load(const ge::InDataAnchorPtr &src);
 LoopVar GatherLoad(const ge::OutDataAnchorPtr &dst, const ge::InDataAnchorPtr &params,
-    const ge::InDataAnchorPtr &indices, int64_t axis, bool negative_index_support);
+                   const ge::InDataAnchorPtr &indices, int64_t axis, bool negative_index_support);
 KernelBox Store(const ge::OutDataAnchorPtr &dst, const LoopVar &src);
 KernelBox StoreReduction(ReduceType type, const ge::OutDataAnchorPtr &dst, const LoopVar &src,
                          const std::vector<Expression> &src_dims, const std::vector<size_t> &reduced_axis);
@@ -171,9 +171,8 @@ LoopVar Axpy(const LoopVar &x1, const LoopVar &x2, float32_t alpha);
 LoopVar StoreStridedSlice(const ge::OutDataAnchorPtr &dst, const InDataAnchorPtr &src,
                           const std::vector<Expression> &start, const std::vector<Expression> &stride,
                           const std::vector<Expression> &input_dims, string &not_lowering_reason);
-std::vector<LoopVar> StoreSplit(const std::vector<OutDataAnchorPtr> &outputs,
-                                const InDataAnchorPtr &src, size_t split_dim,
-                                string &not_lowering_reason);
+std::vector<LoopVar> StoreSplit(const std::vector<OutDataAnchorPtr> &outputs, const InDataAnchorPtr &src,
+                                size_t split_dim, string &not_lowering_reason);
 KernelBox StoreMatMul(const ge::OutDataAnchorPtr &dst, const std::vector<ge::InDataAnchorPtr> &inputs,
                       const MatMulAttr &matmul_attr);
 bool IsValidConv2DInputs(const std::vector<ge::InDataAnchorPtr> &inputs);

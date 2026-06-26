@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -48,17 +48,15 @@ class FftsTaskBuilder {
   TaskBuilderContext context_;
   ThreadParamOffset auto_thread_param_offset_;
   TaskArgs manual_thread_param_;
-  using GenCtxFunc = Status (FftsTaskBuilder::*) (const ge::OpDescPtr &, FftsPlusCtxDefPtr);
+  using GenCtxFunc = Status (FftsTaskBuilder::*)(const ge::OpDescPtr &, FftsPlusCtxDefPtr);
   std::map<ffts::TaskBuilderType, GenCtxFunc> gen_ctx_func_map_ = {
-          {ffts::TaskBuilderType::EN_TASK_TYPE_AIC_AIV, &FftsTaskBuilder::GenManualAICAIVCtxDef},
-          {ffts::TaskBuilderType::EN_TASK_TYPE_AIC_AIV_AUTO, &FftsTaskBuilder::GenAutoAICAIVCtxDef},
-          {ffts::TaskBuilderType::EN_TASK_TYPE_MIX_AIC_AIV, &FftsTaskBuilder::GenManualMixAICAIVCtxDef},
-          {ffts::TaskBuilderType::EN_TASK_TYPE_AIC_AIV_DYNAMIC, &FftsTaskBuilder::GenDynamicAICAIVCtxDef},
-          {ffts::TaskBuilderType::EN_TASK_TYPE_MIX_AIC_AIV_AUTO, &FftsTaskBuilder::GenAutoMixAICAIVCtxDef},
-          {ffts::TaskBuilderType::EN_TASK_TYPE_MIX_AIC_AIV_DYNAMIC, &FftsTaskBuilder::GenDynamicMixAICAIVCtxDef},
-          {ffts::TaskBuilderType::EN_TASK_TYPE_MIX_L2_AIC_AIV, &FftsTaskBuilder::GenMixL2CtxDef}
-  };
+      {ffts::TaskBuilderType::EN_TASK_TYPE_AIC_AIV, &FftsTaskBuilder::GenManualAICAIVCtxDef},
+      {ffts::TaskBuilderType::EN_TASK_TYPE_AIC_AIV_AUTO, &FftsTaskBuilder::GenAutoAICAIVCtxDef},
+      {ffts::TaskBuilderType::EN_TASK_TYPE_MIX_AIC_AIV, &FftsTaskBuilder::GenManualMixAICAIVCtxDef},
+      {ffts::TaskBuilderType::EN_TASK_TYPE_AIC_AIV_DYNAMIC, &FftsTaskBuilder::GenDynamicAICAIVCtxDef},
+      {ffts::TaskBuilderType::EN_TASK_TYPE_MIX_AIC_AIV_AUTO, &FftsTaskBuilder::GenAutoMixAICAIVCtxDef},
+      {ffts::TaskBuilderType::EN_TASK_TYPE_MIX_AIC_AIV_DYNAMIC, &FftsTaskBuilder::GenDynamicMixAICAIVCtxDef},
+      {ffts::TaskBuilderType::EN_TASK_TYPE_MIX_L2_AIC_AIV, &FftsTaskBuilder::GenMixL2CtxDef}};
 };
 }  // namespace fe
 #endif  // AIR_COMPILER_GRAPHCOMPILER_ENGINES_NNENG_OPTIMIZER_OPS_KERNEL_BUILDER_TASK_BUILDER_FFTS_TASK_BUILDER_H_
-

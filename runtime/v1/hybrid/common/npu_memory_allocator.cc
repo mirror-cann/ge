@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,7 +27,7 @@ namespace {
 constexpr size_t kPaddingUnit = 2U;
 constexpr size_t kAlignSize = 32U;
 
-constexpr uint64_t kMaxHbmMemorySize = 1099511627776UL; // 1024UL * 1024UL * 1024UL * 1024UL; // 1024G
+constexpr uint64_t kMaxHbmMemorySize = 1099511627776UL;  // 1024UL * 1024UL * 1024UL * 1024UL; // 1024G
 constexpr uint32_t kDeviceIdHost = static_cast<uint32_t>(-1);
 const std::string kAllocFailLog =
     "Failed to apply for memory. We will try to free memory from memory pool, the above error log can be ignored. "
@@ -39,8 +39,7 @@ std::map<aclrtStream, std::unique_ptr<NpuMemoryAllocator::DeviceidAllocatorMap>>
 std::set<aclrtStream> NpuMemoryAllocator::streams_;
 std::mutex NpuMemoryAllocator::mu_;
 
-AllocationAttr::AllocationAttr(const int32_t padding, void *const try_reuse_addr,
-                               const MemStorageType mem_type)
+AllocationAttr::AllocationAttr(const int32_t padding, void *const try_reuse_addr, const MemStorageType mem_type)
     : padding_(padding), try_reuse_addr_(try_reuse_addr), mem_type_(mem_type) {}
 AllocationAttr::AllocationAttr(const int32_t padding) : AllocationAttr(padding, nullptr) {}
 AllocationAttr::AllocationAttr(void *const try_reuse_addr) : AllocationAttr(0, try_reuse_addr) {}
@@ -139,8 +138,8 @@ NpuMemoryAllocator::NpuMemoryAllocator(const uint32_t device_id, const aclrtStre
 
 Status NpuMemoryAllocator::TryFreeCachingMem() const {
   if (caching_allocator_ != nullptr) {
-    GE_CHK_STATUS_RET(caching_allocator_->FreeBlocksAfterSynchronize(stream_),
-                      "Stream synchronize failed! stream: %p", stream_);
+    GE_CHK_STATUS_RET(caching_allocator_->FreeBlocksAfterSynchronize(stream_), "Stream synchronize failed! stream: %p",
+                      stream_);
   }
   return SUCCESS;
 }
@@ -193,7 +192,8 @@ void *NpuMemoryAllocator::AllocateCachingMem(const std::size_t size, void *const
   if (caching_allocator_ != nullptr) {
     buffer = caching_allocator_->Malloc(size, PtrToPtr<void, uint8_t>(try_reuse_addr), device_id_);
   } else {
-    const aclError rt_ret = ge::AclrtMalloc(&buffer, size, RT_MEMORY_HBM, GE_MODULE_NAME_U16); // check buffer null after call
+    const aclError rt_ret =
+        ge::AclrtMalloc(&buffer, size, RT_MEMORY_HBM, GE_MODULE_NAME_U16);  // check buffer null after call
     if (rt_ret != ACL_SUCCESS) {
       GELOGE(rt_ret, "[Call][aclrtMalloc] failed, size:%lu, ret = 0x%X", size, rt_ret);
       return nullptr;
@@ -204,7 +204,7 @@ void *NpuMemoryAllocator::AllocateCachingMem(const std::size_t size, void *const
 }
 
 void *NpuMemoryAllocator::AllocateHbmBuffer(const uint64_t size, const AllocationAttr *const attr,
-                                             uint64_t &allocate_size) const {
+                                            uint64_t &allocate_size) const {
   void *try_reuse_addr = nullptr;
   int32_t padding = kDefaultPadding;
   bool user_specified_padding = false;
@@ -217,10 +217,10 @@ void *NpuMemoryAllocator::AllocateHbmBuffer(const uint64_t size, const Allocatio
   }
 
   if (user_specified_padding) {
-    allocate_size = ((size + (kPaddingUnit * static_cast<uint64_t>(padding)) - 1U) /
-                     static_cast<uint64_t>(padding)) * static_cast<uint64_t>(padding);
-    GELOGD("Padding size [%" PRIu64 "] by user specified %d. final size = [%" PRIu64 "].",
-           size, padding, allocate_size);
+    allocate_size = ((size + (kPaddingUnit * static_cast<uint64_t>(padding)) - 1U) / static_cast<uint64_t>(padding)) *
+                    static_cast<uint64_t>(padding);
+    GELOGD("Padding size [%" PRIu64 "] by user specified %d. final size = [%" PRIu64 "].", size, padding,
+           allocate_size);
   } else {
     const size_t platform_padding = static_cast<size_t>(ge::TensorUtilsEx::GetPaddingSize());
     const uint64_t append_size = kAlignSize + static_cast<uint64_t>(platform_padding);
@@ -228,8 +228,8 @@ void *NpuMemoryAllocator::AllocateHbmBuffer(const uint64_t size, const Allocatio
     if (allocate_size == 0) {
       allocate_size = kAlignSize;
     }
-    GELOGD("Padding size [%" PRIu64 "] by platform padding [%zu]. final size = [%" PRIu64 "].",
-           size, platform_padding, allocate_size);
+    GELOGD("Padding size [%" PRIu64 "] by platform padding [%zu]. final size = [%" PRIu64 "].", size, platform_padding,
+           allocate_size);
   }
 
   void *buffer = AllocateCachingMem(static_cast<size_t>(allocate_size), try_reuse_addr);
@@ -251,8 +251,8 @@ void *NpuMemoryAllocator::Allocate(const uint64_t size, const AllocationAttr *co
   }
 
   if (allocate_size == 0U) {
-    GELOGE(MEMALLOC_FAILED, "[Check][Param:size_t]Memory size is 0, device_id = %u, size = %zu.",
-        device_id_, allocate_size);
+    GELOGE(MEMALLOC_FAILED, "[Check][Param:size_t]Memory size is 0, device_id = %u, size = %zu.", device_id_,
+           allocate_size);
     REPORT_INNER_ERR_MSG("E19999", "Memory size is 0, device_id = %u, size = %" PRIu64 ".", device_id_, allocate_size);
     return nullptr;
   }
@@ -268,17 +268,17 @@ void *NpuMemoryAllocator::Allocate(const uint64_t size, const AllocationAttr *co
     if (allocate_size > kMaxHbmMemorySize) {
       GELOGE(PARAM_INVALID, "[Check][Param:size_t]Invalid HBM memory size: %zu bigger than limit:%zu, check invalid.",
              allocate_size, kMaxHbmMemorySize);
-      REPORT_INNER_ERR_MSG("E19999", "Invalid HBM memory size: %" PRIu64 " bigger than limit:%" PRIu64 ", check invalid.",
-                        allocate_size, kMaxHbmMemorySize);
+      REPORT_INNER_ERR_MSG("E19999",
+                           "Invalid HBM memory size: %" PRIu64 " bigger than limit:%" PRIu64 ", check invalid.",
+                           allocate_size, kMaxHbmMemorySize);
       return nullptr;
     }
     buffer = AllocateHbmBuffer(size, attr, allocate_size);
   }
   if (buffer == nullptr) {
-    GELOGE(MEMALLOC_FAILED, "[Malloc][Memory] Failed, device_id = %u, size = %zu",
-           device_id_, allocate_size);
-    REPORT_INNER_ERR_MSG("E19999", "malloc memory failed, device_id = %u, size = %" PRIu64 "",
-                      device_id_, allocate_size);
+    GELOGE(MEMALLOC_FAILED, "[Malloc][Memory] Failed, device_id = %u, size = %zu", device_id_, allocate_size);
+    REPORT_INNER_ERR_MSG("E19999", "malloc memory failed, device_id = %u, size = %" PRIu64 "", device_id_,
+                         allocate_size);
     return nullptr;
   }
 
@@ -327,8 +327,8 @@ NpuMemoryAllocator *NpuMemoryAllocator::GetAllocator(const uint32_t device_id, c
     auto allocator = MakeUnique<NpuMemoryAllocator>(device_id, stream);
     if ((allocator == nullptr) || (allocator->InitCachingllocator() != SUCCESS)) {
       REPORT_INNER_ERR_MSG("E19999", "New NpuMemoryAllocator fail, device_id: %u, stream: %p.", device_id, stream);
-      GELOGE(ACL_ERROR_GE_MEMORY_ALLOCATION, "New NpuMemoryAllocator fail, device_id,: %u, stream: %p.",
-             device_id, stream);
+      GELOGE(ACL_ERROR_GE_MEMORY_ALLOCATION, "New NpuMemoryAllocator fail, device_id,: %u, stream: %p.", device_id,
+             stream);
       return nullptr;
     }
     allocator_map[device_id] = std::move(allocator);

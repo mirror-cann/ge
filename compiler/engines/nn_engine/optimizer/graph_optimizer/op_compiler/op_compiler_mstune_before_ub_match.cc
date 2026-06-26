@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -11,14 +11,14 @@
 #include "graph_optimizer/op_compiler/op_compiler_mstune_before_ub_match.h"
 
 namespace fe {
-OpCompilerMstuneBeforeUbMatch::OpCompilerMstuneBeforeUbMatch(const std::string& compiler_name,
-                                                             const std::string& engine_name,
+OpCompilerMstuneBeforeUbMatch::OpCompilerMstuneBeforeUbMatch(const std::string &compiler_name,
+                                                             const std::string &engine_name,
                                                              const LxFusionOptimizerPtr &lx_fusion_optimizer)
     : OpCompiler(compiler_name, engine_name, false, lx_fusion_optimizer) {}
 
 OpCompilerMstuneBeforeUbMatch::~OpCompilerMstuneBeforeUbMatch() {}
 
-Status OpCompilerMstuneBeforeUbMatch::RunCompileProcess(ge::ComputeGraph& graph) {
+Status OpCompilerMstuneBeforeUbMatch::RunCompileProcess(ge::ComputeGraph &graph) {
   /* Some nodes needs to be re-pre-compiled after Ub fusion matching.
    * Because there format or data type. */
   bool need_re_precompile_graph = false;
@@ -52,4 +52,4 @@ Status OpCompilerMstuneBeforeUbMatch::RunCompileProcess(ge::ComputeGraph& graph)
   FE_LOGI("Stop to do optimize fused graph in step before ub matching of tuning process.");
   return SUCCESS;
 }
-}
+}  // namespace fe

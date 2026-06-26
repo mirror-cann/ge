@@ -22,13 +22,13 @@ extern "C" {
 #endif
 
 #define MAX_PARTITION_NUM 16
-#define INNER_PRE_MODEL_DESC_PTR      (0x1 << PRE_MODEL_DESC)
-#define INNER_WEIGHTS_DATA_PTR        (0x1 << WEIGHTS_DATA)
-#define INNER_TBE_KERNELS_PTR         (0x1 << TBE_KERNELS)
-#define INNER_STATIC_TASK_DESC_PTR    (0x1 << STATIC_TASK_DESC)
-#define INNER_DYNAMIC_TASK_DESC_PTR   (0x1 << DYNAMIC_TASK_DESC)
-#define INNER_TASK_PARAM_PTR          (0x1 << TASK_PARAM)
-#define INNER_FIFO_PTR                (0x1 << PRE_MODEL_DESC_EXTEND)
+#define INNER_PRE_MODEL_DESC_PTR (0x1 << PRE_MODEL_DESC)
+#define INNER_WEIGHTS_DATA_PTR (0x1 << WEIGHTS_DATA)
+#define INNER_TBE_KERNELS_PTR (0x1 << TBE_KERNELS)
+#define INNER_STATIC_TASK_DESC_PTR (0x1 << STATIC_TASK_DESC)
+#define INNER_DYNAMIC_TASK_DESC_PTR (0x1 << DYNAMIC_TASK_DESC)
+#define INNER_TASK_PARAM_PTR (0x1 << TASK_PARAM)
+#define INNER_FIFO_PTR (0x1 << PRE_MODEL_DESC_EXTEND)
 
 Status MdlPartitionParse(const ModelData *modelData, GeModelDesc *mdlDesc);
 Status ParseModelIoDescInfo(const ModelData *modelData, uint8_t *data, size_t size, ModelInOutInfo *info);

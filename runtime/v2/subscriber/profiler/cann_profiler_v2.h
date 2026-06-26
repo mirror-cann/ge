@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -51,8 +51,8 @@ class CannProfilingInfoWrapper : public ProfilingInfoWrapper {
   }
 
   void SetBlockDim(uint32_t block_dim) override {
-    add_infos_[static_cast<size_t>(NodeProfInfoType::kOriginalNode)]->
-        node_basic_info.data.nodeBasicInfo.blockDim = block_dim;
+    add_infos_[static_cast<size_t>(NodeProfInfoType::kOriginalNode)]->node_basic_info.data.nodeBasicInfo.blockDim =
+        block_dim;
   }
 
   void SetBlockDim(const uint32_t block_dim, const NodeProfInfoType prof_info_type) override {
@@ -84,8 +84,8 @@ class CannProfilingInfoWrapper : public ProfilingInfoWrapper {
     for (auto &tensor_info_wrapper : add_info->tensor_info_wrappers) {
       auto tensor_info = reinterpret_cast<MsprofTensorInfo *>(tensor_info_wrapper.tensor_info.data);
       for (uint64_t i = 0UL; i < tensor_info_wrapper.tensor_num; ++i) {
-        const auto &shape = shape_idx < input_shapes.size() ? input_shapes[shape_idx] :
-                                                            output_shapes[shape_idx - input_shapes.size()];
+        const auto &shape =
+            shape_idx < input_shapes.size() ? input_shapes[shape_idx] : output_shapes[shape_idx - input_shapes.size()];
         ++shape_idx;
         for (size_t j = 0U; j < MSPROF_GE_TENSOR_DATA_SHAPE_LEN; ++j) {
           if (j < shape.size()) {
@@ -122,7 +122,7 @@ class CannProfilerV2 : public BaseExecutorProfiler {
   void Init();
 
   void IncreaseIterationNum() {
-      ++iter_num_;
+    ++iter_num_;
   }
 
   uint32_t GetIterationNum() const {
@@ -145,7 +145,8 @@ class CannProfilerV2 : public BaseExecutorProfiler {
   void InitLaunchApi(const uint64_t name_hash, const char *kernel_type, MsprofApi &api) const;
   ge::Status RecordNodeBasicInfo(NodeIdentity node_id, uint64_t prof_time, int32_t tid) const;
   ge::Status RecordTensorInfo(const uint64_t prof_time, const int32_t tid, ProfNodeAdditionInfo &addition_info) const;
-  ge::Status InitBasicInfoAndTensorInfo(const ExecutionData &execution_data, const ge::ComputeGraphPtr &compute_graph,
+  ge::Status InitBasicInfoAndTensorInfo(
+      const ExecutionData &execution_data, const ge::ComputeGraphPtr &compute_graph,
       const std::unordered_map<uint64_t, DfxExtendInfo *> &node_name_to_dfx_extend_info);
   ge::Status InitShapeInfo(const ge::NodePtr &node,
                            std::unordered_map<std::string, ge::FastNode *> &kernel_names_2_exe_nodes);

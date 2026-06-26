@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,8 +23,8 @@
 #include "graph/ge_context.h"
 
 namespace ge {
-graphStatus EvaluateGraphResource(const std::map<std::string, std::string> &options,
-    ge::ComputeGraphPtr &compute_graph, ModelDataInfo &model) {
+graphStatus EvaluateGraphResource(const std::map<std::string, std::string> &options, ge::ComputeGraphPtr &compute_graph,
+                                  ModelDataInfo &model) {
   GE_CHECK_NOTNULL(compute_graph);
   GELOGI("Evaluate graph resource name:%s.", compute_graph->GetName().c_str());
   // add new options
@@ -37,13 +37,13 @@ graphStatus EvaluateGraphResource(const std::map<std::string, std::string> &opti
   GetThreadLocalContext().SetGraphOption(graph_options);
 
   GE_MAKE_GUARD(graph_options, ([&graph_options, &options] {
-    // restore origion options
-    for (const auto &option : options) {
-      (void) graph_options.erase(option.first);
-    }
-    (void) graph_options.erase(EVALUATE_GRAPH_RESOURCE_MODE);
-    GetThreadLocalContext().SetGraphOption(graph_options);
-  }));
+                  // restore origin options
+                  for (const auto &option : options) {
+                    (void)graph_options.erase(option.first);
+                  }
+                  (void)graph_options.erase(EVALUATE_GRAPH_RESOURCE_MODE);
+                  GetThreadLocalContext().SetGraphOption(graph_options);
+                }));
 
   uint64_t session_id = SessionIdManager::GetNextSessionId();
   uint32_t graph_id = 1U;
@@ -100,4 +100,4 @@ Status GetGraphAvailableMemory(const ComputeGraphPtr &graph, uint64_t &available
          var_manager->GetUseMaxMemorySize(), max_var_size, current_var_size, new_var_total_size, available_mem);
   return SUCCESS;
 }
-};      // namespace ge
+};  // namespace ge

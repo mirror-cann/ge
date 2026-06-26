@@ -97,11 +97,10 @@ aclError aclmdlExecuteAsync(uint32_t modelId, const aclmdlDataset *input, aclmdl
     ```
     // 线程A的接口调用顺序：
     lock(handle1) -> aclrtMemcpyAsync(stream1)刷新输入输出内存 -> aclmdlExecuteAsync(modelId1,stream1)执行推理 -> unlock(handle1)
-    
+
     // 线程B的接口调用顺序：
     lock(handle1) -> aclrtMemcpyAsync(stream1)刷新输入输出内存 -> aclmdlExecuteAsync(modelId1,stream1)执行推理 -> unlock(handle1)
     ```
 
 -   若需要使用外置Allocator，则注册Allocator时的stream需与模型执行时的stream保持一致。
 -   存放模型输入/输出数据的内存为Device内存，可以调用aclrtMalloc、hi\_mpi\_dvpp\_malloc等接口申请Device内存。
-

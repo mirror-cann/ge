@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -52,9 +52,8 @@ class MixL2LoweringUT : public testing::Test {
     (void)bg::ValueHolder::PopGraphFrame();
     ModelDescHolder model_desc_holder = ModelDescHolderFaker().Build();
     model_desc_holder.SetSpaceRegistry(SpaceRegistryFaker().Build());
-    auto exe_graph = GraphConverter()
-        .SetModelDescHolder(&model_desc_holder)
-        .ConvertComputeGraphToExecuteGraph(graph, global_data);
+    auto exe_graph =
+        GraphConverter().SetModelDescHolder(&model_desc_holder).ConvertComputeGraphToExecuteGraph(graph, global_data);
     if (expect) {
       ASSERT_NE(exe_graph, nullptr);
     } else {
@@ -82,21 +81,20 @@ class MixL2LoweringUT : public testing::Test {
  *
  **********************************************************************************************************************/
 static void BuildMixL2NodeGraph(ComputeGraphPtr &root_graph, ge::NodePtr &node, bool single) {
-
   DEF_GRAPH(fused_graph) {
     auto data_0 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);
     auto data_1 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 1);
-    auto ret_val_0 = OP_CFG(FRAMEWORKOP).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
-        .Attr(ATTR_NAME_FRAMEWORK_ORIGINAL_TYPE, "_RetVal");
+    auto ret_val_0 =
+        OP_CFG(FRAMEWORKOP).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0).Attr(ATTR_NAME_FRAMEWORK_ORIGINAL_TYPE, "_RetVal");
 
     auto conv = OP_CFG("CONV2D_T")
-        .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
-        .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIC")
-        .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
+                    .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
+                    .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIC")
+                    .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
     auto sqrt = OP_CFG("SQRT_T")
-        .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
-        .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIV")
-        .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
+                    .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
+                    .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIV")
+                    .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
     CHAIN(NODE("_arg_in_0", data_0)
               ->EDGE(0, 0)
               ->NODE("conv2d", conv)
@@ -104,28 +102,22 @@ static void BuildMixL2NodeGraph(ComputeGraphPtr &root_graph, ge::NodePtr &node, 
               ->NODE("sqrt", sqrt)
               ->EDGE(0, 0)
               ->NODE("retVal", ret_val_0));
-    CHAIN(NODE("_arg_in_1", data_1)
-              ->EDGE(0, 1)
-              ->NODE("conv2d", conv));
+    CHAIN(NODE("_arg_in_1", data_1)->EDGE(0, 1)->NODE("conv2d", conv));
   };
   auto origin_fused_graph = ToComputeGraph(fused_graph);
-  std::vector<int64_t> unknown_shape = {4,4,-1,4};
+  std::vector<int64_t> unknown_shape = {4, 4, -1, 4};
   DEF_GRAPH(g1) {
     auto data_0 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);
     auto data_1 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 1);
     auto fused_conv = OP_CFG("CONV2D_T")
-        .TensorDesc(FORMAT_NCHW, DT_FLOAT, unknown_shape)
-        .InCnt(2)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
-        .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIC")
-        .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF")
-        .Build("Conv2D_Sqrt");
-    CHAIN(NODE("_arg_0", data_0)
-              ->EDGE(0, 0)
-              ->NODE(fused_conv)
-              ->EDGE(0, 0)
-              ->NODE("Node_Output", NETOUTPUT));
+                          .TensorDesc(FORMAT_NCHW, DT_FLOAT, unknown_shape)
+                          .InCnt(2)
+                          .OutCnt(1)
+                          .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
+                          .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIC")
+                          .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF")
+                          .Build("Conv2D_Sqrt");
+    CHAIN(NODE("_arg_0", data_0)->EDGE(0, 0)->NODE(fused_conv)->EDGE(0, 0)->NODE("Node_Output", NETOUTPUT));
     CHAIN(NODE("_arg_1", data_1)->EDGE(0, 1)->NODE(fused_conv));
   };
   uint32_t mem_offset = 0U;
@@ -142,7 +134,7 @@ static void BuildMixL2NodeGraph(ComputeGraphPtr &root_graph, ge::NodePtr &node, 
   (void)ge::AttrUtils::SetStr(conv2d_desc, ge::kAttrCalcArgsSizeFunc, ge::kFFTSMixL2CalcFunc);
   (void)ge::AttrUtils::SetInt(conv2d_desc, bg::kMaxTilingSize, 50);
   conv2d_desc->MutableInputDesc(0)->SetShape(GeShape(unknown_shape));
-  vector<int64_t> workspace_bytes = { 200, 300, 400};
+  vector<int64_t> workspace_bytes = {200, 300, 400};
   conv2d_desc->SetWorkspaceBytes(workspace_bytes);
 
   string compile_info_key = "compile_info_key";
@@ -174,21 +166,20 @@ static void BuildMixL2NodeGraph(ComputeGraphPtr &root_graph, ge::NodePtr &node, 
   (void)ge::AttrUtils::SetListStr(node->GetOpDesc(), ge::ATTR_NAME_KERNEL_NAMES_PREFIX, names_prefix);
 }
 static void BuildMixL2NewNodeGraph(ComputeGraphPtr &root_graph, ge::NodePtr &node) {
-
   DEF_GRAPH(fused_graph) {
     auto data_0 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);
     auto data_1 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 1);
-    auto ret_val_0 = OP_CFG(FRAMEWORKOP).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
-        .Attr(ATTR_NAME_FRAMEWORK_ORIGINAL_TYPE, "_RetVal");
+    auto ret_val_0 =
+        OP_CFG(FRAMEWORKOP).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0).Attr(ATTR_NAME_FRAMEWORK_ORIGINAL_TYPE, "_RetVal");
 
     auto conv = OP_CFG("CONV2D_T")
-        .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
-        .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIC")
-        .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
+                    .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
+                    .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIC")
+                    .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
     auto sqrt = OP_CFG("SQRT_T")
-        .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
-        .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIV")
-        .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
+                    .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
+                    .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIV")
+                    .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
     CHAIN(NODE("_arg_in_0", data_0)
               ->EDGE(0, 0)
               ->NODE("conv2d", conv)
@@ -196,9 +187,7 @@ static void BuildMixL2NewNodeGraph(ComputeGraphPtr &root_graph, ge::NodePtr &nod
               ->NODE("sqrt", sqrt)
               ->EDGE(0, 0)
               ->NODE("retVal", ret_val_0));
-    CHAIN(NODE("_arg_in_1", data_1)
-              ->EDGE(0, 1)
-              ->NODE("conv2d", conv));
+    CHAIN(NODE("_arg_in_1", data_1)->EDGE(0, 1)->NODE("conv2d", conv));
   };
   auto origin_fused_graph = ToComputeGraph(fused_graph);
 
@@ -206,9 +195,9 @@ static void BuildMixL2NewNodeGraph(ComputeGraphPtr &root_graph, ge::NodePtr &nod
     auto data_0 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0);
     auto data_1 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 1);
     auto fused_conv = OP_CFG("CONV2D_T")
-        .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
-        .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIC")
-        .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
+                          .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
+                          .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIC")
+                          .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
     CHAIN(NODE("_arg_0", data_0)
               ->EDGE(0, 0)
               ->NODE("Conv2D_Sqrt", fused_conv)
@@ -229,7 +218,7 @@ static void BuildMixL2NewNodeGraph(ComputeGraphPtr &root_graph, ge::NodePtr &nod
   (void)ge::AttrUtils::SetStr(conv2d_desc, ge::kAttrCalcArgsSizeFunc, ge::kFFTSMixL2CalcFunc);
   (void)ge::AttrUtils::SetInt(conv2d_desc, bg::kMaxTilingSize, 50);
 
-  vector<int64_t> workspace_bytes = { 200, 300, 400};
+  vector<int64_t> workspace_bytes = {200, 300, 400};
   conv2d_desc->SetWorkspaceBytes(workspace_bytes);
 
   string compile_info_key = "compile_info_key";
@@ -259,14 +248,10 @@ static void BuildMixL2NewDynNodeGraph(ComputeGraphPtr &root_graph, ge::NodePtr &
     auto data_5 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 5);
     auto data_6 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 6);
     auto ifa_node = OP_CFG("IFA_T")
-        .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
-        .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIC")
-        .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
-    CHAIN(NODE("_arg_0", data_0)
-              ->EDGE(0, 0)
-              ->NODE("IFA_NODE", ifa_node)
-              ->EDGE(0, 0)
-              ->NODE("Node_Output", NETOUTPUT));
+                        .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
+                        .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIC")
+                        .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
+    CHAIN(NODE("_arg_0", data_0)->EDGE(0, 0)->NODE("IFA_NODE", ifa_node)->EDGE(0, 0)->NODE("Node_Output", NETOUTPUT));
     CHAIN(NODE("_arg_1", data_1)->EDGE(0, 1)->NODE("IFA_NODE", ifa_node));
     CHAIN(NODE("_arg_2", data_2)->EDGE(0, 2)->NODE("IFA_NODE", ifa_node));
     CHAIN(NODE("_arg_3", data_3)->EDGE(0, 3)->NODE("IFA_NODE", ifa_node));
@@ -301,7 +286,7 @@ static void BuildMixL2NewDynNodeGraph(ComputeGraphPtr &root_graph, ge::NodePtr &
   ASSERT_NE(out_desc, nullptr);
   out_desc->SetShape(GeShape({4, 4, 4, 4}));
 
-  vector<int64_t> workspace_bytes = { 200, 300, 400};
+  vector<int64_t> workspace_bytes = {200, 300, 400};
   ifa_desc->SetWorkspaceBytes(workspace_bytes);
 
   string compile_info_key = "compile_info_key";
@@ -338,7 +323,7 @@ TEST_F(MixL2LoweringUT, lowering_mix_l2_1_kernel_success) {
   TBEKernelStore tbe_kernel_store;
   BuildMixL2NodeGraph(root_graph, node, true);
   // Build FftsTaskDef.
-  std::shared_ptr<domi::ModelTaskDef> model_task_def= MakeShared<domi::ModelTaskDef>();
+  std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   auto &task_def = *model_task_def->add_task();
   task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_FFTS_PLUS));
   auto &ffts_plus_task_def = *task_def.mutable_ffts_plus_task();
@@ -353,12 +338,12 @@ TEST_F(MixL2LoweringUT, lowering_mix_l2_1_kernel_success) {
   additional_data_def->set_data_type(data_type);
   additional_data_def->add_context_id(0);
 
-  domi::FftsPlusSqeDef* ffts_plus_sqe = ffts_plus_task_def.mutable_ffts_plus_sqe();
+  domi::FftsPlusSqeDef *ffts_plus_sqe = ffts_plus_task_def.mutable_ffts_plus_sqe();
   ffts_plus_sqe->set_ready_context_num(1);
   ffts_plus_sqe->set_total_context_num(1);
   // third op
   int32_t unknown_shape_type_val = ge::DEPEND_SHAPE_RANGE;
-  (void) ge::AttrUtils::SetInt(node->GetOpDesc(), ge::ATTR_NAME_UNKNOWN_SHAPE_TYPE, unknown_shape_type_val);
+  (void)ge::AttrUtils::SetInt(node->GetOpDesc(), ge::ATTR_NAME_UNKNOWN_SHAPE_TYPE, unknown_shape_type_val);
 
   LoweringGlobalData global_data;
   global_data.AddCompiledResult(node, {{task_def}});
@@ -382,7 +367,7 @@ TEST_F(MixL2LoweringUT, lowering_mix_l2_2_kernel_success) {
   TBEKernelStore tbe_kernel_store;
   BuildMixL2NodeGraph(root_graph, node, false);
   // Build FftsTaskDef.
-  std::shared_ptr<domi::ModelTaskDef> model_task_def= MakeShared<domi::ModelTaskDef>();
+  std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   auto &task_def = *model_task_def->add_task();
   task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_FFTS_PLUS));
   auto &ffts_plus_task_def = *task_def.mutable_ffts_plus_task();
@@ -400,7 +385,7 @@ TEST_F(MixL2LoweringUT, lowering_mix_l2_2_kernel_success) {
   additional_data_def->set_data_type(data_type);
   additional_data_def->add_context_id(0);
 
-  domi::FftsPlusSqeDef* ffts_plus_sqe = ffts_plus_task_def.mutable_ffts_plus_sqe();
+  domi::FftsPlusSqeDef *ffts_plus_sqe = ffts_plus_task_def.mutable_ffts_plus_sqe();
   ffts_plus_sqe->set_ready_context_num(1);
   ffts_plus_sqe->set_total_context_num(2);
 
@@ -426,7 +411,7 @@ TEST_F(MixL2LoweringUT, lowering_mix_l2_with_optional_success) {
   TBEKernelStore tbe_kernel_store;
   BuildMixL2NodeGraph(root_graph, node, false);
   // Build FftsTaskDef.
-  std::shared_ptr<domi::ModelTaskDef> model_task_def= MakeShared<domi::ModelTaskDef>();
+  std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   auto &task_def = *model_task_def->add_task();
   task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_FFTS_PLUS));
   auto &ffts_plus_task_def = *task_def.mutable_ffts_plus_task();
@@ -444,7 +429,7 @@ TEST_F(MixL2LoweringUT, lowering_mix_l2_with_optional_success) {
   additional_data_def->set_data_type(data_type);
   additional_data_def->add_context_id(0);
 
-  domi::FftsPlusSqeDef* ffts_plus_sqe = ffts_plus_task_def.mutable_ffts_plus_sqe();
+  domi::FftsPlusSqeDef *ffts_plus_sqe = ffts_plus_task_def.mutable_ffts_plus_sqe();
   ffts_plus_sqe->set_ready_context_num(1);
   ffts_plus_sqe->set_total_context_num(2);
 
@@ -471,7 +456,7 @@ TEST_F(MixL2LoweringUT, lowering_static_mix_l2_2_kernel_success) {
   TBEKernelStore tbe_kernel_store;
   BuildMixL2NodeGraph(root_graph, node, false);
   // Build FftsTaskDef.
-  std::shared_ptr<domi::ModelTaskDef> model_task_def= MakeShared<domi::ModelTaskDef>();
+  std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   auto &task_def = *model_task_def->add_task();
   task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_FFTS_PLUS));
   auto &ffts_plus_task_def = *task_def.mutable_ffts_plus_task();
@@ -489,13 +474,13 @@ TEST_F(MixL2LoweringUT, lowering_static_mix_l2_2_kernel_success) {
   additional_data_def->set_data_type(data_type);
   additional_data_def->add_context_id(0);
 
-  domi::FftsPlusSqeDef* ffts_plus_sqe = ffts_plus_task_def.mutable_ffts_plus_sqe();
+  domi::FftsPlusSqeDef *ffts_plus_sqe = ffts_plus_task_def.mutable_ffts_plus_sqe();
   ffts_plus_sqe->set_ready_context_num(1);
   ffts_plus_sqe->set_total_context_num(2);
 
   LoweringGlobalData global_data;
   global_data.AddCompiledResult(node, {{task_def}});
-    auto space_registry_array = OpImplSpaceRegistryV2Array();
+  auto space_registry_array = OpImplSpaceRegistryV2Array();
   space_registry_array[static_cast<size_t>(gert::OppImplVersionTag::kOpp)] = SpaceRegistryFaker().Build();
   global_data.SetSpaceRegistriesV2(space_registry_array);
   IMPL_OP(CONV2D_T);
@@ -518,7 +503,7 @@ TEST_F(MixL2LoweringUT, lowering_static_mix_l2_reuse_binary_kernel_success) {
   (void)ge::AttrUtils::SetStr(node->GetOpDesc(), "_tiling_data_str", "666");
   node->GetOpDesc()->SetExtAttr(ge::ATTR_NAME_ATOMIC_OP_RUN_INFO, tiling_info);
   // Build FftsTaskDef.
-  std::shared_ptr<domi::ModelTaskDef> model_task_def= MakeShared<domi::ModelTaskDef>();
+  std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   auto &task_def = *model_task_def->add_task();
   task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_FFTS_PLUS));
   auto &ffts_plus_task_def = *task_def.mutable_ffts_plus_task();
@@ -536,13 +521,13 @@ TEST_F(MixL2LoweringUT, lowering_static_mix_l2_reuse_binary_kernel_success) {
   additional_data_def->set_data_type(data_type);
   additional_data_def->add_context_id(0);
 
-  domi::FftsPlusSqeDef* ffts_plus_sqe = ffts_plus_task_def.mutable_ffts_plus_sqe();
+  domi::FftsPlusSqeDef *ffts_plus_sqe = ffts_plus_task_def.mutable_ffts_plus_sqe();
   ffts_plus_sqe->set_ready_context_num(1);
   ffts_plus_sqe->set_total_context_num(2);
 
   LoweringGlobalData global_data;
   global_data.AddCompiledResult(node, {{task_def}});
-    auto space_registry_array = OpImplSpaceRegistryV2Array();
+  auto space_registry_array = OpImplSpaceRegistryV2Array();
   space_registry_array[static_cast<size_t>(gert::OppImplVersionTag::kOpp)] = SpaceRegistryFaker().Build();
   global_data.SetSpaceRegistriesV2(space_registry_array);
   IMPL_OP(CONV2D_T);
@@ -559,7 +544,7 @@ TEST_F(MixL2LoweringUT, lowering_static_mix_l2_new_kernel_success) {
   TBEKernelStore tbe_kernel_store;
   BuildMixL2NewNodeGraph(root_graph, node);
   // Build FftsTaskDef.
-  std::shared_ptr<domi::ModelTaskDef> model_task_def= MakeShared<domi::ModelTaskDef>();
+  std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   auto &task_def = *model_task_def->add_task();
   task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_FFTS_PLUS));
   auto &ffts_plus_task_def = *task_def.mutable_ffts_plus_task();
@@ -573,13 +558,13 @@ TEST_F(MixL2LoweringUT, lowering_static_mix_l2_new_kernel_success) {
   additional_data_def->set_data_type(data_type);
   additional_data_def->add_context_id(0);
 
-  domi::FftsPlusSqeDef* ffts_plus_sqe = ffts_plus_task_def.mutable_ffts_plus_sqe();
+  domi::FftsPlusSqeDef *ffts_plus_sqe = ffts_plus_task_def.mutable_ffts_plus_sqe();
   ffts_plus_sqe->set_ready_context_num(1);
   ffts_plus_sqe->set_total_context_num(1);
 
   LoweringGlobalData global_data;
   global_data.AddCompiledResult(node, {{task_def}});
-    auto space_registry_array = OpImplSpaceRegistryV2Array();
+  auto space_registry_array = OpImplSpaceRegistryV2Array();
   space_registry_array[static_cast<size_t>(gert::OppImplVersionTag::kOpp)] = SpaceRegistryFaker().Build();
   global_data.SetSpaceRegistriesV2(space_registry_array);
   IMPL_OP(CONV2D_T);
@@ -621,7 +606,7 @@ TEST_F(MixL2LoweringUT, Node_With_Original_Fusion_Graph_Set_Priority_Success) {
 
   LoweringGlobalData global_data;
   global_data.AddCompiledResult(node, {{task_def}});
-    auto space_registry_array = OpImplSpaceRegistryV2Array();
+  auto space_registry_array = OpImplSpaceRegistryV2Array();
   space_registry_array[static_cast<size_t>(gert::OppImplVersionTag::kOpp)] = SpaceRegistryFaker().Build();
   global_data.SetSpaceRegistriesV2(space_registry_array);
   IMPL_OP(CONV2D_T);
@@ -633,11 +618,11 @@ TEST_F(MixL2LoweringUT, Node_With_Original_Fusion_Graph_Set_Priority_Success) {
   ModelDescHolder model_desc_holder = ModelDescHolderFaker().Build();
   model_desc_holder.SetSpaceRegistry(SpaceRegistryFaker().Build());
   auto exe_graph = GraphConverter()
-      .SetModelDescHolder(&model_desc_holder)
-      .ConvertComputeGraphToExecuteGraph(root_graph, global_data);
+                       .SetModelDescHolder(&model_desc_holder)
+                       .ConvertComputeGraphToExecuteGraph(root_graph, global_data);
   ASSERT_NE(exe_graph, nullptr);
-  ge::FastNode* conv2d_compatible_infershape_node = nullptr;
-  ge::FastNode* conv2d_sqrt_launch_node = nullptr;
+  ge::FastNode *conv2d_compatible_infershape_node = nullptr;
+  ge::FastNode *conv2d_sqrt_launch_node = nullptr;
   for (const auto node : exe_graph->GetAllNodes()) {
     if (node != nullptr && node->GetName().find("CompatibleInferShape_conv2d") != std::string::npos) {
       conv2d_compatible_infershape_node = node;
@@ -660,7 +645,8 @@ TEST_F(MixL2LoweringUT, Node_With_Original_Fusion_Graph_Set_Priority_Success) {
   (void)ge::AttrUtils::GetInt(conv2d_compatible_infershape_node->GetOpDescBarePtr(), "priority",
                               compatible_infershape_node_priority);
   int64_t conv2d_sqrt_launch_node_priority = -1;
-  (void)ge::AttrUtils::GetInt(conv2d_sqrt_launch_node->GetOpDescBarePtr(), "priority", conv2d_sqrt_launch_node_priority);
+  (void)ge::AttrUtils::GetInt(conv2d_sqrt_launch_node->GetOpDescBarePtr(), "priority",
+                              conv2d_sqrt_launch_node_priority);
   ASSERT_NE(conv2d_sqrt_node->GetOpDesc(), nullptr);
   const int64_t kPriorityExpansion = 10;
   const int64_t expect_priority =
@@ -675,7 +661,7 @@ TEST_F(MixL2LoweringUT, lowering_mix_l2_dynamic_new_kernel_success) {
   ge::NodePtr node = nullptr;
   BuildMixL2NewDynNodeGraph(root_graph, node);
   // Build FftsTaskDef.
-  std::shared_ptr<domi::ModelTaskDef> model_task_def= MakeShared<domi::ModelTaskDef>();
+  std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   auto &task_def = *model_task_def->add_task();
   task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_FFTS_PLUS));
   auto &ffts_plus_task_def = *task_def.mutable_ffts_plus_task();
@@ -689,19 +675,19 @@ TEST_F(MixL2LoweringUT, lowering_mix_l2_dynamic_new_kernel_success) {
   additional_data_def->set_data_type(data_type);
   additional_data_def->add_context_id(0);
 
-  domi::FftsPlusSqeDef* ffts_plus_sqe = ffts_plus_task_def.mutable_ffts_plus_sqe();
+  domi::FftsPlusSqeDef *ffts_plus_sqe = ffts_plus_task_def.mutable_ffts_plus_sqe();
   ffts_plus_sqe->set_ready_context_num(1);
   ffts_plus_sqe->set_total_context_num(1);
 
   LoweringGlobalData global_data;
   global_data.AddCompiledResult(node, {{task_def}});
-    auto space_registry_array = OpImplSpaceRegistryV2Array();
+  auto space_registry_array = OpImplSpaceRegistryV2Array();
   space_registry_array[static_cast<size_t>(gert::OppImplVersionTag::kOpp)] = SpaceRegistryFaker().Build();
   global_data.SetSpaceRegistriesV2(space_registry_array);
   IMPL_OP(IFA_T);
   (void)ge::AttrUtils::SetBool(node->GetOpDesc(), kUnknownShapeFromFe, true);
   (void)ge::AttrUtils::SetStr(node->GetOpDesc(), kAttrDynamicParamMode, kFoldedWithDesc);
-  std::vector<std::vector<int64_t>> dyn_in_vv = {{2,3}, {4,5,6}};
+  std::vector<std::vector<int64_t>> dyn_in_vv = {{2, 3}, {4, 5, 6}};
   (void)ge::AttrUtils::SetListListInt(node->GetOpDesc(), kDynamicInputsIndexes, dyn_in_vv);
   std::vector<std::vector<int64_t>> dyn_out_vv = {{1}};
   (void)ge::AttrUtils::SetListListInt(node->GetOpDesc(), kDynamicOutputsIndexes, dyn_out_vv);
@@ -717,7 +703,7 @@ TEST_F(MixL2LoweringUT, lowering_mix_l2_mix_ratio_kernel_success) {
   ge::NodePtr node = nullptr;
   BuildMixL2NewDynNodeGraph(root_graph, node);
   // Build FftsTaskDef.
-  std::shared_ptr<domi::ModelTaskDef> model_task_def= MakeShared<domi::ModelTaskDef>();
+  std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   auto &task_def = *model_task_def->add_task();
   task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_FFTS_PLUS));
   auto &ffts_plus_task_def = *task_def.mutable_ffts_plus_task();
@@ -731,19 +717,19 @@ TEST_F(MixL2LoweringUT, lowering_mix_l2_mix_ratio_kernel_success) {
   additional_data_def->set_data_type(data_type);
   additional_data_def->add_context_id(0);
 
-  domi::FftsPlusSqeDef* ffts_plus_sqe = ffts_plus_task_def.mutable_ffts_plus_sqe();
+  domi::FftsPlusSqeDef *ffts_plus_sqe = ffts_plus_task_def.mutable_ffts_plus_sqe();
   ffts_plus_sqe->set_ready_context_num(1);
   ffts_plus_sqe->set_total_context_num(1);
 
   LoweringGlobalData global_data;
   global_data.AddCompiledResult(node, {{task_def}});
-    auto space_registry_array = OpImplSpaceRegistryV2Array();
+  auto space_registry_array = OpImplSpaceRegistryV2Array();
   space_registry_array[static_cast<size_t>(gert::OppImplVersionTag::kOpp)] = SpaceRegistryFaker().Build();
   global_data.SetSpaceRegistriesV2(space_registry_array);
   IMPL_OP(IFA_T);
   (void)ge::AttrUtils::SetBool(node->GetOpDesc(), kUnknownShapeFromFe, true);
   (void)ge::AttrUtils::SetStr(node->GetOpDesc(), kAttrDynamicParamMode, kFoldedWithDesc);
-  std::vector<std::vector<int64_t>> dyn_in_vv = {{2,3}, {4,5,6}};
+  std::vector<std::vector<int64_t>> dyn_in_vv = {{2, 3}, {4, 5, 6}};
   (void)ge::AttrUtils::SetListListInt(node->GetOpDesc(), kDynamicInputsIndexes, dyn_in_vv);
   std::vector<std::vector<int64_t>> dyn_out_vv = {{1}};
   (void)ge::AttrUtils::SetListListInt(node->GetOpDesc(), kDynamicOutputsIndexes, dyn_out_vv);
@@ -768,7 +754,7 @@ TEST_F(MixL2LoweringUT, lowering_mix_l2_mix_ratio_kernel_failed) {
   ge::NodePtr node = nullptr;
   BuildMixL2NewDynNodeGraph(root_graph, node);
   // Build FftsTaskDef.
-  std::shared_ptr<domi::ModelTaskDef> model_task_def= MakeShared<domi::ModelTaskDef>();
+  std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   auto &task_def = *model_task_def->add_task();
   task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_FFTS_PLUS));
   auto &ffts_plus_task_def = *task_def.mutable_ffts_plus_task();
@@ -782,19 +768,19 @@ TEST_F(MixL2LoweringUT, lowering_mix_l2_mix_ratio_kernel_failed) {
   additional_data_def->set_data_type(data_type);
   additional_data_def->add_context_id(0);
 
-  domi::FftsPlusSqeDef* ffts_plus_sqe = ffts_plus_task_def.mutable_ffts_plus_sqe();
+  domi::FftsPlusSqeDef *ffts_plus_sqe = ffts_plus_task_def.mutable_ffts_plus_sqe();
   ffts_plus_sqe->set_ready_context_num(1);
   ffts_plus_sqe->set_total_context_num(1);
 
   LoweringGlobalData global_data;
   global_data.AddCompiledResult(node, {{task_def}});
-    auto space_registry_array = OpImplSpaceRegistryV2Array();
+  auto space_registry_array = OpImplSpaceRegistryV2Array();
   space_registry_array[static_cast<size_t>(gert::OppImplVersionTag::kOpp)] = SpaceRegistryFaker().Build();
   global_data.SetSpaceRegistriesV2(space_registry_array);
   IMPL_OP(IFA_T);
   (void)ge::AttrUtils::SetBool(node->GetOpDesc(), kUnknownShapeFromFe, true);
   (void)ge::AttrUtils::SetStr(node->GetOpDesc(), kAttrDynamicParamMode, kFoldedWithDesc);
-  std::vector<std::vector<int64_t>> dyn_in_vv = {{2,3}, {4,5,6}};
+  std::vector<std::vector<int64_t>> dyn_in_vv = {{2, 3}, {4, 5, 6}};
   (void)ge::AttrUtils::SetListListInt(node->GetOpDesc(), kDynamicInputsIndexes, dyn_in_vv);
   std::vector<std::vector<int64_t>> dyn_out_vv = {{1}};
   (void)ge::AttrUtils::SetListListInt(node->GetOpDesc(), kDynamicOutputsIndexes, dyn_out_vv);
@@ -822,7 +808,7 @@ TEST_F(MixL2LoweringUT, lowering_mix_l2_with_output_optional_success) {
   TBEKernelStore tbe_kernel_store;
   BuildMixL2NodeGraph(root_graph, node, false);
   // Build FftsTaskDef.
-  std::shared_ptr<domi::ModelTaskDef> model_task_def= MakeShared<domi::ModelTaskDef>();
+  std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   auto &task_def = *model_task_def->add_task();
   task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_FFTS_PLUS));
   auto &ffts_plus_task_def = *task_def.mutable_ffts_plus_task();
@@ -840,13 +826,13 @@ TEST_F(MixL2LoweringUT, lowering_mix_l2_with_output_optional_success) {
   additional_data_def->set_data_type(data_type);
   additional_data_def->add_context_id(0);
 
-  domi::FftsPlusSqeDef* ffts_plus_sqe = ffts_plus_task_def.mutable_ffts_plus_sqe();
+  domi::FftsPlusSqeDef *ffts_plus_sqe = ffts_plus_task_def.mutable_ffts_plus_sqe();
   ffts_plus_sqe->set_ready_context_num(1);
   ffts_plus_sqe->set_total_context_num(2);
 
   LoweringGlobalData global_data;
   global_data.AddCompiledResult(node, {{task_def}});
-    auto space_registry_array = OpImplSpaceRegistryV2Array();
+  auto space_registry_array = OpImplSpaceRegistryV2Array();
   space_registry_array[static_cast<size_t>(gert::OppImplVersionTag::kOpp)] = SpaceRegistryFaker().Build();
   global_data.SetSpaceRegistriesV2(space_registry_array);
   IMPL_OP(CONV2D_T);
@@ -875,7 +861,7 @@ TEST_F(MixL2LoweringUT, lowering_mix_l2_with_output_optional_anchor_null_success
   TBEKernelStore tbe_kernel_store;
   BuildMixL2NodeGraph(root_graph, node, false);
   // Build FftsTaskDef.
-  std::shared_ptr<domi::ModelTaskDef> model_task_def= MakeShared<domi::ModelTaskDef>();
+  std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   auto &task_def = *model_task_def->add_task();
   task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_FFTS_PLUS));
   auto &ffts_plus_task_def = *task_def.mutable_ffts_plus_task();
@@ -893,13 +879,13 @@ TEST_F(MixL2LoweringUT, lowering_mix_l2_with_output_optional_anchor_null_success
   additional_data_def->set_data_type(data_type);
   additional_data_def->add_context_id(0);
 
-  domi::FftsPlusSqeDef* ffts_plus_sqe = ffts_plus_task_def.mutable_ffts_plus_sqe();
+  domi::FftsPlusSqeDef *ffts_plus_sqe = ffts_plus_task_def.mutable_ffts_plus_sqe();
   ffts_plus_sqe->set_ready_context_num(1);
   ffts_plus_sqe->set_total_context_num(2);
 
   LoweringGlobalData global_data;
   global_data.AddCompiledResult(node, {{task_def}});
-    auto space_registry_array = OpImplSpaceRegistryV2Array();
+  auto space_registry_array = OpImplSpaceRegistryV2Array();
   space_registry_array[static_cast<size_t>(gert::OppImplVersionTag::kOpp)] = SpaceRegistryFaker().Build();
   global_data.SetSpaceRegistriesV2(space_registry_array);
   IMPL_OP(CONV2D_T);
@@ -918,7 +904,7 @@ TEST_F(MixL2LoweringUT, lowering_mix_l2_with_output_optional_anchor_null_success
   NodeUtils::AppendInputAnchor(node, 4);
   const auto &out_data_anchor = node->GetOutDataAnchor(0);
   for (const auto &in_data_anchor : out_data_anchor->GetPeerInDataAnchors()) {
-      RemoveAnchor(out_data_anchor, in_data_anchor);
+    RemoveAnchor(out_data_anchor, in_data_anchor);
   }
   TestMixL2Lowering(root_graph, global_data, true);
   gert::GlobalDumper::GetInstance()->SetEnableFlags(0UL);
@@ -932,7 +918,7 @@ TEST_F(MixL2LoweringUT, lowering_mix_l2_with_output_optional_failed) {
   TBEKernelStore tbe_kernel_store;
   BuildMixL2NodeGraph(root_graph, node, false);
   // Build FftsTaskDef.
-  std::shared_ptr<domi::ModelTaskDef> model_task_def= MakeShared<domi::ModelTaskDef>();
+  std::shared_ptr<domi::ModelTaskDef> model_task_def = MakeShared<domi::ModelTaskDef>();
   auto &task_def = *model_task_def->add_task();
   task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_FFTS_PLUS));
   auto &ffts_plus_task_def = *task_def.mutable_ffts_plus_task();
@@ -950,13 +936,13 @@ TEST_F(MixL2LoweringUT, lowering_mix_l2_with_output_optional_failed) {
   additional_data_def->set_data_type(data_type);
   additional_data_def->add_context_id(0);
 
-  domi::FftsPlusSqeDef* ffts_plus_sqe = ffts_plus_task_def.mutable_ffts_plus_sqe();
+  domi::FftsPlusSqeDef *ffts_plus_sqe = ffts_plus_task_def.mutable_ffts_plus_sqe();
   ffts_plus_sqe->set_ready_context_num(1);
   ffts_plus_sqe->set_total_context_num(2);
 
   LoweringGlobalData global_data;
   global_data.AddCompiledResult(node, {{task_def}});
-    auto space_registry_array = OpImplSpaceRegistryV2Array();
+  auto space_registry_array = OpImplSpaceRegistryV2Array();
   space_registry_array[static_cast<size_t>(gert::OppImplVersionTag::kOpp)] = SpaceRegistryFaker().Build();
   global_data.SetSpaceRegistriesV2(space_registry_array);
   IMPL_OP(CONV2D_T);

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -43,7 +43,7 @@ Status UpdatePCTaskInfo::Distribute() {
   std::shared_ptr<TilingContextAddr> tiling_context_addr =
       op_desc_->TryGetExtAttr(kTilingContextAddrs, default_ctx_ptr);
   GE_ASSERT_NOTNULL(tiling_context_addr, "Tiling info is nullptr, please check if tiling task has been launched.");
-  
+
   void *handle{nullptr};
   GE_ASSERT_SUCCESS(GetKernelHandle(handle));
 
@@ -66,12 +66,13 @@ Status UpdatePCTaskInfo::GetKernelHandle(void *&handle) {
   auto kernel_handles_manager = davinci_model_->GetKernelHandlesManager(KernelHandleType::kAicore);
   GE_ASSERT_NOTNULL(kernel_handles_manager);
   KernelRegisterInfo register_info;
-  GE_ASSERT_SUCCESS(KernelRegisterInfoBuilder::ConstructAicoreRegisterInfo(op_desc_, false, davinci_model_->GetModelId(), register_info));
+  GE_ASSERT_SUCCESS(KernelRegisterInfoBuilder::ConstructAicoreRegisterInfo(
+      op_desc_, false, davinci_model_->GetModelId(), register_info));
   const auto bin_name = kernel_handles_manager->GenerateKey(register_info);
   handle = kernel_handles_manager->FindKernel(bin_name);
   if (handle != nullptr) {
-    GELOGI("[%s][%s] Get tiling device kernel handle from kernel manager.",
-        op_desc_->GetNamePtr(), op_desc_->GetTypePtr());
+    GELOGI("[%s][%s] Get tiling device kernel handle from kernel manager.", op_desc_->GetNamePtr(),
+           op_desc_->GetTypePtr());
     return SUCCESS;
   }
   std::vector<std::string> name_prefix;

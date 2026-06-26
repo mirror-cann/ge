@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,7 +29,7 @@ bool GatherFusionStrategy::CanFuse(const NodePtr &node1, const NodePtr &node2) {
   // 1.gather不能前融合，只处理垂直融合; gather不能和gather融合，不区分垂直融合还是水平融合
   if (attr2->HasFuseType(loop::FuseType::kGather)) {
     if (!IsForwardFuseGather(node1, node2) &&
-      CheckGatherWithView(node1, node2, backend_spec->gather_spec.enable_gather_broadcast_fusion)) {
+        CheckGatherWithView(node1, node2, backend_spec->gather_spec.enable_gather_broadcast_fusion)) {
       return true;
     }
     GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][Gather cannot fuse forward]",
@@ -57,7 +57,8 @@ bool GatherFusionStrategy::CanFuse(const NodePtr &node1, const NodePtr &node2) {
 
   GELOGI(
       "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][Gather can only vertically fuse "
-      "with elementwise]", node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
+      "with elementwise]",
+      node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
       ge::NotFuseReasonCode(ge::NotFuseReason::kGatherCanOnlyVerticallyFuseWithElementwise));
   return false;
 }
@@ -90,8 +91,7 @@ FusionPriority GatherFusionStrategy::GetFusionPairPriority(const NodePtr &node1,
   // 首轮融合才要处理，只有AscBackend场景
   if (attr->GetFuseType() == loop::FuseType::kGather && BackendUtils::IsVertical(node1, node2)) {
     fusion_priority = FusionPriority::HIGH;
-    GELOGD("node1 %s(Gather) --> node2 %s(*) priority:%u.", node1->GetNamePtr(), node2->GetNamePtr(),
-           fusion_priority);
+    GELOGD("node1 %s(Gather) --> node2 %s(*) priority:%u.", node1->GetNamePtr(), node2->GetNamePtr(), fusion_priority);
   }
   return fusion_priority;
 }
@@ -110,9 +110,10 @@ bool GatherFusionStrategy::CheckGatherFuseAxis(const NodePtr &node1, const NodeP
   if (graph_attr1->axis.size() != graph_attr2->axis.size()) {
     GELOGI(
         "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][In gather fusion occasion, node1 axis "
-        "size(%zu) not equal to node2 axis size(%zu)]", node1->GetNamePtr(), node1->GetType().c_str(),
-        node2->GetNamePtr(), node2->GetType().c_str(), ge::NotFuseReasonCode(ge::NotFuseReason::kGatherNodeAxisSizeNotEqual),
-        graph_attr1->axis.size(), graph_attr2->axis.size());
+        "size(%zu) not equal to node2 axis size(%zu)]",
+        node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
+        ge::NotFuseReasonCode(ge::NotFuseReason::kGatherNodeAxisSizeNotEqual), graph_attr1->axis.size(),
+        graph_attr2->axis.size());
     return false;
   }
   return true;
@@ -141,8 +142,7 @@ bool GatherFusionStrategy::CheckGatherConcatFuse(const NodePtr &node1, const Nod
 bool GatherFusionStrategy::CheckGatherReduceFuse(const NodePtr &node1, const NodePtr &node2,
                                                  const bool enable_gather_reduce, const bool enable_gather_broadcast) {
   if (!enable_gather_reduce) {
-    GELOGI(
-      "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][Gather cannot fuse with Reduce]",
+    GELOGI("node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][Gather cannot fuse with Reduce]",
            node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
            ge::NotFuseReasonCode(ge::NotFuseReason::kGatherCanNotFuseWithReduce));
     return false;
@@ -162,7 +162,7 @@ bool GatherFusionStrategy::CheckGatherReduceFuse(const NodePtr &node1, const Nod
 }
 
 bool GatherFusionStrategy::CheckGatherElemwiseFuse(const NodePtr &node1, const NodePtr &node2,
-                                                 const bool enable_gather_broadcast) {
+                                                   const bool enable_gather_broadcast) {
   if (!BackendUtils::IsVertical(node1, node2)) {
     return false;
   }
@@ -199,16 +199,16 @@ bool GatherFusionStrategy::CheckGatherWithView(const NodePtr &node1, const NodeP
   // 检查是否存在既有水平融合又有垂直融合的复杂场景
   // 既存在垂直连接（node1->node2），又存在水平共享输入
   bool has_both_horizontal_and_vertical =
-      !node_fuse_info.GetNode1ToNode2LinkMap().empty() &&
-      !node_fuse_info.GetSameInputMap().empty();
+      !node_fuse_info.GetNode1ToNode2LinkMap().empty() && !node_fuse_info.GetSameInputMap().empty();
   if (has_both_horizontal_and_vertical) {
     // 在这种复杂场景下，检查 node2（elem）是否有非SimplestLoad的输入（包括broadcast等view操作）
     // 如果有，拒绝融合以防止broadcast被错误地拷贝到Gather
     if (!BackendUtils::IsNodeAllInputsAreSimplestLoad(node2)) {
-      GELOGI("Gather %s and elem %s have both horizontal and vertical fusion, but elem has view operations "
-             "(such as broadcast) in its input path. Reject fusion to prevent broadcast from being "
-             "incorrectly copied to Gather.",
-             node1->GetNamePtr(), node2->GetNamePtr());
+      GELOGI(
+          "Gather %s and elem %s have both horizontal and vertical fusion, but elem has view operations "
+          "(such as broadcast) in its input path. Reject fusion to prevent broadcast from being "
+          "incorrectly copied to Gather.",
+          node1->GetNamePtr(), node2->GetNamePtr());
       return false;
     }
   }

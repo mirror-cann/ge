@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,7 +19,7 @@ namespace ge {
 namespace {
 const char *const kStringLength = "StringLength";
 constexpr int32_t kCondSubgraphIndex = 0;
-} // namespace
+}  // namespace
 
 Status CondPass::Run(NodePtr &node) {
   ComputeGraphPtr graph = nullptr;
@@ -47,19 +47,19 @@ Status CondPass::Run(NodePtr &node) {
   if (cond_tensor.MutableShape().GetDim(0) == UNKNOWN_DIM_NUM) {
     GELOGI("Output tensor rank of Cond is unknown.");
     if (cond_tensor.GetDataType() == DT_STRING) {
-      GE_CHK_STATUS_RET(HandleStringCond(peer_out_anchor, cond_in_anchor),
-                        "[Handle][StringCond] for op:%s failed.", op_desc->GetName().c_str());
+      GE_CHK_STATUS_RET(HandleStringCond(peer_out_anchor, cond_in_anchor), "[Handle][StringCond] for op:%s failed.",
+                        op_desc->GetName().c_str());
     }
     return SUCCESS;
   }
   if (!cond_tensor.GetShape().IsScalar()) {
-    GE_CHK_STATUS_RET(HandleNonScalarCond(peer_out_anchor, cond_in_anchor),
-                      "[Handle][NonScalarCond] for op:%s failed.", op_desc->GetName().c_str());
+    GE_CHK_STATUS_RET(HandleNonScalarCond(peer_out_anchor, cond_in_anchor), "[Handle][NonScalarCond] for op:%s failed.",
+                      op_desc->GetName().c_str());
   } else {
     switch (cond_tensor.GetDataType()) {
       case DT_STRING:
-        GE_CHK_STATUS_RET(HandleStringCond(peer_out_anchor, cond_in_anchor),
-                          "[Handle][StringCond] for op:%s failed.", op_desc->GetName().c_str());
+        GE_CHK_STATUS_RET(HandleStringCond(peer_out_anchor, cond_in_anchor), "[Handle][StringCond] for op:%s failed.",
+                          op_desc->GetName().c_str());
         break;
       case DT_BOOL:
       case DT_FLOAT:
@@ -74,13 +74,12 @@ Status CondPass::Run(NodePtr &node) {
       case DT_INT32:
         break;
       default:
-        REPORT_INNER_ERR_MSG("E19999",
-                           "data_type:%d of index:%d input tensor in op:%s(%s) check invalid",
-                           cond_tensor.GetDataType(), cond_in_anchor->GetIdx(),
-                           op_desc->GetName().c_str(), op_desc->GetType().c_str());
+        REPORT_INNER_ERR_MSG("E19999", "data_type:%d of index:%d input tensor in op:%s(%s) check invalid",
+                             cond_tensor.GetDataType(), cond_in_anchor->GetIdx(), op_desc->GetName().c_str(),
+                             op_desc->GetType().c_str());
         GELOGE(FAILED, "[Check][Param] data_type:%d of index:%d input tensor in op:%s(%s) is invalid",
-               cond_tensor.GetDataType(), cond_in_anchor->GetIdx(),
-               op_desc->GetName().c_str(), op_desc->GetType().c_str());
+               cond_tensor.GetDataType(), cond_in_anchor->GetIdx(), op_desc->GetName().c_str(),
+               op_desc->GetType().c_str());
         return FAILED;
     }
   }
@@ -162,8 +161,8 @@ Status CondPass::GetCondInfoForWhile(const NodePtr &node, ComputeGraphPtr &graph
   // cond_graph has and only has one output
   uint32_t output_num = net_output_node->GetAllInDataAnchorsSize();
   if (output_num != 1) {
-    REPORT_INNER_ERR_MSG("E19999", "Input data anchor num:%u of op:%s(%s) not equal to 1, check invalid",
-                       output_num, op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Input data anchor num:%u of op:%s(%s) not equal to 1, check invalid", output_num,
+                         op_desc->GetName().c_str(), op_desc->GetType().c_str());
     GELOGE(FAILED, "[Check][Param] output size of cond_graph is invalid, expect 1 but %u exactly, while_node:%s.",
            output_num, node->GetName().c_str());
     return FAILED;
@@ -184,8 +183,7 @@ Status CondPass::GetCondInfoForWhile(const NodePtr &node, ComputeGraphPtr &graph
 /// @param [in] cond_in_anchor: cond_input
 /// @return Status
 ///
-Status CondPass::HandleNonScalarCond(const OutDataAnchorPtr &peer_out_anchor,
-                                     const InDataAnchorPtr &cond_in_anchor) {
+Status CondPass::HandleNonScalarCond(const OutDataAnchorPtr &peer_out_anchor, const InDataAnchorPtr &cond_in_anchor) {
   GELOGI("Handle cond with non-scalar cond-input.");
   return InsertNode(peer_out_anchor, cond_in_anchor, SIZE);
 }
@@ -197,8 +195,7 @@ Status CondPass::HandleNonScalarCond(const OutDataAnchorPtr &peer_out_anchor,
 /// @param [in] cond_in_anchor: cond_input
 /// @return Status
 ///
-Status CondPass::HandleStringCond(const OutDataAnchorPtr &peer_out_anchor,
-                                  const InDataAnchorPtr &cond_in_anchor) {
+Status CondPass::HandleStringCond(const OutDataAnchorPtr &peer_out_anchor, const InDataAnchorPtr &cond_in_anchor) {
   GELOGI("Handle cond with scalar-string cond-input.");
   return InsertNode(peer_out_anchor, cond_in_anchor, kStringLength);
 }
@@ -211,8 +208,8 @@ Status CondPass::HandleStringCond(const OutDataAnchorPtr &peer_out_anchor,
 /// @param [in] src_type
 /// @return Status
 ///
-Status CondPass::HandleScalarCond(const OutDataAnchorPtr &peer_out_anchor,
-                                  const InDataAnchorPtr &cond_in_anchor, DataType src_type) {
+Status CondPass::HandleScalarCond(const OutDataAnchorPtr &peer_out_anchor, const InDataAnchorPtr &cond_in_anchor,
+                                  DataType src_type) {
   GE_CHECK_NOTNULL(cond_in_anchor);
   GE_CHECK_NOTNULL(peer_out_anchor);
   GE_CHECK_NOTNULL(peer_out_anchor->GetOwnerNode()->GetOpDesc());
@@ -239,8 +236,8 @@ Status CondPass::HandleScalarCond(const OutDataAnchorPtr &peer_out_anchor,
 /// @param [in] type
 /// @return Status
 ///
-Status CondPass::InsertNode(const OutDataAnchorPtr &peer_out_anchor,
-                            const InDataAnchorPtr &in_data_anchor, const std::string &type) {
+Status CondPass::InsertNode(const OutDataAnchorPtr &peer_out_anchor, const InDataAnchorPtr &in_data_anchor,
+                            const std::string &type) {
   GE_CHECK_NOTNULL(peer_out_anchor);
   GE_CHECK_NOTNULL(in_data_anchor);
   GELOGD("Begin to insert %s node.", type.c_str());
@@ -258,9 +255,9 @@ Status CondPass::InsertNode(const OutDataAnchorPtr &peer_out_anchor,
   OpDescPtr op_desc = op_desc_builder.AddInput("x", in_tensor).AddOutput("y", out_tensor).Build();
   if (op_desc == nullptr) {
     REPORT_INNER_ERR_MSG("E19999", "Create op_desc:%s(%s) failed",
-                      (in_data_anchor->GetOwnerNode()->GetName() + "_" + type).c_str(), type.c_str());
-    GELOGE(FAILED, "[Create][OpDesc] %s(%s) failed.",
-           (in_data_anchor->GetOwnerNode()->GetName() + "_" + type).c_str(), type.c_str());
+                         (in_data_anchor->GetOwnerNode()->GetName() + "_" + type).c_str(), type.c_str());
+    GELOGE(FAILED, "[Create][OpDesc] %s(%s) failed.", (in_data_anchor->GetOwnerNode()->GetName() + "_" + type).c_str(),
+           type.c_str());
     return FAILED;
   }
   NodePtr new_node = GraphUtils::InsertNodeAfter(peer_out_anchor, {in_data_anchor}, op_desc);
@@ -278,8 +275,8 @@ Status CondPass::InsertNode(const OutDataAnchorPtr &peer_out_anchor,
 /// @param [in] dst
 /// @return NodePtr
 ///
-OpDescPtr CondPass::AddCastOpDesc(const std::string &name, const GeTensorDesc &tensor,
-                                  DataType src, DataType dst) const {
+OpDescPtr CondPass::AddCastOpDesc(const std::string &name, const GeTensorDesc &tensor, DataType src,
+                                  DataType dst) const {
   GELOGI("Begin to create cast op: %s, from %d to %d", name.c_str(), src, dst);
 
   GeTensorDesc in_tensor = tensor;
@@ -295,18 +292,15 @@ OpDescPtr CondPass::AddCastOpDesc(const std::string &name, const GeTensorDesc &t
     GELOGE(FAILED, "[Create][OpDesc] failed, name:%s(%s).", name.c_str(), CAST);
     return nullptr;
   }
-  if (!(AttrUtils::SetInt(cast_desc, CAST_ATTR_SRCT, src) &&
-        AttrUtils::SetInt(cast_desc, CAST_ATTR_DSTT, dst) &&
+  if (!(AttrUtils::SetInt(cast_desc, CAST_ATTR_SRCT, src) && AttrUtils::SetInt(cast_desc, CAST_ATTR_DSTT, dst) &&
         AttrUtils::SetInt(cast_desc, CAST_ATTR_DST_TYPE, dst) &&
         AttrUtils::SetBool(cast_desc, CAST_ATTR_TRUNCATE, false))) {
-    REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s, %s, %s, %s to node:%s(%s) not all success",
-                      CAST_ATTR_SRCT.c_str(), CAST_ATTR_DSTT.c_str(),
-                      CAST_ATTR_DST_TYPE.c_str(), CAST_ATTR_TRUNCATE.c_str(),
-                      cast_desc->GetName().c_str(), cast_desc->GetType().c_str());
-    GELOGE(FAILED, "[Set][Attr] %s, %s, %s, %s to node:%s(%s) not all success",
-           CAST_ATTR_SRCT.c_str(), CAST_ATTR_DSTT.c_str(),
-           CAST_ATTR_DST_TYPE.c_str(), CAST_ATTR_TRUNCATE.c_str(),
-           cast_desc->GetName().c_str(), cast_desc->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s, %s, %s, %s to node:%s(%s) not all success", CAST_ATTR_SRCT.c_str(),
+                         CAST_ATTR_DSTT.c_str(), CAST_ATTR_DST_TYPE.c_str(), CAST_ATTR_TRUNCATE.c_str(),
+                         cast_desc->GetName().c_str(), cast_desc->GetType().c_str());
+    GELOGE(FAILED, "[Set][Attr] %s, %s, %s, %s to node:%s(%s) not all success", CAST_ATTR_SRCT.c_str(),
+           CAST_ATTR_DSTT.c_str(), CAST_ATTR_DST_TYPE.c_str(), CAST_ATTR_TRUNCATE.c_str(), cast_desc->GetName().c_str(),
+           cast_desc->GetType().c_str());
     return nullptr;
   }
   return cast_desc;

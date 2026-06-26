@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -49,8 +49,8 @@ Status NotifyRecordTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *c
   }
   const auto &notifyList = davinci_model_->GetNotifyList();
   if (task_def.notify_id() >= notifyList.size()) {
-    REPORT_INNER_ERR_MSG("E19999", "Task notify_id:%u > model notify size:%zu, check invalid",
-                       task_def.notify_id(), notifyList.size());
+    REPORT_INNER_ERR_MSG("E19999", "Task notify_id:%u > model notify size:%zu, check invalid", task_def.notify_id(),
+                         notifyList.size());
     GELOGE(INTERNAL_ERROR, "[Check][Param] notify list size:%zu, cur:%u!", notifyList.size(), task_def.notify_id());
     return INTERNAL_ERROR;
   }

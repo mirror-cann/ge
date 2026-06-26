@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -202,7 +202,7 @@ Status ModelIntroduction::ConstructOutputInfo() {
                              "[Check][Param] construct output failed, as index:%zu >= src name size:%zu, "
                              "or index >= src index size:%zu, op:%s.",
                              i, src_name.size(), src_index.size(), op_desc->GetName().c_str());
-      // forward compatbility, if old om has no out_node_name, need to return output follow origin way
+      // forward compatibility, if old om has no out_node_name, need to return output follow origin way
       if (out_size == out_node_name_.size()) {
         // neweast plan, the index will add to name during generate model.
         const bool contains_colon = out_node_name_[i].find(":") != std::string::npos;
@@ -230,7 +230,7 @@ Status ModelIntroduction::GetDynamicInfoFromCase(int32_t &dynamic_type, std::vec
     const std::string attr_name = ATTR_NAME_PRED_VALUE + "_" + std::to_string(i);
     GE_IF_BOOL_EXEC(!AttrUtils::GetListInt(case_desc_, attr_name, batch_shape),
                     REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s from op:%s(%s) fail", attr_name.c_str(),
-                                       case_desc_->GetName().c_str(), case_desc_->GetType().c_str());
+                                         case_desc_->GetName().c_str(), case_desc_->GetType().c_str());
                     return FAILED);
     (void)batch_info.emplace_back(batch_shape);
   }
@@ -377,37 +377,29 @@ std::shared_ptr<uint8_t> ModelIntroduction::Data() {
                   GELOGE(FAILED, " create continuous blob for modelIoInfo failed, size[%u]", total_size_);
                   return nullptr);
   Status ret = SaveTlvBlock(modelIntroduction_.inputDesc, ModelDescType::MODEL_INPUT_DESC, &write_addr, left_size);
-  CHECK_FALSE_EXEC(ret == SUCCESS, GELOGE(FAILED, "save MODEL_INPUT_DESC failed.");
-                   return nullptr);
+  CHECK_FALSE_EXEC(ret == SUCCESS, GELOGE(FAILED, "save MODEL_INPUT_DESC failed."); return nullptr);
 
   ret = SaveTlvBlock(modelIntroduction_.outputDesc, ModelDescType::MODEL_OUTPUT_DESC, &write_addr, left_size);
-  CHECK_FALSE_EXEC(ret == SUCCESS, GELOGE(FAILED, "save MODEL_OUTPUT_DESC failed.");
-                   return nullptr);
+  CHECK_FALSE_EXEC(ret == SUCCESS, GELOGE(FAILED, "save MODEL_OUTPUT_DESC failed."); return nullptr);
 
   ret = SaveTlvBlock(modelIntroduction_.dynamicBatch, ModelDescType::MODEL_DYNAMIC_BATCH, &write_addr, left_size);
-  CHECK_FALSE_EXEC(ret == SUCCESS, GELOGE(FAILED, "save MODEL_DYNAMIC_BATCH failed.");
-                   return nullptr);
+  CHECK_FALSE_EXEC(ret == SUCCESS, GELOGE(FAILED, "save MODEL_DYNAMIC_BATCH failed."); return nullptr);
 
   ret = SaveTlvBlock(modelIntroduction_.dynamicHW, ModelDescType::MODEL_DYNAMIC_HW, &write_addr, left_size);
-  CHECK_FALSE_EXEC(ret == SUCCESS, GELOGE(FAILED, "save MODEL_DYNAMIC_HW failed.");
-                   return nullptr);
+  CHECK_FALSE_EXEC(ret == SUCCESS, GELOGE(FAILED, "save MODEL_DYNAMIC_HW failed."); return nullptr);
 
   ret = SaveTlvBlock(modelIntroduction_.dynamicDims, ModelDescType::MODEL_DYNAMIC_DIMS, &write_addr, left_size);
-  CHECK_FALSE_EXEC(ret == SUCCESS, GELOGE(FAILED, "save MODEL_DYNAMIC_DIMS failed.");
-                   return nullptr);
+  CHECK_FALSE_EXEC(ret == SUCCESS, GELOGE(FAILED, "save MODEL_DYNAMIC_DIMS failed."); return nullptr);
 
   ret = SaveTlvBlock(modelIntroduction_.dynamicOutputShape, ModelDescType::MODEL_DYNAMIC_OUTPUT_SHAPE, &write_addr,
                      left_size);
-  CHECK_FALSE_EXEC(ret == SUCCESS, GELOGE(FAILED, "save MODEL_DYNAMIC_OUTPUT_SHAPE failed.");
-                   return nullptr);
+  CHECK_FALSE_EXEC(ret == SUCCESS, GELOGE(FAILED, "save MODEL_DYNAMIC_OUTPUT_SHAPE failed."); return nullptr);
 
   ret = SaveTlvBlock(modelIntroduction_.dataNameOrder, ModelDescType::MODEL_DESIGNATE_SHAPE_ORDER, &write_addr,
                      left_size);
-  CHECK_FALSE_EXEC(ret == SUCCESS, GELOGE(FAILED, "save MODEL_DESIGNATE_SHAPE_ORDER failed.");
-                   return nullptr);
+  CHECK_FALSE_EXEC(ret == SUCCESS, GELOGE(FAILED, "save MODEL_DESIGNATE_SHAPE_ORDER failed."); return nullptr);
 
-  GE_IF_BOOL_EXEC(left_size != 0, GELOGE(FAILED, "left size must be 0, but current is %u", left_size);
-                  return nullptr);
+  GE_IF_BOOL_EXEC(left_size != 0, GELOGE(FAILED, "left size must be 0, but current is %u", left_size); return nullptr);
   return buff_;
 }
 }  // namespace ge

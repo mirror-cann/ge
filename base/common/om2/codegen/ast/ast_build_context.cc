@@ -12,9 +12,13 @@
 
 namespace ge {
 namespace {
-Expr *ResolveArg(const Arg &arg, AstContext &ctx) { return arg.Resolve(ctx); }
+Expr *ResolveArg(const Arg &arg, AstContext &ctx) {
+  return arg.Resolve(ctx);
+}
 
-Stmt *ResolveBodyItem(const BodyItem &item, AstContext &ctx) { return item.Resolve(ctx); }
+Stmt *ResolveBodyItem(const BodyItem &item, AstContext &ctx) {
+  return item.Resolve(ctx);
+}
 
 ExprRef BuildCallExpr(AstContext &ctx, Expr *callee, const std::vector<Arg> &args) {
   std::vector<Expr *> resolved;
@@ -89,8 +93,8 @@ std::vector<ParamDecl *> BuildParamDecls(AstContext &ctx, const std::vector<VarR
   return built;
 }
 
-std::pair<std::vector<std::string>, std::vector<Expr *>> BuildMemberInits(AstContext &ctx,
-                                                                          const std::vector<MemberInitSpec> &member_inits) {
+std::pair<std::vector<std::string>, std::vector<Expr *>> BuildMemberInits(
+    AstContext &ctx, const std::vector<MemberInitSpec> &member_inits) {
   std::vector<std::string> names;
   std::vector<Expr *> exprs;
   names.reserve(member_inits.size());
@@ -105,7 +109,8 @@ std::pair<std::vector<std::string>, std::vector<Expr *>> BuildMemberInits(AstCon
 
 Arg::Arg() : kind_(Kind::kEmpty), int_value_(0), bool_value_(false), expr_(nullptr) {}
 Arg::Arg(const char *text) : kind_(Kind::kIdentifier), text_(text), int_value_(0), bool_value_(false), expr_(nullptr) {}
-Arg::Arg(const std::string &text) : kind_(Kind::kIdentifier), text_(text), int_value_(0), bool_value_(false), expr_(nullptr) {}
+Arg::Arg(const std::string &text)
+    : kind_(Kind::kIdentifier), text_(text), int_value_(0), bool_value_(false), expr_(nullptr) {}
 Arg::Arg(bool value) : kind_(Kind::kBool), int_value_(0), bool_value_(value), expr_(nullptr) {}
 Arg::Arg(std::nullptr_t) : kind_(Kind::kNullptr), int_value_(0), bool_value_(false), expr_(nullptr) {}
 Arg::Arg(std::initializer_list<Arg> items)
@@ -123,7 +128,9 @@ Arg Arg::StringLiteral(const std::string &text) {
   return arg;
 }
 
-bool Arg::Empty() const { return kind_ == Kind::kEmpty; }
+bool Arg::Empty() const {
+  return kind_ == Kind::kEmpty;
+}
 
 Expr *Arg::Resolve(AstContext &ctx) const {
   switch (kind_) {
@@ -155,17 +162,27 @@ Expr *Arg::Resolve(AstContext &ctx) const {
 }
 
 ExprRef::ExprRef(AstContext &ctx, Expr *expr) : ctx_(&ctx), expr_(expr) {}
-Expr *ExprRef::Get() const { return expr_; }
-AstContext *ExprRef::Ctx() const { return ctx_; }
+Expr *ExprRef::Get() const {
+  return expr_;
+}
+AstContext *ExprRef::Ctx() const {
+  return ctx_;
+}
 ExprRef ExprRef::Attr(const std::string &field) const {
   return ExprRef(*ctx_, MemberExpr::Create(*ctx_, expr_, field));
 }
 ExprRef ExprRef::Arrow(const std::string &field) const {
   return ExprRef(*ctx_, CppArrowMemberExpr::Create(*ctx_, expr_, field));
 }
-ExprRef ExprRef::Addr() const { return ExprRef(*ctx_, AddrOfExpr::Create(*ctx_, expr_)); }
-ExprRef ExprRef::operator()() const { return BuildCallExpr(*ctx_, expr_, {}); }
-ExprRef ExprRef::operator()(std::initializer_list<Arg> args) const { return BuildCallExpr(*ctx_, expr_, args); }
+ExprRef ExprRef::Addr() const {
+  return ExprRef(*ctx_, AddrOfExpr::Create(*ctx_, expr_));
+}
+ExprRef ExprRef::operator()() const {
+  return BuildCallExpr(*ctx_, expr_, {});
+}
+ExprRef ExprRef::operator()(std::initializer_list<Arg> args) const {
+  return BuildCallExpr(*ctx_, expr_, args);
+}
 ExprRef ExprRef::operator[](Arg index) const {
   return ExprRef(*ctx_, SubscriptExpr::Create(*ctx_, expr_, ResolveArg(index, *ctx_)));
 }
@@ -197,12 +214,18 @@ ExprRef ExprRef::GetPtr() const {
   return BuildContainerMethodExpr(*ctx_, ContainerMethodExpr::Method::kGetPtr, *this, {});
 }
 
-ExprRef operator!(ExprRef expr) { return BuildUnaryExpr(*expr.Ctx(), UnaryExpr::Op::kLogicalNot, expr.Get()); }
-ExprRef operator-(ExprRef expr) { return BuildUnaryExpr(*expr.Ctx(), UnaryExpr::Op::kNegate, expr.Get()); }
-ExprRef operator~(ExprRef expr) { return BuildUnaryExpr(*expr.Ctx(), UnaryExpr::Op::kBitNot, expr.Get()); }
+ExprRef operator!(ExprRef expr) {
+  return BuildUnaryExpr(*expr.Ctx(), UnaryExpr::Op::kLogicalNot, expr.Get());
+}
+ExprRef operator-(ExprRef expr) {
+  return BuildUnaryExpr(*expr.Ctx(), UnaryExpr::Op::kNegate, expr.Get());
+}
+ExprRef operator~(ExprRef expr) {
+  return BuildUnaryExpr(*expr.Ctx(), UnaryExpr::Op::kBitNot, expr.Get());
+}
 
-#define DEFINE_FREE_BINARY_OP(op_symbol, op_value) \
-  ExprRef operator op_symbol(ExprRef lhs, Arg rhs) { \
+#define DEFINE_FREE_BINARY_OP(op_symbol, op_value)                                          \
+  ExprRef operator op_symbol(ExprRef lhs, Arg rhs) {                                        \
     return BuildBinaryExpr(*lhs.Ctx(), (op_value), lhs.Get(), ResolveArg(rhs, *lhs.Ctx())); \
   }
 DEFINE_FREE_BINARY_OP(==, BinaryExpr::Op::kEq)
@@ -230,8 +253,12 @@ VarRef::VarRef(AstContext &ctx, std::string type_name, const std::string &symbol
       type_name_(std::move(type_name)),
       symbol_name_(symbol_name) {}
 
-const std::string &VarRef::TypeName() const { return type_name_; }
-const std::string &VarRef::SymbolName() const { return symbol_name_; }
+const std::string &VarRef::TypeName() const {
+  return type_name_;
+}
+const std::string &VarRef::SymbolName() const {
+  return symbol_name_;
+}
 
 BodyItem::BodyItem(Stmt *stmt) : stmt_(stmt), expr_(nullptr) {}
 BodyItem::BodyItem(Expr *expr) : stmt_(nullptr), expr_(expr) {}
@@ -248,7 +275,9 @@ Stmt *BodyItem::Resolve(AstContext &ctx) const {
 
 AstBuildContext::AstBuildContext(AstContext &ctx) : ctx_(ctx) {}
 
-TranslationUnit *AstBuildContext::File(const std::vector<DeclNode *> &items) const { return ::ge::TranslationUnit::Create(ctx_, items); }
+TranslationUnit *AstBuildContext::File(const std::vector<DeclNode *> &items) const {
+  return ::ge::TranslationUnit::Create(ctx_, items);
+}
 
 TranslationUnit *AstBuildContext::File(std::initializer_list<DeclNode *> items) const {
   return File(std::vector<DeclNode *>(items.begin(), items.end()));
@@ -258,13 +287,25 @@ IncludeDecl *AstBuildContext::Include(const std::string &path, IncludeDecl::Kind
   return IncludeDecl::Create(ctx_, path, kind);
 }
 
-SpaceDecl *AstBuildContext::Space() const { return SpaceDecl::Create(ctx_); }
-CommentStmt *AstBuildContext::Comment(const std::string &text) const { return CommentStmt::Create(ctx_, text); }
-BlankLineStmt *AstBuildContext::BlankLine() const { return BlankLineStmt::Create(ctx_); }
+SpaceDecl *AstBuildContext::Space() const {
+  return SpaceDecl::Create(ctx_);
+}
+CommentStmt *AstBuildContext::Comment(const std::string &text) const {
+  return CommentStmt::Create(ctx_, text);
+}
+BlankLineStmt *AstBuildContext::BlankLine() const {
+  return BlankLineStmt::Create(ctx_);
+}
 
-AccessSectionDecl *AstBuildContext::Public() const { return AccessSectionDecl::Create(ctx_, AccessSectionDecl::Kind::kPublic); }
-AccessSectionDecl *AstBuildContext::Private() const { return AccessSectionDecl::Create(ctx_, AccessSectionDecl::Kind::kPrivate); }
-Expr *AstBuildContext::Str(const std::string &text) const { return LiteralExpr::CreateString(ctx_, text); }
+AccessSectionDecl *AstBuildContext::Public() const {
+  return AccessSectionDecl::Create(ctx_, AccessSectionDecl::Kind::kPublic);
+}
+AccessSectionDecl *AstBuildContext::Private() const {
+  return AccessSectionDecl::Create(ctx_, AccessSectionDecl::Kind::kPrivate);
+}
+Expr *AstBuildContext::Str(const std::string &text) const {
+  return LiteralExpr::CreateString(ctx_, text);
+}
 Expr *AstBuildContext::UInt(uint64_t value) const {
   return LiteralExpr::CreateInt(ctx_, static_cast<int64_t>(value), LiteralExpr::IntSuffix::kU);
 }
@@ -338,20 +379,21 @@ MethodDecl *AstBuildContext::DeclareMethod(const std::string &name, std::initial
 
 FunctionDef *AstBuildContext::DefineFunction(const std::string &name, const std::vector<VarRef> &params,
                                              const std::string &return_type, const std::vector<Stmt *> &body) const {
-  return ::ge::FunctionDef::Create(ctx_, name, BuildParamDecls(ctx_, params), return_type, BlockStmt::Create(ctx_, body));
+  return ::ge::FunctionDef::Create(ctx_, name, BuildParamDecls(ctx_, params), return_type,
+                                   BlockStmt::Create(ctx_, body));
 }
 
 FunctionDef *AstBuildContext::DefineFunction(const std::string &name, std::initializer_list<VarRef> params,
-                                             const std::string &return_type, std::initializer_list<BodyItem> items) const {
+                                             const std::string &return_type,
+                                             std::initializer_list<BodyItem> items) const {
   return DefineFunction(name, std::vector<VarRef>(params.begin(), params.end()), return_type, Body(items));
 }
 
 MethodDef *AstBuildContext::DefineMethod(const std::string &owner, const std::string &name,
                                          const std::vector<VarRef> &params, const std::string &return_type,
                                          const std::vector<Stmt *> &body) const {
-  return ::ge::MethodDef::Create(ctx_, owner, name, BuildParamDecls(ctx_, params), return_type, std::vector<std::string>{},
-                                 std::vector<Expr *>{},
-                                 BlockStmt::Create(ctx_, body));
+  return ::ge::MethodDef::Create(ctx_, owner, name, BuildParamDecls(ctx_, params), return_type,
+                                 std::vector<std::string>{}, std::vector<Expr *>{}, BlockStmt::Create(ctx_, body));
 }
 
 MethodDef *AstBuildContext::DefineMethod(const std::string &owner, const std::string &name,
@@ -440,13 +482,17 @@ ExprRef AstBuildContext::PostInc(Arg expr) const {
   return ExprRef(ctx_, UnaryExpr::Create(ctx_, UnaryExpr::Op::kPostInc, ResolveArg(expr, ctx_)));
 }
 
-ExprRef AstBuildContext::ToStr(Arg expr) const { return ExprRef(ctx_, ToStrExpr::Create(ctx_, ResolveArg(expr, ctx_))); }
+ExprRef AstBuildContext::ToStr(Arg expr) const {
+  return ExprRef(ctx_, ToStrExpr::Create(ctx_, ResolveArg(expr, ctx_)));
+}
 
 ExprRef AstBuildContext::Memcpy(Arg dst, Arg src, Arg size) const {
   return ExprRef(ctx_, MemcpyExpr::Create(ctx_, ResolveArg(dst, ctx_), ResolveArg(src, ctx_), ResolveArg(size, ctx_)));
 }
 
-ExprRef AstBuildContext::Sizeof(Arg expr) const { return ExprRef(ctx_, SizeofExpr::Create(ctx_, ResolveArg(expr, ctx_))); }
+ExprRef AstBuildContext::Sizeof(Arg expr) const {
+  return ExprRef(ctx_, SizeofExpr::Create(ctx_, ResolveArg(expr, ctx_)));
+}
 
 ExprRef AstBuildContext::RemoveFile(Arg path) const {
   return ExprRef(ctx_, RemoveFileExpr::Create(ctx_, ResolveArg(path, ctx_)));
@@ -494,7 +540,9 @@ ExprRef AstBuildContext::MakeUniqueArray(const TypeName &elem_type, Arg count) c
   return ExprRef(ctx_, MakeUniqueArrayExpr::Create(ctx_, elem_type, ResolveArg(count, ctx_)));
 }
 
-ReturnStmt *AstBuildContext::Return(Arg value) const { return ReturnStmt::Create(ctx_, ResolveArg(value, ctx_)); }
+ReturnStmt *AstBuildContext::Return(Arg value) const {
+  return ReturnStmt::Create(ctx_, ResolveArg(value, ctx_));
+}
 
 VarDeclStmt *AstBuildContext::VarDecl(const std::string &type_spec, const std::string &name, Arg init) const {
   return VarDeclStmt::Create(ctx_, type_spec, name, ResolveArg(init, ctx_));
@@ -508,7 +556,7 @@ BlockStmt *AstBuildContext::Block(const std::vector<BodyItem> &items) const {
   return BlockStmt::Create(ctx_, Body(items));
 }
 
-IfStmt *AstBuildContext::If(Arg cond, std::initializer_list<BodyItem> then_items) const{
+IfStmt *AstBuildContext::If(Arg cond, std::initializer_list<BodyItem> then_items) const {
   return IfStmt::Create(ctx_, ResolveArg(cond, ctx_), BlockStmt::Create(ctx_, Body(then_items)));
 }
 
@@ -519,10 +567,12 @@ IfStmt *AstBuildContext::If(Arg cond, std::initializer_list<BodyItem> then_items
 }
 
 ForStmt *AstBuildContext::For(Stmt *init, Arg cond, Arg step, std::initializer_list<BodyItem> items) const {
-  return ForStmt::Create(ctx_, init, ResolveArg(cond, ctx_), ResolveArg(step, ctx_), BlockStmt::Create(ctx_, Body(items)));
+  return ForStmt::Create(ctx_, init, ResolveArg(cond, ctx_), ResolveArg(step, ctx_),
+                         BlockStmt::Create(ctx_, Body(items)));
 }
 
-RangeForStmt *AstBuildContext::RangeFor(const VarRef &loop_var, Arg range, std::initializer_list<BodyItem> items) const {
+RangeForStmt *AstBuildContext::RangeFor(const VarRef &loop_var, Arg range,
+                                        std::initializer_list<BodyItem> items) const {
   return RangeFor(loop_var.TypeName(), loop_var.SymbolName(), range, items);
 }
 
@@ -576,7 +626,6 @@ ExprRef AstBuildContext::ConstCast(const std::string &target_type, Arg expr) con
 }
 
 ExprRef AstBuildContext::ReinterpretCast(const std::string &target_type, Arg expr) const {
-  return ExprRef(ctx_,
-                 CppCastExpr::Create(ctx_, CppCastExpr::Kind::kReinterpret, target_type, ResolveArg(expr, ctx_)));
+  return ExprRef(ctx_, CppCastExpr::Create(ctx_, CppCastExpr::Kind::kReinterpret, target_type, ResolveArg(expr, ctx_)));
 }
 }  // namespace ge

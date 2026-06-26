@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,10 +27,11 @@ REGISTER_NODE_CONVERTER(kStubLowerFunc, [](const ge::NodePtr &node, const LowerI
 
   int64_t logic_stream_id = node->GetOpDesc()->GetStreamId();
   auto stream_id_holder = bg::ValueHolder::CreateConst(&logic_stream_id, sizeof(logic_stream_id));
-  merged_holders.emplace_back(stream_id_holder); // make stream id as last input
+  merged_holders.emplace_back(stream_id_holder);  // make stream id as last input
 
   if (node->GetAllOutDataAnchorsSize() == 0U) {
-    ret.order_holders.push_back(bg::ValueHolder::CreateVoid<bg::ValueHolder>((kLowerPrefix + node->GetType()).c_str(), merged_holders));
+    ret.order_holders.push_back(
+        bg::ValueHolder::CreateVoid<bg::ValueHolder>((kLowerPrefix + node->GetType()).c_str(), merged_holders));
   } else {
     auto holders = bg::DevMemValueHolder::CreateDataOutput((kLowerPrefix + node->GetType()).c_str(), merged_holders,
                                                            node->GetAllOutDataAnchorsSize() << 1U,

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -83,15 +83,15 @@ graphStatus EsMoveSubgraphToRoot(Graph &root_graph) {
       const char *subgraph_name_cstr = subgraph_name.GetString();
       if (root_graph.GetSubGraph(subgraph_name_cstr) != nullptr) {
         REPORT_INNER_ERR_MSG("E18888", "Es move subgraph %s to root graph %s failed: subgraph existed",
-          subgraph_name_cstr, root_graph_name.GetString());
-        GELOGE(GRAPH_FAILED, "[EsRemove][SubgraphToRoot] The subgraph %s existed in root graph %s ",
-          subgraph_name_cstr, root_graph_name.GetString());
+                             subgraph_name_cstr, root_graph_name.GetString());
+        GELOGE(GRAPH_FAILED, "[EsRemove][SubgraphToRoot] The subgraph %s existed in root graph %s ", subgraph_name_cstr,
+               root_graph_name.GetString());
         return GRAPH_FAILED;
       }
       GE_ASSERT_GRAPH_SUCCESS(graph->RemoveSubgraph(subgraph_name_cstr));
       GE_ASSERT_GRAPH_SUCCESS(root_graph.AddSubGraph(*subgraph));
-      GELOGI("Move subgraph %s from graph %s to root graph %s",
-             subgraph_name_cstr, graph_name.GetString(), root_graph_name.GetString());
+      GELOGI("Move subgraph %s from graph %s to root graph %s", subgraph_name_cstr, graph_name.GetString(),
+             root_graph_name.GetString());
     }
   }
   return GRAPH_SUCCESS;
@@ -110,8 +110,8 @@ graphStatus EsUpdateDataNodeInputDesc(const Graph &graph) {
       GE_ASSERT_GRAPH_SUCCESS(node.UpdateInputDesc(0, tensor_desc));
       AscendString node_name;
       GE_ASSERT_GRAPH_SUCCESS(node.GetName(node_name));
-      GELOGI("Update input desc from output desc for %s type node %s in graph %s",
-             node_type.GetString(), node_name.GetString(), graph_name.GetString());
+      GELOGI("Update input desc from output desc for %s type node %s in graph %s", node_type.GetString(),
+             node_name.GetString(), graph_name.GetString());
     }
   }
 
@@ -260,7 +260,6 @@ struct EsCGraphBuilder::EsCGraphBuilderImpl {
   std::map<int32_t, EsCTensorHolder *> output_indexes_to_tensor_;
   int64_t nodes_num_;  // Node name 自生成计数
 };
-
 
 EsCGraphBuilder::EsCGraphBuilder() {
   // new失败说明业务无法正常进行，主动抛出异常

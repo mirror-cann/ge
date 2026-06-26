@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,7 +24,7 @@ bool UserGraphsManager::ShouldUseSliceSchedule(uint32_t user_graph_id) const {
 }
 
 Status UserGraphsManager::AddGraph(uint32_t user_graph_id, const Graph &graph,
-  const std::map<std::string, std::string> &options) {
+                                   const std::map<std::string, std::string> &options) {
   if (!EnableSliceSchedule()) {
     return graph_manager_.AddGraph(user_graph_id, graph, options, domi::GetContext());
   }
@@ -37,7 +37,7 @@ Status UserGraphsManager::AddGraph(uint32_t user_graph_id, const Graph &graph,
     GELOGI("Graph[%u] does not support slice schedule, fallback to traditional mode.", user_graph_id);
     return graph_manager_.AddGraph(user_graph_id, graph, options, domi::GetContext());
   }
-  
+
   SetLocalOmgContext(domi::GetContext());
   GetThreadLocalContext().SetGraphOption(options);
   std::lock_guard<std::mutex> locker(user_graph_ctrl_mutex_);
@@ -55,7 +55,7 @@ Status UserGraphsManager::AddGraph(uint32_t user_graph_id, const Graph &graph,
 }
 
 Status UserGraphsManager::BuildGraph(uint32_t user_graph_id, const std::vector<GeTensor> &inputs,
-  uint64_t session_id) const {
+                                     uint64_t session_id) const {
   if (!ShouldUseSliceSchedule(user_graph_id)) {
     GeRootModelPtr ge_root_model;
     return graph_manager_.BuildGraph(user_graph_id, inputs, ge_root_model, session_id, true);
@@ -65,8 +65,8 @@ Status UserGraphsManager::BuildGraph(uint32_t user_graph_id, const std::vector<G
   return SUCCESS;
 }
 
-Status UserGraphsManager::RunGraphAsync(uint32_t user_graph_id, std::vector<gert::Tensor> &&inputs,
-    uint64_t session_id, const RunAsyncCallbackV2 &callback) {
+Status UserGraphsManager::RunGraphAsync(uint32_t user_graph_id, std::vector<gert::Tensor> &&inputs, uint64_t session_id,
+                                        const RunAsyncCallbackV2 &callback) {
   if (!ShouldUseSliceSchedule(user_graph_id)) {
     return graph_manager_.RunGraphAsync(user_graph_id, std::move(inputs), session_id, callback);
   }
@@ -85,7 +85,7 @@ Status UserGraphsManager::RunGraphAsync(uint32_t user_graph_id, std::vector<gert
   return SUCCESS;
 }
 
-UserGraphControl* UserGraphsManager::GetUserGraphControl(uint32_t user_graph_id) {
+UserGraphControl *UserGraphsManager::GetUserGraphControl(uint32_t user_graph_id) {
   std::lock_guard<std::mutex> locker(user_graph_ctrl_mutex_);
   UserGraphControl *user_graph_control = nullptr;
   auto iter = ids_to_user_graph_ctrl_.find(user_graph_id);

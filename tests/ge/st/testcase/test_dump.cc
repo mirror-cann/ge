@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -47,7 +47,7 @@ class DumpTest : public testing::Test {
   static void BuildGraphWithDumpOptions(const std::map<std::string, std::string> &dump_options) {
     std::map<std::string, std::string> options;
     //  OPTION_EXEC_DUMP_STEP
-    //OPTION_EXEC_DUMP_MODE
+    // OPTION_EXEC_DUMP_MODE
     EXPECT_EQ(GEInitialize(options), SUCCESS);
 
     std::map<std::string, std::string> session_options;
@@ -83,7 +83,7 @@ TEST_F(DumpTest, TestSetDumpDebugByOption) {
   std::map<std::string, std::string> dump_options;
   dump_options.emplace(OPTION_EXEC_ENABLE_DUMP_DEBUG, "1");
   dump_options.emplace(OPTION_EXEC_DUMP_PATH, "./");
-  dump_options.emplace(OPTION_EXEC_DUMP_DEBUG_MODE, OP_DEBUG_AICORE); // OP_DEBUG_ATOMIC /  OP_DEBUG_ALL
+  dump_options.emplace(OPTION_EXEC_DUMP_DEBUG_MODE, OP_DEBUG_AICORE);  // OP_DEBUG_ATOMIC /  OP_DEBUG_ALL
   BuildGraphWithDumpOptions(dump_options);
 
   dump_options[OPTION_EXEC_DUMP_DEBUG_MODE] = OP_DEBUG_ATOMIC;
@@ -101,14 +101,11 @@ TEST_F(DumpTest, TestSetDumpStatusByCmd) {
   EXPECT_EQ(ge_executor.CommandHandle(dump_command), ACL_ERROR_GE_COMMAND_HANDLE);
 
   // cmd params saved as: { key1, val1, key2, val2, key3, val3 }
-  dump_command.cmd_params = {DUMP_FILE_PATH, "./",
-                             DUMP_STATUS, "on",
-                             DUMP_MODEL, "om",
-                             DUMP_MODE, "all",
-                             DUMP_LAYER, "relu"};
+  dump_command.cmd_params = {DUMP_FILE_PATH, "./",      DUMP_STATUS, "on",       DUMP_MODEL,
+                             "om",           DUMP_MODE, "all",       DUMP_LAYER, "relu"};
   EXPECT_EQ(ge_executor.CommandHandle(dump_command), SUCCESS);
 
-//  DumpManager::GetInstance().GetDumpProperties(kInferSessionId).IsSingleOpNeedDump();
+  //  DumpManager::GetInstance().GetDumpProperties(kInferSessionId).IsSingleOpNeedDump();
 
   dump_command.cmd_params = {DUMP_STATUS, "off"};
   EXPECT_EQ(ge_executor.CommandHandle(dump_command), SUCCESS);
@@ -594,28 +591,28 @@ TEST_F(DumpTest, TestSubgraphDumpWithRootGraphConfig) {
   dump_options.emplace(OPTION_EXEC_DUMP_MODE, "all");
   // 使用根图名配置dump
   dump_options.emplace(OPTION_EXEC_DUMP_LAYER, "root_graph:conv");
-  
+
   std::map<std::string, std::string> options;
   EXPECT_EQ(GEInitialize(options), SUCCESS);
-  
+
   std::map<std::string, std::string> session_options;
   session_options = dump_options;
   Session session(session_options);
-  
+
   GraphId graph_id = 1;
   const auto compute_graph = MakeShared<ComputeGraph>("subgraph");
   Graph graph = GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
-  
+
   // 模拟子图（设置父图）
   // 注意：在实际场景中，ComputeGraph的SetParentGraph由外部设置
   // 这里我们创建一个根图作为参考
-  
+
   EXPECT_EQ(session.AddGraph(graph_id, graph), SUCCESS);
-  
+
   vector<Tensor> inputs;
   vector<InputTensorInfo> tensors;
   EXPECT_EQ(session.BuildGraph(graph_id, inputs), FAILED);
-  
+
   EXPECT_EQ(session.RemoveGraph(graph_id), SUCCESS);
   EXPECT_EQ(GEFinalize(), SUCCESS);
 }
@@ -631,24 +628,24 @@ TEST_F(DumpTest, TestSubgraphBlacklistWithRootGraph) {
   dump_options.emplace(OPTION_EXEC_DUMP_LAYER, "subgraph:conv");
   // 使用根图名配置黑名单
   dump_options.emplace("ge.exec.dumpBlacklist", "root_graph:conv:output:0");
-  
+
   std::map<std::string, std::string> options;
   EXPECT_EQ(GEInitialize(options), SUCCESS);
-  
+
   std::map<std::string, std::string> session_options;
   session_options = dump_options;
   Session session(session_options);
-  
+
   GraphId graph_id = 1;
   const auto compute_graph = MakeShared<ComputeGraph>("subgraph");
   Graph graph = GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
-  
+
   EXPECT_EQ(session.AddGraph(graph_id, graph), SUCCESS);
-  
+
   vector<Tensor> inputs;
   vector<InputTensorInfo> tensors;
   EXPECT_EQ(session.BuildGraph(graph_id, inputs), FAILED);
-  
+
   EXPECT_EQ(session.RemoveGraph(graph_id), SUCCESS);
   EXPECT_EQ(GEFinalize(), SUCCESS);
 }
@@ -663,24 +660,24 @@ TEST_F(DumpTest, TestGlobalBlacklistForSubgraph) {
   dump_options.emplace(OPTION_EXEC_DUMP_LAYER, "conv");
   // 使用全局黑名单
   dump_options.emplace("ge.exec.dumpBlacklist", "*:conv:input:0");
-  
+
   std::map<std::string, std::string> options;
   EXPECT_EQ(GEInitialize(options), SUCCESS);
-  
+
   std::map<std::string, std::string> session_options;
   session_options = dump_options;
   Session session(session_options);
-  
+
   GraphId graph_id = 1;
   const auto compute_graph = MakeShared<ComputeGraph>("test_graph");
   Graph graph = GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
-  
+
   EXPECT_EQ(session.AddGraph(graph_id, graph), SUCCESS);
-  
+
   vector<Tensor> inputs;
   vector<InputTensorInfo> tensors;
   EXPECT_EQ(session.BuildGraph(graph_id, inputs), FAILED);
-  
+
   EXPECT_EQ(session.RemoveGraph(graph_id), SUCCESS);
   EXPECT_EQ(GEFinalize(), SUCCESS);
 }

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,7 +33,8 @@ class AssignWeightMemST : public testing::Test {
     setenv("ASCEND_OPP_PATH", opp_path.c_str(), 1);
     system(("touch " + opp_version).c_str());
     system(("echo 'Version=3.20.T100.0.B356' > " + opp_version).c_str());
-    while (bg::ValueHolder::PopGraphFrame() != nullptr) {}
+    while (bg::ValueHolder::PopGraphFrame() != nullptr) {
+    }
   }
 
   void TearDown() {
@@ -49,12 +50,12 @@ TEST_F(AssignWeightMemST, BigMemSinkWeightSUCCESS) {
   auto model_data_holder = ModelDataFaker().GeRootModel(ge_root_model).BuildUnknownShape();
 
   // malloc device mem
-  size_t weight_size = 10U; //require 8
+  size_t weight_size = 10U;  // require 8
   void *weight_mem = nullptr;
   auto rt_ret = aclrtMalloc(&weight_mem, weight_size, ACL_MEM_MALLOC_NORMAL_ONLY);
   ASSERT_EQ(rt_ret, RT_ERROR_NONE);
   ge::ModelData model_data = model_data_holder.Get();
-  
+
   GELOGI("alloc weight size[%zu], addr[%p]", weight_size, weight_mem);
 
   // execuge
@@ -72,8 +73,7 @@ TEST_F(AssignWeightMemST, BigMemSinkWeightSUCCESS) {
   auto outputs = FakeTensors({2, 2}, 2);
   auto inputs = FakeTensors({2, 2}, 2);
 
-  ret = executor->ExecuteSync(inputs.GetTensorList(), inputs.size(), outputs.GetTensorList(),
-                                    outputs.size());
+  ret = executor->ExecuteSync(inputs.GetTensorList(), inputs.size(), outputs.GetTensorList(), outputs.size());
   executor->UnLoad();
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
   rt_ret = aclrtFree(weight_mem);
@@ -138,7 +138,7 @@ TEST_F(AssignWeightMemST, SmallMemSinkWeight_FreeBeforeRun_StillRunOK) {
   auto ge_root_model = ge_model_builder.BuildGeRootModel();
   auto model_data_holder = ModelDataFaker().GeRootModel(ge_root_model).BuildUnknownShape();
   // malloc device mem
-  size_t weight_size = 4U; //require 8
+  size_t weight_size = 4U;  // require 8
   void *weight_mem = nullptr;
   auto rt_ret = aclrtMalloc(&weight_mem, weight_size, ACL_MEM_MALLOC_NORMAL_ONLY);
   ASSERT_EQ(rt_ret, RT_ERROR_NONE);
@@ -148,7 +148,7 @@ TEST_F(AssignWeightMemST, SmallMemSinkWeight_FreeBeforeRun_StillRunOK) {
   ge::graphStatus ret = ge::GRAPH_SUCCESS;
   auto executor = LoadExecutorFromModelData(model_data, ret);
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
-  // weight_mem is small than requred(8) by model, will alloc in framework, so free meme will still run ok
+  // weight_mem is small than required(8) by model, will alloc in framework, so free meme will still run ok
   rt_ret = aclrtFree(weight_mem);
   ASSERT_EQ(rt_ret, RT_ERROR_NONE);
 
@@ -162,8 +162,7 @@ TEST_F(AssignWeightMemST, SmallMemSinkWeight_FreeBeforeRun_StillRunOK) {
   auto outputs = FakeTensors({2, 2}, 2);
   auto inputs = FakeTensors({2, 2}, 2);
 
-  ret = executor->ExecuteSync(inputs.GetTensorList(), inputs.size(), outputs.GetTensorList(),
-                                    outputs.size());
+  ret = executor->ExecuteSync(inputs.GetTensorList(), inputs.size(), outputs.GetTensorList(), outputs.size());
   executor->UnLoad();
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
 }
@@ -193,9 +192,8 @@ TEST_F(AssignWeightMemST, MemSinkWeight_UserDefaultWeight) {
   auto outputs = FakeTensors({2, 2}, 2);
   auto inputs = FakeTensors({2, 2}, 2);
 
-  ret = executor->ExecuteSync(inputs.GetTensorList(), inputs.size(), outputs.GetTensorList(),
-                                    outputs.size());
+  ret = executor->ExecuteSync(inputs.GetTensorList(), inputs.size(), outputs.GetTensorList(), outputs.size());
   executor->UnLoad();
   ASSERT_EQ(ret, ge::GRAPH_SUCCESS);
 }
-} // namespace gert
+}  // namespace gert

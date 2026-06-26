@@ -11,6 +11,7 @@
 # -----------------------------------------------------------------------------------------------------------
 
 """Python GE passes public package."""
+
 __all__ = [
     "DecomposePass",
     "FusionBasePass",
@@ -71,6 +72,7 @@ def __getattr__(name: str):
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
     import importlib
+
     module = importlib.import_module(module_name, __name__)
     value = getattr(module, name)
     globals()[name] = value

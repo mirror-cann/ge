@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -16,12 +16,11 @@
 namespace fe {
 OpDtypeSelectionStrategyDefaultMode::OpDtypeSelectionStrategyDefaultMode(
     FormatDtypeQuerierPtr format_dtype_querier_ptr, OpDtypeRiseMatcherPtr op_dtype_rise_matcher_ptr)
-    : OpDtypeSeletionStrategyBase(format_dtype_querier_ptr),
-      op_dtype_rise_matcher_ptr_(op_dtype_rise_matcher_ptr) {}
+    : OpDtypeSeletionStrategyBase(format_dtype_querier_ptr), op_dtype_rise_matcher_ptr_(op_dtype_rise_matcher_ptr) {}
 
 OpDtypeSelectionStrategyDefaultMode::~OpDtypeSelectionStrategyDefaultMode() {}
 
-Status OpDtypeSelectionStrategyDefaultMode::Run(FormatDtypeSelectionBasicInfo& basic_info,
+Status OpDtypeSelectionStrategyDefaultMode::Run(FormatDtypeSelectionBasicInfo &basic_info,
                                                 ForbiddenDtype forbidden_dtype) {
   FE_CHECK_NOTNULL(basic_info.node);
   auto cur_op_desc_ptr = basic_info.node->GetOpDesc();
@@ -41,8 +40,8 @@ Status OpDtypeSelectionStrategyDefaultMode::Run(FormatDtypeSelectionBasicInfo& b
   }
   fe::PrecisionMode precision_mode = fe::PrecisionMode::ENUM_UNDEFINED;
   FeGraphUtils::GetPrecisionModeFromGraph(*(basic_info.node->GetOwnerComputeGraph()), precision_mode);
-  FE_LOGD("Op %s: match the origin dtype, the expected dtype is %u, precision mode is %d.",
-          cur_op_desc_name.c_str(), origin_dtype, precision_mode);
+  FE_LOGD("Op %s: match the origin dtype, the expected dtype is %u, precision mode is %d.", cur_op_desc_name.c_str(),
+          origin_dtype, precision_mode);
   Status match_origin_dtype_res = op_dtype_rise_matcher_ptr_->Match(input_or_output_dtype_vec, origin_dtype,
                                                                     basic_info.matched_index_vec, forbidden_dtype);
   FE_LOGD("After matching, size of vec is %zu.", basic_info.matched_index_vec.size());
@@ -54,4 +53,4 @@ Status OpDtypeSelectionStrategyDefaultMode::Run(FormatDtypeSelectionBasicInfo& b
   }
   return SUCCESS;
 }
-}
+}  // namespace fe

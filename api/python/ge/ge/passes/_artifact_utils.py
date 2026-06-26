@@ -23,7 +23,6 @@ from pathlib import Path
 from types import ModuleType
 from typing import Iterable, Optional
 
-
 BRIDGE_ABI_VERSION = 1
 NATIVE_MODULE_NAME = "ge.passes._ge_pass_native"
 
@@ -98,9 +97,11 @@ def find_prebuilt_artifact() -> Optional[PythonPassArtifact]:
     python_tag = current_python_tag()
     platform_tag = current_platform_tag()
     for artifact in iter_artifacts():
-        if (artifact.python_tag == python_tag and
-                artifact.platform_tag == platform_tag and
-                artifact.bridge_abi == BRIDGE_ABI_VERSION):
+        if (
+            artifact.python_tag == python_tag
+            and artifact.platform_tag == platform_tag
+            and artifact.bridge_abi == BRIDGE_ABI_VERSION
+        ):
             return artifact
     return None
 

@@ -26,12 +26,12 @@ class ArgsHandler {
   /// @param host_args Host 侧 args buffer 指针
   /// @param args_size Args buffer 大小（字节）
   /// @return 设备侧 KernelArgs 指针（VA 地址），失败返回 nullptr
-  virtual const KernelArgs* MallocReadOnlyDevArgs(void *host_args, size_t args_size) = 0;
+  virtual const KernelArgs *MallocReadOnlyDevArgs(void *host_args, size_t args_size) = 0;
 
   /// 获取所有 KernelArgs（用于 UpdateHostArgs）
   /// @param placement kPlacementHost 或 kPlacementDevice
   /// @return KernelArgs deque 的引用（支持多次 malloc，deque push_back 不失效已有元素指针）
-  virtual const std::deque<KernelArgs>& GetKernelArgs(Placement placement) const = 0;
+  virtual const std::deque<KernelArgs> &GetKernelArgs(Placement placement) const = 0;
 };
 
 }  // namespace gert

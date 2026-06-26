@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,16 +25,11 @@ constexpr size_t k2ByteSize = 2UL;
 constexpr size_t k4ByteSize = 4UL;
 constexpr size_t k8ByteSize = 8UL;
 constexpr size_t k16ByteSize = 16UL;
-constexpr uint32_t kShfAlloc = 0x2U; // 表示在进程运行时，占用内存
+constexpr uint32_t kShfAlloc = 0x2U;  // 表示在进程运行时，占用内存
 
 using GetByteFunc = std::function<uint64_t(const uint8_t[], const int32_t)>;
 
-enum class ElfDataFormat : int32_t {
-  kElfDataNone = 0,
-  kElfData2Lsb = 1,
-  kElfData2Msb = 2,
-  kEnd = 3
-};
+enum class ElfDataFormat : int32_t { kElfDataNone = 0, kElfData2Lsb = 1, kElfData2Msb = 2, kEnd = 3 };
 
 struct Elf64ExternalShdr final {
   std::array<uint8_t, k4ByteSize> sh_name;
@@ -112,7 +107,7 @@ struct ElfData {
   bool data_flag;
   bool contains_ascend_meta;
 };
-  
+
 uint64_t ByteGetBigEndian(const uint8_t field[], const size_t size) {
   uint64_t output_byte = 0UL;
   constexpr size_t kMaxShift = 63;
@@ -124,7 +119,7 @@ uint64_t ByteGetBigEndian(const uint8_t field[], const size_t size) {
   }
   return output_byte;
 }
-  
+
 uint64_t ByteGetLittleEndian(const uint8_t field[], const int32_t size) {
   uint64_t output_byte = 0UL;
   for (size_t i = 0UL; i < static_cast<size_t>(size); i++) {
@@ -132,7 +127,7 @@ uint64_t ByteGetLittleEndian(const uint8_t field[], const int32_t size) {
   }
   return output_byte;
 }
-  
+
 GetByteFunc SwitchGetByteFunc(const int32_t elf_format) {
   GetByteFunc func;
   switch (elf_format) {
@@ -154,33 +149,47 @@ Status GetFileHeader(ElfData &elf_data) {
   GE_ASSERT_TRUE(memcpy_s(elf_data.elf_header.e_ident.data(), k16ByteSize, elf_data.obj_ptr, k16ByteSize) == EOK);
   elf_data.obj_ptr += k16ByteSize;
   auto get_byte_func = SwitchGetByteFunc(static_cast<int32_t>(elf_data.elf_header.e_ident[kElfDataIdx]));
-  GE_ASSERT_TRUE(static_cast<int32_t>(elf_data.elf_header.e_ident[kElfClassIdx]) == kElfClass64, "Elf cannot be 32 bit.");
+  GE_ASSERT_TRUE(static_cast<int32_t>(elf_data.elf_header.e_ident[kElfClassIdx]) == kElfClass64,
+                 "Elf cannot be 32 bit.");
   size_t offset = 0UL;
-  elf_data.elf_header.e_type = static_cast<uint16_t>(get_byte_func(static_cast<const uint8_t *>(&elf_data.obj_ptr[offset]), static_cast<int32_t>(k2ByteSize)));
+  elf_data.elf_header.e_type = static_cast<uint16_t>(
+      get_byte_func(static_cast<const uint8_t *>(&elf_data.obj_ptr[offset]), static_cast<int32_t>(k2ByteSize)));
   offset += k2ByteSize;
-  elf_data.elf_header.e_machine = static_cast<uint16_t>(get_byte_func(static_cast<const uint8_t *>(&elf_data.obj_ptr[offset]), static_cast<int32_t>(k2ByteSize)));
+  elf_data.elf_header.e_machine = static_cast<uint16_t>(
+      get_byte_func(static_cast<const uint8_t *>(&elf_data.obj_ptr[offset]), static_cast<int32_t>(k2ByteSize)));
   offset += k2ByteSize;
-  elf_data.elf_header.e_version = get_byte_func(static_cast<const uint8_t *>(&elf_data.obj_ptr[offset]), static_cast<int32_t>(k4ByteSize));
+  elf_data.elf_header.e_version =
+      get_byte_func(static_cast<const uint8_t *>(&elf_data.obj_ptr[offset]), static_cast<int32_t>(k4ByteSize));
   offset += k4ByteSize;
-  elf_data.elf_header.e_entry = get_byte_func(static_cast<const uint8_t *>(&elf_data.obj_ptr[offset]), static_cast<int32_t>(k8ByteSize));
+  elf_data.elf_header.e_entry =
+      get_byte_func(static_cast<const uint8_t *>(&elf_data.obj_ptr[offset]), static_cast<int32_t>(k8ByteSize));
   offset += k8ByteSize;
-  elf_data.elf_header.e_phoff = get_byte_func(static_cast<const uint8_t *>(&elf_data.obj_ptr[offset]), static_cast<int32_t>(k8ByteSize));
+  elf_data.elf_header.e_phoff =
+      get_byte_func(static_cast<const uint8_t *>(&elf_data.obj_ptr[offset]), static_cast<int32_t>(k8ByteSize));
   offset += k8ByteSize;
-  elf_data.elf_header.e_shoff = get_byte_func(static_cast<const uint8_t *>(&elf_data.obj_ptr[offset]), static_cast<int32_t>(k8ByteSize));
+  elf_data.elf_header.e_shoff =
+      get_byte_func(static_cast<const uint8_t *>(&elf_data.obj_ptr[offset]), static_cast<int32_t>(k8ByteSize));
   offset += k8ByteSize;
-  elf_data.elf_header.e_flags = get_byte_func(static_cast<const uint8_t *>(&elf_data.obj_ptr[offset]), static_cast<int32_t>(k4ByteSize));
+  elf_data.elf_header.e_flags =
+      get_byte_func(static_cast<const uint8_t *>(&elf_data.obj_ptr[offset]), static_cast<int32_t>(k4ByteSize));
   offset += k4ByteSize;
-  elf_data.elf_header.e_ehsize = static_cast<uint32_t>(get_byte_func(static_cast<const uint8_t *>(&elf_data.obj_ptr[offset]), static_cast<int32_t>(k2ByteSize)));
+  elf_data.elf_header.e_ehsize = static_cast<uint32_t>(
+      get_byte_func(static_cast<const uint8_t *>(&elf_data.obj_ptr[offset]), static_cast<int32_t>(k2ByteSize)));
   offset += k2ByteSize;
-  elf_data.elf_header.e_phentsize = static_cast<uint32_t>(get_byte_func(static_cast<const uint8_t *>(&elf_data.obj_ptr[offset]), static_cast<int32_t>(k2ByteSize)));
+  elf_data.elf_header.e_phentsize = static_cast<uint32_t>(
+      get_byte_func(static_cast<const uint8_t *>(&elf_data.obj_ptr[offset]), static_cast<int32_t>(k2ByteSize)));
   offset += k2ByteSize;
-  elf_data.elf_header.e_phnum = static_cast<uint32_t>(get_byte_func(static_cast<const uint8_t *>(&elf_data.obj_ptr[offset]), static_cast<int32_t>(k2ByteSize)));
+  elf_data.elf_header.e_phnum = static_cast<uint32_t>(
+      get_byte_func(static_cast<const uint8_t *>(&elf_data.obj_ptr[offset]), static_cast<int32_t>(k2ByteSize)));
   offset += k2ByteSize;
-  elf_data.elf_header.e_shentsize = static_cast<uint32_t>(get_byte_func(static_cast<const uint8_t *>(&elf_data.obj_ptr[offset]), static_cast<int32_t>(k2ByteSize)));
+  elf_data.elf_header.e_shentsize = static_cast<uint32_t>(
+      get_byte_func(static_cast<const uint8_t *>(&elf_data.obj_ptr[offset]), static_cast<int32_t>(k2ByteSize)));
   offset += k2ByteSize;
-  elf_data.elf_header.e_shnum = static_cast<uint32_t>(get_byte_func(static_cast<const uint8_t *>(&elf_data.obj_ptr[offset]), static_cast<int32_t>(k2ByteSize)));
+  elf_data.elf_header.e_shnum = static_cast<uint32_t>(
+      get_byte_func(static_cast<const uint8_t *>(&elf_data.obj_ptr[offset]), static_cast<int32_t>(k2ByteSize)));
   offset += k2ByteSize;
-  elf_data.elf_header.e_shstrndx = static_cast<uint32_t>(get_byte_func(static_cast<const uint8_t *>(&elf_data.obj_ptr[offset]), static_cast<int32_t>(k2ByteSize)));
+  elf_data.elf_header.e_shstrndx = static_cast<uint32_t>(
+      get_byte_func(static_cast<const uint8_t *>(&elf_data.obj_ptr[offset]), static_cast<int32_t>(k2ByteSize)));
   offset += k2ByteSize;
   elf_data.obj_ptr += offset;
   return GRAPH_SUCCESS;
@@ -189,32 +198,47 @@ Status GetFileHeader(ElfData &elf_data) {
 Status Get64BitSectionHeaders(ElfData &elf_data) {
   const uint32_t sh_size = elf_data.elf_header.e_shentsize;
   const uint32_t sh_num = elf_data.elf_header.e_shnum;
-  GE_ASSERT_TRUE((sh_size > 0U) && (sh_num > 0U), "The value of e_shentsize: %u field or e_shnum: %u should more than 0.", sh_size, sh_num);
-  GE_ASSERT_TRUE((sh_num <= (~(0UL) / sh_size)), "The value of e_shentsize: %u and e_shnum: %u is invalid.", sh_size, sh_num);
+  GE_ASSERT_TRUE((sh_size > 0U) && (sh_num > 0U),
+                 "The value of e_shentsize: %u field or e_shnum: %u should more than 0.", sh_size, sh_num);
+  GE_ASSERT_TRUE((sh_num <= (~(0UL) / sh_size)), "The value of e_shentsize: %u and e_shnum: %u is invalid.", sh_size,
+                 sh_num);
   GE_ASSERT_TRUE((static_cast<size_t>(sh_size) == sizeof(Elf64ExternalShdr)),
-      "The value of e_shentsize: %zu should equal to size of elf section header: %zu.", sh_size, sizeof(Elf64ExternalShdr));
-  
-  Elf64ExternalShdr *shdrs = PtrToPtr<uint8_t, Elf64ExternalShdr>(&elf_data.obj_ptr_origin[elf_data.elf_header.e_shoff]);
+                 "The value of e_shentsize: %zu should equal to size of elf section header: %zu.", sh_size,
+                 sizeof(Elf64ExternalShdr));
+
+  Elf64ExternalShdr *shdrs =
+      PtrToPtr<uint8_t, Elf64ExternalShdr>(&elf_data.obj_ptr_origin[elf_data.elf_header.e_shoff]);
   GE_ASSERT_NOTNULL(shdrs);
   elf_data.section_headers.resize(static_cast<uint64_t>(sh_num));
   auto get_byte_func = SwitchGetByteFunc(static_cast<int32_t>(elf_data.elf_header.e_ident[kElfDataIdx]));
   for (size_t i = 0U; i < sh_num; i++) {
     const uint64_t obj_offset = sizeof(Elf64ExternalShdr) * static_cast<uint64_t>(i + 1U) + elf_data.elf_header.e_shoff;
     GE_ASSERT_TRUE(obj_offset <= elf_data.obj_size,
-        "Section %u is out of obj, num:%u, e_shoff:%lu, obj size: %lu, Elf64ExternalShdr size: %zu.",
-        i, sh_num, elf_data.elf_header.e_shoff, elf_data.obj_size, sizeof(Elf64ExternalShdr));
-    elf_data.section_headers[i].sh_name = static_cast<uint32_t>(get_byte_func(static_cast<const uint8_t *>(shdrs[i].sh_name.data()), static_cast<int32_t>(k4ByteSize)));
-    elf_data.section_headers[i].sh_type = static_cast<uint32_t>(get_byte_func(static_cast<const uint8_t *>(shdrs[i].sh_type.data()), static_cast<int32_t>(k4ByteSize)));
-    elf_data.section_headers[i].sh_flags = get_byte_func(static_cast<const uint8_t *>(shdrs[i].sh_flags.data()), static_cast<int32_t>(k8ByteSize));
-    elf_data.section_headers[i].sh_addr = get_byte_func(static_cast<const uint8_t *>(shdrs[i].sh_addr.data()), static_cast<int32_t>(k8ByteSize));
-    elf_data.section_headers[i].sh_size = get_byte_func(static_cast<const uint8_t *>(shdrs[i].sh_size.data()), static_cast<int32_t>(k8ByteSize));
-    elf_data.section_headers[i].sh_entsize = get_byte_func(static_cast<const uint8_t *>(shdrs[i].sh_entsize.data()), static_cast<int32_t>(k8ByteSize));
-    elf_data.section_headers[i].sh_link = static_cast<uint32_t>(get_byte_func(static_cast<const uint8_t *>(shdrs[i].sh_link.data()), static_cast<int32_t>(k8ByteSize)));
-    elf_data.section_headers[i].sh_info = static_cast<uint32_t>(get_byte_func(static_cast<const uint8_t *>(shdrs[i].sh_info.data()), static_cast<int32_t>(k8ByteSize)));
-    elf_data.section_headers[i].sh_offset = get_byte_func(static_cast<const uint8_t *>(shdrs[i].sh_offset.data()), static_cast<int32_t>(k8ByteSize));
-    elf_data.section_headers[i].sh_addralign = get_byte_func(static_cast<const uint8_t *>(shdrs[i].sh_addralign.data()), static_cast<int32_t>(k8ByteSize));
-    GE_ASSERT_TRUE(elf_data.section_headers[i].sh_link <= sh_num, "Section %u sh_link value:%lu invalid, which should in range [0, %u].",
-        i, elf_data.section_headers[i].sh_link, sh_num);
+                   "Section %u is out of obj, num:%u, e_shoff:%lu, obj size: %lu, Elf64ExternalShdr size: %zu.", i,
+                   sh_num, elf_data.elf_header.e_shoff, elf_data.obj_size, sizeof(Elf64ExternalShdr));
+    elf_data.section_headers[i].sh_name = static_cast<uint32_t>(
+        get_byte_func(static_cast<const uint8_t *>(shdrs[i].sh_name.data()), static_cast<int32_t>(k4ByteSize)));
+    elf_data.section_headers[i].sh_type = static_cast<uint32_t>(
+        get_byte_func(static_cast<const uint8_t *>(shdrs[i].sh_type.data()), static_cast<int32_t>(k4ByteSize)));
+    elf_data.section_headers[i].sh_flags =
+        get_byte_func(static_cast<const uint8_t *>(shdrs[i].sh_flags.data()), static_cast<int32_t>(k8ByteSize));
+    elf_data.section_headers[i].sh_addr =
+        get_byte_func(static_cast<const uint8_t *>(shdrs[i].sh_addr.data()), static_cast<int32_t>(k8ByteSize));
+    elf_data.section_headers[i].sh_size =
+        get_byte_func(static_cast<const uint8_t *>(shdrs[i].sh_size.data()), static_cast<int32_t>(k8ByteSize));
+    elf_data.section_headers[i].sh_entsize =
+        get_byte_func(static_cast<const uint8_t *>(shdrs[i].sh_entsize.data()), static_cast<int32_t>(k8ByteSize));
+    elf_data.section_headers[i].sh_link = static_cast<uint32_t>(
+        get_byte_func(static_cast<const uint8_t *>(shdrs[i].sh_link.data()), static_cast<int32_t>(k8ByteSize)));
+    elf_data.section_headers[i].sh_info = static_cast<uint32_t>(
+        get_byte_func(static_cast<const uint8_t *>(shdrs[i].sh_info.data()), static_cast<int32_t>(k8ByteSize)));
+    elf_data.section_headers[i].sh_offset =
+        get_byte_func(static_cast<const uint8_t *>(shdrs[i].sh_offset.data()), static_cast<int32_t>(k8ByteSize));
+    elf_data.section_headers[i].sh_addralign =
+        get_byte_func(static_cast<const uint8_t *>(shdrs[i].sh_addralign.data()), static_cast<int32_t>(k8ByteSize));
+    GE_ASSERT_TRUE(elf_data.section_headers[i].sh_link <= sh_num,
+                   "Section %u sh_link value:%lu invalid, which should in range [0, %u].", i,
+                   elf_data.section_headers[i].sh_link, sh_num);
   }
   return GRAPH_SUCCESS;
 }
@@ -232,7 +256,7 @@ Status ProcessSectionTableGetOffset(ElfData &elf_data, uint32_t &offset) {
   offset = static_cast<uint32_t>(elf_data.text_offset);
   return GRAPH_SUCCESS;
 }
-}
+}  // namespace
 
 Status Elf::GetElfOffset(uint8_t *const bin_data, const uint32_t bin_len, uint32_t &bin_data_offset) {
   GE_ASSERT_NOTNULL(bin_data);
@@ -246,4 +270,4 @@ Status Elf::GetElfOffset(uint8_t *const bin_data, const uint32_t bin_len, uint32
   GELOGI("Get elf offset: %u", bin_data_offset);
   return GRAPH_SUCCESS;
 }
-} // namespace ge
+}  // namespace ge

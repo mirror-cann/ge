@@ -18,39 +18,39 @@ namespace ge {
 using IAmctCalibrationPtr = std::shared_ptr<IAmctCalibration>;
 
 class GeAmctRegistry {
-public:
+ public:
   ~GeAmctRegistry() = default;
 
-  GeAmctRegistry(const GeAmctRegistry&) = delete;
-  GeAmctRegistry(GeAmctRegistry&&) = delete;
-  GeAmctRegistry& operator=(const GeAmctRegistry&) = delete;
-  GeAmctRegistry& operator=(GeAmctRegistry&&) = delete;
+  GeAmctRegistry(const GeAmctRegistry &) = delete;
+  GeAmctRegistry(GeAmctRegistry &&) = delete;
+  GeAmctRegistry &operator=(const GeAmctRegistry &) = delete;
+  GeAmctRegistry &operator=(GeAmctRegistry &&) = delete;
 
-  static GeAmctRegistry& GetInstance();
+  static GeAmctRegistry &GetInstance();
 
-  void Register(const IAmctCalibrationPtr& calibration);
+  void Register(const IAmctCalibrationPtr &calibration);
 
   graphStatus Invoke(Graph &graph, const std::map<std::string, std::string> &options) const;
 
   void Unregister();
 
-private:
+ private:
   GeAmctRegistry() = default;
 
   IAmctCalibrationPtr calibration_;
 };
 
 class GeAmctRegistrar {
-public:
-  explicit GeAmctRegistrar(const IAmctCalibrationPtr& calibration);
+ public:
+  explicit GeAmctRegistrar(const IAmctCalibrationPtr &calibration);
 };
 
-} // namespace ge
+}  // namespace ge
 
 #define REG_AMCT_CALIBRATION(class_name) REG_AMCT_CALIBRATION_UNIQ_(__COUNTER__, class_name)
 #define REG_AMCT_CALIBRATION_UNIQ_(ctr, class_name) REG_AMCT_CALIBRATION_UNIQ(ctr, class_name)
-#define REG_AMCT_CALIBRATION_UNIQ(ctr, class_name) \
+#define REG_AMCT_CALIBRATION_UNIQ(ctr, class_name)                            \
   static __attribute__((unused)) ge::GeAmctRegistrar ge_amct_registrar##ctr = \
-  ge::GeAmctRegistrar(std::make_shared<class_name>())
+      ge::GeAmctRegistrar(std::make_shared<class_name>())
 
-#endif // INC_REGISTER_AMCT_REGISTRY_H_
+#endif  // INC_REGISTER_AMCT_REGISTRY_H_

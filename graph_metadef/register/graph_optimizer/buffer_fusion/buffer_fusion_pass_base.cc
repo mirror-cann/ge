@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -16,9 +16,9 @@
 
 namespace fe {
 namespace {
-  const std::string kAttrNameIsOpDynamicImpl = "_is_op_dynamic_impl";
-  constexpr uint32_t kNoNeedCompareSize = 2;
-}
+const std::string kAttrNameIsOpDynamicImpl = "_is_op_dynamic_impl";
+constexpr uint32_t kNoNeedCompareSize = 2;
+}  // namespace
 BufferFusionPassBase::BufferFusionPassBase() {}
 
 BufferFusionPassBase::~BufferFusionPassBase() {}
@@ -96,7 +96,7 @@ bool BufferFusionPassBase::CheckNodesImplConsistent(const std::vector<ge::NodePt
   return true;
 }
 
-bool BufferFusionPassBase::CheckNodeIsDynamicShape(const ge::NodePtr& node) {
+bool BufferFusionPassBase::CheckNodeIsDynamicShape(const ge::NodePtr &node) {
   const ge::OpDescPtr op_desc = node->GetOpDesc();
   for (size_t index = 0; index < op_desc->GetAllInputsSize(); ++index) {
     if (FusionTurbo::IsUnknownShape(node, static_cast<int32_t>(index), true)) {

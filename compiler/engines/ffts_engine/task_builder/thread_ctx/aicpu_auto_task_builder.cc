@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -37,15 +37,15 @@ Status AicpuAutoTaskBuilder::GenContextDef(const ge::NodePtr &node, domi::FftsPl
     vector<uint32_t> context_id_list;
     if (ge::AttrUtils::GetListInt(op_desc, kAutoCtxIdList, context_id_list)) {
       if (context_id_list.size() != sub_ffts_plus_context.size()) {
-        REPORT_FFTS_ERROR("[FftsPlusGenTask][GenCtxDef][AicpuAuto] Generating context definition failed: "
-                          "the size of context_id_list is not equal to the size of sub_ffts_plus_context.");
+        REPORT_FFTS_ERROR(
+            "[FftsPlusGenTask][GenCtxDef][AicpuAuto] Generating context definition failed: "
+            "the size of context_id_list is not equal to the size of sub_ffts_plus_context.");
         return FAILED;
       }
       ffts_plus_ctx_def->set_context_id(context_id_list[i]);
     }
-    FFTS_LOGD("GenContextDef nodetype: %s, name: %s, context_type: %u, op_index: %u",
-              node->GetType().c_str(), node->GetName().c_str(),
-              ffts_plus_ctx_def->context_type(), ffts_plus_ctx_def->op_index());
+    FFTS_LOGD("GenContextDef nodetype: %s, name: %s, context_type: %u, op_index: %u", node->GetType().c_str(),
+              node->GetName().c_str(), ffts_plus_ctx_def->context_type(), ffts_plus_ctx_def->op_index());
     domi::FftsPlusAicpuCtxDef *aicpu_ctx_def = ffts_plus_ctx_def->mutable_aicpu_ctx();
     FFTS_CHECK_NOTNULL(aicpu_ctx_def);
     if (FillContextData(aicpu_ctx_def_ptr, aicpu_ctx_def) != SUCCESS) {

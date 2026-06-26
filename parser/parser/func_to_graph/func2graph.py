@@ -2,33 +2,28 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
 
 """Class to convert function to graph"""
 
+import ctypes
+import getopt
 import os
 import sys
-import getopt
-import ctypes
+from ctypes import POINTER, c_char_p, c_int, c_size_t, c_uint8, c_void_p
 from pathlib import Path
-from ctypes import POINTER, c_void_p, c_char_p, c_size_t, c_int, c_uint8
 
 import tensorflow as tf
-from tensorflow.python.framework.errors_impl import NotFoundError
-
-from tensorflow.core.framework import graph_pb2
-from tensorflow.core.framework import tensor_shape_pb2
-from tensorflow.core.framework import types_pb2
-from tensorflow.core.framework import versions_pb2
+from tensorflow.core.framework import graph_pb2, tensor_shape_pb2, types_pb2, versions_pb2
 from tensorflow.python.eager import context
-from tensorflow.python.framework import ops
-from tensorflow.python.framework import versions
+from tensorflow.python.framework import ops, versions
+from tensorflow.python.framework.errors_impl import NotFoundError
 
 
 def _get_num_args(arg_def, node_def):
@@ -73,7 +68,7 @@ def create_retval_for_output_nodes(fdef, graph_def, nested_to_flat_tensor_name):
     """Create retval for output nodes."""
     for i, arg_def in enumerate(fdef.signature.output_arg):
         node_def = graph_def.node.add()
-        node_def.name = '{}_Retval'.format(arg_def.name)
+        node_def.name = "{}_Retval".format(arg_def.name)
         node_def.op = "_Retval"
         node_def.attr["T"].type = arg_def.type
         node_def.attr["index"].i = i
@@ -125,7 +120,7 @@ def build_tensor_name(fdef, default_graph, copied_functions, graph_def):
     nested_to_flat_tensor_name = {}
     for arg_def in fdef.signature.input_arg:
         nested_to_flat_tensor_name[arg_def.name] = arg_def.name
-        control_name = '^{}'.format(arg_def.name)
+        control_name = "^{}".format(arg_def.name)
         nested_to_flat_tensor_name[control_name] = control_name
 
     op_def = None
@@ -148,7 +143,7 @@ def build_tensor_name(fdef, default_graph, copied_functions, graph_def):
         # Index of the output tensor in the flattened list of *all* output
         # tensors of the op.
         update_input_index(node_def, op_def, nested_to_flat_tensor_name)
-    return  nested_to_flat_tensor_name
+    return nested_to_flat_tensor_name
 
 
 def convert_function_def_to_graph_def(fdef, input_shapes=None, copy_functions=True):
@@ -157,7 +152,9 @@ def convert_function_def_to_graph_def(fdef, input_shapes=None, copy_functions=Tr
     graph_def.versions.CopyFrom(
         versions_pb2.VersionDef(
             producer=versions.GRAPH_DEF_VERSION,
-            min_consumer=versions.GRAPH_DEF_VERSION_MIN_CONSUMER))
+            min_consumer=versions.GRAPH_DEF_VERSION_MIN_CONSUMER,
+        )
+    )
 
     default_graph = ops.get_default_graph()
 
@@ -171,9 +168,12 @@ def convert_function_def_to_graph_def(fdef, input_shapes=None, copy_functions=Tr
             copied_functions.add(function_name)
 
     if input_shapes and len(input_shapes) != len(fdef.signature.input_arg):
-        raise ValueError("Length of input_shapes must match the number of " +
-                         "input_args. len(input_shapes): {} len(input_arg): {}".
-                         format(len(input_shapes), len(fdef.signature.input_arg)))
+        raise ValueError(
+            "Length of input_shapes must match the number of "
+            + "input_args. len(input_shapes): {} len(input_arg): {}".format(
+                len(input_shapes), len(fdef.signature.input_arg)
+            )
+        )
 
     # 1. Create _Arg for input nodes.
     create_arg_for_input_nodes(fdef, graph_def, input_shapes)
@@ -202,10 +202,10 @@ def convert_function_def_to_graph_def(fdef, input_shapes=None, copy_functions=Tr
 def convert_graphs(filename):
     """Convert graphs."""
     try:
-        with tf.io.gfile.GFile(filename, 'rb') as f:
+        with tf.io.gfile.GFile(filename, "rb") as f:
             graph_def = tf.compat.v1.GraphDef()
             graph_def.ParseFromString(f.read())
-            tf.import_graph_def(graph_def, name='')
+            tf.import_graph_def(graph_def, name="")
             if len(graph_def.library.function) == 0:
                 print("INFO: The input model does not contain a functionDef and does not require conversion.")
                 return
@@ -216,7 +216,7 @@ def convert_graphs(filename):
                 return
             print("INFO: Convert to subgraphs successfully.")
     except NotFoundError:
-        print('ERROR: model file {} does not exist'.format(filename))
+        print("ERROR: model file {} does not exist".format(filename))
     return
 
 
@@ -229,7 +229,7 @@ def find_so_path():
 
     2. if func2graph.py is moved to another directory, you need to source set_env.bash before execution
     """
-    c_library_name = 'libfunc2graph.so'
+    c_library_name = "libfunc2graph.so"
     # method 1: absolute path
     parent_paths = Path(__file__).resolve().parents
     if len(parent_paths) > 3:
@@ -239,9 +239,9 @@ def find_so_path():
             return so_path
 
     # method 2: env ASCEND_HOME_PATH
-    ascend_home_path = os.environ.get('ASCEND_HOME_PATH')
+    ascend_home_path = os.environ.get("ASCEND_HOME_PATH")
     if not ascend_home_path:
-        raise ValueError('ERROR: please source set_env.bash before execution')
+        raise ValueError("ERROR: please source set_env.bash before execution")
 
     return c_library_name
 
@@ -252,14 +252,14 @@ def load_and_setup_c_library():
     try:
         lib = ctypes.CDLL(str(so_path))
     except OSError as e:
-        print(f'ERROR: shared library {so_path} load failed, reason: {e}')
+        print(f"ERROR: shared library {so_path} load failed, reason: {e}")
         return None
 
     # 2. setup c interface
     lib.GraphDefLibCreate.argtypes = ()
     lib.GraphDefLibCreate.restype = c_void_p
 
-    lib.GraphDefLibDestroy.argtypes = (POINTER(c_void_p), )
+    lib.GraphDefLibDestroy.argtypes = (POINTER(c_void_p),)
     lib.GraphDefLibDestroy.restype = None
 
     lib.GraphDefLibAddGraphDef.argtypes = (c_void_p, c_void_p)
@@ -268,7 +268,7 @@ def load_and_setup_c_library():
     lib.GraphDefLibGetGraphDef.argtypes = (c_void_p, c_int)
     lib.GraphDefLibGetGraphDef.restype = c_void_p
 
-    lib.GraphDefLibGetPbtxt.argtypes = (c_void_p, )
+    lib.GraphDefLibGetPbtxt.argtypes = (c_void_p,)
     lib.GraphDefLibGetPbtxt.restype = c_char_p
 
     lib.GeGraphDefCreate.argtypes = ()
@@ -280,7 +280,7 @@ def load_and_setup_c_library():
     lib.GeGraphDefSetGraph.argtypes = (c_void_p, POINTER(c_uint8), c_size_t)
     lib.GeGraphDefSetGraph.restype = None
 
-    lib.GeGraphDefToString.argtypes = (c_void_p, )
+    lib.GeGraphDefToString.argtypes = (c_void_p,)
     lib.GeGraphDefToString.restype = c_char_p
 
     return lib
@@ -299,8 +299,8 @@ def convert_subgraphs(graph_def, filename):
     for i, fdef in enumerate(graph_def.library.function):
         sub_graph, _ = convert_function_def_to_graph_def(fdef, copy_functions=False)
         print("INFO: Convert FunctionDef, index:{}, name:{}".format(str(i), fdef.signature.name))
-        sub_graph_name = '{}.pb'.format(fdef.signature.name)
-        result_path = '{}/results'.format(os.path.dirname(os.path.abspath(filename)))
+        sub_graph_name = "{}.pb".format(fdef.signature.name)
+        result_path = "{}/results".format(os.path.dirname(os.path.abspath(filename)))
         tf.io.write_graph(sub_graph, result_path, sub_graph_name, as_text=False)
         data_bytes = sub_graph.SerializeToString()
         data_len = len(data_bytes)
@@ -311,18 +311,18 @@ def convert_subgraphs(graph_def, filename):
             print("ERROR: Create GeGraphDef failed.")
             lib.GraphDefLibDestroy(ctypes.byref(c_void_p(graph_def_library)))
             return
-        lib.GeGraphDefSetName(ge_graph_def, fdef.signature.name.encode('utf-8'))
+        lib.GeGraphDefSetName(ge_graph_def, fdef.signature.name.encode("utf-8"))
         lib.GeGraphDefSetGraph(ge_graph_def, data_buffer, data_len)
 
         lib.GraphDefLibAddGraphDef(graph_def_library, ge_graph_def)
-        print(lib.GeGraphDefToString(lib.GraphDefLibGetGraphDef(graph_def_library, i)).decode('utf-8'))
+        print(lib.GeGraphDefToString(lib.GraphDefLibGetGraphDef(graph_def_library, i)).decode("utf-8"))
 
     # Write to prototxt
-    graph_def_file = '{}/graph_def_library.pbtxt'.format(os.path.dirname(os.path.abspath(filename)))
+    graph_def_file = "{}/graph_def_library.pbtxt".format(os.path.dirname(os.path.abspath(filename)))
     print("graph_def_file: ", graph_def_file)
     try:
         with open(graph_def_file, "w") as f:
-            print(lib.GraphDefLibGetPbtxt(graph_def_library).decode('utf-8'), file=f)
+            print(lib.GraphDefLibGetPbtxt(graph_def_library).decode("utf-8"), file=f)
     except IOError:
         print("Could not open file. Creating a new one.")
     lib.GraphDefLibDestroy(ctypes.byref(c_void_p(graph_def_library)))
@@ -331,7 +331,7 @@ def convert_subgraphs(graph_def, filename):
 def usage():
     """Print the usage."""
     print(
-        '''
+        """
         Based on tensorflow 1.15 or later, Python 3
 
         Convert the tensorflow functionDefs in the input model file to single GraphDefs,
@@ -345,26 +345,26 @@ def usage():
           model (-m)              Input model file.
           version (-v)            Prints the version of this software.
           help (-h)               Prints help for commands.
-        '''
+        """
     )
 
 
-if __name__ == '__main__':
-    model = ''
+if __name__ == "__main__":
+    model = ""
     try:
-        opts, args = getopt.getopt(sys.argv[1:], '-v-h-m:', ['version', 'help', 'model='])
+        opts, args = getopt.getopt(sys.argv[1:], "-v-h-m:", ["version", "help", "model="])
     except getopt.GetoptError:
         print("ERROR: Input parameters is invalid, use '--help' to view the help.")
         sys.exit()
     for opt_name, opt_value in opts:
-        if opt_name in ('-m', '--model'):
+        if opt_name in ("-m", "--model"):
             model = opt_value
             print("INFO: Input model file is", model)
             convert_graphs(model)
-        elif opt_name in ('-h', '--help'):
+        elif opt_name in ("-h", "--help"):
             usage()
             break
-        elif opt_name in ('-v', '--version'):
+        elif opt_name in ("-v", "--version"):
             print("version 1.0.0")
             break
     if len(sys.argv) == 1:

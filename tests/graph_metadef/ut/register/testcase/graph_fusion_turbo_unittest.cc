@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -37,62 +37,53 @@ REG_OP(Data)
     .ATTR(index, Int, 0)
     .OP_END_FACTORY_REG(Data)
 
-
-REG_OP(Const)
-    .OUTPUT(y,
-            TensorType({DT_FLOAT, DT_FLOAT16, DT_INT8, DT_INT16, DT_UINT16, DT_UINT8, DT_INT32, DT_INT64, DT_UINT32,
-                        DT_UINT64, DT_BOOL, DT_DOUBLE}))
-        .ATTR(value, Tensor, Tensor())
-        .OP_END_FACTORY_REG(Const);
+        REG_OP(Const)
+    .OUTPUT(y, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT8, DT_INT16, DT_UINT16, DT_UINT8, DT_INT32, DT_INT64, DT_UINT32,
+                           DT_UINT64, DT_BOOL, DT_DOUBLE}))
+    .ATTR(value, Tensor, Tensor())
+    .OP_END_FACTORY_REG(Const);
 
 REG_OP(Transpose)
-    .INPUT(x,
-           TensorType({DT_FLOAT, DT_FLOAT16, DT_INT8, DT_INT16, DT_UINT16, DT_UINT8, DT_INT32, DT_INT64, DT_UINT32,
-                       DT_UINT64, DT_BOOL, DT_DOUBLE}))
-        .INPUT(shape, TensorType({DT_INT32, DT_INT64}))
-        .OUTPUT(y,
-                TensorType({DT_FLOAT, DT_FLOAT16, DT_INT8, DT_INT16, DT_UINT16, DT_UINT8, DT_INT32, DT_INT64, DT_UINT32,
-                            DT_UINT64, DT_BOOL, DT_DOUBLE}))
-        .ATTR(axis, Int, 0)
-        .ATTR(num_axes, Int, -1)
-        .OP_END_FACTORY_REG(Transpose);
+    .INPUT(x, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT8, DT_INT16, DT_UINT16, DT_UINT8, DT_INT32, DT_INT64, DT_UINT32,
+                          DT_UINT64, DT_BOOL, DT_DOUBLE}))
+    .INPUT(shape, TensorType({DT_INT32, DT_INT64}))
+    .OUTPUT(y, TensorType({DT_FLOAT, DT_FLOAT16, DT_INT8, DT_INT16, DT_UINT16, DT_UINT8, DT_INT32, DT_INT64, DT_UINT32,
+                           DT_UINT64, DT_BOOL, DT_DOUBLE}))
+    .ATTR(axis, Int, 0)
+    .ATTR(num_axes, Int, -1)
+    .OP_END_FACTORY_REG(Transpose);
 
 REG_OP(Add)
-    .INPUT(x1, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16,
-                           DT_INT8, DT_UINT8, DT_DOUBLE, DT_COMPLEX128,
-                           DT_COMPLEX64, DT_STRING}))
-        .INPUT(x2, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16,
-                               DT_INT8, DT_UINT8, DT_DOUBLE, DT_COMPLEX128,
-                               DT_COMPLEX64, DT_STRING}))
-        .OUTPUT(y, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16,
-                               DT_INT8, DT_UINT8, DT_DOUBLE, DT_COMPLEX128,
-                               DT_COMPLEX64, DT_STRING}))
-        .OP_END_FACTORY_REG(Add)
+    .INPUT(x1, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16, DT_INT8, DT_UINT8, DT_DOUBLE,
+                           DT_COMPLEX128, DT_COMPLEX64, DT_STRING}))
+    .INPUT(x2, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16, DT_INT8, DT_UINT8, DT_DOUBLE,
+                           DT_COMPLEX128, DT_COMPLEX64, DT_STRING}))
+    .OUTPUT(y, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16, DT_INT8, DT_UINT8, DT_DOUBLE,
+                           DT_COMPLEX128, DT_COMPLEX64, DT_STRING}))
+    .OP_END_FACTORY_REG(Add)
 
-REG_OP(Relu)
-    .INPUT(x, TensorType({DT_FLOAT, DT_FLOAT16, DT_DOUBLE,
-                          DT_INT8, DT_INT32, DT_INT16, DT_INT64,
-                          DT_UINT8, DT_UINT16, DT_QINT8}))
-    .OUTPUT(y, TensorType({DT_FLOAT, DT_FLOAT16, DT_DOUBLE,
-                           DT_INT8, DT_INT32, DT_INT16, DT_INT64,
-                           DT_UINT8, DT_UINT16, DT_QINT8}))
+        REG_OP(Relu)
+    .INPUT(x, TensorType({DT_FLOAT, DT_FLOAT16, DT_DOUBLE, DT_INT8, DT_INT32, DT_INT16, DT_INT64, DT_UINT8, DT_UINT16,
+                          DT_QINT8}))
+    .OUTPUT(y, TensorType({DT_FLOAT, DT_FLOAT16, DT_DOUBLE, DT_INT8, DT_INT32, DT_INT16, DT_INT64, DT_UINT8, DT_UINT16,
+                           DT_QINT8}))
     .OP_END_FACTORY_REG(Relu)
 
-REG_OP(Split)
+        REG_OP(Split)
     .INPUT(split_dim, TensorType({DT_INT32}))
     .INPUT(x, TensorType::BasicType())
     .DYNAMIC_OUTPUT(y, TensorType::BasicType())
     .REQUIRED_ATTR(num_split, Int)
     .OP_END_FACTORY_REG(Split)
 
-REG_OP(Concat)
+        REG_OP(Concat)
     .DYNAMIC_INPUT(x, TensorType::BasicType())
     .INPUT(concat_dim, TensorType::IndexNumberType())
     .OUTPUT(y, TensorType::BasicType())
     .ATTR(N, Int, 1)
     .OP_END_FACTORY_REG(Concat)
 
-REG_OP(RaggedTensorFromVariant)
+        REG_OP(RaggedTensorFromVariant)
     .INPUT(encoded_ragged, TensorType({DT_VARIANT}))
     .DYNAMIC_OUTPUT(output_nested_splits, TensorType({DT_INT32, DT_INT64}))
     .OUTPUT(output_dense_values, TensorType::BasicType())
@@ -102,17 +93,12 @@ REG_OP(RaggedTensorFromVariant)
     .ATTR(Tsplits, Type, DT_INT64)
     .OP_END_FACTORY_REG(RaggedTensorFromVariant)
 
-class UTestFusionTurbo : public testing::Test {
+        class UTestFusionTurbo : public testing::Test {
  public:
-
  protected:
+  void SetUp() {}
 
-
-  void SetUp() {
-  }
-
-  void TearDown() {
-  }
+  void TearDown() {}
 
   ge::NodePtr GetNode(ComputeGraphPtr &graph, const string &name) {
     for (auto &node : graph->GetDirectNode()) {
@@ -131,7 +117,7 @@ class UTestFusionTurbo : public testing::Test {
     OpDescPtr op_desc_output = std::make_shared<OpDesc>("output", "NetOutput");
     OpDescPtr op_desc_input = std::make_shared<OpDesc>("other", "Other");
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim_a = {8, 4, 16, 16};
     GeShape shape_a(dim_a);
     GeTensorDesc tensor_desc_a(shape_a);
@@ -156,7 +142,7 @@ class UTestFusionTurbo : public testing::Test {
     tensor_desc_c.SetDataType(DT_FLOAT);
     tensor_desc_c.SetOriginDataType(DT_FLOAT);
 
-    //vector<int64_t> dim_d;
+    // vector<int64_t> dim_d;
     GeShape shape_d(dim_a);
     GeTensorDesc tensor_desc_d(shape_d);
     tensor_desc_d.SetFormat(FORMAT_NCHW);
@@ -195,7 +181,6 @@ class UTestFusionTurbo : public testing::Test {
   }
 
   ComputeGraphPtr CreateGraphParentAndSub() {
-
     ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
     OpDescPtr op_desc_cast1 = std::make_shared<OpDesc>("cast1", "Cast");
     OpDescPtr op_desc_add1 = std::make_shared<OpDesc>("add1", "Add");
@@ -207,7 +192,7 @@ class UTestFusionTurbo : public testing::Test {
     OpDescPtr op_desc_input = std::make_shared<OpDesc>("other", "Other");
     OpDescPtr op_desc_input1 = std::make_shared<OpDesc>("other1", "Other");
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim_a = {8, 4, 16, 16};
     GeShape shape_a(dim_a);
     GeTensorDesc tensor_desc_a(shape_a);
@@ -232,7 +217,7 @@ class UTestFusionTurbo : public testing::Test {
     tensor_desc_c.SetDataType(DT_FLOAT);
     tensor_desc_c.SetOriginDataType(DT_FLOAT);
 
-    //vector<int64_t> dim_d;
+    // vector<int64_t> dim_d;
     GeShape shape_d(dim_a);
     GeTensorDesc tensor_desc_d(shape_d);
     tensor_desc_d.SetFormat(FORMAT_NCHW);
@@ -246,7 +231,6 @@ class UTestFusionTurbo : public testing::Test {
     tensor_desc_e.SetOriginFormat(FORMAT_NCHW);
     tensor_desc_e.SetDataType(DT_FLOAT16);
     tensor_desc_e.SetOriginDataType(DT_FLOAT);
-
 
     op_desc_input->AddOutputDesc(tensor_desc_a);
 
@@ -290,7 +274,7 @@ class UTestFusionTurbo : public testing::Test {
     GraphUtils::AddEdge(node_other1->GetOutDataAnchor(0), node_add2->GetInDataAnchor(1));
     GraphUtils::AddEdge(node_add2->GetOutDataAnchor(0), node_netoutput->GetInDataAnchor(0));
     GraphUtils::AddEdge(node_add2->GetOutDataAnchor(0), node_netoutput1->GetInDataAnchor(0));
-    
+
     // subgraph
     ComputeGraphPtr subgraph = std::make_shared<ComputeGraph>("subgraph");
     OpDescPtr op_desc_sub_data1 = std::make_shared<OpDesc>("data1", "Data");
@@ -298,7 +282,7 @@ class UTestFusionTurbo : public testing::Test {
     OpDescPtr op_desc_sub_add = std::make_shared<OpDesc>("sub_add", "Add");
     OpDescPtr op_desc_net_in = std::make_shared<OpDesc>("net_in", "NetOutInput");
     OpDescPtr op_desc_sub_output = std::make_shared<OpDesc>("output", "NetOutput");
-    
+
     op_desc_sub_data1->AddInputDesc(tensor_desc_c);
     op_desc_sub_data1->AddOutputDesc(tensor_desc_c);
     op_desc_sub_input->AddOutputDesc(tensor_desc_c);
@@ -336,11 +320,8 @@ class UTestFusionTurbo : public testing::Test {
       printf("node name = %s.\n", node->GetName().c_str());
       for (ge::OutDataAnchorPtr anchor : node->GetAllOutDataAnchors()) {
         for (ge::InDataAnchorPtr peer_in_anchor : anchor->GetPeerInDataAnchors()) {
-          printf("    node name = %s[%d], out data node name = %s[%d].\n",
-                 node->GetName().c_str(),
-                 anchor->GetIdx(),
-                 peer_in_anchor->GetOwnerNode()->GetName().c_str(),
-                 peer_in_anchor->GetIdx());
+          printf("    node name = %s[%d], out data node name = %s[%d].\n", node->GetName().c_str(), anchor->GetIdx(),
+                 peer_in_anchor->GetOwnerNode()->GetName().c_str(), peer_in_anchor->GetIdx());
         }
       }
       if (node->GetOutControlAnchor() != nullptr) {
@@ -351,7 +332,6 @@ class UTestFusionTurbo : public testing::Test {
       }
     }
   }
-
 };
 
 TEST_F(UTestFusionTurbo, test_case_01) {
@@ -379,7 +359,6 @@ TEST_F(UTestFusionTurbo, test_case_01) {
   EXPECT_EQ(node->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetName(), "relu");
   EXPECT_EQ(node->GetOutDataAnchor(0)->GetPeerInDataAnchors().at(0)->GetOwnerNode()->GetName(), "cast2");
 }
-
 
 TEST_F(UTestFusionTurbo, test_case_01_1) {
   auto graph = CreateGraphSingleInAndOut();
@@ -436,7 +415,6 @@ TEST_F(UTestFusionTurbo, test_case_02) {
   EXPECT_EQ(node->GetInDataAnchor(0)->GetPeerOutAnchor()->GetOwnerNode()->GetName(), "relu");
   EXPECT_EQ(node->GetOutDataAnchor(0)->GetPeerInDataAnchors().at(0)->GetOwnerNode()->GetName(), "cast2");
 }
-
 
 TEST_F(UTestFusionTurbo, test_case_02_1) {
   auto graph = CreateGraphSingleInAndOut();
@@ -684,7 +662,6 @@ TEST_F(UTestFusionTurbo, test_case_04_2) {
   EXPECT_EQ(node->GetOutDataAnchor(0)->GetPeerInDataAnchors().size(), 1);
 }
 
-
 TEST_F(UTestFusionTurbo, test_case_04_3) {
   auto graph = CreateGraphSingleInAndOut();
   FusionTurbo acc(graph);
@@ -699,8 +676,7 @@ TEST_F(UTestFusionTurbo, test_case_04_3) {
 
   auto cast2 = GetNode(graph, "cast2");
   auto output_node = GetNode(graph, "output");
-  Relations dst_list = {{cast2,       0},
-                        {output_node, 0}};
+  Relations dst_list = {{cast2, 0}, {output_node, 0}};
   Status ret = FusionTurbo::LinkOutput(dst_list, node);
   EXPECT_EQ(ret, SUCCESS);
   EXPECT_EQ(node->GetName(), name);
@@ -1032,7 +1008,7 @@ TEST_F(UTestFusionTurbo, test_case_11) {
   input->SetShape(ge::GeShape(dims));
   input->SetFormat(ge::FORMAT_ND);
 
-  acc.UpdateInputByPeer(node, 0 , relu, 0);
+  acc.UpdateInputByPeer(node, 0, relu, 0);
   EXPECT_EQ(input->GetShape().GetDims(), dims_new);
   EXPECT_EQ(input->GetFormat(), ge::FORMAT_NCHW);
   EXPECT_EQ(input->GetDataType(), ge::DT_FLOAT);
@@ -1121,8 +1097,8 @@ TEST_F(UTestFusionTurbo, test_case_13) {
   Status ret = acc.LinkOutput(dst_list, node, UPDATE_THIS);
   EXPECT_EQ(ret, SUCCESS);
 
-  unique_ptr<int32_t[]> value(new(std::nothrow) int32_t[24]);
-  auto data_ptr = (uint8_t *) (value.get());
+  unique_ptr<int32_t[]> value(new (std::nothrow) int32_t[24]);
+  auto data_ptr = (uint8_t *)(value.get());
   for (size_t i = 0; i < 96; i++) {
     data_ptr[i] = i;
   }
@@ -1130,9 +1106,8 @@ TEST_F(UTestFusionTurbo, test_case_13) {
   /* coverage code */
   auto shape = ge::GeShape({1, 2, 3, 4});
   WeightInfo w1 = {shape, ge::DT_INT32, ge::FORMAT_NCHW, value.get()};
-  WeightInfo w2 = {ge::GeShape({1, 2, 3, 4}), ge::GeShape({1, 2, 3, 4}),
-                   ge::DT_INT32, ge::DT_INT32, ge::FORMAT_NCHW,  ge::FORMAT_NCHW,
-                   value.get()};
+  WeightInfo w2 = {ge::GeShape({1, 2, 3, 4}), ge::GeShape({1, 2, 3, 4}), ge::DT_INT32, ge::DT_INT32,
+                   ge::FORMAT_NCHW,           ge::FORMAT_NCHW,           value.get()};
 
   ASSERT_NE(nullptr, acc.AddWeight(node, w));
   ASSERT_EQ(node->GetAllInDataAnchorsSize(), 3);
@@ -1154,7 +1129,6 @@ TEST_F(UTestFusionTurbo, test_case_13) {
   }
 }
 
-
 TEST_F(UTestFusionTurbo, test_case_13_1) {
   auto graph = CreateGraphSingleInAndOut();
   FusionTurbo acc(graph);
@@ -1173,8 +1147,8 @@ TEST_F(UTestFusionTurbo, test_case_13_1) {
   Status ret = acc.LinkOutput(dst_list, node, UPDATE_THIS);
   EXPECT_EQ(ret, SUCCESS);
 
-  unique_ptr<int32_t[]> value(new(std::nothrow) int32_t[24]);
-  auto data_ptr = (uint8_t *) (value.get());
+  unique_ptr<int32_t[]> value(new (std::nothrow) int32_t[24]);
+  auto data_ptr = (uint8_t *)(value.get());
   for (size_t i = 0; i < 96; i++) {
     data_ptr[i] = i;
   }
@@ -1208,8 +1182,8 @@ TEST_F(UTestFusionTurbo, test_case_14) {
   auto node = acc.AddNodeOnly(name, type);
   ASSERT_NE(node, nullptr);
 
-  unique_ptr<int32_t[]> value(new(std::nothrow) int32_t[24]);
-  auto data_ptr = (uint8_t *) (value.get());
+  unique_ptr<int32_t[]> value(new (std::nothrow) int32_t[24]);
+  auto data_ptr = (uint8_t *)(value.get());
   for (size_t i = 0; i < 96; i++) {
     data_ptr[i] = i;
   }
@@ -1251,12 +1225,12 @@ TEST_F(UTestFusionTurbo, test_case_14) {
   w.ori_format = ge::FORMAT_NCHW;
 
   w.total_data_size = 140;
-  unique_ptr<int32_t[]> value1(new(std::nothrow) int32_t[140]);
-  auto data_ptr1 = (uint8_t *) (value1.get());
+  unique_ptr<int32_t[]> value1(new (std::nothrow) int32_t[140]);
+  auto data_ptr1 = (uint8_t *)(value1.get());
   for (size_t i = 0; i < 140; i++) {
     data_ptr1[i] = i + 1;
   }
-  w.data = (uint8_t *) value1.get();
+  w.data = (uint8_t *)value1.get();
   /* Update const value and tensor when const node and weight both exist. */
   ASSERT_NE(nullptr, acc.AddWeight(node, 1, w));
   ASSERT_EQ(node->GetAllInDataAnchorsSize(), 2);
@@ -1286,8 +1260,8 @@ TEST_F(UTestFusionTurbo, test_case_14_1) {
   auto node = acc.AddNodeOnly(name, type);
   ASSERT_NE(node, nullptr);
 
-  unique_ptr<int32_t[]> value(new(std::nothrow) int32_t[24]);
-  auto data_ptr = (uint8_t *) (value.get());
+  unique_ptr<int32_t[]> value(new (std::nothrow) int32_t[24]);
+  auto data_ptr = (uint8_t *)(value.get());
   for (size_t i = 0; i < 96; i++) {
     data_ptr[i] = i;
   }
@@ -1329,12 +1303,12 @@ TEST_F(UTestFusionTurbo, test_case_14_1) {
   w.ori_format = ge::FORMAT_NCHW;
 
   w.total_data_size = 140;
-  unique_ptr<int32_t[]> value1(new(std::nothrow) int32_t[140]);
-  auto data_ptr1 = (uint8_t *) (value1.get());
+  unique_ptr<int32_t[]> value1(new (std::nothrow) int32_t[140]);
+  auto data_ptr1 = (uint8_t *)(value1.get());
   for (size_t i = 0; i < 140; i++) {
     data_ptr1[i] = i + 1;
   }
-  w.data = (uint8_t *) value1.get();
+  w.data = (uint8_t *)value1.get();
   /* Update const value and tensor when const node and weight both exist. */
   ASSERT_NE(nullptr, acc.AddWeight(node, "shape", w));
   ASSERT_EQ(node->GetAllInDataAnchorsSize(), 2);
@@ -1356,7 +1330,6 @@ TEST_F(UTestFusionTurbo, test_case_14_1) {
   }
 }
 
-
 TEST_F(UTestFusionTurbo, test_case_14_1_1) {
   auto graph = CreateGraphSingleInAndOut();
   FusionTurbo acc(graph);
@@ -1365,8 +1338,8 @@ TEST_F(UTestFusionTurbo, test_case_14_1_1) {
   auto node = acc.AddNodeOnly(name, type);
   ASSERT_NE(node, nullptr);
 
-  unique_ptr<int32_t[]> value(new(std::nothrow) int32_t[24]);
-  auto data_ptr = (uint8_t *) (value.get());
+  unique_ptr<int32_t[]> value(new (std::nothrow) int32_t[24]);
+  auto data_ptr = (uint8_t *)(value.get());
   for (size_t i = 0; i < 96; i++) {
     data_ptr[i] = i;
   }
@@ -1408,12 +1381,12 @@ TEST_F(UTestFusionTurbo, test_case_14_1_1) {
   w.ori_format = ge::FORMAT_NCHW;
 
   w.total_data_size = 140;
-  unique_ptr<int32_t[]> value1(new(std::nothrow) int32_t[140]);
-  auto data_ptr1 = (uint8_t *) (value1.get());
+  unique_ptr<int32_t[]> value1(new (std::nothrow) int32_t[140]);
+  auto data_ptr1 = (uint8_t *)(value1.get());
   for (size_t i = 0; i < 140; i++) {
     data_ptr1[i] = i + 1;
   }
-  w.data = (uint8_t *) value1.get();
+  w.data = (uint8_t *)value1.get();
   /* Update const value and tensor when const node and weight both exist. */
   ASSERT_EQ(nullptr, acc.AddWeight(node, "xxxx", w));
 }
@@ -1426,8 +1399,8 @@ TEST_F(UTestFusionTurbo, test_case_14_2) {
   auto node = acc.AddNodeOnly(name, type);
   ASSERT_NE(node, nullptr);
 
-  unique_ptr<int32_t[]> value(new(std::nothrow) int32_t[24]);
-  auto data_ptr = (uint8_t *) (value.get());
+  unique_ptr<int32_t[]> value(new (std::nothrow) int32_t[24]);
+  auto data_ptr = (uint8_t *)(value.get());
   for (size_t i = 0; i < 96; i++) {
     data_ptr[i] = i;
   }
@@ -1454,7 +1427,6 @@ TEST_F(UTestFusionTurbo, test_case_14_2) {
   auto data_size = weight->GetData().size();
   EXPECT_EQ(data_size, 0);
   EXPECT_NE(data, nullptr);
-
 
   auto input1 = node->GetOpDesc()->MutableInputDesc(1);
   input1->SetDataType(ge::DT_INT32);
@@ -1504,8 +1476,8 @@ TEST_F(UTestFusionTurbo, test_case_15) {
   Status ret = acc.LinkOutput(dst_list, node, UPDATE_THIS);
   EXPECT_EQ(ret, SUCCESS);
 
-  unique_ptr<int32_t[]> value(new(std::nothrow) int32_t[24]);
-  auto data_ptr = (uint8_t *) (value.get());
+  unique_ptr<int32_t[]> value(new (std::nothrow) int32_t[24]);
+  auto data_ptr = (uint8_t *)(value.get());
   for (size_t i = 0; i < 96; i++) {
     data_ptr[i] = i;
   }
@@ -1546,7 +1518,6 @@ TEST_F(UTestFusionTurbo, test_case_15) {
   }
 }
 
-
 TEST_F(UTestFusionTurbo, test_case_15_1) {
   auto graph = CreateGraphSingleInAndOut();
   FusionTurbo acc(graph);
@@ -1565,8 +1536,8 @@ TEST_F(UTestFusionTurbo, test_case_15_1) {
   Status ret = acc.LinkOutput(dst_list, node, UPDATE_THIS);
   EXPECT_EQ(ret, SUCCESS);
 
-  unique_ptr<int32_t[]> value(new(std::nothrow) int32_t[24]);
-  auto data_ptr = (uint8_t *) (value.get());
+  unique_ptr<int32_t[]> value(new (std::nothrow) int32_t[24]);
+  auto data_ptr = (uint8_t *)(value.get());
   for (size_t i = 0; i < 96; i++) {
     data_ptr[i] = i;
   }
@@ -1628,8 +1599,8 @@ TEST_F(UTestFusionTurbo, test_case_15_3) {
   Status ret = acc.LinkOutput(dst_list, node, UPDATE_THIS);
   EXPECT_EQ(ret, SUCCESS);
 
-  unique_ptr<int32_t[]> value(new(std::nothrow) int32_t[24]);
-  auto data_ptr = (uint8_t *) (value.get());
+  unique_ptr<int32_t[]> value(new (std::nothrow) int32_t[24]);
+  auto data_ptr = (uint8_t *)(value.get());
   for (size_t i = 0; i < 96; i++) {
     data_ptr[i] = i;
   }
@@ -1644,8 +1615,8 @@ TEST_F(UTestFusionTurbo, test_case_15_3) {
   node_input_1->SetOriginFormat(ge::FORMAT_NCHW);
 
   WeightInfo w = {*node_input_1, value.get()};
-  WeightInfo w2 = {ge::GeShape({1, 3, 2, 4}), ge::GeShape({1, 3, 2, 4}),
-                   ge::DT_INT32, ge::DT_INT32, ge::FORMAT_NCHW, ge::FORMAT_NCHW, value.get()};
+  WeightInfo w2 = {ge::GeShape({1, 3, 2, 4}), ge::GeShape({1, 3, 2, 4}), ge::DT_INT32, ge::DT_INT32,
+                   ge::FORMAT_NCHW,           ge::FORMAT_NCHW,           value.get()};
   WeightInfo w3 = {ge::GeShape({4, 1, 3, 2}), ge::DT_INT32, ge::FORMAT_NCHW, value.get()};
   acc.AddWeight(node, 1, w);
   std::vector<WeightInfo> weight_all = {std::move(w), std::move(w2), std::move(w3)};
@@ -1702,8 +1673,8 @@ TEST_F(UTestFusionTurbo, test_case_15_4) {
   Status ret = acc.LinkOutput(dst_list, node, UPDATE_THIS);
   EXPECT_EQ(ret, SUCCESS);
 
-  unique_ptr<int32_t[]> value(new(std::nothrow) int32_t[24]);
-  auto data_ptr = (uint8_t *) (value.get());
+  unique_ptr<int32_t[]> value(new (std::nothrow) int32_t[24]);
+  auto data_ptr = (uint8_t *)(value.get());
   for (size_t i = 0; i < 96; i++) {
     data_ptr[i] = i;
   }
@@ -1718,8 +1689,8 @@ TEST_F(UTestFusionTurbo, test_case_15_4) {
   node_input_1->SetOriginFormat(ge::FORMAT_NCHW);
 
   WeightInfo w = {*node_input_1, value.get()};
-  WeightInfo w2 = {ge::GeShape({1, 3, 2, 4}), ge::GeShape({1, 3, 2, 4}),
-                   ge::DT_INT32, ge::DT_INT32, ge::FORMAT_NCHW, ge::FORMAT_NCHW, value.get()};
+  WeightInfo w2 = {ge::GeShape({1, 3, 2, 4}), ge::GeShape({1, 3, 2, 4}), ge::DT_INT32, ge::DT_INT32,
+                   ge::FORMAT_NCHW,           ge::FORMAT_NCHW,           value.get()};
   WeightInfo w3 = {ge::GeShape({4, 1, 3, 2}), ge::DT_INT32, ge::FORMAT_NCHW, value.get()};
   acc.AddWeight(node, 1, w);
   std::vector<WeightInfo> weight_all = {std::move(w), std::move(w2), std::move(w3)};
@@ -1774,7 +1745,7 @@ TEST_F(UTestFusionTurbo, test_case_16_1) {
    *    |  /                                            |     /
    *   add1                                          netoutput
    *    |
-   * partioncall     input2        
+   * partioncall     input2
    *    /       \     /
    * partionout  add2
    *            /   \
@@ -1790,7 +1761,7 @@ TEST_F(UTestFusionTurbo, test_case_16_1) {
    *   cast \                                  add      add2
    *    |  /                                     \      /
    *    add1  input2                              \    /
-   *    |     /                                    \  /  
+   *    |     /                                    \  /
    *   partioncall                                netouput
    *    /        \      \
    * partionout netout netout1
@@ -1828,7 +1799,7 @@ TEST_F(UTestFusionTurbo, test_case_16_2) {
    *    |  /                                               |  /
    *   add1                                             netoutput
    *    |
-   * partioncall   input2        
+   * partioncall   input2
    *     /      \   /
    * partionout  add2
    *            /   \
@@ -1920,7 +1891,6 @@ TEST_F(UTestFusionTurbo, test_case_17_1) {
 
   acc.LinkInput(src_list, node);
 
-
   EXPECT_EQ(ret, SUCCESS);
   EXPECT_EQ(node->GetName(), name);
   EXPECT_EQ(node->GetType(), type);
@@ -1938,4 +1908,4 @@ TEST_F(UTestFusionTurbo, test_case_17_1) {
   EXPECT_EQ(node->GetOutDataAnchor(0)->GetPeerInDataAnchors().size(), 1);
   EXPECT_EQ(node->GetOutDataAnchor(0)->GetPeerInDataAnchors().at(0)->GetOwnerNode()->GetName(), "cast2");
 }
-}
+}  // namespace fe

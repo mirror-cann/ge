@@ -1,6 +1,6 @@
 /* Copyright (c) 2025 Huawei Technologies Co., Ltd.
  * This file is a part of the CANN Open Software.
- * Licensed under CANN Open Software License Agreement Version 1.0 (the "License").
+ * Licensed under CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
  * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
@@ -36,9 +36,8 @@ Status GetBinaryMagic(const OpDescPtr &op_desc, bool is_atomic_node, int32_t &bi
   std::string magic_value;
   (void)AttrUtils::GetStr(op_desc, tvm_magic_attr, magic_value);
   auto iter = binary_magics.find(magic_value);
-  GE_ASSERT_TRUE(iter != binary_magics.end(),
-      "[%s][%s] magic value: %s get from attr %s is invalid.",
-      op_desc->GetNamePtr(), op_desc->GetTypePtr(), magic_value.c_str(), tvm_magic_attr.c_str());
+  GE_ASSERT_TRUE(iter != binary_magics.end(), "[%s][%s] magic value: %s get from attr %s is invalid.",
+                 op_desc->GetNamePtr(), op_desc->GetTypePtr(), magic_value.c_str(), tvm_magic_attr.c_str());
   binary_magic = iter->second;
   return SUCCESS;
 }
@@ -51,8 +50,7 @@ TBEKernelPtr GetTbeKernelBin(const OpDescPtr &op_desc, bool is_atomic_node) {
   auto tbe_kernel_ptr = op_desc->TryGetExtAttr(kernel_bin_attr, TBEKernelPtr());
   // 当前ffts+场景可能会获取到空，不影响功能
   if (tbe_kernel_ptr == nullptr) {
-    GELOGW("[%s][%s] Attr %s not exists.",
-           op_desc->GetNamePtr(), op_desc->GetTypePtr(), kernel_bin_attr.c_str());
+    GELOGW("[%s][%s] Attr %s not exists.", op_desc->GetNamePtr(), op_desc->GetTypePtr(), kernel_bin_attr.c_str());
   }
   return tbe_kernel_ptr;
 }
@@ -71,10 +69,10 @@ Status GetTbeKernelId(const OpDescPtr &op_desc, bool is_atomic_node, uint32_t mo
   }
   return SUCCESS;
 }
-}
+}  // namespace
 
-Status KernelRegisterInfoBuilder::ConstructAicoreRegisterInfo(const OpDescPtr &op_desc,
-    bool is_atomic_node,  uint32_t model_id, KernelRegisterInfo &register_info) {
+Status KernelRegisterInfoBuilder::ConstructAicoreRegisterInfo(const OpDescPtr &op_desc, bool is_atomic_node,
+                                                              uint32_t model_id, KernelRegisterInfo &register_info) {
   AicoreRegisterInfo aicore_register_info;
   int32_t magic = 0;
   GE_ASSERT_SUCCESS(GetBinaryMagic(op_desc, is_atomic_node, magic));
@@ -85,9 +83,10 @@ Status KernelRegisterInfoBuilder::ConstructAicoreRegisterInfo(const OpDescPtr &o
   return SUCCESS;
 }
 
-Status KernelRegisterInfoBuilder::ConstructAicpuRegisterInfo(const std::string &op_type,
-    const std::string &so_name, const std::string kernel_name, const std::string &op_kernel_lib,
-    KernelRegisterInfo &register_info) {
+Status KernelRegisterInfoBuilder::ConstructAicpuRegisterInfo(const std::string &op_type, const std::string &so_name,
+                                                             const std::string kernel_name,
+                                                             const std::string &op_kernel_lib,
+                                                             KernelRegisterInfo &register_info) {
   AicpuRegisterInfo aicpu_register_info;
   aicpu_register_info.op_type = op_type;
   aicpu_register_info.so_name = so_name;
@@ -98,18 +97,18 @@ Status KernelRegisterInfoBuilder::ConstructAicpuRegisterInfo(const std::string &
 }
 
 Status KernelRegisterInfoBuilder::ConstructCustAicpuRegisterInfo(const OpDescPtr &op_desc,
-    KernelRegisterInfo &register_info) {
+                                                                 KernelRegisterInfo &register_info) {
   CustAicpuRegisterInfo cust_aicpu_register_info;
   const auto cust_aicpu_bin_ptr = op_desc->TryGetExtAttr(OP_EXTATTR_CUSTAICPU_KERNEL, CustAICPUKernelPtr());
   GE_ASSERT_NOTNULL(cust_aicpu_bin_ptr, "[%s][%s] Get cust aicpu kernel bin from attr %s failed.",
-      op_desc->GetNamePtr(), op_desc->GetTypePtr(), OP_EXTATTR_CUSTAICPU_KERNEL);
+                    op_desc->GetNamePtr(), op_desc->GetTypePtr(), OP_EXTATTR_CUSTAICPU_KERNEL);
   cust_aicpu_register_info.cust_aicpu_kernel_bin = cust_aicpu_bin_ptr;
   register_info = cust_aicpu_register_info;
   return SUCCESS;
 }
 
 Status KernelRegisterInfoBuilder::ConstructTilingDeviceRegisterInfo(const std::string &so_path, uint32_t model_id,
-    KernelRegisterInfo &register_info) {
+                                                                    KernelRegisterInfo &register_info) {
   CustAicpuRegisterInfo tiling_device_register_info;
   auto unique_so_name = ModelManager::GetInstance().GetCustTilingDeviceUniqueSoName(model_id, so_path);
   const auto tiling_device_kernel = ModelManager::GetInstance().GetCustTilingDeviceSoBin(unique_so_name);
@@ -118,4 +117,4 @@ Status KernelRegisterInfoBuilder::ConstructTilingDeviceRegisterInfo(const std::s
   register_info = tiling_device_register_info;
   return SUCCESS;
 }
-}
+}  // namespace ge

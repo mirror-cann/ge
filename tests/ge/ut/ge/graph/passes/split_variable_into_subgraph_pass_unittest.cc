@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,7 +29,6 @@ class UtestNodePassSplitVariableIntoSubgraphPass : public testing::Test {
 
   void TearDown() {}
 };
-
 
 /*
       variable               +--------------------+
@@ -105,16 +104,16 @@ ComputeGraphPtr BuildGraphVarPartitionedCall() {
 ComputeGraphPtr BuildGraphVarPartitionedCallWithWrongSubgraph() {
   std::vector<int64_t> shape = {8, 3, 16, 16};  // HWCN
   auto variable = OP_CFG(VARIABLE)
-      .TensorDesc(FORMAT_ND, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .InNames({"x"})
-      .OutNames({"y"})
-      .Build("variable");
+                      .TensorDesc(FORMAT_ND, DT_FLOAT, shape)
+                      .InCnt(1)
+                      .OutCnt(1)
+                      .InNames({"x"})
+                      .OutNames({"y"})
+                      .Build("variable");
   auto main_graph = [&]() {
     DEF_GRAPH(g) {
-                   CHAIN(NODE(variable)->NODE("partitioncall", PARTITIONEDCALL)->NODE("NetOutput", "NetOutput"));
-                 };
+      CHAIN(NODE(variable)->NODE("partitioncall", PARTITIONEDCALL)->NODE("NetOutput", "NetOutput"));
+    };
     return ToComputeGraph(g);
   }();
   main_graph->SetName("main");
@@ -126,9 +125,9 @@ ComputeGraphPtr BuildGraphVarPartitionedCallWithWrongSubgraph() {
 
   auto sub_graph = [&]() {
     DEF_GRAPH(g) {
-                   CHAIN(NODE("data", "Data")->NODE(cast1)->NODE("NetOutput1", "NetOutput"));
-                   CHAIN(NODE("data", "Data")->EDGE(0, 0)->NODE(cast2)->NODE("NetOutput1", "NetOutput"));
-                 };
+      CHAIN(NODE("data", "Data")->NODE(cast1)->NODE("NetOutput1", "NetOutput"));
+      CHAIN(NODE("data", "Data")->EDGE(0, 0)->NODE(cast2)->NODE("NetOutput1", "NetOutput"));
+    };
     return ToComputeGraph(g);
   }();
   sub_graph->SetName("sub");
@@ -168,16 +167,16 @@ ComputeGraphPtr BuildGraphVarPartitionedCallWithWrongSubgraph() {
 ComputeGraphPtr BuildGraphVarPartitionedCallWithUnknownShapeSubgraph() {
   std::vector<int64_t> shape = {8, -1, 16, 16};  // HWCN
   auto variable = OP_CFG(VARIABLE)
-      .TensorDesc(FORMAT_ND, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .InNames({"x"})
-      .OutNames({"y"})
-      .Build("variable");
+                      .TensorDesc(FORMAT_ND, DT_FLOAT, shape)
+                      .InCnt(1)
+                      .OutCnt(1)
+                      .InNames({"x"})
+                      .OutNames({"y"})
+                      .Build("variable");
   auto main_graph = [&]() {
     DEF_GRAPH(g) {
-                   CHAIN(NODE(variable)->NODE("partitioncall", PARTITIONEDCALL)->NODE("NetOutput", "NetOutput"));
-                 };
+      CHAIN(NODE(variable)->NODE("partitioncall", PARTITIONEDCALL)->NODE("NetOutput", "NetOutput"));
+    };
     return ToComputeGraph(g);
   }();
   main_graph->SetName("main");
@@ -189,9 +188,9 @@ ComputeGraphPtr BuildGraphVarPartitionedCallWithUnknownShapeSubgraph() {
 
   auto sub_graph = [&]() {
     DEF_GRAPH(g) {
-                   CHAIN(NODE("data", "Data")->NODE(cast1)->NODE("NetOutput1", "NetOutput"));
-                   CHAIN(NODE("data", "Data")->EDGE(0, 0)->NODE(cast2)->NODE("NetOutput1", "NetOutput"));
-                 };
+      CHAIN(NODE("data", "Data")->NODE(cast1)->NODE("NetOutput1", "NetOutput"));
+      CHAIN(NODE("data", "Data")->EDGE(0, 0)->NODE(cast2)->NODE("NetOutput1", "NetOutput"));
+    };
     return ToComputeGraph(g);
   }();
   sub_graph->SetName("sub");
@@ -231,12 +230,12 @@ ComputeGraphPtr BuildGraphVarPartitionedCallWithUnknownShapeSubgraph() {
 ComputeGraphPtr BuildGraphVarPartitionedCallWithMultiInnerDataSubgraph() {
   std::vector<int64_t> shape = {8, 3, 16, 16};  // HWCN
   auto variable = OP_CFG(VARIABLE)
-      .TensorDesc(FORMAT_ND, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .InNames({"x"})
-      .OutNames({"y"})
-      .Build("variable");
+                      .TensorDesc(FORMAT_ND, DT_FLOAT, shape)
+                      .InCnt(1)
+                      .OutCnt(1)
+                      .InNames({"x"})
+                      .OutNames({"y"})
+                      .Build("variable");
   auto main_graph = [&]() {
     DEF_GRAPH(g) {
       CHAIN(NODE("data", DATA)->NODE("partitioncall", PARTITIONEDCALL)->NODE("NetOutput", "NetOutput"));
@@ -301,16 +300,16 @@ ComputeGraphPtr BuildGraphVarPartitionedCallWithMultiInnerDataSubgraph() {
 ComputeGraphPtr BuildGraphPartitionedCallWithVarInside() {
   std::vector<int64_t> shape = {8, 3, 16, 16};  // HWCN
   auto variable = OP_CFG(VARIABLE)
-      .TensorDesc(FORMAT_ND, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .InNames({"x"})
-      .OutNames({"y"})
-      .Build("variable");
+                      .TensorDesc(FORMAT_ND, DT_FLOAT, shape)
+                      .InCnt(1)
+                      .OutCnt(1)
+                      .InNames({"x"})
+                      .OutNames({"y"})
+                      .Build("variable");
   auto main_graph = [&]() {
     DEF_GRAPH(g) {
-                   CHAIN(NODE(variable)->NODE("partitioncall", PARTITIONEDCALL)->NODE("NetOutput", "NetOutput"));
-                 };
+      CHAIN(NODE(variable)->NODE("partitioncall", PARTITIONEDCALL)->NODE("NetOutput", "NetOutput"));
+    };
     return ToComputeGraph(g);
   }();
   main_graph->SetName("main");
@@ -321,9 +320,9 @@ ComputeGraphPtr BuildGraphPartitionedCallWithVarInside() {
 
   auto sub_graph = [&]() {
     DEF_GRAPH(g) {
-                   CHAIN(NODE("data", "Data")->NODE(add)->NODE("NetOutput1", "NetOutput"));
-                   CHAIN(NODE(variable)->EDGE(0, 1)->NODE(add)->NODE("NetOutput1", "NetOutput"));
-                 };
+      CHAIN(NODE("data", "Data")->NODE(add)->NODE("NetOutput1", "NetOutput"));
+      CHAIN(NODE(variable)->EDGE(0, 1)->NODE(add)->NODE("NetOutput1", "NetOutput"));
+    };
     return ToComputeGraph(g);
   }();
   sub_graph->SetName("sub");

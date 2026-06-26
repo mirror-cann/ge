@@ -67,4 +67,3 @@ ge::AscendString GEGetErrorMsgV2()
 ## 约束说明<a name="section24049039"></a>
 
 建议在执行报错时，调用该接口，获取错误信息以辅助定位问题。
-

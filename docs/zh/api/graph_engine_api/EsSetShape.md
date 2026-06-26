@@ -109,4 +109,3 @@ int64_t input_shape[] = {1, 3, 224, 224};
 int64_t dim_num = sizeof(input_shape) / sizeof(input_shape[0]); // 结果为 4
 EsSetShape(data0, input_shape, dim_num); //设置第0个输入节点shape
 ```
-

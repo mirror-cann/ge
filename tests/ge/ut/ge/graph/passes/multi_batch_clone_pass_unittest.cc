@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,9 +28,9 @@
 #include "graph/optimize/symbolic/infer_symbolic_shape/symbolic_shape_inference.h"
 #include "graph/utils/tensor_adapter.h"
 
-namespace ge{
+namespace ge {
 class UtestMultiBatchClonePass : public testing::Test {
-protected:
+ protected:
   void SetUp() {
     SetLocalOmgContext(domi::GetContext());
     GetLocalOmgContext().dynamic_image_size.clear();
@@ -44,7 +44,7 @@ protected:
     GetLocalOmgContext().dynamic_dims.clear();
   }
 
-public:
+ public:
   NodePtr MakeNode(const ComputeGraphPtr &graph, int in_num, int out_num, string name, string type) {
     GeTensorDesc test_desc(GeShape(), FORMAT_NCHW, DT_FLOAT);
     auto op_desc = std::make_shared<OpDesc>(name, type);
@@ -77,11 +77,12 @@ public:
     auto conv2d_node = MakeNode(graph, 3, 1, "conv1", "Conv2D");
     {
       auto data1 = MakeNode(graph, 1, 1, "data", "Data");
-      GeTensorDesc tensor_desc(GeShape({-1,3,224,224}), FORMAT_NCHW, DT_FLOAT);
+      GeTensorDesc tensor_desc(GeShape({-1, 3, 224, 224}), FORMAT_NCHW, DT_FLOAT);
       data1->GetOpDesc()->UpdateInputDesc(0, tensor_desc);
       data1->GetOpDesc()->UpdateOutputDesc(0, tensor_desc);
       AttrUtils::SetInt(data1->GetOpDesc(), ATTR_NAME_INDEX, 0);
-      GetLocalOmgContext().user_input_dims = {std::make_pair(data1->GetOpDesc()->GetName(), vector<int64_t>{-1,3,224,224})};
+      GetLocalOmgContext().user_input_dims = {
+          std::make_pair(data1->GetOpDesc()->GetName(), vector<int64_t>{-1, 3, 224, 224})};
 
       GraphUtils::AddEdge(data1->GetOutDataAnchor(0), conv2d_node->GetInDataAnchor(0));
       auto const1 = MakeConstNode(graph);
@@ -97,7 +98,7 @@ public:
       GraphUtils::AddEdge(const1->GetOutDataAnchor(0), bn_conv1->GetInDataAnchor(1));
       auto const2 = MakeConstNode(graph);
       GraphUtils::AddEdge(const2->GetOutDataAnchor(0), bn_conv1->GetInDataAnchor(2));
-      auto const3= MakeConstNode(graph);
+      auto const3 = MakeConstNode(graph);
       GraphUtils::AddEdge(const3->GetOutDataAnchor(0), bn_conv1->GetInDataAnchor(3));
     }
 
@@ -118,11 +119,12 @@ public:
     auto conv2d_node = MakeNode(graph, 3, 1, "conv1", "Conv2D");
     {
       auto data1 = MakeNode(graph, 1, 1, "data", "Data");
-      GeTensorDesc tensor_desc(GeShape({-1,3,224,224}), FORMAT_NCHW, DT_FLOAT);
+      GeTensorDesc tensor_desc(GeShape({-1, 3, 224, 224}), FORMAT_NCHW, DT_FLOAT);
       data1->GetOpDesc()->UpdateInputDesc(0, tensor_desc);
       data1->GetOpDesc()->UpdateOutputDesc(0, tensor_desc);
       AttrUtils::SetInt(data1->GetOpDesc(), ATTR_NAME_INDEX, 0);
-      GetLocalOmgContext().user_input_dims = {std::make_pair(data1->GetOpDesc()->GetName(), vector<int64_t>{-1,3,224,224})};
+      GetLocalOmgContext().user_input_dims = {
+          std::make_pair(data1->GetOpDesc()->GetName(), vector<int64_t>{-1, 3, 224, 224})};
 
       GraphUtils::AddEdge(data1->GetOutDataAnchor(0), conv2d_node->GetInDataAnchor(0));
       auto const1 = MakeConstNode(graph);
@@ -142,29 +144,29 @@ public:
     auto add_node3 = MakeNode(graph, 2, 1, "add3", "Add");
     {
       auto data1 = MakeNode(graph, 1, 1, "cat", "Data");
-      GeTensorDesc tensor_desc1(GeShape({1,3,224,224}), FORMAT_NCHW, DT_FLOAT);
-      tensor_desc1.SetOriginShape(GeShape({1,3,224,224}));
+      GeTensorDesc tensor_desc1(GeShape({1, 3, 224, 224}), FORMAT_NCHW, DT_FLOAT);
+      tensor_desc1.SetOriginShape(GeShape({1, 3, 224, 224}));
       data1->GetOpDesc()->UpdateInputDesc(0, tensor_desc1);
       data1->GetOpDesc()->UpdateOutputDesc(0, tensor_desc1);
       AttrUtils::SetInt(data1->GetOpDesc(), ATTR_NAME_INDEX, 1);
 
       auto data0 = MakeNode(graph, 1, 1, "bed", "Data");
-      GeTensorDesc tensor_desc0(GeShape({1,1,224,224}), FORMAT_NCHW, DT_FLOAT);
-      tensor_desc0.SetOriginShape(GeShape({1,1,224,224}));
+      GeTensorDesc tensor_desc0(GeShape({1, 1, 224, 224}), FORMAT_NCHW, DT_FLOAT);
+      tensor_desc0.SetOriginShape(GeShape({1, 1, 224, 224}));
       data0->GetOpDesc()->UpdateInputDesc(0, tensor_desc0);
       data0->GetOpDesc()->UpdateOutputDesc(0, tensor_desc0);
       AttrUtils::SetInt(data0->GetOpDesc(), ATTR_NAME_INDEX, 0);
 
       auto data2 = MakeNode(graph, 1, 1, "IteratorGetNext_data", "Data");
-      GeTensorDesc tensor_desc2(GeShape({1,3,224,224}), FORMAT_NCHW, DT_FLOAT);
-      tensor_desc2.SetOriginShape(GeShape({1,3,224,224}));
+      GeTensorDesc tensor_desc2(GeShape({1, 3, 224, 224}), FORMAT_NCHW, DT_FLOAT);
+      tensor_desc2.SetOriginShape(GeShape({1, 3, 224, 224}));
       data2->GetOpDesc()->UpdateInputDesc(0, tensor_desc2);
       data2->GetOpDesc()->UpdateOutputDesc(0, tensor_desc2);
       AttrUtils::SetInt(data2->GetOpDesc(), ATTR_NAME_INDEX, 2);
 
       auto data3 = MakeNode(graph, 1, 1, "IteratorGetNext_data1", "Data");
-      GeTensorDesc tensor_desc3(GeShape({1,1,224,224}), FORMAT_NCHW, DT_FLOAT);
-      tensor_desc3.SetOriginShape(GeShape({1,1,224,224}));
+      GeTensorDesc tensor_desc3(GeShape({1, 1, 224, 224}), FORMAT_NCHW, DT_FLOAT);
+      tensor_desc3.SetOriginShape(GeShape({1, 1, 224, 224}));
       data3->GetOpDesc()->UpdateInputDesc(0, tensor_desc3);
       data3->GetOpDesc()->UpdateOutputDesc(0, tensor_desc3);
       AttrUtils::SetInt(data3->GetOpDesc(), ATTR_NAME_INDEX, 3);
@@ -183,10 +185,11 @@ public:
       data5->GetOpDesc()->UpdateOutputDesc(0, tensor_desc5);
       AttrUtils::SetInt(data5->GetOpDesc(), ATTR_NAME_INDEX, 5);
 
-      GetLocalOmgContext().user_input_dims = {std::make_pair(data4->GetOpDesc()->GetName(), vector<int64_t>{-1}),
-                                              std::make_pair(data0->GetOpDesc()->GetName(), vector<int64_t>{-1,-1,224,224}),
-                                              std::make_pair(data1->GetOpDesc()->GetName(), vector<int64_t>{-1,3,224,224}),
-                                              std::make_pair(data5->GetOpDesc()->GetName(), vector<int64_t>{3})};
+      GetLocalOmgContext().user_input_dims = {
+          std::make_pair(data4->GetOpDesc()->GetName(), vector<int64_t>{-1}),
+          std::make_pair(data0->GetOpDesc()->GetName(), vector<int64_t>{-1, -1, 224, 224}),
+          std::make_pair(data1->GetOpDesc()->GetName(), vector<int64_t>{-1, 3, 224, 224}),
+          std::make_pair(data5->GetOpDesc()->GetName(), vector<int64_t>{3})};
 
       GraphUtils::AddEdge(data1->GetOutDataAnchor(0), conv2d_node->GetInDataAnchor(0));
       GraphUtils::AddEdge(data0->GetOutDataAnchor(0), conv2d_node->GetInDataAnchor(1));
@@ -207,11 +210,12 @@ public:
     auto conv2d_node = MakeNode(graph, 3, 1, "conv1", "Conv2D");
     {
       auto data1 = MakeNode(graph, 1, 1, "IteratorGetNext_data", "Data");
-      GeTensorDesc tensor_desc(GeShape({-1,3,224,224}), FORMAT_NCHW, DT_FLOAT);
+      GeTensorDesc tensor_desc(GeShape({-1, 3, 224, 224}), FORMAT_NCHW, DT_FLOAT);
       data1->GetOpDesc()->UpdateInputDesc(0, tensor_desc);
       data1->GetOpDesc()->UpdateOutputDesc(0, tensor_desc);
       AttrUtils::SetInt(data1->GetOpDesc(), ATTR_NAME_INDEX, 0);
-      GetLocalOmgContext().user_input_dims = {std::make_pair(data1->GetOpDesc()->GetName(), vector<int64_t>{-1,3,224,224})};
+      GetLocalOmgContext().user_input_dims = {
+          std::make_pair(data1->GetOpDesc()->GetName(), vector<int64_t>{-1, 3, 224, 224})};
 
       GraphUtils::AddEdge(data1->GetOutDataAnchor(0), conv2d_node->GetInDataAnchor(0));
       auto const1 = MakeConstNode(graph);
@@ -223,17 +227,18 @@ public:
     auto output_node = MakeNode(graph, 1, 0, "output1", "NetOutput");
     GraphUtils::AddEdge(conv2d_node->GetOutDataAnchor(0), output_node->GetInDataAnchor(0));
   }
- 
+
   // getnext has one data and has one out of shape
   void GraphWithGetNextSink(const ComputeGraphPtr &graph) {
     auto conv2d_node = MakeNode(graph, 3, 1, "conv1", "Conv2D");
     {
       auto data1 = MakeNode(graph, 1, 2, "data", "IteratorV2");
-      GeTensorDesc tensor_desc(GeShape({-1,3,224,224}), FORMAT_NCHW, DT_FLOAT);
-      GeTensorDesc shape_desc(GeShape({4,3,224,224}), FORMAT_NCHW, DT_FLOAT);
+      GeTensorDesc tensor_desc(GeShape({-1, 3, 224, 224}), FORMAT_NCHW, DT_FLOAT);
+      GeTensorDesc shape_desc(GeShape({4, 3, 224, 224}), FORMAT_NCHW, DT_FLOAT);
       data1->GetOpDesc()->UpdateOutputDesc(0, tensor_desc);
       data1->GetOpDesc()->UpdateOutputDesc(1, shape_desc);
-      GetLocalOmgContext().user_input_dims = {std::make_pair(data1->GetOpDesc()->GetName(), vector<int64_t>{-1,3,224,224})};
+      GetLocalOmgContext().user_input_dims = {
+          std::make_pair(data1->GetOpDesc()->GetName(), vector<int64_t>{-1, 3, 224, 224})};
 
       GraphUtils::AddEdge(data1->GetOutDataAnchor(0), conv2d_node->GetInDataAnchor(0));
       auto identity = MakeNode(graph, 1, 0, "identity", "Identity");
@@ -251,15 +256,16 @@ public:
   // getnext has one data and has one out of shape
   void GraphWithGetNextSinkWithSubgraph(const ComputeGraphPtr &graph) {
     auto data1 = MakeNode(graph, 1, 2, "data", "IteratorV2");
-    GeTensorDesc tensor_desc(GeShape({-1,3,224,224}), FORMAT_NCHW, DT_FLOAT);
-    GeTensorDesc shape_desc(GeShape({4,3,224,224}), FORMAT_NCHW, DT_FLOAT);
+    GeTensorDesc tensor_desc(GeShape({-1, 3, 224, 224}), FORMAT_NCHW, DT_FLOAT);
+    GeTensorDesc shape_desc(GeShape({4, 3, 224, 224}), FORMAT_NCHW, DT_FLOAT);
     data1->GetOpDesc()->UpdateOutputDesc(0, tensor_desc);
     data1->GetOpDesc()->UpdateOutputDesc(1, shape_desc);
     AttrUtils::SetInt(data1->GetOpDesc(), ATTR_NAME_INDEX, 0);
-    GetLocalOmgContext().user_input_dims = {std::make_pair(data1->GetOpDesc()->GetName(), vector<int64_t>{-1,3,224,224})};
+    GetLocalOmgContext().user_input_dims = {
+        std::make_pair(data1->GetOpDesc()->GetName(), vector<int64_t>{-1, 3, 224, 224})};
 
-    auto make_subgraph = [this](const std::string &name,
-        const ComputeGraphPtr &parent_graph, const NodePtr &parent_node) {
+    auto make_subgraph = [this](const std::string &name, const ComputeGraphPtr &parent_graph,
+                                const NodePtr &parent_node) {
       ComputeGraphPtr sub_graph = std::make_shared<ComputeGraph>(name);
       auto sub_data0 = MakeNode(sub_graph, 1, 1, "sub_data0", "Data");
       auto sub_data1 = MakeNode(sub_graph, 1, 1, "sub_data1", "Data");
@@ -297,12 +303,13 @@ public:
     auto conv2d_node = MakeNode(graph, 3, 1, "conv1", "Conv2D");
     {
       auto data1 = MakeNode(graph, 1, 2, "data", "IteratorV2");
-      GeTensorDesc tensor_desc(GeShape({-1,3,224,224}), FORMAT_NCHW, DT_FLOAT);
-      GeTensorDesc shape_desc(GeShape({4,3,224,224}), FORMAT_NCHW, DT_FLOAT);
+      GeTensorDesc tensor_desc(GeShape({-1, 3, 224, 224}), FORMAT_NCHW, DT_FLOAT);
+      GeTensorDesc shape_desc(GeShape({4, 3, 224, 224}), FORMAT_NCHW, DT_FLOAT);
       data1->GetOpDesc()->UpdateOutputDesc(0, tensor_desc);
       data1->GetOpDesc()->UpdateOutputDesc(1, shape_desc);
       AttrUtils::SetInt(data1->GetOpDesc(), ATTR_NAME_INDEX, 0);
-      GetLocalOmgContext().user_input_dims = {std::make_pair(data1->GetOpDesc()->GetName(), vector<int64_t>{-1,3,224,224})};
+      GetLocalOmgContext().user_input_dims = {
+          std::make_pair(data1->GetOpDesc()->GetName(), vector<int64_t>{-1, 3, 224, 224})};
 
       GraphUtils::AddEdge(data1->GetOutDataAnchor(0), conv2d_node->GetInDataAnchor(0));
       auto identity = MakeNode(graph, 1, 0, "identity", "Identity");
@@ -320,7 +327,7 @@ public:
   void make_original_yolo2(const ComputeGraphPtr &graph) {
     auto conv2d_node = MakeNode(graph, 3, 2, "conv1", "Conv2D");
     {
-      auto data1  = MakeNode(graph, 1, 1, "data", "Data");
+      auto data1 = MakeNode(graph, 1, 1, "data", "Data");
       GeTensorDesc tensor_desc(GeShape({-1, 3, 224, 224}), FORMAT_NCHW, DT_FLOAT);
       TensorUtils::SetSize(tensor_desc, 224);
       data1->GetOpDesc()->UpdateInputDesc(0, tensor_desc);
@@ -334,15 +341,15 @@ public:
       GraphUtils::AddEdge(const2->GetOutDataAnchor(0), conv2d_node->GetInDataAnchor(2));
     }
 
-    auto  image_info = MakeNode(graph, 1, 1, "image_info", "Data");
-    auto  detection1 = MakeNode(graph, 4, 1, "detection1", "YoloDetection");
+    auto image_info = MakeNode(graph, 1, 1, "image_info", "Data");
+    auto detection1 = MakeNode(graph, 4, 1, "detection1", "YoloDetection");
     {
       GraphUtils::AddEdge(image_info->GetOutDataAnchor(0), detection1->GetInDataAnchor(0));
       GraphUtils::AddEdge(conv2d_node->GetOutDataAnchor(0), detection1->GetInDataAnchor(1));
       auto const1 = MakeConstNode(graph);
-      GraphUtils::AddEdge(const1->GetOutDataAnchor(0),  detection1->GetInDataAnchor(2));
+      GraphUtils::AddEdge(const1->GetOutDataAnchor(0), detection1->GetInDataAnchor(2));
       auto const2 = MakeConstNode(graph);
-      GraphUtils::AddEdge(const2->GetOutDataAnchor(0),  detection1->GetInDataAnchor(3));
+      GraphUtils::AddEdge(const2->GetOutDataAnchor(0), detection1->GetInDataAnchor(3));
     }
 
     auto output_node = MakeNode(graph, 3, 0, "output1", "NetOutput");
@@ -378,7 +385,7 @@ TEST_F(UtestMultiBatchClonePass, graph_with_subgraph) {
   EXPECT_EQ(pass_manager.Run(graph), SUCCESS);
 }
 
-//graph is uncompute graph, not need to do multi batch
+// graph is uncompute graph, not need to do multi batch
 TEST_F(UtestMultiBatchClonePass, uncompute_graph) {
   MultiBatchClonePass multi_batch_clone(0);
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
@@ -387,8 +394,7 @@ TEST_F(UtestMultiBatchClonePass, uncompute_graph) {
   EXPECT_EQ(multi_batch_clone.Run(graph), SUCCESS);
 }
 
-
-//compute_graph with data from DATA
+// compute_graph with data from DATA
 TEST_F(UtestMultiBatchClonePass, compute_graph_with_data) {
   MultiBatchClonePass multi_batch_clone(0);
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
@@ -404,7 +410,7 @@ TEST_F(UtestMultiBatchClonePass, compute_graph_with_data) {
   EXPECT_EQ(GetLocalOmgContext().user_input_dims[1].first, "cat");
   EXPECT_EQ(GetLocalOmgContext().user_input_dims[2].first, "apple");
   EXPECT_EQ(GetLocalOmgContext().user_input_dims[3].first, "ear");
-  std::vector<std::vector<int64_t>> batch_shape_expect = {{3,3,1,1},{1,3,3,2},{2,6,6,4},{1,1,2,8}};
+  std::vector<std::vector<int64_t>> batch_shape_expect = {{3, 3, 1, 1}, {1, 3, 3, 2}, {2, 6, 6, 4}, {1, 1, 2, 8}};
   EXPECT_EQ(GetLocalOmgContext().batch_shapes[0], batch_shape_expect[0]);
   EXPECT_EQ(GetLocalOmgContext().batch_shapes[1], batch_shape_expect[1]);
   EXPECT_EQ(GetLocalOmgContext().batch_shapes[2], batch_shape_expect[2]);
@@ -423,7 +429,7 @@ TEST_F(UtestMultiBatchClonePass, compute_graph_with_data_empty_tensor) {
 }
 
 TEST_F(UtestMultiBatchClonePass, compute_graph_with_data_error) {
-  std::vector<std::vector<int64_t>> shapes = {{-1,3,3,1},{-1,1,3,3}};
+  std::vector<std::vector<int64_t>> shapes = {{-1, 3, 3, 1}, {-1, 1, 3, 3}};
   EXPECT_EQ(ge::multibatch::CheckDynamicParams(shapes), PARAM_INVALID);
 }
 
@@ -443,7 +449,7 @@ TEST_F(UtestMultiBatchClonePass, compute_graph_with_data_symbolic) {
   EXPECT_EQ(GetLocalOmgContext().user_input_dims[1].first, "cat");
   EXPECT_EQ(GetLocalOmgContext().user_input_dims[2].first, "apple");
   EXPECT_EQ(GetLocalOmgContext().user_input_dims[3].first, "ear");
-  std::vector<std::vector<int64_t>> batch_shape_expect = {{3,3,1,1},{1,3,3,2},{2,6,6,4},{1,1,2,8}};
+  std::vector<std::vector<int64_t>> batch_shape_expect = {{3, 3, 1, 1}, {1, 3, 3, 2}, {2, 6, 6, 4}, {1, 1, 2, 8}};
   EXPECT_EQ(GetLocalOmgContext().batch_shapes[0], batch_shape_expect[0]);
   EXPECT_EQ(GetLocalOmgContext().batch_shapes[1], batch_shape_expect[1]);
   EXPECT_EQ(GetLocalOmgContext().batch_shapes[2], batch_shape_expect[2]);
@@ -493,7 +499,7 @@ TEST_F(UtestMultiBatchClonePass, compute_graph_with_data_symbolic) {
   ASSERT_EQ(SymbolicShapeSymbolizer::Symbolize(graph, input_vec), ge::SUCCESS);
 }
 
-//compute_graph with data from DATA
+// compute_graph with data from DATA
 TEST_F(UtestMultiBatchClonePass, compute_graph_with_data_error_dynamic_dims) {
   MultiBatchClonePass multi_batch_clone(0);
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
@@ -505,7 +511,7 @@ TEST_F(UtestMultiBatchClonePass, compute_graph_with_data_error_dynamic_dims) {
   EXPECT_EQ(multi_batch_clone.Run(graph), PARAM_INVALID);
 }
 
-//compute_graph with data from GetNext_nosink
+// compute_graph with data from GetNext_nosink
 TEST_F(UtestMultiBatchClonePass, compute_graph_with_getnext_nosink) {
   MultiBatchClonePass multi_batch_clone(0);
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
@@ -517,7 +523,7 @@ TEST_F(UtestMultiBatchClonePass, compute_graph_with_getnext_nosink) {
   EXPECT_EQ(GetLocalOmgContext().getnext_nosink_nodes.size(), 1);
 }
 
-//compute_graph with data from GetNext_nosink
+// compute_graph with data from GetNext_nosink
 TEST_F(UtestMultiBatchClonePass, compute_graph_with_getnext_sink) {
   MultiBatchClonePass multi_batch_clone(0);
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
@@ -544,7 +550,7 @@ TEST_F(UtestMultiBatchClonePass, compute_graph_with_getnext_sink_with_subgraph) 
   // EXPECT_EQ(graph->GetAllSubgraphs().size(), 12); // with metadef code
 }
 
-//no need multi batch in training
+// no need multi batch in training
 TEST_F(UtestMultiBatchClonePass, compute_graph_no_need_multi) {
   MultiBatchClonePass multi_batch_clone(0);
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
@@ -556,7 +562,7 @@ TEST_F(UtestMultiBatchClonePass, compute_graph_no_need_multi) {
   EXPECT_EQ(GetLocalOmgContext().getnext_nosink_nodes.size(), 0);
 }
 
-//compute_graph with GetNext and variable
+// compute_graph with GetNext and variable
 TEST_F(UtestMultiBatchClonePass, compute_graph_with_getnext_sink_with_variable) {
   MultiBatchClonePass multi_batch_clone(0);
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
@@ -617,7 +623,8 @@ TEST_F(UtestMultiBatchClonePass, MaxDimsSizeCheck) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
   make_original_yolo2(graph);
   MultiBatchClonePass multi_batch_clone(0);
-  GetLocalOmgContext().dynamic_batch_size = "1,2,4,8,1,2,4,8,1,2,4,8,1,2,4,8,1,2,4,8,\
+  GetLocalOmgContext().dynamic_batch_size =
+      "1,2,4,8,1,2,4,8,1,2,4,8,1,2,4,8,1,2,4,8,\
   1,2,4,8,1,2,4,8,1,2,4,8,1,2,4,8,1,2,4,8,1,2,4,8,1,2,4,8,1,2,4,8,1,2,4,8,1,2,4,8,\
   1,2,4,8,1,2,4,8,1,2,4,8,1,2,4,8,1,2,4,8,1,2,4,8,1,2,4,8,1,2,4,8,1,2,4,8,1,2,4,8,\
   1,2,4,8,1,2,4,8,1,2,4,8,1,2,4,8,1,2,4,8,1,2,4,8,1,2,4,8,1,2,4,8,1,2,4,8,1,2,4,8,\
@@ -635,4 +642,4 @@ TEST_F(UtestMultiBatchClonePass, MinDimsSizeCheck) {
   EXPECT_EQ(pass_manager.Run(graph), PARAM_INVALID);
 }
 
-}
+}  // namespace ge

@@ -25,11 +25,10 @@
 #include "graph_metadef/register/graph_register.h"
 
 extern "C" {
-__attribute__((visibility("default"))) int32_t InitCpuConstantFoldingNew(
-    ge::HostCpuOp *(*create_fn)());
+__attribute__((visibility("default"))) int32_t InitCpuConstantFoldingNew(ge::HostCpuOp *(*create_fn)());
 
-__attribute__((visibility("default"))) int32_t CpuConstantFoldingComputeNew(
-    const ge::Operator &op, const std::map<std::string, const ge::Tensor> &inputs,
-    std::map<std::string, ge::Tensor> outputs);
+__attribute__((visibility("default"))) int32_t
+CpuConstantFoldingComputeNew(const ge::Operator &op, const std::map<std::string, const ge::Tensor> &inputs,
+                             std::map<std::string, ge::Tensor> outputs);
 }
 #endif  // GE_GE_LOCAL_ENGINE_ENGINE_AICPU_FOLDING_FOLDING_H_

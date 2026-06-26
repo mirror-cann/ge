@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -114,7 +114,7 @@ TEST_F(UTEST_dump_manager, add_dump_list_with_op_range) {
   dump_config.dump_status = "on";
   ModelDumpConfig dump_list;
   dump_list.model_name = "test";
-  dump_list.dump_op_ranges.push_back(std::make_pair("a","b"));
+  dump_list.dump_op_ranges.push_back(std::make_pair("a", "b"));
   dump_config.dump_list.push_back(dump_list);
   auto ret = DumpManager::GetInstance().SetDumpConf(dump_config);
   EXPECT_EQ(ret, ge::PARAM_INVALID);
@@ -144,7 +144,7 @@ TEST_F(UTEST_dump_manager, add_invalid_dump_opblacklist_failed) {
   dump_list.layers.push_back("first");
   DumpBlacklist blacklist;
   blacklist.name = "conv";
-  blacklist.pos = {"inputx", "ouput"};
+  blacklist.pos = {"inputx", "output"};
   dump_list.opname_blacklist.push_back(blacklist);
   dump_list.optype_blacklist.push_back(blacklist);
   dump_config.dump_list.push_back(dump_list);
@@ -308,11 +308,11 @@ TEST_F(UTEST_dump_manager, dump_open_by_both_acl_and_options) {
   EXPECT_EQ(dump.GetDumpMode(), "all");
 
   DumpProperties dp;
-  std::map<std::string, std::string> options {{OPTION_EXEC_ENABLE_DUMP, "1"},
-                                              {OPTION_EXEC_DUMP_PATH, "/tmp/"},
-                                              {OPTION_EXEC_DUMP_MODE, "input"},
-                                              {OPTION_EXEC_DUMP_DATA, "tegnsor"},
-                                              {OPTION_EXEC_DUMP_LAYER, "Conv2D"}};
+  std::map<std::string, std::string> options{{OPTION_EXEC_ENABLE_DUMP, "1"},
+                                             {OPTION_EXEC_DUMP_PATH, "/tmp/"},
+                                             {OPTION_EXEC_DUMP_MODE, "input"},
+                                             {OPTION_EXEC_DUMP_DATA, "tegnsor"},
+                                             {OPTION_EXEC_DUMP_LAYER, "Conv2D"}};
   GetThreadLocalContext().SetGlobalOption(options);
   std::map<std::string, std::string> option = {};
   uint64_t session_id = 1;
@@ -342,11 +342,11 @@ TEST_F(UTEST_dump_manager, acl_off_and_option_on_and_acl_off) {
   EXPECT_EQ(dump.IsDumpOpen(), false);
 
   DumpProperties dp;
-  std::map<std::string, std::string> options {{OPTION_EXEC_ENABLE_DUMP, "1"},
-                                              {OPTION_EXEC_DUMP_PATH, "/tmp/"},
-                                              {OPTION_EXEC_DUMP_MODE, "all"},
-                                              {OPTION_EXEC_DUMP_DATA, "tegnsor"},
-                                              {OPTION_EXEC_DUMP_LAYER, "Conv2D"}};
+  std::map<std::string, std::string> options{{OPTION_EXEC_ENABLE_DUMP, "1"},
+                                             {OPTION_EXEC_DUMP_PATH, "/tmp/"},
+                                             {OPTION_EXEC_DUMP_MODE, "all"},
+                                             {OPTION_EXEC_DUMP_DATA, "tegnsor"},
+                                             {OPTION_EXEC_DUMP_LAYER, "Conv2D"}};
   GetThreadLocalContext().SetGlobalOption(options);
   Status st = dp.InitByOptions();
   EXPECT_EQ(st, SUCCESS);
@@ -379,7 +379,7 @@ TEST_F(UTEST_dump_manager, acl_on_and_option_off_and_acl_on) {
   EXPECT_EQ(dump.IsDumpOpen(), true);
 
   DumpProperties dp;
-  std::map<std::string, std::string> options {{OPTION_EXEC_ENABLE_DUMP, "0"}};
+  std::map<std::string, std::string> options{{OPTION_EXEC_ENABLE_DUMP, "0"}};
   GetThreadLocalContext().SetGlobalOption(options);
   Status st = dp.InitByOptions();
   EXPECT_EQ(st, SUCCESS);
@@ -411,7 +411,7 @@ TEST_F(UTEST_dump_manager, acl_on_and_option_none) {
   EXPECT_EQ(dump.IsDumpOpen(), true);
 
   DumpProperties dp;
-  std::map<std::string, std::string> options {};
+  std::map<std::string, std::string> options{};
   GetThreadLocalContext().SetGlobalOption(options);
   Status st = dp.InitByOptions();
   EXPECT_EQ(st, SUCCESS);
@@ -436,9 +436,9 @@ TEST_F(UTEST_dump_manager, acl_on_and_option_overflow_on) {
   EXPECT_EQ(dump.IsDumpOpen(), true);
 
   DumpProperties dp;
-  std::map<std::string, std::string> options {{OPTION_EXEC_ENABLE_DUMP_DEBUG, "1"},
-                                              {OPTION_EXEC_DUMP_PATH, "/tmp/"},
-                                              {OPTION_EXEC_DUMP_DEBUG_MODE, "aicore_overflow"}};
+  std::map<std::string, std::string> options{{OPTION_EXEC_ENABLE_DUMP_DEBUG, "1"},
+                                             {OPTION_EXEC_DUMP_PATH, "/tmp/"},
+                                             {OPTION_EXEC_DUMP_DEBUG_MODE, "aicore_overflow"}};
   GetThreadLocalContext().SetGlobalOption(options);
   Status st = dp.InitByOptions();
   EXPECT_EQ(st, SUCCESS);
@@ -452,23 +452,23 @@ TEST_F(UTEST_dump_manager, acl_on_and_option_overflow_on) {
 }
 
 TEST_F(UTEST_dump_manager, dump_data_valid) {
-   DumpConfig dump_config;
-   dump_config.dump_path = "/test";
-   dump_config.dump_mode = "all";
-   dump_config.dump_status = "on";
-   dump_config.dump_data = "stats";
-   auto ret = DumpManager::GetInstance().SetDumpConf(dump_config);
-   EXPECT_EQ(ret, ge::SUCCESS);
+  DumpConfig dump_config;
+  dump_config.dump_path = "/test";
+  dump_config.dump_mode = "all";
+  dump_config.dump_status = "on";
+  dump_config.dump_data = "stats";
+  auto ret = DumpManager::GetInstance().SetDumpConf(dump_config);
+  EXPECT_EQ(ret, ge::SUCCESS);
 }
 
 TEST_F(UTEST_dump_manager, dump_data_invalid) {
-   DumpConfig dump_config;
-   dump_config.dump_path = "/test";
-   dump_config.dump_mode = "all";
-   dump_config.dump_status = "on";
-   dump_config.dump_data = "test";
-   auto ret = DumpManager::GetInstance().SetDumpConf(dump_config);
-   EXPECT_EQ(ret, ge::PARAM_INVALID);
+  DumpConfig dump_config;
+  dump_config.dump_path = "/test";
+  dump_config.dump_mode = "all";
+  dump_config.dump_status = "on";
+  dump_config.dump_data = "test";
+  auto ret = DumpManager::GetInstance().SetDumpConf(dump_config);
+  EXPECT_EQ(ret, ge::PARAM_INVALID);
 }
 
 // dump specified op without model_name
@@ -526,9 +526,9 @@ TEST_F(UTEST_dump_manager, dump_op_debug_on_and_set_op_switch) {
   EXPECT_EQ(DumpManager::GetInstance().GetDumpProperties(0).IsSingleOpNeedDump(), true);
 
   DumpProperties dp;
-  std::map<std::string, std::string> options {{OPTION_EXEC_ENABLE_DUMP_DEBUG, "1"},
-                                              {OPTION_EXEC_DUMP_PATH, "/tmp/"},
-                                              {OPTION_EXEC_DUMP_DEBUG_MODE, "aicore_overflow"}};
+  std::map<std::string, std::string> options{{OPTION_EXEC_ENABLE_DUMP_DEBUG, "1"},
+                                             {OPTION_EXEC_DUMP_PATH, "/tmp/"},
+                                             {OPTION_EXEC_DUMP_DEBUG_MODE, "aicore_overflow"}};
   GetThreadLocalContext().SetGlobalOption(options);
   Status st = dp.InitByOptions();
   EXPECT_EQ(st, SUCCESS);
@@ -542,11 +542,11 @@ TEST_F(UTEST_dump_manager, dump_op_debug_on_and_set_op_switch) {
 }
 
 TEST_F(UTEST_dump_manager, dump_op_debug_enable) {
-    DumpConfig dump_config;
-    dump_config.dump_debug = "on";
-    dump_config.dump_path = "/test";
-    auto ret = DumpManager::GetInstance().SetDumpConf(dump_config);
-    EXPECT_EQ(ret, ge::SUCCESS);
+  DumpConfig dump_config;
+  dump_config.dump_debug = "on";
+  dump_config.dump_path = "/test";
+  auto ret = DumpManager::GetInstance().SetDumpConf(dump_config);
+  EXPECT_EQ(ret, ge::SUCCESS);
 }
 
 TEST_F(UTEST_dump_manager, InitL0ExceptionDump_Ok_ByOption) {

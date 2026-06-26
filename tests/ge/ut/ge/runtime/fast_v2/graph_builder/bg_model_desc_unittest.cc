@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -43,13 +43,13 @@ class BgModelDescUT : public BgTestAutoCreateFrame {
 };
 
 /*
-*                  init_graph :                          main_graph:
-*  ConstData(session)     ConstData(model_desc)          InnerData
-*                                 |                          |
-*                          GetSpaceRegistry              consumer1
-*                                 |
-*                           InnerNetOutput
-*/
+ *                  init_graph :                          main_graph:
+ *  ConstData(session)     ConstData(model_desc)          InnerData
+ *                                 |                          |
+ *                          GetSpaceRegistry              consumer1
+ *                                 |
+ *                           InnerNetOutput
+ */
 TEST_F(BgModelDescUT, GetSpaceRegistryOk) {
   InitTestFrames();
   LoweringGlobalData global_data;
@@ -62,11 +62,13 @@ TEST_F(BgModelDescUT, GetSpaceRegistryOk) {
   ASSERT_NE(init_frame, nullptr);
 
   auto init_exe_graph = init_frame->GetExecuteGraph().get();
-  ExeGraphSummaryChecker(init_exe_graph).StrictDirectNodeTypes(
-    std::map<std::string, size_t>{{"ConstData", 2}, {"GetSpaceRegistry", 1}, {"InnerNetOutput", 1}});
+  ExeGraphSummaryChecker(init_exe_graph)
+      .StrictDirectNodeTypes(
+          std::map<std::string, size_t>{{"ConstData", 2}, {"GetSpaceRegistry", 1}, {"InnerNetOutput", 1}});
 
   auto main_exe_graph = main_frame->GetExecuteGraph().get();
-  ExeGraphSummaryChecker(main_exe_graph).StrictDirectNodeTypes(std::map<std::string, size_t>{{"InnerData", 1}, {"consumer1", 1}});
+  ExeGraphSummaryChecker(main_exe_graph)
+      .StrictDirectNodeTypes(std::map<std::string, size_t>{{"InnerData", 1}, {"consumer1", 1}});
 }
 
 }  // namespace bg

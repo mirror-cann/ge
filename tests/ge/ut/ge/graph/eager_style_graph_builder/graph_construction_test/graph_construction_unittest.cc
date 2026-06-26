@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -92,7 +92,7 @@ TEST_F(GraphConstructionTest, Test_AddWithTensorLike) {
   EXPECT_NE(compute_graph, nullptr);
   gert::SummaryChecker checker(compute_graph);
   const std::map<std::string, size_t> &node_types_to_count = {
-    {"Data", 1}, {"Const", 3}, {"phony_2opi1i_1o", 1}, {"phony_1opi_1o", 1}, {"Add", 1}, {"NetOutput", 1}};
+      {"Data", 1}, {"Const", 3}, {"phony_2opi1i_1o", 1}, {"phony_1opi_1o", 1}, {"Add", 1}, {"NetOutput", 1}};
   (void)checker.StrictDirectNodeTypes(node_types_to_count);
   STRICT_DIRECT_NODE_TYPES(compute_graph, node_types_to_count);
 }
@@ -357,7 +357,6 @@ void EsValidateRootGraphInputDesc(ComputeGraphPtr &compute_graph) {
   EXPECT_EQ(input_td.GetShape().GetDims(), std::vector<int64_t>({}));
   EXPECT_EQ(input_td.GetOriginShape().GetDims(), std::vector<int64_t>({}));
 
-
   auto input1 = input_nodes.at(1);
   EXPECT_EQ(input1->GetName(), "input");
   input_td = input1->GetOpDesc()->GetInputDesc("x");
@@ -395,8 +394,7 @@ TEST_F(GraphConstructionTest, NestedSubgraphConstruction) {
 
   // 验证节点类型和数量
   gert::SummaryChecker checker(compute_graph);
-  const std::map<std::string, size_t> &node_types_to_count = {
-    {"Data", 2}, {"phony_If", 1}, {"NetOutput", 1}};
+  const std::map<std::string, size_t> &node_types_to_count = {{"Data", 2}, {"phony_If", 1}, {"NetOutput", 1}};
   EXPECT_EQ("success", checker.StrictDirectNodeTypes(node_types_to_count));
   STRICT_DIRECT_NODE_TYPES(compute_graph, node_types_to_count);
   EXPECT_EQ(compute_graph->GetAllSubgraphs().size(), 6);
@@ -523,8 +521,7 @@ TEST_F(GraphConstructionTest, AllOptionalInputsWithInputAndOwnerGraph) {
   auto compute_graph = ge::GraphUtilsEx::GetComputeGraph(*graph);
   EXPECT_NE(compute_graph, nullptr);
   gert::SummaryChecker checker(compute_graph);
-  const std::map<std::string, size_t> &node_types_to_count = {
-    {"Data", 3}, {"phony_3opi_1o", 1}, {"NetOutput", 1}};
+  const std::map<std::string, size_t> &node_types_to_count = {{"Data", 3}, {"phony_3opi_1o", 1}, {"NetOutput", 1}};
   EXPECT_EQ("success", checker.StrictDirectNodeTypes(node_types_to_count));
 }
 
@@ -538,12 +535,12 @@ TEST_F(GraphConstructionTest, AllOptionalInputsWithInput) {
 
   graph_builder_->SetOutput(out, 0);
   auto graph = graph_builder_->BuildAndReset();
-  EXPECT_NE(graph, nullptr);;
+  EXPECT_NE(graph, nullptr);
+  ;
   auto compute_graph = ge::GraphUtilsEx::GetComputeGraph(*graph);
   EXPECT_NE(compute_graph, nullptr);
   gert::SummaryChecker checker(compute_graph);
-  const std::map<std::string, size_t> &node_types_to_count = {
-    {"Data", 1}, {"phony_3opi_1o", 1}, {"NetOutput", 1}};
+  const std::map<std::string, size_t> &node_types_to_count = {{"Data", 1}, {"phony_3opi_1o", 1}, {"NetOutput", 1}};
   EXPECT_EQ("success", checker.StrictDirectNodeTypes(node_types_to_count));
 }
 

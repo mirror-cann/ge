@@ -94,11 +94,9 @@ ComputeGraphPtr BuildTwoGraphs(std::vector<NodePtr> &graph1_nodes, std::vector<N
 
 class UtestGraphFuseInspectorUtils : public testing::Test {
  protected:
-  void SetUp() override {
-  }
+  void SetUp() override {}
 
-  void TearDown() override {
-  }
+  void TearDown() override {}
 };
 
 TEST_F(UtestGraphFuseInspectorUtils, CanFuseFailedWhenWillCauseCycle) {
@@ -197,7 +195,6 @@ TEST_F(UtestGraphFuseInspectorUtils, ReportFuseFailedWhenPassNameEmpty) {
   CustomPassContext ctx;
   EXPECT_EQ(GraphFuseInspectorUtils::ReportFuse(ToGNodes(before_nodes), {}, ctx), FAILED);
 }
-
 
 TEST_F(UtestGraphFuseInspectorUtils, ReportFuseWithAfterFuseEmptyUseUpdate) {
   std::vector<NodePtr> before_nodes;

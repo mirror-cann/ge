@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,14 +34,13 @@ using namespace fe;
 using OpAxisUpdateDescPtr = std::shared_ptr<OpAxisUpdateDesc>;
 class STEST_fusion_engine_update_axis : public testing::Test {
  protected:
-
   void SetUp() {
-
     FEOpsStoreInfo reduce_op_info{
         6,
         "tbe-builtin",
         EN_IMPL_HW_TBE,
-        GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/format_selector/fe_config/tbe_dynamic_opinfo",
+        GetCodeDir() +
+            "/tests/engines/nn_engine/ut/testcase/fusion_engine/format_selector/fe_config/tbe_dynamic_opinfo",
         "",
         false,
         false,
@@ -54,13 +53,9 @@ class STEST_fusion_engine_update_axis : public testing::Test {
     OpsKernelManager::Instance(AI_CORE_NAME).Initialize();
   }
 
-  void TearDown() {
-
-  }
-
+  void TearDown() {}
 
  protected:
-
   static void CreateReduceNodesGraph(ComputeGraphPtr graph) {
     /*   Data         Const
      *   |     /                \
@@ -113,7 +108,9 @@ class STEST_fusion_engine_update_axis : public testing::Test {
 
     OpDescPtr reduce_o_p3 = std::make_shared<OpDesc>("reduce3", "ReduceOp");
     int64_t group = 2;
-    GeTensorDesc conv_tensor_desc3(GeShape({24, 1, 16, 16}), static_cast<ge::Format>(ge::GetFormatFromSub(ge::FORMAT_FRACTAL_Z, group)), ge::DT_FLOAT16);
+    GeTensorDesc conv_tensor_desc3(GeShape({24, 1, 16, 16}),
+                                   static_cast<ge::Format>(ge::GetFormatFromSub(ge::FORMAT_FRACTAL_Z, group)),
+                                   ge::DT_FLOAT16);
     conv_tensor_desc3.SetOriginShape(GeShape({3, 4, 16, 16}));
     conv_tensor_desc3.SetOriginFormat(ge::FORMAT_HWCN);
     reduce_o_p3->AddInputDesc(conv_tensor_desc3);
@@ -135,7 +132,9 @@ class STEST_fusion_engine_update_axis : public testing::Test {
     ge::AttrUtils::SetListInt(reduce_o_p4, AXES_ATTR_NAME, {-2, -3});
 
     OpDescPtr reduce_o_p5 = std::make_shared<OpDesc>("reduce5", "ReduceOp");
-    GeTensorDesc conv_tensor_desc5(GeShape({48, 1, 16, 16}), static_cast<ge::Format>(ge::GetFormatFromSub(ge::FORMAT_FRACTAL_Z_3D, group)), ge::DT_FLOAT16);
+    GeTensorDesc conv_tensor_desc5(GeShape({48, 1, 16, 16}),
+                                   static_cast<ge::Format>(ge::GetFormatFromSub(ge::FORMAT_FRACTAL_Z_3D, group)),
+                                   ge::DT_FLOAT16);
     conv_tensor_desc5.SetOriginShape(GeShape({2, 3, 4, 16, 16}));
     conv_tensor_desc5.SetOriginFormat(ge::FORMAT_DHWCN);
     reduce_o_p5->AddInputDesc(conv_tensor_desc5);
@@ -286,9 +285,7 @@ TEST_F(STEST_fusion_engine_update_axis, update_axis_success) {
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-
-TEST_F(STEST_fusion_engine_update_axis, update_axis_success_6_h_d)
-{
+TEST_F(STEST_fusion_engine_update_axis, update_axis_success_6_h_d) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateReduceNodesGraph2(graph);
 
@@ -298,9 +295,7 @@ TEST_F(STEST_fusion_engine_update_axis, update_axis_success_6_h_d)
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-
-TEST_F(STEST_fusion_engine_update_axis, update_axis_success_6_h_d_2)
-{
+TEST_F(STEST_fusion_engine_update_axis, update_axis_success_6_h_d_2) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateReduceNodesGraph3(graph);
 
@@ -310,8 +305,7 @@ TEST_F(STEST_fusion_engine_update_axis, update_axis_success_6_h_d_2)
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-TEST_F(STEST_fusion_engine_update_axis, update_axis_success_6_h_d_3)
-{
+TEST_F(STEST_fusion_engine_update_axis, update_axis_success_6_h_d_3) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateReduceNodesGraph4NCDHW(graph);
   OpAxisUpdateDescPtr op_axis_update_desc_ptr = std::make_shared<OpAxisUpdateDesc>(AI_CORE_NAME);

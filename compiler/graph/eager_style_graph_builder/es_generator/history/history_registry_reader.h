@@ -45,8 +45,7 @@ class HistoryRegistryReader {
    * @return IrOpProto
    * @throws std::runtime_error 文件加载失败或 op_type 未找到、不唯一、解析失败
    */
-  static IrOpProto LoadOpProto(const std::string &pkg_dir, const std::string &version,
-                              const std::string &op_type);
+  static IrOpProto LoadOpProto(const std::string &pkg_dir, const std::string &version, const std::string &op_type);
 
   /**
    * 在版本列表中筛选窗口内版本
@@ -56,8 +55,7 @@ class HistoryRegistryReader {
    * @return 窗口内版本，按 release_date 升序
    */
   static std::vector<VersionMeta> SelectWindowVersions(const std::vector<VersionMeta> &all_versions,
-                                                       const std::string &current_version,
-                                                       int window_days = 365);
+                                                       const std::string &current_version, int window_days = 365);
 };
 }  // namespace history
 }  // namespace es

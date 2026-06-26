@@ -53,8 +53,8 @@ namespace {
  *             NetOutput -------------------------------
  */
 Graph BuildVariableGraph(bool has_copy_from_attr = false) {
-  GeTensorDesc tensor_4_desc(ge::GeShape({2,3,4,5}), FORMAT_NCHW, DT_INT32);
-  GeTensorDesc tensor_5_desc(ge::GeShape({1,2,3,4,5}), FORMAT_NC1HWC0, DT_INT32);
+  GeTensorDesc tensor_4_desc(ge::GeShape({2, 3, 4, 5}), FORMAT_NCHW, DT_INT32);
+  GeTensorDesc tensor_5_desc(ge::GeShape({1, 2, 3, 4, 5}), FORMAT_NC1HWC0, DT_INT32);
 
   auto var1 = std::make_shared<OpDesc>("var1", VARIABLE);
   auto var2 = std::make_shared<OpDesc>("var2", VARIABLE);
@@ -110,7 +110,7 @@ Graph BuildVariableGraph(bool has_copy_from_attr = false) {
 }
 
 ComputeGraphPtr BuildVariableAcrossPartionedCallGraph() {
-  GeTensorDesc tensor_4_desc(ge::GeShape({2,3,4,5}), FORMAT_NCHW, DT_INT32);
+  GeTensorDesc tensor_4_desc(ge::GeShape({2, 3, 4, 5}), FORMAT_NCHW, DT_INT32);
   auto var1 = std::make_shared<OpDesc>("var1", VARIABLE);
   var1->AddInputDesc(tensor_4_desc);
   var1->AddOutputDesc(tensor_4_desc);
@@ -120,8 +120,7 @@ ComputeGraphPtr BuildVariableAcrossPartionedCallGraph() {
   var_ref->AddOutputDesc(tensor_4_desc);
 
   DEF_GRAPH(g1) {
-    CHAIN(NODE(var1)->NODE("PartitionedCall_0", PARTITIONEDCALL)->NODE(var_ref)->
-          NODE("Output", NETOUTPUT));
+    CHAIN(NODE(var1)->NODE("PartitionedCall_0", PARTITIONEDCALL)->NODE(var_ref)->NODE("Output", NETOUTPUT));
     CHAIN(NODE("data", DATA)->NODE("PartitionedCall_0"));
   };
   ComputeGraphPtr graph = ToComputeGraph(g1);
@@ -158,7 +157,7 @@ Graph BuildVariableAndReshapeGraph() {
   for_each(data_vec.begin(), data_vec.end(), [&](int64_t &data) { dims_size *= data; });
   vector<int32_t> data_value_vec = {1, 2, 3, 4, 5};
   GeTensorDesc data_tensor_desc(GeShape(data_vec), FORMAT_NCHW, DT_INT32);
-  GeTensorPtr data_tensor = std::make_shared<GeTensor>(data_tensor_desc, (uint8_t *) data_value_vec.data(),
+  GeTensorPtr data_tensor = std::make_shared<GeTensor>(data_tensor_desc, (uint8_t *)data_value_vec.data(),
                                                        data_value_vec.size() * sizeof(int32_t));
 
   auto var1 = OP_CFG(VARIABLE).TensorDesc(FORMAT_NCHW, DT_INT32, {2, 3, 4, 5}).InCnt(0).OutCnt(1);
@@ -168,23 +167,19 @@ Graph BuildVariableAndReshapeGraph() {
   auto netoutput = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_INT32, {1, 2, 3, 4, 5});
 
   DEF_GRAPH(g1) {
-    CHAIN(NODE("var1", var1)
-              ->EDGE(0, 0)
-              ->NODE("reshape", reshape)
-              ->NODE("relu", relu)
-              ->NODE("netoutput", netoutput));
+    CHAIN(NODE("var1", var1)->EDGE(0, 0)->NODE("reshape", reshape)->NODE("relu", relu)->NODE("netoutput", netoutput));
     CHAIN(NODE("const1", const1)->EDGE(0, 1)->NODE("reshape"));
   };
   auto ge_graph = ToGeGraph(g1);
   auto compute_graph = ge::GraphUtilsEx::GetComputeGraph(ge_graph);
-  compute_graph->FindNode("var1")->GetOpDesc()->MutableOutputDesc(0)
-      ->SetOriginShape(GeShape(std::vector<int64_t>({2, 3, 4, 5})));
-  compute_graph->FindNode("reshape")->GetOpDesc()->MutableInputDesc(0)
-      ->SetOriginShape(GeShape(std::vector<int64_t>({2, 3, 4, 5})));
-  compute_graph->FindNode("reshape")->GetOpDesc()->MutableOutputDesc(0)
-      ->SetOriginShape(GeShape(std::vector<int64_t>({1, 2, 3, 4, 5})));
-  compute_graph->FindNode("relu")->GetOpDesc()->MutableInputDesc(0)
-      ->SetOriginShape(GeShape(std::vector<int64_t>({1, 2, 3, 4, 5})));
+  compute_graph->FindNode("var1")->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(
+      GeShape(std::vector<int64_t>({2, 3, 4, 5})));
+  compute_graph->FindNode("reshape")->GetOpDesc()->MutableInputDesc(0)->SetOriginShape(
+      GeShape(std::vector<int64_t>({2, 3, 4, 5})));
+  compute_graph->FindNode("reshape")->GetOpDesc()->MutableOutputDesc(0)->SetOriginShape(
+      GeShape(std::vector<int64_t>({1, 2, 3, 4, 5})));
+  compute_graph->FindNode("relu")->GetOpDesc()->MutableInputDesc(0)->SetOriginShape(
+      GeShape(std::vector<int64_t>({1, 2, 3, 4, 5})));
   return ge_graph;
 }
 
@@ -197,7 +192,7 @@ Graph BuildVariableAndReshapeGraph() {
  *           /     \
  * const1   |     add1
  *   c|    |      |  \
-*     ----var1  data1 const2
+ *     ----var1  data1 const2
  */
 Graph BuildSimpleVarAssignGraph() {
   std::vector<int64_t> shape = {2, 2, 3, 2};  // HWCN
@@ -215,8 +210,7 @@ Graph BuildSimpleVarAssignGraph() {
     auto const2 =
         OP_CFG(CONSTANT).TensorDesc(FORMAT_ND, DT_FLOAT, shape).Weight(data_tensor).InCnt(1).OutCnt(1).Build("const2");
 
-    auto data1 =
-        OP_CFG(DATA).TensorDesc(FORMAT_ND, DT_FLOAT, shape).InCnt(1).OutCnt(1).Build("data1");
+    auto data1 = OP_CFG(DATA).TensorDesc(FORMAT_ND, DT_FLOAT, shape).InCnt(1).OutCnt(1).Build("data1");
 
     auto transdata1 = OP_CFG(TRANSDATA).InCnt(1).OutCnt(1).Build("transdata1");
     auto netoutput = OP_CFG(NETOUTPUT).Build("netoutput");
@@ -237,16 +231,9 @@ Graph BuildSimpleVarAssignGraph() {
 Graph BuildGraphForVariablePrepareOpPass() {
   std::vector<int64_t> shape = {1};
   auto data_tensor = GenerateTensor(shape);
-  auto variable_switch = OP_CFG(VARIABLE)
-    .TensorDesc(FORMAT_ND, DT_BOOL, shape)
-    .InCnt(1)
-    .OutCnt(1)
-    .Build("variable_switch");
-  auto const1 = OP_CFG(CONSTANT)
-    .Weight(data_tensor)
-    .InCnt(1)
-    .OutCnt(1)
-    .Build("const1");
+  auto variable_switch =
+      OP_CFG(VARIABLE).TensorDesc(FORMAT_ND, DT_BOOL, shape).InCnt(1).OutCnt(1).Build("variable_switch");
+  auto const1 = OP_CFG(CONSTANT).Weight(data_tensor).InCnt(1).OutCnt(1).Build("const1");
   DEF_GRAPH(ControlOpGraph) {
     CHAIN(NODE("variable", VARIABLE)->EDGE(0U, 0U)->NODE("refswitch", FRAMEWORKOP));
     CHAIN(NODE(variable_switch)->EDGE(0U, 1U)->NODE("refswitch", FRAMEWORKOP));
@@ -366,16 +353,12 @@ void Fake5DNodeEngine(GeRunningEnvFaker &ge_env) {
   // 5 indicates that cube size is 16
   const Format src_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_NC1HWC0, FORMAT_RESERVED, 5));
   const Format dst_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_FRACTAL_Z, FORMAT_NHWC, 5));
-  ffo->OpFormatByType(
-      CONV2D, {
-          .input_formats = {
-              {src_format, GeShape(std::vector<int64_t>({8,1,16,16,16}))},
-              {dst_format, GeShape(std::vector<int64_t>({4,1,16,16}))},
-          },
-          .output_formats = {
-              {src_format, GeShape(std::vector<int64_t>({8,1,16,16,16}))}
-          }
-      });
+  ffo->OpFormatByType(CONV2D, {.input_formats =
+                                   {
+                                       {src_format, GeShape(std::vector<int64_t>({8, 1, 16, 16, 16}))},
+                                       {dst_format, GeShape(std::vector<int64_t>({4, 1, 16, 16}))},
+                                   },
+                               .output_formats = {{src_format, GeShape(std::vector<int64_t>({8, 1, 16, 16, 16}))}}});
   ge_env.InstallDefault();
   ge_env.Install(FakeEngine("TestForVarAcc").GraphOptimizer("FormatOp", ffo));
 }
@@ -398,17 +381,18 @@ void RunAndCheckInitVarGraph(Session &session, const std::map<AscendString, Asce
   EXPECT_EQ(VarManagerPool::Instance().GetVarManager(session.sessionId_)->GetCurVarDesc("var1", td1), SUCCESS);
   // var1由ND格式的const做初始化，因此其格式被推为ND
   EXPECT_EQ(td1.GetFormat(), FORMAT_ND);
-  EXPECT_EQ(td1.GetShape().GetDims(), std::vector<int64_t>({2,2,3,2}));
-  EXPECT_EQ(td1.GetOriginShape().GetDims(), std::vector<int64_t>({2,2,3,2}));
+  EXPECT_EQ(td1.GetShape().GetDims(), std::vector<int64_t>({2, 2, 3, 2}));
+  EXPECT_EQ(td1.GetOriginShape().GetDims(), std::vector<int64_t>({2, 2, 3, 2}));
   GeTensorDesc td2;
   EXPECT_EQ(VarManagerPool::Instance().GetVarManager(session.sessionId_)->GetCurVarDesc("var2", td2), SUCCESS);
   // var2由HWCN格式的const做初始化，因此其格式被推为HWCN
   EXPECT_EQ(td2.GetFormat(), FORMAT_HWCN);
-  EXPECT_EQ(td2.GetShape().GetDims(), std::vector<int64_t>({2,2,3,2}));
-  EXPECT_EQ(td2.GetOriginShape().GetDims(), std::vector<int64_t>({2,2,3,2}));
+  EXPECT_EQ(td2.GetShape().GetDims(), std::vector<int64_t>({2, 2, 3, 2}));
+  EXPECT_EQ(td2.GetOriginShape().GetDims(), std::vector<int64_t>({2, 2, 3, 2}));
 }
 
-void RunAndCheckCheckpointGraph(Session &session, bool is_5d, const std::map<AscendString, AscendString> &graph_options) {
+void RunAndCheckCheckpointGraph(Session &session, bool is_5d,
+                                const std::map<AscendString, AscendString> &graph_options) {
   std::vector<ge::Tensor> g1_inputs;
   Synchronizer sync;
   GeTensorDesc td1;
@@ -428,17 +412,20 @@ void RunAndCheckCheckpointGraph(Session &session, bool is_5d, const std::map<Asc
   const Format expect_format = static_cast<Format>(GetPrimaryFormat(td1.GetFormat()));
   if (is_5d) {
     EXPECT_EQ(expect_format, FORMAT_FRACTAL_Z);
-    EXPECT_EQ(td1.GetShape().GetDims(), std::vector<int64_t>({4,1,16,16}));
+    EXPECT_EQ(td1.GetShape().GetDims(), std::vector<int64_t>({4, 1, 16, 16}));
   } else {
     EXPECT_EQ(expect_format, FORMAT_ND);
-    EXPECT_EQ(td1.GetShape().GetDims(), std::vector<int64_t>({2,2,3,2}));
+    EXPECT_EQ(td1.GetShape().GetDims(), std::vector<int64_t>({2, 2, 3, 2}));
   }
 
-  EXPECT_EQ(td1.GetOriginShape().GetDims(), std::vector<int64_t>({2,2,3,2}));
-  EXPECT_EQ(VarManagerPool::Instance().GetVarManager(GraphUtilsEx::GetComputeGraph(ckp_graph)->GetSessionID())->GetCurVarDesc("var2", td2), SUCCESS);
+  EXPECT_EQ(td1.GetOriginShape().GetDims(), std::vector<int64_t>({2, 2, 3, 2}));
+  EXPECT_EQ(VarManagerPool::Instance()
+                .GetVarManager(GraphUtilsEx::GetComputeGraph(ckp_graph)->GetSessionID())
+                ->GetCurVarDesc("var2", td2),
+            SUCCESS);
   EXPECT_EQ(td2.GetFormat(), FORMAT_ND);  // 这里行为有些奇怪，变量管理器的当前格式由原来的HWCN改成ND了
-  EXPECT_EQ(td2.GetShape().GetDims(), std::vector<int64_t>({2,2,3,2}));
-  EXPECT_EQ(td2.GetOriginShape().GetDims(), std::vector<int64_t>({2,2,3,2}));
+  EXPECT_EQ(td2.GetShape().GetDims(), std::vector<int64_t>({2, 2, 3, 2}));
+  EXPECT_EQ(td2.GetOriginShape().GetDims(), std::vector<int64_t>({2, 2, 3, 2}));
 }
 
 void RunAndCheckTrainGraph(Session &session, const std::map<AscendString, AscendString> &graph_options) {
@@ -448,7 +435,7 @@ void RunAndCheckTrainGraph(Session &session, const std::map<AscendString, Ascend
   GeTensorDesc td2;
 
   auto train_graph = GraphFactory::BuildVarTrainGraph1();
-  g1_inputs.emplace_back(TensorAdapter::AsTensor(*GenerateTensor({8,3,16,16})));
+  g1_inputs.emplace_back(TensorAdapter::AsTensor(*GenerateTensor({8, 3, 16, 16})));
   g1_inputs.emplace_back(TensorAdapter::AsTensor(*GenerateTensor({})));
   auto ret = session.AddGraph(3, train_graph, graph_options);
   EXPECT_EQ(ret, SUCCESS);
@@ -463,11 +450,11 @@ void RunAndCheckTrainGraph(Session &session, const std::map<AscendString, Ascend
   EXPECT_EQ(VarManagerPool::Instance().GetVarManager(session.sessionId_)->GetCurVarDesc("var1", td1), SUCCESS);
   const Format expect_format = static_cast<Format>(GetPrimaryFormat(td1.GetFormat()));
   EXPECT_EQ(expect_format, FORMAT_FRACTAL_Z);
-  EXPECT_EQ(td1.GetShape().GetDims(), std::vector<int64_t>({4,1,16,16}));
-  EXPECT_EQ(td1.GetOriginShape().GetDims(), std::vector<int64_t>({2,2,3,2}));
+  EXPECT_EQ(td1.GetShape().GetDims(), std::vector<int64_t>({4, 1, 16, 16}));
+  EXPECT_EQ(td1.GetOriginShape().GetDims(), std::vector<int64_t>({2, 2, 3, 2}));
   EXPECT_EQ(VarManagerPool::Instance().GetVarManager(session.sessionId_)->GetCurVarDesc("var2", td2), SUCCESS);
-  EXPECT_EQ(td2.GetShape().GetDims(), std::vector<int64_t>({2,2,3,2}));
-  EXPECT_EQ(td2.GetOriginShape().GetDims(), std::vector<int64_t>({2,2,3,2}));
+  EXPECT_EQ(td2.GetShape().GetDims(), std::vector<int64_t>({2, 2, 3, 2}));
+  EXPECT_EQ(td2.GetOriginShape().GetDims(), std::vector<int64_t>({2, 2, 3, 2}));
 }
 
 /*
@@ -477,7 +464,8 @@ void RunAndCheckTrainGraph(Session &session, const std::map<AscendString, Ascend
  * 期望：变量在变量管理器中创建成功
  * step 2. 下发一张checkpoint图，将变量var1和var2作为返回值返回
  * step 3. 下发一张训练图，var1作为权重连接到Conv2D
- * 期望： var1格式变更为FZ；var1按照新格式分配新的dev地址；var1的数据从device上被拷贝上来，在host完成格式转换后，按照新地址拷贝回dev
+ * 期望：
+ * var1格式变更为FZ；var1按照新格式分配新的dev地址；var1的数据从device上被拷贝上来，在host完成格式转换后，按照新地址拷贝回dev
  * step 4. 判断step 2中的checkpoint图是否需要重编译
  * 期望：checkpoint图需要重编译
  * step 5. 删除ckp图，重新下发一次ckp图
@@ -541,7 +529,8 @@ TEST_F(VariableAccSt, variable_modified_when_second_graph_then_run_first_graph) 
  * step 1. 下发一张变量初始化图，初始化变量var1和var2，变量格式为常规ND
  * 期望：变量在变量管理器中创建成功
  * step 2. 下发一张训练图，var1作为权重连接到Conv2D
- * 期望： var1格式变更为FZ；var1按照新格式分配新的dev地址；var1的数据从device上被拷贝上来，在host完成格式转换后，按照新地址拷贝回dev
+ * 期望：
+ * var1格式变更为FZ；var1按照新格式分配新的dev地址；var1的数据从device上被拷贝上来，在host完成格式转换后，按照新地址拷贝回dev
  * step 3. 下发一张训练图2，var1、var2连接到一个不支持FZ的、会写入var的算子
  * 期望：var1应该有一个较为复杂的写入图结构（详见代码校验）
  */
@@ -568,9 +557,9 @@ TEST_F(VariableAccSt, variable_write_edge_does_not_have_output) {
     sync.OnDone();
   });
   EXPECT_EQ(ret, SUCCESS);
-  sync.WaitFor(10); // ge_env重置会清空全局对象的注册引擎等，如果这里不等待会因为异步执行线程访问正在清空
-  //打桩引擎等发生coredump
-  // todo check topo
+  sync.WaitFor(10);  // ge_env重置会清空全局对象的注册引擎等，如果这里不等待会因为异步执行线程访问正在清空
+  // 打桩引擎等发生coredump
+  //  todo check topo
   ge_env.Reset();
   ge_env.InstallDefault();
 }
@@ -583,7 +572,6 @@ TEST_F(VariableAccSt, test_variable_is_initialized) {
   GeTensorDesc data_tensor_desc(GeShape(data_vec), FORMAT_NCHW, DT_INT32);
   GeTensorPtr data_tensor = std::make_shared<GeTensor>(data_tensor_desc, (uint8_t *)data_value_vec.data(),
                                                        data_value_vec.size() * sizeof(int32_t));
-
 
   auto var1 = OP_CFG(VARIABLE).TensorDesc(FORMAT_NCHW, DT_INT32, {2, 3, 4, 5}).InCnt(0).OutCnt(1);
   auto var_init = OP_CFG(VARISINITIALIZEDOP).TensorDesc(FORMAT_NCHW, DT_INT32, {2, 3, 4, 5}).InCnt(1).OutCnt(1);
@@ -638,7 +626,7 @@ TEST_F(VariableAccSt, test_variable_is_initialized) {
   ret = session.AddGraph(3, graph, options);
   EXPECT_EQ(ret, SUCCESS);
   ret = session.BuildGraph(3, inputs);
-  // VARISINITIALIZEDOP input must be varibale
+  // VARISINITIALIZEDOP input must be variable
   EXPECT_NE(ret, SUCCESS);
 
   graph = ToGeGraph(g3);
@@ -696,7 +684,8 @@ TEST_F(VariableAccSt, test_variable_recover_transroad_for_transpose_reshape) {
   auto compute_graph = ToComputeGraph(g1);
   auto var = compute_graph->FindFirstNodeMatchType(VARIABLE);
   compute_graph->SetSessionID(1);
-  GeTensorDesc input_desc(GeShape({1, 2, 3, 4}), static_cast<ge::Format>(GetFormatFromSub(ge::FORMAT_FRACTAL_Z, 240)), DT_INT32);
+  GeTensorDesc input_desc(GeShape({1, 2, 3, 4}), static_cast<ge::Format>(GetFormatFromSub(ge::FORMAT_FRACTAL_Z, 240)),
+                          DT_INT32);
   GeTensorDesc output_desc(GeShape({1, 2, 3, 4}), ge::FORMAT_NCHW, DT_INT32);
   TransNodeInfo trans_node_info = {.node_type = TRANSDATA, .input = input_desc, .output = output_desc};
   TransNodeInfo transpose_node_info = {.node_type = TRANSPOSED, .input = input_desc, .output = output_desc};
@@ -729,14 +718,10 @@ Graph BuildVariableInitGraph(const char *var_name, const GeTensorDesc &desc) {
   auto dtype = desc.GetDataType();
   auto shape = desc.GetShape().GetDims();
   auto tensor = GenerateTensor(dtype, shape);
-  auto var = OP_CFG(VARIABLE).TensorDesc(format, dtype, shape).InCnt(1).OutCnt(1)
-                             .Build(var_name);
-  auto constant = OP_CFG(CONSTANT).TensorDesc(format, dtype, shape).InCnt(0).OutCnt(1)
-                                  .Weight(tensor)
-                                  .Build("const");
-  auto assign = OP_CFG(ASSIGN).TensorDesc(format, dtype, shape)
-                              .InNames({"ref", "value"}).OutNames({"ref"})
-                              .Build("assign");
+  auto var = OP_CFG(VARIABLE).TensorDesc(format, dtype, shape).InCnt(1).OutCnt(1).Build(var_name);
+  auto constant = OP_CFG(CONSTANT).TensorDesc(format, dtype, shape).InCnt(0).OutCnt(1).Weight(tensor).Build("const");
+  auto assign =
+      OP_CFG(ASSIGN).TensorDesc(format, dtype, shape).InNames({"ref", "value"}).OutNames({"ref"}).Build("assign");
   DEF_GRAPH(var_init) {
     CHAIN(NODE(var)->EDGE(0, 0)->NODE(assign));
     CHAIN(NODE(constant)->EDGE(0, 1)->NODE(assign));
@@ -746,12 +731,16 @@ Graph BuildVariableInitGraph(const char *var_name, const GeTensorDesc &desc) {
 }
 
 Graph BuildVariableCastGraph(const char *var_name, const GeTensorDesc &from, const GeTensorDesc &to) {
-  auto var = OP_CFG(VARIABLE).TensorDesc(from.GetFormat(), from.GetDataType(), from.GetShape().GetDims())
-                             .InCnt(1).OutCnt(1)
-                             .Build(var_name);
-  auto cast = OP_CFG(CAST).TensorDesc(to.GetFormat(), to.GetDataType(), to.GetShape().GetDims())
-                          .InCnt(1).OutCnt(1)
-                          .Build("cast");
+  auto var = OP_CFG(VARIABLE)
+                 .TensorDesc(from.GetFormat(), from.GetDataType(), from.GetShape().GetDims())
+                 .InCnt(1)
+                 .OutCnt(1)
+                 .Build(var_name);
+  auto cast = OP_CFG(CAST)
+                  .TensorDesc(to.GetFormat(), to.GetDataType(), to.GetShape().GetDims())
+                  .InCnt(1)
+                  .OutCnt(1)
+                  .Build("cast");
   DEF_GRAPH(var_cast) {
     CHAIN(NODE(var)->NODE(cast));
   };
@@ -760,8 +749,8 @@ Graph BuildVariableCastGraph(const char *var_name, const GeTensorDesc &from, con
 
 using ValueSetter = std::function<void(void *addr, size_t idx)>;
 using ValueChecker = std::function<bool(const void *addr, size_t idx)>;
-void EXPECT_BuildAndCheckCastFusionGraph(DataType src_dtype, DataType dst_dtype,
-                                         ValueSetter setter, ValueChecker checker) {
+void EXPECT_BuildAndCheckCastFusionGraph(DataType src_dtype, DataType dst_dtype, ValueSetter setter,
+                                         ValueChecker checker) {
   constexpr size_t length_1d = 256;
   const GeTensorDesc src_desc(GeShape(std::vector<int64_t>({length_1d})), FORMAT_ND, src_dtype);
   const GeTensorDesc dst_desc(GeShape(std::vector<int64_t>({length_1d})), FORMAT_ND, dst_dtype);
@@ -797,20 +786,12 @@ void EXPECT_BuildAndCheckCastFusionGraph(DataType src_dtype, DataType dst_dtype,
 }
 
 TEST_F(VariableAccSt, test_cast_fusion_with_data_copy_ok) {
-  EXPECT_BuildAndCheckCastFusionGraph(DT_FLOAT16, DT_HIFLOAT8,
-    [](void *addr, size_t idx) {
-      *reinterpret_cast<fp16_t *>(addr) = static_cast<fp16_t>(HiF8::FromRawBits(idx));
-    },
-    [](const void *addr, size_t idx) {
-      return *static_cast<const hif8_t *>(addr) == HiF8::FromRawBits(idx);
-    }
-  );
-  EXPECT_BuildAndCheckCastFusionGraph(DT_FLOAT, DT_HIFLOAT8,
-    [](void *addr, size_t idx) {
-      *reinterpret_cast<float *>(addr) = static_cast<float>(HiF8::FromRawBits(idx));
-    },
-    [](const void *addr, size_t idx) {
-      return *static_cast<const hif8_t *>(addr) == HiF8::FromRawBits(idx);
-    }
-  );
+  EXPECT_BuildAndCheckCastFusionGraph(
+      DT_FLOAT16, DT_HIFLOAT8,
+      [](void *addr, size_t idx) { *reinterpret_cast<fp16_t *>(addr) = static_cast<fp16_t>(HiF8::FromRawBits(idx)); },
+      [](const void *addr, size_t idx) { return *static_cast<const hif8_t *>(addr) == HiF8::FromRawBits(idx); });
+  EXPECT_BuildAndCheckCastFusionGraph(
+      DT_FLOAT, DT_HIFLOAT8,
+      [](void *addr, size_t idx) { *reinterpret_cast<float *>(addr) = static_cast<float>(HiF8::FromRawBits(idx)); },
+      [](const void *addr, size_t idx) { return *static_cast<const hif8_t *>(addr) == HiF8::FromRawBits(idx); });
 }

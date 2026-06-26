@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -48,17 +48,16 @@ Status ByPassTransNode(NodePtr &trans_node, NodePtr &ref_node) {
   auto ret = GraphUtils::CopyInCtrlEdges(trans_node, ref_node);
   if (ret != GRAPH_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Copy in control edge from node:%s(%s) to node:%s(%s) failed",
-                      trans_node->GetName().c_str(), trans_node->GetType().c_str(),
-                      ref_node->GetName().c_str(), ref_node->GetType().c_str());
-    GELOGE(INTERNAL_ERROR, "[Copy][InCtrlEdges] from node:%s(%s) to node:%s(%s) failed",
-           trans_node->GetName().c_str(), trans_node->GetType().c_str(),
-           ref_node->GetName().c_str(), ref_node->GetType().c_str());
+                         trans_node->GetName().c_str(), trans_node->GetType().c_str(), ref_node->GetName().c_str(),
+                         ref_node->GetType().c_str());
+    GELOGE(INTERNAL_ERROR, "[Copy][InCtrlEdges] from node:%s(%s) to node:%s(%s) failed", trans_node->GetName().c_str(),
+           trans_node->GetType().c_str(), ref_node->GetName().c_str(), ref_node->GetType().c_str());
     return INTERNAL_ERROR;
   }
   auto ref_in_anchor = ref_node->GetInDataAnchor(0);
   if (ref_in_anchor == nullptr) {
-    REPORT_INNER_ERR_MSG("E19999", "Node:%s(%s) has no input anchor, check invalid",
-                       ref_node->GetName().c_str(), ref_node->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Node:%s(%s) has no input anchor, check invalid", ref_node->GetName().c_str(),
+                         ref_node->GetType().c_str());
     GELOGE(INTERNAL_ERROR, "[Get][InDataAnchor] failed, The variable ref node %s does not have an input anchor",
            ref_node->GetName().c_str());
     return INTERNAL_ERROR;
@@ -66,10 +65,10 @@ Status ByPassTransNode(NodePtr &trans_node, NodePtr &ref_node) {
   ref_in_anchor->UnlinkAll();
   auto trans_in_anchor = trans_node->GetInDataAnchor(0);
   if (trans_in_anchor == nullptr) {
-    REPORT_INNER_ERR_MSG("E19999", "Node:%s(%s) has no input anchor, check invalid",
-                       trans_node->GetName().c_str(), trans_node->GetType().c_str());
-    GELOGE(INTERNAL_ERROR, "[Get][InDataAnchor] failed, Node:%s(%s) has no input anchor",
-           trans_node->GetName().c_str(), trans_node->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Node:%s(%s) has no input anchor, check invalid", trans_node->GetName().c_str(),
+                         trans_node->GetType().c_str());
+    GELOGE(INTERNAL_ERROR, "[Get][InDataAnchor] failed, Node:%s(%s) has no input anchor", trans_node->GetName().c_str(),
+           trans_node->GetType().c_str());
     return INTERNAL_ERROR;
   }
   auto prev_trans_node_out_anchor = trans_in_anchor->GetPeerOutAnchor();
@@ -82,14 +81,14 @@ Status ByPassTransNode(NodePtr &trans_node, NodePtr &ref_node) {
     ret = GraphUtils::AddEdge(prev_trans_node_out_anchor, ref_in_anchor);
     if (ret != GRAPH_SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "Add edge between op:%s(%s)(index:%d) and op:%s(%s)(index:0) failed",
-                        prev_trans_node_out_anchor->GetOwnerNode()->GetName().c_str(),
-                        prev_trans_node_out_anchor->GetOwnerNode()->GetType().c_str(),
-                        prev_trans_node_out_anchor->GetIdx(),
-                        ref_node->GetName().c_str(), ref_node->GetType().c_str());
+                           prev_trans_node_out_anchor->GetOwnerNode()->GetName().c_str(),
+                           prev_trans_node_out_anchor->GetOwnerNode()->GetType().c_str(),
+                           prev_trans_node_out_anchor->GetIdx(), ref_node->GetName().c_str(),
+                           ref_node->GetType().c_str());
       GELOGE(INTERNAL_ERROR, "[Add][Edge] between op:%s(%s)(index:%d) and op:%s(%s)(index:0) failed",
              prev_trans_node_out_anchor->GetOwnerNode()->GetName().c_str(),
-             prev_trans_node_out_anchor->GetOwnerNode()->GetType().c_str(),
-             prev_trans_node_out_anchor->GetIdx(), ref_node->GetName().c_str(), ref_node->GetType().c_str());
+             prev_trans_node_out_anchor->GetOwnerNode()->GetType().c_str(), prev_trans_node_out_anchor->GetIdx(),
+             ref_node->GetName().c_str(), ref_node->GetType().c_str());
       return INTERNAL_ERROR;
     }
   }
@@ -107,15 +106,22 @@ bool IsTransSupport(const TransNodeInfo &trans_info) {
         static_cast<Format>(GetPrimaryFormat(static_cast<int32_t>(trans_info.input.GetFormat())));
     const Format dst_primary_format =
         static_cast<Format>(GetPrimaryFormat(static_cast<int32_t>(trans_info.output.GetFormat())));
-    const Format src_sub_format =
-        static_cast<Format>(GetSubFormat(static_cast<int32_t>(trans_info.input.GetFormat())));
+    const Format src_sub_format = static_cast<Format>(GetSubFormat(static_cast<int32_t>(trans_info.input.GetFormat())));
     const Format dst_sub_format =
         static_cast<Format>(GetSubFormat(static_cast<int32_t>(trans_info.output.GetFormat())));
     const int64_t src_c0_format = GetC0Value(static_cast<int32_t>(trans_info.input.GetFormat()));
     const int64_t dts_c0_format = GetC0Value(static_cast<int32_t>(trans_info.output.GetFormat()));
-    formats::TransArgs args{nullptr, trans_info.input.GetFormat(), trans_info.output.GetFormat(), src_primary_format,
-                            dst_primary_format, src_sub_format, dst_sub_format, src_c0_format, dts_c0_format,
-                            trans_info.input.GetShape().GetDims(), trans_info.output.GetShape().GetDims(),
+    formats::TransArgs args{nullptr,
+                            trans_info.input.GetFormat(),
+                            trans_info.output.GetFormat(),
+                            src_primary_format,
+                            dst_primary_format,
+                            src_sub_format,
+                            dst_sub_format,
+                            src_c0_format,
+                            dts_c0_format,
+                            trans_info.input.GetShape().GetDims(),
+                            trans_info.output.GetShape().GetDims(),
                             trans_info.input.GetDataType()};
     return formats::IsTransFormatSupport(args);
   } else if (trans_info.node_type == CAST) {
@@ -200,7 +206,7 @@ Status VariableOpPass::Run(ge::ComputeGraphPtr graph) {
     ret = VarManager::Instance(graph->GetSessionID())->SetTransRoad(var_to_refs.first->var_name, fusion_road);
     if (ret != SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "Set Trans road for node:%s(Variable) failed, session_id:%" PRIu64 "",
-                        var_to_refs.first->var_name.c_str(), graph->GetSessionID());
+                           var_to_refs.first->var_name.c_str(), graph->GetSessionID());
       GELOGE(INTERNAL_ERROR, "[Set][TransRoad] for node:%s(Variable) failed, session_id:%" PRIu64 "",
              var_to_refs.first->var_name.c_str(), graph->GetSessionID());
       return INTERNAL_ERROR;
@@ -208,9 +214,9 @@ Status VariableOpPass::Run(ge::ComputeGraphPtr graph) {
     ret = VarManager::Instance(graph->GetSessionID())->SetChangedGraphId(var_to_refs.first->var_name, graph_id);
     if (ret != SUCCESS) {
       REPORT_INNER_ERR_MSG("E19999", "Update graph_id:%u for node:%s(Variable) failed, session_id:%" PRIu64 "",
-                        graph_id, var_to_refs.first->var_name.c_str(), graph->GetSessionID());
-      GELOGE(INTERNAL_ERROR, "[Update][GraphId] %u for node:%s(Variable) failed, session_id:%" PRIu64 "",
-             graph_id, var_to_refs.first->var_name.c_str(), graph->GetSessionID());
+                           graph_id, var_to_refs.first->var_name.c_str(), graph->GetSessionID());
+      GELOGE(INTERNAL_ERROR, "[Update][GraphId] %u for node:%s(Variable) failed, session_id:%" PRIu64 "", graph_id,
+             var_to_refs.first->var_name.c_str(), graph->GetSessionID());
       return INTERNAL_ERROR;
     }
     var_accelerate_ctrl_->SetStateChanged(var_to_refs.first->var_name);
@@ -243,16 +249,16 @@ Status VariableOpPass::DealFusion(const SameVarPtr &same_vars) {
              trans_node->GetType().c_str(), var_node->GetName().c_str());
 
       if (GraphUtils::IsolateNode(trans_node, {0}) != SUCCESS) {
-        REPORT_INNER_ERR_MSG("E19999", "Isolate node:%s(%s) failed",
-                          trans_node->GetName().c_str(), trans_node->GetType().c_str());
-        GELOGE(GE_GRAPH_VARIABLE_OP_PASS_FAILED, "[Isolate][Node] %s(%s) failed",
-               trans_node->GetName().c_str(), trans_node->GetType().c_str());
+        REPORT_INNER_ERR_MSG("E19999", "Isolate node:%s(%s) failed", trans_node->GetName().c_str(),
+                             trans_node->GetType().c_str());
+        GELOGE(GE_GRAPH_VARIABLE_OP_PASS_FAILED, "[Isolate][Node] %s(%s) failed", trans_node->GetName().c_str(),
+               trans_node->GetType().c_str());
         return GE_GRAPH_VARIABLE_OP_PASS_FAILED;
       }
 
       if (GraphUtils::RemoveNodeWithoutRelink(graph, trans_node) != SUCCESS) {
         REPORT_INNER_ERR_MSG("E19999", "Remove node:%s(%s) without relink in graph:%s failed",
-                          trans_node->GetName().c_str(), trans_node->GetType().c_str(), graph->GetName().c_str());
+                             trans_node->GetName().c_str(), trans_node->GetType().c_str(), graph->GetName().c_str());
         GELOGE(GE_GRAPH_VARIABLE_OP_PASS_FAILED, "[Remove][Node] %s(%s) without relink in graph:%s failed",
                trans_node->GetName().c_str(), trans_node->GetType().c_str(), graph->GetName().c_str());
         return GE_GRAPH_VARIABLE_OP_PASS_FAILED;
@@ -282,15 +288,15 @@ Status VariableOpPass::DealFusion(const SameVarPtr &same_vars) {
             " one output data nodes, isolate and remove it.",
             trans_node->GetName().c_str(), trans_node->GetType().c_str(), ref_node->GetName().c_str());
         if (GraphUtils::IsolateNode(trans_node, {0}) != SUCCESS) {
-          REPORT_INNER_ERR_MSG("E19999", "Isolate node:%s(%s) failed",
-                            trans_node->GetName().c_str(), trans_node->GetType().c_str());
-          GELOGE(GE_GRAPH_VARIABLE_OP_PASS_FAILED, "[Isolate][Node] %s(%s) failed",
-                 trans_node->GetName().c_str(), trans_node->GetType().c_str());
+          REPORT_INNER_ERR_MSG("E19999", "Isolate node:%s(%s) failed", trans_node->GetName().c_str(),
+                               trans_node->GetType().c_str());
+          GELOGE(GE_GRAPH_VARIABLE_OP_PASS_FAILED, "[Isolate][Node] %s(%s) failed", trans_node->GetName().c_str(),
+                 trans_node->GetType().c_str());
           return GE_GRAPH_VARIABLE_OP_PASS_FAILED;
         }
         if (GraphUtils::RemoveNodeWithoutRelink(graph, trans_node) != SUCCESS) {
           REPORT_INNER_ERR_MSG("E19999", "Remove node:%s(%s) without relink in graph:%s failed",
-                            trans_node->GetName().c_str(), trans_node->GetType().c_str(), graph->GetName().c_str());
+                               trans_node->GetName().c_str(), trans_node->GetType().c_str(), graph->GetName().c_str());
           GELOGE(GE_GRAPH_VARIABLE_OP_PASS_FAILED, "[Remove][Node] %s(%s) without relink in graph:%s failed",
                  trans_node->GetName().c_str(), trans_node->GetType().c_str(), graph->GetName().c_str());
           return GE_GRAPH_VARIABLE_OP_PASS_FAILED;
@@ -425,10 +431,10 @@ Status VariableOpPass::UpdateVarAndRefOutputFormatInfo(const GeTensorDesc &final
   auto node_desc = node->GetOpDesc()->GetOutputDesc(0);
   CopyVariableFormatDataTypeAndShape(final_output, node_desc);
   if (node->GetOpDesc()->UpdateOutputDesc(0, node_desc) != GRAPH_SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Update output:0 desc in op:%s(%s) failed.",
-                      node->GetName().c_str(), node->GetType().c_str());
-    GELOGE(FAILED, "[Update][OutputDesc] in op:%s(%s) failed, index:0",
-           node->GetName().c_str(), node->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Update output:0 desc in op:%s(%s) failed.", node->GetName().c_str(),
+                         node->GetType().c_str());
+    GELOGE(FAILED, "[Update][OutputDesc] in op:%s(%s) failed, index:0", node->GetName().c_str(),
+           node->GetType().c_str());
     return FAILED;
   }
   GELOGD("node ref is (%s, %s, %" PRIu64 "), var_ref_name is %s.",
@@ -514,8 +520,8 @@ Status VariableOpPass::CheckVarAndVarRefAreAlike(const NodePtr &var_node, const 
 
   if (var_ref_node_trans_nodes.size() > 1) {
     REPORT_INNER_ERR_MSG("E19999", "In data node num:%zu of node:%s(%s) bigger than 1, check invalid",
-                       var_ref_node_trans_nodes.size(),
-                       var_ref_node->GetName().c_str(), var_ref_node->GetType().c_str());
+                         var_ref_node_trans_nodes.size(), var_ref_node->GetName().c_str(),
+                         var_ref_node->GetType().c_str());
 
     GELOGE(GE_GRAPH_VARIABLE_OP_PASS_FAILED, "[Check][Param] In data node num:%zu of node:%s(%s) bigger than 1.",
            var_ref_node_trans_nodes.size(), var_ref_node->GetName().c_str(), var_ref_node->GetType().c_str());
@@ -685,20 +691,18 @@ Status VariableOpPass::RenewVarDesc(const ge::ComputeGraphPtr &graph) const {
       ret = var_manager->RenewCurVarDesc(node->GetName(), node->GetOpDesc());
       if (ret != SUCCESS) {
         REPORT_INNER_ERR_MSG("E19999", "Renew descriptor for node:%s(%s) failed, session_id:%" PRIu64 "",
-                          node->GetName().c_str(), node->GetType().c_str(), graph->GetSessionID());
-        GELOGE(FAILED, "[Renew][Descriptor] for node:%s(%s) failed, session_id:%" PRIu64 "",
-               node->GetName().c_str(), node->GetType().c_str(), graph->GetSessionID());
+                             node->GetName().c_str(), node->GetType().c_str(), graph->GetSessionID());
+        GELOGE(FAILED, "[Renew][Descriptor] for node:%s(%s) failed, session_id:%" PRIu64 "", node->GetName().c_str(),
+               node->GetType().c_str(), graph->GetSessionID());
         return FAILED;
       }
 
-      ret = var_manager->RecordStagedVarDesc(graph_id,
-                                                                                 node->GetName(),
-                                                                                 node->GetOpDesc()->GetOutputDesc(0U));
+      ret = var_manager->RecordStagedVarDesc(graph_id, node->GetName(), node->GetOpDesc()->GetOutputDesc(0U));
       if (ret != SUCCESS) {
         REPORT_INNER_ERR_MSG("E19999", "Record staged descriptor for node:%s(%s) failed, session_id:%" PRIu64 "",
-                          node->GetName().c_str(), node->GetType().c_str(), graph->GetSessionID());
-        GELOGE(FAILED, "[Record][Descriptor] for node:%s(%s) failed, session_id:%" PRIu64 "",
-               node->GetName().c_str(), node->GetType().c_str(), graph->GetSessionID());
+                             node->GetName().c_str(), node->GetType().c_str(), graph->GetSessionID());
+        GELOGE(FAILED, "[Record][Descriptor] for node:%s(%s) failed, session_id:%" PRIu64 "", node->GetName().c_str(),
+               node->GetType().c_str(), graph->GetSessionID());
         return FAILED;
       }
     }
@@ -723,9 +727,9 @@ Status VariableOpPass::RenewVarDesc(uint64_t session_id, const NodePtr &node, co
   Status ret = ge::VarManager::Instance(session_id)->RenewCurVarDesc(node->GetName(), node->GetOpDesc());
   if (ret != SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Renew descriptor for node:%s(%s) failed, session_id:%" PRIu64 "",
-                      node->GetName().c_str(), node->GetType().c_str(), session_id);
-    GELOGE(FAILED, "[Renew][Descriptor] for node:%s(%s) failed, session_id:%" PRIu64 "",
-           node->GetName().c_str(), node->GetType().c_str(), session_id);
+                         node->GetName().c_str(), node->GetType().c_str(), session_id);
+    GELOGE(FAILED, "[Renew][Descriptor] for node:%s(%s) failed, session_id:%" PRIu64 "", node->GetName().c_str(),
+           node->GetType().c_str(), session_id);
     return FAILED;
   }
 

@@ -13,8 +13,7 @@
 #include "graph/custom_op.h"
 #include "where_like_custom.h"
 
-extern "C" void LaunchWhereLikeCustom(const void *x, void *y, void *shape_buffer, uint64_t element_count,
-                                            void *stream);
+extern "C" void LaunchWhereLikeCustom(const void *x, void *y, void *shape_buffer, uint64_t element_count, void *stream);
 
 #define CHECK_ACL(x)                                                                  \
   do {                                                                                \
@@ -109,8 +108,8 @@ class WhereLikeCustom : public EagerExecuteOp, public ShapeInferOp {
       return GRAPH_FAILED;
     }
 
-    LaunchWhereLikeCustom(input_x->GetAddr(), output_y->GetAddr(), shape_buffer,
-                          static_cast<uint64_t>(element_count), ctx->GetStream());
+    LaunchWhereLikeCustom(input_x->GetAddr(), output_y->GetAddr(), shape_buffer, static_cast<uint64_t>(element_count),
+                          ctx->GetStream());
     CHECK_ACL(aclrtSynchronizeStream(ctx->GetStream()));
     return UpdateOutputShapeFromDeviceBuffer(output_y, shape_buffer);
   }

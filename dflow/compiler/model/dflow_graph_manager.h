@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -50,8 +50,7 @@ class DflowGraphManager {
   /// @param [in] graph ge graph
   /// @param [in] options user config params
   /// @return Status result of function
-  Status AddGraph(uint32_t graph_id, const Graph &graph,
-                  const std::map<std::string, std::string> &options);
+  Status AddGraph(uint32_t graph_id, const Graph &graph, const std::map<std::string, std::string> &options);
 
   /// @brief remove specific graph
   /// @param [in] graph_id graph id
@@ -90,7 +89,7 @@ class DflowGraphManager {
   mutable std::mutex mutex_;
   mutable std::mutex graph_mutex_;
   mutable std::mutex model_mutex_;
-  
+
   // dflow专用的图管理数据结构
   std::map<uint32_t, std::map<std::string, std::string>> graph_options_map_;
   std::map<uint32_t, FlowModelPtr> flow_model_map_;
@@ -101,4 +100,4 @@ class DflowGraphManager {
 
 }  // namespace ge
 
-#endif  // DFLOW_COMPILER_MODEL_DFLOW_GRAPH_MANAGER_H_ 
+#endif  // DFLOW_COMPILER_MODEL_DFLOW_GRAPH_MANAGER_H_

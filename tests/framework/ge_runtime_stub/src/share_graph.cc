@@ -66,20 +66,11 @@ REG_OP(ReduceMax)
     .ATTR(keep_dims, Bool, false)
     .OP_END_FACTORY_REG(ReduceMax);
 
-REG_OP(Abs)
-    .INPUT(x, TensorType::ALL())
-    .OUTPUT(y, TensorType::ALL())
-    .OP_END_FACTORY_REG(Abs);
+REG_OP(Abs).INPUT(x, TensorType::ALL()).OUTPUT(y, TensorType::ALL()).OP_END_FACTORY_REG(Abs);
 
-REG_OP(Relu)
-    .INPUT(x, TensorType::ALL())
-    .OUTPUT(y, TensorType::ALL())
-    .OP_END_FACTORY_REG(Relu);
+REG_OP(Relu).INPUT(x, TensorType::ALL()).OUTPUT(y, TensorType::ALL()).OP_END_FACTORY_REG(Relu);
 
-REG_OP(Exp)
-    .INPUT(x, TensorType::ALL())
-    .OUTPUT(y, TensorType::ALL())
-    .OP_END_FACTORY_REG(Exp);
+REG_OP(Exp).INPUT(x, TensorType::ALL()).OUTPUT(y, TensorType::ALL()).OP_END_FACTORY_REG(Exp);
 
 REG_OP(Add)
     .INPUT(x1, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16, DT_INT8, DT_UINT8, DT_DOUBLE,
@@ -389,7 +380,7 @@ ComputeGraphPtr ShareGraph::AicoreGraph() {
   ge::AttrUtils::SetBool(add1->GetOpDesc(), ATTR_NAME_IS_FIXED_ADDR_PRIOR, true);
   AttrUtils::SetStr(add1->GetOpDesc(), "_op_aicore_num", "2");
   AttrUtils::SetStr(add1->GetOpDesc(), "_op_vectorcore_num", "4");
-  add1->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
+  add1->GetOpDesc()->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
 
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"add1"});
@@ -400,13 +391,13 @@ ComputeGraphPtr ShareGraph::AicoreGraph() {
   return graph;
 }
 
- /*
-  *  customop
-  *  |  \     \
-  *  |   \     \
-  * data1 data2 data3
-  */
- ge::ComputeGraphPtr ShareGraph::BuildCustomOpGraph() {
+/*
+ *  customop
+ *  |  \     \
+ *  |   \     \
+ * data1 data2 data3
+ */
+ge::ComputeGraphPtr ShareGraph::BuildCustomOpGraph() {
   DEF_GRAPH(g1) {
     CHAIN(NODE("data0", "Data")->EDGE(0, 0)->NODE("custom_op", "CustomOp"));
     CHAIN(NODE("data1", "Data")->EDGE(0, 1)->NODE("custom_op")->NODE("NetOutput", "NetOutput"));
@@ -445,15 +436,15 @@ ComputeGraphPtr ShareGraph::AicoreGraph() {
   return graph;
 }
 
- /*
-  *  data0  data1  data2
-  *     \    |      /
-  *     \    |     /
-  *       customop
-  *          |
-  *          |
-  *       netoutput
-  */
+/*
+ *  data0  data1  data2
+ *     \    |      /
+ *     \    |     /
+ *       customop
+ *          |
+ *          |
+ *       netoutput
+ */
 ge::ComputeGraphPtr ShareGraph::BuildOnlyCustomOpKnowShapeGraph() {
   DEF_GRAPH(g1) {
     CHAIN(NODE("data0", "Data")->EDGE(0, 0)->NODE("custom_op", "CustomOp"));
@@ -468,7 +459,6 @@ ge::ComputeGraphPtr ShareGraph::BuildOnlyCustomOpKnowShapeGraph() {
   auto data1 = graph->FindNode("data1");
   SetNoStorage(data1->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {2, 2, 2});
   AttrUtils::SetInt(data1->GetOpDesc(), "index", 1);
-
 
   auto data2 = graph->FindNode("data2");
   SetNoStorage(data2->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {2, 2, 2});
@@ -487,26 +477,32 @@ ge::ComputeGraphPtr ShareGraph::BuildOnlyCustomOpKnowShapeGraph() {
 }
 
 /*
-  *  data0  data1    data2  data3    data4  data5
-  *     \    |         \     /          /    /
-  *     \    |         \   /          /     /
-  *         add0       add1          add2
-  *              \       |         /
-  *                \     |       /
-  *                  customop           data6
-  *                    |             /
-  *                     |           /
-  *                        add3
-  *                        |
-  *                      netoutput
-  */
+ *  data0  data1    data2  data3    data4  data5
+ *     \    |         \     /          /    /
+ *     \    |         \   /          /     /
+ *         add0       add1          add2
+ *              \       |         /
+ *                \     |       /
+ *                  customop           data6
+ *                    |             /
+ *                     |           /
+ *                        add3
+ *                        |
+ *                      netoutput
+ */
 ge::ComputeGraphPtr ShareGraph::BuildCustomOpWithAddKnowShapeGraph() {
   DEF_GRAPH(g1) {
     CHAIN(NODE("data0", "Data")->EDGE(0, 0)->NODE("add0", "Add")->EDGE(0, 0)->NODE("custom_op", "CustomOp"));
     CHAIN(NODE("data1", "Data")->EDGE(0, 1)->NODE("add0", "Add"));
     CHAIN(NODE("data2", "Data")->EDGE(0, 0)->NODE("add1", "Add")->EDGE(1, 1)->NODE("custom_op", "CustomOp"));
     CHAIN(NODE("data3", "Data")->EDGE(0, 1)->NODE("add1", "Add"));
-    CHAIN(NODE("data4", "Data")->EDGE(0, 0)->NODE("add2", "Add")->EDGE(2, 2)->NODE("custom_op", "CustomOp")->EDGE(0, 0)->NODE("add3", "Add"));
+    CHAIN(NODE("data4", "Data")
+              ->EDGE(0, 0)
+              ->NODE("add2", "Add")
+              ->EDGE(2, 2)
+              ->NODE("custom_op", "CustomOp")
+              ->EDGE(0, 0)
+              ->NODE("add3", "Add"));
     CHAIN(NODE("data5", "Data")->EDGE(0, 1)->NODE("add2", "Add"));
     CHAIN(NODE("data6", "Data")->EDGE(0, 1)->NODE("add3", "Add")->EDGE(0, 0)->NODE("NetOutput", "NetOutput"));
   };
@@ -518,7 +514,6 @@ ge::ComputeGraphPtr ShareGraph::BuildCustomOpWithAddKnowShapeGraph() {
   auto data1 = graph->FindNode("data1");
   SetNoStorage(data1->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {2, 2, 2});
   AttrUtils::SetInt(data1->GetOpDesc(), "index", 1);
-
 
   auto data2 = graph->FindNode("data2");
   SetNoStorage(data2->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {2, 2, 2});
@@ -585,10 +580,10 @@ ge::ComputeGraphPtr ShareGraph::BuildCustomOpWithAddKnowShapeGraph() {
  */
 ComputeGraphPtr ShareGraph::AicoreGraphTwoAdd() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", "Data")->EDGE(0, 0)->NODE("add2", "Add"));
-                  CHAIN(NODE("data1", "Data")->EDGE(0, 0)->NODE("add1", "Add")->NODE("add2", "Add")->NODE("NetOutput", "NetOutput"));
-                  CHAIN(NODE("data2", "Data")->EDGE(0, 1)->NODE("add1", "Add"));
-                };
+    CHAIN(NODE("data1", "Data")->EDGE(0, 0)->NODE("add2", "Add"));
+    CHAIN(NODE("data1", "Data")->EDGE(0, 0)->NODE("add1", "Add")->NODE("add2", "Add")->NODE("NetOutput", "NetOutput"));
+    CHAIN(NODE("data2", "Data")->EDGE(0, 1)->NODE("add1", "Add"));
+  };
   auto graph = ToComputeGraph(g1);
 
   auto data1 = graph->FindNode("data1");
@@ -716,40 +711,40 @@ ge::Graph ShareGraph::MultiBatchGraph() {
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
 
   auto data1 = compute_graph->FindNode("bed");
-  SetNoStorage(data1->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {1,1,1});
+  SetNoStorage(data1->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {1, 1, 1});
   AttrUtils::SetInt(data1->GetOpDesc(), "index", 0);
 
   auto data2 = compute_graph->FindNode("cat");
-  SetNoStorage(data2->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {2,2,2});
+  SetNoStorage(data2->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {2, 2, 2});
   AttrUtils::SetInt(data2->GetOpDesc(), "index", 1);
 
   auto data3 = compute_graph->FindNode("dad");
-  SetNoStorage(data3->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {1,1,1});
+  SetNoStorage(data3->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {1, 1, 1});
   AttrUtils::SetInt(data3->GetOpDesc(), "index", 2);
 
   auto data4 = compute_graph->FindNode("ear");
-  SetNoStorage(data4->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {1,1,1});
+  SetNoStorage(data4->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {1, 1, 1});
   AttrUtils::SetInt(data4->GetOpDesc(), "index", 3);
   data4->GetOpDesc()->MutableAllInputName() = {{"x", 0}};
   data4->GetOpDesc()->MutableAllOutputName() = {{"y", 0}};
-  ge::GeTensorDesc data_tensor(GeShape({1,1,1}), FORMAT_ND, DT_FLOAT);
+  ge::GeTensorDesc data_tensor(GeShape({1, 1, 1}), FORMAT_ND, DT_FLOAT);
   data4->GetOpDesc()->AddInputDesc(data_tensor);
 
   auto add1 = compute_graph->FindNode("add1");
   AddCompileResult(add1, false);
-  SetNoStorage(add1->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {2,2,2});
+  SetNoStorage(add1->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {2, 2, 2});
   AttrUtils::SetBool(add1->GetOpDesc(), "globalworkspace_type", true);
   AttrUtils::SetInt(add1->GetOpDesc(), "globalworkspace_size", 32U);
 
   auto add2 = compute_graph->FindNode("add2");
   AddCompileResult(add2, false);
-  SetNoStorage(add2->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {2,2,2});
+  SetNoStorage(add2->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {2, 2, 2});
   AttrUtils::SetBool(add2->GetOpDesc(), "globalworkspace_type", true);
   AttrUtils::SetInt(add2->GetOpDesc(), "globalworkspace_size", 32U);
 
   auto add3 = compute_graph->FindNode("add3");
   AddCompileResult(add3, false);
-  SetNoStorage(add3->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {2,2,2});
+  SetNoStorage(add3->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {2, 2, 2});
 
   auto net_output = compute_graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"add3"});
@@ -809,7 +804,7 @@ ComputeGraphPtr ShareGraph::AddWith4InputsAicoreGraph() {
   AttrUtils::SetStr(add1->GetOpDesc(), ATOMIC_ATTR_TVM_METADATA, "FakeAtomicMeta");
   AttrUtils::SetStr(add1->GetOpDesc(), add1->GetName() + "_atomic_kernelname", "FakeAtomicKernelName");
   add1->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCore);
-  add1->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
+  add1->GetOpDesc()->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"add1"});
   net_output->GetOpDesc()->SetSrcIndex({0});
@@ -862,7 +857,7 @@ ComputeGraphPtr ShareGraph::AicoreWithRtsOverflowGraph() {
   AddCompileResult(reducesum1, false);
   reducesum1->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCore);
   SetNoStorage(reducesum1->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {});
-  reducesum1->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
+  reducesum1->GetOpDesc()->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
 
   auto clear_float_status = graph->FindNode("ClearFloatStatus");
   SetNoStorage(clear_float_status->GetOpDesc(), FORMAT_ND, DT_INT32, {8});
@@ -913,7 +908,7 @@ ComputeGraphPtr ShareGraph::AicoreWithCmoGraph() {
   AddCompileResult(reducesum1, false);
   reducesum1->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCore);
   SetNoStorage(reducesum1->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {32, 64});
-  reducesum1->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
+  reducesum1->GetOpDesc()->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
 
   auto cmo_node = graph->FindNode("cmo");
   SetNoStorage(cmo_node->GetOpDesc(), FORMAT_ND, DT_INT32, {32, 64});
@@ -947,8 +942,10 @@ ComputeGraphPtr ShareGraph::AicoreWithRtsDebugOverflowGraph() {
               ->NODE("NetOutput", "NetOutput"));
     CHAIN(NODE("data2", "Data")->EDGE(0, 1)->NODE("reducesum1", "ReduceSum"));
     CHAIN(NODE("ClearFloatDebugStatus2", "NPUClearFloatDebugStatus")->NODE("NetOutput", "NetOutput"));
-    CHAIN(NODE("data3", "Data")->NODE("GetFloatDebugStatus1", "NPUGetFloatDebugStatus")->NODE("NetOutput", "NetOutput"));
-    CHAIN(NODE("data4", "Data")->NODE("GetFloatDebugStatus2", "NPUGetFloatDebugStatus")->NODE("NetOutput", "NetOutput"));
+    CHAIN(
+        NODE("data3", "Data")->NODE("GetFloatDebugStatus1", "NPUGetFloatDebugStatus")->NODE("NetOutput", "NetOutput"));
+    CHAIN(
+        NODE("data4", "Data")->NODE("GetFloatDebugStatus2", "NPUGetFloatDebugStatus")->NODE("NetOutput", "NetOutput"));
   };
   auto graph = ToComputeGraph(g1);
 
@@ -972,7 +969,7 @@ ComputeGraphPtr ShareGraph::AicoreWithRtsDebugOverflowGraph() {
   AddCompileResult(reducesum1, false);
   reducesum1->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCore);
   SetNoStorage(reducesum1->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {});
-  reducesum1->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
+  reducesum1->GetOpDesc()->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
 
   auto clear_float_status = graph->FindNode("ClearFloatDebugStatus2");
   SetNoStorage(clear_float_status->GetOpDesc(), FORMAT_ND, DT_INT32, {8});
@@ -993,7 +990,8 @@ ComputeGraphPtr ShareGraph::AicoreWithRtsDebugOverflowGraph() {
   get_float_statusv2->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameRts);
 
   auto net_output = graph->FindNode("NetOutput");
-  net_output->GetOpDesc()->SetSrcName({"reducesum1", "ClearFloatDebugStatus2", "GetFloatDebugStatus1", "GetFloatDebugStatus2"});
+  net_output->GetOpDesc()->SetSrcName(
+      {"reducesum1", "ClearFloatDebugStatus2", "GetFloatDebugStatus1", "GetFloatDebugStatus2"});
   net_output->GetOpDesc()->SetSrcIndex({0, 1, 2, 3});
   return graph;
 }
@@ -1127,19 +1125,16 @@ ge::ComputeGraphPtr ShareGraph::AicoreStaticGraph(bool is_with_atomic) {
  *     shape
  * (stream:0)(send:1)   data2(stream:0)(send:0)
  *             \      /
- *              add (stream:1)(send:[2],recive:[0,1])
+ *              add (stream:1)(send:[2],receive:[0,1])
  *               |
- *            netoutput(stream:0)(recive:[2])
+ *            netoutput(stream:0)(receive:[2])
  */
 ge::ComputeGraphPtr ShareGraph::MultiStreamWithHostMemAccessCrossStream(int64_t &stream_num, int64_t &event_num) {
   stream_num = 2;
   event_num = 3;
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data1", "Data")
-              ->NODE("shape", "Shape")
-              ->EDGE(0, 0)
-              ->NODE("add1", "Add")
-              ->NODE("NetOutput", "NetOutput"));
+    CHAIN(
+        NODE("data1", "Data")->NODE("shape", "Shape")->EDGE(0, 0)->NODE("add1", "Add")->NODE("NetOutput", "NetOutput"));
     CHAIN(NODE("data2", "Data")->EDGE(0, 1)->NODE("add1", "Add"));
   };
   auto graph = ToComputeGraph(g1);
@@ -1267,7 +1262,6 @@ ge::ComputeGraphPtr ShareGraph::ShapeToMultiAiCoreGraph() {
   graph->SetGraphUnknownFlag(true);
   return graph;
 }
-
 
 /*
  *
@@ -1550,7 +1544,7 @@ ComputeGraphPtr ShareGraph::LstmpGraph() {
   atomic_workspace_info[drnnv3->GetOpDesc()->GetName()] = index_offset;
   drnnv3->GetOpDesc()->SetExtAttr(ge::EXT_ATTR_ATOMIC_WORKSPACE_INFO, atomic_workspace_info);
   AttrUtils::SetBool(drnnv3->GetOpDesc(), "support_dynamicshape", true);
-  drnnv3->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
+  drnnv3->GetOpDesc()->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
 
   auto y_reshape = graph->FindNode("y_reshape");
   y_reshape->GetOpDesc()->MutableOutputDesc(0)->SetDataType(ge::DT_FLOAT16);
@@ -1595,20 +1589,20 @@ ComputeGraphPtr ShareGraph::LstmpGraph() {
 ComputeGraphPtr ShareGraph::BuildStringNodeGraph() {
   std::vector<int64_t> shape = {2, 2};
   auto data1 = OP_CFG("Data")
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
-      .Attr(ge::ATTR_NAME_INDEX, (int32_t)0)
-      .Build("data1");
+                   .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                   .InCnt(1)
+                   .OutCnt(1)
+                   .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
+                   .Attr(ge::ATTR_NAME_INDEX, (int32_t)0)
+                   .Build("data1");
   data1->SetOutputOffset({1024});
   auto data2 = OP_CFG("Data")
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_PARENT_NODE_INDEX, 1)
-      .Attr(ge::ATTR_NAME_INDEX, (int32_t)1)
-      .Build("data2");
+                   .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                   .InCnt(1)
+                   .OutCnt(1)
+                   .Attr(ATTR_NAME_PARENT_NODE_INDEX, 1)
+                   .Attr(ge::ATTR_NAME_INDEX, (int32_t)1)
+                   .Build("data2");
   data2->SetOutputOffset({2048});
   DEF_GRAPH(g1) {
     CHAIN(NODE(data1)->NODE("add1", "Add")->NODE("NetOutput", "NetOutput"));
@@ -1677,10 +1671,10 @@ ComputeGraphPtr ShareGraph::BuildSingleConstPlaceHolderGraph(void *addr, size_t 
   ge::AttrUtils::SetListInt(constplaceholder_op_desc1, "origin_shape", shape_ori);
   ge::AttrUtils::SetListInt(constplaceholder_op_desc1, "storage_shape", shape_ori);
   DataType data_type = DT_FLOAT;
-  ge::AttrUtils::SetDataType(constplaceholder_op_desc1, "dtype", data_type); // float
+  ge::AttrUtils::SetDataType(constplaceholder_op_desc1, "dtype", data_type);  // float
   ge::AttrUtils::SetInt(constplaceholder_op_desc1, "size", len);
   int64_t placement = 1L;
-  ge::AttrUtils::SetInt(constplaceholder_op_desc1, "placement", placement); // device
+  ge::AttrUtils::SetInt(constplaceholder_op_desc1, "placement", placement);  // device
   ge::AttrUtils::SetInt(constplaceholder_op_desc1, "addr", reinterpret_cast<int64_t>(addr));
 
   auto noutput = graph->FindNode("NetOutput");
@@ -1728,7 +1722,7 @@ ComputeGraphPtr ShareGraph::BuildSingleNodeGraph(const std::string &node_type,
   AttrUtils::SetInt(add1->GetOpDesc(), ge::ATTR_NAME_UNKNOWN_SHAPE_TYPE, 1);
   AttrUtils::SetStr(add1->GetOpDesc(), "_kernel_bin_id", "te_add_12345");
   AttrUtils::SetBool(add1->GetOpDesc(), "SmallShapeHostcpu", true);
-  add1->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
+  add1->GetOpDesc()->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
   AddCompileResult(add1, false);
 
   auto noutput = graph->FindNode("NetOutput");
@@ -1751,14 +1745,15 @@ ComputeGraphPtr ShareGraph::BuildSingleNodeGraph(const std::string &node_type,
  * data1 data2
  */
 ComputeGraphPtr ShareGraph::BuildAddUnSqueezeGraph(const std::string &node_type,
-                                                 std::vector<std::initializer_list<int64_t>> shape,
-                                                 std::vector<std::initializer_list<int64_t>> min_shape,
-                                                 std::vector<std::initializer_list<int64_t>> max_shape) {
+                                                   std::vector<std::initializer_list<int64_t>> shape,
+                                                   std::vector<std::initializer_list<int64_t>> min_shape,
+                                                   std::vector<std::initializer_list<int64_t>> max_shape) {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", "Data")->NODE("add1", node_type)->NODE("NetOutput", "NetOutput"));
-                  CHAIN(NODE("data2", "Data")->EDGE(0, 1)->NODE("add1", node_type));
-                  CHAIN(NODE("add1", node_type)->EDGE(0, 0)->NODE("unsqueeze", UNSQUEEZE)->EDGE(0, 1)->NODE("NetOutput", "NetOutput"));
-                };
+    CHAIN(NODE("data1", "Data")->NODE("add1", node_type)->NODE("NetOutput", "NetOutput"));
+    CHAIN(NODE("data2", "Data")->EDGE(0, 1)->NODE("add1", node_type));
+    CHAIN(
+        NODE("add1", node_type)->EDGE(0, 0)->NODE("unsqueeze", UNSQUEEZE)->EDGE(0, 1)->NODE("NetOutput", "NetOutput"));
+  };
   auto graph = ToComputeGraph(g1);
 
   auto data1 = graph->FindNode("data1");
@@ -1781,7 +1776,7 @@ ComputeGraphPtr ShareGraph::BuildAddUnSqueezeGraph(const std::string &node_type,
   AttrUtils::SetInt(add1->GetOpDesc(), ge::ATTR_NAME_UNKNOWN_SHAPE_TYPE, 1);
   AttrUtils::SetStr(add1->GetOpDesc(), "_kernel_bin_id", "te_add_12345");
   AttrUtils::SetBool(add1->GetOpDesc(), "SmallShapeHostcpu", true);
-  add1->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
+  add1->GetOpDesc()->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
   AddCompileResult(add1, false);
 
   auto unqueeze = graph->FindNode("unsqueeze");
@@ -1809,14 +1804,14 @@ ComputeGraphPtr ShareGraph::BuildAddUnSqueezeGraph(const std::string &node_type,
  * data1   data2
  */
 ComputeGraphPtr ShareGraph::BuildAddAsTwoOutputGraph(const std::string &node_type,
-                                                   std::vector<std::initializer_list<int64_t>> shape,
-                                                   std::vector<std::initializer_list<int64_t>> min_shape,
-                                                   std::vector<std::initializer_list<int64_t>> max_shape) {
+                                                     std::vector<std::initializer_list<int64_t>> shape,
+                                                     std::vector<std::initializer_list<int64_t>> min_shape,
+                                                     std::vector<std::initializer_list<int64_t>> max_shape) {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", "Data")->NODE("add1", node_type)->NODE("NetOutput", "NetOutput"));
-                  CHAIN(NODE("data2", "Data")->EDGE(0, 1)->NODE("add1", node_type));
-                  CHAIN(NODE("add1", node_type)->EDGE(0, 1)->NODE("NetOutput", "NetOutput"));
-                };
+    CHAIN(NODE("data1", "Data")->NODE("add1", node_type)->NODE("NetOutput", "NetOutput"));
+    CHAIN(NODE("data2", "Data")->EDGE(0, 1)->NODE("add1", node_type));
+    CHAIN(NODE("add1", node_type)->EDGE(0, 1)->NODE("NetOutput", "NetOutput"));
+  };
   auto graph = ToComputeGraph(g1);
 
   auto data1 = graph->FindNode("data1");
@@ -1839,7 +1834,7 @@ ComputeGraphPtr ShareGraph::BuildAddAsTwoOutputGraph(const std::string &node_typ
   AttrUtils::SetInt(add1->GetOpDesc(), ge::ATTR_NAME_UNKNOWN_SHAPE_TYPE, 1);
   AttrUtils::SetStr(add1->GetOpDesc(), "_kernel_bin_id", "te_add_12345");
   AttrUtils::SetBool(add1->GetOpDesc(), "SmallShapeHostcpu", true);
-  add1->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
+  add1->GetOpDesc()->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
   AddCompileResult(add1, false);
 
   auto noutput = graph->FindNode("NetOutput");
@@ -1863,9 +1858,9 @@ ComputeGraphPtr ShareGraph::BuildUnsqueezeAsTwoOutputGraph(std::vector<std::init
                                                            std::vector<std::initializer_list<int64_t>> min_shape,
                                                            std::vector<std::initializer_list<int64_t>> max_shape) {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", "Data")->NODE("unsqueeze", UNSQUEEZE)->NODE("NetOutput", "NetOutput"));
-                  CHAIN(NODE("unsqueeze", UNSQUEEZE)->EDGE(0, 1)->NODE("NetOutput", "NetOutput"));
-                };
+    CHAIN(NODE("data1", "Data")->NODE("unsqueeze", UNSQUEEZE)->NODE("NetOutput", "NetOutput"));
+    CHAIN(NODE("unsqueeze", UNSQUEEZE)->EDGE(0, 1)->NODE("NetOutput", "NetOutput"));
+  };
   auto graph = ToComputeGraph(g1);
 
   auto data1 = graph->FindNode("data1");
@@ -1897,12 +1892,12 @@ ComputeGraphPtr ShareGraph::BuildUnsqueezeAsTwoOutputGraph(std::vector<std::init
  *    data1
  */
 ComputeGraphPtr ShareGraph::BuildInputAsTwoOutputGraph(std::vector<std::initializer_list<int64_t>> shape,
-                                                           std::vector<std::initializer_list<int64_t>> min_shape,
-                                                           std::vector<std::initializer_list<int64_t>> max_shape) {
+                                                       std::vector<std::initializer_list<int64_t>> min_shape,
+                                                       std::vector<std::initializer_list<int64_t>> max_shape) {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", "Data")->NODE("NetOutput", "NetOutput"));
-                  CHAIN(NODE("data1", "Data")->EDGE(0, 1)->NODE("NetOutput", "NetOutput"));
-                };
+    CHAIN(NODE("data1", "Data")->NODE("NetOutput", "NetOutput"));
+    CHAIN(NODE("data1", "Data")->EDGE(0, 1)->NODE("NetOutput", "NetOutput"));
+  };
   auto graph = ToComputeGraph(g1);
 
   auto data1 = graph->FindNode("data1");
@@ -1929,11 +1924,10 @@ ComputeGraphPtr ShareGraph::BuildInputAsTwoOutputGraph(std::vector<std::initiali
  *    data1  data2
  */
 ComputeGraphPtr ShareGraph::BuildAssignAsTwoOutputGraph(std::vector<std::initializer_list<int64_t>> shape,
-                                                       std::vector<std::initializer_list<int64_t>> min_shape,
-                                                       std::vector<std::initializer_list<int64_t>> max_shape) {
-
+                                                        std::vector<std::initializer_list<int64_t>> min_shape,
+                                                        std::vector<std::initializer_list<int64_t>> max_shape) {
   DEF_GRAPH(g1) {
-                  auto assign = OP_CFG(ASSIGN)
+    auto assign = OP_CFG(ASSIGN)
                       .TensorDesc(FORMAT_ND, DT_FLOAT, shape[2])
                       .InCnt(2)
                       .OutCnt(1)
@@ -1941,10 +1935,10 @@ ComputeGraphPtr ShareGraph::BuildAssignAsTwoOutputGraph(std::vector<std::initial
                       .OutNames({"ref"})
                       .Attr(ge::ATTR_NAME_REFERENCE, true)
                       .Build("assign");
-                  CHAIN(NODE("data1", "Data")->NODE(assign)->NODE("NetOutput", "NetOutput"));
-                  CHAIN(NODE("data2", "Data")->NODE(assign));
-                  CHAIN(NODE(assign)->EDGE(0, 1)->NODE("NetOutput", "NetOutput"));
-                };
+    CHAIN(NODE("data1", "Data")->NODE(assign)->NODE("NetOutput", "NetOutput"));
+    CHAIN(NODE("data2", "Data")->NODE(assign));
+    CHAIN(NODE(assign)->EDGE(0, 1)->NODE("NetOutput", "NetOutput"));
+  };
   auto graph = ToComputeGraph(g1);
 
   auto data1 = graph->FindNode("data1");
@@ -1965,7 +1959,7 @@ ComputeGraphPtr ShareGraph::BuildAssignAsTwoOutputGraph(std::vector<std::initial
   SetShapeRangeNoStorage(assign->GetOpDesc(), min_shape[0], max_shape[2]);
   assign->GetOpDesc()->SetOpKernelLibName(kEngineNameAiCore);
   assign->GetOpDesc()->SetOpEngineName(kEngineNameAiCore);
-  assign->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
+  assign->GetOpDesc()->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
 
   auto noutput = graph->FindNode("NetOutput");
   SetNoStorage(noutput->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, shape[3]);
@@ -1987,15 +1981,15 @@ ComputeGraphPtr ShareGraph::BuildAssignAsTwoOutputGraph(std::vector<std::initial
  * data1 data2
  */
 ComputeGraphPtr ShareGraph::BuildAddToUnSqueezeGraph(const std::string &node_type,
-                                                   std::vector<std::initializer_list<int64_t>> shape,
-                                                   std::vector<std::initializer_list<int64_t>> min_shape,
-                                                   std::vector<std::initializer_list<int64_t>> max_shape) {
+                                                     std::vector<std::initializer_list<int64_t>> shape,
+                                                     std::vector<std::initializer_list<int64_t>> min_shape,
+                                                     std::vector<std::initializer_list<int64_t>> max_shape) {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", "Data")->NODE("add1", node_type));
-                  CHAIN(NODE("data2", "Data")->EDGE(0, 1)->NODE("add1", node_type));
-                  CHAIN(NODE("add1", node_type)->NODE("unsqueeze", UNSQUEEZE)->NODE("NetOutput", "NetOutput"));
-                  CHAIN(NODE("unsqueeze", UNSQUEEZE)->EDGE(0,1)->NODE("NetOutput", "NetOutput"));
-                };
+    CHAIN(NODE("data1", "Data")->NODE("add1", node_type));
+    CHAIN(NODE("data2", "Data")->EDGE(0, 1)->NODE("add1", node_type));
+    CHAIN(NODE("add1", node_type)->NODE("unsqueeze", UNSQUEEZE)->NODE("NetOutput", "NetOutput"));
+    CHAIN(NODE("unsqueeze", UNSQUEEZE)->EDGE(0, 1)->NODE("NetOutput", "NetOutput"));
+  };
   auto graph = ToComputeGraph(g1);
 
   auto data1 = graph->FindNode("data1");
@@ -2018,7 +2012,7 @@ ComputeGraphPtr ShareGraph::BuildAddToUnSqueezeGraph(const std::string &node_typ
   AttrUtils::SetInt(add1->GetOpDesc(), ge::ATTR_NAME_UNKNOWN_SHAPE_TYPE, 1);
   AttrUtils::SetStr(add1->GetOpDesc(), "_kernel_bin_id", "te_add_12345");
   AttrUtils::SetBool(add1->GetOpDesc(), "SmallShapeHostcpu", true);
-  add1->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
+  add1->GetOpDesc()->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
   AddCompileResult(add1, false);
 
   auto unqueeze = graph->FindNode("unsqueeze");
@@ -2089,12 +2083,12 @@ ComputeGraphPtr ShareGraph::BuildSingleHcclNodeGraph(const std::string &node_typ
  * data1  data2
  */
 ComputeGraphPtr ShareGraph::BuildTwoHcclNodeGraph(const std::string &node_type,
-                                                     std::vector<std::initializer_list<int64_t>> shape,
-                                                     std::vector<std::initializer_list<int64_t>> min_shape,
-                                                     std::vector<std::initializer_list<int64_t>> max_shape) {
+                                                  std::vector<std::initializer_list<int64_t>> shape,
+                                                  std::vector<std::initializer_list<int64_t>> min_shape,
+                                                  std::vector<std::initializer_list<int64_t>> max_shape) {
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data1", "Data")->NODE("add1", node_type)->NODE("hcom_reduce", node_type)
-        ->NODE("NetOutput", "NetOutput"));
+    CHAIN(
+        NODE("data1", "Data")->NODE("add1", node_type)->NODE("hcom_reduce", node_type)->NODE("NetOutput", "NetOutput"));
     CHAIN(NODE("data2", "Data")->EDGE(0, 1)->NODE("add1", node_type));
   };
   auto graph = ToComputeGraph(g1);
@@ -2296,7 +2290,7 @@ ge::ComputeGraphPtr ShareGraph::BuildTwoAddNodeGraph() {
   SetShapeRangeNoStorage(add1->GetOpDesc(), {1, 1, 1, 1}, {-1, -1, -1, -1});
   AttrUtils::SetInt(add1->GetOpDesc(), ge::ATTR_NAME_UNKNOWN_SHAPE_TYPE, 4);
   AddCompileResult(add1, false);
-  add1->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
+  add1->GetOpDesc()->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
 
   auto add2 = graph->FindNode("add2");
   add2->GetOpDesc()->MutableAllInputName() = {{"x1", 0}, {"x2", 1}};
@@ -2305,7 +2299,7 @@ ge::ComputeGraphPtr ShareGraph::BuildTwoAddNodeGraph() {
   SetShapeRangeNoStorage(add2->GetOpDesc(), {1, 1, 1, 1}, {-1, -1, -1, -1});
   AttrUtils::SetInt(add2->GetOpDesc(), ge::ATTR_NAME_UNKNOWN_SHAPE_TYPE, 1);
   AddCompileResult(add2, false);
-  add2->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
+  add2->GetOpDesc()->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
 
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"add2"});
@@ -2328,9 +2322,11 @@ ge::ComputeGraphPtr ShareGraph::BuildTwoAddNodeGraph() {
  */
 ge::ComputeGraphPtr ShareGraph::BuildFakeGetTensorNodeGraph() {
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data1", "Data")->NODE("fake_node1", "FakeShapeRangeNode")
-        ->NODE("fake_node2", "FakeAicoreNode")->NODE("fake_node3", "FakeShapeRangeNode")
-        ->NODE("NetOutput", "NetOutput"));
+    CHAIN(NODE("data1", "Data")
+              ->NODE("fake_node1", "FakeShapeRangeNode")
+              ->NODE("fake_node2", "FakeAicoreNode")
+              ->NODE("fake_node3", "FakeShapeRangeNode")
+              ->NODE("NetOutput", "NetOutput"));
     CHAIN(NODE("data2", "Data")->EDGE(0, 1)->NODE("fake_node1"));
     CHAIN(NODE("data3", "Data")->EDGE(0, 1)->NODE("fake_node2"));
     CHAIN(NODE("data4", "Data")->EDGE(0, 1)->NODE("fake_node3"));
@@ -2402,8 +2398,7 @@ ge::ComputeGraphPtr ShareGraph::BuildFakeGetTensorNodeGraph() {
  */
 ge::ComputeGraphPtr ShareGraph::BuildFakeDeterministicNodeGraph() {
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data1", "Data")->NODE("fake_node1", "FakeAicoreNodeWithDeterministc")
-        ->NODE("NetOutput", "NetOutput"));
+    CHAIN(NODE("data1", "Data")->NODE("fake_node1", "FakeAicoreNodeWithDeterministc")->NODE("NetOutput", "NetOutput"));
     CHAIN(NODE("data2", "Data")->EDGE(0, 1)->NODE("fake_node1"));
   };
   auto graph = ToComputeGraph(g1);
@@ -2452,9 +2447,11 @@ ge::ComputeGraphPtr ShareGraph::BuildFakeDeterministicNodeGraph() {
  */
 ge::ComputeGraphPtr ShareGraph::BuildFakeGetTensorNodeZeroCopyGraph() {
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data1", "Data")->NODE("fake_node1", "FakeShapeRangeNode")
-        ->NODE("fake_node2", "FakeAicoreNode")->NODE("fake_node3", "FakeShapeRangeNode")
-        ->NODE("NetOutput", "NetOutput"));
+    CHAIN(NODE("data1", "Data")
+              ->NODE("fake_node1", "FakeShapeRangeNode")
+              ->NODE("fake_node2", "FakeAicoreNode")
+              ->NODE("fake_node3", "FakeShapeRangeNode")
+              ->NODE("NetOutput", "NetOutput"));
     CHAIN(NODE("data2", "Data")->EDGE(0, 1)->NODE("fake_node1"));
     CHAIN(NODE("data3", "Data")->EDGE(0, 1)->NODE("fake_node2")->EDGE(0, 1)->NODE("NetOutput"));
     CHAIN(NODE("data4", "Data")->EDGE(0, 1)->NODE("fake_node3"));
@@ -2547,7 +2544,7 @@ ge::ComputeGraphPtr ShareGraph::BuildStaticTwoAddNodeGraph() {
   auto add1 = graph->FindNode("add1");
   add1->GetOpDesc()->MutableAllInputName() = {{"x1", 0}, {"x2", 1}};
   add1->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCore);
-  SetNoStorage(add1->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT,{1, 1, 1, 1});
+  SetNoStorage(add1->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, {1, 1, 1, 1});
   AttrUtils::SetInt(add1->GetOpDesc(), ge::ATTR_NAME_UNKNOWN_SHAPE_TYPE, 4);
   AddCompileResult(add1, false);
 
@@ -4050,7 +4047,7 @@ ComputeGraphPtr ShareGraph::BuildReshapeGraph2() {
   if (!out0.is_open()) {
     return nullptr;
   }
-  out0.write(reinterpret_cast<char*>(data), sizeof(data));
+  out0.write(reinterpret_cast<char *>(data), sizeof(data));
   out0.close();
 
   graph->SetGraphUnknownFlag(true);
@@ -4155,7 +4152,8 @@ ge::ComputeGraphPtr ShareGraph::BuildMultiBatchShapesGraph() {
   auto shape_data = main_graph->FindNode("shape_data");
   SetNoStorage(shape_data->GetOpDesc(), ge::FORMAT_ND, DT_INT32, {5});
   std::vector<int32_t> unknown_shape_data_index = {0, 1, 2};
-  (void)ge::AttrUtils::SetListInt(shape_data->GetOpDesc(), "_dynamic_batch_unknown_data_index", unknown_shape_data_index);
+  (void)ge::AttrUtils::SetListInt(shape_data->GetOpDesc(), "_dynamic_batch_unknown_data_index",
+                                  unknown_shape_data_index);
   if (!AttrUtils::SetInt(shape_data->GetOpDesc(), "index", 4)) {
     return nullptr;
   }
@@ -4163,12 +4161,9 @@ ge::ComputeGraphPtr ShareGraph::BuildMultiBatchShapesGraph() {
   (void)AttrUtils::SetBool(shape_data->GetOpDesc(), "_is_multi_batch_shape_data", true);
   auto const_node = main_graph->FindNode("const");
   GeTensor weight;
-  //std::vector<uint8_t> data = {2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 2, 2, 3, 3, 3, 3};
-  std::vector<int32_t> data = {8, 4, 4, 0, 0, 0, 0, 0,
-                               100, 100, 10, 0, 0, 0, 0, 0,
-                               8, 4, 4, 0, 0, 0, 0, 0,
-                               100, 100, 10, 0, 0, 0, 0, 0,
-                               100, 100, 10, 0, 0, 0, 0, 0};
+  // std::vector<uint8_t> data = {2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 2, 2, 3, 3, 3, 3};
+  std::vector<int32_t> data = {8, 4, 4, 0, 0,   0,   0,  0, 100, 100, 10, 0, 0,   0,   0,  0, 8, 4, 4, 0,
+                               0, 0, 0, 0, 100, 100, 10, 0, 0,   0,   0,  0, 100, 100, 10, 0, 0, 0, 0, 0};
 
   weight.SetData((uint8_t *)data.data(), data.size() * sizeof(int32_t));
   GeTensorDesc weight_desc;
@@ -4214,17 +4209,17 @@ ge::ComputeGraphPtr ShareGraph::BuildMultiBatchShapesGraph() {
     return ToComputeGraph(g);
   }();
   graph_0->SetName("branch0");
-  auto data1_batch0 =  graph_0->FindNode("data1_batch_0");
+  auto data1_batch0 = graph_0->FindNode("data1_batch_0");
   SetNoStorage(data1_batch0->GetOpDesc(), ge::FORMAT_NCHW, DT_FLOAT, {8, 3, 1, 100});
   ge::AttrUtils::SetInt(data1_batch0->GetOpDesc(), "index", 0);
   ge::AttrUtils::SetInt(data1_batch0->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, 1);
 
-  auto data2_batch0 =  graph_0->FindNode("data2_batch_0");
+  auto data2_batch0 = graph_0->FindNode("data2_batch_0");
   SetNoStorage(data2_batch0->GetOpDesc(), ge::FORMAT_NCHW, DT_FLOAT, {8, 3, 1, 100});
   ge::AttrUtils::SetInt(data2_batch0->GetOpDesc(), "index", 1);
   ge::AttrUtils::SetInt(data2_batch0->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, 2);
 
-  auto data3_batch0 =  graph_0->FindNode("data3_batch_0");
+  auto data3_batch0 = graph_0->FindNode("data3_batch_0");
   SetNoStorage(data3_batch0->GetOpDesc(), ge::FORMAT_NCHW, DT_FLOAT, {8, 3, 1, 100});
   ge::AttrUtils::SetInt(data3_batch0->GetOpDesc(), "index", 1);
   ge::AttrUtils::SetInt(data3_batch0->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, 3);
@@ -4238,17 +4233,17 @@ ge::ComputeGraphPtr ShareGraph::BuildMultiBatchShapesGraph() {
     return ToComputeGraph(g);
   }();
   graph_1->SetName("branch1");
-  auto data1_batch1 =  graph_1->FindNode("data1_batch_1");
+  auto data1_batch1 = graph_1->FindNode("data1_batch_1");
   SetNoStorage(data1_batch1->GetOpDesc(), ge::FORMAT_NCHW, DT_FLOAT, {8, 3, 1, 100});
   ge::AttrUtils::SetInt(data1_batch1->GetOpDesc(), "index", 0);
   ge::AttrUtils::SetInt(data1_batch1->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, 1);
 
-  auto data2_batch1 =  graph_1->FindNode("data2_batch_1");
+  auto data2_batch1 = graph_1->FindNode("data2_batch_1");
   SetNoStorage(data2_batch1->GetOpDesc(), ge::FORMAT_NCHW, DT_FLOAT, {8, 3, 1, 100});
   ge::AttrUtils::SetInt(data2_batch1->GetOpDesc(), "index", 1);
   ge::AttrUtils::SetInt(data2_batch1->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, 2);
 
-  auto data3_batch1 =  graph_1->FindNode("data3_batch_1");
+  auto data3_batch1 = graph_1->FindNode("data3_batch_1");
   SetNoStorage(data3_batch1->GetOpDesc(), ge::FORMAT_NCHW, DT_FLOAT, {8, 3, 1, 100});
   ge::AttrUtils::SetInt(data3_batch1->GetOpDesc(), "index", 2);
   ge::AttrUtils::SetInt(data3_batch1->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, 3);
@@ -4458,7 +4453,6 @@ ComputeGraphPtr ShareGraph::IfGraphWithConstInput() {
   ge::AttrUtils::SetInt(main_graph->FindNode("pred")->GetOpDesc(), "index", 0);
   ge::AttrUtils::SetTensor(main_graph->FindNode("input")->GetOpDesc(), "value", CreateScalarGeTensor(0));
 
-
   auto then_graph = []() {
     DEF_GRAPH(g) {
       CHAIN(NODE("data", "Data")->NODE("shape", "Shape")->NODE("NetOutput", "NetOutput"));
@@ -4509,7 +4503,7 @@ ComputeGraphPtr ShareGraph::IfGraphWithConstInput() {
 
   return main_graph;
 }
-  /*
+/*
  *                          +-----------+
  *                          |Then Graph |
  *                          |           |  +-----------+
@@ -4523,31 +4517,30 @@ ComputeGraphPtr ShareGraph::IfGraphWithConstInput() {
  * pred(Data)  input(Data)  +-----------+  +-----------+
  */
 ComputeGraphPtr ShareGraph::IfGraphRankChangedOneBranch() {
-
   auto main_graph = [&]() {
     auto input = OP_CFG(DATA)
-                  .TensorDesc(FORMAT_ND, DT_FLOAT, {2,3,1,3})
-                  .InCnt(1)
-                  .OutCnt(1)
-                  .Attr(ATTR_NAME_INDEX, 1)
-                  .InNames({"x"})
-                  .OutNames({"y"})
-                  .Build("input");
+                     .TensorDesc(FORMAT_ND, DT_FLOAT, {2, 3, 1, 3})
+                     .InCnt(1)
+                     .OutCnt(1)
+                     .Attr(ATTR_NAME_INDEX, 1)
+                     .InNames({"x"})
+                     .OutNames({"y"})
+                     .Build("input");
     auto pred = OP_CFG(DATA)
-                      .TensorDesc(FORMAT_ND, DT_INT32, {})
-                      .InCnt(1)
-                      .OutCnt(1)
-                      .Attr(ATTR_NAME_INDEX, 0)
-                      .InNames({"x"})
-                      .OutNames({"y"})
-                      .Build("pred");
+                    .TensorDesc(FORMAT_ND, DT_INT32, {})
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .Attr(ATTR_NAME_INDEX, 0)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("pred");
     auto relu = OP_CFG(RELU)
-                  .TensorDesc(FORMAT_ND, DT_FLOAT, {2,3,1,3})
-                  .InCnt(1)
-                  .OutCnt(1)
-                  .InNames({"x"})
-                  .OutNames({"y"})
-                  .Build("relu_main");
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {2, 3, 1, 3})
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("relu_main");
     DEF_GRAPH(g) {
       CHAIN(NODE(pred)->NODE("if", "If")->NODE(relu)->NODE("NetOutput", "NetOutput"));
       CHAIN(NODE(input)->EDGE(0, 1)->NODE("if", "If"));
@@ -4566,44 +4559,49 @@ ComputeGraphPtr ShareGraph::IfGraphRankChangedOneBranch() {
 
   auto then_graph = [&]() {
     auto relu = OP_CFG(RELU)
-                  .TensorDesc(FORMAT_ND, DT_FLOAT, {2,3,1,3})
-                  .InCnt(1)
-                  .OutCnt(1)
-                  .InNames({"x"})
-                  .OutNames({"y"})
-                  .Build("relu_then");
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {2, 3, 1, 3})
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("relu_then");
     auto relu1 = OP_CFG(RELU)
-                  .TensorDesc(FORMAT_ND, DT_FLOAT, {2,3,1,3})
-                  .InCnt(1)
-                  .OutCnt(1)
-                  .InNames({"x"})
-                  .OutNames({"y"})
-                  .Build("relu1_then");
+                     .TensorDesc(FORMAT_ND, DT_FLOAT, {2, 3, 1, 3})
+                     .InCnt(1)
+                     .OutCnt(1)
+                     .InNames({"x"})
+                     .OutNames({"y"})
+                     .Build("relu1_then");
     auto squeeze = OP_CFG(SQUEEZE)
-                  .TensorDesc(FORMAT_ND, DT_FLOAT, {2,3,1,3})
-                  .InCnt(1)
-                  .OutCnt(1)
-                  .InNames({"x"})
-                  .OutNames({"y"})
-                  .Build("squeeze_then");
+                       .TensorDesc(FORMAT_ND, DT_FLOAT, {2, 3, 1, 3})
+                       .InCnt(1)
+                       .OutCnt(1)
+                       .InNames({"x"})
+                       .OutNames({"y"})
+                       .Build("squeeze_then");
     DEF_GRAPH(g) {
-      CHAIN(NODE("data_then_graph", "Data")->NODE(relu)->NODE(relu1)->NODE(squeeze)->NODE("NetOutput_then_graph", "NetOutput"));
+      CHAIN(NODE("data_then_graph", "Data")
+                ->NODE(relu)
+                ->NODE(relu1)
+                ->NODE(squeeze)
+                ->NODE("NetOutput_then_graph", "NetOutput"));
     };
     return ToComputeGraph(g);
   }();
   then_graph->SetName("then");
   ge::AttrUtils::SetInt(then_graph->FindFirstNodeMatchType("Data")->GetOpDesc(), "index", 0);
   ge::AttrUtils::SetInt(then_graph->FindFirstNodeMatchType("Data")->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, 1);
-  ge::AttrUtils::SetInt(then_graph->FindFirstNodeMatchType(NETOUTPUT)->GetOpDesc()->MutableInputDesc(0), ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
+  ge::AttrUtils::SetInt(then_graph->FindFirstNodeMatchType(NETOUTPUT)->GetOpDesc()->MutableInputDesc(0),
+                        ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
 
   auto else_graph = [&]() {
     auto relu = OP_CFG(RELU)
-                  .TensorDesc(FORMAT_ND, DT_FLOAT, {2,3,1,3})
-                  .InCnt(1)
-                  .OutCnt(1)
-                  .InNames({"x"})
-                  .OutNames({"y"})
-                  .Build("relu_else");
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, {2, 3, 1, 3})
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .InNames({"x"})
+                    .OutNames({"y"})
+                    .Build("relu_else");
     DEF_GRAPH(g) {
       CHAIN(NODE("data_else_graph", "Data")->NODE(relu)->NODE("NetOutput_else_graph", "NetOutput"));
     };
@@ -4614,7 +4612,8 @@ ComputeGraphPtr ShareGraph::IfGraphRankChangedOneBranch() {
   AddCompileResult(relu_else, false);
   ge::AttrUtils::SetInt(else_graph->FindFirstNodeMatchType("Data")->GetOpDesc(), "index", 0);
   ge::AttrUtils::SetInt(else_graph->FindFirstNodeMatchType("Data")->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, 1);
-  ge::AttrUtils::SetInt(else_graph->FindFirstNodeMatchType(NETOUTPUT)->GetOpDesc()->MutableInputDesc(0), ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
+  ge::AttrUtils::SetInt(else_graph->FindFirstNodeMatchType(NETOUTPUT)->GetOpDesc()->MutableInputDesc(0),
+                        ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
 
   auto if_node = main_graph->FindFirstNodeMatchType("If");
   then_graph->SetParentGraph(main_graph);
@@ -5191,8 +5190,20 @@ ComputeGraphPtr ShareGraph::WhileGraphXBody(bool instance_name_as_graph_name) {
 ComputeGraphPtr ShareGraph::WhileGraphCascade(bool instance_name_as_graph_name) {
   auto main_graph = []() {
     DEF_GRAPH(g) {
-      CHAIN(NODE("input1", "Data")->EDGE(0, 0)->NODE("while1", "While")->EDGE(0, 0)->NODE("while2", "While")->EDGE(0, 0)->NODE("NetOutput", "NetOutput"));
-      CHAIN(NODE("input2", "Data")->EDGE(0, 1)->NODE("while1", "While")->EDGE(1, 1)->NODE("while2", "While")->EDGE(1, 1)->NODE("NetOutput", "NetOutput"));
+      CHAIN(NODE("input1", "Data")
+                ->EDGE(0, 0)
+                ->NODE("while1", "While")
+                ->EDGE(0, 0)
+                ->NODE("while2", "While")
+                ->EDGE(0, 0)
+                ->NODE("NetOutput", "NetOutput"));
+      CHAIN(NODE("input2", "Data")
+                ->EDGE(0, 1)
+                ->NODE("while1", "While")
+                ->EDGE(1, 1)
+                ->NODE("while2", "While")
+                ->EDGE(1, 1)
+                ->NODE("NetOutput", "NetOutput"));
     };
     return ToComputeGraph(g);
   }();
@@ -5352,8 +5363,11 @@ ComputeGraphPtr ShareGraph::WhileGraph3(bool instance_name_as_graph_name) {
 
   auto cond_graph = []() {
     DEF_GRAPH(g) {
-      CHAIN(NODE("LabelSet_0", "LabelSet")->NODE("Stream_0", "StreamActive")->NODE("input", "Data")
-            ->NODE("LessThan_5", "Conv2D")->NODE("SwitchByIndex", "LabelSwitchByIndex"));
+      CHAIN(NODE("LabelSet_0", "LabelSet")
+                ->NODE("Stream_0", "StreamActive")
+                ->NODE("input", "Data")
+                ->NODE("LessThan_5", "Conv2D")
+                ->NODE("SwitchByIndex", "LabelSwitchByIndex"));
     };
     return ToComputeGraph(g);
   }();
@@ -5361,15 +5375,20 @@ ComputeGraphPtr ShareGraph::WhileGraph3(bool instance_name_as_graph_name) {
     cond_graph->SetName("cond_instance");
     ge::AttrUtils::SetInt(cond_graph->FindNode("input")->GetOpDesc(), "index", 0);
     ge::AttrUtils::SetInt(cond_graph->FindNode("input")->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
-    ge::AttrUtils::SetListInt(cond_graph->FindNode("SwitchByIndex")->GetOpDesc(), ge::ATTR_NAME_LABEL_SWITCH_LIST, {1, 2});
+    ge::AttrUtils::SetListInt(cond_graph->FindNode("SwitchByIndex")->GetOpDesc(), ge::ATTR_NAME_LABEL_SWITCH_LIST,
+                              {1, 2});
     ge::AttrUtils::SetInt(cond_graph->FindNode("LabelSet_0")->GetOpDesc(), ge::ATTR_NAME_LABEL_SWITCH_INDEX, 0);
   }
 
   auto body_graph = []() {
     DEF_GRAPH(g) {
-      CHAIN(NODE("LabelSet_1", "LabelSet")->NODE("Stream_1", "StreamActive")->NODE("input", "Data")
-            ->NODE("add", "Add_1")->NODE("LabelGoto", "LabelGotoEx")->NODE("LabelSet_2", "LabelSet")
-            ->NODE("NetOutput", "NetOutput"));
+      CHAIN(NODE("LabelSet_1", "LabelSet")
+                ->NODE("Stream_1", "StreamActive")
+                ->NODE("input", "Data")
+                ->NODE("add", "Add_1")
+                ->NODE("LabelGoto", "LabelGotoEx")
+                ->NODE("LabelSet_2", "LabelSet")
+                ->NODE("NetOutput", "NetOutput"));
     };
     return ToComputeGraph(g);
   }();
@@ -5439,24 +5458,30 @@ ComputeGraphPtr ShareGraph::IfGraphWithSwitch() {
 
   auto then_graph = []() {
     DEF_GRAPH(g) {
-      CHAIN(NODE("data", "Data")->NODE("SwitchByIndex", "LabelSwitchByIndex")
-            ->NODE("LabelSet_0", "LabelSet")->NODE("Stream_0", "StreamActive")
-            ->NODE("shape", "Shape")->NODE("LabelGoto", "LabelGotoEx"));
+      CHAIN(NODE("data", "Data")
+                ->NODE("SwitchByIndex", "LabelSwitchByIndex")
+                ->NODE("LabelSet_0", "LabelSet")
+                ->NODE("Stream_0", "StreamActive")
+                ->NODE("shape", "Shape")
+                ->NODE("LabelGoto", "LabelGotoEx"));
     };
     return ToComputeGraph(g);
   }();
   then_graph->SetName("then");
   ge::AttrUtils::SetInt(then_graph->FindFirstNodeMatchType("Data")->GetOpDesc(), "index", 0);
   ge::AttrUtils::SetInt(then_graph->FindFirstNodeMatchType("Data")->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, 1);
-  ge::AttrUtils::SetListInt(then_graph->FindNode("SwitchByIndex")->GetOpDesc(), ge::ATTR_NAME_LABEL_SWITCH_LIST, {0, 1});
+  ge::AttrUtils::SetListInt(then_graph->FindNode("SwitchByIndex")->GetOpDesc(), ge::ATTR_NAME_LABEL_SWITCH_LIST,
+                            {0, 1});
   ge::AttrUtils::SetInt(then_graph->FindNode("LabelSet_0")->GetOpDesc(), ge::ATTR_NAME_LABEL_SWITCH_INDEX, 0);
   ge::AttrUtils::SetInt(then_graph->FindNode("LabelGoto")->GetOpDesc(), ge::ATTR_NAME_LABEL_SWITCH_INDEX, 2);
 
   auto else_graph = []() {
     DEF_GRAPH(g) {
-      CHAIN(NODE("data", "Data")->NODE("LabelSet_1", "LabelSet")
-            ->NODE("Stream_1", "StreamActive")->NODE("shape", "Shape")
-            ->NODE("LabelSet_2", "LabelSet"));
+      CHAIN(NODE("data", "Data")
+                ->NODE("LabelSet_1", "LabelSet")
+                ->NODE("Stream_1", "StreamActive")
+                ->NODE("shape", "Shape")
+                ->NODE("LabelSet_2", "LabelSet"));
     };
     return ToComputeGraph(g);
   }();
@@ -5510,43 +5535,31 @@ ComputeGraphPtr ShareGraph::IfGraphWithSwitch() {
  */
 ComputeGraphPtr ShareGraph::GraphWithFifoWindowCache() {
   std::vector<int64_t> shape = {2, 2};
-  auto data_0 = OP_CFG(DATA)
-                    .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-                    .InCnt(1)
-                    .OutCnt(1)
-                    .Build("data_0");
+  auto data_0 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_FLOAT, shape).InCnt(1).OutCnt(1).Build("data_0");
   data_0->SetOutputOffset({0});
   AttrUtils::SetListInt(data_0, ATTR_NAME_OUTPUT_MEM_TYPE_LIST, {RT_MEMORY_L1});
   TensorUtils::SetSize(*data_0->MutableOutputDesc(0), 8);
 
-  auto data_1 = OP_CFG(CONSTANT)
-                    .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-                    .InCnt(1)
-                    .OutCnt(1)
-                    .Build("data_1");
+  auto data_1 = OP_CFG(CONSTANT).TensorDesc(FORMAT_NCHW, DT_FLOAT, shape).InCnt(1).OutCnt(1).Build("data_1");
   data_1->SetOutputOffset({0});
   AttrUtils::SetListInt(data_1, ATTR_NAME_OUTPUT_MEM_TYPE_LIST, {RT_MEMORY_L1});
   TensorUtils::SetSize(*data_1->MutableOutputDesc(0), 8);
   ge::AttrUtils::SetInt(*data_1->MutableOutputDesc(0), ATTR_NAME_TENSOR_MEMORY_SCOPE, 2);
 
-  auto data_2 = OP_CFG(DATA)
-                    .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-                    .InCnt(1)
-                    .OutCnt(1)
-                    .Build("data_2");
+  auto data_2 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_FLOAT, shape).InCnt(1).OutCnt(1).Build("data_2");
   data_2->SetOutputOffset({8});
   AttrUtils::SetListInt(data_2, ATTR_NAME_OUTPUT_MEM_TYPE_LIST, {RT_MEMORY_L1});
   TensorUtils::SetSize(*data_2->MutableOutputDesc(0), 8);
 
   auto fifo = OP_CFG("FillWindowCache")
-                    .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-                    .InCnt(3)
-                    .OutCnt(1)
-                    .Attr(ATTR_NAME_REFERENCE, true)
-                    .Build("fillwindowcache");
+                  .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                  .InCnt(3)
+                  .OutCnt(1)
+                  .Attr(ATTR_NAME_REFERENCE, true)
+                  .Build("fillwindowcache");
   vector<bool> is_input_const_vec = {false, true, false};
   fifo->SetIsInputConst(is_input_const_vec);
-  fifo->SetInputOffset({0,1024,8});
+  fifo->SetInputOffset({0, 1024, 8});
   fifo->SetOutputOffset({1024});
   AttrUtils::SetListInt(fifo, ATTR_NAME_INPUT_MEM_TYPE_LIST, {RT_MEMORY_HBM, RT_MEMORY_L1, RT_MEMORY_L1});
   AttrUtils::SetListInt(fifo, ATTR_NAME_OUTPUT_MEM_TYPE_LIST, {RT_MEMORY_L1});
@@ -5557,8 +5570,13 @@ ComputeGraphPtr ShareGraph::GraphWithFifoWindowCache() {
   TensorUtils::SetReuseInputIndex(*output_tensordesc, 1);
 
   DEF_GRAPH(g1) {
-    CHAIN(NODE(data_0)->EDGE(0, 0)->NODE(fifo)->EDGE(0, 0)->
-    NODE("conv", CONV2D)->EDGE(0, 0)->NODE("NetOutput", "NetOutput"));
+    CHAIN(NODE(data_0)
+              ->EDGE(0, 0)
+              ->NODE(fifo)
+              ->EDGE(0, 0)
+              ->NODE("conv", CONV2D)
+              ->EDGE(0, 0)
+              ->NODE("NetOutput", "NetOutput"));
     CHAIN(NODE(data_1)->EDGE(0, 1)->NODE("fillwindowcache"));
     CHAIN(NODE(data_2)->EDGE(0, 2)->NODE("fillwindowcache"));
   };
@@ -6027,16 +6045,16 @@ ComputeGraphPtr ShareGraph::IfGraph4() {
 }
 
 /*
-*                          +------------------+  +-----------------+
-*                          |     Then Graph   |  |    Else Graph   |
-*                          |                  |  |                 |
-*                          |     NetOutput    |  |    NetOutput    |
-*       NetOutput          |         |        |  |        |        |
-*           |              |        Add       |  |       Add       |
-*          if  <---------> |       /   \      |  |      /   \      |
-*        /    \            |  Data(1) Data(2) |  | Data(1) Data(2) |
-* pred(Data)  input(Data)  +------------------+  +-----------------+
-*/
+ *                          +------------------+  +-----------------+
+ *                          |     Then Graph   |  |    Else Graph   |
+ *                          |                  |  |                 |
+ *                          |     NetOutput    |  |    NetOutput    |
+ *       NetOutput          |         |        |  |        |        |
+ *           |              |        Add       |  |       Add       |
+ *          if  <---------> |       /   \      |  |      /   \      |
+ *        /    \            |  Data(1) Data(2) |  | Data(1) Data(2) |
+ * pred(Data)  input(Data)  +------------------+  +-----------------+
+ */
 ComputeGraphPtr ShareGraph::IfGraph5() {
   auto main_graph = []() {
     DEF_GRAPH(g) {
@@ -6684,7 +6702,7 @@ ComputeGraphPtr ShareGraph::SimpleFileConstantGraph(const std::string &var_name,
 /*
       var     constant
          \     /
-          assgin
+          assign
             |
             -------->netoutput
 */
@@ -6900,7 +6918,7 @@ ComputeGraphPtr ShareGraph::BuildGraphWithUBFusionNode() {
   auto fused_compute_graph = ToComputeGraph(fuse_origin_graph);
   AttrUtils::SetGraph(add_mul_fused_node->GetOpDesc(), "_original_fusion_graph", fused_compute_graph);
   AddCompileResult(compute_graph->FindNode("add_mul"), false);
-  add_mul_fused_node->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
+  add_mul_fused_node->GetOpDesc()->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
 
   // set engine
   fused_compute_graph->FindNode("add_a")->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCore);
@@ -6948,11 +6966,7 @@ ge::ComputeGraphPtr ShareGraph::BuildWithKnownSubgraph(bool no_netoutput, bool e
   data1->SetOutputOffset({0});
   TensorUtils::SetSize(*data1->MutableOutputDesc(0), shape_size);
 
-  auto const1 = OP_CFG("Const")
-                    .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-                    .InCnt(1)
-                    .OutCnt(1)
-                    .Build("const1");
+  auto const1 = OP_CFG("Const").TensorDesc(FORMAT_NCHW, DT_FLOAT, shape).InCnt(1).OutCnt(1).Build("const1");
   ge::AttrUtils::SetTensor(const1, "value", CreateVecTorGeTensor(shape, DT_FLOAT));
   const1->SetOutputOffset({1024});
   TensorUtils::SetSize(*const1->MutableOutputDesc(0), shape_size);
@@ -7082,37 +7096,33 @@ ge::ComputeGraphPtr ShareGraph::BuildWithKnownSubgraphWithTwoConst(bool no_netou
   int64_t shape_size;
   TensorUtils::CalcTensorMemSize(GeShape(shape), FORMAT_NCHW, DT_FLOAT, shape_size);
   auto data1 = OP_CFG("Data")
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
-      .Attr(ge::ATTR_NAME_INDEX, (int32_t)0)
-      .Build("data1");
+                   .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                   .InCnt(1)
+                   .OutCnt(1)
+                   .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
+                   .Attr(ge::ATTR_NAME_INDEX, (int32_t)0)
+                   .Build("data1");
   data1->SetOutputOffset({0});
   TensorUtils::SetSize(*data1->MutableOutputDesc(0), shape_size);
 
-  auto const1 = OP_CFG("Const")
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Build("const1");
+  auto const1 = OP_CFG("Const").TensorDesc(FORMAT_NCHW, DT_FLOAT, shape).InCnt(1).OutCnt(1).Build("const1");
   ge::AttrUtils::SetTensor(const1, "value", CreateVecTorGeTensor(shape, DT_FLOAT));
   const1->SetOutputOffset({1024});
   TensorUtils::SetSize(*const1->MutableOutputDesc(0), shape_size);
 
   vector<int64_t> test_int64_list_attr = {1, 2, 3};
   auto conv2d = OP_CFG("Conv2d")
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr("string_attr", "test")
-      .Attr("int32_attr", (int32_t)1)
-      .Attr("uint32_attr", (uint32_t)1)
-      .Attr("data_format", "NHWC")  // attr on operator
-      .Attr("dilations", test_int64_list_attr)
-      .Attr("groups", (int32_t)1)
-      .Attr("offset_x", (int32_t)1)
-      .Build("conv2d");
+                    .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .Attr("string_attr", "test")
+                    .Attr("int32_attr", (int32_t)1)
+                    .Attr("uint32_attr", (uint32_t)1)
+                    .Attr("data_format", "NHWC")  // attr on operator
+                    .Attr("dilations", test_int64_list_attr)
+                    .Attr("groups", (int32_t)1)
+                    .Attr("offset_x", (int32_t)1)
+                    .Build("conv2d");
   conv2d->SetOpEngineName("AIcoreEngine");
   conv2d->SetOpKernelLibName("AIcoreEngine");
   conv2d->SetInputOffset({0});
@@ -7124,11 +7134,11 @@ ge::ComputeGraphPtr ShareGraph::BuildWithKnownSubgraphWithTwoConst(bool no_netou
   TensorUtils::SetSize(*const2->MutableOutputDesc(0), shape_size);
 
   auto netoutput_sub = OP_CFG("NetOutput")
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-      .InCnt(3)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
-      .Build("netoutput_sub");
+                           .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                           .InCnt(3)
+                           .OutCnt(1)
+                           .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
+                           .Build("netoutput_sub");
   netoutput_sub->SetSrcName({"const2", "data1", "const1"});
   netoutput_sub->SetSrcIndex({0, 0, 0});
   netoutput_sub->SetInputOffset({48, 0, 1024});
@@ -7137,38 +7147,38 @@ ge::ComputeGraphPtr ShareGraph::BuildWithKnownSubgraphWithTwoConst(bool no_netou
   netoutput_sub->SetIsInputConst({true, false, true});
 
   DEF_GRAPH(g2) {
-                  if (no_netoutput) {
-                    CHAIN(NODE(data1)->NODE(conv2d)->NODE(const2));
-                  } else {
-                    CHAIN(NODE(data1)->NODE(conv2d));
-                    CHAIN(NODE(const2)->EDGE(0, 0)->NODE(netoutput_sub));
-                    CHAIN(NODE(data1)->EDGE(0, 1)->NODE(netoutput_sub));
-                    CHAIN(NODE(const1)->EDGE(0, 2)->NODE(netoutput_sub));
-                  }
-                };
+    if (no_netoutput) {
+      CHAIN(NODE(data1)->NODE(conv2d)->NODE(const2));
+    } else {
+      CHAIN(NODE(data1)->NODE(conv2d));
+      CHAIN(NODE(const2)->EDGE(0, 0)->NODE(netoutput_sub));
+      CHAIN(NODE(data1)->EDGE(0, 1)->NODE(netoutput_sub));
+      CHAIN(NODE(const1)->EDGE(0, 2)->NODE(netoutput_sub));
+    }
+  };
 
   auto data_a = OP_CFG("Data")
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_INDEX, 0)
-      .Build("data_a");
+                    .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .Attr(ATTR_NAME_INDEX, 0)
+                    .Build("data_a");
 
   auto known_subgraph = OP_CFG(ge::PARTITIONEDCALL)
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(3)
-      .Build(ge::PARTITIONEDCALL);
+                            .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                            .InCnt(1)
+                            .OutCnt(3)
+                            .Build(ge::PARTITIONEDCALL);
 
   auto netoutput = OP_CFG("NetOutput").TensorDesc(FORMAT_NCHW, DT_FLOAT, shape).InCnt(3).OutCnt(3).Build("netoutput");
   netoutput->SetSrcName({ge::PARTITIONEDCALL, ge::PARTITIONEDCALL, ge::PARTITIONEDCALL});
   netoutput->SetSrcIndex({0, 1, 2});
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE(data_a)->NODE(known_subgraph)->NODE(netoutput));
-                  CHAIN(NODE(known_subgraph)->EDGE(1, 1)->NODE(netoutput));
-                  CHAIN(NODE(known_subgraph)->EDGE(2, 2)->NODE(netoutput));
-                };
+    CHAIN(NODE(data_a)->NODE(known_subgraph)->NODE(netoutput));
+    CHAIN(NODE(known_subgraph)->EDGE(1, 1)->NODE(netoutput));
+    CHAIN(NODE(known_subgraph)->EDGE(2, 2)->NODE(netoutput));
+  };
 
   auto graph = ToGeGraph(g1);
   auto compute_graph = ge::GraphUtilsEx::GetComputeGraph(graph);
@@ -7215,20 +7225,16 @@ ge::ComputeGraphPtr ShareGraph::BuildWithKnownSubgraphWithRefNode() {
   int64_t shape_size;
   TensorUtils::CalcTensorMemSize(GeShape(shape), FORMAT_NCHW, DT_FLOAT, shape_size);
   auto data1 = OP_CFG("Data")
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
-      .Attr(ge::ATTR_NAME_INDEX, (int32_t)0)
-      .Build("data1");
+                   .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                   .InCnt(1)
+                   .OutCnt(1)
+                   .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
+                   .Attr(ge::ATTR_NAME_INDEX, (int32_t)0)
+                   .Build("data1");
   data1->SetOutputOffset({0});
   TensorUtils::SetSize(*data1->MutableOutputDesc(0), shape_size);
 
-  auto const1 = OP_CFG("Const")
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Build("const1");
+  auto const1 = OP_CFG("Const").TensorDesc(FORMAT_NCHW, DT_FLOAT, shape).InCnt(1).OutCnt(1).Build("const1");
   ge::AttrUtils::SetTensor(const1, "value", CreateVecTorGeTensor(shape, DT_FLOAT));
   const1->SetOutputOffset({1024});
   TensorUtils::SetSize(*const1->MutableOutputDesc(0), shape_size);
@@ -7246,11 +7252,11 @@ ge::ComputeGraphPtr ShareGraph::BuildWithKnownSubgraphWithRefNode() {
   assign->SetOutputOffset({0});
 
   auto netoutput_sub = OP_CFG("NetOutput")
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
-      .Build("netoutput_sub");
+                           .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                           .InCnt(1)
+                           .OutCnt(1)
+                           .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
+                           .Build("netoutput_sub");
   netoutput_sub->SetSrcName({"assign"});
   netoutput_sub->SetSrcIndex({0});
   netoutput_sub->SetInputOffset({0});
@@ -7261,17 +7267,17 @@ ge::ComputeGraphPtr ShareGraph::BuildWithKnownSubgraphWithRefNode() {
   };
 
   auto data_a = OP_CFG("Data")
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_INDEX, 0)
-      .Build("data_a");
+                    .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .Attr(ATTR_NAME_INDEX, 0)
+                    .Build("data_a");
   data_a->SetOutputOffset({2048});
   auto known_subgraph = OP_CFG(ge::PARTITIONEDCALL)
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Build(ge::PARTITIONEDCALL);
+                            .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                            .InCnt(1)
+                            .OutCnt(1)
+                            .Build(ge::PARTITIONEDCALL);
 
   auto netoutput = OP_CFG("NetOutput").TensorDesc(FORMAT_NCHW, DT_FLOAT, shape).InCnt(3).OutCnt(3).Build("netoutput");
   netoutput->SetSrcName({ge::PARTITIONEDCALL, ge::PARTITIONEDCALL, ge::PARTITIONEDCALL});
@@ -7322,8 +7328,13 @@ ge::ComputeGraphPtr ShareGraph::BuildWithMulitKnownSubgraphs() {
 
   int64_t shape_size;
   TensorUtils::CalcTensorMemSize(GeShape(shape), FORMAT_NCHW, DT_FLOAT, shape_size);
-  auto data1 = OP_CFG("Data").TensorDesc(FORMAT_NCHW, DT_FLOAT, shape).InCnt(1).OutCnt(1)
-      .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0).Attr(ge::ATTR_NAME_INDEX, (int32_t)0).Build("data1");
+  auto data1 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                   .InCnt(1)
+                   .OutCnt(1)
+                   .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
+                   .Attr(ge::ATTR_NAME_INDEX, (int32_t)0)
+                   .Build("data1");
   data1->SetOutputOffset({0});
   TensorUtils::SetSize(*data1->MutableOutputDesc(0), shape_size);
 
@@ -7332,14 +7343,24 @@ ge::ComputeGraphPtr ShareGraph::BuildWithMulitKnownSubgraphs() {
   const1->SetOutputOffset({1024});
   TensorUtils::SetSize(*const1->MutableOutputDesc(0), shape_size);
 
-  auto assign = OP_CFG(ASSIGN).TensorDesc(FORMAT_ND, DT_FLOAT, shape).InCnt(2).OutCnt(1).InNames({"ref", "value"})
-                    .OutNames({"ref"}).Attr(ATTR_NAME_REFERENCE, true).Build("assign");
+  auto assign = OP_CFG(ASSIGN)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, shape)
+                    .InCnt(2)
+                    .OutCnt(1)
+                    .InNames({"ref", "value"})
+                    .OutNames({"ref"})
+                    .Attr(ATTR_NAME_REFERENCE, true)
+                    .Build("assign");
   assign->SetOpKernelLibName(ge::kEngineNameAiCore);
   assign->SetInputOffset({0});
   assign->SetOutputOffset({0});
 
-  auto netoutput_sub = OP_CFG("NetOutput").TensorDesc(FORMAT_NCHW, DT_FLOAT, shape).InCnt(1).OutCnt(1)
-      .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0).Build("netoutput_sub");
+  auto netoutput_sub = OP_CFG("NetOutput")
+                           .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                           .InCnt(1)
+                           .OutCnt(1)
+                           .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
+                           .Build("netoutput_sub");
   netoutput_sub->SetSrcName({"assign"});
   netoutput_sub->SetSrcIndex({0});
   netoutput_sub->SetInputOffset({0});
@@ -7349,8 +7370,13 @@ ge::ComputeGraphPtr ShareGraph::BuildWithMulitKnownSubgraphs() {
     CHAIN(NODE(const1)->EDGE(0, 1)->NODE(assign));
   };
 
-  auto data2 = OP_CFG("Data").TensorDesc(FORMAT_NCHW, DT_FLOAT, shape).InCnt(1).OutCnt(1)
-      .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0).Attr(ge::ATTR_NAME_INDEX, (int32_t)0).Build("data2");
+  auto data2 = OP_CFG("Data")
+                   .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                   .InCnt(1)
+                   .OutCnt(1)
+                   .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
+                   .Attr(ge::ATTR_NAME_INDEX, (int32_t)0)
+                   .Build("data2");
   data2->SetOutputOffset({0});
   TensorUtils::SetSize(*data2->MutableOutputDesc(0), shape_size);
 
@@ -7359,14 +7385,24 @@ ge::ComputeGraphPtr ShareGraph::BuildWithMulitKnownSubgraphs() {
   const2->SetOutputOffset({1024});
   TensorUtils::SetSize(*const2->MutableOutputDesc(0), shape_size);
 
-  auto assign2 = OP_CFG(ASSIGN).TensorDesc(FORMAT_ND, DT_FLOAT, shape).InCnt(2).OutCnt(1).InNames({"ref", "value"})
-                    .OutNames({"ref"}).Attr(ATTR_NAME_REFERENCE, true).Build("assign2");
+  auto assign2 = OP_CFG(ASSIGN)
+                     .TensorDesc(FORMAT_ND, DT_FLOAT, shape)
+                     .InCnt(2)
+                     .OutCnt(1)
+                     .InNames({"ref", "value"})
+                     .OutNames({"ref"})
+                     .Attr(ATTR_NAME_REFERENCE, true)
+                     .Build("assign2");
   assign2->SetOpKernelLibName(ge::kEngineNameAiCore);
   assign2->SetInputOffset({0});
   assign2->SetOutputOffset({0});
 
-  auto netoutput_sub2 = OP_CFG("NetOutput").TensorDesc(FORMAT_NCHW, DT_FLOAT, shape).InCnt(1).OutCnt(1)
-      .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0).Build("netoutput_sub2");
+  auto netoutput_sub2 = OP_CFG("NetOutput")
+                            .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                            .InCnt(1)
+                            .OutCnt(1)
+                            .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
+                            .Build("netoutput_sub2");
   netoutput_sub2->SetSrcName({"assign"});
   netoutput_sub2->SetSrcIndex({0});
   netoutput_sub2->SetInputOffset({0});
@@ -7376,12 +7412,20 @@ ge::ComputeGraphPtr ShareGraph::BuildWithMulitKnownSubgraphs() {
     CHAIN(NODE(const2)->EDGE(0, 1)->NODE(assign2));
   };
 
-  auto data_a = OP_CFG("Data").TensorDesc(FORMAT_NCHW, DT_FLOAT, shape).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).Build("data_a");
+  auto data_a = OP_CFG("Data")
+                    .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .Attr(ATTR_NAME_INDEX, 0)
+                    .Build("data_a");
 
-  auto known_subgraph = OP_CFG(ge::PARTITIONEDCALL).TensorDesc(FORMAT_NCHW, DT_FLOAT, shape).InCnt(1).OutCnt(1)
-      .Build(ge::PARTITIONEDCALL);
-  auto known_subgraph2 = OP_CFG(ge::PARTITIONEDCALL).TensorDesc(FORMAT_NCHW, DT_FLOAT, shape).InCnt(1).OutCnt(1)
-      .Build("known_subgraph2");
+  auto known_subgraph = OP_CFG(ge::PARTITIONEDCALL)
+                            .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                            .InCnt(1)
+                            .OutCnt(1)
+                            .Build(ge::PARTITIONEDCALL);
+  auto known_subgraph2 =
+      OP_CFG(ge::PARTITIONEDCALL).TensorDesc(FORMAT_NCHW, DT_FLOAT, shape).InCnt(1).OutCnt(1).Build("known_subgraph2");
 
   auto netoutput = OP_CFG("NetOutput").TensorDesc(FORMAT_NCHW, DT_FLOAT, shape).InCnt(3).OutCnt(3).Build("netoutput");
   netoutput->SetSrcName({ge::PARTITIONEDCALL, ge::PARTITIONEDCALL, ge::PARTITIONEDCALL});
@@ -7672,7 +7716,7 @@ ge::ComputeGraphPtr ShareGraph::BuildWithAllConstKnownSubgraph() {
  * data const2 partitionedcall   ----------------  const1
  */
 ge::ComputeGraphPtr ShareGraph::BuildWithAllConstKnownSubgraph2() {
-  std::vector<int64_t> shape = {1};           // NCHW
+  std::vector<int64_t> shape = {1};          // NCHW
   std::vector<int64_t> unknown_shape = {1};  // NCHW
 
   auto const1 = OP_CFG("Const")
@@ -7710,11 +7754,7 @@ ge::ComputeGraphPtr ShareGraph::BuildWithAllConstKnownSubgraph2() {
                             .OutCnt(1)
                             .Build(ge::PARTITIONEDCALL);
 
-  auto add = OP_CFG("Add")
-                    .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-                    .InCnt(3)
-                    .OutCnt(1)
-                    .Build("add");
+  auto add = OP_CFG("Add").TensorDesc(FORMAT_NCHW, DT_FLOAT, shape).InCnt(3).OutCnt(1).Build("add");
   add->SetOpEngineName("AIcoreEngine");
   add->SetOpKernelLibName("AIcoreEngine");
 
@@ -8334,7 +8374,7 @@ ComputeGraphPtr ShareGraph::BuildZeroInputAicoreGraph() {
   AddCompileResult(reducesum1, false);
   reducesum1->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCore);
   SetNoStorage(reducesum1->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {});
-  reducesum1->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
+  reducesum1->GetOpDesc()->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
 
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"reducesum1"});
@@ -8446,8 +8486,7 @@ ComputeGraphPtr ShareGraph::BuildRankGraph() {
  * data1 data2
  */
 ComputeGraphPtr ShareGraph::BuildCompatibleInferShapeRangeGraph() {
-  InferShapeFuncRegister("TestNoInferShapeRange",
-                         INFER_VERIFY_FUNC(TestNoInferShapeRange, TestNoInferShapeRangeInfer));
+  InferShapeFuncRegister("TestNoInferShapeRange", INFER_VERIFY_FUNC(TestNoInferShapeRange, TestNoInferShapeRangeInfer));
 
   DEF_GRAPH(g1) {
     CHAIN(NODE("data1", "Data")->NODE("test_no_infer", "TestNoInferShapeRange")->NODE("NetOutput", "NetOutput"));
@@ -8703,7 +8742,7 @@ ge::ComputeGraphPtr ShareGraph::BuildMinimumGradAndAddGraph() {
   AttrUtils::SetInt(add0->GetOpDesc(), ge::ATTR_NAME_UNKNOWN_SHAPE_TYPE, 1);
   AttrUtils::SetStr(add0->GetOpDesc(), "_kernel_bin_id", "te_add_12345");
   AddCompileResult(add0, false);
-  add0->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
+  add0->GetOpDesc()->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
 
   auto mg = graph->FindNode("mg");
   mg->GetOpDesc()->MutableAllInputName() = {{"grads", 0}, {"x1", 1}, {"x2", 2}};
@@ -8715,7 +8754,7 @@ ge::ComputeGraphPtr ShareGraph::BuildMinimumGradAndAddGraph() {
   AttrUtils::SetInt(mg->GetOpDesc(), ge::ATTR_NAME_UNKNOWN_SHAPE_TYPE, 1);
   AttrUtils::SetStr(mg->GetOpDesc(), "_kernel_bin_id", "te_add_12345");
   AddCompileResult(mg, false);
-  mg->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
+  mg->GetOpDesc()->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
 
   auto noutput = graph->FindNode("NetOutput");
   SetNoStorage(noutput->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, {-1, 2, 3, 4});
@@ -8866,9 +8905,12 @@ ge::ComputeGraphPtr ShareGraph::IFASingleGraph() {
                    .Attr(ATTR_NAME_INDEX, 9)
                    .Build("data9");
   data9->SetOutputOffset({1056});
-  auto ifa = OP_CFG("IncreFlashAttention").TensorDesc(FORMAT_NCHW, DT_FLOAT16, key_shape)
-      .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF")
-      .InCnt(19).OutCnt(1).Build("IncreFlashAttention");
+  auto ifa = OP_CFG("IncreFlashAttention")
+                 .TensorDesc(FORMAT_NCHW, DT_FLOAT16, key_shape)
+                 .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF")
+                 .InCnt(19)
+                 .OutCnt(1)
+                 .Build("IncreFlashAttention");
 
   DEF_GRAPH(test) {
     CHAIN(NODE(data0)->NODE(ifa)->NODE("netoutput", "NetOutput"));
@@ -8932,13 +8974,25 @@ ge::ComputeGraphPtr ShareGraph::IFASingleGraph() {
   ifa_op->AppendIrOutput("attention_out", ge::kIrOutputRequired);
   ifa_op->SetInputOffset({0, 128, 256, 384, 512, 640, 768, 0, 0, 896, 0, 0, 0, 0, 0, 928, 1056, 0, 0});
   ifa_op->SetOutputOffset({1184});
-  ifa_op->MutableAllInputName() = {{"query", 0}, {"key0", 1}, {"key1", 2}, {"key2", 3}, {"value0", 4},
-                                   {"value1", 5}, {"value2", 6}, {"pse_shift", 7}, {"atten_mask", 8},
-                                   {"actual_seq_lengths", 9}, {"dequant_scale1", 10},
-                                   {"quant_scale1", 11}, {"dequant_scale2", 12},
-                                   {"quant_scale2", 13}, {"quant_offset2", 14},
-                                   {"antiquant_scale", 15}, {"antiquant_offset", 16},
-                                   {"block_table", 17}, {"kv_padding_size", 18}};
+  ifa_op->MutableAllInputName() = {{"query", 0},
+                                   {"key0", 1},
+                                   {"key1", 2},
+                                   {"key2", 3},
+                                   {"value0", 4},
+                                   {"value1", 5},
+                                   {"value2", 6},
+                                   {"pse_shift", 7},
+                                   {"atten_mask", 8},
+                                   {"actual_seq_lengths", 9},
+                                   {"dequant_scale1", 10},
+                                   {"quant_scale1", 11},
+                                   {"dequant_scale2", 12},
+                                   {"quant_scale2", 13},
+                                   {"quant_offset2", 14},
+                                   {"antiquant_scale", 15},
+                                   {"antiquant_offset", 16},
+                                   {"block_table", 17},
+                                   {"kv_padding_size", 18}};
   ifa_op->MutableAllOutputName() = {{"attention_out", 0}};
 
   netoutput->GetOpDesc()->SetSrcName({"IncreFlashAttention"});
@@ -8971,13 +9025,12 @@ ge::ComputeGraphPtr ShareGraph::CTCBeamSearchDecoderSingleGraph() {
                    .Attr(ATTR_NAME_INDEX, 1)
                    .Build("data1");
   auto ctc = OP_CFG("CTCBeamSearchDecoder")
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT16, shape)
-      .InCnt(2).OutCnt(4)
-      .Build("CTCBeamSearchDecoder");
+                 .TensorDesc(FORMAT_NCHW, DT_FLOAT16, shape)
+                 .InCnt(2)
+                 .OutCnt(4)
+                 .Build("CTCBeamSearchDecoder");
 
-  auto add_n = OP_CFG("AddN")
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT16, shape)
-      .InCnt(4).OutCnt(1).Build("AddN");
+  auto add_n = OP_CFG("AddN").TensorDesc(FORMAT_NCHW, DT_FLOAT16, shape).InCnt(4).OutCnt(1).Build("AddN");
 
   DEF_GRAPH(test) {
     CHAIN(NODE(data0)->NODE(ctc)->NODE(add_n)->NODE("netoutput", "NetOutput"));
@@ -9003,8 +9056,8 @@ ge::ComputeGraphPtr ShareGraph::CTCBeamSearchDecoderSingleGraph() {
   ctc_op->AppendIrOutput("decoded_values", ge::kIrOutputDynamic);
   ctc_op->AppendIrOutput("decoded_shape", ge::kIrOutputDynamic);
   ctc_op->MutableAllInputName() = {{"inputs", 0}, {"sequence_length", 1}};
-  ctc_op->MutableAllOutputName() = {{"decoded_indices0", 0}, {"decoded_indices1", 1},
-                                    {"decoded_shape0", 2}, {"decoded_shape1", 3}};
+  ctc_op->MutableAllOutputName() = {
+      {"decoded_indices0", 0}, {"decoded_indices1", 1}, {"decoded_shape0", 2}, {"decoded_shape1", 3}};
 
   netoutput->GetOpDesc()->SetSrcName({"AddN"});
   netoutput->GetOpDesc()->SetSrcIndex({0});
@@ -9055,12 +9108,12 @@ ge::ComputeGraphPtr ShareGraph::GroupedMatMulAllReduceSingleGraph() {
                    .Build("data7");
 
   auto matmul = OP_CFG("GroupedMatMulAllReduce")
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT16, shape).InCnt(5).OutCnt(2)
-      .Build("GroupedMatMulAllReduce");
+                    .TensorDesc(FORMAT_NCHW, DT_FLOAT16, shape)
+                    .InCnt(5)
+                    .OutCnt(2)
+                    .Build("GroupedMatMulAllReduce");
 
-  auto add_n = OP_CFG("AddN")
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT16, shape)
-      .InCnt(2).OutCnt(1).Build("AddN");
+  auto add_n = OP_CFG("AddN").TensorDesc(FORMAT_NCHW, DT_FLOAT16, shape).InCnt(2).OutCnt(1).Build("AddN");
 
   DEF_GRAPH(test) {
     CHAIN(NODE(data0)->NODE(matmul)->NODE(add_n)->NODE("netoutput", "NetOutput"));
@@ -9091,7 +9144,7 @@ ge::ComputeGraphPtr ShareGraph::GroupedMatMulAllReduceSingleGraph() {
   matmul_op->AppendIrInput("bias", ge::kIrInputDynamic);
   matmul_op->AppendIrInput("group_list", ge::kIrInputOptional);
   matmul_op->AppendIrOutput("y", ge::kIrOutputDynamic);
-  matmul_op->MutableAllInputName() = {{"x0", 0}, {"x1", 1},  {"weight0", 2}, {"weight1", 3}, {"group_list", 4}};
+  matmul_op->MutableAllInputName() = {{"x0", 0}, {"x1", 1}, {"weight0", 2}, {"weight1", 3}, {"group_list", 4}};
   matmul_op->MutableAllOutputName() = {{"y0", 0}, {"y1", 1}};
 
   netoutput->GetOpDesc()->SetSrcName({"IncreFlashAttention"});
@@ -9139,14 +9192,13 @@ ge::ComputeGraphPtr ShareGraph::BatchSingleGraph() {
                    .Build("data3");
   data3->SetOutputOffset({384});
   auto batch = OP_CFG("Batch")
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT16, shape)
-      .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF")
-      .InCnt(4).OutCnt(4)
-      .Build("Batch");
+                   .TensorDesc(FORMAT_NCHW, DT_FLOAT16, shape)
+                   .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF")
+                   .InCnt(4)
+                   .OutCnt(4)
+                   .Build("Batch");
 
-  auto add_n = OP_CFG("AddN")
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT16, shape)
-      .InCnt(4).OutCnt(1).Build("AddN");
+  auto add_n = OP_CFG("AddN").TensorDesc(FORMAT_NCHW, DT_FLOAT16, shape).InCnt(4).OutCnt(1).Build("AddN");
   add_n->SetInputOffset({512, 640, 768, 896});
   add_n->SetOutputOffset({1024});
   DEF_GRAPH(test) {
@@ -9180,10 +9232,8 @@ ge::ComputeGraphPtr ShareGraph::BatchSingleGraph() {
   batch_op->AppendIrOutput("y_tensors", ge::kIrOutputDynamic);
   batch_op->AppendIrOutput("y_index", ge::kIrOutputRequired);
   batch_op->AppendIrOutput("y_id", ge::kIrOutputRequired);
-  batch_op->MutableAllInputName() = {{"x_tensors0", 0}, {"x_tensors1", 1},
-                                     {"x_tensors2", 2}, {"x_tensors3", 3}};
-  batch_op->MutableAllOutputName() = {{"y_tensors0", 0}, {"y_tensors1", 1},
-                                      {"y_index", 2}, {"y_id", 3}};
+  batch_op->MutableAllInputName() = {{"x_tensors0", 0}, {"x_tensors1", 1}, {"x_tensors2", 2}, {"x_tensors3", 3}};
+  batch_op->MutableAllOutputName() = {{"y_tensors0", 0}, {"y_tensors1", 1}, {"y_index", 2}, {"y_id", 3}};
   batch_op->SetInputOffset({0, 128, 256, 384});
   batch_op->SetOutputOffset({512, 640, 768, 896});
 
@@ -9264,7 +9314,7 @@ ge::ComputeGraphPtr ShareGraph::ConcatV2ValueDependencyGraph() {
   concatv2_node->GetOpDesc()->MutableAllInputName() = {{"x0", 0}, {"x1", 1}, {"concat_dim", 2}};
   concatv2_node->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCore);
   AddCompileResult(concatv2_node, false);
-  concatv2_node->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
+  concatv2_node->GetOpDesc()->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
   // SetConstValue<int32_t, ge::DT_INT32>(graph->FindNode("concat_dim"), {1});
 
   // set cast shape and IR info
@@ -9273,7 +9323,7 @@ ge::ComputeGraphPtr ShareGraph::ConcatV2ValueDependencyGraph() {
   cast_node->GetOpDesc()->AppendIrInput("x", ge::kIrInputRequired);
   cast_node->GetOpDesc()->MutableAllInputName() = {{"x", 0}};
   cast_node->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCore);
-  cast_node->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
+  cast_node->GetOpDesc()->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
 
   gather_shapes_node->GetOpDesc()->AppendIrInput("x", ge::kIrInputDynamic);
   gather_shapes_node->GetOpDesc()->MutableAllInputName() = {{"x0", 0}};
@@ -9282,7 +9332,7 @@ ge::ComputeGraphPtr ShareGraph::ConcatV2ValueDependencyGraph() {
   ge::AttrUtils::SetListListInt(gather_shapes_node->GetOpDesc(), "axes", {{0, 0}});
   ge::AttrUtils::SetInt(gather_shapes_node->GetOpDesc(), "dtype", ge::DT_INT64);
   gather_shapes_node->GetOpDesc()->MutableInputDesc(0)->SetOriginShape(ge::GeShape(in_shape));
-  gather_shapes_node->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
+  gather_shapes_node->GetOpDesc()->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
 
   netoutput->GetOpDesc()->SetSrcName({"concatv2"});
   netoutput->GetOpDesc()->SetSrcIndex({0});
@@ -9450,10 +9500,10 @@ ComputeGraphPtr ShareGraph::BuildFileConstantGraph() {
  *    file_constant_0------>file_constant_1
  */
 ComputeGraphPtr ShareGraph::Build2FileConstantWithCtrlEdgeGraph() {
-   DEF_GRAPH(g1) {
+  DEF_GRAPH(g1) {
     CHAIN(NODE("FileConstant0", "FileConstant")->NODE("NetOutput", "NetOutput"));
-	CHAIN(NODE("FileConstant1", "FileConstant")->EDGE(0, 1)->NODE("NetOutput", "NetOutput"));
-	CHAIN(NODE("FileConstant0", "FileConstant")->CTRL_EDGE()->NODE("FileConstant1", "FileConstant"));
+    CHAIN(NODE("FileConstant1", "FileConstant")->EDGE(0, 1)->NODE("NetOutput", "NetOutput"));
+    CHAIN(NODE("FileConstant0", "FileConstant")->CTRL_EDGE()->NODE("FileConstant1", "FileConstant"));
   };
   auto graph = ToComputeGraph(g1);
   auto net_output = graph->FindNode("NetOutput");
@@ -9465,23 +9515,23 @@ ComputeGraphPtr ShareGraph::Build2FileConstantWithCtrlEdgeGraph() {
   std::vector<NodePtr> nodes{FileConstant0, FileConstant1};
 
   for (auto &FileConstant : nodes) {
-	  SetNoStorage(FileConstant->GetOpDesc(), ge::FORMAT_ND, DT_INT32, {5, 5});
-	  FileConstant->GetOpDesc()->AppendIrAttrName("file_path");
-	  FileConstant->GetOpDesc()->AppendIrAttrName("file_id");
-	  FileConstant->GetOpDesc()->AppendIrAttrName("shape");
-	  FileConstant->GetOpDesc()->AppendIrAttrName("dtype");
+    SetNoStorage(FileConstant->GetOpDesc(), ge::FORMAT_ND, DT_INT32, {5, 5});
+    FileConstant->GetOpDesc()->AppendIrAttrName("file_path");
+    FileConstant->GetOpDesc()->AppendIrAttrName("file_id");
+    FileConstant->GetOpDesc()->AppendIrAttrName("shape");
+    FileConstant->GetOpDesc()->AppendIrAttrName("dtype");
 
-	  // set attr
-	  std::vector<int64_t> shape = {5, 5};
-	  std::vector<int64_t> original_shape = {1, 5, 5};
-	  ge::AttrUtils::SetInt(FileConstant->GetOpDesc(), "offset", 0);
-	  ge::AttrUtils::SetInt(FileConstant->GetOpDesc(), "length", 0);
-	  ge::AttrUtils::SetStr(FileConstant->GetOpDesc(), "location", "");
-	  ge::AttrUtils::SetStr(FileConstant->GetOpDesc(), "file_path", "test_weight.bin");
-	  ge::AttrUtils::SetStr(FileConstant->GetOpDesc(), "file_id", "");
-	  ge::AttrUtils::SetDataType(FileConstant->GetOpDesc(), "dtype", DT_INT32);
-	  ge::AttrUtils::SetListInt(FileConstant->GetOpDesc(), "shape", shape);
-	  ge::AttrUtils::SetListInt(FileConstant->GetOpDesc(), "original_shape", original_shape);
+    // set attr
+    std::vector<int64_t> shape = {5, 5};
+    std::vector<int64_t> original_shape = {1, 5, 5};
+    ge::AttrUtils::SetInt(FileConstant->GetOpDesc(), "offset", 0);
+    ge::AttrUtils::SetInt(FileConstant->GetOpDesc(), "length", 0);
+    ge::AttrUtils::SetStr(FileConstant->GetOpDesc(), "location", "");
+    ge::AttrUtils::SetStr(FileConstant->GetOpDesc(), "file_path", "test_weight.bin");
+    ge::AttrUtils::SetStr(FileConstant->GetOpDesc(), "file_id", "");
+    ge::AttrUtils::SetDataType(FileConstant->GetOpDesc(), "dtype", DT_INT32);
+    ge::AttrUtils::SetListInt(FileConstant->GetOpDesc(), "shape", shape);
+    ge::AttrUtils::SetListInt(FileConstant->GetOpDesc(), "original_shape", original_shape);
   }
   return graph;
 }
@@ -10112,7 +10162,11 @@ data      data
 */
 ge::ComputeGraphPtr ShareGraph::AutoFuseNodeGraph() {
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data0", "Data")->EDGE(0, 0)->NODE("fused_graph", "AscBackend")->EDGE(0, 0)->NODE("NetOutput", "NetOutput"));
+    CHAIN(NODE("data0", "Data")
+              ->EDGE(0, 0)
+              ->NODE("fused_graph", "AscBackend")
+              ->EDGE(0, 0)
+              ->NODE("NetOutput", "NetOutput"));
     CHAIN(NODE("data1", "Data")->EDGE(0, 1)->NODE("fused_graph"));
     CHAIN(NODE("data2", "Data")->EDGE(0, 0)->NODE("fused_graph1", "AscBackend")->EDGE(0, 1)->NODE("NetOutput"));
     CHAIN(NODE("data3", "Data")->EDGE(0, 1)->NODE("fused_graph1"));
@@ -10198,7 +10252,8 @@ ComputeGraphPtr ShareGraph::AutofusePartitioncallGraph() {
 
   auto partitioncall_node = main_graph->FindNode("partitioncall");
   sub_graph->SetParentGraph(main_graph);
-  sub_graph->SetParentNode(partitioncall_node);;
+  sub_graph->SetParentNode(partitioncall_node);
+  ;
 
   main_graph->AddSubgraph(sub_graph);
   partitioncall_node->GetOpDesc()->AddSubgraphName("sub_graph");
@@ -10378,7 +10433,6 @@ ComputeGraphPtr ShareGraph::BuildNeedInsertCastGraphWithSubgraph() {
   data_desc1->MutableOutputDesc(0)->SetShape(GeShape({4, 4}));
   data_desc1->MutableOutputDesc(0)->SetOriginShape(GeShape({4, 4}));
 
-
   const auto data_desc2 = main_graph->FindNode("input1")->GetOpDesc();
   ge::AttrUtils::SetInt(data_desc2, "index", 2);
   data_desc2->MutableInputDesc(0)->SetDataType(DT_FLOAT);
@@ -10498,9 +10552,9 @@ ComputeGraphPtr ShareGraph::BuildNeedInsertCastGraphWithSubgraph() {
 ge::ComputeGraphPtr ShareGraph::IfCondGraphWithRefdata() {
   auto main_graph = [&]() {
     DEF_GRAPH(g) {
-                   CHAIN(NODE("pred", "Data")->NODE("if", "If")->NODE("NetOutput", "NetOutput"));
-                   CHAIN(NODE("input", "RefData")->EDGE(0, 1)->NODE("if", "If"));
-                 };
+      CHAIN(NODE("pred", "Data")->NODE("if", "If")->NODE("NetOutput", "NetOutput"));
+      CHAIN(NODE("input", "RefData")->EDGE(0, 1)->NODE("if", "If"));
+    };
     return ge::ToComputeGraph(g);
   }();
   main_graph->SetName("main");
@@ -10516,8 +10570,8 @@ ge::ComputeGraphPtr ShareGraph::IfCondGraphWithRefdata() {
 
   auto then_graph = []() {
     DEF_GRAPH(g) {
-                   CHAIN(NODE("data", "RefData")->NODE("cast0", "Cast")->NODE("NetOutput", "NetOutput"));
-                 };
+      CHAIN(NODE("data", "RefData")->NODE("cast0", "Cast")->NODE("NetOutput", "NetOutput"));
+    };
     return ge::ToComputeGraph(g);
   }();
   then_graph->SetName("then");
@@ -10535,8 +10589,8 @@ ge::ComputeGraphPtr ShareGraph::IfCondGraphWithRefdata() {
 
   auto else_graph = []() {
     DEF_GRAPH(g) {
-                   CHAIN(NODE("data", "RefData")->NODE("cast1", "Cast")->NODE("NetOutput", "NetOutput"));
-                 };
+      CHAIN(NODE("data", "RefData")->NODE("cast1", "Cast")->NODE("NetOutput", "NetOutput"));
+    };
     return ge::ToComputeGraph(g);
   }();
   else_graph->SetName("else");
@@ -10716,14 +10770,14 @@ ComputeGraphPtr ShareGraph::CaseGraphWithRefData() {
 
   std::vector<int64_t> shape_branch0 = {4, 1, 16, 16};  // HWCN
   auto data_branch_0 = OP_CFG("Data")
-                      .TensorDesc(FORMAT_ND, DT_FLOAT, shape_branch0)
-                      .InCnt(1)
-                      .OutCnt(1)
-                      .Attr(ATTR_NAME_INDEX, 0)
-                      .Attr(ATTR_NAME_PARENT_NODE_INDEX, 1)
-                      .InNames({"x"})
-                      .OutNames({"y"})
-                      .Build("data_branch_0");
+                           .TensorDesc(FORMAT_ND, DT_FLOAT, shape_branch0)
+                           .InCnt(1)
+                           .OutCnt(1)
+                           .Attr(ATTR_NAME_INDEX, 0)
+                           .Attr(ATTR_NAME_PARENT_NODE_INDEX, 1)
+                           .InNames({"x"})
+                           .OutNames({"y"})
+                           .Build("data_branch_0");
 
   auto branch0_graph = [&]() {
     DEF_GRAPH(g) {
@@ -10741,14 +10795,14 @@ ComputeGraphPtr ShareGraph::CaseGraphWithRefData() {
 
   std::vector<int64_t> shape_branch1 = {8, 3, 16, 16};  // HWCN
   auto data_branch_1 = OP_CFG("Data")
-                      .TensorDesc(FORMAT_ND, DT_FLOAT, shape_branch0)
-                      .InCnt(1)
-                      .OutCnt(1)
-                      .Attr(ATTR_NAME_INDEX, 0)
-                      .Attr(ATTR_NAME_PARENT_NODE_INDEX, 1)
-                      .InNames({"x"})
-                      .OutNames({"y"})
-                      .Build("data_branch_1");
+                           .TensorDesc(FORMAT_ND, DT_FLOAT, shape_branch0)
+                           .InCnt(1)
+                           .OutCnt(1)
+                           .Attr(ATTR_NAME_INDEX, 0)
+                           .Attr(ATTR_NAME_PARENT_NODE_INDEX, 1)
+                           .InNames({"x"})
+                           .OutNames({"y"})
+                           .Build("data_branch_1");
 
   auto branch1_graph = [&]() {
     DEF_GRAPH(g) {
@@ -10803,23 +10857,23 @@ ComputeGraphPtr ShareGraph::CaseGraphWithRefData() {
  *                             +-------------+
  */
 ComputeGraphPtr ShareGraph::IfGraphWithRefDataAssignInsideSubgraph() {
-  std::vector<int64_t> shape = {8,3,16,16};  // HWCN
+  std::vector<int64_t> shape = {8, 3, 16, 16};  // HWCN
   auto refdata1 = OP_CFG("RefData")
-        .TensorDesc(FORMAT_ND, DT_FLOAT, shape)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 1)
-        .InNames({"x"})
-        .OutNames({"y"})
-        .Build("input");
+                      .TensorDesc(FORMAT_ND, DT_FLOAT, shape)
+                      .InCnt(1)
+                      .OutCnt(1)
+                      .Attr(ATTR_NAME_INDEX, 1)
+                      .InNames({"x"})
+                      .OutNames({"y"})
+                      .Build("input");
   auto data = OP_CFG(DATA)
-      .TensorDesc(FORMAT_ND, DT_FLOAT, {})
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_INDEX, 0)
-      .InNames({"x"})
-      .OutNames({"y"})
-      .Build("pred");
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {})
+                  .InCnt(1)
+                  .OutCnt(1)
+                  .Attr(ATTR_NAME_INDEX, 0)
+                  .InNames({"x"})
+                  .OutNames({"y"})
+                  .Build("pred");
   auto main_graph = [&]() {
     DEF_GRAPH(g) {
       CHAIN(NODE(data)->NODE("if", "If")->NODE("NetOutput", "NetOutput"));
@@ -10838,17 +10892,23 @@ ComputeGraphPtr ShareGraph::IfGraphWithRefDataAssignInsideSubgraph() {
   GeTensorPtr tensor = make_shared<GeTensor>(data_tensor_desc, (uint8_t *)data_value.data(), sizeof(int32_t));
   auto const1 = OP_CFG(CONSTANTOP).Weight(tensor).Build("const1");
 
-  auto assign =
-      OP_CFG(ASSIGN).TensorDesc(FORMAT_ND, DT_FLOAT, shape).InCnt(2).OutCnt(1).InNames({"ref", "value"}).OutNames({"ref"}).Build("assign");
-  auto conv2d = OP_CFG(CONV2D)
-      .TensorDesc(FORMAT_ND, DT_FLOAT, shape)
-      .InCnt(2)
-      .OutCnt(1)
-      .Build("conv2d");
+  auto assign = OP_CFG(ASSIGN)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT, shape)
+                    .InCnt(2)
+                    .OutCnt(1)
+                    .InNames({"ref", "value"})
+                    .OutNames({"ref"})
+                    .Build("assign");
+  auto conv2d = OP_CFG(CONV2D).TensorDesc(FORMAT_ND, DT_FLOAT, shape).InCnt(2).OutCnt(1).Build("conv2d");
 
   auto then_graph = [&]() {
     DEF_GRAPH(g) {
-      CHAIN(NODE("data", "Data")->EDGE(0, 0)->NODE(conv2d)->EDGE(0, 1)->NODE("assign", "Assign")->NODE("NetOutput1", "NetOutput"));
+      CHAIN(NODE("data", "Data")
+                ->EDGE(0, 0)
+                ->NODE(conv2d)
+                ->EDGE(0, 1)
+                ->NODE("assign", "Assign")
+                ->NODE("NetOutput1", "NetOutput"));
       CHAIN(NODE("data", "Data")->EDGE(0, 0)->NODE(assign));
       CHAIN(NODE(const1)->EDGE(0, 1)->NODE(conv2d));
     };
@@ -11163,8 +11223,7 @@ Graph ShareGraph::BuildAtomicNodeConnectNetoutput() {
   GeTensorDesc data_tensor_desc(GeShape(shape), FORMAT_NCHW, DT_INT32);
   GeTensorPtr tensor = make_shared<GeTensor>(data_tensor_desc, (uint8_t *)data_value.data(), sizeof(int32_t));
 
-  auto scatter_nd = OP_CFG(ADD).TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-          .InCnt(2).OutCnt(2).Build("add_1");
+  auto scatter_nd = OP_CFG(ADD).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(2).OutCnt(2).Build("add_1");
 
   DEF_GRAPH(g1) {
     CHAIN(NODE(data_1)->EDGE(0, 0)->NODE(scatter_nd)->NODE("output_1", NETOUTPUT));
@@ -11174,7 +11233,7 @@ Graph ShareGraph::BuildAtomicNodeConnectNetoutput() {
   auto root_graph = ge::GraphUtilsEx::GetComputeGraph(graph);
   auto node = root_graph->FindNode("add_1");
   std::vector<int64_t> atomic_output_index{0, 1};
-  (void) ge::AttrUtils::SetListInt(node->GetOpDesc(), ATOMIC_ATTR_OUTPUT_INDEX, atomic_output_index);
+  (void)ge::AttrUtils::SetListInt(node->GetOpDesc(), ATOMIC_ATTR_OUTPUT_INDEX, atomic_output_index);
   return graph;
 }
 
@@ -11195,10 +11254,15 @@ Graph ShareGraph::BuildAtomicNodeConnectNetoutputThroughRefNode() {
   GeTensorDesc data_tensor_desc(GeShape(shape), FORMAT_NCHW, DT_INT32);
   GeTensorPtr tensor = make_shared<GeTensor>(data_tensor_desc, (uint8_t *)data_value.data(), sizeof(int32_t));
 
-  auto scatter_nd = OP_CFG(RELU).TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-          .InCnt(2).OutCnt(2).Build("add_1");
-  auto ref_node = OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT, shape).InCnt(1).OutCnt(1).InNames({"ref"})
-                     .OutNames({"ref"}).Attr(ATTR_NAME_REFERENCE, true).Build("ref_node");
+  auto scatter_nd = OP_CFG(RELU).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(2).OutCnt(2).Build("add_1");
+  auto ref_node = OP_CFG(RELU)
+                      .TensorDesc(FORMAT_ND, DT_FLOAT, shape)
+                      .InCnt(1)
+                      .OutCnt(1)
+                      .InNames({"ref"})
+                      .OutNames({"ref"})
+                      .Attr(ATTR_NAME_REFERENCE, true)
+                      .Build("ref_node");
 
   DEF_GRAPH(g1) {
     CHAIN(NODE(data_1)->EDGE(0, 0)->NODE(scatter_nd)->NODE(ref_node)->NODE("output_1", NETOUTPUT));
@@ -11208,7 +11272,7 @@ Graph ShareGraph::BuildAtomicNodeConnectNetoutputThroughRefNode() {
   auto root_graph = ge::GraphUtilsEx::GetComputeGraph(graph);
   auto node = root_graph->FindNode("add_1");
   std::vector<int64_t> atomic_output_index{0, 1};
-  (void) ge::AttrUtils::SetListInt(node->GetOpDesc(), ATOMIC_ATTR_OUTPUT_INDEX, atomic_output_index);
+  (void)ge::AttrUtils::SetListInt(node->GetOpDesc(), ATOMIC_ATTR_OUTPUT_INDEX, atomic_output_index);
   return graph;
 }
 
@@ -11234,20 +11298,14 @@ ge::Graph ShareGraph::BuildSwitchMergeGraphWithNeg() {
 
   DEF_GRAPH(g0) {
     CHAIN(NODE(data_1)
-        ->EDGE(0, 0)
-        ->NODE(switch_1)
-        ->EDGE(0, 0)
-        ->NODE("shape", shape_node)
-        ->NODE("neg0", NEG)
-        ->NODE(merge_1)
-        ->NODE(NODE_NAME_NET_OUTPUT,
-        NETOUTPUT));
-    CHAIN(NODE(data_2)
-         ->EDGE(0, 1)
-         ->NODE(switch_1)
-         ->EDGE(1, 0)
-         ->NODE("neg1", NEG)
-         ->NODE(merge_1));
+              ->EDGE(0, 0)
+              ->NODE(switch_1)
+              ->EDGE(0, 0)
+              ->NODE("shape", shape_node)
+              ->NODE("neg0", NEG)
+              ->NODE(merge_1)
+              ->NODE(NODE_NAME_NET_OUTPUT, NETOUTPUT));
+    CHAIN(NODE(data_2)->EDGE(0, 1)->NODE(switch_1)->EDGE(1, 0)->NODE("neg1", NEG)->NODE(merge_1));
   };
 
   auto graph = ge::ToGeGraph(g0);
@@ -11386,11 +11444,11 @@ ComputeGraphPtr ShareGraph::BuildVarConnectToSplit() {
   auto split = OP_CFG(SPLIT).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(1).OutCnt(2).Build("split");
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE(data_1)->NODE(add_1)->Ctrl()->NODE("node_output", NETOUTPUT));
-                  CHAIN(NODE(data_2)->NODE(add_1));
-                  CHAIN(NODE(var)->NODE(split)->NODE(add_2)->Ctrl()->NODE("node_output", NETOUTPUT));
-                  CHAIN(NODE(split)->NODE(add_2));
-                };
+    CHAIN(NODE(data_1)->NODE(add_1)->Ctrl()->NODE("node_output", NETOUTPUT));
+    CHAIN(NODE(data_2)->NODE(add_1));
+    CHAIN(NODE(var)->NODE(split)->NODE(add_2)->Ctrl()->NODE("node_output", NETOUTPUT));
+    CHAIN(NODE(split)->NODE(add_2));
+  };
   auto graph = ToComputeGraph(g1);
   auto split_node = graph->FindNode("split");
   (void)ge::AttrUtils::SetBool(split_node->GetOpDesc(), ATTR_NAME_NOPADDING_CONTINUOUS_OUTPUT, true);
@@ -11411,7 +11469,7 @@ ge::Graph ShareGraph::BuildHcomGraph() {
   std::vector<int64_t> memtype_list = {RT_MEMORY_HBM, RT_MEMORY_HBM};
   std::vector<int64_t> shape{1, 2, 3, 4};
   auto data_1 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(1).OutCnt(1).Build("data_1");
-  auto data_2 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW,  DT_BOOL, {1}).InCnt(1).OutCnt(1).Build("data_2");
+  auto data_2 = OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_BOOL, {1}).InCnt(1).OutCnt(1).Build("data_2");
   auto hcom_1 = OP_CFG(HCOMALLREDUCE)
                     .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
                     .InCnt(2)
@@ -11473,17 +11531,17 @@ ge::Graph ShareGraph::BuildHcomGraphWithRefData() {
   auto data_1 = OP_CFG(REFDATA).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(1).OutCnt(1).Build("data_1");
   auto data_2 = OP_CFG(REFDATA).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(1).OutCnt(1).Build("data_2");
   auto hcom_1 = OP_CFG(HCOMALLREDUCE)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(2)
-      .OutCnt(2)
-      .Attr(ATTR_NAME_INPUT_MEM_TYPE_LIST, memtype_list)
-      .Attr(ATTR_NAME_OUTPUT_MEM_TYPE_LIST, memtype_list)
-      .Build("hcom_1");
+                    .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
+                    .InCnt(2)
+                    .OutCnt(2)
+                    .Attr(ATTR_NAME_INPUT_MEM_TYPE_LIST, memtype_list)
+                    .Attr(ATTR_NAME_OUTPUT_MEM_TYPE_LIST, memtype_list)
+                    .Build("hcom_1");
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE(data_1)->EDGE(0, 0)->NODE(hcom_1)->EDGE(0, 0)->NODE("output_1", "NetOutput"));
-                  CHAIN(NODE(data_2)->EDGE(0, 1)->NODE(hcom_1)->EDGE(1, 1)->NODE("output_1", "NetOutput"));
-                };
+    CHAIN(NODE(data_1)->EDGE(0, 0)->NODE(hcom_1)->EDGE(0, 0)->NODE("output_1", "NetOutput"));
+    CHAIN(NODE(data_2)->EDGE(0, 1)->NODE(hcom_1)->EDGE(1, 1)->NODE("output_1", "NetOutput"));
+  };
 
   auto graph = ToGeGraph(g1);
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
@@ -11608,33 +11666,25 @@ ge::Graph ShareGraph::NetoutputNotSupportZeroCopy() {
 
   std::vector<int64_t> shape1{2, 2, 2, 2};
   auto data_1 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape1)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_INDEX, 0)
-      .Build("data_1");
+                    .TensorDesc(FORMAT_NCHW, DT_INT32, shape1)
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .Attr(ATTR_NAME_INDEX, 0)
+                    .Build("data_1");
 
   std::vector<int64_t> pc_shape{4, 2, 2, 2};
   auto pc_1 = OP_CFG("PhonyConcat")
-      .TensorDesc(FORMAT_NCHW, DT_UINT32, pc_shape)
-      .InCnt(2)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_NOPADDING_CONTINUOUS_INPUT, true)
-      .Attr(ATTR_NAME_OUTPUT_REUSE_INPUT, true)
-      .Attr(ATTR_NAME_REUSE_INPUT_ON_DIM_INDEX, 0)
-      .Build("pc1");
+                  .TensorDesc(FORMAT_NCHW, DT_UINT32, pc_shape)
+                  .InCnt(2)
+                  .OutCnt(1)
+                  .Attr(ATTR_NAME_NOPADDING_CONTINUOUS_INPUT, true)
+                  .Attr(ATTR_NAME_OUTPUT_REUSE_INPUT, true)
+                  .Attr(ATTR_NAME_REUSE_INPUT_ON_DIM_INDEX, 0)
+                  .Build("pc1");
   pc_1->MutableOutputDesc(0)->SetShape(GeShape(std::vector<int64_t>({4, 2, 2, 2})));
-  auto add_1 = OP_CFG(ADD)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape1)
-      .InCnt(2)
-      .OutCnt(1)
-      .Build("add_1");
+  auto add_1 = OP_CFG(ADD).TensorDesc(FORMAT_NCHW, DT_INT32, shape1).InCnt(2).OutCnt(1).Build("add_1");
 
-  auto add_2 = OP_CFG(ADD)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape1)
-      .InCnt(2)
-      .OutCnt(1)
-      .Build("add_2");
+  auto add_2 = OP_CFG(ADD).TensorDesc(FORMAT_NCHW, DT_INT32, shape1).InCnt(2).OutCnt(1).Build("add_2");
 
   DEF_GRAPH(g1) {
     CHAIN(NODE(const_1)->EDGE(0, 0)->NODE(add_1)->EDGE(0, 0)->NODE(pc_1)->NODE("NetOutput", "NetOutput"));
@@ -11881,35 +11931,23 @@ ge::ComputeGraphPtr ShareGraph::BuildGraphHasLabelSwitch() {
                                   +--------------------+     +---------------------+
  */
 ge::ComputeGraphPtr ShareGraph::BuildGraphRefdataWhile() {
-  std::vector<int64_t> shape = {8,3,16,16};  // HWCN
+  std::vector<int64_t> shape = {8, 3, 16, 16};  // HWCN
   auto refdata1 = OP_CFG("RefData")
-      .TensorDesc(FORMAT_ND, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_INDEX, 1)
-      .InNames({"x"})
-      .OutNames({"y"})
-      .Build("input");
-  auto cast = OP_CFG("Cast")
-      .TensorDesc(FORMAT_ND, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Build("cast");
-  auto netoutput = OP_CFG("NetOutput")
-      .TensorDesc(FORMAT_ND, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Build("NetOutput");
-  auto while_op = OP_CFG("While")
-      .TensorDesc(FORMAT_ND, DT_FLOAT, shape)
-      .InCnt(2)
-      .OutCnt(2)
-      .Build("while");
+                      .TensorDesc(FORMAT_ND, DT_FLOAT, shape)
+                      .InCnt(1)
+                      .OutCnt(1)
+                      .Attr(ATTR_NAME_INDEX, 1)
+                      .InNames({"x"})
+                      .OutNames({"y"})
+                      .Build("input");
+  auto cast = OP_CFG("Cast").TensorDesc(FORMAT_ND, DT_FLOAT, shape).InCnt(1).OutCnt(1).Build("cast");
+  auto netoutput = OP_CFG("NetOutput").TensorDesc(FORMAT_ND, DT_FLOAT, shape).InCnt(1).OutCnt(1).Build("NetOutput");
+  auto while_op = OP_CFG("While").TensorDesc(FORMAT_ND, DT_FLOAT, shape).InCnt(2).OutCnt(2).Build("while");
   auto main_graph = [&]() {
     DEF_GRAPH(g) {
-                   CHAIN(NODE(refdata1)->NODE(while_op)->EDGE(0, 0)->NODE(cast)->NODE(netoutput));
-                   CHAIN(NODE("pred", "Data")->EDGE(0, 1)->NODE(while_op));
-                 };
+      CHAIN(NODE(refdata1)->NODE(while_op)->EDGE(0, 0)->NODE(cast)->NODE(netoutput));
+      CHAIN(NODE("pred", "Data")->EDGE(0, 1)->NODE(while_op));
+    };
     return ToComputeGraph(g);
   }();
   main_graph->SetName("main");
@@ -11928,10 +11966,10 @@ ge::ComputeGraphPtr ShareGraph::BuildGraphRefdataWhile() {
 
   auto body_graph = [&]() {
     DEF_GRAPH(g) {
-                   CHAIN(NODE("data", "Data")->NODE(assign)->NODE("NetOutput1", "NetOutput"));
-                   CHAIN(NODE("data1", "Data")->EDGE(0, 1)->NODE(assign));
-                   CHAIN(NODE("data1", "Data")->EDGE(0, 1)->NODE("NetOutput1", "NetOutput"));
-                 };
+      CHAIN(NODE("data", "Data")->NODE(assign)->NODE("NetOutput1", "NetOutput"));
+      CHAIN(NODE("data1", "Data")->EDGE(0, 1)->NODE(assign));
+      CHAIN(NODE("data1", "Data")->EDGE(0, 1)->NODE("NetOutput1", "NetOutput"));
+    };
     return ToComputeGraph(g);
   }();
   body_graph->SetName("body");
@@ -11947,9 +11985,9 @@ ge::ComputeGraphPtr ShareGraph::BuildGraphRefdataWhile() {
 
   auto cond_graph = []() {
     DEF_GRAPH(g) {
-                   CHAIN(NODE("data", "Data")->NODE("cast1", "Cast")->NODE("NetOutput2", "NetOutput"));
-                   CHAIN(NODE("data1", "Data")->CTRL_EDGE()->NODE("cast1", "Cast"));
-                 };
+      CHAIN(NODE("data", "Data")->NODE("cast1", "Cast")->NODE("NetOutput2", "NetOutput"));
+      CHAIN(NODE("data1", "Data")->CTRL_EDGE()->NODE("cast1", "Cast"));
+    };
     return ToComputeGraph(g);
   }();
   cond_graph->SetName("cond");
@@ -12018,45 +12056,22 @@ ge::ComputeGraphPtr ShareGraph::BuildGraphRefdataWhile() {
 ///
 ge::Graph ShareGraph::BuildIoReuseMemGraph() {
   std::vector<int64_t> shape{2, 2, 2, 2};
-  auto data_0 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_INDEX, 0)
-      .Build("data_0");
+  auto data_0 =
+      OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).Build("data_0");
 
-  auto data_1 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_NCHW, DT_INT32, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_INDEX, 1)
-      .Build("data_1");
+  auto data_1 =
+      OP_CFG(DATA).TensorDesc(FORMAT_NCHW, DT_INT32, shape).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 1).Build("data_1");
 
   // add1-5
-  auto add_1 = OP_CFG(ADD)
-      .InCnt(2)
-      .OutCnt(1)
-      .Build("add_1");
+  auto add_1 = OP_CFG(ADD).InCnt(2).OutCnt(1).Build("add_1");
 
-  auto add_2 = OP_CFG(ADD)
-      .InCnt(2)
-      .OutCnt(1)
-      .Build("add_2");
+  auto add_2 = OP_CFG(ADD).InCnt(2).OutCnt(1).Build("add_2");
 
-  auto add_3 = OP_CFG(ADD)
-      .InCnt(2)
-      .OutCnt(1)
-      .Build("add_3");
+  auto add_3 = OP_CFG(ADD).InCnt(2).OutCnt(1).Build("add_3");
 
-  auto add_4 = OP_CFG(ADD)
-      .InCnt(2)
-      .OutCnt(1)
-      .Build("add_4");
+  auto add_4 = OP_CFG(ADD).InCnt(2).OutCnt(1).Build("add_4");
 
-  auto mul_1 = OP_CFG(MUL)
-      .InCnt(2)
-      .OutCnt(1)
-      .Build("mul_1");
+  auto mul_1 = OP_CFG(MUL).InCnt(2).OutCnt(1).Build("mul_1");
 
   std::vector<int64_t> cons_shape{2, 2, 2, 2};
   vector<int32_t> data_value(2 * 2 * 2 * 2, 0);
@@ -12066,17 +12081,16 @@ ge::Graph ShareGraph::BuildIoReuseMemGraph() {
 
   DEF_GRAPH(g1) {
     CHAIN(NODE(data_0)
-          ->EDGE(0, 0)
-          ->NODE(add_1)
-          ->EDGE(0, 0)
-          ->NODE(add_2)
-          ->EDGE(0, 0)
-          ->NODE(add_3)
-          ->EDGE(0, 0)
-          ->NODE(add_4)
-          ->EDGE(0, 0)
-          ->NODE(mul_1)
-          );
+              ->EDGE(0, 0)
+              ->NODE(add_1)
+              ->EDGE(0, 0)
+              ->NODE(add_2)
+              ->EDGE(0, 0)
+              ->NODE(add_3)
+              ->EDGE(0, 0)
+              ->NODE(add_4)
+              ->EDGE(0, 0)
+              ->NODE(mul_1));
 
     CHAIN(NODE(data_1)->EDGE(0, 1)->NODE(add_1));
 
@@ -12116,9 +12130,9 @@ ComputeGraphPtr ShareGraph::BuildInputDirectlyConnectedToOutputGraph() {
  *    \   /
  *     add1(streamid=0)(send_id_list:[0])
  *      |
- *     relu (streamid=1)(send_id_list:[1],recive_id_list:[0])
+ *     relu (streamid=1)(send_id_list:[1],receive_id_list:[0])
  *      |
- *    netoutput(streamid=0)(recive_id_list:[1]))
+ *    netoutput(streamid=0)(receive_id_list:[1]))
  */
 ComputeGraphPtr ShareGraph::MultiStreamTwoNodeGraph(int64_t &stream_num, int64_t &event_num) {
   stream_num = 2;
@@ -12151,7 +12165,7 @@ ComputeGraphPtr ShareGraph::MultiStreamTwoNodeGraph(int64_t &stream_num, int64_t
   add1->GetOpDesc()->SetOpEngineName(kEngineNameAiCore);
   add1->GetOpDescBarePtr()->SetStreamId(0);
   AttrUtils::SetListInt(add1->GetOpDesc(), ge::ATTR_NAME_SEND_EVENT_IDS, {0});
-  add1->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
+  add1->GetOpDesc()->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
 
   auto relu = graph->FindNode("relu");
   AddCompileResult(relu, false);
@@ -12161,7 +12175,7 @@ ComputeGraphPtr ShareGraph::MultiStreamTwoNodeGraph(int64_t &stream_num, int64_t
   relu->GetOpDescBarePtr()->SetStreamId(1);
   AttrUtils::SetListInt(relu->GetOpDesc(), ge::ATTR_NAME_RECV_EVENT_IDS, {0});
   AttrUtils::SetListInt(relu->GetOpDesc(), ge::ATTR_NAME_SEND_EVENT_IDS, {1});
-  relu->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
+  relu->GetOpDesc()->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
 
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"relu"});
@@ -12183,7 +12197,8 @@ ComputeGraphPtr ShareGraph::MultiStreamTwoNodeGraph(int64_t &stream_num, int64_t
  *      |
  *    netoutput
  */
-Graph ShareGraph::OnlyDataGraph(std::initializer_list<int64_t> data0_shape, std::initializer_list<int64_t> data1_shape) {
+Graph ShareGraph::OnlyDataGraph(std::initializer_list<int64_t> data0_shape,
+                                std::initializer_list<int64_t> data1_shape) {
   DEF_GRAPH(g1) {
     CHAIN(NODE("data0", "Data")->NODE("NetOutput", "NetOutput"));
     CHAIN(NODE("data1", "Data")->EDGE(0, 1)->NODE("NetOutput"));
@@ -12346,19 +12361,19 @@ ComputeGraphPtr ShareGraph::GraphDynamicAndStaticGraphWithVariables(int64_t &str
  *       |
  *      cast(stream:0)(send[0])
  *      /    \
- * transdata  relu (stream:1)(send:[1],recive:[0])
+ * transdata  relu (stream:1)(send:[1],receive:[0])
  * (stream:0)  /
  *      \     /
- *    netoutput(stream:0)(recive_id_list:[1]))
+ *    netoutput(stream:0)(receive_id_list:[1]))
  */
 ComputeGraphPtr ShareGraph::MultiStreamGraphConsumersInAndCrossStream(int64_t &stream_num, int64_t &event_num) {
   stream_num = 2;
   event_num = 2;
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", "Data")->NODE("cast", "Cast")->NODE("transdata", "TransData")->NODE("NetOutput", "NetOutput"));
-                  CHAIN(NODE("cast", "Cast")->NODE("relu", "Relu")->EDGE(0, 1)->NODE("NetOutput", "NetOutput"));
-                };
+    CHAIN(NODE("data1", "Data")->NODE("cast", "Cast")->NODE("transdata", "TransData")->NODE("NetOutput", "NetOutput"));
+    CHAIN(NODE("cast", "Cast")->NODE("relu", "Relu")->EDGE(0, 1)->NODE("NetOutput", "NetOutput"));
+  };
   auto graph = ToComputeGraph(g1);
 
   auto data1 = graph->FindNode("data1");
@@ -12375,7 +12390,7 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphConsumersInAndCrossStream(int64_t &s
   cast->GetOpDesc()->SetOpEngineName(kEngineNameAiCore);
   cast->GetOpDescBarePtr()->SetStreamId(0);
   AttrUtils::SetListInt(cast->GetOpDesc(), ge::ATTR_NAME_SEND_EVENT_IDS, {0});
-  cast->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
+  cast->GetOpDesc()->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
 
   auto transdata = graph->FindNode("transdata");
   AddCompileResult(transdata, false);
@@ -12383,7 +12398,7 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphConsumersInAndCrossStream(int64_t &s
   transdata->GetOpDesc()->SetOpKernelLibName(kEngineNameAiCore);
   transdata->GetOpDesc()->SetOpEngineName(kEngineNameAiCore);
   transdata->GetOpDescBarePtr()->SetStreamId(0);
-  transdata->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
+  transdata->GetOpDesc()->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
 
   auto relu = graph->FindNode("relu");
   AddCompileResult(relu, true);
@@ -12393,7 +12408,7 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphConsumersInAndCrossStream(int64_t &s
   relu->GetOpDescBarePtr()->SetStreamId(1);
   AttrUtils::SetListInt(relu->GetOpDesc(), ge::ATTR_NAME_RECV_EVENT_IDS, {0});
   AttrUtils::SetListInt(relu->GetOpDesc(), ge::ATTR_NAME_SEND_EVENT_IDS, {1});
-  relu->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
+  relu->GetOpDesc()->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
 
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"transdata", "relu"});
@@ -12412,10 +12427,10 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphConsumersInAndCrossStream(int64_t &s
  *      \     /
  *      assign(stream:0)(send[0])
  *      /    \
- * transdata  relu (stream:1)(send:[1],recive:[0])
+ * transdata  relu (stream:1)(send:[1],receive:[0])
  * (stream:0)  /
  *      \     /
- *    netoutput(stream:0)(recive_id_list:[1]))
+ *    netoutput(stream:0)(receive_id_list:[1]))
  */
 ComputeGraphPtr ShareGraph::MultiStreamGraphAccessRefMemCrossStream(int64_t &stream_num, int64_t &event_num) {
   stream_num = 2;
@@ -12430,7 +12445,11 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphAccessRefMemCrossStream(int64_t &str
                        .Build("assign");
 
   DEF_GRAPH(g1) {
-    CHAIN(NODE("refdata1", "RefData")->NODE(assign_op)->EDGE(0, 0)->NODE("transdata", "TransData")->NODE("NetOutput", "NetOutput"));
+    CHAIN(NODE("refdata1", "RefData")
+              ->NODE(assign_op)
+              ->EDGE(0, 0)
+              ->NODE("transdata", "TransData")
+              ->NODE("NetOutput", "NetOutput"));
     CHAIN(NODE("data1", "Data")
               ->EDGE(0, 1)
               ->NODE(assign_op)
@@ -12461,7 +12480,7 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphAccessRefMemCrossStream(int64_t &str
   assign->GetOpDesc()->SetOpEngineName(kEngineNameAiCore);
   assign->GetOpDescBarePtr()->SetStreamId(0);
   AttrUtils::SetListInt(assign->GetOpDesc(), ge::ATTR_NAME_SEND_EVENT_IDS, {0});
-  assign->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
+  assign->GetOpDesc()->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
 
   auto transdata = graph->FindNode("transdata");
   AddCompileResult(transdata, false);
@@ -12469,7 +12488,7 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphAccessRefMemCrossStream(int64_t &str
   transdata->GetOpDesc()->SetOpKernelLibName(kEngineNameAiCore);
   transdata->GetOpDesc()->SetOpEngineName(kEngineNameAiCore);
   transdata->GetOpDescBarePtr()->SetStreamId(0);
-  transdata->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
+  transdata->GetOpDesc()->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
 
   auto relu = graph->FindNode("relu");
   AddCompileResult(relu, false);
@@ -12479,7 +12498,7 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphAccessRefMemCrossStream(int64_t &str
   relu->GetOpDescBarePtr()->SetStreamId(1);
   AttrUtils::SetListInt(relu->GetOpDesc(), ge::ATTR_NAME_RECV_EVENT_IDS, {0});
   AttrUtils::SetListInt(relu->GetOpDesc(), ge::ATTR_NAME_SEND_EVENT_IDS, {1});
-  relu->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
+  relu->GetOpDesc()->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
 
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"transdata", "relu"});
@@ -12496,9 +12515,9 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphAccessRefMemCrossStream(int64_t &str
  *(stream:0)  (stream:0)
  *(send:[0])  (send:[1])
  *      \     /
- *      assign(stream:1)(send:[2], recive:[0,1])
+ *      assign(stream:1)(send:[2], receive:[0,1])
  *        |
- *    netoutput(stream:0)(recive_id_list:[2]))
+ *    netoutput(stream:0)(receive_id_list:[2]))
  */
 ge::ComputeGraphPtr ShareGraph::MultiStreamGraphRefMemCrossStream(int64_t &stream_num, int64_t &event_num) {
   stream_num = 2;
@@ -12586,21 +12605,21 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphDynamicAndStaticGraph(int64_t &strea
   std::vector<int64_t> shape = {2, 2};  // NCHW
   // sub1
   auto data_i = OP_CFG("Data")
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
-      .Attr(ATTR_NAME_INDEX, 0)
-      .Build("data_i");
+                    .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
+                    .Attr(ATTR_NAME_INDEX, 0)
+                    .Build("data_i");
   data_i->SetOutputOffset({32});
 
   auto const_1 = OP_CFG("Const")
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
-      .Attr(ATTR_NAME_INDEX, 0)
-      .Build("const_1");
+                     .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                     .InCnt(1)
+                     .OutCnt(1)
+                     .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
+                     .Attr(ATTR_NAME_INDEX, 0)
+                     .Build("const_1");
   ge::AttrUtils::SetTensor(const_1, "value", CreateVecTorGeTensor(shape, DT_FLOAT));
 
   auto add = OP_CFG("Add").TensorDesc(FORMAT_NCHW, DT_FLOAT, shape).InCnt(2).OutCnt(1).Build("add");
@@ -12608,77 +12627,67 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphDynamicAndStaticGraph(int64_t &strea
   add->SetOpEngineName(ge::kEngineNameAiCpu.c_str());
   add->SetInputOffset({0, 16});
   add->SetOutputOffset({32});
-  add->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
+  add->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
 
   auto sub_1_netoutput = OP_CFG(ge::NETOUTPUT)
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .InputAttr(0, ATTR_NAME_PARENT_NODE_INDEX, 0)
-      .Build("sub_1_netoutput");
+                             .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                             .InCnt(1)
+                             .OutCnt(1)
+                             .InputAttr(0, ATTR_NAME_PARENT_NODE_INDEX, 0)
+                             .Build("sub_1_netoutput");
   sub_1_netoutput->SetInputOffset({0, 16});
 
   // root
   auto data_1 = OP_CFG("Data")
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_INDEX, 0)
-      .Build("data_1");
+                    .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .Attr(ATTR_NAME_INDEX, 0)
+                    .Build("data_1");
   data_1->SetStreamId(0);
   AttrUtils::SetListInt(data_1, ge::ATTR_NAME_SEND_EVENT_IDS, {0});
 
   auto const_2 = OP_CFG("Const")
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_INDEX, 1)
-      .Build("const_2");
+                     .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                     .InCnt(1)
+                     .OutCnt(1)
+                     .Attr(ATTR_NAME_INDEX, 1)
+                     .Build("const_2");
   const_2->SetStreamId(0);
   ge::AttrUtils::SetTensor(const_2, "value", CreateVecTorGeTensor(shape, DT_FLOAT));
 
-  auto relu = OP_CFG("Relu")
-                  .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-                  .InCnt(1)
-                  .OutCnt(1)
-                  .Build("relu");
+  auto relu = OP_CFG("Relu").TensorDesc(FORMAT_NCHW, DT_FLOAT, shape).InCnt(1).OutCnt(1).Build("relu");
   relu->SetOpKernelLibName(ge::kEngineNameAiCore);
   relu->SetOpEngineName(kEngineNameAiCore);
   relu->SetStreamId(1);
   AttrUtils::SetListInt(relu, ge::ATTR_NAME_SEND_EVENT_IDS, {1});
   AttrUtils::SetListInt(relu, ge::ATTR_NAME_RECV_EVENT_IDS, {0});
-  relu->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
+  relu->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
 
-  auto known_op = OP_CFG(ge::PARTITIONEDCALL)
-                      .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-                      .InCnt(1)
-                      .OutCnt(1)
-                      .Build("known_op");
+  auto known_op =
+      OP_CFG(ge::PARTITIONEDCALL).TensorDesc(FORMAT_NCHW, DT_FLOAT, shape).InCnt(1).OutCnt(1).Build("known_op");
   known_op->SetStreamId(0);
   AttrUtils::SetListInt(known_op, ge::ATTR_NAME_RECV_EVENT_IDS, {1});
 
   auto transdata = OP_CFG("TransData").TensorDesc(FORMAT_NCHW, DT_FLOAT, shape).InCnt(1).OutCnt(1).Build("transdata");
   transdata->SetOpKernelLibName(ge::kEngineNameAiCore.c_str());
   transdata->SetStreamId(0);
-  transdata->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
-  auto root_netoutput = OP_CFG(ge::NETOUTPUT)
-                            .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-                            .InCnt(2)
-                            .OutCnt(1)
-                            .Build("root_netoutput");
+  transdata->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
+  auto root_netoutput =
+      OP_CFG(ge::NETOUTPUT).TensorDesc(FORMAT_NCHW, DT_FLOAT, shape).InCnt(2).OutCnt(1).Build("root_netoutput");
   root_netoutput->SetSrcName({"known_op", "transdata"});
   root_netoutput->SetSrcIndex({0, 1});
   root_netoutput->SetStreamId(0);
 
   DEF_GRAPH(sub_1) {
-                     CHAIN(NODE(data_i)->NODE(add)->NODE(sub_1_netoutput));
-                     CHAIN(NODE(const_1)->NODE(add));
-                   };
+    CHAIN(NODE(data_i)->NODE(add)->NODE(sub_1_netoutput));
+    CHAIN(NODE(const_1)->NODE(add));
+  };
 
   DEF_GRAPH(root) {
-                    CHAIN(NODE(data_1)->NODE(relu)->NODE(known_op)->NODE(root_netoutput));
-                    CHAIN(NODE(const_2)->NODE(transdata)->EDGE(0,1)->NODE(root_netoutput));
-                  };
+    CHAIN(NODE(data_1)->NODE(relu)->NODE(known_op)->NODE(root_netoutput));
+    CHAIN(NODE(const_2)->NODE(transdata)->EDGE(0, 1)->NODE(root_netoutput));
+  };
 
   auto graph = ToGeGraph(root);
   auto root_graph = ge::GraphUtilsEx::GetComputeGraph(graph);
@@ -12701,7 +12710,7 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphDynamicAndStaticGraph(int64_t &strea
   SetNoStorage(relu_node->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {-1, -1 - 1, -1});
   SetShapeRangeNoStorage(relu_node->GetOpDesc(), {1, 1}, {-1, -1});
   auto transdata_node = root_graph->FindNode("transdata");
-  transdata_node->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
+  transdata_node->GetOpDesc()->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
   SetShapeRangeNoStorage(transdata_node->GetOpDesc(), {1, 1}, {-1, -1});
   AddCompileResult(transdata_node, false);
   SetNoStorage(transdata_node->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {-1, -1 - 1, -1});
@@ -12725,7 +12734,6 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphDynamicAndStaticGraph(int64_t &strea
  */
 ComputeGraphPtr ShareGraph::MultiStreamGraphWithIfGraph(int64_t &stream_num, int64_t &event_num) {
   auto origin_graph = IfGraph3();
-
 }
 
 /*
@@ -12741,11 +12749,11 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphFileConstantGraph(int64_t &stream_nu
   std::vector<int64_t> shape = {2, 2};  // NCHW
 
   auto const_2 = OP_CFG("FileConstant")
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_INDEX, 1)
-      .Build("const_2");
+                     .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                     .InCnt(1)
+                     .OutCnt(1)
+                     .Attr(ATTR_NAME_INDEX, 1)
+                     .Build("const_2");
   const_2->SetStreamId(0);
   ge::AttrUtils::SetTensor(const_2, "value", CreateVecTorGeTensor(shape, DT_FLOAT));
   AttrUtils::SetListInt(const_2, ge::ATTR_NAME_SEND_EVENT_IDS, {0});
@@ -12777,25 +12785,18 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphFileConstantGraph(int64_t &stream_nu
   if (!out0.is_open()) {
     return nullptr;
   }
-  out0.write(reinterpret_cast<char*>(data), sizeof(data));
+  out0.write(reinterpret_cast<char *>(data), sizeof(data));
   out0.close();
 
-  auto relu = OP_CFG("Relu")
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Build("relu");
+  auto relu = OP_CFG("Relu").TensorDesc(FORMAT_NCHW, DT_FLOAT, shape).InCnt(1).OutCnt(1).Build("relu");
   relu->SetOpKernelLibName(ge::kEngineNameAiCore);
   relu->SetOpEngineName(kEngineNameAiCore);
   relu->SetStreamId(1);
   AttrUtils::SetListInt(relu, ge::ATTR_NAME_RECV_EVENT_IDS, {0});
   AttrUtils::SetListInt(relu, ge::ATTR_NAME_SEND_EVENT_IDS, {1});
-  relu->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
-  auto root_netoutput = OP_CFG(ge::NETOUTPUT)
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Build("root_netoutput");
+  relu->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
+  auto root_netoutput =
+      OP_CFG(ge::NETOUTPUT).TensorDesc(FORMAT_NCHW, DT_FLOAT, shape).InCnt(1).OutCnt(1).Build("root_netoutput");
   root_netoutput->SetSrcName({"relu"});
   root_netoutput->SetSrcIndex({0});
   root_netoutput->SetStreamId(0);
@@ -12811,7 +12812,7 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphFileConstantGraph(int64_t &stream_nu
 
   auto relu_node = root_graph->FindNode("relu");
   AddCompileResult(relu_node, false);
-  relu_node->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
+  relu_node->GetOpDesc()->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
   SetNoStorage(relu_node->GetOpDesc(), FORMAT_NCHW, DT_FLOAT, {-1, -1 - 1, -1});
   return root_graph;
 }
@@ -12833,11 +12834,11 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphFileConstantToHostGraph(int64_t &str
   std::vector<int64_t> shape = {2, 2};  // NCHW
 
   auto const_2 = OP_CFG("FileConstant")
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_INDEX, 1)
-      .Build("const_2");
+                     .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                     .InCnt(1)
+                     .OutCnt(1)
+                     .Attr(ATTR_NAME_INDEX, 1)
+                     .Build("const_2");
   const_2->SetStreamId(1);
   ge::AttrUtils::SetTensor(const_2, "value", CreateVecTorGeTensor(shape, DT_FLOAT));
   AttrUtils::SetListInt(const_2, ge::ATTR_NAME_SEND_EVENT_IDS, {0});
@@ -12869,22 +12870,18 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphFileConstantToHostGraph(int64_t &str
   if (!out0.is_open()) {
     return nullptr;
   }
-  out0.write(reinterpret_cast<char*>(data), sizeof(data));
+  out0.write(reinterpret_cast<char *>(data), sizeof(data));
   out0.close();
 
   auto data_1 = OP_CFG("Data")
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Attr(ATTR_NAME_INDEX, 0)
-      .Build("data_1");
+                    .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .Attr(ATTR_NAME_INDEX, 0)
+                    .Build("data_1");
   data_1->SetStreamId(0);
 
-  auto reshape = OP_CFG("Reshape")
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-      .InCnt(2)
-      .OutCnt(1)
-      .Build("reshape");
+  auto reshape = OP_CFG("Reshape").TensorDesc(FORMAT_NCHW, DT_FLOAT, shape).InCnt(2).OutCnt(1).Build("reshape");
   reshape->AppendIrInput("x", kIrInputRequired);
   reshape->AppendIrInput("shape", kIrInputRequired);
   reshape->SetOpKernelLibName(ge::kEngineNameGeLocal);
@@ -12893,11 +12890,8 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphFileConstantToHostGraph(int64_t &str
   reshape->SetOpInferDepends({"shape"});  // 用V1的方式设置值依赖
   AttrUtils::SetListInt(reshape, ge::ATTR_NAME_RECV_EVENT_IDS, {0});
 
-  auto root_netoutput = OP_CFG(ge::NETOUTPUT)
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-      .InCnt(1)
-      .OutCnt(1)
-      .Build("root_netoutput");
+  auto root_netoutput =
+      OP_CFG(ge::NETOUTPUT).TensorDesc(FORMAT_NCHW, DT_FLOAT, shape).InCnt(1).OutCnt(1).Build("root_netoutput");
   root_netoutput->SetSrcName({"reshape"});
   root_netoutput->SetSrcIndex({0});
   root_netoutput->SetStreamId(0);
@@ -12915,7 +12909,7 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphFileConstantToHostGraph(int64_t &str
 /*
  *  data1(s0)  data2(streamid=1)(send_id_list:[0])
  *         \   /
- *         add1(streamid=0)(recive_id_list:[0])
+ *         add1(streamid=0)(receive_id_list:[0])
  *          |
  *       netoutput(streamid=0)
  */
@@ -12924,9 +12918,9 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphWithFirstEventSyncGraph(int64_t &str
   event_num = 1;
 
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", "Data")->NODE("add1", "Add")->NODE("NetOutput", "NetOutput"));
-                  CHAIN(NODE("data2", "Data")->EDGE(0, 1)->NODE("add1", "Add"));
-                };
+    CHAIN(NODE("data1", "Data")->NODE("add1", "Add")->NODE("NetOutput", "NetOutput"));
+    CHAIN(NODE("data2", "Data")->EDGE(0, 1)->NODE("add1", "Add"));
+  };
   auto graph = ToComputeGraph(g1);
 
   auto data1 = graph->FindNode("data1");
@@ -12951,7 +12945,7 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphWithFirstEventSyncGraph(int64_t &str
   add1->GetOpDesc()->SetOpEngineName(kEngineNameAiCore);
   add1->GetOpDescBarePtr()->SetStreamId(0);
   AttrUtils::SetListInt(add1->GetOpDesc(), ge::ATTR_NAME_RECV_EVENT_IDS, {0});
-  add1->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
+  add1->GetOpDesc()->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
 
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"add1"});
@@ -12969,17 +12963,13 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphWithFirstEventSyncGraph(int64_t &str
  *               \                                  |
  *             relu(streamid=0)(send_id_list:[0])   |
  *             /          \                         |
- *   netoutput(streamid=0)  add(s1)(recive_id_list:[0,1])
+ *   netoutput(streamid=0)  add(s1)(receive_id_list:[0,1])
  */
 ComputeGraphPtr ShareGraph::MultiStreamGraphWithLastEventSyncGraph(int64_t &stream_num, int64_t &event_num) {
   stream_num = 2;
   event_num = 2;
 
-  auto relu = OP_CFG("Relu")
-      .TensorDesc(FORMAT_NCHW, DT_FLOAT, {-1, -1 - 1, -1})
-      .InCnt(1)
-      .OutCnt(1)
-      .Build("relu");
+  auto relu = OP_CFG("Relu").TensorDesc(FORMAT_NCHW, DT_FLOAT, {-1, -1 - 1, -1}).InCnt(1).OutCnt(1).Build("relu");
   relu->SetOpKernelLibName(ge::kEngineNameAiCore);
   relu->SetOpEngineName(kEngineNameAiCore);
   relu->SetStreamId(0);
@@ -13013,12 +13003,12 @@ ComputeGraphPtr ShareGraph::MultiStreamGraphWithLastEventSyncGraph(int64_t &stre
   add->GetOpDesc()->SetOpKernelLibName(kEngineNameAiCpuTf);
   add->GetOpDesc()->SetOpEngineName(kEngineNameAiCpuTf);
   add->GetOpDescBarePtr()->SetStreamId(1);
-  AttrUtils::SetListInt(add->GetOpDesc(), ge::ATTR_NAME_RECV_EVENT_IDS, {0,1});
-  add->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
+  AttrUtils::SetListInt(add->GetOpDesc(), ge::ATTR_NAME_RECV_EVENT_IDS, {0, 1});
+  add->GetOpDesc()->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
 
   auto relu_node = graph->FindFirstNodeMatchType("Relu");
   AddCompileResult(relu_node, false);
-  relu_node->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
+  relu_node->GetOpDesc()->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
 
   auto net_output = graph->FindNode("NetOutput");
   net_output->GetOpDesc()->SetSrcName({"relu"});
@@ -13151,20 +13141,17 @@ Graph ShareGraph::BuildCVSerialGraph() {
  * 子图构造
  * data -> sqrt -> output
  */
-ComputeGraphPtr ShareGraph::BuildSubGraph(const std::string& name, int64_t parent_node_index) {
+ComputeGraphPtr ShareGraph::BuildSubGraph(const std::string &name, int64_t parent_node_index) {
   auto subgraph_name = name + "_subgraph";
   auto graph = std::make_shared<ge::ComputeGraph>(subgraph_name);
   auto data = NodeBuilder(subgraph_name + "_data", ge::DATA)
-                      .Attr(ge::ATTR_NAME_INDEX, 0)
-                      .Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, parent_node_index)
-                      .Output()
-                      .Build(graph);
-  auto sqrt = NodeBuilder(subgraph_name + "_sqrt1", SQRT)
-              .Input(data)
-              .Output()
-              .Build(graph);
-  auto output = NodeBuilder(subgraph_name + "_output", NETOUTPUT).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
-                        .Input(sqrt).Build(graph);
+                  .Attr(ge::ATTR_NAME_INDEX, 0)
+                  .Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, parent_node_index)
+                  .Output()
+                  .Build(graph);
+  auto sqrt = NodeBuilder(subgraph_name + "_sqrt1", SQRT).Input(data).Output().Build(graph);
+  auto output =
+      NodeBuilder(subgraph_name + "_output", NETOUTPUT).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0).Input(sqrt).Build(graph);
   AttrUtils::SetInt(output->GetOpDesc()->MutableInputDesc(0), ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
   output->GetOpDesc()->SetSrcName({subgraph_name + "_sqrt1"});
   output->GetOpDesc()->SetSrcIndex({0});
@@ -13182,20 +13169,22 @@ ComputeGraphPtr ShareGraph::BuildNestPartitioncallSubGraph(const ComputeGraphPtr
   auto subgrpah_name = name + "_with_partitioncall_subgraph";
   auto graph = std::make_shared<ge::ComputeGraph>(subgrpah_name);
   auto data = NodeBuilder(subgrpah_name + "_data", ge::DATA)
-                      .Attr(ge::ATTR_NAME_INDEX, 0)
-                      .Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 0)
-                      .Output()
-                      .Build(graph);
+                  .Attr(ge::ATTR_NAME_INDEX, 0)
+                  .Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 0)
+                  .Output()
+                  .Build(graph);
 
   auto sub_grpah = BuildSubGraph(subgrpah_name + "_particall");
   auto partitioncall = NodeBuilder(name + "_partitioncall", ge::PARTITIONEDCALL)
-                      .Input(data)
-                      .Attr(ge::ATTR_STAGE_LEVEL, 1)
-                      .Output()
-                      .Attr("f", sub_grpah)
-                      .Build(graph);
-  auto output = NodeBuilder(subgrpah_name + "_output", NETOUTPUT).Input(partitioncall)
-                        .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0).Build(graph);
+                           .Input(data)
+                           .Attr(ge::ATTR_STAGE_LEVEL, 1)
+                           .Output()
+                           .Attr("f", sub_grpah)
+                           .Build(graph);
+  auto output = NodeBuilder(subgrpah_name + "_output", NETOUTPUT)
+                    .Input(partitioncall)
+                    .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
+                    .Build(graph);
   AttrUtils::SetInt(output->GetOpDesc()->MutableInputDesc(0), ge::ATTR_NAME_PARENT_NODE_INDEX, 0);
   output->GetOpDesc()->SetSrcName({name + "_sqrt1"});
   output->GetOpDesc()->SetSrcIndex({0});
@@ -13210,15 +13199,15 @@ ComputeGraphPtr ShareGraph::BuildNestIfGraph() {
   auto data1 = NodeBuilder("data_1", ge::DATA).Attr(ge::ATTR_NAME_INDEX, 1).Output().Build(main_graph);
 
   auto cast = NodeBuilder("cast1", CAST).Input(data).Output().Build(main_graph);
-  auto then_graph = BuildSubGraph("then",1);
+  auto then_graph = BuildSubGraph("then", 1);
   auto else_graph = BuildSubGraph("else", 1);
   auto if_node = NodeBuilder("if1", IF)
-                  .Input(cast)
-                  .Input(data1)
-                  .Output()
-                  .Attr("then_graph", then_graph)
-                  .Attr("else_graph", else_graph)
-                  .Build(main_graph);
+                     .Input(cast)
+                     .Input(data1)
+                     .Output()
+                     .Attr("then_graph", then_graph)
+                     .Attr("else_graph", else_graph)
+                     .Build(main_graph);
 
   auto sqrt = NodeBuilder("abs1", "Abs").Input(if_node).Output().Build(main_graph);
   auto output = NodeBuilder("output", NETOUTPUT).Input(sqrt).Build(main_graph);
@@ -13239,15 +13228,15 @@ ComputeGraphPtr ShareGraph::BuildNestCaseGraph() {
   auto data = NodeBuilder("data_0", ge::DATA).Attr(ge::ATTR_NAME_INDEX, 0).Output().Build(main_graph);
   auto data1 = NodeBuilder("data_1", ge::DATA).Attr(ge::ATTR_NAME_INDEX, 1).Output().Build(main_graph);
 
-  auto batch1 = BuildSubGraph("batch1",1);
+  auto batch1 = BuildSubGraph("batch1", 1);
   auto batch2 = BuildSubGraph("batch2", 1);
   auto if_node = NodeBuilder("case1", CASE)
-                  .Input(data)
-                  .Input(data1)
-                  .Output()
-                  .Attr("batch1", batch1)
-                  .Attr("batch2", batch2)
-                  .Build(main_graph);
+                     .Input(data)
+                     .Input(data1)
+                     .Output()
+                     .Attr("batch1", batch1)
+                     .Attr("batch2", batch2)
+                     .Build(main_graph);
 
   auto sqrt = NodeBuilder("abs1", "Abs").Input(if_node).Output().Build(main_graph);
   auto output = NodeBuilder("output", NETOUTPUT).Input(sqrt).Build(main_graph);
@@ -13267,19 +13256,19 @@ ComputeGraphPtr ShareGraph::BuildNestIfGraph1() {
   auto main_graph = std::make_shared<ge::ComputeGraph>("root");
   auto data = NodeBuilder("data_0", ge::DATA).Attr(ge::ATTR_NAME_INDEX, 0).Output().Build(main_graph);
   auto data1 = NodeBuilder("data_1", ge::DATA).Attr(ge::ATTR_NAME_INDEX, 1).Output().Build(main_graph);
-  auto data2 =  NodeBuilder("data_2", ge::DATA).Attr(ge::ATTR_NAME_INDEX, 2).Output().Build(main_graph);
+  auto data2 = NodeBuilder("data_2", ge::DATA).Attr(ge::ATTR_NAME_INDEX, 2).Output().Build(main_graph);
 
   auto sub = NodeBuilder("sub", SUB).Input(data).Input(data1).Output().Build(main_graph);
 
-  auto then_graph = BuildSubGraph("then",1);
+  auto then_graph = BuildSubGraph("then", 1);
   auto else_graph = BuildSubGraph("else", 1);
   auto if_node = NodeBuilder("if1", IF)
-                  .Input(sub)
-                  .Input(data2)
-                  .Output()
-                  .Attr("then_graph", then_graph)
-                  .Attr("else_graph", else_graph)
-                  .Build(main_graph);
+                     .Input(sub)
+                     .Input(data2)
+                     .Output()
+                     .Attr("then_graph", then_graph)
+                     .Attr("else_graph", else_graph)
+                     .Build(main_graph);
 
   auto output = NodeBuilder("output", NETOUTPUT).Input(if_node).Build(main_graph);
   (void)main_graph->AddSubGraph(then_graph);
@@ -13290,50 +13279,57 @@ ComputeGraphPtr ShareGraph::BuildNestIfGraph1() {
       td.SetOriginFormat(td.GetFormat());
     }
   }
-  return  main_graph;
+  return main_graph;
 }
-
 
 // 子图含有if节点, if的条件输入是data
 ComputeGraphPtr ShareGraph::BuildNestIfSubGraph(const ge::ComputeGraphPtr &main_graph, const std::string &name) {
   auto subgrpah_name = name + "_with_if_subgraph";
   auto graph = std::make_shared<ge::ComputeGraph>(subgrpah_name);
-  auto data = NodeBuilder(subgrpah_name + "_data", ge::DATA).Attr(ge::ATTR_NAME_INDEX, 0)
-                     .Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 0).Output().Build(graph);
-  auto data1 = NodeBuilder(subgrpah_name + "_data1", ge::DATA).Attr(ge::ATTR_NAME_INDEX, 1)
-                     .Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 1).Output().Build(graph);
+  auto data = NodeBuilder(subgrpah_name + "_data", ge::DATA)
+                  .Attr(ge::ATTR_NAME_INDEX, 0)
+                  .Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 0)
+                  .Output()
+                  .Build(graph);
+  auto data1 = NodeBuilder(subgrpah_name + "_data1", ge::DATA)
+                   .Attr(ge::ATTR_NAME_INDEX, 1)
+                   .Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 1)
+                   .Output()
+                   .Build(graph);
 
-  auto then_graph = BuildSubGraph(subgrpah_name + "_then",1);
+  auto then_graph = BuildSubGraph(subgrpah_name + "_then", 1);
   auto else_graph = BuildSubGraph(subgrpah_name + "_else", 1);
   auto if_node = NodeBuilder(subgrpah_name + "_if2", IF)
-                  .Input(data)
-                  .Input(data1)
-                  .Output()
-                  .Attr("then_graph", then_graph)
-                  .Attr("else_graph", else_graph)
-                  .Build(graph);
+                     .Input(data)
+                     .Input(data1)
+                     .Output()
+                     .Attr("then_graph", then_graph)
+                     .Attr("else_graph", else_graph)
+                     .Build(graph);
 
-  auto output = NodeBuilder(subgrpah_name + "_output", NETOUTPUT).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
-                        .Input(if_node).Build(graph);
+  auto output = NodeBuilder(subgrpah_name + "_output", NETOUTPUT)
+                    .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
+                    .Input(if_node)
+                    .Build(graph);
   (void)main_graph->AddSubGraph(then_graph);
   (void)main_graph->AddSubGraph(else_graph);
-  return  graph;
+  return graph;
 }
 
 // if子图嵌套if算子，且条件输入都是data
-ComputeGraphPtr ShareGraph::BuildNestIfGraph2 () {
+ComputeGraphPtr ShareGraph::BuildNestIfGraph2() {
   auto main_graph = std::make_shared<ge::ComputeGraph>("root");
   auto data = NodeBuilder("data_0", ge::DATA).Attr(ge::ATTR_NAME_INDEX, 0).Output().Build(main_graph);
   auto data1 = NodeBuilder("data_1", ge::DATA).Attr(ge::ATTR_NAME_INDEX, 1).Output().Build(main_graph);
   auto then_graph = BuildNestIfSubGraph(main_graph, "then");
   auto else_graph = BuildNestIfSubGraph(main_graph, "else");
   auto if_node = NodeBuilder("if1", IF)
-                  .Input(data)
-                  .Input(data1)
-                  .Output()
-                  .Attr("then_graph", then_graph)
-                  .Attr("else_graph", else_graph)
-                  .Build(main_graph);
+                     .Input(data)
+                     .Input(data1)
+                     .Output()
+                     .Attr("then_graph", then_graph)
+                     .Attr("else_graph", else_graph)
+                     .Build(main_graph);
   auto output = NodeBuilder("output", NETOUTPUT).Input(if_node).Build(main_graph);
   (void)main_graph->AddSubGraph(then_graph);
   (void)main_graph->AddSubGraph(else_graph);
@@ -13343,38 +13339,46 @@ ComputeGraphPtr ShareGraph::BuildNestIfGraph2 () {
       td.SetOriginFormat(td.GetFormat());
     }
   }
-  return  main_graph;
+  return main_graph;
 }
-
 
 // 子图中包含if节点, 且if的条件输入是其它算子的输出
 ComputeGraphPtr ShareGraph::BuildNestIfSubGraph1(const ge::ComputeGraphPtr &main_graph, const std::string &name) {
   auto graph_name = name + "_with_if_subgraph1";
   auto graph = std::make_shared<ge::ComputeGraph>(graph_name);
-  auto data = NodeBuilder(graph_name + "_data_0", ge::DATA).Attr(ge::ATTR_NAME_INDEX, 0)
-                     .Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 0).Output().Build(graph);
-  auto data1 = NodeBuilder(graph_name + "_data_1", ge::DATA).Attr(ge::ATTR_NAME_INDEX, 1)
-                     .Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 1).Output().Build(graph);
-  auto data2 = NodeBuilder(graph_name + "_data_2", ge::DATA).Attr(ge::ATTR_NAME_INDEX, 2)
-                     .Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 2).Output().Build(graph);
+  auto data = NodeBuilder(graph_name + "_data_0", ge::DATA)
+                  .Attr(ge::ATTR_NAME_INDEX, 0)
+                  .Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 0)
+                  .Output()
+                  .Build(graph);
+  auto data1 = NodeBuilder(graph_name + "_data_1", ge::DATA)
+                   .Attr(ge::ATTR_NAME_INDEX, 1)
+                   .Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 1)
+                   .Output()
+                   .Build(graph);
+  auto data2 = NodeBuilder(graph_name + "_data_2", ge::DATA)
+                   .Attr(ge::ATTR_NAME_INDEX, 2)
+                   .Attr(ge::ATTR_NAME_PARENT_NODE_INDEX, 2)
+                   .Output()
+                   .Build(graph);
 
   auto sub = NodeBuilder(graph_name + "_sub", SUB).Input(data).Input(data1).Output().Build(graph);
 
-  auto then_graph = BuildSubGraph(graph_name + "_then",1);
+  auto then_graph = BuildSubGraph(graph_name + "_then", 1);
   auto else_graph = BuildSubGraph(graph_name + "_else", 1);
   auto if_node = NodeBuilder(graph_name + "_if1", IF)
-                  .Input(sub)
-                  .Input(data2)
-                  .Output()
-                  .Attr("then_graph", then_graph)
-                  .Attr("else_graph", else_graph)
-                  .Build(graph);
+                     .Input(sub)
+                     .Input(data2)
+                     .Output()
+                     .Attr("then_graph", then_graph)
+                     .Attr("else_graph", else_graph)
+                     .Build(graph);
 
-  auto output = NodeBuilder(graph_name + "_output", NETOUTPUT).Input(if_node)
-                        .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0).Build(graph);
+  auto output =
+      NodeBuilder(graph_name + "_output", NETOUTPUT).Input(if_node).Attr(ATTR_NAME_PARENT_NODE_INDEX, 0).Build(graph);
   (void)main_graph->AddSubGraph(then_graph);
   (void)main_graph->AddSubGraph(else_graph);
-  return  graph;
+  return graph;
 }
 
 // if子图嵌套if算子，根图的if条件输入是data，子图的if条件输入不是data
@@ -13387,13 +13391,13 @@ ComputeGraphPtr ShareGraph::BuildNestIfGraph3() {
   auto then_graph = BuildNestIfSubGraph1(main_graph, "then");
   auto else_graph = BuildNestIfSubGraph1(main_graph, "else");
   auto if_node = NodeBuilder("if1", IF)
-                  .Input(data)
-                  .Input(data1)
-                  .Input(data2)
-                  .Output()
-                  .Attr("then_graph", then_graph)
-                  .Attr("else_graph", else_graph)
-                  .Build(main_graph);
+                     .Input(data)
+                     .Input(data1)
+                     .Input(data2)
+                     .Output()
+                     .Attr("then_graph", then_graph)
+                     .Attr("else_graph", else_graph)
+                     .Build(main_graph);
   auto output = NodeBuilder("output", NETOUTPUT).Input(if_node).Build(main_graph);
   (void)main_graph->AddSubGraph(then_graph);
   (void)main_graph->AddSubGraph(else_graph);
@@ -13403,7 +13407,7 @@ ComputeGraphPtr ShareGraph::BuildNestIfGraph3() {
       td.SetOriginFormat(td.GetFormat());
     }
   }
-  return  main_graph;
+  return main_graph;
 }
 
 /*
@@ -13412,21 +13416,14 @@ ComputeGraphPtr ShareGraph::BuildNestIfGraph3() {
  */
 ComputeGraphPtr ShareGraph::BuildNestedPartitionedCallTwice() {
   auto graph = std::make_shared<ge::ComputeGraph>("root");
-  auto data = NodeBuilder("data", ge::DATA)
-                      .Attr(ge::ATTR_NAME_INDEX, 0)
-                      .Output()
-                      .Build(graph);
+  auto data = NodeBuilder("data", ge::DATA).Attr(ge::ATTR_NAME_INDEX, 0).Output().Build(graph);
   auto sub_graph = BuildNestPartitioncallSubGraph(graph, "subgraph");
-  auto partitioncall = NodeBuilder("partitioncall", ge::PARTITIONEDCALL)
-                      .Input(data)
-                      .Output()
-                      .Attr("f", sub_graph)
-                      .Build(graph);
+  auto partitioncall =
+      NodeBuilder("partitioncall", ge::PARTITIONEDCALL).Input(data).Output().Attr("f", sub_graph).Build(graph);
   auto output = NodeBuilder("output", NETOUTPUT).Input(partitioncall).Build(graph);
   (void)graph->AddSubGraph(sub_graph);
   return graph;
 }
-
 
 /*
  * if子图嵌套
@@ -13445,12 +13442,12 @@ ComputeGraphPtr ShareGraph::BuildIfWithNestedPartitionedCall() {
   auto then_graph = BuildNestPartitioncallSubGraph(main_graph, "then");
   auto else_graph = BuildNestPartitioncallSubGraph(main_graph, "else");
   auto if_node = NodeBuilder("if1", IF)
-                  .Input(data)
-                  .Input(data1)
-                  .Output()
-                  .Attr("then_graph", then_graph)
-                  .Attr("else_graph", else_graph)
-                  .Build(main_graph);
+                     .Input(data)
+                     .Input(data1)
+                     .Output()
+                     .Attr("then_graph", then_graph)
+                     .Attr("else_graph", else_graph)
+                     .Build(main_graph);
 
   auto output = NodeBuilder("output", NETOUTPUT).Input(if_node).Build(main_graph);
   (void)main_graph->AddSubGraph(then_graph);
@@ -13467,11 +13464,12 @@ ComputeGraphPtr ShareGraph::BuildCaseWithNestedPartitionedCall() {
   auto batch1 = BuildNestPartitioncallSubGraph(main_graph, "batch1");
   auto batch2 = BuildNestPartitioncallSubGraph(main_graph, "batch2");
   auto case_node = NodeBuilder("case", "Case")
-    .Input(data).Input(data1)
-    .Output()
-    .Attr("batch1", batch1)
-    .Attr("batch2",  batch2)
-    .Build(main_graph);
+                       .Input(data)
+                       .Input(data1)
+                       .Output()
+                       .Attr("batch1", batch1)
+                       .Attr("batch2", batch2)
+                       .Build(main_graph);
   auto output = NodeBuilder("output", NETOUTPUT).Input(case_node).Build(main_graph);
   (void)main_graph->AddSubGraph(batch1);
   (void)main_graph->AddSubGraph(batch2);
@@ -13489,28 +13487,26 @@ ComputeGraphPtr ShareGraph::BuildCaseWithNestedPartitionedCall() {
 ComputeGraphPtr ShareGraph::BuildAssignReshapeGraph(std::vector<std::initializer_list<int64_t>> shape,
                                                     std::vector<std::initializer_list<int64_t>> min_shape,
                                                     std::vector<std::initializer_list<int64_t>> max_shape) {
-
   DEF_GRAPH(g1) {
-                  auto assign = OP_CFG(ASSIGN)
+    auto assign = OP_CFG(ASSIGN)
                       .TensorDesc(FORMAT_ND, DT_FLOAT, shape[2])
-                      .InCnt(2).OutCnt(1)
-                      .InNames({"ref", "value"}).OutNames({"ref"})
+                      .InCnt(2)
+                      .OutCnt(1)
+                      .InNames({"ref", "value"})
+                      .OutNames({"ref"})
                       .Attr(ge::ATTR_NAME_REFERENCE, true)
                       .Build("assign");
 
-                  auto reshape = OP_CFG("Reshape")
-                      .TensorDesc(FORMAT_ND, DT_FLOAT, shape[2])
-                      .InCnt(2).OutCnt(1)
-                      .Build("reshape1");
-                  reshape->AppendIrInput("x", kIrInputRequired);
-                  reshape->AppendIrInput("shape", kIrInputRequired);
-                  reshape->SetOpEngineName(kEngineNameGeLocal);
+    auto reshape = OP_CFG("Reshape").TensorDesc(FORMAT_ND, DT_FLOAT, shape[2]).InCnt(2).OutCnt(1).Build("reshape1");
+    reshape->AppendIrInput("x", kIrInputRequired);
+    reshape->AppendIrInput("shape", kIrInputRequired);
+    reshape->SetOpEngineName(kEngineNameGeLocal);
 
-                  CHAIN(NODE("data1", "Data")->NODE(reshape)->NODE("NetOutput", "NetOutput"));
-                  CHAIN(NODE("data2", "Data")->EDGE(0, 1)->NODE(reshape));
-                  CHAIN(NODE("data2", "Data")->EDGE(0, 0)->NODE(assign)->EDGE(0, 1)->NODE("NetOutput", "NetOutput"));
-                  CHAIN(NODE("data3", "Data")->EDGE(0, 1)->NODE(assign));
-                };
+    CHAIN(NODE("data1", "Data")->NODE(reshape)->NODE("NetOutput", "NetOutput"));
+    CHAIN(NODE("data2", "Data")->EDGE(0, 1)->NODE(reshape));
+    CHAIN(NODE("data2", "Data")->EDGE(0, 0)->NODE(assign)->EDGE(0, 1)->NODE("NetOutput", "NetOutput"));
+    CHAIN(NODE("data3", "Data")->EDGE(0, 1)->NODE(assign));
+  };
   auto graph = ToComputeGraph(g1);
 
   auto data1 = graph->FindNode("data1");
@@ -13522,7 +13518,7 @@ ComputeGraphPtr ShareGraph::BuildAssignReshapeGraph(std::vector<std::initializer
   AttrUtils::SetInt(data2->GetOpDesc(), "index", 1);
   SetNoStorage(data2->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, shape[1]);
   data2->GetOpDesc()->MutableAllInputName() = {{"x", 0}};
-  
+
   auto data3 = graph->FindNode("data3");
   AttrUtils::SetInt(data3->GetOpDesc(), "index", 2);
   SetNoStorage(data3->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, shape[1]);
@@ -13533,8 +13529,8 @@ ComputeGraphPtr ShareGraph::BuildAssignReshapeGraph(std::vector<std::initializer
   SetNoStorage(assign->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, shape[2]);
   assign->GetOpDesc()->SetOpKernelLibName(kEngineNameAiCore);
   assign->GetOpDesc()->SetOpEngineName(kEngineNameAiCore);
-  assign->GetOpDesc()->SetWorkspaceBytes({2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2});
-  
+  assign->GetOpDesc()->SetWorkspaceBytes({2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2});
+
   auto reshape1 = graph->FindNode("reshape1");
   SetNoStorage(reshape1->GetOpDesc(), ge::FORMAT_ND, DT_FLOAT, shape[2]);
   reshape1->GetOpDesc()->MutableAllInputName() = {{"x", 0}, {"shape", 1}};

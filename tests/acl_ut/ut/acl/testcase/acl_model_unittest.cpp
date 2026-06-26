@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,7 +25,6 @@
 #include "acl_stub.h"
 #include "graph/ge_context.h"
 
-
 using namespace testing;
 using namespace std;
 using namespace acl;
@@ -34,355 +33,328 @@ ge::Status IsNotOm2ModelFromFile(const char *file_path, bool &is_support);
 ge::Status IsNotOm2ModelFromData(const void *data, size_t size, bool &is_support);
 
 class UTEST_ACL_Model : public testing::Test {
-public:
-    UTEST_ACL_Model()
-    {
-    }
+ public:
+  UTEST_ACL_Model() {}
 
-protected:
-    void SetUp() override
-    {
-        MockFunctionTest::aclStubInstance().ResetToDefaultMock();
-        ON_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_))
-            .WillByDefault(Invoke(IsNotOm2ModelFromFile));
-        ON_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_, testing::_))
-            .WillByDefault(Invoke(IsNotOm2ModelFromData));
-    }
-    void TearDown() override
-    {
-        Mock::VerifyAndClear((void *)(&MockFunctionTest::aclStubInstance()));
-    }
+ protected:
+  void SetUp() override {
+    MockFunctionTest::aclStubInstance().ResetToDefaultMock();
+    ON_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_))
+        .WillByDefault(Invoke(IsNotOm2ModelFromFile));
+    ON_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_, testing::_))
+        .WillByDefault(Invoke(IsNotOm2ModelFromData));
+  }
+  void TearDown() override {
+    Mock::VerifyAndClear((void *)(&MockFunctionTest::aclStubInstance()));
+  }
 };
 
 namespace acl {
-    extern aclError AclMdlInitCallbackFunc(const char *configStr, size_t len, void *userData);
-    extern aclError AclMdlFinalizeCallbackFunc(void *userData);
-    extern aclError ResourceInitCallbackFunc(const char *configStr, size_t len, void *userData);
-    extern aclError Om2DumpInitCallbackFunc(const char *configStr, size_t len, void *userData);
-    extern aclError ResourceFinalizeCallbackFunc(void *userData);
-    extern aclError RegAclMdlInitCallback();
-    extern aclError UnRegAclMdlInitCallback();
-    extern aclError RegResourceInitCallback();
-    extern aclError UnRegResourceInitCallback();
-    extern aclError RegOm2DumpInitCallback();
-    extern aclError UnRegOm2DumpInitCallback();
-    extern aclError RegAclMdlFinalizeCallback();
-    extern aclError UnRegAclMdlFinalizeCallback();
-    extern aclError RegResourceFinalizeCallback();
-    extern aclError UnRegResourceFinalizeCallback();
+extern aclError AclMdlInitCallbackFunc(const char *configStr, size_t len, void *userData);
+extern aclError AclMdlFinalizeCallbackFunc(void *userData);
+extern aclError ResourceInitCallbackFunc(const char *configStr, size_t len, void *userData);
+extern aclError Om2DumpInitCallbackFunc(const char *configStr, size_t len, void *userData);
+extern aclError ResourceFinalizeCallbackFunc(void *userData);
+extern aclError RegAclMdlInitCallback();
+extern aclError UnRegAclMdlInitCallback();
+extern aclError RegResourceInitCallback();
+extern aclError UnRegResourceInitCallback();
+extern aclError RegOm2DumpInitCallback();
+extern aclError UnRegOm2DumpInitCallback();
+extern aclError RegAclMdlFinalizeCallback();
+extern aclError UnRegAclMdlFinalizeCallback();
+extern aclError RegResourceFinalizeCallback();
+extern aclError UnRegResourceFinalizeCallback();
 
-    // acl_aipp.cpp
-    extern void ExtractFP16(const uint16_t val, uint16_t *const s, int16_t *const e, uint16_t *const m);
-}
+// acl_aipp.cpp
+extern void ExtractFP16(const uint16_t val, uint16_t *const s, int16_t *const e, uint16_t *const m);
+}  // namespace acl
 
 namespace {
-    constexpr int32_t MIN_ALIGNMENT_YUV = 2;
+constexpr int32_t MIN_ALIGNMENT_YUV = 2;
 }
 
 ge::graphStatus ExecuteSync_Invoke(gert::Tensor **inputs, size_t input_num, gert::Tensor **outputs, size_t output_num) {
-    (void) inputs;
-    (void) input_num;
-    (void) output_num;
-    static uint64_t tmp{1};
-    outputs[0]->MutableTensorData().SetAddr(&tmp, nullptr);
-    outputs[0]->MutableTensorData().SetSize(sizeof(uint64_t));
-    return ge::GRAPH_SUCCESS;
+  (void)inputs;
+  (void)input_num;
+  (void)output_num;
+  static uint64_t tmp{1};
+  outputs[0]->MutableTensorData().SetAddr(&tmp, nullptr);
+  outputs[0]->MutableTensorData().SetSize(sizeof(uint64_t));
+  return ge::GRAPH_SUCCESS;
 }
 
-ge::Status GetModelDescInfo_Invoke(uint32_t modelId, std::vector<ge::TensorDesc>& inputDesc,
-                                        std::vector<ge::TensorDesc>& outputDesc, bool new_model_desc)
-{
-    (void) modelId;
-    (void) new_model_desc;
-    ge::TensorDesc desc1;
-    inputDesc.push_back(desc1);
-    outputDesc.push_back(desc1);
-    return ge::SUCCESS;
+ge::Status GetModelDescInfo_Invoke(uint32_t modelId, std::vector<ge::TensorDesc> &inputDesc,
+                                   std::vector<ge::TensorDesc> &outputDesc, bool new_model_desc) {
+  (void)modelId;
+  (void)new_model_desc;
+  ge::TensorDesc desc1;
+  inputDesc.push_back(desc1);
+  outputDesc.push_back(desc1);
+  return ge::SUCCESS;
 }
 
-ge::Status GetModelDescInfoFromMem_Invoke(const ModelData &model_data, ModelInOutInfo &info)
-{
-    (void) model_data;
-    ge::ModelInOutTensorDesc test;
-    info.input_desc.emplace_back(test);
-    info.output_desc.emplace_back(test);
-    return ge::SUCCESS;
+ge::Status GetModelDescInfoFromMem_Invoke(const ModelData &model_data, ModelInOutInfo &info) {
+  (void)model_data;
+  ge::ModelInOutTensorDesc test;
+  info.input_desc.emplace_back(test);
+  info.output_desc.emplace_back(test);
+  return ge::SUCCESS;
 }
 
-ge::Status GetModelDescInfo_Invoke2(uint32_t modelId, std::vector<ge::TensorDesc>& inputDesc,
-                                   std::vector<ge::TensorDesc>& outputDesc, bool new_model_desc)
-{
-    (void) modelId;
-    (void) new_model_desc;
+ge::Status GetModelDescInfo_Invoke2(uint32_t modelId, std::vector<ge::TensorDesc> &inputDesc,
+                                    std::vector<ge::TensorDesc> &outputDesc, bool new_model_desc) {
+  (void)modelId;
+  (void)new_model_desc;
+  ge::TensorDesc desc1;
+  ge::TensorDesc desc2;
+  inputDesc.push_back(desc1);
+  inputDesc.push_back(desc2);
+  outputDesc.push_back(desc1);
+  return ge::SUCCESS;
+}
+
+ge::Status GetModelDescInfo_Invoke3(uint32_t modelId, std::vector<ge::TensorDesc> &inputDesc,
+                                    std::vector<ge::TensorDesc> &outputDesc, bool new_model_desc) {
+  if (modelId == 2U && new_model_desc == false) {
     ge::TensorDesc desc1;
     ge::TensorDesc desc2;
     inputDesc.push_back(desc1);
-    inputDesc.push_back(desc2);
     outputDesc.push_back(desc1);
-    return ge::SUCCESS;
+  }
+  if (modelId == 1U) {
+    ge::TensorDesc desc1;
+    ge::TensorDesc desc2;
+    inputDesc.push_back(desc1);
+    outputDesc.push_back(desc1);
+  }
+
+  return ge::SUCCESS;
 }
 
-ge::Status GetModelDescInfo_Invoke3(uint32_t modelId, std::vector<ge::TensorDesc>& inputDesc,
-                                   std::vector<ge::TensorDesc>& outputDesc, bool new_model_desc)
-{
-    if (modelId == 2U && new_model_desc == false) {
-        ge::TensorDesc desc1;
-        ge::TensorDesc desc2;
-        inputDesc.push_back(desc1);
-        outputDesc.push_back(desc1);
-    }
-    if (modelId == 1U) {
-        ge::TensorDesc desc1;
-        ge::TensorDesc desc2;
-        inputDesc.push_back(desc1);
-        outputDesc.push_back(desc1);
-    }
-
-    return ge::SUCCESS;
+ge::Status GetOm2ModelDescInfo_Invoke(const std::vector<ge::Om2TensorDesc> *&inputDesc,
+                                      const std::vector<ge::Om2TensorDesc> *&outputDesc, bool new_model_desc) {
+  (void)new_model_desc;
+  static const std::vector<ge::Om2TensorDesc> input_desc = [] {
+    ge::Om2TensorDesc desc;
+    desc.SetName("input");
+    desc.SetDataType(ge::DT_FLOAT);
+    desc.SetFormat(ge::FORMAT_ND);
+    desc.SetShape({1});
+    desc.SetShapeRange({});
+    desc.SetSize(sizeof(float));
+    return std::vector<ge::Om2TensorDesc>{desc};
+  }();
+  static const std::vector<ge::Om2TensorDesc> output_desc = [] {
+    ge::Om2TensorDesc desc;
+    desc.SetName("output");
+    desc.SetDataType(ge::DT_FLOAT);
+    desc.SetFormat(ge::FORMAT_ND);
+    desc.SetShape({1});
+    desc.SetShapeRange({});
+    desc.SetSize(sizeof(float));
+    return std::vector<ge::Om2TensorDesc>{desc};
+  }();
+  inputDesc = &input_desc;
+  outputDesc = &output_desc;
+  return ge::SUCCESS;
 }
 
-ge::Status GetOm2ModelDescInfo_Invoke(const std::vector<ge::Om2TensorDesc>*& inputDesc,
-                                      const std::vector<ge::Om2TensorDesc>*& outputDesc,
-                                      bool new_model_desc)
-{
-    (void)new_model_desc;
-    static const std::vector<ge::Om2TensorDesc> input_desc = [] {
-        ge::Om2TensorDesc desc;
-        desc.SetName("input");
-        desc.SetDataType(ge::DT_FLOAT);
-        desc.SetFormat(ge::FORMAT_ND);
-        desc.SetShape({1});
-        desc.SetShapeRange({});
-        desc.SetSize(sizeof(float));
-        return std::vector<ge::Om2TensorDesc>{desc};
-    }();
-    static const std::vector<ge::Om2TensorDesc> output_desc = [] {
-        ge::Om2TensorDesc desc;
-        desc.SetName("output");
-        desc.SetDataType(ge::DT_FLOAT);
-        desc.SetFormat(ge::FORMAT_ND);
-        desc.SetShape({1});
-        desc.SetShapeRange({});
-        desc.SetSize(sizeof(float));
-        return std::vector<ge::Om2TensorDesc>{desc};
-    }();
-    inputDesc = &input_desc;
-    outputDesc = &output_desc;
-    return ge::SUCCESS;
-}
-
-ge::Status GetOm2ModelDescInfoNull_Invoke(const std::vector<ge::Om2TensorDesc>*& inputDesc,
-                                          const std::vector<ge::Om2TensorDesc>*& outputDesc,
-                                          bool new_model_desc)
-{
-    (void)new_model_desc;
-    inputDesc = nullptr;
-    outputDesc = nullptr;
-    return ge::SUCCESS;
+ge::Status GetOm2ModelDescInfoNull_Invoke(const std::vector<ge::Om2TensorDesc> *&inputDesc,
+                                          const std::vector<ge::Om2TensorDesc> *&outputDesc, bool new_model_desc) {
+  (void)new_model_desc;
+  inputDesc = nullptr;
+  outputDesc = nullptr;
+  return ge::SUCCESS;
 }
 
 ge::Status GetDynamicBatchInfo_Invoke(uint32_t model_id, std::vector<std::vector<int64_t>> &batch_info,
-                                      int32_t &dynamic_type)
-{
-    (void) model_id;
-    dynamic_type = 2;
-    batch_info.push_back({224, 224});
-    batch_info.push_back({600, 600});
-    return ge::SUCCESS;
+                                      int32_t &dynamic_type) {
+  (void)model_id;
+  dynamic_type = 2;
+  batch_info.push_back({224, 224});
+  batch_info.push_back({600, 600});
+  return ge::SUCCESS;
 }
 
 ge::Status GetDynamicBatchInfo_Invoke3(uint32_t model_id, std::vector<std::vector<int64_t>> &batch_info,
-                                       int32_t &dynamic_type)
-{
-    (void) model_id;
-    dynamic_type = 3;
-    batch_info.push_back({224, 224});
-    batch_info.push_back({600, 600});
-    return ge::SUCCESS;
+                                       int32_t &dynamic_type) {
+  (void)model_id;
+  dynamic_type = 3;
+  batch_info.push_back({224, 224});
+  batch_info.push_back({600, 600});
+  return ge::SUCCESS;
 }
 
 ge::Status ExecModelInvoke(uint32_t model_id, void *stream, const ge::RunModelData &run_input_data,
-                            const std::vector<ge::GeTensorDesc> &input_desc, ge::RunModelData &run_output_data,
-                            std::vector<ge::GeTensorDesc> &output_desc, bool async_mode)
-{
-    (void) model_id;
-    (void) stream;
-    (void) run_input_data;
-    (void) input_desc;
-    (void) run_output_data;
-    (void) async_mode;
-    ge::GeTensorDesc geDescTmp;
-    output_desc.push_back(geDescTmp);
-    output_desc.push_back(geDescTmp);
-    return SUCCESS;
+                           const std::vector<ge::GeTensorDesc> &input_desc, ge::RunModelData &run_output_data,
+                           std::vector<ge::GeTensorDesc> &output_desc, bool async_mode) {
+  (void)model_id;
+  (void)stream;
+  (void)run_input_data;
+  (void)input_desc;
+  (void)run_output_data;
+  (void)async_mode;
+  ge::GeTensorDesc geDescTmp;
+  output_desc.push_back(geDescTmp);
+  output_desc.push_back(geDescTmp);
+  return SUCCESS;
 }
 
 ge::Status ExecModelInvokeOneOut(uint32_t model_id, void *stream, const ge::RunModelData &run_input_data,
-                           const std::vector<ge::GeTensorDesc> &input_desc, ge::RunModelData &run_output_data,
-                           std::vector<ge::GeTensorDesc> &output_desc, bool async_mode)
-{
-  (void) model_id;
-  (void) stream;
-  (void) run_input_data;
-  (void) input_desc;
-  (void) run_output_data;
-  (void) async_mode;
+                                 const std::vector<ge::GeTensorDesc> &input_desc, ge::RunModelData &run_output_data,
+                                 std::vector<ge::GeTensorDesc> &output_desc, bool async_mode) {
+  (void)model_id;
+  (void)stream;
+  (void)run_input_data;
+  (void)input_desc;
+  (void)run_output_data;
+  (void)async_mode;
   ge::GeTensorDesc geDescTmp;
   output_desc.push_back(geDescTmp);
   return SUCCESS;
 }
 
 ge::Status GetDynamicBatchInfo_Invoke4(uint32_t model_id, std::vector<std::vector<int64_t>> &batch_info,
-                                       int32_t &dynamic_type)
-{
-    (void) model_id;
-    dynamic_type = 3;
-    batch_info.push_back({224, 224});
-    batch_info.push_back({600, 600, 600});
-    return ge::SUCCESS;
+                                       int32_t &dynamic_type) {
+  (void)model_id;
+  dynamic_type = 3;
+  batch_info.push_back({224, 224});
+  batch_info.push_back({600, 600, 600});
+  return ge::SUCCESS;
 }
 
 ge::Status GetDynamicBatchInfo_Invoke5(uint32_t model_id, std::vector<std::vector<int64_t>> &batch_info,
-    int32_t &dynamic_type)
-{
-  (void) model_id;
-  (void) batch_info;
-  (void) dynamic_type;
+                                       int32_t &dynamic_type) {
+  (void)model_id;
+  (void)batch_info;
+  (void)dynamic_type;
   return ge::SUCCESS;
 }
 
 ge::Status GetUserDesignateShapeOrderInvoke(uint32_t model_id, vector<string> &user_designate_shape_order) {
-    (void) model_id;
-    user_designate_shape_order.emplace_back("resnet50");
-    user_designate_shape_order.emplace_back("resnet50");
-    return ge::SUCCESS;
+  (void)model_id;
+  user_designate_shape_order.emplace_back("resnet50");
+  user_designate_shape_order.emplace_back("resnet50");
+  return ge::SUCCESS;
 }
 
-ge::Status GetAippTypeFailInvoke(uint32_t model_id, uint32_t index,
-    ge::InputAippType &type, size_t &aippindex) {
-    (void) model_id;
-    (void) index;
-    type = ge::DATA_WITHOUT_AIPP;
-    aippindex = 0xFFFFFFFF;
-    return ge::FAILED;
+ge::Status GetAippTypeFailInvoke(uint32_t model_id, uint32_t index, ge::InputAippType &type, size_t &aippindex) {
+  (void)model_id;
+  (void)index;
+  type = ge::DATA_WITHOUT_AIPP;
+  aippindex = 0xFFFFFFFF;
+  return ge::FAILED;
 }
 
-ge::Status GetAippTypeSuccessInvoke(uint32_t model_id, uint32_t index,
-    ge::InputAippType &type, size_t &aippindex) {
-    (void) model_id;
-    (void) index;
-    (void) aippindex;
-    type = ge::DYNAMIC_AIPP_NODE;
-    return ge::SUCCESS;
+ge::Status GetAippTypeSuccessInvoke(uint32_t model_id, uint32_t index, ge::InputAippType &type, size_t &aippindex) {
+  (void)model_id;
+  (void)index;
+  (void)aippindex;
+  type = ge::DYNAMIC_AIPP_NODE;
+  return ge::SUCCESS;
 }
 
-ge::Status GetAippTypeNoAippInvoke(uint32_t model_id, uint32_t index,
-    ge::InputAippType &type, size_t &aippindex) {
-    (void) model_id;
-    (void) index;
-    type = ge::DATA_WITHOUT_AIPP;
-    aippindex = 0xFFFFFFFF;
-    return ge::SUCCESS;
+ge::Status GetAippTypeNoAippInvoke(uint32_t model_id, uint32_t index, ge::InputAippType &type, size_t &aippindex) {
+  (void)model_id;
+  (void)index;
+  type = ge::DATA_WITHOUT_AIPP;
+  aippindex = 0xFFFFFFFF;
+  return ge::SUCCESS;
 }
 
 ge::Status GetAippTypeStaticAippInvoke(uint32_t model_id, uint32_t index, ge::InputAippType &type, size_t &aippindex) {
-    (void) model_id;
-    (void) index;
-    type = ge::DATA_WITH_STATIC_AIPP;
-    aippindex = 0xFFFFFFFF;
-    return ge::SUCCESS;
+  (void)model_id;
+  (void)index;
+  type = ge::DATA_WITH_STATIC_AIPP;
+  aippindex = 0xFFFFFFFF;
+  return ge::SUCCESS;
 }
 
-ge::Status GetOpAttr_Invoke(uint32_t model_id, const std::string &op_name, const std::string &attr_name, std::string &attr_value)
-{
-    (void) model_id;
-    (void) op_name;
-    (void) attr_name;
-    (void) attr_value;
-    return FAILED;
+ge::Status GetOpAttr_Invoke(uint32_t model_id, const std::string &op_name, const std::string &attr_name,
+                            std::string &attr_value) {
+  (void)model_id;
+  (void)op_name;
+  (void)attr_name;
+  (void)attr_value;
+  return FAILED;
 }
 
-ge::Status GetOpAttr_Invoke_1(uint32_t model_id, const std::string &op_name, const std::string &attr_name, std::string &attr_value)
-{
-    (void) model_id;
-    (void) op_name;
-    (void) attr_name;
-    attr_value = "";
-    return SUCCESS;
+ge::Status GetOpAttr_Invoke_1(uint32_t model_id, const std::string &op_name, const std::string &attr_name,
+                              std::string &attr_value) {
+  (void)model_id;
+  (void)op_name;
+  (void)attr_name;
+  attr_value = "";
+  return SUCCESS;
 }
 
-ge::Status GetOpAttr_Invoke_2(uint32_t model_id, const std::string &op_name, const std::string &attr_name, std::string &attr_value)
-{
-    (void) model_id;
-    (void) op_name;
-    (void) attr_name;
-    attr_value = "attr_finded";
-    return SUCCESS;
+ge::Status GetOpAttr_Invoke_2(uint32_t model_id, const std::string &op_name, const std::string &attr_name,
+                              std::string &attr_value) {
+  (void)model_id;
+  (void)op_name;
+  (void)attr_name;
+  attr_value = "attr_finded";
+  return SUCCESS;
 }
 
-ge::graphStatus GetShapeRange_Invoke(std::vector<std::pair<int64_t,int64_t>> &range)
-{
-    range.push_back(std::make_pair(1, 16));
-    range.push_back(std::make_pair(1, 16));
-    range.push_back(std::make_pair(1, 16));
-    range.push_back(std::make_pair(1, 16));
-    return GRAPH_SUCCESS;
+ge::graphStatus GetShapeRange_Invoke(std::vector<std::pair<int64_t, int64_t>> &range) {
+  range.push_back(std::make_pair(1, 16));
+  range.push_back(std::make_pair(1, 16));
+  range.push_back(std::make_pair(1, 16));
+  range.push_back(std::make_pair(1, 16));
+  return GRAPH_SUCCESS;
 }
 
-std::unique_ptr<gert::ModelV2Executor>
-LoadExecutorFromModelDataReturnError(const ge::ModelData &model_data,  const gert::LoadExecutorArgs &args,
-                                     ge::graphStatus &error_code)
-{
-    (void) model_data;
-    (void) args;
-    error_code = ge::GRAPH_FAILED;
+std::unique_ptr<gert::ModelV2Executor> LoadExecutorFromModelDataReturnError(const ge::ModelData &model_data,
+                                                                            const gert::LoadExecutorArgs &args,
+                                                                            ge::graphStatus &error_code) {
+  (void)model_data;
+  (void)args;
+  error_code = ge::GRAPH_FAILED;
+  return nullptr;
+}
+
+std::unique_ptr<gert::ModelV2Executor> LoadExecutorFromModelDataSuccess(const ge::ModelData &model_data,
+                                                                        const gert::LoadExecutorArgs &args,
+                                                                        ge::graphStatus &error_code) {
+  (void)model_data;
+  (void)args;
+  auto executor = std::unique_ptr<gert::ModelV2Executor>(new (std::nothrow) gert::ModelV2Executor);
+  error_code = ge::GRAPH_SUCCESS;
+  return executor;
+}
+
+std::unique_ptr<gert::ModelV2Executor> LoadExecutorFromModelDataCheckFileConstantMemSuccess(
+    const ge::ModelData &model_data, const gert::LoadExecutorArgs &args, ge::graphStatus &error_code) {
+  (void)model_data;
+  if (args.file_constant_mems.size() != 2U) {
     return nullptr;
+  }
+  if (args.file_constant_mems[0].file_name != "fileconstant1.bin" ||
+      args.file_constant_mems[1].file_name != "fileconstant2.bin") {
+    return nullptr;
+  }
+  auto executor = std::unique_ptr<gert::ModelV2Executor>(new (std::nothrow) gert::ModelV2Executor);
+  error_code = ge::GRAPH_SUCCESS;
+  return executor;
 }
 
-std::unique_ptr<gert::ModelV2Executor>
-LoadExecutorFromModelDataSuccess(const ge::ModelData &model_data, const gert::LoadExecutorArgs &args,
-                                 ge::graphStatus &error_code)
-{
-    (void) model_data;
-    (void) args;
-    auto executor = std::unique_ptr<gert::ModelV2Executor>(new (std::nothrow) gert::ModelV2Executor);
-    error_code = ge::GRAPH_SUCCESS;
-    return executor;
-}
-
-std::unique_ptr<gert::ModelV2Executor>
-LoadExecutorFromModelDataCheckFileConstantMemSuccess(const ge::ModelData &model_data,
-                                                     const gert::LoadExecutorArgs &args,
-                                                     ge::graphStatus &error_code)
-{
-    (void) model_data;
-    if (args.file_constant_mems.size() != 2U) {
-        return nullptr;
-    }
-    if (args.file_constant_mems[0].file_name != "fileconstant1.bin" ||
-        args.file_constant_mems[1].file_name != "fileconstant2.bin") {
-        return nullptr;
-    }
-    auto executor = std::unique_ptr<gert::ModelV2Executor>(new (std::nothrow) gert::ModelV2Executor);
-    error_code = ge::GRAPH_SUCCESS;
-    return executor;
-}
-
-std::unique_ptr<gert::ModelV2Executor> LoadExecutorFromFileReturnUnSupported(const char *file_path, ge::graphStatus &error_code)
-{
-    (void) file_path;
-    error_code = ge::GE_GRAPH_UNSUPPORTED;
-    return std::unique_ptr<gert::ModelV2Executor>(new(std::nothrow) gert::ModelV2Executor);
+std::unique_ptr<gert::ModelV2Executor> LoadExecutorFromFileReturnUnSupported(const char *file_path,
+                                                                             ge::graphStatus &error_code) {
+  (void)file_path;
+  error_code = ge::GE_GRAPH_UNSUPPORTED;
+  return std::unique_ptr<gert::ModelV2Executor>(new (std::nothrow) gert::ModelV2Executor);
 }
 
 ge::graphStatus IsDynamicModelReturnTrue(const char *file_path, bool &is_dynamic_model) {
-  (void) file_path;
+  (void)file_path;
   is_dynamic_model = true;
   return GRAPH_SUCCESS;
 }
 
 ge::graphStatus IsDynamicModelReturnFailed(const char *file_path, bool &is_dynamic_model) {
-  (void) file_path;
+  (void)file_path;
   is_dynamic_model = false;
   return ACL_ERROR_GE_PARAM_INVALID;
 }
@@ -418,319 +390,301 @@ ge::Status IsNotOm2ModelFromData(const void *data, size_t size, bool &is_support
 }
 
 ge::Status LoadOm2DataFromFileSuccess(const std::string &model_path, ge::ModelData &model_data) {
-    (void) model_path;
-    // Allocate memory that will be auto-managed by implementation's shared_ptr guard (model.cpp:484)
-    model_data.model_data = new (std::nothrow) uint8_t[100];
-    if (model_data.model_data == nullptr) {
-        return ge::FAILED;
-    }
-    model_data.model_len = 100;
-    return ge::SUCCESS;
+  (void)model_path;
+  // Allocate memory that will be auto-managed by implementation's shared_ptr guard (model.cpp:484)
+  model_data.model_data = new (std::nothrow) uint8_t[100];
+  if (model_data.model_data == nullptr) {
+    return ge::FAILED;
+  }
+  model_data.model_len = 100;
+  return ge::SUCCESS;
 }
 ge::Status LoadOm2DataFromFileFail(const std::string &model_path, ge::ModelData &model_data) {
-    (void) model_path;
-    (void) model_data;
-    return ge::FAILED;
+  (void)model_path;
+  (void)model_data;
+  return ge::FAILED;
 }
 
 struct ExpectedOm2FileConstantMem {
-    std::string file_name;
-    const void *device_mem;
-    size_t mem_size;
+  std::string file_name;
+  const void *device_mem;
+  size_t mem_size;
 };
 
 struct ExpectedOm2LoadArg {
-    int32_t device_id = 0;
-    uint32_t model_id = 0U;
-    void *work_ptr = nullptr;
-    size_t work_size = 0U;
-    void *weight_ptr = nullptr;
-    size_t weight_size = 0U;
-    std::vector<ExpectedOm2FileConstantMem> file_constant_mems;
-    bool need_clear_dfx_cache = false;
+  int32_t device_id = 0;
+  uint32_t model_id = 0U;
+  void *work_ptr = nullptr;
+  size_t work_size = 0U;
+  void *weight_ptr = nullptr;
+  size_t weight_size = 0U;
+  std::vector<ExpectedOm2FileConstantMem> file_constant_mems;
+  bool need_clear_dfx_cache = false;
 };
 
 ExpectedOm2LoadArg g_expected_om2_load_arg;
 uint32_t g_last_om2_load_model_id = 0U;
 
-void SetExpectedOm2LoadArg(void *work_ptr = nullptr, size_t work_size = 0U,
-                           void *weight_ptr = nullptr, size_t weight_size = 0U,
-                           int32_t device_id = 0,
+void SetExpectedOm2LoadArg(void *work_ptr = nullptr, size_t work_size = 0U, void *weight_ptr = nullptr,
+                           size_t weight_size = 0U, int32_t device_id = 0,
                            std::vector<ExpectedOm2FileConstantMem> file_constant_mems = {},
-                           bool need_clear_dfx_cache = false)
-{
-    g_expected_om2_load_arg = {device_id, 0U, work_ptr, work_size, weight_ptr, weight_size,
-                               std::move(file_constant_mems), need_clear_dfx_cache};
-    g_last_om2_load_model_id = 0U;
+                           bool need_clear_dfx_cache = false) {
+  g_expected_om2_load_arg = {
+      device_id, 0U, work_ptr, work_size, weight_ptr, weight_size, std::move(file_constant_mems), need_clear_dfx_cache};
+  g_last_om2_load_model_id = 0U;
 }
 
-void ExpectAclrtGetDeviceOk(int32_t device_id = 0)
-{
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtGetDevice(_))
-        .WillRepeatedly(DoAll(SetArgPointee<0>(device_id), Return(ACL_SUCCESS)));
+void ExpectAclrtGetDeviceOk(int32_t device_id = 0) {
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtGetDevice(_))
+      .WillRepeatedly(DoAll(SetArgPointee<0>(device_id), Return(ACL_SUCCESS)));
 }
 
-void ExpectAclrtGetDeviceInvalid()
-{
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtGetDevice(_))
-        .WillOnce(DoAll(SetArgPointee<0>(-1), Return(ACL_SUCCESS)));
+void ExpectAclrtGetDeviceInvalid() {
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtGetDevice(_))
+      .WillOnce(DoAll(SetArgPointee<0>(-1), Return(ACL_SUCCESS)));
 }
 
 std::unique_ptr<gert::Om2ModelExecutor> LoadOm2ExecutorFromDataSuccess(ge::ModelData &model_data,
                                                                        const gert::Om2ModelLoadArg &load_arg,
                                                                        ge::graphStatus &error_code) {
-    (void) model_data;
-    (void) load_arg;
-    auto executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    error_code = ge::GRAPH_SUCCESS;
-    return executor;
+  (void)model_data;
+  (void)load_arg;
+  auto executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  error_code = ge::GRAPH_SUCCESS;
+  return executor;
 }
 std::unique_ptr<gert::Om2ModelExecutor> LoadOm2ExecutorFromDataFail(ge::ModelData &model_data,
                                                                     const gert::Om2ModelLoadArg &load_arg,
                                                                     ge::graphStatus &error_code) {
-    (void) model_data;
-    (void) load_arg;
-    error_code = ge::GRAPH_FAILED;
-    return nullptr;
+  (void)model_data;
+  (void)load_arg;
+  error_code = ge::GRAPH_FAILED;
+  return nullptr;
 }
 
 std::unique_ptr<gert::Om2ModelExecutor> LoadOm2ExecutorFromDataNullSuccess(ge::ModelData &model_data,
                                                                            const gert::Om2ModelLoadArg &load_arg,
                                                                            ge::graphStatus &error_code) {
-    (void) model_data;
-    (void) load_arg;
-    error_code = ge::GRAPH_SUCCESS;
-    return nullptr;
+  (void)model_data;
+  (void)load_arg;
+  error_code = ge::GRAPH_SUCCESS;
+  return nullptr;
 }
 
 std::unique_ptr<gert::Om2ModelExecutor> LoadOm2ExecutorFromDataCheckLoadArg(ge::ModelData &model_data,
-                                                                             const gert::Om2ModelLoadArg &load_arg,
-                                                                             ge::graphStatus &error_code) {
-    (void) model_data;
-    if (load_arg.device_id != g_expected_om2_load_arg.device_id ||
-        load_arg.model_id == 0U ||
-        load_arg.work_ptr != g_expected_om2_load_arg.work_ptr ||
-        load_arg.work_size != g_expected_om2_load_arg.work_size ||
-        load_arg.weight_ptr != g_expected_om2_load_arg.weight_ptr ||
-        load_arg.weight_size != g_expected_om2_load_arg.weight_size ||
-        load_arg.need_clear_dfx_cache != g_expected_om2_load_arg.need_clear_dfx_cache ||
-        load_arg.file_constant_mems.size() != g_expected_om2_load_arg.file_constant_mems.size()) {
-        error_code = ge::GRAPH_FAILED;
-        return nullptr;
+                                                                            const gert::Om2ModelLoadArg &load_arg,
+                                                                            ge::graphStatus &error_code) {
+  (void)model_data;
+  if (load_arg.device_id != g_expected_om2_load_arg.device_id || load_arg.model_id == 0U ||
+      load_arg.work_ptr != g_expected_om2_load_arg.work_ptr ||
+      load_arg.work_size != g_expected_om2_load_arg.work_size ||
+      load_arg.weight_ptr != g_expected_om2_load_arg.weight_ptr ||
+      load_arg.weight_size != g_expected_om2_load_arg.weight_size ||
+      load_arg.need_clear_dfx_cache != g_expected_om2_load_arg.need_clear_dfx_cache ||
+      load_arg.file_constant_mems.size() != g_expected_om2_load_arg.file_constant_mems.size()) {
+    error_code = ge::GRAPH_FAILED;
+    return nullptr;
+  }
+  for (size_t i = 0U; i < g_expected_om2_load_arg.file_constant_mems.size(); ++i) {
+    const auto &actual = load_arg.file_constant_mems[i];
+    const auto &expected = g_expected_om2_load_arg.file_constant_mems[i];
+    if (actual.file_name != expected.file_name || actual.device_mem != expected.device_mem ||
+        actual.mem_size != expected.mem_size) {
+      error_code = ge::GRAPH_FAILED;
+      return nullptr;
     }
-    for (size_t i = 0U; i < g_expected_om2_load_arg.file_constant_mems.size(); ++i) {
-        const auto &actual = load_arg.file_constant_mems[i];
-        const auto &expected = g_expected_om2_load_arg.file_constant_mems[i];
-        if (actual.file_name != expected.file_name ||
-            actual.device_mem != expected.device_mem ||
-            actual.mem_size != expected.mem_size) {
-            error_code = ge::GRAPH_FAILED;
-            return nullptr;
-        }
-    }
-    g_last_om2_load_model_id = load_arg.model_id;
-    auto executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    error_code = ge::GRAPH_SUCCESS;
-    return executor;
+  }
+  g_last_om2_load_model_id = load_arg.model_id;
+  auto executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  error_code = ge::GRAPH_SUCCESS;
+  return executor;
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetOpAttr)
-{
-    aclmdlDesc *mdlDesc = aclmdlCreateDesc();
-    aclmdlDesc *mdlDescNullptr = nullptr;
-    const char *opName = "anyOp";
-    const char *opNameNullptr = nullptr;
-    const char *attr = "_datadump_original_op_names";
-    const char *attrNullptr = nullptr;
+TEST_F(UTEST_ACL_Model, aclmdlGetOpAttr) {
+  aclmdlDesc *mdlDesc = aclmdlCreateDesc();
+  aclmdlDesc *mdlDescNullptr = nullptr;
+  const char *opName = "anyOp";
+  const char *opNameNullptr = nullptr;
+  const char *attr = "_datadump_original_op_names";
+  const char *attrNullptr = nullptr;
 
-    const char *attrNotSupported = "anyAttr";
-    const char *result = aclmdlGetOpAttr(mdlDesc, opName, attrNotSupported);
-    EXPECT_EQ(result, nullptr);
+  const char *attrNotSupported = "anyAttr";
+  const char *result = aclmdlGetOpAttr(mdlDesc, opName, attrNotSupported);
+  EXPECT_EQ(result, nullptr);
 
-    const char *resultNullptr_1 = aclmdlGetOpAttr(mdlDescNullptr, opName, attr);
-    EXPECT_EQ(resultNullptr_1, nullptr);
+  const char *resultNullptr_1 = aclmdlGetOpAttr(mdlDescNullptr, opName, attr);
+  EXPECT_EQ(resultNullptr_1, nullptr);
 
-    const char *resultNullptr_2 = aclmdlGetOpAttr(mdlDesc, opNameNullptr, attr);
-    EXPECT_EQ(resultNullptr_2, nullptr);
+  const char *resultNullptr_2 = aclmdlGetOpAttr(mdlDesc, opNameNullptr, attr);
+  EXPECT_EQ(resultNullptr_2, nullptr);
 
-    const char *resultNullptr_3 = aclmdlGetOpAttr(mdlDesc, opName, attrNullptr);
-    EXPECT_EQ(resultNullptr_3, nullptr);
+  const char *resultNullptr_3 = aclmdlGetOpAttr(mdlDesc, opName, attrNullptr);
+  EXPECT_EQ(resultNullptr_3, nullptr);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetOpAttr(_,_,_,_))
-        .WillOnce(Invoke(GetOpAttr_Invoke));
-    const char *resultGeFailed  = aclmdlGetOpAttr(mdlDesc, opName, attr);
-    EXPECT_EQ(resultGeFailed, nullptr);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetOpAttr(_, _, _, _)).WillOnce(Invoke(GetOpAttr_Invoke));
+  const char *resultGeFailed = aclmdlGetOpAttr(mdlDesc, opName, attr);
+  EXPECT_EQ(resultGeFailed, nullptr);
 
-    //ensure ut cover two functions below
-    string testStr = "test";
-    acl::AclErrorLogManager::ReportInnerError("%s", testStr.c_str());
-    acl::AclErrorLogManager::ReportCallError("%s", testStr.c_str());
-    acl::AclErrorLogManager::ReportInnerError("%n");
-    acl::AclErrorLogManager::ReportCallError("%n");
+  // ensure ut cover two functions below
+  string testStr = "test";
+  acl::AclErrorLogManager::ReportInnerError("%s", testStr.c_str());
+  acl::AclErrorLogManager::ReportCallError("%s", testStr.c_str());
+  acl::AclErrorLogManager::ReportInnerError("%n");
+  acl::AclErrorLogManager::ReportCallError("%n");
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetOpAttr(_,_,_,_))
-        .WillOnce(Invoke(GetOpAttr_Invoke_1));
-    const char *resultEmptyStr = aclmdlGetOpAttr(mdlDesc, opName, attr);
-    EXPECT_EQ(string(resultEmptyStr), "");
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetOpAttr(_, _, _, _)).WillOnce(Invoke(GetOpAttr_Invoke_1));
+  const char *resultEmptyStr = aclmdlGetOpAttr(mdlDesc, opName, attr);
+  EXPECT_EQ(string(resultEmptyStr), "");
 
-    const char *opName3 = "anyOp3";
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetOpAttr(_,_,_,_))
-        .WillOnce(Invoke(GetOpAttr_Invoke_2));
-    const char *resultValue = aclmdlGetOpAttr(mdlDesc, opName3, attr);
-    EXPECT_EQ(string(resultValue), "attr_finded");
+  const char *opName3 = "anyOp3";
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetOpAttr(_, _, _, _)).WillOnce(Invoke(GetOpAttr_Invoke_2));
+  const char *resultValue = aclmdlGetOpAttr(mdlDesc, opName3, attr);
+  EXPECT_EQ(string(resultValue), "attr_finded");
 
-    const char *resultGeSuccess = aclmdlGetOpAttr(mdlDesc, opName3, attr);
-    EXPECT_EQ(string(resultGeSuccess), "attr_finded");
+  const char *resultGeSuccess = aclmdlGetOpAttr(mdlDesc, opName3, attr);
+  EXPECT_EQ(string(resultGeSuccess), "attr_finded");
 
-    aclmdlDestroyDesc(mdlDesc);
+  aclmdlDestroyDesc(mdlDesc);
 }
 
-TEST_F(UTEST_ACL_Model, desc)
-{
-    aclmdlDesc* desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
+TEST_F(UTEST_ACL_Model, desc) {
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
 
-    size_t size = aclmdlGetNumInputs(nullptr);
-    EXPECT_EQ(size, 0);
-    size = aclmdlGetNumInputs(desc);
-    EXPECT_EQ(size, 0);
+  size_t size = aclmdlGetNumInputs(nullptr);
+  EXPECT_EQ(size, 0);
+  size = aclmdlGetNumInputs(desc);
+  EXPECT_EQ(size, 0);
 
-    size = aclmdlGetNumOutputs(nullptr);
-    EXPECT_EQ(size, 0);
-    size = aclmdlGetNumOutputs(desc);
-    EXPECT_EQ(size, 0);
+  size = aclmdlGetNumOutputs(nullptr);
+  EXPECT_EQ(size, 0);
+  size = aclmdlGetNumOutputs(desc);
+  EXPECT_EQ(size, 0);
 
-    aclError ret = aclmdlDestroyDesc(desc);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlDestroyDesc(nullptr);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  aclError ret = aclmdlDestroyDesc(desc);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlDestroyDesc(nullptr);
+  EXPECT_NE(ret, ACL_SUCCESS);
 }
 
 TEST_F(UTEST_ACL_Model, aclmdlGetDesc_Ok_GetDescFromOm2) {
-    uint32_t modelId = std::numeric_limits<uint32_t>::max() / 2U + 1;
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(modelId, std::move(om2_executor));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(),
-                GetModelDescInfo(A<const std::vector<ge::Om2TensorDesc>*&>(),
-                                 A<const std::vector<ge::Om2TensorDesc>*&>(), _))
-        .WillRepeatedly(Invoke(GetOm2ModelDescInfo_Invoke));
-    
-    aclmdlDesc* desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
-    
-    aclError ret = aclmdlGetDesc(desc, modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    
-    ret = aclmdlDestroyDesc(desc);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(modelId);
+  uint32_t modelId = std::numeric_limits<uint32_t>::max() / 2U + 1;
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(modelId, std::move(om2_executor));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(A<const std::vector<ge::Om2TensorDesc> *&>(),
+                                                                    A<const std::vector<ge::Om2TensorDesc> *&>(), _))
+      .WillRepeatedly(Invoke(GetOm2ModelDescInfo_Invoke));
+
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
+
+  aclError ret = aclmdlGetDesc(desc, modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+
+  ret = aclmdlDestroyDesc(desc);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(modelId);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetDesc)
-{
-    aclError ret = aclmdlGetDesc(nullptr, 1);
-    EXPECT_NE(ret, ACL_SUCCESS);
+TEST_F(UTEST_ACL_Model, aclmdlGetDesc) {
+  aclError ret = aclmdlGetDesc(nullptr, 1);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_,_,_,_))
-        .WillRepeatedly(Invoke(GetModelDescInfo_Invoke));
-    aclmdlDesc* desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke(GetModelDescInfo_Invoke));
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_,_,_))
-         .WillOnce(Invoke(GetDynamicBatchInfo_Invoke3));
-    ret = aclmdlGetDesc(desc, 1);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    Mock::VerifyAndClear((void *)(&MockFunctionTest::aclStubInstance()));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _, _))
+      .WillOnce(Invoke(GetDynamicBatchInfo_Invoke3));
+  ret = aclmdlGetDesc(desc, 1);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  Mock::VerifyAndClear((void *)(&MockFunctionTest::aclStubInstance()));
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _,_))
-        .WillOnce(Invoke(GetDynamicBatchInfo_Invoke4));
-    ret = aclmdlGetDesc(desc, 1);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _, _))
+      .WillOnce(Invoke(GetDynamicBatchInfo_Invoke4));
+  ret = aclmdlGetDesc(desc, 1);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    ret = aclmdlDestroyDesc(desc);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlDestroyDesc(desc);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetDesc_fail_1)
-{
-    aclError ret = aclmdlGetDesc(nullptr, 1);
-    EXPECT_NE(ret, ACL_SUCCESS);
+TEST_F(UTEST_ACL_Model, aclmdlGetDesc_fail_1) {
+  aclError ret = aclmdlGetDesc(nullptr, 1);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_,_,_,_))
-        .WillRepeatedly(Invoke(GetModelDescInfo_Invoke));
-    aclmdlDesc* desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke(GetModelDescInfo_Invoke));
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_,_,_))
-         .WillRepeatedly(Return(ACL_ERROR_INVALID_PARAM));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetUserDesignateShapeOrder(_,_))
-        .WillRepeatedly(Return(ACL_ERROR_INVALID_PARAM));
-    ret = aclmdlGetDesc(desc, 1);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlDestroyDesc(desc);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _, _))
+      .WillRepeatedly(Return(ACL_ERROR_INVALID_PARAM));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetUserDesignateShapeOrder(_, _))
+      .WillRepeatedly(Return(ACL_ERROR_INVALID_PARAM));
+  ret = aclmdlGetDesc(desc, 1);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlDestroyDesc(desc);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetDesc_2)
-{
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_,_,_,_))
-        .WillRepeatedly(Invoke(GetModelDescInfo_Invoke3));
+TEST_F(UTEST_ACL_Model, aclmdlGetDesc_2) {
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke(GetModelDescInfo_Invoke3));
 
-    aclmdlDesc* desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
 
-    aclError ret = aclmdlGetDesc(desc, 2);
+  aclError ret = aclmdlGetDesc(desc, 2);
 
-    EXPECT_NE(ret, ACL_SUCCESS);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_,_,_))
-         .WillOnce(Invoke(GetDynamicBatchInfo_Invoke3));
-    ret = aclmdlGetDesc(desc, 1);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    EXPECT_EQ(aclmdlDestroyDesc(desc), ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _, _))
+      .WillOnce(Invoke(GetDynamicBatchInfo_Invoke3));
+  ret = aclmdlGetDesc(desc, 1);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_EQ(aclmdlDestroyDesc(desc), ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetDesc_Fail)
-{
-    aclError ret = aclmdlGetDesc(nullptr, 1);
-    EXPECT_NE(ret, ACL_SUCCESS);
+TEST_F(UTEST_ACL_Model, aclmdlGetDesc_Fail) {
+  aclError ret = aclmdlGetDesc(nullptr, 1);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-        .WillOnce(Return((PARAM_INVALID)));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _)).WillOnce(Return((PARAM_INVALID)));
 
-    aclmdlDesc* desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
 
-    ret = aclmdlGetDesc(desc, 1);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  ret = aclmdlGetDesc(desc, 1);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    ret = aclmdlDestroyDesc(desc);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlDestroyDesc(desc);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetDescFromFile)
-{
+TEST_F(UTEST_ACL_Model, aclmdlGetDescFromFile) {
   aclError ret = aclmdlGetDescFromFile(nullptr, "./fake.om");
   EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-  aclmdlDesc* desc = aclmdlCreateDesc();
+  aclmdlDesc *desc = aclmdlCreateDesc();
   EXPECT_NE(desc, nullptr);
 
   ret = aclmdlGetDescFromFile(desc, nullptr);
   EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadDataFromFile(_,_))
-          .WillOnce(Return((PARAM_INVALID)))
-          .WillRepeatedly(Return(SUCCESS));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadDataFromFile(_, _))
+      .WillOnce(Return((PARAM_INVALID)))
+      .WillRepeatedly(Return(SUCCESS));
 
   ret = aclmdlGetDescFromFile(desc, "./fake.om");
   EXPECT_NE(ret, ACL_SUCCESS);
 
   EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfoFromMem(_, _))
-          .WillOnce(Return((PARAM_INVALID)))
-          .WillRepeatedly(Invoke(GetModelDescInfoFromMem_Invoke));
+      .WillOnce(Return((PARAM_INVALID)))
+      .WillRepeatedly(Invoke(GetModelDescInfoFromMem_Invoke));
 
   ret = aclmdlGetDescFromFile(desc, "./fake.om");
   EXPECT_NE(ret, ACL_SUCCESS);
@@ -742,13 +696,12 @@ TEST_F(UTEST_ACL_Model, aclmdlGetDescFromFile)
   EXPECT_EQ(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetDescFromMem)
-{
+TEST_F(UTEST_ACL_Model, aclmdlGetDescFromMem) {
   uint32_t fakeModel = 0;
   aclError ret = aclmdlGetDescFromMem(nullptr, &fakeModel, sizeof(fakeModel));
   EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-  aclmdlDesc* desc = aclmdlCreateDesc();
+  aclmdlDesc *desc = aclmdlCreateDesc();
   EXPECT_NE(desc, nullptr);
 
   ret = aclmdlGetDescFromMem(desc, nullptr, sizeof(fakeModel));
@@ -758,8 +711,8 @@ TEST_F(UTEST_ACL_Model, aclmdlGetDescFromMem)
   EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
   EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfoFromMem(_, _))
-          .WillOnce(Return((PARAM_INVALID)))
-          .WillRepeatedly(Return(SUCCESS));
+      .WillOnce(Return((PARAM_INVALID)))
+      .WillRepeatedly(Return(SUCCESS));
 
   ret = aclmdlGetDescFromMem(desc, &fakeModel, sizeof(fakeModel));
   EXPECT_NE(ret, ACL_SUCCESS);
@@ -771,1187 +724,1104 @@ TEST_F(UTEST_ACL_Model, aclmdlGetDescFromMem)
   EXPECT_EQ(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetInputSizeByIndex)
-{
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-        .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
-    aclmdlDesc* desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
+TEST_F(UTEST_ACL_Model, aclmdlGetInputSizeByIndex) {
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _,_))
-        .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke)));
-    aclError ret = aclmdlGetDesc(desc, 1);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _, _))
+      .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke)));
+  aclError ret = aclmdlGetDesc(desc, 1);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    size_t size = aclmdlGetInputSizeByIndex(nullptr, 0);
-    EXPECT_EQ(size, 0);
+  size_t size = aclmdlGetInputSizeByIndex(nullptr, 0);
+  EXPECT_EQ(size, 0);
 
-    size = aclmdlGetInputSizeByIndex(desc, 0);
-    EXPECT_EQ(size, 1);
+  size = aclmdlGetInputSizeByIndex(desc, 0);
+  EXPECT_EQ(size, 1);
 
-    size = aclmdlGetOutputSizeByIndex(nullptr, 0);
-    EXPECT_EQ(size, 0);
+  size = aclmdlGetOutputSizeByIndex(nullptr, 0);
+  EXPECT_EQ(size, 0);
 
-    size = aclmdlGetOutputSizeByIndex(desc, 0);
-    EXPECT_EQ(size, 1);
+  size = aclmdlGetOutputSizeByIndex(desc, 0);
+  EXPECT_EQ(size, 1);
 
-    ret = aclmdlDestroyDesc(desc);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlDestroyDesc(desc);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, Dataset)
-{
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    EXPECT_NE(dataset, nullptr);
+TEST_F(UTEST_ACL_Model, Dataset) {
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  EXPECT_NE(dataset, nullptr);
 
-    aclError ret = aclmdlAddDatasetBuffer(dataset, nullptr);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  aclError ret = aclmdlAddDatasetBuffer(dataset, nullptr);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    ret = aclmdlAddDatasetBuffer(dataset, (aclDataBuffer *)0x01);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlAddDatasetBuffer(dataset, (aclDataBuffer *)0x01);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    size_t size = aclmdlGetDatasetNumBuffers(nullptr);
-    EXPECT_EQ(size, 0);
+  size_t size = aclmdlGetDatasetNumBuffers(nullptr);
+  EXPECT_EQ(size, 0);
 
-    size = aclmdlGetDatasetNumBuffers(dataset);
-    EXPECT_EQ(size, 1);
+  size = aclmdlGetDatasetNumBuffers(dataset);
+  EXPECT_EQ(size, 1);
 
-    aclDataBuffer *dataBuffer = aclmdlGetDatasetBuffer(dataset, 1);
-    EXPECT_EQ(dataBuffer, nullptr);
+  aclDataBuffer *dataBuffer = aclmdlGetDatasetBuffer(dataset, 1);
+  EXPECT_EQ(dataBuffer, nullptr);
 
-    dataBuffer = aclmdlGetDatasetBuffer(dataset, 0);
-    EXPECT_NE(dataBuffer, nullptr);
+  dataBuffer = aclmdlGetDatasetBuffer(dataset, 0);
+  EXPECT_NE(dataBuffer, nullptr);
 
-    ret = aclmdlAddDatasetBuffer(nullptr, nullptr);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  ret = aclmdlAddDatasetBuffer(nullptr, nullptr);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    ret = aclmdlDestroyDataset(nullptr);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  ret = aclmdlDestroyDataset(nullptr);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    ret = aclmdlDestroyDataset(dataset);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlDestroyDataset(dataset);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlLoadFromFile)
-{
-    aclError ret = aclmdlLoadFromFile(nullptr, nullptr);
-    EXPECT_NE(ret, ACL_SUCCESS);
+TEST_F(UTEST_ACL_Model, aclmdlLoadFromFile) {
+  aclError ret = aclmdlLoadFromFile(nullptr, nullptr);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    uint32_t modelId = 1;
-    const char *modelPath = "/";
+  uint32_t modelId = 1;
+  const char *modelPath = "/";
 
-    ret = aclmdlLoadFromFile(modelPath, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlLoadFromFile(modelPath, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadModelFromDataWithArgs(_,_,_))
-        .WillOnce(Return((ACL_ERROR_GE_EXEC_LOAD_MODEL_REPEATED)));
-    ret = aclmdlLoadFromFile(modelPath, &modelId);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadModelFromDataWithArgs(_, _, _))
+      .WillOnce(Return((ACL_ERROR_GE_EXEC_LOAD_MODEL_REPEATED)));
+  ret = aclmdlLoadFromFile(modelPath, &modelId);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadModelFromDataWithArgs(_,_,_))
-        .WillOnce(Return((PARAM_INVALID)));
-    ret = aclmdlLoadFromFile(modelPath, &modelId);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadModelFromDataWithArgs(_, _, _))
+      .WillOnce(Return((PARAM_INVALID)));
+  ret = aclmdlLoadFromFile(modelPath, &modelId);
+  EXPECT_NE(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlLoadFromFileRTV2)
-{
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsDynamicModel(_, _))
-            .WillRepeatedly(Invoke((IsDynamicModelReturnTrue)));
-    uint32_t modelId = 1;
-    const char *modelPath = "/";
-    // case 1
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_,_,_))
-            .WillOnce(Invoke(LoadExecutorFromModelDataSuccess));
-    auto ret = aclmdlLoadFromFile(modelPath, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+TEST_F(UTEST_ACL_Model, aclmdlLoadFromFileRTV2) {
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsDynamicModel(_, _))
+      .WillRepeatedly(Invoke((IsDynamicModelReturnTrue)));
+  uint32_t modelId = 1;
+  const char *modelPath = "/";
+  // case 1
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_, _, _))
+      .WillOnce(Invoke(LoadExecutorFromModelDataSuccess));
+  auto ret = aclmdlLoadFromFile(modelPath, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    // case 2
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_,_,_))
-            .WillOnce(Invoke(LoadExecutorFromModelDataReturnError));
-    ret = aclmdlLoadFromFile(modelPath, &modelId);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  // case 2
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_, _, _))
+      .WillOnce(Invoke(LoadExecutorFromModelDataReturnError));
+  ret = aclmdlLoadFromFile(modelPath, &modelId);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    // case 3
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadDataFromFileV2(_,_))
-            .WillOnce(Return((GRAPH_PARAM_INVALID)));
-    ret = aclmdlLoadFromFile(modelPath, &modelId);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  // case 3
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadDataFromFileV2(_, _)).WillOnce(Return((GRAPH_PARAM_INVALID)));
+  ret = aclmdlLoadFromFile(modelPath, &modelId);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlLoadFromFile_Ok_LoadOm2Model)
-{
-    const char *modelPath = "/fake/om2_model.om";
-    uint32_t modelId = 1;
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _))
-        .WillRepeatedly(Invoke(IsOm2ModelFromFile));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtGetDevice(_))
-        .WillRepeatedly(DoAll(SetArgPointee<0>(0), Return(ACL_SUCCESS)));
-    // Case 1: Load OM2 model from file successfully
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2DataFromFile(_, _))
-        .WillOnce(Invoke(LoadOm2DataFromFileSuccess));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _, _))
-        .WillOnce(Invoke(LoadOm2ExecutorFromDataSuccess));
-    auto ret = aclmdlLoadFromFile(modelPath, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    
-    // Case 2: Load OM2 model from file - LoadOm2DataFromFile fails
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2DataFromFile(_, _))
-        .WillOnce(Invoke(LoadOm2DataFromFileFail));
-    ret = aclmdlLoadFromFile(modelPath, &modelId);
-    EXPECT_NE(ret, ACL_SUCCESS);
-    
-    // Case 3: Load OM2 model from file - LoadOm2ExecutorFromData fails with error
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2DataFromFile(_, _))
-        .WillOnce(Invoke(LoadOm2DataFromFileSuccess));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _, _))
-        .WillOnce(Invoke(LoadOm2ExecutorFromDataFail));
-    ret = aclmdlLoadFromFile(modelPath, &modelId);
-    EXPECT_NE(ret, ACL_SUCCESS);
+TEST_F(UTEST_ACL_Model, aclmdlLoadFromFile_Ok_LoadOm2Model) {
+  const char *modelPath = "/fake/om2_model.om";
+  uint32_t modelId = 1;
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _)).WillRepeatedly(Invoke(IsOm2ModelFromFile));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtGetDevice(_))
+      .WillRepeatedly(DoAll(SetArgPointee<0>(0), Return(ACL_SUCCESS)));
+  // Case 1: Load OM2 model from file successfully
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2DataFromFile(_, _))
+      .WillOnce(Invoke(LoadOm2DataFromFileSuccess));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _, _))
+      .WillOnce(Invoke(LoadOm2ExecutorFromDataSuccess));
+  auto ret = aclmdlLoadFromFile(modelPath, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+
+  // Case 2: Load OM2 model from file - LoadOm2DataFromFile fails
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2DataFromFile(_, _)).WillOnce(Invoke(LoadOm2DataFromFileFail));
+  ret = aclmdlLoadFromFile(modelPath, &modelId);
+  EXPECT_NE(ret, ACL_SUCCESS);
+
+  // Case 3: Load OM2 model from file - LoadOm2ExecutorFromData fails with error
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2DataFromFile(_, _))
+      .WillOnce(Invoke(LoadOm2DataFromFileSuccess));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _, _))
+      .WillOnce(Invoke(LoadOm2ExecutorFromDataFail));
+  ret = aclmdlLoadFromFile(modelPath, &modelId);
+  EXPECT_NE(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlLoadFromMem_Ok_LoadOm2Model)
-{
-    // OM2 magic header: {0x50, 0x4B, 0x03, 0x04} (ZIP signature)
-    uint8_t om2ModelData[] = {0x50, 0x4B, 0x03, 0x04, 0x00, 0x00, 0x00, 0x00};
-    uint32_t modelId = 1;
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _, _))
-        .WillRepeatedly(Invoke(IsOm2ModelFromData));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtGetDevice(_))
-        .WillRepeatedly(DoAll(SetArgPointee<0>(0), Return(ACL_SUCCESS)));
-    
-    // Case 1: Load OM2 model from memory successfully
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _, _))
-        .WillOnce(Invoke(LoadOm2ExecutorFromDataSuccess));
-    auto ret = aclmdlLoadFromMem(om2ModelData, sizeof(om2ModelData), &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    
-    // Case 2: Load OM2 model from memory - LoadOm2ExecutorFromData fails with error
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _, _))
-        .WillOnce(Invoke(LoadOm2ExecutorFromDataFail));
-    ret = aclmdlLoadFromMem(om2ModelData, sizeof(om2ModelData), &modelId);
-    EXPECT_NE(ret, ACL_SUCCESS);
+TEST_F(UTEST_ACL_Model, aclmdlLoadFromMem_Ok_LoadOm2Model) {
+  // OM2 magic header: {0x50, 0x4B, 0x03, 0x04} (ZIP signature)
+  uint8_t om2ModelData[] = {0x50, 0x4B, 0x03, 0x04, 0x00, 0x00, 0x00, 0x00};
+  uint32_t modelId = 1;
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _, _)).WillRepeatedly(Invoke(IsOm2ModelFromData));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtGetDevice(_))
+      .WillRepeatedly(DoAll(SetArgPointee<0>(0), Return(ACL_SUCCESS)));
+
+  // Case 1: Load OM2 model from memory successfully
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _, _))
+      .WillOnce(Invoke(LoadOm2ExecutorFromDataSuccess));
+  auto ret = aclmdlLoadFromMem(om2ModelData, sizeof(om2ModelData), &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+
+  // Case 2: Load OM2 model from memory - LoadOm2ExecutorFromData fails with error
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _, _))
+      .WillOnce(Invoke(LoadOm2ExecutorFromDataFail));
+  ret = aclmdlLoadFromMem(om2ModelData, sizeof(om2ModelData), &modelId);
+  EXPECT_NE(ret, ACL_SUCCESS);
 }
 
 TEST_F(UTEST_ACL_Model, aclmdlLoadWithConfig_Ok_LoadOm2Model) {
+  aclmdlConfigHandle *handle = aclmdlCreateConfigHandle();
+  ASSERT_NE(handle, nullptr);
+  uint32_t modelId = 1U;
+  uint8_t om2ModelData[sizeof(ge::ModelFileHeader)] = {0x50, 0x4B, 0x03, 0x04};
+  void *mdl_addr = static_cast<void *>(om2ModelData);
+  size_t mdl_size = sizeof(om2ModelData);
+  void *work_ptr = reinterpret_cast<void *>(0x1);
+  size_t work_size = 1U;
+  void *weight_ptr = reinterpret_cast<void *>(0x1);
+  size_t weight_size = 1U;
+  const char *load_path = "/fake/om2_model.om2";
+
+  ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_PATH_PTR, &load_path, sizeof(load_path)), ACL_SUCCESS);
+  ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_MEM_ADDR_PTR, &mdl_addr, sizeof(mdl_addr)), ACL_SUCCESS);
+  ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_MEM_SIZET, &mdl_size, sizeof(mdl_size)), ACL_SUCCESS);
+  ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_ADDR_PTR, &work_ptr, sizeof(work_ptr)), ACL_SUCCESS);
+  ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_SIZET, &work_size, sizeof(work_size)), ACL_SUCCESS);
+  ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_WEIGHT_ADDR_PTR, &weight_ptr, sizeof(weight_ptr)), ACL_SUCCESS);
+  ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_WEIGHT_SIZET, &weight_size, sizeof(weight_size)), ACL_SUCCESS);
+
+  size_t load_type = ACL_MDL_LOAD_FROM_MEM_WITH_MEM;
+  ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &load_type, sizeof(load_type)), ACL_SUCCESS);
+  ASSERT_EQ(aclmdlSetExternalWeightAddress(handle, "fileconstant1.bin", reinterpret_cast<void *>(0x2), 1024U),
+            ACL_SUCCESS);
+  ASSERT_EQ(aclmdlSetExternalWeightAddress(handle, "fileconstant2.bin", reinterpret_cast<void *>(0x3), 2048U),
+            ACL_SUCCESS);
+
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _)).WillRepeatedly(Invoke(IsOm2ModelFromFile));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _, _)).WillRepeatedly(Invoke(IsOm2ModelFromData));
+  ExpectAclrtGetDeviceOk();
+  // OM2 model loading via config handle is not supported yet, expect error
+  EXPECT_NE(aclmdlLoadWithConfig(handle, &modelId), ACL_SUCCESS);
+  EXPECT_EQ(aclmdlDestroyConfigHandle(handle), ACL_SUCCESS);
+}
+
+TEST_F(UTEST_ACL_Model, aclmdlLoadWithMem_Ok_LoadOm2ModelLoadArgs) {
+  const char *modelPath = "/fake/om2_model.om";
+  uint8_t om2ModelData[] = {0x50, 0x4B, 0x03, 0x04, 0x00, 0x00, 0x00, 0x00};
+  void *work_ptr = reinterpret_cast<void *>(0x10);
+  size_t work_size = 1024U;
+  void *weight_ptr = reinterpret_cast<void *>(0x20);
+  size_t weight_size = 2048U;
+  uint32_t modelId = 0U;
+
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _)).WillRepeatedly(Invoke(IsOm2ModelFromFile));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _, _)).WillRepeatedly(Invoke(IsOm2ModelFromData));
+  ExpectAclrtGetDeviceOk();
+
+  SetExpectedOm2LoadArg(work_ptr, work_size, weight_ptr, weight_size);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2DataFromFile(_, _))
+      .WillOnce(Invoke(LoadOm2DataFromFileSuccess));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _, _))
+      .WillOnce(Invoke(LoadOm2ExecutorFromDataCheckLoadArg));
+  EXPECT_EQ(aclmdlLoadFromFileWithMem(modelPath, &modelId, work_ptr, work_size, weight_ptr, weight_size), ACL_SUCCESS);
+  EXPECT_EQ(modelId, g_last_om2_load_model_id);
+  EXPECT_EQ(aclmdlUnload(modelId), ACL_SUCCESS);
+
+  SetExpectedOm2LoadArg(work_ptr, work_size, weight_ptr, weight_size);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _, _))
+      .WillOnce(Invoke(LoadOm2ExecutorFromDataCheckLoadArg));
+  EXPECT_EQ(aclmdlLoadFromMemWithMem(om2ModelData, sizeof(om2ModelData), &modelId, work_ptr, work_size, weight_ptr,
+                                     weight_size),
+            ACL_SUCCESS);
+  EXPECT_EQ(modelId, g_last_om2_load_model_id);
+  EXPECT_EQ(aclmdlUnload(modelId), ACL_SUCCESS);
+}
+
+TEST_F(UTEST_ACL_Model, aclmdlLoadWithConfig_Ok_LoadOm2ModelAllLoadTypes) {
+  const char *load_path = "/fake/om2_model.om2";
+  uint8_t om2ModelData[sizeof(ge::ModelFileHeader)] = {0x50, 0x4B, 0x03, 0x04};
+  void *mdl_addr = static_cast<void *>(om2ModelData);
+  size_t mdl_size = sizeof(om2ModelData);
+  void *work_ptr = reinterpret_cast<void *>(0x10);
+  size_t work_size = 1024U;
+  void *weight_ptr = reinterpret_cast<void *>(0x20);
+  size_t weight_size = 2048U;
+  const std::vector<ExpectedOm2FileConstantMem> expected_file_constants = {
+      {"fileconstant1.bin", reinterpret_cast<void *>(0x30), 4096U},
+      {"fileconstant2.bin", reinterpret_cast<void *>(0x40), 8192U}};
+
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _)).WillRepeatedly(Invoke(IsOm2ModelFromFile));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _, _)).WillRepeatedly(Invoke(IsOm2ModelFromData));
+  ExpectAclrtGetDeviceOk();
+
+  auto check_load_with_config = [&](size_t load_type, bool from_file, bool with_mem) {
     aclmdlConfigHandle *handle = aclmdlCreateConfigHandle();
     ASSERT_NE(handle, nullptr);
-    uint32_t modelId = 1U;
-    uint8_t om2ModelData[sizeof(ge::ModelFileHeader)] = {0x50, 0x4B, 0x03, 0x04};
-    void *mdl_addr = static_cast<void *>(om2ModelData);
-    size_t mdl_size = sizeof(om2ModelData);
-    void *work_ptr = reinterpret_cast<void *>(0x1);
-    size_t work_size = 1U;
-    void *weight_ptr = reinterpret_cast<void *>(0x1);
-    size_t weight_size = 1U;
-    const char *load_path = "/fake/om2_model.om2";
-
     ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_PATH_PTR, &load_path, sizeof(load_path)), ACL_SUCCESS);
     ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_MEM_ADDR_PTR, &mdl_addr, sizeof(mdl_addr)), ACL_SUCCESS);
     ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_MEM_SIZET, &mdl_size, sizeof(mdl_size)), ACL_SUCCESS);
-    ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_ADDR_PTR, &work_ptr, sizeof(work_ptr)), ACL_SUCCESS);
-    ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_SIZET, &work_size, sizeof(work_size)), ACL_SUCCESS);
-    ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_WEIGHT_ADDR_PTR, &weight_ptr, sizeof(weight_ptr)), ACL_SUCCESS);
-    ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_WEIGHT_SIZET, &weight_size, sizeof(weight_size)), ACL_SUCCESS);
-
-    size_t load_type = ACL_MDL_LOAD_FROM_MEM_WITH_MEM;
     ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &load_type, sizeof(load_type)), ACL_SUCCESS);
-    ASSERT_EQ(aclmdlSetExternalWeightAddress(handle, "fileconstant1.bin", reinterpret_cast<void *>(0x2), 1024U), ACL_SUCCESS);
-    ASSERT_EQ(aclmdlSetExternalWeightAddress(handle, "fileconstant2.bin", reinterpret_cast<void *>(0x3), 2048U), ACL_SUCCESS);
+    ASSERT_EQ(aclmdlSetExternalWeightAddress(handle, expected_file_constants[0].file_name.c_str(),
+                                             const_cast<void *>(expected_file_constants[0].device_mem),
+                                             expected_file_constants[0].mem_size),
+              ACL_SUCCESS);
+    ASSERT_EQ(aclmdlSetExternalWeightAddress(handle, expected_file_constants[1].file_name.c_str(),
+                                             const_cast<void *>(expected_file_constants[1].device_mem),
+                                             expected_file_constants[1].mem_size),
+              ACL_SUCCESS);
+    if (with_mem) {
+      ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_ADDR_PTR, &work_ptr, sizeof(work_ptr)), ACL_SUCCESS);
+      ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_SIZET, &work_size, sizeof(work_size)), ACL_SUCCESS);
+      ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_WEIGHT_ADDR_PTR, &weight_ptr, sizeof(weight_ptr)), ACL_SUCCESS);
+      ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_WEIGHT_SIZET, &weight_size, sizeof(weight_size)), ACL_SUCCESS);
+    }
+    int32_t without_graph = 1;
+    ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_WITHOUT_GRAPH_INT32, &without_graph, sizeof(without_graph)),
+              ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _))
-        .WillRepeatedly(Invoke(IsOm2ModelFromFile));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _, _))
-        .WillRepeatedly(Invoke(IsOm2ModelFromData));
-    ExpectAclrtGetDeviceOk();
-    // OM2 model loading via config handle is not supported yet, expect error
-    EXPECT_NE(aclmdlLoadWithConfig(handle, &modelId), ACL_SUCCESS);
+    SetExpectedOm2LoadArg(with_mem ? work_ptr : nullptr, with_mem ? work_size : 0U, with_mem ? weight_ptr : nullptr,
+                          with_mem ? weight_size : 0U, 0, expected_file_constants, true);
+    if (from_file) {
+      EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2DataFromFile(_, _))
+          .WillOnce(Invoke(LoadOm2DataFromFileSuccess));
+    }
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _, _))
+        .WillOnce(Invoke(LoadOm2ExecutorFromDataCheckLoadArg));
+
+    uint32_t modelId = 0U;
+    // OM2 config load is now supported
+    EXPECT_EQ(aclmdlLoadWithConfig(handle, &modelId), ACL_SUCCESS);
+    EXPECT_EQ(modelId, g_last_om2_load_model_id);
+    EXPECT_EQ(aclmdlUnload(modelId), ACL_SUCCESS);
     EXPECT_EQ(aclmdlDestroyConfigHandle(handle), ACL_SUCCESS);
+  };
+
+  check_load_with_config(ACL_MDL_LOAD_FROM_FILE, true, false);
+  check_load_with_config(ACL_MDL_LOAD_FROM_FILE_WITH_MEM, true, true);
+  check_load_with_config(ACL_MDL_LOAD_FROM_MEM, false, false);
+  check_load_with_config(ACL_MDL_LOAD_FROM_MEM_WITH_MEM, false, true);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlLoadWithMem_Ok_LoadOm2ModelLoadArgs)
-{
-    const char *modelPath = "/fake/om2_model.om";
-    uint8_t om2ModelData[] = {0x50, 0x4B, 0x03, 0x04, 0x00, 0x00, 0x00, 0x00};
-    void *work_ptr = reinterpret_cast<void *>(0x10);
-    size_t work_size = 1024U;
-    void *weight_ptr = reinterpret_cast<void *>(0x20);
-    size_t weight_size = 2048U;
-    uint32_t modelId = 0U;
+TEST_F(UTEST_ACL_Model, aclmdlLoad_Om2GetDeviceFailed_ReturnInvalidParam) {
+  uint8_t om2ModelData[] = {0x50, 0x4B, 0x03, 0x04, 0x00, 0x00, 0x00, 0x00};
+  uint32_t modelId = 0U;
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _))
-        .WillRepeatedly(Invoke(IsOm2ModelFromFile));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _, _))
-        .WillRepeatedly(Invoke(IsOm2ModelFromData));
-    ExpectAclrtGetDeviceOk();
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _, _)).WillRepeatedly(Invoke(IsOm2ModelFromData));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtGetDevice(_)).WillOnce(Return(ACL_ERROR_RT_FAILURE));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _, _)).Times(0);
+  EXPECT_EQ(aclmdlLoadFromMemWithMem(om2ModelData, sizeof(om2ModelData), &modelId, nullptr, 0U, nullptr, 0U),
+            ACL_ERROR_RT_FAILURE);
 
-    SetExpectedOm2LoadArg(work_ptr, work_size, weight_ptr, weight_size);
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2DataFromFile(_, _))
-        .WillOnce(Invoke(LoadOm2DataFromFileSuccess));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _, _))
-        .WillOnce(Invoke(LoadOm2ExecutorFromDataCheckLoadArg));
-    EXPECT_EQ(aclmdlLoadFromFileWithMem(modelPath, &modelId, work_ptr, work_size, weight_ptr, weight_size),
-              ACL_SUCCESS);
-    EXPECT_EQ(modelId, g_last_om2_load_model_id);
-    EXPECT_EQ(aclmdlUnload(modelId), ACL_SUCCESS);
-
-    SetExpectedOm2LoadArg(work_ptr, work_size, weight_ptr, weight_size);
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _, _))
-        .WillOnce(Invoke(LoadOm2ExecutorFromDataCheckLoadArg));
-    EXPECT_EQ(aclmdlLoadFromMemWithMem(om2ModelData, sizeof(om2ModelData), &modelId, work_ptr, work_size,
-                                       weight_ptr, weight_size),
-              ACL_SUCCESS);
-    EXPECT_EQ(modelId, g_last_om2_load_model_id);
-    EXPECT_EQ(aclmdlUnload(modelId), ACL_SUCCESS);
+  ExpectAclrtGetDeviceInvalid();
+  EXPECT_EQ(aclmdlLoadFromMemWithMem(om2ModelData, sizeof(om2ModelData), &modelId, nullptr, 0U, nullptr, 0U),
+            ACL_ERROR_INVALID_PARAM);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlLoadWithConfig_Ok_LoadOm2ModelAllLoadTypes)
-{
-    const char *load_path = "/fake/om2_model.om2";
-    uint8_t om2ModelData[sizeof(ge::ModelFileHeader)] = {0x50, 0x4B, 0x03, 0x04};
-    void *mdl_addr = static_cast<void *>(om2ModelData);
-    size_t mdl_size = sizeof(om2ModelData);
-    void *work_ptr = reinterpret_cast<void *>(0x10);
-    size_t work_size = 1024U;
-    void *weight_ptr = reinterpret_cast<void *>(0x20);
-    size_t weight_size = 2048U;
-    const std::vector<ExpectedOm2FileConstantMem> expected_file_constants = {
-        {"fileconstant1.bin", reinterpret_cast<void *>(0x30), 4096U},
-        {"fileconstant2.bin", reinterpret_cast<void *>(0x40), 8192U}
-    };
+TEST_F(UTEST_ACL_Model, aclmdlLoad_Om2ExecutorNull_ReturnError) {
+  const char *modelPath = "/fake/om2_model.om";
+  uint8_t om2ModelData[] = {0x50, 0x4B, 0x03, 0x04, 0x00, 0x00, 0x00, 0x00};
+  uint32_t modelId = 0U;
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _))
-        .WillRepeatedly(Invoke(IsOm2ModelFromFile));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _, _))
-        .WillRepeatedly(Invoke(IsOm2ModelFromData));
-    ExpectAclrtGetDeviceOk();
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _)).WillRepeatedly(Invoke(IsOm2ModelFromFile));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _, _)).WillRepeatedly(Invoke(IsOm2ModelFromData));
+  ExpectAclrtGetDeviceOk();
 
-    auto check_load_with_config = [&](size_t load_type, bool from_file, bool with_mem) {
-        aclmdlConfigHandle *handle = aclmdlCreateConfigHandle();
-        ASSERT_NE(handle, nullptr);
-        ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_PATH_PTR, &load_path, sizeof(load_path)), ACL_SUCCESS);
-        ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_MEM_ADDR_PTR, &mdl_addr, sizeof(mdl_addr)), ACL_SUCCESS);
-        ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_MEM_SIZET, &mdl_size, sizeof(mdl_size)), ACL_SUCCESS);
-        ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &load_type, sizeof(load_type)), ACL_SUCCESS);
-        ASSERT_EQ(aclmdlSetExternalWeightAddress(handle, expected_file_constants[0].file_name.c_str(),
-                                                 const_cast<void *>(expected_file_constants[0].device_mem),
-                                                 expected_file_constants[0].mem_size),
-                  ACL_SUCCESS);
-        ASSERT_EQ(aclmdlSetExternalWeightAddress(handle, expected_file_constants[1].file_name.c_str(),
-                                                 const_cast<void *>(expected_file_constants[1].device_mem),
-                                                 expected_file_constants[1].mem_size),
-                  ACL_SUCCESS);
-        if (with_mem) {
-            ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_ADDR_PTR, &work_ptr, sizeof(work_ptr)),
-                      ACL_SUCCESS);
-            ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_SIZET, &work_size, sizeof(work_size)),
-                      ACL_SUCCESS);
-            ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_WEIGHT_ADDR_PTR, &weight_ptr, sizeof(weight_ptr)),
-                      ACL_SUCCESS);
-            ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_WEIGHT_SIZET, &weight_size, sizeof(weight_size)),
-                      ACL_SUCCESS);
-        }
-        int32_t without_graph = 1;
-        ASSERT_EQ(aclmdlSetConfigOpt(handle, ACL_MDL_WITHOUT_GRAPH_INT32, &without_graph, sizeof(without_graph)),
-                  ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2DataFromFile(_, _))
+      .WillOnce(Invoke(LoadOm2DataFromFileSuccess));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _, _))
+      .WillOnce(Invoke(LoadOm2ExecutorFromDataNullSuccess));
+  EXPECT_NE(aclmdlLoadFromFile(modelPath, &modelId), ACL_SUCCESS);
 
-        SetExpectedOm2LoadArg(with_mem ? work_ptr : nullptr, with_mem ? work_size : 0U,
-                              with_mem ? weight_ptr : nullptr, with_mem ? weight_size : 0U,
-                              0, expected_file_constants, true);
-        if (from_file) {
-            EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2DataFromFile(_, _))
-                .WillOnce(Invoke(LoadOm2DataFromFileSuccess));
-        }
-        EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _, _))
-            .WillOnce(Invoke(LoadOm2ExecutorFromDataCheckLoadArg));
-
-        uint32_t modelId = 0U;
-        // OM2 config load is now supported
-        EXPECT_EQ(aclmdlLoadWithConfig(handle, &modelId), ACL_SUCCESS);
-        EXPECT_EQ(modelId, g_last_om2_load_model_id);
-        EXPECT_EQ(aclmdlUnload(modelId), ACL_SUCCESS);
-        EXPECT_EQ(aclmdlDestroyConfigHandle(handle), ACL_SUCCESS);
-    };
-
-    check_load_with_config(ACL_MDL_LOAD_FROM_FILE, true, false);
-    check_load_with_config(ACL_MDL_LOAD_FROM_FILE_WITH_MEM, true, true);
-    check_load_with_config(ACL_MDL_LOAD_FROM_MEM, false, false);
-    check_load_with_config(ACL_MDL_LOAD_FROM_MEM_WITH_MEM, false, true);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _, _))
+      .WillOnce(Invoke(LoadOm2ExecutorFromDataNullSuccess));
+  EXPECT_NE(aclmdlLoadFromMem(om2ModelData, sizeof(om2ModelData), &modelId), ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlLoad_Om2GetDeviceFailed_ReturnInvalidParam)
-{
-    uint8_t om2ModelData[] = {0x50, 0x4B, 0x03, 0x04, 0x00, 0x00, 0x00, 0x00};
-    uint32_t modelId = 0U;
+TEST_F(UTEST_ACL_Model, aclmdlUnload_Ok_UnloadOm2Model) {
+  uint8_t om2ModelData[] = {0x50, 0x4B, 0x03, 0x04, 0x00, 0x00, 0x00, 0x00};
+  uint32_t modelId = 0U;
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _, _))
-        .WillRepeatedly(Invoke(IsOm2ModelFromData));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtGetDevice(_))
-        .WillOnce(Return(ACL_ERROR_RT_FAILURE));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _, _)).Times(0);
-    EXPECT_EQ(aclmdlLoadFromMemWithMem(om2ModelData, sizeof(om2ModelData), &modelId, nullptr, 0U, nullptr, 0U),
-              ACL_ERROR_RT_FAILURE);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _, _)).WillRepeatedly(Invoke(IsOm2ModelFromData));
+  ExpectAclrtGetDeviceOk();
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _, _))
+      .WillOnce(Invoke(LoadOm2ExecutorFromDataSuccess));
 
-    ExpectAclrtGetDeviceInvalid();
-    EXPECT_EQ(aclmdlLoadFromMemWithMem(om2ModelData, sizeof(om2ModelData), &modelId, nullptr, 0U, nullptr, 0U),
-              ACL_ERROR_INVALID_PARAM);
+  EXPECT_EQ(aclmdlLoadFromMem(om2ModelData, sizeof(om2ModelData), &modelId), ACL_SUCCESS);
+  // OM2 uses AclResourceManagerOm2, not AclResourceManager
+  auto executor = acl::AclResourceManagerOm2::GetInstance().GetOm2Executor(modelId);
+  EXPECT_NE(executor, nullptr);
+  EXPECT_EQ(aclmdlUnload(modelId), ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlLoad_Om2ExecutorNull_ReturnError)
-{
-    const char *modelPath = "/fake/om2_model.om";
-    uint8_t om2ModelData[] = {0x50, 0x4B, 0x03, 0x04, 0x00, 0x00, 0x00, 0x00};
-    uint32_t modelId = 0U;
+TEST_F(UTEST_ACL_Model, aclmdlLoadFromFileWithMemRTV2) {
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsDynamicModel(_, _))
+      .WillRepeatedly(Invoke((IsDynamicModelReturnTrue)));
+  uint32_t modelId = 1;
+  const char *modelPath = "/";
+  void *weightPtr = reinterpret_cast<void *>(0x02);
+  size_t weightSize = 10U;
+  // case 1
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_, _, _))
+      .WillOnce(Invoke(LoadExecutorFromModelDataSuccess));
+  auto ret = aclmdlLoadFromFileWithMem(modelPath, &modelId, nullptr, 0U, weightPtr, weightSize);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _))
-        .WillRepeatedly(Invoke(IsOm2ModelFromFile));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _, _))
-        .WillRepeatedly(Invoke(IsOm2ModelFromData));
-    ExpectAclrtGetDeviceOk();
+  // case 2
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_, _, _))
+      .WillOnce(Invoke(LoadExecutorFromModelDataReturnError));
+  ret = aclmdlLoadFromFileWithMem(modelPath, &modelId, nullptr, 0U, weightPtr, weightSize);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2DataFromFile(_, _))
-        .WillOnce(Invoke(LoadOm2DataFromFileSuccess));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _, _))
-        .WillOnce(Invoke(LoadOm2ExecutorFromDataNullSuccess));
-    EXPECT_NE(aclmdlLoadFromFile(modelPath, &modelId), ACL_SUCCESS);
+  // case 3
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadDataFromFileV2(_, _)).WillOnce(Return((GRAPH_PARAM_INVALID)));
+  ret = aclmdlLoadFromFileWithMem(modelPath, &modelId, nullptr, 0U, weightPtr, weightSize);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _, _))
-        .WillOnce(Invoke(LoadOm2ExecutorFromDataNullSuccess));
-    EXPECT_NE(aclmdlLoadFromMem(om2ModelData, sizeof(om2ModelData), &modelId), ACL_SUCCESS);
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlUnload_Ok_UnloadOm2Model)
-{
-    uint8_t om2ModelData[] = {0x50, 0x4B, 0x03, 0x04, 0x00, 0x00, 0x00, 0x00};
-    uint32_t modelId = 0U;
+TEST_F(UTEST_ACL_Model, aclmdlLoadFromMemRTV2) {
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _, _))
-        .WillRepeatedly(Invoke(IsOm2ModelFromData));
-    ExpectAclrtGetDeviceOk();
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2ExecutorFromData(_, _, _))
-        .WillOnce(Invoke(LoadOm2ExecutorFromDataSuccess));
+  aclError ret = aclmdlLoadFromMem(nullptr, 0, nullptr);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    EXPECT_EQ(aclmdlLoadFromMem(om2ModelData, sizeof(om2ModelData), &modelId), ACL_SUCCESS);
-    // OM2 uses AclResourceManagerOm2, not AclResourceManager
-    auto executor = acl::AclResourceManagerOm2::GetInstance().GetOm2Executor(modelId);
-    EXPECT_NE(executor, nullptr);
-    EXPECT_EQ(aclmdlUnload(modelId), ACL_SUCCESS);
+  ge::ModelFileHeader head;
+  head.version = ge::MODEL_VERSION + 1U;
+  head.model_num = 2U;
+  void *model = (void *)&head;
+  uint32_t modelId = 1;
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_, _, _))
+      .WillOnce(Invoke(LoadExecutorFromModelDataSuccess));
+  ret = aclmdlLoadFromMem(model, 0, &modelId);
+  EXPECT_NE(ret, ACL_SUCCESS);
+
+  ret = aclmdlLoadFromMem(model, sizeof(head), &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_, _, _))
+      .WillOnce(Invoke(LoadExecutorFromModelDataReturnError));
+  ret = aclmdlLoadFromMem(model, sizeof(head), &modelId);
+  EXPECT_NE(ret, ACL_SUCCESS);
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlLoadFromFileWithMemRTV2)
-{
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsDynamicModel(_, _))
-            .WillRepeatedly(Invoke((IsDynamicModelReturnTrue)));
-    uint32_t modelId = 1;
-    const char *modelPath = "/";
-    void *weightPtr = reinterpret_cast<void *>(0x02);
-    size_t weightSize = 10U;
-    // case 1
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_,_,_))
-            .WillOnce(Invoke(LoadExecutorFromModelDataSuccess));
-    auto ret = aclmdlLoadFromFileWithMem(modelPath, &modelId, nullptr, 0U, weightPtr, weightSize);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+TEST_F(UTEST_ACL_Model, aclmdlLoadFromMemWithMemRTV2) {
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
+  void *weightPtr = reinterpret_cast<void *>(0x02);
+  size_t weightSize = 10U;
+  // case 1
+  aclError ret = aclmdlLoadFromMemWithMem(nullptr, 0, nullptr, nullptr, 0U, weightPtr, weightSize);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    // case 2
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_,_,_))
-            .WillOnce(Invoke(LoadExecutorFromModelDataReturnError));
-    ret = aclmdlLoadFromFileWithMem(modelPath, &modelId, nullptr, 0U, weightPtr, weightSize);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  // case 2
+  ge::ModelFileHeader head;
+  head.version = ge::MODEL_VERSION + 1U;
+  head.model_num = 2U;
+  void *model = (void *)&head;
+  uint32_t modelId = 1;
+  ret = aclmdlLoadFromMemWithMem(model, 0, &modelId, nullptr, 0U, weightPtr, weightSize);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    // case 3
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadDataFromFileV2(_,_))
-            .WillOnce(Return((GRAPH_PARAM_INVALID)));
-    ret = aclmdlLoadFromFileWithMem(modelPath, &modelId, nullptr, 0U, weightPtr, weightSize);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  // case 3
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_, _, _))
+      .WillOnce(Invoke(LoadExecutorFromModelDataSuccess));
+  ret = aclmdlLoadFromMemWithMem(model, sizeof(head), &modelId, nullptr, 0U, weightPtr, weightSize);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
+  // case 4
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_, _, _))
+      .WillOnce(Invoke(LoadExecutorFromModelDataReturnError));
+  ret = aclmdlLoadFromMemWithMem(model, sizeof(head), &modelId, nullptr, 0U, weightPtr, weightSize);
+  EXPECT_NE(ret, ACL_SUCCESS);
+
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlLoadFromMemRTV2)
-{
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
+TEST_F(UTEST_ACL_Model, aclmdlLoadFromFileWithMem) {
+  aclError ret = aclmdlLoadFromFileWithMem(nullptr, nullptr, nullptr, 0, nullptr, 0);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    aclError ret = aclmdlLoadFromMem(nullptr, 0, nullptr);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  uint32_t modelId = 1;
+  const char *modelPath = "/";
 
-    ge::ModelFileHeader head;
-    head.version = ge::MODEL_VERSION + 1U;
-    head.model_num = 2U;
-    void *model = (void *)&head;
-    uint32_t modelId = 1;
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_,_,_))
-            .WillOnce(Invoke(LoadExecutorFromModelDataSuccess));
-    ret = aclmdlLoadFromMem(model, 0, &modelId);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  ret = aclmdlLoadFromFileWithMem(modelPath, &modelId, nullptr, 0, nullptr, 0);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    ret = aclmdlLoadFromMem(model, sizeof(head), &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadModelFromDataWithArgs(_, _, _))
+      .WillOnce(Return((PARAM_INVALID)));
+  ret = aclmdlLoadFromFileWithMem(modelPath, &modelId, nullptr, 0, nullptr, 0);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_,_,_))
-        .WillOnce(Invoke(LoadExecutorFromModelDataReturnError));
-    ret = aclmdlLoadFromMem(model, sizeof(head), &modelId);
-    EXPECT_NE(ret, ACL_SUCCESS);
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadDataFromFile(_, _)).WillOnce(Return((PARAM_INVALID)));
+  ret = aclmdlLoadFromFileWithMem(modelPath, &modelId, nullptr, 0, nullptr, 0);
+  EXPECT_NE(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlLoadFromMemWithMemRTV2)
-{
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-    void *weightPtr = reinterpret_cast<void *>(0x02);
-    size_t weightSize = 10U;
-    // case 1
-    aclError ret = aclmdlLoadFromMemWithMem(nullptr, 0, nullptr, nullptr, 0U, weightPtr, weightSize);
-    EXPECT_NE(ret, ACL_SUCCESS);
+TEST_F(UTEST_ACL_Model, aclmdlLoadFromMem) {
+  aclError ret = aclmdlLoadFromMem(nullptr, 0, nullptr);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    // case 2
-    ge::ModelFileHeader head;
-    head.version = ge::MODEL_VERSION + 1U;
-    head.model_num = 2U;
-    void *model = (void *)&head;
-    uint32_t modelId = 1;
-    ret = aclmdlLoadFromMemWithMem(model, 0, &modelId, nullptr, 0U, weightPtr, weightSize);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  void *model = (void *)0x01;
+  uint32_t modelId = 1;
+  ret = aclmdlLoadFromMem(model, 0, &modelId);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    // case 3
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_,_,_))
-            .WillOnce(Invoke(LoadExecutorFromModelDataSuccess));
-    ret = aclmdlLoadFromMemWithMem(model, sizeof(head), &modelId, nullptr, 0U, weightPtr, weightSize);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ge::ModelFileHeader head;
+  head.version = 0U;
+  head.model_num = 1U;
+  model = (void *)&head;
+  ret = aclmdlLoadFromMem(model, sizeof(head), &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    // case 4
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_,_,_))
-            .WillOnce(Invoke(LoadExecutorFromModelDataReturnError));
-    ret = aclmdlLoadFromMemWithMem(model, sizeof(head), &modelId, nullptr, 0U, weightPtr, weightSize);
-    EXPECT_NE(ret, ACL_SUCCESS);
-
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadModelFromDataWithArgs(_, _, _))
+      .WillOnce(Return((PARAM_INVALID)));
+  ret = aclmdlLoadFromMem(model, sizeof(head), &modelId);
+  EXPECT_NE(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlLoadFromFileWithMem)
-{
-    aclError ret = aclmdlLoadFromFileWithMem(nullptr, nullptr, nullptr, 0, nullptr, 0);
-    EXPECT_NE(ret, ACL_SUCCESS);
+TEST_F(UTEST_ACL_Model, aclmdlLoadFromMemWithMem) {
+  aclError ret = aclmdlLoadFromMemWithMem(nullptr, 0, nullptr, nullptr, 0, nullptr, 0);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    uint32_t modelId = 1;
-    const char *modelPath = "/";
+  void *model = (void *)0x01;
+  uint32_t modelId = 1;
+  ret = aclmdlLoadFromMemWithMem(model, 0, &modelId, nullptr, 0, nullptr, 0);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    ret = aclmdlLoadFromFileWithMem(modelPath, &modelId, nullptr, 0, nullptr, 0);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlLoadFromMemWithMem(model, 1, &modelId, nullptr, 0, nullptr, 0);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadModelFromDataWithArgs(_,_,_))
-        .WillOnce(Return((PARAM_INVALID)));
-    ret = aclmdlLoadFromFileWithMem(modelPath, &modelId, nullptr, 0, nullptr, 0);
-    EXPECT_NE(ret, ACL_SUCCESS);
-
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadDataFromFile(_,_))
-        .WillOnce(Return((PARAM_INVALID)));
-    ret = aclmdlLoadFromFileWithMem(modelPath, &modelId, nullptr, 0, nullptr, 0);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadModelFromDataWithArgs(_, _, _))
+      .WillOnce(Return((PARAM_INVALID)));
+  ret = aclmdlLoadFromMemWithMem(model, 1, &modelId, nullptr, 0, nullptr, 0);
+  EXPECT_NE(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlLoadFromMem)
-{
-    aclError ret = aclmdlLoadFromMem(nullptr, 0, nullptr);
-    EXPECT_NE(ret, ACL_SUCCESS);
+TEST_F(UTEST_ACL_Model, aclmdlLoadFromFileWithQ) {
+  aclError ret = aclmdlLoadFromFileWithQ(nullptr, nullptr, nullptr, 0, nullptr, 0);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    void *model = (void *)0x01;
-    uint32_t modelId = 1;
-    ret = aclmdlLoadFromMem(model, 0, &modelId);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  const char *modelPath = "/";
+  uint32_t modelId = 1;
 
-    ge::ModelFileHeader head;
-    head.version = 0U;
-    head.model_num = 1U;
-    model = (void *)&head;
-    ret = aclmdlLoadFromMem(model, sizeof(head), &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  uint32_t *input = new (std::nothrow) uint32_t[1];
+  uint32_t *output = new (std::nothrow) uint32_t[1];
+  ret = aclmdlLoadFromFileWithQ(modelPath, &modelId, input, 1, output, 1);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadModelFromDataWithArgs(_,_,_))
-        .WillOnce(Return((PARAM_INVALID)));
-    ret = aclmdlLoadFromMem(model, sizeof(head), &modelId);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadModelWithQ(_, _, _)).WillOnce(Return((PARAM_INVALID)));
+  ret = aclmdlLoadFromFileWithQ(modelPath, &modelId, input, 1, output, 1);
+  EXPECT_NE(ret, ACL_SUCCESS);
+
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadDataFromFile(_, _)).WillOnce(Return((PARAM_INVALID)));
+  ret = aclmdlLoadFromFileWithQ(modelPath, &modelId, (uint32_t *)input, 1, (uint32_t *)output, 1);
+  EXPECT_NE(ret, ACL_SUCCESS);
+
+  ret = aclmdlLoadFromFileWithQ(modelPath, &modelId, (uint32_t *)input, 0, (uint32_t *)output, 1);
+  EXPECT_NE(ret, ACL_SUCCESS);
+  delete[] input;
+  delete[] output;
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlLoadFromMemWithMem)
-{
-    aclError ret = aclmdlLoadFromMemWithMem(nullptr, 0, nullptr, nullptr, 0, nullptr, 0);
-    EXPECT_NE(ret, ACL_SUCCESS);
+TEST_F(UTEST_ACL_Model, aclmdlLoadFromMemWithQ) {
+  aclError ret = aclmdlLoadFromMemWithQ(nullptr, 0, nullptr, nullptr, 0, nullptr, 0);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    void *model = (void *)0x01;
-    uint32_t modelId = 1;
-    ret = aclmdlLoadFromMemWithMem(model, 0, &modelId, nullptr, 0, nullptr, 0);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  uint32_t *input = new (std::nothrow) uint32_t[1];
+  uint32_t *output = new (std::nothrow) uint32_t[1];
+  const char *modelPath = "/";
+  uint32_t modelId = 1;
+  ret = aclmdlLoadFromMemWithQ(modelPath, 1, &modelId, input, 1, output, 1);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    ret = aclmdlLoadFromMemWithMem(model, 1, &modelId, nullptr, 0, nullptr, 0);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadModelWithQ(_, _, _)).WillRepeatedly(Return(PARAM_INVALID));
+  ret = aclmdlLoadFromMemWithQ(modelPath, 1, &modelId, input, 1, output, 1);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadModelFromDataWithArgs(_,_,_))
-        .WillOnce(Return((PARAM_INVALID)));
-    ret = aclmdlLoadFromMemWithMem(model, 1, &modelId, nullptr, 0, nullptr, 0);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadModelWithQ(_, _, _)).WillRepeatedly(Return(PARAM_INVALID));
+  ret = aclmdlLoadFromMemWithQ(modelPath, 0, &modelId, input, 1, output, 1);
+  EXPECT_NE(ret, ACL_SUCCESS);
+
+  delete[] input;
+  delete[] output;
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlLoadFromFileWithQ)
-{
-    aclError ret = aclmdlLoadFromFileWithQ(nullptr, nullptr, nullptr, 0, nullptr, 0);
-    EXPECT_NE(ret, ACL_SUCCESS);
+TEST_F(UTEST_ACL_Model, aclmdlUnload) {
+  aclError ret = aclmdlUnload(0);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    const char *modelPath = "/";
-    uint32_t modelId = 1;
-
-    uint32_t *input = new(std::nothrow) uint32_t[1];
-    uint32_t *output = new(std::nothrow) uint32_t[1];
-    ret = aclmdlLoadFromFileWithQ(modelPath, &modelId, input, 1, output, 1);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadModelWithQ(_,_,_))
-        .WillOnce(Return((PARAM_INVALID)));
-    ret = aclmdlLoadFromFileWithQ(modelPath, &modelId, input, 1, output, 1);
-    EXPECT_NE(ret, ACL_SUCCESS);
-
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadDataFromFile(_,_))
-        .WillOnce(Return((PARAM_INVALID)));
-    ret = aclmdlLoadFromFileWithQ(modelPath, &modelId, (uint32_t*)input, 1, (uint32_t*)output, 1);
-    EXPECT_NE(ret, ACL_SUCCESS);
-
-    ret = aclmdlLoadFromFileWithQ(modelPath, &modelId, (uint32_t*)input, 0, (uint32_t*)output, 1);
-    EXPECT_NE(ret, ACL_SUCCESS);
-    delete []input;
-    delete []output;
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), UnloadModel(_)).WillOnce(Return((PARAM_INVALID)));
+  ret = aclmdlUnload(0);
+  EXPECT_NE(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlLoadFromMemWithQ)
-{
-    aclError ret = aclmdlLoadFromMemWithQ(nullptr, 0, nullptr, nullptr, 0, nullptr, 0);
-    EXPECT_NE(ret, ACL_SUCCESS);
+TEST_F(UTEST_ACL_Model, aclmdlQuerySize) {
+  const char *fileName = "/";
+  size_t memSize;
+  size_t weightSize;
 
-    uint32_t *input = new(std::nothrow) uint32_t[1];
-    uint32_t *output = new(std::nothrow) uint32_t[1];
-    const char *modelPath = "/";
-    uint32_t modelId = 1;
-    ret = aclmdlLoadFromMemWithQ(modelPath, 1, &modelId, input, 1, output, 1);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  aclError ret = aclmdlQuerySize(nullptr, nullptr, nullptr);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadModelWithQ(_,_,_))
-        .WillRepeatedly(Return(PARAM_INVALID));
-    ret = aclmdlLoadFromMemWithQ(modelPath, 1, &modelId, input, 1, output, 1);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  ret = aclmdlQuerySize(fileName, &memSize, &weightSize);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadModelWithQ(_,_,_))
-        .WillRepeatedly(Return(PARAM_INVALID));
-    ret = aclmdlLoadFromMemWithQ(modelPath, 0, &modelId, input, 1, output, 1);
-    EXPECT_NE(ret, ACL_SUCCESS);
-
-    delete []input;
-    delete []output;
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetMemAndWeightSize(_, _, _)).WillOnce(Return((PARAM_INVALID)));
+  ret = aclmdlQuerySize(fileName, &memSize, &weightSize);
+  EXPECT_NE(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlUnload)
-{
-    aclError ret = aclmdlUnload(0);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+TEST_F(UTEST_ACL_Model, aclmdlQuerySizeFromMem) {
+  void *model = (void *)0x01;
+  size_t memSize;
+  size_t weightSize;
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), UnloadModel(_))
-        .WillOnce(Return((PARAM_INVALID)));
-    ret = aclmdlUnload(0);
-    EXPECT_NE(ret, ACL_SUCCESS);
-}
+  aclError ret = aclmdlQuerySizeFromMem(nullptr, 1, nullptr, nullptr);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-TEST_F(UTEST_ACL_Model, aclmdlQuerySize)
-{
-    const char *fileName = "/";
-    size_t memSize;
-    size_t weightSize;
+  ret = aclmdlQuerySizeFromMem(model, 1, &memSize, &weightSize);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    aclError ret = aclmdlQuerySize(nullptr, nullptr, nullptr);
-    EXPECT_NE(ret, ACL_SUCCESS);
-
-    ret = aclmdlQuerySize(fileName, &memSize, &weightSize);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetMemAndWeightSize(_,_,_))
-        .WillOnce(Return((PARAM_INVALID)));
-    ret = aclmdlQuerySize(fileName, &memSize, &weightSize);
-    EXPECT_NE(ret, ACL_SUCCESS);
-}
-
-TEST_F(UTEST_ACL_Model, aclmdlQuerySizeFromMem)
-{
-    void *model = (void *)0x01;
-    size_t memSize;
-    size_t weightSize;
-
-    aclError ret = aclmdlQuerySizeFromMem(nullptr, 1,  nullptr, nullptr);
-    EXPECT_NE(ret, ACL_SUCCESS);
-
-    ret = aclmdlQuerySizeFromMem(model, 1, &memSize, &weightSize);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetMemAndWeightSize(_,_,_,_))
-        .WillOnce(Return((PARAM_INVALID)));
-    ret = aclmdlQuerySizeFromMem(model, 1, &memSize, &weightSize);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetMemAndWeightSize(_, _, _, _)).WillOnce(Return((PARAM_INVALID)));
+  ret = aclmdlQuerySizeFromMem(model, 1, &memSize, &weightSize);
+  EXPECT_NE(ret, ACL_SUCCESS);
 }
 
 TEST_F(UTEST_ACL_Model, aclmdlQuerySize_Ok_Om2Model) {
-    const char *fileName = "/fake/om2_model.om2";
-    size_t workSize = 0U;
-    size_t weightSize = 0U;
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _))
-        .WillRepeatedly(Invoke(IsOm2ModelFromFile));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetOm2MemAndWeightSize(_, _, _))
-        .WillOnce(DoAll(SetArgReferee<1>(2048U), SetArgReferee<2>(1024U), Return(ge::SUCCESS)));
-    EXPECT_EQ(aclmdlQuerySize(fileName, &workSize, &weightSize), ACL_SUCCESS);
-    EXPECT_EQ(workSize, 2048U);
-    EXPECT_EQ(weightSize, 1024U);
+  const char *fileName = "/fake/om2_model.om2";
+  size_t workSize = 0U;
+  size_t weightSize = 0U;
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _)).WillRepeatedly(Invoke(IsOm2ModelFromFile));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetOm2MemAndWeightSize(_, _, _))
+      .WillOnce(DoAll(SetArgReferee<1>(2048U), SetArgReferee<2>(1024U), Return(ge::SUCCESS)));
+  EXPECT_EQ(aclmdlQuerySize(fileName, &workSize, &weightSize), ACL_SUCCESS);
+  EXPECT_EQ(workSize, 2048U);
+  EXPECT_EQ(weightSize, 1024U);
 }
 
 TEST_F(UTEST_ACL_Model, aclmdlQuerySizeFromMem_Ok_Om2Model) {
-    uint8_t om2ModelData[] = {0x50, 0x4B, 0x03, 0x04, 0x00, 0x00, 0x00, 0x00};
-    size_t workSize = 0U;
-    size_t weightSize = 0U;
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _, _))
-        .WillRepeatedly(Invoke(IsOm2ModelFromData));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetOm2MemAndWeightSize(_, _, _, _))
-        .WillOnce(DoAll(SetArgReferee<2>(2048U), SetArgReferee<3>(1024U), Return(ge::SUCCESS)));
-    EXPECT_EQ(aclmdlQuerySizeFromMem(om2ModelData, sizeof(om2ModelData), &workSize, &weightSize), ACL_SUCCESS);
-    EXPECT_EQ(workSize, 2048U);
-    EXPECT_EQ(weightSize, 1024U);
+  uint8_t om2ModelData[] = {0x50, 0x4B, 0x03, 0x04, 0x00, 0x00, 0x00, 0x00};
+  size_t workSize = 0U;
+  size_t weightSize = 0U;
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _, _)).WillRepeatedly(Invoke(IsOm2ModelFromData));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetOm2MemAndWeightSize(_, _, _, _))
+      .WillOnce(DoAll(SetArgReferee<2>(2048U), SetArgReferee<3>(1024U), Return(ge::SUCCESS)));
+  EXPECT_EQ(aclmdlQuerySizeFromMem(om2ModelData, sizeof(om2ModelData), &workSize, &weightSize), ACL_SUCCESS);
+  EXPECT_EQ(workSize, 2048U);
+  EXPECT_EQ(weightSize, 1024U);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlExecute)
-{
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    EXPECT_NE(dataset, nullptr);
+TEST_F(UTEST_ACL_Model, aclmdlExecute) {
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  EXPECT_NE(dataset, nullptr);
 
-    aclDataBuffer *dataBuffer = (aclDataBuffer *)malloc(100);
-    aclError ret = aclmdlAddDatasetBuffer(dataset, dataBuffer);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), ExecModel(_, _, _, _, _, _, _))
-        .WillOnce(Invoke(ExecModelInvokeOneOut));
-    ret = aclmdlExecute(1, dataset, dataset);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  aclDataBuffer *dataBuffer = (aclDataBuffer *)malloc(100);
+  aclError ret = aclmdlAddDatasetBuffer(dataset, dataBuffer);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), ExecModel(_, _, _, _, _, _, _))
+      .WillOnce(Invoke(ExecModelInvokeOneOut));
+  ret = aclmdlExecute(1, dataset, dataset);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    ret = aclmdlExecute(1, nullptr, nullptr);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  ret = aclmdlExecute(1, nullptr, nullptr);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), ExecModel(_,_,_,_,_,_,_))
-        .WillOnce(Return((PARAM_INVALID)));
-    ret = aclmdlExecute(1, dataset, dataset);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), ExecModel(_, _, _, _, _, _, _)).WillOnce(Return((PARAM_INVALID)));
+  ret = aclmdlExecute(1, dataset, dataset);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    free(dataBuffer);
-    ret = aclmdlDestroyDataset(dataset);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  free(dataBuffer);
+  ret = aclmdlDestroyDataset(dataset);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlExecuteAsync)
-{
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    EXPECT_NE(dataset, nullptr);
+TEST_F(UTEST_ACL_Model, aclmdlExecuteAsync) {
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  EXPECT_NE(dataset, nullptr);
 
-    aclDataBuffer *dataBuffer = (aclDataBuffer *)malloc(100);
-    aclError ret = aclmdlAddDatasetBuffer(dataset, dataBuffer);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  aclDataBuffer *dataBuffer = (aclDataBuffer *)malloc(100);
+  aclError ret = aclmdlAddDatasetBuffer(dataset, dataBuffer);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), ExecModel(_, _, _, _, _, _, _))
-        .WillOnce(Invoke(ExecModelInvokeOneOut));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), ExecModel(_, _, _, _, _, _, _))
+      .WillOnce(Invoke(ExecModelInvokeOneOut));
 
-    ret = aclmdlExecuteAsync(1, dataset, dataset, nullptr);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlExecuteAsync(1, dataset, dataset, nullptr);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    ret = aclmdlExecuteAsync(1, nullptr, nullptr, nullptr);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  ret = aclmdlExecuteAsync(1, nullptr, nullptr, nullptr);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), ExecModel(_,_,_,_,_,_,_))
-        .WillOnce(Return((PARAM_INVALID)));
-    ret = aclmdlExecuteAsync(1, dataset, dataset, nullptr);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), ExecModel(_, _, _, _, _, _, _)).WillOnce(Return((PARAM_INVALID)));
+  ret = aclmdlExecuteAsync(1, dataset, dataset, nullptr);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    free(dataBuffer);
-    ret = aclmdlDestroyDataset(dataset);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  free(dataBuffer);
+  ret = aclmdlDestroyDataset(dataset);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlSetDynamicBatchSize)
-{
-    aclError ret = aclmdlSetDynamicBatchSize(1, (aclmdlDataset*)0x1, 0, 0);
-    EXPECT_NE(ret, ACL_SUCCESS);
+TEST_F(UTEST_ACL_Model, aclmdlSetDynamicBatchSize) {
+  aclError ret = aclmdlSetDynamicBatchSize(1, (aclmdlDataset *)0x1, 0, 0);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    aclDataBuffer *buffer = aclCreateDataBuffer((void*)0x1, 1);
-    ret = aclmdlAddDatasetBuffer(dataset, buffer);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  aclDataBuffer *buffer = aclCreateDataBuffer((void *)0x1, 1);
+  ret = aclmdlAddDatasetBuffer(dataset, buffer);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    ret = aclmdlSetDynamicBatchSize(1, dataset, 0, 1);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetDynamicBatchSize(1, dataset, 0, 1);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    aclDataBuffer *buffer2 = aclCreateDataBuffer(nullptr, 0);
-    ret = aclmdlAddDatasetBuffer(dataset, buffer2);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  aclDataBuffer *buffer2 = aclCreateDataBuffer(nullptr, 0);
+  ret = aclmdlAddDatasetBuffer(dataset, buffer2);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    ret = aclmdlSetDynamicBatchSize(1, dataset, 1, 1);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  ret = aclmdlSetDynamicBatchSize(1, dataset, 1, 1);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), SetDynamicBatchSize(_,_,_,_))
-        .WillOnce(Return((PARAM_INVALID)));
-    ret = aclmdlSetDynamicBatchSize(1, dataset, 0, 1);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), SetDynamicBatchSize(_, _, _, _)).WillOnce(Return((PARAM_INVALID)));
+  ret = aclmdlSetDynamicBatchSize(1, dataset, 0, 1);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    aclDestroyDataBuffer(buffer);
-    aclDestroyDataBuffer(buffer2);
-    aclmdlDestroyDataset(dataset);
+  aclDestroyDataBuffer(buffer);
+  aclDestroyDataBuffer(buffer2);
+  aclmdlDestroyDataset(dataset);
 }
 
-TEST_F(UTEST_ACL_Model, aclGetDataBufferSizeV2)
-{
-    aclDataBuffer *buffer = aclCreateDataBuffer((void*)0x1, 1);
-    EXPECT_EQ(aclGetDataBufferSizeV2(nullptr), 0);
-    EXPECT_EQ(aclGetDataBufferSizeV2(buffer), 1);
-    aclDestroyDataBuffer(buffer);
+TEST_F(UTEST_ACL_Model, aclGetDataBufferSizeV2) {
+  aclDataBuffer *buffer = aclCreateDataBuffer((void *)0x1, 1);
+  EXPECT_EQ(aclGetDataBufferSizeV2(nullptr), 0);
+  EXPECT_EQ(aclGetDataBufferSizeV2(buffer), 1);
+  aclDestroyDataBuffer(buffer);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlSetDynamicHWSize)
-{
-    aclError ret = aclmdlSetDynamicHWSize(1, (aclmdlDataset*)0x1, 0, 0, 0);
-    EXPECT_NE(ret, ACL_SUCCESS);
+TEST_F(UTEST_ACL_Model, aclmdlSetDynamicHWSize) {
+  aclError ret = aclmdlSetDynamicHWSize(1, (aclmdlDataset *)0x1, 0, 0, 0);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    aclDataBuffer *buffer = aclCreateDataBuffer((void*)0x1, 1);
-    ret = aclmdlAddDatasetBuffer(dataset, buffer);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  aclDataBuffer *buffer = aclCreateDataBuffer((void *)0x1, 1);
+  ret = aclmdlAddDatasetBuffer(dataset, buffer);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    ret = aclmdlSetDynamicHWSize(1, dataset, 0, 1, 1);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetDynamicHWSize(1, dataset, 0, 1, 1);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    aclDataBuffer *buffer2 = aclCreateDataBuffer(nullptr, 0);
-    ret = aclmdlAddDatasetBuffer(dataset, buffer2);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  aclDataBuffer *buffer2 = aclCreateDataBuffer(nullptr, 0);
+  ret = aclmdlAddDatasetBuffer(dataset, buffer2);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    ret = aclmdlSetDynamicHWSize(1, dataset, 1, 1, 1);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  ret = aclmdlSetDynamicHWSize(1, dataset, 1, 1, 1);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), SetDynamicImageSize(_,_,_,_,_))
-        .WillOnce(Return((PARAM_INVALID)));
-    ret = aclmdlSetDynamicHWSize(1, dataset, 0, 1, 1);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), SetDynamicImageSize(_, _, _, _, _))
+      .WillOnce(Return((PARAM_INVALID)));
+  ret = aclmdlSetDynamicHWSize(1, dataset, 0, 1, 1);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    aclDestroyDataBuffer(buffer);
-    aclDestroyDataBuffer(buffer2);
-    aclmdlDestroyDataset(dataset);
+  aclDestroyDataBuffer(buffer);
+  aclDestroyDataBuffer(buffer2);
+  aclmdlDestroyDataset(dataset);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlSetInputDynamicDims01)
-{
-    aclError ret = aclmdlSetInputDynamicDims(1, (aclmdlDataset*)0x1, 0, nullptr);
-    EXPECT_NE(ret, ACL_SUCCESS);
+TEST_F(UTEST_ACL_Model, aclmdlSetInputDynamicDims01) {
+  aclError ret = aclmdlSetInputDynamicDims(1, (aclmdlDataset *)0x1, 0, nullptr);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    aclDataBuffer *buffer = aclCreateDataBuffer((void*)0x1, 1);
-    ret = aclmdlAddDatasetBuffer(dataset, buffer);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  aclDataBuffer *buffer = aclCreateDataBuffer((void *)0x1, 1);
+  ret = aclmdlAddDatasetBuffer(dataset, buffer);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), SetDynamicDims(_,_,_,_))
-        .Times(2)
-        .WillOnce(Return((SUCCESS)));
-    aclmdlIODims dims[1];
-    dims[0].dimCount = 1;
-    dims[0].dims[0] = 1;
-    ret = aclmdlSetInputDynamicDims(1, dataset, 0, dims);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), SetDynamicDims(_, _, _, _)).Times(2).WillOnce(Return((SUCCESS)));
+  aclmdlIODims dims[1];
+  dims[0].dimCount = 1;
+  dims[0].dims[0] = 1;
+  ret = aclmdlSetInputDynamicDims(1, dataset, 0, dims);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    aclDataBuffer *buffer2 = aclCreateDataBuffer(nullptr, 0);
-    ret = aclmdlAddDatasetBuffer(dataset, buffer2);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  aclDataBuffer *buffer2 = aclCreateDataBuffer(nullptr, 0);
+  ret = aclmdlAddDatasetBuffer(dataset, buffer2);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    ret = aclmdlSetInputDynamicDims(1, dataset, 0, dims);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetInputDynamicDims(1, dataset, 0, dims);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), SetDynamicDims(_,_,_,_))
-        .WillOnce(Return((PARAM_INVALID)));
-    ret = aclmdlSetInputDynamicDims(1, dataset, 0, dims);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), SetDynamicDims(_, _, _, _)).WillOnce(Return((PARAM_INVALID)));
+  ret = aclmdlSetInputDynamicDims(1, dataset, 0, dims);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    dims[0].dimCount = 0;
-    ret = aclmdlSetInputDynamicDims(1, dataset, 0, dims);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  dims[0].dimCount = 0;
+  ret = aclmdlSetInputDynamicDims(1, dataset, 0, dims);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    aclDestroyDataBuffer(buffer);
-    aclDestroyDataBuffer(buffer2);
-    aclmdlDestroyDataset(dataset);
+  aclDestroyDataBuffer(buffer);
+  aclDestroyDataBuffer(buffer2);
+  aclmdlDestroyDataset(dataset);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlSetInputDynamicDims02)
-{
-    aclError ret = aclmdlSetInputDynamicDims(1, (aclmdlDataset*)0x1, 0, nullptr);
-    EXPECT_NE(ret, ACL_SUCCESS);
+TEST_F(UTEST_ACL_Model, aclmdlSetInputDynamicDims02) {
+  aclError ret = aclmdlSetInputDynamicDims(1, (aclmdlDataset *)0x1, 0, nullptr);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    aclDataBuffer *buffer = aclCreateDataBuffer((void*)0x1, 1);
-    ret = aclmdlAddDatasetBuffer(dataset, buffer);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  aclDataBuffer *buffer = aclCreateDataBuffer((void *)0x1, 1);
+  ret = aclmdlAddDatasetBuffer(dataset, buffer);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    aclmdlIODims dims[1];
-    dims[0].dimCount = 1;
-    dims[0].dims[0] = 1;
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetCurDynamicDims(_,_,_))
-        .WillOnce(Return((FAILED)));
-    ret = aclmdlSetInputDynamicDims(1, dataset, 0, dims);
-    EXPECT_NE(ret, ACL_SUCCESS);
-    aclDestroyDataBuffer(buffer);
-    aclmdlDestroyDataset(dataset);
+  aclmdlIODims dims[1];
+  dims[0].dimCount = 1;
+  dims[0].dims[0] = 1;
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetCurDynamicDims(_, _, _)).WillOnce(Return((FAILED)));
+  ret = aclmdlSetInputDynamicDims(1, dataset, 0, dims);
+  EXPECT_NE(ret, ACL_SUCCESS);
+  aclDestroyDataBuffer(buffer);
+  aclmdlDestroyDataset(dataset);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetInputNameByIndex)
-{
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-        .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
+TEST_F(UTEST_ACL_Model, aclmdlGetInputNameByIndex) {
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
 
-    aclmdlDesc* desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _,_))
-        .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke)));
-    aclError ret = aclmdlGetDesc(desc, 1);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _, _))
+      .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke)));
+  aclError ret = aclmdlGetDesc(desc, 1);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    const char *res = aclmdlGetInputNameByIndex(nullptr, 0);
-    EXPECT_STREQ(res, "");
+  const char *res = aclmdlGetInputNameByIndex(nullptr, 0);
+  EXPECT_STREQ(res, "");
 
-    res = aclmdlGetInputNameByIndex(desc, 3);
-    EXPECT_STREQ(res, "");
+  res = aclmdlGetInputNameByIndex(desc, 3);
+  EXPECT_STREQ(res, "");
 
-    res = aclmdlGetInputNameByIndex(desc, 0);
-    EXPECT_STRNE(res, "");
+  res = aclmdlGetInputNameByIndex(desc, 0);
+  EXPECT_STRNE(res, "");
 
-    ret = aclmdlDestroyDesc(desc);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlDestroyDesc(desc);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetOutputNameByIndex)
-{
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-        .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
+TEST_F(UTEST_ACL_Model, aclmdlGetOutputNameByIndex) {
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
 
-    aclmdlDesc* desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _,_))
-        .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke)));
-    aclError ret = aclmdlGetDesc(desc, 1);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _, _))
+      .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke)));
+  aclError ret = aclmdlGetDesc(desc, 1);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    const char *res = aclmdlGetOutputNameByIndex(nullptr, 0);
-    EXPECT_STREQ(res, "");
+  const char *res = aclmdlGetOutputNameByIndex(nullptr, 0);
+  EXPECT_STREQ(res, "");
 
-    res = aclmdlGetOutputNameByIndex(desc, 3);
-    EXPECT_STREQ(res, "");
+  res = aclmdlGetOutputNameByIndex(desc, 3);
+  EXPECT_STREQ(res, "");
 
-    res = aclmdlGetOutputNameByIndex(desc, 0);
-    EXPECT_STRNE(res, "");
+  res = aclmdlGetOutputNameByIndex(desc, 0);
+  EXPECT_STRNE(res, "");
 
-    ret = aclmdlDestroyDesc(desc);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlDestroyDesc(desc);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetInputFormat)
-{
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-        .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
+TEST_F(UTEST_ACL_Model, aclmdlGetInputFormat) {
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
 
-    aclmdlDesc* desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _,_))
-        .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke)));
-    aclError ret = aclmdlGetDesc(desc, 1);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _, _))
+      .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke)));
+  aclError ret = aclmdlGetDesc(desc, 1);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    aclFormat formatVal = aclmdlGetInputFormat(nullptr, 0);
-    EXPECT_EQ(formatVal, ACL_FORMAT_UNDEFINED);
+  aclFormat formatVal = aclmdlGetInputFormat(nullptr, 0);
+  EXPECT_EQ(formatVal, ACL_FORMAT_UNDEFINED);
 
-    formatVal = aclmdlGetInputFormat(desc, 3);
-    EXPECT_EQ(formatVal, ACL_FORMAT_UNDEFINED);
+  formatVal = aclmdlGetInputFormat(desc, 3);
+  EXPECT_EQ(formatVal, ACL_FORMAT_UNDEFINED);
 
-    formatVal = aclmdlGetInputFormat(desc, 0);
-    EXPECT_EQ(formatVal, ACL_FORMAT_NCHW);
+  formatVal = aclmdlGetInputFormat(desc, 0);
+  EXPECT_EQ(formatVal, ACL_FORMAT_NCHW);
 
-    ret = aclmdlDestroyDesc(desc);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlDestroyDesc(desc);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetOutputFormat)
-{
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-        .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
+TEST_F(UTEST_ACL_Model, aclmdlGetOutputFormat) {
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
 
-    aclmdlDesc* desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _,_))
-        .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke)));
-    aclError ret = aclmdlGetDesc(desc, 1);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _, _))
+      .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke)));
+  aclError ret = aclmdlGetDesc(desc, 1);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    aclFormat formatVal = aclmdlGetOutputFormat(nullptr, 0);
-    EXPECT_EQ(formatVal, ACL_FORMAT_UNDEFINED);
+  aclFormat formatVal = aclmdlGetOutputFormat(nullptr, 0);
+  EXPECT_EQ(formatVal, ACL_FORMAT_UNDEFINED);
 
-    formatVal = aclmdlGetOutputFormat(desc, 3);
-    EXPECT_EQ(formatVal, ACL_FORMAT_UNDEFINED);
+  formatVal = aclmdlGetOutputFormat(desc, 3);
+  EXPECT_EQ(formatVal, ACL_FORMAT_UNDEFINED);
 
-    formatVal = aclmdlGetOutputFormat(desc, 0);
-    EXPECT_EQ(formatVal, ACL_FORMAT_NCHW);
+  formatVal = aclmdlGetOutputFormat(desc, 0);
+  EXPECT_EQ(formatVal, ACL_FORMAT_NCHW);
 
-    ret = aclmdlDestroyDesc(desc);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlDestroyDesc(desc);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetInputDataType)
-{
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-        .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
+TEST_F(UTEST_ACL_Model, aclmdlGetInputDataType) {
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
 
-    aclmdlDesc* desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _,_))
-        .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke)));
-    aclError ret = aclmdlGetDesc(desc, 1);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _, _))
+      .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke)));
+  aclError ret = aclmdlGetDesc(desc, 1);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    aclDataType typeVal = aclmdlGetInputDataType(nullptr, 0);
-    EXPECT_EQ(typeVal, ACL_DT_UNDEFINED);
+  aclDataType typeVal = aclmdlGetInputDataType(nullptr, 0);
+  EXPECT_EQ(typeVal, ACL_DT_UNDEFINED);
 
-    typeVal = aclmdlGetInputDataType(desc, 3);
-    EXPECT_EQ(typeVal, ACL_DT_UNDEFINED);
+  typeVal = aclmdlGetInputDataType(desc, 3);
+  EXPECT_EQ(typeVal, ACL_DT_UNDEFINED);
 
-    typeVal = aclmdlGetInputDataType(desc, 0);
-    EXPECT_EQ(typeVal, ACL_FLOAT);
+  typeVal = aclmdlGetInputDataType(desc, 0);
+  EXPECT_EQ(typeVal, ACL_FLOAT);
 
-    ret = aclmdlDestroyDesc(desc);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlDestroyDesc(desc);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetOutputDataType)
-{
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-        .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
+TEST_F(UTEST_ACL_Model, aclmdlGetOutputDataType) {
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
 
-    aclmdlDesc* desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _,_))
-        .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke)));
-    aclError ret = aclmdlGetDesc(desc, 1);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _, _))
+      .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke)));
+  aclError ret = aclmdlGetDesc(desc, 1);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    aclDataType typeVal = aclmdlGetOutputDataType(nullptr, 0);
-    EXPECT_EQ(typeVal, ACL_DT_UNDEFINED);
+  aclDataType typeVal = aclmdlGetOutputDataType(nullptr, 0);
+  EXPECT_EQ(typeVal, ACL_DT_UNDEFINED);
 
-    typeVal = aclmdlGetOutputDataType(desc, 3);
-    EXPECT_EQ(typeVal, ACL_DT_UNDEFINED);
+  typeVal = aclmdlGetOutputDataType(desc, 3);
+  EXPECT_EQ(typeVal, ACL_DT_UNDEFINED);
 
-    typeVal = aclmdlGetOutputDataType(desc, 0);
-    EXPECT_EQ(typeVal, ACL_FLOAT);
+  typeVal = aclmdlGetOutputDataType(desc, 0);
+  EXPECT_EQ(typeVal, ACL_FLOAT);
 
-    ret = aclmdlDestroyDesc(desc);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlDestroyDesc(desc);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 }
 
+TEST_F(UTEST_ACL_Model, aclmdlGetInputIndexByName) {
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
 
-TEST_F(UTEST_ACL_Model, aclmdlGetInputIndexByName)
-{
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-        .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
 
-    aclmdlDesc* desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _, _))
+      .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke)));
+  aclError ret = aclmdlGetDesc(desc, 1);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _,_))
-        .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke)));
-    aclError ret = aclmdlGetDesc(desc, 1);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  size_t idx = 0;
+  ret = aclmdlGetInputIndexByName(desc, "resnet50", &idx);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    size_t idx = 0;
-    ret = aclmdlGetInputIndexByName(desc, "resnet50", &idx);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlGetInputIndexByName(desc, "resnet18", &idx);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    ret = aclmdlGetInputIndexByName(desc, "resnet18", &idx);
-    EXPECT_NE(ret, ACL_SUCCESS);
-
-    ret = aclmdlDestroyDesc(desc);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlDestroyDesc(desc);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetOutputIndexByName)
-{
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-        .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
+TEST_F(UTEST_ACL_Model, aclmdlGetOutputIndexByName) {
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
 
-    aclmdlDesc* desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _,_))
-        .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke)));
-    aclError ret = aclmdlGetDesc(desc, 1);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _, _))
+      .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke)));
+  aclError ret = aclmdlGetDesc(desc, 1);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    size_t idx = 0;
-    ret = aclmdlGetOutputIndexByName(desc, "resnet50", &idx);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  size_t idx = 0;
+  ret = aclmdlGetOutputIndexByName(desc, "resnet50", &idx);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    ret = aclmdlGetOutputIndexByName(desc, "resnet18", &idx);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  ret = aclmdlGetOutputIndexByName(desc, "resnet18", &idx);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    ret = aclmdlDestroyDesc(desc);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlDestroyDesc(desc);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetAippType)
-{
-    uint32_t modelId = 0;
-    size_t index = 0;
-    aclmdlInputAippType type;
-    size_t aippIndex;
-    EXPECT_EQ(aclmdlGetAippType(modelId, index, &type, nullptr), ACL_ERROR_INVALID_PARAM);
-    EXPECT_EQ(aclmdlGetAippType(modelId, index, nullptr, &aippIndex), ACL_ERROR_INVALID_PARAM);
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-            .WillRepeatedly(Invoke((GetModelDescInfo_Invoke2)));
-    aclError ret = aclmdlGetAippType(modelId, index, &type, &aippIndex);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+TEST_F(UTEST_ACL_Model, aclmdlGetAippType) {
+  uint32_t modelId = 0;
+  size_t index = 0;
+  aclmdlInputAippType type;
+  size_t aippIndex;
+  EXPECT_EQ(aclmdlGetAippType(modelId, index, &type, nullptr), ACL_ERROR_INVALID_PARAM);
+  EXPECT_EQ(aclmdlGetAippType(modelId, index, nullptr, &aippIndex), ACL_ERROR_INVALID_PARAM);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke((GetModelDescInfo_Invoke2)));
+  aclError ret = aclmdlGetAippType(modelId, index, &type, &aippIndex);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetAippType1)
-{
-    uint32_t modelId = 0;
-    size_t index = 0;
-    aclmdlInputAippType type;
-    size_t aippIndex;
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-            .WillRepeatedly(Invoke((GetModelDescInfo_Invoke2)));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAippType(_, _,_,_))
-        .WillRepeatedly(Invoke((GetAippTypeFailInvoke)));
-    aclError ret = aclmdlGetAippType(modelId, index, &type, &aippIndex);
-    EXPECT_EQ(ret, ACL_ERROR_GE_FAILURE);
+TEST_F(UTEST_ACL_Model, aclmdlGetAippType1) {
+  uint32_t modelId = 0;
+  size_t index = 0;
+  aclmdlInputAippType type;
+  size_t aippIndex;
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke((GetModelDescInfo_Invoke2)));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAippType(_, _, _, _))
+      .WillRepeatedly(Invoke((GetAippTypeFailInvoke)));
+  aclError ret = aclmdlGetAippType(modelId, index, &type, &aippIndex);
+  EXPECT_EQ(ret, ACL_ERROR_GE_FAILURE);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetDynamicBatch)
-{
-    aclmdlDesc* desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
+TEST_F(UTEST_ACL_Model, aclmdlGetDynamicBatch) {
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _,_))
-        .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke)));
-    aclError ret = aclmdlGetDesc(desc, 1);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _, _))
+      .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke)));
+  aclError ret = aclmdlGetDesc(desc, 1);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    ret = aclmdlGetDesc(desc, 1);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlGetDesc(desc, 1);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    aclmdlBatch batch;
-    ret = aclmdlGetDynamicBatch(desc, &batch);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  aclmdlBatch batch;
+  ret = aclmdlGetDynamicBatch(desc, &batch);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    desc->dynamicBatch.resize(ACL_MAX_BATCH_NUM + 1, 1);
-    ret = aclmdlGetDynamicBatch(desc, &batch);
-    EXPECT_EQ(ret, ACL_ERROR_STORAGE_OVER_LIMIT);
+  desc->dynamicBatch.resize(ACL_MAX_BATCH_NUM + 1, 1);
+  ret = aclmdlGetDynamicBatch(desc, &batch);
+  EXPECT_EQ(ret, ACL_ERROR_STORAGE_OVER_LIMIT);
 
-    ret = aclmdlDestroyDesc(desc);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlDestroyDesc(desc);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetDynamicHW)
-{
-    aclmdlDesc* desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
+TEST_F(UTEST_ACL_Model, aclmdlGetDynamicHW) {
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
 
-    aclmdlHW hw;
-    aclError ret = aclmdlGetDynamicHW(nullptr, -1, &hw);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  aclmdlHW hw;
+  aclError ret = aclmdlGetDynamicHW(nullptr, -1, &hw);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    ret = aclmdlGetDynamicHW(desc, -1, &hw);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlGetDynamicHW(desc, -1, &hw);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    desc->dynamicHW.resize(ACL_MAX_HW_NUM + 1);
-    ret = aclmdlGetDynamicHW(desc, -1, &hw);
-    EXPECT_EQ(ret, ACL_ERROR_STORAGE_OVER_LIMIT);
+  desc->dynamicHW.resize(ACL_MAX_HW_NUM + 1);
+  ret = aclmdlGetDynamicHW(desc, -1, &hw);
+  EXPECT_EQ(ret, ACL_ERROR_STORAGE_OVER_LIMIT);
 
-    ret = aclmdlDestroyDesc(desc);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlDestroyDesc(desc);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetInputDynamicGearCount)
-{
-    aclmdlDesc* desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
+TEST_F(UTEST_ACL_Model, aclmdlGetInputDynamicGearCount) {
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _,_))
-        .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke)));
-    aclError ret = aclmdlGetDesc(desc, 1);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _, _))
+      .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke)));
+  aclError ret = aclmdlGetDesc(desc, 1);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    size_t dimsCount;
-    ret = aclmdlGetInputDynamicGearCount(desc, -1, &dimsCount);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  size_t dimsCount;
+  ret = aclmdlGetInputDynamicGearCount(desc, -1, &dimsCount);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _,_))
-        .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke5)));
-    ret = aclmdlGetDesc(desc, 1);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _, _))
+      .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke5)));
+  ret = aclmdlGetDesc(desc, 1);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    ret = aclmdlGetInputDynamicGearCount(desc, -1, &dimsCount);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlGetInputDynamicGearCount(desc, -1, &dimsCount);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    ret = aclmdlGetInputDynamicGearCount(desc, 1, &dimsCount);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  ret = aclmdlGetInputDynamicGearCount(desc, 1, &dimsCount);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    desc->dynamicDims.resize(ACL_MAX_DIM_CNT + 1);
-    ret = aclmdlGetInputDynamicGearCount(desc, -1, &dimsCount);
-    EXPECT_EQ(ret, ACL_ERROR_STORAGE_OVER_LIMIT);
+  desc->dynamicDims.resize(ACL_MAX_DIM_CNT + 1);
+  ret = aclmdlGetInputDynamicGearCount(desc, -1, &dimsCount);
+  EXPECT_EQ(ret, ACL_ERROR_STORAGE_OVER_LIMIT);
 
-    ret = aclmdlDestroyDesc(desc);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlDestroyDesc(desc);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetInputDynamicDims)
-{
-    aclmdlDesc* desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
+TEST_F(UTEST_ACL_Model, aclmdlGetInputDynamicDims) {
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _,_))
-        .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke3)));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _, _))
+      .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke3)));
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetUserDesignateShapeOrder(_,_))
-        .WillRepeatedly(Invoke((GetUserDesignateShapeOrderInvoke)));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetUserDesignateShapeOrder(_, _))
+      .WillRepeatedly(Invoke((GetUserDesignateShapeOrderInvoke)));
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-        .WillRepeatedly(Invoke((GetModelDescInfo_Invoke2)));
-    aclError ret = aclmdlGetDesc(desc, 1);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke((GetModelDescInfo_Invoke2)));
+  aclError ret = aclmdlGetDesc(desc, 1);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    size_t dimsCount = 2;
-    aclmdlIODims dims[2];
-    ret = aclmdlGetInputDynamicDims(desc, 2, dims, dimsCount);
-    EXPECT_NE(ret, ACL_SUCCESS);
-    ret = aclmdlGetInputDynamicDims(desc, -1, dims, dimsCount);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlGetInputDynamicDims(desc, 1, dims, dimsCount);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  size_t dimsCount = 2;
+  aclmdlIODims dims[2];
+  ret = aclmdlGetInputDynamicDims(desc, 2, dims, dimsCount);
+  EXPECT_NE(ret, ACL_SUCCESS);
+  ret = aclmdlGetInputDynamicDims(desc, -1, dims, dimsCount);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlGetInputDynamicDims(desc, 1, dims, dimsCount);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    desc->dynamicDims.resize(ACL_MAX_DIM_CNT);
-    ret = aclmdlGetInputDynamicDims(desc, -1, dims, dimsCount);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  desc->dynamicDims.resize(ACL_MAX_DIM_CNT);
+  ret = aclmdlGetInputDynamicDims(desc, -1, dims, dimsCount);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    ret = aclmdlDestroyDesc(desc);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlDestroyDesc(desc);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetInputDynamicDims_)
-{
+TEST_F(UTEST_ACL_Model, aclmdlGetInputDynamicDims_) {
   aclmdlDesc desc;
   for (size_t i = 0; i < (ACL_MAX_DIM_CNT + 1); ++i) {
     std::string test{"test"};
@@ -1969,1067 +1839,1011 @@ TEST_F(UTEST_ACL_Model, aclmdlGetInputDynamicDims_)
   EXPECT_EQ(ret, ACL_ERROR_FAILURE);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetInputDims)
-{
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-        .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
+TEST_F(UTEST_ACL_Model, aclmdlGetInputDims) {
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
 
-    aclmdlDesc* desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _,_))
-        .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke)));
-    aclError ret = aclmdlGetDesc(desc, 1);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _, _))
+      .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke)));
+  aclError ret = aclmdlGetDesc(desc, 1);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    aclmdlIODims dims;
-    ret = aclmdlGetInputDims(desc, 0, &dims);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  aclmdlIODims dims;
+  ret = aclmdlGetInputDims(desc, 0, &dims);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    ret = aclmdlGetInputDims(desc, 1, &dims);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  ret = aclmdlGetInputDims(desc, 1, &dims);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    ret = aclmdlDestroyDesc(desc);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlDestroyDesc(desc);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetInputDimsV2)
-{
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-        .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
+TEST_F(UTEST_ACL_Model, aclmdlGetInputDimsV2) {
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
 
-    aclmdlDesc* desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _,_))
-        .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke)));
-    aclError ret = aclmdlGetDesc(desc, 1);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _, _))
+      .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke)));
+  aclError ret = aclmdlGetDesc(desc, 1);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    aclmdlIODims dims;
-    ret = aclmdlGetInputDimsV2(desc, 0, &dims);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  aclmdlIODims dims;
+  ret = aclmdlGetInputDimsV2(desc, 0, &dims);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    ret = aclmdlGetInputDimsV2(desc, 1, &dims);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  ret = aclmdlGetInputDimsV2(desc, 1, &dims);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    ret = aclmdlDestroyDesc(desc);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlDestroyDesc(desc);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetOutputDims01)
-{
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-        .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
+TEST_F(UTEST_ACL_Model, aclmdlGetOutputDims01) {
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
 
-    aclmdlDesc* desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _,_))
-        .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke)));
-    aclError ret = aclmdlGetDesc(desc, 1);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _, _))
+      .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke)));
+  aclError ret = aclmdlGetDesc(desc, 1);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    aclmdlIODims dims;
-    ret = aclmdlGetOutputDims(desc, 0, &dims);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  aclmdlIODims dims;
+  ret = aclmdlGetOutputDims(desc, 0, &dims);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    ret = aclmdlGetOutputDims(desc, 1, &dims);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  ret = aclmdlGetOutputDims(desc, 1, &dims);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    ret = aclmdlDestroyDesc(desc);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlDestroyDesc(desc);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetOutputDims02)
-{
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-        .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
-    aclmdlDesc* desc = aclmdlCreateDesc();
+TEST_F(UTEST_ACL_Model, aclmdlGetOutputDims02) {
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
+  aclmdlDesc *desc = aclmdlCreateDesc();
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _,_))
-        .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke)));
-    aclmdlGetDesc(desc, 1);
-    aclmdlDestroyDesc(desc);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _, _))
+      .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke)));
+  aclmdlGetDesc(desc, 1);
+  aclmdlDestroyDesc(desc);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetInputDimsRange_DynamicGearScenario)
-{
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-        .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
+TEST_F(UTEST_ACL_Model, aclmdlGetInputDimsRange_DynamicGearScenario) {
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
 
-    aclmdlDesc* desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _,_))
-        .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke)));
-    aclError ret = aclmdlGetDesc(desc, 1);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _, _))
+      .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke)));
+  aclError ret = aclmdlGetDesc(desc, 1);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    aclmdlIODimsRange dimsRange;
-    ret = aclmdlGetInputDimsRange(desc, 0, &dimsRange);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    EXPECT_EQ(dimsRange.rangeCount, 0);
+  aclmdlIODimsRange dimsRange;
+  ret = aclmdlGetInputDimsRange(desc, 0, &dimsRange);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_EQ(dimsRange.rangeCount, 0);
 
-    ret = aclmdlDestroyDesc(desc);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlDestroyDesc(desc);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetInputDimsRange_DynamicScenario)
-{
-    aclmdlDesc* desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
+TEST_F(UTEST_ACL_Model, aclmdlGetInputDimsRange_DynamicScenario) {
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
 
-    aclmdlIODimsRange dimsRange;
+  aclmdlIODimsRange dimsRange;
 
-    aclError ret = aclmdlGetInputDimsRange(desc, 0, &dimsRange);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  aclError ret = aclmdlGetInputDimsRange(desc, 0, &dimsRange);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    aclmdlTensorDesc tensorDesc;
-    tensorDesc.dims.push_back(-1);
-    tensorDesc.shapeRanges.push_back(std::make_pair(1, 3));
-    desc->inputDesc.push_back(tensorDesc);
-    ret = aclmdlGetInputDimsRange(desc, 0, &dimsRange);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    EXPECT_EQ(dimsRange.rangeCount, 1);
-    EXPECT_EQ(dimsRange.range[0][0], 1);
-    EXPECT_EQ(dimsRange.range[0][1], 3);
+  aclmdlTensorDesc tensorDesc;
+  tensorDesc.dims.push_back(-1);
+  tensorDesc.shapeRanges.push_back(std::make_pair(1, 3));
+  desc->inputDesc.push_back(tensorDesc);
+  ret = aclmdlGetInputDimsRange(desc, 0, &dimsRange);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_EQ(dimsRange.rangeCount, 1);
+  EXPECT_EQ(dimsRange.range[0][0], 1);
+  EXPECT_EQ(dimsRange.range[0][1], 3);
 
-    aclmdlTensorDesc tensorDesc1;
-    tensorDesc1.dims.resize(static_cast<size_t>(ACL_MAX_DIM_CNT) + 1);
-    tensorDesc1.shapeRanges.resize(static_cast<size_t>(ACL_MAX_DIM_CNT) + 1);
-    desc->inputDesc.push_back(tensorDesc1);
-    ret = aclmdlGetInputDimsRange(desc, 1, &dimsRange);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  aclmdlTensorDesc tensorDesc1;
+  tensorDesc1.dims.resize(static_cast<size_t>(ACL_MAX_DIM_CNT) + 1);
+  tensorDesc1.shapeRanges.resize(static_cast<size_t>(ACL_MAX_DIM_CNT) + 1);
+  desc->inputDesc.push_back(tensorDesc1);
+  ret = aclmdlGetInputDimsRange(desc, 1, &dimsRange);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    aclmdlTensorDesc tensorDesc2;
-    tensorDesc2.shapeRanges.resize(4);
-    tensorDesc2.dims.resize(10);
-    desc->inputDesc.push_back(tensorDesc2);
-    ret = aclmdlGetInputDimsRange(desc, 2, &dimsRange);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  aclmdlTensorDesc tensorDesc2;
+  tensorDesc2.shapeRanges.resize(4);
+  tensorDesc2.dims.resize(10);
+  desc->inputDesc.push_back(tensorDesc2);
+  ret = aclmdlGetInputDimsRange(desc, 2, &dimsRange);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    ret = aclmdlDestroyDesc(desc);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlDestroyDesc(desc);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetInputDimsRange_StaticScenario)
-{
-    aclmdlDesc* desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
+TEST_F(UTEST_ACL_Model, aclmdlGetInputDimsRange_StaticScenario) {
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
 
-    aclmdlIODimsRange dimsRange;
+  aclmdlIODimsRange dimsRange;
 
-    aclError ret = aclmdlGetInputDimsRange(desc, 0, &dimsRange);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  aclError ret = aclmdlGetInputDimsRange(desc, 0, &dimsRange);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    aclmdlTensorDesc tensorDesc;
-    tensorDesc.dims.push_back(1);
-    desc->inputDesc.push_back(tensorDesc);
-    ret = aclmdlGetInputDimsRange(desc, 0, &dimsRange);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    EXPECT_EQ(dimsRange.rangeCount, 1);
-    EXPECT_EQ(dimsRange.range[0][0], 1);
-    EXPECT_EQ(dimsRange.range[0][1], 1);
+  aclmdlTensorDesc tensorDesc;
+  tensorDesc.dims.push_back(1);
+  desc->inputDesc.push_back(tensorDesc);
+  ret = aclmdlGetInputDimsRange(desc, 0, &dimsRange);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_EQ(dimsRange.rangeCount, 1);
+  EXPECT_EQ(dimsRange.range[0][0], 1);
+  EXPECT_EQ(dimsRange.range[0][1], 1);
 
-    aclmdlTensorDesc tensorDesc1;
-    tensorDesc1.dims.resize(static_cast<size_t>(ACL_MAX_DIM_CNT) + 1);
-    desc->inputDesc.push_back(tensorDesc1);
-    ret = aclmdlGetInputDimsRange(desc, 1, &dimsRange);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  aclmdlTensorDesc tensorDesc1;
+  tensorDesc1.dims.resize(static_cast<size_t>(ACL_MAX_DIM_CNT) + 1);
+  desc->inputDesc.push_back(tensorDesc1);
+  ret = aclmdlGetInputDimsRange(desc, 1, &dimsRange);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    ret = aclmdlDestroyDesc(desc);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlDestroyDesc(desc);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 }
 
-ge::Status GetDynamicBatchInfo_Invoke1(uint32_t model_id,
-                                      std::vector<std::vector<int64_t>> &batch_info, int32_t &dynamic_type)
-{
-    (void) model_id;
-    dynamic_type = 2;
-    batch_info.push_back({224, 224});
-    batch_info.push_back({600, 600});
-    return ge::SUCCESS;
+ge::Status GetDynamicBatchInfo_Invoke1(uint32_t model_id, std::vector<std::vector<int64_t>> &batch_info,
+                                       int32_t &dynamic_type) {
+  (void)model_id;
+  dynamic_type = 2;
+  batch_info.push_back({224, 224});
+  batch_info.push_back({600, 600});
+  return ge::SUCCESS;
 }
 
-ge::Status GetDynamicBatchInfo_Invoke2(uint32_t model_id, std::vector<std::vector<int64_t>> &batch_info, int32_t &dynamic_type)
-{
-    (void) model_id;
-    dynamic_type = 1;
-    batch_info.push_back({224});
-    batch_info.push_back({600});
-    return ge::SUCCESS;
+ge::Status GetDynamicBatchInfo_Invoke2(uint32_t model_id, std::vector<std::vector<int64_t>> &batch_info,
+                                       int32_t &dynamic_type) {
+  (void)model_id;
+  dynamic_type = 1;
+  batch_info.push_back({224});
+  batch_info.push_back({600});
+  return ge::SUCCESS;
 }
 
-ge::Status GetCurShape_Invoke(const uint32_t model_id, std::vector<int64_t> &batch_info,
-                              int32_t &dynamic_type)
-{
-    (void) model_id;
-    dynamic_type = 1;
-    batch_info.push_back(224);
-    return ge::SUCCESS;
+ge::Status GetCurShape_Invoke(const uint32_t model_id, std::vector<int64_t> &batch_info, int32_t &dynamic_type) {
+  (void)model_id;
+  dynamic_type = 1;
+  batch_info.push_back(224);
+  return ge::SUCCESS;
 }
 
-ge::Status GetCurShape_Invoke1(const uint32_t model_id, std::vector<int64_t> &batch_info,
-                               int32_t &dynamic_type)
-{
-    (void) model_id;
-    (void) batch_info;
-    (void) dynamic_type;
-    return ge::SUCCESS;
+ge::Status GetCurShape_Invoke1(const uint32_t model_id, std::vector<int64_t> &batch_info, int32_t &dynamic_type) {
+  (void)model_id;
+  (void)batch_info;
+  (void)dynamic_type;
+  return ge::SUCCESS;
 }
 
-ge::Status GetCurShape_Invoke2(const uint32_t model_id, std::vector<int64_t> &batch_info,
-                               int32_t &dynamic_type)
-{
-    (void) model_id;
-    (void) dynamic_type;
-    batch_info.push_back(224);
-    batch_info.push_back(224);
-    batch_info.push_back(224);
-    return ge::SUCCESS;
+ge::Status GetCurShape_Invoke2(const uint32_t model_id, std::vector<int64_t> &batch_info, int32_t &dynamic_type) {
+  (void)model_id;
+  (void)dynamic_type;
+  batch_info.push_back(224);
+  batch_info.push_back(224);
+  batch_info.push_back(224);
+  return ge::SUCCESS;
 }
 
-ge::Status GetCurShape_Invoke3(const uint32_t model_id, std::vector<int64_t> &batch_info,
-                               int32_t &dynamic_type)
-{
-    (void) model_id;
-    (void) batch_info;
-    (void) dynamic_type;
-    return ge::FAILED;
+ge::Status GetCurShape_Invoke3(const uint32_t model_id, std::vector<int64_t> &batch_info, int32_t &dynamic_type) {
+  (void)model_id;
+  (void)batch_info;
+  (void)dynamic_type;
+  return ge::FAILED;
 }
 
-ge::Status GetCurShape_Invoke4(const uint32_t model_id, std::vector<int64_t> &batch_info,
-                               int32_t &dynamic_type)
-{
-    (void) model_id;
-    (void) dynamic_type;
-    batch_info.push_back(224);
-    batch_info.push_back(224);
-    return ge::SUCCESS;
+ge::Status GetCurShape_Invoke4(const uint32_t model_id, std::vector<int64_t> &batch_info, int32_t &dynamic_type) {
+  (void)model_id;
+  (void)dynamic_type;
+  batch_info.push_back(224);
+  batch_info.push_back(224);
+  return ge::SUCCESS;
 }
 
-ge::Status GetModelAttr_Invoke(uint32_t model_id,
-                               std::vector<std::string> &dynamic_output_shape_info)
-{
-    (void) model_id;
-    dynamic_output_shape_info.push_back({"1:0:1,3,224,224"});
-    return ge::SUCCESS;
+ge::Status GetModelAttr_Invoke(uint32_t model_id, std::vector<std::string> &dynamic_output_shape_info) {
+  (void)model_id;
+  dynamic_output_shape_info.push_back({"1:0:1,3,224,224"});
+  return ge::SUCCESS;
 }
 
-ge::Status GetModelAttr_Invoke1(uint32_t model_id,
-                               std::vector<std::string> &dynamic_output_shape_info)
-{
-    (void) model_id;
-    dynamic_output_shape_info.push_back({"-1:0:1,3,224,224"});
-    return ge::SUCCESS;
+ge::Status GetModelAttr_Invoke1(uint32_t model_id, std::vector<std::string> &dynamic_output_shape_info) {
+  (void)model_id;
+  dynamic_output_shape_info.push_back({"-1:0:1,3,224,224"});
+  return ge::SUCCESS;
 }
 
+TEST_F(UTEST_ACL_Model, aclmdlGetCurOutputDims) {
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
 
-TEST_F(UTEST_ACL_Model, aclmdlGetCurOutputDims)
-{
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-        .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
 
-    aclmdlDesc* desc = aclmdlCreateDesc();
-     EXPECT_NE(desc, nullptr);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _, _))
+      .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke)));
+  aclError ret = aclmdlGetDesc(desc, 1);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _,_))
-        .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke)));
-     aclError ret = aclmdlGetDesc(desc, 1);
-     EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetCurShape(_, _, _)).WillRepeatedly(Invoke((GetCurShape_Invoke4)));
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetCurShape(_, _,_))
-        .WillRepeatedly(Invoke((GetCurShape_Invoke4)));
+  aclmdlIODims dims;
+  ret = aclmdlGetCurOutputDims(desc, 0, &dims);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    aclmdlIODims dims;
-    ret = aclmdlGetCurOutputDims(desc, 0, &dims);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlGetCurOutputDims(desc, 1, &dims);
+  EXPECT_NE(ret, ACL_SUCCESS);
+  Mock::VerifyAndClear((void *)(&MockFunctionTest::aclStubInstance()));
 
-    ret = aclmdlGetCurOutputDims(desc, 1, &dims);
-    EXPECT_NE(ret, ACL_SUCCESS);
-    Mock::VerifyAndClear((void *)(&MockFunctionTest::aclStubInstance()));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-        .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _, _))
+      .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke2)));
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _,_))
-        .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke2)));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetCurShape(_, _, _)).WillRepeatedly(Invoke((GetCurShape_Invoke)));
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetCurShape(_, _,_))
-        .WillRepeatedly(Invoke((GetCurShape_Invoke)));
+  ret = aclmdlGetDesc(desc, 1);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    ret = aclmdlGetDesc(desc, 1);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlGetCurOutputDims(desc, 0, &dims);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  Mock::VerifyAndClear((void *)(&MockFunctionTest::aclStubInstance()));
 
-    ret = aclmdlGetCurOutputDims(desc, 0, &dims);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    Mock::VerifyAndClear((void *)(&MockFunctionTest::aclStubInstance()));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetCurShape(_, _, _)).WillRepeatedly(Invoke((GetCurShape_Invoke1)));
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetCurShape(_, _,_))
-        .WillRepeatedly(Invoke((GetCurShape_Invoke1)));
+  ret = aclmdlGetCurOutputDims(desc, 0, &dims);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  Mock::VerifyAndClear((void *)(&MockFunctionTest::aclStubInstance()));
 
-    ret = aclmdlGetCurOutputDims(desc, 0, &dims);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    Mock::VerifyAndClear((void *)(&MockFunctionTest::aclStubInstance()));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetCurShape(_, _, _)).WillRepeatedly(Invoke((GetCurShape_Invoke2)));
+  ret = aclmdlGetCurOutputDims(desc, 0, &dims);
+  EXPECT_NE(ret, ACL_SUCCESS);
+  Mock::VerifyAndClear((void *)(&MockFunctionTest::aclStubInstance()));
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetCurShape(_, _,_))
-        .WillRepeatedly(Invoke((GetCurShape_Invoke2)));
-    ret = aclmdlGetCurOutputDims(desc, 0, &dims);
-    EXPECT_NE(ret, ACL_SUCCESS);
-    Mock::VerifyAndClear((void *)(&MockFunctionTest::aclStubInstance()));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetCurShape(_, _, _)).WillRepeatedly(Invoke((GetCurShape_Invoke3)));
+  ret = aclmdlGetCurOutputDims(desc, 0, &dims);
+  EXPECT_NE(ret, ACL_SUCCESS);
+  Mock::VerifyAndClear((void *)(&MockFunctionTest::aclStubInstance()));
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetCurShape(_, _,_))
-        .WillRepeatedly(Invoke((GetCurShape_Invoke3)));
-    ret = aclmdlGetCurOutputDims(desc, 0, &dims);
-    EXPECT_NE(ret, ACL_SUCCESS);
-    Mock::VerifyAndClear((void *)(&MockFunctionTest::aclStubInstance()));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke(GetModelDescInfo_Invoke));
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-        .WillRepeatedly(Invoke(GetModelDescInfo_Invoke));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _, _))
+      .WillRepeatedly(Invoke(GetDynamicBatchInfo_Invoke1));
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _,_))
-        .WillRepeatedly(Invoke(GetDynamicBatchInfo_Invoke1));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetCurShape(_, _, _)).WillRepeatedly(Invoke(GetCurShape_Invoke4));
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetCurShape(_, _,_))
-        .WillRepeatedly(Invoke(GetCurShape_Invoke4));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelAttr(_, _)).WillRepeatedly(Invoke(GetModelAttr_Invoke));
+  ret = aclmdlGetDesc(desc, 1);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelAttr(_, _))
-        .WillRepeatedly(Invoke(GetModelAttr_Invoke));
-    ret = aclmdlGetDesc(desc, 1);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlGetCurOutputDims(desc, 0, &dims);
+  EXPECT_EQ(ret, ACL_SUCCESS);  // modify
+  Mock::VerifyAndClear((void *)(&MockFunctionTest::aclStubInstance()));
 
-    ret = aclmdlGetCurOutputDims(desc, 0, &dims);
-    EXPECT_EQ(ret, ACL_SUCCESS); //modify
-    Mock::VerifyAndClear((void *)(&MockFunctionTest::aclStubInstance()));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelAttr(_, _)).WillRepeatedly(Invoke((GetModelAttr_Invoke1)));
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelAttr(_, _))
-        .WillRepeatedly(Invoke((GetModelAttr_Invoke1)));
-
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _,_))
-        .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke2)));
-    ret = aclmdlGetDesc(desc, 1);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    // check api not support to rt2 dynamic shape
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-    uint32_t newModelId = 0U;
-    auto executor = std::unique_ptr<gert::ModelV2Executor>(new(std::nothrow) gert::ModelV2Executor);
-    auto rtSession = acl::AclResourceManager::GetInstance().CreateRtSession();
-    acl::AclResourceManager::GetInstance().AddExecutor(newModelId, std::move(executor), rtSession);
-    desc->modelId = newModelId; // Update desc's modelId to match the executor
-    // Add at least one outputDesc to pass parameter validation
-    aclmdlTensorDesc tensor_desc;
-    tensor_desc.dims = {1, 2, 3};
-    desc->outputDesc.push_back(tensor_desc);
-    // Use existing dims variable (declared at line 2179) to avoid redeclaration error
-    ret = aclmdlGetCurOutputDims(desc, 0, &dims);
-    EXPECT_EQ(ret, ACL_ERROR_API_NOT_SUPPORT);
-    // check input invalid
-    ret = aclmdlGetCurOutputDims(nullptr, 0, nullptr);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    ret = aclmdlDestroyDesc(desc);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _, _))
+      .WillRepeatedly(Invoke((GetDynamicBatchInfo_Invoke2)));
+  ret = aclmdlGetDesc(desc, 1);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  // check api not support to rt2 dynamic shape
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
+  uint32_t newModelId = 0U;
+  auto executor = std::unique_ptr<gert::ModelV2Executor>(new (std::nothrow) gert::ModelV2Executor);
+  auto rtSession = acl::AclResourceManager::GetInstance().CreateRtSession();
+  acl::AclResourceManager::GetInstance().AddExecutor(newModelId, std::move(executor), rtSession);
+  desc->modelId = newModelId;  // Update desc's modelId to match the executor
+  // Add at least one outputDesc to pass parameter validation
+  aclmdlTensorDesc tensor_desc;
+  tensor_desc.dims = {1, 2, 3};
+  desc->outputDesc.push_back(tensor_desc);
+  // Use existing dims variable (declared at line 2179) to avoid redeclaration error
+  ret = aclmdlGetCurOutputDims(desc, 0, &dims);
+  EXPECT_EQ(ret, ACL_ERROR_API_NOT_SUPPORT);
+  // check input invalid
+  ret = aclmdlGetCurOutputDims(nullptr, 0, nullptr);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlDestroyDesc(desc);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetAippDataSize)
-{
-    size_t size = 0;
-    EXPECT_EQ(ACL_ERROR_INVALID_PARAM, aclmdlGetAippDataSize(0, &size));
-    EXPECT_EQ(ACL_ERROR_INVALID_PARAM, aclmdlGetAippDataSize(1, nullptr));
-    EXPECT_EQ(ACL_SUCCESS, aclmdlGetAippDataSize(1, &size));
-    EXPECT_EQ(size, 160);
+TEST_F(UTEST_ACL_Model, aclmdlGetAippDataSize) {
+  size_t size = 0;
+  EXPECT_EQ(ACL_ERROR_INVALID_PARAM, aclmdlGetAippDataSize(0, &size));
+  EXPECT_EQ(ACL_ERROR_INVALID_PARAM, aclmdlGetAippDataSize(1, nullptr));
+  EXPECT_EQ(ACL_SUCCESS, aclmdlGetAippDataSize(1, &size));
+  EXPECT_EQ(size, 160);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlSetInputAIPP)
-{
-    aclmdlAIPP *aippmdlAipp = aclmdlCreateAIPP(0);
-    aclError ret = aclmdlSetAIPPInputFormat(aippmdlAipp, ACL_YUV420SP_U8);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    uint32_t batchNumber = 1;
-    aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
-    ret = aclmdlSetAIPPInputFormat(aippDynamicSet, ACL_YUV420SP_U8);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlSetAIPPCscParams(aippDynamicSet, 1, 256, 443, 0, 256, -86, -178, 256, 0, 350, 0, 0, 0, 0, 128, 128);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlSetAIPPCscParams(aippDynamicSet, 0, 256, 443, 0, 256, -86, -178, 256, 0, 350, 0, 0, 0, 0, 128, 128);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlSetAIPPRbuvSwapSwitch(aippDynamicSet, 0);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlSetAIPPDtcPixelMean(aippDynamicSet, 0, 0, 0, 0, 0);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlSetAIPPDtcPixelMean(aippDynamicSet, 0, 0, 0, 0, 1024);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    ret = aclmdlSetAIPPDtcPixelMin(aippDynamicSet, 0, 0, 0, 0, 0);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlSetAIPPDtcPixelMin(aippDynamicSet, 0, 0, 0, 0, 1024);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    ret = aclmdlSetAIPPPixelVarReci(aippDynamicSet, 1, 1, 1, 0, 0);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlSetAIPPScfParams(aippDynamicSet, 0, 1, 1, 1, 1, 0);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlSetAIPPScfParams(aippDynamicSet, 1, 224, 224, 16, 224, 0);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlSetAIPPScfParams(aippDynamicSet, 1, 224, 224, 16, 224, 1024);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    ret = aclmdlSetAIPPAxSwapSwitch(aippDynamicSet, 0);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlSetAIPPSrcImageSize(aippDynamicSet, 224, 224);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlSetAIPPCropParams(aippDynamicSet, 0, 0, 0, 1, 1, 0);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlSetAIPPCropParams(aippDynamicSet, 1, 0, 0, 1, 1, 0);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlSetAIPPCropParams(aippDynamicSet, 1, 0, 0, 1, 1, 1024);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    ret = aclmdlSetAIPPPaddingParams(aippDynamicSet, 0, 0, 0, 0, 0, 0);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlSetAIPPPaddingParams(aippDynamicSet, 1, 0, 0, 0, 0, 0);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+TEST_F(UTEST_ACL_Model, aclmdlSetInputAIPP) {
+  aclmdlAIPP *aippmdlAipp = aclmdlCreateAIPP(0);
+  aclError ret = aclmdlSetAIPPInputFormat(aippmdlAipp, ACL_YUV420SP_U8);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  uint32_t batchNumber = 1;
+  aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
+  ret = aclmdlSetAIPPInputFormat(aippDynamicSet, ACL_YUV420SP_U8);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetAIPPCscParams(aippDynamicSet, 1, 256, 443, 0, 256, -86, -178, 256, 0, 350, 0, 0, 0, 0, 128, 128);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetAIPPCscParams(aippDynamicSet, 0, 256, 443, 0, 256, -86, -178, 256, 0, 350, 0, 0, 0, 0, 128, 128);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetAIPPRbuvSwapSwitch(aippDynamicSet, 0);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetAIPPDtcPixelMean(aippDynamicSet, 0, 0, 0, 0, 0);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetAIPPDtcPixelMean(aippDynamicSet, 0, 0, 0, 0, 1024);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlSetAIPPDtcPixelMin(aippDynamicSet, 0, 0, 0, 0, 0);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetAIPPDtcPixelMin(aippDynamicSet, 0, 0, 0, 0, 1024);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlSetAIPPPixelVarReci(aippDynamicSet, 1, 1, 1, 0, 0);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetAIPPScfParams(aippDynamicSet, 0, 1, 1, 1, 1, 0);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetAIPPScfParams(aippDynamicSet, 1, 224, 224, 16, 224, 0);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetAIPPScfParams(aippDynamicSet, 1, 224, 224, 16, 224, 1024);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlSetAIPPAxSwapSwitch(aippDynamicSet, 0);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetAIPPSrcImageSize(aippDynamicSet, 224, 224);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetAIPPCropParams(aippDynamicSet, 0, 0, 0, 1, 1, 0);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetAIPPCropParams(aippDynamicSet, 1, 0, 0, 1, 1, 0);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetAIPPCropParams(aippDynamicSet, 1, 0, 0, 1, 1, 1024);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlSetAIPPPaddingParams(aippDynamicSet, 0, 0, 0, 0, 0, 0);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetAIPPPaddingParams(aippDynamicSet, 1, 0, 0, 0, 0, 0);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    ret = aclmdlSetAIPPPaddingParams(aippDynamicSet, 1, 0, 0, 0, 0, 10);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    aclDataBuffer *buffer = aclCreateDataBuffer((void*)0x1, 1);
-    ret = aclmdlAddDatasetBuffer(dataset, buffer);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetAIPPPaddingParams(aippDynamicSet, 1, 0, 0, 0, 0, 10);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  aclDataBuffer *buffer = aclCreateDataBuffer((void *)0x1, 1);
+  ret = aclmdlAddDatasetBuffer(dataset, buffer);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
-    EXPECT_NE(ret, ACL_SUCCESS);
-    ret = aclmdlDestroyAIPP(aippDynamicSet);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    aclDestroyDataBuffer(buffer);
-    aclmdlDestroyDataset(dataset);
+  ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
+  EXPECT_NE(ret, ACL_SUCCESS);
+  ret = aclmdlDestroyAIPP(aippDynamicSet);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  aclDestroyDataBuffer(buffer);
+  aclmdlDestroyDataset(dataset);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlSetInputAIPP_SetDynamicAippData_fail)
-{
-    aclmdlAIPP *aippmdlAipp = aclmdlCreateAIPP(0);
-    aclError ret = aclmdlSetAIPPInputFormat(aippmdlAipp, ACL_YUV420SP_U8);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    uint32_t batchNumber = 1;
-    aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
-    ret = aclmdlSetAIPPInputFormat(aippDynamicSet, ACL_YUV420SP_U8);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlSetAIPPCscParams(aippDynamicSet, 1, 256, 443, 0, 256, -86, -178, 256, 0, 350, 0, 0, 0, 0, 128, 128);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlSetAIPPSrcImageSize(aippDynamicSet, 224, 224);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+TEST_F(UTEST_ACL_Model, aclmdlSetInputAIPP_SetDynamicAippData_fail) {
+  aclmdlAIPP *aippmdlAipp = aclmdlCreateAIPP(0);
+  aclError ret = aclmdlSetAIPPInputFormat(aippmdlAipp, ACL_YUV420SP_U8);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  uint32_t batchNumber = 1;
+  aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
+  ret = aclmdlSetAIPPInputFormat(aippDynamicSet, ACL_YUV420SP_U8);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetAIPPCscParams(aippDynamicSet, 1, 256, 443, 0, 256, -86, -178, 256, 0, 350, 0, 0, 0, 0, 128, 128);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetAIPPSrcImageSize(aippDynamicSet, 224, 224);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    aclDataBuffer *buffer = aclCreateDataBuffer((void*)0x1, 1);
-    ret = aclmdlAddDatasetBuffer(dataset, buffer);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  aclDataBuffer *buffer = aclCreateDataBuffer((void *)0x1, 1);
+  ret = aclmdlAddDatasetBuffer(dataset, buffer);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAippType(_, _,_,_))
-        .WillRepeatedly(Invoke(GetAippTypeSuccessInvoke));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAippType(_, _, _, _))
+      .WillRepeatedly(Invoke(GetAippTypeSuccessInvoke));
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), SetDynamicAippData(_, _,_,_, _))
-        .WillRepeatedly(Return(FAILED));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), SetDynamicAippData(_, _, _, _, _)).WillRepeatedly(Return(FAILED));
 
-    ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
-    EXPECT_NE(ret, ACL_SUCCESS);
-    ret = aclmdlDestroyAIPP(aippDynamicSet);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    aclDestroyDataBuffer(buffer);
-    aclmdlDestroyDataset(dataset);
+  ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
+  EXPECT_NE(ret, ACL_SUCCESS);
+  ret = aclmdlDestroyAIPP(aippDynamicSet);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  aclDestroyDataBuffer(buffer);
+  aclmdlDestroyDataset(dataset);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlSetAIPPByInputIndex_fail1)
-{
-    aclmdlAIPP *aippmdlAipp = aclmdlCreateAIPP(0);
-    aclError ret = aclmdlSetAIPPInputFormat(aippmdlAipp, ACL_YUV420SP_U8);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    uint32_t batchNumber = 1;
-    aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
+TEST_F(UTEST_ACL_Model, aclmdlSetAIPPByInputIndex_fail1) {
+  aclmdlAIPP *aippmdlAipp = aclmdlCreateAIPP(0);
+  aclError ret = aclmdlSetAIPPInputFormat(aippmdlAipp, ACL_YUV420SP_U8);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  uint32_t batchNumber = 1;
+  aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
 
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    aclDataBuffer *buffer = aclCreateDataBuffer((void*)0x1, 1);
-    ret = aclmdlAddDatasetBuffer(dataset, buffer);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-            .WillRepeatedly(Invoke((GetModelDescInfo_Invoke2)));
-    ret = aclmdlSetAIPPByInputIndex(1, dataset, 6, aippDynamicSet);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    ret = aclmdlDestroyAIPP(aippDynamicSet);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    aclDestroyDataBuffer(buffer);
-    aclmdlDestroyDataset(dataset);
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  aclDataBuffer *buffer = aclCreateDataBuffer((void *)0x1, 1);
+  ret = aclmdlAddDatasetBuffer(dataset, buffer);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke((GetModelDescInfo_Invoke2)));
+  ret = aclmdlSetAIPPByInputIndex(1, dataset, 6, aippDynamicSet);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlDestroyAIPP(aippDynamicSet);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  aclDestroyDataBuffer(buffer);
+  aclmdlDestroyDataset(dataset);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlSetAIPPByInputIndex_fail2)
-{
-    aclmdlAIPP *aippmdlAipp = aclmdlCreateAIPP(0);
-    aclError ret = aclmdlSetAIPPInputFormat(aippmdlAipp, ACL_YUV420SP_U8);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    uint32_t batchNumber = 1;
-    aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
+TEST_F(UTEST_ACL_Model, aclmdlSetAIPPByInputIndex_fail2) {
+  aclmdlAIPP *aippmdlAipp = aclmdlCreateAIPP(0);
+  aclError ret = aclmdlSetAIPPInputFormat(aippmdlAipp, ACL_YUV420SP_U8);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  uint32_t batchNumber = 1;
+  aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
 
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    aclDataBuffer *buffer = aclCreateDataBuffer((void*)0x1, 1);
-    ret = aclmdlAddDatasetBuffer(dataset, buffer);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-            .WillRepeatedly(Invoke((GetModelDescInfo_Invoke2)));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAippType(_, _,_,_))
-        .WillRepeatedly(Return(ACL_ERROR_FAILURE));
-    ret = aclmdlSetAIPPByInputIndex(1, dataset, 0, aippDynamicSet);
-    EXPECT_EQ(ret, ACL_ERROR_FAILURE);
-    ret = aclmdlDestroyAIPP(aippDynamicSet);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    aclDestroyDataBuffer(buffer);
-    aclmdlDestroyDataset(dataset);
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  aclDataBuffer *buffer = aclCreateDataBuffer((void *)0x1, 1);
+  ret = aclmdlAddDatasetBuffer(dataset, buffer);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke((GetModelDescInfo_Invoke2)));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAippType(_, _, _, _)).WillRepeatedly(Return(ACL_ERROR_FAILURE));
+  ret = aclmdlSetAIPPByInputIndex(1, dataset, 0, aippDynamicSet);
+  EXPECT_EQ(ret, ACL_ERROR_FAILURE);
+  ret = aclmdlDestroyAIPP(aippDynamicSet);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  aclDestroyDataBuffer(buffer);
+  aclmdlDestroyDataset(dataset);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlSetAIPPByInputIndex_fail3)
-{
-    aclmdlAIPP *aippmdlAipp = aclmdlCreateAIPP(0);
-    aclError ret = aclmdlSetAIPPInputFormat(aippmdlAipp, ACL_YUV420SP_U8);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    uint32_t batchNumber = 1;
-    aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
+TEST_F(UTEST_ACL_Model, aclmdlSetAIPPByInputIndex_fail3) {
+  aclmdlAIPP *aippmdlAipp = aclmdlCreateAIPP(0);
+  aclError ret = aclmdlSetAIPPInputFormat(aippmdlAipp, ACL_YUV420SP_U8);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  uint32_t batchNumber = 1;
+  aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
 
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    aclDataBuffer *buffer = aclCreateDataBuffer((void*)0x1, 1);
-    ret = aclmdlAddDatasetBuffer(dataset, buffer);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  aclDataBuffer *buffer = aclCreateDataBuffer((void *)0x1, 1);
+  ret = aclmdlAddDatasetBuffer(dataset, buffer);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAippType(_, _,_,_))
-        .WillRepeatedly(Invoke((GetAippTypeFailInvoke)));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAippType(_, _, _, _))
+      .WillRepeatedly(Invoke((GetAippTypeFailInvoke)));
 
-    ret = aclmdlSetAIPPByInputIndex(1, dataset, 0, aippDynamicSet);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-            .WillRepeatedly(Invoke((GetModelDescInfo_Invoke2)));
-    ret = aclmdlSetAIPPByInputIndex(1, dataset, 0, aippDynamicSet);
-    EXPECT_EQ(ret, ACL_ERROR_GE_FAILURE);
-    ret = aclmdlDestroyAIPP(aippDynamicSet);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    aclDestroyDataBuffer(buffer);
-    aclmdlDestroyDataset(dataset);
+  ret = aclmdlSetAIPPByInputIndex(1, dataset, 0, aippDynamicSet);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke((GetModelDescInfo_Invoke2)));
+  ret = aclmdlSetAIPPByInputIndex(1, dataset, 0, aippDynamicSet);
+  EXPECT_EQ(ret, ACL_ERROR_GE_FAILURE);
+  ret = aclmdlDestroyAIPP(aippDynamicSet);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  aclDestroyDataBuffer(buffer);
+  aclmdlDestroyDataset(dataset);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlSetAIPPByInputIndex_SUCCESS)
-{
-    aclmdlAIPP *aippmdlAipp = aclmdlCreateAIPP(0);
-    EXPECT_EQ(aippmdlAipp, nullptr);
-    uint32_t batchNumber = 1;
-    aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
+TEST_F(UTEST_ACL_Model, aclmdlSetAIPPByInputIndex_SUCCESS) {
+  aclmdlAIPP *aippmdlAipp = aclmdlCreateAIPP(0);
+  EXPECT_EQ(aippmdlAipp, nullptr);
+  uint32_t batchNumber = 1;
+  aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
 
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    aclDataBuffer *buffer = aclCreateDataBuffer((void*)0x1, 1);
-    auto ret = aclmdlAddDatasetBuffer(dataset, buffer);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  aclDataBuffer *buffer = aclCreateDataBuffer((void *)0x1, 1);
+  auto ret = aclmdlAddDatasetBuffer(dataset, buffer);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-        .WillRepeatedly(Invoke(GetModelDescInfo_Invoke2));
-    ret = aclmdlSetAIPPByInputIndex(1, dataset, 0, aippDynamicSet);
-    EXPECT_EQ(ret, ACL_ERROR_FAILURE);
-    ret = aclmdlDestroyAIPP(aippDynamicSet);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    aclDestroyDataBuffer(buffer);
-    aclmdlDestroyDataset(dataset);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke(GetModelDescInfo_Invoke2));
+  ret = aclmdlSetAIPPByInputIndex(1, dataset, 0, aippDynamicSet);
+  EXPECT_EQ(ret, ACL_ERROR_FAILURE);
+  ret = aclmdlDestroyAIPP(aippDynamicSet);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  aclDestroyDataBuffer(buffer);
+  aclmdlDestroyDataset(dataset);
 }
 
-aclError aclmdlGetInputIndexByName_Invoke(const aclmdlDesc *modelDesc, const char *name, size_t *index)
-{
-    (void) modelDesc;
-    (void) name;
-    *index = 0;
-    return ACL_SUCCESS;
+aclError aclmdlGetInputIndexByName_Invoke(const aclmdlDesc *modelDesc, const char *name, size_t *index) {
+  (void)modelDesc;
+  (void)name;
+  *index = 0;
+  return ACL_SUCCESS;
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlSetInputAIPP_Fail)
-{
-    uint32_t batchNumber = 1;
-    aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    aclDataBuffer *buffer = aclCreateDataBuffer((void*)0x1, 1);
-    aclError ret = aclmdlAddDatasetBuffer(dataset, buffer);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+TEST_F(UTEST_ACL_Model, aclmdlSetInputAIPP_Fail) {
+  uint32_t batchNumber = 1;
+  aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  aclDataBuffer *buffer = aclCreateDataBuffer((void *)0x1, 1);
+  aclError ret = aclmdlAddDatasetBuffer(dataset, buffer);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_,_,_,_))
-        .WillOnce(Return(ACL_ERROR_INVALID_PARAM))
-        .WillRepeatedly(Return(ACL_SUCCESS));
-    ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
-    EXPECT_EQ(ret, ACL_ERROR_GE_FAILURE);
-    ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
-    ret = aclmdlDestroyAIPP(aippDynamicSet);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    aclDestroyDataBuffer(buffer);
-    aclmdlDestroyDataset(dataset);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillOnce(Return(ACL_ERROR_INVALID_PARAM))
+      .WillRepeatedly(Return(ACL_SUCCESS));
+  ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
+  EXPECT_EQ(ret, ACL_ERROR_GE_FAILURE);
+  ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
+  ret = aclmdlDestroyAIPP(aippDynamicSet);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  aclDestroyDataBuffer(buffer);
+  aclmdlDestroyDataset(dataset);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlSetInputAIPP_Fail1)
-{
-    uint32_t batchNumber = 1;
-    aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
+TEST_F(UTEST_ACL_Model, aclmdlSetInputAIPP_Fail1) {
+  uint32_t batchNumber = 1;
+  aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
 
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    aclDataBuffer *buffer = aclCreateDataBuffer((void*)0x1, 1);
-    auto ret = aclmdlAddDatasetBuffer(dataset, buffer);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  aclDataBuffer *buffer = aclCreateDataBuffer((void *)0x1, 1);
+  auto ret = aclmdlAddDatasetBuffer(dataset, buffer);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAippType(_, _,_,_))
-        .WillRepeatedly(Return(FAILED));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-            .WillRepeatedly(Invoke((GetModelDescInfo_Invoke2)));
-    ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
-    EXPECT_NE(ret, ACL_SUCCESS);
-    ret = aclmdlDestroyAIPP(aippDynamicSet);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    aclDestroyDataBuffer(buffer);
-    aclmdlDestroyDataset(dataset);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAippType(_, _, _, _)).WillRepeatedly(Return(FAILED));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke((GetModelDescInfo_Invoke2)));
+  ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
+  EXPECT_NE(ret, ACL_SUCCESS);
+  ret = aclmdlDestroyAIPP(aippDynamicSet);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  aclDestroyDataBuffer(buffer);
+  aclmdlDestroyDataset(dataset);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlSetInputAIPP_Fail2)
-{
-    uint32_t batchNumber = 1;
-    aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
+TEST_F(UTEST_ACL_Model, aclmdlSetInputAIPP_Fail2) {
+  uint32_t batchNumber = 1;
+  aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
 
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    aclDataBuffer *buffer = aclCreateDataBuffer((void*)0x1, 1);
-    auto ret = aclmdlAddDatasetBuffer(dataset, buffer);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  aclDataBuffer *buffer = aclCreateDataBuffer((void *)0x1, 1);
+  auto ret = aclmdlAddDatasetBuffer(dataset, buffer);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-            .WillRepeatedly(Invoke((GetModelDescInfo_Invoke2)));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke((GetModelDescInfo_Invoke2)));
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAippType(_, _,_,_))
-        .WillOnce(Invoke(GetAippTypeFailInvoke))
-        .WillRepeatedly(Invoke(GetAippTypeStaticAippInvoke));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAippType(_, _, _, _))
+      .WillOnce(Invoke(GetAippTypeFailInvoke))
+      .WillRepeatedly(Invoke(GetAippTypeStaticAippInvoke));
 
-    ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
-    EXPECT_NE(ret, ACL_SUCCESS);
-    ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
-    EXPECT_NE(ret, ACL_SUCCESS);
-    ret = aclmdlDestroyAIPP(aippDynamicSet);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    aclDestroyDataBuffer(buffer);
-    aclmdlDestroyDataset(dataset);
+  ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
+  EXPECT_NE(ret, ACL_SUCCESS);
+  ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
+  EXPECT_NE(ret, ACL_SUCCESS);
+  ret = aclmdlDestroyAIPP(aippDynamicSet);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  aclDestroyDataBuffer(buffer);
+  aclmdlDestroyDataset(dataset);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlSetInputAIPP_Fail3)
-{
-    uint32_t batchNumber = 1;
-    aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
+TEST_F(UTEST_ACL_Model, aclmdlSetInputAIPP_Fail3) {
+  uint32_t batchNumber = 1;
+  aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
 
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    aclDataBuffer *buffer = aclCreateDataBuffer((void*)0x1, 1);
-    auto ret = aclmdlAddDatasetBuffer(dataset, buffer);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAippType(_, _,_,_))
-        .WillRepeatedly(Invoke(GetAippTypeNoAippInvoke));
-    ret = aclmdlSetInputAIPP(1, dataset, 6, aippDynamicSet);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  aclDataBuffer *buffer = aclCreateDataBuffer((void *)0x1, 1);
+  auto ret = aclmdlAddDatasetBuffer(dataset, buffer);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAippType(_, _, _, _))
+      .WillRepeatedly(Invoke(GetAippTypeNoAippInvoke));
+  ret = aclmdlSetInputAIPP(1, dataset, 6, aippDynamicSet);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    ret = aclmdlDestroyAIPP(aippDynamicSet);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    aclDestroyDataBuffer(buffer);
-    aclmdlDestroyDataset(dataset);
+  ret = aclmdlDestroyAIPP(aippDynamicSet);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  aclDestroyDataBuffer(buffer);
+  aclmdlDestroyDataset(dataset);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetFirstAippInfo)
-{
-    aclAippInfo aippInfo;
-    aclError ret = aclmdlGetFirstAippInfo(1, 0, &aippInfo);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+TEST_F(UTEST_ACL_Model, aclmdlGetFirstAippInfo) {
+  aclAippInfo aippInfo;
+  aclError ret = aclmdlGetFirstAippInfo(1, 0, &aippInfo);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-            .WillRepeatedly(Invoke((GetModelDescInfo_Invoke2)));
-    ret = aclmdlGetFirstAippInfo(1, 0, &aippInfo);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke((GetModelDescInfo_Invoke2)));
+  ret = aclmdlGetFirstAippInfo(1, 0, &aippInfo);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAIPPInfo(_, _, _))
-    .WillOnce(Return(ACL_ERROR_GE_AIPP_NOT_EXIST));
-    ret = aclmdlGetFirstAippInfo(1, 0, &aippInfo);
-    EXPECT_EQ(ret, ACL_ERROR_GE_AIPP_NOT_EXIST);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAIPPInfo(_, _, _)).WillOnce(Return(ACL_ERROR_GE_AIPP_NOT_EXIST));
+  ret = aclmdlGetFirstAippInfo(1, 0, &aippInfo);
+  EXPECT_EQ(ret, ACL_ERROR_GE_AIPP_NOT_EXIST);
 }
 
-TEST_F(UTEST_ACL_Model, AippParamsCheck)
-{
-    aclError ret;
-    uint32_t batchNumber = 2;
-    aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
+TEST_F(UTEST_ACL_Model, AippParamsCheck) {
+  aclError ret;
+  uint32_t batchNumber = 2;
+  aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
 
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    aclDataBuffer *buffer = aclCreateDataBuffer((void*)0x1, 1);
-    ret = aclmdlAddDatasetBuffer(dataset, buffer);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  aclDataBuffer *buffer = aclCreateDataBuffer((void *)0x1, 1);
+  ret = aclmdlAddDatasetBuffer(dataset, buffer);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    // InputFormat not setted
-    (void)GetSrcImageSize(aippDynamicSet);
-    std::string archVersion = "1001";
-    ret = ::AippParamsCheck(aippDynamicSet, archVersion);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  // InputFormat not setted
+  (void)GetSrcImageSize(aippDynamicSet);
+  std::string archVersion = "1001";
+  ret = ::AippParamsCheck(aippDynamicSet, archVersion);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    // aipp arch 1001 not support ACL_ARGB8888_U8
-    (void)aclmdlSetAIPPInputFormat(aippDynamicSet, ACL_ARGB8888_U8);
-    (void)GetSrcImageSize(aippDynamicSet);
-    ret = AippParamsCheck(aippDynamicSet, archVersion);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  // aipp arch 1001 not support ACL_ARGB8888_U8
+  (void)aclmdlSetAIPPInputFormat(aippDynamicSet, ACL_ARGB8888_U8);
+  (void)GetSrcImageSize(aippDynamicSet);
+  ret = AippParamsCheck(aippDynamicSet, archVersion);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    // aipp arch 3002 not support ACL_ARGB8888_U8
-    archVersion = "3002";
-    ret = AippParamsCheck(aippDynamicSet, archVersion);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  // aipp arch 3002 not support ACL_ARGB8888_U8
+  archVersion = "3002";
+  ret = AippParamsCheck(aippDynamicSet, archVersion);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    // aipp arch 2201 not support ACL_ARGB8888_U8
-    archVersion = "2201";
-    ret = ::AippParamsCheck(aippDynamicSet, archVersion);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  // aipp arch 2201 not support ACL_ARGB8888_U8
+  archVersion = "2201";
+  ret = ::AippParamsCheck(aippDynamicSet, archVersion);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    // aipp arch 3510 not support ACL_ARGB8888_U8
-    archVersion = "3510";
-    ret = ::AippParamsCheck(aippDynamicSet, archVersion);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  // aipp arch 3510 not support ACL_ARGB8888_U8
+  archVersion = "3510";
+  ret = ::AippParamsCheck(aippDynamicSet, archVersion);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    // aipp arch 2002 not support ACL_ARGB8888_U8
-    archVersion = "2002";
-    ret = AippParamsCheck(aippDynamicSet, archVersion);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  // aipp arch 2002 not support ACL_ARGB8888_U8
+  archVersion = "2002";
+  ret = AippParamsCheck(aippDynamicSet, archVersion);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    // aipp arch 2002 not support YUYV_U8
-    (void)aclmdlSetAIPPInputFormat(aippDynamicSet, ACL_YUYV_U8);
-    (void)GetSrcImageSize(aippDynamicSet);
-    ret = AippParamsCheck(aippDynamicSet, archVersion);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  // aipp arch 2002 not support YUYV_U8
+  (void)aclmdlSetAIPPInputFormat(aippDynamicSet, ACL_YUYV_U8);
+  (void)GetSrcImageSize(aippDynamicSet);
+  ret = AippParamsCheck(aippDynamicSet, archVersion);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    // arch 2002 not support RAW10,for cover GetSrcImageSize
-    (void)aclmdlSetAIPPInputFormat(aippDynamicSet, ACL_RAW10);
-    (void)GetSrcImageSize(aippDynamicSet);
+  // arch 2002 not support RAW10,for cover GetSrcImageSize
+  (void)aclmdlSetAIPPInputFormat(aippDynamicSet, ACL_RAW10);
+  (void)GetSrcImageSize(aippDynamicSet);
 
-    // arch 2002 not support RAW12,for cover GetSrcImageSize
-    (void)aclmdlSetAIPPInputFormat(aippDynamicSet, ACL_RAW12);
-    (void)GetSrcImageSize(aippDynamicSet);
+  // arch 2002 not support RAW12,for cover GetSrcImageSize
+  (void)aclmdlSetAIPPInputFormat(aippDynamicSet, ACL_RAW12);
+  (void)GetSrcImageSize(aippDynamicSet);
 
-    // arch 2002 not support RAW16,for cover GetSrcImageSize
-    (void)aclmdlSetAIPPInputFormat(aippDynamicSet, ACL_RAW16);
-    (void)GetSrcImageSize(aippDynamicSet);
+  // arch 2002 not support RAW16,for cover GetSrcImageSize
+  (void)aclmdlSetAIPPInputFormat(aippDynamicSet, ACL_RAW16);
+  (void)GetSrcImageSize(aippDynamicSet);
 
-    // arch 2002 not support RAW24,for cover GetSrcImageSize
-    (void)aclmdlSetAIPPInputFormat(aippDynamicSet, ACL_RAW24);
-    (void)GetSrcImageSize(aippDynamicSet);
+  // arch 2002 not support RAW24,for cover GetSrcImageSize
+  (void)aclmdlSetAIPPInputFormat(aippDynamicSet, ACL_RAW24);
+  (void)GetSrcImageSize(aippDynamicSet);
 
-    // arch 2002 not support UV422SP_U8,for cover GetSrcImageSize
-    (void)aclmdlSetAIPPInputFormat(aippDynamicSet, ACL_YUV422SP_U8);
-    (void)GetSrcImageSize(aippDynamicSet);
+  // arch 2002 not support UV422SP_U8,for cover GetSrcImageSize
+  (void)aclmdlSetAIPPInputFormat(aippDynamicSet, ACL_YUV422SP_U8);
+  (void)GetSrcImageSize(aippDynamicSet);
 
-    //for cover GetSrcImageSize
-    (void)aclmdlSetAIPPInputFormat(aippDynamicSet, ACL_XRGB8888_U8);
-    (void)GetSrcImageSize(aippDynamicSet);
+  // for cover GetSrcImageSize
+  (void)aclmdlSetAIPPInputFormat(aippDynamicSet, ACL_XRGB8888_U8);
+  (void)GetSrcImageSize(aippDynamicSet);
 
-    // arch 2002 not support scf
-    (void)aclmdlSetAIPPInputFormat(aippDynamicSet, ACL_YUV420SP_U8);
-    ret = aclmdlSetAIPPScfParams(aippDynamicSet, 0, 1, 1, 1, 1, 0);
-    (void)GetSrcImageSize(aippDynamicSet);
-    ret = AippParamsCheck(aippDynamicSet, archVersion);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  // arch 2002 not support scf
+  (void)aclmdlSetAIPPInputFormat(aippDynamicSet, ACL_YUV420SP_U8);
+  ret = aclmdlSetAIPPScfParams(aippDynamicSet, 0, 1, 1, 1, 1, 0);
+  (void)GetSrcImageSize(aippDynamicSet);
+  ret = AippParamsCheck(aippDynamicSet, archVersion);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    // YUV400_U8 not support csc
-    ret = aclmdlSetAIPPInputFormat(aippDynamicSet, ACL_YUV400_U8);
-    ret = aclmdlSetAIPPCscParams(aippDynamicSet, 1, 256, 443, 0, 256, -86, -178, 256, 0, 350, 0, 0, 0, 0, 128, 128);
-    (void)GetSrcImageSize(aippDynamicSet);
-    ret = AippParamsCheck(aippDynamicSet, archVersion);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  // YUV400_U8 not support csc
+  ret = aclmdlSetAIPPInputFormat(aippDynamicSet, ACL_YUV400_U8);
+  ret = aclmdlSetAIPPCscParams(aippDynamicSet, 1, 256, 443, 0, 256, -86, -178, 256, 0, 350, 0, 0, 0, 0, 128, 128);
+  (void)GetSrcImageSize(aippDynamicSet);
+  ret = AippParamsCheck(aippDynamicSet, archVersion);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    // YUV420SP_U8,src_image_h and src_image_w must be even
-    (void)aclmdlSetAIPPInputFormat(aippDynamicSet, ACL_YUV420SP_U8);
-    (void)GetSrcImageSize(aippDynamicSet);
-    (void)aclmdlSetAIPPSrcImageSize(aippDynamicSet, 223, 223);
-    ret = AippParamsCheck(aippDynamicSet, archVersion);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  // YUV420SP_U8,src_image_h and src_image_w must be even
+  (void)aclmdlSetAIPPInputFormat(aippDynamicSet, ACL_YUV420SP_U8);
+  (void)GetSrcImageSize(aippDynamicSet);
+  (void)aclmdlSetAIPPSrcImageSize(aippDynamicSet, 223, 223);
+  ret = AippParamsCheck(aippDynamicSet, archVersion);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    (void)aclmdlSetAIPPSrcImageSize(aippDynamicSet, 4096, 4096);
-    ret = aclmdlSetAIPPCropParams(aippDynamicSet, 0, 5, 1, 221, 221, 0);
-    ret = aclmdlSetAIPPCropParams(aippDynamicSet, 0, 5, 1, 221, 221, 1);
-    ret = aclmdlSetAIPPScfParams(aippDynamicSet, 0, 224, 224, 120, 120, 0);
-    ret = aclmdlSetAIPPScfParams(aippDynamicSet, 0, 224, 224, 120, 120, 1);
-    ret = aclmdlSetAIPPPaddingParams(aippDynamicSet, 1, 10, 10, 10, 10, 0);
-    ret = aclmdlSetAIPPPaddingParams(aippDynamicSet, 1, 10, 10, 10, 10, 1);
-    ret = AippParamsCheck(aippDynamicSet, archVersion);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  (void)aclmdlSetAIPPSrcImageSize(aippDynamicSet, 4096, 4096);
+  ret = aclmdlSetAIPPCropParams(aippDynamicSet, 0, 5, 1, 221, 221, 0);
+  ret = aclmdlSetAIPPCropParams(aippDynamicSet, 0, 5, 1, 221, 221, 1);
+  ret = aclmdlSetAIPPScfParams(aippDynamicSet, 0, 224, 224, 120, 120, 0);
+  ret = aclmdlSetAIPPScfParams(aippDynamicSet, 0, 224, 224, 120, 120, 1);
+  ret = aclmdlSetAIPPPaddingParams(aippDynamicSet, 1, 10, 10, 10, 10, 0);
+  ret = aclmdlSetAIPPPaddingParams(aippDynamicSet, 1, 10, 10, 10, 10, 1);
+  ret = AippParamsCheck(aippDynamicSet, archVersion);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    archVersion = "3002";
-    ret = AippParamsCheck(aippDynamicSet, archVersion);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  archVersion = "3002";
+  ret = AippParamsCheck(aippDynamicSet, archVersion);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    archVersion = "3002";
-    aippDynamicSet->aippBatchPara[0].scfSwitch = 1;
-    ret = AippParamsCheck(aippDynamicSet, archVersion);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  archVersion = "3002";
+  aippDynamicSet->aippBatchPara[0].scfSwitch = 1;
+  ret = AippParamsCheck(aippDynamicSet, archVersion);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    archVersion = "3002";
-    aippDynamicSet->aippBatchPara[0].scfSwitch = 0;
-    aippDynamicSet->aippBatchPara[0].cropSwitch = 1;
-    ret = AippParamsCheck(aippDynamicSet, archVersion);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  archVersion = "3002";
+  aippDynamicSet->aippBatchPara[0].scfSwitch = 0;
+  aippDynamicSet->aippBatchPara[0].cropSwitch = 1;
+  ret = AippParamsCheck(aippDynamicSet, archVersion);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    archVersion = "3002";
-    aippDynamicSet->aippParms.inputFormat = CCE_YUV420SP_U8;
-    aippDynamicSet->aippBatchPara[0].cropStartPosW = MIN_ALIGNMENT_YUV + 1;
-    aippDynamicSet->aippBatchPara[0].scfSwitch = 0;
-    aippDynamicSet->aippBatchPara[0].cropSwitch = 1;
-    ret = AippParamsCheck(aippDynamicSet, archVersion);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  archVersion = "3002";
+  aippDynamicSet->aippParms.inputFormat = CCE_YUV420SP_U8;
+  aippDynamicSet->aippBatchPara[0].cropStartPosW = MIN_ALIGNMENT_YUV + 1;
+  aippDynamicSet->aippBatchPara[0].scfSwitch = 0;
+  aippDynamicSet->aippBatchPara[0].cropSwitch = 1;
+  ret = AippParamsCheck(aippDynamicSet, archVersion);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    ret = aclmdlDestroyAIPP(aippDynamicSet);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    aclDestroyDataBuffer(buffer);
-    aclmdlDestroyDataset(dataset);
+  ret = aclmdlDestroyAIPP(aippDynamicSet);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  aclDestroyDataBuffer(buffer);
+  aclmdlDestroyDataset(dataset);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlSetInputAIPP_Check)
-{
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelAttr(_, _))
-        .WillRepeatedly(Invoke(GetModelAttr_Invoke));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_,_,_,_))
-        .WillRepeatedly(Invoke(GetModelDescInfo_Invoke));
+TEST_F(UTEST_ACL_Model, aclmdlSetInputAIPP_Check) {
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelAttr(_, _)).WillRepeatedly(Invoke(GetModelAttr_Invoke));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke(GetModelDescInfo_Invoke));
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_,_,_))
-         .WillRepeatedly(Invoke(GetDynamicBatchInfo_Invoke5));
-    uint32_t batchNumber = 1;
-    aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    aclDataBuffer *buffer = aclCreateDataBuffer((void*)0x1, 1);
-    aclError ret = aclmdlAddDatasetBuffer(dataset, buffer);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _, _))
+      .WillRepeatedly(Invoke(GetDynamicBatchInfo_Invoke5));
+  uint32_t batchNumber = 1;
+  aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  aclDataBuffer *buffer = aclCreateDataBuffer((void *)0x1, 1);
+  aclError ret = aclmdlAddDatasetBuffer(dataset, buffer);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAippType(_, _,_,_))
-        .WillRepeatedly(Invoke(GetAippTypeNoAippInvoke));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAippType(_, _, _, _))
+      .WillRepeatedly(Invoke(GetAippTypeNoAippInvoke));
 
-    ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    ret = aclmdlDestroyAIPP(aippDynamicSet);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    aclDestroyDataBuffer(buffer);
-    aclmdlDestroyDataset(dataset);
+  ret = aclmdlDestroyAIPP(aippDynamicSet);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  aclDestroyDataBuffer(buffer);
+  aclmdlDestroyDataset(dataset);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlCreateAndGetOpDesc)
-{
-    char opName[256];
-    memset(opName, '\0', 256);
-    aclTensorDesc *inputDesc = nullptr;
-    aclTensorDesc *outputDesc = nullptr;
-    size_t inputCnt = 0;
-    size_t outputCnt = 0;
-    aclError ret = aclmdlCreateAndGetOpDesc(0, 0, 0, opName, 256,  &inputDesc, &inputCnt, &outputDesc, &outputCnt);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    for (size_t i = 0; i < inputCnt; ++i) {
-        (void)aclGetTensorDescByIndex(inputDesc, i);
-    }
-    for (size_t i = 0; i < outputCnt; ++i) {
-        (void)aclGetTensorDescByIndex(outputDesc, i);
-    }
-    ret = aclmdlCreateAndGetOpDesc(0, 0, 0, opName, -1,  &inputDesc, &inputCnt, &outputDesc, &outputCnt);
-    EXPECT_EQ(ret, ACL_ERROR_FAILURE);
-    aclDestroyTensorDesc(inputDesc);
-    aclDestroyTensorDesc(outputDesc);
+TEST_F(UTEST_ACL_Model, aclmdlCreateAndGetOpDesc) {
+  char opName[256];
+  memset(opName, '\0', 256);
+  aclTensorDesc *inputDesc = nullptr;
+  aclTensorDesc *outputDesc = nullptr;
+  size_t inputCnt = 0;
+  size_t outputCnt = 0;
+  aclError ret = aclmdlCreateAndGetOpDesc(0, 0, 0, opName, 256, &inputDesc, &inputCnt, &outputDesc, &outputCnt);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  for (size_t i = 0; i < inputCnt; ++i) {
+    (void)aclGetTensorDescByIndex(inputDesc, i);
+  }
+  for (size_t i = 0; i < outputCnt; ++i) {
+    (void)aclGetTensorDescByIndex(outputDesc, i);
+  }
+  ret = aclmdlCreateAndGetOpDesc(0, 0, 0, opName, -1, &inputDesc, &inputCnt, &outputDesc, &outputCnt);
+  EXPECT_EQ(ret, ACL_ERROR_FAILURE);
+  aclDestroyTensorDesc(inputDesc);
+  aclDestroyTensorDesc(outputDesc);
 }
 
-TEST_F(UTEST_ACL_Model, aclGetTensorDescAddress)
-{
-    auto ret = aclGetTensorDescAddress(nullptr);
-    EXPECT_EQ(ret, nullptr);
+TEST_F(UTEST_ACL_Model, aclGetTensorDescAddress) {
+  auto ret = aclGetTensorDescAddress(nullptr);
+  EXPECT_EQ(ret, nullptr);
 }
 
 TEST_F(UTEST_ACL_Model, aclmdlSetExternalWeightAddress) {
-    aclmdlConfigHandle *handle = aclmdlCreateConfigHandle();
-    ASSERT_NE(handle, nullptr);
-    std::string file_name = "fileconstant1.bin";
-    size_t mem_size = 1024;
-    uint32_t user_mem[1024];
-    auto ret = aclmdlSetExternalWeightAddress(handle, file_name.c_str(), (void *)user_mem, mem_size);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlSetExternalWeightAddress(handle, file_name.c_str(), nullptr, mem_size);
-    EXPECT_NE(ret, ACL_SUCCESS);
-    ret = aclmdlSetExternalWeightAddress(handle, nullptr, (void *)user_mem, mem_size);
-    EXPECT_NE(ret, ACL_SUCCESS);
-    ret = aclmdlSetExternalWeightAddress(nullptr, file_name.c_str(), (void *)user_mem, mem_size);
-    EXPECT_NE(ret, ACL_SUCCESS);
-    ret = aclmdlSetExternalWeightAddress(handle, file_name.c_str(), (void *)user_mem, 0);
-    EXPECT_NE(ret, ACL_SUCCESS);
-    aclmdlDestroyConfigHandle(handle);
+  aclmdlConfigHandle *handle = aclmdlCreateConfigHandle();
+  ASSERT_NE(handle, nullptr);
+  std::string file_name = "fileconstant1.bin";
+  size_t mem_size = 1024;
+  uint32_t user_mem[1024];
+  auto ret = aclmdlSetExternalWeightAddress(handle, file_name.c_str(), (void *)user_mem, mem_size);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetExternalWeightAddress(handle, file_name.c_str(), nullptr, mem_size);
+  EXPECT_NE(ret, ACL_SUCCESS);
+  ret = aclmdlSetExternalWeightAddress(handle, nullptr, (void *)user_mem, mem_size);
+  EXPECT_NE(ret, ACL_SUCCESS);
+  ret = aclmdlSetExternalWeightAddress(nullptr, file_name.c_str(), (void *)user_mem, mem_size);
+  EXPECT_NE(ret, ACL_SUCCESS);
+  ret = aclmdlSetExternalWeightAddress(handle, file_name.c_str(), (void *)user_mem, 0);
+  EXPECT_NE(ret, ACL_SUCCESS);
+  aclmdlDestroyConfigHandle(handle);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlLoadWithConfig_ExternalAddress)
-{
-    aclmdlConfigHandle *handle = aclmdlCreateConfigHandle();
-    ASSERT_NE(handle, nullptr);
-    std::string file_name1 = "fileconstant1.bin";
-    size_t mem_size1 = 1024;
-    uint32_t user_mem1[1024];
-    auto ret = aclmdlSetExternalWeightAddress(handle, file_name1.c_str(), (void *)user_mem1, mem_size1);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+TEST_F(UTEST_ACL_Model, aclmdlLoadWithConfig_ExternalAddress) {
+  aclmdlConfigHandle *handle = aclmdlCreateConfigHandle();
+  ASSERT_NE(handle, nullptr);
+  std::string file_name1 = "fileconstant1.bin";
+  size_t mem_size1 = 1024;
+  uint32_t user_mem1[1024];
+  auto ret = aclmdlSetExternalWeightAddress(handle, file_name1.c_str(), (void *)user_mem1, mem_size1);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    std::string file_name2 = "fileconstant2.bin";
-    size_t mem_size2 = 1024;
-    uint32_t user_mem2[1024];
-    ret = aclmdlSetExternalWeightAddress(handle, file_name2.c_str(), (void *)user_mem2, mem_size2);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  std::string file_name2 = "fileconstant2.bin";
+  size_t mem_size2 = 1024;
+  uint32_t user_mem2[1024];
+  ret = aclmdlSetExternalWeightAddress(handle, file_name2.c_str(), (void *)user_mem2, mem_size2);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    ge::ModelFileHeader head;
-    head.version = ge::MODEL_VERSION + 1U;
-    head.model_num = 2U;
-    void *p = (void *)&head;
-    uint32_t modelId;
-    size_t type = 99;
+  ge::ModelFileHeader head;
+  head.version = ge::MODEL_VERSION + 1U;
+  head.model_num = 2U;
+  void *p = (void *)&head;
+  uint32_t modelId;
+  size_t type = 99;
 
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_MEM_ADDR_PTR, &p, sizeof(p));
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_MEM_ADDR_PTR, &p, sizeof(p));
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    size_t modelSize1 = 1;
-    size_t modelSize = sizeof(head);
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_MEM_SIZET, &modelSize, sizeof(modelSize));
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    const char *path = "/home";
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_PATH_PTR, &path, sizeof(path));
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_ADDR_PTR, &p, sizeof(p));
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_SIZET, &modelSize1, sizeof(modelSize1));
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_WEIGHT_ADDR_PTR, &p, sizeof(p));
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_WEIGHT_SIZET, &modelSize1, sizeof(modelSize1));
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    size_t reuseMemory = 0;
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_MEM_OPTIMIZE, &reuseMemory, sizeof(reuseMemory));
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    reuseMemory = 0xFFFFFFFFFFFFFFFF;
+  size_t modelSize1 = 1;
+  size_t modelSize = sizeof(head);
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_MEM_SIZET, &modelSize, sizeof(modelSize));
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  const char *path = "/home";
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_PATH_PTR, &path, sizeof(path));
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_ADDR_PTR, &p, sizeof(p));
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_SIZET, &modelSize1, sizeof(modelSize1));
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_WEIGHT_ADDR_PTR, &p, sizeof(p));
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_WEIGHT_SIZET, &modelSize1, sizeof(modelSize1));
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  size_t reuseMemory = 0;
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_MEM_OPTIMIZE, &reuseMemory, sizeof(reuseMemory));
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  reuseMemory = 0xFFFFFFFFFFFFFFFF;
 
-    vector<uint32_t> inputQ(100);
-    vector<uint32_t> outputQ(100);
-    uint32_t *inputQPtr = inputQ.data();
-    uint32_t *outputQPtr = outputQ.data();
+  vector<uint32_t> inputQ(100);
+  vector<uint32_t> outputQ(100);
+  uint32_t *inputQPtr = inputQ.data();
+  uint32_t *outputQPtr = outputQ.data();
 
-    type = ACL_MDL_LOAD_FROM_FILE_WITH_Q;
+  type = ACL_MDL_LOAD_FROM_FILE_WITH_Q;
 
-    aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_INPUTQ_ADDR_PTR, &inputQPtr, sizeof(inputQ.data()));
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    size_t num = 100;
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_INPUTQ_NUM_SIZET, &num, sizeof(size_t));
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_OUTPUTQ_ADDR_PTR, &outputQPtr, sizeof(outputQ.data()));
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_INPUTQ_ADDR_PTR, &inputQPtr, sizeof(inputQ.data()));
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  size_t num = 100;
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_INPUTQ_NUM_SIZET, &num, sizeof(size_t));
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_OUTPUTQ_ADDR_PTR, &outputQPtr, sizeof(outputQ.data()));
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_OUTPUTQ_NUM_SIZET, &num, sizeof(size_t));
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_OUTPUTQ_NUM_SIZET, &num, sizeof(size_t));
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    int32_t priority = 1;
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_PRIORITY_INT32, &priority, sizeof(priority));
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  int32_t priority = 1;
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_PRIORITY_INT32, &priority, sizeof(priority));
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    type = ACL_MDL_LOAD_FROM_MEM;
-    aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
-    // rt2.0
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_,_,_))
-        .WillRepeatedly(Invoke(LoadExecutorFromModelDataCheckFileConstantMemSuccess));
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
+  type = ACL_MDL_LOAD_FROM_MEM;
+  aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
+  // rt2.0
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_, _, _))
+      .WillRepeatedly(Invoke(LoadExecutorFromModelDataCheckFileConstantMemSuccess));
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
 
-    type = ACL_MDL_LOAD_FROM_MEM_WITH_MEM;
-    aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
-    // static
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    // rt2.0
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
-    // static
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  type = ACL_MDL_LOAD_FROM_MEM_WITH_MEM;
+  aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
+  // static
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  // rt2.0
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
+  // static
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    type = ACL_MDL_LOAD_FROM_FILE_WITH_MEM;
-    aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    // rt2.0
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
+  type = ACL_MDL_LOAD_FROM_FILE_WITH_MEM;
+  aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  // rt2.0
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
 
-    type = ACL_MDL_LOAD_FROM_FILE;
-    aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    // rt2.0
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
+  type = ACL_MDL_LOAD_FROM_FILE;
+  aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  // rt2.0
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
 
-    type = ACL_MDL_LOAD_FROM_FILE_WITH_Q;
-    aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  type = ACL_MDL_LOAD_FROM_FILE_WITH_Q;
+  aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    type = ACL_MDL_LOAD_FROM_MEM_WITH_Q;
-    aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  type = ACL_MDL_LOAD_FROM_MEM_WITH_Q;
+  aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    type = ACL_MDL_LOAD_FROM_MEM;
-    aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
-    const char_t *weight_path = "weight_path";
-    aclmdlSetConfigOpt(handle, ACL_MDL_WEIGHT_PATH_PTR, &weight_path, sizeof(weight_path));
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  type = ACL_MDL_LOAD_FROM_MEM;
+  aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
+  const char_t *weight_path = "weight_path";
+  aclmdlSetConfigOpt(handle, ACL_MDL_WEIGHT_PATH_PTR, &weight_path, sizeof(weight_path));
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    type = ACL_MDL_LOAD_FROM_FILE;
-    aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
-    const char *om_path = "/home";
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_PATH_PTR, &om_path, sizeof(om_path));
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  type = ACL_MDL_LOAD_FROM_FILE;
+  aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
+  const char *om_path = "/home";
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_PATH_PTR, &om_path, sizeof(om_path));
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    type = ACL_MDL_LOAD_FROM_MEM_WITH_MEM;
-    aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  type = ACL_MDL_LOAD_FROM_MEM_WITH_MEM;
+  aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    type = ACL_MDL_LOAD_FROM_MEM;
-    aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
-    // rt2.0
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_,_,_))
-        .WillRepeatedly(Invoke(LoadExecutorFromModelDataSuccess));
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-    handle->attrState.insert(ACL_MDL_WITHOUT_GRAPH_INT32);
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    handle->attrState.erase(ACL_MDL_WITHOUT_GRAPH_INT32);
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  type = ACL_MDL_LOAD_FROM_MEM;
+  aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
+  // rt2.0
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_, _, _))
+      .WillRepeatedly(Invoke(LoadExecutorFromModelDataSuccess));
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
+  handle->attrState.insert(ACL_MDL_WITHOUT_GRAPH_INT32);
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  handle->attrState.erase(ACL_MDL_WITHOUT_GRAPH_INT32);
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    handle->mdlLoadType = -1;
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  handle->mdlLoadType = -1;
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
-    aclmdlDestroyConfigHandle(handle);
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
+  aclmdlDestroyConfigHandle(handle);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlConfigAttr_without_graph)
-{
+TEST_F(UTEST_ACL_Model, aclmdlConfigAttr_without_graph) {
   auto handle = aclmdlCreateConfigHandle();
   EXPECT_NE(handle, nullptr);
   int32_t without_graph = 2;
@@ -3042,1554 +2856,1493 @@ TEST_F(UTEST_ACL_Model, aclmdlConfigAttr_without_graph)
   handle = nullptr;
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlLoadWithConfig)
-{
-    aclmdlConfigHandle *handle = aclmdlCreateConfigHandle();
-    ge::ModelFileHeader head;
-    head.version = ge::MODEL_VERSION + 1U;
-    head.model_num = 2U;
-    void *p = (void *)&head;
-    uint32_t modelId;
-    aclError ret;
-    size_t invalid_num = 99;
-    size_t type = 99;
-    ret = aclmdlSetConfigOpt(handle, *(aclmdlConfigAttr *)(&type), &type, sizeof(type));
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+TEST_F(UTEST_ACL_Model, aclmdlLoadWithConfig) {
+  aclmdlConfigHandle *handle = aclmdlCreateConfigHandle();
+  ge::ModelFileHeader head;
+  head.version = ge::MODEL_VERSION + 1U;
+  head.model_num = 2U;
+  void *p = (void *)&head;
+  uint32_t modelId;
+  aclError ret;
+  size_t invalid_num = 99;
+  size_t type = 99;
+  ret = aclmdlSetConfigOpt(handle, *(aclmdlConfigAttr *)(&type), &type, sizeof(type));
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, invalid_num);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, invalid_num);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    type = ACL_MDL_LOAD_FROM_FILE;
-    aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
+  type = ACL_MDL_LOAD_FROM_FILE;
+  aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
 
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    type = ACL_MDL_LOAD_FROM_MEM_WITH_MEM;
-    aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
+  type = ACL_MDL_LOAD_FROM_MEM_WITH_MEM;
+  aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
 
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_MEM_ADDR_PTR, &p, sizeof(p));
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_MEM_ADDR_PTR, &p, sizeof(p));
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    size_t modelSize1 = 1;
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_MEM_SIZET, &modelSize1, 0);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    size_t modelSize = sizeof(head);
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_MEM_SIZET, &modelSize, sizeof(modelSize));
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    const char *path = "/home";
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_PATH_PTR, &path, 0);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_PATH_PTR, &path, sizeof(path));
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_ADDR_PTR, &p, 0);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_ADDR_PTR, &p, sizeof(p));
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_SIZET, &modelSize1, 0);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_SIZET, &modelSize1, sizeof(modelSize1));
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_WEIGHT_ADDR_PTR, &p, 0);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_WEIGHT_ADDR_PTR, &p, sizeof(p));
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_WEIGHT_SIZET, &modelSize1, 0);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_WEIGHT_SIZET, &modelSize1, sizeof(modelSize1));
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    size_t reuseMemory = 0;
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_MEM_OPTIMIZE, &reuseMemory, 0);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_MEM_OPTIMIZE, &reuseMemory, sizeof(reuseMemory));
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    reuseMemory = 0xFFFFFFFFFFFFFFFF;
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_MEM_OPTIMIZE, &reuseMemory, sizeof(reuseMemory));
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  size_t modelSize1 = 1;
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_MEM_SIZET, &modelSize1, 0);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  size_t modelSize = sizeof(head);
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_MEM_SIZET, &modelSize, sizeof(modelSize));
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  const char *path = "/home";
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_PATH_PTR, &path, 0);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_PATH_PTR, &path, sizeof(path));
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_ADDR_PTR, &p, 0);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_ADDR_PTR, &p, sizeof(p));
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_SIZET, &modelSize1, 0);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_SIZET, &modelSize1, sizeof(modelSize1));
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_WEIGHT_ADDR_PTR, &p, 0);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_WEIGHT_ADDR_PTR, &p, sizeof(p));
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_WEIGHT_SIZET, &modelSize1, 0);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_WEIGHT_SIZET, &modelSize1, sizeof(modelSize1));
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  size_t reuseMemory = 0;
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_MEM_OPTIMIZE, &reuseMemory, 0);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_MEM_OPTIMIZE, &reuseMemory, sizeof(reuseMemory));
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  reuseMemory = 0xFFFFFFFFFFFFFFFF;
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_WORKSPACE_MEM_OPTIMIZE, &reuseMemory, sizeof(reuseMemory));
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    vector<uint32_t> inputQ(100);
-    vector<uint32_t> outputQ(100);
-    uint32_t *inputQPtr = inputQ.data();
-    uint32_t *outputQPtr = outputQ.data();
+  vector<uint32_t> inputQ(100);
+  vector<uint32_t> outputQ(100);
+  uint32_t *inputQPtr = inputQ.data();
+  uint32_t *outputQPtr = outputQ.data();
 
-    type = ACL_MDL_LOAD_FROM_FILE_WITH_Q;
+  type = ACL_MDL_LOAD_FROM_FILE_WITH_Q;
 
-    aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_INPUTQ_ADDR_PTR, &inputQPtr, 0);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_INPUTQ_ADDR_PTR, &inputQPtr, sizeof(inputQ.data()));
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    size_t num = 100;
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_INPUTQ_NUM_SIZET, &num, 0);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_INPUTQ_NUM_SIZET, &num, sizeof(size_t));
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_INPUTQ_ADDR_PTR, &inputQPtr, 0);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_INPUTQ_ADDR_PTR, &inputQPtr, sizeof(inputQ.data()));
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  size_t num = 100;
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_INPUTQ_NUM_SIZET, &num, 0);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_INPUTQ_NUM_SIZET, &num, sizeof(size_t));
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_OUTPUTQ_ADDR_PTR, &outputQPtr, 0);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_OUTPUTQ_ADDR_PTR, &outputQPtr, sizeof(outputQ.data()));
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_OUTPUTQ_ADDR_PTR, &outputQPtr, 0);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_OUTPUTQ_ADDR_PTR, &outputQPtr, sizeof(outputQ.data()));
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_OUTPUTQ_NUM_SIZET, &num, 0);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_OUTPUTQ_NUM_SIZET, &num, sizeof(size_t));
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_OUTPUTQ_NUM_SIZET, &num, 0);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_OUTPUTQ_NUM_SIZET, &num, sizeof(size_t));
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    int32_t priority = 1;
+  int32_t priority = 1;
 
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_PRIORITY_INT32, &priority, sizeof(priority));
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_PRIORITY_INT32, &priority, 0);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_PRIORITY_INT32, &priority, sizeof(priority));
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_PRIORITY_INT32, &priority, 0);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    type = ACL_MDL_LOAD_FROM_MEM;
-    aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    // rt2.0
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_,_,_))
-            .WillRepeatedly(Invoke(LoadExecutorFromModelDataSuccess));
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
+  type = ACL_MDL_LOAD_FROM_MEM;
+  aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  // rt2.0
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_, _, _))
+      .WillRepeatedly(Invoke(LoadExecutorFromModelDataSuccess));
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
 
-    type = ACL_MDL_LOAD_FROM_MEM_WITH_MEM;
-    aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
-    // static
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    // rt2.0
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
-    // static
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  type = ACL_MDL_LOAD_FROM_MEM_WITH_MEM;
+  aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
+  // static
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  // rt2.0
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
+  // static
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    type = ACL_MDL_LOAD_FROM_FILE_WITH_MEM;
-    aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    // rt2.0
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
+  type = ACL_MDL_LOAD_FROM_FILE_WITH_MEM;
+  aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  // rt2.0
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
 
-    type = ACL_MDL_LOAD_FROM_FILE;
-    aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    // rt2.0
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
+  type = ACL_MDL_LOAD_FROM_FILE;
+  aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  // rt2.0
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
 
-    type = ACL_MDL_LOAD_FROM_FILE_WITH_Q;
-    aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  type = ACL_MDL_LOAD_FROM_FILE_WITH_Q;
+  aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    type = ACL_MDL_LOAD_FROM_MEM_WITH_Q;
-    aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  type = ACL_MDL_LOAD_FROM_MEM_WITH_Q;
+  aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    type = ACL_MDL_LOAD_FROM_MEM;
-    aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
-    const char_t *weight_path = "weight_path";
-    aclmdlSetConfigOpt(handle, ACL_MDL_WEIGHT_PATH_PTR, &weight_path, sizeof(weight_path));
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  type = ACL_MDL_LOAD_FROM_MEM;
+  aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
+  const char_t *weight_path = "weight_path";
+  aclmdlSetConfigOpt(handle, ACL_MDL_WEIGHT_PATH_PTR, &weight_path, sizeof(weight_path));
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    type = ACL_MDL_LOAD_FROM_FILE;
-    aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
-    const char *om_path = "/home";
-    ret = aclmdlSetConfigOpt(handle, ACL_MDL_PATH_PTR, &om_path, sizeof(om_path));
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  type = ACL_MDL_LOAD_FROM_FILE;
+  aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
+  const char *om_path = "/home";
+  ret = aclmdlSetConfigOpt(handle, ACL_MDL_PATH_PTR, &om_path, sizeof(om_path));
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    type = ACL_MDL_LOAD_FROM_MEM_WITH_MEM;
-    aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  type = ACL_MDL_LOAD_FROM_MEM_WITH_MEM;
+  aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    type = ACL_MDL_LOAD_FROM_MEM;
-    aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
-    // rt2.0
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_,_,_))
-            .WillRepeatedly(Invoke(LoadExecutorFromModelDataSuccess));
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-    ret = aclmdlLoadWithConfig(handle, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
-    aclmdlDestroyConfigHandle(handle);
+  type = ACL_MDL_LOAD_FROM_MEM;
+  aclmdlSetConfigOpt(handle, ACL_MDL_LOAD_TYPE_SIZET, &type, sizeof(type));
+  // rt2.0
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_, _, _))
+      .WillRepeatedly(Invoke(LoadExecutorFromModelDataSuccess));
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
+  ret = aclmdlLoadWithConfig(handle, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
+  aclmdlDestroyConfigHandle(handle);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetRealTensorName)
-{
-    aclmdlDesc *mdlDesc = aclmdlCreateDesc();
-    aclmdlTensorDesc desc;
-    desc.name = "dhsdhasiodhsaiodhsiashdisdhsiahdisahdisoahisahdihdisahdaoidhaihdsaihdsaihdsahdishaodhsiahihdoiahdsioadhisahdasidhsaidashdiaoiahdisohdosahdsahdiasoidashoidaoidhahdaoidahioadhiahdsahdiahdaiodaidahdhdahidahdaoda";
-    // desc.dimsV2 = {1};
-    // desc.size = 1;
-    mdlDesc->inputDesc.push_back(desc);
-    mdlDesc->outputDesc.push_back(desc);
+TEST_F(UTEST_ACL_Model, aclmdlGetRealTensorName) {
+  aclmdlDesc *mdlDesc = aclmdlCreateDesc();
+  aclmdlTensorDesc desc;
+  desc.name =
+      "dhsdhasiodhsaiodhsiashdisdhsiahdisahdisoahisahdihdisahdaoidhaihdsaihdsaihdsahdishaodhsiahihdoiahdsioadhisahdasid"
+      "hsaidashdiaoiahdisohdosahdsahdiasoidashoidaoidhahdaoidahioadhiahdsahdiahdaiodaidahdhdahidahdaoda";
+  // desc.dimsV2 = {1};
+  // desc.size = 1;
+  mdlDesc->inputDesc.push_back(desc);
+  mdlDesc->outputDesc.push_back(desc);
 
-    aclmdlTensorDesc desc1;
-    desc1.name = "a6872_1bu_idc";
-    mdlDesc->inputDesc.push_back(desc1);
+  aclmdlTensorDesc desc1;
+  desc1.name = "a6872_1bu_idc";
+  mdlDesc->inputDesc.push_back(desc1);
 
-    aclmdlIODims dims;
-    aclmdlIODims dims1;
-    auto ret = aclmdlGetInputDimsV2(mdlDesc, 0, &dims);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  aclmdlIODims dims;
+  aclmdlIODims dims1;
+  auto ret = aclmdlGetInputDimsV2(mdlDesc, 0, &dims);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    ret = aclmdlGetInputDimsV2(mdlDesc, 1, &dims1);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlGetInputDimsV2(mdlDesc, 1, &dims1);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    EXPECT_STREQ(dims.name, "acl_modelId_0_input_0");
-    EXPECT_STREQ(dims1.name, "a6872_1bu_idc");
+  EXPECT_STREQ(dims.name, "acl_modelId_0_input_0");
+  EXPECT_STREQ(dims1.name, "a6872_1bu_idc");
 
-    const char *str = aclmdlGetTensorRealName(mdlDesc, dims.name);
-    EXPECT_STREQ(desc.name.c_str(), str);
+  const char *str = aclmdlGetTensorRealName(mdlDesc, dims.name);
+  EXPECT_STREQ(desc.name.c_str(), str);
 
-    str = aclmdlGetTensorRealName(mdlDesc, dims1.name);
-    EXPECT_STREQ(desc1.name.c_str(), str);
+  str = aclmdlGetTensorRealName(mdlDesc, dims1.name);
+  EXPECT_STREQ(desc1.name.c_str(), str);
 
-    str = aclmdlGetTensorRealName(mdlDesc, "xxxdwdsdasd");
-    EXPECT_EQ(str, nullptr);
+  str = aclmdlGetTensorRealName(mdlDesc, "xxxdwdsdasd");
+  EXPECT_EQ(str, nullptr);
 
-    str = aclmdlGetTensorRealName(mdlDesc, "acl_modelId_0_input_xxx");
-    EXPECT_EQ(str, nullptr);
+  str = aclmdlGetTensorRealName(mdlDesc, "acl_modelId_0_input_xxx");
+  EXPECT_EQ(str, nullptr);
 
-    str = aclmdlGetTensorRealName(mdlDesc, "modelId_0_input_xxx");
-    EXPECT_EQ(str, nullptr);
+  str = aclmdlGetTensorRealName(mdlDesc, "modelId_0_input_xxx");
+  EXPECT_EQ(str, nullptr);
 
-    str = aclmdlGetTensorRealName(mdlDesc, "acl_modelId_xxx_input_0");
-    EXPECT_EQ(str, nullptr);
+  str = aclmdlGetTensorRealName(mdlDesc, "acl_modelId_xxx_input_0");
+  EXPECT_EQ(str, nullptr);
 
-    str = aclmdlGetTensorRealName(mdlDesc, "acl_modelId_0_input_0");
-    EXPECT_EQ(str, desc.name.c_str());
+  str = aclmdlGetTensorRealName(mdlDesc, "acl_modelId_0_input_0");
+  EXPECT_EQ(str, desc.name.c_str());
 
-    str = aclmdlGetTensorRealName(mdlDesc, "acl_modelId_0_output_0");
-    EXPECT_EQ(str, desc.name.c_str());
+  str = aclmdlGetTensorRealName(mdlDesc, "acl_modelId_0_output_0");
+  EXPECT_EQ(str, desc.name.c_str());
 
-    ret = aclmdlGetOutputDims(mdlDesc, 0, &dims);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    EXPECT_STREQ(dims.name, "acl_modelId_0_output_0");
+  ret = aclmdlGetOutputDims(mdlDesc, 0, &dims);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_STREQ(dims.name, "acl_modelId_0_output_0");
 
-    ret = aclmdlGetInputDims(mdlDesc, 0, &dims);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    EXPECT_STREQ(dims.name, "acl_modelId_0_input_0");
+  ret = aclmdlGetInputDims(mdlDesc, 0, &dims);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_STREQ(dims.name, "acl_modelId_0_input_0");
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetCurShape(_,_,_))
-        .WillOnce(Return(SUCCESS));
-    ret = aclmdlGetCurOutputDims(mdlDesc, 0, &dims);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    EXPECT_STREQ(dims.name, "acl_modelId_0_output_0");
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetCurShape(_, _, _)).WillOnce(Return(SUCCESS));
+  ret = aclmdlGetCurOutputDims(mdlDesc, 0, &dims);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_STREQ(dims.name, "acl_modelId_0_output_0");
 
-    str = aclmdlGetTensorRealName(mdlDesc, "xxxx_modelId_0_output_0");
-    EXPECT_EQ(str, nullptr);
+  str = aclmdlGetTensorRealName(mdlDesc, "xxxx_modelId_0_output_0");
+  EXPECT_EQ(str, nullptr);
 
-    str = aclmdlGetTensorRealName(mdlDesc, "acl_modelId_100_input_0");
-    EXPECT_EQ(str, nullptr);
+  str = aclmdlGetTensorRealName(mdlDesc, "acl_modelId_100_input_0");
+  EXPECT_EQ(str, nullptr);
 
-    str = aclmdlGetTensorRealName(mdlDesc, "acl_modelId_0_input_100");
-    EXPECT_EQ(str, nullptr);
+  str = aclmdlGetTensorRealName(mdlDesc, "acl_modelId_0_input_100");
+  EXPECT_EQ(str, nullptr);
 
-    str = aclmdlGetTensorRealName(mdlDesc, "acl_modelId_0_output_100");
-    EXPECT_EQ(str, nullptr);
+  str = aclmdlGetTensorRealName(mdlDesc, "acl_modelId_0_output_100");
+  EXPECT_EQ(str, nullptr);
 
-    aclmdlDestroyDesc(mdlDesc);
+  aclmdlDestroyDesc(mdlDesc);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlSetTensorDesc)
-{
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    aclDataBuffer *buffer = aclCreateDataBuffer((void*)0x1, 1);
-    aclError ret = aclmdlAddDatasetBuffer(dataset, buffer);
-    aclDataBuffer *buffer1 = aclCreateDataBuffer((void*)0x2, 1);
-    ret = aclmdlAddDatasetBuffer(dataset, buffer1);
-    aclmdlDataset *datasetOut = aclmdlCreateDataset();
-    aclDataBuffer *buffer2 = aclCreateDataBuffer((void*)0x3, 1);
-    ret = aclmdlAddDatasetBuffer(datasetOut, buffer);
+TEST_F(UTEST_ACL_Model, aclmdlSetTensorDesc) {
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  aclDataBuffer *buffer = aclCreateDataBuffer((void *)0x1, 1);
+  aclError ret = aclmdlAddDatasetBuffer(dataset, buffer);
+  aclDataBuffer *buffer1 = aclCreateDataBuffer((void *)0x2, 1);
+  ret = aclmdlAddDatasetBuffer(dataset, buffer1);
+  aclmdlDataset *datasetOut = aclmdlCreateDataset();
+  aclDataBuffer *buffer2 = aclCreateDataBuffer((void *)0x3, 1);
+  ret = aclmdlAddDatasetBuffer(datasetOut, buffer);
 
-    int64_t shape[2] = {16, 32};
-    aclTensorDesc *inputDesc = aclCreateTensorDesc(ACL_FLOAT16, 2, shape, ACL_FORMAT_ND);
-    size_t index = 1;
-    ret = aclmdlSetDatasetTensorDesc (dataset, inputDesc, index);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlSetDatasetTensorDesc (dataset, nullptr, 0);
+  int64_t shape[2] = {16, 32};
+  aclTensorDesc *inputDesc = aclCreateTensorDesc(ACL_FLOAT16, 2, shape, ACL_FORMAT_ND);
+  size_t index = 1;
+  ret = aclmdlSetDatasetTensorDesc(dataset, inputDesc, index);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetDatasetTensorDesc(dataset, nullptr, 0);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), ExecModel(_, _, _, _, _, _, _))
-        .WillOnce(Invoke(ExecModelInvokeOneOut));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), ExecModel(_, _, _, _, _, _, _))
+      .WillOnce(Invoke(ExecModelInvokeOneOut));
 
-    ret = aclmdlExecute(1, dataset, datasetOut);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlExecute(1, dataset, datasetOut);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    size_t index1 = 2;
-    ret = aclmdlSetDatasetTensorDesc (dataset, inputDesc, index1);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  size_t index1 = 2;
+  ret = aclmdlSetDatasetTensorDesc(dataset, inputDesc, index1);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    aclmdlDestroyDataset(dataset);    
-    aclmdlDestroyDataset(datasetOut);
-    aclDestroyDataBuffer(buffer);
-    aclDestroyDataBuffer(buffer1);
-    aclDestroyDataBuffer(buffer2);
-    aclDestroyTensorDesc(inputDesc); 
+  aclmdlDestroyDataset(dataset);
+  aclmdlDestroyDataset(datasetOut);
+  aclDestroyDataBuffer(buffer);
+  aclDestroyDataBuffer(buffer1);
+  aclDestroyDataBuffer(buffer2);
+  aclDestroyTensorDesc(inputDesc);
 }
 
 /// TODO:
-TEST_F(UTEST_ACL_Model, aclmdlExecuteSyncWithNullOutput)
-{
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    aclDataBuffer *buffer = aclCreateDataBuffer((void *)0x1, 1);
-    aclError ret = aclmdlAddDatasetBuffer(dataset, buffer);
-    aclDataBuffer *buffer1 = aclCreateDataBuffer((void *)0x2, 1);
-    ret = aclmdlAddDatasetBuffer(dataset, buffer1);
-    aclmdlDataset *datasetOut = aclmdlCreateDataset();
-    aclDataBuffer *buffer2 = aclCreateDataBuffer(nullptr, 1);
-    ret = aclmdlAddDatasetBuffer(datasetOut, buffer2);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+TEST_F(UTEST_ACL_Model, aclmdlExecuteSyncWithNullOutput) {
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  aclDataBuffer *buffer = aclCreateDataBuffer((void *)0x1, 1);
+  aclError ret = aclmdlAddDatasetBuffer(dataset, buffer);
+  aclDataBuffer *buffer1 = aclCreateDataBuffer((void *)0x2, 1);
+  ret = aclmdlAddDatasetBuffer(dataset, buffer1);
+  aclmdlDataset *datasetOut = aclmdlCreateDataset();
+  aclDataBuffer *buffer2 = aclCreateDataBuffer(nullptr, 1);
+  ret = aclmdlAddDatasetBuffer(datasetOut, buffer2);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
-        .WillRepeatedly(Invoke(GetModelDescInfo_Invoke));
-    int64_t shape[2] = {16, 32};
-    aclTensorDesc *inputDesc = aclCreateTensorDesc(ACL_FLOAT16, 2, shape, ACL_FORMAT_ND);
-    size_t index = 1;
-    ret = aclmdlSetDatasetTensorDesc(dataset, inputDesc, index);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlSetDatasetTensorDesc(dataset, nullptr, 0);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke(GetModelDescInfo_Invoke));
+  int64_t shape[2] = {16, 32};
+  aclTensorDesc *inputDesc = aclCreateTensorDesc(ACL_FLOAT16, 2, shape, ACL_FORMAT_ND);
+  size_t index = 1;
+  ret = aclmdlSetDatasetTensorDesc(dataset, inputDesc, index);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetDatasetTensorDesc(dataset, nullptr, 0);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), ExecModel(_, _, _, _, _, _, _))
-        .WillRepeatedly(Invoke(ExecModelInvokeOneOut));
-    ret = aclmdlExecute(1, dataset, datasetOut);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    EXPECT_NE(aclGetDataBufferAddr(buffer2), nullptr);
-    EXPECT_EQ(aclrtFree(aclGetDataBufferAddr(buffer2)), ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), ExecModel(_, _, _, _, _, _, _))
+      .WillRepeatedly(Invoke(ExecModelInvokeOneOut));
+  ret = aclmdlExecute(1, dataset, datasetOut);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_NE(aclGetDataBufferAddr(buffer2), nullptr);
+  EXPECT_EQ(aclrtFree(aclGetDataBufferAddr(buffer2)), ACL_SUCCESS);
 
-    size_t index1 = 2;
-    ret = aclmdlSetDatasetTensorDesc(dataset, inputDesc, index1);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  size_t index1 = 2;
+  ret = aclmdlSetDatasetTensorDesc(dataset, inputDesc, index1);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    aclmdlDestroyDataset(dataset);
-    aclmdlDestroyDataset(datasetOut);
-    aclDestroyDataBuffer(buffer);
-    aclDestroyDataBuffer(buffer1);
-    aclDestroyDataBuffer(buffer2);
-    aclDestroyTensorDesc(inputDesc);
+  aclmdlDestroyDataset(dataset);
+  aclmdlDestroyDataset(datasetOut);
+  aclDestroyDataBuffer(buffer);
+  aclDestroyDataBuffer(buffer1);
+  aclDestroyDataBuffer(buffer2);
+  aclDestroyTensorDesc(inputDesc);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetDatasetTensorDesc)
-{
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    aclDataBuffer *buffer = aclCreateDataBuffer((void*)0x1, 1);
-    aclError ret = aclmdlAddDatasetBuffer(dataset, buffer);
-    aclDataBuffer *buffer1 = aclCreateDataBuffer((void*)0x2, 1);
-    ret = aclmdlAddDatasetBuffer(dataset, buffer1);
-    aclmdlDataset *datasetOut = aclmdlCreateDataset();
-    aclDataBuffer *buffer2 = aclCreateDataBuffer((void*)0x3, 1);
-    ret = aclmdlAddDatasetBuffer(datasetOut, buffer);
-    aclDataBuffer *buffer3 = aclCreateDataBuffer((void*)0x4, 1);
-    ret = aclmdlAddDatasetBuffer(datasetOut, buffer);
+TEST_F(UTEST_ACL_Model, aclmdlGetDatasetTensorDesc) {
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  aclDataBuffer *buffer = aclCreateDataBuffer((void *)0x1, 1);
+  aclError ret = aclmdlAddDatasetBuffer(dataset, buffer);
+  aclDataBuffer *buffer1 = aclCreateDataBuffer((void *)0x2, 1);
+  ret = aclmdlAddDatasetBuffer(dataset, buffer1);
+  aclmdlDataset *datasetOut = aclmdlCreateDataset();
+  aclDataBuffer *buffer2 = aclCreateDataBuffer((void *)0x3, 1);
+  ret = aclmdlAddDatasetBuffer(datasetOut, buffer);
+  aclDataBuffer *buffer3 = aclCreateDataBuffer((void *)0x4, 1);
+  ret = aclmdlAddDatasetBuffer(datasetOut, buffer);
 
-    int64_t shape[2] = {16, 32};
-    aclTensorDesc *inputDesc = aclCreateTensorDesc(ACL_FLOAT16, 2, shape, ACL_FORMAT_ND);
-    size_t index = 1;
-    ret = aclmdlSetDatasetTensorDesc (dataset, inputDesc, index);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlSetDatasetTensorDesc (dataset, nullptr, 0);
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), ExecModel(_,_,_,_,_,_,_))
-        .WillOnce(Invoke(ExecModelInvoke));
-    ret = aclmdlExecute(1, dataset, datasetOut);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  int64_t shape[2] = {16, 32};
+  aclTensorDesc *inputDesc = aclCreateTensorDesc(ACL_FLOAT16, 2, shape, ACL_FORMAT_ND);
+  size_t index = 1;
+  ret = aclmdlSetDatasetTensorDesc(dataset, inputDesc, index);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetDatasetTensorDesc(dataset, nullptr, 0);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), ExecModel(_, _, _, _, _, _, _)).WillOnce(Invoke(ExecModelInvoke));
+  ret = aclmdlExecute(1, dataset, datasetOut);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    aclTensorDesc *outputDesc = aclmdlGetDatasetTensorDesc(nullptr, 0);
-    EXPECT_EQ(outputDesc, nullptr);
+  aclTensorDesc *outputDesc = aclmdlGetDatasetTensorDesc(nullptr, 0);
+  EXPECT_EQ(outputDesc, nullptr);
 
-    outputDesc = aclmdlGetDatasetTensorDesc(datasetOut, 2);
-    EXPECT_EQ(outputDesc, nullptr);
+  outputDesc = aclmdlGetDatasetTensorDesc(datasetOut, 2);
+  EXPECT_EQ(outputDesc, nullptr);
 
-    outputDesc = aclmdlGetDatasetTensorDesc(datasetOut, 1);
-    EXPECT_NE(outputDesc, nullptr);
+  outputDesc = aclmdlGetDatasetTensorDesc(datasetOut, 1);
+  EXPECT_NE(outputDesc, nullptr);
 
-    aclmdlDestroyDataset(dataset);    
-    aclmdlDestroyDataset(datasetOut);
-    aclDestroyDataBuffer(buffer);
-    aclDestroyDataBuffer(buffer1);
-    aclDestroyDataBuffer(buffer2);
-    aclDestroyDataBuffer(buffer3);
-    aclDestroyTensorDesc(inputDesc);
+  aclmdlDestroyDataset(dataset);
+  aclmdlDestroyDataset(datasetOut);
+  aclDestroyDataBuffer(buffer);
+  aclDestroyDataBuffer(buffer1);
+  aclDestroyDataBuffer(buffer2);
+  aclDestroyDataBuffer(buffer3);
+  aclDestroyTensorDesc(inputDesc);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetRealTensorName2)
-{
-    aclmdlDesc *mdlDesc = aclmdlCreateDesc();
-    aclmdlTensorDesc desc;
-    desc.name = "dhsdhasiodhsaiodhsiashdisdhsiahdisahdisoahisahdihdisahdaoidhaihdsaihdsaihdsahdishaodhsiahihdoiahdsioadhisahdasidhsaidashdiaoiahdisohdosahdsahdiasoidashoidaoidhahdaoidahioadhiahdsahdiahdaiodaidahdhdahidahdaoda";
+TEST_F(UTEST_ACL_Model, aclmdlGetRealTensorName2) {
+  aclmdlDesc *mdlDesc = aclmdlCreateDesc();
+  aclmdlTensorDesc desc;
+  desc.name =
+      "dhsdhasiodhsaiodhsiashdisdhsiahdisahdisoahisahdihdisahdaoidhaihdsaihdsaihdsahdishaodhsiahihdoiahdsioadhisahdasid"
+      "hsaidashdiaoiahdisohdosahdsahdiasoidashoidaoidhahdaoidahioadhiahdsahdiahdaiodaidahdhdahidahdaoda";
 
-    mdlDesc->inputDesc.push_back(desc);
-    mdlDesc->outputDesc.push_back(desc);
+  mdlDesc->inputDesc.push_back(desc);
+  mdlDesc->outputDesc.push_back(desc);
 
-    aclmdlTensorDesc desc1;
-    desc1.name = "acl_modelId_0_input_0";
-    mdlDesc->inputDesc.push_back(desc1);
+  aclmdlTensorDesc desc1;
+  desc1.name = "acl_modelId_0_input_0";
+  mdlDesc->inputDesc.push_back(desc1);
 
-    aclmdlIODims dims;
-    auto ret = aclmdlGetInputDimsV2(mdlDesc, 0, &dims);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    EXPECT_STREQ(dims.name, "acl_modelId_0_input_0_a");
+  aclmdlIODims dims;
+  auto ret = aclmdlGetInputDimsV2(mdlDesc, 0, &dims);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_STREQ(dims.name, "acl_modelId_0_input_0_a");
 
-    const char *realName = aclmdlGetTensorRealName(mdlDesc, dims.name);
-    EXPECT_STREQ(realName, desc.name.c_str());
+  const char *realName = aclmdlGetTensorRealName(mdlDesc, dims.name);
+  EXPECT_STREQ(realName, desc.name.c_str());
 
-    desc1.name = "acl_modelId_0_input_0_a";
-    mdlDesc->inputDesc.push_back(desc1);
-    ret = aclmdlGetInputDimsV2(mdlDesc, 0, &dims);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    EXPECT_STREQ(dims.name, "acl_modelId_0_input_0_b");
+  desc1.name = "acl_modelId_0_input_0_a";
+  mdlDesc->inputDesc.push_back(desc1);
+  ret = aclmdlGetInputDimsV2(mdlDesc, 0, &dims);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_STREQ(dims.name, "acl_modelId_0_input_0_b");
 
-    realName = aclmdlGetTensorRealName(mdlDesc, dims.name);
-    EXPECT_STREQ(realName, desc.name.c_str());
+  realName = aclmdlGetTensorRealName(mdlDesc, dims.name);
+  EXPECT_STREQ(realName, desc.name.c_str());
 
-    aclmdlDestroyDesc(mdlDesc);
+  aclmdlDestroyDesc(mdlDesc);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetInputSizeByIndex2)
-{
-    aclmdlDesc *mdlDesc = aclmdlCreateDesc();
-    aclmdlTensorDesc desc;
-    desc.dims.push_back(-1);
-    desc.dims.push_back(2);
-    desc.shapeRanges.push_back(std::make_pair(1, 3));
-    desc.dataType = ACL_FLOAT16;
-    mdlDesc->inputDesc.push_back(desc);
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclDataTypeSize(_))
-        .WillOnce(Return((sizeof(int16_t))));
-    size_t size = aclmdlGetInputSizeByIndex(mdlDesc, 0);
-    EXPECT_NE(size, 0);
+TEST_F(UTEST_ACL_Model, aclmdlGetInputSizeByIndex2) {
+  aclmdlDesc *mdlDesc = aclmdlCreateDesc();
+  aclmdlTensorDesc desc;
+  desc.dims.push_back(-1);
+  desc.dims.push_back(2);
+  desc.shapeRanges.push_back(std::make_pair(1, 3));
+  desc.dataType = ACL_FLOAT16;
+  mdlDesc->inputDesc.push_back(desc);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclDataTypeSize(_)).WillOnce(Return((sizeof(int16_t))));
+  size_t size = aclmdlGetInputSizeByIndex(mdlDesc, 0);
+  EXPECT_NE(size, 0);
 
-    size = aclmdlGetInputSizeByIndex(mdlDesc, 2);
-    EXPECT_EQ(size, 0);
-    aclmdlTensorDesc desc1;
-    desc1.dims.push_back(-1);
-    desc1.dims.push_back(2);
-    desc1.shapeRanges.push_back(std::make_pair(-1, -1));
-    mdlDesc->inputDesc.push_back(desc1);
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclDataTypeSize(_))
-        .WillOnce(Return((sizeof(int16_t))));
-    size = aclmdlGetInputSizeByIndex(mdlDesc, 1);
-    EXPECT_EQ(size, 0);
+  size = aclmdlGetInputSizeByIndex(mdlDesc, 2);
+  EXPECT_EQ(size, 0);
+  aclmdlTensorDesc desc1;
+  desc1.dims.push_back(-1);
+  desc1.dims.push_back(2);
+  desc1.shapeRanges.push_back(std::make_pair(-1, -1));
+  mdlDesc->inputDesc.push_back(desc1);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclDataTypeSize(_)).WillOnce(Return((sizeof(int16_t))));
+  size = aclmdlGetInputSizeByIndex(mdlDesc, 1);
+  EXPECT_EQ(size, 0);
 
-    aclmdlDestroyDesc(mdlDesc);
+  aclmdlDestroyDesc(mdlDesc);
 }
 
-TEST_F(UTEST_ACL_Model, aclGetDataBufferSize)
-{
-    aclDataBuffer *dataBuffer = nullptr;
-    EXPECT_EQ(aclGetDataBufferSize(dataBuffer), 0);
+TEST_F(UTEST_ACL_Model, aclGetDataBufferSize) {
+  aclDataBuffer *dataBuffer = nullptr;
+  EXPECT_EQ(aclGetDataBufferSize(dataBuffer), 0);
 
-    dataBuffer = aclCreateDataBuffer((void*)0x1, 1);
-    EXPECT_NE(aclGetDataBufferSize(dataBuffer), 0);
-    aclDestroyDataBuffer(dataBuffer);
+  dataBuffer = aclCreateDataBuffer((void *)0x1, 1);
+  EXPECT_NE(aclGetDataBufferSize(dataBuffer), 0);
+  aclDestroyDataBuffer(dataBuffer);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlSetAIPPPixelVarReciTest)
-{
-    uint32_t batchNumber = 1;
-    aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
-    aclError ret = aclmdlSetAIPPPixelVarReci(aippDynamicSet, 1, 1, 1, 0, 3);
-    EXPECT_NE(ret, ACL_SUCCESS);
-    aclmdlDestroyAIPP(aippDynamicSet);
+TEST_F(UTEST_ACL_Model, aclmdlSetAIPPPixelVarReciTest) {
+  uint32_t batchNumber = 1;
+  aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
+  aclError ret = aclmdlSetAIPPPixelVarReci(aippDynamicSet, 1, 1, 1, 0, 3);
+  EXPECT_NE(ret, ACL_SUCCESS);
+  aclmdlDestroyAIPP(aippDynamicSet);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlSetInputAIPPTest01)
-{
-    uint32_t batchNumber = 1;
-    aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    aippDynamicSet->aippParms.inputFormat = CCE_YUV400_U8;
-    aippDynamicSet->aippParms.srcImageSizeW = 1;
-    aippDynamicSet->aippParms.srcImageSizeH = 511373560;
-    aippDynamicSet->batchSize = 1;
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-        .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAippType(_, _,_,_))
-        .WillRepeatedly(Invoke(GetAippTypeSuccessInvoke));
-    aclError ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
-    EXPECT_NE(ret, ACL_SUCCESS);
+TEST_F(UTEST_ACL_Model, aclmdlSetInputAIPPTest01) {
+  uint32_t batchNumber = 1;
+  aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  aippDynamicSet->aippParms.inputFormat = CCE_YUV400_U8;
+  aippDynamicSet->aippParms.srcImageSizeW = 1;
+  aippDynamicSet->aippParms.srcImageSizeH = 511373560;
+  aippDynamicSet->batchSize = 1;
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAippType(_, _, _, _))
+      .WillRepeatedly(Invoke(GetAippTypeSuccessInvoke));
+  aclError ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    aippDynamicSet->aippParms.srcImageSizeH = 1;
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetOrigInputInfo(_, _, _))
-        .WillOnce(Return(FAILED));
-    ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
-    EXPECT_NE(ret, ACL_SUCCESS);
-    aclmdlDestroyAIPP(aippDynamicSet);
-    aclmdlDestroyDataset(dataset);
+  aippDynamicSet->aippParms.srcImageSizeH = 1;
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetOrigInputInfo(_, _, _)).WillOnce(Return(FAILED));
+  ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
+  EXPECT_NE(ret, ACL_SUCCESS);
+  aclmdlDestroyAIPP(aippDynamicSet);
+  aclmdlDestroyDataset(dataset);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlSetInputAIPPTest02)
-{
-    uint32_t batchNumber = 1;
-    aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
-    aippDynamicSet->aippParms.inputFormat = CCE_YUV420SP_U8;
-    aippDynamicSet->aippParms.srcImageSizeW = 1;
-    aippDynamicSet->aippParms.srcImageSizeH = 2;
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-        .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAippType(_, _,_,_))
-        .WillRepeatedly(Invoke(GetAippTypeSuccessInvoke));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAllAippInputOutputDims(_, _, _, _))
-        .WillOnce(Return(FAILED));
-    aclError ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
-    EXPECT_NE(ret, ACL_SUCCESS);
+TEST_F(UTEST_ACL_Model, aclmdlSetInputAIPPTest02) {
+  uint32_t batchNumber = 1;
+  aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
+  aippDynamicSet->aippParms.inputFormat = CCE_YUV420SP_U8;
+  aippDynamicSet->aippParms.srcImageSizeW = 1;
+  aippDynamicSet->aippParms.srcImageSizeH = 2;
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAippType(_, _, _, _))
+      .WillRepeatedly(Invoke(GetAippTypeSuccessInvoke));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAllAippInputOutputDims(_, _, _, _)).WillOnce(Return(FAILED));
+  aclError ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAllAippInputOutputDims(_, _, _, _))
-        .WillOnce(Return(SUCCESS));
-    ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
-    EXPECT_NE(ret, ACL_SUCCESS);
-    aclmdlDestroyAIPP(aippDynamicSet);
-    aclmdlDestroyDataset(dataset);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAllAippInputOutputDims(_, _, _, _)).WillOnce(Return(SUCCESS));
+  ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
+  EXPECT_NE(ret, ACL_SUCCESS);
+  aclmdlDestroyAIPP(aippDynamicSet);
+  aclmdlDestroyDataset(dataset);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlSetInputAIPPTest03)
-{
-    uint32_t batchNumber = 1;
-    aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    aippDynamicSet->aippParms.inputFormat = CCE_YUV400_U8;
-    aippDynamicSet->aippParms.srcImageSizeW = 1;
-    aippDynamicSet->aippParms.srcImageSizeH = 511373560;
-    aippDynamicSet->batchSize = 1;
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-        .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAippType(_, _,_,_))
-        .WillRepeatedly(Invoke(GetAippTypeSuccessInvoke));
-    aclError ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
-    EXPECT_NE(ret, ACL_SUCCESS);
+TEST_F(UTEST_ACL_Model, aclmdlSetInputAIPPTest03) {
+  uint32_t batchNumber = 1;
+  aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  aippDynamicSet->aippParms.inputFormat = CCE_YUV400_U8;
+  aippDynamicSet->aippParms.srcImageSizeW = 1;
+  aippDynamicSet->aippParms.srcImageSizeH = 511373560;
+  aippDynamicSet->batchSize = 1;
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAippType(_, _, _, _))
+      .WillRepeatedly(Invoke(GetAippTypeSuccessInvoke));
+  aclError ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    aippDynamicSet->aippParms.srcImageSizeH = 1;
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetOrigInputInfo(_, _, _))
-        .WillOnce(Return(FAILED));
-    ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
-    EXPECT_NE(ret, ACL_SUCCESS);
-    aclmdlDestroyAIPP(aippDynamicSet);
-    aclmdlDestroyDataset(dataset);
+  aippDynamicSet->aippParms.srcImageSizeH = 1;
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetOrigInputInfo(_, _, _)).WillOnce(Return(FAILED));
+  ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
+  EXPECT_NE(ret, ACL_SUCCESS);
+  aclmdlDestroyAIPP(aippDynamicSet);
+  aclmdlDestroyDataset(dataset);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlSetInputAIPPTest04)
-{
-    uint32_t batchNumber = 1;
-    aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    aippDynamicSet->aippParms.inputFormat = CCE_YUV400_U8;
-    aippDynamicSet->aippParms.srcImageSizeW = 1;
-    aippDynamicSet->aippParms.srcImageSizeH = 1;
-    aippDynamicSet->batchSize = 1;
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-        .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAippType(_, _,_,_))
-        .WillRepeatedly(Invoke(GetAippTypeSuccessInvoke));
+TEST_F(UTEST_ACL_Model, aclmdlSetInputAIPPTest04) {
+  uint32_t batchNumber = 1;
+  aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  aippDynamicSet->aippParms.inputFormat = CCE_YUV400_U8;
+  aippDynamicSet->aippParms.srcImageSizeW = 1;
+  aippDynamicSet->aippParms.srcImageSizeH = 1;
+  aippDynamicSet->batchSize = 1;
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAippType(_, _, _, _))
+      .WillRepeatedly(Invoke(GetAippTypeSuccessInvoke));
 
-    aclError ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  aclError ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    aclmdlDestroyAIPP(aippDynamicSet);
-    aclmdlDestroyDataset(dataset);
+  aclmdlDestroyAIPP(aippDynamicSet);
+  aclmdlDestroyDataset(dataset);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlSetInputAIPPTest05)
-{
-    uint32_t batchNumber = 1;
-    aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    aippDynamicSet->aippParms.inputFormat = CCE_YUV400_U8;
-    aippDynamicSet->aippParms.srcImageSizeW = 1;
-    aippDynamicSet->aippParms.srcImageSizeH = 1;
-    aippDynamicSet->batchSize = 1;
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-        .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAippType(_, _,_,_))
-        .WillRepeatedly(Invoke(GetAippTypeSuccessInvoke));
+TEST_F(UTEST_ACL_Model, aclmdlSetInputAIPPTest05) {
+  uint32_t batchNumber = 1;
+  aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  aippDynamicSet->aippParms.inputFormat = CCE_YUV400_U8;
+  aippDynamicSet->aippParms.srcImageSizeW = 1;
+  aippDynamicSet->aippParms.srcImageSizeH = 1;
+  aippDynamicSet->batchSize = 1;
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAippType(_, _, _, _))
+      .WillRepeatedly(Invoke(GetAippTypeSuccessInvoke));
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAIPPInfo(_, _, _))
-        .WillRepeatedly(Return(ACL_ERROR_INVALID_PARAM));
-    aclDataBuffer *buffer = aclCreateDataBuffer((void*)0x1, 1);
-    auto ret = aclmdlAddDatasetBuffer(dataset, buffer);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    aclmdlDestroyAIPP(aippDynamicSet);
-    aclmdlDestroyDataset(dataset);
-    aclDestroyDataBuffer(buffer);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAIPPInfo(_, _, _))
+      .WillRepeatedly(Return(ACL_ERROR_INVALID_PARAM));
+  aclDataBuffer *buffer = aclCreateDataBuffer((void *)0x1, 1);
+  auto ret = aclmdlAddDatasetBuffer(dataset, buffer);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  aclmdlDestroyAIPP(aippDynamicSet);
+  aclmdlDestroyDataset(dataset);
+  aclDestroyDataBuffer(buffer);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlSetInputAIPPWithDynamicShapeTest)
-{
-    uint32_t batchNumber = 1;
-    aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
-    aippDynamicSet->aippParms.inputFormat = CCE_YUV420SP_U8;
-    aippDynamicSet->aippParms.srcImageSizeW = 1;
-    aippDynamicSet->aippParms.srcImageSizeH = 2;
-    aclmdlDataset *dataset = aclmdlCreateDataset();
+TEST_F(UTEST_ACL_Model, aclmdlSetInputAIPPWithDynamicShapeTest) {
+  uint32_t batchNumber = 1;
+  aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
+  aippDynamicSet->aippParms.inputFormat = CCE_YUV420SP_U8;
+  aippDynamicSet->aippParms.srcImageSizeW = 1;
+  aippDynamicSet->aippParms.srcImageSizeH = 2;
+  aclmdlDataset *dataset = aclmdlCreateDataset();
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-        .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetShapeRange(_))
-        .WillRepeatedly(Invoke((GetShapeRange_Invoke)));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAippType(_, _,_,_))
-        .WillRepeatedly(Invoke(GetAippTypeSuccessInvoke));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke((GetModelDescInfo_Invoke)));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetShapeRange(_)).WillRepeatedly(Invoke((GetShapeRange_Invoke)));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAippType(_, _, _, _))
+      .WillRepeatedly(Invoke(GetAippTypeSuccessInvoke));
 
-    aclError ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
+  aclError ret = aclmdlSetInputAIPP(1, dataset, 0, aippDynamicSet);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+
+  aclmdlDestroyAIPP(aippDynamicSet);
+  aclmdlDestroyDataset(dataset);
+}
+
+TEST_F(UTEST_ACL_Model, aclmdlSetInputAIPPWithDynamicShapeTestRT2) {
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
+  auto executor = std::unique_ptr<gert::ModelV2Executor>(new (std::nothrow) gert::ModelV2Executor);
+  auto rtSession = acl::AclResourceManager::GetInstance().CreateRtSession();
+  uint32_t modelId = 1;
+  acl::AclResourceManager::GetInstance().AddExecutor(modelId, std::move(executor), rtSession);
+
+  uint32_t batchNumber = 1;
+  aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
+  aippDynamicSet->aippParms.inputFormat = CCE_YUV420SP_U8;
+  aippDynamicSet->aippParms.srcImageSizeW = 1;
+  aippDynamicSet->aippParms.srcImageSizeH = 2;
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+
+  aclError ret = aclmdlSetInputAIPP(modelId, dataset, 0, aippDynamicSet);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+
+  aclmdlDestroyAIPP(aippDynamicSet);
+  aclmdlDestroyDataset(dataset);
+  acl::AclResourceManager::GetInstance().DeleteExecutor(modelId);
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
+}
+
+TEST_F(UTEST_ACL_Model, aclmdlGetFirstAippInfoTest) {
+  uint32_t modelId = 0;
+  size_t index = 0;
+  aclAippInfo aippInfo;
+
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke((GetModelDescInfo_Invoke2)));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAIPPInfo(_, _, _)).WillOnce(Return(FAILED));
+  aclError ret = aclmdlGetFirstAippInfo(modelId, index, &aippInfo);
+  EXPECT_NE(ret, ACL_SUCCESS);
+  Mock::VerifyAndClear((void *)(&MockFunctionTest::aclStubInstance()));
+
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke((GetModelDescInfo_Invoke2)));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAIPPInfo(_, _, _)).WillOnce(Return(SUCCESS));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetBatchInfoSize(_, _)).WillOnce(Return(FAILED));
+  ret = aclmdlGetFirstAippInfo(modelId, index, &aippInfo);
+  EXPECT_NE(ret, ACL_SUCCESS);
+  Mock::VerifyAndClear((void *)(&MockFunctionTest::aclStubInstance()));
+
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke((GetModelDescInfo_Invoke2)));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAIPPInfo(_, _, _)).WillOnce(Return(SUCCESS));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetBatchInfoSize(_, _)).WillOnce(Return(SUCCESS));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetOrigInputInfo(_, _, _)).WillOnce(Return(FAILED));
+  ret = aclmdlGetFirstAippInfo(modelId, index, &aippInfo);
+  EXPECT_NE(ret, ACL_SUCCESS);
+  Mock::VerifyAndClear((void *)(&MockFunctionTest::aclStubInstance()));
+
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke((GetModelDescInfo_Invoke2)));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAIPPInfo(_, _, _)).WillOnce(Return(SUCCESS));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetBatchInfoSize(_, _)).WillOnce(Return(SUCCESS));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAllAippInputOutputDims(_, _, _, _)).WillOnce(Return(FAILED));
+  ret = aclmdlGetFirstAippInfo(modelId, index, &aippInfo);
+  EXPECT_NE(ret, ACL_SUCCESS);
+  Mock::VerifyAndClear((void *)(&MockFunctionTest::aclStubInstance()));
+
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke((GetModelDescInfo_Invoke2)));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAIPPInfo(_, _, _)).WillOnce(Return(SUCCESS));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetBatchInfoSize(_, _)).WillOnce(Return(SUCCESS));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAllAippInputOutputDims(_, _, _, _)).WillOnce(Return(SUCCESS));
+  ret = aclmdlGetFirstAippInfo(modelId, index, &aippInfo);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+}
+
+Status GetAllAippInputOutputDims_invoke(uint32_t index, std::vector<InputOutputDims> &input_dims,
+                                        std::vector<InputOutputDims> &output_dims) {
+  (void)index;
+  InputOutputDims fake_dim{};
+  fake_dim.name = "hello";
+  fake_dim.dim_num = 4;
+  fake_dim.size = 4;
+  fake_dim.dims = std::vector<int64_t>{1, 1, 1, 1};
+  input_dims.push_back(fake_dim);
+  output_dims.push_back(fake_dim);
+  return SUCCESS;
+}
+
+Status GetOriginAippInputInfo_invoke(uint32_t index, OriginInputInfo &origOutputInfo) {
+  (void)index;
+  origOutputInfo.format = ge::FORMAT_NCHW;
+  origOutputInfo.data_type = ge::DT_FLOAT;
+  origOutputInfo.dim_num = 4;
+  return SUCCESS;
+}
+
+TEST_F(UTEST_ACL_Model, aclmdlGetFirstAippInfoTest_rt2) {
+  uint32_t modelId = 999;
+  size_t index = 0;
+  aclAippInfo aippInfo{};
+  bool flag = acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_;
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
+  auto executor = std::unique_ptr<gert::ModelV2Executor>(new (std::nothrow) gert::ModelV2Executor);
+  auto rtSession = acl::AclResourceManager::GetInstance().CreateRtSession();
+  acl::AclResourceManager::GetInstance().AddExecutor(modelId, std::move(executor), rtSession);
+
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAippInfo(_, _)).WillOnce(Return(SUCCESS));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetOriginAippInputInfo(_, _))
+      .WillOnce(Invoke(GetOriginAippInputInfo_invoke));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAllAippInputOutputDims(_, _, _))
+      .WillOnce(Invoke(GetAllAippInputOutputDims_invoke));
+  auto ret = aclmdlGetFirstAippInfo(modelId, index, &aippInfo);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_EQ(aippInfo.srcFormat, ACL_FORMAT_NCHW);
+  EXPECT_EQ(aippInfo.srcDatatype, ACL_FLOAT);
+  EXPECT_EQ(aippInfo.srcDimNum, 4);
+  EXPECT_EQ(aippInfo.shapeCount, 1);
+  EXPECT_EQ(std::string(aippInfo.outDims[0].srcDims.name), "hello");
+  EXPECT_EQ(aippInfo.outDims[0].srcDims.dimCount, 4);
+  EXPECT_EQ(aippInfo.outDims[0].srcDims.dims[2], 1);
+  EXPECT_EQ(std::string(aippInfo.outDims[0].aippOutdims.name), "hello");
+  EXPECT_EQ(aippInfo.outDims[0].aippOutdims.dimCount, 4);
+  EXPECT_EQ(aippInfo.outDims[0].aippOutdims.dims[2], 1);
+  acl::AclResourceManager::GetInstance().DeleteExecutor(modelId);
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = flag;
+}
+
+TEST_F(UTEST_ACL_Model, AippScfSizeCheckTest) {
+  uint32_t batchNumber = 1;
+  aclmdlAIPP *aippParmsSet = aclmdlCreateAIPP(batchNumber);
+  int32_t batchIndex = 0;
+
+  // ----------------------------
+  // 1. crop enabled: mismatch → error
+  // ----------------------------
+  aippParmsSet->aippBatchPara[batchIndex].cropSwitch = 1;
+  aippParmsSet->aippBatchPara[batchIndex].scfInputSizeW = 1;
+  aippParmsSet->aippBatchPara[batchIndex].cropSizeW = 2;
+  aippParmsSet->aippBatchPara[batchIndex].scfInputSizeH = 1;
+  aippParmsSet->aippBatchPara[batchIndex].cropSizeH = 1;
+  {
+    aclError ret = AippScfSizeCheck(aippParmsSet, batchIndex);
     EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  }
 
-    aclmdlDestroyAIPP(aippDynamicSet);
-    aclmdlDestroyDataset(dataset);
-}
-
-TEST_F(UTEST_ACL_Model, aclmdlSetInputAIPPWithDynamicShapeTestRT2)
-{
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-    auto executor = std::unique_ptr<gert::ModelV2Executor>(new(std::nothrow) gert::ModelV2Executor);
-    auto rtSession = acl::AclResourceManager::GetInstance().CreateRtSession();
-    uint32_t modelId = 1;
-    acl::AclResourceManager::GetInstance().AddExecutor(modelId, std::move(executor), rtSession);
-
-    uint32_t batchNumber = 1;
-    aclmdlAIPP *aippDynamicSet = aclmdlCreateAIPP(batchNumber);
-    aippDynamicSet->aippParms.inputFormat = CCE_YUV420SP_U8;
-    aippDynamicSet->aippParms.srcImageSizeW = 1;
-    aippDynamicSet->aippParms.srcImageSizeH = 2;
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-
-    aclError ret = aclmdlSetInputAIPP(modelId, dataset, 0, aippDynamicSet);
+  // ----------------------------
+  // 2. Test scfInputSizeW < 16 and scfInputSizeW > 4096
+  // ----------------------------
+  // Test scfInputSizeW < 16
+  aippParmsSet->aippBatchPara[batchIndex].cropSwitch = 0;
+  aippParmsSet->aippBatchPara[batchIndex].scfInputSizeW = 15;
+  aippParmsSet->aippBatchPara[batchIndex].scfInputSizeH = 100;
+  aippParmsSet->aippBatchPara[batchIndex].scfOutputSizeW = 100;
+  aippParmsSet->aippBatchPara[batchIndex].scfOutputSizeH = 100;
+  aippParmsSet->aippParms.srcImageSizeW = 100;
+  aippParmsSet->aippParms.srcImageSizeH = 100;
+  {
+    aclError ret = AippScfSizeCheck(aippParmsSet, batchIndex);
     EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  }
 
-    aclmdlDestroyAIPP(aippDynamicSet);
-    aclmdlDestroyDataset(dataset);
-    acl::AclResourceManager::GetInstance().DeleteExecutor(modelId);
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
-}
-
-TEST_F(UTEST_ACL_Model, aclmdlGetFirstAippInfoTest)
-{
-    uint32_t modelId = 0;
-    size_t index = 0;
-    aclAippInfo aippInfo;
-
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-            .WillRepeatedly(Invoke((GetModelDescInfo_Invoke2)));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAIPPInfo(_, _, _))
-        .WillOnce(Return(FAILED));
-    aclError ret = aclmdlGetFirstAippInfo(modelId, index, &aippInfo);
-    EXPECT_NE(ret, ACL_SUCCESS);
-    Mock::VerifyAndClear((void *)(&MockFunctionTest::aclStubInstance()));
-
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-            .WillRepeatedly(Invoke((GetModelDescInfo_Invoke2)));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAIPPInfo(_, _, _))
-        .WillOnce(Return(SUCCESS));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetBatchInfoSize(_, _))
-        .WillOnce(Return(FAILED));
-    ret = aclmdlGetFirstAippInfo(modelId, index, &aippInfo);
-    EXPECT_NE(ret, ACL_SUCCESS);
-    Mock::VerifyAndClear((void *)(&MockFunctionTest::aclStubInstance()));
-
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-            .WillRepeatedly(Invoke((GetModelDescInfo_Invoke2)));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAIPPInfo(_, _, _))
-        .WillOnce(Return(SUCCESS));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetBatchInfoSize(_, _))
-        .WillOnce(Return(SUCCESS));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetOrigInputInfo(_, _, _))
-        .WillOnce(Return(FAILED));
-    ret = aclmdlGetFirstAippInfo(modelId, index, &aippInfo);
-    EXPECT_NE(ret, ACL_SUCCESS);
-    Mock::VerifyAndClear((void *)(&MockFunctionTest::aclStubInstance()));
-
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-            .WillRepeatedly(Invoke((GetModelDescInfo_Invoke2)));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAIPPInfo(_, _, _))
-        .WillOnce(Return(SUCCESS));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetBatchInfoSize(_, _))
-        .WillOnce(Return(SUCCESS));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAllAippInputOutputDims(_, _, _, _))
-        .WillOnce(Return(FAILED));
-    ret = aclmdlGetFirstAippInfo(modelId, index, &aippInfo);
-    EXPECT_NE(ret, ACL_SUCCESS);
-    Mock::VerifyAndClear((void *)(&MockFunctionTest::aclStubInstance()));
-
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-            .WillRepeatedly(Invoke((GetModelDescInfo_Invoke2)));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAIPPInfo(_, _, _))
-        .WillOnce(Return(SUCCESS));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetBatchInfoSize(_, _))
-        .WillOnce(Return(SUCCESS));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAllAippInputOutputDims(_, _, _, _))
-        .WillOnce(Return(SUCCESS));
-    ret = aclmdlGetFirstAippInfo(modelId, index, &aippInfo);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-}
-
-Status GetAllAippInputOutputDims_invoke(uint32_t index,
-                                        std::vector<InputOutputDims> &input_dims,
-                                        std::vector<InputOutputDims> &output_dims)
-{
-    (void) index;
-    InputOutputDims fake_dim{};
-    fake_dim.name = "hello";
-    fake_dim.dim_num = 4;
-    fake_dim.size = 4;
-    fake_dim.dims = std::vector<int64_t>{1,1,1,1};
-    input_dims.push_back(fake_dim);
-    output_dims.push_back(fake_dim);
-    return SUCCESS;
-}
-
-Status GetOriginAippInputInfo_invoke( uint32_t index, OriginInputInfo &origOutputInfo)
-{
-    (void) index;
-    origOutputInfo.format = ge::FORMAT_NCHW;
-    origOutputInfo.data_type = ge::DT_FLOAT;
-    origOutputInfo.dim_num = 4;
-    return SUCCESS;
-}
-
-TEST_F(UTEST_ACL_Model, aclmdlGetFirstAippInfoTest_rt2)
-{
-    uint32_t modelId = 999;
-    size_t index = 0;
-    aclAippInfo aippInfo{};
-    bool flag = acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_;
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-    auto executor = std::unique_ptr<gert::ModelV2Executor>(new(std::nothrow) gert::ModelV2Executor);
-    auto rtSession = acl::AclResourceManager::GetInstance().CreateRtSession();
-    acl::AclResourceManager::GetInstance().AddExecutor(modelId, std::move(executor), rtSession);
-
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAippInfo(_, _))
-        .WillOnce(Return(SUCCESS));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetOriginAippInputInfo(_, _))
-        .WillOnce(Invoke(GetOriginAippInputInfo_invoke));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAllAippInputOutputDims(_, _, _))
-        .WillOnce(Invoke(GetAllAippInputOutputDims_invoke));
-    auto ret = aclmdlGetFirstAippInfo(modelId, index, &aippInfo);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    EXPECT_EQ(aippInfo.srcFormat, ACL_FORMAT_NCHW);
-    EXPECT_EQ(aippInfo.srcDatatype, ACL_FLOAT);
-    EXPECT_EQ(aippInfo.srcDimNum, 4);
-    EXPECT_EQ(aippInfo.shapeCount, 1);
-    EXPECT_EQ(std::string(aippInfo.outDims[0].srcDims.name), "hello");
-    EXPECT_EQ(aippInfo.outDims[0].srcDims.dimCount, 4);
-    EXPECT_EQ(aippInfo.outDims[0].srcDims.dims[2], 1);
-    EXPECT_EQ(std::string(aippInfo.outDims[0].aippOutdims.name), "hello");
-    EXPECT_EQ(aippInfo.outDims[0].aippOutdims.dimCount, 4);
-    EXPECT_EQ(aippInfo.outDims[0].aippOutdims.dims[2], 1);
-    acl::AclResourceManager::GetInstance().DeleteExecutor(modelId);
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = flag;
-}
-
-TEST_F(UTEST_ACL_Model, AippScfSizeCheckTest)
-{
-    uint32_t batchNumber = 1;
-    aclmdlAIPP *aippParmsSet = aclmdlCreateAIPP(batchNumber);
-    int32_t batchIndex = 0;
-
-    // ----------------------------
-    // 1. crop enabled: mismatch → error
-    // ----------------------------
-    aippParmsSet->aippBatchPara[batchIndex].cropSwitch = 1;
-    aippParmsSet->aippBatchPara[batchIndex].scfInputSizeW = 1;
-    aippParmsSet->aippBatchPara[batchIndex].cropSizeW = 2;
-    aippParmsSet->aippBatchPara[batchIndex].scfInputSizeH = 1;
-    aippParmsSet->aippBatchPara[batchIndex].cropSizeH = 1;
-    {
-        aclError ret = AippScfSizeCheck(aippParmsSet, batchIndex);
-        EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    }
-
-    // ----------------------------
-    // 2. Test scfInputSizeW < 16 and scfInputSizeW > 4096
-    // ----------------------------
-    // Test scfInputSizeW < 16
-    aippParmsSet->aippBatchPara[batchIndex].cropSwitch = 0;
-    aippParmsSet->aippBatchPara[batchIndex].scfInputSizeW = 15;
-    aippParmsSet->aippBatchPara[batchIndex].scfInputSizeH = 100;
-    aippParmsSet->aippBatchPara[batchIndex].scfOutputSizeW = 100;
-    aippParmsSet->aippBatchPara[batchIndex].scfOutputSizeH = 100;
-    aippParmsSet->aippParms.srcImageSizeW = 100;
-    aippParmsSet->aippParms.srcImageSizeH = 100;
-    {
-        aclError ret = AippScfSizeCheck(aippParmsSet, batchIndex);
-        EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    }
-
-    // Test scfInputSizeW > 4096
-    aippParmsSet->aippBatchPara[batchIndex].scfInputSizeW = 4097;
-    {
-        aclError ret = AippScfSizeCheck(aippParmsSet, batchIndex);
-        EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    }
-
-    // ----------------------------
-    // 3. Test scfOutputSizeW < 16 and scfOutputSizeW > 1920
-    // ----------------------------
-    // Reset input size to valid values
-    aippParmsSet->aippBatchPara[batchIndex].scfInputSizeW = 100;
-    aippParmsSet->aippBatchPara[batchIndex].scfInputSizeH = 100;
-
-    // Test scfOutputSizeW < 16
-    aippParmsSet->aippBatchPara[batchIndex].scfOutputSizeW = 15;
-    {
-        aclError ret = AippScfSizeCheck(aippParmsSet, batchIndex);
-        EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    }
-
-    // Test scfOutputSizeW > 1920
-    aippParmsSet->aippBatchPara[batchIndex].scfOutputSizeW = 1921;
-    {
-        aclError ret = AippScfSizeCheck(aippParmsSet, batchIndex);
-        EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    }
-
-    // ----------------------------
-    // 4. Test scfOutputSizeH < 16 and scfOutputSizeH > 4096
-    // ----------------------------
-    // Reset output width to valid value
-    aippParmsSet->aippBatchPara[batchIndex].scfOutputSizeW = 100;
-
-    // Test scfOutputSizeH < 16
-    aippParmsSet->aippBatchPara[batchIndex].scfOutputSizeH = 15;
-    {
-        aclError ret = AippScfSizeCheck(aippParmsSet, batchIndex);
-        EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    }
-
-    // Test scfOutputSizeH > 4096
-    aippParmsSet->aippBatchPara[batchIndex].scfOutputSizeH = 4097;
-    {
-        aclError ret = AippScfSizeCheck(aippParmsSet, batchIndex);
-        EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    }
-
-    // ----------------------------
-    // 5. Test scale ratio out of [1/16, 16]
-    // ----------------------------
-    // Reset all sizes to valid values
-    aippParmsSet->aippBatchPara[batchIndex].scfOutputSizeH = 100;
-
-    // Ratio too small: output / input < 1/16
-    aippParmsSet->aippBatchPara[batchIndex].scfOutputSizeW = 100;
-    aippParmsSet->aippBatchPara[batchIndex].scfInputSizeW = 1700; // 100/1700 ≈ 0.0588 < 1/16=0.0625
-    aippParmsSet->aippBatchPara[batchIndex].scfOutputSizeH = 100;
-    aippParmsSet->aippBatchPara[batchIndex].scfInputSizeH = 100;
-    {
-        aclError ret = AippScfSizeCheck(aippParmsSet, batchIndex);
-        EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    }
-
-    // Ratio too large: output / input > 16
-    aippParmsSet->aippBatchPara[batchIndex].scfOutputSizeW = 1700;
-    aippParmsSet->aippBatchPara[batchIndex].scfInputSizeW = 100; // 1700/100 = 17 > 16
-    {
-        aclError ret = AippScfSizeCheck(aippParmsSet, batchIndex);
-        EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    }
-
-    // Same for H
-    aippParmsSet->aippBatchPara[batchIndex].scfOutputSizeW = 100;
-    aippParmsSet->aippBatchPara[batchIndex].scfInputSizeW = 100;
-    aippParmsSet->aippBatchPara[batchIndex].scfOutputSizeH = 1700;
-    aippParmsSet->aippBatchPara[batchIndex].scfInputSizeH = 100;
-    {
-        aclError ret = AippScfSizeCheck(aippParmsSet, batchIndex);
-        EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    }
-
-    // ----------------------------
-    // 6. crop disabled: mismatch → error
-    // ----------------------------
-    aippParmsSet->aippBatchPara[batchIndex].cropSwitch = 0;
-    aippParmsSet->aippParms.srcImageSizeW = 200;
-    aippParmsSet->aippParms.srcImageSizeH = 200;
-    aippParmsSet->aippBatchPara[batchIndex].scfInputSizeW = 100; // mismatch
-    aippParmsSet->aippBatchPara[batchIndex].scfInputSizeH = 100;
-    {
-        aclError ret = AippScfSizeCheck(aippParmsSet, batchIndex);
-        EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    }
-
-    // ----------------------------
-    // 7. crop disabled: match → continue
-    // ----------------------------
-    aippParmsSet->aippBatchPara[batchIndex].scfInputSizeW = 200;
-    aippParmsSet->aippBatchPara[batchIndex].scfInputSizeH = 200;
-
-    // Set valid output sizes within range
-    aippParmsSet->aippBatchPara[batchIndex].scfOutputSizeW = 100; // 100/200 = 0.5 ∈ [1/16,16]
-    aippParmsSet->aippBatchPara[batchIndex].scfOutputSizeH = 100;
-
-    // ----------------------------
-    // 8. All checks pass → success
-    // ----------------------------
-    {
-        aclError ret = AippScfSizeCheck(aippParmsSet, batchIndex);
-        EXPECT_EQ(ret, ACL_SUCCESS);
-    }
-
-    // ----------------------------
-    // 9. crop enabled + all valid → success
-    // ----------------------------
-    aippParmsSet->aippBatchPara[batchIndex].cropSwitch = 1;
-    aippParmsSet->aippBatchPara[batchIndex].cropSizeW = 200;
-    aippParmsSet->aippBatchPara[batchIndex].cropSizeH = 200;
-    // input already 200x200, output 100x100 → valid
-    {
-        aclError ret = AippScfSizeCheck(aippParmsSet, batchIndex);
-        EXPECT_EQ(ret, ACL_SUCCESS);
-    }
-
-    aclmdlDestroyAIPP(aippParmsSet);
-}
-
-TEST_F(UTEST_ACL_Model, RuntimeV2UnloadModel)
-{
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), UnloadModel(_))
-        .WillOnce(Return(ACL_ERROR_GE_EXEC_MODEL_ID_INVALID))
-        .WillRepeatedly(Return(SUCCESS));
-    uint32_t modelId = 999;
-    auto ret = aclmdlUnload(modelId);
-    EXPECT_EQ(ret, static_cast<aclError>(ACL_ERROR_GE_EXEC_MODEL_ID_INVALID));
-
-    acl::AclResourceManager::GetInstance().DeleteExecutor(modelId);
-    const char *modelPath = "/";
-
-    ret = aclmdlLoadFromFile(modelPath, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-
-    ret = aclmdlUnload(modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-
-    ret = acl::AclResourceManager::GetInstance().DeleteExecutor(2);
-    EXPECT_EQ(ret, static_cast<aclError>(ACL_ERROR_GE_EXEC_MODEL_ID_INVALID));
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
-}
-
-TEST_F(UTEST_ACL_Model, RuntimeV2ExecuteModel)
-{ 
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-    
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    EXPECT_NE(dataset, nullptr);
-
-    aclDataBuffer *dataBuffer = (aclDataBuffer *)malloc(100);
-    aclError ret = aclmdlAddDatasetBuffer(dataset, dataBuffer);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_,_,_,_))
-        .WillRepeatedly(Invoke(GetModelDescInfo_Invoke));
-
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), ExecModel(_,_,_,_,_,_,_))
-        .WillOnce(Return(ACL_ERROR_GE_EXEC_MODEL_ID_INVALID))
-        .WillRepeatedly(Return(SUCCESS));
-    ret = aclmdlExecute(1, dataset, dataset);
-    EXPECT_EQ(ret, static_cast<aclError>(ACL_ERROR_GE_EXEC_MODEL_ID_INVALID));
-
-    uint32_t modelId = 0;
-    const char *modelPath = "/";
-    ret = aclmdlLoadFromFile(modelPath, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), ExecModel(_, _, _, _, _, _, _))
-        .WillOnce(Invoke(ExecModelInvokeOneOut));
-    ret = aclmdlExecute(modelId, dataset, dataset);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-
-    free(dataBuffer);
-    ret = aclmdlDestroyDataset(dataset);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
-}
-
-TEST_F(UTEST_ACL_Model, RuntimeV2ExecuteModelFailed)
-{
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-    auto executor = std::unique_ptr<gert::ModelV2Executor>(new(std::nothrow) gert::ModelV2Executor);
-    uint32_t modelId = 0x1;
-    auto rtSession = acl::AclResourceManager::GetInstance().CreateRtSession();
-    acl::AclResourceManager::GetInstance().AddExecutor(modelId, std::move(executor), rtSession);
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    EXPECT_NE(dataset, nullptr);
-
-    auto ret = aclmdlExecute(modelId, dataset, dataset);
+  // Test scfInputSizeW > 4096
+  aippParmsSet->aippBatchPara[batchIndex].scfInputSizeW = 4097;
+  {
+    aclError ret = AippScfSizeCheck(aippParmsSet, batchIndex);
     EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  }
 
-    aclDataBuffer *dataBuffer = (aclDataBuffer *)malloc(100);
-    ret = aclmdlAddDatasetBuffer(dataset, dataBuffer);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  // ----------------------------
+  // 3. Test scfOutputSizeW < 16 and scfOutputSizeW > 1920
+  // ----------------------------
+  // Reset input size to valid values
+  aippParmsSet->aippBatchPara[batchIndex].scfInputSizeW = 100;
+  aippParmsSet->aippBatchPara[batchIndex].scfInputSizeH = 100;
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOriginShapeInRange(_))
-        .WillOnce(Return(false))
-        .WillRepeatedly(Return(true));
-    ret = aclmdlExecute(modelId, dataset, dataset);
+  // Test scfOutputSizeW < 16
+  aippParmsSet->aippBatchPara[batchIndex].scfOutputSizeW = 15;
+  {
+    aclError ret = AippScfSizeCheck(aippParmsSet, batchIndex);
     EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  }
 
-    ret = aclmdlExecute(modelId, dataset, dataset);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-
-    free(dataBuffer);
-    ret = aclmdlDestroyDataset(dataset);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = acl::AclResourceManager::GetInstance().DeleteExecutor(modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
-}
-
-TEST_F(UTEST_ACL_Model, RuntimeV2GetDesc)
-{ 
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-    aclmdlDesc* desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
-
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _,_,_))
-        .WillOnce(Return(ACL_ERROR_GE_EXEC_MODEL_ID_INVALID))
-        .WillRepeatedly(Return(SUCCESS));
-    auto ret = aclmdlGetDesc(desc, 1);
-
-    EXPECT_EQ(ret, static_cast<aclError>(ACL_ERROR_GE_EXEC_MODEL_ID_INVALID));
-
-    uint32_t modelId = 0;
-    const char *modelPath = "/";
-    ret = aclmdlLoadFromFile(modelPath, &modelId);
-
-    auto executor = std::unique_ptr<gert::ModelV2Executor>(new(std::nothrow) gert::ModelV2Executor);
-    auto rtSession = acl::AclResourceManager::GetInstance().CreateRtSession();
-    acl::AclResourceManager::GetInstance().AddExecutor(modelId, std::move(executor), rtSession);
-    ret = aclmdlGetDesc(desc, modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-
-    ret = aclmdlDestroyDesc(desc);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
-}
-
-TEST_F(UTEST_ACL_Model, RuntimeV2EsecuteAsync)
-{ 
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    EXPECT_NE(dataset, nullptr);
-
-    aclDataBuffer *dataBuffer = (aclDataBuffer *)malloc(100);
-    aclError ret = aclmdlAddDatasetBuffer(dataset, dataBuffer);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-
-    int64_t shape[2] = {16, 32};
-    aclTensorDesc *inputDesc = aclCreateTensorDesc(ACL_FLOAT16, 2, shape, ACL_FORMAT_ND);
-    size_t index = 0;
-    ret = aclmdlSetDatasetTensorDesc (dataset, inputDesc, index);
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), ExecModel(_,_,_,_,_,_,_))
-        .WillOnce(Return((ACL_ERROR_GE_EXEC_MODEL_ID_INVALID)))
-        .WillRepeatedly(Return(SUCCESS));
-    ret = aclmdlExecuteAsync(1, dataset, dataset, nullptr);
-    EXPECT_EQ(ret, static_cast<aclError>(ACL_ERROR_GE_EXEC_MODEL_ID_INVALID));
-
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsDynamicModel(_,_))
-        .WillOnce(Invoke((IsDynamicModelReturnTrue)));
-    uint32_t modelId = 0;
-    const char *modelPath = "/";
-    ret = aclmdlLoadFromFile(modelPath, &modelId);
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), ExecModel(_, _, _, _, _, _, _))
-        .WillOnce(Invoke(ExecModelInvokeOneOut));
-    ret = aclmdlExecuteAsync(modelId, dataset, dataset, nullptr);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-
-    free(dataBuffer);
-    aclDestroyTensorDesc(inputDesc);
-    ret = aclmdlDestroyDataset(dataset);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
-}
-
-TEST_F(UTEST_ACL_Model, RuntimeV2ExecuteAsync_Ok_ExecuteAsyncDynamic)
-{
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    EXPECT_NE(dataset, nullptr);
-
-    aclDataBuffer *dataBuffer = (aclDataBuffer *)malloc(100);
-    aclError ret = aclmdlAddDatasetBuffer(dataset, dataBuffer);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-
-    int64_t shape[2] = {16, 32};
-    aclTensorDesc *inputDesc = aclCreateTensorDesc(ACL_FLOAT16, 2, shape, ACL_FORMAT_ND);
-    size_t index = 0;
-    ret = aclmdlSetDatasetTensorDesc (dataset, inputDesc, index);
-
-    uint32_t modelId = 0;
-    const char *modelPath = "/";
-    ret = aclmdlLoadFromFile(modelPath, &modelId);
-
-    auto executor = std::unique_ptr<gert::ModelV2Executor>(new(std::nothrow) gert::ModelV2Executor);
-    auto rtSession = acl::AclResourceManager::GetInstance().CreateRtSession();
-    acl::AclResourceManager::GetInstance().AddExecutor(modelId, std::move(executor), rtSession);
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOriginShapeInRange(_)).WillRepeatedly(Return(true));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), Execute(_, _, _, _, _)).WillOnce(Return(ge::GRAPH_SUCCESS));
-    ret = aclmdlExecuteAsync(modelId, dataset, dataset, nullptr);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-
-    free(dataBuffer);
-    aclDestroyTensorDesc(inputDesc);
-    ret = aclmdlDestroyDataset(dataset);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = acl::AclResourceManager::GetInstance().DeleteExecutor(modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
-}
-
-
-TEST_F(UTEST_ACL_Model, RuntimeV2ExecuteWithNullOutput)
-{
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-
-    uint32_t modelId = 1;
-    const char *modelPath = "/";
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_,_,_))
-    .WillOnce(Invoke(LoadExecutorFromModelDataSuccess));
-    auto ret = aclmdlLoadFromFile(modelPath, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsDynamicModel(_,_))
-    .WillOnce(Invoke((IsDynamicModelReturnTrue)));
-    ret = aclmdlLoadFromFile(modelPath, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    EXPECT_NE(dataset, nullptr);
-
-    aclDataBuffer *dataBuffer = (aclDataBuffer *)malloc(100);
-    ret = aclmdlAddDatasetBuffer(dataset, dataBuffer);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-
-    aclmdlDataset *datasetOut = aclmdlCreateDataset();
-    EXPECT_NE(dataset, nullptr);
-    aclDataBuffer *buffer2 = aclCreateDataBuffer(nullptr, 1);
-    EXPECT_EQ(aclGetDataBufferAddr(buffer2), nullptr);
-    ret = aclmdlAddDatasetBuffer(datasetOut, buffer2);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
-        .WillRepeatedly(Invoke(GetModelDescInfo_Invoke));
-    int64_t shape[2] = {16, 32};
-    aclTensorDesc *inputDesc = aclCreateTensorDesc(ACL_FLOAT16, 2, shape, ACL_FORMAT_ND);
-    size_t index = 0;
-    ret = aclmdlSetDatasetTensorDesc(dataset, inputDesc, index);
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), ExecuteSync(_, _, _, _))
-        .WillRepeatedly(Invoke(ExecuteSync_Invoke));
-
-    EXPECT_EQ(aclGetDataBufferAddr(buffer2), nullptr);
-    EXPECT_EQ(aclGetDataBufferAddr(datasetOut->blobs[0].dataBuf), nullptr);
-
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOriginShapeInRange(_)).WillRepeatedly(Return(true));
-
-    ret = aclmdlExecute(modelId, dataset, datasetOut);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    /// TODO: rtMalloc
-    /// TODO: aclrtFree
-    // EXPECT_NE(aclGetDataBufferAddr(datasetOut->blobs[0].dataBuf), nullptr);
-    EXPECT_EQ(aclrtFree(aclGetDataBufferAddr(datasetOut->blobs[0].dataBuf)), ACL_SUCCESS);
-
-    free(dataBuffer);
-    aclDestroyTensorDesc(inputDesc);
-    aclDestroyDataBuffer(buffer2);
-    ret = aclmdlDestroyDataset(dataset);
-    ret = aclmdlDestroyDataset(datasetOut);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
-}
-
-TEST_F(UTEST_ACL_Model, RuntimeV2LoadFromFile)
-{
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-
-    uint32_t modelId = 1;
-    const char *modelPath = "/";
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_,_,_))
-            .WillOnce(Invoke(LoadExecutorFromModelDataSuccess));
-    auto ret = aclmdlLoadFromFile(modelPath, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsDynamicModel(_,_))
-        .WillOnce(Invoke((IsDynamicModelReturnTrue)));
-    ret = aclmdlLoadFromFile(modelPath, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
-}
-
-TEST_F(UTEST_ACL_Model, RuntimeV2LoadFromFileFailed)
-{
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-    uint32_t modelId = 1;
-    const char *modelPath = "/";
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_,_,_))
-        .WillRepeatedly(Invoke(LoadExecutorFromModelDataSuccess));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsDynamicModel(_,_))
-        .WillRepeatedly(Invoke((IsDynamicModelReturnTrue)));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtCreateStream(_))
-        .WillOnce(Return(ACL_ERROR_RT_PARAM_INVALID))
-        .WillOnce(Return(RT_ERROR_NONE));
-    auto ret = aclmdlLoadFromFile(modelPath, &modelId);
-    EXPECT_EQ(ret, ACL_ERROR_RT_PARAM_INVALID);
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtSynchronizeStream(_))
-        .WillOnce(Return((ACL_ERROR_RT_PARAM_INVALID)));
-    ret = aclmdlLoadFromFile(modelPath, &modelId);
-    EXPECT_EQ(ret, ACL_ERROR_RT_PARAM_INVALID);
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
-}
-
-TEST_F(UTEST_ACL_Model, RuntimeV2LoadFromMemFailed)
-{
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-    uint32_t modelId = 1;
-    ge::ModelFileHeader head;
-    head.version = ge::MODEL_VERSION + 1U;
-    head.model_num = 2U;
-    void *model = (void *)&head;
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_,_,_))
-        .WillRepeatedly(Invoke(LoadExecutorFromModelDataSuccess));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtCreateStream(_))
-        .WillOnce(Return(ACL_ERROR_RT_PARAM_INVALID))
-        .WillOnce(Return(RT_ERROR_NONE));
-    auto ret = aclmdlLoadFromMem(model, sizeof(head), &modelId);
-    EXPECT_EQ(ret, ACL_ERROR_RT_PARAM_INVALID);
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtSynchronizeStream(_))
-        .WillOnce(Return((ACL_ERROR_RT_PARAM_INVALID)));
-    ret = aclmdlLoadFromMem(model, sizeof(head), &modelId);
-    EXPECT_EQ(ret, ACL_ERROR_RT_PARAM_INVALID);
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
-}
-
-TEST_F(UTEST_ACL_Model, RuntimeV2LoadFromFileWithDynamicModelFailed)
-{
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-
-    uint32_t modelId = 1;
-    const char *modelPath = "/";
-
-    auto ret = aclmdlLoadFromFile(modelPath, &modelId);
-    EXPECT_EQ(ret, ge::GRAPH_SUCCESS);
-
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsDynamicModel(_,_))
-      .WillOnce(Invoke((IsDynamicModelReturnFailed)));
-    ret = aclmdlLoadFromFile(modelPath, &modelId);
-    EXPECT_EQ(ret, ACL_ERROR_GE_PARAM_INVALID);
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
-}
-
-TEST_F(UTEST_ACL_Model, aclmdlSetExecConfigOpt_invalid_timeout_failed)
-{
-    size_t invalid_num = 99;
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-    aclmdlExecConfigHandle *handle = aclmdlCreateExecConfigHandle();
-    EXPECT_NE(handle, nullptr);
-    int32_t stream_sync_timeout = -2;
-    auto ret = aclmdlSetExecConfigOpt(handle, ACL_MDL_STREAM_SYNC_TIMEOUT, &stream_sync_timeout, sizeof(stream_sync_timeout));
+  // Test scfOutputSizeW > 1920
+  aippParmsSet->aippBatchPara[batchIndex].scfOutputSizeW = 1921;
+  {
+    aclError ret = AippScfSizeCheck(aippParmsSet, batchIndex);
     EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    EXPECT_EQ(handle->streamSyncTimeout, -1);
+  }
 
-    ret = aclmdlSetExecConfigOpt(handle, ACL_MDL_STREAM_SYNC_TIMEOUT, &stream_sync_timeout, invalid_num);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  // ----------------------------
+  // 4. Test scfOutputSizeH < 16 and scfOutputSizeH > 4096
+  // ----------------------------
+  // Reset output width to valid value
+  aippParmsSet->aippBatchPara[batchIndex].scfOutputSizeW = 100;
 
-    const size_t invalid_stream_sync_timeout = 1234567899876;
-    ret = aclmdlSetExecConfigOpt(handle, ACL_MDL_STREAM_SYNC_TIMEOUT, &invalid_stream_sync_timeout, sizeof(invalid_stream_sync_timeout));
+  // Test scfOutputSizeH < 16
+  aippParmsSet->aippBatchPara[batchIndex].scfOutputSizeH = 15;
+  {
+    aclError ret = AippScfSizeCheck(aippParmsSet, batchIndex);
     EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  }
 
-    ret = aclmdlSetExecConfigOpt(handle, static_cast<aclmdlExecConfigAttr>(100U), &stream_sync_timeout, sizeof(stream_sync_timeout));
+  // Test scfOutputSizeH > 4096
+  aippParmsSet->aippBatchPara[batchIndex].scfOutputSizeH = 4097;
+  {
+    aclError ret = AippScfSizeCheck(aippParmsSet, batchIndex);
     EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  }
 
-    const int32_t event_sync_timeout = -2;
-    ret = aclmdlSetExecConfigOpt(handle, ACL_MDL_EVENT_SYNC_TIMEOUT, &event_sync_timeout, invalid_num);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    ret = aclmdlSetExecConfigOpt(handle, ACL_MDL_EVENT_SYNC_TIMEOUT, &event_sync_timeout, sizeof(event_sync_timeout));
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    EXPECT_EQ(handle->eventSyncTimeout, -1);
+  // ----------------------------
+  // 5. Test scale ratio out of [1/16, 16]
+  // ----------------------------
+  // Reset all sizes to valid values
+  aippParmsSet->aippBatchPara[batchIndex].scfOutputSizeH = 100;
 
-    ret = aclmdlSetExecConfigOpt(handle, static_cast<aclmdlExecConfigAttr>(100U), &event_sync_timeout, sizeof(event_sync_timeout));
+  // Ratio too small: output / input < 1/16
+  aippParmsSet->aippBatchPara[batchIndex].scfOutputSizeW = 100;
+  aippParmsSet->aippBatchPara[batchIndex].scfInputSizeW = 1700;  // 100/1700 ≈ 0.0588 < 1/16=0.0625
+  aippParmsSet->aippBatchPara[batchIndex].scfOutputSizeH = 100;
+  aippParmsSet->aippBatchPara[batchIndex].scfInputSizeH = 100;
+  {
+    aclError ret = AippScfSizeCheck(aippParmsSet, batchIndex);
     EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  }
 
-    const size_t invalid_event_sync_timeout = 1234567899876;
-    ret = aclmdlSetExecConfigOpt(handle, ACL_MDL_STREAM_SYNC_TIMEOUT, &invalid_event_sync_timeout, sizeof(invalid_event_sync_timeout));
+  // Ratio too large: output / input > 16
+  aippParmsSet->aippBatchPara[batchIndex].scfOutputSizeW = 1700;
+  aippParmsSet->aippBatchPara[batchIndex].scfInputSizeW = 100;  // 1700/100 = 17 > 16
+  {
+    aclError ret = AippScfSizeCheck(aippParmsSet, batchIndex);
     EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    EXPECT_EQ(aclmdlDestroyExecConfigHandle(handle), ACL_SUCCESS);
+  }
+
+  // Same for H
+  aippParmsSet->aippBatchPara[batchIndex].scfOutputSizeW = 100;
+  aippParmsSet->aippBatchPara[batchIndex].scfInputSizeW = 100;
+  aippParmsSet->aippBatchPara[batchIndex].scfOutputSizeH = 1700;
+  aippParmsSet->aippBatchPara[batchIndex].scfInputSizeH = 100;
+  {
+    aclError ret = AippScfSizeCheck(aippParmsSet, batchIndex);
+    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  }
+
+  // ----------------------------
+  // 6. crop disabled: mismatch → error
+  // ----------------------------
+  aippParmsSet->aippBatchPara[batchIndex].cropSwitch = 0;
+  aippParmsSet->aippParms.srcImageSizeW = 200;
+  aippParmsSet->aippParms.srcImageSizeH = 200;
+  aippParmsSet->aippBatchPara[batchIndex].scfInputSizeW = 100;  // mismatch
+  aippParmsSet->aippBatchPara[batchIndex].scfInputSizeH = 100;
+  {
+    aclError ret = AippScfSizeCheck(aippParmsSet, batchIndex);
+    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  }
+
+  // ----------------------------
+  // 7. crop disabled: match → continue
+  // ----------------------------
+  aippParmsSet->aippBatchPara[batchIndex].scfInputSizeW = 200;
+  aippParmsSet->aippBatchPara[batchIndex].scfInputSizeH = 200;
+
+  // Set valid output sizes within range
+  aippParmsSet->aippBatchPara[batchIndex].scfOutputSizeW = 100;  // 100/200 = 0.5 ∈ [1/16,16]
+  aippParmsSet->aippBatchPara[batchIndex].scfOutputSizeH = 100;
+
+  // ----------------------------
+  // 8. All checks pass → success
+  // ----------------------------
+  {
+    aclError ret = AippScfSizeCheck(aippParmsSet, batchIndex);
+    EXPECT_EQ(ret, ACL_SUCCESS);
+  }
+
+  // ----------------------------
+  // 9. crop enabled + all valid → success
+  // ----------------------------
+  aippParmsSet->aippBatchPara[batchIndex].cropSwitch = 1;
+  aippParmsSet->aippBatchPara[batchIndex].cropSizeW = 200;
+  aippParmsSet->aippBatchPara[batchIndex].cropSizeH = 200;
+  // input already 200x200, output 100x100 → valid
+  {
+    aclError ret = AippScfSizeCheck(aippParmsSet, batchIndex);
+    EXPECT_EQ(ret, ACL_SUCCESS);
+  }
+
+  aclmdlDestroyAIPP(aippParmsSet);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlSetExecConfigOpt_valid_timeout_success)
-{
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-    aclmdlExecConfigHandle *handle = aclmdlCreateExecConfigHandle();
-    EXPECT_NE(handle, nullptr);
-    const int32_t stream_sync_timeout = 100;
-    aclError ret = aclmdlSetExecConfigOpt(handle, ACL_MDL_STREAM_SYNC_TIMEOUT, &stream_sync_timeout, sizeof(stream_sync_timeout));
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    EXPECT_EQ(handle->streamSyncTimeout, 100);
+TEST_F(UTEST_ACL_Model, RuntimeV2UnloadModel) {
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), UnloadModel(_))
+      .WillOnce(Return(ACL_ERROR_GE_EXEC_MODEL_ID_INVALID))
+      .WillRepeatedly(Return(SUCCESS));
+  uint32_t modelId = 999;
+  auto ret = aclmdlUnload(modelId);
+  EXPECT_EQ(ret, static_cast<aclError>(ACL_ERROR_GE_EXEC_MODEL_ID_INVALID));
 
-    const int32_t event_sync_timeout = 200;
-    ret = aclmdlSetExecConfigOpt(handle, ACL_MDL_EVENT_SYNC_TIMEOUT, &event_sync_timeout, sizeof(event_sync_timeout));
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    EXPECT_EQ(handle->eventSyncTimeout, 200);
-    EXPECT_EQ(aclmdlDestroyExecConfigHandle(handle), ACL_SUCCESS);
+  acl::AclResourceManager::GetInstance().DeleteExecutor(modelId);
+  const char *modelPath = "/";
+
+  ret = aclmdlLoadFromFile(modelPath, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+
+  ret = aclmdlUnload(modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+
+  ret = acl::AclResourceManager::GetInstance().DeleteExecutor(2);
+  EXPECT_EQ(ret, static_cast<aclError>(ACL_ERROR_GE_EXEC_MODEL_ID_INVALID));
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlExecuteV2_runtimev2_ModelExecute_success)
-{
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-    auto executor = std::unique_ptr<gert::ModelV2Executor>(new(std::nothrow) gert::ModelV2Executor);
-    uint32_t modelId = 0x1;
-    auto rtSession = acl::AclResourceManager::GetInstance().CreateRtSession();
-    acl::AclResourceManager::GetInstance().AddExecutor(modelId, std::move(executor), rtSession);
+TEST_F(UTEST_ACL_Model, RuntimeV2ExecuteModel) {
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
 
-    aclmdlExecConfigHandle *handle = aclmdlCreateExecConfigHandle();
-    EXPECT_NE(handle, nullptr);
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  EXPECT_NE(dataset, nullptr);
 
-    const int32_t stream_sync_timeout = 100;
-    aclError ret = aclmdlSetExecConfigOpt(handle, ACL_MDL_STREAM_SYNC_TIMEOUT, &stream_sync_timeout,
-                                          sizeof(stream_sync_timeout));
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    EXPECT_EQ(handle->streamSyncTimeout, 100);
+  aclDataBuffer *dataBuffer = (aclDataBuffer *)malloc(100);
+  aclError ret = aclmdlAddDatasetBuffer(dataset, dataBuffer);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke(GetModelDescInfo_Invoke));
 
-    const int32_t event_sync_timeout = 200;
-    ret = aclmdlSetExecConfigOpt(handle, ACL_MDL_EVENT_SYNC_TIMEOUT, &event_sync_timeout,
-                                 sizeof(event_sync_timeout));
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    EXPECT_EQ(handle->eventSyncTimeout, 200);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), ExecModel(_, _, _, _, _, _, _))
+      .WillOnce(Return(ACL_ERROR_GE_EXEC_MODEL_ID_INVALID))
+      .WillRepeatedly(Return(SUCCESS));
+  ret = aclmdlExecute(1, dataset, dataset);
+  EXPECT_EQ(ret, static_cast<aclError>(ACL_ERROR_GE_EXEC_MODEL_ID_INVALID));
 
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    EXPECT_NE(dataset, nullptr);
+  uint32_t modelId = 0;
+  const char *modelPath = "/";
+  ret = aclmdlLoadFromFile(modelPath, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), ExecModel(_, _, _, _, _, _, _))
+      .WillOnce(Invoke(ExecModelInvokeOneOut));
+  ret = aclmdlExecute(modelId, dataset, dataset);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    aclDataBuffer *dataBuffer = (aclDataBuffer *)malloc(100);
-    ret = aclmdlAddDatasetBuffer(dataset, dataBuffer);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  free(dataBuffer);
+  ret = aclmdlDestroyDataset(dataset);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
+}
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOriginShapeInRange(_))
-            .WillOnce(Return(false))
-            .WillRepeatedly(Return(true));
-    ret = aclmdlExecuteV2(modelId, dataset, dataset, nullptr, handle);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    ret = aclmdlExecuteV2(modelId, dataset, dataset, nullptr, handle);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+TEST_F(UTEST_ACL_Model, RuntimeV2ExecuteModelFailed) {
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
+  auto executor = std::unique_ptr<gert::ModelV2Executor>(new (std::nothrow) gert::ModelV2Executor);
+  uint32_t modelId = 0x1;
+  auto rtSession = acl::AclResourceManager::GetInstance().CreateRtSession();
+  acl::AclResourceManager::GetInstance().AddExecutor(modelId, std::move(executor), rtSession);
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  EXPECT_NE(dataset, nullptr);
 
-    auto stream_timeout = ge::GEContext().StreamSyncTimeout();
-    EXPECT_EQ(stream_timeout, stream_sync_timeout);
+  auto ret = aclmdlExecute(modelId, dataset, dataset);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    auto event_timeout = ge::GEContext().EventSyncTimeout();
-    EXPECT_EQ(event_timeout, event_sync_timeout);
+  aclDataBuffer *dataBuffer = (aclDataBuffer *)malloc(100);
+  ret = aclmdlAddDatasetBuffer(dataset, dataBuffer);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    free(dataBuffer);
-    ret = aclmdlDestroyDataset(dataset);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = acl::AclResourceManager::GetInstance().DeleteExecutor(modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlDestroyExecConfigHandle(handle);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOriginShapeInRange(_))
+      .WillOnce(Return(false))
+      .WillRepeatedly(Return(true));
+  ret = aclmdlExecute(modelId, dataset, dataset);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+
+  ret = aclmdlExecute(modelId, dataset, dataset);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+
+  free(dataBuffer);
+  ret = aclmdlDestroyDataset(dataset);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = acl::AclResourceManager::GetInstance().DeleteExecutor(modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
+}
+
+TEST_F(UTEST_ACL_Model, RuntimeV2GetDesc) {
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
+
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillOnce(Return(ACL_ERROR_GE_EXEC_MODEL_ID_INVALID))
+      .WillRepeatedly(Return(SUCCESS));
+  auto ret = aclmdlGetDesc(desc, 1);
+
+  EXPECT_EQ(ret, static_cast<aclError>(ACL_ERROR_GE_EXEC_MODEL_ID_INVALID));
+
+  uint32_t modelId = 0;
+  const char *modelPath = "/";
+  ret = aclmdlLoadFromFile(modelPath, &modelId);
+
+  auto executor = std::unique_ptr<gert::ModelV2Executor>(new (std::nothrow) gert::ModelV2Executor);
+  auto rtSession = acl::AclResourceManager::GetInstance().CreateRtSession();
+  acl::AclResourceManager::GetInstance().AddExecutor(modelId, std::move(executor), rtSession);
+  ret = aclmdlGetDesc(desc, modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+
+  ret = aclmdlDestroyDesc(desc);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
+}
+
+TEST_F(UTEST_ACL_Model, RuntimeV2EsecuteAsync) {
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  EXPECT_NE(dataset, nullptr);
+
+  aclDataBuffer *dataBuffer = (aclDataBuffer *)malloc(100);
+  aclError ret = aclmdlAddDatasetBuffer(dataset, dataBuffer);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+
+  int64_t shape[2] = {16, 32};
+  aclTensorDesc *inputDesc = aclCreateTensorDesc(ACL_FLOAT16, 2, shape, ACL_FORMAT_ND);
+  size_t index = 0;
+  ret = aclmdlSetDatasetTensorDesc(dataset, inputDesc, index);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), ExecModel(_, _, _, _, _, _, _))
+      .WillOnce(Return((ACL_ERROR_GE_EXEC_MODEL_ID_INVALID)))
+      .WillRepeatedly(Return(SUCCESS));
+  ret = aclmdlExecuteAsync(1, dataset, dataset, nullptr);
+  EXPECT_EQ(ret, static_cast<aclError>(ACL_ERROR_GE_EXEC_MODEL_ID_INVALID));
+
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsDynamicModel(_, _)).WillOnce(Invoke((IsDynamicModelReturnTrue)));
+  uint32_t modelId = 0;
+  const char *modelPath = "/";
+  ret = aclmdlLoadFromFile(modelPath, &modelId);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), ExecModel(_, _, _, _, _, _, _))
+      .WillOnce(Invoke(ExecModelInvokeOneOut));
+  ret = aclmdlExecuteAsync(modelId, dataset, dataset, nullptr);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+
+  free(dataBuffer);
+  aclDestroyTensorDesc(inputDesc);
+  ret = aclmdlDestroyDataset(dataset);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
+}
+
+TEST_F(UTEST_ACL_Model, RuntimeV2ExecuteAsync_Ok_ExecuteAsyncDynamic) {
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  EXPECT_NE(dataset, nullptr);
+
+  aclDataBuffer *dataBuffer = (aclDataBuffer *)malloc(100);
+  aclError ret = aclmdlAddDatasetBuffer(dataset, dataBuffer);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+
+  int64_t shape[2] = {16, 32};
+  aclTensorDesc *inputDesc = aclCreateTensorDesc(ACL_FLOAT16, 2, shape, ACL_FORMAT_ND);
+  size_t index = 0;
+  ret = aclmdlSetDatasetTensorDesc(dataset, inputDesc, index);
+
+  uint32_t modelId = 0;
+  const char *modelPath = "/";
+  ret = aclmdlLoadFromFile(modelPath, &modelId);
+
+  auto executor = std::unique_ptr<gert::ModelV2Executor>(new (std::nothrow) gert::ModelV2Executor);
+  auto rtSession = acl::AclResourceManager::GetInstance().CreateRtSession();
+  acl::AclResourceManager::GetInstance().AddExecutor(modelId, std::move(executor), rtSession);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOriginShapeInRange(_)).WillRepeatedly(Return(true));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), Execute(_, _, _, _, _)).WillOnce(Return(ge::GRAPH_SUCCESS));
+  ret = aclmdlExecuteAsync(modelId, dataset, dataset, nullptr);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+
+  free(dataBuffer);
+  aclDestroyTensorDesc(inputDesc);
+  ret = aclmdlDestroyDataset(dataset);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = acl::AclResourceManager::GetInstance().DeleteExecutor(modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
+}
+
+TEST_F(UTEST_ACL_Model, RuntimeV2ExecuteWithNullOutput) {
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
+
+  uint32_t modelId = 1;
+  const char *modelPath = "/";
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_, _, _))
+      .WillOnce(Invoke(LoadExecutorFromModelDataSuccess));
+  auto ret = aclmdlLoadFromFile(modelPath, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsDynamicModel(_, _)).WillOnce(Invoke((IsDynamicModelReturnTrue)));
+  ret = aclmdlLoadFromFile(modelPath, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  EXPECT_NE(dataset, nullptr);
+
+  aclDataBuffer *dataBuffer = (aclDataBuffer *)malloc(100);
+  ret = aclmdlAddDatasetBuffer(dataset, dataBuffer);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+
+  aclmdlDataset *datasetOut = aclmdlCreateDataset();
+  EXPECT_NE(dataset, nullptr);
+  aclDataBuffer *buffer2 = aclCreateDataBuffer(nullptr, 1);
+  EXPECT_EQ(aclGetDataBufferAddr(buffer2), nullptr);
+  ret = aclmdlAddDatasetBuffer(datasetOut, buffer2);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke(GetModelDescInfo_Invoke));
+  int64_t shape[2] = {16, 32};
+  aclTensorDesc *inputDesc = aclCreateTensorDesc(ACL_FLOAT16, 2, shape, ACL_FORMAT_ND);
+  size_t index = 0;
+  ret = aclmdlSetDatasetTensorDesc(dataset, inputDesc, index);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), ExecuteSync(_, _, _, _)).WillRepeatedly(Invoke(ExecuteSync_Invoke));
+
+  EXPECT_EQ(aclGetDataBufferAddr(buffer2), nullptr);
+  EXPECT_EQ(aclGetDataBufferAddr(datasetOut->blobs[0].dataBuf), nullptr);
+
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOriginShapeInRange(_)).WillRepeatedly(Return(true));
+
+  ret = aclmdlExecute(modelId, dataset, datasetOut);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  /// TODO: rtMalloc
+  /// TODO: aclrtFree
+  // EXPECT_NE(aclGetDataBufferAddr(datasetOut->blobs[0].dataBuf), nullptr);
+  EXPECT_EQ(aclrtFree(aclGetDataBufferAddr(datasetOut->blobs[0].dataBuf)), ACL_SUCCESS);
+
+  free(dataBuffer);
+  aclDestroyTensorDesc(inputDesc);
+  aclDestroyDataBuffer(buffer2);
+  ret = aclmdlDestroyDataset(dataset);
+  ret = aclmdlDestroyDataset(datasetOut);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
+}
+
+TEST_F(UTEST_ACL_Model, RuntimeV2LoadFromFile) {
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
+
+  uint32_t modelId = 1;
+  const char *modelPath = "/";
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_, _, _))
+      .WillOnce(Invoke(LoadExecutorFromModelDataSuccess));
+  auto ret = aclmdlLoadFromFile(modelPath, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsDynamicModel(_, _)).WillOnce(Invoke((IsDynamicModelReturnTrue)));
+  ret = aclmdlLoadFromFile(modelPath, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
+}
+
+TEST_F(UTEST_ACL_Model, RuntimeV2LoadFromFileFailed) {
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
+  uint32_t modelId = 1;
+  const char *modelPath = "/";
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_, _, _))
+      .WillRepeatedly(Invoke(LoadExecutorFromModelDataSuccess));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsDynamicModel(_, _))
+      .WillRepeatedly(Invoke((IsDynamicModelReturnTrue)));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtCreateStream(_))
+      .WillOnce(Return(ACL_ERROR_RT_PARAM_INVALID))
+      .WillOnce(Return(RT_ERROR_NONE));
+  auto ret = aclmdlLoadFromFile(modelPath, &modelId);
+  EXPECT_EQ(ret, ACL_ERROR_RT_PARAM_INVALID);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtSynchronizeStream(_))
+      .WillOnce(Return((ACL_ERROR_RT_PARAM_INVALID)));
+  ret = aclmdlLoadFromFile(modelPath, &modelId);
+  EXPECT_EQ(ret, ACL_ERROR_RT_PARAM_INVALID);
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
+}
+
+TEST_F(UTEST_ACL_Model, RuntimeV2LoadFromMemFailed) {
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
+  uint32_t modelId = 1;
+  ge::ModelFileHeader head;
+  head.version = ge::MODEL_VERSION + 1U;
+  head.model_num = 2U;
+  void *model = (void *)&head;
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_, _, _))
+      .WillRepeatedly(Invoke(LoadExecutorFromModelDataSuccess));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtCreateStream(_))
+      .WillOnce(Return(ACL_ERROR_RT_PARAM_INVALID))
+      .WillOnce(Return(RT_ERROR_NONE));
+  auto ret = aclmdlLoadFromMem(model, sizeof(head), &modelId);
+  EXPECT_EQ(ret, ACL_ERROR_RT_PARAM_INVALID);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtSynchronizeStream(_))
+      .WillOnce(Return((ACL_ERROR_RT_PARAM_INVALID)));
+  ret = aclmdlLoadFromMem(model, sizeof(head), &modelId);
+  EXPECT_EQ(ret, ACL_ERROR_RT_PARAM_INVALID);
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
+}
+
+TEST_F(UTEST_ACL_Model, RuntimeV2LoadFromFileWithDynamicModelFailed) {
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
+
+  uint32_t modelId = 1;
+  const char *modelPath = "/";
+
+  auto ret = aclmdlLoadFromFile(modelPath, &modelId);
+  EXPECT_EQ(ret, ge::GRAPH_SUCCESS);
+
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsDynamicModel(_, _)).WillOnce(Invoke((IsDynamicModelReturnFailed)));
+  ret = aclmdlLoadFromFile(modelPath, &modelId);
+  EXPECT_EQ(ret, ACL_ERROR_GE_PARAM_INVALID);
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
+}
+
+TEST_F(UTEST_ACL_Model, aclmdlSetExecConfigOpt_invalid_timeout_failed) {
+  size_t invalid_num = 99;
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
+  aclmdlExecConfigHandle *handle = aclmdlCreateExecConfigHandle();
+  EXPECT_NE(handle, nullptr);
+  int32_t stream_sync_timeout = -2;
+  auto ret =
+      aclmdlSetExecConfigOpt(handle, ACL_MDL_STREAM_SYNC_TIMEOUT, &stream_sync_timeout, sizeof(stream_sync_timeout));
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  EXPECT_EQ(handle->streamSyncTimeout, -1);
+
+  ret = aclmdlSetExecConfigOpt(handle, ACL_MDL_STREAM_SYNC_TIMEOUT, &stream_sync_timeout, invalid_num);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+
+  const size_t invalid_stream_sync_timeout = 1234567899876;
+  ret = aclmdlSetExecConfigOpt(handle, ACL_MDL_STREAM_SYNC_TIMEOUT, &invalid_stream_sync_timeout,
+                               sizeof(invalid_stream_sync_timeout));
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+
+  ret = aclmdlSetExecConfigOpt(handle, static_cast<aclmdlExecConfigAttr>(100U), &stream_sync_timeout,
+                               sizeof(stream_sync_timeout));
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+
+  const int32_t event_sync_timeout = -2;
+  ret = aclmdlSetExecConfigOpt(handle, ACL_MDL_EVENT_SYNC_TIMEOUT, &event_sync_timeout, invalid_num);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlSetExecConfigOpt(handle, ACL_MDL_EVENT_SYNC_TIMEOUT, &event_sync_timeout, sizeof(event_sync_timeout));
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  EXPECT_EQ(handle->eventSyncTimeout, -1);
+
+  ret = aclmdlSetExecConfigOpt(handle, static_cast<aclmdlExecConfigAttr>(100U), &event_sync_timeout,
+                               sizeof(event_sync_timeout));
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+
+  const size_t invalid_event_sync_timeout = 1234567899876;
+  ret = aclmdlSetExecConfigOpt(handle, ACL_MDL_STREAM_SYNC_TIMEOUT, &invalid_event_sync_timeout,
+                               sizeof(invalid_event_sync_timeout));
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  EXPECT_EQ(aclmdlDestroyExecConfigHandle(handle), ACL_SUCCESS);
+}
+
+TEST_F(UTEST_ACL_Model, aclmdlSetExecConfigOpt_valid_timeout_success) {
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
+  aclmdlExecConfigHandle *handle = aclmdlCreateExecConfigHandle();
+  EXPECT_NE(handle, nullptr);
+  const int32_t stream_sync_timeout = 100;
+  aclError ret =
+      aclmdlSetExecConfigOpt(handle, ACL_MDL_STREAM_SYNC_TIMEOUT, &stream_sync_timeout, sizeof(stream_sync_timeout));
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_EQ(handle->streamSyncTimeout, 100);
+
+  const int32_t event_sync_timeout = 200;
+  ret = aclmdlSetExecConfigOpt(handle, ACL_MDL_EVENT_SYNC_TIMEOUT, &event_sync_timeout, sizeof(event_sync_timeout));
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_EQ(handle->eventSyncTimeout, 200);
+  EXPECT_EQ(aclmdlDestroyExecConfigHandle(handle), ACL_SUCCESS);
+}
+
+TEST_F(UTEST_ACL_Model, aclmdlExecuteV2_runtimev2_ModelExecute_success) {
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
+  auto executor = std::unique_ptr<gert::ModelV2Executor>(new (std::nothrow) gert::ModelV2Executor);
+  uint32_t modelId = 0x1;
+  auto rtSession = acl::AclResourceManager::GetInstance().CreateRtSession();
+  acl::AclResourceManager::GetInstance().AddExecutor(modelId, std::move(executor), rtSession);
+
+  aclmdlExecConfigHandle *handle = aclmdlCreateExecConfigHandle();
+  EXPECT_NE(handle, nullptr);
+
+  const int32_t stream_sync_timeout = 100;
+  aclError ret =
+      aclmdlSetExecConfigOpt(handle, ACL_MDL_STREAM_SYNC_TIMEOUT, &stream_sync_timeout, sizeof(stream_sync_timeout));
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_EQ(handle->streamSyncTimeout, 100);
+
+  const int32_t event_sync_timeout = 200;
+  ret = aclmdlSetExecConfigOpt(handle, ACL_MDL_EVENT_SYNC_TIMEOUT, &event_sync_timeout, sizeof(event_sync_timeout));
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_EQ(handle->eventSyncTimeout, 200);
+
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  EXPECT_NE(dataset, nullptr);
+
+  aclDataBuffer *dataBuffer = (aclDataBuffer *)malloc(100);
+  ret = aclmdlAddDatasetBuffer(dataset, dataBuffer);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOriginShapeInRange(_))
+      .WillOnce(Return(false))
+      .WillRepeatedly(Return(true));
+  ret = aclmdlExecuteV2(modelId, dataset, dataset, nullptr, handle);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlExecuteV2(modelId, dataset, dataset, nullptr, handle);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+
+  auto stream_timeout = ge::GEContext().StreamSyncTimeout();
+  EXPECT_EQ(stream_timeout, stream_sync_timeout);
+
+  auto event_timeout = ge::GEContext().EventSyncTimeout();
+  EXPECT_EQ(event_timeout, event_sync_timeout);
+
+  free(dataBuffer);
+  ret = aclmdlDestroyDataset(dataset);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = acl::AclResourceManager::GetInstance().DeleteExecutor(modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlDestroyExecConfigHandle(handle);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
 }
 
 ge::Status GetAippTypeDynamicAippInvoke(uint32_t index, ge::InputAippType &type, size_t &aippindex) {
-    (void) index;
-    type = ge::DATA_WITH_DYNAMIC_AIPP;
-    aippindex = 0xFFFFFFFF;
-    return ge::SUCCESS;
+  (void)index;
+  type = ge::DATA_WITH_DYNAMIC_AIPP;
+  aippindex = 0xFFFFFFFF;
+  return ge::SUCCESS;
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlExecuteV2_runtimev2_ModelExecute_failed)
-{
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-    auto executor = std::unique_ptr<gert::ModelV2Executor>(new(std::nothrow) gert::ModelV2Executor);
-    uint32_t modelId = 0x1;
-    auto rtSession = acl::AclResourceManager::GetInstance().CreateRtSession();
-    acl::AclResourceManager::GetInstance().AddExecutor(modelId, std::move(executor), rtSession);
+TEST_F(UTEST_ACL_Model, aclmdlExecuteV2_runtimev2_ModelExecute_failed) {
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
+  auto executor = std::unique_ptr<gert::ModelV2Executor>(new (std::nothrow) gert::ModelV2Executor);
+  uint32_t modelId = 0x1;
+  auto rtSession = acl::AclResourceManager::GetInstance().CreateRtSession();
+  acl::AclResourceManager::GetInstance().AddExecutor(modelId, std::move(executor), rtSession);
 
-    aclmdlExecConfigHandle *handle = aclmdlCreateExecConfigHandle();
-    EXPECT_NE(handle, nullptr);
+  aclmdlExecConfigHandle *handle = aclmdlCreateExecConfigHandle();
+  EXPECT_NE(handle, nullptr);
 
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    EXPECT_NE(dataset, nullptr);
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  EXPECT_NE(dataset, nullptr);
 
-    aclDataBuffer *dataBuffer = (aclDataBuffer *)malloc(100);
-    aclError ret = aclmdlAddDatasetBuffer(dataset, dataBuffer);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  aclDataBuffer *dataBuffer = (aclDataBuffer *)malloc(100);
+  aclError ret = aclmdlAddDatasetBuffer(dataset, dataBuffer);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOriginShapeInRange(_))
-            .WillOnce(Return(false));
-    ret = aclmdlExecuteV2(modelId, dataset, dataset, nullptr, handle);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOriginShapeInRange(_)).WillOnce(Return(false));
+  ret = aclmdlExecuteV2(modelId, dataset, dataset, nullptr, handle);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAippType(_,_,_))
-            .WillOnce(Invoke(GetAippTypeDynamicAippInvoke));
-    ret = aclmdlExecuteV2(modelId, dataset, dataset, nullptr, handle);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    free(dataBuffer);
-    ret = aclmdlDestroyDataset(dataset);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = acl::AclResourceManager::GetInstance().DeleteExecutor(modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    ret = aclmdlDestroyExecConfigHandle(handle);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetAippType(_, _, _)).WillOnce(Invoke(GetAippTypeDynamicAippInvoke));
+  ret = aclmdlExecuteV2(modelId, dataset, dataset, nullptr, handle);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  free(dataBuffer);
+  ret = aclmdlDestroyDataset(dataset);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = acl::AclResourceManager::GetInstance().DeleteExecutor(modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlDestroyExecConfigHandle(handle);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = false;
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlExecuteV2_ModelExecute_success)
-{
-    aclmdlExecConfigHandle *handle = aclmdlCreateExecConfigHandle();
-    EXPECT_NE(handle, nullptr);
+TEST_F(UTEST_ACL_Model, aclmdlExecuteV2_ModelExecute_success) {
+  aclmdlExecConfigHandle *handle = aclmdlCreateExecConfigHandle();
+  EXPECT_NE(handle, nullptr);
 
-    const int32_t stream_sync_timeout = 100;
-    aclError ret = aclmdlSetExecConfigOpt(handle, ACL_MDL_STREAM_SYNC_TIMEOUT, &stream_sync_timeout, sizeof(stream_sync_timeout));
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    EXPECT_EQ(handle->streamSyncTimeout, stream_sync_timeout);
+  const int32_t stream_sync_timeout = 100;
+  aclError ret =
+      aclmdlSetExecConfigOpt(handle, ACL_MDL_STREAM_SYNC_TIMEOUT, &stream_sync_timeout, sizeof(stream_sync_timeout));
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_EQ(handle->streamSyncTimeout, stream_sync_timeout);
 
-    const int32_t event_sync_timeout = 200;
-    ret = aclmdlSetExecConfigOpt(handle, ACL_MDL_EVENT_SYNC_TIMEOUT, &event_sync_timeout, sizeof(event_sync_timeout));
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    EXPECT_EQ(handle->eventSyncTimeout, 200);
+  const int32_t event_sync_timeout = 200;
+  ret = aclmdlSetExecConfigOpt(handle, ACL_MDL_EVENT_SYNC_TIMEOUT, &event_sync_timeout, sizeof(event_sync_timeout));
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_EQ(handle->eventSyncTimeout, 200);
 
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    EXPECT_NE(dataset, nullptr);
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  EXPECT_NE(dataset, nullptr);
 
-    aclDataBuffer *dataBuffer = (aclDataBuffer *)malloc(100);
-    ret = aclmdlAddDatasetBuffer(dataset, dataBuffer);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  aclDataBuffer *dataBuffer = (aclDataBuffer *)malloc(100);
+  ret = aclmdlAddDatasetBuffer(dataset, dataBuffer);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_,_,_,_))
-            .WillRepeatedly(Invoke(GetModelDescInfo_Invoke));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke(GetModelDescInfo_Invoke));
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), ExecModel(_, _, _, _, _, _, _))
-        .WillOnce(Invoke(ExecModelInvokeOneOut));
-    ret = aclmdlExecuteV2(1, dataset, dataset, nullptr, handle);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), ExecModel(_, _, _, _, _, _, _))
+      .WillOnce(Invoke(ExecModelInvokeOneOut));
+  ret = aclmdlExecuteV2(1, dataset, dataset, nullptr, handle);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    auto stream_timeout = ge::GEContext().StreamSyncTimeout();
-    EXPECT_EQ(stream_timeout, stream_sync_timeout);
+  auto stream_timeout = ge::GEContext().StreamSyncTimeout();
+  EXPECT_EQ(stream_timeout, stream_sync_timeout);
 
-    auto event_timeout = ge::GEContext().EventSyncTimeout();
-    EXPECT_EQ(event_timeout, event_sync_timeout);
+  auto event_timeout = ge::GEContext().EventSyncTimeout();
+  EXPECT_EQ(event_timeout, event_sync_timeout);
 
-    free(dataBuffer);
-    ret = aclmdlDestroyDataset(dataset);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  free(dataBuffer);
+  ret = aclmdlDestroyDataset(dataset);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    ret = aclmdlDestroyExecConfigHandle(handle);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlDestroyExecConfigHandle(handle);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlExecuteV2_ModelExecute_failed)
-{
-    aclmdlExecConfigHandle *handle = aclmdlCreateExecConfigHandle();
-    EXPECT_NE(handle, nullptr);
+TEST_F(UTEST_ACL_Model, aclmdlExecuteV2_ModelExecute_failed) {
+  aclmdlExecConfigHandle *handle = aclmdlCreateExecConfigHandle();
+  EXPECT_NE(handle, nullptr);
 
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    EXPECT_NE(dataset, nullptr);
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  EXPECT_NE(dataset, nullptr);
 
-    aclDataBuffer *dataBuffer = (aclDataBuffer *)malloc(100);
-    aclError ret = aclmdlAddDatasetBuffer(dataset, dataBuffer);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  aclDataBuffer *dataBuffer = (aclDataBuffer *)malloc(100);
+  aclError ret = aclmdlAddDatasetBuffer(dataset, dataBuffer);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_,_,_,_))
-            .WillRepeatedly(Invoke(GetModelDescInfo_Invoke));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke(GetModelDescInfo_Invoke));
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), ExecModel(_,_,_,_,_,_,_))
-            .WillOnce(Return(ACL_ERROR_GE_EXEC_MODEL_ID_INVALID));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), ExecModel(_, _, _, _, _, _, _))
+      .WillOnce(Return(ACL_ERROR_GE_EXEC_MODEL_ID_INVALID));
 
-    uint32_t modelId = 0;
-    const char *modelPath = "/";
-    ret = aclmdlLoadFromFile(modelPath, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  uint32_t modelId = 0;
+  const char *modelPath = "/";
+  ret = aclmdlLoadFromFile(modelPath, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    ret = aclmdlExecuteV2(1, dataset, dataset, nullptr, handle);
-    EXPECT_EQ(ret, ACL_ERROR_GE_EXEC_MODEL_ID_INVALID);
+  ret = aclmdlExecuteV2(1, dataset, dataset, nullptr, handle);
+  EXPECT_EQ(ret, ACL_ERROR_GE_EXEC_MODEL_ID_INVALID);
 
-    free(dataBuffer);
-    ret = aclmdlDestroyDataset(dataset);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  free(dataBuffer);
+  ret = aclmdlDestroyDataset(dataset);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    ret = aclmdlDestroyExecConfigHandle(handle);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlDestroyExecConfigHandle(handle);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlExecuteV2_ModelExecute_StreamNotNull_failed)
-{
-    aclmdlExecConfigHandle *handle = aclmdlCreateExecConfigHandle();
-    EXPECT_NE(handle, nullptr);
+TEST_F(UTEST_ACL_Model, aclmdlExecuteV2_ModelExecute_StreamNotNull_failed) {
+  aclmdlExecConfigHandle *handle = aclmdlCreateExecConfigHandle();
+  EXPECT_NE(handle, nullptr);
 
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    EXPECT_NE(dataset, nullptr);
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  EXPECT_NE(dataset, nullptr);
 
-    aclDataBuffer *dataBuffer = (aclDataBuffer *)malloc(100);
-    aclError ret = aclmdlAddDatasetBuffer(dataset, dataBuffer);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  aclDataBuffer *dataBuffer = (aclDataBuffer *)malloc(100);
+  aclError ret = aclmdlAddDatasetBuffer(dataset, dataBuffer);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_,_,_,_))
-            .WillRepeatedly(Invoke(GetModelDescInfo_Invoke));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke(GetModelDescInfo_Invoke));
 
-    uint32_t modelId = 0;
-    const char *modelPath = "/";
-    ret = aclmdlLoadFromFile(modelPath, &modelId);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  uint32_t modelId = 0;
+  const char *modelPath = "/";
+  ret = aclmdlLoadFromFile(modelPath, &modelId);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtSynchronizeStreamWithTimeout(_, _))
-            .WillOnce(Return(ACL_ERROR_RT_STREAM_SYNC_TIMEOUT));
-    aclrtStream stream = (aclrtStream)0x11;
-    ret = aclmdlExecuteV2(1, dataset, dataset, stream, handle);
-    EXPECT_EQ(ret, ACL_ERROR_RT_STREAM_SYNC_TIMEOUT);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtSynchronizeStreamWithTimeout(_, _))
+      .WillOnce(Return(ACL_ERROR_RT_STREAM_SYNC_TIMEOUT));
+  aclrtStream stream = (aclrtStream)0x11;
+  ret = aclmdlExecuteV2(1, dataset, dataset, stream, handle);
+  EXPECT_EQ(ret, ACL_ERROR_RT_STREAM_SYNC_TIMEOUT);
 
-    free(dataBuffer);
-    ret = aclmdlDestroyDataset(dataset);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  free(dataBuffer);
+  ret = aclmdlDestroyDataset(dataset);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    ret = aclmdlDestroyExecConfigHandle(handle);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlDestroyExecConfigHandle(handle);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 }
 
-std::shared_ptr<uint8_t> ConstructBundleOm(size_t model_num, size_t &size)
-{
-  size = sizeof(ge::ModelFileHeader) + sizeof(ModelPartitionTable) +
-         (sizeof(ModelPartitionMemInfo) * model_num) + ((sizeof(ModelFileHeader) + 10) * model_num);
+std::shared_ptr<uint8_t> ConstructBundleOm(size_t model_num, size_t &size) {
+  size = sizeof(ge::ModelFileHeader) + sizeof(ModelPartitionTable) + (sizeof(ModelPartitionMemInfo) * model_num) +
+         ((sizeof(ModelFileHeader) + 10) * model_num);
   std::shared_ptr<uint8_t> model_p(new (std::nothrow) uint8_t[size], std::default_delete<uint8_t[]>());
   uint8_t *model_data = model_p.get();
   size_t offset = 0;
@@ -4611,7 +4364,7 @@ std::shared_ptr<uint8_t> ConstructBundleOm(size_t model_num, size_t &size)
   for (size_t i = 0; i < model_num; ++i) {
     ModelFileHeader *inner_header = (ModelFileHeader *)(model_data + offset);
     inner_header->version = ge::MODEL_VERSION + 1U;
-    if ( i == 2) {
+    if (i == 2) {
       inner_header->model_num = 2U;
       inner_header->is_unknow_model = 1;
     } else {
@@ -4624,13 +4377,12 @@ std::shared_ptr<uint8_t> ConstructBundleOm(size_t model_num, size_t &size)
   return model_p;
 }
 
-std::shared_ptr<uint8_t> ConstructBundleOmWithVarWeight(size_t model_num, size_t &size)
-{
+std::shared_ptr<uint8_t> ConstructBundleOmWithVarWeight(size_t model_num, size_t &size) {
   // need add var
   const size_t other_partition_num = 1U;
-  const size_t partition_num = model_num + other_partition_num; // add var partition
-  size = sizeof(ge::ModelFileHeader) + sizeof(ModelPartitionTable) +
-         (sizeof(ModelPartitionMemInfo) * partition_num) + sizeof(int64_t) +((sizeof(ModelFileHeader) + 10) * model_num);
+  const size_t partition_num = model_num + other_partition_num;  // add var partition
+  size = sizeof(ge::ModelFileHeader) + sizeof(ModelPartitionTable) + (sizeof(ModelPartitionMemInfo) * partition_num) +
+         sizeof(int64_t) + ((sizeof(ModelFileHeader) + 10) * model_num);
   std::shared_ptr<uint8_t> model_p(new (std::nothrow) uint8_t[size], std::default_delete<uint8_t[]>());
   uint8_t *model_data = model_p.get();
   size_t offset = 0;
@@ -4646,7 +4398,7 @@ std::shared_ptr<uint8_t> ConstructBundleOmWithVarWeight(size_t model_num, size_t
   for (size_t i = 0; i < partition_num; ++i) {
     ModelPartitionMemInfo *part = (ModelPartitionMemInfo *)(model_data + offset);
     if (i == 0) {
-      part->type = *(ModelPartitionType*)(&var_type);
+      part->type = *(ModelPartitionType *)(&var_type);
       part->mem_size = sizeof(int64_t);
     } else {
       part->type = ge::BUNDLE_MODEL_INFO;
@@ -4654,12 +4406,12 @@ std::shared_ptr<uint8_t> ConstructBundleOmWithVarWeight(size_t model_num, size_t
     }
     offset += sizeof(ModelPartitionMemInfo);
   }
-  *(int64_t *)(model_data + offset) = 1024; // varWeight
+  *(int64_t *)(model_data + offset) = 1024;  // varWeight
   offset += sizeof(int64_t);
   for (size_t i = 0; i < model_num; ++i) {
     ModelFileHeader *inner_header = (ModelFileHeader *)(model_data + offset);
     inner_header->version = ge::MODEL_VERSION + 1U;
-    if ( i == 2) {
+    if (i == 2) {
       inner_header->model_num = 2U;
       inner_header->is_unknow_model = 1;
     } else {
@@ -4672,61 +4424,57 @@ std::shared_ptr<uint8_t> ConstructBundleOmWithVarWeight(size_t model_num, size_t
   return model_p;
 }
 
-TEST_F(UTEST_ACL_Model, TestaclmdlBundleLoadFromMem_verify_input_param)
-{
-    uint32_t bundle_id = 0;
-    size_t size = 0;
-    auto model_p = ConstructBundleOm(3, size);
-    uint8_t * model_data = model_p.get();
-    auto ret = aclmdlBundleLoadFromMem(nullptr, size, &bundle_id);
-    EXPECT_EQ(ret , ACL_ERROR_INVALID_PARAM);
-    ret = aclmdlBundleLoadFromMem(model_data, 0, &bundle_id);
-    EXPECT_EQ(ret , ACL_ERROR_INVALID_PARAM);
-    ret = aclmdlBundleLoadFromMem(model_data, size, nullptr);
-    EXPECT_EQ(ret , ACL_ERROR_INVALID_PARAM);
+TEST_F(UTEST_ACL_Model, TestaclmdlBundleLoadFromMem_verify_input_param) {
+  uint32_t bundle_id = 0;
+  size_t size = 0;
+  auto model_p = ConstructBundleOm(3, size);
+  uint8_t *model_data = model_p.get();
+  auto ret = aclmdlBundleLoadFromMem(nullptr, size, &bundle_id);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlBundleLoadFromMem(model_data, 0, &bundle_id);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlBundleLoadFromMem(model_data, size, nullptr);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    ModelFileHeader *header = (ModelFileHeader *)model_data;
-    header->modeltype = 4;
-    ret = aclmdlBundleLoadFromMem(model_data, size, &bundle_id);
-    EXPECT_EQ(ret , ACL_ERROR_INVALID_PARAM);
-    header->modeltype = 5;
-    ret = aclmdlBundleLoadFromMem(model_data, sizeof(ModelFileHeader), &bundle_id);
-    EXPECT_EQ(ret , ACL_ERROR_INVALID_PARAM);
-    ret = aclmdlBundleLoadFromMem(model_data, (size - 1), &bundle_id);
-    EXPECT_EQ(ret , ACL_ERROR_INVALID_PARAM);
+  ModelFileHeader *header = (ModelFileHeader *)model_data;
+  header->modeltype = 4;
+  ret = aclmdlBundleLoadFromMem(model_data, size, &bundle_id);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  header->modeltype = 5;
+  ret = aclmdlBundleLoadFromMem(model_data, sizeof(ModelFileHeader), &bundle_id);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlBundleLoadFromMem(model_data, (size - 1), &bundle_id);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 }
 
-TEST_F(UTEST_ACL_Model, TestaclmdlBundleLoadFromMem_success)
-{
-    uint32_t bundle_id = 0;
-    size_t size = 0;
-    auto model_p = ConstructBundleOm(3, size);
-    uint8_t * model_data = model_p.get();
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_,_,_))
-            .WillRepeatedly(Invoke(LoadExecutorFromModelDataSuccess));
-    auto ret = aclmdlBundleLoadFromMem(model_data, size, &bundle_id);
-    EXPECT_EQ(ret , ACL_SUCCESS);
-    ret = aclmdlBundleUnload(bundle_id);
-    EXPECT_EQ(ret , ACL_SUCCESS);
+TEST_F(UTEST_ACL_Model, TestaclmdlBundleLoadFromMem_success) {
+  uint32_t bundle_id = 0;
+  size_t size = 0;
+  auto model_p = ConstructBundleOm(3, size);
+  uint8_t *model_data = model_p.get();
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_, _, _))
+      .WillRepeatedly(Invoke(LoadExecutorFromModelDataSuccess));
+  auto ret = aclmdlBundleLoadFromMem(model_data, size, &bundle_id);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlBundleUnload(bundle_id);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 }
 
-ge::graphStatus LoadDataFromFileV2Stub(const char *path, ge::ModelData &model_data)
-{
-    (void) path;
-    size_t size = 0;
-    auto model_p = ConstructBundleOm(3, size);
-    // delete is outside
-    auto p_new = new uint8_t[size];
-    memcpy_s(p_new, size, model_p.get(), size);
-    model_data.model_len = size;
-    model_data.model_data = p_new;
-    return GRAPH_SUCCESS;
+ge::graphStatus LoadDataFromFileV2Stub(const char *path, ge::ModelData &model_data) {
+  (void)path;
+  size_t size = 0;
+  auto model_p = ConstructBundleOm(3, size);
+  // delete is outside
+  auto p_new = new uint8_t[size];
+  memcpy_s(p_new, size, model_p.get(), size);
+  model_data.model_len = size;
+  model_data.model_data = p_new;
+  return GRAPH_SUCCESS;
 }
 
-ge::graphStatus LoadDataFromFileV3Stub(const char *path, ge::ModelData &model_data)
-{
-  (void) path;
+ge::graphStatus LoadDataFromFileV3Stub(const char *path, ge::ModelData &model_data) {
+  (void)path;
   size_t size = 0;
   auto model_p = ConstructBundleOmWithVarWeight(3, size);
   // delete is outside
@@ -4737,115 +4485,111 @@ ge::graphStatus LoadDataFromFileV3Stub(const char *path, ge::ModelData &model_da
   return GRAPH_SUCCESS;
 }
 
-TEST_F(UTEST_ACL_Model, TestaclmdlBundleLoadFromFile)
-{
-    const char *path = "/";
-    uint32_t bundle_id = 0;
-    auto ret = aclmdlBundleLoadFromFile(nullptr, &bundle_id);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
-    ret = aclmdlBundleLoadFromFile(path, nullptr);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+TEST_F(UTEST_ACL_Model, TestaclmdlBundleLoadFromFile) {
+  const char *path = "/";
+  uint32_t bundle_id = 0;
+  auto ret = aclmdlBundleLoadFromFile(nullptr, &bundle_id);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlBundleLoadFromFile(path, nullptr);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadDataFromFileV2(_,_))
-            .WillOnce(Return(ge::GRAPH_FAILED))
-            .WillRepeatedly(Invoke(LoadDataFromFileV2Stub));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_,_,_))
-            .WillRepeatedly(Invoke(LoadExecutorFromModelDataSuccess));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadModelFromDataWithArgs(_,_,_))
-            .WillOnce(Return(ge::GRAPH_FAILED))
-            .WillRepeatedly(Return(ge::SUCCESS));
-    ret = aclmdlBundleLoadFromFile(path, &bundle_id);
-    EXPECT_NE(ret, ACL_SUCCESS);
-    ret = aclmdlBundleLoadFromFile(path, &bundle_id);
-    EXPECT_NE(ret, ACL_SUCCESS);
-    ret = aclmdlBundleLoadFromFile(path, &bundle_id);
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadDataFromFileV2(_, _))
+      .WillOnce(Return(ge::GRAPH_FAILED))
+      .WillRepeatedly(Invoke(LoadDataFromFileV2Stub));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_, _, _))
+      .WillRepeatedly(Invoke(LoadExecutorFromModelDataSuccess));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadModelFromDataWithArgs(_, _, _))
+      .WillOnce(Return(ge::GRAPH_FAILED))
+      .WillRepeatedly(Return(ge::SUCCESS));
+  ret = aclmdlBundleLoadFromFile(path, &bundle_id);
+  EXPECT_NE(ret, ACL_SUCCESS);
+  ret = aclmdlBundleLoadFromFile(path, &bundle_id);
+  EXPECT_NE(ret, ACL_SUCCESS);
+  ret = aclmdlBundleLoadFromFile(path, &bundle_id);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), UnLoad())
+      .WillOnce(Return(ge::GRAPH_FAILED))
+      .WillRepeatedly(Return(ge::GRAPH_SUCCESS));
+  ret = aclmdlBundleUnload(bundle_id);
+  EXPECT_NE(ret, ACL_SUCCESS);
+  ret = aclmdlBundleUnload(bundle_id);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+}
+
+Status LoadModelFromDataWithArgsStub(uint32_t &model_id, const ModelData &model_data, const ModelLoadArg &load_arg) {
+  (void)model_data;
+  (void)load_arg;
+  static uint32_t cnt = 0;
+  ++cnt;
+  model_id = cnt;
+  return SUCCESS;
+}
+
+TEST_F(UTEST_ACL_Model, TestBundleInfo) {
+  AclResourceManager::GetInstance().bundleInfos_.clear();
+  AclResourceManager::GetInstance().bundleInnerIds_.clear();
+  AclResourceManager::GetInstance().executorMap_.clear();
+  AclResourceManager::GetInstance().rtSessionMap_.clear();
+  // load
+  uint32_t bundle_id = 0;
+  size_t size = 0;
+  auto model_p = ConstructBundleOm(3, size);
+  uint8_t *model_data = model_p.get();
+  acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_, _, _))
+      .WillRepeatedly(Invoke(LoadExecutorFromModelDataSuccess));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadModelFromDataWithArgs(_, _, _))
+      .WillRepeatedly(Invoke(LoadModelFromDataWithArgsStub));
+  auto ret = aclmdlBundleLoadFromMem(model_data, size, &bundle_id);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+
+  // check bundle info
+  size_t modelNum = 0;
+  ret = aclmdlBundleGetModelNum(bundle_id, nullptr);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlBundleGetModelNum((bundle_id + 1), &modelNum);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_BUNDLE_MODEL_ID);
+  ret = aclmdlBundleGetModelNum(bundle_id, &modelNum);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_EQ(modelNum, 3);
+
+  size_t index = 0;
+  uint32_t model_id = 0;
+  std::vector<uint32_t> model_ids;
+  ret = aclmdlBundleGetModelId(bundle_id, 999, nullptr);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlBundleGetModelId(bundle_id, 999, &model_id);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  ret = aclmdlBundleGetModelId(bundle_id + 1, index, &model_id);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_BUNDLE_MODEL_ID);
+  for (size_t i = 0; i < modelNum; ++i) {
+    ret = aclmdlBundleGetModelId(bundle_id, i, &model_id);
     EXPECT_EQ(ret, ACL_SUCCESS);
+    model_ids.emplace_back(model_id);
+  }
+  for (auto id : model_ids) {
+    ret = aclmdlUnload(id);
+    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  }
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), UnLoad())
-            .WillOnce(Return(ge::GRAPH_FAILED))
-            .WillRepeatedly(Return(ge::GRAPH_SUCCESS));
-    ret = aclmdlBundleUnload(bundle_id);
-    EXPECT_NE(ret, ACL_SUCCESS);
-    ret = aclmdlBundleUnload(bundle_id);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_EQ(AclResourceManager::GetInstance().bundleInfos_.size(), 1);
+  EXPECT_EQ(AclResourceManager::GetInstance().bundleInnerIds_.size(), 3);
+  EXPECT_EQ(AclResourceManager::GetInstance().executorMap_.size(), 2);
+  EXPECT_EQ(AclResourceManager::GetInstance().rtSessionMap_.size(), 2);
+  EXPECT_EQ(AclResourceManager::GetInstance().rtSessionMap_[bundle_id].get(),
+            AclResourceManager::GetInstance().rtSessionMap_[model_ids[2]].get());
+
+  ret = aclmdlBundleUnload(bundle_id);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_EQ(AclResourceManager::GetInstance().bundleInfos_.size(), 0);
+  EXPECT_EQ(AclResourceManager::GetInstance().bundleInnerIds_.size(), 0);
+  EXPECT_EQ(AclResourceManager::GetInstance().executorMap_.size(), 0);
+  EXPECT_EQ(AclResourceManager::GetInstance().rtSessionMap_.size(), 0);
 }
 
-Status LoadModelFromDataWithArgsStub(uint32_t &model_id, const ModelData &model_data, const ModelLoadArg &load_arg)
-{
-    (void) model_data;
-    (void) load_arg;
-    static uint32_t cnt = 0;
-    ++cnt;
-    model_id = cnt;
-    return SUCCESS;
-}
-
-TEST_F(UTEST_ACL_Model, TestBundleInfo)
-{
-    AclResourceManager::GetInstance().bundleInfos_.clear();
-    AclResourceManager::GetInstance().bundleInnerIds_.clear();
-    AclResourceManager::GetInstance().executorMap_.clear();
-    AclResourceManager::GetInstance().rtSessionMap_.clear();
-    // load
-    uint32_t bundle_id = 0;
-    size_t size = 0;
-    auto model_p = ConstructBundleOm(3, size);
-    uint8_t * model_data = model_p.get();
-    acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_,_,_))
-        .WillRepeatedly(Invoke(LoadExecutorFromModelDataSuccess));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadModelFromDataWithArgs(_,_,_))
-        .WillRepeatedly(Invoke(LoadModelFromDataWithArgsStub));
-    auto ret = aclmdlBundleLoadFromMem(model_data, size, &bundle_id);
-    EXPECT_EQ(ret , ACL_SUCCESS);
-
-    // check bundle info
-    size_t modelNum = 0;
-    ret = aclmdlBundleGetModelNum(bundle_id, nullptr);
-    EXPECT_EQ(ret , ACL_ERROR_INVALID_PARAM);
-    ret = aclmdlBundleGetModelNum((bundle_id + 1), &modelNum);
-    EXPECT_EQ(ret , ACL_ERROR_INVALID_BUNDLE_MODEL_ID);
-    ret = aclmdlBundleGetModelNum(bundle_id, &modelNum);
-    EXPECT_EQ(ret , ACL_SUCCESS);
-    EXPECT_EQ(modelNum , 3);
-
-    size_t index = 0;
-    uint32_t model_id = 0;
-    std::vector<uint32_t> model_ids;
-    ret = aclmdlBundleGetModelId(bundle_id, 999, nullptr);
-    EXPECT_EQ(ret , ACL_ERROR_INVALID_PARAM);
-    ret = aclmdlBundleGetModelId(bundle_id, 999, &model_id);
-    EXPECT_EQ(ret , ACL_ERROR_INVALID_PARAM);
-    ret = aclmdlBundleGetModelId(bundle_id + 1, index, &model_id);
-    EXPECT_EQ(ret , ACL_ERROR_INVALID_BUNDLE_MODEL_ID);
-    for (size_t i = 0; i < modelNum; ++i) {
-        ret = aclmdlBundleGetModelId(bundle_id, i, &model_id);
-        EXPECT_EQ(ret , ACL_SUCCESS);
-        model_ids.emplace_back(model_id);
-    }
-    for (auto id : model_ids) {
-        ret = aclmdlUnload(id);
-        EXPECT_EQ(ret , ACL_ERROR_INVALID_PARAM);
-    }
-
-    EXPECT_EQ(AclResourceManager::GetInstance().bundleInfos_.size(), 1);
-    EXPECT_EQ(AclResourceManager::GetInstance().bundleInnerIds_.size(), 3);
-    EXPECT_EQ(AclResourceManager::GetInstance().executorMap_.size(), 2);
-    EXPECT_EQ(AclResourceManager::GetInstance().rtSessionMap_.size(), 2);
-    EXPECT_EQ(AclResourceManager::GetInstance().rtSessionMap_[bundle_id].get(),
-                AclResourceManager::GetInstance().rtSessionMap_[model_ids[2]].get());
-
-    ret = aclmdlBundleUnload(bundle_id);
-    EXPECT_EQ(ret , ACL_SUCCESS);
-    EXPECT_EQ(AclResourceManager::GetInstance().bundleInfos_.size(), 0);
-    EXPECT_EQ(AclResourceManager::GetInstance().bundleInnerIds_.size(), 0);
-    EXPECT_EQ(AclResourceManager::GetInstance().executorMap_.size(), 0);
-    EXPECT_EQ(AclResourceManager::GetInstance().rtSessionMap_.size(), 0);
-}
-
-TEST_F(UTEST_ACL_Model, TestBundleInfoFromVarSizeOm)
-{
+TEST_F(UTEST_ACL_Model, TestBundleInfoFromVarSizeOm) {
   AclResourceManager::GetInstance().bundleInfos_.clear();
   AclResourceManager::GetInstance().bundleInnerIds_.clear();
   AclResourceManager::GetInstance().executorMap_.clear();
@@ -4854,42 +4598,42 @@ TEST_F(UTEST_ACL_Model, TestBundleInfoFromVarSizeOm)
   uint32_t bundle_id = 0;
   size_t size = 0;
   auto model_p = ConstructBundleOmWithVarWeight(3, size);
-  uint8_t * model_data = model_p.get();
+  uint8_t *model_data = model_p.get();
   acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_,_,_))
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_, _, _))
       .WillRepeatedly(Invoke(LoadExecutorFromModelDataSuccess));
-  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadModelFromDataWithArgs(_,_,_))
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadModelFromDataWithArgs(_, _, _))
       .WillRepeatedly(Invoke(LoadModelFromDataWithArgsStub));
   auto ret = aclmdlBundleLoadFromMem(model_data, size, &bundle_id);
-  EXPECT_EQ(ret , ACL_SUCCESS);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
   // check bundle info
   size_t modelNum = 0;
   ret = aclmdlBundleGetModelNum(bundle_id, nullptr);
-  EXPECT_EQ(ret , ACL_ERROR_INVALID_PARAM);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
   ret = aclmdlBundleGetModelNum((bundle_id + 1), &modelNum);
-  EXPECT_EQ(ret , ACL_ERROR_INVALID_BUNDLE_MODEL_ID);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_BUNDLE_MODEL_ID);
   ret = aclmdlBundleGetModelNum(bundle_id, &modelNum);
-  EXPECT_EQ(ret , ACL_SUCCESS);
-  EXPECT_EQ(modelNum , 3);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_EQ(modelNum, 3);
 
   size_t index = 0;
   uint32_t model_id = 0;
   std::vector<uint32_t> model_ids;
   ret = aclmdlBundleGetModelId(bundle_id, 999, nullptr);
-  EXPECT_EQ(ret , ACL_ERROR_INVALID_PARAM);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
   ret = aclmdlBundleGetModelId(bundle_id, 999, &model_id);
-  EXPECT_EQ(ret , ACL_ERROR_INVALID_PARAM);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
   ret = aclmdlBundleGetModelId(bundle_id + 1, index, &model_id);
-  EXPECT_EQ(ret , ACL_ERROR_INVALID_BUNDLE_MODEL_ID);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_BUNDLE_MODEL_ID);
   for (size_t i = 0; i < modelNum; ++i) {
     ret = aclmdlBundleGetModelId(bundle_id, i, &model_id);
-    EXPECT_EQ(ret , ACL_SUCCESS);
+    EXPECT_EQ(ret, ACL_SUCCESS);
     model_ids.emplace_back(model_id);
   }
   for (auto id : model_ids) {
     ret = aclmdlUnload(id);
-    EXPECT_EQ(ret , ACL_ERROR_INVALID_PARAM);
+    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
   }
 
   EXPECT_EQ(AclResourceManager::GetInstance().bundleInfos_.size(), 1);
@@ -4904,15 +4648,14 @@ TEST_F(UTEST_ACL_Model, TestBundleInfoFromVarSizeOm)
             AclResourceManager::GetInstance().rtSessionMap_[model_ids[2]].get());
 
   ret = aclmdlBundleUnload(bundle_id);
-  EXPECT_EQ(ret , ACL_SUCCESS);
+  EXPECT_EQ(ret, ACL_SUCCESS);
   EXPECT_EQ(AclResourceManager::GetInstance().bundleInfos_.size(), 0);
   EXPECT_EQ(AclResourceManager::GetInstance().bundleInnerIds_.size(), 0);
   EXPECT_EQ(AclResourceManager::GetInstance().executorMap_.size(), 0);
   EXPECT_EQ(AclResourceManager::GetInstance().rtSessionMap_.size(), 0);
 }
 
-Status GetMemAndWeightSizeStub(const void *model_data, size_t model_size, size_t &mem_size, size_t &weight_size)
-{
+Status GetMemAndWeightSizeStub(const void *model_data, size_t model_size, size_t &mem_size, size_t &weight_size) {
   (void)model_data;
   (void)model_size;
   mem_size = 2048;
@@ -4920,18 +4663,17 @@ Status GetMemAndWeightSizeStub(const void *model_data, size_t model_size, size_t
   return SUCCESS;
 }
 
-TEST_F(UTEST_ACL_Model, TestaclmdlBundleQueryInfoFromFile)
-{
+TEST_F(UTEST_ACL_Model, TestaclmdlBundleQueryInfoFromFile) {
   auto query_info = aclmdlBundleCreateQueryInfo();
   EXPECT_NE(query_info, nullptr);
   size_t model_size = 0;
   auto model_data = ConstructBundleOmWithVarWeight(3, model_size);
   EXPECT_NE(model_data, nullptr);
-  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadDataFromFileV2(_,_))
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadDataFromFileV2(_, _))
       .WillOnce(Return(ge::GRAPH_FAILED))
       .WillRepeatedly(Invoke(LoadDataFromFileV3Stub));
   EXPECT_NE(aclmdlBundleQueryInfoFromFile("./test.om", query_info), ACL_SUCCESS);
-  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetMemAndWeightSize(_,_,_,_))
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetMemAndWeightSize(_, _, _, _))
       .WillRepeatedly(Invoke(GetMemAndWeightSizeStub));
   EXPECT_EQ(aclmdlBundleQueryInfoFromFile("./test.om", query_info), ACL_SUCCESS);
   size_t model_num = 0;
@@ -4955,15 +4697,14 @@ TEST_F(UTEST_ACL_Model, TestaclmdlBundleQueryInfoFromFile)
   EXPECT_EQ(aclmdlBundleDestroyQueryInfo(query_info), ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, TestaclmdlBundleQueryInfoFromMem)
-{
+TEST_F(UTEST_ACL_Model, TestaclmdlBundleQueryInfoFromMem) {
   auto query_info = aclmdlBundleCreateQueryInfo();
   EXPECT_NE(query_info, nullptr);
   size_t model_size = 0;
   auto model_data = ConstructBundleOmWithVarWeight(3, model_size);
   EXPECT_NE(model_data, nullptr);
 
-  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetMemAndWeightSize(_,_,_,_))
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetMemAndWeightSize(_, _, _, _))
       .WillRepeatedly(Invoke(GetMemAndWeightSizeStub));
   EXPECT_EQ(aclmdlBundleQueryInfoFromMem(model_data.get(), model_size, query_info), ACL_SUCCESS);
   size_t model_num = 0;
@@ -4992,19 +4733,19 @@ void Verify(uint32_t bundle_id, bool isInit = true) {
   size_t load_cnt = isInit ? 0 : 3;
 
   auto ret = aclmdlBundleGetModelNum(bundle_id, nullptr);
-  EXPECT_EQ(ret , ACL_ERROR_INVALID_PARAM);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
   ret = aclmdlBundleGetModelNum((bundle_id + 1), &modelNum);
-  EXPECT_EQ(ret , ACL_ERROR_INVALID_BUNDLE_MODEL_ID);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_BUNDLE_MODEL_ID);
   ret = aclmdlBundleGetModelNum(bundle_id, &modelNum);
-  EXPECT_EQ(ret , ACL_SUCCESS);
-  EXPECT_EQ(modelNum , 3);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_EQ(modelNum, 3);
 
   uint32_t model_id = 0;
   ret = aclmdlBundleGetModelId(bundle_id, 999, nullptr);
-  EXPECT_EQ(ret , ACL_ERROR_INVALID_PARAM);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
   if (isInit) {
     ret = aclmdlBundleGetModelId(bundle_id, 0, &model_id);
-    EXPECT_EQ(ret , ACL_ERROR_API_NOT_SUPPORT);
+    EXPECT_EQ(ret, ACL_ERROR_API_NOT_SUPPORT);
   }
 
   EXPECT_EQ(aclmdlBundleLoadModel(bundle_id, 3, &model_id), ACL_ERROR_INVALID_PARAM);
@@ -5017,7 +4758,7 @@ void Verify(uint32_t bundle_id, bool isInit = true) {
   EXPECT_EQ(aclmdlBundleLoadModelWithMem(bundle_id, 3, nullptr, 0, nullptr, 0, &model_id), ACL_ERROR_INVALID_PARAM);
   load_cnt += 4;
   ret = aclmdlUnload(infer_id_1);
-  EXPECT_EQ(ret , ACL_ERROR_INVALID_PARAM);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
   EXPECT_EQ(AclResourceManager::GetInstance().bundleInfos_.size(), 1);
   if (isInit) {
@@ -5041,7 +4782,7 @@ void Verify(uint32_t bundle_id, bool isInit = true) {
   EXPECT_EQ(AclResourceManager::GetInstance().bundleInnerIds_.size(), load_cnt);
 
   ret = aclmdlBundleUnload(bundle_id);
-  EXPECT_EQ(ret , ACL_SUCCESS);
+  EXPECT_EQ(ret, ACL_SUCCESS);
   EXPECT_EQ(AclResourceManager::GetInstance().bundleInfos_.size(), 0);
   EXPECT_EQ(AclResourceManager::GetInstance().bundleInnerIds_.size(), 0);
   EXPECT_EQ(AclResourceManager::GetInstance().executorMap_.size(), 0);
@@ -5056,14 +4797,14 @@ TEST_F(UTEST_ACL_Model, TestaclmdlBundleLoadSubModelFromFile) {
   // load
   uint32_t bundle_id = 0;
   acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_,_,_))
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_, _, _))
       .WillRepeatedly(Invoke(LoadExecutorFromModelDataSuccess));
-  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadModelFromDataWithArgs(_,_,_))
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadModelFromDataWithArgs(_, _, _))
       .WillRepeatedly(Invoke(LoadModelFromDataWithArgsStub));
-  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadDataFromFileV2(_,_))
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadDataFromFileV2(_, _))
       .WillRepeatedly(Invoke(LoadDataFromFileV3Stub));
   auto ret = aclmdlBundleInitFromFile("./fake.om", nullptr, 0, &bundle_id);
-  EXPECT_EQ(ret , ACL_SUCCESS);
+  EXPECT_EQ(ret, ACL_SUCCESS);
   Verify(bundle_id);
 }
 
@@ -5076,17 +4817,17 @@ TEST_F(UTEST_ACL_Model, TestaclmdlBundleLoadSubModelFromMem) {
   uint32_t bundle_id = 0;
   size_t size = 0;
   auto model_p = ConstructBundleOmWithVarWeight(3, size);
-  uint8_t * model_data = model_p.get();
+  uint8_t *model_data = model_p.get();
   acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_,_,_))
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_, _, _))
       .WillRepeatedly(Invoke(LoadExecutorFromModelDataSuccess));
-  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadModelFromDataWithArgs(_,_,_))
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadModelFromDataWithArgs(_, _, _))
       .WillRepeatedly(Invoke(LoadModelFromDataWithArgsStub));
-  size_t fakeVarWeight = 100; // om varweight is 1024
+  size_t fakeVarWeight = 100;  // om varweight is 1024
   auto ret = aclmdlBundleInitFromMem(model_data, size, &fakeVarWeight, sizeof(fakeVarWeight), &bundle_id);
-  EXPECT_EQ(ret , ACL_ERROR_INVALID_PARAM);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
   ret = aclmdlBundleInitFromMem(model_data, size, nullptr, 0, &bundle_id);
-  EXPECT_EQ(ret , ACL_SUCCESS);
+  EXPECT_EQ(ret, ACL_SUCCESS);
   Verify(bundle_id);
 }
 
@@ -5098,14 +4839,14 @@ TEST_F(UTEST_ACL_Model, TestaclmdlaclmdlBundleLoadFromFileAndBundleLoadSubModel)
   // load
   uint32_t bundle_id = 0;
   acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_,_,_))
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_, _, _))
       .WillRepeatedly(Invoke(LoadExecutorFromModelDataSuccess));
-  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadModelFromDataWithArgs(_,_,_))
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadModelFromDataWithArgs(_, _, _))
       .WillRepeatedly(Invoke(LoadModelFromDataWithArgsStub));
-  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadDataFromFileV2(_,_))
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadDataFromFileV2(_, _))
       .WillRepeatedly(Invoke(LoadDataFromFileV3Stub));
   auto ret = aclmdlBundleLoadFromFile("./fake.om", &bundle_id);
-  EXPECT_EQ(ret , ACL_SUCCESS);
+  EXPECT_EQ(ret, ACL_SUCCESS);
   Verify(bundle_id, false);
 }
 
@@ -5118,2330 +4859,2211 @@ TEST_F(UTEST_ACL_Model, TestaclmdlaclmdlBundleLoadFromMemAndBundleLoadSubModel) 
   uint32_t bundle_id = 0;
   size_t size = 0;
   auto model_p = ConstructBundleOmWithVarWeight(3, size);
-  uint8_t * model_data = model_p.get();
+  uint8_t *model_data = model_p.get();
   acl::AclResourceManager::GetInstance().enableRuntimeV2ForModel_ = true;
-  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_,_,_))
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadExecutorFromModelData(_, _, _))
       .WillRepeatedly(Invoke(LoadExecutorFromModelDataSuccess));
-  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadModelFromDataWithArgs(_,_,_))
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadModelFromDataWithArgs(_, _, _))
       .WillRepeatedly(Invoke(LoadModelFromDataWithArgsStub));
   auto ret = aclmdlBundleLoadFromMem(model_data, size, &bundle_id);
-  EXPECT_EQ(ret , ACL_SUCCESS);
+  EXPECT_EQ(ret, ACL_SUCCESS);
   Verify(bundle_id, false);
 }
 
 TEST_F(UTEST_ACL_Model, TestInitCallbackRegister) {
-    EXPECT_EQ(AclMdlInitCallbackFunc(nullptr, 0, nullptr), ACL_SUCCESS);
+  EXPECT_EQ(AclMdlInitCallbackFunc(nullptr, 0, nullptr), ACL_SUCCESS);
 
-    EXPECT_EQ(ResourceInitCallbackFunc(nullptr, 0, nullptr), ACL_SUCCESS);
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtRegStreamStateCallback(_,_,_))
-        .WillOnce(Return(ACL_ERROR_INVALID_PARAM));
-    EXPECT_EQ(ResourceInitCallbackFunc(nullptr, 0, nullptr), ACL_ERROR_INVALID_PARAM);
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtRegStreamStateCallback(_,_,_))
-        .WillOnce(Return(ACL_SUCCESS));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtRegDeviceStateCallback(_,_,_))
-        .WillOnce(Return(ACL_ERROR_INVALID_PARAM));
-    EXPECT_EQ(ResourceInitCallbackFunc(nullptr, 0, nullptr), ACL_ERROR_INVALID_PARAM);
+  EXPECT_EQ(ResourceInitCallbackFunc(nullptr, 0, nullptr), ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtRegStreamStateCallback(_, _, _))
+      .WillOnce(Return(ACL_ERROR_INVALID_PARAM));
+  EXPECT_EQ(ResourceInitCallbackFunc(nullptr, 0, nullptr), ACL_ERROR_INVALID_PARAM);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtRegStreamStateCallback(_, _, _)).WillOnce(Return(ACL_SUCCESS));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtRegDeviceStateCallback(_, _, _))
+      .WillOnce(Return(ACL_ERROR_INVALID_PARAM));
+  EXPECT_EQ(ResourceInitCallbackFunc(nullptr, 0, nullptr), ACL_ERROR_INVALID_PARAM);
 
-    EXPECT_EQ(AclMdlFinalizeCallbackFunc(nullptr), ACL_SUCCESS);
+  EXPECT_EQ(AclMdlFinalizeCallbackFunc(nullptr), ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtRegStreamStateCallback(_,_,_))
-        .WillOnce(Return(ACL_SUCCESS));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtRegDeviceStateCallback(_,_,_))
-        .WillOnce(Return(ACL_SUCCESS));
-    EXPECT_EQ(ResourceFinalizeCallbackFunc(nullptr), ACL_SUCCESS);
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtRegStreamStateCallback(_,_,_))
-        .WillOnce(Return(ACL_ERROR_INVALID_PARAM));
-    EXPECT_EQ(ResourceFinalizeCallbackFunc(nullptr), ACL_ERROR_INVALID_PARAM);
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtRegStreamStateCallback(_,_,_))
-        .WillOnce(Return(ACL_SUCCESS));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtRegDeviceStateCallback(_,_,_))
-        .WillOnce(Return(ACL_ERROR_INVALID_PARAM));
-    EXPECT_EQ(ResourceFinalizeCallbackFunc(nullptr), ACL_ERROR_INVALID_PARAM);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtRegStreamStateCallback(_, _, _)).WillOnce(Return(ACL_SUCCESS));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtRegDeviceStateCallback(_, _, _)).WillOnce(Return(ACL_SUCCESS));
+  EXPECT_EQ(ResourceFinalizeCallbackFunc(nullptr), ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtRegStreamStateCallback(_, _, _))
+      .WillOnce(Return(ACL_ERROR_INVALID_PARAM));
+  EXPECT_EQ(ResourceFinalizeCallbackFunc(nullptr), ACL_ERROR_INVALID_PARAM);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtRegStreamStateCallback(_, _, _)).WillOnce(Return(ACL_SUCCESS));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), aclrtRegDeviceStateCallback(_, _, _))
+      .WillOnce(Return(ACL_ERROR_INVALID_PARAM));
+  EXPECT_EQ(ResourceFinalizeCallbackFunc(nullptr), ACL_ERROR_INVALID_PARAM);
 
-    EXPECT_EQ(RegAclMdlInitCallback(), ACL_SUCCESS);
-    EXPECT_EQ(UnRegAclMdlInitCallback(), ACL_SUCCESS);
-    EXPECT_EQ(RegResourceInitCallback(), ACL_SUCCESS);
-    EXPECT_EQ(UnRegResourceInitCallback(), ACL_SUCCESS);
-    EXPECT_EQ(RegAclMdlFinalizeCallback(), ACL_SUCCESS);
-    EXPECT_EQ(UnRegAclMdlFinalizeCallback(), ACL_SUCCESS);
-    EXPECT_EQ(RegResourceFinalizeCallback(), ACL_SUCCESS);
-    EXPECT_EQ(UnRegResourceFinalizeCallback(), ACL_SUCCESS);
+  EXPECT_EQ(RegAclMdlInitCallback(), ACL_SUCCESS);
+  EXPECT_EQ(UnRegAclMdlInitCallback(), ACL_SUCCESS);
+  EXPECT_EQ(RegResourceInitCallback(), ACL_SUCCESS);
+  EXPECT_EQ(UnRegResourceInitCallback(), ACL_SUCCESS);
+  EXPECT_EQ(RegAclMdlFinalizeCallback(), ACL_SUCCESS);
+  EXPECT_EQ(UnRegAclMdlFinalizeCallback(), ACL_SUCCESS);
+  EXPECT_EQ(RegResourceFinalizeCallback(), ACL_SUCCESS);
+  EXPECT_EQ(UnRegResourceFinalizeCallback(), ACL_SUCCESS);
 
-    acl::AclResourceManager::GetInstance().HandleReleaseSourceByDevice(0, ACL_RT_DEVICE_STATE_RESET_PRE, nullptr);
-    acl::AclResourceManager::GetInstance().HandleReleaseSourceByStream(0, ACL_RT_STREAM_STATE_DESTROY_PRE, nullptr);
+  acl::AclResourceManager::GetInstance().HandleReleaseSourceByDevice(0, ACL_RT_DEVICE_STATE_RESET_PRE, nullptr);
+  acl::AclResourceManager::GetInstance().HandleReleaseSourceByStream(0, ACL_RT_STREAM_STATE_DESTROY_PRE, nullptr);
 }
 
 // ========== OM2 Routing Tests ==========
 
-TEST_F(UTEST_ACL_Model, aclmdlExecuteV2_Om2Executor_RoutesToOm2ModelExecute)
-{
-    // Test that aclmdlExecuteV2 routes to Om2ModelExecute when OM2 executor exists
-    uint32_t modelId = std::numeric_limits<uint32_t>::max() / 2U + 1;
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(modelId, std::move(om2_executor));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(),
-                GetModelDescInfo(A<const std::vector<ge::Om2TensorDesc>*&>(),
-                                 A<const std::vector<ge::Om2TensorDesc>*&>(), _))
-        .WillRepeatedly(Invoke(GetOm2ModelDescInfoNull_Invoke));
+TEST_F(UTEST_ACL_Model, aclmdlExecuteV2_Om2Executor_RoutesToOm2ModelExecute) {
+  // Test that aclmdlExecuteV2 routes to Om2ModelExecute when OM2 executor exists
+  uint32_t modelId = std::numeric_limits<uint32_t>::max() / 2U + 1;
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(modelId, std::move(om2_executor));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(A<const std::vector<ge::Om2TensorDesc> *&>(),
+                                                                    A<const std::vector<ge::Om2TensorDesc> *&>(), _))
+      .WillRepeatedly(Invoke(GetOm2ModelDescInfoNull_Invoke));
 
-    aclmdlExecConfigHandle *handle = aclmdlCreateExecConfigHandle();
-    EXPECT_NE(handle, nullptr);
+  aclmdlExecConfigHandle *handle = aclmdlCreateExecConfigHandle();
+  EXPECT_NE(handle, nullptr);
 
-    aclmdlDataset *inputDataset = aclmdlCreateDataset();
-    EXPECT_NE(inputDataset, nullptr);
-    aclDataBuffer *inputBuffer = (aclDataBuffer *)malloc(100);
-    EXPECT_EQ(aclmdlAddDatasetBuffer(inputDataset, inputBuffer), ACL_SUCCESS);
+  aclmdlDataset *inputDataset = aclmdlCreateDataset();
+  EXPECT_NE(inputDataset, nullptr);
+  aclDataBuffer *inputBuffer = (aclDataBuffer *)malloc(100);
+  EXPECT_EQ(aclmdlAddDatasetBuffer(inputDataset, inputBuffer), ACL_SUCCESS);
 
-    aclmdlDataset *outputDataset = aclmdlCreateDataset();
-    EXPECT_NE(outputDataset, nullptr);
-    aclDataBuffer *outputBuffer = (aclDataBuffer *)malloc(100);
-    EXPECT_EQ(aclmdlAddDatasetBuffer(outputDataset, outputBuffer), ACL_SUCCESS);
+  aclmdlDataset *outputDataset = aclmdlCreateDataset();
+  EXPECT_NE(outputDataset, nullptr);
+  aclDataBuffer *outputBuffer = (aclDataBuffer *)malloc(100);
+  EXPECT_EQ(aclmdlAddDatasetBuffer(outputDataset, outputBuffer), ACL_SUCCESS);
 
-    // Execute with OM2 executor - should route to Om2ModelExecute
-    aclError ret = aclmdlExecuteV2(modelId, inputDataset, outputDataset, nullptr, handle);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  // Execute with OM2 executor - should route to Om2ModelExecute
+  aclError ret = aclmdlExecuteV2(modelId, inputDataset, outputDataset, nullptr, handle);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    free(inputBuffer);
-    free(outputBuffer);
-    aclmdlDestroyDataset(inputDataset);
-    aclmdlDestroyDataset(outputDataset);
-    aclmdlDestroyExecConfigHandle(handle);
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(modelId);
+  free(inputBuffer);
+  free(outputBuffer);
+  aclmdlDestroyDataset(inputDataset);
+  aclmdlDestroyDataset(outputDataset);
+  aclmdlDestroyExecConfigHandle(handle);
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(modelId);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetCurOutputDims_Om2Executor_ReturnsStaticDims)
-{
-    // Test that aclmdlGetCurOutputDims returns static dims for OM2 models
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
-        .WillRepeatedly(Invoke(GetModelDescInfo_Invoke));
+TEST_F(UTEST_ACL_Model, aclmdlGetCurOutputDims_Om2Executor_ReturnsStaticDims) {
+  // Test that aclmdlGetCurOutputDims returns static dims for OM2 models
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke(GetModelDescInfo_Invoke));
 
-    aclmdlDesc *desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _, _))
-        .WillRepeatedly(Invoke(GetDynamicBatchInfo_Invoke));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetDynamicBatchInfo(_, _, _))
+      .WillRepeatedly(Invoke(GetDynamicBatchInfo_Invoke));
 
-    uint32_t modelId = std::numeric_limits<uint32_t>::max() / 2U + 2U;
-    desc->modelId = modelId;
+  uint32_t modelId = std::numeric_limits<uint32_t>::max() / 2U + 2U;
+  desc->modelId = modelId;
 
-    // Add OM2 executor for this modelId
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(modelId, std::move(om2_executor));
+  // Add OM2 executor for this modelId
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(modelId, std::move(om2_executor));
 
-    // Setup input/output desc for static dims retrieval
-    aclmdlTensorDesc tensorDesc;
-    tensorDesc.dims = {1, 224, 224, 3};
-    desc->inputDesc.push_back(tensorDesc);
-    desc->outputDesc.push_back(tensorDesc);
+  // Setup input/output desc for static dims retrieval
+  aclmdlTensorDesc tensorDesc;
+  tensorDesc.dims = {1, 224, 224, 3};
+  desc->inputDesc.push_back(tensorDesc);
+  desc->outputDesc.push_back(tensorDesc);
 
-    aclmdlIODims dims;
-    aclError ret = aclmdlGetCurOutputDims(desc, 0, &dims);
-    // For OM2 models, should return static dims directly without dynamic gear logic
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  aclmdlIODims dims;
+  aclError ret = aclmdlGetCurOutputDims(desc, 0, &dims);
+  // For OM2 models, should return static dims directly without dynamic gear logic
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    ret = aclmdlDestroyDesc(desc);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(modelId);
+  ret = aclmdlDestroyDesc(desc);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(modelId);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetOpAttr_InOpAttrValueMap_ReturnsValue)
-{
-    // Test that aclmdlGetOpAttr returns value when opName and attr are in opAttrValueMap
-    aclmdlDesc *desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
+TEST_F(UTEST_ACL_Model, aclmdlGetOpAttr_InOpAttrValueMap_ReturnsValue) {
+  // Test that aclmdlGetOpAttr returns value when opName and attr are in opAttrValueMap
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
 
-    const char *opName = "test_op";
-    const char *attr = "_datadump_original_op_names";
+  const char *opName = "test_op";
+  const char *attr = "_datadump_original_op_names";
 
-    // Populate opAttrValueMap with test data
-    desc->opAttrValueMap[opName][attr] = "original_op1,original_op2";
+  // Populate opAttrValueMap with test data
+  desc->opAttrValueMap[opName][attr] = "original_op1,original_op2";
 
-    const char *result = aclmdlGetOpAttr(desc, opName, attr);
-    EXPECT_NE(result, nullptr);
-    EXPECT_EQ(std::string(result), "original_op1,original_op2");
+  const char *result = aclmdlGetOpAttr(desc, opName, attr);
+  EXPECT_NE(result, nullptr);
+  EXPECT_EQ(std::string(result), "original_op1,original_op2");
 
-    aclmdlDestroyDesc(desc);
+  aclmdlDestroyDesc(desc);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetOpAttr_NotInOpAttrValueMap_ReturnsNull)
-{
-    // Test that aclmdlGetOpAttr returns nullptr when attr not in opAttrValueMap
-    aclmdlDesc *desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
+TEST_F(UTEST_ACL_Model, aclmdlGetOpAttr_NotInOpAttrValueMap_ReturnsNull) {
+  // Test that aclmdlGetOpAttr returns nullptr when attr not in opAttrValueMap
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
 
-    const char *opName = "test_op";
-    const char *attr = "_datadump_original_op_names";
+  const char *opName = "test_op";
+  const char *attr = "_datadump_original_op_names";
 
-    // Mock GeExecutor::GetOpAttr to return FAILED when not in map
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetOpAttr(_, _, _, _))
-        .WillRepeatedly(Return(ge::FAILED));
+  // Mock GeExecutor::GetOpAttr to return FAILED when not in map
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetOpAttr(_, _, _, _)).WillRepeatedly(Return(ge::FAILED));
 
-    // Leave opAttrValueMap empty (attr not in map)
-    const char *result = aclmdlGetOpAttr(desc, opName, attr);
-    EXPECT_EQ(result, nullptr);
+  // Leave opAttrValueMap empty (attr not in map)
+  const char *result = aclmdlGetOpAttr(desc, opName, attr);
+  EXPECT_EQ(result, nullptr);
 
-    // Test with opName in map but attr not in map
-    desc->opAttrValueMap[opName]["other_attr"] = "some_value";
-    result = aclmdlGetOpAttr(desc, opName, attr);
-    EXPECT_EQ(result, nullptr);
+  // Test with opName in map but attr not in map
+  desc->opAttrValueMap[opName]["other_attr"] = "some_value";
+  result = aclmdlGetOpAttr(desc, opName, attr);
+  EXPECT_EQ(result, nullptr);
 
-    aclmdlDestroyDesc(desc);
+  aclmdlDestroyDesc(desc);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetDescFromFile_Om2Model_PopulatesDescAndMap)
-{
-    // Test that aclmdlGetDescFromFile detects OM2 and populates desc via lightweight GetOm2ModelMetadata
-    aclmdlDesc *desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
+TEST_F(UTEST_ACL_Model, aclmdlGetDescFromFile_Om2Model_PopulatesDescAndMap) {
+  // Test that aclmdlGetDescFromFile detects OM2 and populates desc via lightweight GetOm2ModelMetadata
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
 
-    const char *om2ModelPath = "/fake/om2_model.om2";
+  const char *om2ModelPath = "/fake/om2_model.om2";
 
-    // Mock OM2 detection to return true
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _))
-        .WillRepeatedly(Invoke(IsOm2ModelFromFile));
+  // Mock OM2 detection to return true
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(_, _)).WillRepeatedly(Invoke(IsOm2ModelFromFile));
 
-    // Mock LoadOm2DataFromFile success
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2DataFromFile(_, _))
-        .WillOnce(Invoke(LoadOm2DataFromFileSuccess));
+  // Mock LoadOm2DataFromFile success
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2DataFromFile(_, _))
+      .WillOnce(Invoke(LoadOm2DataFromFileSuccess));
 
-    // Mock GetOm2ModelMetadata to return valid tensor descs (lightweight metadata parsing)
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(),
-                GetOm2ModelMetadata(An<const void *>(), _, _, _, _, _))
-        .WillOnce(Invoke([](const void *model_data, size_t model_size,
-                            std::vector<ge::Om2TensorDesc> &input_desc,
-                            std::vector<ge::Om2TensorDesc> &input_desc_v2,
-                            std::vector<ge::Om2TensorDesc> &output_desc,
-                            std::vector<ge::Om2TensorDesc> &output_desc_v2) {
-            ge::Om2TensorDesc in_desc;
-            in_desc.SetName("input");
-            in_desc.SetDataType(ge::DT_FLOAT);
-            in_desc.SetFormat(ge::FORMAT_ND);
-            in_desc.SetShape({1});
-            in_desc.SetShapeRange({});
-            in_desc.SetSize(sizeof(float));
-            input_desc.push_back(in_desc);
-            input_desc_v2.push_back(in_desc);
+  // Mock GetOm2ModelMetadata to return valid tensor descs (lightweight metadata parsing)
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetOm2ModelMetadata(An<const void *>(), _, _, _, _, _))
+      .WillOnce(Invoke([](const void *model_data, size_t model_size, std::vector<ge::Om2TensorDesc> &input_desc,
+                          std::vector<ge::Om2TensorDesc> &input_desc_v2, std::vector<ge::Om2TensorDesc> &output_desc,
+                          std::vector<ge::Om2TensorDesc> &output_desc_v2) {
+        ge::Om2TensorDesc in_desc;
+        in_desc.SetName("input");
+        in_desc.SetDataType(ge::DT_FLOAT);
+        in_desc.SetFormat(ge::FORMAT_ND);
+        in_desc.SetShape({1});
+        in_desc.SetShapeRange({});
+        in_desc.SetSize(sizeof(float));
+        input_desc.push_back(in_desc);
+        input_desc_v2.push_back(in_desc);
 
-            ge::Om2TensorDesc out_desc;
-            out_desc.SetName("output");
-            out_desc.SetDataType(ge::DT_FLOAT);
-            out_desc.SetFormat(ge::FORMAT_ND);
-            out_desc.SetShape({1});
-            out_desc.SetShapeRange({});
-            out_desc.SetSize(sizeof(float));
-            output_desc.push_back(out_desc);
-            output_desc_v2.push_back(out_desc);
-            return ge::SUCCESS;
-        }));
+        ge::Om2TensorDesc out_desc;
+        out_desc.SetName("output");
+        out_desc.SetDataType(ge::DT_FLOAT);
+        out_desc.SetFormat(ge::FORMAT_ND);
+        out_desc.SetShape({1});
+        out_desc.SetShapeRange({});
+        out_desc.SetSize(sizeof(float));
+        output_desc.push_back(out_desc);
+        output_desc_v2.push_back(out_desc);
+        return ge::SUCCESS;
+      }));
 
-    aclError ret = aclmdlGetDescFromFile(desc, om2ModelPath);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  aclError ret = aclmdlGetDescFromFile(desc, om2ModelPath);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    aclmdlDestroyDesc(desc);
+  aclmdlDestroyDesc(desc);
 }
 
 // ========== PopulateDescFromOm2Data Tests ==========
 
-TEST_F(UTEST_ACL_Model, PopulateDescFromOm2Data_ValidOm2Data_PopulatesOpAttrValueMap)
-{
-    // Test PopulateDescFromOm2Data uses lightweight GetOm2ModelMetadata (no full model loading)
-    aclmdlDesc *desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
+TEST_F(UTEST_ACL_Model, PopulateDescFromOm2Data_ValidOm2Data_PopulatesOpAttrValueMap) {
+  // Test PopulateDescFromOm2Data uses lightweight GetOm2ModelMetadata (no full model loading)
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
 
-    // Mock IsOm2Model to return true for OM2 detection (const char* version for file path)
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(An<const char *>(), _))
-        .WillOnce(Invoke([](const char *file_path, bool &is_om2) {
-            is_om2 = true;
-            return ge::SUCCESS;
-        }));
+  // Mock IsOm2Model to return true for OM2 detection (const char* version for file path)
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(An<const char *>(), _))
+      .WillOnce(Invoke([](const char *file_path, bool &is_om2) {
+        is_om2 = true;
+        return ge::SUCCESS;
+      }));
 
-    // Mock LoadOm2DataFromFile to return valid ModelData with real allocation
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2DataFromFile(_, _))
-        .WillOnce(Invoke([](const std::string &path, ge::ModelData &model_data) {
-            model_data.model_data = new (std::nothrow) uint8_t[1024];
-            if (model_data.model_data == nullptr) {
-                return ge::FAILED;
-            }
-            model_data.model_len = 1024;
-            model_data.priority = 0;
-            return ge::SUCCESS;
-        }));
+  // Mock LoadOm2DataFromFile to return valid ModelData with real allocation
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), LoadOm2DataFromFile(_, _))
+      .WillOnce(Invoke([](const std::string &path, ge::ModelData &model_data) {
+        model_data.model_data = new (std::nothrow) uint8_t[1024];
+        if (model_data.model_data == nullptr) {
+          return ge::FAILED;
+        }
+        model_data.model_len = 1024;
+        model_data.priority = 0;
+        return ge::SUCCESS;
+      }));
 
-    // Mock GetOm2ModelMetadata to return valid tensor descs (lightweight metadata parsing)
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(),
-                GetOm2ModelMetadata(An<const void *>(), _, _, _, _, _))
-        .WillOnce(Invoke([](const void *model_data, size_t model_size,
-                            std::vector<ge::Om2TensorDesc> &input_desc,
-                            std::vector<ge::Om2TensorDesc> &input_desc_v2,
-                            std::vector<ge::Om2TensorDesc> &output_desc,
-                            std::vector<ge::Om2TensorDesc> &output_desc_v2) {
-            ge::Om2TensorDesc in_desc;
-            in_desc.SetName("input");
-            in_desc.SetDataType(ge::DT_FLOAT);
-            in_desc.SetFormat(ge::FORMAT_ND);
-            in_desc.SetShape({1});
-            in_desc.SetShapeRange({});
-            in_desc.SetSize(sizeof(float));
-            input_desc.push_back(in_desc);
-            input_desc_v2.push_back(in_desc);
+  // Mock GetOm2ModelMetadata to return valid tensor descs (lightweight metadata parsing)
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetOm2ModelMetadata(An<const void *>(), _, _, _, _, _))
+      .WillOnce(Invoke([](const void *model_data, size_t model_size, std::vector<ge::Om2TensorDesc> &input_desc,
+                          std::vector<ge::Om2TensorDesc> &input_desc_v2, std::vector<ge::Om2TensorDesc> &output_desc,
+                          std::vector<ge::Om2TensorDesc> &output_desc_v2) {
+        ge::Om2TensorDesc in_desc;
+        in_desc.SetName("input");
+        in_desc.SetDataType(ge::DT_FLOAT);
+        in_desc.SetFormat(ge::FORMAT_ND);
+        in_desc.SetShape({1});
+        in_desc.SetShapeRange({});
+        in_desc.SetSize(sizeof(float));
+        input_desc.push_back(in_desc);
+        input_desc_v2.push_back(in_desc);
 
-            ge::Om2TensorDesc out_desc;
-            out_desc.SetName("output");
-            out_desc.SetDataType(ge::DT_FLOAT);
-            out_desc.SetFormat(ge::FORMAT_ND);
-            out_desc.SetShape({1});
-            out_desc.SetShapeRange({});
-            out_desc.SetSize(sizeof(float));
-            output_desc.push_back(out_desc);
-            output_desc_v2.push_back(out_desc);
-            return ge::SUCCESS;
-        }));
+        ge::Om2TensorDesc out_desc;
+        out_desc.SetName("output");
+        out_desc.SetDataType(ge::DT_FLOAT);
+        out_desc.SetFormat(ge::FORMAT_ND);
+        out_desc.SetShape({1});
+        out_desc.SetShapeRange({});
+        out_desc.SetSize(sizeof(float));
+        output_desc.push_back(out_desc);
+        output_desc_v2.push_back(out_desc);
+        return ge::SUCCESS;
+      }));
 
-    // Call aclmdlGetDescFromFile to trigger PopulateDescFromOm2Data flow
-    const char *testPath = "/tmp/test.om";
-    aclError ret = aclmdlGetDescFromFile(desc, testPath);
+  // Call aclmdlGetDescFromFile to trigger PopulateDescFromOm2Data flow
+  const char *testPath = "/tmp/test.om";
+  aclError ret = aclmdlGetDescFromFile(desc, testPath);
 
-    aclmdlDestroyDesc(desc);
+  aclmdlDestroyDesc(desc);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlExecuteV2_Om2Executor_WithGetOpAttrFlow)
-{
-    // Test complete execution flow including loading, execution, desc retrieval, and attr query
-    uint32_t modelId = std::numeric_limits<uint32_t>::max() / 2U + 3U;
+TEST_F(UTEST_ACL_Model, aclmdlExecuteV2_Om2Executor_WithGetOpAttrFlow) {
+  // Test complete execution flow including loading, execution, desc retrieval, and attr query
+  uint32_t modelId = std::numeric_limits<uint32_t>::max() / 2U + 3U;
 
-    // Setup OM2 executor
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(modelId, std::move(om2_executor));
+  // Setup OM2 executor
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(modelId, std::move(om2_executor));
 
-    // Mock GetModelDescInfo for desc population
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
-        .WillRepeatedly(Invoke(GetModelDescInfo_Invoke));
+  // Mock GetModelDescInfo for desc population
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(_, _, _, _))
+      .WillRepeatedly(Invoke(GetModelDescInfo_Invoke));
 
-    // Create datasets
-    aclmdlExecConfigHandle *handle = aclmdlCreateExecConfigHandle();
-    EXPECT_NE(handle, nullptr);
+  // Create datasets
+  aclmdlExecConfigHandle *handle = aclmdlCreateExecConfigHandle();
+  EXPECT_NE(handle, nullptr);
 
-    aclmdlDataset *inputDataset = aclmdlCreateDataset();
-    EXPECT_NE(inputDataset, nullptr);
-    aclDataBuffer *inputBuffer = (aclDataBuffer *)malloc(100);
-    EXPECT_EQ(aclmdlAddDatasetBuffer(inputDataset, inputBuffer), ACL_SUCCESS);
+  aclmdlDataset *inputDataset = aclmdlCreateDataset();
+  EXPECT_NE(inputDataset, nullptr);
+  aclDataBuffer *inputBuffer = (aclDataBuffer *)malloc(100);
+  EXPECT_EQ(aclmdlAddDatasetBuffer(inputDataset, inputBuffer), ACL_SUCCESS);
 
-    aclmdlDataset *outputDataset = aclmdlCreateDataset();
-    EXPECT_NE(outputDataset, nullptr);
-    aclDataBuffer *outputBuffer = (aclDataBuffer *)malloc(100);
-    EXPECT_EQ(aclmdlAddDatasetBuffer(outputDataset, outputBuffer), ACL_SUCCESS);
+  aclmdlDataset *outputDataset = aclmdlCreateDataset();
+  EXPECT_NE(outputDataset, nullptr);
+  aclDataBuffer *outputBuffer = (aclDataBuffer *)malloc(100);
+  EXPECT_EQ(aclmdlAddDatasetBuffer(outputDataset, outputBuffer), ACL_SUCCESS);
 
-    // Execute model (may fail due to incomplete mock, but tests routing)
-    aclError ret = aclmdlExecuteV2(modelId, inputDataset, outputDataset, nullptr, handle);
+  // Execute model (may fail due to incomplete mock, but tests routing)
+  aclError ret = aclmdlExecuteV2(modelId, inputDataset, outputDataset, nullptr, handle);
 
-    // Create desc and populate opAttrValueMap
-    aclmdlDesc *desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
-    desc->modelId = modelId;
+  // Create desc and populate opAttrValueMap
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
+  desc->modelId = modelId;
 
-    // Manually populate opAttrValueMap to test complete flow
-    desc->opAttrValueMap["test_op"]["_datadump_original_op_names"] = "[\"op1\",\"op2\"]";
+  // Manually populate opAttrValueMap to test complete flow
+  desc->opAttrValueMap["test_op"]["_datadump_original_op_names"] = "[\"op1\",\"op2\"]";
 
-    // Query attr through ACL API
-    const char *result = aclmdlGetOpAttr(desc, "test_op", "_datadump_original_op_names");
-    EXPECT_NE(result, nullptr);
-    EXPECT_EQ(std::string(result), "[\"op1\",\"op2\"]");
+  // Query attr through ACL API
+  const char *result = aclmdlGetOpAttr(desc, "test_op", "_datadump_original_op_names");
+  EXPECT_NE(result, nullptr);
+  EXPECT_EQ(std::string(result), "[\"op1\",\"op2\"]");
 
-    // Cleanup
-    free(inputBuffer);
-    free(outputBuffer);
-    aclmdlDestroyDataset(inputDataset);
-    aclmdlDestroyDataset(outputDataset);
-    aclmdlDestroyExecConfigHandle(handle);
-    aclmdlDestroyDesc(desc);
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(modelId);
+  // Cleanup
+  free(inputBuffer);
+  free(outputBuffer);
+  aclmdlDestroyDataset(inputDataset);
+  aclmdlDestroyDataset(outputDataset);
+  aclmdlDestroyExecConfigHandle(handle);
+  aclmdlDestroyDesc(desc);
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(modelId);
 }
 
 // ========== Batch 1: Routing Decision Basic Tests ==========
 
-TEST_F(UTEST_ACL_Model, aclmdlLoadFromMem_Om2ModelData_RoutesToOm2Impl)
-{
-    // Test that aclmdlLoadFromMem routes to OM2 implementation when model data has OM2 ZIP signature
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_, testing::_))
-        .WillRepeatedly(Invoke(IsOm2ModelFromData));
+TEST_F(UTEST_ACL_Model, aclmdlLoadFromMem_Om2ModelData_RoutesToOm2Impl) {
+  // Test that aclmdlLoadFromMem routes to OM2 implementation when model data has OM2 ZIP signature
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_, testing::_))
+      .WillRepeatedly(Invoke(IsOm2ModelFromData));
 
-    // Create OM2 model data with ZIP signature (0x50, 0x4B, 0x03, 0x04)
-    uint8_t om2_model_data[] = {0x50, 0x4B, 0x03, 0x04, 0x00, 0x00, 0x00, 0x00};
-    uint32_t modelId = 0;
+  // Create OM2 model data with ZIP signature (0x50, 0x4B, 0x03, 0x04)
+  uint8_t om2_model_data[] = {0x50, 0x4B, 0x03, 0x04, 0x00, 0x00, 0x00, 0x00};
+  uint32_t modelId = 0;
 
-    // Load OM2 model from memory - should route to OM2 implementation
-    aclError ret = aclmdlLoadFromMem(om2_model_data, sizeof(om2_model_data), &modelId);
+  // Load OM2 model from memory - should route to OM2 implementation
+  aclError ret = aclmdlLoadFromMem(om2_model_data, sizeof(om2_model_data), &modelId);
 
-    // Verify that an OM2 executor was created (modelId should be in OM2 range)
-    if (ret == ACL_SUCCESS) {
-        EXPECT_GE(modelId, std::numeric_limits<uint32_t>::max() / 2U);
-        acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(modelId);
-    }
+  // Verify that an OM2 executor was created (modelId should be in OM2 range)
+  if (ret == ACL_SUCCESS) {
+    EXPECT_GE(modelId, std::numeric_limits<uint32_t>::max() / 2U);
+    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(modelId);
+  }
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlLoadFromMem_OmModelData_RoutesToOmImpl)
-{
-    // Test that aclmdlLoadFromMem routes to OM implementation when model data is not OM2
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_, testing::_))
-        .WillRepeatedly(Invoke(IsNotOm2ModelFromData));
+TEST_F(UTEST_ACL_Model, aclmdlLoadFromMem_OmModelData_RoutesToOmImpl) {
+  // Test that aclmdlLoadFromMem routes to OM implementation when model data is not OM2
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_, testing::_))
+      .WillRepeatedly(Invoke(IsNotOm2ModelFromData));
 
-    // Create OM model data (not ZIP signature)
-    uint8_t om_model_data[] = {0x4F, 0x4D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-    uint32_t modelId = 0;
+  // Create OM model data (not ZIP signature)
+  uint8_t om_model_data[] = {0x4F, 0x4D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+  uint32_t modelId = 0;
 
-    // Load OM model from memory - should route to OM implementation
-    aclError ret = aclmdlLoadFromMem(om_model_data, sizeof(om_model_data), &modelId);
+  // Load OM model from memory - should route to OM implementation
+  aclError ret = aclmdlLoadFromMem(om_model_data, sizeof(om_model_data), &modelId);
 
-    // Verify that an OM executor was created (modelId should be in OM range)
-    if (ret == ACL_SUCCESS) {
-        EXPECT_LT(modelId, std::numeric_limits<uint32_t>::max() / 2U);
-    }
+  // Verify that an OM executor was created (modelId should be in OM range)
+  if (ret == ACL_SUCCESS) {
+    EXPECT_LT(modelId, std::numeric_limits<uint32_t>::max() / 2U);
+  }
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlExecuteV2_Om2ModelId_RoutesToOm2Executor)
-{
-    // Test that aclmdlExecuteV2 routes to OM2 executor when model ID is registered as OM2
-    uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 20U;
+TEST_F(UTEST_ACL_Model, aclmdlExecuteV2_Om2ModelId_RoutesToOm2Executor) {
+  // Test that aclmdlExecuteV2 routes to OM2 executor when model ID is registered as OM2
+  uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 20U;
 
-    // Register OM2 executor for this model ID
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
+  // Register OM2 executor for this model ID
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
-    // Create datasets
-    aclmdlDataset *inputDataset = aclmdlCreateDataset();
-    EXPECT_NE(inputDataset, nullptr);
-    aclmdlDataset *outputDataset = aclmdlCreateDataset();
-    EXPECT_NE(outputDataset, nullptr);
+  // Create datasets
+  aclmdlDataset *inputDataset = aclmdlCreateDataset();
+  EXPECT_NE(inputDataset, nullptr);
+  aclmdlDataset *outputDataset = aclmdlCreateDataset();
+  EXPECT_NE(outputDataset, nullptr);
 
-    // Execute with OM2 model ID - should route to OM2 executor
-    aclError ret = aclmdlExecuteV2(om2_model_id, inputDataset, outputDataset, nullptr, nullptr);
+  // Execute with OM2 model ID - should route to OM2 executor
+  aclError ret = aclmdlExecuteV2(om2_model_id, inputDataset, outputDataset, nullptr, nullptr);
 
-    // Cleanup
-    aclmdlDestroyDataset(inputDataset);
-    aclmdlDestroyDataset(outputDataset);
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
+  // Cleanup
+  aclmdlDestroyDataset(inputDataset);
+  aclmdlDestroyDataset(outputDataset);
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetDesc_Om2ModelId_RoutesToOm2Impl)
-{
-    // Test that aclmdlGetDesc routes to OM2 implementation when model ID is OM2
-    uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 30U;
+TEST_F(UTEST_ACL_Model, aclmdlGetDesc_Om2ModelId_RoutesToOm2Impl) {
+  // Test that aclmdlGetDesc routes to OM2 implementation when model ID is OM2
+  uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 30U;
 
-    // Register OM2 executor for this model ID
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(),
-                GetModelDescInfo(A<const std::vector<ge::Om2TensorDesc>*&>(),
-                                 A<const std::vector<ge::Om2TensorDesc>*&>(), _))
-        .WillRepeatedly(Invoke(GetOm2ModelDescInfo_Invoke));
+  // Register OM2 executor for this model ID
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(A<const std::vector<ge::Om2TensorDesc> *&>(),
+                                                                    A<const std::vector<ge::Om2TensorDesc> *&>(), _))
+      .WillRepeatedly(Invoke(GetOm2ModelDescInfo_Invoke));
 
-    // Get model descriptor - should route to OM2 implementation
-    aclmdlDesc *desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
-    desc->modelId = om2_model_id;
+  // Get model descriptor - should route to OM2 implementation
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
+  desc->modelId = om2_model_id;
 
-    // Verify that the descriptor is associated with OM2 model
-    EXPECT_EQ(desc->modelId, om2_model_id);
+  // Verify that the descriptor is associated with OM2 model
+  EXPECT_EQ(desc->modelId, om2_model_id);
 
-    // Cleanup
-    aclmdlDestroyDesc(desc);
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
+  // Cleanup
+  aclmdlDestroyDesc(desc);
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlUnload_Om2ModelId_RoutesToOm2Impl)
-{
-    // Test that aclmdlUnload routes to OM2 implementation when model ID is OM2
-    uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 40U;
+TEST_F(UTEST_ACL_Model, aclmdlUnload_Om2ModelId_RoutesToOm2Impl) {
+  // Test that aclmdlUnload routes to OM2 implementation when model ID is OM2
+  uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 40U;
 
-    // Register OM2 executor for this model ID
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
+  // Register OM2 executor for this model ID
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
-    // Verify that the OM2 executor exists before unload
-    auto executor_before = acl::AclResourceManagerOm2::GetInstance().GetOm2Executor(om2_model_id);
-    EXPECT_NE(executor_before, nullptr);
+  // Verify that the OM2 executor exists before unload
+  auto executor_before = acl::AclResourceManagerOm2::GetInstance().GetOm2Executor(om2_model_id);
+  EXPECT_NE(executor_before, nullptr);
 
-    // Unload OM2 model - should route to OM2 implementation
-    aclError ret = aclmdlUnload(om2_model_id);
+  // Unload OM2 model - should route to OM2 implementation
+  aclError ret = aclmdlUnload(om2_model_id);
 
-    // Cleanup - explicitly delete the OM2 executor
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
+  // Cleanup - explicitly delete the OM2 executor
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
 
-    // Verify that the OM2 executor was deleted
-    auto executor_after = acl::AclResourceManagerOm2::GetInstance().GetOm2Executor(om2_model_id);
-    EXPECT_EQ(executor_after, nullptr);
+  // Verify that the OM2 executor was deleted
+  auto executor_after = acl::AclResourceManagerOm2::GetInstance().GetOm2Executor(om2_model_id);
+  EXPECT_EQ(executor_after, nullptr);
 }
 
 // ========== Batch 2: Model Loading Routing Tests ==========
 
-TEST_F(UTEST_ACL_Model, aclmdlLoadFromFile_Om2Model_RoutesToOm2Impl)
-{
-    // Test that aclmdlLoadFromFile routes to OM2 implementation when file contains OM2 model
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_))
-        .WillRepeatedly(Invoke(IsOm2ModelFromFile));
+TEST_F(UTEST_ACL_Model, aclmdlLoadFromFile_Om2Model_RoutesToOm2Impl) {
+  // Test that aclmdlLoadFromFile routes to OM2 implementation when file contains OM2 model
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_))
+      .WillRepeatedly(Invoke(IsOm2ModelFromFile));
 
-    uint32_t modelId = 0;
-    // Load OM2 model from file - should route to OM2 implementation
-    aclError ret = aclmdlLoadFromFile("test_om2_model.om2", &modelId);
+  uint32_t modelId = 0;
+  // Load OM2 model from file - should route to OM2 implementation
+  aclError ret = aclmdlLoadFromFile("test_om2_model.om2", &modelId);
 
-    // Verify that an OM2 executor was created (modelId should be in OM2 range)
-    if (ret == ACL_SUCCESS) {
-        EXPECT_GE(modelId, std::numeric_limits<uint32_t>::max() / 2U);
-        acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(modelId);
-    }
+  // Verify that an OM2 executor was created (modelId should be in OM2 range)
+  if (ret == ACL_SUCCESS) {
+    EXPECT_GE(modelId, std::numeric_limits<uint32_t>::max() / 2U);
+    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(modelId);
+  }
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlLoadFromFile_OmModel_RoutesToOmImpl)
-{
-    // Test that aclmdlLoadFromFile routes to OM implementation when file contains OM model
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_))
-        .WillRepeatedly(Invoke(IsNotOm2ModelFromFile));
+TEST_F(UTEST_ACL_Model, aclmdlLoadFromFile_OmModel_RoutesToOmImpl) {
+  // Test that aclmdlLoadFromFile routes to OM implementation when file contains OM model
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_))
+      .WillRepeatedly(Invoke(IsNotOm2ModelFromFile));
 
-    uint32_t modelId = 0;
-    // Load OM model from file - should route to OM implementation
-    aclError ret = aclmdlLoadFromFile("test_om_model.om", &modelId);
+  uint32_t modelId = 0;
+  // Load OM model from file - should route to OM implementation
+  aclError ret = aclmdlLoadFromFile("test_om_model.om", &modelId);
 
-    // Verify that an OM executor was created (modelId should be in OM range)
-    if (ret == ACL_SUCCESS) {
-        EXPECT_LT(modelId, std::numeric_limits<uint32_t>::max() / 2U);
-    }
+  // Verify that an OM executor was created (modelId should be in OM range)
+  if (ret == ACL_SUCCESS) {
+    EXPECT_LT(modelId, std::numeric_limits<uint32_t>::max() / 2U);
+  }
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlLoadFromMem_Om2Model_RoutesToOm2Impl)
-{
-    // Test that aclmdlLoadFromMem routes to OM2 implementation for OM2 model data
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_, testing::_))
-        .WillRepeatedly(Invoke(IsOm2ModelFromData));
+TEST_F(UTEST_ACL_Model, aclmdlLoadFromMem_Om2Model_RoutesToOm2Impl) {
+  // Test that aclmdlLoadFromMem routes to OM2 implementation for OM2 model data
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_, testing::_))
+      .WillRepeatedly(Invoke(IsOm2ModelFromData));
 
-    // Create OM2 model data with ZIP signature
-    uint8_t om2_model_data[] = {0x50, 0x4B, 0x03, 0x04, 0x00, 0x00, 0x00, 0x00};
-    uint32_t modelId = 0;
+  // Create OM2 model data with ZIP signature
+  uint8_t om2_model_data[] = {0x50, 0x4B, 0x03, 0x04, 0x00, 0x00, 0x00, 0x00};
+  uint32_t modelId = 0;
 
-    // Load OM2 model from memory - should route to OM2 implementation
-    aclError ret = aclmdlLoadFromMem(om2_model_data, sizeof(om2_model_data), &modelId);
+  // Load OM2 model from memory - should route to OM2 implementation
+  aclError ret = aclmdlLoadFromMem(om2_model_data, sizeof(om2_model_data), &modelId);
 
-    // Verify that an OM2 executor was created
-    if (ret == ACL_SUCCESS) {
-        EXPECT_GE(modelId, std::numeric_limits<uint32_t>::max() / 2U);
-        acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(modelId);
-    }
+  // Verify that an OM2 executor was created
+  if (ret == ACL_SUCCESS) {
+    EXPECT_GE(modelId, std::numeric_limits<uint32_t>::max() / 2U);
+    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(modelId);
+  }
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlLoadFromMem_OmModel_RoutesToOmImpl)
-{
-    // Test that aclmdlLoadFromMem routes to OM implementation for OM model data
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_, testing::_))
-        .WillRepeatedly(Invoke(IsNotOm2ModelFromData));
+TEST_F(UTEST_ACL_Model, aclmdlLoadFromMem_OmModel_RoutesToOmImpl) {
+  // Test that aclmdlLoadFromMem routes to OM implementation for OM model data
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_, testing::_))
+      .WillRepeatedly(Invoke(IsNotOm2ModelFromData));
 
-    // Create OM model data (not ZIP signature)
-    uint8_t om_model_data[] = {0x4F, 0x4D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-    uint32_t modelId = 0;
+  // Create OM model data (not ZIP signature)
+  uint8_t om_model_data[] = {0x4F, 0x4D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+  uint32_t modelId = 0;
 
-    // Load OM model from memory - should route to OM implementation
-    aclError ret = aclmdlLoadFromMem(om_model_data, sizeof(om_model_data), &modelId);
+  // Load OM model from memory - should route to OM implementation
+  aclError ret = aclmdlLoadFromMem(om_model_data, sizeof(om_model_data), &modelId);
 
-    // Verify that an OM executor was created
-    if (ret == ACL_SUCCESS) {
-        EXPECT_LT(modelId, std::numeric_limits<uint32_t>::max() / 2U);
-    }
+  // Verify that an OM executor was created
+  if (ret == ACL_SUCCESS) {
+    EXPECT_LT(modelId, std::numeric_limits<uint32_t>::max() / 2U);
+  }
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlLoadFromFileWithMem_Om2Model_RoutesToOm2Impl)
-{
-    // Test that aclmdlLoadFromFileWithMem routes to OM2 implementation for OM2 model
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_))
-        .WillRepeatedly(Invoke(IsOm2ModelFromFile));
+TEST_F(UTEST_ACL_Model, aclmdlLoadFromFileWithMem_Om2Model_RoutesToOm2Impl) {
+  // Test that aclmdlLoadFromFileWithMem routes to OM2 implementation for OM2 model
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_))
+      .WillRepeatedly(Invoke(IsOm2ModelFromFile));
 
-    uint32_t modelId = 0;
-    void *workMem = malloc(1024);
-    void *weightMem = malloc(1024);
-    ASSERT_NE(workMem, nullptr);
-    ASSERT_NE(weightMem, nullptr);
+  uint32_t modelId = 0;
+  void *workMem = malloc(1024);
+  void *weightMem = malloc(1024);
+  ASSERT_NE(workMem, nullptr);
+  ASSERT_NE(weightMem, nullptr);
 
-    // Load OM2 model from file with work memory and weight memory - should route to OM2 implementation
-    aclError ret = aclmdlLoadFromFileWithMem("test_om2_model.om2", &modelId, workMem, 1024, weightMem, 1024);
+  // Load OM2 model from file with work memory and weight memory - should route to OM2 implementation
+  aclError ret = aclmdlLoadFromFileWithMem("test_om2_model.om2", &modelId, workMem, 1024, weightMem, 1024);
 
-    // Verify that an OM2 executor was created
-    if (ret == ACL_SUCCESS) {
-        EXPECT_GE(modelId, std::numeric_limits<uint32_t>::max() / 2U);
-        acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(modelId);
-    }
+  // Verify that an OM2 executor was created
+  if (ret == ACL_SUCCESS) {
+    EXPECT_GE(modelId, std::numeric_limits<uint32_t>::max() / 2U);
+    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(modelId);
+  }
 
-    free(workMem);
-    free(weightMem);
+  free(workMem);
+  free(weightMem);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlLoadFromMemWithMem_Om2Model_RoutesToOm2Impl)
-{
-    // Test that aclmdlLoadFromMemWithMem routes to OM2 implementation for OM2 model
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_, testing::_))
-        .WillRepeatedly(Invoke(IsOm2ModelFromData));
+TEST_F(UTEST_ACL_Model, aclmdlLoadFromMemWithMem_Om2Model_RoutesToOm2Impl) {
+  // Test that aclmdlLoadFromMemWithMem routes to OM2 implementation for OM2 model
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_, testing::_))
+      .WillRepeatedly(Invoke(IsOm2ModelFromData));
 
-    // Create OM2 model data with ZIP signature
-    uint8_t om2_model_data[] = {0x50, 0x4B, 0x03, 0x04, 0x00, 0x00, 0x00, 0x00};
-    uint32_t modelId = 0;
-    void *workMem = malloc(1024);
-    void *weightMem = malloc(1024);
-    ASSERT_NE(workMem, nullptr);
-    ASSERT_NE(weightMem, nullptr);
+  // Create OM2 model data with ZIP signature
+  uint8_t om2_model_data[] = {0x50, 0x4B, 0x03, 0x04, 0x00, 0x00, 0x00, 0x00};
+  uint32_t modelId = 0;
+  void *workMem = malloc(1024);
+  void *weightMem = malloc(1024);
+  ASSERT_NE(workMem, nullptr);
+  ASSERT_NE(weightMem, nullptr);
 
-    // Load OM2 model from memory with work memory and weight memory - should route to OM2 implementation
-    aclError ret = aclmdlLoadFromMemWithMem(om2_model_data, sizeof(om2_model_data), &modelId, workMem, 1024, weightMem, 1024);
+  // Load OM2 model from memory with work memory and weight memory - should route to OM2 implementation
+  aclError ret =
+      aclmdlLoadFromMemWithMem(om2_model_data, sizeof(om2_model_data), &modelId, workMem, 1024, weightMem, 1024);
 
-    // Verify that an OM2 executor was created
-    if (ret == ACL_SUCCESS) {
-        EXPECT_GE(modelId, std::numeric_limits<uint32_t>::max() / 2U);
-        acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(modelId);
-    }
+  // Verify that an OM2 executor was created
+  if (ret == ACL_SUCCESS) {
+    EXPECT_GE(modelId, std::numeric_limits<uint32_t>::max() / 2U);
+    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(modelId);
+  }
 
-    free(workMem);
-    free(weightMem);
+  free(workMem);
+  free(weightMem);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlUnload_Om2ModelId_RoutesToOm2Impl_Batch2)
-{
-    // Test that aclmdlUnload routes to OM2 implementation for OM2 model ID
-    uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 50U;
+TEST_F(UTEST_ACL_Model, aclmdlUnload_Om2ModelId_RoutesToOm2Impl_Batch2) {
+  // Test that aclmdlUnload routes to OM2 implementation for OM2 model ID
+  uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 50U;
 
-    // Register OM2 executor for this model ID
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
+  // Register OM2 executor for this model ID
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
-    // Verify that the OM2 executor exists before unload
-    auto executor_before = acl::AclResourceManagerOm2::GetInstance().GetOm2Executor(om2_model_id);
-    EXPECT_NE(executor_before, nullptr);
+  // Verify that the OM2 executor exists before unload
+  auto executor_before = acl::AclResourceManagerOm2::GetInstance().GetOm2Executor(om2_model_id);
+  EXPECT_NE(executor_before, nullptr);
 
-    // Unload OM2 model - should route to OM2 implementation
-    aclError ret = aclmdlUnload(om2_model_id);
+  // Unload OM2 model - should route to OM2 implementation
+  aclError ret = aclmdlUnload(om2_model_id);
 
-    // Cleanup - explicitly delete the OM2 executor
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
+  // Cleanup - explicitly delete the OM2 executor
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
 
-    // Verify that the OM2 executor was deleted
-    auto executor_after = acl::AclResourceManagerOm2::GetInstance().GetOm2Executor(om2_model_id);
-    EXPECT_EQ(executor_after, nullptr);
+  // Verify that the OM2 executor was deleted
+  auto executor_after = acl::AclResourceManagerOm2::GetInstance().GetOm2Executor(om2_model_id);
+  EXPECT_EQ(executor_after, nullptr);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlUnload_OmModelId_RoutesToOmImpl)
-{
-    // Test that aclmdlUnload routes to OM implementation for OM model ID
-    uint32_t om_model_id = 54321U;  // Regular OM model ID
+TEST_F(UTEST_ACL_Model, aclmdlUnload_OmModelId_RoutesToOmImpl) {
+  // Test that aclmdlUnload routes to OM implementation for OM model ID
+  uint32_t om_model_id = 54321U;  // Regular OM model ID
 
-    // Unload OM model - should route to OM implementation
-    aclError ret = aclmdlUnload(om_model_id);
+  // Unload OM model - should route to OM implementation
+  aclError ret = aclmdlUnload(om_model_id);
 
-    // The function should handle the unload request (may fail due to model not being loaded)
-    // but should route to OM implementation
-    // We're mainly testing that the routing works correctly
+  // The function should handle the unload request (may fail due to model not being loaded)
+  // but should route to OM implementation
+  // We're mainly testing that the routing works correctly
 }
 
 // ========== Batch 3: Execution and Query Routing Tests ==========
 
-TEST_F(UTEST_ACL_Model, aclmdlExecuteV2_Om2ModelId_RoutesToOm2Impl_Batch3)
-{
-    // Test that aclmdlExecuteV2 routes to OM2 implementation for OM2 model ID
-    uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 60U;
+TEST_F(UTEST_ACL_Model, aclmdlExecuteV2_Om2ModelId_RoutesToOm2Impl_Batch3) {
+  // Test that aclmdlExecuteV2 routes to OM2 implementation for OM2 model ID
+  uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 60U;
 
-    // Register OM2 executor for this model ID
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
+  // Register OM2 executor for this model ID
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
-    // Create datasets
-    aclmdlDataset *inputDataset = aclmdlCreateDataset();
-    EXPECT_NE(inputDataset, nullptr);
-    aclmdlDataset *outputDataset = aclmdlCreateDataset();
-    EXPECT_NE(outputDataset, nullptr);
+  // Create datasets
+  aclmdlDataset *inputDataset = aclmdlCreateDataset();
+  EXPECT_NE(inputDataset, nullptr);
+  aclmdlDataset *outputDataset = aclmdlCreateDataset();
+  EXPECT_NE(outputDataset, nullptr);
 
-    // Execute with OM2 model ID - should route to OM2 executor
-    aclError ret = aclmdlExecuteV2(om2_model_id, inputDataset, outputDataset, nullptr, nullptr);
+  // Execute with OM2 model ID - should route to OM2 executor
+  aclError ret = aclmdlExecuteV2(om2_model_id, inputDataset, outputDataset, nullptr, nullptr);
 
-    // Cleanup
-    aclmdlDestroyDataset(inputDataset);
-    aclmdlDestroyDataset(outputDataset);
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
+  // Cleanup
+  aclmdlDestroyDataset(inputDataset);
+  aclmdlDestroyDataset(outputDataset);
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlExecuteAsync_Om2ModelId_RoutesToOm2Impl)
-{
-    // Test that aclmdlExecuteAsync routes to OM2 implementation for OM2 model ID
-    uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 61U;
+TEST_F(UTEST_ACL_Model, aclmdlExecuteAsync_Om2ModelId_RoutesToOm2Impl) {
+  // Test that aclmdlExecuteAsync routes to OM2 implementation for OM2 model ID
+  uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 61U;
 
-    // Register OM2 executor for this model ID
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
+  // Register OM2 executor for this model ID
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
-    // Create datasets
-    aclmdlDataset *inputDataset = aclmdlCreateDataset();
-    EXPECT_NE(inputDataset, nullptr);
-    aclmdlDataset *outputDataset = aclmdlCreateDataset();
-    EXPECT_NE(outputDataset, nullptr);
+  // Create datasets
+  aclmdlDataset *inputDataset = aclmdlCreateDataset();
+  EXPECT_NE(inputDataset, nullptr);
+  aclmdlDataset *outputDataset = aclmdlCreateDataset();
+  EXPECT_NE(outputDataset, nullptr);
 
-    // Execute async with OM2 model ID - should route to OM2 executor
-    aclError ret = aclmdlExecuteAsync(om2_model_id, inputDataset, outputDataset, nullptr);
+  // Execute async with OM2 model ID - should route to OM2 executor
+  aclError ret = aclmdlExecuteAsync(om2_model_id, inputDataset, outputDataset, nullptr);
 
-    // Cleanup
-    aclmdlDestroyDataset(inputDataset);
-    aclmdlDestroyDataset(outputDataset);
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
+  // Cleanup
+  aclmdlDestroyDataset(inputDataset);
+  aclmdlDestroyDataset(outputDataset);
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlQuerySize_Om2ModelPath_RoutesToOm2Impl)
-{
-    // Test that aclmdlQuerySize routes to OM2 implementation when model path is OM2
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_))
-        .WillRepeatedly(Invoke(IsOm2ModelFromFile));
+TEST_F(UTEST_ACL_Model, aclmdlQuerySize_Om2ModelPath_RoutesToOm2Impl) {
+  // Test that aclmdlQuerySize routes to OM2 implementation when model path is OM2
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_))
+      .WillRepeatedly(Invoke(IsOm2ModelFromFile));
 
-    size_t workSize = 0;
-    size_t weightSize = 0;
-    // Query OM2 model size from file path - should route to OM2 implementation
-    aclError ret = aclmdlQuerySize("test_om2_model.om2", &workSize, &weightSize);
+  size_t workSize = 0;
+  size_t weightSize = 0;
+  // Query OM2 model size from file path - should route to OM2 implementation
+  aclError ret = aclmdlQuerySize("test_om2_model.om2", &workSize, &weightSize);
 
-    // The function may fail due to file not existing, but should route to OM2 implementation
-    // We're mainly testing that the routing works correctly
+  // The function may fail due to file not existing, but should route to OM2 implementation
+  // We're mainly testing that the routing works correctly
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlQuerySizeFromMem_Om2ModelData_RoutesToOm2Impl)
-{
-    // Test that aclmdlQuerySizeFromMem routes to OM2 implementation for OM2 model data
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_, testing::_))
-        .WillRepeatedly(Invoke(IsOm2ModelFromData));
+TEST_F(UTEST_ACL_Model, aclmdlQuerySizeFromMem_Om2ModelData_RoutesToOm2Impl) {
+  // Test that aclmdlQuerySizeFromMem routes to OM2 implementation for OM2 model data
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_, testing::_))
+      .WillRepeatedly(Invoke(IsOm2ModelFromData));
 
-    // Create OM2 model data with ZIP signature
-    uint8_t om2_model_data[] = {0x50, 0x4B, 0x03, 0x04, 0x00, 0x00, 0x00, 0x00};
-    size_t workSize = 0;
-    size_t weightSize = 0;
+  // Create OM2 model data with ZIP signature
+  uint8_t om2_model_data[] = {0x50, 0x4B, 0x03, 0x04, 0x00, 0x00, 0x00, 0x00};
+  size_t workSize = 0;
+  size_t weightSize = 0;
 
-    // Query OM2 model size from memory - should route to OM2 implementation
-    aclError ret = aclmdlQuerySizeFromMem(om2_model_data, sizeof(om2_model_data), &workSize, &weightSize);
+  // Query OM2 model size from memory - should route to OM2 implementation
+  aclError ret = aclmdlQuerySizeFromMem(om2_model_data, sizeof(om2_model_data), &workSize, &weightSize);
 
-    // The function may fail due to incomplete model data, but should route to OM2 implementation
-    // We're mainly testing that the routing works correctly
+  // The function may fail due to incomplete model data, but should route to OM2 implementation
+  // We're mainly testing that the routing works correctly
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetDesc_Om2ModelId_RoutesToOm2Impl_Batch3)
-{
-    // Test that aclmdlGetDesc routes to OM2 implementation for OM2 model ID
-    uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 62U;
+TEST_F(UTEST_ACL_Model, aclmdlGetDesc_Om2ModelId_RoutesToOm2Impl_Batch3) {
+  // Test that aclmdlGetDesc routes to OM2 implementation for OM2 model ID
+  uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 62U;
 
-    // Register OM2 executor for this model ID
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
+  // Register OM2 executor for this model ID
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
-    // Get model descriptor - should route to OM2 implementation
-    aclmdlDesc *desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
+  // Get model descriptor - should route to OM2 implementation
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
 
-    aclError ret = aclmdlGetDesc(desc, om2_model_id);
+  aclError ret = aclmdlGetDesc(desc, om2_model_id);
 
-    // Verify that the descriptor is associated with OM2 model
-    if (ret == ACL_SUCCESS) {
-        EXPECT_EQ(desc->modelId, om2_model_id);
-    }
+  // Verify that the descriptor is associated with OM2 model
+  if (ret == ACL_SUCCESS) {
+    EXPECT_EQ(desc->modelId, om2_model_id);
+  }
 
-    // Cleanup
-    aclmdlDestroyDesc(desc);
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
+  // Cleanup
+  aclmdlDestroyDesc(desc);
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetDescFromMem_Om2ModelData_RoutesToOm2Impl)
-{
-    // Test that aclmdlGetDescFromMem routes to OM2 implementation for OM2 model data
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_, testing::_))
-        .WillRepeatedly(Invoke(IsOm2ModelFromData));
+TEST_F(UTEST_ACL_Model, aclmdlGetDescFromMem_Om2ModelData_RoutesToOm2Impl) {
+  // Test that aclmdlGetDescFromMem routes to OM2 implementation for OM2 model data
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_, testing::_))
+      .WillRepeatedly(Invoke(IsOm2ModelFromData));
 
-    // Create OM2 model data with ZIP signature
-    uint8_t om2_model_data[] = {0x50, 0x4B, 0x03, 0x04, 0x00, 0x00, 0x00, 0x00};
+  // Create OM2 model data with ZIP signature
+  uint8_t om2_model_data[] = {0x50, 0x4B, 0x03, 0x04, 0x00, 0x00, 0x00, 0x00};
 
-    // Get model descriptor from memory - should route to OM2 implementation
-    aclmdlDesc *desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
+  // Get model descriptor from memory - should route to OM2 implementation
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
 
-    aclError ret = aclmdlGetDescFromMem(desc, om2_model_data, sizeof(om2_model_data));
+  aclError ret = aclmdlGetDescFromMem(desc, om2_model_data, sizeof(om2_model_data));
 
-    // The function may fail due to incomplete model data, but should route to OM2 implementation
-    // We're mainly testing that the routing works correctly
+  // The function may fail due to incomplete model data, but should route to OM2 implementation
+  // We're mainly testing that the routing works correctly
 
-    // Cleanup
-    aclmdlDestroyDesc(desc);
+  // Cleanup
+  aclmdlDestroyDesc(desc);
 }
 
 // ========== Batch 4: Unsupported Feature Rejection Tests ==========
 
-TEST_F(UTEST_ACL_Model, aclmdlSetDynamicBatchSize_Om2ModelId_ReturnsNotSupported)
-{
-    // Test that aclmdlSetDynamicBatchSize returns not supported for OM2 model
-    uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 70U;
+TEST_F(UTEST_ACL_Model, aclmdlSetDynamicBatchSize_Om2ModelId_ReturnsNotSupported) {
+  // Test that aclmdlSetDynamicBatchSize returns not supported for OM2 model
+  uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 70U;
 
-    // Register OM2 executor for this model ID
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
+  // Register OM2 executor for this model ID
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
-    // Create dataset
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    EXPECT_NE(dataset, nullptr);
+  // Create dataset
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  EXPECT_NE(dataset, nullptr);
 
-    // Try to set dynamic batch size - should return not supported
-    aclError ret = aclmdlSetDynamicBatchSize(om2_model_id, dataset, 0, 1);
+  // Try to set dynamic batch size - should return not supported
+  aclError ret = aclmdlSetDynamicBatchSize(om2_model_id, dataset, 0, 1);
 
-    // Cleanup
-    aclmdlDestroyDataset(dataset);
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
+  // Cleanup
+  aclmdlDestroyDataset(dataset);
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlSetDynamicHW_Om2ModelId_ReturnsNotSupported)
-{
-    // Test that aclmdlSetDynamicHWSize returns not supported for OM2 model
-    uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 71U;
+TEST_F(UTEST_ACL_Model, aclmdlSetDynamicHW_Om2ModelId_ReturnsNotSupported) {
+  // Test that aclmdlSetDynamicHWSize returns not supported for OM2 model
+  uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 71U;
 
-    // Register OM2 executor for this model ID
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
+  // Register OM2 executor for this model ID
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
-    // Create dataset
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    EXPECT_NE(dataset, nullptr);
+  // Create dataset
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  EXPECT_NE(dataset, nullptr);
 
-    // Try to set dynamic HW size - should return not supported
-    aclError ret = aclmdlSetDynamicHWSize(om2_model_id, dataset, 0, 224, 224);
+  // Try to set dynamic HW size - should return not supported
+  aclError ret = aclmdlSetDynamicHWSize(om2_model_id, dataset, 0, 224, 224);
 
-    // Cleanup
-    aclmdlDestroyDataset(dataset);
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
+  // Cleanup
+  aclmdlDestroyDataset(dataset);
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlSetInputDynamicDims_Om2ModelId_ReturnsNotSupported)
-{
-    // Test that aclmdlSetInputDynamicDims returns not supported for OM2 model
-    uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 72U;
+TEST_F(UTEST_ACL_Model, aclmdlSetInputDynamicDims_Om2ModelId_ReturnsNotSupported) {
+  // Test that aclmdlSetInputDynamicDims returns not supported for OM2 model
+  uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 72U;
 
-    // Register OM2 executor for this model ID
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
+  // Register OM2 executor for this model ID
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
-    // Create dataset
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    EXPECT_NE(dataset, nullptr);
+  // Create dataset
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  EXPECT_NE(dataset, nullptr);
 
-    // Create dims
-    aclmdlIODims dims;
-    dims.dimCount = 4;
-    dims.dims[0] = 1;
-    dims.dims[1] = 224;
-    dims.dims[2] = 224;
-    dims.dims[3] = 3;
+  // Create dims
+  aclmdlIODims dims;
+  dims.dimCount = 4;
+  dims.dims[0] = 1;
+  dims.dims[1] = 224;
+  dims.dims[2] = 224;
+  dims.dims[3] = 3;
 
-    // Try to set input dynamic dims - should return not supported
-    aclError ret = aclmdlSetInputDynamicDims(om2_model_id, dataset, 0, &dims);
+  // Try to set input dynamic dims - should return not supported
+  aclError ret = aclmdlSetInputDynamicDims(om2_model_id, dataset, 0, &dims);
 
-    // Cleanup
-    aclmdlDestroyDataset(dataset);
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
+  // Cleanup
+  aclmdlDestroyDataset(dataset);
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetAIPPInfo_Om2ModelId_ReturnsNotSupported)
-{
-    // Test that getting AIPP info returns not supported for OM2 model
-    uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 74U;
+TEST_F(UTEST_ACL_Model, aclmdlGetAIPPInfo_Om2ModelId_ReturnsNotSupported) {
+  // Test that getting AIPP info returns not supported for OM2 model
+  uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 74U;
 
-    // Register OM2 executor for this model ID
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
+  // Register OM2 executor for this model ID
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
-    // Create descriptor
-    aclmdlDesc *desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
-    desc->modelId = om2_model_id;
+  // Create descriptor
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
+  desc->modelId = om2_model_id;
 
-    // Try to get AIPP info - should return not supported
-    // Note: This is a placeholder test as the actual function may not exist
-    // The routing layer should handle OM2 models appropriately
+  // Try to get AIPP info - should return not supported
+  // Note: This is a placeholder test as the actual function may not exist
+  // The routing layer should handle OM2 models appropriately
 
-    // Cleanup
-    aclmdlDestroyDesc(desc);
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
+  // Cleanup
+  aclmdlDestroyDesc(desc);
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetCurOutputDims_Om2ModelId_ReturnsNotSupported)
-{
-    // Test that aclmdlGetCurOutputDims returns not supported for OM2 model
-    uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 75U;
+TEST_F(UTEST_ACL_Model, aclmdlGetCurOutputDims_Om2ModelId_ReturnsNotSupported) {
+  // Test that aclmdlGetCurOutputDims returns not supported for OM2 model
+  uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 75U;
 
-    // Register OM2 executor for this model ID
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
+  // Register OM2 executor for this model ID
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
-    // Create descriptor
-    aclmdlDesc *desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
-    desc->modelId = om2_model_id;
+  // Create descriptor
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
+  desc->modelId = om2_model_id;
 
-    // Try to get current output dims - should return not supported
-    aclmdlIODims dims;
-    aclError ret = aclmdlGetCurOutputDims(desc, 0, &dims);
+  // Try to get current output dims - should return not supported
+  aclmdlIODims dims;
+  aclError ret = aclmdlGetCurOutputDims(desc, 0, &dims);
 
-    // Cleanup
-    aclmdlDestroyDesc(desc);
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
+  // Cleanup
+  aclmdlDestroyDesc(desc);
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetInputDims_Om2ModelId_ReturnsNotSupported)
-{
-    // Test that aclmdlGetInputDims returns not supported for OM2 model
-    uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 76U;
+TEST_F(UTEST_ACL_Model, aclmdlGetInputDims_Om2ModelId_ReturnsNotSupported) {
+  // Test that aclmdlGetInputDims returns not supported for OM2 model
+  uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 76U;
 
-    // Register OM2 executor for this model ID
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
+  // Register OM2 executor for this model ID
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
-    // Create descriptor
-    aclmdlDesc *desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
-    desc->modelId = om2_model_id;
+  // Create descriptor
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
+  desc->modelId = om2_model_id;
 
-    // Try to get input dims - should return not supported
-    aclmdlIODims dims;
-    aclError ret = aclmdlGetInputDims(desc, 0, &dims);
+  // Try to get input dims - should return not supported
+  aclmdlIODims dims;
+  aclError ret = aclmdlGetInputDims(desc, 0, &dims);
 
-    // Cleanup
-    aclmdlDestroyDesc(desc);
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
+  // Cleanup
+  aclmdlDestroyDesc(desc);
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetOutputDims_Om2ModelId_ReturnsNotSupported)
-{
-    // Test that aclmdlGetOutputDims returns not supported for OM2 model
-    uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 77U;
+TEST_F(UTEST_ACL_Model, aclmdlGetOutputDims_Om2ModelId_ReturnsNotSupported) {
+  // Test that aclmdlGetOutputDims returns not supported for OM2 model
+  uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 77U;
 
-    // Register OM2 executor for this model ID
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
+  // Register OM2 executor for this model ID
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
-    // Create descriptor
-    aclmdlDesc *desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
-    desc->modelId = om2_model_id;
+  // Create descriptor
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
+  desc->modelId = om2_model_id;
 
-    // Try to get output dims - should return not supported
-    aclmdlIODims dims;
-    aclError ret = aclmdlGetOutputDims(desc, 0, &dims);
+  // Try to get output dims - should return not supported
+  aclmdlIODims dims;
+  aclError ret = aclmdlGetOutputDims(desc, 0, &dims);
 
-    // Cleanup
-    aclmdlDestroyDesc(desc);
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
+  // Cleanup
+  aclmdlDestroyDesc(desc);
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlSetDynamicBatchSize_Om2ModelId_ReturnsNotSupported_Batch4)
-{
-    // Test that aclmdlSetDynamicBatchSize returns not supported for OM2 model
-    uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 78U;
+TEST_F(UTEST_ACL_Model, aclmdlSetDynamicBatchSize_Om2ModelId_ReturnsNotSupported_Batch4) {
+  // Test that aclmdlSetDynamicBatchSize returns not supported for OM2 model
+  uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 78U;
 
-    // Register OM2 executor for this model ID
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
+  // Register OM2 executor for this model ID
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
-    // Create dataset
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    EXPECT_NE(dataset, nullptr);
+  // Create dataset
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  EXPECT_NE(dataset, nullptr);
 
-    // Try to set dynamic batch size - should return not supported
-    aclError ret = aclmdlSetDynamicBatchSize(om2_model_id, dataset, 0, 1);
+  // Try to set dynamic batch size - should return not supported
+  aclError ret = aclmdlSetDynamicBatchSize(om2_model_id, dataset, 0, 1);
 
-    // Cleanup
-    aclmdlDestroyDataset(dataset);
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
+  // Cleanup
+  aclmdlDestroyDataset(dataset);
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetInputName_Om2ModelId_ReturnsNotSupported)
-{
-    // Test that aclmdlGetInputName returns not supported for OM2 model
-    uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 79U;
+TEST_F(UTEST_ACL_Model, aclmdlGetInputName_Om2ModelId_ReturnsNotSupported) {
+  // Test that aclmdlGetInputName returns not supported for OM2 model
+  uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 79U;
 
-    // Register OM2 executor for this model ID
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
+  // Register OM2 executor for this model ID
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
-    // Create descriptor
-    aclmdlDesc *desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
-    desc->modelId = om2_model_id;
+  // Create descriptor
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
+  desc->modelId = om2_model_id;
 
-    // Try to get input name - should return not supported
-    const char *name = aclmdlGetInputNameByIndex(desc, 0);
+  // Try to get input name - should return not supported
+  const char *name = aclmdlGetInputNameByIndex(desc, 0);
 
-    // Cleanup
-    aclmdlDestroyDesc(desc);
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
+  // Cleanup
+  aclmdlDestroyDesc(desc);
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
 }
 
 // ========== Batch 5: Bundle and Edge Case Tests ==========
 
-TEST_F(UTEST_ACL_Model, aclmdlLoadFromMem_Om2BundleModel_RoutesToOm2Impl)
-{
-    // Test that aclmdlLoadFromMem routes to OM2 implementation for OM2 Bundle model
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_, testing::_))
-        .WillRepeatedly(Invoke(IsOm2ModelFromData));
+TEST_F(UTEST_ACL_Model, aclmdlLoadFromMem_Om2BundleModel_RoutesToOm2Impl) {
+  // Test that aclmdlLoadFromMem routes to OM2 implementation for OM2 Bundle model
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_, testing::_))
+      .WillRepeatedly(Invoke(IsOm2ModelFromData));
 
-    // Create OM2 Bundle model data with ZIP signature
-    uint8_t om2_bundle_data[] = {0x50, 0x4B, 0x03, 0x04, 0x00, 0x00, 0x00, 0x00};
-    uint32_t modelId = 0;
+  // Create OM2 Bundle model data with ZIP signature
+  uint8_t om2_bundle_data[] = {0x50, 0x4B, 0x03, 0x04, 0x00, 0x00, 0x00, 0x00};
+  uint32_t modelId = 0;
 
-    // Load OM2 Bundle model from memory - should route to OM2 implementation
-    aclError ret = aclmdlLoadFromMem(om2_bundle_data, sizeof(om2_bundle_data), &modelId);
+  // Load OM2 Bundle model from memory - should route to OM2 implementation
+  aclError ret = aclmdlLoadFromMem(om2_bundle_data, sizeof(om2_bundle_data), &modelId);
 
-    // Verify that an OM2 executor was created
-    if (ret == ACL_SUCCESS) {
-        EXPECT_GE(modelId, std::numeric_limits<uint32_t>::max() / 2U);
-        acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(modelId);
-    }
+  // Verify that an OM2 executor was created
+  if (ret == ACL_SUCCESS) {
+    EXPECT_GE(modelId, std::numeric_limits<uint32_t>::max() / 2U);
+    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(modelId);
+  }
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlExecuteV2_Om2BundleId_RoutesToOm2Impl)
-{
-    // Test that aclmdlExecuteV2 routes to OM2 implementation for OM2 Bundle ID
-    uint32_t om2_bundle_id = std::numeric_limits<uint32_t>::max() / 2U + 80U;
+TEST_F(UTEST_ACL_Model, aclmdlExecuteV2_Om2BundleId_RoutesToOm2Impl) {
+  // Test that aclmdlExecuteV2 routes to OM2 implementation for OM2 Bundle ID
+  uint32_t om2_bundle_id = std::numeric_limits<uint32_t>::max() / 2U + 80U;
 
-    // Register OM2 executor for this Bundle ID
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_bundle_id, std::move(om2_executor));
+  // Register OM2 executor for this Bundle ID
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_bundle_id, std::move(om2_executor));
 
-    // Verify that the OM2 executor was registered
-    auto executor = acl::AclResourceManagerOm2::GetInstance().GetOm2Executor(om2_bundle_id);
-    EXPECT_NE(executor, nullptr);
+  // Verify that the OM2 executor was registered
+  auto executor = acl::AclResourceManagerOm2::GetInstance().GetOm2Executor(om2_bundle_id);
+  EXPECT_NE(executor, nullptr);
 
-    // Create datasets
-    aclmdlDataset *inputDataset = aclmdlCreateDataset();
-    EXPECT_NE(inputDataset, nullptr);
-    aclmdlDataset *outputDataset = aclmdlCreateDataset();
-    EXPECT_NE(outputDataset, nullptr);
+  // Create datasets
+  aclmdlDataset *inputDataset = aclmdlCreateDataset();
+  EXPECT_NE(inputDataset, nullptr);
+  aclmdlDataset *outputDataset = aclmdlCreateDataset();
+  EXPECT_NE(outputDataset, nullptr);
 
-    // Execute with OM2 Bundle ID - should route to OM2 executor
-    aclError ret = aclmdlExecuteV2(om2_bundle_id, inputDataset, outputDataset, nullptr, nullptr);
+  // Execute with OM2 Bundle ID - should route to OM2 executor
+  aclError ret = aclmdlExecuteV2(om2_bundle_id, inputDataset, outputDataset, nullptr, nullptr);
 
-    // Cleanup
-    aclmdlDestroyDataset(inputDataset);
-    aclmdlDestroyDataset(outputDataset);
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_bundle_id);
+  // Cleanup
+  aclmdlDestroyDataset(inputDataset);
+  aclmdlDestroyDataset(outputDataset);
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_bundle_id);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlUnload_Om2BundleId_RoutesToOm2Impl)
-{
-    // Test that aclmdlUnload routes to OM2 implementation for OM2 Bundle ID
-    uint32_t om2_bundle_id = std::numeric_limits<uint32_t>::max() / 2U + 81U;
+TEST_F(UTEST_ACL_Model, aclmdlUnload_Om2BundleId_RoutesToOm2Impl) {
+  // Test that aclmdlUnload routes to OM2 implementation for OM2 Bundle ID
+  uint32_t om2_bundle_id = std::numeric_limits<uint32_t>::max() / 2U + 81U;
 
-    // Register OM2 executor for this Bundle ID
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_bundle_id, std::move(om2_executor));
+  // Register OM2 executor for this Bundle ID
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_bundle_id, std::move(om2_executor));
 
-    // Verify that the OM2 executor exists before unload
-    auto executor_before = acl::AclResourceManagerOm2::GetInstance().GetOm2Executor(om2_bundle_id);
-    EXPECT_NE(executor_before, nullptr);
+  // Verify that the OM2 executor exists before unload
+  auto executor_before = acl::AclResourceManagerOm2::GetInstance().GetOm2Executor(om2_bundle_id);
+  EXPECT_NE(executor_before, nullptr);
 
-    // Unload OM2 Bundle - should route to OM2 implementation
-    aclError ret = aclmdlUnload(om2_bundle_id);
+  // Unload OM2 Bundle - should route to OM2 implementation
+  aclError ret = aclmdlUnload(om2_bundle_id);
 
-    // Cleanup - explicitly delete the OM2 executor
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_bundle_id);
+  // Cleanup - explicitly delete the OM2 executor
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_bundle_id);
 
-    // Verify that the OM2 executor was deleted
-    auto executor_after = acl::AclResourceManagerOm2::GetInstance().GetOm2Executor(om2_bundle_id);
-    EXPECT_EQ(executor_after, nullptr);
+  // Verify that the OM2 executor was deleted
+  auto executor_after = acl::AclResourceManagerOm2::GetInstance().GetOm2Executor(om2_bundle_id);
+  EXPECT_EQ(executor_after, nullptr);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlLoadFromMem_InvalidModelData_HandlesGracefully)
-{
-    // Test that aclmdlLoadFromMem handles invalid model data gracefully
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_, testing::_))
-        .WillRepeatedly(Invoke(IsNotOm2ModelFromData));
+TEST_F(UTEST_ACL_Model, aclmdlLoadFromMem_InvalidModelData_HandlesGracefully) {
+  // Test that aclmdlLoadFromMem handles invalid model data gracefully
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_, testing::_))
+      .WillRepeatedly(Invoke(IsNotOm2ModelFromData));
 
-    // Create invalid model data (too small to be a valid model)
-    uint8_t invalid_model_data[] = {0xFF, 0xFF, 0xFF, 0xFF};
-    uint32_t modelId = 0;
+  // Create invalid model data (too small to be a valid model)
+  uint8_t invalid_model_data[] = {0xFF, 0xFF, 0xFF, 0xFF};
+  uint32_t modelId = 0;
 
-    // Load invalid model from memory - should fail gracefully
-    aclError ret = aclmdlLoadFromMem(invalid_model_data, sizeof(invalid_model_data), &modelId);
+  // Load invalid model from memory - should fail gracefully
+  aclError ret = aclmdlLoadFromMem(invalid_model_data, sizeof(invalid_model_data), &modelId);
 
-    // Verify that the function returns an error for invalid model data
-    EXPECT_NE(ret, ACL_SUCCESS);
+  // Verify that the function returns an error for invalid model data
+  EXPECT_NE(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlExecuteV2_InvalidModelId_HandlesGracefully)
-{
-    // Test that aclmdlExecuteV2 handles invalid model ID gracefully
-    uint32_t invalid_model_id = 0xFFFFFFFFU;  // Invalid model ID
+TEST_F(UTEST_ACL_Model, aclmdlExecuteV2_InvalidModelId_HandlesGracefully) {
+  // Test that aclmdlExecuteV2 handles invalid model ID gracefully
+  uint32_t invalid_model_id = 0xFFFFFFFFU;  // Invalid model ID
 
-    // Create datasets
-    aclmdlDataset *inputDataset = aclmdlCreateDataset();
-    EXPECT_NE(inputDataset, nullptr);
-    aclmdlDataset *outputDataset = aclmdlCreateDataset();
-    EXPECT_NE(outputDataset, nullptr);
+  // Create datasets
+  aclmdlDataset *inputDataset = aclmdlCreateDataset();
+  EXPECT_NE(inputDataset, nullptr);
+  aclmdlDataset *outputDataset = aclmdlCreateDataset();
+  EXPECT_NE(outputDataset, nullptr);
 
-    // Execute with invalid model ID - should fail gracefully
-    aclError ret = aclmdlExecuteV2(invalid_model_id, inputDataset, outputDataset, nullptr, nullptr);
+  // Execute with invalid model ID - should fail gracefully
+  aclError ret = aclmdlExecuteV2(invalid_model_id, inputDataset, outputDataset, nullptr, nullptr);
 
-    // Verify that the function returns an error for invalid model ID
-    EXPECT_NE(ret, ACL_SUCCESS);
+  // Verify that the function returns an error for invalid model ID
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    // Cleanup
-    aclmdlDestroyDataset(inputDataset);
-    aclmdlDestroyDataset(outputDataset);
+  // Cleanup
+  aclmdlDestroyDataset(inputDataset);
+  aclmdlDestroyDataset(outputDataset);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetDesc_InvalidModelId_HandlesGracefully)
-{
-    // Test that aclmdlGetDesc handles invalid model ID gracefully
-    uint32_t invalid_model_id = 0xFFFFFFFEU;  // Invalid model ID
+TEST_F(UTEST_ACL_Model, aclmdlGetDesc_InvalidModelId_HandlesGracefully) {
+  // Test that aclmdlGetDesc handles invalid model ID gracefully
+  uint32_t invalid_model_id = 0xFFFFFFFEU;  // Invalid model ID
 
-    // Create descriptor
-    aclmdlDesc *desc = aclmdlCreateDesc();
-    EXPECT_NE(desc, nullptr);
+  // Create descriptor
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  EXPECT_NE(desc, nullptr);
 
-    // Get descriptor with invalid model ID - should handle gracefully
-    aclError ret = aclmdlGetDesc(desc, invalid_model_id);
+  // Get descriptor with invalid model ID - should handle gracefully
+  aclError ret = aclmdlGetDesc(desc, invalid_model_id);
 
-    // Verify that the function returns a valid result (may succeed or fail)
-    // The important thing is that it doesn't crash and returns a valid error code
-    EXPECT_TRUE(ret == ACL_SUCCESS || ret != ACL_SUCCESS);
+  // Verify that the function returns a valid result (may succeed or fail)
+  // The important thing is that it doesn't crash and returns a valid error code
+  EXPECT_TRUE(ret == ACL_SUCCESS || ret != ACL_SUCCESS);
 
-    // Cleanup
-    aclmdlDestroyDesc(desc);
+  // Cleanup
+  aclmdlDestroyDesc(desc);
 }
 
 // ============================================================================
 // OM2 Interface Test Cases - Queue Loading Interfaces
 // ============================================================================
 
-TEST_F(UTEST_ACL_Model, aclmdlLoadFromFileWithQ_Om2Model_ReturnsNotSupported)
-{
-    // Test that aclmdlLoadFromFileWithQ returns not supported for OM2 model
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_))
-        .WillRepeatedly(Invoke(IsOm2ModelFromFile));
+TEST_F(UTEST_ACL_Model, aclmdlLoadFromFileWithQ_Om2Model_ReturnsNotSupported) {
+  // Test that aclmdlLoadFromFileWithQ returns not supported for OM2 model
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_))
+      .WillRepeatedly(Invoke(IsOm2ModelFromFile));
 
-    uint32_t modelId = 0;
-    uint32_t queueIds[] = {0};
-    // Try to load OM2 model from file with queue - should return not supported
-    aclError ret = aclmdlLoadFromFileWithQ("test_om2_model.om2", &modelId, queueIds, 1, queueIds, 1);
+  uint32_t modelId = 0;
+  uint32_t queueIds[] = {0};
+  // Try to load OM2 model from file with queue - should return not supported
+  aclError ret = aclmdlLoadFromFileWithQ("test_om2_model.om2", &modelId, queueIds, 1, queueIds, 1);
 
-    // Verify that the function returns not supported error
-    EXPECT_EQ(ret, ACL_ERROR_API_NOT_SUPPORT);
+  // Verify that the function returns not supported error
+  EXPECT_EQ(ret, ACL_ERROR_API_NOT_SUPPORT);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlLoadFromMemWithQ_Om2Model_ReturnsNotSupported)
-{
-    // Test that aclmdlLoadFromMemWithQ returns not supported for OM2 model
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_, testing::_))
-        .WillRepeatedly(Invoke(IsOm2ModelFromData));
+TEST_F(UTEST_ACL_Model, aclmdlLoadFromMemWithQ_Om2Model_ReturnsNotSupported) {
+  // Test that aclmdlLoadFromMemWithQ returns not supported for OM2 model
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_, testing::_))
+      .WillRepeatedly(Invoke(IsOm2ModelFromData));
 
-    // Create OM2 model data with ZIP signature
-    uint8_t om2_model_data[] = {0x50, 0x4B, 0x03, 0x04, 0x00, 0x00, 0x00, 0x00};
-    uint32_t modelId = 0;
-    uint32_t queueIds[] = {0};
+  // Create OM2 model data with ZIP signature
+  uint8_t om2_model_data[] = {0x50, 0x4B, 0x03, 0x04, 0x00, 0x00, 0x00, 0x00};
+  uint32_t modelId = 0;
+  uint32_t queueIds[] = {0};
 
-    // Try to load OM2 model from memory with queue - should return not supported
-    aclError ret = aclmdlLoadFromMemWithQ(om2_model_data, sizeof(om2_model_data), &modelId, queueIds, 1, queueIds, 1);
+  // Try to load OM2 model from memory with queue - should return not supported
+  aclError ret = aclmdlLoadFromMemWithQ(om2_model_data, sizeof(om2_model_data), &modelId, queueIds, 1, queueIds, 1);
 
-    // Verify that the function returns not supported error
-    EXPECT_EQ(ret, ACL_ERROR_API_NOT_SUPPORT);
+  // Verify that the function returns not supported error
+  EXPECT_EQ(ret, ACL_ERROR_API_NOT_SUPPORT);
 }
 
 // ============================================================================
 // OM2 Interface Test Cases - AIPP Interfaces
 // ============================================================================
 
-TEST_F(UTEST_ACL_Model, aclmdlGetAippType_Om2ModelId_ReturnsNotSupported)
-{
-    // Test that aclmdlGetAippType returns not supported for OM2 model
-    // First load an OM2 model to get a valid OM2 model ID
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_))
-        .WillRepeatedly(Invoke(IsOm2ModelFromFile));
+TEST_F(UTEST_ACL_Model, aclmdlGetAippType_Om2ModelId_ReturnsNotSupported) {
+  // Test that aclmdlGetAippType returns not supported for OM2 model
+  // First load an OM2 model to get a valid OM2 model ID
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_))
+      .WillRepeatedly(Invoke(IsOm2ModelFromFile));
 
-    uint32_t modelId = 0;
-    aclError load_ret = aclmdlLoadFromFile("test_om2_model.om2", &modelId);
+  uint32_t modelId = 0;
+  aclError load_ret = aclmdlLoadFromFile("test_om2_model.om2", &modelId);
 
-    if (load_ret == ACL_SUCCESS && modelId >= std::numeric_limits<uint32_t>::max() / 2U) {
-        // Try to get AIPP type - should return not supported
-        aclmdlInputAippType aippType;
-        size_t aippTypeNum = 0;
-        aclError ret = aclmdlGetAippType(modelId, 0, &aippType, &aippTypeNum);
+  if (load_ret == ACL_SUCCESS && modelId >= std::numeric_limits<uint32_t>::max() / 2U) {
+    // Try to get AIPP type - should return not supported
+    aclmdlInputAippType aippType;
+    size_t aippTypeNum = 0;
+    aclError ret = aclmdlGetAippType(modelId, 0, &aippType, &aippTypeNum);
 
-        // Verify that the function returns not supported error
-        EXPECT_EQ(ret, ACL_ERROR_FEATURE_UNSUPPORTED);
+    // Verify that the function returns not supported error
+    EXPECT_EQ(ret, ACL_ERROR_FEATURE_UNSUPPORTED);
 
-        // Cleanup
-        acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(modelId);
-    }
+    // Cleanup
+    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(modelId);
+  }
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetFirstAippInfo_Om2ModelId_ReturnsNotSupported)
-{
-    // Test that aclmdlGetFirstAippInfo returns not supported for OM2 model
-    // First load an OM2 model to get a valid OM2 model ID
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_))
-        .WillRepeatedly(Invoke(IsOm2ModelFromFile));
+TEST_F(UTEST_ACL_Model, aclmdlGetFirstAippInfo_Om2ModelId_ReturnsNotSupported) {
+  // Test that aclmdlGetFirstAippInfo returns not supported for OM2 model
+  // First load an OM2 model to get a valid OM2 model ID
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_))
+      .WillRepeatedly(Invoke(IsOm2ModelFromFile));
 
-    uint32_t modelId = 0;
-    aclError load_ret = aclmdlLoadFromFile("test_om2_model.om2", &modelId);
+  uint32_t modelId = 0;
+  aclError load_ret = aclmdlLoadFromFile("test_om2_model.om2", &modelId);
 
-    if (load_ret == ACL_SUCCESS && modelId >= std::numeric_limits<uint32_t>::max() / 2U) {
-        // Try to get first AIPP info - should return not supported
-        aclAippInfo aippInfo;
-        aclError ret = aclmdlGetFirstAippInfo(modelId, 0, &aippInfo);
+  if (load_ret == ACL_SUCCESS && modelId >= std::numeric_limits<uint32_t>::max() / 2U) {
+    // Try to get first AIPP info - should return not supported
+    aclAippInfo aippInfo;
+    aclError ret = aclmdlGetFirstAippInfo(modelId, 0, &aippInfo);
 
-        // Verify that the function returns not supported error
-        EXPECT_EQ(ret, ACL_ERROR_FEATURE_UNSUPPORTED);
+    // Verify that the function returns not supported error
+    EXPECT_EQ(ret, ACL_ERROR_FEATURE_UNSUPPORTED);
 
-        // Cleanup
-        acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(modelId);
-    }
+    // Cleanup
+    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(modelId);
+  }
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlSetInputAIPP_Om2ModelId_ReturnsNotSupported)
-{
-    // Test that aclmdlSetInputAIPP returns not supported for OM2 model
-    // First load an OM2 model to get a valid OM2 model ID
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_))
-        .WillRepeatedly(Invoke(IsOm2ModelFromFile));
+TEST_F(UTEST_ACL_Model, aclmdlSetInputAIPP_Om2ModelId_ReturnsNotSupported) {
+  // Test that aclmdlSetInputAIPP returns not supported for OM2 model
+  // First load an OM2 model to get a valid OM2 model ID
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_))
+      .WillRepeatedly(Invoke(IsOm2ModelFromFile));
 
-    uint32_t modelId = 0;
-    aclError load_ret = aclmdlLoadFromFile("test_om2_model.om2", &modelId);
+  uint32_t modelId = 0;
+  aclError load_ret = aclmdlLoadFromFile("test_om2_model.om2", &modelId);
 
-    if (load_ret == ACL_SUCCESS && modelId >= std::numeric_limits<uint32_t>::max() / 2U) {
-        // Create dummy dataset
-        aclmdlDataset *dataset = aclmdlCreateDataset();
-        ASSERT_NE(dataset, nullptr);
+  if (load_ret == ACL_SUCCESS && modelId >= std::numeric_limits<uint32_t>::max() / 2U) {
+    // Create dummy dataset
+    aclmdlDataset *dataset = aclmdlCreateDataset();
+    ASSERT_NE(dataset, nullptr);
 
-        // Try to set input AIPP - should return not supported
-        aclError ret = aclmdlSetInputAIPP(modelId, dataset, 0, nullptr);
+    // Try to set input AIPP - should return not supported
+    aclError ret = aclmdlSetInputAIPP(modelId, dataset, 0, nullptr);
 
-        // Verify that the function returns not supported error
-        EXPECT_EQ(ret, ACL_ERROR_FEATURE_UNSUPPORTED);
+    // Verify that the function returns not supported error
+    EXPECT_EQ(ret, ACL_ERROR_FEATURE_UNSUPPORTED);
 
-        // Cleanup
-        aclmdlDestroyDataset(dataset);
-        acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(modelId);
-    }
+    // Cleanup
+    aclmdlDestroyDataset(dataset);
+    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(modelId);
+  }
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlSetAIPPByInputIndex_Om2ModelId_ReturnsNotSupported)
-{
-    // Test that aclmdlSetAIPPByInputIndex returns not supported for OM2 model
-    // First load an OM2 model to get a valid OM2 model ID
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_))
-        .WillRepeatedly(Invoke(IsOm2ModelFromFile));
+TEST_F(UTEST_ACL_Model, aclmdlSetAIPPByInputIndex_Om2ModelId_ReturnsNotSupported) {
+  // Test that aclmdlSetAIPPByInputIndex returns not supported for OM2 model
+  // First load an OM2 model to get a valid OM2 model ID
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_))
+      .WillRepeatedly(Invoke(IsOm2ModelFromFile));
 
-    uint32_t modelId = 0;
-    aclError load_ret = aclmdlLoadFromFile("test_om2_model.om2", &modelId);
+  uint32_t modelId = 0;
+  aclError load_ret = aclmdlLoadFromFile("test_om2_model.om2", &modelId);
 
-    if (load_ret == ACL_SUCCESS && modelId >= std::numeric_limits<uint32_t>::max() / 2U) {
-        // Create dummy dataset
-        aclmdlDataset *dataset = aclmdlCreateDataset();
-        ASSERT_NE(dataset, nullptr);
+  if (load_ret == ACL_SUCCESS && modelId >= std::numeric_limits<uint32_t>::max() / 2U) {
+    // Create dummy dataset
+    aclmdlDataset *dataset = aclmdlCreateDataset();
+    ASSERT_NE(dataset, nullptr);
 
-        // Try to set AIPP by input index - should return not supported
-        aclError ret = aclmdlSetAIPPByInputIndex(modelId, dataset, 0, nullptr);
+    // Try to set AIPP by input index - should return not supported
+    aclError ret = aclmdlSetAIPPByInputIndex(modelId, dataset, 0, nullptr);
 
-        // Verify that the function returns not supported error
-        EXPECT_EQ(ret, ACL_ERROR_FEATURE_UNSUPPORTED);
+    // Verify that the function returns not supported error
+    EXPECT_EQ(ret, ACL_ERROR_FEATURE_UNSUPPORTED);
 
-        // Cleanup
-        aclmdlDestroyDataset(dataset);
-        acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(modelId);
-    }
+    // Cleanup
+    aclmdlDestroyDataset(dataset);
+    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(modelId);
+  }
 }
 
 // ============================================================================
 // OM2 Interface Test Cases - Bundle Interfaces
 // ============================================================================
 
-TEST_F(UTEST_ACL_Model, aclmdlBundleLoadFromFile_Om2Bundle_ReturnsNotSupported)
-{
-    // Test that aclmdlBundleLoadFromFile returns not supported for OM2 bundle
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_))
-        .WillRepeatedly(Invoke(IsOm2ModelFromFile));
+TEST_F(UTEST_ACL_Model, aclmdlBundleLoadFromFile_Om2Bundle_ReturnsNotSupported) {
+  // Test that aclmdlBundleLoadFromFile returns not supported for OM2 bundle
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_))
+      .WillRepeatedly(Invoke(IsOm2ModelFromFile));
 
-    uint32_t bundleId = 0;
-    // Try to load OM2 bundle from file - should return not supported
-    aclError ret = aclmdlBundleLoadFromFile("test_om2_bundle.om2", &bundleId);
+  uint32_t bundleId = 0;
+  // Try to load OM2 bundle from file - should return not supported
+  aclError ret = aclmdlBundleLoadFromFile("test_om2_bundle.om2", &bundleId);
 
-    // Verify that the function returns not supported error
-    EXPECT_EQ(ret, ACL_ERROR_API_NOT_SUPPORT);
+  // Verify that the function returns not supported error
+  EXPECT_EQ(ret, ACL_ERROR_API_NOT_SUPPORT);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlBundleGetModelNum_Om2BundleId_ReturnsNotSupported)
-{
-    // Test that aclmdlBundleGetModelNum returns not supported for OM2 bundle
-    // First load an OM2 model to get a valid OM2 model ID
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_))
-        .WillRepeatedly(Invoke(IsOm2ModelFromFile));
+TEST_F(UTEST_ACL_Model, aclmdlBundleGetModelNum_Om2BundleId_ReturnsNotSupported) {
+  // Test that aclmdlBundleGetModelNum returns not supported for OM2 bundle
+  // First load an OM2 model to get a valid OM2 model ID
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), IsOm2Model(testing::_, testing::_))
+      .WillRepeatedly(Invoke(IsOm2ModelFromFile));
 
-    uint32_t modelId = 0;
-    aclError load_ret = aclmdlLoadFromFile("test_om2_model.om2", &modelId);
+  uint32_t modelId = 0;
+  aclError load_ret = aclmdlLoadFromFile("test_om2_model.om2", &modelId);
 
-    if (load_ret == ACL_SUCCESS && modelId >= std::numeric_limits<uint32_t>::max() / 2U) {
-        // Try to get model number - should return not supported
-        size_t modelNum = 0;
-        aclError ret = aclmdlBundleGetModelNum(modelId, &modelNum);
+  if (load_ret == ACL_SUCCESS && modelId >= std::numeric_limits<uint32_t>::max() / 2U) {
+    // Try to get model number - should return not supported
+    size_t modelNum = 0;
+    aclError ret = aclmdlBundleGetModelNum(modelId, &modelNum);
 
-        // Verify that the function returns not supported error
-        EXPECT_EQ(ret, ACL_ERROR_FEATURE_UNSUPPORTED);
+    // Verify that the function returns not supported error
+    EXPECT_EQ(ret, ACL_ERROR_FEATURE_UNSUPPORTED);
 
-        // Cleanup
-        acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(modelId);
-    }
+    // Cleanup
+    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(modelId);
+  }
 }
 
 // ============================================================================
 // OM2 Interface Test Cases - HCCL Recovery Interface
 // ============================================================================
 
-TEST_F(UTEST_ACL_Model, aclRecoverAllHcclTasks_CallsBothOmAndOm2)
-{
-    // Test that aclRecoverAllHcclTasks calls both OM and OM2 implementations
-    // This interface should recover HCCL tasks for both OM and OM2 models
+TEST_F(UTEST_ACL_Model, aclRecoverAllHcclTasks_CallsBothOmAndOm2) {
+  // Test that aclRecoverAllHcclTasks calls both OM and OM2 implementations
+  // This interface should recover HCCL tasks for both OM and OM2 models
 
-    // Call the recovery function with device ID 0
-    aclError ret = aclRecoverAllHcclTasks(0);
+  // Call the recovery function with device ID 0
+  aclError ret = aclRecoverAllHcclTasks(0);
 
-    // Verify that the function returns success or appropriate error code
-    // The important thing is that it doesn't crash and handles both OM and OM2 models
-    EXPECT_TRUE(ret == ACL_SUCCESS || ret != ACL_SUCCESS);
+  // Verify that the function returns success or appropriate error code
+  // The important thing is that it doesn't crash and handles both OM and OM2 models
+  EXPECT_TRUE(ret == ACL_SUCCESS || ret != ACL_SUCCESS);
 }
 
 TEST_F(UTEST_ACL_Model, TestOm2DumpInitCallback) {
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), Om2DumpGlobalInit())
-        .WillOnce(Return(ge::SUCCESS));
-    EXPECT_EQ(Om2DumpInitCallbackFunc(nullptr, 0, nullptr), ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), Om2DumpGlobalInit()).WillOnce(Return(ge::SUCCESS));
+  EXPECT_EQ(Om2DumpInitCallbackFunc(nullptr, 0, nullptr), ACL_SUCCESS);
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), Om2DumpGlobalInit())
-        .WillOnce(Return(ge::FAILED));
-    EXPECT_NE(Om2DumpInitCallbackFunc(nullptr, 0, nullptr), ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), Om2DumpGlobalInit()).WillOnce(Return(ge::FAILED));
+  EXPECT_NE(Om2DumpInitCallbackFunc(nullptr, 0, nullptr), ACL_SUCCESS);
 }
 
 TEST_F(UTEST_ACL_Model, TestOm2DumpInitCallbackRegister) {
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(),
-                aclInitCallbackRegister(ACL_REG_TYPE_OTHER, Om2DumpInitCallbackFunc, nullptr))
-        .WillOnce(Return(ACL_SUCCESS));
-    EXPECT_EQ(RegOm2DumpInitCallback(), ACL_SUCCESS);
-    EXPECT_EQ(UnRegOm2DumpInitCallback(), ACL_SUCCESS);
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(),
+              aclInitCallbackRegister(ACL_REG_TYPE_OTHER, Om2DumpInitCallbackFunc, nullptr))
+      .WillOnce(Return(ACL_SUCCESS));
+  EXPECT_EQ(RegOm2DumpInitCallback(), ACL_SUCCESS);
+  EXPECT_EQ(UnRegOm2DumpInitCallback(), ACL_SUCCESS);
 }
 
 // ============================================================================
 // model_common Shared Function Test Cases
 // ============================================================================
 
-TEST_F(UTEST_ACL_Model, GetCurGearIndex_WithDynamicBatch_ReturnsCorrectIndex)
-{
-    aclmdlDesc desc;
-    desc.modelId = 1;
-    desc.dynamicBatch.push_back(1);
-    desc.dynamicBatch.push_back(4);
-    desc.dynamicBatch.push_back(8);
+TEST_F(UTEST_ACL_Model, GetCurGearIndex_WithDynamicBatch_ReturnsCorrectIndex) {
+  aclmdlDesc desc;
+  desc.modelId = 1;
+  desc.dynamicBatch.push_back(1);
+  desc.dynamicBatch.push_back(4);
+  desc.dynamicBatch.push_back(8);
 
-    std::vector<uint64_t> shapeInfo = {4};
-    size_t curGearIndex = 0;
+  std::vector<uint64_t> shapeInfo = {4};
+  size_t curGearIndex = 0;
 
-    aclError ret = acl::GetCurGearIndex(&desc, shapeInfo, ge::DYNAMIC_BATCH, curGearIndex);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    EXPECT_EQ(curGearIndex, 1U);
+  aclError ret = acl::GetCurGearIndex(&desc, shapeInfo, ge::DYNAMIC_BATCH, curGearIndex);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_EQ(curGearIndex, 1U);
 }
 
-TEST_F(UTEST_ACL_Model, GetCurGearIndex_WithDynamicImage_ReturnsCorrectIndex)
-{
-    aclmdlDesc desc;
-    desc.modelId = 1;
-    desc.dynamicHW.push_back({224, 224});
-    desc.dynamicHW.push_back({448, 448});
+TEST_F(UTEST_ACL_Model, GetCurGearIndex_WithDynamicImage_ReturnsCorrectIndex) {
+  aclmdlDesc desc;
+  desc.modelId = 1;
+  desc.dynamicHW.push_back({224, 224});
+  desc.dynamicHW.push_back({448, 448});
 
-    std::vector<uint64_t> shapeInfo = {448, 448};
-    size_t curGearIndex = 0;
+  std::vector<uint64_t> shapeInfo = {448, 448};
+  size_t curGearIndex = 0;
 
-    aclError ret = acl::GetCurGearIndex(&desc, shapeInfo, ge::DYNAMIC_IMAGE, curGearIndex);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    EXPECT_EQ(curGearIndex, 1U);
+  aclError ret = acl::GetCurGearIndex(&desc, shapeInfo, ge::DYNAMIC_IMAGE, curGearIndex);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_EQ(curGearIndex, 1U);
 }
 
-TEST_F(UTEST_ACL_Model, GetCurGearIndex_WithDynamicDims_ReturnsCorrectIndex)
-{
-    aclmdlDesc desc;
-    desc.modelId = 1;
-    desc.dynamicDims.push_back({1, 3, 224, 224});
-    desc.dynamicDims.push_back({1, 3, 448, 448});
+TEST_F(UTEST_ACL_Model, GetCurGearIndex_WithDynamicDims_ReturnsCorrectIndex) {
+  aclmdlDesc desc;
+  desc.modelId = 1;
+  desc.dynamicDims.push_back({1, 3, 224, 224});
+  desc.dynamicDims.push_back({1, 3, 448, 448});
 
-    std::vector<uint64_t> shapeInfo = {1, 3, 448, 448};
-    size_t curGearIndex = 0;
+  std::vector<uint64_t> shapeInfo = {1, 3, 448, 448};
+  size_t curGearIndex = 0;
 
-    aclError ret = acl::GetCurGearIndex(&desc, shapeInfo, ge::DYNAMIC_DIMS, curGearIndex);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    EXPECT_EQ(curGearIndex, 1U);
+  aclError ret = acl::GetCurGearIndex(&desc, shapeInfo, ge::DYNAMIC_DIMS, curGearIndex);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_EQ(curGearIndex, 1U);
 }
 
-TEST_F(UTEST_ACL_Model, GetCurGearIndex_WithInvalidGear_ReturnsNotFound)
-{
-    aclmdlDesc desc;
-    desc.modelId = 1;
-    desc.dynamicBatch.push_back(1);
-    desc.dynamicBatch.push_back(4);
+TEST_F(UTEST_ACL_Model, GetCurGearIndex_WithInvalidGear_ReturnsNotFound) {
+  aclmdlDesc desc;
+  desc.modelId = 1;
+  desc.dynamicBatch.push_back(1);
+  desc.dynamicBatch.push_back(4);
 
-    std::vector<uint64_t> shapeInfo = {8};  // Not in dynamicBatch
-    size_t curGearIndex = 0;
+  std::vector<uint64_t> shapeInfo = {8};  // Not in dynamicBatch
+  size_t curGearIndex = 0;
 
-    aclError ret = acl::GetCurGearIndex(&desc, shapeInfo, ge::DYNAMIC_BATCH, curGearIndex);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  aclError ret = acl::GetCurGearIndex(&desc, shapeInfo, ge::DYNAMIC_BATCH, curGearIndex);
+  EXPECT_NE(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, GetCurOuputShapeInfo_ReturnsCorrectShape)
-{
-    aclmdlDesc desc;
-    desc.modelId = 1;
+TEST_F(UTEST_ACL_Model, GetCurOuputShapeInfo_ReturnsCorrectShape) {
+  aclmdlDesc desc;
+  desc.modelId = 1;
 
-    // Add output tensor descriptor
-    aclmdlTensorDesc outDesc;
-    outDesc.name = "output";
-    outDesc.dims = {1, 1000};
-    desc.outputDesc.push_back(outDesc);
+  // Add output tensor descriptor
+  aclmdlTensorDesc outDesc;
+  outDesc.name = "output";
+  outDesc.dims = {1, 1000};
+  desc.outputDesc.push_back(outDesc);
 
-    // Add dynamic output shape info
-    // Format: [gear_index, output_index, dim0, dim1, ...]
-    desc.dynamicOutputShape.push_back({0, 0, 1, 1000});
-    desc.dynamicOutputShape.push_back({1, 0, 4, 1000});
+  // Add dynamic output shape info
+  // Format: [gear_index, output_index, dim0, dim1, ...]
+  desc.dynamicOutputShape.push_back({0, 0, 1, 1000});
+  desc.dynamicOutputShape.push_back({1, 0, 4, 1000});
 
-    aclmdlIODims dims = {};
-    aclError ret = acl::GetCurOuputShapeInfo(&desc, 0, 1, &dims);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    EXPECT_EQ(dims.dimCount, 2U);
-    EXPECT_EQ(dims.dims[0], 4);
-    EXPECT_EQ(dims.dims[1], 1000);
+  aclmdlIODims dims = {};
+  aclError ret = acl::GetCurOuputShapeInfo(&desc, 0, 1, &dims);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_EQ(dims.dimCount, 2U);
+  EXPECT_EQ(dims.dims[0], 4);
+  EXPECT_EQ(dims.dims[1], 1000);
 }
 
-TEST_F(UTEST_ACL_Model, GetCurOuputShapeInfo_WithStaticOutput_ReturnsCorrectShape)
-{
-    aclmdlDesc desc;
-    desc.modelId = 1;
+TEST_F(UTEST_ACL_Model, GetCurOuputShapeInfo_WithStaticOutput_ReturnsCorrectShape) {
+  aclmdlDesc desc;
+  desc.modelId = 1;
 
-    aclmdlTensorDesc outDesc;
-    outDesc.name = "output";
-    outDesc.dims = {1, 1000};
-    desc.outputDesc.push_back(outDesc);
+  aclmdlTensorDesc outDesc;
+  outDesc.name = "output";
+  outDesc.dims = {1, 1000};
+  desc.outputDesc.push_back(outDesc);
 
-    // Static output (gear_index = -1)
-    desc.dynamicOutputShape.push_back({-1, 0, 1, 1000});
+  // Static output (gear_index = -1)
+  desc.dynamicOutputShape.push_back({-1, 0, 1, 1000});
 
-    aclmdlIODims dims = {};
-    aclError ret = acl::GetCurOuputShapeInfo(&desc, 0, 5, &dims);  // Any gear index
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    EXPECT_EQ(dims.dimCount, 2U);
-    EXPECT_EQ(dims.dims[0], 1);
-    EXPECT_EQ(dims.dims[1], 1000);
+  aclmdlIODims dims = {};
+  aclError ret = acl::GetCurOuputShapeInfo(&desc, 0, 5, &dims);  // Any gear index
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_EQ(dims.dimCount, 2U);
+  EXPECT_EQ(dims.dims[0], 1);
+  EXPECT_EQ(dims.dims[1], 1000);
 }
 
-TEST_F(UTEST_ACL_Model, GetModelOutputShapeInfoHelp_ParsesCorrectly)
-{
-    aclmdlDesc desc;
-    desc.modelId = 1;
+TEST_F(UTEST_ACL_Model, GetModelOutputShapeInfoHelp_ParsesCorrectly) {
+  aclmdlDesc desc;
+  desc.modelId = 1;
 
-    std::vector<std::string> geDynamicOutputShape = {
-        "0:0:1:1000",
-        "1:0:4:1000",
-        "-1:1:1:1"  // Static output
-    };
+  std::vector<std::string> geDynamicOutputShape = {
+      "0:0:1:1000", "1:0:4:1000",
+      "-1:1:1:1"  // Static output
+  };
 
-    aclError ret = acl::GetModelOutputShapeInfoHelp(&desc, geDynamicOutputShape);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    EXPECT_EQ(desc.dynamicOutputShape.size(), 3U);
+  aclError ret = acl::GetModelOutputShapeInfoHelp(&desc, geDynamicOutputShape);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_EQ(desc.dynamicOutputShape.size(), 3U);
 
-    // First gear, first output
-    EXPECT_EQ(desc.dynamicOutputShape[0].size(), 4U);
-    EXPECT_EQ(desc.dynamicOutputShape[0][0], 0);  // gear_index
-    EXPECT_EQ(desc.dynamicOutputShape[0][1], 0);  // output_index
-    EXPECT_EQ(desc.dynamicOutputShape[0][2], 1);  // dim0
-    EXPECT_EQ(desc.dynamicOutputShape[0][3], 1000);  // dim1
+  // First gear, first output
+  EXPECT_EQ(desc.dynamicOutputShape[0].size(), 4U);
+  EXPECT_EQ(desc.dynamicOutputShape[0][0], 0);     // gear_index
+  EXPECT_EQ(desc.dynamicOutputShape[0][1], 0);     // output_index
+  EXPECT_EQ(desc.dynamicOutputShape[0][2], 1);     // dim0
+  EXPECT_EQ(desc.dynamicOutputShape[0][3], 1000);  // dim1
 
-    // Static output (negative gear index)
-    EXPECT_EQ(desc.dynamicOutputShape[2][0], -1);
+  // Static output (negative gear index)
+  EXPECT_EQ(desc.dynamicOutputShape[2][0], -1);
 }
 
-TEST_F(UTEST_ACL_Model, GetModelOutputShapeInfoHelp_WithEmptyInput_ReturnsSuccess)
-{
-    aclmdlDesc desc;
-    desc.modelId = 1;
+TEST_F(UTEST_ACL_Model, GetModelOutputShapeInfoHelp_WithEmptyInput_ReturnsSuccess) {
+  aclmdlDesc desc;
+  desc.modelId = 1;
 
-    std::vector<std::string> geDynamicOutputShape = {};
+  std::vector<std::string> geDynamicOutputShape = {};
 
-    aclError ret = acl::GetModelOutputShapeInfoHelp(&desc, geDynamicOutputShape);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    EXPECT_EQ(desc.dynamicOutputShape.size(), 0U);
+  aclError ret = acl::GetModelOutputShapeInfoHelp(&desc, geDynamicOutputShape);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_EQ(desc.dynamicOutputShape.size(), 0U);
 }
 
 // ============================================================================
 // OM2 ACL Interface Test Cases - SetDynamic* Functions
 // ============================================================================
 
-TEST_F(UTEST_ACL_Model, aclmdlSetDynamicBatchSize_Om2_WithNullDataset_ReturnsInvalidParam)
-{
-    uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 100U;
+TEST_F(UTEST_ACL_Model, aclmdlSetDynamicBatchSize_Om2_WithNullDataset_ReturnsInvalidParam) {
+  uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 100U;
 
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
-    aclError ret = aclmdlSetDynamicBatchSize(om2_model_id, nullptr, 0, 1);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  aclError ret = aclmdlSetDynamicBatchSize(om2_model_id, nullptr, 0, 1);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlSetDynamicBatchSize_Om2_WithZeroBatchSize_ReturnsInvalidParam)
-{
-    uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 101U;
+TEST_F(UTEST_ACL_Model, aclmdlSetDynamicBatchSize_Om2_WithZeroBatchSize_ReturnsInvalidParam) {
+  uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 101U;
 
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    EXPECT_NE(dataset, nullptr);
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  EXPECT_NE(dataset, nullptr);
 
-    // Add buffer to dataset
-    void *devPtr = nullptr;
-    aclrtMalloc(&devPtr, sizeof(uint64_t), ACL_MEM_MALLOC_HUGE_FIRST);
-    aclDataBuffer *buffer = aclCreateDataBuffer(devPtr, sizeof(uint64_t));
-    aclmdlAddDatasetBuffer(dataset, buffer);
+  // Add buffer to dataset
+  void *devPtr = nullptr;
+  aclrtMalloc(&devPtr, sizeof(uint64_t), ACL_MEM_MALLOC_HUGE_FIRST);
+  aclDataBuffer *buffer = aclCreateDataBuffer(devPtr, sizeof(uint64_t));
+  aclmdlAddDatasetBuffer(dataset, buffer);
 
-    aclError ret = aclmdlSetDynamicBatchSize(om2_model_id, dataset, 0, 0);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  aclError ret = aclmdlSetDynamicBatchSize(om2_model_id, dataset, 0, 0);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    aclDestroyDataBuffer(buffer);
-    aclrtFree(devPtr);
-    aclmdlDestroyDataset(dataset);
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
+  aclDestroyDataBuffer(buffer);
+  aclrtFree(devPtr);
+  aclmdlDestroyDataset(dataset);
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlSetDynamicHWSize_Om2_WithNullDataset_ReturnsInvalidParam)
-{
-    uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 102U;
+TEST_F(UTEST_ACL_Model, aclmdlSetDynamicHWSize_Om2_WithNullDataset_ReturnsInvalidParam) {
+  uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 102U;
 
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
-    aclError ret = aclmdlSetDynamicHWSize(om2_model_id, nullptr, 0, 224, 224);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  aclError ret = aclmdlSetDynamicHWSize(om2_model_id, nullptr, 0, 224, 224);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlSetDynamicHWSize_Om2_WithZeroDimension_ReturnsInvalidParam)
-{
-    uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 103U;
+TEST_F(UTEST_ACL_Model, aclmdlSetDynamicHWSize_Om2_WithZeroDimension_ReturnsInvalidParam) {
+  uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 103U;
 
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    EXPECT_NE(dataset, nullptr);
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  EXPECT_NE(dataset, nullptr);
 
-    void *devPtr = nullptr;
-    aclrtMalloc(&devPtr, 2 * sizeof(uint64_t), ACL_MEM_MALLOC_HUGE_FIRST);
-    aclDataBuffer *buffer = aclCreateDataBuffer(devPtr, 2 * sizeof(uint64_t));
-    aclmdlAddDatasetBuffer(dataset, buffer);
+  void *devPtr = nullptr;
+  aclrtMalloc(&devPtr, 2 * sizeof(uint64_t), ACL_MEM_MALLOC_HUGE_FIRST);
+  aclDataBuffer *buffer = aclCreateDataBuffer(devPtr, 2 * sizeof(uint64_t));
+  aclmdlAddDatasetBuffer(dataset, buffer);
 
-    aclError ret = aclmdlSetDynamicHWSize(om2_model_id, dataset, 0, 0, 224);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  aclError ret = aclmdlSetDynamicHWSize(om2_model_id, dataset, 0, 0, 224);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    aclDestroyDataBuffer(buffer);
-    aclrtFree(devPtr);
-    aclmdlDestroyDataset(dataset);
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
+  aclDestroyDataBuffer(buffer);
+  aclrtFree(devPtr);
+  aclmdlDestroyDataset(dataset);
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlSetInputDynamicDims_Om2_WithNullDataset_ReturnsInvalidParam)
-{
-    uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 104U;
+TEST_F(UTEST_ACL_Model, aclmdlSetInputDynamicDims_Om2_WithNullDataset_ReturnsInvalidParam) {
+  uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 104U;
 
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
-    aclmdlIODims dims = {};
-    dims.dimCount = 4;
-    dims.dims[0] = 1;
-    dims.dims[1] = 3;
-    dims.dims[2] = 224;
-    dims.dims[3] = 224;
+  aclmdlIODims dims = {};
+  dims.dimCount = 4;
+  dims.dims[0] = 1;
+  dims.dims[1] = 3;
+  dims.dims[2] = 224;
+  dims.dims[3] = 224;
 
-    aclError ret = aclmdlSetInputDynamicDims(om2_model_id, nullptr, 0, &dims);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  aclError ret = aclmdlSetInputDynamicDims(om2_model_id, nullptr, 0, &dims);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlSetInputDynamicDims_Om2_WithNullDims_ReturnsInvalidParam)
-{
-    uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 105U;
+TEST_F(UTEST_ACL_Model, aclmdlSetInputDynamicDims_Om2_WithNullDims_ReturnsInvalidParam) {
+  uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 105U;
 
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    EXPECT_NE(dataset, nullptr);
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  EXPECT_NE(dataset, nullptr);
 
-    aclError ret = aclmdlSetInputDynamicDims(om2_model_id, dataset, 0, nullptr);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  aclError ret = aclmdlSetInputDynamicDims(om2_model_id, dataset, 0, nullptr);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    aclmdlDestroyDataset(dataset);
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
+  aclmdlDestroyDataset(dataset);
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlSetInputDynamicDims_Om2_WithZeroDimCount_ReturnsInvalidParam)
-{
-    uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 106U;
+TEST_F(UTEST_ACL_Model, aclmdlSetInputDynamicDims_Om2_WithZeroDimCount_ReturnsInvalidParam) {
+  uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 106U;
 
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    EXPECT_NE(dataset, nullptr);
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  EXPECT_NE(dataset, nullptr);
 
-    void *devPtr = nullptr;
-    aclrtMalloc(&devPtr, 4 * sizeof(int64_t), ACL_MEM_MALLOC_HUGE_FIRST);
-    aclDataBuffer *buffer = aclCreateDataBuffer(devPtr, 4 * sizeof(int64_t));
-    aclmdlAddDatasetBuffer(dataset, buffer);
+  void *devPtr = nullptr;
+  aclrtMalloc(&devPtr, 4 * sizeof(int64_t), ACL_MEM_MALLOC_HUGE_FIRST);
+  aclDataBuffer *buffer = aclCreateDataBuffer(devPtr, 4 * sizeof(int64_t));
+  aclmdlAddDatasetBuffer(dataset, buffer);
 
-    aclmdlIODims dims = {};
-    dims.dimCount = 0;  // Zero dim count
+  aclmdlIODims dims = {};
+  dims.dimCount = 0;  // Zero dim count
 
-    aclError ret = aclmdlSetInputDynamicDims(om2_model_id, dataset, 0, &dims);
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  aclError ret = aclmdlSetInputDynamicDims(om2_model_id, dataset, 0, &dims);
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    aclDestroyDataBuffer(buffer);
-    aclrtFree(devPtr);
-    aclmdlDestroyDataset(dataset);
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
+  aclDestroyDataBuffer(buffer);
+  aclrtFree(devPtr);
+  aclmdlDestroyDataset(dataset);
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
 }
 
 // ============================================================================
 // OM2 ACL Interface Test Cases - GetCurOutputDims
 // ============================================================================
 
-TEST_F(UTEST_ACL_Model, aclmdlGetCurOutputDims_Om2_WithNullModelDesc_ReturnsInvalidParam)
-{
-    aclmdlIODims dims = {};
-    aclError ret = aclmdlGetCurOutputDims(nullptr, 0, &dims);
-    EXPECT_NE(ret, ACL_SUCCESS);
+TEST_F(UTEST_ACL_Model, aclmdlGetCurOutputDims_Om2_WithNullModelDesc_ReturnsInvalidParam) {
+  aclmdlIODims dims = {};
+  aclError ret = aclmdlGetCurOutputDims(nullptr, 0, &dims);
+  EXPECT_NE(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetCurOutputDims_Om2_WithNullDims_ReturnsInvalidParam)
-{
-    aclmdlDesc *desc = aclmdlCreateDesc();
-    ASSERT_NE(desc, nullptr);
-    desc->modelId = std::numeric_limits<uint32_t>::max() / 2U + 107U;
+TEST_F(UTEST_ACL_Model, aclmdlGetCurOutputDims_Om2_WithNullDims_ReturnsInvalidParam) {
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  ASSERT_NE(desc, nullptr);
+  desc->modelId = std::numeric_limits<uint32_t>::max() / 2U + 107U;
 
-    aclError ret = aclmdlGetCurOutputDims(desc, 0, nullptr);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  aclError ret = aclmdlGetCurOutputDims(desc, 0, nullptr);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    aclmdlDestroyDesc(desc);
+  aclmdlDestroyDesc(desc);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetCurOutputDims_Om2_WithInvalidIndex_ReturnsInvalidParam)
-{
-    uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 108U;
+TEST_F(UTEST_ACL_Model, aclmdlGetCurOutputDims_Om2_WithInvalidIndex_ReturnsInvalidParam) {
+  uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 108U;
 
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
-    aclmdlDesc *desc = aclmdlCreateDesc();
-    ASSERT_NE(desc, nullptr);
-    desc->modelId = om2_model_id;
-    desc->outputDesc.push_back(aclmdlTensorDesc());  // Add one output
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  ASSERT_NE(desc, nullptr);
+  desc->modelId = om2_model_id;
+  desc->outputDesc.push_back(aclmdlTensorDesc());  // Add one output
 
-    aclmdlIODims dims = {};
-    aclError ret = aclmdlGetCurOutputDims(desc, 5, &dims);  // Index out of bounds
-    EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
+  aclmdlIODims dims = {};
+  aclError ret = aclmdlGetCurOutputDims(desc, 5, &dims);  // Index out of bounds
+  EXPECT_EQ(ret, ACL_ERROR_INVALID_PARAM);
 
-    aclmdlDestroyDesc(desc);
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
+  aclmdlDestroyDesc(desc);
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
 }
 
 // ============================================================================
 // OM2 ACL Interface Test Cases - GetDesc
 // ============================================================================
 
-TEST_F(UTEST_ACL_Model, aclmdlGetDesc_Om2_WithNullModelDesc_ReturnsInvalidParam)
-{
-    uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 110U;
+TEST_F(UTEST_ACL_Model, aclmdlGetDesc_Om2_WithNullModelDesc_ReturnsInvalidParam) {
+  uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 110U;
 
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
-    aclError ret = aclmdlGetDesc(nullptr, om2_model_id);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  aclError ret = aclmdlGetDesc(nullptr, om2_model_id);
+  EXPECT_NE(ret, ACL_SUCCESS);
 
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
 }
 
 // ============================================================================
 // Additional model_common Shared Function Test Cases - Edge Cases
 // ============================================================================
 
-TEST_F(UTEST_ACL_Model, GetCurGearIndex_WithEmptyDynamicBatch_ReturnsInvalidParam)
-{
-    aclmdlDesc desc;
-    desc.modelId = 1;
-    // Empty dynamicBatch
-    std::vector<uint64_t> shapeInfo = {1};
-    size_t curGearIndex = 0;
+TEST_F(UTEST_ACL_Model, GetCurGearIndex_WithEmptyDynamicBatch_ReturnsInvalidParam) {
+  aclmdlDesc desc;
+  desc.modelId = 1;
+  // Empty dynamicBatch
+  std::vector<uint64_t> shapeInfo = {1};
+  size_t curGearIndex = 0;
 
-    aclError ret = acl::GetCurGearIndex(&desc, shapeInfo, ge::DYNAMIC_BATCH, curGearIndex);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  aclError ret = acl::GetCurGearIndex(&desc, shapeInfo, ge::DYNAMIC_BATCH, curGearIndex);
+  EXPECT_NE(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, GetCurGearIndex_WithEmptyShapeInfo_ReturnsInvalidParam)
-{
-    aclmdlDesc desc;
-    desc.modelId = 1;
-    desc.dynamicBatch.push_back(1);
-    desc.dynamicBatch.push_back(4);
+TEST_F(UTEST_ACL_Model, GetCurGearIndex_WithEmptyShapeInfo_ReturnsInvalidParam) {
+  aclmdlDesc desc;
+  desc.modelId = 1;
+  desc.dynamicBatch.push_back(1);
+  desc.dynamicBatch.push_back(4);
 
-    std::vector<uint64_t> shapeInfo;  // Empty
-    size_t curGearIndex = 0;
+  std::vector<uint64_t> shapeInfo;  // Empty
+  size_t curGearIndex = 0;
 
-    aclError ret = acl::GetCurGearIndex(&desc, shapeInfo, ge::DYNAMIC_BATCH, curGearIndex);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  aclError ret = acl::GetCurGearIndex(&desc, shapeInfo, ge::DYNAMIC_BATCH, curGearIndex);
+  EXPECT_NE(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, GetCurGearIndex_WithFirstGear_ReturnsZero)
-{
-    aclmdlDesc desc;
-    desc.modelId = 1;
-    desc.dynamicBatch.push_back(1);
-    desc.dynamicBatch.push_back(4);
-    desc.dynamicBatch.push_back(8);
+TEST_F(UTEST_ACL_Model, GetCurGearIndex_WithFirstGear_ReturnsZero) {
+  aclmdlDesc desc;
+  desc.modelId = 1;
+  desc.dynamicBatch.push_back(1);
+  desc.dynamicBatch.push_back(4);
+  desc.dynamicBatch.push_back(8);
 
-    std::vector<uint64_t> shapeInfo = {1};
-    size_t curGearIndex = 999;
+  std::vector<uint64_t> shapeInfo = {1};
+  size_t curGearIndex = 999;
 
-    aclError ret = acl::GetCurGearIndex(&desc, shapeInfo, ge::DYNAMIC_BATCH, curGearIndex);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    EXPECT_EQ(curGearIndex, 0U);
+  aclError ret = acl::GetCurGearIndex(&desc, shapeInfo, ge::DYNAMIC_BATCH, curGearIndex);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_EQ(curGearIndex, 0U);
 }
 
-TEST_F(UTEST_ACL_Model, GetCurGearIndex_WithLastGear_ReturnsCorrectIndex)
-{
-    aclmdlDesc desc;
-    desc.modelId = 1;
-    desc.dynamicBatch.push_back(1);
-    desc.dynamicBatch.push_back(4);
-    desc.dynamicBatch.push_back(8);
+TEST_F(UTEST_ACL_Model, GetCurGearIndex_WithLastGear_ReturnsCorrectIndex) {
+  aclmdlDesc desc;
+  desc.modelId = 1;
+  desc.dynamicBatch.push_back(1);
+  desc.dynamicBatch.push_back(4);
+  desc.dynamicBatch.push_back(8);
 
-    std::vector<uint64_t> shapeInfo = {8};
-    size_t curGearIndex = 0;
+  std::vector<uint64_t> shapeInfo = {8};
+  size_t curGearIndex = 0;
 
-    aclError ret = acl::GetCurGearIndex(&desc, shapeInfo, ge::DYNAMIC_BATCH, curGearIndex);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    EXPECT_EQ(curGearIndex, 2U);
+  aclError ret = acl::GetCurGearIndex(&desc, shapeInfo, ge::DYNAMIC_BATCH, curGearIndex);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_EQ(curGearIndex, 2U);
 }
 
-TEST_F(UTEST_ACL_Model, GetCurGearIndex_WithDynamicImage_FirstGear_ReturnsZero)
-{
-    aclmdlDesc desc;
-    desc.modelId = 1;
-    desc.dynamicHW.push_back({224, 224});
-    desc.dynamicHW.push_back({448, 448});
+TEST_F(UTEST_ACL_Model, GetCurGearIndex_WithDynamicImage_FirstGear_ReturnsZero) {
+  aclmdlDesc desc;
+  desc.modelId = 1;
+  desc.dynamicHW.push_back({224, 224});
+  desc.dynamicHW.push_back({448, 448});
 
-    std::vector<uint64_t> shapeInfo = {224, 224};
-    size_t curGearIndex = 999;
+  std::vector<uint64_t> shapeInfo = {224, 224};
+  size_t curGearIndex = 999;
 
-    aclError ret = acl::GetCurGearIndex(&desc, shapeInfo, ge::DYNAMIC_IMAGE, curGearIndex);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    EXPECT_EQ(curGearIndex, 0U);
+  aclError ret = acl::GetCurGearIndex(&desc, shapeInfo, ge::DYNAMIC_IMAGE, curGearIndex);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_EQ(curGearIndex, 0U);
 }
 
-TEST_F(UTEST_ACL_Model, GetCurGearIndex_WithDynamicDims_InvalidSize_ReturnsNotFound)
-{
-    aclmdlDesc desc;
-    desc.modelId = 1;
-    desc.dynamicDims.push_back({1, 3, 224, 224});
-    desc.dynamicDims.push_back({1, 3, 448, 448});
+TEST_F(UTEST_ACL_Model, GetCurGearIndex_WithDynamicDims_InvalidSize_ReturnsNotFound) {
+  aclmdlDesc desc;
+  desc.modelId = 1;
+  desc.dynamicDims.push_back({1, 3, 224, 224});
+  desc.dynamicDims.push_back({1, 3, 448, 448});
 
-    std::vector<uint64_t> shapeInfo = {1, 3, 336, 336};  // Not in list
-    size_t curGearIndex = 0;
+  std::vector<uint64_t> shapeInfo = {1, 3, 336, 336};  // Not in list
+  size_t curGearIndex = 0;
 
-    aclError ret = acl::GetCurGearIndex(&desc, shapeInfo, ge::DYNAMIC_DIMS, curGearIndex);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  aclError ret = acl::GetCurGearIndex(&desc, shapeInfo, ge::DYNAMIC_DIMS, curGearIndex);
+  EXPECT_NE(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, GetCurOuputShapeInfo_WithEmptyDynamicOutputShape_ReturnsInvalidParam)
-{
-    aclmdlDesc desc;
-    desc.modelId = 1;
+TEST_F(UTEST_ACL_Model, GetCurOuputShapeInfo_WithEmptyDynamicOutputShape_ReturnsInvalidParam) {
+  aclmdlDesc desc;
+  desc.modelId = 1;
 
-    aclmdlTensorDesc outDesc;
-    outDesc.name = "output";
-    outDesc.dims = {1, 1000};
-    desc.outputDesc.push_back(outDesc);
+  aclmdlTensorDesc outDesc;
+  outDesc.name = "output";
+  outDesc.dims = {1, 1000};
+  desc.outputDesc.push_back(outDesc);
 
-    // Empty dynamicOutputShape
-    aclmdlIODims dims = {};
-    aclError ret = acl::GetCurOuputShapeInfo(&desc, 0, 0, &dims);
-    EXPECT_NE(ret, ACL_SUCCESS);
+  // Empty dynamicOutputShape
+  aclmdlIODims dims = {};
+  aclError ret = acl::GetCurOuputShapeInfo(&desc, 0, 0, &dims);
+  EXPECT_NE(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, GetCurOuputShapeInfo_WithInvalidOutputIndex_ReturnsInvalidParam)
-{
-    aclmdlDesc desc;
-    desc.modelId = 1;
+TEST_F(UTEST_ACL_Model, GetCurOuputShapeInfo_WithInvalidOutputIndex_ReturnsInvalidParam) {
+  aclmdlDesc desc;
+  desc.modelId = 1;
 
-    aclmdlTensorDesc outDesc;
-    outDesc.name = "output";
-    outDesc.dims = {1, 1000};
-    desc.outputDesc.push_back(outDesc);
+  aclmdlTensorDesc outDesc;
+  outDesc.name = "output";
+  outDesc.dims = {1, 1000};
+  desc.outputDesc.push_back(outDesc);
 
-    desc.dynamicOutputShape.push_back({0, 0, 1, 1000});
+  desc.dynamicOutputShape.push_back({0, 0, 1, 1000});
 
-    aclmdlIODims dims = {};
-    aclError ret = acl::GetCurOuputShapeInfo(&desc, 5, 0, &dims);  // Invalid output index
-    EXPECT_NE(ret, ACL_SUCCESS);
+  aclmdlIODims dims = {};
+  aclError ret = acl::GetCurOuputShapeInfo(&desc, 5, 0, &dims);  // Invalid output index
+  EXPECT_NE(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, GetCurOuputShapeInfo_WithInvalidGearIndex_ReturnsInvalidParam)
-{
-    aclmdlDesc desc;
-    desc.modelId = 1;
+TEST_F(UTEST_ACL_Model, GetCurOuputShapeInfo_WithInvalidGearIndex_ReturnsInvalidParam) {
+  aclmdlDesc desc;
+  desc.modelId = 1;
 
-    aclmdlTensorDesc outDesc;
-    outDesc.name = "output";
-    outDesc.dims = {1, 1000};
-    desc.outputDesc.push_back(outDesc);
+  aclmdlTensorDesc outDesc;
+  outDesc.name = "output";
+  outDesc.dims = {1, 1000};
+  desc.outputDesc.push_back(outDesc);
 
-    desc.dynamicOutputShape.push_back({0, 0, 1, 1000});
-    desc.dynamicOutputShape.push_back({1, 0, 4, 1000});
+  desc.dynamicOutputShape.push_back({0, 0, 1, 1000});
+  desc.dynamicOutputShape.push_back({1, 0, 4, 1000});
 
-    aclmdlIODims dims = {};
-    aclError ret = acl::GetCurOuputShapeInfo(&desc, 0, 999, &dims);  // Invalid gear index
-    EXPECT_NE(ret, ACL_SUCCESS);
+  aclmdlIODims dims = {};
+  aclError ret = acl::GetCurOuputShapeInfo(&desc, 0, 999, &dims);  // Invalid gear index
+  EXPECT_NE(ret, ACL_SUCCESS);
 }
 
-TEST_F(UTEST_ACL_Model, GetCurOuputShapeInfo_WithMultipleOutputs_ReturnsCorrectShape)
-{
-    aclmdlDesc desc;
-    desc.modelId = 1;
+TEST_F(UTEST_ACL_Model, GetCurOuputShapeInfo_WithMultipleOutputs_ReturnsCorrectShape) {
+  aclmdlDesc desc;
+  desc.modelId = 1;
 
-    // Two outputs
-    aclmdlTensorDesc outDesc1;
-    outDesc1.name = "output1";
-    outDesc1.dims = {1, 1000};
-    desc.outputDesc.push_back(outDesc1);
+  // Two outputs
+  aclmdlTensorDesc outDesc1;
+  outDesc1.name = "output1";
+  outDesc1.dims = {1, 1000};
+  desc.outputDesc.push_back(outDesc1);
 
-    aclmdlTensorDesc outDesc2;
-    outDesc2.name = "output2";
-    outDesc2.dims = {1, 500};
-    desc.outputDesc.push_back(outDesc2);
+  aclmdlTensorDesc outDesc2;
+  outDesc2.name = "output2";
+  outDesc2.dims = {1, 500};
+  desc.outputDesc.push_back(outDesc2);
 
-    // Gear 0, output 0 and 1
-    desc.dynamicOutputShape.push_back({0, 0, 1, 1000});
-    desc.dynamicOutputShape.push_back({0, 1, 1, 500});
+  // Gear 0, output 0 and 1
+  desc.dynamicOutputShape.push_back({0, 0, 1, 1000});
+  desc.dynamicOutputShape.push_back({0, 1, 1, 500});
 
-    // Gear 1, output 0 and 1
-    desc.dynamicOutputShape.push_back({1, 0, 4, 1000});
-    desc.dynamicOutputShape.push_back({1, 1, 4, 500});
+  // Gear 1, output 0 and 1
+  desc.dynamicOutputShape.push_back({1, 0, 4, 1000});
+  desc.dynamicOutputShape.push_back({1, 1, 4, 500});
 
-    // Test gear 1, output 1
-    aclmdlIODims dims = {};
-    aclError ret = acl::GetCurOuputShapeInfo(&desc, 1, 1, &dims);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    EXPECT_EQ(dims.dimCount, 2U);
-    EXPECT_EQ(dims.dims[0], 4);
-    EXPECT_EQ(dims.dims[1], 500);
+  // Test gear 1, output 1
+  aclmdlIODims dims = {};
+  aclError ret = acl::GetCurOuputShapeInfo(&desc, 1, 1, &dims);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_EQ(dims.dimCount, 2U);
+  EXPECT_EQ(dims.dims[0], 4);
+  EXPECT_EQ(dims.dims[1], 500);
 }
 
-TEST_F(UTEST_ACL_Model, GetModelOutputShapeInfoHelp_WithMultipleOutputs_ParsesCorrectly)
-{
-    aclmdlDesc desc;
-    desc.modelId = 1;
+TEST_F(UTEST_ACL_Model, GetModelOutputShapeInfoHelp_WithMultipleOutputs_ParsesCorrectly) {
+  aclmdlDesc desc;
+  desc.modelId = 1;
 
-    std::vector<std::string> geDynamicOutputShape = {
-        "0:0:1:1000",
-        "0:1:1:500",
-        "1:0:4:1000",
-        "1:1:4:500"
-    };
+  std::vector<std::string> geDynamicOutputShape = {"0:0:1:1000", "0:1:1:500", "1:0:4:1000", "1:1:4:500"};
 
-    aclError ret = acl::GetModelOutputShapeInfoHelp(&desc, geDynamicOutputShape);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    EXPECT_EQ(desc.dynamicOutputShape.size(), 4U);
+  aclError ret = acl::GetModelOutputShapeInfoHelp(&desc, geDynamicOutputShape);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_EQ(desc.dynamicOutputShape.size(), 4U);
 
-    // Gear 0, output 0
-    EXPECT_EQ(desc.dynamicOutputShape[0][0], 0);  // gear_index
-    EXPECT_EQ(desc.dynamicOutputShape[0][1], 0);  // output_index
-    EXPECT_EQ(desc.dynamicOutputShape[0][2], 1);  // dim0
-    EXPECT_EQ(desc.dynamicOutputShape[0][3], 1000);  // dim1
+  // Gear 0, output 0
+  EXPECT_EQ(desc.dynamicOutputShape[0][0], 0);     // gear_index
+  EXPECT_EQ(desc.dynamicOutputShape[0][1], 0);     // output_index
+  EXPECT_EQ(desc.dynamicOutputShape[0][2], 1);     // dim0
+  EXPECT_EQ(desc.dynamicOutputShape[0][3], 1000);  // dim1
 
-    // Gear 0, output 1
-    EXPECT_EQ(desc.dynamicOutputShape[1][0], 0);  // gear_index
-    EXPECT_EQ(desc.dynamicOutputShape[1][1], 1);  // output_index
-    EXPECT_EQ(desc.dynamicOutputShape[1][2], 1);  // dim0
-    EXPECT_EQ(desc.dynamicOutputShape[1][3], 500);  // dim1
+  // Gear 0, output 1
+  EXPECT_EQ(desc.dynamicOutputShape[1][0], 0);    // gear_index
+  EXPECT_EQ(desc.dynamicOutputShape[1][1], 1);    // output_index
+  EXPECT_EQ(desc.dynamicOutputShape[1][2], 1);    // dim0
+  EXPECT_EQ(desc.dynamicOutputShape[1][3], 500);  // dim1
 }
 
-TEST_F(UTEST_ACL_Model, GetModelOutputShapeInfoHelp_WithStaticOutputs_ParsesCorrectly)
-{
-    aclmdlDesc desc;
-    desc.modelId = 1;
+TEST_F(UTEST_ACL_Model, GetModelOutputShapeInfoHelp_WithStaticOutputs_ParsesCorrectly) {
+  aclmdlDesc desc;
+  desc.modelId = 1;
 
-    std::vector<std::string> geDynamicOutputShape = {
-        "-1:0:1:1000",  // Static output
-        "-1:1:1:500"    // Static output
-    };
+  std::vector<std::string> geDynamicOutputShape = {
+      "-1:0:1:1000",  // Static output
+      "-1:1:1:500"    // Static output
+  };
 
-    aclError ret = acl::GetModelOutputShapeInfoHelp(&desc, geDynamicOutputShape);
-    EXPECT_EQ(ret, ACL_SUCCESS);
-    EXPECT_EQ(desc.dynamicOutputShape.size(), 2U);
+  aclError ret = acl::GetModelOutputShapeInfoHelp(&desc, geDynamicOutputShape);
+  EXPECT_EQ(ret, ACL_SUCCESS);
+  EXPECT_EQ(desc.dynamicOutputShape.size(), 2U);
 
-    // All should be static (-1)
-    for (size_t i = 0; i < desc.dynamicOutputShape.size(); i++) {
-        EXPECT_EQ(desc.dynamicOutputShape[i][0], -1);
-    }
+  // All should be static (-1)
+  for (size_t i = 0; i < desc.dynamicOutputShape.size(); i++) {
+    EXPECT_EQ(desc.dynamicOutputShape[i][0], -1);
+  }
 }
 
 // ============================================================================
 // Additional ACL Interface Test Cases - Boundary Conditions
 // ============================================================================
 
-TEST_F(UTEST_ACL_Model, aclmdlSetDynamicBatchSize_Om2_WithBoundaryValues_Succeeds)
-{
-    uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 200U;
+TEST_F(UTEST_ACL_Model, aclmdlSetDynamicBatchSize_Om2_WithBoundaryValues_Succeeds) {
+  uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 200U;
 
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    EXPECT_NE(dataset, nullptr);
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  EXPECT_NE(dataset, nullptr);
 
-    void *devPtr = nullptr;
-    aclrtMalloc(&devPtr, sizeof(uint64_t), ACL_MEM_MALLOC_HUGE_FIRST);
-    aclDataBuffer *buffer = aclCreateDataBuffer(devPtr, sizeof(uint64_t));
-    aclmdlAddDatasetBuffer(dataset, buffer);
+  void *devPtr = nullptr;
+  aclrtMalloc(&devPtr, sizeof(uint64_t), ACL_MEM_MALLOC_HUGE_FIRST);
+  aclDataBuffer *buffer = aclCreateDataBuffer(devPtr, sizeof(uint64_t));
+  aclmdlAddDatasetBuffer(dataset, buffer);
 
-    // Test boundary values
-    std::vector<uint64_t> boundary_values = {1, 2, 4, 8, 16, 32, 64, 128};
-    for (uint64_t batch : boundary_values) {
-        aclError ret = aclmdlSetDynamicBatchSize(om2_model_id, dataset, 0, batch);
-        // Stub returns SUCCESS, so we expect SUCCESS
-        EXPECT_EQ(ret, ACL_SUCCESS);
-    }
-
-    aclDestroyDataBuffer(buffer);
-    aclrtFree(devPtr);
-    aclmdlDestroyDataset(dataset);
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
-}
-
-TEST_F(UTEST_ACL_Model, aclmdlSetDynamicHWSize_Om2_WithSquareDimensions_Succeeds)
-{
-    uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 201U;
-
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
-
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    EXPECT_NE(dataset, nullptr);
-
-    void *devPtr = nullptr;
-    aclrtMalloc(&devPtr, 2 * sizeof(uint64_t), ACL_MEM_MALLOC_HUGE_FIRST);
-    aclDataBuffer *buffer = aclCreateDataBuffer(devPtr, 2 * sizeof(uint64_t));
-    aclmdlAddDatasetBuffer(dataset, buffer);
-
-    // Test square dimensions
-    std::vector<std::pair<uint64_t, uint64_t>> square_dims = {
-        {224, 224}, {448, 448}, {672, 672}, {896, 896}
-    };
-    for (const auto& dim : square_dims) {
-        aclError ret = aclmdlSetDynamicHWSize(om2_model_id, dataset, 0, dim.first, dim.second);
-        EXPECT_EQ(ret, ACL_SUCCESS);
-    }
-
-    aclDestroyDataBuffer(buffer);
-    aclrtFree(devPtr);
-    aclmdlDestroyDataset(dataset);
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
-}
-
-TEST_F(UTEST_ACL_Model, aclmdlSetDynamicHWSize_Om2_WithRectangularDimensions_Succeeds)
-{
-    uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 202U;
-
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
-
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    EXPECT_NE(dataset, nullptr);
-
-    void *devPtr = nullptr;
-    aclrtMalloc(&devPtr, 2 * sizeof(uint64_t), ACL_MEM_MALLOC_HUGE_FIRST);
-    aclDataBuffer *buffer = aclCreateDataBuffer(devPtr, 2 * sizeof(uint64_t));
-    aclmdlAddDatasetBuffer(dataset, buffer);
-
-    // Test rectangular dimensions
-    std::vector<std::pair<uint64_t, uint64_t>> rect_dims = {
-        {128, 256}, {256, 128}, {192, 384}, {384, 192}
-    };
-    for (const auto& dim : rect_dims) {
-        aclError ret = aclmdlSetDynamicHWSize(om2_model_id, dataset, 0, dim.first, dim.second);
-        EXPECT_EQ(ret, ACL_SUCCESS);
-    }
-
-    aclDestroyDataBuffer(buffer);
-    aclrtFree(devPtr);
-    aclmdlDestroyDataset(dataset);
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
-}
-
-TEST_F(UTEST_ACL_Model, aclmdlSetInputDynamicDims_Om2_WithVariousDimCounts_Succeeds)
-{
-    uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 203U;
-
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
-
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    EXPECT_NE(dataset, nullptr);
-
-    void *devPtr = nullptr;
-    aclrtMalloc(&devPtr, 4 * sizeof(int64_t), ACL_MEM_MALLOC_HUGE_FIRST);
-    aclDataBuffer *buffer = aclCreateDataBuffer(devPtr, 4 * sizeof(int64_t));
-    aclmdlAddDatasetBuffer(dataset, buffer);
-
-    // Test various dimension counts
-    std::vector<aclmdlIODims> test_dims;
-
-    aclmdlIODims dims1 = {};
-    dims1.dimCount = 1;
-    dims1.dims[0] = 100;
-    test_dims.push_back(dims1);
-
-    aclmdlIODims dims2 = {};
-    dims2.dimCount = 2;
-    dims2.dims[0] = 10;
-    dims2.dims[1] = 20;
-    test_dims.push_back(dims2);
-
-    aclmdlIODims dims3 = {};
-    dims3.dimCount = 3;
-    dims3.dims[0] = 2;
-    dims3.dims[1] = 3;
-    dims3.dims[2] = 4;
-    test_dims.push_back(dims3);
-
-    aclmdlIODims dims4 = {};
-    dims4.dimCount = 4;
-    dims4.dims[0] = 1;
-    dims4.dims[1] = 3;
-    dims4.dims[2] = 224;
-    dims4.dims[3] = 224;
-    test_dims.push_back(dims4);
-
-    for (const auto& dims : test_dims) {
-        size_t dimCount = dims.dimCount;
-        // Set up mocks to return dynamic shape matching current dimCount
-        EXPECT_CALL(MockFunctionTest::aclStubInstance(),
-                    GetModelDescInfo(A<const std::vector<ge::Om2TensorDesc>*&>(),
-                                     A<const std::vector<ge::Om2TensorDesc>*&>(), _))
-            .WillRepeatedly(Invoke([dimCount](const std::vector<ge::Om2TensorDesc>*& inputDesc,
-                                              const std::vector<ge::Om2TensorDesc>*& outputDesc,
-                                              bool) -> ge::Status {
-                static std::vector<ge::Om2TensorDesc> in_desc;
-                static std::vector<ge::Om2TensorDesc> out_desc;
-                in_desc.clear();
-                ge::Om2TensorDesc desc;
-                desc.SetName("input");
-                desc.SetDataType(ge::DT_FLOAT);
-                desc.SetFormat(ge::FORMAT_ND);
-                std::vector<int64_t> shape(dimCount, -1);
-                desc.SetShape(shape);
-                desc.SetSize(sizeof(float));
-                in_desc.push_back(desc);
-                out_desc.clear();
-                ge::Om2TensorDesc odesc;
-                odesc.SetName("output");
-                odesc.SetDataType(ge::DT_FLOAT);
-                odesc.SetFormat(ge::FORMAT_ND);
-                odesc.SetShape({1});
-                odesc.SetSize(sizeof(float));
-                out_desc.push_back(odesc);
-                inputDesc = &in_desc;
-                outputDesc = &out_desc;
-                return ge::SUCCESS;
-            }));
-
-        EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetUserDesignateShapeOrder(_, _))
-            .WillRepeatedly(Invoke([](uint32_t, std::vector<std::string> &order) -> ge::Status {
-                order.clear();
-                order.push_back("input");
-                return ge::SUCCESS;
-            }));
-
-        EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetOriginInputDims())
-            .WillRepeatedly(Invoke([dimCount]() -> const std::vector<std::vector<int64_t>> & {
-                static std::vector<std::vector<int64_t>> origin_dims;
-                origin_dims.clear();
-                origin_dims.push_back(std::vector<int64_t>(dimCount, -1));
-                return origin_dims;
-            }));
-
-        aclError ret = aclmdlSetInputDynamicDims(om2_model_id, dataset, 0, &dims);
-        EXPECT_EQ(ret, ACL_SUCCESS);
-        Mock::VerifyAndClear((void *)(&MockFunctionTest::aclStubInstance()));
-        MockFunctionTest::aclStubInstance().ResetToDefaultMock();
-    }
-
-    aclDestroyDataBuffer(buffer);
-    aclrtFree(devPtr);
-    aclmdlDestroyDataset(dataset);
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
-}
-
-TEST_F(UTEST_ACL_Model, aclmdlGetCurOutputDims_Om2_WithStaticModel_ReturnsStaticDims)
-{
-    uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 204U;
-
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
-
-    aclmdlDesc *desc = aclmdlCreateDesc();
-    ASSERT_NE(desc, nullptr);
-    desc->modelId = om2_model_id;
-
-    // Add static output descriptor
-    aclmdlTensorDesc outDesc;
-    outDesc.name = "output";
-    outDesc.dims = {1, 1000};
-    desc->outputDesc.push_back(outDesc);
-
-    aclmdlIODims dims = {};
-    aclError ret = aclmdlGetCurOutputDims(desc, 0, &dims);
-    // For static model (no dynamic output shape), should return static dims
+  // Test boundary values
+  std::vector<uint64_t> boundary_values = {1, 2, 4, 8, 16, 32, 64, 128};
+  for (uint64_t batch : boundary_values) {
+    aclError ret = aclmdlSetDynamicBatchSize(om2_model_id, dataset, 0, batch);
+    // Stub returns SUCCESS, so we expect SUCCESS
     EXPECT_EQ(ret, ACL_SUCCESS);
+  }
 
-    aclmdlDestroyDesc(desc);
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
+  aclDestroyDataBuffer(buffer);
+  aclrtFree(devPtr);
+  aclmdlDestroyDataset(dataset);
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
 }
 
-TEST_F(UTEST_ACL_Model, aclmdlGetDesc_Om2_WithEmptyModelDesc_Succeeds)
-{
-    uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 205U;
+TEST_F(UTEST_ACL_Model, aclmdlSetDynamicHWSize_Om2_WithSquareDimensions_Succeeds) {
+  uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 201U;
 
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
-    aclmdlDesc *desc = aclmdlCreateDesc();
-    ASSERT_NE(desc, nullptr);
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  EXPECT_NE(dataset, nullptr);
 
-    aclError ret = aclmdlGetDesc(desc, om2_model_id);
-    // Stub implementation may return SUCCESS or error, but should not crash
-    (void)ret;
+  void *devPtr = nullptr;
+  aclrtMalloc(&devPtr, 2 * sizeof(uint64_t), ACL_MEM_MALLOC_HUGE_FIRST);
+  aclDataBuffer *buffer = aclCreateDataBuffer(devPtr, 2 * sizeof(uint64_t));
+  aclmdlAddDatasetBuffer(dataset, buffer);
 
-    aclmdlDestroyDesc(desc);
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
+  // Test square dimensions
+  std::vector<std::pair<uint64_t, uint64_t>> square_dims = {{224, 224}, {448, 448}, {672, 672}, {896, 896}};
+  for (const auto &dim : square_dims) {
+    aclError ret = aclmdlSetDynamicHWSize(om2_model_id, dataset, 0, dim.first, dim.second);
+    EXPECT_EQ(ret, ACL_SUCCESS);
+  }
+
+  aclDestroyDataBuffer(buffer);
+  aclrtFree(devPtr);
+  aclmdlDestroyDataset(dataset);
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
+}
+
+TEST_F(UTEST_ACL_Model, aclmdlSetDynamicHWSize_Om2_WithRectangularDimensions_Succeeds) {
+  uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 202U;
+
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
+
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  EXPECT_NE(dataset, nullptr);
+
+  void *devPtr = nullptr;
+  aclrtMalloc(&devPtr, 2 * sizeof(uint64_t), ACL_MEM_MALLOC_HUGE_FIRST);
+  aclDataBuffer *buffer = aclCreateDataBuffer(devPtr, 2 * sizeof(uint64_t));
+  aclmdlAddDatasetBuffer(dataset, buffer);
+
+  // Test rectangular dimensions
+  std::vector<std::pair<uint64_t, uint64_t>> rect_dims = {{128, 256}, {256, 128}, {192, 384}, {384, 192}};
+  for (const auto &dim : rect_dims) {
+    aclError ret = aclmdlSetDynamicHWSize(om2_model_id, dataset, 0, dim.first, dim.second);
+    EXPECT_EQ(ret, ACL_SUCCESS);
+  }
+
+  aclDestroyDataBuffer(buffer);
+  aclrtFree(devPtr);
+  aclmdlDestroyDataset(dataset);
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
+}
+
+TEST_F(UTEST_ACL_Model, aclmdlSetInputDynamicDims_Om2_WithVariousDimCounts_Succeeds) {
+  uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 203U;
+
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
+
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  EXPECT_NE(dataset, nullptr);
+
+  void *devPtr = nullptr;
+  aclrtMalloc(&devPtr, 4 * sizeof(int64_t), ACL_MEM_MALLOC_HUGE_FIRST);
+  aclDataBuffer *buffer = aclCreateDataBuffer(devPtr, 4 * sizeof(int64_t));
+  aclmdlAddDatasetBuffer(dataset, buffer);
+
+  // Test various dimension counts
+  std::vector<aclmdlIODims> test_dims;
+
+  aclmdlIODims dims1 = {};
+  dims1.dimCount = 1;
+  dims1.dims[0] = 100;
+  test_dims.push_back(dims1);
+
+  aclmdlIODims dims2 = {};
+  dims2.dimCount = 2;
+  dims2.dims[0] = 10;
+  dims2.dims[1] = 20;
+  test_dims.push_back(dims2);
+
+  aclmdlIODims dims3 = {};
+  dims3.dimCount = 3;
+  dims3.dims[0] = 2;
+  dims3.dims[1] = 3;
+  dims3.dims[2] = 4;
+  test_dims.push_back(dims3);
+
+  aclmdlIODims dims4 = {};
+  dims4.dimCount = 4;
+  dims4.dims[0] = 1;
+  dims4.dims[1] = 3;
+  dims4.dims[2] = 224;
+  dims4.dims[3] = 224;
+  test_dims.push_back(dims4);
+
+  for (const auto &dims : test_dims) {
+    size_t dimCount = dims.dimCount;
+    // Set up mocks to return dynamic shape matching current dimCount
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(A<const std::vector<ge::Om2TensorDesc> *&>(),
+                                                                      A<const std::vector<ge::Om2TensorDesc> *&>(), _))
+        .WillRepeatedly(Invoke([dimCount](const std::vector<ge::Om2TensorDesc> *&inputDesc,
+                                          const std::vector<ge::Om2TensorDesc> *&outputDesc, bool) -> ge::Status {
+          static std::vector<ge::Om2TensorDesc> in_desc;
+          static std::vector<ge::Om2TensorDesc> out_desc;
+          in_desc.clear();
+          ge::Om2TensorDesc desc;
+          desc.SetName("input");
+          desc.SetDataType(ge::DT_FLOAT);
+          desc.SetFormat(ge::FORMAT_ND);
+          std::vector<int64_t> shape(dimCount, -1);
+          desc.SetShape(shape);
+          desc.SetSize(sizeof(float));
+          in_desc.push_back(desc);
+          out_desc.clear();
+          ge::Om2TensorDesc odesc;
+          odesc.SetName("output");
+          odesc.SetDataType(ge::DT_FLOAT);
+          odesc.SetFormat(ge::FORMAT_ND);
+          odesc.SetShape({1});
+          odesc.SetSize(sizeof(float));
+          out_desc.push_back(odesc);
+          inputDesc = &in_desc;
+          outputDesc = &out_desc;
+          return ge::SUCCESS;
+        }));
+
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetUserDesignateShapeOrder(_, _))
+        .WillRepeatedly(Invoke([](uint32_t, std::vector<std::string> &order) -> ge::Status {
+          order.clear();
+          order.push_back("input");
+          return ge::SUCCESS;
+        }));
+
+    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetOriginInputDims())
+        .WillRepeatedly(Invoke([dimCount]() -> const std::vector<std::vector<int64_t>> & {
+          static std::vector<std::vector<int64_t>> origin_dims;
+          origin_dims.clear();
+          origin_dims.push_back(std::vector<int64_t>(dimCount, -1));
+          return origin_dims;
+        }));
+
+    aclError ret = aclmdlSetInputDynamicDims(om2_model_id, dataset, 0, &dims);
+    EXPECT_EQ(ret, ACL_SUCCESS);
+    Mock::VerifyAndClear((void *)(&MockFunctionTest::aclStubInstance()));
+    MockFunctionTest::aclStubInstance().ResetToDefaultMock();
+  }
+
+  aclDestroyDataBuffer(buffer);
+  aclrtFree(devPtr);
+  aclmdlDestroyDataset(dataset);
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
+}
+
+TEST_F(UTEST_ACL_Model, aclmdlGetCurOutputDims_Om2_WithStaticModel_ReturnsStaticDims) {
+  uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 204U;
+
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
+
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  ASSERT_NE(desc, nullptr);
+  desc->modelId = om2_model_id;
+
+  // Add static output descriptor
+  aclmdlTensorDesc outDesc;
+  outDesc.name = "output";
+  outDesc.dims = {1, 1000};
+  desc->outputDesc.push_back(outDesc);
+
+  aclmdlIODims dims = {};
+  aclError ret = aclmdlGetCurOutputDims(desc, 0, &dims);
+  // For static model (no dynamic output shape), should return static dims
+  EXPECT_EQ(ret, ACL_SUCCESS);
+
+  aclmdlDestroyDesc(desc);
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
+}
+
+TEST_F(UTEST_ACL_Model, aclmdlGetDesc_Om2_WithEmptyModelDesc_Succeeds) {
+  uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 205U;
+
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
+
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  ASSERT_NE(desc, nullptr);
+
+  aclError ret = aclmdlGetDesc(desc, om2_model_id);
+  // Stub implementation may return SUCCESS or error, but should not crash
+  (void)ret;
+
+  aclmdlDestroyDesc(desc);
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
 }
 
 // ============================================================================
 // Integration Test Cases - Combined Scenarios
 // ============================================================================
 
-TEST_F(UTEST_ACL_Model, DynamicGearWorkflow_SetAndGetCurOutputDims)
-{
-    uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 300U;
+TEST_F(UTEST_ACL_Model, DynamicGearWorkflow_SetAndGetCurOutputDims) {
+  uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 300U;
 
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
-    // Create dataset
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    EXPECT_NE(dataset, nullptr);
+  // Create dataset
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  EXPECT_NE(dataset, nullptr);
 
-    void *devPtr = nullptr;
-    aclrtMalloc(&devPtr, sizeof(uint64_t), ACL_MEM_MALLOC_HUGE_FIRST);
-    aclDataBuffer *buffer = aclCreateDataBuffer(devPtr, sizeof(uint64_t));
-    aclmdlAddDatasetBuffer(dataset, buffer);
+  void *devPtr = nullptr;
+  aclrtMalloc(&devPtr, sizeof(uint64_t), ACL_MEM_MALLOC_HUGE_FIRST);
+  aclDataBuffer *buffer = aclCreateDataBuffer(devPtr, sizeof(uint64_t));
+  aclmdlAddDatasetBuffer(dataset, buffer);
 
-    // Set dynamic batch size
-    aclError ret = aclmdlSetDynamicBatchSize(om2_model_id, dataset, 0, 4);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  // Set dynamic batch size
+  aclError ret = aclmdlSetDynamicBatchSize(om2_model_id, dataset, 0, 4);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    // Create model desc
-    aclmdlDesc *desc = aclmdlCreateDesc();
-    ASSERT_NE(desc, nullptr);
-    desc->modelId = om2_model_id;
+  // Create model desc
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  ASSERT_NE(desc, nullptr);
+  desc->modelId = om2_model_id;
 
-    aclmdlTensorDesc outDesc;
-    outDesc.name = "output";
-    outDesc.dims = {4, 1000};
-    desc->outputDesc.push_back(outDesc);
+  aclmdlTensorDesc outDesc;
+  outDesc.name = "output";
+  outDesc.dims = {4, 1000};
+  desc->outputDesc.push_back(outDesc);
 
-    // Get current output dims
-    aclmdlIODims dims = {};
-    ret = aclmdlGetCurOutputDims(desc, 0, &dims);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  // Get current output dims
+  aclmdlIODims dims = {};
+  ret = aclmdlGetCurOutputDims(desc, 0, &dims);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    // Cleanup
-    aclmdlDestroyDesc(desc);
-    aclDestroyDataBuffer(buffer);
-    aclrtFree(devPtr);
-    aclmdlDestroyDataset(dataset);
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
+  // Cleanup
+  aclmdlDestroyDesc(desc);
+  aclDestroyDataBuffer(buffer);
+  aclrtFree(devPtr);
+  aclmdlDestroyDataset(dataset);
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
 }
 
-TEST_F(UTEST_ACL_Model, DynamicGearWorkflow_GetDescThenSetDynamicSize)
-{
-    uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 301U;
+TEST_F(UTEST_ACL_Model, DynamicGearWorkflow_GetDescThenSetDynamicSize) {
+  uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 301U;
 
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
-    // Get model desc first
-    aclmdlDesc *desc = aclmdlCreateDesc();
-    ASSERT_NE(desc, nullptr);
+  // Get model desc first
+  aclmdlDesc *desc = aclmdlCreateDesc();
+  ASSERT_NE(desc, nullptr);
 
-    aclError ret = aclmdlGetDesc(desc, om2_model_id);
-    (void)ret;  // May succeed or fail depending on stub
+  aclError ret = aclmdlGetDesc(desc, om2_model_id);
+  (void)ret;  // May succeed or fail depending on stub
 
-    // Then set dynamic size
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    EXPECT_NE(dataset, nullptr);
+  // Then set dynamic size
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  EXPECT_NE(dataset, nullptr);
 
-    void *devPtr = nullptr;
-    aclrtMalloc(&devPtr, 2 * sizeof(uint64_t), ACL_MEM_MALLOC_HUGE_FIRST);
-    aclDataBuffer *buffer = aclCreateDataBuffer(devPtr, 2 * sizeof(uint64_t));
-    aclmdlAddDatasetBuffer(dataset, buffer);
+  void *devPtr = nullptr;
+  aclrtMalloc(&devPtr, 2 * sizeof(uint64_t), ACL_MEM_MALLOC_HUGE_FIRST);
+  aclDataBuffer *buffer = aclCreateDataBuffer(devPtr, 2 * sizeof(uint64_t));
+  aclmdlAddDatasetBuffer(dataset, buffer);
 
-    ret = aclmdlSetDynamicHWSize(om2_model_id, dataset, 0, 448, 448);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetDynamicHWSize(om2_model_id, dataset, 0, 448, 448);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    // Cleanup
-    aclmdlDestroyDesc(desc);
-    aclDestroyDataBuffer(buffer);
-    aclrtFree(devPtr);
-    aclmdlDestroyDataset(dataset);
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
+  // Cleanup
+  aclmdlDestroyDesc(desc);
+  aclDestroyDataBuffer(buffer);
+  aclrtFree(devPtr);
+  aclmdlDestroyDataset(dataset);
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
 }
 
-TEST_F(UTEST_ACL_Model, DynamicGearWorkflow_MultipleSetDynamicSizes)
-{
-    uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 302U;
+TEST_F(UTEST_ACL_Model, DynamicGearWorkflow_MultipleSetDynamicSizes) {
+  uint32_t om2_model_id = std::numeric_limits<uint32_t>::max() / 2U + 302U;
 
-    auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
-    ASSERT_NE(om2_executor, nullptr);
-    acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
+  auto om2_executor = std::unique_ptr<gert::Om2ModelExecutor>(new (std::nothrow) gert::Om2ModelExecutor);
+  ASSERT_NE(om2_executor, nullptr);
+  acl::AclResourceManagerOm2::GetInstance().AddOm2Executor(om2_model_id, std::move(om2_executor));
 
-    aclmdlDataset *dataset = aclmdlCreateDataset();
-    EXPECT_NE(dataset, nullptr);
+  aclmdlDataset *dataset = aclmdlCreateDataset();
+  EXPECT_NE(dataset, nullptr);
 
-    void *devPtr = nullptr;
-    aclrtMalloc(&devPtr, 4 * sizeof(int64_t), ACL_MEM_MALLOC_HUGE_FIRST);
-    aclDataBuffer *buffer = aclCreateDataBuffer(devPtr, 4 * sizeof(int64_t));
-    aclmdlAddDatasetBuffer(dataset, buffer);
+  void *devPtr = nullptr;
+  aclrtMalloc(&devPtr, 4 * sizeof(int64_t), ACL_MEM_MALLOC_HUGE_FIRST);
+  aclDataBuffer *buffer = aclCreateDataBuffer(devPtr, 4 * sizeof(int64_t));
+  aclmdlAddDatasetBuffer(dataset, buffer);
 
-    // Set multiple times with different types
-    aclError ret = aclmdlSetDynamicBatchSize(om2_model_id, dataset, 0, 8);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  // Set multiple times with different types
+  aclError ret = aclmdlSetDynamicBatchSize(om2_model_id, dataset, 0, 8);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    // Mock for SetInputDynamicDims
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(),
-                GetModelDescInfo(A<const std::vector<ge::Om2TensorDesc>*&>(),
-                                 A<const std::vector<ge::Om2TensorDesc>*&>(), _))
-        .WillRepeatedly(Invoke([](const std::vector<ge::Om2TensorDesc>*& inputDesc,
-                                  const std::vector<ge::Om2TensorDesc>*& outputDesc,
-                                  bool) -> ge::Status {
-            static std::vector<ge::Om2TensorDesc> in_desc;
-            static std::vector<ge::Om2TensorDesc> out_desc;
-            in_desc.clear();
-            ge::Om2TensorDesc desc;
-            desc.SetName("input");
-            desc.SetDataType(ge::DT_FLOAT);
-            desc.SetFormat(ge::FORMAT_ND);
-            desc.SetShape({1, 3, 224, 224});
-            desc.SetSize(sizeof(float) * 1 * 3 * 224 * 224);
-            in_desc.push_back(desc);
-            out_desc.clear();
-            ge::Om2TensorDesc odesc;
-            odesc.SetName("output");
-            odesc.SetDataType(ge::DT_FLOAT);
-            odesc.SetFormat(ge::FORMAT_ND);
-            odesc.SetShape({1, 1000});
-            odesc.SetSize(sizeof(float) * 1000);
-            out_desc.push_back(odesc);
-            inputDesc = &in_desc;
-            outputDesc = &out_desc;
-            return ge::SUCCESS;
-        }));
+  // Mock for SetInputDynamicDims
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetModelDescInfo(A<const std::vector<ge::Om2TensorDesc> *&>(),
+                                                                    A<const std::vector<ge::Om2TensorDesc> *&>(), _))
+      .WillRepeatedly(Invoke([](const std::vector<ge::Om2TensorDesc> *&inputDesc,
+                                const std::vector<ge::Om2TensorDesc> *&outputDesc, bool) -> ge::Status {
+        static std::vector<ge::Om2TensorDesc> in_desc;
+        static std::vector<ge::Om2TensorDesc> out_desc;
+        in_desc.clear();
+        ge::Om2TensorDesc desc;
+        desc.SetName("input");
+        desc.SetDataType(ge::DT_FLOAT);
+        desc.SetFormat(ge::FORMAT_ND);
+        desc.SetShape({1, 3, 224, 224});
+        desc.SetSize(sizeof(float) * 1 * 3 * 224 * 224);
+        in_desc.push_back(desc);
+        out_desc.clear();
+        ge::Om2TensorDesc odesc;
+        odesc.SetName("output");
+        odesc.SetDataType(ge::DT_FLOAT);
+        odesc.SetFormat(ge::FORMAT_ND);
+        odesc.SetShape({1, 1000});
+        odesc.SetSize(sizeof(float) * 1000);
+        out_desc.push_back(odesc);
+        inputDesc = &in_desc;
+        outputDesc = &out_desc;
+        return ge::SUCCESS;
+      }));
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetUserDesignateShapeOrder(_, _))
-        .WillRepeatedly(Invoke([](uint32_t, std::vector<std::string> &order) -> ge::Status {
-            order.clear();
-            order.push_back("input");
-            return ge::SUCCESS;
-        }));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetUserDesignateShapeOrder(_, _))
+      .WillRepeatedly(Invoke([](uint32_t, std::vector<std::string> &order) -> ge::Status {
+        order.clear();
+        order.push_back("input");
+        return ge::SUCCESS;
+      }));
 
-    EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetOriginInputDims())
-        .WillRepeatedly(Invoke([]() -> const std::vector<std::vector<int64_t>> & {
-            static std::vector<std::vector<int64_t>> origin_dims;
-            origin_dims.clear();
-            origin_dims.push_back({-1, 3, 224, 224});
-            return origin_dims;
-        }));
+  EXPECT_CALL(MockFunctionTest::aclStubInstance(), GetOriginInputDims())
+      .WillRepeatedly(Invoke([]() -> const std::vector<std::vector<int64_t>> & {
+        static std::vector<std::vector<int64_t>> origin_dims;
+        origin_dims.clear();
+        origin_dims.push_back({-1, 3, 224, 224});
+        return origin_dims;
+      }));
 
-    aclmdlIODims dims = {};
-    dims.dimCount = 4;
-    dims.dims[0] = 1;
-    dims.dims[1] = 3;
-    dims.dims[2] = 224;
-    dims.dims[3] = 224;
+  aclmdlIODims dims = {};
+  dims.dimCount = 4;
+  dims.dims[0] = 1;
+  dims.dims[1] = 3;
+  dims.dims[2] = 224;
+  dims.dims[3] = 224;
 
-    ret = aclmdlSetInputDynamicDims(om2_model_id, dataset, 0, &dims);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetInputDynamicDims(om2_model_id, dataset, 0, &dims);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    Mock::VerifyAndClear((void *)(&MockFunctionTest::aclStubInstance()));
-    MockFunctionTest::aclStubInstance().ResetToDefaultMock();
+  Mock::VerifyAndClear((void *)(&MockFunctionTest::aclStubInstance()));
+  MockFunctionTest::aclStubInstance().ResetToDefaultMock();
 
-    ret = aclmdlSetDynamicHWSize(om2_model_id, dataset, 0, 672, 672);
-    EXPECT_EQ(ret, ACL_SUCCESS);
+  ret = aclmdlSetDynamicHWSize(om2_model_id, dataset, 0, 672, 672);
+  EXPECT_EQ(ret, ACL_SUCCESS);
 
-    // Cleanup
-    aclDestroyDataBuffer(buffer);
-    aclrtFree(devPtr);
-    aclmdlDestroyDataset(dataset);
-    acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
+  // Cleanup
+  aclDestroyDataBuffer(buffer);
+  aclrtFree(devPtr);
+  aclmdlDestroyDataset(dataset);
+  acl::AclResourceManagerOm2::GetInstance().DeleteOm2Executor(om2_model_id);
 }

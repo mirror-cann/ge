@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,9 +26,8 @@ FormatDtypeOpKernelSelector::FormatDtypeOpKernelSelector() : FormatDtypeSelector
 FormatDtypeOpKernelSelector::~FormatDtypeOpKernelSelector() {}
 
 Status FormatDtypeOpKernelSelector::GetAllSupportFormat(const OpKernelInfoPtr &op_kernel_info_ptr,
-                                               const ge::NodePtr &node,
-                                               const bool &is_dynamic_check,
-                                               map<string, vector<ge::Format>> &format_map) {
+                                                        const ge::NodePtr &node, const bool &is_dynamic_check,
+                                                        map<string, vector<ge::Format>> &format_map) {
   (void)node;
   for (InputOrOutputInfoPtr input_or_output_info_ptr : op_kernel_info_ptr->GetAllInputInfo()) {
     string unique_name = input_or_output_info_ptr->GetUniqueName();
@@ -38,7 +37,7 @@ Status FormatDtypeOpKernelSelector::GetAllSupportFormat(const OpKernelInfoPtr &o
       format_map[unique_name] = input_or_output_info_ptr->GetFormat();
     }
   }
- 
+
   for (InputOrOutputInfoPtr input_or_output_info_ptr : op_kernel_info_ptr->GetAllOutputInfo()) {
     string unique_name = input_or_output_info_ptr->GetUniqueName();
     if (is_dynamic_check) {
@@ -51,8 +50,7 @@ Status FormatDtypeOpKernelSelector::GetAllSupportFormat(const OpKernelInfoPtr &o
 }
 
 Status FormatDtypeOpKernelSelector::GetSupportFormatDtype(const OpKernelInfoPtr &op_kernel_info_ptr,
-                                                          const ge::NodePtr &node,
-                                                          const bool &is_dynamic_check,
+                                                          const ge::NodePtr &node, const bool &is_dynamic_check,
                                                           FormatDtypeInfo &format_dtype_info) {
   (void)node;
   for (InputOrOutputInfoPtr input_or_output_info_ptr : op_kernel_info_ptr->GetAllInputInfo()) {
@@ -81,9 +79,8 @@ Status FormatDtypeOpKernelSelector::GetSupportFormatDtype(const OpKernelInfoPtr 
   return SUCCESS;
 }
 
-Status FormatDtypeOpKernelSelector::GetFallbackFlags(const OpKernelInfoPtr &op_kernel_info_ptr,
-                                                     const ge::NodePtr &node, bool is_dynamic_check,
-                                                     std::vector<bool> &fallback_res) {
+Status FormatDtypeOpKernelSelector::GetFallbackFlags(const OpKernelInfoPtr &op_kernel_info_ptr, const ge::NodePtr &node,
+                                                     bool is_dynamic_check, std::vector<bool> &fallback_res) {
   (void)node;
   const FallbackFlags &fallback_flags = op_kernel_info_ptr->GetFallbackFlags();
   if (fallback_flags.fallbacks.empty() && fallback_flags.unknown_shape_fallbacks.empty()) {
@@ -113,8 +110,7 @@ Status FormatDtypeOpKernelSelector::GetSupportFormats(const OpKernelInfoPtr &op_
 Status FormatDtypeOpKernelSelector::GetSupportFormatSubFormat(const OpKernelInfoPtr &op_kernel_info_ptr,
                                                               const InputOrOutputInfoPtr &input_or_output_info_ptr,
                                                               const ge::NodePtr &node, vector<ge::Format> &format_res,
-                                                              vector<uint32_t> &sub_format_res,
-                                                              uint32_t sub_format) {
+                                                              vector<uint32_t> &sub_format_res, uint32_t sub_format) {
   (void)op_kernel_info_ptr;
   (void)sub_format;
   auto op_desc = node->GetOpDesc();
@@ -141,11 +137,9 @@ Status FormatDtypeOpKernelSelector::GetSupportDataTypes(const OpKernelInfoPtr &o
 }
 
 Status FormatDtypeOpKernelSelector::GetDynamicFormatDtype(const OpKernelInfoPtr &op_kernel_info_ptr,
-                                                          const ge::NodePtr &node,
-                                                          const bool &is_dynamic_check,
+                                                          const ge::NodePtr &node, const bool &is_dynamic_check,
                                                           const HeavyFormatInfo &heavy_format_info,
-                                                          FormatDtypeInfo &format_dtype_info,
-                                                          uint32_t sub_format) {
+                                                          FormatDtypeInfo &format_dtype_info, uint32_t sub_format) {
   (void)op_kernel_info_ptr;
   (void)node;
   (void)is_dynamic_check;

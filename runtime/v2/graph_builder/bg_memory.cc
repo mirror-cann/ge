@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,7 +29,7 @@ MemoryKernelsName kMemoryTypeToMemKernelName[kTensorPlacementEnd] = {
     {"UnSupportAlloc", "UnSupportFree", "UnSupportAlloc", "UnSupportFree"},
     {"AllocMemHbm", "FreeMemHbm", "AllocBatchHbm", "FreeBatchHbm"}};
 static_assert(sizeof(kMemoryTypeToMemKernelName) / sizeof(MemoryKernelsName) == kTensorPlacementEnd,
-              "The element count in kMemoryTypeToMemKernelName is missmatch with MemoryType definition");
+              "The element count in kMemoryTypeToMemKernelName is mismatch with MemoryType definition");
 
 ValueHolderPtr CalcTensorSizeFromStorage(ge::DataType dt, const ValueHolderPtr &storage_shape) {
   auto data_type = ValueHolder::CreateConst(&dt, sizeof(dt));
@@ -69,15 +69,15 @@ ge::Status CheckOutputsNumAndPlacement(TensorPlacement placement, const ge::Node
   const auto op_desc = node->GetOpDescBarePtr();
   GE_ASSERT_NOTNULL(op_desc);
   if (op_desc->GetAllOutputsDescSize() != output_sizes.size()) {
-    GELOGE(ge::FAILED, "Failed to create AllocMem nodes, the output shapes num %zu not equal to the num of "
-                       "node output %u, node name %s",
-           output_sizes.size(), node->GetOpDesc()->GetAllOutputsDescSize(),
-           node->GetName().c_str());
+    GELOGE(ge::FAILED,
+           "Failed to create AllocMem nodes, the output shapes num %zu not equal to the num of "
+           "node output %u, node name %s",
+           output_sizes.size(), node->GetOpDesc()->GetAllOutputsDescSize(), node->GetName().c_str());
     return ge::FAILED;
   }
   if (placement >= kTensorPlacementEnd) {
-    GELOGE(ge::FAILED, "Failed to create AllocMem node for node %s, unknown memory type %d",
-           node->GetName().c_str(), placement);
+    GELOGE(ge::FAILED, "Failed to create AllocMem node for node %s, unknown memory type %d", node->GetName().c_str(),
+           placement);
     return ge::FAILED;
   }
   return ge::SUCCESS;
@@ -122,8 +122,8 @@ std::map<std::string, uint32_t> GetNodeInputName2InputIndex(const ge::NodePtr &n
     if (index_and_fed_index == index_2_fed_index.end()) {
       (void)name_2_input_index.erase(iter++);
     } else {
-      GELOGD("Node %s meta input '%s' %u update fed index %u", node->GetNamePtr(), iter->first.c_str(),
-             iter->second, index_and_fed_index->second);
+      GELOGD("Node %s meta input '%s' %u update fed index %u", node->GetNamePtr(), iter->first.c_str(), iter->second,
+             index_and_fed_index->second);
       (iter++)->second = index_and_fed_index->second;
     }
   }
@@ -200,8 +200,8 @@ std::vector<DevMemValueHolderPtr> AllocOutputMemory(TensorPlacement placement, c
         memories.push_back(input_addrs[ref_input_index]);
       }
     } else if (!var_shared_memory.empty()) {
-      if ((!TensorPlacementUtils::IsOnDeviceHbm(placement))
-          && (!TensorPlacementUtils::IsOnHostNotFollowing(placement))) {
+      if ((!TensorPlacementUtils::IsOnDeviceHbm(placement)) &&
+          (!TensorPlacementUtils::IsOnHostNotFollowing(placement))) {
         GELOGE(ge::FAILED, "Node %s output %zu ref from variable %s but requested placed on %d",
                node->GetName().c_str(), i, var_shared_memory.c_str(), placement);
         return {};
@@ -254,14 +254,13 @@ DevMemValueHolderPtr AllocMem(TensorPlacement placement, const ValueHolderPtr &s
   return out_addr;
 }
 
-ValueHolderPtr AllocFixedFeatureMemory(const ValueHolderPtr &session_id_holder,
-                                       const TensorPlacement placement,
-                                       const ValueHolderPtr &size_holder,
-                                       LoweringGlobalData &global_data) {
+ValueHolderPtr AllocFixedFeatureMemory(const ValueHolderPtr &session_id_holder, const TensorPlacement placement,
+                                       const ValueHolderPtr &size_holder, LoweringGlobalData &global_data) {
   auto addr_vec = FrameSelector::OnInitRoot(
       [&session_id_holder, &size_holder, &placement, &global_data]() -> std::vector<ValueHolderPtr> {
         const auto placement_holder = bg::ValueHolder::CreateConst(&placement, sizeof(placement));
-        auto allocator_holder = bg::ValueHolder::CreateSingleDataOutput("GetUserAllocatorOrFixedBaseAllocator",
+        auto allocator_holder = bg::ValueHolder::CreateSingleDataOutput(
+            "GetUserAllocatorOrFixedBaseAllocator",
             {placement_holder, session_id_holder, global_data.GetStreamById(kDefaultMainStreamId)});
         GE_ASSERT_NOTNULL(allocator_holder);
         AllocatorDesc allocator_desc = {placement, AllocatorUsage::kAllocNodeOutput};
@@ -297,8 +296,8 @@ std::vector<DevMemValueHolderPtr> AllocMemories(TensorPlacement placement, const
   for (size_t i = 0U; i < sizes.size(); ++i) {
     CHECK_DEVMEMHOLDER_OK(sizes[i]);
     auto out_addr = DevMemValueHolder::CreateSingleDataOutput(
-        TensorPlacementUtils::IsOnDevice(placement) ? "AllocMemHbm" : "AllocMemHost",
-        {allocator_holder, sizes[i]}, stream_id);
+        TensorPlacementUtils::IsOnDevice(placement) ? "AllocMemHbm" : "AllocMemHost", {allocator_holder, sizes[i]},
+        stream_id);
     CHECK_DEVMEMHOLDER_OK(out_addr);
     out_addr->SetPlacement(placement);
     CHECK_DEVMEMHOLDER_OK(ValueHolder::CreateVoidGuarder("FreeMemory", out_addr, {}));
@@ -325,8 +324,7 @@ std::vector<DevMemValueHolderPtr> AllocMemoriesWithoutGuarder(TensorPlacement pl
 }
 
 DevMemValueHolderPtr AllocMemOnInit(TensorPlacement placement, size_t size, LoweringGlobalData &global_data) {
-  auto addr_vec = FrameSelector::OnInitRoot(
-      [&size, &placement, &global_data]() -> std::vector<ValueHolderPtr> {
+  auto addr_vec = FrameSelector::OnInitRoot([&size, &placement, &global_data]() -> std::vector<ValueHolderPtr> {
     auto args_size = bg::ValueHolder::CreateConst(&size, sizeof(size));
     return {AllocMem(placement, args_size, global_data, kMainStream)};
   });

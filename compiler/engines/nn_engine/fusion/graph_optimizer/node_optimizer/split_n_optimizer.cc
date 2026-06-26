@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -49,7 +49,7 @@ void SplitNOptimizer::GetRealSplitDimFromOriginalFormatToFormat(const ge::OpDesc
     }
     FE_LOGD("Meet condition_nd_fractalz with value %d, changing split to %ld.", condition_nd_fractalz, split_dim);
   }
-  bool condition_nchw_hwcn = input_orinal_format == FORMAT_NCHW  && input_format == FORMAT_HWCN;
+  bool condition_nchw_hwcn = input_orinal_format == FORMAT_NCHW && input_format == FORMAT_HWCN;
   if (condition_nchw_hwcn) {
     FE_LOGD("meet condition_nchw_to_hwcn: %d, changing split to %d.", condition_nchw_hwcn, kRealDimNchwToHwcn);
     split_dim = kRealDimNchwToHwcn;
@@ -65,7 +65,8 @@ bool SplitNOptimizer::InputCheck(ge::NodePtr split_node) const {
               split_node->GetName().c_str());
       return false;
     }
-    if ((in_node->GetType() == TRANSDATA || in_node->GetType() == RESHAPE) && (in_node->GetAllInDataAnchors().size() != 0)) {
+    if ((in_node->GetType() == TRANSDATA || in_node->GetType() == RESHAPE) &&
+        (in_node->GetAllInDataAnchors().size() != 0)) {
       FE_CHECK_NOTNULL(in_node->GetInDataAnchor(0));
       auto peerOutAnchor = in_node->GetInDataAnchor(0)->GetPeerOutAnchor();
       if (peerOutAnchor == nullptr) {
@@ -82,9 +83,9 @@ bool SplitNOptimizer::InputCheck(ge::NodePtr split_node) const {
     bool is_no_task = false;
     (void)ge::AttrUtils::GetBool(in_node->GetOpDesc(), ge::ATTR_NAME_NOTASK, is_no_task);
     if (is_no_task) {
-      FE_LOGD("In node %s, the presence of the no_task attribute means that %s cannot be optimized.", in_node->GetName().c_str(),
-              split_node->GetName().c_str());
-        return false;
+      FE_LOGD("In node %s, the presence of the no_task attribute means that %s cannot be optimized.",
+              in_node->GetName().c_str(), split_node->GetName().c_str());
+      return false;
     }
     vector<int64_t> output_index;
     (void)ge::AttrUtils::GetListInt(in_node->GetOpDesc(), ge::ATOMIC_ATTR_OUTPUT_INDEX, output_index);
@@ -96,7 +97,7 @@ bool SplitNOptimizer::InputCheck(ge::NodePtr split_node) const {
   return true;
 }
 
-bool SplitNOptimizer::InvalidNodeType(const string& node_type) {
+bool SplitNOptimizer::InvalidNodeType(const string &node_type) {
   bool invalid_type = node_type == NETOUTPUT || node_type == "HcomBroadcast" || node_type == "HcomAllGather" ||
                       node_type == "HcomAllReduce" || node_type == "HcomReduceScatter" || node_type == "HcomReduce" ||
                       node_type == SPLITD || node_type == SPLITVD;
@@ -107,7 +108,7 @@ bool SplitNOptimizer::InvalidNodeType(const string& node_type) {
   return false;
 }
 
-bool SplitNOptimizer::InvalidNodeAttr(const ge::OpDescPtr& node_desc) {
+bool SplitNOptimizer::InvalidNodeAttr(const ge::OpDescPtr &node_desc) {
   int imply_type = 0;
   (void)ge::AttrUtils::GetInt(node_desc, ge::ATTR_NAME_IMPLY_TYPE, imply_type);
   string fusion_virtual_op = "";
@@ -155,8 +156,8 @@ bool SplitNOptimizer::OutputCheck(ge::NodePtr split_node) const {
         return false;
       }
       if (InvalidNodeAttr(next_node_desc)) {
-        FE_LOGD("Output node [%s] has an invalid node attribute; %s cannot be optimized.", next_node_desc->GetName().c_str(),
-                split_node->GetName().c_str());
+        FE_LOGD("Output node [%s] has an invalid node attribute; %s cannot be optimized.",
+                next_node_desc->GetName().c_str(), split_node->GetName().c_str());
         return false;
       }
     }

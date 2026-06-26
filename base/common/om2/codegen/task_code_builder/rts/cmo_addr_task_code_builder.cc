@@ -23,7 +23,7 @@ constexpr uint64_t kAlignment = 64U;
 constexpr uint32_t kMaxPrefetchLen = 120U * 1024U * 1024U;
 constexpr char_t const *kAttrMaxSize = "max_size";
 constexpr char_t const *kAttrAddrOffset = "offset";
-}
+}  // namespace
 
 namespace ge {
 void CmoAddrTaskCodeBuilder::AppendOrderedArgValue(const AddrSemantic &semantic, uint64_t current_host_offset) {
@@ -68,14 +68,12 @@ Status CmoAddrTaskCodeBuilder::Contribute(TaskSemanticContributeContext &context
 
   cmo_op_code_ = cmo_addr_task.cmo_op_code();
 
-  args_format_str_ = cmo_addr_task.args_format().empty()
-                         ? BuildAutoArgsFormat(context)
-                         : cmo_addr_task.args_format();
+  args_format_str_ = cmo_addr_task.args_format().empty() ? BuildAutoArgsFormat(context) : cmo_addr_task.args_format();
   GE_ASSERT_SUCCESS(ArgsFormatDesc::Parse(context.op_desc, args_format_str_, arg_descs_));
 
   AddrSemantic src_addr_node;
-  GE_ASSERT_SUCCESS(Om2ModelUtils::GetRtAddress(context, static_cast<uintptr_t>(cmo_addr_task.src()),
-                                                src_addr_node, true, 0U));
+  GE_ASSERT_SUCCESS(
+      Om2ModelUtils::GetRtAddress(context, static_cast<uintptr_t>(cmo_addr_task.src()), src_addr_node, true, 0U));
 
   GE_ASSERT_SUCCESS(BuildOrderedArgs(context, src_addr_node));
 
@@ -124,14 +122,13 @@ Status CmoAddrTaskCodeBuilder::BuildOrderedArgs(TaskSemanticContributeContext &c
 Status CmoAddrTaskCodeBuilder::CollectIoAddrVars(std::vector<BodyItem> &items, std::vector<Arg> &args_vars) {
   for (const auto &semantic : ordered_arg_values_) {
     if (semantic.kind == AddrValueKind::kInputInstance || semantic.kind == AddrValueKind::kOutputInstance) {
-      auto &base_ptr = (semantic.memory_type == (kSessionScopeMemoryMask | RT_MEMORY_HBM))
-                           ? session_scope_mem_ptr_ : total_dev_mem_ptr_;
-      items.push_back(
-          ast_.VarDecl("auto", semantic.symbol_hint, GetAddr(base_ptr, semantic.mem_offset)));
+      auto &base_ptr = (semantic.memory_type == (kSessionScopeMemoryMask | RT_MEMORY_HBM)) ? session_scope_mem_ptr_
+                                                                                           : total_dev_mem_ptr_;
+      items.push_back(ast_.VarDecl("auto", semantic.symbol_hint, GetAddr(base_ptr, semantic.mem_offset)));
       (void)args_vars.emplace_back(ast_.Var("auto", semantic.symbol_hint));
     } else if (semantic.kind == AddrValueKind::kConstTensor) {
-      items.push_back(ast_.VarDecl("auto", semantic.symbol_hint,
-          Arg(constants_[static_cast<int64_t>(*semantic.const_index)])));
+      items.push_back(
+          ast_.VarDecl("auto", semantic.symbol_hint, Arg(constants_[static_cast<int64_t>(*semantic.const_index)])));
       (void)args_vars.emplace_back(ast_.Var("auto", semantic.symbol_hint));
     } else {
       GELOGE(FAILED, "[OM2] CmoAddrAsync unsupported addr kind %d.", static_cast<int32_t>(semantic.kind));
@@ -167,33 +164,38 @@ Status CmoAddrTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &items) 
   std::vector<Arg> args_vars;
   GE_ASSERT_SUCCESS(CollectIoAddrVars(items, args_vars));
 
-  const std::string ioaddr_var_name =
-      "op" + std::to_string(header_.op_index) + "_iow_addr0";
+  const std::string ioaddr_var_name = "op" + std::to_string(header_.op_index) + "_iow_addr0";
   auto ioaddr_var = ast_.Var("std::vector<uint64_t>", ioaddr_var_name);
   (void)items.emplace_back(ast_.VarDecl(ioaddr_var, FlattenHostArgs(args_vars)));
 
-  auto dev_addr_expr = ast_.Call("ValueToPtr", {ast_.Call("PtrToValue", {
-      args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(entry_->table_index)).Arrow("dev_addr")}) + align_offset_});
-  auto host_addr_expr = ast_.Call("ValueToPtr", {ast_.Call("PtrToValue", {
-      args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(entry_->table_index)).Arrow("host_addr")}) + align_offset_});
+  auto dev_addr_expr = ast_.Call(
+      "ValueToPtr",
+      {ast_.Call("PtrToValue",
+                 {args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(entry_->table_index)).Arrow("dev_addr")}) +
+       align_offset_});
+  auto host_addr_expr = ast_.Call(
+      "ValueToPtr",
+      {ast_.Call("PtrToValue",
+                 {args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(entry_->table_index)).Arrow("host_addr")}) +
+       align_offset_});
 
-  items.push_back(ChkStatus(ast_.Call(
-      "KernelCmoAddrTaskDistribute",
-      {ast_.Str(header_.op_name),
-       dev_addr_expr,
-       ast_.UInt(static_cast<uint64_t>(args_size_)), ast_.StaticCast("rtCmoOpCode_t", cmo_op_code_),
-       stream_list_[static_cast<int32_t>(header_.stream_id)], ast_.UInt(0)})));
+  items.push_back(
+      ChkStatus(ast_.Call("KernelCmoAddrTaskDistribute",
+                          {ast_.Str(header_.op_name), dev_addr_expr, ast_.UInt(static_cast<uint64_t>(args_size_)),
+                           ast_.StaticCast("rtCmoOpCode_t", cmo_op_code_),
+                           stream_list_[static_cast<int32_t>(header_.stream_id)], ast_.UInt(0)})));
 
-  items.push_back(ChkStatus(AclrtMemcpy(
-      host_addr_expr,
-      args_size_,
-      dev_addr_expr,
-      args_size_, "ACL_MEMCPY_DEVICE_TO_HOST")));
+  items.push_back(
+      ChkStatus(AclrtMemcpy(host_addr_expr, args_size_, dev_addr_expr, args_size_, "ACL_MEMCPY_DEVICE_TO_HOST")));
 
   items.push_back(ChkStatus(MemcpyS(
-      ast_.Call("ValueToPtr", {ast_.Call("PtrToValue", {
-          args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(entry_->table_index)).Arrow("host_addr")}) + align_offset_ + io_offset_}),
-      args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(entry_->table_index)).Arrow("size") - (align_offset_ + io_offset_),
+      ast_.Call(
+          "ValueToPtr",
+          {ast_.Call("PtrToValue",
+                     {args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(entry_->table_index)).Arrow("host_addr")}) +
+           align_offset_ + io_offset_}),
+      args_table_.Attr("GetArgsInfo")(static_cast<int64_t>(entry_->table_index)).Arrow("size") -
+          (align_offset_ + io_offset_),
       ioaddr_var.Data(), ioaddr_var.Size() * ast_.Sizeof("uint64_t"))));
 
   RenderCustomValueWriteback(items);

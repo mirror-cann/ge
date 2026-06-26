@@ -38,4 +38,3 @@ find_package_handle_standard_args(GenerateEsPackage
     REQUIRED_VARS GenerateEsPackage_FOUND
     VERSION_VAR GenerateEsPackage_VERSION
 )
-

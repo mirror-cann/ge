@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,27 +38,25 @@ constexpr char const *kAllowHF32MatmulTConvT = "11";  // matmul(bit0):true,conv(
 const std::vector<std::string> kOpSelectImplModeVec = {"high_precision", "high_performance"};
 const std::vector<std::string> kOpSelectImplModeAllVec = {"high_precision_for_all", "high_performance_for_all"};
 const std::unordered_map<std::string, std::string> kAllowHF32ModeMap = {
-        {kAllowHF32MatmulFConvF, "allow_hf32_matmul_f_conv_f"},
-        {kAllowHF32MatmulTConvF, "allow_hf32_matmul_t_conv_f"},
-        {kAllowHF32DefaultMode, "allow_hf32_matmul_f_conv_t"},
-        {kAllowHF32MatmulTConvT, "allow_hf32_matmul_t_conv_t"},
-        {kAllowHF32AllTrue, "allow_hf32_matmul_t_conv_t"},
-        {kAllowHF32AllFalse, "allow_hf32_matmul_f_conv_f"},
-        {kAllowHF32AllTrueForAtc, "allow_hf32_matmul_t_conv_t"},
-        {kAllowHF32AllFalseForAtc, "allow_hf32_matmul_f_conv_f"}
-};
-const std::map<std::string, std::string> kAllowHF32ForAclnnFallbackMap = {
-        {kAllowHF32AllTrue, "11"},
-        {kAllowHF32AllFalse, "00"},
-        {kAllowHF32AllTrueForAtc, "11"},
-        {kAllowHF32AllFalseForAtc, "00"}
-};
-const std::set<std::string> kSupportImpyType = {
-    "high_performance", "enable_float_32_execution", "enable_hi_float_32_execution",
-    "high_precision", "support_out_of_bound_index", "super_performance", "norm_class", "keep_fp16"};
+    {kAllowHF32MatmulFConvF, "allow_hf32_matmul_f_conv_f"},  {kAllowHF32MatmulTConvF, "allow_hf32_matmul_t_conv_f"},
+    {kAllowHF32DefaultMode, "allow_hf32_matmul_f_conv_t"},   {kAllowHF32MatmulTConvT, "allow_hf32_matmul_t_conv_t"},
+    {kAllowHF32AllTrue, "allow_hf32_matmul_t_conv_t"},       {kAllowHF32AllFalse, "allow_hf32_matmul_f_conv_f"},
+    {kAllowHF32AllTrueForAtc, "allow_hf32_matmul_t_conv_t"}, {kAllowHF32AllFalseForAtc, "allow_hf32_matmul_f_conv_f"}};
+const std::map<std::string, std::string> kAllowHF32ForAclnnFallbackMap = {{kAllowHF32AllTrue, "11"},
+                                                                          {kAllowHF32AllFalse, "00"},
+                                                                          {kAllowHF32AllTrueForAtc, "11"},
+                                                                          {kAllowHF32AllFalseForAtc, "00"}};
+const std::set<std::string> kSupportImpyType = {"high_performance",
+                                                "enable_float_32_execution",
+                                                "enable_hi_float_32_execution",
+                                                "high_precision",
+                                                "support_out_of_bound_index",
+                                                "super_performance",
+                                                "norm_class",
+                                                "keep_fp16"};
 }  // namespace
 OpImplModeConfigParser::OpImplModeConfigParser(const std::string &ascend_opp_path)
-  : BaseConfigParser(), ascend_opp_path_(ascend_opp_path) {}
+    : BaseConfigParser(), ascend_opp_path_(ascend_opp_path) {}
 
 OpImplModeConfigParser::~OpImplModeConfigParser() {}
 
@@ -109,24 +107,21 @@ Status OpImplModeConfigParser::InitializeFromContext() {
  * To maintain compatibility, allow_hf32 is not mutual exclusion with others.
  * so, we need to consider default value of allow_hf32
  */
-void OpImplModeConfigParser::UpDateDefaultValue(const std::string &op_precision_mode,
-                                                std::string &op_select_impl_mode,
+void OpImplModeConfigParser::UpDateDefaultValue(const std::string &op_precision_mode, std::string &op_select_impl_mode,
                                                 std::string &allow_hf32) {
   if (op_select_impl_mode.empty()) {
-    FE_LOGD("The value of param[%s] is empty. Using default value[%s].",
-            ge::OP_SELECT_IMPL_MODE.c_str(), kOpSelectImplModeDefaultValue);
+    FE_LOGD("The value of param[%s] is empty. Using default value[%s].", ge::OP_SELECT_IMPL_MODE.c_str(),
+            kOpSelectImplModeDefaultValue);
     op_select_impl_mode = kOpSelectImplModeDefaultValue;
     if (op_precision_mode.empty() && allow_hf32.empty()) {
-      FE_LOGD("[Update][AllowHF32] Parameter ge.exec.allow_hf32 uses the default value %s.",
-              kAllowHF32DefaultMode);
+      FE_LOGD("[Update][AllowHF32] Parameter ge.exec.allow_hf32 uses the default value %s.", kAllowHF32DefaultMode);
       allow_hf32 = kAllowHF32DefaultMode;
     }
   }
 }
 
 // PRECISIONMODE
-Status OpImplModeConfigParser::Initialize(const std::string &op_precision_mode,
-                                          const std::string &op_select_impl_mode,
+Status OpImplModeConfigParser::Initialize(const std::string &op_precision_mode, const std::string &op_select_impl_mode,
                                           const std::string &op_type_list_for_impl_mode,
                                           const std::string &allow_hf32) {
   bool enable_allow_hf32 = PlatformUtils::Instance().IsEnableAllowHF32();
@@ -149,8 +144,8 @@ Status OpImplModeConfigParser::Initialize(const std::string &op_precision_mode,
   op_type_select_impl_mode_map_.clear();
   if (enable_allow_hf32 && !allow_hf32.empty()) {
     if (InitAllowHF32Mode(allow_hf32) != SUCCESS) {
-      ErrorMessageDetail err_msg(EM_INPUT_OPTION_INVALID, {allow_hf32, ge::ALLOW_HF32,
-                                 "The current value is not within the valid range"});
+      ErrorMessageDetail err_msg(EM_INPUT_OPTION_INVALID,
+                                 {allow_hf32, ge::ALLOW_HF32, "The current value is not within the valid range"});
       ReportErrorMessage(err_msg);
       REPORT_FE_ERROR(
           "[GraphOpt][Init][InitAllowHF32] ge.exec.allow_hf32[%s] is invalid, only support [0,00,01,10,11,1].",
@@ -201,7 +196,7 @@ Status OpImplModeConfigParser::InitOpPrecisionMode(const std::string &op_precisi
   FE_LOGE("[GraphOpt][Init][InitOpPrecisionMode] Para:op_select_impl_mode[%s] is invalid.",
           op_select_impl_mode.c_str());
   ErrorMessageDetail err_msg(EM_INPUT_OPTION_INVALID, {op_select_impl_mode, ge::OP_SELECT_IMPL_MODE,
-                             "The current value is not within the valid range"});
+                                                       "The current value is not within the valid range"});
   ReportErrorMessage(err_msg);
   return FAILED;
 }
@@ -213,12 +208,12 @@ Status OpImplModeConfigParser::InitOpPrecisionModeByPrecisionMode(const std::str
   // check whether file is existed
   std::string file_path = GetRealPath(op_precision_mode);
   if (file_path.empty()) {
-    ErrorMessageDetail err_msg(EM_INPUT_OPTION_INVALID,
-                               {op_precision_mode, ge::OP_PRECISION_MODE,
-                                "The file does not exist or its access permission is denied"});
+    ErrorMessageDetail err_msg(EM_INPUT_OPTION_INVALID, {op_precision_mode, ge::OP_PRECISION_MODE,
+                                                         "The file does not exist or its access permission is denied"});
     ReportErrorMessage(err_msg);
-    REPORT_FE_ERROR("[GraphOpt][Init][InitOpPrecisionMode] The op precision mode configuration file [%s] does not exist.",
-                    op_precision_mode.c_str());
+    REPORT_FE_ERROR(
+        "[GraphOpt][Init][InitOpPrecisionMode] The op precision mode configuration file [%s] does not exist.",
+        op_precision_mode.c_str());
     return FAILED;
   }
   Status ret = GetOpPrecisonModeStrFromConfigFile(file_path);
@@ -263,8 +258,9 @@ Status OpImplModeConfigParser::InitOpPrecisionModeByImplMode(const std::string &
     }
     Status status = GetOpPrecisonModeStrFromConfigFile(real_file_path);
     if (status != SUCCESS) {
-      REPORT_FE_ERROR("[GraphOpt][Init][InitOpPrecisionMode] Failed to retrieve op_precision_mode string from file [%s].",
-                      op_select_impl_mode.c_str());
+      REPORT_FE_ERROR(
+          "[GraphOpt][Init][InitOpPrecisionMode] Failed to retrieve op_precision_mode string from file [%s].",
+          op_select_impl_mode.c_str());
       return status;
     }
   }
@@ -317,8 +313,8 @@ void OpImplModeConfigParser::ParseLineContentWithMode(const std::string &line_co
     return;
   }
   if (!CheckConfigImplType(impl_mode)) {
-    FE_LOGW("Op_type_or_name %s with op_impl_mode %s is invalid according to the configuration.", op_type_or_name.c_str(),
-            impl_mode.c_str());
+    FE_LOGW("Op_type_or_name %s with op_impl_mode %s is invalid according to the configuration.",
+            op_type_or_name.c_str(), impl_mode.c_str());
     return;
   }
   if (parse_by_op_type) {
@@ -402,4 +398,4 @@ std::string OpImplModeConfigParser::EmplaceHf32ModeForAclnn(const std::string &h
   }
   return hf32_mode;
 }
-}
+}  // namespace fe

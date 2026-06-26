@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,13 +39,14 @@ using namespace gert::bg;
 namespace gert {
 extern ge::Status AddDataNodeForAtomic(ge::ComputeGraphPtr &graph, ge::NodePtr &clean_node, size_t output_size);
 extern ge::NodePtr BuildAtomicNode(const ge::NodePtr &origin_node,
-                        const gert::bg::AtomicLoweringArg &atomic_lowering_arg,
-                        std::vector<gert::bg::ValueHolderPtr> &output_clean_sizes,
-                        std::vector<gert::bg::ValueHolderPtr> &output_clean_addrs,
-                        ComputeGraphPtr &graph);
+                                   const gert::bg::AtomicLoweringArg &atomic_lowering_arg,
+                                   std::vector<gert::bg::ValueHolderPtr> &output_clean_sizes,
+                                   std::vector<gert::bg::ValueHolderPtr> &output_clean_addrs, ComputeGraphPtr &graph);
 
 namespace {
-ge::graphStatus InferShapeStub(InferShapeContext *context) { return SUCCESS;}
+ge::graphStatus InferShapeStub(InferShapeContext *context) {
+  return SUCCESS;
+}
 IMPL_OP(Conv2d).InferShape(InferShapeStub);
 IMPL_OP(Relu).InferShape(InferShapeStub);
 UINT32 OpExecuteFuncStub(gert::OpExecuteContext *tiling_context) {
@@ -59,12 +60,12 @@ UINT32 OpExecutePrepareStub(gert::OpExecutePrepareContext *op_exe_prepare_contex
 UINT32 OpExecuteLaunchStub(gert::OpExecuteLaunchContext *op_exe_launch_context) {
   return 1;
 }
-} // namespace
+}  // namespace
 
 class AclnnNodeConverterST : public bg::BgTestAutoCreate3StageFrame {
  protected:
   void SetUp() override {
-    //BgTest::SetUp();
+    // BgTest::SetUp();
     BgTestAutoCreate3StageFrame::SetUp();
   }
   void TearDown() override {
@@ -90,14 +91,15 @@ TEST_F(AclnnNodeConverterST, TestHgl) {
                           {data1_ret.out_addrs[0], data2_ret.out_addrs[0]},
                           &global_data};
 
-  graph->FindNode("data1")->GetOpDesc()->SetExtAttr("_lowering_result", gert::PlacedLoweringResult(graph->FindNode("data1"), std::move(data1_ret)));
-  graph->FindNode("data2")->GetOpDesc()->SetExtAttr("_lowering_result", gert::PlacedLoweringResult(graph->FindNode("data2"), std::move(data2_ret)));
+  graph->FindNode("data1")->GetOpDesc()->SetExtAttr(
+      "_lowering_result", gert::PlacedLoweringResult(graph->FindNode("data1"), std::move(data1_ret)));
+  graph->FindNode("data2")->GetOpDesc()->SetExtAttr(
+      "_lowering_result", gert::PlacedLoweringResult(graph->FindNode("data2"), std::move(data2_ret)));
   auto data_guarder = bg::DevMemValueHolder::CreateSingleDataOutput("FreeAdd", {add_input.input_addrs[1]}, 0);
   add_input.input_addrs[0]->SetGuarder(data_guarder);
 
-
   gert::GlobalDumper::GetInstance()->SetEnableFlags(
-  gert::BuiltInSubscriberUtil::BuildEnableFlags<gert::DumpType>({gert::DumpType::kExceptionDump}));
+      gert::BuiltInSubscriberUtil::BuildEnableFlags<gert::DumpType>({gert::DumpType::kExceptionDump}));
 
   gert::OpImplSpaceRegistryV2Ptr space_registry_stub = std::make_shared<gert::OpImplSpaceRegistryV2>();
   auto op_impl_func = space_registry_stub->CreateOrGetOpImpl("Add");
@@ -127,11 +129,12 @@ TEST_F(AclnnNodeConverterST, TestHgl2Stages) {
                           {data1_ret.out_addrs[0], data2_ret.out_addrs[0]},
                           &global_data};
 
-  graph->FindNode("data1")->GetOpDesc()->SetExtAttr("_lowering_result", gert::PlacedLoweringResult(graph->FindNode("data1"), std::move(data1_ret)));
-  graph->FindNode("data2")->GetOpDesc()->SetExtAttr("_lowering_result", gert::PlacedLoweringResult(graph->FindNode("data2"), std::move(data2_ret)));
+  graph->FindNode("data1")->GetOpDesc()->SetExtAttr(
+      "_lowering_result", gert::PlacedLoweringResult(graph->FindNode("data1"), std::move(data1_ret)));
+  graph->FindNode("data2")->GetOpDesc()->SetExtAttr(
+      "_lowering_result", gert::PlacedLoweringResult(graph->FindNode("data2"), std::move(data2_ret)));
   auto data_guarder = bg::DevMemValueHolder::CreateSingleDataOutput("FreeAdd", {add_input.input_addrs[1]}, 0);
   add_input.input_addrs[0]->SetGuarder(data_guarder);
-
 
   gert::GlobalDumper::GetInstance()->SetEnableFlags(
       gert::BuiltInSubscriberUtil::BuildEnableFlags<gert::DumpType>({gert::DumpType::kExceptionDump}));
@@ -151,4 +154,4 @@ TEST_F(AclnnNodeConverterST, TestHgl2Stages) {
   global_data.SetSpaceRegistriesV2(*space_registry_array);
   auto add_ret = LoweringAclnnNode(add_node, add_input);
 }
-}
+}  // namespace gert

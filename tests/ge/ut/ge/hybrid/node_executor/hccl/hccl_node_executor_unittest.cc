@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -407,9 +407,9 @@ TEST_F(UtestHcclNodeExecutor, test_GetInputsOutPuts) {
   EXPECT_EQ(hccl_node_task.GetInputsOutPuts(*context, inputs, outputs), SUCCESS);
   EXPECT_EQ(inputs.size(), 2);
   EXPECT_EQ(outputs.size(), 1);
-  delete[] (TensorValue*)(context->outputs_start_);
+  delete[] (TensorValue *)(context->outputs_start_);
   context->outputs_start_ = nullptr;
-  delete[] (TensorValue*)(context->inputs_start_);
+  delete[] (TensorValue *)(context->inputs_start_);
   context->inputs_start_ = nullptr;
 }
 

@@ -27,7 +27,6 @@ constexpr uint64_t kTsMemBlockSize = 4UL * 1024UL;
 constexpr uint64_t kMemAlignSize = 512UL;
 }  // namespace
 
-
 std::vector<DeclNode *> LoadAndRunFileCodeGenerator::BuildAnonymousNamespaceItems(
     const Om2CodegenModel &codegen_model, const std::vector<TaskCodeBuilderPtr> &task_code_builders) const {
   (void)codegen_model;
@@ -46,7 +45,7 @@ std::vector<DeclNode *> LoadAndRunFileCodeGenerator::BuildAnonymousNamespaceItem
 }
 
 MethodDef *LoadAndRunFileCodeGenerator::BuildLoadMethod(const Om2CodegenModel &codegen_model,
-                                                      const std::vector<TaskCodeBuilderPtr> &task_code_builders) {
+                                                        const std::vector<TaskCodeBuilderPtr> &task_code_builders) {
   std::vector<BodyItem> body;
   (void)BuildLoadBody(body, codegen_model, task_code_builders);
   return ast_.DefineMethod("Om2Model", "Load", {}, "aclError", body);
@@ -67,11 +66,11 @@ Status LoadAndRunFileCodeGenerator::BuildLoadBody(std::vector<BodyItem> &body, c
       // 表驱动模式：调用 DispatchOp
       const auto stream_id = static_cast<int64_t>(task_code_builder->GetHeader().stream_id);
       body.push_back(ChkStatus(
-          ast_.Call("DispatchOp", {ast_.Var("OpDef", "kOpDefs")[static_cast<int64_t>(op_idx)].Addr(),
-                                   ast_.InitList({total_dev_mem_ptr_, session_scope_mem_ptr_, constants_, args_table_,
-                                                  func_handles_.Attr("data")(), stream_list_[stream_id], model_id_,
-                                                  instance_handle_, mem_event_id_mem_map_,
-                                                  dev_dynamic_mem_ptrs_, overflow_addr_})})));
+          ast_.Call("DispatchOp",
+                    {ast_.Var("OpDef", "kOpDefs")[static_cast<int64_t>(op_idx)].Addr(),
+                     ast_.InitList({total_dev_mem_ptr_, session_scope_mem_ptr_, constants_, args_table_,
+                                    func_handles_.Attr("data")(), stream_list_[stream_id], model_id_, instance_handle_,
+                                    mem_event_id_mem_map_, dev_dynamic_mem_ptrs_, overflow_addr_})})));
       op_idx++;
     } else {
       // RenderDistribution 模式：直接生成代码
@@ -86,8 +85,8 @@ Status LoadAndRunFileCodeGenerator::BuildLoadBody(std::vector<BodyItem> &body, c
   return SUCCESS;
 }
 
-DeclNode *LoadAndRunFileCodeGenerator::BuildOpDefTable(const Om2CodegenModel &codegen_model,
-                                                       const std::vector<TaskCodeBuilderPtr> &task_code_builders) const {
+DeclNode *LoadAndRunFileCodeGenerator::BuildOpDefTable(
+    const Om2CodegenModel &codegen_model, const std::vector<TaskCodeBuilderPtr> &task_code_builders) const {
   (void)codegen_model;
   std::vector<Arg> entries;
   for (const auto &task_code_builder : task_code_builders) {
@@ -125,11 +124,12 @@ MethodDef *LoadAndRunFileCodeGenerator::BuildRunMethod(const Om2CodegenModel &co
   auto output_count = ast_.Var("size_t", "output_count");
   auto output_data = ast_.Var("void **", "output_data");
   auto stream_sync_timeout = ast_.Var("int32_t", "stream_sync_timeout");
-  return ast_.DefineMethod("Om2Model", "Run", {input_count, input_data, output_count, output_data, stream_sync_timeout}, "aclError", body);
+  return ast_.DefineMethod("Om2Model", "Run", {input_count, input_data, output_count, output_data, stream_sync_timeout},
+                           "aclError", body);
 }
 
-Status LoadAndRunFileCodeGenerator::BuildRunBodyImpl(std::vector<BodyItem> &body,
-                                                   const Om2CodegenModel &codegen_model, bool is_async) {
+Status LoadAndRunFileCodeGenerator::BuildRunBodyImpl(std::vector<BodyItem> &body, const Om2CodegenModel &codegen_model,
+                                                     bool is_async) {
   auto input_count = ast_.Var("size_t", "input_count");
   auto input_data = ast_.Var("void **", "input_data");
   auto output_count = ast_.Var("size_t", "output_count");
@@ -137,9 +137,10 @@ Status LoadAndRunFileCodeGenerator::BuildRunBodyImpl(std::vector<BodyItem> &body
   auto exe_stream = ast_.Var("aclrtStream &", "exe_stream");
   auto body_item = is_async ? ast_.Str("RunAsync begin") : ast_.Str("Run begin");
   body.push_back(ast_.Call("OM2_LOGI", {body_item}));
-  body.push_back(ast_.If((input_count != "om2::INPUT_NUM") || (output_count != "om2::OUTPUT_NUM"), {
-      ast_.Return("ACL_ERROR_FAILURE"),
-  }));
+  body.push_back(ast_.If((input_count != "om2::INPUT_NUM") || (output_count != "om2::OUTPUT_NUM"),
+                         {
+                             ast_.Return("ACL_ERROR_FAILURE"),
+                         }));
   uint32_t input_data_index = 0U;
   uint32_t output_data_index = 0U;
   for (const auto &entry : codegen_model.model_io.entries) {
@@ -155,19 +156,18 @@ Status LoadAndRunFileCodeGenerator::BuildRunBodyImpl(std::vector<BodyItem> &body
       output_data_index++;
     }
     auto tensor = ast_.Var("auto", tensor_var_name);
-    body.push_back(ast_.VarDecl(tensor, ast_.ReinterpretCast("gert::Tensor *",
-                                                             (entry.is_input ? input_data : output_data)[entry.index])));
+    body.push_back(ast_.VarDecl(
+        tensor, ast_.ReinterpretCast("gert::Tensor *", (entry.is_input ? input_data : output_data)[entry.index])));
     if (entry.is_addr_refreshable) {
-      body.push_back(ChkStatus(args_table_.Attr("UpdateHostArgs")(entry.update_host_args_index,
-                                                                  ast_.ReinterpretCast("uintptr_t",
-                                                                                       tensor.Arrow("GetAddr")()))));
+      body.push_back(ChkStatus(args_table_.Attr("UpdateHostArgs")(
+          entry.update_host_args_index, ast_.ReinterpretCast("uintptr_t", tensor.Arrow("GetAddr")()))));
     } else {
       auto dev_addr = ast_.Var("auto", addr_var_name);
       body.push_back(ast_.VarDecl(dev_addr, GetAddr(ast_.Var("void *", "total_dev_mem_ptr_"), entry.memory_offset)));
       if (is_async) {
-        body.push_back(ChkStatus(AclrtMemcpyAsync(dev_addr, tensor.Arrow("GetSize")(), tensor.Arrow("GetAddr")(),
-                                                  tensor.Arrow("GetSize")(), "ACL_MEMCPY_DEVICE_TO_DEVICE",
-                                                  exe_stream)));
+        body.push_back(
+            ChkStatus(AclrtMemcpyAsync(dev_addr, tensor.Arrow("GetSize")(), tensor.Arrow("GetAddr")(),
+                                       tensor.Arrow("GetSize")(), "ACL_MEMCPY_DEVICE_TO_DEVICE", exe_stream)));
       } else {
         body.push_back(ChkStatus(AclrtMemcpy(dev_addr, tensor.Arrow("GetSize")(), tensor.Arrow("GetAddr")(),
                                              tensor.Arrow("GetSize")(), "ACL_MEMCPY_DEVICE_TO_DEVICE")));
@@ -199,21 +199,25 @@ Status LoadAndRunFileCodeGenerator::BuildCommonHelperFunctions(std::vector<DeclN
   auto rt_ret = ast_.Var("const auto", "rt_ret");
 
   items.push_back(ast_.Field("constexpr uint16_t", "GE_MODULE_NAME_U16", GE_MODULE_NAME_U16));
-  items.push_back(ast_.DefineFunction("MallocDeviceMemory", {dev_ptr, size, mem_type, mem_ptrs}, "aclError", {
-      ast_.VarDecl(block_size, kDefaultMemBlockSize),
-      ast_.If(mem_type == "RT_MEMORY_TS", {
-          ast_.Assign(block_size, kTsMemBlockSize),
-      }),
-      ast_.VarDecl(aligned_size, ((size + kMemAlignSize) - 1) / kMemAlignSize * kMemAlignSize),
-      ast_.VarDecl(final_block_size, ((aligned_size + block_size) - 1) / block_size * block_size),
-      ast_.VarDecl(rt_ret, RtMalloc(dev_ptr.Addr(), final_block_size, mem_type, "GE_MODULE_NAME_U16")),
-      ast_.If((rt_ret != "RT_ERROR_NONE") || (dev_ptr == nullptr), {
-          ast_.Return("ACL_ERROR_FAILURE"),
-      }),
-      ChkTrue(RtMemset(dev_ptr, block_size, 0, block_size) == "RT_ERROR_NONE"),
-      mem_ptrs.PushBack(dev_ptr),
-      ast_.Return("ACL_SUCCESS"),
-  }));
+  items.push_back(ast_.DefineFunction(
+      "MallocDeviceMemory", {dev_ptr, size, mem_type, mem_ptrs}, "aclError",
+      {
+          ast_.VarDecl(block_size, kDefaultMemBlockSize),
+          ast_.If(mem_type == "RT_MEMORY_TS",
+                  {
+                      ast_.Assign(block_size, kTsMemBlockSize),
+                  }),
+          ast_.VarDecl(aligned_size, ((size + kMemAlignSize) - 1) / kMemAlignSize * kMemAlignSize),
+          ast_.VarDecl(final_block_size, ((aligned_size + block_size) - 1) / block_size * block_size),
+          ast_.VarDecl(rt_ret, RtMalloc(dev_ptr.Addr(), final_block_size, mem_type, "GE_MODULE_NAME_U16")),
+          ast_.If((rt_ret != "RT_ERROR_NONE") || (dev_ptr == nullptr),
+                  {
+                      ast_.Return("ACL_ERROR_FAILURE"),
+                  }),
+          ChkTrue(RtMemset(dev_ptr, block_size, 0, block_size) == "RT_ERROR_NONE"),
+          mem_ptrs.PushBack(dev_ptr),
+          ast_.Return("ACL_SUCCESS"),
+      }));
   items.push_back(ast_.Field("constexpr const size_t", "max_launch_cfg_num = 8UL"));
   items.push_back(BuildLaunchKernelCfgHolder());
   items.push_back(BuildLaunchKernelConfig());
@@ -223,21 +227,21 @@ Status LoadAndRunFileCodeGenerator::BuildCommonHelperFunctions(std::vector<DeclN
 
 StructDecl *LoadAndRunFileCodeGenerator::BuildLaunchKernelCfgHolder() const {
   return ast_.Struct("LaunchKernelCfgHolder", {
-      ast_.Field("aclrtLaunchKernelCfg", "cfg{}"),
-      ast_.Field("aclrtLaunchKernelAttr", "attrs[max_launch_cfg_num]"),
-  });
+                                                  ast_.Field("aclrtLaunchKernelCfg", "cfg{}"),
+                                                  ast_.Field("aclrtLaunchKernelAttr", "attrs[max_launch_cfg_num]"),
+                                              });
 }
 
 StructDecl *LoadAndRunFileCodeGenerator::BuildLaunchKernelConfig() const {
   return ast_.Struct("LaunchKernelConfig", {
-      ast_.Field("uint8_t", "schedule_mode{0U}"),
-      ast_.Field("aclrtEngineType", "engine_type{ACL_RT_ENGINE_TYPE_AIC}"),
-      ast_.Field("uint32_t", "block_dim_offset{0U}"),
-      ast_.Field("bool", "is_block_task_prefetch{false}"),
-      ast_.Field("uint8_t", "is_data_dump{0U}"),
-      ast_.Field("uint16_t", "time_out{0U}"),
-      ast_.Field("uint32_t", "local_memory_size{0U}"),
-  });
+                                               ast_.Field("uint8_t", "schedule_mode{0U}"),
+                                               ast_.Field("aclrtEngineType", "engine_type{ACL_RT_ENGINE_TYPE_AIC}"),
+                                               ast_.Field("uint32_t", "block_dim_offset{0U}"),
+                                               ast_.Field("bool", "is_block_task_prefetch{false}"),
+                                               ast_.Field("uint8_t", "is_data_dump{0U}"),
+                                               ast_.Field("uint16_t", "time_out{0U}"),
+                                               ast_.Field("uint32_t", "local_memory_size{0U}"),
+                                           });
 }
 
 FunctionDef *LoadAndRunFileCodeGenerator::BuildAssembleLaunchConfig() const {
@@ -264,8 +268,7 @@ FunctionDef *LoadAndRunFileCodeGenerator::BuildAssembleLaunchConfig() const {
       ast_.Assign(attrs[actual_cfg_num].Attr("value").Attr("isDataDump"), launch_config.Attr("is_data_dump")),
       ast_.PostInc(actual_cfg_num),
       ast_.Assign(attrs[actual_cfg_num].Attr("id"), "ACL_RT_LAUNCH_KERNEL_ATTR_DYN_UBUF_SIZE"),
-      ast_.Assign(attrs[actual_cfg_num].Attr("value").Attr("dynUBufSize"),
-                  launch_config.Attr("local_memory_size")),
+      ast_.Assign(attrs[actual_cfg_num].Attr("value").Attr("dynUBufSize"), launch_config.Attr("local_memory_size")),
       ast_.PostInc(actual_cfg_num),
       ast_.Assign(attrs[actual_cfg_num].Attr("id"), "ACL_RT_LAUNCH_KERNEL_ATTR_TIMEOUT"),
       ast_.Assign(attrs[actual_cfg_num].Attr("value").Attr("timeout"), launch_config.Attr("time_out")),
@@ -277,9 +280,8 @@ FunctionDef *LoadAndRunFileCodeGenerator::BuildAssembleLaunchConfig() const {
   return ast_.DefineFunction("AssembleLaunchConfig", {holder, launch_config}, "aclError", ast_.Body(body));
 }
 
-Status LoadAndRunFileCodeGenerator::BuildDispatchOp(
-    std::vector<DeclNode *> &items,
-    const std::vector<TaskCodeBuilderPtr> &task_code_builders) const {
+Status LoadAndRunFileCodeGenerator::BuildDispatchOp(std::vector<DeclNode *> &items,
+                                                    const std::vector<TaskCodeBuilderPtr> &task_code_builders) const {
   // Collect unique dispatch type → first builder mapping
   // Use the first builder for each dispatch type (all builders mapping to same type are equivalent)
   // Only include table-driven task types
@@ -314,13 +316,12 @@ Status LoadAndRunFileCodeGenerator::BuildDispatchOp(
   // Build the DispatchOp function
   auto op = ast_.Var("const OpDef *", "op");
   auto ctx = ast_.Var("const DispatchOpContext &", "ctx");
-  auto dispatch_op = ast_.DefineFunction("DispatchOp", {op, ctx}, "aclError", {
-      ast_.Switch(
-          ast_.StaticCast("OpDispatchType",
-              ast_.Var("", "op").Arrow("dispatch_type")),
-          switch_body),
-      ast_.Return("ACL_SUCCESS"),
-  });
+  auto dispatch_op = ast_.DefineFunction(
+      "DispatchOp", {op, ctx}, "aclError",
+      {
+          ast_.Switch(ast_.StaticCast("OpDispatchType", ast_.Var("", "op").Arrow("dispatch_type")), switch_body),
+          ast_.Return("ACL_SUCCESS"),
+      });
   items.push_back(dispatch_op);
   return SUCCESS;
 }

@@ -33,14 +33,14 @@ class TensorUtilsEx {
   static ge::graphStatus GetTensorMemorySizeInBytesWithAutoPadding(const GeTensorDesc &desc_temp, int64_t &size_temp);
 
   /**
-    * @brief Get the padding size for memory allocation.
-    *
-    * This function queries the SoC specification to get the actual padding size.
-    * If the query fails, it returns the default padding size (32 bytes).
-    * The result is cached for subsequent calls.
-    *
-    * @return The padding size in bytes.
-    */
+   * @brief Get the padding size for memory allocation.
+   *
+   * This function queries the SoC specification to get the actual padding size.
+   * If the query fails, it returns the default padding size (32 bytes).
+   * The result is cached for subsequent calls.
+   *
+   * @return The padding size in bytes.
+   */
   static int64_t GetPaddingSize();
 };
 }  // namespace ge

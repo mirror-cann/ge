@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -14,8 +14,7 @@
 namespace fe {
 bool ReduceFormatProcess::CheckOriginFormatAndShape(const vector<ge::Format> &input_formats,
                                                     const vector<ge::Format> &output_formats,
-                                                    const vector<ge::GeShape> &shapes,
-                                                    const size_t &dim) {
+                                                    const vector<ge::GeShape> &shapes, const size_t &dim) {
   (void)output_formats;
   if (!CheckAccuracyOriginShapesDimNum(shapes, dim)) {
     FE_LOGD("The size of the origin shapes is != %zu.", dim);
@@ -62,7 +61,7 @@ bool ReduceFormatProcess::CheckContainReduceAxis(const ge::OpDesc &op_desc, cons
   return false;
 }
 
-bool ReduceFormatProcess::CheckNdFormat(const vector<ge::Format>& formats) {
+bool ReduceFormatProcess::CheckNdFormat(const vector<ge::Format> &formats) {
   for (auto format : formats) {
     FE_LOGD("The format %s.", ge::TypeUtils::FormatToSerialString(format).c_str());
     if (format == ge::FORMAT_ND) {
@@ -93,8 +92,8 @@ Status ReduceFormatProcess::GetOriginAxisIndexByName(const ge::Format &format, c
 
 void ReduceFormatProcess::GenerateFormats(const size_t &in_shape_size, const size_t &out_shape_size,
                                           const vector<ge::Format> &support_in_formats,
-                                          const vector<ge::Format> &support_out_formats, FormatProccessResult &result)
-                                          const {
+                                          const vector<ge::Format> &support_out_formats,
+                                          FormatProccessResult &result) const {
   for (const auto &support_format : support_in_formats) {
     vector<ge::Format> tmp(in_shape_size, support_format);
     result.input_format_res.emplace_back(tmp);

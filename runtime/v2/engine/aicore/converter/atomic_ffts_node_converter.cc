@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -42,7 +42,7 @@ struct AtomProcArg {
 };
 
 bg::ValueHolderPtr UpdateAtomicContext(const ge::NodePtr &node, const FFTSLowerInput &lower_input,
-    bg::ValueHolderPtr &flush_data, AtomProcArg &pro_arg) {
+                                       bg::ValueHolderPtr &flush_data, AtomProcArg &pro_arg) {
   std::vector<bg::ValueHolderPtr> inputs;
   inputs.emplace_back(flush_data);
   std::vector<uint32_t> ctx_id_vec;
@@ -56,7 +56,8 @@ bg::ValueHolderPtr UpdateAtomicContext(const ge::NodePtr &node, const FFTSLowerI
 }
 
 void ConstructArgsInputs(const ge::OpDescPtr &atomic_op_desc, std::vector<bg::ValueHolderPtr> &inputs,
-    const FFTSLowerInput &lower_input, bg::ValueHolderPtr atomic_sink_ret, bg::ValueHolderPtr proc_type) {
+                         const FFTSLowerInput &lower_input, bg::ValueHolderPtr atomic_sink_ret,
+                         bg::ValueHolderPtr proc_type) {
   std::vector<int64_t> work_clear_indexes;
   ge::AttrUtils::GetListInt(atomic_op_desc, "WorkspaceIndexes", work_clear_indexes);
   std::vector<int64_t> output_clean_indexes;
@@ -81,8 +82,9 @@ bg::ValueHolderPtr AtomicUpdateArgs(std::vector<bg::ValueHolderPtr> &inputs,
 }
 
 ge::graphStatus CalculateAtomicOutputSize(const ge::NodePtr &ori_node, const ge::NodePtr &clean_node,
-    const AtomicFFTSLowerArg &lower_args, std::vector<bg::ValueHolderPtr> &shape_size,
-    std::vector<bg::ValueHolderPtr> &tail_shape_size) {
+                                          const AtomicFFTSLowerArg &lower_args,
+                                          std::vector<bg::ValueHolderPtr> &shape_size,
+                                          std::vector<bg::ValueHolderPtr> &tail_shape_size) {
   auto holder = bg::ValueHolder::SetScopedCurrentComputeNode(ori_node);
   std::vector<int64_t> output_clean_indexes;
   ge::AttrUtils::GetListInt(clean_node->GetOpDesc(), "ClearOutIndexes", output_clean_indexes);
@@ -94,13 +96,14 @@ ge::graphStatus CalculateAtomicOutputSize(const ge::NodePtr &ori_node, const ge:
   shape_size = bg::ValueHolder::CreateDataOutput("FFTSCalcAtomicOutputShapeSize", inputs, output_clean_indexes.size());
 
   inputs[1] = lower_args.thread_ret[static_cast<size_t>(kernel::ThreadOutKey::LAST_OUT_SHAPES)];
-  tail_shape_size = bg::ValueHolder::CreateDataOutput("FFTSCalcAtomicOutputShapeSize", inputs,
-                                                      output_clean_indexes.size());
+  tail_shape_size =
+      bg::ValueHolder::CreateDataOutput("FFTSCalcAtomicOutputShapeSize", inputs, output_clean_indexes.size());
   return ge::GRAPH_SUCCESS;
 }
 
 std::vector<bg::ValueHolderPtr> FFTSAtomicTiling(const ge::NodePtr &ori_node, const ge::NodePtr &clean_node,
-    const FFTSLowerInput &lower_input, const AtomicFFTSLowerArg &lower_args) {
+                                                 const FFTSLowerInput &lower_input,
+                                                 const AtomicFFTSLowerArg &lower_args) {
   std::vector<bg::ValueHolderPtr> shape_size, tail_shape_size;
   auto ret = CalculateAtomicOutputSize(ori_node, clean_node, lower_args, shape_size, tail_shape_size);
   FE_ASSERT_TRUE(ret == ge::GRAPH_SUCCESS);
@@ -134,9 +137,10 @@ bg::ValueHolderPtr CopyAtomicKernelTilingdata(const FFTSLowerInput &lower_input,
 }
 
 ge::graphStatus AtomicNodeTiling(const ge::NodePtr &node, const FFTSLowerInput &lower_input,
-                                 const AtomicFFTSLowerArg &lower_args,
-                                 const ge::NodePtr &clean_node, AtomProcArg &pro_arg) {
-  GELOGD("Node [%s] needs to perform an atomic clean with tiling size [%zu].", node->GetNamePtr(), lower_args.tiling_ret.size());
+                                 const AtomicFFTSLowerArg &lower_args, const ge::NodePtr &clean_node,
+                                 AtomProcArg &pro_arg) {
+  GELOGD("Node [%s] needs to perform an atomic clean with tiling size [%zu].", node->GetNamePtr(),
+         lower_args.tiling_ret.size());
   auto atomic_op_desc = clean_node->GetOpDesc();
   std::shared_ptr<optiling::utils::OpRunInfo> atomic_tiling_info = nullptr;
   atomic_tiling_info = node->GetOpDesc()->TryGetExtAttr(ge::ATTR_NAME_ATOMIC_OP_RUN_INFO, atomic_tiling_info);
@@ -175,14 +179,14 @@ ge::graphStatus AtomicNodeTiling(const ge::NodePtr &node, const FFTSLowerInput &
       pro_arg.proc_type = static_cast<uint32_t>(kernel::AtomProcType::DY_OP);
     }
   } else if (atomic_tiling_info != nullptr) {
-      GELOGD("Static and reuse binary situation.");
-      bg::ValueHolderPtr copy_ret;
-      int32_t blk_dim = atomic_tiling_info->GetBlockDim();
-      pro_arg.blk_dim = bg::ValueHolder::CreateConst(&blk_dim, sizeof(blk_dim));
-      pro_arg.tail_blk_dim = pro_arg.blk_dim;
-      copy_ret = CopyAtomicKernelTilingdata(lower_input, atomic_tiling_info);
-      pro_arg.need_ctr_edge.emplace_back(copy_ret);
-      pro_arg.proc_type = static_cast<uint32_t>(kernel::AtomProcType::DY_OP);
+    GELOGD("Static and reuse binary situation.");
+    bg::ValueHolderPtr copy_ret;
+    int32_t blk_dim = atomic_tiling_info->GetBlockDim();
+    pro_arg.blk_dim = bg::ValueHolder::CreateConst(&blk_dim, sizeof(blk_dim));
+    pro_arg.tail_blk_dim = pro_arg.blk_dim;
+    copy_ret = CopyAtomicKernelTilingdata(lower_input, atomic_tiling_info);
+    pro_arg.need_ctr_edge.emplace_back(copy_ret);
+    pro_arg.proc_type = static_cast<uint32_t>(kernel::AtomProcType::DY_OP);
   } else {
     uint32_t tmp_val = 1U;
     auto one_val = bg::ValueHolder::CreateConst(&tmp_val, sizeof(tmp_val));
@@ -196,7 +200,7 @@ ge::graphStatus AtomicNodeTiling(const ge::NodePtr &node, const FFTSLowerInput &
 }  // namespace
 
 bg::ValueHolderPtr LaunchFFTSAtomicClean(const ge::NodePtr &node, const FFTSLowerInput &lower_input,
-    const AtomicFFTSLowerArg &lower_args) {
+                                         const AtomicFFTSLowerArg &lower_args) {
   if (!node->GetOpDesc()->HasAttr(kAtomicCtxIdList)) {
     return nullptr;
   }
@@ -204,8 +208,9 @@ bg::ValueHolderPtr LaunchFFTSAtomicClean(const ge::NodePtr &node, const FFTSLowe
   GE_MAKE_SHARED(tmp_graph = std::make_shared<ge::ComputeGraph>("tmp-graph"), return nullptr);
   FE_ASSERT_NOTNULL(tmp_graph);
   AtomProcArg pro_arg;
-  auto clean_node = BuildAtomicNode(node, {nullptr, lower_args.workspaces_addrs, lower_args.output_sizes,
-      lower_args.output_addrs}, pro_arg.output_clean_sizes, pro_arg.output_clean_addrs, tmp_graph);
+  auto clean_node =
+      BuildAtomicNode(node, {nullptr, lower_args.workspaces_addrs, lower_args.output_sizes, lower_args.output_addrs},
+                      pro_arg.output_clean_sizes, pro_arg.output_clean_addrs, tmp_graph);
   FE_ASSERT_NOTNULL(clean_node);
 
   auto current_node_guarder = bg::ValueHolder::SetScopedCurrentComputeNode(clean_node);

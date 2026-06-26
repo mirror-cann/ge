@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,8 +20,7 @@ GraphCommImpl::~GraphCommImpl() {}
 
 Status GraphCommImpl::GetAllInEdgeList(const ge::NodePtr &node,
                                        std::vector<std::pair<ge::AnchorPtr, ge::AnchorPtr>> &in_edge_pair,
-                                       const int32_t &edge_type,
-                                       const std::unordered_set<ge::NodePtr> &fus_node_set,
+                                       const int32_t &edge_type, const std::unordered_set<ge::NodePtr> &fus_node_set,
                                        bool is_tuning_mode) const {
   // data anchor
   if (edge_type == 0) {
@@ -102,7 +101,8 @@ void GraphCommImpl::PutEdgeToFusionDataFlowVec(const std::pair<ge::AnchorPtr, ge
   flow.node_dataindex_pair.first = fus_node_anchor->GetOwnerNode()->GetName();
   flow.node_dataindex_pair.second = fus_node_anchor;
   flow.edge = edge;
-  FE_LOGD("Putting edge to flow vector, fus_node: %s, edge_node: %s.", flow.node_dataindex_pair.first.c_str(), dst_name.c_str());
+  FE_LOGD("Putting edge to flow vector, fus_node: %s, edge_node: %s.", flow.node_dataindex_pair.first.c_str(),
+          dst_name.c_str());
 }
 
 void GraphCommImpl::SaveFusionNode(const uint32_t &scopeid, const ge::NodePtr &node, ScopeNodeMap &fus_node_map) const {
@@ -111,8 +111,8 @@ void GraphCommImpl::SaveFusionNode(const uint32_t &scopeid, const ge::NodePtr &n
     std::vector<ge::NodePtr> node_list_new;
     node_list_new.clear();
     node_list_new.push_back(node);
-    (void)fus_node_map.insert(std::pair<int64_t, std::vector<ge::NodePtr>>(static_cast<int64_t>(scopeid),
-                                                                           node_list_new));
+    (void)fus_node_map.insert(
+        std::pair<int64_t, std::vector<ge::NodePtr>>(static_cast<int64_t>(scopeid), node_list_new));
   } else {
     nodelist_it->second.push_back(node);
   }
@@ -131,8 +131,8 @@ void GraphCommImpl::AddFusionSrc(const uint32_t &src_op_id, const ge::AnchorPtr 
 
 Status GraphCommImpl::MergeFusionNodeInputCtrlEdgeList(const ge::NodePtr &fus_node,
                                                        const vector<FusionDataFlow> &fus_input_ctrl_edge_list) const {
-  FE_CHECK(fus_node == nullptr,
-           REPORT_FE_ERROR("[SubGraphOpt][Merge][LinkInCtrlEdge] fusNode is nullptr."), return FAILED);
+  FE_CHECK(fus_node == nullptr, REPORT_FE_ERROR("[SubGraphOpt][Merge][LinkInCtrlEdge] fusNode is nullptr."),
+           return FAILED);
 
   for (const FusionDataFlow &data_flow : fus_input_ctrl_edge_list) {
     auto in_edge = data_flow.edge;
@@ -150,9 +150,10 @@ Status GraphCommImpl::MergeFusionNodeInputCtrlEdgeList(const ge::NodePtr &fus_no
     auto src_node = src_out_ctrl_anchor->GetOwnerNode();
     FE_CHECK_NOTNULL(src_node);
     if (ge::GraphUtils::AddEdge(src_out_ctrl_anchor, fus_node->GetInControlAnchor()) != ge::GRAPH_SUCCESS) {
-      REPORT_FE_ERROR("[SubGraphOpt][Merge][LinkInCtrlEdge] Failed to add edge between %s's output %d and %s's input %d",
-                      src_node->GetName().c_str(), src_out_ctrl_anchor->GetIdx(),
-                      fus_node->GetName().c_str(), fus_node->GetInControlAnchor()->GetIdx());
+      REPORT_FE_ERROR(
+          "[SubGraphOpt][Merge][LinkInCtrlEdge] Failed to add edge between %s's output %d and %s's input %d",
+          src_node->GetName().c_str(), src_out_ctrl_anchor->GetIdx(), fus_node->GetName().c_str(),
+          fus_node->GetInControlAnchor()->GetIdx());
       return FAILED;
     }
     FE_LOGD("Added control anchor from %s to %s.", src_out_ctrl_anchor->GetOwnerNode()->GetName().c_str(),
@@ -163,8 +164,7 @@ Status GraphCommImpl::MergeFusionNodeInputCtrlEdgeList(const ge::NodePtr &fus_no
 }
 
 Status GraphCommImpl::MergeFusionNodeOutputCtrlEdgeList(const ge::NodePtr &fus_node,
-                                                        const vector<FusionDataFlow> &fus_output_ctrl_edge_list) const
-{
+                                                        const vector<FusionDataFlow> &fus_output_ctrl_edge_list) const {
   FE_CHECK(fus_node == nullptr, REPORT_FE_ERROR("[SubGraphOpt][Merge][GetNodes] fusNode is nullptr."), return FAILED);
 
   for (const FusionDataFlow &data_flow : fus_output_ctrl_edge_list) {

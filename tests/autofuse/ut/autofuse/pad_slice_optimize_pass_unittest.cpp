@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,24 +38,24 @@ class PadSliceOptimizePassTest : public testing::Test {
     es_graph_ = std::unique_ptr<es::Graph>(new es::Graph("graph"));
     RegisterAllOpCreator();
   }
-  void TearDown() override {
-  }
+  void TearDown() override {}
   std::unique_ptr<es::Graph> es_graph_;
 
   static ComputeGraphPtr CreateGraphPadSlice() {
     auto es_graph_ = std::make_unique<es::Graph>("graph");
-    auto data0 = es_graph_->CreateInput(0, "data0", nullptr); 
-    data0.SetSymbolShape({"s0", "50", "s2"}); 
-    data0.SetShape({100, 50, 20}); 
-    auto paddings = CreateConst(*es_graph_, ge::DT_INT64, {3, 2}, std::vector<std::vector<int64_t>>{{0, 0}, {0, 50}, {0, 0}}); 
-    paddings.SetShape({3, 2}); 
-    auto pad = es::Pad(data0, paddings); 
-    pad.SetShape({100, 100, 20}); 
-    auto offset = CreateConst(*es_graph_, ge::DT_INT64, {3}, std::vector<int64_t>{0, 0, 0}); 
-    auto size = CreateConst(*es_graph_, ge::DT_INT32, {3}, std::vector<int32_t>{100, 50, 20}); 
-    auto slice = es::Slice(pad, offset, size); 
-    slice.SetSymbolShape({"s0", "100", "s2"}); 
-    slice.SetShape({100, 100, 20}); 
+    auto data0 = es_graph_->CreateInput(0, "data0", nullptr);
+    data0.SetSymbolShape({"s0", "50", "s2"});
+    data0.SetShape({100, 50, 20});
+    auto paddings =
+        CreateConst(*es_graph_, ge::DT_INT64, {3, 2}, std::vector<std::vector<int64_t>>{{0, 0}, {0, 50}, {0, 0}});
+    paddings.SetShape({3, 2});
+    auto pad = es::Pad(data0, paddings);
+    pad.SetShape({100, 100, 20});
+    auto offset = CreateConst(*es_graph_, ge::DT_INT64, {3}, std::vector<int64_t>{0, 0, 0});
+    auto size = CreateConst(*es_graph_, ge::DT_INT32, {3}, std::vector<int32_t>{100, 50, 20});
+    auto slice = es::Slice(pad, offset, size);
+    slice.SetSymbolShape({"s0", "100", "s2"});
+    slice.SetShape({100, 100, 20});
     es_graph_->SetOutput(slice, 0);
     auto graph = es_graph_->Build();
     return GraphUtilsEx::GetComputeGraph(*graph);
@@ -92,12 +92,13 @@ TEST_F(PadSliceOptimizePassTest, PadSlicePattern1) {
   EXPECT_EQ(padSliceOptimizePass.Run(cg, changed), ge::GRAPH_SUCCESS);
 }
 
-TEST_F(PadSliceOptimizePassTest, PadSliceNotPattern) { 
+TEST_F(PadSliceOptimizePassTest, PadSliceNotPattern) {
   [this]() {
     auto data0 = es_graph_->CreateInput(0, "data0", nullptr);
     data0.SetSymbolShape({"s0", "50", "s2"});
     data0.SetShape({100, 50, 20});
-    auto paddings = CreateConst(*es_graph_, ge::DT_INT32, {3, 2}, std::vector<std::vector<int64_t>>{{0, 0}, {0, 50}, {0, 0}});
+    auto paddings =
+        CreateConst(*es_graph_, ge::DT_INT32, {3, 2}, std::vector<std::vector<int64_t>>{{0, 0}, {0, 50}, {0, 0}});
     paddings.SetShape({3, 2});
     auto pad = es::Pad(data0, paddings);
     pad.SetShape({100, 100, 20});
@@ -121,8 +122,8 @@ TEST_F(PadSliceOptimizePassTest, PadSliceNotPattern) {
   bool changed = false;
   EXPECT_EQ(padSliceOptimizePass.Run(cg, changed), ge::GRAPH_SUCCESS);
 }
- 
-TEST_F(PadSliceOptimizePassTest, PadSlicePatternPostProcess) { 
+
+TEST_F(PadSliceOptimizePassTest, PadSlicePatternPostProcess) {
   auto cg = CreateGraphPadSlice();
   (void)SetShapeAndType(cg);
   auto pad1 = cg->FindNode("Pad_1");

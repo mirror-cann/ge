@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,7 +38,7 @@ extern ge::graphStatus AiCoreLaunchKernelWithHandle(KernelContext *context);
 extern ge::graphStatus AiCoreLaunchKernelWithFlag(KernelContext *context);
 extern ge::graphStatus AiCoreLaunchMixKernelWithHandle(KernelContext *context);
 extern ge::graphStatus AiCoreLaunchMixKernelWithFlag(KernelContext *context);
-}
+}  // namespace kernel
 namespace {
 using ComputeNodeDesc = RtKernelLaunchArgsEx::ComputeNodeDesc;
 using CustAICPUKernelPtr = std::shared_ptr<ge::OpKernelBin>;
@@ -73,10 +73,11 @@ std::unique_ptr<uint8_t[]> CreateDefaultArgsInfoDesc(size_t input_num, size_t ou
   return args_info_desc_holder;
 }
 
-void CreateMixArgsInfo(ArgsInfosDesc::ArgsInfo *args_info, size_t input_num, size_t output_num, size_t idx0_start_index) {
+void CreateMixArgsInfo(ArgsInfosDesc::ArgsInfo *args_info, size_t input_num, size_t output_num,
+                       size_t idx0_start_index) {
   auto node_io_num = input_num + output_num;
-  args_info[0].Init(ArgsInfosDesc::ArgsInfo::ArgsInfoType::INPUT,
-    ArgsInfosDesc::ArgsInfo::ArgsInfoFormat::DIRECT_ADDR, idx0_start_index, 1U);
+  args_info[0].Init(ArgsInfosDesc::ArgsInfo::ArgsInfoType::INPUT, ArgsInfosDesc::ArgsInfo::ArgsInfoFormat::DIRECT_ADDR,
+                    idx0_start_index, 1U);
   for (size_t idx = 1U; idx < node_io_num; ++idx) {
     int32_t start_index = (idx < input_num) ? idx : (idx - input_num);
     auto arg_type = (idx < input_num) ? ArgsInfosDesc::ArgsInfo::ArgsInfoType::INPUT
@@ -105,7 +106,7 @@ std::unique_ptr<uint8_t[]> CreateMixArgsInfoDesc(size_t input_num, size_t output
   args_info_desc->Init(input_num, output_num, input_num, output_num);
   return args_info_desc_holder;
 }
-}
+}  // namespace
 class AiKernelLaunchST : public testing::Test {
  public:
   KernelRegistry &registry = KernelRegistry::GetInstance();
@@ -132,19 +133,19 @@ struct FakeMemBlock {
 };
 
 struct AiKernelLaunchContext {
-  AiKernelLaunchContext(size_t input_num, size_t output_num, uint64_t io_addr, const Shape &shape,
-                        bool is_mix, bool is_append_addr, size_t idx0_start_index)
+  AiKernelLaunchContext(size_t input_num, size_t output_num, uint64_t io_addr, const Shape &shape, bool is_mix,
+                        bool is_append_addr, size_t idx0_start_index)
       : io_num(input_num + output_num),
         output_num_(output_num),
         node_info("node"),
         block(stub_allocator, reinterpret_cast<void *>(stub_mem_hbm_addr), 100),
         tensor_addr(reinterpret_cast<void *>(io_addr)),
-        is_mix_vec(is_mix){
+        is_mix_vec(is_mix) {
     stream = reinterpret_cast<void *>(0x11);
     handle = reinterpret_cast<void *>(0x12);
     schem = 0;
     dev_fun = 100;
-    cfg = {1U,1U, 0U};
+    cfg = {1U, 1U, 0U};
     ComputeNodeDesc node_desc = {.input_num = input_num,
                                  .output_num = output_num,
                                  .workspace_cap = 8,
@@ -163,8 +164,9 @@ struct AiKernelLaunchContext {
     auto io_arg_num = io_args_info.GetIoArgNum();
     if (io_arg_num > 2) {
       auto io_arg = io_args_info.GetIoArgByIndex(1);
-      gert::IoArgsInfo::IoArg tmp_io_arg = {io_arg->arg_offset, io_arg->start_index, io_arg->arg_num,
-          io_arg->is_input, false, io_arg->folded_first, io_arg->dyn_desc, io_arg->data_size};
+      gert::IoArgsInfo::IoArg tmp_io_arg = {
+          io_arg->arg_offset,   io_arg->start_index, io_arg->arg_num,  io_arg->is_input, false,
+          io_arg->folded_first, io_arg->dyn_desc,    io_arg->data_size};
       io_args_info.SetIoArgByIndex(1, tmp_io_arg);
     }
     work_space = ContinuousVector::Create<GertTensorData *>(0);
@@ -175,19 +177,18 @@ struct AiKernelLaunchContext {
     work_space_gtd = GertTensorData(mem_block.GetAddr(), mem_block.GetSize(), TensorPlacement::kOnDeviceHbm, 0);
   }
 
-  AiKernelLaunchContext(size_t input_num, size_t output_num, uint64_t io_addr, const Shape &shape,
-                        bool is_mix = false)
+  AiKernelLaunchContext(size_t input_num, size_t output_num, uint64_t io_addr, const Shape &shape, bool is_mix = false)
       : io_num(input_num + output_num),
         output_num_(output_num),
         node_info("node"),
         block(stub_allocator, reinterpret_cast<void *>(stub_mem_hbm_addr), 100),
         tensor_addr(reinterpret_cast<void *>(io_addr)),
-        is_mix_vec(is_mix){
+        is_mix_vec(is_mix) {
     stream = reinterpret_cast<void *>(0x11);
     handle = reinterpret_cast<void *>(0x12);
     schem = 0;
     dev_fun = 100;
-    cfg = {1U,1U, 0U};
+    cfg = {1U, 1U, 0U};
     dfx_arg = {true, true, 12345};
     ComputeNodeDesc node_desc = {.input_num = input_num,
                                  .output_num = output_num,
@@ -218,15 +219,15 @@ struct AiKernelLaunchContext {
     handle = reinterpret_cast<void *>(0x12);
     schem = 0;
     dev_fun = 100;
-    cfg={1,1};
+    cfg = {1, 1};
     dfx_arg = {true, true, 12345};
     ComputeNodeDesc node_desc = {.input_num = input_num,
-        .output_num = output_num,
-        .workspace_cap = 8,
-        .max_tiling_data = 128,
-        .need_shape_buffer = false,
-        .need_overflow = need_overflow,
-        .compiled_args_size = 0};
+                                 .output_num = output_num,
+                                 .workspace_cap = 8,
+                                 .max_tiling_data = 128,
+                                 .need_shape_buffer = false,
+                                 .need_overflow = need_overflow,
+                                 .compiled_args_size = 0};
     auto args_info_desc_holder = CreateDefaultArgsInfoDesc(input_num, output_num);
     auto args_info_desc = reinterpret_cast<ArgsInfosDesc *>(args_info_desc_holder.get());
     launch_args = RtKernelLaunchArgsEx::Create(node_desc, *args_info_desc);
@@ -253,21 +254,22 @@ struct AiKernelLaunchContext {
     handle = reinterpret_cast<void *>(0x12);
     schem = 0;
     dev_fun = 100;
-    cfg={1,1};
+    cfg = {1, 1};
     dfx_arg = {true, true, 12345};
     ComputeNodeDesc node_desc = {.input_num = input_num,
-        .output_num = output_num,
-        .workspace_cap = 8,
-        .max_tiling_data = 128,
-        .need_shape_buffer = need_shape_buffer,
-        .need_overflow = need_overflow,
-        .compiled_args_size = 0};
+                                 .output_num = output_num,
+                                 .workspace_cap = 8,
+                                 .max_tiling_data = 128,
+                                 .need_shape_buffer = need_shape_buffer,
+                                 .need_overflow = need_overflow,
+                                 .compiled_args_size = 0};
     auto args_info_desc_holder = CreateDefaultArgsInfoDesc(input_num, output_num);
     auto args_info_desc = reinterpret_cast<ArgsInfosDesc *>(args_info_desc_holder.get());
     launch_args = RtKernelLaunchArgsEx::Create(node_desc, *args_info_desc);
     auto launch_args_ex = reinterpret_cast<RtKernelLaunchArgsEx *>(launch_args.get());
     *launch_args_ex->GetArgsPointer<TensorAddress>(RtKernelLaunchArgsEx::ArgsType::kOverflowAddr) = overflow_addr;
-    *launch_args_ex->GetArgsPointer<TensorAddress>(RtKernelLaunchArgsEx::ArgsType::kShapeBufferAddr) = shape_buffer_addr;
+    *launch_args_ex->GetArgsPointer<TensorAddress>(RtKernelLaunchArgsEx::ArgsType::kShapeBufferAddr) =
+        shape_buffer_addr;
     work_space = ContinuousVector::Create<GertTensorData *>(0);
     clean_work_space = ContinuousVector::Create<GertTensorData *>(0);
     store_shape.MutableStorageShape() = shape;
@@ -512,7 +514,7 @@ TEST_F(AiKernelLaunchST, AiCoreLaunchKernelWithHandle_need_overflow_success) {
 }
 
 TEST_F(AiKernelLaunchST, AiCoreLaunchKernelWithHandle_need_overflow_and_workspaces_success) {
-  AiKernelLaunchContext context(4U, 2U, 0x11, Shape({2, 2, 3}),true, g_overflow_addr);
+  AiKernelLaunchContext context(4U, 2U, 0x11, Shape({2, 2, 3}), true, g_overflow_addr);
   context.WorkSpace(2U);
   GertRuntimeStub runtime_stub;
   ASSERT_EQ(kernel::AiCoreLaunchKernelWithHandle(context.WithHandle()), ge::GRAPH_SUCCESS);
@@ -584,7 +586,6 @@ TEST_F(AiKernelLaunchST, test_AiCoreLaunchKernelWithFlag_run_success) {
   EXPECT_FALSE(ret.empty());
 }
 
-
 TEST_F(AiKernelLaunchST, AiCoreLaunchKernelWithFlag_need_overflow_and_workspaces_success) {
   AiKernelLaunchContext context(4U, 2U, 0x11, Shape({2, 2, 3}), true, g_overflow_addr);
   context.WorkSpace(2U);
@@ -615,8 +616,9 @@ TEST_F(AiKernelLaunchST, test_AtomicLaunchKernelWithFlag_para_check_failed) {
 TEST_F(AiKernelLaunchST, test_AtomicLaunchKernelWithFlag_para_check_run_failed) {
   AiKernelLaunchContext context(1, 1, 0x11, Shape({2, 2, 3}));
   struct FakeRuntime : RuntimeStubImpl {
-    rtError_t rtKernelLaunchWithFlagV2(const void *stubFunc, uint32_t blockDim, rtArgsEx_t *argsInfo, rtSmDesc_t *smDesc,
-                                     rtStream_t stream, uint32_t flag, const rtTaskCfgInfo_t *cfgInfo) {
+    rtError_t rtKernelLaunchWithFlagV2(const void *stubFunc, uint32_t blockDim, rtArgsEx_t *argsInfo,
+                                       rtSmDesc_t *smDesc, rtStream_t stream, uint32_t flag,
+                                       const rtTaskCfgInfo_t *cfgInfo) {
       return 0x01;
     }
   };
@@ -704,8 +706,9 @@ TEST_F(AiKernelLaunchST, test_AtomicLaunchKernelWithFlag_with_profiling_filler) 
 
   ProfNodeAdditionInfo info{};
   CannProfilingInfoWrapper wrapper(&info);
-  ASSERT_EQ(registry.FindKernelFuncs("AtomicLaunchKernelWithFlag")
-                ->profiling_info_filler(context.WithAtomicFlag(), wrapper), ge::SUCCESS);
+  ASSERT_EQ(
+      registry.FindKernelFuncs("AtomicLaunchKernelWithFlag")->profiling_info_filler(context.WithAtomicFlag(), wrapper),
+      ge::SUCCESS);
 }
 
 TEST_F(AiKernelLaunchST, test_ffts_task_launch) {
@@ -718,7 +721,7 @@ TEST_F(AiKernelLaunchST, test_ffts_task_launch) {
   run_context.value_holder[0].Set(stream, nullptr);
   run_context.value_holder[1].Set(&task_info, nullptr);
   ASSERT_EQ(registry.FindKernelFuncs("LaunchFFTSPlusTask")->run_func(run_context), ge::GRAPH_SUCCESS);
-  delete [] sqe_ctx;
+  delete[] sqe_ctx;
 }
 
 TEST_F(AiKernelLaunchST, AiCoreLaunchKernelWithHandle_Success_EnableLiteExeption) {
@@ -734,8 +737,9 @@ TEST_F(AiKernelLaunchST, AiCoreLaunchKernelWithHandle_Success_EnableLiteExeption
   auto io_addrs = reinterpret_cast<uint64_t *>(launch_args->GetArgsEx()->args);
   ASSERT_EQ(io_addrs[0], 0x11);
   EXPECT_EQ(DumpStub::GetInstance().GetUnits().size(), 8);
-  EXPECT_EQ(DumpStub::GetInstance().GetUnits()[7][0], 8); // 2 + dy_desc(1) + input size(2) + output size(1) + ws size(2)
-  EXPECT_EQ(DumpStub::GetInstance().GetUnits()[7][1], 6); // input size(1) + output size(1)
+  EXPECT_EQ(DumpStub::GetInstance().GetUnits()[7][0],
+            8);  // 2 + dy_desc(1) + input size(2) + output size(1) + ws size(2)
+  EXPECT_EQ(DumpStub::GetInstance().GetUnits()[7][1], 6);  // input size(1) + output size(1)
 }
 
 TEST_F(AiKernelLaunchST, test_AiCoreLaunchMixKernelWithHandle_run_mix_success) {

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -16,9 +16,8 @@
 namespace gert {
 using namespace bg;
 namespace {
-std::vector<ValueHolderPtr> StubInferShape(const ge::NodePtr &node,
-                                                         const std::vector<ValueHolderPtr> &shapes,
-                                                         LoweringGlobalData &globalData) {
+std::vector<ValueHolderPtr> StubInferShape(const ge::NodePtr &node, const std::vector<ValueHolderPtr> &shapes,
+                                           LoweringGlobalData &globalData) {
   return ValueHolder::CreateDataOutput("InferShape", shapes, 10);
 }
 std::vector<DevMemValueHolderPtr> StubAllocOutputMemory(TensorPlacement placement, const ge::NodePtr &node,
@@ -113,7 +112,7 @@ TEST_F(FastGenerateExeGraphUT, StubImpl_GraphCorrect_CalcTensorSize) {
 TEST_F(FastGenerateExeGraphUT, MakeSureTensorAtHost_Success) {
   LoweringGlobalData global_data;
   InitTestFramesWithStream(global_data);
-  auto src_addr = (void *) (0x1);
+  auto src_addr = (void *)(0x1);
   auto addr = bg::ValueHolder::CreateConst(&src_addr, sizeof(void *));
   size_t src_size = 8U;
   auto size = bg::ValueHolder::CreateConst(&src_size, sizeof(size_t));
@@ -129,7 +128,7 @@ TEST_F(FastGenerateExeGraphUT, CalcTensorSizeFromShape_Success) {
   ASSERT_NE(bg::GenerateExeGraph::CalcTensorSizeFromShape(ge::DT_UINT8, shape_holder), nullptr);
 }
 TEST_F(FastGenerateExeGraphUT, FreeMemoryGuarder_Success) {
-  auto data_addr = (void *) (0x1);
+  auto data_addr = (void *)(0x1);
   auto addr = bg::ValueHolder::CreateConst(&data_addr, sizeof(void *));
   size_t data_size = 8;
   auto size = ValueHolder::CreateConst(&data_size, sizeof(size_t));

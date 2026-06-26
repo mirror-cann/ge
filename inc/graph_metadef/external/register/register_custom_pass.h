@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -35,13 +35,13 @@ constexpr int64_t INVALID_STREAM_ID = -1;
  * @since 8.5.0(2025-12)
  */
 enum class CustomPassStage : uint32_t {
-  kBeforeInferShape = 0,           // @since 8.5.0(2025-12)
-  kAfterInferShape = 1,            // @since 8.5.0(2025-12)
-  kAfterAssignLogicStream = 2,     // @since 8.5.0(2025-12) only support CustomAllocateStreamPassFunc in this stage
-  kAfterBuiltinFusionPass = 3,     // @since 8.5.0(2025-12)
-  kAfterOriginGraphOptimize = 4,   // @since 9.0.0(2026-02)
-  kCompatibleInherited = 5,        // @since 9.0.0(2026-02)
-  kInvalid                         // @since 8.5.0(2025-12)
+  kBeforeInferShape = 0,          // @since 8.5.0(2025-12)
+  kAfterInferShape = 1,           // @since 8.5.0(2025-12)
+  kAfterAssignLogicStream = 2,    // @since 8.5.0(2025-12) only support CustomAllocateStreamPassFunc in this stage
+  kAfterBuiltinFusionPass = 3,    // @since 8.5.0(2025-12)
+  kAfterOriginGraphOptimize = 4,  // @since 9.0.0(2026-02)
+  kCompatibleInherited = 5,       // @since 9.0.0(2026-02)
+  kInvalid                        // @since 8.5.0(2025-12)
 };
 
 /**
@@ -198,58 +198,56 @@ class CustomPassContext {
  * @since 8.5.0(2025-12)
  */
 class StreamPassContext : public CustomPassContext {
-public:
- /**
-  * @since 8.5.0(2025-12)
-  */
- explicit StreamPassContext(int64_t current_max_stream_id);
+ public:
+  /**
+   * @since 8.5.0(2025-12)
+   */
+  explicit StreamPassContext(int64_t current_max_stream_id);
 
- /**
-  * @since 8.5.0(2025-12)
-  */
- ~StreamPassContext() override = default;
+  /**
+   * @since 8.5.0(2025-12)
+   */
+  ~StreamPassContext() override = default;
 
- /**
-  * 为指定节点设置流ID
-  * @param node 目标节点
-  * @param stream_id 要设置的流ID
-  * @return graphStatus
-  * @since 8.5.0(2025-12)
-  */
- graphStatus SetStreamId(const GNode &node, int64_t stream_id);
+  /**
+   * 为指定节点设置流ID
+   * @param node 目标节点
+   * @param stream_id 要设置的流ID
+   * @return graphStatus
+   * @since 8.5.0(2025-12)
+   */
+  graphStatus SetStreamId(const GNode &node, int64_t stream_id);
 
- /**
-  * 获取指定节点的流ID
-  * @param node 目标节点
-  * @return 节点对应的流ID，未设置时返回INVALID_STREAM_ID
-  * @since 8.5.0(2025-12)
-  */
- int64_t GetStreamId(const GNode &node) const;
+  /**
+   * 获取指定节点的流ID
+   * @param node 目标节点
+   * @return 节点对应的流ID，未设置时返回INVALID_STREAM_ID
+   * @since 8.5.0(2025-12)
+   */
+  int64_t GetStreamId(const GNode &node) const;
 
- /**
-  * 分配下一个可用的流ID
-  * @return 新分配的流ID
-  * @since 8.5.0(2025-12)
-  */
- int64_t AllocateNextStreamId();
+  /**
+   * 分配下一个可用的流ID
+   * @return 新分配的流ID
+   * @since 8.5.0(2025-12)
+   */
+  int64_t AllocateNextStreamId();
 
- /**
-  * 获取当前已分配的最大流ID
-  * @return 当前最大流ID
-  * @since 8.5.0(2025-12)
-  */
- int64_t GetCurrMaxStreamId() const;
+  /**
+   * 获取当前已分配的最大流ID
+   * @return 当前最大流ID
+   * @since 8.5.0(2025-12)
+   */
+  int64_t GetCurrMaxStreamId() const;
 
-private:
- std::unique_ptr<StreamPassContextImpl> impl_;
+ private:
+  std::unique_ptr<StreamPassContextImpl> impl_;
 };
 }  // namespace ge
 
 #define REGISTER_CUSTOM_PASS(name) REGISTER_CUSTOM_PASS_UNIQ_HELPER(__COUNTER__, (name))
 #define REGISTER_CUSTOM_PASS_UNIQ_HELPER(ctr, name) REGISTER_CUSTOM_PASS_UNIQ(ctr, (name))
-#define REGISTER_CUSTOM_PASS_UNIQ(ctr, name)        \
-  static ::ge::PassReceiver register_pass##ctr      \
-      __attribute__((unused)) =                     \
-          ::ge::PassRegistrationData((name))
+#define REGISTER_CUSTOM_PASS_UNIQ(ctr, name) \
+  static ::ge::PassReceiver register_pass##ctr __attribute__((unused)) = ::ge::PassRegistrationData((name))
 
 #endif  // INC_EXTERNAL_REGISTER_REGISTER_PASS_H_

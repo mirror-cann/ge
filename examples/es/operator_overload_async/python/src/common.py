@@ -10,11 +10,11 @@
 # See LICENSE in the root of the software repository for the full text of the License.
 # ----------------------------------------------------------------------------
 """样例公共逻辑：常量、图构建、输入张量创建、GE 生命周期管理。"""
+
 import traceback
 from typing import Callable, Tuple
 
 import acl
-
 from ge.es.graph_builder import GraphBuilder
 from ge.ge_global import GeApi
 from ge.graph import DumpFormat, Graph, Tensor
@@ -49,16 +49,28 @@ def dump_overload_graph(graph: Graph) -> None:
 
 def create_input_tensors() -> Tuple[Tensor, Tensor, Tensor]:
     input0 = Tensor(
-        [1.0, 1.0, 2.0, 2.0, 3.0, 3.0], None,
-        DataType.DT_FLOAT, Format.FORMAT_ND, [2, 3], Placement.PLACEMENT_DEVICE,
+        [1.0, 1.0, 2.0, 2.0, 3.0, 3.0],
+        None,
+        DataType.DT_FLOAT,
+        Format.FORMAT_ND,
+        [2, 3],
+        Placement.PLACEMENT_DEVICE,
     )
     input1 = Tensor(
-        [1, 1, 2, 2, 3, 3], None,
-        DataType.DT_INT64, Format.FORMAT_ND, [2, 3], Placement.PLACEMENT_DEVICE,
+        [1, 1, 2, 2, 3, 3],
+        None,
+        DataType.DT_INT64,
+        Format.FORMAT_ND,
+        [2, 3],
+        Placement.PLACEMENT_DEVICE,
     )
     input2 = Tensor(
-        [1, 1, 2, 2, 3, 3], None,
-        DataType.DT_INT64, Format.FORMAT_ND, [2, 3], Placement.PLACEMENT_DEVICE,
+        [1, 1, 2, 2, 3, 3],
+        None,
+        DataType.DT_INT64,
+        Format.FORMAT_ND,
+        [2, 3],
+        Placement.PLACEMENT_DEVICE,
     )
     return input0, input1, input2
 

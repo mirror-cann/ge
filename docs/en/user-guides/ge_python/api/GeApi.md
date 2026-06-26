@@ -24,7 +24,7 @@ GeApi class provides GE global initialization and resource release interfaces. g
 class GeApi:
     @classmethod
     def ge_initialize(cls, config: dict) -> None
-    
+
     @classmethod
     def ge_finalize(cls) -> None
 ```

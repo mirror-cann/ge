@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -37,13 +37,11 @@ namespace gert {
 namespace {
 constexpr char const *kAutofuseLoweringFunc = "kAutoFuseLoweringFunc";
 
-bg::ValueHolderPtr AutofuseLaunch(const ge::NodePtr &node,
-                                  const LowerInput &lower_input,
-                                  const std::vector<bg::ValueHolderPtr> &tiling_results,
-                                  const domi::TaskDef *task_def,
+bg::ValueHolderPtr AutofuseLaunch(const ge::NodePtr &node, const LowerInput &lower_input,
+                                  const std::vector<bg::ValueHolderPtr> &tiling_results, const domi::TaskDef *task_def,
                                   const std::vector<bg::ValueHolderPtr> &output_shapes,
                                   const std::vector<bg::DevMemValueHolderPtr> &output_addrs,
-                                  const bg::DevMemValueHolderPtr& workspace_addr) {
+                                  const bg::DevMemValueHolderPtr &workspace_addr) {
   auto global_data = lower_input.global_data;
   // sink bin
   auto node_bin = SinkBinForAicore(node, global_data->FindCompiledResult(node));
@@ -75,10 +73,7 @@ bg::ValueHolderPtr AutofuseLaunch(const ge::NodePtr &node,
           dfx_holder,
           tiling_results[static_cast<size_t>(kernel::TilingExOutputIndex::kRtArg)],
       },
-      tiling_results[TilingContext::kOutputTilingKey],
-      node_info_holder,
-      lower_input.input_addrs,
-      output_addrs);
+      tiling_results[TilingContext::kOutputTilingKey], node_info_holder, lower_input.input_addrs, output_addrs);
   FE_ASSERT_NOTNULL(launch_arg_ref);
   return launch_arg_ref;
 }
@@ -109,16 +104,17 @@ ge::Status CreateSoPathHolder(const ge::NodePtr &node, bg::ValueHolderPtr &so_pa
   uint32_t bin_len = buffer->second.get()->GetBinDataSize();
   if (mmAccess(so_path.c_str()) != EN_OK) {
     // AutofuseSo存在则不重复创建
-    std::unique_ptr<char[]> so_bin = std::unique_ptr<char[]>(new(std::nothrow) char[bin_len]);
+    std::unique_ptr<char[]> so_bin = std::unique_ptr<char[]>(new (std::nothrow) char[bin_len]);
     GE_ASSERT_EOK(memcpy_s(so_bin.get(), bin_len, buffer->second->GetBinData(), bin_len));
     GE_ASSERT_GRAPH_SUCCESS(ge::SaveBinToFile(so_bin.get(), bin_len, so_path.c_str()),
                             "Failed to save bin to file, so_path %s.", so_path.c_str());
   }
   return ge::SUCCESS;
 }
-}
+}  // namespace
 
-bg::ValueHolderPtr AutofuseNodeConveter::GetAutofuseHandle(LoweringGlobalData &global_data, const ge::NodePtr &node, GetAutofuseFuncsOutput index) {
+bg::ValueHolderPtr AutofuseNodeConveter::GetAutofuseHandle(LoweringGlobalData &global_data, const ge::NodePtr &node,
+                                                           GetAutofuseFuncsOutput index) {
   auto builder = [&node]() -> std::vector<bg::ValueHolderPtr> {
     return bg::FrameSelector::OnInitRoot([&node]() -> std::vector<bg::ValueHolderPtr> {
       bg::ValueHolderPtr so_path_holder;
@@ -126,7 +122,8 @@ bg::ValueHolderPtr AutofuseNodeConveter::GetAutofuseHandle(LoweringGlobalData &g
         GELOGE(ge::FAILED, "Failed to create value holder.");
         return {};
       }
-      auto so_handle = bg::ValueHolder::CreateDataOutput("GetAutofuseFuncs", {so_path_holder}, static_cast<size_t>(GetAutofuseFuncsOutput::kNum));
+      auto so_handle = bg::ValueHolder::CreateDataOutput("GetAutofuseFuncs", {so_path_holder},
+                                                         static_cast<size_t>(GetAutofuseFuncsOutput::kNum));
       return so_handle;
     });
   };
@@ -138,20 +135,20 @@ bg::ValueHolderPtr AutofuseNodeConveter::GetAutofuseHandle(LoweringGlobalData &g
 std::vector<bg::ValueHolderPtr> AutofuseNodeConveter::GetSymbolInputsWithSize(
     LoweringGlobalData &global_data, const std::vector<bg::ValueHolderPtr> &input_shapes,
     const std::string &graph_name) {
-    auto holder_name = graph_name + "_input_shapes_with_size";
-    auto builder = [&input_shapes]() -> std::vector<bg::ValueHolderPtr> {
-      std::vector<bg::ValueHolderPtr> holders;
-      const auto input_num = input_shapes.size();
-      auto input_num_holder = bg::ValueHolder::CreateConst(&input_num, sizeof(input_num));
-      holders.emplace_back(input_num_holder);
-      holders.insert(holders.end(), input_shapes.begin(), input_shapes.end());
-      return holders;
-    };
-    return global_data.GetOrCreateUniqueValueHolder(holder_name, builder);
+  auto holder_name = graph_name + "_input_shapes_with_size";
+  auto builder = [&input_shapes]() -> std::vector<bg::ValueHolderPtr> {
+    std::vector<bg::ValueHolderPtr> holders;
+    const auto input_num = input_shapes.size();
+    auto input_num_holder = bg::ValueHolder::CreateConst(&input_num, sizeof(input_num));
+    holders.emplace_back(input_num_holder);
+    holders.insert(holders.end(), input_shapes.begin(), input_shapes.end());
+    return holders;
+  };
+  return global_data.GetOrCreateUniqueValueHolder(holder_name, builder);
 }
 
-bg::ValueHolderPtr AutofuseNodeConveter::GetAllSymbolNumHolder(
-    LoweringGlobalData &global_data, const ge::NodePtr &node) {
+bg::ValueHolderPtr AutofuseNodeConveter::GetAllSymbolNumHolder(LoweringGlobalData &global_data,
+                                                               const ge::NodePtr &node) {
   // all_sym_num_handle, 同一个图的all_sym_num相同，可以用一个节点
   // 可能是子图上的融合节点，需要找到根图再获取all_sym_num
   auto graph = ge::NodeUtils::FindRootGraph(*node);
@@ -161,8 +158,8 @@ bg::ValueHolderPtr AutofuseNodeConveter::GetAllSymbolNumHolder(
     GE_ASSERT_TRUE(ge::AttrUtils::GetInt(graph, "_all_symbol_num", all_sym_num));
     return bg::ValueHolder::CreateConst(&all_sym_num, sizeof(all_sym_num));
   };
-  return global_data.GetOrCreateUniqueValueHolder(
-      graph->GetName() + "_all_symbol_num_handle", all_sym_num_handle_builder);
+  return global_data.GetOrCreateUniqueValueHolder(graph->GetName() + "_all_symbol_num_handle",
+                                                  all_sym_num_handle_builder);
 }
 
 LowerResult LoweringAutofuseNode(const ge::NodePtr &node, const LowerInput &lower_input) {
@@ -175,8 +172,7 @@ LowerResult LoweringAutofuseNode(const ge::NodePtr &node, const LowerInput &lowe
   auto compile_result = global_data->FindCompiledResult(node);
   const domi::TaskDef *task_def = GetTaskDef(node, compile_result, TaskDefType::kAICore);
   if (task_def == nullptr) {
-    return {HyperStatus::ErrorStatus(static_cast<const char *>("Not autofuse find AI core task def")),
-            {}, {}, {}};
+    return {HyperStatus::ErrorStatus(static_cast<const char *>("Not autofuse find AI core task def")), {}, {}, {}};
   }
   // infershape
   const auto root_graph = ge::NodeUtils::FindRootGraph(*node);
@@ -198,11 +194,10 @@ LowerResult LoweringAutofuseNode(const ge::NodePtr &node, const LowerInput &lowe
   CONVERTER_CHECK_HOLDERS_ALL_OK(tiling_results, static_cast<size_t>(kernel::TilingExOutputIndex::kNum));
 
   // launch
-  auto workspace_addr = bg::AllocWorkspaceMem(kOnDeviceHbm,
-                                              tiling_results[static_cast<size_t>(TilingContext::kOutputWorkspace)],
-                                              *global_data);
-  auto launch_arg_ref = AutofuseLaunch(node, lower_input, tiling_results,
-                                       task_def, output_shapes, output_addrs, workspace_addr);
+  auto workspace_addr = bg::AllocWorkspaceMem(
+      kOnDeviceHbm, tiling_results[static_cast<size_t>(TilingContext::kOutputWorkspace)], *global_data);
+  auto launch_arg_ref =
+      AutofuseLaunch(node, lower_input, tiling_results, task_def, output_shapes, output_addrs, workspace_addr);
   for (size_t i = 0; i < lower_input.input_addrs.size(); ++i) {
     auto guarder = lower_input.input_addrs[i]->GetGuarder();
     if (guarder != nullptr) {
@@ -215,4 +210,4 @@ LowerResult LoweringAutofuseNode(const ge::NodePtr &node, const LowerInput &lowe
 }
 
 REGISTER_NODE_CONVERTER_PLACEMENT(kAutofuseLoweringFunc, kOnDeviceHbm, LoweringAutofuseNode);
-}
+}  // namespace gert

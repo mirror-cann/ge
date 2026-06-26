@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,10 +30,10 @@ inline void RemoveFile(const char *path) {
 inline std::string BaseName(const char *path) {
   std::stringstream ss;
   for (size_t i = strlen(path); i > 0; --i) {
-    if (path[i-1] == '/') {
+    if (path[i - 1] == '/') {
       break;
     } else {
-      ss << path[i-1];
+      ss << path[i - 1];
     }
   }
   auto reverse_name = ss.str();
@@ -42,7 +42,7 @@ inline std::string BaseName(const char *path) {
 inline std::string DirName(const char *path) {
   size_t i;
   for (i = strlen(path); i > 0; --i) {
-    if (path[i-1] == '/') {
+    if (path[i - 1] == '/') {
       break;
     }
   }
@@ -56,7 +56,7 @@ inline std::string PathJoin(const char *path1, const char *path2) {
 inline int Mkdir(const char *path) {
   if (!IsDir(path)) {
     auto ret = mmMkdir(path,
-                       S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP | S_IROTH | S_IXOTH); // 775
+                       S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP | S_IROTH | S_IXOTH);  // 775
     if (ret != EN_OK) {
       return -1;
     }
@@ -82,4 +82,4 @@ inline const std::string &GetRunPath() {
 const std::string GetAirPath();
 
 FAKE_NS_END
-#endif //AIR_CXX_TESTS_FRAMEWORK_GE_RUNNING_ENV_INCLUDE_GE_RUNNING_ENV_PATH_UTILS_H_
+#endif  // AIR_CXX_TESTS_FRAMEWORK_GE_RUNNING_ENV_INCLUDE_GE_RUNNING_ENV_PATH_UTILS_H_

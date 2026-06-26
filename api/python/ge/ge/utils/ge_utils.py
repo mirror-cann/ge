@@ -76,7 +76,9 @@ class GeUtils:
                 ge_utils_lib.GeApiWrapper_GeUtils_FreeString(unsupported_reason)
 
     @staticmethod
-    def _normalize_input_shapes(input_shapes: List[List[int]]) -> Tuple[List[int], List[int]]:
+    def _normalize_input_shapes(
+        input_shapes: List[List[int]],
+    ) -> Tuple[List[int], List[int]]:
         if not isinstance(input_shapes, list):
             raise TypeError("input_shapes must be a list of shape lists")
 

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -134,11 +134,7 @@ ut::GraphBuilder GraphBuilderByGivenShapes(const map<string, std::vector<int64_t
 
 ut::GraphBuilder Graph1Builder() {
   const std::map<std::string, std::vector<int64_t>> node_name_2_shapes = {
-      {kVar1, {-1}},
-      {kVar2, {1, 1, 224, 224}},
-      {kTransdata1, {-1, 224}},
-      {kTransdata2, {224, 224}}
-  };
+      {kVar1, {-1}}, {kVar2, {1, 1, 224, 224}}, {kTransdata1, {-1, 224}}, {kTransdata2, {224, 224}}};
   return GraphBuilderByGivenShapes(node_name_2_shapes);
 }
 
@@ -175,11 +171,7 @@ TEST_F(UtestReshapeRecoveryPass, reshape_recovery_with_dynamic_shape) {
 // 预期结果：拓扑不改变，只刷新Netoutput节点的输入shape
 TEST_F(UtestReshapeRecoveryPass, AllDynamicNodes_TopoNotChange) {
   const std::map<std::string, std::vector<int64_t>> node_name_2_shapes = {
-      {kVar1, {-1}},
-      {kVar2, {-1, 1, 224, 224}},
-      {kTransdata1, {-1, 224}},
-      {kTransdata2, {-224, 224}}
-  };
+      {kVar1, {-1}}, {kVar2, {-1, 1, 224, 224}}, {kTransdata1, {-1, 224}}, {kTransdata2, {-224, 224}}};
   const std::map<std::string, size_t> node_type_2_node_counts = {{"Variable", 2}, {"Transdata", 2}, {"NetOutput", 1}};
 
   ComputeGraphPtr compute_graph_after_pass;
@@ -196,11 +188,7 @@ TEST_F(UtestReshapeRecoveryPass, AllDynamicNodes_TopoNotChange) {
 // 预期结果：4Reshape 3const
 TEST_F(UtestReshapeRecoveryPass, AllStaticNode_DstShapeIsDifferent) {
   const std::map<std::string, std::vector<int64_t>> node_name_2_shapes = {
-      {kVar1, {224, 224}},
-      {kVar2, {1, 1, 224, 224}},
-      {kTransdata1, {1, 224, 224}},
-      {kTransdata2, {224, 224}}
-  };
+      {kVar1, {224, 224}}, {kVar2, {1, 1, 224, 224}}, {kTransdata1, {1, 224, 224}}, {kTransdata2, {224, 224}}};
   const std::map<std::string, size_t> node_type_2_node_counts = {
       {"Reshape", 4}, {"Const", 3}, {"Variable", 2}, {"Transdata", 2}, {"NetOutput", 1}};
 
@@ -212,11 +200,7 @@ TEST_F(UtestReshapeRecoveryPass, AllStaticNode_DstShapeIsDifferent) {
 // 预期结果：4Reshape 2const
 TEST_F(UtestReshapeRecoveryPass, AllStaticNode_DstShapeIsTheSame) {
   const std::map<std::string, std::vector<int64_t>> node_name_2_shapes = {
-      {kVar1, {1, 1, 224, 224}},
-      {kVar2, {1, 1, 224, 224}},
-      {kTransdata1, {224, 224}},
-      {kTransdata2, {224, 224}}
-  };
+      {kVar1, {1, 1, 224, 224}}, {kVar2, {1, 1, 224, 224}}, {kTransdata1, {224, 224}}, {kTransdata2, {224, 224}}};
   const std::map<std::string, size_t> node_type_2_node_counts = {
       {"Reshape", 4}, {"Const", 2}, {"Variable", 2}, {"Transdata", 2}, {"NetOutput", 1}};
 
@@ -233,11 +217,7 @@ TEST_F(UtestReshapeRecoveryPass, AllStaticNode_DstShapeIsTheSame) {
 // 预期结果：OM一致
 TEST_F(UtestReshapeRecoveryPass, AllStaticNode_PassRun2Times_OMIsTheSame) {
   const std::map<std::string, std::vector<int64_t>> node_name_2_shapes = {
-      {kVar1, {1, 1, 224, 224}},
-      {kVar2, {1, 1, 224, 224}},
-      {kTransdata1, {224, 224}},
-      {kTransdata2, {224, 224}}
-  };
+      {kVar1, {1, 1, 224, 224}}, {kVar2, {1, 1, 224, 224}}, {kTransdata1, {224, 224}}, {kTransdata2, {224, 224}}};
   const std::map<std::string, size_t> node_type_2_node_counts = {
       {"Reshape", 4}, {"Const", 2}, {"Variable", 2}, {"Transdata", 2}, {"NetOutput", 1}};
 

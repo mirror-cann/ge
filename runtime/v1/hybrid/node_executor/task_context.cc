@@ -23,8 +23,7 @@
 
 namespace ge {
 namespace hybrid {
-TaskContext::TaskContext(GraphExecutionContext *const execution_context,
-                         NodeState *const node_state,
+TaskContext::TaskContext(GraphExecutionContext *const execution_context, NodeState *const node_state,
                          SubgraphContext *const subgraph_context)
     : node_state_(node_state),
       node_item_(&node_state->GetNodeItem()),
@@ -60,29 +59,26 @@ void TaskContext::ReleaseAllMem() {
 std::unique_ptr<TaskContext> TaskContext::Create(NodeState *const node_state, SubgraphContext *const subgraph_context) {
   const NodeItem &node_item = node_state->GetNodeItem();
   GELOGI("[%s] To create task context, input start = %d, num_inputs = %d, output start = %d, num_outputs = %d.",
-         node_item.NodeName().c_str(),
-         node_item.input_start,
-         node_item.num_inputs,
-         node_item.output_start,
+         node_item.NodeName().c_str(), node_item.input_start, node_item.num_inputs, node_item.output_start,
          node_item.num_outputs);
   if ((node_item.input_start < 0) || (node_item.output_start < 0)) {
-    REPORT_INNER_ERR_MSG("E19999", "NodeItem:%s(%s) not property initialized."
-                       "input_start:%d or output_start:%d less than 0",
-                       node_item.NodeName().c_str(), node_item.NodeType().c_str(),
-                       node_item.input_start, node_item.output_start);
+    REPORT_INNER_ERR_MSG("E19999",
+                         "NodeItem:%s(%s) not property initialized."
+                         "input_start:%d or output_start:%d less than 0",
+                         node_item.NodeName().c_str(), node_item.NodeType().c_str(), node_item.input_start,
+                         node_item.output_start);
     GELOGE(INTERNAL_ERROR,
            "[Check][Param]NodeItem:%s(%s) not property initialized. input_start = %d, output_start = %d",
-           node_item.NodeName().c_str(), node_item.NodeType().c_str(),
-           node_item.input_start, node_item.output_start);
+           node_item.NodeName().c_str(), node_item.NodeType().c_str(), node_item.input_start, node_item.output_start);
     return nullptr;
   }
   GE_ASSERT_NOTNULL(subgraph_context->execution_context_);
   auto task_ctx = MakeUnique<TaskContext>(subgraph_context->execution_context_, node_state, subgraph_context);
   if (task_ctx == nullptr) {
-    REPORT_INNER_ERR_MSG("E19999", "Create TaskContext failed for [%s(%s)].",
-                      node_item.NodeName().c_str(), node_item.NodeType().c_str());
-    GELOGE(MEMALLOC_FAILED, "[Create][TaskContext] failed for [%s(%s)].",
-           node_item.NodeName().c_str(), node_item.NodeType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Create TaskContext failed for [%s(%s)].", node_item.NodeName().c_str(),
+                         node_item.NodeType().c_str());
+    GELOGE(MEMALLOC_FAILED, "[Create][TaskContext] failed for [%s(%s)].", node_item.NodeName().c_str(),
+           node_item.NodeType().c_str());
     return nullptr;
   }
   return task_ctx;
@@ -115,12 +111,10 @@ int32_t TaskContext::NumOutputs() const {
 
 TensorValue *TaskContext::MutableInput(const int32_t idx) const {
   if ((idx < 0) || (idx >= node_item_->num_inputs)) {
-    REPORT_INNER_ERR_MSG("E19999", "Index out of range, check invalid. index = %d, num_inputs = %d, node:%s(%s)",
-                       idx, node_item_->num_inputs,
-                       node_item_->NodeName().c_str(), node_item_->NodeType().c_str());
-    GELOGE(PARAM_INVALID, "[Check][Param]Index out of range. index = %d, num_inputs = %d, node:%s(%s)",
-           idx, node_item_->num_inputs,
-           node_item_->NodeName().c_str(), node_item_->NodeType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Index out of range, check invalid. index = %d, num_inputs = %d, node:%s(%s)", idx,
+                         node_item_->num_inputs, node_item_->NodeName().c_str(), node_item_->NodeType().c_str());
+    GELOGE(PARAM_INVALID, "[Check][Param]Index out of range. index = %d, num_inputs = %d, node:%s(%s)", idx,
+           node_item_->num_inputs, node_item_->NodeName().c_str(), node_item_->NodeType().c_str());
     return nullptr;
   }
   return inputs_start_ + idx;
@@ -128,12 +122,10 @@ TensorValue *TaskContext::MutableInput(const int32_t idx) const {
 
 const TensorValue *TaskContext::GetOutput(const int32_t idx) const {
   if ((idx < 0) || (idx >= node_item_->num_outputs)) {
-    REPORT_INNER_ERR_MSG("E19999", "Index out of range, check invalid. index = %d, num_outputs = %d, node:%s(%s)",
-                       idx, node_item_->num_outputs,
-                       node_item_->NodeName().c_str(), node_item_->NodeType().c_str());
-    GELOGE(PARAM_INVALID, "[Check][Param]Index out of range. index = %d, num_outputs = %d, node:%s(%s)",
-           idx, node_item_->num_outputs,
-           node_item_->NodeName().c_str(), node_item_->NodeType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Index out of range, check invalid. index = %d, num_outputs = %d, node:%s(%s)", idx,
+                         node_item_->num_outputs, node_item_->NodeName().c_str(), node_item_->NodeType().c_str());
+    GELOGE(PARAM_INVALID, "[Check][Param]Index out of range. index = %d, num_outputs = %d, node:%s(%s)", idx,
+           node_item_->num_outputs, node_item_->NodeName().c_str(), node_item_->NodeType().c_str());
     return nullptr;
   }
 
@@ -142,12 +134,10 @@ const TensorValue *TaskContext::GetOutput(const int32_t idx) const {
 
 TensorValue *TaskContext::MutableOutput(const int32_t idx) const {
   if ((idx < 0) || (idx >= node_item_->num_outputs)) {
-    REPORT_INNER_ERR_MSG("E19999", "Index out of range, check invalid. index = %d, num_outputs = %d, node:%s(%s)",
-                       idx, node_item_->num_outputs,
-                       node_item_->NodeName().c_str(), node_item_->NodeType().c_str());
-    GELOGE(PARAM_INVALID, "[Check][Param]Index out of range. index = %d, num_outputs = %d, node:%s(%s)",
-           idx, node_item_->num_outputs,
-           node_item_->NodeName().c_str(), node_item_->NodeType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Index out of range, check invalid. index = %d, num_outputs = %d, node:%s(%s)", idx,
+                         node_item_->num_outputs, node_item_->NodeName().c_str(), node_item_->NodeType().c_str());
+    GELOGE(PARAM_INVALID, "[Check][Param]Index out of range. index = %d, num_outputs = %d, node:%s(%s)", idx,
+           node_item_->num_outputs, node_item_->NodeName().c_str(), node_item_->NodeType().c_str());
     return nullptr;
   }
   return outputs_start_ + idx;
@@ -159,10 +149,10 @@ int32_t TaskContext::NumWorkspaces() const {
 
 void *TaskContext::MutableWorkspace(const int32_t idx) const {
   if ((idx < 0) || (static_cast<size_t>(idx) >= workspaces_.size())) {
-    REPORT_INNER_ERR_MSG("E19999", "Index:%d out of range, check invalid. number:%zu of workspaces_, node:%s(%s)",
-                       idx, workspaces_.size(), node_item_->NodeName().c_str(), node_item_->NodeType().c_str());
-    GELOGE(PARAM_INVALID, "[Check][Param]Index:%d out of range. number:%zu of workspaces_, node:%s(%s)",
-           idx, workspaces_.size(), node_item_->NodeName().c_str(), node_item_->NodeType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Index:%d out of range, check invalid. number:%zu of workspaces_, node:%s(%s)", idx,
+                         workspaces_.size(), node_item_->NodeName().c_str(), node_item_->NodeType().c_str());
+    GELOGE(PARAM_INVALID, "[Check][Param]Index:%d out of range. number:%zu of workspaces_, node:%s(%s)", idx,
+           workspaces_.size(), node_item_->NodeName().c_str(), node_item_->NodeType().c_str());
     return nullptr;
   }
 
@@ -171,11 +161,10 @@ void *TaskContext::MutableWorkspace(const int32_t idx) const {
 
 const TensorValue *TaskContext::GetInput(const int32_t idx) const {
   if ((idx < 0) || (idx >= node_item_->num_inputs)) {
-    REPORT_INNER_ERR_MSG("E19999", "Index:%d out of range, check invalid. num_inputs:%d node:%s(%s)",
-                       idx, node_item_->num_inputs, node_item_->NodeName().c_str(),
-                       node_item_->NodeType().c_str());
-    GELOGE(PARAM_INVALID, "[Check][Param]Index:%d out of range. num_inputs:%d node:%s(%s)",
-           idx, node_item_->num_inputs, node_item_->NodeName().c_str(), node_item_->NodeType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Index:%d out of range, check invalid. num_inputs:%d node:%s(%s)", idx,
+                         node_item_->num_inputs, node_item_->NodeName().c_str(), node_item_->NodeType().c_str());
+    GELOGE(PARAM_INVALID, "[Check][Param]Index:%d out of range. num_inputs:%d node:%s(%s)", idx, node_item_->num_inputs,
+           node_item_->NodeName().c_str(), node_item_->NodeType().c_str());
     return nullptr;
   }
 
@@ -188,7 +177,7 @@ Status TaskContext::AllocateWorkspaces() {
     void *workspace = execution_context_->allocator->Allocate(static_cast<size_t>(work_size));
     if (workspace == nullptr) {
       REPORT_INNER_ERR_MSG("E19999", "node:%s(%s) Allocate workspace failed, size: %" PRId64 "",
-                        node_item_->NodeName().c_str(), node_item_->NodeType().c_str(), work_size);
+                           node_item_->NodeName().c_str(), node_item_->NodeType().c_str(), work_size);
       GELOGE(ACL_ERROR_GE_DEVICE_MEMORY_OPERATE_FAILED, "[Allocate][workspace] failed for node:%s(%s), size: %ld",
              node_item_->NodeName().c_str(), node_item_->NodeType().c_str(), work_size);
       return ACL_ERROR_GE_DEVICE_MEMORY_OPERATE_FAILED;
@@ -230,7 +219,7 @@ std::string TaskContext::TensorDesc2String(const GeTensorDesc &desc) {
 }
 
 Status TaskContext::AllocateTensor(const GeTensorDesc &tensor_desc_in, TensorValue &tensor_out,
-                                   const AllocationAttr * const attr) const {
+                                   const AllocationAttr *const attr) const {
   int64_t size_out = 0;
   if (ge::TensorUtils::GetSize(tensor_desc_in, size_out) != GRAPH_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Get TensorSize failed, tensor:%s", tensor_desc_in.GetName().c_str());
@@ -245,7 +234,7 @@ Status TaskContext::AllocateTensor(const GeTensorDesc &tensor_desc_in, TensorVal
   auto buffer_tensor = TensorBuffer::Create(execution_context_->allocator, static_cast<size_t>(size_out), attr);
   if (buffer_tensor == nullptr) {
     REPORT_INNER_ERR_MSG("E19999", "tensor:%s Allocate tensor failed, size: %" PRId64 "",
-                      tensor_desc_in.GetName().c_str(), size_out);
+                         tensor_desc_in.GetName().c_str(), size_out);
     GELOGE(ACL_ERROR_GE_DEVICE_MEMORY_OPERATE_FAILED, "[Allocate][workspace] failed for tensor:%s, size: %ld",
            tensor_desc_in.GetName().c_str(), size_out);
     return ACL_ERROR_GE_DEVICE_MEMORY_OPERATE_FAILED;
@@ -270,22 +259,16 @@ bool TaskContext::HasAllocated(const int32_t idx) const {
   return false;
 }
 
-Status TaskContext::AllocateOutput(const int32_t idx,
-                                   const GeTensorDesc &tensor_desc_in,
-                                   TensorValue **const tensor_out,
-                                   const AllocationAttr * const attr) const {
-  GELOGI("To allocate output for node: %s. index = %d, tensor desc = %s",
-         node_item_->NodeName().c_str(),
-         idx,
+Status TaskContext::AllocateOutput(const int32_t idx, const GeTensorDesc &tensor_desc_in,
+                                   TensorValue **const tensor_out, const AllocationAttr *const attr) const {
+  GELOGI("To allocate output for node: %s. index = %d, tensor desc = %s", node_item_->NodeName().c_str(), idx,
          TensorDesc2String(tensor_desc_in).c_str());
 
   if ((idx < 0) || (idx >= node_item_->num_outputs)) {
     REPORT_INNER_ERR_MSG("E19999", "%s(%s) output index out of range check invalid. num_output = %d, index = %d",
-                       node_item_->NodeName().c_str(), node_item_->NodeType().c_str(),
-                       node_item_->num_outputs, idx);
+                         node_item_->NodeName().c_str(), node_item_->NodeType().c_str(), node_item_->num_outputs, idx);
     GELOGE(PARAM_INVALID, "[Check][Param] %s(%s) output index out of range. num_output = %d, index = %d",
-           node_item_->NodeName().c_str(), node_item_->NodeType().c_str(),
-           node_item_->num_outputs, idx);
+           node_item_->NodeName().c_str(), node_item_->NodeType().c_str(), node_item_->num_outputs, idx);
     return PARAM_INVALID;
   }
 
@@ -300,8 +283,8 @@ Status TaskContext::AllocateOutput(const int32_t idx,
              "[Check][Size] %s(%s) index[%d] mem size out of range! Expected size: %ld, but given input size: %ld.",
              node_item_->NodeName().c_str(), node_item_->NodeType().c_str(), idx, expected_size, allocated_size);
 
-      std::string reason = "The memory " + std::to_string(expected_size) + " required by the output " + std::to_string(idx) +
-                           " of the node " + node_item_->NodeName().c_str() + "(" +
+      std::string reason = "The memory " + std::to_string(expected_size) + " required by the output " +
+                           std::to_string(idx) + " of the node " + node_item_->NodeName().c_str() + "(" +
                            node_item_->NodeType().c_str() + ") is greater than the allocated memory " +
                            std::to_string(allocated_size);
 
@@ -322,13 +305,10 @@ Status TaskContext::AllocateOutput(const int32_t idx,
   const auto &it = node_item_->ref_outputs.find(idx);
   if (it != node_item_->ref_outputs.end()) {
     auto &ref_node = it->second;
-    GELOGD("source node of %s:%d = %s, op_type = %s",
-           node_item_->NodeName().c_str(),
-           idx,
-           ref_node->GetName().c_str(),
+    GELOGD("source node of %s:%d = %s, op_type = %s", node_item_->NodeName().c_str(), idx, ref_node->GetName().c_str(),
            ref_node->GetType().c_str());
 
-    const TensorValue * const ref_tensor = execution_context_->model->GetTensor(ref_node);
+    const TensorValue *const ref_tensor = execution_context_->model->GetTensor(ref_node);
     GE_CHECK_NOTNULL(ref_tensor);
     task_tensor_out = *ref_tensor;
   } else {
@@ -343,8 +323,8 @@ Status TaskContext::AllocateOutput(const int32_t idx,
         task_tensor_out = inputs_start_[reuse_input->second];
       } else {
         GE_CHK_STATUS_RET_NOLOG(AllocateTensor(tensor_desc_in, task_tensor_out, attr));
-        GELOGD("Allocating output successfully. node: %s. index = %d, size = %zu",
-               node_item_->NodeName().c_str(), idx, task_tensor_out.GetSize());
+        GELOGD("Allocating output successfully. node: %s. index = %d, size = %zu", node_item_->NodeName().c_str(), idx,
+               task_tensor_out.GetSize());
       }
     }
   }
@@ -383,18 +363,14 @@ const NodeItem &TaskContext::GetNodeItem() const {
 Status TaskContext::SetOutput(const int32_t index, const TensorValue &tensor_in) const {
   if ((index < 0) || (index >= node_item_->num_outputs)) {
     REPORT_INNER_ERR_MSG("E19999", "%s(%s) output index out of range check invalid. num_output = %d, index = %d",
-                       node_item_->NodeName().c_str(), node_item_->NodeType().c_str(),
-                       node_item_->num_outputs, index);
+                         node_item_->NodeName().c_str(), node_item_->NodeType().c_str(), node_item_->num_outputs,
+                         index);
     GELOGE(PARAM_INVALID, "[Check][Param]%s(%s) output index out of range. num_output = %d, index = %d",
-           node_item_->NodeName().c_str(), node_item_->NodeType().c_str(),
-           node_item_->num_outputs, index);
+           node_item_->NodeName().c_str(), node_item_->NodeType().c_str(), node_item_->num_outputs, index);
     return PARAM_INVALID;
   }
 
-  GELOGD("Set %s:%d with tensor: %s",
-         node_item_->NodeName().c_str(),
-         index,
-         tensor_in.DebugString().c_str());
+  GELOGD("Set %s:%d with tensor: %s", node_item_->NodeName().c_str(), index, tensor_in.DebugString().c_str());
   outputs_start_[index] = tensor_in;
   return SUCCESS;
 }
@@ -459,19 +435,15 @@ Status TaskContext::PropagateOutputs() const {
       const auto dst_input_idx = dst_input_index_and_node.first;
       const auto dst_node_item = dst_input_index_and_node.second;
       const auto input_offset = dst_node_item->input_start + dst_input_idx;
-      GELOGD("Propagate output of node %s, output index = %d, dst node = %s, "
-             "dst_input_index = %d, dst_input_offset = %d.",
-             node_item_->NodeName().c_str(),
-             i,
-             dst_node_item->NodeName().c_str(),
-             dst_input_idx,
-             input_offset);
+      GELOGD(
+          "Propagate output of node %s, output index = %d, dst node = %s, "
+          "dst_input_index = %d, dst_input_offset = %d.",
+          node_item_->NodeName().c_str(), i, dst_node_item->NodeName().c_str(), dst_input_idx, input_offset);
 
       if (subgraph_context_->all_inputs_.size() <= static_cast<size_t>(input_offset)) {
-        REPORT_INNER_ERR_MSG("E19999",
-                           "[%s(%s)] input index out of range check invalid. index = %d, total input num = %zu",
-                           GetNodeName(), dst_node_item->NodeType().c_str(),
-                           input_offset, subgraph_context_->all_inputs_.size());
+        REPORT_INNER_ERR_MSG(
+            "E19999", "[%s(%s)] input index out of range check invalid. index = %d, total input num = %zu",
+            GetNodeName(), dst_node_item->NodeType().c_str(), input_offset, subgraph_context_->all_inputs_.size());
         GELOGE(INTERNAL_ERROR, "[Check][Size][%s(%s)] input index out of range. index = %d, total input num = %zu",
                GetNodeName(), dst_node_item->NodeType().c_str(), input_offset, subgraph_context_->all_inputs_.size());
         return INTERNAL_ERROR;
@@ -479,8 +451,8 @@ Status TaskContext::PropagateOutputs() const {
 
       subgraph_context_->all_inputs_[static_cast<size_t>(input_offset)] = *tensor;
       if (execution_context_->trace_enabled) {
-        subgraph_context_->all_inputs_[static_cast<size_t>(input_offset)].SetName(
-            dst_node_item->NodeName() + "_in_" + std::to_string(dst_input_idx));
+        subgraph_context_->all_inputs_[static_cast<size_t>(input_offset)].SetName(dst_node_item->NodeName() + "_in_" +
+                                                                                  std::to_string(dst_input_idx));
       }
     }
   }
@@ -592,14 +564,14 @@ Status TaskContext::SaveProfilingTaskDescInfo(const std::string &task_type, cons
   if (DumpManager::GetInstance().IsDumpExceptionOpen() || ProfilingManager::Instance().ProfilingModelLoadOn() ||
       ProfilingProperties::Instance().ProfilingSubscribeOn()) {
     GE_CHK_ACL_RET(aclrtGetThreadLastTaskId(&task_id_));
-    GE_CHK_ACL_RET(aclrtStreamGetId(GetStream(), reinterpret_cast<int32_t*>(&stream_id_)));
+    GE_CHK_ACL_RET(aclrtStreamGetId(GetStream(), reinterpret_cast<int32_t *>(&stream_id_)));
     GELOGD("Get Node[%s] task id: %u, stream id: %u.", GetNodeName(), task_id_, stream_id_);
   }
   if (ProfilingManager::Instance().ProfilingModelLoadOn() || ProfilingManager::Instance().ProfilingSubscribeOn()) {
     const NodeItem &node_item = GetNodeItem();
     const auto op_desc = node_item.GetOpDesc();
     GE_CHECK_NOTNULL(op_desc);
-    const GraphExecutionContext * const graph_context = GetExecutionContext();
+    const GraphExecutionContext *const graph_context = GetExecutionContext();
     GE_CHECK_NOTNULL(graph_context);
     const HybridModel *const model = graph_context->model;
     GE_CHECK_NOTNULL(model);
@@ -614,11 +586,11 @@ Status TaskContext::SaveProfilingTaskDescInfo(const std::string &task_type, cons
     op_task_desc_info.task_id = task_id_;
     op_task_desc_info.stream_id = stream_id_;
     op_task_desc_info.shape_type = "dynamic";
-    op_task_desc_info.cur_iter_num = (model->IsSingleOp()) ? ProfilingManager::Instance().GetStepInfoIndex() :
-                                     (execution_context_->iteration + 1);
+    op_task_desc_info.cur_iter_num =
+        (model->IsSingleOp()) ? ProfilingManager::Instance().GetStepInfoIndex() : (execution_context_->iteration + 1);
     task_desc_info.emplace_back(op_task_desc_info);
   }
-  GELOGD("save profling task desc info size is %zu", task_desc_info.size());
+  GELOGD("save profiling task desc info size is %zu", task_desc_info.size());
   return SUCCESS;
 }
 

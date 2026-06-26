@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,16 +29,11 @@ using namespace std;
 using namespace fe;
 using namespace ge;
 
-class UTEST_op_info_common_unittest : public testing::Test
-{
+class UTEST_op_info_common_unittest : public testing::Test {
  protected:
-  void SetUp()
-  {
-  }
+  void SetUp() {}
 
-  void TearDown()
-  {
-  }
+  void TearDown() {}
 
   static void CreateGraph(ComputeGraphPtr graph) {
     OpDescPtr bn_op = std::make_shared<OpDesc>("batchnormal", "BN");
@@ -46,7 +41,7 @@ class UTEST_op_info_common_unittest : public testing::Test
     OpDescPtr out_op = std::make_shared<OpDesc>("out", "NetOutput");
 
     // add descriptor
-    vector<int64_t> dims = {1,2,3,4};
+    vector<int64_t> dims = {1, 2, 3, 4};
     GeShape shape(dims);
 
     GeTensorDesc in_desc1(shape);
@@ -79,7 +74,6 @@ class UTEST_op_info_common_unittest : public testing::Test
     out_desc3.SetDataType(DT_FLOAT16);
     out_op->AddOutputDesc("y", out_desc3);
 
-
     ge::AttrUtils::SetInt(bn_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
     ge::AttrUtils::SetInt(relu_op, FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
 
@@ -89,6 +83,5 @@ class UTEST_op_info_common_unittest : public testing::Test
 
     GraphUtils::AddEdge(bn_node->GetOutDataAnchor(0), relu_node->GetInDataAnchor(0));
     GraphUtils::AddEdge(relu_node->GetOutDataAnchor(0), out_node->GetInDataAnchor(0));
-
   }
 };

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -92,7 +92,7 @@ using ModelBinaryCompilerPtr = std::shared_ptr<fe::ModelBinaryCompiler>;
 using GenerateCMOTypeManagerPtr = std::shared_ptr<GenerateCMOTypeManager>;
 using KernelLookup = std::function<ge::OpKernelBinPtr(const std::string &kernel_name)>;
 
-enum class OpCompilerIndex{
+enum class OpCompilerIndex {
   /* Base class. All common operations are in this class. */
   COMMON = 0,
   /* Standard l2buffer atc inference process without op-tune.
@@ -133,8 +133,8 @@ class FEGraphOptimizer : public ge::GraphOptimizer {
    * @ingroup fe
    * @brief prohibit copy and assign construct
    */
-  FEGraphOptimizer(const FEGraphOptimizer&) = delete;
-  FEGraphOptimizer& operator=(const FEGraphOptimizer&) = delete;
+  FEGraphOptimizer(const FEGraphOptimizer &) = delete;
+  FEGraphOptimizer &operator=(const FEGraphOptimizer &) = delete;
 
   /*
    *  @ingroup fe
@@ -142,7 +142,7 @@ class FEGraphOptimizer : public ge::GraphOptimizer {
    *  @param   [in] options
    *  @return  SUCCESS or FAILED
    */
-  Status Initialize(const std::map<string, string>& options, ge::OptimizeUtility *const optimize_utility) override;
+  Status Initialize(const std::map<string, string> &options, ge::OptimizeUtility *const optimize_utility) override;
 
   /*
    *  @ingroup fe
@@ -151,7 +151,7 @@ class FEGraphOptimizer : public ge::GraphOptimizer {
    */
   Status Finalize() override;
 
-  Status FinalizeSessionInfo(ge::ComputeGraph& graph) override;
+  Status FinalizeSessionInfo(ge::ComputeGraph &graph) override;
 
   /*
    *  @ingroup fe
@@ -159,7 +159,7 @@ class FEGraphOptimizer : public ge::GraphOptimizer {
    *  @param   [in|out] graph  compute graph
    *  @return  SUCCESS or FAILED
    */
-  Status OptimizeOriginalGraph(ge::ComputeGraph& graph) override;
+  Status OptimizeOriginalGraph(ge::ComputeGraph &graph) override;
 
   /*
    *  @ingroup fe
@@ -167,15 +167,15 @@ class FEGraphOptimizer : public ge::GraphOptimizer {
    *  @param   [in|out] graph   compute graph
    *  @return  SUCCESS or FAILED
    */
-  Status OptimizeFusedGraph(ge::ComputeGraph& graph) override;
+  Status OptimizeFusedGraph(ge::ComputeGraph &graph) override;
 
   /*
- *  @ingroup fe
- *  @brief   optimize fused graph for LXfusion
- *  @param   [in|out] graph   compute graph
- *  @return  SUCCESS or FAILED
- */
-  Status OptimizeFusedGraphAfterGraphSlice(ge::ComputeGraph& graph) override;
+   *  @ingroup fe
+   *  @brief   optimize fused graph for LXfusion
+   *  @param   [in|out] graph   compute graph
+   *  @return  SUCCESS or FAILED
+   */
+  Status OptimizeFusedGraphAfterGraphSlice(ge::ComputeGraph &graph) override;
 
   /*
    *  @ingroup fe
@@ -183,9 +183,8 @@ class FEGraphOptimizer : public ge::GraphOptimizer {
    *  @param   [in|out] graph   compute graph
    *  @param   [in] context run_context
    *  @return  SUCCESS or FAILED
-  */
-  Status OptimizeStreamGraph(ge::ComputeGraph& stream_graph, const ge::RunContext& context) override;
-
+   */
+  Status OptimizeStreamGraph(ge::ComputeGraph &stream_graph, const ge::RunContext &context) override;
 
   Status OptimizeStreamedWholeGraph(ge::ComputeGraph &graph) override;
 
@@ -195,23 +194,23 @@ class FEGraphOptimizer : public ge::GraphOptimizer {
    *  @param   [in|out] attrs
    *  @return  SUCCESS or FAILED
    */
-  Status GetAttributes(ge::GraphOptimizerAttribute& attrs) const override;
+  Status GetAttributes(ge::GraphOptimizerAttribute &attrs) const override;
 
-  Status OptimizeWholeGraph(ge::ComputeGraph& graph) override;
+  Status OptimizeWholeGraph(ge::ComputeGraph &graph) override;
 
-  Status OptimizeGraphBeforeBuild(ge::ComputeGraph& graph) override;
+  Status OptimizeGraphBeforeBuild(ge::ComputeGraph &graph) override;
 
-  Status OptimizeGraphInit(ge::ComputeGraph& graph) override;
+  Status OptimizeGraphInit(ge::ComputeGraph &graph) override;
 
-  Status OptimizeGraphPrepare(ge::ComputeGraph& graph) override;
+  Status OptimizeGraphPrepare(ge::ComputeGraph &graph) override;
 
-  Status OptimizeOriginalGraphJudgeInsert(ge::ComputeGraph& graph) override;
+  Status OptimizeOriginalGraphJudgeInsert(ge::ComputeGraph &graph) override;
 
-  Status OptimizeOriginalGraphJudgeFormatInsert(ge::ComputeGraph& graph) override;
+  Status OptimizeOriginalGraphJudgeFormatInsert(ge::ComputeGraph &graph) override;
 
   Status OptimizeAfterGraphNormalization(const ge::ComputeGraphPtr &graph) override;
 
-  Status GraphFusionAfterJudge(ge::ComputeGraph& graph) const;
+  Status GraphFusionAfterJudge(ge::ComputeGraph &graph) const;
 
   Status OptimizeAfterStage1(ge::ComputeGraph &graph) override;
 
@@ -224,9 +223,9 @@ class FEGraphOptimizer : public ge::GraphOptimizer {
 
   void GenerateStreamCtrlMap(ge::ComputeGraph &graph, StreamCtrlMap &stream_ctrls) const;
 
-  Status ConvertPartitionCalledOp(ge::ComputeGraph& graph);
+  Status ConvertPartitionCalledOp(ge::ComputeGraph &graph);
 
-  void StridedOptimize(ge::ComputeGraph& graph) const;
+  void StridedOptimize(ge::ComputeGraph &graph) const;
 
   /*
    *  link the
@@ -239,20 +238,20 @@ class FEGraphOptimizer : public ge::GraphOptimizer {
 
   Status HandleAclnnOp(ge::ComputeGraph &graph) const;
 
-  Status OptimizeOriginalGraphOpJudgeAndFormatDtypeSetter(ge::ComputeGraph& graph) const;
+  Status OptimizeOriginalGraphOpJudgeAndFormatDtypeSetter(ge::ComputeGraph &graph) const;
 
-  Status SplitOptimizer(ge::ComputeGraph& graph, const bool& need_set_virtual_op) const;
+  Status SplitOptimizer(ge::ComputeGraph &graph, const bool &need_set_virtual_op) const;
 
-  Status UnfoldFuncOp(ge::ComputeGraph& graph) const;
+  Status UnfoldFuncOp(ge::ComputeGraph &graph) const;
 
-  Status InsertClipByValue(ge::ComputeGraph& graph) const;
+  Status InsertClipByValue(ge::ComputeGraph &graph) const;
 
-  Status CreateClipByValue(ge::ComputeGraph& graph, const ge::NodePtr& node, const bool& const_input) const;
+  Status CreateClipByValue(ge::ComputeGraph &graph, const ge::NodePtr &node, const bool &const_input) const;
 
-  ge::NodePtr CreateSalcarConst(ge::ComputeGraph& graph, const std::string &clip_name,
+  ge::NodePtr CreateSalcarConst(ge::ComputeGraph &graph, const std::string &clip_name,
                                 const ge::GeTensorDesc &tensor_desc, const bool min_value) const;
 
-  Status SubGraphCompile(ge::ComputeGraph& graph, const OpCompilerPtr &op_compiler,
+  Status SubGraphCompile(ge::ComputeGraph &graph, const OpCompilerPtr &op_compiler,
                          const BufferFusionPtr &buffer_fusion_ptr);
 
   /* Do the following stuffs:
@@ -260,15 +259,14 @@ class FEGraphOptimizer : public ge::GraphOptimizer {
    * 2. Merge all fused nodes.
    * 3. Calculate tensor size.
    * 4. Set atomic add info. */
-  Status PostProcessAfterCompilingOp(ge::ComputeGraph& graph, const BufferFusionPtr& buffer_fusion_ptr);
+  Status PostProcessAfterCompilingOp(ge::ComputeGraph &graph, const BufferFusionPtr &buffer_fusion_ptr);
 
   Status OptimizeFusedCompileOpAndCalcTensorSize(const OpCompilerPtr &op_compiler,
-                                                 const BufferFusionPtr &buffer_fusion_ptr,
-                                                 ge::ComputeGraph &graph);
+                                                 const BufferFusionPtr &buffer_fusion_ptr, ge::ComputeGraph &graph);
 
-  Status InsertTransNodesForAllGraph(ge::ComputeGraph& graph, TransNodeManagerPtr &trans_node_mgr_ptr) const;
+  Status InsertTransNodesForAllGraph(ge::ComputeGraph &graph, TransNodeManagerPtr &trans_node_mgr_ptr) const;
 
-  Status GraphFusionBeforeTransnodesInsertion(ge::ComputeGraph& graph) const;
+  Status GraphFusionBeforeTransnodesInsertion(ge::ComputeGraph &graph) const;
 
   template <typename T>
   Status InitialzeOneCompiler(const string &compiler_name);
@@ -280,39 +278,38 @@ class FEGraphOptimizer : public ge::GraphOptimizer {
 
   Status GetOpCompiler(OpCompilerPtr &op_compiler) const;
 
-  Status BufferFusionMatch(ge::ComputeGraph& graph,
-                           const std::shared_ptr<FusionCycleDetector> &cycle_detector,
+  Status BufferFusionMatch(ge::ComputeGraph &graph, const std::shared_ptr<FusionCycleDetector> &cycle_detector,
                            const BufferFusionPtr &buffer_fusion_ptr) const;
 
-  void ClearUnknowShapeAttr(const ge::ComputeGraph& graph) const;
+  void ClearUnknowShapeAttr(const ge::ComputeGraph &graph) const;
 
   void AddAssignMemAttr(ge::ComputeGraph &graph) const;
 
   void ClearSameMemSet(ge::ComputeGraph &graph) const;
 
-  void ConvertExtAttr2Json(const ge::ComputeGraph& graph, bool need_delete_ext_attr) const;
+  void ConvertExtAttr2Json(const ge::ComputeGraph &graph, bool need_delete_ext_attr) const;
 
-  void ConvertJson2ExtAttr(const ge::ComputeGraph& graph) const;
+  void ConvertJson2ExtAttr(const ge::ComputeGraph &graph) const;
 
-  void AllocMixResource(ge::ComputeGraph& graph) const;
+  void AllocMixResource(ge::ComputeGraph &graph) const;
 
   bool IsProcessBlockedByFusionSwitchCfg(const std::string &process_name);
 
-  Status CompileMemSetOp(ge::ComputeGraph& graph) const;
+  Status CompileMemSetOp(ge::ComputeGraph &graph) const;
 
-  Status GetAndPreProcessForAtomicNodes(ge::ComputeGraph& graph,
-      std::vector<ge::NodePtr> &atomic_node_vec, const std::string &memset_policy) const;
+  Status GetAndPreProcessForAtomicNodes(ge::ComputeGraph &graph, std::vector<ge::NodePtr> &atomic_node_vec,
+                                        const std::string &memset_policy) const;
 
   Status CheckAndSetAtomicAttr(const ge::OpDescPtr &op_desc, bool &atomic_node_flag) const;
 
-  Status PrecompileAndUbMatch(ge::ComputeGraph& graph, GraphCommPtr &graph_comm_ptr,
-                              OpCompilerPtr &op_compiler, BufferFusionPtr &buffer_fusion_ptr) const;
+  Status PrecompileAndUbMatch(ge::ComputeGraph &graph, GraphCommPtr &graph_comm_ptr, OpCompilerPtr &op_compiler,
+                              BufferFusionPtr &buffer_fusion_ptr) const;
 
-  bool CheckNeedSetSliceInfo(ge::ComputeGraph& graph) const;
+  bool CheckNeedSetSliceInfo(ge::ComputeGraph &graph) const;
 
-  Status OptimizeGraphForTiling(ge::ComputeGraph& graph) const;
+  Status OptimizeGraphForTiling(ge::ComputeGraph &graph) const;
 
-  void MatchSuperkernelPlusNodes(const ge::ComputeGraph& graph) const;
+  void MatchSuperkernelPlusNodes(const ge::ComputeGraph &graph) const;
 
   static void SetSkpScopeAttr(const std::vector<ge::NodePtr> &match_nodes);
 

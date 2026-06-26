@@ -2,24 +2,24 @@
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
 
-from typing import Union, List, Tuple
-import numpy as np
 import ctypes
+from typing import List, Tuple, Union
 
-from llm_datadist_v1.utils import utils
-from llm_datadist_v1.status import handle_llm_status
+import numpy as np
+
+from llm_datadist_v1 import data_type, llm_wrapper
 from llm_datadist_v1.data_type import _dwrapper_dtype_to_python_dtype
-from llm_datadist_v1 import data_type
+from llm_datadist_v1.status import handle_llm_status
+from llm_datadist_v1.utils import utils
 
-from llm_datadist_v1 import llm_wrapper
 
 class TensorDesc(object):
     def __init__(self, dtype: data_type.DataType, shape: Union[List[int], Tuple[int]]):
@@ -83,15 +83,18 @@ class Tensor(object):
         if tensor_desc:
             if list(data.shape) != tensor_desc.shape:
                 raise RuntimeError(
-                    f"The shape of data:{data.shape} is not same as tensor_desc shape:{tensor_desc.shape}")
+                    f"The shape of data:{data.shape} is not same as tensor_desc shape:{tensor_desc.shape}"
+                )
             desc_np_dtype = data_type.dtype_to_np_dtype.get(tensor_desc.dtype)
             if data.dtype != desc_np_dtype:
                 raise RuntimeError(
-                    f"The dtype of data:{data.dtype} is not same as tensor_desc dtype:{tensor_desc.dtype}")
+                    f"The dtype of data:{data.dtype} is not same as tensor_desc dtype:{tensor_desc.dtype}"
+                )
         else:
             if data.dtype not in data_type.valid_np_dtypes and not self._is_origin_dtype_str(data.dtype):
                 raise RuntimeError(
-                    f"The dtype of data:{data.dtype} is not valid, only support {data_type.valid_np_dtypes}")
+                    f"The dtype of data:{data.dtype} is not valid, only support {data_type.valid_np_dtypes}"
+                )
         if tensor_desc:
             self._tensor_desc = tensor_desc
         elif self._is_origin_dtype_str(data.dtype):
@@ -108,7 +111,8 @@ class Tensor(object):
             data_ptr,
             size,
             data_type.python_dtype_2_dwrapper_dtype.get(self._tensor_desc.dtype),
-            list(self._tensor_desc.shape))
+            list(self._tensor_desc.shape),
+        )
 
     def _is_origin_dtype_str(self, dtype):
         return np.issubdtype(dtype, np.str_) or np.issubdtype(dtype, np.bytes_)
@@ -118,7 +122,7 @@ class Tensor(object):
 
     def _convert_raw_str_data(self, data):
         format_data = data.astype(np.bytes_)
-        end_point = '\0'.encode('ascii', errors='ignore')
+        end_point = "\0".encode("ascii", errors="ignore")
         new_data = np.char.add(format_data, end_point)
         return new_data
 
@@ -137,7 +141,7 @@ class Tensor(object):
                 raise RuntimeError("String tensor only support when param copy is True.")
             return np.array(llm_wrapper.get_string_tensor(self._tensor_id)).reshape(self._tensor_desc.shape)
         ret, tensor = llm_wrapper.tensor_get_buffer(self._tensor_id)
-        handle_llm_status(ret, 'Tensor.numpy', 'Failed to get tensor buffer')
+        handle_llm_status(ret, "Tensor.numpy", "Failed to get tensor buffer")
         if self._tensor_desc.dtype == data_type.DataType.DT_BF16:
             np_array = np.frombuffer(tensor, dtype=np.uint16)
             return (np_array.astype(np.uint32) << 16).view(np.float32)

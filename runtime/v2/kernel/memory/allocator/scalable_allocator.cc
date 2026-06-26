@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,8 +18,7 @@ constexpr size_t kSafeTryCount = 1000U;
 std::atomic_size_t ScalableAllocator::global_allocator_id_(0U);
 
 ScalableAllocator::ScalableAllocator(SpanAllocator &span_allocator, DeviceMemAllocator &device_allocator,
-    const ScalableConfig &cfg,
-    const std::string &graph_name)
+                                     const ScalableConfig &cfg, const std::string &graph_name)
     : MemoryPool(device_allocator),
       device_allocator_{device_allocator},
       allocator_id_(++global_allocator_id_),
@@ -35,9 +34,8 @@ ScalableAllocator::ScalableAllocator(SpanAllocator &span_allocator, DeviceMemAll
   span_layers_.resize(span_layer_capacity_);
   new_span_layers_.resize(span_layer_capacity_);
   // 不加nothrow，理由：由于构造函数无法返回失败，且这是关键资源申请，如果申请失败允许进程退出。
-  auto layer_lut = config_.enable_quick_layer_mode
-                           ? static_cast<SpanLayerLut *>(new SpanLayerQuickLut{span_layers_})
-                           : static_cast<SpanLayerLut *>(new SpanLayerSeqLut{span_layers_});
+  auto layer_lut = config_.enable_quick_layer_mode ? static_cast<SpanLayerLut *>(new SpanLayerQuickLut{span_layers_})
+                                                   : static_cast<SpanLayerLut *>(new SpanLayerSeqLut{span_layers_});
   if (layer_lut != nullptr) {
     span_layer_lut_.reset(layer_lut);
   }
@@ -72,8 +70,8 @@ ge::Status ScalableAllocator::Finalize(bool no_log) {
   }
 
   if (!graph_name_.empty()) {
-    GEEVENT("model_metrics:name=%s, max_alloc_dev_mem=%lu B, device_id=%u",
-                graph_name_.c_str(), max_occupied_size_, device_allocator_.GetDeviceId());
+    GEEVENT("model_metrics:name=%s, max_alloc_dev_mem=%lu B, device_id=%u", graph_name_.c_str(), max_occupied_size_,
+            device_allocator_.GetDeviceId());
   }
 
   for (auto layer_id : new_span_layer_ids_) {
@@ -164,7 +162,7 @@ SpanLayer *ScalableAllocator::FetchNewVaSpanLayer(const SpanLayerId layer_id) {
   if (new_span_layers_[layer_id] != nullptr) {
     return new_span_layers_[layer_id];
   }
-  auto new_layer = new(layer_allocator_.Alloc()) SpanLayer(layer_id, GetlayerSpanCapacity(layer_id));
+  auto new_layer = new (layer_allocator_.Alloc()) SpanLayer(layer_id, GetlayerSpanCapacity(layer_id));
   if (new_layer == nullptr) {
     return nullptr;
   }
@@ -179,7 +177,7 @@ BlockAddr ScalableAllocator::DevAlloc(const MemSize size) {
 
 PageSpan *ScalableAllocator::BlockAlloc(ge::Allocator &allocator, const BlockAddr block_addr, const MemAddr addr,
                                         const size_t size) {
-  auto span = new(span_allocator_.Alloc()) PageSpan{allocator, *this, block_addr, addr, size};
+  auto span = new (span_allocator_.Alloc()) PageSpan{allocator, *this, block_addr, addr, size};
   return span;
 }
 
@@ -194,25 +192,25 @@ PageSpan *ScalableAllocator::FetchNewVaSpan(ge::Allocator &allocator, const MemS
   while ((try_count < kSafeTryCount) && ((span = FetchNewVaLayerSpan(fix_layer_id)) != nullptr)) {
     try_count++;
     if (ge::SUCCESS == device_allocator_.GetExpandableAllocator().MallocPhysicalMemory(
-        reinterpret_cast<MemAddr>(span->GetAddr()), span->GetPaList())) {
+                           reinterpret_cast<MemAddr>(span->GetAddr()), span->GetPaList())) {
       reuse = true;
       break;
     }
     spans.push_back(span);
   }
   for (auto s : spans) {
-    GELOGI("Free using block device_id:%u size:%llu alloc_size:%zu mem_addr:%p.",
-                device_allocator_.GetDeviceId(), size, s->GetSize(), s->GetAddr());
+    GELOGI("Free using block device_id:%u size:%llu alloc_size:%zu mem_addr:%p.", device_allocator_.GetDeviceId(), size,
+           s->GetSize(), s->GetAddr());
     FreeSpanEx(s);
   }
 
   if (reuse) {
     GE_ASSERT_NOTNULL(span);
-    GELOGI("reuse new_va_span try_count:%zu size:%zu span_size:%zu mem_addr_:%p",
-                try_count, size, span->GetSize(), span->GetAddr());
+    GELOGI("reuse new_va_span try_count:%zu size:%zu span_size:%zu mem_addr_:%p", try_count, size, span->GetSize(),
+           span->GetAddr());
     // 复用已有的span，释放新占用的内存
-    device_allocator_.GetExpandableAllocator().FreePhysicalMemory(reinterpret_cast<MemAddr>(span->GetAddr()),
-                                                                  pa_list, false, false);
+    device_allocator_.GetExpandableAllocator().FreePhysicalMemory(reinterpret_cast<MemAddr>(span->GetAddr()), pa_list,
+                                                                  false, false);
     return span;
   }
   // 新的span需要新预留虚拟地址并做map
@@ -238,15 +236,15 @@ PageSpan *ScalableAllocator::FetchNewVaSpan(ge::Allocator &allocator, const MemS
     return nullptr;
   }
   OccupySpan(*span, fix_layer_id);
-  GELOGI("block device_id:%u size:%llu alloca_size:%zu mem_addr:%p",
-              device_allocator_.GetDeviceId(), size, span->GetSize(), span->GetAddr());
+  GELOGI("block device_id:%u size:%llu alloca_size:%zu mem_addr:%p", device_allocator_.GetDeviceId(), size,
+         span->GetSize(), span->GetAddr());
   return span;
 }
 
 PageSpan *ScalableAllocator::FetchNewSpan(ge::Allocator &allocator, const MemSize size, const PageLen page_len) {
   if (IsThresholdExceeded(size)) {
-    GELOGI("OccupiedSize:%llu add size:%llu exceed total_threshold:%llu.",
-                device_allocator_.GetOccupiedSize(), size, config_.page_mem_size_total_threshold);
+    GELOGI("OccupiedSize:%llu add size:%llu exceed total_threshold:%llu.", device_allocator_.GetOccupiedSize(), size,
+           config_.page_mem_size_total_threshold);
 
     // has freed memory, return nullptr and try recycle
     if (GetIdleMemSize() > 0U) {
@@ -258,8 +256,7 @@ PageSpan *ScalableAllocator::FetchNewSpan(ge::Allocator &allocator, const MemSiz
     return nullptr;
   }
 
-  auto span = BlockAlloc(allocator, addr, reinterpret_cast<MemAddr>(addr->GetAddr()),
-                         static_cast<size_t>(size));
+  auto span = BlockAlloc(allocator, addr, reinterpret_cast<MemAddr>(addr->GetAddr()), static_cast<size_t>(size));
   if (span == nullptr) {
     device_allocator_.Free(addr);
     return nullptr;
@@ -277,7 +274,7 @@ SpanLayer *ScalableAllocator::FetchSpanLayer(const SpanLayerId layer_id) {
     return span_layers_[layer_id];
   }
 
-  auto newLayer = new(layer_allocator_.Alloc()) SpanLayer(layer_id, GetlayerSpanCapacity(layer_id));
+  auto newLayer = new (layer_allocator_.Alloc()) SpanLayer(layer_id, GetlayerSpanCapacity(layer_id));
   if (newLayer == nullptr) {
     return nullptr;
   }
@@ -307,17 +304,17 @@ PageSpan *ScalableAllocator::FetchSplitedSpan(ge::Allocator &allocator, const Sp
     try_count_ = 0U;
     return span;
   }
-  if ((!device_allocator_.GetExpandableAllocator().IsValidVirtualAddr(reinterpret_cast<MemAddr>(span->GetAddr())))
-      && (!span->IsSplitable(fix_layer_id))) {
+  if ((!device_allocator_.GetExpandableAllocator().IsValidVirtualAddr(reinterpret_cast<MemAddr>(span->GetAddr()))) &&
+      (!span->IsSplitable(fix_layer_id))) {
     const auto layer = FetchSpanLayer(fit_layer_id);
     if (layer != nullptr) {
-      GELOGI("Delay split block device_id:%u size:%zu allocate_size:%lu.",
-                  device_allocator_.GetDeviceId(), span->GetSize(), size);
+      GELOGI("Delay split block device_id:%u size:%zu allocate_size:%lu.", device_allocator_.GetDeviceId(),
+             span->GetSize(), size);
       PushSpanToLayer(*layer, *span);
     }
     return FetchNewSpan(allocator, size, fix_layer_id);
   }
-  
+
   return SplitSpan(allocator, fix_layer_id, fit_layer_id, span, size);
 }
 
@@ -325,8 +322,8 @@ PageSpan *ScalableAllocator::SplitSpan(ge::Allocator &allocator, const SpanLayer
                                        const SpanLayerId fit_layer_id, PageSpan *const span, const MemSize size) {
   GE_ASSERT_NOTNULL(span);
   PageLen left_page_len = fit_layer_id - fix_layer_id;
-  const auto buddy_addr = PageLen_ForwardAddr(left_page_len, config_.page_idem_num,
-                                              reinterpret_cast<MemAddr>(span->GetAddr()));
+  const auto buddy_addr =
+      PageLen_ForwardAddr(left_page_len, config_.page_idem_num, reinterpret_cast<MemAddr>(span->GetAddr()));
   const auto buddy_span = BlockAlloc(allocator, nullptr, buddy_addr, static_cast<size_t>(size));
   if (buddy_span == nullptr) {
     return nullptr;
@@ -364,8 +361,8 @@ PageSpan *ScalableAllocator::ProcessNewVaSpan(ge::Allocator &allocator, PageSpan
     SpanLayerId free_fit_layer_id = SpanLayerId_GetIdFromSize(span->GetSize(), config_.page_idem_num);
     free_span = SplitSpan(allocator, free_fix_layer_id, free_fit_layer_id, span, free_size);
     GE_ASSERT_NOTNULL(free_span);
-    GELOGI("free span size:%zu real_size:%zu left_size:%zu next_size:%zu",
-                free_span->GetSize(), free_size, span->GetSize(), reuse_size - free_size);
+    GELOGI("free span size:%zu real_size:%zu left_size:%zu next_size:%zu", free_span->GetSize(), free_size,
+           span->GetSize(), reuse_size - free_size);
   } else {
     free_size = 0U;
   }
@@ -381,12 +378,12 @@ PageSpan *ScalableAllocator::ProcessNewVaSpan(ge::Allocator &allocator, PageSpan
     FreeSpanEx(free_span);
   }
   GE_ASSERT_NOTNULL(using_span);
-  GELOGI("using span size:%zu real_size:%zu memaddr:%p index:%zu offset:%zu",
-            using_span->GetSize(), reuse_size - free_size, using_span->GetAddr(),
-            (reinterpret_cast<MemAddr>(using_span->GetAddr()) - reinterpret_cast<MemAddr>(base_addr_))
-                / ge::kLargePageSize,
-            (reinterpret_cast<MemAddr>(using_span->GetAddr()) - reinterpret_cast<MemAddr>(base_addr_))
-                & ge::kLargePageSizeMask);
+  GELOGI(
+      "using span size:%zu real_size:%zu memaddr:%p index:%zu offset:%zu", using_span->GetSize(),
+      reuse_size - free_size, using_span->GetAddr(),
+      (reinterpret_cast<MemAddr>(using_span->GetAddr()) - reinterpret_cast<MemAddr>(base_addr_)) / ge::kLargePageSize,
+      (reinterpret_cast<MemAddr>(using_span->GetAddr()) - reinterpret_cast<MemAddr>(base_addr_)) &
+          ge::kLargePageSizeMask);
   auto new_va_span = FetchNewVaSpan(allocator, alloc_size, device_allocator_.GetExpandableAllocator().GetPaList());
   if (new_va_span == nullptr) {
     FreeSpanEx(using_span);
@@ -411,8 +408,7 @@ PageSpan *ScalableAllocator::ProcessPaUsingSpan(ge::Allocator &allocator, PageSp
     span = SplitSpan(allocator, using_fix_layer_id, using_fit_layer_id, span, reuse_size);
     GE_ASSERT_NOTNULL(span);
     span->SetRealSize(reuse_size);
-    GELOGI("using span size:%zu real_size:%zu alloc_size:%zu", span->GetSize(), reuse_size,
-                alloc_size);
+    GELOGI("using span size:%zu real_size:%zu alloc_size:%zu", span->GetSize(), reuse_size, alloc_size);
     return span;
   }
   span->SetRealSize(size);
@@ -445,15 +441,16 @@ PageSpan *ScalableAllocator::AllocImp(ge::Allocator &allocator, const MemSize si
     }
     static const std::string purpose = "page caching";
     size_t reuse_size = 0U;
-    ret = device_allocator_.GetExpandableAllocator().MallocPhysicalMemory(purpose,
-        reinterpret_cast<MemAddr>(span->GetAddr()), alloc_size, reuse_size);
+    ret = device_allocator_.GetExpandableAllocator().MallocPhysicalMemory(
+        purpose, reinterpret_cast<MemAddr>(span->GetAddr()), alloc_size, reuse_size);
     if (ret != ge::SUCCESS) {
       if (ret == ge::NEW_VA) {
         ret = ge::SUCCESS;
         return ProcessNewVaSpan(allocator, span, size, reuse_size, alloc_size);
       } else if (ret == ge::PHYSICAL_MEM_USING) {
         return ProcessPaUsingSpan(allocator, span, size, reuse_size, alloc_size);
-      } else {}
+      } else {
+      }
       FreeSpanEx(span);
       return nullptr;
     }
@@ -485,14 +482,14 @@ PageSpan *ScalableAllocator::Alloc(ge::Allocator &allocator, const MemSize size)
     total_try_count++;
   }
   for (auto s : spans) {
-    GELOGI("Free using block device_id:%u size:%llu allocate_size:%zu mem_addr:%p.",
-                device_allocator_.GetDeviceId(), size, s->GetSize(), s->GetAddr());
+    GELOGI("Free using block device_id:%u size:%llu allocate_size:%zu mem_addr:%p.", device_allocator_.GetDeviceId(),
+           size, s->GetSize(), s->GetAddr());
     FreeSpanEx(s);
   }
   if (span != nullptr) {
     if (!spans.empty()) {
       GELOGI("Free using block device_id:%u size:%llu allocate_size:%zu mem_addr:%p count:%zu.",
-                  device_allocator_.GetDeviceId(), size, span->GetSize(), span->GetAddr(), spans.size());
+             device_allocator_.GetDeviceId(), size, span->GetSize(), span->GetAddr(), spans.size());
     }
 
     theory_size_ += span->GetSize();
@@ -511,7 +508,7 @@ PageSpan *ScalableAllocator::Alloc(ge::Allocator &allocator, const MemSize size)
       PrintDetails(GeLogLevel::kInfo);
     }
     GELOGI("Malloc block device_id:%u size:%llu allocate_size:%zu mem_addr:%p. span addr %p",
-                device_allocator_.GetDeviceId(), size, span->GetSize(), span->GetAddr(), span);
+           device_allocator_.GetDeviceId(), size, span->GetSize(), span->GetAddr(), span);
   }
   return span;
 }
@@ -568,22 +565,23 @@ void ScalableAllocator::Free(ge::MemBlock *block) {
     theory_size_ -= span->GetSize();
     device_allocator_.GetExpandableAllocator().SetTheorySize(theory_size_);
   }
-  LOG_BY_TYPE(GeLogLevel::kInfo, "Free block device_id:%u theory_size_:%zu theory_min_size_:%zu allock_size:%zu mem_addr:%p.",
+  LOG_BY_TYPE(GeLogLevel::kInfo,
+              "Free block device_id:%u theory_size_:%zu theory_min_size_:%zu allock_size:%zu mem_addr:%p.",
               device_allocator_.GetDeviceId(), theory_size_, theory_min_size_, span->GetSize(), span->GetAddr());
 
   if (span->IsNewVaSpan()) {
-    (void) device_allocator_.GetExpandableAllocator().FreePhysicalMemory(reinterpret_cast<MemAddr>(span->GetAddr()),
-                                                                         span->GetPaList(), true, false);
+    (void)device_allocator_.GetExpandableAllocator().FreePhysicalMemory(reinterpret_cast<MemAddr>(span->GetAddr()),
+                                                                        span->GetPaList(), true, false);
   } else {
     // 减物理内存引用计数，不真正释放
-    (void) device_allocator_.GetExpandableAllocator().FreePhysicalMemory(reinterpret_cast<MemAddr>(span->GetAddr()),
-                                                                         span->GetSize(), true, false);
+    (void)device_allocator_.GetExpandableAllocator().FreePhysicalMemory(reinterpret_cast<MemAddr>(span->GetAddr()),
+                                                                        span->GetSize(), true, false);
   }
 
   auto ref_span = span->GetRefSpan();
   if (ref_span != nullptr) {
-    GELOGI("Free ref span device_id:%u allocate_size:%zu mem_addr:%p.",
-                device_allocator_.GetDeviceId(), ref_span->GetSize(), ref_span->GetAddr());
+    GELOGI("Free ref span device_id:%u allocate_size:%zu mem_addr:%p.", device_allocator_.GetDeviceId(),
+           ref_span->GetSize(), ref_span->GetAddr());
     FreeSpanEx(ref_span);
     span->SetRefSpan(nullptr);
   }
@@ -734,12 +732,14 @@ void ScalableAllocator::PrintDetails(const int32_t level) {
     return;
   }
 
-  LOG_BY_TYPE(level, "Device memory   : [alloc count:%zu free count:%zu total size:%s new_va_size:%s real_theory_min:%s"
-      " theory_min:%s reach theory rate:%.2f%s]", device_allocator_.GetAllocCount(), device_allocator_.GetFreeCount(),
-      ge::ActiveMemoryUtil::SizeToString(device_allocator_.GetOccupiedSize()).c_str(),
-      ge::ActiveMemoryUtil::SizeToString(new_va_size_).c_str(),
-      ge::ActiveMemoryUtil::SizeToString(real_theory_min_size_).c_str(),
-      ge::ActiveMemoryUtil::SizeToString(theory_min_size_).c_str(), GetReachTheoryRate(), "%");
+  LOG_BY_TYPE(level,
+              "Device memory   : [alloc count:%zu free count:%zu total size:%s new_va_size:%s real_theory_min:%s"
+              " theory_min:%s reach theory rate:%.2f%s]",
+              device_allocator_.GetAllocCount(), device_allocator_.GetFreeCount(),
+              ge::ActiveMemoryUtil::SizeToString(device_allocator_.GetOccupiedSize()).c_str(),
+              ge::ActiveMemoryUtil::SizeToString(new_va_size_).c_str(),
+              ge::ActiveMemoryUtil::SizeToString(real_theory_min_size_).c_str(),
+              ge::ActiveMemoryUtil::SizeToString(theory_min_size_).c_str(), GetReachTheoryRate(), "%");
   LOG_BY_TYPE(level, "Allocator memory: [alloc count:%zu free count:%zu recycle count:%zu]", alloc_succ_count_,
               free_succ_count_, recycle_count_);
 
@@ -752,11 +752,11 @@ void ScalableAllocator::PrintDetails(const int32_t level) {
     }
   }
 
-  LOG_BY_TYPE(level, "Using: [span count:%zu page count:%zu total size:%llu]",
-              occupied_spans_.size(), total_page_count, PageLen_GetMemSize(total_page_count, config_.page_idem_num));
+  LOG_BY_TYPE(level, "Using: [span count:%zu page count:%zu total size:%llu]", occupied_spans_.size(), total_page_count,
+              PageLen_GetMemSize(total_page_count, config_.page_idem_num));
   for (const auto &stat : occupied_span_stat) {
-    LOG_BY_TYPE(level, "    |-span: [size:%-11llu count:%-5zu]",
-                PageLen_GetMemSize(stat.first, config_.page_idem_num), stat.second);
+    LOG_BY_TYPE(level, "    |-span: [size:%-11llu count:%-5zu]", PageLen_GetMemSize(stat.first, config_.page_idem_num),
+                stat.second);
   }
 
   size_t total_span_count = 0U;
@@ -797,8 +797,8 @@ void ScalableAllocator::PrintDetailsNewVa(const int32_t level) {
     }
   }
 
-  LOG_BY_TYPE(level, "Using: [new_va_span count:%zu page count:%zu total size:%llu]",
-              total_count, total_page_count, PageLen_GetMemSize(total_page_count, config_.page_idem_num));
+  LOG_BY_TYPE(level, "Using: [new_va_span count:%zu page count:%zu total size:%llu]", total_count, total_page_count,
+              PageLen_GetMemSize(total_page_count, config_.page_idem_num));
   for (const auto &stat : occupied_span_stat) {
     LOG_BY_TYPE(level, "    |-new_va_span: [size:%-11llu count:%-5zu]",
                 PageLen_GetMemSize(stat.first, config_.page_idem_num), stat.second);
@@ -816,8 +816,8 @@ void ScalableAllocator::PrintDetailsNewVa(const int32_t level) {
     }
   }
   LOG_BY_TYPE(level, "Freed new_va_span layers: [level:%u, count:%zu]", span_layer_capacity_, total_span_count);
-  LOG_BY_TYPE(level, "Freed: [new_va_span count:%zu page count:%zu total size:%llu]", total_span_count, total_page_count,
-              total_mem_size);
+  LOG_BY_TYPE(level, "Freed: [new_va_span count:%zu page count:%zu total size:%llu]", total_span_count,
+              total_page_count, total_mem_size);
   for (auto layer_id : new_span_layer_ids_) {
     auto layer = FetchNewVaSpanLayer(layer_id);
     if (layer != nullptr) {
@@ -838,8 +838,8 @@ const std::string &ScalableAllocator::GetId() const {
 
 void ScalableAllocator::InitExpandableAllocator(ge::Allocator &allocator, const rtMemType_t memory_type) {
   size_t virtual_memory_size = static_cast<size_t>(config_.page_mem_size_total_threshold - ge::kLargePageSize);
-  const auto virtual_active_addr = device_allocator_.GetExpandableAllocator().ReserveVirtualMemory(virtual_memory_size,
-      device_allocator_.GetDeviceId(), memory_type);
+  const auto virtual_active_addr = device_allocator_.GetExpandableAllocator().ReserveVirtualMemory(
+      virtual_memory_size, device_allocator_.GetDeviceId(), memory_type);
   if (virtual_active_addr != nullptr) {
     const auto span = BlockAlloc(allocator, nullptr, virtual_active_addr, virtual_memory_size);
     if (span != nullptr) {
@@ -878,8 +878,7 @@ ge::Status ScalableAllocator::InitFixSizedAllocator(ge::Allocator &allocator, vo
       span->SubCount();
     }
 
-    const SpanLayerId fit_layer_id =
-        SpanLayerId_GetIdFromSize(size, ScalableAllocator::config_.page_idem_num);
+    const SpanLayerId fit_layer_id = SpanLayerId_GetIdFromSize(size, ScalableAllocator::config_.page_idem_num);
     const auto layer = FetchSpanLayer(fit_layer_id);
     if (layer != nullptr) {
       PushSpanToLayer(*layer, *span);
@@ -898,8 +897,8 @@ const std::string ScalableAllocator::GetStatics() const {
 float ScalableAllocator::GetReachTheoryRate() const {
   if (device_allocator_.GetOccupiedSize() != 0U) {
     if (device_allocator_.GetOccupiedSize() >= real_theory_min_size_) {
-      return (ge::kRatioBase * static_cast<float>(real_theory_min_size_))
-          / static_cast<float>(device_allocator_.GetOccupiedSize());
+      return (ge::kRatioBase * static_cast<float>(real_theory_min_size_)) /
+             static_cast<float>(device_allocator_.GetOccupiedSize());
     } else {
       // 回收后实际占用会比理论最小值小
       return static_cast<float>(ge::kRatioBase);
@@ -908,4 +907,4 @@ float ScalableAllocator::GetReachTheoryRate() const {
     return 0.0;
   }
 }
-}
+}  // namespace gert

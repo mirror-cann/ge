@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -58,9 +58,7 @@ void FillDataForHostMemInput(const GeTensorDescPtr &tensor_desc, DataBuffer &dat
   }
 }
 
-Status GenerateTaskForAiCore(const Node &node,
-                             RunContext &run_context,
-                             std::vector<domi::TaskDef> &tasks) {
+Status GenerateTaskForAiCore(const Node &node, RunContext &run_context, std::vector<domi::TaskDef> &tasks) {
   if (node.GetType() != RELU) {
     return SUCCESS;
   }
@@ -69,11 +67,8 @@ Status GenerateTaskForAiCore(const Node &node,
   return SUCCESS;
 }
 
-void CreateInputsAndOutputs(OpDescPtr &op_desc,
-                            std::vector<GeTensorDesc> &input_desc,
-                            std::vector<DataBuffer> &inputs,
-                            std::vector<GeTensorDesc> &output_desc,
-                            std::vector<DataBuffer> &outputs) {
+void CreateInputsAndOutputs(OpDescPtr &op_desc, std::vector<GeTensorDesc> &input_desc, std::vector<DataBuffer> &inputs,
+                            std::vector<GeTensorDesc> &output_desc, std::vector<DataBuffer> &outputs) {
   std::vector<std::unique_ptr<uint8_t[]>> input_buffers;
   std::vector<std::unique_ptr<uint8_t[]>> output_buffers;
   for (const auto &tensor_desc : op_desc->GetAllInputsDescPtr()) {
@@ -134,7 +129,7 @@ Status RunStaticTestCast(OpDescPtr &op_desc) {
   SingleOp *single_op = nullptr;
   GeExecutor ge_executor;
   rtStream_t stream = nullptr;
-  GE_MAKE_GUARD(stream_destroy, [&stream](){
+  GE_MAKE_GUARD(stream_destroy, [&stream]() {
     aclrtDestroyStream(stream);
     stream = nullptr;
   });
@@ -170,8 +165,8 @@ UINT32 StubTilingParsePro(gert::KernelContext *context) {
   return ge::GRAPH_SUCCESS;
 }
 
-void* CompileInfoCreatorPro() {
-  auto tmp =  ge::MakeUnique<char>();
+void *CompileInfoCreatorPro() {
+  auto tmp = ge::MakeUnique<char>();
   return tmp.get();
 }
 
@@ -204,12 +199,14 @@ TEST_F(SingleOpProfilingSt, HybridSingeOpGraphProfiling) {
   BenchEnv::Init();
   uint8_t model_data[8192];
   ge::ModelData modelData{.model_data = model_data};
-  ModelDataBuilder(modelData).AddGraph(GraphFactory::HybridSingeOpGraph()).AddTask(2, 2)
-  .AddTask(2, 4)
-  .AddTask(2, 4)
-  .AddTask(2, 5)
-  .AddTask(2, 5)
-  .Build();
+  ModelDataBuilder(modelData)
+      .AddGraph(GraphFactory::HybridSingeOpGraph())
+      .AddTask(2, 2)
+      .AddTask(2, 4)
+      .AddTask(2, 4)
+      .AddTask(2, 5)
+      .AddTask(2, 5)
+      .Build();
 
   auto input_desc = TensorDescs(2).Value();
   auto input_buffers = DataBuffers(2).Value();
@@ -217,15 +214,16 @@ TEST_F(SingleOpProfilingSt, HybridSingeOpGraphProfiling) {
   auto output_buffers = DataBuffers(1).Value();
 
   ge::DynamicSingleOp *singleOp = nullptr;
-  (void) singleOp;
-  (void) modelData;
-  (void) input_desc;
-  (void) input_buffers;
-  (void) output_desc;
-  (void) output_buffers;
-//  ASSERT_EQ(ge::GeExecutor::LoadDynamicSingleOpV2("dynamic_op", modelData, nullptr, &singleOp, 4), SUCCESS);
-//  ASSERT_EQ(ge::GeExecutor::ExecuteAsync(singleOp, input_desc, input_buffers, output_desc, output_buffers), SUCCESS);
-//  ProfilingData().HasRecord(kInferShape).HasRecord(kUpdateShape).HasRecord(kTiling).HasRecord(kRtKernelLaunch);
+  (void)singleOp;
+  (void)modelData;
+  (void)input_desc;
+  (void)input_buffers;
+  (void)output_desc;
+  (void)output_buffers;
+  //  ASSERT_EQ(ge::GeExecutor::LoadDynamicSingleOpV2("dynamic_op", modelData, nullptr, &singleOp, 4), SUCCESS);
+  //  ASSERT_EQ(ge::GeExecutor::ExecuteAsync(singleOp, input_desc, input_buffers, output_desc, output_buffers),
+  //  SUCCESS);
+  //  ProfilingData().HasRecord(kInferShape).HasRecord(kUpdateShape).HasRecord(kTiling).HasRecord(kRtKernelLaunch);
 }
 
 TEST_F(SingleOpProfilingSt, TestStaticAiCoreMemory) {
@@ -254,7 +252,7 @@ TEST_F(SingleOpProfilingSt, testSingleopExecuteAsync2WithMemory) {
   StreamResource *res = new (std::nothrow) StreamResource(1);
   std::mutex stream_mu;
   rtStream_t stream = nullptr;
-  GE_MAKE_GUARD(stream_destroy, [&stream](){
+  GE_MAKE_GUARD(stream_destroy, [&stream]() {
     aclrtDestroyStream(stream);
     stream = nullptr;
   });
@@ -271,7 +269,7 @@ TEST_F(SingleOpProfilingSt, testSingleopExecuteAsync2WithMemory) {
 
   single_op.input_sizes_.emplace_back(4);
   SingleOpModelParam model_params;
-  single_op.model_param_.reset(new (std::nothrow)SingleOpModelParam(model_params));
+  single_op.model_param_.reset(new (std::nothrow) SingleOpModelParam(model_params));
   single_op.args_.resize(1);
 
   GeTensorDesc tensor_desc(GeShape({1}), FORMAT_NHWC, DT_UINT64);
@@ -316,28 +314,27 @@ void TestFunc() {
   RunStaticTestCast(op_desc);
 }
 
-
 TEST_F(SingleOpProfilingSt, TestStaticAiCoreProfiling_ReportApi_TaskTimeL0) {
   ge::diagnoseSwitch::EnableProfiling({gert::ProfilingType::kTaskTime});
-  EXPECT_DefaultProfilingTestWithExpectedCallTimes(TestFunc, 1,0,0,0);
+  EXPECT_DefaultProfilingTestWithExpectedCallTimes(TestFunc, 1, 0, 0, 0);
   ge::diagnoseSwitch::DisableProfiling();
 }
 
 TEST_F(SingleOpProfilingSt, TestStaticAiCoreProfiling_ReportApiAndInfo_TaskTimeL1) {
   ge::diagnoseSwitch::EnableProfiling({gert::ProfilingType::kTaskTime, gert::ProfilingType::kDevice});
-  EXPECT_DefaultProfilingTestWithExpectedCallTimes(TestFunc, 1,1,0,1);
+  EXPECT_DefaultProfilingTestWithExpectedCallTimes(TestFunc, 1, 1, 0, 1);
   ge::diagnoseSwitch::DisableProfiling();
 }
 
 TEST_F(SingleOpProfilingSt, TestStaticAiCoreProfiling_ReportApi_FwkScheduleL0) {
   ge::diagnoseSwitch::EnableProfiling({gert::ProfilingType::kCannHost});
-  EXPECT_DefaultProfilingTestWithExpectedCallTimes(TestFunc, 1,0,0,0);
+  EXPECT_DefaultProfilingTestWithExpectedCallTimes(TestFunc, 1, 0, 0, 0);
   ge::diagnoseSwitch::DisableProfiling();
 }
 
 TEST_F(SingleOpProfilingSt, TestStaticAiCoreProfiling_ReportApi_FwkScheduleL1) {
   ge::diagnoseSwitch::EnableProfiling({gert::ProfilingType::kCannHostL1, gert::ProfilingType::kCannHost});
-  EXPECT_DefaultProfilingTestWithExpectedCallTimes(TestFunc, 1,0,0,0);
+  EXPECT_DefaultProfilingTestWithExpectedCallTimes(TestFunc, 1, 0, 0, 0);
   ge::diagnoseSwitch::DisableProfiling();
 }
 

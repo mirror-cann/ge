@@ -65,4 +65,3 @@ void SetErrorMessage(const AscendString &error_message)
 ## 约束说明<a name="section16880122012547"></a>
 
 无
-

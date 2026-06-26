@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -14,23 +14,23 @@
 #include "graph/ge_context.h"
 #include "common/checker.h"
 
-#define REQUIRE(cond, ...)                       \
-  do {                                           \
-    if (!(cond)) {                               \
+#define REQUIRE(cond, ...)                         \
+  do {                                             \
+    if (!(cond)) {                                 \
       REPORT_INNER_ERR_MSG("E19999", __VA_ARGS__); \
-      GELOGE(FAILED, "[SWAP]" __VA_ARGS__);      \
-      return FAILED;                             \
-    }                                            \
+      GELOGE(FAILED, "[SWAP]" __VA_ARGS__);        \
+      return FAILED;                               \
+    }                                              \
   } while (false)
 
-#define REQUIRE_OR_DUMP(cond, ...)               \
-  do {                                           \
-    if (!(cond)) {                               \
-      GE_DUMP(graph, "SwapFailed");              \
+#define REQUIRE_OR_DUMP(cond, ...)                 \
+  do {                                             \
+    if (!(cond)) {                                 \
+      GE_DUMP(graph, "SwapFailed");                \
       REPORT_INNER_ERR_MSG("E19999", __VA_ARGS__); \
-      GELOGE(FAILED, "[SWAP]" __VA_ARGS__);      \
-      return FAILED;                             \
-    }                                            \
+      GELOGE(FAILED, "[SWAP]" __VA_ARGS__);        \
+      return FAILED;                               \
+    }                                              \
   } while (false)
 
 #define REQUIRE_NOT_NULL(cond, ...) REQUIRE(((cond) != nullptr), __VA_ARGS__)
@@ -265,9 +265,7 @@ Status SwapSpacePass::SwapOutProcess(const std::pair<NodePtr, SwapInfo> &swappin
       }
     }
     // add swap out edge
-    const auto &mem_copy_node = GraphUtils::InsertNodeAfter(out_anchor,
-                                                            swap_out_consumer_anchors,
-                                                            mem_copy_op);
+    const auto &mem_copy_node = GraphUtils::InsertNodeAfter(out_anchor, swap_out_consumer_anchors, mem_copy_op);
     GE_ASSERT_NOTNULL(mem_copy_node);
     // Make sure the tensor is swapped out quickly: look for nodes that
     // will execute after the tensor is generated and add a control

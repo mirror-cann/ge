@@ -13,7 +13,6 @@
 # 此例中，构造一个完全符合pass 的场景，pass可顺利执行
 import torch
 import torch.nn as nn
-import torch_npu
 import torchair
 
 

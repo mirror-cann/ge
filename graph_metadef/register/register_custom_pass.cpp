@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,8 +30,7 @@ const std::map<CustomPassStage, std::string> kCustomPassStageToStringMap = {
     {CustomPassStage::kAfterBuiltinFusionPass, "AfterBuiltinFusionPass"},
     {CustomPassStage::kAfterOriginGraphOptimize, "AfterOriginGraphOptimize"},
     {CustomPassStage::kCompatibleInherited, "CompatibleInherited"},
-    {CustomPassStage::kInvalid, "InvalidStage"}
-};
+    {CustomPassStage::kInvalid, "InvalidStage"}};
 
 namespace {
 std::string CustomPassStageToString(CustomPassStage stage) {
@@ -47,9 +46,11 @@ Status RunAllocateStreamPass(const PassRegistrationData &reg_data, const GraphPt
     GE_LOGE("[Check][Param] It is required CustomAllocateStreamPassFunc of [%s] at stage[%s] but got nullptr.",
             reg_data.GetPassName().c_str(), CustomPassStageToString(reg_data.GetStage()).c_str());
     std::stringstream reason;
-    reason << "Custom stream allocation pass function is required in stage " << CustomPassStageToString(reg_data.GetStage()) << ", but got nullptr";
-    (void) REPORT_PREDEFINED_ERR_MSG("E13030", std::vector<const char_t *>({"passname", "reason"}),
-                              std::vector<const char_t *>({reg_data.GetPassName().c_str(), reason.str().c_str()}));
+    reason << "Custom stream allocation pass function is required in stage "
+           << CustomPassStageToString(reg_data.GetStage()) << ", but got nullptr";
+    (void)REPORT_PREDEFINED_ERR_MSG(
+        "E13030", std::vector<const char_t *>({"passname", "reason"}),
+        std::vector<const char_t *>({reg_data.GetPassName().c_str(), reason.str().c_str()}));
     return FAILED;
   }
 
@@ -82,7 +83,7 @@ Status RunAllocateStreamPass(const PassRegistrationData &reg_data, const GraphPt
   if (ret != SUCCESS) {
     GE_LOGE("Execution of custom pass [%s] failed! Reason: %s.", reg_data.GetPassName().c_str(),
             custom_pass_context.GetErrorMessage().GetString());
-    (void) REPORT_PREDEFINED_ERR_MSG(
+    (void)REPORT_PREDEFINED_ERR_MSG(
         "E13028", std::vector<const char_t *>({"passname", "retcode", "reason"}),
         std::vector<const char_t *>({reg_data.GetPassName().c_str(), std::to_string(ret).c_str(),
                                      std::string(custom_pass_context.GetErrorMessage().GetString()).c_str()}));
@@ -103,7 +104,7 @@ Status RunCustomPass(const PassRegistrationData &reg_data, GraphPtr &graph, Cust
   if (ret != SUCCESS) {
     GE_LOGE("Execution of custom pass [%s] failed! Reason: %s.", reg_data.GetPassName().c_str(),
             custom_pass_context.GetErrorMessage().GetString());
-    (void) REPORT_PREDEFINED_ERR_MSG(
+    (void)REPORT_PREDEFINED_ERR_MSG(
         "E13028", std::vector<const char_t *>({"passname", "retcode", "reason"}),
         std::vector<const char_t *>({reg_data.GetPassName().c_str(), std::to_string(ret).c_str(),
                                      std::string(custom_pass_context.GetErrorMessage().GetString()).c_str()}));
@@ -111,7 +112,7 @@ Status RunCustomPass(const PassRegistrationData &reg_data, GraphPtr &graph, Cust
   }
   return SUCCESS;
 }
-} // namespace
+}  // namespace
 PassReceiver::PassReceiver(PassRegistrationData &reg_data) {
   CustomPassHelper::Instance().Insert(reg_data);
 }
@@ -123,7 +124,7 @@ class PassRegistrationDataImpl {
 
   explicit PassRegistrationDataImpl(const std::string &pass_name);
 
-private:
+ private:
   friend class PassRegistrationData;
   std::string pass_name_;
   CustomPassFunc custom_pass_;
@@ -291,14 +292,13 @@ Status CustomPassHelper::Load() {
   for (const auto &so_file : so_files) {
     void *handle = dlopen(so_file.c_str(), RTLD_NOW | RTLD_LOCAL);
     if (handle == nullptr) {
-      const char* error = dlerror();
-      (void) REPORT_PREDEFINED_ERR_MSG(
-          "E13029", std::vector<const char_t *>({"passlibname", "reason"}),
-          std::vector<const char_t *>({so_file.c_str(), error}));
+      const char *error = dlerror();
+      (void)REPORT_PREDEFINED_ERR_MSG("E13029", std::vector<const char_t *>({"passlibname", "reason"}),
+                                      std::vector<const char_t *>({so_file.c_str(), error}));
       GELOGE(ge::FAILED, "Failed to load %s: %s", so_file.c_str(), error);
       return ge::FAILED;
     }
-    (void) handles_.emplace_back(handle);
+    (void)handles_.emplace_back(handle);
     GELOGI("Load custom pass lib %s success", so_file.c_str());
   }
   return ge::SUCCESS;
@@ -327,7 +327,8 @@ Status CustomPassHelper::Run(GraphPtr &graph, CustomPassContext &custom_pass_con
     if (item.GetStage() != stage) {
       continue;
     }
-    GELOGD("Starting custom pass [%s] in stage [%s]!", item.GetPassName().c_str(), CustomPassStageToString(stage).c_str());
+    GELOGD("Starting custom pass [%s] in stage [%s]!", item.GetPassName().c_str(),
+           CustomPassStageToString(stage).c_str());
     if (stage == CustomPassStage::kAfterAssignLogicStream) {
       GE_ASSERT_SUCCESS(RunAllocateStreamPass(item, graph, custom_pass_context));
     } else {

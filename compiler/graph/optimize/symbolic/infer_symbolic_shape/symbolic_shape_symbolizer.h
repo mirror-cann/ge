@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -37,8 +37,7 @@ class InputShapeSource : public ge::Source {
 
 class InputValueSumSource : public ge::Source {
  public:
-  InputValueSumSource(int32_t input_data_idx, ge::DataType dtype)
-      : input_data_idx_(input_data_idx), dtype_(dtype) {}
+  InputValueSumSource(int32_t input_data_idx, ge::DataType dtype) : input_data_idx_(input_data_idx), dtype_(dtype) {}
 
   [[nodiscard]] std::string GetSourceStr() const override;
 
@@ -48,18 +47,17 @@ class InputValueSumSource : public ge::Source {
 };
 
 class InputRankSource final : public ge::Source {
-public:
-  explicit InputRankSource(const int32_t input_data_idx)
-      : input_data_idx_(input_data_idx) {}
+ public:
+  explicit InputRankSource(const int32_t input_data_idx) : input_data_idx_(input_data_idx) {}
 
   [[nodiscard]] std::string GetSourceStr() const override;
 
-private:
+ private:
   int32_t input_data_idx_;  // Data的index，描述symbol来自于graph输入中第几个输入data
 };
 
 class SymbolicShapeSymbolizer {
-public:
+ public:
   /**
    * 符号化graph图中的输入shape，根据本次执行的输入 shape、Data 节点的 -1 标注，将未知维度的 shape 符号化，
    * 并将符号化的 shape 保存到 graph 的ShapeEnvAttr属性中。

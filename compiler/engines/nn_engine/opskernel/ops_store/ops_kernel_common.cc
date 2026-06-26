@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,11 +32,10 @@ namespace fe {
 bool IsHeavyOp(ge::OpDescPtr op_desc_ptr) {
   std::string engine_name;
   (void)ge::AttrUtils::GetStr(op_desc_ptr, kAttrEngineType, engine_name);
-  OpKernelInfoPtr current_op_kernel_info = OpsKernelManager::Instance(engine_name.c_str()).GetOpKernelInfoByOpDesc(
-      op_desc_ptr);
+  OpKernelInfoPtr current_op_kernel_info =
+      OpsKernelManager::Instance(engine_name.c_str()).GetOpKernelInfoByOpDesc(op_desc_ptr);
   if (current_op_kernel_info == nullptr) {
-    FE_LOGW("current node[%s, %s] without kernel info", op_desc_ptr->GetName().c_str(),
-            op_desc_ptr->GetType().c_str());
+    FE_LOGW("current node[%s, %s] without kernel info", op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
     return false;
   }
   return current_op_kernel_info->IsHeavyOp();
@@ -53,7 +52,7 @@ bool IsAllowNzMatmul(const ge::NodePtr &node_ptr) {
     return false;
   }
   bool allow_nz = false;
-  (void) ge::AttrUtils::GetBool(node_ptr->GetOpDesc(), "allow_nz", allow_nz);
+  (void)ge::AttrUtils::GetBool(node_ptr->GetOpDesc(), "allow_nz", allow_nz);
   return allow_nz;
 }
 
@@ -61,7 +60,7 @@ bool IsHeavyOp(ge::NodePtr node_ptr) {
   return IsAllowNzMatmul(node_ptr) || IsHeavyOp(node_ptr->GetOpDesc());
 }
 
-bool IsDynamicInputOrOutput(const InputOrOutputInfoPtr& input_output_info) {
+bool IsDynamicInputOrOutput(const InputOrOutputInfoPtr &input_output_info) {
   return input_output_info->GetParamType() == OpParamType::DYNAMIC;
 }
 
@@ -74,7 +73,7 @@ std::string GetOpParamTypeStr(OpParamType op_param_type) {
   }
 }
 
-bool CheckInputSubString(const std::string& op_desc_input_name, const std::string& info_input_name) {
+bool CheckInputSubString(const std::string &op_desc_input_name, const std::string &info_input_name) {
   size_t length_of_info_input_name = info_input_name.length();
   size_t length_of_op_desc_input_name = op_desc_input_name.length();
   if (length_of_info_input_name > length_of_op_desc_input_name) {
@@ -104,8 +103,8 @@ bool CheckInputSubString(const std::string& op_desc_input_name, const std::strin
   }
 }
 
-void CheckSpecialCases(const std::vector<InputOrOutputInfoPtr>& input_or_output_info, IndexNameMap& index_name_map,
-                       uint32_t index, uint32_t op_desc_input_or_output_size, bool& has_found) {
+void CheckSpecialCases(const std::vector<InputOrOutputInfoPtr> &input_or_output_info, IndexNameMap &index_name_map,
+                       uint32_t index, uint32_t op_desc_input_or_output_size, bool &has_found) {
   if (input_or_output_info.size() == 1 && input_or_output_info[0]->GetParamType() == DYNAMIC) {
     has_found = true;
     index_name_map[index] = input_or_output_info[0]->GetName();
@@ -127,7 +126,7 @@ void CheckSpecialCases(const std::vector<InputOrOutputInfoPtr>& input_or_output_
     // one should be choose.
     if ((op_desc_input_or_output_size >= input_or_output_info.size() - optional_count) &&
         (op_desc_input_or_output_size <= input_or_output_info.size())) {
-      for (auto const& ele : input_or_output_info) {
+      for (auto const &ele : input_or_output_info) {
         uint32_t index_in_op_kernel = ele->GetIndex();
         if (index == index_in_op_kernel) {
           has_found = true;
@@ -139,9 +138,8 @@ void CheckSpecialCases(const std::vector<InputOrOutputInfoPtr>& input_or_output_
   }
 }
 
-Status GetInputIndexNameMap(const ge::OpDesc &op_desc, const OpKernelInfo &op_kernel_info,
-                            IndexNameMap &input_map) {
-  const std::vector<InputOrOutputInfoPtr>& input_info = op_kernel_info.GetAllInputInfo();
+Status GetInputIndexNameMap(const ge::OpDesc &op_desc, const OpKernelInfo &op_kernel_info, IndexNameMap &input_map) {
+  const std::vector<InputOrOutputInfoPtr> &input_info = op_kernel_info.GetAllInputInfo();
   size_t input_size_in_op_kernel = input_info.size();
   if (input_size_in_op_kernel == 0) {
     return fe::SUCCESS;
@@ -149,12 +147,11 @@ Status GetInputIndexNameMap(const ge::OpDesc &op_desc, const OpKernelInfo &op_ke
   auto input_desc_size = op_desc.GetAllInputsSize();
   for (size_t i = 0; i < input_desc_size; i++) {
     std::string op_desc_input_name = op_desc.GetInputNameByIndex(i);
-    FE_LOGD("Op[name:%s,type:%s] op desc index is %zu, desc name is %s.",
-            op_desc.GetName().c_str(),
+    FE_LOGD("Op[name:%s,type:%s] op desc index is %zu, desc name is %s.", op_desc.GetName().c_str(),
             op_desc.GetType().c_str(), i, op_desc_input_name.c_str());
     bool has_found = false;
 
-    for (auto const& ele : input_info) {
+    for (auto const &ele : input_info) {
       std::string info_input_name = ele->GetName();
       if ((!IsDynamicInputOrOutput(ele) && op_desc_input_name == info_input_name) ||
           (IsDynamicInputOrOutput(ele) && CheckInputSubString(op_desc_input_name, info_input_name))) {
@@ -169,7 +166,7 @@ Status GetInputIndexNameMap(const ge::OpDesc &op_desc, const OpKernelInfo &op_ke
         (input_desc_size == input_size_in_op_kernel ||
          (input_desc_size == input_size_in_op_kernel - 1 && op_kernel_info.GetOpStoreImplType() == EN_IMPL_PLUGIN_TBE));
     if (!has_found && (input_size_match_flag)) {
-      for (auto const& ele : input_info) {
+      for (auto const &ele : input_info) {
         uint32_t index = ele->GetIndex();
         if (index == i) {
           has_found = true;
@@ -182,10 +179,11 @@ Status GetInputIndexNameMap(const ge::OpDesc &op_desc, const OpKernelInfo &op_ke
       CheckSpecialCases(input_info, input_map, i, op_desc.GetAllInputsSize(), has_found);
     }
     if (!has_found) {
-      FE_LOGI("Input name[%s] index %zu is not found in kernel of [%s]. "
-              "Size in Opdesc is [%zu] and in kernel is [%zu].",
-              op_desc_input_name.c_str(), i, op_kernel_info.GetOpType().c_str(), op_desc.GetAllInputsSize(),
-              input_info.size());
+      FE_LOGI(
+          "Input name[%s] index %zu is not found in kernel of [%s]. "
+          "Size in Opdesc is [%zu] and in kernel is [%zu].",
+          op_desc_input_name.c_str(), i, op_kernel_info.GetOpType().c_str(), op_desc.GetAllInputsSize(),
+          input_info.size());
       return fe::FAILED;
     }
   }
@@ -193,15 +191,15 @@ Status GetInputIndexNameMap(const ge::OpDesc &op_desc, const OpKernelInfo &op_ke
 }
 
 Status GetOutputIndexNameMap(const ge::OpDesc &op_desc, const OpKernelInfo &op_kernel_info, IndexNameMap &output_map) {
-  const std::vector<InputOrOutputInfoPtr>& output_info = op_kernel_info.GetAllOutputInfo();
+  const std::vector<InputOrOutputInfoPtr> &output_info = op_kernel_info.GetAllOutputInfo();
   size_t output_size_in_op_kernel = output_info.size();
   if (output_size_in_op_kernel == 0) {
     return fe::SUCCESS;
   }
   for (size_t i = 0; i < op_desc.GetAllOutputsDescSize(); i++) {
     std::string op_desc_output_name = op_desc.GetOutputNameByIndex(i);
-    FE_LOGD("Op[name:%s,type:%s] op desc index is %zu, desc name is %s.",
-            op_desc.GetName().c_str(), op_desc.GetType().c_str(), i, op_desc_output_name.c_str());
+    FE_LOGD("Op[name:%s,type:%s] op desc index is %zu, desc name is %s.", op_desc.GetName().c_str(),
+            op_desc.GetType().c_str(), i, op_desc_output_name.c_str());
     bool has_found = false;
     auto output0_op_kernel_info = output_info[0];
     if (output_size_in_op_kernel == 1 && output_info[0]->GetParamType() == DYNAMIC) {
@@ -209,7 +207,7 @@ Status GetOutputIndexNameMap(const ge::OpDesc &op_desc, const OpKernelInfo &op_k
       output_map[i] = output0_op_kernel_info->GetName();
       continue;
     }
-    for (auto const& ele : output_info) {
+    for (auto const &ele : output_info) {
       std::string info_output_name = ele->GetName();
       if ((!IsDynamicInputOrOutput(ele) && op_desc_output_name == info_output_name) ||
           (IsDynamicInputOrOutput(ele) && CheckInputSubString(op_desc_output_name, info_output_name))) {
@@ -221,7 +219,7 @@ Status GetOutputIndexNameMap(const ge::OpDesc &op_desc, const OpKernelInfo &op_k
     // Now op node info is not created by IR, so many node name is none or is wrong.
     // Fix this problem by match the input count with the input count in op kernel info
     if (!has_found && op_desc.GetOutputsSize() == output_info.size()) {
-      for (auto const& ele : output_info) {
+      for (auto const &ele : output_info) {
         uint32_t index = ele->GetIndex();
         if (index == i) {
           has_found = true;
@@ -234,10 +232,11 @@ Status GetOutputIndexNameMap(const ge::OpDesc &op_desc, const OpKernelInfo &op_k
       CheckSpecialCases(output_info, output_map, i, op_desc.GetAllOutputsDescSize(), has_found);
     }
     if (!has_found) {
-      FE_LOGI("Output name[%s] index %zu is not found in kernel of [%s]. "
-              "Size in Opdesc is [%u] and in kernel is [%zu].",
-              op_desc_output_name.c_str(), i, op_kernel_info.GetOpType().c_str(), op_desc.GetAllOutputsDescSize(),
-              output_info.size());
+      FE_LOGI(
+          "Output name[%s] index %zu is not found in kernel of [%s]. "
+          "Size in Opdesc is [%u] and in kernel is [%zu].",
+          op_desc_output_name.c_str(), i, op_kernel_info.GetOpType().c_str(), op_desc.GetAllOutputsDescSize(),
+          output_info.size());
       return fe::FAILED;
     }
   }
@@ -248,8 +247,7 @@ Status GetInputOutputNameMap(const ge::OpDesc &op_desc, const OpKernelInfoPtr &o
                              IndexNameMap &input_map, IndexNameMap &output_map) {
   // feed all inputs to TbeOpInfo
   FE_CHECK(op_kernel_info_ptr == nullptr,
-           REPORT_FE_ERROR("[GraphOpt][Setcheck][GetInOutNm] opKernelInfoPtr is nullptr."),
-           return FAILED);
+           REPORT_FE_ERROR("[GraphOpt][Setcheck][GetInOutNm] opKernelInfoPtr is nullptr."), return FAILED);
 
   if (GetInputIndexNameMap(op_desc, *op_kernel_info_ptr, input_map) != SUCCESS) {
     REPORT_FE_ERROR("[GraphOpt][Setcheck][GetInOutNm] Failed to get input index name map for op %s.",
@@ -265,8 +263,8 @@ Status GetInputOutputNameMap(const ge::OpDesc &op_desc, const OpKernelInfoPtr &o
   return SUCCESS;
 }
 
-Status GetOutputNameMap(const ge::OpDesc& op_desc, const OpKernelInfoPtr& op_kernel_info_ptr,
-                        IndexNameMap& output_map) {
+Status GetOutputNameMap(const ge::OpDesc &op_desc, const OpKernelInfoPtr &op_kernel_info_ptr,
+                        IndexNameMap &output_map) {
   FE_CHECK(op_kernel_info_ptr == nullptr, REPORT_FE_ERROR("[GraphOpt][Setcheck][GetOutNm] opKernelInfoPtr is nullptr"),
            return FAILED);
   if (GetOutputIndexNameMap(op_desc, *op_kernel_info_ptr, output_map) != SUCCESS) {
@@ -277,8 +275,8 @@ Status GetOutputNameMap(const ge::OpDesc& op_desc, const OpKernelInfoPtr& op_ker
   return SUCCESS;
 }
 
-bool GetInputOutputNameMap(const ge::NodePtr &node, const OpKernelInfoPtr &op_kernel_info_ptr,
-                           IndexNameMap &input_map, IndexNameMap &output_map, UnSupportedReason &reason) {
+bool GetInputOutputNameMap(const ge::NodePtr &node, const OpKernelInfoPtr &op_kernel_info_ptr, IndexNameMap &input_map,
+                           IndexNameMap &output_map, UnSupportedReason &reason) {
   ge::OpDescPtr op_desc_ptr = node->GetOpDesc();
   ge::OpDesc &op_desc = *(op_desc_ptr.get());
   FE_CHECK(op_kernel_info_ptr == nullptr, FE_LOGI("opKernelInfoPtr must not be nullptr"), return false);
@@ -305,9 +303,9 @@ bool CheckVirtualSoftsyncOp(const OpKernelInfoPtr &op_kernel_ptr, const ge::OpDe
   return (virtual_env && !is_dynamic_shape && is_soft_sync_op);
 }
 
-Status GetAllInputAndOutputKernelInfo(const OpKernelInfoPtr& op_kernel_info_ptr, const ge::NodePtr& current_node,
-                                      const std::vector<IndexNameMap>& tensor_map,
-                                      std::vector<std::vector<InputOrOutputInfoPtr>>& input_and_output_kernel) {
+Status GetAllInputAndOutputKernelInfo(const OpKernelInfoPtr &op_kernel_info_ptr, const ge::NodePtr &current_node,
+                                      const std::vector<IndexNameMap> &tensor_map,
+                                      std::vector<std::vector<InputOrOutputInfoPtr>> &input_and_output_kernel) {
   ge::OpDescPtr op_desc_ptr = current_node->GetOpDesc();
   FE_CHECK_NOTNULL(op_desc_ptr);
   auto all_input_tensor = op_desc_ptr->GetAllInputsDescPtr();
@@ -364,8 +362,7 @@ Status GetAllInputAndOutputKernelInfo(const OpKernelInfoPtr& op_kernel_info_ptr,
 
 void GenerateOpSupportInfo(const OpKernelInfoPtr &op_kernel_info_ptr, const bool &is_dynamic_impl,
                            const std::map<string, vector<ge::Format>> &format_map,
-                           const std::map<string, vector<ge::DataType>> &datatype_map,
-                           std::string &op_support_info) {
+                           const std::map<string, vector<ge::DataType>> &datatype_map, std::string &op_support_info) {
   nlohmann::json op_info_json;
   op_info_json["is_dynamic_impl"] = is_dynamic_impl ? kStrTrue : kStrFalse;
   for (const InputOrOutputInfoPtr &input_info_ptr : op_kernel_info_ptr->GetAllInputInfo()) {

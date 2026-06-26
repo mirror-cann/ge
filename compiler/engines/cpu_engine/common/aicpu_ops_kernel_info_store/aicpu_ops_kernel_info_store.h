@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,8 +38,7 @@ class AicpuOpsKernelInfoStore : public ge::OpsKernelInfoStore {
    * Initialize related resources of the aicpu kernelinfo store
    * @return status whether this operation success
    */
-  ge::Status Initialize(
-      const std::map<std::string, std::string> &options) override;
+  ge::Status Initialize(const std::map<std::string, std::string> &options) override;
 
   /**
    * Release related resources of the aicpu kernelinfo store
@@ -55,8 +54,7 @@ class AicpuOpsKernelInfoStore : public ge::OpsKernelInfoStore {
    * information
    * @return void
    */
-  void GetAllOpsKernelInfo(
-      std::map<std::string, ge::OpInfo> &infos) const override;
+  void GetAllOpsKernelInfo(std::map<std::string, ge::OpInfo> &infos) const override;
 
   /**
    * Check to see if an operator is fully supported or partially supported.
@@ -64,8 +62,7 @@ class AicpuOpsKernelInfoStore : public ge::OpsKernelInfoStore {
    * @param unsupported_reason unsupported reason
    * @return bool value indicate whether the operator is fully supported
    */
-  bool CheckSupported(const ge::OpDescPtr &op_desc_ptr,
-                      std::string &unsupported_reason) const override;
+  bool CheckSupported(const ge::OpDescPtr &op_desc_ptr, std::string &unsupported_reason) const override;
 
   /**
    * Check to see if transdata op is supported.
@@ -81,9 +78,8 @@ class AicpuOpsKernelInfoStore : public ge::OpsKernelInfoStore {
    * @param unsupported_reason unsupported reason
    * @return bool value indicate whether the StridedSliceGrad op is supported
    */
-  bool CheckStridedSliceGradSupported(const ge::OpDescPtr &op_desc_ptr,
-                                      std::string &unsupported_reason) const;
-                               
+  bool CheckStridedSliceGradSupported(const ge::OpDescPtr &op_desc_ptr, std::string &unsupported_reason) const;
+
   /**
    * Check to see if an operator is constant folding supported.
    * @param node Node information
@@ -104,24 +100,19 @@ class AicpuOpsKernelInfoStore : public ge::OpsKernelInfoStore {
    * @param  infos Operator full infos
    * @return void
    */
-  void GetAllOpsFullKernelInfo(
-      std::map<std::string, aicpu::OpFullInfo> &infos) const;
+  void GetAllOpsFullKernelInfo(std::map<std::string, aicpu::OpFullInfo> &infos) const;
 
   // Copy prohibited
-  AicpuOpsKernelInfoStore(
-      const AicpuOpsKernelInfoStore &aicpu_ops_kernel_info_store) = delete;
+  AicpuOpsKernelInfoStore(const AicpuOpsKernelInfoStore &aicpu_ops_kernel_info_store) = delete;
 
   // Move prohibited
-  AicpuOpsKernelInfoStore(
-      const AicpuOpsKernelInfoStore &&aicpu_ops_kernel_info_store) = delete;
+  AicpuOpsKernelInfoStore(const AicpuOpsKernelInfoStore &&aicpu_ops_kernel_info_store) = delete;
 
   // Copy prohibited
-  AicpuOpsKernelInfoStore &operator=(
-      const AicpuOpsKernelInfoStore &aicpu_ops_kernel_info_store) = delete;
+  AicpuOpsKernelInfoStore &operator=(const AicpuOpsKernelInfoStore &aicpu_ops_kernel_info_store) = delete;
 
   // Move prohibited
-  AicpuOpsKernelInfoStore &operator=(
-      AicpuOpsKernelInfoStore &&aicpu_ops_kernel_info_store) = delete;
+  AicpuOpsKernelInfoStore &operator=(AicpuOpsKernelInfoStore &&aicpu_ops_kernel_info_store) = delete;
 
  private:
   // Load Internal KernelLibs instance and initialize
@@ -139,11 +130,9 @@ class AicpuOpsKernelInfoStore : public ge::OpsKernelInfoStore {
    * @param unsupported_reason unsupported reason
    * @return bool value indicate whether the operator is fully supported
    */
-  bool CheckInputSupported(
-      const ge::OpDescPtr &op_desc_ptr,
-      const std::map<std::string, std::string> data_types,
-      const std::map<std::string, std::string> in_out_real_name,
-      std::string &unsupported_reason) const;
+  bool CheckInputSupported(const ge::OpDescPtr &op_desc_ptr, const std::map<std::string, std::string> data_types,
+                           const std::map<std::string, std::string> in_out_real_name,
+                           std::string &unsupported_reason) const;
 
   /**
    * Check to see if an operator output type is fully supported or partially
@@ -154,11 +143,9 @@ class AicpuOpsKernelInfoStore : public ge::OpsKernelInfoStore {
    * @param unsupported_reason unsupported reason
    * @return bool value indicate whether the operator is fully supported
    */
-  bool CheckOutputSupported(
-      const ge::OpDescPtr &op_desc_ptr,
-      const std::map<std::string, std::string> data_types,
-      const std::map<std::string, std::string> in_out_real_name,
-      std::string &unsupported_reason) const;
+  bool CheckOutputSupported(const ge::OpDescPtr &op_desc_ptr, const std::map<std::string, std::string> data_types,
+                            const std::map<std::string, std::string> in_out_real_name,
+                            std::string &unsupported_reason) const;
 
  private:
   std::string engine_name_;

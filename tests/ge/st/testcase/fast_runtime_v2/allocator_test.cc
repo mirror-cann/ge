@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -80,7 +80,7 @@ std::unique_ptr<gert::Allocators> CreateDefaultAllocators() {
   }
   return allocators;
 }
-}
+}  // namespace
 class Runtime2AllocatorSystemTest : public bg::BgTest {
   void SetUp() {
     memory::RtsCachingMemAllocator::GetAllocator(0, RT_MEMORY_HBM)->Recycle();
@@ -179,19 +179,18 @@ TEST_F(Runtime2AllocatorSystemTest, ExternalAllocator_SingleNodeDataDependency_E
 TEST_F(Runtime2AllocatorSystemTest, test_allocate_mem_block_try_recycle_then_malloc_when_mem_cannot_alloc) {
   static uint64_t total_size = 0;
   static uint8_t malloc_count = 0;
-  struct FakeRuntime : RuntimeStubImpl {
-  };
+  struct FakeRuntime : RuntimeStubImpl {};
 
   struct FakeAclRuntime : AclRuntimeStubImpl {
     rtError_t aclrtMalloc(void **dev_ptr, size_t size, aclrtMemMallocPolicy policy) {
       malloc_count++;
       total_size += size;
-      if (total_size > 32 * 1024UL * 1024UL * 1024UL){
+      if (total_size > 32 * 1024UL * 1024UL * 1024UL) {
         total_size = (malloc_count == 3) ? 0 : total_size;
         *dev_ptr = nullptr;
         return -1;
       }
-      *dev_ptr = new uint8_t [1];
+      *dev_ptr = new uint8_t[1];
       return RT_ERROR_NONE;
     }
     aclError aclrtGetMemInfo(aclrtMemAttr attr, size_t *free, size_t *total) {
@@ -201,19 +200,20 @@ TEST_F(Runtime2AllocatorSystemTest, test_allocate_mem_block_try_recycle_then_mal
     }
   };
 
-  GertRuntimeStub stub(std::unique_ptr<RuntimeStubImpl>(new FakeRuntime()), true, std::unique_ptr<AclRuntimeStubImpl>(new FakeAclRuntime()));
+  GertRuntimeStub stub(std::unique_ptr<RuntimeStubImpl>(new FakeRuntime()), true,
+                       std::unique_ptr<AclRuntimeStubImpl>(new FakeAclRuntime()));
   memory::CachingMemAllocator allocator(0, RT_MEMORY_HBM);
   memory::CachingMemAllocator allocator1(0, RT_MEMORY_HBM);
   allocator1.SetStream((void *)1);
   auto mem_block = allocator.Malloc(20 * 1024UL * 1024UL * 1024UL);
   ASSERT_NE(mem_block->GetAddr(), nullptr);
-  auto mem_block1 = allocator1.Malloc(15 * 1024UL * 1024UL *1024UL);
+  auto mem_block1 = allocator1.Malloc(15 * 1024UL * 1024UL * 1024UL);
   ASSERT_NE(mem_block1->GetAddr(), nullptr);
   mem_block->Free();
   ASSERT_EQ(ge::GRAPH_SUCCESS, allocator.Finalize());
   mem_block1->Free();
 
-  auto alloc_size = PAGE_MEM_SIZE_THRESHOLD_DEFAULT[1U]/2;
+  auto alloc_size = PAGE_MEM_SIZE_THRESHOLD_DEFAULT[1U] / 2;
   auto span1 = allocator1.Malloc(1024U);
   span1->Free();
   ASSERT_EQ(2, allocator1.GetScalableAllocator()->GetIdleSpanCount());
@@ -228,7 +228,7 @@ TEST_F(Runtime2AllocatorSystemTest, test_alloc_total_exceed_thresold) {
   auto span1 = allocator.Malloc(1024UL * 1024UL + 1024UL);
   ASSERT_TRUE(span1 != nullptr);
   const ScalableConfig &cfg = ScalableConfig();
-  auto alloc_size = cfg.page_mem_size_total_threshold - 4 * 1024UL*1024UL;
+  auto alloc_size = cfg.page_mem_size_total_threshold - 4 * 1024UL * 1024UL;
   auto span2 = allocator.Malloc(alloc_size);
   ASSERT_TRUE(span2 != nullptr);
   auto span3 = allocator.Malloc(1024UL * 1024UL);
@@ -254,7 +254,8 @@ TEST_F(Runtime2AllocatorSystemTest, test_set_memory_pool_threshold) {
       return RT_ERROR_NONE;
     }
   };
-  GertRuntimeStub fakeRuntime(std::unique_ptr<RuntimeStubImpl>(new FakeRuntime()), true, std::unique_ptr<AclRuntimeStubImpl>(new FakeAclRuntime()));
+  GertRuntimeStub fakeRuntime(std::unique_ptr<RuntimeStubImpl>(new FakeRuntime()), true,
+                              std::unique_ptr<AclRuntimeStubImpl>(new FakeAclRuntime()));
   ScalableConfig default_cfg;
   constexpr const char *kOptionDisableMemoryPoolThreshold = "ge.experiment.memory_pool_threshold";
   const auto back_options = ge::GetThreadLocalContext().GetAllGlobalOptions();
@@ -279,7 +280,7 @@ TEST_F(Runtime2AllocatorSystemTest, test_set_memory_pool_threshold) {
 TEST_F(Runtime2AllocatorSystemTest, expandable_memory_allocator_fail) {
   struct MockRuntime : RuntimeStub {
    public:
-    rtError_t rtMallocPhysical(rtDrvMemHandle* handle, size_t size, rtDrvMemProp_t* prop, uint64_t flags) {
+    rtError_t rtMallocPhysical(rtDrvMemHandle *handle, size_t size, rtDrvMemProp_t *prop, uint64_t flags) {
       static size_t cnt = 0U;
       ++cnt;
       if (cnt >= 3U) {
@@ -306,9 +307,11 @@ TEST_F(Runtime2AllocatorSystemTest, expandable_memory_allocator_fail) {
  * 用例描述：外置allocator场景下，workspace与nodeoutput使用同一个allocator
  *
  * 预置条件：
- * 1. fake 一个单算子子图场景1，需要GE申请中间阶段output内存，完成lowering、tiling等整套实现,graph1使用的是默认的StubTiling函数，
+ * 1. fake
+ * 一个单算子子图场景1，需要GE申请中间阶段output内存，完成lowering、tiling等整套实现,graph1使用的是默认的StubTiling函数，
  *    nodeoutput需要内存268500992B, workspace需要4096B
- * 2. fake 一个单算子子图场景2，需要GE申请workspace内存，完成lowering、tiling等整套实现，graph2使用的是自定义的StubTiling函数，
+ * 2. fake
+ * 一个单算子子图场景2，需要GE申请workspace内存，完成lowering、tiling等整套实现，graph2使用的是自定义的StubTiling函数，
  *    需要workspace需要268500992B
  *
  * 测试步骤：
@@ -324,7 +327,6 @@ TEST_F(Runtime2AllocatorSystemTest, expandable_memory_allocator_fail) {
  */
 
 TEST_F(Runtime2AllocatorSystemTest, ExternalAllocator_NodeoutputAndWorkspaceUseSameAllocator) {
-
   struct FakeRuntime : RuntimeStubImpl {
     rtError_t aclrtGetMemInfo(aclrtMemAttr memInfoType, size_t *free, size_t *total) override {
       *free = 60UL * 1024UL * 1024UL * 1024UL;
@@ -341,7 +343,8 @@ TEST_F(Runtime2AllocatorSystemTest, ExternalAllocator_NodeoutputAndWorkspaceUseS
     }
   };
 
-  GertRuntimeStub fakeRuntime(std::unique_ptr<RuntimeStubImpl>(new FakeRuntime()), true, std::unique_ptr<AclRuntimeStubImpl>(new FakeAclRuntime()));
+  GertRuntimeStub fakeRuntime(std::unique_ptr<RuntimeStubImpl>(new FakeRuntime()), true,
+                              std::unique_ptr<AclRuntimeStubImpl>(new FakeAclRuntime()));
   fakeRuntime.GetSlogStub().SetLevel(DLOG_INFO);
   fakeRuntime.GetSlogStub().Clear();
   auto graph1 = ShareGraph::BuildTwoAddNodeGraph();
@@ -411,7 +414,8 @@ TEST_F(Runtime2AllocatorSystemTest, ExternalAllocator_NodeoutputAndWorkspaceUseS
             ge::GRAPH_SUCCESS);
 
   // 校验日志中存在该行日志，并且行号大于0,如果没有该行日志，行号小于0
-  ASSERT_GE(fakeRuntime.GetSlogStub().FindLogEndswith(DLOG_INFO, "[span count:2 page count:4098 total size:268566528]"), 0);
+  ASSERT_GE(fakeRuntime.GetSlogStub().FindLogEndswith(DLOG_INFO, "[span count:2 page count:4098 total size:268566528]"),
+            0);
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor2->UnLoad(), ge::GRAPH_SUCCESS);
@@ -487,7 +491,7 @@ TEST_F(Runtime2AllocatorSystemTest, expandable_memory_allocator_hole) {
   auto span1 = caching_allocator->Malloc(alloc_size);
   // va |--11|1111|
   ASSERT_NE(span1, nullptr);
-  auto span2 = caching_allocator->Malloc(4U * 1024U *1024U);
+  auto span2 = caching_allocator->Malloc(4U * 1024U * 1024U);
   // va |2211|1111|
   ASSERT_NE(span2, nullptr);
 
@@ -538,42 +542,42 @@ TEST_F(Runtime2AllocatorSystemTest, expandable_memory_allocator_hole_12M) {
   // va |--11|1111|
   ASSERT_NE(span1, nullptr);
 
-  auto span2 = caching_allocator->Malloc(10U * 1024U *1024U);
+  auto span2 = caching_allocator->Malloc(10U * 1024U * 1024U);
   // va |-222|2211|1111|
   ASSERT_NE(span2, nullptr);
 
   auto addr2 = span2->GetAddr();
-  span1->Free(); // 12M
+  span1->Free();  // 12M
   // va |-222|22--|----|
 
-  auto span3 = caching_allocator->Malloc(alloc_size * 2); // 36M
+  auto span3 = caching_allocator->Malloc(alloc_size * 2);  // 36M
   // new_va |3333|3333|3333|
   // va |3333|3333|-222|22--|3333|
 
   auto addr3 = span3->GetAddr();
   ASSERT_NE(addr2, addr3);
-  span2->Free(); // 24M
+  span2->Free();  // 24M
   // new_va |3333|3333|3333|
   // va |3333|3333|----|----|3333|
 
-  auto span4 = caching_allocator->Malloc(32U * 1024U * 1024U); // 56M
+  auto span4 = caching_allocator->Malloc(32U * 1024U * 1024U);  // 56M
   // new_va |3333|3333|3333|
   // va |4444|4444|3333|3333|4444|4444|3333|
 
   auto addr4 = span4->GetAddr();
   ASSERT_NE(addr4, addr2);
-  span3->Free();// 32M
+  span3->Free();  // 32M
   // new_va |----|----|----|
   // va |4444|4444|----|----|4444|4444|----|
 
-  auto span5 = caching_allocator->Malloc(alloc_size * 2); // 56M
+  auto span5 = caching_allocator->Malloc(alloc_size * 2);  // 56M
   // new_va |5555|5555|5555|
   // va |4444|4444|5555|5555|4444|4444|5555|
 
   auto addr5 = span5->GetAddr();
   ASSERT_EQ(addr5, addr3);
   ASSERT_NE(static_cast<const uint8_t *>(span5->GetAddr()),
-            static_cast<const uint8_t *>(span4->GetAddr()) + 16 * 1024U *1024U);
+            static_cast<const uint8_t *>(span4->GetAddr()) + 16 * 1024U * 1024U);
   ASSERT_EQ(scalable_allocator->GetReachTheoryRate(), static_cast<float>(ge::kRatioBase));
   span5->Free();
   span4->Free();
@@ -585,7 +589,7 @@ TEST_F(Runtime2AllocatorSystemTest, expandable_memory_allocator_hole_12M) {
 }
 
 TEST_F(Runtime2AllocatorSystemTest, expandable_memory_allocator_add_page_record_failed) {
-  dlog_setlevel(GE_MODULE_NAME, 1, 0); // 为了能走到pa va检查
+  dlog_setlevel(GE_MODULE_NAME, 1, 0);  // 为了能走到pa va检查
   std::map<std::string, std::string> graph_options;
   graph_options[ge::STATIC_MEMORY_POLICY] = "3";
   ge::GetThreadLocalContext().SetGraphOption(graph_options);
@@ -612,8 +616,8 @@ TEST_F(Runtime2AllocatorSystemTest, expandable_memory_allocator_add_page_record_
   GELOGI("==========================span1 free 24M success");
 
   // step2 Injection error
-  auto &physical_allocator = scalable_allocator->device_allocator_.GetExpandableAllocator()
-      .GetPhysicalMemoryAllocator();
+  auto &physical_allocator =
+      scalable_allocator->device_allocator_.GetExpandableAllocator().GetPhysicalMemoryAllocator();
   ge::PageRecord error_page_record{(const uint8_t *)0x123, 0U, alloc_size, (const uint8_t *)0x123, alloc_size};
   physical_allocator.AddPageRecord(0, error_page_record);
 
@@ -621,7 +625,8 @@ TEST_F(Runtime2AllocatorSystemTest, expandable_memory_allocator_add_page_record_
   runtime_stub.GetSlogStub().Clear();
   auto new_span1 = caching_allocator->Malloc(alloc_size * 3);
   ASSERT_EQ(new_span1, nullptr);
-  runtime_stub.GetSlogStub().FindErrorLogEndsWith("ProcPageRecord: ErrorNo: 4294967295(failed) virtual and physical page mapping check failed");
+  runtime_stub.GetSlogStub().FindErrorLogEndsWith(
+      "ProcPageRecord: ErrorNo: 4294967295(failed) virtual and physical page mapping check failed");
 
   // release
   scalable_allocator->Recycle();
@@ -629,11 +634,11 @@ TEST_F(Runtime2AllocatorSystemTest, expandable_memory_allocator_add_page_record_
   caching_allocator.reset(nullptr);
   graph_options[ge::STATIC_MEMORY_POLICY] = "0";
   ge::GetThreadLocalContext().SetGraphOption(graph_options);
-  dlog_setlevel(GE_MODULE_NAME, 3, 0); // 为了能走到pa va检查
+  dlog_setlevel(GE_MODULE_NAME, 3, 0);  // 为了能走到pa va检查
 }
 
 TEST_F(Runtime2AllocatorSystemTest, expandable_memory_allocator_ProcPageRecordByPaList_failed) {
-  dlog_setlevel(GE_MODULE_NAME, 1, 0); // 为了能走到pa va检查
+  dlog_setlevel(GE_MODULE_NAME, 1, 0);  // 为了能走到pa va检查
   std::map<std::string, std::string> graph_options;
   graph_options[ge::STATIC_MEMORY_POLICY] = "3";
   ge::GetThreadLocalContext().SetGraphOption(graph_options);
@@ -658,8 +663,8 @@ TEST_F(Runtime2AllocatorSystemTest, expandable_memory_allocator_ProcPageRecordBy
   // va |----|2222|----|
 
   // Injection error
-  auto &physical_allocator = scalable_allocator->device_allocator_.GetExpandableAllocator()
-      .GetPhysicalMemoryAllocator();
+  auto &physical_allocator =
+      scalable_allocator->device_allocator_.GetExpandableAllocator().GetPhysicalMemoryAllocator();
   ge::PageRecord error_page_record{(const uint8_t *)0x123, 0U, alloc_size, (const uint8_t *)0x123, alloc_size};
   physical_allocator.AddPageRecord(0, error_page_record);
 
@@ -667,7 +672,8 @@ TEST_F(Runtime2AllocatorSystemTest, expandable_memory_allocator_ProcPageRecordBy
   runtime_stub.GetSlogStub().Clear();
   auto span4 = caching_allocator->Malloc(alloc_size * 2U);
   ASSERT_EQ(span4, nullptr);
-  runtime_stub.GetSlogStub().FindErrorLogEndsWith("ProcPageRecordByPaList: ErrorNo: 4294967295(failed) virtual and physical page mapping check failed");
+  runtime_stub.GetSlogStub().FindErrorLogEndsWith(
+      "ProcPageRecordByPaList: ErrorNo: 4294967295(failed) virtual and physical page mapping check failed");
 
   scalable_allocator->Recycle();
   span2->Free();
@@ -675,7 +681,7 @@ TEST_F(Runtime2AllocatorSystemTest, expandable_memory_allocator_ProcPageRecordBy
   caching_allocator.reset(nullptr);
   graph_options[ge::STATIC_MEMORY_POLICY] = "0";
   ge::GetThreadLocalContext().SetGraphOption(graph_options);
-  dlog_setlevel(GE_MODULE_NAME, 3, 0); // 为了能走到pa va检查
+  dlog_setlevel(GE_MODULE_NAME, 3, 0);  // 为了能走到pa va检查
 }
 
 }  // namespace gert

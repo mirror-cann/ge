@@ -24,13 +24,13 @@
 #include "ge/ge_error_codes.h"
 #include "framework/executor_c/ge_executor.h"
 #include "parse_dbg_file.h"
-#define BUFFER_SIZE  32
-#define IDMAX        21
+#define BUFFER_SIZE 32
+#define IDMAX 21
 static void UpdateTaskDumpEnable(void *taskDescBaseAddr, size_t taskDescSize, uint32_t taskId) {
   rtError_t rtRet = rtSetTaskDescDumpFlag(taskDescBaseAddr, taskDescSize, taskId);
   if (rtRet != RT_ERROR_NONE) {
-    GELOGE(ACL_ERROR_GE_PARAM_INVALID, "set taskId[%d]'s dump flag failed, taskDescSize %zu, ret=%d.",
-           taskId, taskDescSize, rtRet);
+    GELOGE(ACL_ERROR_GE_PARAM_INVALID, "set taskId[%d]'s dump flag failed, taskDescSize %zu, ret=%d.", taskId,
+           taskDescSize, rtRet);
     return;
   }
   GELOGI("update dump flag of taskId %d, taskDescSize %zu.", taskId, taskDescSize);
@@ -45,7 +45,7 @@ static Status ProcOptTlvList(uint32_t len, uint8_t *tlvValue, void *appInfo) {
   uint32_t offset = 0U;
   static uint32_t subTlvList[] = {DBG_L2_TLV_TYPE_OP_NAME, DBG_L2_TLV_TYPE_ORI_OP_NAME};
   static uint32_t subTlvNum = sizeof(subTlvList) / sizeof(subTlvList[0]);
-  for (; offset < len; ) {
+  for (; offset < len;) {
     struct DbgOpDescParamTlv1 *opDesc = (struct DbgOpDescParamTlv1 *)(tlvValueTmp + offset);
     if (!CheckTlvLenValid(len, offset, sizeof(struct DbgOpDescParamTlv1))) {
       break;
@@ -61,8 +61,8 @@ static Status ProcOptTlvList(uint32_t len, uint8_t *tlvValue, void *appInfo) {
       GELOGE(ACL_ERROR_GE_PARAM_INVALID, "dbg file tlv len check failed.");
       break;
     }
-    uint32_t tlvNum = ParseSubTlvListU16(opDesc->l2_tlv, opDesc->l2_tlv_list_len,
-                                         subTlvNum, subTlvList, parseSubTlvList);
+    uint32_t tlvNum =
+        ParseSubTlvListU16(opDesc->l2_tlv, opDesc->l2_tlv_list_len, subTlvNum, subTlvList, parseSubTlvList);
     if (tlvNum == 0U) {
       ret = ACL_ERROR_GE_INTERNAL_ERROR;
       GELOGE(ACL_ERROR_GE_PARAM_INVALID, "dbg file parse tlv failed.");
@@ -97,10 +97,8 @@ static Status ProModelName(uint32_t len, uint8_t *tlvValue, void *appInfo) {
 }
 
 Status ParseDbgTlv(ModelDbgHandle *dbgHandle) {
-  static TlvProcPair tlvProcMap[] = {
-    {DBG_L1_TLV_TYPE_MODEL_NAME, ProModelName},
-    {DBG_L1_TLV_TYPE_OP_DESC, ProcOptTlvList}
-  };
+  static TlvProcPair tlvProcMap[] = {{DBG_L1_TLV_TYPE_MODEL_NAME, ProModelName},
+                                     {DBG_L1_TLV_TYPE_OP_DESC, ProcOptTlvList}};
   uint8_t *subTlvList = dbgHandle->dumpFileContent + dbgHandle->offset;
   uint32_t subTlvListLen = (uint32_t)(dbgHandle->dumpFileLen - dbgHandle->offset);
   uint32_t parseTlvNum = sizeof(tlvProcMap) / sizeof(tlvProcMap[0]);
@@ -199,8 +197,10 @@ static char *ConcatDumpPath(char *dumpPath) {
     errno_t retL2 = memcpy_s(dumpPath + pathLen, PATH_MAX - pathLen, "/", 1);
     errno_t retL3 = memcpy_s(dumpPath + pathLen + 1, PATH_MAX - pathLen - 1, timeStamp, timeLen);
     errno_t retL4 = memcpy_s(dumpPath + pathLen + 1 + timeLen, PATH_MAX - pathLen - 1 - timeLen, "/", 1);
-    errno_t retL5 = memcpy_s(dumpPath + pathLen + 1 + timeLen + 1, PATH_MAX - pathLen - 1 - timeLen - 1, devIdStr, devLen);
-    errno_t retL6 = strcpy_s(dumpPath + pathLen + 1 + timeLen + 1 + devLen, PATH_MAX - pathLen - 1 - timeLen - 1 - devLen, "/");
+    errno_t retL5 =
+        memcpy_s(dumpPath + pathLen + 1 + timeLen + 1, PATH_MAX - pathLen - 1 - timeLen - 1, devIdStr, devLen);
+    errno_t retL6 =
+        strcpy_s(dumpPath + pathLen + 1 + timeLen + 1 + devLen, PATH_MAX - pathLen - 1 - timeLen - 1 - devLen, "/");
     result = (retL1 != EOK || retL2 != EOK || retL3 != EOK || retL4 != EOK || retL5 != EOK || retL6 != EOK);
   } else {
     errno_t retL1 = memcpy_s(dumpPath, PATH_MAX, dumpPathStr, pathLen);
@@ -229,12 +229,11 @@ static Status InitLoadDumpInfo(ModelDbgHandle *dbgHandle) {
   if (dbgHandle->aicpuDumpInfo == NULL) {
     return ACL_ERROR_GE_MEMORY_ALLOCATION;
   }
-  errno_t ret = memcpy_s(dbgHandle->aicpuDumpInfo, total_len,
-                         dbgHandle->dumpFileContent, dbgHandle->dumpFileLen);
+  errno_t ret = memcpy_s(dbgHandle->aicpuDumpInfo, total_len, dbgHandle->dumpFileContent, dbgHandle->dumpFileLen);
   if (ret != EOK) {
-      (void)mmFree(dbgHandle->aicpuDumpInfo);
-      dbgHandle->aicpuDumpInfo = NULL;
-      return ret;
+    (void)mmFree(dbgHandle->aicpuDumpInfo);
+    dbgHandle->aicpuDumpInfo = NULL;
+    return ret;
   }
   dbgHandle->aicpuDumpInfoLen = total_len;
 
@@ -261,9 +260,9 @@ static Status InitLoadDumpInfo(ModelDbgHandle *dbgHandle) {
   uint8_t *memCpyTlv2Addr = (uint8_t *)(tlv2 + sizeof(struct TlvHead));
   ret = memcpy_s(memCpyTlv2Addr, tlvDumpPath->len, dumPathTemp, tlvDumpPath->len);
   if (ret != EOK) {
-      (void)mmFree(dbgHandle->aicpuDumpInfo);
-      dbgHandle->aicpuDumpInfo = NULL;
-      return ret;
+    (void)mmFree(dbgHandle->aicpuDumpInfo);
+    dbgHandle->aicpuDumpInfo = NULL;
+    return ret;
   }
   GELOGI("init load dump info success.");
   return SUCCESS;
@@ -276,7 +275,7 @@ Status SendLoadInfoToAicpu(ModelDbgHandle *dbgHandle) {
     return ret;
   }
   Status rtRet =
-    (Status)rtMsgSend((uint32_t)mmGetTaskId(), 0, 0, dbgHandle->aicpuDumpInfo, (uint32_t)dbgHandle->dumpFileLen);
+      (Status)rtMsgSend((uint32_t)mmGetTaskId(), 0, 0, dbgHandle->aicpuDumpInfo, (uint32_t)dbgHandle->dumpFileLen);
   if (rtRet != SUCCESS) {
     if (dbgHandle->aicpuDumpInfo != NULL) {
       (void)mmFree(dbgHandle->aicpuDumpInfo);
@@ -295,7 +294,7 @@ Status SendUnLoadInfoToAicpu(ModelDbgHandle *dbgHandle) {
     return ret;
   }
   Status rtRet =
-    (Status)rtMsgSend((uint32_t)mmGetTaskId(), 0, 0, dbgHandle->aicpuDumpInfo, (uint32_t)dbgHandle->dumpFileLen);
+      (Status)rtMsgSend((uint32_t)mmGetTaskId(), 0, 0, dbgHandle->aicpuDumpInfo, (uint32_t)dbgHandle->dumpFileLen);
   if (rtRet != SUCCESS) {
     return rtRet;
   }

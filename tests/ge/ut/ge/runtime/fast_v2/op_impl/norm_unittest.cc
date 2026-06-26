@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -78,8 +78,8 @@ TEST_F(NormUT, TilinglistattrOk) {
   gert::TilingContext *context = holder.GetContext<gert::TilingContext>();
   ge::Status status = tiling_func(context);
 
-  EXPECT_EQ(workspace->GetSize(), 1); // 生成一块workspace
-  EXPECT_EQ(reinterpret_cast<const size_t *>(workspace->GetData())[0], 32); // workspace的大小是32
+  EXPECT_EQ(workspace->GetSize(), 1);                                        // 生成一块workspace
+  EXPECT_EQ(reinterpret_cast<const size_t *>(workspace->GetData())[0], 32);  // workspace的大小是32
 
   EXPECT_EQ(status, ge::GRAPH_SUCCESS);
   auto data = reinterpret_cast<const int32_t *>(context->GetRawTilingData()->GetData());
@@ -131,14 +131,15 @@ TEST_F(NormUT, TilingOk) {
                     .Build();
 
   ASSERT_NE(gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->GetOpImpl("DefaultImpl"), nullptr);
-  auto tiling_func = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->GetOpImpl("DefaultImpl")->tiling;
+  auto tiling_func =
+      gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->GetOpImpl("DefaultImpl")->tiling;
   ASSERT_NE(tiling_func, nullptr);
 
   gert::TilingContext *context = holder.GetContext<gert::TilingContext>();
   ge::Status status = tiling_func(context);
 
-  EXPECT_EQ(workspace->GetSize(), 1); // 生成一块workspace
-  EXPECT_EQ(reinterpret_cast<const size_t *>(workspace->GetData())[0], 32); // workspace的大小是32
+  EXPECT_EQ(workspace->GetSize(), 1);                                        // 生成一块workspace
+  EXPECT_EQ(reinterpret_cast<const size_t *>(workspace->GetData())[0], 32);  // workspace的大小是32
 
   EXPECT_EQ(status, ge::GRAPH_SUCCESS);
   auto data = reinterpret_cast<const int32_t *>(context->GetRawTilingData()->GetData());
@@ -149,12 +150,12 @@ TEST_F(NormUT, TilingOk) {
   }
 }
 
-template<typename T1, typename T2>
-static bool compare_map(const std::unordered_map<T1, T2>& map1, const std::unordered_map<T1, T2>& map2) {
+template <typename T1, typename T2>
+static bool compare_map(const std::unordered_map<T1, T2> &map1, const std::unordered_map<T1, T2> &map2) {
   if (map1.size() != map2.size()) {
     return false;
   }
-  for (const auto& it: map1) {
+  for (const auto &it : map1) {
     if (map2.count(it.first) == 0) {
       return false;
     }
@@ -165,9 +166,8 @@ static bool compare_map(const std::unordered_map<T1, T2>& map1, const std::unord
   return true;
 }
 
-static bool compare_norm_struct(const gert::NormCompileInfo& actual_struct,
-                                const gert::NormCompileInfo& expect_struct) {
-
+static bool compare_norm_struct(const gert::NormCompileInfo &actual_struct,
+                                const gert::NormCompileInfo &expect_struct) {
   if (actual_struct.ori_reduce_axis != expect_struct.ori_reduce_axis) {
     return false;
   }
@@ -232,7 +232,8 @@ static bool compare_norm_struct(const gert::NormCompileInfo& actual_struct,
 }
 
 TEST_F(NormUT, TilingParseOk) {
-  std::string json_str = R"({"reduce_axis_attr_index": 0, "reduce_axis_attr_dtype": "ListInt", "_reduce_axis_type": 9, "_broadcast_axis_type_list": [1, 2], "_fuse_axis": false, "_input_type": [0], "_ori_reduce_axis": [1], "_ori_broadcast_axis": [1], "_pattern": "Norm", "_common_info": [32, 8, 128], "_available_ub_size": {"4000": [15792, 16120, 15792]}, "_is_const": true, "_const_shape_post": true, "_const_block_dims": {"4000": 25}, "_exist_workspace_after_reduce": false, "_exist_output_after_reduce": false})";
+  std::string json_str =
+      R"({"reduce_axis_attr_index": 0, "reduce_axis_attr_dtype": "ListInt", "_reduce_axis_type": 9, "_broadcast_axis_type_list": [1, 2], "_fuse_axis": false, "_input_type": [0], "_ori_reduce_axis": [1], "_ori_broadcast_axis": [1], "_pattern": "Norm", "_common_info": [32, 8, 128], "_available_ub_size": {"4000": [15792, 16120, 15792]}, "_is_const": true, "_const_shape_post": true, "_const_block_dims": {"4000": 25}, "_exist_workspace_after_reduce": false, "_exist_output_after_reduce": false})";
 
   char *json = const_cast<char *>(json_str.c_str());
   gert::NormCompileInfo compile_info;
@@ -244,7 +245,8 @@ TEST_F(NormUT, TilingParseOk) {
                     .Build();
 
   ASSERT_NE(gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->GetOpImpl("DefaultImpl"), nullptr);
-  auto tiling_parse_func = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->GetOpImpl("DefaultImpl")->tiling_parse;
+  auto tiling_parse_func =
+      gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->GetOpImpl("DefaultImpl")->tiling_parse;
   ASSERT_NE(tiling_parse_func, nullptr);
   EXPECT_EQ(tiling_parse_func(holder.GetContext<gert::KernelContext>()), ge::GRAPH_SUCCESS);
   gert::NormCompileInfo expect_struct;

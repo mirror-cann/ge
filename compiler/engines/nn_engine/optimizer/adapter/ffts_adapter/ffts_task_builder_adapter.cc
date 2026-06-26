@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,11 +31,13 @@ namespace {
 const uint32_t DEFAULT_KERNEL_BLOCK_DIM = 1;
 const uint32_t DEFAULT_KERNEL_SIZE = 0;
 const int64_t UNKNOWN_WORK_SPACE_SIZE = -1;
-};
+};  // namespace
 
 FftsTaskBuilderAdapter::FftsTaskBuilderAdapter(const ge::Node &node, TaskBuilderContext &context)
-    : TaskBuilderAdapter(node, context), block_dim_(DEFAULT_KERNEL_BLOCK_DIM),
-      tbe_kernel_size_(DEFAULT_KERNEL_SIZE), thread_dim_(0) {}
+    : TaskBuilderAdapter(node, context),
+      block_dim_(DEFAULT_KERNEL_BLOCK_DIM),
+      tbe_kernel_size_(DEFAULT_KERNEL_SIZE),
+      thread_dim_(0) {}
 
 FftsTaskBuilderAdapter::~FftsTaskBuilderAdapter() {}
 
@@ -48,16 +50,15 @@ Status FftsTaskBuilderAdapter::ThreadInitInput(vector<vector<vector<ffts::DimRan
   (void)ge::AttrUtils::GetListInt(node_.GetOpDesc(), ge::kInputTensorIndexs, input_tensor_indexes);
   for (auto const &anchor : node_.GetAllInDataAnchors()) {
     if (ge::AnchorUtils::GetStatus(anchor) == ge::ANCHOR_SUSPEND) {
-      FE_LOGD("Node[type=%s,name=%s]: the anchor %u status is suspend.",
-              node_.GetType().c_str(), node_.GetName().c_str(), anchor_index);
+      FE_LOGD("Node[type=%s,name=%s]: the anchor %u status is suspend.", node_.GetType().c_str(),
+              node_.GetName().c_str(), anchor_index);
       anchor_index++;
       continue;
     }
     FE_CHECK_NOTNULL(node_.GetOpDesc()->MutableInputDesc(anchor->GetIdx()));
     FE_CHECK_NOTNULL(node_.GetOpDesc()->MutableInputDesc(anchor_index));
-    FE_LOGD("Node[type=%s,name=%s]: the in anchor %u name is %s, status is %d.",
-            node_.GetType().c_str(), node_.GetName().c_str(), anchor_index,
-            node_.GetOpDesc()->MutableInputDesc(anchor_index)->GetName().c_str(),
+    FE_LOGD("Node[type=%s,name=%s]: the in anchor %u name is %s, status is %d.", node_.GetType().c_str(),
+            node_.GetName().c_str(), anchor_index, node_.GetOpDesc()->MutableInputDesc(anchor_index)->GetName().c_str(),
             ge::AnchorUtils::GetStatus(anchor));
     valid_tensor_count++;
 
@@ -68,8 +69,8 @@ Status FftsTaskBuilderAdapter::ThreadInitInput(vector<vector<vector<ffts::DimRan
       continue;
     }
     if (ge::TensorUtils::GetSize(*tensor_desc_ptr, tensor_size) != SUCCESS) {
-        FE_LOGD("Task Builder get size unsuccessful.");
-        return FAILED;
+      FE_LOGD("Task Builder get size unsuccessful.");
+      return FAILED;
     }
     input_tensor_sizes_.push_back(tensor_size);
 
@@ -80,11 +81,10 @@ Status FftsTaskBuilderAdapter::ThreadInitInput(vector<vector<vector<ffts::DimRan
   }
 
   if (tensor_slice.size() == 0) {
-      FE_LOGE("tensor slice size is zero.");
-      return FAILED;
+    FE_LOGE("tensor slice size is zero.");
+    return FAILED;
   }
-  if ((input_addrs_.size() != tensor_slice[0].size()) ||
-      (tensor_slice[0].size() != valid_tensor_count)) {
+  if ((input_addrs_.size() != tensor_slice[0].size()) || (tensor_slice[0].size() != valid_tensor_count)) {
     FE_LOGE("Num of node input, sgt input and shape dim are not equal, node input %zu, sgt input %lu, shape %zu.",
             input_addrs_.size(), tensor_slice[0].size(), valid_tensor_count);
     return FAILED;
@@ -100,8 +100,8 @@ Status FftsTaskBuilderAdapter::ThreadInitInput(vector<vector<vector<ffts::DimRan
     }
     int64_t thread_offset = 1;
     for (auto &dim_range : tensor_range) {
-      FE_LOGD("input node %s dim_range.higher: %ld, dim_range.lower: %ld",
-              node_.GetName().c_str(), dim_range.higher, dim_range.lower);
+      FE_LOGD("input node %s dim_range.higher: %ld, dim_range.lower: %ld", node_.GetName().c_str(), dim_range.higher,
+              dim_range.lower);
       thread_offset *= (dim_range.higher - dim_range.lower);
     }
     thread_offset = ge::GetSizeInBytes(thread_offset, data_type_vec[input_index]);
@@ -125,16 +125,16 @@ Status FftsTaskBuilderAdapter::ThreadInitOutput(vector<vector<vector<ffts::DimRa
   for (auto const &anchor : node_.GetAllOutDataAnchors()) {
     FE_CHECK_NOTNULL(node_.GetOpDesc()->MutableOutputDesc(anchor->GetIdx()));
     FE_CHECK_NOTNULL(node_.GetOpDesc()->MutableOutputDesc(anchor_index));
-    FE_LOGD("Node[type=%s,name=%s]: the out anchor %u name is %s, status is %d.",
-            node_.GetType().c_str(), node_.GetName().c_str(), anchor_index,
+    FE_LOGD("Node[type=%s,name=%s]: the out anchor %u name is %s, status is %d.", node_.GetType().c_str(),
+            node_.GetName().c_str(), anchor_index,
             node_.GetOpDesc()->MutableOutputDesc(anchor_index)->GetName().c_str(), ge::AnchorUtils::GetStatus(anchor));
     tensor_shape_vec.push_back(node_.GetOpDesc()->MutableOutputDesc(anchor->GetIdx())->MutableShape().GetDims());
 
     int64_t tensor_size;
     ge::GeTensorDescPtr tensor_desc_ptr = node_.GetOpDesc()->MutableOutputDesc(anchor->GetIdx());
     if (ge::TensorUtils::GetSize(*tensor_desc_ptr, tensor_size) != SUCCESS) {
-        FE_LOGE("Task Builder get size failed.");
-        return FAILED;
+      FE_LOGE("Task Builder get size failed.");
+      return FAILED;
     }
     output_tensor_sizes_.push_back(tensor_size);
     const ge::DataType data_type = tensor_desc_ptr->GetDataType();
@@ -144,11 +144,10 @@ Status FftsTaskBuilderAdapter::ThreadInitOutput(vector<vector<vector<ffts::DimRa
   }
 
   if (tensor_slice.size() == 0) {
-      FE_LOGE("tensor slice size is zero.");
-      return FAILED;
+    FE_LOGE("tensor slice size is zero.");
+    return FAILED;
   }
-  if ((output_addrs_.size() != tensor_slice[0].size()) ||
-      (tensor_slice[0].size() != tensor_shape_vec.size())) {
+  if ((output_addrs_.size() != tensor_slice[0].size()) || (tensor_slice[0].size() != tensor_shape_vec.size())) {
     FE_LOGE("Num of node output, sgt output and shape dim are not equal, node output %zu, sgt output %lu, shape %zu.",
             output_addrs_.size(), tensor_slice[0].size(), tensor_shape_vec.size());
     return FAILED;
@@ -164,8 +163,8 @@ Status FftsTaskBuilderAdapter::ThreadInitOutput(vector<vector<vector<ffts::DimRa
     }
     int64_t thread_offset = 1;
     for (auto &dim_range : tensor_range) {
-      FE_LOGD("output node %s dim_range.higher: %ld, dim_range.lower: %ld",
-              node_.GetName().c_str(), dim_range.higher, dim_range.lower);
+      FE_LOGD("output node %s dim_range.higher: %ld, dim_range.lower: %ld", node_.GetName().c_str(), dim_range.higher,
+              dim_range.lower);
       thread_offset *= (dim_range.higher - dim_range.lower);
     }
     thread_offset = ge::GetSizeInBytes(thread_offset, data_type_vec[output_index]);
@@ -212,8 +211,7 @@ void FftsTaskBuilderAdapter::DebugThreadArgs() const {
 Status FftsTaskBuilderAdapter::ThreadInit() {
   ffts::ThreadSliceMapPtr slice_info_ptr = nullptr;
   slice_info_ptr = node_.GetOpDesc()->TryGetExtAttr(ffts::kAttrSgtStructInfo, slice_info_ptr);
-  FE_LOGI("ThreadInit of Op name: %s, Op id: %ld.",
-          node_.GetOpDesc()->GetName().c_str(), node_.GetOpDesc()->GetId());
+  FE_LOGI("ThreadInit of Op name: %s, Op id: %ld.", node_.GetOpDesc()->GetName().c_str(), node_.GetOpDesc()->GetId());
   FE_CHECK_NOTNULL(slice_info_ptr);
 
   if (ThreadInitInput(slice_info_ptr->input_tensor_slice) != SUCCESS) {
@@ -239,8 +237,7 @@ Status FftsTaskBuilderAdapter::HandleAnchorData(size_t &input_index, const size_
   }
 
   FE_LOGI("Print weight_offset and weight_mem_base of op_name[%s], op_type[%s]: [%ld:%lu].",
-          op_desc_->GetName().c_str(), op_desc_->GetType().c_str(), weight_offset,
-          context_.weightMemBase);
+          op_desc_->GetName().c_str(), op_desc_->GetType().c_str(), weight_offset, context_.weightMemBase);
 
   // max value of weight offset : 30 * 1024 * 1024 * 1024L.
   if (weight_offset < kMaxWeightOffset) {
@@ -271,8 +268,7 @@ Status FftsTaskBuilderAdapter::InitInput() {
   size_t anchor_index = 0;
   for (auto const &anchor : node_.GetAllInDataAnchors()) {
     if (ge::AnchorUtils::GetStatus(anchor) == ge::ANCHOR_SUSPEND) {
-      FE_LOGD("Node[%s, %s]: the status of anchor %zu is suspend.", op_type.c_str(), op_name.c_str(),
-              anchor_index);
+      FE_LOGD("Node[%s, %s]: the status of anchor %zu is suspend.", op_type.c_str(), op_name.c_str(), anchor_index);
       anchor_index++;
       continue;
     }
@@ -286,14 +282,14 @@ Status FftsTaskBuilderAdapter::InitInput() {
     }
 
     if (input_index >= input_offsets.size()) {
-      FE_LOGE("Node[%s, %s]: input index %zu must be less than input offsets size %zu.",
-              op_type.c_str(), op_name.c_str(), input_index, input_offsets.size());
+      FE_LOGE("Node[%s, %s]: input index %zu must be less than input offsets size %zu.", op_type.c_str(),
+              op_name.c_str(), input_index, input_offsets.size());
       return FAILED;
     }
 
     int64_t input_offset = input_offsets[input_index];
-    FE_LOGD("Node[%s, %s]: input_index=%zu, input_offset=%ld, anchor_status=%d.",
-            op_type.c_str(), op_name.c_str(), input_index, input_offset, ge::AnchorUtils::GetStatus(anchor));
+    FE_LOGD("Node[%s, %s]: input_index=%zu, input_offset=%ld, anchor_status=%d.", op_type.c_str(), op_name.c_str(),
+            input_index, input_offset, ge::AnchorUtils::GetStatus(anchor));
 
     bool is_addr_var = input_index < input_is_addr_var.size() && input_is_addr_var[input_index];
     if (is_addr_var) {
@@ -398,29 +394,29 @@ Status FftsTaskBuilderAdapter::InitWorkspace() {
   vector<uint32_t> one_thread_workspace_sizes;
   vector<void *> one_thread_workspace_addrs;
   if (static_cast<size_t>(non_tail_workspace_size) > workspace_sizes_.size()) {
-    FE_LOGE("non_tail_workspace_size[%ld] > workspace_sizes_.size()[%zu].",
-            non_tail_workspace_size, workspace_sizes.size());
+    FE_LOGE("non_tail_workspace_size[%ld] > workspace_sizes_.size()[%zu].", non_tail_workspace_size,
+            workspace_sizes.size());
     return FAILED;
   }
   for (size_t i = 0; i < static_cast<size_t>(non_tail_workspace_size); i++) {
-      one_thread_workspace_sizes.push_back(
-          workspace_sizes_[i] == UNKNOWN_WORK_SPACE_SIZE ? workspace_sizes_[i] : (workspace_sizes_[i] / thread_num));
-      one_thread_workspace_addrs.push_back(workspace_addrs_[i]);
+    one_thread_workspace_sizes.push_back(
+        workspace_sizes_[i] == UNKNOWN_WORK_SPACE_SIZE ? workspace_sizes_[i] : (workspace_sizes_[i] / thread_num));
+    one_thread_workspace_addrs.push_back(workspace_addrs_[i]);
   }
   thread_workspace_sizes_.push_back(one_thread_workspace_sizes);
   thread_workspace_addrs_.push_back(one_thread_workspace_addrs);
   one_thread_workspace_sizes.clear();
   one_thread_workspace_addrs.clear();
   for (size_t i = static_cast<size_t>(non_tail_workspace_size); i < workspace_sizes_.size(); i++) {
-      one_thread_workspace_sizes.push_back(workspace_sizes_[i]);
-      one_thread_workspace_addrs.push_back(workspace_addrs_[i]);
+    one_thread_workspace_sizes.push_back(workspace_sizes_[i]);
+    one_thread_workspace_addrs.push_back(workspace_addrs_[i]);
   }
   thread_workspace_sizes_.push_back(one_thread_workspace_sizes);
   thread_workspace_addrs_.push_back(one_thread_workspace_addrs);
 
   for (size_t j = 0; j < static_cast<size_t>(non_tail_workspace_size); j++) {
-    thread_addr_offset_.push_back(
-        workspace_sizes_[j] == UNKNOWN_WORK_SPACE_SIZE ? workspace_sizes_[j] : (workspace_sizes_[j] / thread_num));
+    thread_addr_offset_.push_back(workspace_sizes_[j] == UNKNOWN_WORK_SPACE_SIZE ? workspace_sizes_[j]
+                                                                                 : (workspace_sizes_[j] / thread_num));
   }
 
   return SUCCESS;
@@ -429,7 +425,7 @@ Status FftsTaskBuilderAdapter::InitWorkspace() {
 Status FftsTaskBuilderAdapter::VerifyWeights() const {
   // Verify weight offset.
   vector<ge::ConstGeTensorPtr> weights = ge::OpDescUtils::GetWeights(node_);
-  for (const ge::ConstGeTensorPtr& weight : weights) {
+  for (const ge::ConstGeTensorPtr &weight : weights) {
     int64_t weight_offset = 0;
     if (ge::TensorUtils::GetDataOffset(weight->GetTensorDesc(), weight_offset) != ge::GRAPH_SUCCESS) {
       FE_LOGE("Get weight offset failed. opname[%s]", op_desc_->GetName().c_str());
@@ -446,7 +442,7 @@ Status FftsTaskBuilderAdapter::VerifyWeights() const {
 
   return SUCCESS;
 }
- 
+
 Status FftsTaskBuilderAdapter::Init() {
   FE_LOGD("Init begin, node name:%s, type:%s.", node_.GetName().c_str(), node_.GetType().c_str());
   FE_CHECK_NOTNULL(op_desc_);
@@ -489,7 +485,7 @@ Status FftsTaskBuilderAdapter::Init() {
     FE_LOGE("InitWorkspace failed. op name:%s.", op_desc_->GetName().c_str());
     return status;
   }
-  
+
   DebugThreadArgs();
   return SUCCESS;
 }

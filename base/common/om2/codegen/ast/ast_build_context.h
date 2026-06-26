@@ -60,11 +60,9 @@ class Arg {
   Arg(const ExprRef &expr);
   Arg(const VarRef &symbol);
 
-  template <typename T,
-            typename = std::enable_if_t<std::is_integral<typename std::decay<T>::type>::value &&
-                                        !std::is_same<typename std::decay<T>::type, bool>::value>>
-  Arg(T value)
-      : kind_(Kind::kInt), int_value_(static_cast<int64_t>(value)), bool_value_(false), expr_(nullptr) {}
+  template <typename T, typename = std::enable_if_t<std::is_integral<typename std::decay<T>::type>::value &&
+                                                    !std::is_same<typename std::decay<T>::type, bool>::value>>
+  Arg(T value) : kind_(Kind::kInt), int_value_(static_cast<int64_t>(value)), bool_value_(false), expr_(nullptr) {}
 
   static Arg StringLiteral(const std::string &text);
 
@@ -122,7 +120,9 @@ class VarRef : public ExprRef {
 
   const std::string &TypeName() const;
   const std::string &SymbolName() const;
-  ExprRef Ref() const { return ExprRef(*Ctx(), Get()); }
+  ExprRef Ref() const {
+    return ExprRef(*Ctx(), Get());
+  }
 
  private:
   std::string type_name_;
@@ -181,13 +181,14 @@ class AstBuildContext {
   NamespaceDecl *Namespace(const std::string &name, std::initializer_list<DeclNode *> items) const;
   ExternBlockDecl *ExternBlock(const std::string &lang, const std::vector<DeclNode *> &items) const;
   ExternBlockDecl *ExternBlock(const std::string &lang, std::initializer_list<DeclNode *> items) const;
-  StablePartDecl *StablePart(StablePartId id, StablePartPlacement placement = StablePartPlacement::kTranslationUnit) const;
+  StablePartDecl *StablePart(StablePartId id,
+                             StablePartPlacement placement = StablePartPlacement::kTranslationUnit) const;
   FunctionDecl *DeclareFunction(const std::string &name, const std::vector<VarRef> &params,
                                 const std::string &return_type) const;
   FunctionDecl *DeclareFunction(const std::string &name, std::initializer_list<VarRef> params,
                                 const std::string &return_type) const;
-  MethodDecl *DeclareMethod(const std::string &name, const std::vector<VarRef> &params,
-                            const std::string &return_type, const std::string &trailing_spec = "") const;
+  MethodDecl *DeclareMethod(const std::string &name, const std::vector<VarRef> &params, const std::string &return_type,
+                            const std::string &trailing_spec = "") const;
   MethodDecl *DeclareMethod(const std::string &name, std::initializer_list<VarRef> params,
                             const std::string &return_type, const std::string &trailing_spec = "") const;
   FunctionDef *DefineFunction(const std::string &name, const std::vector<VarRef> &params,
@@ -212,8 +213,8 @@ class AstBuildContext {
   CCastExpr *CCast(const std::string &target_type, Arg expr) const;
   InitListExpr *InitList(std::initializer_list<Arg> items, bool compact = false) const;
   InitListExpr *InitList(const std::vector<Arg> &items, bool compact = false) const;
-  DesignatedInitListExpr *InitListWithDesignators(
-      const std::vector<std::pair<std::string, Arg>> &members, bool compact = false) const;
+  DesignatedInitListExpr *InitListWithDesignators(const std::vector<std::pair<std::string, Arg>> &members,
+                                                  bool compact = false) const;
   VarRef Var(const std::string &type_name, const std::string &symbol_name) const;
   ExprRef Assign(Arg lhs, Arg rhs) const;
   ExprRef Deref(Arg expr) const;

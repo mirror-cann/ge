@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,29 +26,37 @@ bool CompareByNodeId(const ge::NodePtr &left_node, const ge::NodePtr &right_node
   }
   return left_node->GetOpDesc()->GetId() < right_node->GetOpDesc()->GetId();
 }
-}
+}  // namespace
 
 BaseBufferFusionPassRunner::BaseBufferFusionPassRunner(const std::string &pass_name,
-    BufferFusionPassBase *(*create_fn)(), const FusionCycleDetectorPtr &fusion_cycle_detector)
+                                                       BufferFusionPassBase *(*create_fn)(),
+                                                       const FusionCycleDetectorPtr &fusion_cycle_detector)
     : pass_name_(pass_name), fusion_cycle_detector_(fusion_cycle_detector), is_fusion_check_(false) {
   buffer_fusion_pass_base_ptr_ = std::unique_ptr<BufferFusionPassBase>(create_fn());
   buffer_fusion_pass_base_ptr_->SetName(pass_name);
 }
 
 BaseBufferFusionPassRunner::BaseBufferFusionPassRunner(const std::string &pass_name,
-    BufferFusionPassBase *(*create_fn)(), const FusionCycleDetectorPtr &fusion_cycle_detector,
-    const OpStoreAdapterBasePtr &op_store_adapter_ptr) :
-                                pass_name_(pass_name), fusion_cycle_detector_(fusion_cycle_detector),
-                                is_fusion_check_(true), op_store_adapter_ptr_(op_store_adapter_ptr) {
+                                                       BufferFusionPassBase *(*create_fn)(),
+                                                       const FusionCycleDetectorPtr &fusion_cycle_detector,
+                                                       const OpStoreAdapterBasePtr &op_store_adapter_ptr)
+    : pass_name_(pass_name),
+      fusion_cycle_detector_(fusion_cycle_detector),
+      is_fusion_check_(true),
+      op_store_adapter_ptr_(op_store_adapter_ptr) {
   buffer_fusion_pass_base_ptr_ = std::unique_ptr<BufferFusionPassBase>(create_fn());
   buffer_fusion_pass_base_ptr_->SetName(pass_name);
 }
 
 BaseBufferFusionPassRunner::BaseBufferFusionPassRunner(const std::string &pass_name,
-    BufferFusionPassBase *(*create_fn)(), const FusionCycleDetectorPtr &fusion_cycle_detector,
-    const bool is_fusion_check, const OpStoreAdapterBasePtr &op_store_adapter_ptr) :
-                                pass_name_(pass_name), fusion_cycle_detector_(fusion_cycle_detector),
-                                is_fusion_check_(is_fusion_check), op_store_adapter_ptr_(op_store_adapter_ptr) {
+                                                       BufferFusionPassBase *(*create_fn)(),
+                                                       const FusionCycleDetectorPtr &fusion_cycle_detector,
+                                                       const bool is_fusion_check,
+                                                       const OpStoreAdapterBasePtr &op_store_adapter_ptr)
+    : pass_name_(pass_name),
+      fusion_cycle_detector_(fusion_cycle_detector),
+      is_fusion_check_(is_fusion_check),
+      op_store_adapter_ptr_(op_store_adapter_ptr) {
   buffer_fusion_pass_base_ptr_ = std::unique_ptr<BufferFusionPassBase>(create_fn());
   buffer_fusion_pass_base_ptr_->SetName(pass_name);
 }
@@ -64,7 +72,7 @@ Status BaseBufferFusionPassRunner::Run(const ge::ComputeGraph &graph) {
     return SUCCESS;
   }
   if (is_fusion_check_) {
-    BackUpCycleDetector(); // back up cycle data before match pattern if do fusion check
+    BackUpCycleDetector();  // back up cycle data before match pattern if do fusion check
   }
   // 2. get fusion nodes map by all patterns
   // match result, scope id - nodes
@@ -74,15 +82,14 @@ Status BaseBufferFusionPassRunner::Run(const ge::ComputeGraph &graph) {
       continue;
     }
     if (pattern->GetErrorCnt() > 0) {
-      FE_LOGW("Params of pattern [%s] is invalid, count is [%ld].",
-              pattern->GetName().c_str(), pattern->GetErrorCnt());
+      FE_LOGW("Params of pattern [%s] is invalid, count is [%ld].", pattern->GetName().c_str(), pattern->GetErrorCnt());
       continue;
     }
     ge::TraceOwnerGuard guard(FE_MODULE_NAME, pattern->GetName(), graph.GetName());
     // 3. get matched nodes by each pattern
     if (MatchEachPattern(graph, *pattern, match_nodes_map) != SUCCESS) {
-      FE_LOGW("Failed to match nodes with pattern [%s] in fusion pass [%s].",
-              pattern->GetName().c_str(), GetPassName().c_str());
+      FE_LOGW("Failed to match nodes with pattern [%s] in fusion pass [%s].", pattern->GetName().c_str(),
+              GetPassName().c_str());
       continue;
     }
   }
@@ -167,7 +174,7 @@ bool BaseBufferFusionPassRunner::IsNodePatternMatched(const ge::NodePtr &node,
   return std::find(patterns.begin(), patterns.end(), op_pattern) != patterns.end();
 }
 
-const BufferFusionOpDesc* BaseBufferFusionPassRunner::GetMatchedFusionDesc(const ge::NodePtr &node,
+const BufferFusionOpDesc *BaseBufferFusionPassRunner::GetMatchedFusionDesc(const ge::NodePtr &node,
                                                                            const BufferFusionPattern &pattern,
                                                                            const BufferFusionMapping &mapping) {
   for (const BufferFusionOpDesc *op_desc : pattern.GetOpDescs()) {
@@ -347,7 +354,7 @@ void BaseBufferFusionPassRunner::GetFusionNodesMap(const ge::ComputeGraph &graph
     if (iter != fusion_nodes_map.end()) {
       iter->second.push_back(node);
     } else {
-      std::vector<ge::NodePtr> nodes_vec = { node };
+      std::vector<ge::NodePtr> nodes_vec = {node};
       fusion_nodes_map.emplace(scope_id, nodes_vec);
     }
   }
@@ -386,7 +393,7 @@ Status BaseBufferFusionPassRunner::FusionCheck(std::map<int64_t, std::vector<ge:
       return status;
     }
   }
-  // atfer compile clear attr, clear auto fusion pattern attr if node does not have scope id attr
+  // after compile clear attr, clear auto fusion pattern attr if node does not have scope id attr
   for (auto iter = match_nodes_map.begin(); iter != match_nodes_map.end();) {
     bool fusion_check = true;
     for (const ge::NodePtr &node : iter->second) {
@@ -407,8 +414,8 @@ Status BaseBufferFusionPassRunner::FusionCheck(std::map<int64_t, std::vector<ge:
   return SUCCESS;
 }
 
-void BaseBufferFusionPassRunner::RollbackCycleDetector(const ge::ComputeGraph &graph,
-    const std::map<int64_t, std::vector<ge::NodePtr>> &fusion_nodes_map) {
+void BaseBufferFusionPassRunner::RollbackCycleDetector(
+    const ge::ComputeGraph &graph, const std::map<int64_t, std::vector<ge::NodePtr>> &fusion_nodes_map) {
   RestoreCycleDetector();
   for (const std::pair<const int64_t, std::vector<ge::NodePtr>> &fusion_nodes : fusion_nodes_map) {
     (void)UpdateCycleDetector(graph, fusion_nodes.second);
@@ -426,11 +433,11 @@ Status BaseBufferFusionPassRunner::GetFusionNodes(const BufferFusionMapping &map
   return buffer_fusion_pass_base_ptr_->GetFusionNodes(mapping, fusion_nodes);
 }
 
-const std::string& BaseBufferFusionPassRunner::GetPassName() const {
+const std::string &BaseBufferFusionPassRunner::GetPassName() const {
   return pass_name_;
 }
 
 FusionCycleDetectorPtr BaseBufferFusionPassRunner::GetFusionCycleDetectorPtr() const {
   return fusion_cycle_detector_;
 }
-}
+}  // namespace fe

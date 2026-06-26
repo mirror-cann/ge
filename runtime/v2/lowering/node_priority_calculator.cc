@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -130,7 +130,7 @@ void MarkIfSubGraphPriorities(const ge::FastNode *parent_node, NodePriorities &n
   std::vector<const ge::FastNode *> before_branch_execute_nodes;
   std::vector<const ge::FastNode *> after_branch_execute_nodes;
   std::vector<ge::FastNode *> other_unset_nodes;
-  for (const auto &index: sub_graph_indexes) {
+  for (const auto &index : sub_graph_indexes) {
     const auto &graph = ge::FastNodeUtils::GetSubgraphFromNode(parent_node, index.second);
     for (const auto node : graph->GetAllNodes()) {
       const auto &node_type = node->GetTypePtr();

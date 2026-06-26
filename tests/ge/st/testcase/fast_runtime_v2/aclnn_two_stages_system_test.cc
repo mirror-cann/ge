@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -42,7 +42,7 @@ graphStatus OpExecuteLaunchDoNothing(gert::OpExecuteLaunchContext *) {
   return GRAPH_SUCCESS;
 }
 
- graphStatus OpExecuteFuncDoNothing(gert::OpExecuteContext *) {
+graphStatus OpExecuteFuncDoNothing(gert::OpExecuteContext *) {
   return GRAPH_SUCCESS;
 }
 
@@ -54,8 +54,7 @@ graphStatus InferShapeForAdd(gert::InferShapeContext *context) {
   if (input_shape_0.GetDimNum() != input_shape_1.GetDimNum()) {
     auto min_num = std::min(input_shape_0.GetDimNum(), input_shape_1.GetDimNum());
     if (min_num != 1) {
-      GELOGE(PARAM_INVALID,
-             "Add param invalid, input_shape_0.GetDimNum() is %zu,  input_shape_1.GetDimNum() is %zu",
+      GELOGE(PARAM_INVALID, "Add param invalid, input_shape_0.GetDimNum() is %zu,  input_shape_1.GetDimNum() is %zu",
              input_shape_0.GetDimNum(), input_shape_1.GetDimNum());
     } else {
       if (input_shape_1.GetDimNum() > 1) {
@@ -108,7 +107,7 @@ static void *CreateCompileInfo() {
 static void DeleteCompileInfo(void *const obj) {
   delete reinterpret_cast<AddCompileInfo *>(obj);
 }
-}
+}  // namespace
 class AclnnTwoStagesSt : public testing::Test {
  public:
   void SetUp() override {
@@ -153,7 +152,7 @@ std::atomic_size_t AclnnTwoStagesSt::execute_op_launch_call_times(0UL);
 std::atomic_size_t AclnnTwoStagesSt::execute_op_func_call_times(0UL);
 const std::string DynamicAtomicStubName = "DynamicAtomicBin";
 
-namespace ge{
+namespace ge {
 REG_OP(Add)
     .INPUT(x1, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16, DT_INT8, DT_UINT8, DT_DOUBLE,
                            DT_COMPLEX128, DT_COMPLEX64, DT_STRING}))
@@ -161,15 +160,14 @@ REG_OP(Add)
                            DT_COMPLEX128, DT_COMPLEX64, DT_STRING}))
     .OUTPUT(y, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16, DT_INT8, DT_UINT8, DT_DOUBLE,
                            DT_COMPLEX128, DT_COMPLEX64, DT_STRING}))
-    .OP_END_FACTORY_REG(Add)
-REG_OP(Mul)
+    .OP_END_FACTORY_REG(Add) REG_OP(Mul)
     .INPUT(x1, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16, DT_INT8, DT_UINT8, DT_DOUBLE,
                            DT_COMPLEX128, DT_COMPLEX64, DT_STRING}))
-        .INPUT(x2, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16, DT_INT8, DT_UINT8, DT_DOUBLE,
-                               DT_COMPLEX128, DT_COMPLEX64, DT_STRING}))
-        .OUTPUT(y, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16, DT_INT8, DT_UINT8, DT_DOUBLE,
-                               DT_COMPLEX128, DT_COMPLEX64, DT_STRING}))
-        .OP_END_FACTORY_REG(Mul)
+    .INPUT(x2, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16, DT_INT8, DT_UINT8, DT_DOUBLE,
+                           DT_COMPLEX128, DT_COMPLEX64, DT_STRING}))
+    .OUTPUT(y, TensorType({DT_FLOAT, DT_INT32, DT_INT64, DT_FLOAT16, DT_INT16, DT_INT8, DT_UINT8, DT_DOUBLE,
+                           DT_COMPLEX128, DT_COMPLEX64, DT_STRING}))
+    .OP_END_FACTORY_REG(Mul)
 }
 
 namespace {
@@ -216,8 +214,7 @@ graphStatus FakeExecuteOpPrepare(KernelContext *context) {
   return GRAPH_SUCCESS;
 }
 
-void SetNoStorage(const OpDescPtr &op_desc, Format format, DataType dt,
-                  std::initializer_list<int64_t> shape) {
+void SetNoStorage(const OpDescPtr &op_desc, Format format, DataType dt, std::initializer_list<int64_t> shape) {
   for (size_t i = 0; i < op_desc->GetInputsSize(); ++i) {
     op_desc->MutableInputDesc(i)->SetFormat(format);
     op_desc->MutableInputDesc(i)->SetOriginFormat(format);
@@ -312,7 +309,7 @@ TEST_F(AclnnTwoStagesSt, MultiThreadExecutor_Ok_OnlyTwoStagesAclnnOps) {
   constexpr int32_t kEnvNoOverwrite = 0;
   int32_t mmRet = 0;
   MM_SYS_SET_ENV(MM_ENV_MAX_RUNTIME_CORE_NUMBER, "3", kEnvNoOverwrite, mmRet);
-  (void) mmRet;
+  (void)mmRet;
 
   auto graph = ShareGraph::BuildTwoAddNodeGraph();
   auto add1 = graph->FindNode("add1");
@@ -383,7 +380,7 @@ TEST_F(AclnnTwoStagesSt, MultiThreadExecutor_Ok_OnlyTwoStagesAclnnOps) {
   aclrtDestroyStream(stream);
 
   MM_SYS_UNSET_ENV(MM_ENV_MAX_RUNTIME_CORE_NUMBER, mmRet);
-  (void) mmRet;
+  (void)mmRet;
 }
 
 TEST_F(AclnnTwoStagesSt, PriorityTopologicalExecute_Ok_OnlyTwoStagesAclnnOps) {
@@ -489,8 +486,8 @@ TEST_F(AclnnTwoStagesSt, PriorityTopologicalExecute_Ok_HybridAclnnOps) {
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
-      .AddTaskDef("Mul", AiCoreTaskDefFaker("MulStubBin").WithHandle())
-      .BuildGeRootModel();
+                           .AddTaskDef("Mul", AiCoreTaskDefFaker("MulStubBin").WithHandle())
+                           .BuildGeRootModel();
   bg::ValueHolder::PopGraphFrame();
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model, {});
   ASSERT_NE(exe_graph, nullptr);
@@ -568,4 +565,4 @@ TEST_F(AclnnTwoStagesSt, PriorityTopologicalExecute_Ok_OnlyTwoStagesAclnnOps_WsZ
   runtime_stub.Clear();
   aclrtDestroyStream(stream);
 }
-} // gert
+}  // namespace gert

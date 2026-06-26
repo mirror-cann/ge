@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -36,12 +36,14 @@ Status GuaranteeConstPass::Run(NodePtr &node) {
     return SUCCESS;
   }
   if (node->GetOpDesc()->GetAllInputsSize() != kGuaranteeConstInputsSize) {
-    REPORT_INNER_ERR_MSG("E19999", "Num:%zu of input desc in node:%s(%s) not equal to %u, "
-                      "check invalid", node->GetOpDesc()->GetAllInputsSize(),
-                      node->GetName().c_str(), node->GetType().c_str(), kGuaranteeConstInputsSize);
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Num:%zu of input desc in node:%s(%s) not equal to %u, "
+                         "check invalid",
+                         node->GetOpDesc()->GetAllInputsSize(), node->GetName().c_str(), node->GetType().c_str(),
+                         kGuaranteeConstInputsSize);
     GELOGE(PARAM_INVALID, "[Check][Param] Num:%zu of input desc in node:%s(%s) not equal to %u",
-           node->GetOpDesc()->GetAllInputsSize(),
-           node->GetName().c_str(), node->GetType().c_str(), kGuaranteeConstInputsSize);
+           node->GetOpDesc()->GetAllInputsSize(), node->GetName().c_str(), node->GetType().c_str(),
+           kGuaranteeConstInputsSize);
     return PARAM_INVALID;
   }
   // [Cascade pointer]
@@ -51,12 +53,11 @@ Status GuaranteeConstPass::Run(NodePtr &node) {
   const DataType &input_dtype = in_desc->GetDataType();
   if (input_dtype == DT_RESOURCE) {
     REPORT_INNER_ERR_MSG("E19999", "Data type:%s of op:%s(%s) input0 tensor not equal to %s, check invalid",
-                      TypeUtils::DataTypeToSerialString(input_dtype).c_str(),
-                      node->GetName().c_str(), node->GetType().c_str(),
-                      TypeUtils::DataTypeToSerialString(DT_RESOURCE).c_str());
+                         TypeUtils::DataTypeToSerialString(input_dtype).c_str(), node->GetName().c_str(),
+                         node->GetType().c_str(), TypeUtils::DataTypeToSerialString(DT_RESOURCE).c_str());
     GELOGE(FAILED, "[Check][Param] Data type:%s of op:%s(%s) input0 tensor not equal to %s",
-           TypeUtils::DataTypeToSerialString(input_dtype).c_str(),
-           node->GetName().c_str(), node->GetType().c_str(), TypeUtils::DataTypeToSerialString(DT_RESOURCE).c_str());
+           TypeUtils::DataTypeToSerialString(input_dtype).c_str(), node->GetName().c_str(), node->GetType().c_str(),
+           TypeUtils::DataTypeToSerialString(DT_RESOURCE).c_str());
     return FAILED;
   }
 

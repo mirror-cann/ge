@@ -341,7 +341,7 @@ HcclResult AutoTuningHcomAllReduceFusion::AddFusionMapInFusionJson(const std::st
   CHK_RET(GetFusionWorkPath(workPath));
 
   if (access(workPath.c_str(), F_OK) == -1) {
-    HCCL_INFO("path is not exixts.");
+    HCCL_INFO("path is not exists.");
     fstream file;
     file.open(workPath, ios::out | ios::app);
     nlohmann::json root;

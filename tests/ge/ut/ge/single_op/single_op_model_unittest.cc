@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -40,7 +40,7 @@ namespace {
 struct AicpuTaskStruct {
   aicpu::AicpuParamHead head;
   uint64_t io_addrp[6];
-}__attribute__((packed));
+} __attribute__((packed));
 }  // namespace
 
 class UtestSingleOpModel : public testing::Test {
@@ -50,7 +50,7 @@ class UtestSingleOpModel : public testing::Test {
   void TearDown() {}
 };
 
-//rt api stub
+// rt api stub
 rtError_t rtGetTaskIdAndStreamID(uint32_t *taskId, uint32_t *streamId) {
   return RT_ERROR_NONE;
 }
@@ -229,7 +229,6 @@ TEST_F(UtestSingleOpModel, test_BuildOp) {
   data_op_desc->SetOutputOffset(std::vector<int64_t>{4});
   ge::NodePtr data_node = compute_graph->AddNode(data_op_desc);
 
-
   GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), node->GetInDataAnchor(0));
 
   ge::OpDescPtr const_op_desc = std::make_shared<OpDesc>("const", CONSTANT);
@@ -291,8 +290,8 @@ TEST_F(UtestSingleOpModel, test_build_soft_sync_op) {
   ge::NodePtr node = compute_graph->AddNode(op_desc);
   std::shared_ptr<ge::OpKernelBin> kernel_bin = std::make_shared<ge::OpKernelBin>("bin_name", std::vector<char>());
   void *stub_func = ValueToPtr(1234U);
-  KernelBinRegistry::GetInstance().AddKernel("model/_tvmbin",
-      std::unique_ptr<KernelHolder>(new KernelHolder((const char_t*)stub_func, kernel_bin)));
+  KernelBinRegistry::GetInstance().AddKernel(
+      "model/_tvmbin", std::unique_ptr<KernelHolder>(new KernelHolder((const char_t *)stub_func, kernel_bin)));
   GeModelPtr ge_model = std::make_shared<GeModel>();
   ge_model->SetGraph(compute_graph);
   std::shared_ptr<domi::ModelTaskDef> tasks = std::make_shared<domi::ModelTaskDef>();
@@ -304,12 +303,12 @@ TEST_F(UtestSingleOpModel, test_build_soft_sync_op) {
   atomic_kernel->set_args_size(args_info.size());
   auto atomic_context = atomic_kernel->mutable_context();
   atomic_context->set_op_index(0);
-  atomic_context->set_kernel_type(2);    // ccKernelType::TE
+  atomic_context->set_kernel_type(2);  // ccKernelType::TE
   domi::TaskDef *tbe_task = tasks->add_task();
   tbe_task->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_ALL_KERNEL));
   auto tbe_context = tbe_task->mutable_kernel_with_handle()->mutable_context();
   tbe_context->set_op_index(0);
-  tbe_context->set_kernel_type(2);    // ccKernelType::TE
+  tbe_context->set_kernel_type(2);  // ccKernelType::TE
   ge_model->task_ = tasks;
   model.op_list_[0] = node;
   model.root_graph_ = compute_graph;
@@ -347,8 +346,8 @@ TEST_F(UtestSingleOpModel, test_build_soft_sync_mix_op) {
   ge::NodePtr node = compute_graph->AddNode(op_desc);
   std::shared_ptr<ge::OpKernelBin> kernel_bin = std::make_shared<ge::OpKernelBin>("bin_name", std::vector<char>());
   void *stub_func = ValueToPtr(1234U);
-  KernelBinRegistry::GetInstance().AddKernel("model/_tvmbin",
-                                             std::unique_ptr<KernelHolder>(new KernelHolder((const char_t*)stub_func, kernel_bin)));
+  KernelBinRegistry::GetInstance().AddKernel(
+      "model/_tvmbin", std::unique_ptr<KernelHolder>(new KernelHolder((const char_t *)stub_func, kernel_bin)));
   GeModelPtr ge_model = std::make_shared<GeModel>();
   ge_model->SetGraph(compute_graph);
   std::shared_ptr<domi::ModelTaskDef> tasks = std::make_shared<domi::ModelTaskDef>();
@@ -360,12 +359,12 @@ TEST_F(UtestSingleOpModel, test_build_soft_sync_mix_op) {
   atomic_kernel->set_args_size(args_info.size());
   auto atomic_context = atomic_kernel->mutable_context();
   atomic_context->set_op_index(0);
-  atomic_context->set_kernel_type(2);    // ccKernelType::TE
+  atomic_context->set_kernel_type(2);  // ccKernelType::TE
   domi::TaskDef *tbe_task = tasks->add_task();
   tbe_task->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_ALL_KERNEL));
   auto tbe_context = tbe_task->mutable_kernel_with_handle()->mutable_context();
   tbe_context->set_op_index(0);
-  tbe_context->set_kernel_type(2);    // ccKernelType::TE
+  tbe_context->set_kernel_type(2);  // ccKernelType::TE
   tbe_context->set_args_format("{ffts_addr}");
   std::vector<uint8_t> tbe_args_info(24, 0);
   tbe_task->mutable_kernel_with_handle()->set_args(tbe_args_info.data(), tbe_args_info.size());
@@ -452,7 +451,7 @@ TEST_F(UtestSingleOpModel, test_build_dynamic_op) {
   model.op_list_[0] = transdata;
 
   auto op_desc = transdata->GetOpDesc();
-  const vector<string> depend_names = { "Data" };
+  const vector<string> depend_names = {"Data"};
   op_desc->SetOpInferDepends(depend_names);
   (void)AttrUtils::SetBool(op_desc, kAttrSupportDynamicShape, true);
 
@@ -462,7 +461,7 @@ TEST_F(UtestSingleOpModel, test_build_dynamic_op) {
   task_def->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_KERNEL));
   domi::KernelDef *kernel_def = task_def->mutable_kernel();
   domi::KernelContext *context = kernel_def->mutable_context();
-  context->set_kernel_type(2);    // ccKernelType::TE
+  context->set_kernel_type(2);  // ccKernelType::TE
   model.model_helper_.model_->SetModelTaskDef(model_task_def);
 
   std::mutex stream_mu_;
@@ -545,7 +544,7 @@ TEST_F(UtestSingleOpModel, BuildTaskList) {
   model.root_ge_model_ = ge_model;
   ASSERT_EQ(model.BuildTaskList(*res, single_op), SUCCESS);
   MemcpyAsyncTask mem_task;
-  for (auto &task: single_op.tasks_) {
+  for (auto &task : single_op.tasks_) {
     ASSERT_EQ(task->LaunchKernel(single_op.stream_), SUCCESS);
   }
   aclrtDestroyStream(stream);
@@ -569,13 +568,13 @@ TEST_F(UtestSingleOpModel, build_dynamic_task01) {
   kernel_def->set_args(args_info.data(), args_info.size());
   kernel_def->set_args_size(args_info.size());
   domi::KernelContext *context = kernel_def->mutable_context();
-  context->set_kernel_type(6);    // ccKernelType::AI_CPU
+  context->set_kernel_type(6);  // ccKernelType::AI_CPU
 
   domi::TaskDef *task_def3 = model_task_def->add_task();
   task_def3->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_ALL_KERNEL));
   auto kernel_def3 = task_def3->mutable_kernel_with_handle();
   auto context3 = kernel_def3->mutable_context();
-  context3->set_kernel_type(2);    // ccKernelType::TE
+  context3->set_kernel_type(2);  // ccKernelType::TE
 
   domi::TaskDef *task_def4 = model_task_def->add_task();
   task_def4->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_KERNEL));
@@ -584,14 +583,14 @@ TEST_F(UtestSingleOpModel, build_dynamic_task01) {
   kernel_def4->set_args(args_info2.data(), args_info2.size());
   kernel_def4->set_args_size(args_info2.size());
   domi::KernelContext *context4 = kernel_def4->mutable_context();
-  context4->set_kernel_type(2);    // ccKernelType::TE
+  context4->set_kernel_type(2);  // ccKernelType::TE
 
   domi::TaskDef *task_def5 = model_task_def->add_task();
   task_def5->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_KERNEL));
   domi::KernelDef *kernel_def5 = task_def5->mutable_kernel();
   domi::KernelContext *context5 = kernel_def5->mutable_context();
   context5->set_op_index(0);
-  context5->set_kernel_type(2);    // ccKernelType::TE
+  context5->set_kernel_type(2);  // ccKernelType::TE
 
   string model_data_str = "dynamic_model";
   SingleOpModel model("model", model_data_str.c_str(), model_data_str.size());
@@ -611,20 +610,20 @@ TEST_F(UtestSingleOpModel, build_dynamic_task01) {
 
   model.root_ge_model_ = ge_model;
   ASSERT_EQ(model.ParseTasks(), SUCCESS);
-  model.node_tasks_[node] = {*task_def4 };
+  model.node_tasks_[node] = {*task_def4};
   op_desc->SetOpKernelLibName(kEngineNameAiCore);
   AttrUtils::SetInt(op_desc, "op_para_size", 64);
   AttrUtils::SetBool(op_desc, kAttrSupportDynamicShape, true);
   ASSERT_EQ(model.BuildTaskListForDynamicOp(*res, single_op), SUCCESS);
 
-  model.node_tasks_[node] = { *task_def3, *task_def4 };
+  model.node_tasks_[node] = {*task_def3, *task_def4};
   ASSERT_NE(model.BuildTaskListForDynamicOp(*res, single_op), SUCCESS);
 
-  model.node_tasks_[node] = { *task_def };
+  model.node_tasks_[node] = {*task_def};
   op_desc->SetOpKernelLibName(kEngineNameAiCpuTf);
   ASSERT_EQ(model.BuildTaskListForDynamicOp(*res, single_op), SUCCESS);
 
-  model.node_tasks_[node] = { *task_def2 };
+  model.node_tasks_[node] = {*task_def2};
   op_desc->SetOpKernelLibName(kEngineNameAiCpu);
   ASSERT_EQ(model.BuildTaskListForDynamicOp(*res, single_op), SUCCESS);
 
@@ -660,7 +659,7 @@ TEST_F(UtestSingleOpModel, build_dynamic_task02) {
   kernel_def->set_kernel_ext_info(ext_mem, sizeof(ge::hybrid::AicpuExtInfo) + sizeof(int32_t));
   kernel_def->set_kernel_ext_info_size(sizeof(ge::hybrid::AicpuExtInfo) + sizeof(int32_t));
   domi::KernelContext *context = kernel_def->mutable_context();
-  context->set_kernel_type(6);    // ccKernelType::AI_CPU
+  context->set_kernel_type(6);  // ccKernelType::AI_CPU
 
   string model_data_str = "dynamic_model";
   SingleOpModel model("model", model_data_str.c_str(), model_data_str.size());
@@ -677,10 +676,10 @@ TEST_F(UtestSingleOpModel, build_dynamic_task02) {
 
   model.root_ge_model_ = ge_model;
   ASSERT_EQ(model.ParseTasks(), SUCCESS);
-  model.node_tasks_[node] = { *task_def, *task_def };
+  model.node_tasks_[node] = {*task_def, *task_def};
   op_desc->SetOpKernelLibName(kEngineNameAiCpu);
   ASSERT_NE(model.BuildTaskListForDynamicOp(*res, single_op), SUCCESS);
-  model.node_tasks_[node] = { *task_def};
+  model.node_tasks_[node] = {*task_def};
   ASSERT_NE(model.BuildTaskListForDynamicOp(*res, single_op), SUCCESS);
   context->set_kernel_type(7);
   model.node_tasks_[node] = {*task_def};
@@ -700,7 +699,7 @@ TEST_F(UtestSingleOpModel, build_memcpoy_task) {
   ASSERT_EQ(aicpu_task.SetMemCopyTask(kernel_def), INTERNAL_ERROR);
   kernel_def.set_args_size(0);
   ASSERT_EQ(aicpu_task.SetMemCopyTask(kernel_def), FAILED);
-  const char* args2 = "123";
+  const char *args2 = "123";
   kernel_def.set_args(reinterpret_cast<const char *>(&args2), 3);
   kernel_def.set_args_size(3);
   ASSERT_EQ(aicpu_task.SetMemCopyTask(kernel_def), FAILED);
@@ -722,7 +721,7 @@ TEST_F(UtestSingleOpModel, build_mixl2_task) {
   task.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_FFTS_PLUS));
   domi::FftsPlusTaskDef *ffts_plus_task_def = task.mutable_ffts_plus_task();
   ffts_plus_task_def->set_op_index(op_desc->GetId());
-  OpTask * mixl2_task = nullptr;
+  OpTask *mixl2_task = nullptr;
   StreamResource resource(1);
   ASSERT_NE(model.BuildMixL2KernelTask(task, mixl2_task, resource), SUCCESS);
   model.op_list_[op_desc->GetId()] = node;
@@ -732,9 +731,7 @@ TEST_F(UtestSingleOpModel, build_mixl2_task) {
   delete mixl2_task;
 }
 
-
 TEST_F(UtestSingleOpModel, load_atomic_workspace) {
-
   string model_data_str = "dynamic_model";
   SingleOpModel model("model", model_data_str.c_str(), model_data_str.size());
 
@@ -746,14 +743,14 @@ TEST_F(UtestSingleOpModel, load_atomic_workspace) {
   dimTypeList.push_back(1);
   dimTypeList.push_back(2);
   dimTypeList.push_back(3);
-  AttrUtils::SetListInt(workspaces_attrs,op_desc->GetName(), dimTypeList);
+  AttrUtils::SetListInt(workspaces_attrs, op_desc->GetName(), dimTypeList);
   AttrUtils::SetNamedAttrs(op_desc, EXT_ATTR_ATOMIC_WORKSPACE_INFO, workspaces_attrs);
 
   map<string, map<int64_t, int64_t>> workspace_info;
   map<int64_t, int64_t> workspace_info_pair;
   workspace_info_pair.insert(std::make_pair(1, 1));
   workspace_info.insert(std::make_pair("1", workspace_info_pair));
-  op_desc->SetExtAttr(EXT_ATTR_ATOMIC_WORKSPACE_INFO,workspace_info);
+  op_desc->SetExtAttr(EXT_ATTR_ATOMIC_WORKSPACE_INFO, workspace_info);
   EXPECT_EQ(ExecutorUtils::LoadAtomicWorkspace(op_desc), ge::SUCCESS);
 }
 
@@ -794,7 +791,7 @@ TEST_F(UtestSingleOpModel, BuildClearFloatTask) {
   ASSERT_EQ(model.BuildTaskList(*res, single_op), SUCCESS);
   MemcpyAsyncTask mem_task;
   ASSERT_TRUE(!single_op.tasks_.empty());
-  for (auto &task: single_op.tasks_) {
+  for (auto &task : single_op.tasks_) {
     ASSERT_EQ(task->LaunchKernel(single_op.stream_), SUCCESS);
   }
   aclrtDestroyStream(stream);
@@ -842,7 +839,7 @@ TEST_F(UtestSingleOpModel, BuildGetFloatTask) {
   ASSERT_EQ(model.BuildTaskList(*res, single_op), SUCCESS);
   MemcpyAsyncTask mem_task;
   ASSERT_TRUE(!single_op.tasks_.empty());
-  for (auto &task: single_op.tasks_) {
+  for (auto &task : single_op.tasks_) {
     ASSERT_EQ(task->LaunchKernel(single_op.stream_), SUCCESS);
   }
   aclrtDestroyStream(stream);
@@ -957,7 +954,7 @@ TEST_F(UtestSingleOpModel, BuildDsaTask_no_state) {
     op_desc->AddInputDesc(tensor);
     op_desc->AddInputDesc(tensor);
     op_desc->AddOutputDesc(tensor);
-    op_desc->SetInputOffset({0,0,0,0,0});
+    op_desc->SetInputOffset({0, 0, 0, 0, 0});
     op_desc->SetOutputOffset({0});
     op_desc->SetWorkspace({0});
     op_desc->SetWorkspaceBytes({0});
@@ -992,7 +989,7 @@ TEST_F(UtestSingleOpModel, BuildDsaTask_no_state) {
   model.root_ge_model_ = ge_model;
   ASSERT_EQ(model.BuildTaskList(*res, single_op), SUCCESS);
   ASSERT_TRUE(!single_op.tasks_.empty());
-  for (auto &task: single_op.tasks_) {
+  for (auto &task : single_op.tasks_) {
     ASSERT_EQ(task->LaunchKernel(single_op.stream_), SUCCESS);
   }
   aclrtDestroyStream(stream);
@@ -1014,10 +1011,10 @@ TEST_F(UtestSingleOpModel, BuildDsaTask_has_state) {
     op_desc->AddInputDesc(tensor);
     op_desc->AddInputDesc(tensor);
     op_desc->AddOutputDesc(tensor);
-    op_desc->SetInputOffset({0,0,0,0});
+    op_desc->SetInputOffset({0, 0, 0, 0});
     op_desc->SetOutputOffset({0});
-    op_desc->SetWorkspace({0,0});
-    op_desc->SetWorkspaceBytes({0,0});
+    op_desc->SetWorkspace({0, 0});
+    op_desc->SetWorkspaceBytes({0, 0});
     node = graph->AddNode(op_desc);
 
     domi::TaskDef *task_def = model_task_def->add_task();
@@ -1054,7 +1051,7 @@ TEST_F(UtestSingleOpModel, BuildDsaTask_has_state) {
   model.root_ge_model_ = ge_model;
   ASSERT_EQ(model.BuildTaskList(*res, single_op), SUCCESS);
   ASSERT_TRUE(!single_op.tasks_.empty());
-  for (auto &task: single_op.tasks_) {
+  for (auto &task : single_op.tasks_) {
     ASSERT_EQ(task->LaunchKernel(single_op.stream_), SUCCESS);
   }
   aclrtDestroyStream(stream);
@@ -1067,7 +1064,7 @@ TEST_F(UtestSingleOpModel, parse_op_model_params) {
   std::string so_name("libopmaster.so");
   std::string vendor_name("MDC/opp/");
   std::unique_ptr<char[]> so_bin = std::unique_ptr<char[]>(new (std::nothrow) char[so_name.length()]);
-  (void) memcpy_s(so_bin.get(), so_name.length(), so_name.data(), so_name.length());
+  (void)memcpy_s(so_bin.get(), so_name.length(), so_name.data(), so_name.length());
   OpSoBinPtr op_so_bin = std::make_shared<OpSoBin>(so_name, vendor_name, std::move(so_bin), so_name.length());
   kernels.emplace_back(op_so_bin);
   root_model->op_so_store_.kernels_ = std::move(kernels);

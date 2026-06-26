@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,17 +26,31 @@
 
 namespace ge {
 void SetKnownOpKernel(const ComputeGraphPtr &graph, uint32_t &mem_offset) {
-  const static std::set<std::string> kGeLocalTypes{
-      DATA, CONSTANT, CONSTANTOP, VARIABLE, NETOUTPUT, AIPPDATA, FILECONSTANT
-  };
-  const static std::set<std::string> kRtsLibTypes{
-      IDENTITY, IDENTITYN, READVARIABLEOP, PROFILINGTRAININGTRACE, MEMCPYASYNC,
-      STREAMACTIVE, STREAMSWITCH, STREAMMERGE, ENTER, REFENTER, LOOPCOND, NEXTITERATION, REFNEXTITERATION,
-      EXIT, REFEXIT, LABELSET, LABELGOTO, LABELGOTOEX, LABELSWITCH, LABELSWITCHBYINDEX
-  };
+  const static std::set<std::string> kGeLocalTypes{DATA,      CONSTANT, CONSTANTOP,  VARIABLE,
+                                                   NETOUTPUT, AIPPDATA, FILECONSTANT};
+  const static std::set<std::string> kRtsLibTypes{IDENTITY,
+                                                  IDENTITYN,
+                                                  READVARIABLEOP,
+                                                  PROFILINGTRAININGTRACE,
+                                                  MEMCPYASYNC,
+                                                  STREAMACTIVE,
+                                                  STREAMSWITCH,
+                                                  STREAMMERGE,
+                                                  ENTER,
+                                                  REFENTER,
+                                                  LOOPCOND,
+                                                  NEXTITERATION,
+                                                  REFNEXTITERATION,
+                                                  EXIT,
+                                                  REFEXIT,
+                                                  LABELSET,
+                                                  LABELGOTO,
+                                                  LABELGOTOEX,
+                                                  LABELSWITCH,
+                                                  LABELSWITCHBYINDEX};
   static uint32_t node_index = 0U;
 
-  GeTensorDesc tensor(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT); // sizeof(float) * 1 * 4 * 4 * 8 = 512
+  GeTensorDesc tensor(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);  // sizeof(float) * 1 * 4 * 4 * 8 = 512
   TensorUtils::SetSize(tensor, 512);
 
   const bool owner_is_unknown = graph->GetGraphUnknownFlag();
@@ -164,7 +178,7 @@ NodePtr CreateNode(ComputeGraph &graph, const std::string &name, const std::stri
   op_desc->SetWorkspace({});
   op_desc->SetWorkspaceBytes({});
 
-  const static std::set<std::string> kGeLocalTypes{ DATA, CONSTANT, VARIABLE, NETOUTPUT };
+  const static std::set<std::string> kGeLocalTypes{DATA, CONSTANT, VARIABLE, NETOUTPUT};
   op_desc->SetOpKernelLibName((kGeLocalTypes.count(type) > 0U) ? "DNN_VM_GE_LOCAL_OP_STORE" : "DNN_VM_RTS_OP_STORE");
 
   return graph.AddNode(op_desc);
@@ -219,12 +233,12 @@ void InitFftsThreadSliceMap(const OpDescPtr &op_desc) {
 
 void InitTaskSQEInfo(domi::FftsPlusTaskDef *task_def) {
   domi::FftsPlusSqeDef *sqedef = task_def->mutable_ffts_plus_sqe();
-  //header
+  // header
   domi::StarsSqeHeaderDef *headerdef = sqedef->mutable_sqe_header();
   headerdef->set_l1_lock(1);
   headerdef->set_l1_unlock(1);
   headerdef->set_block_dim(1);
-  //sqe
+  // sqe
   sqedef->set_wrr_ratio(1);
   sqedef->set_sqe_index(1);
 
@@ -260,7 +274,7 @@ void InitCachePersistentCtx(domi::FftsPlusCachePersistCtxDef *ctx_def) {
   ctx_def->set_pred_cnt_init(1);
   ctx_def->set_pred_cnt(1);
   for (int i = 1; i < RT_CTX_SUCCESSOR_NUM; ++i) {
-    ctx_def->add_successor_list(1); // 16 bits, len = 26
+    ctx_def->add_successor_list(1);  // 16 bits, len = 26
   }
   ctx_def->set_persistent_en(1);
   ctx_def->set_persistent_id(1);
@@ -274,7 +288,7 @@ void InitAicAivCtx(domi::FftsPlusAicAivCtxDef *ctx_def, bool is_known) {
   ctx_def->set_pred_cnt_init(1);
   ctx_def->set_pred_cnt(1);
   for (int i = 1; i < RT_CTX_SUCCESSOR_NUM; ++i) {
-    ctx_def->add_successor_list(1); // 16 bits, len = 26
+    ctx_def->add_successor_list(1);  // 16 bits, len = 26
   }
   ctx_def->set_schem(1);
   ctx_def->set_atm(1);
@@ -287,14 +301,14 @@ void InitAicAivCtx(domi::FftsPlusAicAivCtxDef *ctx_def, bool is_known) {
   ctx_def->set_qos(1);
 
   ctx_def->set_thread_id(2);
-  if (is_known) { // for unknown thread dim is 0.
+  if (is_known) {  // for unknown thread dim is 0.
     ctx_def->set_thread_dim(1);
   }
 
   ctx_def->set_non_tail_block_dim(6);
   ctx_def->set_tail_block_dim(5);
 
-  //ctx_def->set_task_param_ptr_base(0x235689);
+  // ctx_def->set_task_param_ptr_base(0x235689);
   ctx_def->set_task_param_ptr_offset(32);
   // task_addr = {0,200,700,1000,2000, 3500}
   // task_addr_offset = {20,40,2,100,200}
@@ -328,7 +342,7 @@ void InitMixAicAivCtx(domi::FftsPlusMixAicAivCtxDef *ctx_def, bool is_auto, bool
   ctx_def->set_pred_cnt_init(1);
   ctx_def->set_pred_cnt(1);
   for (int i = 0; i < RT_CTX_SUCCESSOR_NUM; ++i) {
-    ctx_def->add_successor_list(1); // len = 26
+    ctx_def->add_successor_list(1);  // len = 26
   }
   ctx_def->set_schem(1);
 
@@ -348,7 +362,7 @@ void InitMixAicAivCtx(domi::FftsPlusMixAicAivCtxDef *ctx_def, bool is_auto, bool
   ctx_def->set_tail_block_ratio_n(1);
 
   ctx_def->set_thread_id(1);
-  if (is_known) { // for unknown thread dim is 0.
+  if (is_known) {  // for unknown thread dim is 0.
     ctx_def->set_thread_dim(1);
   }
 
@@ -394,7 +408,7 @@ void InitMixAicAivCtxForSingleKernel(domi::FftsPlusMixAicAivCtxDef *ctx_def, boo
   ctx_def->set_pred_cnt_init(1);
   ctx_def->set_pred_cnt(1);
   for (int i = 0; i < RT_CTX_SUCCESSOR_NUM; ++i) {
-    ctx_def->add_successor_list(1); // len = 26
+    ctx_def->add_successor_list(1);  // len = 26
   }
   ctx_def->set_schem(1);
 
@@ -414,7 +428,7 @@ void InitMixAicAivCtxForSingleKernel(domi::FftsPlusMixAicAivCtxDef *ctx_def, boo
   ctx_def->set_tail_block_ratio_n(1);
 
   ctx_def->set_thread_id(1);
-  if (is_known) { // for unknown thread dim is 0.
+  if (is_known) {  // for unknown thread dim is 0.
     ctx_def->set_thread_dim(1);
   }
 
@@ -457,7 +471,7 @@ void InitSdmaCtx(domi::FftsPlusSdmaCtxDef *ctx_def) {
   ctx_def->set_pred_cnt_init(1);
   ctx_def->set_pred_cnt(1);
   for (int i = 0; i < RT_CTX_SUCCESSOR_NUM; ++i) {
-    ctx_def->add_successor_list(1); // len = 26
+    ctx_def->add_successor_list(1);  // len = 26
   }
 
   ctx_def->set_atm(1);
@@ -491,7 +505,7 @@ void InitNotifyCtx(domi::FftsPlusNotifyCtxDef *ctx_def) {
   ctx_def->set_pred_cnt_init(1);
   ctx_def->set_pred_cnt(1);
   for (int i = 0; i < RT_CTX_SUCCESSOR_NUM; ++i) {
-    ctx_def->add_successor_list(1); // len = 26
+    ctx_def->add_successor_list(1);  // len = 26
   }
   ctx_def->set_atm(1);
   ctx_def->set_satm(1);
@@ -512,7 +526,7 @@ void InitWriteValueCtx(domi::FftsPlusWriteValueCtxDef *ctx_def) {
   ctx_def->set_pred_cnt_init(1);
   ctx_def->set_pred_cnt(1);
   for (int i = 0; i < RT_CTX_SUCCESSOR_NUM; ++i) {
-    ctx_def->add_successor_list(1); // len = 26
+    ctx_def->add_successor_list(1);  // len = 26
   }
   ctx_def->set_atm(1);
   ctx_def->set_thread_id(1);
@@ -543,7 +557,7 @@ void InitAicpuCtxCtx(const OpDescPtr &op_desc, domi::FftsPlusAicpuCtxDef *ctx_de
   ctx_def->set_pred_cnt_init(1);
   ctx_def->set_pred_cnt(1);
   for (int j = 0; j < RT_CTX_SUCCESSOR_NUM; ++j) {
-    ctx_def->add_successor_list(1);   // len = 26
+    ctx_def->add_successor_list(1);  // len = 26
   }
   ctx_def->set_atm(1);
   ctx_def->set_sqe_index(1);
@@ -649,7 +663,7 @@ void InitAicpuFwkCtxCtx(domi::FftsPlusAicpuCtxDef *ctx_def) {
   ctx_def->set_pred_cnt_init(1);
   ctx_def->set_pred_cnt(1);
   for (int j = 0; j < RT_CTX_SUCCESSOR_NUM; ++j) {
-    ctx_def->add_successor_list(1);   // len = 26
+    ctx_def->add_successor_list(1);  // len = 26
   }
   ctx_def->set_atm(1);
   ctx_def->set_sqe_index(1);
@@ -692,7 +706,7 @@ void InitDataCtx(domi::FftsPlusDataCtxDef *ctx_def) {
   ctx_def->set_cnt_init(1);
   ctx_def->set_cnt(1);
   for (int i = 0; i < RT_CTX_SUCCESSOR_NUM; ++i) {
-    ctx_def->add_successor_list(1); // len = 26
+    ctx_def->add_successor_list(1);  // len = 26
   }
   ctx_def->set_atm(1);
   ctx_def->set_pmg(1);
@@ -728,7 +742,7 @@ void InitAicpuFwkCtxAndExtInfo(domi::FftsPlusAicpuCtxDef *ctx_def) {
   ctx_def->set_pred_cnt_init(1);
   ctx_def->set_pred_cnt(1);
   for (int j = 0; j < RT_CTX_SUCCESSOR_NUM; ++j) {
-    ctx_def->add_successor_list(1);   // len = 26
+    ctx_def->add_successor_list(1);  // len = 26
   }
   ctx_def->set_atm(1);
   ctx_def->set_sqe_index(1);
@@ -779,7 +793,7 @@ void InitAicpuCtxAndExtInfo(domi::FftsPlusAicpuCtxDef *ctx_def) {
   ctx_def->set_pred_cnt_init(1);
   ctx_def->set_pred_cnt(1);
   for (int j = 0; j < RT_CTX_SUCCESSOR_NUM; ++j) {
-    ctx_def->add_successor_list(1);   // len = 26
+    ctx_def->add_successor_list(1);  // len = 26
   }
   ctx_def->set_atm(1);
   ctx_def->set_sqe_index(1);
@@ -802,11 +816,11 @@ void InitAicpuCtxAndExtInfo(domi::FftsPlusAicpuCtxDef *ctx_def) {
   vector<char> aicpu_ext_info(len, 0);
   char *buf = aicpu_ext_info.data();
   int offset = 0;
-  hybrid::AicpuExtInfo *ext_info = reinterpret_cast<hybrid::AicpuExtInfo*>(buf + offset);
+  hybrid::AicpuExtInfo *ext_info = reinterpret_cast<hybrid::AicpuExtInfo *>(buf + offset);
   ext_info->infoType = aicpu::FWKAdapter::FWK_ADPT_EXT_ASYNCWAIT;
   ext_info->infoLen = sizeof(hybrid::AsyncWaitInfo);
   offset += sizeof(hybrid::AicpuExtInfo);
-  hybrid::AsyncWaitInfo *async_wait_info = reinterpret_cast<hybrid::AsyncWaitInfo*>(buf + offset);
+  hybrid::AsyncWaitInfo *async_wait_info = reinterpret_cast<hybrid::AsyncWaitInfo *>(buf + offset);
   async_wait_info->waitType = 0;
   async_wait_info->waitId = 0;
   async_wait_info->timeOut = 0;
@@ -829,7 +843,7 @@ void InitCustomAicpuCtxAndExtInfo(domi::FftsPlusAicpuCtxDef *ctx_def) {
   ctx_def->set_pred_cnt_init(1);
   ctx_def->set_pred_cnt(1);
   for (int j = 0; j < RT_CTX_SUCCESSOR_NUM; ++j) {
-    ctx_def->add_successor_list(1);   // len = 26
+    ctx_def->add_successor_list(1);  // len = 26
   }
   ctx_def->set_atm(1);
   ctx_def->set_sqe_index(1);
@@ -852,11 +866,11 @@ void InitCustomAicpuCtxAndExtInfo(domi::FftsPlusAicpuCtxDef *ctx_def) {
   vector<char> aicpu_ext_info(len, 0);
   char *buf = aicpu_ext_info.data();
   int offset = 0;
-  hybrid::AicpuExtInfo *ext_info = reinterpret_cast<hybrid::AicpuExtInfo*>(buf + offset);
+  hybrid::AicpuExtInfo *ext_info = reinterpret_cast<hybrid::AicpuExtInfo *>(buf + offset);
   ext_info->infoType = aicpu::FWKAdapter::FWK_ADPT_EXT_ASYNCWAIT;
   ext_info->infoLen = sizeof(hybrid::AsyncWaitInfo);
   offset += sizeof(hybrid::AicpuExtInfo);
-  hybrid::AsyncWaitInfo *async_wait_info = reinterpret_cast<hybrid::AsyncWaitInfo*>(buf + offset);
+  hybrid::AsyncWaitInfo *async_wait_info = reinterpret_cast<hybrid::AsyncWaitInfo *>(buf + offset);
   async_wait_info->waitType = 0;
   async_wait_info->waitId = 0;
   async_wait_info->timeOut = 0;
@@ -879,7 +893,7 @@ void InitAtStartCtx(domi::FftsPlusAtStartCtxDef *ctx_def) {
   ctx_def->set_pred_cnt_init(1);
   ctx_def->set_pred_cnt(1);
   for (int i = 0; i < RT_CTX_SUCCESSOR_NUM; ++i) {
-    ctx_def->add_successor_list(i); // len = 26
+    ctx_def->add_successor_list(i);  // len = 26
   }
   ctx_def->set_thread_id(1);
   ctx_def->set_thread_dim(1);
@@ -896,8 +910,8 @@ void InitAtEndCtx(domi::FftsPlusAtEndCtxDef *ctx_def) {
   ctx_def->set_pred_cnt_init(1);
   ctx_def->set_pred_cnt(1);
   for (int i = 0; i < RT_CTX_SUCC_AT_START_SLOT_NUM; ++i) {
-    ctx_def->add_succ_at_start_slot(i);     // len = 12
-    ctx_def->add_succ_out_label_slot(1);    // len = 12
+    ctx_def->add_succ_at_start_slot(i);   // len = 12
+    ctx_def->add_succ_out_label_slot(1);  // len = 12
   }
 
   ctx_def->set_thread_id(1);
@@ -908,7 +922,7 @@ void InitLabelCtx(domi::FftsPlusLabelCtxDef *ctx_def) {
   ctx_def->set_pred_cnt_init(1);
   ctx_def->set_pred_cnt(1);
   for (int i = 0; i < RT_CTX_SUCCESSOR_NUM; ++i) {
-    ctx_def->add_successor_list(1); // len = 26
+    ctx_def->add_successor_list(1);  // len = 26
   }
 }
 
@@ -920,7 +934,7 @@ void InitCaseSwitchCtx(domi::FftsPlusCaseSwitchCtxDef *ctx_def) {
   ctx_def->set_pred_cnt_init(32);
   ctx_def->set_pred_cnt(32);
   for (int i = 0; i < RT_CTX_SUCCESSOR_NUM; ++i) {
-    ctx_def->add_successor_list(1); // len = 26
+    ctx_def->add_successor_list(1);  // len = 26
   }
   ctx_def->set_atm(32);
 
@@ -950,7 +964,7 @@ void InitCaseDefaultCtx(domi::FftsPlusCaseDefaultCtxDef *ctx_def) {
   ctx_def->set_pred_cnt_init(1);
   ctx_def->set_pred_cnt(32);
   for (int i = 0; i < RT_CTX_SUCCESSOR_NUM; ++i) {
-    ctx_def->add_successor_list(2); // len = 26
+    ctx_def->add_successor_list(2);  // len = 26
   }
 }
 
@@ -965,9 +979,9 @@ void InitCondSwitchCtx(domi::FftsPlusCondSwitchCtxDef *ctx_def) {
 
   for (int i = 0; i < RT_CTX_FALSE_SUCCESSOR_NUM; ++i) {
     if (i < RT_CTX_TRUE_SUCCESSOR_NUM) {
-      ctx_def->add_true_successor_list(1);    // len = 12
+      ctx_def->add_true_successor_list(1);  // len = 12
     }
-    ctx_def->add_false_successor_list(1);   // len = 14
+    ctx_def->add_false_successor_list(1);  // len = 14
   }
   ctx_def->set_atm(32);
 
@@ -1039,4 +1053,4 @@ void InitDsaCtx(domi::FftsPlusDsaCtxDef *ctx_def, const bool is_set_value) {
   dsa_task_args_def->set_input1_value_or_addr("12345678");
   dsa_task_args_def->set_input2_value_or_addr("12345678");
 }
-}
+}  // namespace ge

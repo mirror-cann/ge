@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -47,9 +47,7 @@ namespace fe {
 using FEGraphOptimizerPtr = std::shared_ptr<FEGraphOptimizer>;
 class GRAPH_FUSION_ST : public testing::Test {
  public:
-
  protected:
-
   void SetUp() {
     std::map<std::string, std::string> options;
     options.emplace(ge::PRECISION_MODE, ALLOW_FP32_TO_FP16);
@@ -59,7 +57,8 @@ class GRAPH_FUSION_ST : public testing::Test {
         6,
         "tbe-builtin",
         EN_IMPL_HW_TBE,
-        GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/fusion_rule_manager",
+        GetCodeDir() +
+            "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/fusion_rule_manager",
         "",
         false,
         false,
@@ -81,35 +80,32 @@ class GRAPH_FUSION_ST : public testing::Test {
         "lib64/plugin/opskernel/fusion_pass/config/fusion_config.json";
     fusion_rule_mgr_->Initialize(AI_CORE_NAME);
 
-    fusion_priority_mgr_ =
-        std::make_shared<FusionPriorityManager>(AI_CORE_NAME, fusion_rule_mgr_);
+    fusion_priority_mgr_ = std::make_shared<FusionPriorityManager>(AI_CORE_NAME, fusion_rule_mgr_);
 
-    fusion_priority_mgr_vec_ =
-        std::make_shared<FusionPriorityManager>(VECTOR_CORE_NAME, fusion_rule_mgr_);
+    fusion_priority_mgr_vec_ = std::make_shared<FusionPriorityManager>(VECTOR_CORE_NAME, fusion_rule_mgr_);
 
     // initialize fusion configuration
     Configuration::Instance(fe::AI_CORE_NAME).lib_path_ =
         GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_config_manager/builtin_config3/";
     ge::GetThreadLocalContext().graph_options_[ge::FUSION_SWITCH_FILE] =
-        GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_config_manager/custom_config/fusion_config3.json";
+        GetCodeDir() +
+        "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_config_manager/custom_config/fusion_config3.json";
     fusion_priority_mgr_->fusion_config_parser_ptr_ = std::make_unique<FusionConfigParser>(fe::AI_CORE_NAME);
     fusion_priority_mgr_->fusion_config_parser_ptr_->ParseFusionConfigFile();
 
     Configuration::Instance(fe::VECTOR_CORE_NAME).lib_path_ =
         GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_config_manager/builtin_config3/";
     ge::GetThreadLocalContext().graph_options_[ge::FUSION_SWITCH_FILE] =
-        GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_config_manager/custom_config/fusion_config3.json";
+        GetCodeDir() +
+        "/tests/engines/nn_engine/ut/testcase/fusion_engine/fusion_config_manager/custom_config/fusion_config3.json";
     fusion_priority_mgr_vec_->fusion_config_parser_ptr_ = std::make_unique<FusionConfigParser>(fe::VECTOR_CORE_NAME);
     fusion_priority_mgr_vec_->fusion_config_parser_ptr_->ParseFusionConfigFile();
 
-    graph_fusion_ = std::make_shared<GraphFusion>(
-        fusion_rule_mgr_, fe_ops_kernel_info_store_,
-        fusion_priority_mgr_);
+    graph_fusion_ = std::make_shared<GraphFusion>(fusion_rule_mgr_, fe_ops_kernel_info_store_, fusion_priority_mgr_);
     graph_fusion_->SetEngineName(AI_CORE_NAME);
 
-    graph_fusion_vec_ = std::make_shared<GraphFusion>(
-        fusion_rule_mgr_, fe_ops_kernel_info_store_,
-        fusion_priority_mgr_vec_);
+    graph_fusion_vec_ =
+        std::make_shared<GraphFusion>(fusion_rule_mgr_, fe_ops_kernel_info_store_, fusion_priority_mgr_vec_);
     graph_fusion_vec_->SetEngineName(VECTOR_CORE_NAME);
 
     graph_optimizer_ = std::make_shared<FEGraphOptimizer>(fe_ops_kernel_info_store_);
@@ -119,8 +115,7 @@ class GRAPH_FUSION_ST : public testing::Test {
     graph_optimizer_->fusion_rule_mgr_ptr_ = fusion_rule_mgr_;
   }
 
-  void TearDown() {
-  }
+  void TearDown() {}
 
   shared_ptr<fe::FEOpsKernelInfoStore> fe_ops_kernel_info_store_;
   FusionRuleManagerPtr fusion_rule_mgr_;
@@ -143,7 +138,6 @@ TEST_F(GRAPH_FUSION_ST, converage_03) {
 
 class TestPass : public PatternFusionBasePass {
  protected:
-
   vector<FusionPattern *> DefinePatterns() override {
     return {};
   };
@@ -155,15 +149,13 @@ class TestPass : public PatternFusionBasePass {
 
 class TestFailedPass : public PatternFusionBasePass {
  protected:
-
   vector<FusionPattern *> DefinePatterns() override {
     vector<FusionPattern *> patterns;
     FusionPattern *pattern = new (std::nothrow) FusionPattern("FailedPattern");
     FE_CHECK(pattern == nullptr, REPORT_FE_ERROR("[GraphOpt][ConCatQuatFus][DfnPtn] Fail to new an object."),
              return patterns);
 
-    pattern->AddOpDesc("pattern_dequant", {ASCEND_DEQUANT})
-        .SetOutput("pattern_dequant");
+    pattern->AddOpDesc("pattern_dequant", {ASCEND_DEQUANT}).SetOutput("pattern_dequant");
     patterns.push_back(pattern);
 
     return patterns;
@@ -177,12 +169,11 @@ class TestFailedPass : public PatternFusionBasePass {
 using CreateFn = GraphPass *(*)();
 
 fe::GraphPass *CreateFunc() {
-  return new(std::nothrow) TestPass();
+  return new (std::nothrow) TestPass();
 }
 
 fe::GraphPass *CreateFailedFunc() {
-  return new(std::nothrow) TestFailedPass();
-
+  return new (std::nothrow) TestFailedPass();
 }
 
 void RegisterPassFunc(CreateFn create_fn) {
@@ -196,19 +187,19 @@ void RegisterPassFunc(CreateFn create_fn) {
   FusionPassRegistry::GetInstance().RegisterPass(SECOND_ROUND_BUILT_IN_GRAPH_PASS, "BUILT_IN_PASS3", create_fn, 0);
   FusionPassRegistry::GetInstance().RegisterPass(SECOND_ROUND_BUILT_IN_GRAPH_PASS, "BUILT_IN_PASS4", create_fn, 0);
 
-  FusionPassRegistry::GetInstance().RegisterPass(
-      BUILT_IN_BEFORE_TRANSNODE_INSERTION_GRAPH_PASS, "BUILT_IN_PASS3", create_fn, 0);
-  FusionPassRegistry::GetInstance().RegisterPass(
-      BUILT_IN_BEFORE_TRANSNODE_INSERTION_GRAPH_PASS, "BUILT_IN_PASS4", create_fn, 0);
+  FusionPassRegistry::GetInstance().RegisterPass(BUILT_IN_BEFORE_TRANSNODE_INSERTION_GRAPH_PASS, "BUILT_IN_PASS3",
+                                                 create_fn, 0);
+  FusionPassRegistry::GetInstance().RegisterPass(BUILT_IN_BEFORE_TRANSNODE_INSERTION_GRAPH_PASS, "BUILT_IN_PASS4",
+                                                 create_fn, 0);
 
   FusionPassRegistry::GetInstance().RegisterPass(BUILT_IN_PREPARE_GRAPH_PASS, "PREPARE_PASS1", create_fn, 0);
   FusionPassRegistry::GetInstance().RegisterPass(BUILT_IN_PREPARE_GRAPH_PASS, "PREPARE_PASS2", create_fn, 0);
   FusionPassRegistry::GetInstance().RegisterPass(BUILT_IN_PREPARE_GRAPH_PASS, "PREPARE_PASS3", create_fn, 0);
 
-  FusionPassRegistry::GetInstance().RegisterPass(
-      BUILT_IN_BEFORE_QUANT_OPTIMIZATION_GRAPH_PASS, "BEFORE_QUANT_1", create_fn, 0);
-  FusionPassRegistry::GetInstance().RegisterPass(
-      BUILT_IN_BEFORE_QUANT_OPTIMIZATION_GRAPH_PASS, "BEFORE_QUANT_2", create_fn, 0);
+  FusionPassRegistry::GetInstance().RegisterPass(BUILT_IN_BEFORE_QUANT_OPTIMIZATION_GRAPH_PASS, "BEFORE_QUANT_1",
+                                                 create_fn, 0);
+  FusionPassRegistry::GetInstance().RegisterPass(BUILT_IN_BEFORE_QUANT_OPTIMIZATION_GRAPH_PASS, "BEFORE_QUANT_2",
+                                                 create_fn, 0);
 }
 
 TEST_F(GRAPH_FUSION_ST, converage_04) {
@@ -220,14 +211,13 @@ TEST_F(GRAPH_FUSION_ST, converage_04) {
   EXPECT_EQ(SUCCESS, graph_fusion_->FusionEachGraph(*graph));
   string stage = "test";
   EXPECT_EQ(SUCCESS, graph_fusion_->RunGraphFusionPassByType(stage, *graph, SECOND_ROUND_BUILT_IN_GRAPH_PASS));
-  EXPECT_EQ(SUCCESS, graph_fusion_->RunGraphFusionPassByType(stage, *graph,
-                                                             BUILT_IN_BEFORE_TRANSNODE_INSERTION_GRAPH_PASS));
+  EXPECT_EQ(SUCCESS,
+            graph_fusion_->RunGraphFusionPassByType(stage, *graph, BUILT_IN_BEFORE_TRANSNODE_INSERTION_GRAPH_PASS));
   EXPECT_EQ(SUCCESS, graph_fusion_->FusionQuantOp(*graph));
   Configuration::Instance(AI_CORE_NAME).enable_network_analysis_ = false;
 }
 
-ge::NodePtr AddOneNode(ge::ComputeGraphPtr &graph,
-                       string node_name, const string &node_type) {
+ge::NodePtr AddOneNode(ge::ComputeGraphPtr &graph, string node_name, const string &node_type) {
   ge::OpDescPtr op = std::make_shared<ge::OpDesc>(node_name, node_type);
   ge::GeTensorDesc tensor_desc(ge::GeShape({10}), ge::FORMAT_NCHW, ge::DT_FLOAT);
   op->AddInputDesc(tensor_desc);
@@ -238,15 +228,13 @@ ge::NodePtr AddOneNode(ge::ComputeGraphPtr &graph,
 int count = 0;
 class TestPruningPass : public PatternFusionBasePass {
  protected:
-
   vector<FusionPattern *> DefinePatterns() override {
     vector<FusionPattern *> patterns;
     FusionPattern *pattern = new (std::nothrow) FusionPattern("FailedPattern");
     FE_CHECK(pattern == nullptr, REPORT_FE_ERROR("[GraphOpt][ConCatQuatFus][DfnPtn] Fail to new an object."),
              return patterns);
 
-    pattern->AddOpDesc("pattern_dequant", {ASCEND_DEQUANT})
-        .SetOutput("pattern_dequant");
+    pattern->AddOpDesc("pattern_dequant", {ASCEND_DEQUANT}).SetOutput("pattern_dequant");
     patterns.push_back(pattern);
 
     return patterns;
@@ -259,16 +247,14 @@ class TestPruningPass : public PatternFusionBasePass {
 };
 
 class TestPruningFailedPass : public PatternFusionBasePass {
-protected:
-
+ protected:
   vector<FusionPattern *> DefinePatterns() override {
     vector<FusionPattern *> patterns;
     FusionPattern *pattern = new (std::nothrow) FusionPattern("FailedPattern");
     FE_CHECK(pattern == nullptr, REPORT_FE_ERROR("[GraphOpt][ConCatQuatFus][DfnPtn] Fail to new an object."),
              return patterns);
 
-    pattern->AddOpDesc("pattern_dequant", {ASCEND_DEQUANT})
-        .SetOutput("pattern_dequant");
+    pattern->AddOpDesc("pattern_dequant", {ASCEND_DEQUANT}).SetOutput("pattern_dequant");
     patterns.push_back(pattern);
 
     return patterns;
@@ -281,11 +267,11 @@ protected:
 };
 
 fe::GraphPass *CreatePruningFunc() {
-  return new(std::nothrow) TestPruningPass();
+  return new (std::nothrow) TestPruningPass();
 }
 
 fe::GraphPass *CreatePruningFailedFunc() {
-  return new(std::nothrow) TestPruningFailedPass();
+  return new (std::nothrow) TestPruningFailedPass();
 }
 
 void RegisterPruningPassFunc(CreateFn create_fn) {
@@ -303,8 +289,9 @@ TEST_F(GRAPH_FUSION_ST, PruningPassSuccess) {
   auto node2 = AddOneNode(graph, "relu", RELU);
   ge::GraphUtils::AddEdge(node1->GetOutDataAnchor(0), node2->GetInDataAnchor(0));
 
-  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::IsaArchVersion)] = static_cast<int64_t>(ISAArchVersion::EN_ISA_ARCH_V100);
-  count= 0;
+  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::IsaArchVersion)] =
+      static_cast<int64_t>(ISAArchVersion::EN_ISA_ARCH_V100);
+  count = 0;
   EXPECT_EQ(SUCCESS, graph_optimizer_->OptimizeOriginalGraph(*graph));
   EXPECT_EQ(4, count);
 }
@@ -318,7 +305,7 @@ TEST_F(GRAPH_FUSION_ST, PruningPassFailed) {
   auto node2 = AddOneNode(graph, "relu", RELU);
   ge::GraphUtils::AddEdge(node1->GetOutDataAnchor(0), node2->GetInDataAnchor(0));
 
-  count= 0;
+  count = 0;
   EXPECT_EQ(FAILED, graph_optimizer_->OptimizeOriginalGraph(*graph));
   EXPECT_EQ(1, count);
 }
@@ -330,7 +317,6 @@ TEST_F(GRAPH_FUSION_ST, converage_05) {
 
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
 
-
   auto node1 = AddOneNode(graph, "dequant1", ASCEND_DEQUANT);
   auto node2 = AddOneNode(graph, "dequant2", ASCEND_DEQUANT);
   auto node3 = AddOneNode(graph, "dequant3", ASCEND_DEQUANT);
@@ -341,18 +327,22 @@ TEST_F(GRAPH_FUSION_ST, converage_05) {
   string stage = "a";
   EXPECT_EQ(FAILED, graph_fusion_->RunGraphFusionPassByType(stage, *graph, CUSTOM_AI_CORE_GRAPH_PASS));
   EXPECT_EQ(FAILED, graph_fusion_->RunGraphFusionPassByType(stage, *graph, SECOND_ROUND_BUILT_IN_GRAPH_PASS));
-  EXPECT_EQ(FAILED, graph_fusion_->RunGraphFusionPassByType(stage, *graph, BUILT_IN_BEFORE_TRANSNODE_INSERTION_GRAPH_PASS));
+  EXPECT_EQ(FAILED,
+            graph_fusion_->RunGraphFusionPassByType(stage, *graph, BUILT_IN_BEFORE_TRANSNODE_INSERTION_GRAPH_PASS));
   EXPECT_EQ(FAILED, graph_fusion_->RunGraphFusionPassByType(stage, *graph, BUILT_IN_PREPARE_GRAPH_PASS));
-  EXPECT_EQ(FAILED, graph_fusion_->RunGraphFusionPassByType(stage, *graph, BUILT_IN_BEFORE_QUANT_OPTIMIZATION_GRAPH_PASS));
+  EXPECT_EQ(FAILED,
+            graph_fusion_->RunGraphFusionPassByType(stage, *graph, BUILT_IN_BEFORE_QUANT_OPTIMIZATION_GRAPH_PASS));
 }
 
 TEST_F(GRAPH_FUSION_ST, converage_06) {
   EXPECT_EQ(SUCCESS, fusion_priority_mgr_->SortGraphFusion());
 
   ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
-  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::IsaArchVersion)] = static_cast<int64_t>(ISAArchVersion::EN_ISA_ARCH_V100);
+  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::IsaArchVersion)] =
+      static_cast<int64_t>(ISAArchVersion::EN_ISA_ARCH_V100);
   EXPECT_EQ(SUCCESS, graph_fusion_->FusionQuantOp(*graph));
-  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::IsaArchVersion)] = static_cast<int64_t>(ISAArchVersion::EN_ISA_ARCH_V200);
+  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::IsaArchVersion)] =
+      static_cast<int64_t>(ISAArchVersion::EN_ISA_ARCH_V200);
   EXPECT_EQ(SUCCESS, graph_fusion_->FusionQuantOp(*graph));
 }
 
@@ -366,8 +356,7 @@ TEST_F(GRAPH_FUSION_ST, converage_07) {
   const_out_tenosr = std::make_shared<ge::GeTensor>(tensor_desc);
   vector<uint64_t> scale_data;
   scale_data.emplace_back(0xFF0120312);
-  const_out_tenosr->SetData(reinterpret_cast<uint8_t *>(scale_data.data()),
-                            sizeof(uint64_t));
+  const_out_tenosr->SetData(reinterpret_cast<uint8_t *>(scale_data.data()), sizeof(uint64_t));
   ge::OpDescPtr const_op_desc = ge::OpDescUtils::CreateConstOp(const_out_tenosr);
   ge::OpDescPtr dequant = std::make_shared<ge::OpDesc>("dequant", ASCEND_DEQUANT);
   ge::OpDescPtr other = std::make_shared<ge::OpDesc>("other", "Other");
@@ -384,13 +373,11 @@ TEST_F(GRAPH_FUSION_ST, converage_07) {
   auto other_node = graph->AddNode(other);
 
   ge::OpDescUtils::SetWeights(dequant_node->GetOpDesc(), const_out_tenosr);
-  ASSERT_EQ(ge::GraphUtils::AddEdge(data_node->GetOutDataAnchor(0),
-                                    dequant_node->GetInDataAnchor(0)), SUCCESS);
-  ASSERT_EQ(ge::GraphUtils::AddEdge(const_node->GetOutDataAnchor(0),
-                                    dequant_node->GetInDataAnchor(1)), SUCCESS);
-  ASSERT_EQ(ge::GraphUtils::AddEdge(dequant_node->GetOutDataAnchor(0),
-                                    other_node->GetInDataAnchor(0)), SUCCESS);
-  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::IsaArchVersion)] = static_cast<int64_t>(ISAArchVersion::EN_ISA_ARCH_V200);
+  ASSERT_EQ(ge::GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), dequant_node->GetInDataAnchor(0)), SUCCESS);
+  ASSERT_EQ(ge::GraphUtils::AddEdge(const_node->GetOutDataAnchor(0), dequant_node->GetInDataAnchor(1)), SUCCESS);
+  ASSERT_EQ(ge::GraphUtils::AddEdge(dequant_node->GetOutDataAnchor(0), other_node->GetInDataAnchor(0)), SUCCESS);
+  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::IsaArchVersion)] =
+      static_cast<int64_t>(ISAArchVersion::EN_ISA_ARCH_V200);
   EXPECT_EQ(fe::SUCCESS, graph_fusion_->JudgeQuantMode(*graph));
 }
 
@@ -416,15 +403,14 @@ TEST_F(GRAPH_FUSION_ST, converage_08) {
   vector<uint64_t> data;
   data.emplace_back(0xFF0120312);
 
-  const_out_tenosr->SetData(reinterpret_cast<uint8_t *>(data.data()),
-                            sizeof(uint64_t));
+  const_out_tenosr->SetData(reinterpret_cast<uint8_t *>(data.data()), sizeof(uint64_t));
 
   ge::OpDescPtr const_op_desc = ge::OpDescUtils::CreateConstOp(const_out_tenosr);
   auto const_node = graph->AddNode(const_op_desc);
   ge::OpDescUtils::SetWeights(dequant_node->GetOpDesc(), const_out_tenosr);
-  ASSERT_EQ(ge::GraphUtils::AddEdge(const_node->GetOutDataAnchor(0),
-                                    dequant_node->GetInDataAnchor(0)), SUCCESS);
-  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::IsaArchVersion)] = static_cast<int64_t>(ISAArchVersion::EN_ISA_ARCH_V200);
+  ASSERT_EQ(ge::GraphUtils::AddEdge(const_node->GetOutDataAnchor(0), dequant_node->GetInDataAnchor(0)), SUCCESS);
+  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::IsaArchVersion)] =
+      static_cast<int64_t>(ISAArchVersion::EN_ISA_ARCH_V200);
   EXPECT_EQ(PARAM_INVALID, graph_fusion_->JudgeQuantMode(*graph));
 }
 
@@ -456,13 +442,13 @@ TEST_F(GRAPH_FUSION_ST, converage_11) {
   EXPECT_EQ(SUCCESS, graph_fusion_->FusionEachGraph(*graph));
   string stage = "test";
   EXPECT_EQ(SUCCESS, graph_fusion_->RunGraphFusionPassByType(stage, *graph, BUILT_IN_PREPARE_GRAPH_PASS));
-  EXPECT_EQ(SUCCESS, graph_fusion_->RunGraphFusionPassByType(stage, *graph, BUILT_IN_BEFORE_QUANT_OPTIMIZATION_GRAPH_PASS));
+  EXPECT_EQ(SUCCESS,
+            graph_fusion_->RunGraphFusionPassByType(stage, *graph, BUILT_IN_BEFORE_QUANT_OPTIMIZATION_GRAPH_PASS));
   EXPECT_EQ(SUCCESS, graph_fusion_->FusionQuantOp(*graph));
   Configuration::Instance(AI_CORE_NAME).enable_network_analysis_ = false;
 
   vector<FusionPassOrRule> graph_fusion_pass_vector;
-  fusion_priority_mgr_->GetGraphFusionPassInfosByType(BUILT_IN_PREPARE_GRAPH_PASS, false,
-                                                       graph_fusion_pass_vector);
+  fusion_priority_mgr_->GetGraphFusionPassInfosByType(BUILT_IN_PREPARE_GRAPH_PASS, false, graph_fusion_pass_vector);
   fusion_priority_mgr_->GetGraphFusionPassInfosByType(BUILT_IN_BEFORE_QUANT_OPTIMIZATION_GRAPH_PASS, false,
                                                       graph_fusion_pass_vector);
 
@@ -499,8 +485,7 @@ TEST_F(GRAPH_FUSION_ST, converage_13) {
   EXPECT_EQ(graph_id, "graph_id_100");
 }
 
-bool TestAippAttrValue(NamedAttrs &aipp_attr1)
-{
+bool TestAippAttrValue(NamedAttrs &aipp_attr1) {
   int64_t value = 0;
   AippGetInt64Value(aipp_attr1, "aipp_mode", value);
   EXPECT_EQ(value, 2);
@@ -516,9 +501,9 @@ TEST_F(GRAPH_FUSION_ST, converage_14) {
   NamedAttrs aipp_attr;
   aipp_attr.SetAttr("aipp_mode", GeAttrValue::CreateFrom<int64_t>(2));
   aipp_attr.SetAttr("support_rotation", GeAttrValue::CreateFrom<int64_t>(1));
-  std::vector<float> var_chn = { 1.123, 3.345, 5.589};
+  std::vector<float> var_chn = {1.123, 3.345, 5.589};
   aipp_attr.SetAttr("var_reci_chn_0", GeAttrValue::CreateFrom<std::vector<float>>(var_chn));
-  std::vector<int64_t> aipp_mean_vec = { 2, 3, 4, 50};
+  std::vector<int64_t> aipp_mean_vec = {2, 3, 4, 50};
   AippSetAttrValue(aipp_attr, "mean_chn_0", aipp_mean_vec[3]);
   AippSetAttrValue(aipp_attr, "mean_chn_0", aipp_mean_vec[1]);
   EXPECT_TRUE(AttrUtils::SetNamedAttrs(op_desc, ATTR_NAME_AIPP, aipp_attr));
@@ -574,11 +559,10 @@ TEST_F(GRAPH_FUSION_ST, converage_17) {
   auto dequant_node = graph->AddNode(dequant);
   auto other_node = graph->AddNode(other);
 
-  ASSERT_EQ(ge::GraphUtils::AddEdge(data_node->GetOutDataAnchor(0),
-                                    dequant_node->GetInDataAnchor(0)), SUCCESS);
-  ASSERT_EQ(ge::GraphUtils::AddEdge(dequant_node->GetOutDataAnchor(0),
-                                    other_node->GetInDataAnchor(0)), SUCCESS);
-  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::IsaArchVersion)] = static_cast<int64_t>(ISAArchVersion::EN_ISA_ARCH_V200);
+  ASSERT_EQ(ge::GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), dequant_node->GetInDataAnchor(0)), SUCCESS);
+  ASSERT_EQ(ge::GraphUtils::AddEdge(dequant_node->GetOutDataAnchor(0), other_node->GetInDataAnchor(0)), SUCCESS);
+  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::IsaArchVersion)] =
+      static_cast<int64_t>(ISAArchVersion::EN_ISA_ARCH_V200);
   EXPECT_EQ(fe::FAILED, graph_fusion_->FusionQuantOp(*graph));
 }
 
@@ -592,8 +576,7 @@ TEST_F(GRAPH_FUSION_ST, converage_18) {
   const_out_tenosr = std::make_shared<ge::GeTensor>(tensor_desc);
   vector<uint64_t> scale_data;
   scale_data.emplace_back(0xFF0120312);
-  const_out_tenosr->SetData(reinterpret_cast<uint8_t *>(scale_data.data()),
-                            sizeof(uint64_t));
+  const_out_tenosr->SetData(reinterpret_cast<uint8_t *>(scale_data.data()), sizeof(uint64_t));
   ge::OpDescPtr const_op_desc = ge::OpDescUtils::CreateConstOp(const_out_tenosr);
   ge::OpDescPtr dequant = std::make_shared<ge::OpDesc>("dequant", ASCEND_DEQUANT);
   ge::OpDescPtr other = std::make_shared<ge::OpDesc>("other", "Other");
@@ -610,12 +593,9 @@ TEST_F(GRAPH_FUSION_ST, converage_18) {
   auto other_node = graph->AddNode(other);
 
   ge::OpDescUtils::SetWeights(dequant_node->GetOpDesc(), const_out_tenosr);
-  ASSERT_EQ(ge::GraphUtils::AddEdge(data_node->GetOutDataAnchor(0),
-                                    dequant_node->GetInDataAnchor(0)), SUCCESS);
-  ASSERT_EQ(ge::GraphUtils::AddEdge(const_node->GetOutDataAnchor(0),
-                                    dequant_node->GetInDataAnchor(1)), SUCCESS);
-  ASSERT_EQ(ge::GraphUtils::AddEdge(dequant_node->GetOutDataAnchor(0),
-                                    other_node->GetInDataAnchor(0)), SUCCESS);
+  ASSERT_EQ(ge::GraphUtils::AddEdge(data_node->GetOutDataAnchor(0), dequant_node->GetInDataAnchor(0)), SUCCESS);
+  ASSERT_EQ(ge::GraphUtils::AddEdge(const_node->GetOutDataAnchor(0), dequant_node->GetInDataAnchor(1)), SUCCESS);
+  ASSERT_EQ(ge::GraphUtils::AddEdge(dequant_node->GetOutDataAnchor(0), other_node->GetInDataAnchor(0)), SUCCESS);
 
   ge::ComputeGraphPtr sub_graph = std::make_shared<ge::ComputeGraph>("sub_graph");
   sub_graph->SetParentNode(dequant_node);
@@ -633,12 +613,11 @@ TEST_F(GRAPH_FUSION_ST, converage_18) {
   auto dequant_node2 = sub_graph->AddNode(dequant2);
   auto other_node2 = sub_graph->AddNode(other2);
 
-  ASSERT_EQ(ge::GraphUtils::AddEdge(data_node2->GetOutDataAnchor(0),
-                                    dequant_node2->GetInDataAnchor(0)), SUCCESS);
-  ASSERT_EQ(ge::GraphUtils::AddEdge(dequant_node2->GetOutDataAnchor(0),
-                                    other_node2->GetInDataAnchor(0)), SUCCESS);
+  ASSERT_EQ(ge::GraphUtils::AddEdge(data_node2->GetOutDataAnchor(0), dequant_node2->GetInDataAnchor(0)), SUCCESS);
+  ASSERT_EQ(ge::GraphUtils::AddEdge(dequant_node2->GetOutDataAnchor(0), other_node2->GetInDataAnchor(0)), SUCCESS);
   graph->AddSubgraph("sub_graph", sub_graph);
-  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::IsaArchVersion)] = static_cast<int64_t>(ISAArchVersion::EN_ISA_ARCH_V200);
+  PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::IsaArchVersion)] =
+      static_cast<int64_t>(ISAArchVersion::EN_ISA_ARCH_V200);
   EXPECT_EQ(fe::FAILED, graph_fusion_->FusionQuantOp(*graph));
 }
 
@@ -656,7 +635,9 @@ TEST_F(GRAPH_FUSION_ST, converage_20) {
   const std::string json_path = current_dir + "plugin/opskernel/fusion_pass/config/";
   CreateDir(json_path);
   const std::string supportFusionPassFileName = json_path + "support_fusion_pass.json";
-  std::string ori_support_fusion_pass_json_path = GetCodeDir() + "/tests/engines/nn_engine/st/testcase/fusion_config_manager/builtin_config/support_fusion_pass.json";
+  std::string ori_support_fusion_pass_json_path =
+      GetCodeDir() +
+      "/tests/engines/nn_engine/st/testcase/fusion_config_manager/builtin_config/support_fusion_pass.json";
   std::ifstream ifs1(ori_support_fusion_pass_json_path);
   if (!ifs1.is_open()) {
     printf("open json[%s] failed, %s", ori_support_fusion_pass_json_path.c_str(), strerror(errno));
@@ -693,4 +674,4 @@ TEST_F(GRAPH_FUSION_ST, converage_20) {
   }
   system(("rm -rf " + current_dir + "plugin").c_str());
 }
-}
+}  // namespace fe

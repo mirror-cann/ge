@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -78,9 +78,7 @@ void ResourceManager::Finalize() {
   GELOGI("ResourceManager finalize");
 }
 
-const DeviceInfo *ResourceManager::GetDeviceInfo(int32_t node_id,
-                                                 int32_t device_id,
-                                                 int32_t type) const {
+const DeviceInfo *ResourceManager::GetDeviceInfo(int32_t node_id, int32_t device_id, int32_t type) const {
   auto node_it = device_info_map_.find(node_id);
   if (node_it == device_info_map_.cend()) {
     GELOGE(PARAM_INVALID, "Invalid node id: %d", node_id);
@@ -96,8 +94,7 @@ const DeviceInfo *ResourceManager::GetDeviceInfo(int32_t node_id,
   DeviceType device_type = static_cast<DeviceType>(type);
   auto type_it = dev_it->second.find(device_type);
   if (type_it == dev_it->second.cend()) {
-    GELOGE(PARAM_INVALID, "Invalid device type: %d, device id: %d, node_id = %d",
-           type, device_id, node_id);
+    GELOGE(PARAM_INVALID, "Invalid device type: %d, device id: %d, node_id = %d", type, device_id, node_id);
     return nullptr;
   }
   return type_it->second;
@@ -144,7 +141,7 @@ void ResourceManager::ClearWorkingDir() {
     std::string clear_dir_cmd = "rm -rf ";
     clear_dir_cmd += working_dir + "/*";
     GELOGI("Clear working dir: %s, execute: %s", working_dir.c_str(), clear_dir_cmd.c_str());
-    (void) ProcessUtils::System(clear_dir_cmd);
+    (void)ProcessUtils::System(clear_dir_cmd);
   }
 }
 

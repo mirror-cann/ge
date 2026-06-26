@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -55,10 +55,11 @@ after swap (with options `swap_space_nodes = "F:1;G:1"`), graph is changed like:
                                                                     |                      |
             +----------------------+         +----------------------+---------+            |
             |                      v         |                      |         v            v
-+---+     +---+     +------+     +---+     +------+     +---+     +---+     +------+     +---+     +------+     +---+     +-----------+
-| A | --> | B | --> | D2H0 | ==> | C | --> | D2H1 | ==> | D | --> | E | ==> | H2D1 | --> | F | ==> | H2D0 | --> | G | --> | NetOutput |
-+---+     +---+     +------+     +---+     +------+     +---+     +---+     +------+     +---+     +------+     +---+     +-----------+
-                      |            |                      ^                                |         ^            ^
++---+     +---+     +------+     +---+     +------+     +---+     +---+     +------+     +---+     +------+     +---+
++-----------+ | A | --> | B | --> | D2H0 | ==> | C | --> | D2H1 | ==> | D | --> | E | ==> | H2D1 | --> | F | ==> | H2D0
+| --> | G | --> | NetOutput |
++---+     +---+     +------+     +---+     +------+     +---+     +---+     +------+     +---+     +------+     +---+
++-----------+ |            |                      ^                                |         ^            ^
                       +------------+----------------------+--------------------------------+---------+            |
                                    |                      |                                |                      |
                                    |                      |                                |                      |
@@ -73,12 +74,12 @@ ComputeGraphPtr MakeGraph2() {
   DEF_GRAPH(g1) {
     ge::OpDescPtr A;
     A = OP_CFG(DATA)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .InCnt(1)
-        .TensorDesc(FORMAT_NCHW, DT_FLOAT, {2, 3, 16, 16})
-        .OutCnt(1)
-        .TensorDesc(FORMAT_NCHW, DT_FLOAT, {2, 3, 16, 16})
-        .Build("A");
+            .Attr(ATTR_NAME_INDEX, 0)
+            .InCnt(1)
+            .TensorDesc(FORMAT_NCHW, DT_FLOAT, {2, 3, 16, 16})
+            .OutCnt(1)
+            .TensorDesc(FORMAT_NCHW, DT_FLOAT, {2, 3, 16, 16})
+            .Build("A");
 
     auto B = OP_CFG(RELU).InCnt(1).OutCnt(1).Build("B");
     auto C = OP_CFG(RELU).InCnt(1).OutCnt(1).Build("C");
@@ -117,7 +118,6 @@ ComputeGraphPtr MakeGraph() {
   };
   return ToComputeGraph(g1);
 }
-
 
 std::pair<int64_t, int64_t> GetFeatureMapMemorySize(ComputeGraphPtr compute_graph) {
   int64_t host_feature_max_offset = 0;
@@ -166,9 +166,9 @@ TEST_F(TestSwapSpacePass, swap_success_and_memory_peak_down) {
   int64_t host_feature_map_memory_size_after_optimize = 0;
   {
     const auto &graph2 = MakeGraph2();
-    std::string swap_space_nodes("G:1;F:1"); // peak down
-//    std::string swap_space_nodes("G:1;C:0"); // cycle detect,peak no change
-//    std::string swap_space_nodes("F:0;F:1"); // two input
+    std::string swap_space_nodes("G:1;F:1");  // peak down
+    //    std::string swap_space_nodes("G:1;C:0"); // cycle detect,peak no change
+    //    std::string swap_space_nodes("F:0;F:1"); // two input
     std::map<std::string, std::string> options;
     options.emplace(OPTION_SWAP_SPACE_NODES, swap_space_nodes);
     Session session(options);
@@ -243,5 +243,3 @@ TEST_F(TestSwapSpacePass, swap_success_and_memory_peak_down2) {
   }
   EXPECT_LT(device_feature_map_memory_size_after_optimize, device_feature_map_memory_size_before_optimize);
 }
-
-

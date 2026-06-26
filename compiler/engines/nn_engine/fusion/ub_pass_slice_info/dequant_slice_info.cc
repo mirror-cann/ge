@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,7 +25,7 @@ Status DequantSliceInfo::ModifySliceInfoByPattern(const ge::NodePtr &fusion_node
     FE_LOGI("Input format not supported: current is %s, expected %s.",
             ge::TypeUtils::FormatToSerialString(input_format).c_str(),
             ge::TypeUtils::FormatToSerialString(ge::FORMAT_NC1HWC0).c_str());
-   return SUCCESS;
+    return SUCCESS;
   }
 
   // op_slice_info set by op does not contain Cout axis split, see impl file ascend_dequant.py get_op_support_info()
@@ -40,9 +40,9 @@ Status DequantSliceInfo::ModifySliceInfoByPattern(const ge::NodePtr &fusion_node
     REPORT_FE_ERROR("[SubGraphOpt][UbSliceInfo][MdfSliceInfo] dequant_input_split_info initialization failed");
     return FAILED;
   }
-  vector<int64_t> cout_axis_cut = vector<int64_t> {kNc1hwc0CoutCutAxis[0]};
+  vector<int64_t> cout_axis_cut = vector<int64_t>{kNc1hwc0CoutCutAxis[0]};
   dequant_input0_split_info.SetIndex(0);
-  dequant_input0_split_info.SetAxis(cout_axis_cut); // shape = NC1HWC0, adopt Cout cut
+  dequant_input0_split_info.SetAxis(cout_axis_cut);  // shape = NC1HWC0, adopt Cout cut
   std::vector<int64_t> over_lap = {-1};
   dequant_input0_split_info.SetHeadOverLap(over_lap);
   dequant_input0_split_info.SetTailOverLap(over_lap);
@@ -58,7 +58,7 @@ Status DequantSliceInfo::ModifySliceInfoByPattern(const ge::NodePtr &fusion_node
       return FAILED;
     }
     dequant_input1_split_info.SetIndex(1);
-    dequant_input1_split_info.SetAxis(cout_axis_cut); // shape = NC1HWC0, adopt Cout cut
+    dequant_input1_split_info.SetAxis(cout_axis_cut);  // shape = NC1HWC0, adopt Cout cut
     dequant_input1_split_info.SetHeadOverLap(over_lap);
     dequant_input1_split_info.SetTailOverLap(over_lap);
     new_axis_split_map.AddInputSplitInfo(dequant_input1_split_info);
@@ -87,4 +87,4 @@ Status DequantSliceInfo::ModifySliceInfoByPattern(const ge::NodePtr &fusion_node
 
   return SUCCESS;
 }
-} // namespace fe
+}  // namespace fe

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,9 +26,8 @@
 
 namespace ge {
 // 仿佛是想记录不满足ge的ref规则，但同时又是ref算子的算子类型
-std::map<std::string, std::map<int32_t, std::vector<int32_t>>> VariablePrepareOpPass::ref_node_without_prototype_map_ {
-    {REFSWITCH, {{0, {0, 1}}}}
-};
+std::map<std::string, std::map<int32_t, std::vector<int32_t>>> VariablePrepareOpPass::ref_node_without_prototype_map_{
+    {REFSWITCH, {{0, {0, 1}}}}};
 
 Status VariablePrepareOpPass::Run(ComputeGraphPtr graph) {
   GE_CHECK_NOTNULL(graph);
@@ -144,8 +143,8 @@ Status VariablePrepareOpPass::DealWritableNode(const NodePtr &writable_node, int
   return SUCCESS;
 }
 
-Status VariablePrepareOpPass::GetPeerNodeOfRefOutput(const NodePtr &node, int32_t output_index,
-    std::stack<std::pair<NodePtr, std::pair<int32_t, int32_t>>> &nodes) {
+Status VariablePrepareOpPass::GetPeerNodeOfRefOutput(
+    const NodePtr &node, int32_t output_index, std::stack<std::pair<NodePtr, std::pair<int32_t, int32_t>>> &nodes) {
   if (output_index < 0) {
     REPORT_INNER_ERR_MSG("E19999", "Param output_index:%d < 0, check invalid", output_index);
     GELOGE(PARAM_INVALID, "[Check][Param] Invalid ref output index: %s-%d.", node->GetName().c_str(), output_index);
@@ -222,8 +221,8 @@ Status VariablePrepareOpPass::AddVariableRef(NodePtr &final_writable_node, const
   graphStatus ret = ge::GraphUtils::AddEdge(out_anchor, variable_ref_node->GetInDataAnchor(0));
   if (ret != GRAPH_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999",
-                      "add edge between variable_ref:%s(index:0) and final_writable peer node:%s(index:%d) failed",
-                      variable_ref_node->GetName().c_str(), final_writable_node->GetName().c_str(), index);
+                         "add edge between variable_ref:%s(index:0) and final_writable peer node:%s(index:%d) failed",
+                         variable_ref_node->GetName().c_str(), final_writable_node->GetName().c_str(), index);
     GELOGE(FAILED, "[Add][Edge] between variable_ref:%s(index:0) and final_writable peer node:%s(index:%d) failed",
            variable_ref_node->GetName().c_str(), final_writable_node->GetName().c_str(), index);
     return FAILED;
@@ -257,8 +256,8 @@ Status VariablePrepareOpPass::InsertVariableRef(ge::NodePtr &node, int32_t in_in
   GE_CHECK_NOTNULL(variable_ref_node);
   Status ret_check = CheckStreamLabel(variable_ref_node, node);
   if (ret_check != SUCCESS) {
-    GELOGE(FAILED, "[Check][StreamLabel] failed, ref node:%s, writable node:%s",
-           variable_ref_node->GetName().c_str(), node->GetName().c_str());
+    GELOGE(FAILED, "[Check][StreamLabel] failed, ref node:%s, writable node:%s", variable_ref_node->GetName().c_str(),
+           node->GetName().c_str());
     return FAILED;
   }
 
@@ -274,38 +273,38 @@ Status VariablePrepareOpPass::InsertVariableRef(ge::NodePtr &node, int32_t in_in
   // Insert variable ref node between two nodes and remove the original edge.
   CHECK_FALSE_EXEC(ge::GraphUtils::RemoveEdge(peer_out_anchor, in_anchor) == SUCCESS,
                    REPORT_INNER_ERR_MSG("E19999", "remove edge between ref node:%s and its peer node:%s failed",
-                                     node->GetName().c_str(), peer_in_node->GetName().c_str());
+                                        node->GetName().c_str(), peer_in_node->GetName().c_str());
                    GELOGE(FAILED, "[Remove][Edge] between ref node:%s and its peer node:%s failed",
                           node->GetName().c_str(), peer_in_node->GetName().c_str());
                    return FAILED);
   CHECK_FALSE_EXEC(ge::GraphUtils::AddEdge(peer_out_anchor, ref_identity_node->GetInDataAnchor(0)) == SUCCESS,
                    REPORT_INNER_ERR_MSG("E19999", "Add edge between pre node:%s and ref_identity:%s failed",
-                                     peer_in_node->GetName().c_str(), ref_identity_node->GetName().c_str());
+                                        peer_in_node->GetName().c_str(), ref_identity_node->GetName().c_str());
                    GELOGE(FAILED, "[Add][Edge] between pre node:%s and ref_identity:%s failed",
                           peer_in_node->GetName().c_str(), ref_identity_node->GetName().c_str());
                    return FAILED);
   CHECK_FALSE_EXEC(ge::GraphUtils::AddEdge(ref_identity_node->GetOutDataAnchor(0), in_anchor) == SUCCESS,
                    REPORT_INNER_ERR_MSG("E19999", "Add edge between ref_identity:%s and ref node:%s failed",
-                                     ref_identity_node->GetName().c_str(), node->GetName().c_str());
+                                        ref_identity_node->GetName().c_str(), node->GetName().c_str());
                    GELOGE(FAILED, "[Add][Edge] between ref_identity:%s and ref node:%s failed",
                           ref_identity_node->GetName().c_str(), node->GetName().c_str());
                    return FAILED);
 
   // Add edge from ref identity node to variable ref node.
-  CHECK_FALSE_EXEC(ge::GraphUtils::AddEdge(ref_identity_node->GetOutDataAnchor(0),
-                                           variable_ref_node->GetInDataAnchor(0)) == SUCCESS,
-                   REPORT_INNER_ERR_MSG("E19999", "Add edge between ref_identity:%s and variable_ref:%s failed",
-                                     ref_identity_node->GetName().c_str(), variable_ref_node->GetName().c_str());
-                   GELOGE(FAILED, "[Add][Edge] between ref_identity:%s and variable_ref:%s failed",
-                          ref_identity_node->GetName().c_str(), variable_ref_node->GetName().c_str());
-                   return FAILED);
-  CHECK_FALSE_EXEC(ge::GraphUtils::AddEdge(node->GetOutControlAnchor(),
-                                           variable_ref_node->GetInControlAnchor()) == SUCCESS,
-                   REPORT_INNER_ERR_MSG("E19999", "Add control edge between ref node:%s and variable_ref:%s failed",
-                                     node->GetName().c_str(), variable_ref_node->GetName().c_str());
-                   GELOGE(FAILED, "[Add][ControlEdge] between ref node:%s and variable_ref:%s failed",
-                          node->GetName().c_str(), variable_ref_node->GetName().c_str());
-                   return FAILED);
+  CHECK_FALSE_EXEC(
+      ge::GraphUtils::AddEdge(ref_identity_node->GetOutDataAnchor(0), variable_ref_node->GetInDataAnchor(0)) == SUCCESS,
+      REPORT_INNER_ERR_MSG("E19999", "Add edge between ref_identity:%s and variable_ref:%s failed",
+                           ref_identity_node->GetName().c_str(), variable_ref_node->GetName().c_str());
+      GELOGE(FAILED, "[Add][Edge] between ref_identity:%s and variable_ref:%s failed",
+             ref_identity_node->GetName().c_str(), variable_ref_node->GetName().c_str());
+      return FAILED);
+  CHECK_FALSE_EXEC(
+      ge::GraphUtils::AddEdge(node->GetOutControlAnchor(), variable_ref_node->GetInControlAnchor()) == SUCCESS,
+      REPORT_INNER_ERR_MSG("E19999", "Add control edge between ref node:%s and variable_ref:%s failed",
+                           node->GetName().c_str(), variable_ref_node->GetName().c_str());
+      GELOGE(FAILED, "[Add][ControlEdge] between ref node:%s and variable_ref:%s failed", node->GetName().c_str(),
+             variable_ref_node->GetName().c_str());
+      return FAILED);
   return SUCCESS;
 }
 
@@ -322,9 +321,7 @@ Status VariablePrepareOpPass::InsertIdentityNode(const NodePtr &src_node, const 
   OpDescBuilder op_desc_builder(identity_name.str(), IDENTITY);
   GE_CHECK_NOTNULL(src_node->GetOpDesc());
   auto data_desc = src_node->GetOpDesc()->GetOutputDesc(out_anchor->GetIdx());
-  auto identity_op_desc = op_desc_builder.AddInput("x", data_desc)
-      .AddOutput("y", data_desc)
-      .Build();
+  auto identity_op_desc = op_desc_builder.AddInput("x", data_desc).AddOutput("y", data_desc).Build();
   GE_ASSERT_NOTNULL(identity_op_desc);
   auto graph = src_node->GetOwnerComputeGraph();
   GE_CHECK_NOTNULL(graph);
@@ -359,15 +356,15 @@ Status VariablePrepareOpPass::AddControlEdge(const ge::NodePtr &node, const ge::
       if (kMergeOpTypes.count(ori_type) > 0U) {
         NodePtr identity_node = nullptr;
         if (InsertIdentityNode(node, out_anchor, peer_node, peer_in_anchor, identity_node) != SUCCESS) {
-          GELOGE(FAILED, "[Insert][Identity] between node:%s and it's peer node:%s failed",
-                 node->GetName().c_str(), peer_node->GetName().c_str());
+          GELOGE(FAILED, "[Insert][Identity] between node:%s and it's peer node:%s failed", node->GetName().c_str(),
+                 peer_node->GetName().c_str());
           return FAILED;
         }
         // add control edge: variable ref node --> identity
-        if (ge::GraphUtils::AddEdge(variable_ref_node->GetOutControlAnchor(),
-                                    identity_node->GetInControlAnchor()) != SUCCESS) {
+        if (ge::GraphUtils::AddEdge(variable_ref_node->GetOutControlAnchor(), identity_node->GetInControlAnchor()) !=
+            SUCCESS) {
           REPORT_INNER_ERR_MSG("E19999", "Add control edge between variable_ref:%s and identity node:%s failed",
-                            variable_ref_node->GetName().c_str(), identity_node->GetName().c_str());
+                               variable_ref_node->GetName().c_str(), identity_node->GetName().c_str());
           GELOGE(FAILED, "[Add][ControlEdge] between variable_ref:%s and identity node:%s failed",
                  variable_ref_node->GetName().c_str(), identity_node->GetName().c_str());
           return FAILED;
@@ -375,14 +372,13 @@ Status VariablePrepareOpPass::AddControlEdge(const ge::NodePtr &node, const ge::
         continue;
       }
 
-      CHECK_FALSE_EXEC(ge::GraphUtils::AddEdge(variable_ref_node->GetOutControlAnchor(),
-                                               peer_node->GetInControlAnchor()) == SUCCESS,
-                       REPORT_INNER_ERR_MSG("E19999",
-                                         "Add control edge between variable_ref:%s and ref node's peer node:%s failed",
-                                         variable_ref_node->GetName().c_str(), peer_node->GetName().c_str());
-                       GELOGE(FAILED, "[Add][ControlEdge] between variable_ref:%s and ref node's peer node:%s failed",
-                              variable_ref_node->GetName().c_str(), peer_node->GetName().c_str());
-                       return FAILED);
+      CHECK_FALSE_EXEC(
+          ge::GraphUtils::AddEdge(variable_ref_node->GetOutControlAnchor(), peer_node->GetInControlAnchor()) == SUCCESS,
+          REPORT_INNER_ERR_MSG("E19999", "Add control edge between variable_ref:%s and ref node's peer node:%s failed",
+                               variable_ref_node->GetName().c_str(), peer_node->GetName().c_str());
+          GELOGE(FAILED, "[Add][ControlEdge] between variable_ref:%s and ref node's peer node:%s failed",
+                 variable_ref_node->GetName().c_str(), peer_node->GetName().c_str());
+          return FAILED);
     }
   }
   return SUCCESS;
@@ -473,7 +469,7 @@ void VariablePrepareOpPass::GetWritableNodeOutIndex(const NodePtr &node, int32_t
  * 1、输入和输出有相同的name，表示ref关系
  * 2、GetRefPortIndex。记这个干啥
  * 疑问：满足1的情况下，在2里查能查到吗
-*/
+ */
 void VariablePrepareOpPass::GenerateRefTypeAndInputOutputMap(const NodePtr &node) {
   auto op_desc = node->GetOpDesc();
   if (op_desc == nullptr) {
@@ -495,7 +491,8 @@ void VariablePrepareOpPass::GenerateRefTypeAndInputOutputMap(const NodePtr &node
   }
 }
 
-void VariablePrepareOpPass::FindRefOutIndex(const std::string &node_type, int32_t input_index,
+void VariablePrepareOpPass::FindRefOutIndex(
+    const std::string &node_type, int32_t input_index,
     const std::map<std::string, std::map<int32_t, std::vector<int32_t>>> &ref_map,
     std::vector<int32_t> &output_indexes) const {
   auto node_iter = ref_map.find(node_type);
@@ -522,8 +519,7 @@ Status VariablePrepareOpPass::CheckStreamLabel(const ge::NodePtr &var_ref_node,
   std::string stream_label;
   (void)AttrUtils::GetStr(writable_desc, ATTR_NAME_STREAM_LABEL, stream_label);
   if (!stream_label.empty()) {
-    GE_CHK_STATUS_RET(SetStreamLabel(var_ref_node, stream_label),
-                      "[Set][StreamLabel] %s failed", stream_label.c_str());
+    GE_CHK_STATUS_RET(SetStreamLabel(var_ref_node, stream_label), "[Set][StreamLabel] %s failed", stream_label.c_str());
   }
   return SUCCESS;
 }

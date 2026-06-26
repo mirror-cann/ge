@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2026 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -37,7 +37,7 @@ graphStatus InferShape4TopKV2(gert::InferSymbolShapeContext *context) {
   auto shape_x = context->GetInputSymbolShape(0);
   GE_UNSUPPORTED_IF_NULL(shape_x);
   auto dim_num_x = shape_x->GetDimNum();
-  
+
   // 获取k的值
   auto k_tensor = context->GetInputSymbolTensor(1);
   GE_UNSUPPORTED_IF_NULL(k_tensor);
@@ -51,25 +51,25 @@ graphStatus InferShape4TopKV2(gert::InferSymbolShapeContext *context) {
   GE_ASSERT_NOTNULL(attrs);
   const auto dim = attrs->GetAttrPointer<int64_t>(1);
   GE_ASSERT_NOTNULL(dim);
-  
+
   // 确定操作维度
   int64_t actual_dim = *dim;
   if (actual_dim < 0) {
     actual_dim = dim_num_x + actual_dim;
   }
-  GE_ASSERT_TRUE(actual_dim >= 0 && static_cast<size_t>(actual_dim) < dim_num_x, 
+  GE_ASSERT_TRUE(actual_dim >= 0 && static_cast<size_t>(actual_dim) < dim_num_x,
                  "dim %ld out of range for input with %zu dimensions", actual_dim, dim_num_x);
-  
+
   // 校验k的值不能大于输入x在指定dim维度上的大小
   auto dim_size = shape_x->GetDim(static_cast<size_t>(actual_dim));
   GE_ASSERT_TRUE(k.Compare(dim_size) <= 0, "k must be less than or equal to dim_size");
-  
+
   // 计算输出形状
   auto shape_values = context->GetOutputSymbolShape(0);
   GE_ASSERT_NOTNULL(shape_values);
   auto shape_indices = context->GetOutputSymbolShape(1);
   GE_ASSERT_NOTNULL(shape_indices);
-  
+
   // 构建输出形状
   for (size_t i = 0; i < dim_num_x; ++i) {
     if (i == static_cast<size_t>(actual_dim)) {
@@ -82,7 +82,7 @@ graphStatus InferShape4TopKV2(gert::InferSymbolShapeContext *context) {
       shape_indices->AppendDim(shape_x->GetDim(i));
     }
   }
-  
+
   return GRAPH_SUCCESS;
 }
 

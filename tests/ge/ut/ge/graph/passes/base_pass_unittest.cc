@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -144,7 +144,7 @@ class UtestTestPass : public BaseNodePass {
   Status OnFinishGraph(ComputeGraphPtr &root_graph, std::vector<NodePtr> &repass_node) override {
     for (auto &node : root_graph->GetAllNodes()) {
       if (node->GetOwnerComputeGraph() == nullptr) {
-         continue;
+        continue;
       }
       // simulate delete node
       auto iter = names_to_add_del_.find(node->GetName());
@@ -187,11 +187,14 @@ class UtestTestPass : public BaseNodePass {
     Init();
     return SUCCESS;
   }
-  void clear() { iter_nodes_.clear(); }
-  std::vector<NodePtr> GetIterNodes() { return iter_nodes_; }
+  void clear() {
+    iter_nodes_.clear();
+  }
+  std::vector<NodePtr> GetIterNodes() {
+    return iter_nodes_;
+  }
 
   void AddRePassNodeName(const std::string &iter_node, const std::string &re_pass_node) {
-    
     names_to_add_repass_[iter_node].insert(re_pass_node);
   }
   void AddDelNodeName(const std::string &iter_node, const std::string &del_node) {
@@ -213,7 +216,9 @@ class UtestTestPass : public BaseNodePass {
     names_to_add_resume_onleaked_.insert(resume_node);
   }
 
-  unsigned int GetRunTimes() { return run_times_; }
+  unsigned int GetRunTimes() {
+    return run_times_;
+  }
 
  private:
   std::vector<NodePtr> iter_nodes_;
@@ -231,7 +236,9 @@ class UtestTestPass : public BaseNodePass {
 REG_PASS_OPTION("UtestTestPass").LEVELS(OoLevel::kO3);
 class TestDelPass : public BaseNodePass {
  public:
-  Status Run(NodePtr &node) override { return SUCCESS; }
+  Status Run(NodePtr &node) override {
+    return SUCCESS;
+  }
 };
 REG_PASS_OPTION("TestDelPass").LEVELS(OoLevel::kO3);
 class CountingPass : public BaseNodePass {
@@ -243,6 +250,7 @@ class CountingPass : public BaseNodePass {
   int32_t GetCount() const {
     return count_;
   }
+
  private:
   int32_t count_ = 0;
 };
@@ -625,7 +633,7 @@ ComputeGraphPtr BuildWhileGraph1() {
   auto builder_sub = ut::GraphBuilder("sub");
   auto data_1 = builder_sub.AddNode("data_1", DATA, 0, 1);
   auto data_2 = builder_sub.AddNode("data_2", DATA, 0, 1);
-  auto add =  builder_sub.AddNode("add", ADD, 2, 1);
+  auto add = builder_sub.AddNode("add", ADD, 2, 1);
 
   builder_sub.AddDataEdge(data_1, 0, add, 0);
   builder_sub.AddDataEdge(data_2, 0, add, 1);
@@ -639,7 +647,7 @@ ComputeGraphPtr BuildWhileGraph1() {
   auto c2 = builder.AddNode("cast2", CAST, 1, 1);
   // add while op
   auto tensor_desc = std::make_shared<GeTensorDesc>();
-  tensor_desc->SetShape(GeShape({1,1,1,1}));
+  tensor_desc->SetShape(GeShape({1, 1, 1, 1}));
   tensor_desc->SetFormat(FORMAT_ND);
   tensor_desc->SetDataType(DT_INT32);
 
@@ -650,9 +658,9 @@ ComputeGraphPtr BuildWhileGraph1() {
   for (int i = 0; i < 2; ++i) {
     op_desc->AddOutputDesc(tensor_desc->Clone());
   }
-  AttrUtils::SetBool(op_desc,"_need_infer_again", true);
+  AttrUtils::SetBool(op_desc, "_need_infer_again", true);
   op_desc->AddSubgraphName(sub_graph->GetName());
-  op_desc->SetSubgraphInstanceName(0,sub_graph->GetName());
+  op_desc->SetSubgraphInstanceName(0, sub_graph->GetName());
   auto root_graph = builder.GetGraph();
   auto while_op = root_graph->AddNode(op_desc);
 
@@ -674,7 +682,7 @@ TEST_F(UTESTGraphPassesBasePass, while_infershape) {
   auto graph = BuildWhileGraph1();
   auto ge_pass = GEPass(graph);
   auto while_node = graph->FindNode("while");
-  EXPECT_EQ(while_node->GetOpDesc()->GetSubgraphInstanceNames().size(),1);
+  EXPECT_EQ(while_node->GetOpDesc()->GetSubgraphInstanceNames().size(), 1);
   EXPECT_EQ(ge_pass.Run(names_to_pass), SUCCESS);
 }
 
@@ -686,7 +694,7 @@ TEST_F(UTESTGraphPassesBasePass, re_pass_pre_node_immediately) {
   test_pass->AddRePassImmediateNodeName("reshape1", "add1");
   EXPECT_EQ(ge_pass.Run(names_to_pass_), SUCCESS);
 
-  EXPECT_EQ(test_pass->GetIterNodes().size(), 9);// todo
+  EXPECT_EQ(test_pass->GetIterNodes().size(), 9);  // todo
   std::vector<std::unordered_set<std::string>> layers;
   layers.push_back({"data1", "const1", "const2"});
   layers.push_back({"shape1"});
@@ -733,8 +741,8 @@ TEST_F(UTESTGraphPassesBasePass, re_pass_next_node_immediately) {
 }
 /**
  * A->B->C
- * if node B suspend its pre_node A, and C resume A,  it is a useless operation, so iter_order should follow normal order
- * when C resuem A, A will pass again.
+ * if node B suspend its pre_node A, and C resume A,  it is a useless operation, so iter_order should follow normal
+ * order when C resuem A, A will pass again.
  */
 TEST_F(UTESTGraphPassesBasePass, B_suspend_pre_node_A_then_C_resume_A) {
   auto graph = BuildGraph2();
@@ -756,8 +764,8 @@ TEST_F(UTESTGraphPassesBasePass, B_suspend_pre_node_A_then_C_resume_A) {
 
 /**
  * A->B->C
- * if node B suspend its pre_node A, and B resume A,  it is a useless operation, so iter_order should follow normal order
- * when B resuem A, A will pass again.
+ * if node B suspend its pre_node A, and B resume A,  it is a useless operation, so iter_order should follow normal
+ * order when B resuem A, A will pass again.
  */
 TEST_F(UTESTGraphPassesBasePass, B_suspend_pre_node_A_then_B_resume_A) {
   auto graph = BuildGraph2();
@@ -858,7 +866,7 @@ TEST_F(UTESTGraphPassesBasePass, cast1_suspend_cur_node_shape2_resume_cast1) {
   EXPECT_EQ(test_pass->GetIterNodes().size(), 6);
   std::vector<std::unordered_set<std::string>> layers;
   layers.push_back({"data1"});
-  layers.push_back({"cast1","transdata1"});
+  layers.push_back({"cast1", "transdata1"});
   layers.push_back({"shape2"});
   layers.push_back({"cast1", "shape1"});
   CheckIterOrder(test_pass, layers);
@@ -879,7 +887,7 @@ TEST_F(UTESTGraphPassesBasePass, cast1_suspend_itslef_then_resume_itself) {
   EXPECT_EQ(test_pass->GetIterNodes().size(), 6);
   std::vector<std::unordered_set<std::string>> layers;
   layers.push_back({"data1"});
-  layers.push_back({"cast1","transdata1","cast1","shape1", "shape2"});
+  layers.push_back({"cast1", "transdata1", "cast1", "shape1", "shape2"});
   CheckIterOrder(test_pass, layers);
 }
 /**
@@ -898,8 +906,8 @@ TEST_F(UTESTGraphPassesBasePass, cast1_suspend_itslef_then_resume_onleaked) {
   EXPECT_EQ(test_pass->GetIterNodes().size(), 6);
   std::vector<std::unordered_set<std::string>> layers;
   layers.push_back({"data1"});
-  layers.push_back({"cast1","transdata1", "shape2"});
-  layers.push_back({"cast1","shape1"});
+  layers.push_back({"cast1", "transdata1", "shape2"});
+  layers.push_back({"cast1", "shape1"});
   CheckIterOrder(test_pass, layers);
 }
 /**
@@ -919,7 +927,7 @@ TEST_F(UTESTGraphPassesBasePass, data1_suspend_cast1_resume_cast1_onleaked) {
   std::vector<std::unordered_set<std::string>> layers;
   layers.push_back({"data1"});
   layers.push_back({"transdata1", "shape2"});
-  layers.push_back({"cast1","shape1"});
+  layers.push_back({"cast1", "shape1"});
   CheckIterOrder(test_pass, layers);
 }
 
@@ -938,7 +946,6 @@ TEST_F(UTESTGraphPassesBasePass, data1_suspend_cast1_nobody_resume) {
   EXPECT_EQ(ge_pass.Run(names_to_pass_), INTERNAL_ERROR);
   EXPECT_EQ(test_pass->GetIterNodes().size(), 3);
 }
-
 
 TEST_F(UTESTGraphPassesBasePass, add_global_immdiate_repass_node) {
   NamesToPass names_to_pass;
@@ -963,11 +970,14 @@ class TestRepassDeadLoopPass : public BaseNodePass {
  public:
   Status Run(NodePtr &node) override {
     iter_nodes_.push_back(node);
-    // continuely repass node
+    // continually repass node
     AddRePassNode(node);
-    return SUCCESS; 
+    return SUCCESS;
   }
-  std::vector<NodePtr> GetIterNodes() { return iter_nodes_; }
+  std::vector<NodePtr> GetIterNodes() {
+    return iter_nodes_;
+  }
+
  private:
   std::vector<NodePtr> iter_nodes_;
 };
@@ -988,9 +998,9 @@ class TestImmdiateRepassDeadLoopPass : public BaseNodePass {
  public:
   Status Run(NodePtr &node) override {
     iter_nodes_.push_back(node);
-    // continuely repass node
+    // continually repass node
     AddImmediateRePassNode(node);
-    return SUCCESS; 
+    return SUCCESS;
   }
 
   Status OnFinishGraph(ComputeGraphPtr &root_graph, std::vector<NodePtr> &node_to_be_repass) override {
@@ -998,7 +1008,10 @@ class TestImmdiateRepassDeadLoopPass : public BaseNodePass {
     node_to_be_repass.emplace_back(first_node);
     return SUCCESS;
   }
-  std::vector<NodePtr> GetIterNodes() { return iter_nodes_; }
+  std::vector<NodePtr> GetIterNodes() {
+    return iter_nodes_;
+  }
+
  private:
   std::vector<NodePtr> iter_nodes_;
 };
@@ -1071,7 +1084,6 @@ TEST_F(UTESTGraphPassesBasePass, stop_repass_when_after_repass_exceed_limts) {
   ge_pass.AddPassAfterGraphOptimized(names_to_pass_after_pass);
   EXPECT_EQ(ge_pass.Run(names_to_pass), SUCCESS);
   EXPECT_EQ(test_pass.GetIterNodes().size(), 40);
-
 }
 
 /**
@@ -1114,7 +1126,7 @@ TEST_F(UTESTGraphPassesBasePass, add_pass_after_graph_optimized_with_V2_graph) {
 class TestDeleteNodesOnV2GraphPass : public BaseNodePass {
  public:
   Status Run(NodePtr &node) override {
-    return SUCCESS; 
+    return SUCCESS;
   }
   Status OnFinishGraph(ComputeGraphPtr &root_graph, std::vector<NodePtr> &repass_node) override {
     for (auto &node : root_graph->GetAllNodes()) {

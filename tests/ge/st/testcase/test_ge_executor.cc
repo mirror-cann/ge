@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -68,7 +68,7 @@ class MockMemRuntime : public ge::RuntimeStub {
 };
 
 class MockAclRuntime : public ge::AclRuntimeStub {
-public:
+ public:
   aclError aclrtGetMemInfo(aclrtMemAttr attr, size_t *free_size, size_t *total) override {
     *free_size = 64UL * 1024UL * 1024UL;
     *total = 32UL * 1024UL * 1024UL * 1024UL;
@@ -113,32 +113,42 @@ void BuildHcclSampleGraph(ComputeGraphPtr &graph, uint32_t &mem_offset) {
     const auto active_s = OP_CFG(STREAMACTIVE).Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{1});
     const auto less_node = OP_CFG(LESS).Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF_AIVEC");
     CHAIN(NODE("_arg_0", CONSTANT)->NODE("HcomAllreduce", HCOMALLREDUCE)->NODE("Less", less_node));
-    CHAIN(NODE("_arg_1", DATA)->NODE("Less")->NODE("Less_Cast", CAST)->CTRL_EDGE()->NODE("Less_StreamActive", active_s));
-    CHAIN(NODE("_arg_2", DATA)->NODE("mul", MUL)->EDGE(0, 1)->NODE("add_n", ADDN)->NODE(NODE_NAME_NET_OUTPUT, NETOUTPUT));
+    CHAIN(
+        NODE("_arg_1", DATA)->NODE("Less")->NODE("Less_Cast", CAST)->CTRL_EDGE()->NODE("Less_StreamActive", active_s));
+    CHAIN(
+        NODE("_arg_2", DATA)->NODE("mul", MUL)->EDGE(0, 1)->NODE("add_n", ADDN)->NODE(NODE_NAME_NET_OUTPUT, NETOUTPUT));
     CHAIN(NODE("_arg_3", DATA)->NODE("aipp", AIPP)->NODE("shape", SHAPE)->EDGE(0, 0)->NODE("add_n"));
     CHAIN(NODE("_cst_string", CONSTANTOP)->NODE("shape", SHAPE));
     CHAIN(NODE("_arg_1")->NODE("mul"));
 
-    const auto switch_f = OP_CFG(STREAMSWITCH).Attr(ATTR_NAME_STREAM_SWITCH_COND, static_cast<uint32_t>(RT_NOT_EQUAL))
-                                              .Attr(ATTR_NAME_SWITCH_DATA_TYPE, static_cast<int64_t>(RT_SWITCH_INT64))
-                                              .Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{2});
+    const auto switch_f = OP_CFG(STREAMSWITCH)
+                              .Attr(ATTR_NAME_STREAM_SWITCH_COND, static_cast<uint32_t>(RT_NOT_EQUAL))
+                              .Attr(ATTR_NAME_SWITCH_DATA_TYPE, static_cast<int64_t>(RT_SWITCH_INT64))
+                              .Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{2});
     CHAIN(NODE("Less_Cast")->EDGE(0, 0)->NODE("Less/StreamSwitch_f", switch_f));
     CHAIN(NODE("Less/StreamSwitch_Const_f", CONSTANTOP)->EDGE(0, 1)->NODE("Less/StreamSwitch_f"));
     CHAIN(NODE("Less_StreamActive")->CTRL_EDGE()->NODE("Less/StreamSwitch_f"));
 
-    const auto switch_t = OP_CFG(STREAMSWITCH).Attr(ATTR_NAME_STREAM_SWITCH_COND, static_cast<uint32_t>(RT_EQUAL))
-                                              .Attr(ATTR_NAME_SWITCH_DATA_TYPE, static_cast<int64_t>(RT_SWITCH_INT64))
-                                              .Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{2});
+    const auto switch_t = OP_CFG(STREAMSWITCH)
+                              .Attr(ATTR_NAME_STREAM_SWITCH_COND, static_cast<uint32_t>(RT_EQUAL))
+                              .Attr(ATTR_NAME_SWITCH_DATA_TYPE, static_cast<int64_t>(RT_SWITCH_INT64))
+                              .Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{2});
     CHAIN(NODE("Less_Cast")->EDGE(0, 0)->NODE("Less/StreamSwitch_t", switch_t));
     CHAIN(NODE("Less/StreamSwitch_Const_t", CONSTANTOP)->EDGE(0, 1)->NODE("Less/StreamSwitch_t"));
     CHAIN(NODE("Less_StreamActive")->CTRL_EDGE()->NODE("Less/StreamSwitch_t"));
 
     const auto active_0 = OP_CFG(STREAMACTIVE).Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{2});
-    CHAIN(NODE("_arg_0")->EDGE(0, 0)->NODE("cond/pow", POW)->NODE("cond/sub", SUB)->
-          NODE("merge_input_0_memcpy", MEMCPYASYNC)->CTRL_EDGE()->
-          NODE("merge_input_0_active", active_0)->CTRL_EDGE()->
-          NODE("cond/merge", STREAMMERGE)->EDGE(0, 2)->
-          NODE("add_n"));
+    CHAIN(NODE("_arg_0")
+              ->EDGE(0, 0)
+              ->NODE("cond/pow", POW)
+              ->NODE("cond/sub", SUB)
+              ->NODE("merge_input_0_memcpy", MEMCPYASYNC)
+              ->CTRL_EDGE()
+              ->NODE("merge_input_0_active", active_0)
+              ->CTRL_EDGE()
+              ->NODE("cond/merge", STREAMMERGE)
+              ->EDGE(0, 2)
+              ->NODE("add_n"));
     CHAIN(NODE("merge_input_0_memcpy")->EDGE(0, 0)->NODE("cond/merge"));
     CHAIN(NODE("_arg_1")->EDGE(0, 1)->NODE("cond/pow"));
     CHAIN(NODE("Less/StreamSwitch_f")->CTRL_EDGE()->NODE("cond/pow"));
@@ -147,10 +157,15 @@ void BuildHcclSampleGraph(ComputeGraphPtr &graph, uint32_t &mem_offset) {
     CHAIN(NODE("Less/StreamSwitch_f")->CTRL_EDGE()->NODE("cond/realdiv"));
 
     const auto active_1 = OP_CFG(STREAMACTIVE).Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{2});
-    CHAIN(NODE("_arg_1")->EDGE(0, 0)->NODE("cond/mul", MUL)->NODE("cond/add", ADD)->
-          NODE("merge_input_1_memcpy", MEMCPYASYNC)->CTRL_EDGE()->
-          NODE("merge_input_1_active", active_1)->CTRL_EDGE()->
-          NODE("cond/merge"));
+    CHAIN(NODE("_arg_1")
+              ->EDGE(0, 0)
+              ->NODE("cond/mul", MUL)
+              ->NODE("cond/add", ADD)
+              ->NODE("merge_input_1_memcpy", MEMCPYASYNC)
+              ->CTRL_EDGE()
+              ->NODE("merge_input_1_active", active_1)
+              ->CTRL_EDGE()
+              ->NODE("cond/merge"));
     CHAIN(NODE("merge_input_1_memcpy")->EDGE(0, 1)->NODE("cond/merge"));
     CHAIN(NODE("_arg_2")->EDGE(0, 1)->NODE("cond/mul"));
     CHAIN(NODE("Less/StreamSwitch_t")->CTRL_EDGE()->NODE("cond/mul"));
@@ -181,20 +196,20 @@ void BuildHcclSampleGraph(ComputeGraphPtr &graph, uint32_t &mem_offset) {
 
   {
     const auto &no = graph->FindNode("cond/pow");
-    EXPECT_TRUE(AttrUtils::SetListInt(no->GetOpDesc(), ATTR_NAME_OUTPUT_MEM_TYPE_LIST, { RT_MEMORY_L1 }));
+    EXPECT_TRUE(AttrUtils::SetListInt(no->GetOpDesc(), ATTR_NAME_OUTPUT_MEM_TYPE_LIST, {RT_MEMORY_L1}));
     const auto &ni = graph->FindNode("cond/sub");
-    EXPECT_TRUE(AttrUtils::SetListInt(ni->GetOpDesc(), ATTR_NAME_INPUT_MEM_TYPE_LIST, { RT_MEMORY_L1, RT_MEMORY_HBM }));
+    EXPECT_TRUE(AttrUtils::SetListInt(ni->GetOpDesc(), ATTR_NAME_INPUT_MEM_TYPE_LIST, {RT_MEMORY_L1, RT_MEMORY_HBM}));
   }
   {
     const auto &no = graph->FindNode("cond/pow");
   }
   {
     const auto &no = graph->FindNode("Less_Cast");
-    EXPECT_TRUE(AttrUtils::SetListInt(no->GetOpDesc(), ATTR_NAME_OUTPUT_MEM_TYPE_LIST, { RT_MEMORY_TS }));
+    EXPECT_TRUE(AttrUtils::SetListInt(no->GetOpDesc(), ATTR_NAME_OUTPUT_MEM_TYPE_LIST, {RT_MEMORY_TS}));
     const auto &nt = graph->FindNode("Less/StreamSwitch_t");
-    EXPECT_TRUE(AttrUtils::SetListInt(nt->GetOpDesc(), ATTR_NAME_INPUT_MEM_TYPE_LIST, { RT_MEMORY_TS, RT_MEMORY_HBM }));
+    EXPECT_TRUE(AttrUtils::SetListInt(nt->GetOpDesc(), ATTR_NAME_INPUT_MEM_TYPE_LIST, {RT_MEMORY_TS, RT_MEMORY_HBM}));
     const auto &nf = graph->FindNode("Less/StreamSwitch_f");
-    EXPECT_TRUE(AttrUtils::SetListInt(nf->GetOpDesc(), ATTR_NAME_INPUT_MEM_TYPE_LIST, { RT_MEMORY_TS, RT_MEMORY_HBM }));
+    EXPECT_TRUE(AttrUtils::SetListInt(nf->GetOpDesc(), ATTR_NAME_INPUT_MEM_TYPE_LIST, {RT_MEMORY_TS, RT_MEMORY_HBM}));
   }
 }
 
@@ -203,32 +218,42 @@ void BuildHcclSampleGraphWithQos(ComputeGraphPtr &graph, uint32_t &mem_offset) {
     const auto active_s = OP_CFG(STREAMACTIVE).Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{1});
     const auto less_node = OP_CFG(LESS).Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF_AIVEC");
     CHAIN(NODE("_arg_0", CONSTANT)->NODE("HcomAllreduce", HCOMALLREDUCE)->NODE("Less", less_node));
-    CHAIN(NODE("_arg_1", DATA)->NODE("Less")->NODE("Less_Cast", CAST)->CTRL_EDGE()->NODE("Less_StreamActive", active_s));
-    CHAIN(NODE("_arg_2", DATA)->NODE("mul", MUL)->EDGE(0, 1)->NODE("add_n", ADDN)->NODE(NODE_NAME_NET_OUTPUT, NETOUTPUT));
+    CHAIN(
+        NODE("_arg_1", DATA)->NODE("Less")->NODE("Less_Cast", CAST)->CTRL_EDGE()->NODE("Less_StreamActive", active_s));
+    CHAIN(
+        NODE("_arg_2", DATA)->NODE("mul", MUL)->EDGE(0, 1)->NODE("add_n", ADDN)->NODE(NODE_NAME_NET_OUTPUT, NETOUTPUT));
     CHAIN(NODE("_arg_3", DATA)->NODE("aipp", AIPP)->NODE("shape", SHAPE)->EDGE(0, 0)->NODE("add_n"));
     CHAIN(NODE("_cst_string", CONSTANTOP)->NODE("shape", SHAPE));
     CHAIN(NODE("_arg_1")->NODE("mul"));
 
-    const auto switch_f = OP_CFG(STREAMSWITCH).Attr(ATTR_NAME_STREAM_SWITCH_COND, static_cast<uint32_t>(RT_NOT_EQUAL))
-                                              .Attr(ATTR_NAME_SWITCH_DATA_TYPE, static_cast<int64_t>(RT_SWITCH_INT64))
-                                              .Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{2});
+    const auto switch_f = OP_CFG(STREAMSWITCH)
+                              .Attr(ATTR_NAME_STREAM_SWITCH_COND, static_cast<uint32_t>(RT_NOT_EQUAL))
+                              .Attr(ATTR_NAME_SWITCH_DATA_TYPE, static_cast<int64_t>(RT_SWITCH_INT64))
+                              .Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{2});
     CHAIN(NODE("Less_Cast")->EDGE(0, 0)->NODE("Less/StreamSwitch_f", switch_f));
     CHAIN(NODE("Less/StreamSwitch_Const_f", CONSTANTOP)->EDGE(0, 1)->NODE("Less/StreamSwitch_f"));
     CHAIN(NODE("Less_StreamActive")->CTRL_EDGE()->NODE("Less/StreamSwitch_f"));
 
-    const auto switch_t = OP_CFG(STREAMSWITCH).Attr(ATTR_NAME_STREAM_SWITCH_COND, static_cast<uint32_t>(RT_EQUAL))
-                                              .Attr(ATTR_NAME_SWITCH_DATA_TYPE, static_cast<int64_t>(RT_SWITCH_INT64))
-                                              .Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{2});
+    const auto switch_t = OP_CFG(STREAMSWITCH)
+                              .Attr(ATTR_NAME_STREAM_SWITCH_COND, static_cast<uint32_t>(RT_EQUAL))
+                              .Attr(ATTR_NAME_SWITCH_DATA_TYPE, static_cast<int64_t>(RT_SWITCH_INT64))
+                              .Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{2});
     CHAIN(NODE("Less_Cast")->EDGE(0, 0)->NODE("Less/StreamSwitch_t", switch_t));
     CHAIN(NODE("Less/StreamSwitch_Const_t", CONSTANTOP)->EDGE(0, 1)->NODE("Less/StreamSwitch_t"));
     CHAIN(NODE("Less_StreamActive")->CTRL_EDGE()->NODE("Less/StreamSwitch_t"));
 
     const auto active_0 = OP_CFG(STREAMACTIVE).Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{2});
-    CHAIN(NODE("_arg_0")->EDGE(0, 0)->NODE("cond/pow", POW)->NODE("cond/sub", SUB)->
-          NODE("merge_input_0_memcpy", MEMCPYASYNC)->CTRL_EDGE()->
-          NODE("merge_input_0_active", active_0)->CTRL_EDGE()->
-          NODE("cond/merge", STREAMMERGE)->EDGE(0, 2)->
-          NODE("add_n"));
+    CHAIN(NODE("_arg_0")
+              ->EDGE(0, 0)
+              ->NODE("cond/pow", POW)
+              ->NODE("cond/sub", SUB)
+              ->NODE("merge_input_0_memcpy", MEMCPYASYNC)
+              ->CTRL_EDGE()
+              ->NODE("merge_input_0_active", active_0)
+              ->CTRL_EDGE()
+              ->NODE("cond/merge", STREAMMERGE)
+              ->EDGE(0, 2)
+              ->NODE("add_n"));
     CHAIN(NODE("merge_input_0_memcpy")->EDGE(0, 0)->NODE("cond/merge"));
     CHAIN(NODE("_arg_1")->EDGE(0, 1)->NODE("cond/pow"));
     CHAIN(NODE("Less/StreamSwitch_f")->CTRL_EDGE()->NODE("cond/pow"));
@@ -237,10 +262,15 @@ void BuildHcclSampleGraphWithQos(ComputeGraphPtr &graph, uint32_t &mem_offset) {
     CHAIN(NODE("Less/StreamSwitch_f")->CTRL_EDGE()->NODE("cond/realdiv"));
 
     const auto active_1 = OP_CFG(STREAMACTIVE).Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{2});
-    CHAIN(NODE("_arg_1")->EDGE(0, 0)->NODE("cond/mul", MUL)->NODE("cond/add", ADD)->
-          NODE("merge_input_1_memcpy", MEMCPYASYNC)->CTRL_EDGE()->
-          NODE("merge_input_1_active", active_1)->CTRL_EDGE()->
-          NODE("cond/merge"));
+    CHAIN(NODE("_arg_1")
+              ->EDGE(0, 0)
+              ->NODE("cond/mul", MUL)
+              ->NODE("cond/add", ADD)
+              ->NODE("merge_input_1_memcpy", MEMCPYASYNC)
+              ->CTRL_EDGE()
+              ->NODE("merge_input_1_active", active_1)
+              ->CTRL_EDGE()
+              ->NODE("cond/merge"));
     CHAIN(NODE("merge_input_1_memcpy")->EDGE(0, 1)->NODE("cond/merge"));
     CHAIN(NODE("_arg_2")->EDGE(0, 1)->NODE("cond/mul"));
     CHAIN(NODE("Less/StreamSwitch_t")->CTRL_EDGE()->NODE("cond/mul"));
@@ -271,31 +301,34 @@ void BuildHcclSampleGraphWithQos(ComputeGraphPtr &graph, uint32_t &mem_offset) {
 
   {
     const auto &no = graph->FindNode("cond/pow");
-    EXPECT_TRUE(AttrUtils::SetListInt(no->GetOpDesc(), ATTR_NAME_OUTPUT_MEM_TYPE_LIST, { RT_MEMORY_L1 }));
+    EXPECT_TRUE(AttrUtils::SetListInt(no->GetOpDesc(), ATTR_NAME_OUTPUT_MEM_TYPE_LIST, {RT_MEMORY_L1}));
     const auto &ni = graph->FindNode("cond/sub");
-    EXPECT_TRUE(AttrUtils::SetListInt(ni->GetOpDesc(), ATTR_NAME_INPUT_MEM_TYPE_LIST, { RT_MEMORY_L1, RT_MEMORY_HBM }));
+    EXPECT_TRUE(AttrUtils::SetListInt(ni->GetOpDesc(), ATTR_NAME_INPUT_MEM_TYPE_LIST, {RT_MEMORY_L1, RT_MEMORY_HBM}));
   }
   {
     const auto &no = graph->FindNode("cond/pow");
   }
   {
     const auto &no = graph->FindNode("Less_Cast");
-    EXPECT_TRUE(AttrUtils::SetListInt(no->GetOpDesc(), ATTR_NAME_OUTPUT_MEM_TYPE_LIST, { RT_MEMORY_TS }));
+    EXPECT_TRUE(AttrUtils::SetListInt(no->GetOpDesc(), ATTR_NAME_OUTPUT_MEM_TYPE_LIST, {RT_MEMORY_TS}));
     const auto &nt = graph->FindNode("Less/StreamSwitch_t");
-    EXPECT_TRUE(AttrUtils::SetListInt(nt->GetOpDesc(), ATTR_NAME_INPUT_MEM_TYPE_LIST, { RT_MEMORY_TS, RT_MEMORY_HBM }));
+    EXPECT_TRUE(AttrUtils::SetListInt(nt->GetOpDesc(), ATTR_NAME_INPUT_MEM_TYPE_LIST, {RT_MEMORY_TS, RT_MEMORY_HBM}));
     const auto &nf = graph->FindNode("Less/StreamSwitch_f");
-    EXPECT_TRUE(AttrUtils::SetListInt(nf->GetOpDesc(), ATTR_NAME_INPUT_MEM_TYPE_LIST, { RT_MEMORY_TS, RT_MEMORY_HBM }));
+    EXPECT_TRUE(AttrUtils::SetListInt(nf->GetOpDesc(), ATTR_NAME_INPUT_MEM_TYPE_LIST, {RT_MEMORY_TS, RT_MEMORY_HBM}));
   }
 }
 
 void BuildSampleGraph(ComputeGraphPtr &graph, uint32_t &mem_offset) {
   DEF_GRAPH(g1) {
     const auto active_s = OP_CFG(STREAMACTIVE).Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{1});
-    const auto less_node = OP_CFG(LESS).Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF_AIVEC")
+    const auto less_node = OP_CFG(LESS)
+                               .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF_AIVEC")
                                .Attr(ATTR_NAME_KERNEL_BIN_ID, "_less_fake_kernel_bin_id");
     CHAIN(NODE("_arg_0", DATA)->NODE("HcomAllreduce", HCOMALLREDUCE)->NODE("Less", less_node));
-    CHAIN(NODE("_arg_1", DATA)->NODE("Less")->NODE("Less_Cast", CAST)->CTRL_EDGE()->NODE("Less_StreamActive", active_s));
-    CHAIN(NODE("_arg_2", DATA)->NODE("mul", MUL)->EDGE(0, 1)->NODE("add_n", ADDN)->NODE(NODE_NAME_NET_OUTPUT, NETOUTPUT));
+    CHAIN(
+        NODE("_arg_1", DATA)->NODE("Less")->NODE("Less_Cast", CAST)->CTRL_EDGE()->NODE("Less_StreamActive", active_s));
+    CHAIN(
+        NODE("_arg_2", DATA)->NODE("mul", MUL)->EDGE(0, 1)->NODE("add_n", ADDN)->NODE(NODE_NAME_NET_OUTPUT, NETOUTPUT));
     CHAIN(NODE("_arg_3", DATA)->NODE("aipp", AIPP)->NODE("shape", SHAPE)->EDGE(0, 0)->NODE("add_n"));
     CHAIN(NODE("var1", VARIABLE)->EDGE(0, 2)->NODE("add_n"));
     CHAIN(NODE("var2", VARIABLE)->EDGE(0, 3)->NODE("add_n"));
@@ -304,34 +337,54 @@ void BuildSampleGraph(ComputeGraphPtr &graph, uint32_t &mem_offset) {
     CHAIN(NODE("_arg_1")->NODE("cmo2", "Cmo")->Ctrl()->NODE("add_n"));
     CHAIN(NODE("_arg_1")->NODE("mul"));
 
-    const auto switch_f = OP_CFG(STREAMSWITCH).Attr(ATTR_NAME_STREAM_SWITCH_COND, static_cast<uint32_t>(RT_NOT_EQUAL))
-                                              .Attr(ATTR_NAME_SWITCH_DATA_TYPE, static_cast<int64_t>(RT_SWITCH_INT64))
-                                              .Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{2});
-    CHAIN(NODE("Less_Cast")->EDGE(0, 0)->
-         NODE("switch_f_input0_memcpy", MEMCPYASYNC)->EDGE(0, 0)->    // 增加memcpy
-         NODE("Less/StreamSwitch_f", switch_f));
-    CHAIN(NODE("Less/StreamSwitch_Const_f", CONSTANTOP)->EDGE(0, 0)->
-          NODE("switch_f_input1_memcpy", MEMCPYASYNC)->EDGE(0, 1)->   // 增加memcopy
+    const auto switch_f = OP_CFG(STREAMSWITCH)
+                              .Attr(ATTR_NAME_STREAM_SWITCH_COND, static_cast<uint32_t>(RT_NOT_EQUAL))
+                              .Attr(ATTR_NAME_SWITCH_DATA_TYPE, static_cast<int64_t>(RT_SWITCH_INT64))
+                              .Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{2});
+    CHAIN(NODE("Less_Cast")
+              ->EDGE(0, 0)
+              ->NODE("switch_f_input0_memcpy", MEMCPYASYNC)
+              ->EDGE(0, 0)
+              ->  // 增加memcpy
+          NODE("Less/StreamSwitch_f", switch_f));
+    CHAIN(NODE("Less/StreamSwitch_Const_f", CONSTANTOP)
+              ->EDGE(0, 0)
+              ->NODE("switch_f_input1_memcpy", MEMCPYASYNC)
+              ->EDGE(0, 1)
+              ->  // 增加memcopy
           NODE("Less/StreamSwitch_f"));
     CHAIN(NODE("Less_StreamActive")->CTRL_EDGE()->NODE("Less/StreamSwitch_f"));
 
-    const auto switch_t = OP_CFG(STREAMSWITCH).Attr(ATTR_NAME_STREAM_SWITCH_COND, static_cast<uint32_t>(RT_EQUAL))
-                                              .Attr(ATTR_NAME_SWITCH_DATA_TYPE, static_cast<int64_t>(RT_SWITCH_INT64))
-                                              .Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{2});
-    CHAIN(NODE("Less_Cast")->EDGE(0, 0)->
-          NODE("switch_t_input0_memcpy", MEMCPYASYNC)->EDGE(0, 0)->  // 增加memcpy
+    const auto switch_t = OP_CFG(STREAMSWITCH)
+                              .Attr(ATTR_NAME_STREAM_SWITCH_COND, static_cast<uint32_t>(RT_EQUAL))
+                              .Attr(ATTR_NAME_SWITCH_DATA_TYPE, static_cast<int64_t>(RT_SWITCH_INT64))
+                              .Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{2});
+    CHAIN(NODE("Less_Cast")
+              ->EDGE(0, 0)
+              ->NODE("switch_t_input0_memcpy", MEMCPYASYNC)
+              ->EDGE(0, 0)
+              ->  // 增加memcpy
           NODE("Less/StreamSwitch_t", switch_t));
-    CHAIN(NODE("Less/StreamSwitch_Const_t", CONSTANTOP)->EDGE(0, 0)->
-          NODE("switch_t_input1_memcpy", MEMCPYASYNC)->EDGE(0, 1)->  // 增加memcpy
+    CHAIN(NODE("Less/StreamSwitch_Const_t", CONSTANTOP)
+              ->EDGE(0, 0)
+              ->NODE("switch_t_input1_memcpy", MEMCPYASYNC)
+              ->EDGE(0, 1)
+              ->  // 增加memcpy
           NODE("Less/StreamSwitch_t"));
     CHAIN(NODE("Less_StreamActive")->CTRL_EDGE()->NODE("Less/StreamSwitch_t"));
 
     const auto active_0 = OP_CFG(STREAMACTIVE).Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{2});
-    CHAIN(NODE("_arg_0")->EDGE(0, 0)->NODE("cond/pow", POW)->NODE("cond/sub", SUB)->
-          NODE("merge_input_0_memcpy", MEMCPYASYNC)->CTRL_EDGE()->
-          NODE("merge_input_0_active", active_0)->CTRL_EDGE()->
-          NODE("cond/merge", STREAMMERGE)->EDGE(0, 2)->
-          NODE("add_n"));
+    CHAIN(NODE("_arg_0")
+              ->EDGE(0, 0)
+              ->NODE("cond/pow", POW)
+              ->NODE("cond/sub", SUB)
+              ->NODE("merge_input_0_memcpy", MEMCPYASYNC)
+              ->CTRL_EDGE()
+              ->NODE("merge_input_0_active", active_0)
+              ->CTRL_EDGE()
+              ->NODE("cond/merge", STREAMMERGE)
+              ->EDGE(0, 2)
+              ->NODE("add_n"));
     CHAIN(NODE("merge_input_0_memcpy")->EDGE(0, 0)->NODE("cond/merge"));
     CHAIN(NODE("_arg_1")->EDGE(0, 1)->NODE("cond/pow"));
     CHAIN(NODE("Less/StreamSwitch_f")->CTRL_EDGE()->NODE("cond/pow"));
@@ -340,10 +393,15 @@ void BuildSampleGraph(ComputeGraphPtr &graph, uint32_t &mem_offset) {
     CHAIN(NODE("Less/StreamSwitch_f")->CTRL_EDGE()->NODE("cond/realdiv"));
 
     const auto active_1 = OP_CFG(STREAMACTIVE).Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{2});
-    CHAIN(NODE("_arg_1")->EDGE(0, 0)->NODE("cond/mul", MUL)->NODE("cond/add", ADD)->
-          NODE("merge_input_1_memcpy", MEMCPYASYNC)->CTRL_EDGE()->
-          NODE("merge_input_1_active", active_1)->CTRL_EDGE()->
-          NODE("cond/merge"));
+    CHAIN(NODE("_arg_1")
+              ->EDGE(0, 0)
+              ->NODE("cond/mul", MUL)
+              ->NODE("cond/add", ADD)
+              ->NODE("merge_input_1_memcpy", MEMCPYASYNC)
+              ->CTRL_EDGE()
+              ->NODE("merge_input_1_active", active_1)
+              ->CTRL_EDGE()
+              ->NODE("cond/merge"));
     CHAIN(NODE("merge_input_1_memcpy")->EDGE(0, 1)->NODE("cond/merge"));
     CHAIN(NODE("_arg_2")->EDGE(0, 1)->NODE("cond/mul"));
     CHAIN(NODE("Less/StreamSwitch_t")->CTRL_EDGE()->NODE("cond/mul"));
@@ -395,20 +453,20 @@ void BuildSampleGraph(ComputeGraphPtr &graph, uint32_t &mem_offset) {
   }
   {
     const auto &no = graph->FindNode("cond/pow");
-    EXPECT_TRUE(AttrUtils::SetListInt(no->GetOpDesc(), ATTR_NAME_OUTPUT_MEM_TYPE_LIST, { RT_MEMORY_L1 }));
+    EXPECT_TRUE(AttrUtils::SetListInt(no->GetOpDesc(), ATTR_NAME_OUTPUT_MEM_TYPE_LIST, {RT_MEMORY_L1}));
     EXPECT_TRUE(AttrUtils::SetStr(no->GetOpDesc(), ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "MIX"));
     EXPECT_TRUE(AttrUtils::SetInt(no->GetOpDesc(), "_task_ratio", 2));
     const auto &ni = graph->FindNode("cond/sub");
-    EXPECT_TRUE(AttrUtils::SetListInt(ni->GetOpDesc(), ATTR_NAME_INPUT_MEM_TYPE_LIST, { RT_MEMORY_L1, RT_MEMORY_HBM }));
+    EXPECT_TRUE(AttrUtils::SetListInt(ni->GetOpDesc(), ATTR_NAME_INPUT_MEM_TYPE_LIST, {RT_MEMORY_L1, RT_MEMORY_HBM}));
   }
 
   {
     const auto &no = graph->FindNode("Less_Cast");
-    EXPECT_TRUE(AttrUtils::SetListInt(no->GetOpDesc(), ATTR_NAME_OUTPUT_MEM_TYPE_LIST, { RT_MEMORY_TS }));
+    EXPECT_TRUE(AttrUtils::SetListInt(no->GetOpDesc(), ATTR_NAME_OUTPUT_MEM_TYPE_LIST, {RT_MEMORY_TS}));
     const auto &nt = graph->FindNode("Less/StreamSwitch_t");
-    EXPECT_TRUE(AttrUtils::SetListInt(nt->GetOpDesc(), ATTR_NAME_INPUT_MEM_TYPE_LIST, { RT_MEMORY_TS, RT_MEMORY_HBM }));
+    EXPECT_TRUE(AttrUtils::SetListInt(nt->GetOpDesc(), ATTR_NAME_INPUT_MEM_TYPE_LIST, {RT_MEMORY_TS, RT_MEMORY_HBM}));
     const auto &nf = graph->FindNode("Less/StreamSwitch_f");
-    EXPECT_TRUE(AttrUtils::SetListInt(nf->GetOpDesc(), ATTR_NAME_INPUT_MEM_TYPE_LIST, { RT_MEMORY_TS, RT_MEMORY_HBM }));
+    EXPECT_TRUE(AttrUtils::SetListInt(nf->GetOpDesc(), ATTR_NAME_INPUT_MEM_TYPE_LIST, {RT_MEMORY_TS, RT_MEMORY_HBM}));
   }
 
   {
@@ -604,8 +662,8 @@ void BuildGraphModel(ComputeGraphPtr &graph, GeModelPtr &ge_model, uint32_t mem_
   ge_model->SetTBEKernelStore(tbe_kernel_store);
   EXPECT_TRUE(cpu_kernel_store.Build());
   ge_model->SetCustAICPUKernelStore(cpu_kernel_store);
-  EXPECT_TRUE(AttrUtils::SetListStr(ge_model, "needCheckCpu", { "aicpu_optype_01", "aicpu_optype_02" }));
-  EXPECT_TRUE(AttrUtils::SetListStr(ge_model, "needCheckTf", { "aicpu_tf_optype_01", "aicpu_tf_optype_02" }));
+  EXPECT_TRUE(AttrUtils::SetListStr(ge_model, "needCheckCpu", {"aicpu_optype_01", "aicpu_optype_02"}));
+  EXPECT_TRUE(AttrUtils::SetListStr(ge_model, "needCheckTf", {"aicpu_tf_optype_01", "aicpu_tf_optype_02"}));
 
   EXPECT_TRUE(AttrUtils::SetInt(ge_model, MODEL_ATTR_SESSION_ID, graph->GetSessionID()));
 }
@@ -622,21 +680,20 @@ static void ProfileCommandInit(GeExecutor &ge_executor) {
 static void ProfileCommandProf(GeExecutor &ge_executor, const uint32_t model_id) {
   {
     Command command{.cmd_type = "prof_start",
-                    .cmd_params = { "devNums", "1", "devIdList", "0", PROFILE_MODEL_ID, std::to_string(model_id) },
-                    .module_index = PROF_TRAINING_TRACE_MASK | PROF_OP_DETAIL_MASK };
+                    .cmd_params = {"devNums", "1", "devIdList", "0", PROFILE_MODEL_ID, std::to_string(model_id)},
+                    .module_index = PROF_TRAINING_TRACE_MASK | PROF_OP_DETAIL_MASK};
     EXPECT_EQ(ge_executor.CommandHandle(command), SUCCESS);
   }
 
   {
-    Command command{.cmd_type = "prof_start",
-                    .cmd_params = { "heterogeneous_host", "1"}};
+    Command command{.cmd_type = "prof_start", .cmd_params = {"heterogeneous_host", "1"}};
     EXPECT_EQ(ge_executor.CommandHandle(command), SUCCESS);
   }
 
   {
     Command command{.cmd_type = "prof_model_subscribe",
-                    .cmd_params = { PROFILE_MODEL_ID, std::to_string(model_id) },
-                    .module_index = PROF_MODEL_LOAD_MASK | PROF_TRAINING_TRACE_MASK | PROF_OP_DETAIL_MASK };
+                    .cmd_params = {PROFILE_MODEL_ID, std::to_string(model_id)},
+                    .module_index = PROF_MODEL_LOAD_MASK | PROF_TRAINING_TRACE_MASK | PROF_OP_DETAIL_MASK};
     EXPECT_EQ(ge_executor.CommandHandle(command), SUCCESS);
   }
 }
@@ -644,20 +701,19 @@ static void ProfileCommandProf(GeExecutor &ge_executor, const uint32_t model_id)
 static void ProfileCommandFini(GeExecutor &ge_executor, const uint32_t model_id) {
   {
     Command command{.cmd_type = "prof_stop",
-                    .cmd_params = { "devNums", "1", "devIdList", "0", PROFILE_MODEL_ID, std::to_string(model_id) },
-                    .module_index = PROF_MODEL_LOAD_MASK | PROF_TRAINING_TRACE_MASK | PROF_OP_DETAIL_MASK };
+                    .cmd_params = {"devNums", "1", "devIdList", "0", PROFILE_MODEL_ID, std::to_string(model_id)},
+                    .module_index = PROF_MODEL_LOAD_MASK | PROF_TRAINING_TRACE_MASK | PROF_OP_DETAIL_MASK};
     EXPECT_EQ(ge_executor.CommandHandle(command), SUCCESS);
   }
 
   {
-    Command command{.cmd_type = "prof_stop",
-                    .cmd_params = { "heterogeneous_host", "1"}};
+    Command command{.cmd_type = "prof_stop", .cmd_params = {"heterogeneous_host", "1"}};
     EXPECT_EQ(ge_executor.CommandHandle(command), SUCCESS);
   }
 
   {
     Command command{.cmd_type = "prof_model_cancel_subscribe",
-                    .cmd_params = { PROFILE_MODEL_ID, std::to_string(model_id) }};
+                    .cmd_params = {PROFILE_MODEL_ID, std::to_string(model_id)}};
     EXPECT_EQ(ge_executor.CommandHandle(command), SUCCESS);
   }
 
@@ -698,7 +754,7 @@ static void DumpCommandFini(GeExecutor &ge_executor) {
 static void ModelDumpInitCmd(GeExecutor &ge_executor) {
   {
     Command command{.cmd_type = "dump",
-                    .cmd_params = {DUMP_STATUS, "on", DUMP_MODEL, "g1_om", DUMP_FILE_PATH, "/tmp", DUMP_MODE, "all"} };
+                    .cmd_params = {DUMP_STATUS, "on", DUMP_MODEL, "g1_om", DUMP_FILE_PATH, "/tmp", DUMP_MODE, "all"}};
     EXPECT_EQ(ge_executor.CommandHandle(command), SUCCESS);
   }
 }
@@ -706,49 +762,64 @@ static void ModelDumpInitCmd(GeExecutor &ge_executor) {
 static void ModelDumpFiniCmd(GeExecutor &ge_executor) {
   {
     Command command{.cmd_type = "dump",
-                    .cmd_params = {DUMP_STATUS, "off", DUMP_MODEL, "g1_om", DUMP_FILE_PATH, "/tmp", DUMP_MODE, "all"} };
+                    .cmd_params = {DUMP_STATUS, "off", DUMP_MODEL, "g1_om", DUMP_FILE_PATH, "/tmp", DUMP_MODE, "all"}};
     EXPECT_EQ(ge_executor.CommandHandle(command), SUCCESS);
   }
 }
 
 void OfflineModelCommand(GeExecutor &ge_executor, const uint32_t model_id) {
   {
-    uint64_t dynamic_input_addr = 0U; uint64_t length = sizeof(uint64_t); uint64_t batch_size = 0U;
+    uint64_t dynamic_input_addr = 0U;
+    uint64_t length = sizeof(uint64_t);
+    uint64_t batch_size = 0U;
     ge_executor.SetDynamicBatchSize(model_id, &dynamic_input_addr, length, batch_size);
   }
 
   {
-    uint64_t dynamic_input_addr = 0U; uint64_t length = sizeof(uint64_t); uint64_t image_height = 0U; uint64_t image_width = 0U;
+    uint64_t dynamic_input_addr = 0U;
+    uint64_t length = sizeof(uint64_t);
+    uint64_t image_height = 0U;
+    uint64_t image_width = 0U;
     ge_executor.SetDynamicImageSize(model_id, &dynamic_input_addr, length, image_height, image_width);
   }
 
   {
-    uint64_t dynamic_input_addr = 0U; uint64_t length = sizeof(uint64_t); std::vector<uint64_t> dynamic_dims;
+    uint64_t dynamic_input_addr = 0U;
+    uint64_t length = sizeof(uint64_t);
+    std::vector<uint64_t> dynamic_dims;
     ge_executor.SetDynamicDims(model_id, &dynamic_input_addr, length, dynamic_dims);
   }
 
   {
-    std::vector<uint64_t> dynamic_dims; std::vector<uint64_t> cur_dynamic_dims;
+    std::vector<uint64_t> dynamic_dims;
+    std::vector<uint64_t> cur_dynamic_dims;
     ge_executor.GetCurDynamicDims(model_id, dynamic_dims, cur_dynamic_dims);
   }
 
   {
-    std::vector<int64_t> batch_info; int32_t dynamic_type = 0U;
+    std::vector<int64_t> batch_info;
+    int32_t dynamic_type = 0U;
     ge_executor.GetCurShape(model_id, batch_info, dynamic_type);
   }
 
   {
-    uint64_t dynamic_input_addr = 0U; uint64_t length = 0U; std::vector<kAippDynamicBatchPara> aipp_batch_para; kAippDynamicPara aipp_parms;
+    uint64_t dynamic_input_addr = 0U;
+    uint64_t length = 0U;
+    std::vector<kAippDynamicBatchPara> aipp_batch_para;
+    kAippDynamicPara aipp_parms;
     ge_executor.SetDynamicAippData(model_id, &dynamic_input_addr, length, aipp_batch_para, aipp_parms);
   }
 
   {
-    std::vector<TensorDesc> input_desc; std::vector<TensorDesc> output_desc; bool new_model_desc = false;
+    std::vector<TensorDesc> input_desc;
+    std::vector<TensorDesc> output_desc;
+    bool new_model_desc = false;
     ge_executor.GetModelDescInfo(model_id, input_desc, output_desc, new_model_desc);
   }
 
   {
-    std::vector<std::vector<int64_t>> batch_info; int32_t dynamic_type = 0U;
+    std::vector<std::vector<int64_t>> batch_info;
+    int32_t dynamic_type = 0U;
     ge_executor.GetDynamicBatchInfo(model_id, batch_info, dynamic_type);
   }
 
@@ -763,17 +834,22 @@ void OfflineModelCommand(GeExecutor &ge_executor, const uint32_t model_id) {
   }
 
   {
-    uint32_t index = 0U; AippConfigInfo aipp_info;
+    uint32_t index = 0U;
+    AippConfigInfo aipp_info;
     ge_executor.GetAIPPInfo(model_id, index, aipp_info);
   }
 
   {
-    uint32_t index = 0U; InputAippType type; size_t aipp_index = 0U;
+    uint32_t index = 0U;
+    InputAippType type;
+    size_t aipp_index = 0U;
     ge_executor.GetAippType(model_id, index, type, aipp_index);
   }
 
   {
-    std::string op_name; std::string attr_name; std::string attr_value;
+    std::string op_name;
+    std::string attr_name;
+    std::string attr_value;
     ge_executor.GetOpAttr(model_id, op_name, attr_name, attr_value);
   }
 
@@ -789,7 +865,7 @@ void OfflineModelCommand(GeExecutor &ge_executor, const uint32_t model_id) {
 
   {
     uint32_t device_id = 0U;
-    GeExecutor::GetDeviceIdByModelId(model_id, device_id) ;
+    GeExecutor::GetDeviceIdByModelId(model_id, device_id);
   }
 
   {
@@ -798,17 +874,23 @@ void OfflineModelCommand(GeExecutor &ge_executor, const uint32_t model_id) {
   }
 
   {
-    uint32_t index = 0U; OriginInputInfo orig_input_info;
+    uint32_t index = 0U;
+    OriginInputInfo orig_input_info;
     ge_executor.GetOrigInputInfo(model_id, index, orig_input_info);
   }
 
   {
-    uint32_t index = 0U; std::vector<InputOutputDims> input_dims; std::vector<InputOutputDims> output_dims;
+    uint32_t index = 0U;
+    std::vector<InputOutputDims> input_dims;
+    std::vector<InputOutputDims> output_dims;
     ge_executor.GetAllAippInputOutputDims(model_id, index, input_dims, output_dims);
   }
 
   {
-    uint32_t device_id = 0U; uint32_t stream_id = 0U; uint32_t task_id = 0U; OpDescInfo op_desc_info;
+    uint32_t device_id = 0U;
+    uint32_t stream_id = 0U;
+    uint32_t task_id = 0U;
+    OpDescInfo op_desc_info;
     ge_executor.GetOpDescInfo(device_id, stream_id, task_id, op_desc_info);
   }
 }
@@ -850,7 +932,8 @@ TEST_F(GeExecutorTest, dvpp_graph) {
 
   GraphId graph_id = 1001;
   GraphNodePtr graph_node = MakeShared<GraphNode>(graph_id);
-  graph_node->SetGeRootModel(ge_root_model);;
+  graph_node->SetGeRootModel(ge_root_model);
+  ;
   graph_node->SetLoadFlag(true);
   graph_node->SetAsync(true);
 
@@ -924,13 +1007,15 @@ TEST_F(GeExecutorTest, ge_executor_not_inited) {
 
   std::vector<uint32_t> input_queue_ids;
   std::vector<uint32_t> output_queue_ids;
-  EXPECT_EQ(ge_executor_.LoadModelWithQ(model_id, model_data, input_queue_ids, output_queue_ids), ACL_ERROR_GE_EXEC_NOT_INIT);
+  EXPECT_EQ(ge_executor_.LoadModelWithQ(model_id, model_data, input_queue_ids, output_queue_ids),
+            ACL_ERROR_GE_EXEC_NOT_INIT);
 
   RunModelData run_input_data;
   RunModelData run_output_data;
   std::vector<GeTensorDesc> input_desc;
   std::vector<GeTensorDesc> output_desc;
-  EXPECT_EQ(ge_executor_.ExecModel(model_id, nullptr, run_input_data, input_desc, run_output_data, output_desc, true), ACL_ERROR_GE_EXEC_NOT_INIT);
+  EXPECT_EQ(ge_executor_.ExecModel(model_id, nullptr, run_input_data, input_desc, run_output_data, output_desc, true),
+            ACL_ERROR_GE_EXEC_NOT_INIT);
   EXPECT_EQ(ge_executor_.GetMemAndWeightSize(path, mem_size, weight_size), ACL_ERROR_GE_EXEC_NOT_INIT);
 
   EXPECT_EQ(ge_executor_.GetMemAndWeightSize(nullptr, model_size, mem_size, weight_size), ACL_ERROR_GE_EXEC_NOT_INIT);
@@ -975,7 +1060,8 @@ TEST_F(GeExecutorTest, sample_davinci_model_static_memory) {
     ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     const auto graph_node = MakeShared<GraphNode>(graph->GetGraphID());
     ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
-    graph_node->SetGeRootModel(ge_root_model);;
+    graph_node->SetGeRootModel(ge_root_model);
+    ;
     graph_node->IncreaseLoadCount();
 
     // Callback for execute.
@@ -1035,15 +1121,16 @@ TEST_F(GeExecutorTest, sample_davinci_model_static_memory) {
     ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     const auto graph_node = MakeShared<GraphNode>(graph->GetGraphID());
     ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
-    graph_node->SetGeRootModel(ge_root_model);;
+    graph_node->SetGeRootModel(ge_root_model);
+    ;
     graph_node->SetLoadFlag(true);
     graph_node->SetAsync(false);
-    EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 960)); // set max stream
+    EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 960));  // set max stream
 
     // Env for load:.ModelManager::CheckAndReleaseStreamEventResource
     GEThreadLocalContext &context = GetThreadLocalContext();
-    context.SetGraphOption({{OPTION_EXEC_DYNAMIC_EXECUTE_MODE, "lazy_recompile"},
-                            {OPTION_EXEC_ENABLE_COPY_OUTPUT_ADDR, "1"}});
+    context.SetGraphOption(
+        {{OPTION_EXEC_DYNAMIC_EXECUTE_MODE, "lazy_recompile"}, {OPTION_EXEC_ENABLE_COPY_OUTPUT_ADDR, "1"}});
 
     // profiling model subscribe on
     ProfilingProperties::Instance().SetSubscribeInfo(0, graph->GetGraphID(), true);
@@ -1074,12 +1161,13 @@ TEST_F(GeExecutorTest, sample_davinci_model_static_memory) {
   {
     // Test LoadModelOnline: RunGraphWithStream
     const auto ge_root_model = MakeShared<GeRootModel>();
-  EXPECT_EQ(ge_root_model->Initialize(graph), SUCCESS);
-  ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
+    EXPECT_EQ(ge_root_model->Initialize(graph), SUCCESS);
+    ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     const auto graph_node = MakeShared<GraphNode>(graph->GetGraphID());
     ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
-    ge_root_model->SetIsSpecificStream(true); // For not start DavinciModel thread.
-    graph_node->SetGeRootModel(ge_root_model);;
+    ge_root_model->SetIsSpecificStream(true);  // For not start DavinciModel thread.
+    graph_node->SetGeRootModel(ge_root_model);
+    ;
     graph_node->SetLoadFlag(true);
     graph_node->SetAsync(true);
     EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_EVENT_NUM, 960));
@@ -1095,12 +1183,12 @@ TEST_F(GeExecutorTest, sample_davinci_model_static_memory) {
     GeTensor sync_tensor_1(sync_tensor_desc, (uint8_t *)&value_1, sizeof(value_1));
     GeTensor sync_tensor_2(sync_tensor_desc, (uint8_t *)&value_2, sizeof(value_2));
     GeTensor sync_tensor_3(sync_tensor_desc, (uint8_t *)&value_3, sizeof(value_3));
-    const std::vector<GeTensor> sync_inputs{ sync_tensor_0, sync_tensor_1, sync_tensor_2, sync_tensor_3 };
+    const std::vector<GeTensor> sync_inputs{sync_tensor_0, sync_tensor_1, sync_tensor_2, sync_tensor_3};
 
     GeTensorDesc output_desc(GeShape({2, 4, 8, 2}), FORMAT_FRACTAL_Z, DT_FLOAT);
     std::vector<uint8_t> arg_3(512, 0);  // mem_offset += (2 * 4 * 8 * 2 * sizeof(float));
     GeTensor nn_tensor_21(output_desc, arg_3.data(), arg_3.size());
-    std::vector<GeTensor> nn_outputs{ nn_tensor_21 };
+    std::vector<GeTensor> nn_outputs{nn_tensor_21};
 
     // Load model of graph
     ModelExecutor model_executor;
@@ -1110,7 +1198,8 @@ TEST_F(GeExecutorTest, sample_davinci_model_static_memory) {
 
     // NnExecute with stream.
     rtStream_t run_stream = &model_executor;
-    EXPECT_EQ(model_executor.RunGraphWithStream(graph_node, graph->GetGraphID(), run_stream, sync_inputs, nn_outputs), SUCCESS);
+    EXPECT_EQ(model_executor.RunGraphWithStream(graph_node, graph->GetGraphID(), run_stream, sync_inputs, nn_outputs),
+              SUCCESS);
     model_ids.emplace_back(ge_root_model->GetModelId());
     EXPECT_TRUE(gert::RtVarManagerPool().Instance().session_id_to_var_manager_.empty());
     // Unload model of graph(leave as max event model for follow test).
@@ -1140,7 +1229,8 @@ TEST_F(GeExecutorTest, sample_davinci_model_static_memory) {
     ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     const auto graph_node = MakeShared<GraphNode>(graph->GetGraphID());
     ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
-    graph_node->SetGeRootModel(ge_root_model);;
+    graph_node->SetGeRootModel(ge_root_model);
+    ;
     graph_node->IncreaseLoadCount();
 
     // Setup SuperKernel
@@ -1228,7 +1318,7 @@ TEST_F(GeExecutorTest, sample_davinci_model_recover_single_model) {
   GeTensor sync_tensor_1(sync_tensor_desc, (uint8_t *)&value_1, sizeof(value_1));
   GeTensor sync_tensor_2(sync_tensor_desc, (uint8_t *)&value_2, sizeof(value_2));
   GeTensor sync_tensor_3(sync_tensor_desc, (uint8_t *)&value_3, sizeof(value_3));
-  const std::vector<GeTensor> sync_inputs{ sync_tensor_0, sync_tensor_1, sync_tensor_2, sync_tensor_3 };
+  const std::vector<GeTensor> sync_inputs{sync_tensor_0, sync_tensor_1, sync_tensor_2, sync_tensor_3};
 
   std::vector<uint32_t> model_ids;
   DumpCommandInit(ge_executor_);
@@ -1242,10 +1332,11 @@ TEST_F(GeExecutorTest, sample_davinci_model_recover_single_model) {
     EXPECT_EQ(ge_root_model->Initialize(graph), SUCCESS);
     ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
-    ge_root_model->SetIsSpecificStream(true); // For not start DavinciModel thread.
+    ge_root_model->SetIsSpecificStream(true);  // For not start DavinciModel thread.
 
     const auto graph_node = MakeShared<GraphNode>(graph->GetGraphID());
-    graph_node->SetGeRootModel(ge_root_model);;
+    graph_node->SetGeRootModel(ge_root_model);
+    ;
     graph_node->SetLoadFlag(true);
     graph_node->SetAsync(true);
     EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_EVENT_NUM, 960));
@@ -1254,7 +1345,7 @@ TEST_F(GeExecutorTest, sample_davinci_model_recover_single_model) {
     GeTensorDesc output_desc(GeShape({2, 4, 8, 2}), FORMAT_FRACTAL_Z, DT_FLOAT);
     std::vector<uint8_t> arg_3(512, 0);  // mem_offset += (2 * 4 * 8 * 2 * sizeof(float));
     GeTensor nn_tensor_21(output_desc, arg_3.data(), arg_3.size());
-    std::vector<GeTensor> nn_outputs{ nn_tensor_21 };
+    std::vector<GeTensor> nn_outputs{nn_tensor_21};
 
     // Load model of graph
     ModelExecutor model_executor;
@@ -1264,20 +1355,22 @@ TEST_F(GeExecutorTest, sample_davinci_model_recover_single_model) {
 
     // NnExecute with stream.
     rtStream_t run_stream = &model_executor;
-    EXPECT_EQ(model_executor.RunGraphWithStream(graph_node, graph->GetGraphID(), run_stream, sync_inputs, nn_outputs), SUCCESS);
+    EXPECT_EQ(model_executor.RunGraphWithStream(graph_node, graph->GetGraphID(), run_stream, sync_inputs, nn_outputs),
+              SUCCESS);
     model_ids.emplace_back(ge_root_model->GetModelId());
     EXPECT_TRUE(gert::RtVarManagerPool().Instance().session_id_to_var_manager_.empty());
 
-   auto all_rt_streams = runtime_stub.GetRtsRuntimeStub().GetAllRtStreams();
-   for (auto stream : all_rt_streams) {
-     cout << "stream handle " << ((int64_t)stream) << endl;
-   }
+    auto all_rt_streams = runtime_stub.GetRtsRuntimeStub().GetAllRtStreams();
+    for (auto stream : all_rt_streams) {
+      cout << "stream handle " << ((int64_t)stream) << endl;
+    }
 
     // 调用recover, 内部会校验taskid
-   EXPECT_EQ(ge_executor_.RecoverAllModel(0), SUCCESS);
+    EXPECT_EQ(ge_executor_.RecoverAllModel(0), SUCCESS);
 
-   // 重新执行正确
-   EXPECT_EQ(model_executor.RunGraphWithStream(graph_node, graph->GetGraphID(), run_stream, sync_inputs, nn_outputs), SUCCESS);
+    // 重新执行正确
+    EXPECT_EQ(model_executor.RunGraphWithStream(graph_node, graph->GetGraphID(), run_stream, sync_inputs, nn_outputs),
+              SUCCESS);
 
     // Unload model of graph(leave as max event model for follow test).
     EXPECT_EQ(model_executor.UnloadGraph(ge_root_model, graph->GetGraphID()), SUCCESS);
@@ -1326,7 +1419,8 @@ TEST_F(GeExecutorTest, sample_davinci_model_lora_format_changed) {
     const auto graph_node = MakeShared<GraphNode>(graph->GetGraphID());
     ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
     ge_root_model->SetIsSpecificStream(true);  // For not start DavinciModel thread.
-    graph_node->SetGeRootModel(ge_root_model);;
+    graph_node->SetGeRootModel(ge_root_model);
+    ;
     graph_node->SetLoadFlag(true);
     graph_node->SetAsync(true);
     EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_EVENT_NUM, 960));
@@ -1373,7 +1467,8 @@ TEST_F(GeExecutorTest, sample_davinci_model_lora_format_changed) {
     const auto graph_node = MakeShared<GraphNode>(graph->GetGraphID());
     ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
     ge_root_model->SetIsSpecificStream(true);  // For not start DavinciModel thread.
-    graph_node->SetGeRootModel(ge_root_model);;
+    graph_node->SetGeRootModel(ge_root_model);
+    ;
     graph_node->SetLoadFlag(true);
     graph_node->SetAsync(true);
     EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_EVENT_NUM, 960));
@@ -1428,7 +1523,8 @@ TEST_F(GeExecutorTest, sample_davinci_model_invalid_input) {
     ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     const auto graph_node = MakeShared<GraphNode>(graph->GetGraphID());
     ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
-    graph_node->SetGeRootModel(ge_root_model);;
+    graph_node->SetGeRootModel(ge_root_model);
+    ;
     graph_node->IncreaseLoadCount();
 
     // Callback for execute.
@@ -1442,8 +1538,8 @@ TEST_F(GeExecutorTest, sample_davinci_model_invalid_input) {
     };
     // RunArgsV2 of Graph.
     GEThreadLocalContext context;
-    context.SetGraphOption({{OPTION_EXEC_DYNAMIC_EXECUTE_MODE, "lazy_recompile"},
-                            {OPTION_EXEC_ENABLE_COPY_OUTPUT_ADDR, "1"}});
+    context.SetGraphOption(
+        {{OPTION_EXEC_DYNAMIC_EXECUTE_MODE, "lazy_recompile"}, {OPTION_EXEC_ENABLE_COPY_OUTPUT_ADDR, "1"}});
     error_message::ErrorManagerContext error_context;
     graph_node->Lock();
     std::shared_ptr<RunArgs> arg;
@@ -1543,7 +1639,8 @@ TEST_F(GeExecutorTest, sample_davinci_model_dynamic_memory) {
     ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     const auto graph_node = MakeShared<GraphNode>(graph->GetGraphID());
     ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
-    graph_node->SetGeRootModel(ge_root_model);;
+    graph_node->SetGeRootModel(ge_root_model);
+    ;
     graph_node->SetLoadFlag(true);
     graph_node->SetAsync(false);
     EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 256 * 1024 * 1024));
@@ -1570,10 +1667,11 @@ TEST_F(GeExecutorTest, sample_davinci_model_dynamic_memory) {
     ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     const auto graph_node = MakeShared<GraphNode>(graph->GetGraphID());
     ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
-    graph_node->SetGeRootModel(ge_root_model);;
+    graph_node->SetGeRootModel(ge_root_model);
+    ;
     graph_node->IncreaseLoadCount();
     const size_t k512MegaBytes = 512 * 1024 * 1024;
-    EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, k512MegaBytes)); // Will unload last model.
+    EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, k512MegaBytes));  // Will unload last model.
     InitAippNodeStatic(graph, "_arg_3");
 
     // Callback for execute.
@@ -1603,7 +1701,8 @@ TEST_F(GeExecutorTest, sample_davinci_model_dynamic_memory) {
     arg->context = context;
     arg->callback = callback;
     // Load and execute.
-    VarManager::Instance(graph->GetSessionID())->UpdateMemoryConfig(k512MegaBytes, k512MegaBytes, k512MegaBytes, k512MegaBytes);
+    VarManager::Instance(graph->GetSessionID())
+        ->UpdateMemoryConfig(k512MegaBytes, k512MegaBytes, k512MegaBytes, k512MegaBytes);
     EXPECT_EQ(model_executor.PushRunArgs(arg), SUCCESS);
 
     // Wait for execute.
@@ -1620,7 +1719,7 @@ TEST_F(GeExecutorTest, sample_davinci_model_dynamic_memory) {
   EXPECT_EQ(model_executor.Finalize(), SUCCESS);
 
   InitAippNodeDynamic(graph, "_arg_3");
-  DelStaticForOffline(graph, mem_offset); // Offline model will set new session_id, static var invalid.
+  DelStaticForOffline(graph, mem_offset);  // Offline model will set new session_id, static var invalid.
   EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, mem_offset));
   {
     auto var1 = ge_model->GetGraph()->FindNode("var1");
@@ -1646,18 +1745,21 @@ TEST_F(GeExecutorTest, sample_davinci_model_dynamic_memory) {
     model_helper.SetSaveMode(true);  // Save to file.
     ModelBufferData model_buffer;
     EXPECT_EQ(model_helper.SaveToOmModel(ge_model, "sample_offline_model.om", model_buffer), SUCCESS);
-    EXPECT_TRUE(AttrUtils::SetStr(*(ge_model.get()), "soc_version", "Ascend910")); // check soc_version success
-    EXPECT_TRUE(AttrUtils::SetStr(*(ge_model.get()), "arch_type", "1")); // check arch_type success
+    EXPECT_TRUE(AttrUtils::SetStr(*(ge_model.get()), "soc_version", "Ascend910"));  // check soc_version success
+    EXPECT_TRUE(AttrUtils::SetStr(*(ge_model.get()), "arch_type", "1"));            // check arch_type success
 
-    size_t model_mem_size = 0U; size_t model_weight_size = 0U;
+    size_t model_mem_size = 0U;
+    size_t model_weight_size = 0U;
     EXPECT_EQ(ge_executor_.GetMemAndWeightSize("sample_offline_model.om", model_mem_size, model_weight_size), SUCCESS);
 
     ModelData model_data;
     EXPECT_EQ(ge_executor_.LoadDataFromFile("sample_offline_model.om", model_data), SUCCESS);
     model_data.om_name = "g1_om";
     {
-      size_t mem_size = 0U; size_t weight_size = 0U;
-      EXPECT_EQ(ge_executor_.GetMemAndWeightSize(model_data.model_data, model_data.model_len, mem_size, weight_size), SUCCESS);
+      size_t mem_size = 0U;
+      size_t weight_size = 0U;
+      EXPECT_EQ(ge_executor_.GetMemAndWeightSize(model_data.model_data, model_data.model_len, mem_size, weight_size),
+                SUCCESS);
       EXPECT_TRUE(model_mem_size == mem_size);
       EXPECT_EQ(model_weight_size, weight_size);
     }
@@ -1677,9 +1779,8 @@ TEST_F(GeExecutorTest, sample_davinci_model_dynamic_memory) {
 
       EXPECT_EQ(actual_info_type.find("id_map_info"), actual_info_type.end());
       for (auto &info : actual_info_type) {
-        const static std::set<std::string> expect_info_type{
-           "task_desc_info", "tensor_data_info", "model_load_info", "fusion_op_info", "step_info", "model_time_info"
-        };
+        const static std::set<std::string> expect_info_type{"task_desc_info", "tensor_data_info", "model_load_info",
+                                                            "fusion_op_info", "step_info",        "model_time_info"};
         EXPECT_NE(expect_info_type.find(info.substr(0, info.find("info") + strlen("info"))), expect_info_type.end());
       }
 
@@ -1706,9 +1807,8 @@ TEST_F(GeExecutorTest, sample_davinci_model_dynamic_memory) {
 
       EXPECT_EQ(actual_info_type.find("id_map_info"), actual_info_type.end());
       for (auto &info : actual_info_type) {
-        const static std::set<std::string> expect_info_type{
-            "task_desc_info", "tensor_data_info", "model_load_info", "fusion_op_info", "step_info", "model_time_info"
-        };
+        const static std::set<std::string> expect_info_type{"task_desc_info", "tensor_data_info", "model_load_info",
+                                                            "fusion_op_info", "step_info",        "model_time_info"};
         EXPECT_NE(expect_info_type.find(info.substr(0, info.find("info") + strlen("info"))), expect_info_type.end());
       }
 
@@ -1718,7 +1818,6 @@ TEST_F(GeExecutorTest, sample_davinci_model_dynamic_memory) {
       session.DestroyResources();
       EXPECT_FALSE(VarManager::Instance(session_id_tmp)->IsVarExist("var1"));
     }
-
 
     {
       unsetenv("GE_PROFILING_TO_STD_OUT");
@@ -1734,9 +1833,8 @@ TEST_F(GeExecutorTest, sample_davinci_model_dynamic_memory) {
 
       EXPECT_EQ(actual_info_type.find("id_map_info"), actual_info_type.end());
       for (auto &info : actual_info_type) {
-        const static std::set<std::string> expect_info_type{
-            "task_desc_info", "tensor_data_info", "model_load_info", "fusion_op_info", "step_info", "model_time_info"
-        };
+        const static std::set<std::string> expect_info_type{"task_desc_info", "tensor_data_info", "model_load_info",
+                                                            "fusion_op_info", "step_info",        "model_time_info"};
         EXPECT_NE(expect_info_type.find(info.substr(0, info.find("info") + strlen("info"))), expect_info_type.end());
       }
 
@@ -1747,14 +1845,14 @@ TEST_F(GeExecutorTest, sample_davinci_model_dynamic_memory) {
       uint32_t session_id = davinci_model->GetSessionId();
       EXPECT_EQ(ge_executor_.UnloadModel(model_id), SUCCESS);
       EXPECT_FALSE(VarManager::Instance(session_id)->IsVarExist("var1"));
-      setenv("GE_PROFILING_TO_STD_OUT", "1", 1); // Reset for it`s set in main.
+      setenv("GE_PROFILING_TO_STD_OUT", "1", 1);  // Reset for it`s set in main.
     }
 
     {
       // Test LoadModelWithQ
       uint32_t model_id = 0;
-      const std::vector<uint32_t> input_queue_ids{ 1001U, 1002U, 1003U, 1004U };
-      const std::vector<uint32_t> output_queue_ids{ 2001U };
+      const std::vector<uint32_t> input_queue_ids{1001U, 1002U, 1003U, 1004U};
+      const std::vector<uint32_t> output_queue_ids{2001U};
 
       EXPECT_EQ(ge_executor_.LoadModelWithQ(model_id, model_data, input_queue_ids, output_queue_ids), SUCCESS);
       model_ids.emplace_back(model_id);
@@ -1762,7 +1860,7 @@ TEST_F(GeExecutorTest, sample_davinci_model_dynamic_memory) {
       EXPECT_EQ(ge_executor_.UnloadModel(model_id), SUCCESS);
     }
 
-    delete [] static_cast<uint8_t *>(model_data.model_data);
+    delete[] static_cast<uint8_t *>(model_data.model_data);
   }
 
   {
@@ -1774,15 +1872,15 @@ TEST_F(GeExecutorTest, sample_davinci_model_dynamic_memory) {
     ModelHelper model_helper;
     model_helper.SetSaveMode(true);  // Save to file.
     ModelBufferData model_buffer;
-    EXPECT_TRUE(AttrUtils::SetStr(*(ge_model.get()), "soc_version", "Ascend310")); // check soc_version fail
-    EXPECT_TRUE(AttrUtils::SetStr(*(ge_model.get()), "arch_type", "0")); // check arch_type fail
+    EXPECT_TRUE(AttrUtils::SetStr(*(ge_model.get()), "soc_version", "Ascend310"));  // check soc_version fail
+    EXPECT_TRUE(AttrUtils::SetStr(*(ge_model.get()), "arch_type", "0"));            // check arch_type fail
     EXPECT_EQ(model_helper.SaveToOmModel(ge_model, "sample_offline_model.om", model_buffer), SUCCESS);
 
     ModelData model_data;
     GE_MAKE_GUARD(model_guard, [&model_data]() {
       if (model_data.model_data != nullptr) {
-          delete[] static_cast<char_t *>(model_data.model_data);
-          model_data.model_data = nullptr;
+        delete[] static_cast<char_t *>(model_data.model_data);
+        model_data.model_data = nullptr;
       }
     });
     EXPECT_EQ(ge_executor_.LoadDataFromFile("sample_offline_model.om", model_data), SUCCESS);
@@ -1872,9 +1970,11 @@ TEST_F(GeExecutorTest, FileConstant_UserSetDeviceMem) {
       gert::GertRuntimeStub runtime_stub;
       runtime_stub.GetSlogStub().SetLevel(DLOG_INFO);
       EXPECT_EQ(ge_executor_.LoadModelFromDataWithArgs(model_id, model_data, load_arg), SUCCESS);
-      auto log_ret = runtime_stub.GetSlogStub().FindLog(DLOG_INFO, "FileConstant node file_constant1 found user device memory (addr");
+      auto log_ret = runtime_stub.GetSlogStub().FindLog(
+          DLOG_INFO, "FileConstant node file_constant1 found user device memory (addr");
       EXPECT_NE(log_ret, -1);
-      log_ret = runtime_stub.GetSlogStub().FindLog(DLOG_INFO, "FileConstant node file_constant2 malloc device memory (addr");
+      log_ret =
+          runtime_stub.GetSlogStub().FindLog(DLOG_INFO, "FileConstant node file_constant2 malloc device memory (addr");
       EXPECT_NE(log_ret, -1);
       ProfileCommandProf(ge_executor_, model_id);
       ProfileCommandFini(ge_executor_, model_id);
@@ -1885,7 +1985,10 @@ TEST_F(GeExecutorTest, FileConstant_UserSetDeviceMem) {
       gert::GertRuntimeStub runtime_stub;
       runtime_stub.GetSlogStub().SetLevel(DLOG_ERROR);
       EXPECT_NE(ge_executor_.LoadModelFromDataWithArgs(model_id, model_data, load_arg), SUCCESS);
-      auto log_ret = runtime_stub.GetSlogStub().FindLog(DLOG_ERROR, "The device memory size set by the user via aclmdlSetExternalWeightAddress for the external weight file is insufficient. Required: 8 bytes, Provided: 1 bytes. ");
+      auto log_ret = runtime_stub.GetSlogStub().FindLog(
+          DLOG_ERROR,
+          "The device memory size set by the user via aclmdlSetExternalWeightAddress for the external weight file is "
+          "insufficient. Required: 8 bytes, Provided: 1 bytes. ");
       EXPECT_NE(log_ret, -1);
     }
     delete[] (char *)model_data.model_data;
@@ -1907,7 +2010,7 @@ TEST_F(GeExecutorTest, FileConstant_UserSetDeviceMem) {
  * 预期结果：
  * 1. 两次加载，session id不同，因此外置权重不能共享同一份device内存，各自有h2d拷贝
  */
-  TEST_F(GeExecutorTest, FileConstant_OneThreadLoadTwoOm) {
+TEST_F(GeExecutorTest, FileConstant_OneThreadLoadTwoOm) {
   shared_ptr<OpsKernelInfoStore> fake_ops_kernel_info_store = std::make_shared<FakeOpsKernelInfoStore>();
   // hccl op goes to AIcoreEngine in this testcase
   OpsKernelExecutorManager::GetInstance().executors_["AIcoreEngine"] = fake_ops_kernel_info_store;
@@ -1970,7 +2073,7 @@ TEST_F(GeExecutorTest, FileConstant_UserSetDeviceMem) {
     model_data2.om_name = "g2_om";
     load_arg2.dev_ptr = nullptr;
     load_arg2.mem_size = 0;
-    load_arg2.weight_ptr= nullptr;
+    load_arg2.weight_ptr = nullptr;
     uint32_t model_id2 = 1U;
     {
       gert::GertRuntimeStub runtime_stub;
@@ -1996,20 +2099,35 @@ static void BuildSampleCondGraph(ComputeGraphPtr &graph, uint32_t &mem_offset) {
     const auto add_node = OP_CFG(IDENTITY).Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
     const auto sub_node = OP_CFG(IDENTITY).Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
     const auto less_node = OP_CFG(IDENTITY).Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
-    CHAIN(NODE("_arg_0", DATA)->NODE("add", add_node)->NODE("merge", STREAMMERGE)->NODE(NODE_NAME_NET_OUTPUT, NETOUTPUT));
+    CHAIN(
+        NODE("_arg_0", DATA)->NODE("add", add_node)->NODE("merge", STREAMMERGE)->NODE(NODE_NAME_NET_OUTPUT, NETOUTPUT));
     CHAIN(NODE("const_0", CONSTANT)->NODE("add"));
     CHAIN(NODE("_arg_1", DATA)->NODE("sub", sub_node)->NODE("merge"));
     CHAIN(NODE("const_1", CONSTANT)->NODE("sub"));
 
-    const auto switch_t = OP_CFG(STREAMSWITCH).Attr(ATTR_NAME_STREAM_SWITCH_COND, static_cast<uint32_t>(RT_EQUAL))
-                                              .Attr(ATTR_NAME_SWITCH_DATA_TYPE, static_cast<int64_t>(RT_SWITCH_INT64))
-                                              .Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{2});
-    const auto switch_f = OP_CFG(STREAMSWITCH).Attr(ATTR_NAME_STREAM_SWITCH_COND, static_cast<uint32_t>(RT_NOT_EQUAL))
-                                              .Attr(ATTR_NAME_SWITCH_DATA_TYPE, static_cast<int64_t>(RT_SWITCH_INT64))
-                                              .Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{2});
-    CHAIN(NODE("_arg_0")->EDGE(0, 0)->NODE("less", less_node)->EDGE(0, 0)->NODE("Less/StreamSwitch_t", switch_t)->CTRL_EDGE()->NODE("add"));
+    const auto switch_t = OP_CFG(STREAMSWITCH)
+                              .Attr(ATTR_NAME_STREAM_SWITCH_COND, static_cast<uint32_t>(RT_EQUAL))
+                              .Attr(ATTR_NAME_SWITCH_DATA_TYPE, static_cast<int64_t>(RT_SWITCH_INT64))
+                              .Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{2});
+    const auto switch_f = OP_CFG(STREAMSWITCH)
+                              .Attr(ATTR_NAME_STREAM_SWITCH_COND, static_cast<uint32_t>(RT_NOT_EQUAL))
+                              .Attr(ATTR_NAME_SWITCH_DATA_TYPE, static_cast<int64_t>(RT_SWITCH_INT64))
+                              .Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{2});
+    CHAIN(NODE("_arg_0")
+              ->EDGE(0, 0)
+              ->NODE("less", less_node)
+              ->EDGE(0, 0)
+              ->NODE("Less/StreamSwitch_t", switch_t)
+              ->CTRL_EDGE()
+              ->NODE("add"));
     CHAIN(NODE("const_0")->EDGE(0, 1)->NODE("Less/StreamSwitch_t"));
-    CHAIN(NODE("_arg_1")->EDGE(0, 1)->NODE("less", less_node)->EDGE(0, 0)->NODE("Less/StreamSwitch_f", switch_f)->CTRL_EDGE()->NODE("sub"));
+    CHAIN(NODE("_arg_1")
+              ->EDGE(0, 1)
+              ->NODE("less", less_node)
+              ->EDGE(0, 0)
+              ->NODE("Less/StreamSwitch_f", switch_f)
+              ->CTRL_EDGE()
+              ->NODE("sub"));
     CHAIN(NODE("const_1")->EDGE(0, 1)->NODE("Less/StreamSwitch_f"));
 
     const auto active_s = OP_CFG(STREAMACTIVE).Attr(ATTR_NAME_ACTIVE_STREAM_LIST, std::vector<int64_t>{1});
@@ -2026,7 +2144,8 @@ static void BuildSampleCondGraph(ComputeGraphPtr &graph, uint32_t &mem_offset) {
   SetUnknownOpKernel(graph, mem_offset, true);
 }
 
-void BuildGraphModelRelease(const ComputeGraphPtr &graph, uint32_t mem_offset, GeModelPtr &ge_model, TBEKernelStore &tbe_kernel_store) {
+void BuildGraphModelRelease(const ComputeGraphPtr &graph, uint32_t mem_offset, GeModelPtr &ge_model,
+                            TBEKernelStore &tbe_kernel_store) {
   InitConstantNode(graph, "const_0", 1);
   InitConstantNode(graph, "const_1", 0);
 
@@ -2173,7 +2292,7 @@ void BuildComputeGraph(ComputeGraphPtr &graph, int32_t dynamic_type) {
 }
 
 TEST_F(GeExecutorTest, get_model_desc_info_from_mem) {
-  ComputeGraphPtr graph ;
+  ComputeGraphPtr graph;
   int32_t dynamic_type[2] = {ge::DYNAMIC_BATCH, ge::DYNAMIC_DIMS};
   for (int32_t i = 0; i < 2; i++) {
     BuildComputeGraph(graph, dynamic_type[i]);
@@ -2234,7 +2353,8 @@ TEST_F(GeExecutorTest, sample_davinci_model_static_memory_with_qos) {
     ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     const auto graph_node = MakeShared<GraphNode>(graph->GetGraphID());
     ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
-    graph_node->SetGeRootModel(ge_root_model);;
+    graph_node->SetGeRootModel(ge_root_model);
+    ;
     graph_node->IncreaseLoadCount();
 
     // Callback for execute.
@@ -2251,8 +2371,8 @@ TEST_F(GeExecutorTest, sample_davinci_model_static_memory_with_qos) {
 
     // RunArgsV2 of Graph.
     GEThreadLocalContext context;
-    context.SetGraphOption({{OPTION_EXEC_DYNAMIC_EXECUTE_MODE, "lazy_recompile"},
-                            {OPTION_EXEC_ENABLE_COPY_OUTPUT_ADDR, "1"}});
+    context.SetGraphOption(
+        {{OPTION_EXEC_DYNAMIC_EXECUTE_MODE, "lazy_recompile"}, {OPTION_EXEC_ENABLE_COPY_OUTPUT_ADDR, "1"}});
     error_message::ErrorManagerContext error_context;
     graph_node->Lock();
     std::shared_ptr<RunArgs> arg;
@@ -2291,15 +2411,16 @@ TEST_F(GeExecutorTest, sample_davinci_model_static_memory_with_qos) {
     ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     const auto graph_node = MakeShared<GraphNode>(graph->GetGraphID());
     ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
-    graph_node->SetGeRootModel(ge_root_model);;
+    graph_node->SetGeRootModel(ge_root_model);
+    ;
     graph_node->SetLoadFlag(true);
     graph_node->SetAsync(false);
-    EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 960)); // set max stream
+    EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 960));  // set max stream
 
     // Env for load:.ModelManager::CheckAndReleaseStreamEventResource
     GEThreadLocalContext &context = GetThreadLocalContext();
-    context.SetGraphOption({{OPTION_EXEC_DYNAMIC_EXECUTE_MODE, "lazy_recompile"},
-                            {OPTION_EXEC_ENABLE_COPY_OUTPUT_ADDR, "1"}});
+    context.SetGraphOption(
+        {{OPTION_EXEC_DYNAMIC_EXECUTE_MODE, "lazy_recompile"}, {OPTION_EXEC_ENABLE_COPY_OUTPUT_ADDR, "1"}});
 
     // profiling model subscribe on
     ProfilingProperties::Instance().SetSubscribeInfo(0, graph->GetGraphID(), true);
@@ -2327,7 +2448,6 @@ TEST_F(GeExecutorTest, sample_davinci_model_static_memory_with_qos) {
     EXPECT_EQ(model_executor.Finalize(), SUCCESS);
   }
 
-
   int64_t value_0 = 127;
   int64_t value_1 = 100;
   int64_t value_2 = 258;
@@ -2338,7 +2458,7 @@ TEST_F(GeExecutorTest, sample_davinci_model_static_memory_with_qos) {
   GeTensor sync_tensor_1(sync_tensor_desc, (uint8_t *)&value_1, sizeof(value_1));
   GeTensor sync_tensor_2(sync_tensor_desc, (uint8_t *)&value_2, sizeof(value_2));
   GeTensor sync_tensor_3(sync_tensor_desc, (uint8_t *)&value_3, sizeof(value_3));
-  const std::vector<GeTensor> ge_sync_inputs{ sync_tensor_0, sync_tensor_1, sync_tensor_2, sync_tensor_3 };
+  const std::vector<GeTensor> ge_sync_inputs{sync_tensor_0, sync_tensor_1, sync_tensor_2, sync_tensor_3};
   {
     // Test LoadModelOnline: RunGraphWithStream
     const auto ge_root_model = MakeShared<GeRootModel>();
@@ -2346,8 +2466,9 @@ TEST_F(GeExecutorTest, sample_davinci_model_static_memory_with_qos) {
     ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     const auto graph_node = MakeShared<GraphNode>(graph->GetGraphID());
     ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
-    ge_root_model->SetIsSpecificStream(true); // For not start DavinciModel thread.
-    graph_node->SetGeRootModel(ge_root_model);;
+    ge_root_model->SetIsSpecificStream(true);  // For not start DavinciModel thread.
+    graph_node->SetGeRootModel(ge_root_model);
+    ;
     graph_node->SetLoadFlag(true);
     graph_node->SetAsync(true);
     EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_EVENT_NUM, 960));
@@ -2356,7 +2477,7 @@ TEST_F(GeExecutorTest, sample_davinci_model_static_memory_with_qos) {
     GeTensorDesc output_desc(GeShape({2, 4, 8, 2}), FORMAT_FRACTAL_Z, DT_FLOAT);
     std::vector<uint8_t> arg_3(512, 0);  // mem_offset += (2 * 4 * 8 * 2 * sizeof(float));
     GeTensor nn_tensor_21(output_desc, arg_3.data(), arg_3.size());
-    std::vector<GeTensor> nn_outputs{ nn_tensor_21 };
+    std::vector<GeTensor> nn_outputs{nn_tensor_21};
 
     // Load model of graph
     ModelExecutor model_executor;
@@ -2366,7 +2487,9 @@ TEST_F(GeExecutorTest, sample_davinci_model_static_memory_with_qos) {
 
     // NnExecute with stream.
     rtStream_t run_stream = &model_executor;
-    EXPECT_EQ(model_executor.RunGraphWithStream(graph_node, graph->GetGraphID(), run_stream, ge_sync_inputs, nn_outputs), SUCCESS);
+    EXPECT_EQ(
+        model_executor.RunGraphWithStream(graph_node, graph->GetGraphID(), run_stream, ge_sync_inputs, nn_outputs),
+        SUCCESS);
     model_ids.emplace_back(ge_root_model->GetModelId());
 
     // Unload model of graph(leave as max event model for follow test).
@@ -2388,7 +2511,8 @@ TEST_F(GeExecutorTest, sample_davinci_model_static_memory_with_qos) {
     ge_root_model->SetCustomOpRegistry(CustomOpFactory::GetGlobalRegistryPtr());
     const auto graph_node = MakeShared<GraphNode>(graph->GetGraphID());
     ge_root_model->SetSubgraphInstanceNameToModel(graph->GetName(), ge_model);
-    graph_node->SetGeRootModel(ge_root_model);;
+    graph_node->SetGeRootModel(ge_root_model);
+    ;
     graph_node->IncreaseLoadCount();
 
     // Setup SuperKernel
@@ -2462,15 +2586,15 @@ TEST_F(GeExecutorTest, run_with_fail) {
   domi::ModelTaskDef model_task_def;
   domi::TaskDef *task = model_task_def.add_task();
   task->set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_PROFILER_TRACE));
-  //task->_impl_.stream_id_ = 0;
+  // task->_impl_.stream_id_ = 0;
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
   TaskInfoPtr task_info = MakeShared<ProfilerTraceTaskInfo>();
   model.task_list_.push_back(task_info);
 
-  const char_t * const kEnvRecordPath = "TIMEOUT";
+  const char_t *const kEnvRecordPath = "TIMEOUT";
   char_t record_path[MMPA_MAX_PATH] = "timeout";
   mmSetEnv(kEnvRecordPath, &record_path[0U], MMPA_MAX_PATH);
 
@@ -2485,8 +2609,9 @@ TEST_F(GeExecutorTest, run_with_fail) {
 TEST_F(GeExecutorTest, run_with_task_2_iterator) {
   class DModelListener : public ModelListener {
    public:
-    DModelListener(){};
-    uint32_t OnComputeDone(uint32_t model_id, uint32_t data_index, uint32_t result, std::vector<gert::Tensor> &outputs) {
+    DModelListener() {};
+    uint32_t OnComputeDone(uint32_t model_id, uint32_t data_index, uint32_t result,
+                           std::vector<gert::Tensor> &outputs) {
       return 0;
     }
   };
@@ -2508,7 +2633,7 @@ TEST_F(GeExecutorTest, run_with_task_2_iterator) {
     sub_memory_infos.push_back({RT_MEMORY_HBM, 2048, 1024});
     sub_memory_infos.push_back({RT_MEMORY_HBM, 3072, 1024});
     sub_memory_infos.push_back({RT_MEMORY_HBM, 4096, 1024});
-    (void) AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
+    (void)AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
     const auto model_def = MakeShared<domi::ModelTaskDef>();
     ge_model->SetModelTaskDef(model_def);
     DavinciModel model(0, g_local_call_back);
@@ -2527,14 +2652,14 @@ TEST_F(GeExecutorTest, run_with_task_2_iterator) {
     task->_impl_.stream_id_ = 0;
     rtStream_t stream = nullptr;
     model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-    model.stream_list_ = { stream };
+    model.stream_list_ = {stream};
     TaskInfoPtr task_info = MakeShared<ProfilerTraceTaskInfo>();
     model.task_list_.push_back(task_info);
     model.has_output_node_ = true;
     OpDescPtr op_desc = std::make_shared<OpDesc>("test", "test");
     std::vector<int64_t> input_offset;
     input_offset.emplace_back(0);
-    GeTensorDesc tensor(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT);
+    GeTensorDesc tensor(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
     op_desc->AddInputDesc(tensor);
     op_desc->SetInputOffset(input_offset);
     model.InitOutputTensorInfo(op_desc);
@@ -2549,8 +2674,9 @@ TEST_F(GeExecutorTest, run_with_task_2_iterator) {
 TEST_F(GeExecutorTest, run_with_task_0_iterator) {
   class DModelListener : public ModelListener {
    public:
-    DModelListener(){};
-    uint32_t OnComputeDone(uint32_t model_id, uint32_t data_index, uint32_t result, std::vector<gert::Tensor> &outputs) {
+    DModelListener() {};
+    uint32_t OnComputeDone(uint32_t model_id, uint32_t data_index, uint32_t result,
+                           std::vector<gert::Tensor> &outputs) {
       return 0;
     }
   };
@@ -2574,7 +2700,7 @@ TEST_F(GeExecutorTest, run_with_task_0_iterator) {
     sub_memory_infos.push_back({RT_MEMORY_HBM, 2048, 1024});
     sub_memory_infos.push_back({RT_MEMORY_HBM, 3072, 1024});
     sub_memory_infos.push_back({RT_MEMORY_HBM, 4096, 1024});
-    (void) AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
+    (void)AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
     const auto model_def = MakeShared<domi::ModelTaskDef>();
     ge_model->SetModelTaskDef(model_def);
     DavinciModel model(0, g_local_call_back);
@@ -2589,14 +2715,14 @@ TEST_F(GeExecutorTest, run_with_task_0_iterator) {
     rtStream_t stream = nullptr;
     model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
     model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-    model.stream_list_ = { stream };
+    model.stream_list_ = {stream};
     TaskInfoPtr task_info = MakeShared<ProfilerTraceTaskInfo>();
     model.task_list_.push_back(task_info);
     model.has_output_node_ = true;
     OpDescPtr op_desc = std::make_shared<OpDesc>("test", "test");
     std::vector<int64_t> input_offset;
     input_offset.emplace_back(0);
-    GeTensorDesc tensor(GeShape({1,4,4,8}), FORMAT_NCHW, DT_FLOAT);
+    GeTensorDesc tensor(GeShape({1, 4, 4, 8}), FORMAT_NCHW, DT_FLOAT);
     op_desc->AddInputDesc(tensor);
     op_desc->SetInputOffset(input_offset);
     model.InitOutputTensorInfo(op_desc);
@@ -2631,7 +2757,7 @@ TEST_F(GeExecutorTest, testConstructActiveMemBaseAddrs) {
     sub_memory_infos.push_back({RT_MEMORY_HBM, 2048, 1024});
     sub_memory_infos.push_back({RT_MEMORY_HBM, 3072, 1024});
     sub_memory_infos.push_back({RT_MEMORY_HBM, 4096, 1024});
-    (void) AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
+    (void)AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
     const auto model_def = MakeShared<domi::ModelTaskDef>();
     ge_model->SetModelTaskDef(model_def);
     DavinciModel model(0, nullptr);
@@ -2645,14 +2771,14 @@ TEST_F(GeExecutorTest, testConstructActiveMemBaseAddrs) {
     rtStream_t stream = nullptr;
     model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
     model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-    model.stream_list_ = { stream };
+    model.stream_list_ = {stream};
     TaskInfoPtr task_info = MakeShared<ProfilerTraceTaskInfo>();
     model.task_list_.push_back(task_info);
 
     MemAllocation mem_allocation0 = {};
-    mem_allocation0.data_size = 25600U + 32U; // random value for test
-    mem_allocation0.tensor_size = 25600U; // random value for test
-    mem_allocation0.logical_addr = 30902000U; // random value for test
+    mem_allocation0.data_size = 25600U + 32U;  // random value for test
+    mem_allocation0.tensor_size = 25600U;      // random value for test
+    mem_allocation0.logical_addr = 30902000U;  // random value for test
     mem_allocation0.type = MemAllocation::Type::INPUT;
     model.logical_mem_allocations_.emplace_back(mem_allocation0);
 
@@ -2687,7 +2813,7 @@ TEST_F(GeExecutorTest, testHWQ) {
     sub_memory_infos.push_back({RT_MEMORY_HBM, 2048, 1024});
     sub_memory_infos.push_back({RT_MEMORY_HBM, 3072, 1024});
     sub_memory_infos.push_back({RT_MEMORY_HBM, 4096, 1024});
-    (void) AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
+    (void)AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
     const auto model_def = MakeShared<domi::ModelTaskDef>();
     ge_model->SetModelTaskDef(model_def);
     DavinciModel model(0, nullptr);
@@ -2701,14 +2827,14 @@ TEST_F(GeExecutorTest, testHWQ) {
     rtStream_t stream = nullptr;
     model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
     model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-    model.stream_list_ = { stream };
+    model.stream_list_ = {stream};
     TaskInfoPtr task_info = MakeShared<ProfilerTraceTaskInfo>();
     model.task_list_.push_back(task_info);
 
     MemAllocation mem_allocation0 = {};
-    mem_allocation0.data_size = 25600U + 32U; // random value for test
-    mem_allocation0.tensor_size = 25600U; // random value for test
-    mem_allocation0.logical_addr = 30902000U; // random value for test
+    mem_allocation0.data_size = 25600U + 32U;  // random value for test
+    mem_allocation0.tensor_size = 25600U;      // random value for test
+    mem_allocation0.logical_addr = 30902000U;  // random value for test
     mem_allocation0.type = MemAllocation::Type::INPUT;
     model.logical_mem_allocations_.emplace_back(mem_allocation0);
     QueueAttrs inputQueue1 = {0, 0, 0, 0U};
@@ -2743,7 +2869,7 @@ TEST_F(GeExecutorTest, test_stream_priority_set_get) {
     EXPECT_TRUE(AttrUtils::SetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, 5120));
     std::vector<std::vector<int64_t>> sub_memory_infos;
     sub_memory_infos.push_back({RT_MEMORY_HBM, 0, 1024, 1});
-    (void) AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
+    (void)AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_memory_infos);
     const auto model_def = MakeShared<domi::ModelTaskDef>();
     ge_model->SetModelTaskDef(model_def);
 
@@ -2790,4 +2916,4 @@ TEST_F(GeExecutorTest, test_stream_priority_set_get) {
   }
 }
 
-} // namespace ge
+}  // namespace ge

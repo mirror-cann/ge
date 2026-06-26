@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -207,10 +207,9 @@ uint32_t Configuration::GetFftsMergeLimitHBMRatio() {
   return hbm_ratio_;
 }
 
-
 std::string Configuration::GetFftsOptimizeEnable() {
   if (runmode_.empty()) {
-    runmode_ = kNoFFTS; // In case of repeated access to this func to get env
+    runmode_ = kNoFFTS;  // In case of repeated access to this func to get env
     const char_t *enable_ascend_enhance = nullptr;
     MM_SYS_GET_ENV(MM_ENV_ASCEND_ENHANCE_ENABLE, enable_ascend_enhance);
     if (enable_ascend_enhance != nullptr) {
@@ -294,7 +293,6 @@ Status Configuration::InitCMOThreshold() {
   (void)InitSingleConfig("cmo.data_split_unit", data_split_unit_);
   return SUCCESS;
 }
-
 
 size_t Configuration::GetInnerCmoNodeDistTh() const {
   return inner_cmo_node_distance_threshold_;

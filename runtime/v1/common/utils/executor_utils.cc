@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -35,16 +35,16 @@ Status GetAlignedValue(const size_t input, const size_t align_bytes, size_t &out
     GELOGE(ge::PARAM_INVALID, "align_bytes is zero");
     return ge::PARAM_INVALID;
   }
-  if (ge::CheckUint32AddOverflow(static_cast<uint32_t>(input),
-                                 static_cast<uint32_t>((align_bytes - 1U))) != ge::SUCCESS) {
-    GELOGE(ge::PARAM_INVALID, "Padding size is beyond the UINT32_MAX, input = %zu, align_bytes = %zu.",
-           input, align_bytes);
+  if (ge::CheckUint32AddOverflow(static_cast<uint32_t>(input), static_cast<uint32_t>((align_bytes - 1U))) !=
+      ge::SUCCESS) {
+    GELOGE(ge::PARAM_INVALID, "Padding size is beyond the UINT32_MAX, input = %zu, align_bytes = %zu.", input,
+           align_bytes);
     return ge::PARAM_INVALID;
   }
   output = ((input + (align_bytes - 1U)) / align_bytes) * align_bytes;
   return ge::SUCCESS;
 }
-} // namespace
+}  // namespace
 
 bool ExecutorUtils::HasHostMemInput(const OpDescPtr &op_desc) {
   GE_RT_FALSE_CHECK_NOTNULL(op_desc);
@@ -64,18 +64,18 @@ bool ExecutorUtils::HasHostMemInput(const OpDescPtr &op_desc) {
 }
 
 // for non hybrid (dynamic) single op
-Status ExecutorUtils::UpdateHostMemInputArgs(const std::vector<DataBuffer> &inputs,
-                                             const OpTask &op_task,
-                                             void *const io_base,
-                                             const size_t io_size,
+Status ExecutorUtils::UpdateHostMemInputArgs(const std::vector<DataBuffer> &inputs, const OpTask &op_task,
+                                             void *const io_base, const size_t io_size,
                                              std::vector<rtHostInputInfo_t> &host_inputs) {
   GE_CHECK_NOTNULL(op_task.GetOpdesc());
   GE_CHECK_NOTNULL(io_base);
   const auto &op_desc = op_task.GetOpdesc();
   size_t host_mem_data_offset = op_task.GetHostMemInputDataOffsetInIoAddr();
   if ((host_mem_data_offset + kMaxHostMemInputLen) > io_size) {
-    GELOGE(PARAM_INVALID, "[Check] memory reserved for host memory input is not enough, offset = %zu,"
-                          " io_addrs_size = %zu", host_mem_data_offset, io_size);
+    GELOGE(PARAM_INVALID,
+           "[Check] memory reserved for host memory input is not enough, offset = %zu,"
+           " io_addrs_size = %zu",
+           host_mem_data_offset, io_size);
     return PARAM_INVALID;
   }
   const size_t align_bytes = op_task.GetInputAddrAlignBytes();
@@ -107,8 +107,10 @@ Status ExecutorUtils::UpdateHostMemInputArgs(const std::vector<DataBuffer> &inpu
       void *const data_addr = ValueToPtr(PtrToValue(io_base) + host_mem_data_offset);
       *host_mem_input_addr = static_cast<uintptr_t>(PtrToValue(data_addr));
       if (memcpy_s(data_addr, dst_len_left, inputs[input_index].data, inputs[input_index].length) != EOK) {
-        GELOGE(ACL_ERROR_GE_MEMORY_OPERATE_FAILED, "[Update][HostMemInputArgs]failed, dst length is %zu,"
-                                                   " src length is %zu.", dst_len_left, inputs[input_index].length);
+        GELOGE(ACL_ERROR_GE_MEMORY_OPERATE_FAILED,
+               "[Update][HostMemInputArgs]failed, dst length is %zu,"
+               " src length is %zu.",
+               dst_len_left, inputs[input_index].length);
         REPORT_INNER_ERR_MSG("E19999", "update kernel args failed");
         return ACL_ERROR_GE_MEMORY_OPERATE_FAILED;
       }
@@ -117,7 +119,7 @@ Status ExecutorUtils::UpdateHostMemInputArgs(const std::vector<DataBuffer> &inpu
       GE_CHECK_LE(io_index, std::numeric_limits<uint32_t>::max() / sizeof(void *));
       host_in.addrOffset = static_cast<uint32_t>(sizeof(void *) * io_index);
       host_in.dataOffset = static_cast<uint32_t>(host_mem_data_offset);
-      host_mem_data_offset += aligned_len; // No integer overflow
+      host_mem_data_offset += aligned_len;  // No integer overflow
       GE_CHECK_GE(dst_len_left, aligned_len);
       dst_len_left -= aligned_len;
       host_inputs.emplace_back(std::move(host_in));
@@ -128,7 +130,8 @@ Status ExecutorUtils::UpdateHostMemInputArgs(const std::vector<DataBuffer> &inpu
     io_index++;
   }
   if (host_inputs.empty()) {
-    GELOGE(GRAPH_FAILED, "[%s(%s)] host memory input(s) should be copied to io_base, but it(they) did not!!!"
+    GELOGE(GRAPH_FAILED,
+           "[%s(%s)] host memory input(s) should be copied to io_base, but it(they) did not!!!"
            "inputs size:%zu, io_size:%zu, input_is_const:%s, inputs:%s, input_index:%zu, io_index:%zu,"
            "op_desc_input_num:%zu, align_bytes=%zu, io_base=%p",
            op_desc->GetName().c_str(), op_desc->GetType().c_str(), inputs.size(), io_size,
@@ -140,16 +143,16 @@ Status ExecutorUtils::UpdateHostMemInputArgs(const std::vector<DataBuffer> &inpu
 }
 
 // for hybrid
-Status ExecutorUtils::UpdateHostMemInputArgs(const hybrid::TaskContext &context,
-                                             void *const io_addrs,
+Status ExecutorUtils::UpdateHostMemInputArgs(const hybrid::TaskContext &context, void *const io_addrs,
                                              const size_t io_addrs_size,
                                              const size_t host_mem_input_data_offset_in_args,
-                                             std::vector<rtHostInputInfo_t> &host_inputs,
-                                             const bool need_64b_aligned) {
+                                             std::vector<rtHostInputInfo_t> &host_inputs, const bool need_64b_aligned) {
   GE_CHECK_NOTNULL(io_addrs);
   if ((host_mem_input_data_offset_in_args + kMaxHostMemInputLen) > io_addrs_size) {
-    GELOGE(PARAM_INVALID, "[Check] memory reserved for host memory input is not enough, offset = %zu,"
-           " io_addrs_size = %zu", host_mem_input_data_offset_in_args, io_addrs_size);
+    GELOGE(PARAM_INVALID,
+           "[Check] memory reserved for host memory input is not enough, offset = %zu,"
+           " io_addrs_size = %zu",
+           host_mem_input_data_offset_in_args, io_addrs_size);
     return PARAM_INVALID;
   }
   size_t host_mem_input_data_offset = host_mem_input_data_offset_in_args;
@@ -160,12 +163,11 @@ Status ExecutorUtils::UpdateHostMemInputArgs(const hybrid::TaskContext &context,
     GE_CHECK_NOTNULL(input_data);
     if ((input_data->GetMemType() == MemStorageType::HOST_DDR) && (input_data->GetData() != nullptr)) {
       size_t aligned_size = 0U;
-      GE_CHK_STATUS_RET(GetAlignedValue(input_data->GetSize(), aligned_bytes, aligned_size),
-                        "get align value failed.");
+      GE_CHK_STATUS_RET(GetAlignedValue(input_data->GetSize(), aligned_bytes, aligned_size), "get align value failed.");
       GE_CHECK_LE(host_mem_input_data_offset, io_addrs_size);
       GE_CHECK_LE(static_cast<size_t>(i), io_addrs_size / sizeof(void *));
-      uint64_t *const host_mem_input_index = PtrAdd(PtrToPtr<void, uint64_t>(io_addrs),
-                                                    io_addrs_size / sizeof(uint64_t), static_cast<size_t>(i));
+      uint64_t *const host_mem_input_index =
+          PtrAdd(PtrToPtr<void, uint64_t>(io_addrs), io_addrs_size / sizeof(uint64_t), static_cast<size_t>(i));
       *host_mem_input_index = PtrToValue(io_addrs) + host_mem_input_data_offset;
       void *const host_mem_input_data_ptr = ValueToPtr(PtrToValue(io_addrs) + host_mem_input_data_offset);
       if (memcpy_s(host_mem_input_data_ptr, dst_length_left, input_data->GetData(), input_data->GetSize()) != EOK) {
@@ -176,12 +178,11 @@ Status ExecutorUtils::UpdateHostMemInputArgs(const hybrid::TaskContext &context,
       }
       rtHostInputInfo_t host_input = {};
       GE_CHECK_LE(host_mem_input_data_offset, std::numeric_limits<uint32_t>::max());
-      GE_CHECK_LE(static_cast<size_t>(i),
-                  std::numeric_limits<uint32_t>::max() / sizeof(uint64_t));
+      GE_CHECK_LE(static_cast<size_t>(i), std::numeric_limits<uint32_t>::max() / sizeof(uint64_t));
       host_input.dataOffset = static_cast<uint32_t>(host_mem_input_data_offset);
       host_input.addrOffset = static_cast<uint32_t>(static_cast<size_t>(i) * sizeof(uint64_t));
       host_inputs.emplace_back(std::move(host_input));
-      host_mem_input_data_offset += aligned_size; // No integer overflow
+      host_mem_input_data_offset += aligned_size;  // No integer overflow
       GE_CHECK_GE(dst_length_left, aligned_size);
       dst_length_left -= aligned_size;
       GELOGD("Finish to copy host mem input[%d]. size = %zu", i, input_data->GetSize());
@@ -205,10 +206,10 @@ Status ExecutorUtils::LoadAtomicWorkspace(const OpDescPtr &op_desc) {
   if (value.empty()) {
     return SUCCESS;
   }
-  std::map<std::string, std::map<int64_t, int64_t>> workspace_info = { {op_name, std::map<int64_t, int64_t>()} };
+  std::map<std::string, std::map<int64_t, int64_t>> workspace_info = {{op_name, std::map<int64_t, int64_t>()}};
 
   std::map<int64_t, int64_t> &index_offset = workspace_info[op_name];
-  for (size_t i = 0U; i < (value.size() - 1U); i += 2U) { // two sets of vector, parsing the key value of the map
+  for (size_t i = 0U; i < (value.size() - 1U); i += 2U) {  // two sets of vector, parsing the key value of the map
     index_offset[value[i]] = value[i + 1U];
   }
 
@@ -282,12 +283,12 @@ Status ExecutorUtils::AssembleReuseBinaryArgs(const OpDescPtr &op_desc, optiling
   const size_t io_num = op_desc->GetInputsSize() + op_desc->GetAllOutputsDescSize();
   const size_t workspace_num = op_desc->GetWorkspaceBytes().size();
   GE_CHK_STATUS_RET(ge::CheckUint32MulOverflow(static_cast<uint32_t>((io_num + workspace_num)),
-      static_cast<uint32_t>(sizeof(uintptr_t))));
+                                               static_cast<uint32_t>(sizeof(uintptr_t))));
   args_ex.tilingAddrOffset = static_cast<uint32_t>((io_num + workspace_num) * sizeof(uintptr_t));
   constexpr size_t tiling_data_addr_size = sizeof(uintptr_t);
   const size_t overflow_addr_size = op_desc->HasAttr("globalworkspace_type") ? sizeof(uintptr_t) : 0U;
-  args_ex.tilingDataOffset = static_cast<uint32_t>(args_ex.tilingAddrOffset +
-      tiling_data_addr_size + overflow_addr_size);
+  args_ex.tilingDataOffset =
+      static_cast<uint32_t>(args_ex.tilingAddrOffset + tiling_data_addr_size + overflow_addr_size);
 
   int64_t max_size = -1;
   if ((!ge::AttrUtils::GetInt(op_desc, ge::ATTR_NAME_MAX_TILING_SIZE, max_size)) || (max_size < 0)) {
@@ -308,19 +309,19 @@ Status ExecutorUtils::AssembleReuseBinaryArgs(const OpDescPtr &op_desc, optiling
   args_ex.hasTiling = true;
 
   GE_CHECK_GE(max_tiling_size, tiling_data_size);
-  const aclrtMemcpyKind
-      memcpy_kind = op_desc->HasAttr(ge::ATTR_SINGLE_OP_SCENE) ? ACL_MEMCPY_HOST_TO_HOST : ACL_MEMCPY_HOST_TO_DEVICE;
+  const aclrtMemcpyKind memcpy_kind =
+      op_desc->HasAttr(ge::ATTR_SINGLE_OP_SCENE) ? ACL_MEMCPY_HOST_TO_HOST : ACL_MEMCPY_HOST_TO_DEVICE;
   void *const tiling_data_addr = ge::ValueToPtr(ge::PtrToValue(args_ex.args) + args_ex.tilingDataOffset);
   void *const tiling_addr_offset = ge::ValueToPtr(ge::PtrToValue(args_ex.args) + args_ex.tilingAddrOffset);
-  GE_CHK_ACL_RET(aclrtMemcpy(tiling_addr_offset, sizeof(uintptr_t), &tiling_data_addr,
-      sizeof(uintptr_t), memcpy_kind));
+  GE_CHK_ACL_RET(aclrtMemcpy(tiling_addr_offset, sizeof(uintptr_t), &tiling_data_addr, sizeof(uintptr_t), memcpy_kind));
   GE_CHK_ACL_RET(aclrtMemcpy(tiling_data_addr, max_tiling_size, run_info.GetAllTilingData().str().data(),
-      tiling_data_size, memcpy_kind));
+                             tiling_data_size, memcpy_kind));
 
-  GELOGD("Update args of %s, block dim: %u, tiling key: %" PRIu64 ", tilingAddrOffset: %u,"
+  GELOGD("Update args of %s, block dim: %u, tiling key: %" PRIu64
+         ", tilingAddrOffset: %u,"
          "tilingDataOffset: %u, max_tiling_size: %zu, arg_size: %u.",
-         op_desc->GetName().c_str(), run_info.GetBlockDim(), run_info.GetTilingKey(),
-         args_ex.tilingAddrOffset, args_ex.tilingDataOffset, max_tiling_size, args_ex.argsSize);
+         op_desc->GetName().c_str(), run_info.GetBlockDim(), run_info.GetTilingKey(), args_ex.tilingAddrOffset,
+         args_ex.tilingDataOffset, max_tiling_size, args_ex.argsSize);
   return SUCCESS;
 }
-}
+}  // namespace ge

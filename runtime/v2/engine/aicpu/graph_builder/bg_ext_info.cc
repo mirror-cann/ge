@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,7 +22,7 @@ ValueHolderPtr GetTempExtInfo() {
   AicpuExtInfoHandler handle("temp", 0U, 0U, ge::DEPEND_IN_SHAPE);
   return bg::ValueHolder::CreateConst(&handle, sizeof(handle));
 }
-} // namespace
+}  // namespace
 
 std::vector<ValueHolderPtr> CreatBaseExtInfo(const ge::NodePtr node, const std::string &ext_info) {
   const size_t size = ext_info.size();
@@ -35,9 +35,10 @@ std::vector<ValueHolderPtr> CreatBaseExtInfo(const ge::NodePtr node, const std::
   }
   const size_t output_num = node->GetAllOutDataAnchorsSize();
   GELOGI("Op %s type %s in all input size is %zu, all input data anchors size is %zu, output_num is %zu.",
-         node->GetName().c_str(), ge::NodeUtils::GetNodeType(node).c_str(), node->GetOpDescBarePtr()->GetAllInputsSize(), node->GetInDataNodesAndAnchors().size(), output_num);
+         node->GetName().c_str(), ge::NodeUtils::GetNodeType(node).c_str(),
+         node->GetOpDescBarePtr()->GetAllInputsSize(), node->GetInDataNodesAndAnchors().size(), output_num);
   int32_t unknown_shape_type_val = 0;
-  (void) ge::AttrUtils::GetInt(node->GetOpDescBarePtr(), ge::ATTR_NAME_UNKNOWN_SHAPE_TYPE, unknown_shape_type_val);
+  (void)ge::AttrUtils::GetInt(node->GetOpDescBarePtr(), ge::ATTR_NAME_UNKNOWN_SHAPE_TYPE, unknown_shape_type_val);
 
   std::vector<ValueHolderPtr> inputs;
   inputs.emplace_back(ValueHolder::CreateConst(ext_info.c_str(), ext_info.size(), true));
@@ -111,5 +112,5 @@ ValueHolderPtr UpdateExtInfo(const ge::OpDescPtr &op_desc, const ExtShapeInfo &e
   auto update_handle = ValueHolder::CreateSingleDataOutput("UpdateExtShape", inputs);
   return update_handle;
 }
-} // bg
-} // gert
+}  // namespace bg
+}  // namespace gert

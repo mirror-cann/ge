@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,10 +25,10 @@ HcclResult HcclRawGetCount(const HcclStatus *status, HcclDataType data_type, int
 HcclResult HcclRawImrecv(void *buf, int count, HcclDataType data_type, HcclMessage *msg, HcclRequest *request);
 
 HcclResult HcclRawImrecvScatter(void *buf[], int count[], int buf_count, HcclDataType data_type, HcclMessage *msg,
-    HcclRequest *request);
+                                HcclRequest *request);
 
 HcclResult HcclRawTestSome(int count, HcclRequest request_array[], int *comp_count, int comp_indices[],
-    HcclStatus comp_status[]);
+                           HcclStatus comp_status[]);
 
 HcclResult HcclRawConnect(HcclConn conn, HcclAddr *connect_addr);
 
@@ -45,5 +45,5 @@ HcclResult HcclRawForceClose(HcclConn conn);
 HcclResult HcclRegisterGlobalMemory(void *addr, u64 size);
 
 HcclResult HcclUnregisterGlobalMemory(void *addr);
-}
+}  // namespace FlowFunc
 #endif  // BUILT_IN_LLM_COMMON_HCCL_PROXY_H

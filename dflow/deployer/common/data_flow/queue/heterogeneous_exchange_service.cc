@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,10 +38,10 @@ constexpr uint32_t kMbufHeadMaxSize = 256U;
 constexpr uint32_t kMbufHeadEndOfSequencePos = 128U;
 constexpr uint8_t kEndOfSequenceFlag = 0x5A;
 constexpr uint32_t kEventGroupId = 3U;
-constexpr int32_t kWaitEventTimeout = 1000; // 1s
+constexpr int32_t kWaitEventTimeout = 1000;  // 1s
 constexpr int32_t kRtQueueTypeSingle = 2;
-constexpr int32_t kDequeueInterval = 1000; // 1000ms
-constexpr int32_t kEnqueueInterval = 100; // 100ms
+constexpr int32_t kDequeueInterval = 1000;  // 1000ms
+constexpr int32_t kEnqueueInterval = 100;   // 100ms
 constexpr size_t kDefaultQueueBufNum = 2U;
 
 constexpr size_t kCopyThreadNum = 8U;
@@ -62,7 +62,7 @@ HeterogeneousExchangeService::~HeterogeneousExchangeService() {
 Status HeterogeneousExchangeService::Initialize(int32_t device_id) {
   HeterogeneousProfiler::Instance().InitHeterogeneousPoriler();
   rtMemQueueSetInputPara para = {};
-  (void) rtMemQueueSet(device_id, RT_MQ_QUEUE_ENABLE_LOCAL_QUEUE, &para);
+  (void)rtMemQueueSet(device_id, RT_MQ_QUEUE_ENABLE_LOCAL_QUEUE, &para);
   auto ret = rtMemQueueInit(device_id);
   // It is normal return ACL_ERROR_RT_FEATURE_NOT_SUPPORT, in offline compile scenario,
   // because driver so is stub, rtMemQueueInit get driver version is always 0.
@@ -93,12 +93,12 @@ Status HeterogeneousExchangeService::Finalize() {
     std::lock_guard<std::mutex> lk(enqueue_mu_);
     subscribed_enqueues_.clear();
   }
-  
+
   std::lock_guard<std::mutex> lk(client_q_mu_);
   client_queue_ids_.clear();
   std::lock_guard<std::mutex> ctx_lk(ctx_mu_);
   if (rt_context_ != nullptr) {
-    (void) aclrtDestroyContext(rt_context_);
+    (void)aclrtDestroyContext(rt_context_);
     rt_context_ = nullptr;
   }
   return SUCCESS;
@@ -108,7 +108,7 @@ Status HeterogeneousExchangeService::EnsureInitialized(int32_t device_id) {
   std::lock_guard<std::mutex> lk(mu_);
   if (initialized_devices_.find(device_id) == initialized_devices_.end()) {
     rtMemQueueSetInputPara para = {};
-    (void) rtMemQueueSet(device_id, RT_MQ_QUEUE_ENABLE_LOCAL_QUEUE, &para);
+    (void)rtMemQueueSet(device_id, RT_MQ_QUEUE_ENABLE_LOCAL_QUEUE, &para);
     GELOGI("[InitQueue] start, device id = %d", device_id);
     auto ret = rtMemQueueInit(device_id);
     if (ret != RT_ERROR_NONE && ret != ACL_ERROR_RT_REPEATED_INIT) {
@@ -125,8 +125,8 @@ Status HeterogeneousExchangeService::EnsureInitialized(int32_t device_id) {
 void HeterogeneousExchangeService::ProcessEmptyToNotEmptyEvent(const uint32_t queue_id) {
   std::lock_guard<std::mutex> lk(dequeue_mu_);
   auto it = subscribed_dequeues_.find(queue_id);
-  GELOGI("[ReceiveEvent] receive queue id[%u] event, find result[%d]",
-         queue_id, static_cast<int32_t>(it != subscribed_dequeues_.end()));
+  GELOGI("[ReceiveEvent] receive queue id[%u] event, find result[%d]", queue_id,
+         static_cast<int32_t>(it != subscribed_dequeues_.end()));
   if (it != subscribed_dequeues_.end()) {
     GELOGI("[ReceiveEvent] received queue id[%u] enqueue, notify dequeue", queue_id);
     it->second = true;
@@ -137,8 +137,8 @@ void HeterogeneousExchangeService::ProcessEmptyToNotEmptyEvent(const uint32_t qu
 void HeterogeneousExchangeService::ProcessF2NFEvent(const uint32_t queue_id) {
   std::lock_guard<std::mutex> lk(enqueue_mu_);
   auto it = subscribed_enqueues_.find(queue_id);
-  GELOGI("[ReceiveEvent] receive queue id[%u] event, find result[%d]",
-         queue_id, static_cast<int32_t>(it != subscribed_enqueues_.end()));
+  GELOGI("[ReceiveEvent] receive queue id[%u] event, find result[%d]", queue_id,
+         static_cast<int32_t>(it != subscribed_enqueues_.end()));
   if (it != subscribed_enqueues_.end()) {
     GELOGI("[ReceiveEvent] received queue id[%u] not full, notify enqueue", queue_id);
     it->second = true;
@@ -273,22 +273,15 @@ bool HeterogeneousExchangeService::IsClientQueue(const uint32_t queue_id) {
   return it != client_queue_ids_.cend();
 }
 
-Status HeterogeneousExchangeService::CreateQueue(const int32_t device_id,
-                                                 const string &name,
-                                                 const MemQueueAttr &mem_queue_attr,
-                                                 uint32_t &queue_id) {
+Status HeterogeneousExchangeService::CreateQueue(const int32_t device_id, const string &name,
+                                                 const MemQueueAttr &mem_queue_attr, uint32_t &queue_id) {
   if (name.size() > static_cast<size_t>(RT_MQ_MAX_NAME_LEN - 1)) {
-    GELOGE(PARAM_INVALID,
-           "[CreateQueue] [CheckParam] Length of queue name out of range, name = %s, length = %zu",
-           name.c_str(),
-           name.size());
+    GELOGE(PARAM_INVALID, "[CreateQueue] [CheckParam] Length of queue name out of range, name = %s, length = %zu",
+           name.c_str(), name.size());
     return PARAM_INVALID;
   }
-  GELOGD("[CreateQueue] start, device id = %d, queue name = %s, depth = %u, work_mode = %u",
-         device_id,
-         name.c_str(),
-         mem_queue_attr.depth,
-         mem_queue_attr.work_mode);
+  GELOGD("[CreateQueue] start, device id = %d, queue name = %s, depth = %u, work_mode = %u", device_id, name.c_str(),
+         mem_queue_attr.depth, mem_queue_attr.work_mode);
   GE_CHK_STATUS_RET(EnsureInitialized(device_id), "[CreateQueue] [Init] failed, queue name = %s", name.c_str());
   rtMemQueueAttr_t attr;
   attr.depth = mem_queue_attr.depth;
@@ -309,25 +302,19 @@ Status HeterogeneousExchangeService::CreateQueue(const int32_t device_id,
   auto ret = rtMemQueueCreate(device_id, &attr, &queue_id);
   if (ret != RT_ERROR_NONE) {
     REPORT_INNER_ERR_MSG("E19999", "Call rtMemQueueCreate fail, ret: 0x%X", static_cast<uint32_t>(ret));
-    GELOGE(RT_FAILED, "[CreateQueue] failed, rt_err = %d, device id = %d, queue name = %s, depth = %u",
-           ret,
-           device_id,
-           name.c_str(),
-           mem_queue_attr.depth);
+    GELOGE(RT_FAILED, "[CreateQueue] failed, rt_err = %d, device id = %d, queue name = %s, depth = %u", ret, device_id,
+           name.c_str(), mem_queue_attr.depth);
     return RT_ERROR_TO_GE_STATUS(ret);
   }
 
   if (mem_queue_attr.is_client) {
     AddClientQueue(queue_id);
   }
-  GEEVENT("[CreateQueue] ended successfully, device id = %d, queue name = %s, depth = %u, queue_id = %u, "
-          "deploy type = %u, is_client = %d.",
-          device_id,
-          name.c_str(),
-          mem_queue_attr.depth,
-          queue_id,
-          attr.deployType,
-          static_cast<int32_t>(mem_queue_attr.is_client));
+  GEEVENT(
+      "[CreateQueue] ended successfully, device id = %d, queue name = %s, depth = %u, queue_id = %u, "
+      "deploy type = %u, is_client = %d.",
+      device_id, name.c_str(), mem_queue_attr.depth, queue_id, attr.deployType,
+      static_cast<int32_t>(mem_queue_attr.is_client));
   return SUCCESS;
 }
 
@@ -338,10 +325,7 @@ Status HeterogeneousExchangeService::DestroyQueue(int32_t device_id, uint32_t qu
   auto ret = rtMemQueueDestroy(device_id, queue_id);
   if (ret != RT_ERROR_NONE) {
     REPORT_INNER_ERR_MSG("E19999", "Call rtMemQueueDestroy fail, ret: 0x%X", static_cast<uint32_t>(ret));
-    GELOGE(RT_FAILED, "[DestroyQueue] failed, rt_err = %d, device id = %d, queue id = %u",
-           ret,
-           device_id,
-           queue_id);
+    GELOGE(RT_FAILED, "[DestroyQueue] failed, rt_err = %d, device id = %d, queue id = %u", ret, device_id, queue_id);
     return RT_ERROR_TO_GE_STATUS(ret);
   }
   DestroyTransInfo(device_id, queue_id);
@@ -349,22 +333,17 @@ Status HeterogeneousExchangeService::DestroyQueue(int32_t device_id, uint32_t qu
   return SUCCESS;
 }
 
-Status HeterogeneousExchangeService::Enqueue(int32_t device_id,
-                                             uint32_t queue_id,
-                                             const void *data,
-                                             size_t size,
+Status HeterogeneousExchangeService::Enqueue(int32_t device_id, uint32_t queue_id, const void *data, size_t size,
                                              const ControlInfo &control_info) {
   if (control_info.is_shared_input) {
     rtMbufPtr_t mbuf = nullptr;
     GE_CHK_RT_RET(rtMbufBuild(const_cast<void *>(data), size, &mbuf));
     GE_CHK_STATUS_RET_NOLOG(InitHeadInfo(control_info, mbuf));
-    HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(ProfilerType::kStartPoint,
-                                                                       ProfilerEvent::kMbufEnqueue,
-                                                                       device_id, queue_id);
+    HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(
+        ProfilerType::kStartPoint, ProfilerEvent::kMbufEnqueue, device_id, queue_id);
     auto ret = EnqueueMbuf(device_id, queue_id, mbuf, control_info.timeout);
-    HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(ProfilerType::kEndPoint,
-                                                                       ProfilerEvent::kMbufEnqueue,
-                                                                       device_id, queue_id);
+    HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(
+        ProfilerType::kEndPoint, ProfilerEvent::kMbufEnqueue, device_id, queue_id);
     GE_CHK_STATUS_RET(ret, "Enqueue mbuf failed");
     return SUCCESS;
   }
@@ -406,40 +385,32 @@ Status HeterogeneousExchangeService::InitHeadInfo(const ControlInfo &control_inf
   return SUCCESS;
 }
 
-Status HeterogeneousExchangeService::Enqueue(int32_t device_id,
-                                             uint32_t queue_id,
-                                             size_t size,
+Status HeterogeneousExchangeService::Enqueue(int32_t device_id, uint32_t queue_id, size_t size,
                                              const ExchangeService::FillFunc &fill_func,
                                              const ControlInfo &control_info) {
   HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(ProfilerType::kStartPoint,
-                                                                     ProfilerEvent::kMbufAlloc,
-                                                                     device_id, queue_id);
+                                                                     ProfilerEvent::kMbufAlloc, device_id, queue_id);
   rtMbufPtr_t m_buf = nullptr;
   void *buffer = nullptr;
   GE_CHK_RT_RET(rtMbufAlloc(&m_buf, size));
   GE_DISMISSABLE_GUARD(m_buf, ([m_buf]() { GE_CHK_RT(rtMbufFree(m_buf)); }));
   GE_CHK_RT_RET(rtMbufSetDataLen(m_buf, size));
   GE_CHK_RT_RET(rtMbufGetBuffAddr(m_buf, &buffer));
-  HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(ProfilerType::kEndPoint,
-                                                                     ProfilerEvent::kMbufAlloc,
+  HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(ProfilerType::kEndPoint, ProfilerEvent::kMbufAlloc,
                                                                      device_id, queue_id);
-  HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(ProfilerType::kStartPoint,
-                                                                     ProfilerEvent::kMemCopyToMbuf,
-                                                                     device_id, queue_id);
+  HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(
+      ProfilerType::kStartPoint, ProfilerEvent::kMemCopyToMbuf, device_id, queue_id);
   auto ret = fill_func(buffer, size);
-  HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(ProfilerType::kEndPoint,
-                                                                     ProfilerEvent::kMemCopyToMbuf,
-                                                                     device_id, queue_id);
+  HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(
+      ProfilerType::kEndPoint, ProfilerEvent::kMemCopyToMbuf, device_id, queue_id);
   GE_CHK_STATUS_RET(ret, "[CopyTo][Mbuf] failed, size = %zu", size);
   GE_CHK_STATUS_RET_NOLOG(InitHeadInfo(control_info, m_buf));
   HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(ProfilerType::kStartPoint,
-                                                                     ProfilerEvent::kMbufEnqueue,
-                                                                     device_id, queue_id);
+                                                                     ProfilerEvent::kMbufEnqueue, device_id, queue_id);
   const bool print_error_flag = control_info.print_error_flag;
   ret = EnqueueMbuf(device_id, queue_id, m_buf, control_info.timeout);
   HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(ProfilerType::kEndPoint,
-                                                                     ProfilerEvent::kMbufEnqueue,
-                                                                     device_id, queue_id);
+                                                                     ProfilerEvent::kMbufEnqueue, device_id, queue_id);
   if ((ret != SUCCESS) && (!print_error_flag)) {
     return ret;
   }
@@ -462,14 +433,12 @@ Status HeterogeneousExchangeService::Enqueue(const int32_t device_id, const uint
   GE_CHK_BOOL_RET_STATUS(mbuf_size > 0, FAILED, "Input buff item size is 0.");
   GELOGD("Queue[%u] is not client queue, mbuf size is [%zu].", queue_id, mbuf_size);
   HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(ProfilerType::kStartPoint,
-                                                                     ProfilerEvent::kMbufAlloc,
-                                                                     device_id, queue_id);
+                                                                     ProfilerEvent::kMbufAlloc, device_id, queue_id);
   rtMbufPtr_t m_buf = nullptr;
   GE_CHK_RT_RET(rtMbufAlloc(&m_buf, mbuf_size));
   GE_DISMISSABLE_GUARD(m_buf, ([m_buf]() { GE_CHK_RT(rtMbufFree(m_buf)); }));
   GE_CHK_RT_RET(rtMbufSetDataLen(m_buf, mbuf_size));
-  HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(ProfilerType::kEndPoint,
-                                                                     ProfilerEvent::kMbufAlloc,
+  HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(ProfilerType::kEndPoint, ProfilerEvent::kMbufAlloc,
                                                                      device_id, queue_id);
   GE_CHK_STATUS_RET(ProcessEnqueueMbuf(device_id, queue_id, buffs, m_buf, control_info),
                     " Process enqueue mbuf failed.");
@@ -513,12 +482,10 @@ Status HeterogeneousExchangeService::ProcessEnqueueBuff(const int32_t device_id,
                                 .buffInfo = queue_buf_info.data(),
                                 .buffCount = num_buffs};
   HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(ProfilerType::kStartPoint,
-                                                                     ProfilerEvent::kMbufEnqueue,
-                                                                     device_id, queue_id);
+                                                                     ProfilerEvent::kMbufEnqueue, device_id, queue_id);
   const rtError_t ret = rtMemQueueEnQueueBuff(device_id, queue_id, &queue_buf, control_info.timeout);
   HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(ProfilerType::kEndPoint,
-                                                                     ProfilerEvent::kMbufEnqueue,
-                                                                     device_id, queue_id);
+                                                                     ProfilerEvent::kMbufEnqueue, device_id, queue_id);
   if (ret == ACL_ERROR_RT_QUEUE_FULL) {
     GELOGE(RT_FAILED, "[Enqueue][MBuf] timeout, device_id = %d, queue_id = %u, timeout = %d ms, rt_error_code = %d",
            device_id, queue_id, control_info.timeout, ret);
@@ -587,9 +554,8 @@ Status HeterogeneousExchangeService::MultiThreadCopy(uint8_t *dst, size_t dst_si
 Status HeterogeneousExchangeService::ProcessEnqueueMbuf(const int32_t device_id, const uint32_t queue_id,
                                                         const std::vector<BuffInfo> &buffs, rtMbufPtr_t mbuf,
                                                         const ControlInfo &control_info) {
-  HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(ProfilerType::kStartPoint,
-                                                                     ProfilerEvent::kMemCopyToMbuf,
-                                                                     device_id, queue_id);
+  HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(
+      ProfilerType::kStartPoint, ProfilerEvent::kMemCopyToMbuf, device_id, queue_id);
   void *buffer = nullptr;
   GE_CHK_RT_RET(rtMbufGetBuffAddr(mbuf, &buffer));
   uint64_t data_len = 0U;
@@ -608,17 +574,14 @@ Status HeterogeneousExchangeService::ProcessEnqueueMbuf(const int32_t device_id,
     remaining_buffer = PtrAdd<uint8_t>(remaining_buffer, remaining_size, buffs[i].len);
     remaining_size -= buffs[i].len;
   }
-  HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(ProfilerType::kEndPoint,
-                                                                     ProfilerEvent::kMemCopyToMbuf,
-                                                                     device_id, queue_id);
+  HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(
+      ProfilerType::kEndPoint, ProfilerEvent::kMemCopyToMbuf, device_id, queue_id);
   GE_CHK_STATUS_RET_NOLOG(InitHeadInfo(control_info, mbuf));
   HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(ProfilerType::kStartPoint,
-                                                                     ProfilerEvent::kMbufEnqueue,
-                                                                     device_id, queue_id);
+                                                                     ProfilerEvent::kMbufEnqueue, device_id, queue_id);
   GE_CHK_STATUS_RET(EnqueueMbuf(device_id, queue_id, mbuf, control_info.timeout), "Enqueue mbuf failed");
   HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(ProfilerType::kEndPoint,
-                                                                     ProfilerEvent::kMbufEnqueue,
-                                                                     device_id, queue_id);
+                                                                     ProfilerEvent::kMbufEnqueue, device_id, queue_id);
   return SUCCESS;
 }
 
@@ -684,25 +647,22 @@ Status HeterogeneousExchangeService::Dequeue(int32_t device_id, uint32_t queue_i
   if (control_info.end_of_sequence_flag) {
     return SUCCESS;
   }
-  HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(ProfilerType::kStartPoint,
-                                                                     ProfilerEvent::kMbufCopyToMem,
-                                                                     device_id, queue_id);
+  HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(
+      ProfilerType::kStartPoint, ProfilerEvent::kMbufCopyToMem, device_id, queue_id);
   // size 0 means no need to copy
   if (size != 0U) {
     GE_CHK_STATUS_RET_NOLOG(CopyMbufTo(m_buf, data, size, control_info));
   }
-  HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(ProfilerType::kEndPoint,
-                                                                     ProfilerEvent::kMbufCopyToMem,
-                                                                     device_id, queue_id);
+  HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(
+      ProfilerType::kEndPoint, ProfilerEvent::kMbufCopyToMem, device_id, queue_id);
 
-  GELOGD("[Dequeue] succeeded, device_id = %d, queue_id = %u, size = %zu",
-         device_id, queue_id, size);
+  GELOGD("[Dequeue] succeeded, device_id = %d, queue_id = %u, size = %zu", device_id, queue_id, size);
   return SUCCESS;
 }
 
 Status HeterogeneousExchangeService::DequeueMbufTensor(const int32_t device_id, const uint32_t queue_id,
-                                                       std::shared_ptr<AlignedPtr> &aligned_ptr,
-                                                       const size_t size, ControlInfo &control_info) {
+                                                       std::shared_ptr<AlignedPtr> &aligned_ptr, const size_t size,
+                                                       ControlInfo &control_info) {
   (void)size;
   rtMbufPtr_t m_buf = nullptr;
   GE_CHK_STATUS_RET_NOLOG(DequeueMbuf(device_id, queue_id, &m_buf, control_info.timeout));
@@ -721,14 +681,11 @@ Status HeterogeneousExchangeService::UpdateTensorDesc(const RuntimeTensorDesc &r
                                                       GeTensorDesc &tensor_desc) {
   auto num_dims = runtime_tensor_desc.shape[0];
   auto num_ori_dims = runtime_tensor_desc.original_shape[0];
-  GE_CHK_BOOL_RET_STATUS(num_dims <= kMaxDimSize,
-                         UNSUPPORTED,
-                         "shape dim number out of range, num_dims = %ld, max = %ld",
-                         num_dims, kMaxDimSize);
-  GE_CHK_BOOL_RET_STATUS(num_ori_dims <= kMaxDimSize,
-                         UNSUPPORTED,
-                         "original shape dim number out of range, num_dims = %ld, max = %ld",
-                         num_ori_dims, kMaxDimSize);
+  GE_CHK_BOOL_RET_STATUS(num_dims <= kMaxDimSize, UNSUPPORTED,
+                         "shape dim number out of range, num_dims = %ld, max = %ld", num_dims, kMaxDimSize);
+  GE_CHK_BOOL_RET_STATUS(num_ori_dims <= kMaxDimSize, UNSUPPORTED,
+                         "original shape dim number out of range, num_dims = %ld, max = %ld", num_ori_dims,
+                         kMaxDimSize);
   GeShape shape(std::vector<int64_t>(&runtime_tensor_desc.shape[1], &runtime_tensor_desc.shape[1] + num_dims));
   GeShape ori_shape(std::vector<int64_t>(&runtime_tensor_desc.shape[1], &runtime_tensor_desc.shape[1] + num_dims));
   tensor_desc.MutableShape() = std::move(shape);
@@ -746,7 +703,8 @@ Status HeterogeneousExchangeService::GetOrCreateRtCtx(aclrtContext &ctx, int32_t
   return SUCCESS;
 }
 
-Status HeterogeneousExchangeService::AllocAlignedBuffer(const size_t buffer_size, uint8_t *&aligned_ptr, int32_t device_id) {
+Status HeterogeneousExchangeService::AllocAlignedBuffer(const size_t buffer_size, uint8_t *&aligned_ptr,
+                                                        int32_t device_id) {
   aclrtContext ctx = nullptr;
   (void)aclrtGetCurrentContext(&ctx);
   if (ctx == nullptr) {
@@ -757,9 +715,7 @@ Status HeterogeneousExchangeService::AllocAlignedBuffer(const size_t buffer_size
   return SUCCESS;
 }
 
-Status HeterogeneousExchangeService::ProcessDequeueBuffTensor(int32_t device_id,
-                                                              uint32_t queue_id,
-                                                              GeTensor &tensor,
+Status HeterogeneousExchangeService::ProcessDequeueBuffTensor(int32_t device_id, uint32_t queue_id, GeTensor &tensor,
                                                               ControlInfo &control_info) {
   size_t data_buffer_size = 0U;
   HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(ProfilerType::kStartPoint,
@@ -770,17 +726,16 @@ Status HeterogeneousExchangeService::ProcessDequeueBuffTensor(int32_t device_id,
   }
   GE_MAKE_GUARD(profile, [queue_id]() {
     HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(ProfilerType::kEndPoint,
-                                                                       ProfilerEvent::kMbufDequeue,
-                                                                       queue_id);
+                                                                       ProfilerEvent::kMbufDequeue, queue_id);
   });
 
   GE_CHK_BOOL_RET_STATUS(data_buffer_size >= sizeof(RuntimeTensorDesc), FAILED,
-                          "Failed to check queue buffer size[%zu].", data_buffer_size);
+                         "Failed to check queue buffer size[%zu].", data_buffer_size);
   rtMemQueueBuffInfo queue_buf_info = {};
   uint8_t *aligned_ptr = nullptr;
   GE_CHK_STATUS_RET(AllocAlignedBuffer(data_buffer_size, aligned_ptr, device_id), "Failed to alloc buffer");
   auto deleter = [aligned_ptr](const uint8_t *ptr) {
-    (void) ptr;
+    (void)ptr;
     DF_CHK_ACL(aclrtFreeHost(aligned_ptr));
   };
   RuntimeTensorDesc *const tensor_desc = PtrToPtr<uint8_t, RuntimeTensorDesc>(aligned_ptr);
@@ -790,10 +745,8 @@ Status HeterogeneousExchangeService::ProcessDequeueBuffTensor(int32_t device_id,
   queue_buf_info.addr = aligned_ptr;
   constexpr size_t kHeaderBuffSize = 256U;
   uint8_t header_buff[kHeaderBuffSize]{};
-  rtMemQueueBuff_t queue_buf = {.contextAddr = header_buff,
-                                .contextLen = kHeaderBuffSize,
-                                .buffInfo = &queue_buf_info,
-                                .buffCount = 1U};
+  rtMemQueueBuff_t queue_buf = {
+      .contextAddr = header_buff, .contextLen = kHeaderBuffSize, .buffInfo = &queue_buf_info, .buffCount = 1U};
   ret = rtMemQueueDeQueueBuff(device_id, queue_id, &queue_buf, control_info.timeout);
   if (ret == RT_ERROR_NONE) {
     GE_CHK_STATUS_RET(CheckResult(header_buff, kHeaderBuffSize, control_info), "Failed to check result");
@@ -805,16 +758,13 @@ Status HeterogeneousExchangeService::ProcessDequeueBuffTensor(int32_t device_id,
     auto &output_tensor_desc = tensor.MutableTensorDesc();
     GE_CHK_STATUS_RET(UpdateTensorDesc(*tensor_desc, output_tensor_desc), "Failed to update output tensor desc");
     int64_t tensor_raw_size = -1;
-    GE_CHK_GRAPH_STATUS_RET(TensorUtils::CalcTensorMemSize(output_tensor_desc.GetShape(),
-                                                           output_tensor_desc.GetFormat(),
-                                                           output_tensor_desc.GetDataType(),
-                                                           tensor_raw_size),
-                            "Failed to calc tensor mem size");
+    GE_CHK_GRAPH_STATUS_RET(
+        TensorUtils::CalcTensorMemSize(output_tensor_desc.GetShape(), output_tensor_desc.GetFormat(),
+                                       output_tensor_desc.GetDataType(), tensor_raw_size),
+        "Failed to calc tensor mem size");
     size_t queue_data_size = data_buffer_size - sizeof(RuntimeTensorDesc);
-    GE_CHK_BOOL_RET_STATUS(tensor_raw_size >= 0 && queue_data_size >= static_cast<size_t>(tensor_raw_size),
-                           FAILED,
-                           "Failed to check queue buffer size[%zu], must >= %ld.",
-                           queue_data_size, tensor_raw_size);
+    GE_CHK_BOOL_RET_STATUS(tensor_raw_size >= 0 && queue_data_size >= static_cast<size_t>(tensor_raw_size), FAILED,
+                           "Failed to check queue buffer size[%zu], must >= %ld.", queue_data_size, tensor_raw_size);
     if (queue_data_size > 0U) {
       auto output_aligned_ptr = AlignedPtr::BuildFromData(aligned_ptr + sizeof(RuntimeTensorDesc), deleter);
       GE_CHECK_NOTNULL(output_aligned_ptr);
@@ -847,8 +797,7 @@ Status HeterogeneousExchangeService::DequeueTensor(int32_t device_id, uint32_t q
   GE_CHK_STATUS_RET_NOLOG(RtsApiUtils::MbufGetBufferAddr(m_buf, &data_buffer));
   GE_CHK_STATUS_RET_NOLOG(RtsApiUtils::MbufGetBufferSize(m_buf, data_buffer_size));
   GE_CHK_BOOL_RET_STATUS(static_cast<size_t>(data_buffer_size) >= sizeof(RuntimeTensorDesc), FAILED,
-                         "Dequeue size[%lu] is less than [%zu]",
-                         data_buffer_size, sizeof(RuntimeTensorDesc));
+                         "Dequeue size[%lu] is less than [%zu]", data_buffer_size, sizeof(RuntimeTensorDesc));
   RuntimeTensorDesc *const mbuf_tensor_desc = PtrToPtr<void, RuntimeTensorDesc>(data_buffer);
   GE_CHK_STATUS_RET_NOLOG(UpdateTensorDesc(*mbuf_tensor_desc, output_tensor_desc));
   int64_t tensor_raw_size = -1;
@@ -856,19 +805,18 @@ Status HeterogeneousExchangeService::DequeueTensor(int32_t device_id, uint32_t q
                                                          output_tensor_desc.GetDataType(), tensor_raw_size),
                           "Failed to DequeueTensor");
   GELOGD("Tensor size = %zu", tensor_raw_size);
-  HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(ProfilerType::kStartPoint,
-                                                                     ProfilerEvent::kMbufCopyToMem,
-                                                                     device_id, queue_id);
+  HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(
+      ProfilerType::kStartPoint, ProfilerEvent::kMbufCopyToMem, device_id, queue_id);
   if (tensor_raw_size > 0) {
     auto output_aligned_ptr = MakeShared<AlignedPtr>(tensor_raw_size, kAlignmentVal64);
     GELOGD("Tensor buffer allocated, size = %zu", tensor_raw_size);
     GE_CHECK_NOTNULL(output_aligned_ptr);
-    auto check_buffer_size = static_cast<size_t>(data_buffer_size) >=
-        sizeof(RuntimeTensorDesc) + static_cast<size_t>(tensor_raw_size);
-    GE_CHK_BOOL_RET_STATUS(check_buffer_size, FAILED, "Dequeue size[%lu] is less than [%zu]",
-                           data_buffer_size, sizeof(RuntimeTensorDesc) + static_cast<size_t>(tensor_raw_size));
-    const uint8_t *data_addr = PtrAdd<uint8_t>(
-        PtrToPtr<void, uint8_t>(data_buffer), (sizeof(RuntimeTensorDesc) + 1UL), sizeof(RuntimeTensorDesc));
+    auto check_buffer_size =
+        static_cast<size_t>(data_buffer_size) >= sizeof(RuntimeTensorDesc) + static_cast<size_t>(tensor_raw_size);
+    GE_CHK_BOOL_RET_STATUS(check_buffer_size, FAILED, "Dequeue size[%lu] is less than [%zu]", data_buffer_size,
+                           sizeof(RuntimeTensorDesc) + static_cast<size_t>(tensor_raw_size));
+    const uint8_t *data_addr = PtrAdd<uint8_t>(PtrToPtr<void, uint8_t>(data_buffer), (sizeof(RuntimeTensorDesc) + 1UL),
+                                               sizeof(RuntimeTensorDesc));
     if (memcpy_s(output_aligned_ptr->MutableGet(), static_cast<size_t>(tensor_raw_size), data_addr,
                  static_cast<size_t>(tensor_raw_size)) != EOK) {
       GELOGE(FAILED, "Failed to copy output tensor data copy size = %ld", tensor_raw_size);
@@ -876,9 +824,8 @@ Status HeterogeneousExchangeService::DequeueTensor(int32_t device_id, uint32_t q
     }
     tensor.SetData(output_aligned_ptr, static_cast<uint64_t>(tensor_raw_size));
   }
-  HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(ProfilerType::kEndPoint,
-                                                                     ProfilerEvent::kMbufCopyToMem,
-                                                                     device_id, queue_id);
+  HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(
+      ProfilerType::kEndPoint, ProfilerEvent::kMbufCopyToMem, device_id, queue_id);
   GELOGD("[Dequeue] succeeded, device_id = %d, queue_id = %u, size = %zu", device_id, queue_id, tensor_raw_size);
   return SUCCESS;
 }
@@ -915,7 +862,7 @@ Status HeterogeneousExchangeService::EnqueueMbuf(int32_t device_id, uint32_t que
   std::unique_lock<std::mutex> lk(enqueue_mu_);
   GE_CHK_STATUS_RET(EnsureEnqueueSubscribed(device_id, queue_id), "[Enqueue] [Init] failed, queue id = %u", queue_id);
   int32_t left_wait_time = timeout;
-  GELOGD("Enqueue timout = %d ms.", timeout);
+  GELOGD("Enqueue timeout = %d ms.", timeout);
   const uint64_t begin_time = MsprofSysCycleTime();
   while (true) {
     subscribed_enqueues_[queue_id] = false;
@@ -930,8 +877,8 @@ Status HeterogeneousExchangeService::EnqueueMbuf(int32_t device_id, uint32_t que
       return SUCCESS;
     }
     if (ret == ACL_ERROR_RT_QUEUE_FULL) {
-      GELOGD("[Enqueue][MBuf] failed, queue is full, device_id = %d, queue_id = %u, left_wait_time = %d",
-             device_id, queue_id, left_wait_time);
+      GELOGD("[Enqueue][MBuf] failed, queue is full, device_id = %d, queue_id = %u, left_wait_time = %d", device_id,
+             queue_id, left_wait_time);
       // -1 means always wait.
       if ((left_wait_time == -1) || (left_wait_time > 0)) {
         GE_CHK_STATUS_RET(WaitF2NFEvent(queue_id, lk, left_wait_time), "[Enqueue] Wait f2nf event failed.");
@@ -939,27 +886,27 @@ Status HeterogeneousExchangeService::EnqueueMbuf(int32_t device_id, uint32_t que
       }
 
       if (timeout != 0) {
-        GELOGE(RT_FAILED, "[Enqueue][MBuf] timeout, device_id = %d, "
-               "queue_id = %u, timeout = %d ms, rt_error_code = %d", device_id, queue_id, timeout, ret);
+        GELOGE(RT_FAILED,
+               "[Enqueue][MBuf] timeout, device_id = %d, "
+               "queue_id = %u, timeout = %d ms, rt_error_code = %d",
+               device_id, queue_id, timeout, ret);
       }
       return RT_ERROR_TO_GE_STATUS(ret);
     }
-    GELOGE(RT_FAILED, "[Enqueue][Mbuf] failed, device_id = %d, queue_id = %u, rt_error_code = %d",
-           device_id, queue_id, ret);
+    GELOGE(RT_FAILED, "[Enqueue][Mbuf] failed, device_id = %d, queue_id = %u, rt_error_code = %d", device_id, queue_id,
+           ret);
     ret = RT_ERROR_TO_GE_STATUS(ret);
     break;
   }
   return ret;
 }
 
-Status HeterogeneousExchangeService::WaitF2NFEvent(const uint32_t queue_id,
-                                                   std::unique_lock<std::mutex> &lk,
+Status HeterogeneousExchangeService::WaitF2NFEvent(const uint32_t queue_id, std::unique_lock<std::mutex> &lk,
                                                    int32_t &left_wait_time) {
   int32_t wait_time =
       ((left_wait_time <= 0) || (left_wait_time > kEnqueueInterval)) ? kEnqueueInterval : left_wait_time;
-  if (enqueue_cv_.wait_for(lk, std::chrono::milliseconds(wait_time), [this, queue_id] {
-        return subscribed_enqueues_[queue_id];
-      })) {
+  if (enqueue_cv_.wait_for(lk, std::chrono::milliseconds(wait_time),
+                           [this, queue_id] { return subscribed_enqueues_[queue_id]; })) {
     GELOGI("[Enqueue] receive f2nf event");
   } else {
     if (left_wait_time >= wait_time) {
@@ -969,14 +916,11 @@ Status HeterogeneousExchangeService::WaitF2NFEvent(const uint32_t queue_id,
   return SUCCESS;
 }
 
-Status HeterogeneousExchangeService::ClientQueueDequeueMbuf(int32_t device_id,
-                                                            uint32_t queue_id,
-                                                            rtMbufPtr_t *m_buf,
+Status HeterogeneousExchangeService::ClientQueueDequeueMbuf(int32_t device_id, uint32_t queue_id, rtMbufPtr_t *m_buf,
                                                             int32_t timeout) const {
   uint64_t data_buffer_size = 0U;
   HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(ProfilerType::kStartPoint,
-                                                                     ProfilerEvent::kMbufDequeue,
-                                                                     device_id, queue_id);
+                                                                     ProfilerEvent::kMbufDequeue, device_id, queue_id);
   auto ret = rtMemQueuePeek(device_id, queue_id, &data_buffer_size, timeout);
   if (ret == RT_ERROR_NONE) {
     GE_CHK_RT_RET(rtMbufAlloc(m_buf, data_buffer_size));
@@ -989,21 +933,17 @@ Status HeterogeneousExchangeService::ClientQueueDequeueMbuf(int32_t device_id,
     rtMemQueueBuff_t queue_buf = {control_data, head_size, &queue_buf_info, 1U};
     ret = rtMemQueueDeQueueBuff(device_id, queue_id, &queue_buf, timeout);
     if (ret == RT_ERROR_NONE) {
-      HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(ProfilerType::kEndPoint,
-                                                                         ProfilerEvent::kMbufDequeue,
-                                                                         device_id, queue_id);
+      HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(
+          ProfilerType::kEndPoint, ProfilerEvent::kMbufDequeue, device_id, queue_id);
       return SUCCESS;
     }
   }
   HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(ProfilerType::kEndPoint,
-                                                                     ProfilerEvent::kMbufDequeue,
-                                                                     device_id, queue_id);
+                                                                     ProfilerEvent::kMbufDequeue, device_id, queue_id);
   return RT_ERROR_TO_GE_STATUS(ret);
 }
 
-Status HeterogeneousExchangeService::DequeueMbuf(int32_t device_id,
-                                                 uint32_t queue_id,
-                                                 rtMbufPtr_t *m_buf,
+Status HeterogeneousExchangeService::DequeueMbuf(int32_t device_id, uint32_t queue_id, rtMbufPtr_t *m_buf,
                                                  int32_t timeout) {
   auto ret = RT_ERROR_NONE;
   if (IsClientQueue(queue_id)) {
@@ -1014,17 +954,15 @@ Status HeterogeneousExchangeService::DequeueMbuf(int32_t device_id,
   GE_CHK_STATUS_RET(EnsureDequeueSubscribed(device_id, queue_id), "[Dequeue] [Init] failed, queue id = %u", queue_id);
   int32_t left_wait_time = timeout;
   HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(ProfilerType::kStartPoint,
-                                                                     ProfilerEvent::kMbufDequeue,
-                                                                     device_id, queue_id);
+                                                                     ProfilerEvent::kMbufDequeue, device_id, queue_id);
   const uint64_t begin_time = MsprofSysCycleTime();
   while (true) {
     subscribed_dequeues_[queue_id] = false;
     ret = rtMemQueueDeQueue(device_id, queue_id, m_buf);
     if (ret == RT_ERROR_NONE) {
       GELOGD("[DequeueMbuf] success, device_id = %d, queue_id = %u", device_id, queue_id);
-      HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(ProfilerType::kEndPoint,
-                                                                         ProfilerEvent::kMbufDequeue,
-                                                                         device_id, queue_id);
+      HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(
+          ProfilerType::kEndPoint, ProfilerEvent::kMbufDequeue, device_id, queue_id);
       if (!ProfilingProperties::Instance().ProfilingTrainingTraceOn()) {
         return SUCCESS;
       }
@@ -1045,24 +983,23 @@ Status HeterogeneousExchangeService::DequeueMbuf(int32_t device_id,
       return SUCCESS;
     }
     if (ret == ACL_ERROR_RT_QUEUE_EMPTY) {
-      GELOGD("[Dequeue][MBuf] failed, queue is empty, device_id = %d, queue_id = %u, left_wait_time = %dms",
-             device_id, queue_id, left_wait_time);
+      GELOGD("[Dequeue][MBuf] failed, queue is empty, device_id = %d, queue_id = %u, left_wait_time = %dms", device_id,
+             queue_id, left_wait_time);
       // -1 means always wait.
       if ((left_wait_time == -1) || (left_wait_time > 0)) {
         GE_CHK_STATUS_RET(WaitEnqueueEvent(queue_id, lk, left_wait_time), "[Dequeue] Wait enqueue event failed.");
         continue;
       }
     }
-    GELOGW("[Dequeue][MBuf] timeout, device_id = %d, queue_id = %u, timeout = %d ms, rt_error_code = %d",
-           device_id, queue_id, timeout, ret);
+    GELOGW("[Dequeue][MBuf] timeout, device_id = %d, queue_id = %u, timeout = %d ms, rt_error_code = %d", device_id,
+           queue_id, timeout, ret);
     ret = RT_ERROR_TO_GE_STATUS(ret);
     break;
   }
   return ret;
 }
 
-Status HeterogeneousExchangeService::WaitEnqueueEvent(const uint32_t queue_id,
-                                                      std::unique_lock<std::mutex> &lk,
+Status HeterogeneousExchangeService::WaitEnqueueEvent(const uint32_t queue_id, std::unique_lock<std::mutex> &lk,
                                                       int32_t &left_wait_time) {
   int32_t wait_time =
       ((left_wait_time <= 0) || (left_wait_time > kDequeueInterval)) ? kDequeueInterval : left_wait_time;
@@ -1106,8 +1043,7 @@ Status HeterogeneousExchangeService::MoveMbufTo(void *m_buf, const ControlInfo &
   return SUCCESS;
 }
 
-Status HeterogeneousExchangeService::CopyMbufTo(void *m_buf, void *data,
-                                                size_t size, const ControlInfo &control_info) {
+Status HeterogeneousExchangeService::CopyMbufTo(void *m_buf, void *data, size_t size, const ControlInfo &control_info) {
   uint64_t buffer_size = 0;
   GE_CHK_STATUS_RET_NOLOG(RtsApiUtils::MbufGetBufferSize(m_buf, buffer_size));
   GE_CHK_BOOL_RET_STATUS(buffer_size > control_info.skip_size, FAILED, "Mbuf size must > skip size:%zu, but got %lu.",
@@ -1122,10 +1058,8 @@ Status HeterogeneousExchangeService::CopyMbufTo(void *m_buf, void *data,
     GELOGW("User data size = %zu not equal with buffer size = %lu", size, data_size);
     data_size = std::min(size, data_size);
   }
-  GE_CHK_BOOL_RET_STATUS(memcpy_s(data, size, data_buffer, data_size) == EOK,
-                         FAILED,
-                         "Failed to copy buffer to user, dst size = %zu, copy size = %lu",
-                         size, data_size);
+  GE_CHK_BOOL_RET_STATUS(memcpy_s(data, size, data_buffer, data_size) == EOK, FAILED,
+                         "Failed to copy buffer to user, dst size = %zu, copy size = %lu", size, data_size);
   return SUCCESS;
 }
 

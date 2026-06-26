@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,8 +31,8 @@ namespace {
 constexpr int32_t kFileOpSuccess = 0;
 constexpr size_t kMaxErrStrLen = 128U;
 
-static bool CopyModelBuffer(void *dst_addr, const std::size_t dst_len,
-                            const void *src_addr, const std::size_t src_len) {
+static bool CopyModelBuffer(void *dst_addr, const std::size_t dst_len, const void *src_addr,
+                            const std::size_t src_len) {
   if ((dst_addr == nullptr) || (src_addr == nullptr)) {
     GELOGE(FAILED, "CopyModelBuffer input param is null.");
     return false;
@@ -59,8 +59,7 @@ static bool CopyModelBuffer(void *dst_addr, const std::size_t dst_len,
 bool FileSaver::host_platform_param_initialized_ = false;
 Status FileSaver::OpenFile(int32_t &fd, const std::string &file_path, const bool append) {
   if (CheckPathValid(file_path) != SUCCESS) {
-    GELOGE(FAILED, "[Check][FilePath]Check output file failed, file_path:%s.",
-           file_path.c_str());
+    GELOGE(FAILED, "[Check][FilePath]Check output file failed, file_path:%s.", file_path.c_str());
     return FAILED;
   }
 
@@ -90,21 +89,21 @@ Status FileSaver::OpenFile(int32_t &fd, const std::string &file_path, const bool
   return SUCCESS;
 }
 
-Status FileSaver::WriteData(const void * const data, uint64_t size, const int32_t fd) {
+Status FileSaver::WriteData(const void *const data, uint64_t size, const int32_t fd) {
   if ((size == 0U) || (data == nullptr)) {
     return PARAM_INVALID;
   }
   int64_t write_count;
-  constexpr uint64_t kMaxWriteSize = 1 * 1024 * 1024 * 1024UL; // 1G
+  constexpr uint64_t kMaxWriteSize = 1 * 1024 * 1024 * 1024UL;  // 1G
   auto seek = PtrToPtr<void, uint8_t>(const_cast<void *>(data));
   while (size > 0U) {
     const uint64_t expect_write_size = std::min(size, kMaxWriteSize);
     write_count = mmWrite(fd, reinterpret_cast<void *>(seek), static_cast<uint32_t>(expect_write_size));
-    GE_ASSERT_TRUE(((write_count != EN_INVALID_PARAM) && (write_count != EN_ERROR)),
-        "Write data failed, errno: %lld", write_count);
+    GE_ASSERT_TRUE(((write_count != EN_INVALID_PARAM) && (write_count != EN_ERROR)), "Write data failed, errno: %lld",
+                   write_count);
     seek = PtrAdd<uint8_t>(seek, static_cast<size_t>(size), write_count);
-    GE_ASSERT_TRUE(size >= static_cast<uint64_t>(write_count),
-        "Write data failed, errno: %lld, size: %u", write_count, size);
+    GE_ASSERT_TRUE(size >= static_cast<uint64_t>(write_count), "Write data failed, errno: %lld, size: %u", write_count,
+                   size);
     size -= write_count;
   }
 
@@ -112,12 +111,16 @@ Status FileSaver::WriteData(const void * const data, uint64_t size, const int32_
 }
 
 Status FileSaver::SaveWithFileHeader(const std::string &file_path, const ModelFileHeader &file_header,
-                                     const void * const data, const uint64_t len) {
+                                     const void *const data, const uint64_t len) {
   if ((data == nullptr) || (len == 0)) {
-    GELOGE(FAILED, "[Check][Param]Failed, model_data is null or the "
-           "length[%" PRIu64 "] is less than 1.", len);
-    REPORT_INNER_ERR_MSG("E19999", "Save file failed, model_data is null or the "
-                       "length:%" PRIu64 " is less than 1.", len);
+    GELOGE(FAILED,
+           "[Check][Param]Failed, model_data is null or the "
+           "length[%" PRIu64 "] is less than 1.",
+           len);
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Save file failed, model_data is null or the "
+                         "length:%" PRIu64 " is less than 1.",
+                         len);
     return FAILED;
   }
 
@@ -164,11 +167,10 @@ Status FileSaver::SaveWithAlignFill(uint32_t size, uint32_t align_bytes, const i
 Status FileSaver::SaveWithFileHeader(const std::string &file_path, const ModelFileHeader &file_header,
                                      const ModelPartitionTable &model_partition_table,
                                      const std::vector<ModelPartition> &partition_datas) {
-  GE_CHK_BOOL_RET_STATUS((!partition_datas.empty()) && (model_partition_table.num != 0U)
-      && (model_partition_table.num == partition_datas.size()), FAILED,
-      "Invalid param:partition data size is (%zu), model_partition_table.num is (%u).",
-      partition_datas.size(),
-      model_partition_table.num);
+  GE_CHK_BOOL_RET_STATUS((!partition_datas.empty()) && (model_partition_table.num != 0U) &&
+                             (model_partition_table.num == partition_datas.size()),
+                         FAILED, "Invalid param:partition data size is (%zu), model_partition_table.num is (%u).",
+                         partition_datas.size(), model_partition_table.num);
   // Open file
   int32_t fd = 0;
   if (OpenFile(fd, file_path) != SUCCESS) {
@@ -213,8 +215,8 @@ Status FileSaver::SaveToBuffWithFileHeader(const ModelFileHeader &file_header,
                                            ModelPartitionTable &model_partition_table,
                                            const std::vector<ModelPartition> &partition_datas,
                                            ge::ModelBufferData &model) {
-  const std::vector<ModelPartitionTable *> model_partition_tables = { &model_partition_table };
-  const std::vector<std::vector<ModelPartition>> all_partition_datas = { partition_datas };
+  const std::vector<ModelPartitionTable *> model_partition_tables = {&model_partition_table};
+  const std::vector<std::vector<ModelPartition>> all_partition_datas = {partition_datas};
   return SaveToBuffWithFileHeader(file_header, model_partition_tables, all_partition_datas, model);
 }
 
@@ -222,16 +224,15 @@ Status FileSaver::SaveToBuffWithFileHeader(const ModelFileHeader &file_header,
                                            const std::vector<ModelPartitionTable *> &model_partition_tables,
                                            const std::vector<std::vector<ModelPartition>> &all_partition_datas,
                                            ge::ModelBufferData &model) {
-  GE_CHK_BOOL_RET_STATUS(model_partition_tables.size() == all_partition_datas.size(),
-                         PARAM_INVALID,
-                         "Model table size %zu does not match partition size %zu.",
-                         model_partition_tables.size(), all_partition_datas.size());
+  GE_CHK_BOOL_RET_STATUS(model_partition_tables.size() == all_partition_datas.size(), PARAM_INVALID,
+                         "Model table size %zu does not match partition size %zu.", model_partition_tables.size(),
+                         all_partition_datas.size());
   for (size_t index = 0U; index < model_partition_tables.size(); ++index) {
     auto &cur_partiton_data = all_partition_datas[index];
     auto &cur_model_partition_table = *model_partition_tables[index];
-    GE_CHK_BOOL_RET_STATUS((!cur_partiton_data.empty()) && (cur_model_partition_table.num != 0U)
-                           && (cur_model_partition_table.num == cur_partiton_data.size()), FAILED,
-                           "Invalid param: partition data size is (%zu), model_partition_table.num is (%u).",
+    GE_CHK_BOOL_RET_STATUS((!cur_partiton_data.empty()) && (cur_model_partition_table.num != 0U) &&
+                               (cur_model_partition_table.num == cur_partiton_data.size()),
+                           FAILED, "Invalid param: partition data size is (%zu), model_partition_table.num is (%u).",
                            cur_partiton_data.size(), cur_model_partition_table.num);
   }
 
@@ -256,9 +257,7 @@ Status FileSaver::SaveToBuffWithFileHeader(const ModelFileHeader &file_header,
   model.length = total_size;
   uint64_t left_space = total_size;
   uint8_t *buff = model.data.get();
-  auto ret_mem = CopyModelBuffer(buff,
-                                 left_space,
-                                 static_cast<void *>(const_cast<ModelFileHeader *>(&file_header)),
+  auto ret_mem = CopyModelBuffer(buff, left_space, static_cast<void *>(const_cast<ModelFileHeader *>(&file_header)),
                                  model_header_size);
   GE_CHK_BOOL_RET_STATUS(ret_mem, FAILED, "CopyModelBuffer failed!");
   buff += model_header_size;
@@ -273,9 +272,7 @@ Status FileSaver::SaveToBuffWithFileHeader(const ModelFileHeader &file_header,
     left_space -= table_size;
     auto &cur_partition_data = all_partition_datas[index];
     for (const auto &partition_data : cur_partition_data) {
-      ret_mem = CopyModelBuffer(buff,
-                                left_space,
-                                static_cast<void *>(const_cast<uint8_t *>(partition_data.data)),
+      ret_mem = CopyModelBuffer(buff, left_space, static_cast<void *>(const_cast<uint8_t *>(partition_data.data)),
                                 static_cast<uint64_t>(partition_data.size));
       GE_CHK_BOOL_RET_STATUS(ret_mem, FAILED, "CopyModelBuffer failed!");
       buff += partition_data.size;
@@ -289,14 +286,11 @@ Status FileSaver::SaveToBuffWithFileHeader(const ModelFileHeader &file_header,
 Status FileSaver::CheckPathValid(const std::string &file_path) {
   // Determine file path length
   if (file_path.size() >= static_cast<size_t>(MMPA_MAX_PATH)) {
-    GELOGE(FAILED, "[Check][FilePath]Failed, file path's length:%zu >= mmpa_max_path:%d",
-           file_path.size(), MMPA_MAX_PATH);
+    GELOGE(FAILED, "[Check][FilePath]Failed, file path's length:%zu >= mmpa_max_path:%d", file_path.size(),
+           MMPA_MAX_PATH);
     std::string max_path_str = std::to_string(MMPA_MAX_PATH);
-    (void)REPORT_PREDEFINED_ERR_MSG(
-        "E13002", 
-        std::vector<const char *>({"filepath", "size"}),
-        std::vector<const char *>({file_path.c_str(), max_path_str.c_str()})
-    );
+    (void)REPORT_PREDEFINED_ERR_MSG("E13002", std::vector<const char *>({"filepath", "size"}),
+                                    std::vector<const char *>({file_path.c_str(), max_path_str.c_str()}));
     return FAILED;
   }
 
@@ -328,24 +322,25 @@ Status FileSaver::SaveToFile(const std::string &file_path, const ge::ModelData &
                              const ModelFileHeader *const model_file_header) {
   if (file_path.empty()) {
     GELOGE(FAILED, "[Save][File]Incorrect input param, file_path is empty");
-    (void)REPORT_PREDEFINED_ERR_MSG(
-          "E10059", std::vector<const char *>({"stage", "reason"}),
-          std::vector<const char *>({"SaveToFile", "input parameter file_path is empty"}));
+    (void)REPORT_PREDEFINED_ERR_MSG("E10059", std::vector<const char *>({"stage", "reason"}),
+                                    std::vector<const char *>({"SaveToFile", "input parameter file_path is empty"}));
     return FAILED;
   }
 
   if ((model.model_data == nullptr) || (model.model_len == 0U)) {
     GELOGE(FAILED, "[Save][File]Incorrect input param, model_data is nullptr or model_len is 0");
-    REPORT_INNER_ERR_MSG("E19999", "Save file failed, at least one of the "
-                       "input parameters(model_data, model_len) is incorrect.");
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Save file failed, at least one of the "
+                         "input parameters(model_data, model_len) is incorrect.");
     return FAILED;
   }
 
   ModelFileHeader file_header;
 
   bool copy_header_ret = false;
-  GE_IF_BOOL_EXEC(model_file_header != nullptr, copy_header_ret =
-                  CopyModelBuffer(&file_header, sizeof(ModelFileHeader), model_file_header, sizeof(ModelFileHeader)));
+  GE_IF_BOOL_EXEC(model_file_header != nullptr,
+                  copy_header_ret = CopyModelBuffer(&file_header, sizeof(ModelFileHeader), model_file_header,
+                                                    sizeof(ModelFileHeader)));
   GE_CHK_BOOL_RET_STATUS(copy_header_ret, FAILED, "Copy ModelFileHeader failed, CopyModelBuffer return: %d",
                          static_cast<int32_t>(copy_header_ret));
 
@@ -353,8 +348,8 @@ Status FileSaver::SaveToFile(const std::string &file_path, const ge::ModelData &
 
   const Status ret = SaveWithFileHeader(file_path, file_header, model.model_data, model.model_len);
   if (ret != SUCCESS) {
-    GELOGE(FAILED, "[Save][File]Failed, file_path:%s, file_header_len:%lu, error_code:%u.",
-           file_path.c_str(), file_header.model_length, ret);
+    GELOGE(FAILED, "[Save][File]Failed, file_path:%s, file_header_len:%lu, error_code:%u.", file_path.c_str(),
+           file_header.model_length, ret);
     return FAILED;
   }
 
@@ -373,10 +368,9 @@ Status FileSaver::SaveToFile(const std::string &file_path, const ModelFileHeader
 Status FileSaver::SaveToFile(const std::string &file_path, const ModelFileHeader &file_header,
                              const std::vector<ModelPartitionTable *> &model_partition_tables,
                              const std::vector<std::vector<ModelPartition>> &all_partition_datas,
-                             const bool is_partition_align,
-                             const uint32_t align_bytes) {
-  const Status ret = SaveWithFileHeader(
-      file_path, file_header, model_partition_tables, all_partition_datas, is_partition_align, align_bytes);
+                             const bool is_partition_align, const uint32_t align_bytes) {
+  const Status ret = SaveWithFileHeader(file_path, file_header, model_partition_tables, all_partition_datas,
+                                        is_partition_align, align_bytes);
   GE_CHK_BOOL_RET_STATUS(ret == SUCCESS, FAILED, "save file failed, file_path:%s, file header len:%" PRIu64 ".",
                          file_path.c_str(), file_header.model_length);
   if (file_header.need_check_os_cpu_info == static_cast<uint8_t>(OsCpuInfoCheckTyep::NO_CHECK)) {
@@ -388,18 +382,16 @@ Status FileSaver::SaveToFile(const std::string &file_path, const ModelFileHeader
 Status FileSaver::SaveWithFileHeader(const std::string &file_path, const ModelFileHeader &file_header,
                                      const std::vector<ModelPartitionTable *> &model_partition_tables,
                                      const std::vector<std::vector<ModelPartition>> &all_partition_datas,
-                                     const bool is_partition_align,
-                                     const uint32_t align_bytes) {
-  GE_CHK_BOOL_EXEC(model_partition_tables.size() == all_partition_datas.size(),
-                   return PARAM_INVALID,
-                   "model table size %zu does not match partition size %zu",
-                   model_partition_tables.size(), all_partition_datas.size());
+                                     const bool is_partition_align, const uint32_t align_bytes) {
+  GE_CHK_BOOL_EXEC(model_partition_tables.size() == all_partition_datas.size(), return PARAM_INVALID,
+                   "model table size %zu does not match partition size %zu", model_partition_tables.size(),
+                   all_partition_datas.size());
   for (size_t index = 0U; index < model_partition_tables.size(); ++index) {
     auto &cur_partiton_data = all_partition_datas[index];
     auto &cur_model_partition_table = *model_partition_tables[index];
-    GE_CHK_BOOL_RET_STATUS((!cur_partiton_data.empty()) && (cur_model_partition_table.num != 0U)
-                           && (cur_model_partition_table.num == cur_partiton_data.size()), FAILED,
-                           "Invalid param:partition data size is (%zu), model_partition_table.num is (%u).",
+    GE_CHK_BOOL_RET_STATUS((!cur_partiton_data.empty()) && (cur_model_partition_table.num != 0U) &&
+                               (cur_model_partition_table.num == cur_partiton_data.size()),
+                           FAILED, "Invalid param:partition data size is (%zu), model_partition_table.num is (%u).",
                            cur_partiton_data.size(), cur_model_partition_table.num);
   }
 
@@ -421,10 +413,8 @@ Status FileSaver::SaveWithFileHeader(const std::string &file_path, const ModelFi
       auto &cur_table = *model_partition_tables[index];
       const uint64_t table_size = SizeOfModelPartitionTable(cur_table);
       GELOGI("table_size[%u]", table_size);
-      for (const auto& part : cur_table.partition) {
-        GELOGI("partition type:%u, offset:%u, size:%u", part.type,
-                                                        part.mem_offset,
-                                                        part.mem_size);
+      for (const auto &part : cur_table.partition) {
+        GELOGI("partition type:%u, offset:%u, size:%u", part.type, part.mem_offset, part.mem_size);
       }
 
       if (WriteData(static_cast<const void *>(&cur_table), table_size, fd) != SUCCESS ||
@@ -460,10 +450,14 @@ Status FileSaver::SaveWithFileHeader(const std::string &file_path, const ModelFi
 Status FileSaver::SaveToFile(const std::string &file_path, const void *const data, const uint64_t len,
                              const bool append) {
   if ((data == nullptr) || (len <= 0)) {
-    GELOGE(FAILED, "[Check][Param]Failed, model_data is null or the "
-           "length[%lu] is less than 1.", len);
-    REPORT_INNER_ERR_MSG("E19999", "Save file failed, the model_data is null or "
-                       "its length:%" PRIu64 " is less than 1.", len);
+    GELOGE(FAILED,
+           "[Check][Param]Failed, model_data is null or the "
+           "length[%lu] is less than 1.",
+           len);
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Save file failed, the model_data is null or "
+                         "its length:%" PRIu64 " is less than 1.",
+                         len);
     return FAILED;
   }
 

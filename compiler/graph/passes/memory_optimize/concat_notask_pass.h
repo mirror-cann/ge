@@ -14,14 +14,17 @@
 
 namespace ge {
 class ConcatNotaskPass : public NotaskPassBase {
-public:
+ public:
   ConcatNotaskPass() : NotaskPassBase("can_reused_for_concat_optimize") {}
-protected:
+
+ protected:
   bool IsTargetOp(const ge::OpDescPtr &op_desc) const override {
     return op_desc->GetType() == "ConcatD" || op_desc->GetType() == "ConcatV2D";
   }
   bool CheckDim(const ge::OpDescPtr &op_desc) const override;
-  std::string GetOpLabel() const override { return "concat"; }
+  std::string GetOpLabel() const override {
+    return "concat";
+  }
 };
 }  // namespace ge
 #endif

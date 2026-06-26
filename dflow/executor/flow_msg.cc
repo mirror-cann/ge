@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,12 +24,12 @@ namespace ge {
 namespace {
 constexpr uint8_t kEndOfSequenceFlag = 0x5A;
 constexpr uint32_t kMbufHeadEndOfSequencePos = 128U;
-}
+}  // namespace
 
 FlowMsgBase::FlowMsgBase() {}
 
 FlowMsgBase::~FlowMsgBase() {
-  if (alloced_mbuf_!= nullptr) {
+  if (alloced_mbuf_ != nullptr) {
     GE_CHK_RT(rtMbufFree(alloced_mbuf_));
     alloced_mbuf_ = nullptr;
   }
@@ -148,8 +148,8 @@ Status FlowMsgBase::GetMsgType(rtMbufPtr_t mbuf, MsgType &msg_type, bool &is_nul
   uint64_t head_size = 0U;
   GE_CHK_RT_RET(rtMbufGetPrivInfo(mbuf, &head_buf, &head_size));
   GE_CHECK_NOTNULL(head_buf);
-  GE_CHK_BOOL_RET_STATUS(head_size >= sizeof(ExchangeService::MsgInfo), FAILED,
-                         "Invalid head, size must >=%zu", sizeof(ExchangeService::MsgInfo));
+  GE_CHK_BOOL_RET_STATUS(head_size >= sizeof(ExchangeService::MsgInfo), FAILED, "Invalid head, size must >=%zu",
+                         sizeof(ExchangeService::MsgInfo));
   ExchangeService::MsgInfo *msg_info = reinterpret_cast<ExchangeService::MsgInfo *>(
       static_cast<char_t *>(head_buf) + head_size - sizeof(ExchangeService::MsgInfo));
   msg_type = static_cast<MsgType>(msg_info->msg_type);
@@ -172,8 +172,8 @@ Status FlowMsgBase::BuildFlowMsg(rtMbufPtr_t mbuf) {
     }
   }
   GE_CHK_BOOL_RET_STATUS(head_size >= kMaxUserDataSize, FAILED,
-                         "Failed to get user data, the mbuf head size[%" PRIu64 "] < user data size[%zu].",
-                        head_size, kMaxUserDataSize);
+                         "Failed to get user data, the mbuf head size[%" PRIu64 "] < user data size[%zu].", head_size,
+                         kMaxUserDataSize);
   user_data_ = static_cast<int8_t *>(head_buf);
   user_data_size_ = kMaxUserDataSize;
   if (head_size >= sizeof(ExchangeService::MsgInfo)) {
@@ -196,13 +196,13 @@ Status FlowMsgBase::MbufAlloc(size_t size) {
   }
   GE_CHECK_NOTNULL(head_buf);
   if (head_size >= sizeof(ExchangeService::MsgInfo)) {
-    msg_info_ = reinterpret_cast<ExchangeService::MsgInfo *>(
-        static_cast<char_t *>(head_buf) + head_size - sizeof(ExchangeService::MsgInfo));
+    msg_info_ = reinterpret_cast<ExchangeService::MsgInfo *>(static_cast<char_t *>(head_buf) + head_size -
+                                                             sizeof(ExchangeService::MsgInfo));
     *msg_info_ = {};
   }
   GE_CHK_BOOL_RET_STATUS(head_size >= kMaxUserDataSize, FAILED,
-                         "Failed to check head size, the mbuf head size[%" PRIu64 "] < user data size[%zu].",
-                        head_size, kMaxUserDataSize);
+                         "Failed to check head size, the mbuf head size[%" PRIu64 "] < user data size[%zu].", head_size,
+                         kMaxUserDataSize);
   user_data_ = static_cast<int8_t *>(head_buf);
   user_data_size_ = kMaxUserDataSize;
   return SUCCESS;
@@ -237,14 +237,11 @@ Status FlowMsgBase::GetUserData(void *data, size_t size, size_t offset) const {
   return SUCCESS;
 }
 
-
 Status FlowMsgBase::CheckParamsForUserData(const void *data, size_t size, size_t offset) const {
   GE_CHK_BOOL_RET_STATUS(data != nullptr, ACL_ERROR_GE_PARAM_INVALID, "The data is nullptr.");
   GE_CHK_BOOL_RET_STATUS(size != 0U, ACL_ERROR_GE_PARAM_INVALID, "The size is 0, should in (0, 64].");
-  GE_CHK_BOOL_RET_STATUS((offset < user_data_size_ && (user_data_size_ - offset) >= size),
-                          ACL_ERROR_GE_PARAM_INVALID,
-                          "The size + offset need <= %zu, but size = %zu, offset = %zu.",
-                          user_data_size_, size, offset);
+  GE_CHK_BOOL_RET_STATUS((offset < user_data_size_ && (user_data_size_ - offset) >= size), ACL_ERROR_GE_PARAM_INVALID,
+                         "The size + offset need <= %zu, but size = %zu, offset = %zu.", user_data_size_, size, offset);
   return SUCCESS;
 }
 
@@ -259,13 +256,11 @@ Tensor *TensorFlowMsg::GetTensor() const {
 Status TensorFlowMsg::AllocTensor(const TensorDesc &tensor_desc) {
   const GeTensorDesc ge_tensor_desc = TensorAdapter::TensorDesc2GeTensorDesc(tensor_desc);
   int64_t tensor_raw_size = -1;
-  const auto ret = TensorUtils::CalcTensorMemSize(ge_tensor_desc.GetShape(),
-                                                  ge_tensor_desc.GetFormat(),
-                                                  ge_tensor_desc.GetDataType(),
-                                                  tensor_raw_size);
+  const auto ret = TensorUtils::CalcTensorMemSize(ge_tensor_desc.GetShape(), ge_tensor_desc.GetFormat(),
+                                                  ge_tensor_desc.GetDataType(), tensor_raw_size);
   GE_CHK_BOOL_RET_STATUS(ret == ge::GRAPH_SUCCESS, FAILED, "Failed to calc tensor raw size");
-  GE_CHK_BOOL_RET_STATUS(tensor_raw_size >= 0, FAILED,
-                         "Failed to check tensor size[%" PRId64 "], must >= 0.", tensor_raw_size);
+  GE_CHK_BOOL_RET_STATUS(tensor_raw_size >= 0, FAILED, "Failed to check tensor size[%" PRId64 "], must >= 0.",
+                         tensor_raw_size);
   RuntimeTensorDesc runtime_tensor_desc{};
   GE_CHK_STATUS_RET(DataFlowExecutorUtils::FillRuntimeTensorDesc(ge_tensor_desc, runtime_tensor_desc),
                     "Failed to fill runtime tensor desc");
@@ -285,7 +280,7 @@ Status TensorFlowMsg::AllocTensor(const TensorDesc &tensor_desc) {
   rtMbufPtr_t tensor_mbuf = MbufCopyRef();
   GE_CHECK_NOTNULL(tensor_mbuf);
   GE_DISMISSABLE_GUARD(tensor_mbuf, ([tensor_mbuf]() { GE_CHK_RT(rtMbufFree(tensor_mbuf)); }));
-  const AlignedPtr::Deleter deleter = [tensor_mbuf](const uint8_t *const ptr){
+  const AlignedPtr::Deleter deleter = [tensor_mbuf](const uint8_t *const ptr) {
     (void)ptr;
     GE_CHK_RT(rtMbufFree(tensor_mbuf));
   };
@@ -296,16 +291,13 @@ Status TensorFlowMsg::AllocTensor(const TensorDesc &tensor_desc) {
   return SUCCESS;
 }
 
-Status TensorFlowMsg::UpdateTensorDesc(const RuntimeTensorDesc &runtime_desc,
-                                       GeTensorDesc &tensor_desc) {
+Status TensorFlowMsg::UpdateTensorDesc(const RuntimeTensorDesc &runtime_desc, GeTensorDesc &tensor_desc) {
   auto num_dims = runtime_desc.shape[0];
   auto num_ori_dims = runtime_desc.original_shape[0];
-  GE_CHK_BOOL_RET_STATUS(num_dims <= kMaxDimSize,
-                         UNSUPPORTED,
-                         "shape dim number out of range, num_dims = %" PRId64 ", max = %" PRId64 "",
-                         num_dims, kMaxDimSize);
-  GE_CHK_BOOL_RET_STATUS(num_ori_dims <= kMaxDimSize,
-                         UNSUPPORTED,
+  GE_CHK_BOOL_RET_STATUS(num_dims <= kMaxDimSize, UNSUPPORTED,
+                         "shape dim number out of range, num_dims = %" PRId64 ", max = %" PRId64 "", num_dims,
+                         kMaxDimSize);
+  GE_CHK_BOOL_RET_STATUS(num_ori_dims <= kMaxDimSize, UNSUPPORTED,
                          "original shape dim number out of range, num_dims = %" PRId64 ", max = %" PRId64 "",
                          num_ori_dims, kMaxDimSize);
   GeShape shape(std::vector<int64_t>(&runtime_desc.shape[1], &runtime_desc.shape[1 + num_dims]));
@@ -324,24 +316,21 @@ Status TensorFlowMsg::BuildTensor(rtMbufPtr_t mbuf, const GeTensorDesc &output_d
   uint64_t buffer_size = 0;
   GE_CHK_RT_RET(rtMbufGetBuffSize(mbuf, &buffer_size));
   GE_CHK_BOOL_RET_STATUS(buffer_size >= sizeof(RuntimeTensorDesc), FAILED,
-                         "Failed to check buffer size[%" PRIu64 "], tensor buff must > %zu.",
-                         buffer_size, sizeof(RuntimeTensorDesc));
-  
+                         "Failed to check buffer size[%" PRIu64 "], tensor buff must > %zu.", buffer_size,
+                         sizeof(RuntimeTensorDesc));
+
   RuntimeTensorDesc *const runtime_tensor_desc = PtrToPtr<void, RuntimeTensorDesc>(buffer);
   GeTensorDesc ge_tensor_desc = output_desc;
   GE_CHK_STATUS_RET(UpdateTensorDesc(*runtime_tensor_desc, ge_tensor_desc), "Failed to update output tensor desc");
 
   int64_t tensor_raw_size = -1;
-  GE_CHK_GRAPH_STATUS_RET(TensorUtils::CalcTensorMemSize(ge_tensor_desc.GetShape(),
-                                                         ge_tensor_desc.GetFormat(),
-                                                         ge_tensor_desc.GetDataType(),
-                                                         tensor_raw_size),
+  GE_CHK_GRAPH_STATUS_RET(TensorUtils::CalcTensorMemSize(ge_tensor_desc.GetShape(), ge_tensor_desc.GetFormat(),
+                                                         ge_tensor_desc.GetDataType(), tensor_raw_size),
                           "Failed to calc tensor mem size");
   size_t tensor_data_size = buffer_size - sizeof(RuntimeTensorDesc);
-  GE_CHK_BOOL_RET_STATUS(tensor_raw_size >= 0 && tensor_data_size >= static_cast<size_t>(tensor_raw_size),
-                         FAILED,
-                         "Failed to check tensor data size[%zu], must >= %" PRId64 ".",
-                         tensor_data_size, tensor_raw_size);
+  GE_CHK_BOOL_RET_STATUS(tensor_raw_size >= 0 && tensor_data_size >= static_cast<size_t>(tensor_raw_size), FAILED,
+                         "Failed to check tensor data size[%zu], must >= %" PRId64 ".", tensor_data_size,
+                         tensor_raw_size);
   auto tensor_desc = TensorAdapter::GeTensorDesc2TensorDesc(ge_tensor_desc);
   tensor_ = MakeShared<Tensor>(tensor_desc);
   GE_CHECK_NOTNULL(tensor_);
@@ -350,7 +339,7 @@ Status TensorFlowMsg::BuildTensor(rtMbufPtr_t mbuf, const GeTensorDesc &output_d
   rtMbufPtr_t tensor_mbuf = nullptr;
   GE_CHK_RT_RET(rtMbufCopyBufRef(mbuf, &tensor_mbuf));
   GE_DISMISSABLE_GUARD(tensor_mbuf, ([tensor_mbuf]() { GE_CHK_RT(rtMbufFree(tensor_mbuf)); }));
-  const AlignedPtr::Deleter deleter = [tensor_mbuf](const uint8_t *const ptr){
+  const AlignedPtr::Deleter deleter = [tensor_mbuf](const uint8_t *const ptr) {
     (void)ptr;
     GE_CHK_RT(rtMbufFree(tensor_mbuf));
   };
@@ -430,8 +419,7 @@ Status EmptyDataFlowMsg::BuildNullData(rtMbufPtr_t mbuf) {
   return SUCCESS;
 }
 
-std::shared_ptr<Tensor> FlowBufferFactory::AllocTensor(const std::vector<int64_t> &shape,
-                                                       DataType data_type,
+std::shared_ptr<Tensor> FlowBufferFactory::AllocTensor(const std::vector<int64_t> &shape, DataType data_type,
                                                        uint32_t align) {
   (void)align;
   auto flow_msg = MakeShared<TensorFlowMsg>();
@@ -525,11 +513,10 @@ FlowMsgPtr FlowBufferFactory::ToFlowMsg(const RawData &raw_data) {
       GELOGE(FAILED, "Failed to get raw data");
       return FlowMsgPtr(nullptr);
     }
-    ret = GeMemcpy(reinterpret_cast<uint8_t *>(data_ptr), data_size,
-                   reinterpret_cast<const uint8_t *>(raw_data.addr), raw_data.len);
+    ret = GeMemcpy(reinterpret_cast<uint8_t *>(data_ptr), data_size, reinterpret_cast<const uint8_t *>(raw_data.addr),
+                   raw_data.len);
     if (ret != SUCCESS) {
-      GELOGE(FAILED, "Failed to copy raw data to mbuf, memcpy_s error, size[%zu], ret[%d].",
-             raw_data.len, ret);
+      GELOGE(FAILED, "Failed to copy raw data to mbuf, memcpy_s error, size[%zu], ret[%d].", raw_data.len, ret);
       return FlowMsgPtr(nullptr);
     }
   }

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,8 +31,7 @@ using namespace std;
 namespace ge {
 class UtestGraphLoader : public testing::Test {
  protected:
-  void SetUp() {
-  }
+  void SetUp() {}
   void TearDown() {
     EXPECT_TRUE(ModelManager::GetInstance().model_map_.empty());
     EXPECT_TRUE(ModelManager::GetInstance().hybrid_model_map_.empty());
@@ -108,8 +107,7 @@ TEST_F(UtestGraphLoader, ExecuteModel) {
   std::vector<GeTensorDesc> input_desc;
   OutputData output_data;
   std::vector<GeTensorDesc> output_desc;
-  auto ret = GraphLoader::ExecuteModel(model_id, stream, async_mode, input_data, input_desc,
-                                       output_data, output_desc);
+  auto ret = GraphLoader::ExecuteModel(model_id, stream, async_mode, input_data, input_desc, output_data, output_desc);
   EXPECT_EQ(ret, ACL_ERROR_GE_EXEC_MODEL_ID_INVALID);
 }
 
@@ -159,4 +157,4 @@ TEST_F(UtestGraphLoader, LoadDataFromFile_Invalid) {
   auto ret = GraphLoader::LoadDataFromFile(path, priority, model_data);
   EXPECT_EQ(ret, ACL_ERROR_GE_EXEC_MODEL_PATH_INVALID);
 }
-}
+}  // namespace ge

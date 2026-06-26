@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,48 +38,48 @@ class DataSlice : public testing::Test {
   void TearDown() {}
 };
 IMPLEMT_COMMON_INFER_AXIS_TYPE_INFO(Temp) {
-    AxisTypeInfo info1;
-    info1.SetAxisType(ge::AxisType::ELEMENTWISE);
-    std::vector<CutInfo> relate_inputs1 = {{0, {0}}};
-    std::vector<CutInfo> relate_outputs1 = {{0, {0}}};
-    info1.SetRelateInputs(relate_inputs1);
-    info1.SetRelateOutputs(relate_outputs1);
-    AxisTypeInfo info2;
-    info2.SetAxisType(ge::AxisType::ELEMENTWISE);
-    std::vector<CutInfo> relate_inputs2 = {{0, {1}}};
-    std::vector<CutInfo> relate_outputs2 = {{0, {1}}};
-    info2.SetRelateInputs(relate_inputs2);
-    info2.SetRelateOutputs(relate_outputs2);
-    AxisTypeInfo info3;
-    info3.SetAxisType(ge::AxisType::ELEMENTWISE);
-    std::vector<CutInfo> relate_inputs3 = {{0, {2}}};
-    std::vector<CutInfo> relate_outputs3 = {{0, {2}}};
-    info3.SetRelateInputs(relate_inputs3);
-    info3.SetRelateOutputs(relate_outputs3);
-    AxisTypeInfo info4;
-    info4.SetAxisType(ge::AxisType::ELEMENTWISE);
-    std::vector<CutInfo> relate_inputs4 = {{0, {3}}, {1, {0}}};
-    std::vector<CutInfo> relate_outputs4 = {{0, {3}}};
-    info4.SetRelateInputs(relate_inputs4);
-    info4.SetRelateOutputs(relate_outputs4);
-    AxisTypeInfo info5;
-    info5.SetAxisType(ge::AxisType::ELEMENTWISE);
-    std::vector<CutInfo> relate_inputs5 = {{0, {3}}};
-    std::vector<CutInfo> relate_outputs5 = {{0, {3}}};
-    info5.SetRelateInputs(relate_inputs5);
-    info5.SetRelateOutputs(relate_outputs5);
+  AxisTypeInfo info1;
+  info1.SetAxisType(ge::AxisType::ELEMENTWISE);
+  std::vector<CutInfo> relate_inputs1 = {{0, {0}}};
+  std::vector<CutInfo> relate_outputs1 = {{0, {0}}};
+  info1.SetRelateInputs(relate_inputs1);
+  info1.SetRelateOutputs(relate_outputs1);
+  AxisTypeInfo info2;
+  info2.SetAxisType(ge::AxisType::ELEMENTWISE);
+  std::vector<CutInfo> relate_inputs2 = {{0, {1}}};
+  std::vector<CutInfo> relate_outputs2 = {{0, {1}}};
+  info2.SetRelateInputs(relate_inputs2);
+  info2.SetRelateOutputs(relate_outputs2);
+  AxisTypeInfo info3;
+  info3.SetAxisType(ge::AxisType::ELEMENTWISE);
+  std::vector<CutInfo> relate_inputs3 = {{0, {2}}};
+  std::vector<CutInfo> relate_outputs3 = {{0, {2}}};
+  info3.SetRelateInputs(relate_inputs3);
+  info3.SetRelateOutputs(relate_outputs3);
+  AxisTypeInfo info4;
+  info4.SetAxisType(ge::AxisType::ELEMENTWISE);
+  std::vector<CutInfo> relate_inputs4 = {{0, {3}}, {1, {0}}};
+  std::vector<CutInfo> relate_outputs4 = {{0, {3}}};
+  info4.SetRelateInputs(relate_inputs4);
+  info4.SetRelateOutputs(relate_outputs4);
+  AxisTypeInfo info5;
+  info5.SetAxisType(ge::AxisType::ELEMENTWISE);
+  std::vector<CutInfo> relate_inputs5 = {{0, {3}}};
+  std::vector<CutInfo> relate_outputs5 = {{0, {3}}};
+  info5.SetRelateInputs(relate_inputs5);
+  info5.SetRelateOutputs(relate_outputs5);
 
-    axis_type = {info1, info2, info3, info4, info5};
-    return GRAPH_SUCCESS;
+  axis_type = {info1, info2, info3, info4, info5};
+  return GRAPH_SUCCESS;
 }
 INFER_AXIS_TYPE_INFO_REG(Add, Temp);
 INFER_AXIS_TYPE_INFO_REG(Cast, Temp);
 IMPLEMT_COMMON_INFER_AXIS_TYPE_INFO(Func) {
-    return GRAPH_FAILED;
+  return GRAPH_FAILED;
 }
 INFER_AXIS_TYPE_INFO_REG(Softmax, Func);
 IMPLEMT_COMMON_INFER_AXIS_SLICE(Temp1) {
-  input_param = {{{},{},{},{0,31}}};
+  input_param = {{{}, {}, {}, {0, 31}}};
   return GRAPH_SUCCESS;
 }
 INFER_AXIS_SLICE_FUNC_REG(Add, Temp1);
@@ -525,6 +525,6 @@ TEST_F(DataSlice, ValidateAxisIndex_failed) {
   EXPECT_EQ(false, DataSliceAdapter::ValidateAxisIndex(from_axis, slice_info, to_axis, cur_tensor_range));
   int64_t from_axis_new = 0;
   const std::vector<std::vector<int64_t>> slice_info_new = {{1}};
-  EXPECT_EQ(false, DataSliceAdapter::ValidateAxisIndex(from_axis_new, slice_info_new, to_axis, cur_tensor_range)); 
+  EXPECT_EQ(false, DataSliceAdapter::ValidateAxisIndex(from_axis_new, slice_info_new, to_axis, cur_tensor_range));
 }
-}
+}  // namespace ge

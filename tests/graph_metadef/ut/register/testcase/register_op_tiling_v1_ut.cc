@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,7 +27,7 @@ using namespace ge;
 
 namespace optiling {
 class RegisterOpTilingV1UT : public testing::Test {
-protected:
+ protected:
   void SetUp() {}
 
   void TearDown() {}
@@ -36,7 +36,7 @@ bool op_tiling_stub_v1(const TeOpParas &op_paras, const OpCompileInfo &compile_i
   return true;
 }
 
-static string parse_int(const std::stringstream& tiling_data) {
+static string parse_int(const std::stringstream &tiling_data) {
   auto data = tiling_data.str();
   string result;
   int32_t tmp = 0;
@@ -63,11 +63,11 @@ static string parse_int(void *const addr_base, const uint64_t size) {
 }
 
 REGISTER_OP_TILING(ReluV1, op_tiling_stub_v1);
-//REGISTER_OP_TILING(DynamicAtomicAddrClean, op_tiling_stub_v1);
+// REGISTER_OP_TILING(DynamicAtomicAddrClean, op_tiling_stub_v1);
 
 TEST_F(RegisterOpTilingV1UT, op_para_calculate_v1_1) {
   OpDescPtr op_desc = make_shared<OpDesc>("relu", "ReluV1");
-  GeShape shape({4,3,14,14});
+  GeShape shape({4, 3, 14, 14});
   GeTensorDesc tensor_desc(shape);
   op_desc->AddInputDesc("x", tensor_desc);
   op_desc->AddInputDesc("y", tensor_desc);
@@ -94,7 +94,7 @@ TEST_F(RegisterOpTilingV1UT, op_para_calculate_v1_1) {
 
 TEST_F(RegisterOpTilingV1UT, op_para_calculate_v1_2) {
   OpDescPtr op_desc = make_shared<OpDesc>("relu", "ReluVVV");
-  GeShape shape({4,3,14,14});
+  GeShape shape({4, 3, 14, 14});
   GeTensorDesc tensor_desc(shape);
   op_desc->AddInputDesc("x", tensor_desc);
   op_desc->AddInputDesc("y", tensor_desc);
@@ -182,7 +182,7 @@ TEST_F(RegisterOpTilingV1UT, op_atomic_calculate_v1_1) {
   (void)ge::AttrUtils::SetStr(op_desc, ATOMIC_COMPILE_INFO_KEY, compile_info_key);
   (void)ge::AttrUtils::SetStr(op_desc, ATOMIC_COMPILE_INFO_JSON, compile_info_json);
   std::vector<int64_t> atomic_output_indices = {0};
-  (void) ge::AttrUtils::SetListInt(op_desc, ge::ATOMIC_ATTR_OUTPUT_INDEX, atomic_output_indices);
+  (void)ge::AttrUtils::SetListInt(op_desc, ge::ATOMIC_ATTR_OUTPUT_INDEX, atomic_output_indices);
 
   ComputeGraphPtr graph = make_shared<ComputeGraph>("test");
   NodePtr node = graph->AddNode(op_desc);
@@ -240,7 +240,7 @@ TEST_F(RegisterOpTilingV1UT, op_atomic_calculate_v1_3) {
   (void)ge::AttrUtils::SetStr(op_desc, ATOMIC_COMPILE_INFO_KEY, compile_info_key);
   (void)ge::AttrUtils::SetStr(op_desc, ATOMIC_COMPILE_INFO_JSON, compile_info_json);
   std::vector<int64_t> atomic_output_indices = {1};
-  (void) ge::AttrUtils::SetListInt(op_desc, ge::ATOMIC_ATTR_OUTPUT_INDEX, atomic_output_indices);
+  (void)ge::AttrUtils::SetListInt(op_desc, ge::ATOMIC_ATTR_OUTPUT_INDEX, atomic_output_indices);
 
   ComputeGraphPtr graph = make_shared<ComputeGraph>("test");
   NodePtr node = graph->AddNode(op_desc);
@@ -303,4 +303,4 @@ TEST_F(RegisterOpTilingV1UT, add_tiling_data) {
   workspace = std::vector<int64_t>{6};
   EXPECT_EQ(run_info.GetAllWorkspaces(), workspace);
 }
-}
+}  // namespace optiling

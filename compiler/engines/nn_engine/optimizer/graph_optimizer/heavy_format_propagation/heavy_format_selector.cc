@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,18 +18,18 @@ const uint32_t UNSUPPORT_FORMAT = 64;
 
 bool CheckSubformatSupport(const vector<uint32_t> &kernel_sub_formats, const uint32_t &real_sub_format) {
   bool no_need_check_support = std::find(kernel_sub_formats.begin(), kernel_sub_formats.end(),
-      SUPPORT_ALL_SUB_FORMAT) != kernel_sub_formats.end();
-  bool subformat_support = std::find(kernel_sub_formats.begin(), kernel_sub_formats.end(),
-      real_sub_format) != kernel_sub_formats.end();
+                                         SUPPORT_ALL_SUB_FORMAT) != kernel_sub_formats.end();
+  bool subformat_support =
+      std::find(kernel_sub_formats.begin(), kernel_sub_formats.end(), real_sub_format) != kernel_sub_formats.end();
   return real_sub_format == DEFAULT_SUB_FORMAT || no_need_check_support || subformat_support;
 }
 
 FormatScore GetFormatScore(const ge::Format &distributed_heavy_format, const uint32_t &real_sub_format,
-                           const ge::Format &current_original_format,
-                           const ge::Format &kernel_format, const vector<uint32_t> &kernel_sub_formats) {
+                           const ge::Format &current_original_format, const ge::Format &kernel_format,
+                           const vector<uint32_t> &kernel_sub_formats) {
   if (kernel_format == distributed_heavy_format) {
-    if ((kernel_format == ge::FORMAT_FRACTAL_Z || kernel_format == ge::FORMAT_FRACTAL_Z_3D) && !CheckSubformatSupport(
-        kernel_sub_formats, real_sub_format)) {
+    if ((kernel_format == ge::FORMAT_FRACTAL_Z || kernel_format == ge::FORMAT_FRACTAL_Z_3D) &&
+        !CheckSubformatSupport(kernel_sub_formats, real_sub_format)) {
       return FormatScore::SUB_FORMAT_MISMATCH_SCORE;
     }
     return FormatScore::DISTRIBUTED_HEAVY_FORMAT_SCORE;
@@ -37,11 +37,11 @@ FormatScore GetFormatScore(const ge::Format &distributed_heavy_format, const uin
   if (kernel_format == ge::FORMAT_NC1HWC0 || kernel_format == ge::FORMAT_FRACTAL_Z ||
       kernel_format == ge::FORMAT_FRACTAL_Z_3D || kernel_format == ge::FORMAT_C1HWNCoC0 ||
       kernel_format == ge::FORMAT_FRACTAL_NZ) {
-      if ((kernel_format == ge::FORMAT_FRACTAL_Z || kernel_format == ge::FORMAT_FRACTAL_Z_3D) && !CheckSubformatSupport(
-        kernel_sub_formats, real_sub_format)) {
-        return FormatScore::SUB_FORMAT_MISMATCH_SCORE;
-      }
-      return FormatScore::OTHER_HEAVY_FORMAT_SCORE;
+    if ((kernel_format == ge::FORMAT_FRACTAL_Z || kernel_format == ge::FORMAT_FRACTAL_Z_3D) &&
+        !CheckSubformatSupport(kernel_sub_formats, real_sub_format)) {
+      return FormatScore::SUB_FORMAT_MISMATCH_SCORE;
+    }
+    return FormatScore::OTHER_HEAVY_FORMAT_SCORE;
   }
   if (kernel_format == current_original_format || kernel_format == ge::FORMAT_ND) {
     return FormatScore::ORIGINAL_FORMAT_SCORE;
@@ -62,7 +62,7 @@ int32_t GetLargestElement(std::vector<T> vec) {
   }
   return matched_index;
 }
-} // namespace
+}  // namespace
 
 HeavyFormatSelector::HeavyFormatSelector(FormatDtypeQuerierPtr format_dtype_querier_ptr)
     : format_dtype_querier_ptr_(format_dtype_querier_ptr),
@@ -80,10 +80,9 @@ Status HeavyFormatSelector::Initalize() {
 }
 
 Status HeavyFormatSelector::CalcFormatScore(const ge::OpDesc::Vistor<ge::GeTensorDescPtr> &all_tensors,
-                                            const fe::OpKernelInfoPtr &op_kernel_info_ptr,
-                                            const ge::NodePtr &node, uint32_t kernel_format_index,
-                                            const HeavyFormatInfo &heavy_format_info, InputOrOutputIndex in_or_out,
-                                            uint64_t &score) {
+                                            const fe::OpKernelInfoPtr &op_kernel_info_ptr, const ge::NodePtr &node,
+                                            uint32_t kernel_format_index, const HeavyFormatInfo &heavy_format_info,
+                                            InputOrOutputIndex in_or_out, uint64_t &score) {
   auto op_desc_ptr = node->GetOpDesc();
   auto size = all_tensors.size();
   for (size_t index = 0; index < size; ++index) {
@@ -93,53 +92,55 @@ Status HeavyFormatSelector::CalcFormatScore(const ge::OpDesc::Vistor<ge::GeTenso
     auto tensor_info = input_and_output_kernel_[in_or_out].at(index);
     vector<ge::Format> kernel_formats;
     vector<uint32_t> kernel_sub_formats;
-    uint32_t real_sub_format = (static_cast<uint32_t>(heavy_format_info.sub_format) < DEFAULT_SUB_FORMAT) ?
-        DEFAULT_SUB_FORMAT : static_cast<uint32_t>(heavy_format_info.sub_format);
-    if (format_dtype_querier_ptr_->GetSupportFormatSubFormat(op_kernel_info_ptr, tensor_info, node,
-                                                             kernel_formats, kernel_sub_formats,
-                                                             real_sub_format) != SUCCESS) {
+    uint32_t real_sub_format = (static_cast<uint32_t>(heavy_format_info.sub_format) < DEFAULT_SUB_FORMAT)
+                                   ? DEFAULT_SUB_FORMAT
+                                   : static_cast<uint32_t>(heavy_format_info.sub_format);
+    if (format_dtype_querier_ptr_->GetSupportFormatSubFormat(op_kernel_info_ptr, tensor_info, node, kernel_formats,
+                                                             kernel_sub_formats, real_sub_format) != SUCCESS) {
       REPORT_FE_ERROR("[GraphOptJdgInst][FmtPropagate][CalFmtScore] Failed to get sub_format for node %s.",
                       op_desc_ptr->GetName().c_str());
       return FAILED;
     }
 
     vector<ge::DataType> kernel_data_types;
-    if (format_dtype_querier_ptr_->GetSupportDataTypes(op_kernel_info_ptr, tensor_info, node,
-                                                       kernel_data_types) != SUCCESS) {
-      REPORT_FE_ERROR("[GraphOptJdgInst][FmtPropagate][CalFmtScore] Failed to obtain the supported data_types for node %s.",
-                      op_desc_ptr->GetName().c_str());
+    if (format_dtype_querier_ptr_->GetSupportDataTypes(op_kernel_info_ptr, tensor_info, node, kernel_data_types) !=
+        SUCCESS) {
+      REPORT_FE_ERROR(
+          "[GraphOptJdgInst][FmtPropagate][CalFmtScore] Failed to obtain the supported data_types for node %s.",
+          op_desc_ptr->GetName().c_str());
       return FAILED;
     }
     if (kernel_format_index >= kernel_formats.size() || kernel_format_index >= kernel_data_types.size()) {
-      FE_LOGW("Node[%s, %s]: Format index %u is larger than the kernel format size %zu or the kernel data type size %zu.",
-              op_desc_ptr->GetNamePtr(), op_desc_ptr->GetTypePtr(), kernel_format_index, kernel_formats.size(),
-              kernel_data_types.size());
+      FE_LOGW(
+          "Node[%s, %s]: Format index %u is larger than the kernel format size %zu or the kernel data type size %zu.",
+          op_desc_ptr->GetNamePtr(), op_desc_ptr->GetTypePtr(), kernel_format_index, kernel_formats.size(),
+          kernel_data_types.size());
       return FAILED;
     }
-  /* Here a abnormal case will show up due to we stop propagation through all
-   * inconsistent edges. The case is :
-   *       input0(NCHW)     input1(ND)
-   *              \        /
-   *               \      /
-   *                \    /
-   *                 \  /
-   *                  op
-   *                  |
-   *                 Conv2D
-   * The first input will be inferred as 5HD and the second will still be ND.
-   * We consider if op is a normal op if the original format is NCHW and ND,
-   * it supports 5HD and ND as two inputs. If op is function op, it is also support two
-   * inputs as 5HD and ND. */
+    /* Here a abnormal case will show up due to we stop propagation through all
+     * inconsistent edges. The case is :
+     *       input0(NCHW)     input1(ND)
+     *              \        /
+     *               \      /
+     *                \    /
+     *                 \  /
+     *                  op
+     *                  |
+     *                 Conv2D
+     * The first input will be inferred as 5HD and the second will still be ND.
+     * We consider if op is a normal op if the original format is NCHW and ND,
+     * it supports 5HD and ND as two inputs. If op is function op, it is also support two
+     * inputs as 5HD and ND. */
     auto kernel_dst_format = kernel_formats.at(kernel_format_index);
     auto kernel_dst_dtype = kernel_data_types.at(kernel_format_index);
     if (!IsHeavyFormatConsistentWithOriFormat(tensor, kernel_dst_format, kernel_dst_dtype, op_desc_ptr)) {
-        FE_LOGW("Original format %u is inconsistent with the kernel's dst format %u; format_index[%zu] will be erased.",
-                tensor->GetOriginFormat(), kernel_dst_format, index);
-        return UNSUPPORT_FORMAT;
+      FE_LOGW("Original format %u is inconsistent with the kernel's dst format %u; format_index[%zu] will be erased.",
+              tensor->GetOriginFormat(), kernel_dst_format, index);
+      return UNSUPPORT_FORMAT;
     }
-    uint64_t format_score = static_cast<uint64_t>(GetFormatScore(
-        heavy_format_info.expected_heavy_format, real_sub_format, tensor->GetOriginFormat(),
-        kernel_dst_format, kernel_sub_formats));
+    uint64_t format_score =
+        static_cast<uint64_t>(GetFormatScore(heavy_format_info.expected_heavy_format, real_sub_format,
+                                             tensor->GetOriginFormat(), kernel_dst_format, kernel_sub_formats));
     FE_UINT64_ADDCHECK(score, format_score);
     score += format_score;
     if (format_score == static_cast<uint64_t>(FormatScore::SUB_FORMAT_MISMATCH_SCORE)) {
@@ -215,8 +216,7 @@ Status HeavyFormatSelector::GetMostSuitableFormatIndex(const fe::OpKernelInfoPtr
   }
 }
 
-Status HeavyFormatSelector::Match(const OpKernelInfoPtr &op_kernel_info_ptr,
-                                  const ge::NodePtr &node,
+Status HeavyFormatSelector::Match(const OpKernelInfoPtr &op_kernel_info_ptr, const ge::NodePtr &node,
                                   const ge::OpDesc::Vistor<ge::GeTensorDescPtr> &all_tensors,
                                   InputOrOutputIndex in_or_out) {
   Status ret;
@@ -230,8 +230,8 @@ Status HeavyFormatSelector::Match(const OpKernelInfoPtr &op_kernel_info_ptr,
     }
     auto output_info = input_and_output_kernel_[in_or_out].at(index);
     vector<ge::DataType> kernel_data_types;
-    if (format_dtype_querier_ptr_->GetSupportDataTypes(op_kernel_info_ptr, output_info, node,
-                                                       kernel_data_types) != SUCCESS) {
+    if (format_dtype_querier_ptr_->GetSupportDataTypes(op_kernel_info_ptr, output_info, node, kernel_data_types) !=
+        SUCCESS) {
       REPORT_FE_ERROR("[GraphOptJdgInst][FmtPropagate][Match] Failed to get the support data_types for node %s.",
                       op_desc_ptr->GetName().c_str());
       return FAILED;
@@ -278,8 +278,7 @@ Status HeavyFormatSelector::MatchDtypeForAllInputAndOutput(const OpKernelInfoPtr
   }
 
   FE_LOGD("After matching dtype, matched index is %s for node %s.",
-          StringUtils::IntegerVecToString(matched_index_).c_str(),
-          current_node->GetName().c_str());
+          StringUtils::IntegerVecToString(matched_index_).c_str(), current_node->GetName().c_str());
   return SUCCESS;
 }
 
@@ -314,7 +313,7 @@ Status HeavyFormatSelector::SelectQualifiedFormat(const OpKernelInfoPtr &op_kern
 }
 
 Status HeavyFormatSelector::SearchHeavyFormatInKernel(const OpKernelInfoPtr &op_kernel_info_ptr,
-                                                      const ge::NodePtr& current_node,
+                                                      const ge::NodePtr &current_node,
                                                       const HeavyFormatInfo &heavy_format_info) {
   auto op_desc_ptr = current_node->GetOpDesc();
   InputOrOutputInfoPtr input_or_output_info;
@@ -363,8 +362,7 @@ Status HeavyFormatSelector::SearchHeavyFormatInKernel(const OpKernelInfoPtr &op_
   return SUCCESS;
 }
 
-bool HeavyFormatSelector::IsDtypeSensitiveOpForHeavyFormatConsistentWithOriFormat(
-    const ge::OpDescPtr &op_desc_ptr) {
+bool HeavyFormatSelector::IsDtypeSensitiveOpForHeavyFormatConsistentWithOriFormat(const ge::OpDescPtr &op_desc_ptr) {
   if (op_desc_ptr == nullptr || op_desc_ptr->GetInputDescPtr(0) == nullptr ||
       op_desc_ptr->GetOutputDescPtr(0) == nullptr) {
     return false;
@@ -384,14 +382,14 @@ bool HeavyFormatSelector::IsHeavyFormatConsistentWithOriFormat(const ge::GeTenso
     return false;
   }
   if (current_tensor->GetOriginFormat() == ge::FORMAT_HWCN && heavy_format == ge::FORMAT_NC1HWC0) {
-    FE_LOGD("Node[%s, %s] ori format HWCN is inconsistent with heavy format 5HD.",
-            op_desc_ptr->GetNamePtr(), op_desc_ptr->GetTypePtr());
+    FE_LOGD("Node[%s, %s] ori format HWCN is inconsistent with heavy format 5HD.", op_desc_ptr->GetNamePtr(),
+            op_desc_ptr->GetTypePtr());
     return false;
   }
   if (current_tensor->GetOriginFormat() == ge::FORMAT_ND) {
     if (heavy_format == ge::FORMAT_NC1HWC0 || heavy_format == ge::FORMAT_NDC1HWC0) {
-      FE_LOGD("Node [%s, %s] original format ND is inconsistent with heavy format 5HD.",
-              op_desc_ptr->GetNamePtr(), op_desc_ptr->GetTypePtr());
+      FE_LOGD("Node [%s, %s] original format ND is inconsistent with heavy format 5HD.", op_desc_ptr->GetNamePtr(),
+              op_desc_ptr->GetTypePtr());
       return false;
     }
   }
@@ -403,15 +401,15 @@ bool HeavyFormatSelector::IsHeavyFormatConsistentWithOriFormat(const ge::GeTenso
   if (heavy_format == ge::FORMAT_FRACTAL_NZ) {
     if (current_tensor->GetOriginShape().GetDimNum() < MINIMUM_NZ_SHAPE_DIM_NUM &&
         !current_tensor->GetOriginShape().IsUnknownDimNum()) {
-      FE_LOGD("Node[%s, %s] ori shape dim num is inconsistent with heavy format NZ.",
-              op_desc_ptr->GetNamePtr(), op_desc_ptr->GetTypePtr());
+      FE_LOGD("Node[%s, %s] ori shape dim num is inconsistent with heavy format NZ.", op_desc_ptr->GetNamePtr(),
+              op_desc_ptr->GetTypePtr());
       return false;
     }
   }
   auto cur_dtype = current_tensor->GetDataType();
   if (cur_dtype == ge::DT_INT64 && cur_dtype != dst_dtype) {
-    FE_LOGD("Node [%s, %s] does not support int64 dtype propagation.",
-            op_desc_ptr->GetNamePtr(), op_desc_ptr->GetTypePtr());
+    FE_LOGD("Node [%s, %s] does not support int64 dtype propagation.", op_desc_ptr->GetNamePtr(),
+            op_desc_ptr->GetTypePtr());
     return false;
   }
   if (current_tensor->GetOriginFormat() == ge::FORMAT_ND) {
@@ -423,8 +421,8 @@ bool HeavyFormatSelector::IsHeavyFormatConsistentWithOriFormat(const ge::GeTenso
     }
   }
   if (IsDtypeSensitiveOpForHeavyFormatConsistentWithOriFormat(op_desc_ptr)) {
-    FE_LOGD("Node[%s, %s] is dtype sensitive op, which is unsupported.",
-            op_desc_ptr->GetNamePtr(), op_desc_ptr->GetTypePtr());
+    FE_LOGD("Node[%s, %s] is dtype sensitive op, which is unsupported.", op_desc_ptr->GetNamePtr(),
+            op_desc_ptr->GetTypePtr());
     return false;
   }
   return true;

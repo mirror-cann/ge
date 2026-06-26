@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -101,7 +101,7 @@ bool NodeOpTypeFeature::NodeOpTypeFeatureImpl::Match(const Scope *const scope) {
   }
   auto &impl = scope->impl_;
   AscendString scope_name;
-  (void) scope->Name(scope_name);
+  (void)scope->Name(scope_name);
   if (step_ == 0) {
     if (impl->GetOpTypeNum(node_type_) == num_) {
       GELOGI("NodeOpTypeFeature, node type:%s, num:%ld, match scope:%s", node_type_.c_str(), num_,
@@ -119,13 +119,11 @@ bool NodeOpTypeFeature::NodeOpTypeFeatureImpl::Match(const Scope *const scope) {
   return false;
 }
 
-NodeOpTypeFeature::NodeOpTypeFeature(std::string nodeType, int32_t num, int32_t step)
-    : ScopeBaseFeature() {
+NodeOpTypeFeature::NodeOpTypeFeature(std::string nodeType, int32_t num, int32_t step) : ScopeBaseFeature() {
   impl_ = ge::ComGraphMakeUnique<NodeOpTypeFeatureImpl>(nodeType, num, step);
 }
 
-NodeOpTypeFeature::NodeOpTypeFeature(const char_t *node_type, int32_t num, int32_t step)
-    : ScopeBaseFeature() {
+NodeOpTypeFeature::NodeOpTypeFeature(const char_t *node_type, int32_t num, int32_t step) : ScopeBaseFeature() {
   std::string op_type;
   if (node_type != nullptr) {
     op_type = node_type;
@@ -174,7 +172,7 @@ bool NodeAttrFeature::NodeAttrFeatureImpl::Match(const Scope *scope) {
   const std::vector<ge::OperatorPtr> &nodes = impl->Nodes();
   for (auto &node_op : nodes) {
     ge::AscendString op_type;
-    (void) node_op->GetOpType(op_type);
+    (void)node_op->GetOpType(op_type);
     if (op_type.GetString() != node_type_) {
       continue;
     }
@@ -218,7 +216,7 @@ Status NodeAttrFeature::NodeAttrFeatureImpl::CheckNodeAttrFeatureData(const bool
   }
   if (attr_value_.impl_->GetBoolValue() == value) {
     AscendString scope_name;
-    (void) scope->Name(scope_name);
+    (void)scope->Name(scope_name);
     GELOGI("NodeAttrFeature, match scope:%s", scope_name.GetString());
     return SUCCESS;
   }
@@ -235,7 +233,7 @@ Status NodeAttrFeature::NodeAttrFeatureImpl::CheckNodeAttrFeatureData(const std:
   }
   if (attr_value_.impl_->GetStrValue() == value) {
     AscendString scope_name;
-    (void) scope->Name(scope_name);
+    (void)scope->Name(scope_name);
     GELOGI("NodeAttrFeature, match scope:%s", scope_name.GetString());
     return SUCCESS;
   }
@@ -252,7 +250,7 @@ Status NodeAttrFeature::NodeAttrFeatureImpl::CheckNodeAttrFeatureData(const int6
   }
   if (attr_value_.impl_->GetIntValue() == value) {
     AscendString scope_name;
-    (void) scope->Name(scope_name);
+    (void)scope->Name(scope_name);
     GELOGI("NodeAttrFeature, match scope:%s", scope_name.GetString());
     return SUCCESS;
   }
@@ -270,21 +268,21 @@ Status NodeAttrFeature::NodeAttrFeatureImpl::CheckNodeAttrFeatureData(const floa
 
   if (FloatIsEqual(attr_value_.impl_->GetFloatValue(), value)) {
     AscendString scope_name;
-    (void) scope->Name(scope_name);
+    (void)scope->Name(scope_name);
     GELOGI("NodeAttrFeature, match scope:%s", scope_name.GetString());
     return SUCCESS;
   }
   return FAILED;
 }
 
-NodeAttrFeature::NodeAttrFeature(std::string nodeType, std::string attr_name,
-                                 ge::DataType datatype, ScopeAttrValue &attr_value)
+NodeAttrFeature::NodeAttrFeature(std::string nodeType, std::string attr_name, ge::DataType datatype,
+                                 ScopeAttrValue &attr_value)
     : ScopeBaseFeature() {
   impl_ = ge::ComGraphMakeUnique<NodeAttrFeatureImpl>(nodeType, attr_name, datatype, attr_value);
 }
 
-NodeAttrFeature::NodeAttrFeature(const char_t *node_type, const char_t *attr_name,
-                                 ge::DataType data_type, ScopeAttrValue &attr_value)
+NodeAttrFeature::NodeAttrFeature(const char_t *node_type, const char_t *attr_name, ge::DataType data_type,
+                                 ScopeAttrValue &attr_value)
     : ScopeBaseFeature() {
   std::string str_node_type;
   if (node_type != nullptr) {
@@ -333,7 +331,7 @@ bool ScopeFeature::ScopeFeatureImpl::SubScopesMatch(const std::vector<Scope *> &
   bool sub_scope_name_matched = false;
   for (auto &scp : scopes) {
     AscendString scp_sub_type;
-    (void) scp->SubType(scp_sub_type);
+    (void)scp->SubType(scp_sub_type);
     if ((sub_type_.length() > 0UL) && (sub_type_ == scp_sub_type.GetString())) {
       ++count;
     }
@@ -342,9 +340,9 @@ bool ScopeFeature::ScopeFeatureImpl::SubScopesMatch(const std::vector<Scope *> &
     }
     auto &sub_impl = scp->impl_;
     AscendString name;
-    (void) scp->Name(name);
+    (void)scp->Name(name);
     sub_scope_name_matched = (sub_scope_mask_.length() > 0UL) && (sub_scope_mask_.length() < name.GetLength()) &&
-        (sub_impl->LastName().find(sub_scope_mask_) != std::string::npos);
+                             (sub_impl->LastName().find(sub_scope_mask_) != std::string::npos);
   }
 
   if ((sub_type_.length() > 0UL) && (step_ == 0) && (count != num_)) {
@@ -360,7 +358,7 @@ bool ScopeFeature::ScopeFeatureImpl::SubScopesMatch(const std::vector<Scope *> &
 bool ScopeFeature::ScopeFeatureImpl::Match(const Scope *const scope) {
   auto &impl = scope->impl_;
   AscendString scope_name;
-  (void) scope->Name(scope_name);
+  (void)scope->Name(scope_name);
   GELOGD("NodeAttrFeature, match scope:%s", scope_name.GetString());
   if (suffix_.length() > scope_name.GetLength()) {
     return false;
@@ -381,14 +379,14 @@ bool ScopeFeature::ScopeFeatureImpl::Match(const Scope *const scope) {
   return false;
 }
 
-ScopeFeature::ScopeFeature(std::string sub_type, int32_t num, std::string suffix,
-                           std::string sub_scope_mask, int32_t step)
+ScopeFeature::ScopeFeature(std::string sub_type, int32_t num, std::string suffix, std::string sub_scope_mask,
+                           int32_t step)
     : ScopeBaseFeature() {
   impl_ = ge::ComGraphMakeUnique<ScopeFeatureImpl>(sub_type, num, suffix, sub_scope_mask, step);
 }
 
-ScopeFeature::ScopeFeature(const char_t *sub_type, int32_t num, const char_t *suffix,
-                           const char_t *sub_scope_mask, int32_t step)
+ScopeFeature::ScopeFeature(const char_t *sub_type, int32_t num, const char_t *suffix, const char_t *sub_scope_mask,
+                           int32_t step)
     : ScopeBaseFeature() {
   std::string str_sub_type;
   if (sub_type != nullptr) {
@@ -406,9 +404,9 @@ ScopeFeature::ScopeFeature(const char_t *sub_type, int32_t num, const char_t *su
 }
 
 ScopeFeature::ScopeFeature(ScopeFeature const &feature) : ScopeBaseFeature() {
-  impl_ = ge::ComGraphMakeUnique<ScopeFeatureImpl>(feature.impl_->sub_type_, feature.impl_->num_,
-                                                  feature.impl_->suffix_, feature.impl_->sub_scope_mask_,
-                                                  feature.impl_->step_);
+  impl_ =
+      ge::ComGraphMakeUnique<ScopeFeatureImpl>(feature.impl_->sub_type_, feature.impl_->num_, feature.impl_->suffix_,
+                                               feature.impl_->sub_scope_mask_, feature.impl_->step_);
 }
 
 ScopeFeature &ScopeFeature::operator=(ScopeFeature const &feature) {

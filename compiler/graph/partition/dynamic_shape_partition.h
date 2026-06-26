@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -62,8 +62,7 @@ class DynamicShapePartitioner : public BasePartitioner {
   Status MergeClustersWithConsistantId();
   Status MergeIdConsistantCluster();
   Status MergeRefVariableCluster();
-  void MergeClusters(std::shared_ptr<BaseCluster> &merged_cluster,
-                     std::shared_ptr<BaseCluster> &cluster);
+  void MergeClusters(std::shared_ptr<BaseCluster> &merged_cluster, std::shared_ptr<BaseCluster> &cluster);
   Status MergeClusters() override;
   Status InitClusterType();
   Status MergeClustersUnknownShape();
@@ -103,12 +102,11 @@ class DynamicShapePartitioner : public BasePartitioner {
   bool IsSpecialNode(const OpDescPtr &op_desc) const;
   std::string GetPartitionName() const override;
   Status MarkSubgraphUnknownStatus(ComputeGraphPtr graph) const;
-  Status CheckIfSubgraphUnknown(const ComputeGraphPtr &graph,
-                                bool &is_unknown_shape) const;
+  Status CheckIfSubgraphUnknown(const ComputeGraphPtr &graph, bool &is_unknown_shape) const;
   Status BuildPartitionFrame() override;
   Status Initialize();
   Status GetMultiBatchIndependCompileGraphs(const ComputeGraphPtr &compute_graph,
-      std::vector<ComputeGraphPtr> &independ_graphs);
+                                            std::vector<ComputeGraphPtr> &independ_graphs);
   bool IsSubgraphMultiDims() const;
   // Nodes of root_graph_ that satisfy the knowshape rules
   std::unordered_set<NodePtr> known_shape_nodes_;

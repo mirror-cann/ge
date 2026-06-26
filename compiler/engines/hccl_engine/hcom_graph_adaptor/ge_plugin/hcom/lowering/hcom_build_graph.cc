@@ -44,7 +44,8 @@ HcclResult HcomAllGatherGetOpAttr(const ge::NodePtr &node, struct HcomOpAttr &op
   return HcomOpUtils::GetRankSize(node->GetOpDesc(), opAttr.op.allgather.rankSize);
 }
 
-HcclResult HcomAllGatherVGetOpAttr([[maybe_unused]] const ge::NodePtr &node, [[maybe_unused]] struct HcomOpAttr &opAttr) {
+HcclResult HcomAllGatherVGetOpAttr([[maybe_unused]] const ge::NodePtr &node,
+                                   [[maybe_unused]] struct HcomOpAttr &opAttr) {
   return HCCL_SUCCESS;
 }
 

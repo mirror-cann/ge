@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -70,16 +70,14 @@ const auto StubInferShapeV1ForReshape = [](Operator &op) {
   return ge::GRAPH_SUCCESS;
 };
 /**
-┌────────────┐  (0,1)   ┌───────────┐  (0,0)   ┌────────┐  (0,0)   ┌────────────┐  (0,0)   ┌────────┐  (0,0)   ┌────────────┐  (0,0)   ┌───────────┐
-│ constant_0 │ ───────> │ reshape_0 │ ───────> │ add_1  │ ───────> │ reshape_1  │ ───────> │ add_2  │ ───────> │ reshape_2  │ ───────> │ netoutput │
-└────────────┘          └───────────┘          └────────┘          └────────────┘          └────────┘          └────────────┘          └───────────┘
-                          ∧                      ∧                   ∧                       ∧                   ∧
-                          │ (0,0)                │ (0,1)             │ (0,1)                 │ (0,1)             │ (0,1)
-                          │                      │                   │                       │                   │
-┌────────────┐  (0,1)   ┌───────────┐          ┌────────┐          ┌────────────┐          ┌────────┐          ┌────────────┐
-│   data_1   │ ───────> │    add    │          │ data_2 │          │ constant_1 │          │ data_3 │          │ constant_2 │
-└────────────┘          └───────────┘          └────────┘          └────────────┘          └────────┘          └────────────┘
-                          ∧
+┌────────────┐  (0,1)   ┌───────────┐  (0,0)   ┌────────┐  (0,0)   ┌────────────┐  (0,0)   ┌────────┐  (0,0)
+┌────────────┐  (0,0)   ┌───────────┐ │ constant_0 │ ───────> │ reshape_0 │ ───────> │ add_1  │ ───────> │ reshape_1  │
+───────> │ add_2  │ ───────> │ reshape_2  │ ───────> │ netoutput │ └────────────┘          └───────────┘ └────────┘
+└────────────┘          └────────┘          └────────────┘          └───────────┘ ∧                      ∧ ∧ ∧ ∧ │ (0,0)
+│ (0,1)             │ (0,1)                 │ (0,1)             │ (0,1) │                      │                   │ │ │
+┌────────────┐  (0,1)   ┌───────────┐          ┌────────┐          ┌────────────┐          ┌────────┐ ┌────────────┐ │
+data_1   │ ───────> │    add    │          │ data_2 │          │ constant_1 │          │ data_3 │          │ constant_2
+│ └────────────┘          └───────────┘          └────────┘          └────────────┘          └────────┘ └────────────┘ ∧
                           │ (0,0)
                           │
                         ┌───────────┐
@@ -118,26 +116,26 @@ Graph BuildReshapeRecoveryGraph() {
   auto reshape_2 = OP_CFG(RESHAPE).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 20, 4});
 
   DEF_GRAPH(g) {
-                 CHAIN(NODE("data_0", data_0)->EDGE(0, 0)->NODE("add", add_0));
-                 CHAIN(NODE("data_1", data_1)->EDGE(0, 1)->NODE("add", add_0));
+    CHAIN(NODE("data_0", data_0)->EDGE(0, 0)->NODE("add", add_0));
+    CHAIN(NODE("data_1", data_1)->EDGE(0, 1)->NODE("add", add_0));
 
-                 CHAIN(NODE("add", add_0)->EDGE(0, 0)->NODE("reshape_0", reshape_0));
-                 CHAIN(NODE("constant_0", constant_0)->EDGE(0, 1)->NODE("reshape_0", reshape_0));
+    CHAIN(NODE("add", add_0)->EDGE(0, 0)->NODE("reshape_0", reshape_0));
+    CHAIN(NODE("constant_0", constant_0)->EDGE(0, 1)->NODE("reshape_0", reshape_0));
 
-                 CHAIN(NODE("reshape_0", reshape_0)->EDGE(0, 0)->NODE("add_1", add_1));
-                 CHAIN(NODE("data_2", data_2)->EDGE(0, 1)->NODE("add_1", add_1));
+    CHAIN(NODE("reshape_0", reshape_0)->EDGE(0, 0)->NODE("add_1", add_1));
+    CHAIN(NODE("data_2", data_2)->EDGE(0, 1)->NODE("add_1", add_1));
 
-                 CHAIN(NODE("add_1", add_1)->EDGE(0, 0)->NODE("reshape_1", reshape_1));
-                 CHAIN(NODE("constant_1", constant_1)->EDGE(0, 1)->NODE("reshape_1", reshape_1));
+    CHAIN(NODE("add_1", add_1)->EDGE(0, 0)->NODE("reshape_1", reshape_1));
+    CHAIN(NODE("constant_1", constant_1)->EDGE(0, 1)->NODE("reshape_1", reshape_1));
 
-                 CHAIN(NODE("reshape_1", reshape_1)->EDGE(0, 0)->NODE("add_2", add_2));
-                 CHAIN(NODE("data_3", data_3)->EDGE(0, 1)->NODE("add_2", add_2));
+    CHAIN(NODE("reshape_1", reshape_1)->EDGE(0, 0)->NODE("add_2", add_2));
+    CHAIN(NODE("data_3", data_3)->EDGE(0, 1)->NODE("add_2", add_2));
 
-                 CHAIN(NODE("add_2", add_2)->EDGE(0, 0)->NODE("reshape_2", reshape_2));
-                 CHAIN(NODE("constant_2", constant_2)->EDGE(0, 1)->NODE("reshape_2", reshape_2));
+    CHAIN(NODE("add_2", add_2)->EDGE(0, 0)->NODE("reshape_2", reshape_2));
+    CHAIN(NODE("constant_2", constant_2)->EDGE(0, 1)->NODE("reshape_2", reshape_2));
 
-                 CHAIN(NODE("reshape_2", reshape_2)->EDGE(0, 0)->NODE("netoutput", NETOUTPUT));
-               };
+    CHAIN(NODE("reshape_2", reshape_2)->EDGE(0, 0)->NODE("netoutput", NETOUTPUT));
+  };
 
   auto graph = ToGeGraph(g);
   const auto &compute_graph = GraphUtilsEx::GetComputeGraph(graph);
@@ -153,17 +151,14 @@ class OptimizeStage1SystemTest : public testing::Test {
  protected:
   void SetUp() {}
   void TearDown() {}
+
  public:
   static void EXPECT_TestReshapeRecoveryPass(const map<AscendString, AscendString> &options = {}) {
     // build graph
     Graph graph = BuildReshapeRecoveryGraph();
     auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
-    EXPECT_EQ(gert::SummaryChecker(compute_graph).StrictDirectNodeTypes(
-              {{"Reshape", 3},
-              {"Const", 3},
-              {"Data", 4},
-              {"Add", 3},
-              {"NetOutput", 1}}),
+    EXPECT_EQ(gert::SummaryChecker(compute_graph)
+                  .StrictDirectNodeTypes({{"Reshape", 3}, {"Const", 3}, {"Data", 4}, {"Add", 3}, {"NetOutput", 1}}),
               "success");
     // new session & add graph
     Session session(options);
@@ -173,15 +168,11 @@ class OptimizeStage1SystemTest : public testing::Test {
     // build input tensor
     std::vector<InputTensorInfo> inputs;
     // build_graph through session
-    ret = session.BuildGraph(graph_id, inputs); // we only care about compile stage
+    ret = session.BuildGraph(graph_id, inputs);  // we only care about compile stage
     EXPECT_EQ(ret, SUCCESS);
     CHECK_GRAPH(PreRunAfterOptimize1) {
       EXPECT_EQ(gert::SummaryChecker(graph).StrictDirectNodeTypes(
-                {{"Reshape", 3},
-                {"Const", 2},
-                {"Data", 4},
-                {"Add", 3},
-                {"NetOutput", 1}}),
+                    {{"Reshape", 3}, {"Const", 2}, {"Data", 4}, {"Add", 3}, {"NetOutput", 1}}),
                 "success");
       for (const auto &node : graph->GetDirectNode()) {
         if (node->GetType() == "Reshape") {

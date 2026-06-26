@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -43,22 +43,22 @@ using namespace ge;
 
 class TbeL1FusionUnitTest : public testing::Test {
  public:
-
  protected:
-  static void SetUpTestCase() { std::cout << "UB fusion SetUp" << std::endl; }
-  static void TearDownTestCase() { std::cout << "UB fusion TearDown" << std::endl; }
+  static void SetUpTestCase() {
+    std::cout << "UB fusion SetUp" << std::endl;
+  }
+  static void TearDownTestCase() {
+    std::cout << "UB fusion TearDown" << std::endl;
+  }
   std::shared_ptr<BufferFusion> ub_fusion_ptr_;
   std::shared_ptr<FusionPriorityManager> fusion_priority_mgr_ptr_;
   virtual void SetUp() {
     std::shared_ptr<GraphComm> graph_comm_ptr = std::make_shared<GraphComm>("engineName");
     fusion_priority_mgr_ptr_ = std::make_shared<FusionPriorityManager>("engineName", nullptr);
-    ub_fusion_ptr_ =
-        std::make_shared<BufferFusion>(graph_comm_ptr, fusion_priority_mgr_ptr_, nullptr);
+    ub_fusion_ptr_ = std::make_shared<BufferFusion>(graph_comm_ptr, fusion_priority_mgr_ptr_, nullptr);
     ub_fusion_ptr_->engine_name_ = fe::AI_CORE_NAME;
   }
-  virtual void TearDown() {
-
-  }
+  virtual void TearDown() {}
 
   void SetPattern(ge::OpDescPtr opdef, const string &optype) {
     auto key_pattern = "_pattern";
@@ -179,12 +179,12 @@ class TbeL1FusionUnitTest : public testing::Test {
     NodePtr relu2_node = graph->AddNode(relu2);
 
     const char tbe_bin[] = "tbe_bin";
-    vector<char> buffer(tbe_bin, tbe_bin+strlen(tbe_bin));
+    vector<char> buffer(tbe_bin, tbe_bin + strlen(tbe_bin));
     ge::OpKernelBinPtr tbe_kernel_ptr = std::make_shared<ge::OpKernelBin>(conv1_node->GetName(), std::move(buffer));
     conv1_node->GetOpDesc()->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, tbe_kernel_ptr);
 
     const char tbe_bin2[] = "tbe_bin";
-    vector<char> buffer2(tbe_bin2, tbe_bin2+strlen(tbe_bin2));
+    vector<char> buffer2(tbe_bin2, tbe_bin2 + strlen(tbe_bin2));
     ge::OpKernelBinPtr tbe_kernel_ptr2 = std::make_shared<ge::OpKernelBin>(conv2_node->GetName(), std::move(buffer2));
     conv2_node->GetOpDesc()->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, tbe_kernel_ptr2);
 
@@ -205,7 +205,7 @@ TEST_F(TbeL1FusionUnitTest, test_l1_fusion_1) {
   graph_out->Dump();
 
   Configuration::Instance(AI_CORE_NAME).config_param_vec_[static_cast<size_t>(CONFIG_PARAM::BufferOptimize)] =
-          static_cast<int64_t>(EN_L1_OPTIMIZE);
+      static_cast<int64_t>(EN_L1_OPTIMIZE);
   // create fused Graph, and merge matched sub-graphs into fusion ops
   ub_fusion_ptr_->BuildFusionGraph(*graph_out);
   cerr << endl;
@@ -230,7 +230,7 @@ TEST_F(TbeL1FusionUnitTest, test_l1_fusion_2) {
   graph_out->Dump();
 
   Configuration::Instance(AI_CORE_NAME).config_param_vec_[static_cast<size_t>(CONFIG_PARAM::BufferOptimize)] =
-          static_cast<int64_t>(EN_L1_OPTIMIZE);
+      static_cast<int64_t>(EN_L1_OPTIMIZE);
   // create fused Graph, and merge matched sub-graphs into fusion ops
   ub_fusion_ptr_->BuildFusionGraph(*graph_out);
   cerr << endl;
@@ -255,7 +255,7 @@ TEST_F(TbeL1FusionUnitTest, test_l1_fusion_3) {
   graph_out->Dump();
 
   Configuration::Instance(AI_CORE_NAME).config_param_vec_[static_cast<size_t>(CONFIG_PARAM::BufferOptimize)] =
-          static_cast<int64_t>(EN_L1_OPTIMIZE);
+      static_cast<int64_t>(EN_L1_OPTIMIZE);
   // create fused Graph, and merge matched sub-graphs into fusion ops
   ub_fusion_ptr_->BuildFusionGraph(*graph_out);
   cerr << endl;
@@ -280,7 +280,7 @@ TEST_F(TbeL1FusionUnitTest, test_l1_fusion_4) {
   graph_out->Dump();
 
   Configuration::Instance(AI_CORE_NAME).config_param_vec_[static_cast<size_t>(CONFIG_PARAM::BufferOptimize)] =
-          static_cast<int64_t>(EN_L1_OPTIMIZE);
+      static_cast<int64_t>(EN_L1_OPTIMIZE);
   // create fused Graph, and merge matched sub-graphs into fusion ops
   ub_fusion_ptr_->BuildFusionGraph(*graph_out);
   cerr << endl;
@@ -305,7 +305,7 @@ TEST_F(TbeL1FusionUnitTest, test_l1_fusion_5) {
   graph_out->Dump();
 
   Configuration::Instance(AI_CORE_NAME).config_param_vec_[static_cast<size_t>(CONFIG_PARAM::BufferOptimize)] =
-          static_cast<int64_t>(EN_L1_OPTIMIZE);
+      static_cast<int64_t>(EN_L1_OPTIMIZE);
   // create fused Graph, and merge matched sub-graphs into fusion ops
   ub_fusion_ptr_->BuildFusionGraph(*graph_out);
   cerr << endl;
@@ -332,7 +332,7 @@ TEST_F(TbeL1FusionUnitTest, test_l1_fusion_6) {
   graph_out->Dump();
 
   Configuration::Instance(AI_CORE_NAME).config_param_vec_[static_cast<size_t>(CONFIG_PARAM::BufferOptimize)] =
-          static_cast<int64_t>(EN_L1_OPTIMIZE);
+      static_cast<int64_t>(EN_L1_OPTIMIZE);
   // create fused Graph, and merge matched sub-graphs into fusion ops
   ub_fusion_ptr_->BuildFusionGraph(*graph_out);
   cerr << endl;
@@ -361,7 +361,7 @@ TEST_F(TbeL1FusionUnitTest, test_l1_fusion_7) {
   graph_out->Dump();
 
   Configuration::Instance(AI_CORE_NAME).config_param_vec_[static_cast<size_t>(CONFIG_PARAM::BufferOptimize)] =
-          static_cast<int64_t>(EN_L1_OPTIMIZE);
+      static_cast<int64_t>(EN_L1_OPTIMIZE);
   // create fused Graph, and merge matched sub-graphs into fusion ops
   ub_fusion_ptr_->BuildFusionGraph(*graph_out);
   cerr << endl;

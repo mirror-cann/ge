@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -204,8 +204,7 @@ Status AddKernel::AddCheck(const OpDescPtr &op_desc_ptr, const std::vector<Const
   }
   // check how many inputs
   if ((input.size() != kAddInputSize) || (op_desc_ptr->GetOutputsSize() != kAddOutputSize)) {
-    GELOGW("The number of input for add must be %zu, output number must be %zu.", kAddInputSize,
-           kAddOutputSize);
+    GELOGW("The number of input for add must be %zu, output number must be %zu.", kAddInputSize, kAddOutputSize);
     return PARAM_INVALID;
   }
   // input vector elements must not be null
@@ -250,17 +249,17 @@ Status AddKernel::Compute(const OpDescPtr op_desc_ptr, const std::vector<ConstGe
     case DT_COMPLEX128:
       ret = ComputeComplex<double>(op_desc_ptr, input, v_output);
       break;
-    SET_BCAST_ADD_CASE(DT_INT8, int8_t);
-    SET_BCAST_ADD_CASE(DT_INT16, int16_t);
-    SET_BCAST_ADD_CASE(DT_INT32, int32_t);
-    SET_BCAST_ADD_CASE(DT_INT64, int64_t);
-    SET_BCAST_ADD_CASE(DT_UINT8, uint8_t);
-    SET_BCAST_ADD_CASE(DT_UINT16, uint16_t);
-    SET_BCAST_ADD_CASE(DT_UINT32, uint32_t);
-    SET_BCAST_ADD_CASE(DT_UINT64, uint64_t);
-    SET_BCAST_ADD_CASE(DT_FLOAT16, fp16_t);
-    SET_BCAST_ADD_CASE(DT_FLOAT, float);
-    SET_BCAST_ADD_CASE(DT_DOUBLE, double);
+      SET_BCAST_ADD_CASE(DT_INT8, int8_t);
+      SET_BCAST_ADD_CASE(DT_INT16, int16_t);
+      SET_BCAST_ADD_CASE(DT_INT32, int32_t);
+      SET_BCAST_ADD_CASE(DT_INT64, int64_t);
+      SET_BCAST_ADD_CASE(DT_UINT8, uint8_t);
+      SET_BCAST_ADD_CASE(DT_UINT16, uint16_t);
+      SET_BCAST_ADD_CASE(DT_UINT32, uint32_t);
+      SET_BCAST_ADD_CASE(DT_UINT64, uint64_t);
+      SET_BCAST_ADD_CASE(DT_FLOAT16, fp16_t);
+      SET_BCAST_ADD_CASE(DT_FLOAT, float);
+      SET_BCAST_ADD_CASE(DT_DOUBLE, double);
     default:
       GELOGI("Add kernel data type %s not support.", TypeUtils::DataTypeToSerialString(data_type).c_str());
       return NOT_CHANGED;

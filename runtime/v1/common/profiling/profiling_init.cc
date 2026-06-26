@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,7 +26,7 @@ using Json = nlohmann::json;
 const char *const kTrainingTrace = "training_trace";
 const char *const kFpPoint = "fp_point";
 const char *const kBpPoint = "bp_point";
-}
+}  // namespace
 
 namespace ge {
 ProfilingInit &ProfilingInit::Instance() {
@@ -69,7 +69,8 @@ ge::Status ProfilingInit::Init(const std::map<std::string, std::string> &options
   return SUCCESS;
 }
 
-ge::Status ProfilingInit::ProfRegisterCtrlCallback() {;
+ge::Status ProfilingInit::ProfRegisterCtrlCallback() {
+  ;
   rtProfCtrlHandle callback = ProfCtrlHandle;
   const auto ret = MsprofRegisterCallback(GE, callback);
   if (ret != MSPROF_ERROR_NONE) {
@@ -96,8 +97,9 @@ ge::Status ProfilingInit::InitProfOptions(const std::map<std::string, std::strin
 
   if (prof_mode == "1" && !prof_option.empty()) {
     // enable profiling by ge option
-    GE_ASSERT_EQ(strncpy_s(prof_conf.options, sizeof(prof_conf.options), prof_option.c_str(),
-                           MSPROF_OPTIONS_DEF_LEN_MAX - 1U), EN_OK);
+    GE_ASSERT_EQ(
+        strncpy_s(prof_conf.options, sizeof(prof_conf.options), prof_option.c_str(), MSPROF_OPTIONS_DEF_LEN_MAX - 1U),
+        EN_OK);
     GELOGI("The profiling in options is %s, %s. origin option: %s", prof_mode.c_str(), prof_conf.options,
            prof_option.c_str());
   } else {
@@ -111,14 +113,16 @@ ge::Status ProfilingInit::InitProfOptions(const std::map<std::string, std::strin
     const char_t *prof_conf_options = nullptr;
     MM_SYS_GET_ENV(MM_ENV_PROFILING_OPTIONS, prof_conf_options);
     if (prof_conf_options != nullptr) {
-      GE_ASSERT_EQ(strncpy_s(prof_conf.options, sizeof(prof_conf.options), prof_conf_options,
-                             MSPROF_OPTIONS_DEF_LEN_MAX - 1U), EN_OK);
+      GE_ASSERT_EQ(
+          strncpy_s(prof_conf.options, sizeof(prof_conf.options), prof_conf_options, MSPROF_OPTIONS_DEF_LEN_MAX - 1U),
+          EN_OK);
     }
     GELOGI("The profiling in env, prof_conf.options:[%s].", prof_conf.options);
-     // set default value
+    // set default value
     if (strcmp(prof_conf.options, "\0") == 0) {
-      const char* default_options = "{\"output\":\"./\",\"training_trace\":\"on\",\"task_trace\":\"on\","\
-        "\"hccl\":\"on\",\"aicpu\":\"on\",\"aic_metrics\":\"PipeUtilization\",\"msproftx\":\"off\"}";
+      const char *default_options =
+          "{\"output\":\"./\",\"training_trace\":\"on\",\"task_trace\":\"on\","
+          "\"hccl\":\"on\",\"aicpu\":\"on\",\"aic_metrics\":\"PipeUtilization\",\"msproftx\":\"off\"}";
       (void)strncpy_s(prof_conf.options, sizeof(prof_conf.options), default_options, strlen(default_options));
     }
   }

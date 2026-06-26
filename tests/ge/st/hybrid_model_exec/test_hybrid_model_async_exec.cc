@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -82,7 +82,7 @@ class MockStreamSync : public ge::AclRuntimeStub {
   MOCK_METHOD3(aclrtMalloc, int32_t(void **dev_ptr, size_t size, aclrtMemMallocPolicy policy));
   MOCK_METHOD1(aclrtFree, int32_t(void *dev_ptr));
 };
-  REG_OP(ReduceSum)
+REG_OP(ReduceSum)
     .INPUT(x, TensorType::NumberType())
     .INPUT(axes, TensorType::IndexNumberType())
     .OUTPUT(y, TensorType::NumberType())
@@ -90,10 +90,8 @@ class MockStreamSync : public ge::AclRuntimeStub {
     .OP_END_FACTORY_REG(ReduceSum);
 constexpr int64_t kMemtypeHostCompileIndependent = 2;
 uint8_t kBufferAddr[1024] = {};
-using SingleOpArgsTuple = std::tuple<std::vector<GeTensorDesc>,
-    std::vector<DataBuffer>,
-    std::vector<GeTensorDesc>,
-    std::vector<DataBuffer>>;
+using SingleOpArgsTuple =
+    std::tuple<std::vector<GeTensorDesc>, std::vector<DataBuffer>, std::vector<GeTensorDesc>, std::vector<DataBuffer>>;
 SingleOpArgsTuple CreateSingleOpArgsForHostMemInput() {
   std::vector<GeTensorDesc> inputs;
   std::vector<GeTensorDesc> outputs;
@@ -143,7 +141,7 @@ class MockMallocFailed : public AclRuntimeStub {
   }
 };
 class MockAclrtMemcpy : public AclRuntimeStub {
-public:
+ public:
   aclError aclrtMemcpy(void *dst, size_t destMax, const void *src, size_t count, aclrtMemcpyKind kind) override {
     return -1;
   }
@@ -166,10 +164,10 @@ std::vector<gert::Tensor> InputData2GertTensors(const InputData &input_data) {
   }
   return input_tensors;
 }
-}
+}  // namespace
 namespace ge {
 class HybridModelAsyncTest : public testing::Test {
-protected:
+ protected:
   void SetUp() {}
 
   void TearDown() {}
@@ -180,12 +178,14 @@ TEST_F(HybridModelAsyncTest, test_hybrid_model_malloc_failed) {
   BenchEnv::Init();
   uint8_t model_data[8192];
   ge::ModelData modelData{.model_data = model_data};
-  ModelDataBuilder(modelData).AddGraph(GraphFactory::HybridSingeOpGraph()).AddTask(2, 2)
-  .AddTask(2, 4)
-  .AddTask(2, 4)
-  .AddTask(2, 5)
-  .AddTask(2, 5)
-  .Build();
+  ModelDataBuilder(modelData)
+      .AddGraph(GraphFactory::HybridSingeOpGraph())
+      .AddTask(2, 2)
+      .AddTask(2, 4)
+      .AddTask(2, 4)
+      .AddTask(2, 5)
+      .AddTask(2, 5)
+      .Build();
 
   auto data_buffers = DataBuffers(3);
   auto buffers = data_buffers.Value();
@@ -198,7 +198,8 @@ TEST_F(HybridModelAsyncTest, test_hybrid_model_malloc_failed) {
   EXPECT_EQ(ge::GeExecutor::LoadDynamicSingleOpV2("dynamic_op_fail", modelData, nullptr, &singleOp, 6), SUCCESS);
   auto malloc_mock = std::make_shared<MockMallocFailed>();
   AclRuntimeStub::SetInstance(malloc_mock);
-  EXPECT_EQ(singleOp->ExecuteAsync(input_desc, input_buffers, output_desc, output_buffers), ACL_ERROR_GE_DEVICE_MEMORY_OPERATE_FAILED);
+  EXPECT_EQ(singleOp->ExecuteAsync(input_desc, input_buffers, output_desc, output_buffers),
+            ACL_ERROR_GE_DEVICE_MEMORY_OPERATE_FAILED);
   AclRuntimeStub::SetInstance(nullptr);
 }
 
@@ -207,12 +208,14 @@ TEST_F(HybridModelAsyncTest, test_hybrid_model_dynamic_shape_success) {
   BenchEnv::Init();
   uint8_t model_data[8192];
   ge::ModelData modelData{.model_data = model_data};
-  ModelDataBuilder(modelData).AddGraph(GraphFactory::HybridSingeOpGraph()).AddTask(2, 2)
-  .AddTask(2, 4)
-  .AddTask(2, 4)
-  .AddTask(2, 5)
-  .AddTask(2, 5)
-  .Build();
+  ModelDataBuilder(modelData)
+      .AddGraph(GraphFactory::HybridSingeOpGraph())
+      .AddTask(2, 2)
+      .AddTask(2, 4)
+      .AddTask(2, 4)
+      .AddTask(2, 5)
+      .AddTask(2, 5)
+      .Build();
 
   auto data_buffers = DataBuffers(3);
   auto buffers = data_buffers.Value();
@@ -255,7 +258,9 @@ TEST_F(HybridModelAsyncTest, test_singleop_with_hostmem_success) {
   BenchEnv::Init();
   uint8_t model_data[8192];
   ge::ModelData modelData{.model_data = model_data};
-  ModelDataBuilder(modelData).AddGraph(GraphFactory::HybridSingeOpGraphForHostMemInput()).AddTask(2, 2)
+  ModelDataBuilder(modelData)
+      .AddGraph(GraphFactory::HybridSingeOpGraphForHostMemInput())
+      .AddTask(2, 2)
       .AddTask(2, 4)
       .AddTask(2, 4)
       .AddTask(2, 5)
@@ -333,7 +338,7 @@ TEST_F(HybridModelAsyncTest, test_pipeline_stage_execute_success) {
   GeRootModelPtr ge_root_model = std::make_shared<GeRootModel>();
   EXPECT_EQ(ge_root_model->Initialize(graph), SUCCESS);
   HybridModel hybrid_model(ge_root_model);
-  hybrid_model.root_graph_item_ = std::unique_ptr<GraphItem>(new(std::nothrow)GraphItem());
+  hybrid_model.root_graph_item_ = std::unique_ptr<GraphItem>(new (std::nothrow) GraphItem());
 
   PipeExecutionConfig config;
   config.device_id = 1;
@@ -407,22 +412,17 @@ TEST_F(HybridModelAsyncTest, test_ascend_aicpu_load_success) {
   auto data2 = computeGraph->FindNode("data2");
   auto transdata1 = computeGraph->FindNode("transdata1");
   auto transdata2 = computeGraph->FindNode("transdata2");
-  data1->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape({1,1,2,3}));
-  data2->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape({1,1,2,3}));
+  data1->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape({1, 1, 2, 3}));
+  data2->GetOpDesc()->MutableOutputDesc(0)->SetShape(GeShape({1, 1, 2, 3}));
 
-  transdata1->GetOpDesc()->MutableInputDesc(0)->SetShape(GeShape({1,1,2,3}));
-  transdata1->GetOpDesc()->MutableInputDesc(0)->SetOriginShape(GeShape({1,1,2,3}));
-  transdata2->GetOpDesc()->MutableInputDesc(0)->SetShape(GeShape({1,1,2,3}));
-  transdata2->GetOpDesc()->MutableInputDesc(0)->SetOriginShape(GeShape({1,1,2,3}));
-  auto infer_fun = [](Operator &op) -> graphStatus {
-    return GRAPH_SUCCESS;
-  };
+  transdata1->GetOpDesc()->MutableInputDesc(0)->SetShape(GeShape({1, 1, 2, 3}));
+  transdata1->GetOpDesc()->MutableInputDesc(0)->SetOriginShape(GeShape({1, 1, 2, 3}));
+  transdata2->GetOpDesc()->MutableInputDesc(0)->SetShape(GeShape({1, 1, 2, 3}));
+  transdata2->GetOpDesc()->MutableInputDesc(0)->SetOriginShape(GeShape({1, 1, 2, 3}));
+  auto infer_fun = [](Operator &op) -> graphStatus { return GRAPH_SUCCESS; };
   OperatorFactoryImpl::RegisterInferShapeFunc(DATA, infer_fun);
 
-  ModelDataBuilder(modelData).AddGraph(graph).AddTask(2, 2)
-  .AddAicpuTask(4)
-  .AddAicpuTask(5)
-  .Build();
+  ModelDataBuilder(modelData).AddGraph(graph).AddTask(2, 2).AddAicpuTask(4).AddAicpuTask(5).Build();
 
   auto data_buffers = DataBuffers(3);
   auto buffers = data_buffers.Value();
@@ -490,21 +490,38 @@ ge::Status ShapeInferSqueezeV3(Operator &op) {
 TEST_F(HybridModelAsyncTest, test_dynamic_shape_with_squeezev3_success) {
   ProfilingProperties::Instance().SetLoadProfiling(false);
   DEF_GRAPH(dynamic_op) {
-    auto op_ptr = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 3, 4})
+    auto op_ptr = OP_CFG(DATA)
+                      .InCnt(1)
+                      .OutCnt(1)
+                      .TensorDesc(FORMAT_NCHW, DT_FLOAT, {1, 1, 3, 4})
                       .Attr("_ge_attr_op_kernel_lib_name", "DNN_VM_GE_LOCAL_OP_STORE")
-                      .Attr("compile_info_key", "ddd").Attr("compile_info_json", "cccc").Build("data1");
+                      .Attr("compile_info_key", "ddd")
+                      .Attr("compile_info_json", "cccc")
+                      .Build("data1");
 
-    auto op_ptr2 = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_FLOAT, {1})
+    auto op_ptr2 = OP_CFG(DATA)
+                       .InCnt(1)
+                       .OutCnt(1)
+                       .TensorDesc(FORMAT_NCHW, DT_FLOAT, {1})
                        .Attr("_ge_attr_op_kernel_lib_name", "DNN_VM_GE_LOCAL_OP_STORE")
-                       .Attr("compile_info_key", "ddd").Attr("compile_info_json", "cccc")
-                       .Attr("_force_unknown_shape", true).Build("axes");
+                       .Attr("compile_info_key", "ddd")
+                       .Attr("compile_info_json", "cccc")
+                       .Attr("_force_unknown_shape", true)
+                       .Build("axes");
 
-    auto squeezev3 = OP_CFG(SQUEEZEV3).InCnt(2).OutCnt(1)
+    auto squeezev3 = OP_CFG(SQUEEZEV3)
+                         .InCnt(2)
+                         .OutCnt(1)
                          .Attr("_ge_attr_op_kernel_lib_name", "DNN_VM_GE_LOCAL_OP_STORE")
-                         .Attr("_force_infershape_when_running", true).Attr("_force_unknown_shape", true).Build("SqueezeV3");
+                         .Attr("_force_infershape_when_running", true)
+                         .Attr("_force_unknown_shape", true)
+                         .Build("SqueezeV3");
 
-    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1)
-                          .Attr("_ge_attr_op_kernel_lib_name", "DNN_VM_GE_LOCAL_OP_STORE").Build("net_output");
+    auto net_output = OP_CFG(NETOUTPUT)
+                          .InCnt(1)
+                          .OutCnt(1)
+                          .Attr("_ge_attr_op_kernel_lib_name", "DNN_VM_GE_LOCAL_OP_STORE")
+                          .Build("net_output");
 
     CHAIN(NODE(op_ptr)->EDGE(0, 0)->NODE(squeezev3)->EDGE(0, 0)->NODE(net_output));
     CHAIN(NODE(op_ptr2)->EDGE(0, 1)->NODE(squeezev3));
@@ -571,12 +588,12 @@ TEST_F(HybridModelAsyncTest, test_dynamic_shape_with_unsqueezev3_success) {
                        .Build("axes");
 
     auto unsqueezev3 = OP_CFG(UNSQUEEZEV3)
-                         .InCnt(2)
-                         .OutCnt(1)
-                         .Attr("_ge_attr_op_kernel_lib_name", "DNN_VM_GE_LOCAL_OP_STORE")
-                         .Attr("_force_infershape_when_running", true)
-                         .Attr("_force_unknown_shape", true)
-                         .Build("UnsqueezeV3");
+                           .InCnt(2)
+                           .OutCnt(1)
+                           .Attr("_ge_attr_op_kernel_lib_name", "DNN_VM_GE_LOCAL_OP_STORE")
+                           .Attr("_force_infershape_when_running", true)
+                           .Attr("_force_unknown_shape", true)
+                           .Build("UnsqueezeV3");
 
     auto net_output = OP_CFG(NETOUTPUT)
                           .InCnt(1)
@@ -588,9 +605,7 @@ TEST_F(HybridModelAsyncTest, test_dynamic_shape_with_unsqueezev3_success) {
     CHAIN(NODE(op_ptr2)->EDGE(0, 1)->NODE(unsqueezev3));
   };
 
-  const auto ShapeInfer = [](Operator &op) {
-    return GRAPH_SUCCESS;
-  };
+  const auto ShapeInfer = [](Operator &op) { return GRAPH_SUCCESS; };
 
   auto graph = ToGeGraph(dynamic_op);
   auto compute_graph = GraphUtilsEx::GetComputeGraph(graph);
@@ -637,10 +652,12 @@ TEST_F(HybridModelAsyncTest, test_hybrid_model_dynamic_shape_failed) {
   BenchEnv::Init();
   uint8_t model_data[8192];
   ge::ModelData modelData{.model_data = model_data};
-  ModelDataBuilder(modelData).AddGraph(GraphFactory::HybridSingeOpGraph2()).AddTask(2, 2)
-  .AddTask(2, 5)
-  .AddTask(2, 6)
-  .Build();
+  ModelDataBuilder(modelData)
+      .AddGraph(GraphFactory::HybridSingeOpGraph2())
+      .AddTask(2, 2)
+      .AddTask(2, 5)
+      .AddTask(2, 6)
+      .Build();
 
   auto data_buffers = DataBuffers(3);
   auto buffers = data_buffers.Value();
@@ -720,7 +737,7 @@ TEST_F(HybridModelAsyncTest, Test_init_with_stream_success) {
   EXPECT_TRUE(hybrid_model.execute_by_rt_v2_);
 
   HybridModelAsyncExecutor executor(&hybrid_model);
-  rtStream_t stream = (void*)0x01;
+  rtStream_t stream = (void *)0x01;
   EXPECT_EQ(executor.Init(stream), SUCCESS);
   EXPECT_NE(executor.executor_, nullptr);
   std::vector<DataBuffer> inputs;
@@ -780,7 +797,7 @@ TEST_F(HybridModelAsyncTest, Test_run_with_stream_async_with_int4) {
   EXPECT_TRUE(hybrid_model.execute_by_rt_v2_);
 
   HybridModelAsyncExecutor executor(&hybrid_model);
-  rtStream_t stream = (void*)0x01;
+  rtStream_t stream = (void *)0x01;
   EXPECT_EQ(executor.Init(stream), SUCCESS);
   EXPECT_NE(executor.executor_, nullptr);
   unique_ptr<uint8_t[]> data_buf = std::make_unique<uint8_t[]>(3072);
@@ -855,7 +872,7 @@ TEST_F(HybridModelAsyncTest, Test_execute_with_stream_async_with_int4) {
   EXPECT_TRUE(hybrid_model.execute_by_rt_v2_);
 
   HybridModelAsyncExecutor executor(&hybrid_model);
-  rtStream_t stream = (void*)0x01;
+  rtStream_t stream = (void *)0x01;
   EXPECT_EQ(executor.Init(stream), SUCCESS);
   EXPECT_NE(executor.executor_, nullptr);
   unique_ptr<uint8_t[]> data_buf = std::make_unique<uint8_t[]>(3072);
@@ -870,7 +887,7 @@ TEST_F(HybridModelAsyncTest, Test_execute_with_stream_async_with_int4) {
     DimsAsShape(shape, input_tensors[i].MutableOriginShape());
 
     input_tensors[i].SetPlacement(gert::kOnDeviceHbm);
-    input_tensors[i].MutableTensorData().SetAddr((void*)data_buf.get(), nullptr);
+    input_tensors[i].MutableTensorData().SetAddr((void *)data_buf.get(), nullptr);
     input_tensors[i].SetSize(3072);
   }
   for (size_t i = 0U; i < output_tensors.size(); ++i) {
@@ -879,7 +896,7 @@ TEST_F(HybridModelAsyncTest, Test_execute_with_stream_async_with_int4) {
   }
 
   runtime_stub.Clear();
-  //ASSERT_EQ(executor.ExecuteWithStreamAsync(input_tensors, output_tensors, stream), SUCCESS);
+  // ASSERT_EQ(executor.ExecuteWithStreamAsync(input_tensors, output_tensors, stream), SUCCESS);
   executor.ExecuteWithStreamAsync(input_tensors, output_tensors, stream);
   const auto &stream_res_limit_records = runtime_stub.GetAclRuntimeStub().GetStreamResLimitRecords();
   const auto &use_stream_res_records = runtime_stub.GetAclRuntimeStub().GetUseStreamResRecords();
@@ -1006,7 +1023,6 @@ TEST_F(HybridModelAsyncTest, ExecuteWithStreamAsync_execute_model_online_host_in
   nd_host_tensor.MutableTensorDesc().SetOriginShape(GeShape({1, 1, 1, 128}));
   nd_host_tensor.MutableTensorDesc().SetPlacement(Placement::kPlacementHost);
 
-
   input_tensors.resize(2U, scalar_host_tensor);
   output_tensors[0].SetData(nullptr, 0U);
   ret = executor_rt_v2.ExecuteWithStreamAsync(input_tensors, output_tensors, stream);
@@ -1100,7 +1116,6 @@ TEST_F(HybridModelAsyncTest, ExecuteWithStreamAsync_execute_model_online_BatchH2
   ge::GetThreadLocalContext().SetSessionOption(options);
   ge::GetThreadLocalContext().SetGraphOption(options);
 }
-
 
 TEST_F(HybridModelAsyncTest, Execute_Success_SkipBatchMemcpyWhenSizeIsZero) {
   auto graph = ShareGraph::AicoreGraph();
@@ -1483,7 +1498,7 @@ class StestHybridRt2Executor : public testing::Test {
   void SetUp() {
     setenv("ENABLE_RUNTIME_V2", "1", 0);
     const std::vector<rtMemType_t> mem_type{RT_MEMORY_HBM, RT_MEMORY_P2P_DDR};
-    (void) MemManager::Instance().Initialize(mem_type);
+    (void)MemManager::Instance().Initialize(mem_type);
     RTS_STUB_SETUP();
   }
   void TearDown() {
@@ -1547,14 +1562,14 @@ template <>
 struct GeType<float> {
   static ge::DataType type;
 };
-ge::DataType GeType<float >::type = ge::DT_FLOAT;
+ge::DataType GeType<float>::type = ge::DT_FLOAT;
 
 template <typename T>
 GeTensorPtr MakeScalarTensor(const T &v) {
   auto desc = ge::GeTensorDesc(GeShape(), ge::FORMAT_ND, GeType<T>::type);
-  return std::make_shared<GeTensor>(desc, reinterpret_cast<const uint8_t*>(&v), sizeof(T));
+  return std::make_shared<GeTensor>(desc, reinterpret_cast<const uint8_t *>(&v), sizeof(T));
 }
-}
+}  // namespace
 
 namespace gert {
 namespace {
@@ -1563,19 +1578,20 @@ LowerResult LoweringFoo(const ge::NodePtr &node, const LowerInput &lower_input) 
   gert::StorageShape shape;
   auto size_holder = bg::ValueHolder::CreateConst(&output_size, sizeof(output_size));
   auto output_addrs = bg::AllocOutputMemory(kOnDeviceHbm, node, {size_holder}, *(lower_input.global_data));
-  auto compute_holder = bg::ValueHolder::CreateVoid<bg::ValueHolder>("LaunchFooAssignAdd", {lower_input.input_addrs[1], output_addrs[0], lower_input.global_data->GetStream()});
+  auto compute_holder = bg::ValueHolder::CreateVoid<bg::ValueHolder>(
+      "LaunchFooAssignAdd", {lower_input.input_addrs[1], output_addrs[0], lower_input.global_data->GetStream()});
 
   return {HyperStatus::Success(), {compute_holder}, {lower_input.input_shapes[0]}, output_addrs};
 }
 REGISTER_NODE_CONVERTER("_lower_foo", LoweringFoo);
 
 LowerResult LoweringFooWithStreamSync(const ge::NodePtr &node, const LowerInput &lower_input) {
-
   size_t output_size = 512U;
   gert::StorageShape shape;
   auto size_holder = bg::ValueHolder::CreateConst(&output_size, sizeof(output_size));
   auto output_addrs = bg::AllocOutputMemory(kOnDeviceHbm, node, {size_holder}, *(lower_input.global_data));
-  auto compute_holder = bg::ValueHolder::CreateVoid<bg::ValueHolder>("SyncStream", {lower_input.global_data->GetStream()});
+  auto compute_holder =
+      bg::ValueHolder::CreateVoid<bg::ValueHolder>("SyncStream", {lower_input.global_data->GetStream()});
 
   return {HyperStatus::Success(), {compute_holder}, {lower_input.input_shapes[0]}, output_addrs};
 }
@@ -1590,7 +1606,7 @@ ge::graphStatus LaunchFooAssignAdd(KernelContext *context) {
   GE_ASSERT_NOTNULL(variable);
   GE_ASSERT_NOTNULL(variable->GetAddr());
 
-  *static_cast<float*>(variable->GetAddr()) += *static_cast<float*>(value->GetAddr());
+  *static_cast<float *>(variable->GetAddr()) += *static_cast<float *>(value->GetAddr());
 
   return ge::GRAPH_SUCCESS;
 }
@@ -1648,7 +1664,7 @@ TEST_F(StestHybridRt2Executor, run_graph_with_ref_variable_success) {
 
   auto var_manager = VarManager::Instance(hybrid_model.GetSessionId());
   ASSERT_EQ(var_manager->Init(0, hybrid_model.GetSessionId(), 0, 0), SUCCESS);
-  
+
   ge::ScopeGuard guarder([&var_manager]() { var_manager->FreeVarMemory(); });
 
   EXPECT_EQ(executor.Init(), SUCCESS);
@@ -1703,7 +1719,6 @@ TEST_F(StestHybridRt2Executor, run_graph_with_host_ref_variable_success) {
   ASSERT_NE(variable, nullptr);
   ASSERT_NE(foo, nullptr);
 
-
   ge::AttrUtils::SetStr(variable->GetOpDesc(), ge::ATTR_VARIABLE_PLACEMENT, "host");
   std::map<std::string, std::string> options;
   options["ge.exec.placement"] = "HOST";
@@ -1746,7 +1761,7 @@ TEST_F(StestHybridRt2Executor, run_graph_with_host_ref_variable_success) {
 
   auto var_manager = VarManager::Instance(hybrid_model.GetSessionId());
   ASSERT_EQ(var_manager->Init(0, hybrid_model.GetSessionId(), 0, 0), SUCCESS);
-  
+
   ge::ScopeGuard guarder([&var_manager]() { var_manager->FreeVarMemory(); });
 
   EXPECT_EQ(executor.Init(), SUCCESS);
@@ -1812,7 +1827,6 @@ TEST_F(StestHybridRt2Executor, run_graph_with_host_shm_ref_variable_success) {
   ASSERT_NE(variable, nullptr);
   ASSERT_NE(foo, nullptr);
 
-
   ge::AttrUtils::SetStr(variable->GetOpDesc(), ge::ATTR_VARIABLE_PLACEMENT, "host");
   std::map<std::string, std::string> options;
   options["ge.exec.placement"] = "HOST";
@@ -1866,8 +1880,8 @@ TEST_F(StestHybridRt2Executor, run_graph_with_host_shm_ref_variable_success) {
   std::shared_ptr<ModelListener> listener = std::make_shared<Listener>(
       [&](uint32_t model_id, uint32_t data_index, uint32_t result_code, std::vector<gert::Tensor> &outputs) {
         if (!outputs.empty()) {
-         result = *static_cast<float *>(outputs[0].GetAddr());
-       }
+          result = *static_cast<float *>(outputs[0].GetAddr());
+        }
         reached = true;
       });
 
@@ -1885,7 +1899,8 @@ TEST_F(StestHybridRt2Executor, run_graph_with_host_shm_ref_variable_success) {
       sleep(1);
     }
     reached = false;
-    // We run variable assign add 2.0 twice, expect result == 2.0f + base at first and then expect 4.0f + base at second time
+    // We run variable assign add 2.0 twice, expect result == 2.0f + base at first and then expect 4.0f + base at second
+    // time
     EXPECT_LT(abs(result - 2.0f * float(i + 1) - base), 1.0e-5);
   }
   executor.Stop();
@@ -1943,8 +1958,8 @@ TEST_F(StestHybridRt2Executor, run_graph_with_end_of_senquence) {
           is_eos = true;
         }
         if (!outputs.empty()) {
-         result = *static_cast<float *>(outputs[0].GetAddr());
-       }
+          result = *static_cast<float *>(outputs[0].GetAddr());
+        }
         reached = true;
       });
 
@@ -2039,7 +2054,7 @@ TEST_F(StestHybridRt2Executor, run_graph_with_iterations_loop_success) {
 
   auto var_manager = VarManager::Instance(hybrid_model.GetSessionId());
   ASSERT_EQ(var_manager->Init(0, hybrid_model.GetSessionId(), 0, 0), SUCCESS);
-  
+
   ge::ScopeGuard guarder([&var_manager]() { var_manager->FreeVarMemory(); });
 
   EXPECT_EQ(executor.Init(), SUCCESS);
@@ -2105,7 +2120,6 @@ TEST_F(StestHybridRt2Executor, test_hybrid_v2_execute_with_rtStreamSync_timeout)
   ASSERT_NE(variable, nullptr);
   ASSERT_NE(foo, nullptr);
 
-
   ge::AttrUtils::SetStr(variable->GetOpDesc(), ge::ATTR_VARIABLE_PLACEMENT, "host");
   std::map<std::string, std::string> options;
   options["ge.exec.placement"] = "HOST";
@@ -2146,7 +2160,7 @@ TEST_F(StestHybridRt2Executor, test_hybrid_v2_execute_with_rtStreamSync_timeout)
 
   auto var_manager = VarManager::Instance(hybrid_model.GetSessionId());
   ASSERT_EQ(var_manager->Init(0, hybrid_model.GetSessionId(), 0, 0), SUCCESS);
-  
+
   ge::ScopeGuard guarder([&var_manager]() { var_manager->FreeVarMemory(); });
 
   EXPECT_EQ(executor.Init(), SUCCESS);
@@ -2160,8 +2174,8 @@ TEST_F(StestHybridRt2Executor, test_hybrid_v2_execute_with_rtStreamSync_timeout)
   std::shared_ptr<ModelListener> listener = std::make_shared<Listener>(
       [&](uint32_t model_id, uint32_t data_index, uint32_t result_code, std::vector<gert::Tensor> &outputs) {
         if (!outputs.empty()) {
-         result = *static_cast<float *>(outputs[0].GetAddr());
-       }
+          result = *static_cast<float *>(outputs[0].GetAddr());
+        }
         reached = true;
         ge::GetContext().SetStreamSyncTimeout(15000);
       });
@@ -2222,13 +2236,13 @@ TEST_F(StestHybridRt2Executor, run_graph_with_ref_fileconstant_success) {
   file_constant_desc->SetOriginShape(GeShape(std::vector<int64_t>{}));
   file_constant_desc->SetDataType(ge::DT_FLOAT);
   int64_t aligned_mem_size = 0U;
-  ge::TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(file_constant->GetOpDesc()->GetOutputDesc(0U), aligned_mem_size);
+  ge::TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(file_constant->GetOpDesc()->GetOutputDesc(0U),
+                                                               aligned_mem_size);
   ge::TensorUtils::SetSize(*file_constant->GetOpDesc()->MutableOutputDesc(0U), aligned_mem_size);
 
   variable_desc->SetShape(GeShape(std::vector<int64_t>{}));
   variable_desc->SetOriginShape(GeShape(std::vector<int64_t>{}));
   variable_desc->SetDataType(ge::DT_FLOAT);
-
 
   auto netoutput = graph->FindFirstNodeMatchType(ge::NETOUTPUT);
   netoutput->GetOpDesc()->SetSrcName({"foo"});
@@ -2250,7 +2264,7 @@ TEST_F(StestHybridRt2Executor, run_graph_with_ref_fileconstant_success) {
   auto var_manager = VarManager::Instance(hybrid_model.GetSessionId());
   auto weight_manager = ExternalWeightManagerPool::Instance().GetManager(hybrid_model.GetSessionId());
   ASSERT_EQ(var_manager->Init(0, hybrid_model.GetSessionId(), 0, 0), SUCCESS);
-  
+
   ge::ScopeGuard guarder([&var_manager, &weight_manager]() {
     var_manager->FreeVarMemory();
     weight_manager->Finalize();
@@ -2267,8 +2281,8 @@ TEST_F(StestHybridRt2Executor, run_graph_with_ref_fileconstant_success) {
   std::shared_ptr<ModelListener> listener = std::make_shared<Listener>(
       [&](uint32_t model_id, uint32_t data_index, uint32_t result_code, std::vector<gert::Tensor> &outputs) {
         if (!outputs.empty()) {
-         result = *static_cast<float *>(outputs[0].GetAddr());
-       }
+          result = *static_cast<float *>(outputs[0].GetAddr());
+        }
         reached = true;
       });
 
@@ -2329,7 +2343,7 @@ TEST_F(StestHybridRt2Executor, run_graph_with_recycle_memory_success) {
   EXPECT_TRUE(hybrid_model.execute_by_rt_v2_);
 
   HybridModelAsyncExecutor executor(&hybrid_model);
-  rtStream_t stream = (void*)0x01;
+  rtStream_t stream = (void *)0x01;
   EXPECT_EQ(executor.Init(stream), SUCCESS);
   EXPECT_NE(executor.executor_, nullptr);
   unique_ptr<uint8_t[]> data_buf = std::make_unique<uint8_t[]>(3072);
@@ -2382,7 +2396,8 @@ TEST_F(StestHybridRt2Executor, run_graph_with_recycle_memory_success) {
     EXPECT_NE(output_tensors[i].GetData().GetData(), nullptr);
     EXPECT_EQ(output_tensors[i].GetData().GetSize(), 1536);
   }
-  EXPECT_TRUE(slog_sub->FindWarnLogEndsWith("Failed to apply for memory. We will try to free memory from memory pool, the above warning log can be ignored. Try to free cached memory...") >= 0);
+  EXPECT_TRUE(slog_sub->FindWarnLogEndsWith("Failed to apply for memory. We will try to free memory from memory pool, "
+                                            "the above warning log can be ignored. Try to free cached memory...") >= 0);
   ge::AclRuntimeStub::Reset();
   dlog_setlevel(GE_MODULE_NAME, 3, 0);
 }
@@ -2401,10 +2416,10 @@ TEST_F(StestHybridRt2Executor, Test_multiStream_execute_by_runGraph_with_rtv2) {
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin"))
-      .AddTaskDef("Relu", AiCoreTaskDefFaker("ReluStubBin"))
-      .SetRootModelStreamNum(stream_num)
-      .SetRootModelEventNum(event_num)
-      .BuildGeRootModel();
+                           .AddTaskDef("Relu", AiCoreTaskDefFaker("ReluStubBin"))
+                           .SetRootModelStreamNum(stream_num)
+                           .SetRootModelEventNum(event_num)
+                           .BuildGeRootModel();
 
   HybridModel hybrid_model(ge_root_model);
   hybrid_model.root_graph_item_.reset(new GraphItem);
@@ -2451,7 +2466,7 @@ TEST_F(StestHybridRt2Executor, Test_multiStream_execute_by_runGraph_with_rtv2) {
 
 TEST_F(StestHybridRt2Executor, Test_multiStream_execute_by_runGraph_with_rtv2_rollback_singleStream) {
   setenv("ENABLE_RUNTIME_V2", "1", 0);
-  setenv("MOCK_AVAIL_STREAM_NUM", "1", 0); // only has 1 stream
+  setenv("MOCK_AVAIL_STREAM_NUM", "1", 0);  // only has 1 stream
   int64_t stream_num = 1;
   int64_t event_num = 0;
   auto graph = ShareGraph::MultiStreamTwoNodeGraph(stream_num, event_num);
@@ -2465,10 +2480,10 @@ TEST_F(StestHybridRt2Executor, Test_multiStream_execute_by_runGraph_with_rtv2_ro
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin"))
-      .AddTaskDef("Relu", AiCoreTaskDefFaker("ReluStubBin"))
-      .SetRootModelStreamNum(stream_num)
-      .SetRootModelEventNum(event_num)
-      .BuildGeRootModel();
+                           .AddTaskDef("Relu", AiCoreTaskDefFaker("ReluStubBin"))
+                           .SetRootModelStreamNum(stream_num)
+                           .SetRootModelEventNum(event_num)
+                           .BuildGeRootModel();
 
   HybridModel hybrid_model(ge_root_model);
   hybrid_model.root_graph_item_.reset(new GraphItem);
@@ -2498,7 +2513,7 @@ TEST_F(StestHybridRt2Executor, Test_multiStream_execute_by_runGraph_with_rtv2_ro
     std::vector<GeTensor> outputs;
     ASSERT_EQ(executor.Execute(gert_inputs, gert_outputs), SUCCESS);
     auto all_rt_streams = runtime_stub.GetRtsRuntimeStub().GetAllRtStreams();
-    ASSERT_EQ(all_rt_streams.size(), 0); // execute on 1 streams, use external stream, no need create streams
+    ASSERT_EQ(all_rt_streams.size(), 0);  // execute on 1 streams, use external stream, no need create streams
 
     EXPECT_EQ(executor.Init(stream), SUCCESS);
     ASSERT_EQ(executor.ExecuteWithStreamAsync(inputs, outputs, stream), SUCCESS);

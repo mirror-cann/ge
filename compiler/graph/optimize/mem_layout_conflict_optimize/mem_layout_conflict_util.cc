@@ -132,27 +132,23 @@ bool IsSameOrPartialSame(const std::vector<OutDataAnchorPtr> &lh, const std::vec
 bool IsRefFromRefData(const Node &node) {
   return node.GetOpDesc()->HasAttr(REF_VAR_SRC_VAR_NAME);
 }
-}
+}  // namespace
 
 using SubGraphSolveConflictCall =
-  std::function<Status(const NodePtr &ctrl_node, std::vector<InDataAnchorPtr> &in_data_anchors)>;
+    std::function<Status(const NodePtr &ctrl_node, std::vector<InDataAnchorPtr> &in_data_anchors)>;
 std::map<std::string, SubGraphSolveConflictCall> MemLayoutConflictUtil::check_subgraph_conflict_call = {
-  {IF, MemLayoutConflictUtil::CheckIfConflict},
-  {STATELESSIF, MemLayoutConflictUtil::CheckIfConflict},
-  {CASE, MemLayoutConflictUtil::CheckCaseConflict},
-  {STATELESSCASE, MemLayoutConflictUtil::CheckCaseConflict},
-  {WHILE, MemLayoutConflictUtil::CheckWhileConflict},
-  {STATELESSWHILE, MemLayoutConflictUtil::CheckWhileConflict}
-};
+    {IF, MemLayoutConflictUtil::CheckIfConflict},       {STATELESSIF, MemLayoutConflictUtil::CheckIfConflict},
+    {CASE, MemLayoutConflictUtil::CheckCaseConflict},   {STATELESSCASE, MemLayoutConflictUtil::CheckCaseConflict},
+    {WHILE, MemLayoutConflictUtil::CheckWhileConflict}, {STATELESSWHILE, MemLayoutConflictUtil::CheckWhileConflict}};
 
 bool MemLayoutConflictUtil::IsSkipInsert(const InDataAnchorPtr &in_anchor) {
-  return MemLayoutConflictUtil::IsUnknownShape(in_anchor)
-         || MemLayoutConflictUtil::PeerIsIdentityOrMemcpyAsync(in_anchor);
+  return MemLayoutConflictUtil::IsUnknownShape(in_anchor) ||
+         MemLayoutConflictUtil::PeerIsIdentityOrMemcpyAsync(in_anchor);
 }
 
 bool MemLayoutConflictUtil::IsSkipInsert(const OutDataAnchorPtr &out_anchor) {
-  return MemLayoutConflictUtil::IsUnknownShape(out_anchor)
-         || MemLayoutConflictUtil::PeerIsIdentityOrMemcpyAsync(out_anchor);
+  return MemLayoutConflictUtil::IsUnknownShape(out_anchor) ||
+         MemLayoutConflictUtil::PeerIsIdentityOrMemcpyAsync(out_anchor);
 }
 
 bool MemLayoutConflictUtil::IsUnknownShape(const InDataAnchorPtr &in_anchor) {
@@ -162,8 +158,8 @@ bool MemLayoutConflictUtil::IsUnknownShape(const InDataAnchorPtr &in_anchor) {
   GE_ASSERT_NOTNULL(op_desc);
   const bool unknown_shape = op_desc->GetInputDesc(in_anchor->GetIdx()).GetShape().IsUnknownShape();
   if (unknown_shape) {
-    GELOGI("[MemConflict] unknown shape, skip insert identity, node[%s], input[%d].",
-           op_desc->GetType().c_str(), in_anchor->GetIdx());
+    GELOGI("[MemConflict] unknown shape, skip insert identity, node[%s], input[%d].", op_desc->GetType().c_str(),
+           in_anchor->GetIdx());
   }
   return unknown_shape;
 }
@@ -175,8 +171,8 @@ bool MemLayoutConflictUtil::IsUnknownShape(const OutDataAnchorPtr &out_anchor) {
   GE_ASSERT_NOTNULL(op_desc);
   const bool unknown_shape = op_desc->GetOutputDesc(out_anchor->GetIdx()).GetShape().IsUnknownShape();
   if (unknown_shape) {
-    GELOGI("[MemConflict] unknown shape, skip insert identity, node[%s], output[%d].",
-           op_desc->GetType().c_str(), out_anchor->GetIdx());
+    GELOGI("[MemConflict] unknown shape, skip insert identity, node[%s], output[%d].", op_desc->GetType().c_str(),
+           out_anchor->GetIdx());
   }
   return unknown_shape;
 }
@@ -188,8 +184,8 @@ bool MemLayoutConflictUtil::PeerIsIdentityOrMemcpyAsync(const InDataAnchorPtr &i
   const auto &peer_node = peer_out_anchor->GetOwnerNodeBarePtr();
   GE_ASSERT_NOTNULL(peer_node);
   if ((kMemcpyNodeTypes.count(peer_node->GetType()) != 0U) && (peer_out_anchor->GetPeerInDataNodesSize() == 1U)) {
-    GELOGI("[MemConflict] peer out is already %s(%s), skip insert identity.",
-           peer_node->GetType().c_str(), peer_node->GetNamePtr());
+    GELOGI("[MemConflict] peer out is already %s(%s), skip insert identity.", peer_node->GetType().c_str(),
+           peer_node->GetNamePtr());
     return true;
   }
   return false;
@@ -269,9 +265,9 @@ Status MemLayoutConflictUtil::CreateIdentityOpDesc(const std::vector<InDataAncho
 
   static std::atomic<size_t> id(0U);
   std::string node_name = "identity";
-  node_name += "_" + std::to_string(in_data_anchors[0]->GetIdx()) + "_"
-               + in_data_anchors[0]->GetOwnerNodeBarePtr()->GetName() + "_MemLayoutConflict_"
-               + to_string(id.fetch_add(1U));
+  node_name += "_" + std::to_string(in_data_anchors[0]->GetIdx()) + "_" +
+               in_data_anchors[0]->GetOwnerNodeBarePtr()->GetName() + "_MemLayoutConflict_" +
+               to_string(id.fetch_add(1U));
 
   OpDescBuilder op_desc_builder(node_name, IDENTITY);
   size_t index = 0U;
@@ -309,7 +305,7 @@ Status MemLayoutConflictUtil::CreateIdentityOpDesc(const std::vector<InDataAncho
 }
 
 Status MemLayoutConflictUtil::UpdateIsInputConstForNetoutput(const std::vector<InDataAnchorPtr> &in_data_anchors,
-                                                    const NodePtr &identity_node) {
+                                                             const NodePtr &identity_node) {
   for (const auto &in_data_anchor : in_data_anchors) {
     GE_ASSERT_NOTNULL(in_data_anchor);
     const auto dst_node = in_data_anchor->GetOwnerNode();
@@ -378,8 +374,8 @@ bool MemLayoutConflictUtil::IsSupportUserInputNopaddingContinuousOutput(const Co
   GE_ASSERT_NOTNULL(graph);
   std::string build_graph_mode;
   const bool is_build_graph_offline =
-    ((GetContext().GetOption(OPTION_BUILD_GRAPH_MODE, build_graph_mode) == GRAPH_SUCCESS) &&
-     (build_graph_mode.compare(kOffline) == 0));
+      ((GetContext().GetOption(OPTION_BUILD_GRAPH_MODE, build_graph_mode) == GRAPH_SUCCESS) &&
+       (build_graph_mode.compare(kOffline) == 0));
 
   bool is_single_op = false;
   const auto root_graph = GraphUtils::FindRootGraph(graph);
@@ -428,7 +424,8 @@ bool MemLayoutConflictUtil::IsPhysicalAddressRefreshable(const NodePtr &node) {
 /*
  * 开启动态图和静态图复用为true，纯静态图虚拟地址不变化，但是物理地址会变化。
  * 静态图中有2种rts算子STREAMSWITCH/LABELSWITCHBYINDEX会使用物理地址，因此不支持地址刷新。
- * 所以如果开启了动静态内存复用，需要将feature map分为2段，这3种算子的内存在feature map单独一段，其虚拟地址和物理地址不会变化。
+ * 所以如果开启了动静态内存复用，需要将feature map分为2段，这3种算子的内存在feature
+ * map单独一段，其虚拟地址和物理地址不会变化。
  */
 bool MemLayoutConflictUtil::HasNotSupportPhysicalMemoryRefreshNode(const CheckFuncContext &context) {
   if (!context.graph_info.is_physical_memory_refreshable) {
@@ -451,8 +448,8 @@ bool MemLayoutConflictUtil::IsStaticGraph(const ge::ComputeGraphPtr &graph) {
 
 bool MemLayoutConflictUtil::IsConst(const NodePtr &node) {
   GE_ASSERT_NOTNULL(node);
-  return NodeUtils::IsConst(*node) || (node->GetType() == FILECONSTANT)
-	 || OpTypeUtils::IsConstPlaceHolderNode(node->GetType());
+  return NodeUtils::IsConst(*node) || (node->GetType() == FILECONSTANT) ||
+         OpTypeUtils::IsConstPlaceHolderNode(node->GetType());
 }
 
 /*
@@ -518,7 +515,7 @@ bool MemLayoutConflictUtil::IsNoPaddingContinuousInput(const Node *node) {
 // 返回值： true - judge_func返回true
 //         false - judge_func从未返回true
 bool MemLayoutConflictUtil::TraverseRefChainReverse(const Node *const node, int32_t out_index,
-                                                    const std::function<bool(const Node *const, int32_t)>& judge_func) {
+                                                    const std::function<bool(const Node *const, int32_t)> &judge_func) {
   GE_ASSERT_NOTNULL(node);
   GE_ASSERT_NOTNULL(judge_func);
   const auto out_data_anchor = node->GetOutDataAnchor(out_index).get();
@@ -542,8 +539,7 @@ bool MemLayoutConflictUtil::TraverseRefChainReverse(const Node *const node, int3
     int32_t reuse_in_index;
     if (GraphUtils::IsRefFromInput(cur_node->GetOutDataAnchor(cur_out_index), reuse_in_index)) {
       auto in_anchor = cur_node->GetInDataAnchor(reuse_in_index).get();
-      if ((in_anchor != nullptr) &&
-          (in_anchor->GetPeerOutAnchor() != nullptr) &&
+      if ((in_anchor != nullptr) && (in_anchor->GetPeerOutAnchor() != nullptr) &&
           (in_anchor->GetPeerOutAnchor()->GetOwnerNodeBarePtr() != nullptr)) {
         out_anchor_stack.push(in_anchor->GetPeerOutAnchor().get());
       }
@@ -560,7 +556,7 @@ bool MemLayoutConflictUtil::TraverseRefChainReverse(const Node *const node, int3
 // 返回值： true - judge_func返回true
 //         false - judge_func从未返回true
 bool MemLayoutConflictUtil::TraverseRefChain(const Node *const node, int32_t in_index,
-                                             const std::function<bool(const Node *const, int32_t)>& judge_func) {
+                                             const std::function<bool(const Node *const, int32_t)> &judge_func) {
   GE_ASSERT_NOTNULL(node);
   GE_ASSERT_NOTNULL(judge_func);
   const auto in_data_anchor = node->GetInDataAnchor(in_index).get();
@@ -607,8 +603,7 @@ bool MemLayoutConflictUtil::TraverseRefChain(const Node *const node, int32_t in_
               pc2
  级联场景对于a的对端，找到的是pc2，对于b/c的对端，找到的是pc1
 */
-bool MemLayoutConflictUtil::IsContinuousInputThroughRefNode(InDataAnchor *const in_data_anchor,
-                                                            const bool no_padding,
+bool MemLayoutConflictUtil::IsContinuousInputThroughRefNode(InDataAnchor *const in_data_anchor, const bool no_padding,
                                                             InDataAnchor *&continuous_node_in_anchor) {
   GE_ASSERT_NOTNULL(in_data_anchor);
   std::stack<InDataAnchor *> in_data_anchor_stack;
@@ -619,9 +614,9 @@ bool MemLayoutConflictUtil::IsContinuousInputThroughRefNode(InDataAnchor *const 
     const auto in_anchor = in_data_anchor_stack.top();
     in_data_anchor_stack.pop();
     GE_ASSERT_NOTNULL(in_anchor);
-    const auto  is_continue = no_padding ?
-        MemLayoutConflictUtil::IsNoPaddingContinuousInput(in_anchor->GetOwnerNodeBarePtr()) :
-        MemLayoutConflictUtil::IsContinuousInput(in_anchor->GetOwnerNodeBarePtr());
+    const auto is_continue = no_padding
+                                 ? MemLayoutConflictUtil::IsNoPaddingContinuousInput(in_anchor->GetOwnerNodeBarePtr())
+                                 : MemLayoutConflictUtil::IsContinuousInput(in_anchor->GetOwnerNodeBarePtr());
     if (is_continue) {
       continuous_node_in_anchor = in_anchor;
     }
@@ -639,7 +634,8 @@ bool MemLayoutConflictUtil::IsContinuousInputThroughRefNode(InDataAnchor *const 
 }
 
 bool MemLayoutConflictUtil::IsContinuousOutputThroughRefNode(ge::OutDataAnchor *const out_data_anchor,
-    const bool no_padding, ge::OutDataAnchor *&continuous_node_out_anchor) {
+                                                             const bool no_padding,
+                                                             ge::OutDataAnchor *&continuous_node_out_anchor) {
   GE_ASSERT_NOTNULL(out_data_anchor);
   std::stack<OutDataAnchor *> out_data_anchor_stack;
   out_data_anchor_stack.push(out_data_anchor);
@@ -650,8 +646,8 @@ bool MemLayoutConflictUtil::IsContinuousOutputThroughRefNode(ge::OutDataAnchor *
     out_data_anchor_stack.pop();
     GE_ASSERT_NOTNULL(out_anchor);
     const auto cur_node = out_anchor->GetOwnerNodeBarePtr();
-    const auto is_continuous = no_padding ? MemLayoutConflictUtil::IsNoPaddingContinuousOutput(cur_node) :
-        MemLayoutConflictUtil::IsContinuousOutput(cur_node);
+    const auto is_continuous = no_padding ? MemLayoutConflictUtil::IsNoPaddingContinuousOutput(cur_node)
+                                          : MemLayoutConflictUtil::IsContinuousOutput(cur_node);
     if (is_continuous) {
       continuous_node_out_anchor = out_anchor;
     }
@@ -735,10 +731,10 @@ int64_t MemLayoutConflictUtil::GetAnchorMemType(const NodePtr &node, const IOTyp
 }
 
 bool MemLayoutConflictUtil::IsSameMemType(const CheckFuncContext &context) {
-  const int64_t mem_type_a = MemLayoutConflictUtil::GetAnchorMemType(context.node_a.node_, context.node_a.io_type_,
-                                                                     context.node_a.index_);
-  const int64_t mem_type_b = MemLayoutConflictUtil::GetAnchorMemType(context.node_b.node_, context.node_b.io_type_,
-                                                                     context.node_b.index_);
+  const int64_t mem_type_a =
+      MemLayoutConflictUtil::GetAnchorMemType(context.node_a.node_, context.node_a.io_type_, context.node_a.index_);
+  const int64_t mem_type_b =
+      MemLayoutConflictUtil::GetAnchorMemType(context.node_b.node_, context.node_b.io_type_, context.node_b.index_);
   if (mem_type_a == mem_type_b) {
     GELOGI("[MemConflict] same mem type[%lld], node_a: %s, node_b: %s", mem_type_a, context.node_a.ToString().c_str(),
            context.node_b.ToString().c_str());
@@ -812,8 +808,8 @@ Status MemLayoutConflictUtil::IsVarLinkAssignLinkRefNode(const CheckFuncContext 
  *
  *  refdata被认为是用户输入，不认为是不可变地址输入。但是如果发生冲突，需要插在assign后面
  */
-Status MemLayoutConflictUtil::AssignVarInsertIdentity(CheckFuncContext &context,
-                                                      const AnchorAttribute &var_type, bool &done) {
+Status MemLayoutConflictUtil::AssignVarInsertIdentity(CheckFuncContext &context, const AnchorAttribute &var_type,
+                                                      bool &done) {
   auto ref_node = context.node_b;
   if (MemLayoutConflictUtil::IsContainTargetType(context.type_b, var_type)) {
     ref_node = context.node_a;
@@ -884,13 +880,15 @@ Status MemLayoutConflictUtil::IsNoPaddingContinuousNodeConflict(const CheckFuncC
     return SUCCESS;
   }
   /*
-  * 不冲突场景1：子集
-  * 不冲突场景2：完全一样
-  */
+   * 不冲突场景1：子集
+   * 不冲突场景2：完全一样
+   */
   if (IsSubVector(a_in_peer_anchors, b_in_peer_anchors) || IsSubVector(b_in_peer_anchors, a_in_peer_anchors)) {
     has_conflict = false;
-    GELOGI("[MemConflict] node_a inputs and node_b inputs are the same or partial same, not conflict. node_a: %s, "
-           "node_b:%s", CheckerLog::ToStr(context.node_a).c_str(), CheckerLog::ToStr(context.node_b).c_str());
+    GELOGI(
+        "[MemConflict] node_a inputs and node_b inputs are the same or partial same, not conflict. node_a: %s, "
+        "node_b:%s",
+        CheckerLog::ToStr(context.node_a).c_str(), CheckerLog::ToStr(context.node_b).c_str());
     return SUCCESS;
   }
   has_conflict = true;
@@ -936,7 +934,7 @@ bool MemLayoutConflictUtil::AllRealInputsAreTheSameOutAnchor(const NodePtr &node
   }
   if (only_one_out_anchor) {
     GELOGI("[MemConflict] node[%s][%s] all real inputs are the same anchor[%s]", node->GetNamePtr(), node->GetTypePtr(),
-      CheckerLog::ToStr(real_peer_out_anchors[0U]).c_str());
+           CheckerLog::ToStr(real_peer_out_anchors[0U]).c_str());
     return true;
   }
   return false;
@@ -996,14 +994,16 @@ Status MemLayoutConflictUtil::IsContinuousOutAndInConflict(const CheckFuncContex
   const auto out_anchors = GetAllOutAnchors(continuous_out_node.node_);
   const auto peer_anchors = GetAllRealInPeer(continuous_in_node.node_);
   /*
-  * 不冲突场景1：子集
-  * 不冲突场景2：完全一样
-  * 不冲突场景3：部分一样
-  */
+   * 不冲突场景1：子集
+   * 不冲突场景2：完全一样
+   * 不冲突场景3：部分一样
+   */
   if (IsSameOrPartialSame(out_anchors, peer_anchors)) {
     has_conflict = false;
-    GELOGI("[MemConflict] continuous subsets of continuous in/out are the same, not conflict. node_a: %s, "
-           "node_b:%s", CheckerLog::ToStr(context.node_a).c_str(), CheckerLog::ToStr(context.node_b).c_str());
+    GELOGI(
+        "[MemConflict] continuous subsets of continuous in/out are the same, not conflict. node_a: %s, "
+        "node_b:%s",
+        CheckerLog::ToStr(context.node_a).c_str(), CheckerLog::ToStr(context.node_b).c_str());
     return SUCCESS;
   }
   has_conflict = true;
@@ -1026,8 +1026,7 @@ bool MemLayoutConflictUtil::IsRefFromVar(const OutDataAnchorPtr &out_anchor, Nod
   if (HasRefVarName(out_anchor, src_var_name)) {
     const auto src_var_symbol = src_var_name + "_out_0";
     const auto src_symbol_iter = anchor_to_symbol.find(src_var_symbol);
-    if ((src_symbol_iter != anchor_to_symbol.end())
-        && (src_symbol_iter->second == out_anchor_symbol_iter->second)) {
+    if ((src_symbol_iter != anchor_to_symbol.end()) && (src_symbol_iter->second == out_anchor_symbol_iter->second)) {
       const auto anchor_iter = symbol_to_anchors.find(src_symbol_iter->second);
       GE_ASSERT(anchor_iter != symbol_to_anchors.end());
       for (const auto &anchor : anchor_iter->second) {
@@ -1153,7 +1152,7 @@ void MemLayoutConflictUtil::MarkOutTypes(const NodePtr &node, const ComputeGraph
 }
 
 Status MemLayoutConflictUtil::FindConflictNodes(const NodeIndexIOVector &all_nodes, AnchorSet &result,
-                         const GraphInfo &graph_info, const std::unique_ptr<Checker> &checker) {
+                                                const GraphInfo &graph_info, const std::unique_ptr<Checker> &checker) {
   std::vector<vector_bit_t> visit_flag(ATTR_BIT_MAX_LEN, vector_bit_t(ATTR_BIT_MAX_LEN, false));
   for (size_t i = 0U; i < all_nodes.size(); i++) {
     for (size_t j = i + 1U; j < all_nodes.size(); j++) {
@@ -1197,8 +1196,7 @@ Status MemLayoutConflictUtil::IsGraphExistMemConflictSymbol(const ComputeGraphPt
   for (const auto &anchor_iter : symbol_to_anchors) {
     NodeIndexIOVector all_nodes(anchor_iter.second.cbegin(), anchor_iter.second.cend());
     for (const auto &node_index_io : all_nodes) {
-      GE_ASSERT_NOTNULL(GetAnchorFromIndexIo(node_index_io), "node_index_io, %s",
-                        node_index_io.ToString().c_str());
+      GE_ASSERT_NOTNULL(GetAnchorFromIndexIo(node_index_io), "node_index_io, %s", node_index_io.ToString().c_str());
     }
 
     AnchorSet conflict_set;
@@ -1248,13 +1246,11 @@ Status MemLayoutConflictUtil::CheckOneSubGraphConflict(const ComputeGraphPtr &su
           2、不可变地址类型，包括const、constant、variable
           3、引用到其他算子地址
       */
-      if ((out_node_type == DATA && output_node->GetOwnerComputeGraph() == netoutput->GetOwnerComputeGraph())
-          || MemLayoutConflictUtil::IsConst(node_index.node_)
-          || OpTypeUtils::IsVarLikeNode(out_node_type)
-          || IsRefFromRefData(*output_node)) {
+      if ((out_node_type == DATA && output_node->GetOwnerComputeGraph() == netoutput->GetOwnerComputeGraph()) ||
+          MemLayoutConflictUtil::IsConst(node_index.node_) || OpTypeUtils::IsVarLikeNode(out_node_type) ||
+          IsRefFromRefData(*output_node)) {
         in_data_anchors.emplace_back(in_anchor);
-        GELOGI("[MemConflict][Conflict] Type[%s] node directly connect to netoutput.",
-               output_node->GetType().c_str());
+        GELOGI("[MemConflict][Conflict] Type[%s] node directly connect to netoutput.", output_node->GetType().c_str());
         is_symbol_from_data = true;
         break;
       }
@@ -1266,17 +1262,17 @@ Status MemLayoutConflictUtil::CheckOneSubGraphConflict(const ComputeGraphPtr &su
     // 如果存在单输出多引用都连netoutput则冲突
     if (!symbols.emplace(symbol_name).second) {
       in_data_anchors.emplace_back(in_anchor);
-      GELOGI("[MemConflict][Conflict] Node single output multiple references connect to netoutput, insert identity node"
-             " before netoutput[%s] [%d]th inanchor of subgraph.",
-             netoutput->GetName().c_str(), in_anchor->GetIdx());
+      GELOGI(
+          "[MemConflict][Conflict] Node single output multiple references connect to netoutput, insert identity node"
+          " before netoutput[%s] [%d]th inanchor of subgraph.",
+          netoutput->GetName().c_str(), in_anchor->GetIdx());
     }
   }
 
   return SUCCESS;
 }
 
-Status MemLayoutConflictUtil::CheckIfConflict(const NodePtr &ctrl_node,
-                                              std::vector<InDataAnchorPtr> &in_data_anchors) {
+Status MemLayoutConflictUtil::CheckIfConflict(const NodePtr &ctrl_node, std::vector<InDataAnchorPtr> &in_data_anchors) {
   const auto then_graph = NodeUtils::GetSubgraph(*ctrl_node, kThenBranchIndex);
   const auto else_graph = NodeUtils::GetSubgraph(*ctrl_node, kElseBranchIndex);
   GE_CHECK_NOTNULL(then_graph, "node: %s", ctrl_node->GetNamePtr());
@@ -1304,8 +1300,8 @@ Status MemLayoutConflictUtil::CheckCaseConflict(const NodePtr &ctrl_node,
 }
 
 Status MemLayoutConflictUtil::GetWhileBodyDataToNetoutputNodes(const ComputeGraphPtr &while_body,
-                                                          std::vector<NodePtr> &data_nodes_change,
-                                                          std::set<uint32_t> &bypass_index_no_change) {
+                                                               std::vector<NodePtr> &data_nodes_change,
+                                                               std::set<uint32_t> &bypass_index_no_change) {
   for (const auto &node : while_body->GetDirectNode()) {
     if (node->GetType() == DATA) {
       uint32_t input_index = 0U;
@@ -1329,9 +1325,8 @@ Status MemLayoutConflictUtil::GetWhileBodyDataToNetoutputNodes(const ComputeGrap
 
       const auto op_desc = peer_node->GetOpDesc();
       uint32_t output_index = 0U;
-      if ((op_desc == nullptr) ||
-          !AttrUtils::GetInt(op_desc->GetInputDesc(peer_in_anchor->GetIdx()),
-                             ATTR_NAME_PARENT_NODE_INDEX, output_index)) {
+      if ((op_desc == nullptr) || !AttrUtils::GetInt(op_desc->GetInputDesc(peer_in_anchor->GetIdx()),
+                                                     ATTR_NAME_PARENT_NODE_INDEX, output_index)) {
         continue;
       }
 
@@ -1382,7 +1377,7 @@ Status MemLayoutConflictUtil::IsWhileNeedInsertIdentityAtOutput(const ComputeGra
   // one input/output, >2 symbols, then more than one node inside, no need to insert at output
   if (symbol_cnt != 2) {
     GELOGD("[MemConflict] No need to insert output identity node in while_body %s, symbol_to_anchors size %d.",
-            while_body->GetName().c_str(), symbol_cnt);
+           while_body->GetName().c_str(), symbol_cnt);
     is_need_insert = false;
     return SUCCESS;
   }
@@ -1453,13 +1448,12 @@ bool MemLayoutConflictUtil::IsCtrlNodeSubgraphExistMemConflictSymbol(const Compu
   return false;
 }
 
-void MemLayoutConflictUtil::ConstructSingleNodeSymbolTable(
-    const std::string &input_symbol,
-    const std::string &output_symbol,
-    const AnchorToSymbol &orig_anchor_to_symbol,
-    const SymbolToAnchors &orig_symbol_to_anchors,
-    AnchorToSymbol &out_anchor_to_symbol,
-    SymbolToAnchors &out_symbol_to_anchors) {
+void MemLayoutConflictUtil::ConstructSingleNodeSymbolTable(const std::string &input_symbol,
+                                                           const std::string &output_symbol,
+                                                           const AnchorToSymbol &orig_anchor_to_symbol,
+                                                           const SymbolToAnchors &orig_symbol_to_anchors,
+                                                           AnchorToSymbol &out_anchor_to_symbol,
+                                                           SymbolToAnchors &out_symbol_to_anchors) {
   // 直接从 symbol_to_anchors 精确提取，不遍历整个 anchor_to_symbol
   auto copy_symbol_anchors = [&](const std::string &symbol, const std::string &target_symbol) {
     auto sym_iter = orig_symbol_to_anchors.find(symbol);

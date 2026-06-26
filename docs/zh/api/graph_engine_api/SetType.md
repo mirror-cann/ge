@@ -68,4 +68,3 @@ void SetType(DataType data_type)
 ## 约束说明<a name="zh-cn_topic_0000001312644725_section151581745154412"></a>
 
 无。
-

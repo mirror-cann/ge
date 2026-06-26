@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -52,10 +52,8 @@ Status SplitShapeNPass::Run(NodePtr &node) {
   }
   auto ret = SplitShapeN(node);
   if (ret != SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "SplitShapeN node:%s(%s) failed",
-                      node->GetName().c_str(), node->GetType().c_str());
-    GELOGE(FAILED, "[Split][ShapeN] node:%s(%s) failed",
-           node->GetName().c_str(), node->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "SplitShapeN node:%s(%s) failed", node->GetName().c_str(), node->GetType().c_str());
+    GELOGE(FAILED, "[Split][ShapeN] node:%s(%s) failed", node->GetName().c_str(), node->GetType().c_str());
     return FAILED;
   }
   return SUCCESS;
@@ -93,11 +91,9 @@ Status SplitShapeNPass::RelinkAnchors(const ComputeGraphPtr &graph, const NodePt
          new_node->GetName().c_str(), new_node->GetType().c_str());
   GE_CHECK_NOTNULL(new_node);
   if (GraphUtils::ReplaceNodeAnchors(new_node, node, index, index) != GRAPH_SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Replace node:%s(%s) by node:%s(%s) failed",
-                      node->GetName().c_str(), node->GetType().c_str(),
-                      new_node->GetName().c_str(), new_node->GetType().c_str());
-    GELOGE(FAILED, "[Replace][Node] %s(%s) by node:%s(%s) failed",
-           node->GetName().c_str(), node->GetType().c_str(),
+    REPORT_INNER_ERR_MSG("E19999", "Replace node:%s(%s) by node:%s(%s) failed", node->GetName().c_str(),
+                         node->GetType().c_str(), new_node->GetName().c_str(), new_node->GetType().c_str());
+    GELOGE(FAILED, "[Replace][Node] %s(%s) by node:%s(%s) failed", node->GetName().c_str(), node->GetType().c_str(),
            new_node->GetName().c_str(), new_node->GetType().c_str());
     return FAILED;
   }

@@ -85,4 +85,3 @@ Status aclgrphProfStart(aclgrphProfConfig *profiler_config)
 -   该接口在[RunGraph](RunGraph.md)之前调用，若在模型执行过程中调用，Profiling采集到的数据为调用aclgrphProfStart接口之后的数据，可能导致数据不完整。
 -   该接口和aclgrphProfStop配对使用，先调用aclgrphProfStart接口再调用aclgrphProfStop接口。
 -   aclgrphProfInit \> aclgrphProfStart \> aclgrphProfStop \> aclgrphProfFinalize为一条完整的接口调用流程，如果用户想要单进程内切换模型或图，做多轮执行的时候，也需要按照上述完整的流程执行，不支持某个接口的无序调用或并排多次调用。
-

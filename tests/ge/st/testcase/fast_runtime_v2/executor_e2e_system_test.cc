@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -78,8 +78,7 @@ void CheckModelOutputManagerIsNull(ComputeGraphPtr graph, size_t input_num, bool
   ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
-  ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.data(),
-                                    outputs.size()),
+  ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.data(), outputs.size()),
             ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
 
@@ -117,7 +116,8 @@ class GraphExecutorWithKernelUnitTest : public bg::BgTest {
     system("rm -f ./version.info");
     unsetenv("ASCEND_OPP_PATH");
     unsetenv("GE_USE_STATIC_MEMORY");
-    while (bg::ValueHolder::PopGraphFrame() != nullptr) {}
+    while (bg::ValueHolder::PopGraphFrame() != nullptr) {
+    }
   }
 };
 
@@ -233,8 +233,8 @@ TEST_F(GraphExecutorWithKernelUnitTest, ThirdClassNodeAiCore_LoadUnloadSuccess) 
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
-                              .AddTaskDef("NonZero", AiCoreTaskDefFaker("NonZeroStubBin").WithHandle())
-                              .BuildGeRootModel();
+                           .AddTaskDef("NonZero", AiCoreTaskDefFaker("NonZeroStubBin").WithHandle())
+                           .BuildGeRootModel();
 
   bg::ValueHolder::PopGraphFrame();  // 不需要BgTest自带的Frame
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model);
@@ -328,8 +328,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, LoadExecutorFromModelDataWithRtSession_e
   EXPECT_NE(executor1->Load({}, load_arg1), ge::GRAPH_SUCCESS);
 }
 
-TEST_F(GraphExecutorWithKernelUnitTest, check_is_dynamic_model)
-{
+TEST_F(GraphExecutorWithKernelUnitTest, check_is_dynamic_model) {
   GeModelBuilder builder(ShareGraph::LstmpGraph());
   auto ge_root_model = builder.AddTaskDefForAll(AiCoreTaskDefFaker("stub_func")).AddWeight().BuildGeRootModel();
   ModelDataFaker().GeRootModel(ge_root_model).BuildUnknownShapeFile(save_om_file_name.c_str());
@@ -338,15 +337,16 @@ TEST_F(GraphExecutorWithKernelUnitTest, check_is_dynamic_model)
   EXPECT_TRUE(is_dynamic_model == true);
 }
 
-TEST_F(GraphExecutorWithKernelUnitTest, check_is_dynamic_model_with_model)
-{
+TEST_F(GraphExecutorWithKernelUnitTest, check_is_dynamic_model_with_model) {
   GeModelBuilder builder(ShareGraph::LstmpGraph());
   auto ge_root_model = builder.AddTaskDefForAll(AiCoreTaskDefFaker("stub_func")).AddWeight().BuildGeRootModel();
   auto model_data_holder = ModelDataFaker().GeRootModel(ge_root_model).BuildUnknownShape();
   bool is_dynamic_model = true;
-  ASSERT_EQ(IsDynamicModel(model_data_holder.Get().model_data, model_data_holder.Get().model_len, is_dynamic_model), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(IsDynamicModel(model_data_holder.Get().model_data, model_data_holder.Get().model_len, is_dynamic_model),
+            ge::GRAPH_SUCCESS);
   EXPECT_TRUE(is_dynamic_model == true);
-  ASSERT_EQ(IsDynamicModel(model_data_holder.Get().model_data, 0UL, is_dynamic_model), ACL_ERROR_GE_EXEC_MODEL_DATA_SIZE_INVALID);
+  ASSERT_EQ(IsDynamicModel(model_data_holder.Get().model_data, 0UL, is_dynamic_model),
+            ACL_ERROR_GE_EXEC_MODEL_DATA_SIZE_INVALID);
 }
 
 TEST_F(GraphExecutorWithKernelUnitTest, SingleNodeReshape_ExecuteSuccess) {
@@ -479,7 +479,8 @@ TEST_F(GraphExecutorWithKernelUnitTest, SingleNodeAiCore_GetOutNodeNameSuccess) 
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle()).BuildGeRootModel();
   EXPECT_EQ(ge_root_model->GetSubgraphInstanceNameToModel().size(), 1);
-  AttrUtils::SetListStr(ge_root_model->GetSubgraphInstanceNameToModel().begin()->second, ge::ATTR_MODEL_OUT_NODES_NAME, {"add"});
+  AttrUtils::SetListStr(ge_root_model->GetSubgraphInstanceNameToModel().begin()->second, ge::ATTR_MODEL_OUT_NODES_NAME,
+                        {"add"});
   bg::ValueHolder::PopGraphFrame();  // 不需要BgTest自带的Frame
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model);
   ASSERT_NE(exe_graph, nullptr);
@@ -577,7 +578,8 @@ TEST_F(GraphExecutorWithKernelUnitTest, ExecuteModel_BinaryKernel) {
                                                                          [](KernelContext *context) {
                                                                            *context->GetOutputPointer<int32_t>(0) = 1;
                                                                            return ge::GRAPH_SUCCESS;
-                                                                         }}, ""});
+                                                                         }},
+                                                                    ""});
     }
   }
   auto netoutput = graph->FindFirstNodeMatchType(ge::NETOUTPUT);
@@ -734,7 +736,8 @@ TEST_F(GraphExecutorWithKernelUnitTest, AllConstKnownSubgraph_LoadUnloadSuccess)
   ASSERT_NE(compute_graph, nullptr);
   compute_graph->TopologicalSorting();
 
-  auto ge_root_model = GeModelBuilder(compute_graph).AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle()).BuildGeRootModel();
+  auto ge_root_model =
+      GeModelBuilder(compute_graph).AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle()).BuildGeRootModel();
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model);
   ASSERT_NE(exe_graph, nullptr);
 
@@ -847,16 +850,10 @@ TEST_F(GraphExecutorWithKernelUnitTest, SingleNodeHostAiCpu_ExecuteSuccess) {
   auto mem_block = allocator->Malloc(2048);
   auto outputs = FakeTensors({2048}, 1, mem_block->GetAddr());
 
-  auto i0 = FakeValue<Tensor>(Tensor{{{2048}, {2048}},
-                                     {ge::FORMAT_ND, ge::FORMAT_ND, {}},
-                                     kOnDeviceHbm,
-                                     ge::DT_FLOAT16,
-                                     mem_block->GetAddr()});
-  auto i1 = FakeValue<Tensor>(Tensor{{{2048}, {2048}},
-                                     {ge::FORMAT_ND, ge::FORMAT_ND, {}},
-                                     kOnDeviceHbm,
-                                     ge::DT_FLOAT16,
-                                     mem_block->GetAddr()});
+  auto i0 = FakeValue<Tensor>(
+      Tensor{{{2048}, {2048}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}, kOnDeviceHbm, ge::DT_FLOAT16, mem_block->GetAddr()});
+  auto i1 = FakeValue<Tensor>(
+      Tensor{{{2048}, {2048}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}, kOnDeviceHbm, ge::DT_FLOAT16, mem_block->GetAddr()});
   auto inputs = std::vector<Tensor *>({i0.holder.get(), i1.holder.get()});
 
   rtStream_t stream;
@@ -898,16 +895,10 @@ TEST_F(GraphExecutorWithKernelUnitTest, SingleNodeHostKernel_ExecuteSuccess) {
   auto mem_block = allocator->Malloc(2048);
   auto outputs = FakeTensors({2048}, 1, mem_block->GetAddr());
 
-  auto i0 = FakeValue<Tensor>(Tensor{{{2048}, {2048}},
-                                     {ge::FORMAT_ND, ge::FORMAT_ND, {}},
-                                     kOnDeviceHbm,
-                                     ge::DT_FLOAT16,
-                                     mem_block->GetAddr()});
-  auto i1 = FakeValue<Tensor>(Tensor{{{2048}, {2048}},
-                                     {ge::FORMAT_ND, ge::FORMAT_ND, {}},
-                                     kOnDeviceHbm,
-                                     ge::DT_FLOAT16,
-                                     mem_block->GetAddr()});
+  auto i0 = FakeValue<Tensor>(
+      Tensor{{{2048}, {2048}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}, kOnDeviceHbm, ge::DT_FLOAT16, mem_block->GetAddr()});
+  auto i1 = FakeValue<Tensor>(
+      Tensor{{{2048}, {2048}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}, kOnDeviceHbm, ge::DT_FLOAT16, mem_block->GetAddr()});
   auto inputs = std::vector<Tensor *>({i0.holder.get(), i1.holder.get()});
 
   rtStream_t stream;
@@ -982,7 +973,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, SingleStringNodeAiCpu_ExecuteSuccess) {
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.data(), inputs.size(),
                                     reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
-                                    ge::GRAPH_SUCCESS);
+            ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   aclrtDestroyStream(stream);
   mem_block->Free();
@@ -1103,7 +1094,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, SingleNodeIdentityN_MixPlacement_Execute
             ge::GRAPH_SUCCESS);
   ASSERT_EQ(outputs.at(0).GetShape().GetStorageShape().GetDim(0), 1);  // check output shape
   ASSERT_EQ(outputs.at(1).GetShape().GetStorageShape().GetDim(0),
-            2048);  // todo 原来是1024，但是从流程上看应该是2048，根鑫鑫确认下原因
+            2048);                                        // todo 原来是1024，但是从流程上看应该是2048，根鑫鑫确认下原因
   ASSERT_EQ(outputs.at(0).GetPlacement(), kOnHost);       // check output placement
   ASSERT_EQ(outputs.at(1).GetPlacement(), kOnDeviceHbm);  // check output placement
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
@@ -1228,8 +1219,8 @@ TEST_F(GraphExecutorWithKernelUnitTest, DataFlowOnMainRootLast_ExecuteSuccess) {
   GeModelBuilder builder(graph);
   AiCpuCCTaskDefFaker aicpu_task_def_faker;
   auto ge_root_model = builder.AddTaskDef("Add", aicpu_task_def_faker)
-                              .AddTaskDef("SequenceStub", aicpu_task_def_faker)
-                              .BuildGeRootModel();
+                           .AddTaskDef("SequenceStub", aicpu_task_def_faker)
+                           .BuildGeRootModel();
 
   bg::ValueHolder::PopGraphFrame();  // 不需要BgTest自带的Frame
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model);
@@ -1238,11 +1229,9 @@ TEST_F(GraphExecutorWithKernelUnitTest, DataFlowOnMainRootLast_ExecuteSuccess) {
   ge::DumpGraph(exe_graph.get(), "E2EAddGraph");
 
   // check the topo order is correct
-  auto ensure_node =
-    ge::ExecuteGraphUtils::FindNodesByTypeFromAllNodes(exe_graph.get(), "EnsureTensorAtOutMemory");
+  auto ensure_node = ge::ExecuteGraphUtils::FindNodesByTypeFromAllNodes(exe_graph.get(), "EnsureTensorAtOutMemory");
   ASSERT_EQ(ensure_node.size(), 1U);
-  auto clear_node =
-    ge::ExecuteGraphUtils::FindNodesByTypeFromAllNodes(exe_graph.get(), "ClearTestStepContainer");
+  auto clear_node = ge::ExecuteGraphUtils::FindNodesByTypeFromAllNodes(exe_graph.get(), "ClearTestStepContainer");
   ASSERT_EQ(clear_node.size(), 1U);
   EXPECT_TRUE(FastNodeTopoChecker(ensure_node.at(0)).BeforeInTopoOrder(clear_node.at(0)));
 
@@ -1257,15 +1246,15 @@ TEST_F(GraphExecutorWithKernelUnitTest, DataFlowOnMainRootLast_ExecuteSuccess) {
   auto outputs = FakeTensors({2}, 1, mem_block->GetAddr());
 
   auto i0 = FakeValue<Tensor>(Tensor{{{1, 2, 3, 4}, {1, 2, 3, 4}},
-                              {ge::FORMAT_ND, ge::FORMAT_ND, {}},
-                              kOnDeviceHbm,
-                              ge::DT_FLOAT,
-                              mem_block->GetAddr()});
+                                     {ge::FORMAT_ND, ge::FORMAT_ND, {}},
+                                     kOnDeviceHbm,
+                                     ge::DT_FLOAT,
+                                     mem_block->GetAddr()});
   auto i1 = FakeValue<Tensor>(Tensor{{{1, 2, 3, 4}, {1, 2, 3, 4}},
-                              {ge::FORMAT_ND, ge::FORMAT_ND, {}},
-                              kOnDeviceHbm,
-                              ge::DT_FLOAT,
-                              mem_block->GetAddr()});
+                                     {ge::FORMAT_ND, ge::FORMAT_ND, {}},
+                                     kOnDeviceHbm,
+                                     ge::DT_FLOAT,
+                                     mem_block->GetAddr()});
   auto inputs = std::vector<Tensor *>({i0.holder.get(), i1.holder.get()});
 
   rtStream_t stream;
@@ -1276,17 +1265,18 @@ TEST_F(GraphExecutorWithKernelUnitTest, DataFlowOnMainRootLast_ExecuteSuccess) {
   uint32_t model_exec_count = 0;
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.data(), inputs.size(),
                                     reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
-                                    ge::GRAPH_SUCCESS);
+            ge::GRAPH_SUCCESS);
   model_exec_count++;
   EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("SequenceStub", "SequenceStub"), model_exec_count * 2);
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.data(), inputs.size(),
                                     reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
-                                    ge::GRAPH_SUCCESS);
+            ge::GRAPH_SUCCESS);
   model_exec_count++;
   EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("SequenceStub", "SequenceStub"), model_exec_count * 2);
   std::vector<std::string> stat_exec_nodes_count = GetStatExecNodesCount();
   // ClearTestStepContainer execute once when main graph execute
-  EXPECT_EQ(std::count(stat_exec_nodes_count.begin(), stat_exec_nodes_count.end(), "ClearTestStepContainer"), model_exec_count);
+  EXPECT_EQ(std::count(stat_exec_nodes_count.begin(), stat_exec_nodes_count.end(), "ClearTestStepContainer"),
+            model_exec_count);
   EXPECT_EQ(std::count(stat_exec_nodes_count.begin(), stat_exec_nodes_count.end(), "CreateTestStepContainer"), 1);
   EXPECT_EQ(std::count(stat_exec_nodes_count.begin(), stat_exec_nodes_count.end(), "DestroyTestStepContainer"), 0);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
@@ -1303,7 +1293,8 @@ TEST_F(GraphExecutorWithKernelUnitTest, ZeroTensorInput_ExecuteSuccess) {
   auto graph = ShareGraph::BuildZeroInputAicoreGraph();
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
-  auto ge_root_model = builder.AddTaskDef("ReduceSum", AiCoreTaskDefFaker("ReduceSumStubBin").WithHandle()).BuildGeRootModel();
+  auto ge_root_model =
+      builder.AddTaskDef("ReduceSum", AiCoreTaskDefFaker("ReduceSumStubBin").WithHandle()).BuildGeRootModel();
 
   bg::ValueHolder::PopGraphFrame();  // 不需要BgTest自带的Frame
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model);
@@ -1338,7 +1329,8 @@ TEST_F(GraphExecutorWithKernelUnitTest, RtsOverflowDetection_ExecuteSuccess) {
   auto graph = ShareGraph::AicoreWithRtsOverflowGraph();
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
-  auto ge_root_model = builder.AddTaskDef("ReduceSum", AiCoreTaskDefFaker("ReduceSumStubBin").WithHandle()).BuildGeRootModel();
+  auto ge_root_model =
+      builder.AddTaskDef("ReduceSum", AiCoreTaskDefFaker("ReduceSumStubBin").WithHandle()).BuildGeRootModel();
 
   bg::ValueHolder::PopGraphFrame();  // 不需要BgTest自带的Frame
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model);
@@ -1366,8 +1358,8 @@ TEST_F(GraphExecutorWithKernelUnitTest, RtsOverflowDetection_ExecuteSuccess) {
   ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.data(), inputs.size(),
-  reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
-  ge::GRAPH_SUCCESS);
+                                    reinterpret_cast<Tensor **>(outputs.GetAddrList()), outputs.size()),
+            ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   aclrtDestroyStream(stream);
 }
@@ -1416,8 +1408,8 @@ TEST_F(GraphExecutorWithKernelUnitTest, Cmo_ExecuteSuccess) {
   auto graph = ShareGraph::AicoreWithCmoGraph();
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
-  auto ge_root_model = builder.AddTaskDef("ReduceSum", AiCoreTaskDefFaker("ReduceSumStubBin").WithHandle())
-                           .BuildGeRootModel();
+  auto ge_root_model =
+      builder.AddTaskDef("ReduceSum", AiCoreTaskDefFaker("ReduceSumStubBin").WithHandle()).BuildGeRootModel();
   bg::ValueHolder::PopGraphFrame();  // 不需要BgTest自带的Frame
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model);
 
@@ -1453,19 +1445,19 @@ TEST_F(GraphExecutorWithKernelUnitTest, Cmo_ExecuteSuccess) {
 }
 
 /**
-* 用例描述：同一个model可以加载多次
-*
-* 预置条件：NA
-*
-* 测试步骤：
-* 1. 构造带静态子图和动态子图的计算图及root model
-* 2. lowering、加载计算图
-* 3. 构造输入Tensor执行
-* 4. 再次加载执行该ge root model
-*
-* 预期结果：
-* 1. 第二次加载执行执行成功
-*/
+ * 用例描述：同一个model可以加载多次
+ *
+ * 预置条件：NA
+ *
+ * 测试步骤：
+ * 1. 构造带静态子图和动态子图的计算图及root model
+ * 2. lowering、加载计算图
+ * 3. 构造输入Tensor执行
+ * 4. 再次加载执行该ge root model
+ *
+ * 预期结果：
+ * 1. 第二次加载执行执行成功
+ */
 TEST_F(GraphExecutorWithKernelUnitTest, OnolineLoadModelWithSameRootGraphTwice) {
   auto graph = ShareGraph::BuildDynamicAndStaticGraph();
   graph->TopologicalSorting();
@@ -1622,9 +1614,12 @@ graphStatus LaunchKernelFailedByLaunchFlagFake(gert::KernelContext *context) {
 TEST_F(GraphExecutorWithKernelUnitTest, TopologicalExecuteFailThenSuccess) {
   auto graph = ShareGraph::IfCondByShapeGraph();
   graph->TopologicalSorting();
-  const char* const Cast = "Cast";
-  auto ge_root_model = GeModelBuilder(graph).AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
-      .AddTaskDef(Cast, AiCoreTaskDefFaker(Cast).WithHandle()).FakeTbeBin({Cast}).BuildGeRootModel();
+  const char *const Cast = "Cast";
+  auto ge_root_model = GeModelBuilder(graph)
+                           .AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle())
+                           .AddTaskDef(Cast, AiCoreTaskDefFaker(Cast).WithHandle())
+                           .FakeTbeBin({Cast})
+                           .BuildGeRootModel();
 
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model);
   ASSERT_NE(exe_graph, nullptr);
@@ -1638,10 +1633,8 @@ TEST_F(GraphExecutorWithKernelUnitTest, TopologicalExecuteFailThenSuccess) {
   auto ess = StartExecutorStatistician(model_executor);
   EXPECT_EQ(model_executor->Load(), ge::GRAPH_SUCCESS);
 
-  auto output_holder = TensorFaker().Placement(kOnDeviceHbm).DataType(ge::DT_FLOAT)
-      .Format(ge::FORMAT_ND)
-      .Shape({2, 3, 4, 6})
-      .Build();
+  auto output_holder =
+      TensorFaker().Placement(kOnDeviceHbm).DataType(ge::DT_FLOAT).Format(ge::FORMAT_ND).Shape({2, 3, 4, 6}).Build();
   std::vector<Tensor *> outputs{output_holder.GetTensor()};
 
   auto i0 = TensorFaker().Placement(kOnHost).DataType(ge::DT_FLOAT).Value<float>({1.0f}).Build();
@@ -1690,7 +1683,8 @@ TEST_F(GraphExecutorWithKernelUnitTest, PriorityTopologicalExecuteFailThenSucces
   compute_graph->TopologicalSorting();
   GE_DUMP(compute_graph, "computegraph_IfGraph4");
 
-  auto ge_root_model = GeModelBuilder(compute_graph).AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle()).BuildGeRootModel();
+  auto ge_root_model =
+      GeModelBuilder(compute_graph).AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle()).BuildGeRootModel();
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model);
   ASSERT_NE(exe_graph, nullptr);
   ge::DumpGraph(exe_graph.get(), "exe_graph_IfGraph4");
@@ -1710,7 +1704,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, PriorityTopologicalExecuteFailThenSucces
   auto input_holder2 = TensorFaker().Placement(kOnDeviceHbm).DataType(ge::DT_FLOAT).Shape({8, 3, 224, 224}).Build();
   auto input_holder3 = TensorFaker().Placement(kOnDeviceHbm).DataType(ge::DT_FLOAT).Shape({8, 3, 224, 224}).Build();
   std::vector<Tensor *> inputs{pred_holder.GetTensor(), input_holder1.GetTensor(), input_holder2.GetTensor(),
-    input_holder3.GetTensor()};
+                               input_holder3.GetTensor()};
   auto output_holder = TensorFaker().Placement(kOnDeviceHbm).DataType(ge::DT_FLOAT).Shape({8, 3, 224, 224}).Build();
   std::vector<Tensor *> outputs{output_holder.GetTensor()};
   rtStream_t stream;
@@ -1720,9 +1714,8 @@ TEST_F(GraphExecutorWithKernelUnitTest, PriorityTopologicalExecuteFailThenSucces
   // 第一次执行失败
   g_launch_flag = 0U;
   ess->Clear();
-  ASSERT_NE(
-      model_executor->Execute({stream_value.value}, inputs.data(), inputs.size(), outputs.data(), outputs.size()),
-      ge::GRAPH_SUCCESS);
+  ASSERT_NE(model_executor->Execute({stream_value.value}, inputs.data(), inputs.size(), outputs.data(), outputs.size()),
+            ge::GRAPH_SUCCESS);
   // 执行失败，和失败结点关联的后续launch结点都不会执行
   ASSERT_EQ(ess->GetExecuteCountByNodeNameAndKernelType("add4", "LaunchKernelWithFlag"), 1);
   ASSERT_EQ(ess->GetExecuteCountByNodeNameAndKernelType("add2", "LaunchKernelWithHandle"), 0);
@@ -1734,9 +1727,8 @@ TEST_F(GraphExecutorWithKernelUnitTest, PriorityTopologicalExecuteFailThenSucces
 
   // 第二次执行成功
   ess->Clear();
-  ASSERT_EQ(
-      model_executor->Execute({stream_value.value}, inputs.data(), inputs.size(), outputs.data(), outputs.size()),
-      ge::GRAPH_SUCCESS);
+  ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.data(), inputs.size(), outputs.data(), outputs.size()),
+            ge::GRAPH_SUCCESS);
   // 执行成功，所有launch结点都正常执行
   ASSERT_EQ(ess->GetExecuteCountByNodeNameAndKernelType("add4", "LaunchKernelWithFlag"), 1);
   ASSERT_EQ(ess->GetExecuteCountByNodeNameAndKernelType("add2", "LaunchKernelWithHandle"), 1);
@@ -1788,7 +1780,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, Test_With_Empty_Tensor_Success) {
   ASSERT_NE(main_node, nullptr);
   auto main_graph = FastNodeUtils::GetSubgraphFromNode(main_node, 0);
   ASSERT_NE(main_graph, nullptr);
-  FastNode * check_shape_node = ExecuteGraphUtils::FindFirstNodeMatchType(main_graph, "CheckOutputShapesEmpty");
+  FastNode *check_shape_node = ExecuteGraphUtils::FindFirstNodeMatchType(main_graph, "CheckOutputShapesEmpty");
   ASSERT_NE(check_shape_node, nullptr);
 }
 
@@ -1815,7 +1807,7 @@ TEST_F(GraphExecutorWithKernelUnitTest, Test_No_Empty_Tensor_Success) {
   ASSERT_NE(main_node, nullptr);
   auto main_graph = FastNodeUtils::GetSubgraphFromNode(main_node, 0);
   ASSERT_NE(main_graph, nullptr);
-  FastNode * check_shape_node = ExecuteGraphUtils::FindFirstNodeMatchType(main_graph, "CheckOutputShapesEmpty");
+  FastNode *check_shape_node = ExecuteGraphUtils::FindFirstNodeMatchType(main_graph, "CheckOutputShapesEmpty");
   ASSERT_EQ(check_shape_node, nullptr);
 }
 }  // namespace gert

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -50,40 +50,34 @@ const string kOpDebugConfigTe = "op_debug_config_te";
 const string kAicCntKeyOp = "_op_aicore_num";
 const string kAivCntKeyOp = "_op_vectorcore_num";
 
-const std::map<JitCompile, te::JitCompileType> kJitCompileMap {
+const std::map<JitCompile, te::JitCompileType> kJitCompileMap{
     {JitCompile::DEFAULT, te::JitCompileType::DEFAULT},
     {JitCompile::ONLINE, te::JitCompileType::ONLINE},
     {JitCompile::REUSE_BINARY, te::JitCompileType::REUSE_BINARY},
     {JitCompile::STATIC_BINARY_DYNAMIC_ONLINE, te::JitCompileType::STATIC_BINARY_DYNAMIC_ONLINE},
-    {JitCompile::STATIC_BINARY_DYNAMIC_BINARY, te::JitCompileType::STATIC_BINARY_DYNAMIC_BINARY}
-};
+    {JitCompile::STATIC_BINARY_DYNAMIC_BINARY, te::JitCompileType::STATIC_BINARY_DYNAMIC_BINARY}};
 
-const std::map<DynamicRankType, te::DynamicRankType> kDynamicRankTypeMap {
-        {DynamicRankType::SUPPORT, te::DynamicRankType::SUPPORT},
-        {DynamicRankType::NOT_SUPPORT, te::DynamicRankType::NOT_SUPPORT},
-        {DynamicRankType::UPGRADE_TO_SUPPORT, te::DynamicRankType::UPGRADE_TO_SUPPORT}
-};
+const std::map<DynamicRankType, te::DynamicRankType> kDynamicRankTypeMap{
+    {DynamicRankType::SUPPORT, te::DynamicRankType::SUPPORT},
+    {DynamicRankType::NOT_SUPPORT, te::DynamicRankType::NOT_SUPPORT},
+    {DynamicRankType::UPGRADE_TO_SUPPORT, te::DynamicRankType::UPGRADE_TO_SUPPORT}};
 
-const std::map<RangeLimitType, te::RangeLimitType> kRangeLimitTypeMap {
-        {RangeLimitType::LIMITED, te::RangeLimitType::LIMITED},
-        {RangeLimitType::UNLIMITED, te::RangeLimitType::UNLIMITED},
-        {RangeLimitType::DYNAMIC, te::RangeLimitType::DYNAMIC}
-};
+const std::map<RangeLimitType, te::RangeLimitType> kRangeLimitTypeMap{
+    {RangeLimitType::LIMITED, te::RangeLimitType::LIMITED},
+    {RangeLimitType::UNLIMITED, te::RangeLimitType::UNLIMITED},
+    {RangeLimitType::DYNAMIC, te::RangeLimitType::DYNAMIC}};
 
-const std::map<VectorCoreType, te::VectorCoreType> kVectorCoreTypeMap {
-        {VectorCoreType::ENABLE, te::VectorCoreType::ENABLE},
-        {VectorCoreType::DISABLE, te::VectorCoreType::DISABLE}
-};
+const std::map<VectorCoreType, te::VectorCoreType> kVectorCoreTypeMap{
+    {VectorCoreType::ENABLE, te::VectorCoreType::ENABLE}, {VectorCoreType::DISABLE, te::VectorCoreType::DISABLE}};
 
 const std::map<OpPattern, std::string> kOpPatternStrMap = {
-        std::make_pair(OP_PATTERN_OP_KERNEL, "opKernel"),
-        std::make_pair(OP_PATTERN_OP_CUSTOMIZE, "opCustomize"),
-        std::make_pair(OP_PATTERN_FORMAT_AGNOSTIC, "formatAgnostic"),
-        std::make_pair(OP_PATTERN_BROADCAST, "broadcast"),
-        std::make_pair(OP_PATTERN_REDUCE, "reduce"),
-        std::make_pair(OP_PATTERN_RANGE_AGNOSTIC, "rangeAgnostic"),
-        std::make_pair(OP_PATTERN_BROADCAST_ENHANCED, "broadcastEnhanced")
-};
+    std::make_pair(OP_PATTERN_OP_KERNEL, "opKernel"),
+    std::make_pair(OP_PATTERN_OP_CUSTOMIZE, "opCustomize"),
+    std::make_pair(OP_PATTERN_FORMAT_AGNOSTIC, "formatAgnostic"),
+    std::make_pair(OP_PATTERN_BROADCAST, "broadcast"),
+    std::make_pair(OP_PATTERN_REDUCE, "reduce"),
+    std::make_pair(OP_PATTERN_RANGE_AGNOSTIC, "rangeAgnostic"),
+    std::make_pair(OP_PATTERN_BROADCAST_ENHANCED, "broadcastEnhanced")};
 
 void SetTbeTensorValueRange(const ge::OpDesc &op_desc, const ge::GeTensorDesc &tensor_desc,
                             te::TbeOpTensor &tbe_tensor) {
@@ -97,10 +91,12 @@ bool GetAddTensorFlag(const ge::OpDesc &op_desc, const vector<uint32_t> &specifi
   bool res = false;
   if (!specific_input_index_vec.empty()) {
     auto input_desc = op_desc.GetInputDescPtr(specific_input_index_vec.at(0));
-    if (input_desc == nullptr) { return false; }
+    if (input_desc == nullptr) {
+      return false;
+    }
     auto primary_format = ge::GetPrimaryFormat(input_desc->GetFormat());
-    res = primary_format != ge::FORMAT_RESERVED && input_desc->GetDataType() != ge::DT_UNDEFINED
-            && input_desc->GetDataType() < ge::DT_MAX;
+    res = primary_format != ge::FORMAT_RESERVED && input_desc->GetDataType() != ge::DT_UNDEFINED &&
+          input_desc->GetDataType() < ge::DT_MAX;
   }
   return res;
 }
@@ -137,7 +133,7 @@ void SetTbeTensorShape(const ge::OpDesc &op_desc, const TensorDescAndIndex &tens
   }
 
   ge::Format primary_origin_format =
-          static_cast<ge::Format>(ge::GetPrimaryFormat(tensor_info.tensor_desc_ptr->GetOriginFormat()));
+      static_cast<ge::Format>(ge::GetPrimaryFormat(tensor_info.tensor_desc_ptr->GetOriginFormat()));
   tbe_tensor.SetOriginFormat(ge::TypeUtils::FormatToSerialString(primary_origin_format));
   std::vector<int64_t> dyn_ori_shape_vec;
   std::vector<int64_t> ori_shape_vec = tensor_info.tensor_desc_ptr->GetOriginShape().GetDims();
@@ -185,7 +181,7 @@ bool CheckAOETuning(const ge::Node *node) {
   FE_LOGI("Node[%s]'s graph check not aoe tuning.", node->GetName().c_str());
   return false;
 }
-}
+}  // namespace
 
 const std::map<ge::DataType, SetConstValueWithDtypePtr> TbeInfoAssembler::set_const_value_func_map = {
     {ge::DT_FLOAT16, std::make_shared<SetConstValueWithDtype>(SetConstValueWithFloat16)},
@@ -206,16 +202,11 @@ const std::map<ge::DataType, SetConstValueWithDtypePtr> TbeInfoAssembler::set_co
  * {4800, 8} means if execution time is less than 4800ns,
  * the block num should be 8. */
 const std::map<uint32_t, std::vector<std::pair<uint64_t, string>>> TbeInfoAssembler::time_to_core_num_ = {
-    {8, {{UINT64_MAX, "8"}}},
-    {10, {{201610, "10"}, {UINT64_MAX, "40"}}}
-};
+    {8, {{UINT64_MAX, "8"}}}, {10, {{201610, "10"}, {UINT64_MAX, "40"}}}};
 
 static std::map<ffts::AtomicType, std::string> AtomicTypeStr = {
-    {ffts::AtomicType::None, "None"},
-    {ffts::AtomicType::ADD, "add"},
-    {ffts::AtomicType::SUB, "sub"},
-    {ffts::AtomicType::MUL, "mul"},
-    {ffts::AtomicType::DIV, "div"},
+    {ffts::AtomicType::None, "None"}, {ffts::AtomicType::ADD, "add"}, {ffts::AtomicType::SUB, "sub"},
+    {ffts::AtomicType::MUL, "mul"},   {ffts::AtomicType::DIV, "div"},
 };
 
 Status TbeInfoAssembler::Initialize() {
@@ -309,8 +300,8 @@ Status TbeInfoAssembler::FeedParameterInfoForOutput(const ge::OpDesc &op_desc, c
     }
   } else {
     bool need_tensor =
-        (output_type == OpParamType::OPTIONAL && !IsMemoryEmpty(output_desc) && !HasNullableOutput(output_desc))
-        || output_type == OpParamType::REQUIRED;
+        (output_type == OpParamType::OPTIONAL && !IsMemoryEmpty(output_desc) && !HasNullableOutput(output_desc)) ||
+        output_type == OpParamType::REQUIRED;
     if (need_tensor) {
       tbe_op_param.SetTensor(tbe_op_tensor);
     } else {
@@ -462,8 +453,7 @@ void TbeInfoAssembler::FeedL2InputTensor(const ToOpStructPtr &l2_info, const ge:
   }
 }
 
-Status TbeInfoAssembler::SetInputTensorBaseInfo(const ge::OpDescPtr &op_desc,
-                                                const uint32_t &index_in_opdesc,
+Status TbeInfoAssembler::SetInputTensorBaseInfo(const ge::OpDescPtr &op_desc, const uint32_t &index_in_opdesc,
                                                 te::TbeOpTensor &input_tensor) const {
   if (op_desc->MutableInputDesc(index_in_opdesc) == nullptr) {
     return SUCCESS;
@@ -485,18 +475,20 @@ Status TbeInfoAssembler::SetInputTensorBaseInfo(const ge::OpDescPtr &op_desc,
 
   FE_CHECK(TransDtypeToString(dtype, dtype_str) != SUCCESS,
            FE_LOGW("Current data type[%u] of input index = %u of op (name [%s], type [%s]) is not found.", dtype,
-                  index_in_opdesc, op_name.c_str(), op_type.c_str()), return FAILED);
+                   index_in_opdesc, op_name.c_str(), op_type.c_str()),
+           return FAILED);
   FE_LOGD("Op[name=%s,type=%s]: index_in_opdesc is [%u], input format is [%s].", op_name.c_str(), op_type.c_str(),
           index_in_opdesc, ge::TypeUtils::FormatToSerialString(format).c_str());
   // If empty shape of scalar, the op will compile fail. So need set {1} to shape.
   if (input_i->MutableShape().IsScalar()) {
     dim_vec = {1};
   }
-  FE_LOGD("Op[name=%s,type=%s]: current input shape is [%s].",
-          op_name.c_str(), op_type.c_str(), GetShapeDims(dim_vec).c_str());
+  FE_LOGD("Op[name=%s,type=%s]: current input shape is [%s].", op_name.c_str(), op_type.c_str(),
+          GetShapeDims(dim_vec).c_str());
   string primary_format_str = ge::TypeUtils::FormatToSerialString(primary_format);
   // set full shape to StridedRead
-  bool is_strided_read = op_desc->GetType() == STRIDEDREAD &&
+  bool is_strided_read =
+      op_desc->GetType() == STRIDEDREAD &&
       static_cast<ge::Format>(ge::GetPrimaryFormat(op_desc->GetInputDesc(0).GetFormat())) == ge::FORMAT_NC1HWC0;
   if (is_strided_read && dim_vec.size() >= 2) {
     int64_t c1 = dim_vec[1];
@@ -609,16 +601,14 @@ Status TbeInfoAssembler::FeedInputsToTbeOpInfo(const ge::Node *node, IndexNameMa
   for (size_t index_in_op_kernel = 0; index_in_op_kernel < input_size_in_op_kernel; index_in_op_kernel++) {
     auto input_info_ptr = input_info_in_opkernel.at(index_in_op_kernel);
     FE_CHECK(input_info_ptr == nullptr,
-             REPORT_FE_ERROR("[SubGraphOpt][PreCompileOp][FeedInputs] InputInfoPtr is nullptr."),
-             return FAILED);
+             REPORT_FE_ERROR("[SubGraphOpt][PreCompileOp][FeedInputs] InputInfoPtr is nullptr."), return FAILED);
     string input_name_in_op_kernel = input_info_ptr->GetName();
 
     vector<uint32_t> specific_input_index_vec_in_op_desc;
     if (GetSpecificIndex(*op_desc.get(), input_idx_name_map, input_name_in_op_kernel, true,
                          specific_input_index_vec_in_op_desc) != SUCCESS) {
-      REPORT_FE_ERROR(
-          "[SubGraphOpt][PreCompileOp][FeedInputs] Node [%s, %s]: failed to obtain input name %s.",
-          op_desc->GetName().c_str(), op_desc->GetType().c_str(), input_name_in_op_kernel.c_str());
+      REPORT_FE_ERROR("[SubGraphOpt][PreCompileOp][FeedInputs] Node [%s, %s]: failed to obtain input name %s.",
+                      op_desc->GetName().c_str(), op_desc->GetType().c_str(), input_name_in_op_kernel.c_str());
       return FAILED;
     }
 
@@ -647,8 +637,8 @@ Status TbeInfoAssembler::FeedInputsToTbeOpInfo(const ge::Node *node, IndexNameMa
         }
 
         FeedL2InputTensor(l2_info, op_desc, input_idx_name_map, index_in_opdesc, input_tensor);
-        bool no_l2_info = l2_info == nullptr ||
-                          l2_info->slice_input_shape.empty() || l2_info->slice_input_shape.at(0).empty();
+        bool no_l2_info =
+            l2_info == nullptr || l2_info->slice_input_shape.empty() || l2_info->slice_input_shape.at(0).empty();
         bool only_optimize_info = (l1_info == nullptr && no_l2_info && optimize_info != nullptr);
         if (only_optimize_info) {
           FeedL2InputTensor(optimize_info, op_desc, input_idx_name_map, index_in_opdesc, input_tensor);
@@ -671,9 +661,8 @@ Status TbeInfoAssembler::FeedInputsToTbeOpInfo(const ge::Node *node, IndexNameMa
         FE_LOGD("Op[name=%s,type=%s]: origin input shape is [%s].", op_desc->GetName().c_str(),
                 op_desc->GetType().c_str(), input_origin_shape_dims.c_str());
         SetInputDdrBaseProp(node, index_in_opdesc, input_tensor);
-        FE_LOGD("Ddr base prop of op[%s, %s]'s input[%u] is [%d].",
-                op_desc->GetName().c_str(), op_desc->GetType().c_str(), index_in_opdesc,
-                static_cast<int32_t>(input_tensor.GetDdrBaseProp()));
+        FE_LOGD("Ddr base prop of op[%s, %s]'s input[%u] is [%d].", op_desc->GetName().c_str(),
+                op_desc->GetType().c_str(), index_in_opdesc, static_cast<int32_t>(input_tensor.GetDdrBaseProp()));
         if (SetTensorConstValue(node, index_in_opdesc, input_info_ptr, input_tensor) != SUCCESS) {
           REPORT_FE_ERROR("[SubGraphOpt][PreCompileOp][FeedInputs][Op %s, type %s]: Failed to set value for input[%u].",
                           op_desc->GetName().c_str(), op_desc->GetType().c_str(), index_in_opdesc);
@@ -682,18 +671,16 @@ Status TbeInfoAssembler::FeedInputsToTbeOpInfo(const ge::Node *node, IndexNameMa
         // take care that danamic input have multiple sub-inputs.
         if (FeedParameterInfoForInput(node, input_info_ptr, static_cast<int>(index_in_opdesc),
                                       (count == size_of_this_input - 1), input_tensor, input, op_info) != SUCCESS) {
-          REPORT_FE_ERROR(
-              "[SubGraphOpt][PreCompileOp][FeedInputs] Node [%s, %s]: failed to FeedParameterInfoForInput.",
-              op_desc->GetName().c_str(), op_desc->GetType().c_str());
+          REPORT_FE_ERROR("[SubGraphOpt][PreCompileOp][FeedInputs] Node [%s, %s]: failed to FeedParameterInfoForInput.",
+                          op_desc->GetName().c_str(), op_desc->GetType().c_str());
           return FAILED;
         }
         count++;
       }
     } else {
       if (FeedParameterInfoForNotFound(input_info_ptr, STR_INPUT_LOWERCASE, input, op_info) != SUCCESS) {
-        REPORT_FE_ERROR(
-            "[SubGraphOpt][PreCompileOp][FeedInputs] Node[%s, %s]: failed to FeedParameterInfoForNotFound.",
-            op_desc->GetName().c_str(), op_desc->GetType().c_str());
+        REPORT_FE_ERROR("[SubGraphOpt][PreCompileOp][FeedInputs] Node[%s, %s]: failed to FeedParameterInfoForNotFound.",
+                        op_desc->GetName().c_str(), op_desc->GetType().c_str());
         return FAILED;
       }
       FE_LOGD("Optional input %u named [%s] is missing in Opdesc, we set a empty TbeOpTensor when feeds input.",
@@ -704,7 +691,7 @@ Status TbeInfoAssembler::FeedInputsToTbeOpInfo(const ge::Node *node, IndexNameMa
 }
 
 Status TbeInfoAssembler::FeedAutoFuseInoutputsToTbeOpInfo(const ge::Node *node, const bool is_input,
-                                                      te::TbeOpInfo &tbe_op_info) const {
+                                                          te::TbeOpInfo &tbe_op_info) const {
   FE_LOGD("Feed autofuse input %u info.", is_input);
   auto op = node->GetOpDesc();
   auto all_inout_desc = (is_input ? op->GetAllInputsDescPtr() : op->GetAllOutputsDescPtr());
@@ -718,8 +705,9 @@ Status TbeInfoAssembler::FeedAutoFuseInoutputsToTbeOpInfo(const ge::Node *node, 
 
     std::string dtype_str = "";
     FE_CHECK(TransDtypeToString(dtype, dtype_str) != SUCCESS,
-             FE_LOGW("Current data type[%u] of op (name [%s], type [%s]) is not found.", dtype,
-              op->GetName().c_str(), op->GetType().c_str()), return FAILED);
+             FE_LOGW("Current data type[%u] of op (name [%s], type [%s]) is not found.", dtype, op->GetName().c_str(),
+                     op->GetType().c_str()),
+             return FAILED);
     FE_LOGD("AssembleAutoFuseTbeInfo Op[name=%s,type=%s]: format is [%s], dtype is [%s], shape is [%s].",
             op->GetName().c_str(), op->GetType().c_str(), ge::TypeUtils::FormatToSerialString(format).c_str(),
             dtype_str.c_str(), GetShapeDims(inoutput->GetShape().GetDims()).c_str());
@@ -765,8 +753,8 @@ void TbeInfoAssembler::SetInputDdrBaseProp(const ge::Node *node, const uint32_t 
   if (node->GetInDataAnchor(tensor_index) == nullptr ||
       node->GetInDataAnchor(tensor_index)->GetPeerOutAnchor() == nullptr ||
       node->GetInDataAnchor(tensor_index)->GetPeerOutAnchor()->GetOwnerNode() == nullptr) {
-    FE_LOGI("The peer node of op[%s, %s]'s input[%u] is null.",
-            node->GetName().c_str(), node->GetType().c_str(), tensor_index);
+    FE_LOGI("The peer node of op[%s, %s]'s input[%u] is null.", node->GetName().c_str(), node->GetType().c_str(),
+            tensor_index);
     return;
   }
   ge::NodePtr peer_node = node->GetInDataAnchor(tensor_index)->GetPeerOutAnchor()->GetOwnerNode();
@@ -778,29 +766,29 @@ void TbeInfoAssembler::SetInputDdrBaseProp(const ge::Node *node, const uint32_t 
           tensor_index, parent_op_type.c_str());
   auto tensor_desc = node->GetOpDesc()->MutableInputDesc(tensor_index);
   if (tensor_desc == nullptr) {
-    FE_LOGW("Node[%s, %s], unexpected tensor desc nullptr, input idx is: %u.", node->GetNamePtr(),
-            node->GetTypePtr(), tensor_index);
+    FE_LOGW("Node[%s, %s], unexpected tensor desc nullptr, input idx is: %u.", node->GetNamePtr(), node->GetTypePtr(),
+            tensor_index);
   }
   int64_t input_memory_scope = 0;
   (void)ge::AttrUtils::GetInt(tensor_desc, ge::ATTR_NAME_TENSOR_MEMORY_SCOPE, input_memory_scope);
   if (input_memory_scope != 0) {
     input_tensor.SetDdrBaseProp(static_cast<te::DdrBaseType>(input_memory_scope));
-    FE_LOGD("The ddr base prop of op[%s, %s]'s input[%u] is [%ld].",
-            node->GetNamePtr(), node->GetTypePtr(), tensor_index, input_memory_scope);
+    FE_LOGD("The ddr base prop of op[%s, %s]'s input[%u] is [%ld].", node->GetNamePtr(), node->GetTypePtr(),
+            tensor_index, input_memory_scope);
     return;
   }
   if (parent_op_type == CONSTANT || parent_op_type == CONSTANTOP) {
     // set weight
     input_tensor.SetDdrBaseProp(te::DdrBaseType::WEIGHT);
-    FE_LOGD("The ddr base type of op[%s, %s]'s input[%u] is weight.",
-            node->GetName().c_str(), node->GetType().c_str(), tensor_index);
+    FE_LOGD("The ddr base type of op[%s, %s]'s input[%u] is weight.", node->GetName().c_str(), node->GetType().c_str(),
+            tensor_index);
     return;
   }
   if (IsRootGraphData(parent_op_type)) {
     // set net edge
     input_tensor.SetDdrBaseProp(te::DdrBaseType::NET_EDGE);
-    FE_LOGD("The ddr base type of op[%s, %s]'s input[%u] is data.",
-            node->GetName().c_str(), node->GetType().c_str(), tensor_index);
+    FE_LOGD("The ddr base type of op[%s, %s]'s input[%u] is data.", node->GetName().c_str(), node->GetType().c_str(),
+            tensor_index);
     return;
   }
   for (auto &peer_peer_in_anchor : node->GetInDataAnchor(tensor_index)->GetPeerOutAnchor()->GetPeerInDataAnchors()) {
@@ -818,8 +806,8 @@ void TbeInfoAssembler::SetInputDdrBaseProp(const ge::Node *node, const uint32_t 
     if (peer_peer_in_node_parent_op_type == NETOUTPUT) {
       // set net_edge
       input_tensor.SetDdrBaseProp(te::DdrBaseType::NET_EDGE);
-      FE_LOGD("The ddr base type of op[%s, %s]'s input[%u] is NetOutput.",
-              node->GetName().c_str(), node->GetType().c_str(), tensor_index);
+      FE_LOGD("The ddr base type of op[%s, %s]'s input[%u] is NetOutput.", node->GetName().c_str(),
+              node->GetType().c_str(), tensor_index);
       break;
     }
   }
@@ -832,21 +820,21 @@ void TbeInfoAssembler::SetOutputDdrBaseProp(const ge::Node *node, const uint32_t
   }
   FE_CHECK(node == nullptr, FE_LOGI("Node is null."), return);
   if (node->GetOutDataAnchor(tensor_index) == nullptr) {
-    FE_LOGI("The peer node of op[%s, %s]'s output[%u] is null.",
-            node->GetName().c_str(), node->GetType().c_str(), tensor_index);
+    FE_LOGI("The peer node of op[%s, %s]'s output[%u] is null.", node->GetName().c_str(), node->GetType().c_str(),
+            tensor_index);
     return;
   }
   auto tensor_desc = node->GetOpDesc()->MutableOutputDesc(tensor_index);
   if (tensor_desc == nullptr) {
-    FE_LOGW("Node[%s, %s], unexpected tensor desc nullptr, output idx is: %u.", node->GetNamePtr(),
-            node->GetTypePtr(), tensor_index);
+    FE_LOGW("Node[%s, %s], unexpected tensor desc nullptr, output idx is: %u.", node->GetNamePtr(), node->GetTypePtr(),
+            tensor_index);
   }
   int64_t output_memory_scope = 0;
   (void)ge::AttrUtils::GetInt(tensor_desc, ge::ATTR_NAME_TENSOR_MEMORY_SCOPE, output_memory_scope);
   if (output_memory_scope != 0) {
     output_tensor.SetDdrBaseProp(static_cast<te::DdrBaseType>(output_memory_scope));
-    FE_LOGD("The ddr base prop of op[%s, %s]'s output[%u] is [%ld].",
-            node->GetNamePtr(), node->GetTypePtr(), tensor_index, output_memory_scope);
+    FE_LOGD("The ddr base prop of op[%s, %s]'s output[%u] is [%ld].", node->GetNamePtr(), node->GetTypePtr(),
+            tensor_index, output_memory_scope);
     return;
   }
   for (const ge::InDataAnchorPtr &in_data_anchor_ptr : node->GetOutDataAnchor(tensor_index)->GetPeerInDataAnchors()) {
@@ -863,35 +851,35 @@ void TbeInfoAssembler::SetOutputDdrBaseProp(const ge::Node *node, const uint32_t
     if (parent_op_type == NETOUTPUT) {
       // set net_edge
       output_tensor.SetDdrBaseProp(te::DdrBaseType::NET_EDGE);
-      FE_LOGD("The ddr base type of op[%s, %s]'s output[%u] is NetOutput.",
-              node->GetName().c_str(), node->GetType().c_str(), tensor_index);
+      FE_LOGD("The ddr base type of op[%s, %s]'s output[%u] is NetOutput.", node->GetName().c_str(),
+              node->GetType().c_str(), tensor_index);
       break;
     }
   }
 }
 
 void TbeInfoAssembler::SetIsNullOutputFlag(const ge::Node *node, const uint32_t &tensor_index,
- 	                                            te::TbeOpTensor &output_tensor) const {
- 	FE_CHECK(node == nullptr, FE_LOGI("Node is null."), return);
- 	auto tensor_desc = node->GetOpDesc()->MutableOutputDesc(tensor_index);
- 	if (tensor_desc == nullptr) {
- 	  FE_LOGW("Node[%s, %s], unexpected tensor desc nullptr, output idx is: %u.", node->GetNamePtr(),
- 	          node->GetTypePtr(), tensor_index);
- 	}
- 	bool is_null_output = false;
- 	(void)ge::AttrUtils::GetBool(tensor_desc, ATTR_NAME_IS_NULL_OUTPUT, is_null_output);
- 	if(is_null_output) {
- 	  FE_LOGD("The peer node of op[%s, %s]'s output[%u] has attribute is_null_output %d.",
- 	    node->GetName().c_str(), node->GetType().c_str(), tensor_index, is_null_output);
- 	  output_tensor.SetIsNullOutput(is_null_output);
- 	}
+                                           te::TbeOpTensor &output_tensor) const {
+  FE_CHECK(node == nullptr, FE_LOGI("Node is null."), return);
+  auto tensor_desc = node->GetOpDesc()->MutableOutputDesc(tensor_index);
+  if (tensor_desc == nullptr) {
+    FE_LOGW("Node[%s, %s], unexpected tensor desc nullptr, output idx is: %u.", node->GetNamePtr(), node->GetTypePtr(),
+            tensor_index);
+  }
+  bool is_null_output = false;
+  (void)ge::AttrUtils::GetBool(tensor_desc, ATTR_NAME_IS_NULL_OUTPUT, is_null_output);
+  if (is_null_output) {
+    FE_LOGD("The peer node of op[%s, %s]'s output[%u] has attribute is_null_output %d.", node->GetName().c_str(),
+            node->GetType().c_str(), tensor_index, is_null_output);
+    output_tensor.SetIsNullOutput(is_null_output);
+  }
 }
 
 void TbeInfoAssembler::SetIsConstInputFlag(const ge::Node *node, const ge::OpDesc &op_desc,
                                            const uint32_t &tensor_index, te::TbeOpTensor &input_tensor) const {
   if (CheckAOETuning(node)) {
-    FE_LOGD("op[%s, %s] will not set input_const for the aoe_tuning scenario.",
-      op_desc.GetName().c_str(), op_desc.GetType().c_str());
+    FE_LOGD("op[%s, %s] will not set input_const for the aoe_tuning scenario.", op_desc.GetName().c_str(),
+            op_desc.GetType().c_str());
     return;
   }
   ge::NodePtr peer_out_node = nullptr;
@@ -940,8 +928,8 @@ Status TbeInfoAssembler::SetTensorConstValue(const ge::Node *node, const uint32_
   FE_CHECK_NOTNULL(other_end_node);
   auto const_op_desc = other_end_node->GetOpDesc();
   FE_CHECK_NOTNULL(const_op_desc);
-  FE_LOGD("Begin to get const data from node[%s, %s].",
-          other_end_node->GetName().c_str(), other_end_node->GetType().c_str());
+  FE_LOGD("Begin to get const data from node[%s, %s].", other_end_node->GetName().c_str(),
+          other_end_node->GetType().c_str());
   vector<ge::GeTensorPtr> weights = ge::OpDescUtils::MutableWeights(other_end_node);
   if (weights.empty()) {
     REPORT_FE_ERROR("[SubGraphOpt][PreCompileOp][AssembleConstVal][Op %s,type %s]: Const node does not have weight.",
@@ -968,9 +956,8 @@ Status TbeInfoAssembler::AssembleConstValue(ge::GeTensorPtr const_tensor_ptr, co
   ge::DataType data_type = out_tensor_desc.GetDataType();
   auto iter_set_const_value_func = set_const_value_func_map.find(data_type);
   if (iter_set_const_value_func == set_const_value_func_map.end()) {
-    FE_LOGW(
-        "[SubGraphOpt][PreCompileOp][AssembleConstVal] Node[%s, %s]: data type %s is not supported yet.",
-        op_desc->GetName().c_str(), op_desc->GetType().c_str(), DTypeToStr(data_type).c_str());
+    FE_LOGW("[SubGraphOpt][PreCompileOp][AssembleConstVal] Node[%s, %s]: data type %s is not supported yet.",
+            op_desc->GetName().c_str(), op_desc->GetType().c_str(), DTypeToStr(data_type).c_str());
     return FAILED;
   }
 
@@ -981,7 +968,8 @@ Status TbeInfoAssembler::AssembleConstValue(ge::GeTensorPtr const_tensor_ptr, co
   Status status = (*set_const_value_func)(const_tensor_ptr, tensor_name, op_tensor);
   if (status != SUCCESS) {
     REPORT_FE_ERROR(
-        "[SubGraphOpt][PreCompileOp][AssembleConstVal] Failed to set constant value for node [%s, %s] with data type %s.",
+        "[SubGraphOpt][PreCompileOp][AssembleConstVal] Failed to set constant value for node [%s, %s] with data type "
+        "%s.",
         op_desc->GetName().c_str(), op_desc->GetType().c_str(), DTypeToStr(data_type).c_str());
     return FAILED;
   }
@@ -997,9 +985,10 @@ Status CreateTbeTensor(const ge::OpDesc &op_desc, const TensorDescAndIndex &tens
   std::string dtype_str = "";
   Status ret = TransDtypeToString(dtype, dtype_str);
   if (ret != SUCCESS) {
-    REPORT_INNER_ERR_MSG(EM_INNER_ERROR.c_str(), "Current data type[%d] of %s %u of op (name [%s], type [%s]) is not found.",
-                       dtype, IS_INPUT_TO_STRING(tensor_info.is_input), tensor_info.index_in_opdesc,
-                       op_desc.GetName().c_str(), op_desc.GetType().c_str());
+    REPORT_INNER_ERR_MSG(EM_INNER_ERROR.c_str(),
+                         "Current data type[%d] of %s %u of op (name [%s], type [%s]) is not found.", dtype,
+                         IS_INPUT_TO_STRING(tensor_info.is_input), tensor_info.index_in_opdesc,
+                         op_desc.GetName().c_str(), op_desc.GetType().c_str());
     return FAILED;
   }
 
@@ -1019,8 +1008,8 @@ Status CreateTbeTensor(const ge::OpDesc &op_desc, const TensorDescAndIndex &tens
     shape_vec = shape.GetDims();
   }
   FE_LOGD("Op[name=%s,type=%s]: current %s shape is [%s], tensor shape is [%s].", op_desc.GetName().c_str(),
-          op_desc.GetType().c_str(), IS_INPUT_TO_STRING(tensor_info.is_input),
-          GetShapeDims(shape_vec).c_str(), GetShapeDims(shape.GetDims()).c_str());
+          op_desc.GetType().c_str(), IS_INPUT_TO_STRING(tensor_info.is_input), GetShapeDims(shape_vec).c_str(),
+          GetShapeDims(shape.GetDims()).c_str());
 
   // If dim_num is 0, the op will compile fail. So need set {1} to shape.
   if (shape.IsScalar()) {
@@ -1046,16 +1035,14 @@ Status TbeInfoAssembler::ConvertInputsToTbeOpInfo(const ge::NodePtr &node, Index
   for (size_t index_in_op_kernel = 0; index_in_op_kernel < input_size_in_op_kernel; index_in_op_kernel++) {
     auto input_info_ptr = input_info_in_opkernel.at(index_in_op_kernel);
     FE_CHECK(input_info_ptr == nullptr,
-             REPORT_FE_ERROR("[SubGraphOpt][PreCompileOp][AssembleConstVal]inputInfoPtr is nullptr."),
-             return FAILED);
+             REPORT_FE_ERROR("[SubGraphOpt][PreCompileOp][AssembleConstVal]inputInfoPtr is nullptr."), return FAILED);
     string input_name_in_op_kernel = input_info_ptr->GetName();
 
     vector<uint32_t> specific_input_index_vec_in_op_desc;
     if (GetSpecificIndex(op_desc, input_idx_name_map, input_name_in_op_kernel, true,
                          specific_input_index_vec_in_op_desc) != SUCCESS) {
-      REPORT_FE_ERROR(
-          "[SubGraphOpt][PreCompileOp][AssembleConstVal] Node[%s, %s]: fail to get input name %s.",
-          op_desc.GetName().c_str(), op_desc.GetType().c_str(), input_name_in_op_kernel.c_str());
+      REPORT_FE_ERROR("[SubGraphOpt][PreCompileOp][AssembleConstVal] Node[%s, %s]: fail to get input name %s.",
+                      op_desc.GetName().c_str(), op_desc.GetType().c_str(), input_name_in_op_kernel.c_str());
       return FAILED;
     }
 
@@ -1083,9 +1070,8 @@ Status TbeInfoAssembler::ConvertInputsToTbeOpInfo(const ge::NodePtr &node, Index
           return ret;
         }
         SetInputDdrBaseProp(node.get(), index_in_opdesc, input_tensor);
-        FE_LOGD("Ddr base prop of op[%s, %s]'s input[%u] is [%d].",
-                op_desc.GetName().c_str(), op_desc.GetType().c_str(), index_in_opdesc,
-                static_cast<int32_t>(input_tensor.GetDdrBaseProp()));
+        FE_LOGD("Ddr base prop of op[%s, %s]'s input[%u] is [%d].", op_desc.GetName().c_str(),
+                op_desc.GetType().c_str(), index_in_opdesc, static_cast<int32_t>(input_tensor.GetDdrBaseProp()));
         SetIsConstInputFlag(node.get(), op_desc, index_in_opdesc, input_tensor);
         if (SetTensorConstValue(node.get(), index_in_opdesc, input_info_ptr, input_tensor) != SUCCESS) {
           REPORT_FE_ERROR(
@@ -1106,9 +1092,8 @@ Status TbeInfoAssembler::ConvertInputsToTbeOpInfo(const ge::NodePtr &node, Index
       }
     } else {
       if (FeedParameterInfoForNotFound(input_info_ptr, STR_INPUT_LOWERCASE, input, op_info) != SUCCESS) {
-        REPORT_FE_ERROR(
-            "[SubGraphOpt][PreCompileOp][AssembleConstVal] Node[%s, %s]: fail to feed dummy input %zu.",
-            op_desc.GetName().c_str(), op_desc.GetType().c_str(), index_in_op_kernel);
+        REPORT_FE_ERROR("[SubGraphOpt][PreCompileOp][AssembleConstVal] Node[%s, %s]: fail to feed dummy input %zu.",
+                        op_desc.GetName().c_str(), op_desc.GetType().c_str(), index_in_op_kernel);
         return FAILED;
       }
       FE_LOGI("Optional input %zu named [%s] is missing in Opdesc, we set a empty TbeOpTensor.", index_in_op_kernel,
@@ -1205,16 +1190,14 @@ Status TbeInfoAssembler::FeedOutputsToTbeOpInfo(const ge::Node *node, IndexNameM
   for (uint32_t index_in_op_kernel = 0; index_in_op_kernel < output_size_in_op_kernel; index_in_op_kernel++) {
     auto output_info_ptr = output_info_in_opkernel.at(index_in_op_kernel);
     FE_CHECK(output_info_ptr == nullptr,
-             REPORT_FE_ERROR("[SubGraphOpt][PreCompileOp][FeedOutputs] OutputInfoPtr is nullptr."),
-             return FAILED);
+             REPORT_FE_ERROR("[SubGraphOpt][PreCompileOp][FeedOutputs] OutputInfoPtr is nullptr."), return FAILED);
     string output_name_in_op_kernel = output_info_ptr->GetName();
 
     vector<uint32_t> specific_output_index_vec_in_op_desc;
     if (GetSpecificIndex(*op.get(), output_idx_name_map, output_name_in_op_kernel, false,
                          specific_output_index_vec_in_op_desc) != SUCCESS) {
-      REPORT_FE_ERROR(
-          "[SubGraphOpt][PreCompileOp][FeedOutputs] Node [%s, %s]: failed to get output name %s.",
-          op->GetName().c_str(), op->GetType().c_str(), output_name_in_op_kernel.c_str());
+      REPORT_FE_ERROR("[SubGraphOpt][PreCompileOp][FeedOutputs] Node [%s, %s]: failed to get output name %s.",
+                      op->GetName().c_str(), op->GetType().c_str(), output_name_in_op_kernel.c_str());
       return FAILED;
     }
     auto size_of_this_output = specific_output_index_vec_in_op_desc.size();
@@ -1246,8 +1229,8 @@ Status TbeInfoAssembler::FeedOutputsToTbeOpInfo(const ge::Node *node, IndexNameM
           FeedFusionOutputTensor(l2_info, op, output_idx_name_map, index_in_opdesc, output_tensor);
         }
 
-        bool no_l2_info = l2_info == nullptr ||
-                          l2_info->slice_output_shape.empty() || l2_info->slice_output_shape.at(0).empty();
+        bool no_l2_info =
+            l2_info == nullptr || l2_info->slice_output_shape.empty() || l2_info->slice_output_shape.at(0).empty();
         bool only_optimize_info = (l1_info == nullptr && no_l2_info && optimize_info != nullptr);
         if (only_optimize_info) {
           FeedFusionOutputTensor(optimize_info, op, output_idx_name_map, index_in_opdesc, output_tensor);
@@ -1274,9 +1257,8 @@ Status TbeInfoAssembler::FeedOutputsToTbeOpInfo(const ge::Node *node, IndexNameM
       }
     } else {
       if (FeedParameterInfoForNotFound(output_info_ptr, STR_OUTPUT_LOWERCASE, output, op_info) != SUCCESS) {
-        REPORT_FE_ERROR(
-            "[SubGraphOpt][PreCompileOp][FeedOutputs] Node[%s, %s]: FeedDynamicOutputsToTbeOpInfo failed.",
-            op->GetName().c_str(), op->GetType().c_str());
+        REPORT_FE_ERROR("[SubGraphOpt][PreCompileOp][FeedOutputs] Node[%s, %s]: FeedDynamicOutputsToTbeOpInfo failed.",
+                        op->GetName().c_str(), op->GetType().c_str());
         return FAILED;
       }
       FE_LOGD("Optional output %u named [%s] is missing in Opdesc, we set a empty TbeOpTensor.", index_in_op_kernel,
@@ -1297,16 +1279,14 @@ Status TbeInfoAssembler::ConvertOutputsToTbeOpInfo(const ge::NodePtr &node, Inde
   for (uint32_t index_in_op_kernel = 0; index_in_op_kernel < output_size_in_op_kernel; index_in_op_kernel++) {
     auto output_info_ptr = output_info_in_opkernel.at(index_in_op_kernel);
     FE_CHECK(output_info_ptr == nullptr,
-             REPORT_FE_ERROR("[SubGraphOpt][PreCompileOp][ConvertOutputs] OutputInfoPtr is nullptr."),
-             return FAILED);
+             REPORT_FE_ERROR("[SubGraphOpt][PreCompileOp][ConvertOutputs] OutputInfoPtr is nullptr."), return FAILED);
     string output_name = output_info_ptr->GetName();
     auto op_desc = *(node->GetOpDesc());
     vector<uint32_t> specific_output_index_vec_in_op_desc;
     if (GetSpecificIndex(op_desc, output_idx_name_map, output_name, false, specific_output_index_vec_in_op_desc) !=
         SUCCESS) {
-      REPORT_FE_ERROR(
-          "[SubGraphOpt][PreCompileOp][ConvertOutputs] Node[%s, %s]: failed to obtain output name %s.",
-          op_desc.GetName().c_str(), op_desc.GetType().c_str(), output_name.c_str());
+      REPORT_FE_ERROR("[SubGraphOpt][PreCompileOp][ConvertOutputs] Node[%s, %s]: failed to obtain output name %s.",
+                      op_desc.GetName().c_str(), op_desc.GetType().c_str(), output_name.c_str());
       return FAILED;
     }
     auto size_of_this_output = specific_output_index_vec_in_op_desc.size();
@@ -1391,8 +1371,7 @@ Status TbeInfoAssembler::FeedAttrsToTbeOpInfo(const ge::OpDesc &op_desc, const O
   return SUCCESS;
 }
 
-void TbeInfoAssembler::GenerateTbePrivateAttrValue(const ge::OpDesc &op_desc,
-                                                   const ge::AnyValue &value_type,
+void TbeInfoAssembler::GenerateTbePrivateAttrValue(const ge::OpDesc &op_desc, const ge::AnyValue &value_type,
                                                    te::TbeAttrValue &tbe_attr_value, const string &attr_name) const {
   auto func = k_private_attr_get_funcs.find(value_type.GetValueType());
   if (func == k_private_attr_get_funcs.end()) {
@@ -1403,9 +1382,9 @@ void TbeInfoAssembler::GenerateTbePrivateAttrValue(const ge::OpDesc &op_desc,
 }
 
 void TbeInfoAssembler::GetPrivateAttrsList(const ge::OpDesc &op_desc,
-                                             std::vector<te::TbeAttrValue> &private_attrs_list) const {
+                                           std::vector<te::TbeAttrValue> &private_attrs_list) const {
   auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry(
-                              static_cast<gert::OppImplVersionTag>(op_desc.GetOppImplVersion()));
+      static_cast<gert::OppImplVersionTag>(op_desc.GetOppImplVersion()));
   if (space_registry == nullptr) {
     FE_LOGE("space_registry is nullptr");
     return;
@@ -1423,14 +1402,13 @@ void TbeInfoAssembler::GetPrivateAttrsList(const ge::OpDesc &op_desc,
       private_attrs_list.push_back(private_attr_value);
       continue;
     } else {
-      FE_LOGW("Cannot find the private attr %s from node %s",
-            private_attr_name, op_desc.GetName().c_str());
+      FE_LOGW("Cannot find the private attr %s from node %s", private_attr_name, op_desc.GetName().c_str());
     }
   }
 }
 
-Status TbeInfoAssembler::JudgeShapeToSetFlag(const ge::OpDescPtr &op_desc, const bool &is_input,
-                                             te::TbeOpInfo &op_info, bool &flag) const {
+Status TbeInfoAssembler::JudgeShapeToSetFlag(const ge::OpDescPtr &op_desc, const bool &is_input, te::TbeOpInfo &op_info,
+                                             bool &flag) const {
   if (flag) {
     return SUCCESS;
   }
@@ -1449,8 +1427,7 @@ Status TbeInfoAssembler::JudgeShapeToSetFlag(const ge::OpDescPtr &op_desc, const
     auto &shape = in_out_desc->MutableShape();
     ge::DataType data_type = in_out_desc->GetDataType();
     FE_CHECK(data_type == ge::DT_UNDEFINED || data_type >= ge::DT_MAX,
-             REPORT_FE_ERROR("[SubGraphOpt][PreCompileOp][JudgeShape] dataType UNDEFINED."),
-             return FAILED);
+             REPORT_FE_ERROR("[SubGraphOpt][PreCompileOp][JudgeShape] dataType UNDEFINED."), return FAILED);
     int64_t sum = 1;
     int64_t max_int32 = INT32_MAX;
     for (size_t index = 0; index < shape.GetDimNum(); index++) {
@@ -1484,8 +1461,7 @@ Status TbeInfoAssembler::FeedFlagInt64ToTbeOpInfo(const ge::Node *node, te::TbeO
   return SUCCESS;
 }
 
-Status TbeInfoAssembler::FeedIsUnknownShapeToTbeOpInfo(const ge::OpDesc &op_desc,
-                                                       te::TbeOpInfo &op_info) const {
+Status TbeInfoAssembler::FeedIsUnknownShapeToTbeOpInfo(const ge::OpDesc &op_desc, te::TbeOpInfo &op_info) const {
   bool is_unknown_shape = UnknownShapeUtils::IsUnknownShapeOp(op_desc);
   bool stc_tiling_depend = false;
   (void)ge::AttrUtils::GetBool(op_desc, kDynamicTilingDependOp, stc_tiling_depend);
@@ -1499,15 +1475,15 @@ Status TbeInfoAssembler::FeedIsUnknownShapeToTbeOpInfo(const ge::OpDesc &op_desc
 
 void TbeInfoAssembler::SetTbeInfoLimitedRange(const OpKernelInfoPtr &op_kernel_info_ptr, te::TbeOpInfo &op_info) const {
   const std::map<RangeLimitType, te::RangeLimitType>::const_iterator it =
-          kRangeLimitTypeMap.find(op_kernel_info_ptr->GetRangeLimitType());
+      kRangeLimitTypeMap.find(op_kernel_info_ptr->GetRangeLimitType());
   if (it != kRangeLimitTypeMap.cend()) {
     op_info.SetRangeLimitType(it->second);
     FE_LOGD("[AssembleTbeInfo] Limited range has been set to[%d].", it->second);
   }
 }
 
-void TbeInfoAssembler::SetTbeInfoVectorCore(const ge::OpDescPtr op_desc_ptr,
-                                            const OpKernelInfoPtr &op_kernel_info_ptr, te::TbeOpInfo &op_info) const {
+void TbeInfoAssembler::SetTbeInfoVectorCore(const ge::OpDescPtr op_desc_ptr, const OpKernelInfoPtr &op_kernel_info_ptr,
+                                            te::TbeOpInfo &op_info) const {
   if (Configuration::Instance(AI_CORE_NAME).IsEnableVirtualType()) {
     return;
   }
@@ -1517,7 +1493,7 @@ void TbeInfoAssembler::SetTbeInfoVectorCore(const ge::OpDescPtr op_desc_ptr,
     return;
   }
   const std::map<VectorCoreType, te::VectorCoreType>::const_iterator it =
-          kVectorCoreTypeMap.find(op_kernel_info_ptr->GetEnableVectorCore());
+      kVectorCoreTypeMap.find(op_kernel_info_ptr->GetEnableVectorCore());
   if (it != kVectorCoreTypeMap.cend()) {
     op_info.SetVectorCoreType(it->second);
     FE_LOGD("[AssembleTbeInfo] Vector core type has been set to[%d].", it->second);
@@ -1576,14 +1552,14 @@ void TbeInfoAssembler::SetOpImplMode(const std::string &engine_name, const ge::O
     auto iter = kOpImplIntToStr.find(op_impl_mode_enum);
     if (iter != kOpImplIntToStr.end()) {
       op_info.SetOpImplMode(iter->second);
-      FE_LOGD("Op[name=%s, type=%s] set op_impl_mode %s by node attr.",
-              op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str(), iter->second.c_str());
+      FE_LOGD("Op[name=%s, type=%s] set op_impl_mode %s by node attr.", op_desc_ptr->GetName().c_str(),
+              op_desc_ptr->GetType().c_str(), iter->second.c_str());
       return;
     }
   }
   std::string op_impl_mode;
   if (!Configuration::Instance(engine_name)
-      .GetOpImplMode(op_desc_ptr->GetName(), op_desc_ptr->GetType(), op_impl_mode)) {
+           .GetOpImplMode(op_desc_ptr->GetName(), op_desc_ptr->GetType(), op_impl_mode)) {
     FE_LOGD("Op[name=%s, type=%s] can't get op_impl_mode from config.", op_desc_ptr->GetName().c_str(),
             op_desc_ptr->GetType().c_str());
     return;
@@ -1593,8 +1569,8 @@ void TbeInfoAssembler::SetOpImplMode(const std::string &engine_name, const ge::O
     (void)ge::AttrUtils::SetInt(op_desc_ptr, OP_IMPL_MODE_ENUM, iter_impl_mode->second);
   }
   op_info.SetOpImplMode(op_impl_mode);
-  FE_LOGD("Op[name=%s, type=%s] set op_impl_mode %s by config.",
-          op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str(), op_impl_mode.c_str());
+  FE_LOGD("Op[name=%s, type=%s] set op_impl_mode %s by config.", op_desc_ptr->GetName().c_str(),
+          op_desc_ptr->GetType().c_str(), op_impl_mode.c_str());
   return;
 }
 
@@ -1627,7 +1603,7 @@ void TbeInfoAssembler::SetSingleOpScene(const ge::Node *node, te::TbeOpInfo &op_
 
 void TbeInfoAssembler::SetOpDynamicRank(const OpKernelInfoPtr &op_kernel_info_ptr, te::TbeOpInfo &op_info) const {
   const std::map<DynamicRankType, te::DynamicRankType>::const_iterator it =
-          kDynamicRankTypeMap.find(op_kernel_info_ptr->GetDynamicRankType());
+      kDynamicRankTypeMap.find(op_kernel_info_ptr->GetDynamicRankType());
   if (it != kDynamicRankTypeMap.cend()) {
     op_info.SetDynamicRankType(it->second);
     FE_LOGD("[AssembleTbeInfo] Dynamic_rank_type has been set to[%d].", it->second);
@@ -1649,15 +1625,15 @@ void TbeInfoAssembler::SetOpStorePattern(const OpKernelInfoPtr &op_kernel_info_p
 void TbeInfoAssembler::SetOpImplSwitch(const ge::OpDescPtr &op_desc_ptr, te::TbeOpInfo &tbe_op_info) const {
   std::string op_impl_switch;
   if (ge::AttrUtils::GetStr(op_desc_ptr, kAttrOpImplSwitchValue, op_impl_switch)) {
-    FE_LOGD("Attr op impl switch of op[%s, %s] is [%s].",
-            op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str(), op_impl_switch.c_str());
+    FE_LOGD("Attr op impl switch of op[%s, %s] is [%s].", op_desc_ptr->GetName().c_str(),
+            op_desc_ptr->GetType().c_str(), op_impl_switch.c_str());
     tbe_op_info.SetOpImplSwitch(op_impl_switch);
   }
 }
 
 void TbeInfoAssembler::SetOpJitCompile(const OpKernelInfoPtr &op_kernel_info_ptr, te::TbeOpInfo &op_info) const {
   const std::map<JitCompile, te::JitCompileType>::const_iterator iter =
-          kJitCompileMap.find(op_kernel_info_ptr->GetJitCompileType());
+      kJitCompileMap.find(op_kernel_info_ptr->GetJitCompileType());
   if (iter != kJitCompileMap.end()) {
     op_info.SetOpJitCompile(iter->second);
     FE_LOGD("[AssembleTbeInfo] Op jit compile has been set[%d].", iter->second);
@@ -1665,8 +1641,7 @@ void TbeInfoAssembler::SetOpJitCompile(const OpKernelInfoPtr &op_kernel_info_ptr
 }
 
 void TbeInfoAssembler::SetNeedPreCompile(const ge::OpDescPtr &op_desc_ptr, const OpKernelInfoPtr &op_kernel_info_ptr,
-                                         te::TbeOpInfo &op_info) const
-{
+                                         te::TbeOpInfo &op_info) const {
   if (op_kernel_info_ptr->GetCoreTypeVec().size() > 1 ||
       (op_kernel_info_ptr->GetCoreTypeVec().size() == 0 && IsCustomOp(*op_desc_ptr))) {
     op_info.SetNeedPreCompile(true);
@@ -1675,8 +1650,7 @@ void TbeInfoAssembler::SetNeedPreCompile(const ge::OpDescPtr &op_desc_ptr, const
 }
 
 void TbeInfoAssembler::SetOpDebugConfig(const std::string &engine_name, const ge::OpDescPtr &op_desc_ptr,
-                                        te::TbeOpInfo &op_info) const
-{
+                                        te::TbeOpInfo &op_info) const {
   bool is_debug_compile = false;
   if ((ge::AttrUtils::GetBool(op_desc_ptr, kOpDebugCompile, is_debug_compile) && is_debug_compile) ||
       Configuration::Instance(engine_name).IsConfigDebugListOp(op_desc_ptr)) {
@@ -1694,7 +1668,7 @@ Status TbeInfoAssembler::AssembleTbeInfo(const ge::NodePtr &node, const OpKernel
 
 void TbeInfoAssembler::TransIOIrIndxToRealIndex(const std::vector<size_t> &output_real_idex,
                                                 const std::vector<size_t> &input_real_idex,
-                                                vector<vector<int64_t>> &real_output_inplace) const{
+                                                vector<vector<int64_t>> &real_output_inplace) const {
   for (auto &real_out : output_real_idex) {
     for (auto &real_input : input_real_idex) {
       real_output_inplace.push_back({static_cast<int64_t>(real_out), static_cast<int64_t>(real_input)});
@@ -1705,7 +1679,7 @@ void TbeInfoAssembler::TransIOIrIndxToRealIndex(const std::vector<size_t> &outpu
 bool TbeInfoAssembler::SetOutputRealIndexInplaceAttr(const vector<vector<int64_t>> &output_inplace,
                                                      std::map<size_t, std::pair<size_t, size_t>> &input_ir_real_index,
                                                      std::map<size_t, std::pair<size_t, size_t>> &output_ir_real_index,
-                                                     vector<vector<int64_t>> &real_output_inplace) const{
+                                                     vector<vector<int64_t>> &real_output_inplace) const {
   for (auto &inplace_pair : output_inplace) {
     size_t output_ir_indx = static_cast<size_t>(inplace_pair[0]);
     size_t input_ir_indx = static_cast<size_t>(inplace_pair[1]);
@@ -1728,15 +1702,15 @@ bool TbeInfoAssembler::SetOutputRealIndexInplaceAttr(const vector<vector<int64_t
     for (size_t i = 0; i < output_it->second.second; i++) {
       output_real_idex.emplace_back(output_it->second.first + i);
     }
-    FE_LOGD("The output ir_index is[%lu], trans to real_index is [%s].",
-            output_ir_indx, StringUtils::IntegerVecToString(output_real_idex).c_str());
+    FE_LOGD("The output ir_index is[%lu], trans to real_index is [%s].", output_ir_indx,
+            StringUtils::IntegerVecToString(output_real_idex).c_str());
 
     std::vector<size_t> input_real_idex;
     for (size_t i = 0; i < input_it->second.second; i++) {
       input_real_idex.emplace_back(input_it->second.first + i);
     }
-    FE_LOGD("The input ir_index[%lu], trans to real_index is [%s].",
-            input_ir_indx, StringUtils::IntegerVecToString(input_real_idex).c_str());
+    FE_LOGD("The input ir_index[%lu], trans to real_index is [%s].", input_ir_indx,
+            StringUtils::IntegerVecToString(input_real_idex).c_str());
     TransIOIrIndxToRealIndex(output_real_idex, input_real_idex, real_output_inplace);
   }
   return true;
@@ -1845,8 +1819,7 @@ Status TbeInfoAssembler::AssembleTbeInfo(const ge::NodePtr &node, const OpKernel
   return SUCCESS;
 }
 
-bool TbeInfoAssembler::NeedCalibration(const string &engine_name,
-                                       map<std::string, std::string> &options,
+bool TbeInfoAssembler::NeedCalibration(const string &engine_name, map<std::string, std::string> &options,
                                        string &default_core_num_str) {
   std::string soc_version = all_plat_info_.opti_compilation_info.GetSocVersion();
   if (engine_name == VECTOR_CORE_NAME) {
@@ -1870,8 +1843,7 @@ bool TbeInfoAssembler::NeedCalibration(const string &engine_name,
   return true;
 }
 
-void TbeInfoAssembler::FindAmplifiedCoreNum(uint64_t exec_time,
-                                            string &final_core_num_str) {
+void TbeInfoAssembler::FindAmplifiedCoreNum(uint64_t exec_time, string &final_core_num_str) {
   auto original_core_num =
       static_cast<uint32_t>(BasicEstimator::GetUintParam(all_plat_info_.platform_info, kCfgSocInfo, kCfgAiCoreCnt));
 
@@ -1929,8 +1901,8 @@ void TbeInfoAssembler::CalibrateCoreNum(const ge::OpDesc &op_desc, const string 
   string final_core_num_str(default_core_num_str);
   if (need_calibration) {
     uint64_t exec_time = 0;
-    Status ret = ExecutionTimeEstimator::GetExecTime(all_plat_info_.platform_info, op_desc,
-                                                     op_kernel_info_ptr, exec_time);
+    Status ret =
+        ExecutionTimeEstimator::GetExecTime(all_plat_info_.platform_info, op_desc, op_kernel_info_ptr, exec_time);
     if (ret == SUCCESS) {
       FE_LOGD("The estimated execution time of op %s is %lu.", op_desc.GetName().c_str(), exec_time);
       FindAmplifiedCoreNum(exec_time, final_core_num_str);
@@ -1969,9 +1941,8 @@ Status TbeInfoAssembler::AssembleTbeInfo(ge::Node *node, const OpKernelInfoPtr &
   auto op = node->GetOpDesc();
   if (fe::Configuration::Instance(AI_CORE_NAME).IsConfigDebugListOp(op) &&
       !ge::AttrUtils::HasAttr(op, kOpDebugCompile)) {
-      FE_LOGD("op[%s, %s] set op_debug_compile in assemble tbeinfo",
-              op->GetName().c_str(), op->GetType().c_str());
-      ge::AttrUtils::SetBool(op, kOpDebugCompile, true);
+    FE_LOGD("op[%s, %s] set op_debug_compile in assemble tbeinfo", op->GetName().c_str(), op->GetType().c_str());
+    ge::AttrUtils::SetBool(op, kOpDebugCompile, true);
   }
 
   if (GetInputOutputNameMap(*(op.get()), op_kernel_info_ptr, input_map, output_map) != SUCCESS) {
@@ -2010,9 +1981,8 @@ Status TbeInfoAssembler::AssembleTbeInfo(ge::Node *node, const OpKernelInfoPtr &
 
   // feed all IsUnknownShape to TbeOpInfo
   if (FeedIsUnknownShapeToTbeOpInfo(*(op.get()), tbe_op_info) != SUCCESS) {
-    REPORT_FE_ERROR(
-        "[SubGraphOpt][PreCompileOp][AssembleInput] Node[%s, %s]: failed to feedIsUnknownShapeToTbeOpInfo.",
-        op->GetName().c_str(), op->GetType().c_str());
+    REPORT_FE_ERROR("[SubGraphOpt][PreCompileOp][AssembleInput] Node[%s, %s]: failed to feedIsUnknownShapeToTbeOpInfo.",
+                    op->GetName().c_str(), op->GetType().c_str());
     return FAILED;
   }
 
@@ -2077,9 +2047,8 @@ Status TbeInfoAssembler::AssembleAutoFuseTbeInfo(ge::Node *node, te::TbeOpInfo &
   auto op = node->GetOpDesc();
   if (fe::Configuration::Instance(AI_CORE_NAME).IsConfigDebugListOp(op) &&
       !ge::AttrUtils::HasAttr(op, kOpDebugCompile)) {
-      FE_LOGD("Op[%s, %s] set op_debug_compile in assemble tbeinfo.",
-              op->GetName().c_str(), op->GetType().c_str());
-      ge::AttrUtils::SetBool(op, kOpDebugCompile, true);
+    FE_LOGD("Op[%s, %s] set op_debug_compile in assemble tbeinfo.", op->GetName().c_str(), op->GetType().c_str());
+    ge::AttrUtils::SetBool(op, kOpDebugCompile, true);
   }
 
   // input info
@@ -2096,16 +2065,15 @@ Status TbeInfoAssembler::AssembleAutoFuseTbeInfo(ge::Node *node, te::TbeOpInfo &
   }
 
   if (FeedFlagInt64ToTbeOpInfo(node, tbe_op_info) != SUCCESS) {
-    REPORT_FE_ERROR(
-        "[SubGraphOpt][PreCompileOp][AssembleInput] Node[%s, %s] AssembleTbeInfo FeedFlagInt64 failed.",
-        op->GetName().c_str(), op->GetType().c_str());
+    REPORT_FE_ERROR("[SubGraphOpt][PreCompileOp][AssembleInput] Node[%s, %s] AssembleTbeInfo FeedFlagInt64 failed.",
+                    op->GetName().c_str(), op->GetType().c_str());
     return FAILED;
   }
 
   // feed all IsUnknownShape to TbeOpInfo
   if (FeedIsUnknownShapeToTbeOpInfo(*(op.get()), tbe_op_info) != SUCCESS) {
     REPORT_FE_ERROR("[SubGraphOpt][PreCompileOp][AssembleInput] Node[%s, %s]: failed to feedIsUnknown.",
-        op->GetName().c_str(), op->GetType().c_str());
+                    op->GetName().c_str(), op->GetType().c_str());
     return FAILED;
   }
 

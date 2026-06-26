@@ -138,10 +138,10 @@ bool CheckFilePath(const std::string &filePath, const std::string &fileType) {
 HcclResult HcomLoadRanktableFile(const std::string &rankTablePath, std::string &rankTableM) {
   HcclResult ret;
   if (rankTablePath.empty()) {
-    REPORT_PREDEFINED_ERR_MSG(
-        "EI0004", std::vector<const char *>({"ranktable_path", "error_reason"}),
-        std::vector<const char *>({rankTablePath.c_str(),
-        "The rankTable file path does not exist, the permission is insufficient, or the JSON format is incorrect."}));
+    REPORT_PREDEFINED_ERR_MSG("EI0004", std::vector<const char *>({"ranktable_path", "error_reason"}),
+                              std::vector<const char *>({rankTablePath.c_str(),
+                                                         "The rankTable file path does not exist, the permission is "
+                                                         "insufficient, or the JSON format is incorrect."}));
     HCCL_ERROR("[Load][File] json file length is zero");
     return HCCL_E_PARA;
   }
@@ -150,8 +150,9 @@ HcclResult HcomLoadRanktableFile(const std::string &rankTablePath, std::string &
   std::string fileType = ".json";
   if (!CheckFilePath(rankTablePath, fileType)) {
     REPORT_PREDEFINED_ERR_MSG("EI0004", std::vector<const char *>({"error_reason", "ranktable_path"}),
-                              std::vector<const char *>({ rankTablePath.c_str(),
-                              "The rankTable file path does not exist, the permission is insufficient, or the JSON format is incorrect."}));
+                              std::vector<const char *>({rankTablePath.c_str(),
+                                                         "The rankTable file path does not exist, the permission is "
+                                                         "insufficient, or the JSON format is incorrect."}));
     HCCL_ERROR("[Load][File] path %s is not a valid %s file", rankTablePath.c_str(), fileType.c_str());
     return HCCL_E_PARA;
   }
@@ -205,7 +206,8 @@ HcclResult ReadFile(const std::string &readFile, nlohmann::json &fileContent) {
     } catch (...) {
       REPORT_PREDEFINED_ERR_MSG("EI0004", std::vector<const char *>({"ranktable_path", "error_reason"}),
                                 std::vector<const char *>({readFile.c_str(),
-                                "The rankTable file path does not exist, the permission is insufficient, or the JSON format is incorrect."}));
+                                                           "The rankTable file path does not exist, the permission is "
+                                                           "insufficient, or the JSON format is incorrect."}));
       HCCL_ERROR("[Read][File] load file[%s] to json fail. please check json file!", readFile.c_str());
       infile.close();
       return HCCL_E_INTERNAL;
@@ -222,7 +224,8 @@ HcclResult HcomGetRanktableRealPath(const char *rankTable, std::string &realFile
   if (rankTablePathLen == (RANK_TABLE_MAX_LEN + 1) || rankTablePathLen == 0) {
     REPORT_PREDEFINED_ERR_MSG("EI0004", std::vector<const char *>({"ranktable_path", "error_reason"}),
                               std::vector<const char *>({rankTable,
-                              "The rankTable file path does not exist, the permission is insufficient, or the JSON format is incorrect."}));
+                                                         "The rankTable file path does not exist, the permission is "
+                                                         "insufficient, or the JSON format is incorrect."}));
     HCCL_ERROR("[Get][RanktableRealPath]errNo[0x%016llx] rankTable file name is invalid, len is %u",
                HCOM_ERROR_CODE(HCCL_E_PARA), rankTablePathLen);
     return HCCL_E_PARA;
@@ -232,7 +235,8 @@ HcclResult HcomGetRanktableRealPath(const char *rankTable, std::string &realFile
   if (realpath(rankTable, realFile) == nullptr) {
     REPORT_PREDEFINED_ERR_MSG("EI0004", std::vector<const char *>({"ranktable_path", "error_reason"}),
                               std::vector<const char *>({rankTable,
-                              "The rankTable file path does not exist, the permission is insufficient, or the JSON format is incorrect."}));
+                                                         "The rankTable file path does not exist, the permission is "
+                                                         "insufficient, or the JSON format is incorrect."}));
     HCCL_ERROR("[Get][RanktableRealPath]errNo[0x%016llx] path %s is not a valid real path",
                HCOM_ERROR_CODE(HCCL_E_PARA), rankTable);
     return HCCL_E_PARA;

@@ -25,7 +25,7 @@ struct NodeCost {
   size_t compute_cycles = 0;
   size_t memory_usage = 0;
   size_t bandwidth_usage = 0;
-  float execution_time = -1.0f; // 执行耗时，单位是us, -1是默认值
+  float execution_time = -1.0f;  // 执行耗时，单位是us, -1是默认值
   size_t cube_block_num = 0;
   size_t vec_block_num = 0;
 };
@@ -45,10 +45,10 @@ class DAGNode : public std::enable_shared_from_this<DAGNode> {
   std::vector<std::shared_ptr<DAGEdge>> GetOutputEdges() const;
   std::vector<std::shared_ptr<DAGNode>> GetInputNodes() const;
   std::vector<std::shared_ptr<DAGNode>> GetOutputNodes() const;
-  const NodeCost& GetCost() const;
+  const NodeCost &GetCost() const;
   void SetCost(const NodeCost &cost);
   void SetSerialFlag(const std::string &flag);
-  const std::string& GetSerialFlag() const;
+  const std::string &GetSerialFlag() const;
 
  private:
   std::string name_;

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -52,8 +52,7 @@ ge::ExecuteGraphPtr GetExecuteGraph(ge::ExecuteGraph *const root_graph, SubExeGr
   return sub_graph->shared_from_this();
 }
 
-ge::graphStatus AllocRootGraphAnyValues(const ge::ExecuteGraphPtr &exe_graph,
-                                        SymbolsToValue &symbols_to_value,
+ge::graphStatus AllocRootGraphAnyValues(const ge::ExecuteGraphPtr &exe_graph, SymbolsToValue &symbols_to_value,
                                         TopologicalResourceGuard *resource_guard) {
   auto executor_builder = GraphExecutorBuilder({nullptr, nullptr}, exe_graph, &symbols_to_value);
   auto base_ed_builder = ge::MakeUnique<SequentialExecutionDataBuilder>(executor_builder);
@@ -64,8 +63,7 @@ ge::graphStatus AllocRootGraphAnyValues(const ge::ExecuteGraphPtr &exe_graph,
   return ge::SUCCESS;
 }
 
-ModelV2ExecutorBuilder::ModelV2ExecutorBuilder(const ge::ExecuteGraphPtr &exe_graph) : exe_graph_(exe_graph) {
-}
+ModelV2ExecutorBuilder::ModelV2ExecutorBuilder(const ge::ExecuteGraphPtr &exe_graph) : exe_graph_(exe_graph) {}
 
 ModelV2ExecutorBuilder &ModelV2ExecutorBuilder::ExecuteGraph(const ge::ExecuteGraphPtr &exe_graph) {
   exe_graph_ = exe_graph;
@@ -304,7 +302,8 @@ ge::graphStatus ModelV2ExecutorBuilder::RestoreDeviceVarMem(ModelV2Executor &exe
   void *external_var_addr = nullptr;
   uint64_t external_var_size = 0;
   session_->GetExternalVar(external_var_addr, external_var_size);
-  GE_ASSERT_SUCCESS(rt_var_manager->Init(device_id, logic_var_base, total_var_size, external_var_addr, external_var_size));
+  GE_ASSERT_SUCCESS(
+      rt_var_manager->Init(device_id, logic_var_base, total_var_size, external_var_addr, external_var_size));
   GE_ASSERT_SUCCESS(rt_var_manager->RestoreDeviceVariables(device_variables, graph_id, device_id));
 
   return ge::GRAPH_SUCCESS;
@@ -344,8 +343,8 @@ void ModelV2ExecutorBuilder::SetOutputReuseInputMemIndexes(ModelV2Executor &exec
       continue;
     }
     ge::ParseOutputReuseInputMemIndexes(reuse_indexes_str, executor.io_same_addr_pairs_);
-    GELOGI("Read output reuse input mem indexes from model %s, pairs count: %zu",
-           iter.first.c_str(), executor.io_same_addr_pairs_.size());
+    GELOGI("Read output reuse input mem indexes from model %s, pairs count: %zu", iter.first.c_str(),
+           executor.io_same_addr_pairs_.size());
     break;  // Only need to read from one model
   }
 }

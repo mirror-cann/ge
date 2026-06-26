@@ -11,15 +11,18 @@
 # ----------------------------------------------------------------------------
 import argparse
 
-from ge.offline_compile import build_finalize, build_initialize, build_model, save_model
-
 from common import build_add_graph
+from ge.offline_compile import build_finalize, build_initialize, build_model, save_model
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Build an offline OM model from a GE Python Graph.")
-    parser.add_argument("--soc-version", type=str, default=None,
-                        help="Target soc version, for example Ascend910B1.")
+    parser.add_argument(
+        "--soc-version",
+        type=str,
+        default=None,
+        help="Target soc version, for example Ascend910B1.",
+    )
     return parser.parse_args()
 
 

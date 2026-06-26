@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,7 +30,7 @@ bool IsEqualWith(const gert::Shape &rt_shape, const ge::Shape &ge_shape) {
   }
   return true;
 }
-}
+}  // namespace
 class UtestTensorTransUtils : public testing::Test {
  protected:
   void SetUp() {}
@@ -45,10 +45,10 @@ TEST_F(UtestTensorTransUtils, TransDeviceRtTensorToHostTensor_without_value_Succ
                           gert::kOnDeviceHbm,                           // placement
                           ge::DT_FLOAT,                                 // data type
                           nullptr};
-  gert::Tensor tensor1 = {{{100, 100, 1, 100}, {3, 100, 1, 100}},  // shape
-                          {ge::FORMAT_ND, ge::FORMAT_NC1HWC0, {}},   // format
-                          gert::kOnDeviceHbm,                           // placement
-                          ge::DT_FLOAT,                                 // data type
+  gert::Tensor tensor1 = {{{100, 100, 1, 100}, {3, 100, 1, 100}},   // shape
+                          {ge::FORMAT_ND, ge::FORMAT_NC1HWC0, {}},  // format
+                          gert::kOnDeviceHbm,                       // placement
+                          ge::DT_FLOAT,                             // data type
                           nullptr};
   std::vector<gert::Tensor> srcs;
   srcs.emplace_back(std::move(tensor0));
@@ -125,7 +125,8 @@ TEST_F(UtestTensorTransUtils, GertTensors2Tensors) {
 }
 
 /*
- * 构造ge_tensor, 转换成为gert_tensor, 释放ge_tensor, 校验gert_tensor的数据，表示ge_tensor释放后，gert_tensor还可以访问数据
+ * 构造ge_tensor, 转换成为gert_tensor, 释放ge_tensor,
+ * 校验gert_tensor的数据，表示ge_tensor释放后，gert_tensor还可以访问数据
  */
 TEST_F(UtestTensorTransUtils, GeTensors2GertTensors_CheckDataAfterFreeGeTensors) {
   std::vector<GeTensor> ge_tensors;
@@ -140,7 +141,7 @@ TEST_F(UtestTensorTransUtils, GeTensors2GertTensors_CheckDataAfterFreeGeTensors)
     EXPECT_EQ(TensorCheckUtils::CheckGeTensorEqGertTensor(ge_tensors[i], gert_tensors[i]), SUCCESS);
   }
   const auto buffer_size = ge_tensors[0].MutableData().GetSize();
-  auto buffer = new (std::nothrow) uint32_t [buffer_size];
+  auto buffer = new (std::nothrow) uint32_t[buffer_size];
   ASSERT_NE(buffer, nullptr);
   memccpy(buffer, ge_tensors[0].MutableData().GetData(), buffer_size, buffer_size);
   ge_tensors.clear();
@@ -152,7 +153,7 @@ TEST_F(UtestTensorTransUtils, GeTensors2GertTensors_CheckDataAfterFreeGeTensors)
   for (size_t i = 0; i < buffer_size / sizeof(uint32_t); i++) {
     EXPECT_EQ(buffer[i], dst_data[i]);
   }
-  delete [] buffer;
+  delete[] buffer;
   gert_tensors.clear();
 }
 
@@ -173,13 +174,14 @@ TEST_F(UtestTensorTransUtils, GeTensors2GertTensors_GertTensorShare) {
     EXPECT_EQ(TensorCheckUtils::CheckGeTensorEqGertTensor(ge_tensors[i], gert_tensors[i]), SUCCESS);
   }
   const auto buffer_size = ge_tensors[0].MutableData().GetSize();
-  auto buffer = new (std::nothrow) uint32_t [buffer_size];
+  auto buffer = new (std::nothrow) uint32_t[buffer_size];
   ASSERT_NE(buffer, nullptr);
   memccpy(buffer, ge_tensors[0].MutableData().GetData(), buffer_size, buffer_size);
   ge_tensors.clear();
 
   // share from
-  gert::Tensor gert_tensor_share(gert_tensors[0].GetShape(), gert_tensors[0].GetFormat(), gert_tensors[0].GetDataType());
+  gert::Tensor gert_tensor_share(gert_tensors[0].GetShape(), gert_tensors[0].GetFormat(),
+                                 gert_tensors[0].GetDataType());
   gert_tensor_share.MutableTensorData().ShareFrom(gert_tensors[0].GetTensorData());
   gert_tensors.clear();
 
@@ -190,7 +192,7 @@ TEST_F(UtestTensorTransUtils, GeTensors2GertTensors_GertTensorShare) {
   for (size_t i = 0; i < buffer_size / sizeof(uint32_t); i++) {
     EXPECT_EQ(buffer[i], dst_data[i]);
   }
-  delete [] buffer;
+  delete[] buffer;
 }
 
 TEST_F(UtestTensorTransUtils, Tensors2GertTensors) {
@@ -262,8 +264,7 @@ TEST_F(UtestTensorTransUtils, TransGertTensorToHost_WithShareFrom) {
   ASSERT_EQ(TensorTransUtils::GeTensor2GertTensor(ge_tensor, device_gert_tensor), SUCCESS);
   EXPECT_EQ(TensorCheckUtils::CheckGeTensorEqGertTensor(ge_tensor, device_gert_tensor), SUCCESS);
 
-  ASSERT_EQ(TensorTransUtils::TransGertTensorToHost(device_gert_tensor,
-    host_gert_tensor), SUCCESS);
+  ASSERT_EQ(TensorTransUtils::TransGertTensorToHost(device_gert_tensor, host_gert_tensor), SUCCESS);
 
   // address 64 aligned
   auto addr = host_gert_tensor.GetAddr();
@@ -277,7 +278,7 @@ TEST_F(UtestTensorTransUtils, TransGertTensorToHost_WithShareFrom) {
 
   // share from，测试两个gert_tensor可单独释放
   gert::Tensor host_gert_tensor_share(host_gert_tensor.GetShape(), host_gert_tensor.GetFormat(),
-    host_gert_tensor.GetDataType());
+                                      host_gert_tensor.GetDataType());
   host_gert_tensor_share.MutableTensorData().ShareFrom(host_gert_tensor.GetTensorData());
 
   // 原始host gert_tensor释放
@@ -328,12 +329,12 @@ TEST_F(UtestTensorTransUtils, ShareFromGertTensors) {
 TEST_F(UtestTensorTransUtils, ContructRtShapeFromGeShape) {
   GeShape ge_shape;
   ge_shape.AppendDim(1);
-  auto rt_shape =TensorTransUtils::ContructRtShapeFromGeShape(ge_shape);
+  auto rt_shape = TensorTransUtils::ContructRtShapeFromGeShape(ge_shape);
   EXPECT_EQ(rt_shape.GetDimNum(), 1);
 }
 
 TEST_F(UtestTensorTransUtils, ContructRtShapeFromVector) {
-  auto rt_shape =TensorTransUtils::ContructRtShapeFromVector({1});
+  auto rt_shape = TensorTransUtils::ContructRtShapeFromVector({1});
   EXPECT_EQ(rt_shape.GetDimNum(), 1);
 }
 
@@ -466,7 +467,7 @@ TEST_F(UtestTensorTransUtils, AsTensorView_GertTensors2Tensors_ResetData_CrashSc
   }
 
   // 保存原始数据指针用于后续验证
-  const void* original_data_ptr = a_vec[0].GetData();
+  const void *original_data_ptr = a_vec[0].GetData();
 
   // 2. 使用 AsTensorView 转换为 gert::Tensor b（只引用，不持有所有权）
   std::vector<gert::Tensor> b_vec;
@@ -474,7 +475,7 @@ TEST_F(UtestTensorTransUtils, AsTensorView_GertTensors2Tensors_ResetData_CrashSc
   EXPECT_EQ(status, SUCCESS);
 
   // 验证 b_vec 只是指向 a 的数据（通过地址比较）
-  const void* b_data_ptr = b_vec[0].GetAddr();
+  const void *b_data_ptr = b_vec[0].GetAddr();
   EXPECT_EQ(b_data_ptr, original_data_ptr);
 
   // 3. 使用 GertTensors2Tensors 转换为 ge::Tensor c（创建 output_holder 和 deleter）
@@ -484,7 +485,7 @@ TEST_F(UtestTensorTransUtils, AsTensorView_GertTensors2Tensors_ResetData_CrashSc
   EXPECT_EQ(c_vec.size(), 1);
 
   // 验证 c 的数据也指向相同地址（共享数据）
-  const void* c_data_ptr_before_reset = c_vec[0].GetData();
+  const void *c_data_ptr_before_reset = c_vec[0].GetData();
   EXPECT_EQ(c_data_ptr_before_reset, original_data_ptr);
 
   // 4. 调用 ResetData() 转移所有权（模拟 TensorFlow BuildOutputTensorInfo 的行为）
@@ -538,7 +539,7 @@ TEST_F(UtestTensorTransUtils, AsTensorView_GertTensors2Tensors_ResetData_CrashSc
 TEST_F(UtestTensorTransUtils, RunGraphAsyncCallback_FullSimulation) {
   // 模拟 RunGraphAsyncCallback 函数
   auto simulate_run_graph_async_callback = [](std::vector<ge::Tensor> &ge_tensors,
-                                               std::unique_ptr<uint8_t[], Tensor::DeleteFunc> &out_data) {
+                                              std::unique_ptr<uint8_t[], Tensor::DeleteFunc> &out_data) {
     // 模拟 callback：调用 ResetData() 转移所有权
     out_data = ge_tensors[0].ResetData();
   };
@@ -570,4 +571,4 @@ TEST_F(UtestTensorTransUtils, RunGraphAsyncCallback_FullSimulation) {
 
   // 如果代码运行到这里没有 coredump，说明在这个场景下没有触发问题
 }
-}
+}  // namespace ge

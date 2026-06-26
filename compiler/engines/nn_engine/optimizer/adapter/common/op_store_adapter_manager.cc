@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,16 +23,16 @@ namespace fe {
 static const std::string kStrTbeOpAdapter = "tbe_op_adapter";
 static const std::string kStrDsaOpAdapter = "dsa_op_adapter";
 static const std::string kStrReserve = "reserve";
-static const std::unordered_map<OpImplType, std::string> ADAPTER_TYPE_MAP {
-        {EN_IMPL_CUSTOM_TIK, kStrReserve},
-        {EN_IMPL_CUSTOM_TBE, kStrTbeOpAdapter},
-        {EN_IMPL_HW_TIK, kStrReserve},
-        {EN_IMPL_HW_TBE, kStrTbeOpAdapter},
-        {EN_IMPL_RL, kStrReserve},
-        {EN_IMPL_VECTOR_CORE_HW_TBE, kStrTbeOpAdapter},
-        {EN_IMPL_VECTOR_CORE_CUSTOM_TBE, kStrTbeOpAdapter},
-        {EN_IMPL_NON_PERSISTENT_CUSTOM_TBE, kStrTbeOpAdapter},
-        {EN_IMPL_HW_DSA, kStrDsaOpAdapter}};
+static const std::unordered_map<OpImplType, std::string> ADAPTER_TYPE_MAP{
+    {EN_IMPL_CUSTOM_TIK, kStrReserve},
+    {EN_IMPL_CUSTOM_TBE, kStrTbeOpAdapter},
+    {EN_IMPL_HW_TIK, kStrReserve},
+    {EN_IMPL_HW_TBE, kStrTbeOpAdapter},
+    {EN_IMPL_RL, kStrReserve},
+    {EN_IMPL_VECTOR_CORE_HW_TBE, kStrTbeOpAdapter},
+    {EN_IMPL_VECTOR_CORE_CUSTOM_TBE, kStrTbeOpAdapter},
+    {EN_IMPL_NON_PERSISTENT_CUSTOM_TBE, kStrTbeOpAdapter},
+    {EN_IMPL_HW_DSA, kStrDsaOpAdapter}};
 
 OpStoreAdapterManager &OpStoreAdapterManager::Instance(const std::string &engine_name) {
   static std::map<std::string, OpStoreAdapterManager &> ops_store_adapter_map;
@@ -52,8 +52,8 @@ OpStoreAdapterManager &OpStoreAdapterManager::Instance(const std::string &engine
   return ops_store_adapter_map.begin()->second;
 }
 
-OpStoreAdapterManager::OpStoreAdapterManager(const std::string &engine_name) : init_flag_(false),
-                                                                               engine_name_(engine_name) {}
+OpStoreAdapterManager::OpStoreAdapterManager(const std::string &engine_name)
+    : init_flag_(false), engine_name_(engine_name) {}
 
 OpStoreAdapterManager::~OpStoreAdapterManager() {}
 
@@ -62,7 +62,7 @@ Status OpStoreAdapterManager::InitializeAdapter(const std::string &adapter_type,
   Status result = SUCCESS;
   FE_LOGD("The InitializeAdapter is adapter[%s].", adapter_type.c_str());
   std::unordered_map<std::string, OpStoreAdapterPtr>::const_iterator adapter_ptr_iter =
-          map_all_op_store_adapter_.find(adapter_type);
+      map_all_op_store_adapter_.find(adapter_type);
   if (adapter_ptr_iter != map_all_op_store_adapter_.end()) {
     FE_LOGD("The [%s] has already been initialized.", adapter_type.c_str());
     return SUCCESS;
@@ -157,8 +157,7 @@ Status OpStoreAdapterManager::Finalize() {
   return SUCCESS;
 }
 
-Status OpStoreAdapterManager::GetOpStoreAdapter(const OpImplType &op_impl_type,
-                                                OpStoreAdapterPtr &adapter_ptr) const {
+Status OpStoreAdapterManager::GetOpStoreAdapter(const OpImplType &op_impl_type, OpStoreAdapterPtr &adapter_ptr) const {
   OpImplType impl_type = GetMainImplType<OpImplType>(op_impl_type);
   auto adapter_str_iter = ADAPTER_TYPE_MAP.find(impl_type);
   if (adapter_str_iter == ADAPTER_TYPE_MAP.end()) {
@@ -189,8 +188,8 @@ OpStoreAdapterPtr OpStoreAdapterManager::GetOpStoreAdapter(const OpImplType &op_
 
   auto adapter_ptr_iter = map_all_op_store_adapter_.find(adapter_str_iter->second);
   if (adapter_ptr_iter == map_all_op_store_adapter_.end()) {
-      FE_LOGW("[SubGraphOpt][PreCompileOp][GetOpStoreAdapter] op store adapter is not found, adapter name [%s].",
-              adapter_str_iter->second.c_str());
+    FE_LOGW("[SubGraphOpt][PreCompileOp][GetOpStoreAdapter] op store adapter is not found, adapter name [%s].",
+            adapter_str_iter->second.c_str());
     return nullptr;
   }
 

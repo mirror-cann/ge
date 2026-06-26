@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,13 +26,11 @@ using namespace std;
 using namespace fe;
 using namespace ge;
 
-class TENSORSIZE_CALCULATOR_UTEST: public testing::Test {
+class TENSORSIZE_CALCULATOR_UTEST : public testing::Test {
  protected:
-  void SetUp() {
-  }
+  void SetUp() {}
 
-  void TearDown() {
-  }
+  void TearDown() {}
 };
 
 TEST_F(TENSORSIZE_CALCULATOR_UTEST, CalcSingleTensorSize_suc) {
@@ -108,7 +106,6 @@ TEST_F(TENSORSIZE_CALCULATOR_UTEST, SpecialOutput) {
   ge::TensorUtils::GetSize(*in_tensor, in_tensor_size);
   EXPECT_EQ(in_tensor_size, 12000032);
 
-
   ge::TensorUtils::GetSize(*out_tensor, out_tensor_size);
   EXPECT_EQ(out_tensor_size, 64);
 }
@@ -144,11 +141,9 @@ TEST_F(TENSORSIZE_CALCULATOR_UTEST, SpecialOutput_02) {
   ge::TensorUtils::GetSize(*in_tensor, in_tensor_size);
   EXPECT_EQ(in_tensor_size, 12000000);
 
-
   ge::TensorUtils::GetSize(*out_tensor, out_tensor_size);
   EXPECT_EQ(out_tensor_size, 5);
 }
-
 
 TEST_F(TENSORSIZE_CALCULATOR_UTEST, test_complex_size) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
@@ -213,8 +208,7 @@ TEST_F(TENSORSIZE_CALCULATOR_UTEST, test_fifo_size) {
   ge::AttrUtils::SetInt(in_tensor_0, ge::ATTR_NAME_SPECIAL_INPUT_SIZE, tensor_size);
   ge::AttrUtils::SetInt(in_tensor_0, ge::ATTR_NAME_TENSOR_MEMORY_SCOPE, ddr_base);
 
-  ge::GraphUtils::AddEdge(node_0->GetOutDataAnchor(0),
-                          node_1->GetInDataAnchor(0));
+  ge::GraphUtils::AddEdge(node_0->GetOutDataAnchor(0), node_1->GetInDataAnchor(0));
 
   int output_real_calc_flag = 1;
   Status ret = TensorSizeCalculator::CalcInputOpTensorSize(node_1, output_real_calc_flag);

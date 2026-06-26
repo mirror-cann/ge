@@ -20,12 +20,11 @@
 #include "common/ge_rts_decl.h"
 
 namespace ge {
-const std::map<int32_t, int32_t> kTopicTypeToRtsFlagMap {
+const std::map<int32_t, int32_t> kTopicTypeToRtsFlagMap{
     {static_cast<int32_t>(aicpu::FWKAdapter::FWK_ADPT_TOPIC_DEVICE_ONLY), 0},
     {static_cast<int32_t>(aicpu::FWKAdapter::FWK_ADPT_TOPIC_DEVICE_FIRST), RT_KERNEL_DEVICE_FIRST},
     {static_cast<int32_t>(aicpu::FWKAdapter::FWK_ADPT_TOPIC_HOST_ONLY), RT_KERNEL_HOST_ONLY},
-    {static_cast<int32_t>(aicpu::FWKAdapter::FWK_ADPT_TOPIC_HOST_FIRST), RT_KERNEL_HOST_FIRST}
-};
+    {static_cast<int32_t>(aicpu::FWKAdapter::FWK_ADPT_TOPIC_HOST_FIRST), RT_KERNEL_HOST_FIRST}};
 
 class Om2CodegenUtils {
  public:

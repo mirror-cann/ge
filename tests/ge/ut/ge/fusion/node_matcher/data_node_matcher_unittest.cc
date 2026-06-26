@@ -1,12 +1,12 @@
 /**
-* Copyright (c) 2025 Huawei Technologies Co., Ltd.
-* This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
-* CANN Open Software License Agreement Version 2.0 (the "License").
-* Please refer to the License for details. You may not use this file except in compliance with the License.
-* THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
-* INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
-* See LICENSE in the root of the software repository for the full text of the License.
-*/
+ * Copyright (c) 2025 Huawei Technologies Co., Ltd.
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
+ * CANN Open Software License Agreement Version 2.0 (the "License").
+ * Please refer to the License for details. You may not use this file except in compliance with the License.
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
+ * See LICENSE in the root of the software repository for the full text of the License.
+ */
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include "common/share_graph.h"
@@ -46,7 +46,8 @@ EsCGraphBuilder *UtestDataNodeMatcher::graph_;
 std::unordered_map<std::string, EsCTensorHolder *> UtestDataNodeMatcher::node_2_tensor_;
 
 TEST_F(UtestDataNodeMatcher, NormalNode_Match) {
-  auto pattern_graph = std::unique_ptr<EsCGraphBuilder, void (*)(EsCGraphBuilder *)>(EsCreateGraphBuilder("pattern"), EsDestroyGraphBuilder);
+  auto pattern_graph = std::unique_ptr<EsCGraphBuilder, void (*)(EsCGraphBuilder *)>(EsCreateGraphBuilder("pattern"),
+                                                                                     EsDestroyGraphBuilder);
   auto pattern_graph_ptr = pattern_graph.get();
   auto input_tensor = EsCreateGraphInput(pattern_graph_ptr, 0);
 
@@ -56,7 +57,8 @@ TEST_F(UtestDataNodeMatcher, NormalNode_Match) {
 }
 
 TEST_F(UtestDataNodeMatcher, Constant_Match) {
-  auto pattern_graph = std::unique_ptr<EsCGraphBuilder, void (*)(EsCGraphBuilder *)>(EsCreateGraphBuilder("pattern"), EsDestroyGraphBuilder);
+  auto pattern_graph = std::unique_ptr<EsCGraphBuilder, void (*)(EsCGraphBuilder *)>(EsCreateGraphBuilder("pattern"),
+                                                                                     EsDestroyGraphBuilder);
   auto pattern_graph_ptr = pattern_graph.get();
   auto input_tensor = EsCreateGraphInput(pattern_graph_ptr, 0);
 
@@ -64,5 +66,5 @@ TEST_F(UtestDataNodeMatcher, Constant_Match) {
   DataMatcher matcher;
   EXPECT_TRUE(matcher.IsMatch(NodeAdapter::GNode2Node(input_tensor->GetProducer()), target_node));
 }
-} // namespace fusion
-} // namespace ge
+}  // namespace fusion
+}  // namespace ge

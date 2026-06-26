@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -73,8 +73,8 @@ std::vector<int64_t> ComputeStrides(const std::vector<int64_t> &shape) {
   return strides;
 }
 
-bool Broadcast(const std::vector<Expression> &src_data, const std::vector<int64_t> &src_shape, const std::vector<int64_t> &dst_shape,
-               std::vector<Expression> &dst_data) {
+bool Broadcast(const std::vector<Expression> &src_data, const std::vector<int64_t> &src_shape,
+               const std::vector<int64_t> &dst_shape, std::vector<Expression> &dst_data) {
   std::vector<int64_t> aligned_src = AlignShape(src_shape, dst_shape);
   if (aligned_src.size() != dst_shape.size()) {
     GELOGW("Cannot broadcast, after aligned shape size is not equal, aligned_size: %zu , dst_size: %zu",

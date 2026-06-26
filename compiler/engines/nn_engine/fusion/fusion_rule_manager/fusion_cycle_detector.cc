@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,9 +32,8 @@ Status FusionCycleDetector::Initialize(const ge::ComputeGraph &graph) {
   std::unique_ptr<ConnectionMatrix> connection_matrix;
   GetConnectionMatrix(connection_matrix);
   if (connection_matrix == nullptr) {
-    FE_MAKE_SHARED(connection_matrix =
-        std::unique_ptr<ConnectionMatrix>(new(std::nothrow) ConnectionMatrix(true)),
-        return FAILED);
+    FE_MAKE_SHARED(connection_matrix = std::unique_ptr<ConnectionMatrix>(new (std::nothrow) ConnectionMatrix(true)),
+                   return FAILED);
   }
   connection_matrix->Generate(graph);
   SetConnectionMatrix(connection_matrix);
@@ -101,4 +100,4 @@ bool FusionCycleDetector::IsDataFlowConnected(const ge::NodePtr &a, const ge::No
   SetConnectionMatrix(connection_matrix);
   return result;
 }
-}
+}  // namespace fe

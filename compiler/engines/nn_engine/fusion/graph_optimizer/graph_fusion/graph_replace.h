@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -63,8 +63,7 @@ class GraphReplace {
    * @param   [in/out] graph, origin graph
    * @return  SUCCESS or GRAPH_REPLACE_CREATE_FUSION_NODES_FAILED
    */
-  Status CreateFusionNodes(const FusionRulePattern &fusion_rule_pattern,
-                           const FusionRuleNodeMapping &origin_sub_graph,
+  Status CreateFusionNodes(const FusionRulePattern &fusion_rule_pattern, const FusionRuleNodeMapping &origin_sub_graph,
                            FusionRuleNodeMapping &fusion_graph, ge::ComputeGraph &graph) const;
   /*
    * @ingroup fe
@@ -75,8 +74,7 @@ class GraphReplace {
    * corresponds to fusion node
    * @return  SUCCESS or GRAPH_REPLACE_UPDATE_ATTR_FAILED
    */
-  Status UpdateAttr(const FusionRuleNodeMapping &origin_sub_graph,
-                    const FusionRuleNodeMapping &fusion_sub_graph) const;
+  Status UpdateAttr(const FusionRuleNodeMapping &origin_sub_graph, const FusionRuleNodeMapping &fusion_sub_graph) const;
   /*
    * @ingroup fe
    * @brief   update node's special attr value
@@ -157,7 +155,7 @@ class GraphReplace {
    * @param   [in] node_name, node name
    * @param   [in/out] graph, origin graph
    * @return  NodePtr:fusion node
-*/
+   */
   ge::NodePtr CreateNode(const FusionRuleNodePtr fusion_rule_node, const string &node_name,
                          ge::ComputeGraph &graph) const;
   /*
@@ -168,9 +166,9 @@ class GraphReplace {
    * @param   [in] fusion_rule_pattern, fusion pattern
    * @param   [in] types, node types
    * @return  string
-*/
-  string CreateNodeName(const FusionRuleNodeMapping &origin_sub_graph,
-                        const FusionRulePattern &fusion_rule_pattern, const vector<string> &types) const;
+   */
+  string CreateNodeName(const FusionRuleNodeMapping &origin_sub_graph, const FusionRulePattern &fusion_rule_pattern,
+                        const vector<string> &types) const;
   /*
    * @ingroup fe
    * @brief   using node name of fusion rule to find whether this fusion node is
@@ -179,7 +177,7 @@ class GraphReplace {
    * @param   [in] origin_sub_graph, subgraph with fusion rule node corresponds to
    * pre-fusion node
    * @return  NodePtr, if not find return nullptr
-*/
+   */
   ge::NodePtr FindSameNode(const FusionRuleNodePtr fusion_rule_node,
                            const FusionRuleNodeMapping &origin_sub_graph) const;
   /*
@@ -246,8 +244,7 @@ class GraphReplace {
    * @ingroup fe
    * @brief check if the fusion node supports
    */
-  Status CheckFusionNode(GraphMatchResult &match_result,
-                         const FusionRuleNodeMapping &fusion_nodes);
+  Status CheckFusionNode(GraphMatchResult &match_result, const FusionRuleNodeMapping &fusion_nodes);
   /*
    * @ingroup fe
    * @brief establish the edge between the fusion nodes
@@ -257,8 +254,7 @@ class GraphReplace {
    * @ingroup fe
    * @brief Sorting the fusion nodes topology
    */
-  bool TopoSortFusionNode(const FusionRuleNodeMapping &fusion_nodes,
-                          vector<ge::NodePtr> &sort_nodes) const;
+  bool TopoSortFusionNode(const FusionRuleNodeMapping &fusion_nodes, vector<ge::NodePtr> &sort_nodes) const;
   /*
    * @ingroup fe
    * @brief Establish the edge of the fusion nodes and the outer input nodes

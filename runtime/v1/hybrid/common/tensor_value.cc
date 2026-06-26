@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,8 +20,8 @@ TensorBuffer::TensorBuffer(NpuMemoryAllocator *const allocator, void *const buff
                            const MemStorageType mem_type)
     : allocator_(allocator), buffer_(buffer), size_(size), mem_type_(mem_type) {}
 
-std::unique_ptr<TensorBuffer> TensorBuffer::Create(NpuMemoryAllocator * const allocator, const size_t size,
-                                                   const AllocationAttr * const attr) {
+std::unique_ptr<TensorBuffer> TensorBuffer::Create(NpuMemoryAllocator *const allocator, const size_t size,
+                                                   const AllocationAttr *const attr) {
   void *buffer = nullptr;
   if (size == 0U) {
     GELOGD("size is 0");
@@ -71,11 +71,12 @@ TensorValue::TensorValue(const std::shared_ptr<TensorBuffer> buffer) : buffer_(s
   }
 }
 
-TensorValue::TensorValue(void *const buffer, const size_t size, const MemStorageType mem_type) : ref_buffer_(buffer),
-    ref_size_(size), mem_type_(mem_type) {
-}
+TensorValue::TensorValue(void *const buffer, const size_t size, const MemStorageType mem_type)
+    : ref_buffer_(buffer), ref_size_(size), mem_type_(mem_type) {}
 
-TensorValue::~TensorValue() { Destroy(); }
+TensorValue::~TensorValue() {
+  Destroy();
+}
 
 void TensorValue::Destroy() {
   if (buffer_ != nullptr) {

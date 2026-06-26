@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -11,7 +11,6 @@
 #include "parser_mmpa_stub.h"
 #include "mmpa/mmpa_api.h"
 #include <string>
-
 
 typedef int mmErrorMSg;
 
@@ -144,7 +143,9 @@ void *memCpyS(void *dest, const void *src, UINT32 count) {
   return dest;
 }
 
-INT32 mmRmdir(const CHAR *lp_path_name) { return rmdir(lp_path_name); }
+INT32 mmRmdir(const CHAR *lp_path_name) {
+  return rmdir(lp_path_name);
+}
 
 mmTimespec mmGetTickCount() {
   mmTimespec rts;
@@ -214,17 +215,13 @@ INT32 mmGetFileSize(const CHAR *file_name, ULONGLONG *length) {
   return EN_OK;
 }
 
-INT32 mmScandir(const CHAR *path, mmDirent ***entryList, mmFilter filterFunc,  mmSort sort)
-{
+INT32 mmScandir(const CHAR *path, mmDirent ***entryList, mmFilter filterFunc, mmSort sort) {
   return 0;
 }
 
-VOID mmScandirFree(mmDirent **entryList, INT32 count)
-{
-}
+VOID mmScandirFree(mmDirent **entryList, INT32 count) {}
 
-INT32 mmAccess2(const CHAR *pathName, INT32 mode)
-{
+INT32 mmAccess2(const CHAR *pathName, INT32 mode) {
   if (pathName == NULL) {
     return EN_INVALID_PARAM;
   }
@@ -235,23 +232,19 @@ INT32 mmAccess2(const CHAR *pathName, INT32 mode)
   return EN_OK;
 }
 
-INT32 mmGetTimeOfDay(mmTimeval *timeVal, mmTimezone *timeZone)
-{
+INT32 mmGetTimeOfDay(mmTimeval *timeVal, mmTimezone *timeZone) {
   return 0;
 }
 
-INT32 mmRealPath(const CHAR *path, CHAR *realPath, INT32 realPathLen)
-{
+INT32 mmRealPath(const CHAR *path, CHAR *realPath, INT32 realPathLen) {
   return ge::MmpaStub::GetInstance().GetImpl()->mmRealPath(path, realPath, realPathLen);
 }
 
-INT32 mmGetErrorCode()
-{
+INT32 mmGetErrorCode() {
   return 0;
 }
 
-INT32 mmIsDir(const CHAR *fileName)
-{
+INT32 mmIsDir(const CHAR *fileName) {
   struct stat fileStat;
   memset(&fileStat, sizeof(fileStat), 0);
   int32_t ret = lstat(fileName, &fileStat);
@@ -264,38 +257,31 @@ INT32 mmIsDir(const CHAR *fileName)
   return 0;
 }
 
-INT32 mmGetEnv(const CHAR *name, CHAR *value, UINT32 len)
-{
+INT32 mmGetEnv(const CHAR *name, CHAR *value, UINT32 len) {
   return 0;
 }
 
-INT32 mmDlclose(VOID *handle)
-{
+INT32 mmDlclose(VOID *handle) {
   return 0;
 }
 
-CHAR *mmDlerror()
-{
+CHAR *mmDlerror() {
   return "";
 }
 
-INT32 mmDladdr(VOID *addr, mmDlInfo *info)
-{
+INT32 mmDladdr(VOID *addr, mmDlInfo *info) {
   return ge::MmpaStub::GetInstance().GetImpl()->mmDladdr(addr, info);
 }
 
-VOID *mmDlopen(const CHAR *fileName, INT32 mode)
-{
+VOID *mmDlopen(const CHAR *fileName, INT32 mode) {
   return ge::MmpaStub::GetInstance().GetImpl()->mmDlopen(fileName, mode);
 }
 
-VOID *mmDlsym(VOID *handle, const CHAR *funcName)
-{
+VOID *mmDlsym(VOID *handle, const CHAR *funcName) {
   return NULL;
 }
 
-INT32 mmGetPid()
-{
+INT32 mmGetPid() {
   return (INT32)getpid();
 }
 
@@ -307,8 +293,7 @@ INT32 mmDup(INT32 fd) {
   return 0;
 }
 
-CHAR *mmGetErrorFormatMessage(mmErrorMSg errnum, CHAR *buf, mmSize size)
-{
+CHAR *mmGetErrorFormatMessage(mmErrorMSg errnum, CHAR *buf, mmSize size) {
   if ((buf == NULL) || (size <= 0)) {
     return NULL;
   }

@@ -1,6 +1,6 @@
-/* Copyright (c) 2026 Huawei Technologies Co., Ltd.
+/* Copyright (c) 2025 Huawei Technologies Co., Ltd.
  * This file is a part of the CANN Open Software.
- * Licensed under CANN Open Software License Agreement Version 1.0 (the "License").
+ * Licensed under CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
  * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
@@ -22,76 +22,76 @@
 namespace ge {
 
 class GeSession::Impl {
-  public:
-    Impl(const std::map<std::string, std::string> &options);
+ public:
+  Impl(const std::map<std::string, std::string> &options);
 
-    ~Impl();
+  ~Impl();
 
-    void SetSessionId(uint64_t session_id);
+  void SetSessionId(uint64_t session_id);
 
-    uint64_t GetSessionId() const;
+  uint64_t GetSessionId() const;
 
-    std::shared_ptr<InnerSession> GetInnerSession();
+  std::shared_ptr<InnerSession> GetInnerSession();
 
-    Status AddGraph(uint32_t graph_id, const Graph &graph, const std::map<std::string, std::string> &options);
+  Status AddGraph(uint32_t graph_id, const Graph &graph, const std::map<std::string, std::string> &options);
 
-    Status AddGraphWithCopy(uint32_t graph_id, const Graph &graph, const std::map<std::string, std::string> &options);
+  Status AddGraphWithCopy(uint32_t graph_id, const Graph &graph, const std::map<std::string, std::string> &options);
 
-    Status RemoveGraph(uint32_t graph_id);
+  Status RemoveGraph(uint32_t graph_id);
 
-    Status CompileGraph(uint32_t graph_id, const std::vector<ge::Tensor> &inputs);
+  Status CompileGraph(uint32_t graph_id, const std::vector<ge::Tensor> &inputs);
 
-    Status LoadGraph(const uint32_t graph_id, const std::map<AscendString, AscendString> &options, void *stream);
+  Status LoadGraph(const uint32_t graph_id, const std::map<AscendString, AscendString> &options, void *stream);
 
-    Status DumpDebugJSONPrint(uint32_t graph_id, uint32_t flags, AscendString &json_result) const;
+  Status DumpDebugJSONPrint(uint32_t graph_id, uint32_t flags, AscendString &json_result) const;
 
-    Status RunGraph(uint32_t graph_id, const std::vector<gert::Tensor> &inputs, std::vector<gert::Tensor> &outputs);
+  Status RunGraph(uint32_t graph_id, const std::vector<gert::Tensor> &inputs, std::vector<gert::Tensor> &outputs);
 
-    Status RunGraphAsync(uint32_t graph_id, std::vector<gert::Tensor> &&inputs,
-        std::function<void(Status status, std::vector<gert::Tensor> &outputs)> callback);
+  Status RunGraphAsync(uint32_t graph_id, std::vector<gert::Tensor> &&inputs,
+                       std::function<void(Status status, std::vector<gert::Tensor> &outputs)> callback);
 
-    Status RunGraphWithStreamAsync(uint32_t graph_id, const rtStream_t stream,
-                                   const std::vector<gert::Tensor> &inputs, std::vector<gert::Tensor> &outputs);
+  Status RunGraphWithStreamAsync(uint32_t graph_id, const rtStream_t stream, const std::vector<gert::Tensor> &inputs,
+                                 std::vector<gert::Tensor> &outputs);
 
-    Status RegisterCallBackFunc(
+  Status RegisterCallBackFunc(
       const std::string &key,
       const std::function<Status(uint32_t, const std::map<AscendString, gert::Tensor> &)> &callback);
 
-    bool IsGraphNeedRebuild(uint32_t graph_id);
+  bool IsGraphNeedRebuild(uint32_t graph_id);
 
-    Status AddDumpProperties(const DumpProperties &dump_properties) const;
+  Status AddDumpProperties(const DumpProperties &dump_properties) const;
 
-    Status RemoveDumpProperties() const;
+  Status RemoveDumpProperties() const;
 
-    Status GetCompiledGraphSummary(uint32_t graph_id, CompiledGraphSummaryPtr &summary);
+  Status GetCompiledGraphSummary(uint32_t graph_id, CompiledGraphSummaryPtr &summary);
 
-    Status SetGraphConstMemoryBase(uint32_t graph_id, const void *const memory, size_t size);
+  Status SetGraphConstMemoryBase(uint32_t graph_id, const void *const memory, size_t size);
 
-    Status UpdateGraphFeatureMemoryBase(uint32_t graph_id, const void *const memory, size_t size);
+  Status UpdateGraphFeatureMemoryBase(uint32_t graph_id, const void *const memory, size_t size);
 
-    Status SetGraphFixedFeatureMemoryBase(uint32_t graph_id, MemoryType type, const void *const memory, size_t size);
+  Status SetGraphFixedFeatureMemoryBase(uint32_t graph_id, MemoryType type, const void *const memory, size_t size);
 
-    Status UpdateGraphRefreshableFeatureMemoryBase(uint32_t graph_id, const void *const memory, size_t size);
+  Status UpdateGraphRefreshableFeatureMemoryBase(uint32_t graph_id, const void *const memory, size_t size);
 
-    Status RegisterExternalAllocator(const void *const stream, AllocatorPtr allocator) const;
+  Status RegisterExternalAllocator(const void *const stream, AllocatorPtr allocator) const;
 
-    Status UnregisterExternalAllocator(const void * const stream) const;
+  Status UnregisterExternalAllocator(const void *const stream) const;
 
-    Status GetRunGraphMode(uint32_t graph_id, RunGraphMode &mode) const;
+  Status GetRunGraphMode(uint32_t graph_id, RunGraphMode &mode) const;
 
-    Status SetRunGraphMode(uint32_t graph_id, const RunGraphMode &mode);
+  Status SetRunGraphMode(uint32_t graph_id, const RunGraphMode &mode);
 
-    Status GetCompiledModel(uint32_t graph_id, ModelBufferData &model_buffer);
+  Status GetCompiledModel(uint32_t graph_id, ModelBufferData &model_buffer);
 
-    bool GetBuildFlag(uint32_t graph_id) const;
+  bool GetBuildFlag(uint32_t graph_id) const;
 
-    bool GetLoadFlag(uint32_t graph_id) const;
+  bool GetLoadFlag(uint32_t graph_id) const;
 
-    void UpdateGlobalSessionContext() const;
+  void UpdateGlobalSessionContext() const;
 
-  private:
-    uint64_t session_id_{0};
-    SessionPtr inner_session_;
+ private:
+  uint64_t session_id_{0};
+  SessionPtr inner_session_;
 };
 }  // namespace ge
 

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,7 +28,7 @@ Status Block2DataCtxParam(const Block &block, int64_t dtype_size, int64_t burst_
   int64_t burst_remain = dim_0_size % burst_len;
   /* Li may larger than the burst_len(which is the maximum number of
    * data in the inner dimension). We will separate the inner block
-   * and give each param a additional offset(burst_len * index after seperated).
+   * and give each param a additional offset(burst_len * index after separated).
    */
   int64_t inner_block_count = burst_count + (burst_remain > 0 ? 1 : 0);
 
@@ -54,12 +54,11 @@ Status Block2DataCtxParam(const Block &block, int64_t dtype_size, int64_t burst_
   return SUCCESS;
 }
 
-Status DimensionMerge(const std::vector<int64_t> &shape,
-                      const std::vector<DimRange> &slice, Block &block) {
+Status DimensionMerge(const std::vector<int64_t> &shape, const std::vector<DimRange> &slice, Block &block) {
   size_t dim_count = shape.size();
   if (dim_count != slice.size()) {
-    FFTS_LOGW("[GenTsk][DataTsk][DimMerge] The dimension count %zu is not the same as the slice size %zu.",
-              dim_count, slice.size());
+    FFTS_LOGW("[GenTsk][DataTsk][DimMerge] The dimension count %zu is not the same as the slice size %zu.", dim_count,
+              slice.size());
     return FAILED;
   }
 
@@ -74,21 +73,22 @@ Status DimensionMerge(const std::vector<int64_t> &shape,
     int64_t slice_low = slice[i_reverse].lower;
     int64_t slice_high = slice[i_reverse].higher;
     if (slice_low < 0 || slice_high <= slice_low) {
-      REPORT_FFTS_ERROR("[GenTsk][DataTsk][DimMerge]slice_low %ld is less than 0 or greater than slice_high %ld.", slice_low, slice_high);
+      REPORT_FFTS_ERROR("[GenTsk][DataTsk][DimMerge]slice_low %ld is less than 0 or greater than slice_high %ld.",
+                        slice_low, slice_high);
       return FAILED;
     }
 
-    FFTS_LOGD("before block dimensions are: {%ld, %ld, %ld}, stride dimensions {%ld, %ld, %ld}."
-              "slice low = %ld, "
-              "ori dim = %ld, "
-              "blk.offset = %ld, "
-              "stride = %ld.",
-              blk.dim[0U], blk.dim[1U], blk.dim[2U],
-              blk.dim_stride[0U], blk.dim_stride[1U], blk.dim_stride[2U],
-              slice_low, dim, blk.offset, stride);
+    FFTS_LOGD(
+        "before block dimensions are: {%ld, %ld, %ld}, stride dimensions {%ld, %ld, %ld}."
+        "slice low = %ld, "
+        "ori dim = %ld, "
+        "blk.offset = %ld, "
+        "stride = %ld.",
+        blk.dim[0U], blk.dim[1U], blk.dim[2U], blk.dim_stride[0U], blk.dim_stride[1U], blk.dim_stride[2U], slice_low,
+        dim, blk.offset, stride);
     if (slice_high - slice_low != dim) {
       /* If current dim is equal to 3 and slice number is 4, we cannot describe the slicing.
-       * Because using inner len + outter len can not describe the 4th
+       * Because using inner len + outer len can not describe the 4th
        * axis slicing. */
       if (curr_dim >= kBlockDim) {
         REPORT_FFTS_ERROR("[GenTsk][DataTsk][DimMerge] curr_dim %d is larger than max block dim(3).", curr_dim);
@@ -106,14 +106,14 @@ Status DimensionMerge(const std::vector<int64_t> &shape,
       stride *= dim;
       accumulation *= dim;
     }
-    FFTS_LOGD("after block dimensions are: {%ld, %ld, %ld}, stride dimensions {%ld, %ld, %ld}."
-              "slice low = %ld, "
-              "ori dim = %ld, "
-              "blk.offset = %ld, "
-              "stride = %ld.",
-              blk.dim[0U], blk.dim[1U], blk.dim[2U],
-              blk.dim_stride[0U], blk.dim_stride[1U], blk.dim_stride[2U],
-              slice_low, dim, blk.offset, stride);
+    FFTS_LOGD(
+        "after block dimensions are: {%ld, %ld, %ld}, stride dimensions {%ld, %ld, %ld}."
+        "slice low = %ld, "
+        "ori dim = %ld, "
+        "blk.offset = %ld, "
+        "stride = %ld.",
+        blk.dim[0U], blk.dim[1U], blk.dim[2U], blk.dim_stride[0U], blk.dim_stride[1U], blk.dim_stride[2U], slice_low,
+        dim, blk.offset, stride);
   }
 
   /* block dim[0] is equal to zero means we do not split any of the axes.
@@ -130,22 +130,21 @@ Status DimensionMerge(const std::vector<int64_t> &shape,
       accumulation = 1;
     }
   }
-  /* If the accumulation is not 1, we will seperate the total
+  /* If the accumulation is not 1, we will separate the total
    * stride into several block and for each the stride is
    * total stride divided by accumulation. */
   blk.stride = stride / accumulation;
   blk.count = accumulation;
 
   block = blk;
-  FFTS_LOGD("block dimensions are: {%ld, %ld, %ld}, stride dimensions {%ld, %ld, %ld}.",
-            block.dim[0U], block.dim[1U], block.dim[2U],
-            block.dim_stride[0U], block.dim_stride[1U], block.dim_stride[2U]);
+  FFTS_LOGD("block dimensions are: {%ld, %ld, %ld}, stride dimensions {%ld, %ld, %ld}.", block.dim[0U], block.dim[1U],
+            block.dim[2U], block.dim_stride[0U], block.dim_stride[1U], block.dim_stride[2U]);
   FFTS_LOGD("offset: %ld, count %ld, stride %ld.", block.offset, block.count, block.stride);
   return SUCCESS;
 }
 
-Status GetPeerNodeAndOutIdx(const ge::NodePtr &ori_node, int32_t ori_index,
-                            ge::NodePtr &peer_node, int32_t &peer_index) {
+Status GetPeerNodeAndOutIdx(const ge::NodePtr &ori_node, int32_t ori_index, ge::NodePtr &peer_node,
+                            int32_t &peer_index) {
   auto in_anchor = ori_node->GetInDataAnchor(ori_index);
   FFTS_CHECK_NOTNULL(in_anchor);
   auto peer_out_anchor = in_anchor->GetPeerOutAnchor();
@@ -169,8 +168,8 @@ Status GetSliceList(const ge::NodePtr &node, int index, bool is_input, ge::GeTen
     return FAILED;
   }
   if (tensor_slice[thread_id].size() <= static_cast<size_t>(index)) {
-    FFTS_LOGW("[GenTsk][DataTsk][MemSlice]size of thread %u of node %s is %zu, which is <= %d.",
-              thread_id, node->GetName().c_str(), slice_info_ptr->input_tensor_slice[thread_id].size(), index);
+    FFTS_LOGW("[GenTsk][DataTsk][MemSlice]size of thread %u of node %s is %zu, which is <= %d.", thread_id,
+              node->GetName().c_str(), slice_info_ptr->input_tensor_slice[thread_id].size(), index);
     return FAILED;
   }
   if (is_input) {
@@ -198,8 +197,7 @@ Status GetSliceList(const ge::NodePtr &node, int index, bool is_input, ge::GeTen
 }
 }  // namespace
 
-Status MemorySlice::GenerateDataCtxParam(const std::vector<int64_t> &shape,
-                                         const std::vector<DimRange> &slice,
+Status MemorySlice::GenerateDataCtxParam(const std::vector<int64_t> &shape, const std::vector<DimRange> &slice,
                                          ge::DataType dtype, int64_t burst_len,
                                          std::vector<DataContextParam> &data_ctx) {
   Block block;
@@ -223,13 +221,13 @@ Status MemorySlice::GenerateManualDataCtxParam(const ge::NodePtr &node, int32_t 
   ge::GeTensorDescPtr tensor_desc = nullptr;
   vector<std::vector<DimRange>> slice_list;
   if (GetSliceList(node, index, is_input, tensor_desc, slice_list) != SUCCESS) {
-    FFTS_LOGW("[GenTsk][DataTsk][GenManualDataCtxParam] Index[%d] of node[%s] Get slice list failed.",
-              index, node->GetName().c_str());
+    FFTS_LOGW("[GenTsk][DataTsk][GenManualDataCtxParam] Index[%d] of node[%s] Get slice list failed.", index,
+              node->GetName().c_str());
     return FAILED;
   }
   if (slice_list.size() != 1) {
-    FFTS_LOGW("[GenTsk][DataTsk][GenManualDataCtxParam] Slice list size for index [%d] of node [%s] is %zu.",
-              index, node->GetName().c_str(), slice_list.size());
+    FFTS_LOGW("[GenTsk][DataTsk][GenManualDataCtxParam] Slice list size for index [%d] of node [%s] is %zu.", index,
+              node->GetName().c_str(), slice_list.size());
     return FAILED;
   }
   FFTS_CHECK_NOTNULL(tensor_desc);
@@ -253,9 +251,9 @@ Status MemorySlice::GenerateManualDataCtxParam(const ge::NodePtr &node, int32_t 
   FFTS_LOGD("[GenManualDataCtxParam] slice size is: %zu, Shape of index %d of node %s is %s.", slice_list.size(), index,
             node->GetName().c_str(), fe::StringUtils::IntegerVecToString(shape_dims).c_str());
   FFTS_LOGD("Range is: {");
-  for (const auto &eles : slice_list) {
-    for (const auto &ele : eles) {
-      FFTS_LOGD("[%ld, %ld]", ele.lower, ele.higher);
+  for (const auto &oth : slice_list) {
+    for (const auto &ot : oth) {
+      FFTS_LOGD("[%ld, %ld]", ot.lower, ot.higher);
     }
   }
   FFTS_LOGD("}");
@@ -272,8 +270,8 @@ Status MemorySlice::GenerateAutoDataCtxParam(const ge::NodePtr &node, int32_t in
     return FAILED;
   }
   if (slice_list.size() <= 1) {
-    REPORT_FFTS_ERROR("[GenTsk][DataTsk][GenAutoDataCtxParam] Index[%d] of node[%s] slice list size is %zu",
-                      index, node->GetName().c_str(), slice_list.size());
+    REPORT_FFTS_ERROR("[GenTsk][DataTsk][GenAutoDataCtxParam] Index[%d] of node[%s] slice list size is %zu", index,
+                      node->GetName().c_str(), slice_list.size());
     return FAILED;
   }
   FFTS_CHECK_NOTNULL(tensor_desc);
@@ -282,24 +280,26 @@ Status MemorySlice::GenerateAutoDataCtxParam(const ge::NodePtr &node, int32_t in
             slice_list.size(), index, node->GetName().c_str(),
             fe::StringUtils::IntegerVecToString(shape.GetDims()).c_str());
   FFTS_LOGD("Range is: {");
-  for (const auto &eles : slice_list) {
-    for (const auto &ele : eles) {
-      FFTS_LOGD("[%ld, %ld]", ele.lower, ele.higher);
+  for (const auto &oth : slice_list) {
+    for (const auto &ot : oth) {
+      FFTS_LOGD("[%ld, %ld]", ot.lower, ot.higher);
     }
   }
   FFTS_LOGD("}");
 
   // single data context
   for (const auto &slice : slice_list) {
-     std::vector<DataContextParam> data_ctx_param;
-     GenerateDataCtxParam(shape.GetDims(), slice, tensor_desc->GetDataType(), burst_len, data_ctx_param);
-     if (data_ctx_param.size() != 1) {
-       FFTS_LOGW("[GenTsk][DataTsk][GenAutoDataCtxParam] Index[%d] of node[%s] has data_ctx_param size:[%zu], which is not equal to 1.", index,
-                 node->GetName().c_str(), data_ctx_param.size());
-       return FAILED;
-     }
-     param_nontail_tail.push_back(data_ctx_param[0U]);
+    std::vector<DataContextParam> data_ctx_param;
+    GenerateDataCtxParam(shape.GetDims(), slice, tensor_desc->GetDataType(), burst_len, data_ctx_param);
+    if (data_ctx_param.size() != 1) {
+      FFTS_LOGW(
+          "[GenTsk][DataTsk][GenAutoDataCtxParam] Index[%d] of node[%s] has data_ctx_param size:[%zu], which is not "
+          "equal to 1.",
+          index, node->GetName().c_str(), data_ctx_param.size());
+      return FAILED;
+    }
+    param_nontail_tail.push_back(data_ctx_param[0U]);
   }
   return SUCCESS;
 }
-}
+}  // namespace ffts

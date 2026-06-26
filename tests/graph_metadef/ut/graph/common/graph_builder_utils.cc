@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -65,7 +65,7 @@ NodePtr GraphBuilder::AddNode(const string &name, const string &type, std::initi
 }
 
 FastNode *ExecuteGraphBuilder::AddNode(const std::string &name, const std::string &type, int in_cnt, int out_cnt,
-                                    Format format, DataType data_type, std::vector<int64_t> shape) {
+                                       Format format, DataType data_type, std::vector<int64_t> shape) {
   auto tensor_desc = GetTensorDesc(name, type, format, data_type, shape);
 
   auto op_desc_ptr = std::make_shared<OpDesc>(name, type);
@@ -86,9 +86,9 @@ FastEdge *ExecuteGraphBuilder::AddControlEdge(FastNode *src_node, FastNode *dst_
   return graph_->AddEdge(src_node, -1, dst_node, -1);
 }
 FastNode *ExecuteGraphBuilder::AddNode(const string &name, const string &type,
-                                    std::initializer_list<std::string> input_names,
-                                    std::initializer_list<std::string> output_names, Format format, DataType data_type,
-                                    std::vector<int64_t> shape) {
+                                       std::initializer_list<std::string> input_names,
+                                       std::initializer_list<std::string> output_names, Format format,
+                                       DataType data_type, std::vector<int64_t> shape) {
   auto tensor_desc = GetTensorDesc(name, type, format, data_type, shape);
 
   auto op_desc_ptr = std::make_shared<OpDesc>(name, type);

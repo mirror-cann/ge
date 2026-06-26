@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -46,8 +46,7 @@ bool IsGetNextOpType(const OpDescPtr op_desc) {
   std::string origin_op_type;
   (void)ge::AttrUtils::GetStr(op_desc, ATTR_NAME_FRAMEWORK_ORIGINAL_TYPE, origin_op_type);
   auto is_get_next = [](const std::string op_type) -> bool {
-    return (op_type == GETNEXT || op_type == DYNAMICGETNEXT || op_type == DYNAMICGETNEXTV2 ||
-            op_type == kIteratorV2);
+    return (op_type == GETNEXT || op_type == DYNAMICGETNEXT || op_type == DYNAMICGETNEXTV2 || op_type == kIteratorV2);
   };
   return is_get_next(op_desc->GetType()) || is_get_next(origin_op_type);
 }
@@ -71,8 +70,7 @@ Status ProfilingTaskUtils::FindGetNextNodes(std::vector<int64_t> &get_next_nodes
   return SUCCESS;
 }
 
-Status ProfilingTaskUtils::FindFpOpCrossSubgraph(const NodePtr &node, int32_t index,
-                                                 OpDescPtr &fp_op_desc) const {
+Status ProfilingTaskUtils::FindFpOpCrossSubgraph(const NodePtr &node, int32_t index, OpDescPtr &fp_op_desc) const {
   std::stack<NodePtr> node_stack;
   node_stack.push(node);
   while (!node_stack.empty()) {
@@ -80,11 +78,11 @@ Status ProfilingTaskUtils::FindFpOpCrossSubgraph(const NodePtr &node, int32_t in
     node_stack.pop();
     GE_CHECK_NOTNULL(cur_node);
     const auto &data_node_vec = NodeUtils::GetSubgraphDataNodesByIndex(*cur_node, index);
-    for (const auto& data_node : data_node_vec) {
+    for (const auto &data_node : data_node_vec) {
       GE_CHECK_NOTNULL(data_node);
       const auto &out_anchor = data_node->GetOutDataAnchor(0);
       GE_CHECK_NOTNULL(out_anchor);
-      for (const auto& peer_in_anchor : out_anchor->GetPeerInDataAnchors()) {
+      for (const auto &peer_in_anchor : out_anchor->GetPeerInDataAnchors()) {
         GE_CHECK_NOTNULL(peer_in_anchor);
         const auto &in_node_desc = peer_in_anchor->GetOwnerNodeBarePtr()->GetOpDesc();
         GE_CHECK_NOTNULL(in_node_desc);
@@ -404,8 +402,7 @@ void ProfilingTaskUtils::AssembleTaskForProfilerTrace(const int64_t stream_id, c
   GELOGI("Assemble task for training trace, stream id: %lld, logid: %lld", stream_id, log_id);
 }
 
-Status ProfilingTaskUtils::CalculateLogId(const std::vector<int64_t> &trace_nodes,
-                                          const int64_t node_index,
+Status ProfilingTaskUtils::CalculateLogId(const std::vector<int64_t> &trace_nodes, const int64_t node_index,
                                           const uint64_t start_id, int64_t &log_id) {
   for (size_t i = 0U; i < trace_nodes.size(); i++) {
     if (trace_nodes[i] == node_index) {
@@ -479,8 +476,8 @@ Status ProfilingTaskUtils::InsertProfilingTaskBefore(const OpDescPtr &op_desc, c
 
   if (IsGetNextOpType(op_desc)) {
     int64_t log_id = -1;
-    GE_CHK_STATUS_RET(CalculateLogId(profiling_point.get_next_node_index, node_index,
-                                     kProfilingGetNextStartLogid, log_id));
+    GE_CHK_STATUS_RET(
+        CalculateLogId(profiling_point.get_next_node_index, node_index, kProfilingGetNextStartLogid, log_id));
     AssembleTaskForProfilerTrace(op_desc->GetStreamId(), log_id, false, task_def_list);
   }
 
@@ -564,8 +561,8 @@ Status ProfilingTaskUtils::InsertProfilingTaskAfter(const OpDescPtr &op_desc, co
 
   if (IsGetNextOpType(op_desc)) {
     int64_t log_id = -1;
-    GE_CHK_STATUS_RET(CalculateLogId(profiling_point.get_next_node_index,
-        node_index, kProfilingGetNextEndLogid, log_id));
+    GE_CHK_STATUS_RET(
+        CalculateLogId(profiling_point.get_next_node_index, node_index, kProfilingGetNextEndLogid, log_id));
     AssembleTaskForProfilerTrace(op_desc->GetStreamId(), log_id, false, task_def_list);
   }
 

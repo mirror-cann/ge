@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -244,27 +244,27 @@ bool DumpManager::SetExceptionDump(const DumpConfig &dump_config) {
   return false;
 }
 
-bool DumpManager::IsValidFormat(const std::string& s) const {
-    static const std::regex pattern("^(input|output)\\d+$");
-    return std::regex_match(s, pattern);
+bool DumpManager::IsValidFormat(const std::string &s) const {
+  static const std::regex pattern("^(input|output)\\d+$");
+  return std::regex_match(s, pattern);
 }
 
-uint32_t DumpManager::ExtractNumber(const std::string& s) const {
-    static const std::regex num_pattern("\\d+");
-    uint32_t num = 0;
-    std::smatch match;
-    if (std::regex_search(s, match, num_pattern)) {
-      const size_t value = std::stoul(match.str());
-      if (value <= (std::numeric_limits<uint32_t>::max())) {
-        num = static_cast<uint32_t>(value);
-      }
-      return num;
+uint32_t DumpManager::ExtractNumber(const std::string &s) const {
+  static const std::regex num_pattern("\\d+");
+  uint32_t num = 0;
+  std::smatch match;
+  if (std::regex_search(s, match, num_pattern)) {
+    const size_t value = std::stoul(match.str());
+    if (value <= (std::numeric_limits<uint32_t>::max())) {
+      num = static_cast<uint32_t>(value);
     }
     return num;
+  }
+  return num;
 }
 
-void DumpManager::ExtractBlacklist(const std::vector<DumpBlacklist>& blacklists,
-    std::map<std::string, OpBlacklist>& op_blacklist) const {
+void DumpManager::ExtractBlacklist(const std::vector<DumpBlacklist> &blacklists,
+                                   std::map<std::string, OpBlacklist> &op_blacklist) const {
   for (const auto &blacklist : blacklists) {
     OpBlacklist bl;
 
@@ -282,18 +282,18 @@ void DumpManager::ExtractBlacklist(const std::vector<DumpBlacklist>& blacklists,
       }
     }
 
-    auto& existing = op_blacklist[blacklist.name];
+    auto &existing = op_blacklist[blacklist.name];
     existing.input_indices.insert(bl.input_indices.begin(), bl.input_indices.end());
     existing.output_indices.insert(bl.output_indices.begin(), bl.output_indices.end());
   }
 }
 
-void DumpManager::SetModelDumpBlacklist(ModelOpBlacklist& model_blacklist,
-    const std::vector<DumpBlacklist>& type_blacklists, const std::vector<DumpBlacklist>& name_blacklists) const{
-    ExtractBlacklist(type_blacklists, model_blacklist.dump_optype_blacklist);
-    ExtractBlacklist(name_blacklists, model_blacklist.dump_opname_blacklist);
+void DumpManager::SetModelDumpBlacklist(ModelOpBlacklist &model_blacklist,
+                                        const std::vector<DumpBlacklist> &type_blacklists,
+                                        const std::vector<DumpBlacklist> &name_blacklists) const {
+  ExtractBlacklist(type_blacklists, model_blacklist.dump_optype_blacklist);
+  ExtractBlacklist(name_blacklists, model_blacklist.dump_opname_blacklist);
 }
-
 
 void DumpManager::SetDumpList(const DumpConfig &dump_config, DumpProperties &dump_properties) const {
   for (const auto &model_dump : dump_config.dump_list) {
@@ -342,9 +342,8 @@ Status DumpManager::SetNormalDumpConf(const DumpConfig &dump_config, DumpPropert
     if ((dump_op_switch == kDumpoff) && (dump_config.dump_list.empty())) {
       (void)infer_dump_properties_map_.emplace(kInferSessionId, dump_properties);
       GELOGE(PARAM_INVALID, "[Check][DumpList]Invalid, dump_op_switch is %s", dump_op_switch.c_str());
-      (void)REPORT_PREDEFINED_ERR_MSG(
-          "E10001", std::vector<const char *>({"parameter", "value", "reason"}),
-          std::vector<const char *>({"dump_list", "", "Dump list is empty."}));
+      (void)REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"parameter", "value", "reason"}),
+                                      std::vector<const char *>({"dump_list", "", "Dump list is empty."}));
       return PARAM_INVALID;
     }
 
@@ -371,8 +370,8 @@ Status DumpManager::SetNormalDumpConf(const DumpConfig &dump_config, DumpPropert
       } else {
         GELOGE(PARAM_INVALID, "[Check][DumpData]Invalid, dump_data is %s", dump_config.dump_data.c_str());
         (void)REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"parameter", "value", "reason"}),
-                                  std::vector<const ge::char_t *>({"--dump_data", dump_config.dump_data.c_str(),
-                                                                   "The value must be tensor or stats."}));
+                                        std::vector<const ge::char_t *>({"--dump_data", dump_config.dump_data.c_str(),
+                                                                         "The value must be tensor or stats."}));
         return PARAM_INVALID;
       }
     }
@@ -386,9 +385,8 @@ Status DumpManager::SetDumpPath(const DumpConfig &dump_config, DumpProperties &d
   std::string dump_path = dump_config.dump_path;
   if (dump_path.empty()) {
     GELOGE(PARAM_INVALID, "[Check][DumpPath]It is empty.");
-    (void)REPORT_PREDEFINED_ERR_MSG(
-        "E10001", std::vector<const char *>({"parameter", "value", "reason"}),
-        std::vector<const char *>({"dump_path", "", "Dump path is empty."}));
+    (void)REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"parameter", "value", "reason"}),
+                                    std::vector<const char *>({"dump_path", "", "Dump path is empty."}));
     return PARAM_INVALID;
   }
   if (dump_path[dump_path.size() - 1U] != '/') {

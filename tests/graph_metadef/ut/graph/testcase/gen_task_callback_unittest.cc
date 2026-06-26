@@ -34,13 +34,13 @@ ComputeGraphPtr CreateMc2NodeGraph() {
   OpDescPtr net_output_desc = std::make_shared<OpDesc>("output", "NetOutput");
 
   // add descriptor
-  ge::GeShape shape1({2,4});
+  ge::GeShape shape1({2, 4});
   GeTensorDesc tensor_desc1(shape1, ge::FORMAT_ND, ge::DT_FLOAT16);
   tensor_desc1.SetOriginFormat(ge::FORMAT_ND);
   tensor_desc1.SetOriginDataType(ge::DT_FLOAT16);
   tensor_desc1.SetOriginShape(shape1);
 
-  ge::GeShape shape2({4,3});
+  ge::GeShape shape2({4, 3});
   GeTensorDesc tensor_desc2(shape2, ge::FORMAT_ND, ge::DT_FLOAT16);
   tensor_desc2.SetOriginFormat(ge::FORMAT_ND);
   tensor_desc2.SetOriginDataType(ge::DT_FLOAT16);
@@ -90,7 +90,7 @@ ComputeGraphPtr CreateMc2NodeGraph() {
 
   all_gather_matmul_desc->SetStreamId(2);
   all_gather_matmul_desc->SetId(4);
-  std::vector<int64_t> ori_work_sizes{22,33,44};
+  std::vector<int64_t> ori_work_sizes{22, 33, 44};
   all_gather_matmul_desc->SetWorkspaceBytes(ori_work_sizes);
   return graph;
 }
@@ -108,11 +108,9 @@ gert::ExeResGenerationCtxHolderPtr CreateNodeExeResContext(const NodePtr &node) 
   stream_info_vec.emplace_back(si_1);
   op_exe_res_ctx->SetAttachedStreamInfos(stream_info_vec);
   std::vector<ge::GeAttrValue::NAMED_ATTRS> stream_info_attrs;
-  (void)ge::AttrUtils::GetListNamedAttrs(node->GetOpDesc(), ge::ATTR_NAME_ATTACHED_STREAM_INFO_LIST,
-      stream_info_attrs);
+  (void)ge::AttrUtils::GetListNamedAttrs(node->GetOpDesc(), ge::ATTR_NAME_ATTACHED_STREAM_INFO_LIST, stream_info_attrs);
   (void)ge::AttrUtils::SetInt(stream_info_attrs.front(), ge::ATTR_NAME_ATTACHED_RESOURCE_ID, 4);
-  (void)ge::AttrUtils::SetListNamedAttrs(node->GetOpDesc(), ge::ATTR_NAME_ATTACHED_STREAM_INFO_LIST,
-      stream_info_attrs);
+  (void)ge::AttrUtils::SetListNamedAttrs(node->GetOpDesc(), ge::ATTR_NAME_ATTACHED_STREAM_INFO_LIST, stream_info_attrs);
   return res_ptr_holder;
 }
 
@@ -124,8 +122,7 @@ struct HcclCommParamDesc {
   uint64_t is_dyn : 48;
 };
 
-graphStatus Mc2GenTaskCallback(const gert::ExeResGenerationContext *context,
-    std::vector<std::vector<uint8_t>> &tasks) {
+graphStatus Mc2GenTaskCallback(const gert::ExeResGenerationContext *context, std::vector<std::vector<uint8_t>> &tasks) {
   GE_ASSERT_NOTNULL(context);
   GE_ASSERT_TRUE(tasks.size() == 1UL);
   auto aicore_index = 0;
@@ -140,8 +137,7 @@ graphStatus Mc2GenTaskCallback(const gert::ExeResGenerationContext *context,
   tasks.insert(tasks.begin() + aicore_index, wait_task.Serialize());
   aicore_index++;
   // 设置aicpu任务
-  auto aicpu_task = KernelLaunchInfo::CreateAicpuKfcTask(context,
-      "libccl_kernel.so", "RunAicpuKfcSrvLaunch");
+  auto aicpu_task = KernelLaunchInfo::CreateAicpuKfcTask(context, "libccl_kernel.so", "RunAicpuKfcSrvLaunch");
   size_t input_size = context->GetComputeNodeInfo()->GetIrInputsNum();
   size_t output_size = context->GetComputeNodeInfo()->GetIrOutputsNum();
   const size_t offset = 3UL;
@@ -248,7 +244,7 @@ domi::TaskDef CreateAllKernelTaskDef(const gert::ExeResGenerationContext *contex
 
   return task_def;
 }
-}
+}  // namespace
 class TestGenTaskCallback : public testing::Test {
  protected:
   void SetUp() {}
@@ -501,7 +497,6 @@ TEST_F(TestGenTaskCallback, TestMixL2Mc2NodeGenTaskCallback) {
   EXPECT_EQ(aicore_args_format, "{ffts_addr}{hi.hcom0*}{i0*}{i1*}{i2*}{o0*}{o1*}{ws*}{t}");
 }
 
-
 // 验证使用带有input_instance的mc2算子在GenTaskCallback函数中构造taskDef的功能
 TEST_F(TestGenTaskCallback, TestMc2WithInputInstanceNodeGenTaskCallback) {
   auto graph = CreateMc2NodeGraph();
@@ -583,7 +578,7 @@ TEST_F(TestGenTaskCallback, TestMc2WithInputInstanceNodeGenTaskCallback) {
   EXPECT_EQ(aicore_kernel_context->op_index(), 4);
   auto aicore_args_format = aicore_kernel_context->args_format();
   EXPECT_EQ(aicore_args_format,
-      "{ffts_addr}{hi.hcom0*}{i_instance0*}{i_instance1*}{i_instance2*}{o_instance0*}{o_instance1*}{ws*}{t}");
+            "{ffts_addr}{hi.hcom0*}{i_instance0*}{i_instance1*}{i_instance2*}{o_instance0*}{o_instance1*}{ws*}{t}");
 }
 
 // 验证KernelLaunchInfo的移动构造函数和移动赋值函数
@@ -592,8 +587,7 @@ TEST_F(TestGenTaskCallback, TestKernelLaunchInfoMoveConstruct) {
   auto mc2_node = graph->FindNode("mc2");
   auto res_context_holder = CreateNodeExeResContext(mc2_node);
   auto op_exe_res_ctx = reinterpret_cast<gert::ExeResGenerationContext *>(res_context_holder->GetKernelContext());
-  auto aicpu_task = KernelLaunchInfo::CreateAicpuKfcTask(op_exe_res_ctx,
-      "libccl_kernel.so", "RunAicpuKfcSrvLaunch");
+  auto aicpu_task = KernelLaunchInfo::CreateAicpuKfcTask(op_exe_res_ctx, "libccl_kernel.so", "RunAicpuKfcSrvLaunch");
   aicpu_task.SetStreamId(2);
   aicpu_task.SetBlockDim(32);
   std::string args_format = "{#4113}{hi.hcom0*}{i0*}{#0}{#0}{o0*}{o1*}{ws*}{t}";
@@ -655,13 +649,15 @@ TEST_F(TestGenTaskCallback, TestKernelLaunchInfoCopyConstruct) {
   copy_task = aicore_task;
   EXPECT_EQ(copy_task.GetStreamId(), 2);
   EXPECT_EQ(copy_task.GetBlockDim(), 48);
-  EXPECT_EQ(std::string(copy_task.GetArgsFormat()), "{ffts_addr}{i_instance0*}{i_instance1*}{i_instance2*}{o_instance0*}{o_instance1*}{ws*}{t}");
+  EXPECT_EQ(std::string(copy_task.GetArgsFormat()),
+            "{ffts_addr}{i_instance0*}{i_instance1*}{i_instance2*}{o_instance0*}{o_instance1*}{ws*}{t}");
 
   // 验证拷贝构造函数
   KernelLaunchInfo copy_task_2(copy_task);
   EXPECT_EQ(copy_task_2.GetStreamId(), 2);
   EXPECT_EQ(copy_task_2.GetBlockDim(), 48);
-  EXPECT_EQ(std::string(copy_task_2.GetArgsFormat()), "{ffts_addr}{i_instance0*}{i_instance1*}{i_instance2*}{o_instance0*}{o_instance1*}{ws*}{t}");
+  EXPECT_EQ(std::string(copy_task_2.GetArgsFormat()),
+            "{ffts_addr}{i_instance0*}{i_instance1*}{i_instance2*}{o_instance0*}{o_instance1*}{ws*}{t}");
 }
 
 // 验证非aicore和aicpu算子设置blockdim场景
@@ -693,8 +689,7 @@ class TestCreateFusionAndCcuTask : public testing::Test {
     graph_ = CreateMc2NodeGraph();
     mc2_node_ = graph_->FindNode("mc2");
     res_context_holder_ = CreateNodeExeResContext(mc2_node_);
-    op_exe_res_ctx_ = reinterpret_cast<gert::ExeResGenerationContext *>(
-        res_context_holder_->GetKernelContext());
+    op_exe_res_ctx_ = reinterpret_cast<gert::ExeResGenerationContext *>(res_context_holder_->GetKernelContext());
   }
 
   void TearDown() override {}
@@ -904,7 +899,7 @@ TEST_F(TestCreateFusionAndCcuTask, TestCreateFusionTaskWithOnlyAicore) {
   aicore_task1.SetBlockDim(32);
 
   auto aicore_task_def2 = CreateAicoreTaskDef(op_exe_res_ctx_);
-  aicore_task_def2.mutable_kernel()->set_block_dim(16); // 不同的blockdim
+  aicore_task_def2.mutable_kernel()->set_block_dim(16);  // 不同的blockdim
   std::vector<uint8_t> buffer2(aicore_task_def2.ByteSizeLong());
   aicore_task_def2.SerializeToArray(buffer2.data(), buffer2.size());
   auto aicore_task2 = KernelLaunchInfo::LoadFromData(op_exe_res_ctx_, buffer2);
@@ -1012,8 +1007,8 @@ TEST_F(TestCreateFusionAndCcuTask, TestFusionTaskWithMoveSemantics) {
   sub_tasks.push_back(std::move(ccu_task));
 
   // 验证移动后原对象的基本属性
-  EXPECT_EQ(aicore_task.GetArgsFormat(), nullptr); // 移动后应为空
-  EXPECT_EQ(ccu_task.GetArgsFormat(), nullptr);    // 移动后应为空
+  EXPECT_EQ(aicore_task.GetArgsFormat(), nullptr);  // 移动后应为空
+  EXPECT_EQ(ccu_task.GetArgsFormat(), nullptr);     // 移动后应为空
 
   // 创建FusionTask
   auto fusion_task = KernelLaunchInfo::CreateFusionTask(op_exe_res_ctx_, sub_tasks);
@@ -1093,10 +1088,10 @@ TEST_F(TestCreateFusionAndCcuTask, TestSubTaskOrderInFusionTask) {
 
   // 按特定顺序添加子任务
   std::vector<KernelLaunchInfo> sub_tasks;
-  sub_tasks.push_back(std::move(aicore_task));     // 第一个：AICore
-  sub_tasks.push_back(std::move(ccu_task1));       // 第二个：CCU
-  sub_tasks.push_back(std::move(all_kernel_task)); // 第三个：AllKernel
-  sub_tasks.push_back(std::move(ccu_task2));       // 第四个：CCU
+  sub_tasks.push_back(std::move(aicore_task));      // 第一个：AICore
+  sub_tasks.push_back(std::move(ccu_task1));        // 第二个：CCU
+  sub_tasks.push_back(std::move(all_kernel_task));  // 第三个：AllKernel
+  sub_tasks.push_back(std::move(ccu_task2));        // 第四个：CCU
 
   auto fusion_task = KernelLaunchInfo::CreateFusionTask(op_exe_res_ctx_, sub_tasks);
 
@@ -1112,22 +1107,18 @@ TEST_F(TestCreateFusionAndCcuTask, TestSubTaskOrderInFusionTask) {
   ASSERT_EQ(fusion_task_def.fusion_sub_task_info_size(), 4);
 
   // 第一个应该是AICore
-  EXPECT_EQ(fusion_task_def.fusion_sub_task_info(0).type(),
-            domi::FusionSubTaskInfo::AICORE);
+  EXPECT_EQ(fusion_task_def.fusion_sub_task_info(0).type(), domi::FusionSubTaskInfo::AICORE);
   EXPECT_FALSE(fusion_task_def.fusion_sub_task_info(0).task().aicore_fusion_task_info().is_all_kernel());
 
   // 第二个应该是CCU
-  EXPECT_EQ(fusion_task_def.fusion_sub_task_info(1).type(),
-            domi::FusionSubTaskInfo::CCU);
+  EXPECT_EQ(fusion_task_def.fusion_sub_task_info(1).type(), domi::FusionSubTaskInfo::CCU);
 
   // 第三个应该是AllKernel（在代码中也被识别为AICORE类型，但is_all_kernel为true）
-  EXPECT_EQ(fusion_task_def.fusion_sub_task_info(2).type(),
-            domi::FusionSubTaskInfo::AICORE);
+  EXPECT_EQ(fusion_task_def.fusion_sub_task_info(2).type(), domi::FusionSubTaskInfo::AICORE);
   EXPECT_TRUE(fusion_task_def.fusion_sub_task_info(2).task().aicore_fusion_task_info().is_all_kernel());
 
   // 第四个应该是CCU
-  EXPECT_EQ(fusion_task_def.fusion_sub_task_info(3).type(),
-            domi::FusionSubTaskInfo::CCU);
+  EXPECT_EQ(fusion_task_def.fusion_sub_task_info(3).type(), domi::FusionSubTaskInfo::CCU);
 }
 
 // 测试sqe_num的计算逻辑：各种子任务sqe_num的组合
@@ -1136,13 +1127,13 @@ TEST_F(TestCreateFusionAndCcuTask, TestFusionTaskSqeNumCalculation) {
   {
     // 创建两个sqe_num为0的AICore任务
     auto aicore_task_def1 = CreateAicoreTaskDef(op_exe_res_ctx_);
-    aicore_task_def1.set_sqe_num(0); // 明确设置sqe_num为0
+    aicore_task_def1.set_sqe_num(0);  // 明确设置sqe_num为0
     std::vector<uint8_t> buffer1(aicore_task_def1.ByteSizeLong());
     aicore_task_def1.SerializeToArray(buffer1.data(), buffer1.size());
     auto aicore_task1 = KernelLaunchInfo::LoadFromData(op_exe_res_ctx_, buffer1);
 
     auto aicore_task_def2 = CreateAicoreTaskDef(op_exe_res_ctx_);
-    aicore_task_def2.set_sqe_num(0); // 明确设置sqe_num为0
+    aicore_task_def2.set_sqe_num(0);  // 明确设置sqe_num为0
     std::vector<uint8_t> buffer2(aicore_task_def2.ByteSizeLong());
     aicore_task_def2.SerializeToArray(buffer2.data(), buffer2.size());
     auto aicore_task2 = KernelLaunchInfo::LoadFromData(op_exe_res_ctx_, buffer2);
@@ -1164,13 +1155,13 @@ TEST_F(TestCreateFusionAndCcuTask, TestFusionTaskSqeNumCalculation) {
   {
     // 创建两个sqe_num不为0的AICore任务
     auto aicore_task_def1 = CreateAicoreTaskDef(op_exe_res_ctx_);
-    aicore_task_def1.set_sqe_num(3); // 设置sqe_num为3
+    aicore_task_def1.set_sqe_num(3);  // 设置sqe_num为3
     std::vector<uint8_t> buffer1(aicore_task_def1.ByteSizeLong());
     aicore_task_def1.SerializeToArray(buffer1.data(), buffer1.size());
     auto aicore_task1 = KernelLaunchInfo::LoadFromData(op_exe_res_ctx_, buffer1);
 
     auto aicore_task_def2 = CreateAicoreTaskDef(op_exe_res_ctx_);
-    aicore_task_def2.set_sqe_num(2); // 设置sqe_num为2
+    aicore_task_def2.set_sqe_num(2);  // 设置sqe_num为2
     std::vector<uint8_t> buffer2(aicore_task_def2.ByteSizeLong());
     aicore_task_def2.SerializeToArray(buffer2.data(), buffer2.size());
     auto aicore_task2 = KernelLaunchInfo::LoadFromData(op_exe_res_ctx_, buffer2);
@@ -1188,4 +1179,4 @@ TEST_F(TestCreateFusionAndCcuTask, TestFusionTaskSqeNumCalculation) {
     EXPECT_EQ(task_def.sqe_num(), 5);
   }
 }
-}
+}  // namespace ge

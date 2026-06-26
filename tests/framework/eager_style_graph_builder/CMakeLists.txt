@@ -42,4 +42,3 @@ add_es_library(
 if (CMAKE_BUILD_TYPE STREQUAL "GCOV")
     target_link_options(es_ge_test_so PRIVATE --coverage)
 endif ()
-

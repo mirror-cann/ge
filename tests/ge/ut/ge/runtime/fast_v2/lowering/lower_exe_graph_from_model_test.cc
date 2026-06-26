@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -153,7 +153,7 @@ TEST_F(LowerExeGraphFromModelUT, LowerFromGeModel) {
                                                         {"CreateL2Allocators", 1},
                                                         {"PrepareCacheableTilingFwkData", 7}};
   EXPECT_EQ(GetNodeTypesToNum(init_graph), expect_init_graph_nodes)
-            << PrintNodesDetail("Check init graph failed: ", GetNodeTypesToNum(init_graph), expect_init_graph_nodes);
+      << PrintNodesDetail("Check init graph failed: ", GetNodeTypesToNum(init_graph), expect_init_graph_nodes);
 
   std::map<std::string, size_t> expect_main_graph_nodes{{"AllocBatchHbm", 7},
                                                         {"AllocMemHbm", 11},
@@ -177,11 +177,11 @@ TEST_F(LowerExeGraphFromModelUT, LowerFromGeModel) {
                                                         {"TilingAppendWorkspace", 7},
                                                         {"TilingAppendDfxInfo", 7}};
   EXPECT_EQ(GetNodeTypesToNum(main_graph), expect_main_graph_nodes)
-            << PrintNodesDetail("Check main graph failed: ", GetNodeTypesToNum(main_graph), expect_main_graph_nodes);
+      << PrintNodesDetail("Check main graph failed: ", GetNodeTypesToNum(main_graph), expect_main_graph_nodes);
 
   std::map<std::string, size_t> expect_de_init_graph_nodes{};
   EXPECT_EQ(GetNodeTypesToNum(de_init_graph), expect_de_init_graph_nodes)
-            << PrintNodesDetail("Check de-init graph failed: ", GetNodeTypesToNum(de_init_graph), expect_de_init_graph_nodes);
+      << PrintNodesDetail("Check de-init graph failed: ", GetNodeTypesToNum(de_init_graph), expect_de_init_graph_nodes);
 
   memory::CachingMemAllocator::GetAllocator()->Finalize();
 }
@@ -242,37 +242,38 @@ TEST_F(LowerExeGraphFromModelUT, LowerStaticGeModel) {
                                                         {"CreateHostL2Allocator", 1}};
 
   EXPECT_EQ(GetNodeTypesToNum(init_graph), expect_init_graph_nodes)
-            << PrintNodesDetail("Check init graph failed: ", GetNodeTypesToNum(init_graph), expect_init_graph_nodes);
+      << PrintNodesDetail("Check init graph failed: ", GetNodeTypesToNum(init_graph), expect_init_graph_nodes);
 
-  std::map<std::string, size_t> expect_main_graph_nodes{{"AllocMemHbm", 1},
-                                                        {"AllocBatchHbm", 1},
-                                                        {"BuildTensor", 1},
-                                                        {"InferShape", 1},
-                                                        {"CalcTensorSizeFromStorage", 2},
-                                                        {"CopyD2H", 1},
-                                                        {"Data", 6},
-                                                        {"EnsureTensorAtOutMemory", 1},
-                                                        {"FreeBatchHbm", 1},
-                                                        {"FreeMemory", 4},
-                                                        {"FreeTensorMemory", 1},
-                                                        {"InnerData", 28}, // LoweringStaticAicoreNode, args直连增加了InnerData
-                                                        {"SplitRtStreams", 1},
-                                                        {"LaunchKernelWithFlag", 1},
-                                                        {"CopyFlowLaunch", 1},
-                                                        {"SplitDataTensor", 2},
-                                                        {"SelectL1Allocator", 2},
-                                                        {"SelectL2Allocator", 1},
-                                                        {"OutputData", 1},
-                                                        {"NetOutput", 1},
-                                                        {"SyncStream", 1},
-                                                        {"CreateHostL2Allocator", 1}};
+  std::map<std::string, size_t> expect_main_graph_nodes{
+      {"AllocMemHbm", 1},
+      {"AllocBatchHbm", 1},
+      {"BuildTensor", 1},
+      {"InferShape", 1},
+      {"CalcTensorSizeFromStorage", 2},
+      {"CopyD2H", 1},
+      {"Data", 6},
+      {"EnsureTensorAtOutMemory", 1},
+      {"FreeBatchHbm", 1},
+      {"FreeMemory", 4},
+      {"FreeTensorMemory", 1},
+      {"InnerData", 28},  // LoweringStaticAicoreNode, args直连增加了InnerData
+      {"SplitRtStreams", 1},
+      {"LaunchKernelWithFlag", 1},
+      {"CopyFlowLaunch", 1},
+      {"SplitDataTensor", 2},
+      {"SelectL1Allocator", 2},
+      {"SelectL2Allocator", 1},
+      {"OutputData", 1},
+      {"NetOutput", 1},
+      {"SyncStream", 1},
+      {"CreateHostL2Allocator", 1}};
 
   EXPECT_EQ(GetNodeTypesToNum(main_graph), expect_main_graph_nodes)
-            << PrintNodesDetail("Check main graph failed: ", GetNodeTypesToNum(main_graph), expect_main_graph_nodes);
+      << PrintNodesDetail("Check main graph failed: ", GetNodeTypesToNum(main_graph), expect_main_graph_nodes);
 
   std::map<std::string, size_t> expect_de_init_graph_nodes{};
   EXPECT_EQ(GetNodeTypesToNum(de_init_graph), expect_de_init_graph_nodes)
-            << PrintNodesDetail("Check de-init graph failed: ", GetNodeTypesToNum(de_init_graph), expect_de_init_graph_nodes);
+      << PrintNodesDetail("Check de-init graph failed: ", GetNodeTypesToNum(de_init_graph), expect_de_init_graph_nodes);
 
   memory::CachingMemAllocator::GetAllocator()->Finalize();
 }
@@ -284,8 +285,7 @@ TEST_F(LowerExeGraphFromModelUT, lower_from_static_model_file) {
   ge::ModelBufferData model_buffer;
   ge::ModelHelper model_helper;
   model_helper.SetSaveMode(true);  // Save to buffer.
-  ASSERT_EQ(model_helper.SaveToOmRootModel(ge_root_model, save_om_file_name, model_buffer, true),
-            ge::SUCCESS);
+  ASSERT_EQ(model_helper.SaveToOmRootModel(ge_root_model, save_om_file_name, model_buffer, true), ge::SUCCESS);
 
   ge::graphStatus error_code;
   auto executor_model = gert::LoadExecutorFromFile(save_om_file_name.c_str(), error_code);
@@ -300,8 +300,7 @@ TEST_F(LowerExeGraphFromModelUT, check_is_dynamic_model) {
   ge::ModelBufferData model_buffer;
   ge::ModelHelper model_helper;
   model_helper.SetSaveMode(true);  // Save to buffer.
-  ASSERT_EQ(model_helper.SaveToOmRootModel(ge_root_model, save_om_file_name, model_buffer, true),
-            ge::SUCCESS);
+  ASSERT_EQ(model_helper.SaveToOmRootModel(ge_root_model, save_om_file_name, model_buffer, true), ge::SUCCESS);
   bool is_dynamic_model = true;
   ASSERT_EQ(IsDynamicModel(save_om_file_name.c_str(), is_dynamic_model), ge::GRAPH_SUCCESS);
   EXPECT_TRUE(is_dynamic_model == true);
@@ -327,15 +326,13 @@ TEST_F(LowerExeGraphFromModelUT, LowerExeGraphSucc) {
   ASSERT_NE(exe_graph, nullptr);
 }
 
-TEST_F(LowerExeGraphFromModelUT, check_is_dynamic_model_with_model)
-{
+TEST_F(LowerExeGraphFromModelUT, check_is_dynamic_model_with_model) {
   GeModelBuilder builder(ShareGraph::LstmpGraph());
   auto ge_root_model = builder.AddTaskDefForAll(AiCoreTaskDefFaker("stub_func")).AddWeight().BuildGeRootModel();
   ge::ModelBufferData model_buffer;
   ge::ModelHelper model_helper;
   model_helper.SetSaveMode(true);  // Save to buffer.
-  ASSERT_EQ(model_helper.SaveToOmRootModel(ge_root_model, save_om_file_name, model_buffer, true),
-            ge::SUCCESS);
+  ASSERT_EQ(model_helper.SaveToOmRootModel(ge_root_model, save_om_file_name, model_buffer, true), ge::SUCCESS);
   ge::ModelData model_data;
   ge::graphStatus error_code = ge::ModelParserBase::LoadFromFile(save_om_file_name.c_str(), -1, model_data);
   ASSERT_EQ(error_code, ge::SUCCESS);
@@ -351,8 +348,7 @@ TEST_F(LowerExeGraphFromModelUT, check_is_dynamic_model_with_model)
   ASSERT_EQ(IsDynamicModel(model_data.model_data, 0UL, is_dynamic_model), ACL_ERROR_GE_EXEC_MODEL_DATA_SIZE_INVALID);
 }
 
-TEST_F(LowerExeGraphFromModelUT, check_cust_aicpu_kernel_bin_ok)
-{
+TEST_F(LowerExeGraphFromModelUT, check_cust_aicpu_kernel_bin_ok) {
   auto graph = ShareGraph::ThirdAicpuOpGraph();
   auto add_op_desc = graph->FindNode("add1")->GetOpDesc();
   graph->TopologicalSorting();
@@ -360,15 +356,16 @@ TEST_F(LowerExeGraphFromModelUT, check_cust_aicpu_kernel_bin_ok)
   GeModelBuilder builder(graph);
   AiCpuTfTaskDefFaker aicpu_task_def_faker;
   auto ge_root_model = builder.AddTaskDef("Add", aicpu_task_def_faker.SetNeedMemcpy(true))
-      .AddTaskDef("NonZero", aicpu_task_def_faker.SetNeedMemcpy(true))
-      .BuildGeRootModel();
+                           .AddTaskDef("NonZero", aicpu_task_def_faker.SetNeedMemcpy(true))
+                           .BuildGeRootModel();
 
   builder.AddCustAicpuKernelStore("add1");
   bg::ValueHolder::PopGraphFrame();  // 不需要BgTest自带的Frame
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model);
   ASSERT_NE(exe_graph, nullptr);
 
-  const ge::OpKernelBinPtr bin_ptr = add_op_desc->TryGetExtAttr<ge::OpKernelBinPtr>(ge::OP_EXTATTR_CUSTAICPU_KERNEL, nullptr);
+  const ge::OpKernelBinPtr bin_ptr =
+      add_op_desc->TryGetExtAttr<ge::OpKernelBinPtr>(ge::OP_EXTATTR_CUSTAICPU_KERNEL, nullptr);
   ASSERT_NE(bin_ptr, nullptr);
 }
 

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,7 +33,7 @@
 
 namespace {
 const std::string kLocalMemorySize = "local_memory_size";
-constexpr uint32_t k2BitsMask = 0x00000003U;   // 2  bits, 0000,0011
+constexpr uint32_t k2BitsMask = 0x00000003U;  // 2  bits, 0000,0011
 constexpr int64_t kDefaultDimInfo = 0x100000001;
 constexpr uint64_t kDefaultShapeNum = 0x100000000U;
 constexpr uint64_t kBitFlag8 = 0x00FFFFFFFFFFFFFFUL;
@@ -56,11 +56,11 @@ void AppendShapeDesc(const ge::GeTensorDesc &tensor_desc, std::vector<int64_t> &
     }
   }
 }
-}
+}  // namespace
 
 namespace ge {
 Status SuperKernelV2TaskInfo::ParseTaskRunParam(const domi::TaskDef &task_def, DavinciModel *const davinci_model,
-                                              TaskRunParam &task_run_param) {
+                                                TaskRunParam &task_run_param) {
   const domi::KernelDef &kernel_def = task_def.kernel();
   GE_ASSERT_TRUE(kernel_def.sm_desc().empty());
   args_size_ = static_cast<uint32_t>(kernel_def.args().size());
@@ -77,13 +77,13 @@ Status SuperKernelV2TaskInfo::ParseTaskRunParam(const domi::TaskDef &task_def, D
 
   GE_ASSERT_SUCCESS(ArgsFormatDesc::Parse(op_desc_, context.args_format(), args_format_holder_.arg_descs),
                     "Formatted args [%s] parsed failed.", context.args_format().c_str());
-  GE_ASSERT_SUCCESS(ParseArgsFormat(args_format_holder_.arg_descs),
-    "ParseArgsFormat failed, op:[%s].", op_desc_->GetNamePtr());
+  GE_ASSERT_SUCCESS(ParseArgsFormat(args_format_holder_.arg_descs), "ParseArgsFormat failed, op:[%s].",
+                    op_desc_->GetNamePtr());
 
   const size_t format_args_size = GetArgsSizeByFormat();
   args_size_ = std::max(args_size_, static_cast<uint32_t>(format_args_size));
   GELOGI("OP [%s] has formatted args_format:[%s], args size by format is [%" PRIu64 "], final size is [%u]",
-          op_desc_->GetNamePtr(), context.args_format().c_str(), format_args_size, args_size_);
+         op_desc_->GetNamePtr(), context.args_format().c_str(), format_args_size, args_size_);
 
   size_t extra_size = 0U;
   for (const auto &args_format_holder : sub_node_args_format_holder_list_) {
@@ -103,34 +103,33 @@ Status SuperKernelV2TaskInfo::ParseTaskRunParam(const domi::TaskDef &task_def, D
   int index = 0;
   for (const auto &op_desc : sub_node_op_desc_list_) {
     sub_node_input_addrs_list_[index] =
-      ModelUtils::GetInputAddrsValue(rts_param, op_desc, sub_node_input_mem_types_list_[index]);
+        ModelUtils::GetInputAddrsValue(rts_param, op_desc, sub_node_input_mem_types_list_[index]);
     sub_node_output_addrs_list_[index] =
-      ModelUtils::GetOutputAddrsValue(rts_param, op_desc, sub_node_output_mem_types_list_[index]);
+        ModelUtils::GetOutputAddrsValue(rts_param, op_desc, sub_node_output_mem_types_list_[index]);
     sub_node_workspace_addrs_list_[index] =
-      ModelUtils::GetWorkspaceDataAddrsValue(rts_param, op_desc, sub_node_workspace_mem_types_list_[index]);
+        ModelUtils::GetWorkspaceDataAddrsValue(rts_param, op_desc, sub_node_workspace_mem_types_list_[index]);
 
     for (size_t i = 0UL; i < sub_node_input_addrs_list_[index].size(); i++) {
       task_run_param.parsed_input_addrs.push_back(
-        {sub_node_input_addrs_list_[index][i], sub_node_input_mem_types_list_[index][i], true, {0}});
+          {sub_node_input_addrs_list_[index][i], sub_node_input_mem_types_list_[index][i], true, {0}});
     }
     for (size_t i = 0UL; i < sub_node_output_addrs_list_[index].size(); i++) {
       task_run_param.parsed_output_addrs.push_back(
-        {sub_node_output_addrs_list_[index][i], sub_node_output_mem_types_list_[index][i], true, {0}});
+          {sub_node_output_addrs_list_[index][i], sub_node_output_mem_types_list_[index][i], true, {0}});
     }
     for (size_t i = 0UL; i < sub_node_workspace_mem_types_list_[index].size(); i++) {
       task_run_param.parsed_workspace_addrs.push_back(
-        {sub_node_workspace_addrs_list_[index][i], sub_node_workspace_mem_types_list_[index][i], true, {0}});
+          {sub_node_workspace_addrs_list_[index][i], sub_node_workspace_mem_types_list_[index][i], true, {0}});
     }
     index++;
   }
 
-  task_run_param.args_descs.push_back({static_cast<int64_t>(MemSizeAlign(static_cast<size_t>(args_size_),
-      static_cast<uint32_t>(sizeof(uintptr_t)))), args_placement_});
-  GELOGD(
-      "Get args size[%u] of op[%s], is known node[%d], task_type: %d, placement: %d, sub node num: %d.",
-      args_size_, op_desc_->GetName().c_str(),
-      static_cast<int32_t>(davinci_model->IsFeatureBaseRefreshable()), static_cast<int32_t>(task_type_),
-      args_placement_, num);
+  task_run_param.args_descs.push_back(
+      {static_cast<int64_t>(MemSizeAlign(static_cast<size_t>(args_size_), static_cast<uint32_t>(sizeof(uintptr_t)))),
+       args_placement_});
+  GELOGD("Get args size[%u] of op[%s], is known node[%d], task_type: %d, placement: %d, sub node num: %d.", args_size_,
+         op_desc_->GetName().c_str(), static_cast<int32_t>(davinci_model->IsFeatureBaseRefreshable()),
+         static_cast<int32_t>(task_type_), args_placement_, num);
   return SUCCESS;
 }
 
@@ -138,7 +137,8 @@ aclrtFuncHandle SuperKernelV2TaskInfo::GetFuncHandle() {
   auto kernel_handles_manager = davinci_model_->GetKernelHandlesManager(KernelHandleType::kAicore);
   GE_ASSERT_NOTNULL(kernel_handles_manager);
   KernelRegisterInfo register_info;
-  GE_ASSERT_SUCCESS(KernelRegisterInfoBuilder::ConstructAicoreRegisterInfo(op_desc_, false, davinci_model_->GetModelId(), register_info));
+  GE_ASSERT_SUCCESS(KernelRegisterInfoBuilder::ConstructAicoreRegisterInfo(
+      op_desc_, false, davinci_model_->GetModelId(), register_info));
   const auto bin_name = kernel_handles_manager->GenerateKey(register_info);
   auto bin_handle = kernel_handles_manager->GetOrRegisterKernel(register_info, bin_name);
   GE_ASSERT_NOTNULL(bin_handle);
@@ -147,13 +147,13 @@ aclrtFuncHandle SuperKernelV2TaskInfo::GetFuncHandle() {
   std::string kernel_name;
   (void)AttrUtils::GetStr(op_desc_, attr_kernel_name, "_kernelname", kernel_name);
   GELOGD("[%s][%s] get kernel name: %s from attr: %s.", op_desc_->GetNamePtr(), op_desc_->GetTypePtr(),
-      kernel_name.c_str(), attr_kernel_name.c_str());
+         kernel_name.c_str(), attr_kernel_name.c_str());
   return KernelHandleUtils::GetFuncHandle(bin_handle, kernel_name);
 }
 
 Status SuperKernelV2TaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *const davinci_model,
-                                 const PisToArgs &args, const PisToPersistentWorkspace &persistent_workspace,
-                                 const IowAddrs &iow_addrs) {
+                                   const PisToArgs &args, const PisToPersistentWorkspace &persistent_workspace,
+                                   const IowAddrs &iow_addrs) {
   GE_CHECK_NOTNULL(davinci_model);
   GE_CHECK_NOTNULL(op_desc_);
   GELOGI("SuperKernelV2TaskInfo Init Start, op: %s", op_desc_->GetNamePtr());
@@ -168,10 +168,10 @@ Status SuperKernelV2TaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *
   GE_ASSERT_NOTNULL(func_handle_);
   io_addr_mem_types_.resize(io_addrs_.size(), static_cast<uint64_t>(MemoryAppType::kMemoryTypeFix));
   GE_ASSERT_SUCCESS(args_io_addrs_updater_.Init(davinci_model_->GetLogicalMemAllocation(), io_addrs_,
-      io_addr_mem_types_, {op_desc_->GetName(), op_desc_->GetType()}));
+                                                io_addr_mem_types_, {op_desc_->GetName(), op_desc_->GetType()}));
 
-  GELOGI("SuperKernelV2TaskInfo Init Success, node: %s, logic stream id: %u, stream: %p.",
-    op_desc_->GetName().c_str(), task_def.stream_id(), stream_);
+  GELOGI("SuperKernelV2TaskInfo Init Success, node: %s, logic stream id: %u, stream: %p.", op_desc_->GetName().c_str(),
+         task_def.stream_id(), stream_);
   return SUCCESS;
 }
 
@@ -180,15 +180,15 @@ Status SuperKernelV2TaskInfo::Distribute() {
   GELOGI("SuperKernelV2TaskInfo Distribute Start, op: %s", op_desc_->GetName().c_str());
   if (davinci_model_ != nullptr && davinci_model_->IsDumpOpWithAdump()) {
     GELOGD("Both overflow detection and persistent stream unlimited enabled, disable dump for op %s",
-            op_desc_ ? op_desc_->GetName().c_str() : "unknown");
+           op_desc_ ? op_desc_->GetName().c_str() : "unknown");
     dump_flag_ &= ~RT_KERNEL_DUMPFLAG;
     is_data_dump_ = false;
   }
   const TaskProfGuarder prof_guarder(this);
   GE_CHECK_NOTNULL(op_desc_);
 
-  GE_ASSERT_SUCCESS(ReportL0ExceptionDumpInfo(op_desc_, l0_dump_list_),
-    "[%s] report l0 exception dump addr failed", op_desc_->GetNamePtr());
+  GE_ASSERT_SUCCESS(ReportL0ExceptionDumpInfo(op_desc_, l0_dump_list_), "[%s] report l0 exception dump addr failed",
+                    op_desc_->GetNamePtr());
 
   // call rtKernelLaunch for current task
   const string op_name = op_desc_->GetName();
@@ -210,13 +210,14 @@ Status SuperKernelV2TaskInfo::Distribute() {
   // set for task_id_
   UpdateTaskId();
   CacheLastTaskExtendInfoIfCollective(op_name, op_desc_->GetType());
-  GELOGI("SuperKernelV2TaskInfo Distribute Success, node: %s, task_type: %u, args: %p, argsize: %u, "
+  GELOGI(
+      "SuperKernelV2TaskInfo Distribute Success, node: %s, task_type: %u, args: %p, argsize: %u, "
       "block dim: %u, stream_id: %u, stream: %p, task_id: %u, local memory size: %u, ",
-      op_desc_->GetName().c_str(), static_cast<uint32_t>(task_type_), args_, args_size_,
-      block_dim_, stream_id_, stream_, task_id_, local_memory_size_);
+      op_desc_->GetName().c_str(), static_cast<uint32_t>(task_type_), args_, args_size_, block_dim_, stream_id_,
+      stream_, task_id_, local_memory_size_);
 
   if (!domi::GetContext().is_online_model) {
-    op_desc_.reset(); // Release OpDesc after Distribute.
+    op_desc_.reset();  // Release OpDesc after Distribute.
     sub_node_op_desc_list_.clear();
     operator_.reset();
   }
@@ -245,7 +246,7 @@ int64_t SuperKernelV2TaskInfo::ParseOpIndex(const domi::TaskDef &task_def) const
   return static_cast<int64_t>(context.op_index());
 }
 
-Status SuperKernelV2TaskInfo::FindSkSubNode(const OpDescPtr &sk_op, const int32_t id,  NodePtr &sub_node) const {
+Status SuperKernelV2TaskInfo::FindSkSubNode(const OpDescPtr &sk_op, const int32_t id, NodePtr &sub_node) const {
   GE_ASSERT_NOTNULL(sk_op);
   if (sk_op->GetId() == static_cast<int64_t>(id)) {
     sub_node = NodeUtils::CreatNodeWithoutGraph(sk_op);
@@ -273,13 +274,13 @@ Status SuperKernelV2TaskInfo::GenSubNodeIoToSuperKernelIoMap(size_t node_idx, co
   for (size_t in_idx = 0U; in_idx < sub_input_num; in_idx++) {
     auto in_node = sub_node->GetInDataNodes().at(in_idx);
     if (in_node->GetType() == "Data") {
-        size_t parent_id = 0U;
-        GE_ASSERT_TRUE(AttrUtils::GetInt(in_node->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, parent_id));
-        SubNodeIoIndex sub_node_io_idx = {node_idx, in_idx, true};
-        sub_node_io_idx_to_super_kernel_io_idx_[sub_node_io_idx] = parent_id;
-        GELOGI("subnode[%zu][%s], input idx[%" PRIu64 "] match to super kernel[%s] input idx[%" PRIu64 "]",
-          sub_node_io_idx.node_idx, sub_node->GetOpDesc()->GetNamePtr(), sub_node_io_idx.io_idx,
-          op_desc_->GetNamePtr(), sub_node_io_idx_to_super_kernel_io_idx_[sub_node_io_idx]);
+      size_t parent_id = 0U;
+      GE_ASSERT_TRUE(AttrUtils::GetInt(in_node->GetOpDesc(), ATTR_NAME_PARENT_NODE_INDEX, parent_id));
+      SubNodeIoIndex sub_node_io_idx = {node_idx, in_idx, true};
+      sub_node_io_idx_to_super_kernel_io_idx_[sub_node_io_idx] = parent_id;
+      GELOGI("subnode[%zu][%s], input idx[%" PRIu64 "] match to super kernel[%s] input idx[%" PRIu64 "]",
+             sub_node_io_idx.node_idx, sub_node->GetOpDesc()->GetNamePtr(), sub_node_io_idx.io_idx,
+             op_desc_->GetNamePtr(), sub_node_io_idx_to_super_kernel_io_idx_[sub_node_io_idx]);
     }
   }
 
@@ -296,13 +297,13 @@ Status SuperKernelV2TaskInfo::GenSubNodeIoToSuperKernelIoMap(size_t node_idx, co
           size_t parent_id = 0U;
           auto in_id = peer_in_anchor->GetIdx();
           GE_ASSERT_TRUE(
-            AttrUtils::GetInt(dst_node->GetOpDesc()->GetInputDesc(in_id), ATTR_NAME_PARENT_NODE_INDEX, parent_id));
+              AttrUtils::GetInt(dst_node->GetOpDesc()->GetInputDesc(in_id), ATTR_NAME_PARENT_NODE_INDEX, parent_id));
           SubNodeIoIndex sub_node_io_idx = {node_idx, out_idx, false};
           sub_node_io_idx_to_super_kernel_io_idx_[sub_node_io_idx] = parent_id;
           GELOGI("subnode[%zu][%s], output idx[%" PRIu64 "] match to super kernel[%s] output idx[%" PRIu64 "]",
-            sub_node_io_idx.node_idx, sub_node->GetOpDesc()->GetNamePtr(), sub_node_io_idx.io_idx,
-            op_desc_->GetNamePtr(), sub_node_io_idx_to_super_kernel_io_idx_[sub_node_io_idx]);
-          break; // 只对应一个netoutput
+                 sub_node_io_idx.node_idx, sub_node->GetOpDesc()->GetNamePtr(), sub_node_io_idx.io_idx,
+                 op_desc_->GetNamePtr(), sub_node_io_idx_to_super_kernel_io_idx_[sub_node_io_idx]);
+          break;  // 只对应一个netoutput
         }
       }
     }
@@ -319,16 +320,14 @@ void SuperKernelV2TaskInfo::InsertL0DumpList(size_t node_idx, size_t io_idx, boo
     if (!is_input) {
       super_kernel_io_idx += super_kernel_input_num;
     }
-    GELOGI(
-      "subnode[%zu][%s] %s idx[%" PRIu64 "] match to super kernel[%s] %s idx[%" PRIu64
-      "] io idx[%" PRIu64 "] l0 dump list index[%" PRIu64 "]",
-      node_idx, sub_node_op_desc_list_[node_idx]->GetNamePtr(), is_input ? "input" : "output", io_idx,
-      op_desc_->GetNamePtr(), is_input ? "input" : "output",
-      sub_node_io_idx_to_super_kernel_io_idx_[sub_node_io_idx], super_kernel_io_idx,
-      l0_dump_list_.size());
+    GELOGI("subnode[%zu][%s] %s idx[%" PRIu64 "] match to super kernel[%s] %s idx[%" PRIu64 "] io idx[%" PRIu64
+           "] l0 dump list index[%" PRIu64 "]",
+           node_idx, sub_node_op_desc_list_[node_idx]->GetNamePtr(), is_input ? "input" : "output", io_idx,
+           op_desc_->GetNamePtr(), is_input ? "input" : "output",
+           sub_node_io_idx_to_super_kernel_io_idx_[sub_node_io_idx], super_kernel_io_idx, l0_dump_list_.size());
     l0_dump_list_.push_back(super_kernel_io_idx);
   } else {
-    l0_dump_list_.push_back(std::numeric_limits<uint64_t>::max()); // 占位
+    l0_dump_list_.push_back(std::numeric_limits<uint64_t>::max());  // 占位
   }
 }
 
@@ -341,17 +340,18 @@ void SuperKernelV2TaskInfo::InsertCustToRelevantOffset(size_t node_idx, size_t i
       super_kernel_io_idx += super_kernel_input_num;
     }
     cust_to_relevant_offset_[super_kernel_io_idx] = io_addrs_.size();
-    GELOGI("subnode[%zu][%s] node idx %s idx[%" PRIu64 "] match to super kernel[%s] %s idx[%" PRIu64
-      "] io idx[%" PRIu64 "] args offset[%" PRIu64 "]",
-      node_idx, sub_node_op_desc_list_[node_idx]->GetNamePtr(), is_input ? "input" : "output", io_idx,
-      op_desc_->GetNamePtr(), is_input ? "input" : "output",
-      sub_node_io_idx_to_super_kernel_io_idx_[sub_node_io_idx], super_kernel_io_idx,
-      cust_to_relevant_offset_[super_kernel_io_idx]);
+    GELOGI("subnode[%zu][%s] node idx %s idx[%" PRIu64 "] match to super kernel[%s] %s idx[%" PRIu64 "] io idx[%" PRIu64
+           "] args offset[%" PRIu64 "]",
+           node_idx, sub_node_op_desc_list_[node_idx]->GetNamePtr(), is_input ? "input" : "output", io_idx,
+           op_desc_->GetNamePtr(), is_input ? "input" : "output",
+           sub_node_io_idx_to_super_kernel_io_idx_[sub_node_io_idx], super_kernel_io_idx,
+           cust_to_relevant_offset_[super_kernel_io_idx]);
   } else {
-    GELOGI("subnode[%zu][%s] %s idx[%" PRIu64 "] match to super kernel[%s] %s "
-      "idx[null] io idx[null] args offset[%" PRIu64 "]",
-      node_idx, sub_node_op_desc_list_[node_idx]->GetNamePtr(), is_input ? "input" : "output", io_idx,
-      op_desc_->GetNamePtr(), is_input ? "input" : "output", io_addrs_.size());
+    GELOGI("subnode[%zu][%s] %s idx[%" PRIu64
+           "] match to super kernel[%s] %s "
+           "idx[null] io idx[null] args offset[%" PRIu64 "]",
+           node_idx, sub_node_op_desc_list_[node_idx]->GetNamePtr(), is_input ? "input" : "output", io_idx,
+           op_desc_->GetNamePtr(), is_input ? "input" : "output", io_addrs_.size());
   }
 }
 
@@ -371,8 +371,8 @@ Status SuperKernelV2TaskInfo::ParseArgsFormat(const std::vector<ArgDesc> &args_d
       ArgsFormatInfo sub_node_args_format_holder = {};
       for (const auto &sub_node_args_desc : op_index_to_args_desc[sub_op_id]) {
         if (sub_node_args_desc.addr_type != AddrType::SUPER_KERNEL_SUB_NODE) {
-          GELOGI("super kernel[%s] has addr type[%d], ir idx[%d]",
-                 op_desc_->GetNamePtr(), static_cast<int32_t>(sub_node_args_desc.addr_type), sub_node_args_desc.ir_idx);
+          GELOGI("super kernel[%s] has addr type[%d], ir idx[%d]", op_desc_->GetNamePtr(),
+                 static_cast<int32_t>(sub_node_args_desc.addr_type), sub_node_args_desc.ir_idx);
           sub_node_args_format_holder.arg_descs.emplace_back(sub_node_args_desc);
           continue;
         }
@@ -381,8 +381,8 @@ Status SuperKernelV2TaskInfo::ParseArgsFormat(const std::vector<ArgDesc> &args_d
         GE_ASSERT_SUCCESS(ArgsFormatDesc::ConvertArgDescSkToNormal(sub_node_args_desc, args_desc_convert, sub_id));
         sub_node_args_format_holder.arg_descs.emplace_back(args_desc_convert);
         GELOGI("super kernel[%s] has sub node op index[%d], after convert addr type[%d], ir idx[%d]",
-          op_desc_->GetNamePtr(), sub_op_id,
-          static_cast<int32_t>(args_desc_convert.addr_type), args_desc_convert.ir_idx);
+               op_desc_->GetNamePtr(), sub_op_id, static_cast<int32_t>(args_desc_convert.addr_type),
+               args_desc_convert.ir_idx);
       }
 
       NodePtr node_ptr;
@@ -406,7 +406,7 @@ Status SuperKernelV2TaskInfo::ParseArgsFormat(const std::vector<ArgDesc> &args_d
           for (size_t idx = 0UL; idx < ir_range.second; ++idx) {
             const size_t instance_idx = static_cast<size_t>(ir_range.first + idx);
             GE_ASSERT_TRUE(instance_idx < input_descs.size(), "Instance index [%zu] is out of range, max_size:[%zu].",
-                          instance_idx, input_descs.size());
+                           instance_idx, input_descs.size());
             AppendShapeDesc(*input_descs.at(instance_idx), shape_info);
           }
           shape_info[0UL] = static_cast<int64_t>(shape_info.size() * sizeof(uintptr_t));
@@ -427,8 +427,8 @@ Status SuperKernelV2TaskInfo::ParseArgsFormat(const std::vector<ArgDesc> &args_d
           sub_node_args_format_holder.shape_infos.push_back(shape_info);
         } else if (arg_format.addr_type == AddrType::TILING_CONTEXT &&
                    arg_format.ir_idx == static_cast<int32_t>(TilingContextSubType::TILING_CONTEXT)) {
-          const auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance()
-              .GetSpaceRegistry(static_cast<gert::OppImplVersionTag>(op_desc->GetOppImplVersion()));
+          const auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry(
+              static_cast<gert::OppImplVersionTag>(op_desc->GetOppImplVersion()));
           const auto op_impl = space_registry->GetOpImpl(op_desc->GetTypePtr());
           GE_ASSERT_NOTNULL(op_impl, "Failed to get op registry func for node %s.", op_desc->GetNamePtr());
           for (size_t i = 0UL; i < op_desc->GetInputsSize(); ++i) {
@@ -497,15 +497,15 @@ void SuperKernelV2TaskInfo::AppendIoAddr(const uint64_t addr, const uint64_t add
 Status SuperKernelV2TaskInfo::AppendInputOutputAddrByInstanceIndex(size_t node_idx, size_t ins_idx, bool is_input) {
   if (is_input) {
     GE_ASSERT_TRUE(ins_idx < sub_node_input_addrs_list_[node_idx].size(),
-                   "Node idx [%zu] instance idx [%zu] is invalid, input_size:[%zu]",
-                   node_idx, ins_idx, sub_node_input_addrs_list_[node_idx].size());
+                   "Node idx [%zu] instance idx [%zu] is invalid, input_size:[%zu]", node_idx, ins_idx,
+                   sub_node_input_addrs_list_[node_idx].size());
     InsertL0DumpList(node_idx, ins_idx, is_input);
     InsertCustToRelevantOffset(node_idx, ins_idx, is_input);
     AppendIoAddr(sub_node_input_addrs_list_[node_idx][ins_idx], sub_node_input_mem_types_list_[node_idx][ins_idx]);
   } else {
     GE_ASSERT_TRUE(ins_idx < sub_node_output_addrs_list_[node_idx].size(),
-                   "Node idx [%zu] instance idx [%zu] is invalid, output_size:[%zu]",
-                   node_idx, sub_node_output_addrs_list_[node_idx].size());
+                   "Node idx [%zu] instance idx [%zu] is invalid, output_size:[%zu]", node_idx,
+                   sub_node_output_addrs_list_[node_idx].size());
     InsertL0DumpList(node_idx, ins_idx, is_input);
     InsertCustToRelevantOffset(node_idx, ins_idx, is_input);
     AppendIoAddr(sub_node_output_addrs_list_[node_idx][ins_idx], sub_node_output_mem_types_list_[node_idx][ins_idx]);
@@ -515,11 +515,11 @@ Status SuperKernelV2TaskInfo::AppendInputOutputAddrByInstanceIndex(size_t node_i
 
 Status SuperKernelV2TaskInfo::AppendInputOutputAddr(size_t node_idx, size_t ir_idx, bool is_input) {
   const std::map<size_t, std::pair<size_t, size_t>> &ir_2_range =
-      is_input ? sub_node_args_format_holder_list_[node_idx].ir_input_2_range :
-      sub_node_args_format_holder_list_[node_idx].ir_output_2_range;
+      is_input ? sub_node_args_format_holder_list_[node_idx].ir_input_2_range
+               : sub_node_args_format_holder_list_[node_idx].ir_output_2_range;
   const auto iter = ir_2_range.find(ir_idx);
-  GE_ASSERT(iter != ir_2_range.end(),
-    "sub node[%zu] ir idx[%zu] is not found, input flag %u.", node_idx, ir_idx, is_input);
+  GE_ASSERT(iter != ir_2_range.end(), "sub node[%zu] ir idx[%zu] is not found, input flag %u.", node_idx, ir_idx,
+            is_input);
   const auto &range_pair = iter->second;
   if (is_input && range_pair.second == 0UL) {
     // optional input placeholder
@@ -529,9 +529,9 @@ Status SuperKernelV2TaskInfo::AppendInputOutputAddr(size_t node_idx, size_t ir_i
   }
   size_t begin_idx = range_pair.first;
   std::vector<uint64_t> &addrs =
-    is_input ? sub_node_input_addrs_list_[node_idx] : sub_node_output_addrs_list_[node_idx];
+      is_input ? sub_node_input_addrs_list_[node_idx] : sub_node_output_addrs_list_[node_idx];
   std::vector<uint64_t> &types =
-    is_input ? sub_node_input_mem_types_list_[node_idx] : sub_node_output_mem_types_list_[node_idx];
+      is_input ? sub_node_input_mem_types_list_[node_idx] : sub_node_output_mem_types_list_[node_idx];
   for (size_t i = 0UL; i < range_pair.second; ++i, ++begin_idx) {
     GE_ASSERT(begin_idx < addrs.size(), "sub node[%zu] ir idx[%zu], begin_index[%zu] is out of range, max_size[%zu].",
               node_idx, ir_idx, begin_idx, addrs.size());
@@ -544,16 +544,17 @@ Status SuperKernelV2TaskInfo::AppendInputOutputAddr(size_t node_idx, size_t ir_i
 
 Status SuperKernelV2TaskInfo::AppendWorkspaceAddr(size_t node_idx, int32_t ir_idx) {
   if (ir_idx < 0) {
-    l0_dump_list_.insert(l0_dump_list_.end(),
-      sub_node_workspace_addrs_list_[node_idx].size(), std::numeric_limits<uint64_t>::max()); // 占位
+    l0_dump_list_.insert(l0_dump_list_.end(), sub_node_workspace_addrs_list_[node_idx].size(),
+                         std::numeric_limits<uint64_t>::max());  // 占位
     (void)io_addrs_.insert(io_addrs_.cend(), sub_node_workspace_addrs_list_[node_idx].cbegin(),
                            sub_node_workspace_addrs_list_[node_idx].cend());
     (void)io_addr_mem_types_.insert(io_addr_mem_types_.cend(), sub_node_workspace_mem_types_list_[node_idx].cbegin(),
                                     sub_node_workspace_mem_types_list_[node_idx].cend());
   } else {
     const size_t idx = static_cast<size_t>(ir_idx);
-    GE_ASSERT(idx < sub_node_workspace_addrs_list_[node_idx].size(), "workspace idx:[%zu] is output of range, max_size:[%zu]",
-              idx, sub_node_workspace_addrs_list_[node_idx].size());
+    GE_ASSERT(idx < sub_node_workspace_addrs_list_[node_idx].size(),
+              "workspace idx:[%zu] is output of range, max_size:[%zu]", idx,
+              sub_node_workspace_addrs_list_[node_idx].size());
     uint64_t index = std::numeric_limits<uint64_t>::max();
     if (sub_node_op_desc_list_[node_idx] == op_desc_) {
       index = op_desc_->GetInputsSize() + op_desc_->GetOutputsSize() + static_cast<uint64_t>(ir_idx);
@@ -565,8 +566,8 @@ Status SuperKernelV2TaskInfo::AppendWorkspaceAddr(size_t node_idx, int32_t ir_id
 }
 
 Status SuperKernelV2TaskInfo::AssembleShapeInfoAddrs(
-  const std::vector<std::vector<ArgDesc>> &sub_node_dynamic_args_desc,
-  const std::vector<std::vector<size_t>> &sub_node_level2_addr_idx) {
+    const std::vector<std::vector<ArgDesc>> &sub_node_dynamic_args_desc,
+    const std::vector<std::vector<size_t>> &sub_node_level2_addr_idx) {
   size_t node_idx = 0UL;
   for (const auto &dynamic_args_desc : sub_node_dynamic_args_desc) {
     if (dynamic_args_desc.size() == 0UL) {
@@ -577,9 +578,9 @@ Status SuperKernelV2TaskInfo::AssembleShapeInfoAddrs(
     GE_ASSERT(dynamic_args_desc.size() == sub_node_args_format_holder_list_[node_idx].shape_infos.size());
     for (size_t i = 0UL; i < dynamic_args_desc.size(); i++) {
       std::map<size_t, std::pair<size_t, size_t>> &ir_input_2_range =
-        sub_node_args_format_holder_list_[node_idx].ir_input_2_range;
+          sub_node_args_format_holder_list_[node_idx].ir_input_2_range;
       std::map<size_t, std::pair<size_t, size_t>> &ir_output_2_range =
-        sub_node_args_format_holder_list_[node_idx].ir_output_2_range;
+          sub_node_args_format_holder_list_[node_idx].ir_output_2_range;
 
       auto &shape_info = sub_node_args_format_holder_list_[node_idx].shape_infos[i];
       const size_t ptr_offset_idx = io_addrs_.size();
@@ -587,10 +588,9 @@ Status SuperKernelV2TaskInfo::AssembleShapeInfoAddrs(
       GE_ASSERT(addr_idx < io_addrs_.size());
 
       // addr to ptr offset
-      io_addrs_[addr_idx] =
-        PtrToValue(args_) + static_cast<uint64_t>(ptr_offset_idx * sizeof(uint64_t));
-      GELOGI("subnode[%zu] set ptr_offset idx[%zu], addr idx[%" PRIx64 "] value[%" PRIx64 "]",
-        node_idx, ptr_offset_idx, addr_idx, io_addrs_[addr_idx]);
+      io_addrs_[addr_idx] = PtrToValue(args_) + static_cast<uint64_t>(ptr_offset_idx * sizeof(uint64_t));
+      GELOGI("subnode[%zu] set ptr_offset idx[%zu], addr idx[%" PRIx64 "] value[%" PRIx64 "]", node_idx, ptr_offset_idx,
+             addr_idx, io_addrs_[addr_idx]);
       // copy shape_infos
       (void)io_addrs_.insert(io_addrs_.cend(), shape_info.cbegin(), shape_info.cend());
       (void)io_addr_mem_types_.insert(io_addr_mem_types_.cend(), shape_info.size(), kAbsoluteMemType);
@@ -601,11 +601,11 @@ Status SuperKernelV2TaskInfo::AssembleShapeInfoAddrs(
         size_t begin_idx = range_pair.first;
         for (size_t idx = 0UL; idx < range_pair.second; ++idx) {
           GE_ASSERT(begin_idx < sub_node_input_addrs_list_[node_idx].size(),
-                    "subnode[%zu] ir_idx [%zu], begin_index [%zu] is out of range, max_size:[%zu].",
-                    node_idx, ir_idx, begin_idx, sub_node_input_addrs_list_[node_idx].size());
+                    "subnode[%zu] ir_idx [%zu], begin_index [%zu] is out of range, max_size:[%zu].", node_idx, ir_idx,
+                    begin_idx, sub_node_input_addrs_list_[node_idx].size());
           InsertCustToRelevantOffset(node_idx, begin_idx, true);
           AppendIoAddr(sub_node_input_addrs_list_[node_idx][begin_idx],
-            sub_node_input_mem_types_list_[node_idx][begin_idx]);
+                       sub_node_input_mem_types_list_[node_idx][begin_idx]);
           ++begin_idx;
         }
       } else if (dynamic_args_desc[i].addr_type == AddrType::OUTPUT_DESC) {
@@ -614,10 +614,11 @@ Status SuperKernelV2TaskInfo::AssembleShapeInfoAddrs(
         size_t begin_idx = range_pair.first;
         for (size_t idx = 0UL; idx < range_pair.second; ++idx) {
           GE_ASSERT(begin_idx < sub_node_output_addrs_list_[node_idx].size(),
-                    "subnode[%zu] ir_idx:[%zu], begin_index [%zu] is out of range, max_size:[%zu].",
-                    node_idx, ir_idx, begin_idx, sub_node_output_addrs_list_[node_idx].size());
+                    "subnode[%zu] ir_idx:[%zu], begin_index [%zu] is out of range, max_size:[%zu].", node_idx, ir_idx,
+                    begin_idx, sub_node_output_addrs_list_[node_idx].size());
           InsertCustToRelevantOffset(node_idx, begin_idx, false);
-          AppendIoAddr(sub_node_output_addrs_list_[node_idx][begin_idx], sub_node_output_mem_types_list_[node_idx][begin_idx]);
+          AppendIoAddr(sub_node_output_addrs_list_[node_idx][begin_idx],
+                       sub_node_output_mem_types_list_[node_idx][begin_idx]);
           ++begin_idx;
         }
       }
@@ -641,7 +642,7 @@ void SuperKernelV2TaskInfo::GetAddrAlignedGertTensorSize(size_t &io_aligned_offs
 }
 
 Status SuperKernelV2TaskInfo::AssembleTilingSinkTensors(
-    std::map<int32_t ,std::map<size_t, gert::AddrRefreshedTensor>> &index_to_tensor) {
+    std::map<int32_t, std::map<size_t, gert::AddrRefreshedTensor>> &index_to_tensor) {
   for (size_t i = 0; i < sub_node_op_index_list_.size(); ++i) {
     if (sub_node_args_format_holder_list_[i].tiling_depends_input_idx.empty()) {
       return SUCCESS;
@@ -650,23 +651,24 @@ Status SuperKernelV2TaskInfo::AssembleTilingSinkTensors(
     size_t rt_tensor_size{0UL};
     GetAddrAlignedGertTensorSize(rt_tensor_offset, rt_tensor_size);
     GELOGI("IoAddr Offset:[%zu] double aligned tensor size:[%zu].", rt_tensor_offset, rt_tensor_size);
-    sub_node_args_format_holder_list_[i].sink_tensor_size = rt_tensor_size *
-        sub_node_args_format_holder_list_[i].tiling_depends_input_idx.size();
+    sub_node_args_format_holder_list_[i].sink_tensor_size =
+        rt_tensor_size * sub_node_args_format_holder_list_[i].tiling_depends_input_idx.size();
     const size_t addr_num = sub_node_args_format_holder_list_[i].sink_tensor_size / sizeof(uint64_t);
     io_addrs_.resize(addr_num);
     io_addr_mem_types_.resize(addr_num, kAbsoluteMemType);
     size_t tensor_cnt = 0UL;
-    const auto args = (task_type_ != ModelTaskType::MODEL_TASK_PREPROCESS_KERNEL) ?
-                      PtrToValue(args_) : (PtrToValue(args_) + sizeof(aicpu::AicpuParamHead));
-    GELOGI("tiling sink task[%u] args[0x%" PRIx64 "] for [%s]",
-      static_cast<uint32_t>(task_type_), args, op_desc_->GetNamePtr());
+    const auto args = (task_type_ != ModelTaskType::MODEL_TASK_PREPROCESS_KERNEL)
+                          ? PtrToValue(args_)
+                          : (PtrToValue(args_) + sizeof(aicpu::AicpuParamHead));
+    GELOGI("tiling sink task[%u] args[0x%" PRIx64 "] for [%s]", static_cast<uint32_t>(task_type_), args,
+           op_desc_->GetNamePtr());
     for (auto tiling_idx : sub_node_args_format_holder_list_[i].tiling_depends_input_idx) {
       index_to_tensor[i][tiling_idx].device_addr = args + rt_tensor_size * tensor_cnt + rt_tensor_offset;
-      gert::Tensor *host_tensor =
-          reinterpret_cast<gert::Tensor *>(PtrToValue(io_addrs_.data()) + rt_tensor_size * tensor_cnt + rt_tensor_offset);
+      gert::Tensor *host_tensor = reinterpret_cast<gert::Tensor *>(PtrToValue(io_addrs_.data()) +
+                                                                   rt_tensor_size * tensor_cnt + rt_tensor_offset);
       GE_ASSERT_NOTNULL(host_tensor);
-      GE_ASSERT(tiling_idx < sub_node_input_addrs_list_[i].size(), "Input index [%zu] is invalid, inputs size:[%zu]", tiling_idx,
-                sub_node_input_addrs_list_[i].size());
+      GE_ASSERT(tiling_idx < sub_node_input_addrs_list_[i].size(), "Input index [%zu] is invalid, inputs size:[%zu]",
+                tiling_idx, sub_node_input_addrs_list_[i].size());
       host_tensor->MutableTensorData().SetAddr(ValueToPtr(sub_node_input_addrs_list_[i][tiling_idx]), nullptr);
       const size_t addr_offset =
           static_cast<size_t>(PtrToValue(&host_tensor->MutableTensorData()) - PtrToValue(io_addrs_.data()));
@@ -685,7 +687,7 @@ Status SuperKernelV2TaskInfo::AssembleTilingSinkTensors(
 }
 
 Status SuperKernelV2TaskInfo::AssembleTilingContextArgs(int32_t node_idx, const ArgDesc &arg_desc,
-                                                 std::map<size_t, gert::AddrRefreshedTensor> &index_to_tensor) {
+                                                        std::map<size_t, gert::AddrRefreshedTensor> &index_to_tensor) {
   std::shared_ptr<TilingContextAddr> default_ctx_ptr = nullptr;
   std::shared_ptr<TilingContextAddr> tiling_context_addr =
       sub_node_op_desc_list_[node_idx]->TryGetExtAttr(kTilingContextAddrs, default_ctx_ptr);
@@ -734,7 +736,7 @@ Status SuperKernelV2TaskInfo::AssembleIoByArgsFormat() {
   sub_node_dynamic_args_desc.resize(node_num);
   sub_node_level_addr_idx.resize(node_num);
 
-  std::map<int32_t ,std::map<size_t, gert::AddrRefreshedTensor>> idx_to_sink_tensor_map;
+  std::map<int32_t, std::map<size_t, gert::AddrRefreshedTensor>> idx_to_sink_tensor_map;
   GE_ASSERT_SUCCESS(AssembleTilingSinkTensors(idx_to_sink_tensor_map));
 
   size_t node_idx = 0U;
@@ -747,11 +749,13 @@ Status SuperKernelV2TaskInfo::AssembleIoByArgsFormat() {
     for (const auto &arg_format : args_format_holder.arg_descs) {
       switch (arg_format.addr_type) {
         case AddrType::INPUT_INSTANCE: {
-          GE_ASSERT_SUCCESS(AppendInputOutputAddrByInstanceIndex(node_idx, static_cast<size_t>(arg_format.ir_idx), true));
+          GE_ASSERT_SUCCESS(
+              AppendInputOutputAddrByInstanceIndex(node_idx, static_cast<size_t>(arg_format.ir_idx), true));
           break;
         }
         case AddrType::OUTPUT_INSTANCE: {
-          GE_ASSERT_SUCCESS(AppendInputOutputAddrByInstanceIndex(node_idx, static_cast<size_t>(arg_format.ir_idx), false));
+          GE_ASSERT_SUCCESS(
+              AppendInputOutputAddrByInstanceIndex(node_idx, static_cast<size_t>(arg_format.ir_idx), false));
           break;
         }
         case AddrType::INPUT_DESC: {
@@ -807,12 +811,12 @@ Status SuperKernelV2TaskInfo::AssembleIoByArgsFormat() {
         case AddrType::FFTS_ADDR: {
           void *mode_addr_ptr = nullptr;
           GE_CHK_ACL_RET(aclrtGetHardwareSyncAddr(&mode_addr_ptr));
-          l0_dump_list_.push_back(std::numeric_limits<uint64_t>::max()); // 占位
+          l0_dump_list_.push_back(std::numeric_limits<uint64_t>::max());  // 占位
           AppendIoAddr(reinterpret_cast<uint64_t>(mode_addr_ptr), kAbsoluteMemType);
           break;
         }
         case AddrType::PLACEHOLDER: {
-          l0_dump_list_.push_back(std::numeric_limits<uint64_t>::max()); // 占位
+          l0_dump_list_.push_back(std::numeric_limits<uint64_t>::max());  // 占位
           AppendIoAddr(0UL, kAbsoluteMemType);
           break;
         }
@@ -822,8 +826,8 @@ Status SuperKernelV2TaskInfo::AssembleIoByArgsFormat() {
             GE_ASSERT_SUCCESS(SetHcomAttr(node_idx));
           }
           std::vector<void *> context_addrs;
-          GE_ASSERT_SUCCESS(ArgsFormatUtils::GetHcomHiddenInputs(sub_node_op_desc_list_[node_idx],
-                                                                 *davinci_model_, context_addrs, hi_type));
+          GE_ASSERT_SUCCESS(ArgsFormatUtils::GetHcomHiddenInputs(sub_node_op_desc_list_[node_idx], *davinci_model_,
+                                                                 context_addrs, hi_type));
           const size_t ir_idx = static_cast<size_t>(arg_format.ir_idx);
           GE_ASSERT_TRUE(ir_idx < context_addrs.size());
           l0_dump_list_.push_back(std::numeric_limits<uint64_t>::max());  // 占位
@@ -863,7 +867,7 @@ Status SuperKernelV2TaskInfo::AssembleIoByArgsFormat() {
         }
         case AddrType::OVERFLOW_ADDR: {
           bool has_overflow = (davinci_model_->GetOverflowAddr() != nullptr) &&
-                 AttrUtils::HasAttr(sub_node_op_desc_list_[node_idx], GLOBALWORKSPACE_TYPE);
+                              AttrUtils::HasAttr(sub_node_op_desc_list_[node_idx], GLOBALWORKSPACE_TYPE);
           if (has_overflow) {
             l0_dump_list_.push_back(std::numeric_limits<uint64_t>::max());  // 占位
             AppendIoAddr(PtrToValue(davinci_model_->GetOverflowAddr()),
@@ -889,12 +893,13 @@ Status SuperKernelV2TaskInfo::AssembleIoByArgsFormat() {
 }
 
 Status SuperKernelV2TaskInfo::SetHcomAttr(const size_t node_idx) {
-  void *input_data_addr = sub_node_input_addrs_list_[node_idx].empty() ?
-                         nullptr : ValueToPtr(sub_node_input_addrs_list_[node_idx][0]);
-  void *output_data_addr = sub_node_output_addrs_list_[node_idx].empty() ?
-                          nullptr : ValueToPtr(sub_node_output_addrs_list_[node_idx][0]);
-  void *ws_addr = sub_node_workspace_addrs_list_[node_idx].empty() ?
-                          nullptr : ValueToPtr(sub_node_workspace_addrs_list_[node_idx][0]);
+  void *input_data_addr =
+      sub_node_input_addrs_list_[node_idx].empty() ? nullptr : ValueToPtr(sub_node_input_addrs_list_[node_idx][0]);
+  void *output_data_addr =
+      sub_node_output_addrs_list_[node_idx].empty() ? nullptr : ValueToPtr(sub_node_output_addrs_list_[node_idx][0]);
+  void *ws_addr = sub_node_workspace_addrs_list_[node_idx].empty()
+                      ? nullptr
+                      : ValueToPtr(sub_node_workspace_addrs_list_[node_idx][0]);
   auto &hcom_opdesc = sub_node_op_desc_list_[node_idx];
   GE_ASSERT_TRUE(AttrUtils::SetInt(hcom_opdesc, "_skn_hcom_input_addr", PtrToValue(input_data_addr)));
   GE_ASSERT_TRUE(AttrUtils::SetInt(hcom_opdesc, "_skn_hcom_output_addr", PtrToValue(output_data_addr)));
@@ -913,20 +918,21 @@ Status SuperKernelV2TaskInfo::SetHcomAttr(const size_t node_idx) {
   for (auto &workspace_mem_type : workspace_mem_types) {
     is_refresh_addr_op |= ModelUtils::IsSuppoprtAddrRefreshable(workspace_mem_type);
   }
-  is_refresh_addr_op = !davinci_model_->IsStaticAddrFixed() && davinci_model_->IsFeatureBaseRefreshable()
-                       && is_refresh_addr_op;
+  is_refresh_addr_op =
+      !davinci_model_->IsStaticAddrFixed() && davinci_model_->IsFeatureBaseRefreshable() && is_refresh_addr_op;
   GE_ASSERT_TRUE(AttrUtils::SetBool(hcom_opdesc, "_skn_hcom_need_refresh", is_refresh_addr_op));
-  GELOGI("set hcom %s input addr %p, output addr %p, ws addr %p, is_refresh_addr_op %d, "
-         "IsStaticAddrFixed %d, IsFeatureBaseRefreshable %d", hcom_opdesc->GetNamePtr(), input_data_addr,
-          output_data_addr, ws_addr, is_refresh_addr_op, davinci_model_->IsStaticAddrFixed(),
-          davinci_model_->IsFeatureBaseRefreshable());
+  GELOGI(
+      "set hcom %s input addr %p, output addr %p, ws addr %p, is_refresh_addr_op %d, "
+      "IsStaticAddrFixed %d, IsFeatureBaseRefreshable %d",
+      hcom_opdesc->GetNamePtr(), input_data_addr, output_data_addr, ws_addr, is_refresh_addr_op,
+      davinci_model_->IsStaticAddrFixed(), davinci_model_->IsFeatureBaseRefreshable());
   return SUCCESS;
 }
 
 Status SuperKernelV2TaskInfo::InitContext(const domi::KernelContext &context) {
   if ((context.args_offset().size() / sizeof(uint16_t)) < 1U) {
     REPORT_INNER_ERR_MSG("E19999", "args_offset().size():%zu / sizeof(uint16_t) less than 1, op:%s(%s), check invalid",
-                       context.args_offset().size(), op_desc_->GetName().c_str(), op_desc_->GetType().c_str());
+                         context.args_offset().size(), op_desc_->GetName().c_str(), op_desc_->GetType().c_str());
     GELOGE(FAILED, "[Check][Param]invalid, args_offset().size():%zu / sizeof(uint16_t) less than 1, op:%s(%s)",
            context.args_offset().size(), op_desc_->GetName().c_str(), op_desc_->GetType().c_str());
     return FAILED;
@@ -940,14 +946,13 @@ Status SuperKernelV2TaskInfo::InitContext(const domi::KernelContext &context) {
   return SUCCESS;
 }
 
-
 Status SuperKernelV2TaskInfo::InitTask(const domi::KernelDef &kernel_def) {
   GELOGD("Do InitTask of %s.", op_desc_->GetName().c_str());
   GE_CHK_STATUS_RET_NOLOG(InitContext(kernel_def.context()));
 
   schedule_mode_ = static_cast<uint8_t>(kernel_def.schedule_mode() & k2BitsMask);
-  GELOGD("OpName: %s set schedule mode from kernel def: %u",
-      op_desc_->GetName().c_str(), static_cast<uint32_t>(schedule_mode_));
+  GELOGD("OpName: %s set schedule mode from kernel def: %u", op_desc_->GetName().c_str(),
+         static_cast<uint32_t>(schedule_mode_));
 
   // load with queue 零拷贝场景未作适配
   return SUCCESS;
@@ -961,7 +966,8 @@ Status SuperKernelV2TaskInfo::InitKernel(const domi::TaskDef &task_def, const Pi
   is_block_task_prefetch_ = kernel_def.is_block_task_prefetch();
   const domi::KernelContext &context = kernel_def.context();
   if (context.origin_op_index_size() > CC_FUSION_OP_MAX) {
-    REPORT_INNER_ERR_MSG("E19999", "origin_op_index_size:%d is more than CC_FUSION_OP_MAX(%d), op:%s(%s), check invalid",
+    REPORT_INNER_ERR_MSG(
+        "E19999", "origin_op_index_size:%d is more than CC_FUSION_OP_MAX(%d), op:%s(%s), check invalid",
         context.origin_op_index_size(), CC_FUSION_OP_MAX, op_desc_->GetName().c_str(), op_desc_->GetType().c_str());
     GELOGE(PARAM_INVALID, "[Check][Param]invalid, origin_op_index_size:%d is more than CC_FUSION_OP_MAX(%d), op:%s(%s)",
            context.origin_op_index_size(), CC_FUSION_OP_MAX, op_desc_->GetName().c_str(), op_desc_->GetType().c_str());
@@ -994,7 +1000,7 @@ Status SuperKernelV2TaskInfo::InitKernel(const domi::TaskDef &task_def, const Pi
 void SuperKernelV2TaskInfo::UpdateTaskId() {
   if (davinci_model_ != nullptr) {
     GE_CHK_RT_EXEC(aclrtGetThreadLastTaskId(&task_id_), return);
-    GE_CHK_RT_EXEC(aclrtStreamGetId(stream_, reinterpret_cast<int32_t*>(&stream_id_)), return);
+    GE_CHK_RT_EXEC(aclrtStreamGetId(stream_, reinterpret_cast<int32_t *>(&stream_id_)), return);
     GELOGD("UpdateTaskId:UpdateTaskId [%u], stream id [%u]:", task_id_, stream_id_);
   }
 }

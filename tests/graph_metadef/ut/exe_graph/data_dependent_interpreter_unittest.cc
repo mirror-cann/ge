@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -96,10 +96,7 @@ ge::NodePtr FakeUbNode02OnlyHasTwoData() {
   node->GetOpDesc()->SetOpInferDepends({"x", "z"});
 
   auto ub_graph = std::make_shared<ge::ComputeGraph>("ub_graph");
-  auto data2 = ComputeNodeFaker(ub_graph)
-                   .NameAndType("const0", "Const")
-                   .IoNum(0, 1)
-                   .Build();
+  auto data2 = ComputeNodeFaker(ub_graph).NameAndType("const0", "Const").IoNum(0, 1).Build();
   auto data0 = ComputeNodeFaker(ub_graph)
                    .NameAndType("Data1", "Data")
                    .Attr<int64_t>(ge::ATTR_NAME_PARENT_NODE_INDEX.c_str(), 0)
@@ -147,18 +144,9 @@ ge::NodePtr FakeUbNode02DataDoesNotHasIndex() {
   node->GetOpDesc()->SetOpInferDepends({"x", "z"});
 
   auto ub_graph = std::make_shared<ge::ComputeGraph>("ub_graph");
-  auto data0 = ComputeNodeFaker(ub_graph)
-                   .NameAndType("Data0", "Data")
-                   .IoNum(0, 1)
-                   .Build();
-  auto data1 = ComputeNodeFaker(ub_graph)
-                   .NameAndType("Data1", "Data")
-                   .IoNum(0, 1)
-                   .Build();
-  auto data2 = ComputeNodeFaker(ub_graph)
-                   .NameAndType("Data2", "Data")
-                   .IoNum(0, 1)
-                   .Build();
+  auto data0 = ComputeNodeFaker(ub_graph).NameAndType("Data0", "Data").IoNum(0, 1).Build();
+  auto data1 = ComputeNodeFaker(ub_graph).NameAndType("Data1", "Data").IoNum(0, 1).Build();
+  auto data2 = ComputeNodeFaker(ub_graph).NameAndType("Data2", "Data").IoNum(0, 1).Build();
 
   auto ddit02 =
       ComputeNodeFaker(ub_graph).NameAndType("Test", "DDIT002").IoNum(3, 1).InputNames({"x", "y", "z"}).Build();
@@ -315,7 +303,8 @@ TEST_F(DataDependentInterpreterUT, SimpleNode_ReturnTrue_V2V1True_UseRegistryV2)
   ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), space_registries).IsDataDependent(2, ret), ge::GRAPH_SUCCESS);
   ASSERT_TRUE(ret);
 
-  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), space_registries).IsDataDependent(2, ret), ge::GRAPH_SUCCESS); // 兼容
+  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), space_registries).IsDataDependent(2, ret),
+            ge::GRAPH_SUCCESS);  // 兼容
   ASSERT_TRUE(ret);
 }
 
@@ -325,19 +314,23 @@ TEST_F(DataDependentInterpreterUT, SimpleNode_TilingDepend_ReturnTrue_V2V1False_
   auto space_registry = SpaceRegistryFaker().Build();
   OpImplSpaceRegistryV2Array space_registries;
   bool ret = false;
-  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), space_registries).IsTilingInputDataDependent(1, ret), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), space_registries).IsTilingInputDataDependent(1, ret),
+            ge::GRAPH_SUCCESS);
   ASSERT_FALSE(ret);
   space_registries[static_cast<size_t>(ge::OppImplVersion::kOpp)] = space_registry;
   ret = false;
-  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), space_registries).IsTilingInputDataDependent(1, ret), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), space_registries).IsTilingInputDataDependent(1, ret),
+            ge::GRAPH_SUCCESS);
   ASSERT_FALSE(ret);
   (void)ge::AttrUtils::SetInt(node->GetOpDesc(), ge::ATTR_NAME_BINARY_SOURCE,
                               static_cast<int64_t>(ge::OppImplVersion::kVersionEnd));
-  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), space_registries).IsTilingInputDataDependent(1, ret), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), space_registries).IsTilingInputDataDependent(1, ret),
+            ge::GRAPH_SUCCESS);
   ASSERT_FALSE(ret);
   auto node2 = ComputeNodeFaker().NameAndType("Test", "DDIT4").IoNum(3, 1).InputNames({"x", "y", "z"}).Build();
   ret = false;
-  ASSERT_EQ(DataDependentInterpreter(node2->GetOpDesc(), space_registries).IsTilingInputDataDependent(0, ret), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(DataDependentInterpreter(node2->GetOpDesc(), space_registries).IsTilingInputDataDependent(0, ret),
+            ge::GRAPH_SUCCESS);
   ASSERT_FALSE(ret);
 }
 
@@ -347,19 +340,23 @@ TEST_F(DataDependentInterpreterUT, SimpleNode_TilingDepend_ReturnTrue_V2V1False)
   auto space_registry = SpaceRegistryFaker().Build();
   OpImplSpaceRegistryV2Array space_registries;
   bool ret = false;
-  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), space_registries).IsTilingInputDataDependent(1, ret), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), space_registries).IsTilingInputDataDependent(1, ret),
+            ge::GRAPH_SUCCESS);
   ASSERT_FALSE(ret);
   space_registries[static_cast<size_t>(ge::OppImplVersion::kOpp)] = space_registry;
   ret = false;
-  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), space_registries).IsTilingInputDataDependent(1, ret), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), space_registries).IsTilingInputDataDependent(1, ret),
+            ge::GRAPH_SUCCESS);
   ASSERT_FALSE(ret);
   (void)ge::AttrUtils::SetInt(node->GetOpDesc(), ge::ATTR_NAME_BINARY_SOURCE,
                               static_cast<int64_t>(ge::OppImplVersion::kVersionEnd));
-  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), space_registries).IsTilingInputDataDependent(1, ret), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), space_registries).IsTilingInputDataDependent(1, ret),
+            ge::GRAPH_SUCCESS);
   ASSERT_FALSE(ret);
   auto node2 = ComputeNodeFaker().NameAndType("Test", "DDIT4").IoNum(3, 1).InputNames({"x", "y", "z"}).Build();
   ret = false;
-  ASSERT_EQ(DataDependentInterpreter(node2->GetOpDesc(), space_registries).IsTilingInputDataDependent(0, ret), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(DataDependentInterpreter(node2->GetOpDesc(), space_registries).IsTilingInputDataDependent(0, ret),
+            ge::GRAPH_SUCCESS);
   ASSERT_FALSE(ret);
 }
 
@@ -369,13 +366,16 @@ TEST_F(DataDependentInterpreterUT, SimpleNode_TilingDepend_ReturnTrue_V2V1) {
   OpImplSpaceRegistryV2Array space_registries;
   space_registries[static_cast<size_t>(ge::OppImplVersion::kOpp)] = SpaceRegistryFaker().BuildMainSpace();
   bool ret = false;
-  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), space_registries).IsTilingInputDataDependent(1UL, ret), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), space_registries).IsTilingInputDataDependent(1UL, ret),
+            ge::GRAPH_SUCCESS);
   ASSERT_TRUE(ret);
   ret = false;
-  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), space_registries).IsTilingInputDataDependent(0UL, ret), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), space_registries).IsTilingInputDataDependent(0UL, ret),
+            ge::GRAPH_SUCCESS);
   ASSERT_FALSE(ret);
   ret = false;
-  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), space_registries).IsTilingInputDataDependent(2UL, ret), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), space_registries).IsTilingInputDataDependent(2UL, ret),
+            ge::GRAPH_SUCCESS);
   ASSERT_TRUE(ret);
 }
 
@@ -386,22 +386,26 @@ TEST_F(DataDependentInterpreterUT, SimpleNode_TilingDependPlacement_ReturnTrue_V
   OpImplSpaceRegistryV2Array space_registries;
   space_registries[static_cast<size_t>(ge::OppImplVersion::kOpp)] = space_registry;
   bool ret = false;
-  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), space_registries).IsSupportTilingDependPlacement(0, ret), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), space_registries).IsSupportTilingDependPlacement(0, ret),
+            ge::GRAPH_SUCCESS);
   ASSERT_FALSE(ret);
   (void)ge::AttrUtils::SetInt(node->GetOpDesc(), ge::ATTR_NAME_BINARY_SOURCE,
                               static_cast<int64_t>(ge::OppImplVersion::kOppKernel));
-  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), space_registries).IsSupportTilingDependPlacement(0, ret), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), space_registries).IsSupportTilingDependPlacement(0, ret),
+            ge::GRAPH_SUCCESS);
   ASSERT_FALSE(ret);
   auto node2 = ComputeNodeFaker().NameAndType("Test", "DDIT5").IoNum(3, 1).InputNames({"x", "y", "z"}).Build();
   ASSERT_NE(node2, nullptr);
   // space_registries.fill()
   space_registries[static_cast<size_t>(ge::OppImplVersion::kOpp)] = nullptr;
-  ASSERT_EQ(DataDependentInterpreter(node2->GetOpDesc(), space_registries).IsSupportTilingDependPlacement(0, ret), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(DataDependentInterpreter(node2->GetOpDesc(), space_registries).IsSupportTilingDependPlacement(0, ret),
+            ge::GRAPH_SUCCESS);
   ASSERT_FALSE(ret);
   auto node3 = ComputeNodeFaker().NameAndType("Test", "DDIT_error").IoNum(3, 1).InputNames({"x", "y", "z"}).Build();
   ASSERT_NE(node3, nullptr);
   space_registries[static_cast<size_t>(ge::OppImplVersion::kOpp)] = space_registry;
-  ASSERT_EQ(DataDependentInterpreter(node3->GetOpDesc(), space_registries).IsSupportTilingDependPlacement(0, ret), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(DataDependentInterpreter(node3->GetOpDesc(), space_registries).IsSupportTilingDependPlacement(0, ret),
+            ge::GRAPH_SUCCESS);
   ASSERT_FALSE(ret);
 }
 
@@ -411,13 +415,16 @@ TEST_F(DataDependentInterpreterUT, SimpleNode_TilingDependPlacement_ReturnTrue_V
   OpImplSpaceRegistryV2Array space_registries;
   space_registries[static_cast<size_t>(ge::OppImplVersion::kOpp)] = SpaceRegistryFaker().BuildMainSpace();
   bool ret = false;
-  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), space_registries).IsSupportTilingDependPlacement(0, ret), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), space_registries).IsSupportTilingDependPlacement(0, ret),
+            ge::GRAPH_SUCCESS);
   ASSERT_TRUE(ret);
   auto node2 = ComputeNodeFaker().NameAndType("Test", "DDIT5").IoNum(3, 1).InputNames({"x", "y", "z"}).Build();
   ASSERT_NE(node2, nullptr);
-  ASSERT_EQ(DataDependentInterpreter(node2->GetOpDesc(), space_registries).IsSupportTilingDependPlacement(0, ret), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(DataDependentInterpreter(node2->GetOpDesc(), space_registries).IsSupportTilingDependPlacement(0, ret),
+            ge::GRAPH_SUCCESS);
   ASSERT_FALSE(ret);
-  ASSERT_EQ(DataDependentInterpreter(node2->GetOpDesc(), space_registries).IsSupportTilingDependPlacement(1, ret), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(DataDependentInterpreter(node2->GetOpDesc(), space_registries).IsSupportTilingDependPlacement(1, ret),
+            ge::GRAPH_SUCCESS);
   ASSERT_TRUE(ret);
 }
 
@@ -524,7 +531,8 @@ TEST_F(DataDependentInterpreterUT, SimpleNode_With_EmptyRegistry) {
   node->GetOpDesc()->SetOpInferDepends({"x", "z"});
 
   bool ret = false;
-  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), OpImplSpaceRegistryV2Array()).IsDataDependent(0, ret), ge::GRAPH_SUCCESS);
+  ASSERT_EQ(DataDependentInterpreter(node->GetOpDesc(), OpImplSpaceRegistryV2Array()).IsDataDependent(0, ret),
+            ge::GRAPH_SUCCESS);
   ASSERT_TRUE(ret);
 }
 TEST_F(DataDependentInterpreterUT, OnlyV1Node_ReturnTrueAndLogWarning_V1True) {

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,7 +24,7 @@ static const char *kInferTimes = "infer_times";
 class InferBasePassStub : public InferBasePass {
  public:
   friend class ChildPassBuilder;
-  graphStatus Infer(NodePtr &node) override{
+  graphStatus Infer(NodePtr &node) override {
     call_infer_times++;
     for (size_t i = 0; i < node->GetOutDataNodesSize(); ++i) {
       auto output_td = node->GetOpDesc()->MutableOutputDesc(i);
@@ -46,7 +46,9 @@ class InferBasePassStub : public InferBasePass {
   bool NeedInfer(const NodePtr &node) const override {
     return need_infer_;
   };
-  std::string SerialTensorInfo(const GeTensorDescPtr &tensor_desc) const override { return "test SerialTensorInfo"; };
+  std::string SerialTensorInfo(const GeTensorDescPtr &tensor_desc) const override {
+    return "test SerialTensorInfo";
+  };
   graphStatus UpdateTensorDesc(const GeTensorDescPtr &src, GeTensorDescPtr &dst, bool &changed) override {
     call_update_tensor_desc_times++;
     changed = td_changed_;
@@ -123,19 +125,19 @@ class UtestGraphInferBasePassStub : public testing::Test {
  */
 ut::GraphBuilder TestSubgraphBuilder() {
   ut::GraphBuilder builder = ut::GraphBuilder("branch_graph");
-  std::vector<int64_t> shape1 = {1,1};
+  std::vector<int64_t> shape1 = {1, 1};
   auto data1 = builder.AddNode("data1_1", "Data", 1, 1, FORMAT_NCHW, DT_INT32, shape1);
   auto data1_desc = data1->GetOpDesc();
   EXPECT_NE(data1_desc, nullptr);
   AttrUtils::SetInt(data1_desc, "_parent_node_index", 0);
-  std::vector<int64_t> shape2 = {2,2};
+  std::vector<int64_t> shape2 = {2, 2};
   auto data2 = builder.AddNode("data2_1", "Data", 1, 1, FORMAT_NCHW, DT_INT32, shape2);
   auto data2_desc = data2->GetOpDesc();
   EXPECT_NE(data2_desc, nullptr);
   AttrUtils::SetInt(data2_desc, "_parent_node_index", 1);
 
   auto sub1 = builder.AddNode("Sub", "Sub", 2, 1);
-  std::vector<int64_t> shape7 = {8,8};
+  std::vector<int64_t> shape7 = {8, 8};
   auto netoutput = builder.AddNode("output", NETOUTPUT, 1, 0, FORMAT_NCHW, DT_INT32, shape7);
   auto input0_desc = netoutput->GetOpDesc()->MutableInputDesc(0);
   EXPECT_NE(input0_desc, nullptr);
@@ -241,7 +243,7 @@ TEST_F(UtestGraphInferBasePassStub, NotAddCurNodeRepass_CallUpdatePeerNode_WhenI
   EXPECT_EQ(stub_base_pass.call_infer_times, 1);
   EXPECT_EQ(stub_base_pass.call_update_tensor_desc_times, 1);
   std::vector<std::pair<GeTensorDescPtr, GeTensorDescPtr>> expected_updated_tensor_desc_pairs = {
-    {add_node->GetOpDesc()->MutableOutputDesc(0), netoutput->GetOpDesc()->MutableInputDesc(0)}};
+      {add_node->GetOpDesc()->MutableOutputDesc(0), netoutput->GetOpDesc()->MutableInputDesc(0)}};
   EXPECT_EQ(stub_base_pass.update_td_pairs, expected_updated_tensor_desc_pairs);
   EXPECT_EQ(stub_base_pass.GetNodesNeedRePassImmediately(), OrderedNodeSet({}));
 }
@@ -258,7 +260,7 @@ TEST_F(UtestGraphInferBasePassStub, AddCurNodeRepass_NotCallUpdatePeerNode_WhenI
   EXPECT_EQ(stub_base_pass.Run(add_node), SUCCESS);
   EXPECT_EQ(stub_base_pass.call_infer_times, 1);
   EXPECT_EQ(stub_base_pass.call_update_tensor_desc_times, 0);
-//  EXPECT_EQ(stub_base_pass.GetNodesNeedRePassImmediately(), std::unordered_set<NodePtr>({add_node}));
+  //  EXPECT_EQ(stub_base_pass.GetNodesNeedRePassImmediately(), std::unordered_set<NodePtr>({add_node}));
 }
 
 TEST_F(UtestGraphInferBasePassStub, NotAddPeerNodeRepass_AfterUpdatePeerNode_WhenUnchanged) {
@@ -294,7 +296,7 @@ TEST_F(UtestGraphInferBasePassStub, AddPeerNodeRepass_AfterUpdatePeerNode_WhenCh
 
   EXPECT_EQ(stub_base_pass.Run(add_node), SUCCESS);
   EXPECT_EQ(stub_base_pass.call_update_tensor_desc_times, 1);
-//  EXPECT_EQ(stub_base_pass.GetNodesNeedRePassImmediately(), std::unordered_set<NodePtr>({netoutput}));
+  //  EXPECT_EQ(stub_base_pass.GetNodesNeedRePassImmediately(), std::unordered_set<NodePtr>({netoutput}));
 }
 
 TEST_F(UtestGraphInferBasePassStub, TestUpdateSubgraphData_WhenBeforeSubgraph) {
@@ -316,10 +318,10 @@ TEST_F(UtestGraphInferBasePassStub, TestUpdateSubgraphData_WhenBeforeSubgraph) {
   // when GRAPH_NODE_NEED_REPASS, not update peer node, only update two data, update input and output, 2*2
   EXPECT_EQ(stub_base_pass.call_update_tensor_desc_times, 4);
   std::vector<std::pair<GeTensorDescPtr, GeTensorDescPtr>> expected_updated_tensor_desc_pairs = {
-    {case_node->GetOpDesc()->MutableInputDesc(0), data1->GetOpDesc()->MutableInputDesc(0)},
-    {case_node->GetOpDesc()->MutableInputDesc(0), data1->GetOpDesc()->MutableOutputDesc(0)},
-    {case_node->GetOpDesc()->MutableInputDesc(1), data2->GetOpDesc()->MutableInputDesc(0)},
-    {case_node->GetOpDesc()->MutableInputDesc(1), data2->GetOpDesc()->MutableOutputDesc(0)},
+      {case_node->GetOpDesc()->MutableInputDesc(0), data1->GetOpDesc()->MutableInputDesc(0)},
+      {case_node->GetOpDesc()->MutableInputDesc(0), data1->GetOpDesc()->MutableOutputDesc(0)},
+      {case_node->GetOpDesc()->MutableInputDesc(1), data2->GetOpDesc()->MutableInputDesc(0)},
+      {case_node->GetOpDesc()->MutableInputDesc(1), data2->GetOpDesc()->MutableOutputDesc(0)},
   };
   EXPECT_EQ(stub_base_pass.update_td_pairs, expected_updated_tensor_desc_pairs);
 }

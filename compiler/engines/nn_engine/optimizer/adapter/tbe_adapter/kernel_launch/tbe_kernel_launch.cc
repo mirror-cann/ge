@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,15 +21,15 @@
 namespace fe {
 namespace {
 const uint32_t MIN_ARG_SIZE = 4;
-const uint32_t ARG_ENTRY_SIZE = 2624;              // 1536 + 1024(tiling) + 64(host mem)
-}
+const uint32_t ARG_ENTRY_SIZE = 2624;  // 1536 + 1024(tiling) + 64(host mem)
+}  // namespace
 
 uint32_t g_args_count = 1;
 uint16_t g_args_offset[ARG_ENTRY_SIZE / MIN_ARG_SIZE];
 
-Status TbeKernelLaunch::DealKernelLaunch(const ge::Node &node, const void *args,
-                                         const uint32_t &args_size, const std::string &stub_func,
-                                         const uint32_t &core_dim, domi::TaskDef &task_def) {
+Status TbeKernelLaunch::DealKernelLaunch(const ge::Node &node, const void *args, const uint32_t &args_size,
+                                         const std::string &stub_func, const uint32_t &core_dim,
+                                         domi::TaskDef &task_def) {
   string op_name = node.GetName();
   string op_type = node.GetType();
   auto op_desc = node.GetOpDesc();

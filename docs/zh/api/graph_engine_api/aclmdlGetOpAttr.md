@@ -76,4 +76,3 @@ const char *aclmdlGetOpAttr(aclmdlDesc *modelDesc, const char *opName, const cha
 返回属性值的字符串指针，该指针的生命周期与modelDesc相同，若modelDesc资源被销毁，则该指针指向的内容也会自动被销毁。若opName或者attr属性不存在、或者attr属性值为空，均返回指向空字符串的指针。
 
 若调用该接口失败，则返回nullptr。
-

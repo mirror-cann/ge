@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -52,8 +52,7 @@ static Status GetSizeByNodeType(const OpDescPtr &op_desc, const GeTensorDescPtr 
     }
   }
   GE_ASSERT_SUCCESS(TensorUtilsEx::GetTensorMemorySizeInBytesWithAutoPadding(*tensor_desc, size),
-                    "[Get][TensorMemorySize] In Bytes failed for op:%s(%s)",
-                    op_desc->GetNamePtr(), node_type.c_str());
+                    "[Get][TensorMemorySize] In Bytes failed for op:%s(%s)", op_desc->GetNamePtr(), node_type.c_str());
   return SUCCESS;
 }
 
@@ -63,7 +62,7 @@ Status VarMemAssignUtil::AssignStaticMemory2Node(const ge::ComputeGraphPtr &comp
     const auto node_type = n->GetType();
     if ((node_type != VARIABLE) && (node_type != CONSTANTOP) && (node_type != FILECONSTANT) &&
         (node_type != CONSTPLACEHOLDER)) {
-        continue;
+      continue;
     }
     const auto op_desc = n->GetOpDesc();
     GE_CHECK_NOTNULL(op_desc);
@@ -74,8 +73,7 @@ Status VarMemAssignUtil::AssignStaticMemory2Node(const ge::ComputeGraphPtr &comp
     std::string node_name = GetNameForVarManager(op_desc);
     GE_IF_BOOL_EXEC(op_desc->GetAllOutputsDesc().empty(),
                     REPORT_INNER_ERR_MSG("E19999", "check node:%s has no OutputDesc", n->GetName().c_str());
-                    GELOGE(FAILED, "[Check][Param] node:%s has no OutputDesc.", n->GetName().c_str());
-                    return FAILED);
+                    GELOGE(FAILED, "[Check][Param] node:%s has no OutputDesc.", n->GetName().c_str()); return FAILED);
     auto tensor_desc = op_desc->MutableOutputDesc(0U);
     GE_CHECK_NOTNULL(tensor_desc);
     rtMemType_t memory_type = RT_MEMORY_HBM;
@@ -101,8 +99,8 @@ Status VarMemAssignUtil::AssignStaticMemory2Node(const ge::ComputeGraphPtr &comp
     }
 
     uint8_t *dev_ptr = nullptr;
-    GE_CHK_STATUS_RET(VarManager::Instance(compute_graph->GetSessionID())
-                          ->GetVarAddr(node_name, *tensor_desc, dev_ptr, memory_type));
+    GE_CHK_STATUS_RET(
+        VarManager::Instance(compute_graph->GetSessionID())->GetVarAddr(node_name, *tensor_desc, dev_ptr, memory_type));
     std::vector<int64_t> output_list = op_desc->GetOutputOffset();
     GE_IF_BOOL_EXEC(output_list.empty(), return FAILED);
     output_list[0U] = static_cast<int64_t>(PtrToValue(dev_ptr));
@@ -170,8 +168,8 @@ Status VarMemAssignUtil::SetOutVariableAttr(const ge::NodePtr &node, const ge::N
 
   const size_t out_list_size = output_list.size();
   if (index >= out_list_size) {
-    REPORT_INNER_ERR_MSG("E19999", "param index:%zu >= output_list.size() %zu in node %s, check invalid",
-                       index, out_list_size, node->GetName().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "param index:%zu >= output_list.size() %zu in node %s, check invalid", index,
+                         out_list_size, node->GetName().c_str());
     GELOGE(FAILED, "[Check][Param] index %zu >= output_list.size() %zu in node %s", index, out_list_size,
            node->GetName().c_str());
     return FAILED;
@@ -190,7 +188,7 @@ Status VarMemAssignUtil::DealExportVariableNode(const ge::NodePtr &node, const g
     GELOGE(FAILED, "[Invoke][DealExportVariableNode]There are too much recursion:%u > max:%u", depth,
            kVarMemMaxRecursion);
     REPORT_INNER_ERR_MSG("E19999", "[DealExportVariableNode]There are too much recursion:%u > max:%u", depth,
-                       kVarMemMaxRecursion);
+                         kVarMemMaxRecursion);
     return FAILED;
   }
   const ge::OutDataAnchorPtr var_out_anchor = node->GetOutDataAnchor(0);
@@ -216,8 +214,8 @@ Status VarMemAssignUtil::DealBroadCastNode(const uint32_t graph_id, const ge::No
   broad_cast_info.broadcast_name = node->GetName();
 
   const auto op_desc = node->GetOpDesc();
-  GE_CHK_BOOL_RET_STATUS(op_desc != nullptr, FAILED,
-                         "[Check][Param] Get broadcast op %s desc is nullptr", node->GetName().c_str());
+  GE_CHK_BOOL_RET_STATUS(op_desc != nullptr, FAILED, "[Check][Param] Get broadcast op %s desc is nullptr",
+                         node->GetName().c_str());
 
   GE_IF_BOOL_EXEC(broad_cast_info.idx < 0,
                   GELOGI("Broadcast input index must be positive, actual %d", broad_cast_info.idx);
@@ -227,7 +225,7 @@ Status VarMemAssignUtil::DealBroadCastNode(const uint32_t graph_id, const ge::No
   auto input_tensor_desc_ptr_vistor = op_desc->GetAllInputsDescPtr();
   if (input_tensor_desc_ptr_vistor.size() <= broad_cast_index) {
     REPORT_INNER_ERR_MSG("E19999", "Get broadcast op %s input tensor desc size [%zu] < idx [%d]",
-                       node->GetName().c_str(), input_tensor_desc_ptr_vistor.size(), broad_cast_info.idx);
+                         node->GetName().c_str(), input_tensor_desc_ptr_vistor.size(), broad_cast_info.idx);
     GELOGE(FAILED, "[Check][Param] Get broadcast op %s input tensor desc size [%zu] < idx [%d]",
            node->GetName().c_str(), input_tensor_desc_ptr_vistor.size(), broad_cast_info.idx);
     return FAILED;
@@ -298,7 +296,7 @@ ge::NodePtr VarMemAssignUtil::GetFinalTransNode(const ge::NodePtr &trans_node, c
   if (depth >= kVarMemMaxRecursion) {
     GELOGE(FAILED, "[Invoke][GetFinalTransNode]There are too much recursion:%u > max:%u", depth, kVarMemMaxRecursion);
     REPORT_INNER_ERR_MSG("E19999", "[GetFinalTransNode]There are too much recursion:%u > max:%u", depth,
-                       kVarMemMaxRecursion);
+                         kVarMemMaxRecursion);
     return final_ref_node;
   }
   const OutDataAnchorPtr trans_out_data_anchor = trans_node->GetOutDataAnchor(0);
@@ -333,7 +331,7 @@ Status VarMemAssignUtil::DealExportTransNode(const ge::NodePtr &node, const ge::
   if (depth >= kVarMemMaxRecursion) {
     GELOGE(FAILED, "[Invoke][DealExportTransNode]There are too much recursion:%u > max:%u", depth, kVarMemMaxRecursion);
     REPORT_INNER_ERR_MSG("E19999", "[DealExportTransNode]There are too much recursion:%u > max:%u", depth,
-                       kVarMemMaxRecursion);
+                         kVarMemMaxRecursion);
     return FAILED;
   }
   const ge::OutDataAnchorPtr node_out_anchor = node->GetOutDataAnchor(0);
@@ -360,8 +358,7 @@ Status VarMemAssignUtil::SetOutTransNodeToAssign(const ge::NodePtr &node, const 
   std::vector<int64_t> output_list = node->GetOpDesc()->GetOutputOffset();
   const auto out_list_size = output_list.size();
   GE_CHECK_SIZE(out_list_size);
-  GE_CHK_BOOL_RET_STATUS(index < out_list_size, FAILED,
-                         "[Check][Param] index %zu >= output_list.size() %zu, node:%s",
+  GE_CHK_BOOL_RET_STATUS(index < out_list_size, FAILED, "[Check][Param] index %zu >= output_list.size() %zu, node:%s",
                          index, out_list_size, node->GetName().c_str());
 
   // final_trans_node outputOffset[0] to assign_node outputOffset[0]
@@ -422,9 +419,9 @@ Status VarMemAssignUtil::AssignData2VarRef(const ge::NodePtr &has_ref_attr_node,
       auto &name_to_node_sub = graph_to_node[sub_graph];
       it = name_to_node_sub.find(src_var_name);
       if ((it != name_to_node_sub.end()) && (it->second != nullptr)) {
-          var_ref_src_var = it->second;
-          break;
-        }
+        var_ref_src_var = it->second;
+        break;
+      }
     }
   }
   GE_IF_BOOL_EXEC((var_ref_src_var == nullptr) || (var_ref_src_var->GetOpDesc() == nullptr), return FAILED);

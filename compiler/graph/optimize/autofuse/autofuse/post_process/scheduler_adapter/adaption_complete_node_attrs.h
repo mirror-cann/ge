@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -40,7 +40,7 @@ inline Status UpdateTensorAttrsIfEmpty(const NodePtr &node, AscTensorAttr *tenso
   for (const auto &node : peer_out_nodes) {
     if (node->GetType() != kScalarType) {
       peer_out_node = node;
-      break; // Scalar没有tensor信息，获取第一个非scalar给后续节点补轴
+      break;  // Scalar没有tensor信息，获取第一个非scalar给后续节点补轴
     }
   }
   // 1、前面是load场景有transpose后不能根据load补轴，得根据graph来补轴；2、前面是scalar场景，需要根据graph来补轴;
@@ -171,10 +171,10 @@ inline Status CompleteNodeAttrsOnAscGraph(AscGraph &asc_graph, [[maybe_unused]] 
       continue;
     }
     if (IsGatherData(node)) {
-    // data 节点后接 gather，不走标准补轴，直接跳过,在无效轴删除前刷新一把
+      // data 节点后接 gather，不走标准补轴，直接跳过,在无效轴删除前刷新一把
       GELOGI("gather node %s(%s) not complete node attr.", node->GetName().c_str(), node->GetType().c_str());
     } else if (BackendUtils::IsOutputNode(node)) {
-    // output是由sched axis的，但是没有tensor轴，所以得把sched axis刷成output前一个节点的sched axis，不刷新tensor轴
+      // output是由sched axis的，但是没有tensor轴，所以得把sched axis刷成output前一个节点的sched axis，不刷新tensor轴
       NodePtr peer_out_node;
       GE_ASSERT_SUCCESS(asc_adapt::GetPeerOutNode(node, peer_out_node, 0));
       const auto &peer_out_op_desc = peer_out_node->GetOpDesc();
@@ -291,7 +291,7 @@ inline Status FlashContinueGraphAxis(std::vector<AxisPtr> &axis, const std::vect
 }
 
 inline Status RemoveReduceOriginalInvalidAxis(const NodePtr &asc_node,
-                                             const std::vector<int64_t> &graph_invalid_axis_id) {
+                                              const std::vector<int64_t> &graph_invalid_axis_id) {
   auto attr = BackendUtils::GetNodeAutoFuseAttr(asc_node);
   GE_ASSERT_NOTNULL(attr);
   auto reduce_original_axis = attr->GetReduceOriginalAxis();
@@ -347,7 +347,7 @@ inline Status RemoveNodeInvalidAxis(const NodePtr &node, const std::vector<int64
     // 删除 node_attr->sched.axis 中的 axis_id
     auto sched_axis_it = std::find(node_attr->sched.axis.begin(), node_attr->sched.axis.end(), axis_id);
     if (sched_axis_it == node_attr->sched.axis.end()) {
-      continue; // 找不到可认为是已经删除
+      continue;  // 找不到可认为是已经删除
     }
     GELOGD("node %s(%s) sched_axis id %ld is del.", node->GetName().c_str(), node->GetType().c_str(), axis_id);
     node_attr->sched.axis.erase(sched_axis_it);  // 直接通过迭代器删除
@@ -362,7 +362,7 @@ inline Status RemoveNodeInvalidAxis(const NodePtr &node, const std::vector<int64
       GE_ASSERT_NOTNULL(tensor_attr);
       auto axis_it = std::find(tensor_attr->axis.begin(), tensor_attr->axis.end(), axis_id);
       if (axis_it == tensor_attr->axis.end()) {
-        continue; // 找不到可认为是已经删除
+        continue;  // 找不到可认为是已经删除
       }
       // 每一次删除使用的idx都是当前循环里查找出来的，所以不会删除错误
       auto axis_idx = static_cast<int64_t>(std::distance(tensor_attr->axis.begin(), axis_it));
@@ -568,8 +568,7 @@ inline Status UpdateInvalidAxis(const AscGraph &asc_graph, std::vector<int64_t> 
       auto it = std::find(graph_invalid_axis_id.begin(), graph_invalid_axis_id.end(), axis[0]);
       if (it != graph_invalid_axis_id.end()) {
         graph_invalid_axis_id.erase(it);
-        GELOGI("all data2 axis is invalid, id %" PRId64 " is kept in graph %s.", axis[0],
-               asc_graph.GetName().c_str());
+        GELOGI("all data2 axis is invalid, id %" PRId64 " is kept in graph %s.", axis[0], asc_graph.GetName().c_str());
       }
     }
   }
@@ -615,7 +614,8 @@ inline Status GetAndRemoveInvalidAxis(AscGraph &asc_graph, const NodePtr &asc_no
   GE_ASSERT_SUCCESS(UpdateInvalidAxis(asc_graph, graph_invalid_axis_id, gather_data2_nodes));
   // 4、根据需要删除的无效轴处理gather的替换轴index和gather data
   GE_ASSERT_SUCCESS(RemoveGatherInvalidAxis(asc_graph, graph_invalid_axis_id));
-  // 5、删除和刷新无效轴（使用 std::greater<int64_t> 作为比较器，实现从大到小的排序，删除轴后，剩余轴进行刷轴要从大到小开始刷）
+  // 5、删除和刷新无效轴（使用 std::greater<int64_t>
+  // 作为比较器，实现从大到小的排序，删除轴后，剩余轴进行刷轴要从大到小开始刷）
   std::sort(graph_invalid_axis_id.begin(), graph_invalid_axis_id.end(), std::greater<int64_t>());
   GE_ASSERT_SUCCESS(RemoveInvalidAxis(asc_graph, asc_node, graph_invalid_axis_id));
   return SUCCESS;
@@ -626,8 +626,9 @@ inline Status RemoveInvalidAxisOnAscGraph(const ComputeGraphPtr &graph, bool is_
     if (!BackendUtils::IsBackendFuseNode(node)) {
       continue;
     }
-    std::string proc_name= "remove_invalid_axis";
-    if (node->GetType() == kAscBackendType) { // FusedAscBackend里面目前只有concat相关，FusedAscBackend在scheduler展开后做无效轴删除
+    std::string proc_name = "remove_invalid_axis";
+    if (node->GetType() ==
+        kAscBackendType) {  // FusedAscBackend里面目前只有concat相关，FusedAscBackend在scheduler展开后做无效轴删除
       GELOGI("before remove invalid axis, AscBackend node(%s), type:%s.", node->GetName().c_str(),
              node->GetType().c_str());
       const auto &op_desc = node->GetOpDesc();
@@ -647,7 +648,9 @@ inline Status RemoveInvalidAxisOnAscGraph(const ComputeGraphPtr &graph, bool is_
       GELOGD("after remove invalid axis, dump node:%s(%s) asc graph info(with tensor attr info):", node->GetNamePtr(),
              node->GetType().c_str());
       BackendUtils::DumpAscGraph(node);
-    } else if (node->GetType() == kFusedAscBackendType) {  // FusedAscBackend无效轴删除解决输出多引用给两个reshape，分别在不同的位置加size为1的轴，再后融合concat场景，会反推出transpose，需要删除无效轴
+    } else if (
+        node->GetType() ==
+        kFusedAscBackendType) {  // FusedAscBackend无效轴删除解决输出多引用给两个reshape，分别在不同的位置加size为1的轴，再后融合concat场景，会反推出transpose，需要删除无效轴
       GELOGI("FusedAscbackend node: %s(%s) start to run the process(%s).", node->GetName().c_str(),
              node->GetType().c_str(), proc_name.c_str());
       GE_ASSERT_NOTNULL(node->GetOpDescBarePtr());

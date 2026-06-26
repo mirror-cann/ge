@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,7 +22,7 @@ std::string CalcuAttachedStreamReuseKey(const std::string &usage_name, const std
   }
   return new_reuse_key;
 }
-}
+}  // namespace
 namespace ge {
 Status AssignAttachedStreamPass::Run(ComputeGraphPtr graph, const vector<SubgraphPtr> &subgraphs,
                                      LogicalStreamPass::Context &context) {
@@ -92,13 +92,11 @@ Status AssignAttachedStreamPass::GetAttachedStreamInfoByListNamedAttrs(
     AttachedStreamInfo cur_attached_stream_info;
     cur_attached_stream_info.attached_policy = GROUP_POLICY;
     cur_attached_stream_info.attached_group_name = DEFAULT_STREAM_INFO_GROUP;
-    GE_ASSERT_TRUE(AttrUtils::GetStr(attr, ATTR_NAME_ATTACHED_STREAM_KEY,
-                                     cur_attached_stream_info.attached_reuse_key));
+    GE_ASSERT_TRUE(AttrUtils::GetStr(attr, ATTR_NAME_ATTACHED_STREAM_KEY, cur_attached_stream_info.attached_reuse_key));
     // todo:根据和主流id做组合key，但是mc2可能会存在问题，归一时需关注
-    cur_attached_stream_info.attached_reuse_key.append("_stream_")
-                                               .append(std::to_string(op_desc->GetStreamId()));
+    cur_attached_stream_info.attached_reuse_key.append("_stream_").append(std::to_string(op_desc->GetStreamId()));
     GELOGD("Op [%s %s] get [%s] successfully.", op_desc->GetNamePtr(), op_desc->GetTypePtr(),
-            cur_attached_stream_info.ToString("stream").c_str());
+           cur_attached_stream_info.ToString("stream").c_str());
     attached_stream_info.emplace_back(cur_attached_stream_info);
   }
   return SUCCESS;
@@ -135,14 +133,14 @@ Status AssignAttachedStreamPass::CheckAndGetAttachedStreamInfoV2(
     AttachedStreamInfoV2 cur_attached_stream_info;
     // name 必填，reuse_key选填，不填则按照name复用
     GE_ASSERT_TRUE(AttrUtils::GetStr(attr, ATTR_NAME_ATTACHED_RESOURCE_NAME, cur_attached_stream_info.name));
-    (void) AttrUtils::GetStr(attr, ATTR_NAME_ATTACHED_RESOURCE_REUSE_KEY, cur_attached_stream_info.reuse_key);
-    (void) AttrUtils::GetBool(attr, ATTR_NAME_ATTACHED_RESOURCE_FORCE_REUSE, cur_attached_stream_info.force_reuse);
+    (void)AttrUtils::GetStr(attr, ATTR_NAME_ATTACHED_RESOURCE_REUSE_KEY, cur_attached_stream_info.reuse_key);
+    (void)AttrUtils::GetBool(attr, ATTR_NAME_ATTACHED_RESOURCE_FORCE_REUSE, cur_attached_stream_info.force_reuse);
     // 当主流不一致时，从流不复用，保证最大并发，如果流不够，最终依赖流复用解决
     // 当force_reuse为true时，表示跨主流复用从流
     cur_attached_stream_info.reuse_key =
         CalcuAttachedStreamReuseKey(cur_attached_stream_info.name, cur_attached_stream_info.reuse_key,
                                     cur_attached_stream_info.force_reuse, op_desc);
-    (void) AttrUtils::GetBool(attr, ATTR_NAME_ATTACHED_RESOURCE_REQUIRED_FLAG, cur_attached_stream_info.required);
+    (void)AttrUtils::GetBool(attr, ATTR_NAME_ATTACHED_RESOURCE_REQUIRED_FLAG, cur_attached_stream_info.required);
     GELOGD("Op [%s %s] get [%s] successfully.", op_desc->GetNamePtr(), op_desc->GetTypePtr(),
            cur_attached_stream_info.ToString("stream").c_str());
     attached_stream_info.emplace_back(cur_attached_stream_info);
@@ -168,10 +166,10 @@ Status AssignAttachedStreamPass::SetAttachedStreamV2(const OpDescPtr &op_desc, c
     bool force_reuse = false;
     // name 必填，reuse_key选填，不填则按照name复用
     GE_ASSERT_TRUE(AttrUtils::GetStr(attr, ATTR_NAME_ATTACHED_RESOURCE_NAME, attr_name));
-    (void) AttrUtils::GetStr(attr, ATTR_NAME_ATTACHED_RESOURCE_REUSE_KEY, attr_reuse_key);
-    (void) AttrUtils::GetBool(attr, ATTR_NAME_ATTACHED_RESOURCE_FORCE_REUSE, force_reuse);
+    (void)AttrUtils::GetStr(attr, ATTR_NAME_ATTACHED_RESOURCE_REUSE_KEY, attr_reuse_key);
+    (void)AttrUtils::GetBool(attr, ATTR_NAME_ATTACHED_RESOURCE_FORCE_REUSE, force_reuse);
     GELOGI("Try set stream id, reuse key is %s, reuse_key_from_attr is %s, force_reuse is %d", reuse_key.c_str(),
-            attr_reuse_key.c_str(), static_cast<int32_t>(force_reuse));
+           attr_reuse_key.c_str(), static_cast<int32_t>(force_reuse));
     const std::string calc_reuse_key = CalcuAttachedStreamReuseKey(attr_name, attr_reuse_key, force_reuse, op_desc);
     if (calc_reuse_key != reuse_key) {
       continue;

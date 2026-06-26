@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -36,18 +36,16 @@ constexpr uint32_t kEnableHf32 = 0x40U;
 constexpr uint32_t kOpImplHf32ModeEnable = 1U;
 constexpr uint32_t kOpImplHf32ModeDisable = 0U;
 
-const std::map<std::string, MsprofGeTaskType> core_type_to_task_types {
-    {"AI_CORE", MSPROF_GE_TASK_TYPE_AI_CORE},
-    {"AI_CPU", MSPROF_GE_TASK_TYPE_AI_CPU},
-    {"MIX_AIC", MSPROF_GE_TASK_TYPE_MIX_AIC},
-    {"MIX_AIV", MSPROF_GE_TASK_TYPE_MIX_AIV},
-    {"MIX_AICORE", MSPROF_GE_TASK_TYPE_AI_CORE},
-    {"MIX_VECTOR_CORE", MSPROF_GE_TASK_TYPE_AI_CORE},
-    {"AIV", MSPROF_GE_TASK_TYPE_AIV},
-    {"DSA", MSPROF_GE_TASK_TYPE_DSA},
-    {"WRITE_BACK", MSPROF_GE_TASK_TYPE_WRITE_BACK},
-    {"INVALID", MSPROF_GE_TASK_TYPE_INVALID}
-};
+const std::map<std::string, MsprofGeTaskType> core_type_to_task_types{{"AI_CORE", MSPROF_GE_TASK_TYPE_AI_CORE},
+                                                                      {"AI_CPU", MSPROF_GE_TASK_TYPE_AI_CPU},
+                                                                      {"MIX_AIC", MSPROF_GE_TASK_TYPE_MIX_AIC},
+                                                                      {"MIX_AIV", MSPROF_GE_TASK_TYPE_MIX_AIV},
+                                                                      {"MIX_AICORE", MSPROF_GE_TASK_TYPE_AI_CORE},
+                                                                      {"MIX_VECTOR_CORE", MSPROF_GE_TASK_TYPE_AI_CORE},
+                                                                      {"AIV", MSPROF_GE_TASK_TYPE_AIV},
+                                                                      {"DSA", MSPROF_GE_TASK_TYPE_DSA},
+                                                                      {"WRITE_BACK", MSPROF_GE_TASK_TYPE_WRITE_BACK},
+                                                                      {"INVALID", MSPROF_GE_TASK_TYPE_INVALID}};
 
 const std::map<rtFftsPlusContextType_t, MsprofGeTaskType> ctx_type_to_task_types{
     {RT_CTX_TYPE_AICORE, MSPROF_GE_TASK_TYPE_AI_CORE},
@@ -57,8 +55,7 @@ const std::map<rtFftsPlusContextType_t, MsprofGeTaskType> ctx_type_to_task_types
     {RT_CTX_TYPE_AICPU, MSPROF_GE_TASK_TYPE_AI_CPU},
     {RT_CTX_TYPE_WRITEBACK_DATA, MSPROF_GE_TASK_TYPE_WRITE_BACK},
     {RT_CTX_TYPE_INVALIDATE_DATA, MSPROF_GE_TASK_TYPE_INVALID},
-    {RT_CTX_TYPE_DSA, MSPROF_GE_TASK_TYPE_DSA}
-};
+    {RT_CTX_TYPE_DSA, MSPROF_GE_TASK_TYPE_DSA}};
 
 bool IsNoNeedProfNodes(ge::NodePtr &node) {
   if (IsTypeNetOutput(node->GetTypePtr())) {
@@ -117,8 +114,7 @@ void BuildSingleTensorInfo(const ComputeNodeInfo *compute_node_info, const uint6
   tensor_info.type = MSPROF_REPORT_NODE_TENSOR_INFO_TYPE;
   tensor_info.level = MSPROF_REPORT_NODE_LEVEL;
   tensor_info_wrapper.tensor_num = tensor_num;
-  tensor_info.dataLen =
-      kTensorInfoBytesWithCap + kTensorInfoBytes * (static_cast<uint32_t>(tensor_num) - 1U);
+  tensor_info.dataLen = kTensorInfoBytesWithCap + kTensorInfoBytes * (static_cast<uint32_t>(tensor_num) - 1U);
   auto prof_tensor_data = reinterpret_cast<MsprofTensorInfo *>(tensor_info.data);
   prof_tensor_data->opName = node_name;
   prof_tensor_data->tensorNum = tensor_num;
@@ -315,7 +311,7 @@ void CannProfilerV2::InitNodeContextInfo(const ge::OpDescPtr &op_desc) {
 
 // 反序列化零拷贝DfxExtendInfo内容
 void CannProfilerV2::ReadDfxExtendInfo(const ge::ExecuteGraph *const execute_graph,
-                     std::unordered_map<uint64_t, DfxExtendInfo *> &node_name_to_dfx_extend_info) {
+                                       std::unordered_map<uint64_t, DfxExtendInfo *> &node_name_to_dfx_extend_info) {
   ge::Buffer buffer;
   if (!ge::AttrUtils::GetZeroCopyBytes(execute_graph, "DfxExtendInfo", buffer)) {
     GELOGW("Failed to get DfxExtendInfo buffer from compute graph[%s]", execute_graph->GetName().c_str());
@@ -342,11 +338,10 @@ void CannProfilerV2::ReadDfxExtendInfo(const ge::ExecuteGraph *const execute_gra
       GELOGW("Failed to get dfx_extend_info pod from buffer");
       return;
     }
-    auto node_name = node_name_bufferpool->Get<char>(
-        reinterpret_cast<size_t>(dfx_extend_info->GetNodeName()));
+    auto node_name = node_name_bufferpool->Get<char>(reinterpret_cast<size_t>(dfx_extend_info->GetNodeName()));
     // 以hash id方式加入map
     const uint64_t node_name_hash = MsprofGetHashId(node_name, strlen(node_name));
-    node_name_to_dfx_extend_info.emplace(node_name_hash, const_cast<DfxExtendInfo*>(dfx_extend_info));
+    node_name_to_dfx_extend_info.emplace(node_name_hash, const_cast<DfxExtendInfo *>(dfx_extend_info));
   }
 }
 
@@ -569,9 +564,8 @@ void CannProfilerV2::InitShapes() {
     if (!name_hash_to_tensor_info.second.json_info.empty()) {
       const auto iter = name_hash_to_node_id_.find(name_hash_to_tensor_info.first);
       std::vector<std::vector<int64_t>> input_shapes, output_shapes;
-      if ((iter != name_hash_to_node_id_.end()) &&
-          (GetShapeInfoFromJson(name_hash_to_tensor_info.second.json_info, input_shapes, output_shapes) ==
-           ge::SUCCESS)) {
+      if ((iter != name_hash_to_node_id_.end()) && (GetShapeInfoFromJson(name_hash_to_tensor_info.second.json_info,
+                                                                         input_shapes, output_shapes) == ge::SUCCESS)) {
         (void)exe_node_id_to_profiling_wrappers_[iter->second].FillShapeInfo(input_shapes, output_shapes);
         GELOGI("[Cann Profiling] Shape filled by attr for node %u.", iter->second);
       }
@@ -587,8 +581,9 @@ void CannProfilerV2::InitShapes() {
   }
 }
 
-ge::Status CannProfilerV2::InitOutputShapeInfo(const ge::NodePtr &node, std::vector<Chain *> &output_shapes,
-                                               std::unordered_map<std::string, ge::FastNode *> &kernel_names_2_exe_nodes) {
+ge::Status CannProfilerV2::InitOutputShapeInfo(
+    const ge::NodePtr &node, std::vector<Chain *> &output_shapes,
+    std::unordered_map<std::string, ge::FastNode *> &kernel_names_2_exe_nodes) {
   const auto placed_lower_result =
       node->GetOpDescBarePtr()->TryGetExtAttr(kLoweringResult, PlacedLoweringResult(nullptr, LowerResult()));
   for (const auto &out_shape : placed_lower_result.GetResult()->out_shapes) {
@@ -620,8 +615,8 @@ ge::Status CannProfilerV2::InitInputShapeInfo(const ge::NodePtr &node, const uin
       continue;
     }
     const auto &out_idx = out_anchor->GetIdx();
-    const auto peer_output_shapes = name_hashes_to_output_shapes_.find(
-        MsprofGetHashId(peer_node->GetNamePtr(), peer_node->GetName().length()));
+    const auto peer_output_shapes =
+        name_hashes_to_output_shapes_.find(MsprofGetHashId(peer_node->GetNamePtr(), peer_node->GetName().length()));
     if (peer_output_shapes == name_hashes_to_output_shapes_.end()) {
       continue;
     }
@@ -727,8 +722,8 @@ ge::Status CannProfilerV2::InitInfoByExecutionNode(uint64_t name_hash, NodeIdent
   return ge::SUCCESS;
 }
 
-void CannProfilerV2::FormatNodeIdMap(const std::unordered_map<uint64_t, std::vector<NodeIdentity>>
-                                         &name_hash_to_node_ids) {
+void CannProfilerV2::FormatNodeIdMap(
+    const std::unordered_map<uint64_t, std::vector<NodeIdentity>> &name_hash_to_node_ids) {
   for (auto hash_iter = name_hash_to_node_ids.begin(); hash_iter != name_hash_to_node_ids.end(); ++hash_iter) {
     auto id_iter = name_hash_to_node_id_.find(hash_iter->first);
     if (id_iter == name_hash_to_node_id_.end()) {
@@ -824,11 +819,12 @@ ge::Status CannProfilerV2::RecordNodeBasicInfo(NodeIdentity node_id, uint64_t pr
   basic_info->threadId = static_cast<uint32_t>(tid);
   basic_info->data.nodeBasicInfo.taskType = prof_extend_infos_[node_id].engine_type;
   GE_ASSERT_MSPROF_OK(MsprofReportCompactInfo(true, basic_info, sizeof(MsprofCompactInfo)));
-  GELOGI("[Cann Profiling] node_id: %zu, type %u, threadId %u, opname %llu, taskType %u, opType %llu, "
-         "blockDim %u, opFlag %u.",
-         node_id, basic_info->type, basic_info->threadId, basic_info->data.nodeBasicInfo.opName,
-         basic_info->data.nodeBasicInfo.taskType, basic_info->data.nodeBasicInfo.opType,
-         basic_info->data.nodeBasicInfo.blockDim, basic_info->data.nodeBasicInfo.opFlag);
+  GELOGI(
+      "[Cann Profiling] node_id: %zu, type %u, threadId %u, opname %llu, taskType %u, opType %llu, "
+      "blockDim %u, opFlag %u.",
+      node_id, basic_info->type, basic_info->threadId, basic_info->data.nodeBasicInfo.opName,
+      basic_info->data.nodeBasicInfo.taskType, basic_info->data.nodeBasicInfo.opType,
+      basic_info->data.nodeBasicInfo.blockDim, basic_info->data.nodeBasicInfo.opFlag);
   return ge::SUCCESS;
 }
 
@@ -969,7 +965,7 @@ ge::Status CannProfilerV2::DoProf(const Node *node) {
   const auto prof_time = MsprofSysCycleTime();
   thread_local static int32_t tid = mmGetTid();
 
-  // some op have 2 nodes, current node may have differet type with the prof node
+  // some op have 2 nodes, current node may have different type with the prof node
   addition_info->api.type = prof_extend_infos_[node->node_id].kernel_prof_type;
   addition_info->api.endTime = prof_time;
   addition_info->api.threadId = tid;

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,16 +21,16 @@
 #include "parser/onnx/onnx_util.h"
 #include "base/err_msg.h"
 
+using domi::ONNX;
 using ge::onnx::NodeProto;
 using ge::onnx::TensorProto;
-using domi::ONNX;
 using GeShape = ge::GeShape;
 using GeTensorDesc = ge::GeTensorDesc;
 using namespace ge::parser;
 
 namespace ge {
 namespace {
-  const char *kConstant = "Const";
+const char *kConstant = "Const";
 }
 Status OnnxConstantParser::ParseConvertData(const ge::onnx::TensorProto &tensor_proto, ge::Tensor &tensor, int count) {
   int64_t data_type = tensor_proto.data_type();
@@ -46,22 +46,28 @@ Status OnnxConstantParser::ParseConvertData(const ge::onnx::TensorProto &tensor_
   }
 
   std::map<uint32_t, int32_t> datatype_val_size_map = {
-    // for int32, uint8, int8, uint16, int16, bool, and float16 values
-    {OnnxDataType::INT32, tensor_proto.int32_data_size()}, {OnnxDataType::UINT8, tensor_proto.int32_data_size()},
-    {OnnxDataType::INT8, tensor_proto.int32_data_size()}, {OnnxDataType::UINT16, tensor_proto.int32_data_size()},
-    {OnnxDataType::INT16, tensor_proto.int32_data_size()}, {OnnxDataType::BOOL, tensor_proto.int32_data_size()},
-    {OnnxDataType::FLOAT16, tensor_proto.int32_data_size()}, {OnnxDataType::BFLOAT16, tensor_proto.int32_data_size()},
-    // for int64 values
-    {OnnxDataType::INT64, tensor_proto.int64_data_size()},
-    // for string values
-    {OnnxDataType::STRING, tensor_proto.string_data_size()},
-    // for float and complex64 values
-    {OnnxDataType::FLOAT, tensor_proto.float_data_size()}, {OnnxDataType::COMPLEX64, tensor_proto.float_data_size()},
-    // for double and complex128 values
-    {OnnxDataType::DOUBLE, tensor_proto.double_data_size()},
-    {OnnxDataType::COMPLEX128, tensor_proto.double_data_size()},
-    // for uint64 and uint32 values
-    {OnnxDataType::UINT64, tensor_proto.uint64_data_size()}, {OnnxDataType::UINT32, tensor_proto.uint64_data_size()},
+      // for int32, uint8, int8, uint16, int16, bool, and float16 values
+      {OnnxDataType::INT32, tensor_proto.int32_data_size()},
+      {OnnxDataType::UINT8, tensor_proto.int32_data_size()},
+      {OnnxDataType::INT8, tensor_proto.int32_data_size()},
+      {OnnxDataType::UINT16, tensor_proto.int32_data_size()},
+      {OnnxDataType::INT16, tensor_proto.int32_data_size()},
+      {OnnxDataType::BOOL, tensor_proto.int32_data_size()},
+      {OnnxDataType::FLOAT16, tensor_proto.int32_data_size()},
+      {OnnxDataType::BFLOAT16, tensor_proto.int32_data_size()},
+      // for int64 values
+      {OnnxDataType::INT64, tensor_proto.int64_data_size()},
+      // for string values
+      {OnnxDataType::STRING, tensor_proto.string_data_size()},
+      // for float and complex64 values
+      {OnnxDataType::FLOAT, tensor_proto.float_data_size()},
+      {OnnxDataType::COMPLEX64, tensor_proto.float_data_size()},
+      // for double and complex128 values
+      {OnnxDataType::DOUBLE, tensor_proto.double_data_size()},
+      {OnnxDataType::COMPLEX128, tensor_proto.double_data_size()},
+      // for uint64 and uint32 values
+      {OnnxDataType::UINT64, tensor_proto.uint64_data_size()},
+      {OnnxDataType::UINT32, tensor_proto.uint64_data_size()},
   };
 
   int32_t datatype_val_size = 0;
@@ -129,16 +135,16 @@ void OnnxConstantParser::ParseConvertDataElements(const ge::onnx::TensorProto &t
       (void)SetTensorData(tensor_proto.float_data_size(), tensor_proto.float_data(), count, tensor);
       break;
     case OnnxDataType::COMPLEX64:
-      (void)SetTensorData(tensor_proto.float_data_size(), tensor_proto.float_data(),
-                          tensor_proto.float_data_size(), tensor);
+      (void)SetTensorData(tensor_proto.float_data_size(), tensor_proto.float_data(), tensor_proto.float_data_size(),
+                          tensor);
       break;
     // for double and complex128 values
     case OnnxDataType::DOUBLE:
       (void)SetTensorData(tensor_proto.double_data_size(), tensor_proto.double_data(), count, tensor);
       break;
     case OnnxDataType::COMPLEX128:
-      (void)SetTensorData(tensor_proto.double_data_size(), tensor_proto.double_data(),
-                          tensor_proto.double_data_size(), tensor);
+      (void)SetTensorData(tensor_proto.double_data_size(), tensor_proto.double_data(), tensor_proto.double_data_size(),
+                          tensor);
       break;
     // for uint64 and uint32 values
     case OnnxDataType::UINT64:

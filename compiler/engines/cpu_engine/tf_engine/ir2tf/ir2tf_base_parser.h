@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -56,8 +56,8 @@ class Ir2tfBaseParser {
    * @param outputs Output index range
    * @return result is success or failed.
    */
-  __attribute__((visibility("hidden")))
-  ge::Status ParseOutputArgs(const ge::NodePtr &node, const std::string &op_type, NameRangeMap &outputs);
+  __attribute__((visibility("hidden"))) ge::Status ParseOutputArgs(const ge::NodePtr &node, const std::string &op_type,
+                                                                   NameRangeMap &outputs);
 
   /**
    * Get ref input's name of an op
@@ -130,11 +130,11 @@ class Ir2tfBaseParser {
   ge::Status ParseInput(const ge::Node &node, domi::tensorflow::NodeDef *node_def) const;
 
   /**
-  * Parse attrs for IR definition that every field can match.
-  * @param node
-  * @param node_def
-  * @return result is success or failed.
-  */
+   * Parse attrs for IR definition that every field can match.
+   * @param node
+   * @param node_def
+   * @return result is success or failed.
+   */
   ge::Status ParseBaseAttr(const ge::Node &node, domi::tensorflow::NodeDef *node_def);
 
   /**
@@ -145,8 +145,7 @@ class Ir2tfBaseParser {
    * @param ir2tf Mapping info
    * @return result is success or failed.
    */
-  ge::Status ParseConfigAttr(const ge::Node &node, domi::tensorflow::NodeDef *node_def,
-                             const OpMapInfo *ir2tf);
+  ge::Status ParseConfigAttr(const ge::Node &node, domi::tensorflow::NodeDef *node_def, const OpMapInfo *ir2tf);
 
   /**
    * Add tf type value and set in.
@@ -154,8 +153,7 @@ class Ir2tfBaseParser {
    * @param ir2tf Mapping info
    * @return result is success or failed.
    */
-  ge::Status ParseExtendAttr(const ge::Node &node, domi::tensorflow::NodeDef *node_def,
-                             const OpMapInfo *ir2tf) const;
+  ge::Status ParseExtendAttr(const ge::Node &node, domi::tensorflow::NodeDef *node_def, const OpMapInfo *ir2tf) const;
 
   /**
    * Validate configuration file is valid or not.
@@ -208,8 +206,7 @@ class Ir2tfBaseParser {
    * @param default_value_str default string data
    * @param node_name node name
    */
-  void SetDefaultString(domi::tensorflow::AttrValue &attr_value,
-                        const std::string &default_value_str,
+  void SetDefaultString(domi::tensorflow::AttrValue &attr_value, const std::string &default_value_str,
                         const std::string &node_name) const;
 
   /**
@@ -219,8 +216,7 @@ class Ir2tfBaseParser {
    * @param node_name node name
    * @return result is success or failed.
    */
-  ge::Status HandleDefaultAttrType(domi::tensorflow::NodeDef *node_def,
-                                   const ExtendFieldDesc &attr_default_value,
+  ge::Status HandleDefaultAttrType(domi::tensorflow::NodeDef *node_def, const ExtendFieldDesc &attr_default_value,
                                    const std::string &node_name) const;
 
   /**
@@ -244,13 +240,13 @@ class Ir2tfBaseParser {
                                      const OpMapInfo *ir2tf) const;
 
   /**
-    * Get AttrValue from ge value type
-    * @param node Ge node
-    * @param attr_name  Set attr_value for this attrname
-    * @param ge_value_type Value type from ge
-    * @param attr_value This func going to fill this param
-    * @return result is success or not
-    */
+   * Get AttrValue from ge value type
+   * @param node Ge node
+   * @param attr_name  Set attr_value for this attrname
+   * @param ge_value_type Value type from ge
+   * @param attr_value This func going to fill this param
+   * @return result is success or not
+   */
   ge::Status GetAttrValueFromGe(const ge::Node &node, const string &attr_name,
                                 const ge::GeAttrValue::ValueType ge_value_type,
                                 domi::tensorflow::AttrValue &attr_value);
@@ -262,8 +258,7 @@ class Ir2tfBaseParser {
    * @param data_count
    * @return result is success or not
    */
-  ge::Status SetTfTensorValue(const ge::ConstGeTensorPtr &ge_tensor,
-                              domi::tensorflow::TensorProto *tf_tensor,
+  ge::Status SetTfTensorValue(const ge::ConstGeTensorPtr &ge_tensor, domi::tensorflow::TensorProto *tf_tensor,
                               int32_t data_count) const;
 
   /**
@@ -272,10 +267,9 @@ class Ir2tfBaseParser {
    * @param data_type_map Input/output datatype list
    * @return result is success or failed.
    */
-  __attribute__((visibility("hidden")))
-  ge::Status SetAttrTypeList(domi::tensorflow::NodeDef *node_def,
-                             std::unordered_map<std::string,
-                             std::vector<domi::tensorflow::DataType>> &data_type_map) const;
+  __attribute__((visibility("hidden"))) ge::Status SetAttrTypeList(
+      domi::tensorflow::NodeDef *node_def,
+      std::unordered_map<std::string, std::vector<domi::tensorflow::DataType>> &data_type_map) const;
 
   /**
    * Add tf list(string) value and set in.
@@ -284,8 +278,7 @@ class Ir2tfBaseParser {
    * @param attr_value Attr value
    * @return result is success or not
    */
-  ge::Status SetTfListString(const ge::OpDescPtr &op_desc_ptr,
-                             const std::string &attr_name,
+  ge::Status SetTfListString(const ge::OpDescPtr &op_desc_ptr, const std::string &attr_name,
                              domi::tensorflow::AttrValue &attr_value) const;
 
   /**
@@ -293,9 +286,9 @@ class Ir2tfBaseParser {
    * @param exp_desc_list InputAttrMapDesc or inputAttrMapDesc list
    * @param src_dst_name_map SrcFieldName and dstFieldName map
    */
-  __attribute__((visibility("hidden")))
-  void GetSrcAndDstFieldName(const std::vector<ParserExpDesc> &exp_desc_list,
-                             std::unordered_map<std::string, std::string> &src_dst_name_map) const;
+  __attribute__((visibility("hidden"))) void GetSrcAndDstFieldName(
+      const std::vector<ParserExpDesc> &exp_desc_list,
+      std::unordered_map<std::string, std::string> &src_dst_name_map) const;
 
   /**
    * Get output list size
@@ -312,10 +305,9 @@ class Ir2tfBaseParser {
    * @param dst_field_name Input/output dstFieldName
    * @return result is list type or not
    */
-  __attribute__((visibility("hidden")))
-  bool IsListType(const std::unordered_map<std::string, std::string> &src_dst_field_name_map,
-                  const std::string &name_idx,
-                  std::string &dst_field_name) const;
+  __attribute__((visibility("hidden"))) bool IsListType(
+      const std::unordered_map<std::string, std::string> &src_dst_field_name_map, const std::string &name_idx,
+      std::string &dst_field_name) const;
 
   /**
    * Judge the input is list type or not
@@ -341,11 +333,9 @@ class Ir2tfBaseParser {
    * @param data_type_map Input/output data type map
    * @return result is success or failed.
    */
-  __attribute__((visibility("hidden")))
-  ge::Status GetDataTypeList(const ge::DataType ge_data_type,
-                             const std::string &dst_attr_name,
-                             std::unordered_map<string,
-                             vector<domi::tensorflow::DataType>> &data_type_map) const;
+  __attribute__((visibility("hidden"))) ge::Status GetDataTypeList(
+      const ge::DataType ge_data_type, const std::string &dst_attr_name,
+      std::unordered_map<string, vector<domi::tensorflow::DataType>> &data_type_map) const;
 
   /**
    * Get single output name range
@@ -355,11 +345,9 @@ class Ir2tfBaseParser {
    * @param node Ge node
    * @return result is success or failed.
    */
-  __attribute__((visibility("hidden")))
-  ge::Status GetSingleOutputNameRange(const std::vector<RefTransDesc> &ref_trans_list,
-                                      NameRangeMap &outputs,
-                                      const aicpu::OpMapInfo &op_map_info,
-                                      const ge::NodePtr &node) const;
+  __attribute__((visibility("hidden"))) ge::Status GetSingleOutputNameRange(
+      const std::vector<RefTransDesc> &ref_trans_list, NameRangeMap &outputs, const aicpu::OpMapInfo &op_map_info,
+      const ge::NodePtr &node) const;
 
   /**
    * Get output list name range
@@ -369,10 +357,9 @@ class Ir2tfBaseParser {
    * @param outputs Output name range
    * @return result is success or failed.
    */
-  __attribute__((visibility("hidden")))
-  ge::Status GetListOutputNameRange(const std::vector<ParserExpDesc> &output_attr_list,
-                                    const std::vector<RefTransDesc> &ref_trans_list,
-                                    const ge::NodePtr &node, NameRangeMap &outputs) const;
+  __attribute__((visibility("hidden"))) ge::Status GetListOutputNameRange(
+      const std::vector<ParserExpDesc> &output_attr_list, const std::vector<RefTransDesc> &ref_trans_list,
+      const ge::NodePtr &node, NameRangeMap &outputs) const;
 
   /**
    * Add tf tensor value and set in.
@@ -381,8 +368,7 @@ class Ir2tfBaseParser {
    * @param attr_value Tf tesor value
    * @param result is success or failed.
    */
-  ge::Status SetTfTensorValue(const ge::OpDescPtr &op_desc_ptr,
-                              const std::string &attr_name,
+  ge::Status SetTfTensorValue(const ge::OpDescPtr &op_desc_ptr, const std::string &attr_name,
                               domi::tensorflow::AttrValue &attr_value) const;
 
   /**
@@ -392,8 +378,7 @@ class Ir2tfBaseParser {
    * @param attr_value Tf list(shape) value
    * @param result is success or failed.
    */
-  ge::Status SetTfListShape(const ge::OpDescPtr &op_desc_ptr,
-                            const std::string &attr_name,
+  ge::Status SetTfListShape(const ge::OpDescPtr &op_desc_ptr, const std::string &attr_name,
                             domi::tensorflow::AttrValue &attr_value) const;
 
   /**
@@ -403,8 +388,7 @@ class Ir2tfBaseParser {
    * @param attr_value Tf list(type) value
    * @param result is success or failed.
    */
-  ge::Status SetTfListType(const ge::OpDescPtr &op_desc_ptr,
-                           const std::string &attr_name,
+  ge::Status SetTfListType(const ge::OpDescPtr &op_desc_ptr, const std::string &attr_name,
                            domi::tensorflow::AttrValue &attr_value) const;
 
   /**
@@ -414,8 +398,7 @@ class Ir2tfBaseParser {
    * @param attr_mapping AttrsMapDesc config
    * @param result is success or failed.
    */
-  ge::Status SetTfAttrType(const ge::OpDescPtr &op_desc_ptr,
-                           domi::tensorflow::NodeDef *node_def,
+  ge::Status SetTfAttrType(const ge::OpDescPtr &op_desc_ptr, domi::tensorflow::NodeDef *node_def,
                            const ParserExpDesc &attr_mapping);
 
   /**
@@ -425,13 +408,11 @@ class Ir2tfBaseParser {
    * @param attr_mapping AttrsMapDesc config
    * @param result is success or failed.
    */
-  ge::Status SetTfAttrShape(const ge::OpDescPtr &op_desc_ptr,
-                            domi::tensorflow::NodeDef *node_def,
+  ge::Status SetTfAttrShape(const ge::OpDescPtr &op_desc_ptr, domi::tensorflow::NodeDef *node_def,
                             const ParserExpDesc &attr_mapping) const;
 
-  ge::Status SetTfAttrEnum(const ge::OpDescPtr &op_desc_ptr,
-                            domi::tensorflow::NodeDef *node_def,
-                            const ParserExpDesc &attr_mapping) const;
+  ge::Status SetTfAttrEnum(const ge::OpDescPtr &op_desc_ptr, domi::tensorflow::NodeDef *node_def,
+                           const ParserExpDesc &attr_mapping) const;
 
   /**
    * Add tf list(int) value and set in.
@@ -440,9 +421,7 @@ class Ir2tfBaseParser {
    * @param attr_value Tf list(int) value
    * @param result is success or failed.
    */
-  ge::Status SetTfListInt(const ge::Node &node,
-                          const string &attr_name,
-                          domi::tensorflow::AttrValue &attr_value);
+  ge::Status SetTfListInt(const ge::Node &node, const string &attr_name, domi::tensorflow::AttrValue &attr_value);
 
   /**
    * Add tf type value and set in.
@@ -451,8 +430,7 @@ class Ir2tfBaseParser {
    * @param attr_value Tf type value
    * @param result is success or failed.
    */
-  ge::Status SetTfType(const ge::OpDescPtr &op_desc_ptr,
-                       const string &attr_name,
+  ge::Status SetTfType(const ge::OpDescPtr &op_desc_ptr, const string &attr_name,
                        domi::tensorflow::AttrValue &attr_value) const;
 
   /**
@@ -461,6 +439,7 @@ class Ir2tfBaseParser {
    * @param attr_blacklist Json config attrs blacklist
    */
   void GetOpBlacklist(std::string op_type, std::set<std::string> &attr_blacklist);
+
  private:
   // map to store ir2tf config
   std::map<std::string, OpMapInfo> ir2tf_map_;
@@ -468,5 +447,5 @@ class Ir2tfBaseParser {
   std::unordered_map<std::string, std::set<std::string>> ref_output_map_;
   bool is_loaded_ = false;
 };
-} // namespace aicpu
-#endif // AICPU_IR2TF_BASE_PARSER_H_
+}  // namespace aicpu
+#endif  // AICPU_IR2TF_BASE_PARSER_H_

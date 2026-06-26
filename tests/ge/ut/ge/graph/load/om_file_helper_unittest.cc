@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,32 +32,29 @@ class UtestOmFileHelper : public testing::Test {
   void TearDown() override {}
 };
 
-TEST_F(UtestOmFileHelper, Normal)
-{
+TEST_F(UtestOmFileHelper, Normal) {
   EXPECT_NO_THROW(OmFileLoadHelper loader);
   EXPECT_NO_THROW(OmFileSaveHelper saver);
 }
 
-TEST_F(UtestOmFileHelper, LoadInit)
-{
+TEST_F(UtestOmFileHelper, LoadInit) {
   OmFileLoadHelper loader;
   ModelData md;
   EXPECT_EQ(loader.Init(md), PARAM_INVALID);
   md.model_len = sizeof(ModelFileHeader) + sizeof(ModelPartitionTable) + 10;
   uint8_t *data = new uint8_t[md.model_len];
   md.model_data = data;
-  ModelFileHeader *header = reinterpret_cast<ModelFileHeader*>(data);
+  ModelFileHeader *header = reinterpret_cast<ModelFileHeader *>(data);
   header->model_length = md.model_len - sizeof(ModelFileHeader);
   header->magic = MODEL_FILE_MAGIC_NUM;
   header->modeltype = MODEL_TYPE_FLOW_MODEL;
-  ModelPartitionTable *partition_table = reinterpret_cast<ModelPartitionTable*>(data + sizeof(ModelFileHeader));
+  ModelPartitionTable *partition_table = reinterpret_cast<ModelPartitionTable *>(data + sizeof(ModelFileHeader));
   partition_table->num = 5000;
   EXPECT_EQ(loader.Init(md), ACL_ERROR_GE_PARAM_INVALID);
-  delete [] data;
+  delete[] data;
 }
 
-TEST_F(UtestOmFileHelper, GetModelPartition)
-{
+TEST_F(UtestOmFileHelper, GetModelPartition) {
   OmFileLoadHelper loader;
   loader.is_inited_ = true;
   ModelPartitionType type = ModelPartitionType::MODEL_DEF;
@@ -77,8 +74,7 @@ TEST_F(UtestOmFileHelper, GetModelPartition)
   EXPECT_EQ(loader.GetModelPartition(CUST_AICPU_KERNELS, partition, model_index), SUCCESS);
 }
 
-TEST_F(UtestOmFileHelper, GetModelPartitionNoIndex)
-{
+TEST_F(UtestOmFileHelper, GetModelPartitionNoIndex) {
   OmFileLoadHelper loader;
   ModelPartitionType type = ModelPartitionType::MODEL_DEF;
   ModelPartition partition;
@@ -91,26 +87,24 @@ TEST_F(UtestOmFileHelper, GetModelPartitionNoIndex)
   ASSERT_TRUE(loader.model_contexts_.empty());
 }
 
-TEST_F(UtestOmFileHelper, LoadModelPartitionTable)
-{
+TEST_F(UtestOmFileHelper, LoadModelPartitionTable) {
   OmFileLoadHelper loader;
-  uint8_t* model_data = nullptr;
+  uint8_t *model_data = nullptr;
   uint64_t model_data_size = 0;
   size_t mem_offset = 0U;
-  EXPECT_EQ(loader.LoadModelPartitionTable(model_data, model_data_size, 0U, mem_offset, nullptr), ACL_ERROR_GE_EXEC_MODEL_ADDR_INVALID);
+  EXPECT_EQ(loader.LoadModelPartitionTable(model_data, model_data_size, 0U, mem_offset, nullptr),
+            ACL_ERROR_GE_EXEC_MODEL_ADDR_INVALID);
 }
 
-TEST_F(UtestOmFileHelper, LoadModelPartitionTableWithNum)
-{
+TEST_F(UtestOmFileHelper, LoadModelPartitionTableWithNum) {
   OmFileLoadHelper loader;
-  uint8_t* model_data = nullptr;
+  uint8_t *model_data = nullptr;
   uint64_t model_data_size = 0;
   uint32_t model_num = 0;
   EXPECT_EQ(loader.LoadModelPartitionTable(model_data, model_data_size, model_num, nullptr), PARAM_INVALID);
 }
 
-TEST_F(UtestOmFileHelper, SaverGetPartitionTable1)
-{
+TEST_F(UtestOmFileHelper, SaverGetPartitionTable1) {
   OmFileSaveHelper saver;
   OmFileContext oc;
   oc.partition_datas_.push_back(ModelPartition());
@@ -119,20 +113,18 @@ TEST_F(UtestOmFileHelper, SaverGetPartitionTable1)
   EXPECT_NE(saver.GetPartitionTable(cur_ctx_index), nullptr);
 }
 
-TEST_F(UtestOmFileHelper, SaverGetPartitionTable2)
-{
+TEST_F(UtestOmFileHelper, SaverGetPartitionTable2) {
   OmFileSaveHelper saver;
   OmFileContext oc;
   oc.partition_datas_.push_back(ModelPartition());
   saver.model_contexts_.push_back(oc);
   size_t cur_ctx_index = 0;
   const bool is_partition_align = true;
-  const uint32_t align_bytes = 8U; // 8字节对齐
+  const uint32_t align_bytes = 8U;  // 8字节对齐
   EXPECT_NE(saver.GetPartitionTable(cur_ctx_index, is_partition_align, align_bytes), nullptr);
 }
 
-TEST_F(UtestOmFileHelper, SaveModel)
-{
+TEST_F(UtestOmFileHelper, SaveModel) {
   OmFileSaveHelper saver;
   OmFileContext oc;
   oc.model_data_len_ = 1024;
@@ -143,8 +135,7 @@ TEST_F(UtestOmFileHelper, SaveModel)
   EXPECT_NE(saver.SaveModel(output_file, model, is_offline), SUCCESS);
 }
 
-TEST_F(UtestOmFileHelper, SaveModel2)
-{
+TEST_F(UtestOmFileHelper, SaveModel2) {
   OmFileSaveHelper saver;
   OmFileContext oc;
   oc.model_data_len_ = 1024;
@@ -153,12 +144,11 @@ TEST_F(UtestOmFileHelper, SaveModel2)
   ModelBufferData model;
   const bool is_offline = true;
   const bool is_partition_align = true;
-  const uint32_t align_bytes = 8U; // 8字节对齐
+  const uint32_t align_bytes = 8U;  // 8字节对齐
   EXPECT_NE(saver.SaveModel(output_file, model, is_offline, is_partition_align, align_bytes), SUCCESS);
 }
 
-TEST_F(UtestOmFileHelper, AddPartition)
-{
+TEST_F(UtestOmFileHelper, AddPartition) {
   OmFileSaveHelper saver;
   ModelPartition partition;
   EXPECT_EQ(saver.AddPartition(partition), SUCCESS);

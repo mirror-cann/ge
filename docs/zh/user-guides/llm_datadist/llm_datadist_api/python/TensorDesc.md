@@ -1,7 +1,7 @@
 ﻿# TensorDesc
 
-- **[TensorDesc-constructor](TensorDesc-constructor.md)**  
+- **[TensorDesc-constructor](TensorDesc-constructor.md)**
 
-- **[dtype](dtype.md)**  
+- **[dtype](dtype.md)**
 
-- **[shape](shape.md)**  
+- **[shape](shape.md)**

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -51,7 +51,8 @@ class StaticCompiledGraphTest : public bg::BgTest {
   }
   void TearDown() override {
     Test::TearDown();
-    while (bg::ValueHolder::PopGraphFrame() != nullptr) {}
+    while (bg::ValueHolder::PopGraphFrame() != nullptr) {
+    }
   }
 
   GeTensor CreateVecTorGeTensor(std::vector<int64_t> shape, DataType type) {
@@ -60,7 +61,8 @@ class StaticCompiledGraphTest : public bg::BgTest {
       shape_size *= dim;
     }
     const auto data_size = ge::GetSizeInBytes(shape_size, type);
-    return GeTensor(GeTensorDesc(GeShape(shape), FORMAT_ND, type), reinterpret_cast<uint8_t *>(shape.data()), data_size);
+    return GeTensor(GeTensorDesc(GeShape(shape), FORMAT_ND, type), reinterpret_cast<uint8_t *>(shape.data()),
+                    data_size);
   }
 
   void SetSubGraph(ComputeGraphPtr &parent_graph, NodePtr &parent_node, ComputeGraphPtr &sub_graph) {
@@ -91,11 +93,7 @@ class StaticCompiledGraphTest : public bg::BgTest {
     data1->SetOutputOffset({0});
     TensorUtils::SetSize(*data1->MutableOutputDesc(0), shape_size);
 
-    auto const1 = OP_CFG("Const")
-                      .TensorDesc(FORMAT_NCHW, DT_FLOAT16, shape)
-                      .InCnt(1)
-                      .OutCnt(1)
-                      .Build("const1");
+    auto const1 = OP_CFG("Const").TensorDesc(FORMAT_NCHW, DT_FLOAT16, shape).InCnt(1).OutCnt(1).Build("const1");
     ge::AttrUtils::SetTensor(const1, "value", CreateVecTorGeTensor(shape, DT_FLOAT16));
     const1->SetOutputOffset({1024});
     TensorUtils::SetSize(*const1->MutableOutputDesc(0), shape_size);
@@ -159,14 +157,11 @@ class StaticCompiledGraphTest : public bg::BgTest {
                               .OutCnt(3)
                               .Build(ge::PARTITIONEDCALL);
 
-    auto add = OP_CFG("Add")
-                   .TensorDesc(FORMAT_NCHW, DT_FLOAT16, shape)
-                   .InCnt(3)
-                   .OutCnt(1)
-                   .Build("add");
+    auto add = OP_CFG("Add").TensorDesc(FORMAT_NCHW, DT_FLOAT16, shape).InCnt(3).OutCnt(1).Build("add");
     add->SetOpEngineName("AIcoreEngine");
     add->SetOpKernelLibName("AIcoreEngine");
-    auto netoutput = OP_CFG("NetOutput").TensorDesc(FORMAT_NCHW, DT_FLOAT16, shape).InCnt(1).OutCnt(1).Build("netoutput");
+    auto netoutput =
+        OP_CFG("NetOutput").TensorDesc(FORMAT_NCHW, DT_FLOAT16, shape).InCnt(1).OutCnt(1).Build("netoutput");
     netoutput->SetSrcName({"add"});
     netoutput->SetSrcIndex({0});
 
@@ -210,7 +205,7 @@ ge::graphStatus FakeFindTilingFunc(KernelContext *context) {
   *tiling_fun_ptr = StubTilingFuncSuccEmpty;
   return ge::GRAPH_SUCCESS;
 }
-}
+}  // namespace
 
 TEST_F(StaticCompiledGraphTest, KnownSubgraph_ExecuteSuccess) {
   auto graph = ShareGraph::BuildWithKnownSubgraph();
@@ -218,7 +213,8 @@ TEST_F(StaticCompiledGraphTest, KnownSubgraph_ExecuteSuccess) {
   const auto back_options = ge::GetThreadLocalContext().GetAllGlobalOptions();
   auto new_options = back_options;
   new_options["ge.exec.frozenInputIndexes"] = "0;1";
-  ge::GetThreadLocalContext().SetGlobalOption(new_options);  graph->TopologicalSorting();
+  ge::GetThreadLocalContext().SetGlobalOption(new_options);
+  graph->TopologicalSorting();
   auto root_model = GeModelBuilder(graph).BuildGeRootModel();
   auto faker = GlobalDataFaker(root_model);
   auto global_data = faker.FakeWithoutHandleAiCore("Conv2d", false).Build();
@@ -370,7 +366,9 @@ TEST_F(StaticCompiledGraphTest, KnownSubgraph_ExecuteSuccess_WithNestingSubGraph
   auto graph_convert = GraphConverter().SetModelDescHolder(&model_desc_holder);
   auto exe_graph = graph_convert.ConvertComputeGraphToExecuteGraph(graph, global_data);
   ASSERT_NE(exe_graph, nullptr);
-  stub.GetSlogStub().FindErrorLogEndsWith("Reuse info of static graph g2: outputs num: 3, no reuse outputs: [0, ], reuse outputs: [(1->0), (2->0), ], reuse inputs: [], reference outputs: []");
+  stub.GetSlogStub().FindErrorLogEndsWith(
+      "Reuse info of static graph g2: outputs num: 3, no reuse outputs: [0, ], reuse outputs: [(1->0), (2->0), ], "
+      "reuse inputs: [], reference outputs: []");
 }
 
 TEST_F(StaticCompiledGraphTest, MultiKnownSubgraph_ReuseStream_LoadSuccess) {

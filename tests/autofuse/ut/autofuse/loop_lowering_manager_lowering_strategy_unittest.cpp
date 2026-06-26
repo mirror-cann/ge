@@ -1,10 +1,10 @@
 
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -533,13 +533,10 @@ TEST_F(LoopGraphLoweringStrategyUT, OriginComputeGraphIsCorrect) {
   ASSERT_NE(fuse1_attrs, nullptr);
   ASSERT_EQ(LoweringManager::GetFusedOriginComputeGraph(*fuse1_attrs, exp1_asc), GRAPH_SUCCESS);
 
-
   auto fuse2_attrs = exp2_asc->GetOpDesc()->GetOrCreateAttrsGroup<AutoFuseAttrs>();
   ASSERT_NE(fuse2_attrs, nullptr);
   ASSERT_EQ(LoweringManager::GetFusedOriginComputeGraph(*fuse2_attrs, exp2_asc), GRAPH_SUCCESS);
-
 }
-
 
 TEST_F(LoopGraphLoweringStrategyUT, DifferentScope) {
   [this]() {
@@ -1091,10 +1088,12 @@ TEST_F(LoopGraphLoweringStrategyUT, SkipRealizeAsControlEdgesFromCFCase1) {
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
   auto cons1 = cg->FindNode("FileConstant_1");
   ASSERT_NE(cons1, nullptr);
-  (void) AttrUtils::SetBool(cons1->GetOpDesc(), "_is_from_constant_folding", true);
+  (void)AttrUtils::SetBool(cons1->GetOpDesc(), "_is_from_constant_folding", true);
 
-  GraphUtils::AddEdge(cg->FindNode("Abs_0")->GetOutControlAnchor(), cg->FindNode("FileConstant_1")->GetInControlAnchor());
-  GraphUtils::AddEdge(cg->FindNode("FileConstant_1")->GetOutControlAnchor(), cg->FindNode("Abs_3")->GetInControlAnchor());
+  GraphUtils::AddEdge(cg->FindNode("Abs_0")->GetOutControlAnchor(),
+                      cg->FindNode("FileConstant_1")->GetInControlAnchor());
+  GraphUtils::AddEdge(cg->FindNode("FileConstant_1")->GetOutControlAnchor(),
+                      cg->FindNode("Abs_3")->GetInControlAnchor());
   LoweringConfig config;
   ASSERT_EQ(LoweringManager::LoweringGraph(cg, config), GRAPH_SUCCESS);
   ASSERT_EQ(LoweringManager::FusedLoopToAscBackendOp(cg), GRAPH_SUCCESS);
@@ -1125,7 +1124,7 @@ TEST_F(LoopGraphLoweringStrategyUT, SkipRealizeAsControlEdgesFromCFCase2) {
   ASSERT_NE(cons1, nullptr);
   auto reduce2 = cg->FindNode("ReduceSum_4");
   ASSERT_NE(reduce2, nullptr);
-  (void) AttrUtils::SetBool(cons1->GetOpDesc(), "_is_from_constant_folding", true);
+  (void)AttrUtils::SetBool(cons1->GetOpDesc(), "_is_from_constant_folding", true);
 
   GraphUtils::AddEdge(reduce2->GetOutControlAnchor(), cg->FindNode("FileConstant_1")->GetInControlAnchor());
   LoweringConfig config;

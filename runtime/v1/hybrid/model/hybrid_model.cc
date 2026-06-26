@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,14 +29,15 @@
 namespace ge {
 namespace hybrid {
 namespace {
-const int64_t kTensorSizeUnknownShape = -1; // Unknown shape mem size
+const int64_t kTensorSizeUnknownShape = -1;  // Unknown shape mem size
 bool IsRtV2Supported(const GeRootModelPtr &model) {
   static_cast<void>(model);
   return true;
 }
 bool IsRtV2Enabled() {
   // 离线推理从ACL控制入口，当前ACL不设置RT2环境变量默认走RT2的执行器，不会进入本文件RT1的执行流程
-  // 为了兼容TF训练场景,这里如果不设置RT2环境变量，还是走RT1流程; 如果设置只有值为0才继续走RT1的流程，否则走RT2的执行流程
+  // 为了兼容TF训练场景,这里如果不设置RT2环境变量，还是走RT1流程;
+  // 如果设置只有值为0才继续走RT1的流程，否则走RT2的执行流程
   const char_t *enable_rtv2 = nullptr;
   MM_SYS_GET_ENV(MM_ENV_ENABLE_RUNTIME_V2, enable_rtv2);
   if ((enable_rtv2 != nullptr) && (enable_rtv2[0] == '0')) {
@@ -44,10 +45,9 @@ bool IsRtV2Enabled() {
   }
   return true;
 }
-}
+}  // namespace
 
-HybridModel::HybridModel(GeRootModelPtr ge_model) : ge_root_model_(std::move(ge_model)) {
-}
+HybridModel::HybridModel(GeRootModelPtr ge_model) : ge_root_model_(std::move(ge_model)) {}
 
 HybridModel::~HybridModel() {
   for (const auto &it : node_items_) {
@@ -143,11 +143,14 @@ const NodeItem *HybridModel::GetNodeItem(const NodePtr &node) const {
 GeModelPtr HybridModel::GetGeModel(const NodePtr &node) const {
   const auto it = known_shape_sub_models_.find(node);
   if (it == known_shape_sub_models_.end()) {
-    GELOGE(INTERNAL_ERROR, "[Check][Param:node][%s(%s)] Failed to get GeModel for subgraph node,"
-           "because node not in known_shape_sub_models_.", node->GetName().c_str(), node->GetType().c_str());
-    REPORT_INNER_ERR_MSG("E19999", "%s(%s) Failed to get GeModel for subgraph node,"
-                       "because node not in known_shape_sub_models_.",
-                       node->GetName().c_str(), node->GetType().c_str());
+    GELOGE(INTERNAL_ERROR,
+           "[Check][Param:node][%s(%s)] Failed to get GeModel for subgraph node,"
+           "because node not in known_shape_sub_models_.",
+           node->GetName().c_str(), node->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "%s(%s) Failed to get GeModel for subgraph node,"
+                         "because node not in known_shape_sub_models_.",
+                         node->GetName().c_str(), node->GetType().c_str());
     return nullptr;
   }
 
@@ -175,10 +178,8 @@ const GraphItem *HybridModel::GetSubgraphItem(const std::string &graph_name) con
 
 const GraphItem *HybridModel::GetSubgraphItem(const ComputeGraphPtr &subgraph) const {
   if (subgraph == nullptr) {
-    REPORT_INNER_ERR_MSG("E19999", "Input param subgraph is nullptr, Graph:%s",
-                       root_graph_item_->GetName().c_str());
-    GELOGE(PARAM_INVALID, "[Check][Param]subgraph is nullptr. graph:%s",
-           root_graph_item_->GetName().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Input param subgraph is nullptr, Graph:%s", root_graph_item_->GetName().c_str());
+    GELOGE(PARAM_INVALID, "[Check][Param]subgraph is nullptr. graph:%s", root_graph_item_->GetName().c_str());
     return nullptr;
   }
 
@@ -216,11 +217,9 @@ Status HybridModel::GetInputOutputDescInfo(std::vector<InputOutputDescInfo> &inp
     GE_CHECK_NOTNULL(node_item_list[0U]->node->GetOpDesc());
     if (node_item_list[0U]->node->GetOpDesc()->GetInputsSize() != 1U) {
       REPORT_INNER_ERR_MSG("E19999", "Input size of op is not 1, op:%s, type:%s",
-                         node_item_list[0U]->node->GetName().c_str(),
-                         node_item_list[0U]->node->GetType().c_str());
+                           node_item_list[0U]->node->GetName().c_str(), node_item_list[0U]->node->GetType().c_str());
       GELOGE(FAILED, "[Check][Size]input size of op is not 1! op:%s, type:%s",
-             node_item_list[0U]->node->GetName().c_str(),
-             node_item_list[0U]->node->GetType().c_str());
+             node_item_list[0U]->node->GetName().c_str(), node_item_list[0U]->node->GetType().c_str());
       return FAILED;
     }
     GE_CHK_STATUS_RET(GetInputDescInfo(input_desc, input_formats), "[Get][InputDescInfo] failed.");
@@ -283,14 +282,17 @@ Status HybridModel::GetInputDescInfo(std::vector<InputOutputDescInfo> &input_des
     const GeShape shape = op_desc->GetInputDescPtr(0U)->GetShape();
     int64_t tensor_size = 0;
     if (TensorUtils::CalcTensorMemSize(shape, format, data_type, tensor_size) != GRAPH_SUCCESS) {
-      GELOGE(FAILED, "[Calculate][TensorMemSize] failed input0 desc in node:%s(%s)."
-             "shape:%s, format:%s, datatype:%s.", op_desc->GetName().c_str(), op_desc->GetType().c_str(),
-             shape.ToString().c_str(), TypeUtils::FormatToSerialString(format).c_str(),
-             TypeUtils::DataTypeToSerialString(data_type).c_str());
-      REPORT_INNER_ERR_MSG("E19999", "CalcTensorMemSize failed for input0 desc in node:%s(%s),"
-                        "shape:%s, format:%s, datatype:%s", op_desc->GetName().c_str(), op_desc->GetName().c_str(),
-                        shape.ToString().c_str(), TypeUtils::FormatToSerialString(format).c_str(),
-                        TypeUtils::DataTypeToSerialString(data_type).c_str());
+      GELOGE(FAILED,
+             "[Calculate][TensorMemSize] failed input0 desc in node:%s(%s)."
+             "shape:%s, format:%s, datatype:%s.",
+             op_desc->GetName().c_str(), op_desc->GetType().c_str(), shape.ToString().c_str(),
+             TypeUtils::FormatToSerialString(format).c_str(), TypeUtils::DataTypeToSerialString(data_type).c_str());
+      REPORT_INNER_ERR_MSG("E19999",
+                           "CalcTensorMemSize failed for input0 desc in node:%s(%s),"
+                           "shape:%s, format:%s, datatype:%s",
+                           op_desc->GetName().c_str(), op_desc->GetName().c_str(), shape.ToString().c_str(),
+                           TypeUtils::FormatToSerialString(format).c_str(),
+                           TypeUtils::DataTypeToSerialString(data_type).c_str());
       return FAILED;
     }
     if (tensor_size == kTensorSizeUnknownShape) {
@@ -306,28 +308,27 @@ Status HybridModel::GetInputDescInfo(std::vector<InputOutputDescInfo> &input_des
   return SUCCESS;
 }
 
-void HybridModel::CreateOutput(const ConstGeTensorDescPtr &output_desc,
-                               InputOutputDescInfo &output_desc_info, uint32_t &format_result) const {
+void HybridModel::CreateOutput(const ConstGeTensorDescPtr &output_desc, InputOutputDescInfo &output_desc_info,
+                               uint32_t &format_result) const {
   GE_IF_BOOL_EXEC(output_desc == nullptr,
-      REPORT_INNER_ERR_MSG("E19999", "param output_desc is nullptr, check invalid.");
-      GELOGE(FAILED, "[Check][Param:output_desc]output desc ptr is nullptr");
-      return);
+                  REPORT_INNER_ERR_MSG("E19999", "param output_desc is nullptr, check invalid.");
+                  GELOGE(FAILED, "[Check][Param:output_desc]output desc ptr is nullptr"); return);
   const Format format = output_desc->GetFormat();
   const GeShape shape = output_desc->GetShape();
   std::vector<std::pair<int64_t, int64_t>> shape_ranges;
   (void)output_desc->GetShapeRange(shape_ranges);
   const DataType data_type = output_desc->GetDataType();
   format_result = format;
-  if (format == FORMAT_FRACTAL_Z) {  // FraczToHWCK
-    const int64_t k = shape.GetDim(0U);                                           // 0: first dim
-    const int64_t c = shape.GetDim(1U);                                           // 1: second dim
-    const int64_t h = shape.GetDim(2U);                                           // 2: third dim
-    const int64_t w = shape.GetDim(3U);                                           // 3: forth dim
+  if (format == FORMAT_FRACTAL_Z) {      // FraczToHWCK
+    const int64_t k = shape.GetDim(0U);  // 0: first dim
+    const int64_t c = shape.GetDim(1U);  // 1: second dim
+    const int64_t h = shape.GetDim(2U);  // 2: third dim
+    const int64_t w = shape.GetDim(3U);  // 3: forth dim
     output_desc_info.shape_info.dims.push_back(h);
     output_desc_info.shape_info.dims.push_back(w);
     output_desc_info.shape_info.dims.push_back(c);
     output_desc_info.shape_info.dims.push_back(k);
-    if (shape_ranges.size() == 4U) {                   // 4 dims
+    if (shape_ranges.size() == 4U) {                                         // 4 dims
       output_desc_info.shape_info.shape_ranges.push_back(shape_ranges[2U]);  // h:2
       output_desc_info.shape_info.shape_ranges.push_back(shape_ranges[3U]);  // w:3
       output_desc_info.shape_info.shape_ranges.push_back(shape_ranges[1U]);  // c:1
@@ -352,7 +353,7 @@ void HybridModel::CreateOutput(const ConstGeTensorDescPtr &output_desc,
 Status HybridModel::GetOutputDescInfo(std::vector<InputOutputDescInfo> &output_desc,
                                       std::vector<uint32_t> &formats_result) const {
   std::vector<ConstGeTensorDescPtr> output_desc_list;
-  // output_desc_list contains vaild input desc
+  // output_desc_list contains valid input desc
   GE_CHK_STATUS_RET(root_graph_item_->GetOutputDescList(output_desc_list),
                     "[Invoke][GetOutputDescList]get output desc info failed, Graph:%s",
                     root_graph_item_->GetName().c_str());
@@ -366,10 +367,10 @@ Status HybridModel::GetOutputDescInfo(std::vector<InputOutputDescInfo> &output_d
 
   const auto out_size = static_cast<uint32_t>(op_desc->GetInputsSize());
   GE_IF_BOOL_EXEC(out_size != output_desc_list.size(),
-                  REPORT_INNER_ERR_MSG("E19999", "output size[%u] not match output_desc_list size[%zu]",
-                                     out_size, output_desc_list.size());
-                  GELOGE(FAILED, "[Check][Size]output size[%u] not match output_desc_list size[%zu]",
-                         out_size, output_desc_list.size());
+                  REPORT_INNER_ERR_MSG("E19999", "output size[%u] not match output_desc_list size[%zu]", out_size,
+                                       output_desc_list.size());
+                  GELOGE(FAILED, "[Check][Size]output size[%u] not match output_desc_list size[%zu]", out_size,
+                         output_desc_list.size());
                   return FAILED;);
 
   for (uint32_t index = 0U; index < out_size; ++index) {
@@ -378,12 +379,12 @@ Status HybridModel::GetOutputDescInfo(std::vector<InputOutputDescInfo> &output_d
     const std::vector<int64_t> src_index = op_desc->GetSrcIndex();
     if (out_size == out_node_names.size()) {
       const bool contains_colon = out_node_names[static_cast<size_t>(index)].find(":") != std::string::npos;
-      output_name = contains_colon ? out_node_names[static_cast<size_t>(index)] :
-                                     out_node_names[static_cast<size_t>(index)] +
-                                     ":" + std::to_string(src_index[static_cast<size_t>(index)]);
+      output_name = contains_colon ? out_node_names[static_cast<size_t>(index)]
+                                   : out_node_names[static_cast<size_t>(index)] + ":" +
+                                         std::to_string(src_index[static_cast<size_t>(index)]);
     } else {
-      output_name = std::string("output_") + std::to_string(index) + "_" + src_name[static_cast<size_t>(index)] +
-          "_" + std::to_string(src_index[static_cast<size_t>(index)]);
+      output_name = std::string("output_") + std::to_string(index) + "_" + src_name[static_cast<size_t>(index)] + "_" +
+                    std::to_string(src_index[static_cast<size_t>(index)]);
     }
 
     InputOutputDescInfo output_desc_info;
@@ -410,8 +411,7 @@ TensorValue *HybridModel::GetConstant(const NodePtr &node) const {
     return nullptr;
   }
 
-  GELOGD("Got constant tensor, node name = [%s], tensor = %s",
-         node->GetName().c_str(),
+  GELOGD("Got constant tensor, node name = [%s], tensor = %s", node->GetName().c_str(),
          it->second->DebugString().c_str());
   return it->second.get();
 }
@@ -484,8 +484,7 @@ void HybridModel::SaveSpecifyAttrValues() {
   }
   return;
 }
-Status HybridModel::GetOpAttr(const std::string &op_name, const std::string &attr_name,
-                              std::string &attr_value) const {
+Status HybridModel::GetOpAttr(const std::string &op_name, const std::string &attr_name, std::string &attr_value) const {
   const auto itr = op_name_to_attrs_.find(op_name);
   if (itr == op_name_to_attrs_.end()) {
     GELOGW("Did not save op:%s attr", op_name.c_str());
@@ -512,9 +511,8 @@ Status HybridModel::InitAippInfoAndType() {
   }
   data_index = 0U;
   for (const auto &data_node_item : GetRootGraphItem()->GetInputNodes()) {
-    const auto ret = AippUtils::SetAippInfoAndTypeFromOpDesc(data_index_map,
-                                                             data_node_item->node->GetOpDesc(), data_index,
-                                                             aipp_infos_, aipp_types_);
+    const auto ret = AippUtils::SetAippInfoAndTypeFromOpDesc(data_index_map, data_node_item->node->GetOpDesc(),
+                                                             data_index, aipp_infos_, aipp_types_);
     if (ret != SUCCESS) {
       GELOGE(INTERNAL_ERROR, "[Set][AippInfoAndType]index:%u, node:%s.", data_index, data_node_item->node_name.c_str());
       return INTERNAL_ERROR;
@@ -570,13 +568,11 @@ bool HybridModel::CheckHostMemInputOptimization(const std::vector<NodePtr> &node
       return false;
     }
     if ((!node_item_ptr->kernel_task->IsArgsExtendedForHostMemInput())) {
-      GELOGD("kernel_task[%s] args are not extended for host memory input optimization",
-             node_ptr->GetName().c_str());
+      GELOGD("kernel_task[%s] args are not extended for host memory input optimization", node_ptr->GetName().c_str());
       return false;
     }
     if ((!node_item_ptr->kernel_task->IsSupportHostMemInputOpt())) {
-      GELOGD("kernel_task[%s] not support host memory input optimization",
-             node_ptr->GetName().c_str());
+      GELOGD("kernel_task[%s] not support host memory input optimization", node_ptr->GetName().c_str());
       return false;
     }
   }

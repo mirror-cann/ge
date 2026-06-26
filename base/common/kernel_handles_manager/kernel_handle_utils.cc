@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -14,25 +14,23 @@
 namespace ge {
 namespace {
 void LogLaunchKernelParam(const LaunchKernelParam &launch_param) {
-  GELOGI("LaunchKernelParam info: block_dim = %u, args_size = %u, is_host_args = %d",
-      launch_param.block_dim, launch_param.args_size, launch_param.is_host_args);
-  GELOGI("LaunchKernelConfig info: schedule_mode = %u, local_memory_size = %u, " 
-      "engine_type = %d, block_dim_offset = %u, is_block_task_prefetch = %d, " 
+  GELOGI("LaunchKernelParam info: block_dim = %u, args_size = %u, is_host_args = %d", launch_param.block_dim,
+         launch_param.args_size, launch_param.is_host_args);
+  GELOGI(
+      "LaunchKernelConfig info: schedule_mode = %u, local_memory_size = %u, "
+      "engine_type = %d, block_dim_offset = %u, is_block_task_prefetch = %d, "
       "is_data_dump = %d, time_out = %d s",
-      static_cast<uint32_t>(launch_param.launch_config.schedule_mode),
-      launch_param.launch_config.local_memory_size,
-      static_cast<int32_t>(launch_param.launch_config.engine_type),
-      launch_param.launch_config.block_dim_offset,
+      static_cast<uint32_t>(launch_param.launch_config.schedule_mode), launch_param.launch_config.local_memory_size,
+      static_cast<int32_t>(launch_param.launch_config.engine_type), launch_param.launch_config.block_dim_offset,
       static_cast<int32_t>(launch_param.launch_config.is_block_task_prefetch),
-      static_cast<int32_t>(launch_param.launch_config.is_data_dump),
-      launch_param.launch_config.time_out);
+      static_cast<int32_t>(launch_param.launch_config.is_data_dump), launch_param.launch_config.time_out);
 }
-}
+}  // namespace
 aclrtFuncHandle KernelHandleUtils::GetFuncHandle(const aclrtBinHandle &bin_handle, const std::string &kernel_name) {
   GE_ASSERT_NOTNULL(bin_handle);
   aclrtFuncHandle func_handle;
   GE_ASSERT_RT_OK(aclrtBinaryGetFunction(bin_handle, kernel_name.c_str(), &func_handle),
-      "Get func handle of node: %s failed.", kernel_name.c_str());
+                  "Get func handle of node: %s failed.", kernel_name.c_str());
   GELOGI("Get func from bin handle by kernel name: %s.", kernel_name.c_str());
   return func_handle;
 }
@@ -40,18 +38,17 @@ aclrtFuncHandle KernelHandleUtils::GetFuncHandle(const aclrtBinHandle &bin_handl
   GE_ASSERT_NOTNULL(bin_handle);
   aclrtFuncHandle func_handle;
   GE_ASSERT_RT_OK(aclrtBinaryGetFunctionByEntry(bin_handle, tiling_key, &func_handle),
-      "Get func handle by entry: %lu failed.", tiling_key);
+                  "Get func handle by entry: %lu failed.", tiling_key);
   GELOGI("Get func from bin handle by entry: %llu.", tiling_key);
   return func_handle;
 }
 
-aclrtFuncHandle KernelHandleUtils::GetCustAicpuFuncHandle(const aclrtBinHandle &bin_handle,
-    const std::string &op_type, const std::string &func_name) {
+aclrtFuncHandle KernelHandleUtils::GetCustAicpuFuncHandle(const aclrtBinHandle &bin_handle, const std::string &op_type,
+                                                          const std::string &func_name) {
   GE_ASSERT_NOTNULL(bin_handle);
   aclrtFuncHandle func_handle;
-  GE_ASSERT_RT_OK(aclrtRegisterCpuFunc(bin_handle, func_name.c_str(),
-      op_type.c_str(), &func_handle), "Get func handle by kernel name:%s and func name: %s failed",
-      op_type.c_str(), func_name.c_str());
+  GE_ASSERT_RT_OK(aclrtRegisterCpuFunc(bin_handle, func_name.c_str(), op_type.c_str(), &func_handle),
+                  "Get func handle by kernel name:%s and func name: %s failed", op_type.c_str(), func_name.c_str());
   GELOGI("Get func from bin handle by op type: %s, func name: %s.", op_type.c_str(), func_name.c_str());
   return func_handle;
 }
@@ -91,13 +88,13 @@ graphStatus KernelHandleUtils::LaunchKernel(const aclrtFuncHandle func_handle, c
   GE_ASSERT_NOTNULL(func_handle);
   if (launch_param.is_host_args) {
     GE_ASSERT_RT_OK(aclrtLaunchKernelWithHostArgs(func_handle, launch_param.block_dim, launch_param.stream,
-        &rt_launch_config, launch_param.args, launch_param.args_size,
-        const_cast<RefreshAddrInfo *>(launch_param.refresh_add_infos.data()),
-        launch_param.refresh_add_infos.size()));
+                                                  &rt_launch_config, launch_param.args, launch_param.args_size,
+                                                  const_cast<RefreshAddrInfo *>(launch_param.refresh_add_infos.data()),
+                                                  launch_param.refresh_add_infos.size()));
   } else {
-    GE_ASSERT_RT_OK(aclrtLaunchKernelV2(func_handle, launch_param.block_dim, launch_param.args,
-        launch_param.args_size, &rt_launch_config, launch_param.stream));
+    GE_ASSERT_RT_OK(aclrtLaunchKernelV2(func_handle, launch_param.block_dim, launch_param.args, launch_param.args_size,
+                                        &rt_launch_config, launch_param.stream));
   }
   return SUCCESS;
 }
-}
+}  // namespace ge

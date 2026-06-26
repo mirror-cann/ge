@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,14 +17,14 @@
 namespace ge {
 constexpr static size_t kByteBitCount = 8UL;
 
-
 graphStatus SymbolicInferUtil::GetConstInt(const gert::SymbolTensor *tensor, DataType dt, int64_t &value) {
   if (dt == DT_INT32) {
     int32_t tmp_value = 0;
-    GE_ASSERT_TRUE(tensor->GetSymbolicValue()->at(0).GetConstValue<int32_t>(tmp_value),"error info GetConstValue failed");
+    GE_ASSERT_TRUE(tensor->GetSymbolicValue()->at(0).GetConstValue<int32_t>(tmp_value),
+                   "error info GetConstValue failed");
     value = static_cast<int64_t>(tmp_value);
   } else if (dt == DT_INT64) {
-    GE_ASSERT_TRUE(tensor->GetSymbolicValue()->at(0).GetConstValue<int64_t>(value),"error info GetConstValue failed");
+    GE_ASSERT_TRUE(tensor->GetSymbolicValue()->at(0).GetConstValue<int64_t>(value), "error info GetConstValue failed");
   } else {
     GELOGE(PARAM_INVALID, "dt must in [int32, int64]");
     return ge::PARAM_INVALID;
@@ -60,18 +60,18 @@ Status SymbolicInferUtil::Broadcast(const std::vector<std::vector<Expression>> &
           if (s.IsConstExpr()) {
             b_shape[dim] = s;
           }
-          GELOGI("Symbol input0[%zu]:%s is equal to input1[%zu]:%s, no need broadcast.",
-                 true_idx, b_shape[dim].Serialize().get(), true_idx, s.Serialize().get());
-        }  else if (EXPECT_SYMBOL_EQ(s, Symbol(1))) {
-          GELOGI("Symbol input1[%zu]:%s is equal to symbol(1), should broadcast to input0[%zu]:%s.",
-                 true_idx, s.Serialize().get(), true_idx, b_shape[dim].Serialize().get());
+          GELOGI("Symbol input0[%zu]:%s is equal to input1[%zu]:%s, no need broadcast.", true_idx,
+                 b_shape[dim].Serialize().get(), true_idx, s.Serialize().get());
+        } else if (EXPECT_SYMBOL_EQ(s, Symbol(1))) {
+          GELOGI("Symbol input1[%zu]:%s is equal to symbol(1), should broadcast to input0[%zu]:%s.", true_idx,
+                 s.Serialize().get(), true_idx, b_shape[dim].Serialize().get());
         } else if (EXPECT_SYMBOL_EQ(b_shape[dim], Symbol(1))) {
-          GELOGI("Symbol input0[%zu]:%s is equal to symbol(1), should broadcast to input1[%zu]:%s.",
-                 true_idx, b_shape[dim].Serialize().get(), true_idx, s.Serialize().get());
+          GELOGI("Symbol input0[%zu]:%s is equal to symbol(1), should broadcast to input1[%zu]:%s.", true_idx,
+                 b_shape[dim].Serialize().get(), true_idx, s.Serialize().get());
           b_shape[dim] = s;
         } else {
-          GELOGE(ge::FAILED, "Symbol input0[%zu]:%s is not equal to input1[%zu]:%s which cannot broadcast.",
-                 true_idx, b_shape[dim].Serialize().get(), true_idx, s.Serialize().get());
+          GELOGE(ge::FAILED, "Symbol input0[%zu]:%s is not equal to input1[%zu]:%s which cannot broadcast.", true_idx,
+                 b_shape[dim].Serialize().get(), true_idx, s.Serialize().get());
           return FAILED;
         }
       }
@@ -85,7 +85,7 @@ std::string SymbolicInferUtil::DumpSymbolTensor(const gert::SymbolTensor &symbol
   debug_msg += SymbolicInferUtil::VectorExpressionToStr(symbolic_tensor.GetOriginSymbolShape().GetDims());
   debug_msg += ", symbolic value: ";
   if (symbolic_tensor.GetSymbolicValue() != nullptr) {
-    debug_msg +=  SymbolicInferUtil::VectorExpressionToStr(*symbolic_tensor.GetSymbolicValue());
+    debug_msg += SymbolicInferUtil::VectorExpressionToStr(*symbolic_tensor.GetSymbolicValue());
   } else {
     debug_msg += "None";
   }
@@ -95,8 +95,7 @@ std::string SymbolicInferUtil::DumpSymbolTensor(const gert::SymbolTensor &symbol
 bool SymbolicInferUtil::IsSupportCondNode(const ge::NodePtr &node) {
   GE_WARN_ASSERT(node != nullptr);
   std::string node_type = node->GetType();
-  return (kIfOpTypes.find(node_type) != kIfOpTypes.end()) ||
-         (kCaseOpTypes.find(node_type) != kCaseOpTypes.end());
+  return (kIfOpTypes.find(node_type) != kIfOpTypes.end()) || (kCaseOpTypes.find(node_type) != kCaseOpTypes.end());
 }
 
 NodePtr SymbolicInferUtil::GetCondInput(const NodePtr &node) {
@@ -108,8 +107,8 @@ NodePtr SymbolicInferUtil::GetCondInput(const NodePtr &node) {
   const std::set<string> vaild_types = {"Cast", "Size", "StringLength"};
   if (vaild_types.find(cond_input->GetType()) != vaild_types.end()) {
     cond_input = NodeUtils::GetInDataNodeByIndex(*cond_input, 0);
-    GELOGD("Cond node[%s] input is cast/size/stringlength, get input[%s] success.",
-      node->GetNamePtr(), cond_input->GetNamePtr());
+    GELOGD("Cond node[%s] input is cast/size/stringlength, get input[%s] success.", node->GetNamePtr(),
+           cond_input->GetNamePtr());
     GE_ASSERT_NOTNULL(cond_input);
   }
   // 如果不是data节点, 直接返回

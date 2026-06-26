@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -83,7 +83,9 @@ ComputeGraphPtr FakeComputeGraphWithConstant(const string &graph_name) {
 
     auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {-1});
 
-    CHAIN(NODE(graph_name + "_constant_0", constant_0)->NODE("fused_op1", fake_type2_op1)->NODE("Node_Output", net_output));
+    CHAIN(NODE(graph_name + "_constant_0", constant_0)
+              ->NODE("fused_op1", fake_type2_op1)
+              ->NODE("Node_Output", net_output));
   };
 
   auto root_graph = ToComputeGraph(graph1);
@@ -191,7 +193,8 @@ bool ReadIndexFile(const std::string &index_file, std::vector<ge::CacheFileIdx> 
   return true;
 }
 
-bool CheckCacheResult(const std::string &cache_dir, const std::string &graph_key, size_t expect_cache_size, bool compare_key = true) {
+bool CheckCacheResult(const std::string &cache_dir, const std::string &graph_key, size_t expect_cache_size,
+                      bool compare_key = true) {
   const auto cache_idx_file = cache_dir + "/" + graph_key + ".idx";
   auto check_ret = mmAccess(cache_idx_file.c_str());
   if (check_ret != 0) {
@@ -295,9 +298,7 @@ class ModelCacheTest : public testing::Test {
   static void PrepareForCacheConfig(bool cache_manual_check, bool cache_debug_mode) {
     std::string cache_config_file = "./ut_cache_dir/cache.conf";
     {
-      nlohmann::json cfg_json = {
-                                  {"cache_manual_check", cache_manual_check},
-                                  {"cache_debug_mode", cache_debug_mode}};
+      nlohmann::json cfg_json = {{"cache_manual_check", cache_manual_check}, {"cache_debug_mode", cache_debug_mode}};
       std::ofstream json_file(cache_config_file);
       json_file << cfg_json << std::endl;
     }
@@ -321,7 +322,7 @@ echo "test1_release" > test1_release.so
 tar -cvf test1_release.tar.gz test1_release.om test1_release.so
 cd -
 )";
-  (void)system(cmd.c_str());
+    (void)system(cmd.c_str());
   }
   static void TearDownTestSuite() {
     GetThreadLocalContext().SetSessionOption(origin_session_options_);
@@ -484,7 +485,7 @@ TEST_F(ModelCacheTest, save_and_load_with_subgraph) {
     EXPECT_EQ(ret, SUCCESS);
     auto check_ret = CheckCacheResult("./ut_cache_dir", "graph_key_flow_model_with_sub_graph", 1);
     EXPECT_EQ(check_ret, true);
-    // save will not change orgin graph
+    // save will not change origin graph
     EXPECT_EQ(root_graph->GetAllSubgraphs().size(), 1);
   }
   {
@@ -497,7 +498,7 @@ TEST_F(ModelCacheTest, save_and_load_with_subgraph) {
     ret = model_cache_for_load.TryLoadModelFromCache(fake_graph, load_model);
     EXPECT_EQ(ret, SUCCESS);
     ASSERT_NE(load_model, nullptr);
-    
+
     const auto &loaded_graph = load_model->GetRootGraph();
     // flow model root graph not save subgraph
     EXPECT_EQ(loaded_graph->GetAllSubgraphs().size(), 0);
@@ -505,15 +506,11 @@ TEST_F(ModelCacheTest, save_and_load_with_subgraph) {
 }
 
 TEST_F(ModelCacheTest, TransModelDataToComputeGraph) {
-  auto data1 = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_INT32, {16})
-        .Attr(ATTR_NAME_INDEX, 0);
+  auto data1 = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16}).Attr(ATTR_NAME_INDEX, 0);
   auto neg = OP_CFG(NEG).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
   auto netoutput = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_INT32, {-1});
   DEF_GRAPH(graph) {
-      CHAIN(NODE("data_1", data1)->EDGE(0, 0)->NODE("neg", neg)->NODE("Node_Output", netoutput));
+    CHAIN(NODE("data_1", data1)->EDGE(0, 0)->NODE("neg", neg)->NODE("Node_Output", netoutput));
   };
   auto root_graph = ToComputeGraph(graph);
   root_graph->SetName("graph");
@@ -530,15 +527,15 @@ TEST_F(ModelCacheTest, TransModelDataToComputeGraph) {
   ge_model->SetModelTaskDef(model_task_def);
   ge_model->SetName("graph");
   ge_model->SetGraph(root_graph);
-  ge_root_model->SetModelName("graph");	
-  ge_root_model->SetSubgraphInstanceNameToModel("graph", ge_model);	
+  ge_root_model->SetModelName("graph");
+  ge_root_model->SetSubgraphInstanceNameToModel("graph", ge_model);
   bool is_unknown_shape = false;
   EXPECT_EQ(ge_root_model->CheckIsUnknownShape(is_unknown_shape), ge::SUCCESS);
   ModelBufferData model_buffer_data{};
-  const auto model_save_helper =
-    ModelSaveHelperFactory::Instance().Create(OfflineModelFormat::OM_FORMAT_DEFAULT);
+  const auto model_save_helper = ModelSaveHelperFactory::Instance().Create(OfflineModelFormat::OM_FORMAT_DEFAULT);
   model_save_helper->SetSaveMode(false);
-  EXPECT_EQ(model_save_helper->SaveToOmRootModel(ge_root_model, "graph", model_buffer_data, is_unknown_shape), ge::SUCCESS);
+  EXPECT_EQ(model_save_helper->SaveToOmRootModel(ge_root_model, "graph", model_buffer_data, is_unknown_shape),
+            ge::SUCCESS);
   ModelData model_data{};
   model_data.model_data = model_buffer_data.data.get();
   model_data.model_len = model_buffer_data.length;
@@ -679,7 +676,6 @@ TEST_F(ModelCacheTest, save_and_load_flow_model_compile_and_deploy) {
     ret = model_cache_for_load.TryLoadModelFromCache(fake_graph, load_model);
     EXPECT_EQ(ret, SUCCESS);
     ASSERT_NE(load_model, nullptr);
-    
 
     // load with no index file
     (void)system("rm -fr ./ut_cache_dir/graph_key_flow_model1.idx");
@@ -770,14 +766,14 @@ TEST_F(ModelCacheTest, save_flow_model_open_lock_failed) {
 
 TEST_F(ModelCacheTest, update_model_task_addr) {
   DEF_GRAPH(test_graph) {
-    auto file_constant =
-        OP_CFG(FILECONSTANT).InCnt(0).OutCnt(1)
-            .Attr("shape", GeShape{})
-            .Attr("dtype", DT_FLOAT)
-            .Attr("file_id", "fake_id");
+    auto file_constant = OP_CFG(FILECONSTANT)
+                             .InCnt(0)
+                             .OutCnt(1)
+                             .Attr("shape", GeShape{})
+                             .Attr("dtype", DT_FLOAT)
+                             .Attr("file_id", "fake_id");
     auto ffts_plus_neg = OP_CFG(NEG).InCnt(1).OutCnt(1);
-    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {});
     CHAIN(NODE("file_constant", file_constant)->NODE("ffts_plus_neg", ffts_plus_neg)->NODE("Node_Output", net_output));
   };
 
@@ -845,14 +841,14 @@ TEST_F(ModelCacheTest, update_model_task_addr) {
 
 TEST_F(ModelCacheTest, ReadCacheConfig_Failed) {
   DEF_GRAPH(test_graph) {
-    auto file_constant =
-        OP_CFG(FILECONSTANT).InCnt(0).OutCnt(1)
-            .Attr("shape", GeShape{})
-            .Attr("dtype", DT_FLOAT)
-            .Attr("file_id", "fake_id");
+    auto file_constant = OP_CFG(FILECONSTANT)
+                             .InCnt(0)
+                             .OutCnt(1)
+                             .Attr("shape", GeShape{})
+                             .Attr("dtype", DT_FLOAT)
+                             .Attr("file_id", "fake_id");
     auto ffts_plus_neg = OP_CFG(NEG).InCnt(1).OutCnt(1);
-    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, {});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, {});
     CHAIN(NODE("file_constant", file_constant)->NODE("ffts_plus_neg", ffts_plus_neg)->NODE("Node_Output", net_output));
   };
 
@@ -863,9 +859,7 @@ TEST_F(ModelCacheTest, ReadCacheConfig_Failed) {
 
   std::string cache_config_file = "./ut_cache_dir/cache.conf";
   {
-    nlohmann::json cfg_json = {
-        {"cache_manual_check", "failed"},
-        {"cache_debug_mode", "failed"}};
+    nlohmann::json cfg_json = {{"cache_manual_check", "failed"}, {"cache_debug_mode", "failed"}};
     std::ofstream json_file(cache_config_file);
     json_file << cfg_json << std::endl;
   }

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -68,9 +68,9 @@ Status DecomposeInputName(const std::string &input_name, std::string &node_name,
   return SUCCESS;
 }
 
-void AddEdgeCtx(const std::string &peer_node_name, const int32_t peer_index,
-                const int32_t curr_index, NodeEdges &node_edges) {
-  (void) node_edges[curr_index].insert({peer_node_name, peer_index});
+void AddEdgeCtx(const std::string &peer_node_name, const int32_t peer_index, const int32_t curr_index,
+                NodeEdges &node_edges) {
+  (void)node_edges[curr_index].insert({peer_node_name, peer_index});
 }
 
 Status GetGraphDefInOutMap(domi::tensorflow::GraphDef *graph_def, GraphNodesInOut &in_out_map) {
@@ -96,8 +96,8 @@ Status GetGraphDefInOutMap(domi::tensorflow::GraphDef *graph_def, GraphNodesInOu
   return SUCCESS;
 }
 
-void GetInOutStr(const GraphNodesInOut &in_out_map, const string &node_name,
-                 std::vector<std::string> &inputs, std::vector<std::string> &outputs) {
+void GetInOutStr(const GraphNodesInOut &in_out_map, const string &node_name, std::vector<std::string> &inputs,
+                 std::vector<std::string> &outputs) {
   const auto in_out_iter = in_out_map.find(node_name);
   if (in_out_iter == in_out_map.end()) {
     GELOGI("Not find input or output info for node:%s.", node_name.c_str());
@@ -106,8 +106,8 @@ void GetInOutStr(const GraphNodesInOut &in_out_map, const string &node_name,
   const auto inputs_data = in_out_iter->second.first;
   for (const auto &input_data : inputs_data) {
     for (const auto &name_index : input_data.second) {
-      const std::string item = std::to_string(input_data.first) + ":" +  name_index.first +
-                         ":" + std::to_string(name_index.second);
+      const std::string item =
+          std::to_string(input_data.first) + ":" + name_index.first + ":" + std::to_string(name_index.second);
       inputs.push_back(item);
     }
   }
@@ -115,8 +115,8 @@ void GetInOutStr(const GraphNodesInOut &in_out_map, const string &node_name,
   const auto outputs_data = in_out_iter->second.second;
   for (const auto &output_data : outputs_data) {
     for (const auto &name_index : output_data.second) {
-      const std::string item = std::to_string(output_data.first) + ":" +  name_index.first +
-        ":" + std::to_string(name_index.second);
+      const std::string item =
+          std::to_string(output_data.first) + ":" + name_index.first + ":" + std::to_string(name_index.second);
       outputs.push_back(item);
     }
   }
@@ -127,7 +127,7 @@ Status SetNodeInputOutputAttr(const GraphNodesInOut &in_out_map, OperatorPtr &op
   std::vector<std::string> inputs;
   std::vector<std::string> outputs;
   ge::AscendString op_name;
-  (void) op->GetName(op_name);
+  (void)op->GetName(op_name);
   GetInOutStr(in_out_map, op_name.GetString(), inputs, outputs);
   (void)op->SetAttr(ATTR_NAME_ORIGIN_GRAPH_NODE_INPUTS, inputs);
   (void)op->SetAttr(ATTR_NAME_ORIGIN_GRAPH_NODE_OUTPUTS, outputs);
@@ -188,8 +188,8 @@ const std::unordered_map<std::string, ge::OperatorPtr> &Scope::ScopeImpl::AllNod
     if (!sub_nodes.empty()) {
       AscendString name;
       for (const auto &sub_node : sub_nodes) {
-        (void) sub_node->GetName(name);
-        (void) all_nodes_map_.insert(std::pair<std::string, ge::OperatorPtr>(name.GetString(), sub_node));
+        (void)sub_node->GetName(name);
+        (void)all_nodes_map_.insert(std::pair<std::string, ge::OperatorPtr>(name.GetString(), sub_node));
       }
     }
   }
@@ -329,7 +329,7 @@ Status Scope::Name(AscendString &name) const {
 }
 
 const std::string &Scope::SubType() const {
-   return impl_->SubType();
+  return impl_->SubType();
 }
 
 Status Scope::SubType(AscendString &sub_type) const {
@@ -388,25 +388,25 @@ std::string FusionScopesResult::InnerNodeInfo::InnerNodeInfoImpl::GetFullNodeNam
     return relative_name;
   }
   return (fusion_node_name_.at(fusion_node_name_.size() - 1U) == '/') ? (fusion_node_name_ + relative_name)
-                                                                        : (fusion_node_name_ + "/" + relative_name);
+                                                                      : (fusion_node_name_ + "/" + relative_name);
 }
 
 void FusionScopesResult::InnerNodeInfo::InnerNodeInfoImpl::InsertInput(const std::string &input_node,
                                                                        int32_t peer_out_idx) {
   std::string input_name = (input_node != kInputFromFusionScope) ? GetFullNodeName(input_node) : input_node;
-  (void) inner_node_inputs_.emplace_back(std::make_pair(input_name, peer_out_idx));
+  (void)inner_node_inputs_.emplace_back(std::make_pair(input_name, peer_out_idx));
 }
 
 void FusionScopesResult::InnerNodeInfo::InnerNodeInfoImpl::InsertOutput(const std::string &output_node,
                                                                         int32_t peer_in_idx) {
   std::string output_name = (output_node != kOutputToFusionScope) ? GetFullNodeName(output_node) : output_node;
-  (void) inner_node_outputs_.emplace_back(std::make_pair(output_name, peer_in_idx));
+  (void)inner_node_outputs_.emplace_back(std::make_pair(output_name, peer_in_idx));
 }
 
 ge::graphStatus FusionScopesResult::InnerNodeInfo::InnerNodeInfoImpl::BuildOperator() {
   operator_ = ge::OperatorFactory::CreateOperator(name_.c_str(), type_.c_str());
   ge::AscendString operator_name;
-  (void) operator_.GetName(operator_name);
+  (void)operator_.GetName(operator_name);
   if (operator_name.GetString() != name_) {
     GELOGE(ge::GRAPH_FAILED, "IR for op is not registered, op name:%s, op type:%s", name_.c_str(), type_.c_str());
     return ge::GRAPH_FAILED;
@@ -571,8 +571,7 @@ ge::graphStatus FusionScopesResult::InnerNodeInfo::SetInputFormat(const std::str
   return ge::GRAPH_PARAM_INVALID;
 }
 
-ge::graphStatus FusionScopesResult::InnerNodeInfo::SetInputFormat(const char_t *input_name,
-                                                                  const char_t *format) {
+ge::graphStatus FusionScopesResult::InnerNodeInfo::SetInputFormat(const char_t *input_name, const char_t *format) {
   if ((impl_ != nullptr) && (input_name != nullptr) && (format != nullptr)) {
     const std::string str_input_name = input_name;
     const std::string str_format = format;
@@ -589,8 +588,7 @@ ge::graphStatus FusionScopesResult::InnerNodeInfo::SetOutputFormat(const std::st
   return ge::GRAPH_PARAM_INVALID;
 }
 
-ge::graphStatus FusionScopesResult::InnerNodeInfo::SetOutputFormat(const char_t *output_name,
-                                                                   const char_t *format) {
+ge::graphStatus FusionScopesResult::InnerNodeInfo::SetOutputFormat(const char_t *output_name, const char_t *format) {
   if ((impl_ != nullptr) && (output_name != nullptr) && (format != nullptr)) {
     const std::string str_output_name = output_name;
     const std::string str_format = format;
@@ -625,8 +623,8 @@ ge::graphStatus FusionScopesResult::InnerNodeInfo::SetDynamicOutputFormat(const 
   return ge::GRAPH_PARAM_INVALID;
 }
 
-ge::graphStatus FusionScopesResult::InnerNodeInfo::SetDynamicOutputFormat(const char_t *output_name,
-                                                                          uint32_t index, const char_t *format) {
+ge::graphStatus FusionScopesResult::InnerNodeInfo::SetDynamicOutputFormat(const char_t *output_name, uint32_t index,
+                                                                          const char_t *format) {
   if ((impl_ != nullptr) && (output_name != nullptr) && (format != nullptr)) {
     const std::string str_output_name = output_name;
     const std::string str_format = format;
@@ -698,7 +696,7 @@ ge::graphStatus FusionScopesResult::InnerNodeInfo::GetOutputs(
     tmps = impl_->GetOutputs();
   }
   for (auto &tmp : tmps) {
-    (void) outputs.emplace_back(std::pair<AscendString, int32_t>(tmp.first.c_str(), tmp.second));
+    (void)outputs.emplace_back(std::pair<AscendString, int32_t>(tmp.first.c_str(), tmp.second));
   }
   return GRAPH_SUCCESS;
 }
@@ -719,7 +717,7 @@ void FusionScopesResult::FusionScopesResultImpl::InsertOutputs(const std::string
 bool FusionScopesResult::FusionScopesResultImpl::FindNodes(const std::string &node_name) const {
   for (auto &node : nodes_) {
     ge::AscendString name;
-    (void) node->GetName(name);
+    (void)node->GetName(name);
     if (name.GetString() == node_name) {
       return true;
     }
@@ -741,7 +739,7 @@ bool FusionScopesResult::FusionScopesResultImpl::FindScopes(const std::string &s
 
 FusionScopesResult::InnerNodeInfo *FusionScopesResult::FusionScopesResultImpl::AddInnerNode(const std::string &name,
                                                                                             const std::string &type) {
-  (void) inner_node_infos_.emplace_back(InnerNodeInfo(name_.c_str(), name.c_str(), type.c_str()));
+  (void)inner_node_infos_.emplace_back(InnerNodeInfo(name_.c_str(), name.c_str(), type.c_str()));
   return &(inner_node_infos_[inner_node_infos_.size() - 1U]);
 }
 
@@ -764,22 +762,22 @@ FusionInnerNodesInfo FusionScopesResult::FusionScopesResultImpl::GetInnerNodesIn
   FusionInnerNodesInfo nodes_info;
   for (auto &info : inner_node_infos_) {
     ge::AscendString name;
-    (void) info.GetName(name);
+    (void)info.GetName(name);
     ge::AscendString type;
-    (void) info.GetType(type);
+    (void)info.GetType(type);
     std::vector<std::pair<AscendString, int32_t>> inputs;
-    (void) info.GetInputs(inputs);
+    (void)info.GetInputs(inputs);
     std::vector<std::pair<std::string, int32_t>> input_strings;
     for (const auto &input : inputs) {
       (void)input_strings.emplace_back(input.first.GetString(), input.second);
     }
     std::vector<std::pair<AscendString, int32_t>> outputs;
-    (void) info.GetOutputs(outputs);
+    (void)info.GetOutputs(outputs);
     std::vector<std::pair<std::string, int32_t>> output_strings;
     for (const auto &output : outputs) {
       (void)output_strings.emplace_back(output.first.GetString(), output.second);
     }
-    (void) nodes_info.emplace_back(
+    (void)nodes_info.emplace_back(
         std::make_tuple(name.GetString(), type.GetString(), input_strings, output_strings, info.MutableOperator()));
   }
   return nodes_info;
@@ -791,19 +789,19 @@ ge::graphStatus FusionScopesResult::FusionScopesResultImpl::CheckInnerNodesInfo(
   std::set<std::string> name_set;
   for (const auto &info : inner_node_infos_) {
     ge::AscendString name;
-    (void) info.GetName(name);
+    (void)info.GetName(name);
     if (!(name_set.insert(name.GetString()).second)) {
       GELOGE(ge::GRAPH_PARAM_INVALID, "There are duplicate internal node name, please check.");
       return ge::GRAPH_PARAM_INVALID;
     }
     std::vector<std::pair<AscendString, int32_t>> inputs;
-    (void) info.GetInputs(inputs);
+    (void)info.GetInputs(inputs);
     for (const auto &input : inputs) {
       input_from_scope +=
           static_cast<size_t>((std::string(input.first.GetString()) == kInputFromFusionScope) ? 1UL : 0UL);
     }
     std::vector<std::pair<AscendString, int32_t>> outputs;
-    (void) info.GetOutputs(outputs);
+    (void)info.GetOutputs(outputs);
     for (const auto &output : outputs) {
       output_to_scope +=
           static_cast<size_t>((std::string(output.first.GetString()) == kOutputToFusionScope) ? 1UL : 0UL);
@@ -1045,13 +1043,13 @@ void ScopeTree::ScopeTreeImpl::AddNodeToScope(ge::OperatorPtr &node_def) {
     return;
   }
   ge::AscendString node_name;
-  (void) node_def->GetName(node_name);
+  (void)node_def->GetName(node_name);
   const std::vector<std::string> scopes = SplitNodeName(node_name.GetString(), '/');
   Scope *super_scope = root_;
   for (size_t i = 0U; i < scopes.size(); ++i) {
     auto &impl = super_scope->impl_;
     ge::AscendString node_type;
-    (void) node_def->GetOpType(node_type);
+    (void)node_def->GetOpType(node_type);
     impl->OpsNumInc(node_type.GetString());
 
     if (i == (scopes.size() - 1U)) {
@@ -1175,7 +1173,7 @@ void ScopeGraph::ScopeGraphImpl::BuildScopeGraph(domi::tensorflow::GraphDef *gra
     const domi::tensorflow::NodeDef *const node_def = graph_def->mutable_node(i);
     ge::OperatorPtr op(new (std::nothrow) ge::Operator(node_def->name().c_str(), node_def->op().c_str()));
     if (op == nullptr) {
-      GELOGE(ge::MEMALLOC_FAILED, "Make shared_ptr<Operator> falied.");
+      GELOGE(ge::MEMALLOC_FAILED, "Make shared_ptr<Operator> failed.");
       return;
     }
     const auto op_desc = ge::OpDescUtils::GetOpDescFromOperator(*op);
@@ -1193,7 +1191,7 @@ void ScopeGraph::ScopeGraphImpl::BuildScopeGraph(domi::tensorflow::GraphDef *gra
     ret = SetNodeInputOutputAttr(graph_nodes_in_out, op);
     if (ret != SUCCESS) {
       ge::AscendString op_name;
-      (void) op->GetName(op_name);
+      (void)op->GetName(op_name);
       GELOGE(FAILED, "Failed to set input output attr, op:%s.", op_name.GetString());
       return;
     }
@@ -1215,7 +1213,7 @@ void ScopeGraph::ScopeGraphImpl::AddFusionScopesResult(FusionScopesResult *resul
     return;
   }
   ge::AscendString result_name;
-  (void) result->Name(result_name);
+  (void)result->Name(result_name);
   fusion_results_[result_name.GetString()] = result;
 }
 
@@ -1229,7 +1227,7 @@ bool ScopeGraph::ScopeGraphImpl::IsFusionOpChild(const std::string &node_name,
     if (impl->FindNodes(node_name) || impl->FindScopes(node_name)) {
       ScopeFusionOpInfo info;
       ge::AscendString name;
-      (void) fusion_node->Name(name);
+      (void)fusion_node->Name(name);
       info.fusion_node_name = name.GetString();
       info.fusion_op_type = impl->Type();
       info.node_name = node_name;
@@ -1245,8 +1243,7 @@ bool ScopeGraph::ScopeGraphImpl::IsFusionOpChild(const std::string &node_name,
 }
 
 bool ScopeGraph::ScopeGraphImpl::FusionOpChildIgnore(const ScopeFusionOpInfo &info) {
-  if ((!(GetFusionResultInputOrOutput(info, true).empty())) ||
-      (!(GetFusionResultInputOrOutput(info, false).empty()))) {
+  if ((!(GetFusionResultInputOrOutput(info, true).empty())) || (!(GetFusionResultInputOrOutput(info, false).empty()))) {
     return false;
   }
   return true;
@@ -1273,8 +1270,8 @@ std::vector<int32_t> ScopeGraph::ScopeGraphImpl::GetFusionResultInputOrOutput(co
   for (auto &iter : inout_map) {
     const std::string input_name = iter.first;
     const std::string op_name = (info.node_name.length() > input_name.length())
-                         ? info.node_name.substr(info.node_name.length() - input_name.length())
-                         : info.node_name;
+                                    ? info.node_name.substr(info.node_name.length() - input_name.length())
+                                    : info.node_name;
     if (input_name == op_name) {
       (void)indexs.insert(indexs.cend(), iter.second.cbegin(), iter.second.cend());
       break;

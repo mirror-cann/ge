@@ -37,10 +37,8 @@ struct HistoryContext {
  * @param error_msg 失败时返回错误信息
  * @return true 成功，false 失败
  */
-bool LoadHistoryWindowVersions(const std::string &pkg_dir,
-                               const std::string &baseline_version,
-                               std::vector<VersionMeta> &window_versions,
-                               std::string &error_msg);
+bool LoadHistoryWindowVersions(const std::string &pkg_dir, const std::string &baseline_version,
+                               std::vector<VersionMeta> &window_versions, std::string &error_msg);
 
 /**
  * 加载历史原型链
@@ -51,13 +49,11 @@ bool LoadHistoryWindowVersions(const std::string &pkg_dir,
  * @param warnings 记录跳过原因或校验失败原因
  * @return 通过校验的版本及对应 IrOpProto
  */
-HistoryContext LoadHistoryChain(const std::string &pkg_dir,
-                                const std::vector<VersionMeta> &window_versions,
-                                const std::string &op_type,
-                                std::vector<std::string> &warnings);
+HistoryContext LoadHistoryChain(const std::string &pkg_dir, const std::vector<VersionMeta> &window_versions,
+                                const std::string &op_type, std::vector<std::string> &warnings);
 
-} // namespace history
-} // namespace es
-} // namespace ge
+}  // namespace history
+}  // namespace es
+}  // namespace ge
 
 #endif  // AIR_CXX_COMPILER_GRAPH_EAGER_STYLE_EAGER_STYLE_GRAPH_BUILDER_ES_GENERATOR_HISTORY_REGISTRY_INTERFACE_H_

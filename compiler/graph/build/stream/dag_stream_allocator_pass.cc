@@ -47,7 +47,7 @@ bool ParseStreamConfig(const std::string &multi_stream_mode, int64_t &out_max_st
   if (colon_pos == std::string::npos) {
     (void)REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char_t *>({"value", "parameter", "reason"}),
                                     std::vector<const char_t *>({multi_stream_mode.c_str(), readable.c_str(),
-                                      "Format error: missing colon separator."}));
+                                                                 "Format error: missing colon separator."}));
     GELOGE(FAILED, "%s format error: missing colon separator, value=%s.", readable.c_str(), multi_stream_mode.c_str());
     return false;
   }
@@ -56,7 +56,7 @@ bool ParseStreamConfig(const std::string &multi_stream_mode, int64_t &out_max_st
   if (algo.empty()) {
     (void)REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char_t *>({"value", "parameter", "reason"}),
                                     std::vector<const char_t *>({multi_stream_mode.c_str(), readable.c_str(),
-                                      "Format error: algo name is empty."}));
+                                                                 "Format error: algo name is empty."}));
     GELOGE(FAILED, "%s format error: algo name is empty.", readable.c_str());
     return false;
   }
@@ -71,8 +71,7 @@ bool ParseStreamConfig(const std::string &multi_stream_mode, int64_t &out_max_st
     const std::string reason = "Unknown merge strategy: algo=" + algo + ", strategy=" + strategy_name +
                                " (expected LoadBalance or MainStream).";
     (void)REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char_t *>({"value", "parameter", "reason"}),
-                                    std::vector<const char_t *>({algo.c_str(), readable.c_str(),
-                                      reason.c_str()}));
+                                    std::vector<const char_t *>({algo.c_str(), readable.c_str(), reason.c_str()}));
     GELOGE(FAILED, "Unknown merge strategy in %s: algo=%s, strategy=%s (expected LoadBalance or MainStream).",
            readable.c_str(), algo.c_str(), strategy_name);
     return false;
@@ -82,9 +81,9 @@ bool ParseStreamConfig(const std::string &multi_stream_mode, int64_t &out_max_st
   int32_t max_val_int32 = 0;
   std::string range_msg = "Invalid max_stream value, must be in range [1, " + std::to_string(kMaxStreamLimit) + "].";
   if (ge::ConvertToInt32(max_str, max_val_int32) != SUCCESS || max_val_int32 <= 0 || max_val_int32 > kMaxStreamLimit) {
-    (void)REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char_t *>({"value", "parameter", "reason"}),
-                                    std::vector<const char_t *>({max_str.c_str(), readable.c_str(), range_msg.c_str()}
-                                    ));
+    (void)REPORT_PREDEFINED_ERR_MSG(
+        "E10001", std::vector<const char_t *>({"value", "parameter", "reason"}),
+        std::vector<const char_t *>({max_str.c_str(), readable.c_str(), range_msg.c_str()}));
     GELOGE(FAILED, "Invalid max_stream value in %s: %s (must be in range [1, %d]).", readable.c_str(), max_str.c_str(),
            kMaxStreamLimit);
     return false;
@@ -129,10 +128,10 @@ Status RunMiniDAGStreamPassForComputGraph(const ConstGraphPtr &graph, StreamPass
   }
 
   // 5. 写回GE图
-  GE_ASSERT_GRAPH_SUCCESS(DAGAdapter::RefreshStreamIdsToGE(*dag, graph, context),  "RefreshStreamIdsToGE failed");
+  GE_ASSERT_GRAPH_SUCCESS(DAGAdapter::RefreshStreamIdsToGE(*dag, graph, context), "RefreshStreamIdsToGE failed");
   return SUCCESS;
 }
-} // namespace
+}  // namespace
 
 /**
  * MiniDAG Stream Pass 核心逻辑
@@ -143,7 +142,8 @@ Status RunMiniDAGStreamPass(const ConstGraphPtr &graph, StreamPassContext &conte
 
   // 2. 读取 ge.autoMultistreamParallelMode（主配置）
   std::string multi_stream_mode;
-  GE_ASSERT_SUCCESS(GetContext().GetOption("ge.autoMultistreamParallelMode", multi_stream_mode), "Failed to get ge.autoMultistreamParallelMode option");
+  GE_ASSERT_SUCCESS(GetContext().GetOption("ge.autoMultistreamParallelMode", multi_stream_mode),
+                    "Failed to get ge.autoMultistreamParallelMode option");
 
   // 3. 特殊场景：LoadBalance 不带数字，使用默认 8 条流
   int64_t effective_max_stream_id = -1;
@@ -165,11 +165,10 @@ Status RunMiniDAGStreamPass(const ConstGraphPtr &graph, StreamPassContext &conte
 
   return SUCCESS;
 }
-} // namespace ge
+}  // namespace ge
 
 REGISTER_CUSTOM_PASS("MiniDAGStreamPass")
-    .CustomAllocateStreamPassFn([](const ge::ConstGraphPtr &graph,
-                                   ge::StreamPassContext &context) -> ge::Status {
+    .CustomAllocateStreamPassFn([](const ge::ConstGraphPtr &graph, ge::StreamPassContext &context) -> ge::Status {
       return ge::RunMiniDAGStreamPass(graph, context);
     })
     .Stage(ge::CustomPassStage::kAfterAssignLogicStream);

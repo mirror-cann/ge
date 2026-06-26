@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -43,7 +43,7 @@ bool ReduceInferDataType(loop::ReduceType reduce_type, const std::vector<DataTyp
   GELOGW("Unsupported reduce type %d", reduce_type);
   return false;
 }
-}
+}  // namespace
 namespace loop {
 std::atomic<int64_t> LoopOp::global_id_(0);
 graphStatus LoopOp::Dfs(const LoopOp *start, const std::function<graphStatus(const LoopOp *)> &func) {
@@ -257,7 +257,8 @@ CseVar LoadGatherOp::Compute(const LoopCtx &ctx) const {
   const TensorLoopDesc loop_desc_params(params_repeats, params_strides);
   const TensorLoopDesc loop_desc_indices(indices_repeats, indices_strides);
 
-  return Ops()->GatherLoad(buffer_params, buffer_indices, loop_desc_params, loop_desc_indices, axis_, negative_index_support_);
+  return Ops()->GatherLoad(buffer_params, buffer_indices, loop_desc_params, loop_desc_indices, axis_,
+                           negative_index_support_);
 }
 
 bool LoadGatherOp::InferDataType(const std::vector<DataType> &input_dtypes,
@@ -351,7 +352,7 @@ graphStatus StoreConcatOp::RealizeImpl() {
   return GRAPH_SUCCESS;
 }
 
-graphStatus StoreSplitOp:: RealizeImpl() {
+graphStatus StoreSplitOp::RealizeImpl() {
   LoopCtx loop_ctx(input_dims_);
   auto load_index = std::make_shared<Index>(loop_ctx.loop_axis.axis);
 
@@ -402,7 +403,7 @@ bool BroadcastOp::InferDataType(const std::vector<DataType> &input_dtypes,
 
 namespace {
 graphStatus BuildLoopCtx(const std::vector<LoopOpPtr> &inputs, const std::vector<std::vector<Expression>> &input_dims,
-                  LoopCtx &loop_ctx) {
+                         LoopCtx &loop_ctx) {
   auto load_index = std::make_shared<Index>(loop_ctx.loop_axis.axis);
   GE_ASSERT_NOTNULL(load_index);
   GE_WARN_ASSERT(inputs.size() == input_dims.size());
@@ -445,11 +446,11 @@ graphStatus StoreConv2DOp::RealizeImpl() {
       GELOGE(FAILED, "result is invalid for op: %s", op->Type().c_str());
     }
     GE_WARN_ASSERT(result.IsValid(), "Loop kernel for %s got %s", op->Type().c_str(), result.Name().c_str());
- 	     loop_ctx.Set(op, result);
- 	     return GRAPH_SUCCESS;
- 	   });
- 	   GE_WARN_ASSERT_GRAPH_SUCCESS(status, "Failed build asc graph for %s", BufferName(dst_).c_str());
- 	   GE_WARN_ASSERT(loop_ctx.Get(this).IsValid());
+    loop_ctx.Set(op, result);
+    return GRAPH_SUCCESS;
+  });
+  GE_WARN_ASSERT_GRAPH_SUCCESS(status, "Failed build asc graph for %s", BufferName(dst_).c_str());
+  GE_WARN_ASSERT(loop_ctx.Get(this).IsValid());
   return GRAPH_SUCCESS;
 }
 

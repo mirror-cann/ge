@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,29 +23,27 @@ std::string GetCodeDir() {
   }
   return gCachedCodeDir;
 }
-const unordered_map<std::string, std::string> op_type_pattern_map {
-    {"Aipp", "aipp"},
-    {"StridedWrite", "strided_write"},
-    {"StridedRead", "strided_read"},
-    {"Pooling", "Pool2d"},
-    {"FullyConnection", "Matmul"},
-    {"Conv2D", "Convolution"},
-    {"AscendRequant", "requant"},
-    {"AscendQuant", "quant"},
-    {"AscendDequant", "dequant"},
-    {"AscendAntiQuant", "anti_quant"},
-    {"MatMul", "Matmul"},
-    {"LeakyRelu", "ElemWise"},
-    {"Add", "ElemWise"},
-    {"Mul", "ElemWise"},
-    {"RealDiv", "ElemWise"},
-    {"Square", "ElemWise"},
-    {"Sqrt", "ElemWise"},
-    {"Relu", "ElemWise"},
-    {"Gelu", "ElemWise"},
-    {"GeluGrad", "ElemWise"}
-};
-}
+const unordered_map<std::string, std::string> op_type_pattern_map{{"Aipp", "aipp"},
+                                                                  {"StridedWrite", "strided_write"},
+                                                                  {"StridedRead", "strided_read"},
+                                                                  {"Pooling", "Pool2d"},
+                                                                  {"FullyConnection", "Matmul"},
+                                                                  {"Conv2D", "Convolution"},
+                                                                  {"AscendRequant", "requant"},
+                                                                  {"AscendQuant", "quant"},
+                                                                  {"AscendDequant", "dequant"},
+                                                                  {"AscendAntiQuant", "anti_quant"},
+                                                                  {"MatMul", "Matmul"},
+                                                                  {"LeakyRelu", "ElemWise"},
+                                                                  {"Add", "ElemWise"},
+                                                                  {"Mul", "ElemWise"},
+                                                                  {"RealDiv", "ElemWise"},
+                                                                  {"Square", "ElemWise"},
+                                                                  {"Sqrt", "ElemWise"},
+                                                                  {"Relu", "ElemWise"},
+                                                                  {"Gelu", "ElemWise"},
+                                                                  {"GeluGrad", "ElemWise"}};
+}  // namespace
 class TeFusionStub {
  public:
   static TeFusionStub &Instance() {
@@ -56,7 +54,7 @@ class TeFusionStub {
     tasks_.clear();
     tbe_op_infos_.clear();
   }
-  void GetOpPattern(const TbeOpInfo& opinfo, std::string &op_pattern) {
+  void GetOpPattern(const TbeOpInfo &opinfo, std::string &op_pattern) {
     op_pattern = "Opaque";
     string op_type;
     opinfo.GetOpType(op_type);
@@ -78,7 +76,7 @@ class TeFusionStub {
       }
     }
   }
-  bool PreBuildTbeOp(TbeOpInfo& opinfo, uint64_t taskId, uint64_t graphId) {
+  bool PreBuildTbeOp(TbeOpInfo &opinfo, uint64_t taskId, uint64_t graphId) {
     string op_name;
     opinfo.GetRealName(op_name);
     te::TbeOpInfoPtr op_info_ptr = opinfo.shared_from_this();
@@ -108,7 +106,8 @@ class TeFusionStub {
                            const std::vector<ge::NodePtr> &toBeDel, uint64_t taskId, uint64_t graphId,
                            uint64_t sgtThreadIndex, const std::string &strategy) {
     string json_file_path =
-            GetCodeDir() + "/tests/engines/nn_engine/depends/te_fusion/compilation_result/te_op_312acb789acb79acb789cb7a89cef8978_1.json";
+        GetCodeDir() +
+        "/tests/engines/nn_engine/depends/te_fusion/compilation_result/te_op_312acb789acb79acb789cb7a89cef8978_1.json";
     ge::AttrUtils::SetStr(opDesc, "json_file_path", json_file_path);
     FinComTask new_task;
     new_task.graphId = graphId;
@@ -157,10 +156,11 @@ class TeFusionStub {
     }
     return OP_BUILD_SUCC;
   }
-  OpBuildResCode TaskFusion(const std::vector<ge::Node *> &graphNodes, ge::OpDescPtr opDesc,
-                            const uint64_t taskId, const uint64_t graphId) {
+  OpBuildResCode TaskFusion(const std::vector<ge::Node *> &graphNodes, ge::OpDescPtr opDesc, const uint64_t taskId,
+                            const uint64_t graphId) {
     string json_file_path =
-            GetCodeDir() + "/tests/engines/nn_engine/depends/te_fusion/compilation_result/te_op_312acb789acb79acb789cb7a89cef8978_1.json";
+        GetCodeDir() +
+        "/tests/engines/nn_engine/depends/te_fusion/compilation_result/te_op_312acb789acb79acb789cb7a89cef8978_1.json";
     ge::AttrUtils::SetStr(opDesc, "json_file_path", json_file_path);
     FinComTask new_task;
     new_task.graphId = graphId;
@@ -185,7 +185,7 @@ class TeFusionStub {
     return true;
   }
 
-  bool CheckTbeSupported(TbeOpInfo& opinfo, CheckSupportedResult &isSupport, std::string &reason) {
+  bool CheckTbeSupported(TbeOpInfo &opinfo, CheckSupportedResult &isSupport, std::string &reason) {
     string op_type;
     opinfo.GetOpType(op_type);
     CheckSupportFunc func;
@@ -206,9 +206,10 @@ class TeFusionStub {
   }
 
   OpBuildResCode BuildSuperKernel(const std::vector<ge::Node *> &graphNodes, ge::OpDescPtr opDesc,
-      const uint64_t taskId, const uint64_t graphId) {
+                                  const uint64_t taskId, const uint64_t graphId) {
     string json_file_path =
-            GetCodeDir() + "/tests/engines/nn_engine/depends/te_fusion/compilation_result/te_op_312acb789acb79acb789cb7a89cef8978_1.json";
+        GetCodeDir() +
+        "/tests/engines/nn_engine/depends/te_fusion/compilation_result/te_op_312acb789acb79acb789cb7a89cef8978_1.json";
     ge::AttrUtils::SetStr(opDesc, "json_file_path", json_file_path);
     FinComTask new_task;
     new_task.graphId = graphId;
@@ -236,7 +237,7 @@ class TeFusionStub {
   std::map<string, te::TbeOpInfoPtr> tbe_op_infos_;
 };
 /**
- * @brief: Tbe Initialize proccess
+ * @brief: Tbe Initialize process
  * @param [in] options            ddk version
  * @return [out] bool             succ or fail for Tbe Initialize
  */
@@ -246,7 +247,7 @@ bool TbeInitialize(const std::map<std::string, std::string> &options, bool *isSu
 }
 
 /**
- * @brief: tbe finalize proccess
+ * @brief: tbe finalize process
  * @return [out] bool             succ or fail for Tbe Finalize
  */
 bool TbeFinalize() {
@@ -258,11 +259,11 @@ bool TbeFinalizeSessionInfo(const std::string &session_graph_id) {
   return true;
 }
 
-bool CheckTbeSupported(TbeOpInfo& opinfo, CheckSupportedResult &isSupport, std::string &reason) {
+bool CheckTbeSupported(TbeOpInfo &opinfo, CheckSupportedResult &isSupport, std::string &reason) {
   return TeFusionStub::Instance().CheckTbeSupported(opinfo, isSupport, reason);
 }
 
-bool CheckOpSupported(TbeOpInfo& opinfo, CheckSupportedInfo &result) {
+bool CheckOpSupported(TbeOpInfo &opinfo, CheckSupportedInfo &result) {
   bool res = TeFusionStub::Instance().CheckTbeSupported(opinfo, result.isSupported, result.reason);
   return res;
 }
@@ -280,13 +281,13 @@ bool GetOpUniqueKeys(const TbeOpInfo &tbeOpInfo, std::vector<std::string> &opUni
  * @brief pre build tbe op
  * @return [out] bool                 succ or fail of prebuild
  */
-bool PreBuildTbeOp(TbeOpInfo& opinfo, uint64_t taskId, uint64_t graphId) {
+bool PreBuildTbeOp(TbeOpInfo &opinfo, uint64_t taskId, uint64_t graphId) {
   return TeFusionStub::Instance().PreBuildTbeOp(opinfo, taskId, graphId);
 }
 
 OpBuildResCode TeFusion(std::vector<ge::Node *> teGraphNode, ge::OpDescPtr opDesc,
-                        const std::vector<ge::NodePtr> &toBeDel,
-                        uint64_t taskId, uint64_t graphId, const std::string &strategy) {
+                        const std::vector<ge::NodePtr> &toBeDel, uint64_t taskId, uint64_t graphId,
+                        const std::string &strategy) {
   uint64_t sgtThreadIndex = 0xffffffff;
   return TeFusionStub::Instance().TeFusionV(teGraphNode, opDesc, toBeDel, taskId, graphId, sgtThreadIndex, strategy);
 }
@@ -297,8 +298,8 @@ OpBuildResCode TeFusionV(std::vector<ge::Node *> teGraphNode, ge::OpDescPtr opDe
   return TeFusionStub::Instance().TeFusionV(teGraphNode, opDesc, toBeDel, taskId, graphId, sgtThreadIndex, strategy);
 }
 
-OpBuildResCode TaskFusion(const std::vector<ge::Node *> &graphNodes, ge::OpDescPtr opDesc,
-                          const uint64_t taskId, const uint64_t graphId) {
+OpBuildResCode TaskFusion(const std::vector<ge::Node *> &graphNodes, ge::OpDescPtr opDesc, const uint64_t taskId,
+                          const uint64_t graphId) {
   return TeFusionStub::Instance().TaskFusion(graphNodes, opDesc, taskId, graphId);
 }
 
@@ -384,18 +385,17 @@ bool GetOpSpecificInfo(const TbeOpInfo &tbeOpInfo, std::string &opSpecificInfo) 
  * @param [out] unSupportedInputIndexs    shape range unSupported input indexs
  * @param [out] bool                      succ or fail
  */
-bool DynamicShapeRangeCheck(const TbeOpInfo &tbeOpInfo, bool &isSupported,
-                            std::vector<size_t> &upperLimitedInputIndexs,
+bool DynamicShapeRangeCheck(const TbeOpInfo &tbeOpInfo, bool &isSupported, std::vector<size_t> &upperLimitedInputIndexs,
                             std::vector<size_t> &lowerLimitedInputIndexs) {
   return true;
 }
 
 /**
-* @brief: query op registered patterns
-* @param [out] opPatternVec op_pattern list, key is op_type, value is pattern(Elewise/func/...).
-* @return [out] bool        succ or fail
-*/
-bool QueryOpPattern(const std::vector<std::pair<std::string, std::string>>& opPatternVec) {
+ * @brief: query op registered patterns
+ * @param [out] opPatternVec op_pattern list, key is op_type, value is pattern(Elewise/func/...).
+ * @return [out] bool        succ or fail
+ */
+bool QueryOpPattern(const std::vector<std::pair<std::string, std::string>> &opPatternVec) {
   return true;
 }
 
@@ -409,13 +409,11 @@ bool IsOppKernelInstalled(bool isOm, int64_t implType) {
 }
 
 extern "C" OpBuildResCode BuildSuperKernel(const std::vector<ge::Node *> &graphNodes, ge::OpDescPtr opDesc,
-    const uint64_t taskId, const uint64_t graphId) {
+                                           const uint64_t taskId, const uint64_t graphId) {
   return TeFusionStub::Instance().BuildSuperKernel(graphNodes, opDesc, taskId, graphId);
 }
 
-extern "C" std::string GetKernelMetaDir()
-{
+extern "C" std::string GetKernelMetaDir() {
   return TeFusionStub::Instance().GetKernelMetaDir();
 }
-} // namespace te
-
+}  // namespace te

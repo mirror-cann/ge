@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -38,14 +38,15 @@ std::string PrintAxes(const std::vector<std::vector<int64_t>> &axes) {
 ge::Status CheckAxisSize(const std::vector<std::vector<int64_t>> &axes, const ge::OpDescPtr &op_desc) {
   for (const auto &axis : axes) {
     if (axis.size() != kAxesSize) {
-      GELOGE(ge::FAILED, "attr [axes] is invalid, axis.size() is %zu, valid value is 2, axes: %s",
-             axis.size(), PrintAxes(axes).c_str());
+      GELOGE(ge::FAILED, "attr [axes] is invalid, axis.size() is %zu, valid value is 2, axes: %s", axis.size(),
+             PrintAxes(axes).c_str());
       return ge::FAILED;
     }
     const auto &input_desc = op_desc->MutableInputDesc(static_cast<uint32_t>(axis[kInputIndex]));
     if ((axis[kInputIndex] >= static_cast<int64_t>(op_desc->GetInputsSize())) ||
         (axis[kAxesIndex] >= static_cast<int64_t>(input_desc->MutableShape().GetDimNum()))) {
-      GELOGE(ge::FAILED, "attr [axes] is invalid, axis[0] is %ld, valid range[0, %zu);"
+      GELOGE(ge::FAILED,
+             "attr [axes] is invalid, axis[0] is %ld, valid range[0, %zu);"
              " axis[1] is %ld, valid range[0, %zu), axes: %s",
              axis[kInputIndex], op_desc->GetInputsSize(), axis[kAxesIndex], input_desc->MutableShape().GetDimNum(),
              PrintAxes(axes).c_str());

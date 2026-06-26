@@ -82,4 +82,3 @@ ge::AscendString GenerateNodeName(const ge::char_t *node_type)
 ## 约束说明<a name="section24049039"></a>
 
 无
-

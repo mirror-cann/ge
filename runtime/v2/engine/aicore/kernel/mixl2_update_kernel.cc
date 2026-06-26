@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -199,8 +199,8 @@ ge::graphStatus SetMixL2IoAddrs(KernelContext *context, RtFFTSKernelLaunchArgs *
   return ge::GRAPH_SUCCESS;
 }
 
-void SetMixL2WorkAndTilingAddrs(RtFFTSKernelLaunchArgs *rt_args, const ContinuousVector *workspace,
-                                size_t &arg_index, uintptr_t *args_host_data, void *dev_addr) {
+void SetMixL2WorkAndTilingAddrs(RtFFTSKernelLaunchArgs *rt_args, const ContinuousVector *workspace, size_t &arg_index,
+                                uintptr_t *args_host_data, void *dev_addr) {
   auto work_addr = reinterpret_cast<GertTensorData *const *>(workspace->GetData());
   for (size_t i = 0; i < workspace->GetSize(); ++i) {
     InitMixL2Addrs(arg_index++, work_addr[i]->GetAddr(), args_host_data);
@@ -271,7 +271,8 @@ ge::graphStatus SaveMixL0ExceptionDump(KernelContext *context, RtFFTSKernelLaunc
                              rt_args->GetArgsPointer<uint8_t>(RtFFTSKernelLaunchArgs::kArgsHostAddr);
   static_cast<uint64_t *>(addr)[rep_num++] = args_table_size;
   static_cast<uint64_t *>(addr)[rep_num++] = (kDumpSkipAddrNum << kDumpOffsetBitNum) | static_cast<uint64_t>(size);
-  KLOGD("Report l0 dump with io: %zu, size: %zu, ctx_id: %lu, args_size: %lu.", io_addr_num, size, ctx_id, args_table_size);
+  KLOGD("Report l0 dump with io: %zu, size: %zu, ctx_id: %lu, args_size: %lu.", io_addr_num, size, ctx_id,
+        args_table_size);
   for (size_t i = 0UL; i < static_cast<size_t>(size); ++i) {
     GELOGD("Report info idx:%zu val:%lx.", i, in_outputs_size[i]);
     static_cast<uint64_t *>(addr)[rep_num + i] = in_outputs_size[i];

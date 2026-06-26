@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -36,8 +36,7 @@ Status CachePersistTaskBuilder::GenContextDef(const ge::Node &node, domi::FftsPl
   FFTS_CHECK_NOTNULL(ffts_plus_task_def);
   ge::OpDescPtr op_desc = node.GetOpDesc();
   uint32_t persist_id;
-  if (!ge::AttrUtils::GetInt(op_desc, kCachePersist, persist_id) ||
-      persist_id > kMaxPersistNum) {
+  if (!ge::AttrUtils::GetInt(op_desc, kCachePersist, persist_id) || persist_id > kMaxPersistNum) {
     return FAILED;
   }
 
@@ -63,8 +62,10 @@ Status CachePersistTaskBuilder::GenContextDef(const ge::Node &node, domi::FftsPl
    * Because in the real context, we only reserve 16 bits
    * for cache_persist_size. */
   if (size_in_mb > UINT16_MAX) {
-    REPORT_FFTS_ERROR("[CachePersistTaskBuilder][GenContextDef] Persist size %ld is larger than"
-                      "the max of uint16(65536).", size_in_mb);
+    REPORT_FFTS_ERROR(
+        "[CachePersistTaskBuilder][GenContextDef] Persist size %ld is larger than"
+        "the max of uint16(65536).",
+        size_in_mb);
     return FAILED;
   }
   FFTS_LOGD("Persist id and size for graph %s are %u and %ld.", op_desc->GetName().c_str(), persist_id,
@@ -72,4 +73,4 @@ Status CachePersistTaskBuilder::GenContextDef(const ge::Node &node, domi::FftsPl
   cp_ctx_def->set_persistent_size(static_cast<uint32_t>(size_in_mb));
   return SUCCESS;
 }
-}
+}  // namespace ffts

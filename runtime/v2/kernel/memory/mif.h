@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,7 +18,8 @@ namespace memory {
 constexpr size_t kDefaultMaxStreamNum = 8U;
 /**
  * Multi-stream Independent-maintained Flags
- * 本类仅供内部使用，为了性能考虑，避免冗余校验，public方法不做stream合法性校验，调用者需要保证stream id合法，不会出现越界等错误
+ * 本类仅供内部使用，为了性能考虑，避免冗余校验，public方法不做stream合法性校验，调用者需要保证stream
+ * id合法，不会出现越界等错误
  */
 class Mif {
  public:

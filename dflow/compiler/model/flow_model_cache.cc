@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -78,8 +78,7 @@ FlowModelCache::~FlowModelCache() {
   }
 }
 
-Status FlowModelCache::InitSubmodelCache(const ComputeGraphPtr &root_graph,
-                                         const std::string &cache_dir,
+Status FlowModelCache::InitSubmodelCache(const ComputeGraphPtr &root_graph, const std::string &cache_dir,
                                          const std::string &graph_key) {
   cache_enable_ = false;
   GE_CHECK_NOTNULL(root_graph);
@@ -115,9 +114,9 @@ Status FlowModelCache::InitSubmodelCache(const ComputeGraphPtr &root_graph,
   build_info_path_ = sub_cache_dir + "buildinfo";
   cache_enable_ = true;
   is_subgraph_cache_ = true;
-  GELOGI("Cache init end, cache_dir=%s, graph_key=%s, cache_file=%s, cache manual check=%d.",
-         sub_cache_dir.c_str(), cache_index_.graph_key.c_str(),
-         cache_index_.cache_file_name.c_str(), static_cast<int32_t>(cache_manual_check_));
+  GELOGI("Cache init end, cache_dir=%s, graph_key=%s, cache_file=%s, cache manual check=%d.", sub_cache_dir.c_str(),
+         cache_index_.graph_key.c_str(), cache_index_.cache_file_name.c_str(),
+         static_cast<int32_t>(cache_manual_check_));
   return SUCCESS;
 }
 
@@ -125,8 +124,7 @@ Status FlowModelCache::Init(const ComputeGraphPtr &root_graph) {
   cache_enable_ = false;
   GE_CHECK_NOTNULL(root_graph);
   std::string original_graph_name;
-  if (AttrUtils::GetStr(root_graph, kSuspendGraphOriginalName, original_graph_name) &&
-      (!original_graph_name.empty())) {
+  if (AttrUtils::GetStr(root_graph, kSuspendGraphOriginalName, original_graph_name) && (!original_graph_name.empty())) {
     // init graph will be cache during other graph caching. Get graph key and cache dir by static map
     const std::lock_guard<std::mutex> lock(cache_map_mutex_);
     const auto iter_dir = suspend_graph_name_to_cache_dir_.find(original_graph_name);
@@ -139,8 +137,8 @@ Status FlowModelCache::Init(const ComputeGraphPtr &root_graph) {
       cache_index_.graph_key = iter_key->second;
       suspend_graph_name_to_graph_key_.erase(iter_key);
     }
-    GELOGD("Current graph %s with original name %s is suspended.",
-           root_graph->GetName().c_str(), original_graph_name.c_str());
+    GELOGD("Current graph %s with original name %s is suspended.", root_graph->GetName().c_str(),
+           original_graph_name.c_str());
   } else {
     cache_dir_ = NormalizeDirPath(GetCacheDirFromContext());
     cache_index_.graph_key = GetGraphKeyFromContext();
@@ -154,7 +152,7 @@ Status FlowModelCache::Init(const ComputeGraphPtr &root_graph) {
   GELOGI("Cache is enable, cache_dir=%s, graph_key=%s.", cache_dir_.c_str(), cache_index_.graph_key.c_str());
   if (!CheckFileExist(cache_dir_)) {
     REPORT_PREDEFINED_ERR_MSG("E13026", std::vector<const char_t *>({"pathname", "reason"}),
-                       std::vector<const char_t *>({cache_dir_.c_str(), "The cache directory does not exist."}));
+                              std::vector<const char_t *>({cache_dir_.c_str(), "The cache directory does not exist."}));
     GELOGE(PARAM_INVALID, "Init cache failed, as cache dir[%s] does not exist.", cache_dir_.c_str());
     return PARAM_INVALID;
   }
@@ -184,8 +182,8 @@ Status FlowModelCache::Init(const ComputeGraphPtr &root_graph) {
   GE_CHECK_NOTNULL(external_weight_manager);
   external_weight_manager->SetWeightPath(cache_dir_ + kFinalWeightDirName);
   GELOGI("Init end, cache_dir=%s, graph_key=%s, cache_file=%s, index_file=%s, cache manual check = %d.",
-         cache_dir_.c_str(), cache_index_.graph_key.c_str(), cache_index_.cache_file_name.c_str(),
-         index_file_.c_str(), static_cast<int32_t>(cache_manual_check_));
+         cache_dir_.c_str(), cache_index_.graph_key.c_str(), cache_index_.cache_file_name.c_str(), index_file_.c_str(),
+         static_cast<int32_t>(cache_manual_check_));
   return SUCCESS;
 }
 
@@ -204,16 +202,15 @@ Status FlowModelCache::InitCacheFileInfo() {
     if (CheckFileExist(om_name)) {
       cache_index_.cache_file_name = om_name;
       matched_file_list_.emplace_back(cache_index_);
-      GELOGI("No index file[%s] found in cache dir[%s], matched om[%s] directly.",
-             index_file_.c_str(), cache_dir_.c_str(), om_name.c_str());
+      GELOGI("No index file[%s] found in cache dir[%s], matched om[%s] directly.", index_file_.c_str(),
+             cache_dir_.c_str(), om_name.c_str());
       return SUCCESS;
     }
   }
   return InitCacheFileByIdx(cache_dir_);
 }
 
-Status FlowModelCache::ReadIndex(const std::string &index_file,
-                                 std::vector<CacheFileIndex> &cache_file_list) const {
+Status FlowModelCache::ReadIndex(const std::string &index_file, std::vector<CacheFileIndex> &cache_file_list) const {
   nlohmann::json json_obj;
   GE_CHK_STATUS_RET(ReadJsonFile(index_file, json_obj), "Failed to read cache index file[%s].", index_file.c_str());
   try {
@@ -239,16 +236,15 @@ Status FlowModelCache::InitCacheFileByIdx(const std::string &cache_path) {
   // if index is exist, gen file name.
   if (CheckFileExist(index_file_)) {
     std::vector<CacheFileIndex> cache_file_list;
-    GE_CHK_STATUS_RET(ReadIndex(index_file_, cache_file_list),
-                      "Failed to read cache index list from file:%s", index_file_.c_str());
+    GE_CHK_STATUS_RET(ReadIndex(index_file_, cache_file_list), "Failed to read cache index list from file:%s",
+                      index_file_.c_str());
     for (const auto &idx : cache_file_list) {
       if (idx.graph_key == cache_index_.graph_key) {
         GE_CHK_BOOL_RET_STATUS(CheckFileExist(idx.cache_file_name), FAILED,
-                               "cache file[%s] in cache index file[%s] does not exist.",
-                               idx.cache_file_name.c_str(), index_file_.c_str());
-        GELOGI("Matched graph_key[%s] success, cache om file = %s, cache dir = %s.",
-               cache_index_.graph_key.c_str(), idx.cache_file_name.c_str(),
-               cache_path.c_str());
+                               "cache file[%s] in cache index file[%s] does not exist.", idx.cache_file_name.c_str(),
+                               index_file_.c_str());
+        GELOGI("Matched graph_key[%s] success, cache om file = %s, cache dir = %s.", cache_index_.graph_key.c_str(),
+               idx.cache_file_name.c_str(), cache_path.c_str());
         matched_file_list_.emplace_back(idx);
       }
     }
@@ -257,9 +253,8 @@ Status FlowModelCache::InitCacheFileByIdx(const std::string &cache_path) {
   if (matched_file_list_.empty()) {
     // not found, need generate a new file.
     GenerateCacheFile();
-    GELOGI("No graph_key[%s] found in cache index file[%s], generate cache om file[%s]",
-           cache_index_.graph_key.c_str(), index_file_.c_str(),
-           cache_index_.cache_file_name.c_str());
+    GELOGI("No graph_key[%s] found in cache index file[%s], generate cache om file[%s]", cache_index_.graph_key.c_str(),
+           index_file_.c_str(), cache_index_.cache_file_name.c_str());
   }
   return SUCCESS;
 }
@@ -307,15 +302,13 @@ bool FlowModelCache::TryLoadCompileResultFromCache(CacheCompileResult &cache_com
   return match_cache;
 }
 
-
 Status FlowModelCache::UpdateFlowModelCache(const std::set<PneModelPtr> &refreshed_models) {
   if (refreshed_models.empty()) {
     return SUCCESS;
   }
   GE_TRACE_START(UpdateFlowModelCache);
-  size_t pool_size = refreshed_models.size() > kMaxUpdateCacheThreadPoolSize ?
-                                               kMaxUpdateCacheThreadPoolSize :
-                                               refreshed_models.size();
+  size_t pool_size =
+      refreshed_models.size() > kMaxUpdateCacheThreadPoolSize ? kMaxUpdateCacheThreadPoolSize : refreshed_models.size();
   ThreadPool pool("ge_upd_cch", static_cast<uint32_t>(pool_size), true);
   std::vector<std::future<Status>> fut_rets;
   for (const auto &model : refreshed_models) {
@@ -324,14 +317,14 @@ Status FlowModelCache::UpdateFlowModelCache(const std::set<PneModelPtr> &refresh
     }
     auto fut = pool.commit([model]() -> Status {
       ModelBufferData serialize_buff{};
-      GE_CHK_STATUS_RET(model->SerializeModel(serialize_buff),
-                        "Failed to serialize model, model_name = %s", model->GetModelName().c_str());
+      GE_CHK_STATUS_RET(model->SerializeModel(serialize_buff), "Failed to serialize model, model_name = %s",
+                        model->GetModelName().c_str());
       const auto &saved_model_path = model->GetSavedModelPath();
-      GE_ASSERT_GRAPH_SUCCESS(SaveBinToFile(reinterpret_cast<char_t *>(serialize_buff.data.get()),
-                                            serialize_buff.length, saved_model_path),
-                              "Failed to save model data to file %s.", saved_model_path.c_str());
-      GEEVENT("Update model cache success, model_name = %s, path = %s",
-              model->GetModelName().c_str(), saved_model_path.c_str());
+      GE_ASSERT_GRAPH_SUCCESS(
+          SaveBinToFile(reinterpret_cast<char_t *>(serialize_buff.data.get()), serialize_buff.length, saved_model_path),
+          "Failed to save model data to file %s.", saved_model_path.c_str());
+      GEEVENT("Update model cache success, model_name = %s, path = %s", model->GetModelName().c_str(),
+              saved_model_path.c_str());
       return SUCCESS;
     });
     fut_rets.emplace_back(std::move(fut));
@@ -363,9 +356,9 @@ Status FlowModelCache::TryLoadFlowModelFromCache(const ComputeGraphPtr &root_gra
   GE_CHK_STATUS_RET(FlowModelHelper::LoadToFlowModel(cache_index_.cache_file_name, flow_model, split_om_data_base_dir),
                     "Failed to load flow model, cache_file:%s", cache_index_.cache_file_name.c_str());
 
-  GE_CHK_STATUS_RET(
-      FlowModelOmLoader::RefreshModel(flow_model, cache_dir_ + "/weight/", session_id_, graph_id_),
-      "Failed to assign constant mem for cache model, cache_file:%s", cache_index_.cache_file_name.c_str());
+  GE_CHK_STATUS_RET(FlowModelOmLoader::RefreshModel(flow_model, cache_dir_ + "/weight/", session_id_, graph_id_),
+                    "Failed to assign constant mem for cache model, cache_file:%s",
+                    cache_index_.cache_file_name.c_str());
   std::string session_graph_id;
   if (AttrUtils::GetStr(*root_graph, ATTR_NAME_SESSION_GRAPH_ID, session_graph_id)) {
     GE_CHK_STATUS_RET(FlowModelHelper::UpdateSessionGraphId(flow_model, session_graph_id),
@@ -392,15 +385,15 @@ Status FlowModelCache::CheckCacheFile(bool &need_load) {
     }
     // for udf submodel, om is tar package which should not be deserialized into memory
     if (GetSubmodelPneId() == PNE_ID_UDF) {
-        return SUCCESS;
+      return SUCCESS;
     }
   } else {
-      if (matched_file_list_.empty()) {
-        GELOGD("cache file does not exist, no need load cache.");
-        return SUCCESS;
-      } else {
-        cache_index_ = matched_file_list_[0];
-      }
+    if (matched_file_list_.empty()) {
+      GELOGD("cache file does not exist, no need load cache.");
+      return SUCCESS;
+    } else {
+      cache_index_ = matched_file_list_[0];
+    }
   }
   need_load = true;
   return SUCCESS;
@@ -570,8 +563,8 @@ Status FlowModelCache::SaveCacheIndexFile() const {
   std::vector<CacheFileIndex> cache_file_list;
   bool file_exist = CheckFileExist(index_file_);
   if (file_exist) {
-    GE_CHK_STATUS_RET(ReadIndex(index_file_, cache_file_list),
-                      "Failed to read cache index list from file:%s", index_file_.c_str());
+    GE_CHK_STATUS_RET(ReadIndex(index_file_, cache_file_list), "Failed to read cache index list from file:%s",
+                      index_file_.c_str());
   }
   CacheFileIndex new_cache_index = cache_index_;
   GE_CHK_STATUS_RET(GetRealFileName(new_cache_index.cache_file_name), "Get real cache file name failed by[%s].",
@@ -586,8 +579,7 @@ Status FlowModelCache::SaveCacheIndexFile() const {
   }
 
   if (!file_exist) {
-    GE_CHK_STATUS_RET(CreateIndexFile(index_file_), "Failed to create index file:%s",
-                      index_file_.c_str());
+    GE_CHK_STATUS_RET(CreateIndexFile(index_file_), "Failed to create index file:%s", index_file_.c_str());
   }
   GE_CHK_STATUS_RET(WriteJsonFile(index_file_, json_obj), "Failed to write cache index file[%s].", index_file_.c_str());
   GELOGI("save cache file index success, index file:%s", index_file_.c_str());
@@ -598,8 +590,8 @@ Status FlowModelCache::CreateIndexFile(const std::string &index_file) {
   auto open_mode = static_cast<mmMode_t>(M_IRUSR | M_IWUSR);
   auto open_flag = M_RDWR | M_CREAT;
   int32_t fd = mmOpen2(index_file.c_str(), open_flag, open_mode);
-  GE_CHK_BOOL_RET_STATUS(((fd != EN_ERROR) && (fd != EN_INVALID_PARAM)), FAILED,
-                         "Create index file[%s] failed, fd=%d.", index_file.c_str(), fd);
+  GE_CHK_BOOL_RET_STATUS(((fd != EN_ERROR) && (fd != EN_INVALID_PARAM)), FAILED, "Create index file[%s] failed, fd=%d.",
+                         index_file.c_str(), fd);
   (void)mmClose(fd);
   return SUCCESS;
 }
@@ -662,18 +654,18 @@ Status FlowModelCache::TryMatchCacheForUdfSubGraph(bool &is_match) const {
   const std::string release_file = StringUtils::ReplaceAll(cache_index_.cache_file_name, "_root.om", "_release.om");
   auto cache_file_exist = CheckFileExist(release_file);
   if (cache_manual_check_ && cache_file_exist) {
-    GE_CHK_BOOL_RET_STATUS(root_graph_->SetExtAttr("_cache_skip_release_info_check", true),
-      FAILED, "Failed to set cache graph info for graph[%s].", root_graph_->GetName().c_str());
+    GE_CHK_BOOL_RET_STATUS(root_graph_->SetExtAttr("_cache_skip_release_info_check", true), FAILED,
+                           "Failed to set cache graph info for graph[%s].", root_graph_->GetName().c_str());
     const std::string release_real_path = RealPath(release_file.c_str());
     GE_ASSERT_TRUE(!release_real_path.empty(), " Get empty real path by [%s].", release_file.c_str());
-    GE_CHK_BOOL_RET_STATUS(root_graph_->SetExtAttr("_cache_graph_udf_om_file", release_real_path),
-        FAILED, "Failed to set cache graph info for graph[%s].", root_graph_->GetName().c_str());
+    GE_CHK_BOOL_RET_STATUS(root_graph_->SetExtAttr("_cache_graph_udf_om_file", release_real_path), FAILED,
+                           "Failed to set cache graph info for graph[%s].", root_graph_->GetName().c_str());
     GEEVENT("Match cache successfully for udf graph[%s].", root_graph_->GetName().c_str());
     is_match = true;
   } else {
     GELOGI("Cannot match cache for udf graph[%s], cache need manual check = %d, cache exist = %d.",
-           root_graph_->GetName().c_str(),
-           static_cast<int32_t>(cache_manual_check_), static_cast<int32_t>(cache_file_exist));
+           root_graph_->GetName().c_str(), static_cast<int32_t>(cache_manual_check_),
+           static_cast<int32_t>(cache_file_exist));
     is_match = false;
   }
   return SUCCESS;
@@ -694,8 +686,7 @@ Status FlowModelCache::TryMatchCacheForSubGraph(bool &is_match) const {
       is_match = true;
       GELOGI("No need to match buildinfo for nn cache, graph = %s.", root_graph_->GetName().c_str());
     } else {
-      GELOGI("Failed to match cache for graph[%s], no buildinfo in simple cache mode.",
-             root_graph_->GetName().c_str());
+      GELOGI("Failed to match cache for graph[%s], no buildinfo in simple cache mode.", root_graph_->GetName().c_str());
     }
     return SUCCESS;
   }
@@ -703,8 +694,8 @@ Status FlowModelCache::TryMatchCacheForSubGraph(bool &is_match) const {
   std::string cache_graph_info;
   std::map<std::string, std::string> cache_build_options;
   nlohmann::json json_obj;
-  GE_CHK_STATUS_RET(ReadJsonFile(build_info_path_, json_obj),
-      "Failed to read build info json file[%s].", build_info_path_.c_str());
+  GE_CHK_STATUS_RET(ReadJsonFile(build_info_path_, json_obj), "Failed to read build info json file[%s].",
+                    build_info_path_.c_str());
   try {
     auto iter = json_obj.find("graph_info");
     if (iter != json_obj.end()) {
@@ -746,8 +737,8 @@ Status FlowModelCache::TryAddCacheForUdfGraph() const {
     return SUCCESS;
   }
   nlohmann::json json_obj;
-  GE_CHK_STATUS_RET(ReadJsonFile(build_info_path_, json_obj),
-      "Failed to read build info json file[%s].", build_info_path_.c_str());
+  GE_CHK_STATUS_RET(ReadJsonFile(build_info_path_, json_obj), "Failed to read build info json file[%s].",
+                    build_info_path_.c_str());
   std::string cache_graph_info;
   std::string om_file;
   try {
@@ -772,7 +763,7 @@ Status FlowModelCache::TryAddCacheForUdfGraph() const {
       return SUCCESS;
     }
     GE_CHK_BOOL_RET_STATUS(root_graph_->SetExtAttr("_cache_graph_udf_om_file", split_om_data_base_dir + om_file),
-        FAILED, "Failed to set cache graph info for graph[%s].", root_graph_->GetName().c_str());
+                           FAILED, "Failed to set cache graph info for graph[%s].", root_graph_->GetName().c_str());
   }
   if (!cache_graph_info.empty()) {
     GE_CHK_BOOL_RET_STATUS(root_graph_->SetExtAttr("_cache_graph_info_for_data_flow_cache", cache_graph_info), FAILED,
@@ -783,10 +774,9 @@ Status FlowModelCache::TryAddCacheForUdfGraph() const {
 
 Status FlowModelCache::FormatCacheCompilerResult(const ge::NamedAttrs &compile_results, CacheCompileResult &result) {
   ge::NamedAttrs runnable_resources_info;
-  GE_CHK_BOOL_RET_STATUS(ge::AttrUtils::GetNamedAttrs(compile_results, kAttrNameDataFlowRunnableResource,
-                                                      runnable_resources_info),
-                         FAILED, "Get graph's attr[%s] failed.",
-                         kAttrNameDataFlowRunnableResource);
+  GE_CHK_BOOL_RET_STATUS(
+      ge::AttrUtils::GetNamedAttrs(compile_results, kAttrNameDataFlowRunnableResource, runnable_resources_info), FAILED,
+      "Get graph's attr[%s] failed.", kAttrNameDataFlowRunnableResource);
   auto runnable_infos = ge::AttrUtils::GetAllAttrs(runnable_resources_info);
   for (const auto &runnable_info : runnable_infos) {
     std::string release_path;
@@ -794,10 +784,9 @@ Status FlowModelCache::FormatCacheCompilerResult(const ge::NamedAttrs &compile_r
     result.compile_bin_info[runnable_info.first] = release_path;
   }
   ge::NamedAttrs running_resource_info;
-  GE_CHK_BOOL_RET_STATUS(ge::AttrUtils::GetNamedAttrs(compile_results, kAttrNameDataFlowRunningResourceInfo,
-                                                      running_resource_info),
-                         FAILED, "Get graph's attr[%s] failed.",
-                         kAttrNameDataFlowRunningResourceInfo);
+  GE_CHK_BOOL_RET_STATUS(
+      ge::AttrUtils::GetNamedAttrs(compile_results, kAttrNameDataFlowRunningResourceInfo, running_resource_info),
+      FAILED, "Get graph's attr[%s] failed.", kAttrNameDataFlowRunningResourceInfo);
   auto running_infos = ge::AttrUtils::GetAllAttrs(running_resource_info);
   for (const auto &running_info : running_infos) {
     int64_t res_num = 0;

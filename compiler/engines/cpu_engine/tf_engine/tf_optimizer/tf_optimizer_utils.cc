@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -36,72 +36,61 @@ const char *const kAICPUKernelLibName = "aicpu_tf_kernel";
 constexpr int64_t kConstdim = 3;
 const std::string kImgFormat = "dst_img_format";
 const std::string kBatchMatMulV2Op = "BatchMatMulV2";
-}
+}  // namespace
 
 namespace aicpu {
 ge::Status TfVariableGraph::CreateAssign(ge::GeTensorDesc &first_src_tensor_desc,
-                                         ge::GeTensorDesc &second_src_tensor_desc,
-                                         ge::GeTensorDesc &dst_tensor_desc,
-                                         ge::ComputeGraph &graph,
-                                         ge::NodePtr &assign_node) {
+                                         ge::GeTensorDesc &second_src_tensor_desc, ge::GeTensorDesc &dst_tensor_desc,
+                                         ge::ComputeGraph &graph, ge::NodePtr &assign_node) {
   static std::atomic<uint32_t> index{0};
   std::string assign_op_name = "Assign_Insert" + std::to_string(index++);
   const auto assign_op_owner = ge::OperatorFactoryImpl::CreateOperator(assign_op_name.c_str(), "Assign");
-  CHECK_RES_BOOL(
-      !(assign_op_owner.IsEmpty()), ge::FAILED,
-      AICPU_REPORT_INNER_ERR_MSG("[Verify][CheckParam] Get op from OperatorFactory failed, type: Assign"));
+  CHECK_RES_BOOL(!(assign_op_owner.IsEmpty()), ge::FAILED,
+                 AICPU_REPORT_INNER_ERR_MSG("[Verify][CheckParam] Get op from OperatorFactory failed, type: Assign"));
   AICPUE_LOGI("Get op from OperatorFactory succeeded. opType: Assign");
   auto assign_op = ge::OpDescUtils::GetOpDescFromOperator(assign_op_owner);
   AICPU_CHECK_NOTNULL(assign_op)
   ge::OpDescUtilsEx::SetType(assign_op, "AssignExt");
 
   AICPU_CHECK_RES_WITH_LOG(assign_op->UpdateInputDesc(0, first_src_tensor_desc),
-      "Call ge::op::Assign::UpdateInputDesc function failed, input[0].")
+                           "Call ge::op::Assign::UpdateInputDesc function failed, input[0].")
   AICPU_CHECK_RES_WITH_LOG(assign_op->UpdateInputDesc(1, second_src_tensor_desc),
-      "Call ge::op::Assign::UpdateInputDesc function failed, input[1].")
+                           "Call ge::op::Assign::UpdateInputDesc function failed, input[1].")
   AICPU_CHECK_RES_WITH_LOG(assign_op->UpdateOutputDesc(0, dst_tensor_desc),
-      "Call ge::op::Assign::UpdateOutputDesc function failed, output[0].")
+                           "Call ge::op::Assign::UpdateOutputDesc function failed, output[0].")
 
-  CHECK_RES_BOOL(ge::AttrUtils::SetBool(assign_op, kValidateShapeAttr, false),
-      ge::FAILED,
-      AICPU_REPORT_INNER_ERR_MSG(
-          "Call ge::AttrUtils::SetBool failed to set attr[%s], op[%s]",
-          kValidateShapeAttr.c_str(), assign_op->GetName().c_str()))
-  CHECK_RES_BOOL(ge::AttrUtils::SetBool(assign_op, kUseLocking, false),
-      ge::FAILED,
-      AICPU_REPORT_INNER_ERR_MSG(
-          "Call ge::AttrUtils::SetBool failed to set attr[%s], op[%s]",
-          kUseLocking.c_str(), assign_op->GetName().c_str()))
+  CHECK_RES_BOOL(ge::AttrUtils::SetBool(assign_op, kValidateShapeAttr, false), ge::FAILED,
+                 AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::SetBool failed to set attr[%s], op[%s]",
+                                            kValidateShapeAttr.c_str(), assign_op->GetName().c_str()))
+  CHECK_RES_BOOL(ge::AttrUtils::SetBool(assign_op, kUseLocking, false), ge::FAILED,
+                 AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::SetBool failed to set attr[%s], op[%s]",
+                                            kUseLocking.c_str(), assign_op->GetName().c_str()))
   assign_node = graph.AddNode(assign_op);
   AICPU_CHECK_NOTNULL(assign_node)
   return ge::SUCCESS;
 }
 
-ge::Status TfVariableGraph::CreateIdentity(ge::GeTensorDesc &src_tensor_desc,
-                                           ge::GeTensorDesc &dst_tensor_desc,
-                                           ge::ComputeGraph &graph,
-                                           ge::NodePtr &identity_node) {
+ge::Status TfVariableGraph::CreateIdentity(ge::GeTensorDesc &src_tensor_desc, ge::GeTensorDesc &dst_tensor_desc,
+                                           ge::ComputeGraph &graph, ge::NodePtr &identity_node) {
   static std::atomic<uint32_t> index{0};
   std::string identity_op_name = "Identity_Insert" + std::to_string(index++);
   const auto identity_op_owner = ge::OperatorFactoryImpl::CreateOperator(identity_op_name.c_str(), "Identity");
-  CHECK_RES_BOOL(
-      !(identity_op_owner.IsEmpty()), ge::FAILED,
-      AICPU_REPORT_INNER_ERR_MSG("[Verify][CheckParam] Get op from OperatorFactory failed, type: Identity"));
+  CHECK_RES_BOOL(!(identity_op_owner.IsEmpty()), ge::FAILED,
+                 AICPU_REPORT_INNER_ERR_MSG("[Verify][CheckParam] Get op from OperatorFactory failed, type: Identity"));
   AICPUE_LOGI("Get op from OperatorFactory succeeded. opType: Identity");
   auto identity_op = ge::OpDescUtils::GetOpDescFromOperator(identity_op_owner);
   AICPU_CHECK_NOTNULL(identity_op)
   ge::OpDescUtilsEx::SetType(identity_op, "IdentityExt");
   AICPU_CHECK_RES_WITH_LOG(identity_op->UpdateInputDesc(0, src_tensor_desc),
-      "Call ge::op::Identity::UpdateInputDesc function failed, input[0].")
+                           "Call ge::op::Identity::UpdateInputDesc function failed, input[0].")
   AICPU_CHECK_RES_WITH_LOG(identity_op->UpdateOutputDesc(0, dst_tensor_desc),
-      "Call ge::op::Identity::UpdateOutputDesc function failed, output[0].")
+                           "Call ge::op::Identity::UpdateOutputDesc function failed, output[0].")
   identity_node = graph.AddNode(identity_op);
   AICPU_CHECK_NOTNULL(identity_node)
   return ge::SUCCESS;
 }
 
-ge::Status TfVariableGraph::CreateVariable(ge::GeTensorDesc &dst_tensor_desc,
-                                           ge::ComputeGraph &graph,
+ge::Status TfVariableGraph::CreateVariable(ge::GeTensorDesc &dst_tensor_desc, ge::ComputeGraph &graph,
                                            ge::NodePtr &variable_node) {
   static std::atomic<uint32_t> op_name_index{0};
   std::string variable_op_name = "TemporaryVariable_Insert" + std::to_string(op_name_index++);
@@ -129,38 +118,35 @@ ge::Status TfVariableGraph::CreateVariable(ge::GeTensorDesc &dst_tensor_desc,
   AICPU_CHECK_NOTNULL(variable_op)
 
   AICPU_CHECK_RES_WITH_LOG(variable_op->UpdateOutputDesc(0, dst_tensor_desc),
-      "Call ge::op::TemporaryVariable::UpdateOutputDesc function failed, output[0].")
+                           "Call ge::op::TemporaryVariable::UpdateOutputDesc function failed, output[0].")
 
   variable_node = graph.AddNode(variable_op);
   AICPU_CHECK_NOTNULL(variable_node)
   return ge::SUCCESS;
 }
 
-ge::Status TfVariableGraph::InsertVariable(ge::OutDataAnchorPtr &src_anchor,
-                                           const ge::InDataAnchorPtr &dst_anchor,
+ge::Status TfVariableGraph::InsertVariable(ge::OutDataAnchorPtr &src_anchor, const ge::InDataAnchorPtr &dst_anchor,
                                            ge::NodePtr &variable_node) {
   AICPUE_LOGD("Enter InsertVariable Func.");
   AICPU_CHECK_NOTNULL(variable_node)
   AICPU_CHECK_NOTNULL(src_anchor)
   AICPU_CHECK_NOTNULL(dst_anchor)
   AICPU_CHECK_RES_WITH_LOG(ge::GraphUtils::RemoveEdge(src_anchor, dst_anchor),
-      "Call ge::GraphUtils::RemoveEdge function failed to remove edge between"
-      " op[%s] and op[%s]", src_anchor->GetOwnerNode()->GetName().c_str(),
-      dst_anchor->GetOwnerNode()->GetName().c_str())
+                           "Call ge::GraphUtils::RemoveEdge function failed to remove edge between"
+                           " op[%s] and op[%s]",
+                           src_anchor->GetOwnerNode()->GetName().c_str(), dst_anchor->GetOwnerNode()->GetName().c_str())
   ge::OutDataAnchorPtr y_anchor_from_variable = variable_node->GetOutDataAnchor(0);
   AICPUE_LOGD("Get Variable outDataAnchor success.");
   AICPU_CHECK_NOTNULL(y_anchor_from_variable)
   AICPU_CHECK_RES_WITH_LOG(ge::GraphUtils::AddEdge(y_anchor_from_variable, dst_anchor),
-      "Call ge::GraphUtils::AddEdge function failed to add edge between"
-      " op[%s] and [%s]", variable_node->GetName().c_str(),
-      dst_anchor->GetOwnerNode()->GetName().c_str())
+                           "Call ge::GraphUtils::AddEdge function failed to add edge between"
+                           " op[%s] and [%s]",
+                           variable_node->GetName().c_str(), dst_anchor->GetOwnerNode()->GetName().c_str())
   return ge::SUCCESS;
 }
 
-ge::Status TfVariableGraph::InsertAssign(ge::OutDataAnchorPtr &src_anchor,
-                                         const ge::InDataAnchorPtr &dst_anchor,
-                                         const ge::NodePtr &node_ptr,
-                                         ge::NodePtr &assign_node) {
+ge::Status TfVariableGraph::InsertAssign(ge::OutDataAnchorPtr &src_anchor, const ge::InDataAnchorPtr &dst_anchor,
+                                         const ge::NodePtr &node_ptr, ge::NodePtr &assign_node) {
   AICPUE_LOGI("Enter InsertAssign Func.");
   AICPU_CHECK_NOTNULL(src_anchor)
   AICPU_CHECK_NOTNULL(dst_anchor)
@@ -168,8 +154,8 @@ ge::Status TfVariableGraph::InsertAssign(ge::OutDataAnchorPtr &src_anchor,
   ge::OutDataAnchorPtr y_anchor_from_variable = node_ptr->GetOutDataAnchor(0);
   AICPUE_LOGD("Get Variable outDataAnchor success.");
   AICPU_CHECK_RES_WITH_LOG(ge::GraphUtils::RemoveEdge(y_anchor_from_variable, dst_anchor),
-      "Call ge::GraphUtils::RemoveEdge function failed to remove edge between op[%s] and op[%s]",
-      node_ptr->GetName().c_str(), dst_anchor->GetOwnerNode()->GetName().c_str())
+                           "Call ge::GraphUtils::RemoveEdge function failed to remove edge between op[%s] and op[%s]",
+                           node_ptr->GetName().c_str(), dst_anchor->GetOwnerNode()->GetName().c_str())
   ge::InDataAnchorPtr input1_anchor_from_assign = assign_node->GetInDataAnchor(0);
   AICPUE_LOGD("Get Assign inDataAnchor success.");
   ge::InDataAnchorPtr input2_anchor_from_assign = assign_node->GetInDataAnchor(1);
@@ -177,44 +163,39 @@ ge::Status TfVariableGraph::InsertAssign(ge::OutDataAnchorPtr &src_anchor,
   ge::OutDataAnchorPtr output_anchor_from_assign = assign_node->GetOutDataAnchor(0);
   AICPUE_LOGD("Get Assign outDataAnchor success.");
   AICPU_CHECK_RES_WITH_LOG(ge::GraphUtils::AddEdge(src_anchor, input2_anchor_from_assign),
-      "Call ge::GraphUtils::AddEdge function failed to add edge between op[%s] and op[%s]",
-      src_anchor->GetOwnerNode()->GetName().c_str(), assign_node->GetName().c_str())
+                           "Call ge::GraphUtils::AddEdge function failed to add edge between op[%s] and op[%s]",
+                           src_anchor->GetOwnerNode()->GetName().c_str(), assign_node->GetName().c_str())
   AICPU_CHECK_RES_WITH_LOG(ge::GraphUtils::AddEdge(y_anchor_from_variable, input1_anchor_from_assign),
-      "Call ge::GraphUtils::AddEdge function failed to add edge between op[%s] and op[%s]",
-      node_ptr->GetName().c_str(), assign_node->GetName().c_str())
+                           "Call ge::GraphUtils::AddEdge function failed to add edge between op[%s] and op[%s]",
+                           node_ptr->GetName().c_str(), assign_node->GetName().c_str())
   AICPU_CHECK_RES_WITH_LOG(ge::GraphUtils::AddEdge(output_anchor_from_assign, dst_anchor),
-      "Call ge::GraphUtils::AddEdge function failed to add edge between op[%s] and op[%s]",
-      assign_node->GetName().c_str(), dst_anchor->GetOwnerNode()->GetName().c_str())
+                           "Call ge::GraphUtils::AddEdge function failed to add edge between op[%s] and op[%s]",
+                           assign_node->GetName().c_str(), dst_anchor->GetOwnerNode()->GetName().c_str())
   return ge::SUCCESS;
 }
 
-ge::Status TfVariableGraph::InsertIdentity(ge::OutDataAnchorPtr &src_anchor,
-                                           const ge::InDataAnchorPtr &dst_anchor,
+ge::Status TfVariableGraph::InsertIdentity(ge::OutDataAnchorPtr &src_anchor, const ge::InDataAnchorPtr &dst_anchor,
                                            ge::NodePtr &identity_node) {
   AICPUE_LOGI("Enter InsertIdentity Func.");
   AICPU_CHECK_RES_WITH_LOG(ge::GraphUtils::RemoveEdge(src_anchor, dst_anchor),
-      "Call ge::GraphUtils::RemoveEdge function failed to remove edge between op[%s] and op[%s]",
-      src_anchor->GetOwnerNode()->GetName().c_str(),
-      dst_anchor->GetOwnerNode()->GetName().c_str())
+                           "Call ge::GraphUtils::RemoveEdge function failed to remove edge between op[%s] and op[%s]",
+                           src_anchor->GetOwnerNode()->GetName().c_str(), dst_anchor->GetOwnerNode()->GetName().c_str())
   AICPU_CHECK_NOTNULL(identity_node)
   ge::InDataAnchorPtr x_anchor_from_identity = identity_node->GetInDataAnchor(0);
   AICPUE_LOGD("Get Identity inDataAnchor success.");
   ge::OutDataAnchorPtr y_anchor_from_identity = identity_node->GetOutDataAnchor(0);
   AICPUE_LOGD("Get Identity outDataAnchor success.");
   AICPU_CHECK_RES_WITH_LOG(ge::GraphUtils::AddEdge(src_anchor, x_anchor_from_identity),
-      "Call ge::GraphUtils::AddEdge function failed to add edge between op[%s] and op[%s]",
-      src_anchor->GetOwnerNode()->GetName().c_str(),
-      identity_node->GetName().c_str())
+                           "Call ge::GraphUtils::AddEdge function failed to add edge between op[%s] and op[%s]",
+                           src_anchor->GetOwnerNode()->GetName().c_str(), identity_node->GetName().c_str())
   AICPU_CHECK_RES_WITH_LOG(ge::GraphUtils::AddEdge(y_anchor_from_identity, dst_anchor),
-      "Call ge::GraphUtils::AddEdge function failed to add edge between op[%s] and op[%s]",
-      identity_node->GetName().c_str(),
-      dst_anchor->GetOwnerNode()->GetName().c_str())
+                           "Call ge::GraphUtils::AddEdge function failed to add edge between op[%s] and op[%s]",
+                           identity_node->GetName().c_str(), dst_anchor->GetOwnerNode()->GetName().c_str())
   return ge::SUCCESS;
 }
 
 ge::Status TfVariableGraph::CreateAndInsertVariable(ge::OutDataAnchorPtr &src_anchor,
-                                                    const ge::InDataAnchorPtr &dst_anchor,
-                                                    ge::NodePtr &variable_node,
+                                                    const ge::InDataAnchorPtr &dst_anchor, ge::NodePtr &variable_node,
                                                     ge::ComputeGraph &graph) {
   AICPUE_LOGI("Enter CreateAndInsertVariable Func.");
   const auto src_node = src_anchor->GetOwnerNodeBarePtr();
@@ -224,8 +205,7 @@ ge::Status TfVariableGraph::CreateAndInsertVariable(ge::OutDataAnchorPtr &src_an
   int idx = ge::AnchorUtils::GetIdx(src_anchor);
   // -1 is invalid index
   CHECK_RES_BOOL((idx != -1), ge::FAILED,
-      AICPU_REPORT_INNER_ERR_MSG("invalid output anchor index[%d], op[%s].",
-          idx, src_op->GetType().c_str()))
+                 AICPU_REPORT_INNER_ERR_MSG("invalid output anchor index[%d], op[%s].", idx, src_op->GetType().c_str()))
   uint32_t src_anchor_idx = static_cast<uint32_t>(idx);
 
   // dst_anchor already check not null and valid
@@ -237,18 +217,15 @@ ge::Status TfVariableGraph::CreateAndInsertVariable(ge::OutDataAnchorPtr &src_an
   ge::GeTensorDesc dst_tensor_desc = dst_op->GetInputDesc(dst_anchor_idx);
   AICPUE_LOGD("Enter CreateVariable Func.");
   AICPU_CHECK_RES_WITH_LOG(CreateVariable(dst_tensor_desc, graph, variable_node),
-      "Call TfVariableGraph::CreateVariable function failed, op[%s].",
-      src_op->GetName().c_str())
+                           "Call TfVariableGraph::CreateVariable function failed, op[%s].", src_op->GetName().c_str())
   AICPUE_LOGD("Enter InsertVariable Func.");
   AICPU_CHECK_RES_WITH_LOG(InsertVariable(src_anchor, dst_anchor, variable_node),
-      "Call TfVariableGraph::InsertVariable function failed, op[%s].",
-      src_op->GetName().c_str())
+                           "Call TfVariableGraph::InsertVariable function failed, op[%s].", src_op->GetName().c_str())
   return ge::SUCCESS;
 }
 
 ge::Status TfVariableGraph::CreateAndInsertIdentity(ge::OutDataAnchorPtr &src_anchor,
-                                                    const ge::InDataAnchorPtr &dst_anchor,
-                                                    ge::ComputeGraph &graph) {
+                                                    const ge::InDataAnchorPtr &dst_anchor, ge::ComputeGraph &graph) {
   AICPUE_LOGI("Enter CreateAndInsertIdentity Func.");
   const auto src_node = src_anchor->GetOwnerNodeBarePtr();
   AICPU_CHECK_NOTNULL(src_node)
@@ -257,8 +234,7 @@ ge::Status TfVariableGraph::CreateAndInsertIdentity(ge::OutDataAnchorPtr &src_an
 
   int idx = ge::AnchorUtils::GetIdx(src_anchor);
   CHECK_RES_BOOL((idx != -1), ge::FAILED,
-      AICPU_REPORT_INNER_ERR_MSG("invalid output anchor index[%d], op[%s].",
-                               idx, src_op->GetType().c_str()))
+                 AICPU_REPORT_INNER_ERR_MSG("invalid output anchor index[%d], op[%s].", idx, src_op->GetType().c_str()))
   uint32_t src_anchor_idx = static_cast<uint32_t>(idx);
   ge::GeTensorDesc src_tensor_desc = src_op->GetOutputDesc(src_anchor_idx);
 
@@ -270,18 +246,15 @@ ge::Status TfVariableGraph::CreateAndInsertIdentity(ge::OutDataAnchorPtr &src_an
   ge::NodePtr identity_node;
   AICPUE_LOGD("Enter CreateIdentity Func.");
   AICPU_CHECK_RES_WITH_LOG(CreateIdentity(src_tensor_desc, dst_tensor_desc, graph, identity_node),
-      "Call TfVariableGraph::CreateIdentity function failed, op[%s]",
-      src_op->GetName().c_str())
+                           "Call TfVariableGraph::CreateIdentity function failed, op[%s]", src_op->GetName().c_str())
   AICPUE_LOGD("Enter CreateIdentity Func.");
   AICPU_CHECK_RES_WITH_LOG(InsertIdentity(src_anchor, dst_anchor, identity_node),
-      "Call TfVariableGraph::InsertIdentity function failed, op[%s]",
-      src_op->GetName().c_str())
+                           "Call TfVariableGraph::InsertIdentity function failed, op[%s]", src_op->GetName().c_str())
   return ge::SUCCESS;
 }
 
 ge::Status TfVariableGraph::CreateAndInsertAssign(ge::OutDataAnchorPtr &src_anchor,
-                                                  const ge::InDataAnchorPtr &dst_anchor,
-                                                  const ge::NodePtr &node_ptr,
+                                                  const ge::InDataAnchorPtr &dst_anchor, const ge::NodePtr &node_ptr,
                                                   ge::ComputeGraph &graph) {
   AICPUE_LOGI("Enter CreateAndInsertAssign Func.");
   const auto src_node = src_anchor->GetOwnerNodeBarePtr();
@@ -293,8 +266,7 @@ ge::Status TfVariableGraph::CreateAndInsertAssign(ge::OutDataAnchorPtr &src_anch
 
   int idx = ge::AnchorUtils::GetIdx(src_anchor);
   CHECK_RES_BOOL((idx != -1), ge::FAILED,
-      AICPU_REPORT_INNER_ERR_MSG("invalid output anchor index[%d], op[%s].",
-                               idx, src_op->GetType().c_str()))
+                 AICPU_REPORT_INNER_ERR_MSG("invalid output anchor index[%d], op[%s].", idx, src_op->GetType().c_str()))
   uint32_t src_anchor_idx = static_cast<uint32_t>(idx);
 
   ge::GeTensorDesc tensor_desc1 = variable_op->GetOutputDesc(0);
@@ -302,12 +274,10 @@ ge::Status TfVariableGraph::CreateAndInsertAssign(ge::OutDataAnchorPtr &src_anch
   ge::NodePtr assign_node;
   AICPUE_LOGD("Enter CreateAssign Func.");
   AICPU_CHECK_RES_WITH_LOG(CreateAssign(tensor_desc1, tensor_desc2, tensor_desc1, graph, assign_node),
-      "Call TfVariableGraph::CreateAssign function failed, op[%s]",
-      src_op->GetName().c_str())
+                           "Call TfVariableGraph::CreateAssign function failed, op[%s]", src_op->GetName().c_str())
   AICPUE_LOGD("Enter InsertAssign Func.");
   AICPU_CHECK_RES_WITH_LOG(InsertAssign(src_anchor, dst_anchor, node_ptr, assign_node),
-      "Call TfVariableGraph::InsertAssign function failed, op[%s]",
-      src_op->GetName().c_str())
+                           "Call TfVariableGraph::InsertAssign function failed, op[%s]", src_op->GetName().c_str())
   return ge::SUCCESS;
 }
 
@@ -328,8 +298,7 @@ ge::Status TfVariableGraph::GenerateTfVariableGraph(ge::ComputeGraph &graph, boo
         std::set<std::string> refinput_set;
         (void)parser->GetRefInputSet(peer_op_type, refinput_set);
         uint32_t anchor_index = static_cast<uint32_t>(anchor.second->GetIdx());
-        std::string input_name =
-            anchor.first->GetOpDesc()->GetInputNameByIndex(anchor_index);
+        std::string input_name = anchor.first->GetOpDesc()->GetInputNameByIndex(anchor_index);
         if (IsRefTensorDesc(anchor.first->GetOpDesc()->GetInputDesc(anchor_index)) ||
             (refinput_set.find(input_name) != refinput_set.end())) {
           AICPUE_LOGD("Current op type is [%s]. Insert Variable Op and replace it with TF Variable and Assign.",
@@ -356,15 +325,15 @@ ge::Status TfVariableGraph::GenerateTfVariableGraph(ge::ComputeGraph &graph, boo
           for (const auto &dst_anchor : src_anchor->GetPeerInDataAnchors()) {
             ge::NodePtr variable_node;
             AICPU_CHECK_RES_WITH_LOG(CreateAndInsertVariable(src_anchor, dst_anchor, variable_node, graph),
-                "Call TfVariableGraph::CreateAndInsertVariable function failed, op[%s].",
-                cur_node->GetName().c_str())
+                                     "Call TfVariableGraph::CreateAndInsertVariable function failed, op[%s].",
+                                     cur_node->GetName().c_str())
             // Variable op just have one output edge
             ge::OutDataAnchorPtr out_data_anchor = variable_node->GetOutDataAnchor(0);
             AICPU_CHECK_NOTNULL(out_data_anchor)
             ge::InDataAnchorPtr dst_variable_anchor = (*out_data_anchor->GetPeerInDataAnchors().begin());
             AICPU_CHECK_RES_WITH_LOG(CreateAndInsertAssign(src_anchor, dst_variable_anchor, variable_node, graph),
-                "Call TfVariableGraph::CreateAndInsertAssign function failed, op[%s].",
-                cur_node->GetName().c_str())
+                                     "Call TfVariableGraph::CreateAndInsertAssign function failed, op[%s].",
+                                     cur_node->GetName().c_str())
             if ((sgt_flag) && (slice_info_ptr != nullptr)) {
               (void)variable_node->GetOpDesc()->SetExtAttr(kAttrNameSgtStruct, slice_info_ptr);
               (void)ge::AttrUtils::SetInt(variable_node->GetOpDesc(), kAttrNameThreadScopeId,
@@ -380,7 +349,7 @@ ge::Status TfVariableGraph::GenerateTfVariableGraph(ge::ComputeGraph &graph, boo
                   op_type.c_str());
       for (auto &node_and_anchor : cur_node->GetInDataNodesAndAnchors()) {
         if (IsRefTensorDesc(node_and_anchor.first->GetOpDesc()->GetOutputDesc(
-            static_cast<uint32_t>(node_and_anchor.second->GetIdx())))) {
+                static_cast<uint32_t>(node_and_anchor.second->GetIdx())))) {
           ge::NodePtr node = (*cur_node->GetInNodes().begin());
           AICPU_CHECK_NOTNULL(node)
           ge::OutDataAnchorPtr src_anchor = node->GetOutDataAnchor(0);
@@ -410,8 +379,7 @@ ge::OpDescPtr TfTransposeGraph::CreateConstNode() {
   tensor->MutableTensorDesc().SetOriginShape(shape);
   // 2, 0, 1 for HWC->CHW
   std::vector<int32_t> tensor_value = {2, 0, 1};
-  tensor->SetData(reinterpret_cast<uint8_t *>(tensor_value.data()),
-                  kConstdim * sizeof(int32_t));
+  tensor->SetData(reinterpret_cast<uint8_t *>(tensor_value.data()), kConstdim * sizeof(int32_t));
   ge::OpDescPtr const_desc = ge::OpDescUtils::CreateConstOpZeroCopy(tensor);
   if (const_desc == nullptr) {
     return nullptr;
@@ -425,9 +393,8 @@ ge::OpDescPtr TfTransposeGraph::CreateConstNode() {
   return const_desc;
 }
 
-ge::NodePtr TfTransposeGraph::CreateTransposeNode(
-    ge::ComputeGraph &graph, const std::string &name,
-    const ge::GeTensorDesc tensor_desc) {
+ge::NodePtr TfTransposeGraph::CreateTransposeNode(ge::ComputeGraph &graph, const std::string &name,
+                                                  const ge::GeTensorDesc tensor_desc) {
   ge::OpDescPtr perm_const_desc = CreateConstNode();
   if (perm_const_desc == nullptr) {
     AICPU_REPORT_INNER_ERR_MSG("CreateConstNode failed");
@@ -447,7 +414,7 @@ ge::NodePtr TfTransposeGraph::CreateTransposeNode(
     AICPU_REPORT_INNER_ERR_MSG("Call ge::AddInputDesc  x failed ret[%d]", ret);
     return nullptr;
   }
-  
+
   ret = op_desc->AddInputDesc("perm", perm_const_desc->GetOutputDesc(0));
   if (ret != ge::GRAPH_SUCCESS) {
     AICPU_REPORT_INNER_ERR_MSG("Call ge::AddInputDesc  x failed ret[%d]", ret);
@@ -470,8 +437,7 @@ ge::NodePtr TfTransposeGraph::CreateTransposeNode(
     AICPU_REPORT_INNER_ERR_MSG("Call ge::AddNode const failed");
     return nullptr;
   }
-  ret = ge::GraphUtils::AddEdge(perm_node->GetOutDataAnchor(0),
-                                transpose->GetInDataAnchor(1));
+  ret = ge::GraphUtils::AddEdge(perm_node->GetOutDataAnchor(0), transpose->GetInDataAnchor(1));
   if (ret != ge::GRAPH_SUCCESS) {
     AICPU_REPORT_INNER_ERR_MSG("Call ge::AddOutputDesc failed ret[%d]", ret);
     return nullptr;
@@ -479,8 +445,7 @@ ge::NodePtr TfTransposeGraph::CreateTransposeNode(
   return transpose;
 }
 
-ge::Status TfTransposeGraph::CreateAndInsertTransposeNode(
-    ge::ComputeGraph &graph, const ge::NodePtr &node) {
+ge::Status TfTransposeGraph::CreateAndInsertTransposeNode(ge::ComputeGraph &graph, const ge::NodePtr &node) {
   ge::OutDataAnchorPtr src_anchor = node->GetOutDataAnchor(0);
   if (src_anchor == nullptr) {
     return ge::GRAPH_FAILED;
@@ -495,19 +460,15 @@ ge::Status TfTransposeGraph::CreateAndInsertTransposeNode(
     if (peer_in_anchor == nullptr) {
       continue;
     }
-    AICPU_CHECK_RES_WITH_LOG(
-        ge::GraphUtils::RemoveEdge(src_anchor, peer_in_anchor),
-        "call RemoveEdge between %s and %s", node->GetName().c_str(),
-        peer_in_anchor->GetOwnerNode()->GetName().c_str());
-    AICPU_CHECK_RES_WITH_LOG(
-        ge::GraphUtils::AddEdge(transpose->GetOutDataAnchor(0), peer_in_anchor),
-        "call AddEdge between transpose and %s",
-        peer_in_anchor->GetOwnerNode()->GetName().c_str());
+    AICPU_CHECK_RES_WITH_LOG(ge::GraphUtils::RemoveEdge(src_anchor, peer_in_anchor),
+                             "call RemoveEdge between %s and %s", node->GetName().c_str(),
+                             peer_in_anchor->GetOwnerNode()->GetName().c_str());
+    AICPU_CHECK_RES_WITH_LOG(ge::GraphUtils::AddEdge(transpose->GetOutDataAnchor(0), peer_in_anchor),
+                             "call AddEdge between transpose and %s",
+                             peer_in_anchor->GetOwnerNode()->GetName().c_str());
   }
-  AICPU_CHECK_RES_WITH_LOG(
-      ge::GraphUtils::AddEdge(src_anchor, transpose->GetInDataAnchor(0)),
-      "call AddEdge between transpose %s and transpose",
-      node->GetName().c_str());
+  AICPU_CHECK_RES_WITH_LOG(ge::GraphUtils::AddEdge(src_anchor, transpose->GetInDataAnchor(0)),
+                           "call AddEdge between transpose %s and transpose", node->GetName().c_str());
   return ge::GRAPH_SUCCESS;
 }
 
@@ -525,8 +486,7 @@ ge::Status TfTransposeGraph::GenerateTfTransposeGraph(ge::ComputeGraph &graph) {
       continue;
     }
     AICPUE_LOGD("insert transpose for [%s]", type.c_str());
-    AICPU_CHECK_RES_WITH_LOG(CreateAndInsertTransposeNode(graph, node),
-                             "op[%s] insert transpose fail", type.c_str());
+    AICPU_CHECK_RES_WITH_LOG(CreateAndInsertTransposeNode(graph, node), "op[%s] insert transpose fail", type.c_str());
     // for infershape,
     (void)ge::AttrUtils::SetStr(node->GetOpDesc(), kImgFormat, "HWC");
   }
@@ -625,10 +585,10 @@ ge::Status TfBatchMatMulV2Graph::GenerateBatchMatMulV2Graph(ge::ComputeGraph &gr
       continue;
     }
     AICPUE_LOGI("insert const node for node[%s]", cur_node->GetName().c_str());
-    AICPU_CHECK_RES_WITH_LOG(CreateAndInsertBiasConstNode(cur_node, graph),
-                             "node[%s] insert bias constnode fail", cur_node->GetName().c_str());
-    AICPU_CHECK_RES_WITH_LOG(CreateAndInsertOffsetWConstNode(cur_node, graph),
-                             "node[%s] insert bias constnode fail", cur_node->GetName().c_str());
+    AICPU_CHECK_RES_WITH_LOG(CreateAndInsertBiasConstNode(cur_node, graph), "node[%s] insert bias constnode fail",
+                             cur_node->GetName().c_str());
+    AICPU_CHECK_RES_WITH_LOG(CreateAndInsertOffsetWConstNode(cur_node, graph), "node[%s] insert bias constnode fail",
+                             cur_node->GetName().c_str());
   }
   return ge::SUCCESS;
 }
@@ -647,4 +607,4 @@ ge::Status TfFixInvalidNodeName::TfGraphFixInvalidNodeName(ge::ComputeGraph &gra
   }
   return ge::SUCCESS;
 }
-}
+}  // namespace aicpu

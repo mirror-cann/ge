@@ -12,11 +12,8 @@
 
 namespace ge {
 
-ge::Status CompiledTargetSaver::SaveToBuffer(
-    const ge::CompiledTargetPtr compiled_target,
-    ge::BaseBuffer& buffer)
-{
-    return compiled_target->Serialize(buffer);
+ge::Status CompiledTargetSaver::SaveToBuffer(const ge::CompiledTargetPtr compiled_target, ge::BaseBuffer &buffer) {
+  return compiled_target->Serialize(buffer);
 }
 
-} // namespace ge
+}  // namespace ge

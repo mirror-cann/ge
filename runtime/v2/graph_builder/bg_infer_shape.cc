@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -37,7 +37,7 @@
 namespace gert {
 namespace bg {
 ge::ShapeInferOp *FindShapeInferOpInCustomOpRegistry(const ge::AscendString &op_type,
-                                              const LoweringGlobalData &global_data) {
+                                                     const LoweringGlobalData &global_data) {
   ge::BaseCustomOp *custom_op = nullptr;
   const auto &custom_op_registry = global_data.GetCustomOpRegistry();
   custom_op = (custom_op_registry == nullptr) ? nullptr : custom_op_registry->CreateOrGetCustomOp(op_type);
@@ -45,7 +45,7 @@ ge::ShapeInferOp *FindShapeInferOpInCustomOpRegistry(const ge::AscendString &op_
 }
 
 namespace {
-constexpr char const *kRetValType  = "_RetVal";
+constexpr char const *kRetValType = "_RetVal";
 struct LowerIOShapes {
   std::vector<ValueHolderPtr> input_shapes;
   std::vector<ValueHolderPtr> output_shapes;
@@ -85,8 +85,7 @@ std::vector<ValueHolderPtr> BuildCompatibleInferShapeGraph(const ge::NodePtr &no
       return {ValueHolder::CreateSingleDataOutput("FindCompatibleInferShapeFunc", {node_type})};
     });
   };
-  auto infer_func = global_data.GetOrCreateUniqueValueHolder(
-      type + "_FindCompatibleInferShapeFunc_", builder)[0];
+  auto infer_func = global_data.GetOrCreateUniqueValueHolder(type + "_FindCompatibleInferShapeFunc_", builder)[0];
 
   auto op_buffer_vec = CompatibleUtils::BuildOpDescBufferConst(node);
   auto op = ValueHolder::CreateSingleDataOutput("CreateOpFromBuffer", op_buffer_vec);
@@ -124,7 +123,7 @@ std::vector<ValueHolderPtr> BuildInferShapeGraph(const ge::NodePtr &node,
     });
   };
   auto infer_func = global_data.GetOrCreateUniqueValueHolder(
-    type + "_FindInferShapeFunc_" + to_string(static_cast<int32_t>(opp_impl_version)), builder)[0];
+      type + "_FindInferShapeFunc_" + to_string(static_cast<int32_t>(opp_impl_version)), builder)[0];
   auto inputs = input_shapes;
   inputs.emplace_back(infer_func);
   return ValueHolder::CreateDataOutput("InferShape", inputs, node->GetAllOutDataAnchorsSize());
@@ -171,21 +170,22 @@ std::vector<ValueHolderPtr> BuildSymbolInferShapeGraph(const ge::NodePtr &node,
   // infershape连边
   std::vector<bg::ValueHolderPtr> inputs_holders;
   // input shapes with size
-  auto input_shapes_with_size = AutofuseNodeConveter::GetSymbolInputsWithSize(
-      global_data, input_shapes, node->GetOwnerComputeGraph()->GetName());
+  auto input_shapes_with_size =
+      AutofuseNodeConveter::GetSymbolInputsWithSize(global_data, input_shapes, node->GetOwnerComputeGraph()->GetName());
   inputs_holders.insert(inputs_holders.end(), input_shapes_with_size.begin(), input_shapes_with_size.end());
   // 3. all symbol number
   auto all_sym_num_holder = AutofuseNodeConveter::GetAllSymbolNumHolder(global_data, node);
   GE_ASSERT_NOTNULL(all_sym_num_holder);
   inputs_holders.emplace_back(all_sym_num_holder);
   // 4. DfxInputSymbolInfo function
-  auto dfx_func = AutofuseNodeConveter::GetAutofuseHandle(
-      global_data, node, GetAutofuseFuncsOutput::kDfxInputSymbolInfo);
+  auto dfx_func =
+      AutofuseNodeConveter::GetAutofuseHandle(global_data, node, GetAutofuseFuncsOutput::kDfxInputSymbolInfo);
   GE_ASSERT_NOTNULL(dfx_func);
-  inputs_holders.emplace_back(dfx_func);;
+  inputs_holders.emplace_back(dfx_func);
+  ;
   // last: infershape function
-  auto get_infer_shape_func = AutofuseNodeConveter::GetAutofuseHandle(
-      global_data, node, GetAutofuseFuncsOutput::kInferShape);
+  auto get_infer_shape_func =
+      AutofuseNodeConveter::GetAutofuseHandle(global_data, node, GetAutofuseFuncsOutput::kInferShape);
   GE_ASSERT_NOTNULL(get_infer_shape_func);
   inputs_holders.emplace_back(get_infer_shape_func);
 
@@ -234,7 +234,7 @@ std::vector<ValueHolderPtr> BuildInferShapeGraphByRule(const std::string &rule, 
 
   return bg::ValueHolder::CreateDataOutput("InferShapeByRule", inputs_holders, num_outputs);
 }
-} // namespace
+}  // namespace
 
 // 在convert中打开函数放到global_data中
 std::vector<ValueHolderPtr> InferStorageShape(const ge::NodePtr &node, const std::vector<ValueHolderPtr> &input_shapes,
@@ -265,13 +265,12 @@ std::vector<ValueHolderPtr> InferStorageShape(const ge::NodePtr &node, const std
     return BuildInferShapeGraphByRule(infer_rule, compiled_rule, input_shapes, node->GetOpDesc()->GetOutputsSize(),
                                       global_data);
   }
-  // To compatible with old version infer_fun, build differnt exe graph for infershape
+  // To compatible with old version infer_fun, build different exe graph for infershape
   GELOGW("Node %s type %s not support v2 infershape. Turns to v1 infershape.", node->GetName().c_str(), type.c_str());
   return BuildCompatibleInferShapeGraph(node, input_shapes, global_data);
 }
 
-std::vector<ValueHolderPtr> InferCustomOpShape(const ge::NodePtr &node,
-                                               const std::vector<ValueHolderPtr> &input_shapes,
+std::vector<ValueHolderPtr> InferCustomOpShape(const ge::NodePtr &node, const std::vector<ValueHolderPtr> &input_shapes,
                                                LoweringGlobalData &global_data) {
   if (node == nullptr) {
     return {};
@@ -286,8 +285,7 @@ std::vector<ValueHolderPtr> InferCustomOpShape(const ge::NodePtr &node,
     ge::Buffer compiled_rule;
     ge::AttrUtils::GetBytes(op_desc, ge::COMPILED_INFERENCE_RULE_BINARY, compiled_rule);
     GELOGD("Node %s infer shape by rule: %s.", node->GetName().c_str(), infer_rule.c_str());
-    return BuildInferShapeGraphByRule(infer_rule, compiled_rule, input_shapes,
-                                      op_desc->GetOutputsSize(), global_data);
+    return BuildInferShapeGraphByRule(infer_rule, compiled_rule, input_shapes, op_desc->GetOutputsSize(), global_data);
   }
   return {};
 }
@@ -304,9 +302,8 @@ HyperStatus LowerInnerData(const ge::NodePtr &node, const std::vector<ValueHolde
   return HyperStatus::Success();
 }
 
-std::vector<ValueHolderPtr> LowerInnerOutNodes(
-    const std::vector<UBGraphOutNodesInfos> &ub_graph_out_nodes_info,
-    std::map<int64_t, LowerIOShapes> &node_2_shapes) {
+std::vector<ValueHolderPtr> LowerInnerOutNodes(const std::vector<UBGraphOutNodesInfos> &ub_graph_out_nodes_info,
+                                               std::map<int64_t, LowerIOShapes> &node_2_shapes) {
   std::vector<ValueHolderPtr> output_shapes(ub_graph_out_nodes_info.size());
   for (const auto &out_node_info : ub_graph_out_nodes_info) {
     auto index = out_node_info.parent_node_idx;

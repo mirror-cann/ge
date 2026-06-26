@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,8 +17,8 @@ namespace gert {
 class ModelDescUT : public testing::Test {};
 
 TEST_F(ModelDescUT, ShapeRangeConstruct_Ok_MinMaxShape) {
-  Shape min_shape{1,2};
-  Shape max_shape{2,2};
+  Shape min_shape{1, 2};
+  Shape max_shape{2, 2};
   ShapeRange sr{min_shape, max_shape};
   EXPECT_EQ(sr.GetMin(), min_shape);
   EXPECT_EQ(sr.GetMax(), max_shape);
@@ -29,9 +29,9 @@ TEST_F(ModelDescUT, ShapeRangeConstruct_Ok_Default) {
   EXPECT_EQ(sr.GetMax().GetDimNum(), 0);
 }
 TEST_F(ModelDescUT, ShapeRangeEqual_Success) {
-  ShapeRange sr1{{1,2}, {2,2}};
-  ShapeRange sr2{{1,2}, {2,2}};
-  ShapeRange sr3{{2,2}, {2,2}};
+  ShapeRange sr1{{1, 2}, {2, 2}};
+  ShapeRange sr2{{1, 2}, {2, 2}};
+  ShapeRange sr3{{2, 2}, {2, 2}};
   EXPECT_TRUE(sr1 == sr2);
   EXPECT_FALSE(sr1 == sr3);
 }
@@ -57,7 +57,7 @@ TEST_F(ModelDescUT, ModelDescGet_Success) {
   ModelIoDesc &input_desc = *(reinterpret_cast<ModelIoDesc *>(model_desc.model_io_descs_.MutableData()));
   input_desc.name_ = "data";
   input_desc.data_type_ = 1;
-  input_desc.format_.origin_format_= static_cast<ge::Format>(1);
+  input_desc.format_.origin_format_ = static_cast<ge::Format>(1);
 
   Shape in_shape;
   in_shape.dim_num_ = 2;
@@ -111,7 +111,7 @@ TEST_F(ModelDescUT, ModelDescGet_Success) {
   ModelIoDesc &output_desc = *(reinterpret_cast<ModelIoDesc *>(model_desc.model_io_descs_.MutableData()) + 1);
   output_desc.name_ = "netoutput";
   output_desc.data_type_ = 1;
-  output_desc.format_.origin_format_= static_cast<ge::Format>(1);
+  output_desc.format_.origin_format_ = static_cast<ge::Format>(1);
 
   Shape out_shape;
   out_shape.dim_num_ = 3;

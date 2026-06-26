@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -41,7 +41,9 @@ class UtestGeAipp : public testing::Test {
 };
 class NodeBuilder {
  public:
-  NodeBuilder(const std::string &name, const std::string &type) { op_desc_ = std::make_shared<OpDesc>(name, type); }
+  NodeBuilder(const std::string &name, const std::string &type) {
+    op_desc_ = std::make_shared<OpDesc>(name, type);
+  }
 
   NodeBuilder &AddInputDesc(std::initializer_list<int64_t> shape, ge::Format format = FORMAT_NCHW,
                             ge::DataType data_type = DT_FLOAT) {
@@ -55,7 +57,9 @@ class NodeBuilder {
     return *this;
   }
 
-  ge::NodePtr Build(const ge::ComputeGraphPtr &graph) { return graph->AddNode(op_desc_); }
+  ge::NodePtr Build(const ge::ComputeGraphPtr &graph) {
+    return graph->AddNode(op_desc_);
+  }
 
  private:
   ge::GeTensorDescPtr CreateTensorDesc(std::initializer_list<int64_t> shape, ge::Format format = FORMAT_NCHW,
@@ -128,9 +132,9 @@ TEST_F(UtestGeAipp, test_Insert_Aipp_ToGraph) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
 
   const ge::NodePtr data1 = NodeBuilder("data1", DATA)
-                          .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
-                          .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
-                          .Build(graph);
+                                .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
+                                .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
+                                .Build(graph);
   {
     AippOp aipp_op;
     domi::AippOpParams params;
@@ -303,7 +307,6 @@ TEST_F(UtestGeAipp, test_convert_static_Params_to_json) {
   auto data_tensor_names_old = domi::GetContext().data_tensor_names;
   domi::GetContext().data_tensor_names.push_back("data0");
 
-
   AippOp aipp_op;
   domi::AippOpParams params;
   params.set_aipp_mode(domi::AippOpParams::static_);
@@ -366,7 +369,7 @@ TEST_F(UtestGeAipp, test_convert_static_Params_to_json) {
   ASSERT_EQ(ret, SUCCESS);
   auto json_str = aipp_op.ConvertParamToJson();
   std::cout << json_str << std::endl;
-  
+
   ASSERT_NE(json_str.find("aipp_mode"), json_str.npos);
   ASSERT_EQ(json_str.find("ax_swap_switch"), json_str.npos);
   ASSERT_NE(json_str.find("bottom_padding_size"), json_str.npos);
@@ -462,9 +465,9 @@ TEST_F(UtestGeAipp, test_Find_Data_By_Index) {
   domi::GetContext().data_tensor_names.push_back("data0");
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   const ge::NodePtr data1 = NodeBuilder("data1", DATA)
-                          .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
-                          .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
-                          .Build(graph);
+                                .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
+                                .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
+                                .Build(graph);
   AippOp aipp_op;
   domi::AippOpParams params;
   const uint32_t index = 1;
@@ -476,8 +479,8 @@ TEST_F(UtestGeAipp, test_Find_Data_By_Index) {
   ge::NodePtr data2 = nullptr;
   data2 = aipp_op.FindDataByIndex(graph, 0);
   if (data2 != nullptr) {
-      ret = SUCCESS;
-      ASSERT_EQ(ret, SUCCESS);
+    ret = SUCCESS;
+    ASSERT_EQ(ret, SUCCESS);
   }
 
   domi::GetContext().data_tensor_names = data_tensor_names_old;
@@ -491,9 +494,9 @@ TEST_F(UtestGeAipp, test_Add_Aipp_Attrbutes) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
 
   const ge::NodePtr data1 = NodeBuilder("data1", DATA)
-                          .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
-                          .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
-                          .Build(graph);
+                                .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
+                                .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
+                                .Build(graph);
   AippOp aipp_op;
   domi::AippOpParams params;
   const uint32_t index = 0;
@@ -515,9 +518,9 @@ TEST_F(UtestGeAipp, test_Get_Target_Position) {
 
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   ge::NodePtr data1 = NodeBuilder("data1", DATA)
-                    .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
-                    .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
-                    .Build(graph);
+                          .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
+                          .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
+                          .Build(graph);
   ge::AttrUtils::SetInt(data1->GetOpDesc(), ATTR_NAME_INDEX, 0);
   AippOp aipp_op;
   domi::AippOpParams params;
@@ -529,9 +532,9 @@ TEST_F(UtestGeAipp, test_Get_Target_Position) {
   ASSERT_EQ(ret, SUCCESS);
 
   ge::NodePtr data2 = NodeBuilder("case1", CASE)
-                    .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
-                    .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
-                    .Build(graph);
+                          .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
+                          .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
+                          .Build(graph);
   AippOp aipp_op1;
   domi::AippOpParams params1;
   params1.set_related_input_name("data1");
@@ -550,13 +553,13 @@ TEST_F(UtestGeAipp, test_Get_Static_TargetNode) {
 
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   ge::NodePtr data1 = NodeBuilder("data1", DATA)
-                    .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
-                    .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
-                    .Build(graph);
+                          .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
+                          .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
+                          .Build(graph);
   ge::NodePtr data2 = NodeBuilder("case1", CASE)
-                    .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
-                    .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
-                    .Build(graph);
+                          .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
+                          .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
+                          .Build(graph);
   AippOp aipp_op;
   domi::AippOpParams params;
   std::vector<std::pair<OutDataAnchorPtr, InDataAnchorPtr>> target_edges;
@@ -576,9 +579,9 @@ TEST_F(UtestGeAipp, test_Insert_Aipp_ToGraph1) {
   ge::ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
 
   const ge::NodePtr data1 = NodeBuilder("data1", DATA)
-                          .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
-                          .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
-                          .Build(graph);
+                                .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
+                                .AddOutputDesc({1}, FORMAT_NCHW, DT_FLOAT)
+                                .Build(graph);
   AippOp aipp_op;
   domi::AippOpParams params;
   const uint32_t index = 1;
@@ -608,8 +611,9 @@ TEST_F(UtestGeAipp, test_CreateAippData5) {
   aipp->GetOpDesc()->AddInputDesc(ge::GeTensorDesc());
   aipp->GetOpDesc()->AddInputDesc(ge::GeTensorDesc());
   aipp->GetOpDesc()->AddOutputDesc(ge::GeTensorDesc());
-  data1->GetOpDesc()->AddOutputDesc(GeTensorDesc(GeShape(std::vector<int64_t>{224,224,3}), FORMAT_NHWC, DT_FLOAT));
-  data1->GetOpDesc()->UpdateOutputDesc(0, GeTensorDesc(GeShape(std::vector<int64_t>{224,224,3}), FORMAT_ND, DT_FLOAT));
+  data1->GetOpDesc()->AddOutputDesc(GeTensorDesc(GeShape(std::vector<int64_t>{224, 224, 3}), FORMAT_NHWC, DT_FLOAT));
+  data1->GetOpDesc()->UpdateOutputDesc(0,
+                                       GeTensorDesc(GeShape(std::vector<int64_t>{224, 224, 3}), FORMAT_ND, DT_FLOAT));
   data2->GetOpDesc()->AddOutputDesc(GeTensorDesc(GeShape(std::vector<int64_t>{2}), FORMAT_NHWC, DT_INT64));
   data2->GetOpDesc()->UpdateOutputDesc(0, GeTensorDesc(GeShape(std::vector<int64_t>{2}), FORMAT_ND, DT_INT64));
   domi::AippOpParams params;
@@ -639,8 +643,9 @@ TEST_F(UtestGeAipp, test_CreateAippData1) {
   aipp->GetOpDesc()->AddInputDesc(ge::GeTensorDesc());
   aipp->GetOpDesc()->AddInputDesc(ge::GeTensorDesc());
   aipp->GetOpDesc()->AddOutputDesc(ge::GeTensorDesc());
-  data1->GetOpDesc()->AddOutputDesc(GeTensorDesc(GeShape(std::vector<int64_t>{224,224,3}), FORMAT_NHWC, DT_FLOAT));
-  data1->GetOpDesc()->UpdateOutputDesc(0, GeTensorDesc(GeShape(std::vector<int64_t>{224,224,3}), FORMAT_ND, DT_FLOAT));
+  data1->GetOpDesc()->AddOutputDesc(GeTensorDesc(GeShape(std::vector<int64_t>{224, 224, 3}), FORMAT_NHWC, DT_FLOAT));
+  data1->GetOpDesc()->UpdateOutputDesc(0,
+                                       GeTensorDesc(GeShape(std::vector<int64_t>{224, 224, 3}), FORMAT_ND, DT_FLOAT));
   data2->GetOpDesc()->AddOutputDesc(GeTensorDesc(GeShape(std::vector<int64_t>{2}), FORMAT_NHWC, DT_INT64));
   data2->GetOpDesc()->UpdateOutputDesc(0, GeTensorDesc(GeShape(std::vector<int64_t>{2}), FORMAT_ND, DT_INT64));
   domi::AippOpParams params;
@@ -699,9 +704,11 @@ TEST_F(UtestGeAipp, test_CreateAippData3) {
   aipp->GetOpDesc()->AddInputDesc(ge::GeTensorDesc());
   aipp->GetOpDesc()->AddInputDesc(ge::GeTensorDesc());
   aipp->GetOpDesc()->AddOutputDesc(ge::GeTensorDesc());
-  data1->GetOpDesc()->AddOutputDesc(GeTensorDesc(GeShape(std::vector<int64_t>{-1,3,224,224}), FORMAT_NCHW, DT_FLOAT));
-  data1->GetOpDesc()->UpdateOutputDesc(0, GeTensorDesc(GeShape(std::vector<int64_t>{-1,3,224,224}), FORMAT_ND, DT_FLOAT));
-  std::vector<int64_t> origin_input_dims = {-1,3,224,224};
+  data1->GetOpDesc()->AddOutputDesc(
+      GeTensorDesc(GeShape(std::vector<int64_t>{-1, 3, 224, 224}), FORMAT_NCHW, DT_FLOAT));
+  data1->GetOpDesc()->UpdateOutputDesc(
+      0, GeTensorDesc(GeShape(std::vector<int64_t>{-1, 3, 224, 224}), FORMAT_ND, DT_FLOAT));
+  std::vector<int64_t> origin_input_dims = {-1, 3, 224, 224};
   AttrUtils::SetListInt(data1->GetOpDesc(), ATTR_MBATCH_ORIGIN_INPUT_DIMS, origin_input_dims);
 
   builder.AddDataEdge(data1, 0, aipp, 0);
@@ -737,11 +744,12 @@ TEST_F(UtestGeAipp, test_CreateAippData4) {
   aipp->GetOpDesc()->AddInputDesc(ge::GeTensorDesc());
   aipp->GetOpDesc()->AddInputDesc(ge::GeTensorDesc());
   aipp->GetOpDesc()->AddOutputDesc(ge::GeTensorDesc());
-  data1->GetOpDesc()->AddOutputDesc(GeTensorDesc(GeShape(std::vector<int64_t>{2,3,224,224}), FORMAT_NCHW, DT_FLOAT));
-  data1->GetOpDesc()->UpdateOutputDesc(0, GeTensorDesc(GeShape(std::vector<int64_t>{2,3,224,224}), FORMAT_ND, DT_FLOAT));
+  data1->GetOpDesc()->AddOutputDesc(GeTensorDesc(GeShape(std::vector<int64_t>{2, 3, 224, 224}), FORMAT_NCHW, DT_FLOAT));
+  data1->GetOpDesc()->UpdateOutputDesc(
+      0, GeTensorDesc(GeShape(std::vector<int64_t>{2, 3, 224, 224}), FORMAT_ND, DT_FLOAT));
   data2->GetOpDesc()->AddOutputDesc(GeTensorDesc(GeShape(std::vector<int64_t>{2}), FORMAT_NCHW, DT_INT64));
   data2->GetOpDesc()->UpdateOutputDesc(0, GeTensorDesc(GeShape(std::vector<int64_t>{2}), FORMAT_ND, DT_INT64));
-  std::vector<int64_t> origin_input_dims = {2,3,224,224};
+  std::vector<int64_t> origin_input_dims = {2, 3, 224, 224};
   AttrUtils::SetListInt(data1->GetOpDesc(), ATTR_MBATCH_ORIGIN_INPUT_DIMS, origin_input_dims);
 
   domi::AippOpParams params;
@@ -1230,4 +1238,4 @@ TEST_F(UtestGeAipp, test_InsertAippInSubGraph) {
   }
   EXPECT_EQ(data_node0->GetName(), is_aipp->GetInNodes().at(0)->GetName());
 }
-}
+}  // namespace ge

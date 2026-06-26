@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,15 +27,15 @@
 
 namespace ge {
 using af::AutoFuseAttrs;
-using af::GetInterAttrs;
-using af::GetOrCreateAutoFuseAttrs;
 using af::FusionDecider;
 using af::FusionPriority;
+using af::GetInterAttrs;
+using af::GetOrCreateAutoFuseAttrs;
 namespace loop {
 using af::loop::FuseType;
 using af::loop::FuseTypeToString;
 using af::loop::StrJoin;
-}
+}  // namespace loop
 
 const std::string kLoadType = "Load";
 const std::string kStoreType = "Store";
@@ -90,13 +90,13 @@ struct CompareSecond {
 
 // 定义 反推输出数据结构
 struct SliceViewOpAttrInfo {
-  std::vector<ge::Expression> pre_load_offsets;       //还原到每个维度的offset信息
-  std::vector<ge::Expression> pre_load_strides;       //存储每个维度的原始stride信息
-  std::vector<ge::Expression> load_offsets;           //还原到每个维度的offset信息
-  std::vector<ge::Expression> load_strides;           //存储每个维度的原始stride信息
-  std::vector<ge::Expression> pre_data_strides_save;  //存储每个维度的原始stride信息
-  std::vector<ge::Expression> pre_data_repeat_save;   //存储每个维度的原始stride信息
-  std::vector<ge::Expression> pre_load_strides_save;  //存储每个维度的原始stride信息
+  std::vector<ge::Expression> pre_load_offsets;       // 还原到每个维度的offset信息
+  std::vector<ge::Expression> pre_load_strides;       // 存储每个维度的原始stride信息
+  std::vector<ge::Expression> load_offsets;           // 还原到每个维度的offset信息
+  std::vector<ge::Expression> load_strides;           // 存储每个维度的原始stride信息
+  std::vector<ge::Expression> pre_data_strides_save;  // 存储每个维度的原始stride信息
+  std::vector<ge::Expression> pre_data_repeat_save;   // 存储每个维度的原始stride信息
+  std::vector<ge::Expression> pre_load_strides_save;  // 存储每个维度的原始stride信息
   Expression offset_backend;
   std::vector<ge::Expression> backend_strides;
   bool two_slice_node_flag;
@@ -105,7 +105,7 @@ struct SliceViewOpAttrInfo {
 struct ViewOpAttrInfo {
   std::vector<int64_t> broadcast_info;                      // 用于 broadcast 的轴信息
   std::vector<std::pair<int64_t, int64_t>> transpose_info;  // 用于 transpose 的轴对信息
-  SliceViewOpAttrInfo slice_info;                          // 用于 slice 的轴信息
+  SliceViewOpAttrInfo slice_info;                           // 用于 slice 的轴信息
 
   Status clear() {
     broadcast_info.clear();
@@ -536,8 +536,8 @@ class BackendUtils {
    * @param attr_info.slice_info 待扩展。
    * @return 如果操作成功，返回 SUCCESS；否则返回错误状态。
    */
-  static Status FusedApplyViewOp(const NodePtr &data_node, const NodePtr &load_node,
-                                 ViewOpAttrInfo &attr_info, const NodePtr &node2);
+  static Status FusedApplyViewOp(const NodePtr &data_node, const NodePtr &load_node, ViewOpAttrInfo &attr_info,
+                                 const NodePtr &node2);
 
   /**
    * 该函数用于将一个节点的输出 Tensor 信息转移到另一个节点。
@@ -664,7 +664,7 @@ class BackendUtils {
 
   static Status MinSwapCount(const std::vector<int64_t> &in_axis, const std::vector<int64_t> &out_axis,
                              int64_t &swap_count, std::vector<std::pair<int64_t, int64_t>> &swaps);
-  static Status MinSwapsToSortDesc(const std::vector<int64_t>& arr, std::vector<std::pair<int64_t, int64_t>> &swaps);
+  static Status MinSwapsToSortDesc(const std::vector<int64_t> &arr, std::vector<std::pair<int64_t, int64_t>> &swaps);
   static Status ApplySwaps(std::vector<int64_t> &axis, std::vector<ge::Expression> &repeats,
                            std::vector<ge::Expression> &strides, std::vector<int64_t> &sched_axis,
                            const std::vector<std::pair<int64_t, int64_t>> &swaps);
@@ -704,8 +704,7 @@ class BackendUtils {
   static bool IsEq(const Expression &e1, const Expression &e2);
   static bool IsEqOne(const Expression &e1);
   static bool IsEqZero(const Expression &e1);
-  static Status UpdateContinueStrides(const std::vector<ge::Expression> &repeats,
-                                      std::vector<ge::Expression> &strides);
+  static Status UpdateContinueStrides(const std::vector<ge::Expression> &repeats, std::vector<ge::Expression> &strides);
 
   /**
    * 该函数用于判断指定节点的输入是否为最简单的 Load 操作。它会遍历输入节点的上游节点，
@@ -753,7 +752,8 @@ class BackendUtils {
    * @param index 当前节点的输入锚点的索引
    * @return 如果前置节点的输入是最简形式的加载操作，则返回 true；否则返回 false
    */
-  static bool PreNodeInputIsSimplestLoad(const NodePtr &node, const int32_t index, std::vector<ViewOpAttrInfo> &attr_infos);
+  static bool PreNodeInputIsSimplestLoad(const NodePtr &node, const int32_t index,
+                                         std::vector<ViewOpAttrInfo> &attr_infos);
 
   /*
    * 该函数用于将origin_node中的AscNodeAttr和AscTensorAttr进行备份，将其依次放在backup_node_attr_and_tensor_attr中
@@ -867,7 +867,7 @@ class BackendUtils {
   static Status BackSteppingViewOpBroadcast(TensorAttrInfo &temp_data_attr, TensorAttrInfo &temp_load_attr,
                                             ViewOpAttrInfo &attr_info);
   static Status FusedBackSteppingViewOpTranspose(TensorAttrInfo &temp_graph_attr, TensorAttrInfo &temp_load_attr,
-                                          ViewOpAttrInfo &attr_info);
+                                                 ViewOpAttrInfo &attr_info);
   static Status BackSteppingViewOpTranspose(const TensorAttrInfo &temp_data_attr, ViewOpAttrInfo &attr_info);
   static Status BackSteppingViewOpSlice(TensorAttrInfo &temp_data_attr, TensorAttrInfo &temp_load_attr,
                                         const ge::Node *load_node, ViewOpAttrInfo &attr_info, bool is_fuse,
@@ -875,7 +875,8 @@ class BackendUtils {
   static Status FusedApplyViewOpBroadcast(const AscNodeAttr *node_attr, AscTensorAttr *output_attr,
                                           ViewOpAttrInfo &attr_info);
   static Status ApplySwaps(const NodePtr &node, const std::vector<std::pair<int64_t, int64_t>> &swaps);
-  static Status FusedApplyViewOpTranspose(const NodePtr &data_node, const NodePtr &load_node, ViewOpAttrInfo &attr_info);
+  static Status FusedApplyViewOpTranspose(const NodePtr &data_node, const NodePtr &load_node,
+                                          ViewOpAttrInfo &attr_info);
   static Status FusedApplyViewOpSlice(AscTensorAttr *output_attr, const NodePtr &data_node, const NodePtr &load_node,
                                       ViewOpAttrInfo &attr_info, const NodePtr &node2);
   static Status BackSteppingViewOpPro(TensorAttrInfo &temp_data_attr, TensorAttrInfo &temp_load_attr,

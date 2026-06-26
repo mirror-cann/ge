@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -41,22 +41,38 @@ class AiCoreOpTask {
 
   Status LaunchKernel(const rtStream_t stream);
 
-  const std::string& GetName() const;
+  const std::string &GetName() const;
 
-  const std::string& GetLogName() const {return log_name_;}
+  const std::string &GetLogName() const {
+    return log_name_;
+  }
 
-  bool GetClearAtomic() const {return clear_atomic_;}
+  bool GetClearAtomic() const {
+    return clear_atomic_;
+  }
 
-  uint32_t GetBlockDim() const {return block_dim_;}
+  uint32_t GetBlockDim() const {
+    return block_dim_;
+  }
 
-  void SetSingleOp(const bool is_single_op) {is_single_op_ = is_single_op;}
+  void SetSingleOp(const bool is_single_op) {
+    is_single_op_ = is_single_op;
+  }
 
-  void SetOverflowAddr(void *const overflow_addr) {overflow_addr_  = overflow_addr;};
+  void SetOverflowAddr(void *const overflow_addr) {
+    overflow_addr_ = overflow_addr;
+  };
 
-  void SetNeedHostMemOpt(const bool need_host_mem_opt) { need_host_mem_opt_ = need_host_mem_opt; }
-  bool IsNeedHostMemOpt() const { return need_host_mem_opt_; }
-  bool IsArgsExtendedForHostMemInput() const { return host_mem_input_data_offset_ != 0U; }
-  virtual const std::string& GetOpType() const;
+  void SetNeedHostMemOpt(const bool need_host_mem_opt) {
+    need_host_mem_opt_ = need_host_mem_opt;
+  }
+  bool IsNeedHostMemOpt() const {
+    return need_host_mem_opt_;
+  }
+  bool IsArgsExtendedForHostMemInput() const {
+    return host_mem_input_data_offset_ != 0U;
+  }
+  virtual const std::string &GetOpType() const;
 
   UnknowShapeOpType GetUnknownShapeOpType() const {
     return unknown_shape_op_type_;
@@ -147,7 +163,7 @@ class AtomicAddrCleanOpTask : public AiCoreOpTask {
  public:
   Status Init(const NodePtr &node, const domi::TaskDef &task_def) override;
   Status UpdateArgs(TaskContext &task_context) override;
-  const std::string& GetOpType() const override;
+  const std::string &GetOpType() const override;
 
  protected:
   std::string GetKeyForOpParamSize() const override;

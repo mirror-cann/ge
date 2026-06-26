@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -35,18 +35,18 @@ ACL_FUNC_VISIBILITY bool OpAttrEquals(const aclopAttr *const lhs, const aclopAtt
 
 ACL_FUNC_VISIBILITY uint64_t GetCurrentTimestamp();
 
-bool ValueRangeCheck(const std::map<AttrRangeType, ge::GeAttrValue> &valueRange,
-                     const aclDataBuffer *const dataBuffer, const aclDataType dataType);
+bool ValueRangeCheck(const std::map<AttrRangeType, ge::GeAttrValue> &valueRange, const aclDataBuffer *const dataBuffer,
+                     const aclDataType dataType);
 
 bool IsSameValueRange(const std::map<AttrRangeType, ge::GeAttrValue> &valueRange1,
                       const std::map<AttrRangeType, ge::GeAttrValue> &valueRange2);
 
-bool SaveConstToAttr(OpModelDef& modelDef);
+bool SaveConstToAttr(OpModelDef &modelDef);
 
 bool SaveConstToAttr(const AclOp &opDesc, aclopAttr *const opAttr);
 
 bool IsListFloatEquals(const std::vector<float32_t> &lhsValue, const std::vector<float32_t> &rhsValue);
-} // namespace attr_utils
-} // acl
+}  // namespace attr_utils
+}  // namespace acl
 
-#endif // ACL_UTILS_ATTR_UTILS_H_
+#endif  // ACL_UTILS_ATTR_UTILS_H_

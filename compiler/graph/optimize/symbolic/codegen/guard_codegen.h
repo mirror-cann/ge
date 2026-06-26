@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,9 +19,9 @@ namespace ge {
 // GuardCheckFunc函数原型, 返回值true表示检查通过，false表示检查失败
 using GuardCheckFunc = bool (*)(
     gert::Tensor **tensors,  // 输入的tensor指针
-    size_t num_tensors,           // 输入的tensor个数
-    char_t *reason,  // 如果返回值为false，会往reason中写入失败的原因，函数内部不管理reason内存
-    size_t reason_size  // reason的大小，单位为字节，不会写入超过reason_size的内容
+    size_t num_tensors,      // 输入的tensor个数
+    char_t *reason,          // 如果返回值为false，会往reason中写入失败的原因，函数内部不管理reason内存
+    size_t reason_size       // reason的大小，单位为字节，不会写入超过reason_size的内容
 );
 
 class GuardCodegen {

@@ -35,7 +35,8 @@ PatternMatcherConfigBuilder = passes.PatternMatcherConfigBuilder
 
 def _write_pattern_pass_module(dir_path: Path, module_name: str, pass_name: str) -> Path:
     file_path = dir_path / f"{module_name}.py"
-    file_path.write_text(textwrap.dedent(f"""
+    file_path.write_text(
+        textwrap.dedent(f"""
         from ge.graph import Graph
         from ge.passes import PassStage, PatternFusionPass, register_fusion_pass
 
@@ -49,13 +50,17 @@ def _write_pattern_pass_module(dir_path: Path, module_name: str, pass_name: str)
 
             def replacement(self, match_result):
                 return Graph("replacement_graph")
-    """).strip() + "\n", encoding="utf-8")
+    """).strip()
+        + "\n",
+        encoding="utf-8",
+    )
     return file_path
 
 
 def _write_invalid_replacement_pass_module(dir_path: Path, module_name: str, pass_name: str) -> Path:
     file_path = dir_path / f"{module_name}.py"
-    file_path.write_text(textwrap.dedent(f"""
+    file_path.write_text(
+        textwrap.dedent(f"""
         from ge.graph import Graph
         from ge.passes import PassStage, PatternFusionPass, register_fusion_pass
 
@@ -66,12 +71,16 @@ def _write_invalid_replacement_pass_module(dir_path: Path, module_name: str, pas
 
             def replacement(self, match_result):
                 return None
-    """).strip() + "\n", encoding="utf-8")
+    """).strip()
+        + "\n",
+        encoding="utf-8",
+    )
     return file_path
 
 
 def test_pattern_fusion_pass_rejects_run_override():
     with pytest.raises(TypeError, match="overrides run\\(\\)"):
+
         class InvalidPatternPass(passes.PatternFusionPass):
             def run(self, graph, context):
                 return True
@@ -79,7 +88,8 @@ def test_pattern_fusion_pass_rejects_run_override():
 
 def _write_pattern_matcher_config_pass_module(dir_path: Path, module_name: str, pass_name: str) -> Path:
     file_path = dir_path / f"{module_name}.py"
-    file_path.write_text(textwrap.dedent(f"""
+    file_path.write_text(
+        textwrap.dedent(f"""
         from ge.graph import Graph
         from ge.passes import (
             PassStage,
@@ -103,7 +113,10 @@ def _write_pattern_matcher_config_pass_module(dir_path: Path, module_name: str, 
 
             def replacement(self, match_result):
                 return Graph("replacement_graph")
-    """).strip() + "\n", encoding="utf-8")
+    """).strip()
+        + "\n",
+        encoding="utf-8",
+    )
     return file_path
 
 
@@ -120,12 +133,7 @@ def clear_python_pattern_runtime(monkeypatch):
 
 
 def test_pattern_matcher_config_builder_flags():
-    config = (
-        PatternMatcherConfigBuilder()
-        .enable_const_value_match()
-        .enable_ir_attr_match()
-        .build()
-    )
+    config = PatternMatcherConfigBuilder().enable_const_value_match().enable_ir_attr_match().build()
 
     assert config.is_enable_const_value_match() is True
     assert config.is_enable_ir_attr_match() is True
@@ -274,6 +282,7 @@ def test_decorated_expression_patterns_rejects_multiple_native_patterns():
 
 def test_decorated_expression_patterns_rejects_patterns_method_conflict():
     with pytest.raises(TypeError, match="cannot combine @pattern methods with patterns"):
+
         class InvalidMultiPatternPass(passes.PatternFusionPass):
             @passes.pattern
             def add_zero(self, inputs):

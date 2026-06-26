@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -245,9 +245,9 @@ TEST_F(UtestDependencyAnalyzer, SinleOutSingleReference) {
 //                 │              │        (0,1)
 //            ┌────┼──────────────┼─────────────────────────────────────────────────┐
 //            │    ∨              │                                                 ∨
-//┌────────┐  │  ┌───┐          ┌────────┐  (1,0)   ┌───┐  (0,0)   ┌───┐  (0,2)   ┌───────────┐
-//│   E    │ ─┘  │ C │ ─┐       │   A    │ ───────> │ F │ ───────> │ G │ ───────> │ NetOutput │
-//└────────┘     └───┘  │       └────────┘          └───┘          └───┘          └───────────┘
+// ┌────────┐  │  ┌───┐          ┌────────┐  (1,0)   ┌───┐  (0,0)   ┌───┐  (0,2)   ┌───────────┐
+// │   E    │ ─┘  │ C │ ─┐       │   A    │ ───────> │ F │ ───────> │ G │ ───────> │ NetOutput │
+// └────────┘     └───┘  │       └────────┘          └───┘          └───┘          └───────────┘
 //  ∧              │    │         │                                                 ∧
 //  │ (0,0)        │    │         │ (0,0)                                           │
 //  │              │    │         ∨                                                 │
@@ -463,7 +463,7 @@ TEST_F(UtestDependencyAnalyzer, NoPaddingContinuousInputsCheckBeReused) {
   graph->TopologicalSortingGraph();
   SetAllNodesDiffStream(graph);
 
-  // no pading continuous inputs
+  // no padding continuous inputs
   SetNoPaddingContinousInput(graph, "PhonyConcat");
 
   ReusalbeMap reusable_map;
@@ -474,18 +474,18 @@ TEST_F(UtestDependencyAnalyzer, NoPaddingContinuousInputsCheckBeReused) {
   CheckNoReusalbeNodes(graph, no_reusalbe_nodes);
 }
 
-//┌───┐  (0,0)   ┌───┐  (0,0)   ┌───┐  (0,0)   ┌─────────────┐  (0,0)   ┌───┐  (0,0)   ┌───┐  (0,0)   ┌───────────┐
-//│ A │ ───────> │ B │ ───────> │ E │ ───────> │ PhonyConcat │ ───────> │ G │ ───────> │ H │ ───────> │ NetOutput │
-//└───┘          └───┘          └───┘          └─────────────┘          └───┘          └───┘          └───────────┘
-//                 │   (1,0)                     ∧
-//                 └──────────────┐              │
-//                                ∨              │
-//┌───┐  (0,0)   ┌───┐  (0,1)   ┌───┐  (0,1)     │
-//│ C │ ───────> │ D │ ───────> │ F │ ───────────┘
-//└───┘          └───┘          └───┘
-// PhonyConcat需要no
-// pading连续内存，并且输出引用输入。所以E/F/Phonyconcat成为了一个整体，它们的输出要么都被复用，要么都不能被复用。
-// 由于C不能到达E，所以E/F/PhonyConcat都不能复用C的内存
+// ┌───┐  (0,0)   ┌───┐  (0,0)   ┌───┐  (0,0)   ┌─────────────┐  (0,0)   ┌───┐  (0,0)   ┌───┐  (0,0)   ┌───────────┐
+// │ A │ ───────> │ B │ ───────> │ E │ ───────> │ PhonyConcat │ ───────> │ G │ ───────> │ H │ ───────> │ NetOutput │
+// └───┘          └───┘          └───┘          └─────────────┘          └───┘          └───┘          └───────────┘
+//                  │   (1,0)                     ∧
+//                  └──────────────┐              │
+//                                 ∨              │
+// ┌───┐  (0,0)   ┌───┐  (0,1)   ┌───┐  (0,1)     │
+// │ C │ ───────> │ D │ ───────> │ F │ ───────────┘
+// └───┘          └───┘          └───┘
+//  PhonyConcat需要no
+//  pading连续内存，并且输出引用输入。所以E/F/Phonyconcat成为了一个整体，它们的输出要么都被复用，要么都不能被复用。
+//  由于C不能到达E，所以E/F/PhonyConcat都不能复用C的内存
 TEST_F(UtestDependencyAnalyzer, NoPaddingContinuousInputsCheckReusOthers) {
   DEF_GRAPH(g1) {
     CHAIN(NODE("A", "A")
@@ -504,7 +504,7 @@ TEST_F(UtestDependencyAnalyzer, NoPaddingContinuousInputsCheckReusOthers) {
   graph->TopologicalSortingGraph();
   SetAllNodesDiffStream(graph);
 
-  // no pading continuous inputs
+  // no padding continuous inputs
   SetNoPaddingContinousInput(graph, "PhonyConcat");
 
   ReusalbeMap reusable_map;
@@ -536,7 +536,7 @@ TEST_F(UtestDependencyAnalyzer, NoPaddingContinuousInputsHasMultiOutCheckReusOth
   graph->TopologicalSortingGraph();
   SetAllNodesDiffStream(graph);
 
-  // no pading continuous inputs
+  // no padding continuous inputs
   SetNoPaddingContinousInput(graph, "PhonyConcat");
 
   SymbolToAnchors symbol_to_anchors;
@@ -589,7 +589,7 @@ TEST_F(UtestDependencyAnalyzer, NoPaddingContinuousOutputCheckBeReused) {
   graph->TopologicalSortingGraph();
   SetAllNodesDiffStream(graph);
 
-  // no pading continuous inputs
+  // no padding continuous inputs
   SetNoPaddingContinousOutput(graph, "B");
 
   ReusalbeMap reusable_map;
@@ -650,7 +650,7 @@ TEST_F(UtestDependencyAnalyzer, MultiPhonyConcatCheckBeReusedAndReuseOthers) {
   graph->TopologicalSortingGraph();
   SetAllNodesDiffStream(graph);
 
-  // no pading continuous inputs
+  // no padding continuous inputs
   SetNoPaddingContinousInput(graph, "PhonyConcat0");
   SetNoPaddingContinousInput(graph, "PhonyConcat1");
   SetNoPaddingContinousInput(graph, "PhonyConcat2");
@@ -738,8 +738,8 @@ TEST_F(UtestDependencyAnalyzer, CanAReuseBOutMem_Failed_ParamIsNullptr) {
 
 TEST_F(UtestDependencyAnalyzer, Init_Failed_WhenIdDuplicated) {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("A", "A")->NODE("B", "B"));
-                };
+    CHAIN(NODE("A", "A")->NODE("B", "B"));
+  };
 
   auto graph1 = ToGeGraph(g1);
   auto graph = ge::GraphUtilsEx::GetComputeGraph(graph1);
@@ -753,18 +753,20 @@ TEST_F(UtestDependencyAnalyzer, Init_Failed_WhenIdDuplicated) {
   SymbolToAnchors symbol_to_anchors;
   AnchorToSymbol anchor_to_symbol;
   DependencyAnalyzer nmda(graph, anchor_to_symbol, symbol_to_anchors);
-  dlog_setlevel(GE_MODULE_NAME, 2, 0); // 需要warning校验日志
+  dlog_setlevel(GE_MODULE_NAME, 2, 0);  // 需要warning校验日志
   ASSERT_NE(nmda.Init(), SUCCESS);
 
   // 接口无法返回error，需要校验日志。
-  EXPECT_GE(stub.GetSlogStub().FindWarnLogEndsWith("InitTables:topo id duplicated, id: 0, origin node: A, current node: B"), 0);
+  EXPECT_GE(
+      stub.GetSlogStub().FindWarnLogEndsWith("InitTables:topo id duplicated, id: 0, origin node: A, current node: B"),
+      0);
   dlog_setlevel(GE_MODULE_NAME, 3, 0);
 }
 
 TEST_F(UtestDependencyAnalyzer, CanAReuseB_ReturnTrue_WhenSymbolNotFound) {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("A", "A")->NODE("B", "B")->NODE("C", "C"));
-                };
+    CHAIN(NODE("A", "A")->NODE("B", "B")->NODE("C", "C"));
+  };
   auto graph1 = ToGeGraph(g1);
   auto graph = ge::GraphUtilsEx::GetComputeGraph(graph1);
   graph->TopologicalSortingGraph();
@@ -780,7 +782,7 @@ TEST_F(UtestDependencyAnalyzer, CanAReuseB_ReturnTrue_WhenSymbolNotFound) {
 
   gert::GertRuntimeStub stub;
   stub.GetSlogStub().Clear();
-  dlog_setlevel(GE_MODULE_NAME, 2, 0); // 需要warning校验日志
+  dlog_setlevel(GE_MODULE_NAME, 2, 0);  // 需要warning校验日志
   EXPECT_TRUE(nmda.CanAReuseB(b.get(), 0, a.get(), 0));
   // 接口无法返回error，需要校验日志。
   EXPECT_GE(stub.GetSlogStub().FindWarnLogEndsWith("b cannot find symbol. b: A, b_out_index: 0"), 0);
@@ -789,8 +791,8 @@ TEST_F(UtestDependencyAnalyzer, CanAReuseB_ReturnTrue_WhenSymbolNotFound) {
 
 TEST_F(UtestDependencyAnalyzer, CanAReuseB_ReturnTrue_WhenAnchorIdNotFound) {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("A", "A")->NODE("B", "B")->NODE("C", "C"));
-                };
+    CHAIN(NODE("A", "A")->NODE("B", "B")->NODE("C", "C"));
+  };
   auto graph1 = ToGeGraph(g1);
   auto graph = ge::GraphUtilsEx::GetComputeGraph(graph1);
   graph->TopologicalSortingGraph();
@@ -804,8 +806,8 @@ TEST_F(UtestDependencyAnalyzer, CanAReuseB_ReturnTrue_WhenAnchorIdNotFound) {
   const auto b = graph->FindNode("B");
 
   DEF_GRAPH(g2) {
-                  CHAIN(NODE("D", "D")->NODE("E", "E"));
-                };
+    CHAIN(NODE("D", "D")->NODE("E", "E"));
+  };
   auto graph2 = ToGeGraph(g2);
   auto graph22 = ge::GraphUtilsEx::GetComputeGraph(graph2);
 
@@ -816,7 +818,7 @@ TEST_F(UtestDependencyAnalyzer, CanAReuseB_ReturnTrue_WhenAnchorIdNotFound) {
 
   gert::GertRuntimeStub stub;
   stub.GetSlogStub().Clear();
-  dlog_setlevel(GE_MODULE_NAME, 2, 0); // 需要warning校验日志
+  dlog_setlevel(GE_MODULE_NAME, 2, 0);  // 需要warning校验日志
   EXPECT_TRUE(nmda.CanAReuseB(d.get(), 0, a.get(), 0));
   // 接口无法返回error，需要校验日志。
   EXPECT_GE(stub.GetSlogStub().FindWarnLogEndsWith("cannot find id for out anchor, node: D, out_index: 0"), 0);
@@ -834,9 +836,9 @@ TEST_F(UtestDependencyAnalyzer, CanAReuseB_ReturnTrue_WhenAnchorIdNotFound) {
 // └────────┘          └───┘
 TEST_F(UtestDependencyAnalyzer, ACanReuseB_ButStillCallWhyACannotReuseB) {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("A", "A")->NODE("B", "B")->NODE("C", "C")->NODE("NetOutput", "NetOutput"));
-                  CHAIN(NODE("A", "A")->NODE("D", "D")->NODE("E", "E")->NODE("NetOutput", "NetOutput"));
-                };
+    CHAIN(NODE("A", "A")->NODE("B", "B")->NODE("C", "C")->NODE("NetOutput", "NetOutput"));
+    CHAIN(NODE("A", "A")->NODE("D", "D")->NODE("E", "E")->NODE("NetOutput", "NetOutput"));
+  };
 
   auto graph1 = ToGeGraph(g1);
   auto graph = ge::GraphUtilsEx::GetComputeGraph(graph1);
@@ -1382,21 +1384,17 @@ TEST_F(UtestDependencyAnalyzer, GetReusable_Success_MultiSubGraph) {
 TEST_F(UtestDependencyAnalyzer, NestingSubgraph) {
   const auto sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub2) {
-                    CHAIN(NODE("sub2_data", sub_data)->NODE("C", "C")->NODE("sub2_netoutput", NETOUTPUT));
-                  };
+    CHAIN(NODE("sub2_data", sub_data)->NODE("C", "C")->NODE("sub2_netoutput", NETOUTPUT));
+  };
   DEF_GRAPH(sub3) {
-                    CHAIN(NODE("sub3_data", sub_data)
-                              ->NODE("D", "D")
-                              ->NODE("sub3_netoutput", NETOUTPUT));
-                  };
+    CHAIN(NODE("sub3_data", sub_data)->NODE("D", "D")->NODE("sub3_netoutput", NETOUTPUT));
+  };
   DEF_GRAPH(sub1) {
-                    CHAIN(NODE("sub1_data", sub_data)
-                              ->NODE("if", IF, sub2, sub3)
-                              ->NODE("sub1_netoutput", NETOUTPUT));
-                  };
+    CHAIN(NODE("sub1_data", sub_data)->NODE("if", IF, sub2, sub3)->NODE("sub1_netoutput", NETOUTPUT));
+  };
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->NODE("p1", PARTITIONEDCALL, sub1)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("data", DATA)->NODE("p1", PARTITIONEDCALL, sub1)->NODE("netoutput", NETOUTPUT));
+  };
 
   auto root_graph = ToComputeGraph(g1);
   auto sub1_graph = ToComputeGraph(sub1);
@@ -1497,21 +1495,22 @@ TEST_F(UtestDependencyAnalyzer, NestingSubgraph) {
 TEST_F(UtestDependencyAnalyzer, NestingSubgraph_KnownSubgraph) {
   const auto sub_data = OP_CFG(DATA).ParentNodeIndex(0);
   DEF_GRAPH(sub2) {
-                    CHAIN(NODE("sub2_data", sub_data)->NODE("C", "C")->NODE("sub2_netoutput", NETOUTPUT));
-                  };
+    CHAIN(NODE("sub2_data", sub_data)->NODE("C", "C")->NODE("sub2_netoutput", NETOUTPUT));
+  };
   DEF_GRAPH(sub3) {
-                    CHAIN(NODE("sub3_data", sub_data)
-                              ->NODE("D", "D")
-                              ->NODE("sub3_netoutput", NETOUTPUT));
-                  };
+    CHAIN(NODE("sub3_data", sub_data)->NODE("D", "D")->NODE("sub3_netoutput", NETOUTPUT));
+  };
   DEF_GRAPH(sub1) {
-                    CHAIN(NODE("sub1_data", sub_data)
-                              ->NODE("if", IF, sub2, sub3)->NODE("E", CAST)->NODE("F", CAST)->NODE("G", CAST)
-                              ->NODE("sub1_netoutput", NETOUTPUT));
-                  };
+    CHAIN(NODE("sub1_data", sub_data)
+              ->NODE("if", IF, sub2, sub3)
+              ->NODE("E", CAST)
+              ->NODE("F", CAST)
+              ->NODE("G", CAST)
+              ->NODE("sub1_netoutput", NETOUTPUT));
+  };
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data", DATA)->NODE("p1", PARTITIONEDCALL, sub1)->NODE("netoutput", NETOUTPUT));
-                };
+    CHAIN(NODE("data", DATA)->NODE("p1", PARTITIONEDCALL, sub1)->NODE("netoutput", NETOUTPUT));
+  };
 
   auto root_graph = ToComputeGraph(g1);
   auto sub1_graph = ToComputeGraph(sub1);

@@ -23,9 +23,7 @@ namespace ge {
  * @param context Stream Pass 上下文
  * @return SUCCESS 成功，FAILED 失败
  */
-Status RunMiniDAGStreamPass(
-    const ConstGraphPtr &graph,
-    StreamPassContext &context);
+Status RunMiniDAGStreamPass(const ConstGraphPtr &graph, StreamPassContext &context);
 }  // namespace ge
 
 #endif  // GE_GRAPH_BUILD_STREAM_DAG_STREAM_ALLOCATOR_PASS_H_

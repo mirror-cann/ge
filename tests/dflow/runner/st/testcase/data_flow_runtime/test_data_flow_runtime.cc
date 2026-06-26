@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,23 +28,23 @@ using namespace testing;
 
 namespace ge {
 class MockMmpaDeployer : public ge::MmpaStubApiGe {
-  public:
+ public:
   void *DlOpen(const char *file_name, int32_t mode) {
     if (std::string(file_name) == "libmodel_deployer.so") {
-      return (void *) 0x8888;
+      return (void *)0x8888;
     }
     return dlopen(file_name, mode);
   }
 
   void *DlSym(void *handle, const char *func_name) override {
     if (std::string(func_name) == "InitializeHeterogeneousRuntime") {
-      return (void *) &InitializeExecutionRuntimeStub;
+      return (void *)&InitializeExecutionRuntimeStub;
     }
     return dlsym(handle, func_name);
   }
 
   int32_t DlClose(void *handle) override {
-    if (handle == (void *) 0x8888) {
+    if (handle == (void *)0x8888) {
       return 0;
     }
     return dlclose(handle);
@@ -78,13 +78,12 @@ class DataFlowRuntimeTest : public testing::Test {
   static void PrepareForBuiltInUdf() {
     std::string builtin_udf_config_file = "./builtin_udf_config.json";
     {
-      nlohmann::json builtin_udf_cfg_json = {
-                                          {"input_num", 2},
-                                          {"output_num", 2},
-                                          {"built_in_flow_func", true},
-                                          {"heavy_load", false},
-                                          {"visible_device_enable", false},
-                                          {"func_list", {{{"func_name", "_BuiltIn_func1"}}}}};
+      nlohmann::json builtin_udf_cfg_json = {{"input_num", 2},
+                                             {"output_num", 2},
+                                             {"built_in_flow_func", true},
+                                             {"heavy_load", false},
+                                             {"visible_device_enable", false},
+                                             {"func_list", {{{"func_name", "_BuiltIn_func1"}}}}};
       std::ofstream json_file(builtin_udf_config_file);
       json_file << builtin_udf_cfg_json << std::endl;
     }
@@ -95,7 +94,7 @@ namespace {
 Graph BuildBuiltinDataFlowGraph() {
   auto data0 = dflow::FlowData("Data0", 0);
   auto data1 = dflow::FlowData("Data1", 1);
-  auto node0 = dflow::FlowNode("node0", 2, 2).SetInput(0,data0).SetInput(1, data1);
+  auto node0 = dflow::FlowNode("node0", 2, 2).SetInput(0, data0).SetInput(1, data1);
 
   // function pp
   auto builtin_udf_pp = dflow::FunctionPp("builtin_udf_pp").SetCompileConfig("./builtin_udf_config.json");
@@ -115,7 +114,7 @@ Status MockDeployModel(const FlowModelPtr &flow_model, DeployResult &deploy_resu
   deploy_result.dev_abnormal_callback = []() { return SUCCESS; };
   return SUCCESS;
 }
-}
+}  // namespace
 
 TEST_F(DataFlowRuntimeTest, TestTensorFlowMsg) {
   ge::ProcessNodeEngineRegisterar udf_engine_register __attribute__((unused)) (
@@ -123,8 +122,7 @@ TEST_F(DataFlowRuntimeTest, TestTensorFlowMsg) {
   auto graph = BuildBuiltinDataFlowGraph();
   // mock deploy model
   auto execution_runtime = (ExecutionRuntimeStub *)ExecutionRuntime::GetInstance();
-  EXPECT_CALL(execution_runtime->GetModelDeployerStub(), DeployModel).WillRepeatedly(
-      testing::Invoke(MockDeployModel));
+  EXPECT_CALL(execution_runtime->GetModelDeployerStub(), DeployModel).WillRepeatedly(testing::Invoke(MockDeployModel));
 
   std::map<AscendString, AscendString> session_options;
   Session session(session_options);
@@ -146,21 +144,21 @@ TEST_F(DataFlowRuntimeTest, TestTensorFlowMsg) {
   inputs.emplace_back(input0);
 
   std::vector<int32_t> data1 = {static_cast<int32_t>(2)};
-  Tensor input1_tensor(TensorDesc(Shape({1, 1}), FORMAT_ND, DT_INT32),
-                       reinterpret_cast<const uint8_t *>(data1.data()), data1.size() * sizeof(int32_t));
+  Tensor input1_tensor(TensorDesc(Shape({1, 1}), FORMAT_ND, DT_INT32), reinterpret_cast<const uint8_t *>(data1.data()),
+                       data1.size() * sizeof(int32_t));
   auto input1 = FlowBufferFactory::ToFlowMsg(input1_tensor);
   inputs.emplace_back(input1);
 
   // mock enqueue and dequeue
   EXPECT_CALL(execution_runtime->GetExchangeServiceStub(), EnqueueMbuf).WillRepeatedly(Return(SUCCESS));
-  auto mock_dequeue_mbuf =
-    [input0](int32_t device_id, uint32_t queue_id, rtMbufPtr_t *m_buf, int32_t timeout) -> Status {
+  auto mock_dequeue_mbuf = [input0](int32_t device_id, uint32_t queue_id, rtMbufPtr_t *m_buf,
+                                    int32_t timeout) -> Status {
     auto input_msg = std::dynamic_pointer_cast<FlowMsgBase>(input0);
     *m_buf = input_msg->MbufCopyRef();
     return SUCCESS;
   };
-  EXPECT_CALL(execution_runtime->GetExchangeServiceStub(), DequeueMbuf).WillRepeatedly(
-      testing::Invoke(mock_dequeue_mbuf));
+  EXPECT_CALL(execution_runtime->GetExchangeServiceStub(), DequeueMbuf)
+      .WillRepeatedly(testing::Invoke(mock_dequeue_mbuf));
 
   ASSERT_EQ(session.FeedDataFlowGraph(1, inputs, 2000), SUCCESS);
   std::vector<FlowMsgPtr> outputs;
@@ -191,8 +189,7 @@ TEST_F(DataFlowRuntimeTest, TestRawDataFlowMsg) {
   auto graph = BuildBuiltinDataFlowGraph();
   // mock deploy model
   auto execution_runtime = (ExecutionRuntimeStub *)ExecutionRuntime::GetInstance();
-  EXPECT_CALL(execution_runtime->GetModelDeployerStub(), DeployModel).WillRepeatedly(
-      testing::Invoke(MockDeployModel));
+  EXPECT_CALL(execution_runtime->GetModelDeployerStub(), DeployModel).WillRepeatedly(testing::Invoke(MockDeployModel));
 
   std::map<AscendString, AscendString> session_options;
   Session session(session_options);
@@ -221,14 +218,14 @@ TEST_F(DataFlowRuntimeTest, TestRawDataFlowMsg) {
 
   // mock enqueue and dequeue
   EXPECT_CALL(execution_runtime->GetExchangeServiceStub(), EnqueueMbuf).WillRepeatedly(Return(SUCCESS));
-  auto mock_dequeue_mbuf =
-    [input0](int32_t device_id, uint32_t queue_id, rtMbufPtr_t *m_buf, int32_t timeout) -> Status {
+  auto mock_dequeue_mbuf = [input0](int32_t device_id, uint32_t queue_id, rtMbufPtr_t *m_buf,
+                                    int32_t timeout) -> Status {
     auto input_msg = std::dynamic_pointer_cast<FlowMsgBase>(input0);
     *m_buf = input_msg->MbufCopyRef();
     return SUCCESS;
   };
-  EXPECT_CALL(execution_runtime->GetExchangeServiceStub(), DequeueMbuf).WillRepeatedly(
-      testing::Invoke(mock_dequeue_mbuf));
+  EXPECT_CALL(execution_runtime->GetExchangeServiceStub(), DequeueMbuf)
+      .WillRepeatedly(testing::Invoke(mock_dequeue_mbuf));
 
   ASSERT_EQ(session.FeedDataFlowGraph(1, inputs, 2000), SUCCESS);
   std::vector<FlowMsgPtr> outputs;
@@ -255,8 +252,7 @@ TEST_F(DataFlowRuntimeTest, TestEmptyFlowMsg) {
   auto graph = BuildBuiltinDataFlowGraph();
   // mock deploy model
   auto execution_runtime = (ExecutionRuntimeStub *)ExecutionRuntime::GetInstance();
-  EXPECT_CALL(execution_runtime->GetModelDeployerStub(), DeployModel).WillRepeatedly(
-      testing::Invoke(MockDeployModel));
+  EXPECT_CALL(execution_runtime->GetModelDeployerStub(), DeployModel).WillRepeatedly(testing::Invoke(MockDeployModel));
 
   std::map<AscendString, AscendString> session_options;
   Session session(session_options);
@@ -276,14 +272,14 @@ TEST_F(DataFlowRuntimeTest, TestEmptyFlowMsg) {
 
   // mock enqueue and dequeue
   EXPECT_CALL(execution_runtime->GetExchangeServiceStub(), EnqueueMbuf).WillRepeatedly(Return(SUCCESS));
-  auto mock_dequeue_mbuf =
-    [input0](int32_t device_id, uint32_t queue_id, rtMbufPtr_t *m_buf, int32_t timeout) -> Status {
+  auto mock_dequeue_mbuf = [input0](int32_t device_id, uint32_t queue_id, rtMbufPtr_t *m_buf,
+                                    int32_t timeout) -> Status {
     auto input_msg = std::dynamic_pointer_cast<FlowMsgBase>(input0);
     *m_buf = input_msg->MbufCopyRef();
     return SUCCESS;
   };
-  EXPECT_CALL(execution_runtime->GetExchangeServiceStub(), DequeueMbuf).WillRepeatedly(
-      testing::Invoke(mock_dequeue_mbuf));
+  EXPECT_CALL(execution_runtime->GetExchangeServiceStub(), DequeueMbuf)
+      .WillRepeatedly(testing::Invoke(mock_dequeue_mbuf));
 
   ASSERT_EQ(session.FeedDataFlowGraph(1, inputs, 2000), SUCCESS);
   std::vector<FlowMsgPtr> outputs;

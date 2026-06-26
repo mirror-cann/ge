@@ -41,7 +41,7 @@ ge::OpDescPtr GetOpDescPtr(const EagerOpExecutionContext &ctx) {
   auto op_desc = ge::OpDescUtils::GetOpDescFromOperator(node_op);
   return op_desc;
 }
-} // namespace
+}  // namespace
 
 rtStream EagerOpExecutionContext::GetStream() const {
   auto start_index = GetAdditionalInputStartIndex();
@@ -56,8 +56,8 @@ Tensor *EagerOpExecutionContext::MallocOutputTensor(size_t index, const StorageS
                                                     const StorageFormat &format, ge::DataType dtype) {
   auto additional_start_index = GetAdditionalInputStartIndex();
   GE_ASSERT_TRUE(additional_start_index >= 0);
-  auto gert_allocator =
-      GetInputValue<GertAllocator *>(additional_start_index + static_cast<int64_t>(AdditionalInputIndex::kDeviceAllocator));
+  auto gert_allocator = GetInputValue<GertAllocator *>(additional_start_index +
+                                                       static_cast<int64_t>(AdditionalInputIndex::kDeviceAllocator));
   GE_ASSERT_NOTNULL(gert_allocator);
 
   auto op_desc = GetOpDescPtr(*this);
@@ -73,7 +73,7 @@ Tensor *EagerOpExecutionContext::MallocOutputTensor(size_t index, const StorageS
   const size_t tensor_size = shape.GetStorageShape().GetShapeSize() * GetSizeByDataType(dtype);
   size_t aligned_tensor_size = tensor_size;
   GE_ASSERT_TRUE(!ge::RoundUpOverflow(tensor_size, kMemAlignment, aligned_tensor_size));
-  const TensorData& tensor_data = output_tensor->GetTensorData();
+  const TensorData &tensor_data = output_tensor->GetTensorData();
   // 静态场景下内存地址已赋值 不需要去Malloc
   if (tensor_data.GetAddr() != nullptr && tensor_data.GetSize() > 0) {
     return output_tensor;
@@ -127,12 +127,12 @@ void *EagerOpExecutionContext::MallocWorkSpace(size_t size) {
   return mem_block->GetAddr();
 }
 
-const KernelArgs* EagerOpExecutionContext::MallocReadOnlyDevArgs(void *host_args, size_t args_size) const {
+const KernelArgs *EagerOpExecutionContext::MallocReadOnlyDevArgs(void *host_args, size_t args_size) const {
   auto additional_start_index = GetAdditionalInputStartIndex();
   GE_ASSERT_TRUE(additional_start_index >= 0);
 
-  auto *handler = GetInputValue<ArgsHandler *>(
-      additional_start_index + static_cast<int64_t>(AdditionalInputIndex::kArgsHandler));
+  auto *handler =
+      GetInputValue<ArgsHandler *>(additional_start_index + static_cast<int64_t>(AdditionalInputIndex::kArgsHandler));
   GE_ASSERT_NOTNULL(handler);
 
   return handler->MallocReadOnlyDevArgs(host_args, args_size);

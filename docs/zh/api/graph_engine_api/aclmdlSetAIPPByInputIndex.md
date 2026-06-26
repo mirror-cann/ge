@@ -177,4 +177,3 @@ aclError aclmdlSetAIPPByInputIndex(uint32_t modelId, aclmdlDataset *dataset, siz
     </tr>
     </tbody>
     </table>
-

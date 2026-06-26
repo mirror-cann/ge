@@ -6,10 +6,10 @@ typedef enum {
     ACL_MDL_EVENT_SYNC_TIMEOUT,
     ACL_MDL_WORK_ADDR_PTR,
     ACL_MDL_WORK_SIZET,
-    ACL_MDL_MPAIMID_SIZET,      /** param reserved */ 
-    ACL_MDL_AICQOS_SIZET,       /** param reserved */ 
-    ACL_MDL_AICOST_SIZET,       /** param reserved */ 
-    ACL_MDL_MEC_TIMETHR_SIZET   /** param reserved */ 
+    ACL_MDL_MPAIMID_SIZET,      /** param reserved */
+    ACL_MDL_AICQOS_SIZET,       /** param reserved */
+    ACL_MDL_AICOST_SIZET,       /** param reserved */
+    ACL_MDL_MEC_TIMETHR_SIZET   /** param reserved */
 } aclmdlExecConfigAttr;
 ```
 
@@ -71,4 +71,3 @@ typedef enum {
 </tr>
 </tbody>
 </table>
-

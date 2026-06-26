@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,15 +21,14 @@
 #include "register/graph_optimizer/fusion_common/unknown_shape_utils.h"
 
 namespace fe {
-namespace{
-  const int64_t kNetEdgeDdrType = 2;
-  const std::string OP_TYPE_END = "End";
-  const std::string OP_TYPE_NETOUTPUT = "NetOutput";
-}
+namespace {
+const int64_t kNetEdgeDdrType = 2;
+const std::string OP_TYPE_END = "End";
+const std::string OP_TYPE_NETOUTPUT = "NetOutput";
+}  // namespace
 
 Status TensorSizeCalculator::CalculateOpTensorSize(ge::NodePtr node) {
-  FE_LOGD("Begin calculating tensor size for op [%s, %s].", node->GetNamePtr(),
-          node->GetTypePtr());
+  FE_LOGD("Begin calculating tensor size for op [%s, %s].", node->GetNamePtr(), node->GetTypePtr());
   int32_t output_real_calc_flag = 0;
   (void)CalcInputOpTensorSize(node, output_real_calc_flag);
   ge::OpDescPtr op_desc_ptr = node->GetOpDesc();
@@ -40,13 +39,13 @@ Status TensorSizeCalculator::CalculateOpTensorSize(ge::NodePtr node) {
   (void)CalcOutputOpTensorSize(*(op_desc_ptr.get()), output_real_calc_flag, output_data_anchors);
   FE_LOGD("Finished calculating the tensor size for operation [%s, %s].", node->GetNamePtr(), node->GetTypePtr());
   (void)op_desc.DelAttr(fe::ATTR_NAME_UNKNOWN_SHAPE);
- 
+
   return SUCCESS;
 }
 
-Status TensorSizeCalculator::CalcSingleTensorSize(const ge::OpDesc &op_desc,
-    const ge::GeTensorDescPtr &tensor_desc_ptr, const string &direction, size_t i, bool output_real_calc_flag,
-    int64_t &tensor_size) {
+Status TensorSizeCalculator::CalcSingleTensorSize(const ge::OpDesc &op_desc, const ge::GeTensorDescPtr &tensor_desc_ptr,
+                                                  const string &direction, size_t i, bool output_real_calc_flag,
+                                                  int64_t &tensor_size) {
   ge::DataType data_type = tensor_desc_ptr->GetDataType();
   auto &shape = tensor_desc_ptr->MutableShape();
   // if tensor_no_tiling_mem_type, need to multiply by the maximum value of the shape_range
@@ -66,8 +65,8 @@ Status TensorSizeCalculator::CalcSingleTensorSize(const ge::OpDesc &op_desc,
         return FAILED;
       }
       (void)OpTensorUtils::CalibrateTensorSize(tensor_size);
-      FE_LOGD("Tensor %s [%zu] of op[%s, %s] is not tiling, which size is %ld.",
-              direction.c_str(), i, op_desc.GetName().c_str(), op_desc.GetType().c_str(), tensor_size);
+      FE_LOGD("Tensor %s [%zu] of op[%s, %s] is not tiling, which size is %ld.", direction.c_str(), i,
+              op_desc.GetName().c_str(), op_desc.GetType().c_str(), tensor_size);
       return SUCCESS;
     }
     FE_LOGD("Tensor %s [%zu] of op [%s, %s] has a dynamic shape. There is no need to calculate its size.",
@@ -77,8 +76,8 @@ Status TensorSizeCalculator::CalcSingleTensorSize(const ge::OpDesc &op_desc,
 
   std::vector<int64_t> dims = shape.GetDims();
   if (OpTensorUtils::CalcTensorSize(dims, data_type, output_real_calc_flag, tensor_size) != SUCCESS) {
-    FE_LOGW("Failed to calculate the size of tensor %s [%zu] for operator [%s, %s].", direction.c_str(),
-            i, op_desc.GetName().c_str(), op_desc.GetType().c_str());
+    FE_LOGW("Failed to calculate the size of tensor %s [%zu] for operator [%s, %s].", direction.c_str(), i,
+            op_desc.GetName().c_str(), op_desc.GetType().c_str());
     return FAILED;
   }
   return SUCCESS;
@@ -109,14 +108,14 @@ Status TensorSizeCalculator::CalcInputOpTensorSize(const ge::NodePtr &node, cons
       FE_CHECK_NOTNULL(peer_tensor_desc);
       (void)OpTensorUtils::CalibrateTensorSize(tensor_size);
       FE_LOGD("Node[%s, %s], the aligned tensor size for input[%zu] is %ld, peer node[%s, %s], peer index[%d].",
-              node->GetNamePtr(), node->GetTypePtr(), i, tensor_size, peer_node->GetNamePtr(),
-              peer_node->GetTypePtr(), peer_idx);
+              node->GetNamePtr(), node->GetTypePtr(), i, tensor_size, peer_node->GetNamePtr(), peer_node->GetTypePtr(),
+              peer_idx);
       ge::TensorUtils::SetSize(*peer_tensor_desc, tensor_size);
       ge::TensorUtils::SetSize(*tensor_desc_ptr, tensor_size);
       continue;
     }
-    Status result = CalcSingleTensorSize(*(node->GetOpDesc()), tensor_desc_ptr, "input", i,
-                                         output_real_calc_flag, tensor_size);
+    Status result =
+        CalcSingleTensorSize(*(node->GetOpDesc()), tensor_desc_ptr, "input", i, output_real_calc_flag, tensor_size);
     if (result != SUCCESS) {
       continue;
     }
@@ -132,7 +131,7 @@ bool TensorSizeCalculator::IsEndNoteOuputNode(const ge::OutDataAnchorPtr &anchor
   for (auto peer_in_anchor : peer_in_anchors) {
     ge::NodePtr peer_in_node = peer_in_anchor->GetOwnerNode();
     FE_LOGD("The next node is[%s, %s]", peer_in_node->GetNamePtr(), peer_in_node->GetTypePtr());
-    if((peer_in_node->GetType() == OP_TYPE_END) || (peer_in_node->GetType() == OP_TYPE_NETOUTPUT)) {
+    if ((peer_in_node->GetType() == OP_TYPE_END) || (peer_in_node->GetType() == OP_TYPE_NETOUTPUT)) {
       return true;
     }
   }
@@ -150,8 +149,8 @@ Status TensorSizeCalculator::CalcOutputOpTensorSize(const ge::OpDesc &op_desc, c
     int64_t tensor_size = -1;
     Status result = SUCCESS;
     bool is_end_netoutput = IsEndNoteOuputNode(output_data_anchors.at(i));
-    FE_LOGD("The current node is [%s, %s], and the next node is either NetOutput or End [%d].",
-            op_desc.GetNamePtr(), op_desc.GetTypePtr(), is_end_netoutput);
+    FE_LOGD("The current node is [%s, %s], and the next node is either NetOutput or End [%d].", op_desc.GetNamePtr(),
+            op_desc.GetTypePtr(), is_end_netoutput);
     if (is_end_netoutput && ge::AttrUtils::GetInt(tensor_desc_ptr, ge::ATTR_NAME_SPECIAL_OUTPUT_SIZE, tensor_size)) {
       if (!output_real_calc_flag) {
         result = OpTensorUtils::CalibrateTensorSize(tensor_size);

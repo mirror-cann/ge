@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -41,39 +41,39 @@
 
 namespace gert {
 namespace {
-  const char* kMixL2TaskInfoKey = "mix_l2";
-  const std::string kMixDynamicRatio = "_mix_dynamic_ratio";
-  const std::string kDynRatioAttr = "mix_tiling_with_ratio_attr";
-  const std::string kDynRatioTiling = "mix_tiling_key";
-  const std::string kDynRatioCRatio = "mix_tiling_c_ratio";
-  const std::string kDynRatioVRatio = "mix_tiling_v_ratio";
-  const std::string kTilingDataStr = "_tiling_data_str";
+const char *kMixL2TaskInfoKey = "mix_l2";
+const std::string kMixDynamicRatio = "_mix_dynamic_ratio";
+const std::string kDynRatioAttr = "mix_tiling_with_ratio_attr";
+const std::string kDynRatioTiling = "mix_tiling_key";
+const std::string kDynRatioCRatio = "mix_tiling_c_ratio";
+const std::string kDynRatioVRatio = "mix_tiling_v_ratio";
+const std::string kTilingDataStr = "_tiling_data_str";
 
-  struct MixProcArgs {
-    std::vector<bg::ValueHolderPtr> output_shapes;
-    std::vector<bg::ValueHolderPtr> tiling_ret;
-    std::vector<bg::ValueHolderPtr> launch_arg;
-    std::vector<bg::ValueHolderPtr> ordered_holders;
-    bg::ValueHolderPtr args_para;
-    std::vector<bg::ValueHolderPtr> task_info_para;
-    bg::ValueHolderPtr atomic_launch{nullptr};
-    bg::ValueHolderPtr workspaces{nullptr};
-    bg::ValueHolderPtr block_dim{nullptr};
-    bg::ValueHolderPtr schedule_mode{nullptr};
-    bg::ValueHolderPtr tiling_key{nullptr};
-    FFTSAllMemPara all_mem_para;
-  };
+struct MixProcArgs {
+  std::vector<bg::ValueHolderPtr> output_shapes;
+  std::vector<bg::ValueHolderPtr> tiling_ret;
+  std::vector<bg::ValueHolderPtr> launch_arg;
+  std::vector<bg::ValueHolderPtr> ordered_holders;
+  bg::ValueHolderPtr args_para;
+  std::vector<bg::ValueHolderPtr> task_info_para;
+  bg::ValueHolderPtr atomic_launch{nullptr};
+  bg::ValueHolderPtr workspaces{nullptr};
+  bg::ValueHolderPtr block_dim{nullptr};
+  bg::ValueHolderPtr schedule_mode{nullptr};
+  bg::ValueHolderPtr tiling_key{nullptr};
+  FFTSAllMemPara all_mem_para;
+};
 
-  struct DynRatioInfos {
-    bg::ValueHolderPtr tiling_key_holder;
-    bg::ValueHolderPtr c_ratio_holder;
-    bg::ValueHolderPtr v_ratio_holder;
-  };
+struct DynRatioInfos {
+  bg::ValueHolderPtr tiling_key_holder;
+  bg::ValueHolderPtr c_ratio_holder;
+  bg::ValueHolderPtr v_ratio_holder;
+};
 
 struct InsertOptArgs {
   bg::ValueHolderPtr empty_shape;
   bg::DevMemValueHolderPtr empty_val;
-  InsertOptArgs(bg::ValueHolderPtr shape, bg::DevMemValueHolderPtr val): empty_shape(shape), empty_val(val){}
+  InsertOptArgs(bg::ValueHolderPtr shape, bg::DevMemValueHolderPtr val) : empty_shape(shape), empty_val(val) {}
 };
 
 ge::Status UpdateContextByDynRatio(const ge::NodePtr &node, const MixProcArgs &proc_args,
@@ -137,8 +137,10 @@ bg::ValueHolderPtr UpdateMixL2Context(const ge::NodePtr &node, const MixProcArgs
 }
 
 std::vector<bg::ValueHolderPtr> MixL2UpdateArgs(std::vector<bg::ValueHolderPtr> &inputs,
-    const std::vector<bg::DevMemValueHolderPtr> &input_addrs, const std::vector<bg::DevMemValueHolderPtr> &output_addrs,
-    const std::vector<bg::ValueHolderPtr> &input_shapes, const std::vector<bg::ValueHolderPtr> &output_shapes) {
+                                                const std::vector<bg::DevMemValueHolderPtr> &input_addrs,
+                                                const std::vector<bg::DevMemValueHolderPtr> &output_addrs,
+                                                const std::vector<bg::ValueHolderPtr> &input_shapes,
+                                                const std::vector<bg::ValueHolderPtr> &output_shapes) {
   size_t io_addr_num = input_addrs.size() + output_addrs.size();
   auto io_num_holder = bg::ValueHolder::CreateConst(&io_addr_num, sizeof(io_addr_num));
   if (io_num_holder == nullptr) {
@@ -204,8 +206,8 @@ size_t CalcOpAllInputSize(const ge::NodePtr &node) {
   }
   size_t all_input_size = 0;
   (void)ge::AttrUtils::GetInt(node->GetOpDesc(), kOpKernelAllInputSize, all_input_size);
-  GELOGD("Op kernel input size [%zu], total anchor size [%zu], dynamic addition size [%zu].",
-         all_input_size, node->GetAllInDataAnchorsSize(), dy_add_num);
+  GELOGD("Op kernel input size [%zu], total anchor size [%zu], dynamic addition size [%zu].", all_input_size,
+         node->GetAllInDataAnchorsSize(), dy_add_num);
   all_input_size += dy_add_num;
   (void)ge::AttrUtils::SetInt(node->GetOpDesc(), kOpKernelAllInputSize, all_input_size);
   return all_input_size;
@@ -216,8 +218,8 @@ ge::graphStatus CalcMixL2InArgsNum(const ge::NodePtr &node, RtFFTSKernelLaunchAr
   if (opt_mode != nullptr && *opt_mode == kGenPlaceHolder) {
     size_t all_input_size = CalcOpAllInputSize(node);
     if (all_input_size == 0) {
-      GELOGE(ge::PARAM_INVALID, "Node[%s(%s)] Invalid all_input_size: %zu.",
-             node->GetNamePtr(), node->GetTypePtr(), all_input_size);
+      GELOGE(ge::PARAM_INVALID, "Node[%s(%s)] Invalid all_input_size: %zu.", node->GetNamePtr(), node->GetTypePtr(),
+             all_input_size);
       return ge::GRAPH_FAILED;
     }
     node_desc.input_num = all_input_size;
@@ -243,8 +245,8 @@ size_t CalcOpAllOutputSize(const ge::NodePtr &node) {
   }
   size_t all_output_size = 0;
   (void)ge::AttrUtils::GetInt(node->GetOpDesc(), kOpKernelAllOutputSize, all_output_size);
-  GELOGD("Op kernel output size %zu, all anchor size[%zu], dynamic add size[%zu].",
-         all_output_size, node->GetAllOutDataAnchorsSize(), dy_add_num);
+  GELOGD("Op kernel output size %zu, all anchor size[%zu], dynamic add size[%zu].", all_output_size,
+         node->GetAllOutDataAnchorsSize(), dy_add_num);
   all_output_size += dy_add_num;
   (void)ge::AttrUtils::SetInt(node->GetOpDesc(), kOpKernelAllOutputSize, all_output_size);
   return all_output_size;
@@ -255,8 +257,8 @@ ge::graphStatus CalcMixL2OutArgsNum(const ge::NodePtr &node, RtFFTSKernelLaunchA
   if (opt_mode != nullptr && *opt_mode == kGenPlaceHolder) {
     size_t all_output_size = CalcOpAllOutputSize(node);
     if (all_output_size == 0) {
-      GELOGE(ge::PARAM_INVALID, "Node[%s(%s)] Invalid all_output_size: %zu.",
-             node->GetNamePtr(), node->GetTypePtr(), all_output_size);
+      GELOGE(ge::PARAM_INVALID, "Node[%s(%s)] Invalid all_output_size: %zu.", node->GetNamePtr(), node->GetTypePtr(),
+             all_output_size);
       return ge::GRAPH_FAILED;
     }
     node_desc.output_num = all_output_size;
@@ -267,10 +269,10 @@ ge::graphStatus CalcMixL2OutArgsNum(const ge::NodePtr &node, RtFFTSKernelLaunchA
 }
 
 ge::graphStatus CalcMixL2ArgsMem(const ge::NodePtr &node, const LoweringGlobalData *global_data, size_t &total_size,
-    size_t &pre_data_size, std::unique_ptr<uint8_t[]> &pre_data_ptr) {
+                                 size_t &pre_data_size, std::unique_ptr<uint8_t[]> &pre_data_ptr) {
   (void)global_data;
   RtFFTSKernelLaunchArgs::ComputeNodeDesc node_desc{};
-  node_desc.addr_num = 1; // current is 1
+  node_desc.addr_num = 1;  // current is 1
   (void)CalcMixL2InArgsNum(node, node_desc);
   (void)CalcMixL2OutArgsNum(node, node_desc);
   node_desc.thread_num_max = 1;
@@ -281,8 +283,8 @@ ge::graphStatus CalcMixL2ArgsMem(const ge::NodePtr &node, const LoweringGlobalDa
   if (node->GetOpDesc()->HasAttr(optiling::COMPILE_INFO_JSON) || sta_tiling_depend) {
     int64_t tiling_max_size = -1;
     if (!ge::AttrUtils::GetInt(node->GetOpDesc(), bg::kMaxTilingSize, tiling_max_size) || tiling_max_size < 0) {
-      GELOGE(ge::PARAM_INVALID, "Node[%s(%s)] Invalid max tiling size: %zu.",
-             node->GetName().c_str(), node->GetType().c_str(), tiling_max_size);
+      GELOGE(ge::PARAM_INVALID, "Node[%s(%s)] Invalid max tiling size: %zu.", node->GetName().c_str(),
+             node->GetType().c_str(), tiling_max_size);
       return ge::GRAPH_FAILED;
     }
     auto aligned_max_size = ge::RoundUp(static_cast<uint64_t>(tiling_max_size), sizeof(uintptr_t));
@@ -303,7 +305,8 @@ ge::graphStatus CalcMixL2ArgsMem(const ge::NodePtr &node, const LoweringGlobalDa
       auto aligned_atomic_max_size = ge::RoundUp(static_cast<uint64_t>(tiling_size), sizeof(uintptr_t));
       node_desc.max_atom_tiling_data = aligned_atomic_max_size;
       node_desc.max_atom_tail_tiling_data = 0U;
-      GELOGD("Node [%s] needs an atomic clean with a maximum tiling size of %zu.", node->GetName().c_str(), aligned_atomic_max_size);
+      GELOGD("Node [%s] needs an atomic clean with a maximum tiling size of %zu.", node->GetName().c_str(),
+             aligned_atomic_max_size);
     }
   }
   GELOGD("node_desc detail %lu|%lu|%lu|%lu|%lu|%lu", node_desc.addr_num, node_desc.max_tiling_data, node_desc.input_num,
@@ -318,7 +321,7 @@ ge::graphStatus CalcMixL2ArgsMem(const ge::NodePtr &node, const LoweringGlobalDa
 FFTS_REGISTER_NODE_CALCULATER(ge::kFFTSMixL2CalcFunc, CalcMixL2ArgsMem);
 
 ge::Status MixL2ProtoTransfer(const ge::NodePtr &node, const LoweringGlobalData &global_data, size_t &total_size,
-    std::unique_ptr<uint8_t[]> &task_info_ptr) {
+                              std::unique_ptr<uint8_t[]> &task_info_ptr) {
   const auto find_node_handle = [node](const uint32_t op_index) -> ge::OpDescPtr {
     (void)op_index;
     return node->GetOpDesc();
@@ -346,8 +349,7 @@ ge::Status MixL2ProtoTransfer(const ge::NodePtr &node, const LoweringGlobalData 
 
 std::vector<bg::ValueHolderPtr> MixL2TaskInfoPreProc(const ge::NodePtr &node, FFTSAllMemPara &all_mem_para) {
   auto task_para = CreateNodeMemParam(node, all_mem_para, kMixL2TaskInfoKey);
-  auto task_info = bg::ValueHolder::CreateSingleDataOutput("FftsTaskInfoPreProc",
-      {all_mem_para.task_data, task_para});
+  auto task_info = bg::ValueHolder::CreateSingleDataOutput("FftsTaskInfoPreProc", {all_mem_para.task_data, task_para});
   if (task_info == nullptr) {
     GELOGE(ge::FAILED, "MixL2 node[%s] pre proc task return null.", node->GetName().c_str());
     return {};
@@ -356,7 +358,8 @@ std::vector<bg::ValueHolderPtr> MixL2TaskInfoPreProc(const ge::NodePtr &node, FF
 }
 
 void InsertMissOptAddr(size_t &arg_idx, std::vector<uint32_t> &insert_pos_vec, InsertOptArgs &insertArgs,
-    std::vector<bg::ValueHolderPtr> &placed_input_shapes, std::vector<bg::DevMemValueHolderPtr> &placed_input_addrs) {
+                       std::vector<bg::ValueHolderPtr> &placed_input_shapes,
+                       std::vector<bg::DevMemValueHolderPtr> &placed_input_addrs) {
   for (auto insert_pos : insert_pos_vec) {
     if (arg_idx == insert_pos) {
       GELOGD("Insert optional input at position %u.", insert_pos);
@@ -369,7 +372,8 @@ void InsertMissOptAddr(size_t &arg_idx, std::vector<uint32_t> &insert_pos_vec, I
 }
 
 ge::Status InitInputsForMixL2(const ge::NodePtr &node, const LowerInput &lower_input,
-    std::vector<bg::DevMemValueHolderPtr> &placed_input_addrs, std::vector<bg::ValueHolderPtr> &placed_input_shapes) {
+                              std::vector<bg::DevMemValueHolderPtr> &placed_input_addrs,
+                              std::vector<bg::ValueHolderPtr> &placed_input_shapes) {
   auto op_desc = node->GetOpDesc();
   auto optional_input_mode = ge::AttrUtils::GetStr(op_desc, kOptionalInputMode);
   if (optional_input_mode == nullptr || *optional_input_mode != kGenPlaceHolder) {
@@ -412,8 +416,9 @@ ge::Status InitInputsForMixL2(const ge::NodePtr &node, const LowerInput &lower_i
 }
 
 ge::Status InitOutputsForMixL2(const ge::NodePtr &node, const std::vector<bg::DevMemValueHolderPtr> &output_addrs,
-    const std::vector<bg::ValueHolderPtr> &output_shapes, std::vector<bg::DevMemValueHolderPtr> &placed_output_addrs,
-    std::vector<bg::ValueHolderPtr> &placed_output_shapes) {
+                               const std::vector<bg::ValueHolderPtr> &output_shapes,
+                               std::vector<bg::DevMemValueHolderPtr> &placed_output_addrs,
+                               std::vector<bg::ValueHolderPtr> &placed_output_shapes) {
   auto op_desc = node->GetOpDesc();
   auto optional_output_mode = ge::AttrUtils::GetStr(op_desc, kOptionalOutputMode);
   if (optional_output_mode == nullptr || *optional_output_mode != kGenPlaceHolder) {
@@ -431,7 +436,7 @@ ge::Status InitOutputsForMixL2(const ge::NodePtr &node, const std::vector<bg::De
   GertTensorData empty_data(0, kOnDeviceHbm, -1, nullptr);
   auto empty_val = bg::DevMemValueHolder::CreateConst(&empty_data, sizeof(empty_data), op_desc->GetStreamId());
   size_t index = 0;
-  for (size_t anchor_index = 0;anchor_index < node_anchors_size;anchor_index++) {
+  for (size_t anchor_index = 0; anchor_index < node_anchors_size; anchor_index++) {
     int32_t calc_type = 0;
     auto output_desc_ptr = op_desc->MutableOutputDesc(anchor_index);
     (void)ge::AttrUtils::GetInt(output_desc_ptr, ge::ATTR_NAME_MEMORY_SIZE_CALC_TYPE, calc_type);
@@ -466,8 +471,7 @@ void MakeUpdateArgsInputs(const ge::NodePtr &node, std::vector<bg::ValueHolderPt
   inputs.emplace_back(bg::ValueHolder::CreateConst(&need_assert, sizeof(need_assert)));
 }
 
-ge::Status AllocMixL2AllMem(const ge::NodePtr &node, const LowerInput &lower_input,
-    FFTSAllMemPara &all_mem_para) {
+ge::Status AllocMixL2AllMem(const ge::NodePtr &node, const LowerInput &lower_input, FFTSAllMemPara &all_mem_para) {
   std::unique_ptr<uint8_t[]> task_data = nullptr;
   size_t task_size = 0;
   if (MixL2ProtoTransfer(node, *lower_input.global_data, task_size, task_data) != ge::SUCCESS) {
@@ -511,8 +515,8 @@ bg::ValueHolderPtr CopyKernelTilingdata(const ge::NodePtr &node, MixProcArgs &pr
   return bg::ValueHolder::CreateVoid<bg::ValueHolder>("CopyTilingdata", inputs);
 }
 
-ge::Status LoweringMixL2PreProc(const ge::NodePtr &node, const LowerInput &lower_input,
-                                MixProcArgs &proc_args, bool is_unknown, bg::ValueHolderPtr &copy_ret) {
+ge::Status LoweringMixL2PreProc(const ge::NodePtr &node, const LowerInput &lower_input, MixProcArgs &proc_args,
+                                bool is_unknown, bg::ValueHolderPtr &copy_ret) {
   bool sta_tiling_depend = false;
   (void)ge::AttrUtils::GetBool(node->GetOpDesc(), ge::ATTR_NAME_DYNAMIC_TILING_DEPEND_OP, sta_tiling_depend);
   std::shared_ptr<optiling::utils::OpRunInfo> tiling_info = nullptr;
@@ -568,7 +572,8 @@ ge::Status LoweringMixL2PreProc(const ge::NodePtr &node, const LowerInput &lower
 }
 
 bg::ValueHolderPtr LaunchMixl2Memset(const ge::NodePtr &node, const LowerInput &lower_input,
-    AtomicFFTSLowerArg &lower_args, bg::ValueHolderPtr task_info, bg::ValueHolderPtr args_para) {
+                                     AtomicFFTSLowerArg &lower_args, bg::ValueHolderPtr task_info,
+                                     bg::ValueHolderPtr args_para) {
   FFTSLowerInput ffts_input;
   ffts_input.global_data = lower_input.global_data;
   uint32_t tmp_val = 1;
@@ -582,7 +587,7 @@ bg::ValueHolderPtr LaunchMixl2Memset(const ge::NodePtr &node, const LowerInput &
   std::vector<uint32_t> mem_pool_types(out_num, 0);
   lower_args.out_mem_type = bg::CreateContVecHolder(mem_pool_types);
   FE_ASSERT_NOTNULL(lower_args.out_mem_type);
-  kernel::AICoreThreadParam node_mem; // no matter
+  kernel::AICoreThreadParam node_mem;  // no matter
   lower_args.thread_para = bg::ValueHolder::CreateConst(&node_mem, sizeof(node_mem));
   FE_ASSERT_NOTNULL(lower_args.thread_para);
   return LaunchFFTSAtomicClean(node, ffts_input, lower_args);
@@ -593,18 +598,19 @@ std::vector<bg::DevMemValueHolderPtr> LoweringProc(const ge::NodePtr &node, cons
   bg::ValueHolderPtr copy_ret = nullptr;
   auto ret_preproc = LoweringMixL2PreProc(node, lower_input, proc_args, is_unknown, copy_ret);
   FE_ASSERT_TRUE(ret_preproc == ge::SUCCESS);
-  auto workspaces_addr = bg::AllocAiCoreWorkspaceMem(node, kOnDeviceHbm, proc_args.workspaces,
-                                                     *(lower_input.global_data));
+  auto workspaces_addr =
+      bg::AllocAiCoreWorkspaceMem(node, kOnDeviceHbm, proc_args.workspaces, *(lower_input.global_data));
   FE_ASSERT_NOTNULL(workspaces_addr);
   auto shapebuffer_addr = bg::AllocShapeBufferMem(kOnDeviceHbm, node, *(lower_input.global_data));
   auto output_sizes = bg::CalcTensorSize(node, proc_args.output_shapes);
   auto output_addrs = bg::AllocOutputMemory(kOnDeviceHbm, node, output_sizes, *(lower_input.global_data));
   auto sink_ret = SinkBinForMixAiCore(node, proc_args.tiling_ret);
   FE_ASSERT_NOTNULL(sink_ret);
-  AtomicFFTSLowerArg lower_args = {proc_args.tiling_ret, workspaces_addr, output_sizes, {}, output_addrs,
-                                   nullptr, proc_args.launch_arg, nullptr};
-  auto atomic_launch = LaunchMixl2Memset(node, lower_input, lower_args,
-      proc_args.task_info_para[static_cast<size_t>(TaskPreOutKey::TASK_INFO)], proc_args.args_para);
+  AtomicFFTSLowerArg lower_args = {proc_args.tiling_ret, workspaces_addr, output_sizes,         {},
+                                   output_addrs,         nullptr,         proc_args.launch_arg, nullptr};
+  auto atomic_launch =
+      LaunchMixl2Memset(node, lower_input, lower_args,
+                        proc_args.task_info_para[static_cast<size_t>(TaskPreOutKey::TASK_INFO)], proc_args.args_para);
 
   std::vector<bg::DevMemValueHolderPtr> placed_input_addrs;
   std::vector<bg::ValueHolderPtr> placed_input_shapes;
@@ -613,14 +619,14 @@ std::vector<bg::DevMemValueHolderPtr> LoweringProc(const ge::NodePtr &node, cons
 
   std::vector<bg::DevMemValueHolderPtr> placed_output_addrs;
   std::vector<bg::ValueHolderPtr> placed_output_shapes;
-  auto output_init_ret = InitOutputsForMixL2(node, output_addrs, proc_args.output_shapes, placed_output_addrs,
-      placed_output_shapes);
+  auto output_init_ret =
+      InitOutputsForMixL2(node, output_addrs, proc_args.output_shapes, placed_output_addrs, placed_output_shapes);
   FE_ASSERT_TRUE(output_init_ret == ge::SUCCESS);
 
   std::vector<bg::ValueHolderPtr> inputs = {workspaces_addr};
   MakeUpdateArgsInputs(node, inputs, sink_ret, shapebuffer_addr);
-  auto args_ret = MixL2UpdateArgs(inputs, placed_input_addrs, placed_output_addrs,
-                                  placed_input_shapes, placed_output_shapes);
+  auto args_ret =
+      MixL2UpdateArgs(inputs, placed_input_addrs, placed_output_addrs, placed_input_shapes, placed_output_shapes);
   CHECK_HOLDERS_ALL_OK_RET(args_ret, static_cast<size_t>(kernel::MixL2ArgsOutKey::kNUM), return {});
   if (copy_ret != nullptr) {
     bg::ValueHolder::AddDependency(copy_ret, args_ret[static_cast<size_t>(kernel::MixL2ArgsOutKey::FLUSH_DATA)]);
@@ -631,8 +637,8 @@ std::vector<bg::DevMemValueHolderPtr> LoweringProc(const ge::NodePtr &node, cons
                                        args_ret[static_cast<size_t>(kernel::MixL2ArgsOutKey::ARGS_PARA)]);
   args_ret[static_cast<size_t>(kernel::MixL2ArgsOutKey::ARGS_PARA)]->RefFrom(proc_args.args_para);
 
-  auto update_ret = UpdateMixL2Context(node, proc_args,
-                                       args_ret[static_cast<size_t>(kernel::MixL2ArgsOutKey::FLUSH_DATA)]);
+  auto update_ret =
+      UpdateMixL2Context(node, proc_args, args_ret[static_cast<size_t>(kernel::MixL2ArgsOutKey::FLUSH_DATA)]);
   FE_ASSERT_NOTNULL(update_ret);
   // data dump info
   auto data_dump_ret = UpdateMixL2DataDumpInfo(node, lower_input, output_addrs);
@@ -652,7 +658,7 @@ std::vector<bg::DevMemValueHolderPtr> LoweringProc(const ge::NodePtr &node, cons
     bg::ValueHolder::AddDependency(atomic_launch, task_ret[static_cast<size_t>(TaskProcKey::H2D_COPY)]);
   }
   auto ref_out_shapes = SetOutputShape(node, shapebuffer_addr, task_ret[static_cast<size_t>(TaskProcKey::TASK_LAUNCH)],
-      lower_input.global_data->GetStream(), proc_args.output_shapes);
+                                       lower_input.global_data->GetStream(), proc_args.output_shapes);
   if (!ref_out_shapes.empty()) {
     proc_args.output_shapes = ref_out_shapes;
   }
@@ -694,22 +700,23 @@ LowerResult LoweringFFTSPlusMixL2(const ge::NodePtr &node, const LowerInput &low
     return {HyperStatus::Success(), proc_args.ordered_holders, proc_args.output_shapes, output_addrs};
   }
   bg::ValueHolderPtr cond = bg::ValueHolder::CreateSingleDataOutput("CheckOutputShapesEmpty", proc_args.output_shapes);
-  auto if_outputs = bg::If<bg::DevMemValueHolder>(cond,
-      [&node, &proc_args, &lower_input]()->std::vector<bg::ValueHolderPtr> {
+  auto if_outputs = bg::If<bg::DevMemValueHolder>(
+      cond,
+      [&node, &proc_args, &lower_input]() -> std::vector<bg::ValueHolderPtr> {
         auto output_sizes = bg::CalcTensorSize(node, proc_args.output_shapes);
-        auto memory = bg::AllocOutputMemory(kOnDeviceHbm, node, output_sizes,
-                                            lower_input.input_addrs, *(lower_input.global_data));
+        auto memory = bg::AllocOutputMemory(kOnDeviceHbm, node, output_sizes, lower_input.input_addrs,
+                                            *(lower_input.global_data));
         std::vector<bg::ValueHolderPtr> ret_lambda(memory.begin(), memory.end());
         return ret_lambda;
       },
-      [&node, &lower_input, &proc_args, is_unknown]()->std::vector<bg::ValueHolderPtr> {
+      [&node, &lower_input, &proc_args, is_unknown]() -> std::vector<bg::ValueHolderPtr> {
         auto result = LoweringProc(node, lower_input, proc_args, is_unknown);
         std::vector<bg::ValueHolderPtr> ret_lambda(result.begin(), result.end());
         return ret_lambda;
       },
       node->GetOpDesc()->GetStreamId());
   if (if_outputs.size() != proc_args.output_shapes.size() || if_outputs.empty()) {
-    return {HyperStatus::ErrorStatus(static_cast<const char*>("Lowering with flag failed")), {}, {}, {}};
+    return {HyperStatus::ErrorStatus(static_cast<const char *>("Lowering with flag failed")), {}, {}, {}};
   }
 
   return {HyperStatus::Success(), {if_outputs[0]}, proc_args.output_shapes, if_outputs};

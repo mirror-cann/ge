@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,22 +21,22 @@ using namespace ge;
 namespace {
 const size_t kBatchMatmulMaxShapeSize = 8;
 
-#define CHECK(cond, log_func, expr)                                                                                    \
-  do {                                                                                                                 \
-    if (cond) {                                                                                                        \
-      log_func;                                                                                                        \
-      expr;                                                                                                            \
-    }                                                                                                                  \
+#define CHECK(cond, log_func, expr) \
+  do {                              \
+    if (cond) {                     \
+      log_func;                     \
+      expr;                         \
+    }                               \
   } while (0)
 
-#define CUBE_INNER_ERR_REPORT(op_name, err_msg, ...)                                                                   \
-  do {                                                                                                                 \
-    GELOGE(ge::GRAPH_FAILED, err_msg, ##__VA_ARGS__);                                                                  \
+#define CUBE_INNER_ERR_REPORT(op_name, err_msg, ...)  \
+  do {                                                \
+    GELOGE(ge::GRAPH_FAILED, err_msg, ##__VA_ARGS__); \
   } while (0)
 
-#define OP_LOGD(op_name, err_msg, ...)                                                                                 \
-  do {                                                                                                                 \
-    GELOGD(err_msg, ##__VA_ARGS__);                                                                                    \
+#define OP_LOGD(op_name, err_msg, ...) \
+  do {                                 \
+    GELOGD(err_msg, ##__VA_ARGS__);    \
   } while (0)
 
 using std::vector;
@@ -48,8 +48,13 @@ class InferShapeBatchMatMul {
  public:
   InferShapeBatchMatMul(InferShapeContext *context, const Shape &shape_a, const Shape &shape_b, bool trans_a,
                         bool trans_b)
-      : op_name(context->GetNodeName()), shape_a(shape_a), shape_b(shape_b), trans_a(trans_a), trans_b(trans_b),
-        shape_out(*(context->GetOutputShape(0))), shape_bias(context->GetInputShape(2)) {
+      : op_name(context->GetNodeName()),
+        shape_a(shape_a),
+        shape_b(shape_b),
+        trans_a(trans_a),
+        trans_b(trans_b),
+        shape_out(*(context->GetOutputShape(0))),
+        shape_bias(context->GetInputShape(2)) {
     num_dima = shape_a.GetDimNum();
     num_dimb = shape_b.GetDimNum();
     num_dim = std::max(num_dima, num_dimb);
@@ -61,7 +66,7 @@ class InferShapeBatchMatMul {
     shape_out.SetDimNum(num_dim);
   };
 
-  ~InferShapeBatchMatMul(){};
+  ~InferShapeBatchMatMul() {};
   bool InferShape();
 
  protected:

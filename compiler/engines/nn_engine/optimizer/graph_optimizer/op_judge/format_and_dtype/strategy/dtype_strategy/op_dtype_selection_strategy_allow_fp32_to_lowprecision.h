@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,11 +22,12 @@ using AllowFp32ToFp16Selector = std::unique_ptr<OpDtypeSelectionStrategyAllowFp3
 class OpDtypeSelectionStrategyAllowFp32ToLowPrecision : public OpDtypeSeletionStrategyBase {
  public:
   explicit OpDtypeSelectionStrategyAllowFp32ToLowPrecision(FormatDtypeQuerierPtr format_dtype_querier_ptr,
-      OpDtypeRiseMatcherPtr op_dtype_rise_matcher_ptr, OpDtypeReduceMatcherPtr op_dtype_reduce_matcher_ptr);
+                                                           OpDtypeRiseMatcherPtr op_dtype_rise_matcher_ptr,
+                                                           OpDtypeReduceMatcherPtr op_dtype_reduce_matcher_ptr);
   ~OpDtypeSelectionStrategyAllowFp32ToLowPrecision() override;
 
   /* In this mode we will match the dtype fp16 first. If the */
-  Status Run(SelectionBasicInfo& basic_info, ForbiddenDtype forbidden_dtype) override;
+  Status Run(SelectionBasicInfo &basic_info, ForbiddenDtype forbidden_dtype) override;
 
  private:
   OpDtypeRiseMatcherPtr op_dtype_rise_matcher_ptr_;

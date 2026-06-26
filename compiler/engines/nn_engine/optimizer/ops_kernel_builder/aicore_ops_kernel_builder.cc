@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -56,9 +56,9 @@ std::string GetInputDependencyIndexs(const uint64_t dependency_num, vector<int64
   return indexs_str;
 }
 
-Status SetTilingSinkCalcResources(const ge::Node &node, gert::ExeResGenerationContext* context) {
+Status SetTilingSinkCalcResources(const ge::Node &node, gert::ExeResGenerationContext *context) {
   const auto space_registry = gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry(
-    static_cast<gert::OppImplVersionTag>(node.GetOpDesc()->GetOppImplVersion()));
+      static_cast<gert::OppImplVersionTag>(node.GetOpDesc()->GetOppImplVersion()));
   if (space_registry == nullptr) {
     FE_LOGE("Node[%s] type[%s] get space registry failed", node.GetNamePtr(), node.GetTypePtr());
     return FAILED;
@@ -92,7 +92,7 @@ Status SetTilingSinkCalcResources(const ge::Node &node, gert::ExeResGenerationCo
   return SUCCESS;
 }
 
-Status CalculateTilingSinkWorkspace(ge::Node &node, gert::ExeResGenerationContext* context) {
+Status CalculateTilingSinkWorkspace(ge::Node &node, gert::ExeResGenerationContext *context) {
   const ge::NodePtr node_ptr = node.shared_from_this();
   if (TilingForOneNode(node_ptr) != SUCCESS) {
     FE_LOGE("Node[%s] type[%s] tiling sink workspace failed.", node.GetNamePtr(), node.GetTypePtr());
@@ -124,7 +124,7 @@ Status CalculateTilingSinkWorkspace(ge::Node &node, gert::ExeResGenerationContex
   context->SetWorkspaceBytes(workspace_bytes);
   return SUCCESS;
 }
-} // namespace
+}  // namespace
 
 REGISTER_OPS_KERNEL_BUILDER(AI_CORE_NAME, AICoreOpsKernelBuilder);
 REGISTER_OPS_KERNEL_BUILDER(VECTOR_CORE_NAME, AICoreOpsKernelBuilder);
@@ -138,7 +138,9 @@ Status AICoreOpsKernelBuilder::Initialize(const std::map<std::string, std::strin
   return SUCCESS;
 }
 
-Status AICoreOpsKernelBuilder::Finalize() { return SUCCESS; }
+Status AICoreOpsKernelBuilder::Finalize() {
+  return SUCCESS;
+}
 
 // ascendc dfx expand first workspace size
 void ProcDfxBufferSize(const ge::OpDescPtr op_desc) {
@@ -175,8 +177,7 @@ static Status CalcAutoThreadParam(const ge::NodePtr nodePtr) {
   }
 
   if (slice_info_ptr->slice_instance_num == 0) {
-    REPORT_FE_ERROR("[GenTask][CalcAutoThreadParam] Node: %s slice num is zero.",
-                    nodePtr->GetName().c_str());
+    REPORT_FE_ERROR("[GenTask][CalcAutoThreadParam] Node: %s slice num is zero.", nodePtr->GetName().c_str());
     return FAILED;
   }
   vector<vector<vector<int64_t>>> tensor_slice;
@@ -302,8 +303,8 @@ Status GenerateExtTask(const ge::Node &node, ge::RunContext &context, std::vecto
   bool reg_flag = false;
   FE_TIMECOST_START(GenerateOpExtTask);
   if (GenerateOpExtTask(node, CheckTilingSink(node), task_defs, reg_flag) != SUCCESS) {
-    REPORT_FE_ERROR("[GenTask][GenerateOpExtTask] Op[%s][%s] failed to gen extra task.",
-                    node.GetNamePtr(), node.GetTypePtr());
+    REPORT_FE_ERROR("[GenTask][GenerateOpExtTask] Op[%s][%s] failed to gen extra task.", node.GetNamePtr(),
+                    node.GetTypePtr());
     return FAILED;
   }
   if (reg_flag) {
@@ -317,8 +318,8 @@ Status GenerateExtTask(const ge::Node &node, ge::RunContext &context, std::vecto
   FE_LOGD("Node[%s] type[%s] generate extra task.", node.GetNamePtr(), node.GetTypePtr());
   auto ret = func(node, context, task_defs);
   if (ret != ge::SUCCESS) {
-    REPORT_FE_ERROR("[GenTask][GenerateExtTask] Op[%s][%s] failed to gen extra task.",
-                    node.GetNamePtr(), node.GetTypePtr());
+    REPORT_FE_ERROR("[GenTask][GenerateExtTask] Op[%s][%s] failed to gen extra task.", node.GetNamePtr(),
+                    node.GetTypePtr());
     return FAILED;
   }
   return SUCCESS;

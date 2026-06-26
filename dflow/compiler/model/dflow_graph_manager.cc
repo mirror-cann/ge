@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,7 +17,6 @@
 #include "graph/ge_context.h"
 #include "common/context/local_context.h"
 #include "common/compile_profiling/ge_call_wrapper.h"
-
 
 namespace ge {
 DflowGraphManager::~DflowGraphManager() {
@@ -49,11 +48,11 @@ void DflowGraphManager::Finalize() {
 
   graph_options_map_.clear();
   is_initialized_ = false;
-  
+
   GELOGI("[DflowGraphManager] Finalize success.");
 }
 
-Status DflowGraphManager::AddGraph(uint32_t graph_id, const Graph &graph, 
+Status DflowGraphManager::AddGraph(uint32_t graph_id, const Graph &graph,
                                    const std::map<std::string, std::string> &options) {
   std::lock_guard<std::mutex> lock(mutex_);
   if (!is_initialized_) {
@@ -125,7 +124,7 @@ Status DflowGraphManager::CompileGraph(uint32_t graph_id, const std::vector<GeTe
     const auto graph_iter = flow_graph_map_.find(graph_id);
     if ((graph_iter == flow_graph_map_.end()) || (iter == graph_options_map_.end())) {
       GELOGE(FAILED, "Graph id[%u] cannot be found in graph map. AddGraph should be called before CompileGraph.",
-            graph_id);
+             graph_id);
       return GE_GRAPH_GRAPH_NOT_EXIST;
     }
     graph = graph_iter->second;
@@ -157,7 +156,7 @@ const std::map<std::string, std::string> *DflowGraphManager::GetGraphOptions(uin
 }
 
 Status DflowGraphManager::GetGraphModelId(uint32_t graph_id, uint32_t &model_id) {
-  model_id = INVALID_MODEL_ID; 
+  model_id = INVALID_MODEL_ID;
   if (!is_initialized_) {
     GELOGE(ACL_ERROR_GE_EXEC_NOT_INIT, "[Get][GraphModelId] DflowGraphManager not initialized.");
     return ACL_ERROR_GE_EXEC_NOT_INIT;
@@ -189,11 +188,11 @@ bool DflowGraphManager::GetOptionsRunGraphFlag() {
   if (!is_initialized_) {
     GELOGW("[Get][OptionsRunGraphFlag] DflowGraphManager not initialized.");
     return false;
-  } 
+  }
   const auto iter = options_.find(RUN_FLAG);
   if ((iter != options_.end()) && (iter->second == "0")) {
     return false;
   }
   return true;
 }
-}  // namespace ge 
+}  // namespace ge

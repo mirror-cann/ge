@@ -75,8 +75,8 @@ Status Om2Codegen::Om2CodegenAndCompile(const ge::GeModelPtr &ge_model, Om2Codeg
 
   Om2CodegenArtifact so_artifact;
   so_artifact.file_name = "lib" + ge_model->GetName() + "_om2.so";
-  const Status compile_ret = Om2Utils::CompileGeneratedCppToSo(source_artifacts, ge_model->GetName(), so_artifact,
-                                                               false);
+  const Status compile_ret =
+      Om2Utils::CompileGeneratedCppToSo(source_artifacts, ge_model->GetName(), so_artifact, false);
   if (compile_ret != SUCCESS) {
     DumpGeneratedFiles(source_artifacts);
     return compile_ret;

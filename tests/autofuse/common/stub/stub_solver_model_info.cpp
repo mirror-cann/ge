@@ -23,9 +23,7 @@ struct SolverExprContext {
   att::Expr expr_k;
 };
 
-
-void InitDefaultExpr(const ge::ExprType expr_type, att::Expr &default_expr, bool &is_const)
-{
+void InitDefaultExpr(const ge::ExprType expr_type, att::Expr &default_expr, bool &is_const) {
   is_const = true;
   if (expr_type == ge::ExprType::kExprConstantRation) {
     default_expr = ge::Symbol(8, "tmp") / ge::Symbol(3, "tmp");
@@ -41,8 +39,7 @@ void InitDefaultExpr(const ge::ExprType expr_type, att::Expr &default_expr, bool
 }
 
 void InitSymVar(att::SymVarInfoPtr &sym, const att::Expr &expr, uint32_t align_val = 0,
-                const std::vector<att::HardwareDef> &scope = {})
-{
+                const std::vector<att::HardwareDef> &scope = {}) {
   sym = std::make_shared<att::SymVarInfo>(expr);
   if (align_val > 0) {
     sym->align = ge::Symbol(align_val);
@@ -52,8 +49,7 @@ void InitSymVar(att::SymVarInfoPtr &sym, const att::Expr &expr, uint32_t align_v
   }
 }
 
-void SetAxisOrigin(att::AttAxisPtr &axis, const std::string &name, const att::SymVarInfoPtr &size)
-{
+void SetAxisOrigin(att::AttAxisPtr &axis, const std::string &name, const att::SymVarInfoPtr &size) {
   axis = std::make_shared<att::AttAxis>();
   axis->name = name;
   axis->axis_pos = att::AxisPosition::ORIGIN;
@@ -63,9 +59,8 @@ void SetAxisOrigin(att::AttAxisPtr &axis, const std::string &name, const att::Sy
   axis->size = size;
 }
 
-void SetAxisInner(att::AttAxisPtr &axis, const std::string &name, const att::SymVarInfoPtr &size,
-                  bool bind_multicore, bool is_last, att::AttAxis *orig, att::AttAxis *from)
-{
+void SetAxisInner(att::AttAxisPtr &axis, const std::string &name, const att::SymVarInfoPtr &size, bool bind_multicore,
+                  bool is_last, att::AttAxis *orig, att::AttAxis *from) {
   axis = std::make_shared<att::AttAxis>();
   axis->name = name;
   axis->axis_pos = att::AxisPosition::INNER;
@@ -78,8 +73,7 @@ void SetAxisInner(att::AttAxisPtr &axis, const std::string &name, const att::Sym
 }
 
 void BuildMArgList(att::ModelInfo &model_info, const bool is_const, const att::Expr &default_expr,
-                   const uint32_t m_align, SolverExprContext &ctx)
-{
+                   const uint32_t m_align, SolverExprContext &ctx) {
   ctx.expr_m = is_const ? default_expr : att::CreateExpr("m_size");
   ctx.expr_tilem = is_const ? default_expr : att::CreateExpr("tilem_size");
   ctx.expr_stepm = is_const ? default_expr : att::CreateExpr("stepm_size");
@@ -106,8 +100,8 @@ void BuildMArgList(att::ModelInfo &model_info, const bool is_const, const att::E
   model_info.arg_list.emplace_back(basem);
 }
 
-void BuildNArgList(att::ModelInfo &model_info, const bool is_const, const att::Expr &default_expr, SolverExprContext &ctx)
-{
+void BuildNArgList(att::ModelInfo &model_info, const bool is_const, const att::Expr &default_expr,
+                   SolverExprContext &ctx) {
   ctx.expr_n = is_const ? default_expr : att::CreateExpr("n_size");
   ctx.expr_tilen = is_const ? default_expr : att::CreateExpr("tilen_size");
   ctx.expr_stepn = is_const ? default_expr : att::CreateExpr("stepn_size");
@@ -131,8 +125,7 @@ void BuildNArgList(att::ModelInfo &model_info, const bool is_const, const att::E
   model_info.arg_list.emplace_back(basen);
 }
 
-void BuildKArg(att::ModelInfo &model_info, SolverExprContext &ctx)
-{
+void BuildKArg(att::ModelInfo &model_info, SolverExprContext &ctx) {
   ctx.expr_k = att::CreateExpr("k_size");
   att::SymConstInfoPtr sym_k = std::make_shared<att::SymConstInfo>(ctx.expr_k);
   sym_k->const_value = 128u;
@@ -146,13 +139,12 @@ void BuildKArg(att::ModelInfo &model_info, SolverExprContext &ctx)
   model_info.arg_list.emplace_back(k);
 }
 
-void FillModelInfo(att::ModelInfo &model_info, const SolverExprContext &ctx)
-{
+void FillModelInfo(att::ModelInfo &model_info, const SolverExprContext &ctx) {
   att::Expr l0a_occupy = ctx.expr_basem * ctx.expr_k * att::CreateExpr(4);
   att::Expr l0b_occupy = ctx.expr_k * ctx.expr_basen * att::CreateExpr(4);
   att::Expr l0c_occupy = ctx.expr_basem * ctx.expr_basen * att::CreateExpr(4);
-  att::Expr l1_occupy = (ctx.expr_k * ctx.expr_stepm * att::CreateExpr(4)) +
-                        (ctx.expr_k * ctx.expr_stepn * att::CreateExpr(4));
+  att::Expr l1_occupy =
+      (ctx.expr_k * ctx.expr_stepm * att::CreateExpr(4)) + (ctx.expr_k * ctx.expr_stepn * att::CreateExpr(4));
   att::Expr l2_occupy = (ctx.expr_tilen * ctx.expr_tilem * att::CreateExpr(2)) +
                         ((ctx.expr_tilen + ctx.expr_tilem) * ctx.expr_k * att::CreateExpr(2));
   att::Expr core_num = ((ctx.expr_tilem / ctx.expr_stepm) * (ctx.expr_tilen / ctx.expr_stepn));
@@ -166,8 +158,8 @@ void FillModelInfo(att::ModelInfo &model_info, const SolverExprContext &ctx)
   model_info.hardware_cons[att::HardwareDef::CORENUM] = core_num;
 
   att::Expr mac = ((ctx.expr_basem * ctx.expr_basen * ctx.expr_k) / (att::CreateExpr(16) * att::CreateExpr(256)));
-  att::Expr mte = (((ctx.expr_stepm * ctx.expr_k) / att::CreateExpr(32)) +
-                   ((ctx.expr_stepn * ctx.expr_k) / att::CreateExpr(32)));
+  att::Expr mte =
+      (((ctx.expr_stepm * ctx.expr_k) / att::CreateExpr(32)) + ((ctx.expr_stepn * ctx.expr_k) / att::CreateExpr(32)));
   model_info.objects[att::PipeType::AIC_MAC] = mac;
   model_info.objects[att::PipeType::AIC_MTE2] = mte;
   model_info.tiling_case_id = 0;
@@ -182,8 +174,7 @@ void FillModelInfo(att::ModelInfo &model_info, const SolverExprContext &ctx)
 }  // namespace
 
 namespace att {
-ModelInfo CreateModelInfo(const uint32_t m_align, const ge::ExprType expr_type)
-{
+ModelInfo CreateModelInfo(const uint32_t m_align, const ge::ExprType expr_type) {
   ModelInfo model_info;
   Expr default_expr;
   bool is_const = true;

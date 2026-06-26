@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -159,7 +159,7 @@ TEST_F(MultiStreamL2AllocatorUT, own_malloc_free_success) {
  * 5.block_0 free on stream_1, type is borrow recycle
  * 6.rtMalloc fake fail, stream 1's l2 allocator malloc block_1 from borrow
  * 7.block_1 free on stream_1, type is borrow recycle
- * 8.migration from stream 1 to stram 0
+ * 8.migration from stream 1 to stream 0
  */
 TEST_F(MultiStreamL2AllocatorUT, own_malloc_failed_but_using_borrow_success) {
   auto holders = MultiStreamL2AllocatorsFaker().StreamNum(2).Build();
@@ -228,7 +228,7 @@ TEST_F(MultiStreamL2AllocatorUT, own_malloc_failed_but_using_borrow_success) {
  * 3.block_0 free on stream 0, type is local-recycle
  * 4.block_0 free on stream_1, type is local-recycle
  * 5.send and receive event from stream 0 to stream 1, borrow-recycle
- * 6.migration from stream 1 to stram 0
+ * 6.migration from stream 1 to stream 0
  */
 TEST_F(MultiStreamL2AllocatorUT, own_malloc_free_before_sync_local_status_success) {
   auto holders = MultiStreamL2AllocatorsFaker().StreamNum(2).Build();
@@ -522,8 +522,7 @@ TEST_F(MultiStreamL2AllocatorUT, GetClearLocalRecycleBlocks_Success_GetAll1) {
   auto holder = MultiStreamL2AllocatorsFaker().Fake1();
 
   auto vb1 = holder.allocator_holder.at(1)->GetClearLocalRecycleBlocks(0);
-  for (auto iter = vb1.Begin(); iter != vb1.End(); vb1.Next(iter))
-    ;
+  for (auto iter = vb1.Begin(); iter != vb1.End(); vb1.Next(iter));
   auto version_blocks = holder.allocator_holder.at(1)->GetClearLocalRecycleBlocks();
   std::set<MultiStreamMemBlock *> blocks;
   for (auto iter = version_blocks.Begin(); iter != version_blocks.End(); version_blocks.Next(iter)) {

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -58,27 +58,26 @@ class AicpuTfOpsKernelBuilder : public ge::OpsKernelBuilder {
    * @param tasks task vector
    * @return task memsize in node
    */
-  ge::Status GenerateTask(const ge::Node &node, ge::RunContext &context,
-                          std::vector<domi::TaskDef> &tasks) override;
+  ge::Status GenerateTask(const ge::Node &node, ge::RunContext &context, std::vector<domi::TaskDef> &tasks) override;
 
   ge::Status UpdateTask(const ge::Node &node, std::vector<domi::TaskDef> &tasks) override;
-  
+
   /**
-  * Generate the task
-  * @param node Node information
-  * @param task[out]
-  * @param task_info[out]
-  * @return status whether this operation success
-  */
+   * Generate the task
+   * @param node Node information
+   * @param task[out]
+   * @param task_info[out]
+   * @return status whether this operation success
+   */
   ge::Status GenSingleOpRunTask(const ge::NodePtr &node, STR_FWK_OP_KERNEL &task, string &task_info) override;
 
   /**
-  * Generate the task
-  * @param count the memcopy times
-  * @param task[out]
-  * @param task_info[out]
-  * @return status whether this operation success
-  */
+   * Generate the task
+   * @param count the memcopy times
+   * @param task[out]
+   * @param task_info[out]
+   * @return status whether this operation success
+   */
   ge::Status GenMemCopyTask(uint64_t count, STR_FWK_OP_KERNEL &task, string &task_info) override;
 
   // Copy prohibited
@@ -98,6 +97,6 @@ class AicpuTfOpsKernelBuilder : public ge::OpsKernelBuilder {
   // kernel_util map
   std::map<std::string, KernelBuilderPtr> kernel_builder_map_;
 };
-} // namespace aicpu
+}  // namespace aicpu
 
-#endif // AICPU_OPS_KERNEL_BUILDER_H_
+#endif  // AICPU_OPS_KERNEL_BUILDER_H_

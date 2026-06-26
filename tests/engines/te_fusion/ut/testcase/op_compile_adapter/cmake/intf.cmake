@@ -30,4 +30,3 @@ target_link_libraries(intf_llt_pub INTERFACE
         -lpthread
         mockcpp
 )
-

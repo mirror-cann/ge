@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,9 +29,9 @@
 using namespace std;
 using namespace fe;
 using namespace ge;
-using AICoreOpsKernelBuilderPtr =  shared_ptr<AICoreOpsKernelBuilder>;
+using AICoreOpsKernelBuilderPtr = shared_ptr<AICoreOpsKernelBuilder>;
 
-class AICoreOpsKernelBuilderSTest : public testing::Test{
+class AICoreOpsKernelBuilderSTest : public testing::Test {
  protected:
   static void SetUpTestCase() {
     cout << "AICoreOpsKernelBuilderTest SetUP" << endl;
@@ -40,17 +40,16 @@ class AICoreOpsKernelBuilderSTest : public testing::Test{
     cout << "AICoreOpsKernelBuilderTest SetUP" << endl;
   }
   // Some expensive resource shared by all tests.
-  virtual void SetUp(){
+  virtual void SetUp() {
     auto space_registry = std::make_shared<gert::OpImplSpaceRegistryV2>();
     gert::DefaultOpImplSpaceRegistryV2::GetInstance().SetSpaceRegistry(space_registry);
     aicore_ops_kernel_builder_ptr = make_shared<AICoreOpsKernelBuilder>();
     std::map<std::string, std::string> options;
     aicore_ops_kernel_builder_ptr->Initialize(options);
   }
-  virtual void TearDown(){
+  virtual void TearDown() {
     cout << "a test Tear Down" << endl;
     aicore_ops_kernel_builder_ptr->Finalize();
-
   }
 
   OpDescPtr GreateOpDesc() {
@@ -69,17 +68,17 @@ class AICoreOpsKernelBuilderSTest : public testing::Test{
     return op_desc_ptr;
   }
 
-  static RunContext CreateContext()
-  {
+  static RunContext CreateContext() {
     RunContext context;
     context.dataMemSize = 101;
-    context.dataMemBase = (uint8_t *) (intptr_t) 1000;
+    context.dataMemBase = (uint8_t *)(intptr_t)1000;
     context.weightMemSize = 200;
-    context.weightMemBase = (uint8_t *) (intptr_t) 1101;
+    context.weightMemBase = (uint8_t *)(intptr_t)1101;
     context.weightsBuffer = Buffer(20);
 
     return context;
   }
+
  public:
   AICoreOpsKernelBuilderPtr aicore_ops_kernel_builder_ptr;
 };
@@ -87,8 +86,7 @@ class AICoreOpsKernelBuilderSTest : public testing::Test{
 namespace fe {
 extern void ProcDfxBufferSize(const ge::OpDescPtr op_desc);
 }
-TEST_F(AICoreOpsKernelBuilderSTest, dfx_buffer_size_test)
-{
+TEST_F(AICoreOpsKernelBuilderSTest, dfx_buffer_size_test) {
   ge::ComputeGraphPtr graph = make_shared<ge::ComputeGraph>("test_graph");
   OpDescPtr op_desc_ptr = GreateOpDesc();
   NodePtr node = graph->AddNode(op_desc_ptr);
@@ -105,7 +103,7 @@ TEST_F(AICoreOpsKernelBuilderSTest, dfx_buffer_size_test)
   EXPECT_EQ(new_workspaces[0], 3456);
 }
 
-TEST_F(AICoreOpsKernelBuilderSTest, calcoprunningparam_success_1){
+TEST_F(AICoreOpsKernelBuilderSTest, calcoprunningparam_success_1) {
   ge::ComputeGraphPtr graph = make_shared<ge::ComputeGraph>("test_graph");
   OpDescPtr op_desc_ptr = GreateOpDesc();
   NodePtr node = graph->AddNode(op_desc_ptr);
@@ -114,7 +112,7 @@ TEST_F(AICoreOpsKernelBuilderSTest, calcoprunningparam_success_1){
   EXPECT_EQ(fe::SUCCESS, status);
 }
 
-TEST_F(AICoreOpsKernelBuilderSTest, calcoprunningparam_success_2){
+TEST_F(AICoreOpsKernelBuilderSTest, calcoprunningparam_success_2) {
   ge::ComputeGraphPtr graph = make_shared<ge::ComputeGraph>("test_graph");
   OpDescPtr op_desc_ptr = GreateOpDesc();
   ge::OpDescUtilsEx::SetType(op_desc_ptr, "ROIPooling");
@@ -125,8 +123,7 @@ TEST_F(AICoreOpsKernelBuilderSTest, calcoprunningparam_success_2){
   EXPECT_EQ(fe::SUCCESS, status);
 }
 
-TEST_F(AICoreOpsKernelBuilderSTest, calc_op_running_param_succ)
-{
+TEST_F(AICoreOpsKernelBuilderSTest, calc_op_running_param_succ) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr src_op = std::make_shared<OpDesc>("A", "A");
   GeTensorDesc src_tensor_desc(GeShape({100, 2, 3, 512, 4}), ge::FORMAT_NC1HWC0, ge::DT_FLOAT16);
@@ -145,8 +142,7 @@ TEST_F(AICoreOpsKernelBuilderSTest, calc_op_running_param_succ)
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-TEST_F(AICoreOpsKernelBuilderSTest, GenerateTask_mix_l2_success)
-{
+TEST_F(AICoreOpsKernelBuilderSTest, GenerateTask_mix_l2_success) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr src_op = std::make_shared<OpDesc>("A", "A");
   GeTensorDesc src_tensor_desc(GeShape({10}), ge::FORMAT_NC1HWC0, ge::DT_FLOAT16);
@@ -174,8 +170,7 @@ TEST_F(AICoreOpsKernelBuilderSTest, GenerateTask_mix_l2_success)
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-TEST_F(AICoreOpsKernelBuilderSTest, GenDynamicAICAIVCtxDef_success)
-{
+TEST_F(AICoreOpsKernelBuilderSTest, GenDynamicAICAIVCtxDef_success) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr src_op = std::make_shared<OpDesc>("A", "A");
   GeTensorDesc src_tensor_desc(GeShape({10}), ge::FORMAT_NC1HWC0, ge::DT_FLOAT16);
@@ -197,8 +192,7 @@ TEST_F(AICoreOpsKernelBuilderSTest, GenDynamicAICAIVCtxDef_success)
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
-TEST_F(AICoreOpsKernelBuilderSTest, GenerateTask_memset)
-{
+TEST_F(AICoreOpsKernelBuilderSTest, GenerateTask_memset) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr src_op = std::make_shared<OpDesc>("A", "A");
   GeTensorDesc src_tensor_desc(GeShape({10}), ge::FORMAT_NC1HWC0, ge::DT_FLOAT16);

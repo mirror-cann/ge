@@ -28,10 +28,11 @@ Status FusionEndTaskCodeBuilder::RenderDistribution(std::vector<BodyItem> &items
 
 Status FusionEndTaskCodeBuilder::RenderDistHelper(std::vector<DeclNode *> &items) {
   auto stream = ast_.Var("aclrtStream", "stream");
-  items.push_back(ast_.DefineFunction("KernelFusionEndDistribute", {stream}, "aclError", {
-      ast_.IgnoreOutput(RtKernelFusionEnd(stream)),
-      ast_.Return("ACL_SUCCESS"),
-  }));
+  items.push_back(ast_.DefineFunction("KernelFusionEndDistribute", {stream}, "aclError",
+                                      {
+                                          ast_.IgnoreOutput(RtKernelFusionEnd(stream)),
+                                          ast_.Return("ACL_SUCCESS"),
+                                      }));
   return SUCCESS;
 }
 

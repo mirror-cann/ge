@@ -42,4 +42,3 @@ aclmdlConfigHandle *aclmdlCreateConfigHandle()
 
 -   返回aclmdlConfigHandle类型的指针，表示成功。
 -   返回nullptr，表示失败。
-

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -83,22 +83,21 @@ uint64_t CalcTotalSize(const vector<int64_t> &axis_new_value, const ge::GeShape 
           total_size);
   return total_size;
 }
-} // namespace
+}  // namespace
 
 FormatDtypeOpBuiltinSelector::FormatDtypeOpBuiltinSelector() : FormatDtypeSelectorBase() {}
 
 FormatDtypeOpBuiltinSelector::~FormatDtypeOpBuiltinSelector() {}
 
 Status FormatDtypeOpBuiltinSelector::GetAllSupportFormat(const OpKernelInfoPtr &op_kernel_info_ptr,
-                                               const ge::NodePtr &node,
-                                               const bool &is_dynamic_check,
-                                               map<string, vector<ge::Format>> &format_map) {
+                                                         const ge::NodePtr &node, const bool &is_dynamic_check,
+                                                         map<string, vector<ge::Format>> &format_map) {
   Status status = GetAllFormatsFromOpDesc(node->GetOpDesc(), format_map);
   if (status != SUCCESS) {
     HeavyFormatInfo heavy_format_info;
     FormatDtypeInfo format_dtype_info;
-    if (GetDynamicFormatDtype(op_kernel_info_ptr, node, is_dynamic_check, heavy_format_info,
-        format_dtype_info) != SUCCESS) {
+    if (GetDynamicFormatDtype(op_kernel_info_ptr, node, is_dynamic_check, heavy_format_info, format_dtype_info) !=
+        SUCCESS) {
       REPORT_FE_ERROR("[GraphOpt][FmtJdg][GetSptedFmt] Op[name=%s, type=%s]: failed to GetDynamicFormatAndDtype.",
                       node->GetNamePtr(), node->GetTypePtr());
       return FAILED;
@@ -111,8 +110,7 @@ Status FormatDtypeOpBuiltinSelector::GetAllSupportFormat(const OpKernelInfoPtr &
 }
 
 Status FormatDtypeOpBuiltinSelector::GetSupportFormatDtype(const OpKernelInfoPtr &op_kernel_info_ptr,
-                                                           const ge::NodePtr &node,
-                                                           const bool &is_dynamic_check,
+                                                           const ge::NodePtr &node, const bool &is_dynamic_check,
                                                            FormatDtypeInfo &format_dtype_res) {
   // 1. get the old_format from op_desc. if failed, get GetDynamicFormatAndDtype
   auto op_desc = node->GetOpDesc();
@@ -125,8 +123,8 @@ Status FormatDtypeOpBuiltinSelector::GetSupportFormatDtype(const OpKernelInfoPtr
   Status ret_status = GetAllSubFormatsFromOpDesc(op_desc, format_dtype_res.sub_format_map);
   if (status != SUCCESS || ret_status != SUCCESS) {
     HeavyFormatInfo heavy_format_info;
-    if (GetDynamicFormatDtype(op_kernel_info_ptr, node, is_dynamic_check, heavy_format_info,
-        format_dtype_info) != SUCCESS) {
+    if (GetDynamicFormatDtype(op_kernel_info_ptr, node, is_dynamic_check, heavy_format_info, format_dtype_info) !=
+        SUCCESS) {
       REPORT_FE_ERROR("[GraphOpt][FmtJdg][GetSptedFmt] Op[name=%s, type=%s]: failed to GetDynamicFormatAndDtype.",
                       op_name.c_str(), op_type.c_str());
       return FAILED;
@@ -135,8 +133,8 @@ Status FormatDtypeOpBuiltinSelector::GetSupportFormatDtype(const OpKernelInfoPtr
 
   // 2. get the data_types from op_kernel, union format and data_type
   string input_key;
-  Status ret = GetFormatDtypeForAllTensors(op_kernel_info_ptr->GetAllInputInfo(), format_dtype_info.format_map,
-                                           op_desc, format_dtype_res, input_key);
+  Status ret = GetFormatDtypeForAllTensors(op_kernel_info_ptr->GetAllInputInfo(), format_dtype_info.format_map, op_desc,
+                                           format_dtype_res, input_key);
   if (ret != SUCCESS) {
     return ret;
   }
@@ -173,8 +171,8 @@ Status FormatDtypeOpBuiltinSelector::GetSupportFormats(const OpKernelInfoPtr &op
   vector<uint32_t> new_sub_formats;
 
   string unique_name = input_or_output_info_ptr->GetUniqueName();
-  if (GetReduceNewFormatDTypeVec(op_kernel_info_ptr, node, unique_name, new_data_types, result, new_sub_formats)
-      != SUCCESS) {
+  if (GetReduceNewFormatDTypeVec(op_kernel_info_ptr, node, unique_name, new_data_types, result, new_sub_formats) !=
+      SUCCESS) {
     REPORT_FE_ERROR("[GraphOpt][FmtJdg][GetSptFmt] Op[name=%s, type=%s]: Failed to get ReduceNewFormatDTypeVec.",
                     op_desc->GetName().c_str(), op_desc->GetType().c_str());
     return FAILED;
@@ -187,8 +185,7 @@ Status FormatDtypeOpBuiltinSelector::GetSupportFormats(const OpKernelInfoPtr &op
 Status FormatDtypeOpBuiltinSelector::GetSupportFormatSubFormat(const OpKernelInfoPtr &op_kernel_info_ptr,
                                                                const InputOrOutputInfoPtr &input_or_output_info_ptr,
                                                                const ge::NodePtr &node, vector<ge::Format> &format_res,
-                                                               vector<uint32_t> &sub_format_res,
-                                                               uint32_t sub_format) {
+                                                               vector<uint32_t> &sub_format_res, uint32_t sub_format) {
   auto op_desc = node->GetOpDesc();
   FE_CHECK_NOTNULL(op_desc);
   string op_name = op_desc->GetName();
@@ -200,12 +197,12 @@ Status FormatDtypeOpBuiltinSelector::GetSupportFormatSubFormat(const OpKernelInf
   if ((op_pattern == OP_PATTERN_BROADCAST || op_pattern == OP_PATTERN_BROADCAST_ENHANCED) &&
       GetBroadcastNewSubformatVec(op_kernel_info_ptr, node, unique_name, sub_format, sub_format_res) != SUCCESS) {
     REPORT_FE_ERROR("[GraphOpt][FmtJdg][GetSptSubfmt] Op[name=%s,type=%s]: Failed to GetBroadcastNewSubformatVec.",
-              op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                    op_desc->GetName().c_str(), op_desc->GetType().c_str());
     return FAILED;
   }
 
-  if (GetReduceNewFormatDTypeVec(op_kernel_info_ptr, node, unique_name, new_data_types, format_res, sub_format_res)
-      != SUCCESS) {
+  if (GetReduceNewFormatDTypeVec(op_kernel_info_ptr, node, unique_name, new_data_types, format_res, sub_format_res) !=
+      SUCCESS) {
     REPORT_FE_ERROR("[GraphOpt][FmtJdg][GetSptFmt] Op[name=%s, type=%s]: Failed to get ReduceNewFormatDTypeVec.",
                     op_desc->GetName().c_str(), op_desc->GetType().c_str());
     return FAILED;
@@ -227,8 +224,8 @@ Status FormatDtypeOpBuiltinSelector::GetSupportDataTypes(const OpKernelInfoPtr &
   vector<uint32_t> new_sub_formats;
 
   string unique_name = input_or_output_info_ptr->GetUniqueName();
-  if (GetReduceNewFormatDTypeVec(op_kernel_info_ptr, node, unique_name, result, new_formats, new_sub_formats)
-      != SUCCESS) {
+  if (GetReduceNewFormatDTypeVec(op_kernel_info_ptr, node, unique_name, result, new_formats, new_sub_formats) !=
+      SUCCESS) {
     REPORT_FE_ERROR("[GraphOpt][FmtJdg][GetSptType] Op[name=%s, type=%s]: Failed to get ReduceNewFormatDTypeVec.",
                     op_desc->GetName().c_str(), op_desc->GetType().c_str());
     return FAILED;
@@ -267,8 +264,7 @@ Status FormatDtypeOpBuiltinSelector::GetUnionFormatDtype(const InputOrOutputInfo
 Status FormatDtypeOpBuiltinSelector::GetDynamicFormatDtype(const OpKernelInfoPtr &op_kernel_info_ptr,
                                                            const ge::NodePtr &node, const bool &is_dynamic_check,
                                                            const HeavyFormatInfo &heavy_format_info,
-                                                           FormatDtypeInfo &format_dtype_info,
-                                                           uint32_t sub_format) {
+                                                           FormatDtypeInfo &format_dtype_info, uint32_t sub_format) {
   (void)is_dynamic_check;
   auto op_desc = node->GetOpDesc();
   FE_CHECK_NOTNULL(op_desc);
@@ -287,15 +283,15 @@ Status FormatDtypeOpBuiltinSelector::GetDynamicFormatDtype(const OpKernelInfoPtr
   OriginInfoPtr origin_info_ptr = nullptr;
   FE_MAKE_SHARED(origin_info_ptr = make_shared<OriginInfo>(), return GRAPH_OPTIMIZER_MAKE_SHARED_FAILED);
   if (InitOriginInfo(op_desc, op_kernel_info_ptr, input_index_map, output_index_map, origin_info_ptr,
-      format_dtype_info.format_map, format_dtype_info.sub_format_map) != SUCCESS) {
+                     format_dtype_info.format_map, format_dtype_info.sub_format_map) != SUCCESS) {
     REPORT_FE_ERROR("[GraphOpt][GenFmt][Built-In-Selector][Op %s,type=%s]: initialization not successfully.",
                     op_name.c_str(), op_type.c_str());
     return FAILED;
   }
 
   if (sub_format > UINT16_MAX || sub_format < GROUPS_DEFAULT_VALUE) {
-    REPORT_FE_ERROR("[GraphOpt][GenFmt][Built-In-Selector][Op %s,type=%s]: sub_format[%u] invalid.",
-                    op_name.c_str(), op_type.c_str(), sub_format);
+    REPORT_FE_ERROR("[GraphOpt][GenFmt][Built-In-Selector][Op %s,type=%s]: sub_format[%u] invalid.", op_name.c_str(),
+                    op_type.c_str(), sub_format);
     return FAILED;
   }
   FormatProccessArgs args;
@@ -321,10 +317,11 @@ Status FormatDtypeOpBuiltinSelector::GetDynamicFormatDtype(const OpKernelInfoPtr
     if (processer->Process(*op_desc, args, result) == SUCCESS) {
       FE_LOGD("Op[name=%s,type=%s]: end to process format %s, support it.", op_name.c_str(), op_type.c_str(),
               heavy_format_str.c_str());
-      if (UpdateFormatMap(op_kernel_info_ptr, result, input_index_map, output_index_map,
-          format_dtype_info.format_map, format_dtype_info.sub_format_map) != SUCCESS) {
-        REPORT_FE_ERROR("[GraphOpt][GenFmt][UptFmtMap][Op %s,type=%s]: update input and output formats not successfully.",
-                        op_name.c_str(), op_type.c_str());
+      if (UpdateFormatMap(op_kernel_info_ptr, result, input_index_map, output_index_map, format_dtype_info.format_map,
+                          format_dtype_info.sub_format_map) != SUCCESS) {
+        REPORT_FE_ERROR(
+            "[GraphOpt][GenFmt][UptFmtMap][Op %s,type=%s]: update input and output formats not successfully.",
+            op_name.c_str(), op_type.c_str());
         return FAILED;
       }
     }
@@ -342,8 +339,8 @@ Status FormatDtypeOpBuiltinSelector::GetFallbackFlags(const OpKernelInfoPtr &op_
   if (status != SUCCESS) {
     HeavyFormatInfo heavy_format_info;
     FormatDtypeInfo format_dtype_info;
-    if (GetDynamicFormatDtype(op_kernel_info_ptr, node, is_dynamic_check, heavy_format_info,
-        format_dtype_info) != SUCCESS) {
+    if (GetDynamicFormatDtype(op_kernel_info_ptr, node, is_dynamic_check, heavy_format_info, format_dtype_info) !=
+        SUCCESS) {
       REPORT_FE_ERROR("[GraphOpt][FmtJdg][GetSptedFmt] Op[name=%s, type=%s]: failed to GetDynamicFormatAndDtype.",
                       node->GetNamePtr(), node->GetTypePtr());
       return FAILED;
@@ -418,13 +415,13 @@ Status FormatDtypeOpBuiltinSelector::UpdateFormatMap(const OpKernelInfoPtr &op_k
                                                      const IndexNameMap &output_index_map,
                                                      map<string, vector<ge::Format>> &format_res,
                                                      map<string, vector<uint32_t>> &sub_format_res) const {
-  if (UpdateFormatMap(true, op_kernel_info_ptr, format_proccess_res, index_name_map, format_res,
-      sub_format_res) != SUCCESS) {
+  if (UpdateFormatMap(true, op_kernel_info_ptr, format_proccess_res, index_name_map, format_res, sub_format_res) !=
+      SUCCESS) {
     REPORT_FE_ERROR("[GraphOpt][GenFmt][UptFmtMap] Update input formats failed.");
     return FAILED;
   }
-  if (UpdateFormatMap(false, op_kernel_info_ptr, format_proccess_res, output_index_map, format_res,
-      sub_format_res) != SUCCESS) {
+  if (UpdateFormatMap(false, op_kernel_info_ptr, format_proccess_res, output_index_map, format_res, sub_format_res) !=
+      SUCCESS) {
     REPORT_FE_ERROR("[GraphOpt][GenFmt][UptFmtMap] Update output formats failed");
     return FAILED;
   }
@@ -436,10 +433,10 @@ Status FormatDtypeOpBuiltinSelector::UpdateFormatMap(const bool &is_input, const
                                                      const IndexNameMap &index_map,
                                                      map<string, vector<ge::Format>> &format_res,
                                                      map<string, vector<uint32_t>> &sub_format_res) const {
-  const vector<vector<ge::Format>> formats = is_input ? format_proccess_res.input_format_res :
-       format_proccess_res.output_format_res;
-  const vector<uint32_t> sub_formats = is_input ? format_proccess_res.input_subformat_res :
-      format_proccess_res.output_subformat_res;
+  const vector<vector<ge::Format>> formats =
+      is_input ? format_proccess_res.input_format_res : format_proccess_res.output_format_res;
+  const vector<uint32_t> sub_formats =
+      is_input ? format_proccess_res.input_subformat_res : format_proccess_res.output_subformat_res;
   if (formats.empty()) {
     FE_LOGD("[GraphOpt][GenFmt][UptFmtMap] Support format is empty.");
     return SUCCESS;
@@ -461,7 +458,7 @@ Status FormatDtypeOpBuiltinSelector::UpdateFormatMap(const bool &is_input, const
   }
   for (size_t i = 0; i < formats[0].size(); i++) {
     InputOrOutputInfoPtr input_or_output_info_ptr =
-    GetInputOrOutputUniqueName(is_input, index_map, i, op_kernel_info_ptr);
+        GetInputOrOutputUniqueName(is_input, index_map, i, op_kernel_info_ptr);
     FE_CHECK_NOTNULL(input_or_output_info_ptr);
     const string &unique_name = input_or_output_info_ptr->GetUniqueName();
     for (const auto &sub_format : sub_formats) {
@@ -534,7 +531,7 @@ Status FormatDtypeOpBuiltinSelector::GetReduceNewFormatDType(const OpKernelInfoP
       /* when format is 5HD, the size of reduce axis and size of not redcued axis
        * must less than ub size. */
       if (input_formats[i] == ge::FORMAT_NC1HWC0 &&
-        !CheckUBSizeEnable(*op_desc, input_formats[i], input_data_types[i])) {
+          !CheckUBSizeEnable(*op_desc, input_formats[i], input_data_types[i])) {
         FE_LOGD("Op[%s]: input %zu's format is NC1HWC0, total size needed is greater than ub block size, clear it.",
                 op_desc->GetName().c_str(), i);
         continue;
@@ -559,8 +556,10 @@ Status FormatDtypeOpBuiltinSelector::GetReduceNewFormatDType(const OpKernelInfoP
 }
 
 Status FormatDtypeOpBuiltinSelector::GetReduceNewFormatDTypeVec(const OpKernelInfoPtr &op_kernel_info_ptr,
-    const ge::NodePtr &node, const string &input_or_out_key, vector<ge::DataType> &data_types,
-    vector<ge::Format> &formats, vector<uint32_t> &sub_formats) {
+                                                                const ge::NodePtr &node, const string &input_or_out_key,
+                                                                vector<ge::DataType> &data_types,
+                                                                vector<ge::Format> &formats,
+                                                                vector<uint32_t> &sub_formats) {
   auto op_desc = node->GetOpDesc();
   FE_CHECK_NOTNULL(op_desc);
   if (op_kernel_info_ptr->GetOpPattern() == OP_PATTERN_REDUCE) {
@@ -588,7 +587,10 @@ Status FormatDtypeOpBuiltinSelector::GetReduceNewFormatDTypeVec(const OpKernelIn
 }
 
 Status FormatDtypeOpBuiltinSelector::GetBroadcastNewSubformatVec(const OpKernelInfoPtr &op_kernel_info_ptr,
-    const ge::NodePtr &node, const string &input_or_out_key, const uint32_t &sub_format, vector<uint32_t> &sub_formats) {
+                                                                 const ge::NodePtr &node,
+                                                                 const string &input_or_out_key,
+                                                                 const uint32_t &sub_format,
+                                                                 vector<uint32_t> &sub_formats) {
   auto op_desc = node->GetOpDesc();
   FE_CHECK_NOTNULL(op_desc);
   FormatDtypeInfo format_dtype_res;
@@ -598,18 +600,19 @@ Status FormatDtypeOpBuiltinSelector::GetBroadcastNewSubformatVec(const OpKernelI
 
   if (sub_format == GROUPS_DEFAULT_VALUE ||
       std::find(sub_formats.begin(), sub_formats.end(), sub_format) != sub_formats.end()) {
-    FE_LOGD("[GraphOpt][GenFmt][GetBrdcstNewSubfmtVec] No need to get new subformat for op_desc[%s, %s], sub_format %u.",
-            op_desc->GetName().c_str(), op_desc->GetType().c_str(), sub_format);
+    FE_LOGD(
+        "[GraphOpt][GenFmt][GetBrdcstNewSubfmtVec] No need to get new subformat for op_desc[%s, %s], sub_format %u.",
+        op_desc->GetName().c_str(), op_desc->GetType().c_str(), sub_format);
     return SUCCESS;
   }
-  if (GetDynamicFormatDtype(op_kernel_info_ptr, node, is_dynamic_check, heavy_format_info,
-      format_dtype_res, sub_format) != SUCCESS) {
+  if (GetDynamicFormatDtype(op_kernel_info_ptr, node, is_dynamic_check, heavy_format_info, format_dtype_res,
+                            sub_format) != SUCCESS) {
     REPORT_FE_ERROR("[GraphOpt][GenFmt][GetBrdcstNewSubfmtVec] Op[name=%s,type=%s]: failed to GetDynamicFormatDtype.",
                     op_desc->GetName().c_str(), op_desc->GetType().c_str());
     return FAILED;
   }
-  if (!format_dtype_res.sub_format_map.empty() && format_dtype_res.sub_format_map.find(input_or_out_key) !=
-      format_dtype_res.sub_format_map.end()) {
+  if (!format_dtype_res.sub_format_map.empty() &&
+      format_dtype_res.sub_format_map.find(input_or_out_key) != format_dtype_res.sub_format_map.end()) {
     sub_formats = format_dtype_res.sub_format_map[input_or_out_key];
     (void)op_desc->SetExtAttr(EXT_DYNAMIC_SUB_FORMAT, format_dtype_res.sub_format_map);
   }
@@ -641,8 +644,8 @@ bool FormatDtypeOpBuiltinSelector::CheckUBSizeEnable(const ge::OpDesc &op_desc, 
   FE_LOGD("UB size is %lu.", ub_size);
 
   int data_size = ge::GetSizeByDataType(check_dtype);
-  FE_LOGD("The dtype size of op[name:%s,type:%s] is %d.", op_desc.GetName().c_str(),
-          op_desc.GetType().c_str(), data_size);
+  FE_LOGD("The dtype size of op[name:%s,type:%s] is %d.", op_desc.GetName().c_str(), op_desc.GetType().c_str(),
+          data_size);
 
   for (const auto &input_desc : op_desc.GetAllInputsDescPtr()) {
     ge::GeShape origin_shape = input_desc->GetOriginShape();

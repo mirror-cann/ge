@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -129,7 +129,7 @@ class DefaultMetaParams : public MetaParams {
 };
 }  // namespace
 class FlowFuncExecutorSTest : public testing::Test {
-protected:
+ protected:
   static void SetUpTestSuite() {
     FlowFuncConfigManager::SetConfig(
         std::shared_ptr<FlowFuncConfig>(&GlobalConfig::Instance(), [](FlowFuncConfig *) {}));
@@ -1278,7 +1278,7 @@ TEST_F(FlowFuncExecutorSTest, ProcessProcessorInitEvent_Failed) {
   FlowFuncExecutor executor;
   executor.running_ = true;
   executor.dev_output_queue_map_[0][0U] = false;
-  struct event_info event {};
+  struct event_info event{};
   executor.ProcessProcessorInitEvent(event, 0);
   EXPECT_FALSE(executor.running_);
 
@@ -1362,7 +1362,7 @@ TEST_F(FlowFuncExecutorSTest, ProcessSingleFlowFuncInitEvent_failed) {
   FlowFuncExecutor executor;
   executor.running_ = true;
   executor.func_processors_.emplace_back(processor);
-  struct event_info event {};
+  struct event_info event{};
   event.comm.subevent_id = 0U;
   event.comm.event_id = static_cast<EVENT_ID>(UdfEvent::kEventIdFlowFuncReportStatus);
   // InitFlowFunc failed
@@ -1406,7 +1406,7 @@ TEST_F(FlowFuncExecutorSTest, ProcessReportStatusEvent_failed) {
   MOCKER_CPP(&FlowFuncExecutor::ReportStatus).stubs().will(returnValue(FLOW_FUNC_FAILED));
   FlowFuncExecutor executor;
   executor.running_ = true;
-  struct event_info event {};
+  struct event_info event{};
   event.comm.subevent_id = 0U;
   event.comm.event_id = static_cast<EVENT_ID>(UdfEvent::kEventIdFlowFuncReportStatus);
   executor.ProcessReportStatusEvent(event, 0U);

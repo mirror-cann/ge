@@ -45,7 +45,7 @@ TEST_F(HopcroftKarpTest, GetRoutes_ReturnsValidPaths) {
 
   // Verify paths cover all nodes
   std::set<int> covered_nodes;
-  for (const auto& route : routes) {
+  for (const auto &route : routes) {
     for (int node_id : route) {
       covered_nodes.insert(node_id);
     }

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -41,14 +41,12 @@ domi::Status ParseParams(const domi::tensorflow::NodeDef *node, FillOperator *op
   domi::tensorflow::DataType data_type;
   GE_RETURN_IF_ERROR(TensorFlowUtil::ParseDataType(node, TENSORFLOW_ATTR_T, data_type));
   ge::DataType type = domi::TensorAssign::ConvertTensorflowDataType(data_type);
-  CHECK_FALSE_EXEC(
-      type != ge::DataType::DT_UNDEFINED,
-      REPORT_INNER_ERR_MSG("E19999", "Data type %s of node %s is not supported",
-                        DataType_Name(data_type).c_str(),
-                        node->name().c_str());
-      GELOGE(PARAM_INVALID, "Data type %s of node %s is not supported.", DataType_Name(data_type).c_str(),
-          node->name().c_str());
-      return PARAM_INVALID);
+  CHECK_FALSE_EXEC(type != ge::DataType::DT_UNDEFINED,
+                   REPORT_INNER_ERR_MSG("E19999", "Data type %s of node %s is not supported",
+                                        DataType_Name(data_type).c_str(), node->name().c_str());
+                   GELOGE(PARAM_INVALID, "Data type %s of node %s is not supported.", DataType_Name(data_type).c_str(),
+                          node->name().c_str());
+                   return PARAM_INVALID);
 
   op->DataType(type);
 

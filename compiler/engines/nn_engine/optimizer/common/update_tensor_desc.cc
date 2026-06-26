@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -16,21 +16,21 @@
 #include "expand_dimension.h"
 
 namespace fe {
-const std::set<ge::Format> formatNZSet = {ge::FORMAT_FRACTAL_NZ, ge::FORMAT_FRACTAL_NZ_C0_2,
-                                          ge::FORMAT_FRACTAL_NZ_C0_4, ge::FORMAT_FRACTAL_NZ_C0_8,
+const std::set<ge::Format> formatNZSet = {ge::FORMAT_FRACTAL_NZ,       ge::FORMAT_FRACTAL_NZ_C0_2,
+                                          ge::FORMAT_FRACTAL_NZ_C0_4,  ge::FORMAT_FRACTAL_NZ_C0_8,
                                           ge::FORMAT_FRACTAL_NZ_C0_16, ge::FORMAT_FRACTAL_NZ_C0_32};
 
-ge::GeShape GetNewShape(const ge::OpDescPtr& op_desc_ptr, const ge::GeShape& old_shape,
-                        const ge::Format& old_format, const ge::Format& new_format,
-                        const int64_t& op_imply_type, const ge::DataType& current_data_type,
-                        const int64_t& group) {
+ge::GeShape GetNewShape(const ge::OpDescPtr &op_desc_ptr, const ge::GeShape &old_shape, const ge::Format &old_format,
+                        const ge::Format &new_format, const int64_t &op_imply_type,
+                        const ge::DataType &current_data_type, const int64_t &group) {
   uint32_t old_dim_vec_size = static_cast<uint32_t>(old_shape.GetDimNum());
   ge::Format op_primary_format = static_cast<ge::Format>(ge::GetPrimaryFormat(new_format));
   /* other format to Nz or ND to (FRACTAL_Z / FRACTAL_ZN_RNN / ND_RNN_BIAS),
    * the size of original shape does not need to be 4 */
   if (old_dim_vec_size < NCHW_DIMENSION_NUM && formatNZSet.find(op_primary_format) == formatNZSet.end() &&
       ((op_primary_format != ge::FORMAT_FRACTAL_Z && op_primary_format != ge::FORMAT_FRACTAL_ZN_RNN &&
-        op_primary_format != ge::FORMAT_ND_RNN_BIAS) || old_format != ge::FORMAT_ND)) {
+        op_primary_format != ge::FORMAT_ND_RNN_BIAS) ||
+       old_format != ge::FORMAT_ND)) {
     FE_LOGW("Get shape not successfully: old format is %s, new format is %s, old dimension is %u.",
             ge::TypeUtils::FormatToSerialString(old_format).c_str(),
             ge::TypeUtils::FormatToSerialString(op_primary_format).c_str(), old_dim_vec_size);
@@ -45,8 +45,8 @@ ge::GeShape GetNewShape(const ge::OpDescPtr& op_desc_ptr, const ge::GeShape& old
   (void)ge::AttrUtils::GetInt(op_desc_ptr, "input_size", input_size);
   (void)ge::AttrUtils::GetInt(op_desc_ptr, "state_size", state_size);
   CalcShapeExtraAttr extra_attr = {hidden_size, input_size, state_size};
-  ShapeAndFormat shape_and_format_info = {old_shape, new_shape, old_format, new_format,
-                                          current_data_type, group, extra_attr};
+  ShapeAndFormat shape_and_format_info = {old_shape,         new_shape, old_format, new_format,
+                                          current_data_type, group,     extra_attr};
   Status ret = GetShapeAccordingToFormat(shape_and_format_info);
   if (ret != SUCCESS) {
     FE_LOGW("Old format is %s, new format is %s, old dimension is %u and opImplyType is %ld.",
@@ -57,8 +57,7 @@ ge::GeShape GetNewShape(const ge::OpDescPtr& op_desc_ptr, const ge::GeShape& old
   return new_shape;
 }
 
-void CountNdInput(const UpdateInfo &update_info, ge::Format &ori_format,
-                  ge::NodePtr &node, size_t &count_input_is_nd) {
+void CountNdInput(const UpdateInfo &update_info, ge::Format &ori_format, ge::NodePtr &node, size_t &count_input_is_nd) {
   for (size_t i = 0; i < node->GetAllInDataAnchors().size(); i++) {
     auto input_desc_ptr = node->GetOpDesc()->GetInputDescPtr(static_cast<uint32_t>(i));
     if (input_desc_ptr == nullptr) {
@@ -116,14 +115,13 @@ int64_t GetReshapeTypeMask(const UpdateInfo &update_info, const ge::Format &ori_
   (void)ge::AttrUtils::SetStr(update_info.op_input_or_output_desc, ge::ATTR_NAME_RESHAPE_INFER_TYPE, reshape_type);
   int64_t reshape_type_mask = transformer::ExpandDimension::GenerateReshapeType(
       ori_format, primary_format, update_info.op_input_or_output_desc.GetShape().GetDimNum(), reshape_type);
-  (void)ge::AttrUtils::SetInt(update_info.op_input_or_output_desc, ge::ATTR_NAME_RESHAPE_TYPE_MASK,
-                              reshape_type_mask);
+  (void)ge::AttrUtils::SetInt(update_info.op_input_or_output_desc, ge::ATTR_NAME_RESHAPE_TYPE_MASK, reshape_type_mask);
   return reshape_type_mask;
 }
 
-Status UpdateNewShapeAndFormat(const UpdateInfo& update_info, ge::Format op_kernel_format, const int64_t& group,
-                             const ge::GeShape& original_shape, const ge::GeShape& new_shape,
-                             const std::string& op_type, const std::string& op_name) {
+Status UpdateNewShapeAndFormat(const UpdateInfo &update_info, ge::Format op_kernel_format, const int64_t &group,
+                               const ge::GeShape &original_shape, const ge::GeShape &new_shape,
+                               const std::string &op_type, const std::string &op_name) {
   auto old_format = update_info.op_input_or_output_desc.GetFormat();
   auto new_format = static_cast<ge::Format>(ge::GetPrimaryFormat(op_kernel_format));
   vector<uint32_t> support_sub_format;
@@ -131,7 +129,7 @@ Status UpdateNewShapeAndFormat(const UpdateInfo& update_info, ge::Format op_kern
     support_sub_format = update_info.input_or_output_info_ptr->GetSubformat();
   }
   if (std::find(FE_GROUP_RELA_FORMAT_VECTOR.begin(), FE_GROUP_RELA_FORMAT_VECTOR.end(), new_format) !=
-      FE_GROUP_RELA_FORMAT_VECTOR.end() &&
+          FE_GROUP_RELA_FORMAT_VECTOR.end() &&
       group > GROUPS_DEFAULT_VALUE) {
     FE_LOGD("Op[name=%s, type=%s]: the %s [%u], the group is more than 1, set sub_format to be %ld.", op_name.c_str(),
             op_type.c_str(), IS_INPUT_TO_STRING(update_info.is_input), update_info.index, group);
@@ -141,11 +139,11 @@ Status UpdateNewShapeAndFormat(const UpdateInfo& update_info, ge::Format op_kern
     }
     if (support_sub_format.size() > 0) {
       bool is_need_check_subformat = std::find(support_sub_format.begin(), support_sub_format.end(),
-          SUPPORT_ALL_SUB_FORMAT) == support_sub_format.end();
+                                               SUPPORT_ALL_SUB_FORMAT) == support_sub_format.end();
       if (is_need_check_subformat && std::find(support_sub_format.begin(), support_sub_format.end(),
-          static_cast<uint32_t>(group)) == support_sub_format.end()) {
-        FE_LOGE("Op[name=%s,type=%s]: the %s [%u] group value [%ld] not supported by op_kernel lib.",
-                op_name.c_str(), op_type.c_str(), IS_INPUT_TO_STRING(update_info.is_input), update_info.index, group);
+                                               static_cast<uint32_t>(group)) == support_sub_format.end()) {
+        FE_LOGE("Op[name=%s,type=%s]: the %s [%u] group value [%ld] not supported by op_kernel lib.", op_name.c_str(),
+                op_type.c_str(), IS_INPUT_TO_STRING(update_info.is_input), update_info.index, group);
         return FAILED;
       }
     } else {
@@ -155,8 +153,8 @@ Status UpdateNewShapeAndFormat(const UpdateInfo& update_info, ge::Format op_kern
   }
   if (ge::HasC0Format(op_kernel_format)) {
     int32_t c0_bit = GetC0BitValFromC0(ge::GetC0Value(op_kernel_format));
-    FE_LOGD("Op[name=%s,type=%s]: the %s [%u] format has c0_bit is %d.", op_name.c_str(),
-            op_type.c_str(), IS_INPUT_TO_STRING(update_info.is_input), update_info.index, c0_bit);
+    FE_LOGD("Op[name=%s,type=%s]: the %s [%u] format has c0_bit is %d.", op_name.c_str(), op_type.c_str(),
+            IS_INPUT_TO_STRING(update_info.is_input), update_info.index, c0_bit);
     new_format = static_cast<ge::Format>(ge::GetFormatFromC0(new_format, c0_bit));
   }
 
@@ -169,15 +167,14 @@ Status UpdateNewShapeAndFormat(const UpdateInfo& update_info, ge::Format op_kern
 
   update_info.op_input_or_output_desc.SetFormat(new_format);
 
-  FE_LOGD("Op[name=%s,type=%s]: update the %s [%u], new shape is [%s], origin shape is [%s].",
-          op_name.c_str(), op_type.c_str(), IS_INPUT_TO_STRING(update_info.is_input), update_info.index,
-          GetShapeDims(new_shape).c_str(),
+  FE_LOGD("Op[name=%s,type=%s]: update the %s [%u], new shape is [%s], origin shape is [%s].", op_name.c_str(),
+          op_type.c_str(), IS_INPUT_TO_STRING(update_info.is_input), update_info.index, GetShapeDims(new_shape).c_str(),
           GetShapeDims(original_shape).c_str());
   update_info.op_input_or_output_desc.SetShape(new_shape);
   return SUCCESS;
 }
 
-Status UpdateNewShape(const UpdateInfo& update_info, ge::Format op_kernel_format, ge::DataType op_kernel_dtype,
+Status UpdateNewShape(const UpdateInfo &update_info, ge::Format op_kernel_format, ge::DataType op_kernel_dtype,
                       int64_t group, int64_t op_imply_type_input) {
   auto &original_shape = update_info.op_input_or_output_desc.GetShape();
   auto new_shape = update_info.op_input_or_output_desc.GetShape();
@@ -185,8 +182,8 @@ Status UpdateNewShape(const UpdateInfo& update_info, ge::Format op_kernel_format
   ge::Format op_primary_format = static_cast<ge::Format>(ge::GetPrimaryFormat(op_kernel_format));
 
   if (IsScalarInputOrOutput(original_shape, ori_format)) {
-    FE_LOGD("%s %u of %s is scalar, we do not change its format and shape.",
-            IS_INPUT_TO_STRING(update_info.is_input), update_info.index, update_info.node_ptr->GetName().c_str());
+    FE_LOGD("%s %u of %s is scalar, we do not change its format and shape.", IS_INPUT_TO_STRING(update_info.is_input),
+            update_info.index, update_info.node_ptr->GetName().c_str());
     return SUCCESS;
   }
   const string &op_name = update_info.node_ptr->GetName();
@@ -228,8 +225,7 @@ Status UpdateNewShape(const UpdateInfo& update_info, ge::Format op_kernel_format
                 update_info.node_ptr->GetOpDesc()->GetType().c_str());
         return FAILED;
       }
-      GetReshapeAxisValueByName(ori_format, origin_shape_afer_pad,
-                                'C', update_info.op_input_or_output_desc);
+      GetReshapeAxisValueByName(ori_format, origin_shape_afer_pad, 'C', update_info.op_input_or_output_desc);
     }
   }
 
@@ -239,8 +235,8 @@ Status UpdateNewShape(const UpdateInfo& update_info, ge::Format op_kernel_format
   return SUCCESS;
 }
 
-Status CalcNewShapeAndUpdate(const UpdateInfo& update_info, ge::Format op_kernel_format, ge::DataType op_kernel_dtype) {
-  /* 3.1 Get the origianl shape and original format */
+Status CalcNewShapeAndUpdate(const UpdateInfo &update_info, ge::Format op_kernel_format, ge::DataType op_kernel_dtype) {
+  /* 3.1 Get the original shape and original format */
   ge::Format op_input_or_output_desc_origin_format = GetCurOpOriginFormat(update_info.op_input_or_output_desc);
 
   const string &op_name = update_info.node_ptr->GetName();

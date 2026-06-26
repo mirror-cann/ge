@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,8 +25,7 @@
 #include "asc_lowerer/loop_common.h"
 #include "fusion/autofuse_attrs.h"
 
-
-namespace ge{
+namespace ge {
 const std::string aiv_cnt_key = "_op_vectorcore_num";
 
 std::string GetAscTensorDescStr(const OutDataAnchorPtr &anchor) {
@@ -209,8 +208,8 @@ graphStatus LoweringUtils::GetOriginToReplaced(const Node *const &node, const Co
     if (peer_out != nullptr) {
       NodePtr input_node = origin_input->GetPeerOutAnchor()->GetOwnerNode();
       GE_CHECK_NOTNULL(input_node);
-      if (std::find(input_node_names.begin(), input_node_names.end(),
-                    input_node->GetName()) != input_node_names.end()) {
+      if (std::find(input_node_names.begin(), input_node_names.end(), input_node->GetName()) !=
+          input_node_names.end()) {
         GELOGD("Input node %s is same, skip add edge.", input_node->GetName().c_str());
         continue;
       }
@@ -265,19 +264,24 @@ graphStatus LoweringUtils::CheckSpecialFuseType(loop::KernelBox &kernel_box,
   if (!kernel_box.IsCube() && !(kernel_box.Type() == ge::loop::FuseType::kSliceSplit)) {
     if (asc_graph->IsScalarGraph()) {
       for (const auto &node : kernel_box.GetAscendIrNodes()) {
-        GraphFusionReasonStore::CountNodeFuseFailReason(node->GetName(), "Unsupported scalar AscendC IR graph.",
-                                                        GraphFusionReasonStore::FailReasonCategory::BACKEND_NOT_SUPPORTED);
+        GraphFusionReasonStore::CountNodeFuseFailReason(
+            node->GetName(), "Unsupported scalar AscendC IR graph.",
+            GraphFusionReasonStore::FailReasonCategory::BACKEND_NOT_SUPPORTED);
       }
-      GE_WARN_ASSERT(false, "Fall back lowering for node scope: %s. As unsupported scalar AscendC IR graph for kernel box %s",	 
+      GE_WARN_ASSERT(false,
+                     "Fall back lowering for node scope: %s. As unsupported scalar AscendC IR graph for kernel box %s",
                      kernel_box.DebugString().c_str(), kernel_box.Name().c_str());
     }
   } else if (kernel_box.Type() == ge::loop::FuseType::kSliceSplit) {
     if (asc_graph->IsAscAxisEmpty()) {
       for (const auto &node : kernel_box.GetAscendIrNodes()) {
-        GraphFusionReasonStore::CountNodeFuseFailReason(node->GetName(), "SliceSplit type, Unsupported scalar AscendC IR graph.",
-                                                        GraphFusionReasonStore::FailReasonCategory::BACKEND_NOT_SUPPORTED);
+        GraphFusionReasonStore::CountNodeFuseFailReason(
+            node->GetName(), "SliceSplit type, Unsupported scalar AscendC IR graph.",
+            GraphFusionReasonStore::FailReasonCategory::BACKEND_NOT_SUPPORTED);
       }
-      GE_WARN_ASSERT(false, "SliceSplit type, Fall back lowering for node scope: %s. As unsupported scalar AscendC IR graph for kernel box %s",	 
+      GE_WARN_ASSERT(false,
+                     "SliceSplit type, Fall back lowering for node scope: %s. As unsupported scalar AscendC IR graph "
+                     "for kernel box %s",
                      kernel_box.DebugString().c_str(), kernel_box.Name().c_str());
     }
   }
@@ -298,8 +302,10 @@ graphStatus LoweringUtils::SetStreamLabelForOpDesc(loop::KernelBox &kernel_box, 
   return GRAPH_SUCCESS;
 }
 
-graphStatus LoweringUtils::AddDataEdgesForAscNode(const NodePtr &asc_node, const std::vector<const OutDataAnchor *> &inputs,
-                                                  ge::OutDataAnchor *origin_output, std::set<const ge::Node *> &used_in_nodes) {
+graphStatus LoweringUtils::AddDataEdgesForAscNode(const NodePtr &asc_node,
+                                                  const std::vector<const OutDataAnchor *> &inputs,
+                                                  ge::OutDataAnchor *origin_output,
+                                                  std::set<const ge::Node *> &used_in_nodes) {
   const auto asc_out_anchor = asc_node->GetOutDataAnchor(0);
   GE_ASSERT_NOTNULL(asc_out_anchor);
   for (const auto &dst_anchor : origin_output->GetPeerInDataAnchors()) {
@@ -321,7 +327,8 @@ graphStatus LoweringUtils::AddDataEdgesForAscNode(const NodePtr &asc_node, const
   return GRAPH_SUCCESS;
 }
 
-graphStatus LoweringUtils::GetUnusedInNodes(loop::KernelBox &kernel_box, const std::set<const ge::Node *> &used_in_nodes,
+graphStatus LoweringUtils::GetUnusedInNodes(loop::KernelBox &kernel_box,
+                                            const std::set<const ge::Node *> &used_in_nodes,
                                             std::set<NodePtr> &unused_in_nodes) {
   GELOGD("Start to get unused in nodes for kernel box %s", kernel_box.Name().c_str());
   const std::vector<const ge::Node *> fused_nodes = kernel_box.GetAscendIrNodes();
@@ -379,7 +386,7 @@ graphStatus LoweringUtils::AssembleConcreteEdges(loop::KernelBox &kernel_box, Au
   return GRAPH_SUCCESS;
 }
 
-GraphFusionReasonStore::Storage& GraphFusionReasonStore::GetGlobalStorage() {
+GraphFusionReasonStore::Storage &GraphFusionReasonStore::GetGlobalStorage() {
   static Storage global_storage;
   return global_storage;
 }
@@ -392,11 +399,12 @@ void GraphFusionReasonStore::StartProcessGraph(const std::string &graph_name) {
     GELOGW("Graph name cannot be null");
     return;
   }
-  Storage& storage = GetGlobalStorage();
+  Storage &storage = GetGlobalStorage();
   std::lock_guard<std::mutex> lock(storage.mutex_);
   storage.current_graph_ = graph_name;
 
-  if (std::find(storage.graph_process_order_.begin(), storage.graph_process_order_.end(), graph_name) == storage.graph_process_order_.end()) {
+  if (std::find(storage.graph_process_order_.begin(), storage.graph_process_order_.end(), graph_name) ==
+      storage.graph_process_order_.end()) {
     storage.graph_process_order_.emplace_back(graph_name);
   }
   storage.graph_node_info_[graph_name].clear();
@@ -406,7 +414,7 @@ void GraphFusionReasonStore::AddCurrentGraphNode(const std::string &node_name, c
   if (!IsLogEnable(GE_MODULE_NAME, DLOG_INFO)) {
     return;
   }
-  Storage& storage = GetGlobalStorage();
+  Storage &storage = GetGlobalStorage();
   std::lock_guard<std::mutex> lock(storage.mutex_);
   if (storage.current_graph_.empty()) {
     GELOGW("Current graph must be set, before add Node info");
@@ -419,14 +427,15 @@ void GraphFusionReasonStore::AddCurrentGraphNode(const std::string &node_name, c
   storage.graph_node_info_[storage.current_graph_][node_name] = {node_type, storage.global_node_order_.fetch_add(1)};
 }
 
-void GraphFusionReasonStore::CountNodeFuseFailReason(const std::string &node_name, const std::string &reason, FailReasonCategory category) {
+void GraphFusionReasonStore::CountNodeFuseFailReason(const std::string &node_name, const std::string &reason,
+                                                     FailReasonCategory category) {
   if (!IsLogEnable(GE_MODULE_NAME, DLOG_INFO) && !IsLogEnable(GE_MODULE_NAME, DLOG_DEBUG)) {
     return;
   }
   if (node_name.empty() || reason.empty()) {
     return;
   }
-  Storage& storage = GetGlobalStorage();
+  Storage &storage = GetGlobalStorage();
   std::lock_guard<std::mutex> lock(storage.mutex_);
   storage.node_fusion_reason_[node_name] = {reason, category};
   GELOGI("Skip lowering node %s, as: %s (category: %s)", node_name.c_str(), reason.c_str(), GetCategoryName(category));
@@ -436,7 +445,7 @@ void GraphFusionReasonStore::ShowGraphFusionFailReasons(const std::string &graph
   if (!IsLogEnable(GE_MODULE_NAME, DLOG_INFO) && !IsLogEnable(GE_MODULE_NAME, DLOG_DEBUG)) {
     return;
   }
-  Storage& storage = GetGlobalStorage();
+  Storage &storage = GetGlobalStorage();
   std::lock_guard<std::mutex> lock(storage.mutex_);
   auto graph_it = storage.graph_node_info_.find(graph_name);
   if (graph_it == storage.graph_node_info_.end()) {
@@ -446,10 +455,10 @@ void GraphFusionReasonStore::ShowGraphFusionFailReasons(const std::string &graph
 
   std::vector<std::pair<std::string, NodeInfo>> all_nodes(graph_it->second.begin(), graph_it->second.end());
   std::sort(all_nodes.begin(), all_nodes.end(),
-            [](const auto& a, const auto& b) { return a.second.insert_order < b.second.insert_order; });
+            [](const auto &a, const auto &b) { return a.second.insert_order < b.second.insert_order; });
 
   std::map<FailReasonCategory, std::vector<std::pair<std::string, NodeInfo>>> nodes_by_category;
-  for (const auto& [node_name, node_info] : all_nodes) {
+  for (const auto &[node_name, node_info] : all_nodes) {
     auto reason_it = storage.node_fusion_reason_.find(node_name);
     if (reason_it != storage.node_fusion_reason_.end()) {
       nodes_by_category[reason_it->second.category].emplace_back(node_name, node_info);
@@ -460,11 +469,13 @@ void GraphFusionReasonStore::ShowGraphFusionFailReasons(const std::string &graph
     return;
   }
 
-  for (const auto& [category, nodes] : nodes_by_category) {
-    GELOGI("========== Graph [%s] - %s (%zu nodes) ==========", graph_name.c_str(), GetCategoryName(category), nodes.size());
-    for (const auto& [node_name, node_info] : nodes) {
-      const FailReasonInfo& reason_info = storage.node_fusion_reason_.at(node_name);
-      GELOGI("Node name: %s, type: %s, reason: %s", node_name.c_str(), node_info.node_type.c_str(), reason_info.reason.c_str());
+  for (const auto &[category, nodes] : nodes_by_category) {
+    GELOGI("========== Graph [%s] - %s (%zu nodes) ==========", graph_name.c_str(), GetCategoryName(category),
+           nodes.size());
+    for (const auto &[node_name, node_info] : nodes) {
+      const FailReasonInfo &reason_info = storage.node_fusion_reason_.at(node_name);
+      GELOGI("Node name: %s, type: %s, reason: %s", node_name.c_str(), node_info.node_type.c_str(),
+             reason_info.reason.c_str());
     }
   }
 }
@@ -473,7 +484,7 @@ void GraphFusionReasonStore::ClearGraphData(const std::string &graph_name) {
   if (!IsLogEnable(GE_MODULE_NAME, DLOG_INFO)) {
     return;
   }
-  Storage& storage = GetGlobalStorage();
+  Storage &storage = GetGlobalStorage();
   std::lock_guard<std::mutex> lock(storage.mutex_);
   storage.graph_node_info_.erase(graph_name);
   auto it = std::find(storage.graph_process_order_.begin(), storage.graph_process_order_.end(), graph_name);
@@ -483,4 +494,4 @@ void GraphFusionReasonStore::ClearGraphData(const std::string &graph_name) {
   storage.node_fusion_reason_.erase(graph_name);
   storage.global_node_order_.store(0);
 }
-}
+}  // namespace ge

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,8 +33,8 @@ class KernelTaskProducer : public TaggedTaskProducer {
   void Dump() const override;
 
  private:
-  struct ExecTaskCompare{
-    bool operator() (const ExecTask *task1, const ExecTask *task2) const {
+  struct ExecTaskCompare {
+    bool operator()(const ExecTask *task1, const ExecTask *task2) const {
       if (task1->GetPriority() == task2->GetPriority()) {
         return task1->GetTaskId() > task2->GetTaskId();
       }
@@ -53,10 +53,10 @@ class KernelTaskProducer : public TaggedTaskProducer {
   ge::Status ReInit();
   void RecoveryPriorityQueue();
 
-  std::priority_queue<ExecTask *, std::vector<ExecTask*>, ExecTaskCompare> priority_task_queue_;
+  std::priority_queue<ExecTask *, std::vector<ExecTask *>, ExecTaskCompare> priority_task_queue_;
   TaskAllocator task_allocator_;
   const void *execution_data_{nullptr};
-  std::priority_queue<ExecTask *, std::vector<ExecTask*>, ExecTaskCompare> produced_tasks_;
+  std::priority_queue<ExecTask *, std::vector<ExecTask *>, ExecTaskCompare> produced_tasks_;
 
   size_t thread_num_{3U};
 
@@ -74,4 +74,4 @@ class KernelTaskProducer : public TaggedTaskProducer {
 };
 }  // namespace gert
 
-#endif // AIR_CXX_RUNTIME_V2_KERNEL_TASK_PRODUCER_H
+#endif  // AIR_CXX_RUNTIME_V2_KERNEL_TASK_PRODUCER_H

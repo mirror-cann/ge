@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,7 +28,7 @@ namespace gert {
 namespace {
 void FreeHbmMem(void *p) {
   if (p != nullptr) {
-    (void) aclrtFree(p);
+    (void)aclrtFree(p);
   }
 }
 
@@ -64,7 +64,7 @@ ge::graphStatus GetLibPath(std::string &lib_path) {
   GELOGI("Get host cpu so path from env: %s", lib_path.c_str());
   return ge::GRAPH_SUCCESS;
 }
-} // namespace
+}  // namespace
 
 AicpuResourceManager &AicpuResourceManager::GetInstance() {
   static AicpuResourceManager aicpu_resource_manager;
@@ -99,8 +99,8 @@ ge::graphStatus AicpuResourceManager::LoadConstantFoldingLib() {
     return ge::INTERNAL_ERROR;
   }
 
-  const auto initialize = reinterpret_cast<ge::Status (*)(const ge::HostCpuContext &)>(mmDlsym(so_handle_,
-                                                                                               "Initialize"));
+  const auto initialize =
+      reinterpret_cast<ge::Status (*)(const ge::HostCpuContext &)>(mmDlsym(so_handle_, "Initialize"));
   if (initialize != nullptr) {
     GELOGI("Invoke function Initialize in lib: %s", lib_path.c_str());
     if (initialize(ge::HostCpuContext()) != ge::SUCCESS) {
@@ -110,8 +110,8 @@ ge::graphStatus AicpuResourceManager::LoadConstantFoldingLib() {
   run_cpu_kernel_ = reinterpret_cast<uint32_t (*)(void *)>(mmDlsym(so_handle_, "RunHostCpuKernel"));
   GE_ASSERT_NOTNULL(run_cpu_kernel_);
 
-  aicpu_host_find_func_ = reinterpret_cast<AicpuHostProcFunc (*)(std::string)>(mmDlsym(so_handle_,
-                          "AicpuHostFindFunc"));
+  aicpu_host_find_func_ =
+      reinterpret_cast<AicpuHostProcFunc (*)(std::string)>(mmDlsym(so_handle_, "AicpuHostFindFunc"));
   GE_ASSERT_NOTNULL(aicpu_host_find_func_);
 
   GELOGI("Lib: %s has been opened", lib_path.c_str());
@@ -131,8 +131,8 @@ ge::graphStatus AicpuResourceManager::CheckOrCreateHandle(const std::string &op_
   if (handles_.find(op_name) == handles_.end()) {
     GE_ASSERT_RT_OK(aclrtSynchronizeStream(stream));
     uint64_t handle = 0;
-    GE_ASSERT_RT_OK(rtMemcpy(&handle, sizeof(uint64_t), handle_data->GetAddr(), sizeof(uint64_t),
-                             RT_MEMCPY_DEVICE_TO_HOST));
+    GE_ASSERT_RT_OK(
+        rtMemcpy(&handle, sizeof(uint64_t), handle_data->GetAddr(), sizeof(uint64_t), RT_MEMCPY_DEVICE_TO_HOST));
     handles_[op_name] = handle;
   }
   return ge::GRAPH_SUCCESS;
@@ -172,10 +172,10 @@ ge::graphStatus AicpuResourceManager::HasLoadedCustAicpuSo(const std::string &so
   // get current context
   aclrtContext rt_current_ctx = nullptr;
   GE_CHK_ACL_RET(aclrtGetCurrentContext(&rt_current_ctx));
- 
+
   // use current context as resource key
   const std::lock_guard<std::mutex> lk(cust_aicpu_so_mutex_);
- 
+
   const uintptr_t resource_id =
       static_cast<uintptr_t>(static_cast<uint64_t>(reinterpret_cast<uintptr_t>(rt_current_ctx)));
   if (cust_aicpu_context_so_.find(resource_id) == cust_aicpu_context_so_.end()) {
@@ -209,13 +209,12 @@ ge::graphStatus CreateStepId(KernelContext *context) {
 }
 
 ge::graphStatus CreateOutputForStepId(const ge::FastNode *node, KernelContext *context) {
-  (void) node;
+  (void)node;
   auto chain = context->GetOutput(0U);
   GE_CHECK_NOTNULL(chain);
 
   void *step_id = nullptr;
-  GE_ASSERT_ACL_OK(ge::AclrtMalloc(&step_id, sizeof(int64_t), RT_MEMORY_HBM,
-                                  GE_MODULE_NAME_U16));
+  GE_ASSERT_ACL_OK(ge::AclrtMalloc(&step_id, sizeof(int64_t), RT_MEMORY_HBM, GE_MODULE_NAME_U16));
   chain->Set(step_id, FreeHbmMem);
   return ge::GRAPH_SUCCESS;
 }
@@ -224,13 +223,13 @@ REGISTER_KERNEL(CreateStepId).RunFunc(CreateStepId).OutputsCreator(CreateOutputF
 ge::graphStatus IncreaseStepId(KernelContext *context) {
   auto step_id = context->GetInputValue<void *>(0U);
   auto iteration = context->MutableInputPointer<int64_t>(1U);
-  auto stream = context->GetInputValue<rtStream_t>(2U); // 2 stream idx
+  auto stream = context->GetInputValue<rtStream_t>(2U);  // 2 stream idx
   GE_CHECK_NOTNULL(step_id);
   GE_CHECK_NOTNULL(iteration);
 
   *iteration += 1;
-  GE_ASSERT_RT_OK(rtMemcpyAsync(step_id, sizeof(int64_t), iteration, sizeof(int64_t), RT_MEMCPY_HOST_TO_DEVICE_EX,
-                                stream));
+  GE_ASSERT_RT_OK(
+      rtMemcpyAsync(step_id, sizeof(int64_t), iteration, sizeof(int64_t), RT_MEMCPY_HOST_TO_DEVICE_EX, stream));
   AicpuResourceManager::GetInstance().ClearTensors();
   return ge::GRAPH_SUCCESS;
 }

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -15,7 +15,6 @@
 #include "engine/ffts_plus/converter/ffts_plus_proto_transfer.h"
 #include "ge/ut/ge/ffts_plus_proto_tools.h"
 #include "macro_utils/dt_public_unscope.h"
-
 
 using namespace std;
 using namespace testing;
@@ -56,4 +55,4 @@ TEST_F(UtestRt2ScatteredCollection, InitAutoMixAicAivCtx_Test) {
   start_idx = 7;
   EXPECT_EQ(ffpt.InitAutoMixAicAivCtx(mixctxdef, ctx, start_idx), ge::FAILED);
 }
-}
+}  // namespace gert

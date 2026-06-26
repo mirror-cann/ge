@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,11 +30,8 @@ Status LogInputs(const NodeItem &node_item, const TaskContext &task_context) {
     GE_CHECK_NOTNULL(input_tensor);
     const auto &tensor_desc = task_context.GetInputDesc(i);
     GE_CHECK_NOTNULL(tensor_desc);
-    GELOGD("[%s] Print task args. input[%d] = %s, shape = [%s]",
-           node_item.NodeName().c_str(),
-           i,
-           input_tensor->DebugString().c_str(),
-           tensor_desc->GetShape().ToString().c_str());
+    GELOGD("[%s] Print task args. input[%d] = %s, shape = [%s]", node_item.NodeName().c_str(), i,
+           input_tensor->DebugString().c_str(), tensor_desc->GetShape().ToString().c_str());
   }
 
   return SUCCESS;
@@ -46,11 +43,8 @@ Status LogOutputs(const NodeItem &node_item, const TaskContext &task_context) {
     GE_CHECK_NOTNULL(output_tensor);
     const auto &tensor_desc = node_item.MutableOutputDesc(i);
     GE_CHECK_NOTNULL(tensor_desc);
-    GELOGD("[%s] Print task args. output[%d] = %s, shape = [%s]",
-           node_item.NodeName().c_str(),
-           i,
-           output_tensor->DebugString().c_str(),
-           tensor_desc->MutableShape().ToString().c_str());
+    GELOGD("[%s] Print task args. output[%d] = %s, shape = [%s]", node_item.NodeName().c_str(), i,
+           output_tensor->DebugString().c_str(), tensor_desc->MutableShape().ToString().c_str());
   }
 
   return SUCCESS;
@@ -59,13 +53,11 @@ Status LogOutputs(const NodeItem &node_item, const TaskContext &task_context) {
 
 NodeDoneCallback::NodeDoneCallback(GraphExecutionContext *const graph_context,
                                    const std::shared_ptr<TaskContext> task_context)
-    : graph_context_(graph_context), context_(task_context) {
-}
+    : graph_context_(graph_context), context_(task_context) {}
 
 Status NodeDoneCallback::PrepareConstInputs(const NodeItem &node_item) const {
   for (const auto output_idx : node_item.to_const_output_id_list) {
-    RECORD_CALLBACK_EVENT(graph_context_, node_item.NodeName().c_str(),
-                          "[PrepareConstInputs] [index = %d] Start",
+    RECORD_CALLBACK_EVENT(graph_context_, node_item.NodeName().c_str(), "[PrepareConstInputs] [index = %d] Start",
                           output_idx);
 
     const auto output_tensor = context_->GetOutput(output_idx);
@@ -80,35 +72,36 @@ Status NodeDoneCallback::PrepareConstInputs(const NodeItem &node_item) const {
                             "[Get][TensorSize] In Bytes failed");
     if (output_tensor->GetSize() < static_cast<size_t>(tensor_size)) {
       GELOGE(INTERNAL_ERROR,
-          "[Check][Size] [%s(%s)] Tensor size is not enough. output index = %d, required size = %ld, tensor = %s.",
-          node_item.NodeName().c_str(), node_item.NodeType().c_str(), output_idx, tensor_size,
-          output_tensor->DebugString().c_str());
+             "[Check][Size] [%s(%s)] Tensor size is not enough. output index = %d, required size = %ld, tensor = %s.",
+             node_item.NodeName().c_str(), node_item.NodeType().c_str(), output_idx, tensor_size,
+             output_tensor->DebugString().c_str());
       REPORT_INNER_ERR_MSG("E19999",
-                         "[%s(%s)] Tensor size is not enough. output index = %d, required size = "
-			 "%" PRId64 ", tensor = %s.", node_item.NodeName().c_str(), node_item.NodeType().c_str(),
-			 output_idx, tensor_size, output_tensor->DebugString().c_str());
+                           "[%s(%s)] Tensor size is not enough. output index = %d, required size = "
+                           "%" PRId64 ", tensor = %s.",
+                           node_item.NodeName().c_str(), node_item.NodeType().c_str(), output_idx, tensor_size,
+                           output_tensor->DebugString().c_str());
       return INTERNAL_ERROR;
     }
     if (graph_context_->is_host_cpu) {
       (void)ge_tensor->SetData(static_cast<const uint8_t *>(output_tensor->GetData()), tensor_size);
     } else {
       std::vector<uint8_t> host_buffer(static_cast<size_t>(tensor_size));
-      GELOGD("[%s] To cache output[%d] to host, size = %zu", node_item.NodeName().c_str(),
-             output_idx, output_tensor->GetSize());
+      GELOGD("[%s] To cache output[%d] to host, size = %zu", node_item.NodeName().c_str(), output_idx,
+             output_tensor->GetSize());
       if (tensor_size > 0) {
-        GE_CHK_ACL_RET(aclrtMemcpy(host_buffer.data(), static_cast<uint64_t>(tensor_size),
-            output_tensor->GetData(), static_cast<uint64_t>(tensor_size), ACL_MEMCPY_DEVICE_TO_HOST));
+        GE_CHK_ACL_RET(aclrtMemcpy(host_buffer.data(), static_cast<uint64_t>(tensor_size), output_tensor->GetData(),
+                                   static_cast<uint64_t>(tensor_size), ACL_MEMCPY_DEVICE_TO_HOST));
       }
       (void)ge_tensor->SetData(std::move(host_buffer));
     }
     GE_CHK_STATUS_RET(graph_context_->runtime_context_.SetTensor(node_item.node_id, output_idx, std::move(ge_tensor)),
-                      "[Set][Tensor] Failed, node = %s(%s), output_index = %d",
-                      node_item.NodeName().c_str(), node_item.NodeType().c_str(), output_idx);
-    GELOGD("[%s] Output[%d] cached successfully. node_id = %ld, shape = [%s]",
-           node_item.NodeName().c_str(), output_idx, node_item.node_id, ge_tensor_desc->GetShape().ToString().c_str());
+                      "[Set][Tensor] Failed, node = %s(%s), output_index = %d", node_item.NodeName().c_str(),
+                      node_item.NodeType().c_str(), output_idx);
+    GELOGD("[%s] Output[%d] cached successfully. node_id = %ld, shape = [%s]", node_item.NodeName().c_str(), output_idx,
+           node_item.node_id, ge_tensor_desc->GetShape().ToString().c_str());
 
-    RECORD_CALLBACK_EVENT(graph_context_, node_item.NodeName().c_str(),
-                          "[PrepareConstInputs] [index = %d] End", output_idx);
+    RECORD_CALLBACK_EVENT(graph_context_, node_item.NodeName().c_str(), "[PrepareConstInputs] [index = %d] End",
+                          output_idx);
   }
   return SUCCESS;
 }
@@ -137,7 +130,6 @@ Status NodeDoneCallback::GetTaskDescInfo(TaskContext &context, const NodePtr nod
 
   return SUCCESS;
 }
-
 
 Status NodeDoneCallback::DumpDynamicNode() {
   const auto &node = context_->GetNodeItem().node;
@@ -186,7 +178,7 @@ Status NodeDoneCallback::DumpDynamicNode() {
   dump_op_.SetTaskId(context_->GetTaskId());
   dump_op_.SetStreamId(context_->GetStreamId());
   GE_CHK_STATUS_RET(dump_op_.LaunchDumpOp(context_->GetDumpProperties().IsSingleOpNeedDump()),
-                    "[Launch][DumpOp] failed in hybird model.");
+                    "[Launch][DumpOp] failed in hybrid model.");
   std::string stream_synchronize_timeout;
   (void)ge::GetContext().GetOption(OPTION_EXEC_STREAM_SYNC_TIMEOUT, stream_synchronize_timeout);
   auto timeout = (!stream_synchronize_timeout.empty())
@@ -284,10 +276,8 @@ Status NodeDoneCallback::OnNodeDone() {
   return SUCCESS;
 }
 
-Status ExecutionEngine::ExecuteAsync(const NodeState &node_state,
-                                     const std::shared_ptr<TaskContext> &task_context,
-                                     GraphExecutionContext &execution_context,
-                                     const std::function<void()> &callback) {
+Status ExecutionEngine::ExecuteAsync(const NodeState &node_state, const std::shared_ptr<TaskContext> &task_context,
+                                     GraphExecutionContext &execution_context, const std::function<void()> &callback) {
   GELOGI("[%s] Node is ready for execution", task_context->GetNodeName());
   RECORD_EXECUTION_EVENT(&execution_context, task_context->GetNodeName(), "Start");
   GE_CHK_STATUS_RET_NOLOG(DoExecuteAsync(node_state, *task_context, execution_context, callback));
@@ -295,16 +285,14 @@ Status ExecutionEngine::ExecuteAsync(const NodeState &node_state,
   return SUCCESS;
 }
 
-Status ExecutionEngine::DoExecuteAsync(const NodeState &node_state,
-                                       TaskContext &task_context,
-                                       GraphExecutionContext &context,
-                                       const std::function<void()> &callback) {
+Status ExecutionEngine::DoExecuteAsync(const NodeState &node_state, TaskContext &task_context,
+                                       GraphExecutionContext &context, const std::function<void()> &callback) {
   const auto &task = node_state.GetKernelTask();
   if (task == nullptr) {
-    GELOGE(INTERNAL_ERROR, "[Get][KernelTask] of [%s(%s)] is null.",
-           node_state.GetName().c_str(), node_state.GetType().c_str());
-    REPORT_INNER_ERR_MSG("E19999", "GetKernelTask of %s(%s) failed.",
-                       node_state.GetName().c_str(), node_state.GetType().c_str());
+    GELOGE(INTERNAL_ERROR, "[Get][KernelTask] of [%s(%s)] is null.", node_state.GetName().c_str(),
+           node_state.GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "GetKernelTask of %s(%s) failed.", node_state.GetName().c_str(),
+                         node_state.GetType().c_str());
     return INTERNAL_ERROR;
   }
 
@@ -339,8 +327,8 @@ Status ExecutionEngine::DoExecuteAsync(const NodeState &node_state,
 
   PROFILING_START(node_state.GetProfilingIndex(), profiling::kLaunchTask);
   HYBRID_CHK_STATUS_RET(node_item.node_executor->ExecuteTask(*task, task_context, callback),
-                        "[Call][ExecuteTask] [%s(%s)] Failed to execute task",
-                        node_state.GetName().c_str(), node_state.GetType().c_str());
+                        "[Call][ExecuteTask] [%s(%s)] Failed to execute task", node_state.GetName().c_str(),
+                        node_state.GetType().c_str());
   PROFILING_END(node_state.GetProfilingIndex(), profiling::kLaunchTask);
 
   GELOGD("[%s] Done task launch successfully.", node_state.GetName().c_str());
@@ -379,20 +367,18 @@ Status ExecutionEngine::ValidateInputTensors(const NodeState &node_state, const 
     const auto size_diff = expected_size - static_cast<int64_t>(input_tensor->GetSize());
     if (size_diff > 0) {
       if (size_diff <= kMaxPaddings) {
-        GELOGW("[%s] Input[%d]: tensor size mismatches. expected: %ld, but given %zu",
-               task_context.GetNodeName(),
-               i,
-               expected_size,
-               input_tensor->GetSize());
+        GELOGW("[%s] Input[%d]: tensor size mismatches. expected: %ld, but given %zu", task_context.GetNodeName(), i,
+               expected_size, input_tensor->GetSize());
       } else {
         GELOGE(INTERNAL_ERROR,
                "[Check][Size] for [%s(%s)] Input[%d]: tensor size mismatches. expected: %ld, but given %zu.",
-               task_context.GetNodeName(), task_context.GetNodeItem().NodeType().c_str(),
-               i, expected_size, input_tensor->GetSize());
-        REPORT_INNER_ERR_MSG("E19999", "[%s(%s)] Input[%d]: tensor size mismatches. expected: "
-			   "%" PRId64 ", but given %zu.", task_context.GetNodeName(),
-			   task_context.GetNodeItem().NodeType().c_str(), i, expected_size,
-			   input_tensor->GetSize());
+               task_context.GetNodeName(), task_context.GetNodeItem().NodeType().c_str(), i, expected_size,
+               input_tensor->GetSize());
+        REPORT_INNER_ERR_MSG("E19999",
+                             "[%s(%s)] Input[%d]: tensor size mismatches. expected: "
+                             "%" PRId64 ", but given %zu.",
+                             task_context.GetNodeName(), task_context.GetNodeItem().NodeType().c_str(), i,
+                             expected_size, input_tensor->GetSize());
         return INTERNAL_ERROR;
       }
     }
@@ -401,8 +387,7 @@ Status ExecutionEngine::ValidateInputTensors(const NodeState &node_state, const 
   return SUCCESS;
 }
 
-Status ExecutionEngine::PropagateOutputs(const NodeItem &node_item,
-                                         const TaskContext &task_context,
+Status ExecutionEngine::PropagateOutputs(const NodeItem &node_item, const TaskContext &task_context,
                                          const GraphExecutionContext &context) {
   if (node_item.shape_inference_type != DEPEND_COMPUTE) {
     PROFILING_START(-1, profiling::kPropgateOutputs);

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -320,7 +320,7 @@ TEST_F(UtestRecomputePass, test_auto_recompute) {
   auto x_desc = std::make_shared<OpDesc>("x", DATA);
   x_desc->AddOutputDesc(scalar_tensor);
   auto x_node = graph->AddNode(x_desc);
-  EXPECT_EQ(recompute_pass.Run(graph), FAILED); // 去掉了MDAT的依赖 直接返回不支持
+  EXPECT_EQ(recompute_pass.Run(graph), FAILED);  // 去掉了MDAT的依赖 直接返回不支持
 }
 
 TEST_F(UtestRecomputePass, test_aoe_dump) {
@@ -344,4 +344,4 @@ TEST_F(UtestRecomputePass, test_subgraph_not_recompute) {
   subgraph->SetParentGraph(graph);
   EXPECT_EQ(recompute_pass.Run(subgraph), SUCCESS);
 }
-} // namespace ge
+}  // namespace ge

@@ -1,5 +1,5 @@
 # dataflow.Tensor
 
-- **[Tensor](Tensor.md)**  
+- **[Tensor](Tensor.md)**
 
-- **[numpy](numpy.md)**  
+- **[numpy](numpy.md)**

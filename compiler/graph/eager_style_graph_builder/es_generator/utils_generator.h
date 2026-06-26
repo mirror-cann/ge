@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -42,7 +42,7 @@ class UtilsGenerator {
   std::vector<std::string> GetUtilFileNames() const {
     std::vector<std::string> util_names;
     util_names.reserve(utils_to_hss.size());
-    for (const auto &util_map: utils_to_hss) {
+    for (const auto &util_map : utils_to_hss) {
       util_names.emplace_back("es_" + util_map.first + ".h");
     }
     return util_names;
@@ -60,7 +60,7 @@ class UtilsGenerator {
   void GenPerUtilFiles(const std::string &output_dir, const std::vector<string> &util_names) const {
     // 生成utils相关hpp
     WritePerUtilFiles(output_dir, util_names, GetPerUtilContents(),
-                    [this](const std::string &util_name) { return GetPerUtilFileName(util_name); });
+                      [this](const std::string &util_name) { return GetPerUtilFileName(util_name); });
   }
 
  private:
@@ -68,7 +68,7 @@ class UtilsGenerator {
     return std::string("es_") + util_name + ".h";
   }
 
-  static void GenUtilsBody(const std::string& utils_name, std::stringstream &hss) {
+  static void GenUtilsBody(const std::string &utils_name, std::stringstream &hss) {
     if (utils_name == "log") {
       GenELog(hss);
     }

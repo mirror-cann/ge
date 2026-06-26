@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -389,8 +389,8 @@ bool GraphMatcher::MatchOriginNodeOutPeers(FusionRuleAnchorPtr rule_anchor, ge::
       if (peer_graph_anchors.empty()) {  // graph_node has no successors
         FusionRuleNodePtr rule_node = rule_anchor->GetOwnerNode();
         NodePtr graph_node = graph_anchor->GetOwnerNode();
-        FE_LOGW("Output does not have an outer_output. Rule node [%s], graph node [%s].", rule_node->GetNodeName().c_str(),
-                graph_node->GetName().c_str());
+        FE_LOGW("Output does not have an outer_output. Rule node [%s], graph node [%s].",
+                rule_node->GetNodeName().c_str(), graph_node->GetName().c_str());
         match_result.outer_outputs.emplace(peer_rule_anchors[0], set<ge::AnchorPtr>{});
         return true;
       }
@@ -437,8 +437,8 @@ bool GraphMatcher::MatchOriginNodeOutputs(FusionRuleNodePtr rule_node, NodePtr g
     FE_CHECK(rule_anchor == nullptr, FE_LOGW("rule_anchor is null."), return false);
     ge::AnchorPtr graph_anchor = graph_data_anchors.at(idx);
     if (graph_anchor == nullptr || rule_anchor->GetAnchorIdx() != graph_anchor->GetIdx()) {
-      FE_LOGW("The %zu output anchor is nullptr or the anchor index [%d] is not matched, rule:%s, rule node[%s].",
-              idx, rule_anchor->GetAnchorIdx(), rule_->GetRuleName().c_str(), rule_node->GetNodeName().c_str());
+      FE_LOGW("The %zu output anchor is nullptr or the anchor index [%d] is not matched, rule:%s, rule node[%s].", idx,
+              rule_anchor->GetAnchorIdx(), rule_->GetRuleName().c_str(), rule_node->GetNodeName().c_str());
       return false;
     }
 
@@ -642,7 +642,7 @@ bool GraphMatcher::MatchPeer(FusionRuleAnchorPtr peer_rule_anchor, ge::AnchorPtr
     return false;
   }
 
-  // Avoid repeat match if the node have been matched in other matchs.
+  // Avoid repeat match if the node have been matched in other matches.
   NodePtr peer_graph_node = peer_graph_anchor->GetOwnerNode();
   bool check_repeat_matched = (prev_matched_origin_nodes_.find(peer_graph_node) != prev_matched_origin_nodes_.cend() &&
                                !IsOuterInput(peer_rule_anchor) && !IsOuterOutput(peer_rule_anchor));
@@ -684,8 +684,7 @@ bool GraphMatcher::MatchPeer(FusionRuleAnchorPtr peer_rule_anchor, ge::AnchorPtr
       // Save outer input to match_result.outer_inputs.
       match_result.outer_inputs.emplace(peer_rule_anchor, peer_graph_anchor);
       FE_CHECK(graph_origin_anchor == nullptr,
-               REPORT_FE_ERROR("[GraphOpt][RunFusionRule][MatchPeer] The input origin anchor is null"),
-               return false);
+               REPORT_FE_ERROR("[GraphOpt][RunFusionRule][MatchPeer] The input origin anchor is null"), return false);
       match_result.origin_outer_inputs.emplace(peer_rule_anchor, graph_origin_anchor);
     } else if (IsOuterOutput(peer_rule_anchor)) {
       // Save outer output to match_result.outer_outputs.

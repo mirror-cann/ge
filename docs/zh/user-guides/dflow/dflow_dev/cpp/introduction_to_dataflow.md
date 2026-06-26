@@ -14,7 +14,7 @@
 
 DataFlow用于描述采用数据队列以数据驱动方式将一个或多个计算处理点（ProcessPoint）组织成完整的计算流。ProcessPoint与算子的关键区别是采用异步方式处理。DataFlow通过FlowGraph来承载，ProcessPoint通过FlowNode来承载，各个接口之间的关系如下所示。
 
-**图1**  DataFlow相关接口之间的关系  
+**图1**  DataFlow相关接口之间的关系
 ![](figures/DataFlow相关接口之间的关系.png "DataFlow相关接口之间的关系")
 
 - FlowGraph：DataFlow的Graph，由输入节点FlowData和计算节点FlowNode构成。

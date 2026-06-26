@@ -35,7 +35,7 @@ To be constructed.
       source /usr/local/Ascend/driver/bin/setenv.sh
       # Path to your own CANN package installation, refer to (docs/build.md) to install the community toolkit package
       source /usr/local/Ascend/ascend-toolkit/set_env.sh
-    
+
     export PYTHONPATH=/usr_path/:$PYTHONPATH
     # Assume running on device0
       export ASCEND_DEVICE_ID=0

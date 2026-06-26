@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,8 +32,7 @@ TEST_F(DsaNodeConverterUT, ConvertDsaNode) {
   randomnormal_op_desc->SetOpKernelLibName(ge::kEngineNameDsa.c_str());
   DsaCoreTaskDefFaker dsa_task_def_faker;
   auto root_model = GeModelBuilder(graph).BuildGeRootModel();
-  auto global_data = GlobalDataFaker(root_model).AddTaskDef("DSARandomNormal",
-                                                       dsa_task_def_faker).Build();
+  auto global_data = GlobalDataFaker(root_model).AddTaskDef("DSARandomNormal", dsa_task_def_faker).Build();
   LowerInput data_input = {{}, {}, &global_data};
 
   auto data1_ret = LoweringDataNode(graph->FindNode("count"), data_input);
@@ -45,11 +44,10 @@ TEST_F(DsaNodeConverterUT, ConvertDsaNode) {
   ASSERT_TRUE(data3_ret.result.IsSuccess());
   ASSERT_TRUE(data4_ret.result.IsSuccess());
 
-  LowerInput random_input = {{data1_ret.out_shapes[0], data2_ret.out_shapes[0],
-                              data3_ret.out_shapes[0], data4_ret.out_shapes[0]},
-                             {data1_ret.out_addrs[0], data2_ret.out_addrs[0],
-                              data3_ret.out_addrs[0], data4_ret.out_addrs[0]},
-                             &global_data};
+  LowerInput random_input = {
+      {data1_ret.out_shapes[0], data2_ret.out_shapes[0], data3_ret.out_shapes[0], data4_ret.out_shapes[0]},
+      {data1_ret.out_addrs[0], data2_ret.out_addrs[0], data3_ret.out_addrs[0], data4_ret.out_addrs[0]},
+      &global_data};
 
   auto init_node = bg::ValueHolder::CreateVoid<bg::ValueHolder>("Init", {});
   bg::ValueHolder::PushGraphFrame(init_node, "Init");

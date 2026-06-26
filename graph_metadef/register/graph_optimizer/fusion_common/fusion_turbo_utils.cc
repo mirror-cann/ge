@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -15,41 +15,41 @@
 
 namespace fe {
 const std::array<size_t, static_cast<size_t>(ge::DT_MAX + 1)> data_type_size = {
-    4, // DT_FLOAT = 0,
-    2, // DT_FLOAT16 = 1,
-    1, // DT_INT8 = 2,
-    4, // DT_INT32 = 3,
-    1, // DT_UINT8 = 4,
-    1, // DT_xxxx = 5,
-    2, // DT_INT16 = 6,
-    2, // DT_UINT16 = 7,
-    4, // DT_UINT32 = 8,
-    8, // DT_INT64 = 9,
-    8, // DT_UINT64 = 10,
-    8, // DT_DOUBLE = 11,
-    1, // DT_BOOL = 12,
-    8, // DT_STRING = 13,
-    1, // DT_DUAL_SUB_INT8 = 14,
-    1, // DT_DUAL_SUB_UINT8 = 15,
-    8, // DT_COMPLEX64 = 16,
-    16, // DT_COMPLEX128 = 17,
-    1, // DT_QINT8 = 18,
-    2, // DT_QINT16 = 19,
-    4, // DT_QINT32 = 20,
-    1, // DT_QUINT8 = 21,
-    2, // DT_QUINT16 = 22,
-    1, // DT_RESOURCE = 23,
-    1, // DT_STRING_REF = 24,
-    1, // DT_DUAL = 25,
-    1, // DT_VARIANT = 26,
-    2, // DT_BF16 = 27,
-    1, // DT_UNDEFINED = 28,
-    1, // DT_INT4 = 29,
-    1, // DT_UINT1 = 30,
-    1, // DT_INT2 = 31,
-    4, // DT_UINT2 = 32,
-    4, // DT_COMPLEX32 = 33,
-    0, // DT_MAX = 34
+    4,   // DT_FLOAT = 0,
+    2,   // DT_FLOAT16 = 1,
+    1,   // DT_INT8 = 2,
+    4,   // DT_INT32 = 3,
+    1,   // DT_UINT8 = 4,
+    1,   // DT_xxxx = 5,
+    2,   // DT_INT16 = 6,
+    2,   // DT_UINT16 = 7,
+    4,   // DT_UINT32 = 8,
+    8,   // DT_INT64 = 9,
+    8,   // DT_UINT64 = 10,
+    8,   // DT_DOUBLE = 11,
+    1,   // DT_BOOL = 12,
+    8,   // DT_STRING = 13,
+    1,   // DT_DUAL_SUB_INT8 = 14,
+    1,   // DT_DUAL_SUB_UINT8 = 15,
+    8,   // DT_COMPLEX64 = 16,
+    16,  // DT_COMPLEX128 = 17,
+    1,   // DT_QINT8 = 18,
+    2,   // DT_QINT16 = 19,
+    4,   // DT_QINT32 = 20,
+    1,   // DT_QUINT8 = 21,
+    2,   // DT_QUINT16 = 22,
+    1,   // DT_RESOURCE = 23,
+    1,   // DT_STRING_REF = 24,
+    1,   // DT_DUAL = 25,
+    1,   // DT_VARIANT = 26,
+    2,   // DT_BF16 = 27,
+    1,   // DT_UNDEFINED = 28,
+    1,   // DT_INT4 = 29,
+    1,   // DT_UINT1 = 30,
+    1,   // DT_INT2 = 31,
+    4,   // DT_UINT2 = 32,
+    4,   // DT_COMPLEX32 = 33,
+    0,   // DT_MAX = 34
 };
 
 ge::NodePtr FusionTurboUtils::GetConstInput(const ge::NodePtr &node, int32_t index) {
@@ -220,14 +220,14 @@ Relations::Relations(Relations &&relations_param) noexcept {
   out_relations = std::move(relations_param.out_relations);
 }
 
-Relations& Relations::operator=(const Relations &relations_param) {
+Relations &Relations::operator=(const Relations &relations_param) {
   ori_relations = relations_param.ori_relations;
   in_relations = relations_param.in_relations;
   out_relations = relations_param.out_relations;
   return *this;
 }
 
-Relations& Relations::operator=(Relations &&relations_param) noexcept {
+Relations &Relations::operator=(Relations &&relations_param) noexcept {
   ori_relations = std::move(relations_param.ori_relations);
   in_relations = std::move(relations_param.in_relations);
   out_relations = std::move(relations_param.out_relations);
@@ -250,21 +250,20 @@ Relations::Relations(ThisIndex this_index, NodeIndices &&peer_indices) {
   std::ignore = Add(this_index, std::move(peer_indices));
 }
 
-Relations::Relations(
-    const std::initializer_list<std::pair<ThisIndex, NodeIndex>> &peer_indices) {
-  for (const auto &index_pair: peer_indices) {
+Relations::Relations(const std::initializer_list<std::pair<ThisIndex, NodeIndex>> &peer_indices) {
+  for (const auto &index_pair : peer_indices) {
     std::ignore = Add(index_pair.first, index_pair.second);
   }
 }
 
 Relations::Relations(
     const std::initializer_list<std::pair<ThisIndex, std::initializer_list<NodeIndex>>> &peer_indices_vec) {
-  for (const auto &peer_indices: peer_indices_vec) {
+  for (const auto &peer_indices : peer_indices_vec) {
     std::ignore = Add(peer_indices.first, peer_indices.second);
   }
 }
 
-Relations& Relations::Add(ThisIndex this_index, const NodeIndex &peer_index) {
+Relations &Relations::Add(ThisIndex this_index, const NodeIndex &peer_index) {
   const auto iter = ori_relations.find(this_index);
   if (iter == ori_relations.end()) {
     NodeIndices temp = {peer_index};
@@ -276,7 +275,7 @@ Relations& Relations::Add(ThisIndex this_index, const NodeIndex &peer_index) {
   return *this;
 }
 
-Relations& Relations::Add(ThisIndex this_index, NodeIndex &&peer_index) {
+Relations &Relations::Add(ThisIndex this_index, NodeIndex &&peer_index) {
   PreProcessOneNodeIndex(this_index, peer_index);
   const auto iter = ori_relations.find(this_index);
   if (iter == ori_relations.end()) {
@@ -288,7 +287,7 @@ Relations& Relations::Add(ThisIndex this_index, NodeIndex &&peer_index) {
   return *this;
 }
 
-Relations& Relations::Add(ThisIndex this_index, const std::initializer_list<NodeIndex> &peer_indices) {
+Relations &Relations::Add(ThisIndex this_index, const std::initializer_list<NodeIndex> &peer_indices) {
   const auto iter = ori_relations.find(this_index);
   if (iter == ori_relations.end()) {
     std::ignore = ori_relations.emplace(std::make_pair(this_index, peer_indices));
@@ -301,7 +300,7 @@ Relations& Relations::Add(ThisIndex this_index, const std::initializer_list<Node
   return *this;
 }
 
-Relations& Relations::Add(ThisIndex this_index, const NodeIndices &peer_indices) {
+Relations &Relations::Add(ThisIndex this_index, const NodeIndices &peer_indices) {
   const auto iter = ori_relations.find(this_index);
   if (iter == ori_relations.end()) {
     std::ignore = ori_relations.emplace(std::make_pair(this_index, peer_indices));
@@ -314,7 +313,7 @@ Relations& Relations::Add(ThisIndex this_index, const NodeIndices &peer_indices)
   return *this;
 }
 
-Relations& Relations::Add(ThisIndex this_index, NodeIndices &&peer_indices) {
+Relations &Relations::Add(ThisIndex this_index, NodeIndices &&peer_indices) {
   PreProcessNodeIndices(this_index, peer_indices);
   const auto iter = ori_relations.find(this_index);
   if (iter == ori_relations.end()) {
@@ -327,39 +326,39 @@ Relations& Relations::Add(ThisIndex this_index, NodeIndices &&peer_indices) {
   return *this;
 }
 
-Relations& Relations::UpdatePeerIndex(ThisIndex this_index, NodeIndices &&peer_indices) {
+Relations &Relations::UpdatePeerIndex(ThisIndex this_index, NodeIndices &&peer_indices) {
   ori_relations[this_index] = std::move(peer_indices);
   PreProcess();
   return *this;
 }
 
-Relations& Relations::UpdatePeerIndex(ThisIndex this_index, const NodeIndices &peer_indices) {
+Relations &Relations::UpdatePeerIndex(ThisIndex this_index, const NodeIndices &peer_indices) {
   ori_relations[this_index] = peer_indices;
   PreProcess();
   return *this;
 }
 
-Relations& Relations::UpdatePeerIndex(const std::map<ThisIndex, NodeIndices> &peer_indices) {
+Relations &Relations::UpdatePeerIndex(const std::map<ThisIndex, NodeIndices> &peer_indices) {
   ori_relations = peer_indices;
   PreProcess();
   return *this;
 }
 
-Relations& Relations::UpdatePeerIndex(std::map<ThisIndex, NodeIndices> &&peer_indices) {
+Relations &Relations::UpdatePeerIndex(std::map<ThisIndex, NodeIndices> &&peer_indices) {
   ori_relations = std::move(peer_indices);
   PreProcess();
   return *this;
 }
 
-const std::map<ThisIndex, NodeIndices>& Relations::GetRelations() {
+const std::map<ThisIndex, NodeIndices> &Relations::GetRelations() {
   return ori_relations;
 }
 
-const std::map<ThisIndex, NodeIndices>& Relations::GetInRelations() {
+const std::map<ThisIndex, NodeIndices> &Relations::GetInRelations() {
   return in_relations;
 }
 
-const std::map<ThisIndex, NodeIndices>& Relations::GetOutRelations() {
+const std::map<ThisIndex, NodeIndices> &Relations::GetOutRelations() {
   return out_relations;
 }
-}
+}  // namespace fe

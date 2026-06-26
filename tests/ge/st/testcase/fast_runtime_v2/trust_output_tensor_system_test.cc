@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -40,7 +40,8 @@ class TilingWatcher {
     if (extend_info == nullptr) {
       return;
     }
-    if (strcmp(extend_info->GetKernelType(), "Tiling") == 0 || strcmp(extend_info->GetKernelType(), "CacheableTiling") == 0) {
+    if (strcmp(extend_info->GetKernelType(), "Tiling") == 0 ||
+        strcmp(extend_info->GetKernelType(), "CacheableTiling") == 0) {
       auto tiling_context = reinterpret_cast<const TilingContext *>(&node->context);
       out_shape_ = *tiling_context->GetOutputShape(0);
     }
@@ -124,7 +125,6 @@ TEST_F(TrustOutputTensorST, TrustOutputTensor_NoInferShape_WhenEnable) {
   ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0), RT_ERROR_NONE);
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
-
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.data(), outputs.size()),
             ge::GRAPH_SUCCESS);
   EXPECT_EQ(tiling_watcher->GetOutShape().GetOriginShape(), Shape({8, 3, 224, 224}));
@@ -206,7 +206,10 @@ TEST_F(TrustOutputTensorST, TrustOutputTensor_Failed_WhenDisableZeroCopy) {
   runtime_stub.GetSlogStub().Clear();
   ASSERT_NE(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.data(), outputs.size()),
             ge::GRAPH_SUCCESS);
-  EXPECT_EQ(runtime_stub.GetSlogStub().FindErrorLogEndsWith("Failed to copy output tensor data to the given buffer, output tensor data size 4849664 is less than copy size size 25690112"), 0);
+  EXPECT_EQ(
+      runtime_stub.GetSlogStub().FindErrorLogEndsWith("Failed to copy output tensor data to the given buffer, output "
+                                                      "tensor data size 4849664 is less than copy size size 25690112"),
+      0);
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   aclrtDestroyStream(stream);
@@ -437,7 +440,7 @@ TEST_F(TrustOutputTensorST, TrustOutputTensor_NoInferShapeAndAllocModelOut_WhenE
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle()).BuildGeRootModel();
 
-  LoweringOption option{.trust_shape_on_out_tensor = true,.always_zero_copy = true};
+  LoweringOption option{.trust_shape_on_out_tensor = true, .always_zero_copy = true};
   ModelConverter::Args args(option, nullptr, nullptr, nullptr, nullptr);
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model, args);
   ASSERT_NE(exe_graph, nullptr);
@@ -527,7 +530,7 @@ TEST_F(TrustOutputTensorST, TrustOutputTensorAndAlwaysZeroCopy_CheckOutTensorSiz
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle()).BuildGeRootModel();
 
-  LoweringOption option{.trust_shape_on_out_tensor = true,.always_zero_copy = true};
+  LoweringOption option{.trust_shape_on_out_tensor = true, .always_zero_copy = true};
   ModelConverter::Args args(option, nullptr, nullptr, nullptr, nullptr);
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model, args);
   ASSERT_NE(exe_graph, nullptr);
@@ -560,7 +563,9 @@ TEST_F(TrustOutputTensorST, TrustOutputTensorAndAlwaysZeroCopy_CheckOutTensorSiz
   runtime_stub.GetSlogStub().Clear();
   ASSERT_NE(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.data(), outputs.size()),
             ge::GRAPH_SUCCESS);
-  EXPECT_EQ(runtime_stub.GetSlogStub().FindErrorLogEndsWith("The output tensor memory size[1605664] is smaller than the actual size[25690112] required by tensor."), 0);
+  EXPECT_EQ(runtime_stub.GetSlogStub().FindErrorLogEndsWith(
+                "The output tensor memory size[1605664] is smaller than the actual size[25690112] required by tensor."),
+            0);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   aclrtDestroyStream(stream);
 }
@@ -647,7 +652,6 @@ TEST_F(TrustOutputTensorST, TrustOutputTensorAndAlwaysZeroCopy_UpdateOutputShape
  * 4. launch观察，输出地址被正确launch
  */
 
-
 /**
  * Data   Data
  *  \    /
@@ -678,13 +682,14 @@ TEST_F(TrustOutputTensorST, TrustOutputTensorAndAlwaysZeroCopy_UpdateOutputShape
  * 3. 初始化图中的Add算子FindnfershapeFunc仍然存在
  * 4. 输出shape正确
  */
-TEST_F(TrustOutputTensorST, TrustOutputTensor_NoInferShapeButHasFindInferShape_WhenEnableNoInferShapeAndAlwaysZeroCopy) {
+TEST_F(TrustOutputTensorST,
+       TrustOutputTensor_NoInferShapeButHasFindInferShape_WhenEnableNoInferShapeAndAlwaysZeroCopy) {
   auto graph = ShareGraph::BuildTwoAddNodeGraph();
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.AddTaskDef("Add", AiCoreTaskDefFaker("AddStubBin").WithHandle()).BuildGeRootModel();
 
-  LoweringOption option{.trust_shape_on_out_tensor = true,.always_zero_copy = true};
+  LoweringOption option{.trust_shape_on_out_tensor = true, .always_zero_copy = true};
   ModelConverter::Args args(option, nullptr, nullptr, nullptr, nullptr);
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model, args);
   ASSERT_NE(exe_graph, nullptr);

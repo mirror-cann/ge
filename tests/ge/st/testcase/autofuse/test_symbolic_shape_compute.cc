@@ -1,12 +1,12 @@
 /**
-* Copyright (c) 2025 Huawei Technologies Co., Ltd.
-* This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
-* CANN Open Software License Agreement Version 2.0 (the "License").
-* Please refer to the License for details. You may not use this file except in compliance with the License.
-* THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
-* INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
-* See LICENSE in the root of the software repository for the full text of the License.
-*/
+ * Copyright (c) 2025 Huawei Technologies Co., Ltd.
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
+ * CANN Open Software License Agreement Version 2.0 (the "License").
+ * Please refer to the License for details. You may not use this file except in compliance with the License.
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
+ * See LICENSE in the root of the software repository for the full text of the License.
+ */
 #include <memory>
 #include <gtest/gtest.h>
 #include "graph/utils/graph_utils_ex.h"
@@ -34,8 +34,8 @@
 namespace ge {
 using ge::es::EsTensorHolder;
 class SymbolicShapeComputeST : public testing::Test {
-public:
-protected:
+ public:
+ protected:
   static void SetUpTestSuite() {
     setenv("AUTOFUSE_FLAGS", "--enable_autofuse=true", 1);
     setenv("ASCEND_OPP_PATH", "/usr/local/Ascend/latest/opp", 1);
@@ -44,8 +44,7 @@ protected:
     setenv("ASCEND_WORK_PATH", work_path.c_str(), 1);
     gert::SpaceRegistryFaker::CreateDefaultSpaceRegistry();
   }
-  static void TearDownTestSuite() {
-  }
+  static void TearDownTestSuite() {}
   void SetUp() override {
     builder_ = std::make_unique<ge::es::EsGraphBuilder>("Hello");
   }
@@ -60,16 +59,16 @@ graphStatus UnsqueezeTest(gert::InferSymbolComputeContext *context) {
 }
 
 /**
-*      Data0     Data1
-*        |  \     /
-*        |   Add
-*        |   /
-*         Mul
-*          |
-*         Relu
-*          |
-*       NetOutput
-*/
+ *      Data0     Data1
+ *        |  \     /
+ *        |   Add
+ *        |   /
+ *         Mul
+ *          |
+ *         Relu
+ *          |
+ *       NetOutput
+ */
 TEST_F(SymbolicShapeComputeST, InferShapeForSimpleGraph) {
   REGISTER_SYMBOLIC_KERNEL(Unpack, nullptr);
   REGISTER_SYMBOLIC_KERNEL(Unsqueeze, UnsqueezeTest);
@@ -347,14 +346,14 @@ TEST_F(SymbolicShapeComputeST, InferShapeForSimpleGraphShapeNEOriginShape) {
 }
 
 /**
-*      Data0     Const(scalar)
-*         \     /
-*        ReduceSum    Const(list_int)
-*              \       /
-*              ReduceMax
-*                  |
-*              NetOutput
-*/
+ *      Data0     Const(scalar)
+ *         \     /
+ *        ReduceSum    Const(list_int)
+ *              \       /
+ *              ReduceMax
+ *                  |
+ *              NetOutput
+ */
 TEST_F(SymbolicShapeComputeST, InferShapeForGetConstInput) {
   auto data0 = builder_->CreateInput(0, "data0");
   ASSERT_NE(data0.GetCTensorHolder(), nullptr);
@@ -427,24 +426,30 @@ IMPL_OP(ReduceSum).InferShape(InferShapeDoNothing).InferOutDataTypeSameWithFirst
 IMPL_OP(Const).InferShape(InferShapeDoNothing).InferOutDataTypeSameWithFirstInput();
 IMPL_OP(Sub).InferShape(InferShapeDoNothing).InferOutDataTypeSameWithFirstInput();
 IMPL_OP(ReduceMax).InferShape(InferShapeDoNothing).InferOutDataTypeSameWithFirstInput();
-IMPL_OP(ReduceProd).InferShape(InferShapeDoNothing).InferOutDataTypeSameWithFirstInput()
-    .PrivateAttr("keep_dims", false).PrivateAttr("noop_with_empty_axes", true);
+IMPL_OP(ReduceProd)
+    .InferShape(InferShapeDoNothing)
+    .InferOutDataTypeSameWithFirstInput()
+    .PrivateAttr("keep_dims", false)
+    .PrivateAttr("noop_with_empty_axes", true);
 IMPL_OP(Exp).InferShape(InferShapeDoNothing).InferOutDataTypeSameWithFirstInput();
 IMPL_OP(Div).InferShape(InferShapeDoNothing).InferOutDataTypeSameWithFirstInput();
 IMPL_OP(Cast).InferShape(InferShapeDoNothing).InferOutDataTypeSameWithFirstInput();
 IMPL_OP(Data).InferShape(InferShapeDoNothing).InferOutDataTypeSameWithFirstInput();
-IMPL_OP(BatchMatMulV2).InferShape(InferShapeDoNothing).InferOutDataTypeSameWithFirstInput()
-    .PrivateAttr("adj_x1", false).PrivateAttr("adj_x2", false);
+IMPL_OP(BatchMatMulV2)
+    .InferShape(InferShapeDoNothing)
+    .InferOutDataTypeSameWithFirstInput()
+    .PrivateAttr("adj_x1", false)
+    .PrivateAttr("adj_x2", false);
 
 /**
-*      Data0     Const(scalar)
-*         \     /
-*        ReduceSum    Const(list_int)
-*              \       /
-*              ReduceMax
-*                  |
-*              NetOutput
-*/
+ *      Data0     Const(scalar)
+ *         \     /
+ *        ReduceSum    Const(list_int)
+ *              \       /
+ *              ReduceMax
+ *                  |
+ *              NetOutput
+ */
 TEST_F(SymbolicShapeComputeST, InferShapeForConst) {
   auto es_graph = std::unique_ptr<es::EsGraphBuilder>(new es::EsGraphBuilder("cpp_graph"));
   auto data0 = es_graph->CreateInput(0, "data0", nullptr);
@@ -508,11 +513,11 @@ TEST_F(SymbolicShapeComputeST, InferShapeForVariable) {
   EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({Symbol(4), Symbol(5), Symbol(6)}));
 }
 /*
-* 如果未实现infer symbol shape，分两种情况：
-* 1. 输出为静态shape，则使用输出shape构造常量symbol继续推导
-* 2. 输出为动态shape，则报错
-* 后续该点需要废弃，当前属于静态shape网络的规避处理
-* */
+ * 如果未实现infer symbol shape，分两种情况：
+ * 1. 输出为静态shape，则使用输出shape构造常量symbol继续推导
+ * 2. 输出为动态shape，则报错
+ * 后续该点需要废弃，当前属于静态shape网络的规避处理
+ * */
 namespace {
 auto data = OP_CFG("Data")
                 .TensorDesc(FORMAT_ND, DT_FLOAT, {1, 2, 3, 4})
@@ -603,17 +608,17 @@ TEST_F(SymbolicShapeComputeST, InferShapeForConstantWithRecoverIrAttr) {
             gert::SymbolShape({Symbol(2), Symbol(2), Symbol(3), Symbol(4)}));
 }
 /**
-*      Data0    Data1
-*        |    /   |
-*        |  /     |
-*       Pow     Tanh
-*        \       /
-*    SquaredDifference
-*           |
-*          Neg
-*           |
-*        NetOutput
-*/
+ *      Data0    Data1
+ *        |    /   |
+ *        |  /     |
+ *       Pow     Tanh
+ *        \       /
+ *    SquaredDifference
+ *           |
+ *          Neg
+ *           |
+ *        NetOutput
+ */
 TEST_F(SymbolicShapeComputeST, InferShapeForDecomposedGraph) {
   auto data0 = builder_->CreateInput(0, "data0");
   auto data1 = builder_->CreateInput(1, "data1");
@@ -684,8 +689,8 @@ TEST_F(SymbolicShapeComputeST, InferShapeForDecomposedGraph) {
 }
 
 /*
-* 测试GeTensorDesc的拷贝函数，需要带着属性组深拷贝
-* */
+ * 测试GeTensorDesc的拷贝函数，需要带着属性组深拷贝
+ * */
 TEST_F(SymbolicShapeComputeST, TestGeTensorDesc_Copy_With_Attr) {
   auto data0 = builder_->CreateInput(0, "data0");
   data0.SetOriginSymbolShape(std::vector<const char *>({"s2", "s1", "s0", "s0"}));
@@ -1139,9 +1144,9 @@ TEST_F(SymbolicShapeComputeST, test_fill_node_const_input_over_limit) {
   ASSERT_NE(attr, nullptr);
   EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape(),
             gert::SymbolShape({Symbol(1), Symbol(1), Symbol(1), Symbol(1), Symbol(1), Symbol(1), Symbol(1),
-                              Symbol(1), Symbol(1), Symbol(1), Symbol(1), Symbol(1), Symbol(1), Symbol(1),
-                              Symbol(1), Symbol(1), Symbol(1), Symbol(1), Symbol(1), Symbol(1), Symbol(1),
-                              Symbol(1), Symbol(1), Symbol(1), Symbol(1), Symbol(1), Symbol(1)}));
+                               Symbol(1), Symbol(1), Symbol(1), Symbol(1), Symbol(1), Symbol(1), Symbol(1),
+                               Symbol(1), Symbol(1), Symbol(1), Symbol(1), Symbol(1), Symbol(1), Symbol(1),
+                               Symbol(1), Symbol(1), Symbol(1), Symbol(1), Symbol(1), Symbol(1)}));
 }
 
 // ┌────────┐  (0,0)   ┌──────────┐  (0,0)   ┌─────────────┐
@@ -1503,8 +1508,8 @@ TEST_F(SymbolicShapeComputeST, test_pack_with_symbols_value) {
   auto s0 = ge::Symbol("s0");
   auto s1 = ge::Symbol("s1");
   std::vector<Expression> expect_symbolic_value = {Symbol(1),  Symbol(2),  Symbol(3),  Symbol(7), Symbol(8), Symbol(9),
-                                                  s0 * s1,    s0 * s1,    s0 * s1,    Symbol(4), Symbol(5), Symbol(6),
-                                                  Symbol(10), Symbol(11), Symbol(12), s0 * s1,   s0 * s1,   s0 * s1};
+                                                   s0 * s1,    s0 * s1,    s0 * s1,    Symbol(4), Symbol(5), Symbol(6),
+                                                   Symbol(10), Symbol(11), Symbol(12), s0 * s1,   s0 * s1,   s0 * s1};
   EXPECT_NE(attr->symbolic_tensor.GetSymbolicValue(), nullptr);
   EXPECT_EQ(*attr->symbolic_tensor.GetSymbolicValue(), expect_symbolic_value);
 }
@@ -2035,7 +2040,8 @@ TEST_F(SymbolicShapeComputeST, test_stridedslice_with_ellipsis_mask_with_new_axi
   std::vector<int32_t> const_data3 = {2, 1, 1};
   std::vector<int64_t> const_dim3 = {3};
   auto const_node3 = builder_->CreateConst(const_data3, const_dim3);
-  auto strided_slice = es::StridedSlice(const_node0, const_node1, const_node2, const_node3, 0, 0, 0b100, 0b1110, 0b10111);
+  auto strided_slice =
+      es::StridedSlice(const_node0, const_node1, const_node2, const_node3, 0, 0, 0b100, 0b1110, 0b10111);
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(strided_slice, 0), 0);
   auto graph = builder_->BuildAndReset();
 
@@ -2102,7 +2108,8 @@ TEST_F(SymbolicShapeComputeST, test_stridedslice_with_new_axis_mask_when_input_d
   EXPECT_EQ(*attr->symbolic_tensor.GetSymbolicValue(), expect_symbolic_value);
 }
 
-TEST_F(SymbolicShapeComputeST, test_stridedslice_with_new_axis_mask_begin_mask_end_mask_when_input_dims_less_than_begin) {
+TEST_F(SymbolicShapeComputeST,
+       test_stridedslice_with_new_axis_mask_begin_mask_end_mask_when_input_dims_less_than_begin) {
   std::vector<int32_t> const_data0;
   const_data0.reserve(16);
   for (int32_t i = 0; i < 16; i++) {
@@ -2201,9 +2208,9 @@ TEST_F(SymbolicShapeComputeST, test_unpack_with_symbols_value) {
     auto s1 = ge::Symbol("s1");
     auto s2 = ge::Symbol("s2");
     std::vector<Expression> expect_symbolic_value = {(s0 + s1), ge::Symbol(2), s2, (s0 + s1), ge::Symbol(2), s2,
-                                                    (s0 + s1), ge::Symbol(2), s2, (s0 + s1), ge::Symbol(2), s2,
-                                                    (s0 + s1), ge::Symbol(2), s2, (s0 + s1), ge::Symbol(2), s2,
-                                                    (s0 + s1), ge::Symbol(2), s2, (s0 + s1), ge::Symbol(2), s2};
+                                                     (s0 + s1), ge::Symbol(2), s2, (s0 + s1), ge::Symbol(2), s2,
+                                                     (s0 + s1), ge::Symbol(2), s2, (s0 + s1), ge::Symbol(2), s2,
+                                                     (s0 + s1), ge::Symbol(2), s2, (s0 + s1), ge::Symbol(2), s2};
     EXPECT_NE(attr->symbolic_tensor.GetSymbolicValue(), nullptr);
     EXPECT_EQ(*attr->symbolic_tensor.GetSymbolicValue(), expect_symbolic_value);
   }
@@ -2960,7 +2967,6 @@ TEST_F(SymbolicShapeComputeST, test_unsqueeze_hostcompute_without_symbolic_value
 //      │ data_3 │ ——————————————
 //      └────────┘
 
-
 TEST_F(SymbolicShapeComputeST, test_stridedslice_infershape) {
   auto data0 = builder_->CreateInput(0, "data_0");
 
@@ -2976,7 +2982,7 @@ TEST_F(SymbolicShapeComputeST, test_stridedslice_infershape) {
 
   auto strided_slice =
       es::StridedSlice(data0, data1, data2, data3, static_cast<int64_t>(0b0010), static_cast<int64_t>(0b0010),
-                    static_cast<int64_t>(0b0100), static_cast<int64_t>(0b1101), static_cast<int64_t>(0b0111));
+                       static_cast<int64_t>(0b0100), static_cast<int64_t>(0b1101), static_cast<int64_t>(0b0111));
   ASSERT_EQ(es::EsGraphBuilder::SetOutput(strided_slice, 0), 0);
 
   auto graph = builder_->BuildAndReset();
@@ -3019,19 +3025,19 @@ TEST_F(SymbolicShapeComputeST, test_stridedslice_infershape) {
 }
 
 /**
-*      Data0    Data1
-*        |    /   |
-*        |  /     |
-*       Pow     Tanh
-*        |       |
-*        |      Foo1
-*        \       /
-*    SquaredDifference
-*           |
-*          Neg
-*           |
-*        NetOutput
-*/
+ *      Data0    Data1
+ *        |    /   |
+ *        |  /     |
+ *       Pow     Tanh
+ *        |       |
+ *        |      Foo1
+ *        \       /
+ *    SquaredDifference
+ *           |
+ *          Neg
+ *           |
+ *        NetOutput
+ */
 TEST_F(SymbolicShapeComputeST, InferShapeForGraphWithNodeNotSupportSymbolInfer) {
   auto data0 = builder_->CreateInput(0, "data0");
   auto data1 = builder_->CreateInput(1, "data1");
@@ -3068,7 +3074,7 @@ TEST_F(SymbolicShapeComputeST, InferShapeForGraphWithNodeNotSupportSymbolInfer) 
   ASSERT_NE(squared_difference_node, nullptr);
 
   ASSERT_EQ(GraphUtils::InsertNodeBetweenDataAnchors(tanh_node->GetOutDataAnchor(0),
-                                                    squared_difference_node->GetInDataAnchor(1), foo_node),
+                                                     squared_difference_node->GetInDataAnchor(1), foo_node),
             SUCCESS);
 
   SymbolicShapeInference ssi;
@@ -3128,8 +3134,8 @@ TEST_F(SymbolicShapeComputeST, test_batchmatmulv2_infershape) {
   ASSERT_EQ(out_shape.GetDim(4), Symbol("s3"));
 }
 
-void ConcatV2DHostComputeTestCommon(ge::es::EsGraphBuilder &builder_, const GeShape &data1_shape, const GeShape &data2_shape,
-                                    const GeShape &data3_shape, int64_t concat_dim,
+void ConcatV2DHostComputeTestCommon(ge::es::EsGraphBuilder &builder_, const GeShape &data1_shape,
+                                    const GeShape &data2_shape, const GeShape &data3_shape, int64_t concat_dim,
                                     const gert::SymbolShape &expect_out_shape,
                                     const std::vector<Expression> &expect_out_values) {
   std::vector<int64_t> const_data1 = {1, 1, 1, 1, 1, 1, 1, 1};
@@ -3179,7 +3185,7 @@ TEST_F(SymbolicShapeComputeST, test_concatv2d_hostcompute1) {
   };
 
   ConcatV2DHostComputeTestCommon(*builder_, GeShape({2, 2, 2}), GeShape({3, 2, 2}), GeShape({4, 2, 2}), 0,
-                                gert::SymbolShape({Symbol(9), Symbol(2), Symbol(2)}), expect_out_values);
+                                 gert::SymbolShape({Symbol(9), Symbol(2), Symbol(2)}), expect_out_values);
 }
 TEST_F(SymbolicShapeComputeST, test_concatv2d_hostcompute2) {
   // 拼接1轴
@@ -3187,10 +3193,10 @@ TEST_F(SymbolicShapeComputeST, test_concatv2d_hostcompute2) {
   auto c2 = Symbol(2);
   auto c3 = Symbol(3);
   std::vector<Expression> expect_out_values = {c1, c1, c1, c1, c2, c2, c2, c2, c2, c2, c3, c3, c3, c3, c3, c3, c3, c3,
-                                              c1, c1, c1, c1, c2, c2, c2, c2, c2, c2, c3, c3, c3, c3, c3, c3, c3, c3};
+                                               c1, c1, c1, c1, c2, c2, c2, c2, c2, c2, c3, c3, c3, c3, c3, c3, c3, c3};
 
   ConcatV2DHostComputeTestCommon(*builder_, GeShape({2, 2, 2}), GeShape({2, 3, 2}), GeShape({2, 4, 2}), 1,
-                                gert::SymbolShape({Symbol(2), Symbol(9), Symbol(2)}), expect_out_values);
+                                 gert::SymbolShape({Symbol(2), Symbol(9), Symbol(2)}), expect_out_values);
 }
 TEST_F(SymbolicShapeComputeST, test_concatv2d_hostcompute3) {
   // 拼接3轴
@@ -3198,10 +3204,10 @@ TEST_F(SymbolicShapeComputeST, test_concatv2d_hostcompute3) {
   auto c2 = Symbol(2);
   auto c3 = Symbol(3);
   std::vector<Expression> expect_out_values = {c1, c1, c2, c2, c2, c3, c3, c3, c3, c1, c1, c2, c2, c2, c3, c3, c3, c3,
-                                              c1, c1, c2, c2, c2, c3, c3, c3, c3, c1, c1, c2, c2, c2, c3, c3, c3, c3};
+                                               c1, c1, c2, c2, c2, c3, c3, c3, c3, c1, c1, c2, c2, c2, c3, c3, c3, c3};
 
   ConcatV2DHostComputeTestCommon(*builder_, GeShape({2, 2, 2}), GeShape({2, 2, 3}), GeShape({2, 2, 4}), 2,
-                                gert::SymbolShape({Symbol(2), Symbol(2), Symbol(9)}), expect_out_values);
+                                 gert::SymbolShape({Symbol(2), Symbol(2), Symbol(9)}), expect_out_values);
 }
 TEST_F(SymbolicShapeComputeST, test_concatv2d_hostcompute4) {
   // 只有一个输入
@@ -3529,7 +3535,7 @@ TEST_F(SymbolicShapeComputeST, test_squeeze_hostcompute) {
   ASSERT_NE(attr, nullptr);
   EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape(), gert::SymbolShape({Symbol(5), Symbol(2)}));
   std::vector<Expression> expect_symbolic_value = {Symbol(1), Symbol(2), Symbol(3), Symbol(4), Symbol(5),
-                                                  Symbol(6), Symbol(7), Symbol(8), Symbol(9), Symbol(10)};
+                                                   Symbol(6), Symbol(7), Symbol(8), Symbol(9), Symbol(10)};
   EXPECT_NE(attr->symbolic_tensor.GetSymbolicValue(), nullptr);
   EXPECT_EQ(*attr->symbolic_tensor.GetSymbolicValue(), expect_symbolic_value);
 }
@@ -3638,9 +3644,10 @@ TEST_F(SymbolicShapeComputeST, test_squeeze_data_hostcompute) {
   }
 }
 namespace {
-void SelectTestCommon(ge::es::EsGraphBuilder &builder_, const vector<int32_t> &cond_value, const vector<int32_t> &const0,
-                      const vector<int32_t> &const1, const vector<int64_t> &cond_dims, const vector<int64_t> &data_dims,
-                      gert::SymbolTensor &symbolic_tensor, graphStatus status = SUCCESS) {
+void SelectTestCommon(ge::es::EsGraphBuilder &builder_, const vector<int32_t> &cond_value,
+                      const vector<int32_t> &const0, const vector<int32_t> &const1, const vector<int64_t> &cond_dims,
+                      const vector<int64_t> &data_dims, gert::SymbolTensor &symbolic_tensor,
+                      graphStatus status = SUCCESS) {
   auto cond = builder_.CreateConst(cond_value, cond_dims);
   auto data0 = builder_.CreateConst(const0, data_dims);
   auto data1 = builder_.CreateConst(const1, data_dims);
@@ -3712,7 +3719,7 @@ TEST_F(SymbolicShapeComputeST, test_select_1_n1xn2xn3) {
 
   auto c1 = Symbol(1);
   std::vector<Expression> expect_values = {c1, c1, c1, c1, c1, c1, c1, c1, c1, c1, c1, c1,
-                                          c1, c1, c1, c1, c1, c1, c1, c1, c1, c1, c1, c1};
+                                           c1, c1, c1, c1, c1, c1, c1, c1, c1, c1, c1, c1};
   std::vector<Expression> expect_shape = {Symbol(2), Symbol(3), Symbol(4)};
 
   EXPECT_EQ(symbolic_tensor.GetOriginSymbolShape().GetDims(), expect_shape);
@@ -3733,7 +3740,7 @@ TEST_F(SymbolicShapeComputeST, test_select_n3_n1xn2xn3) {
   auto c0 = Symbol(0);
   auto c1 = Symbol(1);
   std::vector<Expression> expect_values = {c1, c0, c1, c0, c1, c0, c1, c0, c1, c0, c1, c0,
-                                          c1, c0, c1, c0, c1, c0, c1, c0, c1, c0, c1, c0};
+                                           c1, c0, c1, c0, c1, c0, c1, c0, c1, c0, c1, c0};
   std::vector<Expression> expect_shape = {Symbol(2), Symbol(3), Symbol(4)};
 
   EXPECT_EQ(symbolic_tensor.GetOriginSymbolShape().GetDims(), expect_shape);
@@ -3754,7 +3761,7 @@ TEST_F(SymbolicShapeComputeST, test_select_n2xn3_n1xn2xn3) {
   auto c0 = Symbol(0);
   auto c1 = Symbol(1);
   std::vector<Expression> expect_values = {c1, c1, c1, c1, c1, c0, c1, c0, c0, c0, c0, c0,
-                                          c1, c1, c1, c1, c1, c0, c1, c0, c0, c0, c0, c0};
+                                           c1, c1, c1, c1, c1, c0, c1, c0, c0, c0, c0, c0};
   std::vector<Expression> expect_shape = {Symbol(2), Symbol(3), Symbol(4)};
 
   EXPECT_EQ(symbolic_tensor.GetOriginSymbolShape().GetDims(), expect_shape);
@@ -3775,7 +3782,7 @@ TEST_F(SymbolicShapeComputeST, test_select_n1x1x1_n1xn2xn3) {
   auto c0 = Symbol(0);
   auto c1 = Symbol(1);
   std::vector<Expression> expect_values = {c1, c1, c1, c1, c1, c1, c1, c1, c1, c1, c1, c1,
-                                          c0, c0, c0, c0, c0, c0, c0, c0, c0, c0, c0, c0};
+                                           c0, c0, c0, c0, c0, c0, c0, c0, c0, c0, c0, c0};
   std::vector<Expression> expect_shape = {Symbol(2), Symbol(3), Symbol(4)};
 
   EXPECT_EQ(symbolic_tensor.GetOriginSymbolShape().GetDims(), expect_shape);
@@ -3796,7 +3803,7 @@ TEST_F(SymbolicShapeComputeST, test_select_1xn2x1_n1xn2xn3) {
   auto c0 = Symbol(0);
   auto c1 = Symbol(1);
   std::vector<Expression> expect_values = {c1, c1, c1, c1, c1, c1, c1, c1, c0, c0, c0, c0,
-                                          c1, c1, c1, c1, c1, c1, c1, c1, c0, c0, c0, c0};
+                                           c1, c1, c1, c1, c1, c1, c1, c1, c0, c0, c0, c0};
   std::vector<Expression> expect_shape = {Symbol(2), Symbol(3), Symbol(4)};
 
   EXPECT_EQ(symbolic_tensor.GetOriginSymbolShape().GetDims(), expect_shape);
@@ -3817,7 +3824,7 @@ TEST_F(SymbolicShapeComputeST, test_select_n1xn2x1_n1xn2xn3) {
   auto c0 = Symbol(0);
   auto c1 = Symbol(1);
   std::vector<Expression> expect_values = {c1, c1, c1, c1, c1, c1, c1, c1, c0, c0, c0, c0,
-                                          c1, c1, c1, c1, c0, c0, c0, c0, c0, c0, c0, c0};
+                                           c1, c1, c1, c1, c0, c0, c0, c0, c0, c0, c0, c0};
   std::vector<Expression> expect_shape = {Symbol(2), Symbol(3), Symbol(4)};
 
   EXPECT_EQ(symbolic_tensor.GetOriginSymbolShape().GetDims(), expect_shape);
@@ -3838,7 +3845,7 @@ TEST_F(SymbolicShapeComputeST, test_select_n1x1xn3_n1xn2xn3) {
   auto c0 = Symbol(0);
   auto c1 = Symbol(1);
   std::vector<Expression> expect_values = {c1, c1, c1, c1, c1, c1, c1, c1, c1, c1, c1, c1,
-                                          c1, c0, c1, c0, c1, c0, c1, c0, c1, c0, c1, c0};
+                                           c1, c0, c1, c0, c1, c0, c1, c0, c1, c0, c1, c0};
   std::vector<Expression> expect_shape = {Symbol(2), Symbol(3), Symbol(4)};
 
   EXPECT_EQ(symbolic_tensor.GetOriginSymbolShape().GetDims(), expect_shape);
@@ -3859,7 +3866,7 @@ TEST_F(SymbolicShapeComputeST, test_select_n1xn2xn3_n1xn2xn3) {
   auto c0 = Symbol(0);
   auto c1 = Symbol(1);
   std::vector<Expression> expect_values = {c1, c1, c1, c1, c1, c0, c1, c0, c0, c0, c0, c0,
-                                          c1, c0, c1, c0, c1, c1, c1, c1, c0, c0, c0, c0};
+                                           c1, c0, c1, c0, c1, c1, c1, c1, c0, c0, c0, c0};
   std::vector<Expression> expect_shape = {Symbol(2), Symbol(3), Symbol(4)};
 
   EXPECT_EQ(symbolic_tensor.GetOriginSymbolShape().GetDims(), expect_shape);
@@ -3995,13 +4002,11 @@ TEST_F(SymbolicShapeComputeST, test_gather_const_hostcompute_batch_dim_0_success
     param_const_data.emplace_back(i);
   }
   std::vector<int64_t> param_const_dim = {2, 2, 3, 2};
-  auto param_const =
-      builder_->CreateConst(param_const_data, param_const_dim);
+  auto param_const = builder_->CreateConst(param_const_data, param_const_dim);
 
   std::vector<int32_t> indice_const_data = {2, 2, 1, 0, 0, 1};
   std::vector<int64_t> indice_const_dim = {2, 3};
-  auto indice_const =
-      builder_->CreateConst(indice_const_data, indice_const_dim);
+  auto indice_const = builder_->CreateConst(indice_const_data, indice_const_dim);
 
   auto axis_const = builder_->CreateScalar(static_cast<int32_t>(2));
 
@@ -4049,13 +4054,11 @@ TEST_F(SymbolicShapeComputeST, test_gather_const_hostcompute_batch_dim_1_success
     param_const_data.emplace_back(i);
   }
   std::vector<int64_t> param_const_dim = {2, 2, 3, 2};
-  auto param_const =
-      builder_->CreateConst(param_const_data, param_const_dim);
+  auto param_const = builder_->CreateConst(param_const_data, param_const_dim);
 
   std::vector<int32_t> indice_const_data = {2, 2, 1, 0, 0, 1, 1, 1, 0, 0, 0, 2};
   std::vector<int64_t> indice_const_dim = {2, 2, 3};
-  auto indice_const =
-      builder_->CreateConst(indice_const_data, indice_const_dim);
+  auto indice_const = builder_->CreateConst(indice_const_data, indice_const_dim);
 
   auto axis_const = builder_->CreateScalar(static_cast<int32_t>(2));
 
@@ -4103,13 +4106,11 @@ TEST_F(SymbolicShapeComputeST, test_gather_const_hostcompute_batch_dim_2_success
     param_const_data.emplace_back(i);
   }
   std::vector<int64_t> param_const_dim = {2, 2, 3, 2};
-  auto param_const =
-      builder_->CreateConst(param_const_data, param_const_dim);
+  auto param_const = builder_->CreateConst(param_const_data, param_const_dim);
 
   std::vector<int32_t> indice_const_data = {2, 2, 1, 0, 0, 1, 0, 2};
   std::vector<int64_t> indice_const_dim = {2, 2, 2};
-  auto indice_const =
-      builder_->CreateConst(indice_const_data, indice_const_dim);
+  auto indice_const = builder_->CreateConst(indice_const_data, indice_const_dim);
 
   auto axis_const = builder_->CreateScalar(static_cast<int32_t>(-2));
 
@@ -4154,8 +4155,7 @@ TEST_F(SymbolicShapeComputeST, test_gather_symbol_value_hostcompute_batch_dim_0_
 
   std::vector<int32_t> indice_const_data = {3, 2, 1, 0, 0, 1, 3, 2, 3, 3, 1, 1};
   std::vector<int64_t> indice_const_dim = {2, 3, 2};
-  auto indice_const =
-      builder_->CreateConst(indice_const_data, indice_const_dim);
+  auto indice_const = builder_->CreateConst(indice_const_data, indice_const_dim);
 
   auto axis_const = builder_->CreateScalar(static_cast<int32_t>(0));
 
@@ -4196,8 +4196,8 @@ TEST_F(SymbolicShapeComputeST, test_gather_symbol_value_hostcompute_batch_dim_0_
   const auto result_dim = attr->symbolic_tensor.GetOriginSymbolShape().GetDims();
   ASSERT_EQ(result_dim, expect_dim);
   std::vector<Expression> expect_symbolic_value = {Symbol("s2"), Symbol(3),    Symbol("s1"), Symbol("s0"),
-                                                  Symbol("s0"), Symbol("s1"), Symbol("s2"), Symbol(3),
-                                                  Symbol("s2"), Symbol("s2"), Symbol("s1"), Symbol("s1")};
+                                                   Symbol("s0"), Symbol("s1"), Symbol("s2"), Symbol(3),
+                                                   Symbol("s2"), Symbol("s2"), Symbol("s1"), Symbol("s1")};
   const auto result_value = attr->symbolic_tensor.GetSymbolicValue();
   EXPECT_NE(result_value, nullptr);
   EXPECT_EQ(*result_value, expect_symbolic_value);
@@ -4219,8 +4219,7 @@ TEST_F(SymbolicShapeComputeST, test_gather_scalar_param_hostcompute_batch_dim_0_
 
   std::vector<int32_t> indice_const_data = {0, 0, 0, 0, 0, 0};
   std::vector<int64_t> indice_const_dim = {2, 3};
-  auto indice_const =
-      builder_->CreateConst(indice_const_data, indice_const_dim);
+  auto indice_const = builder_->CreateConst(indice_const_data, indice_const_dim);
 
   auto axis_const = builder_->CreateScalar(static_cast<int32_t>(0));
 
@@ -4321,13 +4320,11 @@ TEST_F(SymbolicShapeComputeST, test_gather_const_hostcompute_batch_dim_2_equal_t
     param_const_data.emplace_back(i);
   }
   std::vector<int64_t> param_const_dim = {2, 2, 3, 2};
-  auto param_const =
-      builder_->CreateConst(param_const_data, param_const_dim);
+  auto param_const = builder_->CreateConst(param_const_data, param_const_dim);
 
   std::vector<int32_t> indice_const_data = {2, 2, 1, 0};
   std::vector<int64_t> indice_const_dim = {2, 2};
-  auto indice_const =
-      builder_->CreateConst(indice_const_data, indice_const_dim);
+  auto indice_const = builder_->CreateConst(indice_const_data, indice_const_dim);
 
   auto axis_const = builder_->CreateScalar(static_cast<int32_t>(-2));
 
@@ -4348,7 +4345,7 @@ TEST_F(SymbolicShapeComputeST, test_gather_const_hostcompute_batch_dim_2_equal_t
   const auto result_dim = attr->symbolic_tensor.GetOriginSymbolShape().GetDims();
   ASSERT_EQ(result_dim, expect_dim);
   std::vector<Expression> expect_symbolic_value = {Symbol(4),  Symbol(5),  Symbol(10), Symbol(11),
-                                                  Symbol(14), Symbol(15), Symbol(18), Symbol(19)};
+                                                   Symbol(14), Symbol(15), Symbol(18), Symbol(19)};
   const auto result_value = attr->symbolic_tensor.GetSymbolicValue();
   EXPECT_NE(result_value, nullptr);
   EXPECT_EQ(*result_value, expect_symbolic_value);
@@ -4418,8 +4415,8 @@ TEST_F(SymbolicShapeComputeST, test_add_with_const_broadcast) {
   ASSERT_NE(attr, nullptr);
   std::vector<Expression> expect_symbolic_shape = {Symbol(2), Symbol(3)};
   EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape().GetDims(), expect_symbolic_shape);
-  std::vector<Expression> expect_symbolic_value = {
-      Symbol(11), Symbol(22), Symbol(33), Symbol(14), Symbol(25), Symbol(36)};
+  std::vector<Expression> expect_symbolic_value = {Symbol(11), Symbol(22), Symbol(33),
+                                                   Symbol(14), Symbol(25), Symbol(36)};
   const auto result_value = attr->symbolic_tensor.GetSymbolicValue();
   EXPECT_NE(result_value, nullptr);
   EXPECT_EQ(*result_value, expect_symbolic_value);
@@ -4558,8 +4555,7 @@ TEST_F(SymbolicShapeComputeST, test_stridedslicev2_with_const) {
   ASSERT_NE(attr, nullptr);
   std::vector<Expression> expect_output_shape = {Symbol(2), Symbol(3)};
   EXPECT_EQ(attr->symbolic_tensor.GetOriginSymbolShape().GetDims(), expect_output_shape);
-  std::vector<Expression> expect_symbolic_value = {Symbol(1), Symbol(2), Symbol(3),
-                                                    Symbol(7), Symbol(8), Symbol(9)};
+  std::vector<Expression> expect_symbolic_value = {Symbol(1), Symbol(2), Symbol(3), Symbol(7), Symbol(8), Symbol(9)};
   const auto result_value = attr->symbolic_tensor.GetSymbolicValue();
   EXPECT_NE(result_value, nullptr);
   EXPECT_EQ(*result_value, expect_symbolic_value);

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -36,8 +36,7 @@ const std::string SHAPE_RANGE = "shape_range";
 
 class FuzzyGeneralize {
  public:
-  FuzzyGeneralize(ge::OptimizeUtility *optimize_utility,
-                  const FEOpsKernelInfoStorePtr &ops_kernel_info_store_ptr,
+  FuzzyGeneralize(ge::OptimizeUtility *optimize_utility, const FEOpsKernelInfoStorePtr &ops_kernel_info_store_ptr,
                   const FusionPriorityMgrPtr &fusion_priority_mgr_ptr);
   ~FuzzyGeneralize();
 
@@ -95,20 +94,20 @@ class FuzzyGeneralize {
   Status GetCurNodeInfo(const ge::NodePtr &node, const OpStoreAdapterPtr &op_store_adapter,
                         NodeGeneralInfoPtr &node_info_ptr);
 
-  Status GetRangeLimitValue(const OpStoreAdapterPtr &op_store_adapter,
-                            const NodeGeneralInfoPtr &node_info_ptr, const ge::NodePtr &node);
+  Status GetRangeLimitValue(const OpStoreAdapterPtr &op_store_adapter, const NodeGeneralInfoPtr &node_info_ptr,
+                            const ge::NodePtr &node);
 
   Status CalDecentSteps(const ge::NodePtr &external_node, const ge::OpDescPtr &opdesc);
 
   Status SingleOpDowngrades(const ge::NodePtr &external_node, const bool &is_upper_limited, bool &is_range_out);
 
   Status Downgrades(const ge::NodePtr &cur_node, const bool &is_upper_limited,
-      const std::vector<size_t> &limited_input_indexs, bool &is_range_out);
+                    const std::vector<size_t> &limited_input_indexs, bool &is_range_out);
 
   Status InitOriginalGraphInfos(const ge::ComputeGraph &graph);
 
   void UpdateOpAttrs(const ge::GeTensorDescPtr &cur_tensor_desc, const ge::GeTensorDescPtr &ori_tensor_desc,
-      const ge::OpDescPtr &op_desc_ptr, bool is_input) const;
+                     const ge::OpDescPtr &op_desc_ptr, bool is_input) const;
 
   bool IsOpDescExtInputOutputTensor(const ge::OpDescPtr &opdesc, bool input) const;
 
@@ -137,5 +136,5 @@ class FuzzyGeneralize {
   bool is_need_generalize_graph_ = true;
   bool is_single_op_graph_ = false;
 };
-} // namespace fe
-#endif // COMPILER_GRAPHCOMPILER_ENGINES_NNENG_OPTIMIZER_GRAPH_OPTIMIZER_DYNAMIC_SHAPE_OPTIMIZER_FUZZY_COMPILER_FUZZY_GENERALIZE_H_
+}  // namespace fe
+#endif  // COMPILER_GRAPHCOMPILER_ENGINES_NNENG_OPTIMIZER_GRAPH_OPTIMIZER_DYNAMIC_SHAPE_OPTIMIZER_FUZZY_COMPILER_FUZZY_GENERALIZE_H_

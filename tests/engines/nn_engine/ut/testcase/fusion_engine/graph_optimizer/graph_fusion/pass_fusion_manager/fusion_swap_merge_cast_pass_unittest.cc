@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,18 +24,15 @@ using namespace ge;
 using namespace fe;
 
 class fusion_pass_swap_merge_cast_ut : public testing::Test {
-protected:
+ protected:
   void SetUp() {
     REGISTER_PASS("SwapMergeCastFusionPass", SECOND_ROUND_BUILT_IN_GRAPH_PASS, SwapMergeCastFusionPass);
   }
 
-  void TearDown() {
+  void TearDown() {}
 
-  }
-
-protected:
-  static ComputeGraphPtr CreateSwapMergeCastGraph1()
-  {
+ protected:
+  static ComputeGraphPtr CreateSwapMergeCastGraph1() {
     ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test1");
     OpDescPtr op_desc_switch = std::make_shared<OpDesc>("switch", "Switch");
     OpDescPtr op_desc_relu1 = std::make_shared<OpDesc>("relu1", "Relu");
@@ -45,7 +42,7 @@ protected:
     OpDescPtr op_desc_netoutput = std::make_shared<OpDesc>("netoutput", "NetOutput");
     OpDescPtr op_desc_other = std::make_shared<OpDesc>("other", "Other");
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim_a = {8, 4, 16, 16};
     GeShape shape_a(dim_a);
     GeTensorDesc tensor_desc_a(shape_a);
@@ -192,7 +189,7 @@ protected:
     OpDescPtr op_desc_netoutput = std::make_shared<OpDesc>("netoutput", "NetOutput");
     OpDescPtr op_desc_other = std::make_shared<OpDesc>("other", "Other");
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim_a = {8, 4, 16, 16};
     GeShape shape_a(dim_a);
     GeTensorDesc tensor_desc_a(shape_a);
@@ -273,8 +270,7 @@ protected:
     return graph;
   }
 
-  static ComputeGraphPtr CreateSwapMergeCastGraph6()
-  {
+  static ComputeGraphPtr CreateSwapMergeCastGraph6() {
     ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test1");
     OpDescPtr op_desc_switch1 = std::make_shared<OpDesc>("switch1", "Switch");
     OpDescPtr op_desc_relu1 = std::make_shared<OpDesc>("relu1", "Relu");
@@ -292,7 +288,7 @@ protected:
 
     OpDescPtr op_desc_netoutput = std::make_shared<OpDesc>("netoutput", "NetOutput");
 
-    //add descriptor
+    // add descriptor
     vector<int64_t> dim_a = {8, 4, 16, 16};
     GeShape shape_a(dim_a);
     GeTensorDesc tensor_desc_a(shape_a);
@@ -411,12 +407,12 @@ TEST_F(fusion_pass_swap_merge_cast_ut, fusion_pass_swap_merge_cast_ut_1) {
   ComputeGraphPtr graph = CreateSwapMergeCastGraph1();
 
   std::map<string, FusionPassRegistry::CreateFn> create_fns =
-          FusionPassRegistry::GetInstance().GetCreateFnByType(SECOND_ROUND_BUILT_IN_GRAPH_PASS);
+      FusionPassRegistry::GetInstance().GetCreateFnByType(SECOND_ROUND_BUILT_IN_GRAPH_PASS);
   auto iter = create_fns.find("SwapMergeCastFusionPass");
   Status status = fe::FAILED;
   if (iter != create_fns.end()) {
-    auto graph_fusion_pass_base_ptr = std::unique_ptr<PatternFusionBasePass>(
-            dynamic_cast<PatternFusionBasePass *>(iter->second()));
+    auto graph_fusion_pass_base_ptr =
+        std::unique_ptr<PatternFusionBasePass>(dynamic_cast<PatternFusionBasePass *>(iter->second()));
     if (graph_fusion_pass_base_ptr != nullptr) {
       graph_fusion_pass_base_ptr->SetName(iter->first);
       status = graph_fusion_pass_base_ptr->Run(*graph);
@@ -464,7 +460,7 @@ TEST_F(fusion_pass_swap_merge_cast_ut, fusion_pass_swap_merge_cast_ut_2) {
   ComputeGraphPtr graph = CreateSwapMergeCastGraph2();
 
   SwapMergeCastFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes);
   EXPECT_EQ(fe::NOT_CHANGED, status);
 }
@@ -473,12 +469,12 @@ TEST_F(fusion_pass_swap_merge_cast_ut, fusion_pass_swap_merge_cast_ut_3) {
   ComputeGraphPtr graph = CreateSwapMergeCastGraph3();
 
   std::map<string, FusionPassRegistry::CreateFn> create_fns =
-          FusionPassRegistry::GetInstance().GetCreateFnByType(SECOND_ROUND_BUILT_IN_GRAPH_PASS);
+      FusionPassRegistry::GetInstance().GetCreateFnByType(SECOND_ROUND_BUILT_IN_GRAPH_PASS);
   auto iter = create_fns.find("SwapMergeCastFusionPass");
   Status status = fe::FAILED;
   if (iter != create_fns.end()) {
-    auto graph_fusion_pass_base_ptr = std::unique_ptr<PatternFusionBasePass>(
-            dynamic_cast<PatternFusionBasePass *>(iter->second()));
+    auto graph_fusion_pass_base_ptr =
+        std::unique_ptr<PatternFusionBasePass>(dynamic_cast<PatternFusionBasePass *>(iter->second()));
     if (graph_fusion_pass_base_ptr != nullptr) {
       graph_fusion_pass_base_ptr->SetName(iter->first);
       status = graph_fusion_pass_base_ptr->Run(*graph);
@@ -491,7 +487,7 @@ TEST_F(fusion_pass_swap_merge_cast_ut, fusion_pass_swap_merge_cast_ut_4) {
   ComputeGraphPtr graph = CreateSwapMergeCastGraph4();
 
   SwapMergeCastFusionPass pass;
-  vector<GraphPass*> passes = {&pass};
+  vector<GraphPass *> passes = {&pass};
   Status status = PassManager::Run(*graph, passes);
   EXPECT_EQ(fe::NOT_CHANGED, status);
 }
@@ -500,12 +496,12 @@ TEST_F(fusion_pass_swap_merge_cast_ut, fusion_pass_swap_merge_cast_ut_5) {
   ComputeGraphPtr graph = CreateSwapMergeCastGraph5();
 
   std::map<string, FusionPassRegistry::CreateFn> create_fns =
-          FusionPassRegistry::GetInstance().GetCreateFnByType(SECOND_ROUND_BUILT_IN_GRAPH_PASS);
+      FusionPassRegistry::GetInstance().GetCreateFnByType(SECOND_ROUND_BUILT_IN_GRAPH_PASS);
   auto iter = create_fns.find("SwapMergeCastFusionPass");
   Status status = fe::FAILED;
   if (iter != create_fns.end()) {
-    auto graph_fusion_pass_base_ptr = std::unique_ptr<PatternFusionBasePass>(
-            dynamic_cast<PatternFusionBasePass *>(iter->second()));
+    auto graph_fusion_pass_base_ptr =
+        std::unique_ptr<PatternFusionBasePass>(dynamic_cast<PatternFusionBasePass *>(iter->second()));
     if (graph_fusion_pass_base_ptr != nullptr) {
       graph_fusion_pass_base_ptr->SetName(iter->first);
       status = graph_fusion_pass_base_ptr->Run(*graph);
@@ -551,17 +547,16 @@ TEST_F(fusion_pass_swap_merge_cast_ut, fusion_pass_swap_merge_cast_ut_5) {
   }
 }
 
-
 TEST_F(fusion_pass_swap_merge_cast_ut, fusion_pass_swap_merge_cast_ut_6) {
   ComputeGraphPtr graph = CreateSwapMergeCastGraph6();
 
   std::map<string, FusionPassRegistry::CreateFn> create_fns =
-          FusionPassRegistry::GetInstance().GetCreateFnByType(SECOND_ROUND_BUILT_IN_GRAPH_PASS);
+      FusionPassRegistry::GetInstance().GetCreateFnByType(SECOND_ROUND_BUILT_IN_GRAPH_PASS);
   auto iter = create_fns.find("SwapMergeCastFusionPass");
   Status status = fe::FAILED;
   if (iter != create_fns.end()) {
-    auto graph_fusion_pass_base_ptr = std::unique_ptr<PatternFusionBasePass>(
-            dynamic_cast<PatternFusionBasePass *>(iter->second()));
+    auto graph_fusion_pass_base_ptr =
+        std::unique_ptr<PatternFusionBasePass>(dynamic_cast<PatternFusionBasePass *>(iter->second()));
     if (graph_fusion_pass_base_ptr != nullptr) {
       graph_fusion_pass_base_ptr->SetName(iter->first);
       status = graph_fusion_pass_base_ptr->Run(*graph);

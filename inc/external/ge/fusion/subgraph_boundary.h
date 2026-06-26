@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,7 +33,8 @@ class SubgraphInputImpl;
  *      tensor1
  *       /  \
  *     op1   op2
- *     如上示例，tensor1是一个subgraph的input, 其在边界上对应op1和op2两个node。tensor1在subgraph边界外，op1和op2在subgraph边界内
+ *     如上示例，tensor1是一个subgraph的input,
+ * 其在边界上对应op1和op2两个node。tensor1在subgraph边界外，op1和op2在subgraph边界内
  *
  * （2）再考虑tensor1有2个消费者，其中op1在subgraph边界内，op2在边界外。
  *     因此当描述subgraph input的时候，明确边界上的node input是有必要的
@@ -81,6 +82,7 @@ class SubgraphInput {
    * @since 8.5.0(2025-12)
    */
   [[nodiscard]] std::vector<NodeIo> GetAllInputs() const;
+
  private:
   std::unique_ptr<SubgraphInputImpl> impl_;
 };
@@ -91,7 +93,7 @@ class SubgraphOutputImpl;
  * @since 8.5.0(2025-12)
  */
 class SubgraphOutput {
-  public:
+ public:
   /**
    * @since 8.5.0(2025-12)
    */
@@ -131,6 +133,7 @@ class SubgraphOutput {
    * @since 8.5.0(2025-12)
    */
   Status GetOutput(NodeIo &node_output) const;
+
  private:
   std::unique_ptr<SubgraphOutputImpl> impl_;
 };
@@ -220,10 +223,11 @@ class SubgraphBoundary {
    * @since 8.5.0(2025-12)
    */
   Status GetAllOutputs(std::vector<SubgraphOutput> &subgraph_outputs) const;
+
  private:
   std::unique_ptr<SubgraphBoundaryImpl> impl_;
 };
 }  // namespace fusion
-} // namespace ge
+}  // namespace ge
 
 #endif  // INC_EXTERNAL_GE_FUSION_SUBGRAPH_BOUNDARY_H_

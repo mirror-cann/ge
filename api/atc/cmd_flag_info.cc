@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -40,7 +40,7 @@ const static std::map<std::string, std::set<std::string>> kStrValueRange = {
     {"disable_reuse_memory", {"0", "1"}},
     {"framework", {"0", "1", "3", "5"}},
     {"op_debug_level", {"0", "1", "2", "3", "4"}},
-    {"mode", {"0", "1", "3", "5", "6", "7","30"}},
+    {"mode", {"0", "1", "3", "5", "6", "7", "30"}},
     {"jit_compile", {"0", "1", "2"}},
     {"core_type", {"AiCore", "VectorCore"}},
     {"log", {"debug", "info", "warning", "error", "null"}},
@@ -64,15 +64,15 @@ namespace flgs {
 
 namespace {
 namespace FlagName {
-  const char HELP[] = "help";
+const char HELP[] = "help";
 }
 
 namespace FlagIndex {
-  const int32_t COLON = ':';
-  const int32_t QUESTION_MARK = '?';
-  const int32_t HELP = 'h';
-  const int32_t CUSTOM_START_INDEX = 'z';
-}
+const int32_t COLON = ':';
+const int32_t QUESTION_MARK = '?';
+const int32_t HELP = 'h';
+const int32_t CUSTOM_START_INDEX = 'z';
+}  // namespace FlagIndex
 
 const char CMD_SHORT_OPTS[] = ":h";
 
@@ -82,33 +82,42 @@ static GfStatus StringToBool(const std::string &value, bool &out);
 static GfStatus StringToInt32(const std::string &value, int32_t &out);
 
 class CmdFlagInfo {
-public:
-  CmdFlagInfo(int32_t has_arg, int32_t index, const std::string &flag_name,
-              const std::string &default_val, const std::string &msg);
-  CmdFlagInfo(int32_t has_arg, int32_t index, const std::string &flag_name,
-              const bool default_val, const std::string &msg);
-  CmdFlagInfo(int32_t has_arg, int32_t index, const std::string &flag_name,
-              const int32_t default_val, const std::string &msg);
+ public:
+  CmdFlagInfo(int32_t has_arg, int32_t index, const std::string &flag_name, const std::string &default_val,
+              const std::string &msg);
+  CmdFlagInfo(int32_t has_arg, int32_t index, const std::string &flag_name, const bool default_val,
+              const std::string &msg);
+  CmdFlagInfo(int32_t has_arg, int32_t index, const std::string &flag_name, const int32_t default_val,
+              const std::string &msg);
   GfStatus SetFlagValue(const std::string &value);
-  int32_t GetFlagHasArg() const { return has_arg_; }
-  int32_t GetFlagIndex() const { return index_; }
-  const std::string& GetFlagName() const { return flag_name_; }
-  const std::string& GetFlagMsg() const { return msg_; }
-  std::string& GetFlagValueString() { return value_string_; }
-  bool& GetFlagValueBool() { return value_bool_; }
-  int32_t& GetFlagValueInt32() { return value_int32_; }
+  int32_t GetFlagHasArg() const {
+    return has_arg_;
+  }
+  int32_t GetFlagIndex() const {
+    return index_;
+  }
+  const std::string &GetFlagName() const {
+    return flag_name_;
+  }
+  const std::string &GetFlagMsg() const {
+    return msg_;
+  }
+  std::string &GetFlagValueString() {
+    return value_string_;
+  }
+  bool &GetFlagValueBool() {
+    return value_bool_;
+  }
+  int32_t &GetFlagValueInt32() {
+    return value_int32_;
+  }
   GfStatus CheckValue(const std::string &value) const;
   void PrintTypeError(const std::string &value, const char *type) const;
   void PrintValueError(const std::string &value) const;
   std::string PrintValueRange() const;
 
-private:
-  enum class DataType {
-    Unknown,
-    String,
-    Bool,
-    Int32
-  };
+ private:
+  enum class DataType { Unknown, String, Bool, Int32 };
   int32_t has_arg_;
   int32_t index_;
   std::string flag_name_;
@@ -170,10 +179,9 @@ std::string CmdFlagInfo::PrintValueRange() const {
 }
 
 void CmdFlagInfo::PrintValueError(const std::string &value) const {
-  if ((flag_name_ == "status_check") || (flag_name_ == "deterministic") ||
-      (flag_name_ == "external_weight") || (flag_name_ == "display_model_info") ||
-      (flag_name_ == "atomic_clean_policy") || (flag_name_ == "dump_mode") || (flag_name_ == "disable_reuse_memory") ||
-      flag_name_ == "sparsity") {
+  if ((flag_name_ == "status_check") || (flag_name_ == "deterministic") || (flag_name_ == "external_weight") ||
+      (flag_name_ == "display_model_info") || (flag_name_ == "atomic_clean_policy") || (flag_name_ == "dump_mode") ||
+      (flag_name_ == "disable_reuse_memory") || flag_name_ == "sparsity") {
     REPORT_PREDEFINED_ERR_MSG("E10006", std::vector<const char *>({"value", "parameter"}),
                               std::vector<const char *>({value.c_str(), flag_name_.c_str()}));
   } else if (flag_name_ == "log") {
@@ -192,8 +200,7 @@ void CmdFlagInfo::PrintValueError(const std::string &value) const {
   }
 }
 
-GfStatus CmdFlagInfo::SetFlagValue(const std::string &value)
-{
+GfStatus CmdFlagInfo::SetFlagValue(const std::string &value) {
   value_string_ = value;
   GE_CHK_BOOL_EXEC(CheckValue(value) == GF_SUCCESS, return GF_FAILED, "[Check][FlagValue]failed.");
   if (data_type_ == DataType::Bool) {
@@ -208,8 +215,7 @@ GfStatus CmdFlagInfo::SetFlagValue(const std::string &value)
   return GF_SUCCESS;
 }
 
-GfStatus CmdFlagInfo::CheckValue(const std::string &value) const
-{
+GfStatus CmdFlagInfo::CheckValue(const std::string &value) const {
   const auto it = kStrValueRange.find(flag_name_);
   if ((it != kStrValueRange.cend()) && (it->second.count(value) == 0U)) {
     PrintValueError(value);
@@ -232,10 +238,9 @@ GfStatus CmdFlagInfo::CheckValue(const std::string &value) const
   return GF_SUCCESS;
 }
 
-GfStatus StringToBool(const std::string &value, bool &out)
-{
-  const std::set<std::string> true_values = { "1", "t", "true", "y", "yes" };
-  const std::set<std::string> false_values = { "0", "f", "false", "n", "no" };
+GfStatus StringToBool(const std::string &value, bool &out) {
+  const std::set<std::string> true_values = {"1", "t", "true", "y", "yes"};
+  const std::set<std::string> false_values = {"0", "f", "false", "n", "no"};
   std::string val = value;
   std::transform(value.begin(), value.end(), val.begin(), ::tolower);
   if (val.empty() || (true_values.count(val) > 0U)) {
@@ -249,8 +254,7 @@ GfStatus StringToBool(const std::string &value, bool &out)
   return GF_FAILED;
 }
 
-GfStatus StringToInt32(const std::string &value, int32_t &out)
-{
+GfStatus StringToInt32(const std::string &value, int32_t &out) {
   if (std::any_of(value.begin(), value.end(), [](const char &v) { return !std::isdigit(v); })) {
     return GF_FAILED;
   }
@@ -262,14 +266,12 @@ GfStatus StringToInt32(const std::string &value, int32_t &out)
   return GF_SUCCESS;
 }
 
-static CmdFlagInfoMap& GetCmdFlagInfoMap()
-{
+static CmdFlagInfoMap &GetCmdFlagInfoMap() {
   static CmdFlagInfoMap cmd_flag_info_map;
   return cmd_flag_info_map;
 }
 
-static int32_t GetNextFlagIndex(const std::string &name)
-{
+static int32_t GetNextFlagIndex(const std::string &name) {
   static int32_t current_index = FlagIndex::CUSTOM_START_INDEX;
   if (name == FlagName::HELP) {
     return FlagIndex::HELP;
@@ -278,9 +280,8 @@ static int32_t GetNextFlagIndex(const std::string &name)
 }
 
 template <class T>
-static std::shared_ptr<CmdFlagInfo> RegisterCmdFlagInfo(int32_t has_arg, const std::string &name,
-                                                        const T &default_val, const std::string &msg)
-{
+static std::shared_ptr<CmdFlagInfo> RegisterCmdFlagInfo(int32_t has_arg, const std::string &name, const T &default_val,
+                                                        const std::string &msg) {
   std::shared_ptr<CmdFlagInfo> cmd_flag_info = nullptr;
   try {
     cmd_flag_info = std::make_shared<CmdFlagInfo>(has_arg, GetNextFlagIndex(name), name, default_val, msg);
@@ -291,8 +292,7 @@ static std::shared_ptr<CmdFlagInfo> RegisterCmdFlagInfo(int32_t has_arg, const s
   return cmd_flag_info;
 }
 
-static GfStatus UpdateCmdFlagInfo(const int32_t index, const std::string &value)
-{
+static GfStatus UpdateCmdFlagInfo(const int32_t index, const std::string &value) {
   const auto info = GetCmdFlagInfoMap().find(index);
   if (info != GetCmdFlagInfoMap().cend()) {
     GE_ASSERT_NOTNULL(info->second);
@@ -305,8 +305,7 @@ static GfStatus UpdateCmdFlagInfo(const int32_t index, const std::string &value)
   return GF_FAILED;
 }
 
-static std::vector<mmStructOption>& GetOptionsVec()
-{
+static std::vector<mmStructOption> &GetOptionsVec() {
   static std::vector<mmStructOption> options_vec;
   options_vec.clear();
   const CmdFlagInfoMap &info_map = GetCmdFlagInfoMap();
@@ -328,8 +327,7 @@ static std::vector<mmStructOption>& GetOptionsVec()
   return options_vec;
 }
 
-static std::string GetFlagMsg(const std::string &flag_name)
-{
+static std::string GetFlagMsg(const std::string &flag_name) {
   const std::regex r("^-+");
   const std::string &name = std::regex_replace(flag_name, r, "");
   const CmdFlagInfoMap &info_map = GetCmdFlagInfoMap();
@@ -341,14 +339,12 @@ static std::string GetFlagMsg(const std::string &flag_name)
   return "";
 }
 
-static void ReplaceFlagPrefixSingleMinus(std::string &str)
-{
+static void ReplaceFlagPrefixSingleMinus(std::string &str) {
   const std::regex r("^-(?=[[:alpha:]]{2,})");
   str = std::regex_replace(str, r, "--");
 }
 
-static void ReplaceFlagNameMinus(std::string &str)
-{
+static void ReplaceFlagNameMinus(std::string &str) {
   const std::regex r("^--(?=[[:alpha:]]{2,})");
   const int prefix_len = 4;
   if (!std::regex_search(str, r)) {
@@ -366,8 +362,7 @@ static void ReplaceFlagNameMinus(std::string &str)
   }
 }
 
-static char** FormatArgv(int32_t argc, char *argv[])
-{
+static char **FormatArgv(int32_t argc, char *argv[]) {
   static std::vector<std::shared_ptr<std::string>> vec_str;
   static std::vector<char *> vec_ptr;
   vec_str.clear();
@@ -382,43 +377,36 @@ static char** FormatArgv(int32_t argc, char *argv[])
   return vec_ptr.data();
 }
 
-static std::string GetFlagName(const std::string &flag_name)
-{
+static std::string GetFlagName(const std::string &flag_name) {
   const std::regex r("^-+|=.*");
   return std::regex_replace(flag_name, r, "");
 }
-} // namespace
+}  // namespace
 
-std::string& RegisterParamString(const std::string &name, const std::string &default_val, const std::string &msg)
-{
+std::string &RegisterParamString(const std::string &name, const std::string &default_val, const std::string &msg) {
   return RegisterCmdFlagInfo(MMPA_REQUIRED_ARGUMENT, name, default_val, msg)->GetFlagValueString();
 }
 
-bool& RegisterParamBool(const std::string &name, bool default_val, const std::string &msg)
-{
+bool &RegisterParamBool(const std::string &name, bool default_val, const std::string &msg) {
   return RegisterCmdFlagInfo(MMPA_OPTIONAL_ARGUMENT, name, default_val, msg)->GetFlagValueBool();
 }
 
-int32_t& RegisterParamInt32(const std::string &name, int32_t default_val, const std::string &msg)
-{
+int32_t &RegisterParamInt32(const std::string &name, int32_t default_val, const std::string &msg) {
   return RegisterCmdFlagInfo(MMPA_REQUIRED_ARGUMENT, name, default_val, msg)->GetFlagValueInt32();
 }
 
-static std::string& GetUsageMessage()
-{
+static std::string &GetUsageMessage() {
   static std::string usage;
   return usage;
 }
 
-static void PrintUsageMessage()
-{
+static void PrintUsageMessage() {
   if (!GetUsageMessage().empty()) {
     std::cout << GetUsageMessage() << std::endl;
   }
 }
 
-static GfStatus CheckNonOptionParameters(const int32_t argc, char** const argv)
-{
+static GfStatus CheckNonOptionParameters(const int32_t argc, char **const argv) {
   int32_t idx = mmGetOptInd();
   if (idx >= argc) {
     return GF_SUCCESS;
@@ -433,25 +421,21 @@ static GfStatus CheckNonOptionParameters(const int32_t argc, char** const argv)
   return GF_FAILED;
 }
 
-void SetUsageMessage(const std::string &usage)
-{
+void SetUsageMessage(const std::string &usage) {
   GetUsageMessage() = usage;
 }
 
-std::string& GetArgv()
-{
+std::string &GetArgv() {
   static std::string argv;
   return argv;
 }
 
-std::unordered_map<std::string, std::string> &GetUserOptions()
-{
+std::unordered_map<std::string, std::string> &GetUserOptions() {
   static std::unordered_map<std::string, std::string> user_options;
   return user_options;
 }
 
-GfStatus CheckFlagValue(const std::string &name, const std::string &value)
-{
+GfStatus CheckFlagValue(const std::string &name, const std::string &value) {
   const CmdFlagInfoMap &info_map = GetCmdFlagInfoMap();
   for (const auto &info : info_map) {
     if ((info.second != nullptr) && (info.second->GetFlagName() == name)) {
@@ -461,8 +445,7 @@ GfStatus CheckFlagValue(const std::string &name, const std::string &value)
   return GF_FAILED;
 }
 
-GfStatus SetFlagValue(const std::string &name, const std::string &value)
-{
+GfStatus SetFlagValue(const std::string &name, const std::string &value) {
   const CmdFlagInfoMap &info_map = GetCmdFlagInfoMap();
   for (const auto &info : info_map) {
     if ((info.second != nullptr) && (info.second->GetFlagName() == name)) {
@@ -472,8 +455,7 @@ GfStatus SetFlagValue(const std::string &name, const std::string &value)
   return GF_FAILED;
 }
 
-GfStatus ParseCommandLine(int32_t argc, char* argv[])
-{
+GfStatus ParseCommandLine(int32_t argc, char *argv[]) {
   int32_t index = 0;
   GfStatus ret = GF_FAILED;
   GetArgv().clear();
@@ -520,5 +502,5 @@ GfStatus ParseCommandLine(int32_t argc, char* argv[])
 
   return CheckNonOptionParameters(argc, buff);
 }
-} // namespace flgs
-} // namespace ge
+}  // namespace flgs
+}  // namespace ge

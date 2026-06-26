@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -49,8 +49,7 @@ TEST_F(DvppGraphExecutorWithKernelUnitTest, Dvpp_ExecuteSuccess) {
 
   DvppTaskDefFaker dvpp_task_def_faker;
   auto root_model = GeModelBuilder(graph).BuildGeRootModel();
-  auto global_data = GlobalDataFaker(root_model).AddTaskDef("Add",
-      dvpp_task_def_faker).Build();
+  auto global_data = GlobalDataFaker(root_model).AddTaskDef("Add", dvpp_task_def_faker).Build();
   ModelDescHolder model_desc_holder = ModelDescHolderFaker().Build();
   model_desc_holder.SetSpaceRegistry(gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry());
   auto graph_convert = GraphConverter().SetModelDescHolder(&model_desc_holder);
@@ -67,22 +66,19 @@ TEST_F(DvppGraphExecutorWithKernelUnitTest, Dvpp_ExecuteSuccess) {
   ASSERT_NE(model_executor, nullptr);
   EXPECT_EQ(model_executor->Load(), ge::GRAPH_SUCCESS);
 
-  auto inputs  = FakeTensors({2048}, 2);
+  auto inputs = FakeTensors({2048}, 2);
   auto outputs = FakeTensors({2048}, 1);
 
   aclrtStream stream;
-  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, 
-      static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0U), ACL_SUCCESS);
+  ASSERT_EQ(aclrtCreateStreamWithConfig(&stream, static_cast<uint32_t>(RT_STREAM_PRIORITY_DEFAULT), 0U), ACL_SUCCESS);
   auto stream_value = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
-  ASSERT_EQ(model_executor->Execute({stream_value.value},
-      inputs.GetTensorList(), inputs.size(),
-      outputs.GetTensorList(), outputs.size()),
-      ge::GRAPH_SUCCESS);
+  ASSERT_EQ(model_executor->Execute({stream_value.value}, inputs.GetTensorList(), inputs.size(),
+                                    outputs.GetTensorList(), outputs.size()),
+            ge::GRAPH_SUCCESS);
 
   Shape expect_out_shape{2048};
-  EXPECT_EQ(outputs.GetTensorList()[0]->GetShape().GetStorageShape(),
-            expect_out_shape);
+  EXPECT_EQ(outputs.GetTensorList()[0]->GetShape().GetStorageShape(), expect_out_shape);
 
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   aclrtDestroyStream(stream);

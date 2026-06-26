@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -42,7 +42,6 @@ const std::string kTaskTagName = "task_desc_info";
 const std::string kSingleOpTaskTagName = "single_op_task_info";
 const std::string kHeterogeneousHost = "heterogeneous_host";
 
-
 template <typename T>
 void SetAlternativeValue(const int32_t property_len, const std::string &value, T &property) {
   if (value.size() < static_cast<size_t>(property_len)) {
@@ -58,7 +57,6 @@ void SetAlternativeValue(const int32_t property_len, const std::string &value, T
 }
 }  // namespace
 
-
 namespace ge {
 ProfilingManager::ProfilingManager() = default;
 
@@ -68,8 +66,7 @@ ProfilingManager &ProfilingManager::Instance() {
 }
 
 void ProfilingManager::RegisterElement(int64_t &idx, const std::string &element) {
-  if (ProfilingManager::Instance().ProfilingModelLoadOn() &&
-      ProfilingProperties::Instance().IsTaskEventProfiling()) {
+  if (ProfilingManager::Instance().ProfilingModelLoadOn() && ProfilingProperties::Instance().IsTaskEventProfiling()) {
     const uint64_t hash_id = MsprofGetHashId(element.c_str(), element.length());
     idx = profiling::ProfilingContext::GetInstance().RegisterStringHash(hash_id, element);
   } else {
@@ -89,15 +86,14 @@ Status ProfilingManager::CheckInitForSubscribe(const uint64_t module, const uint
 Status ProfilingManager::ProfModelUnsubscribe(const uint32_t device, const uint32_t model_id) {
   const std::lock_guard<std::mutex> lock(mutex_);
   if (!ProfilingProperties::Instance().ProfilingSubscribeOn()) {
-    GELOGW("The profiler has not been subscribed, you do not need to cannel the subscription.");
+    GELOGW("The profiler has not been subscribed, you do not need to channel the subscription.");
     return SUCCESS;
   }
 
   const auto &subs_dev_module = ProfilingProperties::Instance().GetDeviceSubInfo();
   const std::map<uint32_t, DeviceSubsInfo>::const_iterator iter = subs_dev_module.find(device);
   if (iter != subs_dev_module.cend()) {
-    ProfilingProperties::Instance().UpdateSubscribeDeviceModuleMap(kProfModelUnsubscribe, device,
-                                                                   iter->second.module);
+    ProfilingProperties::Instance().UpdateSubscribeDeviceModuleMap(kProfModelUnsubscribe, device, iter->second.module);
   } else {
     GELOGE(FAILED, "[Cancel][DeviceId]The device_id %u has not been subscribed, do not need to cancel", device);
     REPORT_INNER_ERR_MSG("E19999", "The device_id %u has not been subscribed, do not need to cancel", device);
@@ -201,10 +197,14 @@ Status ProfilingManager::ProfParseParam(const std::map<std::string, std::string>
   }
 
   if ((device_num == 0) || (device_num > kMaxDeviceNum) || (device_num != static_cast<int32_t>(device_list.size()))) {
-    GELOGE(FAILED, "[Parse][Param]Failed, config para device num %d not equal to "
-           "device list size %zu", device_num, device_list.size());
-    REPORT_INNER_ERR_MSG("E19999", "[Parse][Param]Failed, config para device num %d "
-                       "not equal to device list size %zu", device_num, device_list.size());
+    GELOGE(FAILED,
+           "[Parse][Param]Failed, config para device num %d not equal to "
+           "device list size %zu",
+           device_num, device_list.size());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "[Parse][Param]Failed, config para device num %d "
+                         "not equal to device list size %zu",
+                         device_num, device_list.size());
     return FAILED;
   }
   return SUCCESS;
@@ -290,10 +290,14 @@ Status ProfilingManager::ProfStartProfiling(const uint64_t module,
   int32_t device_num = 0;
   std::vector<int32_t> device_list;
   if (ProfParseParam(config_para, device_num, device_list) != SUCCESS) {
-    GELOGE(FAILED, "[Parse][Param]Prof start parse param failed, device num %d, "
-           "device list size %zu", device_num, device_list.size());
-    REPORT_INNER_ERR_MSG("E19999", "Prof start parse param failed, device num %d, "
-                      "device list size %zu", device_num, device_list.size());
+    GELOGE(FAILED,
+           "[Parse][Param]Prof start parse param failed, device num %d, "
+           "device list size %zu",
+           device_num, device_list.size());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "Prof start parse param failed, device num %d, "
+                         "device list size %zu",
+                         device_num, device_list.size());
     return FAILED;
   }
 
@@ -322,10 +326,12 @@ Status ProfilingManager::ProfStopProfiling(const uint64_t module,
   int32_t device_num = 0;
   std::vector<int32_t> device_list;
   if (ProfParseParam(config_para, device_num, device_list) != SUCCESS) {
-    GELOGE(FAILED, "[Stop][Profiling]Prof stop parse param failed, device num %d, "
-           "device list size %zu", device_num, device_list.size());
-    REPORT_INNER_ERR_MSG("E19999", "Prof stop parse param failed, device num %d, device list size %zu",
-                      device_num, device_list.size());
+    GELOGE(FAILED,
+           "[Stop][Profiling]Prof stop parse param failed, device num %d, "
+           "device list size %zu",
+           device_num, device_list.size());
+    REPORT_INNER_ERR_MSG("E19999", "Prof stop parse param failed, device num %d, device list size %zu", device_num,
+                         device_list.size());
     return FAILED;
   }
 
@@ -401,9 +407,9 @@ void ProfilingManager::GetOpInputInfo(const OpDescPtr &op, TaskDescInfo &task_de
     input_data_type.emplace_back(input_tensor_desc->GetDataType());
   }
 
-  const std::vector<Format> format_default =  { FORMAT_NULL };
-  const std::vector<std::vector<int64_t>> shape_default = { {0} };
-  const std::vector<DataType> data_type_default = { DT_UNDEFINED };
+  const std::vector<Format> format_default = {FORMAT_NULL};
+  const std::vector<std::vector<int64_t>> shape_default = {{0}};
+  const std::vector<DataType> data_type_default = {DT_UNDEFINED};
   task_desc_info.input_format = input_format.empty() ? format_default : input_format;
   task_desc_info.input_shape = input_shape.empty() ? shape_default : input_shape;
   task_desc_info.input_data_type = input_data_type.empty() ? data_type_default : input_data_type;
@@ -423,9 +429,9 @@ void ProfilingManager::GetOpOutputInfo(const OpDescPtr &op, TaskDescInfo &task_d
     output_data_type.emplace_back(output_tensor_desc->GetDataType());
   }
 
-  const std::vector<Format> format_default =  { FORMAT_NULL };
-  const std::vector<std::vector<int64_t>> shape_default = { {0} };
-  const std::vector<DataType> data_type_default = { DT_UNDEFINED };
+  const std::vector<Format> format_default = {FORMAT_NULL};
+  const std::vector<std::vector<int64_t>> shape_default = {{0}};
+  const std::vector<DataType> data_type_default = {DT_UNDEFINED};
   task_desc_info.output_format = output_format.empty() ? format_default : output_format;
   task_desc_info.output_shape = output_shape.empty() ? shape_default : output_shape;
   task_desc_info.output_data_type = output_data_type.empty() ? data_type_default : output_data_type;
@@ -509,8 +515,7 @@ ge::Status ProfilerCollector::RecordStart(const aclrtStream stream) const {
   }
   if (!host_cpu_flag_) {
     GE_ASSERT_SUCCESS(
-        gert::GlobalProfilingWrapper::ProfileStepTrace(static_cast<uint64_t>(step_id_),
-                                                       model_id_, kStartTag, stream));
+        gert::GlobalProfilingWrapper::ProfileStepTrace(static_cast<uint64_t>(step_id_), model_id_, kStartTag, stream));
   }
   return ge::SUCCESS;
 }

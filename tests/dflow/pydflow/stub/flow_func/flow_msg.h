@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,9 +18,9 @@
 
 namespace FlowFunc {
 enum class MsgType : uint16_t {
-  MSG_TYPE_TENSOR_DATA = 0,   // tensor data msg type
-  MSG_TYPE_RAW_MSG = 1,       // raw data msg type
-  MSG_TYPE_TENSOR_LIST = 2,   // raw data msg type
+  MSG_TYPE_TENSOR_DATA = 0,  // tensor data msg type
+  MSG_TYPE_RAW_MSG = 1,      // raw data msg type
+  MSG_TYPE_TENSOR_LIST = 2,  // raw data msg type
   MSG_TYPE_USER_DEFINE_START = 1024
 };
 
@@ -83,12 +83,14 @@ struct MbufHeadMsg {
   std::string DebugString() const;
 };
 
-class FLOW_FUNC_VISIBILITY FlowBufferFactory{public : static std::shared_ptr<Tensor> AllocTensor(
-    const std::vector<int64_t> &shape, TensorDataType data_type, uint32_t align = 512U){(void)align;
-return std::make_shared<Tensor>(shape, data_type);
-}  // namespace FlowFunc
-}
-;
+class FLOW_FUNC_VISIBILITY FlowBufferFactory {
+ public:
+  static std::shared_ptr<Tensor> AllocTensor(const std::vector<int64_t> &shape, TensorDataType data_type,
+                                             uint32_t align = 512U) {
+    (void)align;
+    return std::make_shared<Tensor>(shape, data_type);
+  }  // namespace FlowFunc
+};
 
 class FLOW_FUNC_VISIBILITY FlowMsg {
  public:
@@ -187,6 +189,6 @@ class FLOW_FUNC_VISIBILITY FlowMsg {
   MbufHeadMsg head_msg_ = {};
   mutable std::vector<uint8_t> raw_data_;
 };
-}
+}  // namespace FlowFunc
 
 #endif  // FLOW_FUNC_FLOW_MSG_H

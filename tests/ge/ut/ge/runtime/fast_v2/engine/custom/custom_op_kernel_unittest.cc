@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -68,7 +68,7 @@ class TestBaseCustomOp : public EagerExecuteOp {
     auto workspaces = ctx->MallocWorkSpace(1024);
     GE_ASSERT_NOTNULL(workspaces);
     auto output_tensor = ctx->MallocOutputTensor(0, StorageShape({2048}, {2048}),
-        StorageFormat(FORMAT_ND, FORMAT_ND, ExpandDimsType()), DT_FLOAT);
+                                                 StorageFormat(FORMAT_ND, FORMAT_ND, ExpandDimsType()), DT_FLOAT);
     GE_ASSERT_NOTNULL(output_tensor);
     return SUCCESS;
   }
@@ -86,14 +86,14 @@ class TestBaseCustomOpWithInferShape : public EagerExecuteOp {
     auto workspaces = ctx->MallocWorkSpace(1024);
     GE_ASSERT_NOTNULL(workspaces);
 
-    const gert::Tensor* output_desc_0 = ctx->GetOutputTensor(0);
+    const gert::Tensor *output_desc_0 = ctx->GetOutputTensor(0);
     GE_ASSERT_NOTNULL(output_desc_0);
     gert::StorageShape out_shape_0 = output_desc_0->GetShape();
     GE_ASSERT_TRUE(out_shape_0.GetStorageShape().GetDimNum() == 1);
     GE_ASSERT_TRUE(out_shape_0.GetStorageShape().GetDim(0) == 2048);
     ge::DataType out_dtype_0 = output_desc_0->GetDataType();
     gert::StorageFormat out_format_0 = output_desc_0->GetFormat();
-    gert::Tensor* ge_output_0 = ctx->MallocOutputTensor(0, out_shape_0, out_format_0, out_dtype_0);
+    gert::Tensor *ge_output_0 = ctx->MallocOutputTensor(0, out_shape_0, out_format_0, out_dtype_0);
     GE_ASSERT_NOTNULL(ge_output_0);
     return SUCCESS;
   }
@@ -108,13 +108,13 @@ class TestRegistryOnlyCustomOp : public EagerExecuteOp {
 };
 
 REG_OP(CustomOp)
-  .INPUT(x1, TensorType::BasicType())
-  .INPUT(x2, TensorType::BasicType())
-  .INPUT(x3, TensorType::BasicType())
-  .OUTPUT(y, TensorType::BasicType())
-  .OP_END_FACTORY_REG(CustomOp)
+    .INPUT(x1, TensorType::BasicType())
+    .INPUT(x2, TensorType::BasicType())
+    .INPUT(x3, TensorType::BasicType())
+    .OUTPUT(y, TensorType::BasicType())
+    .OP_END_FACTORY_REG(CustomOp)
 
-static void RegisterInferShapeByRuleKernel() {
+        static void RegisterInferShapeByRuleKernel() {
   KernelRegistry::KernelFuncs infer_shape_funcs = {};
   infer_shape_funcs.run_func = [](KernelContext *context) -> ge::graphStatus {
     const auto ctx = reinterpret_cast<ExtendedKernelContext *>(context);
@@ -146,8 +146,8 @@ static void RegisterInferShapeByRuleKernel() {
       GE_ASSERT_NOTNULL(chain);
       auto output_desc = extend_context->GetOutputDesc(index);
       GE_ASSERT_NOTNULL(output_desc);
-      chain->SetWithDefaultDeleter(new (std::nothrow) Tensor(StorageShape(),
-          output_desc->GetFormat(), output_desc->GetDataType()));
+      chain->SetWithDefaultDeleter(new (std::nothrow)
+                                       Tensor(StorageShape(), output_desc->GetFormat(), output_desc->GetDataType()));
     }
     return ge::GRAPH_SUCCESS;
   };
@@ -217,9 +217,8 @@ static CustomOpRegistryPtr BuildCustomOpRegistryForRt2(const BaseOpCreator &crea
 TEST_F(CustomNodeKernelUT, custom_op_kernel_execute_test) {
   auto graph = ShareGraph::BuildCustomOpGraph();
   graph->TopologicalSorting();
-  auto custom_op_registry = BuildCustomOpRegistryForRt2([]()->std::unique_ptr<BaseCustomOp> {
-    return std::make_unique<TestBaseCustomOp>();
-  });
+  auto custom_op_registry = BuildCustomOpRegistryForRt2(
+      []() -> std::unique_ptr<BaseCustomOp> { return std::make_unique<TestBaseCustomOp>(); });
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.BuildGeRootModel();
   ge_root_model->SetCustomOpRegistry(custom_op_registry);
@@ -229,8 +228,8 @@ TEST_F(CustomNodeKernelUT, custom_op_kernel_execute_test) {
   ASSERT_EQ(3, exe_graph->GetDirectNodesSize());
   TaskProducerFactory::GetInstance().SetProducerType(TaskProducerType::KERNEL);
   ASSERT_EQ(TaskProducerFactory::GetInstance().GetProducerType(), TaskProducerType::KERNEL);
-  auto model_executor = ModelV2Executor::Create(exe_graph,
-      ExecutorOption(ExecutorType::kTopologicalPriority), ge_root_model);
+  auto model_executor =
+      ModelV2Executor::Create(exe_graph, ExecutorOption(ExecutorType::kTopologicalPriority), ge_root_model);
   ASSERT_NE(model_executor, nullptr);
   ASSERT_EQ(model_executor->Load(), GRAPH_SUCCESS);
 
@@ -254,9 +253,10 @@ TEST_F(CustomNodeKernelUT, custom_op_kernel_execute_test) {
 TEST_F(CustomNodeKernelUT, find_custom_op_uses_model_registry) {
   const std::string node_type = "RegistryOnlyCustomOpForRt2";
   auto custom_op_registry = std::make_shared<CustomOpRegistry>();
-  ASSERT_EQ(custom_op_registry->RegisterCreator(node_type.c_str(), []() -> std::unique_ptr<BaseCustomOp> {
-    return std::make_unique<TestRegistryOnlyCustomOp>();
-  }), GRAPH_SUCCESS);
+  ASSERT_EQ(custom_op_registry->RegisterCreator(
+                node_type.c_str(),
+                []() -> std::unique_ptr<BaseCustomOp> { return std::make_unique<TestRegistryOnlyCustomOp>(); }),
+            GRAPH_SUCCESS);
   auto *expected_op = custom_op_registry->CreateOrGetCustomOp(node_type.c_str());
   ASSERT_NE(expected_op, nullptr);
 
@@ -273,9 +273,10 @@ TEST_F(CustomNodeKernelUT, find_custom_op_uses_model_registry) {
 
 TEST_F(CustomNodeKernelUT, find_custom_op_does_not_fallback_to_global_registry) {
   const std::string node_type = "GlobalOnlyCustomOpForRt2";
-  ASSERT_EQ(CustomOpFactory::RegisterCustomOpCreator(node_type.c_str(), []() -> std::unique_ptr<BaseCustomOp> {
-    return std::make_unique<TestRegistryOnlyCustomOp>();
-  }), GRAPH_SUCCESS);
+  ASSERT_EQ(CustomOpFactory::RegisterCustomOpCreator(
+                node_type.c_str(),
+                []() -> std::unique_ptr<BaseCustomOp> { return std::make_unique<TestRegistryOnlyCustomOp>(); }),
+            GRAPH_SUCCESS);
   auto *global_op = CustomOpFactory::CreateOrGetCustomOp(node_type.c_str());
   ASSERT_NE(global_op, nullptr);
 
@@ -292,9 +293,10 @@ TEST_F(CustomNodeKernelUT, find_custom_op_does_not_fallback_to_global_registry) 
 
 TEST_F(CustomNodeKernelUT, find_custom_op_uses_global_registry) {
   const std::string node_type = "OnlineGlobalCustomOpForRt2";
-  ASSERT_EQ(CustomOpFactory::RegisterCustomOpCreator(node_type.c_str(), []() -> std::unique_ptr<BaseCustomOp> {
-    return std::make_unique<TestRegistryOnlyCustomOp>();
-  }), GRAPH_SUCCESS);
+  ASSERT_EQ(CustomOpFactory::RegisterCustomOpCreator(
+                node_type.c_str(),
+                []() -> std::unique_ptr<BaseCustomOp> { return std::make_unique<TestRegistryOnlyCustomOp>(); }),
+            GRAPH_SUCCESS);
   auto *global_op = CustomOpFactory::CreateOrGetCustomOp(node_type.c_str());
   ASSERT_NE(global_op, nullptr);
 
@@ -317,9 +319,8 @@ TEST_F(CustomNodeKernelUT, custom_op_with_inference_rule_execute_test) {
     GTEST_SKIP() << "JIT compiler not available, skip test";
   }
 
-  auto custom_op_registry = BuildCustomOpRegistryForRt2([]()->std::unique_ptr<BaseCustomOp> {
-    return std::make_unique<TestBaseCustomOpWithInferShape>();
-  });
+  auto custom_op_registry = BuildCustomOpRegistryForRt2(
+      []() -> std::unique_ptr<BaseCustomOp> { return std::make_unique<TestBaseCustomOpWithInferShape>(); });
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.BuildGeRootModel();
   ge_root_model->SetCustomOpRegistry(custom_op_registry);
@@ -328,8 +329,8 @@ TEST_F(CustomNodeKernelUT, custom_op_with_inference_rule_execute_test) {
   ASSERT_NE(exe_graph, nullptr);
 
   TaskProducerFactory::GetInstance().SetProducerType(TaskProducerType::KERNEL);
-  auto model_executor = ModelV2Executor::Create(exe_graph,
-      ExecutorOption(ExecutorType::kTopologicalPriority), ge_root_model);
+  auto model_executor =
+      ModelV2Executor::Create(exe_graph, ExecutorOption(ExecutorType::kTopologicalPriority), ge_root_model);
   ASSERT_NE(model_executor, nullptr);
   ASSERT_EQ(model_executor->Load(), GRAPH_SUCCESS);
 

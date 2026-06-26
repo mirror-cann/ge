@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -74,8 +74,8 @@ class AscBackendFusionDecider : public FusionDecider {
    * @param counter 融合节点名命名计数指针
    * @return 如果融合成功，返回新节点的指针；否则返回 nullptr
    */
-  NodePtr FuseNode(NodePtr node1, NodePtr node2, const ComputeGraphPtr merged_graph,
-                   const NodeFuseInfo &node_fuse_info, const CounterPtr &counter) const;
+  NodePtr FuseNode(NodePtr node1, NodePtr node2, const ComputeGraphPtr merged_graph, const NodeFuseInfo &node_fuse_info,
+                   const CounterPtr &counter) const;
 
   /**
    * 该函数将两个子图（subgraph1 和 subgraph2）根据循环进行合并, 合并后的子图将包含两个子图的所有节点和边
@@ -165,7 +165,8 @@ class AscBackendFusionDecider : public FusionDecider {
   /**
    * 设置can_fuse融合后的节点的输出与对应原图上节点的输出映射关系
    * 1.遍历融合后节点的所有输出
-   * 2.通过node1/2_output_map找到对应AscNode的输出，比如:node1的node1_output_map是[1]，node2的node2_output_map是[-1, 0, 1]，这样
+   * 2.通过node1/2_output_map找到对应AscNode的输出，比如:node1的node1_output_map是[1]，node2的node2_output_map是[-1, 0,
+   * 1]，这样
    * 表示融合后的节点的第0个输出对应node1的第1个输出；融合后的节点的第1个输出对应node2的第0个输出；融合后的节点的第2个输出对应node2的第1个输出
    * 3.通过AscNode的输出以及lowering阶段记录的AscNode的输出与原图节点的映射关系origin_output_names拿到对应原图节点的名字以及输出id
    * 4.设置can_fuse中的融合节点输出与原图中对应节点的输出对应关系
@@ -182,7 +183,8 @@ class AscBackendFusionDecider : public FusionDecider {
   /**
    * 设置can_fuse融合后的节点的输入与对应原图上节点的输入映射关系
    * 1.遍历融合后节点的所有输入
-   * 2.通过node1/2_input_map找到对应AscNode的输入，比如:node1的node1_input_map是[1]，node2的node2_input_map是[-1, 0, 1]，这样
+   * 2.通过node1/2_input_map找到对应AscNode的输入，比如:node1的node1_input_map是[1]，node2的node2_input_map是[-1, 0,
+   * 1]，这样
    * 表示融合后的节点的第0个输入对应node1的第1个输入；融合后的节点的第1个输入对应node2的第0个输入；融合后的节点的第2个输入对应node2的第1个输入
    * 3.通过AscNode的输入以及lowering阶段记录的AscNode的输入与原图节点的映射关系origin_input_names拿到对应原图节点的名字以及输入id
    * 4.设置can_fuse中的融合节点输入与原图中对应节点的输入对应关系

@@ -24,7 +24,7 @@ find_package(GenerateEsPackage REQUIRED)
 
 
 # ===== 1. 前置条件：定义原型库 =====
-# 注意: 
+# 注意:
 # 当前为开箱即用示例, 即定义INTERFACE使用已有的原型so
 # 正常使用不会是用现有的so，更普遍的方式是直接使用项目中已有的so的target
 # 使用项目中已有的so方式:

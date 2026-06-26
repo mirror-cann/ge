@@ -99,4 +99,3 @@ EsCGraphBuilder *builder = EsCreateGraphBuilder("graph_name");
 EsCTensorHolder *data0 = EsCreateInput(builder, 0); // 添加第 0 个输入节点, 默认为FLOAT类型
 EsSetDataType(data0, C_DT_INT32); //设置第0个输入节点的数据类型
 ```
-

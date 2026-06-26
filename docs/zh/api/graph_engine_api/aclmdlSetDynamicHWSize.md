@@ -90,4 +90,3 @@ aclError aclmdlSetDynamicHWSize(uint32_t modelId, aclmdlDataset *dataset, size_t
 ## 返回值说明<a name="section7216174405014"></a>
 
 返回0表示成功，返回其他值表示失败，请参见[aclError](aclError.md)。
-

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,7 +33,8 @@ vector<FusionPattern *> DeleteNoConstFolding::DefinePatterns() {
    */
   FusionPattern *pattern0 = new (std::nothrow) FusionPattern("deleteNoConstFoldingFusion0");
   FE_CHECK(pattern0 == nullptr,
-      REPORT_FE_ERROR("[GraphOpt][TfTagNoCstFold][DefPtn] Failed to create new FusionPattern object!"), return patterns);
+           REPORT_FE_ERROR("[GraphOpt][TfTagNoCstFold][DefPtn] Failed to create new FusionPattern object!"),
+           return patterns);
   /* above defines ops that we need */
   pattern0->AddOpDesc(PATN_WEIGHT_QUANT, {OP_WEIGHTQUANT}).SetOutput(PATN_WEIGHT_QUANT);
   patterns.push_back(pattern0);
@@ -59,6 +60,6 @@ Status DeleteNoConstFolding::Fusion(ge::ComputeGraph &graph, Mapping &mapping, v
 
   return SUCCESS;
 }
-REG_PASS("DeleteNoConstFolding", BUILT_IN_DELETE_NO_CONST_FOLDING_GRAPH_PASS,
-         DeleteNoConstFolding, SINGLE_SCENE_OPEN | FE_PASS | FORBIDDEN_CLOSE);
+REG_PASS("DeleteNoConstFolding", BUILT_IN_DELETE_NO_CONST_FOLDING_GRAPH_PASS, DeleteNoConstFolding,
+         SINGLE_SCENE_OPEN | FE_PASS | FORBIDDEN_CLOSE);
 }  // namespace fe

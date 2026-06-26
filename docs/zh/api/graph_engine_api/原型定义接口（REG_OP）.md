@@ -227,4 +227,3 @@ REG_OP(If)
     .GRAPH(else_branch)
     .OP_END_FACTORY_REG(If)
 ```
-

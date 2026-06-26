@@ -1,13 +1,12 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
-
 
 #include "exe_graph/runtime/extended_kernel_context.h"
 #include "exe_graph/runtime/kernel_context.h"
@@ -18,7 +17,7 @@
 #include "framework/common/debug/ge_log.h"
 
 namespace gert {
-ge::graphStatus SequenceEraseCompute(KernelContext* context) {
+ge::graphStatus SequenceEraseCompute(KernelContext *context) {
   constexpr int32_t kSessionIdIndex = 0;
   constexpr int32_t kContainerIdIndex = 1;
   constexpr int32_t kInputNumIndex = 2;
@@ -32,8 +31,7 @@ ge::graphStatus SequenceEraseCompute(KernelContext* context) {
     return ge::PARAM_INVALID;
   }
 
-  auto input_handle_data =
-      context->GetInputPointer<TensorData>(kInputHandleIdx);
+  auto input_handle_data = context->GetInputPointer<TensorData>(kInputHandleIdx);
   if (input_handle_data == nullptr) {
     GELOGE(ge::PARAM_INVALID, "Get input handle tensor data failed.");
     REPORT_INNER_ERR_MSG("E39999", "Get input handle tensor data failed.");
@@ -47,7 +45,7 @@ ge::graphStatus SequenceEraseCompute(KernelContext* context) {
   }
 
   // handle's type is DT_RESOURCE(aka uint64_t)
-  auto handle = static_cast<uint64_t*>(input_handle_data->GetAddr());
+  auto handle = static_cast<uint64_t *>(input_handle_data->GetAddr());
   GELOGD("handle is %llu", *handle);
 
   auto session_id = context->GetInputValue<size_t>(kSessionIdIndex);
@@ -61,7 +59,7 @@ ge::graphStatus SequenceEraseCompute(KernelContext* context) {
   int32_t output_idx = kInputIndexIdx;
   constexpr int32_t least_input_number = 2;
   if (input_num == least_input_number) {
-    auto extend_ctx = reinterpret_cast<ExtendedKernelContext*>(context);
+    auto extend_ctx = reinterpret_cast<ExtendedKernelContext *>(context);
     auto erase_index_desc = extend_ctx->GetInputDesc(1);
     if (erase_index_desc == nullptr) {
       GELOGE(ge::PARAM_INVALID, "erase_index_desc is nullptr");
@@ -70,8 +68,7 @@ ge::graphStatus SequenceEraseCompute(KernelContext* context) {
     }
 
     auto erase_index_type = erase_index_desc->GetDataType();
-    auto erase_index_data =
-        context->GetInputPointer<TensorData>(kInputIndexIdx);
+    auto erase_index_data = context->GetInputPointer<TensorData>(kInputIndexIdx);
     if (erase_index_data == nullptr) {
       GELOGE(ge::PARAM_INVALID, "Get erase index failed.");
       REPORT_INNER_ERR_MSG("E39999", "Get erase index failed.");
@@ -85,20 +82,23 @@ ge::graphStatus SequenceEraseCompute(KernelContext* context) {
 
     switch (erase_index_type) {
       case ge::DT_INT32:
-        index = static_cast<int64_t>(
-            *static_cast<int32_t*>(erase_index_data->GetAddr()));
+        index = static_cast<int64_t>(*static_cast<int32_t *>(erase_index_data->GetAddr()));
         break;
       case ge::DT_INT64:
-        index = *(static_cast<int64_t*>(erase_index_data->GetAddr()));
+        index = *(static_cast<int64_t *>(erase_index_data->GetAddr()));
         break;
       default:
-        GELOGE(ge::PARAM_INVALID, "Sequence Erase input index data type should be DT_INT32 "
-               "or DT_INT64, [%u] not support.", erase_index_type);
-        REPORT_INNER_ERR_MSG("E39999", "Sequence Erase input index data type should be DT_INT32 "
-                           "or DT_INT64, [%u] not support.", erase_index_type);
+        GELOGE(ge::PARAM_INVALID,
+               "Sequence Erase input index data type should be DT_INT32 "
+               "or DT_INT64, [%u] not support.",
+               erase_index_type);
+        REPORT_INNER_ERR_MSG("E39999",
+                             "Sequence Erase input index data type should be DT_INT32 "
+                             "or DT_INT64, [%u] not support.",
+                             erase_index_type);
         return ge::PARAM_INVALID;
     }
-    output_idx ++;
+    output_idx++;
   }
   GELOGD("erase index is %lld, tensor sequence size is %zu", index, tensor_seq_ptr->Size());
   if (tensor_seq_ptr->Erase(index) != ge::GRAPH_SUCCESS) {
@@ -114,7 +114,7 @@ ge::graphStatus SequenceEraseCompute(KernelContext* context) {
     return ge::PARAM_INVALID;
   }
 
-  uint64_t* data_ptr = output_tensor->GetData<uint64_t>();
+  uint64_t *data_ptr = output_tensor->GetData<uint64_t>();
   if (data_ptr == nullptr) {
     GELOGE(ge::PARAM_INVALID, "output_tensor tensorData is nullptr");
     REPORT_INNER_ERR_MSG("E39999", "output_tensor tensorData is nullptr");
@@ -122,8 +122,7 @@ ge::graphStatus SequenceEraseCompute(KernelContext* context) {
   }
 
   *data_ptr = *handle;
-  GELOGD("Finish SequenceEraseCompute, tensor sequence size is %zu.",
-         tensor_seq_ptr->Size());
+  GELOGD("Finish SequenceEraseCompute, tensor sequence size is %zu.", tensor_seq_ptr->Size());
   return ge::GRAPH_SUCCESS;
 }
 REGISTER_KERNEL(SequenceEraseCompute).RunFunc(SequenceEraseCompute);

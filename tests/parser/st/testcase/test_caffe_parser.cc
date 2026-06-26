@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -55,11 +55,11 @@ class STestCaffeParser : public testing::Test {
   void RegisterCustomOp();
 };
 
-static Status ParseParams(const google::protobuf::Message* op_src, ge::Operator& op_dest) {
+static Status ParseParams(const google::protobuf::Message *op_src, ge::Operator &op_dest) {
   return SUCCESS;
 }
 
-static ge::NodePtr GenNodeFromOpDesc(ge::OpDescPtr opDesc){
+static ge::NodePtr GenNodeFromOpDesc(ge::OpDescPtr opDesc) {
   if (!opDesc) {
     return nullptr;
   }
@@ -67,102 +67,95 @@ static ge::NodePtr GenNodeFromOpDesc(ge::OpDescPtr opDesc){
   return g->AddNode(std::move(opDesc));
 }
 
-  ge::ComputeGraphPtr build_graph(bool with_leaf_node = false)
-  {
-    ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("default");
-    ge::OpDescPtr data_op = std::make_shared<ge::OpDesc>();
-    ge::OpDescUtilsEx::SetType(data_op, parser::DATA);
-    data_op->SetName("Data1");
-    data_op->AddInputDesc(ge::GeTensorDesc());
-    data_op->AddOutputDesc(ge::GeTensorDesc());
-    ge::NodePtr data1 = graph->AddNode(data_op);
+ge::ComputeGraphPtr build_graph(bool with_leaf_node = false) {
+  ge::ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("default");
+  ge::OpDescPtr data_op = std::make_shared<ge::OpDesc>();
+  ge::OpDescUtilsEx::SetType(data_op, parser::DATA);
+  data_op->SetName("Data1");
+  data_op->AddInputDesc(ge::GeTensorDesc());
+  data_op->AddOutputDesc(ge::GeTensorDesc());
+  ge::NodePtr data1 = graph->AddNode(data_op);
 
-    ge::OpDescPtr relu_op1 = std::make_shared<ge::OpDesc>();
-    ge::OpDescUtilsEx::SetType(relu_op1, parser::ACTIVATION);
-    relu_op1->SetName("Relu1");
-    relu_op1->AddInputDesc(ge::GeTensorDesc());
-    relu_op1->AddOutputDesc(ge::GeTensorDesc());
-    ge::NodePtr relu1 = graph->AddNode(relu_op1);
+  ge::OpDescPtr relu_op1 = std::make_shared<ge::OpDesc>();
+  ge::OpDescUtilsEx::SetType(relu_op1, parser::ACTIVATION);
+  relu_op1->SetName("Relu1");
+  relu_op1->AddInputDesc(ge::GeTensorDesc());
+  relu_op1->AddOutputDesc(ge::GeTensorDesc());
+  ge::NodePtr relu1 = graph->AddNode(relu_op1);
 
-    ge::OpDescPtr relu_op2 = std::make_shared<ge::OpDesc>();
-    ge::OpDescUtilsEx::SetType(relu_op2, parser::RELU);
-    relu_op2->SetName("Relu2");
-    relu_op2->AddInputDesc(ge::GeTensorDesc());
-    relu_op2->AddOutputDesc(ge::GeTensorDesc());
-    relu_op2->AddOutputDesc(ge::GeTensorDesc());
-    ge::NodePtr relu2 = graph->AddNode(relu_op2);
+  ge::OpDescPtr relu_op2 = std::make_shared<ge::OpDesc>();
+  ge::OpDescUtilsEx::SetType(relu_op2, parser::RELU);
+  relu_op2->SetName("Relu2");
+  relu_op2->AddInputDesc(ge::GeTensorDesc());
+  relu_op2->AddOutputDesc(ge::GeTensorDesc());
+  relu_op2->AddOutputDesc(ge::GeTensorDesc());
+  ge::NodePtr relu2 = graph->AddNode(relu_op2);
 
-    ge::OpDescPtr relu_op3 = std::make_shared<ge::OpDesc>();
-    ge::OpDescUtilsEx::SetType(relu_op3, parser::ACTIVATION);
-    relu_op3->SetName("Relu3");
-    relu_op3->AddInputDesc(ge::GeTensorDesc());
-    relu_op3->AddOutputDesc(ge::GeTensorDesc());
-    ge::NodePtr relu3;
-    if (with_leaf_node == true) {
-        relu3 = graph->AddNode(relu_op3);
-    }
-
-    ge::OpDescPtr mul_op = std::make_shared<ge::OpDesc>();
-    ge::OpDescUtilsEx::SetType(mul_op, parser::MUL);
-    mul_op->SetName("Mul");
-    mul_op->AddInputDesc(ge::GeTensorDesc());
-    mul_op->AddInputDesc(ge::GeTensorDesc());
-    mul_op->AddOutputDesc(ge::GeTensorDesc());
-    mul_op->AddOutputDesc(ge::GeTensorDesc());
-    mul_op->AddOutputDesc(ge::GeTensorDesc());
-    mul_op->AddOutputDesc(ge::GeTensorDesc());
-    ge::NodePtr mul = graph->AddNode(mul_op);
-
-    ge::OpDescPtr mul_op1 = std::make_shared<ge::OpDesc>();
-    ge::OpDescUtilsEx::SetType(mul_op1, parser::MUL);
-    mul_op1->SetName("Mul1");
-    mul_op1->AddInputDesc(ge::GeTensorDesc());
-    mul_op1->AddInputDesc(ge::GeTensorDesc());
-    mul_op1->AddOutputDesc(ge::GeTensorDesc());
-    ge::NodePtr mul1 = graph->AddNode(mul_op1);
-
-    ge::OpDescPtr mul_op2 = std::make_shared<ge::OpDesc>();
-    ge::OpDescUtilsEx::SetType(mul_op2, parser::MUL);
-    mul_op2->SetName("Mul2");
-    mul_op2->AddInputDesc(ge::GeTensorDesc());
-    mul_op2->AddInputDesc(ge::GeTensorDesc());
-    mul_op2->AddOutputDesc(ge::GeTensorDesc());
-    ge::NodePtr mul2 = graph->AddNode(mul_op2);
-
-    ge::OpDescPtr fc_op = std::make_shared<ge::OpDesc>();
-    ge::OpDescUtilsEx::SetType(fc_op, parser::FULL_CONNECTION);
-    fc_op->SetName("FullConnection");
-    fc_op->AddInputDesc(ge::GeTensorDesc());
-    fc_op->AddOutputDesc(ge::GeTensorDesc());
-    fc_op->AddOutputDesc(ge::GeTensorDesc());
-    ge::NodePtr fc = graph->AddNode(fc_op);
-
-    ge::GraphUtils::AddEdge(data1->GetOutDataAnchor(0), relu1->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(relu1->GetOutDataAnchor(0), fc->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(fc->GetOutDataAnchor(0), relu2->GetInDataAnchor(0));
-    if (with_leaf_node == true) {
-        ge::GraphUtils::AddEdge(fc->GetOutDataAnchor(1), relu3->GetInDataAnchor(0));
-    }
-    ge::GraphUtils::AddEdge(relu2->GetOutDataAnchor(0), mul->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(relu2->GetOutDataAnchor(1), mul->GetInDataAnchor(1));
-    ge::GraphUtils::AddEdge(mul->GetOutDataAnchor(0), mul1->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(mul->GetOutDataAnchor(1), mul1->GetInDataAnchor(1));
-    ge::GraphUtils::AddEdge(mul->GetOutDataAnchor(2), mul2->GetInDataAnchor(0));
-    ge::GraphUtils::AddEdge(mul->GetOutDataAnchor(3), mul2->GetInDataAnchor(1));
-
-    return graph;
+  ge::OpDescPtr relu_op3 = std::make_shared<ge::OpDesc>();
+  ge::OpDescUtilsEx::SetType(relu_op3, parser::ACTIVATION);
+  relu_op3->SetName("Relu3");
+  relu_op3->AddInputDesc(ge::GeTensorDesc());
+  relu_op3->AddOutputDesc(ge::GeTensorDesc());
+  ge::NodePtr relu3;
+  if (with_leaf_node == true) {
+    relu3 = graph->AddNode(relu_op3);
   }
 
-void STestCaffeParser::RegisterCustomOp() {
-  REGISTER_CUSTOM_OP("Data")
-  .FrameworkType(domi::CAFFE)
-  .OriginOpType("Input")
-  .ParseParamsFn(ParseParams);
+  ge::OpDescPtr mul_op = std::make_shared<ge::OpDesc>();
+  ge::OpDescUtilsEx::SetType(mul_op, parser::MUL);
+  mul_op->SetName("Mul");
+  mul_op->AddInputDesc(ge::GeTensorDesc());
+  mul_op->AddInputDesc(ge::GeTensorDesc());
+  mul_op->AddOutputDesc(ge::GeTensorDesc());
+  mul_op->AddOutputDesc(ge::GeTensorDesc());
+  mul_op->AddOutputDesc(ge::GeTensorDesc());
+  mul_op->AddOutputDesc(ge::GeTensorDesc());
+  ge::NodePtr mul = graph->AddNode(mul_op);
 
-  REGISTER_CUSTOM_OP("Abs")
-    .FrameworkType(domi::CAFFE)
-    .OriginOpType("AbsVal")
-    .ParseParamsFn(ParseParams);
+  ge::OpDescPtr mul_op1 = std::make_shared<ge::OpDesc>();
+  ge::OpDescUtilsEx::SetType(mul_op1, parser::MUL);
+  mul_op1->SetName("Mul1");
+  mul_op1->AddInputDesc(ge::GeTensorDesc());
+  mul_op1->AddInputDesc(ge::GeTensorDesc());
+  mul_op1->AddOutputDesc(ge::GeTensorDesc());
+  ge::NodePtr mul1 = graph->AddNode(mul_op1);
+
+  ge::OpDescPtr mul_op2 = std::make_shared<ge::OpDesc>();
+  ge::OpDescUtilsEx::SetType(mul_op2, parser::MUL);
+  mul_op2->SetName("Mul2");
+  mul_op2->AddInputDesc(ge::GeTensorDesc());
+  mul_op2->AddInputDesc(ge::GeTensorDesc());
+  mul_op2->AddOutputDesc(ge::GeTensorDesc());
+  ge::NodePtr mul2 = graph->AddNode(mul_op2);
+
+  ge::OpDescPtr fc_op = std::make_shared<ge::OpDesc>();
+  ge::OpDescUtilsEx::SetType(fc_op, parser::FULL_CONNECTION);
+  fc_op->SetName("FullConnection");
+  fc_op->AddInputDesc(ge::GeTensorDesc());
+  fc_op->AddOutputDesc(ge::GeTensorDesc());
+  fc_op->AddOutputDesc(ge::GeTensorDesc());
+  ge::NodePtr fc = graph->AddNode(fc_op);
+
+  ge::GraphUtils::AddEdge(data1->GetOutDataAnchor(0), relu1->GetInDataAnchor(0));
+  ge::GraphUtils::AddEdge(relu1->GetOutDataAnchor(0), fc->GetInDataAnchor(0));
+  ge::GraphUtils::AddEdge(fc->GetOutDataAnchor(0), relu2->GetInDataAnchor(0));
+  if (with_leaf_node == true) {
+    ge::GraphUtils::AddEdge(fc->GetOutDataAnchor(1), relu3->GetInDataAnchor(0));
+  }
+  ge::GraphUtils::AddEdge(relu2->GetOutDataAnchor(0), mul->GetInDataAnchor(0));
+  ge::GraphUtils::AddEdge(relu2->GetOutDataAnchor(1), mul->GetInDataAnchor(1));
+  ge::GraphUtils::AddEdge(mul->GetOutDataAnchor(0), mul1->GetInDataAnchor(0));
+  ge::GraphUtils::AddEdge(mul->GetOutDataAnchor(1), mul1->GetInDataAnchor(1));
+  ge::GraphUtils::AddEdge(mul->GetOutDataAnchor(2), mul2->GetInDataAnchor(0));
+  ge::GraphUtils::AddEdge(mul->GetOutDataAnchor(3), mul2->GetInDataAnchor(1));
+
+  return graph;
+}
+
+void STestCaffeParser::RegisterCustomOp() {
+  REGISTER_CUSTOM_OP("Data").FrameworkType(domi::CAFFE).OriginOpType("Input").ParseParamsFn(ParseParams);
+
+  REGISTER_CUSTOM_OP("Abs").FrameworkType(domi::CAFFE).OriginOpType("AbsVal").ParseParamsFn(ParseParams);
 
   std::vector<OpRegistrationData> reg_datas = domi::OpRegistry::Instance()->registrationDatas;
   for (auto reg_data : reg_datas) {
@@ -241,19 +234,18 @@ TEST_F(STestCaffeParser, acl_caffe_parser) {
   }
 }
 
-TEST_F(STestCaffeParser, modelparser_parsefrommemory_success)
-{
+TEST_F(STestCaffeParser, modelparser_parsefrommemory_success) {
   std::string caseDir = __FILE__;
   std::size_t idx = caseDir.find_last_of("/");
   caseDir = caseDir.substr(0, idx);
   std::string modelFile = caseDir + "/origin_models/caffe_add.pbtxt";
-  const char* tmp_tf_pb_model = modelFile.c_str();
+  const char *tmp_tf_pb_model = modelFile.c_str();
   ge::Graph graph;
 
   ge::ComputeGraphPtr compute_graph = ge::GraphUtilsEx::GetComputeGraph(graph);
   CaffeModelParser modelParser;
-  MemBuffer* memBuffer = ParerSTestsUtils::MemBufferFromFile(tmp_tf_pb_model);
-  auto ret = modelParser.ParseFromMemory((char*)memBuffer->data, memBuffer->size, compute_graph);
+  MemBuffer *memBuffer = ParerSTestsUtils::MemBufferFromFile(tmp_tf_pb_model);
+  auto ret = modelParser.ParseFromMemory((char *)memBuffer->data, memBuffer->size, compute_graph);
   free(memBuffer->data);
   delete memBuffer;
   EXPECT_EQ(ret, GRAPH_FAILED);
@@ -278,8 +270,7 @@ TEST_F(STestCaffeParser, caffe_parser_to_json) {
   EXPECT_EQ(ret, FAILED);
 }
 
-TEST_F(STestCaffeParser, caffe_parser_ParseParamsForDummyData_test)
-{
+TEST_F(STestCaffeParser, caffe_parser_ParseParamsForDummyData_test) {
   CaffeDataParser caffe_parser;
   domi::caffe::NetParameter net;
   ge::OpDescPtr op = std::make_shared<ge::OpDesc>("conv", "Convolution");
@@ -294,17 +285,16 @@ TEST_F(STestCaffeParser, caffe_parser_ParseParamsForDummyData_test)
   ret = caffe_parser.ParseParamsForDummyData(*lay, op);
   EXPECT_EQ(ret, FAILED);
 
-  domi::caffe::BlobShape* dummpShape = dummyData->add_shape();
+  domi::caffe::BlobShape *dummpShape = dummyData->add_shape();
   ret = caffe_parser.ParseParamsForDummyData(*lay, op);
   EXPECT_EQ(ret, SUCCESS);
 }
 
-TEST_F(STestCaffeParser, convertWeights_success)
-{
+TEST_F(STestCaffeParser, convertWeights_success) {
   CaffeOpParser parser;
-  ge::GeTensorDesc ge_tensor_desc =  ge::GeTensorDesc();
+  ge::GeTensorDesc ge_tensor_desc = ge::GeTensorDesc();
   ge::GeTensorPtr weight = std::make_shared<ge::GeTensor>(ge_tensor_desc);
-  ge::OpDescPtr opDef = std::make_shared<ge::OpDesc>("","");
+  ge::OpDescPtr opDef = std::make_shared<ge::OpDesc>("", "");
   auto node_tmp = GenNodeFromOpDesc(opDef);
 
   domi::caffe::LayerParameter *layer = new domi::caffe::LayerParameter();
@@ -322,19 +312,18 @@ TEST_F(STestCaffeParser, convertWeights_success)
   delete layer;
 }
 
-TEST_F(STestCaffeParser, CaffeCustomParserAdapter_ParseWeights_success)
-{
+TEST_F(STestCaffeParser, CaffeCustomParserAdapter_ParseWeights_success) {
   CaffeCustomParserAdapter parserAdapter;
-  ge::OpDescPtr opDef = std::make_shared<ge::OpDesc>("","");
+  ge::OpDescPtr opDef = std::make_shared<ge::OpDesc>("", "");
   auto node_tmp = GenNodeFromOpDesc(opDef);
-  LayerParameter* layer = new LayerParameter();
+  LayerParameter *layer = new LayerParameter();
   Status ret = parserAdapter.ParseWeights(layer, node_tmp);
   EXPECT_EQ(ret, SUCCESS);
 
-  BlobProto* blob = layer->add_blobs();
+  BlobProto *blob = layer->add_blobs();
   blob->add_data(1);
   blob->add_data(1);
-  BlobShape* shap = blob->mutable_shape();
+  BlobShape *shap = blob->mutable_shape();
   shap->add_dim(1);
   shap->add_dim(2);
 
@@ -344,8 +333,7 @@ TEST_F(STestCaffeParser, CaffeCustomParserAdapter_ParseWeights_success)
   delete layer;
 }
 
-TEST_F(STestCaffeParser, CaffeCustomParserAdapter_ParseParams_success)
-{
+TEST_F(STestCaffeParser, CaffeCustomParserAdapter_ParseParams_success) {
   ge::OpDescPtr op_desc_src = std::make_shared<ge::OpDesc>("Data", "Input");
   ge::Operator op_src = ge::OpDescUtils::CreateOperatorFromOpDesc(op_desc_src);
   ge::OpDescPtr op_dest = std::make_shared<ge::OpDesc>("Data", "Input");
@@ -355,15 +343,14 @@ TEST_F(STestCaffeParser, CaffeCustomParserAdapter_ParseParams_success)
   EXPECT_EQ(ret, PARAM_INVALID);
 }
 
-TEST_F(STestCaffeParser, CaffeDataParser_ParseParams_success)
-{
+TEST_F(STestCaffeParser, CaffeDataParser_ParseParams_success) {
   domi::caffe::NetParameter net;
   ge::OpDescPtr op_desc_src = std::make_shared<ge::OpDesc>("Data", "Input");
-  domi::caffe::LayerParameter* lay0 = net.add_layer();
+  domi::caffe::LayerParameter *lay0 = net.add_layer();
   lay0->set_name("conv");
   lay0->set_type(ge::parser::DUMMY_DATA);
 
-  ge::OpDescPtr opDef = std::make_shared<ge::OpDesc>("","");
+  ge::OpDescPtr opDef = std::make_shared<ge::OpDesc>("", "");
   CaffeDataParser parserAdapter;
   Status ret = parserAdapter.ParseParams(lay0, opDef);
   EXPECT_EQ(ret, FAILED);
@@ -373,8 +360,7 @@ TEST_F(STestCaffeParser, CaffeDataParser_ParseParams_success)
   EXPECT_EQ(ret, FAILED);
 }
 
-TEST_F(STestCaffeParser, CaffeWeightsParser_ParseWeightByFusionProto_test)
-{
+TEST_F(STestCaffeParser, CaffeWeightsParser_ParseWeightByFusionProto_test) {
   CaffeWeightsParser weightParser;
   std::string case_dir = __FILE__;
   case_dir = case_dir.substr(0, case_dir.find_last_of("/"));
@@ -388,8 +374,7 @@ TEST_F(STestCaffeParser, CaffeWeightsParser_ParseWeightByFusionProto_test)
   EXPECT_EQ(ret, FAILED);
 }
 
-TEST_F(STestCaffeParser, CaffeWeightsParser_ParseFromMemory_test)
-{
+TEST_F(STestCaffeParser, CaffeWeightsParser_ParseFromMemory_test) {
   CaffeWeightsParser weightParser;
   std::string case_dir = __FILE__;
   case_dir = case_dir.substr(0, case_dir.find_last_of("/"));
@@ -412,8 +397,7 @@ TEST_F(STestCaffeParser, CaffeWeightsParser_ParseFromMemory_test)
   EXPECT_EQ(ret, FAILED);
 }
 
-TEST_F(STestCaffeParser, CaffeWeightsParser_CreateCustomOperator_test)
-{
+TEST_F(STestCaffeParser, CaffeWeightsParser_CreateCustomOperator_test) {
   CaffeModelParser model_parser;
 
   vector<ge::Operator> operators;
@@ -438,8 +422,7 @@ TEST_F(STestCaffeParser, CaffeWeightsParser_CreateCustomOperator_test)
   model_parser.AddOutputInfoToContext(op_name, 1);
 }
 
-TEST_F(STestCaffeParser, CaffeWeightsParser_ParseOutputNodeTopInfo_test)
-{
+TEST_F(STestCaffeParser, CaffeWeightsParser_ParseOutputNodeTopInfo_test) {
   CaffeModelParser model_parser;
   AclGraphParserUtil acl_graph_parse_util;
 
@@ -453,36 +436,34 @@ TEST_F(STestCaffeParser, CaffeWeightsParser_ParseOutputNodeTopInfo_test)
   GetParserContext().type = domi::CAFFE;
   string graph_name;
   std::map<AscendString, AscendString> out_nodes_with_tensor_name1 = {
-    {AscendString(ge::ir_option::OUT_NODES), AscendString("Out_tensor_1;Out_tensor_2")}};
+      {AscendString(ge::ir_option::OUT_NODES), AscendString("Out_tensor_1;Out_tensor_2")}};
   acl_graph_parse_util.ParseParamsBeforeGraph(out_nodes_with_tensor_name1, graph_name);
   ret = model_parser.ParseOutputNodeTopInfo(net);
   EXPECT_EQ(ret, PARAM_INVALID);
 }
 
-TEST_F(STestCaffeParser, CaffeOpParser_ParseWeightType_test)
-{
+TEST_F(STestCaffeParser, CaffeOpParser_ParseWeightType_test) {
   CaffeOpParser opParser;
-  ge::GeTensorDesc ge_tensor_desc =  ge::GeTensorDesc();
+  ge::GeTensorDesc ge_tensor_desc = ge::GeTensorDesc();
   ge::GeTensorPtr weight = std::make_shared<ge::GeTensor>(ge_tensor_desc);
-  ge::OpDescPtr opDef = std::make_shared<ge::OpDesc>("","");
+  ge::OpDescPtr opDef = std::make_shared<ge::OpDesc>("", "");
   auto node_tmp = GenNodeFromOpDesc(opDef);
 
   domi::caffe::LayerParameter *layer = new domi::caffe::LayerParameter();
   domi::caffe::BlobProto *blob = layer->add_blobs();
   blob->set_int8_data("10");
   std::string lay_name = "DATA";
-  GeShape shape({1,1,3,4});
+  GeShape shape({1, 1, 3, 4});
   Status ret = opParser.ParseWeightType(*blob, shape, 1, lay_name, weight);
   EXPECT_EQ(ret, FAILED);
   delete layer;
 }
 
-TEST_F(STestCaffeParser, CaffeOpParser_ParseWeightType_test2)
-{
+TEST_F(STestCaffeParser, CaffeOpParser_ParseWeightType_test2) {
   CaffeOpParser opParser;
-  ge::GeTensorDesc ge_tensor_desc =  ge::GeTensorDesc();
+  ge::GeTensorDesc ge_tensor_desc = ge::GeTensorDesc();
   ge::GeTensorPtr weight = std::make_shared<ge::GeTensor>(ge_tensor_desc);
-  ge::OpDescPtr opDef = std::make_shared<ge::OpDesc>("","");
+  ge::OpDescPtr opDef = std::make_shared<ge::OpDesc>("", "");
   auto node_tmp = GenNodeFromOpDesc(opDef);
 
   domi::caffe::LayerParameter *layer = new domi::caffe::LayerParameter();
@@ -490,7 +471,7 @@ TEST_F(STestCaffeParser, CaffeOpParser_ParseWeightType_test2)
   blob->add_int32_data(10);
 
   std::string lay_name = "DATA";
-  GeShape shape({1,1,3,4});
+  GeShape shape({1, 1, 3, 4});
   Status ret = opParser.ParseWeightType(*blob, shape, 1, lay_name, weight);
   EXPECT_EQ(ret, SUCCESS);
 
@@ -499,12 +480,11 @@ TEST_F(STestCaffeParser, CaffeOpParser_ParseWeightType_test2)
   delete layer;
 }
 
-TEST_F(STestCaffeParser, CaffeOpParser_ParseWeightType_test3)
-{
+TEST_F(STestCaffeParser, CaffeOpParser_ParseWeightType_test3) {
   CaffeOpParser opParser;
-  ge::GeTensorDesc ge_tensor_desc =  ge::GeTensorDesc();
+  ge::GeTensorDesc ge_tensor_desc = ge::GeTensorDesc();
   ge::GeTensorPtr weight = std::make_shared<ge::GeTensor>(ge_tensor_desc);
-  ge::OpDescPtr opDef = std::make_shared<ge::OpDesc>("","");
+  ge::OpDescPtr opDef = std::make_shared<ge::OpDesc>("", "");
   auto node_tmp = GenNodeFromOpDesc(opDef);
 
   domi::caffe::LayerParameter *layer = new domi::caffe::LayerParameter();
@@ -513,7 +493,7 @@ TEST_F(STestCaffeParser, CaffeOpParser_ParseWeightType_test3)
   blob->add_double_data(value);
 
   std::string lay_name = "DATA";
-  GeShape shape({1,1,3,4});
+  GeShape shape({1, 1, 3, 4});
   Status ret = opParser.ParseWeightType(*blob, shape, 1, lay_name, weight);
   EXPECT_EQ(ret, SUCCESS);
 
@@ -522,12 +502,11 @@ TEST_F(STestCaffeParser, CaffeOpParser_ParseWeightType_test3)
   delete layer;
 }
 
-TEST_F(STestCaffeParser, CaffeOpParser_ParseWeightType_test4)
-{
+TEST_F(STestCaffeParser, CaffeOpParser_ParseWeightType_test4) {
   CaffeOpParser opParser;
   ge::GeTensorDesc ge_tensor_desc = ge::GeTensorDesc();
   ge::GeTensorPtr weight = std::make_shared<ge::GeTensor>(ge_tensor_desc);
-  ge::OpDescPtr opDef = std::make_shared<ge::OpDesc>("","");
+  ge::OpDescPtr opDef = std::make_shared<ge::OpDesc>("", "");
   auto node_tmp = GenNodeFromOpDesc(opDef);
 
   domi::caffe::LayerParameter *layer = new domi::caffe::LayerParameter();
@@ -535,7 +514,7 @@ TEST_F(STestCaffeParser, CaffeOpParser_ParseWeightType_test4)
   blob->add_uint64_data(10);
 
   std::string lay_name = "DATA";
-  GeShape shape({1,1,3,4});
+  GeShape shape({1, 1, 3, 4});
   Status ret = opParser.ParseWeightType(*blob, shape, 1, lay_name, weight);
   EXPECT_EQ(ret, SUCCESS);
 
@@ -544,12 +523,11 @@ TEST_F(STestCaffeParser, CaffeOpParser_ParseWeightType_test4)
   delete layer;
 }
 
-TEST_F(STestCaffeParser, CaffeOpParser_ParseWeightType_test5)
-{
+TEST_F(STestCaffeParser, CaffeOpParser_ParseWeightType_test5) {
   CaffeOpParser opParser;
-  ge::GeTensorDesc ge_tensor_desc =  ge::GeTensorDesc();
+  ge::GeTensorDesc ge_tensor_desc = ge::GeTensorDesc();
   ge::GeTensorPtr weight = std::make_shared<ge::GeTensor>(ge_tensor_desc);
-  ge::OpDescPtr opDef = std::make_shared<ge::OpDesc>("","");
+  ge::OpDescPtr opDef = std::make_shared<ge::OpDesc>("", "");
   auto node_tmp = GenNodeFromOpDesc(opDef);
 
   domi::caffe::LayerParameter *layer = new domi::caffe::LayerParameter();
@@ -557,14 +535,13 @@ TEST_F(STestCaffeParser, CaffeOpParser_ParseWeightType_test5)
   blob->add_data(10);
 
   std::string lay_name = "DATA";
-  GeShape shape({1,1,3,4});
+  GeShape shape({1, 1, 3, 4});
   Status ret = opParser.ParseWeightType(*blob, shape, 10, lay_name, weight);
   EXPECT_EQ(ret, FAILED);
   delete layer;
 }
 
-TEST_F(STestCaffeParser, CaffeOpParser_ConvertShape_test)
-{
+TEST_F(STestCaffeParser, CaffeOpParser_ConvertShape_test) {
   CaffeOpParser opParser;
   domi::caffe::LayerParameter *layer = new domi::caffe::LayerParameter();
   domi::caffe::BlobProto *blob = layer->add_blobs();
@@ -580,8 +557,7 @@ TEST_F(STestCaffeParser, CaffeOpParser_ConvertShape_test)
   delete layer;
 }
 
-TEST_F(STestCaffeParser, CaffeModelParser_ParseInput_test)
-{
+TEST_F(STestCaffeParser, CaffeModelParser_ParseInput_test) {
   CaffeModelParser modelParser;
   domi::caffe::NetParameter net;
   net.add_input("111");
@@ -595,10 +571,10 @@ TEST_F(STestCaffeParser, CaffeModelParser_ParseInput_test)
   net.add_input_dim(3);
   net.add_input_dim(4);
   domi::caffe::LayerParameter *lay0 = net.add_layer();
-  BlobProto* blob = lay0->add_blobs();
+  BlobProto *blob = lay0->add_blobs();
   blob->add_data(1);
   blob->add_data(1);
-  BlobShape* shap = blob->mutable_shape();
+  BlobShape *shap = blob->mutable_shape();
   shap->add_dim(1);
   shap->add_dim(2);
   ret = modelParser.ParseInput(net, input_data_flag);
@@ -609,8 +585,7 @@ TEST_F(STestCaffeParser, CaffeModelParser_ParseInput_test)
   EXPECT_EQ(ret, FAILED);
 }
 
-TEST_F(STestCaffeParser, CaffeModelParser_CustomProtoParse_test)
-{
+TEST_F(STestCaffeParser, CaffeModelParser_CustomProtoParse_test) {
   CaffeModelParser modelParser;
   std::string case_dir = __FILE__;
   case_dir = case_dir.substr(0, case_dir.find_last_of("/"));
@@ -628,8 +603,7 @@ TEST_F(STestCaffeParser, CaffeModelParser_CustomProtoParse_test)
   EXPECT_EQ(ret, PARAM_INVALID);
 }
 
-TEST_F(STestCaffeParser, CaffeWeightsParser_ParseGraph_test)
-{
+TEST_F(STestCaffeParser, CaffeWeightsParser_ParseGraph_test) {
   CaffeWeightsParser weightParser;
   ge::ComputeGraphPtr compute_graph = ge::parser::MakeShared<ge::ComputeGraph>("tmp_graph");
   ge::Graph graph = ge::GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
@@ -643,8 +617,7 @@ TEST_F(STestCaffeParser, CaffeWeightsParser_ParseGraph_test)
   EXPECT_EQ(ret, FAILED);
 }
 
-TEST_F(STestCaffeParser, CaffeWeightsParser_ConvertNetParameter_test)
-{
+TEST_F(STestCaffeParser, CaffeWeightsParser_ConvertNetParameter_test) {
   CaffeWeightsParser weightParser;
   domi::caffe::NetParameter net;
 
@@ -657,8 +630,7 @@ TEST_F(STestCaffeParser, CaffeWeightsParser_ConvertNetParameter_test)
   EXPECT_EQ(ret, SUCCESS);
 }
 
-TEST_F(STestCaffeParser, CaffeModelParser_IsOpAttrEmpty_test)
-{
+TEST_F(STestCaffeParser, CaffeModelParser_IsOpAttrEmpty_test) {
   CaffeModelParser model_parser;
   ge::OpDescPtr op_desc_src = std::make_shared<ge::OpDesc>("Data", "Input");
   ge::Operator op_src = ge::OpDescUtils::CreateOperatorFromOpDesc(op_desc_src);
@@ -672,8 +644,7 @@ TEST_F(STestCaffeParser, CaffeModelParser_IsOpAttrEmpty_test)
   EXPECT_EQ(ret, true);
 }
 
-TEST_F(STestCaffeParser, CaffeModelParser_GetCustomOp_test)
-{
+TEST_F(STestCaffeParser, CaffeModelParser_GetCustomOp_test) {
   CaffeModelParser model_parser;
   domi::caffe::NetParameter net;
   domi::caffe::LayerParameter *layer = net.add_layer();
@@ -689,8 +660,7 @@ TEST_F(STestCaffeParser, CaffeModelParser_GetCustomOp_test)
   EXPECT_EQ(ret, SUCCESS);
 }
 
-TEST_F(STestCaffeParser, CaffeModelParser_AddTensorDescToOpDesc_test)
-{
+TEST_F(STestCaffeParser, CaffeModelParser_AddTensorDescToOpDesc_test) {
   CaffeModelParser model_parser;
   domi::caffe::NetParameter net;
   ge::OpDescPtr op_desc_src = std::make_shared<ge::OpDesc>("Abs", "AbsVal");
@@ -703,8 +673,7 @@ TEST_F(STestCaffeParser, CaffeModelParser_AddTensorDescToOpDesc_test)
   EXPECT_EQ(ret, SUCCESS);
 }
 
-TEST_F(STestCaffeParser, CaffeWeightsParser_ConvertLayerParameter_test)
-{
+TEST_F(STestCaffeParser, CaffeWeightsParser_ConvertLayerParameter_test) {
   CaffeWeightsParser weightParser;
   ge::ComputeGraphPtr compute_graph = ge::parser::MakeShared<ge::ComputeGraph>("tmp_graph");
   domi::caffe::NetParameter net;
@@ -717,8 +686,7 @@ TEST_F(STestCaffeParser, CaffeWeightsParser_ConvertLayerParameter_test)
   EXPECT_EQ(ret, SUCCESS);
 }
 
-TEST_F(STestCaffeParser, CaffeWeightsParser_CheckLayersSize_test)
-{
+TEST_F(STestCaffeParser, CaffeWeightsParser_CheckLayersSize_test) {
   CaffeWeightsParser weightParser;
   domi::caffe::NetParameter net;
   domi::caffe::LayerParameter *layer = net.add_layer();
@@ -729,8 +697,7 @@ TEST_F(STestCaffeParser, CaffeWeightsParser_CheckLayersSize_test)
   EXPECT_EQ(ret, FAILED);
 }
 
-TEST_F(STestCaffeParser, CaffeModelParser_FindShareParamLayers_test)
-{
+TEST_F(STestCaffeParser, CaffeModelParser_FindShareParamLayers_test) {
   CaffeModelParser modelParser;
   std::map<std::string, std::vector<std::string>> layer_params_map;
   std::vector<std::string> layer_params;
@@ -745,8 +712,7 @@ TEST_F(STestCaffeParser, CaffeModelParser_FindShareParamLayers_test)
   EXPECT_EQ(ret, SUCCESS);
 }
 
-TEST_F(STestCaffeParser, CaffeWeightsParser_ParseLayerParameter_test)
-{
+TEST_F(STestCaffeParser, CaffeWeightsParser_ParseLayerParameter_test) {
   CaffeWeightsParser weightParser;
 
   domi::caffe::NetParameter net;
@@ -774,8 +740,7 @@ TEST_F(STestCaffeParser, CaffeWeightsParser_ParseLayerParameter_test)
   EXPECT_EQ(ret, SUCCESS);
 }
 
-TEST_F(STestCaffeParser, CaffeModelParser_ParseInput_test_DimSize_0)
-{
+TEST_F(STestCaffeParser, CaffeModelParser_ParseInput_test_DimSize_0) {
   CaffeModelParser modelParser;
   domi::caffe::NetParameter net;
   net.add_input("111");
@@ -785,8 +750,7 @@ TEST_F(STestCaffeParser, CaffeModelParser_ParseInput_test_DimSize_0)
   EXPECT_EQ(ret, SUCCESS);
 }
 
-TEST_F(STestCaffeParser, CaffeModelParser_ParseInput_test_Err1)
-{
+TEST_F(STestCaffeParser, CaffeModelParser_ParseInput_test_Err1) {
   CaffeModelParser modelParser;
   domi::caffe::NetParameter net;
   net.add_input("111");
@@ -797,8 +761,7 @@ TEST_F(STestCaffeParser, CaffeModelParser_ParseInput_test_Err1)
   EXPECT_EQ(ret, FAILED);
 }
 
-TEST_F(STestCaffeParser, CaffeModelParser_ParserLayerParameter_Succ)
-{
+TEST_F(STestCaffeParser, CaffeModelParser_ParserLayerParameter_Succ) {
   CaffeModelParser modelParser;
   std::string case_dir = __FILE__;
   case_dir = case_dir.substr(0, case_dir.find_last_of("/"));
@@ -819,4 +782,4 @@ TEST_F(STestCaffeParser, CaffeModelParser_ParserLayerParameter_Succ)
   auto ret = modelParser.CustomProtoParse(model_path, custom_proto, caffe_proto_path, operators);
   EXPECT_EQ(ret, SUCCESS);
 }
-} // namespace ge
+}  // namespace ge

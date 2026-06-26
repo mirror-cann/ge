@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -79,17 +79,19 @@ bool ConcatFusionStrategy::CanFuse(const NodePtr &node1, const NodePtr &node2) {
   if (attr1->HasFuseType(loop::FuseType::kConcat) && graph_attr1->axis.size() < graph_attr2->axis.size()) {
     GELOGI(
         "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][In concat fusion occasion, node1 sched axis "
-        "size(%zu) less than node2 sched axis size(%zu)]", node1->GetNamePtr(), node1->GetType().c_str(),
-        node2->GetNamePtr(), node2->GetType().c_str(), ge::NotFuseReasonCode(ge::NotFuseReason::kConcatNodeSchedAxisSizeNotEqual),
-        graph_attr1->axis.size(), graph_attr2->axis.size());
+        "size(%zu) less than node2 sched axis size(%zu)]",
+        node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
+        ge::NotFuseReasonCode(ge::NotFuseReason::kConcatNodeSchedAxisSizeNotEqual), graph_attr1->axis.size(),
+        graph_attr2->axis.size());
     return false;
   }
   if (attr2->HasFuseType(loop::FuseType::kConcat) && graph_attr2->axis.size() < graph_attr1->axis.size()) {
     GELOGI(
         "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][In concat fusion occasion, node1 sched axis "
-        "size(%zu) more than node2 sched axis size(%zu)]", node1->GetNamePtr(), node1->GetType().c_str(),
-        node2->GetNamePtr(), node2->GetType().c_str(), ge::NotFuseReasonCode(ge::NotFuseReason::kConcatNodeSchedAxisSizeNotEqual),
-        graph_attr1->axis.size(), graph_attr2->axis.size());
+        "size(%zu) more than node2 sched axis size(%zu)]",
+        node1->GetNamePtr(), node1->GetType().c_str(), node2->GetNamePtr(), node2->GetType().c_str(),
+        ge::NotFuseReasonCode(ge::NotFuseReason::kConcatNodeSchedAxisSizeNotEqual), graph_attr1->axis.size(),
+        graph_attr2->axis.size());
     return false;
   }
   return true;
@@ -102,8 +104,8 @@ bool ConcatFusionStrategy::CanMergeLoop(const NodePtr &node1, const NodePtr &nod
   GE_ASSERT_NOTNULL(attr_2);
   // concat不能循环合并，有FusedAscBackend场景使用HasFuseType判断
   if (attr_1->HasFuseType(loop::FuseType::kConcat) || attr_2->HasFuseType(loop::FuseType::kConcat)) {
-    GELOGI("node1 %s(%s) and node2 %s(%s) cannot merge.", node1->GetNamePtr(), node1->GetTypePtr(),
-           node2->GetNamePtr(), node2->GetTypePtr());
+    GELOGI("node1 %s(%s) and node2 %s(%s) cannot merge.", node1->GetNamePtr(), node1->GetTypePtr(), node2->GetNamePtr(),
+           node2->GetTypePtr());
     return false;
   }
   return true;
@@ -116,8 +118,7 @@ FusionPriority ConcatFusionStrategy::GetFusionPairPriority(const NodePtr &node1,
   // 首轮融合才要处理，只有AscBackend场景
   if (attr->GetFuseType() == loop::FuseType::kConcat) {
     fusion_priority = FusionPriority::HIGH;
-    GELOGI("node1 %s(*) and node2 %s(Concat) priority:%u.", node1->GetNamePtr(), node2->GetNamePtr(),
-           fusion_priority);
+    GELOGI("node1 %s(*) and node2 %s(Concat) priority:%u.", node1->GetNamePtr(), node2->GetNamePtr(), fusion_priority);
   } else {
     auto attr = BackendUtils::GetNodeAutoFuseAttr(node1);
     GE_ASSERT_NOTNULL(attr);
@@ -162,9 +163,8 @@ uint32_t ConcatFusionStrategy::GetMaxFusionNodeInputSize(const NodePtr &node1, c
   return max_input_nums_after_fuse;
 }
 
-bool ConcatFusionStrategy::CheckSameSchedAxis(const NodePtr &node1, const NodePtr &node2,
-                                              const AxisPairSet &node1_map, const AxisPairSet &node2_map,
-                                              const NodeFuseInfo &node_fuse_info) {
+bool ConcatFusionStrategy::CheckSameSchedAxis(const NodePtr &node1, const NodePtr &node2, const AxisPairSet &node1_map,
+                                              const AxisPairSet &node2_map, const NodeFuseInfo &node_fuse_info) {
   (void)node1_map;
   (void)node2_map;
   (void)node_fuse_info;
@@ -178,8 +178,7 @@ bool ConcatFusionStrategy::CheckSameSchedAxis(const NodePtr &node1, const NodePt
   return true;
 }
 
-Status ConcatFusionStrategy::CanFuseBackward(const NodePtr &node1, const NodePtr &node2,
-                                             const AutoFuseAttrs *attr2) {
+Status ConcatFusionStrategy::CanFuseBackward(const NodePtr &node1, const NodePtr &node2, const AutoFuseAttrs *attr2) {
   (void)attr2;
   const auto backend_spec = optimize::BackendSpec::GetInstance();
   GE_ASSERT_NOTNULL(backend_spec);
@@ -195,7 +194,7 @@ Status ConcatFusionStrategy::CanFuseBackward(const NodePtr &node1, const NodePtr
 
   const auto attr = BackendUtils::GetAscGraphOutputAttr(node1, node2);
   GE_ASSERT_NOTNULL(attr);
-  // 后融合只支持来源于Concat输出	
+  // 后融合只支持来源于Concat输出
   if (attr->GetFuseType() != loop::FuseType::kConcat) {
     GELOGI(
         "node1 %s(%s) and node2 %s(%s) cannot fuse, the reason is [%s][node1 and node2 are vertical fuse, and node1 "

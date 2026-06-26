@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,14 +24,14 @@ namespace ge {
 namespace formats {
 struct TransArgs {
   const uint8_t *data;
-  Format src_format; // src full format
-  Format dst_format; // dst full format
-  Format src_primary_format; // src primary format
-  Format dst_primary_format; // dst primary format
-  Format src_sub_format; // src sub format
-  Format dst_sub_format; // dst sub format
-  int64_t src_c0_format; // src s0 format
-  int64_t dst_c0_format; // dst c0 format
+  Format src_format;          // src full format
+  Format dst_format;          // dst full format
+  Format src_primary_format;  // src primary format
+  Format dst_primary_format;  // dst primary format
+  Format src_sub_format;      // src sub format
+  Format dst_sub_format;      // dst sub format
+  int64_t src_c0_format;      // src s0 format
+  int64_t dst_c0_format;      // dst c0 format
   // For scenes that need to supplement the shape, for example, 5D to 4D
   // It is not possible to convert the format normally if you only get the src_shape,
   // and must get the shape before you mend the shape.
@@ -85,12 +85,12 @@ bool FormatTransferExists(const TransArgs &args);
 }  // namespace formats
 }  // namespace ge
 
-#define REGISTER_FORMAT_TRANSFER(TransferClass, format1, format2)                 \
-namespace {                                                                       \
-  std::shared_ptr<FormatTransfer> Transfer_##format1##_##format2() {              \
-    return ge::MakeShared<TransferClass>();                                       \
-  }                                                                               \
-  FormatTransferRegister format_transfer_##TransferClass##_##format1##_##format2( \
-      &Transfer_##format1##_##format2, (format1), (format2));                     \
-}
+#define REGISTER_FORMAT_TRANSFER(TransferClass, format1, format2)                                                 \
+  namespace {                                                                                                     \
+  std::shared_ptr<FormatTransfer> Transfer_##format1##_##format2() {                                              \
+    return ge::MakeShared<TransferClass>();                                                                       \
+  }                                                                                                               \
+  FormatTransferRegister format_transfer_##TransferClass##_##format1##_##format2(&Transfer_##format1##_##format2, \
+                                                                                 (format1), (format2));           \
+  }
 #endif  // INC_REGISTER_REGISTER_FORMAT_TRANSFER_H_

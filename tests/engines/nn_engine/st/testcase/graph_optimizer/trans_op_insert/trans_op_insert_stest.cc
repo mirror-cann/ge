@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,7 +17,7 @@
 #include "graph/utils/attr_utils.h"
 
 #define protected public
-#define private   public
+#define private public
 #include "common/platform_utils.h"
 #include "common/configuration.h"
 #include "adapter/common/op_store_adapter_manager.h"
@@ -41,19 +41,15 @@ using namespace std;
 using namespace ge;
 using namespace fe;
 
-
-
 class STEST_FE_TRANSOP_INSERT : public testing::Test {
  protected:
-  void SetUp()
-  {
+  void SetUp() {
     std::map<std::string, std::string> options;
     fe_ops_kernel_info_store_ptr_ = make_shared<fe::FEOpsKernelInfoStore>();
-    FEOpsStoreInfo tbe_custom {
-        2,
-        "tbe-custom",
-        EN_IMPL_CUSTOM_TBE,
-        GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
+    FEOpsStoreInfo tbe_custom{
+        2, "tbe-custom", EN_IMPL_CUSTOM_TBE,
+        GetCodeDir() +
+            "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_custom_opinfo",
         ""};
     vector<FEOpsStoreInfo> store_info;
     store_info.emplace_back(tbe_custom);
@@ -63,39 +59,34 @@ class STEST_FE_TRANSOP_INSERT : public testing::Test {
     fe_ops_kernel_info_store_ptr_->Initialize(options);
   }
 
-  void TearDown()
-  {
+  void TearDown() {
     fe_ops_kernel_info_store_ptr_->Finalize();
-
   }
 
   shared_ptr<fe::FEOpsKernelInfoStore> fe_ops_kernel_info_store_ptr_;
 };
 
-Status QueryHighPrioOpImplTypeStubTbe(FEOpsKernelInfoStore* This, const ge::OpDescPtr& op_desc_ptr,
+Status QueryHighPrioOpImplTypeStubTbe(FEOpsKernelInfoStore *This, const ge::OpDescPtr &op_desc_ptr,
                                       OpImplType &impl_type, OpKernelInfoPtr &op_kernel_ptr) {
   impl_type = EN_IMPL_HW_TBE;
   return fe::SUCCESS;
 }
 
-Status QueryHighPrioOpImplTypeStubCce(FEOpsKernelInfoStore* This, const ge::OpDescPtr& op_desc_ptr,
+Status QueryHighPrioOpImplTypeStubCce(FEOpsKernelInfoStore *This, const ge::OpDescPtr &op_desc_ptr,
                                       OpImplType &impl_type, OpKernelInfoPtr &op_kernel_ptr) {
   impl_type = EN_IMPL_HW_GENERAL_CCE;
   return fe::SUCCESS;
 }
 
-Status ConstructComputeGraph(ComputeGraphPtr graph, ComputeGraphPtr graph_check)
-{
+Status ConstructComputeGraph(ComputeGraphPtr graph, ComputeGraphPtr graph_check) {
   return fe::SUCCESS;
 }
-bool CheckComputeGraph(ComputeGraphPtr graph, ComputeGraphPtr graph_check)
-{
-  //EXPECT_EQ(ge::GRAPH_SUCCESS, fused_graph.TopologicalSorting());
+bool CheckComputeGraph(ComputeGraphPtr graph, ComputeGraphPtr graph_check) {
+  // EXPECT_EQ(ge::GRAPH_SUCCESS, fused_graph.TopologicalSorting());
   return true;
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_01)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_01) {
   // src:cce op, dst:cce op
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr src_op = std::make_shared<OpDesc>("A", "A");
@@ -141,14 +132,12 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_01)
     }
   }
   EXPECT_EQ(count_node, 3);
-
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_02)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_02) {
   // src:cce op, dst:cce op
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
-  ComputeGraphPtr graph_check =  std::make_shared<ComputeGraph>("test_graph_check");
+  ComputeGraphPtr graph_check = std::make_shared<ComputeGraph>("test_graph_check");
   OpDescPtr src_op = std::make_shared<OpDesc>("A", "A");
   GeTensorDesc src_tensor_desc(GeShape({1, 256, 256, 512}), ge::FORMAT_NC1HWC0, ge::DT_FLOAT16);
   src_op->AddOutputDesc(src_tensor_desc);
@@ -180,7 +169,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_02)
         ge::GeShape shape_check = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 1);
         EXPECT_EQ(input_vec_of_b[1], 2);
         EXPECT_EQ(input_vec_of_b[2], 3);
@@ -190,7 +179,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_02)
         ge::GeShape shape_check = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 1);
         EXPECT_EQ(input_vec_of_b[1], 2);
         EXPECT_EQ(input_vec_of_b[2], 3);
@@ -201,14 +190,13 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_02)
   EXPECT_EQ(count_node, 3);
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_05)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_05) {
   // src:cce op, dst:cce op
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
-  ComputeGraphPtr graph_check =  std::make_shared<ComputeGraph>("test_graph_check");
+  ComputeGraphPtr graph_check = std::make_shared<ComputeGraph>("test_graph_check");
   OpDescPtr src_op = std::make_shared<OpDesc>("A", "A");
   GeTensorDesc src_tensor_desc(GeShape({1, 256, 256, 512, 32}), ge::FORMAT_NC1HWC0, ge::DT_FLOAT16);
-  src_tensor_desc.SetOriginShape(ge::GeShape({123,456}));
+  src_tensor_desc.SetOriginShape(ge::GeShape({123, 456}));
   src_tensor_desc.SetOriginFormat(ge::FORMAT_NHWC);
   src_op->AddOutputDesc(src_tensor_desc);
   src_op->AddInputDesc(src_tensor_desc);
@@ -217,7 +205,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_05)
 
   OpDescPtr dst_op = std::make_shared<OpDesc>("B", "B");
   GeTensorDesc dst_tensor_desc(GeShape({1, 2, 3, 4}), ge::FORMAT_NHWC, ge::DT_FLOAT16);
-  dst_tensor_desc.SetOriginShape(ge::GeShape({123,456}));
+  dst_tensor_desc.SetOriginShape(ge::GeShape({123, 456}));
   dst_tensor_desc.SetOriginFormat(ge::FORMAT_NHWC);
   dst_op->AddInputDesc(dst_tensor_desc);
   dst_op->AddOutputDesc(dst_tensor_desc);
@@ -241,7 +229,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_05)
         ge::GeShape shape_check = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 1);
         EXPECT_EQ(input_vec_of_b[1], 2);
         EXPECT_EQ(input_vec_of_b[2], 3);
@@ -251,7 +239,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_05)
         ge::GeShape shape_check = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 1);
         EXPECT_EQ(input_vec_of_b[1], 2);
         EXPECT_EQ(input_vec_of_b[2], 3);
@@ -263,7 +251,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_05)
         ge::GeShape shape_check = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 5);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 1);
         EXPECT_EQ(input_vec_of_b[1], 256);
         EXPECT_EQ(input_vec_of_b[2], 256);
@@ -274,26 +262,24 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_05)
         ge::GeShape shape_check = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 1);
         EXPECT_EQ(input_vec_of_b[1], 123);
         EXPECT_EQ(input_vec_of_b[2], 456);
         EXPECT_EQ(input_vec_of_b[3], 1);
       }
-
     }
   }
   EXPECT_EQ(count_node, 3);
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_06)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_06) {
   // src:cce op, dst:cce op
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
-  ComputeGraphPtr graph_check =  std::make_shared<ComputeGraph>("test_graph_check");
+  ComputeGraphPtr graph_check = std::make_shared<ComputeGraph>("test_graph_check");
   OpDescPtr src_op = std::make_shared<OpDesc>("A", "A");
   GeTensorDesc src_tensor_desc(GeShape({1, 256, 256, 512, 32}), ge::FORMAT_NC1HWC0, ge::DT_FLOAT16);
-  src_tensor_desc.SetOriginShape(ge::GeShape({123,456}));
+  src_tensor_desc.SetOriginShape(ge::GeShape({123, 456}));
   src_tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
   src_op->AddOutputDesc(src_tensor_desc);
   src_op->AddInputDesc(src_tensor_desc);
@@ -302,7 +288,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_06)
 
   OpDescPtr dst_op = std::make_shared<OpDesc>("B", "B");
   GeTensorDesc dst_tensor_desc(GeShape({1, 2, 3, 4}), ge::FORMAT_NCHW, ge::DT_FLOAT16);
-  dst_tensor_desc.SetOriginShape(ge::GeShape({123,456}));
+  dst_tensor_desc.SetOriginShape(ge::GeShape({123, 456}));
   dst_tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
   dst_op->AddInputDesc(dst_tensor_desc);
   dst_op->AddOutputDesc(dst_tensor_desc);
@@ -326,7 +312,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_06)
         ge::GeShape shape_check = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 1);
         EXPECT_EQ(input_vec_of_b[1], 2);
         EXPECT_EQ(input_vec_of_b[2], 3);
@@ -336,7 +322,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_06)
         ge::GeShape shape_check = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 1);
         EXPECT_EQ(input_vec_of_b[1], 2);
         EXPECT_EQ(input_vec_of_b[2], 3);
@@ -348,7 +334,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_06)
         ge::GeShape shape_check = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 5);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 1);
         EXPECT_EQ(input_vec_of_b[1], 256);
         EXPECT_EQ(input_vec_of_b[2], 256);
@@ -359,27 +345,24 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_06)
         ge::GeShape shape_check = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 1);
         EXPECT_EQ(input_vec_of_b[1], 123);
         EXPECT_EQ(input_vec_of_b[2], 456);
         EXPECT_EQ(input_vec_of_b[3], 1);
       }
-
     }
   }
   EXPECT_EQ(count_node, 3);
 }
 
-
-TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_07)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_07) {
   // src:cce op, dst:cce op
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
-  ComputeGraphPtr graph_check =  std::make_shared<ComputeGraph>("test_graph_check");
+  ComputeGraphPtr graph_check = std::make_shared<ComputeGraph>("test_graph_check");
   OpDescPtr src_op = std::make_shared<OpDesc>("A", "A");
   GeTensorDesc src_tensor_desc(GeShape({1, 256, 256, 512, 32}), ge::FORMAT_FRACTAL_Z, ge::DT_FLOAT16);
-  src_tensor_desc.SetOriginShape(GeShape({100,200,100,200}));
+  src_tensor_desc.SetOriginShape(GeShape({100, 200, 100, 200}));
   src_tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
   src_op->AddOutputDesc(src_tensor_desc);
   src_op->AddInputDesc(src_tensor_desc);
@@ -412,7 +395,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_07)
         ge::GeShape shape_check = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 1);
         EXPECT_EQ(input_vec_of_b[1], 2);
         EXPECT_EQ(input_vec_of_b[2], 3);
@@ -422,7 +405,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_07)
         ge::GeShape shape_check = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 1);
         EXPECT_EQ(input_vec_of_b[1], 2);
         EXPECT_EQ(input_vec_of_b[2], 3);
@@ -434,7 +417,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_07)
         ge::GeShape shape_check = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 260000);
         EXPECT_EQ(input_vec_of_b[1], 7);
         EXPECT_EQ(input_vec_of_b[2], 16);
@@ -444,26 +427,24 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_07)
         ge::GeShape shape_check = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 100);
         EXPECT_EQ(input_vec_of_b[1], 200);
         EXPECT_EQ(input_vec_of_b[2], 100);
         EXPECT_EQ(input_vec_of_b[3], 200);
       }
-
     }
   }
   EXPECT_EQ(count_node, 3);
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_07_1)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_07_1) {
   // src:cce op, dst:cce op
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
-  ComputeGraphPtr graph_check =  std::make_shared<ComputeGraph>("test_graph_check");
+  ComputeGraphPtr graph_check = std::make_shared<ComputeGraph>("test_graph_check");
   OpDescPtr src_op = std::make_shared<OpDesc>("A", "A");
-  GeTensorDesc src_tensor_desc(GeShape({100,200}), ge::FORMAT_HWCN, ge::DT_FLOAT16);
-  src_tensor_desc.SetOriginShape(GeShape({100,200}));
+  GeTensorDesc src_tensor_desc(GeShape({100, 200}), ge::FORMAT_HWCN, ge::DT_FLOAT16);
+  src_tensor_desc.SetOriginShape(GeShape({100, 200}));
   src_tensor_desc.SetOriginFormat(ge::FORMAT_HWCN);
   src_op->AddOutputDesc(src_tensor_desc);
   src_op->AddInputDesc(src_tensor_desc);
@@ -496,7 +477,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_07_1)
         ge::GeShape shape_check = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 1);
         EXPECT_EQ(input_vec_of_b[1], 1);
         EXPECT_EQ(input_vec_of_b[2], 100);
@@ -507,27 +488,25 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_07_1)
         ge::GeShape shape_check = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 7);
         EXPECT_EQ(input_vec_of_b[1], 13);
         EXPECT_EQ(input_vec_of_b[2], 16);
         EXPECT_EQ(input_vec_of_b[3], 16);
         EXPECT_EQ(GetPrimaryFormat(node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat()), ge::FORMAT_FRACTAL_Z);
       }
-
     }
   }
   EXPECT_EQ(count_node, 4);
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_08)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_08) {
   // src:cce op, dst:cce op
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
-  ComputeGraphPtr graph_check =  std::make_shared<ComputeGraph>("test_graph_check");
+  ComputeGraphPtr graph_check = std::make_shared<ComputeGraph>("test_graph_check");
   OpDescPtr src_op = std::make_shared<OpDesc>("A", "A");
   GeTensorDesc src_tensor_desc(GeShape({1, 256, 256, 512, 32}), ge::FORMAT_NC1HWC0, ge::DT_FLOAT16);
-  src_tensor_desc.SetOriginShape(GeShape({100,200}));
+  src_tensor_desc.SetOriginShape(GeShape({100, 200}));
   src_tensor_desc.SetOriginFormat(ge::FORMAT_NHWC);
   src_op->AddOutputDesc(src_tensor_desc);
   src_op->AddInputDesc(src_tensor_desc);
@@ -536,7 +515,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_08)
 
   OpDescPtr dst_op = std::make_shared<OpDesc>("B", "B");
   GeTensorDesc dst_tensor_desc(GeShape({1, 2, 3, 4}), ge::FORMAT_NHWC, ge::DT_FLOAT16);
-  dst_tensor_desc.SetOriginShape(GeShape({100,200}));
+  dst_tensor_desc.SetOriginShape(GeShape({100, 200}));
   dst_tensor_desc.SetOriginFormat(ge::FORMAT_NHWC);
   dst_op->AddInputDesc(dst_tensor_desc);
   dst_op->AddOutputDesc(dst_tensor_desc);
@@ -560,7 +539,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_08)
         ge::GeShape shape_check = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 1);
         EXPECT_EQ(input_vec_of_b[1], 2);
         EXPECT_EQ(input_vec_of_b[2], 3);
@@ -570,7 +549,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_08)
         ge::GeShape shape_check = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 1);
         EXPECT_EQ(input_vec_of_b[1], 2);
         EXPECT_EQ(input_vec_of_b[2], 3);
@@ -582,7 +561,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_08)
         ge::GeShape shape_check = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 5);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 1);
         EXPECT_EQ(input_vec_of_b[1], 256);
         EXPECT_EQ(input_vec_of_b[2], 256);
@@ -593,27 +572,27 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_08)
         ge::GeShape shape_check = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 1);
         EXPECT_EQ(input_vec_of_b[1], 100);
         EXPECT_EQ(input_vec_of_b[2], 200);
         EXPECT_EQ(input_vec_of_b[3], 1);
       }
-
     }
   }
   EXPECT_EQ(count_node, 3);
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_09)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_09) {
   // src:FORMAT_FRACTAL_Z, dst:FORMAT_NCHW  when C==1 && N==groups && groups > 1, insert HWCN
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
-  ComputeGraphPtr graph_check =  std::make_shared<ComputeGraph>("test_graph_check");
+  ComputeGraphPtr graph_check = std::make_shared<ComputeGraph>("test_graph_check");
   OpDescPtr src_op = std::make_shared<OpDesc>("A", "A");
-  int64_t group = 2; // set groups 2  sub format
-  GeTensorDesc src_tensor_desc(GeShape({1, 256, 256, 512, 32}), static_cast<ge::Format>(ge::GetFormatFromSub(ge::FORMAT_FRACTAL_Z, group)), ge::DT_FLOAT);
-  src_tensor_desc.SetOriginShape(GeShape({2,1,3,4}));
+  int64_t group = 2;  // set groups 2  sub format
+  GeTensorDesc src_tensor_desc(GeShape({1, 256, 256, 512, 32}),
+                               static_cast<ge::Format>(ge::GetFormatFromSub(ge::FORMAT_FRACTAL_Z, group)),
+                               ge::DT_FLOAT);
+  src_tensor_desc.SetOriginShape(GeShape({2, 1, 3, 4}));
   src_tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
   src_op->AddOutputDesc(src_tensor_desc);
   src_op->AddInputDesc(src_tensor_desc);
@@ -621,8 +600,9 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_09)
   ge::AttrUtils::SetInt(src_op, FE_IMPLY_TYPE, 6);
 
   OpDescPtr dst_op = std::make_shared<OpDesc>("B", "B");
-  GeTensorDesc dst_tensor_desc(GeShape({1, 2, 3, 4}), static_cast<ge::Format>(ge::GetFormatFromSub(ge::FORMAT_NCHW, 0)), ge::DT_FLOAT);
-  dst_tensor_desc.SetOriginShape(GeShape({2,1,3,4}));
+  GeTensorDesc dst_tensor_desc(GeShape({1, 2, 3, 4}), static_cast<ge::Format>(ge::GetFormatFromSub(ge::FORMAT_NCHW, 0)),
+                               ge::DT_FLOAT);
+  dst_tensor_desc.SetOriginShape(GeShape({2, 1, 3, 4}));
   dst_tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
   dst_op->AddInputDesc(dst_tensor_desc);
   dst_op->AddOutputDesc(dst_tensor_desc);
@@ -639,50 +619,54 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_09)
   ASSERT_EQ(fe::SUCCESS, status);
   int count_node = 0;
 
-  printf("ge::GetPrimaryFormat(src_op->GetInputDesc(0).GetFormat()) %d...\n", ge::GetPrimaryFormat(src_op->GetInputDesc(0).GetFormat()));
-  printf("ge::GetSubFormat(op1->GetInputDesc(0).GetFormat() %d...\n", ge::GetSubFormat(src_op->GetInputDesc(0).GetFormat()));
-  printf("ge::GetPrimaryFormat(dst_op->GetInputDesc(0).GetFormat()) %d...\n", ge::GetPrimaryFormat(dst_op->GetInputDesc(0).GetFormat()));
-  printf("ge::GetSubFormat(dst_op->GetInputDesc(0).GetFormat() %d...\n", ge::GetSubFormat(dst_op->GetInputDesc(0).GetFormat()));
+  printf("ge::GetPrimaryFormat(src_op->GetInputDesc(0).GetFormat()) %d...\n",
+         ge::GetPrimaryFormat(src_op->GetInputDesc(0).GetFormat()));
+  printf("ge::GetSubFormat(op1->GetInputDesc(0).GetFormat() %d...\n",
+         ge::GetSubFormat(src_op->GetInputDesc(0).GetFormat()));
+  printf("ge::GetPrimaryFormat(dst_op->GetInputDesc(0).GetFormat()) %d...\n",
+         ge::GetPrimaryFormat(dst_op->GetInputDesc(0).GetFormat()));
+  printf("ge::GetSubFormat(dst_op->GetInputDesc(0).GetFormat() %d...\n",
+         ge::GetSubFormat(dst_op->GetInputDesc(0).GetFormat()));
 
   for (auto node : graph->GetDirectNode()) {
     ASSERT_NE(node, nullptr);
     count_node++;
     printf("countNode %d...\n", count_node);
-	printf("node->GetType() %s...\n", node->GetType().c_str());
+    printf("node->GetType() %s...\n", node->GetType().c_str());
 
     if (node->GetType() == "A") {
       {
         ge::GeShape shape_check = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
-		printf("InputDescPtr(0).GetFormat() %d...\n", node->GetOpDesc()->GetInputDescPtr(0)->GetFormat());
+        printf("InputDescPtr(0).GetFormat() %d...\n", node->GetOpDesc()->GetInputDescPtr(0)->GetFormat());
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 5);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 1);
         EXPECT_EQ(input_vec_of_b[1], 256);
         EXPECT_EQ(input_vec_of_b[2], 256);
         EXPECT_EQ(input_vec_of_b[3], 512);
-		EXPECT_EQ(input_vec_of_b[4], 32);
+        EXPECT_EQ(input_vec_of_b[4], 32);
       }
       {
         ge::GeShape shape_check = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
-		printf("GetOutputDescPtr(0).GetFormat() %d...\n", node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat());
+        printf("GetOutputDescPtr(0).GetFormat() %d...\n", node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat());
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 5);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 1);
         EXPECT_EQ(input_vec_of_b[1], 256);
         EXPECT_EQ(input_vec_of_b[2], 256);
         EXPECT_EQ(input_vec_of_b[3], 512);
-		EXPECT_EQ(input_vec_of_b[4], 32);
+        EXPECT_EQ(input_vec_of_b[4], 32);
       }
     }
-	if (node->GetType() == "TransData") {
+    if (node->GetType() == "TransData") {
       {
         ge::GeShape shape_check = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
-		printf("InputDescPtr(0).GetFormat() %d...\n", node->GetOpDesc()->GetInputDescPtr(0)->GetFormat());
+        printf("InputDescPtr(0).GetFormat() %d...\n", node->GetOpDesc()->GetInputDescPtr(0)->GetFormat());
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 12);
         EXPECT_EQ(input_vec_of_b[1], 1);
         EXPECT_EQ(input_vec_of_b[2], 16);
@@ -690,23 +674,23 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_09)
       }
       {
         ge::GeShape shape_check = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
-		printf("GetOutputDescPtr(0).GetFormat() %d...\n", node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat());
+        printf("GetOutputDescPtr(0).GetFormat() %d...\n", node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat());
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 3);
         EXPECT_EQ(input_vec_of_b[1], 4);
         EXPECT_EQ(input_vec_of_b[2], 1);
         EXPECT_EQ(input_vec_of_b[3], 2);
       }
     }
-	if (node->GetType() == TRANSPOSE) {
+    if (node->GetType() == TRANSPOSE) {
       {
         ge::GeShape shape_check = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
-		printf("InputDescPtr(0).GetFormat() %d...\n", node->GetOpDesc()->GetInputDescPtr(0)->GetFormat());
+        printf("InputDescPtr(0).GetFormat() %d...\n", node->GetOpDesc()->GetInputDescPtr(0)->GetFormat());
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 3);
         EXPECT_EQ(input_vec_of_b[1], 4);
         EXPECT_EQ(input_vec_of_b[2], 1);
@@ -714,10 +698,10 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_09)
       }
       {
         ge::GeShape shape_check = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
-		printf("GetOutputDescPtr(0).GetFormat() %d...\n", node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat());
+        printf("GetOutputDescPtr(0).GetFormat() %d...\n", node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat());
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 2);
         EXPECT_EQ(input_vec_of_b[1], 1);
         EXPECT_EQ(input_vec_of_b[2], 3);
@@ -727,10 +711,10 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_09)
     if (node->GetType() == "B") {
       {
         ge::GeShape shape_check = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
-		printf("InputDescPtr(0).GetFormat() %d...\n", node->GetOpDesc()->GetInputDescPtr(0)->GetFormat());
+        printf("InputDescPtr(0).GetFormat() %d...\n", node->GetOpDesc()->GetInputDescPtr(0)->GetFormat());
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 1);
         EXPECT_EQ(input_vec_of_b[1], 2);
         EXPECT_EQ(input_vec_of_b[2], 3);
@@ -738,10 +722,10 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_09)
       }
       {
         ge::GeShape shape_check = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
-		printf("GetOutputDescPtr(0).GetFormat() %d...\n", node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat());
+        printf("GetOutputDescPtr(0).GetFormat() %d...\n", node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat());
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 1);
         EXPECT_EQ(input_vec_of_b[1], 2);
         EXPECT_EQ(input_vec_of_b[2], 3);
@@ -752,18 +736,16 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_09)
   EXPECT_EQ(count_node, 5);
 }
 
-
-
-TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_09_1)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_09_1) {
   // src:FORMAT_NCHW, dst: FORMAT_FRACTAL_Z  when C==1 && N==groups && groups > 1, insert HWCN
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
-  ComputeGraphPtr graph_check =  std::make_shared<ComputeGraph>("test_graph_check");
+  ComputeGraphPtr graph_check = std::make_shared<ComputeGraph>("test_graph_check");
 
   OpDescPtr src_op = std::make_shared<OpDesc>("A", "A");
-  int64_t group = 2; // set groups 2  sub format
-  GeTensorDesc src_tensor_desc(GeShape({2,1,3,4}), static_cast<ge::Format>(ge::GetFormatFromSub(ge::FORMAT_NCHW, 0)), ge::DT_FLOAT);
-  src_tensor_desc.SetOriginShape(GeShape({2,1,3,4}));
+  int64_t group = 2;  // set groups 2  sub format
+  GeTensorDesc src_tensor_desc(GeShape({2, 1, 3, 4}), static_cast<ge::Format>(ge::GetFormatFromSub(ge::FORMAT_NCHW, 0)),
+                               ge::DT_FLOAT);
+  src_tensor_desc.SetOriginShape(GeShape({2, 1, 3, 4}));
   src_tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
   src_op->AddInputDesc(src_tensor_desc);
   src_op->AddOutputDesc(src_tensor_desc);
@@ -773,8 +755,10 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_09_1)
   src_op->SetIsInputConst(input_const_vector);
 
   OpDescPtr dst_op = std::make_shared<OpDesc>("B", "B");
-  GeTensorDesc dst_tensor_desc(GeShape({1, 256, 256, 512, 32}), static_cast<ge::Format>(ge::GetFormatFromSub(ge::FORMAT_FRACTAL_Z, group)), ge::DT_FLOAT);
-  dst_tensor_desc.SetOriginShape(GeShape({2,1,3,4}));
+  GeTensorDesc dst_tensor_desc(GeShape({1, 256, 256, 512, 32}),
+                               static_cast<ge::Format>(ge::GetFormatFromSub(ge::FORMAT_FRACTAL_Z, group)),
+                               ge::DT_FLOAT);
+  dst_tensor_desc.SetOriginShape(GeShape({2, 1, 3, 4}));
   dst_tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
   dst_op->AddOutputDesc(dst_tensor_desc);
   dst_op->AddInputDesc(dst_tensor_desc);
@@ -789,23 +773,27 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_09_1)
   ASSERT_EQ(fe::SUCCESS, status);
   int count_node = 0;
 
-  printf("ge::GetPrimaryFormat(src_op->GetInputDesc(0).GetFormat()) %d...\n", ge::GetPrimaryFormat(src_op->GetInputDesc(0).GetFormat()));
-  printf("ge::GetSubFormat(op1->GetInputDesc(0).GetFormat() %d...\n", ge::GetSubFormat(src_op->GetInputDesc(0).GetFormat()));
-  printf("ge::GetPrimaryFormat(dst_op->GetInputDesc(0).GetFormat()) %d...\n", ge::GetPrimaryFormat(dst_op->GetInputDesc(0).GetFormat()));
-  printf("ge::GetSubFormat(dst_op->GetInputDesc(0).GetFormat() %d...\n", ge::GetSubFormat(dst_op->GetInputDesc(0).GetFormat()));
+  printf("ge::GetPrimaryFormat(src_op->GetInputDesc(0).GetFormat()) %d...\n",
+         ge::GetPrimaryFormat(src_op->GetInputDesc(0).GetFormat()));
+  printf("ge::GetSubFormat(op1->GetInputDesc(0).GetFormat() %d...\n",
+         ge::GetSubFormat(src_op->GetInputDesc(0).GetFormat()));
+  printf("ge::GetPrimaryFormat(dst_op->GetInputDesc(0).GetFormat()) %d...\n",
+         ge::GetPrimaryFormat(dst_op->GetInputDesc(0).GetFormat()));
+  printf("ge::GetSubFormat(dst_op->GetInputDesc(0).GetFormat() %d...\n",
+         ge::GetSubFormat(dst_op->GetInputDesc(0).GetFormat()));
 
   for (auto node : graph->GetDirectNode()) {
     ASSERT_NE(node, nullptr);
     count_node++;
     printf("countNode %d...\n", count_node);
-	printf("node->GetType() %s...\n", node->GetType().c_str());
+    printf("node->GetType() %s...\n", node->GetType().c_str());
 
     if (node->GetType() == "A") {
       {
         ge::GeShape shape_check = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 2);
         EXPECT_EQ(input_vec_of_b[1], 1);
         EXPECT_EQ(input_vec_of_b[2], 3);
@@ -815,19 +803,19 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_09_1)
         ge::GeShape shape_check = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 2);
         EXPECT_EQ(input_vec_of_b[1], 1);
         EXPECT_EQ(input_vec_of_b[2], 3);
         EXPECT_EQ(input_vec_of_b[3], 4);
       }
     }
-	if (node->GetType() == TRANSPOSE) {
+    if (node->GetType() == TRANSPOSE) {
       {
         ge::GeShape shape_check = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 2);
         EXPECT_EQ(input_vec_of_b[1], 1);
         EXPECT_EQ(input_vec_of_b[2], 3);
@@ -837,19 +825,19 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_09_1)
         ge::GeShape shape_check = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 3);
         EXPECT_EQ(input_vec_of_b[1], 4);
         EXPECT_EQ(input_vec_of_b[2], 1);
         EXPECT_EQ(input_vec_of_b[3], 2);
       }
-	}
+    }
     if (node->GetType() == "TransData") {
       {
         ge::GeShape shape_check = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 3);
         EXPECT_EQ(input_vec_of_b[1], 4);
         EXPECT_EQ(input_vec_of_b[2], 1);
@@ -859,7 +847,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_09_1)
         ge::GeShape shape_check = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 12);
         EXPECT_EQ(input_vec_of_b[1], 1);
         EXPECT_EQ(input_vec_of_b[2], 16);
@@ -871,36 +859,35 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_09_1)
         ge::GeShape shape_check = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 5);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 1);
         EXPECT_EQ(input_vec_of_b[1], 256);
         EXPECT_EQ(input_vec_of_b[2], 256);
         EXPECT_EQ(input_vec_of_b[3], 512);
-		EXPECT_EQ(input_vec_of_b[4], 32);
+        EXPECT_EQ(input_vec_of_b[4], 32);
       }
       {
         ge::GeShape shape_check = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 5);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 1);
         EXPECT_EQ(input_vec_of_b[1], 256);
         EXPECT_EQ(input_vec_of_b[2], 256);
         EXPECT_EQ(input_vec_of_b[3], 512);
-		EXPECT_EQ(input_vec_of_b[4], 32);
+        EXPECT_EQ(input_vec_of_b[4], 32);
       }
     }
   }
   EXPECT_EQ(count_node, 5);
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_10)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_10) {
   // src:cce op, dst:cce op
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
-  ComputeGraphPtr graph_check =  std::make_shared<ComputeGraph>("test_graph_check");
+  ComputeGraphPtr graph_check = std::make_shared<ComputeGraph>("test_graph_check");
   OpDescPtr src_op = std::make_shared<OpDesc>("A", "A");
-  GeTensorDesc src_tensor_desc(GeShape({-1, 1, -1, -1 , 16}), ge::FORMAT_NC1HWC0, ge::DT_FLOAT16);
+  GeTensorDesc src_tensor_desc(GeShape({-1, 1, -1, -1, 16}), ge::FORMAT_NC1HWC0, ge::DT_FLOAT16);
   src_tensor_desc.SetOriginShape(GeShape({-1, -1, -1, 4}));
   src_tensor_desc.SetOriginFormat(ge::FORMAT_NHWC);
   src_tensor_desc.SetShapeRange({{2, 3}, {1, 1}, {1, 3}, {4, 15}, {16, 16}});
@@ -936,7 +923,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_10)
         ge::GeShape shape_check = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         vector<int64_t> exp_vec = {-1, -1, -1, 4};
         EXPECT_EQ(input_vec_of_b, exp_vec);
       }
@@ -944,7 +931,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_10)
         ge::GeShape shape_check = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         vector<int64_t> exp_vec = {-1, -1, -1, 4};
         EXPECT_EQ(input_vec_of_b, exp_vec);
       }
@@ -956,7 +943,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_10)
         node->GetOpDesc()->GetInputDescPtr(0)->GetShapeRange(shape_range);
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 5);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         vector<int64_t> exp_vec = {-1, 1, -1, -1, 16};
         std::vector<std::pair<int64_t, int64_t>> exp_range = {{2, 3}, {1, 1}, {1, 3}, {4, 15}, {16, 16}};
         EXPECT_EQ(input_vec_of_b, exp_vec);
@@ -970,18 +957,16 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNode_10)
         ASSERT_EQ(size, 4);
         vector<int64_t> exp_vec = {-1, -1, -1, 4};
         std::vector<std::pair<int64_t, int64_t>> exp_range = {{2, 3}, {1, 3}, {4, 15}, {4, 4}};
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b, exp_vec);
         EXPECT_EQ(shape_range, exp_range);
       }
-
     }
   }
   EXPECT_EQ(count_node, 3);
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, InsertCastNode)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, InsertCastNode) {
   // src:cce op, dst:cce op
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
 
@@ -1009,7 +994,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertCastNode)
   ASSERT_EQ(fe::SUCCESS, status);
   int count_node = 0;
   for (auto node : graph->GetDirectNode()) {
-
     ASSERT_NE(node, nullptr);
     if (node->GetType() == "A") {
       auto dim_vec = node->GetOpDesc()->GetInputDescPtr(0)->GetShape().GetDims();
@@ -1025,8 +1009,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertCastNode)
   EXPECT_EQ(count_node, 3);
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, InsertCastNode_not_necessary)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, InsertCastNode_not_necessary) {
   // src:cce op, dst:cce op
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
 
@@ -1060,8 +1043,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertCastNode_not_necessary)
   EXPECT_EQ(count_node, 2);
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, InsertPermuteNodeWithInputConst)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, InsertPermuteNodeWithInputConst) {
   // src:cce op, dst:cce op
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
 
@@ -1088,7 +1070,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertPermuteNodeWithInputConst)
   ASSERT_EQ(fe::SUCCESS, status);
   int count_node = 0;
   for (auto node : graph->GetDirectNode()) {
-
     ASSERT_NE(node, nullptr);
     if (node->GetType() == TRANSPOSE) {
       auto dim_vec = node->GetOpDesc()->GetInputDescPtr(0)->GetShape().GetDims();
@@ -1111,8 +1092,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertPermuteNodeWithInputConst)
   EXPECT_EQ(count_node, 4);
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, InsertPermuteNode)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, InsertPermuteNode) {
   // src:cce op, dst:cce op
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
 
@@ -1150,7 +1130,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertPermuteNode)
       ge::GeShape shape_check = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
       auto size = shape_check.GetDimNum();
       ASSERT_EQ(size, 4);
-      vector<int64_t> input_vec_of_b =shape_check.GetDims();
+      vector<int64_t> input_vec_of_b = shape_check.GetDims();
       EXPECT_EQ(input_vec_of_b[0], 1);
       EXPECT_EQ(input_vec_of_b[1], 256);
       EXPECT_EQ(input_vec_of_b[2], 512);
@@ -1161,7 +1141,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertPermuteNode)
         ge::GeShape shape_check = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 1);
         EXPECT_EQ(input_vec_of_b[1], 3);
         EXPECT_EQ(input_vec_of_b[2], 4);
@@ -1171,21 +1151,18 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertPermuteNode)
         ge::GeShape shape_check = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 1);
         EXPECT_EQ(input_vec_of_b[1], 3);
         EXPECT_EQ(input_vec_of_b[2], 4);
         EXPECT_EQ(input_vec_of_b[3], 2);
       }
-
     }
-
   }
   EXPECT_EQ(count_node, 4);
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, InsertPermuteNode2)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, InsertPermuteNode2) {
   // src:cce op, dst:cce op
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
 
@@ -1224,7 +1201,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertPermuteNode2)
       ge::GeShape shape_check = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
       auto size = shape_check.GetDimNum();
       ASSERT_EQ(size, 4);
-      vector<int64_t> input_vec_of_b =shape_check.GetDims();
+      vector<int64_t> input_vec_of_b = shape_check.GetDims();
       EXPECT_EQ(input_vec_of_b[0], 1);
       EXPECT_EQ(input_vec_of_b[1], 2);
       EXPECT_EQ(input_vec_of_b[2], 3);
@@ -1246,21 +1223,17 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertPermuteNode2)
 
       EXPECT_EQ(output_vec_of_b[0], 1);
       EXPECT_EQ(output_vec_of_b[1], 2);
-
     }
   }
   EXPECT_EQ(count_node, 4);
 }
 
-
-
-TEST_F(STEST_FE_TRANSOP_INSERT, InsertPermuteNodeWithInputConst2)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, InsertPermuteNodeWithInputConst2) {
   // src:cce op, dst:cce op
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
 
   OpDescPtr src_op = std::make_shared<OpDesc>("A", "A");
-  GeTensorDesc src_tensor_desc(GeShape({256,512}), ge::FORMAT_NCHW, ge::DT_FLOAT);
+  GeTensorDesc src_tensor_desc(GeShape({256, 512}), ge::FORMAT_NCHW, ge::DT_FLOAT);
   src_tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
 
   src_op->AddOutputDesc(src_tensor_desc);
@@ -1284,7 +1257,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertPermuteNodeWithInputConst2)
   ASSERT_EQ(fe::SUCCESS, status);
   int count_node = 0;
   for (auto node : graph->GetDirectNode()) {
-
     ASSERT_NE(node, nullptr);
     if (node->GetType() == TRANSPOSE) {
       {
@@ -1337,8 +1309,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertPermuteNodeWithInputConst2)
   EXPECT_EQ(count_node, 4);
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, InsertPermuteNode4)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, InsertPermuteNode4) {
   // src:cce op, dst:cce op
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
 
@@ -1399,7 +1370,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertPermuteNode4)
         ge::GeShape shape_check = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 1);
         EXPECT_EQ(input_vec_of_b[1], 3);
         EXPECT_EQ(input_vec_of_b[2], 4);
@@ -1409,21 +1380,18 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertPermuteNode4)
         ge::GeShape shape_check = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 1);
         EXPECT_EQ(input_vec_of_b[1], 3);
         EXPECT_EQ(input_vec_of_b[2], 4);
         EXPECT_EQ(input_vec_of_b[3], 2);
       }
-
     }
-
   }
   EXPECT_EQ(count_node, 4);
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, InsertPermuteNode5)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, InsertPermuteNode5) {
   // src:cce op, dst:cce op
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
 
@@ -1494,20 +1462,17 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertPermuteNode5)
 
       EXPECT_EQ(output_vec_of_b[0], 1);
       EXPECT_EQ(output_vec_of_b[1], 2);
-
     }
   }
   EXPECT_EQ(count_node, 4);
 }
 
-
-TEST_F(STEST_FE_TRANSOP_INSERT, InsertPermuteNode6)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, InsertPermuteNode6) {
   // src:cce op, dst:cce op
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
 
   OpDescPtr src_op = std::make_shared<OpDesc>("D", "D");
-  GeTensorDesc src_tensor_desc(GeShape({5,7}), ge::FORMAT_NHWC, ge::DT_FLOAT);
+  GeTensorDesc src_tensor_desc(GeShape({5, 7}), ge::FORMAT_NHWC, ge::DT_FLOAT);
   src_tensor_desc.SetOriginFormat(ge::FORMAT_NHWC);
 
   src_op->AddOutputDesc(src_tensor_desc);
@@ -1573,18 +1538,16 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertPermuteNode6)
 
       EXPECT_EQ(output_vec_of_b[0], 1);
       EXPECT_EQ(output_vec_of_b[1], 2);
-
     }
   }
   EXPECT_EQ(count_node, 4);
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_NCDHW)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_NCDHW) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
 
   OpDescPtr src_x_op = std::make_shared<OpDesc>("X", "BatchA");
-  GeTensorDesc src_x_tensor_desc(GeShape({5,7}), ge::FORMAT_NCDHW, ge::DT_FLOAT);
+  GeTensorDesc src_x_tensor_desc(GeShape({5, 7}), ge::FORMAT_NCDHW, ge::DT_FLOAT);
   src_x_tensor_desc.SetOriginFormat(ge::FORMAT_NCDHW);
   src_x_op->AddOutputDesc(src_x_tensor_desc);
   src_x_op->AddInputDesc(src_x_tensor_desc);
@@ -1592,7 +1555,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_NCDHW)
   ge::AttrUtils::SetInt(src_x_op, FE_IMPLY_TYPE, 6);
 
   OpDescPtr src_w_op = std::make_shared<OpDesc>("W", "BatchA");
-  GeTensorDesc src_w_tensor_desc(GeShape({5,7}), ge::FORMAT_NCDHW, ge::DT_FLOAT);
+  GeTensorDesc src_w_tensor_desc(GeShape({5, 7}), ge::FORMAT_NCDHW, ge::DT_FLOAT);
   src_w_tensor_desc.SetOriginFormat(ge::FORMAT_NDHWC);
   src_w_op->AddOutputDesc(src_w_tensor_desc);
   src_w_op->AddInputDesc(src_w_tensor_desc);
@@ -1600,7 +1563,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_NCDHW)
   ge::AttrUtils::SetInt(src_w_op, FE_IMPLY_TYPE, 6);
 
   OpDescPtr src_b_op = std::make_shared<OpDesc>("B", "BatchA");
-  GeTensorDesc src_b_tensor_desc(GeShape({5,6,7}), ge::FORMAT_NCDHW, ge::DT_FLOAT);
+  GeTensorDesc src_b_tensor_desc(GeShape({5, 6, 7}), ge::FORMAT_NCDHW, ge::DT_FLOAT);
   src_b_tensor_desc.SetOriginFormat(ge::FORMAT_DHWCN);
   src_b_op->AddOutputDesc(src_b_tensor_desc);
   src_b_op->AddInputDesc(src_b_tensor_desc);
@@ -1608,7 +1571,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_NCDHW)
   ge::AttrUtils::SetInt(src_b_op, FE_IMPLY_TYPE, 6);
 
   OpDescPtr src_c_op = std::make_shared<OpDesc>("C", "BatchA");
-  GeTensorDesc src_c_tensor_desc(GeShape({5,6,7,8,9}), ge::FORMAT_NCDHW, ge::DT_FLOAT);
+  GeTensorDesc src_c_tensor_desc(GeShape({5, 6, 7, 8, 9}), ge::FORMAT_NCDHW, ge::DT_FLOAT);
   src_c_tensor_desc.SetOriginFormat(ge::FORMAT_DHWNC);
   src_c_op->AddOutputDesc(src_c_tensor_desc);
   src_c_op->AddInputDesc(src_c_tensor_desc);
@@ -1648,7 +1611,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_NCDHW)
   int count_node = 0;
   int trans_count = 0;
   int unsqueeze_count = 0;
-  vector<vector<int64_t>> trans_dim_result{{1,1,1,5,7}, {1,1,5,6,7}, {5,6,7,8,9}};
+  vector<vector<int64_t>> trans_dim_result{{1, 1, 1, 5, 7}, {1, 1, 5, 6, 7}, {5, 6, 7, 8, 9}};
 
   for (auto node : graph->GetDirectNode()) {
     ASSERT_NE(node, nullptr);
@@ -1665,12 +1628,11 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_NCDHW)
   EXPECT_EQ(count_node, 13);
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_NDHWC)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_NDHWC) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
 
   OpDescPtr src_x_op = std::make_shared<OpDesc>("X", "BatchA");
-  GeTensorDesc src_x_tensor_desc(GeShape({5,7}), ge::FORMAT_NDHWC, ge::DT_FLOAT);
+  GeTensorDesc src_x_tensor_desc(GeShape({5, 7}), ge::FORMAT_NDHWC, ge::DT_FLOAT);
   src_x_tensor_desc.SetOriginFormat(ge::FORMAT_NCDHW);
   src_x_op->AddOutputDesc(src_x_tensor_desc);
   src_x_op->AddInputDesc(src_x_tensor_desc);
@@ -1678,7 +1640,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_NDHWC)
   ge::AttrUtils::SetInt(src_x_op, FE_IMPLY_TYPE, 6);
 
   OpDescPtr src_w_op = std::make_shared<OpDesc>("W", "BatchA");
-  GeTensorDesc src_w_tensor_desc(GeShape({5,7}), ge::FORMAT_NDHWC, ge::DT_FLOAT);
+  GeTensorDesc src_w_tensor_desc(GeShape({5, 7}), ge::FORMAT_NDHWC, ge::DT_FLOAT);
   src_w_tensor_desc.SetOriginFormat(ge::FORMAT_NDHWC);
   src_w_op->AddOutputDesc(src_w_tensor_desc);
   src_w_op->AddInputDesc(src_w_tensor_desc);
@@ -1686,7 +1648,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_NDHWC)
   ge::AttrUtils::SetInt(src_w_op, FE_IMPLY_TYPE, 6);
 
   OpDescPtr src_b_op = std::make_shared<OpDesc>("B", "BatchA");
-  GeTensorDesc src_b_tensor_desc(GeShape({5,6,7}), ge::FORMAT_NDHWC, ge::DT_FLOAT);
+  GeTensorDesc src_b_tensor_desc(GeShape({5, 6, 7}), ge::FORMAT_NDHWC, ge::DT_FLOAT);
   src_b_tensor_desc.SetOriginFormat(ge::FORMAT_DHWCN);
   src_b_op->AddOutputDesc(src_b_tensor_desc);
   src_b_op->AddInputDesc(src_b_tensor_desc);
@@ -1694,7 +1656,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_NDHWC)
   ge::AttrUtils::SetInt(src_b_op, FE_IMPLY_TYPE, 6);
 
   OpDescPtr src_c_op = std::make_shared<OpDesc>("C", "BatchA");
-  GeTensorDesc src_c_tensor_desc(GeShape({5,6,7,8,9}), ge::FORMAT_NDHWC, ge::DT_FLOAT);
+  GeTensorDesc src_c_tensor_desc(GeShape({5, 6, 7, 8, 9}), ge::FORMAT_NDHWC, ge::DT_FLOAT);
   src_c_tensor_desc.SetOriginFormat(ge::FORMAT_DHWNC);
   src_c_op->AddOutputDesc(src_c_tensor_desc);
   src_c_op->AddInputDesc(src_c_tensor_desc);
@@ -1734,7 +1696,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_NDHWC)
   int count_node = 0;
   int trans_count = 0;
   int unsqueeze_count = 0;
-  vector<vector<int64_t>> trans_dim_result{{1,1,1,5,7}, {1,1,5,6,7}, {5,6,7,8,9}};
+  vector<vector<int64_t>> trans_dim_result{{1, 1, 1, 5, 7}, {1, 1, 5, 6, 7}, {5, 6, 7, 8, 9}};
 
   for (auto node : graph->GetDirectNode()) {
     ASSERT_NE(node, nullptr);
@@ -1751,12 +1713,11 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_NDHWC)
   EXPECT_EQ(count_node, 13);
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_DHWCN)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_DHWCN) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
 
   OpDescPtr src_x_op = std::make_shared<OpDesc>("X", "BatchA");
-  GeTensorDesc src_x_tensor_desc(GeShape({5,7}), ge::FORMAT_DHWCN, ge::DT_FLOAT);
+  GeTensorDesc src_x_tensor_desc(GeShape({5, 7}), ge::FORMAT_DHWCN, ge::DT_FLOAT);
   src_x_tensor_desc.SetOriginFormat(ge::FORMAT_NCDHW);
   src_x_op->AddOutputDesc(src_x_tensor_desc);
   src_x_op->AddInputDesc(src_x_tensor_desc);
@@ -1764,7 +1725,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_DHWCN)
   ge::AttrUtils::SetInt(src_x_op, FE_IMPLY_TYPE, 6);
 
   OpDescPtr src_w_op = std::make_shared<OpDesc>("W", "BatchA");
-  GeTensorDesc src_w_tensor_desc(GeShape({5,7}), ge::FORMAT_DHWCN, ge::DT_FLOAT);
+  GeTensorDesc src_w_tensor_desc(GeShape({5, 7}), ge::FORMAT_DHWCN, ge::DT_FLOAT);
   src_w_tensor_desc.SetOriginFormat(ge::FORMAT_NDHWC);
   src_w_op->AddOutputDesc(src_w_tensor_desc);
   src_w_op->AddInputDesc(src_w_tensor_desc);
@@ -1772,7 +1733,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_DHWCN)
   ge::AttrUtils::SetInt(src_w_op, FE_IMPLY_TYPE, 6);
 
   OpDescPtr src_b_op = std::make_shared<OpDesc>("B", "BatchA");
-  GeTensorDesc src_b_tensor_desc(GeShape({5,6,7}), ge::FORMAT_DHWCN, ge::DT_FLOAT);
+  GeTensorDesc src_b_tensor_desc(GeShape({5, 6, 7}), ge::FORMAT_DHWCN, ge::DT_FLOAT);
   src_b_tensor_desc.SetOriginFormat(ge::FORMAT_DHWCN);
   src_b_op->AddOutputDesc(src_b_tensor_desc);
   src_b_op->AddInputDesc(src_b_tensor_desc);
@@ -1780,7 +1741,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_DHWCN)
   ge::AttrUtils::SetInt(src_b_op, FE_IMPLY_TYPE, 6);
 
   OpDescPtr src_c_op = std::make_shared<OpDesc>("C", "BatchA");
-  GeTensorDesc src_c_tensor_desc(GeShape({5,6,7,8,9}), ge::FORMAT_DHWCN, ge::DT_FLOAT);
+  GeTensorDesc src_c_tensor_desc(GeShape({5, 6, 7, 8, 9}), ge::FORMAT_DHWCN, ge::DT_FLOAT);
   src_c_tensor_desc.SetOriginFormat(ge::FORMAT_DHWNC);
   src_c_op->AddOutputDesc(src_c_tensor_desc);
   src_c_op->AddInputDesc(src_c_tensor_desc);
@@ -1820,7 +1781,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_DHWCN)
   int count_node = 0;
   int trans_count = 0;
   int unsqueeze_count = 0;
-  vector<vector<int64_t>> trans_dim_result{{1,1,1,5,7}, {1,1,1,5,7}, {5,6,7,8,9}};
+  vector<vector<int64_t>> trans_dim_result{{1, 1, 1, 5, 7}, {1, 1, 1, 5, 7}, {5, 6, 7, 8, 9}};
 
   for (auto node : graph->GetDirectNode()) {
     ASSERT_NE(node, nullptr);
@@ -1837,12 +1798,11 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_DHWCN)
   EXPECT_EQ(count_node, 13);
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_DHWNC)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_DHWNC) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
 
   OpDescPtr src_x_op = std::make_shared<OpDesc>("X", "BatchA");
-  GeTensorDesc src_x_tensor_desc(GeShape({5,7}), ge::FORMAT_DHWNC, ge::DT_FLOAT);
+  GeTensorDesc src_x_tensor_desc(GeShape({5, 7}), ge::FORMAT_DHWNC, ge::DT_FLOAT);
   src_x_tensor_desc.SetOriginFormat(ge::FORMAT_NCDHW);
   src_x_op->AddOutputDesc(src_x_tensor_desc);
   src_x_op->AddInputDesc(src_x_tensor_desc);
@@ -1850,7 +1810,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_DHWNC)
   ge::AttrUtils::SetInt(src_x_op, FE_IMPLY_TYPE, 6);
 
   OpDescPtr src_w_op = std::make_shared<OpDesc>("W", "BatchA");
-  GeTensorDesc src_w_tensor_desc(GeShape({5,7}), ge::FORMAT_DHWNC, ge::DT_FLOAT);
+  GeTensorDesc src_w_tensor_desc(GeShape({5, 7}), ge::FORMAT_DHWNC, ge::DT_FLOAT);
   src_w_tensor_desc.SetOriginFormat(ge::FORMAT_NDHWC);
   src_w_op->AddOutputDesc(src_w_tensor_desc);
   src_w_op->AddInputDesc(src_w_tensor_desc);
@@ -1858,7 +1818,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_DHWNC)
   ge::AttrUtils::SetInt(src_w_op, FE_IMPLY_TYPE, 6);
 
   OpDescPtr src_b_op = std::make_shared<OpDesc>("B", "BatchA");
-  GeTensorDesc src_b_tensor_desc(GeShape({5,6,7}), ge::FORMAT_DHWNC, ge::DT_FLOAT);
+  GeTensorDesc src_b_tensor_desc(GeShape({5, 6, 7}), ge::FORMAT_DHWNC, ge::DT_FLOAT);
   src_b_tensor_desc.SetOriginFormat(ge::FORMAT_DHWCN);
   src_b_op->AddOutputDesc(src_b_tensor_desc);
   src_b_op->AddInputDesc(src_b_tensor_desc);
@@ -1866,7 +1826,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_DHWNC)
   ge::AttrUtils::SetInt(src_b_op, FE_IMPLY_TYPE, 6);
 
   OpDescPtr src_c_op = std::make_shared<OpDesc>("C", "BatchA");
-  GeTensorDesc src_c_tensor_desc(GeShape({5,6,7,8,9}), ge::FORMAT_DHWNC, ge::DT_FLOAT);
+  GeTensorDesc src_c_tensor_desc(GeShape({5, 6, 7, 8, 9}), ge::FORMAT_DHWNC, ge::DT_FLOAT);
   src_c_tensor_desc.SetOriginFormat(ge::FORMAT_DHWNC);
   src_c_op->AddOutputDesc(src_c_tensor_desc);
   src_c_op->AddInputDesc(src_c_tensor_desc);
@@ -1906,7 +1866,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_DHWNC)
   int count_node = 0;
   int trans_count = 0;
   int unsqueeze_count = 0;
-  vector<vector<int64_t>> trans_dim_result{{1,1,1,5,7}, {1,1,1,5,7}, {1,1,5,6,7}};
+  vector<vector<int64_t>> trans_dim_result{{1, 1, 1, 5, 7}, {1, 1, 1, 5, 7}, {1, 1, 5, 6, 7}};
 
   for (auto node : graph->GetDirectNode()) {
     ASSERT_NE(node, nullptr);
@@ -1923,12 +1883,11 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_DHWNC)
   EXPECT_EQ(count_node, 14);
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_Squeeze_NCDHW)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_Squeeze_NCDHW) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
 
   OpDescPtr src_x_op = std::make_shared<OpDesc>("X", "BatchA");
-  GeTensorDesc src_x_tensor_desc(GeShape({5,6,7}), ge::FORMAT_NCDHW, ge::DT_FLOAT);
+  GeTensorDesc src_x_tensor_desc(GeShape({5, 6, 7}), ge::FORMAT_NCDHW, ge::DT_FLOAT);
   src_x_tensor_desc.SetOriginFormat(ge::FORMAT_NCDHW);
   src_x_op->AddOutputDesc(src_x_tensor_desc);
   src_x_op->AddInputDesc(src_x_tensor_desc);
@@ -1936,7 +1895,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_Squeeze_NCDHW)
   ge::AttrUtils::SetInt(src_x_op, FE_IMPLY_TYPE, 6);
 
   OpDescPtr src_w_op = std::make_shared<OpDesc>("W", "BatchA");
-  GeTensorDesc src_w_tensor_desc(GeShape({5,6,7}), ge::FORMAT_NCDHW, ge::DT_FLOAT);
+  GeTensorDesc src_w_tensor_desc(GeShape({5, 6, 7}), ge::FORMAT_NCDHW, ge::DT_FLOAT);
   src_w_tensor_desc.SetOriginFormat(ge::FORMAT_NDHWC);
   src_w_op->AddOutputDesc(src_w_tensor_desc);
   src_w_op->AddInputDesc(src_w_tensor_desc);
@@ -1944,7 +1903,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_Squeeze_NCDHW)
   ge::AttrUtils::SetInt(src_w_op, FE_IMPLY_TYPE, 6);
 
   OpDescPtr src_b_op = std::make_shared<OpDesc>("B", "BatchA");
-  GeTensorDesc src_b_tensor_desc(GeShape({5,6,7}), ge::FORMAT_NCDHW, ge::DT_FLOAT);
+  GeTensorDesc src_b_tensor_desc(GeShape({5, 6, 7}), ge::FORMAT_NCDHW, ge::DT_FLOAT);
   src_b_tensor_desc.SetOriginFormat(ge::FORMAT_DHWCN);
   src_b_op->AddOutputDesc(src_b_tensor_desc);
   src_b_op->AddInputDesc(src_b_tensor_desc);
@@ -1952,7 +1911,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_Squeeze_NCDHW)
   ge::AttrUtils::SetInt(src_b_op, FE_IMPLY_TYPE, 6);
 
   OpDescPtr src_c_op = std::make_shared<OpDesc>("C", "BatchA");
-  GeTensorDesc src_c_tensor_desc(GeShape({5,6,7,8,9}), ge::FORMAT_NCDHW, ge::DT_FLOAT);
+  GeTensorDesc src_c_tensor_desc(GeShape({5, 6, 7, 8, 9}), ge::FORMAT_NCDHW, ge::DT_FLOAT);
   src_c_tensor_desc.SetOriginFormat(ge::FORMAT_DHWNC);
   src_c_op->AddOutputDesc(src_c_tensor_desc);
   src_c_op->AddInputDesc(src_c_tensor_desc);
@@ -1992,8 +1951,8 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_Squeeze_NCDHW)
   int count_node = 0;
   int trans_count = 0;
   int unsqueeze_count = 0;
-  vector<vector<int64_t>> trans_dim_result{{1,1,5,6,7}, {1,1,5,6,7}, {5,6,7,8,9}};
-  vector<vector<int64_t>> squeeze_dim_result{{1,5,6,7,1}, {5,6,7,1,1}, {7,8,9,5,6}};
+  vector<vector<int64_t>> trans_dim_result{{1, 1, 5, 6, 7}, {1, 1, 5, 6, 7}, {5, 6, 7, 8, 9}};
+  vector<vector<int64_t>> squeeze_dim_result{{1, 5, 6, 7, 1}, {5, 6, 7, 1, 1}, {7, 8, 9, 5, 6}};
 
   for (auto node : graph->GetDirectNode()) {
     ASSERT_NE(node, nullptr);
@@ -2010,12 +1969,11 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_Squeeze_NCDHW)
   EXPECT_EQ(count_node, 14);
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_Squeeze_NDHWC)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_Squeeze_NDHWC) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
 
   OpDescPtr src_x_op = std::make_shared<OpDesc>("X", "BatchA");
-  GeTensorDesc src_x_tensor_desc(GeShape({5,6,7}), ge::FORMAT_NDHWC, ge::DT_FLOAT);
+  GeTensorDesc src_x_tensor_desc(GeShape({5, 6, 7}), ge::FORMAT_NDHWC, ge::DT_FLOAT);
   src_x_tensor_desc.SetOriginFormat(ge::FORMAT_NCDHW);
   src_x_op->AddOutputDesc(src_x_tensor_desc);
   src_x_op->AddInputDesc(src_x_tensor_desc);
@@ -2023,7 +1981,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_Squeeze_NDHWC)
   ge::AttrUtils::SetInt(src_x_op, FE_IMPLY_TYPE, 6);
 
   OpDescPtr src_w_op = std::make_shared<OpDesc>("W", "BatchA");
-  GeTensorDesc src_w_tensor_desc(GeShape({5,6,7}), ge::FORMAT_NDHWC, ge::DT_FLOAT);
+  GeTensorDesc src_w_tensor_desc(GeShape({5, 6, 7}), ge::FORMAT_NDHWC, ge::DT_FLOAT);
   src_w_tensor_desc.SetOriginFormat(ge::FORMAT_NDHWC);
   src_w_op->AddOutputDesc(src_w_tensor_desc);
   src_w_op->AddInputDesc(src_w_tensor_desc);
@@ -2031,7 +1989,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_Squeeze_NDHWC)
   ge::AttrUtils::SetInt(src_w_op, FE_IMPLY_TYPE, 6);
 
   OpDescPtr src_b_op = std::make_shared<OpDesc>("B", "BatchA");
-  GeTensorDesc src_b_tensor_desc(GeShape({5,6,7}), ge::FORMAT_NDHWC, ge::DT_FLOAT);
+  GeTensorDesc src_b_tensor_desc(GeShape({5, 6, 7}), ge::FORMAT_NDHWC, ge::DT_FLOAT);
   src_b_tensor_desc.SetOriginFormat(ge::FORMAT_DHWCN);
   src_b_op->AddOutputDesc(src_b_tensor_desc);
   src_b_op->AddInputDesc(src_b_tensor_desc);
@@ -2039,7 +1997,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_Squeeze_NDHWC)
   ge::AttrUtils::SetInt(src_b_op, FE_IMPLY_TYPE, 6);
 
   OpDescPtr src_c_op = std::make_shared<OpDesc>("C", "BatchA");
-  GeTensorDesc src_c_tensor_desc(GeShape({5,6,7,8,9}), ge::FORMAT_NDHWC, ge::DT_FLOAT);
+  GeTensorDesc src_c_tensor_desc(GeShape({5, 6, 7, 8, 9}), ge::FORMAT_NDHWC, ge::DT_FLOAT);
   src_c_tensor_desc.SetOriginFormat(ge::FORMAT_DHWNC);
   src_c_op->AddOutputDesc(src_c_tensor_desc);
   src_c_op->AddInputDesc(src_c_tensor_desc);
@@ -2079,8 +2037,8 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_Squeeze_NDHWC)
   int count_node = 0;
   int trans_count = 0;
   int unsqueeze_count = 0;
-  vector<vector<int64_t>> trans_dim_result{{1,1,5,6,7}, {1,1,5,6,7}, {5,6,7,8,9}};
-  vector<vector<int64_t>> squeeze_dim_result{{1,7,1,5,6}, {1,5,6,7,1}, {6,7,8,5,9}};
+  vector<vector<int64_t>> trans_dim_result{{1, 1, 5, 6, 7}, {1, 1, 5, 6, 7}, {5, 6, 7, 8, 9}};
+  vector<vector<int64_t>> squeeze_dim_result{{1, 7, 1, 5, 6}, {1, 5, 6, 7, 1}, {6, 7, 8, 5, 9}};
 
   for (auto node : graph->GetDirectNode()) {
     ASSERT_NE(node, nullptr);
@@ -2097,12 +2055,11 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_Squeeze_NDHWC)
   EXPECT_EQ(count_node, 14);
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_Squeeze_DHWCN)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_Squeeze_DHWCN) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
 
   OpDescPtr src_x_op = std::make_shared<OpDesc>("X", "BatchA");
-  GeTensorDesc src_x_tensor_desc(GeShape({5,6,7}), ge::FORMAT_DHWCN, ge::DT_FLOAT);
+  GeTensorDesc src_x_tensor_desc(GeShape({5, 6, 7}), ge::FORMAT_DHWCN, ge::DT_FLOAT);
   src_x_tensor_desc.SetOriginFormat(ge::FORMAT_NCDHW);
   src_x_op->AddOutputDesc(src_x_tensor_desc);
   src_x_op->AddInputDesc(src_x_tensor_desc);
@@ -2110,7 +2067,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_Squeeze_DHWCN)
   ge::AttrUtils::SetInt(src_x_op, FE_IMPLY_TYPE, 6);
 
   OpDescPtr src_w_op = std::make_shared<OpDesc>("W", "BatchA");
-  GeTensorDesc src_w_tensor_desc(GeShape({5,6,7}), ge::FORMAT_DHWCN, ge::DT_FLOAT);
+  GeTensorDesc src_w_tensor_desc(GeShape({5, 6, 7}), ge::FORMAT_DHWCN, ge::DT_FLOAT);
   src_w_tensor_desc.SetOriginFormat(ge::FORMAT_NDHWC);
   src_w_op->AddOutputDesc(src_w_tensor_desc);
   src_w_op->AddInputDesc(src_w_tensor_desc);
@@ -2118,7 +2075,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_Squeeze_DHWCN)
   ge::AttrUtils::SetInt(src_w_op, FE_IMPLY_TYPE, 6);
 
   OpDescPtr src_b_op = std::make_shared<OpDesc>("B", "BatchA");
-  GeTensorDesc src_b_tensor_desc(GeShape({5,6,7}), ge::FORMAT_DHWCN, ge::DT_FLOAT);
+  GeTensorDesc src_b_tensor_desc(GeShape({5, 6, 7}), ge::FORMAT_DHWCN, ge::DT_FLOAT);
   src_b_tensor_desc.SetOriginFormat(ge::FORMAT_DHWCN);
   src_b_op->AddOutputDesc(src_b_tensor_desc);
   src_b_op->AddInputDesc(src_b_tensor_desc);
@@ -2126,7 +2083,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_Squeeze_DHWCN)
   ge::AttrUtils::SetInt(src_b_op, FE_IMPLY_TYPE, 6);
 
   OpDescPtr src_c_op = std::make_shared<OpDesc>("C", "BatchA");
-  GeTensorDesc src_c_tensor_desc(GeShape({5,6,7,8,9}), ge::FORMAT_DHWCN, ge::DT_FLOAT);
+  GeTensorDesc src_c_tensor_desc(GeShape({5, 6, 7, 8, 9}), ge::FORMAT_DHWCN, ge::DT_FLOAT);
   src_c_tensor_desc.SetOriginFormat(ge::FORMAT_DHWNC);
   src_c_op->AddOutputDesc(src_c_tensor_desc);
   src_c_op->AddInputDesc(src_c_tensor_desc);
@@ -2166,8 +2123,8 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_Squeeze_DHWCN)
   int count_node = 0;
   int trans_count = 0;
   int unsqueeze_count = 0;
-  vector<vector<int64_t>> trans_dim_result{{1,1,5,6,7}, {1,1,5,6,7}, {5,6,7,8,9}};
-  vector<vector<int64_t>> squeeze_dim_result{{7,6,1,1,5}, {7,1,1,5,6}, {5,6,7,9,8}};
+  vector<vector<int64_t>> trans_dim_result{{1, 1, 5, 6, 7}, {1, 1, 5, 6, 7}, {5, 6, 7, 8, 9}};
+  vector<vector<int64_t>> squeeze_dim_result{{7, 6, 1, 1, 5}, {7, 1, 1, 5, 6}, {5, 6, 7, 9, 8}};
 
   for (auto node : graph->GetDirectNode()) {
     ASSERT_NE(node, nullptr);
@@ -2184,12 +2141,11 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_Squeeze_DHWCN)
   EXPECT_EQ(count_node, 14);
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_Squeeze_DHWNC)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_Squeeze_DHWNC) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
 
   OpDescPtr src_x_op = std::make_shared<OpDesc>("X", "BatchA");
-  GeTensorDesc src_x_tensor_desc(GeShape({5,6,7}), ge::FORMAT_DHWNC, ge::DT_FLOAT);
+  GeTensorDesc src_x_tensor_desc(GeShape({5, 6, 7}), ge::FORMAT_DHWNC, ge::DT_FLOAT);
   src_x_tensor_desc.SetOriginFormat(ge::FORMAT_NCDHW);
   src_x_op->AddOutputDesc(src_x_tensor_desc);
   src_x_op->AddInputDesc(src_x_tensor_desc);
@@ -2197,7 +2153,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_Squeeze_DHWNC)
   ge::AttrUtils::SetInt(src_x_op, FE_IMPLY_TYPE, 6);
 
   OpDescPtr src_w_op = std::make_shared<OpDesc>("W", "BatchA");
-  GeTensorDesc src_w_tensor_desc(GeShape({5,6,7}), ge::FORMAT_DHWNC, ge::DT_FLOAT);
+  GeTensorDesc src_w_tensor_desc(GeShape({5, 6, 7}), ge::FORMAT_DHWNC, ge::DT_FLOAT);
   src_w_tensor_desc.SetOriginFormat(ge::FORMAT_NDHWC);
   src_w_op->AddOutputDesc(src_w_tensor_desc);
   src_w_op->AddInputDesc(src_w_tensor_desc);
@@ -2205,7 +2161,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_Squeeze_DHWNC)
   ge::AttrUtils::SetInt(src_w_op, FE_IMPLY_TYPE, 6);
 
   OpDescPtr src_b_op = std::make_shared<OpDesc>("B", "BatchA");
-  GeTensorDesc src_b_tensor_desc(GeShape({5,6,7}), ge::FORMAT_DHWNC, ge::DT_FLOAT);
+  GeTensorDesc src_b_tensor_desc(GeShape({5, 6, 7}), ge::FORMAT_DHWNC, ge::DT_FLOAT);
   src_b_tensor_desc.SetOriginFormat(ge::FORMAT_DHWCN);
   src_b_op->AddOutputDesc(src_b_tensor_desc);
   src_b_op->AddInputDesc(src_b_tensor_desc);
@@ -2213,7 +2169,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_Squeeze_DHWNC)
   ge::AttrUtils::SetInt(src_b_op, FE_IMPLY_TYPE, 6);
 
   OpDescPtr src_c_op = std::make_shared<OpDesc>("C", "BatchA");
-  GeTensorDesc src_c_tensor_desc(GeShape({5,6,7,8,9}), ge::FORMAT_DHWNC, ge::DT_FLOAT);
+  GeTensorDesc src_c_tensor_desc(GeShape({5, 6, 7, 8, 9}), ge::FORMAT_DHWNC, ge::DT_FLOAT);
   src_c_tensor_desc.SetOriginFormat(ge::FORMAT_DHWNC);
   src_c_op->AddOutputDesc(src_c_tensor_desc);
   src_c_op->AddInputDesc(src_c_tensor_desc);
@@ -2253,8 +2209,8 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_Squeeze_DHWNC)
   int count_node = 0;
   int trans_count = 0;
   int unsqueeze_count = 0;
-  vector<vector<int64_t>> trans_dim_result{{1,1,5,6,7}, {1,1,5,6,7}, {1,1,5,6,7}};
-  vector<vector<int64_t>> squeeze_dim_result{{6,7,1,1,5}, {6,1,1,5,7}, {1,1,5,7,6}};
+  vector<vector<int64_t>> trans_dim_result{{1, 1, 5, 6, 7}, {1, 1, 5, 6, 7}, {1, 1, 5, 6, 7}};
+  vector<vector<int64_t>> squeeze_dim_result{{6, 7, 1, 1, 5}, {6, 1, 1, 5, 7}, {1, 1, 5, 7, 6}};
 
   for (auto node : graph->GetDirectNode()) {
     ASSERT_NE(node, nullptr);
@@ -2271,12 +2227,11 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_Squeeze_DHWNC)
   EXPECT_EQ(count_node, 14);
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_2DTransTo3D)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_2DTransTo3D) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
 
   OpDescPtr src_x_op = std::make_shared<OpDesc>("b", "B");
-  GeTensorDesc src_x_tensor_desc(GeShape({5,7}), ge::FORMAT_NCHW, ge::DT_FLOAT);
+  GeTensorDesc src_x_tensor_desc(GeShape({5, 7}), ge::FORMAT_NCHW, ge::DT_FLOAT);
   src_x_tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
   src_x_op->AddOutputDesc(src_x_tensor_desc);
   src_x_op->AddInputDesc(src_x_tensor_desc);
@@ -2309,12 +2264,11 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_2DTransTo3D)
   EXPECT_EQ(count_node, 2);
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_3DTransTo2D)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_3DTransTo2D) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
 
   OpDescPtr src_x_op = std::make_shared<OpDesc>("X", "BatchA");
-  GeTensorDesc src_x_tensor_desc(GeShape({5,7}), ge::FORMAT_DHWNC, ge::DT_FLOAT);
+  GeTensorDesc src_x_tensor_desc(GeShape({5, 7}), ge::FORMAT_DHWNC, ge::DT_FLOAT);
   src_x_tensor_desc.SetOriginFormat(ge::FORMAT_NCDHW);
   src_x_op->AddOutputDesc(src_x_tensor_desc);
   src_x_op->AddInputDesc(src_x_tensor_desc);
@@ -2344,7 +2298,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransposDNode_3DTransTo2D)
     ASSERT_NE(node, nullptr);
     count_node++;
     if (node->GetType() == TRANSPOSE) {
-      vector<int64_t> trans_dim_result({1,1,1,5,7});
+      vector<int64_t> trans_dim_result({1, 1, 1, 5, 7});
       EXPECT_EQ(node->GetOpDesc()->GetInputDescPtr(0)->GetShape().GetDims(), trans_dim_result);
       continue;
     }
@@ -2393,7 +2347,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertReshapeNode) {
       ge::GeShape shape_check = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
       auto size = shape_check.GetDimNum();
       ASSERT_EQ(size, 4);
-      vector<int64_t> input_vec_of_b =shape_check.GetDims();
+      vector<int64_t> input_vec_of_b = shape_check.GetDims();
       EXPECT_EQ(input_vec_of_b[0], 1);
       EXPECT_EQ(input_vec_of_b[1], 2);
       EXPECT_EQ(input_vec_of_b[2], 1);
@@ -2404,7 +2358,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertReshapeNode) {
         ge::GeShape shape_check = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 5);
         EXPECT_EQ(input_vec_of_b[1], 5);
         EXPECT_EQ(input_vec_of_b[2], 5);
@@ -2414,7 +2368,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertReshapeNode) {
         ge::GeShape shape_check = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 5);
         EXPECT_EQ(input_vec_of_b[1], 5);
         EXPECT_EQ(input_vec_of_b[2], 5);
@@ -2444,7 +2398,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, AddReshapeOp_01) {
 
   TransInfoPtr trans_info_ptr = std::make_shared<TransInfo>();
   trans_info_ptr->src_out_shape = GeShape({1, 256});
-  trans_info_ptr->dst_in_shape = GeShape({1, 256,1,1});
+  trans_info_ptr->dst_in_shape = GeShape({1, 256, 1, 1});
   trans_info_ptr->src_reshape_type = reshape_type;
   trans_info_ptr->dst_reshape_type = reshape_type;
   trans_info_ptr->src_out_data_type = ge::DT_FLOAT16;
@@ -2456,7 +2410,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT, AddReshapeOp_01) {
   trans_info_ptr->dst_node_ptr = dst_node;
   trans_info_ptr->src_anchor = src_node->GetOutDataAnchor(0);
   trans_info_ptr->dst_anchor = dst_node->GetInDataAnchor(0);
-
 
   TransNodeReshapeGenerator trans_op_insert(fe_ops_kernel_info_store_ptr_, trans_info_ptr);
   Status ret = trans_op_insert.AddTransNode(*graph.get(), trans_info_ptr);
@@ -2478,10 +2431,9 @@ TEST_F(STEST_FE_TRANSOP_INSERT, AddReshapeOp_02) {
   dst_op->AddOutputDesc(dst_tensor_desc);
   auto dst_node = graph->AddNode(dst_op);
 
-
   TransInfoPtr trans_info_ptr = std::make_shared<TransInfo>();
   trans_info_ptr->src_out_shape = GeShape({1, 256});
-  trans_info_ptr->dst_in_shape = GeShape({1, 256,1,1});
+  trans_info_ptr->dst_in_shape = GeShape({1, 256, 1, 1});
   trans_info_ptr->src_reshape_type = reshape_type;
   trans_info_ptr->dst_reshape_type = reshape_type;
   trans_info_ptr->src_out_data_type = ge::DT_FLOAT16;
@@ -2493,7 +2445,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT, AddReshapeOp_02) {
   trans_info_ptr->dst_node_ptr = dst_node;
   trans_info_ptr->src_anchor = src_node->GetOutDataAnchor(0);
   trans_info_ptr->dst_anchor = dst_node->GetInDataAnchor(0);
-
 
   TransNodeReshapeGenerator trans_op_insert(fe_ops_kernel_info_store_ptr_, trans_info_ptr);
   Status ret = trans_op_insert.AddTransNode(*graph.get(), trans_info_ptr);
@@ -2535,12 +2486,12 @@ TEST_F(STEST_FE_TRANSOP_INSERT, MergeTwoTransDataOp) {
   TransNodeMerging trans_op_merger;
   trans_op_merger.MergeAllTransOps(*(graph.get()), {}, false);
   uint32_t count_node = 0;
-  for (auto node: graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     EXPECT_NE(node, nullptr);
     EXPECT_NE(node->GetType(), "TransData");
     count_node++;
   }
-  EXPECT_EQ(count_node,2);
+  EXPECT_EQ(count_node, 2);
 }
 
 TEST_F(STEST_FE_TRANSOP_INSERT, MergeTwoTransposeOp) {
@@ -2577,12 +2528,12 @@ TEST_F(STEST_FE_TRANSOP_INSERT, MergeTwoTransposeOp) {
   TransNodeMerging trans_op_merger;
   trans_op_merger.MergeAllTransOps(*(graph.get()), {}, false);
   uint32_t count_node = 0;
-  for (auto node: graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     EXPECT_NE(node, nullptr);
     EXPECT_NE(node->GetType(), "TransposeD");
     count_node++;
   }
-  EXPECT_EQ(count_node,2);
+  EXPECT_EQ(count_node, 2);
 }
 
 TEST_F(STEST_FE_TRANSOP_INSERT, MergeFourTransDataOp) {
@@ -2631,16 +2582,15 @@ TEST_F(STEST_FE_TRANSOP_INSERT, MergeFourTransDataOp) {
   TransNodeMerging trans_op_merger;
   trans_op_merger.MergeAllTransOps(*(graph.get()), {}, false);
   uint32_t count_node = 0;
-  for (auto node: graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     EXPECT_NE(node, nullptr);
     EXPECT_NE(node->GetType(), "TransData");
     count_node++;
   }
-  EXPECT_EQ(count_node,2);
+  EXPECT_EQ(count_node, 2);
 }
 
-void Create4TransdataMergeGraph(ComputeGraphPtr &graph, const ge::GeShape &shape1,
-                                const ge::GeShape &shape2) {
+void Create4TransdataMergeGraph(ComputeGraphPtr &graph, const ge::GeShape &shape1, const ge::GeShape &shape2) {
   GeTensorDesc src_tensor_desc(shape1, ge::FORMAT_NC1HWC0, ge::DT_FLOAT16);
   GeTensorDesc dst_tensor_desc(shape2, ge::FORMAT_NCHW, ge::DT_FLOAT16);
 
@@ -2689,11 +2639,11 @@ TEST_F(STEST_FE_TRANSOP_INSERT, MergeFourTransDataOpUnknownDimNum) {
   TransNodeMerging trans_op_merger;
   trans_op_merger.MergeAllTransOps(*(graph.get()), {}, false);
   uint32_t count_node = 0;
-  for (auto node: graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     EXPECT_NE(node, nullptr);
     count_node++;
   }
-  EXPECT_EQ(count_node,6);
+  EXPECT_EQ(count_node, 6);
 }
 
 TEST_F(STEST_FE_TRANSOP_INSERT, MergeFourTransDataOpUnknownDimNum2) {
@@ -2704,11 +2654,11 @@ TEST_F(STEST_FE_TRANSOP_INSERT, MergeFourTransDataOpUnknownDimNum2) {
   TransNodeMerging trans_op_merger;
   trans_op_merger.MergeAllTransOps(*(graph.get()), {}, false);
   uint32_t count_node = 0;
-  for (auto node: graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     EXPECT_NE(node, nullptr);
     count_node++;
   }
-  EXPECT_EQ(count_node,6);
+  EXPECT_EQ(count_node, 6);
 }
 
 /* Two transdata nodes are different in shape, so they can not merge.
@@ -2760,15 +2710,15 @@ TEST_F(STEST_FE_TRANSOP_INSERT, MergeTwoTransDataOp_Abnomal) {
   TransNodeMerging trans_op_merger;
   trans_op_merger.MergeAllTransOps(*(graph.get()), {}, false);
   uint32_t count_node = 0;
-  for (auto node: graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     EXPECT_NE(node, nullptr);
-    if(node->GetType() == "TransData") {
+    if (node->GetType() == "TransData") {
       EXPECT_NE(node->GetName(), "Transdata1");
       EXPECT_NE(node->GetName(), "Transdata2");
     }
     count_node++;
   }
-  EXPECT_EQ(count_node,4);
+  EXPECT_EQ(count_node, 4);
 }
 
 /* One transdata node can not find its lover, so it can not be merged.
@@ -2813,16 +2763,16 @@ TEST_F(STEST_FE_TRANSOP_INSERT, MergeThreeTransDataOp_Abnomal) {
   TransNodeMerging trans_op_merger;
   trans_op_merger.MergeAllTransOps(*(graph.get()), {}, false);
   uint32_t count_node = 0;
-  for (auto node: graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     EXPECT_NE(node, nullptr);
-    if(node->GetType() == "TransData") {
+    if (node->GetType() == "TransData") {
       EXPECT_EQ(node->GetName(), "Transdata3");
       int64_t topo_id = node->GetOpDesc()->GetId();
       EXPECT_EQ(topo_id, 4);
     }
     count_node++;
   }
-  EXPECT_EQ(count_node,3);
+  EXPECT_EQ(count_node, 3);
 }
 
 TEST_F(STEST_FE_TRANSOP_INSERT, MergeTwoTransDataAndTwoCastOp) {
@@ -2871,12 +2821,12 @@ TEST_F(STEST_FE_TRANSOP_INSERT, MergeTwoTransDataAndTwoCastOp) {
   TransNodeMerging trans_op_merger;
   trans_op_merger.MergeAllTransOps(*(graph.get()), {}, false);
   uint32_t count_node = 0;
-  for (auto node: graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     EXPECT_NE(node, nullptr);
     EXPECT_NE(node->GetType(), "TransData");
     count_node++;
   }
-  EXPECT_EQ(count_node,2);
+  EXPECT_EQ(count_node, 2);
 }
 
 TEST_F(STEST_FE_TRANSOP_INSERT, InsertCastAfterPlaceHolder) {
@@ -2906,15 +2856,15 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertCastAfterPlaceHolder) {
   Status status = trans_op_insert.InsertAndMergeTransNodes(*(graph.get()));
   uint32_t count_node = 0;
   uint32_t count_cast_node = 0;
-  for (auto node: graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     EXPECT_NE(node, nullptr);
     if (node->GetType() == "Cast") {
       count_cast_node++;
     }
     count_node++;
   }
-  EXPECT_EQ(count_node,3);
-  EXPECT_EQ(count_cast_node,1);
+  EXPECT_EQ(count_node, 3);
+  EXPECT_EQ(count_cast_node, 1);
 }
 
 TEST_F(STEST_FE_TRANSOP_INSERT, AddReduceReshapeOp_01) {
@@ -2997,8 +2947,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, AddReduceReshapeOp_02) {
   EXPECT_EQ(ret, fe::SUCCESS);
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNodeBeforeEndOfNetOutput_01)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNodeBeforeEndOfNetOutput_01) {
   // src:cce op, dst:cce op
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr src_op = std::make_shared<OpDesc>("A", "A");
@@ -3041,8 +2990,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNodeBeforeEndOfNetOutput_01)
         ge::GeShape shape = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
         EXPECT_EQ(shape.GetDimNum(), 5);
         EXPECT_EQ(shape.GetDims(), nc1hwc0_dims);
-        ge::DataType data_type = node->GetOpDesc()->GetInputDescPtr(
-            0)->GetDataType();
+        ge::DataType data_type = node->GetOpDesc()->GetInputDescPtr(0)->GetDataType();
         ge::Format format = node->GetOpDesc()->GetInputDescPtr(0)->GetFormat();
         EXPECT_EQ(data_type, ge::DT_FLOAT16);
         EXPECT_EQ(format, ge::FORMAT_NC1HWC0);
@@ -3051,8 +2999,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNodeBeforeEndOfNetOutput_01)
         ge::GeShape shape = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
         EXPECT_EQ(shape.GetDimNum(), 4);
         EXPECT_EQ(shape.GetDims(), nchw_dims);
-        ge::DataType data_type = node->GetOpDesc()->GetOutputDescPtr(
-            0)->GetDataType();
+        ge::DataType data_type = node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType();
         ge::Format format = node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat();
         EXPECT_EQ(data_type, ge::DT_FLOAT16);
         EXPECT_EQ(format, ge::FORMAT_NCHW);
@@ -3082,9 +3029,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNodeBeforeEndOfNetOutput_01)
   EXPECT_EQ(count_node, 4);
 }
 
-
-TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNodeBeforeEndOfNetOutput_02)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNodeBeforeEndOfNetOutput_02) {
   // src:cce op, dst:cce op
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr src_op = std::make_shared<OpDesc>("A", OP_TYPE_PLACE_HOLDER);
@@ -3147,8 +3092,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNodeBeforeEndOfNetOutput_02)
         ge::GeShape shape = node->GetOpDesc()->GetInputDescPtr(0)->GetShape();
         EXPECT_EQ(shape.GetDimNum(), 5);
         EXPECT_EQ(shape.GetDims(), nc1hwc0_dims);
-        ge::DataType data_type = node->GetOpDesc()->GetInputDescPtr(
-            0)->GetDataType();
+        ge::DataType data_type = node->GetOpDesc()->GetInputDescPtr(0)->GetDataType();
         ge::Format format = node->GetOpDesc()->GetInputDescPtr(0)->GetFormat();
         EXPECT_EQ(data_type, ge::DT_FLOAT16);
         EXPECT_EQ(format, ge::FORMAT_NC1HWC0);
@@ -3157,8 +3101,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNodeBeforeEndOfNetOutput_02)
         ge::GeShape shape = node->GetOpDesc()->GetOutputDescPtr(0)->GetShape();
         EXPECT_EQ(shape.GetDimNum(), 4);
         EXPECT_EQ(shape.GetDims(), nchw_dims);
-        ge::DataType data_type = node->GetOpDesc()->GetOutputDescPtr(
-            0)->GetDataType();
+        ge::DataType data_type = node->GetOpDesc()->GetOutputDescPtr(0)->GetDataType();
         ge::Format format = node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat();
         EXPECT_EQ(data_type, ge::DT_FLOAT16);
         EXPECT_EQ(format, ge::FORMAT_NCHW);
@@ -3231,8 +3174,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, InsertTransDataNodeBeforeEndOfNetOutput_03) {
   EXPECT_EQ(count_node, 2);
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, test_dynamic_shape_not_same)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, test_dynamic_shape_not_same) {
   // src:cce op, dst:cce op
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
 
@@ -3309,8 +3251,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, test_dynamic_shape_not_same)
   EXPECT_EQ(count_node, 4);
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, test_dynamic_shape_not_same_bn_case)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, test_dynamic_shape_not_same_bn_case) {
   // src:cce op, dst:cce op
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
 
@@ -3417,9 +3358,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, test_dynamic_shape_not_same_bn_case)
   EXPECT_EQ(count_node, 4);
 }
 
-
-TEST_F(STEST_FE_TRANSOP_INSERT, test_dynamic_shape_not_same_bn_case_reverse)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, test_dynamic_shape_not_same_bn_case_reverse) {
   // src:cce op, dst:cce op
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
 
@@ -3427,8 +3366,6 @@ TEST_F(STEST_FE_TRANSOP_INSERT, test_dynamic_shape_not_same_bn_case_reverse)
   GeTensorDesc src_tensor_desc(GeShape({1, -1, 1, 1, 16}), ge::FORMAT_NC1HWC0, ge::DT_FLOAT);
   src_tensor_desc.SetOriginFormat(ge::FORMAT_NCHW);
   src_tensor_desc.SetOriginShape(GeShape({-1}));
-
-
 
   src_op->AddOutputDesc(src_tensor_desc);
   src_op->AddInputDesc(src_tensor_desc);
@@ -3528,8 +3465,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, test_dynamic_shape_not_same_bn_case_reverse)
   EXPECT_EQ(count_node, 4);
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, test_dynamic_shape_not_same_reverse)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, test_dynamic_shape_not_same_reverse) {
   // src:cce op, dst:cce op
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph");
 
@@ -3610,11 +3546,10 @@ TEST_F(STEST_FE_TRANSOP_INSERT, test_dynamic_shape_not_same_reverse)
   EXPECT_EQ(count_node, 4);
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, insert_transnode_between_cube_and_vec)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, insert_transnode_between_cube_and_vec) {
   // src:cce op, dst:cce op
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
-  ComputeGraphPtr graph_check =  std::make_shared<ComputeGraph>("test_graph_check");
+  ComputeGraphPtr graph_check = std::make_shared<ComputeGraph>("test_graph_check");
   OpDescPtr src_op = std::make_shared<OpDesc>("A", "A");
   ge::Format format = static_cast<ge::Format>(ge::GetFormatFromC0(ge::FORMAT_NC1HWC0, GetC0BitValFromC0(8)));
   GeTensorDesc src_tensor_desc(GeShape({3, 2, 32, 32, 8}), format, ge::DT_FLOAT);
@@ -3651,7 +3586,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, insert_transnode_between_cube_and_vec)
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 5);
         ASSERT_EQ(dtype_check, ge::DT_FLOAT);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 3);
         EXPECT_EQ(input_vec_of_b[1], 2);
         EXPECT_EQ(input_vec_of_b[2], 32);
@@ -3664,7 +3599,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, insert_transnode_between_cube_and_vec)
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
         ASSERT_EQ(dtype_check, ge::DT_FLOAT);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 3);
         EXPECT_EQ(input_vec_of_b[1], 16);
         EXPECT_EQ(input_vec_of_b[2], 32);
@@ -3678,7 +3613,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, insert_transnode_between_cube_and_vec)
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
         ASSERT_EQ(dtype_check, ge::DT_FLOAT);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 3);
         EXPECT_EQ(input_vec_of_b[1], 16);
         EXPECT_EQ(input_vec_of_b[2], 32);
@@ -3690,7 +3625,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, insert_transnode_between_cube_and_vec)
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
         ASSERT_EQ(dtype_check, ge::DT_FLOAT16);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 3);
         EXPECT_EQ(input_vec_of_b[1], 16);
         EXPECT_EQ(input_vec_of_b[2], 32);
@@ -3701,11 +3636,10 @@ TEST_F(STEST_FE_TRANSOP_INSERT, insert_transnode_between_cube_and_vec)
   EXPECT_EQ(count_node, 4);
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, insert_transnode_between_cube_and_vec_1)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, insert_transnode_between_cube_and_vec_1) {
   // src:cce op, dst:cce op
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
-  ComputeGraphPtr graph_check =  std::make_shared<ComputeGraph>("test_graph_check");
+  ComputeGraphPtr graph_check = std::make_shared<ComputeGraph>("test_graph_check");
   OpDescPtr src_op = std::make_shared<OpDesc>("A", "A");
   ge::Format format = static_cast<ge::Format>(ge::GetFormatFromC0(ge::FORMAT_NC1HWC0, GetC0BitValFromC0(8)));
   GeTensorDesc src_tensor_desc(GeShape({3, 2, 32, 32, 8}), format, ge::DT_FLOAT);
@@ -3742,7 +3676,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, insert_transnode_between_cube_and_vec_1)
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
         ASSERT_EQ(dtype_check, ge::DT_FLOAT);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 3);
         EXPECT_EQ(input_vec_of_b[1], 16);
         EXPECT_EQ(input_vec_of_b[2], 32);
@@ -3754,7 +3688,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, insert_transnode_between_cube_and_vec_1)
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 5);
         ASSERT_EQ(dtype_check, ge::DT_FLOAT);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 3);
         EXPECT_EQ(input_vec_of_b[1], 2);
         EXPECT_EQ(input_vec_of_b[2], 32);
@@ -3769,7 +3703,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, insert_transnode_between_cube_and_vec_1)
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
         ASSERT_EQ(dtype_check, ge::DT_FLOAT16);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 3);
         EXPECT_EQ(input_vec_of_b[1], 16);
         EXPECT_EQ(input_vec_of_b[2], 32);
@@ -3781,7 +3715,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, insert_transnode_between_cube_and_vec_1)
         auto size = shape_check.GetDimNum();
         ASSERT_EQ(size, 4);
         ASSERT_EQ(dtype_check, ge::DT_FLOAT);
-        vector<int64_t> input_vec_of_b =shape_check.GetDims();
+        vector<int64_t> input_vec_of_b = shape_check.GetDims();
         EXPECT_EQ(input_vec_of_b[0], 3);
         EXPECT_EQ(input_vec_of_b[1], 16);
         EXPECT_EQ(input_vec_of_b[2], 32);
@@ -3793,8 +3727,8 @@ TEST_F(STEST_FE_TRANSOP_INSERT, insert_transnode_between_cube_and_vec_1)
 }
 
 TEST_F(STEST_FE_TRANSOP_INSERT, merge_two_tansposed_case1) {
-  vector<int64_t> dims1 = {4,8,1,8,8};
-  vector<int64_t> dims2 = {4,8,8,1,8};
+  vector<int64_t> dims1 = {4, 8, 1, 8, 8};
+  vector<int64_t> dims2 = {4, 8, 8, 1, 8};
   ge::GeShape shape1(dims1);
   ge::GeShape shape2(dims2);
   ge::GeTensorDesc tensor_desc1(shape1, ge::FORMAT_ND, ge::DT_FLOAT);
@@ -3819,8 +3753,8 @@ TEST_F(STEST_FE_TRANSOP_INSERT, merge_two_tansposed_case1) {
   transpose2_op->AddOutputDesc(tensor_desc1);
   netout_op->AddInputDesc(tensor_desc1);
 
-  vector<int64_t> perm_vec1 = {0,1,3,2,4};
-  vector<int64_t> perm_vec2 = {0,2,3,1,4};
+  vector<int64_t> perm_vec1 = {0, 1, 3, 2, 4};
+  vector<int64_t> perm_vec2 = {0, 2, 3, 1, 4};
   ge::AttrUtils::SetListInt(transpose1_op, "perm", perm_vec1);
   ge::AttrUtils::SetListInt(transpose2_op, "perm", perm_vec2);
 
@@ -3846,8 +3780,8 @@ TEST_F(STEST_FE_TRANSOP_INSERT, merge_two_tansposed_case1) {
 }
 
 TEST_F(STEST_FE_TRANSOP_INSERT, merge_two_tansposed_case2) {
-  vector<int64_t> dims1 = {4,8,1,8,8};
-  vector<int64_t> dims2 = {4,8,8,1,8};
+  vector<int64_t> dims1 = {4, 8, 1, 8, 8};
+  vector<int64_t> dims2 = {4, 8, 8, 1, 8};
   ge::GeShape shape1(dims1);
   ge::GeShape shape2(dims2);
   ge::GeTensorDesc tensor_desc1(shape1, ge::FORMAT_ND, ge::DT_FLOAT);
@@ -3872,8 +3806,8 @@ TEST_F(STEST_FE_TRANSOP_INSERT, merge_two_tansposed_case2) {
   transpose2_op->AddOutputDesc(tensor_desc1);
   netout_op->AddInputDesc(tensor_desc1);
 
-  vector<int64_t> perm_vec1 = {0,1,3,2,4};
-  vector<int64_t> perm_vec2 = {0,1,3,2,4};
+  vector<int64_t> perm_vec1 = {0, 1, 3, 2, 4};
+  vector<int64_t> perm_vec2 = {0, 1, 3, 2, 4};
   ge::AttrUtils::SetListInt(transpose1_op, "perm", perm_vec1);
   ge::AttrUtils::SetListInt(transpose2_op, "perm", perm_vec2);
 
@@ -3899,8 +3833,8 @@ TEST_F(STEST_FE_TRANSOP_INSERT, merge_two_tansposed_case2) {
 }
 
 TEST_F(STEST_FE_TRANSOP_INSERT, merge_two_tansposed_case3) {
-  vector<int64_t> dims1 = {4,8,1,8,8};
-  vector<int64_t> dims2 = {4,8,8,1,8};
+  vector<int64_t> dims1 = {4, 8, 1, 8, 8};
+  vector<int64_t> dims2 = {4, 8, 8, 1, 8};
   ge::GeShape shape1(dims1);
   ge::GeShape shape2(dims2);
   ge::GeTensorDesc tensor_desc1(shape1, ge::FORMAT_ND, ge::DT_FLOAT);
@@ -3929,7 +3863,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, merge_two_tansposed_case3) {
   transpose1_op->AddInputDesc("perm", outTensor1);
   ge::GeTensorPtr const_out_tenosr1 = nullptr;
   const_out_tenosr1 = std::make_shared<ge::GeTensor>(outTensor1);
-  vector<int32_t> perm_vec1 = {0,1,3,2,4};
+  vector<int32_t> perm_vec1 = {0, 1, 3, 2, 4};
   const_out_tenosr1->SetData(reinterpret_cast<uint8_t *>(perm_vec1.data()), perm_vec1.size() * sizeof(int32_t));
   ge::OpDescPtr outOpDesc1 = ge::OpDescUtils::CreateConstOp(const_out_tenosr1);
 
@@ -3937,7 +3871,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, merge_two_tansposed_case3) {
   transpose2_op->AddInputDesc("perm", outTensor2);
   ge::GeTensorPtr const_out_tenosr2 = nullptr;
   const_out_tenosr2 = std::make_shared<ge::GeTensor>(outTensor2);
-  vector<int32_t> perm_vec2 = {0,1,3,2,4};
+  vector<int32_t> perm_vec2 = {0, 1, 3, 2, 4};
   const_out_tenosr2->SetData(reinterpret_cast<uint8_t *>(perm_vec2.data()), perm_vec2.size() * sizeof(int32_t));
   ge::OpDescPtr outOpDesc2 = ge::OpDescUtils::CreateConstOp(const_out_tenosr2);
 
@@ -3967,8 +3901,8 @@ TEST_F(STEST_FE_TRANSOP_INSERT, merge_two_tansposed_case3) {
 }
 
 TEST_F(STEST_FE_TRANSOP_INSERT, merge_two_tansposed_case4) {
-  vector<int64_t> dims1 = {4,8,1,8,8};
-  vector<int64_t> dims2 = {4,8,8,1,8};
+  vector<int64_t> dims1 = {4, 8, 1, 8, 8};
+  vector<int64_t> dims2 = {4, 8, 8, 1, 8};
   ge::GeShape shape1(dims1);
   ge::GeShape shape2(dims2);
   ge::GeTensorDesc tensor_desc1(shape1, ge::FORMAT_ND, ge::DT_FLOAT);
@@ -3993,14 +3927,14 @@ TEST_F(STEST_FE_TRANSOP_INSERT, merge_two_tansposed_case4) {
   transpose2_op->AddOutputDesc(tensor_desc1);
   netout_op->AddInputDesc(tensor_desc1);
 
-  vector<int64_t> perm_vec1 = {0,1,3,2,4};
+  vector<int64_t> perm_vec1 = {0, 1, 3, 2, 4};
   ge::AttrUtils::SetListInt(transpose1_op, "perm", perm_vec1);
 
   ge::GeTensorDesc outTensor2(ge::GeShape({5}), ge::FORMAT_ND, ge::DT_INT32);
   transpose2_op->AddInputDesc("perm", outTensor2);
   ge::GeTensorPtr const_out_tenosr2 = nullptr;
   const_out_tenosr2 = std::make_shared<ge::GeTensor>(outTensor2);
-  vector<int32_t> perm_vec2 = {0,1,3,2,4};
+  vector<int32_t> perm_vec2 = {0, 1, 3, 2, 4};
   const_out_tenosr2->SetData(reinterpret_cast<uint8_t *>(perm_vec2.data()), perm_vec2.size() * sizeof(int32_t));
   ge::OpDescPtr outOpDesc2 = ge::OpDescUtils::CreateConstOp(const_out_tenosr2);
 
@@ -4028,8 +3962,8 @@ TEST_F(STEST_FE_TRANSOP_INSERT, merge_two_tansposed_case4) {
 }
 
 TEST_F(STEST_FE_TRANSOP_INSERT, merge_two_tansposed_case5) {
-  vector<int64_t> dims1 = {4,8,1,8,8};
-  vector<int64_t> dims2 = {4,8,8,1,8};
+  vector<int64_t> dims1 = {4, 8, 1, 8, 8};
+  vector<int64_t> dims2 = {4, 8, 8, 1, 8};
   ge::GeShape shape1(dims1);
   ge::GeShape shape2(dims2);
   ge::GeTensorDesc tensor_desc1(shape1, ge::FORMAT_ND, ge::DT_FLOAT);
@@ -4059,7 +3993,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, merge_two_tansposed_case5) {
   transpose2_op->AddInputDesc("perm", outTensor1);
   ge::GeTensorPtr const_out_tenosr1 = nullptr;
   const_out_tenosr1 = std::make_shared<ge::GeTensor>(outTensor1);
-  vector<int32_t> perm_vec1 = {0,1,3,2,4};
+  vector<int32_t> perm_vec1 = {0, 1, 3, 2, 4};
   const_out_tenosr1->SetData(reinterpret_cast<uint8_t *>(perm_vec1.data()), perm_vec1.size() * sizeof(int32_t));
   ge::OpDescPtr outOpDesc1 = ge::OpDescUtils::CreateConstOp(const_out_tenosr1);
 
@@ -4074,20 +4008,19 @@ TEST_F(STEST_FE_TRANSOP_INSERT, merge_two_tansposed_case5) {
   GraphUtils::AddEdge(transpose1_node->GetOutDataAnchor(0), transpose2_node->GetInDataAnchor(0));
   GraphUtils::AddEdge(constNode1->GetOutDataAnchor(0), transpose2_node->GetInDataAnchor(1));
   GraphUtils::AddEdge(transpose2_node->GetOutDataAnchor(0), netout_node->GetInDataAnchor(0));
-  
+
   GraphUtils::RemoveJustNode(graph, constNode1);
 
   TransNodeMerging trans_op_merger;
   EXPECT_EQ(trans_op_merger.MergeAllTransOps(*(graph.get()), {}, false), fe::FAILED);
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, stable_toposorting_of_insert_node)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, stable_toposorting_of_insert_node) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
-  ComputeGraphPtr graph_check =  std::make_shared<ComputeGraph>("test_graph_check");
+  ComputeGraphPtr graph_check = std::make_shared<ComputeGraph>("test_graph_check");
   OpDescPtr src_op = std::make_shared<OpDesc>("A", "A");
-  GeTensorDesc src_tensor_desc(GeShape({100,200}), ge::FORMAT_HWCN, ge::DT_FLOAT16);
-  src_tensor_desc.SetOriginShape(GeShape({100,200}));
+  GeTensorDesc src_tensor_desc(GeShape({100, 200}), ge::FORMAT_HWCN, ge::DT_FLOAT16);
+  src_tensor_desc.SetOriginShape(GeShape({100, 200}));
   src_tensor_desc.SetOriginFormat(ge::FORMAT_HWCN);
   src_op->AddOutputDesc(src_tensor_desc);
   src_op->AddInputDesc(src_tensor_desc);
@@ -4115,14 +4048,14 @@ TEST_F(STEST_FE_TRANSOP_INSERT, stable_toposorting_of_insert_node)
   for (auto &node : graph->GetDirectNode()) {
     ASSERT_NE(node, nullptr);
     if (node->GetType() == "UnsqueezeV2" || node->GetType() == "TransData") {
-      int64_t topo_id = node->GetOpDesc()->GetId();;
+      int64_t topo_id = node->GetOpDesc()->GetId();
+      ;
       EXPECT_EQ(topo_id, 0);
     }
   }
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, insert_cast_and_add_control_edge_1)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, insert_cast_and_add_control_edge_1) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr refdata1 = std::make_shared<OpDesc>("refdata1", "RefData");
   OpDescPtr refdata2 = std::make_shared<OpDesc>("refdata2", "RefData");
@@ -4161,22 +4094,14 @@ TEST_F(STEST_FE_TRANSOP_INSERT, insert_cast_and_add_control_edge_1)
   NodePtr no_op_node = graph->AddNode(no_op);
   NodePtr relu_node = graph->AddNode(relu);
   // link edge
-  ge::GraphUtils::AddEdge(refdata1_node->GetOutDataAnchor(0),
-                          adamax1_node->GetInDataAnchor(0));
-  ge::GraphUtils::AddEdge(refdata1_node->GetOutDataAnchor(0),
-                          adamax2_node->GetInDataAnchor(0));
-  ge::GraphUtils::AddEdge(assign_node->GetOutDataAnchor(0),
-                          refdata2_node->GetInDataAnchor(0));
-  ge::GraphUtils::AddEdge(assign_node->GetOutControlAnchor(),
-                          adamax1_node->GetInControlAnchor());
-  ge::GraphUtils::AddEdge(assign_node->GetOutControlAnchor(),
-                          no_op_node->GetInControlAnchor());
-  ge::GraphUtils::AddEdge(refdata2_node->GetOutControlAnchor(),
-                          no_op_node->GetInControlAnchor());
-  ge::GraphUtils::AddEdge(no_op_node->GetOutControlAnchor(),
-                          adamax2_node->GetInControlAnchor());
-  ge::GraphUtils::AddEdge(relu_node->GetOutControlAnchor(),
-                          adamax2_node->GetInControlAnchor());
+  ge::GraphUtils::AddEdge(refdata1_node->GetOutDataAnchor(0), adamax1_node->GetInDataAnchor(0));
+  ge::GraphUtils::AddEdge(refdata1_node->GetOutDataAnchor(0), adamax2_node->GetInDataAnchor(0));
+  ge::GraphUtils::AddEdge(assign_node->GetOutDataAnchor(0), refdata2_node->GetInDataAnchor(0));
+  ge::GraphUtils::AddEdge(assign_node->GetOutControlAnchor(), adamax1_node->GetInControlAnchor());
+  ge::GraphUtils::AddEdge(assign_node->GetOutControlAnchor(), no_op_node->GetInControlAnchor());
+  ge::GraphUtils::AddEdge(refdata2_node->GetOutControlAnchor(), no_op_node->GetInControlAnchor());
+  ge::GraphUtils::AddEdge(no_op_node->GetOutControlAnchor(), adamax2_node->GetInControlAnchor());
+  ge::GraphUtils::AddEdge(relu_node->GetOutControlAnchor(), adamax2_node->GetInControlAnchor());
   ge::AttrUtils::SetStr(refdata2, "ref_var_src_var_name", "refdata1");
 
   EXPECT_EQ(graph->GetAllNodesSize(), 7);
@@ -4189,8 +4114,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, insert_cast_and_add_control_edge_1)
   EXPECT_EQ(adamax2_node->GetInControlNodes().size(), 0);
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, insert_cast_and_add_control_edge_2)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, insert_cast_and_add_control_edge_2) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr refdata1 = std::make_shared<OpDesc>("refdata1", "RefData");
   OpDescPtr refdata2 = std::make_shared<OpDesc>("refdata2", "RefData");
@@ -4229,22 +4153,14 @@ TEST_F(STEST_FE_TRANSOP_INSERT, insert_cast_and_add_control_edge_2)
   NodePtr no_op_node = graph->AddNode(no_op);
   NodePtr relu_node = graph->AddNode(relu);
   // link edge
-  ge::GraphUtils::AddEdge(refdata1_node->GetOutDataAnchor(0),
-                          adamax1_node->GetInDataAnchor(0));
-  ge::GraphUtils::AddEdge(refdata1_node->GetOutDataAnchor(0),
-                          netoutput_node->GetInDataAnchor(0));
-  ge::GraphUtils::AddEdge(assign_node->GetOutDataAnchor(0),
-                          refdata2_node->GetInDataAnchor(0));
-  ge::GraphUtils::AddEdge(assign_node->GetOutControlAnchor(),
-                          adamax1_node->GetInControlAnchor());
-  ge::GraphUtils::AddEdge(assign_node->GetOutControlAnchor(),
-                          no_op_node->GetInControlAnchor());
-  ge::GraphUtils::AddEdge(refdata2_node->GetOutControlAnchor(),
-                          no_op_node->GetInControlAnchor());
-  ge::GraphUtils::AddEdge(no_op_node->GetOutControlAnchor(),
-                          netoutput_node->GetInControlAnchor());
-  ge::GraphUtils::AddEdge(relu_node->GetOutControlAnchor(),
-                          netoutput_node->GetInControlAnchor());
+  ge::GraphUtils::AddEdge(refdata1_node->GetOutDataAnchor(0), adamax1_node->GetInDataAnchor(0));
+  ge::GraphUtils::AddEdge(refdata1_node->GetOutDataAnchor(0), netoutput_node->GetInDataAnchor(0));
+  ge::GraphUtils::AddEdge(assign_node->GetOutDataAnchor(0), refdata2_node->GetInDataAnchor(0));
+  ge::GraphUtils::AddEdge(assign_node->GetOutControlAnchor(), adamax1_node->GetInControlAnchor());
+  ge::GraphUtils::AddEdge(assign_node->GetOutControlAnchor(), no_op_node->GetInControlAnchor());
+  ge::GraphUtils::AddEdge(refdata2_node->GetOutControlAnchor(), no_op_node->GetInControlAnchor());
+  ge::GraphUtils::AddEdge(no_op_node->GetOutControlAnchor(), netoutput_node->GetInControlAnchor());
+  ge::GraphUtils::AddEdge(relu_node->GetOutControlAnchor(), netoutput_node->GetInControlAnchor());
   ge::AttrUtils::SetStr(refdata2, "ref_var_src_var_name", "refdata1");
 
   EXPECT_EQ(graph->GetAllNodesSize(), 7);
@@ -4257,13 +4173,12 @@ TEST_F(STEST_FE_TRANSOP_INSERT, insert_cast_and_add_control_edge_2)
   EXPECT_EQ(netoutput_node->GetInControlNodes().size(), 2);
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, trans_hwcn_to_c1hwc0)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, trans_hwcn_to_c1hwc0) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
-  ComputeGraphPtr graph_check =  std::make_shared<ComputeGraph>("test_graph_check");
+  ComputeGraphPtr graph_check = std::make_shared<ComputeGraph>("test_graph_check");
   OpDescPtr src_op = std::make_shared<OpDesc>("A", "A");
-  GeTensorDesc src_tensor_desc(GeShape({100,200}), ge::FORMAT_HWCN, ge::DT_FLOAT16);
-  src_tensor_desc.SetOriginShape(GeShape({100,200}));
+  GeTensorDesc src_tensor_desc(GeShape({100, 200}), ge::FORMAT_HWCN, ge::DT_FLOAT16);
+  src_tensor_desc.SetOriginShape(GeShape({100, 200}));
   src_tensor_desc.SetOriginFormat(ge::FORMAT_HWCN);
   src_op->AddOutputDesc(src_tensor_desc);
   src_op->AddInputDesc(src_tensor_desc);
@@ -4271,7 +4186,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, trans_hwcn_to_c1hwc0)
   ge::AttrUtils::SetInt(src_op, FE_IMPLY_TYPE, 6);
 
   OpDescPtr dst_op = std::make_shared<OpDesc>("BB", "BB");
-  GeTensorDesc dst_tensor_desc(GeShape({1,2,4,8,16}), ge::FORMAT_C1HWC0, ge::DT_FLOAT16);
+  GeTensorDesc dst_tensor_desc(GeShape({1, 2, 4, 8, 16}), ge::FORMAT_C1HWC0, ge::DT_FLOAT16);
   dst_tensor_desc.SetOriginShape(GeShape({100, 200}));
   dst_tensor_desc.SetOriginFormat(ge::FORMAT_HWCN);
   dst_op->AddInputDesc(dst_tensor_desc);
@@ -4291,11 +4206,10 @@ TEST_F(STEST_FE_TRANSOP_INSERT, trans_hwcn_to_c1hwc0)
   EXPECT_EQ(graph->GetAllNodesSize(), 4);
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, trans_hwcn_to_c1hwc0_src_failed)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, trans_hwcn_to_c1hwc0_src_failed) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
   OpDescPtr src_op = std::make_shared<OpDesc>("A", "A");
-  GeTensorDesc src_tensor_desc(GeShape({100,200}), ge::FORMAT_RESERVED, ge::DT_UNDEFINED);
+  GeTensorDesc src_tensor_desc(GeShape({100, 200}), ge::FORMAT_RESERVED, ge::DT_UNDEFINED);
   src_op->AddOutputDesc(src_tensor_desc);
   src_op->AddInputDesc(src_tensor_desc);
   auto src_node = graph->AddNode(src_op);
@@ -4315,17 +4229,17 @@ TEST_F(STEST_FE_TRANSOP_INSERT, trans_hwcn_to_c1hwc0_src_failed)
   ConcecutivePrinciple use_concecutive_principle = ConcecutivePrinciple::kConcecutive;
   TransNodeInsertion trans_op_insert(fe_ops_kernel_info_store_ptr_);
   trans_op_insert.global_trans_info_ptr_ = std::make_shared<TransInfo>();
-  Status status = trans_op_insert.FillTransInfo(dst_node->GetInDataAnchor(0), src_node->GetOutDataAnchor(0), src_node, dst_node, use_concecutive_principle);
+  Status status = trans_op_insert.FillTransInfo(dst_node->GetInDataAnchor(0), src_node->GetOutDataAnchor(0), src_node,
+                                                dst_node, use_concecutive_principle);
   ASSERT_EQ(fe::FAILED, status);
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, trans_hwcn_to_c1hwc0_dst_failed)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, trans_hwcn_to_c1hwc0_dst_failed) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
-  ComputeGraphPtr graph_check =  std::make_shared<ComputeGraph>("test_graph_check");
+  ComputeGraphPtr graph_check = std::make_shared<ComputeGraph>("test_graph_check");
   OpDescPtr src_op = std::make_shared<OpDesc>("A", "A");
-  GeTensorDesc src_tensor_desc(GeShape({100,200}), ge::FORMAT_HWCN, ge::DT_FLOAT16);
-  src_tensor_desc.SetOriginShape(GeShape({100,200}));
+  GeTensorDesc src_tensor_desc(GeShape({100, 200}), ge::FORMAT_HWCN, ge::DT_FLOAT16);
+  src_tensor_desc.SetOriginShape(GeShape({100, 200}));
   src_tensor_desc.SetOriginFormat(ge::FORMAT_HWCN);
   src_op->AddOutputDesc(src_tensor_desc);
   src_op->AddInputDesc(src_tensor_desc);
@@ -4333,7 +4247,7 @@ TEST_F(STEST_FE_TRANSOP_INSERT, trans_hwcn_to_c1hwc0_dst_failed)
   ge::AttrUtils::SetInt(src_op, FE_IMPLY_TYPE, 6);
 
   OpDescPtr dst_op = std::make_shared<OpDesc>("BB", "BB");
-  GeTensorDesc dst_tensor_desc(GeShape({1,2,4,8,16}), ge::FORMAT_RESERVED, ge::DT_UNDEFINED);
+  GeTensorDesc dst_tensor_desc(GeShape({1, 2, 4, 8, 16}), ge::FORMAT_RESERVED, ge::DT_UNDEFINED);
   dst_tensor_desc.SetOriginShape(GeShape({100, 200}));
   dst_tensor_desc.SetOriginFormat(ge::FORMAT_HWCN);
   dst_op->AddInputDesc(dst_tensor_desc);
@@ -4352,13 +4266,12 @@ TEST_F(STEST_FE_TRANSOP_INSERT, trans_hwcn_to_c1hwc0_dst_failed)
   ASSERT_EQ(fe::FAILED, status);
 }
 
-TEST_F(STEST_FE_TRANSOP_INSERT, merge_one_node_test_1)
-{
+TEST_F(STEST_FE_TRANSOP_INSERT, merge_one_node_test_1) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test_graph_input");
-  ComputeGraphPtr graph_check =  std::make_shared<ComputeGraph>("test_graph_check");
+  ComputeGraphPtr graph_check = std::make_shared<ComputeGraph>("test_graph_check");
   OpDescPtr src_op = std::make_shared<OpDesc>("A", "A");
-  GeTensorDesc src_tensor_desc(GeShape({100,200}), ge::FORMAT_HWCN, ge::DT_FLOAT16);
-  src_tensor_desc.SetOriginShape(GeShape({100,200}));
+  GeTensorDesc src_tensor_desc(GeShape({100, 200}), ge::FORMAT_HWCN, ge::DT_FLOAT16);
+  src_tensor_desc.SetOriginShape(GeShape({100, 200}));
   src_tensor_desc.SetOriginFormat(ge::FORMAT_HWCN);
   src_op->AddInputDesc(src_tensor_desc);
   src_op->AddOutputDesc(src_tensor_desc);

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,8 +27,7 @@ namespace {
 constexpr int32_t kDefaultTimeOut = -1;
 }
 namespace hybrid {
-Status RtCallbackManager::RegisterCallback(const rtStream_t stream,
-                                           const rtCallback_t callback,
+Status RtCallbackManager::RegisterCallback(const rtStream_t stream, const rtCallback_t callback,
                                            void *const user_data) {
   GELOGD("To register callback");
   aclrtEvent event = nullptr;
@@ -57,11 +56,13 @@ Status RtCallbackManager::RegisterCallback(const rtStream_t stream,
 Status RtCallbackManager::Init() {
   aclrtContext ctx = nullptr;
   GE_CHK_ACL_RET(aclrtGetCurrentContext(&ctx));
-  ret_future_ = std::async(std::launch::async, [this](const aclrtContext context,
-      const struct error_message::ErrorManagerContext &error_context) ->Status {
-    error_message::SetErrMgrContext(error_context);
-    return CallbackProcess(context);
-  }, ctx, error_message::GetErrMgrContext());
+  ret_future_ = std::async(
+      std::launch::async,
+      [this](const aclrtContext context, const struct error_message::ErrorManagerContext &error_context) -> Status {
+        error_message::SetErrMgrContext(error_context);
+        return CallbackProcess(context);
+      },
+      ctx, error_message::GetErrMgrContext());
   if (!ret_future_.valid()) {
     GELOGE(INTERNAL_ERROR, "[Check][ShareState]Failed to init callback manager.");
     REPORT_INNER_ERR_MSG("E19999", "Failed to init callback manager.");
@@ -128,7 +129,7 @@ Status RtCallbackManager::Destroy() {
 
   std::pair<aclrtEvent, std::pair<rtCallback_t, void *>> eof_entry;
   eof_entry.first = nullptr;
-  (void) callback_queue_.Push(eof_entry);
+  (void)callback_queue_.Push(eof_entry);
 
   const auto ret = ret_future_.get();
   GELOGI("Callback manager ended. ret = %u", ret);

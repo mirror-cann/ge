@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,14 +28,11 @@ class CONV_DEQUANT_SLICE_INFO_UTEST : public testing::Test {
     conv_dequant_slice_info_ptr = std::make_shared<ConvDequantSliceInfo>();
   }
 
-  virtual void TearDown() {
-
-  }
+  virtual void TearDown() {}
 
   void BuildGraph_1(ge::ComputeGraphPtr &graph) {
     ge::GeShape original_shape = ge::GeShape({3, 12, 5, 6});
-    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT,
-        original_shape);
+    GraphConstructor test(graph, "", ge::FORMAT_NHWC, ge::DT_FLOAT, original_shape);
     test.AddOpDesc(EN_IMPL_HW_TBE, "strided_read", "stridedRead", "StridedRead", 1, 1)
         .AddOpDesc(EN_IMPL_HW_TBE, "Convolution", "conv", "Conv2D", 1, 1)
         .AddOpDesc(EN_IMPL_HW_TBE, "dequant", "dequant", "AscendDequant", 2, 1)
@@ -54,7 +51,6 @@ class CONV_DEQUANT_SLICE_INFO_UTEST : public testing::Test {
   std::shared_ptr<ConvDequantSliceInfo> conv_dequant_slice_info_ptr;
 };
 
-
 TEST_F(CONV_DEQUANT_SLICE_INFO_UTEST, modify_slice_info_by_pattern_suc) {
   ComputeGraphPtr graph = std::make_shared<ge::ComputeGraph>("test");
   BuildGraph_1(graph);
@@ -65,7 +61,7 @@ TEST_F(CONV_DEQUANT_SLICE_INFO_UTEST, modify_slice_info_by_pattern_suc) {
   size_t input_size = 1;
   bool is_head_fusion;
   Status ret = conv_dequant_slice_info_ptr->ModifySliceInfoByPattern(fusion_node, fusion_nodes, op_calc_info,
-                                                                         input_size, is_head_fusion);
+                                                                     input_size, is_head_fusion);
   EXPECT_EQ(fe::SUCCESS, ret);
 }
 
@@ -78,7 +74,8 @@ TEST_F(CONV_DEQUANT_SLICE_INFO_UTEST, set_output_slice_info_for_requants16_suc) 
 
   Status ret = conv_dequant_slice_info_ptr->SetOutputSliceInfoForEltwise(fusion_node, op_calc_info);
   EXPECT_EQ(fe::SUCCESS, ret);
-  std::shared_ptr<UbPassSliceInfoBase> slice_info_base_ptr = std::make_shared<UbPassSliceInfoBase>();;
+  std::shared_ptr<UbPassSliceInfoBase> slice_info_base_ptr = std::make_shared<UbPassSliceInfoBase>();
+  ;
   ret = slice_info_base_ptr->ModifySliceInfoByPattern(fusion_node);
   EXPECT_EQ(fe::SUCCESS, ret);
 }

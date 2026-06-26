@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -55,19 +55,20 @@ ge::graphStatus SetStreamCoreNumLimit(const rtStream stream, const int64_t op_ai
   return ge::GRAPH_SUCCESS;
 }
 
-ge::graphStatus ResetStreamCoreNumLimit(const rtStream stream, const int64_t global_aicore_num, const int64_t global_vec_core_num,
-                                        const bool need_set_stream_aicore_num, const bool need_set_stream_vec_core_num) {
+ge::graphStatus ResetStreamCoreNumLimit(const rtStream stream, const int64_t global_aicore_num,
+                                        const int64_t global_vec_core_num, const bool need_set_stream_aicore_num,
+                                        const bool need_set_stream_vec_core_num) {
   if (need_set_stream_aicore_num) {
     GE_ASSERT_TRUE(global_aicore_num >= 0);
     GE_CHK_ACL_RET(aclrtSetStreamResLimit(stream, ACL_RT_DEV_RES_CUBE_CORE, static_cast<uint32_t>(global_aicore_num)));
   }
   if (need_set_stream_vec_core_num) {
     GE_ASSERT_TRUE(global_vec_core_num >= 0);
-    GE_CHK_ACL_RET(aclrtSetStreamResLimit(stream, ACL_RT_DEV_RES_VECTOR_CORE, static_cast<uint32_t>(global_vec_core_num)));
+    GE_CHK_ACL_RET(
+        aclrtSetStreamResLimit(stream, ACL_RT_DEV_RES_VECTOR_CORE, static_cast<uint32_t>(global_vec_core_num)));
   }
   return ge::GRAPH_SUCCESS;
 }
-
 
 ge::graphStatus FindOpExeFunc(KernelContext *context) {
   auto op_fun_ptr = context->GetOutputPointer<OpImplKernelRegistry::OpExecuteFunc>(0);
@@ -104,8 +105,9 @@ ge::graphStatus ExecuteOpFunc(KernelContext *context) {
 
   const size_t input_num = op_execute_context->GetComputeNodeInputNum();
   const size_t output_num = op_execute_context->GetComputeNodeOutputNum();
-  auto single_stage_aclnn_op_fwk_data = reinterpret_cast<gert::KernelContext *>(context)->GetInputPointer<SingleStageAclnnOpFwkData>(
-      input_num + output_num + static_cast<size_t>(OpExecuteInputExtendIndex::kFwkData));
+  auto single_stage_aclnn_op_fwk_data =
+      reinterpret_cast<gert::KernelContext *>(context)->GetInputPointer<SingleStageAclnnOpFwkData>(
+          input_num + output_num + static_cast<size_t>(OpExecuteInputExtendIndex::kFwkData));
   GE_ASSERT_NOTNULL(single_stage_aclnn_op_fwk_data);
   auto core_num_infos = single_stage_aclnn_op_fwk_data->core_num_infos;
   GE_ASSERT_NOTNULL(core_num_infos);
@@ -116,13 +118,15 @@ ge::graphStatus ExecuteOpFunc(KernelContext *context) {
                                           need_set_stream_aicore_num, need_set_stream_vec_core_num));
   FE_ASSERT_NOTNULL(op_execute_func);
   FE_ASSERT_SUCCESS(op_execute_func(op_execute_context));
-  GE_ASSERT_SUCCESS(ResetStreamCoreNumLimit(stream, core_num_infos->global_aicore_num, core_num_infos->global_vec_core_num,
-                                            need_set_stream_aicore_num, need_set_stream_vec_core_num));
+  GE_ASSERT_SUCCESS(ResetStreamCoreNumLimit(stream, core_num_infos->global_aicore_num,
+                                            core_num_infos->global_vec_core_num, need_set_stream_aicore_num,
+                                            need_set_stream_vec_core_num));
   return ge::GRAPH_SUCCESS;
 }
 
 ge::graphStatus BuildSingleStageAclnnOpFwkData(KernelContext *context) {
-  const auto core_num_infos = context->GetInputValue<CoreNumInfos *>(static_cast<size_t>(SingleStageAclnnOpFwkDataIndex::kCoreNumInfos));
+  const auto core_num_infos =
+      context->GetInputValue<CoreNumInfos *>(static_cast<size_t>(SingleStageAclnnOpFwkDataIndex::kCoreNumInfos));
   GE_ASSERT_NOTNULL(core_num_infos);
   const auto fwk_data = context->GetOutputPointer<SingleStageAclnnOpFwkData>(0UL);
   GE_ASSERT_NOTNULL(fwk_data);
@@ -174,8 +178,9 @@ ge::graphStatus ExecuteOpPrepare(KernelContext *context) {
   GE_ASSERT_NOTNULL(op_execute_prepare_func);
   GE_ASSERT_SUCCESS(op_execute_prepare_func(op_prepare_context));
 
-  GE_ASSERT_SUCCESS(ResetStreamCoreNumLimit(stream, core_num_infos->global_aicore_num, core_num_infos->global_vec_core_num,
-                                            need_set_stream_aicore_num, need_set_stream_vec_core_num));
+  GE_ASSERT_SUCCESS(ResetStreamCoreNumLimit(stream, core_num_infos->global_aicore_num,
+                                            core_num_infos->global_vec_core_num, need_set_stream_aicore_num,
+                                            need_set_stream_vec_core_num));
   return ge::GRAPH_SUCCESS;
 }
 
@@ -201,7 +206,8 @@ ge::graphStatus BuildDualStageAclnnOpFwkData(KernelContext *context) {
   const auto platform_info =
       context->GetInputValue<fe::PlatFormInfos *>(static_cast<size_t>(DualStageAclnnOpFwkDataIndex::kPlatformInfo));
   GE_ASSERT_NOTNULL(platform_info);
-  const auto core_num_infos = context->GetInputValue<CoreNumInfos *>(static_cast<size_t>(DualStageAclnnOpFwkDataIndex::kCoreNumInfos));
+  const auto core_num_infos =
+      context->GetInputValue<CoreNumInfos *>(static_cast<size_t>(DualStageAclnnOpFwkDataIndex::kCoreNumInfos));
   GE_ASSERT_NOTNULL(core_num_infos);
   const auto fwk_data = context->GetOutputPointer<DualStageAclnnOpFwkData>(0UL);
   GE_ASSERT_NOTNULL(fwk_data);
@@ -232,13 +238,17 @@ static ge::graphStatus CreateDualStageAclnnOpFwkDataOutput(const ge::FastNode *n
 
 REGISTER_KERNEL(FindOpExeFunc).RunFunc(FindOpExeFunc);
 REGISTER_KERNEL(FindOpExe2PhaseFunc).RunFunc(FindOpExe2PhaseFunc);
-REGISTER_KERNEL(BuildSingleStageAclnnOpFwkData).RunFunc(BuildSingleStageAclnnOpFwkData).OutputsCreator(CreateSingleStageAclnnOpFwkDataOutput);
+REGISTER_KERNEL(BuildSingleStageAclnnOpFwkData)
+    .RunFunc(BuildSingleStageAclnnOpFwkData)
+    .OutputsCreator(CreateSingleStageAclnnOpFwkDataOutput);
 REGISTER_KERNEL(ExecuteOpFunc)
     .RunFunc(ExecuteOpFunc)
     .OutputsCreator(CreateBlockMemoryOutput)
     .ConcurrentCriticalSectionKey(kKernelUseMemory);
 REGISTER_KERNEL(ExecuteOpPrepare).RunFunc(ExecuteOpPrepare);
 REGISTER_KERNEL(ExecuteOpLaunch).RunFunc(ExecuteOpLaunch);
-REGISTER_KERNEL(BuildDualStageAclnnOpFwkData).RunFunc(BuildDualStageAclnnOpFwkData).OutputsCreator(CreateDualStageAclnnOpFwkDataOutput);
+REGISTER_KERNEL(BuildDualStageAclnnOpFwkData)
+    .RunFunc(BuildDualStageAclnnOpFwkData)
+    .OutputsCreator(CreateDualStageAclnnOpFwkDataOutput);
 }  // namespace kernel
 }  // namespace gert

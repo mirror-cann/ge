@@ -1,18 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#-------------------------------------------------------------------
+# -------------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
 
 from enum import Enum
+
 import numpy as np
+
 from . import llm_wrapper as metadef_wrapper
 
 
@@ -47,7 +49,7 @@ _dwrapper_dtype_to_python_dtype = {
     metadef_wrapper.DT_UINT64: DataType.DT_UINT64,
     metadef_wrapper.DT_BOOL: DataType.DT_BOOL,
     metadef_wrapper.DT_DOUBLE: DataType.DT_DOUBLE,
-    metadef_wrapper.DT_STRING: DataType.DT_STRING
+    metadef_wrapper.DT_STRING: DataType.DT_STRING,
 }
 
 python_dtype_2_dwrapper_dtype = {
@@ -64,7 +66,7 @@ python_dtype_2_dwrapper_dtype = {
     DataType.DT_UINT64: metadef_wrapper.DT_UINT64,
     DataType.DT_BOOL: metadef_wrapper.DT_BOOL,
     DataType.DT_DOUBLE: metadef_wrapper.DT_DOUBLE,
-    DataType.DT_STRING: metadef_wrapper.DT_STRING
+    DataType.DT_STRING: metadef_wrapper.DT_STRING,
 }
 
 
@@ -89,7 +91,7 @@ dtype_to_np_dtype = {
     DataType.DT_UINT64: np.uint64,
     DataType.DT_BOOL: np.bool_,
     DataType.DT_DOUBLE: np.double,
-    DataType.DT_STRING: np.bytes_
+    DataType.DT_STRING: np.bytes_,
 }
 
 valid_np_dtypes = list(dtype_to_np_dtype.values())
@@ -107,5 +109,5 @@ np_dtype_to_dtype = {
     np.dtype(np.uint64): DataType.DT_UINT64,
     np.dtype(np.bool_): DataType.DT_BOOL,
     np.dtype(np.double): DataType.DT_DOUBLE,
-    np.dtype(np.bytes_): DataType.DT_STRING
+    np.dtype(np.bytes_): DataType.DT_STRING,
 }

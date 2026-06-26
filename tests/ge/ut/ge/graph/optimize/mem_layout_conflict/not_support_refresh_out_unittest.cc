@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,13 +23,13 @@ class UtestMemLayoutConflictNotSupportRefreshOut : public testing::Test {
 };
 
 /*
- *  swtich
+ *  switch
  *    |
  *  hcomallreduce p2p in
  *  ||
  *  \/
  *
- *  swtich
+ *  switch
  *    |
  *  hcomallreduce p2p in
  */
@@ -53,7 +53,8 @@ TEST_F(UtestMemLayoutConflictNotSupportRefreshOut, NotSupportRefreshOutAndRtsSpe
  *                       +-----------+                             +-----------------+
  *  这个用例主要时验证在节点output index 1后面插入identity，功能正确不报错
  */
-TEST_F(UtestMemLayoutConflictNotSupportRefreshOut, NotSupportRefreshOut_AnchorIndex1_UnknowGraph_InsertIdentity_Success) {
+TEST_F(UtestMemLayoutConflictNotSupportRefreshOut,
+       NotSupportRefreshOut_AnchorIndex1_UnknowGraph_InsertIdentity_Success) {
   auto graph = MemConflictShareGraph::BuildNotSupportRefreshOutAnchorIndex1Graph();
   MemLayoutConflictOptimizer mem_check_pass;
   ASSERT_EQ(mem_check_pass.Run(graph), GRAPH_SUCCESS);
@@ -61,15 +62,15 @@ TEST_F(UtestMemLayoutConflictNotSupportRefreshOut, NotSupportRefreshOut_AnchorIn
 }
 
 /*
- *  swtich
+ *  switch
  *    |
  *  hcomallreduce p2p in
  *  ||
  *  \/
  *
- *  swtich
+ *  switch
  *    |
- *  idenitty
+ *  identity
  *    |
  *  hcomallreduce p2p in
  */
@@ -309,7 +310,8 @@ TEST_F(UtestMemLayoutConflictNotSupportRefreshOut,
   MemLayoutConflictOptimizer mem_check_pass;
   FeatureMapRefreshOptionGuarder guarder;
   ASSERT_EQ(mem_check_pass.Run(graph), GRAPH_SUCCESS);
-  EXPECT_EQ(mem_check::ResultChecker::CheckIdentityBefore(graph, {{"phony_concat", 0}, {"phony_concat", 1}}), GRAPH_SUCCESS);
+  EXPECT_EQ(mem_check::ResultChecker::CheckIdentityBefore(graph, {{"phony_concat", 0}, {"phony_concat", 1}}),
+            GRAPH_SUCCESS);
 }
 
 /*
@@ -332,7 +334,8 @@ TEST_F(UtestMemLayoutConflictNotSupportRefreshOut,
   MemLayoutConflictOptimizer mem_check_pass;
   FeatureMapRefreshOptionGuarder guarder;
   ASSERT_EQ(mem_check_pass.Run(graph), GRAPH_SUCCESS);
-  EXPECT_EQ(mem_check::ResultChecker::CheckIdentityBefore(graph, {{"netoutput1", 0}, {"netoutput1", 1}}), GRAPH_SUCCESS);
+  EXPECT_EQ(mem_check::ResultChecker::CheckIdentityBefore(graph, {{"netoutput1", 0}, {"netoutput1", 1}}),
+            GRAPH_SUCCESS);
 }
 
 /*
@@ -355,7 +358,8 @@ TEST_F(UtestMemLayoutConflictNotSupportRefreshOut,
   MemLayoutConflictOptimizer mem_check_pass;
   FeatureMapRefreshOptionGuarder guarder;
   ASSERT_EQ(mem_check_pass.Run(graph), GRAPH_SUCCESS);
-  EXPECT_EQ(mem_check::ResultChecker::CheckIdentityBefore(graph, {{"netoutput1", 0}, {"netoutput1", 1}}), GRAPH_SUCCESS);
+  EXPECT_EQ(mem_check::ResultChecker::CheckIdentityBefore(graph, {{"netoutput1", 0}, {"netoutput1", 1}}),
+            GRAPH_SUCCESS);
 }
 /*
  *    op1                                             op1
@@ -469,8 +473,8 @@ TEST_F(UtestMemLayoutConflictNotSupportRefreshOut,
   FeatureMapRefreshOptionGuarder guarder;
   ASSERT_EQ(mem_check_pass.Run(graph), GRAPH_SUCCESS);
   EXPECT_EQ(mem_check::ResultChecker::CheckIdentityNum(graph, 2), GRAPH_SUCCESS);
-  EXPECT_EQ(mem_check::ResultChecker::CheckIdentityBefore(graph, {{"phonyconcat", 0}, {"phonyconcat", 1}}), GRAPH_SUCCESS);
+  EXPECT_EQ(mem_check::ResultChecker::CheckIdentityBefore(graph, {{"phonyconcat", 0}, {"phonyconcat", 1}}),
+            GRAPH_SUCCESS);
 }
 
-
-} // namespace ge
+}  // namespace ge

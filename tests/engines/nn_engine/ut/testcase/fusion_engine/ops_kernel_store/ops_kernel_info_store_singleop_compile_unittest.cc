@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,13 +29,13 @@ using namespace fe;
 using namespace te;
 
 using fe::FEOpsKernelInfoStore;
-using std::vector;
 using std::map;
+using std::vector;
 using namespace ge;
 using FEOpsKernelInfoStorePtr = std::shared_ptr<fe::FEOpsKernelInfoStore>;
 using TbeOpStoreAdapterPtr = std::shared_ptr<fe::TbeOpStoreAdapter>;
 
-class FEOpsKernelInfoStoreSingleOpCompileTest : public testing::Test{
+class FEOpsKernelInfoStoreSingleOpCompileTest : public testing::Test {
  protected:
   static void SetUpTestCase() {
     cout << "FEOpsKernelInfoStoreSingleOpCompileTest SetUP" << endl;
@@ -44,7 +44,7 @@ class FEOpsKernelInfoStoreSingleOpCompileTest : public testing::Test{
     cout << "FEOpsKernelInfoStoreSingleOpCompileTest SetUP" << endl;
   }
   // Some expensive resource shared by all tests.
-  virtual void SetUp(){
+  virtual void SetUp() {
     std::map<std::string, std::string> options;
     fe_ops_kernel_info_store_ptr = make_shared<fe::FEOpsKernelInfoStore>(AI_CORE_NAME);
 
@@ -54,12 +54,11 @@ class FEOpsKernelInfoStoreSingleOpCompileTest : public testing::Test{
     input2_desc_ptr = make_shared<ge::GeTensorDesc>();
     output0_desc_ptr = make_shared<ge::GeTensorDesc>();
 
-
     op_desc_ptr->SetName("tbe_conv");
     ge::OpDescUtilsEx::SetType(op_desc_ptr, "conv");
     ge::DataType set_dtype = ge::DT_FLOAT16;
     ge::Format set_format = ge::FORMAT_ND;
-    std::vector<int64_t> shape_vec{256,256,512};
+    std::vector<int64_t> shape_vec{256, 256, 512};
     ge::GeShape shape_desc = GeShape(shape_vec);
 
     input0_desc_ptr->SetDataType(set_dtype);
@@ -67,14 +66,14 @@ class FEOpsKernelInfoStoreSingleOpCompileTest : public testing::Test{
     input0_desc_ptr->SetShape(shape_desc);
     op_desc_ptr->AddInputDesc("x", input0_desc_ptr->Clone());
 
-    std::vector<int64_t> shape_vec1{256,256,512};
+    std::vector<int64_t> shape_vec1{256, 256, 512};
     ge::GeShape shape_desc1 = GeShape(shape_vec1);
     input1_desc_ptr->SetDataType(set_dtype);
     input1_desc_ptr->SetFormat(set_format);
     input1_desc_ptr->SetShape(shape_desc1);
     op_desc_ptr->AddInputDesc("y", input1_desc_ptr->Clone());
 
-    std::vector<int64_t> shape_vec2{256,256,512};
+    std::vector<int64_t> shape_vec2{256, 256, 512};
     ge::GeShape shape_desc2 = GeShape(shape_vec2);
     input2_desc_ptr->SetDataType(set_dtype);
     input2_desc_ptr->SetFormat(set_format);
@@ -88,10 +87,9 @@ class FEOpsKernelInfoStoreSingleOpCompileTest : public testing::Test{
     format_dtype_querier_ptr_ = std::make_shared<FormatDtypeQuerier>(AI_CORE_NAME);
     cout << "a test Set Up" << endl;
   }
-  virtual void TearDown(){
+  virtual void TearDown() {
     cout << "a test Tear Down" << endl;
     fe_ops_kernel_info_store_ptr->Finalize();
-
   }
 
  public:
@@ -163,8 +161,8 @@ class FEOpsKernelInfoStoreSingleOpCompileTest : public testing::Test{
     builder.AddDataEdge(abs, 3, netoutput, 3);
     builder.AddDataEdge(abs, 4, netoutput, 4);
     ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_OPPATH, "../../abs.py");
-    vector<uint32_t> dynamic_input_start_idx = {1,4};
-    vector<uint32_t> dynamic_input_end_idx = {2,5};
+    vector<uint32_t> dynamic_input_start_idx = {1, 4};
+    vector<uint32_t> dynamic_input_end_idx = {2, 5};
     ge::AttrUtils::SetListInt(abs->GetOpDesc(), "_dynamic_input_index_start", dynamic_input_start_idx);
     ge::AttrUtils::SetListInt(abs->GetOpDesc(), "_dynamic_input_index_end", dynamic_input_end_idx);
 
@@ -196,8 +194,8 @@ class FEOpsKernelInfoStoreSingleOpCompileTest : public testing::Test{
     builder.AddDataEdge(abs, 3, netoutput, 3);
     builder.AddDataEdge(abs, 4, netoutput, 4);
     ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_OPPATH, "../../abs.py");
-    vector<uint32_t> dynamic_input_start_idx = {2,4};
-    vector<uint32_t> dynamic_input_end_idx = {2,4};
+    vector<uint32_t> dynamic_input_start_idx = {2, 4};
+    vector<uint32_t> dynamic_input_end_idx = {2, 4};
     ge::AttrUtils::SetListInt(abs->GetOpDesc(), "_dynamic_input_index_start", dynamic_input_start_idx);
     ge::AttrUtils::SetListInt(abs->GetOpDesc(), "_dynamic_input_index_end", dynamic_input_end_idx);
 
@@ -229,8 +227,8 @@ class FEOpsKernelInfoStoreSingleOpCompileTest : public testing::Test{
     builder.AddDataEdge(abs, 3, netoutput, 3);
     builder.AddDataEdge(abs, 4, netoutput, 4);
     ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_OPPATH, "../../abs.py");
-    vector<uint32_t> dynamic_input_start_idx = {1,4,6};
-    vector<uint32_t> dynamic_input_end_idx = {2,5};
+    vector<uint32_t> dynamic_input_start_idx = {1, 4, 6};
+    vector<uint32_t> dynamic_input_end_idx = {2, 5};
     ge::AttrUtils::SetListInt(abs->GetOpDesc(), "_dynamic_input_index_start", dynamic_input_start_idx);
     ge::AttrUtils::SetListInt(abs->GetOpDesc(), "_dynamic_input_index_end", dynamic_input_end_idx);
 
@@ -262,8 +260,8 @@ class FEOpsKernelInfoStoreSingleOpCompileTest : public testing::Test{
     builder.AddDataEdge(abs, 3, netoutput, 3);
     builder.AddDataEdge(abs, 4, netoutput, 4);
     ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_OPPATH, "../../abs.py");
-    vector<uint32_t> dynamic_input_start_idx = {3,4};
-    vector<uint32_t> dynamic_input_end_idx = {2,5};
+    vector<uint32_t> dynamic_input_start_idx = {3, 4};
+    vector<uint32_t> dynamic_input_end_idx = {2, 5};
     ge::AttrUtils::SetListInt(abs->GetOpDesc(), "_dynamic_input_index_start", dynamic_input_start_idx);
     ge::AttrUtils::SetListInt(abs->GetOpDesc(), "_dynamic_input_index_end", dynamic_input_end_idx);
 
@@ -332,7 +330,8 @@ class FEOpsKernelInfoStoreSingleOpCompileTest : public testing::Test{
     ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_OPPATH, "../../abs.py");
     ge::AttrUtils::SetListInt(abs->GetOpDesc(), "_dynamic_output_index_start", dynamic_input_start_idx);
     ge::AttrUtils::SetListInt(abs->GetOpDesc(), "_dynamic_output_index_end", dynamic_input_end_idx);
-    ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_ATTRLIST, "strValue:list_float;stride:str;axis:list_bool");
+    ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_ATTRLIST,
+                          "strValue:list_float;stride:str;axis:list_bool");
     ge::AttrUtils::SetListFloat(abs->GetOpDesc(), "strValue", abc);
     ge::AttrUtils::SetStr(abs->GetOpDesc(), "stride", "abvc");
     return builder.GetGraph();
@@ -366,7 +365,8 @@ class FEOpsKernelInfoStoreSingleOpCompileTest : public testing::Test{
     ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_OPPATH, "../../abs.py");
     ge::AttrUtils::SetListInt(abs->GetOpDesc(), "_dynamic_output_index_start", dynamic_input_start_idx);
     ge::AttrUtils::SetListInt(abs->GetOpDesc(), "_dynamic_output_index_end", dynamic_input_end_idx);
-    ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_ATTRLIST, "strValue:abc;stride:bool;axis:list_str;abc:list_list_int");
+    ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_ATTRLIST,
+                          "strValue:abc;stride:bool;axis:list_str;abc:list_list_int");
     ge::AttrUtils::SetListInt(abs->GetOpDesc(), "strValue", dynamic_input_end_idx);
     ge::AttrUtils::SetBool(abs->GetOpDesc(), "stride", true);
     ge::AttrUtils::SetListStr(abs->GetOpDesc(), "axis", abc);
@@ -402,7 +402,8 @@ class FEOpsKernelInfoStoreSingleOpCompileTest : public testing::Test{
     ge::AttrUtils::SetListInt(abs->GetOpDesc(), "_dynamic_output_index_start", dynamic_input_start_idx);
     ge::AttrUtils::SetListInt(abs->GetOpDesc(), "_dynamic_output_index_end", dynamic_input_end_idx);
     ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_ATTRLIST,
-            "1:str;2:int;3:float;4:bool;5:list_str;6:list_int;7:list_float;8:list_bool;9:list_list_int;10:tensor;11:list_tensor");
+                          "1:str;2:int;3:float;4:bool;5:list_str;6:list_int;7:list_float;8:list_bool;9:list_list_int;"
+                          "10:tensor;11:list_tensor");
     return builder.GetGraph();
   }
 
@@ -434,8 +435,9 @@ class FEOpsKernelInfoStoreSingleOpCompileTest : public testing::Test{
     ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_OPPATH, "../../abs.py");
     ge::AttrUtils::SetListInt(abs->GetOpDesc(), "_dynamic_output_index_start", dynamic_input_start_idx);
     ge::AttrUtils::SetListInt(abs->GetOpDesc(), "_dynamic_output_index_end", dynamic_input_end_idx);
-    ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_ATTRLIST,
-                          "2:int;3:float;4:bool;5:list_str;6:list_int;7:list_float;8:list_bool;9:list_list_int;10:tensor;11:list_tensor");
+    ge::AttrUtils::SetStr(
+        abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_ATTRLIST,
+        "2:int;3:float;4:bool;5:list_str;6:list_int;7:list_float;8:list_bool;9:list_list_int;10:tensor;11:list_tensor");
     return builder.GetGraph();
   }
 
@@ -467,8 +469,7 @@ class FEOpsKernelInfoStoreSingleOpCompileTest : public testing::Test{
     ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_OPPATH, "../../abs.py");
     ge::AttrUtils::SetListInt(abs->GetOpDesc(), "_dynamic_output_index_start", dynamic_input_start_idx);
     ge::AttrUtils::SetListInt(abs->GetOpDesc(), "_dynamic_output_index_end", dynamic_input_end_idx);
-    ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_ATTRLIST,
-                          "3:float");
+    ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_ATTRLIST, "3:float");
     return builder.GetGraph();
   }
 
@@ -500,8 +501,7 @@ class FEOpsKernelInfoStoreSingleOpCompileTest : public testing::Test{
     ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_OPPATH, "../../abs.py");
     ge::AttrUtils::SetListInt(abs->GetOpDesc(), "_dynamic_output_index_start", dynamic_input_start_idx);
     ge::AttrUtils::SetListInt(abs->GetOpDesc(), "_dynamic_output_index_end", dynamic_input_end_idx);
-    ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_ATTRLIST,
-                          "4:bool");
+    ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_ATTRLIST, "4:bool");
     return builder.GetGraph();
   }
 
@@ -533,8 +533,7 @@ class FEOpsKernelInfoStoreSingleOpCompileTest : public testing::Test{
     ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_OPPATH, "../../abs.py");
     ge::AttrUtils::SetListInt(abs->GetOpDesc(), "_dynamic_output_index_start", dynamic_input_start_idx);
     ge::AttrUtils::SetListInt(abs->GetOpDesc(), "_dynamic_output_index_end", dynamic_input_end_idx);
-    ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_ATTRLIST,
-                          "5:list_str");
+    ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_ATTRLIST, "5:list_str");
     return builder.GetGraph();
   }
 
@@ -566,8 +565,7 @@ class FEOpsKernelInfoStoreSingleOpCompileTest : public testing::Test{
     ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_OPPATH, "../../abs.py");
     ge::AttrUtils::SetListInt(abs->GetOpDesc(), "_dynamic_output_index_start", dynamic_input_start_idx);
     ge::AttrUtils::SetListInt(abs->GetOpDesc(), "_dynamic_output_index_end", dynamic_input_end_idx);
-    ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_ATTRLIST,
-                          "6:list_int");
+    ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_ATTRLIST, "6:list_int");
     return builder.GetGraph();
   }
 
@@ -599,8 +597,7 @@ class FEOpsKernelInfoStoreSingleOpCompileTest : public testing::Test{
     ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_OPPATH, "../../abs.py");
     ge::AttrUtils::SetListInt(abs->GetOpDesc(), "_dynamic_output_index_start", dynamic_input_start_idx);
     ge::AttrUtils::SetListInt(abs->GetOpDesc(), "_dynamic_output_index_end", dynamic_input_end_idx);
-    ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_ATTRLIST,
-                          "7:list_float");
+    ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_ATTRLIST, "7:list_float");
     return builder.GetGraph();
   }
 
@@ -632,8 +629,7 @@ class FEOpsKernelInfoStoreSingleOpCompileTest : public testing::Test{
     ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_OPPATH, "../../abs.py");
     ge::AttrUtils::SetListInt(abs->GetOpDesc(), "_dynamic_output_index_start", dynamic_input_start_idx);
     ge::AttrUtils::SetListInt(abs->GetOpDesc(), "_dynamic_output_index_end", dynamic_input_end_idx);
-    ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_ATTRLIST,
-                          "8:list_bool");
+    ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_ATTRLIST, "8:list_bool");
     return builder.GetGraph();
   }
 
@@ -665,8 +661,7 @@ class FEOpsKernelInfoStoreSingleOpCompileTest : public testing::Test{
     ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_OPPATH, "../../abs.py");
     ge::AttrUtils::SetListInt(abs->GetOpDesc(), "_dynamic_output_index_start", dynamic_input_start_idx);
     ge::AttrUtils::SetListInt(abs->GetOpDesc(), "_dynamic_output_index_end", dynamic_input_end_idx);
-    ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_ATTRLIST,
-                          "9:list_list_int");
+    ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_ATTRLIST, "9:list_list_int");
     return builder.GetGraph();
   }
   static ge::ComputeGraphPtr BuildSingleOpAttrWrong11() {
@@ -697,8 +692,7 @@ class FEOpsKernelInfoStoreSingleOpCompileTest : public testing::Test{
     ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_OPPATH, "../../abs.py");
     ge::AttrUtils::SetListInt(abs->GetOpDesc(), "_dynamic_output_index_start", dynamic_input_start_idx);
     ge::AttrUtils::SetListInt(abs->GetOpDesc(), "_dynamic_output_index_end", dynamic_input_end_idx);
-    ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_ATTRLIST,
-                          "10:tensor");
+    ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_ATTRLIST, "10:tensor");
     return builder.GetGraph();
   }
   static ge::ComputeGraphPtr BuildSingleOpAttrWrong12() {
@@ -729,16 +723,15 @@ class FEOpsKernelInfoStoreSingleOpCompileTest : public testing::Test{
     ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_OPPATH, "../../abs.py");
     ge::AttrUtils::SetListInt(abs->GetOpDesc(), "_dynamic_output_index_start", dynamic_input_start_idx);
     ge::AttrUtils::SetListInt(abs->GetOpDesc(), "_dynamic_output_index_end", dynamic_input_end_idx);
-    ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_ATTRLIST,
-                          "11:list_tensor");
+    ge::AttrUtils::SetStr(abs->GetOpDesc(), ge::ATTR_NAME_UNREGST_ATTRLIST, "11:list_tensor");
     return builder.GetGraph();
   }
 };
 
-TEST_F(FEOpsKernelInfoStoreSingleOpCompileTest, initialize_fail){
+TEST_F(FEOpsKernelInfoStoreSingleOpCompileTest, initialize_fail) {
   map<string, string> options;
   fe_ops_kernel_info_store_ptr = make_shared<fe::FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
-  FEOpsStoreInfo tbe_custom { };
+  FEOpsStoreInfo tbe_custom{};
   vector<FEOpsStoreInfo> store_info;
   store_info.emplace_back(tbe_custom);
   Configuration::Instance(AI_CORE_NAME).ops_store_info_vector_ = (store_info);
@@ -746,7 +739,7 @@ TEST_F(FEOpsKernelInfoStoreSingleOpCompileTest, initialize_fail){
   Status ret = fe_ops_kernel_info_store_ptr->Initialize(options);
   auto graph = std::make_shared<ge::ComputeGraph>("test");
   OpDescPtr relu_op = std::make_shared<OpDesc>("relu", "conv");
-  vector<int64_t> dims = {1,2,3,4};
+  vector<int64_t> dims = {1, 2, 3, 4};
   GeShape shape(dims);
 
   GeTensorDesc in_desc1(shape);

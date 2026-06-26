@@ -8,4 +8,3 @@ typedef enum aclCompileFlag {
     ACL_OP_COMPILE_FUZZ
 } aclOpCompileFlag;
 ```
-

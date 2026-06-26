@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -15,18 +15,18 @@
 #include "graph_metadef/graph/debug/ge_util.h"
 #include "graph/utils/graph_utils.h"
 
-#define GELOGD_IF(condition, fmt, ...)                                                                             \
-  do {                                                                                                             \
-    if (condition) {                                                                                               \
-      dlog_debug(GE_MODULE_NAME, "%" PRIu64 " %s:" fmt, GeLog::GetTid(), __FUNCTION__, ##__VA_ARGS__);             \
-    }                                                                                                              \
+#define GELOGD_IF(condition, fmt, ...)                                                                 \
+  do {                                                                                                 \
+    if (condition) {                                                                                   \
+      dlog_debug(GE_MODULE_NAME, "%" PRIu64 " %s:" fmt, GeLog::GetTid(), __FUNCTION__, ##__VA_ARGS__); \
+    }                                                                                                  \
   } while (false)
 
-#define GELOGI_IF(condition, fmt, ...)                                                                             \
-  do {                                                                                                             \
-    if (condition) {                                                                                               \
-      dlog_info(GE_MODULE_NAME, "%" PRIu64 " %s:" fmt, GeLog::GetTid(), __FUNCTION__, ##__VA_ARGS__);              \
-    }                                                                                                              \
+#define GELOGI_IF(condition, fmt, ...)                                                                \
+  do {                                                                                                \
+    if (condition) {                                                                                  \
+      dlog_info(GE_MODULE_NAME, "%" PRIu64 " %s:" fmt, GeLog::GetTid(), __FUNCTION__, ##__VA_ARGS__); \
+    }                                                                                                 \
   } while (false)
 
 namespace ge {
@@ -252,7 +252,8 @@ struct NodeFuseInfo {
   std::vector<std::pair<ge::NodePtr, int32_t>> node1_pre_nodes_;
   std::vector<std::pair<ge::NodePtr, int32_t>> node2_pre_nodes_;
   bool has_slice_vertical_{false};  // slice节点需要判断初始状态是否同时可以水平融合和垂直融合
-  bool can_do_horizontal_mapping_{true}; // matmul节点同时有水平融合和垂直融合时不做水平融合轴映射为false，其他节点默认true
+  bool can_do_horizontal_mapping_{
+      true};       // matmul节点同时有水平融合和垂直融合时不做水平融合轴映射为false，其他节点默认true
   bool open_log_;  // 是否打印轴映射日志，true表示打印，false表示不打印
 };
 
@@ -265,7 +266,7 @@ class AscGraphAxisMapping {
     std::vector<ge::Expression> graph_size;
   };
 
-  explicit AscGraphAxisMapping(bool open_log = true): open_log_(open_log) {}
+  explicit AscGraphAxisMapping(bool open_log = true) : open_log_(open_log) {}
 
   /**
    * 该函数用于创建两个节点之间的子图轴映射信息。它首先更新节点的融合信息，

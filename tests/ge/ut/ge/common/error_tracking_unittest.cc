@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -40,7 +40,7 @@ class UTEST_error_tracking : public testing::Test {
 
 TEST_F(UTEST_error_tracking, SaveSingleOpTaskOpdescInfo_test) {
   auto add = std::make_shared<OpDesc>("Add", ADD);
-AttrUtils::SetListStr(add, ATTR_NAME_DATA_DUMP_ORIGIN_OP_NAMES, {"op1", "op2", "op3"});
+  AttrUtils::SetListStr(add, ATTR_NAME_DATA_DUMP_ORIGIN_OP_NAMES, {"op1", "op2", "op3"});
   ErrorTracking::GetInstance().SaveSingleOpTaskOpdescInfo(add, 1, 0);
 
   auto add2 = std::make_shared<OpDesc>("Add2", ADD);
@@ -156,9 +156,8 @@ TEST_F(UTEST_error_tracking, update_task_id_model_not_found) {
   auto &task_map = ErrorTracking::GetInstance().graph_task_to_op_info_[model_id];
   size_t initial_size = task_map.size();
 
-
   ErrorTracking::GetInstance().UpdateTaskId(old_task_id, new_task_id, stream_id, null_model_id);
 
   EXPECT_EQ(task_map.size(), initial_size);
 }
-}
+}  // namespace ge

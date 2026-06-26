@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -117,7 +117,7 @@ bool IsDtypeNotSupport(const AscGraph &graph, DataType &output_dtype) {
     expect_output_dtypes.push_back(output_dtype);
     input_dtypes.push_back(output_dtype);
     is_not_support =
-      AutofuseUtils::CallAscirCommonInferDtype(kBroadcastType, input_dtypes, expect_output_dtypes) != SUCCESS;
+        AutofuseUtils::CallAscirCommonInferDtype(kBroadcastType, input_dtypes, expect_output_dtypes) != SUCCESS;
   }
   return is_not_support;
 }
@@ -222,8 +222,9 @@ Status CheckBroadcastAxisInputRepeat(const AscGraph &graph, const std::set<size_
 Status CyclicExternalLift(AscGraph &graph, [[maybe_unused]] const NodePtr &asc_node) {
   // 如果有reduce,不做循环外提
   for (const auto &node : graph.GetAllNodes()) {
-    if (asc_adapt::IsReduceNode(node)){
-      GELOGI("Graph %s does not need CyclicExternalLift cause of reduce node name %s.", graph.GetName().c_str(), node->GetType().c_str());
+    if (asc_adapt::IsReduceNode(node)) {
+      GELOGI("Graph %s does not need CyclicExternalLift cause of reduce node name %s.", graph.GetName().c_str(),
+             node->GetType().c_str());
       return SUCCESS;
     }
   }

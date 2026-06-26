@@ -23,7 +23,7 @@ python/
 - Set environment variables (assuming the package is installed in /usr/local/Ascend/)
 
 ```bash
-source /usr/local/Ascend/cann/set_env.sh 
+source /usr/local/Ascend/cann/set_env.sh
 ```
 
 ### 3.2 Build and Execute
@@ -67,7 +67,7 @@ export ASCEND_GLOBAL_LOG_LEVEL=0 #Log level set to debug level
 If DUMP graph is needed during executable program execution to assist graph compilation debugging, set the following environment variables before bash run_sample.sh -t sample_and_run_python to DUMP graph to execution path:
 
 ```bash
-export DUMP_GE_GRAPH=2 
+export DUMP_GE_GRAPH=2
 ```
 
 ## 4. Core Concept Introduction

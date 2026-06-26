@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,8 +32,8 @@ const std::vector<std::string> kRootGraphDataOpSet = {"Data", "RefData"};
 const std::set<std::string> kHeavyDataOpType = {"ConstPlaceHolder"};
 static const size_t kMaxTraceBufSize = 120;
 const std::map<std::string, ge::DataType> STR_DTYPE_MAP{{"float32", ge::DT_FLOAT}};
-const std::map<ge::DataType, std::string> DATATYPE_STRING_MAP {{ge::DT_FLOAT, "float32"}};
-}
+const std::map<ge::DataType, std::string> DATATYPE_STRING_MAP{{ge::DT_FLOAT, "float32"}};
+}  // namespace
 
 std::mutex g_report_error_msg_mutex;
 int64_t GetMicroSecondTime() {
@@ -77,9 +77,13 @@ uint64_t GetAtomicId() {
   return global_atomic_id.fetch_add(1, std::memory_order_relaxed);
 }
 
-std::string FormatToStr(ge::Format format) { return ge::TypeUtils::FormatToSerialString(format); }
+std::string FormatToStr(ge::Format format) {
+  return ge::TypeUtils::FormatToSerialString(format);
+}
 
-std::string DTypeToStr(ge::DataType d_type) { return ge::TypeUtils::DataTypeToSerialString(d_type); }
+std::string DTypeToStr(ge::DataType d_type) {
+  return ge::TypeUtils::DataTypeToSerialString(d_type);
+}
 
 std::string GetImplTypeString(OpImplType op_impl_type) {
   auto iter = IMPL_TYPE_STRING_MAP.find(op_impl_type);
@@ -164,8 +168,8 @@ int GetDataTypeBits(const ge::DataType data_type) {
 
 void SaveErrorMessage(const std::string &error_code, const std::string &key, const std::string &value) {
   std::lock_guard<std::mutex> lock_guard(g_report_error_msg_mutex);
-  std::vector<const char*> keys = {key.c_str()};
-  std::vector<const char*> values = {value.c_str()};
+  std::vector<const char *> keys = {key.c_str()};
+  std::vector<const char *> values = {value.c_str()};
   REPORT_PREDEFINED_ERR_MSG(error_code.c_str(), keys, values);
 }
 
@@ -222,8 +226,7 @@ void PrintOutputInplace(const ge::OpDescPtr &opdesc, const vector<vector<int64_t
   FE_LOGD("Node[%s, %s] with outputPlaceAbility: %s", opdesc->GetTypePtr(), opdesc->GetNamePtr(), str.c_str());
 }
 
-void GetIrIdexInstance(const ge::OpDescPtr &opdesc, 
-                       std::map<size_t, std::pair<size_t, size_t>> &input_ir_real_index,
+void GetIrIdexInstance(const ge::OpDescPtr &opdesc, std::map<size_t, std::pair<size_t, size_t>> &input_ir_real_index,
                        std::map<size_t, std::pair<size_t, size_t>> &output_ir_real_index) {
   FE_LOGD("Get ir_index to real_index from GE");
   (void)ge::OpDescUtils::GetIrInputInstanceDescRange(opdesc, input_ir_real_index);
@@ -250,12 +253,12 @@ Status TransDtypeToString(const ge::DataType &dtype, string &dtype_string) {
 }
 
 Status TransStringToDtype(const string &dtype_str, ge::DataType &dtype) {
-  auto indx = STR_DTYPE_MAP.find(const_cast<string&>(dtype_str));
+  auto indx = STR_DTYPE_MAP.find(const_cast<string &>(dtype_str));
   if (indx != STR_DTYPE_MAP.end()) {
     dtype = indx->second;
     return SUCCESS;
   }
-  string fe_dtype_str = const_cast<string&>(dtype_str);
+  string fe_dtype_str = const_cast<string &>(dtype_str);
   transform(fe_dtype_str.begin(), fe_dtype_str.end(), fe_dtype_str.begin(), ::toupper);
   std::string ge_dtype_string = "DT_" + fe_dtype_str;
   dtype = ge::TypeUtils::SerialStringToDataType(ge_dtype_string);

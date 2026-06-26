@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,18 +23,15 @@ constexpr int32_t kInitializeTimeoutInMillis = 5000;
 constexpr uint64_t kDefaultCacheSizePerLayer = 2U;
 constexpr int64_t kDefaultDstCacheId = -1;
 
-std::map<ge::AscendString, ge::AscendString> BuildGeOptions(
-    const std::map<ge::AscendString, ge::AscendString> &options,
-    int32_t device_id) {
+std::map<ge::AscendString, ge::AscendString> BuildGeOptions(const std::map<ge::AscendString, ge::AscendString> &options,
+                                                            int32_t device_id) {
   auto ge_options = options;
   const auto device_id_str = std::to_string(device_id);
   ge_options[ge::OPTION_EXEC_DEVICE_ID] = ge::AscendString(device_id_str.c_str());
   return ge_options;
 }
 
-void AddFuncDef(FlowNodeDef &flow_node_def,
-                const std::string &func_name,
-                std::vector<uint32_t> input_indices,
+void AddFuncDef(FlowNodeDef &flow_node_def, const std::string &func_name, std::vector<uint32_t> input_indices,
                 std::vector<uint32_t> output_indices) {
   FlowFuncDef flow_func_def;
   flow_func_def.func_name = func_name;
@@ -45,9 +42,8 @@ void AddFuncDef(FlowNodeDef &flow_node_def,
 }
 
 void SetEnvAttrs(ge::dflow::FunctionPp &pp) {
-  const std::vector<std::string> kHcclEnvNames = {
-      "HCCL_RDMA_TC", "HCCL_RDMA_SL", "HCCL_RDMA_TIMEOUT", "HCCL_RDMA_RETRY_CNT"
-  };
+  const std::vector<std::string> kHcclEnvNames = {"HCCL_RDMA_TC", "HCCL_RDMA_SL", "HCCL_RDMA_TIMEOUT",
+                                                  "HCCL_RDMA_RETRY_CNT"};
   std::vector<ge::AscendString> env_names;
   std::vector<ge::AscendString> env_values;
   for (const auto &env_name : kHcclEnvNames) {
@@ -72,7 +68,7 @@ ge::Status FillBlockIndices(const PullCacheParam &pull_cache_param, PullKvReqInf
   }
   if (!pull_cache_param.prompt_blocks.empty()) {
     LLM_CHK_BOOL_RET_STATUS(pull_cache_param.decoder_blocks.size() == pull_cache_param.prompt_blocks.size(),
-                           ge::LLM_PARAM_INVALID, "Param prompt_blocks and decoder_blocks size should be same.");
+                            ge::LLM_PARAM_INVALID, "Param prompt_blocks and decoder_blocks size should be same.");
     for (uint32_t i = 0U; i < req_info->prompt_block_count; ++i) {
       req_info->block_indices[req_info->block_count + i] = pull_cache_param.prompt_blocks[i];
     }
@@ -134,11 +130,10 @@ ge::Status LlmWorker::LoadFlowFuncs(const FlowNodeDef &flow_node_def,
 ge::Status LlmWorker::FeedInputData(const FlowFuncDef &flow_func_def, const std::vector<ge::Tensor> &inputs,
                                     uint64_t transaction_id) const {
   ge::DataFlowInfo data_flow_info;
- data_flow_info.SetTransactionId(transaction_id);
-  const auto ret =
-      ge_api_->FeedDataFlowGraph(graph_id_, flow_func_def.input_indices, inputs, data_flow_info, timeout_);
+  data_flow_info.SetTransactionId(transaction_id);
+  const auto ret = ge_api_->FeedDataFlowGraph(graph_id_, flow_func_def.input_indices, inputs, data_flow_info, timeout_);
   LLM_CHK_BOOL_RET_STATUS(ret != llm::ConvertAclError2Ge(ACL_ERROR_GE_MODEL_EXECUTE_TIMEOUT), ge::LLM_WAIT_PROC_TIMEOUT,
-                         "Feed timeout.");
+                          "Feed timeout.");
   LLM_CHK_STATUS_RET(ret, "[%zu] [%s] Failed to feed inputs", device_index_, flow_func_def.func_name.c_str());
   LLMLOGD("[%zu] [%s] Feed success", device_index_, flow_func_def.func_name.c_str());
   return ge::SUCCESS;
@@ -148,8 +143,8 @@ ge::Status LlmWorker::RunFlowFunc(FlowFuncType flow_func_type, size_t flow_func_
                                   const std::vector<ge::Tensor> &inputs, std::vector<ge::Tensor> &outputs,
                                   std::vector<std::chrono::steady_clock::time_point> &time_points) const {
   LLM_CHK_BOOL_RET_STATUS(flow_func_index < flow_node_def_.flow_func_defs.size(), ge::FAILED,
-                         "flow func index (%zu) out of range [0, %zu)", flow_func_index,
-                         flow_node_def_.flow_func_defs.size());
+                          "flow func index (%zu) out of range [0, %zu)", flow_func_index,
+                          flow_node_def_.flow_func_defs.size());
   const auto &flow_func_def = flow_node_def_.flow_func_defs[flow_func_index];
   LLMLOGD("[%zu] [%s] Run flow func start", device_index_, flow_func_def.func_name.c_str());
   auto feed_start = std::chrono::steady_clock::now();
@@ -165,7 +160,7 @@ ge::Status LlmWorker::RunFlowFunc(FlowFuncType flow_func_type, size_t flow_func_
   auto left_timeout = timeout_ * kMillsToMicros;
   // feed cost time already over time limit.
   LLM_CHK_BOOL_RET_STATUS(feed_time_cost < left_timeout, ge::LLM_WAIT_PROC_TIMEOUT, "Feed timeout, cost:%ld, left:%ld.",
-                         feed_time_cost, left_timeout);
+                          feed_time_cost, left_timeout);
 
   auto last_time = feed_end;
   while (true) {
@@ -176,13 +171,14 @@ ge::Status LlmWorker::RunFlowFunc(FlowFuncType flow_func_type, size_t flow_func_
         ge_api_->FetchDataFlowGraph(graph_id_, flow_func_def.output_indices, outputs, data_flow_info, fetch_timeout);
     if (flow_func_type != FlowFuncType::kInitialize) {
       LLM_CHK_BOOL_RET_STATUS(ret != llm::ConvertAclError2Ge(ACL_ERROR_GE_MODEL_EXECUTE_TIMEOUT),
-                             ge::LLM_WAIT_PROC_TIMEOUT, "Fetch timeout.");
+                              ge::LLM_WAIT_PROC_TIMEOUT, "Fetch timeout.");
     }
     LLM_CHK_STATUS_RET(ret, "[%zu] [%s] Failed to fetch outputs", device_index_, flow_func_def.func_name.c_str());
     if (!has_input || (data_flow_info.GetTransactionId() == transaction_id)) {
       break;
     }
-    LLMEVENT("Ignore invalid transaction id:%lu for func index:%zu", data_flow_info.GetTransactionId(), flow_func_index);
+    LLMEVENT("Ignore invalid transaction id:%lu for func index:%zu", data_flow_info.GetTransactionId(),
+             flow_func_index);
     auto cur_time = std::chrono::steady_clock::now();
     auto fetch_time_cost = std::chrono::duration_cast<std::chrono::microseconds>(cur_time - last_time).count();
     last_time = cur_time;
@@ -216,8 +212,7 @@ GeApi *LlmWorker::GetGeApi() const {
 }
 
 LlmFlowService::LlmFlowService(const std::string &role, bool enable_switch_role, uint64_t cluster_id)
-    : role_(role), enable_switch_role_(enable_switch_role), cluster_id_(cluster_id) {
-}
+    : role_(role), enable_switch_role_(enable_switch_role), cluster_id_(cluster_id) {}
 
 ge::Status LlmFlowService::Initialize(const std::map<ge::AscendString, ge::AscendString> &options,
                                       const std::vector<int32_t> &device_ids) {
@@ -231,13 +226,12 @@ ge::Status LlmFlowService::Initialize(const std::map<ge::AscendString, ge::Ascen
   const auto &logical_device_ids = deploy_info_.GetLogicalDeviceIds();
   LLM_CHK_BOOL_RET_STATUS(!device_ids_.empty(), ge::LLM_PARAM_INVALID, "device_ids is empty");
   is_spmd_ = device_indices_.size() == 1U;
-  LLMLOGI("device_num in numa config = %zu, deploy to device_indices = %s",
-         logical_device_ids.size(),
-         llm::ToString(device_indices_).c_str());
+  LLMLOGI("device_num in numa config = %zu, deploy to device_indices = %s", logical_device_ids.size(),
+          llm::ToString(device_indices_).c_str());
   const auto main_ge_options = BuildGeOptions(options, device_ids_.front());
-  auto ret = main_pool_.commit([main_ge_options]() -> ge::Status {
-    return GeApi::GetInstance().Initialize(main_ge_options);
-  }).get(); // 异步执行，防止在主线程SetDevice，否则可能会影响torch_npu场景
+  auto ret =
+      main_pool_.commit([main_ge_options]() -> ge::Status { return GeApi::GetInstance().Initialize(main_ge_options); })
+          .get();  // 异步执行，防止在主线程SetDevice，否则可能会影响torch_npu场景
   LLM_CHK_STATUS_RET(ret, "Failed to initialize GE");
 
   worker_pool_ = llm::MakeUnique<llm::LLMThreadPool>("ge_llm_wker", device_indices_.size());
@@ -245,13 +239,15 @@ ge::Status LlmFlowService::Initialize(const std::map<ge::AscendString, ge::Ascen
   std::vector<GeApi *> all_ge_apis;
   for (const size_t device_index : device_indices_) {
     LlmWorker worker(cluster_id_, device_index, logical_device_ids[device_index]);
-    ret = worker_pool_->commit([device_index, this, &worker, &options]() -> ge::Status {
-      if (device_index < device_ids_.size()) {
-        LLM_CHK_BOOL_RET_STATUS(aclrtSetDevice(device_ids_[device_index]) == ACL_ERROR_NONE, ge::FAILED,
-                               "Failed to set device, device id = %d", device_ids_[device_index]);
-      }
-      return worker.Initialize(options);
-    }).get();
+    ret = worker_pool_
+              ->commit([device_index, this, &worker, &options]() -> ge::Status {
+                if (device_index < device_ids_.size()) {
+                  LLM_CHK_BOOL_RET_STATUS(aclrtSetDevice(device_ids_[device_index]) == ACL_ERROR_NONE, ge::FAILED,
+                                          "Failed to set device, device id = %d", device_ids_[device_index]);
+                }
+                return worker.Initialize(options);
+              })
+              .get();
     LLM_CHK_STATUS_RET(ret, "Failed to init worker");
     worker.SetTimeout(kInitializeTimeoutInMillis);
     all_ge_apis.emplace_back(worker.GetGeApi());
@@ -277,8 +273,7 @@ void LlmFlowService::SetLinkManagerIo(const std::string &role) {
     const auto flow_func_type = (role == kPrompt) ? FlowFuncType::kUnlink : FlowFuncType::kUpdateLink;
     const auto flow_func_index = flow_func_indices_[static_cast<size_t>(flow_func_type)];
     const auto cluster_flow_func_def = flow_func_defs_[flow_func_index];
-    link_manager_.Initialize(cluster_flow_func_def.input_indices,
-                             cluster_flow_func_def.output_indices,
+    link_manager_.Initialize(cluster_flow_func_def.input_indices, cluster_flow_func_def.output_indices,
                              deploy_info_.GetDeployedDeviceNum(), cluster_id_);
     if (role == kDecoder) {
       const auto unlink_flow_func_index = flow_func_indices_[static_cast<size_t>(FlowFuncType::kUnlink)];
@@ -306,9 +301,7 @@ void LlmFlowService::Finalize() {
   for (auto &fut : futures) {
     fut.wait();
   }
-  auto ret = main_pool_.commit([]() -> ge::Status {
-    return GeApi::GetInstance().SafeFinalize();
-  }).get();
+  auto ret = main_pool_.commit([]() -> ge::Status { return GeApi::GetInstance().SafeFinalize(); }).get();
   LLM_CHK_STATUS(ret, "Failed to invoke GEFinalize");
   worker_pool_.reset();
   main_pool_.Destroy();
@@ -327,10 +320,8 @@ void LlmFlowService::SetFunctionPpInitParam(const FlowNodeDef &flow_node_def, ge
       if (!flow_func_def.output_indices.empty()) {
         out_index = flow_func_def.output_indices.front();
       }
-      LLMLOGI("flow_func_id = %zu, name = %s, out_index = %ld",
-             flow_func_index,
-             flow_func_def.func_name.c_str(),
-             out_index);
+      LLMLOGI("flow_func_id = %zu, name = %s, out_index = %ld", flow_func_index, flow_func_def.func_name.c_str(),
+              out_index);
     }
     output_indices.emplace_back(out_index);
   }
@@ -341,17 +332,15 @@ void LlmFlowService::SetFunctionPpInitParam(const FlowNodeDef &flow_node_def, ge
     const auto &ip_and_port = listen_ips_info[flow_node_def.logical_device_index];
     pp.SetInitParam("ip", ip_and_port.first);
     pp.SetInitParam("port", ip_and_port.second);
-    LLMLOGI("device_index = %zu, ip = %ld, port = %ld",
-           flow_node_def.logical_device_index,
-           ip_and_port.first,
-           ip_and_port.second);
+    LLMLOGI("device_index = %zu, ip = %ld, port = %ld", flow_node_def.logical_device_index, ip_and_port.first,
+            ip_and_port.second);
   }
 }
 
 ge::Status LlmFlowService::LoadDataFlow(const FlowNodeDef &flow_node_def,
                                         const std::map<ge::AscendString, ge::AscendString> &options) {
   std::vector<std::future<ge::Status>> futures;
-  llm::LLMThreadPool pool("ge_llm_ldff", 1); // not support parallel compile yet
+  llm::LLMThreadPool pool("ge_llm_ldff", 1);  // not support parallel compile yet
   for (size_t i = 0U; i < device_indices_.size(); ++i) {
     auto fut = pool.commit([this, i, &flow_node_def, &options]() -> ge::Status {
       if (i < device_ids_.size()) {
@@ -389,7 +378,8 @@ ge::Status LlmFlowService::GetAndCheckFutures(std::vector<std::future<ge::Status
       status = ret;
     }
   }
-  LLM_CHK_STATUS_RET(status, "Failed to execute in all devices, success/total = %zu/%zu", success_count, futures.size());
+  LLM_CHK_STATUS_RET(status, "Failed to execute in all devices, success/total = %zu/%zu", success_count,
+                     futures.size());
   return ge::SUCCESS;
 }
 
@@ -448,10 +438,9 @@ FlowNodeDef LlmFlowService::BuildFlowNodeDef(const std::string &role) {
   return flow_node_def;
 }
 
-template<typename T>
+template <typename T>
 ge::Status LlmFlowService::RunFlowFunc(
-    FlowFuncType flow_func_type,
-    const std::vector<ge::Tensor> &inputs,
+    FlowFuncType flow_func_type, const std::vector<ge::Tensor> &inputs,
     const std::function<ge::Status(size_t, const std::vector<ge::Tensor> &, T &)> &output_handler,
     std::vector<TaskContext<T>> &per_device_task_context) const {
   per_device_task_context.resize(device_indices_.size());
@@ -464,30 +453,27 @@ ge::Status LlmFlowService::RunFlowFunc(
   }
 }
 
-template<typename T>
+template <typename T>
 ge::Status LlmFlowService::RunSingle(
-    const LlmWorker &worker,
-    std::pair<FlowFuncType, size_t> flow_func_type_and_index,
+    const LlmWorker &worker, std::pair<FlowFuncType, size_t> flow_func_type_and_index,
     const std::vector<ge::Tensor> &inputs,
     const std::function<ge::Status(size_t, const std::vector<ge::Tensor> &, T &)> &output_handler,
     TaskContext<T> &task_context) const {
   std::vector<ge::Tensor> output_tensors;
   const auto device_index = worker.GetDeviceIndex();
   LLM_CHK_STATUS_RET(worker.RunFlowFunc(flow_func_type_and_index.first, flow_func_type_and_index.second, inputs,
-                                       output_tensors, task_context.time_points),
-                    "Failed to FunFlowFunc, device_index = %zu, logical_device_id = %s", device_index,
-                    worker.GetLogicalDeviceId().c_str());
+                                        output_tensors, task_context.time_points),
+                     "Failed to FunFlowFunc, device_index = %zu, logical_device_id = %s", device_index,
+                     worker.GetLogicalDeviceId().c_str());
   LLM_CHK_STATUS_RET(output_handler(device_index, output_tensors, task_context.output),
-                    "Failed to handle task_context tensors, device_index = %zu, logical_device_id = %s",
-                    device_index, worker.GetLogicalDeviceId().c_str());
+                     "Failed to handle task_context tensors, device_index = %zu, logical_device_id = %s", device_index,
+                     worker.GetLogicalDeviceId().c_str());
   return ge::SUCCESS;
 }
 
-template<typename T>
+template <typename T>
 ge::Status LlmFlowService::RunMulti(
-    FlowFuncType flow_func_type,
-    size_t flow_func_index,
-    const std::vector<ge::Tensor> &inputs,
+    FlowFuncType flow_func_type, size_t flow_func_index, const std::vector<ge::Tensor> &inputs,
     const std::function<ge::Status(size_t, const std::vector<ge::Tensor> &, T &)> &output_handler,
     std::vector<TaskContext<T>> &per_device_task_context) const {
   std::vector<std::future<ge::Status>> futures;
@@ -503,22 +489,21 @@ ge::Status LlmFlowService::RunMulti(
   return ge::SUCCESS;
 }
 
-template<typename T>
+template <typename T>
 ge::Tensor LlmFlowService::BuildTensor(const T &req_info, const size_t req_size) {
-  ge::TensorDesc req_tensor_desc(
-      ge::Shape(std::vector<int64_t>{static_cast<int64_t>(req_size)}), ge::FORMAT_ND, ge::DT_UINT8);
+  ge::TensorDesc req_tensor_desc(ge::Shape(std::vector<int64_t>{static_cast<int64_t>(req_size)}), ge::FORMAT_ND,
+                                 ge::DT_UINT8);
   ge::Tensor input_tensor(req_tensor_desc);
   input_tensor.SetData(llm::PtrToPtr<const T, const uint8_t>(&req_info), req_size);
   return input_tensor;
 }
 
-ge::Status LlmFlowService::ConvertToStatus(size_t device_index,
-                                           const std::vector<ge::Tensor> &output_tensors,
+ge::Status LlmFlowService::ConvertToStatus(size_t device_index, const std::vector<ge::Tensor> &output_tensors,
                                            ge::Status &status) {
   const auto &output_tensor = output_tensors[0];
   LLM_CHK_BOOL_RET_STATUS(output_tensor.GetSize() >= sizeof(uint32_t), ge::FAILED,
-                         "expect at least 4 bytes, but got %zu, device_index = %zu",
-                         output_tensor.GetSize(), device_index);
+                          "expect at least 4 bytes, but got %zu, device_index = %zu", output_tensor.GetSize(),
+                          device_index);
   const int32_t *output_data = llm::PtrToPtr<uint8_t, int32_t>(output_tensor.GetData());
   const auto flow_func_ret = *output_data;
   LLMLOGI("FlowFunc returned: %d, device_index = %zu", flow_func_ret, device_index);
@@ -527,16 +512,14 @@ ge::Status LlmFlowService::ConvertToStatus(size_t device_index,
   return status;
 }
 
-ge::Status LlmFlowService::ConvertToTensor(size_t device_index,
-                                           const std::vector<ge::Tensor> &output_tensors,
+ge::Status LlmFlowService::ConvertToTensor(size_t device_index, const std::vector<ge::Tensor> &output_tensors,
                                            ge::Tensor &tensor) {
-  (void) device_index;
+  (void)device_index;
   tensor = output_tensors.front();
   return ge::SUCCESS;
 }
 
-ge::Status LlmFlowService::ConvertToTensorSummary(size_t device_index,
-                                                  const std::vector<ge::Tensor> &output_tensors,
+ge::Status LlmFlowService::ConvertToTensorSummary(size_t device_index, const std::vector<ge::Tensor> &output_tensors,
                                                   int32_t &num_tensors) {
   constexpr size_t kExpectedTensorSize = 8U;
   const auto &output_tensor = output_tensors.front();
@@ -548,10 +531,8 @@ ge::Status LlmFlowService::ConvertToTensorSummary(size_t device_index,
   const auto *output_data = llm::PtrToPtr<uint8_t, int32_t>(output_tensor.GetData());
   num_tensors = output_data[1U];
   LLMLOGI("device_index = %zu, num_tensors = %d", device_index, num_tensors);
-  LLM_CHK_BOOL_RET_STATUS(num_tensors > 0,
-                         ge::LLM_PARAM_INVALID,
-                         "num_tensors (%d) < 0, device_index = %zu",
-                         num_tensors, device_index);
+  LLM_CHK_BOOL_RET_STATUS(num_tensors > 0, ge::LLM_PARAM_INVALID, "num_tensors (%d) < 0, device_index = %zu",
+                          num_tensors, device_index);
   return ge::SUCCESS;
 }
 
@@ -560,13 +541,14 @@ ge::Status LlmFlowService::InitializeUdf() const {
   std::vector<TaskContext<ge::Status>> unused(device_indices_.size());
   auto flow_func_index = flow_func_indices_[static_cast<size_t>(FlowFuncType::kInitialize)];
   // call RunMulti to run in sub-thread
-  const auto ret = RunMulti<ge::Status>(FlowFuncType::kInitialize, flow_func_index, input_tensors, LlmFlowService::ConvertToStatus, unused);
+  const auto ret = RunMulti<ge::Status>(FlowFuncType::kInitialize, flow_func_index, input_tensors,
+                                        LlmFlowService::ConvertToStatus, unused);
   LLM_CHK_STATUS(ret, "[Initialize] RunFlowFunc failed");
   return ret;
 }
 
-ge::Status LlmFlowService::Allocate(const CacheDesc &cache_desc,
-                                    const std::vector<CacheKey> &cache_keys, Cache &cache) const {
+ge::Status LlmFlowService::Allocate(const CacheDesc &cache_desc, const std::vector<CacheKey> &cache_keys,
+                                    Cache &cache) const {
   // 1. Build request tensor
   size_t num_requests_to_index = cache_keys.size();
   auto tensor_size = sizeof(AllocateCacheReqInfo) + sizeof(int64_t) * num_requests_to_index;
@@ -593,30 +575,30 @@ ge::Status LlmFlowService::Allocate(const CacheDesc &cache_desc,
     }
   }
   req_info.is_prefix = is_prefix;
-  ge::TensorDesc req_tensor_desc(ge::Shape(std::vector<int64_t>{static_cast<int64_t>(tensor_size)}),
-                                 ge::FORMAT_ND, ge::DT_UINT8);
+  ge::TensorDesc req_tensor_desc(ge::Shape(std::vector<int64_t>{static_cast<int64_t>(tensor_size)}), ge::FORMAT_ND,
+                                 ge::DT_UINT8);
   ge::Tensor input_tensor(req_tensor_desc);
   input_tensor.SetData(std::move(tensor_data));
   // 2. invoke udf
   std::vector<ge::Tensor> input_tensors{input_tensor};
   std::vector<TaskContext<CacheAllocateResult>> per_device_task_context;
   const auto tp_start = std::chrono::steady_clock::now();
-  const auto ret = RunFlowFunc<CacheAllocateResult>(FlowFuncType::kAllocate, input_tensors,
-                                                    ConvertAllocateResult, per_device_task_context);
+  const auto ret = RunFlowFunc<CacheAllocateResult>(FlowFuncType::kAllocate, input_tensors, ConvertAllocateResult,
+                                                    per_device_task_context);
   LLM_CHK_STATUS_RET(ret, "[cache_id:%ld][Allocate] RunFlowFunc failed", cache.cache_id);
   const auto &feed_end = per_device_task_context.front().time_points.front();
-  const auto &tp_end = is_spmd_ ? per_device_task_context.front().time_points.back() :
-                       std::chrono::steady_clock::now();
-  LLMLOGI("[LlmPerf] [cache_id:%ld] [Allocate] ended, num_tensors = %u, shape = %s, dtype = %d, "
-         "feed_elapsed_us = %ld, total_elapsed_us = %ld", cache.cache_id, cache_desc.num_tensors,
-         llm::ToString(dims).c_str(), static_cast<int32_t>(cache_desc.data_type),
-         std::chrono::duration_cast<std::chrono::microseconds>(feed_end - tp_start).count(),
-         std::chrono::duration_cast<std::chrono::microseconds>(tp_end - tp_start).count());
+  const auto &tp_end = is_spmd_ ? per_device_task_context.front().time_points.back() : std::chrono::steady_clock::now();
+  LLMLOGI(
+      "[LlmPerf] [cache_id:%ld] [Allocate] ended, num_tensors = %u, shape = %s, dtype = %d, "
+      "feed_elapsed_us = %ld, total_elapsed_us = %ld",
+      cache.cache_id, cache_desc.num_tensors, llm::ToString(dims).c_str(), static_cast<int32_t>(cache_desc.data_type),
+      std::chrono::duration_cast<std::chrono::microseconds>(feed_end - tp_start).count(),
+      std::chrono::duration_cast<std::chrono::microseconds>(tp_end - tp_start).count());
   for (size_t i = 0U; i < per_device_task_context.size(); ++i) {
     auto &result = per_device_task_context[i].output;
     LLM_CHK_BOOL_RET_STATUS(result.tensor_addrs.size() == static_cast<size_t>(cache_desc.num_tensors), ge::FAILED,
-                           "[Check][Result] check tensor addresses failed, expect %u, bot got %zu, device_index = %zu",
-                           cache_desc.num_tensors, result.tensor_addrs.size(), device_indices_[i]);
+                            "[Check][Result] check tensor addresses failed, expect %u, bot got %zu, device_index = %zu",
+                            cache_desc.num_tensors, result.tensor_addrs.size(), device_indices_[i]);
     cache.per_device_tensor_addrs.emplace_back(std::move(result.tensor_addrs));
   }
   return ge::SUCCESS;
@@ -641,10 +623,8 @@ ge::Status LlmFlowService::ConvertAllocateResult(size_t device_index, const std:
 ge::Status LlmFlowService::Deallocate(int64_t cache_id) const {
   std::vector<ge::Tensor> input_tensors{BuildTensor(cache_id)};
   std::vector<TaskContext<ge::Status>> unused;
-  const auto ret = RunFlowFunc<ge::Status>(FlowFuncType::kDeallocate,
-                                           input_tensors,
-                                           LlmFlowService::ConvertToStatus,
-                                           unused);
+  const auto ret =
+      RunFlowFunc<ge::Status>(FlowFuncType::kDeallocate, input_tensors, LlmFlowService::ConvertToStatus, unused);
   LLM_CHK_STATUS_RET(ret, "[cache_id:%ld][Deallocate] RunFlowFunc failed", cache_id);
   return ge::SUCCESS;
 }
@@ -653,25 +633,22 @@ ge::Status LlmFlowService::RemoveCacheIndex(const CacheKey &cache_key) const {
   RemoveCacheIndexReqInfo req_info{cache_key.req_id, cache_key.prefix_id, cache_key.model_id};
   std::vector<ge::Tensor> input_tensors{BuildTensor(req_info)};
   std::vector<TaskContext<ge::Status>> unused;
-  const auto ret = RunFlowFunc<ge::Status>(FlowFuncType::kRemoveIndex,
-                                           input_tensors,
-                                           LlmFlowService::ConvertToStatus,
-                                           unused);
-  LLM_CHK_STATUS_RET(ret, "[RemoveCacheIndex] RunFlowFunc failed cache_key = (%lu, %lu)",
-                    cache_key.req_id, cache_key.model_id);
+  const auto ret =
+      RunFlowFunc<ge::Status>(FlowFuncType::kRemoveIndex, input_tensors, LlmFlowService::ConvertToStatus, unused);
+  LLM_CHK_STATUS_RET(ret, "[RemoveCacheIndex] RunFlowFunc failed cache_key = (%lu, %lu)", cache_key.req_id,
+                     cache_key.model_id);
   return ge::SUCCESS;
 }
 
-ge::Status LlmFlowService::PullCache(int64_t cache_id,
-                                     const CacheKey &cache_key,
-                                     const PullCacheParam &pull_cache_param,
-                                     uint32_t num_tensors) const {
+ge::Status LlmFlowService::PullCache(int64_t cache_id, const CacheKey &cache_key,
+                                     const PullCacheParam &pull_cache_param, uint32_t num_tensors) const {
   LLM_CHECK_LE(pull_cache_param.decoder_blocks.size(), UINT32_MAX);
   LLM_CHECK_LE(pull_cache_param.prompt_blocks.size(), UINT32_MAX);
   LLM_CHECK_LE(pull_cache_param.dst_tensor_indices.size(), UINT32_MAX);
   LLM_CHECK_LE(pull_cache_param.src_tensor_indices.size(), UINT32_MAX);
   const auto num_block_indices = pull_cache_param.decoder_blocks.size() + pull_cache_param.prompt_blocks.size() +
-      pull_cache_param.dst_tensor_indices.size() + pull_cache_param.src_tensor_indices.size();
+                                 pull_cache_param.dst_tensor_indices.size() +
+                                 pull_cache_param.src_tensor_indices.size();
   uint64_t tensor_size = sizeof(PullKvReqInfo) + num_block_indices * sizeof(uint64_t);
   std::vector<uint8_t> tensor_data(tensor_size);
   PullKvReqInfo *req_info = llm::PtrToPtr<uint8_t, PullKvReqInfo>(tensor_data.data());
@@ -681,27 +658,26 @@ ge::Status LlmFlowService::PullCache(int64_t cache_id,
   ge::TensorDesc req_tensor_desc(ge::Shape(std::vector<int64_t>{static_cast<int64_t>(tensor_size)}), ge::FORMAT_ND,
                                  ge::DT_UINT8);
   ge::Tensor input_tensor(req_tensor_desc);
-  (void) input_tensor.SetData(std::move(tensor_data));
+  (void)input_tensor.SetData(std::move(tensor_data));
   std::vector<ge::Tensor> input_tensors{input_tensor};
   std::vector<TaskContext<ge::Status>> per_device_task_context;
   const auto tp_start = std::chrono::steady_clock::now();
-  const auto ret = RunFlowFunc<ge::Status>(FlowFuncType::kPull,
-                                           input_tensors,
-                                           LlmFlowService::ConvertToStatus,
+  const auto ret = RunFlowFunc<ge::Status>(FlowFuncType::kPull, input_tensors, LlmFlowService::ConvertToStatus,
                                            per_device_task_context);
-  LLM_CHK_STATUS_RET(ret, "[Pull] Failed to run flow func, %s, cache_id = %ld, "
-                         "num_tensors = %u, size = %ld, dst_tensor_indices = %s, src_tensor_indices = %s",
-                    LLMUtils::DebugString(cache_key).c_str(), cache_id,
-                    num_tensors, pull_cache_param.size, llm::ToString(pull_cache_param.dst_tensor_indices).c_str(),
-                    llm::ToString(pull_cache_param.src_tensor_indices).c_str());
+  LLM_CHK_STATUS_RET(ret,
+                     "[Pull] Failed to run flow func, %s, cache_id = %ld, "
+                     "num_tensors = %u, size = %ld, dst_tensor_indices = %s, src_tensor_indices = %s",
+                     LLMUtils::DebugString(cache_key).c_str(), cache_id, num_tensors, pull_cache_param.size,
+                     llm::ToString(pull_cache_param.dst_tensor_indices).c_str(),
+                     llm::ToString(pull_cache_param.src_tensor_indices).c_str());
   const auto &feed_end = per_device_task_context.front().time_points.front();
-  const auto &tp_end = is_spmd_ ? per_device_task_context.front().time_points.back() :
-                                std::chrono::steady_clock::now();
-  LLMLOGI("[LlmPerf] Request[%lu] [Pull] ended, %s, cache_id = %ld, "
+  const auto &tp_end = is_spmd_ ? per_device_task_context.front().time_points.back() : std::chrono::steady_clock::now();
+  LLMLOGI(
+      "[LlmPerf] Request[%lu] [Pull] ended, %s, cache_id = %ld, "
       "num_tensors = %u, size = %ld, dst_tensor_indices = %s, src_tensor_indices = %s, tensor_num_per_layer=%lu, "
       "feed_elapsed_us = %ld, total_elapsed_us = %ld",
-      cache_key.req_id, LLMUtils::DebugString(cache_key).c_str(), cache_id,
-      num_tensors, pull_cache_param.size, llm::ToString(pull_cache_param.dst_tensor_indices).c_str(),
+      cache_key.req_id, LLMUtils::DebugString(cache_key).c_str(), cache_id, num_tensors, pull_cache_param.size,
+      llm::ToString(pull_cache_param.dst_tensor_indices).c_str(),
       llm::ToString(pull_cache_param.src_tensor_indices).c_str(), pull_cache_param.tensor_num_per_layer,
       std::chrono::duration_cast<std::chrono::microseconds>(feed_end - tp_start).count(),
       std::chrono::duration_cast<std::chrono::microseconds>(tp_end - tp_start).count());
@@ -743,7 +719,7 @@ ge::Status LlmFlowService::TransferCache(const llm::TransferCacheConfig &transfe
   ge::TensorDesc req_tensor_desc(ge::Shape(std::vector<int64_t>{static_cast<int64_t>(tensor_size)}), ge::FORMAT_ND,
                                  ge::DT_UINT8);
   ge::Tensor input_tensor(req_tensor_desc);
-  (void) input_tensor.SetData(std::move(tensor_data));
+  (void)input_tensor.SetData(std::move(tensor_data));
   std::vector<ge::Tensor> input_tensors{input_tensor};
   std::vector<TaskContext<ge::Status>> per_device_task_context;
   const auto tp_start = std::chrono::steady_clock::now();
@@ -763,15 +739,14 @@ ge::Status LlmFlowService::TransferCache(const llm::TransferCacheConfig &transfe
 
 ge::Status LlmFlowService::SwapBlocks(const Cache &src, const Cache &dst, const SwapBlockParam &swap_param,
                                       const std::vector<int32_t> &device_ids) {
-  LLM_CHK_BOOL_RET_STATUS(device_ids.size() == workers_.size(),
-                         ge::FAILED, "Device id num is not equal to workers num.");
+  LLM_CHK_BOOL_RET_STATUS(device_ids.size() == workers_.size(), ge::FAILED,
+                          "Device id num is not equal to workers num.");
   std::vector<std::future<ge::Status>> futures;
   for (size_t i = 0U; i < workers_.size(); ++i) {
-    auto fut = worker_pool_->commit(
-        [i, &src, &dst, &swap_param, &device_ids]() -> ge::Status {
-          llm::SwapImpl swap_impl(device_ids[i]);
-          return swap_impl.SwapBlocks(src, dst, swap_param.block_size, swap_param.type, swap_param.block_mapping, i);
-        });
+    auto fut = worker_pool_->commit([i, &src, &dst, &swap_param, &device_ids]() -> ge::Status {
+      llm::SwapImpl swap_impl(device_ids[i]);
+      return swap_impl.SwapBlocks(src, dst, swap_param.block_size, swap_param.type, swap_param.block_mapping, i);
+    });
     futures.emplace_back(std::move(fut));
   }
   LLM_CHK_STATUS_RET(GetAndCheckFutures(futures), "Failed to run flow func in all devices");
@@ -780,25 +755,24 @@ ge::Status LlmFlowService::SwapBlocks(const Cache &src, const Cache &dst, const 
 
 ge::Status LlmFlowService::CopyCache(const CacheEntry &src_cache_entry, const CacheEntry &dst_cache_entry,
                                      const CopyCacheParam &copy_cache_param, const std::vector<int32_t> &device_ids) {
-  LLM_CHK_BOOL_RET_STATUS(device_ids.size() == workers_.size(),
-                         ge::FAILED, "Device id num is not equal to workers num.");
+  LLM_CHK_BOOL_RET_STATUS(device_ids.size() == workers_.size(), ge::FAILED,
+                          "Device id num is not equal to workers num.");
   std::vector<std::future<ge::Status>> futures;
   auto per_device_addr_num = src_cache_entry.cache_addrs.size() / device_ids.size();
   for (size_t i = 0U; i < workers_.size(); ++i) {
-    auto fut =
-        worker_pool_->commit([this, i, &src_cache_entry, &dst_cache_entry, &per_device_addr_num, &copy_cache_param,
-                              &device_ids]() -> ge::Status {
-          if (copy_cache_param.copy_block_infos.empty()) {
-            LLM_CHK_STATUS_RET(cache_manager_.CopyCacheForContinuous(src_cache_entry, dst_cache_entry, copy_cache_param,
-                                                                    per_device_addr_num, i),
-                              "Copy cache in device:%d failed.", device_ids[i]);
-          } else {
-            LLM_CHK_STATUS_RET(cache_manager_.CopyCacheForBlocks(src_cache_entry, dst_cache_entry, copy_cache_param,
-                                                                per_device_addr_num, i),
-                              "Copy cache in device:%d failed.", device_ids[i]);
-          }
-          return ge::SUCCESS;
-        });
+    auto fut = worker_pool_->commit([this, i, &src_cache_entry, &dst_cache_entry, &per_device_addr_num,
+                                     &copy_cache_param, &device_ids]() -> ge::Status {
+      if (copy_cache_param.copy_block_infos.empty()) {
+        LLM_CHK_STATUS_RET(cache_manager_.CopyCacheForContinuous(src_cache_entry, dst_cache_entry, copy_cache_param,
+                                                                 per_device_addr_num, i),
+                           "Copy cache in device:%d failed.", device_ids[i]);
+      } else {
+        LLM_CHK_STATUS_RET(cache_manager_.CopyCacheForBlocks(src_cache_entry, dst_cache_entry, copy_cache_param,
+                                                             per_device_addr_num, i),
+                           "Copy cache in device:%d failed.", device_ids[i]);
+      }
+      return ge::SUCCESS;
+    });
     futures.emplace_back(std::move(fut));
   }
   LLM_CHK_STATUS_RET(GetAndCheckFutures(futures), "Failed to run flow func in all devices");
@@ -824,29 +798,24 @@ ge::Status LlmFlowService::CopyCache(const CopyCacheParam &copy_cache_param) con
   ge::TensorDesc req_tensor_desc(ge::Shape(std::vector<int64_t>{static_cast<int64_t>(tensor_size)}), ge::FORMAT_ND,
                                  ge::DT_UINT8);
   ge::Tensor input_tensor(req_tensor_desc);
-  (void) input_tensor.SetData(std::move(tensor_data));
+  (void)input_tensor.SetData(std::move(tensor_data));
   std::vector<ge::Tensor> input_tensors{input_tensor};
   std::vector<TaskContext<ge::Status>> per_device_task_context;
   const auto tp_start = std::chrono::steady_clock::now();
-  const auto ret = RunFlowFunc<ge::Status>(FlowFuncType::kCopy,
-                                           input_tensors,
-                                           LlmFlowService::ConvertToStatus,
+  const auto ret = RunFlowFunc<ge::Status>(FlowFuncType::kCopy, input_tensors, LlmFlowService::ConvertToStatus,
                                            per_device_task_context);
   LLM_CHK_STATUS_RET(ret, "[Copy] Failed to run flow func");
   const auto feed_end = per_device_task_context.front().time_points.front();
   const auto fetch_end = per_device_task_context.front().time_points.back();
   LLMLOGI("[LlmPerf] Request[%s] [Copy][%ld->%ld] ended, size = %ld, feed_elapsed_us = %ld, total_elapsed_us = %ld",
-         copy_cache_param.req_id == UINT64_MAX ? "-1" : std::to_string(copy_cache_param.req_id).c_str(),
-         copy_cache_param.src_cache_id,
-         copy_cache_param.dst_cache_id,
-         copy_cache_param.size,
-         std::chrono::duration_cast<std::chrono::microseconds>(feed_end - tp_start).count(),
-         std::chrono::duration_cast<std::chrono::microseconds>(fetch_end - tp_start).count());
+          copy_cache_param.req_id == UINT64_MAX ? "-1" : std::to_string(copy_cache_param.req_id).c_str(),
+          copy_cache_param.src_cache_id, copy_cache_param.dst_cache_id, copy_cache_param.size,
+          std::chrono::duration_cast<std::chrono::microseconds>(feed_end - tp_start).count(),
+          std::chrono::duration_cast<std::chrono::microseconds>(fetch_end - tp_start).count());
   return ge::SUCCESS;
 }
 
-ge::Status LlmFlowService::GetCacheTensors(int64_t cache_id,
-                                           std::vector<ge::Tensor> &outputs,
+ge::Status LlmFlowService::GetCacheTensors(int64_t cache_id, std::vector<ge::Tensor> &outputs,
                                            int32_t tensor_index) const {
   GetCacheTensorsReqInfo req_info;
   req_info.cache_id = cache_id;
@@ -855,10 +824,8 @@ ge::Status LlmFlowService::GetCacheTensors(int64_t cache_id,
   std::vector<TaskContext<int32_t>> per_device_task_context;
   // 包含多次操作，防止错乱
   std::lock_guard<std::mutex> lk(get_cache_mu_);
-  auto ret = RunFlowFunc<int32_t>(FlowFuncType::kGetTensorSummary,
-                                  input_tensors,
-                                  LlmFlowService::ConvertToTensorSummary,
-                                  per_device_task_context);
+  auto ret = RunFlowFunc<int32_t>(FlowFuncType::kGetTensorSummary, input_tensors,
+                                  LlmFlowService::ConvertToTensorSummary, per_device_task_context);
   LLM_CHK_STATUS_RET(ret, "Failed to get cache tensor summary");
   const auto num_tensors = per_device_task_context.front().output;
   if (!is_spmd_) {
@@ -867,19 +834,13 @@ ge::Status LlmFlowService::GetCacheTensors(int64_t cache_id,
       num_tensors_each_device.emplace_back(task_context.output);
     }
     std::set<int32_t> distinct_num_tensors(num_tensors_each_device.cbegin(), num_tensors_each_device.cend());
-    LLM_CHK_BOOL_RET_STATUS(distinct_num_tensors.size() == 1U,
-                           ge::FAILED,
-                           "num_tensors differs between devices: %s",
-                           llm::ToString(num_tensors_each_device).c_str());
+    LLM_CHK_BOOL_RET_STATUS(distinct_num_tensors.size() == 1U, ge::FAILED, "num_tensors differs between devices: %s",
+                            llm::ToString(num_tensors_each_device).c_str());
   }
-  LLM_CHK_BOOL_RET_STATUS(num_tensors == 1,
-                         ge::FAILED,
-                         "multiple tensor is not supported yet, num_tensors = %d",
-                         num_tensors);
+  LLM_CHK_BOOL_RET_STATUS(num_tensors == 1, ge::FAILED, "multiple tensor is not supported yet, num_tensors = %d",
+                          num_tensors);
   std::vector<TaskContext<ge::Tensor>> per_device_get_tensor_task_context;
-  ret = RunFlowFunc<ge::Tensor>(FlowFuncType::kGetTensor,
-                                {},
-                                LlmFlowService::ConvertToTensor,
+  ret = RunFlowFunc<ge::Tensor>(FlowFuncType::kGetTensor, {}, LlmFlowService::ConvertToTensor,
                                 per_device_get_tensor_task_context);
   LLM_CHK_STATUS_RET(ret, "Failed to get cache tensor");
   for (auto &task_context : per_device_get_tensor_task_context) {
@@ -897,7 +858,7 @@ ge::Status LlmFlowService::CheckLinkStatus(uint64_t remote_cluster_id) const {
   ge::TensorDesc req_tensor_desc(ge::Shape(std::vector<int64_t>{static_cast<int64_t>(tensor_size)}), ge::FORMAT_ND,
                                  ge::DT_UINT8);
   ge::Tensor input_tensor(req_tensor_desc);
-  (void) input_tensor.SetData(std::move(tensor_data));
+  (void)input_tensor.SetData(std::move(tensor_data));
   std::vector<ge::Tensor> input_tensors{input_tensor};
   std::vector<TaskContext<ge::Status>> unused;
   const auto ret =
@@ -908,26 +869,33 @@ ge::Status LlmFlowService::CheckLinkStatus(uint64_t remote_cluster_id) const {
 
 ge::Status LlmFlowService::LinkClusters(const std::vector<ClusterInfo> &clusters, std::vector<ge::Status> &rets,
                                         const int32_t timeout) {
-  const auto ret = main_pool_.commit([this, &clusters, &rets, timeout]() -> ge::Status {
-    return link_manager_.LinkClusters(clusters, rets, timeout);
-  }).get();
+  const auto ret = main_pool_
+                       .commit([this, &clusters, &rets, timeout]() -> ge::Status {
+                         return link_manager_.LinkClusters(clusters, rets, timeout);
+                       })
+                       .get();
   LLM_CHK_STATUS_RET(ret, "link clusters failed");
   return ret;
 }
 
 ge::Status LlmFlowService::UnlinkClusters(const std::vector<ClusterInfo> &clusters, std::vector<ge::Status> &rets,
                                           const int32_t timeout, bool force_flag) {
-  const auto ret = main_pool_.commit([this, &clusters, &rets, timeout, force_flag]() -> ge::Status {
-    const auto unlink_type = (role_ == kPrompt) ? LinkOperator::ServerUnlink : LinkOperator::ClientUnlink;
-    return link_manager_.UnlinkClusters(clusters, unlink_type, rets, timeout, force_flag);
-  }).get();
+  const auto ret = main_pool_
+                       .commit([this, &clusters, &rets, timeout, force_flag]() -> ge::Status {
+                         const auto unlink_type =
+                             (role_ == kPrompt) ? LinkOperator::ServerUnlink : LinkOperator::ClientUnlink;
+                         return link_manager_.UnlinkClusters(clusters, unlink_type, rets, timeout, force_flag);
+                       })
+                       .get();
   LLM_CHK_STATUS_RET(ret, "unlink clusters failed");
   return ret;
 }
 
 ge::Status LlmFlowService::SwitchRole(const std::string &role, const std::map<std::string, std::string> &options) {
-  std::map<std::string, int32_t> role_to_role_id {
-      {kPrompt, 0}, {kDecoder, 1}, {kMix, 2},
+  std::map<std::string, int32_t> role_to_role_id{
+      {kPrompt, 0},
+      {kDecoder, 1},
+      {kMix, 2},
   };
   LLM_CHK_BOOL_RET_STATUS(role_to_role_id.count(role) > 0U, ge::LLM_PARAM_INVALID, "Invalid role: %s", role.c_str());
   SwitchRoleReqInfo req_info{};
@@ -935,60 +903,46 @@ ge::Status LlmFlowService::SwitchRole(const std::string &role, const std::map<st
   if (role == kPrompt) {
     const auto it_ip = options.find(kLlmOptionListenIp);
     const auto it_port = options.find(kLlmOptionListenPort);
-    LLM_CHK_BOOL_RET_STATUS(it_ip != options.cend(),
-                           ge::LLM_PARAM_INVALID,
-                           "required option (%s) not found while switching to Prompt ", kLlmOptionListenIp);
-    LLM_CHK_BOOL_RET_STATUS(it_port != options.cend(),
-                           ge::LLM_PARAM_INVALID,
-                           "required option (%s) not found while switching to Prompt ", kLlmOptionListenPort);
-    LLM_CHK_STATUS_RET(LLMUtils::ToNumber(it_ip->second, req_info.prompt_listen_ip),
-                      "Option %s is invalid: [%s]",
-                      kLlmOptionListenIp,
-                      it_ip->second.c_str());
-    LLM_CHK_STATUS_RET(LLMUtils::ToNumber(it_port->second, req_info.prompt_listen_port),
-                      "Option %s is invalid: [%s]",
-                      kLlmOptionListenPort,
-                      it_port->second.c_str());
+    LLM_CHK_BOOL_RET_STATUS(it_ip != options.cend(), ge::LLM_PARAM_INVALID,
+                            "required option (%s) not found while switching to Prompt ", kLlmOptionListenIp);
+    LLM_CHK_BOOL_RET_STATUS(it_port != options.cend(), ge::LLM_PARAM_INVALID,
+                            "required option (%s) not found while switching to Prompt ", kLlmOptionListenPort);
+    LLM_CHK_STATUS_RET(LLMUtils::ToNumber(it_ip->second, req_info.prompt_listen_ip), "Option %s is invalid: [%s]",
+                       kLlmOptionListenIp, it_ip->second.c_str());
+    LLM_CHK_STATUS_RET(LLMUtils::ToNumber(it_port->second, req_info.prompt_listen_port), "Option %s is invalid: [%s]",
+                       kLlmOptionListenPort, it_port->second.c_str());
   }
   std::vector<ge::Tensor> input_tensors{BuildTensor(req_info)};
   std::vector<TaskContext<ge::Status>> unused;
-  const auto ret = RunFlowFunc<ge::Status>(FlowFuncType::kSwitchRole,
-                                           input_tensors,
-                                           LlmFlowService::ConvertToStatus,
-                                           unused);
-  LLM_CHK_STATUS_RET(ret, "[SwitchRole] RunFlowFunc failed, role = %s, listen_ip = %u, listen_port = %u",
-                    role.c_str(), req_info.prompt_listen_ip, req_info.prompt_listen_port);
-  LLMLOGI("[SwitchRole] RunFlowFunc success, role = %s, listen_ip = %u, listen_port = %u",
-         role.c_str(), req_info.prompt_listen_ip, req_info.prompt_listen_port);
+  const auto ret =
+      RunFlowFunc<ge::Status>(FlowFuncType::kSwitchRole, input_tensors, LlmFlowService::ConvertToStatus, unused);
+  LLM_CHK_STATUS_RET(ret, "[SwitchRole] RunFlowFunc failed, role = %s, listen_ip = %u, listen_port = %u", role.c_str(),
+                     req_info.prompt_listen_ip, req_info.prompt_listen_port);
+  LLMLOGI("[SwitchRole] RunFlowFunc success, role = %s, listen_ip = %u, listen_port = %u", role.c_str(),
+          req_info.prompt_listen_ip, req_info.prompt_listen_port);
   role_ = role;
   SetLinkManagerIo(role);
   return ge::SUCCESS;
 }
 
-ge::Status SpmdLinkManager::FeedInputs(const uint32_t graph_id,
-                                       const std::vector<uint32_t> &indices,
-                                       const std::vector<ge::Tensor> &inputs,
-                                       const int32_t timeout,
-                                       bool is_link) {
+ge::Status SpmdLinkManager::FeedInputs(const uint32_t graph_id, const std::vector<uint32_t> &indices,
+                                       const std::vector<ge::Tensor> &inputs, const int32_t timeout, bool is_link) {
   auto &trans_id = is_link ? link_transaction_id_ : unlink_transaction_id_;
   for (size_t i = 0U; i < all_ge_apis_.size(); ++i) {
     ge::DataFlowInfo data_flow_info;
     LLMLOGI("Feed transaction id:%lu.", trans_id);
     data_flow_info.SetTransactionId(trans_id);
     const auto ret = all_ge_apis_[i]->FeedDataFlowGraph(graph_id, indices, inputs, data_flow_info, timeout);
-    LLM_CHK_BOOL_RET_STATUS(ret != llm::ConvertAclError2Ge(ACL_ERROR_GE_MODEL_EXECUTE_TIMEOUT), ge::LLM_WAIT_PROC_TIMEOUT,
-                           "Feed timeout.");
+    LLM_CHK_BOOL_RET_STATUS(ret != llm::ConvertAclError2Ge(ACL_ERROR_GE_MODEL_EXECUTE_TIMEOUT),
+                            ge::LLM_WAIT_PROC_TIMEOUT, "Feed timeout.");
     LLM_CHK_STATUS_RET(ret, "Failed to feed input, device_index = %zu", i);
   }
   trans_id++;
   return ge::SUCCESS;
 }
 
-ge::Status SpmdLinkManager::FetchOutputs(const uint32_t graph_id,
-                                         const std::vector<uint32_t> &indices,
-                                         std::vector<ge::Tensor> &outputs,
-                                         int64_t timeout,
-                                         uint64_t transaction_id) {
+ge::Status SpmdLinkManager::FetchOutputs(const uint32_t graph_id, const std::vector<uint32_t> &indices,
+                                         std::vector<ge::Tensor> &outputs, int64_t timeout, uint64_t transaction_id) {
   auto last_time = std::chrono::steady_clock::now();
   std::vector<ge::Tensor> output_tensors;
   for (size_t i = 0U; i < all_ge_apis_.size(); ++i) {
@@ -1001,7 +955,7 @@ ge::Status SpmdLinkManager::FetchOutputs(const uint32_t graph_id,
       LLM_CHK_BOOL_RET_STATUS(timeout_in_millis >= 1, ge::LLM_WAIT_PROC_TIMEOUT, "Fetch timeout.");
       auto ret = all_ge_apis_[i]->FetchDataFlowGraph(graph_id, indices, one_outputs, flow_info, timeout_in_millis);
       LLM_CHK_BOOL_RET_STATUS(ret != llm::ConvertAclError2Ge(ACL_ERROR_GE_MODEL_EXECUTE_TIMEOUT),
-                             ge::LLM_WAIT_PROC_TIMEOUT, "Fetch timeout.");
+                              ge::LLM_WAIT_PROC_TIMEOUT, "Fetch timeout.");
       LLM_CHK_STATUS_RET(ret, "Failed to fetch input, device_index = %zu", i);
       LLM_CHK_BOOL_RET_STATUS(!one_outputs.empty(), ge::FAILED, "Fetch output is empty.");
       if (flow_info.GetTransactionId() == transaction_id) {
@@ -1014,7 +968,7 @@ ge::Status SpmdLinkManager::FetchOutputs(const uint32_t graph_id,
       last_time = cur_time;
       // current fetch cost time already over time limit.
       LLM_CHK_BOOL_RET_STATUS(fetch_time_cost < fetch_timeout, ge::LLM_WAIT_PROC_TIMEOUT,
-                             "Fetch timeout, cost:%ld us, left:%ld us.", fetch_time_cost, fetch_timeout);
+                              "Fetch timeout, cost:%ld us, left:%ld us.", fetch_time_cost, fetch_timeout);
       fetch_timeout -= fetch_time_cost;
     }
   }

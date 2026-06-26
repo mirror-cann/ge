@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -72,7 +72,7 @@ ComputeGraphPtr BuildGraph1() {
  *           add
  *            |
  *         netoutput
- * 
+ *
  */
 ComputeGraphPtr BuildAbnormalPotentialConstGraph() {
   // new a tensor
@@ -93,10 +93,10 @@ ComputeGraphPtr BuildAbnormalPotentialConstGraph() {
 
   builder.AddDataEdge(shape1, 0, add, 0);
   builder.AddDataEdge(shape2, 0, add, 1);
-  builder.AddDataEdge(add, 0,netoutput, 0);
+  builder.AddDataEdge(add, 0, netoutput, 0);
   return builder.GetGraph();
 }
-}// namespace
+}  // namespace
 
 TEST_F(UtestPotentialConstTakenEffectPass, TestNeedIgnorePass) {
   auto graph = BuildGraph1();

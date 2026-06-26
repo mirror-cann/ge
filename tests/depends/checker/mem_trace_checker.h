@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,15 +19,9 @@ namespace {
 constexpr const char *kMemKernelTrace = R"(\[KernelTrace]\[(.*)]\[MEM](.*)address (0x\w+))";
 using SingleExpectGroup = std::vector<std::pair<int32_t, std::string>>;
 const std::unordered_map<std::string, SingleExpectGroup> kRegexs2CheckerTemplates = {
-    {kAllocRe, {{2, "0"}}},
-    {kWander, {{2, "0"}, {3, "1"}}},
-    {kFreeRe, {{2, "0"}}},
-    {kLocalRecycleRe, {{2, "0"}}},
-    {kSendEventWithMem, {{3, "0"}}},
-    {kWaitEventWithMem, {{3, "1"}}},
-    {kBorrowRecycleRe, {{2, "1"}}},
-    {kBirthRecycleRe, {{2, "0"}}}
-};
+    {kAllocRe, {{2, "0"}}},         {kWander, {{2, "0"}, {3, "1"}}}, {kFreeRe, {{2, "0"}}},
+    {kLocalRecycleRe, {{2, "0"}}},  {kSendEventWithMem, {{3, "0"}}}, {kWaitEventWithMem, {{3, "1"}}},
+    {kBorrowRecycleRe, {{2, "1"}}}, {kBirthRecycleRe, {{2, "0"}}}};
 
 struct RegexsAndChecker {
   std::string regex;
@@ -63,13 +57,13 @@ std::vector<std::string> CollectAddrMemLog(const SlogStubImpl *slog_stub, const 
   for (const auto &onelog : slog_stub->GetLogs(DLOG_INFO)) {
     if (std::regex_search(onelog.content, matches, reg) && (onelog.content.find(addr.c_str()) != std::string::npos)) {
       target_logs.emplace_back(onelog.content);
-      std::cout<<"addr mem log:" << onelog.content << std::endl;
+      std::cout << "addr mem log:" << onelog.content << std::endl;
     }
   }
   return target_logs;
 }
 
-} //namespace
+}  // namespace
 class MemoryTraceChecker {
  public:
   struct EventWithStream {
@@ -114,7 +108,8 @@ class MemoryTraceChecker {
     std::stringstream error_msg;
     const auto target_logs = CollectAddrMemLog(slog_stub_, addr_);
     if (target_logs.size() != checkers_.size()) {
-      error_msg << "Target logs has " << target_logs.size() << ", while Expected logs size is " << checkers_.size() << std::endl;
+      error_msg << "Target logs has " << target_logs.size() << ", while Expected logs size is " << checkers_.size()
+                << std::endl;
       std::cout << error_msg.str() << std::endl;
       return false;
     }

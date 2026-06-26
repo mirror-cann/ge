@@ -1,10 +1,10 @@
 #!/bin/sh
 # -----------------------------------------------------------------------------------------------------------
-# Copyright (c) 2026 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# Copyright (c) 2025 Huawei Technologies Co., Ltd.
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
@@ -96,8 +96,18 @@ if [ $# -gt 0 ]; then
 else
     _STAGED=$(git diff --cached --name-only --diff-filter=ACM 2>/dev/null || true)
     if [ -z "$_STAGED" ]; then
-        echo "[OAT] No staged files to check. Skipping."
-        exit 0
+        _ALL_FILES=$(git ls-files 2>/dev/null || true)
+        if [ -n "$_ALL_FILES" ]; then
+            _STAGED="$_ALL_FILES"
+            echo "[OAT] No staged files, scanning all tracked files..."
+        else
+            echo "[OAT] No git repo detected. Scanning all source files..."
+            _STAGED=$(find "$REPO_ROOT" -type f \( -name "*.c" -o -name "*.h" -o -name "*.cc" -o -name "*.cpp" -o -name "*.hpp" -o -name "*.hh" -o -name "*.cxx" -o -name "*.hxx" -o -name "*.py" -o -name "*.proto" -o -name "*.java" -o -name "*.js" -o -name "*.ts" -o -name "*.sh" -o -name "*.json" -o -name "*.yaml" -o -name "*.yml" -o -name "*.cmake" -o -name "*.txt" -o -name "*.md" -o -name "*.inc" \) -not -path "*/build/*" -not -path "*/.git/*" -not -path "*/oat_reports/*" -not -path "*/__pycache__/*" 2>/dev/null || true)
+            if [ -z "$_STAGED" ]; then
+                echo "[OAT] No source files found. Skipping."
+                exit 0
+            fi
+        fi
     fi
     FILE_COUNT=$(echo "$_STAGED" | wc -l | tr -d ' ')
     FILE_LIST=""

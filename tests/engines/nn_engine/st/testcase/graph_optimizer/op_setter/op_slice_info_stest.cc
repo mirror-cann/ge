@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,31 +33,28 @@ using namespace ge;
 using namespace fe;
 using OpSetterPtr = std::shared_ptr<OpSetter>;
 
-
 namespace {
 te::LX_QUERY_STATUS GetOpInfoStub(const te::TbeOpInfo &tbeOpInfo, std::string &result) {
   return te::LX_QUERY_SUCC;
 }
-}
+}  // namespace
 
-class STEST_OP_SLICE_INFO_SETTER : public testing::Test
-{
-protected:
+class STEST_OP_SLICE_INFO_SETTER : public testing::Test {
+ protected:
   shared_ptr<fe::FEOpsKernelInfoStore> fe_ops_kernel_info_store_ptr_;
-  void SetUp()
-  {
+  void SetUp() {
     PlatformInfoManager::Instance().opti_compilation_infos_.SetSocVersion("Ascend310");
     PlatformInfoManager::Instance().opti_compilation_infos_.SetAICoreNum(8);
-    TbeOpStoreAdapterPtr tbe_op_store_adapter_ptr = std::dynamic_pointer_cast<TbeOpStoreAdapter>(OpStoreAdapterManager::Instance(AI_CORE_NAME).GetOpStoreAdapter(EN_IMPL_HW_TBE));
+    TbeOpStoreAdapterPtr tbe_op_store_adapter_ptr = std::dynamic_pointer_cast<TbeOpStoreAdapter>(
+        OpStoreAdapterManager::Instance(AI_CORE_NAME).GetOpStoreAdapter(EN_IMPL_HW_TBE));
     tbe_op_store_adapter_ptr->GetOpInfo = GetOpInfoStub;
     std::map<std::string, std::string> options;
     fe_ops_kernel_info_store_ptr_ = make_shared<fe::FEOpsKernelInfoStore>();
-    FEOpsStoreInfo tbe_custom {
-            6,
-            "tbe-custom",
-            EN_IMPL_HW_TBE,
-            GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/tbe_slice_op_info/slice_success",
-            ""};
+    FEOpsStoreInfo tbe_custom{6, "tbe-custom", EN_IMPL_HW_TBE,
+                              GetCodeDir() +
+                                  "/tests/engines/nn_engine/ut/testcase/fusion_engine/ops_kernel_store/fe_config/"
+                                  "tbe_slice_op_info/slice_success",
+                              ""};
     vector<FEOpsStoreInfo> store_info;
     store_info.emplace_back(tbe_custom);
     Configuration::Instance(fe::AI_CORE_NAME).ops_store_info_vector_ = (store_info);
@@ -1050,7 +1047,6 @@ protected:
   }
 };
 
-
 TEST_F(STEST_OP_SLICE_INFO_SETTER, set_op_slice_info_elem_) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateOneOpGraphElem(graph);
@@ -1242,7 +1238,7 @@ TEST_F(STEST_OP_SLICE_INFO_SETTER, set_op_slice_info_return_success1) {
 TEST_F(STEST_OP_SLICE_INFO_SETTER, set_op_slice_info_test) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateOneOpGraphreturn(graph);
-  
+
   OpSetterPtr op_setter_ptr = std::make_shared<OpSetter>(AI_CORE_NAME);
   Status ret = op_setter_ptr->SetOpInfo(*(graph.get()));
   EXPECT_EQ(fe::SUCCESS, ret);
@@ -1256,7 +1252,7 @@ TEST_F(STEST_OP_SLICE_INFO_SETTER, set_op_slice_info_test) {
   OutputReduceInfo outputReduceInfo;
   outputReduceInfo.Initialize();
   inputReduceInfo.SetIndex(0);
-  std::vector<int64_t> axes = {0,1,2};
+  std::vector<int64_t> axes = {0, 1, 2};
   inputReduceInfo.SetAxis(axes);
   axisReduceMap.AddInputReduceInfo(inputReduceInfo);
   outputReduceInfo.SetIndex(0);

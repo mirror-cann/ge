@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2026 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -18,8 +18,7 @@
 using namespace ge;
 using namespace ge::es;
 namespace es_showcase {
-int RunGraph(ge::Graph &graph, const std::vector<ge::Tensor> &inputs,
-             const std::string &output_prefix) {
+int RunGraph(ge::Graph &graph, const std::vector<ge::Tensor> &inputs, const std::string &output_prefix) {
   ge::Utils::PrintTensorsToFile(inputs, "input");
   std::map<ge::AscendString, ge::AscendString> options;
   auto *s = new (std::nothrow) ge::Session(options);
@@ -27,7 +26,7 @@ int RunGraph(ge::Graph &graph, const std::vector<ge::Tensor> &inputs,
     std::cout << "Global session not ready" << std::endl;
     return -1;
   }
-  static uint32_t next =0;
+  static uint32_t next = 0;
   const uint32_t graph_id = next++;
   auto ret = s->AddGraph(graph_id, graph);
   if (ret != ge::SUCCESS) {
@@ -59,9 +58,8 @@ std::unique_ptr<ge::Graph> MakeTransformerNzGraphByEs() {
   input2.SetFormat(FORMAT_FRACTAL_NZ);
   input3.SetFormat(FORMAT_FRACTAL_NZ);
 
-  auto matmul_result1 = MatMul(
-    Cast(input1, ge::DT_FLOAT),
-    Transpose(Cast(input2, ge::DT_FLOAT), std::vector<int64_t>{1, 0}));
+  auto matmul_result1 =
+      MatMul(Cast(input1, ge::DT_FLOAT), Transpose(Cast(input2, ge::DT_FLOAT), std::vector<int64_t>{1, 0}));
   auto sigmoid_result1 = Sigmoid(matmul_result1);
   auto reshape_result2 = Reshape(sigmoid_result1, std::vector<int64_t>{-1, 256});
   auto add_result1 = reshape_result2 + Cast(input3, ge::DT_FLOAT);
@@ -69,19 +67,14 @@ std::unique_ptr<ge::Graph> MakeTransformerNzGraphByEs() {
   auto reducesum_result1 = ReduceSum(values1, std::vector<int64_t>{-1});
   auto [values2, indices2] = TopKV2(reducesum_result1, builder->CreateScalar(4), false, -1, true, 3);
   auto cast_result2 = Cast(indices2, ge::DT_INT64);
-  auto scatterelements_result1 = ScatterElements(
-    ZerosLike(reducesum_result1),
-    cast_result2,
-    Fill(ge::es::Shape(cast_result2), Cast(builder->CreateScalar(1.0f), ge::DT_FLOAT))
-  );
+  auto scatterelements_result1 =
+      ScatterElements(ZerosLike(reducesum_result1), cast_result2,
+                      Fill(ge::es::Shape(cast_result2), Cast(builder->CreateScalar(1.0f), ge::DT_FLOAT)));
   auto identity_result1 = Identity(
-    BroadcastTo(Unsqueeze(scatterelements_result1, std::vector<int64_t>{-1}), std::vector<int64_t>{256, 256})
-  );
-  auto maskedfill_result1 = MaskedFill(
-    add_result1,
-    LogicalNot(Cast(Reshape(identity_result1, std::vector<int64_t>{256, 256}), ge::DT_BOOL)),
-    builder->CreateScalar(0.0f)
-  );
+      BroadcastTo(Unsqueeze(scatterelements_result1, std::vector<int64_t>{-1}), std::vector<int64_t>{256, 256}));
+  auto maskedfill_result1 =
+      MaskedFill(add_result1, LogicalNot(Cast(Reshape(identity_result1, std::vector<int64_t>{256, 256}), ge::DT_BOOL)),
+                 builder->CreateScalar(0.0f));
   auto [values3, indices3] = TopKV2(maskedfill_result1, builder->CreateScalar(4), false, -1, true, 3);
   // 3、设置输出节点
   auto cast_result3 = Cast(indices3, ge::DT_INT64);
@@ -130,4 +123,4 @@ int MakeTransformerNzGraphByEsAndRun() {
   inputs.push_back(*CreateNzTensor(input3_data, {1, 256}));
   return RunGraph(*graph, inputs, "Transformer_nz");
 }
-}
+}  // namespace es_showcase

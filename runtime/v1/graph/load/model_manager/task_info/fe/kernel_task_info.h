@@ -49,18 +49,16 @@ class KernelTaskInfo : public TaskInfo {
     args_ = nullptr;
   }
 
-  Status Init(const domi::TaskDef &task_def, DavinciModel *const davinci_model,
-              const PisToArgs &args = {}, const PisToPersistentWorkspace &persistent_workspace = {},
+  Status Init(const domi::TaskDef &task_def, DavinciModel *const davinci_model, const PisToArgs &args = {},
+              const PisToPersistentWorkspace &persistent_workspace = {},
               const IowAddrs &iow_addrs = {{}, {}, {}}) override;
 
   Status Distribute() override;
 
-  Status UpdateHostArgs(const std::vector<uint64_t> &active_mem_base_addr,
-                        void *const host_args,
+  Status UpdateHostArgs(const std::vector<uint64_t> &active_mem_base_addr, void *const host_args,
                         const size_t host_args_max_len) override;
 
-  void UpdateAtomicCleanArgs(std::vector<uint64_t> &input_data_addrs,
-                             std::vector<uint64_t> &output_data_addrs,
+  void UpdateAtomicCleanArgs(std::vector<uint64_t> &input_data_addrs, std::vector<uint64_t> &output_data_addrs,
                              std::vector<uint64_t> &workspace_data_addrs) const;
 
   Status ParseTaskRunParam(const domi::TaskDef &task_def, DavinciModel *const davinci_model,
@@ -69,11 +67,17 @@ class KernelTaskInfo : public TaskInfo {
 
   Status Release() override;
 
-  const std::vector<FusionOpInfo> &GetAllFusionOpInfo() const override { return fusion_op_info_; }
+  const std::vector<FusionOpInfo> &GetAllFusionOpInfo() const override {
+    return fusion_op_info_;
+  }
 
-  uint32_t GetTaskID() const override { return task_id_; }
+  uint32_t GetTaskID() const override {
+    return task_id_;
+  }
 
-  uint32_t GetStreamId() const override { return stream_id_; }
+  uint32_t GetStreamId() const override {
+    return stream_id_;
+  }
 
   uintptr_t GetDumpArgs() const override {
     return static_cast<uintptr_t>(PtrToValue(dump_args_));
@@ -100,7 +104,7 @@ class KernelTaskInfo : public TaskInfo {
     const auto tiling_data_holder = MakeUnique<uint8_t[]>(static_cast<size_t>(tiling_data_size_));
     GE_CHECK_NOTNULL_JUST_RETURN(tiling_data_holder);
     if (aclrtMemcpy(tiling_data_holder.get(), static_cast<uint64_t>(tiling_data_size_), tiling_data_addr_,
-        static_cast<uint64_t>(tiling_data_size_), ACL_MEMCPY_DEVICE_TO_HOST) != ACL_SUCCESS) {
+                    static_cast<uint64_t>(tiling_data_size_), ACL_MEMCPY_DEVICE_TO_HOST) != ACL_SUCCESS) {
       return;
     }
     std::stringstream ss;
@@ -113,12 +117,12 @@ class KernelTaskInfo : public TaskInfo {
   }
   void PostProcess(const domi::TaskDef &task_def) override;
 
-  bool CallSaveDumpInfo() const override  { return call_save_dump_; }
+  bool CallSaveDumpInfo() const override {
+    return call_save_dump_;
+  }
 
   bool IsAtomicCleanTask() const {
-    return (op_desc_->GetType() == ATOMICADDRCLEAN) ||
-           (op_desc_->GetType() == MEMSET) ||
-           is_separately_clean_task_;
+    return (op_desc_->GetType() == ATOMICADDRCLEAN) || (op_desc_->GetType() == MEMSET) || is_separately_clean_task_;
   }
 
   int64_t ParseOpIndex(const domi::TaskDef &task_def) const override;
@@ -195,8 +199,7 @@ class KernelTaskInfo : public TaskInfo {
 
   Status UpdateNoncontinuousArgs(const size_t offset, const std::vector<uint64_t> &active_mem_base_addr,
                                  void *const host_args, const size_t host_args_len);
-  Status UpdateContinuousArgs(const std::vector<uint64_t> &active_mem_base_addr,
-                              void *const host_args,
+  Status UpdateContinuousArgs(const std::vector<uint64_t> &active_mem_base_addr, void *const host_args,
                               const size_t host_args_len);
 
   Status InitPreprocessTask(const OpDescPtr &op_desc);
@@ -210,8 +213,7 @@ class KernelTaskInfo : public TaskInfo {
   // for dynamic kernel
   Status InitKernel(const domi::TaskDef &task_def, const PisToArgs &args);
   Status InitKernelWithHandle(const domi::TaskDef &task_def, const PisToArgs &args);
-  Status InitKernelByContext(const domi::TaskDef &task_def, const domi::KernelContext &context,
-                             const PisToArgs &args);
+  Status InitKernelByContext(const domi::TaskDef &task_def, const domi::KernelContext &context, const PisToArgs &args);
   Status UpdateRunInfoByTilingResult(const optiling::utils::OpRunInfo *const run_info);
   size_t GetExtraArgsSize(const DavinciModel &davinci_model, const OpDescPtr &op_desc, const ccKernelType kernel_type);
   Status UpdateArgsSizeWithCustomized(const OpDescPtr &op_desc);
@@ -234,7 +236,7 @@ class KernelTaskInfo : public TaskInfo {
   Status AppendInputOutputAddrByInstanceIndex(size_t ins_idx, bool is_input);
   Status AppendInputOutputAddr(size_t ir_idx, bool is_input);
   Status PreprocessForSkNode();
-  Status FindSkSubNode(const OpDescPtr &sk_op, const int32_t id,  NodePtr &sub_node) const;
+  Status FindSkSubNode(const OpDescPtr &sk_op, const int32_t id, NodePtr &sub_node) const;
   aclrtBinHandle GetBinHandle(const domi::TaskDef &task_def) const;
   aclrtFuncHandle GetFuncHandle(const domi::TaskDef &task_def);
   void SetExceptionCallback(aclrtBinHandle bin_handle);
@@ -251,8 +253,8 @@ class KernelTaskInfo : public TaskInfo {
   bool has_memory_log_ = false;
   uint32_t dump_flag_{RT_KERNEL_DEFAULT};
   void *dump_args_{nullptr};
-  OpDescPtr super_kernel_op_desc_;   // Clear after distribute.
-  OpDescPtr op_desc_;   // Clear after distribute.
+  OpDescPtr super_kernel_op_desc_;  // Clear after distribute.
+  OpDescPtr op_desc_;               // Clear after distribute.
   std::shared_ptr<Operator> operator_;
   std::shared_ptr<Operator> sk_sub_operator_;
   std::vector<uint64_t> io_addrs_;

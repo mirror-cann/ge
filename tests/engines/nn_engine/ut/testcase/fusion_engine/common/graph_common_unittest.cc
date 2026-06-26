@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,20 +31,16 @@ using namespace std;
 using namespace fe;
 using namespace ge;
 
-class UTEST_graph_common_unittest : public testing::Test
-{
+class UTEST_graph_common_unittest : public testing::Test {
  public:
   std::shared_ptr<fe::GraphComm> graph_comm_ptr_;
 
  protected:
-  void SetUp()
-  {
+  void SetUp() {
     graph_comm_ptr_ = std::make_shared<fe::GraphComm>(fe::AI_CORE_NAME);
   }
 
-  void TearDown()
-  {
-  }
+  void TearDown() {}
 
   static void CreateGraph(ComputeGraphPtr graph) {
     OpDescPtr bn_op = std::make_shared<OpDesc>("batchnormal", "BN");
@@ -52,7 +48,7 @@ class UTEST_graph_common_unittest : public testing::Test
     OpDescPtr out_op = std::make_shared<OpDesc>("out", "NetOutput");
 
     // add descriptor
-    vector<int64_t> dims = {1,2,3,4};
+    vector<int64_t> dims = {1, 2, 3, 4};
     GeShape shape(dims);
 
     GeTensorDesc in_desc1(shape);
@@ -85,7 +81,6 @@ class UTEST_graph_common_unittest : public testing::Test
     out_desc3.SetDataType(DT_FLOAT16);
     out_op->AddOutputDesc("y", out_desc3);
 
-
     ge::AttrUtils::SetInt(bn_op, fe::FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
     ge::AttrUtils::SetInt(relu_op, fe::FE_IMPLY_TYPE, static_cast<int>(EN_IMPL_HW_TBE));
 
@@ -110,12 +105,11 @@ class UTEST_graph_common_unittest : public testing::Test
   }
 };
 
-TEST_F(UTEST_graph_common_unittest, EstablishConnection_1)
-{
+TEST_F(UTEST_graph_common_unittest, EstablishConnection_1) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr bn_op = std::make_shared<OpDesc>("batchnormal", "BN");
   OpDescPtr relu_op = std::make_shared<OpDesc>("relu", "Cast");
-  vector<int64_t> dims = {1,2,3,4};
+  vector<int64_t> dims = {1, 2, 3, 4};
   GeShape shape(dims);
   GeTensorDesc desc(shape);
   bn_op->AddInputDesc("x", desc);
@@ -131,12 +125,11 @@ TEST_F(UTEST_graph_common_unittest, EstablishConnection_1)
   EXPECT_EQ(ret, fe::SUCCESS);
 }
 
-TEST_F(UTEST_graph_common_unittest, EstablishConnection_2)
-{
+TEST_F(UTEST_graph_common_unittest, EstablishConnection_2) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr bn_op = std::make_shared<OpDesc>("batchnormal", "BN");
   OpDescPtr relu_op = std::make_shared<OpDesc>("relu", "Cast");
-  vector<int64_t> dims = {1,2,3,4};
+  vector<int64_t> dims = {1, 2, 3, 4};
   GeShape shape(dims);
   GeTensorDesc desc(shape);
   bn_op->AddInputDesc("x", desc);
@@ -152,12 +145,11 @@ TEST_F(UTEST_graph_common_unittest, EstablishConnection_2)
   EXPECT_EQ(ret, fe::SUCCESS);
 }
 
-TEST_F(UTEST_graph_common_unittest, EstablishConnection)
-{
+TEST_F(UTEST_graph_common_unittest, EstablishConnection) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr bn_op = std::make_shared<OpDesc>("batchnormal", "BN");
   OpDescPtr relu_op = std::make_shared<OpDesc>("relu", "Cast");
-  vector<int64_t> dims = {1,2,3,4};
+  vector<int64_t> dims = {1, 2, 3, 4};
   GeShape shape(dims);
   GeTensorDesc desc(shape);
   bn_op->AddInputDesc("x", desc);
@@ -173,12 +165,11 @@ TEST_F(UTEST_graph_common_unittest, EstablishConnection)
   EXPECT_EQ(ret, fe::SUCCESS);
 }
 
-TEST_F(UTEST_graph_common_unittest, nullptr_case)
-{
+TEST_F(UTEST_graph_common_unittest, nullptr_case) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr bn_op = std::make_shared<OpDesc>("batchnormal", "BN");
   OpDescPtr relu_op = std::make_shared<OpDesc>("relu", "Cast");
-  vector<int64_t> dims = {1,2,3,4};
+  vector<int64_t> dims = {1, 2, 3, 4};
   GeShape shape(dims);
   GeTensorDesc desc(shape);
   bn_op->AddInputDesc("x", desc);
@@ -193,8 +184,7 @@ TEST_F(UTEST_graph_common_unittest, nullptr_case)
   EXPECT_EQ(node, nullptr);
 }
 
-TEST_F(UTEST_graph_common_unittest, output_only_control_edges_case)
-{
+TEST_F(UTEST_graph_common_unittest, output_only_control_edges_case) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   CreateGraphControlEdge(graph);
   std::vector<ge::NodePtr> node_vec = {};
@@ -210,27 +200,24 @@ TEST_F(UTEST_graph_common_unittest, output_only_control_edges_case)
   EXPECT_NE(node, nullptr);
 }
 
-TEST_F(UTEST_graph_common_unittest, CreateFunctionOpSubGraph)
-{
+TEST_F(UTEST_graph_common_unittest, CreateFunctionOpSubGraph) {
   ge::NodePtr funcnode = nullptr;
   std::vector<ge::NodePtr> node_vec = {};
   vector<fe::FusionDataFlow> input_edge_list;
   vector<fe::FusionDataFlow> output_edge_list;
   vector<fe::FusionDataFlow> output_ctrl_edge_list;
-  Status ret = graph_comm_ptr_->CreateFunctionOpSubGraph(funcnode, node_vec, input_edge_list,
-                                                         output_edge_list, output_ctrl_edge_list);
+  Status ret = graph_comm_ptr_->CreateFunctionOpSubGraph(funcnode, node_vec, input_edge_list, output_edge_list,
+                                                         output_ctrl_edge_list);
   EXPECT_EQ(ret, fe::FAILED);
 }
 
-TEST_F(UTEST_graph_common_unittest, CreateFunctionOp_1)
-{
+TEST_F(UTEST_graph_common_unittest, CreateFunctionOp_1) {
   std::vector<ge::NodePtr> node_vec = {};
   ge::OpDescPtr opdesc = graph_comm_ptr_->CreateFunctionOp(node_vec);
   EXPECT_EQ(opdesc, nullptr);
 }
 
-TEST_F(UTEST_graph_common_unittest, CreateFunctionOp_2)
-{
+TEST_F(UTEST_graph_common_unittest, CreateFunctionOp_2) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   string name = "test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
   OpDescPtr bn_op = std::make_shared<OpDesc>(name, "BN");
@@ -250,8 +237,7 @@ TEST_F(UTEST_graph_common_unittest, CreateFunctionOp_2)
   EXPECT_EQ(opdesc->GetName(), name + "_function_op");
 }
 
-TEST_F(UTEST_graph_common_unittest, CreateFunctionOp_3)
-{
+TEST_F(UTEST_graph_common_unittest, CreateFunctionOp_3) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   OpDescPtr bn_op = std::make_shared<OpDesc>("bn", "BN");
   OpDescPtr cast1_op = std::make_shared<OpDesc>("cast", "Cast");

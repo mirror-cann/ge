@@ -82,4 +82,3 @@ Status GetOutputShapes(std::vector<ge::Shape> &shapes) const
 ## 约束说明<a name="zh-cn_topic_0204328165_zh-cn_topic_0182636384_section62768825"></a>
 
 无
-

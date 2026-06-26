@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -48,7 +48,8 @@ class AicpuE2ESt : public bg::BgTest {
   }
   void TearDown() override {
     Test::TearDown();
-    while (bg::ValueHolder::PopGraphFrame() != nullptr) {}
+    while (bg::ValueHolder::PopGraphFrame() != nullptr) {
+    }
   }
 };
 
@@ -75,7 +76,8 @@ void CheckAndExecute(ComputeGraphPtr &graph, TaskDefFaker &task_def) {
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.GetTensorList(),
-                                    outputs.size()), ge::GRAPH_SUCCESS);
+                                    outputs.size()),
+            ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   aclrtDestroyStream(stream);
 }
@@ -83,9 +85,7 @@ void CheckAndExecute(ComputeGraphPtr &graph, TaskDefFaker &task_def) {
 void CheckAndExecute3rdOp(ComputeGraphPtr &graph, TaskDefFaker &task_def) {
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
-  auto ge_root_model = builder.AddTaskDef("Add", task_def)
-                              .AddTaskDef("NonZero", task_def)
-                              .BuildGeRootModel();
+  auto ge_root_model = builder.AddTaskDef("Add", task_def).AddTaskDef("NonZero", task_def).BuildGeRootModel();
   bg::ValueHolder::PopGraphFrame();  // 不需要BgTest自带的Frame
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model);
   ASSERT_NE(exe_graph, nullptr);
@@ -104,7 +104,8 @@ void CheckAndExecute3rdOp(ComputeGraphPtr &graph, TaskDefFaker &task_def) {
   ess->Clear();
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.GetTensorList(),
-                                    outputs.size()), ge::GRAPH_SUCCESS);
+                                    outputs.size()),
+            ge::GRAPH_SUCCESS);
   EXPECT_EQ(ess->GetExecuteCountByNodeTypeAndKernelType("NonZero", "InferShapeRange"), 1);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   bg::ShapeRangeInferenceResult::ErrorResult();
@@ -115,8 +116,8 @@ void CheckAndExecute3rdOp(ComputeGraphPtr &graph, TaskDefFaker &task_def) {
 class AicpuTfLaunchStub : public RuntimeStub {
  public:
   rtError_t rtAicpuKernelLaunchExWithArgs(uint32_t kernelType, const char *opName, uint32_t blockDim,
-                                          const rtAicpuArgsEx_t *argsInfo, rtSmDesc_t *smDesc,
-                                          rtStream_t stream, uint32_t flags) override {
+                                          const rtAicpuArgsEx_t *argsInfo, rtSmDesc_t *smDesc, rtStream_t stream,
+                                          uint32_t flags) override {
     EXPECT_EQ(argsInfo->kernelOffsetInfoNum, 3);
     EXPECT_EQ(argsInfo->kernelOffsetInfoPtr[0].addrOffset, 80);
     EXPECT_EQ(argsInfo->kernelOffsetInfoPtr[0].dataOffset, 112);
@@ -129,24 +130,24 @@ class AicpuTfLaunchStub : public RuntimeStub {
 };
 
 TEST_F(AicpuE2ESt, SingleNodeAiCpuTf_ExecuteSuccess) {
-   auto aicpu_launch_stub = std::make_shared<AicpuTfLaunchStub>();
-   RuntimeStub::Install(aicpu_launch_stub.get());
+  auto aicpu_launch_stub = std::make_shared<AicpuTfLaunchStub>();
+  RuntimeStub::Install(aicpu_launch_stub.get());
 
-   auto graph = ShareGraph::BuildSingleNodeGraph();
-   auto add_desc = graph->FindNode("add1")->GetOpDesc();
-   ge::AttrUtils::SetStr(add_desc, "ops_json_path", "tf_kernel.json");
-   graph->FindNode("add1")->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCpuTf.c_str());
-   AiCpuTfTaskDefFaker aicpu_task_def_faker;
-   CheckAndExecute(graph, aicpu_task_def_faker);
+  auto graph = ShareGraph::BuildSingleNodeGraph();
+  auto add_desc = graph->FindNode("add1")->GetOpDesc();
+  ge::AttrUtils::SetStr(add_desc, "ops_json_path", "tf_kernel.json");
+  graph->FindNode("add1")->GetOpDesc()->SetOpKernelLibName(ge::kEngineNameAiCpuTf.c_str());
+  AiCpuTfTaskDefFaker aicpu_task_def_faker;
+  CheckAndExecute(graph, aicpu_task_def_faker);
 
-   RuntimeStub::UnInstall(nullptr);
- }
+  RuntimeStub::UnInstall(nullptr);
+}
 
 class AicpuCCLaunchStub : public RuntimeStub {
  public:
   rtError_t rtAicpuKernelLaunchExWithArgs(uint32_t kernelType, const char *opName, uint32_t blockDim,
-                                          const rtAicpuArgsEx_t *argsInfo, rtSmDesc_t *smDesc,
-                                          rtStream_t stream, uint32_t flags) override {
+                                          const rtAicpuArgsEx_t *argsInfo, rtSmDesc_t *smDesc, rtStream_t stream,
+                                          uint32_t flags) override {
     EXPECT_EQ(argsInfo->kernelOffsetInfoNum, 1);
     EXPECT_EQ(argsInfo->kernelOffsetInfoPtr[0].addrOffset, 12);
     EXPECT_EQ(argsInfo->kernelOffsetInfoPtr[0].dataOffset, 98);
@@ -173,8 +174,8 @@ TEST_F(AicpuE2ESt, SingleNodeAiCpuCC_ExecuteSuccess) {
 class ThirdAicpuLaunchStub : public RuntimeStub {
  public:
   rtError_t rtAicpuKernelLaunchExWithArgs(uint32_t kernelType, const char *opName, uint32_t blockDim,
-                                          const rtAicpuArgsEx_t *argsInfo, rtSmDesc_t *smDesc,
-                                          rtStream_t stream, uint32_t flags) override {
+                                          const rtAicpuArgsEx_t *argsInfo, rtSmDesc_t *smDesc, rtStream_t stream,
+                                          uint32_t flags) override {
     if (opName == string("nonzero")) {
       EXPECT_EQ(argsInfo->kernelOffsetInfoNum, 2);
       EXPECT_EQ(argsInfo->kernelOffsetInfoPtr[0].addrOffset, 80);
@@ -204,9 +205,9 @@ TEST_F(AicpuE2ESt, TensorListOp_ExecuteSuccess) {
   graph->TopologicalSorting();
   GeModelBuilder builder(graph);
   auto ge_root_model = builder.AddTaskDef("EmptyTensorList", task_def)
-                              .AddTaskDef("TensorListPushBack", task_def)
-                              .AddTaskDef("TensorListPopBack", task_def)
-                              .BuildGeRootModel();
+                           .AddTaskDef("TensorListPushBack", task_def)
+                           .AddTaskDef("TensorListPopBack", task_def)
+                           .BuildGeRootModel();
   bg::ValueHolder::PopGraphFrame();  // 不需要BgTest自带的Frame
   auto exe_graph = ModelConverter().ConvertGeModelToExecuteGraph(ge_root_model);
   ASSERT_NE(exe_graph, nullptr);
@@ -222,7 +223,8 @@ TEST_F(AicpuE2ESt, TensorListOp_ExecuteSuccess) {
   auto i3 = FakeValue<uint64_t>(reinterpret_cast<uint64_t>(stream));
 
   ASSERT_EQ(model_executor->Execute({i3.value}, inputs.GetTensorList(), inputs.size(), outputs.GetTensorList(),
-                                    outputs.size()), ge::GRAPH_SUCCESS);
+                                    outputs.size()),
+            ge::GRAPH_SUCCESS);
   ASSERT_EQ(model_executor->UnLoad(), ge::GRAPH_SUCCESS);
   aclrtDestroyStream(stream);
 }
@@ -252,4 +254,4 @@ TEST_F(AicpuE2ESt, AicpuOpHostCpuEngine_RefSmallShape_ExecuteSuccess) {
   AiCpuCCTaskDefFaker aicpu_task_def_faker;
   CheckAndExecute(graph, aicpu_task_def_faker);
 }
-} // namespace
+}  // namespace gert

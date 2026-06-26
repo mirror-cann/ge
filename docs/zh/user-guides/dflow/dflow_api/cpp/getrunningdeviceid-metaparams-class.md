@@ -12,7 +12,7 @@
 ## 函数原型
 
 ```cpp
-int32_t GetRunningDeviceId() const 
+int32_t GetRunningDeviceId() const
 ```
 
 ## 参数说明

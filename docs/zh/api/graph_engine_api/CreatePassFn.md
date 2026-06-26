@@ -80,4 +80,3 @@ REG_FUSION_PASS
 ```
 using CreateFusionPassFn = FusionBasePass *(*)();
 ```
-

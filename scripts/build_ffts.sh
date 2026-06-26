@@ -46,7 +46,7 @@ usage()
   echo "    -s Build st"
   echo "    -c Build ut with coverage tag"
   echo "    -r Run ut or st after compile ut or st"
-  echo "    -f Filter parameter while runing ut or st"
+  echo "    -f Filter parameter while running ut or st"
   echo "    -p Build inference, train or all, default is train"
   echo "    -j[n] Set the number of threads used for building AIR, default is 8"
   echo "to be continued ..."

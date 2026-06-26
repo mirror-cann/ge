@@ -1,10 +1,10 @@
 
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -51,17 +51,20 @@ namespace ge {
 using namespace autofuse;
 namespace {
 struct ScopedEnv {
-  explicit ScopedEnv(const char* k, const char* v) : key_(k) {
+  explicit ScopedEnv(const char *k, const char *v) : key_(k) {
     old_ = std::getenv(k);
     setenv(k, v, 1);
   }
   ~ScopedEnv() {
-    if (old_) setenv(key_, old_, 1);
-    else      unsetenv(key_);
+    if (old_)
+      setenv(key_, old_, 1);
+    else
+      unsetenv(key_);
   }
-private:
-  const char* key_;
-  const char* old_;
+
+ private:
+  const char *key_;
+  const char *old_;
 };
 
 template <typename T>
@@ -75,7 +78,7 @@ es::Tensor CreateConst(es::Graph &graph, ge::DataType dtype, const std::vector<i
   return result;
 }
 
-uint8_t AscSubgraphNodeCount(const NodePtr & AscNode , const string &node_type) {
+uint8_t AscSubgraphNodeCount(const NodePtr &AscNode, const string &node_type) {
   const auto attr = AscNode->GetOpDesc()->GetAttrsGroup<ge::AutoFuseAttrs>();
   uint8_t count = 0;
   for (const auto &node : attr->GetAscGraph()->GetAllNodes()) {
@@ -88,8 +91,8 @@ uint8_t AscSubgraphNodeCount(const NodePtr & AscNode , const string &node_type) 
 }  // namespace
 
 class LoweringAndCanfuseUT : public testing::Test {
-  public:
-  protected:
+ public:
+ protected:
   void SetUp() override {
     AutoFuseConfig::MutableConfig().GetMutableFusionStrategySolver().max_fusion_size = 64U;
     AutoFuseConfig::MutableConfig().MutableLoweringConfig().experimental_lowering_transpose = true;
@@ -148,9 +151,9 @@ class LoweringAndCanfuseUT : public testing::Test {
     auto data1 = es_graph_->CreateInput(0, "data1", nullptr);
     data1.SetSymbolShape({"128", "300"});
     auto data2 = es_graph_->CreateInput(1, "data2", nullptr);
-    data2.SetSymbolShape({"1", "1", "32"});   // 小shape会被broadcast
+    data2.SetSymbolShape({"1", "1", "32"});  // 小shape会被broadcast
     auto data3 = es_graph_->CreateInput(2, "data3", nullptr);
-    data3.SetSymbolShape({"128", "64", "32"}); // 大shape
+    data3.SetSymbolShape({"128", "64", "32"});  // 大shape
 
     auto slice = es::StridedSliceD(data1, {0, 0}, {128, 64}, {1, 1});
     slice.SetSymbolShape({"128", "64"});
@@ -213,8 +216,7 @@ class LoweringAndCanfuseUT : public testing::Test {
       return false;
     }
     for (size_t i = 0; i < tensor_attr->strides.size(); ++i) {
-      if (BackendUtils::IsEq(tensor_attr->strides[i], Symbol(1)) == false &&
-          tensor_attr->strides[i].IsValid()) {
+      if (BackendUtils::IsEq(tensor_attr->strides[i], Symbol(1)) == false && tensor_attr->strides[i].IsValid()) {
         return true;
       }
     }
@@ -223,7 +225,7 @@ class LoweringAndCanfuseUT : public testing::Test {
 
   // 验证AscIr子图中是否包含Broadcast和Slice节点
   bool VerifySliceAndBroadcastInAscIr(const ComputeGraphPtr &cg, bool &found_broadcast_node,
-                                       bool &found_slice_load_node) const {
+                                      bool &found_slice_load_node) const {
     for (const auto &node : cg->GetDirectNode()) {
       if (node->GetType() != kAscBackendType) {
         continue;
@@ -351,17 +353,14 @@ class LoweringAndCanfuseUT : public testing::Test {
     for (const auto &asc_node : attr->GetAscGraph()->GetAllNodes()) {
       asc_adapt::TensorInfo tensor_desc;
       ASSERT_EQ(asc_adapt::GetTensorInfo(asc_node, tensor_desc), SUCCESS);
-      std::cout << "  AscNode: " << asc_node->GetName()
-                << ", Type: " << asc_node->GetType()
+      std::cout << "  AscNode: " << asc_node->GetName() << ", Type: " << asc_node->GetType()
                 << ", Repeats: " << AutofuseUtils::VectorToStr(tensor_desc.repeats)
-                << ", Strides: " << AutofuseUtils::VectorToStr(tensor_desc.strides)
-                << std::endl;
+                << ", Strides: " << AutofuseUtils::VectorToStr(tensor_desc.strides) << std::endl;
       for (size_t i = 0; i < tensor_desc.repeats.size(); ++i) {
         if (BackendUtils::IsEqOne(tensor_desc.repeats[i])) {
           EXPECT_TRUE(BackendUtils::IsEqZero(tensor_desc.strides[i]))
               << "Node " << asc_node->GetName() << " axis " << i
-              << " repeats=1 but strides=" << tensor_desc.strides[i].Serialize().get()
-              << " (expected 0)";
+              << " repeats=1 but strides=" << tensor_desc.strides[i].Serialize().get() << " (expected 0)";
         }
       }
     }
@@ -805,7 +804,6 @@ TEST_F(LoweringAndCanfuseUT, InvalidTransposeLowering) {
   SetCurShapeEnvContext(nullptr);
 }
 
-
 TEST_F(LoweringAndCanfuseUT, MutiRefEleAndTransposeNotFuse) {
   [this]() {
     auto data0 = es_graph_->CreateInput(0, "data0", nullptr);
@@ -1139,10 +1137,12 @@ TEST_F(LoweringAndCanfuseUT, ControlEdgeProcess1) {
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
   auto cons1 = cg->FindNode("FileConstant_1");
   ASSERT_NE(cons1, nullptr);
-  (void) AttrUtils::SetBool(cons1->GetOpDesc(), "_is_from_constant_folding", true);
+  (void)AttrUtils::SetBool(cons1->GetOpDesc(), "_is_from_constant_folding", true);
 
-  GraphUtils::AddEdge(cg->FindNode("Abs_0")->GetOutControlAnchor(), cg->FindNode("FileConstant_1")->GetInControlAnchor());
-  GraphUtils::AddEdge(cg->FindNode("FileConstant_1")->GetOutControlAnchor(), cg->FindNode("Abs_3")->GetInControlAnchor());
+  GraphUtils::AddEdge(cg->FindNode("Abs_0")->GetOutControlAnchor(),
+                      cg->FindNode("FileConstant_1")->GetInControlAnchor());
+  GraphUtils::AddEdge(cg->FindNode("FileConstant_1")->GetOutControlAnchor(),
+                      cg->FindNode("Abs_3")->GetInControlAnchor());
   GraphUtils::AddEdge(cg->FindNode("Abs_0")->GetOutControlAnchor(), cg->FindNode("Abs_3")->GetInControlAnchor());
   ge::AscIrLowerer lowerer;
   ASSERT_EQ(lowerer.Lowering(cg), GRAPH_SUCCESS);
@@ -1179,7 +1179,7 @@ TEST_F(LoweringAndCanfuseUT, ControlEdgeProcess2) {
   ASSERT_NE(cons1, nullptr);
   auto reduce2 = cg->FindNode("ReduceSum_4");
   ASSERT_NE(reduce2, nullptr);
-  (void) AttrUtils::SetBool(cons1->GetOpDesc(), "_is_from_constant_folding", true);
+  (void)AttrUtils::SetBool(cons1->GetOpDesc(), "_is_from_constant_folding", true);
 
   GraphUtils::AddEdge(reduce2->GetOutControlAnchor(), cg->FindNode("FileConstant_1")->GetInControlAnchor());
   ge::AscIrLowerer lowerer;
@@ -1195,28 +1195,30 @@ TEST_F(LoweringAndCanfuseUT, ControlEdgeProcess2) {
 
 TEST_F(LoweringAndCanfuseUT, ControlEdgeProcess3) {
   [this]() {
-  auto data = es_graph_->CreateInput(0, "data0", nullptr);
-  data.SetSymbolShape({"s0", "s1", "s2"});
-  auto abs1 = es::Abs(data);  // 3 inputs
-  abs1.SetSymbolShape({"s0", "s1", "s2"});
+    auto data = es_graph_->CreateInput(0, "data0", nullptr);
+    data.SetSymbolShape({"s0", "s1", "s2"});
+    auto abs1 = es::Abs(data);  // 3 inputs
+    abs1.SetSymbolShape({"s0", "s1", "s2"});
 
-  auto axis = CreateConst(*es_graph_, ge::DT_INT32, {1}, std::vector<int32_t>{1});
-  auto reduce = es::ReduceSum(abs1, axis, false);
-  reduce.SetSymbolShape({"s0", "s2"});
+    auto axis = CreateConst(*es_graph_, ge::DT_INT32, {1}, std::vector<int32_t>{1});
+    auto reduce = es::ReduceSum(abs1, axis, false);
+    reduce.SetSymbolShape({"s0", "s2"});
 
-  auto abs2 = es::Abs(reduce);  // 5 inputs after lowering fuse
-  abs2.SetSymbolShape({"s0", "s2"});
-  es_graph_->SetOutput(abs2, 0);
+    auto abs2 = es::Abs(reduce);  // 5 inputs after lowering fuse
+    abs2.SetSymbolShape({"s0", "s2"});
+    es_graph_->SetOutput(abs2, 0);
   }();
 
   auto graph = es_graph_->Build();
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
   auto cons1 = cg->FindNode("FileConstant_1");
   ASSERT_NE(cons1, nullptr);
-  (void) AttrUtils::SetBool(cons1->GetOpDesc(), "_is_from_constant_folding", false);
+  (void)AttrUtils::SetBool(cons1->GetOpDesc(), "_is_from_constant_folding", false);
 
-  GraphUtils::AddEdge(cg->FindNode("Abs_0")->GetOutControlAnchor(), cg->FindNode("FileConstant_1")->GetInControlAnchor());
-  GraphUtils::AddEdge(cg->FindNode("FileConstant_1")->GetOutControlAnchor(), cg->FindNode("Abs_3")->GetInControlAnchor());
+  GraphUtils::AddEdge(cg->FindNode("Abs_0")->GetOutControlAnchor(),
+                      cg->FindNode("FileConstant_1")->GetInControlAnchor());
+  GraphUtils::AddEdge(cg->FindNode("FileConstant_1")->GetOutControlAnchor(),
+                      cg->FindNode("Abs_3")->GetInControlAnchor());
   ge::AscIrLowerer lowerer;
   ASSERT_EQ(lowerer.Lowering(cg), GRAPH_SUCCESS);
   ASSERT_EQ(asc_adapt::GeFallback(cg), GRAPH_SUCCESS);
@@ -1249,8 +1251,10 @@ TEST_F(LoweringAndCanfuseUT, ControlEdgeProcess4) {
   auto cons1 = cg->FindNode("FileConstant_1");
   ASSERT_NE(cons1, nullptr);
 
-  GraphUtils::AddEdge(cg->FindNode("Abs_0")->GetOutControlAnchor(), cg->FindNode("FileConstant_1")->GetInControlAnchor());
-  GraphUtils::AddEdge(cg->FindNode("FileConstant_1")->GetOutControlAnchor(), cg->FindNode("ReduceSum_2")->GetInControlAnchor());
+  GraphUtils::AddEdge(cg->FindNode("Abs_0")->GetOutControlAnchor(),
+                      cg->FindNode("FileConstant_1")->GetInControlAnchor());
+  GraphUtils::AddEdge(cg->FindNode("FileConstant_1")->GetOutControlAnchor(),
+                      cg->FindNode("ReduceSum_2")->GetInControlAnchor());
   GraphUtils::AddEdge(cg->FindNode("ReduceSum_2")->GetOutControlAnchor(), cg->FindNode("Abs_3")->GetInControlAnchor());
   ge::AscIrLowerer lowerer;
   ASSERT_EQ(lowerer.Lowering(cg), GRAPH_SUCCESS);
@@ -1264,20 +1268,19 @@ TEST_F(LoweringAndCanfuseUT, ControlEdgeProcess4) {
 }
 
 REG_OP(SplitV)
-    .INPUT(x, TensorType({DT_COMPLEX128, DT_COMPLEX64, DT_DOUBLE, DT_FLOAT, DT_FLOAT16, DT_INT16,
-                          DT_INT32, DT_INT64, DT_INT8, DT_QINT16, DT_QINT32, DT_QINT8,
-                          DT_QUINT16, DT_QUINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_UINT8,
-                          DT_BF16, DT_BOOL, DT_STRING}))
+    .INPUT(x, TensorType({DT_COMPLEX128, DT_COMPLEX64, DT_DOUBLE, DT_FLOAT,  DT_FLOAT16, DT_INT16,   DT_INT32,
+                          DT_INT64,      DT_INT8,      DT_QINT16, DT_QINT32, DT_QINT8,   DT_QUINT16, DT_QUINT8,
+                          DT_UINT16,     DT_UINT32,    DT_UINT64, DT_UINT8,  DT_BF16,    DT_BOOL,    DT_STRING}))
     .INPUT(size_splits, TensorType::IndexNumberType())
     .INPUT(split_dim, TensorType({DT_INT32, DT_INT64}))
-    .DYNAMIC_OUTPUT(y, TensorType({DT_COMPLEX128, DT_COMPLEX64, DT_DOUBLE, DT_FLOAT, DT_FLOAT16, DT_INT16,
-                                   DT_INT32, DT_INT64, DT_INT8, DT_QINT16, DT_QINT32, DT_QINT8,
-                                   DT_QUINT16, DT_QUINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_UINT8,
-                                   DT_BF16, DT_BOOL, DT_STRING}))
+    .DYNAMIC_OUTPUT(y,
+                    TensorType({DT_COMPLEX128, DT_COMPLEX64, DT_DOUBLE, DT_FLOAT,  DT_FLOAT16, DT_INT16,   DT_INT32,
+                                DT_INT64,      DT_INT8,      DT_QINT16, DT_QINT32, DT_QINT8,   DT_QUINT16, DT_QUINT8,
+                                DT_UINT16,     DT_UINT32,    DT_UINT64, DT_UINT8,  DT_BF16,    DT_BOOL,    DT_STRING}))
     .REQUIRED_ATTR(num_split, Int)
     .OP_END_FACTORY_REG(SplitV)
 
-TEST_F(LoweringAndCanfuseUT, SplitVLoweringCanfuseStatic) {
+        TEST_F(LoweringAndCanfuseUT, SplitVLoweringCanfuseStatic) {
   [this]() {
     auto data0 = es_graph_->CreateInput(0, "data0", nullptr);
     data0.SetSymbolShape({"64", "96", "16"});
@@ -1285,14 +1288,14 @@ TEST_F(LoweringAndCanfuseUT, SplitVLoweringCanfuseStatic) {
     size_splits.SetSymbolShape({"3"});
     auto split_dim = CreateConst(*es_graph_, ge::DT_INT64, {1}, std::vector<int64_t>{1});
     split_dim.SetSymbolShape({"1"});
-    auto split_outputs = es::SplitV(data0,size_splits,split_dim,3);
-    int index = 0 ;
-    for (auto output: split_outputs) {
+    auto split_outputs = es::SplitV(data0, size_splits, split_dim, 3);
+    int index = 0;
+    for (auto output : split_outputs) {
       auto esb_out = output.GetEsbTensor();
       // 上边这种写法产生的不是ConstExpr
       // esb_out->SetSymbolShape({Symbol("64"), Symbol("32"), Symbol("16")});
       output.SetSymbolShape({"64", "32", "16"});
-      es_graph_->SetOutput(esb_out,index++);
+      es_graph_->SetOutput(esb_out, index++);
     }
   }();
 
@@ -1300,7 +1303,7 @@ TEST_F(LoweringAndCanfuseUT, SplitVLoweringCanfuseStatic) {
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
 
   ge::PatternFusion patter_fusion;
-  ASSERT_EQ(patter_fusion.RunAllPatternFusion(cg),GRAPH_SUCCESS);
+  ASSERT_EQ(patter_fusion.RunAllPatternFusion(cg), GRAPH_SUCCESS);
   ge::AscIrLowerer lowerer;
   ASSERT_EQ(lowerer.Lowering(cg), GRAPH_SUCCESS);
   ASSERT_EQ(asc_adapt::GeFallback(cg), GRAPH_SUCCESS);
@@ -1335,7 +1338,7 @@ TEST_F(LoweringAndCanfuseUT, TestFusedAscBackendBranchOfFunctionPreNodeInputIsSi
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
 
   ge::PatternFusion patter_fusion;
-  ASSERT_EQ(patter_fusion.RunAllPatternFusion(cg),GRAPH_SUCCESS);
+  ASSERT_EQ(patter_fusion.RunAllPatternFusion(cg), GRAPH_SUCCESS);
   ge::AscIrLowerer lowerer;
   ASSERT_EQ(lowerer.Lowering(cg), GRAPH_SUCCESS);
   ASSERT_EQ(asc_adapt::GeFallback(cg), GRAPH_SUCCESS);
@@ -1358,7 +1361,7 @@ TEST_F(LoweringAndCanfuseUT, SliceAscBackendContainsViewCannotFuse) {
     data3.SetSymbolShape({"128", "64", "32"});
     auto data4 = es_graph_->CreateInput(3, "data4", nullptr);
     data4.SetSymbolShape({"128", "64", "32"});
-    auto slice = es::StridedSliceD(data1, {0,0}, {128,64}, {1,1});
+    auto slice = es::StridedSliceD(data1, {0, 0}, {128, 64}, {1, 1});
     slice.SetSymbolShape({"128", "64"});
     auto expand_axis = CreateConst(*es_graph_, ge::DT_INT64, {1}, std::vector<int64_t>{-1});
     expand_axis.SetSymbolShape({"1"});
@@ -1368,7 +1371,7 @@ TEST_F(LoweringAndCanfuseUT, SliceAscBackendContainsViewCannotFuse) {
     mul.SetSymbolShape({"128", "64", "32"});
     auto scalar = CreateConst(*es_graph_, ge::DT_FLOAT, {1}, std::vector<float>{1.23});
     scalar.SetSymbolShape({"1"});
-    auto add = es::Add(mul,scalar);
+    auto add = es::Add(mul, scalar);
     add.SetSymbolShape({"128", "64", "32"});
     auto sqrt = es::Sqrt(add);
     sqrt.SetSymbolShape({"128", "64", "32"});
@@ -1376,7 +1379,7 @@ TEST_F(LoweringAndCanfuseUT, SliceAscBackendContainsViewCannotFuse) {
     div.SetSymbolShape({"128", "64", "32"});
     auto sub = es::Sub(div, data4);
     sub.SetSymbolShape({"128", "64", "32"});
-    auto prod = es::ReduceProdD(sub,{1});
+    auto prod = es::ReduceProdD(sub, {1});
     prod.SetSymbolShape({"128", "1", "32"});
     es_graph_->SetOutput(prod, 0);
   }();
@@ -1385,7 +1388,7 @@ TEST_F(LoweringAndCanfuseUT, SliceAscBackendContainsViewCannotFuse) {
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
 
   ge::PatternFusion patter_fusion;
-  ASSERT_EQ(patter_fusion.RunAllPatternFusion(cg),GRAPH_SUCCESS);
+  ASSERT_EQ(patter_fusion.RunAllPatternFusion(cg), GRAPH_SUCCESS);
   ge::AscIrLowerer lowerer;
   ASSERT_EQ(lowerer.Lowering(cg), GRAPH_SUCCESS);
   ASSERT_EQ(asc_adapt::GeFallback(cg), GRAPH_SUCCESS);
@@ -1439,7 +1442,7 @@ TEST_F(LoweringAndCanfuseUT, SliceAndElemAndConcat) {
   auto cg = GraphUtilsEx::GetComputeGraph(*graph);
 
   ge::PatternFusion patter_fusion;
-  ASSERT_EQ(patter_fusion.RunAllPatternFusion(cg),GRAPH_SUCCESS);
+  ASSERT_EQ(patter_fusion.RunAllPatternFusion(cg), GRAPH_SUCCESS);
   ge::AscIrLowerer lowerer;
   ASSERT_EQ(lowerer.Lowering(cg), GRAPH_SUCCESS);
   ASSERT_EQ(asc_adapt::GeFallback(cg), GRAPH_SUCCESS);
@@ -1482,8 +1485,8 @@ void VerifyReduceNode(const NodePtr &reduce_node, const Symbol &ONE, const Symbo
   ASSERT_EQ(reduce_attr->repeats[2], s2);
 }
 
-void VerifyAscBackendNode(const NodePtr &node, size_t &broadcast_cnt, bool &found_reduce, 
-                          NodePtr &reduce_node, NodePtr &broadcast_node) {
+void VerifyAscBackendNode(const NodePtr &node, size_t &broadcast_cnt, bool &found_reduce, NodePtr &reduce_node,
+                          NodePtr &broadcast_node) {
   cout << kAscBackendType << "    " << node->GetName() << endl;
   const auto &op_desc = node->GetOpDesc();
   EXPECT_NE(op_desc, nullptr);
@@ -1506,7 +1509,7 @@ void VerifyAscBackendNode(const NodePtr &node, size_t &broadcast_cnt, bool &foun
 }
 
 void VerifyBroadcastAndReduceNodes(const ComputeGraphPtr &cg, const Symbol &s0, const Symbol &s1, const Symbol &s2,
-                                     const Symbol &ONE) {
+                                   const Symbol &ONE) {
   size_t broadcast_cnt = 0;
   bool found_reduce = false;
   NodePtr reduce_node = nullptr;
@@ -1689,7 +1692,6 @@ TEST_F(LoweringAndCanfuseUT, SliceContainsBroadcastAscIrNode) {
   SetCurShapeEnvContext(nullptr);
 }
 
-
 // 场景4: 前序Slice Load + 后续Transpose Load
 // 构造：node1(slice) -> node2(transpose)，测试slice后接transpose的场景
 TEST_F(LoweringAndCanfuseUT, SliceFollowedByTranspose) {
@@ -1853,7 +1855,7 @@ TEST_F(LoweringAndCanfuseUT, SliceWithMixedLoadTypes) {
     auto data0 = es_graph_->CreateInput(0, "data0", nullptr);
     data0.SetSymbolShape({"128", "64"});
     auto data1 = es_graph_->CreateInput(1, "data1", nullptr);
-    data1.SetSymbolShape({"1", "32"});   // broadcast
+    data1.SetSymbolShape({"1", "32"});  // broadcast
     auto data2 = es_graph_->CreateInput(2, "data2", nullptr);
     data2.SetSymbolShape({"128", "32"});
 

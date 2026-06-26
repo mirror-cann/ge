@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,8 +22,8 @@ AiCpuTaskBuilder::AiCpuTaskBuilder(const OpDescPtr &op_desc, const domi::KernelE
 
 Status AiCpuTaskBuilder::SetFmkOpKernel(const void *const io_addr, const void *const ws_addr,
                                         STR_FWK_OP_KERNEL &fwk_op_kernel) const {
-  const auto sec_ret = memcpy_s(&fwk_op_kernel, sizeof(STR_FWK_OP_KERNEL),
-                                kernel_def_.args().data(), kernel_def_.args().size());
+  const auto sec_ret =
+      memcpy_s(&fwk_op_kernel, sizeof(STR_FWK_OP_KERNEL), kernel_def_.args().data(), kernel_def_.args().size());
   GE_CHK_BOOL_RET_STATUS(sec_ret == EOK, ACL_ERROR_GE_MEMORY_OPERATE_FAILED,
                          "[Memcpy_s][Param:fwk_op_kernel] failed, ret: %d", sec_ret);
 
@@ -36,12 +36,11 @@ Status AiCpuTaskBuilder::SetFmkOpKernel(const void *const io_addr, const void *c
 
 Status AiCpuTaskBuilder::InitWorkspaceAndIO(AiCpuTask &task, const SingleOpModelParam &param) const {
   GE_CHECK_GE(kernel_def_.task_info().size(), kernel_def_.task_info_size());
-  GE_CHK_ACL_RET(ge::AclrtMalloc(&task.workspace_addr_,
-                                static_cast<uint64_t>(kernel_def_.task_info_size()),
-                                task.mem_type_, GE_MODULE_NAME_U16));
+  GE_CHK_ACL_RET(ge::AclrtMalloc(&task.workspace_addr_, static_cast<uint64_t>(kernel_def_.task_info_size()),
+                                 task.mem_type_, GE_MODULE_NAME_U16));
   GE_CHK_ACL_RET(aclrtMemcpy(task.workspace_addr_, static_cast<uint64_t>(kernel_def_.task_info_size()),
-      kernel_def_.task_info().data(), static_cast<uint64_t>(kernel_def_.task_info_size()),
-      task.memcpy_kind_));
+                             kernel_def_.task_info().data(), static_cast<uint64_t>(kernel_def_.task_info_size()),
+                             task.memcpy_kind_));
 
   const auto addresses = BuildTaskUtils::GetAddresses(op_desc_, param, false);
   task.io_addr_host_ = BuildTaskUtils::JoinAddresses(addresses);
@@ -50,10 +49,10 @@ Status AiCpuTaskBuilder::InitWorkspaceAndIO(AiCpuTask &task, const SingleOpModel
     GE_CHK_STATUS_RET(CheckUint32AddOverflow(static_cast<uint32_t>(task.io_addr_host_.size() * sizeof(uint64_t)),
                                              (static_cast<uint32_t>(kAlignBytes64) - 1U)),
                       "Padding size is beyond the UINT32_MAX.");
-    task.host_mem_input_data_offset_ = (((task.io_addr_host_.size() * sizeof(void *)) + kAlignBytes64 - 1U) /
-                                        kAlignBytes64) * kAlignBytes64;
-    const size_t extend_len = (task.host_mem_input_data_offset_ - (task.io_addr_host_.size() * sizeof(void *))) +
-                              kMaxHostMemInputLen;
+    task.host_mem_input_data_offset_ =
+        (((task.io_addr_host_.size() * sizeof(void *)) + kAlignBytes64 - 1U) / kAlignBytes64) * kAlignBytes64;
+    const size_t extend_len =
+        (task.host_mem_input_data_offset_ - (task.io_addr_host_.size() * sizeof(void *))) + kMaxHostMemInputLen;
     const size_t io_addr_host_size = task.io_addr_host_.size() + (extend_len / sizeof(void *));
     task.io_addr_host_.resize(io_addr_host_size, nullptr);
     GELOGD("%s has host memory input, io addr host is extended %zu, length = %zu, host_mem_input_data_offset = %zu.",
@@ -61,8 +60,7 @@ Status AiCpuTaskBuilder::InitWorkspaceAndIO(AiCpuTask &task, const SingleOpModel
            task.host_mem_input_data_offset_);
   }
   task.io_addr_size_ = task.io_addr_host_.size() * sizeof(void *);
-  GE_CHK_ACL_RET(ge::AclrtMalloc(&task.io_addr_, task.io_addr_size_, task.mem_type_,
-                                GE_MODULE_NAME_U16));
+  GE_CHK_ACL_RET(ge::AclrtMalloc(&task.io_addr_, task.io_addr_size_, task.mem_type_, GE_MODULE_NAME_U16));
   return SUCCESS;
 }
 
@@ -93,18 +91,17 @@ Status AiCpuTaskBuilder::BuildTask(ge::AiCpuTask &task, const SingleOpModelParam
   fwk_op_kernel.fwkKernelBase.fwk_kernel.sessionID = std::numeric_limits<uint64_t>::max();
   fwk_op_kernel.fwkKernelBase.fwk_kernel.kernelID = kernel_id;
   fwk_op_kernel.fwkKernelBase.fwk_kernel.opType = aicpu::FWKAdapter::FWKOperateType::FWK_ADPT_KERNEL_RUN_NO_SESS;
-  GE_CHK_ACL_RET(ge::AclrtMalloc(&task.args_, sizeof(STR_FWK_OP_KERNEL), task.mem_type_,
-                                GE_MODULE_NAME_U16));
-  GE_CHK_ACL_RET(aclrtMemcpy(task.args_, sizeof(STR_FWK_OP_KERNEL),
-      &fwk_op_kernel, sizeof(STR_FWK_OP_KERNEL), task.memcpy_kind_));
+  GE_CHK_ACL_RET(ge::AclrtMalloc(&task.args_, sizeof(STR_FWK_OP_KERNEL), task.mem_type_, GE_MODULE_NAME_U16));
+  GE_CHK_ACL_RET(
+      aclrtMemcpy(task.args_, sizeof(STR_FWK_OP_KERNEL), &fwk_op_kernel, sizeof(STR_FWK_OP_KERNEL), task.memcpy_kind_));
 
   task.arg_size_ = sizeof(STR_FWK_OP_KERNEL);
   task.op_type_ = op_desc_->GetName();
   task.task_info_ = kernel_def_.task_info();
   task.kernel_id_ = kernel_id;
 
-  GELOGI("[TASK_INFO] %" PRIu64 "/%s %s",
-    kernel_id, task.op_type_.c_str(), BuildTaskUtils::GetTaskInfo(op_desc_).c_str());
+  GELOGI("[TASK_INFO] %" PRIu64 "/%s %s", kernel_id, task.op_type_.c_str(),
+         BuildTaskUtils::GetTaskInfo(op_desc_).c_str());
   return SUCCESS;
 }
 }  // namespace ge

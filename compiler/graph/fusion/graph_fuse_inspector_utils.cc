@@ -53,9 +53,8 @@ bool CheckOwnerGraph(const std::vector<NodePtr> &nodes, ComputeGraphPtr &owner_g
   return true;
 }
 
-bool MarkPassNameOnReplacementNodes(const std::vector<NodePtr> &before_nodes,
-                    const std::vector<NodePtr> &after_nodes,
-                    const std::string &pass_name) {
+bool MarkPassNameOnReplacementNodes(const std::vector<NodePtr> &before_nodes, const std::vector<NodePtr> &after_nodes,
+                                    const std::string &pass_name) {
   for (const auto &node : after_nodes) {
     GE_ASSERT_NOTNULL(node);
     GE_ASSERT_NOTNULL(node->GetOpDesc());
@@ -95,7 +94,8 @@ bool GraphFuseInspectorUtils::CanFuse(const std::vector<GNode> &nodes_before_fus
   return true;
 }
 
-Status GraphFuseInspectorUtils::ReportFuse(const std::vector<GNode> &nodes_before_fuse,const std::vector<GNode> &nodes_after_fuse,CustomPassContext &ctx) {
+Status GraphFuseInspectorUtils::ReportFuse(const std::vector<GNode> &nodes_before_fuse,
+                                           const std::vector<GNode> &nodes_after_fuse, CustomPassContext &ctx) {
   std::string error_msg;
   std::vector<NodePtr> before_nodes;
   if (!ConvertGNodes(nodes_before_fuse, before_nodes, error_msg)) {
@@ -132,7 +132,8 @@ Status GraphFuseInspectorUtils::ReportFuse(const std::vector<GNode> &nodes_befor
   if (!MarkPassNameOnReplacementNodes(before_nodes, after_nodes, pass_name_str)) {
     return FAILED;
   }
-  FusionUtils::RecordFusionStatistic(owner_graph->GetSessionID(), std::to_string(owner_graph->GetGraphID()), pass_name_str,1,1);
+  FusionUtils::RecordFusionStatistic(owner_graph->GetSessionID(), std::to_string(owner_graph->GetGraphID()),
+                                     pass_name_str, 1, 1);
   return SUCCESS;
 }
 }  // namespace fusion

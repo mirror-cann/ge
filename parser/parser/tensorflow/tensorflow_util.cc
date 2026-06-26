@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -232,7 +232,7 @@ FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY bool TensorFlowUtil::ParseFromA
   tf_datatype = a_list.func(i).attr().at(SERIALIZE_DATATYPE).i();
   const ge::DataType type = domi::TensorAssign::ConvertTensorflowDataType(tf_datatype);
   GE_CHK_BOOL_RET_STATUS(type != ge::DataType::DT_UNDEFINED, PARAM_INVALID,
-                         "In FrameworkOp translate datatype:%d failed, domi cann't support.", tf_datatype);
+                         "In FrameworkOp translate datatype:%d failed, domi can't support.", tf_datatype);
   ge_desc.SetDataType(type);
   ge_desc.SetOriginDataType(type);
   int shape_dim_dim = a_list.func(i).attr().at(SERIALIZE_SHAPE).list().i_size();
@@ -246,8 +246,8 @@ FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY bool TensorFlowUtil::ParseFromA
 }
 
 FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY domi::Status TensorFlowUtil::TransTensorDescriptor(
-    const domi::tensorflow::AttrValue &attr_value, ParserOperator *const op,
-    const uint32_t io, const std::string &type) {
+    const domi::tensorflow::AttrValue &attr_value, ParserOperator *const op, const uint32_t io,
+    const std::string &type) {
   GE_CHECK_NOTNULL(op);
   if (!attr_value.has_list()) {
     return PARAM_INVALID;
@@ -268,7 +268,7 @@ FMK_FUNC_HOST_VISIBILITY FMK_FUNC_DEV_VISIBILITY domi::Status TensorFlowUtil::Tr
     // get size
     for (uint32_t j = 0U; j < ge_desc.GetShape().GetDimNum(); ++j) {
       int64_t tmp_dim = ge_desc.GetShape().GetDim(j);
-      // The shape infered by fusedbatchnormgrad and mean calling tensorflow is not accurate.
+      // The shape inferred by fusedbatchnormgrad and mean calling tensorflow is not accurate.
       // Here, special treatment is given to the two operators.
       // Adjust shape to fit resnet50 network only.
       if ((type == ge::parser::FUSEDBATCHNORMGRAD) && (tmp_dim == 0)) {

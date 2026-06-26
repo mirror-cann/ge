@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,8 +33,7 @@ using namespace std;
 using CreateFn = ge::OpsKernelBuilder *(*)();
 using OpsKernelBuilderPtr = std::shared_ptr<ge::OpsKernelBuilder>;
 namespace fe {
-class STestFeOmConsistencyCheck: public testing::Test
-{
+class STestFeOmConsistencyCheck : public testing::Test {
  protected:
   static void SetUpTestCase() {
     const char *soc_version = "Ascend910A";
@@ -68,7 +67,8 @@ class STestFeOmConsistencyCheck: public testing::Test
 //   EXPECT_EQ(graph->GetDirectNode().size(), 661);
 
 //   const auto &ops_kernel_builders_const = ge::OpsKernelBuilderRegistry::GetInstance().GetAll();
-//   std::map<std::string, OpsKernelBuilderPtr> &ops_kernel_builders = const_cast<std::map<std::string, OpsKernelBuilderPtr>&>(ops_kernel_builders_const);
+//   std::map<std::string, OpsKernelBuilderPtr> &ops_kernel_builders = const_cast<std::map<std::string,
+//   OpsKernelBuilderPtr>&>(ops_kernel_builders_const);
 
 //   for (auto &ops_kernel_builder: ops_kernel_builders) {
 //     if (ops_kernel_builder.first == AI_CORE_NAME) {
@@ -127,4 +127,4 @@ class STestFeOmConsistencyCheck: public testing::Test
 //     EXPECT_EQ(kernel_buffer_size, 0);
 //   };
 // }
-}
+}  // namespace fe

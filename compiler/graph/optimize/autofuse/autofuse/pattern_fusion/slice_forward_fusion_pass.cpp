@@ -29,7 +29,7 @@ bool HasSingleInputAndOutput(const NodePtr &node) {
 
   // 检查所有输入是否来自同一个节点
   NodePtr unique_input = in_nodes.at(0);
-  for (const auto &in: in_nodes) {
+  for (const auto &in : in_nodes) {
     if (in != unique_input) {
       return false;
     }
@@ -37,7 +37,7 @@ bool HasSingleInputAndOutput(const NodePtr &node) {
 
   // 检查所有输出是否去往同一个节点
   NodePtr unique_output = out_nodes.at(0);
-  for (const auto &out: out_nodes) {
+  for (const auto &out : out_nodes) {
     if (out != unique_output) {
       return false;
     }
@@ -72,7 +72,7 @@ std::vector<NodePtr> CollectElementwiseChain(const NodePtr &slice_node) {
 }
 
 graphStatus RemoveEdgesFromSource(const NodePtr &dst, const NodePtr &src) {
-  for (const auto &in_anchor: dst->GetAllInDataAnchors()) {
+  for (const auto &in_anchor : dst->GetAllInDataAnchors()) {
     auto peer_out = in_anchor->GetPeerOutAnchor();
     if (peer_out != nullptr && peer_out->GetOwnerNode() == src) {
       GE_ASSERT_GRAPH_SUCCESS(GraphUtils::RemoveEdge(peer_out, in_anchor), "Failed to remove edge %s -> %s",
@@ -83,16 +83,16 @@ graphStatus RemoveEdgesFromSource(const NodePtr &dst, const NodePtr &src) {
 }
 
 graphStatus ConnectAllInputsToSource(const NodePtr &dst, const OutDataAnchorPtr &src_out, const NodePtr &src) {
-  for (const auto &in_anchor: dst->GetAllInDataAnchors()) {
-    GE_CHK_GRAPH_STATUS_RET(GraphUtils::AddEdge(src_out, in_anchor),
-                            "Failed to connect %s -> %s", src->GetNamePtr(), dst->GetNamePtr());
+  for (const auto &in_anchor : dst->GetAllInDataAnchors()) {
+    GE_CHK_GRAPH_STATUS_RET(GraphUtils::AddEdge(src_out, in_anchor), "Failed to connect %s -> %s", src->GetNamePtr(),
+                            dst->GetNamePtr());
   }
   return GRAPH_SUCCESS;
 }
 
 graphStatus DoSliceForward(const NodePtr &slice_node, const std::vector<NodePtr> &elem_chain) {
-  const NodePtr &elem_near_slice = elem_chain.front(); // elem_chain[0]
-  const NodePtr &elem_far_from_slice = elem_chain.back(); // elem_chain[N-1]
+  const NodePtr &elem_near_slice = elem_chain.front();     // elem_chain[0]
+  const NodePtr &elem_far_from_slice = elem_chain.back();  // elem_chain[N-1]
   const auto &far_inputs = elem_far_from_slice->GetInDataNodes();
   GE_ASSERT_TRUE(!far_inputs.empty(), "Element %s has no input nodes", elem_far_from_slice->GetNamePtr());
   const NodePtr &chain_input = far_inputs.at(0);
@@ -110,45 +110,40 @@ graphStatus DoSliceForward(const NodePtr &slice_node, const std::vector<NodePtr>
   GE_ASSERT_GRAPH_SUCCESS(RemoveEdgesFromSource(elem_far_from_slice, chain_input));
   // 断开：elem_near_slice -> slice
   GE_CHK_GRAPH_STATUS_RET(GraphUtils::RemoveEdge(elem_near_slice->GetOutDataAnchor(0), slice_node->GetInDataAnchor(0)),
-                          "Failed to disconnect %s -> %s", elem_near_slice->GetNamePtr(),
-                          slice_node->GetNamePtr());
+                          "Failed to disconnect %s -> %s", elem_near_slice->GetNamePtr(), slice_node->GetNamePtr());
 
   // 重连：chain_input -> slice -> elem_far_from_slice -> ... -> elem_near_slice -> [原slice的输出]
   // 1. slice 的原输出改为 elem_near_slice 的输出
-  for (const auto &peer_in: slice_node->GetOutDataAnchor(0)->GetPeerInDataAnchors()) {
+  for (const auto &peer_in : slice_node->GetOutDataAnchor(0)->GetPeerInDataAnchors()) {
     GE_CHK_GRAPH_STATUS_RET(
-      GraphUtils::ReplaceEdgeSrc(slice_node->GetOutDataAnchor(0), peer_in,
-        elem_near_slice->GetOutDataAnchor(0)),
-      "Failed to replace output edge of slice %s", slice_node->GetNamePtr());
+        GraphUtils::ReplaceEdgeSrc(slice_node->GetOutDataAnchor(0), peer_in, elem_near_slice->GetOutDataAnchor(0)),
+        "Failed to replace output edge of slice %s", slice_node->GetNamePtr());
   }
 
   // 2. chain_input -> slice
   GE_CHK_GRAPH_STATUS_RET(GraphUtils::AddEdge(chain_input_out, slice_node->GetInDataAnchor(0)),
-                          "Failed to connect %s -> %s", chain_input->GetNamePtr(),
-                          slice_node->GetNamePtr());
+                          "Failed to connect %s -> %s", chain_input->GetNamePtr(), slice_node->GetNamePtr());
 
   // 3. slice -> elem_far_from_slice
   GE_CHK_GRAPH_STATUS_RET(ConnectAllInputsToSource(elem_far_from_slice, slice_node->GetOutDataAnchor(0), slice_node),
-                          "Failed to connect %s -> %s", slice_node->GetNamePtr(),
-                          elem_far_from_slice->GetNamePtr());
+                          "Failed to connect %s -> %s", slice_node->GetNamePtr(), elem_far_from_slice->GetNamePtr());
 
   return GRAPH_SUCCESS;
 }
 
-graphStatus UpdateElementwiseShapes(const std::vector<NodePtr> &elem_chain,
-                                    const GeShape &slice_output_shape,
+graphStatus UpdateElementwiseShapes(const std::vector<NodePtr> &elem_chain, const GeShape &slice_output_shape,
                                     const gert::SymbolShape &slice_symbol_shape) {
-  for (const auto &elem: elem_chain) {
+  for (const auto &elem : elem_chain) {
     GE_CHK_STATUS_RET(SetNodeShape(elem, slice_output_shape, slice_output_shape, slice_symbol_shape),
                       "Failed to update shape for node %s", elem->GetNamePtr());
   }
   return GRAPH_SUCCESS;
 }
-} // namespace
+}  // namespace
 
 graphStatus SliceForwardFusionPass::Run(const ComputeGraphPtr &graph) {
   GE_CHECK_NOTNULL(graph);
-  for (const auto &node: graph->GetDirectNode()) {
+  for (const auto &node : graph->GetDirectNode()) {
     if (kSliceOpTypes.find(node->GetType()) == kSliceOpTypes.end()) {
       continue;
     }
@@ -159,17 +154,16 @@ graphStatus SliceForwardFusionPass::Run(const ComputeGraphPtr &graph) {
     }
 
     GELOGD("SliceForwardFusionPass: hoist %s past elementwise chain (size=%zu), first_elem=%s, last_elem=%s",
-           node->GetNamePtr(), elem_chain.size(),
-           elem_chain.front()->GetNamePtr(), elem_chain.back()->GetNamePtr());
+           node->GetNamePtr(), elem_chain.size(), elem_chain.front()->GetNamePtr(), elem_chain.back()->GetNamePtr());
 
     const auto &slice_output_shape = node->GetOpDesc()->GetOutputDesc(0).GetShape();
     const auto &slice_symbol_shape = GetNodeSymbolShape(node);
 
-    GE_CHK_GRAPH_STATUS_RET(DoSliceForward(node, elem_chain),
-                            "Failed to do slice forward for node %s", node->GetNamePtr());
+    GE_CHK_GRAPH_STATUS_RET(DoSliceForward(node, elem_chain), "Failed to do slice forward for node %s",
+                            node->GetNamePtr());
     GE_CHK_GRAPH_STATUS_RET(UpdateElementwiseShapes(elem_chain, slice_output_shape, slice_symbol_shape),
                             "Failed to update elementwise shapes for slice %s", node->GetNamePtr());
   }
   return GRAPH_SUCCESS;
 }
-} // namespace ge
+}  // namespace ge

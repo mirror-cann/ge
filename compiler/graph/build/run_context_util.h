@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -30,11 +30,10 @@ class RunContextUtil {
   // Init mem info.
   ge::Status InitMemInfo(uint8_t *data_mem_base, uint64_t data_mem_size,
                          std::map<int64_t, uint8_t *> mem_type_to_data_mem_base,
-                         std::map<int64_t, uint64_t> mem_type_to_data_mem_size,
-                         uint8_t *weight_mem_base, uint64_t weight_mem_size);
+                         std::map<int64_t, uint64_t> mem_type_to_data_mem_size, uint8_t *weight_mem_base,
+                         uint64_t weight_mem_size);
 
-  ge::Status CreateRunContext(Model &model, const ComputeGraphPtr &graph, Buffer &buffer,
-                              const uint64_t session_id);
+  ge::Status CreateRunContext(Model &model, const ComputeGraphPtr &graph, Buffer &buffer, const uint64_t session_id);
 
   RunContext &GetRunContext();
 

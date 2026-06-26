@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,9 +20,9 @@
 #include "proto/tensorflow/node_def.pb.h"
 
 namespace ge {
-using google::protobuf::Message;
 using domi::tensorflow::NodeDef;
 using domi::tensorflow::TensorProto;
+using google::protobuf::Message;
 
 /**
  * @ingroup domi_omg
@@ -30,8 +30,8 @@ using domi::tensorflow::TensorProto;
  */
 class PARSER_FUNC_VISIBILITY TensorFlowFusionOpParser : public TensorFlowOpParser {
  public:
-   using TensorFlowOpParser::ParseParams;
- /**
+  using TensorFlowOpParser::ParseParams;
+  /**
    * @ingroup domi_omg
    * @brief Analytic operator parameters
    * @param [in] v_input_const Operator parameters to be parsed
@@ -57,8 +57,8 @@ class PARSER_FUNC_VISIBILITY TensorFlowFusionOpParser : public TensorFlowOpParse
    * @brief Parse parameters from const op
    * @param [in] op_src Model data to be parsed
    * @param [out] op_dest Parsed model data
-  * @return SUCCESS Parsing success
-  * @return FAILED Parsing failed
+   * @return SUCCESS Parsing success
+   * @return FAILED Parsing failed
    *
    */
   // template <class T>

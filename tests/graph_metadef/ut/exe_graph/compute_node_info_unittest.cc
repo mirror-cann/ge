@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -125,10 +125,7 @@ TEST_F(ComputeNodeInfoUT, GetInputInstanceOk) {
   EXPECT_EQ(compute_node_info->GetInputInstanceInfo(2), nullptr);
 }
 TEST_F(ComputeNodeInfoUT, GetDynamicInputInstanceOk) {
-  auto context_holder = KernelRunContextFaker()
-                            .IrInstanceNum({2, 0, 1})
-                            .NodeIoNum(3, 1)
-                            .Build();
+  auto context_holder = KernelRunContextFaker().IrInstanceNum({2, 0, 1}).NodeIoNum(3, 1).Build();
 
   auto context = context_holder.GetContext<ExtendedKernelContext>();
   ASSERT_NE(context, nullptr);
@@ -154,13 +151,13 @@ TEST_F(ComputeNodeInfoUT, GetDynamicInputInstanceOk) {
 }
 TEST_F(ComputeNodeInfoUT, GetOutputInstanceOk) {
   auto context_holder = KernelRunContextFaker()
-      .IrInputNum(2)
-      .IrOutputNum(2)
-      .NodeIoNum(2, 2)
-      .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-      .NodeInputTd(1, ge::DT_FLOAT16, ge::FORMAT_HWCN, ge::FORMAT_FRACTAL_Z)
-      .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_HWCN, ge::FORMAT_FRACTAL_Z)
-      .Build();
+                            .IrInputNum(2)
+                            .IrOutputNum(2)
+                            .NodeIoNum(2, 2)
+                            .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+                            .NodeInputTd(1, ge::DT_FLOAT16, ge::FORMAT_HWCN, ge::FORMAT_FRACTAL_Z)
+                            .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_HWCN, ge::FORMAT_FRACTAL_Z)
+                            .Build();
 
   auto context = context_holder.GetContext<ExtendedKernelContext>();
   ASSERT_NE(context, nullptr);
@@ -180,11 +177,8 @@ TEST_F(ComputeNodeInfoUT, GetOutputInstanceOk) {
   EXPECT_EQ(compute_node_info->GetOutputInstanceInfo(2), nullptr);
 }
 TEST_F(ComputeNodeInfoUT, GetDynamicOutputInstanceOk) {
-  auto context_holder = KernelRunContextFaker()
-      .IrInstanceNum({2, 0, 1})
-      .IrOutputInstanceNum({2, 1})
-      .NodeIoNum(3, 3)
-      .Build();
+  auto context_holder =
+      KernelRunContextFaker().IrInstanceNum({2, 0, 1}).IrOutputInstanceNum({2, 1}).NodeIoNum(3, 3).Build();
 
   auto context = context_holder.GetContext<ExtendedKernelContext>();
   ASSERT_NE(context, nullptr);
@@ -207,10 +201,8 @@ TEST_F(ComputeNodeInfoUT, GetAttrsOk) {
   auto context_holder = KernelRunContextFaker()
                             .IrInstanceNum({2, 0, 1})
                             .NodeIoNum(3, 1)
-                            .NodeAttrs({
-                                {"i", ge::AnyValue::CreateFrom(static_cast<int64_t>(10))},
-                                {"li", ge::AnyValue::CreateFrom(std::vector<int64_t>({10,20,30}))}
-                            })
+                            .NodeAttrs({{"i", ge::AnyValue::CreateFrom(static_cast<int64_t>(10))},
+                                        {"li", ge::AnyValue::CreateFrom(std::vector<int64_t>({10, 20, 30}))}})
                             .Build();
 
   auto context = context_holder.GetContext<ExtendedKernelContext>();
@@ -233,35 +225,33 @@ TEST_F(ComputeNodeInfoUT, GetAttrsOk) {
 }
 
 TEST_F(ComputeNodeInfoUT, GetAttrsEmptyAxes) {
-auto context_holder = KernelRunContextFaker()
-    .IrInstanceNum({2, 0, 1})
-    .NodeIoNum(3, 1)
-    .NodeAttrs({
-                   {"i", ge::AnyValue::CreateFrom(static_cast<int64_t>(10))},
-                   {"axes", ge::AnyValue::CreateFrom(std::vector<int64_t>({}))}
-               })
-    .Build();
+  auto context_holder = KernelRunContextFaker()
+                            .IrInstanceNum({2, 0, 1})
+                            .NodeIoNum(3, 1)
+                            .NodeAttrs({{"i", ge::AnyValue::CreateFrom(static_cast<int64_t>(10))},
+                                        {"axes", ge::AnyValue::CreateFrom(std::vector<int64_t>({}))}})
+                            .Build();
 
-auto context = context_holder.GetContext<ExtendedKernelContext>();
-ASSERT_NE(context, nullptr);
-auto compute_node_info = context->GetComputeNodeInfo();
-ASSERT_NE(compute_node_info, nullptr);
+  auto context = context_holder.GetContext<ExtendedKernelContext>();
+  ASSERT_NE(context, nullptr);
+  auto compute_node_info = context->GetComputeNodeInfo();
+  ASSERT_NE(compute_node_info, nullptr);
 
-auto attrs = compute_node_info->GetAttrs();
-ASSERT_NE(attrs, nullptr);
-EXPECT_EQ(attrs->GetAttrNum(), 2);
-EXPECT_EQ(*attrs->GetAttrPointer<int64_t>(0), 10);
-auto vec = attrs->GetAttrPointer<ContinuousVector>(1);
-EXPECT_NE(vec, nullptr);
-EXPECT_EQ(vec->GetSize(), 0);
+  auto attrs = compute_node_info->GetAttrs();
+  ASSERT_NE(attrs, nullptr);
+  EXPECT_EQ(attrs->GetAttrNum(), 2);
+  EXPECT_EQ(*attrs->GetAttrPointer<int64_t>(0), 10);
+  auto vec = attrs->GetAttrPointer<ContinuousVector>(1);
+  EXPECT_NE(vec, nullptr);
+  EXPECT_EQ(vec->GetSize(), 0);
 }
 
 TEST_F(ComputeNodeInfoUT, InitAndCalcSizeDefault) {
   const size_t ir_input_num = 2U;
   const size_t inputs_num = 2U;
   const size_t outputs_num = 2U;
-  const char * node_name = "test";
-  const char * node_type = "Test";
+  const char *node_name = "test";
+  const char *node_type = "Test";
 
   size_t total_size = 0U;
   EXPECT_EQ(ComputeNodeInfo::CalcSize(ir_input_num, inputs_num, outputs_num, total_size), ge::SUCCESS);

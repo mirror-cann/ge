@@ -92,4 +92,3 @@ static Status InferShape(const Graph &graph, const std::vector<Shape> &input_sha
 ## 约束说明<a name="zh-cn_topic_0204328165_zh-cn_topic_0182636384_section62768825"></a>
 
 无
-

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -15,13 +15,12 @@ namespace profiling {
 namespace {
 
 std::string RandomStr(const int len) {
-  std::string res(len,' ');
-  for(int i = 0; i < len; ++i) {
+  std::string res(len, ' ');
+  for (int i = 0; i < len; ++i) {
     res[i] = 'A' + rand() % 26;
   }
   return res;
 }
-
 
 std::string FindNext(const std::string &s, size_t &pos) {
   std::stringstream ss;
@@ -68,7 +67,7 @@ std::vector<std::string> Split(const std::string &s, std::string spliter) {
 
   return strings;
 }
-}
+}  // namespace
 class ProfilerUt : public testing::Test {};
 
 TEST_F(ProfilerUt, OneRecord) {
@@ -193,7 +192,6 @@ TEST_F(ProfilerUt, ResetRemainsRegisteredString) {
   auto lines = SplitLines(ss.str());
   EXPECT_EQ(lines.size(), 0);
 
-
   p->Record(0, 1, 2, EventType::kEventStart, std::chrono::system_clock::now());
   ss = std::stringstream();
   p->Dump(ss);
@@ -271,7 +269,7 @@ TEST_F(ProfilerUt, GetStringHashes) {
 TEST_F(ProfilerUt, RegisterTooLongString) {
   auto p = Profiler::Create();
   std::string input = RandomStr(300);
-  std::string gt_res = input.substr(0,255);
+  std::string gt_res = input.substr(0, 255);
   p->RegisterString(0, input);
   p->RegisterString(2, "InferShape");
   auto s = p->GetStringHashes();
@@ -303,5 +301,5 @@ TEST_F(ProfilerUt, BeyondMaxRecordsNum) {
   EXPECT_EQ(lines.size(), profiling::kMaxRecordNum + 3);
 }
 */
-}
-}
+}  // namespace profiling
+}  // namespace ge

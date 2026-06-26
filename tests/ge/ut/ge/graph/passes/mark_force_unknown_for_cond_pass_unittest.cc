@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -63,39 +63,39 @@ static NodePtr CreateNode(ComputeGraph &graph, const string &name, const string 
 }
 
 static void CreateLoopGraph(ComputeGraphPtr &graph, NodePtr &merge, vector<NodePtr> &loop, vector<NodePtr> &cond) {
-/*******************************************************************************
- *                                     |
- *            +--------------------- Merge ----------------------+
- *           /                                                   |
- *          /                                                    |
- *         /                                                     |
- *        /                                                      |
- *      Exit         Identify                                    |
- *        \         /       \.                                   |
- *         \       /         \.                                  |
- *          Switch           Add                                Add
- *         /     |            |                                  |
- *        /      |            |                                  |
- *       /       |            |                                  |
- *  LoopCond     |            |                                  |
- *      \        |            |                                  |
- *       \       |            |                                  |
- *        \      |            |                                  |
- *       Less    |            |                                  |
- *          \    |       NextIteration                           |
- *           \   |            |                                  |
- *            \  |            |                                  |
- *            Merge <---------|                                  |
- *              |                                                |
- *              |                                                |
- *            Enter                                              |
- *              \                                                |
- *               \                                               |
- *               Switch                                       Switch
- *                  |                                            |
- *                  +-----------------Equal----------------------+
- *                                      |
- ******************************************************************************/
+  /*******************************************************************************
+   *                                     |
+   *            +--------------------- Merge ----------------------+
+   *           /                                                   |
+   *          /                                                    |
+   *         /                                                     |
+   *        /                                                      |
+   *      Exit         Identify                                    |
+   *        \         /       \.                                   |
+   *         \       /         \.                                  |
+   *          Switch           Add                                Add
+   *         /     |            |                                  |
+   *        /      |            |                                  |
+   *       /       |            |                                  |
+   *  LoopCond     |            |                                  |
+   *      \        |            |                                  |
+   *       \       |            |                                  |
+   *        \      |            |                                  |
+   *       Less    |            |                                  |
+   *          \    |       NextIteration                           |
+   *           \   |            |                                  |
+   *            \  |            |                                  |
+   *            Merge <---------|                                  |
+   *              |                                                |
+   *              |                                                |
+   *            Enter                                              |
+   *              \                                                |
+   *               \                                               |
+   *               Switch                                       Switch
+   *                  |                                            |
+   *                  +-----------------Equal----------------------+
+   *                                      |
+   ******************************************************************************/
   auto data1 = CreateNode(*graph, "data1", DATA, 1, 1);
   auto data2 = CreateNode(*graph, "data2", DATA, 1, 1);
 
@@ -138,8 +138,8 @@ static void CreateLoopGraph(ComputeGraphPtr &graph, NodePtr &merge, vector<NodeP
   GraphUtils::AddEdge(merge1->GetOutDataAnchor(0), switch3->GetInDataAnchor(1));
   loop.emplace_back(merge1);
 
-  GraphUtils::AddEdge(switch3->GetOutDataAnchor(0), exit1->GetInDataAnchor(0)); // false
-  GraphUtils::AddEdge(switch3->GetOutDataAnchor(1), ident1->GetInDataAnchor(0)); // true
+  GraphUtils::AddEdge(switch3->GetOutDataAnchor(0), exit1->GetInDataAnchor(0));   // false
+  GraphUtils::AddEdge(switch3->GetOutDataAnchor(1), ident1->GetInDataAnchor(0));  // true
   loop.emplace_back(switch3);
 
   GraphUtils::AddEdge(ident1->GetOutDataAnchor(0), add1->GetInDataAnchor(0));
@@ -159,26 +159,26 @@ static void CreateLoopGraph(ComputeGraphPtr &graph, NodePtr &merge, vector<NodeP
 }
 
 static void CreateCondGraph(ComputeGraphPtr &graph, NodePtr &merge) {
-/*******************************************************************************
- *        NetOutput
- *            |
- *            |
- *          Merge
- *         /     \.
- *        /       \.
- *       /         \.
- *     Add          Sub
- *     |  \         |  \.
- *     |   \        |   \.
- *     |    \       |    Const
- *     |     \      |      \.
- *     |      \     |      Identify
- *     |       \    |        |
- *  Switch  Switch Switch  Switch
- *     |     |     |   |    |
- *     |     |     |   |    |
- *     x     y   Cond  z
- ******************************************************************************/
+  /*******************************************************************************
+   *        NetOutput
+   *            |
+   *            |
+   *          Merge
+   *         /     \.
+   *        /       \.
+   *       /         \.
+   *     Add          Sub
+   *     |  \         |  \.
+   *     |   \        |   \.
+   *     |    \       |    Const
+   *     |     \      |      \.
+   *     |      \     |      Identify
+   *     |       \    |        |
+   *  Switch  Switch Switch  Switch
+   *     |     |     |   |    |
+   *     |     |     |   |    |
+   *     x     y   Cond  z
+   ******************************************************************************/
   auto data1 = CreateNode(*graph, "data_x", DATA, 1, 1);
   auto data2 = CreateNode(*graph, "data_y", DATA, 1, 1);
   auto data3 = CreateNode(*graph, "data_z", DATA, 1, 1);
@@ -233,7 +233,7 @@ TEST_F(UtestMarkForceUnknownForCondPass, skip_while_loop_merge) {
   CreateLoopGraph(graph, merge, loop, cond);
 
   MarkForceUnknownForCondPass mark_force_unknown_pass;
-  EXPECT_EQ(mark_force_unknown_pass.Run(graph), SUCCESS);   // skip LoopCond
+  EXPECT_EQ(mark_force_unknown_pass.Run(graph), SUCCESS);  // skip LoopCond
 
   EXPECT_EQ(loop.size(), 2);
   for (const auto &node : loop) {
@@ -254,9 +254,8 @@ TEST_F(UtestMarkForceUnknownForCondPass, skip_known_shape_merge) {
   CreateCondGraph(graph, merge);
 
   MarkForceUnknownForCondPass mark_force_unknown_pass;
-  EXPECT_EQ(mark_force_unknown_pass.Run(graph), SUCCESS);   // skip known shape merge
+  EXPECT_EQ(mark_force_unknown_pass.Run(graph), SUCCESS);  // skip known shape merge
 }
-
 
 TEST_F(UtestMarkForceUnknownForCondPass, mark_unknown_shape_merge) {
   auto graph = std::make_shared<ComputeGraph>("test_graph");

@@ -101,4 +101,3 @@ graphStatus aclgrphSaveModel(const char_t *output_file, const ModelBufferData &m
 ## 约束说明<a name="section38092103"></a>
 
 若生成的om模型文件名中含操作系统及架构，但操作系统及其架构与模型运行环境不一致时，需要与OPTION\_HOST\_ENV\_OS、OPTION\_HOST\_ENV\_CPU参数配合使用，设置模型运行环境的操作系统类型及架构。参数具体介绍请参见[aclgrphBuildInitialize支持的配置参数](aclgrphBuildInitialize支持的配置参数.md)。
-

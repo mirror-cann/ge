@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -15,7 +15,7 @@
 #include "inc/ffts_type.h"
 namespace ffts {
 namespace {
-  const std::vector<std::string> kCtxTypeAttrs = {kAttrAICpuCtxDef, kAttrDsaCtxDef};
+const std::vector<std::string> kCtxTypeAttrs = {kAttrAICpuCtxDef, kAttrDsaCtxDef};
 }
 TheadTaskBuilder::TheadTaskBuilder() {}
 
@@ -58,12 +58,12 @@ Status TheadTaskBuilder::GetNodeContextTypeByNode(const ge::NodePtr &node, TaskB
       return SUCCESS;
     }
   }
-  FftsPlusCtxDefPtr runtime_control_ctx_def =  nullptr;
+  FftsPlusCtxDefPtr runtime_control_ctx_def = nullptr;
   runtime_control_ctx_def = op_desc->TryGetExtAttr("FFTS_PLUS_TASK_DEF", runtime_control_ctx_def);
   FFTS_LOGD("Node[%s] rts def:%lx.", node->GetName().c_str(), runtime_control_ctx_def);
   if (runtime_control_ctx_def != nullptr) {
-    task_builder_type = (mode_type_ == ModeType::MANUAL_MODE_TYPE) ? TaskBuilderType::EN_TASK_TYPE_RUNTIME_CONTROL :
-        TaskBuilderType::EN_TASK_TYPE_RUNTIME_CONTROL_AUTO;
+    task_builder_type = (mode_type_ == ModeType::MANUAL_MODE_TYPE) ? TaskBuilderType::EN_TASK_TYPE_RUNTIME_CONTROL
+                                                                   : TaskBuilderType::EN_TASK_TYPE_RUNTIME_CONTROL_AUTO;
     return SUCCESS;
   }
   FFTS_LOGE("Node [%s] of type [%s] cannot obtain context type.", node->GetName().c_str(), node->GetType().c_str());
@@ -75,7 +75,7 @@ FFTSPlusTaskBuilderPtr TheadTaskBuilder::GetTaskBuilder(TaskBuilderType task_bui
     case TaskBuilderType::EN_TASK_TYPE_AIC_AIV:
       return aic_aiv_task_builder_ptr_;
     case TaskBuilderType::EN_TASK_TYPE_AIC_AIV_AUTO:
-     return aic_aiv_auto_task_builder_ptr_;
+      return aic_aiv_auto_task_builder_ptr_;
     case TaskBuilderType::EN_TASK_TYPE_AIC_AIV_DYNAMIC:
       return aic_aiv_dynamic_task_builder_ptr_;
     case TaskBuilderType::EN_TASK_TYPE_MIX_AIC_AIV_DYNAMIC:

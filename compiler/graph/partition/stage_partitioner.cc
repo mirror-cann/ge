@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -67,8 +67,10 @@ Status StagePartitioner::Partition() {
     return a_level < b_level;
   });
   if (root_graph_->TopologicalSorting() != GRAPH_SUCCESS) {
-    GELOGE(FAILED, "[Call][TopologicalSorting] for graph %s after stage partition failed, "
-           "maybe stage_level was not set correctly.", root_graph_->GetName().c_str());
+    GELOGE(FAILED,
+           "[Call][TopologicalSorting] for graph %s after stage partition failed, "
+           "maybe stage_level was not set correctly.",
+           root_graph_->GetName().c_str());
     return FAILED;
   }
   GE_DUMP(root_graph_, "AfterStagePartition");
@@ -99,10 +101,10 @@ Status StagePartitioner::SplitStageLevel() {
           continue;
         }
         if (!AttrUtils::SetInt(in_node->GetOpDesc(), ATTR_STAGE_LEVEL, cur_stage_level)) {
-          REPORT_INNER_ERR_MSG("E19999", "Set Attr %s on node %s failed.",
-                            ATTR_STAGE_LEVEL.c_str(), in_node->GetName().c_str());
-          GELOGE(INTERNAL_ERROR, "[Set][Attr] %s on node %s failed.",
-                 ATTR_STAGE_LEVEL.c_str(), in_node->GetName().c_str());
+          REPORT_INNER_ERR_MSG("E19999", "Set Attr %s on node %s failed.", ATTR_STAGE_LEVEL.c_str(),
+                               in_node->GetName().c_str());
+          GELOGE(INTERNAL_ERROR, "[Set][Attr] %s on node %s failed.", ATTR_STAGE_LEVEL.c_str(),
+                 in_node->GetName().c_str());
           return INTERNAL_ERROR;
         }
         GELOGD("Mark stage_level node %s, stage_level=%u", in_node->GetName().c_str(), cur_stage_level);
@@ -149,7 +151,7 @@ Status StagePartitioner::StagePartition() {
     }
     if (!AttrUtils::SetInt(stage_subgraph, ATTR_STAGE_LEVEL, stage.first)) {
       REPORT_INNER_ERR_MSG("E19999", "Set attr %s on graph %s failed.", ATTR_STAGE_LEVEL.c_str(),
-                        stage_subgraph->GetName().c_str());
+                           stage_subgraph->GetName().c_str());
       GELOGE(FAILED, "[Set][Attr] %s on graph %s failed.", ATTR_STAGE_LEVEL.c_str(), stage_subgraph->GetName().c_str());
       return FAILED;
     }
@@ -157,7 +159,7 @@ Status StagePartitioner::StagePartition() {
     GE_CHECK_NOTNULL(parent_node);
     if (!AttrUtils::SetInt(parent_node->GetOpDesc(), ATTR_STAGE_LEVEL, stage.first)) {
       REPORT_INNER_ERR_MSG("E19999", "Set attr %s on node %s failed", ATTR_STAGE_LEVEL.c_str(),
-                        parent_node->GetName().c_str());
+                           parent_node->GetName().c_str());
       GELOGE(FAILED, "[Set][Attr] %s on node %s failed", ATTR_STAGE_LEVEL.c_str(), parent_node->GetName().c_str());
       return FAILED;
     }

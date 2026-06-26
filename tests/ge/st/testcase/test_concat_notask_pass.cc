@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -56,10 +56,10 @@ static void MockGenerateTask() {
   };
 
   auto hccl_func = [](const ge::Node &node, RunContext &run_context, std::vector<domi::TaskDef> &tasks) -> Status {
-    std::cout << "======node.GetType():" << node.GetType()  << std::endl;
+    std::cout << "======node.GetType():" << node.GetType() << std::endl;
     if (node.GetType() != "HcomAllGather") {
-        std::cout << "*****return***"<< std::endl;
-        return SUCCESS;
+      std::cout << "*****return***" << std::endl;
+      return SUCCESS;
     }
 
     domi::TaskDef task_def;
@@ -92,22 +92,22 @@ class ConcatNotaskPassTest : public testing::Test {
     OpsKernelBuilderRegistry::GetInstance().Unregister("ops_kernel_info_hccl");
   }
 };
-graphStatus infer_fun(Operator &op){
-      // info shape实现
-      auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
-      auto output_desc = *op_desc->MutableOutputDesc(0);
-      *op_desc->MutableOutputDesc(0) = *op_desc->GetInputDescPtr(0);
-      bool reuse_flag = false;
-      (void)TensorUtils::GetReuseInput(output_desc, reuse_flag);
-      if (reuse_flag) {
-        uint32_t idx = 100;
-        TensorUtils::GetReuseInputIndex(output_desc, idx);
-        TensorUtils::SetReuseInput(*op_desc->MutableOutputDesc(0), true);
-        TensorUtils::SetReuseInputIndex(*op_desc->MutableOutputDesc(0), idx);
-      }
-      return GRAPH_SUCCESS;
+graphStatus infer_fun(Operator &op) {
+  // info shape实现
+  auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
+  auto output_desc = *op_desc->MutableOutputDesc(0);
+  *op_desc->MutableOutputDesc(0) = *op_desc->GetInputDescPtr(0);
+  bool reuse_flag = false;
+  (void)TensorUtils::GetReuseInput(output_desc, reuse_flag);
+  if (reuse_flag) {
+    uint32_t idx = 100;
+    TensorUtils::GetReuseInputIndex(output_desc, idx);
+    TensorUtils::SetReuseInput(*op_desc->MutableOutputDesc(0), true);
+    TensorUtils::SetReuseInputIndex(*op_desc->MutableOutputDesc(0), idx);
+  }
+  return GRAPH_SUCCESS;
 }
-graphStatus infer_fun_concat(Operator &op){
+graphStatus infer_fun_concat(Operator &op) {
   // info shape实现
   auto op_desc = OpDescUtils::GetOpDescFromOperator(op);
   *op_desc->MutableOutputDesc(0) = *op_desc->GetInputDescPtr(0);
@@ -139,7 +139,7 @@ class MockConcatNotaskPass {
       GE_CHK_GRAPH_STATUS_RET(op.UpdateOutputDesc("y", output_desc));
       return GRAPH_SUCCESS;
     };
-    auto InferShapeFuncForReshape = [](Operator &op) -> graphStatus  {
+    auto InferShapeFuncForReshape = [](Operator &op) -> graphStatus {
       auto op_desc = ge::OpDescUtils::GetOpDescFromOperator(op);
       op_desc->SetOpInferDepends({"shape"});
       auto x_desc = op_desc->MutableInputDesc("x");
@@ -178,38 +178,38 @@ class MockConcatNotaskPass {
 
     auto ge_env = GeRunningEnvFaker();
     ge_env.Reset()
-         .Install(FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeEngine("AIcoreEngine").KernelInfoStore("AiCoreLib").GraphOptimizer("AIcoreEngine"))
-         .Install(FakeEngine(kEngineNameAiCpu).KernelInfoStore(kEngineNameAiCpu))
-         .Install(FakeEngine("DNN_HCCL").KernelInfoStore(kEngineNameHccl))
-         .Install(FakeEngine("DNN_VM_RTS").KernelInfoStore(kEngineNameRts).GraphOptimizer("DNN_VM_RTS_GRAPH_OPTIMIZER_STORE"))
-         .Install(FakeOp(DATA).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(VARIABLE).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(SHAPE).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(IF).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE").InferShape(infer_fun))
-         .Install(FakeOp("PhonyConcat").InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE").InferShape(infer_fun))
-         .Install(FakeOp(PARTITIONEDCALL).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(CONSTANTOP).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(CONSTANT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp("Identity").InfoStoreAndBuilder("AiCoreLib"))
-         .Install(FakeOp(NETOUTPUT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(ADD).InfoStoreAndBuilder("AiCoreLib").InferShape(infer_fun))
-         .Install(FakeOp("ConcatD").InfoStoreAndBuilder("AiCoreLib").InferShape(infer_fun_concat))
-         .Install(FakeOp(HCOMALLGATHER).InfoStoreAndBuilder(kEngineNameHccl).InferShape(allgather_infer_fun))
-         .Install(FakeOp("Send").InfoStoreAndBuilder(kEngineNameRts))
-         .Install(FakeOp("Recv").InfoStoreAndBuilder(kEngineNameRts))
-         .Install(FakeOp(RELU).InfoStoreAndBuilder("AiCoreLib").InferShape(infer_fun))
-         .Install(FakeOp(CONV2D).InfoStoreAndBuilder("AiCoreLib").InferShape(infer_fun))
-         .Install(FakeOp(RESHAPE).InfoStoreAndBuilder("AiCoreLib").InferShape(InferShapeFuncForReshape))
-         .Install(FakeOp(STREAMACTIVE).InfoStoreAndBuilder("DNN_VM_RTS_OP_STORE"));
-      optiling::OpTilingFuncV2 tilingfun = [](const ge::Operator &op,
-                                          const optiling::OpCompileInfoV2 &compile_info,
-                                          optiling::OpRunInfoV2 &run_info) -> bool {
-        run_info.SetWorkspaces({1024});
-        return true;
-      };
-      optiling::OpTilingRegistryInterf_V2(RELU, tilingfun);
-      REGISTER_OP_TILING_UNIQ_V2(ReLU, tilingfun, 1);
+        .Install(FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(FakeEngine("AIcoreEngine").KernelInfoStore("AiCoreLib").GraphOptimizer("AIcoreEngine"))
+        .Install(FakeEngine(kEngineNameAiCpu).KernelInfoStore(kEngineNameAiCpu))
+        .Install(FakeEngine("DNN_HCCL").KernelInfoStore(kEngineNameHccl))
+        .Install(
+            FakeEngine("DNN_VM_RTS").KernelInfoStore(kEngineNameRts).GraphOptimizer("DNN_VM_RTS_GRAPH_OPTIMIZER_STORE"))
+        .Install(FakeOp(DATA).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(FakeOp(VARIABLE).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(FakeOp(SHAPE).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(FakeOp(IF).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE").InferShape(infer_fun))
+        .Install(FakeOp("PhonyConcat").InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE").InferShape(infer_fun))
+        .Install(FakeOp(PARTITIONEDCALL).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(FakeOp(CONSTANTOP).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(FakeOp(CONSTANT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(FakeOp("Identity").InfoStoreAndBuilder("AiCoreLib"))
+        .Install(FakeOp(NETOUTPUT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+        .Install(FakeOp(ADD).InfoStoreAndBuilder("AiCoreLib").InferShape(infer_fun))
+        .Install(FakeOp("ConcatD").InfoStoreAndBuilder("AiCoreLib").InferShape(infer_fun_concat))
+        .Install(FakeOp(HCOMALLGATHER).InfoStoreAndBuilder(kEngineNameHccl).InferShape(allgather_infer_fun))
+        .Install(FakeOp("Send").InfoStoreAndBuilder(kEngineNameRts))
+        .Install(FakeOp("Recv").InfoStoreAndBuilder(kEngineNameRts))
+        .Install(FakeOp(RELU).InfoStoreAndBuilder("AiCoreLib").InferShape(infer_fun))
+        .Install(FakeOp(CONV2D).InfoStoreAndBuilder("AiCoreLib").InferShape(infer_fun))
+        .Install(FakeOp(RESHAPE).InfoStoreAndBuilder("AiCoreLib").InferShape(InferShapeFuncForReshape))
+        .Install(FakeOp(STREAMACTIVE).InfoStoreAndBuilder("DNN_VM_RTS_OP_STORE"));
+    optiling::OpTilingFuncV2 tilingfun = [](const ge::Operator &op, const optiling::OpCompileInfoV2 &compile_info,
+                                            optiling::OpRunInfoV2 &run_info) -> bool {
+      run_info.SetWorkspaces({1024});
+      return true;
+    };
+    optiling::OpTilingRegistryInterf_V2(RELU, tilingfun);
+    REGISTER_OP_TILING_UNIQ_V2(ReLU, tilingfun, 1);
   }
 
   virtual ~MockConcatNotaskPass() {
@@ -247,51 +247,47 @@ void Fake5DNodeEngine(GeRunningEnvFaker &ge_env, const std::vector<int64_t> &ori
   // 5 indicates that cube size is 16
   const Format src_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_NC1HWC0, FORMAT_RESERVED, 5));
   const Format dst_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_FRACTAL_Z, FORMAT_NHWC, 5));
-  ffo->OpFormatByType(
-      CONV2D, {
-          .input_formats = {
-              {src_format, GeShape(std::vector<int64_t>(origin_shape))},
-              {dst_format, GeShape(std::vector<int64_t>({4,1,16,16}))},
-          },
-          .output_formats = {
-              {src_format, GeShape(std::vector<int64_t>(origin_shape))}
-          }
-      });
-  ffo->OpFormatByType(
-      "ConcatD", {
-          .input_formats = {
-              {src_format, GeShape(std::vector<int64_t>(origin_shape))},
-              {src_format, GeShape(std::vector<int64_t>(origin_shape))},
-          },
-          .output_formats = {
-              {src_format, GeShape(std::vector<int64_t>(origin_shape))}
-          }
-      });
-      ge_env.Reset()
-         .Install(FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeEngine("AIcoreEngine").KernelInfoStore("AiCoreLib").GraphOptimizer("AIcoreEngine"))
-         .Install(FakeEngine("DNN_HCCL").KernelInfoStore(kEngineNameHccl))
-         .Install(FakeEngine("DNN_VM_RTS").KernelInfoStore(kEngineNameRts).GraphOptimizer("DNN_VM_RTS_GRAPH_OPTIMIZER_STORE"))
-         .Install(FakeEngine("AiCoreLib").GraphOptimizer("FormatOp", ffo).KernelBuilder(ops_kernel_builder).KernelBuilder(aicore_engine_builder))
-         .Install(FakeOp(DATA).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(VARIABLE).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(SHAPE).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(IF).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp("PhonyConcat").InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE").InferShape(infer_fun))
-         .Install(FakeOp(PARTITIONEDCALL).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(CONSTANTOP).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(CONSTANT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp("Identity").InfoStoreAndBuilder("AiCoreLib"))
-         .Install(FakeOp(NETOUTPUT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(ADD).InfoStoreAndBuilder("AiCoreLib").InferShape(infer_fun))
-         .Install(FakeOp("ConcatD").InfoStoreAndBuilder("AiCoreLib"))
-         .Install(FakeOp("Send").InfoStoreAndBuilder(kEngineNameRts))
-         .Install(FakeOp("Recv").InfoStoreAndBuilder(kEngineNameRts))
-         .Install(FakeOp(RELU).InfoStoreAndBuilder("AiCoreLib").InferShape(infer_fun))
-         .Install(FakeOp(CONV2D).InfoStoreAndBuilder("AiCoreLib").InferShape(infer_fun))
-         .Install(FakeOp(RESHAPE).InfoStoreAndBuilder("AiCoreLib"))
-         .Install(FakeOp("RefData").InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(TRANSDATA).InfoStoreAndBuilder("AiCoreLib"));
+  ffo->OpFormatByType(CONV2D, {.input_formats =
+                                   {
+                                       {src_format, GeShape(std::vector<int64_t>(origin_shape))},
+                                       {dst_format, GeShape(std::vector<int64_t>({4, 1, 16, 16}))},
+                                   },
+                               .output_formats = {{src_format, GeShape(std::vector<int64_t>(origin_shape))}}});
+  ffo->OpFormatByType("ConcatD", {.input_formats =
+                                      {
+                                          {src_format, GeShape(std::vector<int64_t>(origin_shape))},
+                                          {src_format, GeShape(std::vector<int64_t>(origin_shape))},
+                                      },
+                                  .output_formats = {{src_format, GeShape(std::vector<int64_t>(origin_shape))}}});
+  ge_env.Reset()
+      .Install(FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeEngine("AIcoreEngine").KernelInfoStore("AiCoreLib").GraphOptimizer("AIcoreEngine"))
+      .Install(FakeEngine("DNN_HCCL").KernelInfoStore(kEngineNameHccl))
+      .Install(
+          FakeEngine("DNN_VM_RTS").KernelInfoStore(kEngineNameRts).GraphOptimizer("DNN_VM_RTS_GRAPH_OPTIMIZER_STORE"))
+      .Install(FakeEngine("AiCoreLib")
+                   .GraphOptimizer("FormatOp", ffo)
+                   .KernelBuilder(ops_kernel_builder)
+                   .KernelBuilder(aicore_engine_builder))
+      .Install(FakeOp(DATA).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp(VARIABLE).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp(SHAPE).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp(IF).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp("PhonyConcat").InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE").InferShape(infer_fun))
+      .Install(FakeOp(PARTITIONEDCALL).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp(CONSTANTOP).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp(CONSTANT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp("Identity").InfoStoreAndBuilder("AiCoreLib"))
+      .Install(FakeOp(NETOUTPUT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp(ADD).InfoStoreAndBuilder("AiCoreLib").InferShape(infer_fun))
+      .Install(FakeOp("ConcatD").InfoStoreAndBuilder("AiCoreLib"))
+      .Install(FakeOp("Send").InfoStoreAndBuilder(kEngineNameRts))
+      .Install(FakeOp("Recv").InfoStoreAndBuilder(kEngineNameRts))
+      .Install(FakeOp(RELU).InfoStoreAndBuilder("AiCoreLib").InferShape(infer_fun))
+      .Install(FakeOp(CONV2D).InfoStoreAndBuilder("AiCoreLib").InferShape(infer_fun))
+      .Install(FakeOp(RESHAPE).InfoStoreAndBuilder("AiCoreLib"))
+      .Install(FakeOp("RefData").InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp(TRANSDATA).InfoStoreAndBuilder("AiCoreLib"));
 }
 
 template <typename T>
@@ -304,41 +300,41 @@ void Fake5DNodeEngine2(GeRunningEnvFaker &ge_env) {
   // 5 indicates that cube size is 16
   const Format src_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_NC1HWC0, FORMAT_RESERVED, 5));
   const Format dst_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_FRACTAL_Z, FORMAT_NHWC, 5));
-  ffo->OpFormatByType(
-      CONV2D, {
-          .input_formats = {
-              {src_format, GeShape(std::vector<int64_t>({1,2,16,16,16}))},
-              {dst_format, GeShape(std::vector<int64_t>({4,1,16,16}))},
-          },
-          .output_formats = {
-              {src_format, GeShape(std::vector<int64_t>({1,2,16,16,16}))}
-          }
-      });
-      ge_env.Reset()
-         .Install(FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeEngine("AIcoreEngine").KernelInfoStore("AiCoreLib").GraphOptimizer("AIcoreEngine"))
-         .Install(FakeEngine("DNN_HCCL").KernelInfoStore(kEngineNameHccl))
-         .Install(FakeEngine("DNN_VM_RTS").KernelInfoStore(kEngineNameRts).GraphOptimizer("DNN_VM_RTS_GRAPH_OPTIMIZER_STORE"))
-         .Install(FakeEngine("AiCoreLib").GraphOptimizer("FormatOp", ffo).KernelBuilder(ops_kernel_builder).KernelBuilder(aicore_engine_builder))
-         .Install(FakeOp(DATA).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(VARIABLE).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(SHAPE).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(IF).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp("PhonyConcat").InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE").InferShape(infer_fun))
-         .Install(FakeOp(PARTITIONEDCALL).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(CONSTANTOP).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(CONSTANT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp("Identity").InfoStoreAndBuilder("AiCoreLib"))
-         .Install(FakeOp(NETOUTPUT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(ADD).InfoStoreAndBuilder("AiCoreLib").InferShape(infer_fun))
-         .Install(FakeOp("ConcatD").InfoStoreAndBuilder("AiCoreLib"))
-         .Install(FakeOp("Send").InfoStoreAndBuilder(kEngineNameRts))
-         .Install(FakeOp("Recv").InfoStoreAndBuilder(kEngineNameRts))
-         .Install(FakeOp(RELU).InfoStoreAndBuilder("AiCoreLib").InferShape(infer_fun))
-         .Install(FakeOp(CONV2D).InfoStoreAndBuilder("AiCoreLib").InferShape(infer_fun))
-         .Install(FakeOp(RESHAPE).InfoStoreAndBuilder("AiCoreLib"))
-         .Install(FakeOp("RefData").InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(TRANSDATA).InfoStoreAndBuilder("AiCoreLib"));
+  ffo->OpFormatByType(CONV2D, {.input_formats =
+                                   {
+                                       {src_format, GeShape(std::vector<int64_t>({1, 2, 16, 16, 16}))},
+                                       {dst_format, GeShape(std::vector<int64_t>({4, 1, 16, 16}))},
+                                   },
+                               .output_formats = {{src_format, GeShape(std::vector<int64_t>({1, 2, 16, 16, 16}))}}});
+  ge_env.Reset()
+      .Install(FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeEngine("AIcoreEngine").KernelInfoStore("AiCoreLib").GraphOptimizer("AIcoreEngine"))
+      .Install(FakeEngine("DNN_HCCL").KernelInfoStore(kEngineNameHccl))
+      .Install(
+          FakeEngine("DNN_VM_RTS").KernelInfoStore(kEngineNameRts).GraphOptimizer("DNN_VM_RTS_GRAPH_OPTIMIZER_STORE"))
+      .Install(FakeEngine("AiCoreLib")
+                   .GraphOptimizer("FormatOp", ffo)
+                   .KernelBuilder(ops_kernel_builder)
+                   .KernelBuilder(aicore_engine_builder))
+      .Install(FakeOp(DATA).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp(VARIABLE).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp(SHAPE).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp(IF).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp("PhonyConcat").InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE").InferShape(infer_fun))
+      .Install(FakeOp(PARTITIONEDCALL).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp(CONSTANTOP).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp(CONSTANT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp("Identity").InfoStoreAndBuilder("AiCoreLib"))
+      .Install(FakeOp(NETOUTPUT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp(ADD).InfoStoreAndBuilder("AiCoreLib").InferShape(infer_fun))
+      .Install(FakeOp("ConcatD").InfoStoreAndBuilder("AiCoreLib"))
+      .Install(FakeOp("Send").InfoStoreAndBuilder(kEngineNameRts))
+      .Install(FakeOp("Recv").InfoStoreAndBuilder(kEngineNameRts))
+      .Install(FakeOp(RELU).InfoStoreAndBuilder("AiCoreLib").InferShape(infer_fun))
+      .Install(FakeOp(CONV2D).InfoStoreAndBuilder("AiCoreLib").InferShape(infer_fun))
+      .Install(FakeOp(RESHAPE).InfoStoreAndBuilder("AiCoreLib"))
+      .Install(FakeOp("RefData").InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp(TRANSDATA).InfoStoreAndBuilder("AiCoreLib"));
 }
 /**
  *                    data2
@@ -353,21 +349,18 @@ void Fake5DNodeEngine2(GeRunningEnvFaker &ge_env) {
 TEST_F(ConcatNotaskPassTest, allgather_connect_to_concat) {
   MockConcatNotaskPass mock_concat_notask_pass;
   vector<std::string> engine_list = {"AIcoreEngine"};
-  auto data1 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
-  auto data2 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
-  auto HcomAllGather1 = OP_CFG(HCOMALLGATHER)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
-  auto HcomAllGather2 = OP_CFG(HCOMALLGATHER)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
-  auto concat = OP_CFG("ConcatD")
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
-  auto netoutput = OP_CFG(NETOUTPUT)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
+  auto data1 = OP_CFG(DATA).TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
+  auto data2 = OP_CFG(DATA).TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
+  auto HcomAllGather1 = OP_CFG(HCOMALLGATHER).TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
+  auto HcomAllGather2 = OP_CFG(HCOMALLGATHER).TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
+  auto concat = OP_CFG("ConcatD").TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
+  auto netoutput = OP_CFG(NETOUTPUT).TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
 
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data_1", data1)->NODE("HcomAllGather_1", HcomAllGather1)->EDGE(0, 0)->NODE("concat", concat)
+    CHAIN(NODE("data_1", data1)
+              ->NODE("HcomAllGather_1", HcomAllGather1)
+              ->EDGE(0, 0)
+              ->NODE("concat", concat)
               ->NODE(NODE_NAME_NET_OUTPUT, netoutput));
     CHAIN(NODE("data_2", data1)->NODE("HcomAllGather_2", HcomAllGather2)->EDGE(0, 1)->NODE("concat", concat));
   };
@@ -393,7 +386,7 @@ TEST_F(ConcatNotaskPassTest, allgather_connect_to_concat) {
 
   std::vector<InputTensorInfo> inputs;
   auto ret = session.BuildGraph(1, inputs);
-  
+
   EXPECT_EQ(ret, SUCCESS);
   bool notask = false;
   (void)ge::AttrUtils::GetBool(op_desc, ge::ATTR_NAME_NOTASK, notask);
@@ -413,21 +406,18 @@ TEST_F(ConcatNotaskPassTest, allgather_connect_to_concat) {
 TEST_F(ConcatNotaskPassTest, scalar_input_connect_to_concat) {
   MockConcatNotaskPass mock_concat_notask_pass;
   vector<std::string> engine_list = {"AIcoreEngine"};
-  auto data1 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {});
-  auto data2 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {});
-  auto relu1 = OP_CFG(RELU)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {});
-  auto relu2 = OP_CFG(RELU)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {});
-  auto concat = OP_CFG("ConcatD")
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {});
-  auto netoutput = OP_CFG(NETOUTPUT)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {});
+  auto data1 = OP_CFG(DATA).TensorDesc(FORMAT_ND, DT_FLOAT16, {});
+  auto data2 = OP_CFG(DATA).TensorDesc(FORMAT_ND, DT_FLOAT16, {});
+  auto relu1 = OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {});
+  auto relu2 = OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {});
+  auto concat = OP_CFG("ConcatD").TensorDesc(FORMAT_ND, DT_FLOAT16, {});
+  auto netoutput = OP_CFG(NETOUTPUT).TensorDesc(FORMAT_ND, DT_FLOAT16, {});
 
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data_1", data1)->NODE("relu1", relu1)->EDGE(0, 0)->NODE("concat", concat)
+    CHAIN(NODE("data_1", data1)
+              ->NODE("relu1", relu1)
+              ->EDGE(0, 0)
+              ->NODE("concat", concat)
               ->NODE(NODE_NAME_NET_OUTPUT, netoutput));
     CHAIN(NODE("data_2", data2)->NODE("relu2", relu2)->EDGE(0, 1)->NODE("concat", concat));
   };
@@ -453,7 +443,7 @@ TEST_F(ConcatNotaskPassTest, scalar_input_connect_to_concat) {
 
   std::vector<InputTensorInfo> inputs;
   auto ret = session.BuildGraph(1, inputs);
-  
+
   EXPECT_EQ(ret, SUCCESS);
   bool notask = false;
   (void)ge::AttrUtils::GetBool(op_desc, ge::ATTR_NAME_NOTASK, notask);
@@ -463,17 +453,16 @@ TEST_F(ConcatNotaskPassTest, scalar_input_connect_to_concat) {
 TEST_F(ConcatNotaskPassTest, single_scalar_input_connect_to_concat) {
   MockConcatNotaskPass mock_concat_notask_pass;
   vector<std::string> engine_list = {"AIcoreEngine"};
-  auto data1 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {});
-  auto relu1 = OP_CFG(RELU)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {});
-  auto concat = OP_CFG("ConcatD")
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {});
-  auto netoutput = OP_CFG(NETOUTPUT)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {});
+  auto data1 = OP_CFG(DATA).TensorDesc(FORMAT_ND, DT_FLOAT16, {});
+  auto relu1 = OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {});
+  auto concat = OP_CFG("ConcatD").TensorDesc(FORMAT_ND, DT_FLOAT16, {});
+  auto netoutput = OP_CFG(NETOUTPUT).TensorDesc(FORMAT_ND, DT_FLOAT16, {});
 
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data_1", data1)->NODE("relu1", relu1)->EDGE(0, 0)->NODE("concat", concat)
+    CHAIN(NODE("data_1", data1)
+              ->NODE("relu1", relu1)
+              ->EDGE(0, 0)
+              ->NODE("concat", concat)
               ->NODE(NODE_NAME_NET_OUTPUT, netoutput));
   };
 
@@ -494,7 +483,7 @@ TEST_F(ConcatNotaskPassTest, single_scalar_input_connect_to_concat) {
 
   std::vector<InputTensorInfo> inputs;
   auto ret = session.BuildGraph(1, inputs);
-  
+
   EXPECT_EQ(ret, SUCCESS);
   bool notask = false;
   (void)ge::AttrUtils::GetBool(op_desc, ge::ATTR_NAME_NOTASK, notask);
@@ -504,21 +493,18 @@ TEST_F(ConcatNotaskPassTest, single_scalar_input_connect_to_concat) {
 TEST_F(ConcatNotaskPassTest, concat_notask_lxfusion_op) {
   MockConcatNotaskPass mock_concat_notask_pass;
   vector<std::string> engine_list = {"AIcoreEngine"};
-  auto data1 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
-  auto data2 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
-  auto HcomAllGather1 = OP_CFG(RELU)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
-  auto HcomAllGather2 = OP_CFG(RELU)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
-  auto concat = OP_CFG("ConcatD")
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
-  auto netoutput = OP_CFG(NETOUTPUT)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
+  auto data1 = OP_CFG(DATA).TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
+  auto data2 = OP_CFG(DATA).TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
+  auto HcomAllGather1 = OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
+  auto HcomAllGather2 = OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
+  auto concat = OP_CFG("ConcatD").TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
+  auto netoutput = OP_CFG(NETOUTPUT).TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
 
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data_1", data1)->NODE("HcomAllGather_1", HcomAllGather1)->EDGE(0, 0)->NODE("concat_lxslice", concat)
+    CHAIN(NODE("data_1", data1)
+              ->NODE("HcomAllGather_1", HcomAllGather1)
+              ->EDGE(0, 0)
+              ->NODE("concat_lxslice", concat)
               ->NODE(NODE_NAME_NET_OUTPUT, netoutput));
     CHAIN(NODE("data_2", data1)->NODE("HcomAllGather_2", HcomAllGather2)->EDGE(0, 1)->NODE("concat_lxslice", concat));
   };
@@ -544,7 +530,7 @@ TEST_F(ConcatNotaskPassTest, concat_notask_lxfusion_op) {
 
   std::vector<InputTensorInfo> inputs;
   auto ret = session.BuildGraph(1, inputs);
-  
+
   EXPECT_EQ(ret, SUCCESS);
   bool notask = false;
   (void)ge::AttrUtils::GetBool(op_desc, ge::ATTR_NAME_NOTASK, notask);
@@ -564,21 +550,18 @@ TEST_F(ConcatNotaskPassTest, concat_notask_lxfusion_op) {
 TEST_F(ConcatNotaskPassTest, input_mem_type_invalid) {
   MockConcatNotaskPass mock_concat_notask_pass;
   vector<std::string> engine_list = {"AIcoreEngine"};
-  auto data1 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
-  auto data2 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
-  auto HcomAllGather1 = OP_CFG(RELU)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
-  auto HcomAllGather2 = OP_CFG(RELU)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
-  auto concat = OP_CFG("ConcatD")
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
-  auto netoutput = OP_CFG(NETOUTPUT)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
+  auto data1 = OP_CFG(DATA).TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
+  auto data2 = OP_CFG(DATA).TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
+  auto HcomAllGather1 = OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
+  auto HcomAllGather2 = OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
+  auto concat = OP_CFG("ConcatD").TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
+  auto netoutput = OP_CFG(NETOUTPUT).TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
 
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data_1", data1)->NODE("HcomAllGather_1", HcomAllGather1)->EDGE(0, 0)->NODE("concat", concat)
+    CHAIN(NODE("data_1", data1)
+              ->NODE("HcomAllGather_1", HcomAllGather1)
+              ->EDGE(0, 0)
+              ->NODE("concat", concat)
               ->NODE(NODE_NAME_NET_OUTPUT, netoutput));
     CHAIN(NODE("data_2", data1)->NODE("HcomAllGather_2", HcomAllGather2)->EDGE(0, 1)->NODE("concat", concat));
   };
@@ -589,9 +572,8 @@ TEST_F(ConcatNotaskPassTest, input_mem_type_invalid) {
   auto op_desc = concat_node->GetOpDesc();
   (void)ge::AttrUtils::SetInt(op_desc, "concat_dim", 0);
   op_desc->SetOpEngineName("AIcoreEngine");
-  std::vector<int64_t> in_mem_type {RT_MEMORY_L1, RT_MEMORY_L1};
-  (void)ge::AttrUtils::SetListInt(op_desc, ATTR_NAME_INPUT_MEM_TYPE_LIST,
-                                in_mem_type);
+  std::vector<int64_t> in_mem_type{RT_MEMORY_L1, RT_MEMORY_L1};
+  (void)ge::AttrUtils::SetListInt(op_desc, ATTR_NAME_INPUT_MEM_TYPE_LIST, in_mem_type);
 
   auto allgather_node1 = compute_graph->FindNode("HcomAllGather_1");
   auto allgather_desc1 = allgather_node1->GetOpDesc();
@@ -607,7 +589,7 @@ TEST_F(ConcatNotaskPassTest, input_mem_type_invalid) {
 
   std::vector<InputTensorInfo> inputs;
   auto ret = session.BuildGraph(1, inputs);
-  
+
   EXPECT_EQ(ret, SUCCESS);
   bool notask = false;
   (void)ge::AttrUtils::GetBool(op_desc, ge::ATTR_NAME_NOTASK, notask);
@@ -627,21 +609,18 @@ TEST_F(ConcatNotaskPassTest, input_mem_type_invalid) {
 TEST_F(ConcatNotaskPassTest, output_mem_type_invalid) {
   MockConcatNotaskPass mock_concat_notask_pass;
   vector<std::string> engine_list = {"AIcoreEngine"};
-  auto data1 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
-  auto data2 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
-  auto HcomAllGather1 = OP_CFG(RELU)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
-  auto HcomAllGather2 = OP_CFG(RELU)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
-  auto concat = OP_CFG("ConcatD")
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
-  auto netoutput = OP_CFG(NETOUTPUT)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
+  auto data1 = OP_CFG(DATA).TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
+  auto data2 = OP_CFG(DATA).TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
+  auto HcomAllGather1 = OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
+  auto HcomAllGather2 = OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
+  auto concat = OP_CFG("ConcatD").TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
+  auto netoutput = OP_CFG(NETOUTPUT).TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
 
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data_1", data1)->NODE("HcomAllGather_1", HcomAllGather1)->EDGE(0, 0)->NODE("concat", concat)
+    CHAIN(NODE("data_1", data1)
+              ->NODE("HcomAllGather_1", HcomAllGather1)
+              ->EDGE(0, 0)
+              ->NODE("concat", concat)
               ->NODE(NODE_NAME_NET_OUTPUT, netoutput));
     CHAIN(NODE("data_2", data1)->NODE("HcomAllGather_2", HcomAllGather2)->EDGE(0, 1)->NODE("concat", concat));
   };
@@ -652,9 +631,8 @@ TEST_F(ConcatNotaskPassTest, output_mem_type_invalid) {
   auto op_desc = concat_node->GetOpDesc();
   (void)ge::AttrUtils::SetInt(op_desc, "concat_dim", 0);
   op_desc->SetOpEngineName("AIcoreEngine");
-  std::vector<int64_t> in_mem_type {RT_MEMORY_L1};
-  (void)ge::AttrUtils::SetListInt(op_desc, ATTR_NAME_OUTPUT_MEM_TYPE_LIST,
-                                in_mem_type);
+  std::vector<int64_t> in_mem_type{RT_MEMORY_L1};
+  (void)ge::AttrUtils::SetListInt(op_desc, ATTR_NAME_OUTPUT_MEM_TYPE_LIST, in_mem_type);
 
   auto allgather_node1 = compute_graph->FindNode("HcomAllGather_1");
   auto allgather_desc1 = allgather_node1->GetOpDesc();
@@ -670,7 +648,7 @@ TEST_F(ConcatNotaskPassTest, output_mem_type_invalid) {
 
   std::vector<InputTensorInfo> inputs;
   session.BuildGraph(1, inputs);
-  
+
   bool notask = false;
   (void)ge::AttrUtils::GetBool(op_desc, ge::ATTR_NAME_NOTASK, notask);
   EXPECT_TRUE(notask == false);
@@ -689,24 +667,21 @@ TEST_F(ConcatNotaskPassTest, output_mem_type_invalid) {
 TEST_F(ConcatNotaskPassTest, concat_notask_output_invalid) {
   MockConcatNotaskPass mock_concat_notask_pass;
   vector<std::string> engine_list = {"AIcoreEngine"};
-  auto data1 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
-  auto data2 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
-  auto HcomAllGather1 = OP_CFG(RELU)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
-  auto HcomAllGather2 = OP_CFG(RELU)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
-  auto concat = OP_CFG("ConcatD")
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
-  auto netoutput = OP_CFG(NETOUTPUT)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
-  auto relu1 = OP_CFG(RELU)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
+  auto data1 = OP_CFG(DATA).TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
+  auto data2 = OP_CFG(DATA).TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
+  auto HcomAllGather1 = OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
+  auto HcomAllGather2 = OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
+  auto concat = OP_CFG("ConcatD").TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
+  auto netoutput = OP_CFG(NETOUTPUT).TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
+  auto relu1 = OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
 
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data_1", data1)->NODE("HcomAllGather_1", HcomAllGather1)->EDGE(0, 0)->NODE("concat", concat)
-              ->NODE("relu_1", relu1)->NODE(NODE_NAME_NET_OUTPUT, netoutput));
+    CHAIN(NODE("data_1", data1)
+              ->NODE("HcomAllGather_1", HcomAllGather1)
+              ->EDGE(0, 0)
+              ->NODE("concat", concat)
+              ->NODE("relu_1", relu1)
+              ->NODE(NODE_NAME_NET_OUTPUT, netoutput));
     CHAIN(NODE("data_2", data1)->NODE("HcomAllGather_2", HcomAllGather2)->EDGE(0, 1)->NODE("concat", concat));
   };
 
@@ -736,7 +711,7 @@ TEST_F(ConcatNotaskPassTest, concat_notask_output_invalid) {
 
   std::vector<InputTensorInfo> inputs;
   auto ret = session.BuildGraph(1, inputs);
-  
+
   EXPECT_EQ(ret, SUCCESS);
   bool notask = false;
   (void)ge::AttrUtils::GetBool(op_desc, ge::ATTR_NAME_NOTASK, notask);
@@ -756,21 +731,18 @@ TEST_F(ConcatNotaskPassTest, concat_notask_output_invalid) {
 TEST_F(ConcatNotaskPassTest, concat_notask_pre_node_attr_invalid) {
   MockConcatNotaskPass mock_concat_notask_pass;
   vector<std::string> engine_list = {"AIcoreEngine"};
-  auto data1 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
-  auto data2 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
-  auto HcomAllGather1 = OP_CFG(RELU)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
-  auto HcomAllGather2 = OP_CFG(RELU)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
-  auto concat = OP_CFG("ConcatD")
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
-  auto netoutput = OP_CFG(NETOUTPUT)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
+  auto data1 = OP_CFG(DATA).TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
+  auto data2 = OP_CFG(DATA).TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
+  auto HcomAllGather1 = OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
+  auto HcomAllGather2 = OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
+  auto concat = OP_CFG("ConcatD").TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
+  auto netoutput = OP_CFG(NETOUTPUT).TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
 
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data_1", data1)->NODE("HcomAllGather_1", HcomAllGather1)->EDGE(0, 0)->NODE("concat", concat)
+    CHAIN(NODE("data_1", data1)
+              ->NODE("HcomAllGather_1", HcomAllGather1)
+              ->EDGE(0, 0)
+              ->NODE("concat", concat)
               ->NODE(NODE_NAME_NET_OUTPUT, netoutput));
     CHAIN(NODE("data_2", data1)->NODE("HcomAllGather_2", HcomAllGather2)->EDGE(0, 1)->NODE("concat", concat));
   };
@@ -797,7 +769,7 @@ TEST_F(ConcatNotaskPassTest, concat_notask_pre_node_attr_invalid) {
 
   std::vector<InputTensorInfo> inputs;
   auto ret = session.BuildGraph(1, inputs);
-  
+
   EXPECT_EQ(ret, SUCCESS);
   bool notask = false;
   (void)ge::AttrUtils::GetBool(op_desc, ge::ATTR_NAME_NOTASK, notask);
@@ -817,21 +789,18 @@ TEST_F(ConcatNotaskPassTest, concat_notask_pre_node_attr_invalid) {
 TEST_F(ConcatNotaskPassTest, concat_notask_pre_node_attr_notask) {
   MockConcatNotaskPass mock_concat_notask_pass;
   vector<std::string> engine_list = {"AIcoreEngine"};
-  auto data1 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
-  auto data2 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
-  auto HcomAllGather1 = OP_CFG(RELU)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
-  auto HcomAllGather2 = OP_CFG(RELU)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
-  auto concat = OP_CFG("ConcatD")
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
-  auto netoutput = OP_CFG(NETOUTPUT)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
+  auto data1 = OP_CFG(DATA).TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
+  auto data2 = OP_CFG(DATA).TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
+  auto HcomAllGather1 = OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
+  auto HcomAllGather2 = OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
+  auto concat = OP_CFG("ConcatD").TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
+  auto netoutput = OP_CFG(NETOUTPUT).TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
 
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data_1", data1)->NODE("HcomAllGather_1", HcomAllGather1)->EDGE(0, 0)->NODE("concat", concat)
+    CHAIN(NODE("data_1", data1)
+              ->NODE("HcomAllGather_1", HcomAllGather1)
+              ->EDGE(0, 0)
+              ->NODE("concat", concat)
               ->NODE(NODE_NAME_NET_OUTPUT, netoutput));
     CHAIN(NODE("data_2", data1)->NODE("HcomAllGather_2", HcomAllGather2)->EDGE(0, 1)->NODE("concat", concat));
   };
@@ -858,7 +827,7 @@ TEST_F(ConcatNotaskPassTest, concat_notask_pre_node_attr_notask) {
 
   std::vector<InputTensorInfo> inputs;
   auto ret = session.BuildGraph(1, inputs);
-  
+
   EXPECT_EQ(ret, SUCCESS);
   bool notask = false;
   (void)ge::AttrUtils::GetBool(op_desc, ge::ATTR_NAME_NOTASK, notask);
@@ -878,21 +847,18 @@ TEST_F(ConcatNotaskPassTest, concat_notask_pre_node_attr_notask) {
 TEST_F(ConcatNotaskPassTest, concat_notask_input_mem_type_not_same) {
   MockConcatNotaskPass mock_concat_notask_pass;
   vector<std::string> engine_list = {"AIcoreEngine"};
-  auto data1 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
-  auto data2 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
-  auto HcomAllGather1 = OP_CFG(RELU)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
-  auto HcomAllGather2 = OP_CFG(RELU)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
-  auto concat = OP_CFG("ConcatD")
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
-  auto netoutput = OP_CFG(NETOUTPUT)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
+  auto data1 = OP_CFG(DATA).TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
+  auto data2 = OP_CFG(DATA).TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
+  auto HcomAllGather1 = OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
+  auto HcomAllGather2 = OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
+  auto concat = OP_CFG("ConcatD").TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
+  auto netoutput = OP_CFG(NETOUTPUT).TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
 
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data_1", data1)->NODE("HcomAllGather_1", HcomAllGather1)->EDGE(0, 0)->NODE("concat", concat)
+    CHAIN(NODE("data_1", data1)
+              ->NODE("HcomAllGather_1", HcomAllGather1)
+              ->EDGE(0, 0)
+              ->NODE("concat", concat)
               ->NODE(NODE_NAME_NET_OUTPUT, netoutput));
     CHAIN(NODE("data_2", data1)->NODE("HcomAllGather_2", HcomAllGather2)->EDGE(0, 1)->NODE("concat", concat));
   };
@@ -911,9 +877,8 @@ TEST_F(ConcatNotaskPassTest, concat_notask_input_mem_type_not_same) {
   auto allgather_node2 = compute_graph->FindNode("HcomAllGather_2");
   auto allgather_desc2 = allgather_node2->GetOpDesc();
   allgather_desc2->SetOpEngineName("AIcoreEngine");
-  std::vector<int64_t> in_mem_type {RT_MEMORY_L1};
-  (void)ge::AttrUtils::SetListInt(allgather_desc2, ATTR_NAME_OUTPUT_MEM_TYPE_LIST,
-                                in_mem_type);
+  std::vector<int64_t> in_mem_type{RT_MEMORY_L1};
+  (void)ge::AttrUtils::SetListInt(allgather_desc2, ATTR_NAME_OUTPUT_MEM_TYPE_LIST, in_mem_type);
 
   map<AscendString, AscendString> options;
   Session session(options);
@@ -921,7 +886,7 @@ TEST_F(ConcatNotaskPassTest, concat_notask_input_mem_type_not_same) {
 
   std::vector<InputTensorInfo> inputs;
   session.BuildGraph(1, inputs);
-  
+
   bool notask = false;
   (void)ge::AttrUtils::GetBool(op_desc, ge::ATTR_NAME_NOTASK, notask);
   EXPECT_TRUE(notask == false);
@@ -940,22 +905,15 @@ TEST_F(ConcatNotaskPassTest, concat_notask_input_mem_type_not_same) {
 TEST_F(ConcatNotaskPassTest, data_connect_to_concat) {
   MockConcatNotaskPass mock_concat_notask_pass;
   vector<std::string> engine_list = {"AIcoreEngine"};
-  auto data1 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {16384, 12288});
-  auto data2 = OP_CFG(DATA)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
-  auto HcomAllGather1 = OP_CFG(RELU)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
-  auto HcomAllGather2 = OP_CFG(RELU)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
-  auto concat = OP_CFG("ConcatD")
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
-  auto netoutput = OP_CFG(NETOUTPUT)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
+  auto data1 = OP_CFG(DATA).TensorDesc(FORMAT_ND, DT_FLOAT16, {16384, 12288});
+  auto data2 = OP_CFG(DATA).TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
+  auto HcomAllGather1 = OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
+  auto HcomAllGather2 = OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
+  auto concat = OP_CFG("ConcatD").TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
+  auto netoutput = OP_CFG(NETOUTPUT).TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
 
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data_1", data1)->NODE("concat", concat)
-              ->NODE(NODE_NAME_NET_OUTPUT, netoutput));
+    CHAIN(NODE("data_1", data1)->NODE("concat", concat)->NODE(NODE_NAME_NET_OUTPUT, netoutput));
     CHAIN(NODE("data_2", data1)->NODE("HcomAllGather_2", HcomAllGather2)->EDGE(0, 1)->NODE("concat", concat));
   };
 
@@ -976,7 +934,7 @@ TEST_F(ConcatNotaskPassTest, data_connect_to_concat) {
 
   std::vector<InputTensorInfo> inputs;
   session.BuildGraph(1, inputs);
-  
+
   bool notask = false;
   (void)ge::AttrUtils::GetBool(op_desc, ge::ATTR_NAME_NOTASK, notask);
   EXPECT_TRUE(notask == false);
@@ -988,49 +946,40 @@ TEST_F(ConcatNotaskPassTest, data_connect_to_concat) {
 }
 
 gert::LowerResult LoweringFoo(const ge::NodePtr &node, const gert::LowerInput &lower_input) {
-   return {HyperStatus::Success(),
-                              {gert::bg::ValueHolder::CreateFeed(2)},
-                              {gert::bg::ValueHolder::CreateFeed(0)},
-                              {gert::bg::DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
+  return {HyperStatus::Success(),
+          {gert::bg::ValueHolder::CreateFeed(2)},
+          {gert::bg::ValueHolder::CreateFeed(0)},
+          {gert::bg::DevMemValueHolder::CreateSingleDataOutput("Data", {}, 0)}};
 }
 REGISTER_NODE_CONVERTER("_lower_foo", LoweringFoo);
 
 TEST_F(ConcatNotaskPassTest, allgather_connect_to_concat_unknownop) {
   MockConcatNotaskPass mock_concat_notask_pass;
   vector<std::string> engine_list = {"AIcoreEngine"};
-  auto data1 = OP_CFG(DATA)
-      .Attr(ATTR_NAME_INDEX, 0)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {256, -1});
-  auto data2 = OP_CFG(DATA)
-      .Attr(ATTR_NAME_INDEX, 1)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
-  auto data3 = OP_CFG(DATA)
-      .Attr(ATTR_NAME_INDEX, 2)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
-  auto data4 = OP_CFG(DATA)
-      .Attr(ATTR_NAME_INDEX, 3)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
-  auto relu1 = OP_CFG(RELU)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, -1});
-  auto relu2 = OP_CFG(RELU)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, -1});
-  auto relu3 = OP_CFG(RELU)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
-  auto relu4 = OP_CFG(RELU)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
-  auto concat1 = OP_CFG("ConcatD")
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, -1});
-  auto concat2 = OP_CFG("ConcatD")
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, -1});
-  auto netoutput = OP_CFG(NETOUTPUT)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
+  auto data1 = OP_CFG(DATA).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT16, {256, -1});
+  auto data2 = OP_CFG(DATA).Attr(ATTR_NAME_INDEX, 1).TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
+  auto data3 = OP_CFG(DATA).Attr(ATTR_NAME_INDEX, 2).TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
+  auto data4 = OP_CFG(DATA).Attr(ATTR_NAME_INDEX, 3).TensorDesc(FORMAT_ND, DT_FLOAT16, {256, 12288});
+  auto relu1 = OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, -1});
+  auto relu2 = OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, -1});
+  auto relu3 = OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
+  auto relu4 = OP_CFG(RELU).TensorDesc(FORMAT_ND, DT_FLOAT16, {2048, 12288});
+  auto concat1 = OP_CFG("ConcatD").TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, -1});
+  auto concat2 = OP_CFG("ConcatD").TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, -1});
+  auto netoutput = OP_CFG(NETOUTPUT).TensorDesc(FORMAT_ND, DT_FLOAT16, {4096, 12288});
 
   DEF_GRAPH(g1) {
-    CHAIN(NODE("data_1", data1)->NODE("relu_1", relu1)->EDGE(0, 0)->NODE("concat_1", concat1)
+    CHAIN(NODE("data_1", data1)
+              ->NODE("relu_1", relu1)
+              ->EDGE(0, 0)
+              ->NODE("concat_1", concat1)
               ->NODE(NODE_NAME_NET_OUTPUT, netoutput));
     CHAIN(NODE("data_2", data2)->NODE("relu_2", relu2)->EDGE(0, 1)->NODE("concat_1", concat1));
-    CHAIN(NODE("data_3", data3)->NODE("relu_3", relu3)->EDGE(0, 0)->NODE("concat_2", concat2)
-          ->NODE(NODE_NAME_NET_OUTPUT, netoutput));
+    CHAIN(NODE("data_3", data3)
+              ->NODE("relu_3", relu3)
+              ->EDGE(0, 0)
+              ->NODE("concat_2", concat2)
+              ->NODE(NODE_NAME_NET_OUTPUT, netoutput));
     CHAIN(NODE("data_4", data4)->NODE("relu_4", relu4)->EDGE(0, 1)->NODE("concat_2", concat2));
   };
 
@@ -1070,11 +1019,11 @@ TEST_F(ConcatNotaskPassTest, allgather_connect_to_concat_unknownop) {
 
   std::vector<InputTensorInfo> inputs;
   auto ret = session.BuildGraph(1, inputs);
-  
+
   for (const auto &graph : compute_graph->GetAllSubgraphs()) {
     pass.Run(graph);
   }
-  
+
   EXPECT_NE(ret, SUCCESS);
   bool notask = false;
   (void)ge::AttrUtils::GetBool(op_desc, ge::ATTR_NAME_NOTASK, notask);
@@ -1092,16 +1041,16 @@ TEST_F(ConcatNotaskPassTest, allgather_connect_to_concat_unknownop) {
 }
 
 static Graph BuildRefDataWithStroageFormatTrainGraph1(Format storage_format, Format origin_format,
-                                                             const std::vector<int64_t> &origin_shape,
-                                                             const std::string &expand_dims_rule) {
-  std::vector<int64_t> shape = {2,2,3,2};  // HWCN
+                                                      const std::vector<int64_t> &origin_shape,
+                                                      const std::string &expand_dims_rule) {
+  std::vector<int64_t> shape = {2, 2, 3, 2};  // HWCN
   DEF_GRAPH(graph) {
     auto data1 = OP_DATA(0).TensorDesc(FORMAT_NCHW, DT_FLOAT16, origin_shape).Attr(ATTR_NAME_INDEX, 0).Build("data1");
     auto refdata1 = OP_CFG("RefData")
                         .TensorDesc(FORMAT_NC1HWC0, DT_FLOAT16, {})
-                .InCnt(1)
-                .OutCnt(1)
-              .Attr(ATTR_NAME_INDEX, 1)
+                        .InCnt(1)
+                        .OutCnt(1)
+                        .Attr(ATTR_NAME_INDEX, 1)
                         .InNames({"x"})
                         .OutNames({"y"})
                         .Build("refdata1");
@@ -1124,8 +1073,8 @@ static Graph BuildRefDataWithStroageFormatTrainGraph1(Format storage_format, For
     auto data2 = OP_DATA(0).TensorDesc(FORMAT_NCHW, DT_FLOAT16, origin_shape).Attr(ATTR_NAME_INDEX, 0).Build("data2");
     auto refdata2 = OP_CFG("RefData")
                         .TensorDesc(FORMAT_NC1HWC0, DT_FLOAT16, {})
-              .InCnt(1)
-              .OutCnt(1)
+                        .InCnt(1)
+                        .OutCnt(1)
                         .Attr(ATTR_NAME_INDEX, 1)
                         .InNames({"x"})
                         .OutNames({"y"})
@@ -1167,9 +1116,9 @@ static Graph BuildRefDataWithStroageFormatTrainGraph1(Format storage_format, For
 }
 
 static Graph BuildRefDataWithStroageFormatTrainGraphNHWC(Format storage_format, Format origin_format,
-                                                             const std::vector<int64_t> &origin_shape,
-                                                             const std::string &expand_dims_rule) {
-  std::vector<int64_t> shape = {2,2,3,2};  // HWCN
+                                                         const std::vector<int64_t> &origin_shape,
+                                                         const std::string &expand_dims_rule) {
+  std::vector<int64_t> shape = {2, 2, 3, 2};  // HWCN
   DEF_GRAPH(graph) {
     auto data1 = OP_DATA(0).TensorDesc(origin_format, DT_FLOAT16, origin_shape).Attr(ATTR_NAME_INDEX, 0).Build("data1");
     auto refdata1 = OP_CFG("RefData")
@@ -1242,11 +1191,12 @@ static Graph BuildRefDataWithStroageFormatTrainGraphNHWC(Format storage_format, 
 }
 
 static Graph BuildRefDataWithStroageFormatTrainGraph2(Format storage_format, Format origin_format,
-                                                             const std::vector<int64_t> &origin_shape,
-                                                             const std::string &expand_dims_rule) {
-  std::vector<int64_t> shape = {2,2,3,2};  // HWCN
+                                                      const std::vector<int64_t> &origin_shape,
+                                                      const std::string &expand_dims_rule) {
+  std::vector<int64_t> shape = {2, 2, 3, 2};  // HWCN
   DEF_GRAPH(graph) {
-    auto data1 = OP_DATA(0).TensorDesc(FORMAT_NCHW, DT_FLOAT16, {1, 32, 16, 16}).Attr(ATTR_NAME_INDEX, 0).Build("data1");
+    auto data1 =
+        OP_DATA(0).TensorDesc(FORMAT_NCHW, DT_FLOAT16, {1, 32, 16, 16}).Attr(ATTR_NAME_INDEX, 0).Build("data1");
     auto refdata1 = OP_CFG("RefData")
                         .TensorDesc(FORMAT_NC1HWC0, DT_FLOAT16, {})
                         .InCnt(1)
@@ -1271,7 +1221,8 @@ static Graph BuildRefDataWithStroageFormatTrainGraph2(Format storage_format, For
     conv2d1->MutableOutputDesc(0)->SetOriginFormat(FORMAT_NCHW);
     conv2d1->MutableOutputDesc(0)->SetFormat(FORMAT_HWCN);
 
-    auto data2 = OP_DATA(0).TensorDesc(FORMAT_NCHW, DT_FLOAT16, {1, 32, 16, 16}).Attr(ATTR_NAME_INDEX, 0).Build("data2");
+    auto data2 =
+        OP_DATA(0).TensorDesc(FORMAT_NCHW, DT_FLOAT16, {1, 32, 16, 16}).Attr(ATTR_NAME_INDEX, 0).Build("data2");
     auto refdata2 = OP_CFG("RefData")
                         .TensorDesc(FORMAT_NC1HWC0, DT_FLOAT16, {})
                         .InCnt(1)
@@ -1317,9 +1268,9 @@ static Graph BuildRefDataWithStroageFormatTrainGraph2(Format storage_format, For
 }
 
 static Graph BuildRefDataWithStroageFormatTrainGraphSameAnchor(Format storage_format, Format origin_format,
-                                                             const std::vector<int64_t> &origin_shape,
-                                                             const std::string &expand_dims_rule) {
-  std::vector<int64_t> shape = {2,2,3,2};  // HWCN
+                                                               const std::vector<int64_t> &origin_shape,
+                                                               const std::string &expand_dims_rule) {
+  std::vector<int64_t> shape = {2, 2, 3, 2};  // HWCN
   DEF_GRAPH(graph) {
     auto data1 = OP_DATA(0).TensorDesc(FORMAT_NCHW, DT_FLOAT16, origin_shape).Attr(ATTR_NAME_INDEX, 0).Build("data1");
     auto refdata1 = OP_CFG("RefData")
@@ -1392,7 +1343,7 @@ static Graph BuildRefDataWithStroageFormatTrainGraphSameAnchor(Format storage_fo
 
 /**
  *                   data2   refdata2
- *  data1   refdata2     \    /  
+ *  data1   refdata2     \    /
  *      \    /          conv2d2
  *     conv2d1            /
  *         \             /
@@ -1402,13 +1353,12 @@ static Graph BuildRefDataWithStroageFormatTrainGraphSameAnchor(Format storage_fo
  */
 TEST_F(ConcatNotaskPassTest, conv_5hd_connect_to_concat) {
   GeRunningEnvFaker ge_env;
-  Fake5DNodeEngine<FakeFormatsOptimizer>(ge_env, {1,2,16,16,16});
+  Fake5DNodeEngine<FakeFormatsOptimizer>(ge_env, {1, 2, 16, 16, 16});
   std::map<AscendString, AscendString> options;
   options[VARIABLE_MEMORY_MAX_SIZE] = "12800";
   Session session(options);
-    // 3.构图
-  auto train_graph =
-      BuildRefDataWithStroageFormatTrainGraph1(FORMAT_NC1HWC0, FORMAT_NCHW, {1, 32, 16, 16}, "");
+  // 3.构图
+  auto train_graph = BuildRefDataWithStroageFormatTrainGraph1(FORMAT_NC1HWC0, FORMAT_NCHW, {1, 32, 16, 16}, "");
 
   auto compute_graph = GraphUtilsEx::GetComputeGraph(train_graph);
   auto concat_node = compute_graph->FindNode("concat");
@@ -1417,7 +1367,7 @@ TEST_F(ConcatNotaskPassTest, conv_5hd_connect_to_concat) {
   // 4.add graph
   auto ret = session.AddGraph(3, train_graph);
   EXPECT_EQ(ret, SUCCESS);
-  
+
   // 5.run graph with stream async
   std::vector<ge::Tensor> g1_inputs;
   std::vector<ge::Tensor> g1_outputs(1);
@@ -1426,8 +1376,8 @@ TEST_F(ConcatNotaskPassTest, conv_5hd_connect_to_concat) {
   input_tensor->MutableTensorDesc().SetFormat(FORMAT_NC1HWC0);
   input_tensor->MutableTensorDesc().SetOriginShape(GeShape({1, 2, 4, 5}));
   input_tensor->MutableTensorDesc().SetShape(GeShape());
-  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor)); // data1
-  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor)); // refdata1
+  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor));  // data1
+  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor));  // refdata1
   ret = session.CompileGraph(3);
   EXPECT_EQ(ret, SUCCESS);
 
@@ -1438,13 +1388,12 @@ TEST_F(ConcatNotaskPassTest, conv_5hd_connect_to_concat) {
 
 TEST_F(ConcatNotaskPassTest, conv_5hd_connect_to_concat_pre_outanchor_can_reuse) {
   GeRunningEnvFaker ge_env;
-  Fake5DNodeEngine<FakeFormatsOptimizer>(ge_env, {1,2,16,16,16});
+  Fake5DNodeEngine<FakeFormatsOptimizer>(ge_env, {1, 2, 16, 16, 16});
   std::map<AscendString, AscendString> options;
   options[VARIABLE_MEMORY_MAX_SIZE] = "12800";
   Session session(options);
-    // 3.构图
-  auto train_graph =
-      BuildRefDataWithStroageFormatTrainGraph1(FORMAT_NC1HWC0, FORMAT_NCHW, {1, 32, 16, 16}, "");
+  // 3.构图
+  auto train_graph = BuildRefDataWithStroageFormatTrainGraph1(FORMAT_NC1HWC0, FORMAT_NCHW, {1, 32, 16, 16}, "");
 
   auto compute_graph = GraphUtilsEx::GetComputeGraph(train_graph);
   auto concat_node = compute_graph->FindNode("concat");
@@ -1466,8 +1415,8 @@ TEST_F(ConcatNotaskPassTest, conv_5hd_connect_to_concat_pre_outanchor_can_reuse)
   input_tensor->MutableTensorDesc().SetFormat(FORMAT_NC1HWC0);
   input_tensor->MutableTensorDesc().SetOriginShape(GeShape({1, 2, 4, 5}));
   input_tensor->MutableTensorDesc().SetShape(GeShape());
-  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor)); // data1
-  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor)); // refdata1
+  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor));  // data1
+  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor));  // refdata1
   ret = session.CompileGraph(3);
   EXPECT_EQ(ret, SUCCESS);
 
@@ -1478,11 +1427,11 @@ TEST_F(ConcatNotaskPassTest, conv_5hd_connect_to_concat_pre_outanchor_can_reuse)
 
 TEST_F(ConcatNotaskPassTest, conv_5hd_connect_to_concat_has_same_anchor) {
   GeRunningEnvFaker ge_env;
-  Fake5DNodeEngine<FakeFormatsOptimizer>(ge_env, {1,2,16,16,16});
+  Fake5DNodeEngine<FakeFormatsOptimizer>(ge_env, {1, 2, 16, 16, 16});
   std::map<AscendString, AscendString> options;
   options[VARIABLE_MEMORY_MAX_SIZE] = "12800";
   Session session(options);
-    // 3.构图
+  // 3.构图
   auto train_graph =
       BuildRefDataWithStroageFormatTrainGraphSameAnchor(FORMAT_NC1HWC0, FORMAT_NCHW, {1, 32, 16, 16}, "");
 
@@ -1502,8 +1451,8 @@ TEST_F(ConcatNotaskPassTest, conv_5hd_connect_to_concat_has_same_anchor) {
   input_tensor->MutableTensorDesc().SetFormat(FORMAT_NC1HWC0);
   input_tensor->MutableTensorDesc().SetOriginShape(GeShape({1, 2, 4, 5}));
   input_tensor->MutableTensorDesc().SetShape(GeShape());
-  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor)); // data1
-  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor)); // refdata1
+  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor));  // data1
+  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor));  // refdata1
   ret = session.CompileGraph(3);
   EXPECT_EQ(ret, SUCCESS);
 
@@ -1514,13 +1463,12 @@ TEST_F(ConcatNotaskPassTest, conv_5hd_connect_to_concat_has_same_anchor) {
 
 TEST_F(ConcatNotaskPassTest, conv_5hd_connect_to_concat_c1_not_align) {
   GeRunningEnvFaker ge_env;
-  Fake5DNodeEngine<FakeFormatsOptimizer>(ge_env, {1,2,16,16,16});
+  Fake5DNodeEngine<FakeFormatsOptimizer>(ge_env, {1, 2, 16, 16, 16});
   std::map<AscendString, AscendString> options;
   options[VARIABLE_MEMORY_MAX_SIZE] = "12800";
   Session session(options);
-    // 3.构图
-  auto train_graph =
-      BuildRefDataWithStroageFormatTrainGraph1(FORMAT_NC1HWC0, FORMAT_NCHW, {1, 31, 16, 16}, "");
+  // 3.构图
+  auto train_graph = BuildRefDataWithStroageFormatTrainGraph1(FORMAT_NC1HWC0, FORMAT_NCHW, {1, 31, 16, 16}, "");
 
   auto compute_graph = GraphUtilsEx::GetComputeGraph(train_graph);
   auto concat_node = compute_graph->FindNode("concat");
@@ -1538,8 +1486,8 @@ TEST_F(ConcatNotaskPassTest, conv_5hd_connect_to_concat_c1_not_align) {
   input_tensor->MutableTensorDesc().SetFormat(FORMAT_NC1HWC0);
   input_tensor->MutableTensorDesc().SetOriginShape(GeShape({1, 2, 4, 5}));
   input_tensor->MutableTensorDesc().SetShape(GeShape());
-  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor)); // data1
-  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor)); // refdata1
+  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor));  // data1
+  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor));  // refdata1
   ret = session.CompileGraph(3);
   EXPECT_EQ(ret, SUCCESS);
 
@@ -1550,13 +1498,12 @@ TEST_F(ConcatNotaskPassTest, conv_5hd_connect_to_concat_c1_not_align) {
 
 TEST_F(ConcatNotaskPassTest, conv_5hd_connect_to_concat_tensor_not_align) {
   GeRunningEnvFaker ge_env;
-  Fake5DNodeEngine<FakeFormatsOptimizer>(ge_env, {1,2,15,15,15});
+  Fake5DNodeEngine<FakeFormatsOptimizer>(ge_env, {1, 2, 15, 15, 15});
   std::map<AscendString, AscendString> options;
   options[VARIABLE_MEMORY_MAX_SIZE] = "12800";
   Session session(options);
-    // 3.构图
-  auto train_graph =
-      BuildRefDataWithStroageFormatTrainGraph1(FORMAT_NC1HWC0, FORMAT_NCHW, {1, 32, 16, 16}, "");
+  // 3.构图
+  auto train_graph = BuildRefDataWithStroageFormatTrainGraph1(FORMAT_NC1HWC0, FORMAT_NCHW, {1, 32, 16, 16}, "");
 
   auto compute_graph = GraphUtilsEx::GetComputeGraph(train_graph);
   auto concat_node = compute_graph->FindNode("concat");
@@ -1574,8 +1521,8 @@ TEST_F(ConcatNotaskPassTest, conv_5hd_connect_to_concat_tensor_not_align) {
   input_tensor->MutableTensorDesc().SetFormat(FORMAT_NC1HWC0);
   input_tensor->MutableTensorDesc().SetOriginShape(GeShape({1, 2, 4, 5}));
   input_tensor->MutableTensorDesc().SetShape(GeShape());
-  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor)); // data1
-  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor)); // refdata1
+  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor));  // data1
+  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor));  // refdata1
   ret = session.CompileGraph(3);
   EXPECT_EQ(ret, SUCCESS);
 
@@ -1586,13 +1533,12 @@ TEST_F(ConcatNotaskPassTest, conv_5hd_connect_to_concat_tensor_not_align) {
 
 TEST_F(ConcatNotaskPassTest, conv_5hd_connect_to_concat_dim_minus3) {
   GeRunningEnvFaker ge_env;
-  Fake5DNodeEngine<FakeFormatsOptimizer>(ge_env, {1,2,16,16,16});
+  Fake5DNodeEngine<FakeFormatsOptimizer>(ge_env, {1, 2, 16, 16, 16});
   std::map<AscendString, AscendString> options;
   options[VARIABLE_MEMORY_MAX_SIZE] = "12800";
   Session session(options);
-    // 3.构图
-  auto train_graph =
-      BuildRefDataWithStroageFormatTrainGraph1(FORMAT_NC1HWC0, FORMAT_NCHW, {1, 32, 16, 16}, "");
+  // 3.构图
+  auto train_graph = BuildRefDataWithStroageFormatTrainGraph1(FORMAT_NC1HWC0, FORMAT_NCHW, {1, 32, 16, 16}, "");
 
   auto compute_graph = GraphUtilsEx::GetComputeGraph(train_graph);
   auto concat_node = compute_graph->FindNode("concat");
@@ -1610,8 +1556,8 @@ TEST_F(ConcatNotaskPassTest, conv_5hd_connect_to_concat_dim_minus3) {
   input_tensor->MutableTensorDesc().SetFormat(FORMAT_NC1HWC0);
   input_tensor->MutableTensorDesc().SetOriginShape(GeShape({1, 2, 4, 5}));
   input_tensor->MutableTensorDesc().SetShape(GeShape());
-  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor)); // data1
-  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor)); // refdata1
+  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor));  // data1
+  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor));  // refdata1
   ret = session.CompileGraph(3);
   EXPECT_EQ(ret, SUCCESS);
 
@@ -1622,13 +1568,12 @@ TEST_F(ConcatNotaskPassTest, conv_5hd_connect_to_concat_dim_minus3) {
 
 TEST_F(ConcatNotaskPassTest, conv_5hd_connect_to_concat_dim_minus1) {
   GeRunningEnvFaker ge_env;
-  Fake5DNodeEngine<FakeFormatsOptimizer>(ge_env, {1,1,256,256,16});
+  Fake5DNodeEngine<FakeFormatsOptimizer>(ge_env, {1, 1, 256, 256, 16});
   std::map<AscendString, AscendString> options;
   options[VARIABLE_MEMORY_MAX_SIZE] = "12800";
   Session session(options);
-    // 3.构图
-  auto train_graph =
-      BuildRefDataWithStroageFormatTrainGraphNHWC(FORMAT_NC1HWC0, FORMAT_NHWC, {1, 256, 256, 2}, "");
+  // 3.构图
+  auto train_graph = BuildRefDataWithStroageFormatTrainGraphNHWC(FORMAT_NC1HWC0, FORMAT_NHWC, {1, 256, 256, 2}, "");
 
   auto compute_graph = GraphUtilsEx::GetComputeGraph(train_graph);
   auto concat_node = compute_graph->FindNode("concat");
@@ -1647,8 +1592,8 @@ TEST_F(ConcatNotaskPassTest, conv_5hd_connect_to_concat_dim_minus1) {
   input_tensor->MutableTensorDesc().SetOriginShape(GeShape({1, 2, 4, 5}));
   input_tensor->MutableTensorDesc().SetOriginShape(GeShape({1, 2, 4, 5}));
   input_tensor->MutableTensorDesc().SetShape(GeShape());
-  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor)); // data1
-  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor)); // refdata1
+  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor));  // data1
+  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor));  // refdata1
   ret = session.CompileGraph(3);
   EXPECT_EQ(ret, SUCCESS);
 
@@ -1663,9 +1608,8 @@ TEST_F(ConcatNotaskPassTest, nchw_to_hwcn_concat_dim0_fail) {
   std::map<AscendString, AscendString> options;
   options[VARIABLE_MEMORY_MAX_SIZE] = "12800";
   Session session(options);
-    // 3.构图
-  auto train_graph =
-      BuildRefDataWithStroageFormatTrainGraph2(FORMAT_NC1HWC0, FORMAT_NCHW, {1, 2, 4, 5}, "");
+  // 3.构图
+  auto train_graph = BuildRefDataWithStroageFormatTrainGraph2(FORMAT_NC1HWC0, FORMAT_NCHW, {1, 2, 4, 5}, "");
 
   auto compute_graph = GraphUtilsEx::GetComputeGraph(train_graph);
   auto concat_node = compute_graph->FindNode("concat");
@@ -1683,8 +1627,8 @@ TEST_F(ConcatNotaskPassTest, nchw_to_hwcn_concat_dim0_fail) {
   input_tensor->MutableTensorDesc().SetFormat(FORMAT_NC1HWC0);
   input_tensor->MutableTensorDesc().SetOriginShape(GeShape({1, 2, 4, 5}));
   input_tensor->MutableTensorDesc().SetShape(GeShape());
-  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor)); // data1
-  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor)); // refdata1
+  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor));  // data1
+  g1_inputs.emplace_back(TensorAdapter::AsTensor(*input_tensor));  // refdata1
   ret = session.CompileGraph(3);
   EXPECT_EQ(ret, SUCCESS);
 
@@ -1703,9 +1647,8 @@ TEST_F(ConcatNotaskPassTest, nchw_to_hwcn_concat_dim0_fail) {
  *                    |
  *                netoutput
  */
-static Graph BuildStroageFormatFzTrainGraph(Format origin_format,
-  const std::vector<int64_t> &concat_input_shape,
-  const std::vector<int64_t> &conv_input_shape) {
+static Graph BuildStroageFormatFzTrainGraph(Format origin_format, const std::vector<int64_t> &concat_input_shape,
+                                            const std::vector<int64_t> &conv_input_shape) {
   DEF_GRAPH(graph) {
     auto data1 = OP_DATA(0).TensorDesc(FORMAT_ND, DT_FLOAT16, conv_input_shape).Attr(ATTR_NAME_INDEX, 0).Build("data1");
 
@@ -1717,9 +1660,12 @@ static Graph BuildStroageFormatFzTrainGraph(Format origin_format,
     conv2d1->MutableOutputDesc(0)->SetOriginFormat(FORMAT_NHWC);
     conv2d1->MutableOutputDesc(0)->SetFormat(FORMAT_NHWC);
 
-    auto data2 = OP_DATA(0).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 0).Build("data2");
-    auto data3 = OP_DATA(0).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 0).Build("data3");
-    auto data4 = OP_DATA(0).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 0).Build("data4");
+    auto data2 =
+        OP_DATA(0).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 0).Build("data2");
+    auto data3 =
+        OP_DATA(0).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 0).Build("data3");
+    auto data4 =
+        OP_DATA(0).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 0).Build("data4");
 
     auto concat = OP_CFG("ConcatD").InCnt(3).OutCnt(1).Build("concat");
     concat->MutableInputDesc(0)->SetOriginFormat(FORMAT_HWCN);
@@ -1744,7 +1690,7 @@ static Graph BuildStroageFormatFzTrainGraph(Format origin_format,
 
 template <typename T>
 void FakeFzNodeEngine(GeRunningEnvFaker &ge_env, const std::vector<int64_t> &concat_input_shape,
-  const std::vector<int64_t> &concat_output_shape, const std::vector<int64_t> &conv_input) {
+                      const std::vector<int64_t> &concat_output_shape, const std::vector<int64_t> &conv_input) {
   auto ffo = MakeShared<T>();
   auto ops_kernel_builder = MakeShared<FakeAicoreLibOpsKernelBuilder>("AiCoreLib");
   auto aicore_engine_builder = MakeShared<FakeAicoreLibOpsKernelBuilder>("AIcoreEngine");
@@ -1753,67 +1699,63 @@ void FakeFzNodeEngine(GeRunningEnvFaker &ge_env, const std::vector<int64_t> &con
   // 5 indicates that cube size is 16
   const Format src_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_NC1HWC0, FORMAT_RESERVED, 5));
   const Format dst_format = static_cast<Format>(GetFormatFromSubAndC0(FORMAT_FRACTAL_Z, FORMAT_NHWC, 5));
-  ffo->OpFormatByType(
-      CONV2D, {
-          .input_formats = {
-              {src_format, GeShape(std::vector<int64_t>(conv_input))},
-              {dst_format, GeShape(std::vector<int64_t>(concat_output_shape))},
-          },
-          .output_formats = {
-              {src_format, GeShape(std::vector<int64_t>({2,60,16,16}))}
-          }
-      });
-  ffo->OpFormatByType(
-      "ConcatD", {
-          .input_formats = {
-              {dst_format, GeShape(std::vector<int64_t>(concat_input_shape))},
-              {dst_format, GeShape(std::vector<int64_t>(concat_input_shape))},
-              {dst_format, GeShape(std::vector<int64_t>(concat_input_shape))},
-          },
-          .output_formats = {
-              {dst_format, GeShape(std::vector<int64_t>(concat_output_shape))}
-          }
-      });
-      ge_env.Reset()
-         .Install(FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeEngine("AIcoreEngine").KernelInfoStore("AiCoreLib").GraphOptimizer("AIcoreEngine"))
-         .Install(FakeEngine("DNN_HCCL").KernelInfoStore(kEngineNameHccl))
-         .Install(FakeEngine("DNN_VM_RTS").KernelInfoStore(kEngineNameRts).GraphOptimizer("DNN_VM_RTS_GRAPH_OPTIMIZER_STORE"))
-         .Install(FakeEngine("AiCoreLib").GraphOptimizer("FormatOp", ffo).KernelBuilder(ops_kernel_builder).KernelBuilder(aicore_engine_builder))
-         .Install(FakeOp(DATA).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(VARIABLE).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(SHAPE).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(IF).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp("PhonyConcat").InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE").InferShape(infer_fun))
-         .Install(FakeOp(PARTITIONEDCALL).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(CONSTANTOP).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(CONSTANT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp("Identity").InfoStoreAndBuilder("AiCoreLib"))
-         .Install(FakeOp(NETOUTPUT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(ADD).InfoStoreAndBuilder("AiCoreLib").InferShape(infer_fun))
-         .Install(FakeOp("ConcatD").InfoStoreAndBuilder("AiCoreLib"))
-         .Install(FakeOp("Send").InfoStoreAndBuilder(kEngineNameRts))
-         .Install(FakeOp("Recv").InfoStoreAndBuilder(kEngineNameRts))
-         .Install(FakeOp(RELU).InfoStoreAndBuilder("AiCoreLib").InferShape(infer_fun))
-         .Install(FakeOp(CONV2D).InfoStoreAndBuilder("AiCoreLib").InferShape(infer_fun))
-         .Install(FakeOp(RESHAPE).InfoStoreAndBuilder("AiCoreLib"))
-         .Install(FakeOp("RefData").InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
-         .Install(FakeOp(TRANSDATA).InfoStoreAndBuilder("AiCoreLib"));
+  ffo->OpFormatByType(CONV2D, {.input_formats =
+                                   {
+                                       {src_format, GeShape(std::vector<int64_t>(conv_input))},
+                                       {dst_format, GeShape(std::vector<int64_t>(concat_output_shape))},
+                                   },
+                               .output_formats = {{src_format, GeShape(std::vector<int64_t>({2, 60, 16, 16}))}}});
+  ffo->OpFormatByType("ConcatD",
+                      {.input_formats =
+                           {
+                               {dst_format, GeShape(std::vector<int64_t>(concat_input_shape))},
+                               {dst_format, GeShape(std::vector<int64_t>(concat_input_shape))},
+                               {dst_format, GeShape(std::vector<int64_t>(concat_input_shape))},
+                           },
+                       .output_formats = {{dst_format, GeShape(std::vector<int64_t>(concat_output_shape))}}});
+  ge_env.Reset()
+      .Install(FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeEngine("AIcoreEngine").KernelInfoStore("AiCoreLib").GraphOptimizer("AIcoreEngine"))
+      .Install(FakeEngine("DNN_HCCL").KernelInfoStore(kEngineNameHccl))
+      .Install(
+          FakeEngine("DNN_VM_RTS").KernelInfoStore(kEngineNameRts).GraphOptimizer("DNN_VM_RTS_GRAPH_OPTIMIZER_STORE"))
+      .Install(FakeEngine("AiCoreLib")
+                   .GraphOptimizer("FormatOp", ffo)
+                   .KernelBuilder(ops_kernel_builder)
+                   .KernelBuilder(aicore_engine_builder))
+      .Install(FakeOp(DATA).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp(VARIABLE).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp(SHAPE).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp(IF).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp("PhonyConcat").InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE").InferShape(infer_fun))
+      .Install(FakeOp(PARTITIONEDCALL).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp(CONSTANTOP).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp(CONSTANT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp("Identity").InfoStoreAndBuilder("AiCoreLib"))
+      .Install(FakeOp(NETOUTPUT).InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp(ADD).InfoStoreAndBuilder("AiCoreLib").InferShape(infer_fun))
+      .Install(FakeOp("ConcatD").InfoStoreAndBuilder("AiCoreLib"))
+      .Install(FakeOp("Send").InfoStoreAndBuilder(kEngineNameRts))
+      .Install(FakeOp("Recv").InfoStoreAndBuilder(kEngineNameRts))
+      .Install(FakeOp(RELU).InfoStoreAndBuilder("AiCoreLib").InferShape(infer_fun))
+      .Install(FakeOp(CONV2D).InfoStoreAndBuilder("AiCoreLib").InferShape(infer_fun))
+      .Install(FakeOp(RESHAPE).InfoStoreAndBuilder("AiCoreLib"))
+      .Install(FakeOp("RefData").InfoStoreAndBuilder("DNN_VM_GE_LOCAL_OP_STORE"))
+      .Install(FakeOp(TRANSDATA).InfoStoreAndBuilder("AiCoreLib"));
 }
 /*HWCN 转FZ
-*HWCN =>(C1,H,W),N1,N0,C0*
-*{1,2,3,16} =>{1*1*2,1,16,16}
-* src_to_dst_transfer_dims: {{0}, {0}, {0,3}, {1,2}}
-* dst_to_src_transfer_dims: {{2,0,1},{3},{3},{2}}*/
+ *HWCN =>(C1,H,W),N1,N0,C0*
+ *{1,2,3,16} =>{1*1*2,1,16,16}
+ * src_to_dst_transfer_dims: {{0}, {0}, {0,3}, {1,2}}
+ * dst_to_src_transfer_dims: {{2,0,1},{3},{3},{2}}*/
 TEST_F(ConcatNotaskPassTest, conv_fz_connect_to_concat_H) {
   GeRunningEnvFaker ge_env;
-  FakeFzNodeEngine<FakeFormatsOptimizer>(ge_env, {2,1,16,16}, {6,1,16,16}, {2,1,60,16,16});
+  FakeFzNodeEngine<FakeFormatsOptimizer>(ge_env, {2, 1, 16, 16}, {6, 1, 16, 16}, {2, 1, 60, 16, 16});
   std::map<AscendString, AscendString> options;
   options[VARIABLE_MEMORY_MAX_SIZE] = "12800";
   Session session(options);
-    // 3.构图
-  auto train_graph =
-      BuildStroageFormatFzTrainGraph(FORMAT_NCHW, {1,2,3,16}, {2,60,16,3});
+  // 3.构图
+  auto train_graph = BuildStroageFormatFzTrainGraph(FORMAT_NCHW, {1, 2, 3, 16}, {2, 60, 16, 3});
 
   auto compute_graph = GraphUtilsEx::GetComputeGraph(train_graph);
   auto concat_node = compute_graph->FindNode("concat");
@@ -1822,7 +1764,7 @@ TEST_F(ConcatNotaskPassTest, conv_fz_connect_to_concat_H) {
   // 4.add graph
   auto ret = session.AddGraph(3, train_graph);
   EXPECT_EQ(ret, SUCCESS);
-  
+
   // 5.compile graph
   ret = session.CompileGraph(3);
   EXPECT_EQ(ret, SUCCESS);
@@ -1833,19 +1775,18 @@ TEST_F(ConcatNotaskPassTest, conv_fz_connect_to_concat_H) {
 }
 
 /*HWCN 转FZ
-*HWCN =>(C1,H,W),N1,N0,C0*
-*{1,2,3,16} =>{1*1*2,1,16,16}
-* src_to_dst_transfer_dims: {{0}, {0}, {0,3}, {1,2}}
-* dst_to_src_transfer_dims: {{2,0,1},{3},{3},{2}}*/
+ *HWCN =>(C1,H,W),N1,N0,C0*
+ *{1,2,3,16} =>{1*1*2,1,16,16}
+ * src_to_dst_transfer_dims: {{0}, {0}, {0,3}, {1,2}}
+ * dst_to_src_transfer_dims: {{2,0,1},{3},{3},{2}}*/
 TEST_F(ConcatNotaskPassTest, conv_fz_connect_to_concat_W_pass) {
   GeRunningEnvFaker ge_env;
-  FakeFzNodeEngine<FakeFormatsOptimizer>(ge_env, {2,1,16,16}, {6,1,16,16}, {2,1,60,16,16});
+  FakeFzNodeEngine<FakeFormatsOptimizer>(ge_env, {2, 1, 16, 16}, {6, 1, 16, 16}, {2, 1, 60, 16, 16});
   std::map<AscendString, AscendString> options;
   options[VARIABLE_MEMORY_MAX_SIZE] = "12800";
   Session session(options);
-    // 3.构图
-  auto train_graph =
-      BuildStroageFormatFzTrainGraph(FORMAT_NCHW, {1,2,3,16}, {2,60,16,3});
+  // 3.构图
+  auto train_graph = BuildStroageFormatFzTrainGraph(FORMAT_NCHW, {1, 2, 3, 16}, {2, 60, 16, 3});
 
   auto compute_graph = GraphUtilsEx::GetComputeGraph(train_graph);
   auto concat_node = compute_graph->FindNode("concat");
@@ -1854,7 +1795,7 @@ TEST_F(ConcatNotaskPassTest, conv_fz_connect_to_concat_W_pass) {
   // 4.add graph
   auto ret = session.AddGraph(3, train_graph);
   EXPECT_EQ(ret, SUCCESS);
-  
+
   // 5.compile graph
   ret = session.CompileGraph(3);
   EXPECT_EQ(ret, SUCCESS);
@@ -1865,19 +1806,18 @@ TEST_F(ConcatNotaskPassTest, conv_fz_connect_to_concat_W_pass) {
 }
 
 /*HWCN 转FZ
-*HWCN =>(C1,H,W),N1,N0,C0*
-*{2,2,3,16} =>{1*2*2,1,16,16}
-* src_to_dst_transfer_dims: {{0}, {0}, {0,3}, {1,2}}
-* dst_to_src_transfer_dims: {{2,0,1},{3},{3},{2}}*/
+ *HWCN =>(C1,H,W),N1,N0,C0*
+ *{2,2,3,16} =>{1*2*2,1,16,16}
+ * src_to_dst_transfer_dims: {{0}, {0}, {0,3}, {1,2}}
+ * dst_to_src_transfer_dims: {{2,0,1},{3},{3},{2}}*/
 TEST_F(ConcatNotaskPassTest, conv_fz_connect_to_concat_W_fail) {
   GeRunningEnvFaker ge_env;
-  FakeFzNodeEngine<FakeFormatsOptimizer>(ge_env, {4,1,16,16}, {12,1,16,16}, {2,1,60,16,16});
+  FakeFzNodeEngine<FakeFormatsOptimizer>(ge_env, {4, 1, 16, 16}, {12, 1, 16, 16}, {2, 1, 60, 16, 16});
   std::map<AscendString, AscendString> options;
   options[VARIABLE_MEMORY_MAX_SIZE] = "12800";
   Session session(options);
-    // 3.构图 
-  auto train_graph =
-      BuildStroageFormatFzTrainGraph(FORMAT_NCHW, {2,2,3,16}, {2,60,16,3});
+  // 3.构图
+  auto train_graph = BuildStroageFormatFzTrainGraph(FORMAT_NCHW, {2, 2, 3, 16}, {2, 60, 16, 3});
 
   auto compute_graph = GraphUtilsEx::GetComputeGraph(train_graph);
   auto concat_node = compute_graph->FindNode("concat");
@@ -1886,7 +1826,7 @@ TEST_F(ConcatNotaskPassTest, conv_fz_connect_to_concat_W_fail) {
   // 4.add graph
   auto ret = session.AddGraph(3, train_graph);
   EXPECT_EQ(ret, SUCCESS);
-  
+
   // 5.compile graph
   ret = session.CompileGraph(3);
   EXPECT_EQ(ret, SUCCESS);
@@ -1897,19 +1837,18 @@ TEST_F(ConcatNotaskPassTest, conv_fz_connect_to_concat_W_fail) {
 }
 
 /*HWCN 转FZ
-*HWCN =>(C1,H,W),N1,N0,C0*
-*{2,2,3,16} =>{1*2*2,1,16,16}
-* src_to_dst_transfer_dims: {{0}, {0}, {0,3}, {1,2}}
-* dst_to_src_transfer_dims: {{2,0,1},{3},{3},{2}}*/
+ *HWCN =>(C1,H,W),N1,N0,C0*
+ *{2,2,3,16} =>{1*2*2,1,16,16}
+ * src_to_dst_transfer_dims: {{0}, {0}, {0,3}, {1,2}}
+ * dst_to_src_transfer_dims: {{2,0,1},{3},{3},{2}}*/
 TEST_F(ConcatNotaskPassTest, conv_fz_connect_to_concat_C_fail) {
   GeRunningEnvFaker ge_env;
-  FakeFzNodeEngine<FakeFormatsOptimizer>(ge_env, {4,1,16,16}, {12,1,16,16}, {2,1,60,16,16});
+  FakeFzNodeEngine<FakeFormatsOptimizer>(ge_env, {4, 1, 16, 16}, {12, 1, 16, 16}, {2, 1, 60, 16, 16});
   std::map<AscendString, AscendString> options;
   options[VARIABLE_MEMORY_MAX_SIZE] = "12800";
   Session session(options);
-    // 3.构图 
-  auto train_graph =
-      BuildStroageFormatFzTrainGraph(FORMAT_NCHW, {2,2,3,16}, {2,60,16,3});
+  // 3.构图
+  auto train_graph = BuildStroageFormatFzTrainGraph(FORMAT_NCHW, {2, 2, 3, 16}, {2, 60, 16, 3});
 
   auto compute_graph = GraphUtilsEx::GetComputeGraph(train_graph);
   auto concat_node = compute_graph->FindNode("concat");
@@ -1918,7 +1857,7 @@ TEST_F(ConcatNotaskPassTest, conv_fz_connect_to_concat_C_fail) {
   // 4.add graph
   auto ret = session.AddGraph(3, train_graph);
   EXPECT_EQ(ret, SUCCESS);
-  
+
   // 5.compile graph
   ret = session.CompileGraph(3);
   EXPECT_EQ(ret, SUCCESS);
@@ -1929,19 +1868,18 @@ TEST_F(ConcatNotaskPassTest, conv_fz_connect_to_concat_C_fail) {
 }
 
 /*HWCN 转FZ
-*HWCN =>(C1,H,W),N1,N0,C0*
-*{2,2,32,16} =>{2*2*2,1,16,16}
-* src_to_dst_transfer_dims: {{0}, {0}, {0,3}, {1,2}}
-* dst_to_src_transfer_dims: {{2,0,1},{3},{3},{2}}*/
+ *HWCN =>(C1,H,W),N1,N0,C0*
+ *{2,2,32,16} =>{2*2*2,1,16,16}
+ * src_to_dst_transfer_dims: {{0}, {0}, {0,3}, {1,2}}
+ * dst_to_src_transfer_dims: {{2,0,1},{3},{3},{2}}*/
 TEST_F(ConcatNotaskPassTest, conv_fz_connect_to_concat_C_pass) {
   GeRunningEnvFaker ge_env;
-  FakeFzNodeEngine<FakeFormatsOptimizer>(ge_env, {8,1,16,16}, {24,1,16,16}, {2,1,60,16,16});
+  FakeFzNodeEngine<FakeFormatsOptimizer>(ge_env, {8, 1, 16, 16}, {24, 1, 16, 16}, {2, 1, 60, 16, 16});
   std::map<AscendString, AscendString> options;
   options[VARIABLE_MEMORY_MAX_SIZE] = "12800";
   Session session(options);
-    // 3.构图 
-  auto train_graph =
-      BuildStroageFormatFzTrainGraph(FORMAT_NCHW, {2,2,32,16}, {2,60,16,3});
+  // 3.构图
+  auto train_graph = BuildStroageFormatFzTrainGraph(FORMAT_NCHW, {2, 2, 32, 16}, {2, 60, 16, 3});
 
   auto compute_graph = GraphUtilsEx::GetComputeGraph(train_graph);
   auto concat_node = compute_graph->FindNode("concat");
@@ -1950,7 +1888,7 @@ TEST_F(ConcatNotaskPassTest, conv_fz_connect_to_concat_C_pass) {
   // 4.add graph
   auto ret = session.AddGraph(3, train_graph);
   EXPECT_EQ(ret, SUCCESS);
-  
+
   // 5.compile graph
   ret = session.CompileGraph(3);
   EXPECT_EQ(ret, SUCCESS);
@@ -1961,19 +1899,18 @@ TEST_F(ConcatNotaskPassTest, conv_fz_connect_to_concat_C_pass) {
 }
 
 /*HWCN 转FZ
-*HWCN =>(C1,H,W),N1,N0,C0*
-*{1,1,3,32} =>{1*1*1,2,16,16}
-* src_to_dst_transfer_dims: {{0}, {0}, {0,3}, {1,2}}
-* dst_to_src_transfer_dims: {{2,0,1},{3},{3},{2}}*/
+ *HWCN =>(C1,H,W),N1,N0,C0*
+ *{1,1,3,32} =>{1*1*1,2,16,16}
+ * src_to_dst_transfer_dims: {{0}, {0}, {0,3}, {1,2}}
+ * dst_to_src_transfer_dims: {{2,0,1},{3},{3},{2}}*/
 TEST_F(ConcatNotaskPassTest, conv_fz_connect_to_concat_N_pass) {
   GeRunningEnvFaker ge_env;
-  FakeFzNodeEngine<FakeFormatsOptimizer>(ge_env, {1,1,3,32}, {1,6,16,16}, {2,1,60,16,16});
+  FakeFzNodeEngine<FakeFormatsOptimizer>(ge_env, {1, 1, 3, 32}, {1, 6, 16, 16}, {2, 1, 60, 16, 16});
   std::map<AscendString, AscendString> options;
   options[VARIABLE_MEMORY_MAX_SIZE] = "12800";
   Session session(options);
-    // 3.构图
-  auto train_graph =
-      BuildStroageFormatFzTrainGraph(FORMAT_NCHW, {1,1,3,32}, {2,60,16,3});
+  // 3.构图
+  auto train_graph = BuildStroageFormatFzTrainGraph(FORMAT_NCHW, {1, 1, 3, 32}, {2, 60, 16, 3});
 
   auto compute_graph = GraphUtilsEx::GetComputeGraph(train_graph);
   auto concat_node = compute_graph->FindNode("concat");
@@ -1982,7 +1919,7 @@ TEST_F(ConcatNotaskPassTest, conv_fz_connect_to_concat_N_pass) {
   // 4.add graph
   auto ret = session.AddGraph(3, train_graph);
   EXPECT_EQ(ret, SUCCESS);
-  
+
   // 5.compile graph
   ret = session.CompileGraph(3);
   EXPECT_EQ(ret, SUCCESS);
@@ -1993,19 +1930,18 @@ TEST_F(ConcatNotaskPassTest, conv_fz_connect_to_concat_N_pass) {
 }
 
 /*HWCN 转FZ
-*HWCN =>(C1,H,W),N1,N0,C0*
-*{2,1,3,32} =>{1*2*1,2,16,16}
-* src_to_dst_transfer_dims: {{0}, {0}, {0,3}, {1,2}}
-* dst_to_src_transfer_dims: {{2,0,1},{3},{3},{2}}*/
+ *HWCN =>(C1,H,W),N1,N0,C0*
+ *{2,1,3,32} =>{1*2*1,2,16,16}
+ * src_to_dst_transfer_dims: {{0}, {0}, {0,3}, {1,2}}
+ * dst_to_src_transfer_dims: {{2,0,1},{3},{3},{2}}*/
 TEST_F(ConcatNotaskPassTest, conv_fz_connect_to_concat_N_fail) {
   GeRunningEnvFaker ge_env;
-  FakeFzNodeEngine<FakeFormatsOptimizer>(ge_env, {2,1,3,32}, {2,6,16,16}, {2,1,60,16,16});
+  FakeFzNodeEngine<FakeFormatsOptimizer>(ge_env, {2, 1, 3, 32}, {2, 6, 16, 16}, {2, 1, 60, 16, 16});
   std::map<AscendString, AscendString> options;
   options[VARIABLE_MEMORY_MAX_SIZE] = "12800";
   Session session(options);
-    // 3.构图
-  auto train_graph =
-      BuildStroageFormatFzTrainGraph(FORMAT_NCHW, {2,1,3,32}, {2,60,16,3});
+  // 3.构图
+  auto train_graph = BuildStroageFormatFzTrainGraph(FORMAT_NCHW, {2, 1, 3, 32}, {2, 60, 16, 3});
 
   auto compute_graph = GraphUtilsEx::GetComputeGraph(train_graph);
   auto concat_node = compute_graph->FindNode("concat");
@@ -2014,7 +1950,7 @@ TEST_F(ConcatNotaskPassTest, conv_fz_connect_to_concat_N_fail) {
   // 4.add graph
   auto ret = session.AddGraph(3, train_graph);
   EXPECT_EQ(ret, SUCCESS);
-  
+
   // 5.compile graph
   ret = session.CompileGraph(3);
   EXPECT_EQ(ret, SUCCESS);
@@ -2025,19 +1961,18 @@ TEST_F(ConcatNotaskPassTest, conv_fz_connect_to_concat_N_fail) {
 }
 
 /*HWCN 转FZ
-*HWCN =>(C1,H,W),N1,N0,C0*
-*{1,1,32,32} =>{2*1*1,2,16,16}
-* src_to_dst_transfer_dims: {{0}, {0}, {0,3}, {1,2}}
-* dst_to_src_transfer_dims: {{2,0,1},{3},{3},{2}}*/
+ *HWCN =>(C1,H,W),N1,N0,C0*
+ *{1,1,32,32} =>{2*1*1,2,16,16}
+ * src_to_dst_transfer_dims: {{0}, {0}, {0,3}, {1,2}}
+ * dst_to_src_transfer_dims: {{2,0,1},{3},{3},{2}}*/
 TEST_F(ConcatNotaskPassTest, conv_fz_connect_to_concat_W_fail_02) {
   GeRunningEnvFaker ge_env;
-  FakeFzNodeEngine<FakeFormatsOptimizer>(ge_env, {2,1,32,32}, {2,6,16,16}, {2,1,60,16,16});
+  FakeFzNodeEngine<FakeFormatsOptimizer>(ge_env, {2, 1, 32, 32}, {2, 6, 16, 16}, {2, 1, 60, 16, 16});
   std::map<AscendString, AscendString> options;
   options[VARIABLE_MEMORY_MAX_SIZE] = "12800";
   Session session(options);
-    // 3.构图
-  auto train_graph =
-      BuildStroageFormatFzTrainGraph(FORMAT_NCHW, {2,1,32,32}, {4,60,16,3});
+  // 3.构图
+  auto train_graph = BuildStroageFormatFzTrainGraph(FORMAT_NCHW, {2, 1, 32, 32}, {4, 60, 16, 3});
 
   auto compute_graph = GraphUtilsEx::GetComputeGraph(train_graph);
   auto concat_node = compute_graph->FindNode("concat");
@@ -2046,7 +1981,7 @@ TEST_F(ConcatNotaskPassTest, conv_fz_connect_to_concat_W_fail_02) {
   // 4.add graph
   auto ret = session.AddGraph(3, train_graph);
   EXPECT_EQ(ret, SUCCESS);
-  
+
   // 5.compile graph
   ret = session.CompileGraph(3);
   EXPECT_EQ(ret, SUCCESS);
@@ -2064,62 +1999,48 @@ void SetSubGraph(ComputeGraphPtr graph, ComputeGraphPtr subgraph, OpDesc &op_des
   graph->AddSubgraph(name, subgraph);
 }
 
-static ComputeGraphPtr BuildControlOpIfGraph(const ComputeGraphPtr &root_graph, const NodePtr &if_parent
-  ,const std::vector<int64_t> &input_shape) {
+static ComputeGraphPtr BuildControlOpIfGraph(const ComputeGraphPtr &root_graph, const NodePtr &if_parent,
+                                             const std::vector<int64_t> &input_shape) {
   DEF_GRAPH(then_branch) {
-     auto data = OP_CFG(DATA)
-         .InCnt(1)
-         .OutCnt(1)
-         .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
-         .TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape);
-     auto net_output = OP_CFG(NETOUTPUT)
-         .InCnt(1)
-         .OutCnt(1)
-         .TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape).Build("then_Node_Output");
-     AttrUtils::SetInt(net_output->MutableInputDesc(0), ATTR_NAME_PARENT_NODE_INDEX, 0);
-     CHAIN(NODE("then_arg_0", data)->NODE(net_output));
- };
+    auto data = OP_CFG(DATA)
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape);
+    auto net_output =
+        OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape).Build("then_Node_Output");
+    AttrUtils::SetInt(net_output->MutableInputDesc(0), ATTR_NAME_PARENT_NODE_INDEX, 0);
+    CHAIN(NODE("then_arg_0", data)->NODE(net_output));
+  };
 
   DEF_GRAPH(else_branch) {
-     auto data = OP_CFG(DATA)
-         .InCnt(1)
-         .OutCnt(1)
-         .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
-         .TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape);
-     auto neg_op = OP_CFG(RELU)
-         .InCnt(1)
-         .OutCnt(1)
-         .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
-         .TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape);
-     auto net_output = OP_CFG(NETOUTPUT)
-         .InCnt(1)
-         .OutCnt(1)
-         .TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape).Build("else_Node_Output");
+    auto data = OP_CFG(DATA)
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape);
+    auto neg_op = OP_CFG(RELU)
+                      .InCnt(1)
+                      .OutCnt(1)
+                      .Attr(ATTR_NAME_PARENT_NODE_INDEX, 0)
+                      .TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape);
+    auto net_output =
+        OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape).Build("else_Node_Output");
     AttrUtils::SetInt(net_output->MutableInputDesc(0), ATTR_NAME_PARENT_NODE_INDEX, 0);
-     CHAIN(NODE("else_arg_0", data)->NODE("neg_else", neg_op)->NODE(net_output));
+    CHAIN(NODE("else_arg_0", data)->NODE("neg_else", neg_op)->NODE(net_output));
   };
 
   auto then_graph = ToComputeGraph(then_branch);
   auto else_graph = ToComputeGraph(else_branch);
 
   DEF_GRAPH(if_graph) {
-    auto pred_data = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape);
+    auto pred_data =
+        OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape);
 
-    auto value_data = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape);
+    auto value_data =
+        OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 1).TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape);
 
-    auto if_op = OP_CFG(IF)
-        .InCnt(2)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape)
-        .Build("if");
+    auto if_op = OP_CFG(IF).InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape).Build("if");
 
     if_op->MutableOutputDesc(0)->SetShape(GeShape(input_shape));
     if_op->RegisterSubgraphIrName("then_branch", SubgraphType::kStatic);
@@ -2129,10 +2050,7 @@ static ComputeGraphPtr BuildControlOpIfGraph(const ComputeGraphPtr &root_graph, 
     if_op->AddSubgraphName(else_graph->GetName());
     if_op->SetSubgraphInstanceName(1, else_graph->GetName());
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, input_shape);
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, input_shape);
 
     CHAIN(NODE("arg_pred", pred_data)->NODE(if_op)->NODE("If_Node_Output", net_output));
     CHAIN(NODE("arg_value", value_data)->NODE(if_op));
@@ -2154,8 +2072,8 @@ static ComputeGraphPtr BuildControlOpIfGraph(const ComputeGraphPtr &root_graph, 
 }
 
 /**
- *                              
- *       data1   data2         data3   
+ *
+ *       data1   data2         data3
  *          \     /             /
  *     PartitionedCall       RELU
  *            \               /
@@ -2163,21 +2081,21 @@ static ComputeGraphPtr BuildControlOpIfGraph(const ComputeGraphPtr &root_graph, 
  *                    |
  *                netoutput
  */
-static Graph BuildGraphWithSubGraph(Format origin_format,
-  const std::vector<int64_t> &concat_input_shape) {
+static Graph BuildGraphWithSubGraph(Format origin_format, const std::vector<int64_t> &concat_input_shape) {
   DEF_GRAPH(graph) {
-    auto data1 = OP_DATA(0).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 0).Build("data1");
-    auto data2 = OP_DATA(1).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 1).Build("data2");
-    auto data3 = OP_DATA(2).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 2).Build("data3");
+    auto data1 =
+        OP_DATA(0).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 0).Build("data1");
+    auto data2 =
+        OP_DATA(1).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 1).Build("data2");
+    auto data3 =
+        OP_DATA(2).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 2).Build("data3");
 
     auto partitioned_call_1 = OP_CFG(PARTITIONEDCALL)
-      .InCnt(2)
-      .OutCnt(1)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Build("partitioned_call_1");
-    auto relu = OP_CFG(RELU)
-      .InCnt(1)
-      .OutCnt(1)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Build("relu");
+                                  .InCnt(2)
+                                  .OutCnt(1)
+                                  .TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape)
+                                  .Build("partitioned_call_1");
+    auto relu = OP_CFG(RELU).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Build("relu");
     auto concat = OP_CFG("ConcatD").InCnt(2).OutCnt(1).Build("concat");
     concat->MutableInputDesc(0)->SetOriginFormat(FORMAT_HWCN);
     concat->MutableInputDesc(0)->SetFormat(FORMAT_HWCN);
@@ -2201,12 +2119,11 @@ TEST_F(ConcatNotaskPassTest, partitioncall_connect_to_concat) {
   std::map<AscendString, AscendString> options;
   options[VARIABLE_MEMORY_MAX_SIZE] = "12800";
   Session session(options);
-    // 3.构图
-  auto train_graph =
-      BuildGraphWithSubGraph(FORMAT_ND, {1,2,32,32});
+  // 3.构图
+  auto train_graph = BuildGraphWithSubGraph(FORMAT_ND, {1, 2, 32, 32});
   auto compute_graph = GraphUtilsEx::GetComputeGraph(train_graph);
   auto partitioned_call_1 = compute_graph->FindNode("partitioned_call_1");
-  auto if_graph_1 = BuildControlOpIfGraph(compute_graph, partitioned_call_1, {1,2,32,32});
+  auto if_graph_1 = BuildControlOpIfGraph(compute_graph, partitioned_call_1, {1, 2, 32, 32});
   SetSubGraph(compute_graph, if_graph_1, *partitioned_call_1->GetOpDesc(), "if_graph");
   auto concat_node = compute_graph->FindNode("concat");
   auto op_desc = concat_node->GetOpDesc();
@@ -2214,7 +2131,7 @@ TEST_F(ConcatNotaskPassTest, partitioncall_connect_to_concat) {
   // 4.add graph
   auto ret = session.AddGraph(1, train_graph);
   EXPECT_EQ(ret, SUCCESS);
-  
+
   // 5.compile graph
   ret = session.CompileGraph(1);
   EXPECT_EQ(ret, SUCCESS);
@@ -2225,24 +2142,27 @@ TEST_F(ConcatNotaskPassTest, partitioncall_connect_to_concat) {
 }
 
 /**
- *                              
- *       data1   data2             data3   
+ *
+ *       data1   data2             data3
  *          \     /                  /
  *     PartitionedCall    data4   RELU
  *            \            /       /
- *                add     
+ *                add
  *                    \          /
  *                       concat
  *                         |
  *                      netoutput
  */
-static Graph BuildGraphWithSubGraphAndRefNode(Format origin_format,
-  const std::vector<int64_t> &concat_input_shape) {
+static Graph BuildGraphWithSubGraphAndRefNode(Format origin_format, const std::vector<int64_t> &concat_input_shape) {
   DEF_GRAPH(graph) {
-    auto data1 = OP_DATA(0).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 0).Build("data1");
-    auto data2 = OP_DATA(1).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 1).Build("data2");
-    auto data3 = OP_DATA(2).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 2).Build("data3");
-    auto data4 = OP_DATA(3).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 3).Build("data4");
+    auto data1 =
+        OP_DATA(0).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 0).Build("data1");
+    auto data2 =
+        OP_DATA(1).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 1).Build("data2");
+    auto data3 =
+        OP_DATA(2).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 2).Build("data3");
+    auto data4 =
+        OP_DATA(3).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 3).Build("data4");
 
     auto add = OP_CFG(ADD).InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, concat_input_shape).Build("add");
     add->SetOpEngineName("AIcoreEngine");
@@ -2250,13 +2170,11 @@ static Graph BuildGraphWithSubGraphAndRefNode(Format origin_format,
     TensorUtils::SetReuseInput(*output_tensor, true);
     TensorUtils::SetReuseInputIndex(*output_tensor, 0U);
     auto partitioned_call_1 = OP_CFG(PARTITIONEDCALL)
-      .InCnt(2)
-      .OutCnt(1)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Build("partitioned_call_1");
-    auto relu = OP_CFG(RELU)
-      .InCnt(1)
-      .OutCnt(1)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Build("relu");
+                                  .InCnt(2)
+                                  .OutCnt(1)
+                                  .TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape)
+                                  .Build("partitioned_call_1");
+    auto relu = OP_CFG(RELU).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Build("relu");
     auto concat = OP_CFG("ConcatD").InCnt(2).OutCnt(1).Build("concat");
     concat->MutableInputDesc(0)->SetOriginFormat(FORMAT_ND);
     concat->MutableInputDesc(0)->SetFormat(FORMAT_ND);
@@ -2282,12 +2200,11 @@ TEST_F(ConcatNotaskPassTest, partitioncall_refnode_connect_to_concat) {
   std::map<AscendString, AscendString> options;
   options[VARIABLE_MEMORY_MAX_SIZE] = "12800";
   Session session(options);
-    // 3.构图
-  auto train_graph =
-      BuildGraphWithSubGraphAndRefNode(FORMAT_ND, {1,2,32,32});
+  // 3.构图
+  auto train_graph = BuildGraphWithSubGraphAndRefNode(FORMAT_ND, {1, 2, 32, 32});
   auto compute_graph = GraphUtilsEx::GetComputeGraph(train_graph);
   auto partitioned_call_1 = compute_graph->FindNode("partitioned_call_1");
-  auto if_graph_1 = BuildControlOpIfGraph(compute_graph, partitioned_call_1, {1,2,32,32});
+  auto if_graph_1 = BuildControlOpIfGraph(compute_graph, partitioned_call_1, {1, 2, 32, 32});
   SetSubGraph(compute_graph, if_graph_1, *partitioned_call_1->GetOpDesc(), "if_graph");
   auto concat_node = compute_graph->FindNode("concat");
   auto op_desc = concat_node->GetOpDesc();
@@ -2295,7 +2212,7 @@ TEST_F(ConcatNotaskPassTest, partitioncall_refnode_connect_to_concat) {
   // 4.add graph
   auto ret = session.AddGraph(1, train_graph);
   EXPECT_EQ(ret, SUCCESS);
-  
+
   // 5.compile graph
   ret = session.CompileGraph(1);
   EXPECT_EQ(ret, SUCCESS);
@@ -2305,96 +2222,67 @@ TEST_F(ConcatNotaskPassTest, partitioncall_refnode_connect_to_concat) {
   EXPECT_TRUE(notask == false);
 }
 
-static ComputeGraphPtr BuildControlOpIfGraphWithConcat(const ComputeGraphPtr &root_graph, const NodePtr &if_parent
-  ,const std::vector<int64_t> &input_shape) {
+static ComputeGraphPtr BuildControlOpIfGraphWithConcat(const ComputeGraphPtr &root_graph, const NodePtr &if_parent,
+                                                       const std::vector<int64_t> &input_shape) {
   DEF_GRAPH(then_branch) {
-     auto data = OP_CFG(DATA)
-         .InCnt(1)
-         .OutCnt(1)
-         .Attr(ATTR_NAME_PARENT_NODE_INDEX, 1)
-         .TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape);
-     auto data2 = OP_CFG(DATA)
-         .InCnt(1)
-         .OutCnt(1)
-         .Attr(ATTR_NAME_PARENT_NODE_INDEX, 2)
-         .TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape);
-     auto relu_op = OP_CFG(RELU)
-         .InCnt(1)
-         .OutCnt(1)
-         .TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape);
-     auto relu_op2 = OP_CFG(RELU)
-         .InCnt(1)
-         .OutCnt(1)
-         .TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape);
-     auto concat = OP_CFG("ConcatD").InCnt(2).OutCnt(1).Build("concat_then");
-     (void)ge::AttrUtils::SetInt(concat, "concat_dim", 1);
-     auto net_output = OP_CFG(NETOUTPUT)
-         .InCnt(1)
-         .OutCnt(1)
-         .TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape).Build("then_Node_Output");
-     AttrUtils::SetInt(net_output->MutableInputDesc(0), ATTR_NAME_PARENT_NODE_INDEX, 0);
-     AttrUtils::SetInt(net_output->MutableInputDesc(1), ATTR_NAME_PARENT_NODE_INDEX, 1);
-     CHAIN(NODE("then_arg_0", data)->NODE("relu_op_then", relu_op)->EDGE(0, 0)->NODE(concat)->NODE(net_output));
-     CHAIN(NODE("then_arg_1", data2)->NODE("relu_op2_then", relu_op2)->EDGE(0, 1)->NODE(concat));
- };
-
-  DEF_GRAPH(else_branch) {
-     auto data = OP_CFG(DATA)
-         .InCnt(1)
-         .OutCnt(1)
-         .Attr(ATTR_NAME_PARENT_NODE_INDEX, 1)
-         .TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape);
+    auto data = OP_CFG(DATA)
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .Attr(ATTR_NAME_PARENT_NODE_INDEX, 1)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape);
     auto data2 = OP_CFG(DATA)
-         .InCnt(1)
-         .OutCnt(1)
-         .Attr(ATTR_NAME_PARENT_NODE_INDEX, 2)
-         .TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape);
-     auto relu_op = OP_CFG(RELU)
-         .InCnt(1)
-         .OutCnt(1)
-         .TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape);
-     auto relu_op2 = OP_CFG(RELU)
-         .InCnt(1)
-         .OutCnt(1)
-         .TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape);
-     auto concat = OP_CFG("ConcatD").InCnt(2).OutCnt(1).Build("concat_else");
-     (void)ge::AttrUtils::SetInt(concat, "concat_dim", 1);
-     auto net_output = OP_CFG(NETOUTPUT)
-         .InCnt(1)
-         .OutCnt(1)
-         .TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape).Build("else_Node_Output");
+                     .InCnt(1)
+                     .OutCnt(1)
+                     .Attr(ATTR_NAME_PARENT_NODE_INDEX, 2)
+                     .TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape);
+    auto relu_op = OP_CFG(RELU).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape);
+    auto relu_op2 = OP_CFG(RELU).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape);
+    auto concat = OP_CFG("ConcatD").InCnt(2).OutCnt(1).Build("concat_then");
+    (void)ge::AttrUtils::SetInt(concat, "concat_dim", 1);
+    auto net_output =
+        OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape).Build("then_Node_Output");
     AttrUtils::SetInt(net_output->MutableInputDesc(0), ATTR_NAME_PARENT_NODE_INDEX, 0);
     AttrUtils::SetInt(net_output->MutableInputDesc(1), ATTR_NAME_PARENT_NODE_INDEX, 1);
-     CHAIN(NODE("else_arg_0", data)->NODE("relu_op_else", relu_op)->EDGE(0, 0)->NODE(concat)->NODE(net_output));
-     CHAIN(NODE("else_arg_1", data2)->NODE("relu_op2_else", relu_op2)->EDGE(0, 1)->NODE(concat));
+    CHAIN(NODE("then_arg_0", data)->NODE("relu_op_then", relu_op)->EDGE(0, 0)->NODE(concat)->NODE(net_output));
+    CHAIN(NODE("then_arg_1", data2)->NODE("relu_op2_then", relu_op2)->EDGE(0, 1)->NODE(concat));
+  };
+
+  DEF_GRAPH(else_branch) {
+    auto data = OP_CFG(DATA)
+                    .InCnt(1)
+                    .OutCnt(1)
+                    .Attr(ATTR_NAME_PARENT_NODE_INDEX, 1)
+                    .TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape);
+    auto data2 = OP_CFG(DATA)
+                     .InCnt(1)
+                     .OutCnt(1)
+                     .Attr(ATTR_NAME_PARENT_NODE_INDEX, 2)
+                     .TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape);
+    auto relu_op = OP_CFG(RELU).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape);
+    auto relu_op2 = OP_CFG(RELU).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape);
+    auto concat = OP_CFG("ConcatD").InCnt(2).OutCnt(1).Build("concat_else");
+    (void)ge::AttrUtils::SetInt(concat, "concat_dim", 1);
+    auto net_output =
+        OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape).Build("else_Node_Output");
+    AttrUtils::SetInt(net_output->MutableInputDesc(0), ATTR_NAME_PARENT_NODE_INDEX, 0);
+    AttrUtils::SetInt(net_output->MutableInputDesc(1), ATTR_NAME_PARENT_NODE_INDEX, 1);
+    CHAIN(NODE("else_arg_0", data)->NODE("relu_op_else", relu_op)->EDGE(0, 0)->NODE(concat)->NODE(net_output));
+    CHAIN(NODE("else_arg_1", data2)->NODE("relu_op2_else", relu_op2)->EDGE(0, 1)->NODE(concat));
   };
 
   auto then_graph = ToComputeGraph(then_branch);
   auto else_graph = ToComputeGraph(else_branch);
 
   DEF_GRAPH(if_graph) {
-    auto pred_data = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 0)
-        .TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape);
+    auto pred_data =
+        OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape);
 
-    auto value_data = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape);
-    auto value_data2 = OP_CFG(DATA)
-        .InCnt(1)
-        .OutCnt(1)
-        .Attr(ATTR_NAME_INDEX, 2)
-        .TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape);
+    auto value_data =
+        OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 1).TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape);
+    auto value_data2 =
+        OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 2).TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape);
 
-    auto if_op = OP_CFG(IF)
-        .InCnt(3)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape)
-        .Build("if");
+    auto if_op = OP_CFG(IF).InCnt(3).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT16, input_shape).Build("if");
 
     if_op->MutableOutputDesc(0)->SetShape(GeShape(input_shape));
     if_op->RegisterSubgraphIrName("then_branch", SubgraphType::kStatic);
@@ -2404,10 +2292,7 @@ static ComputeGraphPtr BuildControlOpIfGraphWithConcat(const ComputeGraphPtr &ro
     if_op->AddSubgraphName(else_graph->GetName());
     if_op->SetSubgraphInstanceName(1, else_graph->GetName());
 
-    auto net_output = OP_CFG(NETOUTPUT)
-        .InCnt(1)
-        .OutCnt(1)
-        .TensorDesc(FORMAT_ND, DT_FLOAT, input_shape);
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT, input_shape);
 
     CHAIN(NODE("arg_pred", pred_data)->EDGE(0, 0)->NODE(if_op)->NODE("If_Node_Output", net_output));
     CHAIN(NODE("arg_value", value_data)->EDGE(0, 1)->NODE(if_op));
@@ -2430,25 +2315,29 @@ static ComputeGraphPtr BuildControlOpIfGraphWithConcat(const ComputeGraphPtr &ro
 }
 
 /**
- *                              
- * data0  data1   data2             data3   
+ *
+ * data0  data1   data2             data3
  *     \    \     /                  /
  *     PartitionedCall    data4   RELU
  *            \            /       /
- *                add     
+ *                add
  *                    \          /
  *                       concat
  *                         |
  *                      netoutput
  */
-static Graph BuildGraphWithSubGraphWithConcat(Format origin_format,
-  const std::vector<int64_t> &concat_input_shape) {
+static Graph BuildGraphWithSubGraphWithConcat(Format origin_format, const std::vector<int64_t> &concat_input_shape) {
   DEF_GRAPH(graph) {
-    auto data0 = OP_DATA(0).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 0).Build("data0");
-    auto data1 = OP_DATA(1).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 1).Build("data1");
-    auto data2 = OP_DATA(2).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 2).Build("data2");
-    auto data3 = OP_DATA(3).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 3).Build("data3");
-    auto data4 = OP_DATA(4).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 4).Build("data4");
+    auto data0 =
+        OP_DATA(0).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 0).Build("data0");
+    auto data1 =
+        OP_DATA(1).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 1).Build("data1");
+    auto data2 =
+        OP_DATA(2).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 2).Build("data2");
+    auto data3 =
+        OP_DATA(3).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 3).Build("data3");
+    auto data4 =
+        OP_DATA(4).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 4).Build("data4");
 
     auto add = OP_CFG(ADD).InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, concat_input_shape).Build("add");
     add->SetOpEngineName("AIcoreEngine");
@@ -2456,13 +2345,11 @@ static Graph BuildGraphWithSubGraphWithConcat(Format origin_format,
     TensorUtils::SetReuseInput(*output_tensor, true);
     TensorUtils::SetReuseInputIndex(*output_tensor, 0U);
     auto partitioned_call_1 = OP_CFG(PARTITIONEDCALL)
-      .InCnt(3)
-      .OutCnt(1)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Build("partitioned_call_1");
-    auto relu = OP_CFG(RELU)
-      .InCnt(1)
-      .OutCnt(1)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Build("relu");
+                                  .InCnt(3)
+                                  .OutCnt(1)
+                                  .TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape)
+                                  .Build("partitioned_call_1");
+    auto relu = OP_CFG(RELU).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Build("relu");
     auto concat = OP_CFG("ConcatD").InCnt(2).OutCnt(1).Build("concat_main");
     concat->MutableInputDesc(0)->SetOriginFormat(FORMAT_ND);
     concat->MutableInputDesc(0)->SetFormat(FORMAT_ND);
@@ -2489,12 +2376,11 @@ TEST_F(ConcatNotaskPassTest, static_graph_with_concat_in_static_subgraph_success
   std::map<AscendString, AscendString> options;
   options[VARIABLE_MEMORY_MAX_SIZE] = "12800";
   Session session(options);
-    // 3.构图
-  auto train_graph =
-      BuildGraphWithSubGraphWithConcat(FORMAT_ND, {1,2,32,32});
+  // 3.构图
+  auto train_graph = BuildGraphWithSubGraphWithConcat(FORMAT_ND, {1, 2, 32, 32});
   auto compute_graph = GraphUtilsEx::GetComputeGraph(train_graph);
   auto partitioned_call_1 = compute_graph->FindNode("partitioned_call_1");
-  auto if_graph_1 = BuildControlOpIfGraphWithConcat(compute_graph, partitioned_call_1, {1,2,32,32});
+  auto if_graph_1 = BuildControlOpIfGraphWithConcat(compute_graph, partitioned_call_1, {1, 2, 32, 32});
   SetSubGraph(compute_graph, if_graph_1, *partitioned_call_1->GetOpDesc(), "if_graph");
   auto concat_node = compute_graph->FindNode("concat_main");
   auto op_desc = concat_node->GetOpDesc();
@@ -2503,11 +2389,11 @@ TEST_F(ConcatNotaskPassTest, static_graph_with_concat_in_static_subgraph_success
   auto concat_then = then_branch->FindNode("concat_then");
   auto concat_then_desc = concat_then->GetOpDesc();
   (void)ge::AttrUtils::SetInt(concat_then_desc, "concat_dim", 1);
-  
+
   // 4.add graph
   auto ret = session.AddGraph(1, train_graph);
   EXPECT_EQ(ret, SUCCESS);
-  
+
   // 5.compile graph
   ret = session.CompileGraph(1);
   EXPECT_EQ(ret, SUCCESS);
@@ -2520,13 +2406,17 @@ TEST_F(ConcatNotaskPassTest, static_graph_with_concat_in_static_subgraph_success
 }
 
 static Graph BuildDynamicGraphWithSubGraphWithConcat(Format origin_format,
-  const std::vector<int64_t> &concat_input_shape) {
+                                                     const std::vector<int64_t> &concat_input_shape) {
   DEF_GRAPH(graph) {
-    auto data0 = OP_DATA(0).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 0).Build("data0");
-    auto data1 = OP_DATA(1).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 1).Build("data1");
-    auto data2 = OP_DATA(2).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 2).Build("data2");
-    auto data3 = OP_DATA(3).TensorDesc(FORMAT_ND, DT_FLOAT16, {1,-1,32,32}).Attr(ATTR_NAME_INDEX, 3).Build("data3");
-    auto data4 = OP_DATA(4).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 4).Build("data4");
+    auto data0 =
+        OP_DATA(0).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 0).Build("data0");
+    auto data1 =
+        OP_DATA(1).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 1).Build("data1");
+    auto data2 =
+        OP_DATA(2).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 2).Build("data2");
+    auto data3 = OP_DATA(3).TensorDesc(FORMAT_ND, DT_FLOAT16, {1, -1, 32, 32}).Attr(ATTR_NAME_INDEX, 3).Build("data3");
+    auto data4 =
+        OP_DATA(4).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Attr(ATTR_NAME_INDEX, 4).Build("data4");
 
     auto add = OP_CFG(ADD).InCnt(2).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, concat_input_shape).Build("add");
     add->SetOpEngineName("AIcoreEngine");
@@ -2534,13 +2424,11 @@ static Graph BuildDynamicGraphWithSubGraphWithConcat(Format origin_format,
     TensorUtils::SetReuseInput(*output_tensor, true);
     TensorUtils::SetReuseInputIndex(*output_tensor, 0U);
     auto partitioned_call_1 = OP_CFG(PARTITIONEDCALL)
-      .InCnt(3)
-      .OutCnt(1)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Build("partitioned_call_1");
-    auto relu = OP_CFG(RELU)
-      .InCnt(1)
-      .OutCnt(1)
-      .TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Build("relu");
+                                  .InCnt(3)
+                                  .OutCnt(1)
+                                  .TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape)
+                                  .Build("partitioned_call_1");
+    auto relu = OP_CFG(RELU).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_FLOAT16, concat_input_shape).Build("relu");
     auto concat = OP_CFG("ConcatD").InCnt(2).OutCnt(1).Build("concat_main");
     concat->MutableInputDesc(0)->SetOriginFormat(FORMAT_ND);
     concat->MutableInputDesc(0)->SetFormat(FORMAT_ND);
@@ -2567,12 +2455,11 @@ TEST_F(ConcatNotaskPassTest, dynamic_graph_with_concat_in_static_subgraph_succes
   std::map<AscendString, AscendString> options;
   options[VARIABLE_MEMORY_MAX_SIZE] = "12800";
   Session session(options);
-    // 3.构图
-  auto train_graph =
-      BuildDynamicGraphWithSubGraphWithConcat(FORMAT_ND, {1,2,32,32});
+  // 3.构图
+  auto train_graph = BuildDynamicGraphWithSubGraphWithConcat(FORMAT_ND, {1, 2, 32, 32});
   auto compute_graph = GraphUtilsEx::GetComputeGraph(train_graph);
   auto partitioned_call_1 = compute_graph->FindNode("partitioned_call_1");
-  auto if_graph_1 = BuildControlOpIfGraphWithConcat(compute_graph, partitioned_call_1, {1,2,32,32});
+  auto if_graph_1 = BuildControlOpIfGraphWithConcat(compute_graph, partitioned_call_1, {1, 2, 32, 32});
   SetSubGraph(compute_graph, if_graph_1, *partitioned_call_1->GetOpDesc(), "if_graph");
   auto then_branch = compute_graph->GetSubgraph("then_branch");
   auto concat_then = then_branch->FindNode("concat_then");
@@ -2582,7 +2469,7 @@ TEST_F(ConcatNotaskPassTest, dynamic_graph_with_concat_in_static_subgraph_succes
   // 4.add graph
   auto ret = session.AddGraph(1, train_graph);
   EXPECT_EQ(ret, SUCCESS);
-  
+
   // 5.compile graph
   ret = session.CompileGraph(1);
   EXPECT_EQ(ret, SUCCESS);
@@ -2592,4 +2479,4 @@ TEST_F(ConcatNotaskPassTest, dynamic_graph_with_concat_in_static_subgraph_succes
   (void)ge::AttrUtils::GetBool(concat_then_desc, ge::ATTR_NAME_NOTASK, notask);
   EXPECT_TRUE(notask == true);
 }
-}
+}  // namespace ge

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -28,7 +28,7 @@ namespace ge {
 namespace {
 constexpr char_t kValidChars[] = "[A-Za-z\\d/_.-]+";
 constexpr char_t kInvalidChars[] = "[^A-Za-z\\d/_.-]+";
-}
+}  // namespace
 pid_t ProcessUtils::Fork() {
   return fork();
 }
@@ -85,7 +85,7 @@ Status ProcessUtils::GetIpaddr(const std::string &name, std::string &ipaddr) {
     auto addr_ret = inet_ntop(AF_INET, &(addr->sin_addr), ip, INET_ADDRSTRLEN);
     GE_CHECK_NOTNULL(addr_ret);
     std::string r_name = ifr->ifr_name;
-    if  (r_name != name) {
+    if (r_name != name) {
       ifr += 1;
       continue;
     }
@@ -109,12 +109,13 @@ Status ProcessUtils::DoMkdir(const char_t *tmp_dir_path, mmMode_t mode) {
       // may create dir multi thread
       if (mmAccess2(tmp_dir_path, M_F_OK) != EN_OK) {
         REPORT_INNER_ERR_MSG("E18888",
-                          "Cannot create directory %s. Make sure the directory "
-                          "exists and writable. errmsg:%s",
-                          tmp_dir_path, GetErrorNumStr(create_errno).c_str());
-        GELOGE(FAILED, "Create directory %s failed, reason:%s. Make sure the "
-                      "directory exists and writable.",
-              tmp_dir_path, GetErrorNumStr(create_errno).c_str());
+                             "Cannot create directory %s. Make sure the directory "
+                             "exists and writable. errmsg:%s",
+                             tmp_dir_path, GetErrorNumStr(create_errno).c_str());
+        GELOGE(FAILED,
+               "Create directory %s failed, reason:%s. Make sure the "
+               "directory exists and writable.",
+               tmp_dir_path, GetErrorNumStr(create_errno).c_str());
         return FAILED;
       }
     }
@@ -136,8 +137,9 @@ Status ProcessUtils::CreateDir(const std::string &directory_path, uint32_t mode)
 
   const auto dir_path_len = directory_path.length();
   if (dir_path_len >= static_cast<size_t>(MMPA_MAX_PATH)) {
-    REPORT_PREDEFINED_ERR_MSG("E13002", std::vector<const char *>({"filepath", "size"}),
-                              std::vector<const char *>({directory_path.c_str(), std::to_string(MMPA_MAX_PATH).c_str()}));
+    REPORT_PREDEFINED_ERR_MSG(
+        "E13002", std::vector<const char *>({"filepath", "size"}),
+        std::vector<const char *>({directory_path.c_str(), std::to_string(MMPA_MAX_PATH).c_str()}));
     GELOGE(FAILED, "Path %s len is too long, it must be less than %d", directory_path.c_str(), MMPA_MAX_PATH);
     return FAILED;
   }
@@ -153,15 +155,12 @@ Status ProcessUtils::CreateDir(const std::string &directory_path, uint32_t mode)
 }
 
 Status ProcessUtils::IsValidPath(const std::string &path) {
-  GE_CHK_BOOL_RET_STATUS((path.find("..") == std::string::npos),
-                         FAILED,
-                         "File path[%s] is invalid, include relative path.",
-                         path.c_str());
+  GE_CHK_BOOL_RET_STATUS((path.find("..") == std::string::npos), FAILED,
+                         "File path[%s] is invalid, include relative path.", path.c_str());
   std::regex e(kValidChars);
   std::smatch sm;
   GE_CHK_BOOL_RET_STATUS(std::regex_match(path, sm, e), FAILED,
-                         "Path[%s] is invalid, please use a-z, A-Z, 0-9, _, - and /",
-                         path.c_str());
+                         "Path[%s] is invalid, please use a-z, A-Z, 0-9, _, - and /", path.c_str());
   return SUCCESS;
 }
 

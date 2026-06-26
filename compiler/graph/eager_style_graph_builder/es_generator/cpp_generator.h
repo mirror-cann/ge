@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,10 +33,7 @@ class CppGenerator : public ICodeGenerator {
       if (!history_window_error_.empty()) {
         warnings.push_back("op " + op->GetType() + " skip load history : " + history_window_error_);
       } else {
-        history = es::history::LoadHistoryChain(history_registry_,
-                                                history_window_versions_,
-                                                op->GetType(),
-                                                warnings);
+        history = es::history::LoadHistoryChain(history_registry_, history_window_versions_, op->GetType(), warnings);
       }
     }
     const auto plan = ge::es::history::PlanCppOverloads(current, history, warnings);
@@ -157,10 +154,8 @@ class CppGenerator : public ICodeGenerator {
     if (history_registry_.empty()) {
       return;
     }
-    (void) ge::es::history::LoadHistoryWindowVersions(history_registry_,
-                                                      release_version_,
-                                                      history_window_versions_,
-                                                      history_window_error_);
+    (void)ge::es::history::LoadHistoryWindowVersions(history_registry_, release_version_, history_window_versions_,
+                                                     history_window_error_);
   }
 
   std::string MakeGuardFromModule() const {
@@ -222,11 +217,10 @@ namespace es {
     }
   }
 
-  static std::string GenInputPassIn(const cpp_gen::LoweredSignature &lowered,
-                                    const ge::es::history::Signature &sig,
+  static std::string GenInputPassIn(const cpp_gen::LoweredSignature &lowered, const ge::es::history::Signature &sig,
                                     bool &first) {
     std::stringstream hss;
-    for (const auto &input: lowered.inputs) {
+    for (const auto &input : lowered.inputs) {
       const auto *input_param = input.param;
       const bool has_input_param = input_param != nullptr;
       const std::string input_name = has_input_param ? input_param->name : InName(input.ir_name);
@@ -254,15 +248,15 @@ namespace es {
   }
 
   static std::string GenOwnerBuilderPassIn(const ge::es::history::Signature &sig,
-                                           const cpp_gen::LoweredSignature &lowered,
-                                           bool &first) {
+                                           const cpp_gen::LoweredSignature &lowered, bool &first) {
     std::stringstream ss;
     if (const auto *owner_param = lowered.owner_builder; owner_param != nullptr) {
       const std::string owner_name = owner_param->name;
       if (owner_param->kind == ge::es::history::ParamCxxKind::kGraphBuilderRef) {
         cpp_gen::AppendCallArg(ss, first, owner_name + ".GetCGraphBuilder()");
       } else {
-        cpp_gen::AppendCallArg(ss, first, owner_name + " == nullptr ? nullptr : " + owner_name + "->GetCGraphBuilder()");
+        cpp_gen::AppendCallArg(ss, first,
+                               owner_name + " == nullptr ? nullptr : " + owner_name + "->GetCGraphBuilder()");
       }
       return ss.str();
     }
@@ -270,8 +264,7 @@ namespace es {
       return ss.str();
     }
     if (cpp_gen::HasTensorLikeParam(sig)) {
-      cpp_gen::AppendCallArg(ss,
-                             first,
+      cpp_gen::AppendCallArg(ss, first,
                              "owner_graph_builder == nullptr ? nullptr : owner_graph_builder->GetCGraphBuilder()");
     } else {
       cpp_gen::AppendCallArg(ss, first, "nullptr");
@@ -281,7 +274,7 @@ namespace es {
 
   static std::string GenDynamicOutputPassIn(const cpp_gen::LoweredSignature &lowered) {
     std::stringstream ss;
-    for (const auto &dyn_out: lowered.dynamic_outputs) {
+    for (const auto &dyn_out : lowered.dynamic_outputs) {
       ss << ", ";
       ss << dyn_out.param->name;
     }
@@ -290,7 +283,7 @@ namespace es {
 
   static std::string GenSubgraphPassIn(const cpp_gen::LoweredSignature &lowered) {
     std::stringstream ss;
-    for (const auto &subgraph: lowered.subgraphs) {
+    for (const auto &subgraph : lowered.subgraphs) {
       ss << ", ";
       const std::string subgraph_name = subgraph.param->name;
       if (subgraph.type == kStatic) {
@@ -304,27 +297,23 @@ namespace es {
     return ss.str();
   }
 
-  static ge::es::history::ParamCxxKind ResolveAttrKind(const IrAttrInfo &attr,
-                                                       const ge::es::history::Signature &sig) {
+  static ge::es::history::ParamCxxKind ResolveAttrKind(const IrAttrInfo &attr, const ge::es::history::Signature &sig) {
     ge::es::history::ParamCxxKind attr_kind = ge::es::history::ParamCxxKind::kNullptrT;
-    const auto *attr_param =
-        cpp_gen::FindParamByRoleAndIrName(sig, ge::es::history::ParamRole::kAttr, attr.name);
+    const auto *attr_param = cpp_gen::FindParamByRoleAndIrName(sig, ge::es::history::ParamRole::kAttr, attr.name);
     if (attr_param != nullptr) {
       return attr_param->kind;
     }
     (void)ge::es::history::AttrTypeTraits::TryGetParamKindByIrTypeInfo(attr.type_info.av_type,
-                                                                        attr.type_info.is_list_type,
-                                                                        attr_kind);
+                                                                       attr.type_info.is_list_type, attr_kind);
     return attr_kind;
   }
 
-  static std::string BuildAttrPassExpr(const std::string &attr_name,
-                                       ge::es::history::AttrPassStrategy strategy) {
+  static std::string BuildAttrPassExpr(const std::string &attr_name, ge::es::history::AttrPassStrategy strategy) {
     std::stringstream ss;
     switch (strategy) {
       case ge::es::history::AttrPassStrategy::kListBoolDataAndSize:
-        ss << "static_cast<const bool *>(static_cast<const void *>(" << attr_name
-           << ".data())), static_cast<int64_t>(" << attr_name << ".size())";
+        ss << "static_cast<const bool *>(static_cast<const void *>(" << attr_name << ".data())), static_cast<int64_t>("
+           << attr_name << ".size())";
         break;
       case ge::es::history::AttrPassStrategy::kListListIntDataSizeCounts:
         ss << "ListListTypeToPtrAndCounts<int64_t>(" << attr_name << ").first.data(), static_cast<int64_t>("
@@ -332,12 +321,10 @@ namespace es {
            << "ListListTypeToPtrAndCounts<int64_t>(" << attr_name << ").second.data()";
         break;
       case ge::es::history::AttrPassStrategy::kListTypeDataAndSize:
-        ss << "DataTypesToEsCDataTypes(" << attr_name << ").data(), static_cast<int64_t>("
-           << attr_name << ".size())";
+        ss << "DataTypesToEsCDataTypes(" << attr_name << ").data(), static_cast<int64_t>(" << attr_name << ".size())";
         break;
       case ge::es::history::AttrPassStrategy::kListStringDataAndSize:
-        ss << "const_cast<const char **>(" << attr_name << ".data()), static_cast<int64_t>("
-           << attr_name << ".size())";
+        ss << "const_cast<const char **>(" << attr_name << ".data()), static_cast<int64_t>(" << attr_name << ".size())";
         break;
       case ge::es::history::AttrPassStrategy::kListDataAndSize:
         ss << attr_name << ".data(), static_cast<int64_t>(" << attr_name << ".size())";
@@ -358,9 +345,8 @@ namespace es {
 
   static std::string GenIrAttrsPassIn(const OpDescPtr &op, const ge::es::history::Signature &sig) {
     std::stringstream ss;
-    for (const auto &attr: GetAllIrAttrsNamesAndTypeInOrder(op)) {
-      const auto *attr_param =
-          cpp_gen::FindParamByRoleAndIrName(sig, ge::es::history::ParamRole::kAttr, attr.name);
+    for (const auto &attr : GetAllIrAttrsNamesAndTypeInOrder(op)) {
+      const auto *attr_param = cpp_gen::FindParamByRoleAndIrName(sig, ge::es::history::ParamRole::kAttr, attr.name);
       const std::string attr_name = attr_param == nullptr ? AttrName(attr.name, op) : attr_param->name;
       const auto attr_kind = ResolveAttrKind(attr, sig);
       auto strategy = ge::es::history::AttrTypeTraits::GetAttrPassStrategy(attr_kind);
@@ -374,7 +360,7 @@ namespace es {
   }
 
   static void AppendSubgraphArgDefs(const cpp_gen::LoweredSignature &lowered, std::stringstream &hss) {
-    for (const auto &subgraph: lowered.subgraphs) {
+    for (const auto &subgraph : lowered.subgraphs) {
       if (subgraph.type != kDynamic) {
         continue;
       }
@@ -382,8 +368,7 @@ namespace es {
         continue;
       }
       const std::string subgraph_name = subgraph.param->name;
-      hss << "  auto esb_" << subgraph_name << "= static_cast<int64_t>("
-          << subgraph_name << ".size());" << std::endl;
+      hss << "  auto esb_" << subgraph_name << "= static_cast<int64_t>(" << subgraph_name << ".size());" << std::endl;
     }
   }
 
@@ -426,10 +411,8 @@ namespace es {
     GenFuncBody(op, sig, lowered, hss);
   }
 
-  static void GenPassInputs(const OpDescPtr &op,
-                            const ge::es::history::Signature &sig,
-                            const cpp_gen::LoweredSignature &lowered,
-                            std::stringstream &hss) {
+  static void GenPassInputs(const OpDescPtr &op, const ge::es::history::Signature &sig,
+                            const cpp_gen::LoweredSignature &lowered, std::stringstream &hss) {
     bool first = true;
     hss << GenInputPassIn(lowered, sig, first);
     hss << GenOwnerBuilderPassIn(sig, lowered, first);
@@ -448,15 +431,18 @@ namespace es {
       } else {
         dyn_ret_ss << ", ";
       }
-      if (ir_out.second == kIrOutputDynamic) { // output is a dynamic output
+      if (ir_out.second == kIrOutputDynamic) {  // output is a dynamic output
         hss << "  std::vector<EsTensorHolder> " << OutName(ir_out.first, op) << "_dynamic_outs;" << std::endl;
-        hss << "  " << OutName(ir_out.first, op) << "_dynamic_outs" << ".reserve(out." << OutName(ir_out.first, op) <<"_num);" << std::endl;
-        hss << "  for (int64_t dyn_idx = 0; dyn_idx < out." << OutName(ir_out.first, op) << "_num; ++dyn_idx) {" << std::endl;
-        hss << "    " << OutName(ir_out.first, op) << "_dynamic_outs" << ".emplace_back(out."<< OutName(ir_out.first, op) << "[dyn_idx]);" << std::endl;
+        hss << "  " << OutName(ir_out.first, op) << "_dynamic_outs" << ".reserve(out." << OutName(ir_out.first, op)
+            << "_num);" << std::endl;
+        hss << "  for (int64_t dyn_idx = 0; dyn_idx < out." << OutName(ir_out.first, op) << "_num; ++dyn_idx) {"
+            << std::endl;
+        hss << "    " << OutName(ir_out.first, op) << "_dynamic_outs" << ".emplace_back(out."
+            << OutName(ir_out.first, op) << "[dyn_idx]);" << std::endl;
         hss << "  }" << std::endl;
         dyn_ret_ss << OutName(ir_out.first, op) << "_dynamic_outs";
-      } else { // output is not a dynamic output
-        dyn_ret_ss<< "out." << OutName(ir_out.first, op);
+      } else {  // output is not a dynamic output
+        dyn_ret_ss << "out." << OutName(ir_out.first, op);
       }
     }
     dyn_ret_ss << "};" << std::endl;
@@ -512,14 +498,11 @@ namespace es {
         continue;
       }
       const std::string input_name = input.param->name;
-      hss << "  auto esb_" << input_name << " = TensorsToEsCTensorHolders(" << input_name << ");"
-          << std::endl;
+      hss << "  auto esb_" << input_name << " = TensorsToEsCTensorHolders(" << input_name << ");" << std::endl;
     }
   }
-  static void GenFuncBody(const OpDescPtr &op,
-                          const ge::es::history::Signature &sig,
-                          const cpp_gen::LoweredSignature &lowered,
-                          std::stringstream &hss) {
+  static void GenFuncBody(const OpDescPtr &op, const ge::es::history::Signature &sig,
+                          const cpp_gen::LoweredSignature &lowered, std::stringstream &hss) {
     hss << " {" << std::endl;
     GenResolveBuilderForTensorLike(sig, hss);
     GenDynamicInputs(lowered, hss);
@@ -534,7 +517,7 @@ namespace es {
   static std::string SignatureParamsToString(const ge::es::history::Signature &sig) {
     std::stringstream ss;
     bool first = true;
-    for (const auto &param: sig.params) {
+    for (const auto &param : sig.params) {
       if (first) {
         first = false;
       } else {
@@ -565,15 +548,12 @@ namespace es {
     }
   }
 
-  static void GenFuncDeclareBySig(const std::string &func_name,
-                                  const ge::es::history::Signature &sig,
+  static void GenFuncDeclareBySig(const std::string &func_name, const ge::es::history::Signature &sig,
                                   std::stringstream &hss) {
     hss << func_name << "(" << SignatureParamsToString(sig) << ")";
   }
 
-  static void GenGuardSignature(const OpDescPtr &op,
-                                const ge::es::history::Signature &sig,
-                                std::stringstream &hss) {
+  static void GenGuardSignature(const OpDescPtr &op, const ge::es::history::Signature &sig, std::stringstream &hss) {
     if (sig.is_deprecated) {
       if (!sig.deprecate_msg.empty()) {
         hss << "[[deprecated(\"" << sig.deprecate_msg << "\")]] ";
@@ -586,8 +566,7 @@ namespace es {
     hss << " = delete;" << std::endl;
   }
 
-  static void GenResolveBuilderForTensorLike(const ge::es::history::Signature &sig,
-                                             std::stringstream &hss) {
+  static void GenResolveBuilderForTensorLike(const ge::es::history::Signature &sig, std::stringstream &hss) {
     if (!cpp_gen::HasTensorLikeParam(sig)) {
       return;
     }
@@ -604,14 +583,15 @@ namespace es {
       }
       hss << param.name;
     }
-    if (const auto *owner_builder_ptr = cpp_gen::FindOwnerBuilderParam(sig); owner_builder_ptr != nullptr &&
-        owner_builder_ptr->kind == ge::es::history::ParamCxxKind::kGraphBuilderPtr) {
+    if (const auto *owner_builder_ptr = cpp_gen::FindOwnerBuilderParam(sig);
+        owner_builder_ptr != nullptr && owner_builder_ptr->kind == ge::es::history::ParamCxxKind::kGraphBuilderPtr) {
       hss << ", " << owner_builder_ptr->name;
     }
     hss << ");" << std::endl;
     hss << "  ES_ASSERT_NOTNULL(owner_graph_builder, "
            "\"Failed to resolve owner builder: please ensure at least one input tensor "
-           "or an explicit owner_builder is provided when supported.\");" << std::endl;
+           "or an explicit owner_builder is provided when supported.\");"
+        << std::endl;
   }
   static bool HasTensorLikeSignature(const std::vector<ge::es::history::Signature> &sigs) {
     for (const auto &sig : sigs) {
@@ -621,6 +601,7 @@ namespace es {
     }
     return false;
   }
+
  private:
   std::stringstream hss_;
   std::unordered_map<std::string, std::stringstream> op_type_to_hss_;

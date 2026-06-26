@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -244,11 +244,10 @@ bool FusionUtils::WillCauseCycleIfFuse(const std::unique_ptr<MatchResult> &match
   auto matched_nodes = ToNodePtrs(match_result->GetMatchedNodes());
   // 过滤 ToNodePtrs 可能产生的 null（GNode2Node 转换失败、节点已被孤立等），以及 owner_graph 已被
   // 清空的"半死"节点——上一次 SubgraphRewriter::Replace 的 PruneUnusedNodes 会调用 ClearOwnerGraph(nullptr)
-  matched_nodes.erase(std::remove_if(matched_nodes.begin(), matched_nodes.end(),
-                                     [](const NodePtr &node) {
-                                       return node == nullptr || node->GetOwnerComputeGraph() == nullptr;
-                                     }),
-                      matched_nodes.end());
+  matched_nodes.erase(
+      std::remove_if(matched_nodes.begin(), matched_nodes.end(),
+                     [](const NodePtr &node) { return node == nullptr || node->GetOwnerComputeGraph() == nullptr; }),
+      matched_nodes.end());
   if (matched_nodes.empty()) {
     return false;
   }
@@ -270,13 +269,13 @@ bool FusionUtils::WillCauseCycleIfFuse(const std::vector<NodePtr> &nodes) {
   return WillCauseCycleIfFuseImpl(valid_nodes);
 }
 
-void FusionUtils::RecordFusionStatistic(const uint64_t session_id, const std::string graph_id, const std::string pass_name,
-  const int match_times, const int effect_times) {
+void FusionUtils::RecordFusionStatistic(const uint64_t session_id, const std::string graph_id,
+                                        const std::string pass_name, const int match_times, const int effect_times) {
   fe::FusionStatisticRecorder &fusion_statistic_instance = fe::FusionStatisticRecorder::Instance();
   auto fusion_info = fe::FusionInfo(session_id, graph_id, pass_name, match_times, effect_times);
   fusion_statistic_instance.UpdateGraphFusionMatchTimes(fusion_info);
   fusion_statistic_instance.UpdateGraphFusionEffectTimes(fusion_info);
 }
 
-} // namespace fusion
+}  // namespace fusion
 }  // namespace ge

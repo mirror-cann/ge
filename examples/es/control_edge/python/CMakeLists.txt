@@ -31,4 +31,3 @@ add_es_library_and_whl(
         OPP_PROTO_TARGET  opgraph_all
         OUTPUT_PATH       ${CMAKE_BINARY_DIR}/output
 )
-

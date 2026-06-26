@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -110,9 +110,9 @@ const uint32_t kAutoMode = 1U;
 
 const size_t kMixNotifyIdNum = 2;
 
-const int32_t kDataVisitDistThreshold = 5; // data distance threshlod for rc cache optimization
+const int32_t kDataVisitDistThreshold = 5;  // data distance threshlod for rc cache optimization
 
-const int32_t kRuntimeTypeHeterogeneous = 1; // Helper scene
+const int32_t kRuntimeTypeHeterogeneous = 1;  // Helper scene
 
 const uint32_t DATA_MEMORY_ALIGN_SIZE = 32;
 
@@ -191,99 +191,104 @@ const std::string kNpuArch = "NpuArch";
 const std::string kPaddingSize = "padding_size";
 const std::string kAttrOptionalInputMode = "optionalInputMode";
 const std::string kAttrOptionalOutputMode = "optionalOutputMode";
-constexpr const char* kInputParaTypeList = "_input_para_type_list";
-constexpr const char* kOutputParaTypeList = "_output_para_type_list";
-constexpr const char* kInputNameList = "_input_name_list";
-constexpr const char* kOutputNameList = "_output_name_list";
-constexpr const char* kInputInsertOptPosList = "_input_insert_opt_pos_list";
+constexpr const char *kInputParaTypeList = "_input_para_type_list";
+constexpr const char *kOutputParaTypeList = "_output_para_type_list";
+constexpr const char *kInputNameList = "_input_name_list";
+constexpr const char *kOutputNameList = "_output_name_list";
+constexpr const char *kInputInsertOptPosList = "_input_insert_opt_pos_list";
 const std::string kModelBinFileSuffix = ".om";
 const std::string kDefaultTrueStr = "1";
-constexpr const char* kOpDebugConfig = "op_debug_config";
-constexpr const char* kOpDebugList = "op_debug_list";
-constexpr const char* kOpDebugCompile = "_op_debug_compile";
-constexpr const char* kAttrDynamicParamMode = "dynamicParamMode";
-constexpr const char* kAttrArgsSizeByFormat = "args_size_by_format";
-constexpr const char* kGenPlaceholder = "gen_placeholder";
-constexpr const char* kNoPlaceholder = "no_placeholder";
-constexpr const char* kFoldedWithDesc = "folded_with_desc";
-constexpr const char* kUnFolded = "unfolded";
-constexpr const char* kAttrOutputInplaceAbility = "_output_inplace_ability";
+constexpr const char *kOpDebugConfig = "op_debug_config";
+constexpr const char *kOpDebugList = "op_debug_list";
+constexpr const char *kOpDebugCompile = "_op_debug_compile";
+constexpr const char *kAttrDynamicParamMode = "dynamicParamMode";
+constexpr const char *kAttrArgsSizeByFormat = "args_size_by_format";
+constexpr const char *kGenPlaceholder = "gen_placeholder";
+constexpr const char *kNoPlaceholder = "no_placeholder";
+constexpr const char *kFoldedWithDesc = "folded_with_desc";
+constexpr const char *kUnFolded = "unfolded";
+constexpr const char *kAttrOutputInplaceAbility = "_output_inplace_ability";
 
-constexpr const char* kInvalidPattern = "Opaque";
-constexpr const char* kMemoryCheck = "_memcheck";
-constexpr const char* kAippConfigPath = "aipp_config_path";
-constexpr const char* kInfNan = "INF_NAN";
+constexpr const char *kInvalidPattern = "Opaque";
+constexpr const char *kMemoryCheck = "_memcheck";
+constexpr const char *kAippConfigPath = "aipp_config_path";
+constexpr const char *kInfNan = "INF_NAN";
 const std::string kStrTrue = "true";
 const std::string kStrFalse = "false";
 
 // no usage for fe, keep it for op pass
 
-constexpr const char* kFESingleOpScene = "_fe_single_op_scene";
-constexpr const char* kStrRangeLimit = "rangeLimit";
-constexpr const char* kStrPrebuildPattern = "prebuildPattern";
-constexpr const char* kStrPromoteType = "promoteType";
+constexpr const char *kFESingleOpScene = "_fe_single_op_scene";
+constexpr const char *kStrRangeLimit = "rangeLimit";
+constexpr const char *kStrPrebuildPattern = "prebuildPattern";
+constexpr const char *kStrPromoteType = "promoteType";
 constexpr char const *kStrOutputInplaceAbility = "outputInplaceAbility";
 
-constexpr const char* ATTR_NAME_DISABLE_MIX_VECTOR_CORE = "_disable_mix_vector_core";
-constexpr const char* ATTR_NAME_MIX_CORE_NUM_VEC = "_mix_core_num_vec";
+constexpr const char *ATTR_NAME_DISABLE_MIX_VECTOR_CORE = "_disable_mix_vector_core";
+constexpr const char *ATTR_NAME_MIX_CORE_NUM_VEC = "_mix_core_num_vec";
 const std::map<std::string, bool> STR_BOOL_MAP{{"1", true}, {"0", false}};
 
 const std::vector<ge::Format> FE_ORIGIN_FORMAT_VECTOR = {ge::FORMAT_NCHW,  ge::FORMAT_NHWC,  ge::FORMAT_HWCN,
                                                          ge::FORMAT_CHWN,  ge::FORMAT_NDHWC, ge::FORMAT_NCDHW,
                                                          ge::FORMAT_DHWCN, ge::FORMAT_DHWNC, ge::FORMAT_ND};
 
-const std::unordered_set<ge::Format> FE_ORIGIN_FORMAT_SET =
-    {ge::FORMAT_NCHW,  ge::FORMAT_NHWC,  ge::FORMAT_HWCN,
-     ge::FORMAT_CHWN,  ge::FORMAT_NDHWC, ge::FORMAT_NCDHW,
-     ge::FORMAT_DHWCN, ge::FORMAT_DHWNC, ge::FORMAT_ND};
+const std::unordered_set<ge::Format> FE_ORIGIN_FORMAT_SET = {ge::FORMAT_NCHW,  ge::FORMAT_NHWC,  ge::FORMAT_HWCN,
+                                                             ge::FORMAT_CHWN,  ge::FORMAT_NDHWC, ge::FORMAT_NCDHW,
+                                                             ge::FORMAT_DHWCN, ge::FORMAT_DHWNC, ge::FORMAT_ND};
 
-const std::vector<ge::Format> FE_HEAVY_FORMAT_VECTOR = {
-    ge::FORMAT_NC1HWC0_C04, ge::FORMAT_NC1HWC0,  ge::FORMAT_C1HWNCoC0,    ge::FORMAT_FRACTAL_Z,
-    ge::FORMAT_FRACTAL_NZ,  ge::FORMAT_NDC1HWC0, ge::FORMAT_FRACTAL_Z_3D, ge::FORMAT_FRACTAL_Z_3D_TRANSPOSE,
-    ge::FORMAT_FRACTAL_Z_C04, ge::FORMAT_FRACTAL_Z_WINO, ge::FORMAT_C1HWC0, ge::FORMAT_FRACTAL_NZ_C0_2,
-    ge::FORMAT_FRACTAL_NZ_C0_4, ge::FORMAT_FRACTAL_NZ_C0_8, ge::FORMAT_FRACTAL_NZ_C0_16, ge::FORMAT_FRACTAL_NZ_C0_32};
+const std::vector<ge::Format> FE_HEAVY_FORMAT_VECTOR = {ge::FORMAT_NC1HWC0_C04,      ge::FORMAT_NC1HWC0,
+                                                        ge::FORMAT_C1HWNCoC0,        ge::FORMAT_FRACTAL_Z,
+                                                        ge::FORMAT_FRACTAL_NZ,       ge::FORMAT_NDC1HWC0,
+                                                        ge::FORMAT_FRACTAL_Z_3D,     ge::FORMAT_FRACTAL_Z_3D_TRANSPOSE,
+                                                        ge::FORMAT_FRACTAL_Z_C04,    ge::FORMAT_FRACTAL_Z_WINO,
+                                                        ge::FORMAT_C1HWC0,           ge::FORMAT_FRACTAL_NZ_C0_2,
+                                                        ge::FORMAT_FRACTAL_NZ_C0_4,  ge::FORMAT_FRACTAL_NZ_C0_8,
+                                                        ge::FORMAT_FRACTAL_NZ_C0_16, ge::FORMAT_FRACTAL_NZ_C0_32};
 
 const std::unordered_set<ge::Format> FE_HEAVY_FORMAT_SET = {
-    ge::FORMAT_NC1HWC0_C04, ge::FORMAT_NC1HWC0,  ge::FORMAT_C1HWNCoC0,    ge::FORMAT_FRACTAL_Z,
-    ge::FORMAT_FRACTAL_NZ,  ge::FORMAT_NDC1HWC0, ge::FORMAT_FRACTAL_Z_3D, ge::FORMAT_FRACTAL_Z_3D_TRANSPOSE,
-    ge::FORMAT_FRACTAL_Z_C04, ge::FORMAT_C1HWC0, ge::FORMAT_FRACTAL_NZ_C0_2, ge::FORMAT_FRACTAL_NZ_C0_4,
-    ge::FORMAT_FRACTAL_NZ_C0_8, ge::FORMAT_FRACTAL_NZ_C0_16, ge::FORMAT_FRACTAL_NZ_C0_32};
+    ge::FORMAT_NC1HWC0_C04,     ge::FORMAT_NC1HWC0,
+    ge::FORMAT_C1HWNCoC0,       ge::FORMAT_FRACTAL_Z,
+    ge::FORMAT_FRACTAL_NZ,      ge::FORMAT_NDC1HWC0,
+    ge::FORMAT_FRACTAL_Z_3D,    ge::FORMAT_FRACTAL_Z_3D_TRANSPOSE,
+    ge::FORMAT_FRACTAL_Z_C04,   ge::FORMAT_C1HWC0,
+    ge::FORMAT_FRACTAL_NZ_C0_2, ge::FORMAT_FRACTAL_NZ_C0_4,
+    ge::FORMAT_FRACTAL_NZ_C0_8, ge::FORMAT_FRACTAL_NZ_C0_16,
+    ge::FORMAT_FRACTAL_NZ_C0_32};
 
-const std::unordered_set<ge::Format> FE_3D_FORMAT_SET = {
-    ge::FORMAT_NDHWC, ge::FORMAT_NCDHW, ge::FORMAT_DHWCN, ge::FORMAT_DHWNC,
-    ge::FORMAT_NDC1HWC0, ge::FORMAT_FRACTAL_Z_3D, ge::FORMAT_FRACTAL_Z_3D_TRANSPOSE};
+const std::unordered_set<ge::Format> FE_3D_FORMAT_SET = {ge::FORMAT_NDHWC,
+                                                         ge::FORMAT_NCDHW,
+                                                         ge::FORMAT_DHWCN,
+                                                         ge::FORMAT_DHWNC,
+                                                         ge::FORMAT_NDC1HWC0,
+                                                         ge::FORMAT_FRACTAL_Z_3D,
+                                                         ge::FORMAT_FRACTAL_Z_3D_TRANSPOSE};
 
-const std::unordered_set<ge::DataType> kDtypeSensitiveOpNotHeavy = {
-    ge::DT_INT64, ge::DT_COMPLEX32, ge::DT_COMPLEX64};
+const std::unordered_set<ge::DataType> kDtypeSensitiveOpNotHeavy = {ge::DT_INT64, ge::DT_COMPLEX32, ge::DT_COMPLEX64};
 
-const std::map<std::string, int64_t> kOpImplStrToInt{
-    {"default",           0x1},
-    {"high_performance",  0x2},
-    {"high_precision",    0x4},
-    {"super_performance", 0x8},
-    {"support_out_of_bound_index", 0x10},
-    {"enable_float_32_execution", 0x20},
-    {"enable_hi_float_32_execution", 0x40}
-};
-const std::map<int64_t, std::string> kOpImplIntToStr{
-    {0x1, "default"},
-    {0x2, "high_performance"},
-    {0x4, "high_precision"},
-    {0x8, "super_performance"},
-    {0x10, "support_out_of_bound_index"},
-    {0x20, "enable_float_32_execution"},
-    {0x40, "enable_hi_float_32_execution"}
-};
+const std::map<std::string, int64_t> kOpImplStrToInt{{"default", 0x1},
+                                                     {"high_performance", 0x2},
+                                                     {"high_precision", 0x4},
+                                                     {"super_performance", 0x8},
+                                                     {"support_out_of_bound_index", 0x10},
+                                                     {"enable_float_32_execution", 0x20},
+                                                     {"enable_hi_float_32_execution", 0x40}};
+const std::map<int64_t, std::string> kOpImplIntToStr{{0x1, "default"},
+                                                     {0x2, "high_performance"},
+                                                     {0x4, "high_precision"},
+                                                     {0x8, "super_performance"},
+                                                     {0x10, "support_out_of_bound_index"},
+                                                     {0x20, "enable_float_32_execution"},
+                                                     {0x40, "enable_hi_float_32_execution"}};
 
-constexpr const char* kComLevelO1Opt = "fe_compile_o1_opt";
-constexpr const char* kComLevelO3Opt = "fe_compile_o3_opt";
-constexpr const char* kForbiddenPass = "forbidden_close_pass";
+constexpr const char *kComLevelO1Opt = "fe_compile_o1_opt";
+constexpr const char *kComLevelO3Opt = "fe_compile_o3_opt";
+constexpr const char *kForbiddenPass = "forbidden_close_pass";
 
-constexpr const char* kDyInputsIndexes = "_dynamic_inputs_indexes";
-constexpr const char* kDyOutputsIndexes = "_dynamic_outputs_indexes";
-constexpr const char* kDyInputsAddNum = "_dynamic_inputs_add_num";
-constexpr const char* kOpKernelAllInputSize = "_op_kernel_all_input_size";
-constexpr const char* kOpKernelAllOutputSize = "_op_kernel_all_output_size";
+constexpr const char *kDyInputsIndexes = "_dynamic_inputs_indexes";
+constexpr const char *kDyOutputsIndexes = "_dynamic_outputs_indexes";
+constexpr const char *kDyInputsAddNum = "_dynamic_inputs_add_num";
+constexpr const char *kOpKernelAllInputSize = "_op_kernel_all_input_size";
+constexpr const char *kOpKernelAllOutputSize = "_op_kernel_all_output_size";
 
 const int32_t NCHW_DIM_N = 0;
 const int32_t NCHW_DIM_C = 1;
@@ -330,6 +335,6 @@ const int32_t DHWNC_DIM_N = 3;
 const int32_t DHWNC_DIM_C = 4;
 
 const uint32_t NCHW_DIMENSION_NUM = 4;
-constexpr const char* kLocalMemorySize = "local_memory_size";
+constexpr const char *kLocalMemorySize = "local_memory_size";
 }  // namespace fe
 #endif  // FUSION_ENGINE_INC_COMMON_AICORE_UTIL_CONSTANTS_H_

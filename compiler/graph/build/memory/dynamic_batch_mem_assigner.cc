@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,7 +23,7 @@ bool DynamicBatchBlockReuse(MemoryBlock &block) {
 struct CompareSize {
   explicit CompareSize() {}
 
-  bool operator() (const MemoryBlock *const left, const MemoryBlock *const right) const {
+  bool operator()(const MemoryBlock *const left, const MemoryBlock *const right) const {
     if ((left != nullptr) && (right != nullptr)) {
       auto left_size = left->Size();
       auto right_size = right->Size();
@@ -66,7 +66,7 @@ size_t GetBlocksSize(std::vector<MemoryBlock *> &blocks) {
 }
 
 void CreateBlocks(std::vector<MemoryBlock *> &blocks, std::vector<std::vector<MemoryBlock *>> &new_blocks,
-    bool use_extend_size_memory) {
+                  bool use_extend_size_memory) {
   size_t block_size = 0U;
   std::vector<MemoryBlock *> split_blocks;
   for (auto block : blocks) {
@@ -155,12 +155,11 @@ MemoryBlock *DynamicBatchMemAssigner::CreateContinuousBlock(std::vector<MemoryBl
   continuous_block->stream_id_ = parent_node_stream_id;
   continuous_block->batch_label_ = batch_label;
   continuous_block->memory_type_ = memory_type;
-  continuous_block->AddNodeTypeIndex({parent_node, kWorkspace, 0, false, life_begin,
-                                      parent_node_stream_id, true},
+  continuous_block->AddNodeTypeIndex({parent_node, kWorkspace, 0, false, life_begin, parent_node_stream_id, true},
                                      continuous_block_size, continuous_block_size, parent_node_stream_id);
   continuous_block->SetLifeTimeEnd(life_end, parent_node_stream_id);
   GELOGI("%s continuous block size:%zu memory_type:%lu", continuous_block->batch_label_.c_str(),
-      continuous_block->Size(), memory_type);
+         continuous_block->Size(), memory_type);
   return continuous_block;
 }
 
@@ -193,7 +192,7 @@ void DynamicBatchMemAssigner::DoResizeDynamicBatchBlocks(
       auto continuous_block = CreateContinuousBlock(batch_blocks.second);
       if ((max_continuous_block != nullptr) && (continuous_block != nullptr)) {
         max_continuous_block->Reset();
-        (void) max_continuous_block->AddBatchChildBlock(continuous_block);
+        (void)max_continuous_block->AddBatchChildBlock(continuous_block);
       }
     }
     return;

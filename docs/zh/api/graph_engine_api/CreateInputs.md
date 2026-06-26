@@ -120,4 +120,3 @@
     // 2. 添加 2 个输入节点
     std::vector<EsTensorHolder> inputs = builder.CreateInputs(2);
     ```
-

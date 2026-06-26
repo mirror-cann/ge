@@ -9,13 +9,13 @@
           "id" : "DNN_VM_GE_LOCAL",
           "name" : "GE_LOCAL",
           "independent" : false,
-          "attch" : false,
+          "attach" : false,
           "skip_assign_stream" : true
         },
-        {"id" : "DNN_V100", "name" : "AICORE", "independent" : false, "attch" : false, "skip_assign_stream" : false},
-        {"id" : "DNN_VM_AICPU", "name" : "AICPU", "independent" : false, "attch" : true, "skip_assign_stream" : false},
-        {"id" : "DNN_HCCL", "name" : "HCCL", "independent" : true, "attch" : false, "skip_assign_stream" : false},
-        {"id" : "DNN_VM_RTS", "name" : "RTS", "independent" : false, "attch" : true, "skip_assign_stream" : false}
+        {"id" : "DNN_V100", "name" : "AICORE", "independent" : false, "attach" : false, "skip_assign_stream" : false},
+        {"id" : "DNN_VM_AICPU", "name" : "AICPU", "independent" : false, "attach" : true, "skip_assign_stream" : false},
+        {"id" : "DNN_HCCL", "name" : "HCCL", "independent" : true, "attach" : false, "skip_assign_stream" : false},
+        {"id" : "DNN_VM_RTS", "name" : "RTS", "independent" : false, "attach" : true, "skip_assign_stream" : false}
       ]
     },
     {
@@ -26,7 +26,7 @@
         "id" : "DNN_VM_GE_LOCAL",
         "name" : "GE_LOCAL",
         "independent" : false,
-        "attch" : false,
+        "attach" : false,
         "skip_assign_stream" : true
       } ]
     }

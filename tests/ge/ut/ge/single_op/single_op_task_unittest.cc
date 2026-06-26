@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -44,10 +44,10 @@ using namespace ge;
 using namespace optiling;
 
 namespace {
-  struct AicpuTaskStruct {
+struct AicpuTaskStruct {
   aicpu::AicpuParamHead head;
   uint64_t io_addrp[3];
-}__attribute__((packed));
+} __attribute__((packed));
 }  // namespace
 
 class UtestSingleOpTask : public testing::Test {
@@ -102,7 +102,7 @@ void LaunchKernelTask() {
   kernel_with_handle->set_args(args.data(), 64);
   domi::KernelContext *context = kernel_with_handle->mutable_context();
   context->set_op_index(1);
-  context->set_kernel_type(2);    // ccKernelType::TE
+  context->set_kernel_type(2);  // ccKernelType::TE
   uint16_t args_offset[9] = {0};
   context->set_args_offset(args_offset, 9 * sizeof(uint16_t));
   model.op_list_[1] = node;
@@ -113,11 +113,13 @@ void LaunchKernelTask() {
   ASSERT_EQ(model.BuildKernelTask(task_def, &task, resource), SUCCESS);
   ge::DataBuffer data_buffer;
   vector<GeTensorDesc> input_desc;
-  vector<DataBuffer> input_buffers = { data_buffer };
+  vector<DataBuffer> input_buffers = {data_buffer};
   vector<GeTensorDesc> output_desc;
-  vector<DataBuffer> output_buffers = { data_buffer };
+  vector<DataBuffer> output_buffers = {data_buffer};
   task->node_ = node;
-  OpTilingFuncV2 op_tiling_func = [](const ge::Operator &, const OpCompileInfoV2 &, OpRunInfoV2 &) -> bool {return true;};
+  OpTilingFuncV2 op_tiling_func = [](const ge::Operator &, const OpCompileInfoV2 &, OpRunInfoV2 &) -> bool {
+    return true;
+  };
   REGISTER_OP_TILING_UNIQ_V2(Add, op_tiling_func, 1);
   OpTilingRegistryInterf_V2("Add", op_tiling_func);
   ge::AttrUtils::SetStr(op_desc, "compile_info_key", "op_compile_info_key");
@@ -141,7 +143,7 @@ TEST_F(UtestSingleOpTask, test_build_kernel_task) {
 
 TEST_F(UtestSingleOpTask, KerenlTaskProf_RecordInfo_WithProfilingOn) {
   ProfilingProperties::Instance().SetLoadProfiling(true);
-  auto check_func = [&](uint32_t moduleId, uint32_t type, void *data, uint32_t len)->int32_t {
+  auto check_func = [&](uint32_t moduleId, uint32_t type, void *data, uint32_t len) -> int32_t {
     if (type == InfoType::kInfo) {
       auto info = reinterpret_cast<MsprofAdditionalInfo *>(data);
       EXPECT_NE(info->dataLen, 0);
@@ -167,7 +169,7 @@ TEST_F(UtestSingleOpTask, test_update_ioaddr) {
   op_desc->AddInputDesc(desc);
   op_desc->AddInputDesc(desc);
   op_desc->AddOutputDesc(desc);
-  vector<bool> is_input_const = { true, false };
+  vector<bool> is_input_const = {true, false};
   op_desc->SetIsInputConst(is_input_const);
   auto node = graph->AddNode(op_desc);
 
@@ -190,11 +192,11 @@ TEST_F(UtestSingleOpTask, test_update_ioaddr) {
   ASSERT_EQ(task.UpdateIoAddr(inputs, outputs), ACL_ERROR_GE_PARAM_INVALID);
 
   ge::DataBuffer data_buffer;
-  inputs = { data_buffer };
-  outputs = { data_buffer };
+  inputs = {data_buffer};
+  outputs = {data_buffer};
   ASSERT_EQ(task.UpdateIoAddr(inputs, outputs), SUCCESS);
 
-  task.workspaces_ = { (void *)0x0002 };
+  task.workspaces_ = {(void *)0x0002};
   ASSERT_EQ(task.UpdateTilingArgs(), SUCCESS);
 }
 
@@ -217,7 +219,7 @@ TEST_F(UtestSingleOpTask, test_atomic_exec) {
   ge::AttrUtils::SetListInt(op_desc, ATOMIC_ATTR_OUTPUT_INDEX, atomic_output_indices);
 
   ASSERT_EQ(task.InitAtomicAddrCleanIndices(), INTERNAL_ERROR);
-  atomic_output_indices = { 0 };
+  atomic_output_indices = {0};
   ge::AttrUtils::SetListInt(op_desc, ATOMIC_ATTR_OUTPUT_INDEX, atomic_output_indices);
   ASSERT_EQ(task.InitAtomicAddrCleanIndices(), INTERNAL_ERROR);
   task.arg_size_ = sizeof(void *) * 2;
@@ -227,7 +229,7 @@ TEST_F(UtestSingleOpTask, test_atomic_exec) {
   ASSERT_NE(task.UpdateIoAddr(inputs, outputs), SUCCESS);
 
   ge::DataBuffer data_buffer;
-  outputs = { data_buffer };
+  outputs = {data_buffer};
   ASSERT_EQ(task.UpdateIoAddr(inputs, outputs), SUCCESS);
 
   ASSERT_EQ(task.UpdateTilingArgs(), SUCCESS);
@@ -236,7 +238,6 @@ TEST_F(UtestSingleOpTask, test_atomic_exec) {
   ASSERT_NE(task.run_info_, nullptr);
   task.CalcTilingInfo();
 }
-
 
 TEST_F(UtestSingleOpTask, test_atomic_init) {
   auto graph = make_shared<ComputeGraph>("graph");
@@ -249,7 +250,7 @@ TEST_F(UtestSingleOpTask, test_atomic_init) {
   map<int64_t, int64_t> workspace_info_pair;
   workspace_info_pair.insert(std::make_pair(INT32_MAX, 1));
   workspace_info.insert(std::make_pair("1", workspace_info_pair));
-  op_desc->SetExtAttr(EXT_ATTR_ATOMIC_WORKSPACE_INFO,workspace_info);
+  op_desc->SetExtAttr(EXT_ATTR_ATOMIC_WORKSPACE_INFO, workspace_info);
 
   auto node = graph->AddNode(op_desc);
   AtomicAddrCleanOpTask task;
@@ -262,7 +263,6 @@ TEST_F(UtestSingleOpTask, test_atomic_init) {
   ge::AttrUtils::SetListInt(op_desc, ATOMIC_ATTR_OUTPUT_INDEX, atomic_output_indices);
 
   ASSERT_NE(task.InitAtomicAddrCleanIndices(), SUCCESS);
-
 }
 
 UINT32 StubTilingNeedAtomic(gert::TilingContext *context) {
@@ -280,8 +280,8 @@ UINT32 StubTilingParse(gert::KernelContext *context) {
   return ge::GRAPH_SUCCESS;
 }
 
-void* CompileInfoCreator() {
-  auto tmp =  ge::MakeUnique<char>();
+void *CompileInfoCreator() {
+  auto tmp = ge::MakeUnique<char>();
   return tmp.get();
 }
 
@@ -349,7 +349,7 @@ TEST_F(UtestSingleOpTask, TestSoftSyncExecute_SaveExceptionDumper_WithExceptionD
   tbe_task.arg_size_ = 512 + kMaxHostMemInputLen;
   tbe_task.args_ex_.args = tbe_task.args_.get();
   tbe_task.args_ex_.argsSize = tbe_task.arg_size_;
-  std::cout<<"test size"<<tbe_task.args_ex_.argsSize<<std::endl;
+  std::cout << "test size" << tbe_task.args_ex_.argsSize << std::endl;
   auto stream_resource = MakeUnique<StreamResource>(0);
   stream_resource->allocator_ = &stream_resource->internal_allocator_;
   tbe_task.stream_resource_ = stream_resource.get();
@@ -379,8 +379,8 @@ TEST_F(UtestSingleOpTask, test_aicpu_task_launch_kernel) {
   task.num_outputs_ = 1;
   task.input_is_const_ = {1, 0};
   int total_addr = 3;
-  uint32_t* addrs[total_addr] = {nullptr, nullptr, nullptr};
-  task.io_addr_ = reinterpret_cast<uintptr_t*>(addrs);
+  uint32_t *addrs[total_addr] = {nullptr, nullptr, nullptr};
+  task.io_addr_ = reinterpret_cast<uintptr_t *>(addrs);
   task.io_addr_num_ = total_addr;
   vector<DataBuffer> outputs(1, DataBuffer());
   outputs[0].data = 0;
@@ -405,7 +405,7 @@ TEST_F(UtestSingleOpTask, test_aicpu_task_launch_kernel) {
   kernel_def->set_args_size(args.head.length);
   auto &memcpy_args = kernel_def->args();
   task.memcpy_args_size_ = kernel_def->args_size();
-  task.memcpy_args_.reset(new(std::nothrow) uint8_t[task.memcpy_args_size_]());
+  task.memcpy_args_.reset(new (std::nothrow) uint8_t[task.memcpy_args_size_]());
   memcpy_s(task.memcpy_args_.get(), task.memcpy_args_size_, memcpy_args.c_str(), memcpy_args.size());
   ASSERT_EQ(task.CopyDataToHbm(outputs, stream), SUCCESS);
   aclrtDestroyStream(stream);
@@ -417,8 +417,8 @@ TEST_F(UtestSingleOpTask, test_aicpu_task_update_io_addr) {
   task.num_outputs_ = 1;
   task.input_is_const_ = {1, 0};
   int total_addr = 3;
-  uint32_t* addrs[total_addr] = {nullptr, nullptr, nullptr};
-  task.io_addr_ = reinterpret_cast<uintptr_t*>(addrs);
+  uint32_t *addrs[total_addr] = {nullptr, nullptr, nullptr};
+  task.io_addr_ = reinterpret_cast<uintptr_t *>(addrs);
   task.io_addr_num_ = total_addr;
 
   {
@@ -464,11 +464,11 @@ TEST_F(UtestSingleOpTask, test_blocking_aicpu_op_01) {
   vector<char> aicpu_ext_info(len, 0);
   char *buf = aicpu_ext_info.data();
   int offset = 0;
-  hybrid::AicpuExtInfo *ext_info = reinterpret_cast<hybrid::AicpuExtInfo*>(buf + offset);
+  hybrid::AicpuExtInfo *ext_info = reinterpret_cast<hybrid::AicpuExtInfo *>(buf + offset);
   ext_info->infoType = aicpu::FWKAdapter::FWK_ADPT_EXT_ASYNCWAIT;
   ext_info->infoLen = sizeof(hybrid::AsyncWaitInfo);
   offset += sizeof(hybrid::AicpuExtInfo);
-  hybrid::AsyncWaitInfo *async_wait_info = reinterpret_cast<hybrid::AsyncWaitInfo*>(buf + offset);
+  hybrid::AsyncWaitInfo *async_wait_info = reinterpret_cast<hybrid::AsyncWaitInfo *>(buf + offset);
   async_wait_info->waitType = 0;
   async_wait_info->waitId = 0;
   async_wait_info->timeOut = 0;
@@ -495,11 +495,11 @@ TEST_F(UtestSingleOpTask, test_blocking_aicpu_op_02) {
   vector<char> aicpu_ext_info(len, 0);
   char *buf = aicpu_ext_info.data();
   int offset = 0;
-  hybrid::AicpuExtInfo *ext_info = reinterpret_cast<hybrid::AicpuExtInfo*>(buf + offset);
+  hybrid::AicpuExtInfo *ext_info = reinterpret_cast<hybrid::AicpuExtInfo *>(buf + offset);
   ext_info->infoType = aicpu::FWKAdapter::FWK_ADPT_EXT_ASYNCWAIT;
   ext_info->infoLen = sizeof(hybrid::AsyncWaitInfo);
   offset += sizeof(hybrid::AicpuExtInfo);
-  hybrid::AsyncWaitInfo *async_wait_info = reinterpret_cast<hybrid::AsyncWaitInfo*>(buf + offset);
+  hybrid::AsyncWaitInfo *async_wait_info = reinterpret_cast<hybrid::AsyncWaitInfo *>(buf + offset);
   async_wait_info->waitType = 0;
   async_wait_info->waitId = 0;
   async_wait_info->timeOut = 0;
@@ -526,11 +526,11 @@ TEST_F(UtestSingleOpTask, test_blocking_aicpu_op_fail) {
   vector<char> aicpu_ext_info(len, 0);
   char *buf = aicpu_ext_info.data();
   int offset = 0;
-  hybrid::AicpuExtInfo *ext_info = reinterpret_cast<hybrid::AicpuExtInfo*>(buf + offset);
+  hybrid::AicpuExtInfo *ext_info = reinterpret_cast<hybrid::AicpuExtInfo *>(buf + offset);
   ext_info->infoType = aicpu::FWKAdapter::FWK_ADPT_EXT_ASYNCWAIT;
   ext_info->infoLen = sizeof(hybrid::AsyncWaitInfo);
   offset += sizeof(hybrid::AicpuExtInfo);
-  hybrid::AsyncWaitInfo *async_wait_info = reinterpret_cast<hybrid::AsyncWaitInfo*>(buf + offset);
+  hybrid::AsyncWaitInfo *async_wait_info = reinterpret_cast<hybrid::AsyncWaitInfo *>(buf + offset);
   async_wait_info->waitType = 0;
   async_wait_info->waitId = 0;
   async_wait_info->timeOut = 0;
@@ -593,7 +593,7 @@ TEST_F(UtestSingleOpTask, test_update_ioaddr_with_host_input) {
   op_desc->AddInputDesc(desc);
   op_desc->AddInputDesc(desc);
   op_desc->AddOutputDesc(desc);
-  vector<bool> is_input_const = { true, false };
+  vector<bool> is_input_const = {true, false};
   op_desc->SetIsInputConst(is_input_const);
   auto node = graph->AddNode(op_desc);
 
@@ -609,8 +609,8 @@ TEST_F(UtestSingleOpTask, test_update_ioaddr_with_host_input) {
   data_buffer.length = 65;
   data_buffer.data = new uint8_t[data_buffer.length];
 
-  inputs = { data_buffer };
-  outputs = { data_buffer };
+  inputs = {data_buffer};
+  outputs = {data_buffer};
 
   uint32_t arg_size_without_tiling = 32;
   uint32_t host_mem_ext_size = 64;
@@ -629,11 +629,11 @@ TEST_F(UtestSingleOpTask, test_update_ioaddr_with_host_input) {
   task.need_host_mem_opt_ = true;
 
   ASSERT_EQ(task.UpdateIoAddr(inputs, outputs), SUCCESS);
-  delete [] reinterpret_cast<uint8_t *>(data_buffer.data);
+  delete[] reinterpret_cast<uint8_t *>(data_buffer.data);
 
   data_buffer.length = 64;
   data_buffer.data = new uint8_t[data_buffer.length];
   inputs[0] = data_buffer;
   ASSERT_EQ(task.UpdateIoAddr(inputs, outputs), SUCCESS);
-  delete [] reinterpret_cast<uint8_t *>(data_buffer.data);
+  delete[] reinterpret_cast<uint8_t *>(data_buffer.data);
 }

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -78,16 +78,17 @@ class GE_FUNC_VISIBILITY ModelHelper : public ModelSaveHelper {
   Status HandleDeviceInfo(fe::PlatFormInfos &platform_infos, fe::PlatformInfo &origin_platform_info) const;
   static Status InitRuntimePlatform();
 
-  Status InitRuntimeAndGetDevicePlatformInfos(int32_t device_id, const std::string &soc_version,fe::PlatFormInfos &platform_infos_device) const;
+  Status InitRuntimeAndGetDevicePlatformInfos(int32_t device_id, const std::string &soc_version,
+                                              fe::PlatFormInfos &platform_infos_device) const;
 
   Status UpdateCoreCountWithOption(const std::string &key, const std::string &context_key, uint32_t core_num_ini,
-                                 uint32_t &platform_info_count, std::map<std::string, std::string> &options) const;
+                                   uint32_t &platform_info_count, std::map<std::string, std::string> &options) const;
 
-  Status UpdateCoreCountWithDevice(const std::string &key, uint32_t core_num_ini,
-                                            const std::string &core_num_str, uint32_t &platform_info_count) const;
+  Status UpdateCoreCountWithDevice(const std::string &key, uint32_t core_num_ini, const std::string &core_num_str,
+                                   uint32_t &platform_info_count) const;
 
-  void UpdateCoreCountWithRuntime(const std::string &key, uint32_t platform_count,
-                                            const int64_t core_num_rts, uint32_t &platform_info_count) const;
+  void UpdateCoreCountWithRuntime(const std::string &key, uint32_t platform_count, const int64_t core_num_rts,
+                                  uint32_t &platform_info_count) const;
 
   Status GetPlatformInfo(int32_t device_id, const std::string &soc_version, fe::PlatformInfo &platform_info,
                          int32_t &virtual_type) const;
@@ -97,13 +98,14 @@ class GE_FUNC_VISIBILITY ModelHelper : public ModelSaveHelper {
                           fe::PlatFormInfos &platform_infos) const;
 
   Status UpdatePlatfromInfoWithOption(std::map<std::string, std::string> &options, const uint32_t ai_core_cnt_ini,
-                          const uint32_t vector_core_cnt_ini, fe::PlatformInfo &platform_info) const;
+                                      const uint32_t vector_core_cnt_ini, fe::PlatformInfo &platform_info) const;
 
   Status UpdatePlatfromInfoWithDevice(fe::PlatFormInfos &platformInfos_device, const uint32_t ai_core_cnt_ini,
-                          const uint32_t vector_core_cnt_ini, fe::PlatformInfo &platform_info) const;
+                                      const uint32_t vector_core_cnt_ini, fe::PlatformInfo &platform_info) const;
 
-  Status UpdatePlatfromInfoWithRuntime(const int32_t device_id, const uint32_t ai_core_cnt_ini, const uint32_t vector_core_cnt_ini,
-                                    fe::PlatformInfo &platform_info, int32_t &virtual_type) const;
+  Status UpdatePlatfromInfoWithRuntime(const int32_t device_id, const uint32_t ai_core_cnt_ini,
+                                       const uint32_t vector_core_cnt_ini, fe::PlatformInfo &platform_info,
+                                       int32_t &virtual_type) const;
 
   Status CheckOsCpuInfoAndOppVersion();
 
@@ -128,12 +130,9 @@ class GE_FUNC_VISIBILITY ModelHelper : public ModelSaveHelper {
 
   // configuration attr compression mode
   Status ConfigureAttrCompressionMode(const string &mode) override;
-  static Status UpdateGeRootModelTaskAddr(const GeRootModelPtr &ge_root_model,
-                                          const ComputeGraphPtr &root_graph,
-                                          std::set<ComputeGraph *> &refreshed_graphs,
-                                          const bool is_cache);
-  static Status UpdateSessionGraphId(const ComputeGraphPtr &graph,
-                                     const std::string &session_graph_id,
+  static Status UpdateGeRootModelTaskAddr(const GeRootModelPtr &ge_root_model, const ComputeGraphPtr &root_graph,
+                                          std::set<ComputeGraph *> &refreshed_graphs, const bool is_cache);
+  static Status UpdateSessionGraphId(const ComputeGraphPtr &graph, const std::string &session_graph_id,
                                      bool &refreshed);
   static constexpr const char_t *kFilePreffix = ".exeom";
   static constexpr const char_t *kDebugPreffix = ".dbg";
@@ -147,7 +146,7 @@ class GE_FUNC_VISIBILITY ModelHelper : public ModelSaveHelper {
                                        const GeRootModelPtr &ge_root_model, string &output_file_name,
                                        const GeModelPtr &first_ge_model);
   Status SaveCustomOpsPartition(std::shared_ptr<OmFileSaveHelper> &om_file_save_helper,
-                                    const GeRootModelPtr &ge_root_model) const;
+                                const GeRootModelPtr &ge_root_model) const;
   Status CollectUsedCustomOpTypes(const GeRootModelPtr &ge_root_model,
                                   std::set<std::string> &used_custom_op_types) const;
   Status SerializeCustomOpKernel(PortableOp *serializable_op, const std::string &op_type_str,
@@ -179,6 +178,7 @@ class GE_FUNC_VISIBILITY ModelHelper : public ModelSaveHelper {
   static Status UpdateModelTaskAddr(const GeRootModelPtr &ge_root_model, const uint64_t session_id,
                                     const std::map<int64_t, int64_t> &logical_addr_mapping,
                                     std::set<ComputeGraph *> &refreshed_graphs);
+
  private:
   bool is_assign_model_ = false;
   bool is_offline_ = true;
@@ -231,8 +231,7 @@ class GE_FUNC_VISIBILITY ModelHelper : public ModelSaveHelper {
 
   Status LoadOpSoBin(const OmFileLoadHelper &om_load_helper, const GeRootModelPtr &ge_root_model,
                      std::vector<CustomOpSoHandlePtr> &loaded_handles) const;
-  Status ValidateCustomOpsDeserialized(const GeRootModelPtr &ge_root_model,
-                                       const CustomOpRegistryPtr &registry) const;
+  Status ValidateCustomOpsDeserialized(const GeRootModelPtr &ge_root_model, const CustomOpRegistryPtr &registry) const;
   Status LoadCustomOps(const OmFileLoadHelper &om_load_helper, const CustomOpRegistryPtr &registry) const;
   Status LoadTilingData(const OmFileLoadHelper &om_load_helper, const GeRootModelPtr &ge_root_model) const;
   Status SaveTilingData(std::shared_ptr<OmFileSaveHelper> &om_file_save_helper, const GeRootModelPtr &ge_root_model);
@@ -254,17 +253,15 @@ class GE_FUNC_VISIBILITY ModelHelper : public ModelSaveHelper {
   Status SaveRootModelLoop(std::shared_ptr<OmFileSaveHelper> &om_file_save_helper,
                            const std::vector<std::string> &model_names,
                            const std::map<std::string, GeModelPtr> &name_to_ge_model,
-                           std::vector<ge::Buffer> &model_buffers,
-                           std::vector<ge::Buffer> &task_buffers,
+                           std::vector<ge::Buffer> &model_buffers, std::vector<ge::Buffer> &task_buffers,
                            size_t &cur_index) const;
   Status InitFirstGeModel(const GeRootModelPtr &ge_root_model,
-                          const std::map<std::string, GeModelPtr> &name_to_ge_model,
-                          GeModelPtr &first_ge_model) const;
+                          const std::map<std::string, GeModelPtr> &name_to_ge_model, GeModelPtr &first_ge_model) const;
   Status SavePartitionedFirstModel(std::shared_ptr<OmFileSaveHelper> &om_file_save_helper,
                                    const GeRootModelPtr &ge_root_model, GeModelPtr &first_ge_model,
                                    const ComputeGraphPtr &root_graph, bool is_unknown_shape,
-                                   std::vector<ge::Buffer> &model_buffers,
-                                   std::vector<ge::Buffer> &task_buffers, size_t &cur_index);
+                                   std::vector<ge::Buffer> &model_buffers, std::vector<ge::Buffer> &task_buffers,
+                                   size_t &cur_index);
   Status SaveRootModelPartitionsForOmModel(std::shared_ptr<OmFileSaveHelper> &om_file_save_helper,
                                            const GeRootModelPtr &ge_root_model, string &output_file_name,
                                            const GeModelPtr &ge_model);

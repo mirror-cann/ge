@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -47,7 +47,8 @@ void ModelDataFaker::BuildUnknownShapeFile(const char *file_path) const {
   }
 }
 
-ge::ModelData ModelDataFaker::BuildUnknownShapeSoInOmFile(EnvCreateFunc env_create_func, std::string opp_path, bool env_initialized) {
+ge::ModelData ModelDataFaker::BuildUnknownShapeSoInOmFile(EnvCreateFunc env_create_func, std::string opp_path,
+                                                          bool env_initialized) {
   if (ge_root_model_ == nullptr) {
     throw std::invalid_argument("The ge_root_model is nullptr");
   }

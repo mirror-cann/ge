@@ -70,11 +70,9 @@ std::vector<GNode> MatchFromAllNodes(const ComputeGraphPtr &root_graph, const st
   }
   return matched_nodes;
 }
-} // namespace
+}  // namespace
 
-Status RunDecomposePass(GraphPtr &graph,
-                        CustomPassContext &pass_context,
-                        const std::vector<AscendString> &op_types,
+Status RunDecomposePass(GraphPtr &graph, CustomPassContext &pass_context, const std::vector<AscendString> &op_types,
                         const DecomposeMeetRequirementsFn &meet_requirements,
                         const DecomposeReplacementFn &replacement) {
   auto compute_graph = GraphUtilsEx::GetComputeGraph(*graph);
@@ -88,8 +86,7 @@ Status RunDecomposePass(GraphPtr &graph,
   std::string pass_name = pass_context.GetPassName().GetString();
   std::map<AscendString, std::pair<int32_t, int32_t>> fusion_info_map;
   for (auto op_type : op_types) {
-    fusion_info_map.emplace(std::piecewise_construct, std::forward_as_tuple(op_type),
-                            std::forward_as_tuple(0, 0));
+    fusion_info_map.emplace(std::piecewise_construct, std::forward_as_tuple(op_type), std::forward_as_tuple(0, 0));
   }
   for (const auto &g_node : matched_nodes) {
     auto node = NodeAdapter::GNode2Node(g_node);
@@ -112,8 +109,7 @@ Status RunDecomposePass(GraphPtr &graph,
              pass_name.c_str(), node->GetNamePtr(), node->GetTypePtr());
     }
     GE_ASSERT_SUCCESS(SubgraphRewriter::Replace(*boundary, *replacement_graph),
-                      "Failed to replace node [%s][%s] with replacement graph", node->GetNamePtr(),
-                      node->GetTypePtr());
+                      "Failed to replace node [%s][%s] with replacement graph", node->GetNamePtr(), node->GetTypePtr());
     if (!is_changed) {
       is_changed = true;
     }
@@ -122,12 +118,12 @@ Status RunDecomposePass(GraphPtr &graph,
     it_fusion_info->second.second++;
   }
   for (auto &pair : fusion_info_map) {
-    FusionUtils::RecordFusionStatistic(compute_graph->GetSessionID(), to_string(graph_id), pass_name,
-                                       pair.second.first, pair.second.second);
+    FusionUtils::RecordFusionStatistic(compute_graph->GetSessionID(), to_string(graph_id), pass_name, pair.second.first,
+                                       pair.second.second);
     GELOGD("GraphId[%d], GraphFusionPass[%s]: pattern=%s, matched_times=%d, effected_times=%d", graph_id,
            pass_name.c_str(), pair.first.GetString(), pair.second.first, pair.second.second);
   }
   return is_changed ? SUCCESS : NOT_CHANGED;
 }
-} // namespace fusion
-} // namespace ge
+}  // namespace fusion
+}  // namespace ge

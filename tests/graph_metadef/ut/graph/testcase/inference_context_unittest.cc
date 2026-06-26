@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,10 +23,10 @@ struct TestResourceContext : ResourceContext {
   std::vector<GeShape> shapes;
   std::string resource_type;
 };
-}
+}  // namespace
 class TestInferenceConext : public testing::Test {
  protected:
- ComputeGraphPtr graph_;
+  ComputeGraphPtr graph_;
   void SetUp() {
     ut::GraphBuilder builder = ut::GraphBuilder("graph");
     builder.AddNode("TensorArrayWrite", "TensorArrayWrite", 1, 1);
@@ -39,12 +39,14 @@ class TestInferenceConext : public testing::Test {
 
 TEST_F(TestInferenceConext, TestSetAndGetResourceContext) {
   ResourceContextMgr resource_context_mgr;
-  InferenceContextPtr write_inference_context = std::shared_ptr<InferenceContext>(InferenceContext::Create(&resource_context_mgr));
-  InferenceContextPtr read_inference_context = std::shared_ptr<InferenceContext>(InferenceContext::Create(&resource_context_mgr));
+  InferenceContextPtr write_inference_context =
+      std::shared_ptr<InferenceContext>(InferenceContext::Create(&resource_context_mgr));
+  InferenceContextPtr read_inference_context =
+      std::shared_ptr<InferenceContext>(InferenceContext::Create(&resource_context_mgr));
 
   // simulate write op
-  const char* resource_key = "123";
-  std::vector<GeShape> resource_shapes = {GeShape({1,1,2,3})};
+  const char *resource_key = "123";
+  std::vector<GeShape> resource_shapes = {GeShape({1, 1, 2, 3})};
   TestResourceContext *resource_context = new TestResourceContext();
   resource_context->shapes = resource_shapes;
   resource_context->resource_type = "normal";
@@ -69,7 +71,7 @@ TEST_F(TestInferenceConext, TestRegisterAndGetReiledOnResource) {
   InferenceContextPtr read_inference_context = std::shared_ptr<InferenceContext>(InferenceContext::Create());
 
   // simulate read_op register relied resource
-  const char* resource_key = "456";
+  const char *resource_key = "456";
   read_inference_context->RegisterReliedOnResourceKey(AscendString(resource_key));
 
   // simulate read_op register empty relied resource
@@ -86,7 +88,7 @@ TEST_F(TestInferenceConext, TestAddChangeResourceAndGet) {
   InferenceContextPtr write_inference_context = std::shared_ptr<InferenceContext>(InferenceContext::Create());
 
   // simulate write node add changed resource
-  const char* resource_key = "789";
+  const char *resource_key = "789";
   write_inference_context->AddChangedResourceKey(AscendString(resource_key));
 
   // simulate write node add empty changed resource
@@ -123,22 +125,18 @@ TEST_F(TestInferenceConext, transformer_util) {
 }
 
 TEST_F(TestInferenceConext, ShapeAndType) {
-  EXPECT_NO_THROW(
-    ShapeAndType SAndT;
+  EXPECT_NO_THROW(ShapeAndType SAndT;
 
-    Shape shape;
-    DataType data_type;
+                  Shape shape; DataType data_type;
 
-    shape = SAndT.GetShape();
-    //ASSERT_NE(shape, NULL);
-    data_type = SAndT.GetDataType();
-    //ASSERT_NE(data_type, NULL);
+                  shape = SAndT.GetShape();
+                  // ASSERT_NE(shape, NULL);
+                  data_type = SAndT.GetDataType();
+                  // ASSERT_NE(data_type, NULL);
 
-    ShapeAndType SAndT2(shape, data_type);
+                  ShapeAndType SAndT2(shape, data_type);
 
-    SAndT2.SetShape(shape);
-    SAndT2.SetType(data_type);
-  );
+                  SAndT2.SetShape(shape); SAndT2.SetType(data_type););
 }
 
 TEST_F(TestInferenceConext, SetGetInputHandleShapesAndTypes) {
@@ -174,4 +172,4 @@ TEST_F(TestInferenceConext, SetGetMarks) {
   ASSERT_EQ(marks, marks_2);
 }
 
-} // namespace ge
+}  // namespace ge

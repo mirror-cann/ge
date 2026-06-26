@@ -69,7 +69,6 @@ REG_OP(SliceD)
     .OP_END_FACTORY_REG(SliceD)
 }  // namespace
 
-
 TEST_F(ConcatSliceSimplificationPassTest, OptimizeSuccessAndPrune) {
   auto dtype = DT_INT32;
   auto shape = GeShape(std::vector<int64_t>({32, 1024, 1024}));
@@ -110,12 +109,12 @@ TEST_F(ConcatSliceSimplificationPassTest, OptimizeSuccessAndPrune) {
   bool prune_invoked = false;
   bool const_folding_invoked = false;
   graph_passes.prune_graph_func = [&prune_invoked](const ComputeGraphPtr &graph) -> Status {
-    (void) graph;
+    (void)graph;
     prune_invoked = true;
     return 0;
   };
   graph_passes.constant_folding_func = [&const_folding_invoked](NodePtr &node) -> graphStatus {
-    (void) node;
+    (void)node;
     const_folding_invoked = true;
     return 0;
   };
@@ -165,12 +164,12 @@ TEST_F(ConcatSliceSimplificationPassTest, OptimizeSuccessAndFold) {
   bool prune_invoked = false;
   bool const_folding_invoked = false;
   graph_passes.prune_graph_func = [&prune_invoked](const ComputeGraphPtr &graph) -> Status {
-    (void) graph;
+    (void)graph;
     prune_invoked = true;
     return 0;
   };
   graph_passes.constant_folding_func = [&const_folding_invoked](NodePtr &node) -> graphStatus {
-    (void) node;
+    (void)node;
     const_folding_invoked = true;
     return 0;
   };

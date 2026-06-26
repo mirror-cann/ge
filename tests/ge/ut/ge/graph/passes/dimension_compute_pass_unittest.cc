@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -127,7 +127,7 @@ ComputeGraphPtr BuildGraph1() {
 TEST_F(UtestGraphPassesDimensionComputePass, not_changed_no_kernel) {
   auto graph = BuildGraph8();
   NamesToPass names_to_pass;
-  names_to_pass.push_back( {"DimensionComputePass", new DimensionComputePass});
+  names_to_pass.push_back({"DimensionComputePass", new DimensionComputePass});
 
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
@@ -142,7 +142,7 @@ TEST_F(UtestGraphPassesDimensionComputePass, not_changed_no_kernel) {
 TEST_F(UtestGraphPassesDimensionComputePass, not_changed_no_compute_kernel) {
   auto graph = BuildGraph9();
   NamesToPass names_to_pass;
-  names_to_pass.push_back( {"DimensionComputePass", new DimensionComputePass});
+  names_to_pass.push_back({"DimensionComputePass", new DimensionComputePass});
 
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
@@ -157,7 +157,7 @@ TEST_F(UtestGraphPassesDimensionComputePass, not_changed_no_compute_kernel) {
 TEST_F(UtestGraphPassesDimensionComputePass, success) {
   auto graph = BuildGraph1();
   NamesToPass names_to_pass;
-  names_to_pass.push_back( {"DimensionComputePass", new DimensionComputePass});
+  names_to_pass.push_back({"DimensionComputePass", new DimensionComputePass});
 
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
@@ -172,7 +172,7 @@ TEST_F(UtestGraphPassesDimensionComputePass, success) {
 TEST_F(UtestGraphPassesDimensionComputePass, TestComputeNotFold) {
   auto graph = BuildGraph1();
   NamesToPass names_to_pass;
-  names_to_pass.push_back( {"DimensionComputePass", new DimensionComputePass(false)});
+  names_to_pass.push_back({"DimensionComputePass", new DimensionComputePass(false)});
 
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
@@ -194,7 +194,7 @@ TEST_F(UtestGraphPassesDimensionComputePass, Don_Not_Constat_Folding) {
   auto op_node = graph->FindNode("shapeYes1");
   (void)AttrUtils::SetBool(op_node->GetOpDesc(), ATTR_NAME_DO_NOT_CONSTANT_FOLDING, true);
   NamesToPass names_to_pass;
-  names_to_pass.push_back( {"DimensionComputePass", new DimensionComputePass});
+  names_to_pass.push_back({"DimensionComputePass", new DimensionComputePass});
   GEPass pass(graph);
   EXPECT_EQ(pass.Run(names_to_pass), SUCCESS);
   EXPECT_EQ(graph->GetAllNodesSize(), 3);

@@ -89,4 +89,3 @@ EsTensorHolder ToTensorHolder(EsCGraphBuilder *graph) const
 EsTensorLike tensor_like(tensor);
 auto result = tensor_like.ToTensorHolder(c_builder);
 ```
-

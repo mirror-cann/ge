@@ -84,4 +84,3 @@ Status UnregisterExternalAllocator(const void *const stream) const
 
 -   用户销毁Allocator前，调用本接口取消注册。
 -   待取消注册的Stream不存在，或多次调用本接口取消注册，本接口内部不做任何操作，返回成功。
-

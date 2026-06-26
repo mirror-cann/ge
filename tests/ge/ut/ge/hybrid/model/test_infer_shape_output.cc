@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,10 +25,10 @@
 #include "macro_utils/dt_public_unscope.h"
 
 namespace ge {
-using  namespace hybrid;
+using namespace hybrid;
 
 class TestInferShapeOutput : public testing::Test {
-protected:
+ protected:
   void SetUp() {}
   void TearDown() {}
 };
@@ -47,30 +47,26 @@ static NodePtr CreateNode() {
 
 struct FakeNodeItem : NodeItem {
   FakeNodeItem(const std::vector<int64_t> &shape, int stage = -1, NodePtr node = nullptr) : NodeItem(node) {
-    op_desc_ = OP_CFG(DATA)
-                  .InCnt(1)
-                  .OutCnt(1)
-                  .TensorDesc(FORMAT_NCHW, DT_FLOAT, shape)
-                  .Build("data1");
+    op_desc_ = OP_CFG(DATA).InCnt(1).OutCnt(1).TensorDesc(FORMAT_NCHW, DT_FLOAT, shape).Build("data1");
     op_desc = op_desc_.get();
     group = stage;
     is_input_shape_static_.push_back(false);
     is_dynamic = true;
   }
 
-  GeShape OutputShape(){
+  GeShape OutputShape() {
     return op_desc->MutableOutputDesc(0)->GetShape();
   }
 
-  GeShape InputShape(){
+  GeShape InputShape() {
     return op_desc->MutableInputDesc(0)->GetShape();
   }
 
-private:
+ private:
   OpDescPtr op_desc_;
 };
 
-}
+}  // namespace
 
 TEST_F(TestInferShapeOutput, tensor_desc_propagate_one_output) {
   GeTensorDesc output(GeShape({1, 2, 3, 4}), FORMAT_NCHW);
@@ -114,7 +110,6 @@ TEST_F(TestInferShapeOutput, tensor_desc_propagated_two_output_and_input) {
 }
 
 TEST_F(TestInferShapeOutput, test_stage_propagation_success) {
-
   FakeNodeItem output({1, 2, 3, 4}, 0, CreateNode());
   FakeNodeItem input({1, 2, 3}, 1, CreateNode());
 
@@ -127,7 +122,6 @@ TEST_F(TestInferShapeOutput, test_stage_propagation_success) {
 }
 
 TEST_F(TestInferShapeOutput, test_stage_propagation_success_when_tensor_desc_update) {
-
   FakeNodeItem output({1, 2, 3, 4}, 0, CreateNode());
   FakeNodeItem input({1, 2, 3}, 1, CreateNode());
 
@@ -143,7 +137,6 @@ TEST_F(TestInferShapeOutput, test_stage_propagation_success_when_tensor_desc_upd
 }
 
 TEST_F(TestInferShapeOutput, test_multi_shape_propagation_success) {
-
   FakeNodeItem output({1, 2, 3, 4}, 0, CreateNode());
   FakeNodeItem input1({1, 2, 3}, 1, CreateNode());
   FakeNodeItem input2({1, 2, 3}, 1, CreateNode());
@@ -160,7 +153,6 @@ TEST_F(TestInferShapeOutput, test_multi_shape_propagation_success) {
 }
 
 TEST_F(TestInferShapeOutput, test_multi_stage_propagation_success) {
-
   FakeNodeItem output({1, 2, 3, 4}, 0, CreateNode());
   FakeNodeItem input1({1, 2, 3}, 1, CreateNode());
 
@@ -173,7 +165,6 @@ TEST_F(TestInferShapeOutput, test_multi_stage_propagation_success) {
 }
 
 TEST_F(TestInferShapeOutput, test_stage_propagation_do_nothing_in_knowshape) {
-
   FakeNodeItem output({1, 2, 3, 4}, 0, CreateNode());
   FakeNodeItem input({1, 2, 3}, 1, CreateNode());
 
@@ -183,4 +174,4 @@ TEST_F(TestInferShapeOutput, test_stage_propagation_do_nothing_in_knowshape) {
   ASSERT_NE(output.OutputShape().GetDims(), input.InputShape().GetDims());
 }
 
-}
+}  // namespace ge

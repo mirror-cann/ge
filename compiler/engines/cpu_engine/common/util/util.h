@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -109,16 +109,14 @@ std::string Stringcat(T arg, Tstr... arg_left) {
  * @param set<string> result, string sequence removed separator
  * @return
  */
-void SplitSequence(const std::string &str, const std::string &pattern,
-                   std::set<std::string> &result);
+void SplitSequence(const std::string &str, const std::string &pattern, std::set<std::string> &result);
 
 /** Get dataType corresponding to dataTypeName from data_types map
  * @param data_types All dataType info
  * @param data_type_name DataType name
  * @param data_type DataType
  */
-void GetDataType(const std::map<std::string, std::string> &data_types,
-                 const std::string &data_type_name,
+void GetDataType(const std::map<std::string, std::string> &data_types, const std::string &data_type_name,
                  std::set<ge::DataType> &data_type);
 
 /** Get dataType corresponding to dataTypeName from data_types map
@@ -126,8 +124,7 @@ void GetDataType(const std::map<std::string, std::string> &data_types,
  * @param data_type_name DataType name
  * @param data_type DataType
  */
-void GetDataType(const std::map<std::string, std::string> &data_types,
-                 const std::string &data_type_name,
+void GetDataType(const std::map<std::string, std::string> &data_types, const std::string &data_type_name,
                  std::vector<ge::DataType> &data_type);
 
 /**
@@ -188,8 +185,7 @@ bool CheckInt64AddOverflow(int64_t a, int64_t b);
  * @param shape node shape
  * @return NodePtr
  */
-ge::NodePtr GenGeNode(const std::string &name, const std::string &type,
-                      int in_count, int out_count, ge::Format format,
+ge::NodePtr GenGeNode(const std::string &name, const std::string &type, int in_count, int out_count, ge::Format format,
                       ge::DataType data_type, std::vector<int64_t> shape);
 
 /*
@@ -222,8 +218,7 @@ std::string CurrentTimeInStr();
  * @param file name and file value
  * @return bool success or fail
  */
-bool ReadBytesFromBinaryFile(const string &file_name,
-                             std::vector<char> &buffer);
+bool ReadBytesFromBinaryFile(const string &file_name, std::vector<char> &buffer);
 
 /**
  * Read realpath from BinaryFile
@@ -276,9 +271,7 @@ ge::Status SetOutSizeForSummary(std::shared_ptr<ge::OpDesc> &op_desc_ptr);
  * @param total_size The total size
  * @return whether handle success
  */
-State GetTotalSizeByShapeAndType(const ge::DataType &data_type,
-                                 const ge::GeShape &ge_shape,
-                                 int64_t &total_size);
+State GetTotalSizeByShapeAndType(const ge::DataType &data_type, const ge::GeShape &ge_shape, int64_t &total_size);
 
 /**
  * Get the total size by datatype and dims
@@ -287,9 +280,7 @@ State GetTotalSizeByShapeAndType(const ge::DataType &data_type,
  * @param total_size The total size
  * @return whether handle success
  */
-State GetTotalSizeByDimsAndType(const ge::DataType &data_type,
-                                const vector<int64_t> &dims,
-                                int64_t &total_size);
+State GetTotalSizeByDimsAndType(const ge::DataType &data_type, const vector<int64_t> &dims, int64_t &total_size);
 
 /**
  * Calculate output size for unknow type 3 which output shape is range
@@ -299,8 +290,7 @@ State GetTotalSizeByDimsAndType(const ge::DataType &data_type,
  * @return whether handle success
  */
 ge::Status GetOutSizeByShapeRange(const ge::DataType &data_type,
-    const std::vector<std::pair<int64_t, int64_t>> &shape_range,
-    int64_t &total_size);
+                                  const std::vector<std::pair<int64_t, int64_t>> &shape_range, int64_t &total_size);
 
 std::vector<std::string> SplitString(const std::string str, const std::string split);
 
@@ -320,7 +310,7 @@ void SplitLine(const string &str, const string &pattern, std::vector<string> &re
 bool ReadConfigFile(const string &file_path, std::vector<string> &result);
 
 template <typename _Tp, typename... _Args>
-static inline std::shared_ptr<_Tp> MakeShared(_Args &&... args) {
+static inline std::shared_ptr<_Tp> MakeShared(_Args &&...args) {
   using TpNc = typename std::remove_const<_Tp>::type;
   return std::make_shared<TpNc>(std::forward<_Args>(args)...);
 }
@@ -337,12 +327,12 @@ static inline std::shared_ptr<_Tp> MakeShared(_Args &&... args) {
 
 // Check the result,if the result is not SUCCESS, return directly
 #define AICPU_CHECK_RES_WITH_LOG(res, err_desc...) \
-  do {                                            \
-    ge::Status ret = (res);                       \
-    if (ret != ge::SUCCESS) {                     \
-      AICPU_REPORT_INNER_ERR_MSG(err_desc);          \
-      return ret;                                 \
-    }                                             \
+  do {                                             \
+    ge::Status ret = (res);                        \
+    if (ret != ge::SUCCESS) {                      \
+      AICPU_REPORT_INNER_ERR_MSG(err_desc);        \
+      return ret;                                  \
+    }                                              \
   } while (0);
 
 #define AICPU_IF_BOOL_EXEC(expr, exec_expr...) \
@@ -352,37 +342,37 @@ static inline std::shared_ptr<_Tp> MakeShared(_Args &&... args) {
     }                                          \
   };
 
-#define AICPU_CHECK_NOTNULL_ERRCODE(val, err_code)                 \
-  do {                                                             \
-    if ((val) == nullptr) {                                        \
-      AICPU_REPORT_INNER_ERR_MSG("[%s] is null.", #val);             \
-      return (err_code);                                           \
-    }                                                              \
+#define AICPU_CHECK_NOTNULL_ERRCODE(val, err_code)       \
+  do {                                                   \
+    if ((val) == nullptr) {                              \
+      AICPU_REPORT_INNER_ERR_MSG("[%s] is null.", #val); \
+      return (err_code);                                 \
+    }                                                    \
   } while (0);
 
 // Validate the input number to ensure the value greater than 0
 #define AICPU_CHECK_GREATER_THAN_ZERO(number, err_code, err_desc...) \
   do {                                                               \
     if ((number) <= 0) {                                             \
-      AICPU_REPORT_INNER_ERR_MSG(err_desc);                            \
+      AICPU_REPORT_INNER_ERR_MSG(err_desc);                          \
       return (err_code);                                             \
     }                                                                \
   } while (0);
 
-  // Validate the shape_range to ensure the value greater than or equal to 0
+// Validate the shape_range to ensure the value greater than or equal to 0
 #define AICPU_CHECK_SHAPE_RANGE_GREATER_THAN_OR_EQUAL_TO_ZERO(number, err_code, err_desc...) \
-  do {                                                               \
-    if ((number) < 0) {                                             \
-      AICPU_REPORT_INNER_ERR_MSG(err_desc);                            \
-      return (err_code);                                             \
-    }                                                                \
+  do {                                                                                       \
+    if ((number) < 0) {                                                                      \
+      AICPU_REPORT_INNER_ERR_MSG(err_desc);                                                  \
+      return (err_code);                                                                     \
+    }                                                                                        \
   } while (0);
 
 // Validate whether the value1 equals value2
 #define CHECK_EQUAL(value1, value2, err_code, err_desc...) \
   do {                                                     \
     if ((value1) != (value2)) {                            \
-      AICPU_REPORT_INNER_ERR_MSG(err_desc);                  \
+      AICPU_REPORT_INNER_ERR_MSG(err_desc);                \
       return (err_code);                                   \
     }                                                      \
   } while (0);
@@ -391,7 +381,7 @@ static inline std::shared_ptr<_Tp> MakeShared(_Args &&... args) {
 #define CHECK_UINT64_ADD_OVERFLOW(a, b, err_code, err_desc...) \
   do {                                                         \
     if (CheckUint64AddOverflow((a), (b))) {                    \
-      AICPU_REPORT_INNER_ERR_MSG(err_desc);                      \
+      AICPU_REPORT_INNER_ERR_MSG(err_desc);                    \
       return (err_code);                                       \
     }                                                          \
   } while (0);
@@ -400,7 +390,7 @@ static inline std::shared_ptr<_Tp> MakeShared(_Args &&... args) {
 #define CHECK_INT64_ADD_OVERFLOW(a, b, err_code, err_desc...) \
   do {                                                        \
     if (CheckInt64AddOverflow((a), (b))) {                    \
-      AICPU_REPORT_INNER_ERR_MSG(err_desc);                     \
+      AICPU_REPORT_INNER_ERR_MSG(err_desc);                   \
       return (err_code);                                      \
     }                                                         \
   } while (0);
@@ -409,7 +399,7 @@ static inline std::shared_ptr<_Tp> MakeShared(_Args &&... args) {
 #define CHECK_INT64_MUL_OVERFLOW(a, b, err_code, err_desc...) \
   do {                                                        \
     if (CheckInt64MulOverflow((a), (b))) {                    \
-      AICPU_REPORT_INNER_ERR_MSG(err_desc);                     \
+      AICPU_REPORT_INNER_ERR_MSG(err_desc);                   \
       return (err_code);                                      \
     }                                                         \
   } while (0);
@@ -418,18 +408,18 @@ static inline std::shared_ptr<_Tp> MakeShared(_Args &&... args) {
 #define CHECK_UINT32_ADD_OVERFLOW(a, b, err_code, err_desc...) \
   do {                                                         \
     if (CheckUint32AddOverflow((a), (b))) {                    \
-      AICPU_REPORT_INNER_ERR_MSG(err_desc);                      \
+      AICPU_REPORT_INNER_ERR_MSG(err_desc);                    \
       return (err_code);                                       \
     }                                                          \
   } while (0);
 
 // Validate whether the return value is true
 #define CHECK_RES_BOOL(res, err_code, exec_expr) \
-  do {                                             \
-    if (!(res)) {                                  \
-      exec_expr;                                   \
-      return (err_code);                           \
-    }                                              \
+  do {                                           \
+    if (!(res)) {                                \
+      exec_expr;                                 \
+      return (err_code);                         \
+    }                                            \
   } while (0);
 
 #define AICPU_MAKE_SHARED(execExpr0, exec_expr...) \
@@ -439,16 +429,16 @@ static inline std::shared_ptr<_Tp> MakeShared(_Args &&... args) {
     exec_expr;                                     \
   }
 
-#define AICPU_CHECK_NOTNULL(val)                       \
-  do {                                                 \
-    if ((val) == nullptr) {                            \
+#define AICPU_CHECK_NOTNULL(val)                         \
+  do {                                                   \
+    if ((val) == nullptr) {                              \
       AICPU_REPORT_INNER_ERR_MSG("[%s] is null.", #val); \
-      return OBJECT_IS_NULL;                           \
-    }                                                  \
+      return OBJECT_IS_NULL;                             \
+    }                                                    \
   } while (0);
 
 #define AICPU_CHECK_FALSE_EXEC(expr, execExpr...) \
-  {                                            \
+  {                                               \
     bool ret = (expr);                            \
     if (!ret) {                                   \
       execExpr;                                   \

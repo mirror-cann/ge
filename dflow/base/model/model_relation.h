@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,11 +39,9 @@ struct ModelRelation {
     std::vector<std::string> sched_output_queue_names;
     std::vector<std::string> invoke_model_keys;
     bool IsEmpty() const {
-      return input_endpoint_names.empty() && output_endpoint_names.empty() &&
-             external_output_queue_names.empty() && external_input_queue_names.empty() &&
-             invoke_model_keys.empty() && status_input_queue_names.empty() &&
-             status_output_queue_names.empty() && sched_input_queue_names.empty() &&
-             sched_output_queue_names.empty();
+      return input_endpoint_names.empty() && output_endpoint_names.empty() && external_output_queue_names.empty() &&
+             external_input_queue_names.empty() && invoke_model_keys.empty() && status_input_queue_names.empty() &&
+             status_output_queue_names.empty() && sched_input_queue_names.empty() && sched_output_queue_names.empty();
     }
   };
 
@@ -54,8 +52,8 @@ struct ModelRelation {
   std::map<std::string, InvokedModelQueueInfo> invoked_model_queue_infos;
   ModelEndpointInfo root_model_endpoint_info;
   bool IsEmpty() const {
-    return endpoints.empty() && submodel_endpoint_infos.empty() &&
-           invoked_model_queue_infos.empty() && root_model_endpoint_info.IsEmpty();
+    return endpoints.empty() && submodel_endpoint_infos.empty() && invoked_model_queue_infos.empty() &&
+           root_model_endpoint_info.IsEmpty();
   }
 };
 
@@ -71,8 +69,8 @@ class ModelRelationBuilder {
   static Status GetInputQueueNames(const NodePtr &node,
                                    const std::map<NodePtr, std::map<int32_t, std::string>> &paired_inputs,
                                    std::vector<std::string> &input_queue_names);
-  Status CreateQueueForDataNode(const Node &node, const std::string &prefix,
-                                std::string &queue_name, const bool inner_node_flag = false);
+  Status CreateQueueForDataNode(const Node &node, const std::string &prefix, std::string &queue_name,
+                                const bool inner_node_flag = false);
 
   ModelRelation model_relation_;
 
@@ -82,8 +80,8 @@ class ModelRelationBuilder {
                         const ComputeGraph &root_graph);
   Status DoBuildForPartitionedCall(const NodePtr &node,
                                    std::map<NodePtr, std::map<int32_t, std::string>> &paired_inputs);
-  Status DoBuildForNetOutput(const NodePtr &node, const std::map<NodePtr,
-                             std::map<int32_t, std::string>> &paired_inputs);
+  Status DoBuildForNetOutput(const NodePtr &node,
+                             const std::map<NodePtr, std::map<int32_t, std::string>> &paired_inputs);
   bool CheckInnerNode(const NodePtr &node) const;
   Status GetOrCreateModelEndpointInfo(const OpDesc &op_desc, ModelRelation::ModelEndpointInfo *&model_endpoint_info);
   ModelRelation::ModelEndpointInfo *GetOrCreateModelEndpointInfo(const std::string &model_name);
@@ -102,8 +100,7 @@ class ModelRelationReader {
 
   Status Initialize();
 
-  Status BatchGetEndpoints(const vector<std::string> &endpoint_names,
-                           vector<const Endpoint *> &endpoints) const;
+  Status BatchGetEndpoints(const vector<std::string> &endpoint_names, vector<const Endpoint *> &endpoints) const;
 
   const ModelRelation::InvokedModelQueueInfo *GetInvokedModelQueueInfo(const std::string &invoke_key) const;
 

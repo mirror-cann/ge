@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -51,7 +51,7 @@ Status PassManager::Run(const ComputeGraphPtr &graph,
       GELOGE(status, "Pass Run failed on graph %s", graph->GetName().c_str());
       return status;
     }
-    for (const auto &subgraph :graph->GetAllSubgraphs()) {
+    for (const auto &subgraph : graph->GetAllSubgraphs()) {
       GE_CHECK_NOTNULL(subgraph);
       GE_CHK_STATUS_RET(pass->ClearStatus(), "[Invoke][ClearStatus]pass clear status failed for subgraph %s",
                         subgraph->GetName().c_str());
@@ -62,10 +62,10 @@ Status PassManager::Run(const ComputeGraphPtr &graph,
       if (status == SUCCESS) {
         not_changed = false;
       } else if (status != NOT_CHANGED) {
-        REPORT_INNER_ERR_MSG("E19999", "Pass Run failed on subgraph %s, pass name:%s",
-                          subgraph->GetName().c_str(), subgraph_pass_name.c_str());
-        GELOGE(status, "[Invoke][Run]Pass Run failed on subgraph %s, pass name:%s",
-               subgraph->GetName().c_str(), subgraph_pass_name.c_str());
+        REPORT_INNER_ERR_MSG("E19999", "Pass Run failed on subgraph %s, pass name:%s", subgraph->GetName().c_str(),
+                             subgraph_pass_name.c_str());
+        GELOGE(status, "[Invoke][Run]Pass Run failed on subgraph %s, pass name:%s", subgraph->GetName().c_str(),
+               subgraph_pass_name.c_str());
         return status;
       }
     }

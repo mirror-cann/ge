@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -36,7 +36,7 @@ Status UdfProxyClient::Initialize() {
   param.deviceId = static_cast<uint32_t>(GetDeviceId());
   param.type = MsprofConfigParamType::HELPER_HOST_SERVER;
   param.value = 1;
-  (void) MsprofSetConfig(0, reinterpret_cast<const char *>(&param), sizeof(param));
+  (void)MsprofSetConfig(0, reinterpret_cast<const char *>(&param), sizeof(param));
   return SUCCESS;
 }
 
@@ -61,8 +61,7 @@ Status UdfProxyClient::LoadModel(deployer::ExecutorRequest_BatchLoadModelMessage
   for (size_t i = 0U; i < load_model_descs.size(); ++i) {
     const auto &model_desc = load_model_descs[i];
     const auto &msg_file_path = msg_file_paths[i];
-    GE_CHK_STATUS_RET(LoadProcess(model_desc, msg_file_path, group_name),
-                      "Failed to load model.");
+    GE_CHK_STATUS_RET(LoadProcess(model_desc, msg_file_path, group_name), "Failed to load model.");
   }
   GE_TIMESTAMP_EVENT_END(LoadProcess, "starting poxy udf and loading models during deploying");
   GEEVENT("[Load][Model] success.");
@@ -101,8 +100,8 @@ Status UdfProxyClient::PreLoadProcess(
     const auto &model_file_path = base_path + load_model_descs[i].models(0).model_path();
     const auto &saved_model_path = load_model_descs[i].models(0).saved_model_file_path();
     if (!load_model_descs[i].models(0).is_builtin_udf()) {
-      const std::string linked_model_name = "Ascend_udf_submodel_" + std::to_string(GetDeviceId()) +
-                                            "_" + std::to_string(i) + ".tar.gz";
+      const std::string linked_model_name =
+          "Ascend_udf_submodel_" + std::to_string(GetDeviceId()) + "_" + std::to_string(i) + ".tar.gz";
       link_cmd += "ln -sf " + saved_model_path + " " + tar_path + linked_model_name + ";";
       saved_model_paths.emplace_back(model_path + linked_model_name);
       GELOGD("Linked model model in [%s].", (tar_path + linked_model_name).c_str());
@@ -116,8 +115,9 @@ Status UdfProxyClient::PreLoadProcess(
 
   std::string path_list_str;
 
-  GE_CHK_STATUS_RET(GenerateCmdStrSupportUnpack(load_model_msg_paths, saved_model_paths,
-      local_builtin_model_paths, path_list_str), "Generate cmd str for tsd support unpack failed.");
+  GE_CHK_STATUS_RET(
+      GenerateCmdStrSupportUnpack(load_model_msg_paths, saved_model_paths, local_builtin_model_paths, path_list_str),
+      "Generate cmd str for tsd support unpack failed.");
 
   tar_cmd += path_list_str;
   GE_TIMESTAMP_START(TarCmdExecute);
@@ -135,8 +135,9 @@ Status UdfProxyClient::PreLoadProcess(
 }
 
 Status UdfProxyClient::GenerateCmdStrSupportUnpack(const std::vector<std::string> &load_model_msg_paths,
-    const std::vector<std::string> &saved_model_paths, const std::vector<std::string> &local_builtin_model_paths,
-    std::string &path_list_str) const {
+                                                   const std::vector<std::string> &saved_model_paths,
+                                                   const std::vector<std::string> &local_builtin_model_paths,
+                                                   std::string &path_list_str) const {
   const auto &base_path = GetContext().base_dir;
   path_list_str = " -C " + base_path + " ";
   for (const auto &msg_path : load_model_msg_paths) {
@@ -153,16 +154,16 @@ Status UdfProxyClient::GenerateCmdStrSupportUnpack(const std::vector<std::string
 }
 
 Status UdfProxyClient::LoadProcess(const deployer::ExecutorRequest_BatchLoadModelMessage &load_model_desc,
-                                   const std::string &msg_file_path,
-                                   const std::string &group_name) {
+                                   const std::string &msg_file_path, const std::string &group_name) {
   GEEVENT("Fork udf process to load model on executor start.");
   pid_t child_pid = -1;
   GE_CHK_STATUS_RET(ForkAndInit(load_model_desc, group_name, msg_file_path, child_pid),
                     "Failed to fork child process.");
   const int32_t device_id = GetDeviceId();
-  GEEVENT("Fork udf process to load model on executor success. "
-          "model_type = %s, pid = %d, graph_id = %u, deployer pid = %d, device_id = %d.",
-          PNE_ID_UDF.c_str(), child_pid, load_model_desc.graph_id(), GetDeployerPid(), device_id);
+  GEEVENT(
+      "Fork udf process to load model on executor success. "
+      "model_type = %s, pid = %d, graph_id = %u, deployer pid = %d, device_id = %d.",
+      PNE_ID_UDF.c_str(), child_pid, load_model_desc.graph_id(), GetDeployerPid(), device_id);
   return SUCCESS;
 }
 
@@ -181,11 +182,11 @@ Status UdfProxyClient::ForkChildProcess(const deployer::ExecutorRequest_LoadMode
     GELOGD("LD_LIBRARY_PATH is been set to %s", ld_library_path.c_str());
   }
   config.args = {"udf_executor"};
-  config.kv_args = {
-      {"--load_path", file_path}, {"--group_name", group_name},
-      {"--phy_device_id", std::to_string(phy_device_id)},
-      {"--req_queue_id", std::to_string(params.request_queue_id)},
-      {"--rsp_queue_id", std::to_string(params.response_queue_id)}};
+  config.kv_args = {{"--load_path", file_path},
+                    {"--group_name", group_name},
+                    {"--phy_device_id", std::to_string(phy_device_id)},
+                    {"--req_queue_id", std::to_string(params.request_queue_id)},
+                    {"--rsp_queue_id", std::to_string(params.response_queue_id)}};
 
   config.kv_args.emplace("PROFILING_RENEW_PATH", "0");
 

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -49,7 +49,9 @@ using namespace gert::bg;
 
 namespace gert {
 namespace {
-ge::graphStatus InferShapeStub(InferShapeContext *context) { return SUCCESS;}
+ge::graphStatus InferShapeStub(InferShapeContext *context) {
+  return SUCCESS;
+}
 IMPL_OP(Conv2d).InferShape(InferShapeStub);
 IMPL_OP(Relu).InferShape(InferShapeStub);
 
@@ -71,7 +73,7 @@ IMPL_OP(Relu).InferShape(InferShapeStub);
 |└───────┘          └────────┘          └──────┘          └───────────────┘ |
 -----------------------------------------------------------------------------
 */
-} // namespace
+}  // namespace
 
 class FFTSAicoreNodeConverterUT : public BgTestAutoCreate3StageFrame {
  public:
@@ -140,7 +142,7 @@ TEST_F(FFTSAicoreNodeConverterUT, SinkBinForFFTSAutoAicoreTest) {
   ASSERT_EQ(SinkFFTSStaAutoNodeBin(add_node), nullptr);
   (void)ge::AttrUtils::SetListStr(add_desc, ge::TVM_ATTR_NAME_THREAD_MAGIC, c_magic_vec);
 
-   tmp_magic_vec = {"RT_DEV_BINARY_MAGIC_ELF_AICUBE", "NON_MAGIC"};
+  tmp_magic_vec = {"RT_DEV_BINARY_MAGIC_ELF_AICUBE", "NON_MAGIC"};
   (void)ge::AttrUtils::SetListStr(add_desc, ge::TVM_ATTR_NAME_THREAD_MAGIC, tmp_magic_vec);
   ASSERT_EQ(SinkFFTSStaAutoNodeBin(add_node), nullptr);
   (void)ge::AttrUtils::SetListStr(add_desc, ge::TVM_ATTR_NAME_THREAD_MAGIC, c_magic_vec);

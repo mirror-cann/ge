@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,7 +24,8 @@ struct ShareGraph {
   static ge::ComputeGraphPtr ScalarInfAddFusedGraph(size_t dims_size);
   static ge::ComputeGraphPtr ScalarDivInfFusedGraph(size_t dims_size);
   static ge::ComputeGraphPtr AddGeluFusedGraph(size_t dims_size);
-  static ge::ComputeGraphPtr CompareFusedGraph(size_t dims_size, bool is_second_input_tensor, ge::DataType dtype, std::string mode);
+  static ge::ComputeGraphPtr CompareFusedGraph(size_t dims_size, bool is_second_input_tensor, ge::DataType dtype,
+                                               std::string mode);
   static ge::ComputeGraphPtr AddNegFusedGraph(size_t dims_size);
   static ge::ComputeGraphPtr LoadToStoreAndAbsFusedGraph(size_t dims_size);
   static ge::ComputeGraphPtr LoadUnalignPadFusedGraph(size_t dims_size);
@@ -37,15 +38,18 @@ struct ShareGraph {
   static ge::ComputeGraphPtr LoadLogicalNotStoreFusedGraph(size_t dims_size);
   static ge::ComputeGraphPtr LoadLogicalNotStoreFusedGraph(size_t dims_size, ge::DataType dt_in, ge::DataType dt_out);
   static ge::ComputeGraphPtr AddRsqrtFusedGraph(size_t dims_size);
-  static ge::ComputeGraphPtr LoadBitwiseAndStoreFusedGraph(size_t dims_size, ge::DataType in_dtype, ge::DataType out_dtype);
+  static ge::ComputeGraphPtr LoadBitwiseAndStoreFusedGraph(size_t dims_size, ge::DataType in_dtype,
+                                                           ge::DataType out_dtype);
   static ge::ComputeGraphPtr ContinuesBrcFusedGraph(size_t dims_size);
   static ge::ComputeGraphPtr ScalarBrcFusedGraph(size_t dims_size);
   static ge::ComputeGraphPtr LoadBrcFusedGraph(size_t dims_size);
   static ge::ComputeGraphPtr CastCastFusedGraph(size_t dims_size, ge::DataType in_dtype, ge::DataType out_dtype);
-  static ge::ComputeGraphPtr ScalarCastAddFusedGraph(size_t dims_size, ge::DataType in_dtype, ge::DataType out_dtype);  
+  static ge::ComputeGraphPtr ScalarCastAddFusedGraph(size_t dims_size, ge::DataType in_dtype, ge::DataType out_dtype);
   static ge::ComputeGraphPtr CastCastNanFusedGraph(size_t dims_size, ge::DataType in_dtype, ge::DataType out_dtype);
-  static ge::ComputeGraphPtr CastCastIsFiniteFusedGraph(size_t dims_size, ge::DataType in_dtype, ge::DataType out_dtype);
-  static ge::ComputeGraphPtr CastCastReciprocalFusedGraph(size_t dims_size, ge::DataType in_dtype, ge::DataType out_dtype);
+  static ge::ComputeGraphPtr CastCastIsFiniteFusedGraph(size_t dims_size, ge::DataType in_dtype,
+                                                        ge::DataType out_dtype);
+  static ge::ComputeGraphPtr CastCastReciprocalFusedGraph(size_t dims_size, ge::DataType in_dtype,
+                                                          ge::DataType out_dtype);
   static ge::ComputeGraphPtr LoadLeakyReluStoreFusedGraph(size_t dims_size);
   static ge::ComputeGraphPtr LoadSigmoidStoreFusedGraph(size_t dims_size);
   static ge::ComputeGraphPtr LoadErfStoreFusedGraph(size_t dims_size);
@@ -72,12 +76,11 @@ struct ShareGraph {
   static ge::ComputeGraphPtr TailBrcTailReduceFusedGraph(size_t dims_size);
   static ge::ComputeGraphPtr LoadPowAllInputIsScalarStoreFusedGraph(size_t dims_size);
   static ge::ComputeGraphPtr AddAbsFusedConstGraph(size_t dims_size, std::vector<int> dims);
-  static ge::ComputeGraphPtr SubTransposeAbsFusedConstGraph(size_t dims_size, vector<size_t> perms, std::vector<int> dims);
+  static ge::ComputeGraphPtr SubTransposeAbsFusedConstGraph(size_t dims_size, vector<size_t> perms,
+                                                            std::vector<int> dims);
   static ge::ComputeGraphPtr LoadLogicalOrStoreFusedGraph(size_t dims_size);
   static ge::ComputeGraphPtr LoadLogicalAndStoreFusedGraph(size_t dims_size);
-  static void ConcatAscGraph(ge::AscGraph &graph,
-                             const std::vector<std::string> &dim_sizes,
-                             bool align = false);
+  static void ConcatAscGraph(ge::AscGraph &graph, const std::vector<std::string> &dim_sizes, bool align = false);
   static ge::ComputeGraphPtr AbsClipFusedGraph(size_t dims_size);
   static ge::ComputeGraphPtr LoadGatherAbsStore(int64_t gather_axis, ge::DataType data_type);
   static ge::ComputeGraphPtr LoadGatherTailAbsStore(int64_t gather_axis, ge::DataType data_type);
@@ -100,7 +103,7 @@ struct ShareGraph {
   static ge::ComputeGraphPtr LoadBitwiseNotStoreFusedGraph(size_t dims_size, ge::DataType in_dtype,
                                                            ge::DataType out_dtype);
   static ge::ComputeGraphPtr LoadBitwiseOrStoreFusedGraph(size_t dims_size, ge::DataType in_dtype,
-                                                           ge::DataType out_dtype);
+                                                          ge::DataType out_dtype);
   static ge::ComputeGraphPtr LoadBitwiseXorStoreFusedGraph(size_t dims_size, ge::DataType in_dtype,
                                                            ge::DataType out_dtype);
   static ge::ComputeGraphPtr CeilBf16FusedGraph(size_t dims_size);

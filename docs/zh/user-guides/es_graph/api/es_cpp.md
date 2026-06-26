@@ -27,20 +27,20 @@ graph TB
         EsCTensorHolder[EsCTensorHolder<br/>C结构体]
         EsbFuncs[esb_funcs.h<br/>C函数接口]
     end
-    
+
     subgraph "C++ Wrapper Layer"
         EsGraphBuilder[EsGraphBuilder<br/>图构建器类]
         EsTensorHolder[EsTensorHolder<br/>张量持有者类]
         CompliantNodeBuilder[CompliantNodeBuilder<br/>合法构造节点类]
     end
-    
+
     subgraph "GE Meta Types"
         Graph[ge::Graph<br/>计算图]
         GNode[ge::GNode<br/>图节点]
         DataType[ge::DataType<br/>数据类型]
         Format[ge::Format<br/>张量格式]
     end
-    
+
     %% 依赖关系
     EsGraphBuilder -->|"封装"| EsCGraphBuilder
     EsGraphBuilder -->|"使用"| CompliantNodeBuilder
@@ -54,7 +54,7 @@ graph TB
     EsCGraphBuilder -->|"构建出"| Graph
     EsCGraphBuilder -->|"使用"| DataType
     EsCGraphBuilder -->|"使用"| Format
-    
+
     %% C API调用关系
     EsGraphBuilder -.->|"调用"| EsbFuncs
     EsTensorHolder -.->|"调用"| EsbFuncs
@@ -135,7 +135,7 @@ graph TB
 - `InstanceOutputOriginFormat()` - 设置输出原始格式
 - `InstanceOutputStorageFormat()` - 设置输出存储格式
 - `Build()` - 构建并返回图节点
-- 
+-
 ### 5. C API 函数
 
 **文件位置**: `c/esb_funcs.h`
@@ -148,9 +148,8 @@ graph TB
 - 常量创建：`EsCreateScalar*()`, `EsCreateVector*()`, `EsCreateConst*()`
 - 属性设置：`EsSet*AttrForGraph()`, `EsSet*AttrForTensor()`, `EsSet*AttrForNode()`
 - 输出设置：`EsSetGraphOutput()`
-- 图构建：`EsBuildGraphAndReset()` 
+- 图构建：`EsBuildGraphAndReset()`
 
 ### 使用示例
 参考[sample](../../../../../examples/es)
 ```
-

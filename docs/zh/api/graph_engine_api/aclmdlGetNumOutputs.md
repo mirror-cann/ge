@@ -57,4 +57,3 @@ size_t aclmdlGetNumOutputs(aclmdlDesc *modelDesc)
 ## 返回值说明<a name="section184151120582"></a>
 
 模型的输出个数。
-

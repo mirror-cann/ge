@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,7 +33,7 @@ void PreModelPartitionUtils::AddNanoHostFuncParamData(const std::shared_ptr<uint
 
 Status PreModelPartitionUtils::PreparePartitionData(const EngineType type) {
   GELOGI("begin prepare partition data, pre_task_desc_info_ size:%zu", pre_task_desc_info_.size());
-  GE_ASSERT_TRUE((pre_task_desc_info_.size() > 0), "EngineType : %u. Partition data is empty, nano unsupport.",
+  GE_ASSERT_TRUE((pre_task_desc_info_.size() > 0), "EngineType : %u. Partition data is empty, nano unsupported.",
                  static_cast<uint32_t>(type));
   std::vector<PreTaskDescInfo> zero_copy_task;
   for (auto task_desc : pre_task_desc_info_) {
@@ -74,7 +74,7 @@ Status PreModelPartitionUtils::CheckNanoPartitionType(const uint8_t type) const 
       (type == static_cast<uint8_t>(PARAM_TASK_INFO_DESC))) {
     return SUCCESS;
   }
-  GELOGE(FAILED, "unsupport taskBuffType : %u", static_cast<uint32_t>(type));
+  GELOGE(FAILED, "unsupported taskBuffType : %u", static_cast<uint32_t>(type));
   return FAILED;
 }
 
@@ -146,8 +146,7 @@ Status PreModelPartitionUtils::SaveNanoModelPartitionData(const uint8_t type, co
   return SUCCESS;
 }
 
-void PreModelPartitionUtils::GetNanoModelPartitionData(const uint8_t type, uint8_t **data,
-                                                       uint32_t &len) {
+void PreModelPartitionUtils::GetNanoModelPartitionData(const uint8_t type, uint8_t **data, uint32_t &len) {
   std::shared_ptr<TaskBuildBuf> model_buf = nano_model_partition_type_to_buf_[type];
   if (model_buf->buf == nullptr) {
     GELOGD("model buf is nullptr, type %u.", static_cast<uint32_t>(type));
@@ -220,7 +219,7 @@ Status PreModelPartitionUtils::UpdateSqeInfo(const PreTaskDescInfo &task_desc,
   uint32_t task_len = 0U;
   GE_CHK_RT_RET(rtTaskBuild(&task_input, &task_len));
   GE_ASSERT_TRUE((task_build_buf->used_size + task_len <= task_build_buf->orgi_size),
-                 "task_len overflow! used size is %d, task_len is %d, orgin size is %d", task_build_buf->used_size,
+                 "task_len overflow! used size is %d, task_len is %d, origin size is %d", task_build_buf->used_size,
                  task_len, task_build_buf->orgi_size);
   task_build_buf->used_size += task_len;
   GELOGD("success update sqe info, task_build_buf used size %u.", task_build_buf->used_size);

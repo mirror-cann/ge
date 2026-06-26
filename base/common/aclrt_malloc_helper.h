@@ -1,5 +1,5 @@
 /**
-* Copyright (c) 2026 Huawei Technologies Co., Ltd.
+ * Copyright (c) 2026 Huawei Technologies Co., Ltd.
  * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
@@ -25,8 +25,7 @@ aclError AclrtMallocHost(void **ptr, size_t size, uint16_t module_id);
 
 aclError AclrtMallocForTaskScheduler(void **ptr, size_t size, aclrtMemMallocPolicy policy, uint16_t module_id);
 
-aclError AclrtMallocHostSharedMemory(const char *name, uint64_t size, int32_t *fd, void **host_ptr,
-                                      void **dev_ptr);
+aclError AclrtMallocHostSharedMemory(const char *name, uint64_t size, int32_t *fd, void **host_ptr, void **dev_ptr);
 
 aclError AclrtFreeHostSharedMemory(const char *name, uint64_t size, int32_t fd, void *host_ptr);
 

@@ -51,4 +51,3 @@ const std::vector<std::vector<ShapeAndType>> &GetInputHandleShapesAndTypes() con
 ## 约束说明<a name="zh-cn_topic_0000001264924922_section13574115219385"></a>
 
 无。
-

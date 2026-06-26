@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,7 +24,7 @@ namespace {
 const size_t kBufferPoolNodeMemInfoLength = 2;
 const uint32_t kBufferPoolNodeOutputSizeIndex = 0;
 const uint32_t kBufferPoolNodeOutputOffsetIndex = 1;
-} // namespace
+}  // namespace
 
 Status BufferPoolMemAssigner::Assign() {
   if (compute_graph_ == nullptr) {
@@ -54,7 +54,7 @@ Status BufferPoolMemAssigner::GetOutputMemoryType(const NodePtr &node, size_t id
     GELOGE(PARAM_INVALID, "[Check][OutputParam]Output param invalid, output size:%zu, mem type size:%zu, index:%zu.",
            node->GetOpDesc()->GetOutputsSize(), type_list.size(), idx);
     REPORT_INNER_ERR_MSG("E19999", "Output param invalid, output size:%zu, mem type size:%zu, index:%zu.",
-                       node->GetOpDesc()->GetOutputsSize(), type_list.size(), idx);
+                         node->GetOpDesc()->GetOutputsSize(), type_list.size(), idx);
     return PARAM_INVALID;
   }
   memory_type = has_mem_type ? type_list[idx] : RT_MEMORY_HBM;
@@ -70,7 +70,7 @@ Status BufferPoolMemAssigner::InitAssigner(const ComputeGraphPtr &graph) {
     get_attr = get_attr && (AttrUtils::GetInt(node->GetOpDesc(), ATTR_NAME_BUFFER_POOL_SIZE, buffer_pool_size));
     if (get_attr) {
       std::string batch_label;
-      (void) AttrUtils::GetStr(node->GetOpDesc(), ATTR_NAME_BATCH_LABEL, batch_label);
+      (void)AttrUtils::GetStr(node->GetOpDesc(), ATTR_NAME_BATCH_LABEL, batch_label);
       buffer_pool_nodes_[batch_label][buffer_pool_id].emplace_back(node);
       std::map<int64_t, int64_t>::const_iterator iter = buffer_pool_size_[batch_label].find(buffer_pool_id);
       if (iter == buffer_pool_size_[batch_label].cend()) {
@@ -99,15 +99,18 @@ Status BufferPoolMemAssigner::InitAssigner(const ComputeGraphPtr &graph) {
       batch_offset += (buffer_pool_size + kBufferPoolMemAlignSize);
     }
     int64_t batch_mem_size = batch_offset - mem_offset_base_;
-    GELOGI("[Init][Assigner]Get batch mem size, batch label:%s, mem size:%" PRId64 ".", batch_label.c_str(), batch_mem_size);
+    GELOGI("[Init][Assigner]Get batch mem size, batch label:%s, mem size:%" PRId64 ".", batch_label.c_str(),
+           batch_mem_size);
     if (max_size < batch_mem_size) {
       max_size = batch_mem_size;
     }
   }
   FMK_INT64_ADDCHECK(mem_offset_base_, max_size);
   mem_offset_ = static_cast<size_t>(mem_offset_base_ + max_size);
-  GELOGI("[Init][Assigner]Init buffer pool mem assigner successfully, "
-         "mem type:%" PRId64 ", mem offset base:%" PRId64 ", mem offset:%zu.", mem_type_, mem_offset_base_, mem_offset_);
+  GELOGI(
+      "[Init][Assigner]Init buffer pool mem assigner successfully, "
+      "mem type:%" PRId64 ", mem offset base:%" PRId64 ", mem offset:%zu.",
+      mem_type_, mem_offset_base_, mem_offset_);
   return SUCCESS;
 }
 
@@ -116,15 +119,19 @@ Status BufferPoolMemAssigner::InitMemOffsetBase(const NodePtr &node) {
   Status ret = GetOutputMemoryType(node, static_cast<size_t>(kBufferPoolNodeOutIndex), mem_type);
   if (ret != SUCCESS) {
     GELOGE(ret, "[Get][MemType]Node:%s, index:%u.", node->GetName().c_str(), kBufferPoolNodeOutIndex);
-    REPORT_INNER_ERR_MSG("E19999", "Failed to get output memory type, node:%s, index:%u.",
-                       node->GetName().c_str(), kBufferPoolNodeOutIndex);
+    REPORT_INNER_ERR_MSG("E19999", "Failed to get output memory type, node:%s, index:%u.", node->GetName().c_str(),
+                         kBufferPoolNodeOutIndex);
     return ret;
   }
   if (mem_type_ != mem_type && init_offset_base_) {
-    GELOGE(PARAM_INVALID, "[Check][MemType]The memory type of all buffer pool nodes must be the same, node:%s, "
-           "required:%" PRId64 ", actually: %" PRId64 "", node->GetName().c_str(), mem_type_, mem_type);
-    REPORT_INNER_ERR_MSG("E19999", "The memory type of all buffer pool nodes must be the same, node:%s, "
-                                 "required:%" PRId64 ", actually: %" PRId64 "", node->GetName().c_str(), mem_type_, mem_type);
+    GELOGE(PARAM_INVALID,
+           "[Check][MemType]The memory type of all buffer pool nodes must be the same, node:%s, "
+           "required:%" PRId64 ", actually: %" PRId64 "",
+           node->GetName().c_str(), mem_type_, mem_type);
+    REPORT_INNER_ERR_MSG("E19999",
+                         "The memory type of all buffer pool nodes must be the same, node:%s, "
+                         "required:%" PRId64 ", actually: %" PRId64 "",
+                         node->GetName().c_str(), mem_type_, mem_type);
     return PARAM_INVALID;
   }
   if (!init_offset_base_) {
@@ -133,7 +140,7 @@ Status BufferPoolMemAssigner::InitMemOffsetBase(const NodePtr &node) {
       GELOGE(PARAM_INVALID, "[Check][MemType]Memory type is not supported, node:%s, mem type:%" PRId64 ".",
              node->GetName().c_str(), mem_type);
       REPORT_INNER_ERR_MSG("E19999", "Memory type is not supported, node:%s, mem type:%" PRId64 ".",
-                         node->GetName().c_str(), mem_type);
+                           node->GetName().c_str(), mem_type);
       return PARAM_INVALID;
     }
     mem_offset_base_ = static_cast<int64_t>(iter->second);
@@ -154,7 +161,7 @@ Status BufferPoolMemAssigner::AssignOutput() {
     for (auto &pool_nodes_map : batch_pool_nodes_map.second) {
       int64_t buffer_pool_id = pool_nodes_map.first;
       std::map<int64_t, int64_t>::const_iterator iter_buffer_id_size =
-        buffer_pool_size_[batch_label].find(buffer_pool_id);
+          buffer_pool_size_[batch_label].find(buffer_pool_id);
       if (iter_buffer_id_size == buffer_pool_size_[batch_label].end()) {
         GELOGE(INTERNAL_ERROR, "[Get][BufferPoolSize]Pool id:%" PRId64 ".", buffer_pool_id);
         REPORT_INNER_ERR_MSG("E19999", "Failed to get buffer pool size, pool id:%" PRId64 ".", buffer_pool_id);
@@ -170,19 +177,21 @@ Status BufferPoolMemAssigner::AssignOutput() {
       int64_t output_offset_base = iter_buffer_id_offset->second;
       Status ret = AssignOutputInOneBufferPool(batch_label, output_offset_base, pool_nodes_map.second);
       if (ret != SUCCESS) {
-        GELOGE(ret, "[Assign][OneBufferPool]Batch label:%s, pool id:%" PRId64 ", pool size:%" PRId64 ", offset base:%" PRId64 ".",
+        GELOGE(ret,
+               "[Assign][OneBufferPool]Batch label:%s, pool id:%" PRId64 ", pool size:%" PRId64 ", offset base:%" PRId64
+               ".",
                batch_label.c_str(), buffer_pool_id, buffer_pool_size, output_offset_base);
         return ret;
       }
-      GELOGI("[Assign][Output]Assign output successfully, batch label:%s, pool id:%" PRId64 ", pool size:%" PRId64 ", offset base:%" PRId64 ".",
+      GELOGI("[Assign][Output]Assign output successfully, batch label:%s, pool id:%" PRId64 ", pool size:%" PRId64
+             ", offset base:%" PRId64 ".",
              batch_label.c_str(), buffer_pool_id, buffer_pool_size, output_offset_base);
     }
   }
   return SUCCESS;
 }
 
-Status BufferPoolMemAssigner::AssignOutputInOneBufferPool(const std::string &batch_label,
-                                                          int64_t output_offset_base,
+Status BufferPoolMemAssigner::AssignOutputInOneBufferPool(const std::string &batch_label, int64_t output_offset_base,
                                                           const std::vector<NodePtr> &buffer_pool_nodes) const {
   for (const NodePtr &node : buffer_pool_nodes) {
     int64_t output_size = 0;
@@ -197,17 +206,19 @@ Status BufferPoolMemAssigner::AssignOutputInOneBufferPool(const std::string &bat
     std::vector<int64_t> memory_size_and_offset;
     bool get_attr = AttrUtils::GetListInt(op_desc, ATTR_NAME_BUFFER_POOL_NODE_SIZE_AND_OFFSET, memory_size_and_offset);
     if (!get_attr || memory_size_and_offset.size() != kBufferPoolNodeMemInfoLength) {
-      GELOGE(PARAM_INVALID, "[Get][Attr]Node:%s, mem info size:%zu, required size:%zu.",
-             node->GetName().c_str(), memory_size_and_offset.size(), kBufferPoolNodeMemInfoLength);
+      GELOGE(PARAM_INVALID, "[Get][Attr]Node:%s, mem info size:%zu, required size:%zu.", node->GetName().c_str(),
+             memory_size_and_offset.size(), kBufferPoolNodeMemInfoLength);
       REPORT_INNER_ERR_MSG("E19999", "Failed to get pool node memory info, node:%s, info size:%zu, required size:%zu.",
-                         node->GetName().c_str(), memory_size_and_offset.size(), kBufferPoolNodeMemInfoLength);
+                           node->GetName().c_str(), memory_size_and_offset.size(), kBufferPoolNodeMemInfoLength);
       return PARAM_INVALID;
     }
     if (output_size != memory_size_and_offset[kBufferPoolNodeOutputSizeIndex]) {
-      GELOGE(PARAM_INVALID, "[Check][MemSize]Something wrong with memory size, pre size:%" PRId64 ", curr size:%" PRId64 ", node:%s.",
+      GELOGE(PARAM_INVALID,
+             "[Check][MemSize]Something wrong with memory size, pre size:%" PRId64 ", curr size:%" PRId64 ", node:%s.",
              memory_size_and_offset[kBufferPoolNodeOutputSizeIndex], output_size, node->GetName().c_str());
-      REPORT_INNER_ERR_MSG("E19999", "Something wrong with memory size, pre size:%" PRId64 ", curr size:%" PRId64 ", node:%s.",
-                         memory_size_and_offset[kBufferPoolNodeOutputSizeIndex], output_size, node->GetName().c_str());
+      REPORT_INNER_ERR_MSG(
+          "E19999", "Something wrong with memory size, pre size:%" PRId64 ", curr size:%" PRId64 ", node:%s.",
+          memory_size_and_offset[kBufferPoolNodeOutputSizeIndex], output_size, node->GetName().c_str());
       return PARAM_INVALID;
     }
 
@@ -215,13 +226,14 @@ Status BufferPoolMemAssigner::AssignOutputInOneBufferPool(const std::string &bat
     std::vector<int64_t> output_list = {(output_offset_base + logical_offset)};
     op_desc->SetOutputOffset(output_list);
     // log for IMAS tools
-    GELOGI("[IMAS]Set %s name[%s] optype[%s] %s[%u] offset to [%" PRId64 "] streamid[%" PRId64 "] memtype[%" PRId64 "] "
-        "size[%zu] realsize[%zu] noalignsize[%zu] life time begin[%d] life time end[%d] "
-        "child[%d:%d:%d:%d:%d] isref[%d] batch[%s]", MemReuseUtils::GetGraphNameId(compute_graph_.get()).c_str(),
-        op_desc->GetName().c_str(), op_desc->GetType().c_str(), "output", kBufferPoolNodeOutIndex,
-        output_list[kBufferPoolNodeOutIndex], op_desc->GetStreamId(), mem_type_, static_cast<size_t>(output_size),
-        static_cast<size_t>(output_size), static_cast<size_t>(output_size), 0, 0, 0, 0, 0, 0, 0, 0,
-        batch_label.c_str());
+    GELOGI("[IMAS]Set %s name[%s] optype[%s] %s[%u] offset to [%" PRId64 "] streamid[%" PRId64 "] memtype[%" PRId64
+           "] "
+           "size[%zu] realsize[%zu] noalignsize[%zu] life time begin[%d] life time end[%d] "
+           "child[%d:%d:%d:%d:%d] isref[%d] batch[%s]",
+           MemReuseUtils::GetGraphNameId(compute_graph_.get()).c_str(), op_desc->GetName().c_str(),
+           op_desc->GetType().c_str(), "output", kBufferPoolNodeOutIndex, output_list[kBufferPoolNodeOutIndex],
+           op_desc->GetStreamId(), mem_type_, static_cast<size_t>(output_size), static_cast<size_t>(output_size),
+           static_cast<size_t>(output_size), 0, 0, 0, 0, 0, 0, 0, 0, batch_label.c_str());
   }
   return SUCCESS;
 }

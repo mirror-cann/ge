@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,10 +20,9 @@
 namespace fe {
 using RunContextPtr = std::shared_ptr<ge::RunContext>;
 namespace {
-const vector<std::string> kMixPrefixs = { "_mix_aic", "_mix_aiv" };
+const vector<std::string> kMixPrefixs = {"_mix_aic", "_mix_aiv"};
 const std::string kArgsFormat = "MIX_L2_ARGS_FORMAT";
-inline void GetCoreTypeByMode(const ge::OpDescPtr &op_desc, std::string &core_type, bool auto_mode, bool is_dynamic)
-{
+inline void GetCoreTypeByMode(const ge::OpDescPtr &op_desc, std::string &core_type, bool auto_mode, bool is_dynamic) {
   if (auto_mode && !is_dynamic) {
     vector<string> thread_core_type;
     (void)ge::AttrUtils::GetListStr(op_desc, ATTR_NAME_THREAD_CUBE_VECTOR_CORE_TYPE, thread_core_type);
@@ -34,8 +33,7 @@ inline void GetCoreTypeByMode(const ge::OpDescPtr &op_desc, std::string &core_ty
   return;
 }
 Status GetCtxTypeByCoreType(const ge::OpDescPtr &op_desc, std::string &core_type, ffts::TaskBuilderType &ctx_type,
-                            bool auto_mode, bool is_dynamic)
-{
+                            bool auto_mode, bool is_dynamic) {
   if (core_type.empty()) {
     return FAILED;
   }
@@ -44,14 +42,14 @@ Status GetCtxTypeByCoreType(const ge::OpDescPtr &op_desc, std::string &core_type
   if (core_type_aic_aiv) {
     ctx_type = ffts::TaskBuilderType::EN_TASK_TYPE_AIC_AIV;
     if (auto_mode) {
-      ctx_type = is_dynamic ? ffts::TaskBuilderType::EN_TASK_TYPE_AIC_AIV_DYNAMIC :
-                 ffts::TaskBuilderType::EN_TASK_TYPE_AIC_AIV_AUTO;
+      ctx_type = is_dynamic ? ffts::TaskBuilderType::EN_TASK_TYPE_AIC_AIV_DYNAMIC
+                            : ffts::TaskBuilderType::EN_TASK_TYPE_AIC_AIV_AUTO;
     }
   } else if (core_type_mix_aic_aiv) {
     ctx_type = ffts::TaskBuilderType::EN_TASK_TYPE_MIX_AIC_AIV;
     if (auto_mode) {
-      ctx_type = is_dynamic ? ffts::TaskBuilderType::EN_TASK_TYPE_MIX_AIC_AIV_DYNAMIC :
-                 ffts::TaskBuilderType::EN_TASK_TYPE_MIX_AIC_AIV_AUTO;
+      ctx_type = is_dynamic ? ffts::TaskBuilderType::EN_TASK_TYPE_MIX_AIC_AIV_DYNAMIC
+                            : ffts::TaskBuilderType::EN_TASK_TYPE_MIX_AIC_AIV_AUTO;
     }
     if (op_desc->HasAttr(ATTR_NAME_ALIAS_ENGINE_NAME)) {
       ctx_type = ffts::TaskBuilderType::EN_TASK_TYPE_MIX_L2_AIC_AIV;
@@ -61,7 +59,7 @@ Status GetCtxTypeByCoreType(const ge::OpDescPtr &op_desc, std::string &core_type
   }
   return SUCCESS;
 }
-}
+}  // namespace
 
 Status FftsTaskBuilder::GenerateFFTSPlusCtx(const ge::Node &node, const ge::RunContext &context,
                                             const std::string &engine_name) {
@@ -73,8 +71,8 @@ Status FftsTaskBuilder::GenerateFFTSPlusCtx(const ge::Node &node, const ge::RunC
   context_.weightMemBase = context.weightMemBase;
   context_.weightBufferHost = context.weightsBuffer;
   auto op_desc = node.GetOpDesc();
-  FE_LOGD("Start to generate FFTSPlus Ctx, node %s, dataMemSize %lu, weightMemSize %lu.",
-          node.GetName().c_str(), context.dataMemSize, context.weightMemSize);
+  FE_LOGD("Start to generate FFTSPlus Ctx, node %s, dataMemSize %lu, weightMemSize %lu.", node.GetName().c_str(),
+          context.dataMemSize, context.weightMemSize);
   FftsPlusCtxDefPtr ctx = nullptr;
   FE_MAKE_SHARED(ctx = std::make_shared<domi::FftsPlusCtxDef>(), return FAILED);
   FE_CHECK_NOTNULL(ctx);
@@ -130,13 +128,13 @@ Status FftsTaskBuilder::GenCtxParamAndCtxType(const ge::Node &node, ffts::TaskBu
   auto op_desc = node.GetOpDesc();
   ffts::ThreadSliceMapPtr slice_info_ptr = nullptr;
   slice_info_ptr = op_desc->TryGetExtAttr(ffts::kAttrSgtStructInfo, slice_info_ptr);
-  bool auto_mode = slice_info_ptr != nullptr && slice_info_ptr->thread_mode ==
-                                     static_cast<uint32_t>(ffts::ThreadMode::AUTO_THREAD);
+  bool auto_mode =
+      slice_info_ptr != nullptr && slice_info_ptr->thread_mode == static_cast<uint32_t>(ffts::ThreadMode::AUTO_THREAD);
   bool is_unknown = false;
   (void)ge::AttrUtils::GetBool(op_desc, ATTR_NAME_OWNER_GRAPH_IS_UNKNOWN, is_unknown);
   bool is_dynamic = is_unknown || fe::UnknownShapeUtils::IsUnknownShapeOp(*op_desc);
-  FE_LOGD("Node[%s] is_dynamic: %u, auto_mode: %u, is_unknown: %u.",
-          node.GetName().c_str(), is_dynamic, auto_mode, is_unknown);
+  FE_LOGD("Node[%s] is_dynamic: %u, auto_mode: %u, is_unknown: %u.", node.GetName().c_str(), is_dynamic, auto_mode,
+          is_unknown);
   if (is_dynamic) {
     FE_LOGD("Node [%s] has an unknown shape, no need to get arguments.", node.GetName().c_str());
   } else if (auto_mode) {
@@ -170,8 +168,8 @@ Status FftsTaskBuilder::GenCtxParamAndCtxType(const ge::Node &node, ffts::TaskBu
   int32_t block_dim = 0;
   (void)ge::AttrUtils::GetInt(op_desc, ge::TVM_ATTR_NAME_BLOCKDIM, block_dim);
   uint32_t thread_dim = (slice_info_ptr != nullptr) ? slice_info_ptr->slice_instance_num : 1;
-  FE_LOGD("Gen ctx type, Node[%s %s]'s core type: %s, block dim: %d, thread dim: %u.",
-          op_desc->GetName().c_str(), op_desc->GetType().c_str(), core_type.c_str(), block_dim, thread_dim);
+  FE_LOGD("Gen ctx type, Node[%s %s]'s core type: %s, block dim: %d, thread dim: %u.", op_desc->GetName().c_str(),
+          op_desc->GetType().c_str(), core_type.c_str(), block_dim, thread_dim);
   return GetCtxTypeByCoreType(op_desc, core_type, ctx_type, auto_mode, is_dynamic);
 }
 
@@ -214,28 +212,28 @@ Status FftsTaskBuilder::GenManualAICAIVCtxDef(const ge::OpDescPtr &op_desc, Ffts
   aic_aiv_ctx_def->set_thread_dim(1);
 
   int32_t block_dim = 0;
-  (void) ge::AttrUtils::GetInt(op_desc, ge::TVM_ATTR_NAME_BLOCKDIM, block_dim);
+  (void)ge::AttrUtils::GetInt(op_desc, ge::TVM_ATTR_NAME_BLOCKDIM, block_dim);
   aic_aiv_ctx_def->set_tail_block_dim(static_cast<uint32_t>(block_dim));
   aic_aiv_ctx_def->set_non_tail_block_dim(static_cast<uint32_t>(block_dim));
 
   uint32_t schedule_mode = 0;
-  (void) ge::AttrUtils::GetInt(op_desc, kAttrScheduleMode, schedule_mode);
+  (void)ge::AttrUtils::GetInt(op_desc, kAttrScheduleMode, schedule_mode);
   aic_aiv_ctx_def->set_schem(schedule_mode);
   FE_LOGD("Set schedule mode[%u] on task of op[%s, %s].", schedule_mode, op_desc->GetNamePtr(), op_desc->GetTypePtr());
 
-  for (auto input_addr: manual_thread_param_.input_addrs) {
+  for (auto input_addr : manual_thread_param_.input_addrs) {
     uint64_t input_addr_tmp = ge::PtrToValue(input_addr);
     aic_aiv_ctx_def->add_task_addr(input_addr_tmp);
     FE_LOGD("input_addr: %lu", input_addr_tmp);
   }
 
-  for (auto output_addr: manual_thread_param_.output_addrs) {
+  for (auto output_addr : manual_thread_param_.output_addrs) {
     uint64_t output_addr_tmp = ge::PtrToValue(output_addr);
     aic_aiv_ctx_def->add_task_addr(output_addr_tmp);
     FE_LOGD("output_addr, %lu", output_addr_tmp);
   }
 
-  for (auto workspace_addr: manual_thread_param_.workspace_addrs) {
+  for (auto workspace_addr : manual_thread_param_.workspace_addrs) {
     uint64_t workspace_addr_tmp = ge::PtrToValue(workspace_addr);
     aic_aiv_ctx_def->add_task_addr(workspace_addr_tmp);
     FE_LOGD("workspace_addr: %lu", workspace_addr_tmp);
@@ -247,7 +245,7 @@ Status FftsTaskBuilder::GenManualAICAIVCtxDef(const ge::OpDescPtr &op_desc, Ffts
   }
 
   string attr_kernel_name;
-  (void) ge::AttrUtils::GetStr(op_desc, kKernelName, attr_kernel_name);
+  (void)ge::AttrUtils::GetStr(op_desc, kKernelName, attr_kernel_name);
   aic_aiv_ctx_def->add_kernel_name(attr_kernel_name);
 
   GenMemSetCtxDef(op_desc);
@@ -321,8 +319,8 @@ Status FftsTaskBuilder::GenAutoAICAIVCtxDef(const ge::OpDescPtr &op_desc, FftsPl
                     auto_thread_param_offset_.first_thread_output_addrs.size() +
                     auto_thread_param_offset_.thread_workspace_addrs[0].size();
   aic_aiv_ctx_def->set_task_param_ptr_offset(args_num * sizeof(uint64_t));
-  FE_LOGD("aic_aiv_ctx_def FillContextData SUCCESS. Op:%s, optype:%s, def:%s.",
-          op_desc->GetName().c_str(), op_desc->GetType().c_str(), aic_aiv_ctx_def->DebugString().c_str());
+  FE_LOGD("aic_aiv_ctx_def FillContextData SUCCESS. Op:%s, optype:%s, def:%s.", op_desc->GetName().c_str(),
+          op_desc->GetType().c_str(), aic_aiv_ctx_def->DebugString().c_str());
   if (GenAutoAtomicCtxDef(op_desc) != SUCCESS) {
     return FAILED;
   }
@@ -335,7 +333,8 @@ Status FftsTaskBuilder::GenAutoAtomicCtxDef(const ge::OpDescPtr &op_desc) {
   if (atomic_node == nullptr) {
     return SUCCESS;
   }
-  FE_LOGD("Node[%s] Atomic[%s] generated context definition.", op_desc->GetName().c_str(), atomic_node->GetName().c_str());
+  FE_LOGD("Node[%s] Atomic[%s] generated context definition.", op_desc->GetName().c_str(),
+          atomic_node->GetName().c_str());
   std::vector<int64_t> output_index;
   (void)ge::AttrUtils::GetListInt(op_desc, TBE_OP_ATOMIC_OUTPUT_INDEX, output_index);
   std::vector<int64_t> workspace_index;
@@ -347,8 +346,8 @@ Status FftsTaskBuilder::GenAutoAtomicCtxDef(const ge::OpDescPtr &op_desc) {
   work_spaces.resize(output_addr_size + workspace_addr_size);
   for (size_t idx = 0; idx < output_addr_size; ++idx) {
     if ((idx < output_index.size()) && (output_index[idx] == 1)) {
-      work_spaces[index] = static_cast<int64_t>(reinterpret_cast<intptr_t>(
-          auto_thread_param_offset_.first_thread_output_addrs[idx]));
+      work_spaces[index] =
+          static_cast<int64_t>(reinterpret_cast<intptr_t>(auto_thread_param_offset_.first_thread_output_addrs[idx]));
     } else {
       work_spaces[index] = 0;
     }
@@ -356,8 +355,8 @@ Status FftsTaskBuilder::GenAutoAtomicCtxDef(const ge::OpDescPtr &op_desc) {
   }
   for (size_t idx = 0; idx < workspace_addr_size; ++idx) {
     if ((idx < workspace_index.size()) && (workspace_index[idx] == 1)) {
-      work_spaces[index] = static_cast<int64_t>(reinterpret_cast<intptr_t>(
-          auto_thread_param_offset_.thread_workspace_addrs[0][idx]));
+      work_spaces[index] =
+          static_cast<int64_t>(reinterpret_cast<intptr_t>(auto_thread_param_offset_.thread_workspace_addrs[0][idx]));
     } else {
       work_spaces[index] = 0;
     }
@@ -388,7 +387,7 @@ Status FftsTaskBuilder::GenManualMixAICAIVCtxDef(const ge::OpDescPtr &op_desc, F
   mix_aic_aiv_ctx_def->set_non_tail_block_dim(static_cast<uint32_t>(block_dim));
 
   uint32_t schedule_mode = 0;
-  (void) ge::AttrUtils::GetInt(op_desc, kAttrScheduleMode, schedule_mode);
+  (void)ge::AttrUtils::GetInt(op_desc, kAttrScheduleMode, schedule_mode);
   mix_aic_aiv_ctx_def->set_schem(schedule_mode);
   FE_LOGD("Set schedule mode[%u] on task of op[%s, %s].", schedule_mode, op_desc->GetNamePtr(), op_desc->GetTypePtr());
 
@@ -535,7 +534,7 @@ Status FftsTaskBuilder::GenMixL2CtxDef(const ge::OpDescPtr &op_desc, FftsPlusCtx
   mix_aic_aiv_ctx_def->set_non_tail_block_dim(static_cast<uint32_t>(block_dim));
 
   uint32_t schedule_mode = 0;
-  (void) ge::AttrUtils::GetInt(op_desc, kAttrScheduleMode, schedule_mode);
+  (void)ge::AttrUtils::GetInt(op_desc, kAttrScheduleMode, schedule_mode);
   mix_aic_aiv_ctx_def->set_schem(schedule_mode);
   std::string args_format_str;
   (void)ge::AttrUtils::GetStr(op_desc, kArgsFormat, args_format_str);
@@ -586,7 +585,7 @@ Status FftsTaskBuilder::GenCommonAutoAICAIVCtxDef(const ge::OpDescPtr &op_desc, 
   }
 
   uint32_t schedule_mode = 0;
-  (void) ge::AttrUtils::GetInt(op_desc, kAttrScheduleMode, schedule_mode);
+  (void)ge::AttrUtils::GetInt(op_desc, kAttrScheduleMode, schedule_mode);
   ctx->set_schem(schedule_mode);
   FE_LOGD("Set schedule mode[%u] on task of op[%s, %s].", schedule_mode, op_desc->GetNamePtr(), op_desc->GetTypePtr());
 
@@ -626,4 +625,4 @@ Status FftsTaskBuilder::GenCommonAutoAICAIVCtxDef(const ge::OpDescPtr &op_desc, 
   }
   return SUCCESS;
 }
-}
+}  // namespace fe

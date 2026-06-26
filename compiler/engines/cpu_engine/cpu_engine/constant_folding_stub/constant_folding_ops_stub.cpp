@@ -21,7 +21,7 @@
  *
  * This file is safe, minimal, and production-friendly.
  */
- 
+
 namespace aicpu_stub {
 // --------------------------------------------------------------
 // Optional: provide a weak dummy symbol as a safety fallback
@@ -30,7 +30,6 @@ namespace aicpu_stub {
 // this dummy weak function will satisfy it.
 // If not needed, it will never be used.
 // --------------------------------------------------------------
-__attribute__((weak))
-void constant_folding_ops_stub_marker() {}
+__attribute__((weak)) void constant_folding_ops_stub_marker() {}
 
-} // namespace aicpu_stub
+}  // namespace aicpu_stub

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,7 +25,7 @@ constexpr int32_t kNumExecutors = 2;
 const int32_t kMinLoopCount = 2;
 constexpr int32_t kWaitTimeoutInSec = 600;
 const int32_t kDefaultLoopCount = 10;
-}
+}  // namespace
 
 StageExecutor::StageExecutor(const int32_t id, HybridModel *const model, PipeExecutionConfig *const config,
                              StageSubject *const stage_subject)
@@ -99,9 +99,7 @@ Status StageExecutor::Start(const std::vector<TensorValue> &inputs, const std::v
   num_loops *= pipe_config_->num_stages;
   GELOGD("[Executor: %d] loop count = %d", id_, num_loops);
 
-  std::function<void()> release_callback = [this]() {
-    ExecuteEndTaskAndReleae();
-  };
+  std::function<void()> release_callback = [this]() { ExecuteEndTaskAndReleae(); };
   const auto release_guard = MakeShared<ScopeGuard>(release_callback);
   GE_CHECK_NOTNULL(release_guard);
 
@@ -139,7 +137,7 @@ Status StageExecutor::Start(const std::vector<TensorValue> &inputs, const std::v
     RECORD_MODEL_EXECUTION_EVENT(&context_, "[Stage = %d] PartialExecuteAsync End", task_info.stage);
     GELOGD("[Executor: %d] PartialExecuteAsync end, ret is %u", id_, ret);
     GE_CHK_BOOL_RET_SPECIAL_STATUS(ret == END_OF_SEQUENCE, END_OF_SEQUENCE,
-        "[Executor: %d] PartialExecuteAsync receive eos", id_);
+                                   "[Executor: %d] PartialExecuteAsync receive eos", id_);
     GE_CHK_STATUS_RET(ret);
     // notify next execution unit
     StageTask next_task;
@@ -158,11 +156,10 @@ Status StageExecutor::Start(const std::vector<TensorValue> &inputs, const std::v
 
     const auto sync_result = Synchronize();
     if (sync_result != SUCCESS) {
-      GELOGE(sync_result,
-             "[Invoke][Synchronize][Executor: %d] Failed to sync result:%u. iteration = %ld",
-             id_, sync_result, task_info.iteration);
-      REPORT_INNER_ERR_MSG("E19999", "[Executor: %d] Failed to sync result:%u. iteration = %" PRId64 "",
-                        id_, sync_result, task_info.iteration);
+      GELOGE(sync_result, "[Invoke][Synchronize][Executor: %d] Failed to sync result:%u. iteration = %ld", id_,
+             sync_result, task_info.iteration);
+      REPORT_INNER_ERR_MSG("E19999", "[Executor: %d] Failed to sync result:%u. iteration = %" PRId64 "", id_,
+                           sync_result, task_info.iteration);
       if (context_.profiler != nullptr) {
         context_.profiler->Dump(std::cout);
       }
@@ -179,14 +176,13 @@ Status StageExecutor::Start(const std::vector<TensorValue> &inputs, const std::v
 
     // if end stage
     if (task_info.stage >= (pipe_config_->num_stages - 1)) {
-      RECORD_MODEL_EXECUTION_EVENT(&context_, "[iteration = %ld] Schedule End",
-                                   task_info.iteration);
+      RECORD_MODEL_EXECUTION_EVENT(&context_, "[iteration = %ld] Schedule End", task_info.iteration);
       GELOGD("[Executor: %d] End of iteration [%ld]", id_, task_info.iteration);
       ReleaseCallback();
     } else {
       if (model_->GetRootGraphItem()->IsDynamic()) {
         GE_CHK_STATUS_RET_NOLOG(stage_subject_->Await(task_info.stage + 1));
-        auto& stage_cache = model_->GetRootGraphItem()->GetStageCache();
+        auto &stage_cache = model_->GetRootGraphItem()->GetStageCache();
         GE_CHK_STATUS_RET_NOLOG(stage_cache.DoPropagate(task_info.stage + 1));
       }
     }
@@ -227,9 +223,8 @@ void StageSubject::Release(const int32_t stage) {
 
 Status StageSubject::Cond::Await() {
   std::unique_lock<std::mutex> lk(cond_mu_);
-  if ((!first_exe_) && (!cv_.wait_for(lk,
-                                      std::chrono::seconds(kWaitTimeoutInSec),
-                                      [this]() { return is_released_; }))) {
+  if ((!first_exe_) &&
+      (!cv_.wait_for(lk, std::chrono::seconds(kWaitTimeoutInSec), [this]() { return is_released_; }))) {
     GELOGE(INTERNAL_ERROR, "[Invoke][wait_for]Wait timed out.");
     REPORT_INNER_ERR_MSG("E19999", "wait timed out[%d].", kWaitTimeoutInSec);
     return INTERNAL_ERROR;
@@ -336,7 +331,7 @@ Status HybridModelPipelineExecutor::PreRun(const InputData &current_data, Hybrid
 }
 
 Status HybridModelPipelineExecutor::ExecuteOnlineModel(const std::vector<gert::Tensor> &inputs,
-    std::shared_ptr<ModelListener> listener) {
+                                                       std::shared_ptr<ModelListener> listener) {
   PROFILING_SCOPE_CONST(-1, profiling::kModelExecute);
   RECORD_MODEL_EXECUTION_EVENT(&context_, "[RunInternal] [iteration = %d] Start", iterator_count_);
   InputData input_data;
@@ -368,7 +363,7 @@ Status HybridModelPipelineExecutor::ProcessOnlineModel(const InputData &input_da
 }
 
 Status HybridModelPipelineExecutor::Execute(const std::vector<gert::Tensor> &inputs, std::vector<gert::Tensor> &outputs,
-    CtrlArgs &ctrl_args) {
+                                            CtrlArgs &ctrl_args) {
   (void)ctrl_args;
   (void)outputs;
   (void)inputs;
@@ -388,11 +383,12 @@ Status HybridModelPipelineExecutor::Execute(ExecuteArgs &args) {
     GELOGD("Starting executor %zu", i);
     const auto executor = stage_executors_[i].get();
     executor->Reset();
-    auto future = std::async([loop_count, executor, inputs,
-                              input_desc](const struct error_message::ErrorManagerContext &error_context) {
-      error_message::SetErrMgrContext(error_context);
-      return executor->Start(inputs, input_desc, loop_count);
-    }, error_message::GetErrMgrContext());
+    auto future = std::async(
+        [loop_count, executor, inputs, input_desc](const struct error_message::ErrorManagerContext &error_context) {
+          error_message::SetErrMgrContext(error_context);
+          return executor->Start(inputs, input_desc, loop_count);
+        },
+        error_message::GetErrMgrContext());
 
     futures.emplace_back(std::move(future));
   }

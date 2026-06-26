@@ -217,9 +217,9 @@ add_custom_target(switch_by_index ALL
     )
 
 add_custom_command(OUTPUT ${SWITCH_BY_INDEX_OBJ}
-    COMMAND ${CCEC_PATH}/ccec ${SWITCH_BY_INDEX_SOURCE} 
-    --cce-aicore-only --cce-aicore-arch=dav-n350 -mllvm -cce-aicore-vec-misched=0 
-    -mllvm -cce-aicore-addr-transform -mllvm -cce-aicore-dcci-insert-for-scalar=true -c -o 
+    COMMAND ${CCEC_PATH}/ccec ${SWITCH_BY_INDEX_SOURCE}
+    --cce-aicore-only --cce-aicore-arch=dav-n350 -mllvm -cce-aicore-vec-misched=0
+    -mllvm -cce-aicore-addr-transform -mllvm -cce-aicore-dcci-insert-for-scalar=true -c -o
     ${SWITCH_BY_INDEX_OBJ}
     )
 

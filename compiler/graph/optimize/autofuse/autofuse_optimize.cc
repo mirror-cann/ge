@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -61,9 +61,9 @@ Status InsertCastForDataTypeUnconsistantNode(const ge::ComputeGraphPtr &compute_
           GE_ASSERT_SUCCESS(cast_op->UpdateOutputDesc(0, peer_op_desc->GetInputDesc(peer_in_anchor->GetIdx())));
           GE_ASSERT_TRUE(GraphUtils::InsertNodeAfter(out_anchor, {peer_in_anchor}, cast_op, 0, 0) != nullptr);
           GELOGI("Insert node:%s(%s) between node:%s(%s) output:%d and node:%s(%s) input:%d before autofuse.",
-              cast_op->GetName().c_str(), cast_op->GetType().c_str(), op_desc->GetName().c_str(),
-              op_desc->GetType().c_str(), out_anchor->GetIdx(), peer_op_desc->GetName().c_str(),
-              peer_op_desc->GetType().c_str(), peer_in_anchor->GetIdx());
+                 cast_op->GetName().c_str(), cast_op->GetType().c_str(), op_desc->GetName().c_str(),
+                 op_desc->GetType().c_str(), out_anchor->GetIdx(), peer_op_desc->GetName().c_str(),
+                 peer_op_desc->GetType().c_str(), peer_in_anchor->GetIdx());
         }
       }
     }
@@ -77,7 +77,7 @@ OpDescPtr CreateTensorShape(const GeTensorDesc &data_tensor) {
 
   tensor->MutableTensorDesc().SetDataType(DT_INT64);
   tensor->MutableTensorDesc().SetFormat(FORMAT_ND);
-  const auto& dst_ge_shape = data_tensor.GetOriginShape();
+  const auto &dst_ge_shape = data_tensor.GetOriginShape();
   auto dim_cnt = static_cast<int64_t>(dst_ge_shape.GetDimNum());
   if (dim_cnt == 0) {  // if the dim_cnt is 0, the tensor is a scalar
     tensor->MutableTensorDesc().SetShape(GeShape({0}));
@@ -128,14 +128,15 @@ Status GraphOptimizer1BeforeAutofuse(const ge::ComputeGraphPtr &compute_graph) {
 
   PassManager graph_pass;
   GE_ASSERT_SUCCESS(graph_pass.AddPass("BeforeAutofusePass::CommonSubexpressionEliminationPass",
-      new (std::nothrow) CommonSubexpressionEliminationPass));
+                                       new (std::nothrow) CommonSubexpressionEliminationPass));
   GE_ASSERT_SUCCESS(graph_pass.Run(compute_graph));
   return GRAPH_SUCCESS;
 }
 
 Status GraphOptimizer2BeforeAutofuse(const ge::ComputeGraphPtr &compute_graph) {
   GE_ASSERT_NOTNULL(compute_graph);
-  // 1. 在FE的融合阶段，一些融合pass会产生非标的reshape算子，reshape算子只有一个输入一个输出，输出是静态，恢复一下该非标reshape
+  // 1.
+  // 在FE的融合阶段，一些融合pass会产生非标的reshape算子，reshape算子只有一个输入一个输出，输出是静态，恢复一下该非标reshape
   GE_ASSERT_SUCCESS(AbnormalReshapeRecovery(compute_graph));
 
   GEPass ge_passes(compute_graph);
@@ -148,7 +149,7 @@ Status GraphOptimizer2BeforeAutofuse(const ge::ComputeGraphPtr &compute_graph) {
 
   PassManager graph_pass;
   GE_ASSERT_SUCCESS(graph_pass.AddPass("BeforeAutofusePass::CommonSubexpressionEliminationPass",
-      new (std::nothrow) CommonSubexpressionEliminationPass));
+                                       new (std::nothrow) CommonSubexpressionEliminationPass));
   GE_ASSERT_SUCCESS(graph_pass.Run(compute_graph));
 
   return GRAPH_SUCCESS;
@@ -159,12 +160,12 @@ Status DeleteCastForDataTypeUnconsistantNode(const ge::ComputeGraphPtr &compute_
     GE_ASSERT_NOTNULL(node);
     if (AttrUtils::HasAttr(node->GetOpDesc(), kCastInsertBeforeAutoFuse)) {
       // 控制子图场景
-      GE_ASSERT_SUCCESS(GraphUtils::IsolateNode(node, {0}),
-        "Isolate node[%s][%s] failed.",node->GetTypePtr(), node->GetNamePtr());
+      GE_ASSERT_SUCCESS(GraphUtils::IsolateNode(node, {0}), "Isolate node[%s][%s] failed.", node->GetTypePtr(),
+                        node->GetNamePtr());
       const auto owner_graph = node->GetOwnerComputeGraph();
       GE_ASSERT_NOTNULL(owner_graph);
-      GE_ASSERT_SUCCESS(GraphUtils::RemoveNodeWithoutRelink(owner_graph, node),
-        "Remove node[%s][%s] failed.",node->GetTypePtr(), node->GetNamePtr());
+      GE_ASSERT_SUCCESS(GraphUtils::RemoveNodeWithoutRelink(owner_graph, node), "Remove node[%s][%s] failed.",
+                        node->GetTypePtr(), node->GetNamePtr());
       GELOGI("Delete node:[%][%s] after autofuse", node->GetName().c_str(), node->GetType().c_str());
     }
   }
@@ -178,7 +179,7 @@ bool IsEnableAutofuse() {
   GELOGI("Option --enable_autofuse=true is not set in env AUTOFUSE_FLAGS, skip autofuse.");
   return false;
 }
-}
+}  // namespace
 
 Status AutofuseOptimize::PreProcess(const ge::ComputeGraphPtr &compute_graph) const {
   GE_ASSERT_SUCCESS(GraphOptimizer1BeforeAutofuse(compute_graph));
@@ -218,8 +219,8 @@ Status AutofuseOptimize::Run(const ge::ComputeGraphPtr &compute_graph, const std
   GE_DUMP(compute_graph, "AutofuseOptimize_AfterPreprocess");
   PassManager graph_pass_for_autofuse;
   GE_TRACE_START(Symbolize);
-  GE_ASSERT_GRAPH_SUCCESS(SymbolicShapeSymbolizer::Symbolize(compute_graph, inputs), "Symbolize graph input failed, graph %s",
-                          compute_graph->GetName().c_str());
+  GE_ASSERT_GRAPH_SUCCESS(SymbolicShapeSymbolizer::Symbolize(compute_graph, inputs),
+                          "Symbolize graph input failed, graph %s", compute_graph->GetName().c_str());
   GE_COMPILE_TRACE_TIMESTAMP_END(Symbolize, ("SymbolicShapeInference::Symbolize::" + compute_graph->GetName()).c_str());
   GE_ASSERT_SUCCESS(SymbolicInfoPreProcessor::Run(compute_graph, inputs));
   GE_CHK_STATUS_RET(graph_pass_for_autofuse.AddPass("PreRun::AutoFusePass", new (std::nothrow) AutoFusePass()));
@@ -229,4 +230,4 @@ Status AutofuseOptimize::Run(const ge::ComputeGraphPtr &compute_graph, const std
   GE_DUMP(compute_graph, "AutofuseOptimize_Exit");
   return GRAPH_SUCCESS;
 }
-}
+}  // namespace ge

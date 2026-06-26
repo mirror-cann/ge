@@ -72,4 +72,3 @@ void SetMarks(const std::vector<AscendString> &marks)
 ## 约束说明<a name="zh-cn_topic_0000001312724805_section1286618413401"></a>
 
 无。
-

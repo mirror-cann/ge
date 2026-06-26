@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -54,7 +54,7 @@ Status GenerateCMOBarrierTask::GenerateTask(std::vector<domi::TaskDef> &task_def
     }
   }
   if (cmoNum == 0) {
-    // if set set_logic_id_num 0, runtime excute fail
+    // if set set_logic_id_num 0, runtime execute fail
     FE_LOGD("all barrier task has been continued before node[%s]", node_.GetName().c_str());
     return SUCCESS;
   }
@@ -71,8 +71,8 @@ Status GenerateCMOBarrierTask::GenerateCMOId(const CmoAttr &cmo_attr, int64_t &c
   if (cmo_attr.object == CmoTypeObject::INPUT || cmo_attr.object == CmoTypeObject::WEIGHT) {
     auto input_size = pre_node->GetOpDesc()->GetAllInputsSize();
     if (cmo_attr.object_index >= static_cast<int32_t>(input_size)) {
-      FE_LOGW("Node[%s] input object_index[%d] is out of range[%zu]",
-              cmo_attr.node->GetName().c_str(), cmo_attr.object_index, input_size);
+      FE_LOGW("Node[%s] input object_index[%d] is out of range[%zu]", cmo_attr.node->GetName().c_str(),
+              cmo_attr.object_index, input_size);
       return FAILED;
     }
     ge::GeTensorDescPtr tensor_desc_ptr = pre_node->GetOpDesc()->MutableInputDesc(cmo_attr.object_index);
@@ -81,8 +81,8 @@ Status GenerateCMOBarrierTask::GenerateCMOId(const CmoAttr &cmo_attr, int64_t &c
   } else if (cmo_attr.object == CmoTypeObject::OUTPUT) {
     auto output_size = pre_node->GetOpDesc()->GetAllOutputsDescSize();
     if (cmo_attr.object_index >= static_cast<int32_t>(output_size)) {
-      FE_LOGW("Node[%s] output object_index[%d] is out of range[%d]",
-              cmo_attr.node->GetName().c_str(), cmo_attr.object_index, output_size);
+      FE_LOGW("Node[%s] output object_index[%d] is out of range[%d]", cmo_attr.node->GetName().c_str(),
+              cmo_attr.object_index, output_size);
       return FAILED;
     }
     ge::GeTensorDescPtr tensor_desc_ptr = pre_node->GetOpDesc()->MutableOutputDesc(cmo_attr.object_index);
@@ -91,8 +91,8 @@ Status GenerateCMOBarrierTask::GenerateCMOId(const CmoAttr &cmo_attr, int64_t &c
   } else {
     auto workspace_bytes = pre_node->GetOpDesc()->GetWorkspaceBytes();
     if (cmo_attr.object_index >= static_cast<int32_t>(workspace_bytes.size())) {
-      FE_LOGW("Node[%s] workspace object_index[%d] is out of range[%zu]",
-              cmo_attr.node->GetName().c_str(), cmo_attr.object_index, workspace_bytes.size());
+      FE_LOGW("Node[%s] workspace object_index[%d] is out of range[%zu]", cmo_attr.node->GetName().c_str(),
+              cmo_attr.object_index, workspace_bytes.size());
       return FAILED;
     }
     (void)ge::AttrUtils::GetInt(pre_node->GetOpDesc(),
@@ -102,4 +102,4 @@ Status GenerateCMOBarrierTask::GenerateCMOId(const CmoAttr &cmo_attr, int64_t &c
   }
   return SUCCESS;
 }
-}
+}  // namespace fe

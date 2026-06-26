@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,11 +34,22 @@ class PartitionNodeAttrName {
         set_fn_(set_fn),
         get_fn_(get_fn) {}
   ~PartitionNodeAttrName() = default;
-  bool IsSupportTensor() const { return is_support_tensor_; }
-  bool IsNeedCopy() const { return is_need_copy_; }
-  const std::string &GetAttrName() const { return attr_name_; }
-  SetAttrFn SetAttrFunction() const { return set_fn_; }
-  GetAttrFn GetAttrFunction() const { return get_fn_; }
+  bool IsSupportTensor() const {
+    return is_support_tensor_;
+  }
+  bool IsNeedCopy() const {
+    return is_need_copy_;
+  }
+  const std::string &GetAttrName() const {
+    return attr_name_;
+  }
+  SetAttrFn SetAttrFunction() const {
+    return set_fn_;
+  }
+  GetAttrFn GetAttrFunction() const {
+    return get_fn_;
+  }
+
  private:
   std::string attr_name_;
   bool is_support_tensor_;
@@ -53,7 +64,9 @@ class PartitionNodeAttrNameManager {
   PartitionNodeAttrNameManager &operator=(const PartitionNodeAttrNameManager &attr_name) = delete;
   static PartitionNodeAttrNameManager &GetInstance();
   void RegisterNodeAttrName(const PartitionNodeAttrName &attr_name);
-  const std::vector<PartitionNodeAttrName> &GetAllPartitionNodeAttrNames() const { return attr_array_; }
+  const std::vector<PartitionNodeAttrName> &GetAllPartitionNodeAttrNames() const {
+    return attr_array_;
+  }
 
  private:
   PartitionNodeAttrNameManager() = default;
@@ -65,9 +78,8 @@ class PartitionNodeAttrNameManager {
 
 class PartitionNodeAttrRegister {
  public:
-  PartitionNodeAttrRegister(const std::string &attr_name, bool is_support_tensor,
-                            const bool is_need_copy, const SetAttrFn set_fn,
-                            const GetAttrFn get_fn) noexcept;
+  PartitionNodeAttrRegister(const std::string &attr_name, bool is_support_tensor, const bool is_need_copy,
+                            const SetAttrFn set_fn, const GetAttrFn get_fn) noexcept;
   ~PartitionNodeAttrRegister() = default;
   PartitionNodeAttrRegister(const PartitionNodeAttrRegister &other) = delete;
   PartitionNodeAttrRegister &operator=(const PartitionNodeAttrRegister &other) = delete;
@@ -76,11 +88,7 @@ class PartitionNodeAttrRegister {
 class BaseCluster : public std::enable_shared_from_this<BaseCluster> {
  public:
   BaseCluster(size_t rank, int32_t type_index, NodePtr node, BasePartitioner *partitioner)
-      : type_index_(type_index),
-        id_(rank),
-        min_(rank),
-        max_(rank),
-        partitioner_(partitioner) {
+      : type_index_(type_index), id_(rank), min_(rank), max_(rank), partitioner_(partitioner) {
     nodes_.push_back(node);
   }
   virtual ~BaseCluster() = default;
@@ -154,13 +162,27 @@ class BaseCluster : public std::enable_shared_from_this<BaseCluster> {
 
  protected:
   std::vector<NodePtr> &GetMutableDirectNode();
-  size_t GetSubgraphNodesSize() const { return nodes_.size(); }
-  const std::unordered_map<InDataAnchorPtr, size_t> &GetInputIndexs() const { return inputs_index_; }
-  const std::unordered_map<OutDataAnchorPtr, size_t> &GetOutputIndexs() const { return outputs_index_; }
-  ComputeGraphPtr &GetMutableSubgraph() { return subgraph_; }
-  const ComputeGraphPtr &GetSubgraph() const { return subgraph_; }
-  const NodePtr &GetPartitionNode() const { return partition_node_; }
-  const BasePartitioner *GetPartitioner() const { return partitioner_; };
+  size_t GetSubgraphNodesSize() const {
+    return nodes_.size();
+  }
+  const std::unordered_map<InDataAnchorPtr, size_t> &GetInputIndexs() const {
+    return inputs_index_;
+  }
+  const std::unordered_map<OutDataAnchorPtr, size_t> &GetOutputIndexs() const {
+    return outputs_index_;
+  }
+  ComputeGraphPtr &GetMutableSubgraph() {
+    return subgraph_;
+  }
+  const ComputeGraphPtr &GetSubgraph() const {
+    return subgraph_;
+  }
+  const NodePtr &GetPartitionNode() const {
+    return partition_node_;
+  }
+  const BasePartitioner *GetPartitioner() const {
+    return partitioner_;
+  };
   void UpdateInOutClusters(const std::unordered_set<BaseCluster *> &path_cluster_set);
   void MergeInOutClusters(const std::unordered_set<BaseCluster *> &path_cluster_set,
                           const std::vector<BaseCluster *> &ordered_path_clusters);
@@ -185,8 +207,8 @@ class BaseCluster : public std::enable_shared_from_this<BaseCluster> {
   std::unordered_map<OutDataAnchorPtr, size_t> outputs_index_;
   // Fields for build partitioned call and subgraph
   BasePartitioner *partitioner_{nullptr};  // Not owned, the partitioner this cluster belongs to
-  ComputeGraphPtr subgraph_{nullptr};  // corresponding subgraph
-  NodePtr partition_node_{nullptr};  // corresponding partitioned call node
+  ComputeGraphPtr subgraph_{nullptr};      // corresponding subgraph
+  NodePtr partition_node_{nullptr};        // corresponding partitioned call node
   bool merge_inputs_{false};
 };
 }  // namespace ge

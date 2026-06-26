@@ -80,19 +80,20 @@ const char *kCast = "Cast";
 const uint32_t kNotAdded = 0;
 const uint32_t kStartAdd = 1;
 const uint32_t kDoneAdded = 2;
-}
+}  // namespace
 
 namespace ge {
 namespace {
 Graph BuildHCCLGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", DATA)->NODE("hcom1", HCOMALLREDUCE)->NODE("relu1", RELU)->NODE("output", NETOUTPUT));
-                  CHAIN(NODE("data2", DATA)->NODE("hcom1")->NODE("relu2", RELU)->NODE("output"));
-                };
+    CHAIN(NODE("data1", DATA)->NODE("hcom1", HCOMALLREDUCE)->NODE("relu1", RELU)->NODE("output", NETOUTPUT));
+    CHAIN(NODE("data2", DATA)->NODE("hcom1")->NODE("relu2", RELU)->NODE("output"));
+  };
   return ToGeGraph(g1);
 }
 void CreateSummaryCompiledModelWithStreamInfo(GraphNodePtr &graph_node, GeModelPtr &ge_model) {
-  auto compute_graph = GraphUtilsEx::GetComputeGraph(BuildHCCLGraph());;
+  auto compute_graph = GraphUtilsEx::GetComputeGraph(BuildHCCLGraph());
+  ;
   auto hcom1 = compute_graph->FindNode("hcom1");
   hcom1->GetOpDesc()->SetStreamId(1);
   AttrUtils::SetInt(hcom1->GetOpDesc(), "used_stream_num", 3);
@@ -128,30 +129,30 @@ void CreateSummaryCompiledModelWithStreamInfo(GraphNodePtr &graph_node, GeModelP
   AttrUtils::SetInt(ge_model, ATTR_MODEL_STREAM_NUM, 4);
   AttrUtils::SetInt(ge_model, ATTR_MODEL_EVENT_NUM, 2);
 }
-}
+}  // namespace
 class TestCastKernel : public ge::Kernel {
-  public:
-    Status Compute(const ge::OpDescPtr op_desc_ptr, const std::vector<ge::ConstGeTensorPtr> &input,
-                  std::vector<ge::GeTensorPtr> &v_output) override {
-      auto output = std::make_shared<GeTensor>(std::move(*input[0]));
-      output->MutableTensorDesc().SetDataType(DT_FLOAT16);
-      v_output.push_back(output);
-      return SUCCESS;
-    }
+ public:
+  Status Compute(const ge::OpDescPtr op_desc_ptr, const std::vector<ge::ConstGeTensorPtr> &input,
+                 std::vector<ge::GeTensorPtr> &v_output) override {
+    auto output = std::make_shared<GeTensor>(std::move(*input[0]));
+    output->MutableTensorDesc().SetDataType(DT_FLOAT16);
+    v_output.push_back(output);
+    return SUCCESS;
+  }
 };
 
 namespace graph_manager_ut {
 class GraphBuilder {
  public:
-  explicit GraphBuilder(const std::string &name) { graph_ = std::make_shared<ComputeGraph>(name); }
+  explicit GraphBuilder(const std::string &name) {
+    graph_ = std::make_shared<ComputeGraph>(name);
+  }
   NodePtr AddNode(const std::string &name, const std::string &type, int in_cnt, int out_cnt,
                   Format format = FORMAT_NCHW, DataType data_type = DT_FLOAT,
                   std::vector<int64_t> shape = {1, 1, 224, 224});
-  NodePtr AddNode(const std::string &name, const std::string &type,
-                  std::initializer_list<std::string> input_names,
-                  std::initializer_list<std::string> output_names,
-                  Format format = FORMAT_NCHW, DataType data_type = DT_FLOAT,
-                  std::vector<int64_t> shape = {1, 1, 224, 224});
+  NodePtr AddNode(const std::string &name, const std::string &type, std::initializer_list<std::string> input_names,
+                  std::initializer_list<std::string> output_names, Format format = FORMAT_NCHW,
+                  DataType data_type = DT_FLOAT, std::vector<int64_t> shape = {1, 1, 224, 224});
   void AddDataEdge(const NodePtr &src_node, int src_idx, const NodePtr &dst_node, int dst_idx);
   void AddControlEdge(const NodePtr &src_node, const NodePtr &dst_node);
   ComputeGraphPtr GetGraph() {
@@ -204,7 +205,7 @@ NodePtr GraphBuilder::AddNode(const string &name, const string &type, std::initi
   for (auto &input_name : input_names) {
     op_desc->AddInputDesc(input_name, tensor_desc->Clone());
   }
-  for (auto &output_name :output_names) {
+  for (auto &output_name : output_names) {
     op_desc->AddOutputDesc(output_name, tensor_desc->Clone());
   }
 
@@ -212,18 +213,18 @@ NodePtr GraphBuilder::AddNode(const string &name, const string &type, std::initi
 }
 
 /*                                  -------------------------
-*                                  |  partitioncall_0_const1* |
-*     partitioncall_0--------------|             |           |
-*           |                      |          netoutput      |
-*           |                      --------------------------
-*           |                       ------------------         -------------
-*           |                      |        data      |       |    data     |
-*           |                      |          |       |       |     |       |
-*     partitioncall_1--------------|        case -----|-------|   squeeze*  |
-*                                  |          |       |       |     |       |
-*                                  |      netoutput   |       |  netoutput  |
-*                                   ------------------         -------------
-*/
+ *                                  |  partitioncall_0_const1* |
+ *     partitioncall_0--------------|             |           |
+ *           |                      |          netoutput      |
+ *           |                      --------------------------
+ *           |                       ------------------         -------------
+ *           |                      |        data      |       |    data     |
+ *           |                      |          |       |       |     |       |
+ *     partitioncall_1--------------|        case -----|-------|   squeeze*  |
+ *                                  |          |       |       |     |       |
+ *                                  |      netoutput   |       |  netoutput  |
+ *                                   ------------------         -------------
+ */
 ComputeGraphPtr BuildGraphPartitionCall() {
   auto root_builder = graph_manager_ut::GraphBuilder("root");
   const auto &partitioncall_0 = root_builder.AddNode("partitioncall_0", PARTITIONEDCALL, 0, 1);
@@ -300,6 +301,7 @@ class ExternalAllocatorUtStub : public Allocator {
   uint64_t GetAdviseCnt() {
     return advise_cnt;
   }
+
  private:
   uint64_t mem = 0;
   MemBlock *block_{nullptr};
@@ -316,12 +318,13 @@ class UtestGraphManagerTest : public testing::Test {
     SetLocalOmgContext(domi::GetContext());
     GetThreadLocalContext().GetOo().Initialize({}, OptionRegistry::GetInstance().GetRegisteredOptTable());
   }
-  static void TearDownTestSuite() {
-  }
+  static void TearDownTestSuite() {}
 
   class FakeOpsKernelInfoStore : public OpsKernelInfoStore {
    public:
-    FakeOpsKernelInfoStore(){supported_ = true;};
+    FakeOpsKernelInfoStore() {
+      supported_ = true;
+    };
     bool supported_;
 
    private:
@@ -340,6 +343,7 @@ class UtestGraphManagerTest : public testing::Test {
   class FakeOpsKernelBuilder : public OpsKernelBuilder {
    public:
     FakeOpsKernelBuilder() = default;
+
    private:
     Status Initialize(const map<std::string, std::string> &options) override {
       return SUCCESS;
@@ -423,8 +427,8 @@ class StubExecutor : public Executor {
     return SUCCESS;
   }
 
-  Status RunGraph(const GraphNodePtr &graph_node, const GraphId graph_id,
-                  const std::vector<gert::Tensor> &inputs, std::vector<gert::Tensor> &outputs) override {
+  Status RunGraph(const GraphNodePtr &graph_node, const GraphId graph_id, const std::vector<gert::Tensor> &inputs,
+                  std::vector<gert::Tensor> &outputs) override {
     return SUCCESS;
   }
 
@@ -433,14 +437,12 @@ class StubExecutor : public Executor {
     return SUCCESS;
   }
 
-  Status ExecuteGraphWithStream(const GraphNodePtr &graph_node, const GraphId graph_id,
-                               rtStream_t const stream, const std::vector<gert::Tensor> &inputs,
-                               std::vector<gert::Tensor> &outputs) override {
+  Status ExecuteGraphWithStream(const GraphNodePtr &graph_node, const GraphId graph_id, rtStream_t const stream,
+                                const std::vector<gert::Tensor> &inputs, std::vector<gert::Tensor> &outputs) override {
     return SUCCESS;
   }
 
-  Status DumpDebugJSONPrint(uint32_t model_id, uint32_t graph_id, uint32_t flags,
-                            AscendString &json_result) override {
+  Status DumpDebugJSONPrint(uint32_t model_id, uint32_t graph_id, uint32_t flags, AscendString &json_result) override {
     (void)model_id;
     (void)graph_id;
     (void)flags;
@@ -455,8 +457,8 @@ class StubExecutor : public Executor {
     return SUCCESS;
   }
 
-  Status PaRemapped(const GraphNodePtr &graph_node, const uint64_t va, const uint64_t new_pa,
-                    const uint64_t len, std::vector<std::pair<uint64_t, uint64_t>> &cross_ranges) override {
+  Status PaRemapped(const GraphNodePtr &graph_node, const uint64_t va, const uint64_t new_pa, const uint64_t len,
+                    std::vector<std::pair<uint64_t, uint64_t>> &cross_ranges) override {
     return SUCCESS;
   }
   uintptr_t mem_base_;
@@ -478,8 +480,8 @@ class StubExecutorFail : public Executor {
     return FAILED;
   }
 
-  Status RunGraph(const GraphNodePtr &graph_node, const GraphId graph_id,
-                  const std::vector<gert::Tensor> &inputs, std::vector<gert::Tensor> &outputs) override {
+  Status RunGraph(const GraphNodePtr &graph_node, const GraphId graph_id, const std::vector<gert::Tensor> &inputs,
+                  std::vector<gert::Tensor> &outputs) override {
     return SUCCESS;
   }
 
@@ -488,14 +490,12 @@ class StubExecutorFail : public Executor {
     return FAILED;
   }
 
-  Status ExecuteGraphWithStream(const GraphNodePtr &graph_node, const GraphId graph_id,
-                               rtStream_t const stream, const std::vector<gert::Tensor> &inputs,
-                               std::vector<gert::Tensor> &outputs) override {
+  Status ExecuteGraphWithStream(const GraphNodePtr &graph_node, const GraphId graph_id, rtStream_t const stream,
+                                const std::vector<gert::Tensor> &inputs, std::vector<gert::Tensor> &outputs) override {
     return FAILED;
   }
 
-  Status DumpDebugJSONPrint(uint32_t model_id, uint32_t graph_id, uint32_t flags,
-                            AscendString &json_result) override {
+  Status DumpDebugJSONPrint(uint32_t model_id, uint32_t graph_id, uint32_t flags, AscendString &json_result) override {
     (void)model_id;
     (void)graph_id;
     (void)flags;
@@ -503,8 +503,8 @@ class StubExecutorFail : public Executor {
     return FAILED;
   }
 
-  Status PaRemapped(const GraphNodePtr &graph_node, const uint64_t va, const uint64_t new_pa,
-                    const uint64_t len, std::vector<std::pair<uint64_t, uint64_t>> &cross_ranges) override {
+  Status PaRemapped(const GraphNodePtr &graph_node, const uint64_t va, const uint64_t new_pa, const uint64_t len,
+                    std::vector<std::pair<uint64_t, uint64_t>> &cross_ranges) override {
     return SUCCESS;
   }
 };
@@ -766,13 +766,11 @@ ge::ComputeGraphPtr CreateGraphNoOutput() {
   return builder.GetGraph();
 }
 
-ge::Status callbackFuncGertTensor1(uint32_t a, const std::map<AscendString, gert::Tensor> &b)
-{
+ge::Status callbackFuncGertTensor1(uint32_t a, const std::map<AscendString, gert::Tensor> &b) {
   return SUCCESS;
 }
 
-ge::Status callbackFuncGertTensor2(uint32_t a, const std::map<AscendString, gert::Tensor> &b)
-{
+ge::Status callbackFuncGertTensor2(uint32_t a, const std::map<AscendString, gert::Tensor> &b) {
   return SUCCESS;
 }
 
@@ -809,7 +807,6 @@ TEST_F(UtestGraphManagerTest, test_add_graph_sub) {
 
   root_compute_graph->AddSubGraph(compute_graph);
 
-
   std::map<std::string, std::string> options;
   OmgContext context;
   Status status = graph_manager.AddGraph(graph_id, root_graph, options, context);
@@ -820,7 +817,7 @@ TEST_F(UtestGraphManagerTest, test_CheckEngineName) {
   GraphManager graph_manager;
   auto p1 = std::make_shared<GELib>();
 
-  Status status = graph_manager.CheckEngineName("test", "test", std::map<std::string, int>({{"test",1}}));
+  Status status = graph_manager.CheckEngineName("test", "test", std::map<std::string, int>({{"test", 1}}));
   EXPECT_EQ(status, ge::PARAM_INVALID);
   status = graph_manager.CheckEngineName("", "test", std::map<std::string, int>());
   EXPECT_EQ(status, ge::GE_GRAPH_OPTIONS_INVALID);
@@ -876,7 +873,8 @@ TEST_F(UtestGraphManagerTest, test_SubgraphPartitionAndOptimizationFailed) {
 
   OpsKernelManager::GetInstance().composite_engines_["test"] = std::set<string>({"test"});
 
-  Status status = graph_manager.SubgraphPartitionAndOptimization(graph_node, compute_graph, 1, EnginePartitioner::Mode::kCompositeEnginePartitioning);
+  Status status = graph_manager.SubgraphPartitionAndOptimization(graph_node, compute_graph, 1,
+                                                                 EnginePartitioner::Mode::kCompositeEnginePartitioning);
   EXPECT_NE(status, ge::SUCCESS);
 }
 
@@ -942,12 +940,14 @@ TEST_F(UtestGraphManagerTest, test_SubgraphPartitionAndOptimizationPreFail) {
 
   OpsKernelManager &kernel_manager = OpsKernelManager::GetInstance();
   kernel_manager.composite_engines_["test"] = std::set<string>({"test"});
-  kernel_manager.atomic_first_optimizers_by_priority_.push_back(make_pair("test", MakeShared<GraphOptimizerForTestPreFail>()));
+  kernel_manager.atomic_first_optimizers_by_priority_.push_back(
+      make_pair("test", MakeShared<GraphOptimizerForTestPreFail>()));
 
   GraphNodePtr graph_node = MakeShared<ge::GraphNode>(1);
   GraphManager graph_manager;
   graph_manager.GetCompilerStages(1).partitioner.GetEnginePlacer().SetComputeGraph(computer_root_graph);
-  Status status = graph_manager.SubgraphPartitionAndOptimization(graph_node, computer_root_graph, 1, EnginePartitioner::Mode::kCompositeEnginePartitioning);
+  Status status = graph_manager.SubgraphPartitionAndOptimization(graph_node, computer_root_graph, 1,
+                                                                 EnginePartitioner::Mode::kCompositeEnginePartitioning);
   EXPECT_NE(status, SUCCESS);
   FinalizeGeLib();
 }
@@ -968,12 +968,14 @@ TEST_F(UtestGraphManagerTest, test_SubgraphPartitionAndOptimizationPostFail) {
 
   OpsKernelManager &kernel_manager = OpsKernelManager::GetInstance();
   kernel_manager.composite_engines_["test"] = std::set<string>({"test"});
-  kernel_manager.atomic_first_optimizers_by_priority_.push_back(make_pair("test", MakeShared<GraphOptimizerForTestPostFail>()));
+  kernel_manager.atomic_first_optimizers_by_priority_.push_back(
+      make_pair("test", MakeShared<GraphOptimizerForTestPostFail>()));
 
   GraphNodePtr graph_node = MakeShared<ge::GraphNode>(1);
   GraphManager graph_manager;
   graph_manager.GetCompilerStages(1).partitioner.GetEnginePlacer().SetComputeGraph(computer_root_graph);
-  Status status = graph_manager.SubgraphPartitionAndOptimization(graph_node, computer_root_graph, 1, EnginePartitioner::Mode::kCompositeEnginePartitioning);
+  Status status = graph_manager.SubgraphPartitionAndOptimization(graph_node, computer_root_graph, 1,
+                                                                 EnginePartitioner::Mode::kCompositeEnginePartitioning);
   EXPECT_NE(status, SUCCESS);
   FinalizeGeLib();
 }
@@ -1025,10 +1027,10 @@ TEST_F(UtestGraphManagerTest, test_add_graph_3) {
   std::map<std::string, std::string> options;
   OmgContext context;
 
-  std::future<Status> fut1 = std::async(std::launch::async,
-      &GraphManager::AddGraph, &graph_manager, graph_id, graph, options, context);
-  std::future<Status> fut2 = std::async(std::launch::async,
-      &GraphManager::AddGraph, &graph_manager, graph_id, graph, options, context);
+  std::future<Status> fut1 =
+      std::async(std::launch::async, &GraphManager::AddGraph, &graph_manager, graph_id, graph, options, context);
+  std::future<Status> fut2 =
+      std::async(std::launch::async, &GraphManager::AddGraph, &graph_manager, graph_id, graph, options, context);
   fut1.wait();
   fut2.wait();
   Status status1 = fut1.get();
@@ -1199,7 +1201,9 @@ TEST_F(UtestGraphManagerTest, test_save_checkpoint1) {
   std::vector<Tensor> outputs1;
   Tensor te;
   outputs.push_back(te);
-  std::map<std::string, Tensor> var_results = {{"data1", te},};
+  std::map<std::string, Tensor> var_results = {
+      {"data1", te},
+  };
   std::map<std::string, Tensor> var_results1;
   EXPECT_NE(graph_manager.SaveCheckPointResult(graph, outputs1, var_results1), SUCCESS);
   EXPECT_EQ(graph_manager.SaveCheckPointResult(graph, outputs, var_results), SUCCESS);
@@ -1219,7 +1223,9 @@ TEST_F(UtestGraphManagerTest, test_save_checkpoint2) {
   std::vector<Tensor> outputs;
   Tensor te;
   outputs.push_back(te);
-  std::map<std::string, Tensor> var_results = {{"data1", te},};
+  std::map<std::string, Tensor> var_results = {
+      {"data1", te},
+  };
   EXPECT_EQ(graph_manager.SaveCheckPointResult(graph, outputs, var_results), SUCCESS);
 }
 
@@ -1236,7 +1242,9 @@ TEST_F(UtestGraphManagerTest, test_save_checkpoint3) {
   std::vector<Tensor> outputs;
   Tensor te;
   outputs.push_back(te);
-  std::map<std::string, Tensor> var_results = {{"data1", te},};
+  std::map<std::string, Tensor> var_results = {
+      {"data1", te},
+  };
   EXPECT_EQ(graph_manager.SaveCheckPointResult(graph, outputs, var_results), FAILED);
 }
 
@@ -1475,7 +1483,6 @@ TEST_F(UtestGraphManagerTest, test_AdjustAssignOpData) {
 }
 
 TEST_F(UtestGraphManagerTest, test_pre_run_thread) {
-
   GraphManager graph_manager;
   graph_manager.thread_run_flag_ = true;
 
@@ -1504,7 +1511,6 @@ TEST_F(UtestGraphManagerTest, test_pre_run_thread) {
 }
 
 TEST_F(UtestGraphManagerTest, test_pre_run_thread_2) {
-
   GraphManager graph_manager;
   graph_manager.thread_run_flag_ = true;
 
@@ -1560,23 +1566,23 @@ TEST_F(UtestGraphManagerTest, test_pre_run_thread_3) {
   Graph graph("test_graph");
   CreateGraph(graph);
   std::map<std::string, std::string> options = {
-    {"ge.exec.isTailingOptimization", "1"},
-    {"ge.streamMaxParallelNum", "a"},
-    };
+      {"ge.exec.isTailingOptimization", "1"},
+      {"ge.streamMaxParallelNum", "a"},
+  };
   OmgContext context;
   EXPECT_EQ(graph_manager.Initialize(options), GE_GRAPH_OPTIONS_INVALID);
   std::map<std::string, std::string> options1 = {
-    {"ge.exec.isTailingOptimization", "1"},
-    {"ge.streamMaxParallelNum", "8"},
-    {"ge.streamNum", "0"},
-    };
+      {"ge.exec.isTailingOptimization", "1"},
+      {"ge.streamMaxParallelNum", "8"},
+      {"ge.streamNum", "0"},
+  };
   EXPECT_EQ(graph_manager.Initialize(options1), GE_GRAPH_OPTIONS_INVALID);
   std::map<std::string, std::string> options2 = {
-    {"ge.exec.isTailingOptimization", "1"},
-    {"ge.streamMaxParallelNum", "8"},
-    {"ge.streamNum", "1"},
-    {"ge.perfLevel", "-2"},
-    };
+      {"ge.exec.isTailingOptimization", "1"},
+      {"ge.streamMaxParallelNum", "8"},
+      {"ge.streamNum", "1"},
+      {"ge.perfLevel", "-2"},
+  };
   EXPECT_EQ(graph_manager.Initialize(options2), GE_GRAPH_OPTIONS_INVALID);
   Status status = graph_manager.AddGraph(graph_id1, graph, options1, context);
   EXPECT_EQ(status, ge::SUCCESS);
@@ -1590,9 +1596,9 @@ TEST_F(UtestGraphManagerTest, test_pre_run_thread_3) {
 TEST_F(UtestGraphManagerTest, test_ParseOption1) {
   GraphManager graph_manager;
   std::map<std::string, std::string> options = {
-    {"test0", "0"},
-    {"test1", "1"},
-    {"test2", "2"},
+      {"test0", "0"},
+      {"test1", "1"},
+      {"test2", "2"},
   };
   bool option;
   EXPECT_EQ(graph_manager.ParseOption(options, "test0", option), SUCCESS);
@@ -1603,8 +1609,8 @@ TEST_F(UtestGraphManagerTest, test_ParseOption1) {
 TEST_F(UtestGraphManagerTest, test_ParseOption2) {
   GraphManager graph_manager;
   std::map<std::string, std::string> options = {
-    {"test0", "a"},
-    {"test1", "1"},
+      {"test0", "a"},
+      {"test1", "1"},
   };
   int32_t option;
   EXPECT_EQ(graph_manager.ParseOption(options, "test0", option), GE_GRAPH_OPTIONS_INVALID);
@@ -1617,7 +1623,7 @@ TEST_F(UtestGraphManagerTest, test_initialize1) {
   GetDNNEngineObjs(engines_map);
   GraphManager graph_manager;
   std::map<std::string, std::string> options = {
-    {"ge.streamMaxParallelNum", "AIcoreEngine:8"},
+      {"ge.streamMaxParallelNum", "AIcoreEngine:8"},
   };
   EXPECT_EQ(graph_manager.Initialize(options), GE_GRAPH_OPTIONS_INVALID);
 }
@@ -1648,7 +1654,7 @@ TEST_F(UtestGraphManagerTest, test_initialize3) {
   GraphId graph_id2 = 1;
   GraphNodePtr graph_node2 = MakeShared<ge::GraphNode>(graph_id2);
   ComputeGraphPtr compute_graph = MakeShared<ComputeGraph>("test_graph");
-  //ComputeGraphPtr compute_graph = CreateGraphWithVariableOutput();
+  // ComputeGraphPtr compute_graph = CreateGraphWithVariableOutput();
   auto ge_root_model = MakeShared<GeRootModel>();
   ge_root_model->Initialize(compute_graph);
   ge_root_model->SetModelId(1);
@@ -1671,7 +1677,7 @@ TEST_F(UtestGraphManagerTest, test_initialize4) {
   GraphId graph_id2 = 1;
   GraphNodePtr graph_node2 = MakeShared<ge::GraphNode>(graph_id2);
   ComputeGraphPtr compute_graph = MakeShared<ComputeGraph>("test_graph");
-  //ComputeGraphPtr compute_graph = CreateGraphWithVariableOutput();
+  // ComputeGraphPtr compute_graph = CreateGraphWithVariableOutput();
   auto ge_root_model = MakeShared<GeRootModel>();
   EXPECT_EQ(ge_root_model->Initialize(compute_graph), SUCCESS);
   ge_root_model->SetModelId(1);
@@ -1709,7 +1715,7 @@ TEST_F(UtestGraphManagerTest, test_InitDynamicParams2) {
   EXPECT_EQ(graph_manager.InitDynamicParams(compute_graph, graph_options), SUCCESS);
   graph_manager.options_.dynamic_node_type = 1;
   EXPECT_EQ(graph_manager.InitDynamicParams(compute_graph, graph_options), SUCCESS);
-  graph_manager.options_.input_shape = {1,2,3,4};
+  graph_manager.options_.input_shape = {1, 2, 3, 4};
   graph_manager.options_.dynamic_dims = {0};
   EXPECT_EQ(graph_manager.InitDynamicParams(compute_graph, graph_options), GRAPH_PARAM_INVALID);
 }
@@ -1847,47 +1853,24 @@ TEST_F(UtestGraphManagerTest, ResortAndUpdateMultiBatchContext) {
   DEF_GRAPH(dynamic_graph) {
     // dic order: data0 data1 data2 data3
     // topo order: data0 data3 data1 data2
-    auto data_0 = OP_CFG(DATA)
-                      .InCnt(1)
-                      .OutCnt(1)
-                      .Attr(ATTR_NAME_INDEX, 0)
-                      .TensorDesc(FORMAT_ND, DT_INT32, {-1, 4});
-    auto data_3 = OP_CFG(DATA)
-                      .InCnt(1)
-                      .OutCnt(1)
-                      .Attr(ATTR_NAME_INDEX, 1)
-                      .TensorDesc(FORMAT_ND, DT_INT32, {-1, -1, 2});
-    auto data_1 = OP_CFG(DATA)
-                      .InCnt(1)
-                      .OutCnt(1)
-                      .Attr(ATTR_NAME_INDEX, 2)
-                      .TensorDesc(FORMAT_ND, DT_INT32, {-1, 4});
-    auto data_2 = OP_CFG(DATA)
-                      .InCnt(1)
-                      .OutCnt(1)
-                      .Attr(ATTR_NAME_INDEX, 3)
-                      .TensorDesc(FORMAT_ND, DT_INT32, {-1, 4});
-    auto fake_type2_op1 = OP_CFG("FakeOpNpu")
-                              .InCnt(4)
-                              .OutCnt(1)
-                              .TensorDesc(FORMAT_ND, DT_INT32, {16});
-    auto net_output = OP_CFG(NETOUTPUT)
-                          .InCnt(1)
-                          .OutCnt(1)
-                          .TensorDesc(FORMAT_ND, DT_INT32, {-1});
+    auto data_0 = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 0).TensorDesc(FORMAT_ND, DT_INT32, {-1, 4});
+    auto data_3 = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 1).TensorDesc(FORMAT_ND, DT_INT32, {-1, -1, 2});
+    auto data_1 = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 2).TensorDesc(FORMAT_ND, DT_INT32, {-1, 4});
+    auto data_2 = OP_CFG(DATA).InCnt(1).OutCnt(1).Attr(ATTR_NAME_INDEX, 3).TensorDesc(FORMAT_ND, DT_INT32, {-1, 4});
+    auto fake_type2_op1 = OP_CFG("FakeOpNpu").InCnt(4).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {16});
+    auto net_output = OP_CFG(NETOUTPUT).InCnt(1).OutCnt(1).TensorDesc(FORMAT_ND, DT_INT32, {-1});
 
     CHAIN(NODE("data_0", data_0)->NODE("fused_op1", fake_type2_op1)->NODE("Node_Output", net_output));
     CHAIN(NODE("data_3", data_3)->NODE("fused_op1", fake_type2_op1));
     CHAIN(NODE("data_1", data_1)->NODE("fused_op1", fake_type2_op1));
     CHAIN(NODE("data_2", data_2)->NODE("fused_op1", fake_type2_op1));
-    GetLocalOmgContext().user_input_dims = {std::make_pair("a_input", vector<int64_t>{-1, 4}),
-                                            std::make_pair("b_input", vector<int64_t>{-1, 4}),
-                                            std::make_pair("c_input", vector<int64_t>{-1, -1, 2}),
-                                            std::make_pair("d_input", vector<int64_t>{-1, 4})};
+    GetLocalOmgContext().user_input_dims = {
+        std::make_pair("a_input", vector<int64_t>{-1, 4}), std::make_pair("b_input", vector<int64_t>{-1, 4}),
+        std::make_pair("c_input", vector<int64_t>{-1, -1, 2}), std::make_pair("d_input", vector<int64_t>{-1, 4})};
   };
 
   auto root_graph = ToComputeGraph(dynamic_graph);
-  (void) AttrUtils::SetStr(*root_graph, ATTR_NAME_SESSION_GRAPH_ID, "0");
+  (void)AttrUtils::SetStr(*root_graph, ATTR_NAME_SESSION_GRAPH_ID, "0");
   uint32_t graph_id = 1U;
   root_graph->SetGraphID(graph_id);
   auto graph_node = std::make_shared<GraphNode>(graph_id);
@@ -1962,8 +1945,7 @@ TEST_F(UtestGraphManagerTest, test_RunGraphWithStreamAsync1) {
   const std::vector<gert::Tensor> inputs;
   std::vector<gert::Tensor> outputs;
   rtStream_t stream = nullptr;
-  EXPECT_EQ(graph_manager.ExecuteGraphWithStreamAsync(graph_id, stream, inputs, outputs),
-            GE_GRAPH_GRAPH_NODE_NULL);
+  EXPECT_EQ(graph_manager.ExecuteGraphWithStreamAsync(graph_id, stream, inputs, outputs), GE_GRAPH_GRAPH_NODE_NULL);
 }
 
 TEST_F(UtestGraphManagerTest, test_ExecuteGraphWithStreamAsync1) {
@@ -1976,10 +1958,9 @@ TEST_F(UtestGraphManagerTest, test_ExecuteGraphWithStreamAsync1) {
   const std::vector<gert::Tensor> inputs;
   std::vector<gert::Tensor> outputs;
   rtStream_t stream = nullptr;
-  dlog_setlevel(0,1,0);
-  EXPECT_EQ(graph_manager.ExecuteGraphWithStreamAsync(graph_id, stream, inputs, outputs),
-            GE_GRAPH_GRAPH_NODE_NULL);
-  dlog_setlevel(0,3,0);
+  dlog_setlevel(0, 1, 0);
+  EXPECT_EQ(graph_manager.ExecuteGraphWithStreamAsync(graph_id, stream, inputs, outputs), GE_GRAPH_GRAPH_NODE_NULL);
+  dlog_setlevel(0, 3, 0);
 }
 
 TEST_F(UtestGraphManagerTest, test_ExecuteGraphWithStreamAsync2) {
@@ -1993,8 +1974,7 @@ TEST_F(UtestGraphManagerTest, test_ExecuteGraphWithStreamAsync2) {
   const std::vector<gert::Tensor> inputs;
   std::vector<gert::Tensor> outputs;
   rtStream_t stream = nullptr;
-  EXPECT_EQ(graph_manager.ExecuteGraphWithStreamAsync(graph_id, stream, inputs, outputs),
-            GE_GRAPH_ALREADY_RUNNING);
+  EXPECT_EQ(graph_manager.ExecuteGraphWithStreamAsync(graph_id, stream, inputs, outputs), GE_GRAPH_ALREADY_RUNNING);
 }
 
 TEST_F(UtestGraphManagerTest, test_RunGraphWithStreamAsync2) {
@@ -2008,8 +1988,7 @@ TEST_F(UtestGraphManagerTest, test_RunGraphWithStreamAsync2) {
   const std::vector<gert::Tensor> inputs;
   std::vector<gert::Tensor> outputs;
   rtStream_t stream = nullptr;
-  EXPECT_EQ(graph_manager.ExecuteGraphWithStreamAsync(graph_id, stream, inputs, outputs),
-            GE_GRAPH_ALREADY_RUNNING);
+  EXPECT_EQ(graph_manager.ExecuteGraphWithStreamAsync(graph_id, stream, inputs, outputs), GE_GRAPH_ALREADY_RUNNING);
 }
 
 TEST_F(UtestGraphManagerTest, test_ExecuteGraphWithStreamAsync3) {
@@ -2031,7 +2010,7 @@ TEST_F(UtestGraphManagerTest, test_ExecuteGraphWithStreamAsync3) {
   graph_manager.AddGraphNode(graph_id, graph_node);
   const std::vector<gert::Tensor> inputs;
   std::vector<gert::Tensor> outputs;
-  rtStream_t stream = (void*)0x01;
+  rtStream_t stream = (void *)0x01;
   EXPECT_EQ(graph_manager.ExecuteGraphWithStreamAsync(graph_id, stream, inputs, outputs), SUCCESS);
 }
 
@@ -2043,8 +2022,7 @@ TEST_F(UtestGraphManagerTest, test_ExecuteGraphWithStreamAsync4) {
   const std::vector<gert::Tensor> inputs;
   std::vector<gert::Tensor> outputs;
   rtStream_t stream = nullptr;
-  EXPECT_EQ(graph_manager.ExecuteGraphWithStreamAsync(graph_id, stream, inputs, outputs),
-            GE_GRAPH_GRAPH_NOT_EXIST);
+  EXPECT_EQ(graph_manager.ExecuteGraphWithStreamAsync(graph_id, stream, inputs, outputs), GE_GRAPH_GRAPH_NOT_EXIST);
 }
 
 TEST_F(UtestGraphManagerTest, test_ExecuteGraphWithStreamAsync_without_executor) {
@@ -2066,7 +2044,7 @@ TEST_F(UtestGraphManagerTest, test_ExecuteGraphWithStreamAsync_without_executor)
   graph_manager.AddGraphNode(graph_id, graph_node);
   const std::vector<gert::Tensor> inputs;
   std::vector<gert::Tensor> outputs;
-  rtStream_t stream = (void*)0x01;
+  rtStream_t stream = (void *)0x01;
   graph_manager.options_.run_graph_flag = true;
   // load graph fail
   EXPECT_NE(graph_manager.ExecuteGraphWithStreamAsync(graph_id, stream, inputs, outputs), SUCCESS);
@@ -2091,7 +2069,7 @@ TEST_F(UtestGraphManagerTest, test_RunGraphWithStreamAsync3) {
   graph_manager.AddGraphNode(graph_id, graph_node);
   const std::vector<gert::Tensor> inputs;
   std::vector<gert::Tensor> outputs;
-  rtStream_t stream = (void*)0x01;
+  rtStream_t stream = (void *)0x01;
   EXPECT_EQ(graph_manager.ExecuteGraphWithStreamAsync(graph_id, stream, inputs, outputs), SUCCESS);
 }
 
@@ -2113,15 +2091,14 @@ TEST_F(UtestGraphManagerTest, test_ExecuteGraphWithStreamAsync) {
   graph_node->SetGeRootModel(ge_root_model);
   graph_manager.AddGraphNode(graph_id, graph_node);
 
-  rtStream_t stream = (void*)0x01;
+  rtStream_t stream = (void *)0x01;
   auto shared_model = MakeShared<DavinciModel>(0, nullptr);
   uint32_t davinci_model_id = 0U;
   ModelManager::GetInstance().InsertModel(davinci_model_id, shared_model);
-  //EXPECT_EQ(graph_manager.ExecuteGraphWithStreamAsync(graph_id, stream, inputs, outputs), SUCCESS);
+  // EXPECT_EQ(graph_manager.ExecuteGraphWithStreamAsync(graph_id, stream, inputs, outputs), SUCCESS);
   const std::vector<gert::Tensor> gert_inputs;
   std::vector<gert::Tensor> gert_outputs;
-  EXPECT_EQ(graph_manager.ExecuteGraphWithStreamAsync(graph_id, stream,
-            gert_inputs, gert_outputs), SUCCESS);
+  EXPECT_EQ(graph_manager.ExecuteGraphWithStreamAsync(graph_id, stream, gert_inputs, gert_outputs), SUCCESS);
 }
 
 TEST_F(UtestGraphManagerTest, test_ExecuteGraphWithStreamAsyncHybridModel) {
@@ -2142,13 +2119,12 @@ TEST_F(UtestGraphManagerTest, test_ExecuteGraphWithStreamAsyncHybridModel) {
   graph_node->SetGeRootModel(ge_root_model);
   graph_manager.AddGraphNode(graph_id, graph_node);
 
-  rtStream_t stream = (void*)0x01;
+  rtStream_t stream = (void *)0x01;
   ModelManager::GetInstance().hybrid_model_map_[0] = std::make_shared<hybrid::HybridDavinciModel>();
-  //EXPECT_EQ(graph_manager.ExecuteGraphWithStreamAsync(graph_id, stream, inputs, outputs), SUCCESS);
+  // EXPECT_EQ(graph_manager.ExecuteGraphWithStreamAsync(graph_id, stream, inputs, outputs), SUCCESS);
   const std::vector<gert::Tensor> gert_inputs;
   std::vector<gert::Tensor> gert_outputs;
-  EXPECT_EQ(graph_manager.ExecuteGraphWithStreamAsync(graph_id, stream,
-            gert_inputs, gert_outputs), SUCCESS);
+  EXPECT_EQ(graph_manager.ExecuteGraphWithStreamAsync(graph_id, stream, gert_inputs, gert_outputs), SUCCESS);
 }
 
 TEST_F(UtestGraphManagerTest, test_GenerateInfershapeGraph1) {
@@ -2190,7 +2166,8 @@ TEST_F(UtestGraphManagerTest, test_BuildGraphForUnregisteredOp1) {
   auto ge_root_model = MakeShared<GeRootModel>();
   EXPECT_NE(ge_root_model, nullptr);
   ge_root_model->Initialize(compute_graph);
-  EXPECT_EQ(graph_manager.BuildGraphForUnregisteredOp(graph_id, inputs, ge_root_model, session_id), GE_GRAPH_GRAPH_NOT_EXIST);
+  EXPECT_EQ(graph_manager.BuildGraphForUnregisteredOp(graph_id, inputs, ge_root_model, session_id),
+            GE_GRAPH_GRAPH_NOT_EXIST);
 }
 
 TEST_F(UtestGraphManagerTest, test_BuildGraphForUnregisteredOp2) {
@@ -2206,7 +2183,8 @@ TEST_F(UtestGraphManagerTest, test_BuildGraphForUnregisteredOp2) {
   auto ge_root_model = MakeShared<GeRootModel>();
   EXPECT_NE(ge_root_model, nullptr);
   ge_root_model->Initialize(compute_graph);
-  EXPECT_EQ(graph_manager.BuildGraphForUnregisteredOp(graph_id, inputs, ge_root_model, session_id), GE_GRAPH_GRAPH_NODE_NULL);
+  EXPECT_EQ(graph_manager.BuildGraphForUnregisteredOp(graph_id, inputs, ge_root_model, session_id),
+            GE_GRAPH_GRAPH_NODE_NULL);
 }
 
 TEST_F(UtestGraphManagerTest, test_BuildGraphForUnregisteredOp3) {
@@ -2225,7 +2203,8 @@ TEST_F(UtestGraphManagerTest, test_BuildGraphForUnregisteredOp3) {
   auto ge_root_model = MakeShared<GeRootModel>();
   EXPECT_NE(ge_root_model, nullptr);
   ge_root_model->Initialize(compute_graph);
-  EXPECT_EQ(graph_manager.BuildGraphForUnregisteredOp(graph_id, inputs, ge_root_model, session_id), GE_GRAPH_INIT_FAILED);
+  EXPECT_EQ(graph_manager.BuildGraphForUnregisteredOp(graph_id, inputs, ge_root_model, session_id),
+            GE_GRAPH_INIT_FAILED);
 }
 
 TEST_F(UtestGraphManagerTest, test_BuildGraph1) {
@@ -2590,8 +2569,10 @@ TEST_F(UtestGraphManagerTest, test_prerunthread_failed_2) {
   args->session_id = 1;
   args->error_context = error_ctx;
   args->context = GetThreadLocalContext();
-  args->callback = [&st, &graph_manager](Status st_return, std::vector<gert::Tensor> &) { st = st_return;
-      graph_manager.thread_run_flag_ = false;};
+  args->callback = [&st, &graph_manager](Status st_return, std::vector<gert::Tensor> &) {
+    st = st_return;
+    graph_manager.thread_run_flag_ = false;
+  };
   // create graph
   Graph graph = GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
   std::shared_ptr<Graph> graph_ptr = MakeShared<ge::Graph>(graph);
@@ -2732,8 +2713,7 @@ TEST_F(UtestGraphManagerTest, test_prerunthread_success_1) {
     ASSERT_EQ(executor.Initialize({}, session_id), SUCCESS);
     graph_manager.executor_ = &executor;
     // Callback for execute.
-    const RunAsyncCallbackV2 callback = [&](Status status, std::vector<gert::Tensor> &outputs) {
-    };
+    const RunAsyncCallbackV2 callback = [&](Status status, std::vector<gert::Tensor> &outputs) {};
     arg->callback = callback;
     bool ret = graph_manager.prerun_args_v2_q_.Push(arg);
     EXPECT_EQ(ret, true);
@@ -2748,7 +2728,6 @@ TEST_F(UtestGraphManagerTest, test_prerunthread_success_1) {
     t1.join();
     ASSERT_EQ(executor.Finalize(), SUCCESS);
   }
-
 }
 // TEST_F(UtestGraphManagerTest, ParseInputsDimsForGetNexNosinkAndData_success) {
 //   GraphManager graph_manager;
@@ -2887,7 +2866,7 @@ TEST_F(UtestGraphManagerTest, test_set_run_context) {
   GraphManager graph_manager;
 
   GetLocalOmgContext().dynamic_dims = "1;4;8;16";
-  GetLocalOmgContext().batch_shapes = {{1},{4},{8},{16}};
+  GetLocalOmgContext().batch_shapes = {{1}, {4}, {8}, {16}};
   EXPECT_EQ(graph_manager.SetRunContext(graph_node), SUCCESS);
   EXPECT_EQ(graph_node->context_.dynamic_shape_dims.size(), 4);
   EXPECT_EQ(graph_node->context_.dynamic_shape_dims[0], std::vector<int32_t>{1});
@@ -3023,7 +3002,8 @@ TEST_F(UtestGraphManagerTest, test_CompileGraph) {
   graph_node->SetGraph(graph);
   EXPECT_NE(graph_manager.CompileGraph(graph_id, session_id, std::vector<ge::Tensor>{}), SUCCESS);
   graph_node->SetBuildFlag(true);
-  EXPECT_EQ(graph_manager.CompileGraph(graph_id, session_id, std::vector<ge::Tensor>{}), SUCCESS); // repeate compile success
+  EXPECT_EQ(graph_manager.CompileGraph(graph_id, session_id, std::vector<ge::Tensor>{}),
+            SUCCESS);  // repeate compile success
 }
 
 TEST_F(UtestGraphManagerTest, CompileGraph_Error_StateInvalid) {
@@ -3060,7 +3040,8 @@ TEST_F(UtestGraphManagerTest, CompileGraph_Error_StateInvalid) {
 
   gert::GertRuntimeStub stub;
   EXPECT_NE(graph_manager.CompileGraph(graph_id, session_id, {}), SUCCESS);
-  auto log_check = stub.GetSlogStub().FindLog(DLOG_ERROR, "need to re-build, you should remove it from GE first, then AddGraph again and re-compile it");
+  auto log_check = stub.GetSlogStub().FindLog(
+      DLOG_ERROR, "need to re-build, you should remove it from GE first, then AddGraph again and re-compile it");
   EXPECT_NE(log_check, -1);
 }
 
@@ -3092,10 +3073,10 @@ void CreateSummaryCompiledModel(GraphNodePtr &graph_node, GeModelPtr &ge_model, 
   uint64_t mem = 0UL;
   std::vector<std::vector<int64_t>> sub_mem_infos;
   std::vector<int64_t> sub_mem_offset;
-  sub_mem_offset.emplace_back(0x2U);// mem_type RT_MEMORY_HBM 0x2U
-  sub_mem_offset.emplace_back((int64_t)(&mem));// mem_offset_base
-  sub_mem_offset.emplace_back(sizeof(mem)); // mem_size
-  sub_mem_offset.emplace_back(1UL); // is_fixed_addr_prior
+  sub_mem_offset.emplace_back(0x2U);             // mem_type RT_MEMORY_HBM 0x2U
+  sub_mem_offset.emplace_back((int64_t)(&mem));  // mem_offset_base
+  sub_mem_offset.emplace_back(sizeof(mem));      // mem_size
+  sub_mem_offset.emplace_back(1UL);              // is_fixed_addr_prior
   sub_mem_infos.emplace_back(sub_mem_offset);
   AttrUtils::SetListListInt(ge_model, ATTR_MODEL_SUB_MEMORY_INFO, sub_mem_infos);
 
@@ -3125,7 +3106,7 @@ TEST_F(UtestGraphManagerTest, ExecuteGraphWithStreamAsync_graph_not_build) {
   Graph graph = GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
   std::shared_ptr<Graph> graph_ptr = MakeShared<ge::Graph>(graph);
   graph_node->SetGraph(graph_ptr);
-  void* stream = (void *)0x10;
+  void *stream = (void *)0x10;
   graph_node->SetBuildFlag(false);
   EXPECT_EQ(graph_manager.ExecuteGraphWithStreamAsync(graph_id, stream, inputs, outputs), ge::PARAM_INVALID);
   // // not load
@@ -3153,7 +3134,7 @@ TEST_F(UtestGraphManagerTest, ExecuteGraphWithStreamAsync_external_allocator_inv
   Graph graph = GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
   std::shared_ptr<Graph> graph_ptr = MakeShared<ge::Graph>(graph);
   graph_node->SetGraph(graph_ptr);
-  void* stream = (void *)0x10;
+  void *stream = (void *)0x10;
   ExternalAllocatorManager::SetExternalAllocator(stream, external_allocator);
   graph_manager.LoadGraph(graph_id, {}, stream);
   EXPECT_NE(graph_manager.ExecuteGraphWithStreamAsync(graph_id, stream, inputs, outputs), SUCCESS);
@@ -3375,7 +3356,8 @@ TEST_F(UtestGraphManagerTest, LoadGraph_with_frozen_inputs_addr_out_of_range) {
   std::shared_ptr<Graph> graph_ptr = MakeShared<ge::Graph>(graph);
   graph_node->SetGraph(graph_ptr);
   graph_manager.options_.run_graph_flag = true;
-  graph_options_new["ge.exec.frozenInputIndexes"] = "1,999999999999999999999999999999999999999999999999999999999999999999999999999999999,8";
+  graph_options_new["ge.exec.frozenInputIndexes"] =
+      "1,999999999999999999999999999999999999999999999999999999999999999999999999999999999,8";
   GetThreadLocalContext().SetGraphOption(graph_options_new);
   graph_node->GetGeRootModel()->SetRootGraph(compute_graph);
   StubExecutor executor;
@@ -3537,7 +3519,7 @@ TEST_F(UtestGraphManagerTest, RunGraphWithStreamAsync_external_allocator_invalid
   Graph graph = GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
   std::shared_ptr<Graph> graph_ptr = MakeShared<ge::Graph>(graph);
   graph_node->SetGraph(graph_ptr);
-  void* stream = (void *)0x10;
+  void *stream = (void *)0x10;
   ExternalAllocatorManager::SetExternalAllocator(stream, external_allocator);
   EXPECT_NE(graph_manager.ExecuteGraphWithStreamAsync(graph_id, stream, inputs, outputs), SUCCESS);
 }
@@ -3555,8 +3537,10 @@ TEST_F(UtestGraphManagerTest, SetFixedFeatureMemoryBase_Twice_Failed) {
   StubExecutor executor;
   graph_manager.executor_ = &executor;
   uint64_t mem = 0UL;
-  EXPECT_EQ(graph_manager.SetFixedFeatureMemoryBase(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, &mem, sizeof(mem)), SUCCESS);
-  EXPECT_EQ(graph_manager.SetFixedFeatureMemoryBase(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, &mem, sizeof(mem)), GE_GRAPH_REPEAT_OPERATION);
+  EXPECT_EQ(graph_manager.SetFixedFeatureMemoryBase(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, &mem, sizeof(mem)),
+            SUCCESS);
+  EXPECT_EQ(graph_manager.SetFixedFeatureMemoryBase(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, &mem, sizeof(mem)),
+            GE_GRAPH_REPEAT_OPERATION);
 }
 
 TEST_F(UtestGraphManagerTest, SetFixedFeatureMemoryBase_AddressNullAndSizeZero_Success) {
@@ -3586,7 +3570,8 @@ TEST_F(UtestGraphManagerTest, SetFixedFeatureMemoryBaseP2p_AddressNullAndSizeZer
   graph_node->SetCompiledFlag(true);
   StubExecutor executor;
   graph_manager.executor_ = &executor;
-  EXPECT_EQ(graph_manager.SetFixedFeatureMemoryBase(graph_id, MemoryType::MEMORY_TYPE_P2P, nullptr, 0), GE_GRAPH_UNSUPPORTED);
+  EXPECT_EQ(graph_manager.SetFixedFeatureMemoryBase(graph_id, MemoryType::MEMORY_TYPE_P2P, nullptr, 0),
+            GE_GRAPH_UNSUPPORTED);
 }
 
 TEST_F(UtestGraphManagerTest, SetFixedFeatureMemoryBase_AddressNullAndSizeNotZero_Success) {
@@ -3601,7 +3586,8 @@ TEST_F(UtestGraphManagerTest, SetFixedFeatureMemoryBase_AddressNullAndSizeNotZer
   graph_node->SetCompiledFlag(true);
   StubExecutor executor;
   graph_manager.executor_ = &executor;
-  EXPECT_EQ(graph_manager.SetFixedFeatureMemoryBase(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, nullptr, 8), PARAM_INVALID);
+  EXPECT_EQ(graph_manager.SetFixedFeatureMemoryBase(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, nullptr, 8),
+            PARAM_INVALID);
 }
 
 TEST_F(UtestGraphManagerTest, SetFixedFeatureMemoryBase_MemoryTypeInvalid_Failed) {
@@ -3740,7 +3726,8 @@ TEST_F(UtestGraphManagerTest, UpdateFeatureMemoryBase_invalid) {
   EXPECT_EQ(graph_manager.UpdateFeatureMemoryBase(graph_id, &mem, 0), PARAM_INVALID);
 
   const auto ge_root_model = graph_node->GetGeRootModel();
-  ge_root_model->MutableFixedFeatureMemory().insert({RT_MEMORY_HBM, {RT_MEMORY_HBM, &mem, sizeof(mem), true, false, false, 0U, nullptr}});
+  ge_root_model->MutableFixedFeatureMemory().insert(
+      {RT_MEMORY_HBM, {RT_MEMORY_HBM, &mem, sizeof(mem), true, false, false, 0U, nullptr}});
   EXPECT_EQ(graph_manager.UpdateFeatureMemoryBase(graph_id, nullptr, 0), GE_GRAPH_UNSUPPORTED);
 
   graph_node->SetRunFlag(true);
@@ -3761,7 +3748,7 @@ TEST_F(UtestGraphManagerTest, UpdateFeatureMemoryBase_success) {
 
   std::vector<uint8_t> mem(1024, 0);
   EXPECT_EQ(graph_manager.UpdateFeatureMemoryBase(graph_id, mem.data(), 1024), SUCCESS);
-  EXPECT_EQ(graph_manager.UpdateFeatureMemoryBase(graph_id, mem.data(), 1024), SUCCESS); // allow multi update
+  EXPECT_EQ(graph_manager.UpdateFeatureMemoryBase(graph_id, mem.data(), 1024), SUCCESS);  // allow multi update
   auto queryed = graph_node->GetFeatureMemoryBase();
   EXPECT_EQ(queryed.first, mem.data());
   EXPECT_EQ(queryed.second, 1024);
@@ -3793,7 +3780,7 @@ TEST_F(UtestGraphManagerTest, UpdateFeatureMemoryBase_unrefreshable) {
   auto queryed = graph_node->GetFeatureMemoryBase();
   EXPECT_EQ(queryed.first, mem.data());
   EXPECT_EQ(queryed.second, 1024);
-  EXPECT_NE(graph_manager.UpdateFeatureMemoryBase(graph_id, mem.data(), 1024), SUCCESS); // not allow multi update
+  EXPECT_NE(graph_manager.UpdateFeatureMemoryBase(graph_id, mem.data(), 1024), SUCCESS);  // not allow multi update
 
   graph_node->SetLoadFlag(true);
   EXPECT_NE(graph_manager.UpdateFeatureMemoryBase(graph_id, mem.data(), 1024), SUCCESS);
@@ -3812,26 +3799,34 @@ TEST_F(UtestGraphManagerTest, SetFixedFeatureMemoryBase_invalid) {
   const auto &ge_root_model = graph_node->GetGeRootModel();
   EXPECT_NE(ge_root_model, nullptr);
 
-  EXPECT_EQ(graph_manager.SetFixedFeatureMemoryBase(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, nullptr, 0), GE_GRAPH_NOT_BUILT);
+  EXPECT_EQ(graph_manager.SetFixedFeatureMemoryBase(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, nullptr, 0),
+            GE_GRAPH_NOT_BUILT);
   uint64_t mem = 0UL;
   graph_node->SetBuildFlag(true);
   graph_node->SetCompiledFlag(true);
-  EXPECT_EQ(graph_manager.SetFixedFeatureMemoryBase(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, nullptr, 12), PARAM_INVALID);
+  EXPECT_EQ(graph_manager.SetFixedFeatureMemoryBase(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, nullptr, 12),
+            PARAM_INVALID);
 
-  ge_root_model->MutableFixedFeatureMemory().insert({RT_MEMORY_HBM, {RT_MEMORY_HBM, &mem, sizeof(mem), true, false, false, 0U, nullptr}});
-  EXPECT_EQ(graph_manager.SetFixedFeatureMemoryBase(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, &mem, sizeof(mem)), GE_GRAPH_REPEAT_OPERATION);
+  ge_root_model->MutableFixedFeatureMemory().insert(
+      {RT_MEMORY_HBM, {RT_MEMORY_HBM, &mem, sizeof(mem), true, false, false, 0U, nullptr}});
+  EXPECT_EQ(graph_manager.SetFixedFeatureMemoryBase(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, &mem, sizeof(mem)),
+            GE_GRAPH_REPEAT_OPERATION);
 
   graph_node->SetFeatureMemoryBase(&mem, sizeof(mem));
-  EXPECT_EQ(graph_manager.SetFixedFeatureMemoryBase(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, &mem, sizeof(mem)), GE_GRAPH_UNSUPPORTED);
+  EXPECT_EQ(graph_manager.SetFixedFeatureMemoryBase(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, &mem, sizeof(mem)),
+            GE_GRAPH_UNSUPPORTED);
 
   graph_node->SetLoadFlag(true);
-  EXPECT_EQ(graph_manager.SetFixedFeatureMemoryBase(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, &mem, sizeof(mem)), GE_GRAPH_UNSUPPORTED);
+  EXPECT_EQ(graph_manager.SetFixedFeatureMemoryBase(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, &mem, sizeof(mem)),
+            GE_GRAPH_UNSUPPORTED);
 
   graph_node->SetRunFlag(true);
-  EXPECT_EQ(graph_manager.SetFixedFeatureMemoryBase(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, &mem, sizeof(mem)), GE_GRAPH_GRAPH_IS_RUNNING);
+  EXPECT_EQ(graph_manager.SetFixedFeatureMemoryBase(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, &mem, sizeof(mem)),
+            GE_GRAPH_GRAPH_IS_RUNNING);
 }
 
-TEST_F(UtestGraphManagerTest, SetFixedFeatureMemoryBaseWithMemoryTypeDefault_Failed_WhenUpdateGraphFeatureMemoryBaseIsCalled) {
+TEST_F(UtestGraphManagerTest,
+       SetFixedFeatureMemoryBaseWithMemoryTypeDefault_Failed_WhenUpdateGraphFeatureMemoryBaseIsCalled) {
   GraphId graph_id = 1;
   GraphManager graph_manager;
   StubExecutor executor;
@@ -3848,10 +3843,12 @@ TEST_F(UtestGraphManagerTest, SetFixedFeatureMemoryBaseWithMemoryTypeDefault_Fai
   graph_node->SetCompiledFlag(true);
   std::vector<uint8_t> mem2(1024, 0);
   EXPECT_EQ(graph_manager.UpdateFeatureMemoryBase(graph_id, mem2.data(), 1024), SUCCESS);
-  EXPECT_EQ(graph_manager.SetFixedFeatureMemoryBase(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, &mem, 8), GE_GRAPH_UNSUPPORTED);
+  EXPECT_EQ(graph_manager.SetFixedFeatureMemoryBase(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, &mem, 8),
+            GE_GRAPH_UNSUPPORTED);
 }
 
-TEST_F(UtestGraphManagerTest, SetFixedFeatureMemoryBaseWithMemoryTypeP2p_Success_WhenUpdateGraphFeatureMemoryBaseIsCalled) {
+TEST_F(UtestGraphManagerTest,
+       SetFixedFeatureMemoryBaseWithMemoryTypeP2p_Success_WhenUpdateGraphFeatureMemoryBaseIsCalled) {
   GraphId graph_id = 1;
   GraphManager graph_manager;
   StubExecutor executor;
@@ -3940,7 +3937,8 @@ TEST_F(UtestGraphManagerTest, SetFixedFeatureMemoryBase_success) {
   graph_node->SetCompiledFlag(true);
 
   uint64_t mem = 0UL;
-  EXPECT_EQ(graph_manager.SetFixedFeatureMemoryBase(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, &mem, sizeof(mem)), SUCCESS);
+  EXPECT_EQ(graph_manager.SetFixedFeatureMemoryBase(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, &mem, sizeof(mem)),
+            SUCCESS);
   const auto ge_root_model = graph_node->GetGeRootModel();
   EXPECT_NE(ge_root_model, nullptr);
   auto queryed = ge_root_model->GetFixedFeatureMemory();
@@ -3969,7 +3967,8 @@ TEST_F(UtestGraphManagerTest, UpdateRefreshableFeatureMemoryBase_invalid) {
 
   const auto ge_root_model = graph_node->GetGeRootModel();
   EXPECT_NE(ge_root_model, nullptr);
-  ge_root_model->MutableFixedFeatureMemory().insert({RT_MEMORY_HBM, {RT_MEMORY_HBM, &mem, sizeof(mem), true, false, false, 0U, nullptr}});
+  ge_root_model->MutableFixedFeatureMemory().insert(
+      {RT_MEMORY_HBM, {RT_MEMORY_HBM, &mem, sizeof(mem), true, false, false, 0U, nullptr}});
   EXPECT_EQ(graph_manager.UpdateRefreshableFeatureMemoryBase(graph_id, &mem, 0), PARAM_INVALID);
 
   graph_node->SetRunFlag(true);
@@ -3991,11 +3990,13 @@ TEST_F(UtestGraphManagerTest, UpdateRefreshableFeatureMemoryBase_success) {
   const auto ge_root_model = graph_node->GetGeRootModel();
   EXPECT_NE(ge_root_model, nullptr);
   uint64_t fixmem = 0;
-  ge_root_model->MutableFixedFeatureMemory().insert({RT_MEMORY_HBM, {RT_MEMORY_HBM, &fixmem, sizeof(fixmem), true, false, false, 0U, nullptr}});
+  ge_root_model->MutableFixedFeatureMemory().insert(
+      {RT_MEMORY_HBM, {RT_MEMORY_HBM, &fixmem, sizeof(fixmem), true, false, false, 0U, nullptr}});
 
   std::vector<uint8_t> mem(1024, 0);
   EXPECT_EQ(graph_manager.UpdateRefreshableFeatureMemoryBase(graph_id, mem.data(), 1024), SUCCESS);
-  EXPECT_EQ(graph_manager.UpdateRefreshableFeatureMemoryBase(graph_id, mem.data(), 1024), SUCCESS); // allow multi update
+  EXPECT_EQ(graph_manager.UpdateRefreshableFeatureMemoryBase(graph_id, mem.data(), 1024),
+            SUCCESS);  // allow multi update
   auto queryed = graph_node->GetRefreshableFeatureMemoryBase();
   EXPECT_EQ(queryed.first, mem.data());
   EXPECT_EQ(queryed.second, 1024);
@@ -4025,13 +4026,15 @@ TEST_F(UtestGraphManagerTest, UpdateRefreshableFeatureMemoryBase_unrefreshable) 
   const auto ge_root_model = graph_node->GetGeRootModel();
   EXPECT_NE(ge_root_model, nullptr);
   uint64_t fixmem = 0;
-  ge_root_model->MutableFixedFeatureMemory().insert({RT_MEMORY_HBM, {RT_MEMORY_HBM, &fixmem, sizeof(fixmem), true, false, false, 0U, nullptr}});
+  ge_root_model->MutableFixedFeatureMemory().insert(
+      {RT_MEMORY_HBM, {RT_MEMORY_HBM, &fixmem, sizeof(fixmem), true, false, false, 0U, nullptr}});
   std::vector<uint8_t> mem(1024, 0);
   EXPECT_EQ(graph_manager.UpdateRefreshableFeatureMemoryBase(graph_id, mem.data(), 1024), SUCCESS);
   auto queryed = graph_node->GetRefreshableFeatureMemoryBase();
   EXPECT_EQ(queryed.first, mem.data());
   EXPECT_EQ(queryed.second, 1024);
-  EXPECT_NE(graph_manager.UpdateRefreshableFeatureMemoryBase(graph_id, mem.data(), 1024), SUCCESS); // not allow multi update
+  EXPECT_NE(graph_manager.UpdateRefreshableFeatureMemoryBase(graph_id, mem.data(), 1024),
+            SUCCESS);  // not allow multi update
 
   graph_node->SetLoadFlag(true);
   EXPECT_NE(graph_manager.UpdateRefreshableFeatureMemoryBase(graph_id, mem.data(), 1024), SUCCESS);
@@ -4150,7 +4153,7 @@ TEST_F(UtestGraphManagerTest, GetCompiledGraphSummary_success) {
   }
 
   {
-    //check outputshapes
+    // check outputshapes
     std::vector<ge::Shape> shapes;
     EXPECT_EQ(summary->GetOutputShapes(shapes), SUCCESS);
     EXPECT_EQ(summary->GetOutputShapes(shapes), SUCCESS);
@@ -4164,7 +4167,7 @@ TEST_F(UtestGraphManagerTest, GetCompiledGraphSummary_success) {
   }
 
   {
-    //check ioindex
+    // check ioindex
     std::vector<std::pair<uint32_t, uint32_t>> io_indexes;
     EXPECT_EQ(summary->GetIOIndexesWithSameAddr(io_indexes), SUCCESS);
     EXPECT_EQ(io_indexes.size(), 1U);
@@ -4352,7 +4355,7 @@ TEST_F(UtestGraphManagerTest, GetCompiledGraphSummary_failed) {
   }
 
   {
-    //check outputshapes
+    // check outputshapes
     std::vector<ge::Shape> shapes;
     EXPECT_EQ(summary->GetOutputShapes(shapes), FAILED);
     EXPECT_EQ(shapes.size(), 0U);
@@ -4362,7 +4365,7 @@ TEST_F(UtestGraphManagerTest, GetCompiledGraphSummary_failed) {
   }
 
   {
-    //check ioindex
+    // check ioindex
     std::vector<std::pair<uint32_t, uint32_t>> io_indexes;
     EXPECT_EQ(summary->GetIOIndexesWithSameAddr(io_indexes), FAILED);
     EXPECT_EQ(io_indexes.size(), 0U);
@@ -4390,7 +4393,7 @@ TEST_F(UtestGraphManagerTest, SetIOIndexesWithSameAddr_Success_IoOffsetIsInconsi
   netoutput->GetOpDesc()->SetInputOffset({1});
   EXPECT_EQ(graph_manager.GetCompiledGraphSummary(graph_id, summary), SUCCESS);
   {
-    //check ioindex
+    // check ioindex
     std::vector<std::pair<uint32_t, uint32_t>> io_indexes;
     EXPECT_EQ(summary->GetIOIndexesWithSameAddr(io_indexes), SUCCESS);
     EXPECT_EQ(io_indexes.size(), 0U);
@@ -4411,7 +4414,7 @@ TEST_F(UtestGraphManagerTest, SetIOIndexesWithSameAddr_Success_OneInputAndTwoOut
   CompiledGraphSummaryPtr summary = nullptr;
   EXPECT_EQ(graph_manager.GetCompiledGraphSummary(graph_id, summary), SUCCESS);
   {
-    //check ioindex
+    // check ioindex
     std::vector<std::pair<uint32_t, uint32_t>> io_indexes;
     EXPECT_EQ(summary->GetIOIndexesWithSameAddr(io_indexes), SUCCESS);
     EXPECT_EQ(io_indexes.size(), 2);
@@ -4436,13 +4439,12 @@ TEST_F(UtestGraphManagerTest, SetIOIndexesWithSameAddr_Success_TwoInputsAndOneOu
   CompiledGraphSummaryPtr summary = nullptr;
   EXPECT_EQ(graph_manager.GetCompiledGraphSummary(graph_id, summary), SUCCESS);
   {
-    //check ioindex
+    // check ioindex
     std::vector<std::pair<uint32_t, uint32_t>> io_indexes;
     EXPECT_EQ(summary->GetIOIndexesWithSameAddr(io_indexes), SUCCESS);
     EXPECT_EQ(io_indexes.size(), 0U);
   }
 }
-
 
 TEST_F(UtestGraphManagerTest, SetIOIndexesWithSameAddr_Success_TwoInputsAndTwoOutputs) {
   GraphManager graph_manager;
@@ -4458,7 +4460,7 @@ TEST_F(UtestGraphManagerTest, SetIOIndexesWithSameAddr_Success_TwoInputsAndTwoOu
   CompiledGraphSummaryPtr summary = nullptr;
   EXPECT_EQ(graph_manager.GetCompiledGraphSummary(graph_id, summary), SUCCESS);
   {
-    //check ioindex
+    // check ioindex
     std::vector<std::pair<uint32_t, uint32_t>> io_indexes;
     EXPECT_EQ(summary->GetIOIndexesWithSameAddr(io_indexes), SUCCESS);
     EXPECT_EQ(io_indexes.size(), 2);
@@ -4487,7 +4489,7 @@ TEST_F(UtestGraphManagerTest, SetIOIndexesWithSameAddr_Success_InputOffsetIsEmpt
   data->GetOpDesc()->SetOutputOffset({});
   EXPECT_EQ(graph_manager.GetCompiledGraphSummary(graph_id, summary), SUCCESS);
   {
-    //check ioindex
+    // check ioindex
     std::vector<std::pair<uint32_t, uint32_t>> io_indexes;
     EXPECT_EQ(summary->GetIOIndexesWithSameAddr(io_indexes), SUCCESS);
     EXPECT_EQ(io_indexes.size(), 0U);
@@ -4512,7 +4514,7 @@ TEST_F(UtestGraphManagerTest, SetIOIndexesWithSameAddr_Success_OutputOffsetIsEmp
   netoutput->GetOpDesc()->SetInputOffset({});
   EXPECT_EQ(graph_manager.GetCompiledGraphSummary(graph_id, summary), SUCCESS);
   {
-    //check ioindex
+    // check ioindex
     std::vector<std::pair<uint32_t, uint32_t>> io_indexes;
     EXPECT_EQ(summary->GetIOIndexesWithSameAddr(io_indexes), SUCCESS);
     EXPECT_EQ(io_indexes.size(), 0U);
@@ -4603,7 +4605,7 @@ TEST_F(UtestGraphManagerTest, SetExternalWeightPaths_Success_SignalFileConstant)
   std::shared_ptr<CompiledGraphSummary::SummaryData> summary_data = MakeShared<CompiledGraphSummary::SummaryData>();
   auto status = summary_data->SetExternalWeightPaths(ge_model);
   EXPECT_EQ(status, SUCCESS);
-  const auto& paths = summary_data->GetExternalWeightPaths();
+  const auto &paths = summary_data->GetExternalWeightPaths();
   EXPECT_EQ(paths.size(), 1U);
   auto external_weight = paths[0];
   EXPECT_NE(external_weight, nullptr);
@@ -4768,7 +4770,7 @@ TEST_F(UtestGraphManagerTest, test_CompileGraph_NormalizeIO_with_input_storage_f
   EXPECT_EQ(output_desc_refdata->GetFormat(), FORMAT_NC1HWC0);
   std::vector<int64_t> refdata_storage_shape;
   AttrUtils::GetListInt(output_desc_refdata, ATTR_NAME_STORAGE_SHAPE, refdata_storage_shape);
-  //EXPECT_STREQ(ToString(refdata_storage_shape).c_str(), "[]");
+  // EXPECT_STREQ(ToString(refdata_storage_shape).c_str(), "[]");
   EXPECT_STREQ(output_desc_refdata->GetShape().ToString().c_str(), "1,1,4,5,16");
 
   auto netoutput = compute_graph->FindFirstNodeMatchType(NETOUTPUT);
@@ -4783,7 +4785,7 @@ TEST_F(UtestGraphManagerTest, test_CompileGraph_NormalizeIO_with_input_storage_f
   EXPECT_EQ(output_desc_netoutput->GetFormat(), FORMAT_NC1HWC0);
   std::vector<int64_t> netoutput_storage_shape;
   AttrUtils::GetListInt(output_desc_netoutput, ATTR_NAME_STORAGE_SHAPE, netoutput_storage_shape);
-  //EXPECT_STREQ(ToString(netoutput_storage_shape).c_str(), "[]");
+  // EXPECT_STREQ(ToString(netoutput_storage_shape).c_str(), "[]");
   EXPECT_STREQ(output_desc_netoutput->GetShape().ToString().c_str(), "1,1,4,5,16");
 
   graph_manager.Finalize();
@@ -4841,11 +4843,10 @@ TEST_F(UtestGraphManagerTest, test_CompileGraph_NormalizeIO_with_unexpect_output
   EXPECT_EQ(ret_add_graph, SUCCESS);
 
   const std::vector<gert::Tensor> inputs((2));
-  std::vector<gert::Tensor> outputs(2); // expect 1, got 2
+  std::vector<gert::Tensor> outputs(2);  // expect 1, got 2
 
   rtStream_t stream = nullptr;
-  EXPECT_NE(graph_manager.ExecuteGraphWithStreamAsync(graph_id, stream, inputs, outputs),
-            SUCCESS);
+  EXPECT_NE(graph_manager.ExecuteGraphWithStreamAsync(graph_id, stream, inputs, outputs), SUCCESS);
 
   graph_manager.Finalize();
   FinalizeGeLib();
@@ -5030,15 +5031,15 @@ TEST_F(UtestGraphManagerTest, UnfoldDynamicShapeGraph_Ok_MaxGraphParallelModelNu
 
 namespace {
 REG_OP(Cast)
-.INPUT(x, TensorType({DT_BOOL, DT_FLOAT16, DT_FLOAT, DT_INT8, DT_INT32, DT_UINT32, DT_UINT8, DT_INT64,
-                      DT_UINT64, DT_INT16, DT_UINT16, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128,
-                      DT_QINT8, DT_QUINT8, DT_QINT16, DT_QUINT16, DT_QINT32})) /* input tensor */
-.OUTPUT(y, TensorType({DT_BOOL, DT_FLOAT16, DT_FLOAT, DT_INT8, DT_INT32, DT_UINT32, DT_UINT8, DT_INT64,
-                       DT_UINT64, DT_INT16, DT_UINT16, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128,
-                       DT_QINT8, DT_QUINT8, DT_QINT16, DT_QUINT16, DT_QINT32})) /* output tensor */
-.ATTR(dst_type, Int, 0)
-.ATTR(truncate, Bool, false)
-.OP_END_FACTORY_REG(Cast)
+    .INPUT(x, TensorType({DT_BOOL, DT_FLOAT16, DT_FLOAT, DT_INT8, DT_INT32, DT_UINT32, DT_UINT8, DT_INT64, DT_UINT64,
+                          DT_INT16, DT_UINT16, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128, DT_QINT8, DT_QUINT8, DT_QINT16,
+                          DT_QUINT16, DT_QINT32})) /* input tensor */
+    .OUTPUT(y, TensorType({DT_BOOL, DT_FLOAT16, DT_FLOAT, DT_INT8, DT_INT32, DT_UINT32, DT_UINT8, DT_INT64, DT_UINT64,
+                           DT_INT16, DT_UINT16, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128, DT_QINT8, DT_QUINT8, DT_QINT16,
+                           DT_QUINT16, DT_QINT32})) /* output tensor */
+    .ATTR(dst_type, Int, 0)
+    .ATTR(truncate, Bool, false)
+    .OP_END_FACTORY_REG(Cast)
 }
 
 TEST_F(UtestGraphManagerTest, Autofuse_BasicGraph) {
@@ -5111,7 +5112,7 @@ TEST_F(UtestGraphManagerTest, Autofuse_GraphWithControlGraph) {
   auto input_node = graph->FindNode("input");
   ASSERT_NE(input_node, nullptr);
   auto input_op_desc = input_node->GetOpDesc();
-  ASSERT_NE(input_op_desc,  nullptr);
+  ASSERT_NE(input_op_desc, nullptr);
   input_op_desc->MutableInputDesc(0)->SetShape(GeShape({-1, -1, -1}));
   input_op_desc->MutableInputDesc(0)->SetOriginShape(GeShape({-1, -1, -1}));
   input_op_desc->MutableInputDesc(0)->SetDataType(DT_INT64);
@@ -5122,7 +5123,7 @@ TEST_F(UtestGraphManagerTest, Autofuse_GraphWithControlGraph) {
   auto pred_node = graph->FindNode("pred");
   ASSERT_NE(pred_node, nullptr);
   auto pred_op_desc = pred_node->GetOpDesc();
-  ASSERT_NE(pred_op_desc,  nullptr);
+  ASSERT_NE(pred_op_desc, nullptr);
   pred_op_desc->MutableInputDesc(0)->SetShape(GeShape());
   pred_op_desc->MutableInputDesc(0)->SetOriginShape(GeShape());
   pred_op_desc->MutableInputDesc(0)->SetDataType(DT_BOOL);
@@ -5196,10 +5197,7 @@ TEST_F(UtestGraphManagerTest, AutoFuse_BasicGraph_SingleOp) {
   unsetenv("LD_LIBRARY_PATH");
 }
 
-REG_OP(Abs)
-    .INPUT(x, TensorType::ALL())
-    .OUTPUT(y, TensorType::ALL())
-    .OP_END_FACTORY_REG(Abs);
+REG_OP(Abs).INPUT(x, TensorType::ALL()).OUTPUT(y, TensorType::ALL()).OP_END_FACTORY_REG(Abs);
 
 TEST_F(UtestGraphManagerTest, AutoFuse_AbsAddRelu) {
   InitGeLib();
@@ -5273,9 +5271,7 @@ TEST_F(UtestGraphManagerTest, AutoFuse_OpPrecisionHandle) {
 }
 
 TEST_F(UtestGraphManagerTest, AutoFuse_OpPrecisionHandleWithConstInput) {
-  ge::KernelFactory::Instance().creator_map_[kCast] = []() {
-    return MakeShared<TestCastKernel>();
-  };
+  ge::KernelFactory::Instance().creator_map_[kCast] = []() { return MakeShared<TestCastKernel>(); };
   InitGeLib();
   setenv("AUTOFUSE_FLAGS", "--enable_autofuse=true", 1);
   auto ascend_install_path = EnvPath().GetAscendInstallPath();
@@ -5330,7 +5326,8 @@ TEST_F(UtestGraphManagerTest, test_BuildGraphWithoutLoad_inputs_empty) {
   auto ge_root_model = MakeShared<GeRootModel>();
   ge_root_model->Initialize(compute_graph);
   bool async = false;
-  EXPECT_EQ(graph_manager.BuildGraphWithoutLoad(graph_id, inputs, ge_root_model, session_id, async), GE_GRAPH_GRAPH_NOT_EXIST);
+  EXPECT_EQ(graph_manager.BuildGraphWithoutLoad(graph_id, inputs, ge_root_model, session_id, async),
+            GE_GRAPH_GRAPH_NOT_EXIST);
 }
 
 TEST_F(UtestGraphManagerTest, test_BuildGraphWithoutLoad_graphnode_null) {
@@ -5346,7 +5343,8 @@ TEST_F(UtestGraphManagerTest, test_BuildGraphWithoutLoad_graphnode_null) {
   auto ge_root_model = MakeShared<GeRootModel>();
   ge_root_model->Initialize(compute_graph);
   bool async = false;
-  EXPECT_EQ(graph_manager.BuildGraphWithoutLoad(graph_id, inputs, ge_root_model, session_id, async), GE_GRAPH_GRAPH_NODE_NULL);
+  EXPECT_EQ(graph_manager.BuildGraphWithoutLoad(graph_id, inputs, ge_root_model, session_id, async),
+            GE_GRAPH_GRAPH_NODE_NULL);
 }
 
 TEST_F(UtestGraphManagerTest, test_BuildGraphWithoutLoad_is_running) {
@@ -5363,7 +5361,8 @@ TEST_F(UtestGraphManagerTest, test_BuildGraphWithoutLoad_is_running) {
   auto ge_root_model = MakeShared<GeRootModel>();
   ge_root_model->Initialize(compute_graph);
   bool async = false;
-  EXPECT_EQ(graph_manager.BuildGraphWithoutLoad(graph_id, inputs, ge_root_model, session_id, async), GE_GRAPH_ALREADY_RUNNING);
+  EXPECT_EQ(graph_manager.BuildGraphWithoutLoad(graph_id, inputs, ge_root_model, session_id, async),
+            GE_GRAPH_ALREADY_RUNNING);
 }
 
 TEST_F(UtestGraphManagerTest, test_UpdateInputWithHintShape_hint_shape_empty) {
@@ -5439,10 +5438,9 @@ bool WriteTextFile(const std::string &file_path, const std::string &content) {
 TEST_F(UtestGraphManagerTest, set_default_hccl_options_with_hcom_grouplist) {
   const std::string logic_topo_config = "./gm_hccl_logic_ut.json";
   const std::string hccl_sub_comm_config = "./gm_hccl_sub_ut.json";
-  ASSERT_TRUE(WriteTextFile(logic_topo_config,
-                            R"({"RankTable":[{"rank_id":"0"}],"HcclCommConfig":{"graph_mode":"0"}})"));
-  ASSERT_TRUE(WriteTextFile(hccl_sub_comm_config,
-                            R"({"group_list":[{"group_name":"g0","group_rank_list":[0,1]}]})"));
+  ASSERT_TRUE(
+      WriteTextFile(logic_topo_config, R"({"RankTable":[{"rank_id":"0"}],"HcclCommConfig":{"graph_mode":"0"}})"));
+  ASSERT_TRUE(WriteTextFile(hccl_sub_comm_config, R"({"group_list":[{"group_name":"g0","group_rank_list":[0,1]}]})"));
   auto &builder = HcclOfflineOptionBuilder::Instance();
   builder.Finalize();
   ASSERT_EQ(builder.Initialize("Ascend910B1", logic_topo_config, hccl_sub_comm_config), SUCCESS);
@@ -5586,4 +5584,4 @@ TEST_F(UtestGraphManagerTest, test_compile_graph_need_rebuild) {
   std::vector<ge::Tensor> inputs;
   EXPECT_EQ(graph_manager.CompileGraph(graph_id, 0U, inputs), ge::PARAM_INVALID);
 }
-} // namespace ge
+}  // namespace ge

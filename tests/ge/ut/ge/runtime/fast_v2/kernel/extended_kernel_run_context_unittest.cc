@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -79,8 +79,8 @@ TEST_F(ExtendedContextUT, GetAttrs) {
   EXPECT_EQ(attr5->GetDataType(), ge::DT_FLOAT16);
   EXPECT_EQ(attr5->GetStorageFormat(), ge::FORMAT_NC1HWC0);
   EXPECT_EQ(attr5->GetOriginFormat(), ge::FORMAT_NCHW);
-  EXPECT_EQ(attr5->GetOriginShape(), Shape({8,3,224,224}));
-  EXPECT_EQ(attr5->GetStorageShape(), Shape({8,1,224,224,16}));
+  EXPECT_EQ(attr5->GetOriginShape(), Shape({8, 3, 224, 224}));
+  EXPECT_EQ(attr5->GetStorageShape(), Shape({8, 1, 224, 224, 16}));
   EXPECT_EQ(memcmp(attr5->GetData<uint8_t>(), ge_tensor->GetData().GetData(), ge_tensor->GetData().GetSize()), 0);
 
   EXPECT_EQ(attrs->GetAttrPointer<bool>(6), nullptr);

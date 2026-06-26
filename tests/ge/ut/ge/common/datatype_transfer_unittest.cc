@@ -375,7 +375,7 @@ TEST_F(UtestDataTypeTransfer, fp32_fp16_to_hif8) {
 }
 
 TEST_F(UtestDataTypeTransfer, hif8_to_fp32_fp16) {
-  uint8_t u8[128]; // Avoid 0b10000000, which is NaN.
+  uint8_t u8[128];  // Avoid 0b10000000, which is NaN.
   for (size_t n = 0; n < 128; n++) {
     u8[n] = n;
   }
@@ -385,15 +385,13 @@ TEST_F(UtestDataTypeTransfer, hif8_to_fp32_fp16) {
   EXPECT_EQ(DataTypeTransfer::TransDataType(args0, result), SUCCESS);
   EXPECT_EQ(result.length, 128 * sizeof(float));
   for (size_t n = 0; n < 128; n++) {
-    EXPECT_EQ(reinterpret_cast<float *>(result.data.get())[n],
-              static_cast<float>(HiF8::FromRawBits(n)));
+    EXPECT_EQ(reinterpret_cast<float *>(result.data.get())[n], static_cast<float>(HiF8::FromRawBits(n)));
   }
   CastArgs args1{u8, 128, DT_HIFLOAT8, DT_FLOAT16};
   EXPECT_EQ(DataTypeTransfer::TransDataType(args1, result), SUCCESS);
   EXPECT_EQ(result.length, 128 * sizeof(fp16_t));
   for (size_t n = 0; n < 128; n++) {
-    EXPECT_EQ(reinterpret_cast<fp16_t *>(result.data.get())[n],
-              static_cast<fp16_t>(HiF8::FromRawBits(n)));
+    EXPECT_EQ(reinterpret_cast<fp16_t *>(result.data.get())[n], static_cast<fp16_t>(HiF8::FromRawBits(n)));
   }
 }
 

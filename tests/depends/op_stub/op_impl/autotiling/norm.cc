@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,12 +26,12 @@
 // #include "tiling_handler.h"
 
 namespace gert {
-#define V_OP_TILING_CHECK(cond, log_func, expr)                                                                        \
-  do {                                                                                                                 \
-    if (!cond) {                                                                                                       \
-      log_func;                                                                                                        \
-      expr;                                                                                                            \
-    }                                                                                                                  \
+#define V_OP_TILING_CHECK(cond, log_func, expr) \
+  do {                                          \
+    if (!cond) {                                \
+      log_func;                                 \
+      expr;                                     \
+    }                                           \
   } while (0)
 namespace {
 bool IsElementInVector(const std::vector<int32_t> &shape, const int32_t &value) {
@@ -71,14 +71,14 @@ int32_t CalcPattern(const std::vector<int64_t> &shape, const std::vector<int32_t
       pattern += special_axis_weight << (shape.size() - i - 1);
     } else {
       pattern += static_cast<int32_t>(shape.size() - special_axis_weight - i) >= 0
-          ? special_axis_weight << (shape.size() - special_axis_weight - i)
-          : 1;
+                     ? special_axis_weight << (shape.size() - special_axis_weight - i)
+                     : 1;
     }
   }
   return pattern;
 }
 
-template<typename T>
+template <typename T>
 bool NormalizeAxis(const std::vector<T> &src, std::vector<int32_t> &dst, std::size_t dim_len) {
   std::size_t src_len = src.size();
   for (std::size_t i = 0; i < src_len; i++) {
@@ -495,11 +495,11 @@ bool Norm::FusedAxis() {
       input_shape[capacity_shape] = std::accumulate(input_shape_ori.begin() + first, input_shape_ori.begin() + second,
                                                     1, std::multiplies<int64_t>());
       bool is_reduce_axis = (second <= length - 1 && flags[first] % modulo == reduce_flag) ||
-          (second == length && flags[second - 1] % modulo == reduce_flag);
+                            (second == length && flags[second - 1] % modulo == reduce_flag);
       bool is_broadcast_axis = (second <= length - 1 && flags[first] % modulo == broadcast_flag) ||
-          (second == length && flags[second - 1] % modulo == broadcast_flag);
+                               (second == length && flags[second - 1] % modulo == broadcast_flag);
       bool is_reduce_broadcast_axis = (second <= length - 1 && flags[first] % modulo == reduce_broadcast_flag) ||
-          (second == length && flags[second - 1] % modulo == reduce_broadcast_flag);
+                                      (second == length && flags[second - 1] % modulo == reduce_broadcast_flag);
       if (is_reduce_axis || is_reduce_broadcast_axis) {
         reduce_axis[capacity_reduce_axis] = capacity_shape;
         capacity_reduce_axis++;
@@ -842,13 +842,14 @@ bool Norm::JudgeCurDimSplitBlock(const int64_t &left_product, const int64_t &rig
         tilingInfo.block_tiling_axis = index;
         tilingInfo.block_tiling_factor =
             is_continuous_data_move && (actual_block_factor * post_right_product < block_size)
-            ? (block_size + post_right_product - 1) / post_right_product
-            : actual_block_factor;
+                ? (block_size + post_right_product - 1) / post_right_product
+                : actual_block_factor;
         if (max_block_factor == 0) {
           return true;
         }
         // storage align last axis but align block factor is larger than max_block_factor
-        bool is_illegal_cut = index == input_shape.size() - 1 &&
+        bool is_illegal_cut =
+            index == input_shape.size() - 1 &&
             (tilingInfo.block_tiling_factor + block_size - 1) / block_size * block_size > max_block_factor;
         if (!is_illegal_cut) {
           return true;
@@ -1160,7 +1161,7 @@ bool Norm::CheckNormalCurUbFactor(const int64_t &cur_ub_factor, const int64_t &c
   }
 
   return entire_ub_elem_count >= block_size && tail_ub_elem_count >= block_size &&
-      tail_tail_ub_elem_count >= block_size;
+         tail_tail_ub_elem_count >= block_size;
 }
 
 bool Norm::JudgeNormalCurDimSplitUb(const std::size_t &index) {
@@ -1173,11 +1174,11 @@ bool Norm::JudgeNormalCurDimSplitUb(const std::size_t &index) {
   }
 
   int64_t current_dim = (static_cast<int32_t>(index) == block_tiling_axis_index_in_reorder)
-      ? tilingInfo.block_tiling_factor
-      : reorderInfo.reorder_input_shape[index];
+                            ? tilingInfo.block_tiling_factor
+                            : reorderInfo.reorder_input_shape[index];
   int64_t current_dim_tail = (static_cast<int32_t>(index) == block_tiling_axis_index_in_reorder)
-      ? reorderInfo.reorder_input_shape[index] % tilingInfo.block_tiling_factor
-      : reorderInfo.reorder_input_shape[index];
+                                 ? reorderInfo.reorder_input_shape[index] % tilingInfo.block_tiling_factor
+                                 : reorderInfo.reorder_input_shape[index];
   // index is last a, some cases can early stop
   bool is_early_stop_case =
       static_cast<int32_t>(index) == last_a_axis_index_in_reorder && current_dim * right_product < block_size;
@@ -1208,12 +1209,13 @@ bool Norm::JudgeNormalCurDimSplitUb(const std::size_t &index) {
       tilingInfo.ub_tiling_factor = (current_dim + ub_loop - 1) / ub_loop;
       // if entire_cut ub_factor is illegal, turn to common_cut ub_factor
       bool is_entire_cut_illegal = tilingInfo.ub_tiling_factor > ub_size / right_product_align ||
-          tilingInfo.ub_tiling_factor * right_product < block_size;
+                                   tilingInfo.ub_tiling_factor * right_product < block_size;
       if (is_entire_cut_illegal) {
         tilingInfo.ub_tiling_factor = std::min(cur_ub_factor, current_dim);
       }
       // storage align last A when is nlast reduce, but align_factor * right_product is larger than max_ub
-      bool is_common_cut_illegal = !is_last_axis_reduce && index == reorderInfo.reorder_input_shape.size() - 1 &&
+      bool is_common_cut_illegal =
+          !is_last_axis_reduce && index == reorderInfo.reorder_input_shape.size() - 1 &&
           (tilingInfo.ub_tiling_factor + block_size - 1) / block_size * block_size * right_product_align > ub_size;
       if (!is_common_cut_illegal) {
         return true;
@@ -1246,12 +1248,13 @@ bool Norm::JudgeWorkspaceCurDimSplitUb(const std::size_t &index) {
       tilingInfo.ub_tiling_factor = (current_dim + ub_loop - 1) / ub_loop;
       // if entire_cut ub_factor is illegal, turn to common_cut ub_factor
       bool is_entire_cut_illegal = tilingInfo.ub_tiling_factor > ub_size / right_product_align ||
-          tilingInfo.ub_tiling_factor * right_product < block_size;
+                                   tilingInfo.ub_tiling_factor * right_product < block_size;
       if (is_entire_cut_illegal) {
         tilingInfo.ub_tiling_factor = std::min(cur_ub_factor, current_dim);
       }
       // storage align last R when is last reduce, but align_factor * right_product is larger than max_ub
-      bool is_common_cut_illegal = is_last_axis_reduce && index == reorderInfo.reorder_input_shape.size() - 1 &&
+      bool is_common_cut_illegal =
+          is_last_axis_reduce && index == reorderInfo.reorder_input_shape.size() - 1 &&
           (tilingInfo.ub_tiling_factor + block_size - 1) / block_size * block_size * right_product_align > ub_size;
       if (!is_common_cut_illegal) {
         return true;
@@ -1326,8 +1329,8 @@ bool Norm::NeedRefineBlockTiling() {
     }
   }
   int64_t tail_dim = input_shape[tilingInfo.block_tiling_axis] % refined_block_tiling_factor == 0
-      ? refined_block_tiling_factor
-      : input_shape[tilingInfo.block_tiling_axis] % refined_block_tiling_factor;
+                         ? refined_block_tiling_factor
+                         : input_shape[tilingInfo.block_tiling_axis] % refined_block_tiling_factor;
 
   return tail_dim >= block_size;
 }
@@ -1389,7 +1392,7 @@ bool Norm::CalcTilingKey() {
   int64_t block_axis_weight = 10;
 
   tiling_key = db * db_weight + compileInfo->is_broadcast_axis_known * is_broadcast_axis_known_weight +
-      sch_type * sch_type_weight + norm_pattern * norm_pattern_weight;
+               sch_type * sch_type_weight + norm_pattern * norm_pattern_weight;
 
   int32_t block_key = (tilingInfo.block_tiling_axis == -1) ? NORM_NONE_SPLIT_KEY : tilingInfo.block_tiling_axis;
   tiling_key += block_key * block_axis_weight;

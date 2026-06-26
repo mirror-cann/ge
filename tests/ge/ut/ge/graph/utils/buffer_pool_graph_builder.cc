@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,9 +29,8 @@ BufferPoolGraphBuilder::InnerGraphBuilder::InnerGraphBuilder(const std::string &
   EXPECT_NE(graph_, nullptr);
 }
 
-NodePtr BufferPoolGraphBuilder::InnerGraphBuilder::AddNode(const std::string &name, const std::string &type,
-                                                           int in_cnt, int out_cnt,
-                                                           Format format, DataType data_type,
+NodePtr BufferPoolGraphBuilder::InnerGraphBuilder::AddNode(const std::string &name, const std::string &type, int in_cnt,
+                                                           int out_cnt, Format format, DataType data_type,
                                                            std::vector<int64_t> shape) {
   auto tensor_desc = std::make_shared<GeTensorDesc>();
   EXPECT_NE(tensor_desc, nullptr);
@@ -49,8 +48,8 @@ NodePtr BufferPoolGraphBuilder::InnerGraphBuilder::AddNode(const std::string &na
   return graph_->AddNode(op_desc);
 }
 
-void BufferPoolGraphBuilder::InnerGraphBuilder::AddDataEdge(NodePtr &src_node, int src_idx,
-                                                            NodePtr &dst_node, int dst_idx) {
+void BufferPoolGraphBuilder::InnerGraphBuilder::AddDataEdge(NodePtr &src_node, int src_idx, NodePtr &dst_node,
+                                                            int dst_idx) {
   EXPECT_NE(src_node, nullptr);
   EXPECT_NE(dst_node, nullptr);
   GraphUtils::AddEdge(src_node->GetOutDataAnchor(src_idx), dst_node->GetInDataAnchor(dst_idx));
@@ -65,17 +64,16 @@ void BufferPoolGraphBuilder::InnerGraphBuilder::AddControlEdge(NodePtr &src_node
 void BufferPoolGraphBuilder::SetBufferPool(NodePtr &node, int64_t pool_id, int64_t pool_size,
                                            const std::string &batch_label) {
   EXPECT_NE(node, nullptr);
-  (void) AttrUtils::SetInt(node->GetOpDesc(), ATTR_NAME_BUFFER_POOL_ID, pool_id);
-  (void) AttrUtils::SetInt(node->GetOpDesc(), ATTR_NAME_BUFFER_POOL_SIZE, pool_size);
+  (void)AttrUtils::SetInt(node->GetOpDesc(), ATTR_NAME_BUFFER_POOL_ID, pool_id);
+  (void)AttrUtils::SetInt(node->GetOpDesc(), ATTR_NAME_BUFFER_POOL_SIZE, pool_size);
   if (!batch_label.empty()) {
-    (void) AttrUtils::SetStr(node->GetOpDesc(), ATTR_NAME_BATCH_LABEL, batch_label);
+    (void)AttrUtils::SetStr(node->GetOpDesc(), ATTR_NAME_BATCH_LABEL, batch_label);
   }
 }
 
 void BufferPoolGraphBuilder::SetBatchLabel(NodePtr &node, const std::string &batch_label) {
   EXPECT_NE(node, nullptr);
-  (void) AttrUtils::SetStr(node->GetOpDesc(), ATTR_NAME_BATCH_LABEL, batch_label);
-
+  (void)AttrUtils::SetStr(node->GetOpDesc(), ATTR_NAME_BATCH_LABEL, batch_label);
 }
 
 void BufferPoolGraphBuilder::SetOutputMemSize(NodePtr &node, const std::vector<int64_t> &mem_size) {
@@ -97,8 +95,7 @@ void BufferPoolGraphBuilder::SetWorkSpaceMemSize(NodePtr &node, const std::vecto
 
 void BufferPoolGraphBuilder::SetPrefetchNodeInfo(NodePtr &node, int64_t pool_id, int64_t pool_size,
                                                  const std::vector<int64_t> &mem_size,
-                                                 const std::vector<int64_t> &ws_bytes,
-                                                 const std::string &batch_label) {
+                                                 const std::vector<int64_t> &ws_bytes, const std::string &batch_label) {
   SetBufferPool(node, pool_id, pool_size, batch_label);
   SetOutputMemSize(node, mem_size);
   SetWorkSpaceMemSize(node, ws_bytes);

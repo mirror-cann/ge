@@ -20,13 +20,13 @@ constexpr int32_t ADUMP_SUCCESS = 0;
 constexpr int32_t ADUMP_FAILED = -1;
 constexpr uint32_t DUMP_MODULE_NAME = 48U;
 
-DumpCallbackManager& DumpCallbackManager::GetInstance() {
+DumpCallbackManager &DumpCallbackManager::GetInstance() {
   static DumpCallbackManager instance;
   return instance;
 }
 
 Status DumpCallbackManager::GlobalInit() {
-  DumpCallbackManager& manager = GetInstance();
+  DumpCallbackManager &manager = GetInstance();
   if (!manager.RegisterDumpCallbacks(DUMP_MODULE_NAME)) {
     GELOGE(INTERNAL_ERROR, "[Register][DumpCallbacks] Failed to register dump callbacks");
     return INTERNAL_ERROR;
@@ -36,10 +36,8 @@ Status DumpCallbackManager::GlobalInit() {
 }
 
 bool DumpCallbackManager::RegisterDumpCallbacks(uint32_t module_id) const {
-  int32_t result = Adx::AdumpRegisterCallback(
-      module_id,
-      reinterpret_cast<Adx::AdumpCallback>(EnableDumpCallback),
-      reinterpret_cast<Adx::AdumpCallback>(DisableDumpCallback));
+  int32_t result = Adx::AdumpRegisterCallback(module_id, reinterpret_cast<Adx::AdumpCallback>(EnableDumpCallback),
+                                              reinterpret_cast<Adx::AdumpCallback>(DisableDumpCallback));
   if (result != ADUMP_SUCCESS) {
     GELOGE(INTERNAL_ERROR, "[Register][DumpCallbacks] Register dump callbacks failed, result: %d", result);
     return false;
@@ -50,8 +48,7 @@ bool DumpCallbackManager::RegisterDumpCallbacks(uint32_t module_id) const {
 }
 
 bool DumpCallbackManager::IsEnableExceptionDumpBySwitch(uint64_t dumpSwitch) {
-  return ((dumpSwitch & AIC_ERR_NORM_DUMP_BIT) != 0) ||
-         ((dumpSwitch & AIC_ERR_BRIEF_DUMP_BIT) != 0);
+  return ((dumpSwitch & AIC_ERR_NORM_DUMP_BIT) != 0) || ((dumpSwitch & AIC_ERR_BRIEF_DUMP_BIT) != 0);
 }
 
 std::string DumpCallbackManager::BuildExceptionDumpJsonBySwitch(uint64_t dumpSwitch) {
@@ -95,7 +92,7 @@ bool DumpCallbackManager::ProcessExceptionDumpBySwitch(uint64_t dumpSwitch) {
   }
 }
 
-int32_t DumpCallbackManager::EnableDumpCallback(uint64_t dumpSwitch, const char* dumpData, int32_t size) {
+int32_t DumpCallbackManager::EnableDumpCallback(uint64_t dumpSwitch, const char *dumpData, int32_t size) {
   GELOGI("Enable dump callback triggered, dumpSwitch=%lu, size=%d", dumpSwitch, size);
 
   if ((dumpData == nullptr || size <= 0) && IsEnableExceptionDumpBySwitch(dumpSwitch)) {
@@ -113,7 +110,7 @@ int32_t DumpCallbackManager::EnableDumpCallback(uint64_t dumpSwitch, const char*
   }
 }
 
-int32_t DumpCallbackManager::DisableDumpCallback(uint64_t dumpSwitch, const char* dumpData, int32_t size) {
+int32_t DumpCallbackManager::DisableDumpCallback(uint64_t dumpSwitch, const char *dumpData, int32_t size) {
   (void)dumpData;
   (void)size;
   GELOGI("Disable dump callback triggered, dumpSwitch=%lu", dumpSwitch);
@@ -128,13 +125,13 @@ int32_t DumpCallbackManager::DisableDumpCallback(uint64_t dumpSwitch, const char
   }
 }
 
-Status DumpCallbackManager::HandleEnableDump(const char* dumpData, int32_t size) {
+Status DumpCallbackManager::HandleEnableDump(const char *dumpData, int32_t size) {
   if (dumpData == nullptr || size <= 0) {
     GELOGW("[Handle][EnableDump] Invalid dump data in enable callback");
     return SUCCESS;
   }
 
-  DumpConfig& dumpConfig = DumpConfig::Instance();
+  DumpConfig &dumpConfig = DumpConfig::Instance();
   Status ret = dumpConfig.ParseAndValidate(dumpData, size);
   if (ret != SUCCESS) {
     GELOGE(ACL_GE_INVALID_DUMP_CONFIG, "[Handle][EnableDump] Parse dump config failed");
@@ -147,7 +144,7 @@ Status DumpCallbackManager::HandleEnableDump(const char* dumpData, int32_t size)
   }
 
   // 场景分流处理
-  const std::string& dumpScene = dumpConfig.GetDumpScene();
+  const std::string &dumpScene = dumpConfig.GetDumpScene();
   if (!dumpScene.empty()) {
     return HandleDumpExceptionConfig();
   }
@@ -161,7 +158,7 @@ Status DumpCallbackManager::HandleEnableDump(const char* dumpData, int32_t size)
 }
 
 Status DumpCallbackManager::HandleDisableDump() {
-  DumpConfig& dumpConfig = DumpConfig::Instance();
+  DumpConfig &dumpConfig = DumpConfig::Instance();
   dumpConfig.Reset();
   GELOGI("Disable dump configuration successfully");
   return SUCCESS;

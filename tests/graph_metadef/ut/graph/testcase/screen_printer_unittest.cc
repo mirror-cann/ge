@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,7 +25,7 @@ int32_t system_time_ret = 0;
 int32_t time_of_day_ret = 0;
 class MockMmpa : public ge::MmpaStubApiGe {
  public:
-  INT32 mmGetSystemTime(mmSystemTime_t *sysTime) override{
+  INT32 mmGetSystemTime(mmSystemTime_t *sysTime) override {
     if (system_time_ret == -1) {
       return EN_ERR;
     }
@@ -46,7 +46,7 @@ class MockMmpa : public ge::MmpaStubApiGe {
     return EN_OK;
   }
 };
-}
+}  // namespace
 class UtestScreenPrinter : public testing::Test {
  protected:
   void SetUp() {
@@ -101,7 +101,7 @@ TEST_F(UtestScreenPrinter, multi_thread_log_ok) {
   std::string expect_c(100, c);
   std::unordered_set<std::string> expect_set;
   std::string tmp;
-  while(getline(ss, tmp)) {
+  while (getline(ss, tmp)) {
     if (tmp.find(expect_a) != std::string::npos) {
       expect_set.emplace(expect_a);
     } else if (tmp.find(expect_b) != std::string::npos) {
@@ -208,4 +208,4 @@ TEST_F(UtestScreenPrinter, log_ensable) {
   EXPECT_EQ(out_log, expect_log);
   GetThreadLocalContext().SetGlobalOption(std::map<std::string, std::string>{});
 }
-}
+}  // namespace ge

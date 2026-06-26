@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,7 +39,7 @@ class GeModel : public std::enable_shared_from_this<GeModel>, public AttrHolder 
   TBEKernelStore &GetTBEKernelStore();
   CustAICPUKernelStore &GetCustAICPUKernelStore();
   Buffer GetWeight() const;
-  uint8_t* GetWeightData() const;
+  uint8_t *GetWeightData() const;
   size_t GetWeightSize() const;
   void SetWeightDataBuf(const DataBuffer &data_buffer);
   void ClearWeightDataBuf();
@@ -66,16 +66,22 @@ class GeModel : public std::enable_shared_from_this<GeModel>, public AttrHolder 
 
   ProtoAttrMap &MutableAttrMap() override;
 
-  using AttrHolder::SetAttr;
-  using AttrHolder::GetAllAttrs;
   using AttrHolder::GetAllAttrNames;
+  using AttrHolder::GetAllAttrs;
+  using AttrHolder::SetAttr;
 
-  void SetModelId(const uint32_t model_id) { model_id_ = model_id; }
-  uint32_t GetModelId() const { return model_id_; }
+  void SetModelId(const uint32_t model_id) {
+    model_id_ = model_id;
+  }
+  uint32_t GetModelId() const {
+    return model_id_;
+  }
 
   Status GetSessionId(const uint32_t model_id, uint64_t &session_id) const;
 
-  void SetModelInOutInfo(const std::shared_ptr<uint8_t> &buff) { model_in_out_info_ = buff; }
+  void SetModelInOutInfo(const std::shared_ptr<uint8_t> &buff) {
+    model_in_out_info_ = buff;
+  }
 
   void SetOmName(const std::string &om_name) {
     om_name_ = om_name;
@@ -91,13 +97,13 @@ class GeModel : public std::enable_shared_from_this<GeModel>, public AttrHolder 
  private:
   void Init();
 
-  ProtoAttrMap attrs_;  /*lint !e148*/
+  ProtoAttrMap attrs_; /*lint !e148*/
 
   ComputeGraphPtr graph_;
-  std::shared_ptr<domi::ModelTaskDef> task_;  /*lint !e148*/
-  TBEKernelStore tbe_kernel_store_;  /*lint !e148*/
-  CustAICPUKernelStore cust_aicpu_kernel_store_;  /*lint !e148*/
-  Buffer weights_buffer_;  /*lint !e148*/
+  std::shared_ptr<domi::ModelTaskDef> task_;     /*lint !e148*/
+  TBEKernelStore tbe_kernel_store_;              /*lint !e148*/
+  CustAICPUKernelStore cust_aicpu_kernel_store_; /*lint !e148*/
+  Buffer weights_buffer_;                        /*lint !e148*/
   // weight_data_buffer is high priority than weights_buffer_
   DataBuffer weight_data_buffer_;
   std::string name_;

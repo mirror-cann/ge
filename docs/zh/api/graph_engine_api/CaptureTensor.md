@@ -85,4 +85,3 @@ Pattern &CaptureTensor(const NodeIo &node_output)
 ## 约束说明<a name="section38092103"></a>
 
 无
-

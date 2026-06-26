@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,15 +34,15 @@ thread_local size_t ge::BaseCluster::unique_id_ = 0;
 using ClusterPtr = std::shared_ptr<BaseCluster>;
 
 namespace {
-  NodePtr AddPartitionedCallKeepTopo(const ComputeGraphPtr &compute_graph,
-                                     const std::vector<NodePtr> &ori_nodes, const OpDescPtr &partitioned_call_op) {
-    auto min_id_node = NodeUtils::GetNodeWithMinimalId(ori_nodes);
-    GE_ASSERT_NOTNULL(min_id_node);
-    auto ret_nodes = compute_graph->InsertNodes(min_id_node, {partitioned_call_op});
-    GE_ASSERT_TRUE(!ret_nodes.empty());
-    return ret_nodes[0];
-  }
-} // namespace
+NodePtr AddPartitionedCallKeepTopo(const ComputeGraphPtr &compute_graph, const std::vector<NodePtr> &ori_nodes,
+                                   const OpDescPtr &partitioned_call_op) {
+  auto min_id_node = NodeUtils::GetNodeWithMinimalId(ori_nodes);
+  GE_ASSERT_NOTNULL(min_id_node);
+  auto ret_nodes = compute_graph->InsertNodes(min_id_node, {partitioned_call_op});
+  GE_ASSERT_TRUE(!ret_nodes.empty());
+  return ret_nodes[0];
+}
+}  // namespace
 PartitionNodeAttrNameManager &PartitionNodeAttrNameManager::GetInstance() {
   static PartitionNodeAttrNameManager instance;
   return instance;
@@ -82,18 +82,32 @@ std::string BaseCluster::DebugString() const {
   return ss.str();
 }
 
-size_t BaseCluster::MinId() const { return min_; }
-size_t BaseCluster::Id() const { return id_; }
-size_t BaseCluster::UniqueId() const { return unique_id_; }
+size_t BaseCluster::MinId() const {
+  return min_;
+}
+size_t BaseCluster::Id() const {
+  return id_;
+}
+size_t BaseCluster::UniqueId() const {
+  return unique_id_;
+}
 void BaseCluster::UpdateRank(size_t rank) {
   max_ = rank;
   min_ = rank;
 };
 
-bool BaseCluster::IsData() const { return partitioner_->type_index_to_type_[type_index_] == kClusterData; }
-bool BaseCluster::IsIndependent() const { return partitioner_->type_index_to_type_[type_index_] == kClusterStage; }
-bool BaseCluster::IsNetOutput() const { return partitioner_->type_index_to_type_[type_index_] == kClusterNetoutput; }
-bool BaseCluster::IsInputNode() const { return partitioner_->type_index_to_type_[type_index_] == kClusterInputNode; }
+bool BaseCluster::IsData() const {
+  return partitioner_->type_index_to_type_[type_index_] == kClusterData;
+}
+bool BaseCluster::IsIndependent() const {
+  return partitioner_->type_index_to_type_[type_index_] == kClusterStage;
+}
+bool BaseCluster::IsNetOutput() const {
+  return partitioner_->type_index_to_type_[type_index_] == kClusterNetoutput;
+}
+bool BaseCluster::IsInputNode() const {
+  return partitioner_->type_index_to_type_[type_index_] == kClusterInputNode;
+}
 
 bool BaseCluster::IsRefVariable() const {
   if ((nodes_.size() == 1) && OpTypeUtils::IsVarLikeNode(nodes_[0]->GetType())) {
@@ -136,7 +150,9 @@ void BaseCluster::RemoveOutput(ClusterPtr out) {
 };
 
 void BaseCluster::Merge(ClusterPtr other) {
-  if (other->IsIndependent()) { return; }
+  if (other->IsIndependent()) {
+    return;
+  }
   nodes_.insert(nodes_.end(), other->nodes_.begin(), other->nodes_.end());
   other->in_clusters_.erase(std::remove(other->in_clusters_.begin(), other->in_clusters_.end(), this),
                             other->in_clusters_.end());
@@ -309,9 +325,15 @@ std::vector<ClusterPtr> BaseCluster::MergeAllPathFrom(const ClusterPtr &other) {
   MergeAllPath(path_clusters);
   return path_clusters;
 }
-std::vector<BaseCluster *> BaseCluster::Inputs() const { return in_clusters_; }
-std::vector<BaseCluster *> BaseCluster::Outputs() const { return out_clusters_; }
-const std::vector<NodePtr> &BaseCluster::Nodes() const { return nodes_; }
+std::vector<BaseCluster *> BaseCluster::Inputs() const {
+  return in_clusters_;
+}
+std::vector<BaseCluster *> BaseCluster::Outputs() const {
+  return out_clusters_;
+}
+const std::vector<NodePtr> &BaseCluster::Nodes() const {
+  return nodes_;
+}
 
 bool BaseCluster::AddFrameInput(InDataAnchorPtr anchor) {
   bool added = true;
@@ -324,18 +346,13 @@ bool BaseCluster::AddFrameInput(InDataAnchorPtr anchor) {
       std::map<std::string, size_t>::const_iterator it = src_key_to_frame_input_.find(src_key);
       if (it != src_key_to_frame_input_.cend()) {
         index = it->second;
-        GELOGD("[%s:%d] Reuse data index: %zu",
-               anchor->GetOwnerNode()->GetName().c_str(),
-               anchor->GetIdx(),
+        GELOGD("[%s:%d] Reuse data index: %zu", anchor->GetOwnerNode()->GetName().c_str(), anchor->GetIdx(),
                it->second);
         added = false;
       } else {
         inputs_.push_back(anchor);
         inputs_index_[anchor] = index;
-        GELOGD("[%s:%d] Assign data index: %zu",
-               anchor->GetOwnerNode()->GetName().c_str(),
-               anchor->GetIdx(),
-               index);
+        GELOGD("[%s:%d] Assign data index: %zu", anchor->GetOwnerNode()->GetName().c_str(), anchor->GetIdx(), index);
         src_key_to_frame_input_[src_key] = index;
       }
     } else {
@@ -362,9 +379,13 @@ OutDataAnchorPtr BaseCluster::GetFrameOutDataAnchor(OutDataAnchorPtr anchor) {
   return partition_node_->GetOutDataAnchor(static_cast<int32_t>(outputs_index_[anchor]));
 }
 
-InControlAnchorPtr BaseCluster::GetFrameInControlAnchor() { return partition_node_->GetInControlAnchor(); };
+InControlAnchorPtr BaseCluster::GetFrameInControlAnchor() {
+  return partition_node_->GetInControlAnchor();
+};
 
-OutControlAnchorPtr BaseCluster::GetFrameOutControlAnchor() { return partition_node_->GetOutControlAnchor(); };
+OutControlAnchorPtr BaseCluster::GetFrameOutControlAnchor() {
+  return partition_node_->GetOutControlAnchor();
+};
 
 Status BaseCluster::BuildFrame() {
   if (partitioner_->IsNeedBuildPartitionFrame(*this)) {
@@ -496,8 +517,7 @@ Status BaseCluster::BuildPartitionFrame() {
   GE_CHK_GRAPH_STATUS_RET(partition_node_->SetOwnerComputeGraph(graph),
                           "[Set][OwnerComputeGraph] %s for node:%s failed.", graph->GetName().c_str(),
                           partitioned_op->GetName().c_str());
-  GE_CHK_STATUS_RET(RemoveNodeFromRoot(graph),
-                    "[Call][SetSubgraphInstanceName] for op:%s failed, index:0, name:%s.",
+  GE_CHK_STATUS_RET(RemoveNodeFromRoot(graph), "[Call][SetSubgraphInstanceName] for op:%s failed, index:0, name:%s.",
                     partitioned_op->GetName().c_str(), subgraph_->GetName().c_str());
   subgraph_->SetParentNode(partition_node_);
   subgraph_->SetParentGraph(graph);

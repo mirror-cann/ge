@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,8 +19,8 @@
 #include "acl/acl_rt.h"
 
 namespace ge {
-Status SingleOpManager::GetOpFromModel(const std::string &model_name, const ModelData &model_data,
-                                       void *const stream, SingleOp **const single_op, const uint64_t model_id) {
+Status SingleOpManager::GetOpFromModel(const std::string &model_name, const ModelData &model_data, void *const stream,
+                                       SingleOp **const single_op, const uint64_t model_id) {
   GELOGI("GetOpFromModel in. model name = %s, model id = %" PRIu64, model_name.c_str(), model_id);
   if (single_op == nullptr) {
     GELOGE(ACL_ERROR_GE_INTERNAL_ERROR, "[Check][Param:single_op] is null.");

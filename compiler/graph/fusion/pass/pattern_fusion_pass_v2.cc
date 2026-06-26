@@ -31,9 +31,9 @@ Status PatternFusionPassV2::Run(GraphPtr &graph, CustomPassContext &pass_context
 
 bool PatternFusionPassV2::MeetRequirements(const std::unique_ptr<MatchResult> &match_result,
                                            CustomPassContext &pass_context) {
-  (void) match_result;
-  (void) pass_context;
+  (void)match_result;
+  (void)pass_context;
   return true;
 }
-} // namespace fusion
-} // namespace ge
+}  // namespace fusion
+}  // namespace ge

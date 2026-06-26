@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,9 +21,9 @@
 
 namespace ge {
 namespace {
-  const char *const kEnvName = "ASCEND_OPP_PATH";
+const char *const kEnvName = "ASCEND_OPP_PATH";
 }
-class UtestRegisterPass : public testing::Test { 
+class UtestRegisterPass : public testing::Test {
  protected:
   void SetUp() {}
   void TearDown() {}
@@ -172,7 +172,8 @@ TEST_F(UtestRegisterPass, LoadCustomPassLibsTest_MissingDependencies) {
     }
   )";
   dummy_lib.close();
-  std::string dummy_cmd = "unset LD_PRELOAD;g++ -shared -fPIC -o " + custom_path + "/libdummy.so " + custom_path + "/libdummy.cpp";
+  std::string dummy_cmd =
+      "unset LD_PRELOAD;g++ -shared -fPIC -o " + custom_path + "/libdummy.so " + custom_path + "/libdummy.cpp";
   system(dummy_cmd.c_str());
   std::remove((custom_path + "/libdummy.cpp").c_str());
 
@@ -187,7 +188,8 @@ TEST_F(UtestRegisterPass, LoadCustomPassLibsTest_MissingDependencies) {
     }
   )";
   main_lib.close();
-  std::string main_cmd = "unset LD_PRELOAD;g++ -shared -fPIC -o " + custom_path + "/libcustom_pass.so " + custom_path + "/libcustom_pass.cpp -L" + custom_path + " -ldummy";
+  std::string main_cmd = "unset LD_PRELOAD;g++ -shared -fPIC -o " + custom_path + "/libcustom_pass.so " + custom_path +
+                         "/libcustom_pass.cpp -L" + custom_path + " -ldummy";
   system(main_cmd.c_str());
   std::remove((custom_path + "/libcustom_pass.cpp").c_str());
 
@@ -259,7 +261,8 @@ TEST_F(UtestRegisterPass, ConstGraphCustomPass_AndRun_SUCCESS) {
   auto graph = std::make_shared<Graph>("test2");
   auto custom_pass_context = CustomPassContext();
 
-  EXPECT_NE(CustomPassHelper::Instance().Run(graph, custom_pass_context, CustomPassStage::kAfterAssignLogicStream), SUCCESS);
+  EXPECT_NE(CustomPassHelper::Instance().Run(graph, custom_pass_context, CustomPassStage::kAfterAssignLogicStream),
+            SUCCESS);
   EXPECT_EQ(pass_reg_data.GetStage(), CustomPassStage::kAfterAssignLogicStream);
 }
 
@@ -272,7 +275,8 @@ TEST_F(UtestRegisterPass, ConstGraphCustomPass_AndRun_Failed_RegisterWrongFunc) 
   auto graph = std::make_shared<Graph>("test2");
   auto custom_pass_context = CustomPassContext();
 
-  EXPECT_NE(CustomPassHelper::Instance().Run(graph, custom_pass_context, CustomPassStage::kAfterAssignLogicStream), SUCCESS);
+  EXPECT_NE(CustomPassHelper::Instance().Run(graph, custom_pass_context, CustomPassStage::kAfterAssignLogicStream),
+            SUCCESS);
   EXPECT_EQ(pass_reg_data.GetStage(), CustomPassStage::kAfterAssignLogicStream);
 }
 
@@ -283,8 +287,9 @@ TEST_F(UtestRegisterPass, ConstGraphCustomPass_AndRun_Failed_FuncReturnError) {
   CustomPassHelper::Instance().Insert(pass_reg_data);
   auto graph = std::make_shared<Graph>("error_graph");
   auto custom_pass_context = CustomPassContext();
-  
-  EXPECT_NE(CustomPassHelper::Instance().Run(graph, custom_pass_context, CustomPassStage::kAfterAssignLogicStream), SUCCESS);
+
+  EXPECT_NE(CustomPassHelper::Instance().Run(graph, custom_pass_context, CustomPassStage::kAfterAssignLogicStream),
+            SUCCESS);
   EXPECT_EQ(pass_reg_data.GetStage(), CustomPassStage::kAfterAssignLogicStream);
 }
 
@@ -296,7 +301,8 @@ TEST_F(UtestRegisterPass, ConstGraph_AfterBuiltinFusionCustomPass_AndRun_SUCCESS
   auto graph = std::make_shared<Graph>("test2");
   auto custom_pass_context = CustomPassContext();
 
-  EXPECT_EQ(CustomPassHelper::Instance().Run(graph, custom_pass_context, CustomPassStage::kAfterBuiltinFusionPass), SUCCESS);
+  EXPECT_EQ(CustomPassHelper::Instance().Run(graph, custom_pass_context, CustomPassStage::kAfterBuiltinFusionPass),
+            SUCCESS);
   EXPECT_EQ(pass_reg_data.GetStage(), CustomPassStage::kAfterBuiltinFusionPass);
 }
 
@@ -308,7 +314,8 @@ TEST_F(UtestRegisterPass, ConstGraph_AfterBuiltinFusionCustomPass_AndRun_Failed_
   auto graph = std::make_shared<Graph>("error_graph");
   auto custom_pass_context = CustomPassContext();
 
-  EXPECT_NE(CustomPassHelper::Instance().Run(graph, custom_pass_context, CustomPassStage::kAfterBuiltinFusionPass), SUCCESS);
+  EXPECT_NE(CustomPassHelper::Instance().Run(graph, custom_pass_context, CustomPassStage::kAfterBuiltinFusionPass),
+            SUCCESS);
   EXPECT_EQ(pass_reg_data.GetStage(), CustomPassStage::kAfterBuiltinFusionPass);
 }
 
@@ -343,4 +350,4 @@ TEST_F(UtestRegisterPass, CustomPassContext_GetPassName_without_SetPassName) {
   auto custom_pass = CustomPassContext();
   EXPECT_STREQ(custom_pass.GetPassName().GetString(), "");
 }
-} // namespace ge
+}  // namespace ge

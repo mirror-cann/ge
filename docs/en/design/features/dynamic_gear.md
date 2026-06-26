@@ -374,7 +374,7 @@ In GetNext sink mode, gear info is not written by host. Instead, `GetDynamicDims
 ```cpp
 if (is_getnext_sink_dynamic_) {
     cur_dynamic_dims_.resize(shape_of_cur_dynamic_dims_);
-    aclrtMemcpy(cur_dynamic_dims_.data(), ..., 
+    aclrtMemcpy(cur_dynamic_dims_.data(), ...,
                 netoutput_last_input_addr_, ..., DEVICE_TO_HOST);
 }
 ```
@@ -558,4 +558,3 @@ if (is_online_infer_dynamic_) {
 | `runtime/v1/graph/load/model_manager/davinci_model.cc:5246-5320` | Output shape table lookup |
 | `runtime/v1/graph/load/model_manager/davinci_model.cc:8471-8521` | `GetCurDynamicDims()` model-level validation |
 | `base/common/context/ome_context.h:17` | `OmeContext` structure |
-

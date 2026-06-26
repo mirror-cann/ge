@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -33,10 +33,10 @@ class FusionTestPass : public fe::PatternFusionBasePass {
  public:
   FusionTestPass() {};
   ~FusionTestPass() override {};
-  vector<fe::FusionPattern *> DefinePatterns() override {return {nullptr};};
-  fe::Status Fusion(ComputeGraph &graph, Mapping &mapping,
-                    vector<NodePtr> &new_nodes) override {
-
+  vector<fe::FusionPattern *> DefinePatterns() override {
+    return {nullptr};
+  };
+  fe::Status Fusion(ComputeGraph &graph, Mapping &mapping, vector<NodePtr> &new_nodes) override {
     vector<vector<NodePtr>> fusion_nodes;
     bool ret = CycleDetection(graph, fusion_nodes);
     EXPECT_EQ(ret, false);
@@ -57,7 +57,6 @@ class FusionTestPass : public fe::PatternFusionBasePass {
     }
   }
 };
-
 
 /*               A
  *             /  \
@@ -98,7 +97,6 @@ TEST_F(UtestCycleDetection, cycle_detection_01) {
   fe::Status ret = pass.Fusion(*graph, mapping, fusion_nodes);
   EXPECT_EQ(ret, fe::NOT_CHANGED);
 }
-
 
 /*               A
  *             /  \
@@ -315,9 +313,7 @@ ComputeGraphPtr CreateGraph06(int case_num, std::vector<ge::NodePtr> &fusion_nod
   return graph;
 }
 
-
-static ComputeGraphPtr BuildFusionGraph06(int case_num,
-                                          std::vector<ge::NodePtr> &fusion_nodes) {
+static ComputeGraphPtr BuildFusionGraph06(int case_num, std::vector<ge::NodePtr> &fusion_nodes) {
   auto graph = CreateGraph06(case_num, fusion_nodes);
   return graph;
 }
@@ -412,44 +408,31 @@ TEST_F(UtestCycleDetection, Coverage_03) {
 }
 
 TEST_F(UtestCycleDetection, Coverage_04) {
-  EXPECT_NO_THROW(
-    std::vector<ge::NodePtr> fusion_nodes;
-    auto graph = BuildFusionGraph06(kNoCycleCase2, fusion_nodes);
-    auto connectivity = std::shared_ptr<fe::ConnectionMatrix>(new(std::nothrow) fe::ConnectionMatrix(*graph));
-    connectivity->Generate(*graph);
-    connectivity->Update(*graph, fusion_nodes);
-  );
+  EXPECT_NO_THROW(std::vector<ge::NodePtr> fusion_nodes; auto graph = BuildFusionGraph06(kNoCycleCase2, fusion_nodes);
+                  auto connectivity =
+                      std::shared_ptr<fe::ConnectionMatrix>(new (std::nothrow) fe::ConnectionMatrix(*graph));
+                  connectivity->Generate(*graph); connectivity->Update(*graph, fusion_nodes););
 }
 
 TEST_F(UtestCycleDetection, Coverage_05) {
-  EXPECT_NO_THROW(
-    FusionTestPass pass;
-    std::unique_ptr<fe::ConnectionMatrix> connection_matrix;
-    pass.GetConnectionMatrix(connection_matrix);
-    pass.SetConnectionMatrix(connection_matrix);
-  );
+  EXPECT_NO_THROW(FusionTestPass pass; std::unique_ptr<fe::ConnectionMatrix> connection_matrix;
+                  pass.GetConnectionMatrix(connection_matrix); pass.SetConnectionMatrix(connection_matrix););
 }
 
 TEST_F(UtestCycleDetection, Coverage_06) {
-  EXPECT_NO_THROW(
-    auto graph = std::make_shared<ge::ComputeGraph>("test");
-    auto connection_matrix = std::shared_ptr<fe::ConnectionMatrix>(new(std::nothrow) fe::ConnectionMatrix(*graph));
+  EXPECT_NO_THROW(auto graph = std::make_shared<ge::ComputeGraph>("test");
+                  auto connection_matrix =
+                      std::shared_ptr<fe::ConnectionMatrix>(new (std::nothrow) fe::ConnectionMatrix(*graph));
 
-    std::vector<ge::NodePtr> fusion_nodes;
-    BuildFusionGraph06(kNoCycleCase2, fusion_nodes);
-    connection_matrix->GetIndex(fusion_nodes[0]);
-  );
+                  std::vector<ge::NodePtr> fusion_nodes; BuildFusionGraph06(kNoCycleCase2, fusion_nodes);
+                  connection_matrix->GetIndex(fusion_nodes[0]););
 }
 
 TEST_F(UtestCycleDetection, Coverage_07) {
-  EXPECT_NO_THROW(
-    auto graph = std::make_shared<ge::ComputeGraph>("test");
-    auto connection_matrix = std::shared_ptr<ge::ConnectionMatrixImpl>(new(std::nothrow)
-        ge::ConnectionMatrixImpl(graph));
+  EXPECT_NO_THROW(auto graph = std::make_shared<ge::ComputeGraph>("test");
+                  auto connection_matrix =
+                      std::shared_ptr<ge::ConnectionMatrixImpl>(new (std::nothrow) ge::ConnectionMatrixImpl(graph));
 
-    std::vector<ge::NodePtr> fusion_nodes;
-    BuildFusionGraph06(kNoCycleCase2, fusion_nodes);
-    connection_matrix->GetIndex(fusion_nodes[0]);
-  );
+                  std::vector<ge::NodePtr> fusion_nodes; BuildFusionGraph06(kNoCycleCase2, fusion_nodes);
+                  connection_matrix->GetIndex(fusion_nodes[0]););
 }
-

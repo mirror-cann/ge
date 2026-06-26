@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,16 +32,16 @@
 #include "common/context/local_context.h"
 #include "common/checker.h"
 
-#define SAVE_AIPP_ATTR(AIPP_ATTRS, KEY, SAVE_TYPE)                                           \
-  do {                                                                                       \
+#define SAVE_AIPP_ATTR(AIPP_ATTRS, KEY, SAVE_TYPE)                                             \
+  do {                                                                                         \
     (void)(AIPP_ATTRS).SetAttr(#KEY, GeAttrValue::CreateFrom<SAVE_TYPE>(aipp_params_->KEY())); \
   } while (0)
 
-#define SAVE_AIPP_ATTR_LIST(AIPP_ATTRS, KEY, SAVE_TYPE)                                         \
-  do {                                                                                          \
-    if (aipp_params_->KEY##_size() > 0) {                                                       \
+#define SAVE_AIPP_ATTR_LIST(AIPP_ATTRS, KEY, SAVE_TYPE)                                           \
+  do {                                                                                            \
+    if (aipp_params_->KEY##_size() > 0) {                                                         \
       (void)(AIPP_ATTRS).SetAttr(#KEY, GeAttrValue::CreateFrom<SAVE_TYPE>(aipp_params_->KEY(0))); \
-    }                                                                                           \
+    }                                                                                             \
   } while (0)
 
 namespace {
@@ -72,32 +72,29 @@ const int32_t DEFAULT_INPUT_BIAS_2 = 128;
 const float DEFAULT_VAR_RECI_CHN = 1.0f;
 const float EPSINON = 1e-6f;
 const std::map<domi::AippOpParams::InputFormat, std::string> kInputFormatMap = {
-  {domi::AippOpParams::YUV420SP_U8, "YUV420SP_U8"},
-  {domi::AippOpParams::XRGB8888_U8, "XRGB8888_U8"},
-  {domi::AippOpParams::RGB888_U8, "RGB888_U8"},
-  {domi::AippOpParams::YUV400_U8, "YUV400_U8"},
-  {domi::AippOpParams::NC1HWC0DI_FP16, "NC1HWC0DI_FP16"},
-  {domi::AippOpParams::NC1HWC0DI_S8, "NC1HWC0DI_S8"},
-  {domi::AippOpParams::ARGB8888_U8, "ARGB8888_U8"},
-  {domi::AippOpParams::YUYV_U8, "YUYV_U8"},
-  {domi::AippOpParams::YUV422SP_U8, "YUV422SP_U8"},
-  {domi::AippOpParams::AYUV444_U8, "AYUV444_U8"},
-  {domi::AippOpParams::RAW10, "RAW10"},
-  {domi::AippOpParams::RAW12, "RAW12"},
-  {domi::AippOpParams::RAW16, "RAW16"},
-  {domi::AippOpParams::RAW24, "RAW24"},
-  {domi::AippOpParams::RGB16, "RGB16"},
-  {domi::AippOpParams::RGB20, "RGB20"},
-  {domi::AippOpParams::RGB24, "RGB24"},
-  {domi::AippOpParams::RGB8_IR, "RGB8_IR"},
-  {domi::AippOpParams::RGB16_IR, "RGB16_IR"},
-  {domi::AippOpParams::RGB24_IR, "RGB24_IR"}
-};
+    {domi::AippOpParams::YUV420SP_U8, "YUV420SP_U8"},
+    {domi::AippOpParams::XRGB8888_U8, "XRGB8888_U8"},
+    {domi::AippOpParams::RGB888_U8, "RGB888_U8"},
+    {domi::AippOpParams::YUV400_U8, "YUV400_U8"},
+    {domi::AippOpParams::NC1HWC0DI_FP16, "NC1HWC0DI_FP16"},
+    {domi::AippOpParams::NC1HWC0DI_S8, "NC1HWC0DI_S8"},
+    {domi::AippOpParams::ARGB8888_U8, "ARGB8888_U8"},
+    {domi::AippOpParams::YUYV_U8, "YUYV_U8"},
+    {domi::AippOpParams::YUV422SP_U8, "YUV422SP_U8"},
+    {domi::AippOpParams::AYUV444_U8, "AYUV444_U8"},
+    {domi::AippOpParams::RAW10, "RAW10"},
+    {domi::AippOpParams::RAW12, "RAW12"},
+    {domi::AippOpParams::RAW16, "RAW16"},
+    {domi::AippOpParams::RAW24, "RAW24"},
+    {domi::AippOpParams::RGB16, "RGB16"},
+    {domi::AippOpParams::RGB20, "RGB20"},
+    {domi::AippOpParams::RGB24, "RGB24"},
+    {domi::AippOpParams::RGB8_IR, "RGB8_IR"},
+    {domi::AippOpParams::RGB16_IR, "RGB16_IR"},
+    {domi::AippOpParams::RGB24_IR, "RGB24_IR"}};
 
-const std::map<domi::AippOpParams::AippMode, std::string> kAippModeMap = {
-  {domi::AippOpParams::static_, "static"},
-  {domi::AippOpParams::dynamic, "dynamic"}
-};
+const std::map<domi::AippOpParams::AippMode, std::string> kAippModeMap = {{domi::AippOpParams::static_, "static"},
+                                                                          {domi::AippOpParams::dynamic, "dynamic"}};
 }  // namespace
 
 namespace ge {
@@ -148,7 +145,8 @@ Status GetDataDimN(const ge::NodePtr &data_node, ge::Format format, int64_t &bat
   REPORT_PREDEFINED_ERR_MSG("E10001", std::vector<const char *>({"parameter", "value", "reason"}),
                             std::vector<const char *>({(data_node->GetName() + " shape size").c_str(),
                                                        to_string(shape.size()).c_str(), reason.c_str()}));
-  GELOGE(PARAM_INVALID, "[Check][Param] The shape size of this node [%s] "
+  GELOGE(PARAM_INVALID,
+         "[Check][Param] The shape size of this node [%s] "
          "which linked dynamic aipp must be in range[3, 4], but is %zu",
          data_node->GetName().c_str(), shape.size());
   return PARAM_INVALID;
@@ -226,14 +224,13 @@ Status AippOp::InsertAippToGraph(ComputeGraphPtr &graph, std::string &aippConfig
       auto ret = GraphUtils::InsertNodeBetweenDataAnchors(out_in_anchors.first, out_in_anchors.second, aipp);
       if (ret != GRAPH_SUCCESS) {
         REPORT_INNER_ERR_MSG("E19999", "Insert aipp:%s(%s) node between op:%s(%s) and op:%s:%s failed",
-                          aipp->GetName().c_str(), aipp->GetType().c_str(),
-                          out_in_anchors.first->GetOwnerNode()->GetName().c_str(),
-                          out_in_anchors.first->GetOwnerNode()->GetType().c_str(),
-                          out_in_anchors.second->GetOwnerNode()->GetName().c_str(),
-                          out_in_anchors.second->GetOwnerNode()->GetType().c_str());
-        GELOGE(INTERNAL_ERROR, "[Insert][Node] %s(%s) between op:%s(%s) and op:%s:%s failed",
-               aipp->GetName().c_str(), aipp->GetType().c_str(),
-               out_in_anchors.first->GetOwnerNode()->GetName().c_str(),
+                             aipp->GetName().c_str(), aipp->GetType().c_str(),
+                             out_in_anchors.first->GetOwnerNode()->GetName().c_str(),
+                             out_in_anchors.first->GetOwnerNode()->GetType().c_str(),
+                             out_in_anchors.second->GetOwnerNode()->GetName().c_str(),
+                             out_in_anchors.second->GetOwnerNode()->GetType().c_str());
+        GELOGE(INTERNAL_ERROR, "[Insert][Node] %s(%s) between op:%s(%s) and op:%s:%s failed", aipp->GetName().c_str(),
+               aipp->GetType().c_str(), out_in_anchors.first->GetOwnerNode()->GetName().c_str(),
                out_in_anchors.first->GetOwnerNode()->GetType().c_str(),
                out_in_anchors.second->GetOwnerNode()->GetName().c_str(),
                out_in_anchors.second->GetOwnerNode()->GetType().c_str());
@@ -255,10 +252,9 @@ Status AippOp::InsertAippToGraph(ComputeGraphPtr &graph, std::string &aippConfig
       auto &aipp = iter->second;
       auto ret = out_in_anchors.second->LinkFrom(aipp->GetOutDataAnchor(0));
       if (ret != GRAPH_SUCCESS) {
-        REPORT_INNER_ERR_MSG("E19999", "link aipp:%s(%s) to peer op:%s(%s) failed",
-                          aipp->GetName().c_str(), aipp->GetType().c_str(),
-                          out_in_anchors.second->GetOwnerNode()->GetName().c_str(),
-                          out_in_anchors.second->GetOwnerNode()->GetType().c_str());
+        REPORT_INNER_ERR_MSG("E19999", "link aipp:%s(%s) to peer op:%s(%s) failed", aipp->GetName().c_str(),
+                             aipp->GetType().c_str(), out_in_anchors.second->GetOwnerNode()->GetName().c_str(),
+                             out_in_anchors.second->GetOwnerNode()->GetType().c_str());
         GELOGE(INTERNAL_ERROR, "[Call][LinkFrom] Failed to link aipp %s to the peer node %s", aipp->GetName().c_str(),
                out_in_anchors.second->GetOwnerNode()->GetName().c_str());
         return INTERNAL_ERROR;
@@ -269,8 +265,7 @@ Status AippOp::InsertAippToGraph(ComputeGraphPtr &graph, std::string &aippConfig
   return SUCCESS;
 }
 
-NodePtr AippOp::CreateAipp(const OutDataAnchorPtr &out_anchor,
-                           const uint32_t index, const InDataAnchorPtr &in_anchor) {
+NodePtr AippOp::CreateAipp(const OutDataAnchorPtr &out_anchor, const uint32_t index, const InDataAnchorPtr &in_anchor) {
   const auto &node = out_anchor->GetOwnerNode();
   std::string current_name = node->GetName() + "_" + std::to_string(out_anchor->GetIdx()) + "_aipp";
   auto aipp_opdesc_ptr = MakeShared<OpDesc>(current_name, AIPP);
@@ -300,8 +295,8 @@ NodePtr AippOp::CreateAipp(const OutDataAnchorPtr &out_anchor,
   // if the tensor on the Aipp has an unknown shape
   if (aipp_opdesc_ptr->UpdateInputDesc(kAippImageInputIndex, opdesc_in_src_data) != GRAPH_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Update the output desc from node:%s(%s) to aipp:%s(%s) failed",
-                      node_in_desc->GetName().c_str(), node_in_desc->GetType().c_str(),
-                      aipp_opdesc_ptr->GetName().c_str(), aipp_opdesc_ptr->GetType().c_str());
+                         node_in_desc->GetName().c_str(), node_in_desc->GetType().c_str(),
+                         aipp_opdesc_ptr->GetName().c_str(), aipp_opdesc_ptr->GetType().c_str());
     GELOGE(INTERNAL_ERROR, "[Call][UpdateInputDesc] Failed to update the output desc from node %s to aipp %s",
            node_in_desc->GetName().c_str(), aipp_opdesc_ptr->GetName().c_str());
     return nullptr;
@@ -314,8 +309,8 @@ NodePtr AippOp::CreateAipp(const OutDataAnchorPtr &out_anchor,
   opdesc_out_src_data.SetDataType(node_out_desc_dtype);
   if (aipp_opdesc_ptr->UpdateOutputDesc(kAippImageOuputIndex, opdesc_out_src_data) != GRAPH_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Update the input desc from node:%s(%s) to aipp:%s(%s) failed",
-                      node_out_desc->GetName().c_str(), node_out_desc->GetType().c_str(),
-                      aipp_opdesc_ptr->GetName().c_str(), aipp_opdesc_ptr->GetType().c_str());
+                         node_out_desc->GetName().c_str(), node_out_desc->GetType().c_str(),
+                         aipp_opdesc_ptr->GetName().c_str(), aipp_opdesc_ptr->GetType().c_str());
     GELOGE(INTERNAL_ERROR, "[Call][UpdateOutputDesc] Failed to update the input desc from node %s to aipp %s",
            node_out_desc->GetName().c_str(), aipp_opdesc_ptr->GetName().c_str());
     return nullptr;
@@ -327,31 +322,28 @@ NodePtr AippOp::CreateAipp(const OutDataAnchorPtr &out_anchor,
 Status AippOp::AddAippAttrbutes(const OpDescPtr &op_desc, const uint32_t &index) {
   NamedAttrs aipp_attr;
   ConvertParamToAttr(aipp_attr);
-  GE_CHK_BOOL_RET_STATUS(AttrUtils::SetNamedAttrs(op_desc, ATTR_NAME_AIPP, aipp_attr),
-                         INTERNAL_ERROR, "[Set][NamedAttrs] %s for aipp node:%s failed", ATTR_NAME_AIPP.c_str(),
+  GE_CHK_BOOL_RET_STATUS(AttrUtils::SetNamedAttrs(op_desc, ATTR_NAME_AIPP, aipp_attr), INTERNAL_ERROR,
+                         "[Set][NamedAttrs] %s for aipp node:%s failed", ATTR_NAME_AIPP.c_str(),
                          op_desc->GetName().c_str());
   if (cfg_json_.empty()) {
     REPORT_INNER_ERR_MSG("E19999", "Aipp config data of op: %s is empty when change it to json",
-        op_desc->GetName().c_str());
-    GELOGE(INTERNAL_ERROR, "Aipp config data of op: %s is empty when change it to json",
-        op_desc->GetName().c_str());
+                         op_desc->GetName().c_str());
+    GELOGE(INTERNAL_ERROR, "Aipp config data of op: %s is empty when change it to json", op_desc->GetName().c_str());
     return INTERNAL_ERROR;
   }
-  GE_CHK_BOOL_RET_STATUS(AttrUtils::SetStr(op_desc, kAippConfigPath, cfg_json_),
-                         INTERNAL_ERROR, "[Set][Attr] config file path for aipp node:%s failed",
-                         op_desc->GetName().c_str());
+  GE_CHK_BOOL_RET_STATUS(AttrUtils::SetStr(op_desc, kAippConfigPath, cfg_json_), INTERNAL_ERROR,
+                         "[Set][Attr] config file path for aipp node:%s failed", op_desc->GetName().c_str());
   std::vector<std::string> empty_names;
   GE_CHK_BOOL_RET_STATUS(AttrUtils::SetListStr(op_desc, ATTR_NAME_DATA_DUMP_ORIGIN_OP_NAMES, empty_names),
                          INTERNAL_ERROR, "[Set][Attr] %s for aipp node:%s failed",
                          ATTR_NAME_DATA_DUMP_ORIGIN_OP_NAMES.c_str(), op_desc->GetName().c_str());
 
-  GE_CHK_BOOL_RET_STATUS(AttrUtils::SetInt(op_desc, kCurrentAippIndex, index),
-                         INTERNAL_ERROR, "[Set][Attr] %s for aipp node:%s failed", kCurrentAippIndex,
-                         op_desc->GetName().c_str());
+  GE_CHK_BOOL_RET_STATUS(AttrUtils::SetInt(op_desc, kCurrentAippIndex, index), INTERNAL_ERROR,
+                         "[Set][Attr] %s for aipp node:%s failed", kCurrentAippIndex, op_desc->GetName().c_str());
   // add input/output desc
   GeTensorDesc tensor;
-  GE_CHK_GRAPH_STATUS_RET(op_desc->AddInputDesc("images", tensor),
-                          "[Add][InputDesc] images for aipp node:%s failed", op_desc->GetName().c_str());
+  GE_CHK_GRAPH_STATUS_RET(op_desc->AddInputDesc("images", tensor), "[Add][InputDesc] images for aipp node:%s failed",
+                          op_desc->GetName().c_str());
 
   if (GetAippMode() == domi::AippOpParams::dynamic) {
     GE_CHK_GRAPH_STATUS_RET(op_desc->AddOptionalInputDesc("params", tensor),
@@ -364,7 +356,9 @@ Status AippOp::AddAippAttrbutes(const OpDescPtr &op_desc, const uint32_t &index)
   return SUCCESS;
 }
 
-domi::AippOpParams::AippMode AippOp::GetAippMode() { return aipp_params_->aipp_mode(); }
+domi::AippOpParams::AippMode AippOp::GetAippMode() {
+  return aipp_params_->aipp_mode();
+}
 
 bool AippOp::InDataAnchorHasSubGraphs(const NodePtr &node) const {
   for (const auto &next_node_and_anchor : node->GetOutDataNodesAndAnchors()) {
@@ -409,8 +403,7 @@ Status AippOp::FindDataNodeInSubgraph(const ComputeGraphPtr &graph, uint32_t in_
     }
     auto is_has_subgraph = InDataAnchorHasSubGraphs(node);
     if (!is_has_subgraph) {  // the size of subgraph of this data node is zero
-      GELOGD("get target node: %s, recursion_depth: %u.", node->GetName().c_str(),
-             recursion_depth);
+      GELOGD("get target node: %s, recursion_depth: %u.", node->GetName().c_str(), recursion_depth);
       GE_ASSERT_NOTNULL(node->GetOutAnchor(0U));
       GE_ASSERT_NOTNULL(node->GetOutAnchor(0U)->GetPeerAnchorsPtr().at(0L));
       target_in_data_anchors.push_back(node->GetOutAnchor(0U)->GetPeerAnchors().at(0L));
@@ -458,8 +451,7 @@ Status AippOp::FindInSubGraph(const std::shared_ptr<Node> &node,
           FindDataNodeInSubgraph(cur_sub_graph, in_data_anchor->GetIdx(), target_in_data_anchors, recursion_depth));
       if (!target_in_data_anchors.empty()) {
         GE_ASSERT_NOTNULL(target_in_data_anchors.back()->GetFirstPeerAnchor());
-        auto target_anchors =
-            target_in_data_anchors.back()->GetFirstPeerAnchor()->GetOwnerNode();
+        auto target_anchors = target_in_data_anchors.back()->GetFirstPeerAnchor()->GetOwnerNode();
         GELOGD("target_anchors size is %zu. return the first in_data_anchor: %s", target_in_data_anchors.size(),
                target_anchors->GetName().c_str());
         return SUCCESS;
@@ -482,8 +474,8 @@ NodePtr AippOp::FindDataByIndex(const ComputeGraphPtr &graph, int32_t rank) cons
       continue;
     }
 
-    GE_ASSERT_TRUE(AttrUtils::GetInt(node->GetOpDesc(), ATTR_NAME_INDEX, data_index),
-                   "find data %s has no index attr", node->GetName().c_str());
+    GE_ASSERT_TRUE(AttrUtils::GetInt(node->GetOpDesc(), ATTR_NAME_INDEX, data_index), "find data %s has no index attr",
+                   node->GetName().c_str());
     GELOGD("find data node:[%s] data_index:[%ld], rank is %u.", node->GetName().c_str(), data_index, rank);
     if (data_index != rank) {
       continue;
@@ -500,7 +492,8 @@ NodePtr AippOp::FindDataByIndex(const ComputeGraphPtr &graph, int32_t rank) cons
     return node;
   }
   std::string error_msg = "Cannot find the data node by aipp parameter related_input_rank " + to_string(rank);
-  REPORT_PREDEFINED_ERR_MSG("E10052", std::vector<const char *>({"reason"}), std::vector<const char *>({error_msg.c_str()}));
+  REPORT_PREDEFINED_ERR_MSG("E10052", std::vector<const char *>({"reason"}),
+                            std::vector<const char *>({error_msg.c_str()}));
   GELOGE(PARAM_INVALID, "[Check][aipp]%s", error_msg.c_str());
   return nullptr;
 }
@@ -539,7 +532,7 @@ Status AippOp::GetAndCheckTarget(const ComputeGraphPtr &graph, int32_t rank, Nod
   ConvertParamToAttr(aipp_attr);
   if (!AttrUtils::SetNamedAttrs(data_opdesc, ATTR_NAME_AIPP, aipp_attr)) {
     REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s for op:%s(%s) failed", ATTR_NAME_AIPP.c_str(),
-                       data_opdesc->GetName().c_str(), data_opdesc->GetType().c_str());
+                         data_opdesc->GetName().c_str(), data_opdesc->GetType().c_str());
     GELOGE(INTERNAL_ERROR, "[Set][Attr] %s for op:%s(%s) failed", ATTR_NAME_AIPP.c_str(),
            data_opdesc->GetName().c_str(), data_opdesc->GetType().c_str());
     return INTERNAL_ERROR;
@@ -592,7 +585,8 @@ Status AippOp::ConvertRelatedInputNameToRank() {
     index++;
   }
   if (!convert_flag) {
-    std::string error_msg = "related_input_name " + related_input_name + "convert rank failed, Please ensure it is"
+    std::string error_msg = "related_input_name " + related_input_name +
+                            "convert rank failed, Please ensure it is"
                             " caffe scene or related_input_name in aipp config is the top name of data node";
     GELOGE(PARAM_INVALID, "[Check][InputParam]%s", error_msg.c_str());
     REPORT_PREDEFINED_ERR_MSG("E10052", std::vector<const char_t *>({"reason"}),
@@ -602,7 +596,6 @@ Status AippOp::ConvertRelatedInputNameToRank() {
 
   return SUCCESS;
 }
-
 
 Status AippOp::GetTargetPosition(ComputeGraphPtr graph, NodePtr &target_input,
                                  std::vector<std::pair<OutDataAnchorPtr, InDataAnchorPtr>> &target_edges) {
@@ -633,9 +626,8 @@ Status AippOp::GetTargetPosition(ComputeGraphPtr graph, NodePtr &target_input,
     for (const auto &name : func_desc->GetSubgraphInstanceNames()) {
       const auto &subgraph = graph->GetSubgraph(name);
       if (subgraph == nullptr) {
-        REPORT_INNER_ERR_MSG("E19999", "Subgraph:%s of op:%s(%s) not find in graph:%s, check invalid",
-                           name.c_str(), func_desc->GetName().c_str(), func_desc->GetType().c_str(),
-                           graph->GetName().c_str());
+        REPORT_INNER_ERR_MSG("E19999", "Subgraph:%s of op:%s(%s) not find in graph:%s, check invalid", name.c_str(),
+                             func_desc->GetName().c_str(), func_desc->GetType().c_str(), graph->GetName().c_str());
         GELOGE(GE_GRAPH_EMPTY_SUBGRAPH, "[Get][Subgraph] failed, Subgraph:%s of op:%s(%s) not find in graph:%s",
                name.c_str(), func_desc->GetName().c_str(), func_desc->GetType().c_str(), graph->GetName().c_str());
         return GE_GRAPH_EMPTY_SUBGRAPH;
@@ -681,24 +673,15 @@ Status AippOp::SetDefaultParams() {
     GELOGI("parse aipp params:min_chn_0:%f, min_chn_1:%f, min_chn_2:%f.", aipp_params_->min_chn_0(),
            aipp_params_->min_chn_1(), aipp_params_->min_chn_2());
 
-    GE_IF_BOOL_EXEC(!aipp_params_->crop(),
-                    aipp_params_->set_load_start_pos_h(0);
-                    aipp_params_->set_load_start_pos_w(0);
-                    aipp_params_->set_crop_size_h(0);
-                    aipp_params_->set_crop_size_w(0);
-                    );
+    GE_IF_BOOL_EXEC(!aipp_params_->crop(), aipp_params_->set_load_start_pos_h(0); aipp_params_->set_load_start_pos_w(0);
+                    aipp_params_->set_crop_size_h(0); aipp_params_->set_crop_size_w(0););
 
-    GE_IF_BOOL_EXEC(!aipp_params_->resize(),
-                    aipp_params_->set_resize_output_h(0);
-                    aipp_params_->set_resize_output_w(0);
-                    );
+    GE_IF_BOOL_EXEC(!aipp_params_->resize(), aipp_params_->set_resize_output_h(0);
+                    aipp_params_->set_resize_output_w(0););
 
-    GE_IF_BOOL_EXEC(!aipp_params_->padding(),
-                    aipp_params_->set_left_padding_size(0);
-                    aipp_params_->set_right_padding_size(0);
-                    aipp_params_->set_top_padding_size(0);
-                    aipp_params_->set_bottom_padding_size(0);
-                    );
+    GE_IF_BOOL_EXEC(!aipp_params_->padding(), aipp_params_->set_left_padding_size(0);
+                    aipp_params_->set_right_padding_size(0); aipp_params_->set_top_padding_size(0);
+                    aipp_params_->set_bottom_padding_size(0););
   }
 
   return SUCCESS;
@@ -707,8 +690,8 @@ Status AippOp::SetDefaultParams() {
 Status AippOp::ValidateParams() {
   GE_CHECK_NOTNULL(aipp_params_);
   GE_CHK_LOG_AND_ERRORMSG(((aipp_params_->aipp_mode() == domi::AippOpParams::static_) ||
-                          (aipp_params_->aipp_mode() == domi::AippOpParams::dynamic)), PARAM_INVALID,
-                          "When insert AIPP op, aipp_mode must be configured as static or dynamic");
+                           (aipp_params_->aipp_mode() == domi::AippOpParams::dynamic)),
+                          PARAM_INVALID, "When insert AIPP op, aipp_mode must be configured as static or dynamic");
 
   GE_CHK_LOG_AND_ERRORMSG(aipp_params_->var_reci_chn_0_size() <= 1, PARAM_INVALID,
                           "The parameter var_reci_chn_0 cannot be configured repeatedly");
@@ -844,18 +827,16 @@ Status AippOp::GenerateOpDesc(OpDescPtr op_desc) {
   // Add two InputDesc, add the second after the first one is added successfully.
   if ((op_desc->AddInputDesc(GeTensorDesc()) != GRAPH_SUCCESS) ||
       (op_desc->AddInputDesc(GeTensorDesc()) != GRAPH_SUCCESS)) {
-    REPORT_INNER_ERR_MSG("E19999", "Add input desc into op:%s(%s) failed",
-                      op_desc->GetName().c_str(), op_desc->GetType().c_str());
-    GELOGE(FAILED, "[Add][InputDesc] into op:%s(%s) failed",
-           op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Add input desc into op:%s(%s) failed", op_desc->GetName().c_str(),
+                         op_desc->GetType().c_str());
+    GELOGE(FAILED, "[Add][InputDesc] into op:%s(%s) failed", op_desc->GetName().c_str(), op_desc->GetType().c_str());
     return FAILED;
   }
 
   if (op_desc->AddOutputDesc(GeTensorDesc()) != GRAPH_SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Add output desc into op:%s(%s) failed",
-                      op_desc->GetName().c_str(), op_desc->GetType().c_str());
-    GELOGE(FAILED, "[Add][OutputDesc] into op:%s(%s) failed",
-           op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Add output desc into op:%s(%s) failed", op_desc->GetName().c_str(),
+                         op_desc->GetType().c_str());
+    GELOGE(FAILED, "[Add][OutputDesc] into op:%s(%s) failed", op_desc->GetName().c_str(), op_desc->GetType().c_str());
     return FAILED;
   }
   NamedAttrs aipp_attrs;
@@ -863,7 +844,7 @@ Status AippOp::GenerateOpDesc(OpDescPtr op_desc) {
 
   GE_IF_BOOL_EXEC(!AttrUtils::SetNamedAttrs(op_desc, ATTR_NAME_AIPP, aipp_attrs),
                   REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s to op:%s(%s) failed", ATTR_NAME_AIPP.c_str(),
-                                     op_desc->GetName().c_str(), op_desc->GetType().c_str());
+                                       op_desc->GetName().c_str(), op_desc->GetType().c_str());
                   GELOGE(FAILED, "[Set][Attr] %s to op:%s(%s) failed", ATTR_NAME_AIPP.c_str(),
                          op_desc->GetName().c_str(), op_desc->GetType().c_str());
                   return FAILED);
@@ -930,7 +911,7 @@ void AippOp::SetMatrix(nlohmann::json &cfg_json) const {
   }
 }
 
-void AippOp::SetInputBias(nlohmann::json& cfg_json) const {
+void AippOp::SetInputBias(nlohmann::json &cfg_json) const {
   // input_bias_0 repeated int32
   if (aipp_params_->input_bias_0_size() > 0) {
     cfg_json["input_bias_0"] = aipp_params_->input_bias_0(0);
@@ -945,7 +926,7 @@ void AippOp::SetInputBias(nlohmann::json& cfg_json) const {
   }
 }
 
-void AippOp::SetOutputBias(nlohmann::json& cfg_json) const {
+void AippOp::SetOutputBias(nlohmann::json &cfg_json) const {
   // output_bias_0 repeated int32
   if (aipp_params_->output_bias_0_size() > 0) {
     cfg_json["output_bias_0"] = aipp_params_->output_bias_0(0);
@@ -960,22 +941,22 @@ void AippOp::SetOutputBias(nlohmann::json& cfg_json) const {
   }
 }
 
-void AippOp::SetVarReciChn(nlohmann::json& cfg_json) const {
+void AippOp::SetVarReciChn(nlohmann::json &cfg_json) const {
   if (aipp_params_->var_reci_chn_0_size() > 0) {
     cfg_json["var_reci_chn_0"] = aipp_params_->var_reci_chn_0(0);
   }
   if (aipp_params_->var_reci_chn_1_size() > 0) {
     cfg_json["var_reci_chn_1"] = aipp_params_->var_reci_chn_1(0);
   }
-    if (aipp_params_->var_reci_chn_2_size() > 0) {
+  if (aipp_params_->var_reci_chn_2_size() > 0) {
     cfg_json["var_reci_chn_2"] = aipp_params_->var_reci_chn_2(0);
   }
-    if (aipp_params_->var_reci_chn_3_size() > 0) {
+  if (aipp_params_->var_reci_chn_3_size() > 0) {
     cfg_json["var_reci_chn_3"] = aipp_params_->var_reci_chn_3(0);
   }
 }
 
-void AippOp::SetCropData(nlohmann::json& cfg_json) const {
+void AippOp::SetCropData(nlohmann::json &cfg_json) const {
   if (aipp_params_->crop()) {
     cfg_json["crop"] = aipp_params_->crop();
   }
@@ -993,7 +974,7 @@ void AippOp::SetCropData(nlohmann::json& cfg_json) const {
   }
 }
 
-void AippOp::SetOtherStaticData(nlohmann::json& cfg_json) const {
+void AippOp::SetOtherStaticData(nlohmann::json &cfg_json) const {
   if (aipp_params_->csc_switch()) {
     cfg_json["csc_switch"] = aipp_params_->csc_switch();
   }
@@ -1011,7 +992,7 @@ void AippOp::SetOtherStaticData(nlohmann::json& cfg_json) const {
   }
 }
 
-void AippOp::SetPaddingData(nlohmann::json& cfg_json) const {
+void AippOp::SetPaddingData(nlohmann::json &cfg_json) const {
   if (aipp_params_->padding()) {
     cfg_json["padding"] = aipp_params_->padding();
     if (abs(aipp_params_->padding_value()) >= EPSINON) {
@@ -1032,7 +1013,7 @@ void AippOp::SetPaddingData(nlohmann::json& cfg_json) const {
   }
 }
 
-void AippOp::SetChnData(nlohmann::json& cfg_json) const {
+void AippOp::SetChnData(nlohmann::json &cfg_json) const {
   if (aipp_params_->mean_chn_0() != 0) {
     cfg_json["mean_chn_0"] = aipp_params_->mean_chn_0();
   }
@@ -1059,7 +1040,7 @@ void AippOp::SetChnData(nlohmann::json& cfg_json) const {
   }
 }
 
-void AippOp::SetResizeData(nlohmann::json& cfg_json) const {
+void AippOp::SetResizeData(nlohmann::json &cfg_json) const {
   if (aipp_params_->resize()) {
     cfg_json["resize"] = aipp_params_->resize();
   }
@@ -1274,22 +1255,21 @@ Status AippOp::AddNodeToGraph(const NodePtr &aipp_node, int64_t max_dynamic_aipp
   auto res_update_in = aipp_node->GetOpDesc()->UpdateInputDesc(kAippParamsInputIndex, output_tensor);
   if (res_add_in != GRAPH_SUCCESS || res_add_out != GRAPH_SUCCESS || res_update_in != GRAPH_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Add and Update InputDesc to op:%s(%s) failed, index:%d",
-                      aipp_node->GetName().c_str(), aipp_node->GetType().c_str(), kAippParamsInputIndex);
-    GELOGE(INTERNAL_ERROR, "[Update][InputDesc] to op:%s(%s) failed, index:%d",
-           aipp_node->GetName().c_str(), aipp_node->GetType().c_str(), kAippParamsInputIndex);
+                         aipp_node->GetName().c_str(), aipp_node->GetType().c_str(), kAippParamsInputIndex);
+    GELOGE(INTERNAL_ERROR, "[Update][InputDesc] to op:%s(%s) failed, index:%d", aipp_node->GetName().c_str(),
+           aipp_node->GetType().c_str(), kAippParamsInputIndex);
     return INTERNAL_ERROR;
   }
   // aipp_node should have two input data but now tbe only one input
   if (GraphUtils::AddEdge(aipp_data_node_ptr->GetOutDataAnchor(kAippDataOutputIndex),
                           aipp_node->GetInDataAnchor(kAippParamsInputIndex)) != GRAPH_SUCCESS) {
     REPORT_INNER_ERR_MSG("E19999", "Add edge between op:%s(%s)(out_index:%d) and op:%s(%s)(in_index:%d) failed",
-                       aipp_data_node_ptr->GetName().c_str(), aipp_data_node_ptr->GetType().c_str(),
-                       kAippDataOutputIndex, aipp_node->GetName().c_str(), aipp_node->GetType().c_str(),
-                       kAippParamsInputIndex);
+                         aipp_data_node_ptr->GetName().c_str(), aipp_data_node_ptr->GetType().c_str(),
+                         kAippDataOutputIndex, aipp_node->GetName().c_str(), aipp_node->GetType().c_str(),
+                         kAippParamsInputIndex);
     GELOGE(INTERNAL_ERROR, "[Add][Edge] between op:%s(%s)(out_index:%d) and op:%s(%s)(in_index:%d) failed",
-           aipp_data_node_ptr->GetName().c_str(), aipp_data_node_ptr->GetType().c_str(),
-           kAippDataOutputIndex, aipp_node->GetName().c_str(), aipp_node->GetType().c_str(),
-           kAippParamsInputIndex);
+           aipp_data_node_ptr->GetName().c_str(), aipp_data_node_ptr->GetType().c_str(), kAippDataOutputIndex,
+           aipp_node->GetName().c_str(), aipp_node->GetType().c_str(), kAippParamsInputIndex);
     return INTERNAL_ERROR;
   }
   return SUCCESS;

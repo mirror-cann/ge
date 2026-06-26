@@ -15,14 +15,14 @@ namespace ge {
 
 SinkOpArgsHandler::SinkOpArgsHandler(CustomTaskInfo *task_info) : task_info_(task_info) {}
 
-const gert::KernelArgs* SinkOpArgsHandler::MallocReadOnlyDevArgs(void *host_args, size_t args_size) {
+const gert::KernelArgs *SinkOpArgsHandler::MallocReadOnlyDevArgs(void *host_args, size_t args_size) {
   if (task_info_ == nullptr) {
     return nullptr;
   }
   return task_info_->MallocReadOnlyDevArgsImpl(host_args, args_size);
 }
 
-const std::deque<gert::KernelArgs>& SinkOpArgsHandler::GetKernelArgs(gert::Placement placement) const {
+const std::deque<gert::KernelArgs> &SinkOpArgsHandler::GetKernelArgs(gert::Placement placement) const {
   if (task_info_ == nullptr) {
     static const std::deque<gert::KernelArgs> empty_deque;
     return empty_deque;

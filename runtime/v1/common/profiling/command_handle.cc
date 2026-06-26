@@ -48,14 +48,13 @@ enum class ProfCommandHandleType : uint32_t {
   kProfCommandHandleModelUnsubscribe
 };
 
-const std::map<ProfCommandHandleType, std::string> kProfCommandTypeMap {
+const std::map<ProfCommandHandleType, std::string> kProfCommandTypeMap{
     {ProfCommandHandleType::kProfCommandHandleInit, kProfilingInit},
     {ProfCommandHandleType::kProfCommandHandleStart, kProfilingStart},
     {ProfCommandHandleType::kProfCommandHandleStop, kProfilingStop},
     {ProfCommandHandleType::kProfCommandHandleFinalize, kProfilingFinalize},
     {ProfCommandHandleType::kProfCommandHandleModelSubscribe, kProfilingModelSubscribe},
-    {ProfCommandHandleType::kProfCommandHandleModelUnsubscribe, kProfilingModelUnsubscribe}
-};
+    {ProfCommandHandleType::kProfCommandHandleModelUnsubscribe, kProfilingModelUnsubscribe}};
 
 bool IsProfConfigValid(const uint32_t deviceid_list[], const uint32_t device_nums) {
   if ((device_nums == 0U) || (device_nums > kMaxDevNum)) {
@@ -160,12 +159,11 @@ void SubscribeInfoToParam(const ProfCommandHandleType type, const MsprofCommandH
   }
 }
 
-rtError_t ExecuteCommand(const ProfCommandHandleType type,
-                         const MsprofCommandHandle &prof_command_handle,
+rtError_t ExecuteCommand(const ProfCommandHandleType type, const MsprofCommandHandle &prof_command_handle,
                          const std::vector<std::string> &prof_params) {
   const auto it = kProfCommandTypeMap.find(type);
   if (it == kProfCommandTypeMap.end()) {
-    GELOGE(PARAM_INVALID, "[Check][Param]The prof comand type is invalid.");
+    GELOGE(PARAM_INVALID, "[Check][Param]The prof command type is invalid.");
     return RT_ERROR;
   }
 
@@ -189,15 +187,15 @@ rtError_t ExecuteCommand(const ProfCommandHandleType type,
 
   const Status ret = ModelManager::GetInstance().HandleCommand(command);
   if (ret != SUCCESS) {
-    GELOGE(ret, "[Handle][Command]Handle profiling command failed, command type %s, error_code %u",
-           it->second.c_str(), ret);
+    GELOGE(ret, "[Handle][Command]Handle profiling command failed, command type %s, error_code %u", it->second.c_str(),
+           ret);
     REPORT_INNER_ERR_MSG("E19999", "Handle profiling command failed, command type %s, error_code %u",
-                      it->second.c_str(), ret);
+                         it->second.c_str(), ret);
     return RT_ERROR;
   }
 
-  GELOGI("Successfully execute profiling command type: %d, command 0x%" PRIx64 ".",
-         static_cast<int32_t>(type), command.module_index);
+  GELOGI("Successfully execute profiling command type: %d, command 0x%" PRIx64 ".", static_cast<int32_t>(type),
+         command.module_index);
   return RT_ERROR_NONE;
 }
 
@@ -261,13 +259,14 @@ rtError_t HandleCtrlSetStepInfo(const ProfStepInfoCmd_t &prof_set_stepinfo) {
   auto &prof_mgr = ge::ProfilingManager::Instance();
   const uint64_t step_id = prof_set_stepinfo.index_id;
   const uint16_t tag_id = prof_set_stepinfo.tag_id;
-  GELOGI("[Cann Profiling] set step info, step id is %" PRIu64 ", tag id is %u", step_id, static_cast<uint32_t>(tag_id));
+  GELOGI("[Cann Profiling] set step info, step id is %" PRIu64 ", tag id is %u", step_id,
+         static_cast<uint32_t>(tag_id));
   prof_mgr.SetStepInfoIndex(static_cast<int64_t>(step_id));
   const Status ret =
       gert::GlobalProfilingWrapper::ProfileStepTrace(step_id, ge::kInvalidModelId, tag_id, prof_set_stepinfo.stream);
   return ret == SUCCESS ? RT_ERROR_NONE : RT_ERROR;
 }
-} // namespace
+}  // namespace
 
 void RegisterOm2ProfilingCommandNotifierImpl(Om2ProfilingCommandNotifier notifier) {
   g_om2_profiling_notifier = notifier;
@@ -279,7 +278,7 @@ void RegisterOm2ProfilingCommandNotifierImpl(Om2ProfilingCommandNotifier notifie
 
 rtError_t ProfCtrlHandle(const uint32_t ctrl_type, void *const ctrl_data, const uint32_t data_len) {
   if ((ctrl_data == nullptr) || (data_len == 0U)) {
-    GELOGE(PARAM_INVALID, "[Check][Param]The prof comand is invalid.");
+    GELOGE(PARAM_INVALID, "[Check][Param]The prof command is invalid.");
     return RT_ERROR;
   }
 

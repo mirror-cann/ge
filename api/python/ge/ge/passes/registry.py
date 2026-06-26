@@ -12,9 +12,9 @@
 
 """Python pass registry and decorators."""
 
-from collections.abc import Iterable as IterableABC
 import inspect
 import threading
+from collections.abc import Iterable as IterableABC
 from dataclasses import dataclass, field
 from typing import Dict, Iterable, List, Optional, Type
 
@@ -101,8 +101,14 @@ def _normalize_decompose_op_types(op_types: Iterable[str]) -> List[str]:
     return normalized_op_types
 
 
-def _register_pass_class(cls: Type[FusionBasePass], *, kind: str, name: str, stage: PassStage,
-                         op_types: Optional[Iterable[str]] = None) -> Type[FusionBasePass]:
+def _register_pass_class(
+    cls: Type[FusionBasePass],
+    *,
+    kind: str,
+    name: str,
+    stage: PassStage,
+    op_types: Optional[Iterable[str]] = None,
+) -> Type[FusionBasePass]:
     module_name = cls.__module__
     class_name = cls.__name__
     descriptor = PassDescriptor(
@@ -120,8 +126,7 @@ def _register_pass_class(cls: Type[FusionBasePass], *, kind: str, name: str, sta
     return cls
 
 
-def register_fusion_pass(*, name: str, stage: PassStage,
-                         kind: Optional[str] = None) -> callable:
+def register_fusion_pass(*, name: str, stage: PassStage, kind: Optional[str] = None) -> callable:
     """Decorator for FusionBasePass and PatternFusionPass."""
 
     def decorator(cls: Type[FusionBasePass]) -> Type[FusionBasePass]:
@@ -135,8 +140,7 @@ def register_fusion_pass(*, name: str, stage: PassStage,
     return decorator
 
 
-def register_decompose_pass(*, name: str, stage: PassStage,
-                            op_types: Iterable[str]) -> callable:
+def register_decompose_pass(*, name: str, stage: PassStage, op_types: Iterable[str]) -> callable:
     """Decorator for DecomposePass."""
 
     normalized_op_types = _normalize_decompose_op_types(op_types)
@@ -168,5 +172,7 @@ def get_registered_pass_dicts() -> List[dict]:
     return [item.to_bridge_dict() for item in get_registered_passes()]
 
 
-def get_registered_pass_by_descriptor_key(descriptor_key: str) -> Optional[PassDescriptor]:
+def get_registered_pass_by_descriptor_key(
+    descriptor_key: str,
+) -> Optional[PassDescriptor]:
     return _PASS_REGISTRY.get_by_descriptor_key(descriptor_key)

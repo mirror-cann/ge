@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -25,7 +25,7 @@
 
 using namespace ge;
 namespace fe {
-class SuperkernelPlusProcessTest: public testing::Test {
+class SuperkernelPlusProcessTest : public testing::Test {
  protected:
   static void SetUpTestCase() {
     auto space_registry = std::make_shared<gert::OpImplSpaceRegistryV2>();
@@ -56,7 +56,7 @@ class SuperkernelPlusProcessTest: public testing::Test {
    *
    */
   ge::ComputeGraphPtr CreateGraphWithType() {
-    vector<int64_t> dims = {3,4,5,6};
+    vector<int64_t> dims = {3, 4, 5, 6};
     ge::GeShape shape(dims);
     ge::GeTensorDesc tensor_desc(shape, ge::FORMAT_NCHW, ge::DT_FLOAT);
     tensor_desc.SetOriginShape(shape);
@@ -99,13 +99,13 @@ class SuperkernelPlusProcessTest: public testing::Test {
     AttrUtils::SetInt(softmax_op, "_fe_imply_type", 6);
     AttrUtils::SetInt(slice_op, "_fe_imply_type", 6);
 
-    AttrUtils::SetListInt(conv_op, "strides", {1,1,1,1});
-    AttrUtils::SetListInt(conv_op, "pads", {1,1,1,1});
-    AttrUtils::SetListInt(conv_op, "dilations", {1,1,1,1});
+    AttrUtils::SetListInt(conv_op, "strides", {1, 1, 1, 1});
+    AttrUtils::SetListInt(conv_op, "pads", {1, 1, 1, 1});
+    AttrUtils::SetListInt(conv_op, "dilations", {1, 1, 1, 1});
 
-    AttrUtils::SetListInt(slice_op, "begin", {1,1,1,1});
-    AttrUtils::SetListInt(slice_op, "end", {1,1,1,1});
-    AttrUtils::SetListInt(slice_op, "strides", {1,1,1,1});
+    AttrUtils::SetListInt(slice_op, "begin", {1, 1, 1, 1});
+    AttrUtils::SetListInt(slice_op, "end", {1, 1, 1, 1});
+    AttrUtils::SetListInt(slice_op, "strides", {1, 1, 1, 1});
     AttrUtils::SetInt(slice_op, "begin_mask", 1);
     AttrUtils::SetInt(slice_op, "end_mask", 1);
     AttrUtils::SetInt(slice_op, "ellipsis_mask", 1);
@@ -321,8 +321,8 @@ TEST_F(SuperkernelPlusProcessTest, superkernel_plus_case5) {
     }
     if (node->GetType() == "Add") {
       OpDescPtr memset_op = std::make_shared<OpDesc>("memset", "MemSet");
-      memset_op->SetWorkspaceBytes({1,2,3,4});
-      memset_op->SetWorkspace({1,2,3,4});
+      memset_op->SetWorkspaceBytes({1, 2, 3, 4});
+      memset_op->SetWorkspace({1, 2, 3, 4});
       AttrUtils::SetInt(memset_op, "_fe_imply_type", 6);
       AttrUtils::SetStr(memset_op, ge::TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
       ComputeGraphPtr graph_ptr2 = std::make_shared<ComputeGraph>("test2");
@@ -345,4 +345,4 @@ TEST_F(SuperkernelPlusProcessTest, superkernel_plus_case5) {
   }
   // EXPECT_EQ(tasks.size(), 6);
 }
-}
+}  // namespace fe

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -116,15 +116,14 @@ Status CalcShapeRange(const ge::OpDescPtr &op_desc, const ge::Format &final_form
     FE_LOGD("Aligned shape and range are %s, %s.",
             StringUtils::IntegerVecToString(dimension_expanded_ori_shape.GetDims()).c_str(),
             ShapeRangeToStr(old_shape_range).c_str());
-    transformer::RangeAndFormat range_and_format_info = {dimension_expanded_ori_shape, old_shape_range, new_range_shape,
-                                                         original_format, final_format, tensor_desc.GetDataType()};
-    bool ret = transformer::RangeTransferAccordingToFormat::GetRangeAccordingToFormat(
-        op_desc, range_and_format_info);
+    transformer::RangeAndFormat range_and_format_info = {
+        dimension_expanded_ori_shape, old_shape_range, new_range_shape, original_format, final_format,
+        tensor_desc.GetDataType()};
+    bool ret = transformer::RangeTransferAccordingToFormat::GetRangeAccordingToFormat(op_desc, range_and_format_info);
     if (!ret) {
-      REPORT_FE_ERROR(
-          "[UnknownShapeUtil][CalcShpRange] Failed to get shape range. old format is %s, new format is %s",
-          ge::TypeUtils::FormatToSerialString(original_format).c_str(),
-          ge::TypeUtils::FormatToSerialString(primary_format).c_str());
+      REPORT_FE_ERROR("[UnknownShapeUtil][CalcShpRange] Failed to get shape range. old format is %s, new format is %s",
+                      ge::TypeUtils::FormatToSerialString(original_format).c_str(),
+                      ge::TypeUtils::FormatToSerialString(primary_format).c_str());
       return FAILED;
     }
 
@@ -133,8 +132,9 @@ Status CalcShapeRange(const ge::OpDescPtr &op_desc, const ge::Format &final_form
                       op_desc->GetName().c_str(), op_desc->GetType().c_str());
       return FAILED;
     }
-    FE_LOGD("Set shape range of op[name:%s,type:%s] successfully. old format is %u, "
-            "new format is %u. old range is %s, new range is %s.",
+    FE_LOGD(
+        "Set shape range of op[name:%s,type:%s] successfully. old format is %u, "
+        "new format is %u. old range is %s, new range is %s.",
         op_desc->GetName().c_str(), op_desc->GetType().c_str(), original_format, primary_format,
         ShapeRangeToStr(old_shape_range).c_str(), ShapeRangeToStr(range_and_format_info.new_range).c_str());
   }
@@ -148,8 +148,7 @@ bool IsShapeGeneralizedMode() {
     return false;
   }
 
-  FE_LOGD("[SubGraphOpt][Compile]Get shape_generalized flag from ge is %s.",
-          shape_generalized_str.c_str());
+  FE_LOGD("[SubGraphOpt][Compile]Get shape_generalized flag from ge is %s.", shape_generalized_str.c_str());
   if (shape_generalized_str == kDefaultTrueStr) {
     return true;
   }
@@ -174,8 +173,8 @@ bool IsFuzzBuild() {
 
 bool IsFuzzBuildOp(const ge::OpDesc &op_desc) {
   bool support_dyn_shape = false;
-  if (IsFuzzBuild() &&
-      ge::AttrUtils::GetBool(op_desc, ATTR_NAME_SUPPORT_DYNAMIC_SHAPE, support_dyn_shape) && support_dyn_shape) {
+  if (IsFuzzBuild() && ge::AttrUtils::GetBool(op_desc, ATTR_NAME_SUPPORT_DYNAMIC_SHAPE, support_dyn_shape) &&
+      support_dyn_shape) {
     return true;
   } else {
     return false;

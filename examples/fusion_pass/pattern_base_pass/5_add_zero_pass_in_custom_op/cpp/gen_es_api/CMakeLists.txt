@@ -26,7 +26,7 @@ include_directories(
 )
 
 #生成自定义算子API
-#先将proto包装成so target 
+#先将proto包装成so target
 add_library(custom_op_proto SHARED
         ../proto/add_custom_proto.cc)
 target_compile_definitions(custom_op_proto PRIVATE OP_PROTO_LIB)

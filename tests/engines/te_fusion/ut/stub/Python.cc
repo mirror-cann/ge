@@ -33,378 +33,334 @@ int g_PyInitialized = 0;
 int g_taskId = 1;
 
 PyThreadState g_PyThrdState;
-}
+}  // namespace
 
 void Py_Initialize() {
-    g_PyInitialized = 1;
+  g_PyInitialized = 1;
 }
 
 int Py_IsInitialized() {
-    return g_PyInitialized;
+  return g_PyInitialized;
 }
 
 PyGILState_STATE PyGILState_Ensure(void) {
-    return PyGILState_LOCKED;
+  return PyGILState_LOCKED;
 }
 
 void PyGILState_Release(PyGILState_STATE) {
-    return;
+  return;
 }
 
 bool PyRun_SimpleString(const std::string &s) {
-    return true;
+  return true;
 }
 
-PyObject* TE_PyRun_SimpleString(const char* s) {
-    return nullptr;
+PyObject *TE_PyRun_SimpleString(const char *s) {
+  return nullptr;
 }
 
-PyObject *PyImport_ImportModule(const char* s) {
-    return &truePyObj;
+PyObject *PyImport_ImportModule(const char *s) {
+  return &truePyObj;
 }
 
 PyObject *Py_BuildValue(...) {
-    return &truePyObj;
+  return &truePyObj;
 }
 
 PyObject *PyObject_Str(PyObject *v) {
-    return &truePyObj;
+  return &truePyObj;
 }
 
 PyObject *Py_VaBuildValue(const char *format, ...) {
-    return &truePyObj;
+  return &truePyObj;
 }
 
 PyObject *PyTuple_Pack(uint32_t size, ...) {
-    return static_cast<PyObject *>(nullptr);
+  return static_cast<PyObject *>(nullptr);
 }
 
 PyObject *PyUnicode_FromString(const char *v) {
-    return static_cast<PyObject *>(nullptr);
+  return static_cast<PyObject *>(nullptr);
 }
 
 PyObject *PyLong_FromLong(int64_t) {
-    return static_cast<PyObject *>(nullptr);
+  return static_cast<PyObject *>(nullptr);
 }
 
 PyObject *PyFloat_FromDouble(double) {
-    return static_cast<PyObject *>(nullptr);
+  return static_cast<PyObject *>(nullptr);
 }
 
-int PyTuple_SetItem(PyObject* PyTotal, int idx, PyObject* PySub)
-{
-    return 0;
+int PyTuple_SetItem(PyObject *PyTotal, int idx, PyObject *PySub) {
+  return 0;
 }
 
-int TE_PyTuple_SetItem(PyObject* PyTotal, long int idx, PyObject* PySub)
-{
-    return 0;
+int TE_PyTuple_SetItem(PyObject *PyTotal, long int idx, PyObject *PySub) {
+  return 0;
 }
 
-int PyList_SetItem(PyObject* PyTotal, int idx, PyObject* PySub)
-{
-    return 0;
+int PyList_SetItem(PyObject *PyTotal, int idx, PyObject *PySub) {
+  return 0;
 }
 
-int PyDict_SetItem(PyObject* PyTotal, PyObject* key, PyObject* val)
-{
-    return 0;
+int PyDict_SetItem(PyObject *PyTotal, PyObject *key, PyObject *val) {
+  return 0;
 }
 
-int PyDict_SetItemString(PyObject* PyTotal, const char* name, PyObject* PySub)
-{
-    return 0;
+int PyDict_SetItemString(PyObject *PyTotal, const char *name, PyObject *PySub) {
+  return 0;
 }
 
-PyObject *PyTuple_New(int idx)
-{
-    return &truePyObj;
+PyObject *PyTuple_New(int idx) {
+  return &truePyObj;
 }
 
-PyObject *TE_PyTuple_New(long int idx)
-{
-    return &truePyObj;
+PyObject *TE_PyTuple_New(long int idx) {
+  return &truePyObj;
 }
 
-PyObject *PyList_New(int idx)
-{
-    return &truePyObj;
+PyObject *PyList_New(int idx) {
+  return &truePyObj;
 }
 
-PyObject *PyDict_New()
-{
-    return &truePyObj;
+PyObject *PyDict_New() {
+  return &truePyObj;
 }
 
 PyObject *PyObject_GetAttrString(PyObject *pModule, const char *s) {
-    return &truePyObj;;
+  return &truePyObj;
+  ;
 }
 
 PyObject *PyObject_CallObject(PyObject *pFunc, PyObject *pArg) {
-    return &truePyObj;
+  return &truePyObj;
 }
 
 bool PyErr_Print() {
-    return true;
+  return true;
 }
 
 bool Py_Finalize() {
-    g_PyInitialized = 0;
-    return true;
+  g_PyInitialized = 0;
+  return true;
 }
 
 PyObject *PyEval_CallObject(PyObject *pFunc, PyObject *pArg) {
-    return &truePyObj;
+  return &truePyObj;
 }
 
 int PyObject_IsTrue(PyObject *pRes) {
-    return 1;
+  return 1;
 }
 
-int PyArg_Parse(PyObject *args, const char *format, void *res)
-{
-    return 1;
+int PyArg_Parse(PyObject *args, const char *format, void *res) {
+  return 1;
 }
 
-int PyArg_Parse(PyObject *args, const char *format, char **res)
-{
-    *res = succ;
-    return 1;
+int PyArg_Parse(PyObject *args, const char *format, char **res) {
+  *res = succ;
+  return 1;
 }
 
-int PyArg_Parse(PyObject *args, const char *format, int *res)
-{
-    *res = 0;
-    if (args->res.size() > 0) {
-        *res = 8;
-        return 1;
+int PyArg_Parse(PyObject *args, const char *format, int *res) {
+  *res = 0;
+  if (args->res.size() > 0) {
+    *res = 8;
+    return 1;
+  }
+  if (std::strcmp("p", format) == 0) {
+    *res = 1;
+    return 1;
+  }
+
+  if (args->func == "is_generalize_func_register_from_c") {
+    if (args->res == "0") {
+      return 0;
+    } else {
+      return 1;
     }
-    if (std::strcmp("p", format) == 0) {
-        *res = 1;
-        return 1;
+  }
+  return 1;
+}
+
+int PyArg_Parse(PyObject *args, const char *format, PyObject **res) {
+  *res = &truePyObj;
+  return 1;
+}
+
+PyObject *PyObject_Repr(PyObject *o) {
+  return &truePyObj;
+}
+
+Py_ssize_t PyList_Size(PyObject *list) {
+  return 1;
+}
+
+Py_ssize_t PyTuple_Size(PyObject *list) {
+  return 1;
+}
+
+PyObject *PyList_GetItem(PyObject *list, Py_ssize_t index) {
+  return &truePyObj;
+}
+
+int PyArg_ParseTuple(PyObject *args, const char *format, ...) {
+  if (std::strcmp(format, "kkiss") == 0) {
+    va_list ap;
+    va_start(ap, format);
+    uint64_t *graphId = va_arg(ap, uint64_t *);
+    uint64_t *taskId = va_arg(ap, uint64_t *);
+    int *status = va_arg(ap, int *);
+    char **errmsg = va_arg(ap, char **);
+    char **json = va_arg(ap, char **);
+
+    *graphId = 1;
+    *taskId = g_taskId++;
+    *status = 0;
+    *errmsg = succ;
+    *json = g_JsonPath;
+
+    va_end(ap);
+    return 1;
+  }
+
+  if (std::strcmp(format, "iOO") == 0) {
+    va_list ap;
+    va_start(ap, format);
+    int *cnt = va_arg(ap, int *);
+
+    *cnt = 1;
+
+    va_end(ap);
+    return 1;
+  }
+
+  return 1;
+}
+
+void Py_XDECREF(PyObject *o) {
+  return;
+}
+
+void Py_XINCREF(PyObject *o) {
+  return;
+}
+
+void PyErr_Clear() {
+  return;
+}
+
+int PyObject_HasAttrString(PyObject *o, const char *attr_name) {
+  return 1;
+}
+
+PyObject *PyObject_CallFunction(PyObject *callable, const char *format, ...) {
+  return &truePyObj;
+}
+
+PyObject *PyObject_CallMethod(PyObject *obj, const char *name, const char *format, ...) {
+  std::cout << "common stub CallMethod: " << name << std::endl;
+
+  if (std::string("init_multi_process_env") == name) {
+    tmpPyObj.func = name;
+    tmpPyObj.res = 8;
+    return &tmpPyObj;
+  }
+
+  if (std::string("is_generalize_func_register_from_c") == name) {
+    va_list ap;
+    va_start(ap, format);
+    std::string opType = va_arg(ap, char *);
+    va_end(ap);
+    tmpPyObj.func = name;
+    if (opType == "Fill") {
+      tmpPyObj.res = "0";
+    } else if (opType == "Crop") {
+      return nullptr;
+    } else {
+      tmpPyObj.res = "1";
     }
+    return &tmpPyObj;
+  }
 
-    if (args->func == "is_generalize_func_register_from_c") {
-        if (args->res == "0") {
-            return 0;
-        } else {
-            return 1;
-        }
-    }
-    return 1;
+  return &truePyObj;
 }
 
-int PyArg_Parse(PyObject *args, const char *format, PyObject **res)
-{
-    *res = &truePyObj;
-    return 1;
+PyObject *PyTuple_GetItem(PyObject *p, Py_ssize_t pos) {
+  return &truePyObj;
 }
 
-PyObject* PyObject_Repr(PyObject *o)
-{
-    return &truePyObj;
+int PyEval_ThreadsInitialized() {
+  return g_PyThreadsInitialized;
 }
 
-Py_ssize_t PyList_Size(PyObject *list)
-{
-    return 1;
+void PyEval_InitThreads() {
+  g_PyThreadsInitialized = 1;
+  return;
 }
 
-Py_ssize_t PyTuple_Size(PyObject *list)
-{
-    return 1;
+PyThreadState *PyEval_SaveThread() {
+  return &g_PyThrdState;
 }
 
-PyObject* PyList_GetItem(PyObject *list, Py_ssize_t index)
-{
-    return &truePyObj;
+void PyEval_RestoreThread(PyThreadState *tstate) {
+  return;
 }
 
-int PyArg_ParseTuple(PyObject *args, const char *format, ...)
-{
-    if (std::strcmp(format, "kkiss") == 0) {
-        va_list ap;
-        va_start(ap, format);
-        uint64_t *graphId = va_arg(ap, uint64_t*);
-        uint64_t *taskId = va_arg(ap, uint64_t*);
-        int *status = va_arg(ap, int*);
-        char **errmsg = va_arg(ap, char**);
-        char **json = va_arg(ap, char**);
-
-        *graphId = 1;
-        *taskId = g_taskId++;
-        *status = 0;
-        *errmsg = succ;
-        *json = g_JsonPath;
-
-        va_end(ap);
-        return 1;
-    }
-
-    if (std::strcmp(format, "iOO") == 0) {
-        va_list ap;
-        va_start(ap, format);
-        int *cnt = va_arg(ap, int*);
-        
-        *cnt = 1;
-
-        va_end(ap);
-        return 1;
-    }
-
-    return 1;
+void PyErr_Fetch(PyObject **ptype, PyObject **pvalue, PyObject **ptraceback) {
+  return;
 }
 
-void Py_XDECREF(PyObject *o)
-{
-    return;
+void PyErr_NormalizeException(PyObject **exc, PyObject **val, PyObject **tb) {
+  return;
 }
 
-void Py_XINCREF(PyObject *o)
-{
-    return;
+void PyErr_Restore(PyObject *type, PyObject *value, PyObject *traceback) {
+  return;
 }
 
-void PyErr_Clear()
-{
-    return;
+void Py_DECREF(PyObject *o) {
+  return;
 }
 
-int PyObject_HasAttrString(PyObject *o, const char *attr_name)
-{
-    return 1;
+int PyGILState_Check() {
+  return 1;
 }
 
-PyObject* PyObject_CallFunction(PyObject *callable, const char *format, ...)
-{
-    return &truePyObj;
+int PyList_Check(PyObject *p) {
+  return 1;
 }
 
-PyObject* PyObject_CallMethod(PyObject *obj, const char *name, const char *format, ...)
-{
-    std::cout << "common stub CallMethod: " << name << std::endl;
-
-    if (std::string("init_multi_process_env") == name) {
-        tmpPyObj.func = name;
-        tmpPyObj.res = 8;
-        return &tmpPyObj;
-    }
-
-    if (std::string("is_generalize_func_register_from_c") == name) {
-        va_list ap;
-        va_start(ap, format);
-        std::string opType = va_arg(ap, char *);
-        va_end(ap);
-        tmpPyObj.func = name;
-        if (opType == "Fill") {
-            tmpPyObj.res = "0";
-        } else if (opType == "Crop") {
-            return nullptr;
-        } else {
-            tmpPyObj.res = "1";
-        }
-        return &tmpPyObj;
-    }
-
-    return &truePyObj;
+int PyDict_Check(PyObject *p) {
+  return 1;
 }
 
-PyObject* PyTuple_GetItem(PyObject *p, Py_ssize_t pos)
-{
-    return &truePyObj;
+int PyTuple_Check(PyObject *p) {
+  return 1;
 }
 
-int PyEval_ThreadsInitialized()
-{
-    return g_PyThreadsInitialized;
+int PyUnicode_Check(PyObject *p) {
+  return 1;
 }
 
-void PyEval_InitThreads()
-{
-    g_PyThreadsInitialized = 1;
-    return;
+PyObject *PyDict_GetItemString(PyObject *p, const char *key) {
+  return &truePyObj;
 }
 
-
-PyThreadState* PyEval_SaveThread()
-{
-    return &g_PyThrdState;
+PyObject *PyDict_GetItem(PyObject *p, PyObject *key) {
+  return &truePyObj;
 }
 
-void PyEval_RestoreThread(PyThreadState *tstate)
-{
-    return;
+PyObject *PyDict_Keys(PyObject *p) {
+  return &truePyObj;
 }
 
-
-void PyErr_Fetch(PyObject **ptype, PyObject **pvalue, PyObject **ptraceback)
-{
-    return;
+PyObject *PyObject_Call(PyObject *pyFunc, PyObject *tmpArgs, PyObject *kwargs) {
+  return &truePyObj;
 }
 
-void PyErr_NormalizeException(PyObject**exc, PyObject**val, PyObject**tb)
-{
-    return;
-}
-
-void PyErr_Restore(PyObject *type, PyObject *value, PyObject *traceback)
-{
-    return;
-}
-
-void Py_DECREF(PyObject *o)
-{
-    return;
-}
-
-int PyGILState_Check()
-{
-    return 1;
-}
-
-int PyList_Check(PyObject *p)
-{
-    return 1;
-}
-
-int PyDict_Check(PyObject *p)
-{
-    return 1;
-}
-
-int PyTuple_Check(PyObject *p)
-{
-    return 1;
-}
-
-int PyUnicode_Check(PyObject *p)
-{
-    return 1;
-}
-
-PyObject* PyDict_GetItemString(PyObject *p, const char *key)
-{
-    return &truePyObj;
-}
-
-PyObject* PyDict_GetItem(PyObject *p, PyObject *key)
-{
-    return &truePyObj;
-}
-
-PyObject* PyDict_Keys(PyObject *p)
-{
-    return &truePyObj;
-}
-
-PyObject* PyObject_Call(PyObject *pyFunc, PyObject *tmpArgs, PyObject *kwargs)
-{
-    return &truePyObj;
-}
-
-const char* PyUnicode_AsUTF8(PyObject *p)
-{
-    return "";
+const char *PyUnicode_AsUTF8(PyObject *p) {
+  return "";
 }
 
 PyObject *Py_None = &truePyObj;
@@ -447,7 +403,7 @@ PyObject *Py_None = &truePyObj;
 /// @return int 0(success) -1(fail)
 ///
 // void ErrorManager::ATCReportErrMessage(std::string error_code, const std::vector<std::string> &key,
- //                                      const std::vector<std::string> &value) {
+//                                      const std::vector<std::string> &value) {
 // }
 
 ///
@@ -479,7 +435,8 @@ PyObject *Py_None = &truePyObj;
 //     return nullptr;
 // }
 
-// GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY OpDesc::OpDesc(const ProtoMsgOwner& protoMsgOwner, ge::proto::OpDef* opDef) {
+// GE_FUNC_DEV_VISIBILITY GE_FUNC_HOST_VISIBILITY OpDesc::OpDesc(const ProtoMsgOwner& protoMsgOwner, ge::proto::OpDef*
+// opDef) {
 //     int64_t id = 0;
 //     (void)AttrUtils::GetInt(this, "ATTR_NAME_ID", id);
 //     opDef->set_id(id);
@@ -508,4 +465,3 @@ PyObject *Py_None = &truePyObj;
 //     }
 //     return obj->HasAttr(name);
 // }
-

@@ -43,8 +43,7 @@ std::shared_ptr<DAGNode> DAGGraph::AddNode(const std::string &name, const std::s
   auto node = std::make_shared<DAGNode>(name, type);
   nodes_[name] = node;
   node_order_.push_back(name);
-  MINIDAG_LOG_DEBUG("Add node success: %s, type: %s, total nodes: %zu",
-                    name.c_str(), type.c_str(), nodes_.size());
+  MINIDAG_LOG_DEBUG("Add node success: %s, type: %s, total nodes: %zu", name.c_str(), type.c_str(), nodes_.size());
   return node;
 }
 
@@ -67,8 +66,8 @@ std::vector<std::shared_ptr<DAGNode>> DAGGraph::GetAllNodes() const {
   return result;
 }
 
-graphStatus DAGGraph::AddEdge(std::shared_ptr<DAGNode> src, int32_t src_port,
-                               std::shared_ptr<DAGNode> dst, int32_t dst_port) {
+graphStatus DAGGraph::AddEdge(std::shared_ptr<DAGNode> src, int32_t src_port, std::shared_ptr<DAGNode> dst,
+                              int32_t dst_port) {
   if (src == nullptr || dst == nullptr) {
     MINIDAG_LOG_WARN("Add edge failed: src or dst is null");
     return graphStatus::INVALID_NODE;
@@ -80,8 +79,7 @@ graphStatus DAGGraph::AddEdge(std::shared_ptr<DAGNode> src, int32_t src_port,
   src->AddOutputEdge(edge);
   dst->AddInputEdge(edge);
 
-  MINIDAG_LOG_DEBUG("Add edge: %s[port %d] -> %s[port %d], total edges: %zu",
-                    src->GetName().c_str(), src_port,
+  MINIDAG_LOG_DEBUG("Add edge: %s[port %d] -> %s[port %d], total edges: %zu", src->GetName().c_str(), src_port,
                     dst->GetName().c_str(), dst_port, edges_.size());
   return graphStatus::SUCCESS;
 }

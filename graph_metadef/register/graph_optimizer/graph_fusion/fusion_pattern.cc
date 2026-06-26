@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -41,7 +41,7 @@ constexpr size_t MAX_LOG_LENGTH = 900;
 FusionPattern::FusionPattern(const std::string name) : name_(name), output_(nullptr) {}
 
 FusionPattern::~FusionPattern() {
-  for (const auto &ops: ops_) {
+  for (const auto &ops : ops_) {
     ops->inputs.clear();
     ops->outputs.clear();
   }
@@ -146,7 +146,7 @@ FusionPattern &FusionPattern::SetOutputs(const std::string &id, const FusionPatt
       }
       op_desc->outputs[iter.first].emplace_back(output_op_desc);
       FE_PATTERN_ERROR_RETURN_IF(op_desc->output_size == std::numeric_limits<size_t>::max(),
-        "op_desc->output_size has wrapped around.");
+                                 "op_desc->output_size has wrapped around.");
       ++op_desc->output_size;
     }
   }
@@ -173,7 +173,7 @@ FusionPattern &FusionPattern::SetOutputs(const std::string &id, const FusionPatt
     FE_PATTERN_ERROR_RETURN_IF(output_op_desc == nullptr, "Id does not exist. (id:%s)", output_id.c_str());
     op_desc->outputs[iter.first].emplace_back(output_op_desc);
     FE_PATTERN_ERROR_RETURN_IF(op_desc->output_size == std::numeric_limits<size_t>::max(),
-      "op_desc->output_size has wrapped around.");
+                               "op_desc->output_size has wrapped around.");
     ++op_desc->output_size;
   }
   op_desc->is_output_fullmatch = is_fullmatched;
@@ -227,7 +227,9 @@ bool FusionPattern::Build() {
  * @ingroup fe
  * @brief get pattern name
  */
-const std::string &FusionPattern::GetName() const { return name_; }
+const std::string &FusionPattern::GetName() const {
+  return name_;
+}
 /**
  * @ingroup fe
  * @brief get the OpDesc of input Ops (const)
@@ -253,7 +255,9 @@ size_t FusionPattern::GetOutputSize(const OpDescPtr op_desc) {
  * @ingroup fe
  * @brief get the OpDesc of output Op
  */
-const std::shared_ptr<FusionPattern::OpDesc> FusionPattern::GetOutput() const { return output_; }
+const std::shared_ptr<FusionPattern::OpDesc> FusionPattern::GetOutput() const {
+  return output_;
+}
 
 /**
  * @ingroup fe
@@ -284,11 +288,11 @@ void FusionPattern::Dump() const {
   size_t recursive_times = 0;
   constexpr int32_t kMaxTurnCount = 10;
   do {
-      recursive_times++;
-      const int32_t endIndex = static_cast<int32_t>(std::min(startIndex + MAX_LOG_LENGTH, len));
-      std::string subStr = oss.str().substr(startIndex, static_cast<size_t>(endIndex - startIndex));
-      GELOGD("%s", subStr.c_str());
-      startIndex = static_cast<size_t>(endIndex);
+    recursive_times++;
+    const int32_t endIndex = static_cast<int32_t>(std::min(startIndex + MAX_LOG_LENGTH, len));
+    std::string subStr = oss.str().substr(startIndex, static_cast<size_t>(endIndex - startIndex));
+    GELOGD("%s", subStr.c_str());
+    startIndex = static_cast<size_t>(endIndex);
   } while (startIndex < len && static_cast<int32_t>(recursive_times) < kMaxTurnCount);
 }
 
@@ -304,10 +308,14 @@ std::shared_ptr<FusionPattern::OpDesc> FusionPattern::GetOpDesc(const std::strin
   return nullptr;
 }
 
-const std::vector<std::shared_ptr<FusionPattern::OpDesc>> &FusionPattern::GetOpDescs() const { return ops_; }
+const std::vector<std::shared_ptr<FusionPattern::OpDesc>> &FusionPattern::GetOpDescs() const {
+  return ops_;
+}
 /**
  * @ingroup fe
  * @brief record error
  */
-void FusionPattern::SetError() { has_error_ = true; }
+void FusionPattern::SetError() {
+  has_error_ = true;
 }
+}  // namespace fe

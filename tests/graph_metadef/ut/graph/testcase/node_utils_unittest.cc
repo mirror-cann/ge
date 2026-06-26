@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -35,33 +35,28 @@ class UtestNodeUtils : public testing::Test {
 };
 
 namespace {
-REG_OP(FakeData)
-.INPUT(x, TensorType::NumberType())
-.OUTPUT(y, TensorType::NumberType())
-.OP_END_FACTORY_REG(FakeData);
+REG_OP(FakeData).INPUT(x, TensorType::NumberType()).OUTPUT(y, TensorType::NumberType()).OP_END_FACTORY_REG(FakeData);
 
-REG_OP(FakeOpNoOutput)
-.INPUT(x, TensorType::NumberType())
-.OP_END_FACTORY_REG(FakeOpNoOutput);
+REG_OP(FakeOpNoOutput).INPUT(x, TensorType::NumberType()).OP_END_FACTORY_REG(FakeOpNoOutput);
 
-template<class T>
-std::shared_ptr<T> MakeNullptr(){
+template <class T>
+std::shared_ptr<T> MakeNullptr() {
   return nullptr;
 }
 
 /*                                  -------------------------
-*                                  |  partitioncall_0_const1* |
-*     partitioncall_0--------------|             |           |
-*           |                      |          netoutput      |
-*           |                      --------------------------
-*           |                       ------------------         -------------
-*           |                      |        data      |       |    data     |
-*           |                      |          |       |       |     |       |
-*     partitioncall_1--------------|        case -----|-------|   squeeze*  |
-*                                  |          |       |       |     |       |
-*                                  |      netoutput   |       |  netoutput  |
-*                                   ------------------         -------------
-*/
+ *                                  |  partitioncall_0_const1* |
+ *     partitioncall_0--------------|             |           |
+ *           |                      |          netoutput      |
+ *           |                      --------------------------
+ *           |                       ------------------         -------------
+ *           |                      |        data      |       |    data     |
+ *           |                      |          |       |       |     |       |
+ *     partitioncall_1--------------|        case -----|-------|   squeeze*  |
+ *                                  |          |       |       |     |       |
+ *                                  |      netoutput   |       |  netoutput  |
+ *                                   ------------------         -------------
+ */
 ComputeGraphPtr BuildGraphPartitionCall() {
   auto root_builder = ut::GraphBuilder("root");
   const auto &partitioncall_0 = root_builder.AddNode("partitioncall_0", PARTITIONEDCALL, 0, 1);
@@ -115,20 +110,20 @@ ComputeGraphPtr BuildGraphPartitionCall() {
   return root_graph;
 }
 /*                                  -------------------------
-*                                  |           data0         |
-*         data                     |             |           |
-*           |                      |            cast         |
-*     partitioncall_0--------------|             |           |
-*           |                      |          netoutput      |
-*           |                      --------------------------
-*           |                       ------------------        
-*           |                      |        data1     |    
-*           |                      |          |       |    
-*     partitioncall_1--------------|        squeeze   |
-*                                  |          |       |
-*                                  |      netoutput   |
-*                                   ------------------ 
-*/
+ *                                  |           data0         |
+ *         data                     |             |           |
+ *           |                      |            cast         |
+ *     partitioncall_0--------------|             |           |
+ *           |                      |          netoutput      |
+ *           |                      --------------------------
+ *           |                       ------------------
+ *           |                      |        data1     |
+ *           |                      |          |       |
+ *     partitioncall_1--------------|        squeeze   |
+ *                                  |          |       |
+ *                                  |      netoutput   |
+ *                                   ------------------
+ */
 ComputeGraphPtr BuildGraphPartitionCall2() {
   auto root_builder = ut::GraphBuilder("root");
   const auto &data = root_builder.AddNode("data", DATA, 1, 1);
@@ -174,18 +169,18 @@ ComputeGraphPtr BuildGraphPartitionCall2() {
   return root_graph;
 }
 /*                                  -------------------------                 -------------------
-*                                  |      partitioncall_2---------------------|        Mul       |
-*     partitioncall_0--------------|             |           |                |         |        |
-*           |                      |         netoutput       |                |     netoutput    |
-*           |                      --------------------------                  ------------------
-*           |                       -------------
-*           |                      |    data     |
-*           |                      |     |       |
-*     partitioncall_1--------------|   squeeze*  |
-*                                  |     |       |
-*                                  |  netoutput  |
-*                                   -------------
-*/
+ *                                  |      partitioncall_2---------------------|        Mul       |
+ *     partitioncall_0--------------|             |           |                |         |        |
+ *           |                      |         netoutput       |                |     netoutput    |
+ *           |                      --------------------------                  ------------------
+ *           |                       -------------
+ *           |                      |    data     |
+ *           |                      |     |       |
+ *     partitioncall_1--------------|   squeeze*  |
+ *                                  |     |       |
+ *                                  |  netoutput  |
+ *                                   -------------
+ */
 ComputeGraphPtr BuildGraphPartitionCall3() {
   auto root_builder = ut::GraphBuilder("root");
   const auto &partitioncall_0 = root_builder.AddNode("partitioncall_0", PARTITIONEDCALL, 1, 1);
@@ -238,11 +233,11 @@ ComputeGraphPtr BuildGraphPartitionCall3() {
 }
 
 /*
-*                                       |          constant         |
-*    data  partitioncall_0--------------|             |           |
-*       \  /                            |          netoutput      |
-*      concat
-*/
+ *                                       |          constant         |
+ *    data  partitioncall_0--------------|             |           |
+ *       \  /                            |          netoutput      |
+ *      concat
+ */
 ComputeGraphPtr BuildGraphPartitionCall4() {
   auto root_builder = ut::GraphBuilder("root");
   const auto &data = root_builder.AddNode("data", DATA, 1, 1);
@@ -272,7 +267,7 @@ ComputeGraphPtr BuildGraphPartitionCall4() {
  *    \       ||
  *       \    ||
  *         \  \/
- *  const->assgin
+ *  const->assign
  */
 ComputeGraphPtr BuildGraphWithUsefulIdentity() {
   auto builder = ut::GraphBuilder("test");
@@ -294,7 +289,7 @@ ComputeGraphPtr BuildGraphWithUsefulIdentity() {
   builder.AddControlEdge(id1, ref_node);
   return builder.GetGraph();
 }
-}
+}  // namespace
 
 TEST_F(UtestNodeUtils, UpdateOriginShapeAndShape) {
   ut::GraphBuilder builder = ut::GraphBuilder("graph");
@@ -382,7 +377,6 @@ TEST_F(UtestNodeUtils, GetNodeUnknownShapeStatus_success) {
   ASSERT_EQ(NodeUtils::GetNodeUnknownShapeStatus(*case0, is_known), GRAPH_SUCCESS);
 }
 
-
 TEST_F(UtestNodeUtils, GetInNodeCrossPartionedCallNode_cross_one_subgraph) {
   auto graph = BuildGraphPartitionCall4();
   NodePtr expect_peer_node;
@@ -392,7 +386,7 @@ TEST_F(UtestNodeUtils, GetInNodeCrossPartionedCallNode_cross_one_subgraph) {
       concat_node = node;
     }
   }
-  auto ret = NodeUtils::GetInNodeCrossPartionedCallNode(concat_node, 1 , expect_peer_node);
+  auto ret = NodeUtils::GetInNodeCrossPartionedCallNode(concat_node, 1, expect_peer_node);
   ASSERT_EQ(ret, GRAPH_SUCCESS);
   ASSERT_NE(expect_peer_node, nullptr);
   ASSERT_EQ(expect_peer_node->GetName(), "partitioncall_0_constant");
@@ -407,16 +401,16 @@ TEST_F(UtestNodeUtils, GetInNodeCrossPartionedCallNode_subgraph_in_partitioncall
       squeeze_node = node;
     }
   }
-  auto ret = NodeUtils::GetInNodeCrossPartionedCallNode(squeeze_node, 0 , expect_peer_node);
+  auto ret = NodeUtils::GetInNodeCrossPartionedCallNode(squeeze_node, 0, expect_peer_node);
   ASSERT_EQ(ret, GRAPH_SUCCESS);
   ASSERT_NE(expect_peer_node, nullptr);
   ASSERT_EQ(expect_peer_node->GetName(), "partitioncall_0_const1");
 }
 
-  ///       A(PartionedCall_0)->B(PartionedCall_1)
-  ///          PartionedCall_0's subgraph: Data->A->Netoutput
-  ///          PartionedCall_1's subgraph: Data1->B->Netoutput
-  ///          If it is called like GetInNodeCrossPartionCallNode(B,0,peer_node)or(Data1,0,peer_node), peer_node is A
+///       A(PartionedCall_0)->B(PartionedCall_1)
+///          PartionedCall_0's subgraph: Data->A->Netoutput
+///          PartionedCall_1's subgraph: Data1->B->Netoutput
+///          If it is called like GetInNodeCrossPartionCallNode(B,0,peer_node)or(Data1,0,peer_node), peer_node is A
 TEST_F(UtestNodeUtils, GetInNodeCrossPartionedCallNode_paritioncall_link_partitioncall) {
   auto graph = BuildGraphPartitionCall2();
   NodePtr expect_peer_node = nullptr;
@@ -446,19 +440,19 @@ TEST_F(UtestNodeUtils, GetInNodeCrossPartionedCallNode_paritioncall_link_partiti
   ASSERT_EQ(NodeUtils::GetInNodeCrossSubgraph(data_in_partition1), partitioncall_0);
 
   // test with src node
-  auto ret = NodeUtils::GetInNodeCrossPartionedCallNode(squeeze_node, 0 , expect_peer_node);
+  auto ret = NodeUtils::GetInNodeCrossPartionedCallNode(squeeze_node, 0, expect_peer_node);
   ASSERT_EQ(ret, GRAPH_SUCCESS);
   ASSERT_NE(expect_peer_node, nullptr);
   ASSERT_EQ(expect_peer_node->GetName(), "partitioncall_0_cast");
 
   // test subgraph_data node
-  ret = NodeUtils::GetInNodeCrossPartionedCallNode(data_in_partition1, 0 , expect_peer_node);
+  ret = NodeUtils::GetInNodeCrossPartionedCallNode(data_in_partition1, 0, expect_peer_node);
   ASSERT_EQ(ret, GRAPH_SUCCESS);
   ASSERT_NE(expect_peer_node, nullptr);
   ASSERT_EQ(expect_peer_node->GetName(), "partitioncall_0_cast");
 
   // test peer_node is root_data node
-  ret = NodeUtils::GetInNodeCrossPartionedCallNode(partitioncall_0, 1 , expect_peer_node);
+  ret = NodeUtils::GetInNodeCrossPartionedCallNode(partitioncall_0, 1, expect_peer_node);
   ASSERT_EQ(ret, GRAPH_SUCCESS);
   ASSERT_EQ(expect_peer_node, nullptr);
 }
@@ -472,7 +466,7 @@ TEST_F(UtestNodeUtils, GetInNodeCrossPartionedCallNode_multi_partitioncall) {
       squeeze_node = node;
     }
   }
-  auto ret = NodeUtils::GetInNodeCrossPartionedCallNode(squeeze_node, 0 , expect_peer_node);
+  auto ret = NodeUtils::GetInNodeCrossPartionedCallNode(squeeze_node, 0, expect_peer_node);
   ASSERT_EQ(ret, GRAPH_SUCCESS);
   ASSERT_NE(expect_peer_node, nullptr);
   ASSERT_EQ(expect_peer_node->GetName(), "partitioncall_2_mul");
@@ -487,7 +481,7 @@ TEST_F(UtestNodeUtils, GetInNodeCrossPartionedCallNode_temp_test_return_success_
       partition_node = node;
     }
   }
-  auto ret = NodeUtils::GetInNodeCrossPartionedCallNode(partition_node, 0 , expect_peer_node);
+  auto ret = NodeUtils::GetInNodeCrossPartionedCallNode(partition_node, 0, expect_peer_node);
   ASSERT_EQ(ret, GRAPH_SUCCESS);
   ASSERT_EQ(expect_peer_node, nullptr);
 }
@@ -611,15 +605,10 @@ TEST_F(UtestNodeUtils, MoveOutputEdges_Link) {
 }
 
 TEST_F(UtestNodeUtils, UpdateIsInputConst_Normal) {
-  EXPECT_NO_THROW(
-    NodeUtils::UpdateIsInputConst(nullptr);
-    ut::GraphBuilder builder = ut::GraphBuilder("graph");
-    auto data = builder.AddNode("Data", "Data", 0, 1);
-    NodeUtils::UpdateIsInputConst(data);
-    NodeUtils::UpdateIsInputConst(*data);
-    data->impl_->op_ = nullptr;
-    NodeUtils::UpdateIsInputConst(data);
-  );
+  EXPECT_NO_THROW(NodeUtils::UpdateIsInputConst(nullptr); ut::GraphBuilder builder = ut::GraphBuilder("graph");
+                  auto data = builder.AddNode("Data", "Data", 0, 1); NodeUtils::UpdateIsInputConst(data);
+                  NodeUtils::UpdateIsInputConst(*data); data->impl_->op_ = nullptr;
+                  NodeUtils::UpdateIsInputConst(data););
 }
 
 TEST_F(UtestNodeUtils, UpdateIsInputConst_Nullptr) {
@@ -631,7 +620,6 @@ TEST_F(UtestNodeUtils, UpdateIsInputConst_Nullptr) {
   auto node = data2->GetOutDataAnchor(0)->GetOwnerNode();
   NodeUtils::UpdateIsInputConst(data1);
 }
-
 
 TEST_F(UtestNodeUtils, UpdateIsInputConst_OutDataAnchorNullptr) {
   ut::GraphBuilder builder = ut::GraphBuilder("graph");
@@ -645,13 +633,9 @@ TEST_F(UtestNodeUtils, UpdateIsInputConst_OutDataAnchorNullptr) {
   NodeUtils::UpdateIsInputConst(attr_node);
 }
 
-
 TEST_F(UtestNodeUtils, UnlinkAll) {
-  EXPECT_NO_THROW(
-    ut::GraphBuilder builder = ut::GraphBuilder("graph");
-    auto data = builder.AddNode("Data", "Data", 0, 1);
-    NodeUtils::UnlinkAll(*data);
-  );
+  EXPECT_NO_THROW(ut::GraphBuilder builder = ut::GraphBuilder("graph");
+                  auto data = builder.AddNode("Data", "Data", 0, 1); NodeUtils::UnlinkAll(*data););
 }
 
 TEST_F(UtestNodeUtils, AppendRemoveAnchor) {
@@ -810,7 +794,7 @@ TEST_F(UtestNodeUtils, IsWhileVaryingInput_While) {
   sub_graph->SetParentNode(while1);
   sub_graph->SetParentGraph(root_graph);
   EXPECT_EQ(NodeUtils::IsWhileVaryingInput(data0), false);
-  //EXPECT_EQ(NodeUtils::IsWhileVaryingInput(while1), false);
+  // EXPECT_EQ(NodeUtils::IsWhileVaryingInput(while1), false);
   EXPECT_EQ(AttrUtils::SetInt(data0->GetOpDesc(), "_parent_node_index", 1), true);
   EXPECT_EQ(NodeUtils::IsWhileVaryingInput(data0), true);
 }
@@ -915,7 +899,6 @@ TEST_F(UtestNodeUtils, SetNodeParallelGroup) {
   node->impl_->op_->impl_->attrs_ = amap;
   EXPECT_EQ(NodeUtils::SetNodeParallelGroup(*node, "node_group"), GRAPH_FAILED);
   EXPECT_EQ(NodeUtils::SetNodeParallelGroup(*node, "_parallel_group_value"), GRAPH_SUCCESS);
-
 }
 
 TEST_F(UtestNodeUtils, GetSubgraph) {
@@ -944,7 +927,7 @@ TEST_F(UtestNodeUtils, UpdateInOutputOriginalShapeAndShapeFailure) {
   EXPECT_EQ(NodeUtils::UpdateOutputOriginalShapeAndShape(*node, 100, GeShape()), GRAPH_PARAM_INVALID);
 }
 
-TEST_F(UtestNodeUtils, GetInNodeCrossPartionedCallNode){
+TEST_F(UtestNodeUtils, GetInNodeCrossPartionedCallNode) {
   auto graph = BuildGraphPartitionCall();
   NodePtr expect_peer_node;
   NodePtr sq_node;
@@ -964,19 +947,18 @@ TEST_F(UtestNodeUtils, GetInNodeCrossPartionedCallNode){
   EXPECT_EQ(sq_node->GetType(), SQUEEZE);
   EXPECT_NE(sq_node->GetType(), PARTITIONEDCALL);
   EXPECT_EQ(sq_node->GetOpDesc()->GetSubgraphInstanceNames().empty(), true);
-  EXPECT_EQ(NodeUtils::GetInNodeCrossPartionedCallNode(sq_node, 0 , expect_peer_node), GRAPH_SUCCESS);
-  EXPECT_EQ(NodeUtils::GetInNodeCrossPartionedCallNode(sq_node, 1000 , expect_peer_node), GRAPH_FAILED);
+  EXPECT_EQ(NodeUtils::GetInNodeCrossPartionedCallNode(sq_node, 0, expect_peer_node), GRAPH_SUCCESS);
+  EXPECT_EQ(NodeUtils::GetInNodeCrossPartionedCallNode(sq_node, 1000, expect_peer_node), GRAPH_FAILED);
   auto peer = NodeUtils::GetInDataNodeByIndex(*sq_node, 0);
   EXPECT_NE(NodeUtils::GetInDataNodeByIndex(*sq_node, 0), nullptr);
   EXPECT_NE(nt_node->GetType(), DATA);
   EXPECT_EQ(nt_node->GetType(), NETOUTPUT);
   EXPECT_NE(nt_node->GetType(), PARTITIONEDCALL);
   EXPECT_EQ(nt_node->GetOpDesc()->GetSubgraphInstanceNames().empty(), true);
-  EXPECT_EQ(NodeUtils::GetInNodeCrossPartionedCallNode(nt_node, 0 , expect_peer_node), GRAPH_SUCCESS);
+  EXPECT_EQ(NodeUtils::GetInNodeCrossPartionedCallNode(nt_node, 0, expect_peer_node), GRAPH_SUCCESS);
 }
 
-
-TEST_F(UtestNodeUtils, GetInNodeCrossSubgraph){
+TEST_F(UtestNodeUtils, GetInNodeCrossSubgraph) {
   auto graph = BuildGraphPartitionCall();
   NodePtr expect_peer_node;
   NodePtr dt_node;
@@ -1116,7 +1098,7 @@ TEST_F(UtestNodeUtils, GetParentInput_invalid) {
   const auto &data_node = builder.AddNode("data", DATA, 0, 0);
   auto graph = builder.GetGraph();
   auto node = graph->FindNode("data");
-  AttrUtils::SetInt(node->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX,1);
+  AttrUtils::SetInt(node->GetOpDesc(), ge::ATTR_NAME_PARENT_NODE_INDEX, 1);
   EXPECT_EQ(NodeUtils::GetParentInput(node), nullptr);
 }
 

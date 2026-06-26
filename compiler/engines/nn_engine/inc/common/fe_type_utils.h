@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,9 +21,9 @@ std::string GetRealPath(const std::string &path);
 std::string RemoveCharacters(const std::string &param_key);
 Status String2DataType(const std::string &dtype_str, ge::DataType &dtype);
 Status String2Bool(const std::string &bool_str, bool &bool_res);
-std::string GetStrByFormatVec(const std::vector<ge::Format>& format_vec);
-std::string GetStrBySubFormatVec(const std::vector<uint32_t>& sub_format_vec);
-std::string GetStrByDataTypeVec(const std::vector<ge::DataType>& data_type_vec);
+std::string GetStrByFormatVec(const std::vector<ge::Format> &format_vec);
+std::string GetStrBySubFormatVec(const std::vector<uint32_t> &sub_format_vec);
+std::string GetStrByDataTypeVec(const std::vector<ge::DataType> &data_type_vec);
 
 std::string GetOpPatternString(OpPattern op_pattern);
 

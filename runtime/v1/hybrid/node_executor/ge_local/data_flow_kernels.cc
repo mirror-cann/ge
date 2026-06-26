@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -52,11 +52,8 @@ Status DataFlowStack::Compute(TaskContext &context, const int64_t handle) {
       return PARAM_INVALID;
     }
     std::vector<uint8_t> buffer(size_tensor_value->GetSize());
-    GE_CHK_RT_RET(rtMemcpy(buffer.data(),
-                           size_tensor_value->GetSize(),
-                           size_tensor_value->MutableData(),
-                           size_tensor_value->GetSize(),
-                           RT_MEMCPY_DEVICE_TO_HOST));
+    GE_CHK_RT_RET(rtMemcpy(buffer.data(), size_tensor_value->GetSize(), size_tensor_value->MutableData(),
+                           size_tensor_value->GetSize(), RT_MEMCPY_DEVICE_TO_HOST));
     const int32_t *const max_size_ptr = PtrToPtr<const uint8_t, const int32_t>(buffer.data());
     int64_t max_size = static_cast<int64_t>(*max_size_ptr);
     GELOGD("Stack[%s] get max size:%ld.", context.GetNodeName(), max_size);
@@ -67,7 +64,7 @@ Status DataFlowStack::Compute(TaskContext &context, const int64_t handle) {
   GE_CHECK_NOTNULL(tensor_value);
   // Has set dependent_for_execution before, the input is ready when get here.
   GE_CHK_ACL_RET(aclrtMemcpyAsync(tensor_value->MutableData(), tensor_value->GetSize(), &handle, sizeof(int64_t),
-                              ACL_MEMCPY_HOST_TO_DEVICE, context.GetStream()));
+                                  ACL_MEMCPY_HOST_TO_DEVICE, context.GetStream()));
   res->SetClosed(false);
   GELOGD("Stack[%s] compute successfully, handle[%ld].", context.GetNodeName(), handle);
   return SUCCESS;
@@ -79,7 +76,7 @@ Status DataFlowStackPush::Compute(TaskContext &context, const int64_t handle) {
   GE_CHECK_NOTNULL(res);
   if (res->IsClosed()) {
     REPORT_INNER_ERR_MSG("E19999", "Failed to push, resource is closed. StackPush name:%s, handle:%" PRId64 ".",
-                       context.GetNodeName(), handle);
+                         context.GetNodeName(), handle);
     GELOGE(INTERNAL_ERROR, "Resource is closed, StackPush name:%s, handle:%ld.", context.GetNodeName(), handle);
     return INTERNAL_ERROR;
   }
@@ -89,8 +86,8 @@ Status DataFlowStackPush::Compute(TaskContext &context, const int64_t handle) {
   GE_CHECK_NOTNULL(data_desc);
   const Status ret = res->EmplaceBack(std::make_pair(*data_tensor_value, *data_desc));
   if (ret != SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Failed to push, StackPush name:%s, handle:%" PRId64 ".",
-                       context.GetNodeName(), handle);
+    REPORT_INNER_ERR_MSG("E19999", "Failed to push, StackPush name:%s, handle:%" PRId64 ".", context.GetNodeName(),
+                         handle);
     GELOGE(ret, "Failed to push, StackPush name:%s, handle:%ld.", context.GetNodeName(), handle);
     return ret;
   }
@@ -102,8 +99,8 @@ Status DataFlowStackPush::Compute(TaskContext &context, const int64_t handle) {
     const auto out_tensor_value = context.MutableOutput(0);
     GE_CHECK_NOTNULL(out_tensor_value);
     GE_CHK_ACL_RET(aclrtMemcpyAsync(out_tensor_value->MutableData(), out_tensor_value->GetSize(),
-                                data_tensor_value->GetData(), static_cast<uint64_t>(copy_size),
-                                ACL_MEMCPY_DEVICE_TO_DEVICE, context.GetStream()));
+                                    data_tensor_value->GetData(), static_cast<uint64_t>(copy_size),
+                                    ACL_MEMCPY_DEVICE_TO_DEVICE, context.GetStream()));
   }
   GELOGD("StackPush[%s] compute successfully, handle[%ld].", context.GetNodeName(), handle);
   return SUCCESS;
@@ -115,15 +112,14 @@ Status DataFlowStackPop::Compute(TaskContext &context, const int64_t handle) {
   GE_CHECK_NOTNULL(res);
   if (res->IsClosed()) {
     REPORT_INNER_ERR_MSG("E19999", "Failed to push, resource is closed. StackPop name:%s, handle:%" PRId64 ".",
-                       context.GetNodeName(), handle);
+                         context.GetNodeName(), handle);
     GELOGE(INTERNAL_ERROR, "Resource is closed, StackPop name:%s, handle:%ld.", context.GetNodeName(), handle);
     return INTERNAL_ERROR;
   }
   if (res->Empty()) {
-    REPORT_INNER_ERR_MSG("E19999", "Resource is empty, StackPop name:%s, handle:%" PRId64 ".",
-                       context.GetNodeName(), handle);
-    GELOGE(INTERNAL_ERROR, "Resource is empty, StackPop name:%s, handle:%ld.",
-           context.GetNodeName(), handle);
+    REPORT_INNER_ERR_MSG("E19999", "Resource is empty, StackPop name:%s, handle:%" PRId64 ".", context.GetNodeName(),
+                         handle);
+    GELOGE(INTERNAL_ERROR, "Resource is empty, StackPop name:%s, handle:%ld.", context.GetNodeName(), handle);
     return INTERNAL_ERROR;
   }
   const DataFlowTensor &top = res->Back();

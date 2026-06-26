@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,11 +24,17 @@ void OpSoStore::AddKernel(const OpSoBinPtr &so_bin_ptr) {
   return;
 }
 
-std::vector<OpSoBinPtr> OpSoStore::GetSoBin() const { return kernels_; }
+std::vector<OpSoBinPtr> OpSoStore::GetSoBin() const {
+  return kernels_;
+}
 
-const uint8_t *OpSoStore::Data() const { return buffer_.get(); }
+const uint8_t *OpSoStore::Data() const {
+  return buffer_.get();
+}
 
-size_t OpSoStore::DataSize() const { return static_cast<size_t>(buffer_size_); }
+size_t OpSoStore::DataSize() const {
+  return static_cast<size_t>(buffer_size_);
+}
 
 uint32_t OpSoStore::GetKernelNum() const {
   return static_cast<uint32_t>(kernels_.size());
@@ -43,9 +49,8 @@ bool OpSoStore::CalculateAndAllocMem() {
     total_len += item->GetBinDataSize();
   }
   buffer_size_ = static_cast<uint32_t>(total_len);
-  buffer_ = std::shared_ptr<uint8_t> (new (std::nothrow) uint8_t[total_len],
-      std::default_delete<uint8_t[]>());
-  GE_ASSERT_NOTNULL(buffer_, "[Malloc][Memmory]Resize buffer failed, memory size %zu", total_len);
+  buffer_ = std::shared_ptr<uint8_t>(new (std::nothrow) uint8_t[total_len], std::default_delete<uint8_t[]>());
+  GE_ASSERT_NOTNULL(buffer_, "[Malloc][Memory]Resize buffer failed, memory size %zu", total_len);
   return true;
 }
 
@@ -68,28 +73,28 @@ bool OpSoStore::Build() {
     so_bin_head.vendor_name_len = static_cast<uint32_t>(item->GetVendorName().length());
     so_bin_head.bin_len = static_cast<uint32_t>(item->GetBinDataSize());
 
-    GELOGD("get so name %s, vendor name:%s, size %zu",
-           item->GetSoName().c_str(), item->GetVendorName().c_str(), item->GetBinDataSize());
+    GELOGD("get so name %s, vendor name:%s, size %zu", item->GetSoName().c_str(), item->GetVendorName().c_str(),
+           item->GetBinDataSize());
 
     GE_ASSERT_EOK(memcpy_s(next_buffer, remain_len, &so_bin_head, sizeof(SoStoreItemHead)));
     next_buffer = PtrToPtr<void, uint8_t>(ValueToPtr(PtrToValue(next_buffer) + sizeof(SoStoreItemHead)));
 
-    GE_ASSERT_EOK(memcpy_s(next_buffer, remain_len - sizeof(SoStoreItemHead),
-        item->GetSoName().data(), static_cast<size_t>(so_bin_head.so_name_len)));
+    GE_ASSERT_EOK(memcpy_s(next_buffer, remain_len - sizeof(SoStoreItemHead), item->GetSoName().data(),
+                           static_cast<size_t>(so_bin_head.so_name_len)));
     next_buffer = PtrToPtr<void, uint8_t>(ValueToPtr(PtrToValue(next_buffer) + so_bin_head.so_name_len));
 
     GE_ASSERT_EOK(memcpy_s(next_buffer, remain_len - sizeof(SoStoreItemHead) - so_bin_head.so_name_len,
-        item->GetVendorName().data(), static_cast<size_t>(so_bin_head.vendor_name_len)));
+                           item->GetVendorName().data(), static_cast<size_t>(so_bin_head.vendor_name_len)));
     next_buffer = PtrToPtr<void, uint8_t>(ValueToPtr(PtrToValue(next_buffer) + so_bin_head.vendor_name_len));
 
     GE_ASSERT_EOK(memcpy_s(next_buffer,
-        remain_len - sizeof(SoStoreItemHead) - so_bin_head.so_name_len - so_bin_head.vendor_name_len,
-        item->GetBinData(), static_cast<size_t>(so_bin_head.bin_len)));
-    next_buffer = PtrToPtr<void, uint8_t>(ValueToPtr(PtrToValue(next_buffer) +
-        static_cast<size_t>(so_bin_head.bin_len)));
+                           remain_len - sizeof(SoStoreItemHead) - so_bin_head.so_name_len - so_bin_head.vendor_name_len,
+                           item->GetBinData(), static_cast<size_t>(so_bin_head.bin_len)));
+    next_buffer =
+        PtrToPtr<void, uint8_t>(ValueToPtr(PtrToValue(next_buffer) + static_cast<size_t>(so_bin_head.bin_len)));
 
-    remain_len = remain_len - sizeof(SoStoreItemHead) - so_bin_head.so_name_len -
-        so_bin_head.vendor_name_len - so_bin_head.bin_len;
+    remain_len = remain_len - sizeof(SoStoreItemHead) - so_bin_head.so_name_len - so_bin_head.vendor_name_len -
+                 so_bin_head.bin_len;
   }
   GELOGI("[OpSoBins][Build]So bin num:%zu.", kernels_.size());
   return true;
@@ -112,7 +117,7 @@ bool OpSoStore::Load(const uint8_t *const data, const size_t len) {
 
     const auto *const so_bin_head = PtrToPtr<const uint8_t, const SoStoreItemHead>(next_buffer);
     if (buffer_len < (static_cast<size_t>(so_bin_head->so_name_len) + static_cast<size_t>(so_bin_head->bin_len) +
-        static_cast<size_t>(so_bin_head->vendor_name_len) + sizeof(SoStoreItemHead))) {
+                      static_cast<size_t>(so_bin_head->vendor_name_len) + sizeof(SoStoreItemHead))) {
       GELOGW("Invalid so block remain buffer len %zu, so name len %u, vendor name len:%u, bin len %u, so_bin_type %u",
              buffer_len, so_bin_head->so_name_len, so_bin_head->vendor_name_len, so_bin_head->bin_len,
              so_bin_head->so_bin_type);
@@ -124,11 +129,11 @@ bool OpSoStore::Load(const uint8_t *const data, const size_t len) {
            so_bin_head->so_bin_type);
     next_buffer = PtrToPtr<void, uint8_t>(ValueToPtr(PtrToValue(next_buffer) + sizeof(SoStoreItemHead)));
     std::string so_name(PtrToPtr<const uint8_t, const char_t>(next_buffer),
-        static_cast<size_t>(so_bin_head->so_name_len));
+                        static_cast<size_t>(so_bin_head->so_name_len));
 
     next_buffer = PtrToPtr<void, uint8_t>(ValueToPtr(PtrToValue(next_buffer) + so_bin_head->so_name_len));
     std::string vendor_name(PtrToPtr<const uint8_t, const char_t>(next_buffer),
-        static_cast<size_t>(so_bin_head->vendor_name_len));
+                            static_cast<size_t>(so_bin_head->vendor_name_len));
 
     next_buffer = PtrToPtr<void, uint8_t>(ValueToPtr(PtrToValue(next_buffer) + so_bin_head->vendor_name_len));
     GELOGD("Load vendor:%s so:%s from om, bin len:%u", vendor_name.c_str(), so_name.c_str(), so_bin_head->bin_len);
@@ -142,10 +147,10 @@ bool OpSoStore::Load(const uint8_t *const data, const size_t len) {
     const OpSoBinPtr so_bin_ptr = ge::MakeShared<OpSoBin>(so_name, vendor_name, std::move(so_bin), so_bin_head->bin_len,
                                                           static_cast<SoBinType>(so_bin_head->so_bin_type));
     if (so_bin_ptr != nullptr) {
-      (void) kernels_.push_back(so_bin_ptr);
+      (void)kernels_.push_back(so_bin_ptr);
     }
-    buffer_len -= sizeof(SoStoreItemHead) + so_bin_head->so_name_len + so_bin_head->vendor_name_len +
-        so_bin_head->bin_len;
+    buffer_len -=
+        sizeof(SoStoreItemHead) + so_bin_head->so_name_len + so_bin_head->vendor_name_len + so_bin_head->bin_len;
   }
   GE_ASSERT_TRUE((so_num_ == kernels_.size()), "read so num:%zu so bin num:%u from om are not equal", so_num_,
                  kernels_.size());

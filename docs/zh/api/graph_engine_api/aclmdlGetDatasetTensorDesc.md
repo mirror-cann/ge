@@ -66,4 +66,3 @@ aclTensorDesc *aclmdlGetDatasetTensorDesc(const aclmdlDataset *dataset, size_t i
 ## 返回值说明<a name="section162895447"></a>
 
 返回指定输入或输出的tensor描述信息。
-

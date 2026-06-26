@@ -1,13 +1,12 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
-
 
 #include "exe_graph/runtime/kernel_context.h"
 #include "register/kernel_registry_impl.h"
@@ -16,7 +15,7 @@
 #include "framework/common/debug/ge_log.h"
 
 namespace gert {
-ge::graphStatus CreateSession(KernelContext* context) {
+ge::graphStatus CreateSession(KernelContext *context) {
   GELOGD("CreateSession begin");
   auto session_id = context->GetInputPointer<uint64_t>(0UL);
   if (session_id == nullptr) {
@@ -37,7 +36,7 @@ ge::graphStatus CreateSession(KernelContext* context) {
 }
 REGISTER_KERNEL(CreateSession).RunFunc(CreateSession);
 
-uint32_t DestroySession(KernelContext* context) {
+uint32_t DestroySession(KernelContext *context) {
   GELOGD("DestroySession begin");
   auto session_id = context->GetInputPointer<uint64_t>(0UL);
   if (session_id == nullptr) {
@@ -50,7 +49,7 @@ uint32_t DestroySession(KernelContext* context) {
 }
 REGISTER_KERNEL(DestroySession).RunFunc(DestroySession);
 
-uint32_t ClearContainer(KernelContext* context) {
+uint32_t ClearContainer(KernelContext *context) {
   GELOGD("ClearContainer begin");
   auto session_id = context->GetInputPointer<uint64_t>(0UL);
   if (session_id == nullptr) {
@@ -71,4 +70,4 @@ uint32_t ClearContainer(KernelContext* context) {
   return rm->ClearStepResource();
 }
 REGISTER_KERNEL(ClearContainer).RunFunc(ClearContainer);
-}  // namespace aicpu
+}  // namespace gert

@@ -37,14 +37,13 @@ TEST_F(PreDavinciModelUnittest, GetEngineNameAndOpDescFail) {
   std::string name;
   OpDescPtr op_desc;
   pre_davinci.Assign(nullptr);
-  EXPECT_NE(pre_davinci.GetEngineNameAndOpDesc(static_cast<EngineType>(2U),
-      domi::TaskDef(), name, op_desc), SUCCESS);
+  EXPECT_NE(pre_davinci.GetEngineNameAndOpDesc(static_cast<EngineType>(2U), domi::TaskDef(), name, op_desc), SUCCESS);
 }
 
 TEST_F(PreDavinciModelUnittest, GetHostFuncEngine) {
   PreDavinciModel pre_davinci;
   domi::TaskDef task_def;
-  task_def.set_type(static_cast<uint32_t>(ModelTaskType:: MODEL_TASK_KERNEL));
+  task_def.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_KERNEL));
 
   domi::KernelDef kernel_def;
   domi::KernelContext context;
@@ -56,12 +55,9 @@ TEST_F(PreDavinciModelUnittest, GetHostFuncEngine) {
   std::string engine_name;
   OpDescPtr op_desc;
 
-  EXPECT_NE(pre_davinci.GetEngineNameAndOpDesc(
-      static_cast<EngineType>(EngineType::kNanoEngine),
-      task_def,
-      engine_name,
-      op_desc),
-      SUCCESS);
+  EXPECT_NE(pre_davinci.GetEngineNameAndOpDesc(static_cast<EngineType>(EngineType::kNanoEngine), task_def, engine_name,
+                                               op_desc),
+            SUCCESS);
 
   EXPECT_TRUE(engine_name.empty());
   const auto func = PreGenerateTaskRegistry::GetInstance().FindPreGenerateTask(engine_name);
@@ -126,10 +122,11 @@ TEST_F(PreDavinciModelUnittest, GenerateTaskDesc) {
   PreDavinciModel pre_davinci;
   std::string engine_name;
   OpDescPtr op_desc;
-  EXPECT_NE(pre_davinci.GetEngineNameAndOpDesc(static_cast<EngineType>(EngineType::kNanoEngine),
-      domi::TaskDef(), engine_name, op_desc), SUCCESS);
+  EXPECT_NE(pre_davinci.GetEngineNameAndOpDesc(static_cast<EngineType>(EngineType::kNanoEngine), domi::TaskDef(),
+                                               engine_name, op_desc),
+            SUCCESS);
   EXPECT_TRUE(engine_name.empty());
   const auto func = PreGenerateTaskRegistry::GetInstance().FindPreGenerateTask(engine_name);
   ASSERT_EQ(func, nullptr);
 }
-}
+}  // namespace ge

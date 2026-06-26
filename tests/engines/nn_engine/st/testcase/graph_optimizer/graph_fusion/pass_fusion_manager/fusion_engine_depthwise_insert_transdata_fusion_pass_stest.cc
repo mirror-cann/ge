@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,44 +34,38 @@ namespace fe {
 
 using FEOpsKernelInfoStorePtr = std::shared_ptr<fe::FEOpsKernelInfoStore>;
 
-
-class STEST_fusion_engine_depthwise_insert_transdata_pass : public testing::Test
-{
-public:
+class STEST_fusion_engine_depthwise_insert_transdata_pass : public testing::Test {
+ public:
   FEOpsKernelInfoStorePtr fe_ops_kernel_info_store_ptr;
-protected:
-  void SetUp()
-  {
+
+ protected:
+  void SetUp() {
     fe_ops_kernel_info_store_ptr = make_shared<fe::FEOpsKernelInfoStore>(fe::AI_CORE_NAME);
-    FEOpsStoreInfo tbe_builtin {
-            0,
-            "tbe-builtin",
-            EN_IMPL_HW_TBE,
-            GetCodeDir() + "/tests/engines/nn_engine/st/testcase/ops_kernel_store/fe_config/tbe_opinfo",
-            "",
-            false,
-            false,
-            false};
+    FEOpsStoreInfo tbe_builtin{
+        0,
+        "tbe-builtin",
+        EN_IMPL_HW_TBE,
+        GetCodeDir() + "/tests/engines/nn_engine/st/testcase/ops_kernel_store/fe_config/tbe_opinfo",
+        "",
+        false,
+        false,
+        false};
     vector<FEOpsStoreInfo> store_info;
     store_info.emplace_back(tbe_builtin);
     Configuration::Instance(fe::AI_CORE_NAME).ops_store_info_vector_ = (store_info);
     std::map<std::string, std::string> options;
     fe_ops_kernel_info_store_ptr->Initialize(options);
-
   }
 
-  void TearDown()
-  {
+  void TearDown() {
     fe_ops_kernel_info_store_ptr->Finalize();
-
   }
 
   static NodePtr CreateTransDataNode(string name, GeTensorDescPtr out_desc_ptr, ComputeGraphPtr graph,
-                                     const string &type)
-  {
+                                     const string &type) {
     OpDescPtr data = std::make_shared<OpDesc>(name, type);
     data->AddInputDesc(out_desc_ptr->Clone());
-    //set OpDesc
+    // set OpDesc
     data->AddOutputDesc(out_desc_ptr->Clone());
     // set attr
     NodePtr node_const = graph->AddNode(data);
@@ -91,8 +85,7 @@ protected:
     return conv_node;
   }
 
-  static ComputeGraphPtr CreateTestGraph_NHWC()
-  {
+  static ComputeGraphPtr CreateTestGraph_NHWC() {
     ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
     GeTensorDescPtr input_tensor_desc = std::make_shared<GeTensorDesc>();
     vector<int64_t> roi_dims{16, 1, 224, 224, 16};
@@ -139,14 +132,13 @@ protected:
   }
 };
 
-TEST_F(STEST_fusion_engine_depthwise_insert_transdata_pass, depthwise_insert_02)
-{
+TEST_F(STEST_fusion_engine_depthwise_insert_transdata_pass, depthwise_insert_02) {
   ComputeGraphPtr graph = CreateTestGraph_NHWC();
   DepthwiseInsertTransDataFusionPass pass;
   fe::Status status = pass.Run(*graph, fe_ops_kernel_info_store_ptr);
   EXPECT_EQ(fe::SUCCESS, status);
 
-  for(auto node : graph->GetDirectNode()) {
+  for (auto node : graph->GetDirectNode()) {
     if (node->GetType() == "DepthwiseConv2D") {
       ge::NodePtr trans1 = node->GetInDataNodes().at(1);
       ge::OpDescPtr trans1_desc = trans1->GetOpDesc();
@@ -178,4 +170,4 @@ TEST_F(STEST_fusion_engine_depthwise_insert_transdata_pass, depthwise_insert_02)
   }
 }
 
-}
+}  // namespace fe

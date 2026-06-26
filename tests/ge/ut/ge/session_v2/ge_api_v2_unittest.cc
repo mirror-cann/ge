@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -66,7 +66,9 @@ class FakeLabelMaker : public LabelMaker {
 
   ~FakeLabelMaker() override {}
 
-  virtual Status Run(uint32_t &label_index) { return ge::GRAPH_SUCCESS; }
+  virtual Status Run(uint32_t &label_index) {
+    return ge::GRAPH_SUCCESS;
+  }
 };
 
 Status InitializeHeterogeneousRuntime(const std::map<AscendString, AscendString> &options) {
@@ -76,26 +78,25 @@ class MockMmpa : public MmpaStubApiGe {
  public:
   void *DlSym(void *handle, const char *func_name) override {
     if (std::string(func_name) == "InitializeHeterogeneousRuntime") {
-      return (void *) &InitializeHeterogeneousRuntime;
+      return (void *)&InitializeHeterogeneousRuntime;
     }
     return dlsym(handle, func_name);
   }
 };
-
 
 int32_t g_so_addr = 0;
 class MockMmpa1 : public ge::MmpaStubApiGe {
  public:
   void *DlOpen(const char *file_name, int32_t mode) override {
     if (string("libmodel_deployer.so") == file_name) {
-      return (void *) &g_so_addr;
+      return (void *)&g_so_addr;
     }
     return MmpaStubApiGe::DlOpen(file_name, mode);
   }
 
   void *DlSym(void *handle, const char *func_name) override {
     if (std::string(func_name) == "InitializeHeterogeneousRuntime") {
-      return (void *) &InitializeHeterogeneousRuntime;
+      return (void *)&InitializeHeterogeneousRuntime;
     }
     return dlsym(handle, func_name);
   }
@@ -109,8 +110,7 @@ class ExternalAllocatorUtStub : public Allocator {
   MemBlock *Malloc(size_t size) override {
     return nullptr;
   }
-  void Free(MemBlock *block) override {
-  }
+  void Free(MemBlock *block) override {}
 };
 
 class GeFakeOpsKernelBuilder : public OpsKernelBuilder {
@@ -194,14 +194,39 @@ void InitEngines(std::shared_ptr<GELib> &ge_lib, GeRunningEnvFaker &ge_env) {
   ge_lib->DNNEngineManagerObj().schedulers_["multi_batch"] = scheduler_conf;
 
   auto multi_dims = MakeShared<FakeMultiDimsOptimizer>();
-  ge_env.Install(FakeEngine("AIcoreEngine").KernelInfoStore("AiCoreLib").GraphOptimizer("AIcoreEngine").Priority(PriorityEnum::COST_0));
-  ge_env.Install(FakeEngine("VectorEngine").KernelInfoStore("VectorLib").GraphOptimizer("VectorEngine").Priority(PriorityEnum::COST_1));
-  ge_env.Install(FakeEngine("DNN_VM_AICPU").KernelInfoStore("AicpuLib").GraphOptimizer("aicpu_tf_optimizer").Priority(PriorityEnum::COST_3));
-  ge_env.Install(FakeEngine("DNN_VM_AICPU_ASCEND").KernelInfoStore("AicpuAscendLib").GraphOptimizer("aicpu_ascend_optimizer").Priority(PriorityEnum::COST_2));
-  ge_env.Install(FakeEngine("DNN_HCCL").KernelInfoStore("ops_kernel_info_hccl").GraphOptimizer("hccl_graph_optimizer").GraphOptimizer("hvd_graph_optimizer").Priority(PriorityEnum::COST_1));
-  ge_env.Install(FakeEngine("DNN_VM_RTS").KernelInfoStore("RTSLib").GraphOptimizer("DNN_VM_RTS_GRAPH_OPTIMIZER_STORE").Priority(PriorityEnum::COST_1));
-  ge_env.Install(FakeEngine("DNN_VM_GE_LOCAL").KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE").GraphOptimizer("DNN_VM_HOST_CPU_OPTIMIZER").Priority(PriorityEnum::COST_9));
-  ge_env.Install(FakeEngine("DNN_VM_HOST_CPU").KernelInfoStore("DNN_VM_HOST_CPU_OP_STORE").GraphOptimizer("DNN_VM_HOST_CPU_OPTIMIZER").Priority(PriorityEnum::COST_10));
+  ge_env.Install(FakeEngine("AIcoreEngine")
+                     .KernelInfoStore("AiCoreLib")
+                     .GraphOptimizer("AIcoreEngine")
+                     .Priority(PriorityEnum::COST_0));
+  ge_env.Install(FakeEngine("VectorEngine")
+                     .KernelInfoStore("VectorLib")
+                     .GraphOptimizer("VectorEngine")
+                     .Priority(PriorityEnum::COST_1));
+  ge_env.Install(FakeEngine("DNN_VM_AICPU")
+                     .KernelInfoStore("AicpuLib")
+                     .GraphOptimizer("aicpu_tf_optimizer")
+                     .Priority(PriorityEnum::COST_3));
+  ge_env.Install(FakeEngine("DNN_VM_AICPU_ASCEND")
+                     .KernelInfoStore("AicpuAscendLib")
+                     .GraphOptimizer("aicpu_ascend_optimizer")
+                     .Priority(PriorityEnum::COST_2));
+  ge_env.Install(FakeEngine("DNN_HCCL")
+                     .KernelInfoStore("ops_kernel_info_hccl")
+                     .GraphOptimizer("hccl_graph_optimizer")
+                     .GraphOptimizer("hvd_graph_optimizer")
+                     .Priority(PriorityEnum::COST_1));
+  ge_env.Install(FakeEngine("DNN_VM_RTS")
+                     .KernelInfoStore("RTSLib")
+                     .GraphOptimizer("DNN_VM_RTS_GRAPH_OPTIMIZER_STORE")
+                     .Priority(PriorityEnum::COST_1));
+  ge_env.Install(FakeEngine("DNN_VM_GE_LOCAL")
+                     .KernelInfoStore("DNN_VM_GE_LOCAL_OP_STORE")
+                     .GraphOptimizer("DNN_VM_HOST_CPU_OPTIMIZER")
+                     .Priority(PriorityEnum::COST_9));
+  ge_env.Install(FakeEngine("DNN_VM_HOST_CPU")
+                     .KernelInfoStore("DNN_VM_HOST_CPU_OP_STORE")
+                     .GraphOptimizer("DNN_VM_HOST_CPU_OPTIMIZER")
+                     .Priority(PriorityEnum::COST_10));
   ge_env.Install(FakeEngine("DSAEngine").KernelInfoStore("DSAEngine").Priority(PriorityEnum::COST_1));
   ge_env.Install(FakeEngine("AIcoreEngine").GraphOptimizer("MultiDims", multi_dims));
   ge_env.Install(FakeOp(NETOUTPUT).InfoStoreAndBuilder("AicpuLib"));
@@ -234,9 +259,9 @@ REGISTER_LABEL_MAKER(CASE, FakeLabelMaker);
 class UtestGeApiV2 : public testing::Test {
  protected:
   void SetUp() override {
-    OperatorFactoryImpl::RegisterInferShapeFunc("Data", [](Operator &op) {return GRAPH_SUCCESS;});
-    OperatorFactoryImpl::RegisterInferShapeFunc("Add", [](Operator &op) {return GRAPH_SUCCESS;});
-    OperatorFactoryImpl::RegisterInferShapeFunc("NetOutput", [](Operator &op) {return GRAPH_SUCCESS;});
+    OperatorFactoryImpl::RegisterInferShapeFunc("Data", [](Operator &op) { return GRAPH_SUCCESS; });
+    OperatorFactoryImpl::RegisterInferShapeFunc("Add", [](Operator &op) { return GRAPH_SUCCESS; });
+    OperatorFactoryImpl::RegisterInferShapeFunc("NetOutput", [](Operator &op) { return GRAPH_SUCCESS; });
     GetThreadLocalContext().SetGlobalOption({});
     GetThreadLocalContext().SetSessionOption({});
     GetThreadLocalContext().SetGraphOption({});
@@ -295,9 +320,7 @@ TEST_F(UtestGeApiV2, build_graph_success) {
 
 TEST_F(UtestGeApiV2, ge_initialize_modify_mixlist) {
   GEFinalizeV2();
-  std::map<AscendString, AscendString> options = {
-    {"ge.exec.modify_mixlist", "/mixlist.json"}
-  };
+  std::map<AscendString, AscendString> options = {{"ge.exec.modify_mixlist", "/mixlist.json"}};
   Json option_name_map;
   option_name_map.emplace("ge.enableSmallChannel", "enable_small_channel");
   options.insert(pair<AscendString, AscendString>("ge.optionNameMap", AscendString(option_name_map.dump().c_str())));
@@ -307,16 +330,15 @@ TEST_F(UtestGeApiV2, ge_initialize_modify_mixlist) {
 }
 
 TEST_F(UtestGeApiV2, ge_initialize_fail) {
-  std::map<AscendString, AscendString> options = {
-    {"ge.optionInvalid", "Invalid"}
-  };
+  std::map<AscendString, AscendString> options = {{"ge.optionInvalid", "Invalid"}};
 
   gert::GertRuntimeStub runtime_stub;
   runtime_stub.GetSlogStub().Clear();
   dlog_setlevel(GE_MODULE_NAME, 2, 0);
   auto ret = GEInitializeV2(options);
   ASSERT_EQ(ret, SUCCESS);
-  auto find_log = runtime_stub.GetSlogStub().FindWarnLogEndsWith("unsupported option(ge.optionInvalid) by global level, Please check!");
+  auto find_log = runtime_stub.GetSlogStub().FindWarnLogEndsWith(
+      "unsupported option(ge.optionInvalid) by global level, Please check!");
   EXPECT_TRUE(find_log > -1);
   dlog_setlevel(GE_MODULE_NAME, 3, 0);
   GEFinalizeV2();
@@ -344,7 +366,7 @@ TEST_F(UtestGeApiV2, ge_not_initialized) {
   std::map<AscendString, AscendString> options;
   std::map<AscendString, AscendString> ascend_options;
   GeSession session(options);
-  auto ret = session.RunGraphWithStreamAsync(10, nullptr, gert_inputs,gert_outputs);
+  auto ret = session.RunGraphWithStreamAsync(10, nullptr, gert_inputs, gert_outputs);
   ASSERT_NE(ret, SUCCESS);
 
   GraphId graph_id = 1;
@@ -440,7 +462,7 @@ TEST_F(UtestGeApiV2, ge_session_test) {
   EXPECT_EQ(GEInitializeV2(options), SUCCESS);
 
   std::map<AscendString, AscendString> ascend_options = {
-    {AscendString(ge::ir_option::OUT_NODES), AscendString("Placeholder:0;Placeholder_1:1")}};
+      {AscendString(ge::ir_option::OUT_NODES), AscendString("Placeholder:0;Placeholder_1:1")}};
   GeSession session(options);
 
   GraphId graph_id = 1;
@@ -459,7 +481,7 @@ TEST_F(UtestGeApiV2, ge_session_test) {
   vector<gert::Tensor> outputs;
   EXPECT_NE(session.RunGraph(graph_id, inputs, outputs), SUCCESS);
   EXPECT_NE(session.RunGraphWithStreamAsync(graph_id, nullptr, inputs, outputs), SUCCESS);
-  EXPECT_EQ(session.RunGraphAsync(graph_id, inputs, nullptr), SUCCESS); // Push to queue.
+  EXPECT_EQ(session.RunGraphAsync(graph_id, inputs, nullptr), SUCCESS);  // Push to queue.
 
   RunCallback session_callback = nullptr;
   EXPECT_EQ(session.RegisterCallBackFunc("1", session_callback), SUCCESS);
@@ -490,7 +512,7 @@ TEST_F(UtestGeApiV2, ge_session_test1) {
   EXPECT_EQ(GEInitializeV2(options), SUCCESS);
 
   std::map<AscendString, AscendString> ascend_options = {
-    {AscendString(ge::ir_option::OUT_NODES), AscendString("Placeholder:0;Placeholder_1:1")}};
+      {AscendString(ge::ir_option::OUT_NODES), AscendString("Placeholder:0;Placeholder_1:1")}};
   GeSession session(options);
   GraphId graph_id = 1;
   const auto compute_graph = MakeShared<ComputeGraph>("test_graph");
@@ -507,14 +529,14 @@ TEST_F(UtestGeApiV2, ge_session_test1) {
                {FORMAT_NCHW, FORMAT_NCHW, {}},  // format
                gert::kOnDeviceHbm,              // placement
                ge::DT_FLOAT,                    // data type
-               (void *) &data[0]};
+               (void *)&data[0]};
 
   std::vector<uint8_t> data2({1, 2, 3, 4});
   outputs[0] = {{{1, 3, 3}, {1, 3, 3}},          // shape
                 {FORMAT_NCHW, FORMAT_NCHW, {}},  // format
                 gert::kOnDeviceHbm,              // placement
                 ge::DT_FLOAT,                    // data type
-                (void *) &data2[0]};
+                (void *)&data2[0]};
   EXPECT_NE(session.RunGraph(graph_id, inputs, outputs), SUCCESS);
   EXPECT_EQ(session.RemoveGraph(graph_id), SUCCESS);
   EXPECT_EQ(GEFinalizeV2(), SUCCESS);
@@ -526,13 +548,13 @@ TEST_F(UtestGeApiV2, ge_session_test_fail) {
 
   options.insert(pair<AscendString, AscendString>("ge.optionInvalid", "invalid"));
   GeSession session1(options);
-  std::map<AscendString, AscendString> ascend_options = {
-    {AscendString("ge.optionInvalid"), AscendString("invalid")}};
+  std::map<AscendString, AscendString> ascend_options = {{AscendString("ge.optionInvalid"), AscendString("invalid")}};
   gert::GertRuntimeStub runtime_stub;
   runtime_stub.GetSlogStub().Clear();
   dlog_setlevel(GE_MODULE_NAME, 2, 0);
   GeSession session2(ascend_options);
-  auto find_log = runtime_stub.GetSlogStub().FindWarnLogEndsWith("unsupported option(ge.optionInvalid) by session level, Please check!");
+  auto find_log = runtime_stub.GetSlogStub().FindWarnLogEndsWith(
+      "unsupported option(ge.optionInvalid) by session level, Please check!");
   EXPECT_TRUE(find_log >= -1);
   dlog_setlevel(GE_MODULE_NAME, 3, 0);
   GEFinalizeV2();
@@ -540,7 +562,7 @@ TEST_F(UtestGeApiV2, ge_session_test_fail) {
 
 TEST_F(UtestGeApiV2, OptionCheck_Failed_MultiGraphCompileAndVarialbeAcc) {
   GEFinalizeV2();
-  std::map<AscendString, AscendString> options {
+  std::map<AscendString, AscendString> options{
       {AscendString(ge::OPTION_EXEC_VARIABLE_ACC), AscendString("True")},
       {AscendString(ge::OPTION_ALLOW_MULTI_GRAPH_PARALLEL_COMPILE), AscendString("1")},
   };
@@ -548,13 +570,11 @@ TEST_F(UtestGeApiV2, OptionCheck_Failed_MultiGraphCompileAndVarialbeAcc) {
 }
 
 TEST_F(UtestGeApiV2, OptionCheck_Failed_MultiGraphCompileAndVarialbeAcc2) {
-  std::map<AscendString, AscendString> options {
+  std::map<AscendString, AscendString> options{
       {AscendString(ge::OPTION_ALLOW_MULTI_GRAPH_PARALLEL_COMPILE), AscendString("1")},
   };
   EXPECT_EQ(GEInitializeV2(options), SUCCESS);
-  std::map<AscendString, AscendString> options2 {
-      {AscendString(ge::OPTION_EXEC_VARIABLE_ACC), AscendString("True")}
-  };
+  std::map<AscendString, AscendString> options2{{AscendString(ge::OPTION_EXEC_VARIABLE_ACC), AscendString("True")}};
   GeSession session(options2);
   EXPECT_NE(session.AddGraph(1, Graph(), {}), SUCCESS);
 }
@@ -598,8 +618,7 @@ TEST_F(UtestGeApiV2, AddGraph_test_fail) {
   GeSession session(options);
   options.insert(pair<AscendString, AscendString>("ge.optionInvalid", "invalid"));
   (void)session.AddGraph(graph_id, graph, option);
-  std::map<AscendString, AscendString> ascend_options = {
-    {AscendString("ge.optionInvalid"), AscendString("invalid")}};
+  std::map<AscendString, AscendString> ascend_options = {{AscendString("ge.optionInvalid"), AscendString("invalid")}};
 
   gert::GertRuntimeStub runtime_stub;
   runtime_stub.GetSlogStub().Clear();
@@ -607,22 +626,26 @@ TEST_F(UtestGeApiV2, AddGraph_test_fail) {
   (void)session.AddGraph(graph_id, graph, ascend_options);
   (void)session.AddGraphClone(graph_id, graph, ascend_options);
   EXPECT_EQ(GEFinalizeV2(), SUCCESS);
-  auto find_log = runtime_stub.GetSlogStub().FindWarnLogEndsWith("unsupported option(ge.optionInvalid) by graph level, Please check!");
+  auto find_log = runtime_stub.GetSlogStub().FindWarnLogEndsWith(
+      "unsupported option(ge.optionInvalid) by graph level, Please check!");
   EXPECT_TRUE(find_log > -1);
   dlog_setlevel(GE_MODULE_NAME, 3, 0);
 }
 
 TEST_F(UtestGeApiV2, CheckOptionsValid_Invalid_JobId_test) {
   std::map<AscendString, AscendString> options;
-  options.insert(pair<AscendString, AscendString>(OPTION_EXEC_JOB_ID, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"));
+  options.insert(pair<AscendString, AscendString>(
+      OPTION_EXEC_JOB_ID,
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"));
   Status ret = ge::GEInitializeV2(options);
   EXPECT_NE(ret, SUCCESS);
   EXPECT_EQ(GEFinalizeV2(), SUCCESS);
 }
 
 TEST_F(UtestGeApiV2, CheckOptionsInvalid_test) {
-  std::map<AscendString, AscendString> options = {
-    {AscendString(""), AscendString("Placeholder:0;Placeholder_1:1")}};
+  std::map<AscendString, AscendString> options = {{AscendString(""), AscendString("Placeholder:0;Placeholder_1:1")}};
   Status ret = ge::GEInitializeV2(options);
   EXPECT_EQ(ret, FAILED);
   EXPECT_EQ(GEFinalizeV2(), SUCCESS);
@@ -630,19 +653,17 @@ TEST_F(UtestGeApiV2, CheckOptionsInvalid_test) {
 
 TEST_F(UtestGeApiV2, GEInitialize_test) {
   std::map<AscendString, AscendString> options = {
-    {AscendString(ge::ir_option::OUT_NODES), AscendString("Placeholder:0;Placeholder_1:1")}};
+      {AscendString(ge::ir_option::OUT_NODES), AscendString("Placeholder:0;Placeholder_1:1")}};
   Status ret = ge::GEInitializeV2(options);
   EXPECT_EQ(ret, SUCCESS);
   EXPECT_EQ(GEFinalizeV2(), SUCCESS);
 
-  std::map<AscendString, AscendString> options1 = {
-    {AscendString(ge::ir_option::OUT_NODES), AscendString(nullptr)}};
+  std::map<AscendString, AscendString> options1 = {{AscendString(ge::ir_option::OUT_NODES), AscendString(nullptr)}};
   ret = ge::GEInitializeV2(options1);
   EXPECT_EQ(ret, SUCCESS);
   EXPECT_EQ(GEFinalizeV2(), SUCCESS);
 
-  std::map<AscendString, AscendString> options2 = {
-    {AscendString("ge.autoTuneMode"), AscendString("RA")}};
+  std::map<AscendString, AscendString> options2 = {{AscendString("ge.autoTuneMode"), AscendString("RA")}};
   ret = ge::GEInitializeV2(options2);
   EXPECT_NE(ret, SUCCESS);
   EXPECT_EQ(GEFinalizeV2(), SUCCESS);  // Fixed: balance GEInitializeV2 and GEFinalizeV2 calls
@@ -730,12 +751,12 @@ TEST_F(UtestGeApiV2, GetCompileGraphSummary_test) {
 
   {
     GeSession session(options);
-    EXPECT_EQ(session.GetCompiledGraphSummary(graph_id), nullptr); // not init
+    EXPECT_EQ(session.GetCompiledGraphSummary(graph_id), nullptr);  // not init
   }
 
   EXPECT_EQ(GEInitializeV2(options), SUCCESS);
   GeSession session(options);
-  EXPECT_EQ(session.GetCompiledGraphSummary(graph_id), nullptr); // not add graph
+  EXPECT_EQ(session.GetCompiledGraphSummary(graph_id), nullptr);  // not add graph
 }
 
 TEST_F(UtestGeApiV2, SetGraphConstMemoryBase_test) {
@@ -744,12 +765,12 @@ TEST_F(UtestGeApiV2, SetGraphConstMemoryBase_test) {
 
   {
     GeSession session(options);
-    EXPECT_NE(session.SetGraphConstMemoryBase(graph_id, nullptr, 0), SUCCESS); // not init
+    EXPECT_NE(session.SetGraphConstMemoryBase(graph_id, nullptr, 0), SUCCESS);  // not init
   }
 
   EXPECT_EQ(GEInitializeV2(options), SUCCESS);
   GeSession session(options);
-  EXPECT_NE(session.SetGraphConstMemoryBase(graph_id, nullptr, 0), SUCCESS); // not add graph
+  EXPECT_NE(session.SetGraphConstMemoryBase(graph_id, nullptr, 0), SUCCESS);  // not add graph
 }
 
 TEST_F(UtestGeApiV2, UpdateGraphFeatureMemoryBase_test) {
@@ -758,12 +779,12 @@ TEST_F(UtestGeApiV2, UpdateGraphFeatureMemoryBase_test) {
 
   {
     GeSession session(options);
-    EXPECT_NE(session.UpdateGraphFeatureMemoryBase(graph_id, nullptr, 0), SUCCESS); // not init
+    EXPECT_NE(session.UpdateGraphFeatureMemoryBase(graph_id, nullptr, 0), SUCCESS);  // not init
   }
 
   EXPECT_EQ(GEInitializeV2(options), SUCCESS);
   GeSession session(options);
-  EXPECT_NE(session.UpdateGraphFeatureMemoryBase(graph_id, nullptr, 0), SUCCESS); // not add graph
+  EXPECT_NE(session.UpdateGraphFeatureMemoryBase(graph_id, nullptr, 0), SUCCESS);  // not add graph
 }
 
 TEST_F(UtestGeApiV2, SetGraphFixedFeatureMemoryBase_test) {
@@ -771,12 +792,14 @@ TEST_F(UtestGeApiV2, SetGraphFixedFeatureMemoryBase_test) {
   std::map<AscendString, AscendString> options;
   {
     GeSession session(options);
-    EXPECT_NE(session.SetGraphFixedFeatureMemoryBaseWithType(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, nullptr, 0), SUCCESS); // not init
+    EXPECT_NE(session.SetGraphFixedFeatureMemoryBaseWithType(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, nullptr, 0),
+              SUCCESS);  // not init
   }
 
   EXPECT_EQ(GEInitializeV2(options), SUCCESS);
   GeSession session(options);
-  EXPECT_NE(session.SetGraphFixedFeatureMemoryBaseWithType(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, nullptr, 0), SUCCESS); // not add graph
+  EXPECT_NE(session.SetGraphFixedFeatureMemoryBaseWithType(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, nullptr, 0),
+            SUCCESS);  // not add graph
 }
 
 TEST_F(UtestGeApiV2, SetGraphFixedFeatureMemoryBaseWithType_test) {
@@ -785,7 +808,8 @@ TEST_F(UtestGeApiV2, SetGraphFixedFeatureMemoryBaseWithType_test) {
 
   EXPECT_EQ(GEInitializeV2(options), SUCCESS);
   GeSession session(options);
-  EXPECT_NE(session.SetGraphFixedFeatureMemoryBaseWithType(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, nullptr, 0), SUCCESS); // not add graph
+  EXPECT_NE(session.SetGraphFixedFeatureMemoryBaseWithType(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, nullptr, 0),
+            SUCCESS);  // not add graph
 }
 
 TEST_F(UtestGeApiV2, UpdateGraphRefreshableFeatureMemoryBase_test) {
@@ -794,12 +818,12 @@ TEST_F(UtestGeApiV2, UpdateGraphRefreshableFeatureMemoryBase_test) {
 
   {
     GeSession session(options);
-    EXPECT_NE(session.UpdateGraphRefreshableFeatureMemoryBase(graph_id, nullptr, 0), SUCCESS); // not init
+    EXPECT_NE(session.UpdateGraphRefreshableFeatureMemoryBase(graph_id, nullptr, 0), SUCCESS);  // not init
   }
 
   EXPECT_EQ(GEInitializeV2(options), SUCCESS);
   GeSession session(options);
-  EXPECT_NE(session.UpdateGraphRefreshableFeatureMemoryBase(graph_id, nullptr, 0), SUCCESS); // not add graph
+  EXPECT_NE(session.UpdateGraphRefreshableFeatureMemoryBase(graph_id, nullptr, 0), SUCCESS);  // not add graph
 }
 
 TEST_F(UtestGeApiV2, CompileGraph_test) {
@@ -808,12 +832,12 @@ TEST_F(UtestGeApiV2, CompileGraph_test) {
 
   {
     GeSession session(options);
-    EXPECT_NE(session.CompileGraph(graph_id, {}), SUCCESS); // not init
+    EXPECT_NE(session.CompileGraph(graph_id, {}), SUCCESS);  // not init
   }
 
   EXPECT_EQ(GEInitializeV2(options), SUCCESS);
   GeSession session(options);
-  EXPECT_NE(session.CompileGraph(graph_id, {}), SUCCESS); // not add graph
+  EXPECT_NE(session.CompileGraph(graph_id, {}), SUCCESS);  // not add graph
 
   Graph graph = gert::ShareGraph::BuildSwitchMergeGraph();
   EXPECT_EQ(session.AddGraph(graph_id, graph, {}), SUCCESS);
@@ -1121,20 +1145,20 @@ TEST_F(UtestGeApiV2, run_graph_with_stream_async) {
                {FORMAT_NCHW, FORMAT_NCHW, {}},  // format
                gert::kOnDeviceHbm,              // placement
                ge::DT_FLOAT,                    // data type
-               (void *) &data[0]};
+               (void *)&data[0]};
   std::vector<uint8_t> data1({1, 2, 3, 4});
   inputs[1] = {{{3, 3, 3}, {3, 3, 3}},          // shape
                {FORMAT_NCHW, FORMAT_NCHW, {}},  // format
                gert::kOnDeviceHbm,              // placement
                ge::DT_FLOAT,                    // data type
-               (void *) &data1[0]};
+               (void *)&data1[0]};
 
   std::vector<uint8_t> data3({1, 2, 3, 4});
   outputs[0] = {{{1, 3, 3}, {1, 3, 3}},          // shape
-               {FORMAT_NCHW, FORMAT_NCHW, {}},  // format
-               gert::kOnDeviceHbm,              // placement
-               ge::DT_FLOAT,                    // data type
-               (void *) &data3[0]};
+                {FORMAT_NCHW, FORMAT_NCHW, {}},  // format
+                gert::kOnDeviceHbm,              // placement
+                ge::DT_FLOAT,                    // data type
+                (void *)&data3[0]};
   std::map<AscendString, AscendString> options;
   options[ge::OPTION_GRAPH_RUN_MODE] = "0";
   options[ge::SOC_VERSION.c_str()] = "Ascend910B";
@@ -1149,7 +1173,9 @@ TEST_F(UtestGeApiV2, run_graph_with_stream_async) {
   EXPECT_EQ(session.CompileGraph(graph_id, {}), SUCCESS);
   ASSERT_NE(session.GetCompiledGraphSummary(graph_id), nullptr);
 
-  EXPECT_EQ(session.SetGraphFixedFeatureMemoryBaseWithType(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, (void *)0x3558, 4000000), SUCCESS);
+  EXPECT_EQ(session.SetGraphFixedFeatureMemoryBaseWithType(graph_id, MemoryType::MEMORY_TYPE_DEFAULT, (void *)0x3558,
+                                                           4000000),
+            SUCCESS);
 
   auto ret = session.RunGraphWithStreamAsync(graph_id, nullptr, inputs, outputs);
   ASSERT_NE(ret, SUCCESS);
@@ -1173,20 +1199,20 @@ TEST_F(UtestGeApiV2, load_graph_not_compile) {
                {FORMAT_NCHW, FORMAT_NCHW, {}},  // format
                gert::kOnDeviceHbm,              // placement
                ge::DT_FLOAT,                    // data type
-               (void *) &data[0]};
+               (void *)&data[0]};
   std::vector<uint8_t> data1({1, 2, 3, 4});
   inputs[1] = {{{3, 3, 3}, {3, 3, 3}},          // shape
                {FORMAT_NCHW, FORMAT_NCHW, {}},  // format
                gert::kOnDeviceHbm,              // placement
                ge::DT_FLOAT,                    // data type
-               (void *) &data1[0]};
+               (void *)&data1[0]};
 
   std::vector<uint8_t> data3({1, 2, 3, 4});
   outputs[0] = {{{1, 3, 3}, {1, 3, 3}},          // shape
-               {FORMAT_NCHW, FORMAT_NCHW, {}},  // format
-               gert::kOnDeviceHbm,              // placement
-               ge::DT_FLOAT,                    // data type
-               (void *) &data3[0]};
+                {FORMAT_NCHW, FORMAT_NCHW, {}},  // format
+                gert::kOnDeviceHbm,              // placement
+                ge::DT_FLOAT,                    // data type
+                (void *)&data3[0]};
   std::map<AscendString, AscendString> options;
   options[ge::OPTION_GRAPH_RUN_MODE] = "0";
   options[ge::SOC_VERSION.c_str()] = "Ascend910B";
@@ -1205,9 +1231,9 @@ TEST_F(UtestGeApiV2, load_graph_not_compile) {
 }
 
 TEST_F(UtestGeApiV2, run_graph_with_stream_with_dynamic) {
-  ge::OperatorFactoryImpl::RegisterInferShapeFunc("Data", [](Operator &op) {return GRAPH_SUCCESS;});
-  OperatorFactoryImpl::RegisterInferShapeFunc("Add", [](Operator &op) {return GRAPH_SUCCESS;});
-  OperatorFactoryImpl::RegisterInferShapeFunc("NetOutput", [](Operator &op) {return GRAPH_SUCCESS;});
+  ge::OperatorFactoryImpl::RegisterInferShapeFunc("Data", [](Operator &op) { return GRAPH_SUCCESS; });
+  OperatorFactoryImpl::RegisterInferShapeFunc("Add", [](Operator &op) { return GRAPH_SUCCESS; });
+  OperatorFactoryImpl::RegisterInferShapeFunc("NetOutput", [](Operator &op) { return GRAPH_SUCCESS; });
 
   gert::GertRuntimeStub rtstub;
   rtstub.GetRtsRuntimeStub().Clear();
@@ -1225,14 +1251,14 @@ TEST_F(UtestGeApiV2, run_graph_with_stream_with_dynamic) {
                {FORMAT_NCHW, FORMAT_NCHW, {}},  // format
                gert::kOnDeviceHbm,              // placement
                ge::DT_FLOAT,                    // data type
-               (void *) &data[0]};
+               (void *)&data[0]};
 
   std::vector<uint8_t> data2({1, 2, 3, 4});
   outputs[0] = {{{1, 3, 3}, {1, 3, 3}},          // shape
-               {FORMAT_NCHW, FORMAT_NCHW, {}},  // format
-               gert::kOnDeviceHbm,              // placement
-               ge::DT_FLOAT,                    // data type
-               (void *) &data2[0]};
+                {FORMAT_NCHW, FORMAT_NCHW, {}},  // format
+                gert::kOnDeviceHbm,              // placement
+                ge::DT_FLOAT,                    // data type
+                (void *)&data2[0]};
 
   std::map<AscendString, AscendString> options;
   options[ge::OPTION_GRAPH_RUN_MODE] = "0";
@@ -1251,7 +1277,7 @@ TEST_F(UtestGeApiV2, run_graph_with_stream_with_dynamic) {
   // dynamic shape graph
   EXPECT_EQ(session.GetCompiledGraphSummary(graph_id)->IsStatic(), false);
 
-  rtStream_t stream = (void*)0x01;
+  rtStream_t stream = (void *)0x01;
   auto ret = session.RunGraphWithStreamAsync(1, stream, inputs, outputs);
   ASSERT_NE(ret, SUCCESS);
 
@@ -1266,14 +1292,14 @@ TEST_F(UtestGeApiV2, run_graph_with_stream_with_multi_batch) {
                {FORMAT_NCHW, FORMAT_NCHW, {}},  // format
                gert::kOnDeviceHbm,              // placement
                ge::DT_FLOAT,                    // data type
-               (void *) &data[0]};
+               (void *)&data[0]};
 
   std::vector<uint8_t> data2({1, 2, 3, 4});
   outputs[0] = {{{1, 3, 3}, {1, 3, 3}},          // shape
                 {FORMAT_NCHW, FORMAT_NCHW, {}},  // format
                 gert::kOnDeviceHbm,              // placement
                 ge::DT_FLOAT,                    // data type
-                (void *) &data2[0]};
+                (void *)&data2[0]};
 
   std::map<AscendString, AscendString> options;
   options["ge.inputShape"] = "data1:-1,-1,-1;data2:-1,-1,-1";
@@ -1318,14 +1344,14 @@ TEST_F(UtestGeApiV2, CompileGraph_Success_MultiGraphParallelCompile) {
                {FORMAT_NCHW, FORMAT_NCHW, {}},  // format
                gert::kOnDeviceHbm,              // placement
                ge::DT_FLOAT,                    // data type
-               (void *) &data[0]};
+               (void *)&data[0]};
 
   std::vector<uint8_t> data2({1, 2, 3, 4});
   outputs[0] = {{{1, 3, 3}, {1, 3, 3}},          // shape
                 {FORMAT_NCHW, FORMAT_NCHW, {}},  // format
                 gert::kOnDeviceHbm,              // placement
                 ge::DT_FLOAT,                    // data type
-                (void *) &data2[0]};
+                (void *)&data2[0]};
 
   std::map<AscendString, AscendString> options;
   options[OPTION_ALLOW_MULTI_GRAPH_PARALLEL_COMPILE] = "1";
@@ -1353,9 +1379,8 @@ TEST_F(UtestGeApiV2, CompileGraph_Success_MultiGraphParallelCompile) {
 
   std::vector<std::thread> threads;
   for (auto &id_graph : graph_id_2_maps) {
-    threads.emplace_back(std::thread([&session, &id_graph]() {
-      EXPECT_EQ(session.CompileGraph(id_graph.first, {}), SUCCESS);
-    }));
+    threads.emplace_back(
+        std::thread([&session, &id_graph]() { EXPECT_EQ(session.CompileGraph(id_graph.first, {}), SUCCESS); }));
   }
   for (auto &thread : threads) {
     thread.join();
@@ -1373,14 +1398,14 @@ TEST_F(UtestGeApiV2, GetCompiledGraph_Success) {
                {FORMAT_NCHW, FORMAT_NCHW, {}},  // format
                gert::kOnDeviceHbm,              // placement
                ge::DT_FLOAT,                    // data type
-               (void *) &data[0]};
+               (void *)&data[0]};
 
   std::vector<uint8_t> data2({1, 2, 3, 4});
   outputs[0] = {{{1, 3, 3}, {1, 3, 3}},          // shape
                 {FORMAT_NCHW, FORMAT_NCHW, {}},  // format
                 gert::kOnDeviceHbm,              // placement
                 ge::DT_FLOAT,                    // data type
-                (void *) &data2[0]};
+                (void *)&data2[0]};
 
   std::map<AscendString, AscendString> options;
   options["ge.inputShape"] = "data1:-1,-1,-1;data2:-1,-1,-1";
@@ -1417,14 +1442,14 @@ TEST_F(UtestGeApiV2, GetCompiledGraph_Failed_InvalidOption) {
                {FORMAT_NCHW, FORMAT_NCHW, {}},  // format
                gert::kOnDeviceHbm,              // placement
                ge::DT_FLOAT,                    // data type
-               (void *) &data[0]};
+               (void *)&data[0]};
 
   std::vector<uint8_t> data2({1, 2, 3, 4});
   outputs[0] = {{{1, 3, 3}, {1, 3, 3}},          // shape
                 {FORMAT_NCHW, FORMAT_NCHW, {}},  // format
                 gert::kOnDeviceHbm,              // placement
                 ge::DT_FLOAT,                    // data type
-                (void *) &data2[0]};
+                (void *)&data2[0]};
 
   std::map<AscendString, AscendString> options;
   options["ge.inputShape"] = "data1:-1,-1,-1;data2:-1,-1,-1";
@@ -1586,7 +1611,6 @@ TEST_F(UtestGeApiV2, Session_oo_init_param_invalid) {
   std::map<AscendString, AscendString> session_options;
   GeSession session(session_options);
 
-
   GraphId graph_id = 1;
   ComputeGraphPtr compute_graph = gert::ShareGraph::AicoreGraph();
   Graph graph = GraphUtilsEx::CreateGraphFromComputeGraph(compute_graph);
@@ -1643,7 +1667,7 @@ TEST_F(UtestGeApiV2, RunGraph_Success_CallBack) {
   std::vector<gert::Tensor> outputs;
 
   size_t call_count = 0U;
-  auto call_back = [&call_count](uint32_t graph_id, const std::map<AscendString, gert::Tensor>& params_list) {
+  auto call_back = [&call_count](uint32_t graph_id, const std::map<AscendString, gert::Tensor> &params_list) {
     (void)graph_id;
     (void)params_list;
     call_count++;
@@ -2059,16 +2083,16 @@ TEST_F(UtestGeApiV2, Session_export_compile_stat_invalid) {
 }
 
 namespace {
-  class AbnormalAclStub : public AclRuntimeStub {
-  public:
-    aclError aclrtCreateContext(aclrtContext *ctx, int32_t device) override {
-      return 1; // failed
-    }
-  };
-} // namespace
-  /**
-   * 若session创建失败，确保session manager没有残留的未成功创建的session
-   */
+class AbnormalAclStub : public AclRuntimeStub {
+ public:
+  aclError aclrtCreateContext(aclrtContext *ctx, int32_t device) override {
+    return 1;  // failed
+  }
+};
+}  // namespace
+/**
+ * 若session创建失败，确保session manager没有残留的未成功创建的session
+ */
 TEST_F(UtestGeApiV2, CreateSessionFailed) {
   auto acl_stub = std::make_shared<AbnormalAclStub>();
   AclRuntimeStub::Install(acl_stub.get());
@@ -2077,7 +2101,7 @@ TEST_F(UtestGeApiV2, CreateSessionFailed) {
   std::map<AscendString, AscendString> options;
   EXPECT_EQ(GEInitializeV2(options), SUCCESS);
 
-  GeSession sess1(options); // rt create context failed
+  GeSession sess1(options);  // rt create context failed
   Graph tmp_graph;
   EXPECT_NE(sess1.AddGraph(1, tmp_graph, {}), SUCCESS);
   EXPECT_EQ(SessionUtils::NumSessions(), 0);
@@ -2092,14 +2116,14 @@ TEST_F(UtestGeApiV2, CreateSessionFailed) {
 #define EXPECT_STR_EQ(x, y) EXPECT_EQ(std::string(x.GetString()), std::string(y))
 
 REG_OP(QueryIrTestOp1)
-  .INPUT(required_x1, TensorType::ALL())
-  .OPTIONAL_INPUT(optional_x2, TensorType::ALL())
-  .DYNAMIC_INPUT(dynamic_x3, TensorType::ALL())
-  .OUTPUT(required_y1, TensorType::ALL())
-  .DYNAMIC_OUTPUT(dynamic_y1, TensorType::ALL())
-  .OP_END_FACTORY_REG(QueryIrTestOp1)
+    .INPUT(required_x1, TensorType::ALL())
+    .OPTIONAL_INPUT(optional_x2, TensorType::ALL())
+    .DYNAMIC_INPUT(dynamic_x3, TensorType::ALL())
+    .OUTPUT(required_y1, TensorType::ALL())
+    .DYNAMIC_OUTPUT(dynamic_y1, TensorType::ALL())
+    .OP_END_FACTORY_REG(QueryIrTestOp1)
 
-TEST_F(UtestGeApiV2, QueryIrInputOutput) {
+        TEST_F(UtestGeApiV2, QueryIrInputOutput) {
   using OutType = std::vector<std::pair<AscendString, AscendString>>;
   OutType inputs, outputs, attrs;
   EXPECT_EQ(GetRegisteredIrDef("QueryIrTestOp1", inputs, outputs, attrs), SUCCESS);
@@ -2119,14 +2143,14 @@ TEST_F(UtestGeApiV2, QueryIrInputOutput) {
 }
 
 REG_OP(QueryIrTestOp2)
-  .DYNAMIC_INPUT(dynamic_x3, TensorType::ALL())
-  .INPUT(required_x1, TensorType::ALL())
-  .OPTIONAL_INPUT(optional_x2, TensorType::ALL())
-  .DYNAMIC_OUTPUT(dynamic_y1, TensorType::ALL())
-  .OUTPUT(required_y1, TensorType::ALL())
-  .OP_END_FACTORY_REG(QueryIrTestOp2)
+    .DYNAMIC_INPUT(dynamic_x3, TensorType::ALL())
+    .INPUT(required_x1, TensorType::ALL())
+    .OPTIONAL_INPUT(optional_x2, TensorType::ALL())
+    .DYNAMIC_OUTPUT(dynamic_y1, TensorType::ALL())
+    .OUTPUT(required_y1, TensorType::ALL())
+    .OP_END_FACTORY_REG(QueryIrTestOp2)
 
-TEST_F(UtestGeApiV2, QueryIrInputOutputKeepOrder) {
+        TEST_F(UtestGeApiV2, QueryIrInputOutputKeepOrder) {
   using OutType = std::vector<std::pair<AscendString, AscendString>>;
   OutType inputs, outputs, attrs;
   EXPECT_EQ(GetRegisteredIrDef("QueryIrTestOp2", inputs, outputs, attrs), SUCCESS);
@@ -2146,24 +2170,24 @@ TEST_F(UtestGeApiV2, QueryIrInputOutputKeepOrder) {
 }
 
 REG_OP(QueryIrTestOp3)
-  .REQUIRED_ATTR(attr1, Int)
-  .REQUIRED_ATTR(attr2, Float)
-  .REQUIRED_ATTR(attr3, String)
-  .REQUIRED_ATTR(attr4, Bool)
-  .REQUIRED_ATTR(attr5, Tensor)
-  .REQUIRED_ATTR(attr6, Type)
-  .REQUIRED_ATTR(attr7, NamedAttrs)
-  .REQUIRED_ATTR(attr8, ListInt)
-  .REQUIRED_ATTR(attr9, ListFloat)
-  .REQUIRED_ATTR(attr10, ListString)
-  .REQUIRED_ATTR(attr11, ListBool)
-  .REQUIRED_ATTR(attr12, ListTensor)
-  .REQUIRED_ATTR(attr13, Bytes)
-  .REQUIRED_ATTR(attr14, ListListInt)
-  .REQUIRED_ATTR(attr15, ListNamedAttrs)
-  .OP_END_FACTORY_REG(QueryIrTestOp3)
+    .REQUIRED_ATTR(attr1, Int)
+    .REQUIRED_ATTR(attr2, Float)
+    .REQUIRED_ATTR(attr3, String)
+    .REQUIRED_ATTR(attr4, Bool)
+    .REQUIRED_ATTR(attr5, Tensor)
+    .REQUIRED_ATTR(attr6, Type)
+    .REQUIRED_ATTR(attr7, NamedAttrs)
+    .REQUIRED_ATTR(attr8, ListInt)
+    .REQUIRED_ATTR(attr9, ListFloat)
+    .REQUIRED_ATTR(attr10, ListString)
+    .REQUIRED_ATTR(attr11, ListBool)
+    .REQUIRED_ATTR(attr12, ListTensor)
+    .REQUIRED_ATTR(attr13, Bytes)
+    .REQUIRED_ATTR(attr14, ListListInt)
+    .REQUIRED_ATTR(attr15, ListNamedAttrs)
+    .OP_END_FACTORY_REG(QueryIrTestOp3)
 
-TEST_F(UtestGeApiV2, QueryIrAttr) {
+        TEST_F(UtestGeApiV2, QueryIrAttr) {
   using OutType = std::vector<std::pair<AscendString, AscendString>>;
   OutType inputs, outputs, attrs;
   EXPECT_EQ(GetRegisteredIrDef("QueryIrTestOp3", inputs, outputs, attrs), SUCCESS);
@@ -2203,24 +2227,24 @@ TEST_F(UtestGeApiV2, QueryIrAttr) {
 }
 
 REG_OP(QueryIrTestOp4)
-  .ATTR(attr1, Int, 3)
-  .ATTR(attr2, Float, 2.0)
-  .REQUIRED_ATTR(attr3, String)
-  .ATTR(attr4, Bool, false)
-  .REQUIRED_ATTR(attr5, Tensor)
-  .ATTR(attr6, Type, DT_BF16)
-  .REQUIRED_ATTR(attr7, NamedAttrs)
-  .REQUIRED_ATTR(attr8, ListInt)
-  .REQUIRED_ATTR(attr9, ListFloat)
-  .REQUIRED_ATTR(attr10, ListString)
-  .REQUIRED_ATTR(attr11, ListBool)
-  .REQUIRED_ATTR(attr12, ListTensor)
-  .REQUIRED_ATTR(attr13, Bytes)
-  .REQUIRED_ATTR(attr14, ListListInt)
-  .REQUIRED_ATTR(attr15, ListNamedAttrs)
-  .OP_END_FACTORY_REG(QueryIrTestOp4)
+    .ATTR(attr1, Int, 3)
+    .ATTR(attr2, Float, 2.0)
+    .REQUIRED_ATTR(attr3, String)
+    .ATTR(attr4, Bool, false)
+    .REQUIRED_ATTR(attr5, Tensor)
+    .ATTR(attr6, Type, DT_BF16)
+    .REQUIRED_ATTR(attr7, NamedAttrs)
+    .REQUIRED_ATTR(attr8, ListInt)
+    .REQUIRED_ATTR(attr9, ListFloat)
+    .REQUIRED_ATTR(attr10, ListString)
+    .REQUIRED_ATTR(attr11, ListBool)
+    .REQUIRED_ATTR(attr12, ListTensor)
+    .REQUIRED_ATTR(attr13, Bytes)
+    .REQUIRED_ATTR(attr14, ListListInt)
+    .REQUIRED_ATTR(attr15, ListNamedAttrs)
+    .OP_END_FACTORY_REG(QueryIrTestOp4)
 
-TEST_F(UtestGeApiV2, QueryIrAttrKeepOrder) {
+        TEST_F(UtestGeApiV2, QueryIrAttrKeepOrder) {
   using OutType = std::vector<std::pair<AscendString, AscendString>>;
   OutType inputs, outputs, attrs;
   EXPECT_EQ(GetRegisteredIrDef("QueryIrTestOp4", inputs, outputs, attrs), SUCCESS);
@@ -2275,8 +2299,7 @@ TEST_F(UtestGeApiV2, GEInitialize_long_option_value) {
   // 测试当 option value 长度超过 800 字符时，能够正常打印
   std::string long_value(900, 'a');  // 创建 900 字符的长字符串
   std::map<AscendString, AscendString> options = {
-    {AscendString("ge.test.long_option"), AscendString(long_value.c_str())}
-  };
+      {AscendString("ge.test.long_option"), AscendString(long_value.c_str())}};
   Status ret = ge::GEInitializeV2(options);
   EXPECT_EQ(ret, SUCCESS);
   EXPECT_EQ(GEFinalizeV2(), SUCCESS);
@@ -2284,8 +2307,7 @@ TEST_F(UtestGeApiV2, GEInitialize_long_option_value) {
   // 测试 value 长度不超过 800 字符的情况
   std::string short_value(100, 'b');
   std::map<AscendString, AscendString> options2 = {
-    {AscendString("ge.test.short_option"), AscendString(short_value.c_str())}
-  };
+      {AscendString("ge.test.short_option"), AscendString(short_value.c_str())}};
   ret = ge::GEInitializeV2(options2);
   EXPECT_EQ(ret, SUCCESS);
   EXPECT_EQ(GEFinalizeV2(), SUCCESS);

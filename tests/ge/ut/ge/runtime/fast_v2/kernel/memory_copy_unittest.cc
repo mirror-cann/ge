@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -41,7 +41,7 @@ class MyMockAclRuntime : public ge::AclRuntimeStub {
   MOCK_METHOD6(aclrtMemcpyAsync, int32_t(void *dst, size_t dest_max, const void *src, size_t src_count,
                                          aclrtMemcpyKind kind, aclrtStream stream));
 };
-}
+}  // namespace
 namespace kernel {
 ge::graphStatus CopyD2H(KernelContext *context);
 }
@@ -185,21 +185,18 @@ TEST_F(MemCopyKernelTest, CopyH2D_multi_inputs) {
   EXPECT_EQ(funcs->run_func(run_context), ge::GRAPH_SUCCESS);
   ASSERT_TRUE(runtime_stub.GetSlogStub().FindInfoLogRegex(kAllocRe) >= 0);
 
-  auto tensor_data =
-      run_context->GetOutputPointer<GertTensorData>(0);
+  auto tensor_data = run_context->GetOutputPointer<GertTensorData>(0);
   ASSERT_NE(tensor_data, nullptr);
   EXPECT_NE(tensor_data->GetAddr(), tensor_holder.GetTensor()->GetAddr());
   EXPECT_EQ(memcmp(tensor_data->GetAddr(), tensor_holder.GetTensor()->GetAddr(), size), 0);
 
-  auto tensor_data1 =
-      run_context->GetOutputPointer<GertTensorData>(1);
+  auto tensor_data1 = run_context->GetOutputPointer<GertTensorData>(1);
   ASSERT_NE(tensor_data1, nullptr);
   EXPECT_NE(tensor_data1->GetAddr(), tensor_holder.GetTensor()->GetAddr());
   EXPECT_EQ(memcmp(tensor_data1->GetAddr(), tensor_holder.GetTensor()->GetAddr(), size), 0);
 
   context_holder.FreeAll();
 }
-
 
 TEST_F(MemCopyKernelTest, CopyH2D_Zero_Input) {
   // 校验当用户输入的tensor大小为0时，不应该执行异步拷贝，因为rtMemcpyAsync异步拷贝中memory
@@ -753,8 +750,8 @@ TEST_F(MemCopyKernelTest, CalcStringTensorSize_FromHost) {
   const size_t tensor_size = 2 * 64 * (16 + 64 + 1);
   auto mem_block = single_stream_l2_allocator_.Malloc(tensor_size);
 
-  auto i0 = FakeValue<Tensor>(Tensor{
-      {{64, 2}, {64, 2}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}, kOnHost, ge::DT_STRING, mem_block->GetAddr()});
+  auto i0 = FakeValue<Tensor>(
+      Tensor{{{64, 2}, {64, 2}}, {ge::FORMAT_ND, ge::FORMAT_ND, {}}, kOnHost, ge::DT_STRING, mem_block->GetAddr()});
   GertTensorData tensor_data = {tensor_size, kOnHost, single_stream_l2_allocator_.GetStreamId(), mem_block};
   auto shape = i0.holder.get()->GetShape();
   auto data_type = ge::DT_STRING;
@@ -831,7 +828,6 @@ TEST_F(MemCopyKernelTest, CalcStringTensorSize_SizeExceedError) {
   EXPECT_NE(funcs->run_func(run_context), ge::GRAPH_SUCCESS);
 }
 
-
 TEST_F(MemCopyKernelTest, SinkWeightDataTestFail) {
   ASSERT_NE(registry.FindKernelFuncs("SinkWeightData"), nullptr);
   int64_t weight_size = 110;
@@ -850,8 +846,7 @@ TEST_F(MemCopyKernelTest, SinkWeightDataTestFail) {
                             .Inputs({&weight_info, &tensor_data1, &single_stream_l2_allocator_, &stream})
                             .Build();
   auto invalid_context = context_holder.GetContext<KernelContext>();
-  ASSERT_EQ(registry.FindKernelFuncs("SinkWeightData")->outputs_creator(nullptr, invalid_context),
-            ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("SinkWeightData")->outputs_creator(nullptr, invalid_context), ge::GRAPH_SUCCESS);
   ASSERT_EQ(registry.FindKernelFuncs("SinkWeightData")->run_func(invalid_context), ge::GRAPH_FAILED);
   free(device_mem1);
 }
@@ -867,19 +862,15 @@ TEST_F(MemCopyKernelTest, SinkWeightDataTestSuccess) {
   GertTensorData tensor_data1 = {device_mem2, big_size, kOnDeviceHbm, -1};
 
   bool memcpy_async_has_been_called = false;
-  auto MockRtMemcpyAsync = [&memcpy_async_has_been_called] (void *dst, uint64_t dest_max, const void *src,
-                                                             uint64_t count, rtMemcpyKind_t kind,
-                                                             rtStream_t stream) {
+  auto MockRtMemcpyAsync = [&memcpy_async_has_been_called](void *dst, uint64_t dest_max, const void *src,
+                                                           uint64_t count, rtMemcpyKind_t kind, rtStream_t stream) {
     if (kind == RT_MEMCPY_HOST_TO_DEVICE) {
       memcpy_async_has_been_called = true;
     }
     return 0;
   };
-  auto MockAclrtMemcpyAsync = [&memcpy_async_has_been_called] (void *dst,
-                                                              size_t dest_max,
-                                                              const void *src,
-                                                              size_t src_count,
-                                                              aclrtMemcpyKind kind,
+  auto MockAclrtMemcpyAsync = [&memcpy_async_has_been_called](void *dst, size_t dest_max, const void *src,
+                                                              size_t src_count, aclrtMemcpyKind kind,
                                                               aclrtStream stream) {
     if (kind == ACL_MEMCPY_HOST_TO_DEVICE) {
       memcpy_async_has_been_called = true;
@@ -900,8 +891,7 @@ TEST_F(MemCopyKernelTest, SinkWeightDataTestSuccess) {
                             .Inputs({&weight_info, &tensor_data1, &single_stream_l2_allocator_, &stream})
                             .Build();
   auto valid_context = context_holder.GetContext<KernelContext>();
-  ASSERT_EQ(registry.FindKernelFuncs("SinkWeightData")->outputs_creator(nullptr, valid_context),
-            ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("SinkWeightData")->outputs_creator(nullptr, valid_context), ge::GRAPH_SUCCESS);
   ASSERT_EQ(registry.FindKernelFuncs("SinkWeightData")->run_func(valid_context), ge::GRAPH_SUCCESS);
   free(device_mem2);
   ASSERT_TRUE(memcpy_async_has_been_called);
@@ -925,8 +915,7 @@ TEST_F(MemCopyKernelTest, SinkWeightDataZeroStillSuccess) {
                             .Inputs({&weight_info, &tensor_data1, &single_stream_l2_allocator_, &stream})
                             .Build();
   auto valid_context = context_holder.GetContext<KernelContext>();
-  ASSERT_EQ(registry.FindKernelFuncs("SinkWeightData")->outputs_creator(nullptr, valid_context),
-            ge::GRAPH_SUCCESS);
+  ASSERT_EQ(registry.FindKernelFuncs("SinkWeightData")->outputs_creator(nullptr, valid_context), ge::GRAPH_SUCCESS);
   ASSERT_EQ(registry.FindKernelFuncs("SinkWeightData")->run_func(valid_context), ge::GRAPH_SUCCESS);
   free(device_mem2);
 }

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -49,12 +49,12 @@ struct PeerFormatAndShapeInfo {
   int32_t peer_sub_format = 0;
   int32_t peer_c0_format = 0;
   ge::GeShape peer_shape;
-  PeerFormatAndShapeInfo(const ge::NodePtr &current_node_param, ge::Format format,
-                         int32_t sub_format, int32_t c0_format)
+  PeerFormatAndShapeInfo(const ge::NodePtr &current_node_param, ge::Format format, int32_t sub_format,
+                         int32_t c0_format)
       : current_node(current_node_param),
-      peer_primary_format(format),
-      peer_sub_format(sub_format),
-      peer_c0_format(c0_format) {}
+        peer_primary_format(format),
+        peer_sub_format(sub_format),
+        peer_c0_format(c0_format) {}
 };
 
 class HeavyFormatPropagation {
@@ -67,7 +67,7 @@ class HeavyFormatPropagation {
 
   HeavyFormatPropagation &operator=(const HeavyFormatPropagation &) = delete;
 
-  Status Initialize();
+  Status Initalize();
   /**
    * The main function of distributing heavy format and it is also the
    * interface given to graph optimizer.
@@ -130,8 +130,7 @@ class HeavyFormatPropagation {
   Status SetFormatAndDTypeToOpdesc(const TensorInfoPtr &tensor_info_ptr, const OpKernelInfoPtr &op_kernel_info_ptr,
                                    Status set_format_result);
 
-  static bool IsPropagateFromNode(const ge::NodePtr &node,
-                                  const OpKernelInfoPtr &op_kernel_info_ptr);
+  static bool IsPropagateFromNode(const ge::NodePtr &node, const OpKernelInfoPtr &op_kernel_info_ptr);
 
   static void RefreshHeavyOpC0Val(const ge::OpDescPtr &op_desc);
 
@@ -216,12 +215,11 @@ class HeavyFormatPropagation {
                                   const ge::InDataAnchorPtr &peer_in_data_anchor, const NodeInfoPtr &last_node_info,
                                   const TensorInfoPtr &tensor_info_ptr);
 
-  void GetNextNodesInfoBackWards(std::deque<NodeInfoPtr> &next_node_queue,
-                                 const ge::OutDataAnchorPtr &peer_out_anchor, const NodeInfoPtr &last_node_info,
-                                 const TensorInfoPtr &tensor_info_ptr);
+  void GetNextNodesInfoBackWards(std::deque<NodeInfoPtr> &next_node_queue, const ge::OutDataAnchorPtr &peer_out_anchor,
+                                 const NodeInfoPtr &last_node_info, const TensorInfoPtr &tensor_info_ptr);
 
   bool JudgeIsFollowReshapeType(const ge::OpDescPtr &op_desc_ptr, const OpKernelInfoPtr &op_kernel_info_ptr) const;
-  
+
   std::string GetPropagationReshapeType(const TensorInfoPtr &tensor_info_ptr, const OpKernelInfoPtr &op_kernel_info_ptr,
                                         const ge::GeTensorDescPtr &current_tensor) const;
 
@@ -296,13 +294,12 @@ class HeavyFormatPropagation {
                                  const vector<int64_t> &output_non_format_agnostic_index) const;
 
   Status GetPeerInFormat(const vector<int64_t> &output_non_format_agnostic_index,
-                          PeerFormatAndShapeInfo &peer_in_format_and_shape) const;
+                         PeerFormatAndShapeInfo &peer_in_format_and_shape) const;
 
   Status GetPeerOutFormat(const vector<int64_t> &input_non_format_agnostic_index,
                           PeerFormatAndShapeInfo &peer_out_format_and_shape) const;
 
-  Status UpdateInputFormatAndShape(ge::NodePtr &current_node,
-                                   const vector<int64_t> &input_non_format_agnostic_index,
+  Status UpdateInputFormatAndShape(ge::NodePtr &current_node, const vector<int64_t> &input_non_format_agnostic_index,
                                    const vector<int64_t> &output_non_format_agnostic_index) const;
 
   Status UpdateOutputFormatAndShape(const ge::NodePtr &current_node,

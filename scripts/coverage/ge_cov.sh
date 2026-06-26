@@ -1,10 +1,10 @@
 #!/bin/bash
 # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
@@ -20,7 +20,7 @@ Options:
     -a, --all          Full coverage
     -i, --increment    Increment coverage
     -d, --directory    Coverage of directory
-    -h, --help 
+    -h, --help
 EOF
 
 }
@@ -62,7 +62,7 @@ function run_all_coverage(){
     [ -n "${ALL_COV_GEN_PATH}" ] && rm -rf ${ALL_COV_GEN_PATH}
     mkdir -p ${ALL_COV_GEN_PATH}
     pushd "${PWD}" >/dev/null
-        cd ${PROJECT_HOME} 
+        cd ${PROJECT_HOME}
         lcov -c -d build/tests/ge/ut/ge -d build/tests/ge/ut/common/graph/ -o ${ALL_COV_GEN_PATH}/tmp.info
         lcov -r ${ALL_COV_GEN_PATH}/tmp.info '*/output/*' '*/build/opensrc/*' '*/build/proto/*' '*/third_party/*' '*/tests/*' '/usr/local/*' '/usr/include/*' '*/metadef/*' '*/parser/*' -o ${ALL_COV_GEN_PATH}/coverage.info
         cd ${ALL_COV_GEN_PATH}
@@ -74,16 +74,16 @@ function run_all_coverage(){
 function do_coverage_run(){
     local cov_mode=$1
     local directory_dir=$2
-    
+
     run_all_coverage
 
     if [ "$cov_mode" = "all" ]; then
         exit 1
     elif [ -n "$directory_dir" ]; then
         increment_cov_for_directory $directory_dir
-    else 
+    else
         increment_cov_for_directory "ge"
-    fi 
+    fi
 }
 
 function parse_args(){
@@ -121,7 +121,7 @@ function parse_args(){
                 help; exit 1;
                 ;;
         esac
-        shift 
+        shift
     done
     do_coverage_run $cov_mode $directory_dir
 }

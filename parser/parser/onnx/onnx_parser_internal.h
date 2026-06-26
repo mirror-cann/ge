@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -91,8 +91,8 @@ class PARSER_FUNC_VISIBILITY OnnxModelParser : public domi::ModelParser {
  private:
   Status ParseAllNodeProto(ge::onnx::GraphProto &onnx_graph, ge::Graph &graph);
 
-  Status ParseInput(const std::map<std::string, ge::onnx::TensorProto> &initializer_name_tensor,
-                    bool is_subgraph, ge::onnx::GraphProto &onnx_graph);
+  Status ParseInput(const std::map<std::string, ge::onnx::TensorProto> &initializer_name_tensor, bool is_subgraph,
+                    ge::onnx::GraphProto &onnx_graph);
 
   Status ParseOutput(ge::onnx::GraphProto &onnx_graph);
 
@@ -120,7 +120,7 @@ class PARSER_FUNC_VISIBILITY OnnxModelParser : public domi::ModelParser {
                          ParserUtils::OutputMapping &out_tensor_to_nodes);
 
   Status Prechecker(ge::onnx::GraphProto &onnx_graph);
-  
+
   Status GetModelFromFile(const char *file, ge::onnx::ModelProto &onnx_model) const;
 
   Status SetExternalPath(const char *file, ge::onnx::ModelProto &onnx_model) const;
@@ -186,5 +186,5 @@ class PARSER_FUNC_VISIBILITY OnnxWeightsParser : public domi::WeightsParser {
     PreChecker::Instance().Clear();
   }
 };
-}  // namespace domi
+}  // namespace ge
 #endif  // PARSER_ONNX_ONNX_PARSER_INTERNAL_H_

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,7 +20,7 @@ namespace ge {
 class CtrlNodeConflict {
  public:
   static Status SolveCtrlNodeSubGraphConflict(const ComputeGraphPtr &graph);
- 
+
  private:
   using SubGraphSolveConflictCall = std::function<Status(const NodePtr &ctrl_node)>;
   static std::map<std::string, SubGraphSolveConflictCall> get_subgraph_solve_call;
@@ -38,10 +38,9 @@ class CtrlNodeConflict {
 
   static Status SolveWhileConflict(const NodePtr &ctrl_node);
 
-  static Status SolveNodesConflict(const ComputeGraphPtr &graph,
-                                   const std::vector<InDataAnchorPtr> &in_data_anchors);
+  static Status SolveNodesConflict(const ComputeGraphPtr &graph, const std::vector<InDataAnchorPtr> &in_data_anchors);
 };
 
-}
+}  // namespace ge
 
 #endif  // GE_GRAPH_CONTROL_NODE_SUBGRAPH_CONFLICT_SOLVE_H_

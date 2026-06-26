@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,7 +27,7 @@ using namespace ge;
 
 namespace optiling {
 class RegisterOpTilingV2UT : public testing::Test {
-protected:
+ protected:
   void SetUp() {}
 
   void TearDown() {}
@@ -66,7 +66,7 @@ TEST_F(RegisterOpTilingV2UT, replace_and_recovery_tensor_1) {
 
 TEST_F(RegisterOpTilingV2UT, replace_and_recovery_tensor_2) {
   OpDescPtr op_desc = make_shared<OpDesc>("relu", "ReluV2");
-  GeShape shape({4,3,16,16});
+  GeShape shape({4, 3, 16, 16});
   GeTensorDesc tensor_desc(shape);
   op_desc->AddInputDesc("x", tensor_desc);
   op_desc->AddInputDesc("y", tensor_desc);
@@ -87,7 +87,7 @@ TEST_F(RegisterOpTilingV2UT, replace_and_recovery_tensor_2) {
 
 TEST_F(RegisterOpTilingV2UT, op_para_calculate_v2_1) {
   OpDescPtr op_desc = make_shared<OpDesc>("relu", "ReluV2");
-  GeShape shape({4,3,16,16});
+  GeShape shape({4, 3, 16, 16});
   GeTensorDesc tensor_desc(shape);
   op_desc->AddInputDesc("x", tensor_desc);
   op_desc->AddInputDesc("y", tensor_desc);
@@ -107,7 +107,7 @@ TEST_F(RegisterOpTilingV2UT, op_para_calculate_v2_1) {
 
 TEST_F(RegisterOpTilingV2UT, op_para_calculate_v2_2) {
   OpDescPtr op_desc = make_shared<OpDesc>("relu", "ReluVV");
-  GeShape shape({4,3,16,16});
+  GeShape shape({4, 3, 16, 16});
   GeTensorDesc tensor_desc(shape);
   op_desc->AddInputDesc("x", tensor_desc);
   op_desc->AddInputDesc("y", tensor_desc);
@@ -135,7 +135,7 @@ TEST_F(RegisterOpTilingV2UT, op_para_calculate_v2_2) {
 
 TEST_F(RegisterOpTilingV2UT, op_para_calculate_v2_3) {
   OpDescPtr op_desc = make_shared<OpDesc>("relu", "ReluV2");
-  GeShape shape({4,3,16,16});
+  GeShape shape({4, 3, 16, 16});
   GeTensorDesc tensor_desc(shape);
   op_desc->AddInputDesc("x", tensor_desc);
   op_desc->AddInputDesc("y", tensor_desc);
@@ -191,7 +191,7 @@ TEST_F(RegisterOpTilingV2UT, op_atomic_calculate_v2_1) {
   (void)ge::AttrUtils::SetStr(op_desc, ATOMIC_COMPILE_INFO_KEY, compile_info_key);
   (void)ge::AttrUtils::SetStr(op_desc, ATOMIC_COMPILE_INFO_JSON, compile_info_json);
   std::vector<int64_t> atomic_output_indices = {0};
-  (void) ge::AttrUtils::SetListInt(op_desc, ge::ATOMIC_ATTR_OUTPUT_INDEX, atomic_output_indices);
+  (void)ge::AttrUtils::SetListInt(op_desc, ge::ATOMIC_ATTR_OUTPUT_INDEX, atomic_output_indices);
 
   ComputeGraphPtr graph = make_shared<ComputeGraph>("test");
   NodePtr node = graph->AddNode(op_desc);
@@ -244,7 +244,7 @@ TEST_F(RegisterOpTilingV2UT, op_atomic_calculate_v2_3) {
   (void)ge::AttrUtils::SetStr(op_desc, ATOMIC_COMPILE_INFO_KEY, compile_info_key);
   (void)ge::AttrUtils::SetStr(op_desc, ATOMIC_COMPILE_INFO_JSON, compile_info_json);
   std::vector<int64_t> atomic_output_indices = {1};
-  (void) ge::AttrUtils::SetListInt(op_desc, ge::ATOMIC_ATTR_OUTPUT_INDEX, atomic_output_indices);
+  (void)ge::AttrUtils::SetListInt(op_desc, ge::ATOMIC_ATTR_OUTPUT_INDEX, atomic_output_indices);
 
   ComputeGraphPtr graph = make_shared<ComputeGraph>("test");
   NodePtr node = graph->AddNode(op_desc);
@@ -258,4 +258,4 @@ TEST_F(RegisterOpTilingV2UT, op_atomic_calculate_v2_3) {
   EXPECT_EQ(ret, GRAPH_FAILED);
   tiling_func_map.erase(OP_TYPE_DYNAMIC_ATOMIC_ADDR_CLEAN);
 }
-}
+}  // namespace optiling

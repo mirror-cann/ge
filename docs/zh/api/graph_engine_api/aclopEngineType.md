@@ -7,4 +7,3 @@ typedef enum aclEngineType {
    ACL_ENGINE_VECTOR   //  将算子编译成Vector Core算子，当前不支持
 } aclopEngineType;
 ```
-

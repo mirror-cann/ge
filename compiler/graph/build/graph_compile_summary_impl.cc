@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -83,7 +83,7 @@ Status CompiledGraphSummary::GetRefreshableFeatureMemorySize(size_t &size) const
   return SUCCESS;
 }
 
-Status CompiledGraphSummary::GetFeatureMemoryBaseRefreshable (bool &v) const {
+Status CompiledGraphSummary::GetFeatureMemoryBaseRefreshable(bool &v) const {
   if (!data_->IsStatic()) {
     GELOGW("Compiled graph is not static, cannot get feature memory refreshable!");
     v = false;
@@ -160,8 +160,8 @@ CompiledGraphSummaryPtr CompiledGraphSummary::Builder::Build(const GeModelPtr &g
   GE_ASSERT_SUCCESS(summary->data_->SetFixedFeatureMemorySize(ge_model, ge_root_model));
   GE_ASSERT_SUCCESS(summary->data_->SetStreamNum(ge_model));
   if (!summary->data_->is_static_) {
-    GELOGI("Dynamic graph summary build success, graph_name:%s, model_name:%s",
-           root_graph->GetName().c_str(), ge_model->GetName().c_str());
+    GELOGI("Dynamic graph summary build success, graph_name:%s, model_name:%s", root_graph->GetName().c_str(),
+           ge_model->GetName().c_str());
     return summary;
   }
   GE_ASSERT_SUCCESS(summary->data_->SetConstMemorySize(ge_model));
@@ -172,8 +172,8 @@ CompiledGraphSummaryPtr CompiledGraphSummary::Builder::Build(const GeModelPtr &g
   GE_ASSERT_SUCCESS(summary->data_->SetOutputTensorInfo(ge_model));
   GE_ASSERT_SUCCESS(summary->data_->SetIOIndexesWithSameAddr(ge_model));
   GE_ASSERT_SUCCESS(summary->data_->SetExternalWeightPaths(ge_model));
-  GELOGI("Static graph summary build success, graph_name:%s, model_name:%s",
-         root_graph->GetName().c_str(), ge_model->GetName().c_str());
+  GELOGI("Static graph summary build success, graph_name:%s, model_name:%s", root_graph->GetName().c_str(),
+         ge_model->GetName().c_str());
   return summary;
 }
 
@@ -196,8 +196,8 @@ Status CompiledGraphSummary::SummaryData::SetFeatureMemorySize(const GeModelPtr 
   GE_ASSERT(AttrUtils::GetInt(ge_model, ATTR_MODEL_MEMORY_SIZE, feature_size_with_input_output));
   GE_ASSERT(AttrUtils::GetInt(ge_model, ATTR_MODEL_ZERO_COPY_MEMORY_SIZE, input_output_size));
   GE_ASSERT(feature_size_with_input_output >= input_output_size,
-            "feature_size_with_input_output:%zu, input_output_size:%zu",
-            feature_size_with_input_output, input_output_size);
+            "feature_size_with_input_output:%zu, input_output_size:%zu", feature_size_with_input_output,
+            input_output_size);
   // 临时方案：feature_mem_size为0的情况下，app不会设置fm地址，davinci_model会申请“包含zero_copy_mem_size的fm内存”；对于执行态给
   // device内存的场景，GE不需要申请“包含zero_copy_mem_size的fm内存”，考虑修改davinci_model影响性大，采用以下临时方案：
   // const mem size 或 fm mem size为0时，给外部返回512
@@ -239,10 +239,11 @@ Status CompiledGraphSummary::SummaryData::SetRefreshablFeatureMemorySize(const G
   // const mem size 或 fm mem size为0时，给外部返回512
   const size_t ori_feature_mem_size = feature_size_with_input_output - input_output_size - fixed_mem_size;
   refreshable_feature_mem_size_ = (ori_feature_mem_size == 0UL) ? 512UL : ori_feature_mem_size;
-  GELOGI("model_name:%s ori_feature_size:%zu, input_output_size:%zu, fixed_mem_size:%zu,"
-         " total_size:%zu, feature_size:%zu.",
-         ge_model->GetName().c_str(), ori_feature_mem_size, input_output_size, fixed_mem_size,
-         feature_size_with_input_output, refreshable_feature_mem_size_);
+  GELOGI(
+      "model_name:%s ori_feature_size:%zu, input_output_size:%zu, fixed_mem_size:%zu,"
+      " total_size:%zu, feature_size:%zu.",
+      ge_model->GetName().c_str(), ori_feature_mem_size, input_output_size, fixed_mem_size,
+      feature_size_with_input_output, refreshable_feature_mem_size_);
   return SUCCESS;
 }
 
@@ -287,14 +288,14 @@ Status CompiledGraphSummary::SummaryData::SetOutputTensorInfo(const GeModelPtr &
           for (const auto &range : shape_ranges) {
             output_dims.emplace_back(range.second);
           }
-          GE_ASSERT_TRUE(!output_dims.empty(),
-              "No tiling node: %s shape is unknown, but has no shape range.", node->GetNamePtr());
+          GE_ASSERT_TRUE(!output_dims.empty(), "No tiling node: %s shape is unknown, but has no shape range.",
+                         node->GetNamePtr());
         } else {
           output_dims = tensor_desc->GetShape().GetDims();
         }
         GELOGD("Node:%s input[%u] shape:%s datatype:%s", node->GetName().c_str(), id++,
-                GeShape(output_dims).ToString().c_str(),
-                TypeUtils::DataTypeToSerialString(tensor_desc->GetDataType()).c_str());
+               GeShape(output_dims).ToString().c_str(),
+               TypeUtils::DataTypeToSerialString(tensor_desc->GetDataType()).c_str());
         netoutput_shapes_.emplace_back(Shape(output_dims));
         netoutput_dtypes_.emplace_back(tensor_desc->GetDataType());
       }
@@ -303,8 +304,9 @@ Status CompiledGraphSummary::SummaryData::SetOutputTensorInfo(const GeModelPtr &
   return SUCCESS;
 }
 
-Status CompiledGraphSummary::SummaryData::ConstructIoOffsetToRoleToIndex(const ComputeGraphPtr &compute_graph,
-  std::map<int64_t, map<int32_t, std::vector<uint32_t>>> &io_offset_to_role_to_index) const {
+Status CompiledGraphSummary::SummaryData::ConstructIoOffsetToRoleToIndex(
+    const ComputeGraphPtr &compute_graph,
+    std::map<int64_t, map<int32_t, std::vector<uint32_t>>> &io_offset_to_role_to_index) const {
   uint32_t graph_id = compute_graph->GetGraphID();
   uint32_t data_op_index = 0U;
   uint32_t input_index = 0U;
@@ -326,10 +328,10 @@ Status CompiledGraphSummary::SummaryData::ConstructIoOffsetToRoleToIndex(const C
         continue;
       }
 
-      io_offset_to_role_to_index[input_offset[kDataIndex]][static_cast<int32_t>(ModelIORole::KInput)]
-        .push_back(input_index);
-      GELOGD("graph_id:%u node:%s input index:%d offset:%ld",
-        graph_id, node->GetName().c_str(), input_index, input_offset[kDataIndex]);
+      io_offset_to_role_to_index[input_offset[kDataIndex]][static_cast<int32_t>(ModelIORole::KInput)].push_back(
+          input_index);
+      GELOGD("graph_id:%u node:%s input index:%d offset:%ld", graph_id, node->GetName().c_str(), input_index,
+             input_offset[kDataIndex]);
       data_op_index++;
     } else if (node->GetType() == NETOUTPUT) {
       const auto &output_offsets = op_desc->GetInputOffset();
@@ -342,15 +344,15 @@ Status CompiledGraphSummary::SummaryData::ConstructIoOffsetToRoleToIndex(const C
       bool getnext_sink_dynamic = false;
       if (AttrUtils::GetBool(op_desc, ATTR_GETNEXT_SINK_DYNMAIC, getnext_sink_dynamic) && getnext_sink_dynamic) {
         actual_output_size -= kGetDynamicDimsCount;
-        GELOGI("graph_id:%u ATTR_GETNEXT_SINK_DYNMAIC has been set and is true, node: %s, output size:%zu",
-          graph_id, op_desc->GetName().c_str(), actual_output_size);
+        GELOGI("graph_id:%u ATTR_GETNEXT_SINK_DYNMAIC has been set and is true, node: %s, output size:%zu", graph_id,
+               op_desc->GetName().c_str(), actual_output_size);
       }
 
       for (size_t i = 0U; i < actual_output_size; i++) {
-        io_offset_to_role_to_index[output_offsets[i]][static_cast<int32_t>(ModelIORole::KOutput)]
-          .push_back(output_index);
-        GELOGD("graph_id:%u node:%s output index:%d offset:%lld",
-          graph_id, node->GetName().c_str(), output_index, output_offsets[i]);
+        io_offset_to_role_to_index[output_offsets[i]][static_cast<int32_t>(ModelIORole::KOutput)].push_back(
+            output_index);
+        GELOGD("graph_id:%u node:%s output index:%d offset:%lld", graph_id, node->GetName().c_str(), output_index,
+               output_offsets[i]);
         output_index++;
       }
     }
@@ -370,20 +372,20 @@ Status CompiledGraphSummary::SummaryData::SetIOIndexesWithSameAddr(const GeModel
     const auto input_to_indexes = it.second.find(static_cast<int32_t>(ModelIORole::KInput));
     const auto output_to_indexes = it.second.find(static_cast<int32_t>(ModelIORole::KOutput));
     if ((input_to_indexes == it.second.end()) || (output_to_indexes == it.second.end())) {
-        GELOGD("graph_id:%u offset %lld has no matching inputs and outputs with same addr", graph_id, it.first);
+      GELOGD("graph_id:%u offset %lld has no matching inputs and outputs with same addr", graph_id, it.first);
       continue;
     }
 
     if (input_to_indexes->second.size() != 1U) {
-      GELOGW("graph_id:%u offset %lld input index list size %zu, more than one",
-        graph_id, it.first, input_to_indexes->second.size());
+      GELOGW("graph_id:%u offset %lld input index list size %zu, more than one", graph_id, it.first,
+             input_to_indexes->second.size());
       continue;
     }
 
     for (auto output_index : output_to_indexes->second) {
       io_indexes_with_same_addr_.emplace_back(std::make_pair(input_to_indexes->second[kDataIndex], output_index));
-      GELOGI("graph_id:%u input index:%u output index:%u has the same offset:%lld",
-        graph_id, input_to_indexes->second[kDataIndex], output_index, it.first);
+      GELOGI("graph_id:%u input index:%u output index:%u has the same offset:%lld", graph_id,
+             input_to_indexes->second[kDataIndex], output_index, it.first);
     }
   }
 
@@ -410,13 +412,13 @@ Status CompiledGraphSummary::SummaryData::SetExternalWeightPaths(const GeModelPt
       const auto file_id = ConvertToAscendString(file_id_temp);
       const auto file_path_ascend = ConvertToAscendString(file_path);
       ExternalWeightDescPtr external_weight_desc =
-        ExternalWeightDesc::Builder::Build(file_path_ascend, length, offset, file_id);
+          ExternalWeightDesc::Builder::Build(file_path_ascend, length, offset, file_id);
       GE_ASSERT_NOTNULL(external_weight_desc);
       external_weight_paths_.emplace_back(std::move(external_weight_desc));
       GELOGI("file constant node:%s, path:%s, offset:%zu, length:%zu, file_id:%s", node->GetNamePtr(),
-        file_path.c_str(), offset, length, file_id_temp.c_str());
+             file_path.c_str(), offset, length, file_id_temp.c_str());
     }
-  } 
+  }
   return SUCCESS;
 }
 
@@ -563,13 +565,14 @@ const std::map<AscendString, AscendString> &StreamAllocationSummary::StreamAlloc
   return graph_to_stream_graph_;
 }
 
-const std::map<AscendString, std::vector<LogicalStreamAllocationInfo>>
-    &StreamAllocationSummary::StreamAllocationSummaryImpl::GetAllLogicalStreamInfos() const {
+const std::map<AscendString, std::vector<LogicalStreamAllocationInfo>> &
+StreamAllocationSummary::StreamAllocationSummaryImpl::GetAllLogicalStreamInfos() const {
   return graph_to_logical_stream_infos_;
 }
 
-Status StreamAllocationSummary::StreamAllocationSummaryImpl::CollectCustomStreamInfo(const ge::ComputeGraphPtr graph,
-  std::map<int64_t, ge::LogicalStreamAllocationInfo> &logical_stream_id_to_stream_info) const {
+Status StreamAllocationSummary::StreamAllocationSummaryImpl::CollectCustomStreamInfo(
+    const ge::ComputeGraphPtr graph,
+    std::map<int64_t, ge::LogicalStreamAllocationInfo> &logical_stream_id_to_stream_info) const {
   std::string vec_str;
   std::vector<int64_t> custom_logical_stream_ids;
   if (AttrUtils::GetStr(graph, "_custom_logical_stream_ids", vec_str)) {
@@ -595,8 +598,7 @@ Status StreamAllocationSummary::StreamAllocationSummaryImpl::CollectStreamInfosF
     return SUCCESS;
   }
   std::map<int64_t, int64_t> real_stream_id_to_logical_stream_id;
-  GE_ASSERT_SUCCESS(StreamUtils::TransStrToMap(split_stream_2_logical_stream_str,
-                                                               real_stream_id_to_logical_stream_id));
+  GE_ASSERT_SUCCESS(StreamUtils::TransStrToMap(split_stream_2_logical_stream_str, real_stream_id_to_logical_stream_id));
   for (const auto &node : graph->GetDirectNode()) {
     const auto op_desc = node->GetOpDesc();
     GE_ASSERT_NOTNULL(op_desc);
@@ -772,7 +774,7 @@ Status StreamAllocationSummary::StreamAllocationSummaryImpl::CollectStreamInfosF
   return SUCCESS;
 }
 
-Status StreamAllocationSummary::StreamAllocationSummaryImpl::CollectStreamInfos(const GeRootModelPtr &ge_root_model){
+Status StreamAllocationSummary::StreamAllocationSummaryImpl::CollectStreamInfos(const GeRootModelPtr &ge_root_model) {
   for (const auto &iter : ge_root_model->GetSubgraphInstanceNameToModel()) {
     auto ge_model_ptr = iter.second;
     std::string model_stream_infos;
@@ -802,12 +804,13 @@ const std::map<AscendString, AscendString> &StreamAllocationSummary::ToStreamGra
   return impl_->ToStreamGraph();
 }
 
-const std::map<AscendString, std::vector<LogicalStreamAllocationInfo>>
-    &StreamAllocationSummary::GetAllLogicalStreamInfos() const {
+const std::map<AscendString, std::vector<LogicalStreamAllocationInfo>> &
+StreamAllocationSummary::GetAllLogicalStreamInfos() const {
   return impl_->GetAllLogicalStreamInfos();
 }
 
-Status CompiledGraphSummary::GetStreamAllocationSummary(std::shared_ptr<StreamAllocationSummary> &stream_allocation) const {
+Status CompiledGraphSummary::GetStreamAllocationSummary(
+    std::shared_ptr<StreamAllocationSummary> &stream_allocation) const {
   stream_allocation = data_->GetStreamAllocationSummary();
   return SUCCESS;
 }

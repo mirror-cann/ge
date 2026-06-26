@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -11,7 +11,7 @@
 #ifndef INC_EXTERNAL_ACL_ACL_BASE_MODEL_H_
 #define INC_EXTERNAL_ACL_ACL_BASE_MODEL_H_
 
-#include <stdint.h> 
+#include <stdint.h>
 #include <stddef.h>
 
 #include "acl/acl_base_rt.h"
@@ -39,9 +39,7 @@ typedef struct aclTensorDesc aclTensorDesc;
  * @retval aclTensorDesc pointer.
  * @retval nullptr if param is invalid or run out of memory
  */
-ACL_FUNC_VISIBILITY aclTensorDesc *aclCreateTensorDesc(aclDataType dataType,
-                                                       int numDims,
-                                                       const int64_t *dims,
+ACL_FUNC_VISIBILITY aclTensorDesc *aclCreateTensorDesc(aclDataType dataType, int numDims, const int64_t *dims,
                                                        aclFormat format);
 
 /**
@@ -63,8 +61,7 @@ ACL_FUNC_VISIBILITY void aclDestroyTensorDesc(const aclTensorDesc *desc);
  * @retval ACL_SUCCESS The function is successfully executed.
  * @retval OtherValues Failure
  */
-ACL_FUNC_VISIBILITY aclError aclSetTensorShapeRange(aclTensorDesc* desc,
-                                                    size_t dimsCount,
+ACL_FUNC_VISIBILITY aclError aclSetTensorShapeRange(aclTensorDesc *desc, size_t dimsCount,
                                                     int64_t dimsRange[][ACL_TENSOR_SHAPE_RANGE_NUM]);
 
 /**
@@ -78,8 +75,7 @@ ACL_FUNC_VISIBILITY aclError aclSetTensorShapeRange(aclTensorDesc* desc,
  * @retval ACL_SUCCESS The function is successfully executed.
  * @retval OtherValues Failure
  */
-ACL_FUNC_VISIBILITY aclError aclSetTensorValueRange(aclTensorDesc* desc,
-                                                    size_t valueCount,
+ACL_FUNC_VISIBILITY aclError aclSetTensorValueRange(aclTensorDesc *desc, size_t valueCount,
                                                     int64_t valueRange[][ACL_TENSOR_VALUE_RANGE_NUM]);
 /**
  * @ingroup AscendCL
@@ -175,9 +171,7 @@ ACL_FUNC_VISIBILITY aclError aclGetTensorDescDimV2(const aclTensorDesc *desc, si
  * @retval ACL_SUCCESS The function is successfully executed.
  * @retval OtherValues Failure
  */
-ACL_FUNC_VISIBILITY aclError aclGetTensorDescDimRange(const aclTensorDesc *desc,
-                                                      size_t index,
-                                                      size_t dimRangeNum,
+ACL_FUNC_VISIBILITY aclError aclGetTensorDescDimRange(const aclTensorDesc *desc, size_t index, size_t dimRangeNum,
                                                       int64_t *dimRange);
 
 /**
@@ -358,4 +352,4 @@ ACL_FUNC_VISIBILITY aclError aclSetTensorPlaceMent(aclTensorDesc *desc, aclMemTy
 }
 #endif
 
-#endif // INC_EXTERNAL_ACL_ACL_BASE_MODEL_H_
+#endif  // INC_EXTERNAL_ACL_ACL_BASE_MODEL_H_

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -68,9 +68,13 @@ class ShapeImpl {
   friend class Shape;
 };
 
-Shape::Shape() { impl_ = ComGraphMakeShared<ShapeImpl>(); }
+Shape::Shape() {
+  impl_ = ComGraphMakeShared<ShapeImpl>();
+}
 
-Shape::Shape(const std::vector<int64_t> &dims) { impl_ = ComGraphMakeShared<ShapeImpl>(dims); }
+Shape::Shape(const std::vector<int64_t> &dims) {
+  impl_ = ComGraphMakeShared<ShapeImpl>(dims);
+}
 
 size_t Shape::GetDimNum() const {
   if (impl_ != nullptr) {
@@ -146,6 +150,7 @@ class TensorDescImpl {
   ~TensorDescImpl() = default;
   TensorDescImpl(const Shape &shape, const Format format, const DataType dt)
       : shape_(shape), format_(format), data_type_(dt) {}
+
  private:
   Shape shape_;
   std::vector<std::pair<int64_t, int64_t>> range_;
@@ -256,8 +261,7 @@ class TensorImpl {
   ~TensorImpl() = default;
 
   explicit TensorImpl(const TensorDesc &tensor_desc) : tensor_desc_(tensor_desc) {}
-  TensorImpl(const TensorDesc &tensor_desc, const uint8_t * const data, const size_t size) :
-    tensor_desc_(tensor_desc) {
+  TensorImpl(const TensorDesc &tensor_desc, const uint8_t *const data, const size_t size) : tensor_desc_(tensor_desc) {
     SetData(data, size);
   }
   graphStatus SetData(const uint8_t *const data, const size_t size);
@@ -275,7 +279,7 @@ class TensorImpl {
   void SetTensorDesc(const TensorDesc &tensor_desc);
   TensorDesc GetTensorDesc();
 
-private:
+ private:
   TensorDesc tensor_desc_;
   std::shared_ptr<AlignedPtr> aligned_ptr_ = nullptr;
   size_t length_ = 0UL;
@@ -316,7 +320,9 @@ const uint8_t *TensorImpl::MallocAlignedPtr(const size_t size) {
   return aligned_ptr_->Get();
 }
 
-size_t TensorImpl::GetSize() const { return length_; }
+size_t TensorImpl::GetSize() const {
+  return length_;
+}
 
 const uint8_t *TensorImpl::GetData() const {
   if (length_ == 0UL) {
@@ -363,8 +369,8 @@ graphStatus TensorImpl::SetData(const uint8_t *const data, const size_t size) {
   auto dst_addr = llm::PtrToValue(aligned_ptr_->MutableGet());
   auto src_addr = llm::PtrToValue(data);
   while (remain_size > SECUREC_MEM_MAX_LEN) {
-    if (memcpy_s(llm::ValueToPtr(dst_addr), SECUREC_MEM_MAX_LEN,
-                 llm::ValueToPtr(src_addr), SECUREC_MEM_MAX_LEN) != EOK) {
+    if (memcpy_s(llm::ValueToPtr(dst_addr), SECUREC_MEM_MAX_LEN, llm::ValueToPtr(src_addr), SECUREC_MEM_MAX_LEN) !=
+        EOK) {
       REPORT_INNER_ERR_MSG("E18888", "memcpy failed, size = %" PRIu64 "", SECUREC_MEM_MAX_LEN);
       LLMLOGE(GRAPH_FAILED, "[Memcpy][Data] failed, size = %" PRIu64 "", SECUREC_MEM_MAX_LEN);
       return GRAPH_FAILED;
@@ -373,8 +379,7 @@ graphStatus TensorImpl::SetData(const uint8_t *const data, const size_t size) {
     dst_addr += SECUREC_MEM_MAX_LEN;
     src_addr += SECUREC_MEM_MAX_LEN;
   }
-  if (memcpy_s(llm::ValueToPtr(dst_addr), remain_size,
-               llm::ValueToPtr(src_addr), remain_size) != EOK) {
+  if (memcpy_s(llm::ValueToPtr(dst_addr), remain_size, llm::ValueToPtr(src_addr), remain_size) != EOK) {
     REPORT_INNER_ERR_MSG("E18888", "memcpy failed, size=%zu", remain_size);
     LLMLOGE(GRAPH_FAILED, "[Memcpy][Data] failed, size=%zu", remain_size);
     return GRAPH_FAILED;
@@ -407,7 +412,7 @@ graphStatus TensorImpl::SetData(const std::string &data) {
         llm::ValueToPtr(llm::PtrToValue(llm::PtrToPtr<char_t, void>(buff.get())) + sizeof(*string_head)));
     string_head->addr = static_cast<int64_t>(sizeof(StringHead));
     string_head->len = static_cast<int64_t>(data.size());
-    const int32_t memcpy_ret = memcpy_s(raw_data, total_size - sizeof(StringHead),  data.c_str(), data.size() + 1U);
+    const int32_t memcpy_ret = memcpy_s(raw_data, total_size - sizeof(StringHead), data.c_str(), data.size() + 1U);
     if (memcpy_ret != EOK) {
       REPORT_INNER_ERR_MSG("E18888", "memcpy data failed, ret:%d, size:%zu.", memcpy_ret, data.size() + 1U);
       LLMLOGE(GRAPH_FAILED, "[Copy][Data] failed, ret:%d", memcpy_ret);
@@ -426,7 +431,7 @@ graphStatus TensorImpl::SetData(const std::vector<std::string> &data) {
     return GRAPH_FAILED;
   }
   size_t total_size = 0U;
-  total_size = std::accumulate(data.begin(), data.end(), total_size, [](size_t total, const std::string& str) {
+  total_size = std::accumulate(data.begin(), data.end(), total_size, [](size_t total, const std::string &str) {
     /// Extra 16 bytes store string head
     /// Extra 1 byte store '\0'
     total += str.size() + sizeof(StringHead) + 1U;
@@ -440,7 +445,7 @@ graphStatus TensorImpl::SetData(const std::vector<std::string> &data) {
     return GRAPH_FAILED;
   }
   // Front some bytes store head of each string
-  StringHead * const string_head = llm::PtrToPtr<char_t, StringHead>(buff.get());
+  StringHead *const string_head = llm::PtrToPtr<char_t, StringHead>(buff.get());
   uint64_t raw_data = llm::PtrToValue(static_cast<void *>(buff.get())) + (data.size() * sizeof(*string_head));
   uint64_t ptr_size = data.size() * sizeof(StringHead);
   for (size_t i = 0U; i < data.size(); ++i) {
@@ -448,12 +453,12 @@ graphStatus TensorImpl::SetData(const std::vector<std::string> &data) {
     llm::PtrAdd<StringHead>(string_head, data.size(), i)->len = static_cast<int64_t>(data[i].size());
     if (total_size < ptr_size) {
       REPORT_INNER_ERR_MSG("E18888", "Subtraction invalid, total_size:%zu, ptr_size:%" PRIu64, total_size, ptr_size);
-      LLMLOGE(GRAPH_FAILED, "[Check][Param] Subtraction invalid, total_size: %zu, ptr_size: %" PRIu64,
-              total_size, ptr_size);
+      LLMLOGE(GRAPH_FAILED, "[Check][Param] Subtraction invalid, total_size: %zu, ptr_size: %" PRIu64, total_size,
+              ptr_size);
       return GRAPH_FAILED;
     }
-    const int32_t memcpy_ret = memcpy_s(llm::ValueToPtr(raw_data), total_size - ptr_size,
-                                        data[i].c_str(), data[i].size() + 1U);
+    const int32_t memcpy_ret =
+        memcpy_s(llm::ValueToPtr(raw_data), total_size - ptr_size, data[i].c_str(), data[i].size() + 1U);
     LLM_CHK_BOOL_RET_STATUS(memcpy_ret == EOK, GRAPH_FAILED, "copy data failed");
     raw_data += (data[i].size() + 1U);
     ptr_size += (data[i].size() + 1U);
@@ -592,7 +597,6 @@ graphStatus Tensor::SetData(uint8_t *data, size_t size, const Tensor::DeleteFunc
   }
   return GRAPH_FAILED;
 }
-
 
 Tensor Tensor::Clone() const {
   if (impl != nullptr) {

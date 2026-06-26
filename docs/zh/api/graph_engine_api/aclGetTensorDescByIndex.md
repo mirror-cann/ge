@@ -65,4 +65,3 @@ aclTensorDesc *aclGetTensorDescByIndex(aclTensorDesc *desc, size_t index)
 ## 返回值说明<a name="section21631444261"></a>
 
 返回指定输入/输出的aclTensorDesc类型数据的指针。
-

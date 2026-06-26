@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -43,7 +43,9 @@ const char *const kResultSuccess = "success";
 const char *const kResultFailed = "failed";
 }  // namespace
 
-PreChecker::PreChecker() : fmk_op_types_(nullptr) { Init(); }
+PreChecker::PreChecker() : fmk_op_types_(nullptr) {
+  Init();
+}
 
 void PreChecker::Init() {
   model_name_.clear();
@@ -69,11 +71,13 @@ FMK_FUNC_HOST_VISIBILITY PreChecker &PreChecker::Instance() {
   return instance;
 }
 
-FMK_FUNC_HOST_VISIBILITY void PreChecker::SetModelName(const string &name) { model_name_ = name; }
+FMK_FUNC_HOST_VISIBILITY void PreChecker::SetModelName(const string &name) {
+  model_name_ = name;
+}
 
 FMK_FUNC_HOST_VISIBILITY Status PreChecker::AddOp(OpId id, const string &name, const string &type) {
-  GE_RETURN_WITH_LOG_IF_TRUE(op_map_.find(id) != op_map_.end(),
-                             "[Check][Param] Id already exists, name:%s, type:%s.", name.c_str(), type.c_str());
+  GE_RETURN_WITH_LOG_IF_TRUE(op_map_.find(id) != op_map_.end(), "[Check][Param] Id already exists, name:%s, type:%s.",
+                             name.c_str(), type.c_str());
 
   Info info;
   info.id = id;
@@ -125,8 +129,8 @@ FMK_FUNC_HOST_VISIBILITY Status PreChecker::CheckType(OpId id, bool is_tensorflo
 
   // Judge whether the type is supported
   GE_RETURN_WITH_LOG_IF_ERROR(CheckTypeSupported(info.id, type, info.name, is_tensorflow),
-                              "[Invoke][CheckTypeSupported] failed, type:%s, name:%s.",
-                              type.c_str(), info.name.c_str());
+                              "[Invoke][CheckTypeSupported] failed, type:%s, name:%s.", type.c_str(),
+                              info.name.c_str());
 
   return SUCCESS;
 }
@@ -167,7 +171,9 @@ Status PreChecker::AddCause(OpId id, const Cause &cause) {
   return SUCCESS;
 }
 
-void PreChecker::Clear() { Init(); }
+void PreChecker::Clear() {
+  Init();
+}
 
 Status PreChecker::Clear(OpId id, const string &message) {
   auto iter = op_map_.find(id);

@@ -48,9 +48,7 @@ TEST_F(UtestRtCallbackManager, CallbackProcess_SyncEventTimeoutFailureBranchFail
   // 3. 注册一个流和回调函数
   // 使用非空指针作为 Stream 句柄
   aclrtStream fake_stream = reinterpret_cast<aclrtStream>(0x123456);
-  manager.RegisterCallbackFunc(fake_stream, [&callback_executed]() {
-    callback_executed.store(true);
-  });
+  manager.RegisterCallbackFunc(fake_stream, [&callback_executed]() { callback_executed.store(true); });
 
   // 4. 等待一段时间让后台线程处理队列中的任务
   // BlockingQueue 可能会有一定的延时
@@ -87,9 +85,7 @@ TEST_F(UtestRtCallbackManager, CallbackProcess_SyncEventTimeoutFailureBranchTime
   // 3. 注册一个流和回调函数
   // 使用非空指针作为 Stream 句柄
   aclrtStream fake_stream = reinterpret_cast<aclrtStream>(0x123456);
-  manager.RegisterCallbackFunc(fake_stream, [&callback_executed]() {
-      callback_executed.store(true);
-  });
+  manager.RegisterCallbackFunc(fake_stream, [&callback_executed]() { callback_executed.store(true); });
 
   // 4. 等待一段时间让后台线程处理队列中的任务
   // BlockingQueue 可能会有一定的延时
@@ -122,9 +118,7 @@ TEST_F(UtestRtCallbackManager, CallbackProcess_SetContextFailedBranch) {
   // 3. 注册回调
   // 此时线程已退出，队列可能无人消费，但这不应引发异常
   aclrtStream fake_stream = reinterpret_cast<aclrtStream>(0x123456);
-  EXPECT_NO_THROW({
-    manager.RegisterCallbackFunc(fake_stream, []() {});
-  });
+  EXPECT_NO_THROW({ manager.RegisterCallbackFunc(fake_stream, []() {}); });
 
   // 4. 销毁
   EXPECT_EQ(manager.Destroy(), SUCCESS);
@@ -143,9 +137,7 @@ TEST_F(UtestRtCallbackManager, CallbackProcessSuccess) {
 
   // 注册回调
   aclrtStream fake_stream = reinterpret_cast<aclrtStream>(0x123456);
-  manager.RegisterCallbackFunc(fake_stream, [&callback_executed]() {
-    callback_executed.store(true);
-  });
+  manager.RegisterCallbackFunc(fake_stream, [&callback_executed]() { callback_executed.store(true); });
 
   // 等待执行
   std::this_thread::sleep_for(std::chrono::milliseconds(200));

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -43,14 +43,13 @@
 using namespace std;
 using namespace fe;
 
-class configuration_st: public testing::Test
-{
-protected:
+class configuration_st : public testing::Test {
+ protected:
   static void SetUpTestCase() {
     PlatformUtils::Instance().soc_version_ = "Ascend910B1";
     PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::CubeHighPrecison)] = 1;
     fe::InitPlatformInfo("Ascend910B1");
-    Configuration& config = Configuration::Instance(fe::AI_CORE_NAME);
+    Configuration &config = Configuration::Instance(fe::AI_CORE_NAME);
     config.is_init_ = false;
     map<string, string> options;
     config.Initialize(options);
@@ -68,11 +67,11 @@ protected:
     map<string, string> options;
     options.emplace(ge::PRECISION_MODE, ALLOW_FP32_TO_FP16);
     ge::GetThreadLocalContext().SetGraphOption(options);
-    Configuration& config = Configuration::Instance(fe::AI_CORE_NAME);
+    Configuration &config = Configuration::Instance(fe::AI_CORE_NAME);
     config.is_init_ = false;
     config.Initialize(options);
   }
-// AUTO GEN PLEASE DO NOT MODIFY IT
+  // AUTO GEN PLEASE DO NOT MODIFY IT
 };
 
 string ConfGetAscendPath() {
@@ -91,8 +90,7 @@ string ConfGetAscendPath() {
   return ascend_path;
 }
 
-TEST_F(configuration_st, init_and_finalize)
-{
+TEST_F(configuration_st, init_and_finalize) {
   Configuration config(fe::AI_CORE_NAME);
   config.is_init_ = true;
   map<string, string> options;
@@ -110,8 +108,7 @@ TEST_F(configuration_st, init_and_finalize)
   EXPECT_EQ(status, SUCCESS);
 }
 
-TEST_F(configuration_st, get_context_string)
-{
+TEST_F(configuration_st, get_context_string) {
   map<string, string> options;
   options.emplace("AAA", "111");
   options.emplace("BBB", "000");
@@ -130,21 +127,18 @@ TEST_F(configuration_st, get_context_string)
   EXPECT_EQ(str_value, "");
 }
 
-TEST_F(configuration_st, get_boolvalue)
-{
+TEST_F(configuration_st, get_boolvalue) {
   bool bool_value = Configuration::Instance(fe::AI_CORE_NAME).GetBoolValue("needl2fusion", false);
   ASSERT_FALSE(bool_value);
 }
 
-TEST_F(configuration_st, get_boolvalue_abnormal)
-{
+TEST_F(configuration_st, get_boolvalue_abnormal) {
   Configuration::Instance(fe::AI_CORE_NAME).content_map_.emplace("needl2fusion2", "!@##$");
   bool bool_value = Configuration::Instance(fe::AI_CORE_NAME).GetBoolValue("needl2fusion2", false);
   ASSERT_FALSE(bool_value);
 }
 
-TEST_F(configuration_st, loadconfigfile_success)
-{
+TEST_F(configuration_st, loadconfigfile_success) {
   Configuration config(fe::AI_CORE_NAME);
   map<string, string> options;
   options.emplace(ge::PRECISION_MODE, ALLOW_FP32_TO_FP16);
@@ -156,8 +150,7 @@ TEST_F(configuration_st, loadconfigfile_success)
   EXPECT_EQ(status, SUCCESS);
 }
 
-TEST_F(configuration_st, AssembleOpsStoreInfoVector_success)
-{
+TEST_F(configuration_st, AssembleOpsStoreInfoVector_success) {
   Configuration config(fe::AI_CORE_NAME);
   map<string, string> options;
   string soc_version = "Ascend910B1";
@@ -165,19 +158,22 @@ TEST_F(configuration_st, AssembleOpsStoreInfoVector_success)
   PlatformUtils::Instance().short_soc_version_ = "Ascend910B";
   config.Initialize(options);
   config.content_map_.clear();
-  config.content_map_.emplace("op.store.tbe-builtin", "2|6|/tests/engines/nn_engine/config/fe_config|/tests/engines/nn_engine/config/fe_config|true|true");
+  config.content_map_.emplace(
+      "op.store.tbe-builtin",
+      "2|6|/tests/engines/nn_engine/config/fe_config|/tests/engines/nn_engine/config/fe_config|true|true");
   config.ascend_ops_path_ = GetCurpath() + "../../../../../..";
   Status status = config.AssembleOpsStoreInfoVector();
   EXPECT_EQ(status, SUCCESS);
 }
 
-TEST_F(configuration_st, AssembleOpsStoreInfoVector_success1)
-{
-  Configuration& config = Configuration::Instance(fe::AI_CORE_NAME);
+TEST_F(configuration_st, AssembleOpsStoreInfoVector_success1) {
+  Configuration &config = Configuration::Instance(fe::AI_CORE_NAME);
   PlatformUtils::Instance().soc_version_ = "Ascend310";
   PlatformUtils::Instance().short_soc_version_ = "Ascend310";
   config.content_map_.clear();
-  config.content_map_.emplace("op.store.tbe-builtin", "2|6|/tests/engines/nn_engine/config/fe_config|/tests/engines/nn_engine/config/fe_config|true|true");
+  config.content_map_.emplace(
+      "op.store.tbe-builtin",
+      "2|6|/tests/engines/nn_engine/config/fe_config|/tests/engines/nn_engine/config/fe_config|true|true");
   config.ascend_ops_path_ = GetCurpath() + "../../../../../..";
   Status status = config.AssembleOpsStoreInfoVector();
   EXPECT_EQ(status, SUCCESS);
@@ -185,16 +181,17 @@ TEST_F(configuration_st, AssembleOpsStoreInfoVector_success1)
   config.GetOpStoreInfoByImplType(EN_IMPL_HW_TBE, op_store_info);
   string sub_path = "ascend310";
   int32_t pos = op_store_info.cfg_file_path.rfind(sub_path);
-  EXPECT_EQ(pos, op_store_info.cfg_file_path.length()-sub_path.length());
+  EXPECT_EQ(pos, op_store_info.cfg_file_path.length() - sub_path.length());
 }
 
-TEST_F(configuration_st, AssembleOpsStoreInfoVector_success3)
-{
-  Configuration& config = Configuration::Instance(fe::AI_CORE_NAME);
+TEST_F(configuration_st, AssembleOpsStoreInfoVector_success3) {
+  Configuration &config = Configuration::Instance(fe::AI_CORE_NAME);
   PlatformUtils::Instance().soc_version_ = "Ascend910A";
   PlatformUtils::Instance().short_soc_version_ = "Ascend910";
   config.content_map_.clear();
-  config.content_map_.emplace("op.store.tbe-builtin", "2|6|/tests/engines/nn_engine/config/fe_config|/tests/engines/nn_engine/config/fe_config|true|true");
+  config.content_map_.emplace(
+      "op.store.tbe-builtin",
+      "2|6|/tests/engines/nn_engine/config/fe_config|/tests/engines/nn_engine/config/fe_config|true|true");
   config.ascend_ops_path_ = GetCurpath() + "../../../../../..";
   Status status = config.AssembleOpsStoreInfoVector();
   EXPECT_EQ(status, SUCCESS);
@@ -202,16 +199,17 @@ TEST_F(configuration_st, AssembleOpsStoreInfoVector_success3)
   config.GetOpStoreInfoByImplType(EN_IMPL_HW_TBE, op_store_info);
   string sub_path = "ascend910";
   int32_t pos = op_store_info.cfg_file_path.rfind(sub_path);
-  EXPECT_EQ(pos, op_store_info.cfg_file_path.length()-sub_path.length());
+  EXPECT_EQ(pos, op_store_info.cfg_file_path.length() - sub_path.length());
 }
 
-TEST_F(configuration_st, AssembleOpsStoreInfoVector_success4)
-{
-  Configuration& config = Configuration::Instance(fe::AI_CORE_NAME);
+TEST_F(configuration_st, AssembleOpsStoreInfoVector_success4) {
+  Configuration &config = Configuration::Instance(fe::AI_CORE_NAME);
   PlatformUtils::Instance().soc_version_ = "Ascend910B";
   PlatformUtils::Instance().short_soc_version_ = "Ascend910";
   config.content_map_.clear();
-  config.content_map_.emplace("op.store.tbe-builtin", "2|6|/tests/engines/nn_engine/config/fe_config|/tests/engines/nn_engine/config/fe_config|true|true");
+  config.content_map_.emplace(
+      "op.store.tbe-builtin",
+      "2|6|/tests/engines/nn_engine/config/fe_config|/tests/engines/nn_engine/config/fe_config|true|true");
   config.ascend_ops_path_ = GetCurpath() + "../../../../../..";
   Status status = config.AssembleOpsStoreInfoVector();
   EXPECT_EQ(status, SUCCESS);
@@ -219,103 +217,110 @@ TEST_F(configuration_st, AssembleOpsStoreInfoVector_success4)
   config.GetOpStoreInfoByImplType(EN_IMPL_HW_TBE, op_store_info);
   string sub_path = "ascend910";
   int32_t pos = op_store_info.cfg_file_path.rfind(sub_path);
-  EXPECT_EQ(pos, op_store_info.cfg_file_path.length()-sub_path.length());
+  EXPECT_EQ(pos, op_store_info.cfg_file_path.length() - sub_path.length());
   PlatformUtils::Instance().soc_version_ = "Ascend910B1";
   PlatformUtils::Instance().short_soc_version_ = "Ascend910B";
 }
 
-TEST_F(configuration_st, AssembleOpsStoreInfoVector_failed1)
-{
+TEST_F(configuration_st, AssembleOpsStoreInfoVector_failed1) {
   Configuration config(fe::AI_CORE_NAME);
   map<string, string> options;
   string soc_version = "Ascend910B1";
   PlatformUtils::Instance().soc_version_ = soc_version;
   config.Initialize(options);
   config.content_map_.clear();
-  config.content_map_.emplace("op.store.cce-custom", "0|0|./config/fe_config/cce_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
-  config.content_map_.emplace("op.store.", "1|1|./config/fe_config/tik_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
+  config.content_map_.emplace(
+      "op.store.cce-custom",
+      "0|0|./config/fe_config/cce_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
+  config.content_map_.emplace(
+      "op.store.", "1|1|./config/fe_config/tik_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
 
   Status status = config.AssembleOpsStoreInfoVector();
   EXPECT_EQ(status, OPSTORE_NAME_EMPTY);
 }
 
-TEST_F(configuration_st, AssembleOpsStoreInfoVector_failed2)
-{
+TEST_F(configuration_st, AssembleOpsStoreInfoVector_failed2) {
   Configuration config(fe::AI_CORE_NAME);
   map<string, string> options;
   string soc_version = "Ascend910B1";
   PlatformUtils::Instance().soc_version_ = soc_version;
   config.Initialize(options);
   config.content_map_.clear();
-  config.content_map_.emplace("op.store.cce-custom", "0|0|./config/fe_config/cce_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
+  config.content_map_.emplace(
+      "op.store.cce-custom",
+      "0|0|./config/fe_config/cce_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
   config.content_map_.emplace("op.store.tik-custom", "");
 
   Status status = config.AssembleOpsStoreInfoVector();
   EXPECT_EQ(status, OPSTORE_VALUE_EMPTY);
 }
 
-TEST_F(configuration_st, AssembleOpsStoreInfoVector_failed3)
-{
+TEST_F(configuration_st, AssembleOpsStoreInfoVector_failed3) {
   Configuration config(fe::AI_CORE_NAME);
   map<string, string> options;
   string soc_version = "Ascend910B1";
   PlatformUtils::Instance().soc_version_ = soc_version;
   config.Initialize(options);
   config.content_map_.clear();
-  config.content_map_.emplace("op.store.cce-custom", "0|0|./config/fe_config/cce_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
+  config.content_map_.emplace(
+      "op.store.cce-custom",
+      "0|0|./config/fe_config/cce_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
   config.content_map_.emplace("op.store.tik-custom", "0|0|./config/fe_config/cce_custom_opinfo|false|false");
 
   Status status = config.AssembleOpsStoreInfoVector();
   EXPECT_EQ(status, OPSTORE_VALUE_ITEM_SIZE_INCORRECT);
 }
 
-TEST_F(configuration_st, AssembleOpsStoreInfoVector_failed4)
-{
+TEST_F(configuration_st, AssembleOpsStoreInfoVector_failed4) {
   Configuration config(fe::AI_CORE_NAME);
   map<string, string> options;
   string soc_version = "Ascend910B1";
   PlatformUtils::Instance().soc_version_ = soc_version;
   config.Initialize(options);
   config.content_map_.clear();
-  config.content_map_.emplace("op.store.cce-custom", "0|0|./config/fe_config/cce_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
-  config.content_map_.emplace("op.store.tik-custom", "1|1|./config/fe_config/tik_custom_opinfo|x|qwer|false|false|false");
+  config.content_map_.emplace(
+      "op.store.cce-custom",
+      "0|0|./config/fe_config/cce_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
+  config.content_map_.emplace("op.store.tik-custom",
+                              "1|1|./config/fe_config/tik_custom_opinfo|x|qwer|false|false|false");
 
   Status status = config.AssembleOpsStoreInfoVector();
   EXPECT_EQ(status, OPSTORE_VALUE_ITEM_SIZE_INCORRECT);
 }
 
-TEST_F(configuration_st, AssembleOpsStoreInfoVector_failed5)
-{
+TEST_F(configuration_st, AssembleOpsStoreInfoVector_failed5) {
   Configuration config(fe::AI_CORE_NAME);
   map<string, string> options;
   string soc_version = "Ascend910B1";
   PlatformUtils::Instance().soc_version_ = soc_version;
   config.Initialize(options);
   config.content_map_.clear();
-  config.content_map_.emplace("op.store.cce-custom", "0|0|./config/fe_config/cce_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
+  config.content_map_.emplace(
+      "op.store.cce-custom",
+      "0|0|./config/fe_config/cce_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
   config.content_map_.emplace("op.store.tik-custom", "1|1|./config/fe_config/tik_custom_opinfo||false|false");
 
   Status status = config.AssembleOpsStoreInfoVector();
   EXPECT_EQ(status, OPSTORE_VALUE_ITEM_EMPTY);
 }
 
-TEST_F(configuration_st, AssembleOpsStoreInfoVector_failed6)
-{
+TEST_F(configuration_st, AssembleOpsStoreInfoVector_failed6) {
   Configuration config(fe::AI_CORE_NAME);
   map<string, string> options;
   string soc_version = "Ascend910B1";
   PlatformUtils::Instance().soc_version_ = soc_version;
   config.Initialize(options);
   config.content_map_.clear();
-  config.content_map_.emplace("op.store.cce-custom", "0|0|./config/fe_config/cce_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
+  config.content_map_.emplace(
+      "op.store.cce-custom",
+      "0|0|./config/fe_config/cce_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
   config.content_map_.emplace("op.store.tik-custom", "1|1||./config/fe_config/tik_custom_opinfo|false|false");
 
   Status status = config.AssembleOpsStoreInfoVector();
   EXPECT_EQ(status, OPSTORE_VALUE_ITEM_EMPTY);
 }
 
-TEST_F(configuration_st, AssembleOpsStoreInfoVector_failed7)
-{
+TEST_F(configuration_st, AssembleOpsStoreInfoVector_failed7) {
   Configuration config(fe::AI_CORE_NAME);
   map<string, string> options;
   string soc_version = "Ascend910B1";
@@ -327,163 +332,169 @@ TEST_F(configuration_st, AssembleOpsStoreInfoVector_failed7)
   EXPECT_EQ(status, OPSTORE_EMPTY);
 }
 
-TEST_F(configuration_st, AssembleOpsStoreInfoVector_failed8)
-{
+TEST_F(configuration_st, AssembleOpsStoreInfoVector_failed8) {
   Configuration config(fe::AI_CORE_NAME);
   map<string, string> options;
   string soc_version = "Ascend910B1";
   PlatformUtils::Instance().soc_version_ = soc_version;
   config.Initialize(options);
   config.content_map_.clear();
-  config.content_map_.emplace("op.store.cce-custom", "0|0|./config/fe_config/cce_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
-  config.content_map_.emplace("op.store.tik-custom", "x|1|./config/fe_config/tik_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
+  config.content_map_.emplace(
+      "op.store.cce-custom",
+      "0|0|./config/fe_config/cce_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
+  config.content_map_.emplace(
+      "op.store.tik-custom",
+      "x|1|./config/fe_config/tik_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
 
   Status status = config.AssembleOpsStoreInfoVector();
   EXPECT_EQ(status, OPSTORE_PRIORITY_INVALID);
 }
 
-TEST_F(configuration_st, AssembleOpsStoreInfoVector_failed9)
-{
+TEST_F(configuration_st, AssembleOpsStoreInfoVector_failed9) {
   Configuration config(fe::AI_CORE_NAME);
   map<string, string> options;
   string soc_version = "Ascend910B1";
   PlatformUtils::Instance().soc_version_ = soc_version;
   config.Initialize(options);
   config.content_map_.clear();
-  config.content_map_.emplace("op.store.cce-custom", "0|0|./config/fe_config/cce_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
-  config.content_map_.emplace("op.store.tik-custom", "1|c|./config/fe_config/tik_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
+  config.content_map_.emplace(
+      "op.store.cce-custom",
+      "0|0|./config/fe_config/cce_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
+  config.content_map_.emplace(
+      "op.store.tik-custom",
+      "1|c|./config/fe_config/tik_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
 
   Status status = config.AssembleOpsStoreInfoVector();
   EXPECT_EQ(status, OPSTORE_OPIMPLTYPE_INVALID);
 }
 
-TEST_F(configuration_st, AssembleOpsStoreInfoVector_failed10)
-{
+TEST_F(configuration_st, AssembleOpsStoreInfoVector_failed10) {
   Configuration config(fe::AI_CORE_NAME);
   map<string, string> options;
   string soc_version = "Ascend910B1";
   PlatformUtils::Instance().soc_version_ = soc_version;
   config.Initialize(options);
   config.content_map_.clear();
-  config.content_map_.emplace("op.store.cce-custom", "0|0|./config/fe_config/cce_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
-  config.content_map_.emplace("op.store.tik-custom", "1|1099511627776|./config/fe_config/tik_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
+  config.content_map_.emplace(
+      "op.store.cce-custom",
+      "0|0|./config/fe_config/cce_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
+  config.content_map_.emplace(
+      "op.store.tik-custom",
+      "1|1099511627776|./config/fe_config/tik_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
 
   Status status = config.AssembleOpsStoreInfoVector();
   EXPECT_EQ(status, OPSTORE_OPIMPLTYPE_INVALID);
 }
 
-TEST_F(configuration_st, AssembleOpsStoreInfoVector_failed11)
-{
+TEST_F(configuration_st, AssembleOpsStoreInfoVector_failed11) {
   Configuration config(fe::AI_CORE_NAME);
   map<string, string> options;
   string soc_version = "Ascend910B1";
   PlatformUtils::Instance().soc_version_ = soc_version;
   config.Initialize(options);
   config.content_map_.clear();
-  config.content_map_.emplace("op.store.cce-custom", "0|0|./config/fe_config/cce_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
-  config.content_map_.emplace("op.store.tik-custom", "1|-1|./config/fe_config/tik_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
+  config.content_map_.emplace(
+      "op.store.cce-custom",
+      "0|0|./config/fe_config/cce_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
+  config.content_map_.emplace(
+      "op.store.tik-custom",
+      "1|-1|./config/fe_config/tik_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
 
   Status status = config.AssembleOpsStoreInfoVector();
   EXPECT_EQ(status, OPSTORE_OPIMPLTYPE_INVALID);
 }
 
-TEST_F(configuration_st, AssembleOpsStoreInfoVector_failed12)
-{
+TEST_F(configuration_st, AssembleOpsStoreInfoVector_failed12) {
   Configuration config(fe::AI_CORE_NAME);
   map<string, string> options;
   string soc_version = "Ascend910B1";
   PlatformUtils::Instance().soc_version_ = soc_version;
   config.Initialize(options);
   config.content_map_.clear();
-  config.content_map_.emplace("op.store.cce-custom", "0|0|./config/fe_config/cce_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
-  config.content_map_.emplace("op.store.tik-custom", "1|2|./config/fe_config/tik_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
-  config.content_map_.emplace("op.store.tdk-custom", "2|2|./config/fe_config/tik_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
+  config.content_map_.emplace(
+      "op.store.cce-custom",
+      "0|0|./config/fe_config/cce_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
+  config.content_map_.emplace(
+      "op.store.tik-custom",
+      "1|2|./config/fe_config/tik_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
+  config.content_map_.emplace(
+      "op.store.tdk-custom",
+      "2|2|./config/fe_config/tik_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
 
   Status status = config.AssembleOpsStoreInfoVector();
   EXPECT_EQ(status, OPSTORE_OPIMPLTYPE_REPEAT);
 }
 
-TEST_F(configuration_st, AssembleOpsStoreInfoVector_failed13)
-{
+TEST_F(configuration_st, AssembleOpsStoreInfoVector_failed13) {
   Configuration config(fe::AI_CORE_NAME);
   map<string, string> options;
   string soc_version = "Ascend910B1";
   PlatformUtils::Instance().soc_version_ = soc_version;
   config.Initialize(options);
   config.content_map_.clear();
-  config.content_map_.emplace("op.store.cce-custom", "0|0|./config/fe_config/cce_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
-  config.content_map_.emplace("op.store.tik-custom", "0|2|./config/fe_config/tik_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
+  config.content_map_.emplace(
+      "op.store.cce-custom",
+      "0|0|./config/fe_config/cce_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
+  config.content_map_.emplace(
+      "op.store.tik-custom",
+      "0|2|./config/fe_config/tik_custom_opinfo|./config/fe_config/cce_custom_opinfo|false|false");
 
   Status status = config.AssembleOpsStoreInfoVector();
   EXPECT_EQ(status, OPSTORE_PRIORITY_INVALID);
 }
 
-TEST_F(configuration_st, get_opsstoreinfo)
-{
+TEST_F(configuration_st, get_opsstoreinfo) {
   Configuration::Instance(fe::AI_CORE_NAME).is_init_ = false;
-  FEOpsStoreInfo tbe_builtin {
-          6,
-          "tbe-builtin",
-          EN_IMPL_HW_TBE,
-          GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/format_selector/fe_config/tbe_dynamic_opinfo",
-          ""
-  };
+  FEOpsStoreInfo tbe_builtin{
+      6, "tbe-builtin", EN_IMPL_HW_TBE,
+      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/format_selector/fe_config/tbe_dynamic_opinfo",
+      ""};
   vector<FEOpsStoreInfo> store_info;
   store_info.emplace_back(tbe_builtin);
   Configuration::Instance(fe::AI_CORE_NAME).ops_store_info_vector_ = (store_info);
   vector<FEOpsStoreInfo> ops_store_info_vec = Configuration::Instance(fe::AI_CORE_NAME).GetOpsStoreInfo();
   EXPECT_EQ(ops_store_info_vec.size(), 1);
 
-  for (FEOpsStoreInfo &op_store_info : ops_store_info_vec)
-  {
-    if (op_store_info.op_impl_type == EN_IMPL_HW_TBE)
-    {
+  for (FEOpsStoreInfo &op_store_info : ops_store_info_vec) {
+    if (op_store_info.op_impl_type == EN_IMPL_HW_TBE) {
       EXPECT_EQ(op_store_info.fe_ops_store_name, "tbe-builtin");
     }
-    if (op_store_info.op_impl_type == EN_IMPL_VECTOR_CORE_HW_TBE)
-    {
+    if (op_store_info.op_impl_type == EN_IMPL_VECTOR_CORE_HW_TBE) {
       EXPECT_EQ(op_store_info.fe_ops_store_name, "vectorcore-tbe-builtin");
       EXPECT_EQ(op_store_info.need_pre_compile, true);
       EXPECT_EQ(op_store_info.need_compile, false);
     }
-    if (op_store_info.op_impl_type == EN_IMPL_VECTOR_CORE_CUSTOM_TBE)
-    {
+    if (op_store_info.op_impl_type == EN_IMPL_VECTOR_CORE_CUSTOM_TBE) {
       EXPECT_EQ(op_store_info.fe_ops_store_name, "vectorcore-tbe-builtin");
       EXPECT_EQ(op_store_info.need_pre_compile, true);
       EXPECT_EQ(op_store_info.need_compile, true);
     }
-    if (op_store_info.op_impl_type == EN_IMPL_PLUGIN_TBE)
-    {
+    if (op_store_info.op_impl_type == EN_IMPL_PLUGIN_TBE) {
       EXPECT_EQ(op_store_info.need_pre_compile, true);
       EXPECT_EQ(op_store_info.need_compile, false);
     }
   }
 }
 
-TEST_F(configuration_st, getstringvalue_success)
-{
+TEST_F(configuration_st, getstringvalue_success) {
   string stringvalue;
-  Status status = Configuration::Instance(fe::AI_CORE_NAME).GetStringValue("fusionrulemgr.multireferswitch", stringvalue);
+  Status status =
+      Configuration::Instance(fe::AI_CORE_NAME).GetStringValue("fusionrulemgr.multireferswitch", stringvalue);
   EXPECT_EQ(status, FAILED);
   EXPECT_EQ(stringvalue, "");
 }
 
-TEST_F(configuration_st, getstringvalue_failed)
-{
+TEST_F(configuration_st, getstringvalue_failed) {
   string stringvalue;
   Status status = Configuration::Instance(fe::AI_CORE_NAME).GetStringValue("fusionrulemgr.xxx", stringvalue);
   EXPECT_EQ(status, FAILED);
 }
 
-TEST_F(configuration_st, GetOpStoreInfoByImplType_success)
-{
-  FEOpsStoreInfo tbe_builtin {
-          6,
-          "tbe-custom",
-          EN_IMPL_CUSTOM_TBE,
-          GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/format_selector/fe_config/tbe_dynamic_opinfo",
-          ""
-  };
+TEST_F(configuration_st, GetOpStoreInfoByImplType_success) {
+  FEOpsStoreInfo tbe_builtin{
+      6, "tbe-custom", EN_IMPL_CUSTOM_TBE,
+      GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/format_selector/fe_config/tbe_dynamic_opinfo",
+      ""};
   vector<FEOpsStoreInfo> store_info;
   store_info.emplace_back(tbe_builtin);
   Configuration::Instance(fe::AI_CORE_NAME).ops_store_info_vector_ = (store_info);
@@ -493,15 +504,13 @@ TEST_F(configuration_st, GetOpStoreInfoByImplType_success)
   EXPECT_EQ(op_store_info.fe_ops_store_name, "tbe-custom");
 }
 
-TEST_F(configuration_st, GetOpStoreInfoByImplType_failed)
-{
+TEST_F(configuration_st, GetOpStoreInfoByImplType_failed) {
   FEOpsStoreInfo op_store_info;
   Status status = Configuration::Instance(fe::AI_CORE_NAME).GetOpStoreInfoByImplType(EN_RESERVED, op_store_info);
   EXPECT_EQ(status, FAILED);
 }
 
-TEST_F(configuration_st, getgraphfilepath)
-{
+TEST_F(configuration_st, getgraphfilepath) {
   Configuration config(fe::AI_CORE_NAME);
   config.content_map_["fusionrulemgr.aicore.graphfilepath"] = "12";
   string graph_file_path;
@@ -510,8 +519,7 @@ TEST_F(configuration_st, getgraphfilepath)
   EXPECT_NE(graph_file_path, "");
 }
 
-TEST_F(configuration_st, getcustomfilepath)
-{
+TEST_F(configuration_st, getcustomfilepath) {
   Configuration config(fe::AI_CORE_NAME);
   config.content_map_["fusionrulemgr.aicore.customfilepath"] = "";
   string custom_file_path;
@@ -520,13 +528,10 @@ TEST_F(configuration_st, getcustomfilepath)
   EXPECT_EQ(custom_file_path, "");
 }
 
-TEST_F(configuration_st, get_opsstoreinfo_vectorcore)
-{
+TEST_F(configuration_st, get_opsstoreinfo_vectorcore) {
   Configuration config(fe::VECTOR_CORE_NAME);
   FEOpsStoreInfo tbe_builtin_vector_core(
-      9,
-      "vector-core-tbe-builtin",
-      EN_IMPL_VECTOR_CORE_HW_TBE,
+      9, "vector-core-tbe-builtin", EN_IMPL_VECTOR_CORE_HW_TBE,
       GetCodeDir() + "/tests/engines/nn_engine/ut/testcase/fusion_engine/format_selector/fe_config/tbe_dynamic_opinfo",
       "");
   tbe_builtin_vector_core.need_pre_compile = true;
@@ -537,16 +542,13 @@ TEST_F(configuration_st, get_opsstoreinfo_vectorcore)
   vector<FEOpsStoreInfo> ops_store_info_vec = config.GetOpsStoreInfo();
   EXPECT_EQ(ops_store_info_vec.size(), 1);
 
-  for (FEOpsStoreInfo &op_store_info : ops_store_info_vec)
-  {
-    if (op_store_info.op_impl_type == EN_IMPL_VECTOR_CORE_HW_TBE)
-    {
+  for (FEOpsStoreInfo &op_store_info : ops_store_info_vec) {
+    if (op_store_info.op_impl_type == EN_IMPL_VECTOR_CORE_HW_TBE) {
       EXPECT_EQ(op_store_info.fe_ops_store_name, "vector-core-tbe-builtin");
       EXPECT_EQ(op_store_info.need_pre_compile, true);
       EXPECT_EQ(op_store_info.need_compile, true);
     }
-    if (op_store_info.op_impl_type == EN_IMPL_VECTOR_CORE_CUSTOM_TBE)
-    {
+    if (op_store_info.op_impl_type == EN_IMPL_VECTOR_CORE_CUSTOM_TBE) {
       EXPECT_EQ(op_store_info.fe_ops_store_name, "vector-core-tbe-custom");
       EXPECT_EQ(op_store_info.need_pre_compile, true);
       EXPECT_EQ(op_store_info.need_compile, true);
@@ -554,8 +556,7 @@ TEST_F(configuration_st, get_opsstoreinfo_vectorcore)
   }
 }
 
-TEST_F(configuration_st, getgraphfilepath_vectorcore)
-{
+TEST_F(configuration_st, getgraphfilepath_vectorcore) {
   string graph_file_path;
   Configuration config(fe::VECTOR_CORE_NAME);
   map<string, string> options;
@@ -569,8 +570,7 @@ TEST_F(configuration_st, getgraphfilepath_vectorcore)
   EXPECT_NE(graph_file_path, "");
 }
 
-TEST_F(configuration_st, getcustomfilepath_vectorcore)
-{
+TEST_F(configuration_st, getcustomfilepath_vectorcore) {
   string custom_file_path;
   Configuration config(fe::VECTOR_CORE_NAME);
   map<string, string> options;
@@ -584,9 +584,7 @@ TEST_F(configuration_st, getcustomfilepath_vectorcore)
   EXPECT_EQ(custom_file_path, "");
 }
 
-
-TEST_F(configuration_st, init_op_precision_mode_case1)
-{
+TEST_F(configuration_st, init_op_precision_mode_case1) {
   Configuration config(AI_CORE_NAME);
   config.impl_mode_parser_ = std::make_shared<OpImplModeConfigParser>(config.ascend_ops_path_);
   map<string, string> options;
@@ -616,8 +614,7 @@ TEST_F(configuration_st, init_op_precision_mode_case1)
   EXPECT_EQ(config.GetOpImplMode("op_name2", "", str), false);
 }
 
-TEST_F(configuration_st, init_op_precision_mode_case2)
-{
+TEST_F(configuration_st, init_op_precision_mode_case2) {
   Configuration config(AI_CORE_NAME);
   config.impl_mode_parser_ = std::make_shared<OpImplModeConfigParser>(config.ascend_ops_path_);
   map<string, string> options;
@@ -631,8 +628,7 @@ TEST_F(configuration_st, init_op_precision_mode_case2)
   EXPECT_EQ(config.GetOpImplMode("op_name", "ddd", str), false);
 }
 
-TEST_F(configuration_st, init_op_precision_mode_case3)
-{
+TEST_F(configuration_st, init_op_precision_mode_case3) {
   Configuration config(AI_CORE_NAME);
   config.impl_mode_parser_ = std::make_shared<OpImplModeConfigParser>(config.ascend_ops_path_);
   map<string, string> options;
@@ -663,8 +659,7 @@ TEST_F(configuration_st, init_op_precision_mode_case3)
   EXPECT_EQ(config.GetOpImplMode("op_name2", "", str), false);
 }
 
-TEST_F(configuration_st, init_op_precision_mode_case4)
-{
+TEST_F(configuration_st, init_op_precision_mode_case4) {
   Configuration config(AI_CORE_NAME);
   config.impl_mode_parser_ = std::make_shared<OpImplModeConfigParser>(config.ascend_ops_path_);
   map<string, string> options;
@@ -686,8 +681,7 @@ TEST_F(configuration_st, init_op_precision_mode_case4)
   EXPECT_EQ(status, FAILED);
 }
 
-TEST_F(configuration_st, init_op_select_impl_mode_for_all_case1)
-{
+TEST_F(configuration_st, init_op_select_impl_mode_for_all_case1) {
   Configuration config(AI_CORE_NAME);
   config.ascend_ops_path_ = GetCodeDir();
   config.impl_mode_parser_ = std::make_shared<OpImplModeConfigParser>(config.ascend_ops_path_);
@@ -700,8 +694,7 @@ TEST_F(configuration_st, init_op_select_impl_mode_for_all_case1)
   EXPECT_EQ(config.GetOpImplMode("op_name", "ddd", str), false);
 }
 
-TEST_F(configuration_st, init_op_select_impl_mode_for_all_case2)
-{
+TEST_F(configuration_st, init_op_select_impl_mode_for_all_case2) {
   Configuration config(AI_CORE_NAME);
   config.ascend_ops_path_ = GetCodeDir();
   config.impl_mode_parser_ = std::make_shared<OpImplModeConfigParser>(config.ascend_ops_path_);
@@ -714,8 +707,7 @@ TEST_F(configuration_st, init_op_select_impl_mode_for_all_case2)
   EXPECT_EQ(config.GetOpImplMode("op_name", "ddd", str), false);
 }
 
-TEST_F(configuration_st, init_op_select_impl_mode_for_all_case3)
-{
+TEST_F(configuration_st, init_op_select_impl_mode_for_all_case3) {
   Configuration config(AI_CORE_NAME);
   config.ascend_ops_path_ = GetCodeDir() + "/tests/engines/nn_engine/config/";
   config.impl_mode_parser_ = std::make_shared<OpImplModeConfigParser>(config.ascend_ops_path_);
@@ -732,8 +724,7 @@ TEST_F(configuration_st, init_op_select_impl_mode_for_all_case3)
   EXPECT_EQ(str, "high_precision");
 }
 
-TEST_F(configuration_st, init_op_select_impl_mode_for_all_case4)
-{
+TEST_F(configuration_st, init_op_select_impl_mode_for_all_case4) {
   Configuration config(AI_CORE_NAME);
   config.ascend_ops_path_ = GetCodeDir() + "/tests/engines/nn_engine/config/";
   config.impl_mode_parser_ = std::make_shared<OpImplModeConfigParser>(config.ascend_ops_path_);
@@ -750,8 +741,7 @@ TEST_F(configuration_st, init_op_select_impl_mode_for_all_case4)
   EXPECT_EQ(str, "high_performance");
 }
 
-TEST_F(configuration_st, init_op_select_impl_mode_case1)
-{
+TEST_F(configuration_st, init_op_select_impl_mode_case1) {
   Configuration config(AI_CORE_NAME);
   config.ascend_ops_path_ = GetCodeDir();
   config.impl_mode_parser_ = std::make_shared<OpImplModeConfigParser>(config.ascend_ops_path_);
@@ -761,8 +751,7 @@ TEST_F(configuration_st, init_op_select_impl_mode_case1)
   EXPECT_EQ(status, SUCCESS);
 }
 
-TEST_F(configuration_st, init_op_select_impl_mode_case2)
-{
+TEST_F(configuration_st, init_op_select_impl_mode_case2) {
   Configuration config(AI_CORE_NAME);
   config.ascend_ops_path_ = GetCodeDir();
   config.impl_mode_parser_ = std::make_shared<OpImplModeConfigParser>(config.ascend_ops_path_);
@@ -772,8 +761,7 @@ TEST_F(configuration_st, init_op_select_impl_mode_case2)
   EXPECT_EQ(status, SUCCESS);
 }
 
-TEST_F(configuration_st, init_op_select_impl_mode_case3)
-{
+TEST_F(configuration_st, init_op_select_impl_mode_case3) {
   Configuration config(AI_CORE_NAME);
   config.ascend_ops_path_ = GetCodeDir() + "/tests/engines/nn_engine/config/";
   config.impl_mode_parser_ = std::make_shared<OpImplModeConfigParser>(config.ascend_ops_path_);
@@ -791,8 +779,7 @@ TEST_F(configuration_st, init_op_select_impl_mode_case3)
   EXPECT_EQ(str, "high_precision");
 }
 
-TEST_F(configuration_st, init_op_select_impl_mode_case4)
-{
+TEST_F(configuration_st, init_op_select_impl_mode_case4) {
   Configuration config(AI_CORE_NAME);
   config.ascend_ops_path_ = GetCodeDir() + "/tests/engines/nn_engine/config/";
   config.impl_mode_parser_ = std::make_shared<OpImplModeConfigParser>(config.ascend_ops_path_);
@@ -810,8 +797,7 @@ TEST_F(configuration_st, init_op_select_impl_mode_case4)
   EXPECT_EQ(str, "high_precision");
 }
 
-TEST_F(configuration_st, init_op_select_impl_mode_case5)
-{
+TEST_F(configuration_st, init_op_select_impl_mode_case5) {
   Configuration config(AI_CORE_NAME);
   config.ascend_ops_path_ = GetCodeDir() + "/tests/engines/nn_engine/config/";
   config.impl_mode_parser_ = std::make_shared<OpImplModeConfigParser>(config.ascend_ops_path_);
@@ -829,8 +815,7 @@ TEST_F(configuration_st, init_op_select_impl_mode_case5)
   EXPECT_EQ(str, "high_precision");
 }
 
-TEST_F(configuration_st, init_op_select_impl_mode_case6)
-{
+TEST_F(configuration_st, init_op_select_impl_mode_case6) {
   Configuration config(AI_CORE_NAME);
   config.ascend_ops_path_ = GetCodeDir() + "/tests/engines/nn_engine/config/";
   config.impl_mode_parser_ = std::make_shared<OpImplModeConfigParser>(config.ascend_ops_path_);
@@ -848,8 +833,7 @@ TEST_F(configuration_st, init_op_select_impl_mode_case6)
   EXPECT_EQ(str, "high_performance");
 }
 
-TEST_F(configuration_st, init_allow_hf32_empty)
-{
+TEST_F(configuration_st, init_allow_hf32_empty) {
   Configuration config(AI_CORE_NAME);
   PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::AllowHf32)] = 1;
   config.ascend_ops_path_ = GetCodeDir() + "/tests/engines/nn_engine/config/";
@@ -872,8 +856,7 @@ TEST_F(configuration_st, init_allow_hf32_empty)
   EXPECT_EQ(str, "enable_float_32_execution");
 }
 
-TEST_F(configuration_st, init_allow_hf32_10)
-{
+TEST_F(configuration_st, init_allow_hf32_10) {
   Configuration config(AI_CORE_NAME);
   PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::AllowHf32)] = 1;
   config.ascend_ops_path_ = GetCodeDir() + "/tests/engines/nn_engine/config/";
@@ -897,8 +880,7 @@ TEST_F(configuration_st, init_allow_hf32_10)
   EXPECT_EQ(str, "enable_float_32_execution");
 }
 
-TEST_F(configuration_st, init_allow_hf32_01)
-{
+TEST_F(configuration_st, init_allow_hf32_01) {
   Configuration config(AI_CORE_NAME);
   PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::AllowHf32)] = 1;
   config.ascend_ops_path_ = GetCodeDir() + "/tests/engines/nn_engine/config/";
@@ -922,8 +904,7 @@ TEST_F(configuration_st, init_allow_hf32_01)
   EXPECT_EQ(str, "enable_hi_float_32_execution");
 }
 
-TEST_F(configuration_st, init_allow_hf32_all_empty)
-{
+TEST_F(configuration_st, init_allow_hf32_all_empty) {
   Configuration config(AI_CORE_NAME);
   PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::AllowHf32)] = 1;
   config.ascend_ops_path_ = GetCodeDir() + "/tests/engines/nn_engine/config/";
@@ -937,8 +918,7 @@ TEST_F(configuration_st, init_allow_hf32_all_empty)
   EXPECT_EQ(config.GetOpImplMode("op_name", "MatMulV2", str), true);
   EXPECT_EQ(str, "enable_float_32_execution");
 }
-TEST_F(configuration_st, init_allow_hf32_all_invalid)
-{
+TEST_F(configuration_st, init_allow_hf32_all_invalid) {
   Configuration config(AI_CORE_NAME);
   PlatformUtils::Instance().pm_item_vec_[static_cast<size_t>(PlatformUtils::PlatformInfoItem::AllowHf32)] = 1;
   config.ascend_ops_path_ = GetCodeDir() + "/tests/engines/nn_engine/config/";
@@ -948,15 +928,13 @@ TEST_F(configuration_st, init_allow_hf32_all_invalid)
   Status status = config.impl_mode_parser_->InitializeFromOptions(options);
   EXPECT_EQ(status, FAILED);
 }
-TEST_F(configuration_st, InitOpPrecisionMode_fail_002)
-{
+TEST_F(configuration_st, InitOpPrecisionMode_fail_002) {
   Configuration config(fe::AI_CORE_NAME);
   OpImplModeConfigParserPtr impl_mode_ptr = std::make_shared<OpImplModeConfigParser>(config.ascend_ops_path_);
   Status ret = impl_mode_ptr->InitOpPrecisionMode("", "", "");
   EXPECT_EQ(ret, SUCCESS);
 }
-TEST_F(configuration_st, init_compress_ratio)
-{
+TEST_F(configuration_st, init_compress_ratio) {
   Configuration config(fe::AI_CORE_NAME);
   map<string, string> options;
   string soc_version = "Ascend910B";
@@ -975,8 +953,7 @@ TEST_F(configuration_st, init_compress_ratio)
   EXPECT_FLOAT_EQ(config.GetAICoreCompressRatio(), 0.8);
 }
 
-TEST_F(configuration_st, init_compress_ratio_1)
-{
+TEST_F(configuration_st, init_compress_ratio_1) {
   Configuration config(fe::AI_CORE_NAME);
   map<string, string> options;
   string soc_version = "Ascend910B1";
@@ -996,8 +973,7 @@ TEST_F(configuration_st, init_compress_ratio_1)
   EXPECT_FLOAT_EQ(config.GetAICoreCompressRatio(), 0.8);
 }
 
-TEST_F(configuration_st, OpCustomizeDtype_001)
-{
+TEST_F(configuration_st, OpCustomizeDtype_001) {
   Configuration config(fe::AI_CORE_NAME);
   config.cust_dtypes_parser_ = std::make_shared<OpCustDtypesConfigParser>();
   map<string, string> options;
@@ -1005,8 +981,8 @@ TEST_F(configuration_st, OpCustomizeDtype_001)
   options.emplace(ge::PRECISION_MODE, ALLOW_FP32_TO_FP16);
   options.insert(std::make_pair("ge.customizeDtypes", GetCodeDir() + "/tests/engines/nn_engine/ut/stub/custom.cfg"));
   ge::GetThreadLocalContext().SetGraphOption(options);
-  config.config_parser_map_vec_[static_cast<size_t>(CONFIG_PARSER_PARAM::CustDtypes)]
-      .emplace(GetCodeDir() + "/tests/engines/nn_engine/ut/stub/custom.cfg", config.cust_dtypes_parser_);
+  config.config_parser_map_vec_[static_cast<size_t>(CONFIG_PARSER_PARAM::CustDtypes)].emplace(
+      GetCodeDir() + "/tests/engines/nn_engine/ut/stub/custom.cfg", config.cust_dtypes_parser_);
   Status bres = config.cust_dtypes_parser_->InitializeFromOptions(options);
   EXPECT_EQ(bres, SUCCESS);
   OpCustomizeDtype custom_dtype_0, custom_dtype_1, custom_dtype_2, custom_dtype_3;
@@ -1019,8 +995,7 @@ TEST_F(configuration_st, OpCustomizeDtype_001)
   EXPECT_EQ(custom_dtype_2.input_dtypes[0], custom_dtype_3.output_dtypes[0]);
 }
 
-TEST_F(configuration_st, OpCustomizeDtype_002)
-{
+TEST_F(configuration_st, OpCustomizeDtype_002) {
   Configuration config(fe::AI_CORE_NAME);
   config.cust_dtypes_parser_ = std::make_shared<OpCustDtypesConfigParser>();
   map<string, string> options;
@@ -1029,10 +1004,12 @@ TEST_F(configuration_st, OpCustomizeDtype_002)
   options.insert(std::make_pair("ge.customizeDtypes", GetCodeDir() + "/tests/engines/nn_engine/ut/stub/XXX.cfg"));
   Status bres = config.cust_dtypes_parser_->InitializeFromOptions(options);
   EXPECT_EQ(bres, FAILED);
-  options.insert(std::make_pair("ge.customizeDtypes", GetCodeDir() + "/tests/engines/nn_engine/ut/stub/custom_failed.cfg"));
+  options.insert(
+      std::make_pair("ge.customizeDtypes", GetCodeDir() + "/tests/engines/nn_engine/ut/stub/custom_failed.cfg"));
   bres = config.cust_dtypes_parser_->InitializeFromOptions(options);
   EXPECT_EQ(bres, false);
-  options.insert(std::make_pair("ge.customizeDtypes", GetCodeDir() + "/tests/engines/nn_engine/ut/stub/custom_fail2.cfg"));
+  options.insert(
+      std::make_pair("ge.customizeDtypes", GetCodeDir() + "/tests/engines/nn_engine/ut/stub/custom_fail2.cfg"));
   bres = config.cust_dtypes_parser_->InitializeFromOptions(options);
   EXPECT_EQ(bres, false);
 }
@@ -1046,21 +1023,20 @@ TEST_F(configuration_st, OpCustomizeDtype_003) {
   EXPECT_EQ(config.InitializeConfigParser(options), fe::FAILED);
 }
 
-TEST_F(configuration_st, OpCustomizeDtype_004)
-{
+TEST_F(configuration_st, OpCustomizeDtype_004) {
   Configuration config(fe::AI_CORE_NAME);
   config.cust_dtypes_parser_ = std::make_shared<OpCustDtypesConfigParser>();
   map<string, string> options;
   string soc_version = "Ascend910B1";
   options.emplace(ge::PRECISION_MODE, ALLOW_FP32_TO_FP16);
-  options.insert(std::make_pair("ge.customizeDtypes", GetCodeDir() + "/tests/engines/nn_engine/ut/stub/custom_fail2.cfg"));
+  options.insert(
+      std::make_pair("ge.customizeDtypes", GetCodeDir() + "/tests/engines/nn_engine/ut/stub/custom_fail2.cfg"));
   Status bres = config.cust_dtypes_parser_->InitializeFromOptions(options);
   EXPECT_EQ(bres, fe::FAILED);
 }
 
-TEST_F(configuration_st, OppNewPath_001)
-{
-  Configuration& config = Configuration::Instance(fe::AI_CORE_NAME);
+TEST_F(configuration_st, OppNewPath_001) {
+  Configuration &config = Configuration::Instance(fe::AI_CORE_NAME);
   config.ascend_ops_path_ = "./air/tests/engines/nn_engine/config/new_opp/";
   config.content_map_.clear();
   config.op_binary_path_map_.clear();
@@ -1069,8 +1045,7 @@ TEST_F(configuration_st, OppNewPath_001)
   EXPECT_EQ(ret, SUCCESS);
 }
 
-TEST_F(configuration_st, init_custom_opp_path_1)
-{
+TEST_F(configuration_st, init_custom_opp_path_1) {
   Configuration config(fe::AI_CORE_NAME);
   config.is_init_ = true;
   config.lib_path_ = GetCodeDir() + "/tests/engines/nn_engine/depends/CANN_910b_stub/cann/x86_64-linux/lib64/";
@@ -1088,8 +1063,7 @@ TEST_F(configuration_st, init_custom_opp_path_1)
   EXPECT_EQ(config.GetBinaryPathMap().size(), 2);
 }
 
-TEST_F(configuration_st, init_custom_opp_path_2)
-{
+TEST_F(configuration_st, init_custom_opp_path_2) {
   std::string path = GetCurpath() + "../../../../../../tests/engines/nn_engine/config/customize/:";
   mmSetEnv("ASCEND_CUSTOM_OPP_PATH", path.c_str(), MMPA_MAX_PATH);
   Configuration config(fe::AI_CORE_NAME);
@@ -1104,22 +1078,25 @@ TEST_F(configuration_st, init_custom_opp_path_2)
   unsetenv("ASCEND_CUSTOM_OPP_PATH");
 }
 
-TEST_F(configuration_st, parse_memory_check_001)
-{
-  Configuration& config = Configuration::Instance(fe::AI_CORE_NAME);
-  std::map<std::string, std::string> options1 = {{kOpDebugConfig, GetCodeDir() + "/tests/engines/nn_engine/config/fe_config/op_debug_config1.ini"}};
+TEST_F(configuration_st, parse_memory_check_001) {
+  Configuration &config = Configuration::Instance(fe::AI_CORE_NAME);
+  std::map<std::string, std::string> options1 = {
+      {kOpDebugConfig, GetCodeDir() + "/tests/engines/nn_engine/config/fe_config/op_debug_config1.ini"}};
   config.op_debug_config_parse_->InitializeFromOptions(options1);
   EXPECT_EQ(config.GetMemoryCheckSwitch(), false);
   std::map<std::string, std::string> options2 = {{kOpDebugConfig, " "}};
   config.op_debug_config_parse_->InitializeFromOptions(options2);
   EXPECT_EQ(config.GetMemoryCheckSwitch(), false);
-  std::map<std::string, std::string> options3 = {{kOpDebugConfig, GetCodeDir() + "/tests/engines/nn_engine/config/fe_config/op_debug_config2.ini"}};
+  std::map<std::string, std::string> options3 = {
+      {kOpDebugConfig, GetCodeDir() + "/tests/engines/nn_engine/config/fe_config/op_debug_config2.ini"}};
   config.op_debug_config_parse_->InitializeFromOptions(options3);
   EXPECT_EQ(config.GetMemoryCheckSwitch(), true);
-  std::map<std::string, std::string> options4 = {{kOpDebugConfig, GetCodeDir() + "/tests/engines/nn_engine/config/fe_config/op_debug_config3.ini"}};
+  std::map<std::string, std::string> options4 = {
+      {kOpDebugConfig, GetCodeDir() + "/tests/engines/nn_engine/config/fe_config/op_debug_config3.ini"}};
   bool ret = config.op_debug_config_parse_->InitializeFromOptions(options4);
   EXPECT_EQ(ret, false);
-  std::map<std::string, std::string> options5 = {{kOpDebugConfig, GetCodeDir() + "/tests/engines/nn_engine/config/fe_config/op_debug_config4.ini"}};
+  std::map<std::string, std::string> options5 = {
+      {kOpDebugConfig, GetCodeDir() + "/tests/engines/nn_engine/config/fe_config/op_debug_config4.ini"}};
   ret = config.op_debug_config_parse_->InitializeFromOptions(options5);
   EXPECT_EQ(ret, false);
   std::map<std::string, std::string> options6 = {{kOpDebugConfig, "abc"}};
@@ -1127,30 +1104,33 @@ TEST_F(configuration_st, parse_memory_check_001)
   EXPECT_EQ(ret, true);
 }
 
-TEST_F(configuration_st, parse_first_layer_Test)
-{
-  Configuration& config = Configuration::Instance(fe::AI_CORE_NAME);
-  std::map<std::string, std::string> options1 = {{ge::COMPRESSION_OPTIMIZE_CONF, GetCodeDir() + "/tests/engines/nn_engine/config/fe_config/first_config.ini"}};
+TEST_F(configuration_st, parse_first_layer_Test) {
+  Configuration &config = Configuration::Instance(fe::AI_CORE_NAME);
+  std::map<std::string, std::string> options1 = {
+      {ge::COMPRESSION_OPTIMIZE_CONF, GetCodeDir() + "/tests/engines/nn_engine/config/fe_config/first_config.ini"}};
   bool ret = config.InitFirstLayerQuantization(options1);
   EXPECT_EQ(ret, true);
   EXPECT_EQ(config.enable_first_layer_quantization_, true);
-  std::map<std::string, std::string> options2 = {{ge::COMPRESSION_OPTIMIZE_CONF, GetCodeDir() + "/tests/engines/nn_engine/config/fe_config/first_config1.ini"}};
+  std::map<std::string, std::string> options2 = {
+      {ge::COMPRESSION_OPTIMIZE_CONF, GetCodeDir() + "/tests/engines/nn_engine/config/fe_config/first_config1.ini"}};
   ret = config.InitFirstLayerQuantization(options2);
   EXPECT_EQ(ret, true);
   EXPECT_EQ(config.enable_first_layer_quantization_, false);
-  std::map<std::string, std::string> options3 = {{ge::COMPRESSION_OPTIMIZE_CONF, GetCodeDir() + "/tests/engines/nn_engine/config/fe_config/first_config2.ini"}};
+  std::map<std::string, std::string> options3 = {
+      {ge::COMPRESSION_OPTIMIZE_CONF, GetCodeDir() + "/tests/engines/nn_engine/config/fe_config/first_config2.ini"}};
   ret = config.InitFirstLayerQuantization(options3);
   EXPECT_EQ(ret, false);
-  std::map<std::string, std::string> options4 = {{ge::COMPRESSION_OPTIMIZE_CONF, GetCodeDir() + "/tests/engines/nn_engine/config/fe_config/first_config3.ini"}};
+  std::map<std::string, std::string> options4 = {
+      {ge::COMPRESSION_OPTIMIZE_CONF, GetCodeDir() + "/tests/engines/nn_engine/config/fe_config/first_config3.ini"}};
   ret = config.InitFirstLayerQuantization(options4);
   EXPECT_EQ(ret, false);
-  std::map<std::string, std::string> options5 = {{ge::COMPRESSION_OPTIMIZE_CONF, GetCodeDir() + "/tests/engines/nn_engine/config/fe_config/first_config4.ini"}};
+  std::map<std::string, std::string> options5 = {
+      {ge::COMPRESSION_OPTIMIZE_CONF, GetCodeDir() + "/tests/engines/nn_engine/config/fe_config/first_config4.ini"}};
   ret = config.InitFirstLayerQuantization(options5);
   EXPECT_EQ(ret, false);
 }
 
-TEST_F(configuration_st, load_binary_config_file)
-{
+TEST_F(configuration_st, load_binary_config_file) {
   Configuration config(fe::AI_CORE_NAME);
   config.is_init_ = true;
   config.lib_path_ = GetCodeDir() + "/tests/engines/nn_engine/depends/CANN_910b_stub/cann/x86_64-linux/lib64/";
@@ -1173,9 +1153,9 @@ TEST_F(configuration_st, init_env_param_case1) {
   unsetenv("OP_DYNAMIC_COMPILE_STATIC");
   unsetenv("ENABLE_NETWORK_ANALYSIS_DEBUG");
   unsetenv("ENABLE_ACLNN");
-  Configuration& config = Configuration::Instance(fe::AI_CORE_NAME);
-  std::array<string, static_cast<size_t>(ENV_STR_PARAM::EnvStrParamBottom)>
-      env_str_param_vec_bac = config.env_str_param_vec_;
+  Configuration &config = Configuration::Instance(fe::AI_CORE_NAME);
+  std::array<string, static_cast<size_t>(ENV_STR_PARAM::EnvStrParamBottom)> env_str_param_vec_bac =
+      config.env_str_param_vec_;
   Status status = config.InitLibPath();
   EXPECT_EQ(status, SUCCESS);
 
@@ -1276,7 +1256,7 @@ TEST_F(configuration_st, init_options_context_case1) {
 TEST_F(configuration_st, init_options_context_case2) {
   Configuration &config = Configuration::Instance(fe::AI_CORE_NAME);
   PlatformUtils::Instance().soc_version_ = "Ascend910B1";
-  PlatformUtils::Instance().vir_type_list_ = {2,4,8,16};
+  PlatformUtils::Instance().vir_type_list_ = {2, 4, 8, 16};
   map<string, string> options;
   options.emplace(ge::ENABLE_SMALL_CHANNEL, "1");
   options.emplace(ge::JIT_COMPILE, "0");
@@ -1342,7 +1322,7 @@ TEST_F(configuration_st, init_options_context_case2) {
 TEST_F(configuration_st, init_options_context_case3) {
   Configuration &config = Configuration::Instance(fe::AI_CORE_NAME);
   PlatformUtils::Instance().soc_version_ = "Ascend910B1";
-  PlatformUtils::Instance().vir_type_list_ = {2,4,8,16};
+  PlatformUtils::Instance().vir_type_list_ = {2, 4, 8, 16};
   config.hardware_info_map_.clear();
   config.config_str_param_vec_.fill("");
   map<string, string> options;
@@ -1405,7 +1385,7 @@ TEST_F(configuration_st, init_options_context_case3) {
 TEST_F(configuration_st, init_options_context_case4) {
   Configuration &config = Configuration::Instance(fe::AI_CORE_NAME);
   PlatformUtils::Instance().soc_version_ = "Ascend910B1";
-  PlatformUtils::Instance().vir_type_list_ = {2,4,8,16};
+  PlatformUtils::Instance().vir_type_list_ = {2, 4, 8, 16};
   map<string, string> options;
   options.emplace(ge::ENABLE_SMALL_CHANNEL, "1");
   options.emplace(ge::JIT_COMPILE, "0");
@@ -1686,9 +1666,8 @@ TEST_F(configuration_st, precision_mode_hif8_case) {
   EXPECT_EQ(precision_mode, "force_fp16");
 }
 
-static void InitSessionGraphConfig(Configuration &config, map<string, string> &options,
-                                    const string &customize_dtypes, const string &modify_mixlist,
-                                    const string &disable_reused_memory) {
+static void InitSessionGraphConfig(Configuration &config, map<string, string> &options, const string &customize_dtypes,
+                                   const string &modify_mixlist, const string &disable_reused_memory) {
   options.clear();
   options.emplace(ge::OPTION_EXEC_DISABLE_REUSED_MEMORY, disable_reused_memory);
   options.emplace(ge::CUSTOMIZE_DTYPES, GetCodeDir() + customize_dtypes);
@@ -1717,9 +1696,8 @@ TEST_F(configuration_st, session_graph_config_params_01) {
   Configuration config(AI_CORE_NAME);
   map<string, string> options;
   string session_graph_id = "0_1";
-  InitSessionGraphConfig(config, options,
-    "/tests/engines/nn_engine/ut/stub/custom.cfg",
-    "/tests/engines/nn_engine/config/mix_list/op_mix_list1.json", "1");
+  InitSessionGraphConfig(config, options, "/tests/engines/nn_engine/ut/stub/custom.cfg",
+                         "/tests/engines/nn_engine/config/mix_list/op_mix_list1.json", "1");
   Status ret = config.RefreshParameters();
   EXPECT_EQ(ret, SUCCESS);
   EXPECT_EQ(config.IsEnableReuseMemory(), 0);
@@ -1743,9 +1721,8 @@ TEST_F(configuration_st, session_graph_config_params_01_2) {
   Configuration config(AI_CORE_NAME);
   map<string, string> options;
   string session_graph_id = "0_2";
-  InitSessionGraphConfig(config, options,
-    "/tests/engines/nn_engine/ut/stub/custom2.cfg",
-    "/tests/engines/nn_engine/config/mix_list/op_mix_list2.json", "0");
+  InitSessionGraphConfig(config, options, "/tests/engines/nn_engine/ut/stub/custom2.cfg",
+                         "/tests/engines/nn_engine/config/mix_list/op_mix_list2.json", "0");
   Status ret = config.RefreshParameters();
   EXPECT_EQ(ret, SUCCESS);
   EXPECT_EQ(config.IsEnableReuseMemory(), 1);
@@ -1769,9 +1746,8 @@ TEST_F(configuration_st, session_graph_config_params_01_3) {
   Configuration config(AI_CORE_NAME);
   map<string, string> options;
   string session_graph_id = "0_3";
-  InitSessionGraphConfig(config, options,
-    "/tests/engines/nn_engine/ut/stub/custom.cfg",
-    "/tests/engines/nn_engine/config/mix_list/op_mix_list2.json", "1");
+  InitSessionGraphConfig(config, options, "/tests/engines/nn_engine/ut/stub/custom.cfg",
+                         "/tests/engines/nn_engine/config/mix_list/op_mix_list2.json", "1");
   Status ret = config.RefreshParameters();
   EXPECT_EQ(ret, SUCCESS);
   EXPECT_EQ(config.IsEnableReuseMemory(), 0);

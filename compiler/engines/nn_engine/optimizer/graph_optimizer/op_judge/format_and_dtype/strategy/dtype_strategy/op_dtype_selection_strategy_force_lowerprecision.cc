@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -21,14 +21,15 @@ OpDtypeSelectionStrategyForceLowerPrecision::OpDtypeSelectionStrategyForceLowerP
 OpDtypeSelectionStrategyForceLowerPrecision::~OpDtypeSelectionStrategyForceLowerPrecision() {}
 
 /* In this mode we will match the dtype bf16 first, then fp16. If the */
-Status OpDtypeSelectionStrategyForceLowerPrecision::Run(FormatDtypeSelectionBasicInfo& basic_info,
+Status OpDtypeSelectionStrategyForceLowerPrecision::Run(FormatDtypeSelectionBasicInfo &basic_info,
                                                         ForbiddenDtype forbidden_dtype) {
   FE_CHECK_NOTNULL(basic_info.node);
   auto cur_op_desc_ptr = basic_info.node->GetOpDesc();
   FE_CHECK_NOTNULL(cur_op_desc_ptr);
   std::string cur_op_desc_name = cur_op_desc_ptr->GetName();
   std::string cur_op_desc_type = cur_op_desc_ptr->GetType();
-  FE_LOGD("Op %s: Matching dtype for tensor %u in force lowerprecision mode.", cur_op_desc_name.c_str(), basic_info.index);
+  FE_LOGD("Op %s: Matching dtype for tensor %u in force lowerprecision mode.", cur_op_desc_name.c_str(),
+          basic_info.index);
 
   // 2. Match bf16 if original Dtype is fp32
   FE_CHECK_NOTNULL(basic_info.cur_tensor_desc);
@@ -42,29 +43,28 @@ Status OpDtypeSelectionStrategyForceLowerPrecision::Run(FormatDtypeSelectionBasi
 
   FE_LOGD("Op %s: matches the dtype in force_lowerprecision mode; the expected dtype is %u.", cur_op_desc_name.c_str(),
           origin_dtype);
-  bool dtype_float_flag = (origin_dtype == ge::DT_FLOAT || origin_dtype == ge::DT_FLOAT16 ||
-                           origin_dtype == ge::DT_BF16);
+  bool dtype_float_flag =
+      (origin_dtype == ge::DT_FLOAT || origin_dtype == ge::DT_FLOAT16 || origin_dtype == ge::DT_BF16);
   Status match_origin_dtype_res = FAILED;
   if (!dtype_float_flag) {
-    match_origin_dtype_res =
-      op_dtype_rise_matcher_ptr_->Match(input_or_output_dtype_vec, origin_dtype,
-                                        basic_info.matched_index_vec, forbidden_dtype);
+    match_origin_dtype_res = op_dtype_rise_matcher_ptr_->Match(input_or_output_dtype_vec, origin_dtype,
+                                                               basic_info.matched_index_vec, forbidden_dtype);
   } else {
     if (origin_dtype == ge::DT_FLOAT) {
       origin_dtype = ge::DT_BF16;
     }
-    match_origin_dtype_res =
-      op_dtype_precise_matcher_ptr_->Match(input_or_output_dtype_vec, origin_dtype,
-                                           basic_info.matched_index_vec, forbidden_dtype);
+    match_origin_dtype_res = op_dtype_precise_matcher_ptr_->Match(input_or_output_dtype_vec, origin_dtype,
+                                                                  basic_info.matched_index_vec, forbidden_dtype);
     if (match_origin_dtype_res != SUCCESS) {
-      FE_LOGD("Op %s: using force_lowerprecision mode, does not support bf16; trying to match fp16 or another higher dtype.",
-              cur_op_desc_name.c_str());
+      FE_LOGD(
+          "Op %s: using force_lowerprecision mode, does not support bf16; trying to match fp16 or another higher "
+          "dtype.",
+          cur_op_desc_name.c_str());
       if (origin_dtype == ge::DT_BF16) {
         origin_dtype = ge::DT_FLOAT16;
       }
-      match_origin_dtype_res =
-        op_dtype_rise_matcher_ptr_->Match(input_or_output_dtype_vec, origin_dtype,
-                                          basic_info.matched_index_vec, forbidden_dtype);
+      match_origin_dtype_res = op_dtype_rise_matcher_ptr_->Match(input_or_output_dtype_vec, origin_dtype,
+                                                                 basic_info.matched_index_vec, forbidden_dtype);
     }
   }
   /* if bf16 and fp16 match failed, we will use the data type that it supports and
@@ -75,4 +75,4 @@ Status OpDtypeSelectionStrategyForceLowerPrecision::Run(FormatDtypeSelectionBasi
   }
   return SUCCESS;
 }
-}
+}  // namespace fe

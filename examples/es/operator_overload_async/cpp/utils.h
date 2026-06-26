@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -22,8 +22,7 @@
 namespace ge {
 class Utils {
  public:
-
-  template<typename Iterator>
+  template <typename Iterator>
   static std::string Join(Iterator begin, Iterator end, const std::string &sep) {
     if (begin == end) {
       return "";
@@ -36,7 +35,7 @@ class Utils {
     return ss.str();
   }
 
-  template<typename T>
+  template <typename T>
   static void PrintTensorToConsole(const ge::Tensor &tensor) {
     auto shape = tensor.GetTensorDesc().GetShape();
     auto dims = shape.GetDims();
@@ -67,7 +66,7 @@ class Utils {
     }
   }
 
-  template<typename T>
+  template <typename T>
   static void PrintTensorToFile(const ge::Tensor &tensor, const std::string &prefix, int64_t index) {
     std::string filename = prefix + "_" + std::to_string(index) + ".data";
     std::ofstream data_file(filename);
@@ -106,9 +105,8 @@ class Utils {
     std::cout << prefix << "[" << index << "] save to file " << filename << std::endl;
   }
 
-  template<typename T>
-  static std::unique_ptr<ge::Tensor> StubTensor(const std::vector<T> &data,
-                                                const std::vector<int64_t> &shape,
+  template <typename T>
+  static std::unique_ptr<ge::Tensor> StubTensor(const std::vector<T> &data, const std::vector<int64_t> &shape,
                                                 Format format = FORMAT_ND) {
     if constexpr (std::is_same_v<T, float>) {
       return ge::es::CreateTensor<T>(data.data(), shape.data(), shape.size(), DT_FLOAT, format);
@@ -149,11 +147,9 @@ class Utils {
     }
   }
 
-  template<typename T>
-  static bool CreateDeviceInputTensor(const std::vector<T> &host_data,
-                                      const std::vector<int64_t> &shape,
-                                      const ge::DataType dt,
-                                      ge::Tensor &device_tensor) {
+  template <typename T>
+  static bool CreateDeviceInputTensor(const std::vector<T> &host_data, const std::vector<int64_t> &shape,
+                                      const ge::DataType dt, ge::Tensor &device_tensor) {
     const size_t element_count = GetElementCount(shape);
     if (element_count == 0U || host_data.size() != element_count) {
       return false;
@@ -164,13 +160,11 @@ class Utils {
     device_tensor = ge::Tensor(desc);
 
     uint8_t *device_ptr = nullptr;
-    const aclError malloc_ret =
-        aclrtMalloc(reinterpret_cast<void **>(&device_ptr), bytes, ACL_MEM_MALLOC_NORMAL_ONLY);
+    const aclError malloc_ret = aclrtMalloc(reinterpret_cast<void **>(&device_ptr), bytes, ACL_MEM_MALLOC_NORMAL_ONLY);
     if (malloc_ret != ACL_SUCCESS || device_ptr == nullptr) {
       return false;
     }
-    const aclError memcpy_ret =
-        aclrtMemcpy(device_ptr, bytes, host_data.data(), bytes, ACL_MEMCPY_HOST_TO_DEVICE);
+    const aclError memcpy_ret = aclrtMemcpy(device_ptr, bytes, host_data.data(), bytes, ACL_MEMCPY_HOST_TO_DEVICE);
     if (memcpy_ret != ACL_SUCCESS) {
       (void)aclrtFree(reinterpret_cast<void *>(device_ptr));
       return false;
@@ -187,8 +181,7 @@ class Utils {
     return device_tensor.SetPlacement(ge::kPlacementDevice) == ge::GRAPH_SUCCESS;
   }
 
-  static bool CreateDeviceOutputTensor(const std::vector<int64_t> &shape,
-                                       const ge::DataType dt,
+  static bool CreateDeviceOutputTensor(const std::vector<int64_t> &shape, const ge::DataType dt,
                                        ge::Tensor &device_tensor) {
     const size_t element_count = GetElementCount(shape);
     const size_t dt_size = GetDataTypeSize(dt);
@@ -201,8 +194,7 @@ class Utils {
     device_tensor = ge::Tensor(desc);
 
     uint8_t *device_ptr = nullptr;
-    const aclError malloc_ret =
-        aclrtMalloc(reinterpret_cast<void **>(&device_ptr), bytes, ACL_MEM_MALLOC_NORMAL_ONLY);
+    const aclError malloc_ret = aclrtMalloc(reinterpret_cast<void **>(&device_ptr), bytes, ACL_MEM_MALLOC_NORMAL_ONLY);
     if (malloc_ret != ACL_SUCCESS || device_ptr == nullptr) {
       return false;
     }
@@ -229,8 +221,8 @@ class Utils {
       const size_t bytes = device_tensor.GetSize();
       if (bytes != 0U) {
         std::vector<uint8_t> host_data(bytes);
-        const aclError memcpy_ret = aclrtMemcpy(host_data.data(), bytes, device_tensor.GetData(), bytes,
-                                                ACL_MEMCPY_DEVICE_TO_HOST);
+        const aclError memcpy_ret =
+            aclrtMemcpy(host_data.data(), bytes, device_tensor.GetData(), bytes, ACL_MEMCPY_DEVICE_TO_HOST);
         if (memcpy_ret != ACL_SUCCESS) {
           return false;
         }
@@ -257,7 +249,8 @@ class Utils {
       return true;
     }
     std::vector<uint8_t> host_data(bytes);
-    const aclError memcpy_ret = aclrtMemcpy(host_data.data(), bytes, tensor.GetData(), bytes, ACL_MEMCPY_DEVICE_TO_HOST);
+    const aclError memcpy_ret =
+        aclrtMemcpy(host_data.data(), bytes, tensor.GetData(), bytes, ACL_MEMCPY_DEVICE_TO_HOST);
     if (memcpy_ret != ACL_SUCCESS) {
       return false;
     }
@@ -273,13 +266,17 @@ class Utils {
       }
       auto data_type = host_tensor.GetTensorDesc().GetDataType();
       switch (data_type) {
-        case ge::DT_FLOAT:PrintTensorToConsole<float>(host_tensor);
+        case ge::DT_FLOAT:
+          PrintTensorToConsole<float>(host_tensor);
           break;
-        case ge::DT_INT32:PrintTensorToConsole<int32_t>(host_tensor);
+        case ge::DT_INT32:
+          PrintTensorToConsole<int32_t>(host_tensor);
           break;
-        case ge::DT_INT64:PrintTensorToConsole<int64_t>(host_tensor);
+        case ge::DT_INT64:
+          PrintTensorToConsole<int64_t>(host_tensor);
           break;
-        default:std::cout << "unsupported type: " << static_cast<int64_t>(data_type) << std::endl;
+        default:
+          std::cout << "unsupported type: " << static_cast<int64_t>(data_type) << std::endl;
           break;
       }
     }
@@ -296,19 +293,23 @@ class Utils {
       }
       auto data_type = host_tensor.GetTensorDesc().GetDataType();
       switch (data_type) {
-        case ge::DT_FLOAT:PrintTensorToFile<float>(host_tensor, prefix, index);
+        case ge::DT_FLOAT:
+          PrintTensorToFile<float>(host_tensor, prefix, index);
           break;
-        case ge::DT_INT32:PrintTensorToFile<int32_t>(host_tensor, prefix, index);
+        case ge::DT_INT32:
+          PrintTensorToFile<int32_t>(host_tensor, prefix, index);
           break;
-        case ge::DT_INT64:PrintTensorToFile<int64_t>(host_tensor, prefix, index);
+        case ge::DT_INT64:
+          PrintTensorToFile<int64_t>(host_tensor, prefix, index);
           break;
-        default:std::cout << "unsupported type: " << static_cast<int64_t>(data_type) << std::endl;
+        default:
+          std::cout << "unsupported type: " << static_cast<int64_t>(data_type) << std::endl;
           break;
       }
       index++;
     }
   }
 };
-}
+}  // namespace ge
 
-#endif //_UTILS_H_
+#endif  //_UTILS_H_

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -42,7 +42,7 @@ namespace ge {
 namespace {
 constexpr uint32_t kDynamicModelMaxIdBase = 1023U;
 constexpr uint32_t kDummyQId = UINT32_MAX;
-constexpr int32_t kQueueAttachTime = 3 * 1000; // 3s
+constexpr int32_t kQueueAttachTime = 3 * 1000;  // 3s
 constexpr int32_t kReportStatusEnqueueTimeout = 0;
 constexpr int32_t kClearTypeStop = 1;
 constexpr int32_t kClearTypeClear = 2;
@@ -52,7 +52,7 @@ constexpr const char *kModelClearFunc = "AICPUModelClearInputAndRestart";
 constexpr const char *kModelProcessDataException = "AICPUModelProcessDataException";
 constexpr const char *kParallelModeSerial = "1";
 const std::string kGatherDequeue = "gatherDequeue";
-}
+}  // namespace
 std::mutex DynamicModelExecutor::exec_mutex_;
 
 DynamicModelExecutor::DynamicModelExecutor(bool is_host) : is_host_(is_host) {
@@ -69,12 +69,12 @@ Status DynamicModelExecutor::Initialize() {
   const std::string kHostAicpu = "libhost_aicpu_scheduler.so";
   const std::string aicpu_so_name = is_host_ ? kHostAicpu : kAicpu;
   aicpu_handle_ = mmDlopen(aicpu_so_name.c_str(), static_cast<int32_t>(static_cast<uint32_t>(MMPA_RTLD_NOW) |
-      static_cast<uint32_t>(MMPA_RTLD_GLOBAL)));
+                                                                       static_cast<uint32_t>(MMPA_RTLD_GLOBAL)));
   GE_CHECK_NOTNULL(aicpu_handle_);
   GELOGI("Executor dlopen[%s] success.", aicpu_so_name.c_str());
   if (!is_host_) {
     std::string parallel_mode;
-    (void) GetContext().GetOption(OPTION_EXEC_DYNAMIC_GRAPH_PARALLEL_MODE, parallel_mode);
+    (void)GetContext().GetOption(OPTION_EXEC_DYNAMIC_GRAPH_PARALLEL_MODE, parallel_mode);
     exec_with_mutex_ = (parallel_mode == kParallelModeSerial);
     GELOGI("%s = [%s]", OPTION_EXEC_DYNAMIC_GRAPH_PARALLEL_MODE, parallel_mode.c_str());
   }
@@ -118,7 +118,8 @@ Status DynamicModelExecutor::FreeEventIOBuffer() {
   std::set<void *> buf_addresses(input_buf_addresses_.cbegin(), input_buf_addresses_.cend());
   buf_addresses.insert(output_buf_addresses_.cbegin(), output_buf_addresses_.cend());
   for (void *buf_address : buf_addresses) {
-    GE_CHK_STATUS_RET(aclrtFreeHost(buf_address), "aclrtFreeHost Failed, buf_addresses size = %zu.", buf_addresses.size());
+    GE_CHK_STATUS_RET(aclrtFreeHost(buf_address), "aclrtFreeHost Failed, buf_addresses size = %zu.",
+                      buf_addresses.size());
   }
   input_buf_addresses_.clear();
   output_buf_addresses_.clear();
@@ -131,8 +132,7 @@ Status DynamicModelExecutor::AllocEventIOBuffer(const ComputeGraphPtr &root_grap
   return SUCCESS;
 }
 
-Status DynamicModelExecutor::LoadModel(const ModelData &model_data,
-                                       const ComputeGraphPtr &root_graph,
+Status DynamicModelExecutor::LoadModel(const ModelData &model_data, const ComputeGraphPtr &root_graph,
                                        const ModelQueueParam &model_queue_param) {
   DF_CHK_ACL_RET(aclrtGetDevice(&device_id_));
   DF_CHK_ACL_RET(aclrtGetCurrentContext(&rt_context_));
@@ -186,33 +186,33 @@ void DynamicModelExecutor::DestroyDatasetResource() {
   aclrtSetCurrentContext(rt_context_);
   GEEVENT("Destroy dataset resource begin, inner model_id = %u.", model_id_);
   if (model_desc_ != nullptr) {
-    (void) aclmdlDestroyDesc(model_desc_);
+    (void)aclmdlDestroyDesc(model_desc_);
     model_desc_ = nullptr;
   }
-  for (aclTensorDesc* &desc : acl_tensor_desc_) {
+  for (aclTensorDesc *&desc : acl_tensor_desc_) {
     if (desc != nullptr) {
-      (void) aclDestroyTensorDesc(desc);
+      (void)aclDestroyTensorDesc(desc);
       desc = nullptr;
     }
   }
-  for (aclDataBuffer* &buffer : output_data_buffer_) {
+  for (aclDataBuffer *&buffer : output_data_buffer_) {
     if (buffer != nullptr) {
-      (void) aclDestroyDataBuffer(buffer);
+      (void)aclDestroyDataBuffer(buffer);
       buffer = nullptr;
     }
   }
-  for (aclDataBuffer* &buffer : input_data_buffer_) {
+  for (aclDataBuffer *&buffer : input_data_buffer_) {
     if (buffer != nullptr) {
-      (void) aclDestroyDataBuffer(buffer);
+      (void)aclDestroyDataBuffer(buffer);
       buffer = nullptr;
     }
   }
   if (input_dataset_ != nullptr) {
-    (void) aclmdlDestroyDataset(input_dataset_);
+    (void)aclmdlDestroyDataset(input_dataset_);
     input_dataset_ = nullptr;
   }
   if (output_dataset_ != nullptr) {
-    (void) aclmdlDestroyDataset(output_dataset_);
+    (void)aclmdlDestroyDataset(output_dataset_);
     output_dataset_ = nullptr;
   }
   GEEVENT("Destroy dataset resource success, inner model_id = %u.", model_id_);
@@ -220,14 +220,14 @@ void DynamicModelExecutor::DestroyDatasetResource() {
 
 void DynamicModelExecutor::UnloadModel() {
   Stop();
-  (void) UnloadFromAicpuSd();
+  (void)UnloadFromAicpuSd();
   GEEVENT("UnloadModel model begin, inner model_id = %u.", model_id_);
-  if (!external_weight_mem_data_.empty()){
+  if (!external_weight_mem_data_.empty()) {
     for (auto &external_weight : external_weight_mem_data_) {
       if (external_weight.device_mem == nullptr) {
         continue;
       }
-      void *data_addr = const_cast<void*>(external_weight.device_mem);
+      void *data_addr = const_cast<void *>(external_weight.device_mem);
       (void)aclrtFree(data_addr);
       external_weight.device_mem = nullptr;
       data_addr = nullptr;
@@ -236,29 +236,28 @@ void DynamicModelExecutor::UnloadModel() {
   }
   aclrtSetCurrentContext(rt_context_);
   if (handle_ != nullptr) {
-    (void) aclmdlDestroyConfigHandle(handle_);
+    (void)aclmdlDestroyConfigHandle(handle_);
     handle_ = nullptr;
   }
-  (void) aclmdlUnload(model_id_);
+  (void)aclmdlUnload(model_id_);
   GEEVENT("UnloadModel model success, inner model_id = %u.", model_id_);
   FreeEventIOBuffer();
 }
 
 Status DynamicModelExecutor::UnloadFromAicpuSd() {
   const std::string kDestroyFunc = "AICPUModelDestroy";
-  const auto destroy_func =
-      reinterpret_cast<int32_t (*)(uint32_t)>(mmDlsym(aicpu_handle_, kDestroyFunc.c_str()));
+  const auto destroy_func = reinterpret_cast<int32_t (*)(uint32_t)>(mmDlsym(aicpu_handle_, kDestroyFunc.c_str()));
   if (destroy_func != nullptr) {
-    (void) destroy_func(aicpu_model_id_);
+    (void)destroy_func(aicpu_model_id_);
   }
-  (void) AicpuModelIdResourceManager::GetInstance().DeAllocate(aicpu_model_ids_);
+  (void)AicpuModelIdResourceManager::GetInstance().DeAllocate(aicpu_model_ids_);
   return SUCCESS;
 }
 
-Status DynamicModelExecutor::ExecuteAsync(const std::function<void(Status, void*, void *)> &callback,
-                                          void *req_mbuf, void *resp_mbuf) {
+Status DynamicModelExecutor::ExecuteAsync(const std::function<void(Status, void *, void *)> &callback, void *req_mbuf,
+                                          void *resp_mbuf) {
   if (!stop_schedule_flag_) {
-    const ModelExecuteParam param {.callback = callback, .req_mbuf = req_mbuf, .resp_mbuf = resp_mbuf};
+    const ModelExecuteParam param{.callback = callback, .req_mbuf = req_mbuf, .resp_mbuf = resp_mbuf};
     GE_CHK_BOOL_RET_STATUS(task_queue_.Push(param), FAILED, "Failed to enqueue task, model_id = %u", model_id_);
     GELOGD("Enqueue task successfully, model_id = %u", model_id_);
   }
@@ -331,8 +330,8 @@ Status DynamicModelExecutor::PublishOutputWithoutExecute() {
     GE_CHK_RT_RET(rtMbufGetPrivInfo(output_mbuf_addresses_[i], &dst_head_buf, &dst_head_size));
     GE_CHECK_NOTNULL(dst_head_buf);
     GE_CHK_BOOL_RET_STATUS(dst_head_size >= sizeof(ExchangeService::MsgInfo), FAILED,
-                           "dst_head_size = %lu, size of ExchangeService::MsgInfo = %zu.",
-                           dst_head_size, sizeof(ExchangeService::MsgInfo));
+                           "dst_head_size = %lu, size of ExchangeService::MsgInfo = %zu.", dst_head_size,
+                           sizeof(ExchangeService::MsgInfo));
     if (!input_mbuf_addresses_.empty()) {
       GE_CHK_BOOL_RET_STATUS(dst_head_size == src_head_size, FAILED, "dst_head_size = %lu, src_head_size = %lu",
                              dst_head_size, src_head_size);
@@ -407,9 +406,9 @@ Status DynamicModelExecutor::ExecuteInternal() {
 }
 
 Status DynamicModelExecutor::ExecuteDirectly() {
-  GE_CHK_BOOL_RET_STATUS((num_inputs_ == 0UL) && (num_outputs_ == 0UL),
-                         UNSUPPORTED, "Inputs or outputs num is invalid, num_inputs_ = %zu, num_outputs_ = %zu",
-                         num_inputs_, num_outputs_);
+  GE_CHK_BOOL_RET_STATUS((num_inputs_ == 0UL) && (num_outputs_ == 0UL), UNSUPPORTED,
+                         "Inputs or outputs num is invalid, num_inputs_ = %zu, num_outputs_ = %zu", num_inputs_,
+                         num_outputs_);
   std::vector<DataBuffer> model_inputs;
   std::vector<DataBuffer> model_outputs;
   GE_CHK_STATUS_RET(DoExecuteModel(model_inputs, model_outputs), "Failed to execute model");
@@ -432,8 +431,8 @@ Status DynamicModelExecutor::UpdateBufferDataAddr(size_t index, void *&buffer_da
   GE_CHECK_LE(total_offset, buffer_size - sizeof(RuntimeTensorDesc));
   auto input_addr = PtrAdd(buffer_base, buffer_size, total_offset);
   buffer_data = PtrToPtr<uint8_t, void>(input_addr);
-  GELOGI("Input[%zu] update addr success, fusion offset = %d, total offset = %lu, buffer size = %lu",
-         index, input_fusion_offsets_[index], total_offset, buffer_size);
+  GELOGI("Input[%zu] update addr success, fusion offset = %d, total offset = %lu, buffer size = %lu", index,
+         input_fusion_offsets_[index], total_offset, buffer_size);
   return SUCCESS;
 }
 
@@ -458,11 +457,11 @@ Status DynamicModelExecutor::PrepareInputs(std::vector<DataBuffer> &model_inputs
         int32_t worker_id = msg_info->worker_id;
         const auto session_id = GetContext().SessionId();
         std::string dump_worker_id = std::to_string(worker_id);
-        (void) DumpManager::GetInstance().SetDumpWorkerId(session_id, dump_worker_id);
+        (void)DumpManager::GetInstance().SetDumpWorkerId(session_id, dump_worker_id);
         GELOGD("Session id is %d, worker_id is %s", session_id, dump_worker_id.c_str());
       }
-      GE_CHK_STATUS_RET(UpdateBufferDataAddr(i, buffer_data, buffer_size),
-                        "Update input[%zu] buffer data addr failed.", i);
+      GE_CHK_STATUS_RET(UpdateBufferDataAddr(i, buffer_data, buffer_size), "Update input[%zu] buffer data addr failed.",
+                        i);
       GELOGD("Inputs[%zu] buffer size = %zu", i, buffer_size);
       if (is_input_dynamic_[i]) {
         auto &tensor_desc = input_tensor_descs_[i];
@@ -503,18 +502,15 @@ Status DynamicModelExecutor::ParseModelDesc(const ComputeGraphPtr &root_graph) {
   for (const auto &node : root_graph->GetDirectNode()) {
     if (OpTypeUtils::IsDataNode(node->GetType())) {
       uint32_t index = 0;
-      GE_CHK_BOOL_RET_STATUS(AttrUtils::GetInt(node->GetOpDesc(), ATTR_NAME_INDEX, index),
-                             PARAM_INVALID,
+      GE_CHK_BOOL_RET_STATUS(AttrUtils::GetInt(node->GetOpDesc(), ATTR_NAME_INDEX, index), PARAM_INVALID,
                              "Failed to get attribute \"index\" from data node: %s", node->GetName().c_str());
-      GE_CHK_BOOL_RET_STATUS(data_indices[index].empty(),
-                             PARAM_INVALID,
-                             "Duplicated data index [%u], node name = %s, prev node name = %s",
-                             index, node->GetName().c_str(), data_indices[index].c_str());
+      GE_CHK_BOOL_RET_STATUS(data_indices[index].empty(), PARAM_INVALID,
+                             "Duplicated data index [%u], node name = %s, prev node name = %s", index,
+                             node->GetName().c_str(), data_indices[index].c_str());
       data_indices[index] = node->GetName();
-      GE_CHK_BOOL_RET_STATUS(static_cast<size_t>(index) < is_input_dynamic_.size(),
-                             PARAM_INVALID,
-                             "Data index of node %s out of range, index = %u num_inputs = %zu",
-                             node->GetName().c_str(), index, is_input_dynamic_.size());
+      GE_CHK_BOOL_RET_STATUS(static_cast<size_t>(index) < is_input_dynamic_.size(), PARAM_INVALID,
+                             "Data index of node %s out of range, index = %u num_inputs = %zu", node->GetName().c_str(),
+                             index, is_input_dynamic_.size());
       const auto &tensor_desc = node->GetOpDesc()->MutableOutputDesc(0U);
       GE_CHECK_NOTNULL(tensor_desc);
       input_tensor_descs_[index] = *tensor_desc;
@@ -522,8 +518,8 @@ Status DynamicModelExecutor::ParseModelDesc(const ComputeGraphPtr &root_graph) {
       GE_CHK_STATUS_RET_NOLOG(GetTensorSize(*tensor_desc, tensor_size));
       input_tensor_sizes_[index] = tensor_size;
       // string input data is not fixed. it should be got by data size instead of calculation by shape
-      is_input_dynamic_[index] = (tensor_desc->GetDataType() == DT_STRING) ? true :
-          tensor_desc->MutableShape().IsUnknownShape();
+      is_input_dynamic_[index] =
+          (tensor_desc->GetDataType() == DT_STRING) ? true : tensor_desc->MutableShape().IsUnknownShape();
       NamedAttrs align_attr;
       if (AttrUtils::GetNamedAttrs(node->GetOpDesc(), ATTR_NAME_INPUTS_ALIGN_ATTR, align_attr)) {
         GELOGD("Input[%u] has aligned attr", index);
@@ -563,13 +559,11 @@ Status DynamicModelExecutor::ParseModelDesc(const ComputeGraphPtr &root_graph) {
 }
 
 bool DynamicModelExecutor::IsEventInput(const int64_t index) const {
-  return (input_events_num_ > 0) &&
-         (index >= static_cast<int64_t>(input_queues_num_));
+  return (input_events_num_ > 0) && (index >= static_cast<int64_t>(input_queues_num_));
 }
 
 bool DynamicModelExecutor::IsEventOutput(const int64_t index) const {
-  return (output_events_num_ > 0) &&
-         (index >= static_cast<int64_t>(output_queues_num_));
+  return (output_events_num_ > 0) && (index >= static_cast<int64_t>(output_queues_num_));
 }
 
 Status DynamicModelExecutor::GetInputAndOutputNum(const ComputeGraphPtr &root_graph,
@@ -584,31 +578,26 @@ Status DynamicModelExecutor::GetInputAndOutputNum(const ComputeGraphPtr &root_gr
   num_inputs_ = input_queues_num_;
   num_outputs_ = output_queues_num_;
 
-  (void)model_queue_param;              
+  (void)model_queue_param;
   GELOGD("Load model[%u], input num = [all:%zu, events:%zu, queue:%zu], output num = [all:%zu, events:%zu, queue:%zu]",
          model_id_, num_inputs_, input_events_num_, input_queues_num_, num_outputs_, output_events_num_,
          output_queues_num_);
   return SUCCESS;
 }
 
-Status DynamicModelExecutor::UpdateTensorDesc(const RuntimeTensorDesc &runtime_tensor_desc,
-                                              GeTensorDesc &tensor_desc) {
+Status DynamicModelExecutor::UpdateTensorDesc(const RuntimeTensorDesc &runtime_tensor_desc, GeTensorDesc &tensor_desc) {
   auto num_dims = runtime_tensor_desc.shape[0];
   auto num_ori_dims = runtime_tensor_desc.original_shape[0];
-  GE_CHK_BOOL_RET_STATUS((num_dims >= 0) && (num_dims <= kMaxDimSize),
-                         UNSUPPORTED,
-                         "shape dim number out of range, num_dims = %ld, max = %ld",
-                         num_dims, kMaxDimSize);
-  GE_CHK_BOOL_RET_STATUS((num_ori_dims >= 0) && (num_ori_dims <= kMaxDimSize),
-                         UNSUPPORTED,
-                         "original shape dim number out of range, num_dims = %ld, max = %ld",
-                         num_dims, kMaxDimSize);
+  GE_CHK_BOOL_RET_STATUS((num_dims >= 0) && (num_dims <= kMaxDimSize), UNSUPPORTED,
+                         "shape dim number out of range, num_dims = %ld, max = %ld", num_dims, kMaxDimSize);
+  GE_CHK_BOOL_RET_STATUS((num_ori_dims >= 0) && (num_ori_dims <= kMaxDimSize), UNSUPPORTED,
+                         "original shape dim number out of range, num_dims = %ld, max = %ld", num_dims, kMaxDimSize);
   GeShape shape(std::vector<int64_t>(&runtime_tensor_desc.shape[1], &runtime_tensor_desc.shape[1 + num_dims]));
   if (num_ori_dims == 0) {  // origin shape not set, or is scalar(in which case original format equals to format)
     tensor_desc.SetOriginShape(shape);
   } else {
     GeShape ori_shape(std::vector<int64_t>(&runtime_tensor_desc.original_shape[1],
-        &runtime_tensor_desc.original_shape[1 + num_dims]));
+                                           &runtime_tensor_desc.original_shape[1 + num_dims]));
     tensor_desc.SetOriginShape(ori_shape);
   }
   tensor_desc.SetShape(std::move(shape));
@@ -625,10 +614,8 @@ Status DynamicModelExecutor::UpdateRuntimeTensorDesc(const GeTensorDesc &tensor_
 
 Status DynamicModelExecutor::UpdateRuntimeShape(const GeShape &shape, int64_t (&shape_buffer)[33]) {
   auto num_dims = static_cast<int64_t>(shape.GetDimNum());
-  GE_CHK_BOOL_RET_STATUS(num_dims <= kMaxDimSize,
-                         UNSUPPORTED,
-                         "shape dim number out of range, num_dims = %ld, max = %ld",
-                         num_dims, kMaxDimSize);
+  GE_CHK_BOOL_RET_STATUS(num_dims <= kMaxDimSize, UNSUPPORTED,
+                         "shape dim number out of range, num_dims = %ld, max = %ld", num_dims, kMaxDimSize);
   shape_buffer[0] = num_dims;
   for (size_t i = 0; i < shape.GetDimNum(); ++i) {
     shape_buffer[1 + i] = shape.GetDim(i);
@@ -643,14 +630,13 @@ Status DynamicModelExecutor::CopyMbufHead(rtMbufPtr_t src, rtMbufPtr_t dst) {
   void *dst_head_buf = nullptr;
   uint64_t dst_head_size = 0U;
   GE_CHK_STATUS_RET_NOLOG(RtsApiUtils::MbufGetPrivData(dst, &dst_head_buf, &dst_head_size));
-  if ((src_head_size == dst_head_size) && (src_head_size != 0) &&
-      (src_head_buf != nullptr) && (dst_head_buf != nullptr)) {
+  if ((src_head_size == dst_head_size) && (src_head_size != 0) && (src_head_buf != nullptr) &&
+      (dst_head_buf != nullptr)) {
     if (memcpy_s(dst_head_buf, dst_head_size, src_head_buf, src_head_size) == EOK) {
       return SUCCESS;
     }
   }
-  GELOGE(FAILED, "Copy mbuf head failed, src head size = %lu, dst head size = %lu.",
-         src_head_size, dst_head_size);
+  GELOGE(FAILED, "Copy mbuf head failed, src head size = %lu, dst head size = %lu.", src_head_size, dst_head_size);
   return FAILED;
 }
 
@@ -659,7 +645,7 @@ Status DynamicModelExecutor::PrepareOutputs(std::vector<DataBuffer> &model_outpu
                                                                      ProfilerEvent::kPrepareOutputs, device_id_);
   for (size_t i = 0; i < num_outputs_; ++i) {
     auto tensor_size = output_tensor_sizes_[i];
-    if (tensor_size < 0) { // no valid range
+    if (tensor_size < 0) {  // no valid range
       GELOGD("Output[%zu] is dynamic and cannot get a valid size by range.", i);
       output_mbuf_addresses_[i] = nullptr;
       model_outputs.emplace_back(DataBuffer{});
@@ -684,8 +670,8 @@ Status DynamicModelExecutor::PrepareOutputs(std::vector<DataBuffer> &model_outpu
       data_buffer.data = output_buf_addresses_[i - output_queues_num_];
     }
     data_buffer.placement = is_host_ ? kPlacementHost : kPlacementDevice;
-    GELOGD("Output[%zu] is dynamic = %d, data buffer size = %zu", i,
-           static_cast<int32_t>(is_output_dynamic_[i]), data_buffer.length);
+    GELOGD("Output[%zu] is dynamic = %d, data buffer size = %zu", i, static_cast<int32_t>(is_output_dynamic_[i]),
+           data_buffer.length);
     model_outputs.emplace_back(data_buffer);
     // mbuf will be freed by consumer
   }
@@ -703,17 +689,15 @@ Status DynamicModelExecutor::GetTensorSize(const GeTensorDesc &tensor_desc, int6
       return SUCCESS;
     }
     std::vector<std::pair<int64_t, int64_t>> shape_range;
-    (void) tensor_desc.GetShapeRange(shape_range);
+    (void)tensor_desc.GetShapeRange(shape_range);
     if (shape_range.empty()) {
       GELOGD("dynamic shape tensor without range. shape = [%s].", tensor_desc.GetShape().ToString().c_str());
       tensor_size = -1;
       return SUCCESS;
     }
   }
-  GE_CHK_STATUS_RET(TensorUtils::CalcTensorMemSizeForNoTiling(tensor_desc,
-                                                              tensor_desc.GetFormat(),
-                                                              tensor_desc.GetDataType(),
-                                                              tensor_size),
+  GE_CHK_STATUS_RET(TensorUtils::CalcTensorMemSizeForNoTiling(tensor_desc, tensor_desc.GetFormat(),
+                                                              tensor_desc.GetDataType(), tensor_size),
                     "Failed to calc tensor size, shape = [%s]", tensor_desc.GetShape().ToString().c_str());
   return SUCCESS;
 }
@@ -741,9 +725,7 @@ Status DynamicModelExecutor::UpdateOutputs(std::vector<DataBuffer> &model_output
       GELOGD("output[%zu] was allocated by executor, Mbuf allocated, size = %zu", i, buffer_size);
       if (data_buffer.length > 0) {
         GE_CHK_BOOL_RET_STATUS(memcpy_s(static_cast<uint8_t *>(buffer_addr) + sizeof(RuntimeTensorDesc),
-                                        data_buffer.length,
-                                        data_buffer.data,
-                                        data_buffer.length) == EOK,
+                                        data_buffer.length, data_buffer.data, data_buffer.length) == EOK,
                                FAILED, "Failed to copy output[%zu]", i);
       }
       GELOGD("Copy output[%zu] succeeded, size = %zu", i, data_buffer.length);
@@ -756,22 +738,16 @@ Status DynamicModelExecutor::UpdateOutputs(std::vector<DataBuffer> &model_output
       int64_t data_len = 0L;
       GE_CHK_STATUS_RET(TensorUtils::CalcTensorMemSize(tensor_desc.GetShape(), tensor_desc.GetFormat(),
                                                        tensor_desc.GetDataType(), data_len),
-                        "Failed to calc output size, shape = [%s]",
-                        tensor_desc.GetShape().ToString().c_str());
-      GE_CHK_RT_RET(rtMbufSetDataLen(output_mbuf_addresses_[i],
-                                     data_len + static_cast<uint64_t>(sizeof(RuntimeTensorDesc))));
+                        "Failed to calc output size, shape = [%s]", tensor_desc.GetShape().ToString().c_str());
+      GE_CHK_RT_RET(
+          rtMbufSetDataLen(output_mbuf_addresses_[i], data_len + static_cast<uint64_t>(sizeof(RuntimeTensorDesc))));
       GE_CHK_STATUS_RET_NOLOG(UpdateRuntimeTensorDesc(tensor_desc, output_runtime_tensor_descs_[i]));
     }
-    GE_CHK_BOOL_RET_STATUS(memcpy_s(buffer_addr,
-                                    sizeof(RuntimeTensorDesc),
-                                    &output_runtime_tensor_descs_[i],
+    GE_CHK_BOOL_RET_STATUS(memcpy_s(buffer_addr, sizeof(RuntimeTensorDesc), &output_runtime_tensor_descs_[i],
                                     sizeof(output_runtime_tensor_descs_[i])) == EOK,
-                           FAILED,
-                           "Failed to copy runtime tensor desc");
-    GELOGD("Output[%zu] is dynamic, shape = [%s], original shape = [%s], data_type = [%d]",
-           i,
-           tensor_desc.GetShape().ToString().c_str(),
-           tensor_desc.GetOriginShape().ToString().c_str(),
+                           FAILED, "Failed to copy runtime tensor desc");
+    GELOGD("Output[%zu] is dynamic, shape = [%s], original shape = [%s], data_type = [%d]", i,
+           tensor_desc.GetShape().ToString().c_str(), tensor_desc.GetOriginShape().ToString().c_str(),
            static_cast<int32_t>(tensor_desc.GetDataType()));
   }
   HeterogeneousProfiler::Instance().RecordHeterogeneousProfilerEvent(ProfilerType::kEndPoint,
@@ -803,7 +779,7 @@ Status DynamicModelExecutor::LoadWithAicpuSd(const ComputeGraphPtr &root_graph,
       GELOGD("Input[%zu] is fusion tensor, queue_id = %u.", i, queue_id);
       continue;
     }
-    (void) unique_qids.emplace(queue_id);
+    (void)unique_qids.emplace(queue_id);
     auto mbuf_addr = reinterpret_cast<uintptr_t>(&input_mbuf_addresses_[i]);
     if ((input_queue_attrs_[i].device_type == NPU) && is_host_) {
       GELOGD("Current input queue %u is client queue. device id is %d", queue_id, input_queue_attrs_[i].device_id);
@@ -838,7 +814,8 @@ Status DynamicModelExecutor::LoadWithAicpuSd(const ComputeGraphPtr &root_graph,
   if (input_align_attrs_.align_max_cache_num > 0U) {
     bool is_gather_supported = false;
     GE_CHK_STATUS_RET(CheckAicpuKernelSupported(kGatherDequeue, is_gather_supported));
-    GE_ASSERT_TRUE(is_gather_supported, "Gather dequeue is not supported in current version. "
+    GE_ASSERT_TRUE(is_gather_supported,
+                   "Gather dequeue is not supported in current version. "
                    "Please update software or unset input align attrs.");
   }
   builder.SetInputAlignAttrs(input_align_attrs_);
@@ -881,23 +858,20 @@ Status DynamicModelExecutor::CheckAicpuKernelSupported(const std::string &kernel
 }
 
 Status DynamicModelExecutor::CheckAndGetAlignAttr(uint32_t &align_interval, std::vector<uint32_t> &align_offsets) {
-  GE_CHK_BOOL_RET_STATUS(align_attrs_.size() == num_inputs_,
-                         PARAM_INVALID,
-                         "Number of align attr(%zu) mismatches that of inputs(%zu)",
-                         align_attrs_.size(), num_inputs_);
+  GE_CHK_BOOL_RET_STATUS(align_attrs_.size() == num_inputs_, PARAM_INVALID,
+                         "Number of align attr(%zu) mismatches that of inputs(%zu)", align_attrs_.size(), num_inputs_);
 
-  GE_CHK_BOOL_RET_STATUS(AttrUtils::GetInt(align_attrs_.begin()->second,
-                                           ATTR_NAME_INPUTS_ALIGN_INTERVAL,
-                                           align_interval),
-                         FAILED, "Failed to get attr: %s", ATTR_NAME_INPUTS_ALIGN_INTERVAL.c_str());
+  GE_CHK_BOOL_RET_STATUS(
+      AttrUtils::GetInt(align_attrs_.begin()->second, ATTR_NAME_INPUTS_ALIGN_INTERVAL, align_interval), FAILED,
+      "Failed to get attr: %s", ATTR_NAME_INPUTS_ALIGN_INTERVAL.c_str());
 
   uint32_t data_index = 0U;
   for (const auto &it : align_attrs_) {
     const auto &align_attr = it.second;
     uint32_t align_offset = 0;
-    GE_CHK_BOOL_RET_STATUS(AttrUtils::GetInt(align_attr, ATTR_NAME_INPUTS_ALIGN_OFFSET, align_offset),
-                           PARAM_INVALID, "Failed to get attr: %s, input_index = %u",
-                           ATTR_NAME_INPUTS_ALIGN_OFFSET.c_str(), data_index);
+    GE_CHK_BOOL_RET_STATUS(AttrUtils::GetInt(align_attr, ATTR_NAME_INPUTS_ALIGN_OFFSET, align_offset), PARAM_INVALID,
+                           "Failed to get attr: %s, input_index = %u", ATTR_NAME_INPUTS_ALIGN_OFFSET.c_str(),
+                           data_index);
     GELOGD("Input index = %u, align_offset = %u.", data_index, align_offset);
     align_offsets.emplace_back(align_offset);
     ++data_index;
@@ -918,7 +892,8 @@ void DynamicModelExecutor::PublishErrorOutput(Status ret) {
 bool DynamicModelExecutor::StopAndWaitRestart() {
   if (stop_schedule_flag_) {
     has_stop_schedule_ = true;
-    while (stop_schedule_flag_) {}
+    while (stop_schedule_flag_) {
+    }
     return true;
   }
   return false;
@@ -977,8 +952,7 @@ Status DynamicModelExecutor::ReportStatus() {
     rtMemQueueInfo_t info;
     const auto ret = rtMemQueueQueryInfo(device_id_, input_queue_id, &info);
     if (ret != RT_ERROR_NONE) {
-      GELOGI("Queue info query returned %d for queue %u, device %d.",
-        input_queue_id, device_id_, ret);
+      GELOGI("Queue info query returned %d for queue %u, device %d.", input_queue_id, device_id_, ret);
     } else {
       queue_depth = info.size;
     }
@@ -998,8 +972,8 @@ Status DynamicModelExecutor::ReportStatus() {
   control_info.timeout = kReportStatusEnqueueTimeout;
   control_info.print_error_flag = false;
   ExchangeService::FillFunc fill_func = [&submodel_status](void *buffer, size_t size) {
-    GE_CHK_BOOL_RET_STATUS(submodel_status.SerializeToArray(buffer, static_cast<int32_t>(size)),
-      FAILED, "dynamic sched serialize to array failed.");
+    GE_CHK_BOOL_RET_STATUS(submodel_status.SerializeToArray(buffer, static_cast<int32_t>(size)), FAILED,
+                           "dynamic sched serialize to array failed.");
     return SUCCESS;
   };
   const auto req_size = submodel_status.ByteSizeLong();
@@ -1008,19 +982,20 @@ Status DynamicModelExecutor::ReportStatus() {
   if (enqueue_ret == SUCCESS) {
     input_consume_num_ = 0U;
   } else if (enqueue_ret != RT_ERROR_TO_GE_STATUS(ACL_ERROR_RT_QUEUE_FULL)) {
-      GELOGE(enqueue_ret, "Failed to enqueue, device id is %d, queue id is %u, ret is %u.",
-             status_output_queue_device_id_, status_output_queue_id_, enqueue_ret);
-      return enqueue_ret;
+    GELOGE(enqueue_ret, "Failed to enqueue, device id is %d, queue id is %u, ret is %u.",
+           status_output_queue_device_id_, status_output_queue_id_, enqueue_ret);
+    return enqueue_ret;
   }
 
-  GELOGI("dynamic sched report status, ret is %u, status is %s, device id is %d, " \
-    "queue id is %u.", enqueue_ret, submodel_status.DebugString().c_str(), status_output_queue_device_id_,
-      status_output_queue_id_);
+  GELOGI(
+      "dynamic sched report status, ret is %u, status is %s, device id is %d, "
+      "queue id is %u.",
+      enqueue_ret, submodel_status.DebugString().c_str(), status_output_queue_device_id_, status_output_queue_id_);
   return SUCCESS;
 }
 
 void DynamicModelExecutor::Stop() {
-  const ModelExecuteParam eof_param {.callback= nullptr, .req_mbuf = nullptr, .resp_mbuf = nullptr};
+  const ModelExecuteParam eof_param{.callback = nullptr, .req_mbuf = nullptr, .resp_mbuf = nullptr};
   task_queue_.Push(eof_param);
   if (run_thread_.joinable()) {
     run_thread_.join();
@@ -1062,14 +1037,15 @@ Status DynamicModelExecutor::DoLoadModel(const ModelData &model_data, const Comp
   aclError ret = aclrtSetDevice(device_id);
   GE_ASSERT_TRUE(ret == ACL_SUCCESS, "ACL set device id failed.");
   aclrtSetCurrentContext(rt_context_);
-  GE_CHK_STATUS_RET(InitExternalWeightMem(root_graph, external_weight_mem_data_), "Failed to init external weright mem.");
+  GE_CHK_STATUS_RET(InitExternalWeightMem(root_graph, external_weight_mem_data_),
+                    "Failed to init external weright mem.");
   handle_ = aclmdlCreateConfigHandle();
   GE_CHECK_NOTNULL(handle_, "Create acl load config handle failed.");
   GE_CHK_STATUS_RET(GenerateLoadConfig(model_data, external_weight_mem_data_, handle_));
   ret = aclmdlLoadWithConfig(handle_, &model_id_);
   if (ret != ACL_SUCCESS) {
     GELOGE(FAILED, "Failed to load model");
-    (void) aclmdlDestroyConfigHandle(handle_);
+    (void)aclmdlDestroyConfigHandle(handle_);
     handle_ = nullptr;
     return FAILED;
   }
@@ -1077,13 +1053,15 @@ Status DynamicModelExecutor::DoLoadModel(const ModelData &model_data, const Comp
   return SUCCESS;
 }
 
-Status DynamicModelExecutor::GenerateLoadConfig(const ModelData &model_data, const std::vector<FileConstantMem> &external_weight_mem_data, aclmdlConfigHandle *handle) {
+Status DynamicModelExecutor::GenerateLoadConfig(const ModelData &model_data,
+                                                const std::vector<FileConstantMem> &external_weight_mem_data,
+                                                aclmdlConfigHandle *handle) {
   GELOGD("[GenerateLoadConfig] Start to generate acl type load config.");
   aclError ret;
   GE_CHECK_NOTNULL(handle, "Failed to create acl config handle.");
   for (auto &external_weight : external_weight_mem_data) {
-    ret = aclmdlSetExternalWeightAddress(handle, external_weight.file_name.c_str(), 
-                                                    const_cast<void *>(external_weight.device_mem), external_weight.mem_size);
+    ret = aclmdlSetExternalWeightAddress(handle, external_weight.file_name.c_str(),
+                                         const_cast<void *>(external_weight.device_mem), external_weight.mem_size);
     GE_ASSERT_TRUE(ret == ACL_SUCCESS, "Failed to set acl external weight address.");
   }
   size_t load_type = ACL_MDL_LOAD_FROM_MEM;
@@ -1098,7 +1076,8 @@ Status DynamicModelExecutor::GenerateLoadConfig(const ModelData &model_data, con
   return SUCCESS;
 }
 
-Status DynamicModelExecutor::InitExternalWeightMem(const ComputeGraphPtr &root_graph, std::vector<FileConstantMem> &external_weight_mem_data) {
+Status DynamicModelExecutor::InitExternalWeightMem(const ComputeGraphPtr &root_graph,
+                                                   std::vector<FileConstantMem> &external_weight_mem_data) {
   GELOGD("[InitExternalWeightMem] Start to init extrnal weight mem.");
   // load external weight
   for (const auto &node : root_graph->GetAllNodes()) {
@@ -1132,7 +1111,7 @@ Status DynamicModelExecutor::InitExternalWeightMem(const ComputeGraphPtr &root_g
     external_weight.device_mem = nullptr;
 
     auto host_buffer = ge::MakeUnique<char_t[]>(attr_length);
-    GE_CHK_STATUS_RET(FileConstantUtils::ReadExternalWeightFromFile(file_name , 0, attr_length, host_buffer.get()));
+    GE_CHK_STATUS_RET(FileConstantUtils::ReadExternalWeightFromFile(file_name, 0, attr_length, host_buffer.get()));
 
     auto alloc_size = (attr_length + 32 - 1) / 32 * 32;
     void *data_addr = nullptr;
@@ -1140,8 +1119,7 @@ Status DynamicModelExecutor::InitExternalWeightMem(const ComputeGraphPtr &root_g
     GE_ASSERT_TRUE(ret == ACL_SUCCESS, "Failed to malloc device mem.");
 
     // copy to device
-    ret = aclrtMemcpy(data_addr, attr_length,
-                    host_buffer.get(), attr_length, ACL_MEMCPY_HOST_TO_DEVICE);
+    ret = aclrtMemcpy(data_addr, attr_length, host_buffer.get(), attr_length, ACL_MEMCPY_HOST_TO_DEVICE);
     if (ret != ACL_SUCCESS) {
       GELOGE(FAILED, "Failed to copy host buffer to device.");
       (void)aclrtFree(data_addr);
@@ -1163,7 +1141,7 @@ Status DynamicModelExecutor::CreateInputDataset(const std::vector<DataBuffer> &i
   acl_tensor_desc_.resize(num_inputs_);
   input_dataset_ = aclmdlCreateDataset();
   GE_CHECK_NOTNULL(input_dataset_);
-  for (size_t i = 0U; i < num_inputs_; ++i){
+  for (size_t i = 0U; i < num_inputs_; ++i) {
     input_data_buffer_[i] = aclCreateDataBuffer(inputs[i].data, static_cast<size_t>(inputs[i].length));
     GE_CHECK_NOTNULL(input_data_buffer_[i]);
     ret = aclmdlAddDatasetBuffer(input_dataset_, input_data_buffer_[i]);
@@ -1171,12 +1149,10 @@ Status DynamicModelExecutor::CreateInputDataset(const std::vector<DataBuffer> &i
   }
   // add input tensor desc
   for (size_t i = 0; i < num_inputs_; ++i) {
-    acl_tensor_desc_[i] = aclCreateTensorDesc(
-      static_cast<aclDataType>(input_tensor_descs_[i].GetDataType()),
-      input_tensor_descs_[i].GetShape().GetDims().size(),
-      input_tensor_descs_[i].GetShape().GetDims().data(),
-      static_cast<aclFormat>(input_tensor_descs_[i].GetFormat())
-    );
+    acl_tensor_desc_[i] = aclCreateTensorDesc(static_cast<aclDataType>(input_tensor_descs_[i].GetDataType()),
+                                              input_tensor_descs_[i].GetShape().GetDims().size(),
+                                              input_tensor_descs_[i].GetShape().GetDims().data(),
+                                              static_cast<aclFormat>(input_tensor_descs_[i].GetFormat()));
     ret = aclmdlSetDatasetTensorDesc(input_dataset_, acl_tensor_desc_[i], i);
     GE_ASSERT_TRUE(ret == ACL_SUCCESS, "Failed to add input tensor desc to input dataset.");
   }
@@ -1195,7 +1171,7 @@ Status DynamicModelExecutor::CreateOutputDataset(const std::vector<DataBuffer> &
 
   output_dataset_ = aclmdlCreateDataset();
   GE_CHECK_NOTNULL(output_dataset_);
-  for (size_t i = 0; i < num_outputs_; ++i){
+  for (size_t i = 0; i < num_outputs_; ++i) {
     output_data_buffer_[i] = aclCreateDataBuffer(outputs[i].data, static_cast<size_t>(outputs[i].length));
     GE_CHECK_NOTNULL(output_data_buffer_[i]);
     ret = aclmdlAddDatasetBuffer(output_dataset_, output_data_buffer_[i]);
@@ -1225,7 +1201,8 @@ Status DynamicModelExecutor::DoExecuteModel(const std::vector<DataBuffer> &input
   return SUCCESS;
 }
 
-Status DynamicModelExecutor::ParseModelOutputToTensorDesc(const aclTensorDesc *acl_tensor_desc, GeTensorDesc &tensor_desc) const {
+Status DynamicModelExecutor::ParseModelOutputToTensorDesc(const aclTensorDesc *acl_tensor_desc,
+                                                          GeTensorDesc &tensor_desc) const {
   tensor_desc.SetFormat(static_cast<Format>(aclGetTensorDescFormat(acl_tensor_desc)));
   tensor_desc.SetDataType(static_cast<DataType>(aclGetTensorDescType(acl_tensor_desc)));
   std::vector<int64_t> tensor_shape;
@@ -1300,16 +1277,18 @@ Status DynamicModelExecutor::ClearModel(const int32_t clear_type) {
 
 Status DynamicModelExecutor::StopSchedule() {
   stop_schedule_flag_ = true;
-  const ModelExecuteParam clear_param {.callback= nullptr, .req_mbuf = nullptr, .resp_mbuf = nullptr};
+  const ModelExecuteParam clear_param{.callback = nullptr, .req_mbuf = nullptr, .resp_mbuf = nullptr};
   // just for wake, will not be execute
   task_queue_.Push(clear_param);
-  while (!has_stop_schedule_) {}
+  while (!has_stop_schedule_) {
+  }
   return SUCCESS;
 }
 
 Status DynamicModelExecutor::ClearAndRestart() {
   ModelExecuteParam param;
-  while (task_queue_.Pop(param, 0)) {}
+  while (task_queue_.Pop(param, 0)) {
+  }
   has_stop_schedule_ = false;
   stop_schedule_flag_ = false;
   return SUCCESS;
@@ -1323,15 +1302,14 @@ Status DynamicModelExecutor::AicpuClearModel(const int32_t clear_type) {
     aicpuModelClearFuncName = kModelClearFunc;
   }
   const auto clear_func =
-    reinterpret_cast<int32_t (*)(const ReDeployConfig *const)>(mmDlsym(aicpu_handle_,
-    aicpuModelClearFuncName));
+      reinterpret_cast<int32_t (*)(const ReDeployConfig *const)>(mmDlsym(aicpu_handle_, aicpuModelClearFuncName));
   GE_CHECK_NOTNULL(clear_func);
   ReDeployConfig config;
   config.modelIdNum = 1U;
   config.modelIdsAddr = PtrToValue(&aicpu_model_id_);
   const int32_t clear_ret = clear_func(&config);
-  GE_CHK_BOOL_RET_STATUS((clear_ret == 0), FAILED,
-    "Failed to execute aicpu func: %s, ret: %d", aicpuModelClearFuncName, clear_ret);
+  GE_CHK_BOOL_RET_STATUS((clear_ret == 0), FAILED, "Failed to execute aicpu func: %s, ret: %d", aicpuModelClearFuncName,
+                         clear_ret);
   return SUCCESS;
 }
 

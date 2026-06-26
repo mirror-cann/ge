@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -26,8 +26,7 @@ using namespace gert;
 namespace {
 struct RuntimeStubGuard {
   RuntimeStubGuard()
-      : runtime_stub(std::make_shared<RuntimeStubImpl>()),
-        acl_runtime_stub(std::make_shared<AclRuntimeStubImpl>()) {
+      : runtime_stub(std::make_shared<RuntimeStubImpl>()), acl_runtime_stub(std::make_shared<AclRuntimeStubImpl>()) {
     ge::RuntimeStub::SetInstance(runtime_stub);
     ge::AclRuntimeStub::SetInstance(acl_runtime_stub);
   }
@@ -149,7 +148,7 @@ TEST_F(TaskSchedulerUnitTest, schedule_kernel_task_end_of_squence) {
   cfg.worker_cfgs.resize(1);
 
   FakeExecutionData executionData(10);
-  executionData.Chain({0,1}).StartNodes({0});
+  executionData.Chain({0, 1}).StartNodes({0});
   executionData.FuncEndOfSequence(1, ge::END_OF_SEQUENCE);
 
   auto scheduler = TaskSchedulerFactory::GetInstance().Create(cfg);
@@ -287,8 +286,7 @@ TEST_F(TaskSchedulerUnitTest, should_schedule_op_task_in_multiple_thread_workers
 TEST_F(TaskSchedulerUnitTest, sub_thread_profiling_report_success) {
   ge::diagnoseSwitch::EnableProfiling({ProfilingType::kTaskTime});
   size_t report_event_count = 0U;
-  auto default_check_func = [&](uint32_t moduleId, uint32_t type, void *data,
-                                uint32_t len) -> int32_t {
+  auto default_check_func = [&](uint32_t moduleId, uint32_t type, void *data, uint32_t len) -> int32_t {
     if (type == ge::InfoType::kEvent) {
       ++report_event_count;
     }

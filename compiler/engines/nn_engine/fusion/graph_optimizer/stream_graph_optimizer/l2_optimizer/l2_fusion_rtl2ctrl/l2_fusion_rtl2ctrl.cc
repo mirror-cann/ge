@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -61,12 +61,13 @@ void L2FusionRtl2ctrl::SetDataL2ctrl(uint32_t max_data_num, TensorL2AllocMap &da
   }
 }
 
-void L2FusionRtl2ctrl::SetOutputDataL2ctrl(uint32_t max_data_num, TensorL2AllocMap &standing,
-                                           TensorL2AllocMap &data, rtL2Ctrl_t &out_l2ctrl) {
+void L2FusionRtl2ctrl::SetOutputDataL2ctrl(uint32_t max_data_num, TensorL2AllocMap &standing, TensorL2AllocMap &data,
+                                           rtL2Ctrl_t &out_l2ctrl) {
   for (TensorL2AllocMap::iterator it = data.begin(); it != data.end(); ++it) {
     uint32_t data_id = it->second.data_in_l2_id;
     if (data_id >= max_data_num) {
-      FE_LOGD("Data Id is %u, which is greater than or equal to the maximum allowed data number: %u", data_id, max_data_num);
+      FE_LOGD("Data Id is %u, which is greater than or equal to the maximum allowed data number: %u", data_id,
+              max_data_num);
       return;
     }
     if (standing.find(it->first) == standing.end() && it->second.occupy_data_id < 0) {

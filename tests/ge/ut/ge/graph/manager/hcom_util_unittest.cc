@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -96,7 +96,7 @@ TEST_F(UtestHcomUtil, test_GetHcomP2pCount_unsupport) {
   auto op_desc = node->GetOpDesc();
   int64_t count = 0;
   auto ret = ge::HcomOmeUtil::GetHcomP2pCount(op_desc->GetOutputDesc(0), HCCL_DATA_TYPE_FP32,
-                                           HcomOperationType::HCOM_OP_TYPE_BROADCAST, count);
+                                              HcomOperationType::HCOM_OP_TYPE_BROADCAST, count);
   EXPECT_EQ(ret, PARAM_INVALID);
   EXPECT_TRUE(count == 0);
 }
@@ -114,13 +114,11 @@ TEST_F(UtestHcomUtil, test_GetHcomCount_succ_2) {
 
 TEST_F(UtestHcomUtil, test_GetHcomCount_succ_3) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
-  NodePtr node = NodeBuilder("node", HCOMSEND)
-    .AddInputDesc({1, 1, 224, 224})
-    .AddOutputDesc({1, 1, 224, 224})
-    .Build(graph);
+  NodePtr node =
+      NodeBuilder("node", HCOMSEND).AddInputDesc({1, 1, 224, 224}).AddOutputDesc({1, 1, 224, 224}).Build(graph);
   auto op_desc = node->GetOpDesc();
   AttrUtils::SetBool(op_desc, "_is_unknown_shape", true);
-  ge::TensorUtils::SetSize(*op_desc->MutableInputDesc(0), 50177*4);
+  ge::TensorUtils::SetSize(*op_desc->MutableInputDesc(0), 50177 * 4);
   HcomOmeUtil hcom_util;
   int64_t count = 0;
   auto ret = hcom_util.GetHcomCount(op_desc, HCCL_DATA_TYPE_FP32, false, count);
@@ -135,10 +133,7 @@ TEST_F(UtestHcomUtil, test_GetHcomCount_succ_3) {
 
 TEST_F(UtestHcomUtil, test_GetHcomCount_succ_5) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
-  NodePtr node = NodeBuilder("node", HCOMSEND)
-    .AddInputDesc({})
-    .AddOutputDesc({})
-    .Build(graph);
+  NodePtr node = NodeBuilder("node", HCOMSEND).AddInputDesc({}).AddOutputDesc({}).Build(graph);
   auto op_desc = node->GetOpDesc();
   AttrUtils::SetBool(op_desc, "_is_unknown_shape", false);
   ge::TensorUtils::SetSize(*op_desc->MutableInputDesc(0), 2);
@@ -151,9 +146,11 @@ TEST_F(UtestHcomUtil, test_GetHcomCount_succ_5) {
 
 TEST_F(UtestHcomUtil, test_GetHcomCount_allgather) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
-  NodePtr node =
-      NodeBuilder("node", HCOMALLGATHER).AddInputDesc({1, 1, 2, 16}).AddInputDesc({1, 1, 2, 333})
-      .AddOutputDesc({1, 1, 2, 4}).Build(graph);
+  NodePtr node = NodeBuilder("node", HCOMALLGATHER)
+                     .AddInputDesc({1, 1, 2, 16})
+                     .AddInputDesc({1, 1, 2, 333})
+                     .AddOutputDesc({1, 1, 2, 4})
+                     .Build(graph);
   auto op_desc = node->GetOpDesc();
   ge::TensorUtils::SetSize(*op_desc->MutableInputDesc(0), 36);
   ge::TensorUtils::SetSize(*op_desc->MutableInputDesc(1), 800);
@@ -165,8 +162,8 @@ TEST_F(UtestHcomUtil, test_GetHcomCount_allgather) {
   auto ret = hcom_ome_util.GetHcomCount(op_desc, HCCL_DATA_TYPE_FP32, true, count);
   EXPECT_EQ(ret, 0);
   EXPECT_EQ(count, (2 * 16 + 2 * 333));
-   
-   // continue input
+
+  // continue input
   (void)ge::AttrUtils::SetBool(op_desc, ge::ATTR_NAME_CONTINUOUS_INPUT, true);
   count = 0;
   ret = hcom_ome_util.GetHcomCount(op_desc, HCCL_DATA_TYPE_FP32, true, count);
@@ -177,11 +174,10 @@ TEST_F(UtestHcomUtil, test_GetHcomCount_allgather) {
 TEST_F(UtestHcomUtil, test_GetHcomCount_reducescatter) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   NodePtr node =
-      NodeBuilder("node", HCOMREDUCESCATTER).AddInputDesc({1, 1, 2, 332})
-      .AddOutputDesc({1, 1, 2, 4}).Build(graph);
+      NodeBuilder("node", HCOMREDUCESCATTER).AddInputDesc({1, 1, 2, 332}).AddOutputDesc({1, 1, 2, 4}).Build(graph);
   auto op_desc = node->GetOpDesc();
   ge::TensorUtils::SetSize(*op_desc->MutableInputDesc(0), 800);
-  (void) AttrUtils::SetInt(op_desc, HCOM_ATTR_RANK_SIZE, 8);
+  (void)AttrUtils::SetInt(op_desc, HCOM_ATTR_RANK_SIZE, 8);
 
   HcomOmeUtil hcom_ome_util;
 
@@ -199,15 +195,13 @@ TEST_F(UtestHcomUtil, test_GetHcomCount_reducescatter) {
   EXPECT_EQ(count, (512 * 2) / sizeof(float) / 8);
 }
 
-
 TEST_F(UtestHcomUtil, test_GetHcomCount_other) {
   ComputeGraphPtr graph = std::make_shared<ComputeGraph>("test");
   NodePtr node =
-      NodeBuilder("node", HCOMALLREDUCE).AddInputDesc({1, 1, 2, 333})
-      .AddOutputDesc({1, 1, 2, 4}).Build(graph);
+      NodeBuilder("node", HCOMALLREDUCE).AddInputDesc({1, 1, 2, 333}).AddOutputDesc({1, 1, 2, 4}).Build(graph);
   auto op_desc = node->GetOpDesc();
   ge::TensorUtils::SetSize(*op_desc->MutableInputDesc(0), 800);
-  (void) AttrUtils::SetInt(op_desc, HCOM_ATTR_RANK_SIZE, 8);
+  (void)AttrUtils::SetInt(op_desc, HCOM_ATTR_RANK_SIZE, 8);
 
   HcomOmeUtil hcom_ome_util;
   int64_t count = 0;
@@ -321,7 +315,6 @@ TEST_F(UtestHcomUtil, Test_GetHorovodInputs_success) {
   op_desc1->AddInputDesc(tensor_desc1);
   ret = HcomOmeUtil::GetHorovodInputs(op_desc1, kernel_hccl_infos);
   EXPECT_EQ(SUCCESS, ret);
-
 
   ge::GeTensorDesc tensor_desc2(ge::GeShape({1, 3, 2, 2}), FORMAT_NCHW, ge::DT_FLOAT);
   ge::OpDescPtr op_desc2 = std::make_shared<ge::OpDesc>("op_allreduce ", HVDCALLBACKALLREDUCE);

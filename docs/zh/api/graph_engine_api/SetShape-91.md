@@ -68,4 +68,3 @@ void SetShape(const Shape &shape)
 ## 约束说明<a name="zh-cn_topic_0000001265084806_section24049039"></a>
 
 无。
-

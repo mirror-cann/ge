@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -47,8 +47,7 @@ void MemoryAllocator::Finalize() {
   device_to_allocator_.clear();
 }
 
-uint8_t *MemoryAllocator::MallocMemory(const std::string &purpose, const size_t memory_size,
-                                       const uint32_t device_id) {
+uint8_t *MemoryAllocator::MallocMemory(const std::string &purpose, const size_t memory_size, const uint32_t device_id) {
   void *memory_addr = nullptr;
   const auto allocator = GetAllocator(device_id);
   if (allocator != nullptr) {
@@ -68,10 +67,9 @@ uint8_t *MemoryAllocator::MallocMemory(const std::string &purpose, const size_t 
   }
 
   if (memory_addr == nullptr) {
-    REPORT_INNER_ERR_MSG("E19999", "Call aclrtMalloc fail, purpose:%s, size:%zu, device_id:%u",
-                      purpose.c_str(), memory_size, device_id);
-    GELOGE(ge::INTERNAL_ERROR, "[Malloc][Memory] failed, device_id = %u, size= %" PRIu64,
-           device_id, memory_size);
+    REPORT_INNER_ERR_MSG("E19999", "Call aclrtMalloc fail, purpose:%s, size:%zu, device_id:%u", purpose.c_str(),
+                         memory_size, device_id);
+    GELOGE(ge::INTERNAL_ERROR, "[Malloc][Memory] failed, device_id = %u, size= %" PRIu64, device_id, memory_size);
 
     return static_cast<uint8_t *>(memory_addr);
   }
@@ -92,7 +90,7 @@ Status MemoryAllocator::FreeMemory(void *memory_addr, const uint32_t device_id) 
       if (it->second != nullptr) {
         it->second->Free();
       }
-      (void) mem_addr_to_block_addr_.erase(it);
+      (void)mem_addr_to_block_addr_.erase(it);
       return ge::SUCCESS;
     } else {
       GELOGW("Can't Find block memory addr device_id = %u", device_id);
@@ -124,7 +122,7 @@ uint8_t *MemoryAllocator::MallocMemory(const std::string &purpose, const std::st
 
   if (memory_addr == nullptr) {
     REPORT_INNER_ERR_MSG("E19999", "Malloc Memory fail, purpose:%s, memory_key:%s, memory_size:%zu, device_id:%u",
-                      purpose.c_str(), memory_key.c_str(), memory_size, device_id);
+                         purpose.c_str(), memory_key.c_str(), memory_size, device_id);
     GELOGE(ge::INTERNAL_ERROR, "[Malloc][Memory] failed, memory_key[%s], size = %" PRIu64 ", device_id:%u.",
            memory_key.c_str(), memory_size, device_id);
     return nullptr;
@@ -153,8 +151,8 @@ Status MemoryAllocator::FreeMemory(const std::string &memory_key, const uint32_t
   const auto it = it_map->second.find(memory_key);
   if (it == it_map->second.end()) {
     if (mem_malloced_) {
-      GELOGW("MemoryAllocator::FreeMemory failed,memory_key[%s] was does not exist, device_id = %u.", memory_key.c_str(),
-             device_id);
+      GELOGW("MemoryAllocator::FreeMemory failed,memory_key[%s] was does not exist, device_id = %u.",
+             memory_key.c_str(), device_id);
     }
     return ge::INTERNAL_ERROR;
   }
@@ -162,17 +160,15 @@ Status MemoryAllocator::FreeMemory(const std::string &memory_key, const uint32_t
   if (it->second.memory_used_num > 1) {
     GELOGD("MemoryAllocator::FreeMemory memory_key[%s] should not be released, reference count %d", memory_key.c_str(),
            it->second.memory_used_num);
-    // reference count greater than 1 represnt that static memory is used by
+    // reference count greater than 1 represent that static memory is used by
     // someone else, reference count decrement
     it->second.memory_used_num--;
     return ge::SUCCESS;
   }
 
   if (FreeMemory(it->second.memory_addr, device_id) != ge::SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Free Memory fail, memory_key:%s, device_id:%u",
-                      memory_key.c_str(), device_id);
-    GELOGE(ge::INTERNAL_ERROR, "[Free][Memory] failed, memory_key[%s], device_id:%u",
-           memory_key.c_str(), device_id);
+    REPORT_INNER_ERR_MSG("E19999", "Free Memory fail, memory_key:%s, device_id:%u", memory_key.c_str(), device_id);
+    GELOGE(ge::INTERNAL_ERROR, "[Free][Memory] failed, memory_key[%s], device_id:%u", memory_key.c_str(), device_id);
     return ge::INTERNAL_ERROR;
   }
 
@@ -191,8 +187,8 @@ uint8_t *MemoryAllocator::GetMemoryAddr(const std::string &memory_key, const uin
   }
   const auto it = it_map->second.find(memory_key);
   if (it == it_map->second.end()) {
-    GELOGW("MemoryAllocator::GetMemoryAddr failed, memory_key[%s] was does not exist, device_id = %u.", memory_key.c_str(),
-           device_id);
+    GELOGW("MemoryAllocator::GetMemoryAddr failed, memory_key[%s] was does not exist, device_id = %u.",
+           memory_key.c_str(), device_id);
     return nullptr;
   }
 

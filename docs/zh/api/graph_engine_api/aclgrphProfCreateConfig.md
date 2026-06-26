@@ -114,4 +114,3 @@ aclgrphProfConfig *aclgrphProfCreateConfig(uint32_t *deviceid_list, uint32_t dev
 -   与[aclgrphProfDestroyConfig](aclgrphProfDestroyConfig.md)接口配对使用，先调用aclgrphProfCreateConfig接口再调用aclgrphProfDestroyConfig接口。
 -   用户需保证程序结束时调用aclgrphProfDestroyConfig销毁所有创建的Profiling配置信息，否则可能会导致内存泄漏。
 -   如果用户想在不同的Device上指定不同的Profiling配置信息，则可创建不同的aclgrphProfConfig类型数据，并依次调用[aclgrphProfStart](aclgrphProfStart.md)接口将不同的配置信息下发到不同的Device上。同时注意Device信息不能有重复。
-

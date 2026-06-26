@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -36,7 +36,8 @@ namespace {
 bool IsFreeMemoryNode(const ge::FastNode *node) {
   return strcmp(node->GetTypePtr(), "FreeMemory") == 0;
 }
-void CheckFreeMemoryInControlEdge(const ge::ExecuteGraph *graph, const std::string &launch_type, size_t free_node_size) {
+void CheckFreeMemoryInControlEdge(const ge::ExecuteGraph *graph, const std::string &launch_type,
+                                  size_t free_node_size) {
   auto free_nodes = graph->GetAllNodes(IsFreeMemoryNode);
   EXPECT_EQ(free_nodes.size(), free_node_size);
   for (const auto node : free_nodes) {
@@ -959,7 +960,8 @@ TEST_F(CopyFlowLaunchFuseUT, TestLaunchKernelWithFlag_1H1D_H2D) {
 
   auto copy_flow_launch_nodes = ge::ExecuteGraphUtils::FindNodesByTypeFromAllNodes(graph.get(), "CopyFlowLaunch");
   ASSERT_EQ(copy_flow_launch_nodes.size(), 1UL);
-  const auto in_edge = copy_flow_launch_nodes[0]->GetInDataEdgeByIndex(static_cast<int32_t>(kernel::CopyFlowLaunchInputs::kRtArg));
+  const auto in_edge =
+      copy_flow_launch_nodes[0]->GetInDataEdgeByIndex(static_cast<int32_t>(kernel::CopyFlowLaunchInputs::kRtArg));
   ASSERT_NE(in_edge, nullptr);
   const auto src_node = in_edge->src;
   ASSERT_NE(src_node, nullptr);

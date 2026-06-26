@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -93,8 +93,8 @@ Status GenerateCMOInvalidTask::ParseTensorInfo(const CmoAttr &cmo_attr, const Ta
   if (cmo_attr.object == CmoTypeObject::INPUT || cmo_attr.object == CmoTypeObject::WEIGHT) {
     auto input_size = cmo_attr.node->GetOpDesc()->GetAllInputsSize();
     if (cmo_attr.object_index >= static_cast<int32_t>(input_size)) {
-      FE_LOGW("Node[%s] input object_index[%d] is out of range[%zu]",
-              cmo_attr.node->GetName().c_str(), cmo_attr.object_index, input_size);
+      FE_LOGW("Node[%s] input object_index[%d] is out of range[%zu]", cmo_attr.node->GetName().c_str(),
+              cmo_attr.object_index, input_size);
       return FAILED;
     }
     ge::GeTensorDescPtr tensor_desc_ptr = cmo_attr.node->GetOpDesc()->MutableInputDesc(cmo_attr.object_index);
@@ -110,8 +110,8 @@ Status GenerateCMOInvalidTask::ParseTensorInfo(const CmoAttr &cmo_attr, const Ta
   } else if (cmo_attr.object == CmoTypeObject::OUTPUT) {
     auto output_size = cmo_attr.node->GetOpDesc()->GetAllOutputsDescSize();
     if (cmo_attr.object_index >= static_cast<int32_t>(output_size)) {
-      FE_LOGW("Node[%s] output object_index[%d] is out of range[%d]",
-              cmo_attr.node->GetName().c_str(), cmo_attr.object_index, output_size);
+      FE_LOGW("Node[%s] output object_index[%d] is out of range[%d]", cmo_attr.node->GetName().c_str(),
+              cmo_attr.object_index, output_size);
       return FAILED;
     }
     ge::GeTensorDescPtr tensor_desc_ptr = cmo_attr.node->GetOpDesc()->MutableOutputDesc(cmo_attr.object_index);
@@ -127,8 +127,8 @@ Status GenerateCMOInvalidTask::ParseTensorInfo(const CmoAttr &cmo_attr, const Ta
     std::vector<int64_t> workspace_bytes = cmo_attr.node->GetOpDesc()->GetWorkspaceBytes();
     if (cmo_attr.object_index >= static_cast<int32_t>(workspace_bytes.size()) ||
         workspace_bytes[cmo_attr.object_index] > UINT32_MAX) {
-      FE_LOGW("Node[%s] workspace object_index[%d] is out of range[%zu]",
-              cmo_attr.node->GetName().c_str(), cmo_attr.object_index, workspace_bytes.size());
+      FE_LOGW("Node[%s] workspace object_index[%d] is out of range[%zu]", cmo_attr.node->GetName().c_str(),
+              cmo_attr.object_index, workspace_bytes.size());
       return FAILED;
     }
     length_inner = static_cast<uint32_t>(workspace_bytes[cmo_attr.object_index]);
@@ -146,8 +146,8 @@ bool GenerateCMOInvalidTask::GetComplexCmoId(const CmoAttr &cmo_attr, int64_t &c
   if (cmo_attr.object == CmoTypeObject::INPUT || cmo_attr.object == CmoTypeObject::WEIGHT) {
     auto input_size = node->GetOpDesc()->GetAllInputsSize();
     if (cmo_attr.object_index >= static_cast<int32_t>(input_size)) {
-      FE_LOGW("Node[%s] input object_index[%d] is out of range[%zu]",
-              cmo_attr.node->GetName().c_str(), cmo_attr.object_index, input_size);
+      FE_LOGW("Node[%s] input object_index[%d] is out of range[%zu]", cmo_attr.node->GetName().c_str(),
+              cmo_attr.object_index, input_size);
       return false;
     }
     ge::GeTensorDescPtr tensor_desc_ptr = node->GetOpDesc()->MutableInputDesc(cmo_attr.object_index);
@@ -160,8 +160,8 @@ bool GenerateCMOInvalidTask::GetComplexCmoId(const CmoAttr &cmo_attr, int64_t &c
   } else if (cmo_attr.object == CmoTypeObject::OUTPUT) {
     auto output_size = node->GetOpDesc()->GetAllOutputsDescSize();
     if (cmo_attr.object_index >= static_cast<int32_t>(output_size)) {
-      FE_LOGW("Node[%s] output object_index[%d] is out of range[%d]",
-              cmo_attr.node->GetName().c_str(), cmo_attr.object_index, output_size);
+      FE_LOGW("Node[%s] output object_index[%d] is out of range[%d]", cmo_attr.node->GetName().c_str(),
+              cmo_attr.object_index, output_size);
       return false;
     }
     ge::GeTensorDescPtr tensor_desc_ptr = node->GetOpDesc()->MutableOutputDesc(cmo_attr.object_index);
@@ -173,19 +173,18 @@ bool GenerateCMOInvalidTask::GetComplexCmoId(const CmoAttr &cmo_attr, int64_t &c
   } else {
     auto workspace_bytes = node->GetOpDesc()->GetWorkspaceBytes();
     if (cmo_attr.object_index >= static_cast<int32_t>(workspace_bytes.size())) {
-      FE_LOGW("Node[%s] workspace object_index[%d] is out of range[%zu]",
-              cmo_attr.node->GetName().c_str(), cmo_attr.object_index, workspace_bytes.size());
+      FE_LOGW("Node[%s] workspace object_index[%d] is out of range[%zu]", cmo_attr.node->GetName().c_str(),
+              cmo_attr.object_index, workspace_bytes.size());
       return false;
     }
-    if (!ge::AttrUtils::HasAttr(
-        node->GetOpDesc(), "_worksapce_" + std::to_string(cmo_attr.object_index) + "_complex_cmo_id")) {
+    if (!ge::AttrUtils::HasAttr(node->GetOpDesc(),
+                                "_worksapce_" + std::to_string(cmo_attr.object_index) + "_complex_cmo_id")) {
       return false;
     }
-    (void)ge::AttrUtils::GetInt(node->GetOpDesc(),
-                                "_worksapce_" + std::to_string(cmo_attr.object_index) + "_complex_cmo_id",
-                                complex_cmo_id);
+    (void)ge::AttrUtils::GetInt(
+        node->GetOpDesc(), "_worksapce_" + std::to_string(cmo_attr.object_index) + "_complex_cmo_id", complex_cmo_id);
     FE_LOGD("Get invalid task complex cmo id[%ld] from node[%s] success.", complex_cmo_id, node->GetName().c_str());
   }
   return true;
 }
-}
+}  // namespace fe

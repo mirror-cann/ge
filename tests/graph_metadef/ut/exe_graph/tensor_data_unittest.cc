@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -13,7 +13,7 @@
 #include <gtest/gtest.h>
 namespace gert {
 namespace {
-template<size_t N>
+template <size_t N>
 class ManagerStub {
  public:
   static ge::graphStatus Success(TensorAddress addr, TensorOperateType operate_type, void **out) {
@@ -34,12 +34,12 @@ class ManagerStub {
     return Success(addr, operate_type, out);
   }
   static void Clear() {
-    memset(operate_count, 0, sizeof(operate_count)); // memse函数misra告警屏蔽
+    memset(operate_count, 0, sizeof(operate_count));  // memse函数misra告警屏蔽
   }
-  static size_t operate_count[kTensorOperateType];  
+  static size_t operate_count[kTensorOperateType];
 };
 
-template<size_t N>
+template <size_t N>
 size_t ManagerStub<N>::operate_count[kTensorOperateType] = {0};
 }  // namespace
 
@@ -88,7 +88,6 @@ TEST_F(TensorDataUT, TransferOnwerFreeOld) {
     EXPECT_EQ(ManagerStub<18>::operate_count[kFreeTensor], 0);
     td0 = std::move(td1);
     EXPECT_EQ(ManagerStub<18>::operate_count[kFreeTensor], 1);
-
   }
   EXPECT_EQ(ManagerStub<8>::operate_count[kPlusShareCount], 0);
   EXPECT_EQ(ManagerStub<8>::operate_count[kFreeTensor], 1);

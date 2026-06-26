@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -129,13 +129,14 @@ void DumpL1Attr(const ge::Node *node) {
           op_desc->GetName().c_str(), op_desc->GetType().c_str(), in_memery_type_vec.size(), in_mem_type_str.c_str(),
           out_memery_type_vec.size(), out_mem_type_str.c_str());
 
-  FE_LOGD("Dump L1 Op info. op_l1_fusion_type size [%zu], type [%s],"
-          " slice_input_shape size [%zu], type [%s]. slice_output_shape size [%zu], type [%s],"
-          " slice_input_offset size [%zu], type [%s]. slice_output_offset size [%zu], type [%s], l1space [%ld].",
-          l1_info->op_l1_fusion_type.size(), op_l1_fusion_type_str.c_str(), l1_info->slice_input_shape.size(),
-          slice_input_shape_str.c_str(), l1_info->slice_output_shape.size(), slice_output_shape_str.c_str(),
-          l1_info->slice_input_offset.size(), slice_input_offset_str.c_str(), l1_info->slice_output_offset.size(),
-          slice_output_offset_str.c_str(), l1_info->op_l1_space);
+  FE_LOGD(
+      "Dump L1 Op info. op_l1_fusion_type size [%zu], type [%s],"
+      " slice_input_shape size [%zu], type [%s]. slice_output_shape size [%zu], type [%s],"
+      " slice_input_offset size [%zu], type [%s]. slice_output_offset size [%zu], type [%s], l1space [%ld].",
+      l1_info->op_l1_fusion_type.size(), op_l1_fusion_type_str.c_str(), l1_info->slice_input_shape.size(),
+      slice_input_shape_str.c_str(), l1_info->slice_output_shape.size(), slice_output_shape_str.c_str(),
+      l1_info->slice_input_offset.size(), slice_input_offset_str.c_str(), l1_info->slice_output_offset.size(),
+      slice_output_offset_str.c_str(), l1_info->op_l1_space);
 }
 
 void DumpL2Attr(const ge::Node *node) {
@@ -193,11 +194,12 @@ void DumpL2Attr(const ge::Node *node) {
           op_desc->GetName().c_str(), op_desc->GetType().c_str(), in_memery_type_vec.size(), in_mem_type_str.c_str(),
           out_memery_type_vec.size(), out_mem_type_str.c_str());
 
-  FE_LOGD("Dump L2 Op info."
-          " slice_input_shape size [%zu], type [%s]. slice_output_shape size [%zu], type [%s],"
-          " slice_input_offset size [%zu], type [%s]. slice_output_offset size [%zu], type [%s].",
-          l2_info->slice_input_shape.size(), slice_input_shape_str.c_str(), l2_info->slice_output_shape.size(),
-          slice_output_shape_str.c_str(), l2_info->slice_input_offset.size(), slice_input_offset_str.c_str(),
-          l2_info->slice_output_offset.size(), slice_output_offset_str.c_str());
+  FE_LOGD(
+      "Dump L2 Op info."
+      " slice_input_shape size [%zu], type [%s]. slice_output_shape size [%zu], type [%s],"
+      " slice_input_offset size [%zu], type [%s]. slice_output_offset size [%zu], type [%s].",
+      l2_info->slice_input_shape.size(), slice_input_shape_str.c_str(), l2_info->slice_output_shape.size(),
+      slice_output_shape_str.c_str(), l2_info->slice_input_offset.size(), slice_input_offset_str.c_str(),
+      l2_info->slice_output_offset.size(), slice_output_offset_str.c_str());
 }
 }  // namespace fe

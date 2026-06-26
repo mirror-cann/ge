@@ -10,15 +10,14 @@
 # See LICENSE in the root of the software repository for the full text of the License.
 # ----------------------------------------------------------------------------
 import acl
-
 from common import (
+    DEVICE_ID,
     check_ret,
     collect_acl_model_outputs,
     copy_inputs_to_acl_dataset,
     create_sample_inputs,
     prepare_acl_mdl_dataset,
     release_acl_mdl_dataset,
-    DEVICE_ID
 )
 
 
@@ -28,7 +27,6 @@ class AclBundleModelRunner:
         self.device_id = DEVICE_ID
         self.bundle_id = None
         self.model_ids = []
-
 
     @staticmethod
     def run_model(model_id: int, inputs):
@@ -43,7 +41,10 @@ class AclBundleModelRunner:
             input_dataset, input_data = prepare_acl_mdl_dataset(model_desc, "input")
             output_dataset, output_data = prepare_acl_mdl_dataset(model_desc, "output")
             copy_inputs_to_acl_dataset(input_data, inputs)
-            check_ret("acl.mdl.execute", acl.mdl.execute(model_id, input_dataset, output_dataset))
+            check_ret(
+                "acl.mdl.execute",
+                acl.mdl.execute(model_id, input_dataset, output_dataset),
+            )
             return collect_acl_model_outputs(model_desc, output_data)
         finally:
             release_acl_mdl_dataset(input_dataset)

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -17,7 +17,7 @@ TEST_F(TensorUT, ConstructOk) {
   Tensor tensor{{{8, 3, 224, 224}, {16, 3, 224, 224}},       // shape
                 {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
                 kOnDeviceHbm,                                // placement
-                ge::DT_FLOAT16,                              //dt
+                ge::DT_FLOAT16,                              // dt
                 nullptr};
   const Tensor &t = tensor;
 
@@ -37,8 +37,8 @@ TEST_F(TensorUT, ConstructOk) {
 TEST_F(TensorUT, GetDataAddrFollowingOk) {
   Tensor tensor{{{8, 3, 224, 224}, {16, 3, 224, 224}},       // shape
                 {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                kFollowing,                                // placement
-                ge::DT_FLOAT16,                              //dt
+                kFollowing,                                  // placement
+                ge::DT_FLOAT16,                              // dt
                 nullptr};
   const Tensor &t = tensor;
 
@@ -58,8 +58,8 @@ TEST_F(TensorUT, GetDataAddrFollowingOk) {
 TEST_F(TensorUT, GetCopiedDataAddrFollowingOk) {
   Tensor tensor{{{8, 3, 224, 224}, {16, 3, 224, 224}},       // shape
                 {ge::FORMAT_ND, ge::FORMAT_FRACTAL_NZ, {}},  // format
-                kFollowing,                                // placement
-                ge::DT_FLOAT16,                              //dt
+                kFollowing,                                  // placement
+                ge::DT_FLOAT16,                              // dt
                 nullptr};
   Tensor t = {{}, {}, {}, {}, nullptr};
   memcpy(static_cast<void *>(&t), static_cast<void *>(&tensor), sizeof(tensor));
@@ -80,12 +80,12 @@ TEST_F(TensorUT, GetCopiedDataAddrFollowingOk) {
 TEST_F(TensorUT, SetGetShapeOk) {
   Tensor t = {{}, {}, {}, {}, nullptr};
   const Tensor &ct = t;
-  t.MutableOriginShape() = Shape{8,3,224,224};
-  t.MutableStorageShape() = Shape{8,1,224,224,16};
-  EXPECT_EQ(t.GetOriginShape(), Shape({8,3,224,224}));
-  EXPECT_EQ(t.GetStorageShape(), Shape({8,1,224,224,16}));
-  EXPECT_EQ(ct.GetOriginShape(), Shape({8,3,224,224}));
-  EXPECT_EQ(ct.GetStorageShape(), Shape({8,1,224,224,16}));
+  t.MutableOriginShape() = Shape{8, 3, 224, 224};
+  t.MutableStorageShape() = Shape{8, 1, 224, 224, 16};
+  EXPECT_EQ(t.GetOriginShape(), Shape({8, 3, 224, 224}));
+  EXPECT_EQ(t.GetStorageShape(), Shape({8, 1, 224, 224, 16}));
+  EXPECT_EQ(ct.GetOriginShape(), Shape({8, 3, 224, 224}));
+  EXPECT_EQ(ct.GetStorageShape(), Shape({8, 1, 224, 224, 16}));
 }
 
 TEST_F(TensorUT, SetGetFormatOk) {

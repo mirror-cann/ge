@@ -122,7 +122,7 @@ Status NanoDbgData::AddDbgOp(const domi::TaskDef &task_def) {
   (void)AttrUtils::GetListStr(op_desc, ATTR_NAME_DATA_DUMP_ORIGIN_OP_NAMES, dbg_op.original_op_names);
   // no need to care return value of AttrUtils and use default value when return failed
   (void)AttrUtils::GetBool(op_desc, ATTR_NAME_DATA_DUMP_IS_MULTIOP, dbg_op.datadump_is_multiop);
-  const std::string* L1_fusion_sub_graph_no_ptr = AttrUtils::GetStr(op_desc, "_L1_fusion_sub_graph_no");
+  const std::string *L1_fusion_sub_graph_no_ptr = AttrUtils::GetStr(op_desc, "_L1_fusion_sub_graph_no");
   if (L1_fusion_sub_graph_no_ptr != nullptr) {
     dbg_op.L1_fusion_sub_graph_no = *L1_fusion_sub_graph_no_ptr;
   }
@@ -174,22 +174,21 @@ Status NanoDbgData::AddDbgInput(const OpDescPtr &op_desc, NanoDbgOpDesc &dbg_op,
   const bool has_mem_type_attr = ge::AttrUtils::GetListInt(op_desc, ATTR_NAME_INPUT_MEM_TYPE_LIST, v_memory_type);
   const auto &input_descs = op_desc->GetAllInputsDescPtr();
   auto const addrs_type = input_mem_types_.find(static_cast<int64_t>(op_index));
-  GE_ASSERT_TRUE(addrs_type != input_mem_types_.end(),
-                 "op[%s] lost input addr type info", op_desc->GetName().c_str());
+  GE_ASSERT_TRUE(addrs_type != input_mem_types_.end(), "op[%s] lost input addr type info", op_desc->GetName().c_str());
   const std::vector<int64_t> v_input_offset = op_desc->GetInputOffset();
   GELOGD("op[%s] v_input_offset.size=%zu, input_descs.size=%zu, addrs_type size=%zu", op_desc->GetName().c_str(),
          v_input_offset.size(), input_descs.size(), addrs_type->second.size());
   GE_RT_PARAM_INVALID_WITH_LOG_IF_TRUE((has_mem_type_attr && (v_memory_type.size() != input_descs.size())) ||
-                                       (addrs_type->second.size() < input_descs.size()) ||
-                                       (v_input_offset.size() != input_descs.size()),
+                                           (addrs_type->second.size() < input_descs.size()) ||
+                                           (v_input_offset.size() != input_descs.size()),
                                        "[Check][Param] AddDbgInput[%s], input size[%zu], input memory type size[%zu], "
                                        "input addr type size[%zu], v_input_offset size[%zu]",
                                        op_desc->GetName().c_str(), input_descs.size(), v_memory_type.size(),
                                        addrs_type->second.size(), v_input_offset.size());
 
   for (size_t i = 0U; i < input_descs.size(); ++i) {
-    if (has_mem_type_attr && ((v_memory_type[i] == static_cast<int64_t>(RT_MEMORY_L1))
-        || (v_memory_type[i] == static_cast<int64_t>(kRtMemoryUB)))) {
+    if (has_mem_type_attr && ((v_memory_type[i] == static_cast<int64_t>(RT_MEMORY_L1)) ||
+                              (v_memory_type[i] == static_cast<int64_t>(kRtMemoryUB)))) {
       need_generate_op_buffer_ = true;
       GELOGI("[L1Fusion] AddDbgInput[%s] input[%zu] is l1 addr, skip dump", op_desc->GetName().c_str(), i);
       continue;
@@ -230,7 +229,7 @@ Status NanoDbgData::GenDbgOutput(const GeTensorDesc &tensor_desc, NanoDbgOutputD
   GELOGD("Get output size in dump is %ld", output_size);
   dbg_output.size = static_cast<uint64_t>(output_size);
   int32_t origin_output_index = -1;
-  const std::string* origin_name_ptr = AttrUtils::GetStr(tensor_desc, ATTR_NAME_DATA_DUMP_ORIGIN_NAME);
+  const std::string *origin_name_ptr = AttrUtils::GetStr(tensor_desc, ATTR_NAME_DATA_DUMP_ORIGIN_NAME);
   if (origin_name_ptr != nullptr) {
     dbg_output.original_name = *origin_name_ptr;
   }
@@ -257,22 +256,22 @@ Status NanoDbgData::AddDbgOutput(const OpDescPtr &op_desc, NanoDbgOpDesc &dbg_op
   const bool has_mem_type_attr = ge::AttrUtils::GetListInt(op_desc, ATTR_NAME_OUTPUT_MEM_TYPE_LIST, v_memory_type);
   const auto &output_descs = op_desc->GetAllOutputsDescPtr();
   auto const addrs_type = output_mem_types_.find(static_cast<int64_t>(op_index));
-  GE_ASSERT_TRUE(addrs_type != output_mem_types_.end(),
-                 "op[%s] lost output addr type info", op_desc->GetName().c_str());
+  GE_ASSERT_TRUE(addrs_type != output_mem_types_.end(), "op[%s] lost output addr type info",
+                 op_desc->GetName().c_str());
   const std::vector<int64_t> v_output_offset = op_desc->GetOutputOffset();
   GELOGD("op[%s] v_output_offset.size=%zu, output_descs.size=%zu, addrs_type size=%zu", op_desc->GetName().c_str(),
          v_output_offset.size(), output_descs.size(), addrs_type->second.size());
   GE_RT_PARAM_INVALID_WITH_LOG_IF_TRUE((has_mem_type_attr && (v_memory_type.size() != output_descs.size())) ||
-                                       (addrs_type->second.size() < output_descs.size()) ||
-                                       (v_output_offset.size() != output_descs.size()),
+                                           (addrs_type->second.size() < output_descs.size()) ||
+                                           (v_output_offset.size() != output_descs.size()),
                                        "[Check][Param] AddDbgOutput[%s], output size[%zu], output memory type "
                                        "size[%zu], output addr type size[%zu], v_output_offset size[%zu]",
                                        op_desc->GetName().c_str(), output_descs.size(), v_memory_type.size(),
                                        addrs_type->second.size(), v_output_offset.size());
 
   for (size_t i = 0U; i < output_descs.size(); ++i) {
-    if (has_mem_type_attr && ((v_memory_type[i] == static_cast<int64_t>(RT_MEMORY_L1))
-        || (v_memory_type[i] == static_cast<int64_t>(kRtMemoryUB)))) {
+    if (has_mem_type_attr && ((v_memory_type[i] == static_cast<int64_t>(RT_MEMORY_L1)) ||
+                              (v_memory_type[i] == static_cast<int64_t>(kRtMemoryUB)))) {
       need_generate_op_buffer_ = true;
       GELOGI("[L1Fusion] AddDbgOutput[%s] output[%zu] is l1 addr, skip dump", op_desc->GetName().c_str(), i);
       continue;
@@ -375,7 +374,8 @@ void NanoDbgData::GenMemType(const int64_t id, const ge::NodePtr &node) {
     const auto input_desc_ptr = op_desc->GetInputDescPtr(static_cast<uint32_t>(i));
     if ((in_anchor != nullptr) && (input_desc_ptr != nullptr)) {
       if (in_anchor->GetPeerOutAnchor() == nullptr) {
-        GELOGD("GenMemType for node[%s], id[%d], size[%zu] input index[%zu] suspended", node->GetName().c_str(), id, size, i);
+        GELOGD("GenMemType for node[%s], id[%d], size[%zu] input index[%zu] suspended", node->GetName().c_str(), id,
+               size, i);
         input_mem_types_[id].push_back(-1);
         continue;
       }
@@ -390,7 +390,8 @@ void NanoDbgData::GenMemType(const int64_t id, const ge::NodePtr &node) {
     const auto output_desc_ptr = op_desc->GetOutputDescPtr(static_cast<uint32_t>(i));
     if ((out_anchor != nullptr) && (output_desc_ptr != nullptr)) {
       if (out_anchor->GetPeerInDataAnchorsPtr().empty()) {
-        GELOGD("GenMemType for node[%s], id[%d], size[%zu] output index[%zu] suspended", node->GetName().c_str(), id, size, i);
+        GELOGD("GenMemType for node[%s], id[%d], size[%zu] output index[%zu] suspended", node->GetName().c_str(), id,
+               size, i);
         output_mem_types_[id].push_back(-1);
         continue;
       }
@@ -406,8 +407,8 @@ void NanoDbgData::GenMemType(const int64_t id, const ge::NodePtr &node) {
   }
 }
 
-void NanoDbgData::SaveMemType(std::map<int64_t, std::vector<int32_t>> &mem_types,
-                              const int64_t id, const ge::NodePtr &node) const {
+void NanoDbgData::SaveMemType(std::map<int64_t, std::vector<int32_t>> &mem_types, const int64_t id,
+                              const ge::NodePtr &node) const {
   if (kIoNodeTypes.count(node->GetType()) > 0U) {
     mem_types[id].push_back(toolkit::aicpu::dump::AddressType::NANO_IO_ADDR);  // NANO_IO_ADDR
   } else if (kWeightNodeTypes.count(node->GetType()) > 0U) {

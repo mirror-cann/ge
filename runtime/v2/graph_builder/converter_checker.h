@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -45,19 +45,19 @@ HyperStatus CheckFFTSStaLowerInput(const FFTSLowerInput &lower_input);
     }                                                               \
   } while (0)
 
-#define LOWER_REQUIRE(exp, ...)                                  \
-  do {                                                           \
-    if (!(exp)) {                                                \
-      auto msg = CreateErrorMsg(__VA_ARGS__);                    \
-      if (msg.empty()) {                                         \
-        REPORT_INNER_ERR_MSG("E19999", "Assert %s failed", #exp);  \
-        GELOGE(ge::FAILED, "Assert %s failed", #exp);            \
-        return CreateErrorLowerResult("Assert %s failed", #exp); \
-      }                                                          \
-      REPORT_INNER_ERR_MSG("E19999", "%s", msg.data());            \
-      GELOGE(ge::FAILED, "%s", msg.data());                      \
-      return CreateErrorLowerResult(msg.data());                 \
-    }                                                            \
+#define LOWER_REQUIRE(exp, ...)                                   \
+  do {                                                            \
+    if (!(exp)) {                                                 \
+      auto msg = CreateErrorMsg(__VA_ARGS__);                     \
+      if (msg.empty()) {                                          \
+        REPORT_INNER_ERR_MSG("E19999", "Assert %s failed", #exp); \
+        GELOGE(ge::FAILED, "Assert %s failed", #exp);             \
+        return CreateErrorLowerResult("Assert %s failed", #exp);  \
+      }                                                           \
+      REPORT_INNER_ERR_MSG("E19999", "%s", msg.data());           \
+      GELOGE(ge::FAILED, "%s", msg.data());                       \
+      return CreateErrorLowerResult(msg.data());                  \
+    }                                                             \
   } while (false)
 
 #define LOWER_REQUIRE_NOTNULL(v, ...) LOWER_REQUIRE(((v) != nullptr), __VA_ARGS__)
@@ -80,11 +80,11 @@ HyperStatus CheckFFTSStaLowerInput(const FFTSLowerInput &lower_input);
     }                                 \
   } while (false)
 
-#define RET_ERR_RET_IF(ctx, msg)        \
-  do {                                \
-    if (ctx) {                        \
-      return {HyperStatus::ErrorStatus(msg), {}, {}, {}};    \
-    }                                 \
+#define RET_ERR_RET_IF(ctx, msg)                          \
+  do {                                                    \
+    if (ctx) {                                            \
+      return {HyperStatus::ErrorStatus(msg), {}, {}, {}}; \
+    }                                                     \
   } while (false)
 }  // namespace gert
 #endif  // AIR_CXX_RUNTIME_V2_NODE_CONVERTER_CONVERTER_CHECKER_H_

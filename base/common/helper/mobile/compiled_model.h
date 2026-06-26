@@ -31,55 +31,48 @@ class CompiledModel;
 using CompiledModelPtr = std::shared_ptr<CompiledModel>;
 
 class CompiledModel {
-public:
-    CompiledModel() = default;
-    ~CompiledModel() = default;
+ public:
+  CompiledModel() = default;
+  ~CompiledModel() = default;
 
-    CompiledModel(CompiledModel const&) = delete;
-    CompiledModel& operator=(CompiledModel const&) = delete;
+  CompiledModel(CompiledModel const &) = delete;
+  CompiledModel &operator=(CompiledModel const &) = delete;
 
-    Status SaveToBuffer(
-        ge::BaseBuffer& buffer,
-        bool save_weights_as_external_data = false,
-        std::map<std::string, ge::BaseBuffer>* weights_list_external = nullptr);
+  Status SaveToBuffer(ge::BaseBuffer &buffer, bool save_weights_as_external_data = false,
+                      std::map<std::string, ge::BaseBuffer> *weights_list_external = nullptr);
 
-    inline void SetGeModel(ge::GeModelPtr ge_model)
-    {
-        ge_model_ = ge_model;
-    }
+  inline void SetGeModel(ge::GeModelPtr ge_model) {
+    ge_model_ = ge_model;
+  }
 
-    inline void SetWeightsList(const std::vector<ge::BaseBuffer>& weights_list)
-    {
-        weights_list_ = weights_list;
-    }
+  inline void SetWeightsList(const std::vector<ge::BaseBuffer> &weights_list) {
+    weights_list_ = weights_list;
+  }
 
-    inline void AddWeight(const ge::BaseBuffer &weight_buffer)
-    {
-        weights_list_.push_back(weight_buffer);
-    }
+  inline void AddWeight(const ge::BaseBuffer &weight_buffer) {
+    weights_list_.push_back(weight_buffer);
+  }
 
-    inline void SetCompiledTargets(const std::vector<ge::CompiledTargetPtr>& compiled_targets)
-    {
-        compiled_targets_ = compiled_targets;
-    }
+  inline void SetCompiledTargets(const std::vector<ge::CompiledTargetPtr> &compiled_targets) {
+    compiled_targets_ = compiled_targets;
+  }
 
-    inline void AddCompiledTarget(ge::CompiledTargetPtr compiled_targets)
-    {
-        compiled_targets_.push_back(compiled_targets);
-    }
+  inline void AddCompiledTarget(ge::CompiledTargetPtr compiled_targets) {
+    compiled_targets_.push_back(compiled_targets);
+  }
 
-private:
-    Status GetCompiledTargetsBuffer(std::vector<ge::BaseBuffer>& all_targets_buffer);
+ private:
+  Status GetCompiledTargetsBuffer(std::vector<ge::BaseBuffer> &all_targets_buffer);
 
-private:
-    ge::GeModelPtr ge_model_;
-    std::vector<ge::BaseBuffer> weights_list_;
-    std::vector<ge::CompiledTargetPtr> compiled_targets_;
-    ge::mobile::proto::ModelDef mobile_model_def_;
-    std::vector<std::vector<uint8_t>> compiled_targets_buffer_;
-    ge::ModelBufferSaver saver_;
+ private:
+  ge::GeModelPtr ge_model_;
+  std::vector<ge::BaseBuffer> weights_list_;
+  std::vector<ge::CompiledTargetPtr> compiled_targets_;
+  ge::mobile::proto::ModelDef mobile_model_def_;
+  std::vector<std::vector<uint8_t>> compiled_targets_buffer_;
+  ge::ModelBufferSaver saver_;
 };
 
-} // namespace ge
+}  // namespace ge
 
-#endif // BASE_COMMON_HELPER_MOBILE_COMPILED_MODEL_H
+#endif  // BASE_COMMON_HELPER_MOBILE_COMPILED_MODEL_H

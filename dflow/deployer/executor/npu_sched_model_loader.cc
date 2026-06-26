@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,7 +24,7 @@ namespace {
 constexpr int32_t kDefaultStreamPriority = 0;
 constexpr uint32_t kMsgQueueDefaultDepth = 2U;
 constexpr uint32_t kMsgQueueCtrlDropTimeout = 30U * 60U * 1000U;  // 30 min
-}
+}  // namespace
 
 void NpuSchedModelLoader::SetModelId(const uint32_t model_id) {
   model_id_ = model_id;
@@ -51,7 +51,7 @@ void NpuSchedModelLoader::SetInputDynamicFlags(const std::vector<bool> &input_dy
 }
 
 void NpuSchedModelLoader::SetEnablePostProcessV2Flag(const bool enable) {
-   enable_post_process_v2_ = enable; 
+  enable_post_process_v2_ = enable;
 }
 
 void NpuSchedModelLoader::SetSkipMarkStep(bool skip_mark_step) {
@@ -74,7 +74,6 @@ void NpuSchedModelLoader::SetOutputStaticTensorDescs(const std::vector<RuntimeTe
 void NpuSchedModelLoader::SetGlobalStep(const uint64_t global_step) {
   global_step_ = global_step;
 }
-
 
 Status NpuSchedModelLoader::CreateMsgQueues() {
   // create msg queues
@@ -108,8 +107,8 @@ Status NpuSchedModelLoader::CreateQueue(const int32_t device_id, const std::stri
   attr.overWriteFlag = false;
   attr.deployType = RT_MQ_CLIENT_QUEUE_DEPLOY;
   // actually this won't fail, length was checked
-  GE_ASSERT_EOK(strcpy_s(attr.name, sizeof(attr.name), name.c_str()),
-                "Fail to copy queue name, name = %s.", name.c_str());
+  GE_ASSERT_EOK(strcpy_s(attr.name, sizeof(attr.name), name.c_str()), "Fail to copy queue name, name = %s.",
+                name.c_str());
   GE_CHK_RT_RET(rtMemQueueCreate(device_id, &attr, &queue_id));
   GELOGD("Success to create queue, device id = %d, queue name = %s, depth = %u, queue_id = %u, deploy type = %u.",
          device_id, name.c_str(), attr.depth, queue_id, attr.deployType);
@@ -156,10 +155,14 @@ Status NpuSchedModelLoader::LoadModel(const ModelQueueParam &model_queue_param, 
   GE_CHK_STATUS_RET(SetModelConfig(), "Fail to set model config, model_id:%u, runtime_model_id:%u.", model_id_,
                     runtime_model_id_);
   // create aicpu entry stream and next stream
-  DF_CHK_ACL_RET(aclrtCreateStreamWithConfig(&rt_entry_stream_, kDefaultStreamPriority, ACL_STREAM_CPU_SCHEDULE | ACL_STREAM_PERSISTENT));
-  DF_CHK_ACL_RET(aclmdlRIBindStream(rt_model_handle_, rt_entry_stream_, static_cast<uint32_t>(ACL_MODEL_STREAM_FLAG_HEAD)));
-  DF_CHK_ACL_RET(aclrtCreateStreamWithConfig(&rt_next_stream_, kDefaultStreamPriority, ACL_STREAM_CPU_SCHEDULE | ACL_STREAM_PERSISTENT));
-  DF_CHK_ACL_RET(aclmdlRIBindStream(rt_model_handle_, rt_next_stream_, static_cast<uint32_t>(ACL_MODEL_STREAM_FLAG_DEFAULT)));
+  DF_CHK_ACL_RET(aclrtCreateStreamWithConfig(&rt_entry_stream_, kDefaultStreamPriority,
+                                             ACL_STREAM_CPU_SCHEDULE | ACL_STREAM_PERSISTENT));
+  DF_CHK_ACL_RET(
+      aclmdlRIBindStream(rt_model_handle_, rt_entry_stream_, static_cast<uint32_t>(ACL_MODEL_STREAM_FLAG_HEAD)));
+  DF_CHK_ACL_RET(aclrtCreateStreamWithConfig(&rt_next_stream_, kDefaultStreamPriority,
+                                             ACL_STREAM_CPU_SCHEDULE | ACL_STREAM_PERSISTENT));
+  DF_CHK_ACL_RET(
+      aclmdlRIBindStream(rt_model_handle_, rt_next_stream_, static_cast<uint32_t>(ACL_MODEL_STREAM_FLAG_DEFAULT)));
   // create tasks on entry stream and next stream
   GE_CHK_STATUS_RET(CreateSchedTasks(), "Fail to create sched tasks for model:%u.", model_id_);
   // distribute tasks
@@ -230,7 +233,8 @@ Status NpuSchedModelLoader::DistributeTasks() const {
 
 Status NpuSchedModelLoader::DistributeEndGraph() {
   DF_CHK_ACL_RET(aclrtCreateStreamWithConfig(&rt_fake_stream_, kDefaultStreamPriority, ACL_STREAM_PERSISTENT));
-  DF_CHK_ACL_RET(aclmdlRIBindStream(rt_model_handle_, rt_fake_stream_, static_cast<uint32_t>(ACL_MODEL_STREAM_FLAG_DEFAULT)));
+  DF_CHK_ACL_RET(
+      aclmdlRIBindStream(rt_model_handle_, rt_fake_stream_, static_cast<uint32_t>(ACL_MODEL_STREAM_FLAG_DEFAULT)));
   DF_CHK_ACL_RET(aclmdlRIEndTask(rt_model_handle_, rt_fake_stream_));
   return SUCCESS;
 }
@@ -256,12 +260,12 @@ Status NpuSchedModelLoader::BindInputQueue(const aclrtStream stream) {
   std::vector<uint64_t> unique_input_mbuf_addrs;
   if ((input_align_attrs_.align_max_cache_num != 0U) && (model_queue_param_.input_queues_attrs.size() > 1UL)) {
     GELOGI("Add gather dequeue task result of input_align_attrs_ is set.");
-    GE_CHK_STATUS_RET(CreateModelGatherDequeueTask(stream, model_queue_param_.input_queues_attrs,
-                                                   unique_input_mbuf_addrs),
-                      "Fail to add model gather dequeue task, model_id:%u.", model_id_);
+    GE_CHK_STATUS_RET(
+        CreateModelGatherDequeueTask(stream, model_queue_param_.input_queues_attrs, unique_input_mbuf_addrs),
+        "Fail to add model gather dequeue task, model_id:%u.", model_id_);
   } else {
-    GE_CHK_STATUS_RET(CreateModelBatchDequeueTask(stream, unique_input_queue_ids, align_interval_,
-                                                  unique_align_offsets, unique_input_mbuf_addrs),
+    GE_CHK_STATUS_RET(CreateModelBatchDequeueTask(stream, unique_input_queue_ids, align_interval_, unique_align_offsets,
+                                                  unique_input_mbuf_addrs),
                       "Fail to add model batch dequeue task, model_id:%u.", model_id_);
   }
 
@@ -317,9 +321,9 @@ Status NpuSchedModelLoader::UpdateFusionInputsMbufAddr(const std::vector<uint64_
 Status NpuSchedModelLoader::CreatePrepareDynamicInputOutputTask(const aclrtStream stream) {
   const auto task = MakeShared<SchedTaskPrepareDynamicInputOutput>(stream);
   GE_CHECK_NOTNULL(task);
-  GE_CHK_STATUS_RET_NOLOG(task->Init(input_dynamic_flags_, input_mbuf_addrs_,
-                                     model_queue_param_.input_fusion_offsets, output_tensor_sizes_,
-                                     output_mbuf_addrs_, req_msg_mbuf_addr_, enable_post_process_v2_));
+  GE_CHK_STATUS_RET_NOLOG(task->Init(input_dynamic_flags_, input_mbuf_addrs_, model_queue_param_.input_fusion_offsets,
+                                     output_tensor_sizes_, output_mbuf_addrs_, req_msg_mbuf_addr_,
+                                     enable_post_process_v2_));
   sched_tasks_.push_back(task);
   return SUCCESS;
 }
@@ -371,8 +375,7 @@ Status NpuSchedModelLoader::CreateZeroCopyTask(const aclrtStream stream, const s
   return SUCCESS;
 }
 
-Status NpuSchedModelLoader::CreateDequeueTask(const aclrtStream stream, const uint32_t queue_id,
-                                              uint64_t &mbuf_addr) {
+Status NpuSchedModelLoader::CreateDequeueTask(const aclrtStream stream, const uint32_t queue_id, uint64_t &mbuf_addr) {
   const auto task = MakeShared<SchedTaskModelDequeue>(stream);
   GE_CHECK_NOTNULL(task);
   GE_CHK_STATUS_RET_NOLOG(task->Init(queue_id, mbuf_addr));
@@ -424,8 +427,8 @@ Status NpuSchedModelLoader::UnloadModel() {
   // check rt ctx is exist
   aclrtContext current_ctx = nullptr;
   if (aclrtGetCurrentContext(&current_ctx) == ACL_ERROR_NONE) {
-    (void) UnbindStreams();
-    (void) ReleaseTasks();
+    (void)UnbindStreams();
+    (void)ReleaseTasks();
     // destroy model
     if (rt_model_handle_ != nullptr) {
       DF_CHK_ACL(aclmdlRIDestroy(rt_model_handle_));
@@ -433,8 +436,8 @@ Status NpuSchedModelLoader::UnloadModel() {
     }
   }
 
-  (void) DestroyQueue(device_id_, req_msg_queue_id_);
-  (void) DestroyQueue(device_id_, resp_msg_queue_id_);
+  (void)DestroyQueue(device_id_, req_msg_queue_id_);
+  (void)DestroyQueue(device_id_, resp_msg_queue_id_);
   GELOGD("Success to unload model, model_id = %u, runtime_model_id = %u.", model_id_, runtime_model_id_);
   return SUCCESS;
 }
@@ -464,11 +467,11 @@ Status NpuSchedModelLoader::UnbindStreams() {
 Status NpuSchedModelLoader::ReleaseTasks() {
   for (const auto &task : sched_tasks_) {
     if (task != nullptr) {
-      GE_CHK_STATUS(task->Release(), "Fail to release task, model_id:%u, runtime_model_id:%u.",
-                    model_id_, runtime_model_id_);
+      GE_CHK_STATUS(task->Release(), "Fail to release task, model_id:%u, runtime_model_id:%u.", model_id_,
+                    runtime_model_id_);
     }
   }
   sched_tasks_.clear();
   return SUCCESS;
 }
-}
+}  // namespace ge

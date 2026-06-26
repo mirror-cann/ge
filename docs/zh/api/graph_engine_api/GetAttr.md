@@ -100,4 +100,3 @@ int64_t int_attr_get{};
 av_get.GetAttrValue(int_attr_get);
 ASSERT_EQ(int_attr_get, 100);
 ```
-

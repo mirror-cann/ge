@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -37,13 +37,11 @@ void SetOutReuseInput(ComputeGraphPtr &root_graph, const std::string &node_name)
     }
   }
 }
-}
+}  // namespace
 class UtestHybridMemAssigner : public testing::Test {
  protected:
-  void SetUp() {
-  }
-  void TearDown() {
-  }
+  void SetUp() {}
+  void TearDown() {}
 };
 
 TEST_F(UtestHybridMemAssigner, GetAnchorToSymbol_Success) {
@@ -205,16 +203,16 @@ TEST_F(UtestHybridMemAssigner, ProcessInplace_one_input_Success) {
   // 符号表合并之后会少一个符号
   ASSERT_TRUE(hybridMemAssigner.GetSymbolToAnchors().size() == before_inplace_size - 1);
   // inplace的符号已经被删除
-  ASSERT_TRUE(hybridMemAssigner.GetSymbolToAnchors().find(inplace_info.ToString())
-              == hybridMemAssigner.GetSymbolToAnchors().end());
-  ASSERT_TRUE(hybridMemAssigner.GetSymbolToAnchors().find(data_info.ToString())
-              != hybridMemAssigner.GetSymbolToAnchors().end());
+  ASSERT_TRUE(hybridMemAssigner.GetSymbolToAnchors().find(inplace_info.ToString()) ==
+              hybridMemAssigner.GetSymbolToAnchors().end());
+  ASSERT_TRUE(hybridMemAssigner.GetSymbolToAnchors().find(data_info.ToString()) !=
+              hybridMemAssigner.GetSymbolToAnchors().end());
   ASSERT_TRUE(anchors_after_inplace.size() == anchors_before_inplace.size() + 2U);
   (void)TensorUtils::GetReuseInput(op_desc->GetOutputDesc(0), reuse_flag);
   ASSERT_TRUE(reuse_flag);
   uint32_t idx = 0U;
   (void)TensorUtils::GetReuseInputIndex(op_desc->GetOutputDesc(0), idx);
-  ASSERT_TRUE(idx == 0U); // 0表示复用第一个输入
+  ASSERT_TRUE(idx == 0U);  // 0表示复用第一个输入
 }
 
 /*
@@ -261,14 +259,14 @@ TEST_F(UtestHybridMemAssigner, ProcessInplace_two_nodes_Success) {
   auto symbol_to_anchors_after_inplace = hybridMemAssigner.GetSymbolToAnchors();
   auto anchors_after_inplace = symbol_to_anchors_after_inplace[data_info.ToString()];
   ASSERT_TRUE(hybridMemAssigner.GetSymbolToAnchors().size() == before_inplace_size - 1);
-  ASSERT_TRUE(hybridMemAssigner.GetSymbolToAnchors().find(inplace_info.ToString())
-              == hybridMemAssigner.GetSymbolToAnchors().end());
-  ASSERT_TRUE(hybridMemAssigner.GetSymbolToAnchors().find(data_info.ToString())
-              != hybridMemAssigner.GetSymbolToAnchors().end());
+  ASSERT_TRUE(hybridMemAssigner.GetSymbolToAnchors().find(inplace_info.ToString()) ==
+              hybridMemAssigner.GetSymbolToAnchors().end());
+  ASSERT_TRUE(hybridMemAssigner.GetSymbolToAnchors().find(data_info.ToString()) !=
+              hybridMemAssigner.GetSymbolToAnchors().end());
   ASSERT_TRUE(anchors_after_inplace.size() == anchors_before_inplace.size() + 2U);
   uint32_t idx = 0U;
   (void)TensorUtils::GetReuseInputIndex(op_desc->GetOutputDesc(0), idx);
-  ASSERT_TRUE(idx == 1U); // 1表示复用第一个输入
+  ASSERT_TRUE(idx == 1U);  // 1表示复用第一个输入
 }
 
 /*
@@ -287,7 +285,8 @@ TEST_F(UtestHybridMemAssigner, ProcessInplace_two_nodes_Success) {
                    │        │  (0,1)   ┌────────┐
                    │        │ <─────── │ data1  │
                    └────────┘          └────────┘
-* add0的输出可以复用mg和data2的输出, 但是mg的所有输出之中，add0的topoid不是最大，所以不能复用，data2的输出不可写，所以不能复用
+* add0的输出可以复用mg和data2的输出,
+但是mg的所有输出之中，add0的topoid不是最大，所以不能复用，data2的输出不可写，所以不能复用
 * 最终是不会进行inplace
 */
 TEST_F(UtestHybridMemAssigner, ProcessInplace_can_not_inplace) {
@@ -468,14 +467,14 @@ TEST_F(UtestHybridMemAssigner, ProcessInplace_three_add_nodes_Success) {
   auto symbol_to_anchors_after_inplace = hybridMemAssigner.GetSymbolToAnchors();
   auto anchors_after_inplace = symbol_to_anchors_after_inplace[data_info.ToString()];
   ASSERT_TRUE(hybridMemAssigner.GetSymbolToAnchors().size() == before_inplace_size - 1);
-  ASSERT_TRUE(hybridMemAssigner.GetSymbolToAnchors().find(inplace_info.ToString())
-              == hybridMemAssigner.GetSymbolToAnchors().end());
-  ASSERT_TRUE(hybridMemAssigner.GetSymbolToAnchors().find(data_info.ToString())
-              != hybridMemAssigner.GetSymbolToAnchors().end());
+  ASSERT_TRUE(hybridMemAssigner.GetSymbolToAnchors().find(inplace_info.ToString()) ==
+              hybridMemAssigner.GetSymbolToAnchors().end());
+  ASSERT_TRUE(hybridMemAssigner.GetSymbolToAnchors().find(data_info.ToString()) !=
+              hybridMemAssigner.GetSymbolToAnchors().end());
   ASSERT_TRUE(anchors_after_inplace.size() == anchors_before_inplace.size() + 2U);
   uint32_t idx = 0U;
   (void)TensorUtils::GetReuseInputIndex(op_desc->GetOutputDesc(0), idx);
-  ASSERT_TRUE(idx == 0U); // 1表示复用第一个输入
+  ASSERT_TRUE(idx == 0U);  // 1表示复用第一个输入
 }
 
 TEST_F(UtestHybridMemAssigner, ReuseCheckerInit_Failed_ReuseCheckerNull) {
@@ -483,10 +482,10 @@ TEST_F(UtestHybridMemAssigner, ReuseCheckerInit_Failed_ReuseCheckerNull) {
   graph->TopologicalSorting();
   auto add1 = graph->FindNode("add1");
   ASSERT_NE(add1, nullptr);
-  add1->GetOpDescBarePtr()->SetId(100); // dependency_analyzer init will failed
+  add1->GetOpDescBarePtr()->SetId(100);  // dependency_analyzer init will failed
 
   HybridMemAssigner assigner(graph);
   ASSERT_TRUE(assigner.Assign() == SUCCESS);
   EXPECT_EQ(assigner.GetReuseChecker(), nullptr);
 }
-} // namespace ge
+}  // namespace ge

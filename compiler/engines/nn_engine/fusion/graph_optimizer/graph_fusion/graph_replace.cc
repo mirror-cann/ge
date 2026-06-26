@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -55,7 +55,8 @@ bool InferShape(const ge::NodePtr &node) {
 
   FE_LOGI("node %s: start to InferOriginFormat.", node->GetName().c_str());
   if (ge::NodeUtilsEx::InferOriginFormat(node) != ge::SUCCESS) {
-    REPORT_FE_ERROR("[GraphOpt][RunFusionRule][InferShape] node[%s] failed to InferOriginFormat", node->GetName().c_str());
+    REPORT_FE_ERROR("[GraphOpt][RunFusionRule][InferShape] node[%s] failed to InferOriginFormat",
+                    node->GetName().c_str());
     return false;
   }
   return true;
@@ -94,7 +95,7 @@ bool UpdateSingleFusedNode(const ge::NodePtr &node, const map<ge::NodePtr, Fusio
   }
   return true;
 }
-} // namespace
+}  // namespace
 
 const string NEED_INFER = "isNeedInfer";
 GraphReplace::GraphReplace(shared_ptr<ge::OpsKernelInfoStore> ops_kernel_info_store_ptr)
@@ -118,7 +119,8 @@ Status GraphReplace::ReplaceGraph(vector<GraphMatchResult> &match_results, const
     Status ret = CreateFusionNodes(fusion_rule_pattern, match_result.origin_nodes, fusion_graph, graph);
     if (ret != SUCCESS) {
       REPORT_FE_ERROR(
-          "[GraphOpt][RunFusionRule][RplGph] Failed to create fusion sub_graph for fusion rule name: %s, at sub_graph number: %zu.",
+          "[GraphOpt][RunFusionRule][RplGph] Failed to create fusion sub_graph for fusion rule name: %s, at sub_graph "
+          "number: %zu.",
           fusion_rule_pattern.GetRuleName().c_str(), (i + 1));
       return ret;
     }
@@ -134,7 +136,8 @@ Status GraphReplace::ReplaceGraph(vector<GraphMatchResult> &match_results, const
     ret = UpdateSpecialAttr(match_result.origin_nodes, fusion_graph);
     if (ret != SUCCESS) {
       REPORT_FE_ERROR(
-          "[GraphOpt][RunFusionRule][RplGph] Failed to update the special attribute value for sub_graph No.%zu by rule [%s].",
+          "[GraphOpt][RunFusionRule][RplGph] Failed to update the special attribute value for sub_graph No.%zu by rule "
+          "[%s].",
           (i + 1), fusion_rule_pattern.GetRuleName().c_str());
       return ret;
     }
@@ -247,8 +250,7 @@ Status GraphReplace::UpdateMatchedOuterAnchor(GraphMatchResult &match_result, st
 
 Status GraphReplace::CreateFusionNodes(const FusionRulePattern &fusion_rule_pattern,
                                        const FusionRuleNodeMapping &origin_sub_graph,
-                                       FusionRuleNodeMapping &fusion_graph,
-                                       ge::ComputeGraph &graph) const {
+                                       FusionRuleNodeMapping &fusion_graph, ge::ComputeGraph &graph) const {
   NodeMapInfoPtr node_map_info = nullptr;
   (void)GraphPassUtil::GetOpTypeMapToGraph(node_map_info, graph);
   const set<FusionRuleNodePtr> &fusion_rule_node_set = fusion_rule_pattern.GetFusionRuleNodes();
@@ -274,8 +276,7 @@ Status GraphReplace::CreateFusionNodes(const FusionRulePattern &fusion_rule_patt
         op_desc->AddOutputDesc(tensor_desc);
       }
       node = graph.AddNode(op_desc);
-      FE_CHECK(node == nullptr,
-               REPORT_FE_ERROR("[GraphOpt][RunFusionRule][Replace] Failed to create fusion node."),
+      FE_CHECK(node == nullptr, REPORT_FE_ERROR("[GraphOpt][RunFusionRule][Replace] Failed to create fusion node."),
                return GRAPH_REPLACE_CREATE_FUSION_NODES_FAILED);
 
       fusion_graph[fusion_rule_node] = node;
@@ -379,16 +380,14 @@ Status GraphReplace::UpdateAttr(const FusionRuleNodeMapping &origin_sub_graph,
   return SUCCESS;
 }
 
-void GraphReplace::RecordFusionNodes(FusionRuleNodeMapping &fusion_graph,
-                                     GraphMatchResult &match_result) const {
+void GraphReplace::RecordFusionNodes(FusionRuleNodeMapping &fusion_graph, GraphMatchResult &match_result) const {
   FusionRuleNodeMapping::const_iterator it;
   for (it = fusion_graph.cbegin(); it != fusion_graph.cend(); it++) {
     match_result.fusion_nodes.push_back(it->second);
   }
 }
 
-Status GraphReplace::Replace(GraphMatchResult &match_result,
-                             const FusionRuleNodeMapping &fusion_sub_graph,
+Status GraphReplace::Replace(GraphMatchResult &match_result, const FusionRuleNodeMapping &fusion_sub_graph,
                              const FusionRulePattern &fusion_rule_pattern, ge::ComputeGraph &graph) const {
   if (DeleteNodes(match_result.origin_nodes, fusion_rule_pattern.GetOriginRuleNodes(), graph) == FAILED) {
     REPORT_FE_ERROR("[GraphOpt][RunFusionRule][Replace] remove pre-fusion nodes error");
@@ -504,13 +503,15 @@ ge::NodePtr GraphReplace::CreateNode(const FusionRuleNodePtr fusion_rule_node, c
   ge::OpDescPtr op_desc = ge::AttrUtils::CopyOpDesc(temp_opdesc);
   for (size_t i = op_desc->GetInputsSize(); i < in_anchor_num; ++i) {
     if (op_desc->AddInputDesc(tensor_desc) != ge::SUCCESS) {
-      REPORT_FE_ERROR("[GraphOpt][RunFusionRule][CrtNd] Failed to add input description for node [%s].", node_name.c_str());
+      REPORT_FE_ERROR("[GraphOpt][RunFusionRule][CrtNd] Failed to add input description for node [%s].",
+                      node_name.c_str());
       return nullptr;
     }
   }
   for (size_t i = op_desc->GetOutputsSize(); i < out_anchor_num; ++i) {
     if (op_desc->AddOutputDesc(tensor_desc) != ge::SUCCESS) {
-      REPORT_FE_ERROR("[GraphOpt][RunFusionRule][CrtNd] Failed to add output description for node [%s].", node_name.c_str());
+      REPORT_FE_ERROR("[GraphOpt][RunFusionRule][CrtNd] Failed to add output description for node [%s].",
+                      node_name.c_str());
       return nullptr;
     }
   }
@@ -558,8 +559,8 @@ ge::NodePtr GraphReplace::FindSameNode(const FusionRuleNodePtr fusion_rule_node,
   }
   return nullptr;
 }
-Status GraphReplace::DeleteNodes(const FusionRuleNodeMapping &nodes,
-                                 const set<FusionRuleNodePtr> &rule_nodes, ge::ComputeGraph &graph) const {
+Status GraphReplace::DeleteNodes(const FusionRuleNodeMapping &nodes, const set<FusionRuleNodePtr> &rule_nodes,
+                                 ge::ComputeGraph &graph) const {
   NodeMapInfoPtr node_map_info = nullptr;
   (void)GraphPassUtil::GetOpTypeMapToGraph(node_map_info, graph);
 
@@ -632,8 +633,9 @@ Status GraphReplace::ReplaceInputCtrlAnchors(const FusionRuleNodePtr &rule_node,
       peer_node = fusion_sub_graph.at(peer_rule_node);
       src_anchor = peer_node->GetOutControlAnchor();
       if (ge::GraphUtils::AddEdge(src_anchor, dst_anchor) == ge::GRAPH_FAILED) {
-        REPORT_FE_ERROR("[GraphOpt][RunFusionRule][RplInCtrlAncr] Failed to add control edge from node [%s] to node [%s]",
-                        peer_node->GetName().c_str(), fusion_node->GetName().c_str());
+        REPORT_FE_ERROR(
+            "[GraphOpt][RunFusionRule][RplInCtrlAncr] Failed to add control edge from node [%s] to node [%s]",
+            peer_node->GetName().c_str(), fusion_node->GetName().c_str());
         return FAILED;
       }
     } else if (!outer_inputs.empty() && fusion_sub_graph.find(peer_rule_node) == fusion_sub_graph.end()) {
@@ -835,8 +837,7 @@ Status GraphReplace::LinkOuterOutputEdges(ge::AnchorPtr src_anchor, const set<ge
   return SUCCESS;
 }
 
-Status GraphReplace::CheckFusionNode(GraphMatchResult &match_result,
-                                     const FusionRuleNodeMapping &fusion_nodes) {
+Status GraphReplace::CheckFusionNode(GraphMatchResult &match_result, const FusionRuleNodeMapping &fusion_nodes) {
   vector<ge::NodePtr> sort_nodes;
   if (!LinkFusionNode(fusion_nodes)) {
     REPORT_FE_ERROR("[GraphOpt][RunFusionRule][ChkFusNd] Failed to link edges between fusion nodes");
@@ -1063,9 +1064,8 @@ bool GraphReplace::CheckShape(ge::OutDataAnchorPtr out_anchor, ge::InDataAnchorP
   auto &output_shape = output_desc_ptr->MutableShape();
   auto &input_shape = input_desc_ptr->MutableShape();
   if (output_shape.GetDims() != input_shape.GetDims()) {
-    FE_LOGW("node [%s] output[%d] should be equal with node[%s] input [%d].",
-            node->GetName().c_str(), out_anchor->GetIdx(), peer_node->GetName().c_str(),
-            peer_in_anchor->GetIdx());
+    FE_LOGW("node [%s] output[%d] should be equal with node[%s] input [%d].", node->GetName().c_str(),
+            out_anchor->GetIdx(), peer_node->GetName().c_str(), peer_in_anchor->GetIdx());
     return false;
   }
   return true;

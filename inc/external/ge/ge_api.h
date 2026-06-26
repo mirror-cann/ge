@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -135,8 +135,7 @@ class GE_FUNC_VISIBILITY Session {
      方案约束：只用于加载已经完成CompileGraph的图，不支持重复加载图，
      使用方法：CompileGraph + LoadGraph + ExecuteGraphWithStreamAsync
   */
-  Status LoadGraph(const uint32_t graph_id, const std::map<AscendString, AscendString> &options,
-                   void *stream) const;
+  Status LoadGraph(const uint32_t graph_id, const std::map<AscendString, AscendString> &options, void *stream) const;
 
   ///
   /// @ingroup ge_graph
@@ -161,7 +160,7 @@ class GE_FUNC_VISIBILITY Session {
                                  std::vector<Tensor> &outputs);
 
   Status ExecuteGraphWithStreamAsync(uint32_t graph_id, void *stream, const std::vector<gert::Tensor> &inputs,
-                                 std::vector<gert::Tensor> &outputs);
+                                     std::vector<gert::Tensor> &outputs);
 
   ///
   /// @ingroup ge_graph
@@ -172,7 +171,7 @@ class GE_FUNC_VISIBILITY Session {
   ///
   Status BuildGraph(uint32_t graph_id, const std::vector<InputTensorInfo> &inputs);
 
-  Status BuildGraph(uint32_t graph_id, const std::vector<ge::Tensor> &inputs);  /*lint !e148*/
+  Status BuildGraph(uint32_t graph_id, const std::vector<ge::Tensor> &inputs); /*lint !e148*/
 
   ///
   /// @ingroup ge_graph
@@ -308,8 +307,8 @@ class GE_FUNC_VISIBILITY Session {
   /// @param [out] outputs output data
   /// @param [in] timeout data fetch timeout(ms), -1 means never timeout
   /// @return Status result of function
-  Status FetchDataFlowGraph(uint32_t graph_id, const std::vector<uint32_t> &indexes,
-                            std::vector<FlowMsgPtr> &outputs, int32_t timeout);
+  Status FetchDataFlowGraph(uint32_t graph_id, const std::vector<uint32_t> &indexes, std::vector<FlowMsgPtr> &outputs,
+                            int32_t timeout);
 
   /// @ingroup ge_graph
   /// @brief compile graph in the session with specific session id
@@ -419,19 +418,18 @@ class GE_FUNC_VISIBILITY Session {
 }  // namespace ge
 extern "C" {
 ge::Status GeSessionLoadGraph(ge::Session &session, uint32_t graph_id,
-                              const std::map<ge::AscendString, ge::AscendString> &options,
-                              void *stream);
+                              const std::map<ge::AscendString, ge::AscendString> &options, void *stream);
 
 ge::Status GeSessionExecuteGraphWithStreamAsync(ge::Session &session, uint32_t graph_id, void *stream,
                                                 const std::vector<gert::Tensor> &inputs,
                                                 std::vector<gert::Tensor> &outputs);
 
 ge::Status GeSessionGraphDebugJSONPrint(ge::Session &session, uint32_t graph_id, uint32_t flags,
-                                       ge::AscendString &json_result);
+                                        ge::AscendString &json_result);
 
 ge::Status GetRegisteredIrDef(const char *op_type, std::vector<std::pair<ge::AscendString, ge::AscendString>> &inputs,
                               std::vector<std::pair<ge::AscendString, ge::AscendString>> &outputs,
                               std::vector<std::pair<ge::AscendString, ge::AscendString>> &attrs);
-} // extern "C"
+}  // extern "C"
 
 #endif  // INC_EXTERNAL_GE_GE_API_H_

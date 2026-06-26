@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -34,7 +34,7 @@ struct ProxyMsgCreateGroup {
   uint64_t head;
   uint64_t size;
   char_t groupName[16];
-  int64_t allocSize; // alloc size when create group, 0: alloc by size, -1: not alloc, >0: alloc by allocSize
+  int64_t allocSize;  // alloc size when create group, 0: alloc by size, -1: not alloc, >0: alloc by allocSize
 };
 
 struct ProxyMsgAllocCache {
@@ -74,7 +74,7 @@ struct ProxyMsgCopyQMbuf {
   uint32_t queueId;
   char_t rsv[16];
 };
-}
+}  // namespace
 
 Status ProxyEventManager::GetProxyPid(int32_t device_id, int32_t &pid) {
   GELOGI("GetProxyPid begin, device_id = %d.", device_id);
@@ -87,10 +87,7 @@ Status ProxyEventManager::GetProxyPid(int32_t device_id, int32_t &pid) {
   return SUCCESS;
 }
 
-Status ProxyEventManager::SubmitEventSync(int32_t device_id,
-                                          uint32_t sub_event_id,
-                                          char_t *msg,
-                                          size_t msg_len,
+Status ProxyEventManager::SubmitEventSync(int32_t device_id, uint32_t sub_event_id, char_t *msg, size_t msg_len,
                                           rtEschedEventReply_t *ack) {
   int32_t proxy_pid = -1;
   GE_CHK_STATUS_RET(GetProxyPid(device_id, proxy_pid), "Failed to get proxy pid, device_id = %d.", device_id);
@@ -110,8 +107,8 @@ Status ProxyEventManager::SubmitEventSync(int32_t device_id,
 
 Status ProxyEventManager::CreateGroup(int32_t device_id, const std::string &group_name, uint64_t mem_size,
                                       bool alloc_when_create) {
-  GELOGI("CreateGroup begin, device_id = %d, group_name = %s, mem_size = %lu kb.",
-         device_id, group_name.c_str(), mem_size);
+  GELOGI("CreateGroup begin, device_id = %d, group_name = %s, mem_size = %lu kb.", device_id, group_name.c_str(),
+         mem_size);
   ProxyMsgCreateGroup group_msg = {};
   auto ret = memcpy_s(group_msg.groupName, sizeof(group_msg.groupName), group_name.c_str(), group_name.length());
   GE_CHK_BOOL_RET_STATUS(ret == EOK, FAILED, "Failed to copy group name.");
@@ -122,16 +119,12 @@ Status ProxyEventManager::CreateGroup(int32_t device_id, const std::string &grou
   rtEschedEventReply_t ack = {};
   ack.buf = reinterpret_cast<char_t *>(&rsp);
   ack.bufLen = sizeof(rsp);
-  GE_CHK_STATUS_RET(SubmitEventSync(device_id,
-                                    kProxySubEventCreateGroup,
-                                    reinterpret_cast<char_t *>(&group_msg),
-                                    sizeof(group_msg),
-                                    &ack),
+  GE_CHK_STATUS_RET(SubmitEventSync(device_id, kProxySubEventCreateGroup, reinterpret_cast<char_t *>(&group_msg),
+                                    sizeof(group_msg), &ack),
                     "Failed to submit create group event.");
-  GE_CHK_STATUS_RET(static_cast<uint32_t>(rsp.retCode),
-                    "Failed to process create group event, ret = %u.", rsp.retCode);
-  GEEVENT("CreateGroup success, device_id = %d, group_name = %s, mem_size = %lu kb, alloc_when_create = %d.",
-         device_id, group_name.c_str(), mem_size, static_cast<int32_t>(alloc_when_create));
+  GE_CHK_STATUS_RET(static_cast<uint32_t>(rsp.retCode), "Failed to process create group event, ret = %u.", rsp.retCode);
+  GEEVENT("CreateGroup success, device_id = %d, group_name = %s, mem_size = %lu kb, alloc_when_create = %d.", device_id,
+          group_name.c_str(), mem_size, static_cast<int32_t>(alloc_when_create));
   return SUCCESS;
 }
 
@@ -146,8 +139,8 @@ Status ProxyEventManager::CreateGroup(int32_t device_id, const std::string &grou
     return SUCCESS;
   }
   GE_CHK_STATUS_RET(CreateGroup(device_id, group_name, mem_size, false),
-                    "Failed to create group, device_id = %d, group_name = %s, mem_size = %lu kb",
-                    device_id, group_name.c_str(), mem_size);
+                    "Failed to create group, device_id = %d, group_name = %s, mem_size = %lu kb", device_id,
+                    group_name.c_str(), mem_size);
   size_t idx = 0;
   for (const auto &pool : pool_list) {
     ProxyMsgAllocCache alloc_msg = {};
@@ -165,23 +158,22 @@ Status ProxyEventManager::CreateGroup(int32_t device_id, const std::string &grou
         static_cast<uint32_t>(rsp.retCode),
         "Failed to process alloc cache event, ret = %u, device_id = %d, mem_size = %lu kb, alloc_max_size = %u kb.",
         rsp.retCode, device_id, pool.first, pool.second);
-    GEEVENT("alloc cache pool[%zu] success, device_id = %d, mem_size = %lu kb, "
-            "alloc_max_size = %u kb.", idx, device_id, pool.first, pool.second);
+    GEEVENT(
+        "alloc cache pool[%zu] success, device_id = %d, mem_size = %lu kb, "
+        "alloc_max_size = %u kb.",
+        idx, device_id, pool.first, pool.second);
     ++idx;
   }
-  GEEVENT("CreateGroup with cache pool success, device_id = %d, group_name = %s, "
-          "mem_size = %lu kb, cache pool num = %zu.",
-          device_id, group_name.c_str(), mem_size, pool_list.size());
+  GEEVENT(
+      "CreateGroup with cache pool success, device_id = %d, group_name = %s, "
+      "mem_size = %lu kb, cache pool num = %zu.",
+      device_id, group_name.c_str(), mem_size, pool_list.size());
   return SUCCESS;
 }
 
-Status ProxyEventManager::AddGroup(int32_t device_id,
-                                   const std::string &group_name,
-                                   pid_t pid,
-                                   bool is_admin,
+Status ProxyEventManager::AddGroup(int32_t device_id, const std::string &group_name, pid_t pid, bool is_admin,
                                    bool is_alloc) {
-  GELOGI("AddGroup begin, device_id = %d, group_name = %s, pid = %d.",
-         device_id, group_name.c_str(), pid);
+  GELOGI("AddGroup begin, device_id = %d, group_name = %s, pid = %d.", device_id, group_name.c_str(), pid);
   ProxyMsgAddGroup group_msg = {};
   auto ret = memcpy_s(group_msg.groupName, sizeof(group_msg.groupName), group_name.c_str(), group_name.length());
   GE_CHK_BOOL_RET_STATUS(ret == EOK, FAILED, "Failed to copy group name.");
@@ -194,16 +186,11 @@ Status ProxyEventManager::AddGroup(int32_t device_id,
   rtEschedEventReply_t ack = {};
   ack.buf = reinterpret_cast<char_t *>(&rsp);
   ack.bufLen = sizeof(rsp);
-  GE_CHK_STATUS_RET(SubmitEventSync(device_id,
-                                    kProxySubEventAddGroup,
-                                    reinterpret_cast<char_t *>(&group_msg),
-                                    sizeof(group_msg),
-                                    &ack),
+  GE_CHK_STATUS_RET(SubmitEventSync(device_id, kProxySubEventAddGroup, reinterpret_cast<char_t *>(&group_msg),
+                                    sizeof(group_msg), &ack),
                     "Failed to submit add group event.");
-  GE_CHK_STATUS_RET(static_cast<uint32_t>(rsp.retCode),
-                    "Failed to process add group event, ret = %u.", rsp.retCode);
-  GELOGI("AddGroup success, device_id = %d, group_name = %s, pid = %d.",
-         device_id, group_name.c_str(), pid);
+  GE_CHK_STATUS_RET(static_cast<uint32_t>(rsp.retCode), "Failed to process add group event, ret = %u.", rsp.retCode);
+  GELOGI("AddGroup success, device_id = %d, group_name = %s, pid = %d.", device_id, group_name.c_str(), pid);
   return SUCCESS;
 }
 
@@ -215,14 +202,10 @@ Status ProxyEventManager::AllocMbuf(int32_t device_id, uint64_t size, rtMbufPtr_
   rtEschedEventReply_t ack = {};
   ack.buf = reinterpret_cast<char_t *>(&rsp);
   ack.bufLen = sizeof(rsp);
-  GE_CHK_STATUS_RET(SubmitEventSync(device_id,
-                                    kProxySubEventAllocMbuf,
-                                    reinterpret_cast<char_t *>(&mbuf_msg),
-                                    sizeof(mbuf_msg),
-                                    &ack),
+  GE_CHK_STATUS_RET(SubmitEventSync(device_id, kProxySubEventAllocMbuf, reinterpret_cast<char_t *>(&mbuf_msg),
+                                    sizeof(mbuf_msg), &ack),
                     "Failed to submit alloc mbuf event.");
-  GE_CHK_STATUS_RET(static_cast<uint32_t>(rsp.retCode),
-                    "Failed to process alloc mbuf event, ret = %d.", rsp.retCode);
+  GE_CHK_STATUS_RET(static_cast<uint32_t>(rsp.retCode), "Failed to process alloc mbuf event, ret = %d.", rsp.retCode);
   *mbuf = reinterpret_cast<rtMbufPtr_t>(reinterpret_cast<uintptr_t>(rsp.mbufAddr));
   *data_ptr = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(rsp.dataAddr));
   GELOGI("AllocMbuf success, device_id = %d, size = %lu.", device_id, size);
@@ -237,22 +220,15 @@ Status ProxyEventManager::FreeMbuf(int32_t device_id, rtMbufPtr_t mbuf) {
   rtEschedEventReply_t ack = {};
   ack.buf = reinterpret_cast<char_t *>(&rsp);
   ack.bufLen = sizeof(rsp);
-  GE_CHK_STATUS_RET(SubmitEventSync(device_id,
-                                    kProxySubEventFreeMbuf,
-                                    reinterpret_cast<char_t *>(&mbuf_msg),
-                                    sizeof(mbuf_msg),
-                                    &ack),
-                    "Failed to submit alloc mbuf event.");
-  GE_CHK_STATUS_RET(static_cast<uint32_t>(rsp.retCode),
-                    "Failed to process alloc mbuf event, ret = %d.", rsp.retCode);
+  GE_CHK_STATUS_RET(
+      SubmitEventSync(device_id, kProxySubEventFreeMbuf, reinterpret_cast<char_t *>(&mbuf_msg), sizeof(mbuf_msg), &ack),
+      "Failed to submit alloc mbuf event.");
+  GE_CHK_STATUS_RET(static_cast<uint32_t>(rsp.retCode), "Failed to process alloc mbuf event, ret = %d.", rsp.retCode);
   GELOGI("FreeMbuf success, device_id = %d.", device_id);
   return SUCCESS;
 }
 
-Status ProxyEventManager::CopyQMbuf(int32_t device_id,
-                                    uint64_t dest_addr,
-                                    uint32_t dest_len,
-                                    uint32_t queue_id) {
+Status ProxyEventManager::CopyQMbuf(int32_t device_id, uint64_t dest_addr, uint32_t dest_len, uint32_t queue_id) {
   GELOGI("CopyQMbuf begin, device_id = %d.", device_id);
   ProxyMsgCopyQMbuf mbuf_msg = {};
   mbuf_msg.destAddr = dest_addr;
@@ -262,14 +238,10 @@ Status ProxyEventManager::CopyQMbuf(int32_t device_id,
   rtEschedEventReply_t ack = {};
   ack.buf = reinterpret_cast<char_t *>(&rsp);
   ack.bufLen = sizeof(rsp);
-  GE_CHK_STATUS_RET(SubmitEventSync(device_id,
-                                    kProxySubEventCopyQMbuf,
-                                    reinterpret_cast<char_t *>(&mbuf_msg),
-                                    sizeof(mbuf_msg),
-                                    &ack),
+  GE_CHK_STATUS_RET(SubmitEventSync(device_id, kProxySubEventCopyQMbuf, reinterpret_cast<char_t *>(&mbuf_msg),
+                                    sizeof(mbuf_msg), &ack),
                     "Failed to submit alloc mbuf event.");
-  GE_CHK_STATUS_RET(static_cast<uint32_t>(rsp.retCode),
-                    "Failed to process alloc mbuf event, ret = %d.", rsp.retCode);
+  GE_CHK_STATUS_RET(static_cast<uint32_t>(rsp.retCode), "Failed to process alloc mbuf event, ret = %d.", rsp.retCode);
   GELOGI("CopyQMbuf success, device_id = %d.", device_id);
   return SUCCESS;
 }

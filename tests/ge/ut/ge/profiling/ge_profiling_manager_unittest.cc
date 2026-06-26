@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -19,14 +19,14 @@
 #include "common/global_variables/diagnose_switch.h"
 #include "macro_utils/dt_public_scope.h"
 
-#undef  PROF_MODEL_EXECUTE_MASK
-#undef  PROF_OP_DETAIL_MASK
-#undef  PROF_MODEL_LOAD_MASK
+#undef PROF_MODEL_EXECUTE_MASK
+#undef PROF_OP_DETAIL_MASK
+#undef PROF_MODEL_LOAD_MASK
 
 constexpr uint64_t PROF_TRAINING_TRACE = 0x00000040ULL;
-constexpr uint64_t PROF_MODEL_EXECUTE_MASK        = 0x0000001000000ULL;
-constexpr uint64_t PROF_OP_DETAIL_MASK            = 0x0000080000000ULL;
-constexpr uint64_t PROF_MODEL_LOAD_MASK           = 0x8000000000000000ULL;
+constexpr uint64_t PROF_MODEL_EXECUTE_MASK = 0x0000001000000ULL;
+constexpr uint64_t PROF_OP_DETAIL_MASK = 0x0000080000000ULL;
+constexpr uint64_t PROF_MODEL_LOAD_MASK = 0x8000000000000000ULL;
 
 #include "common/profiling/profiling_init.h"
 #include "common/profiling/profiling_manager.h"
@@ -66,17 +66,16 @@ void Om2ProfilingNotifier(const void *data, uint32_t len) {
 }
 
 enum ProfCommandHandleType {
-    kProfCommandhandleInit = 0,
-    kProfCommandhandleStart,
-    kProfCommandhandleStop,
-    kProfCommandhandleFinalize,
-    kProfCommandhandleModelSubscribe,
-    kProfCommandhandleModelUnsubscribe
-  };
-  constexpr int32_t TMP_ERROR = -1;       // RT_ERROR
+  kProfCommandhandleInit = 0,
+  kProfCommandhandleStart,
+  kProfCommandhandleStop,
+  kProfCommandhandleFinalize,
+  kProfCommandhandleModelSubscribe,
+  kProfCommandhandleModelUnsubscribe
+};
+constexpr int32_t TMP_ERROR = -1;  // RT_ERROR
 
-
-}
+}  // namespace
 
 class UtestGeProfilingManager : public testing::Test {
  protected:
@@ -113,17 +112,15 @@ void CreateGraph(Graph &graph) {
   graph.SetInputs(inputs).SetOutputs(outputs).SetTargets(targets);
 }
 
-
 TEST_F(UtestGeProfilingManager, Prof_finalize_) {
   Status ret = ProfilingManager::Instance().ProfFinalize();
   EXPECT_EQ(ret, ge::SUCCESS);
 }
 
-
 TEST_F(UtestGeProfilingManager, get_fp_bp_point_) {
   map<std::string, string> options_map = {
-    {OPTION_EXEC_PROFILING_OPTIONS,
-    R"({"result_path":"/data/profiling","training_trace":"on","task_trace":"on","aicpu_trace":"on","fp_point":"Data_0","bp_point":"addn","ai_core_metrics":"ResourceConflictRatio"})"}};
+      {OPTION_EXEC_PROFILING_OPTIONS,
+       R"({"result_path":"/data/profiling","training_trace":"on","task_trace":"on","aicpu_trace":"on","fp_point":"Data_0","bp_point":"addn","ai_core_metrics":"ResourceConflictRatio"})"}};
   GEThreadLocalContext &context = GetThreadLocalContext();
   context.SetGraphOption(options_map);
 
@@ -137,8 +134,8 @@ TEST_F(UtestGeProfilingManager, get_fp_bp_point_) {
 TEST_F(UtestGeProfilingManager, get_fp_bp_point_empty) {
   // fp bp empty
   map<std::string, string> options_map = {
-    { OPTION_EXEC_PROFILING_OPTIONS,
-      R"({"result_path":"/data/profiling","training_trace":"on","task_trace":"on","aicpu_trace":"on","ai_core_metrics":"ResourceConflictRatio"})"}};
+      {OPTION_EXEC_PROFILING_OPTIONS,
+       R"({"result_path":"/data/profiling","training_trace":"on","task_trace":"on","aicpu_trace":"on","ai_core_metrics":"ResourceConflictRatio"})"}};
   GEThreadLocalContext &context = GetThreadLocalContext();
   context.SetGraphOption(options_map);
   std::string fp_point = "fp";
@@ -212,7 +209,7 @@ TEST_F(UtestGeProfilingManager, handle_ctrl_switch) {
   prof_ptr->devIdList[0] = 0;
   prof_ptr->devIdList[1] = 1;
 
-  prof_ptr->type = 4;   // kProfCommandHandleModelSubscribe;
+  prof_ptr->type = 4;  // kProfCommandHandleModelSubscribe;
   prof_ptr->profSwitch = -1;
   prof_ptr->modelId = -1;
   ret = ProfCtrlHandle(prof_type, static_cast<void *>(prof_ptr.get()), sizeof(prof_data));
@@ -318,10 +315,9 @@ TEST_F(UtestGeProfilingManager, start_profiling_failed) {
   EXPECT_EQ(ret, ge::FAILED);
 }
 
-
 void BuildTaskDescInfo(TaskDescInfo &task_info) {
   task_info.op_name = "test";
-  std::string op_type (80,'x');
+  std::string op_type(80, 'x');
   task_info.op_type = op_type;
   task_info.shape_type = "static";
   task_info.block_dim = 1;
@@ -330,13 +326,9 @@ void BuildTaskDescInfo(TaskDescInfo &task_info) {
   task_info.task_type = "AI_CPU";
 }
 
-
-
-
 class DModelListener : public ge::ModelListener {
  public:
-  DModelListener() {
-  };
+  DModelListener() {};
   Status OnComputeDone(uint32_t model_id, uint32_t data_index, uint32_t resultCode,
                        std::vector<gert::Tensor> &outputs) {
     GELOGI("In Call back. OnComputeDone");
@@ -347,12 +339,11 @@ shared_ptr<ge::ModelListener> g_label_call_back(new DModelListener());
 
 namespace {
 
-
 class UtestGeProfilingManager1 : public testing::Test {
  public:
-    ComputeGraphPtr graph;
-    shared_ptr<DavinciModel> model;
-    uint32_t model_id;
+  ComputeGraphPtr graph;
+  shared_ptr<DavinciModel> model;
+  uint32_t model_id;
 
  protected:
   void SetUp() {
@@ -373,7 +364,7 @@ class UtestGeProfilingManager1 : public testing::Test {
     ModelManager::GetInstance().DeleteModel(model_id);
   }
 };
-}
+}  // namespace
 
 TEST_F(UtestGeProfilingManager1, prof_model_unsubscribe) {
   Status retStatus;
@@ -549,7 +540,7 @@ TEST_F(UtestGeProfilingManager, ProfilerCollector_Ok_RecordStart) {
 
     if (type == ge::InfoType::kApi) {
       ++records;
-      auto info = reinterpret_cast<MsprofApi*>(data);
+      auto info = reinterpret_cast<MsprofApi *>(data);
       EXPECT_EQ(info->level, MSPROF_REPORT_NODE_LEVEL);
       EXPECT_EQ(info->itemId, 0);
       EXPECT_EQ(info->type, static_cast<uint32_t>(gert::GeProfInfoType::kStepInfo));
@@ -579,7 +570,7 @@ TEST_F(UtestGeProfilingManager, ProfilerCollector_Ok_RecordEnd) {
 
     if (type == ge::InfoType::kApi) {
       ++records;
-      auto info = reinterpret_cast<MsprofApi*>(data);
+      auto info = reinterpret_cast<MsprofApi *>(data);
       EXPECT_EQ(info->level, MSPROF_REPORT_NODE_LEVEL);
       EXPECT_EQ(info->itemId, 1);
       EXPECT_EQ(info->type, static_cast<uint32_t>(gert::GeProfInfoType::kStepInfo));

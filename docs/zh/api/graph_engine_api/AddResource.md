@@ -89,4 +89,3 @@ T *AddResource(std::unique_ptr<T> value, std::function<void(void*)> deleter = De
 ## 约束说明<a name="section24049039"></a>
 
 无
-

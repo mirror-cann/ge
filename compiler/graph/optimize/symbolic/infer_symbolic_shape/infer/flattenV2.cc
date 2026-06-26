@@ -31,7 +31,8 @@ graphStatus InferShape4FlattenV2(gert::InferSymbolShapeContext *context) {
 
   const int64_t axis = *attr_axis_ptr;
   const int64_t end_axis = *attr_end_axis_ptr;
-  GELOGD("FlattenV2: axis=%ld, end_axis=%ld. node %s[%s]", axis, end_axis, context->GetNodeName(), context->GetNodeType());
+  GELOGD("FlattenV2: axis=%ld, end_axis=%ld. node %s[%s]", axis, end_axis, context->GetNodeName(),
+         context->GetNodeType());
 
   const int64_t dim_num = static_cast<int64_t>(in_shape->GetDimNum());
   const int64_t real_axis = axis >= 0 ? axis : axis + dim_num;
@@ -48,7 +49,7 @@ graphStatus InferShape4FlattenV2(gert::InferSymbolShapeContext *context) {
   GE_ASSERT(real_end_axis >= 0 && real_end_axis < dim_num,
             "FlattenV2 failed, as end_axes val[%ld] is out of range[-%ld, %ld]. node %s[%s]", real_end_axis, dim_num,
             dim_num, context->GetNodeName(), context->GetNodeType());
-  
+
   out_shape->Clear();
   auto product = Expression(Symbol(1));
   for (int64_t i = 0; i < dim_num; i++) {

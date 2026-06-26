@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,9 +24,8 @@
 namespace ge {
 class ExtInfoBuilder {
  public:
-  explicit ExtInfoBuilder(std::vector<uint8_t> &buffer) : buffer_(buffer) {
-  }
-  template<typename T>
+  explicit ExtInfoBuilder(std::vector<uint8_t> &buffer) : buffer_(buffer) {}
+  template <typename T>
   ExtInfoBuilder &AddExtInfo(int32_t type, const T &value) {
     AddExtInfoHeader(type, sizeof(value));
     AddExtInfoValue(value);
@@ -43,7 +42,7 @@ class ExtInfoBuilder {
     return *this;
   }
 
-  template<typename T>
+  template <typename T>
   ExtInfoBuilder &AddExtInfoValue(const T &value) {
     auto current_size = buffer_.size();
     auto ext_info_size = sizeof(value);
@@ -76,10 +75,9 @@ class AicpuTaskDefBuilder {
   struct AicpuTaskStruct {
     aicpu::AicpuParamHead head;
     uint64_t io_addrp[6];
-  }__attribute__((packed));
+  } __attribute__((packed));
 
-  AicpuTaskDefBuilder(const Node &node) : node_(node) {
-  }
+  AicpuTaskDefBuilder(const Node &node) : node_(node) {}
 
   domi::TaskDef BuildHostCpuTask(int unknown_shape_type) {
     auto task_def = BuildAicpuTask(unknown_shape_type);
@@ -125,7 +123,7 @@ class AicpuTaskDefBuilder {
     kernel_def->set_kernel_ext_info_size(buffer.size());
     domi::KernelContext *context = kernel_def->mutable_context();
 
-    context->set_kernel_type(6);    // ccKernelType::AI_CPU
+    context->set_kernel_type(6);  // ccKernelType::AI_CPU
     context->set_op_index(op_desc->GetId());
     uint16_t args_offset[9] = {0};
     context->set_args_offset(args_offset, 9 * sizeof(uint16_t));
@@ -203,9 +201,9 @@ class MixL2TaskDefBuilder {
       string attr_kernel_name_aiv = "_mix_aiv" + op_desc->GetName() + "_kernelname";
       (void)AttrUtils::SetStr(op_desc, attr_kernel_name_aiv, "_mix_aiv");
 
-      mixctx_def->add_task_addr(std::numeric_limits<uint64_t>::max());           // value0
-      mixctx_def->add_task_addr(std::numeric_limits<uint64_t>::max());           // value1
-      mixctx_def->add_task_addr(std::numeric_limits<uint64_t>::max());           // tilling
+      mixctx_def->add_task_addr(std::numeric_limits<uint64_t>::max());  // value0
+      mixctx_def->add_task_addr(std::numeric_limits<uint64_t>::max());  // value1
+      mixctx_def->add_task_addr(std::numeric_limits<uint64_t>::max());  // tilling
     }
     std::vector<uint8_t> args(100, 0);
 
@@ -217,7 +215,7 @@ class MixL2TaskDefBuilder {
       AttrUtils::SetStr(op_desc, "_mix_aic_kernel_list_first_name", "aic");
       AttrUtils::SetStr(op_desc, "_mix_aiv_kernel_list_first_name", "aiv");
       std::vector<int64_t> workspace{1024};
-       op_desc->SetWorkspaceBytes(workspace);
+      op_desc->SetWorkspaceBytes(workspace);
     }
     return task_def;
   }
@@ -225,7 +223,6 @@ class MixL2TaskDefBuilder {
  private:
   const Node &node_;
 };
-
 
 class AiCoreTaskDefBuilder {
  public:
@@ -303,7 +300,7 @@ class AiCoreTaskDefBuilder {
     kernel_with_handle->set_args(args.data(), 64);
     domi::KernelContext *context = kernel_with_handle->mutable_context();
     context->set_op_index(op_desc->GetId());
-    context->set_kernel_type(2);    // ccKernelType::TE
+    context->set_kernel_type(2);  // ccKernelType::TE
     uint16_t args_offset[9] = {0};
     context->set_args_offset(args_offset, 9 * sizeof(uint16_t));
 
@@ -320,4 +317,4 @@ class AiCoreTaskDefBuilder {
 };
 
 }  // namespace ge
-#endif //OPENSOURCEGE_AIR_TESTS_ST_STUBS_UTILS_TASKDEF_BUILDER_H_
+#endif  // OPENSOURCEGE_AIR_TESTS_ST_STUBS_UTILS_TASKDEF_BUILDER_H_

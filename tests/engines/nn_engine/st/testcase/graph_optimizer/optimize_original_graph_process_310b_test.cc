@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -181,7 +181,7 @@ class OptimizeOriginalGraphProcess310BTest : public testing::Test {
     OpDescPtr dequant3_op = std::make_shared<OpDesc>("dequant3", "AscendDequant");
     OpDescPtr relu3_op = std::make_shared<OpDesc>("relu3", "LeakyRelu");
 
-    ge::GeShape shape({8,224,224,3});
+    ge::GeShape shape({8, 224, 224, 3});
     ge::GeShape shape_64({64});
     ge::GeTensorDesc tensor_nchw_uint8(shape, ge::FORMAT_NCHW, ge::DT_UINT8);
     tensor_nchw_uint8.SetOriginShape(shape);
@@ -428,7 +428,8 @@ TEST_F(OptimizeOriginalGraphProcess310BTest, optimize_origin_graph_quant_case2) 
 //         bool is_dump_able = false;
 //         AttrUtils::GetBool(pre_node->GetOpDesc(), kAttrDumpAble, is_dump_able);
 //         EXPECT_EQ(is_dump_able, true);
-//         EXPECT_EQ(pre_node->GetOpDesc()->GetInputDescPtr(0)->GetFormat(), op_desc->GetInputDescPtr(0)->GetOriginFormat());
+//         EXPECT_EQ(pre_node->GetOpDesc()->GetInputDescPtr(0)->GetFormat(),
+//         op_desc->GetInputDescPtr(0)->GetOriginFormat());
 //       }
 //       if (op_desc->GetOutputDescPtr(0)->GetFormat() != op_desc->GetOutputDescPtr(0)->GetOriginFormat()) {
 //         ASSERT_EQ(node->GetOutDataNodesSize(), 1);
@@ -437,7 +438,8 @@ TEST_F(OptimizeOriginalGraphProcess310BTest, optimize_origin_graph_quant_case2) 
 //         bool is_dump_able = false;
 //         AttrUtils::GetBool(post_node->GetOpDesc(), kAttrDumpAble, is_dump_able);
 //         EXPECT_EQ(is_dump_able, true);
-//         EXPECT_EQ(post_node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat(), op_desc->GetOutputDescPtr(0)->GetOriginFormat());
+//         EXPECT_EQ(post_node->GetOpDesc()->GetOutputDescPtr(0)->GetFormat(),
+//         op_desc->GetOutputDescPtr(0)->GetOriginFormat());
 //       }
 //       quant_count++;
 //     }
@@ -445,4 +447,4 @@ TEST_F(OptimizeOriginalGraphProcess310BTest, optimize_origin_graph_quant_case2) 
 //   EXPECT_EQ(quant_count, 2);
 //   Configuration::Instance(AI_CORE_NAME).config_param_vec_[static_cast<size_t>(CONFIG_PARAM::QuantDumpable)] = 0;
 // }
-}
+}  // namespace fe

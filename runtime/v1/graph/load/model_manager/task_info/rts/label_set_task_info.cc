@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -13,9 +13,8 @@
 #include "graph/load/model_manager/davinci_model.h"
 
 namespace ge {
-Status LabelSetTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *const davinci_model,
-                              const PisToArgs &args, const PisToPersistentWorkspace &persistent_workspace,
-                              const IowAddrs &iow_addrs) {
+Status LabelSetTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *const davinci_model, const PisToArgs &args,
+                              const PisToPersistentWorkspace &persistent_workspace, const IowAddrs &iow_addrs) {
   GELOGI("LabelSetTaskInfo Init Start.");
   (void)args;
   (void)persistent_workspace;
@@ -34,19 +33,19 @@ Status LabelSetTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *const
 
   uint32_t label_index = 0U;
   if (!AttrUtils::GetInt(op_desc, ATTR_NAME_LABEL_SWITCH_INDEX, label_index)) {
-    REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s in op:%s(%s) fail",
-                       ATTR_NAME_LABEL_SWITCH_INDEX.c_str(),
-                       op_desc->GetName().c_str(), op_desc->GetType().c_str());
-    GELOGE(INTERNAL_ERROR, "[Get][Attr] LabelSetTaskInfo:%s attr [%s] does not exist.",
-           op_desc->GetName().c_str(), ATTR_NAME_LABEL_SWITCH_INDEX.c_str());
+    REPORT_INNER_ERR_MSG("E19999", "Get Attr:%s in op:%s(%s) fail", ATTR_NAME_LABEL_SWITCH_INDEX.c_str(),
+                         op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    GELOGE(INTERNAL_ERROR, "[Get][Attr] LabelSetTaskInfo:%s attr [%s] does not exist.", op_desc->GetName().c_str(),
+           ATTR_NAME_LABEL_SWITCH_INDEX.c_str());
     return INTERNAL_ERROR;
   }
 
   const std::vector<aclrtLabel> &label_list = davinci_model->GetLabelList();
   if (label_index >= label_list.size()) {
-    REPORT_INNER_ERR_MSG("E19999", "label_index:%u >= label_list.size():%zu in model, op:%s(%s), "
-                       "check invalid", label_index, label_list.size(),
-                       op_desc->GetName().c_str(), op_desc->GetType().c_str());
+    REPORT_INNER_ERR_MSG("E19999",
+                         "label_index:%u >= label_list.size():%zu in model, op:%s(%s), "
+                         "check invalid",
+                         label_index, label_list.size(), op_desc->GetName().c_str(), op_desc->GetType().c_str());
     GELOGE(INTERNAL_ERROR, "[Check][Param] LabelSetTaskInfo: Invalid label id:%u, label size:%zu, op:%s(%s)",
            label_index, label_list.size(), op_desc->GetName().c_str(), op_desc->GetType().c_str());
     return INTERNAL_ERROR;
@@ -54,7 +53,7 @@ Status LabelSetTaskInfo::Init(const domi::TaskDef &task_def, DavinciModel *const
   label_ = label_list[static_cast<size_t>(label_index)];
 
   GELOGI("LabelSetTaskInfo %s Init success, label id:%u, label:%p, logic stream id: %u, stream: %p.",
-    op_desc->GetNamePtr(), label_index, label_, task_def.stream_id(), stream_);
+         op_desc->GetNamePtr(), label_index, label_, task_def.stream_id(), stream_);
   return SUCCESS;
 }
 

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,11 +31,7 @@ struct StreamInfo {
   int64_t stream_id{-1};
 };
 
-enum class SyncResType {
-  SYNC_RES_EVENT,
-  SYNC_RES_NOTIFY,
-  END
-};
+enum class SyncResType { SYNC_RES_EVENT, SYNC_RES_NOTIFY, END };
 
 struct SyncResInfo {
   SyncResType type;
@@ -45,7 +41,7 @@ struct SyncResInfo {
   bool is_valid{false};
   int32_t sync_res_id{-1};
 };
-}
+}  // namespace
 namespace ge {
 class UtestAssignAttachedStreamPass : public testing::Test {
  protected:
@@ -178,7 +174,7 @@ ComputeGraphPtr CreateGraph3(const std::string &graph_name = "g1") {
 }
 
 /**
- * 
+ *
  * @return
  */
 ComputeGraphPtr CreateGraph4() {
@@ -202,11 +198,11 @@ ComputeGraphPtr CreateGraph4() {
  */
 ComputeGraphPtr CreateV1CtrlGraph() {
   DEF_GRAPH(g1) {
-                  CHAIN(NODE("data1", DATA)->NODE("relu1", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("data2", DATA)->NODE("relu2", RELU)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("data3", DATA)->NODE("relu3", RELU)->NODE("merge", STREAMMERGE)->NODE("netoutput", NETOUTPUT));
-                  CHAIN(NODE("data4", DATA)->NODE("relu4", RELU)->NODE("merge", STREAMMERGE));
-                };
+    CHAIN(NODE("data1", DATA)->NODE("relu1", RELU)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("data2", DATA)->NODE("relu2", RELU)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("data3", DATA)->NODE("relu3", RELU)->NODE("merge", STREAMMERGE)->NODE("netoutput", NETOUTPUT));
+    CHAIN(NODE("data4", DATA)->NODE("relu4", RELU)->NODE("merge", STREAMMERGE));
+  };
   auto graph1 = ToGeGraph(g1);
   auto graph = ge::GraphUtilsEx::GetComputeGraph(graph1);
   graph->TopologicalSortingGraph();
@@ -837,7 +833,6 @@ TEST_F(UtestAssignAttachedStreamPass, Case0_V2) {
   EXPECT_EQ(context.next_stream, 1);
 }
 
-
 TEST_F(UtestAssignAttachedStreamPass, Case1_V2) {
   const auto graph = CreateGraph1_V2();
   const auto &assign_attached_stream_pass = MakeShared<AssignAttachedStreamPass>();
@@ -951,14 +946,17 @@ TEST_F(UtestAssignAttachedStreamPass, Case3_With_SubGraph_V2) {
     // 通信域g0内的relu1,relu2 分配了一样的attached stream id
     EXPECT_EQ(relu1->GetOpDescBarePtr()->GetAttachedStreamIds().size(), 1);
     EXPECT_EQ(relu2->GetOpDescBarePtr()->GetAttachedStreamIds().size(), 1);
-    EXPECT_EQ(relu2->GetOpDescBarePtr()->GetAttachedStreamIds()[0], relu1->GetOpDescBarePtr()->GetAttachedStreamIds()[0]);
+    EXPECT_EQ(relu2->GetOpDescBarePtr()->GetAttachedStreamIds()[0],
+              relu1->GetOpDescBarePtr()->GetAttachedStreamIds()[0]);
     // 通信域g1内的relu3,relu4 分配了一样的attached stream id
     EXPECT_EQ(relu3->GetOpDescBarePtr()->GetAttachedStreamIds().size(), 1);
     EXPECT_EQ(relu4->GetOpDescBarePtr()->GetAttachedStreamIds().size(), 1);
-    EXPECT_EQ(relu3->GetOpDescBarePtr()->GetAttachedStreamIds()[0], relu4->GetOpDescBarePtr()->GetAttachedStreamIds()[0]);
+    EXPECT_EQ(relu3->GetOpDescBarePtr()->GetAttachedStreamIds()[0],
+              relu4->GetOpDescBarePtr()->GetAttachedStreamIds()[0]);
 
     // 两个通信域的流不同， 虽然通信域的attached stream key一样
-    EXPECT_NE(relu1->GetOpDescBarePtr()->GetAttachedStreamIds()[0], relu3->GetOpDescBarePtr()->GetAttachedStreamIds()[0]);
+    EXPECT_NE(relu1->GetOpDescBarePtr()->GetAttachedStreamIds()[0],
+              relu3->GetOpDescBarePtr()->GetAttachedStreamIds()[0]);
   };
   check_func(graph);
   check_func(graph2);
@@ -1083,7 +1081,7 @@ TEST_F(UtestAssignAttachedStreamPass, Mix_V1_V2) {
 }
 
 TEST_F(UtestAssignAttachedStreamPass, SupportMutliAttachedStream) {
-  dlog_setlevel(0,0,0);
+  dlog_setlevel(0, 0, 0);
   const auto graph = CreateGraph7_V2();
   const auto &assign_attached_stream_pass = MakeShared<AssignAttachedStreamPass>();
   EXPECT_NE(assign_attached_stream_pass, nullptr);

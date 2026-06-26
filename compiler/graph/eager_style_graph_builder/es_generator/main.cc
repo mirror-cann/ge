@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -23,7 +23,8 @@ DEFINE_string(output_dir, ge::es::kEsCodeGenDefaultOutputDir, "Output directory 
 DEFINE_string(module_name, ge::es::kEsCodeGenDefaultModelName, "Module name for aggregate header file naming");
 DEFINE_string(h_guard_prefix, ge::es::kEsCodeGenDefaultPrefixGuard, "Header guard prefix for generated headers");
 DEFINE_string(exclude_ops, ge::es::kEsCodeGenDefaultExcludeOps, "Exclude ops for code generation");
-DEFINE_string(history_registry, ge::es::kEsCodeGenDefaultHistoryRegistry, "History registry dir for codegen; empty disables history");
+DEFINE_string(history_registry, ge::es::kEsCodeGenDefaultHistoryRegistry,
+              "History registry dir for codegen; empty disables history");
 DEFINE_string(release_version, ge::es::kEsCodeGenDefaultReleaseVersion, "Release version in history registry");
 DEFINE_bool(help, false, "show this help message");
 DEFINE_string(release_date, ge::es::kEsCodeGenDefaultReleaseDate, "Release date for history registry generation");
@@ -50,9 +51,11 @@ void GenEsImpl(const GenEsbOptions &options);
  *
  * 使用方法：
  * - 代码生成模式：
- *   ./gen_esb [--output_dir=DIR] [--module_name=NAME] [--h_guard_prefix=PREFIX] [--exclude_ops=OP_LIST] [--history_registry=PKG_DIR] [--release_version=VER]
+ *   ./gen_esb [--output_dir=DIR] [--module_name=NAME] [--h_guard_prefix=PREFIX] [--exclude_ops=OP_LIST]
+ * [--history_registry=PKG_DIR] [--release_version=VER]
  * - 历史原型库生成模式：
- *  ./gen_esb --es_mode=extract_history --release_version=VER [--output_dir=DIR] [--release_date=YYYY-MM-DD] [--branch_name=BRANCH]
+ *  ./gen_esb --es_mode=extract_history --release_version=VER [--output_dir=DIR] [--release_date=YYYY-MM-DD]
+ * [--branch_name=BRANCH]
  *
  * 参数说明：
  * --es_mode：可选参数，指定生成模式，extract_history|codegen
@@ -73,7 +76,8 @@ void GenEsImpl(const GenEsbOptions &options);
  *   - 如果不指定，默认不启用历史原型库
  *   - 指定时，生成的C++接口会包含历史原型库中兼容的版本信息
  * --release_version：
- *   - 代码生成模式：可选参数，与 `--history_registry` 配合使用，指定当前版本号，生成的C++接口包含该版本的兼容版本信息；如果不指定，生成当前日期为基准兼容的历史版本
+ *   - 代码生成模式：可选参数，与 `--history_registry`
+ * 配合使用，指定当前版本号，生成的C++接口包含该版本的兼容版本信息；如果不指定，生成当前日期为基准兼容的历史版本
  *   - 历史原型库生成模式：必填参数，指定当前历史原型数据对应的版本号
  * --release_date：可选参数，控制历史原型结构化数据的发布日期，格式 `YYYY-MM-DD`
  *   - 如果不指定，使用当前日期
@@ -118,20 +122,26 @@ void GenEsImpl(const GenEsbOptions &options);
  * # 生成代码到指定目录，使用"math"模块名，自定义保护宏前缀"MY_CUSTOM", 并排除Add算子生成
  * ./gen_esb --output_dir=./output --module_name=math --h_guard_prefix=MY_CUSTOM --exclude_ops=Add
  *
- * # 生成代码到指定目录，使用"math"模块名，默认保护宏前缀，生成的C++接口会包含math历史原型目录中以当前日期为基准筛选的兼容版本信息
- * ./gen_esb --output_dir=./output --module_name=math --history_registry=/${CANN_INSTALL_PATH}/cann/opp/history_registry/math
+ * #
+ * 生成代码到指定目录，使用"math"模块名，默认保护宏前缀，生成的C++接口会包含math历史原型目录中以当前日期为基准筛选的兼容版本信息
+ * ./gen_esb --output_dir=./output --module_name=math
+ * --history_registry=/${CANN_INSTALL_PATH}/cann/opp/history_registry/math
  *
- * # 生成代码到指定目录，使用"math"模块名，默认保护宏前缀，生成的C++接口会包含math历史原型目录中"8.0.RC2"版本兼容的历史版本信息
- * ./gen_esb --output_dir=./output --module_name=math --history_registry=/${CANN_INSTALL_PATH}/cann/opp/history_registry/math --release_version=8.0.RC2
+ * #
+ * 生成代码到指定目录，使用"math"模块名，默认保护宏前缀，生成的C++接口会包含math历史原型目录中"8.0.RC2"版本兼容的历史版本信息
+ * ./gen_esb --output_dir=./output --module_name=math
+ * --history_registry=/${CANN_INSTALL_PATH}/cann/opp/history_registry/math --release_version=8.0.RC2
  *
  * # 生成历史原型结构化数据到当前目录，发布版本为"8.0.RC1"，默认发布日期为当前日期
  * ./gen_esb --es_mode=extract_history --release_version=8.0.RC1
  *
  * # 生成历史原型结构化数据到指定目录，发布版本为"8.0.RC1"，默认发布日期为当前日期
- * ./gen_esb --es_mode=extract_history --release_version=8.0.RC1 --output_dir=/${CANN_INSTALL_PATH}/cann/opp/history_registry/math
+ * ./gen_esb --es_mode=extract_history --release_version=8.0.RC1
+ * --output_dir=/${CANN_INSTALL_PATH}/cann/opp/history_registry/math
  *
  * # 生成历史原型结构化数据到指定目录，发布版本为"8.0.RC1"，自定义发布日期"2024-09-30"，分支名为"master"
- * ./gen_esb --es_mode=extract_history --release_version=8.0.RC1 --output_dir=/${CANN_INSTALL_PATH}/cann/opp/history_registry/math --release_date=2024-09-30 --branch_name=master
+ * ./gen_esb --es_mode=extract_history --release_version=8.0.RC1
+ * --output_dir=/${CANN_INSTALL_PATH}/cann/opp/history_registry/math --release_date=2024-09-30 --branch_name=master
  *
  * # 检查环境变量
  * echo $ASCEND_OPP_PATH
@@ -279,7 +289,6 @@ static bool ExecuteGeneration(const GenEsbOptions &options) {
 }
 }  // namespace es
 }  // namespace ge
-
 
 int main(int argc, char *argv[]) {
   try {

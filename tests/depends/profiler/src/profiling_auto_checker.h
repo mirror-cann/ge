@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,7 +39,7 @@ inline void DefaultProfilingTest(void (*test_func)()) {
 }
 
 inline void EXPECT_DefaultProfilingTestWithExpectedCallTimes(void (*test_func)(), size_t api_count, size_t info_count,
-                                                      size_t event_count, size_t compact_info_count) {
+                                                             size_t event_count, size_t compact_info_count) {
   auto request_id = 1;
   auto cur_event_count = 0;
   auto cur_info_count = 0;
@@ -53,14 +53,13 @@ inline void EXPECT_DefaultProfilingTestWithExpectedCallTimes(void (*test_func)()
       if (info->type == MSPROF_REPORT_NODE_TENSOR_INFO_TYPE) {
         auto prof_tensor_info = reinterpret_cast<MsprofTensorInfo *>(info->data);
         EXPECT_TRUE(prof_tensor_info->tensorNum > 0);
-        for (size_t i=0; i<prof_tensor_info->tensorNum; ++i) {
+        for (size_t i = 0; i < prof_tensor_info->tensorNum; ++i) {
           EXPECT_NE(prof_tensor_info->tensorData[i].shape[0], 0);
         }
       }
       if (info->type == MSPROF_REPORT_NODE_TASK_MEMORY_TYPE) {
         auto memory_info_data = reinterpret_cast<MsprofMemoryInfo *>(info->data);
-        std::cout << "Report memory info: node_id: " << memory_info_data->nodeId
-                  << ", addr: " << memory_info_data->addr
+        std::cout << "Report memory info: node_id: " << memory_info_data->nodeId << ", addr: " << memory_info_data->addr
                   << ", size: " << memory_info_data->size
                   << ", total allocate size: " << memory_info_data->totalAllocateMemory
                   << ", total reserve size: " << memory_info_data->totalReserveMemory << std::endl;
@@ -98,5 +97,5 @@ inline void AutoProfilingTestWithExpectedFunc(void (*test_func)(), ProfilingTest
   test_func();
   ProfilingTestUtil::Instance().Clear();
 }
-}
+}  // namespace ge
 #endif  // GE_PROFILING_AUTO_CHECKER_H_

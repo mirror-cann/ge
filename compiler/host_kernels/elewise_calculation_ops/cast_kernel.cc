@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -47,10 +47,10 @@ Status CastKernel::Compute(const OpDescPtr op_desc_ptr, const std::vector<ConstG
   GeTensorDesc op_desc = op_desc_ptr->GetOutputDesc(0);
   GeTensorDesc op_desc_in = op_desc_ptr->GetInputDesc(0);
   auto src_data_type = op_desc_in.GetDataType();
-  auto src_shape   = op_desc_in.GetShape();
-  auto src_format  = op_desc_in.GetFormat();
-  auto data_type   = op_desc.GetDataType();
-  auto data_shape  = op_desc.GetShape();
+  auto src_shape = op_desc_in.GetShape();
+  auto src_format = op_desc_in.GetFormat();
+  auto data_type = op_desc.GetDataType();
+  auto data_shape = op_desc.GetShape();
   auto data_format = op_desc.GetFormat();
   GELOGD(
       "Current node %s, format %s, input shape %s, data type %s, weight format %s, shape %s, data type %s. "
@@ -73,17 +73,16 @@ Status CastKernel::Compute(const OpDescPtr op_desc_ptr, const std::vector<ConstG
   const formats::CastArgs cast_args{src_data, static_cast<size_t>(src_data_size), src_data_type, data_type};
   formats::TransResult trans_result;
   GELOGD("Trans data type from %s to %s, shape %s, data size %ld",
-         TypeUtils::DataTypeToSerialString(src_data_type).c_str(),
-         TypeUtils::DataTypeToSerialString(data_type).c_str(),
+         TypeUtils::DataTypeToSerialString(src_data_type).c_str(), TypeUtils::DataTypeToSerialString(data_type).c_str(),
          formats::ShapeToString(src_shape).c_str(), src_data_size);
 
   if ((src_format != data_format) || (src_shape.GetDims() != data_shape.GetDims()) ||
       (!formats::IsTransDataTypeSupport(cast_args))) {
     GELOGW("Transfer from data type %s to %s, format %s to %s, shape %s to %s is not supported",
            TypeUtils::DataTypeToSerialString(src_data_type).c_str(),
-           TypeUtils::DataTypeToSerialString(data_type).c_str(),
-           TypeUtils::FormatToSerialString(src_format).c_str(), TypeUtils::FormatToSerialString(data_format).c_str(),
-           formats::ShapeToString(src_shape).c_str(), formats::ShapeToString(data_shape).c_str());
+           TypeUtils::DataTypeToSerialString(data_type).c_str(), TypeUtils::FormatToSerialString(src_format).c_str(),
+           TypeUtils::FormatToSerialString(data_format).c_str(), formats::ShapeToString(src_shape).c_str(),
+           formats::ShapeToString(data_shape).c_str());
     return NOT_CHANGED;
   }
   if (!KernelUtils::CheckSizeForTransOp(const_weight_ptr, op_desc_ptr)) {
@@ -93,8 +92,8 @@ Status CastKernel::Compute(const OpDescPtr op_desc_ptr, const std::vector<ConstG
   if (formats::TransTensorDataType(cast_args, trans_result) != SUCCESS) {
     GELOGE(INTERNAL_ERROR, "Failed to trans data type from %s to %s, shape %s, data size %ld.",
            TypeUtils::DataTypeToSerialString(src_data_type).c_str(),
-           TypeUtils::DataTypeToSerialString(data_type).c_str(),
-           formats::ShapeToString(src_shape).c_str(), src_data_size);
+           TypeUtils::DataTypeToSerialString(data_type).c_str(), formats::ShapeToString(src_shape).c_str(),
+           src_data_size);
     return NOT_CHANGED;
   }
 

@@ -1,7 +1,7 @@
 # pre-commit Usage Guide
 
 [TOC]
--- 
+--
 
 ## 1 Background
 
@@ -61,8 +61,8 @@ Subsequently, code formatting processing and OAT checks will be automatically pe
 
 #### 3.2.1 Check Content
 
-**File Type Check** - Binary files (.so, .dll, .exe, etc.) are prohibited from being submitted  
-**License Header Check** - Verifies source code files contain compliant license declarations  
+**File Type Check** - Binary files (.so, .dll, .exe, etc.) are prohibited from being submitted
+**License Header Check** - Verifies source code files contain compliant license declarations
 
 #### 3.2.2 Core Features
 
@@ -350,7 +350,7 @@ Full report: oat_reports/single/PlainReport_CANN.txt
 
 **Behavior**: **Skip check, allow commit**
 
-**Follow-up Actions**: 
+**Follow-up Actions**:
 1. Install Java manually as prompted
 2. Restart terminal
 3. Run `pre-commit run oat-check` to verify environment

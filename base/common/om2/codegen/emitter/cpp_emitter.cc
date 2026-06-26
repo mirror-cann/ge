@@ -118,7 +118,9 @@ const char *UnaryOpToken(UnaryExpr::Op op) {
   }
 }
 
-bool IsPrefixUnaryOp(UnaryExpr::Op op) { return op != UnaryExpr::Op::kPostInc; }
+bool IsPrefixUnaryOp(UnaryExpr::Op op) {
+  return op != UnaryExpr::Op::kPostInc;
+}
 
 const char *ContainerMethodName(ContainerMethodExpr::Method method) {
   switch (method) {
@@ -219,12 +221,12 @@ const char *IntSuffixToken(LiteralExpr::IntSuffix suffix) {
 }
 
 bool IsSpacingBoundaryDecl(const DeclNode &node) {
-  return dynamic_cast<const StablePartDecl *>(&node) != nullptr || dynamic_cast<const TypeAliasDecl *>(&node) != nullptr ||
+  return dynamic_cast<const StablePartDecl *>(&node) != nullptr ||
+         dynamic_cast<const TypeAliasDecl *>(&node) != nullptr ||
          dynamic_cast<const NamespaceDecl *>(&node) != nullptr ||
-         dynamic_cast<const ExternBlockDecl *>(&node) != nullptr ||
-         dynamic_cast<const ClassDecl *>(&node) != nullptr || dynamic_cast<const StructDecl *>(&node) != nullptr ||
-         dynamic_cast<const FunctionDecl *>(&node) != nullptr || dynamic_cast<const FunctionDef *>(&node) != nullptr ||
-         dynamic_cast<const MethodDef *>(&node) != nullptr;
+         dynamic_cast<const ExternBlockDecl *>(&node) != nullptr || dynamic_cast<const ClassDecl *>(&node) != nullptr ||
+         dynamic_cast<const StructDecl *>(&node) != nullptr || dynamic_cast<const FunctionDecl *>(&node) != nullptr ||
+         dynamic_cast<const FunctionDef *>(&node) != nullptr || dynamic_cast<const MethodDef *>(&node) != nullptr;
 }
 }  // namespace
 
@@ -236,7 +238,9 @@ void CppEmitter::AppendIndentAt(size_t level, std::string &output) const {
   }
 }
 
-void CppEmitter::AppendIndent(std::string &output) const { AppendIndentAt(indent_level_, output); }
+void CppEmitter::AppendIndent(std::string &output) const {
+  AppendIndentAt(indent_level_, output);
+}
 
 Status CppEmitter::EmitParamList(const ArrayRef<ParamDecl *> &params, std::string &output) {
   for (size_t i = 0; i < params.Size(); ++i) {
@@ -251,8 +255,8 @@ Status CppEmitter::EmitParamList(const ArrayRef<ParamDecl *> &params, std::strin
   return SUCCESS;
 }
 
-Status CppEmitter::EmitFunctionSignature(StringRef return_type, StringRef name,
-                                         const ArrayRef<ParamDecl *> &params, std::string &output) {
+Status CppEmitter::EmitFunctionSignature(StringRef return_type, StringRef name, const ArrayRef<ParamDecl *> &params,
+                                         std::string &output) {
   if (!return_type.Empty()) {
     AppendStringRef(return_type, output);
     (void)output.append(" ");
@@ -324,7 +328,9 @@ Status CppEmitter::Emit(const ParamDecl &node, std::string &output) {
   return SUCCESS;
 }
 
-Status CppEmitter::Emit(const TranslationUnit &node, std::string &output) { return EmitDeclBlock(node.GetItems(), true, output); }
+Status CppEmitter::Emit(const TranslationUnit &node, std::string &output) {
+  return EmitDeclBlock(node.GetItems(), true, output);
+}
 
 Status CppEmitter::Emit(const StablePartDecl &node, std::string &output) {
   std::string stable_text;

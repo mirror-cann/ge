@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -80,7 +80,6 @@ class SimpleAllocator {
 };
 std::mutex SimpleAllocator::mu_;
 std::map<void *, std::pair<size_t, std::string>> SimpleAllocator::named_blocks_;
-
 
 class UtestRtV2PipelineExecutor : public testing::Test {
  protected:
@@ -269,7 +268,8 @@ TEST_F(UtestRtV2PipelineExecutor, test_pipeline_executor_execute_exit_safely_whe
     outputs.emplace_back(&output_holder);
   }
   RtV2ExecutorInterface::RunConfig config(1U);
-  ASSERT_NE(executor->Execute(execute_args, inputs.data(), inputs.size(), outputs.data(), outputs.size(), config), SUCCESS);
+  ASSERT_NE(executor->Execute(execute_args, inputs.data(), inputs.size(), outputs.data(), outputs.size(), config),
+            SUCCESS);
   ASSERT_EQ(executor->Unload(), SUCCESS);
 }
 
@@ -321,7 +321,8 @@ TEST_F(UtestRtV2PipelineExecutor, test_pipeline_executor_execute_success) {
     outputs.emplace_back(&output_holder);
   }
   RtV2ExecutorInterface::RunConfig config(1U);
-  ASSERT_EQ(executor->Execute(execute_args, inputs.data(), inputs.size(), outputs.data(), outputs.size(), config), SUCCESS);
+  ASSERT_EQ(executor->Execute(execute_args, inputs.data(), inputs.size(), outputs.data(), outputs.size(), config),
+            SUCCESS);
   ASSERT_EQ(executor->Unload(), SUCCESS);
 }
 TEST_F(UtestRtV2PipelineExecutor, test_pipeline_executor_create_with_allocator_success) {
@@ -336,5 +337,4 @@ TEST_F(UtestRtV2PipelineExecutor, test_pipeline_executor_create_with_allocator_s
   RtSession session;
   auto executor = RtV2PipelineExecutor::Create(ge_root_model, allocator, &session);
   ASSERT_NE(executor, nullptr);
-
 }

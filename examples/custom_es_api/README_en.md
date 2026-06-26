@@ -62,7 +62,7 @@ Key process as follows (refer to [CMakeLists.txt](CMakeLists.txt))
 2. Define operator prototype library
 
     ```cmake
-    # Note: 
+    # Note:
     # Current is an out-of-box example, i.e., define INTERFACE to use existing prototype so
     # Normal use will not use existing so, the more common way is to directly use the so target already in the project
     # How to use existing so in project:
@@ -90,9 +90,9 @@ Key process as follows (refer to [CMakeLists.txt](CMakeLists.txt))
     ```cmake
     file(GLOB CPP_FILES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/custom/*.cpp")
     add_library(self_defined_es_lib SHARED ${CPP_FILES})
-    
+
     find_library(GRAPH_LIB NAMES graph)
-    
+
     # Add header file path
     target_include_directories(self_defined_es_lib
         PUBLIC
@@ -104,9 +104,9 @@ Key process as follows (refer to [CMakeLists.txt](CMakeLists.txt))
 
     ```cmake
     target_link_libraries(self_defined_es_lib PUBLIC es_all)
-    
+
     add_dependencies(self_defined_es_lib es_all)
-    ``` 
+    ```
 
 ## Precautions
 

@@ -22,7 +22,6 @@ import sys
 import textwrap
 from pathlib import Path
 
-
 PACKAGE_NAME = "ge-py-pass-bridge"
 DIST_NAME = "ge_py_pass_bridge"
 

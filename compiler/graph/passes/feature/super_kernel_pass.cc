@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -31,51 +31,48 @@
 
 namespace ge {
 namespace {
-  const std::string scope_check_key= "strict-scope-check";
-  constexpr size_t default_pair_size = 2U;
-  const std::set<std::string> scope_check_valid_value{"bypass", "abort"};
-  const std::string super_scope_key = "_super_kernel_scope";
-  bool IsSendNode(const NodePtr node) {
-    auto type = node->GetType();
-    return ((type == SEND) || (type == SENDNOTIFY) || (type == "SendMem"));
-  }
-  bool IsRcvNode(const NodePtr node) {
-    auto type = node->GetType();
-    return ((type == RECV) || (type == RECVNOTIFY) || (type == "RecvMem"));
-  }
-  bool IsSendRcvNode(const NodePtr node) {
-    return (IsSendNode(node) || IsRcvNode(node));
-  }
-
-  bool IsHcomOpSupportSk(const OpDesc* op_desc) {
-    bool is_hccl_support_sk = false;
-    (void)AttrUtils::GetBool(op_desc, "_hccl", is_hccl_support_sk);
-    return is_hccl_support_sk;
-  }
-  bool IsIgnoreType(const NodePtr node) {
-    return (IsSendRcvNode(node) ||
-           (node->GetType() == ge::DATA) ||
-           (node->GetType() == ge::VARIABLE) ||
-           (node->GetType() == ge::CONSTANT) ||
-           (node->GetType() == ge::CONSTANTOP) ||
-           (node->GetType() == ge::CONSTPLACEHOLDER));
-  }
-
-  Status IsSupportTilingOnAicpu(const NodePtr &node, bool &is_support) {
-    GE_ASSERT_NOTNULL(node);
-    auto op_desc = node->GetOpDesc();
-    GE_ASSERT_NOTNULL(op_desc);
-    gert::OpImplSpaceRegistryV2Array space_registry_array;
-    GE_ASSERT_TRUE(static_cast<size_t>(op_desc->GetOppImplVersion()) < space_registry_array.size());
-    space_registry_array.at(static_cast<size_t>(op_desc->GetOppImplVersion())) =
-        gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
-    gert::DataDependentInterpreter ddi(op_desc, space_registry_array);
-    is_support = false;
-    GE_ASSERT_SUCCESS(ddi.IsSupportTilingDependPlacement(static_cast<uint32_t>(gert::TilingPlacement::TILING_ON_AICPU),
-                                                         is_support));
-    return SUCCESS;
-  }
+const std::string scope_check_key = "strict-scope-check";
+constexpr size_t default_pair_size = 2U;
+const std::set<std::string> scope_check_valid_value{"bypass", "abort"};
+const std::string super_scope_key = "_super_kernel_scope";
+bool IsSendNode(const NodePtr node) {
+  auto type = node->GetType();
+  return ((type == SEND) || (type == SENDNOTIFY) || (type == "SendMem"));
 }
+bool IsRcvNode(const NodePtr node) {
+  auto type = node->GetType();
+  return ((type == RECV) || (type == RECVNOTIFY) || (type == "RecvMem"));
+}
+bool IsSendRcvNode(const NodePtr node) {
+  return (IsSendNode(node) || IsRcvNode(node));
+}
+
+bool IsHcomOpSupportSk(const OpDesc *op_desc) {
+  bool is_hccl_support_sk = false;
+  (void)AttrUtils::GetBool(op_desc, "_hccl", is_hccl_support_sk);
+  return is_hccl_support_sk;
+}
+bool IsIgnoreType(const NodePtr node) {
+  return (IsSendRcvNode(node) || (node->GetType() == ge::DATA) || (node->GetType() == ge::VARIABLE) ||
+          (node->GetType() == ge::CONSTANT) || (node->GetType() == ge::CONSTANTOP) ||
+          (node->GetType() == ge::CONSTPLACEHOLDER));
+}
+
+Status IsSupportTilingOnAicpu(const NodePtr &node, bool &is_support) {
+  GE_ASSERT_NOTNULL(node);
+  auto op_desc = node->GetOpDesc();
+  GE_ASSERT_NOTNULL(op_desc);
+  gert::OpImplSpaceRegistryV2Array space_registry_array;
+  GE_ASSERT_TRUE(static_cast<size_t>(op_desc->GetOppImplVersion()) < space_registry_array.size());
+  space_registry_array.at(static_cast<size_t>(op_desc->GetOppImplVersion())) =
+      gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry();
+  gert::DataDependentInterpreter ddi(op_desc, space_registry_array);
+  is_support = false;
+  GE_ASSERT_SUCCESS(
+      ddi.IsSupportTilingDependPlacement(static_cast<uint32_t>(gert::TilingPlacement::TILING_ON_AICPU), is_support));
+  return SUCCESS;
+}
+}  // namespace
 
 Status SuperKernelPass::Run(ge::ComputeGraphPtr graph) {
   GE_CHECK_NOTNULL(graph);
@@ -123,13 +120,14 @@ Status SuperKernelPass::Run(ge::ComputeGraphPtr graph) {
     bool is_ir_support_tiling_on_aicpu = false;
     GE_ASSERT_SUCCESS(IsSupportTilingOnAicpu(node, is_ir_support_tiling_on_aicpu));
     bool is_tiling_sink_op = false;
-    (void)ge::AttrUtils::GetBool(op_desc,"_tiling_sink_op", is_tiling_sink_op);
+    (void)ge::AttrUtils::GetBool(op_desc, "_tiling_sink_op", is_tiling_sink_op);
     bool is_tiling_op_no_sink = is_ir_support_tiling_on_aicpu && !is_tiling_sink_op;
     std::string super_kernel_options;
     (void)AttrUtils::GetStr(op_desc, ATTR_NAME_SUPER_KERNEL_OPTIONS, super_kernel_options);
     std::string check_val;
     GE_ASSERT_SUCCESS(ParseSuperKernelOptions(super_scope_name, super_kernel_options, check_val));
-    const bool no_support_sk_fusion = (is_tiling_op_no_sink || (support != 1) || (is_simt_op)) && !IsHcomOpSupportSk(op_desc);
+    const bool no_support_sk_fusion =
+        (is_tiling_op_no_sink || (support != 1) || (is_simt_op)) && !IsHcomOpSupportSk(op_desc);
     // cannot delete _super_kernel_scope attr when strict-scope-check is not empty,
     // because strict-scope-check logic need this attr to verify
     const bool need_del_attr = no_support_sk_fusion && check_val.empty();
@@ -138,19 +136,21 @@ Status SuperKernelPass::Run(ge::ComputeGraphPtr graph) {
     // 如果此处不删除属性，会造成后续自动拆分时把CMO的拓扑id作为断开点，使得原本可以融合一个的sk（通过sk和外部的同步机制保证顺序）拆分成多个
     if (need_del_attr) {
       op_desc->DelAttr(super_scope_key);
-      std::string unsupported_reason = no_support_sk_fusion ?
-           "cannot fusion, maybe it is tbe or tik operator, please replace to ascendc operator and specify super_kernel_scope" :
-           "cannot fusion, please check your super_kernel_scope";
-      GEEVENT("find super kernel sub op %s(%s) %s, local_memory_size %ld, super_scope_name %s, stream_id %ld, "
+      std::string unsupported_reason = no_support_sk_fusion
+                                           ? "cannot fusion, maybe it is tbe or tik operator, please replace to "
+                                             "ascendc operator and specify super_kernel_scope"
+                                           : "cannot fusion, please check your super_kernel_scope";
+      GEEVENT(
+          "find super kernel sub op %s(%s) %s, local_memory_size %ld, super_scope_name %s, stream_id %ld, "
           "cur_pos %zu, topo id %ld, so delete attr",
-          op_desc->GetNamePtr(), op_desc->GetTypePtr(), unsupported_reason.c_str(), local_memory_size, super_scope_name.c_str(), stream_id,
-          cur_pos, op_desc->GetId());
+          op_desc->GetNamePtr(), op_desc->GetTypePtr(), unsupported_reason.c_str(), local_memory_size,
+          super_scope_name.c_str(), stream_id, cur_pos, op_desc->GetId());
       ori_super_nodes_delete_id_[super_scope_name][stream_id].emplace_back(op_desc->GetId());
       continue;
     }
     GELOGI("find super kernel sub op %s(%s), super_scope_name %s, stream_id %ld, cur_pos %zu, super_kernel_options %s",
-           op_desc->GetNamePtr(), op_desc->GetTypePtr(), super_scope_name.c_str(), stream_id,
-           cur_pos, super_kernel_options.c_str());
+           op_desc->GetNamePtr(), op_desc->GetTypePtr(), super_scope_name.c_str(), stream_id, cur_pos,
+           super_kernel_options.c_str());
     ori_super_nodes_[super_scope_name].emplace_back(node);
     ori_super_nodes_id_[super_scope_name][stream_id].emplace_back(cur_pos);
   }
@@ -176,8 +176,7 @@ Status SuperKernelPass::Run(ge::ComputeGraphPtr graph) {
 }
 
 Status SuperKernelPass::ParseSuperKernelOptions(const std::string &super_kernel_scope,
-                                                const std::string &super_kernel_options,
-                                                std::string &check_val) {
+                                                const std::string &super_kernel_options, std::string &check_val) {
   // key : super_kernel_options, value: a_opt=xxx:b_opt=xxx:c_opt=xxx
   const auto kernel_options = StringUtils::Split(super_kernel_options, ':');
   for (const auto &kernel_option : kernel_options) {
@@ -185,8 +184,9 @@ Status SuperKernelPass::ParseSuperKernelOptions(const std::string &super_kernel_
     if ((option_pair.size() == default_pair_size) && (option_pair[0] == scope_check_key)) {
       check_val = option_pair[1];
       const auto it = scope_check_valid_value.find(check_val);
-      GE_ASSERT_TRUE(it != scope_check_valid_value.end(), "options %s, value %s is invalid, only support bypass or abort",
-                     scope_check_key.c_str(), check_val.c_str());
+      GE_ASSERT_TRUE(it != scope_check_valid_value.end(),
+                     "options %s, value %s is invalid, only support bypass or abort", scope_check_key.c_str(),
+                     check_val.c_str());
       super_kernel_scope_options_[super_kernel_scope] = check_val;
     }
   }
@@ -212,8 +212,8 @@ Status SuperKernelPass::RefreshAllNodesTopoId(ge::ComputeGraphPtr root_graph) co
         auto sub_seen_op_desc = sub_seen_node->GetOpDesc();
         GE_ASSERT_NOTNULL(sub_seen_op_desc);
         sub_seen_op_desc->SetId(topo_id_refresh);
-        GELOGD("set sk sub op %s(%s) id %ld",
-               sub_seen_op_desc->GetNamePtr(), sub_seen_op_desc->GetTypePtr(), topo_id_refresh);
+        GELOGD("set sk sub op %s(%s) id %ld", sub_seen_op_desc->GetNamePtr(), sub_seen_op_desc->GetTypePtr(),
+               topo_id_refresh);
         ++topo_id_refresh;
       }
     }
@@ -243,7 +243,7 @@ Status SuperKernelPass::AutomaticSplitScope(const std::set<std::string> &no_fusi
 
     GE_ASSERT_TRUE(ori_super_nodes_.find(scope) != ori_super_nodes_.end());
     auto &cut_id = scope_cut_id[scope];
-    auto &sub_nodes= ori_super_nodes_[scope];
+    auto &sub_nodes = ori_super_nodes_[scope];
     GE_ASSERT_TRUE(!sub_nodes.empty());
     cut_id.insert(cut_id.begin(), (sub_nodes[0]->GetOpDesc()->GetId() - 1));
     cut_id.emplace_back(sub_nodes[sub_nodes.size() - 1]->GetOpDesc()->GetId() + 1);
@@ -290,8 +290,8 @@ Status SuperKernelPass::SelectFusionScope() {
       size_t begin_id = stream_id_nodes.second[0];
       size_t cur_sub_nodes_size = stream_id_nodes.second.size();
       auto end_id = stream_id_nodes.second[cur_sub_nodes_size - 1];
-      GELOGI("start to verify %s from %zu to %zu, cur_stream_id %ld, scope cut ids size is %zu",
-             cur_scope_str.c_str(), begin_id, end_id, cur_stream_id, single_scope_cut_ids.size());
+      GELOGI("start to verify %s from %zu to %zu, cur_stream_id %ld, scope cut ids size is %zu", cur_scope_str.c_str(),
+             begin_id, end_id, cur_stream_id, single_scope_cut_ids.size());
       for (size_t i = begin_id; i <= end_id; ++i) {
         auto it_ordered = ori_stream_ordered_nodes_.find(cur_stream_id);
         GE_ASSERT_TRUE(it_ordered != ori_stream_ordered_nodes_.end());
@@ -312,10 +312,12 @@ Status SuperKernelPass::SelectFusionScope() {
         int64_t local_memory_size = 0;
         (void)AttrUtils::GetInt(cur_node->GetOpDesc(), "local_memory_size", local_memory_size);
         const bool is_simt_op = local_memory_size > 0;
-        const bool no_support_sk_fusion = ((support != 1) || (is_simt_op)) && !IsHcomOpSupportSk(cur_node->GetOpDescBarePtr());
-        std::string unsupported_reason = no_support_sk_fusion ?
-            "cannot fusion, maybe it is tbe or tik operator, please replace to ascendc operator and specify super_kernel_scope" :
-            "cannot fusion, please check your super_kernel_scope";
+        const bool no_support_sk_fusion =
+            ((support != 1) || (is_simt_op)) && !IsHcomOpSupportSk(cur_node->GetOpDescBarePtr());
+        std::string unsupported_reason = no_support_sk_fusion
+                                             ? "cannot fusion, maybe it is tbe or tik operator, please replace to "
+                                               "ascendc operator and specify super_kernel_scope"
+                                             : "cannot fusion, please check your super_kernel_scope";
         const bool need_cut = (super_scope_name != cur_scope_str) || no_support_sk_fusion;
         if (need_cut) {
           const auto check_val = super_kernel_scope_options_[cur_scope_str];
@@ -323,10 +325,10 @@ Status SuperKernelPass::SelectFusionScope() {
                   cur_node->GetNamePtr(), unsupported_reason.c_str(), local_memory_size, cur_stream_id, i,
                   cur_scope_str.c_str(), cur_node->GetOpDesc()->GetId());
           GE_ASSERT_TRUE((check_val != "abort"), "In abort check scene, node %s %s, target scope %s",
-              cur_node->GetNamePtr(), unsupported_reason.c_str(), cur_scope_str.c_str());
+                         cur_node->GetNamePtr(), unsupported_reason.c_str(), cur_scope_str.c_str());
           if (check_val == "bypass") {
-            GELOGW("current node %s %s, target scope %s",
-                   cur_node->GetNamePtr(), unsupported_reason.c_str(), cur_scope_str.c_str());
+            GELOGW("current node %s %s, target scope %s", cur_node->GetNamePtr(), unsupported_reason.c_str(),
+                   cur_scope_str.c_str());
           } else {
             scope_cut_id[cur_scope_str].emplace_back(cur_node->GetOpDesc()->GetId());
           }
@@ -357,8 +359,8 @@ Status SuperKernelScope::Init(const std::string &name, const std::vector<NodePtr
   }
   super_scope_name_ = name;
   origin_graph_ = super_nodes_[0]->GetOwnerComputeGraph();
-  GELOGI("start to process scope %s, event begin id is %u, sk sub nodes size %zu",
-         super_scope_name_.c_str(), event_begin_id_, sk_nodes.size());
+  GELOGI("start to process scope %s, event begin id is %u, sk sub nodes size %zu", super_scope_name_.c_str(),
+         event_begin_id_, sk_nodes.size());
   GE_ASSERT_NOTNULL(origin_graph_);
   auto all_nodes = origin_graph_->GetAllNodes();
   std::vector<NodePtr> send_rcv_nodes;
@@ -418,8 +420,8 @@ void SuperKernelScope::SelectSkStreamId(const std::map<int64_t, std::vector<Node
 Status SuperKernelScope::RecordSendInfo(const NodePtr &send_node) {
   uint32_t event_id = 0;
   std::string event_key = (send_node->GetType() == SENDNOTIFY) ? SEND_ATTR_NOTIFY_ID : SEND_ATTR_EVENT_ID;
-  GE_ASSERT_TRUE(AttrUtils::GetInt(send_node->GetOpDesc(), event_key, event_id),
-                 "%s cannot get event id", send_node->GetNamePtr());
+  GE_ASSERT_TRUE(AttrUtils::GetInt(send_node->GetOpDesc(), event_key, event_id), "%s cannot get event id",
+                 send_node->GetNamePtr());
   GELOGI("start to record send info from %s, event id %u", send_node->GetNamePtr(), event_id);
   auto in_control_anchor = send_node->GetInControlAnchor();
   GE_ASSERT_NOTNULL(in_control_anchor);
@@ -436,16 +438,16 @@ Status SuperKernelScope::RecordSendInfo(const NodePtr &send_node) {
   event_nodes_list_[event_id].send_node_name = send_node->GetName();
   event_nodes_list_[event_id].event_id = event_id;
   event_nodes_list_[event_id].send_stream_id = send_stream_id;
-  GELOGI("record send info from %s, event id %u, src_node %s, event_id %u, send_stream_id %ld",
-         send_node->GetNamePtr(), event_id, src_node->GetNamePtr(), event_id, send_stream_id);
+  GELOGI("record send info from %s, event id %u, src_node %s, event_id %u, send_stream_id %ld", send_node->GetNamePtr(),
+         event_id, src_node->GetNamePtr(), event_id, send_stream_id);
   return SUCCESS;
 }
 
 Status SuperKernelScope::RecordRcvInfo(const NodePtr &rcv_node) {
   uint32_t event_id = 0;
   std::string event_key = (rcv_node->GetType() == RECVNOTIFY) ? RECV_ATTR_NOTIFY_ID : RECV_ATTR_EVENT_ID;
-  GE_ASSERT_TRUE(AttrUtils::GetInt(rcv_node->GetOpDesc(), event_key, event_id),
-                 "%s cannot get event id", rcv_node->GetNamePtr());
+  GE_ASSERT_TRUE(AttrUtils::GetInt(rcv_node->GetOpDesc(), event_key, event_id), "%s cannot get event id",
+                 rcv_node->GetNamePtr());
   GELOGI("start to record recv info from %s, event id %u", rcv_node->GetNamePtr(), event_id);
   auto out_control_anchor = rcv_node->GetOutControlAnchor();
   GE_ASSERT_NOTNULL(out_control_anchor);
@@ -480,42 +482,40 @@ Status SuperKernelScope::UpdateWholeSendRcvMap(const std::vector<NodePtr> &send_
     for (auto &send_pair : send_ele.second) {
       const uint32_t event_id = send_pair.second;
       auto it = event_nodes_list_.find(event_id);
-      GE_ASSERT_TRUE(it != event_nodes_list_.end(), "%u cannot find in event map for src_node %s",
-                     event_id, send_ele.first->GetNamePtr());
-      GE_ASSERT_NOTNULL(it->second.src_node, "event id %u src_node cannot be null for src_node %s",
-                        event_id, send_ele.first->GetNamePtr());
-      GE_ASSERT_NOTNULL(it->second.send_node, "event id %u send_node cannot be null for src_node %s",
-                        event_id, send_ele.first->GetNamePtr());
-      GE_ASSERT_NOTNULL(it->second.dst_node, "event id %u dst_node cannot be null for src_node %s",
-                        event_id, send_ele.first->GetNamePtr());
-      GE_ASSERT_NOTNULL(it->second.rcv_node, "event id %u rcv_node cannot be null for src_node %s",
-                        event_id, send_ele.first->GetNamePtr());
+      GE_ASSERT_TRUE(it != event_nodes_list_.end(), "%u cannot find in event map for src_node %s", event_id,
+                     send_ele.first->GetNamePtr());
+      GE_ASSERT_NOTNULL(it->second.src_node, "event id %u src_node cannot be null for src_node %s", event_id,
+                        send_ele.first->GetNamePtr());
+      GE_ASSERT_NOTNULL(it->second.send_node, "event id %u send_node cannot be null for src_node %s", event_id,
+                        send_ele.first->GetNamePtr());
+      GE_ASSERT_NOTNULL(it->second.dst_node, "event id %u dst_node cannot be null for src_node %s", event_id,
+                        send_ele.first->GetNamePtr());
+      GE_ASSERT_NOTNULL(it->second.rcv_node, "event id %u rcv_node cannot be null for src_node %s", event_id,
+                        send_ele.first->GetNamePtr());
       send_pair.first = it->second.dst_node;
       GELOGI("get src_node %s, event id %u src_node %s, send_node %s, rcv_node %s, dst_node %s",
              send_ele.first->GetNamePtr(), event_id, it->second.src_node->GetNamePtr(),
-             it->second.send_node->GetNamePtr(), it->second.rcv_node->GetNamePtr(),
-             it->second.dst_node->GetNamePtr());
+             it->second.send_node->GetNamePtr(), it->second.rcv_node->GetNamePtr(), it->second.dst_node->GetNamePtr());
     }
   }
   for (auto &rcv_ele : rcv_nodes_map_) {
     for (auto &rcv_pair : rcv_ele.second) {
       const uint32_t event_id = rcv_pair.second;
       auto it = event_nodes_list_.find(event_id);
-      GE_ASSERT_TRUE(it != event_nodes_list_.end(), "%u cannot find in event map for dst_node %s",
-                     event_id, rcv_ele.first->GetNamePtr());
-      GE_ASSERT_NOTNULL(it->second.src_node, "event id %u src_node cannot be null for dst_node %s",
-                        event_id, rcv_ele.first->GetNamePtr());
-      GE_ASSERT_NOTNULL(it->second.send_node, "event id %u send_node cannot be null for dst_node %s",
-                        event_id, rcv_ele.first->GetNamePtr());
-      GE_ASSERT_NOTNULL(it->second.dst_node, "event id %u dst_node cannot be null for dst_node %s",
-                        event_id, rcv_ele.first->GetNamePtr());
-      GE_ASSERT_NOTNULL(it->second.rcv_node, "event id %u rcv_node cannot be null for dst_node %s",
-                        event_id, rcv_ele.first->GetNamePtr());
+      GE_ASSERT_TRUE(it != event_nodes_list_.end(), "%u cannot find in event map for dst_node %s", event_id,
+                     rcv_ele.first->GetNamePtr());
+      GE_ASSERT_NOTNULL(it->second.src_node, "event id %u src_node cannot be null for dst_node %s", event_id,
+                        rcv_ele.first->GetNamePtr());
+      GE_ASSERT_NOTNULL(it->second.send_node, "event id %u send_node cannot be null for dst_node %s", event_id,
+                        rcv_ele.first->GetNamePtr());
+      GE_ASSERT_NOTNULL(it->second.dst_node, "event id %u dst_node cannot be null for dst_node %s", event_id,
+                        rcv_ele.first->GetNamePtr());
+      GE_ASSERT_NOTNULL(it->second.rcv_node, "event id %u rcv_node cannot be null for dst_node %s", event_id,
+                        rcv_ele.first->GetNamePtr());
       rcv_pair.first = it->second.src_node;
       GELOGI("get dst_node %s, event id %u src_node %s, send_node %s, rcv_node %s, dst_node %s",
              rcv_ele.first->GetNamePtr(), event_id, it->second.src_node->GetNamePtr(),
-             it->second.send_node->GetNamePtr(), it->second.rcv_node->GetNamePtr(),
-             it->second.dst_node->GetNamePtr());
+             it->second.send_node->GetNamePtr(), it->second.rcv_node->GetNamePtr(), it->second.dst_node->GetNamePtr());
     }
   }
   return SUCCESS;
@@ -541,9 +541,9 @@ Status SuperKernelScope::GetSuperNodesIoInfo() {
       GE_ASSERT_NOTNULL(cur_input_node_info.cur_node);
       cur_input_node_info.node_name = input_out_data_anchor->GetOwnerNode()->GetName();
 
-      GELOGI("super node %s input %zu link node %s output %zu",
-        node->GetNamePtr(), cur_input_node_info.in_data_anchor_id,
-        cur_input_node_info.node_name.c_str(), cur_input_node_info.out_data_anchor_id);
+      GELOGI("super node %s input %zu link node %s output %zu", node->GetNamePtr(),
+             cur_input_node_info.in_data_anchor_id, cur_input_node_info.node_name.c_str(),
+             cur_input_node_info.out_data_anchor_id);
       cur_node_info.input_nodes_info.emplace_back(cur_input_node_info);
     }
 
@@ -562,9 +562,9 @@ Status SuperKernelScope::GetSuperNodesIoInfo() {
         cur_out_node_info.node_name = out_node->GetName();
         cur_out_node_info.cur_node = out_node;
         cur_output_nodes_info.emplace_back(cur_out_node_info);
-        GELOGI("super node %s output %zu link node %s input %zu",
-          node->GetNamePtr(), cur_out_node_info.out_data_anchor_id,
-          cur_out_node_info.node_name.c_str(), cur_out_node_info.in_data_anchor_id);
+        GELOGI("super node %s output %zu link node %s input %zu", node->GetNamePtr(),
+               cur_out_node_info.out_data_anchor_id, cur_out_node_info.node_name.c_str(),
+               cur_out_node_info.in_data_anchor_id);
       }
       cur_node_info.output_nodes_info.emplace_back(cur_output_nodes_info);
     }
@@ -592,8 +592,9 @@ Status SuperKernelScope::GetSkBoundaryEventInfo() {
     GE_ASSERT_TRUE(tmp_stream_ordered_nodes.size() > begin_id);
     GE_ASSERT_TRUE(tmp_stream_ordered_nodes.size() > end_id);
     first_other_stm_sub_nodes_.insert(tmp_stream_ordered_nodes[begin_id]->GetName());
-    GELOGI("find stream %ld should add event info, begin_id is %zu name %s,end_id is %zu, name %s", cur_stream_id, begin_id,
-           tmp_stream_ordered_nodes[begin_id]->GetNamePtr(), end_id, tmp_stream_ordered_nodes[end_id]->GetNamePtr());
+    GELOGI("find stream %ld should add event info, begin_id is %zu name %s,end_id is %zu, name %s", cur_stream_id,
+           begin_id, tmp_stream_ordered_nodes[begin_id]->GetNamePtr(), end_id,
+           tmp_stream_ordered_nodes[end_id]->GetNamePtr());
     {
       NodePtr src_node;
       NodePtr dst_node;
@@ -610,11 +611,11 @@ Status SuperKernelScope::GetSkBoundaryEventInfo() {
         }
       }
       if ((src_node != nullptr) && (dst_node != nullptr)) {
-        super_nodes_info_[dst_node->GetName()].rcv_nodes_info.push_back(
-            {src_node, src_node->GetName(), nullptr, "",
-            dst_node, dst_node->GetName(), nullptr, "", 0, cur_stream_id, scope_stream_id_});
-        GELOGI("find stream id %lu top add event to src_node %s, dst_node %s",
-               cur_stream_id, src_node->GetNamePtr(), dst_node->GetNamePtr());
+        super_nodes_info_[dst_node->GetName()].rcv_nodes_info.push_back({src_node, src_node->GetName(), nullptr, "",
+                                                                         dst_node, dst_node->GetName(), nullptr, "", 0,
+                                                                         cur_stream_id, scope_stream_id_});
+        GELOGI("find stream id %lu top add event to src_node %s, dst_node %s", cur_stream_id, src_node->GetNamePtr(),
+               dst_node->GetNamePtr());
       }
     }
 
@@ -634,11 +635,11 @@ Status SuperKernelScope::GetSkBoundaryEventInfo() {
         }
       }
       if ((src_node != nullptr) && (dst_node != nullptr)) {
-        super_nodes_info_[src_node->GetName()].send_nodes_info.push_back(
-            {src_node, src_node->GetName(), nullptr, "",
-            dst_node, dst_node->GetName(), nullptr, "", 0, scope_stream_id_, cur_stream_id});
-        GELOGI("find stream id %lu bottom add event to src_node %s, dst_node %s",
-               cur_stream_id, src_node->GetNamePtr(), dst_node->GetNamePtr());
+        super_nodes_info_[src_node->GetName()].send_nodes_info.push_back({src_node, src_node->GetName(), nullptr, "",
+                                                                          dst_node, dst_node->GetName(), nullptr, "", 0,
+                                                                          scope_stream_id_, cur_stream_id});
+        GELOGI("find stream id %lu bottom add event to src_node %s, dst_node %s", cur_stream_id, src_node->GetNamePtr(),
+               dst_node->GetNamePtr());
       }
     }
   }
@@ -691,8 +692,8 @@ Status SuperKernelScope::GetSkNodeLinkInfo() {
         merge_node_input_vec_.emplace_back(
             std::make_pair(input_node_info.cur_node, input_node_info.out_data_anchor_id));
         merge_node_input_set.insert(input_node_info.cur_node->GetName());
-        GELOGI("find node %s output %zu should link merge node",
-          input_node_info.cur_node->GetNamePtr(), input_node_info.out_data_anchor_id);
+        GELOGI("find node %s output %zu should link merge node", input_node_info.cur_node->GetNamePtr(),
+               input_node_info.out_data_anchor_id);
       }
     }
     for (const auto &output_nodes_info : super_node_info_it.second.output_nodes_info) {
@@ -702,8 +703,8 @@ Status SuperKernelScope::GetSkNodeLinkInfo() {
           tmp_out_node_info.emplace_back(std::make_pair(output_node_info.cur_node, output_node_info.in_data_anchor_id));
           merge_node_output_set.insert(output_node_info.cur_node->GetName());
           GELOGI("find merge node should link node %s input %zu, current linked node %s",
-            output_node_info.cur_node->GetNamePtr(), output_node_info.in_data_anchor_id,
-            super_node_info_it.second.node_name.c_str());
+                 output_node_info.cur_node->GetNamePtr(), output_node_info.in_data_anchor_id,
+                 super_node_info_it.second.node_name.c_str());
         }
       }
       if (tmp_out_node_info.empty()) {
@@ -713,8 +714,9 @@ Status SuperKernelScope::GetSkNodeLinkInfo() {
       size_t parent_index = merge_node_output_vec_.size() - 1;
       size_t out_data_anchor_id = output_nodes_info[0].out_data_anchor_id;
       GELOGI("find node %s is sub_graph output node out_index %zu, parent_index %zu",
-              super_node_info_it.second.node_name.c_str(), out_data_anchor_id, parent_index);
-      out_nodes_order_[super_node_info_it.second.node_name].emplace_back(std::make_pair(parent_index, out_data_anchor_id));
+             super_node_info_it.second.node_name.c_str(), out_data_anchor_id, parent_index);
+      out_nodes_order_[super_node_info_it.second.node_name].emplace_back(
+          std::make_pair(parent_index, out_data_anchor_id));
     }
   }
   return SUCCESS;
@@ -764,8 +766,7 @@ Status SuperKernelScope::LinkSkInputNode() {
     auto output_idx = merge_node_input_vec_[id].second;
     auto in_node_output_tensordesc = in_node->GetOpDesc()->GetOutputDesc(output_idx);
     super_op_desc->UpdateInputDesc(id, in_node_output_tensordesc);
-    GELOGI("link in node %s %zu to node %s %zu",
-           in_node->GetNamePtr(), output_idx, super_node_->GetNamePtr(), id);
+    GELOGI("link in node %s %zu to node %s %zu", in_node->GetNamePtr(), output_idx, super_node_->GetNamePtr(), id);
     GE_ASSERT_SUCCESS(GraphUtils::AddEdge(in_node->GetOutDataAnchor(output_idx), super_node_->GetInDataAnchor(id)));
     std::string data_node_name = sub_graph_->GetName() + "_innerdata_" + to_string(id);
     auto data_op_desc = MakeShared<OpDesc>(data_node_name, ge::DATA);
@@ -788,9 +789,8 @@ Status SuperKernelScope::LinkSkInputNode() {
     if (output_idx < out_memory_type.size()) {
       v_memory_type.emplace_back(out_memory_type[output_idx]);
     }
-    GELOGI("mapping origin node %s inner node %s, id %zu, output offset %zu, mem_type %zu",
-           in_node->GetNamePtr(), inner_data_node->GetNamePtr(), output_idx,
-           v_output_offset.size(), out_memory_type.size());
+    GELOGI("mapping origin node %s inner node %s, id %zu, output offset %zu, mem_type %zu", in_node->GetNamePtr(),
+           inner_data_node->GetNamePtr(), output_idx, v_output_offset.size(), out_memory_type.size());
   }
   super_op_desc->SetInputOffset(v_input_offset);
   super_op_desc->SetIsInputConst(is_input_const);
@@ -810,10 +810,10 @@ Status SuperKernelScope::LinkSkOutputNode(NodePtr &inner_netoutput_node) {
       auto dst_node = out_lin_node_index.first;
       auto dst_in_data_anchor_id = out_lin_node_index.second;
       super_node_->GetOpDesc()->UpdateOutputDesc(i, dst_node->GetOpDesc()->GetInputDesc(dst_in_data_anchor_id));
-      GELOGI("link input node %s %zu to node %s %zu",
-             super_node_->GetNamePtr(), i, dst_node->GetNamePtr(), dst_in_data_anchor_id);
-      GE_ASSERT_SUCCESS(GraphUtils::AddEdge(super_node_->GetOutDataAnchor(i),
-                                            dst_node->GetInDataAnchor(dst_in_data_anchor_id)));
+      GELOGI("link input node %s %zu to node %s %zu", super_node_->GetNamePtr(), i, dst_node->GetNamePtr(),
+             dst_in_data_anchor_id);
+      GE_ASSERT_SUCCESS(
+          GraphUtils::AddEdge(super_node_->GetOutDataAnchor(i), dst_node->GetInDataAnchor(dst_in_data_anchor_id)));
       inner_netoutput_node->GetOpDesc()->UpdateInputDesc(i, dst_node->GetOpDesc()->GetInputDesc(dst_in_data_anchor_id));
       newNodeMap_[dst_node->GetName() + "_in_" + to_string(dst_in_data_anchor_id)] = inner_netoutput_node;
       GELOGI("mapping origin node %s inner node %s", dst_node->GetNamePtr(), inner_netoutput_node->GetNamePtr());
@@ -825,8 +825,8 @@ Status SuperKernelScope::LinkSkOutputNode(NodePtr &inner_netoutput_node) {
         const GeTensorDescPtr tensor_desc = dst_node->GetOpDesc()->MutableInputDesc(static_cast<uint32_t>(j));
         if (tensor_desc != nullptr) {
           GELOGI("dst node %s input offset %zu, mem type %zu, id %zu, real_input_cnt %zu, anchor id %zu",
-                 dst_node->GetNamePtr(), v_input_offset.size(), in_memory_type.size(), j,
-                 real_input_cnt, dst_in_data_anchor_id);
+                 dst_node->GetNamePtr(), v_input_offset.size(), in_memory_type.size(), j, real_input_cnt,
+                 dst_in_data_anchor_id);
           if (real_input_cnt < v_input_offset.size() && (dst_in_data_anchor_id == j)) {
             v_output_offset.emplace_back(v_input_offset[real_input_cnt]);
           }
@@ -842,8 +842,8 @@ Status SuperKernelScope::LinkSkOutputNode(NodePtr &inner_netoutput_node) {
   if (!v_memory_type.empty()) {
     GE_ASSERT_TRUE(AttrUtils::SetListInt(super_node_->GetOpDesc(), ATTR_NAME_OUTPUT_MEM_TYPE_LIST, v_memory_type));
   }
-  GELOGI("sk %s has output offset %zu, mem_type_list %zu", super_node_->GetNamePtr(),
-         v_output_offset.size(), v_memory_type.size());
+  GELOGI("sk %s has output offset %zu, mem_type_list %zu", super_node_->GetNamePtr(), v_output_offset.size(),
+         v_memory_type.size());
   return SUCCESS;
 }
 
@@ -859,8 +859,7 @@ Status SuperKernelScope::InsertSrcNode2SendMem(const NodePtr &src_node, const ui
   op_desc_ptr->SetStreamId(send_stream_id);
   op_desc_ptr->SetOpKernelLibName("DNN_VM_RTS_OP_STORE");
   GE_ASSERT_TRUE(AttrUtils::SetInt(op_desc_ptr, SEND_ATTR_EVENT_ID, event_id));
-  (void)AttrUtils::SetListStr(op_desc_ptr, ATTR_NAME_DATA_DUMP_ORIGIN_OP_NAMES,
-                              std::move(std::vector<std::string>()));
+  (void)AttrUtils::SetListStr(op_desc_ptr, ATTR_NAME_DATA_DUMP_ORIGIN_OP_NAMES, std::move(std::vector<std::string>()));
   auto graph = src_node->GetOwnerComputeGraph();
   GE_ASSERT_NOTNULL(graph);
   NodePtr send_node = graph->InsertNode(src_node, op_desc_ptr);
@@ -869,8 +868,8 @@ Status SuperKernelScope::InsertSrcNode2SendMem(const NodePtr &src_node, const ui
   GE_ASSERT_SUCCESS(GraphUtils::AddEdge(src_node->GetOutControlAnchor(), send_node->GetInControlAnchor()),
                     "Add edge from node %s to node %s failed", src_node->GetNamePtr(), send_node->GetNamePtr());
   GE_ASSERT_SUCCESS(RefreshSendList(src_node, event_id, false));
-  GELOGI("Insert send event node: %s event id %u after node: %s with stream: %ld",
-         send_node->GetNamePtr(), event_id, src_node->GetNamePtr(), send_stream_id);
+  GELOGI("Insert send event node: %s event id %u after node: %s with stream: %ld", send_node->GetNamePtr(), event_id,
+         src_node->GetNamePtr(), send_stream_id);
 
   return SUCCESS;
 }
@@ -890,8 +889,8 @@ Status SuperKernelScope::RefreshSendList(const NodePtr src_node, const uint32_t 
     sk_send_event_ids_newest.emplace_back(event_id);
   }
   GE_ASSERT_TRUE(AttrUtils::SetListInt(src_node->GetOpDesc(), "_sk_send_event_ids", sk_send_event_ids_newest));
-  GELOGI("src node: %s event id %u sk_send_event_ids_newest size is %zu",
-         src_node->GetNamePtr(), event_id, sk_send_event_ids_newest.size());
+  GELOGI("src node: %s event id %u sk_send_event_ids_newest size is %zu", src_node->GetNamePtr(), event_id,
+         sk_send_event_ids_newest.size());
   return SUCCESS;
 }
 
@@ -910,8 +909,8 @@ Status SuperKernelScope::RefreshRcvList(const NodePtr dst_node, const uint32_t e
     sk_rcv_event_ids_newest.emplace_back(event_id);
   }
   GE_ASSERT_TRUE(AttrUtils::SetListInt(dst_node->GetOpDesc(), "_sk_rcv_event_ids", sk_rcv_event_ids_newest));
-  GELOGI("src dst_node: %s event id %u sk_rcv_event_ids_newest size is %zu",
-         dst_node->GetNamePtr(), event_id, sk_rcv_event_ids_newest.size());
+  GELOGI("src dst_node: %s event id %u sk_rcv_event_ids_newest size is %zu", dst_node->GetNamePtr(), event_id,
+         sk_rcv_event_ids_newest.size());
   return SUCCESS;
 }
 
@@ -927,8 +926,7 @@ Status SuperKernelScope::InsertRecvMem2DstNode(const NodePtr &dst_node, const ui
   op_desc_ptr->SetStreamId(rcv_stream_id);
   op_desc_ptr->SetOpKernelLibName("DNN_VM_RTS_OP_STORE");
   GE_ASSERT_TRUE(AttrUtils::SetInt(op_desc_ptr, RECV_ATTR_EVENT_ID, event_id));
-  (void)AttrUtils::SetListStr(op_desc_ptr, ATTR_NAME_DATA_DUMP_ORIGIN_OP_NAMES,
-                              std::move(std::vector<std::string>()));
+  (void)AttrUtils::SetListStr(op_desc_ptr, ATTR_NAME_DATA_DUMP_ORIGIN_OP_NAMES, std::move(std::vector<std::string>()));
   auto graph = dst_node->GetOwnerComputeGraph();
   GE_ASSERT_NOTNULL(graph);
   NodePtr recv_node = graph->InsertNodeBefore(dst_node, op_desc_ptr);
@@ -937,8 +935,8 @@ Status SuperKernelScope::InsertRecvMem2DstNode(const NodePtr &dst_node, const ui
   GE_ASSERT_SUCCESS(GraphUtils::AddEdge(recv_node->GetOutControlAnchor(), dst_node->GetInControlAnchor()),
                     "Add edge from node %s to node %s failed", recv_node->GetNamePtr(), dst_node->GetNamePtr());
   GE_ASSERT_SUCCESS(RefreshRcvList(dst_node, event_id, false));
-  GEEVENT("Insert recv event node %s event id %u before node: %s with stream %ld",
-         recv_node->GetNamePtr(), event_id, dst_node->GetNamePtr(), rcv_stream_id);
+  GEEVENT("Insert recv event node %s event id %u before node: %s with stream %ld", recv_node->GetNamePtr(), event_id,
+          dst_node->GetNamePtr(), rcv_stream_id);
   return SUCCESS;
 }
 
@@ -949,8 +947,8 @@ Status SuperKernelScope::LinkEventNode() {
     GE_ASSERT_SUCCESS(RefreshSendList(sub_info.second.cur_node, 0, true));
     GE_ASSERT_SUCCESS(RefreshRcvList(sub_info.second.cur_node, 0, true));
     for (auto &send_event_info : sub_info.second.send_nodes_info) {
-      GELOGI("start to process %s send link, origin event_id is %u",
-             sub_info.second.cur_node->GetNamePtr(), send_event_info.event_id);
+      GELOGI("start to process %s send link, origin event_id is %u", sub_info.second.cur_node->GetNamePtr(),
+             send_event_info.event_id);
       send_event_info.send_node = nullptr;
       send_event_info.rcv_node = nullptr;
 
@@ -970,11 +968,12 @@ Status SuperKernelScope::LinkEventNode() {
                send_event_info.src_node->GetNamePtr(), super_node_->GetNamePtr());
         real_src_node = super_node_;
       }
-      bool use_normal_event = is_last_send_node && (send_event_info.dst_node->GetOwnerComputeGraph() == origin_graph_) &&
-                          !reuse_event_id_set_.empty();
+      bool use_normal_event = is_last_send_node &&
+                              (send_event_info.dst_node->GetOwnerComputeGraph() == origin_graph_) &&
+                              !reuse_event_id_set_.empty();
 
-      auto it_pair = has_insert_send_rcv_nodes_set[real_src_node->GetName()].
-                     insert(send_event_info.dst_node->GetName());
+      auto it_pair =
+          has_insert_send_rcv_nodes_set[real_src_node->GetName()].insert(send_event_info.dst_node->GetName());
       GELOGI("process %s event link src %s, dst %s, is_first_insert %d, reuse_event_id_set_ size %zu",
              sub_info.second.cur_node->GetNamePtr(), real_src_node->GetNamePtr(),
              send_event_info.dst_node->GetNamePtr(), it_pair.second, reuse_event_id_set_.size());
@@ -990,16 +989,16 @@ Status SuperKernelScope::LinkEventNode() {
         }
 
         GE_ASSERT_SUCCESS(RefreshSendList(send_event_info.src_node, 0, true));
-        GE_ASSERT_SUCCESS(InsertSrcNode2SendMem(real_src_node, send_event_info.event_id,
-                                                scope_stream_id_, !use_normal_event));
+        GE_ASSERT_SUCCESS(
+            InsertSrcNode2SendMem(real_src_node, send_event_info.event_id, scope_stream_id_, !use_normal_event));
         GE_ASSERT_SUCCESS(InsertRecvMem2DstNode(send_event_info.dst_node, send_event_info.event_id,
                                                 send_event_info.rcv_stream_id, !use_normal_event));
         ++event_num_;
       }
     }
     for (auto &rcv_event_info : sub_info.second.rcv_nodes_info) {
-      GELOGI("start to process %s rcv link, origin event_id is %u",
-             sub_info.second.cur_node->GetNamePtr(), rcv_event_info.event_id);
+      GELOGI("start to process %s rcv link, origin event_id is %u", sub_info.second.cur_node->GetNamePtr(),
+             rcv_event_info.event_id);
       rcv_event_info.send_node = nullptr;
       rcv_event_info.rcv_node = nullptr;
 
@@ -1017,7 +1016,8 @@ Status SuperKernelScope::LinkEventNode() {
       // special process
       bool is_support = false;
       GE_ASSERT_SUCCESS(IsSupportTilingOnAicpu(real_dst_node, is_support));
-      const bool is_tiling_stream = (rcv_event_info.rcv_stream_id != real_dst_node->GetOpDesc()->GetStreamId()) && is_support;
+      const bool is_tiling_stream =
+          (rcv_event_info.rcv_stream_id != real_dst_node->GetOpDesc()->GetStreamId()) && is_support;
       bool is_first_rcv_node = rcv_event_info.dst_node->GetName() == super_nodes_[0]->GetName();
       auto it = first_other_stm_sub_nodes_.find(rcv_event_info.dst_node->GetName());
       if (it != first_other_stm_sub_nodes_.end() &&
@@ -1031,33 +1031,33 @@ Status SuperKernelScope::LinkEventNode() {
       }
       if (is_first_rcv_node || is_tiling_stream) {
         GEEVENT("current node %s is sk first sub node, or tiling stream %d, so sk parent node %s replace to receive ",
-               real_dst_node->GetNamePtr(), is_tiling_stream, super_node_->GetNamePtr());
+                real_dst_node->GetNamePtr(), is_tiling_stream, super_node_->GetNamePtr());
         real_dst_node = super_node_;
       }
       bool use_normal_event = (is_first_rcv_node || is_tiling_stream) &&
                               (rcv_event_info.src_node->GetOwnerComputeGraph() == origin_graph_) &&
                               !reuse_event_id_set_.empty();
-      auto it_pair = has_insert_send_rcv_nodes_set[rcv_event_info.src_node->GetName()].
-                     insert(real_dst_node->GetName());
+      auto it_pair = has_insert_send_rcv_nodes_set[rcv_event_info.src_node->GetName()].insert(real_dst_node->GetName());
       GELOGI("process %s event link src %s, dst %s, is_first_insert %d, reuse_event_id_set_ size %zu",
-             sub_info.second.cur_node->GetNamePtr(), rcv_event_info.src_node->GetNamePtr(),
-             real_dst_node->GetNamePtr(), it_pair.second, reuse_event_id_set_.size());
+             sub_info.second.cur_node->GetNamePtr(), rcv_event_info.src_node->GetNamePtr(), real_dst_node->GetNamePtr(),
+             it_pair.second, reuse_event_id_set_.size());
       if (it_pair.second) {
         rcv_event_info.event_id = event_begin_id_ + event_num_;
         if (use_normal_event) {
           rcv_event_info.event_id = *reuse_event_id_set_.begin();
           reuse_event_id_set_.erase(reuse_event_id_set_.begin());
-          GELOGI("process %s event link src %s, dst %s, event_id %u, reuse_event_id_set_ size %zu, rcv stream id is %ld",
-                 sub_info.second.cur_node->GetNamePtr(), rcv_event_info.src_node->GetNamePtr(),
-                 real_dst_node->GetNamePtr(), rcv_event_info.event_id, reuse_event_id_set_.size(),
-                 rcv_event_info.rcv_stream_id);
+          GELOGI(
+              "process %s event link src %s, dst %s, event_id %u, reuse_event_id_set_ size %zu, rcv stream id is %ld",
+              sub_info.second.cur_node->GetNamePtr(), rcv_event_info.src_node->GetNamePtr(),
+              real_dst_node->GetNamePtr(), rcv_event_info.event_id, reuse_event_id_set_.size(),
+              rcv_event_info.rcv_stream_id);
         }
         GE_ASSERT_SUCCESS(InsertSrcNode2SendMem(rcv_event_info.src_node, rcv_event_info.event_id,
                                                 rcv_event_info.send_stream_id, !use_normal_event));
         GE_ASSERT_SUCCESS(RefreshRcvList(rcv_event_info.dst_node, 0, true));
         int64_t last_rcv_stream_id = is_tiling_stream ? rcv_event_info.rcv_stream_id : scope_stream_id_;
-        GE_ASSERT_SUCCESS(InsertRecvMem2DstNode(real_dst_node, rcv_event_info.event_id,
-                                                last_rcv_stream_id, !use_normal_event));
+        GE_ASSERT_SUCCESS(
+            InsertRecvMem2DstNode(real_dst_node, rcv_event_info.event_id, last_rcv_stream_id, !use_normal_event));
         ++event_num_;
       }
     }
@@ -1072,21 +1072,22 @@ Status SuperKernelScope::LinkInnerNodes(NodePtr &inner_netoutput_node) {
     super_node_info_it.second.cur_node = it->second;
     for (auto &input_node_info : super_node_info_it.second.input_nodes_info) {
       // outside in_node key is name + _out_id
-      std::string in_node_name = super_nodes_set_.find(input_node_info.node_name) != super_nodes_set_.end() ?
-          input_node_info.node_name :
-          (input_node_info.node_name + "_out_" + to_string(input_node_info.out_data_anchor_id));
+      std::string in_node_name =
+          super_nodes_set_.find(input_node_info.node_name) != super_nodes_set_.end()
+              ? input_node_info.node_name
+              : (input_node_info.node_name + "_out_" + to_string(input_node_info.out_data_anchor_id));
       it = newNodeMap_.find(in_node_name);
       GE_ASSERT_TRUE(it != newNodeMap_.end());
       input_node_info.cur_node = it->second;
       if (input_node_info.cur_node->GetType() == ge::DATA) {
         input_node_info.out_data_anchor_id = 0;
       }
-      GELOGI("link node %s output %zu to node %s input %zu",
-             input_node_info.cur_node->GetNamePtr(), input_node_info.out_data_anchor_id,
-             super_node_info_it.second.cur_node->GetNamePtr(), input_node_info.in_data_anchor_id);
-      GE_ASSERT_SUCCESS(GraphUtils::AddEdge(
-          input_node_info.cur_node->GetOutDataAnchor(input_node_info.out_data_anchor_id),
-          super_node_info_it.second.cur_node->GetInDataAnchor(input_node_info.in_data_anchor_id)));
+      GELOGI("link node %s output %zu to node %s input %zu", input_node_info.cur_node->GetNamePtr(),
+             input_node_info.out_data_anchor_id, super_node_info_it.second.cur_node->GetNamePtr(),
+             input_node_info.in_data_anchor_id);
+      GE_ASSERT_SUCCESS(
+          GraphUtils::AddEdge(input_node_info.cur_node->GetOutDataAnchor(input_node_info.out_data_anchor_id),
+                              super_node_info_it.second.cur_node->GetInDataAnchor(input_node_info.in_data_anchor_id)));
     }
   }
 
@@ -1126,8 +1127,8 @@ Status SuperKernelScope::UnlinkSrcSendLink(const NodePtr send_node) const {
   GELOGI("UnlinkSrcSendLink %s, out_ctrl_anchors size is %zu", send_node->GetNamePtr(), out_ctrl_anchors.size());
   for (auto &out_ctrl_anchor : out_ctrl_anchors) {
     if (out_ctrl_anchor != nullptr) {
-      GELOGI("unlink src_node %s, dst_node %s ctrl edge",
-             out_ctrl_anchor->GetOwnerNode()->GetNamePtr(), send_node->GetNamePtr());
+      GELOGI("unlink src_node %s, dst_node %s ctrl edge", out_ctrl_anchor->GetOwnerNode()->GetNamePtr(),
+             send_node->GetNamePtr());
       (void)GraphUtils::RemoveEdge(out_ctrl_anchor, in_ctrl_anchor);
     }
   }
@@ -1141,8 +1142,8 @@ Status SuperKernelScope::UnlinkRcvDstLink(const NodePtr rcv_node) const {
   GELOGI("UnlinkRcvDstLink %s, in_control_anchors size is %zu", rcv_node->GetNamePtr(), in_control_anchors.size());
   for (auto &in_ctrl_anchor : in_control_anchors) {
     if (in_ctrl_anchor != nullptr) {
-      GELOGI("unlink src_node %s, dst_node %s ctrl edge",
-             rcv_node->GetNamePtr(), in_ctrl_anchor->GetOwnerNode()->GetNamePtr());
+      GELOGI("unlink src_node %s, dst_node %s ctrl edge", rcv_node->GetNamePtr(),
+             in_ctrl_anchor->GetOwnerNode()->GetNamePtr());
       (void)GraphUtils::RemoveEdge(out_ctrl_anchor, in_ctrl_anchor);
     }
   }
@@ -1171,8 +1172,8 @@ Status SuperKernelScope::UnlinkSyncLink(EventNodeInfo &event_node_info) {
   auto out_ctrl_anchors = in_ctrl_anchor->GetPeerOutControlAnchors();
   for (auto &out_ctrl_anchor : out_ctrl_anchors) {
     if ((out_ctrl_anchor != nullptr) && (out_ctrl_anchor->GetOwnerNode() == event_node_info.src_node)) {
-      GELOGI("unlink src_node %s, dst_node %s ctrl edge",
-             event_node_info.src_node->GetNamePtr(), event_node_info.dst_node->GetNamePtr());
+      GELOGI("unlink src_node %s, dst_node %s ctrl edge", event_node_info.src_node->GetNamePtr(),
+             event_node_info.dst_node->GetNamePtr());
       (void)GraphUtils::RemoveEdge(out_ctrl_anchor, in_ctrl_anchor);
     }
   }

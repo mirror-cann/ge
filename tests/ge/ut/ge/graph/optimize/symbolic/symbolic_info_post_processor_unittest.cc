@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -66,10 +66,10 @@ graphStatus InferShape4FooTest(gert::InferSymbolShapeContext *context) {
   return ge::GRAPH_SUCCESS;
 }
 IMPL_OP_INFER_SYMBOL_SHAPE_INNER(FooTest).InferSymbolShape(InferShape4FooTest);
-} // namespace
+}  // namespace
 class SymbolicInfoPostProcessorUT : public testing::Test {
  public:
-void SetUp() override {
+  void SetUp() override {
     const auto env_ptr = getenv("LD_PRELOAD");
     if (env_ptr != nullptr) {
       env = env_ptr;
@@ -93,26 +93,26 @@ void SetUp() override {
 
 TEST_F(SymbolicInfoPostProcessorUT, run_test) {
   auto data1 = OP_CFG(DATA)
-      .Attr(ATTR_NAME_INDEX, 0)
-      .InCnt(1)
-      .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
-      .OutCnt(1)
-      .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
-      .Build("data1");
+                   .Attr(ATTR_NAME_INDEX, 0)
+                   .InCnt(1)
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
+                   .OutCnt(1)
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
+                   .Build("data1");
   auto data2 = OP_CFG(DATA)
-      .Attr(ATTR_NAME_INDEX, 1)
-      .InCnt(1)
-      .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
-      .OutCnt(1)
-      .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
-      .Build("data2");
+                   .Attr(ATTR_NAME_INDEX, 1)
+                   .InCnt(1)
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
+                   .OutCnt(1)
+                   .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
+                   .Build("data2");
   auto foo1 = OP_CFG("FooTest")
-      .InCnt(2)
-      .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
-      .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
-      .OutCnt(1)
-      .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
-      .Build("foo1");
+                  .InCnt(2)
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
+                  .OutCnt(1)
+                  .TensorDesc(FORMAT_ND, DT_FLOAT, {-1, -1, -1, -1})
+                  .Build("foo1");
 
   DEF_GRAPH(g_test_guard) {
     CHAIN(NODE(data1)->NODE(foo1)->NODE("NetOutput", "NetOutput"));
@@ -148,4 +148,4 @@ TEST_F(SymbolicInfoPostProcessorUT, run_test) {
   AttrUtils::GetStr(graph, "_guard_check_so_data", buffer);
   ASSERT_TRUE(!buffer.empty());
 }
-} // namespac ge
+}  // namespace ge

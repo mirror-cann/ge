@@ -110,9 +110,8 @@ inline bool IsRuntimeKeyCompatible(const python_pass_artifact::PythonRuntimeKey 
 }
 
 inline bool IsBridgeApiValid(const PythonFusionPassBridgeApi *api, const uint32_t expected_abi) {
-  return (api != nullptr) && (api->abi_version == expected_abi) &&
-         (api->set_artifact_config != nullptr) && (api->register_passes != nullptr) &&
-         (api->reset_bridge_state != nullptr) && (api->shutdown_bridge != nullptr);
+  return (api != nullptr) && (api->abi_version == expected_abi) && (api->set_artifact_config != nullptr) &&
+         (api->register_passes != nullptr) && (api->reset_bridge_state != nullptr) && (api->shutdown_bridge != nullptr);
 }
 
 inline PythonFusionPassBridgeArtifactConfig BuildArtifactConfig(
@@ -134,12 +133,11 @@ inline void CloseLibraryQuietly(const BridgeLoadDependencies &deps, void *handle
   }
 }
 
-inline BridgeLoadStatus TryLoadBridgeCandidate(
-    const python_pass_artifact::PythonRuntimeKey &expected_key,
-    const python_pass_artifact::BridgeLibraryCandidate &candidate,
-    const BridgeLoadDependencies &deps,
-    LoadedBridgeCandidate &loaded_bridge) {
-  loaded_bridge = LoadedBridgeCandidate {};
+inline BridgeLoadStatus TryLoadBridgeCandidate(const python_pass_artifact::PythonRuntimeKey &expected_key,
+                                               const python_pass_artifact::BridgeLibraryCandidate &candidate,
+                                               const BridgeLoadDependencies &deps,
+                                               LoadedBridgeCandidate &loaded_bridge) {
+  loaded_bridge = LoadedBridgeCandidate{};
   if (!IsBridgeLoadDependenciesValid(deps)) {
     return BridgeLoadStatus::kInvalidDependency;
   }

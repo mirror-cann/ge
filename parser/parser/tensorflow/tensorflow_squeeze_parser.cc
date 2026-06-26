@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,10 +20,10 @@
 #include "parser/common/parser_utils.h"
 #include "register/register_utils.h"
 
-using domi::tensorflow::AttrValue;
-using std::vector;
-using std::shared_ptr;
 using domi::TENSORFLOW;
+using domi::tensorflow::AttrValue;
+using std::shared_ptr;
+using std::vector;
 using namespace ge::parser;
 
 namespace ge {
@@ -35,9 +35,8 @@ Status TensorFlowSqueezeParser::ParseDesc(const domi::tensorflow::AttrValue &att
   uint32_t size_type = 0U;
   const auto data_type = ge_desc.GetDataType();
   const bool type_ret = ge::TypeUtils::GetDataTypeLength(data_type, size_type);
-  GE_IF_BOOL_EXEC(!type_ret,
-                  REPORT_INNER_ERR_MSG("E19999", "Data type %s is not supported",
-                                    ge::TypeUtils::DataTypeToSerialString(data_type).c_str());
+  GE_IF_BOOL_EXEC(!type_ret, REPORT_INNER_ERR_MSG("E19999", "Data type %s is not supported",
+                                                  ge::TypeUtils::DataTypeToSerialString(data_type).c_str());
                   GELOGE(domi::PARAM_INVALID, "Can't GetDataTypeLength of data_type: %s.",
                          ge::TypeUtils::DataTypeToSerialString(data_type).c_str());
                   return domi::PARAM_INVALID);
@@ -66,8 +65,8 @@ Status TensorFlowSqueezeParser::ParseParams(const Message *op_src, ge::OpDescPtr
   GE_CHECK_NOTNULL(op_dest);
 
   ge::Operator op = ge::OpDescUtils::CreateOperatorFromOpDesc(op_dest);
-  GE_CHK_STATUS_RET(domi::OperatorAutoMapping(op_src, op),
-                    "call auto mapping failed for node:%s", ParserUtils::GetOperatorName(op).c_str());
+  GE_CHK_STATUS_RET(domi::OperatorAutoMapping(op_src, op), "call auto mapping failed for node:%s",
+                    ParserUtils::GetOperatorName(op).c_str());
   op.BreakConnect();
 
   const domi::tensorflow::NodeDef *node = DOMI_DYNAMIC_CAST<const domi::tensorflow::NodeDef *>(op_src);
@@ -84,7 +83,7 @@ Status TensorFlowSqueezeParser::ParseParams(const Message *op_src, ge::OpDescPtr
   }
   if (has_axis && has_dims) {
     REPORT_INNER_ERR_MSG("E19999", "In NodeDef %s, Attr %s or %s does not exist, check invalid", node->name().c_str(),
-                      SQUEEZE_ATTR_AXIS.c_str(), SQUEEZE_ATTR_DIMS.c_str());
+                         SQUEEZE_ATTR_AXIS.c_str(), SQUEEZE_ATTR_DIMS.c_str());
     GELOGE(FAILED, "In NodeDef %s dim and axis is error.", node->name().c_str());
     return domi::PARAM_INVALID;
   }
@@ -104,7 +103,7 @@ Status TensorFlowSqueezeParser::ParseParams(const Message *op_src, ge::OpDescPtr
   }
   if (!ge::AttrUtils::SetListInt(op_dest, SQUEEZE_ATTR_AXIS, v_result)) {
     REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s to op:%s(%s) failed", SQUEEZE_ATTR_AXIS.c_str(),
-                      op_dest->GetName().c_str(), op_dest->GetType().c_str());
+                         op_dest->GetName().c_str(), op_dest->GetType().c_str());
     GELOGE(FAILED, "Set squeeze axis attr failed");
     return FAILED;
   }
@@ -126,12 +125,12 @@ Status TensorFlowSqueezeParser::ParseParams(const Message *op_src, ge::OpDescPtr
 
       if (!ge::AttrUtils::SetTensorDesc(op_dest, RESHAPE_ATTR_NAME_INPUT_DESC, input_desc)) {
         REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s to op:%s(%s) failed", RESHAPE_ATTR_NAME_INPUT_DESC.c_str(),
-                          op_dest->GetName().c_str(), op_dest->GetType().c_str());
+                             op_dest->GetName().c_str(), op_dest->GetType().c_str());
         GELOGE(FAILED, "Set input desc failed");
         return FAILED;
       } if (!ge::AttrUtils::SetTensorDesc(op_dest, RESHAPE_ATTR_NAME_OUTPUT_DESC, output_desc)) {
         REPORT_INNER_ERR_MSG("E19999", "Set Attr:%s to op:%s(%s) failed", RESHAPE_ATTR_NAME_OUTPUT_DESC.c_str(),
-                          op_dest->GetName().c_str(), op_dest->GetType().c_str());
+                             op_dest->GetName().c_str(), op_dest->GetType().c_str());
         GELOGE(FAILED, "Set output desc failed");
         return FAILED;
       })

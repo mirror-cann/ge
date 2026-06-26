@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,8 +20,8 @@
 
 namespace fe {
 /** @brief Trans-node base class. Provide function of setting basic op_desc and
-* attributes and adding nodes nad edges. It will inherited by specific
-* trans-nodes like Cast, Reshape, TransData, Transpose. */
+ * attributes and adding nodes nad edges. It will inherited by specific
+ * trans-nodes like Cast, Reshape, TransData, Transpose. */
 class TransNodeBaseGenerator {
  public:
   TransNodeBaseGenerator(FEOpsKernelInfoStorePtr fe_ops_store_ptr, TransInfoPtr trans_info_ptr);
@@ -53,21 +53,21 @@ class TransNodeBaseGenerator {
 
   Status SetNewShapeRange(const ge::OpDescPtr &op_desc_ptr, vector<std::pair<int64_t, int64_t>> &inputs_range,
                           vector<std::pair<int64_t, int64_t>> &output_range) const;
-  
-  void SetNodeParallelGroupId(ge::OpDescPtr &op_desc_ptr, ge::OpDescPtr &src_op_desc,
-                              ge::OpDescPtr &dst_op_desc);
+
+  void SetNodeParallelGroupId(ge::OpDescPtr &op_desc_ptr, ge::OpDescPtr &src_op_desc, ge::OpDescPtr &dst_op_desc);
   void GetGroupIdFromSrcOrDst(ge::OpDescPtr &op_desc_ptr, uint32_t &parallel_group_id,
-              uint32_t &heavy_op_parallel_group_id);
+                              uint32_t &heavy_op_parallel_group_id);
 
   TransInfoPtr trans_info_ptr_;
 
   bool TransNodeCheckAccuracySupported(const ge::OpDescPtr &op_desc_ptr, bool real_query) const;
 
   static uint64_t GetTransAtomicId();
-  
+
   static bool Is3DFormat(const ge::Format &format);
 
   bool TransNodeCheckSupportedByFormatTune(ge::ComputeGraph &fused_graph, const ge::OpDescPtr &op_desc_ptr);
+
  private:
   /* Add necessory peer nodes */
   virtual Status AddNecessaryPeerNodes(ge::ComputeGraph &fused_graph, ge::NodePtr new_node) const;

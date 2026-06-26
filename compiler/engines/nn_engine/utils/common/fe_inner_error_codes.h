@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -76,11 +76,11 @@ FE_DEF_ERRORNO_COMMON(CALL_CSEC_ERROR, 5, "Failed to call libc_sec API!");  // 0
 FE_DEF_ERRORNO_COMMON(CALL_TEE_ERROR, 6, "Failed to call tee API!");        // 0x3320006
 FE_DEF_ERRORNO_COMMON(FILE_NOT_EXIST, 8, "The file does not exist.");       // 0x3320007
 
-FE_DEF_ERRORNO_COMMON(TENSOR_FORMAT_NOT_FOUND, 18, "This format has not been found.");        // 0x3320018
-FE_DEF_ERRORNO_COMMON(INVALID_TENSOR_FORMAT, 19, "This format is not valid.");                // 0x3320019
-FE_DEF_ERRORNO_COMMON(INVALID_TENSOR_DATATYPE, 20, "This data type is not valid.");           // 0x3320020
-FE_DEF_ERRORNO_COMMON(INVALID_DIM_VALUE, 21, "The dim value must be greater than zero.");       // 0x3320021
-FE_DEF_ERRORNO_COMMON(INVALID_DIM_SIZE, 22, "The size of dim must be greater than 4.");  // 0x3320022
+FE_DEF_ERRORNO_COMMON(TENSOR_FORMAT_NOT_FOUND, 18, "This format has not been found.");     // 0x3320018
+FE_DEF_ERRORNO_COMMON(INVALID_TENSOR_FORMAT, 19, "This format is not valid.");             // 0x3320019
+FE_DEF_ERRORNO_COMMON(INVALID_TENSOR_DATATYPE, 20, "This data type is not valid.");        // 0x3320020
+FE_DEF_ERRORNO_COMMON(INVALID_DIM_VALUE, 21, "The dim value must be greater than zero.");  // 0x3320021
+FE_DEF_ERRORNO_COMMON(INVALID_DIM_SIZE, 22, "The size of dim must be greater than 4.");    // 0x3320022
 
 FE_DEF_ERRORNO_COMMON(INVALID_NC1KHKWHWC0_SIZE, 23, "The size of NC1KHKWHWC0 format is not valid.");  // 0x3320023
 FE_DEF_ERRORNO_COMMON(INVALID_C1HWNCoC0_SIZE, 24, "The size of C1HWNCoC0 format is not valid.");      // 0x3320024
@@ -94,7 +94,7 @@ FE_DEF_ERRORNO_COMMON(ADD_OVERFLOW_INT64, 31, "The addition between two int64 nu
 FE_DEF_ERRORNO_COMMON(MUL_OVERFLOW_INT64, 32, "The multiplication between two int64 number is overflow.");  // 0x3320032
 FE_DEF_ERRORNO_COMMON(ADD_OVERFLOW_SIZET, 33, "The addition between two size_t number is overflow.");       // 0x3320033
 FE_DEF_ERRORNO_COMMON(CONTINUING_TRANSFORMAT, 34,
-                      "We need to transformat in this case of one dimensional shape padding.");             // 0x3320034
+                      "We need to transformat in this case of one dimensional shape padding.");  // 0x3320034
 
 /** shape format transfer error code define */
 FE_DEF_ERRORNO_SHAPE_FORMAT_TRANSFER(SHAPE_FORMAT_TRANSFER_SORTING_FAILED, 0, "Failed to sort!");      // 0x3340000
@@ -129,7 +129,7 @@ FE_DEF_ERRORNO_GRAPH_OPTIMIZER(GRAPH_OPTIMIZER_STOP_TRAVERSING_SCALAR_TENSOR, 4,
                                "We will not distribute from result op!");                              // 0x3350004
 FE_DEF_ERRORNO_GRAPH_OPTIMIZER(GRAPH_OPTIMIZER_NOT_FUSE_TWO_SCOPE, 5, "We will not fuse two scope!");  // 0x3350005
 FE_DEF_ERRORNO_GRAPH_OPTIMIZER(SKIP_SUB_GRAPH_DATA_OR_NETOUTPUT, 6,
-    "We will skip this kind of sub graph data or netoutput!");  // 0x3350006
+                               "We will skip this kind of sub graph data or netoutput!");  // 0x3350006
 FE_DEF_ERRORNO_GRAPH_OPTIMIZER(CONTINUE_TO_SET_FORMAT, 6,
                                "We will continue to set format for this op!");  // 0x3350006
 FE_DEF_ERRORNO_GRAPH_OPTIMIZER(STOP_PROPAGATION_FROM_WEIGHT, 7,
@@ -160,10 +160,10 @@ FE_DEF_ERRORNO_OP_KERNEL_STORE(OP_STORE_STRING_CONVERT_FAILED, 2,
                                "Failed to convert string in FEOpKernelStore!");                            // 0x3380002
 FE_DEF_ERRORNO_OP_KERNEL_STORE(OP_STORE_READ_CFG_FILE_FAILED, 3, "Failed to read cfg file. I/O failed!");  // 0x3380003
 FE_DEF_ERRORNO_OP_KERNEL_STORE(OP_STORE_CFG_FILE_EMPTY, 4,
-                               "Failed to read cfg file. Empty configuration file path!");     // 0x3380004
+                               "Failed to read cfg file. Empty configuration file path!");    // 0x3380004
 FE_DEF_ERRORNO_OP_KERNEL_STORE(OP_STORE_CFG_NAME_EMPTY, 5, "Failed to get sub store name!");  // 0x3380005
 FE_DEF_ERRORNO_OP_KERNEL_STORE(OP_STORE_CFG_FILE_NOT_EXIST, 6,
-                               "Failed to read op information. Configuration file does not exist!");         // 0x3380006
+                               "Failed to read op information. Configuration file does not exist!");       // 0x3380006
 FE_DEF_ERRORNO_OP_KERNEL_STORE(OP_STORE_MAKE_SHARED_FAILED, 7, "Failed to make shared in fe ops store!");  // 0x3380006
 FE_DEF_ERRORNO_OP_KERNEL_STORE(OPS_SUB_STORE_NOT_EXIST, 8, "Failed to find specific sub store!");          // 0x3380007
 FE_DEF_ERRORNO_OP_KERNEL_STORE(OPS_SUB_STORE_PTR_NULL, 9, "Failed to get sub store pointer!");             // 0x3380009
@@ -179,20 +179,21 @@ FE_DEF_ERRORNO_OP_KERNEL_STORE(OP_OUTPUT_NOT_FOUND_IN_OP_KERNEL_INFO, 14,
                                "Failed to find output info in op kernel info!");  // 0x33800E
 FE_DEF_ERRORNO_OP_KERNEL_STORE(OP_NOT_FOUND_IN_GET_HIGH_PRIO_OP_KERNEL, 15,
                                "Failed to find op in all sub stores in GetHighPrioOpKernelInfoPtr!");  // 0x33800F
-FE_DEF_ERRORNO_OP_KERNEL_STORE(OP_KERNEL_INFO_NULL_PTR, 16, "Param is null ptr!");  // 0x338010
+FE_DEF_ERRORNO_OP_KERNEL_STORE(OP_KERNEL_INFO_NULL_PTR, 16, "Param is null ptr!");                     // 0x338010
 FE_DEF_ERRORNO_OP_KERNEL_STORE(OP_SUB_STORE_PLGUIN_INIT_FAILED, 17,
                                "Failed to init plugin tbe sub op store!");  // 0x338011
 FE_DEF_ERRORNO_OP_KERNEL_STORE(OP_SUB_STORE_ILLEGAL_JSON, 18,
                                "Illegal json file, fail to parse json file!");  // 0x338018
 
 /** Task Builder error code define */
-FE_DEF_ERRORNO_TASK_BUILDER(TASK_BUILDER_CREATE_ADAPTER_FAILED, 0, "Create task builder adapter failed!"); // 0x03390000
-FE_DEF_ERRORNO_TASK_BUILDER(TASK_BUILDER_RUN_ADAPTER_FAILED, 1, "Run task builder adapter failed!");       // 0x03390001
-FE_DEF_ERRORNO_TASK_BUILDER(TASK_BUILDER_STATUS_BAD_PARAM, 2, "Run task builder bad param!");              // 0x03390002
-FE_DEF_ERRORNO_TASK_BUILDER(TASK_BUILDER_STATUS_INTERNAL_ERROR, 3, "Run task builder internal failed!");   // 0x03390003
-FE_DEF_ERRORNO_TASK_BUILDER(TASK_BUILDER_STATUS_KERNEL_ERROR, 4, "Run task builder kernel failed!");       // 0x03390004
-FE_DEF_ERRORNO_TASK_BUILDER(TASK_BUILDER_STATUS_RUNTIME_ERROR, 5, "Run task builder runtime failed!");     // 0x03390005
-FE_DEF_ERRORNO_TASK_BUILDER(TASK_BUILDER_CALL_RT_FAILED, 6, "Failed to call runtime API!");                // 0x03390006
+FE_DEF_ERRORNO_TASK_BUILDER(TASK_BUILDER_CREATE_ADAPTER_FAILED, 0,
+                            "Create task builder adapter failed!");                                       // 0x03390000
+FE_DEF_ERRORNO_TASK_BUILDER(TASK_BUILDER_RUN_ADAPTER_FAILED, 1, "Run task builder adapter failed!");      // 0x03390001
+FE_DEF_ERRORNO_TASK_BUILDER(TASK_BUILDER_STATUS_BAD_PARAM, 2, "Run task builder bad param!");             // 0x03390002
+FE_DEF_ERRORNO_TASK_BUILDER(TASK_BUILDER_STATUS_INTERNAL_ERROR, 3, "Run task builder internal failed!");  // 0x03390003
+FE_DEF_ERRORNO_TASK_BUILDER(TASK_BUILDER_STATUS_KERNEL_ERROR, 4, "Run task builder kernel failed!");      // 0x03390004
+FE_DEF_ERRORNO_TASK_BUILDER(TASK_BUILDER_STATUS_RUNTIME_ERROR, 5, "Run task builder runtime failed!");    // 0x03390005
+FE_DEF_ERRORNO_TASK_BUILDER(TASK_BUILDER_CALL_RT_FAILED, 6, "Failed to call runtime API!");               // 0x03390006
 
 /** Graph matcher error code define */
 FE_DEF_ERRORNO_GRAPH_MATCHER(GRAPH_MATCHER_GET_RULE_OUTPUT_NODE_FAILED, 0,
@@ -224,7 +225,7 @@ FE_DEF_ERRORNO_OP_STORE_ADAPTER(OP_STORE_ADAPTER_MANAGER_INIT_FAILED, 0,
 FE_DEF_ERRORNO_OP_STORE_ADAPTER(OP_ADAPTER_TYPE_CHECK_FAILED, 1,
                                 "Cannot find the corresponding adapter type.");  // 0x033D0001
 FE_DEF_ERRORNO_OP_STORE_ADAPTER(OP_STORE_ADAPTER_MAKE_SHARED_FAILED, 2,
-                                "Failed to make shared in op store adapter.");                           // 0x033D0002
+                                "Failed to make shared in op store adapter.");                          // 0x033D0002
 FE_DEF_ERRORNO_OP_STORE_ADAPTER(OP_ADAPTER_CHECK_FAILED, 3, "Cannot find the corresponding adapter.");  // 0x033D0003
 }  // namespace fe
 #endif  // FUSION_ENGINE_UTILS_COMMON_FE_INNER_ERROR_CODES_H_

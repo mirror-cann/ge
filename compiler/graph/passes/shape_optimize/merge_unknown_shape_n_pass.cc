@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -36,8 +36,7 @@ Status MergeUnknownShapeNPass::Run(ComputeGraphPtr graph) {
   }
   auto ret = MergeShapeN(graph);
   if (ret != SUCCESS) {
-    GELOGE(FAILED, "[Merge][ShapeN] graph:%s failed",
-           graph->GetName().c_str());
+    GELOGE(FAILED, "[Merge][ShapeN] graph:%s failed", graph->GetName().c_str());
     return FAILED;
   }
   return SUCCESS;
@@ -68,11 +67,9 @@ Status MergeUnknownShapeNPass::MergeShapeN(const ComputeGraphPtr &graph) {
     for (const auto &node : it.second) {
       auto ret = ReplaceMergeNodeAnchors(node, new_node, input_index, output_index);
       if (ret != SUCCESS) {
-        REPORT_INNER_ERR_MSG("E19999", "Replace node:%s(%s) by node:%s(%s) failed",
-                          node->GetName().c_str(), node->GetType().c_str(),
-                          new_node->GetName().c_str(), new_node->GetType().c_str());
-        GELOGE(FAILED, "[Replace][Node] %s(%s) by node:%s(%s) failed",
-               node->GetName().c_str(), node->GetType().c_str(),
+        REPORT_INNER_ERR_MSG("E19999", "Replace node:%s(%s) by node:%s(%s) failed", node->GetName().c_str(),
+                             node->GetType().c_str(), new_node->GetName().c_str(), new_node->GetType().c_str());
+        GELOGE(FAILED, "[Replace][Node] %s(%s) by node:%s(%s) failed", node->GetName().c_str(), node->GetType().c_str(),
                new_node->GetName().c_str(), new_node->GetType().c_str());
         return FAILED;
       }
@@ -110,9 +107,10 @@ Status MergeUnknownShapeNPass::ReplaceMergeNodeAnchors(const NodePtr &node, cons
   }
   auto ret = ReplaceControlAnchors(new_node, node);
   if (ret != SUCCESS) {
-    GELOGE(FAILED, "[Replace][ControlAnchors] failed when replace node from old node %s type %s "
-           "to new node %s type %s", node->GetName().c_str(), node->GetType().c_str(),
-           new_node->GetName().c_str(), new_node->GetType().c_str());
+    GELOGE(FAILED,
+           "[Replace][ControlAnchors] failed when replace node from old node %s type %s "
+           "to new node %s type %s",
+           node->GetName().c_str(), node->GetType().c_str(), new_node->GetName().c_str(), new_node->GetType().c_str());
     return FAILED;
   }
   return SUCCESS;
@@ -134,8 +132,7 @@ Status MergeUnknownShapeNPass::ReplaceControlAnchors(const NodePtr &new_node, co
     if (exists_out_anchors_set.count(peer_out_anchor) > 0U) {
       continue;
     }
-    const auto ret = GraphUtils::ReplaceEdgeDst(peer_out_anchor,
-                                                old_node->GetInControlAnchor(), new_in_control_anchor);
+    const auto ret = GraphUtils::ReplaceEdgeDst(peer_out_anchor, old_node->GetInControlAnchor(), new_in_control_anchor);
     GE_ASSERT_SUCCESS(ret, "Add edge from %s to %s failed, ret:%u", peer_out_anchor->GetOwnerNode()->GetName().c_str(),
                       new_in_control_anchor->GetOwnerNode()->GetName().c_str(), ret);
   }

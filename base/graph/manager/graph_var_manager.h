@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -32,16 +32,16 @@
 #include "mmpa/mmpa_api.h"
 
 namespace ge {
-constexpr uint64_t kGraphMemoryManagerMallocMaxSize = 27917287424U; // 26UL * 1024UL * 1024UL * 1024UL;
-constexpr uint64_t kMemoryVarManagerMallocSize = 5368709120U; // 5UL * 1024UL * 1024UL * 1024UL;
-constexpr uint64_t kMemoryVarLogicBase = 34359738368U; // 32UL * 1024UL * 1024UL * 1024UL;
-constexpr uint64_t kMemoryHostFeatureMapLogicBase = 68719476736U; // 64UL * 1024UL * 1024UL * 1024UL;
+constexpr uint64_t kGraphMemoryManagerMallocMaxSize = 27917287424U;  // 26UL * 1024UL * 1024UL * 1024UL;
+constexpr uint64_t kMemoryVarManagerMallocSize = 5368709120U;        // 5UL * 1024UL * 1024UL * 1024UL;
+constexpr uint64_t kMemoryVarLogicBase = 34359738368U;               // 32UL * 1024UL * 1024UL * 1024UL;
+constexpr uint64_t kMemoryHostFeatureMapLogicBase = 68719476736U;    // 64UL * 1024UL * 1024UL * 1024UL;
 constexpr uint64_t kMemoryVarAddressSize = kMemoryHostFeatureMapLogicBase - kMemoryVarLogicBase;
-constexpr uint64_t kMemoryHostSVMFeatureMapLogicBase = 137438953472U; // 128UL * 1024UL * 1024UL * 1024UL;
+constexpr uint64_t kMemoryHostSVMFeatureMapLogicBase = 137438953472U;  // 128UL * 1024UL * 1024UL * 1024UL;
 constexpr uint64_t kUseMaxMemorySize = kGraphMemoryManagerMallocMaxSize + kMemoryVarManagerMallocSize;
-constexpr uint64_t kGraphMemoryBuffer = 34359738368U; // 32UL * 1024UL * 1024UL * 1024UL;
-constexpr uint64_t kMaxMemorySize = 274877906944U; // 256UL * 1024UL * 1024UL * 1024UL;
-constexpr uint64_t kVarMemoryLogicBase = 137438953472U; // 128UL * 1024UL * 1024UL * 1024UL;
+constexpr uint64_t kGraphMemoryBuffer = 34359738368U;    // 32UL * 1024UL * 1024UL * 1024UL;
+constexpr uint64_t kMaxMemorySize = 274877906944U;       // 256UL * 1024UL * 1024UL * 1024UL;
+constexpr uint64_t kVarMemoryLogicBase = 137438953472U;  // 128UL * 1024UL * 1024UL * 1024UL;
 const std::string kEnvGeuseStaticMemory = "GE_USE_STATIC_MEMORY";
 constexpr uint64_t kSessionMemAlignSize = 512U;
 constexpr size_t kSessionMemAlignUnit = 2U;
@@ -50,13 +50,12 @@ constexpr float64_t kVarMemoryManagerMallocRatio = 5.0 / 32.0;
 constexpr float64_t kMaxMemorySizeRatio = (26.0 + 5.0) / 32.0;
 constexpr uint32_t kDefaultDeviceId = 0U;
 
-const std::string  kExtendSizeType = "2";
-const std::string  kStaticMemory = "1";
-const std::string  kDynamicExpandable = "3";
-const std::string  kDynamicAndStaticExpandable = "4";
+const std::string kExtendSizeType = "2";
+const std::string kStaticMemory = "1";
+const std::string kDynamicExpandable = "3";
+const std::string kDynamicAndStaticExpandable = "4";
 
-enum class SessionVersion : std::int32_t
-{
+enum class SessionVersion : std::int32_t {
   ClOUD_VERSION = 0,
   MINI_VERSION = 1,
   OTHER_VERSION = 2,
@@ -145,7 +144,7 @@ class VarResource {
 
   Status SetChangedGraphId(const std::string &var_name, const uint32_t graph_id) {
     var_names_to_changed_graph_id_[var_name] = graph_id;
-    (void) graph_id_to_changed_var_names_[graph_id].emplace(var_name);
+    (void)graph_id_to_changed_var_names_[graph_id].emplace(var_name);
     return SUCCESS;
   }
 
@@ -182,16 +181,16 @@ class VarResource {
     return device_id_to_var_dev_addr_mgr_map_;
   }
 
-  ge::Status CheckLogicAddrValid(const uint32_t device_id,
-                                 const uint8_t *const logic_addr,
-                                 uint64_t &inner_offset_tmp,
+  ge::Status CheckLogicAddrValid(const uint32_t device_id, const uint8_t *const logic_addr, uint64_t &inner_offset_tmp,
                                  uint64_t &logic_addr_tmp);
 
   Status SetVarMgrDevAddr(const uint32_t device_id, const int64_t offset, uint8_t *const dev_addr);
   void SetVarLoaded(const uint32_t device_id, const std::string &var_name, const int64_t offset);
   bool IsVarLoaded(const uint32_t device_id, const int64_t offset, std::string &loaded_var_name) const;
 
-  std::unordered_map<std::string, ge::GeTensorDesc> GetAllVarDesc() const { return cur_var_tensor_desc_map_; }
+  std::unordered_map<std::string, ge::GeTensorDesc> GetAllVarDesc() const {
+    return cur_var_tensor_desc_map_;
+  }
 
   void SetVarIsReady(const std::string &var_name, const ge::GeTensorDesc &tensor_desc, const uint32_t device_id);
 
@@ -261,8 +260,8 @@ class HbmMemResource : public MemResource {
   HbmMemResource() = default;
   ~HbmMemResource() override = default;
 
-  Status AssignVarMem(const std::string &var_name, const uint64_t size, const uint64_t session_id,
-                      size_t &mem_offset, const OpDescPtr &op_desc) override;
+  Status AssignVarMem(const std::string &var_name, const uint64_t size, const uint64_t session_id, size_t &mem_offset,
+                      const OpDescPtr &op_desc) override;
 };
 
 class RdmaMemResource : public MemResource {
@@ -270,8 +269,8 @@ class RdmaMemResource : public MemResource {
   RdmaMemResource() = default;
   ~RdmaMemResource() override = default;
 
-  Status AssignVarMem(const std::string &var_name, const uint64_t size, const uint64_t session_id,
-                      size_t &mem_offset, const OpDescPtr &op_desc) override;
+  Status AssignVarMem(const std::string &var_name, const uint64_t size, const uint64_t session_id, size_t &mem_offset,
+                      const OpDescPtr &op_desc) override;
 };
 
 class HostMemResource : public MemResource {
@@ -279,8 +278,8 @@ class HostMemResource : public MemResource {
   HostMemResource() = default;
   ~HostMemResource() override = default;
 
-  Status AssignVarMem(const std::string &var_name, const uint64_t size, const uint64_t session_id,
-                      size_t &mem_offset, const OpDescPtr &op_desc) override;
+  Status AssignVarMem(const std::string &var_name, const uint64_t size, const uint64_t session_id, size_t &mem_offset,
+                      const OpDescPtr &op_desc) override;
 };
 
 class VarManager {
@@ -358,14 +357,16 @@ class VarManager {
       GELOGI("%s is set to %s", kEnvGeuseStaticMemory.c_str(), static_mem_env);
     }
 
-    const bool static_use_extend = ((static_mem_env != nullptr) && ((static_mem_env == kStaticMemory)
-        || (static_mem_env == kExtendSizeType) || (static_mem_env == kDynamicAndStaticExpandable)))
-        || (static_memory_policy == kStaticMemory)
-        || (static_memory_policy == kExtendSizeType) || (static_memory_policy == kDynamicAndStaticExpandable);
+    const bool static_use_extend =
+        ((static_mem_env != nullptr) && ((static_mem_env == kStaticMemory) || (static_mem_env == kExtendSizeType) ||
+                                         (static_mem_env == kDynamicAndStaticExpandable))) ||
+        (static_memory_policy == kStaticMemory) || (static_memory_policy == kExtendSizeType) ||
+        (static_memory_policy == kDynamicAndStaticExpandable);
 
-    const bool dynamic_use_extend = ((static_mem_env != nullptr) && ((static_mem_env == kDynamicAndStaticExpandable)
-        || (static_mem_env == kDynamicExpandable)))
-        || (static_memory_policy == kDynamicAndStaticExpandable) || (static_memory_policy == kDynamicExpandable);
+    const bool dynamic_use_extend =
+        ((static_mem_env != nullptr) &&
+         ((static_mem_env == kDynamicAndStaticExpandable) || (static_mem_env == kDynamicExpandable))) ||
+        (static_memory_policy == kDynamicAndStaticExpandable) || (static_memory_policy == kDynamicExpandable);
 
     if (static_use_extend && dynamic_use_extend) {
       static_memory_policy = kDynamicAndStaticExpandable;
@@ -418,7 +419,9 @@ class VarManager {
     return var_mem_max_size_;
   }
 
-  const uint64_t &GetVarMemLogicBase() const { return var_mem_logic_base_; }
+  const uint64_t &GetVarMemLogicBase() const {
+    return var_mem_logic_base_;
+  }
 
   void SetVarMemLogicBase(const uint64_t var_mem_logic_base) {
     var_mem_logic_base_ = var_mem_logic_base;
@@ -462,15 +465,11 @@ class VarManager {
   uint8_t *GetVarMemoryAddr(const uint8_t *const logic_addr, const rtMemType_t memory_type,
                             const uint32_t device_id = kDefaultDeviceId);
 
-  uint8_t *GetVarMemoryAddr(const std::string &graph_name,
-                            const uint8_t *const logic_addr,
-                            const rtMemType_t memory_type,
-                            const uint32_t device_id = kDefaultDeviceId);
+  uint8_t *GetVarMemoryAddr(const std::string &graph_name, const uint8_t *const logic_addr,
+                            const rtMemType_t memory_type, const uint32_t device_id = kDefaultDeviceId);
 
-  uint8_t *GetAutoMallocVarAddr(const std::string &graph_name,
-                                const uint8_t *const logic_addr,
-                                const rtMemType_t memory_type,
-                                const uint32_t device_id);
+  uint8_t *GetAutoMallocVarAddr(const std::string &graph_name, const uint8_t *const logic_addr,
+                                const rtMemType_t memory_type, const uint32_t device_id);
 
   uint8_t *GetRdmaPoolMemory(const rtMemType_t memory_type, const size_t mem_size);
   uint8_t *GetHostPoolMemory(const rtMemType_t memory_type, const size_t mem_size);
@@ -496,9 +495,13 @@ class VarManager {
 
   bool HasMemoryManager() const;
 
-  bool IsVarResourceInited() const { return (var_resource_ != nullptr); }
+  bool IsVarResourceInited() const {
+    return (var_resource_ != nullptr);
+  }
 
-  int64_t GetVarMallocMemSize() const { return var_malloc_mem_size_; }
+  int64_t GetVarMallocMemSize() const {
+    return var_malloc_mem_size_;
+  }
 
   void LogGraphVarMemInfo() const;
 
@@ -506,7 +509,7 @@ class VarManager {
 
  private:
   std::shared_ptr<MemResource> GetOrCreateMemoryResourceByType(rtMemType_t memory_type);
-  void* external_var_addr_{nullptr};
+  void *external_var_addr_{nullptr};
   uint64_t external_var_size_{0U};
   int64_t var_malloc_mem_size_ = 0L;
   SessionVersion version_ = SessionVersion::OTHER_VERSION;

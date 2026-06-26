@@ -52,7 +52,7 @@ constexpr uint32_t kUBAlignedLen = 32UL;
 HcclResult InitializeHeterogeneousRuntime(const std::string &group, void *tilingData, void *ccuTaskGroup) {
   return HCCL_SUCCESS;
 }
-}
+}  // namespace
 class UtestKernelTaskInfo : public testing::Test {
  protected:
   void SetUp() {
@@ -87,7 +87,7 @@ TEST_F(UtestKernelTaskInfo, success_kernel_taskInfo_not_te) {
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
 
   domi::KernelDef *kernel_def = task->mutable_kernel();
   domi::KernelContext *ctx = kernel_def->mutable_context();
@@ -108,10 +108,10 @@ TEST_F(UtestKernelTaskInfo, success_kernel_taskInfo_not_te) {
   EXPECT_EQ(task_info->Init(*task, &model, args, persistant_workspace, iow_addrs), FAILED);
 
   task_info->Release();
-  free((void*)(args[0].dev_addr));
-  free((void*)(input_addr));
-  free((void*)(output_addr));
-  free((void*)(workspace_addr));
+  free((void *)(args[0].dev_addr));
+  free((void *)(input_addr));
+  free((void *)(output_addr));
+  free((void *)(workspace_addr));
 }
 
 TEST_F(UtestKernelTaskInfo, success_init_kernel_task_info_fail) {
@@ -141,14 +141,14 @@ TEST_F(UtestKernelTaskInfo, success_init_kernel_task_info_fail) {
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
 
   // Failed by rtGetFunctionByName.
   EXPECT_EQ(kernel_task_info.Init(task_def, &model, args, persistant_workspace, iow_addrs), FAILED);
-  free((void*)(args[0].dev_addr));
-  free((void*)(input_addr));
-  free((void*)(output_addr));
-  free((void*)(workspace_addr));
+  free((void *)(args[0].dev_addr));
+  free((void *)(input_addr));
+  free((void *)(output_addr));
+  free((void *)(workspace_addr));
 }
 
 // test kernel_ex_task_Release
@@ -169,8 +169,8 @@ TEST_F(UtestKernelTaskInfo, init_task_tvm) {
   model.runtime_param_.mem_size = 2048U;
   std::vector<uint8_t> memory_holder(model.runtime_param_.mem_size);
   model.runtime_param_.mem_base = reinterpret_cast<uintptr_t>(memory_holder.data());
-  MemAllocation fm_mem_allocation = {0, fm_base_addr,
-                                     model.runtime_param_.mem_size, ge::MemAllocation::Type::FEATURE_MAP, 0U};
+  MemAllocation fm_mem_allocation = {0, fm_base_addr, model.runtime_param_.mem_size,
+                                     ge::MemAllocation::Type::FEATURE_MAP, 0U};
   model.logical_mem_allocations_.emplace_back(fm_mem_allocation);
 
   rtStream_t stream = nullptr;
@@ -198,8 +198,8 @@ TEST_F(UtestKernelTaskInfo, init_task_tvm) {
   op_desc->AddOutputDesc(GeTensorDesc(GeShape(std::vector<int64_t>{4}), FORMAT_NCHW, DT_INT32));
   op_desc->SetInputOffset({8});
   op_desc->SetOutputOffset({8});
-  op_desc->SetWorkspace({1308});   // offset
-  op_desc->SetWorkspaceBytes({150});    // length
+  op_desc->SetWorkspace({1308});      // offset
+  op_desc->SetWorkspaceBytes({150});  // length
   std::vector<char> kernel_bin(64, '\0');
   TBEKernelPtr kernel_handle = MakeShared<OpKernelBin>(op_desc->GetName(), std::move(kernel_bin));
   EXPECT_TRUE(op_desc->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, kernel_handle));
@@ -225,9 +225,9 @@ TEST_F(UtestKernelTaskInfo, init_task_tvm) {
 
   task_def.clear_kernel();
   model.runtime_param_.mem_base = 0U;
-  free((void*)(args[0].dev_addr));
-  free((void*)(input_addr));
-  free((void*)(fm_base_addr));
+  free((void *)(args[0].dev_addr));
+  free((void *)(input_addr));
+  free((void *)(fm_base_addr));
 }
 
 TEST_F(UtestKernelTaskInfo, init_task_tvm_zero_copy_var_input) {
@@ -247,8 +247,8 @@ TEST_F(UtestKernelTaskInfo, init_task_tvm_zero_copy_var_input) {
   model.runtime_param_.mem_size = 2048U;
   std::vector<uint8_t> memory_holder(model.runtime_param_.mem_size);
   model.runtime_param_.mem_base = reinterpret_cast<uintptr_t>(memory_holder.data());
-  MemAllocation fm_mem_allocation = {0, fm_base_addr,
-                                     model.runtime_param_.mem_size, ge::MemAllocation::Type::FEATURE_MAP, 0U};
+  MemAllocation fm_mem_allocation = {0, fm_base_addr, model.runtime_param_.mem_size,
+                                     ge::MemAllocation::Type::FEATURE_MAP, 0U};
   model.logical_mem_allocations_.emplace_back(fm_mem_allocation);
 
   rtStream_t stream = nullptr;
@@ -276,8 +276,8 @@ TEST_F(UtestKernelTaskInfo, init_task_tvm_zero_copy_var_input) {
   op_desc->AddOutputDesc(GeTensorDesc(GeShape(std::vector<int64_t>{4}), FORMAT_NCHW, DT_INT32));
   op_desc->SetInputOffset({8});
   op_desc->SetOutputOffset({8});
-  op_desc->SetWorkspace({1308});   // offset
-  op_desc->SetWorkspaceBytes({150});    // length
+  op_desc->SetWorkspace({1308});      // offset
+  op_desc->SetWorkspaceBytes({150});  // length
   std::vector<char> kernel_bin(64, '\0');
   TBEKernelPtr kernel_handle = MakeShared<OpKernelBin>(op_desc->GetName(), std::move(kernel_bin));
   EXPECT_TRUE(op_desc->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, kernel_handle));
@@ -312,9 +312,9 @@ TEST_F(UtestKernelTaskInfo, init_task_tvm_zero_copy_var_input) {
 
   task_def.clear_kernel();
   model.runtime_param_.mem_base = 0U;
-  free((void*)(args[0].dev_addr));
-  free((void*)(input_addr));
-  free((void*)(fm_base_addr));
+  free((void *)(args[0].dev_addr));
+  free((void *)(input_addr));
+  free((void *)(fm_base_addr));
 }
 
 TEST_F(UtestKernelTaskInfo, init_task_tvm_and_memset) {
@@ -345,8 +345,8 @@ TEST_F(UtestKernelTaskInfo, init_task_tvm_and_memset) {
   std::vector<char> args_info(64U, '0');
   kernel_def->set_args_size(args_info.size());
   kernel_def->set_args(args_info.data(), args_info.size());
-  op_desc->SetWorkspace({1308});   // offset
-  op_desc->SetWorkspaceBytes({150});    // length
+  op_desc->SetWorkspace({1308});      // offset
+  op_desc->SetWorkspaceBytes({150});  // length
   model.op_list_[op_desc->GetId()] = op_desc;
   model.operator_list_[op_desc->GetId()] = std::make_shared<Operator>(OpDescUtils::CreateOperatorFromOpDesc(op_desc));
   std::vector<char> kernel_bin(64, '\0');
@@ -368,11 +368,12 @@ TEST_F(UtestKernelTaskInfo, init_task_tvm_and_memset) {
   std::vector<char> args_info_memset(32U, '0');
   memset_kernel_def->set_args_size(args_info_memset.size());
   memset_kernel_def->set_args(args_info_memset.data(), args_info_memset.size());
-  memset_op->SetWorkspace({1458});   // offset
-  memset_op->SetWorkspaceBytes({150});    // length
+  memset_op->SetWorkspace({1458});      // offset
+  memset_op->SetWorkspaceBytes({150});  // length
   EXPECT_EQ(ge::AttrUtils::SetStr(memset_op, kAttrNameAtomicWspMode, kWspFoldedMode), true);
   model.op_list_[memset_op->GetId()] = memset_op;
-  model.operator_list_[memset_op->GetId()] = std::make_shared<Operator>(OpDescUtils::CreateOperatorFromOpDesc(memset_op));
+  model.operator_list_[memset_op->GetId()] =
+      std::make_shared<Operator>(OpDescUtils::CreateOperatorFromOpDesc(memset_op));
   TBEKernelPtr memset_kernel_handle = MakeShared<OpKernelBin>(memset_op->GetName(), std::move(kernel_bin));
   EXPECT_TRUE(memset_op->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, memset_kernel_handle));
   EXPECT_TRUE(AttrUtils::SetStr(memset_op, memset_op->GetName() + "_kernelname", memset_op->GetName()));
@@ -443,8 +444,8 @@ TEST_F(UtestKernelTaskInfo, init_task_tvm_known) {
   model.op_list_[op_desc->GetId()] = op_desc;
   const auto operator_info = std::make_shared<Operator>(OpDescUtils::CreateOperatorFromOpDesc(op_desc));
   model.operator_list_[op_desc->GetId()] = operator_info;
-  op_desc->SetWorkspace({1308});   // offset
-  op_desc->SetWorkspaceBytes({150});    // length
+  op_desc->SetWorkspace({1308});      // offset
+  op_desc->SetWorkspaceBytes({150});  // length
   std::vector<char> kernel_bin(64, '\0');
   TBEKernelPtr kernel_handle = MakeShared<OpKernelBin>(op_desc->GetName(), std::move(kernel_bin));
   EXPECT_TRUE(op_desc->SetExtAttr(OP_EXTATTR_NAME_TBE_KERNEL, kernel_handle));
@@ -488,7 +489,7 @@ TEST_F(UtestKernelTaskInfo, init_tvm_task_info_with_te_kernel_type) {
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
   const auto op_desc = CreateOpDesc("FrameworkOp", "FrameworkOp");
   op_desc->SetId(0);
   model.op_list_[op_desc->GetId()] = op_desc;
@@ -509,7 +510,7 @@ TEST_F(UtestKernelTaskInfo, init_tvm_task_info_with_te_kernel_type) {
   domi::KernelContext *ctx = kernel_def->mutable_context();
   ctx->set_kernel_type(static_cast<uint32_t>(ccKernelType::TE));
   ctx->set_op_index(op_desc->GetId() + 4);
-  ctx->set_args_offset("\0\0"); // args_offset = 0
+  ctx->set_args_offset("\0\0");  // args_offset = 0
   EXPECT_NE(kernel_task_info.Init(task_def, &model, args, persistant_workspace, iow_addrs), SUCCESS);
 
   // Failed: if ((context.args_offset().size() / sizeof(uint16_t)) < 1U)
@@ -527,10 +528,10 @@ TEST_F(UtestKernelTaskInfo, init_tvm_task_info_with_te_kernel_type) {
   kernel_def->clear_context();
   task_def.clear_kernel();
 
-  free((void*)(args[0].dev_addr));
-  free((void*)(input_addr));
-  free((void*)(output_addr));
-  free((void*)(workspace_addr));
+  free((void *)(args[0].dev_addr));
+  free((void *)(input_addr));
+  free((void *)(output_addr));
+  free((void *)(workspace_addr));
 }
 
 // test InitAICPUCustomTask with kernel_type is CUSTOMIZED
@@ -540,7 +541,7 @@ TEST_F(UtestKernelTaskInfo, init_kernel_task_info_with_customized_kernel_type) {
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
   const auto op_desc = CreateOpDesc("FrameworkOp", "FrameworkOp");
   op_desc->SetId(0);
   model.op_list_[op_desc->GetId()] = op_desc;
@@ -563,7 +564,7 @@ TEST_F(UtestKernelTaskInfo, init_kernel_task_info_with_customized_kernel_type) {
   domi::KernelContext *ctx = kernel_def->mutable_context();
   ctx->set_kernel_type(3);
   ctx->set_op_index(4);
-  ctx->set_args_offset("\0\0"); // args_offset = 0
+  ctx->set_args_offset("\0\0");  // args_offset = 0
   EXPECT_NE(kernel_task_info.Init(task_def, &model), SUCCESS);
 
   ctx->clear_args_offset();
@@ -590,7 +591,7 @@ TEST_F(UtestKernelTaskInfo, init_aicpu_custom_task_failed) {
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
   const auto op_desc = CreateOpDesc("FrameworkOp", "FrameworkOp");
   model.op_list_[op_desc->GetId()] = op_desc;
 
@@ -600,7 +601,7 @@ TEST_F(UtestKernelTaskInfo, init_aicpu_custom_task_failed) {
   domi::KernelContext *context = kernel_def->mutable_context();
   context->set_args_offset("\0\0");
   kernel_task_info.davinci_model_ = &model;
-  kernel_task_info.args_ = (void*)malloc(256);
+  kernel_task_info.args_ = (void *)malloc(256);
 
   EXPECT_EQ(kernel_task_info.InitAICPUCustomTask(op_desc, *kernel_def), PARAM_INVALID);
   free(kernel_task_info.args_);
@@ -623,7 +624,7 @@ TEST_F(UtestKernelTaskInfo, init_aicpu_custom_task_failed2) {
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
   const auto op_desc = CreateOpDesc("FrameworkOp", "FrameworkOp");
   model.op_list_[op_desc->GetId()] = op_desc;
 
@@ -632,7 +633,7 @@ TEST_F(UtestKernelTaskInfo, init_aicpu_custom_task_failed2) {
   domi::KernelDef *kernel_def = task_def.mutable_kernel();
   domi::KernelContext *context = kernel_def->mutable_context();
   kernel_task_info.davinci_model_ = &model;
-  kernel_task_info.args_ = (void*)malloc(256);
+  kernel_task_info.args_ = (void *)malloc(256);
 
   context->set_args_offset("\0\0");
   // KernelTaskInfo::StoreInputOutputTensor   -> SUCCESS
@@ -652,7 +653,7 @@ TEST_F(UtestKernelTaskInfo, init_aicpu_custom_task_failed3) {
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
   const auto op_desc = CreateOpDesc("FrameworkOp", "FrameworkOp");
   model.op_list_[op_desc->GetId()] = op_desc;
 
@@ -661,7 +662,7 @@ TEST_F(UtestKernelTaskInfo, init_aicpu_custom_task_failed3) {
   domi::KernelDef *kernel_def = task_def.mutable_kernel();
   domi::KernelContext *context = kernel_def->mutable_context();
   kernel_task_info.davinci_model_ = &model;
-  kernel_task_info.args_ = (void*)malloc(256);
+  kernel_task_info.args_ = (void *)malloc(256);
 
   context->set_args_offset("\0\0");
   // KernelTaskInfo::StoreInputOutputTensor   -> SUCCESS
@@ -678,7 +679,7 @@ TEST_F(UtestKernelTaskInfo, init_kernel_taskInfo_with_aicpu_kernel_type) {
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
   const auto op_desc = CreateOpDesc("FrameworkOp", "FrameworkOp");
   op_desc->SetId(0);
   model.op_list_[op_desc->GetId()] = op_desc;
@@ -737,25 +738,24 @@ TEST_F(UtestKernelTaskInfo, init_kernel_taskInfo_with_aicpu_kernel_type) {
   task_def.clear_kernel();
 }
 
-
 TEST_F(UtestKernelTaskInfo, init_kernel_taskInfo_with_aicpu_kernel_type_host_only) {
   DavinciModel model(0, nullptr);
-//  model.runtime_param_.mem_size = 2048U;
-//  std::vector<uint8_t> memory_holder(model.runtime_param_.mem_size);
-//  model.runtime_param_.mem_base = reinterpret_cast<uintptr_t>(memory_holder.data());
+  //  model.runtime_param_.mem_size = 2048U;
+  //  std::vector<uint8_t> memory_holder(model.runtime_param_.mem_size);
+  //  model.runtime_param_.mem_base = reinterpret_cast<uintptr_t>(memory_holder.data());
   MemInfo host_svm_mem_info{};
   host_svm_mem_info.memory_size = 2048U;
   host_svm_mem_info.logic_memory_base = kMemoryHostSVMFeatureMapLogicBase;
   host_svm_mem_info.memory_type = RT_MEMORY_HOST_SVM;
   host_svm_mem_info.memory_key = "_svm";
-  host_svm_mem_info.memory_base =
-      PtrToPtr<void, uint8_t>(MemoryAllocator(RT_MEMORY_HOST_SVM).MallocMemory(host_svm_mem_info.memory_key, host_svm_mem_info.memory_size));
+  host_svm_mem_info.memory_base = PtrToPtr<void, uint8_t>(
+      MemoryAllocator(RT_MEMORY_HOST_SVM).MallocMemory(host_svm_mem_info.memory_key, host_svm_mem_info.memory_size));
   model.runtime_param_.host_mem_base = PtrToValue(host_svm_mem_info.memory_base);
   model.runtime_param_.memory_infos[RT_MEMORY_HOST_SVM] = std::move(host_svm_mem_info);
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
   const auto op_desc = CreateOpDesc("FrameworkOp", "FrameworkOp", 1, 1);
   op_desc->SetId(0);
   EXPECT_TRUE(ge::AttrUtils::SetListInt(op_desc, ATTR_NAME_INPUT_MEM_TYPE_LIST, {RT_MEMORY_HOST_SVM}));
@@ -818,7 +818,7 @@ TEST_F(UtestKernelTaskInfo, init_kernel_taskInfo_with_aicpu_kernel_type_fail) {
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
   const auto op_desc = CreateOpDesc("FrameworkOp", "FrameworkOp");
   op_desc->SetId(0);
   model.op_list_[op_desc->GetId()] = op_desc;
@@ -881,7 +881,7 @@ TEST_F(UtestKernelTaskInfo, init_kernel_taskInfo_with_aicpu_kernel_type_fail2) {
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
   const auto op_desc = CreateOpDesc("FrameworkOp", "FrameworkOp");
   op_desc->SetId(0);
   model.op_list_[op_desc->GetId()] = op_desc;
@@ -942,12 +942,12 @@ TEST_F(UtestKernelTaskInfo, store_input_output_tensor_fail) {
   std::vector<ccAICPUTensor> output_descs;
 
   KernelTaskInfo kernel_task_info;
-  kernel_task_info.args_ = (void*)malloc(256);
+  kernel_task_info.args_ = (void *)malloc(256);
   // rtMalloc -> RT_ERROR_INVALID_VALUE
-  EXPECT_EQ(kernel_task_info.StoreInputOutputTensor(input_data_addrs, output_data_addrs, input_descs, output_descs), SUCCESS);
+  EXPECT_EQ(kernel_task_info.StoreInputOutputTensor(input_data_addrs, output_data_addrs, input_descs, output_descs),
+            SUCCESS);
   free(kernel_task_info.args_);
 }
-
 
 TEST_F(UtestKernelTaskInfo, store_input_output_tensor_fail2) {
   std::vector<uint64_t> input_data_addrs;
@@ -956,9 +956,10 @@ TEST_F(UtestKernelTaskInfo, store_input_output_tensor_fail2) {
   std::vector<ccAICPUTensor> output_descs;
 
   KernelTaskInfo kernel_task_info;
-  kernel_task_info.args_ = (void*)malloc(256);
+  kernel_task_info.args_ = (void *)malloc(256);
   // rtMalloc -> RT_ERROR_INVALID_VALUE
-  EXPECT_EQ(kernel_task_info.StoreInputOutputTensor(input_data_addrs, output_data_addrs, input_descs, output_descs), SUCCESS);
+  EXPECT_EQ(kernel_task_info.StoreInputOutputTensor(input_data_addrs, output_data_addrs, input_descs, output_descs),
+            SUCCESS);
   free(kernel_task_info.args_);
 }
 
@@ -1018,7 +1019,7 @@ TEST_F(UtestKernelTaskInfo, success_distribute_dump_task) {
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
 
   // Failed for origin_op_index_size
   for (uint32_t i = 0U; i <= CC_FUSION_OP_MAX; ++i) {
@@ -1054,7 +1055,7 @@ TEST_F(UtestKernelTaskInfo, success_store_input_output_tensor) {
   KernelTaskInfo kernel_task_info;
   kernel_task_info.davinci_model_ = &model;
   kernel_task_info.op_desc_ = CreateOpDesc("FrameworkOp", "FrameworkOp");
-  kernel_task_info.args_ = (void*)malloc(256);
+  kernel_task_info.args_ = (void *)malloc(256);
 
   std::vector<uint64_t> input_data_addrs;
   std::vector<uint64_t> output_data_addrs;
@@ -1073,7 +1074,8 @@ TEST_F(UtestKernelTaskInfo, success_store_input_output_tensor) {
   input_descs.push_back(input_desc);
   output_descs.push_back(output_desc);
 
-  EXPECT_EQ(kernel_task_info.StoreInputOutputTensor(input_data_addrs, output_data_addrs, input_descs, output_descs), SUCCESS);
+  EXPECT_EQ(kernel_task_info.StoreInputOutputTensor(input_data_addrs, output_data_addrs, input_descs, output_descs),
+            SUCCESS);
   free(kernel_task_info.args_);
   EXPECT_EQ(kernel_task_info.Release(), SUCCESS);
 }
@@ -1085,7 +1087,7 @@ TEST_F(UtestKernelTaskInfo, fail_release) {
   KernelTaskInfo kernel_task_info;
   kernel_task_info.davinci_model_ = &model;
   kernel_task_info.op_desc_ = CreateOpDesc("FrameworkOp", "FrameworkOp");
-  kernel_task_info.args_ = (void*)malloc(256);
+  kernel_task_info.args_ = (void *)malloc(256);
 
   std::vector<uint64_t> input_data_addrs;
   std::vector<uint64_t> output_data_addrs;
@@ -1104,7 +1106,8 @@ TEST_F(UtestKernelTaskInfo, fail_release) {
   input_descs.push_back(input_desc);
   output_descs.push_back(output_desc);
 
-  EXPECT_EQ(kernel_task_info.StoreInputOutputTensor(input_data_addrs, output_data_addrs, input_descs, output_descs), SUCCESS);
+  EXPECT_EQ(kernel_task_info.StoreInputOutputTensor(input_data_addrs, output_data_addrs, input_descs, output_descs),
+            SUCCESS);
 
   // rtMemFreeManaged -> RT_ERROR_INVALID_VALUE
   free(kernel_task_info.args_);
@@ -1136,7 +1139,7 @@ TEST_F(UtestKernelTaskInfo, kernel_task_info_init_success) {
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
 
   const auto op_desc = CreateOpDesc("data", DATA);
   op_desc->SetId(0);
@@ -1160,16 +1163,16 @@ TEST_F(UtestKernelTaskInfo, kernel_task_info_init_success) {
   domi::KernelDef *kernel_def = task_def.mutable_kernel();
   domi::KernelContext *ctx = kernel_def->mutable_context();
   ctx->set_op_index(op_desc->GetId());
-  vector<string> original_op_names = { "conv", "add" };
+  vector<string> original_op_names = {"conv", "add"};
   AttrUtils::GetListStr(op_desc, ATTR_NAME_DATA_DUMP_ORIGIN_OP_NAMES, original_op_names);
 
   KernelTaskInfo kernel_task_info;
   EXPECT_EQ(kernel_task_info.Init(task_def, &model, args, persistant_workspace, iow_addrs), FAILED);
 
-  free((void*)(args[0].dev_addr));
-  free((void*)(input_addr));
-  free((void*)(output_addr));
-  free((void*)(workspace_addr));
+  free((void *)(args[0].dev_addr));
+  free((void *)(input_addr));
+  free((void *)(output_addr));
+  free((void *)(workspace_addr));
 }
 
 TEST_F(UtestKernelTaskInfo, kernel_task_info_calculate_args_unfolded_te) {
@@ -1281,7 +1284,7 @@ TEST_F(UtestKernelTaskInfo, int_task_cust_aicpu) {
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
 
   std::vector<char> kernel_bin(128, '0');
   const auto aicpu_kernel = MakeShared<OpKernelBin>(op_desc->GetName(), std::move(kernel_bin));
@@ -1365,7 +1368,7 @@ TEST_F(UtestKernelTaskInfo, int_task_cust_aicpu_known) {
   rtStream_t stream = nullptr;
   model.reusable_stream_allocator_ = ReusableStreamAllocator::Create();
   model.reusable_stream_allocator_->GetOrCreateRtStream(stream, 0, 0, 0);
-  model.stream_list_ = { stream };
+  model.stream_list_ = {stream};
 
   std::vector<char> kernel_bin(128, '0');
   const auto aicpu_kernel = MakeShared<OpKernelBin>(op_desc->GetName(), std::move(kernel_bin));
@@ -1442,7 +1445,7 @@ TEST_F(UtestKernelTaskInfo, kernel_InitDumpArgs) {
   model.operator_list_[op_desc->GetId()] = operator_info;
 
   DumpProperties properties;
-  properties.model_dump_properties_map_ = { {DUMP_ALL_MODEL, {}} };
+  properties.model_dump_properties_map_ = {{DUMP_ALL_MODEL, {}}};
   model.SetDumpProperties(properties);
 
   KernelTaskInfo kernel_task_info;
@@ -1471,11 +1474,11 @@ TEST_F(UtestKernelTaskInfo, cust_aicpu_workspace) {
   vector<char> aicpu_ext_info(len, 0);
   char *buf = aicpu_ext_info.data();
   int offset = 0;
-  hybrid::AicpuExtInfo *ext_info = reinterpret_cast<hybrid::AicpuExtInfo*>(buf + offset);
+  hybrid::AicpuExtInfo *ext_info = reinterpret_cast<hybrid::AicpuExtInfo *>(buf + offset);
   ext_info->infoType = aicpu::FWKAdapter::FWK_ADPT_EXT_WORKSPACE_INFO;
   ext_info->infoLen = sizeof(hybrid::WorkSpaceInfo);
   offset += sizeof(hybrid::AicpuExtInfo);
-  hybrid::WorkSpaceInfo *space_info = reinterpret_cast<hybrid::WorkSpaceInfo*>(buf + offset);
+  hybrid::WorkSpaceInfo *space_info = reinterpret_cast<hybrid::WorkSpaceInfo *>(buf + offset);
   space_info->size = 0U;
   space_info->addr = 0U;
 
@@ -1531,10 +1534,10 @@ TEST_F(UtestKernelTaskInfo, kernel_task_info_update_args_aicpu) {
   kernel_task_info.op_desc_ = CreateOpDesc("FrameworkOp", "FrameworkOp");
   kernel_task_info.args_size_ = 120;
   kernel_task_info.args_addr_.resize(kernel_task_info.args_size_);
-  kernel_task_info.io_addrs_ = { PtrToValue((void*)0x12345678), PtrToValue((void*)0x22345678) };
+  kernel_task_info.io_addrs_ = {PtrToValue((void *)0x12345678), PtrToValue((void *)0x22345678)};
   aclrtMalloc(&kernel_task_info.args_, kernel_task_info.args_size_, ACL_MEM_MALLOC_HUGE_ONLY);
-  kernel_task_info.args_io_addrs_updater_.v_mem_allocation_id_and_offset_.push_back({0,0});
-  kernel_task_info.args_io_addrs_updater_.v_mem_allocation_id_and_offset_.push_back({1,1});
+  kernel_task_info.args_io_addrs_updater_.v_mem_allocation_id_and_offset_.push_back({0, 0});
+  kernel_task_info.args_io_addrs_updater_.v_mem_allocation_id_and_offset_.push_back({1, 1});
   std::vector<uint64_t> active_base_addr;
   active_base_addr.resize(model.logical_mem_allocations_.size());
   for (size_t i = 0; i < model.logical_mem_allocations_.size(); i++) {
@@ -1546,7 +1549,7 @@ TEST_F(UtestKernelTaskInfo, kernel_task_info_update_args_aicpu) {
   EXPECT_EQ(kernel_task_info.UpdateHostArgs(active_base_addr, args.data(), 128), SUCCESS);
   model.SetFeatureBaseRefreshable(true);
   EXPECT_EQ(kernel_task_info.UpdateHostArgs(active_base_addr, args.data(), 128), SUCCESS);
-  aclrtFree((void*)kernel_task_info.args_);
+  aclrtFree((void *)kernel_task_info.args_);
 }
 
 TEST_F(UtestKernelTaskInfo, blocking_aicpu_op) {
@@ -1554,11 +1557,11 @@ TEST_F(UtestKernelTaskInfo, blocking_aicpu_op) {
   vector<char> aicpu_ext_info(len, 0);
   char *buf = aicpu_ext_info.data();
   int offset = 0;
-  hybrid::AicpuExtInfo *ext_info = reinterpret_cast<hybrid::AicpuExtInfo*>(buf + offset);
+  hybrid::AicpuExtInfo *ext_info = reinterpret_cast<hybrid::AicpuExtInfo *>(buf + offset);
   ext_info->infoType = aicpu::FWKAdapter::FWK_ADPT_EXT_ASYNCWAIT;
   ext_info->infoLen = sizeof(hybrid::AsyncWaitInfo);
   offset += sizeof(hybrid::AicpuExtInfo);
-  hybrid::AsyncWaitInfo *async_wait_info = reinterpret_cast<hybrid::AsyncWaitInfo*>(buf + offset);
+  hybrid::AsyncWaitInfo *async_wait_info = reinterpret_cast<hybrid::AsyncWaitInfo *>(buf + offset);
   async_wait_info->waitType = 0;
   async_wait_info->waitId = 0;
   async_wait_info->timeOut = 0;
@@ -1597,11 +1600,11 @@ TEST_F(UtestKernelTaskInfo, blocking_aicpu_op_fail_01) {
   vector<char> aicpu_ext_info(len, 0);
   char *buf = aicpu_ext_info.data();
   int offset = 0;
-  hybrid::AicpuExtInfo *ext_info = reinterpret_cast<hybrid::AicpuExtInfo*>(buf + offset);
+  hybrid::AicpuExtInfo *ext_info = reinterpret_cast<hybrid::AicpuExtInfo *>(buf + offset);
   ext_info->infoType = aicpu::FWKAdapter::FWK_ADPT_EXT_ASYNCWAIT;
   ext_info->infoLen = sizeof(hybrid::AsyncWaitInfo);
   offset += sizeof(hybrid::AicpuExtInfo);
-  hybrid::AsyncWaitInfo *async_wait_info = reinterpret_cast<hybrid::AsyncWaitInfo*>(buf + offset);
+  hybrid::AsyncWaitInfo *async_wait_info = reinterpret_cast<hybrid::AsyncWaitInfo *>(buf + offset);
   async_wait_info->waitType = 0;
   async_wait_info->waitId = 0;
   async_wait_info->timeOut = 0;
@@ -1635,11 +1638,11 @@ TEST_F(UtestKernelTaskInfo, blocking_aicpu_op_fail_02) {
   vector<char> aicpu_ext_info(len, 0);
   char *buf = aicpu_ext_info.data();
   int offset = 0;
-  hybrid::AicpuExtInfo *ext_info = reinterpret_cast<hybrid::AicpuExtInfo*>(buf + offset);
+  hybrid::AicpuExtInfo *ext_info = reinterpret_cast<hybrid::AicpuExtInfo *>(buf + offset);
   ext_info->infoType = aicpu::FWKAdapter::FWK_ADPT_EXT_ASYNCWAIT;
   ext_info->infoLen = sizeof(hybrid::AsyncWaitInfo);
   offset += sizeof(hybrid::AicpuExtInfo);
-  hybrid::AsyncWaitInfo *async_wait_info = reinterpret_cast<hybrid::AsyncWaitInfo*>(buf + offset);
+  hybrid::AsyncWaitInfo *async_wait_info = reinterpret_cast<hybrid::AsyncWaitInfo *>(buf + offset);
   async_wait_info->waitType = 0;
   async_wait_info->waitId = 0;
   async_wait_info->timeOut = 0;
@@ -1698,10 +1701,10 @@ TEST_F(UtestKernelTaskInfo, CopyNoncontinuousArgs_Invalid) {
   MemAllocationAndOffset v2 = {2, 0};
   kernel_task_info.args_io_addrs_updater_.v_mem_allocation_id_and_offset_.push_back(v1);
   kernel_task_info.args_io_addrs_updater_.v_mem_allocation_id_and_offset_.push_back(v2);
-  std::vector<int64_t> host_args({0,0});
+  std::vector<int64_t> host_args({0, 0});
   uint16_t offset = 0;
-  auto ret = kernel_task_info.UpdateNoncontinuousArgs(offset, active_base_addr,
-      static_cast<void *>(host_args.data()), 2 * sizeof(int64_t));
+  auto ret = kernel_task_info.UpdateNoncontinuousArgs(offset, active_base_addr, static_cast<void *>(host_args.data()),
+                                                      2 * sizeof(int64_t));
   EXPECT_EQ(ret, SUCCESS);
 }
 
@@ -1822,7 +1825,6 @@ TEST_F(UtestKernelTaskInfo, test_SetIoAddr) {
   EXPECT_EQ(kernel_task_info.io_addrs_.size(), 2);
 }
 
-
 TEST_F(UtestKernelTaskInfo, test_SetIoAddrWithTilingData) {
   DavinciModel model(0, nullptr);
   model.runtime_param_.mem_size = 10000000U;
@@ -1880,7 +1882,7 @@ TEST_F(UtestKernelTaskInfo, test_SetIoAddrWithTilingData) {
   kernel_task_info.SetIoAddrs();
   // output index + workspace index
   EXPECT_EQ(kernel_task_info.io_addrs_.size(), 4);
-  aclrtFree((void*)model.globalworkspace_overflow_addr_);
+  aclrtFree((void *)model.globalworkspace_overflow_addr_);
 }
 
 UINT32 StubTiling(gert::TilingContext *context) {
@@ -1897,8 +1899,8 @@ UINT32 StubTilingParse(gert::KernelContext *context) {
   return ge::GRAPH_SUCCESS;
 }
 
-void* CompileInfoCreator() {
-  auto tmp =  ge::MakeUnique<char>();
+void *CompileInfoCreator() {
+  auto tmp = ge::MakeUnique<char>();
   return tmp.get();
 }
 
@@ -1949,8 +1951,10 @@ TEST_F(UtestKernelTaskInfo, soft_sync_op_tiling) {
   op_desc->SetWorkspace({32});
   op_desc->SetWorkspaceBytes({32});
   gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl(RELU)->tiling = StubTiling;
-  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl(RELU)->tiling_parse = StubTilingParse;
-  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl(RELU)->compile_info_creator = CompileInfoCreator;
+  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl(RELU)->tiling_parse =
+      StubTilingParse;
+  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl(RELU)->compile_info_creator =
+      CompileInfoCreator;
 
   std::vector<char> kernelBin;
   TBEKernelPtr tbe_kernel = std::make_shared<ge::OpKernelBin>("name/data", std::move(kernelBin));
@@ -1985,8 +1989,8 @@ TEST_F(UtestKernelTaskInfo, soft_sync_op_tiling) {
   auto node = graph->AddNode(op_desc);
   auto operator_info = std::make_shared<Operator>(OpDescUtils::CreateOperatorFromNode(node));
   model.operator_list_[op_desc->GetId()] = operator_info;
-  op_desc->SetWorkspace({1308});   // offset
-  op_desc->SetWorkspaceBytes({150});    // length
+  op_desc->SetWorkspace({1308});      // offset
+  op_desc->SetWorkspaceBytes({150});  // length
 
   model.args_manager_.AllocKernelLaunchArgsHostMem(model.logical_mem_allocations_.size());
   {
@@ -2129,7 +2133,7 @@ TEST_F(UtestKernelTaskInfo, mc2_static_bin_reuse) {
   uint64_t fm_base = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(memory_holder.data()));
 
   EXPECT_EQ(kernel_task_info.io_addrs_[0], fm_base + 1000);
-  EXPECT_EQ(kernel_task_info.io_addrs_[1], 0); // 可选输入
+  EXPECT_EQ(kernel_task_info.io_addrs_[1], 0);  // 可选输入
   EXPECT_EQ(kernel_task_info.io_addrs_[2], 0);
   EXPECT_EQ(kernel_task_info.io_addrs_[3], fm_base + 5000);
   EXPECT_EQ(kernel_task_info.io_addrs_[4], 0);
@@ -2139,9 +2143,9 @@ TEST_F(UtestKernelTaskInfo, mc2_static_bin_reuse) {
   EXPECT_EQ(kernel_task_info.io_addrs_[9], fm_base + 7000);
 
   HiddenInputsFuncRegistry::GetInstance().type_to_funcs_.clear();
-  free((void*)args[0].dev_addr);
+  free((void *)args[0].dev_addr);
   dlog_setlevel(GE_MODULE_NAME, DLOG_DEBUG, 0);
-  aclrtFree((void*)model.globalworkspace_overflow_addr_);
+  aclrtFree((void *)model.globalworkspace_overflow_addr_);
   dlog_setlevel(GE_MODULE_NAME, DLOG_ERROR, 0);
 }
 
@@ -2173,8 +2177,8 @@ TEST_F(UtestKernelTaskInfo, mc2_fusion_task_static_bin_reuse_with_sub_aicore_ccu
   model.runtime_param_.mem_size = 10000UL;
   std::vector<uint8_t> memory_holder(model.runtime_param_.mem_size);
   model.runtime_param_.mem_base = reinterpret_cast<uintptr_t>(memory_holder.data());
-  MemAllocation fm_mem_allocation = {0, static_cast<uint64_t>(model.runtime_param_.mem_base),
-                                     6300, ge::MemAllocation::Type::FEATURE_MAP, 0U};
+  MemAllocation fm_mem_allocation = {0, static_cast<uint64_t>(model.runtime_param_.mem_base), 6300,
+                                     ge::MemAllocation::Type::FEATURE_MAP, 0U};
   model.logical_mem_allocations_.emplace_back(fm_mem_allocation);
 
   MemAllocation io_mem_allocation = {1, static_cast<uint64_t>(model.runtime_param_.mem_base) + 6300,
@@ -2253,25 +2257,29 @@ TEST_F(UtestKernelTaskInfo, mc2_fusion_task_static_bin_reuse_with_sub_aicore_ccu
   auto &fusion_task = *model_task_def->add_task();
   fusion_task.set_type(static_cast<int32_t>(ge::ModelTaskType::MODEL_TASK_FUSION_KERNEL));
   auto fusion = fusion_task.mutable_fusion_task();
-  fusion->set_args_format("{ffts_addr}{i0}{i2}{}{i_desc3}{i_instance4}{o0}{o1}{o_desc2}{o_instance4}{hi.hcom0*}{ws*}{overflow_addr}{ws0}{t}{#123}{tiling_context}{*op_type}");
-  fusion->set_op_index(op_desc->GetId());;
-  fusion->set_kfc_args_format_offset(13);;
+  fusion->set_args_format(
+      "{ffts_addr}{i0}{i2}{}{i_desc3}{i_instance4}{o0}{o1}{o_desc2}{o_instance4}{hi.hcom0*}{ws*}{overflow_addr}{ws0}{t}"
+      "{#123}{tiling_context}{*op_type}");
+  fusion->set_op_index(op_desc->GetId());
+  ;
+  fusion->set_kfc_args_format_offset(13);
+  ;
 
   // 1.1 AICORE 子任务
-  auto* sub1 = fusion->add_fusion_sub_task_info();
+  auto *sub1 = fusion->add_fusion_sub_task_info();
   sub1->set_type(domi::FusionSubTaskInfo::AICORE);
-  auto* aicore = sub1->mutable_task()->mutable_aicore_fusion_task_info();
+  auto *aicore = sub1->mutable_task()->mutable_aicore_fusion_task_info();
 
   // 1.1.1 KernelContext
-  auto* ctx = aicore->mutable_context();
+  auto *ctx = aicore->mutable_context();
   ctx->set_kernel_type(11);
 
   // 1.1.2 args 二进制
   aicore->set_is_all_kernel(true);
 
   // 1.1.3 LaunchConfig → LaunchAttribute
-  auto* cfg = aicore->mutable_config();
-  auto* attr = cfg->add_launch_attribute();
+  auto *cfg = aicore->mutable_config();
+  auto *attr = cfg->add_launch_attribute();
   attr->set_id(domi::LaunchAttribute::BLOCKDIM);
   attr->mutable_value()->set_block_dim(256);
 
@@ -2284,7 +2292,7 @@ TEST_F(UtestKernelTaskInfo, mc2_fusion_task_static_bin_reuse_with_sub_aicore_ccu
   attr->mutable_value()->set_schem_model(1);
 
   // 1.2 CCU 子任务
-  auto* sub2 = fusion->add_fusion_sub_task_info();
+  auto *sub2 = fusion->add_fusion_sub_task_info();
   sub2->set_type(domi::FusionSubTaskInfo::CCU);
   sub2->mutable_task()->mutable_ccu_task_group()->add_group("group");
 
@@ -2311,11 +2319,15 @@ TEST_F(UtestKernelTaskInfo, mc2_fusion_task_static_bin_reuse_with_sub_aicore_ccu
   // for SetTvmTaskZeroCopy
   ZeroCopyOffset zero_copy_offset;
   std::vector<uint64_t> tensor_addrs;
-  EXPECT_EQ(zero_copy_offset.SetOutputOutsideAddrs(6300, false, reinterpret_cast<uintptr_t>(memory_holder.data()) + 6300, tensor_addrs), SUCCESS);
+  EXPECT_EQ(zero_copy_offset.SetOutputOutsideAddrs(
+                6300, false, reinterpret_cast<uintptr_t>(memory_holder.data()) + 6300, tensor_addrs),
+            SUCCESS);
   model.output_data_info_[4] = zero_copy_offset;
 
   ZeroCopyOffset zero_copy_offset1;
-  EXPECT_EQ(zero_copy_offset1.SetInputOutsideAddrs(6400, reinterpret_cast<uintptr_t>(memory_holder.data()) + 6400, false, model.real_virtual_addrs_), SUCCESS);
+  EXPECT_EQ(zero_copy_offset1.SetInputOutsideAddrs(6400, reinterpret_cast<uintptr_t>(memory_holder.data()) + 6400,
+                                                   false, model.real_virtual_addrs_),
+            SUCCESS);
   model.input_data_info_[4] = zero_copy_offset1;
 
   // aicpu kernel
@@ -2350,7 +2362,7 @@ TEST_F(UtestKernelTaskInfo, mc2_fusion_task_static_bin_reuse_with_sub_aicore_ccu
   // rt_sub_task_ 校验
   EXPECT_EQ(fusion_task_info.rt_fusion_task_.subTask[0].type, 2);
   EXPECT_EQ(fusion_task_info.rt_fusion_task_.subTask[0].task.aicoreInfo.tilingKey, 0x1234);
-  EXPECT_EQ(fusion_task_info.rt_fusion_task_.subTask[0].task.aicoreInfo.config->numAttrs, 4); // 包含dump
+  EXPECT_EQ(fusion_task_info.rt_fusion_task_.subTask[0].task.aicoreInfo.config->numAttrs, 4);  // 包含dump
   EXPECT_EQ(fusion_task_info.rt_fusion_task_.subTask[1].type, 3);
 
   // io_addr校验
@@ -2396,7 +2408,7 @@ TEST_F(UtestKernelTaskInfo, mc2_fusion_task_static_bin_reuse_with_sub_aicore_ccu
   EXPECT_EQ(fusion_task_info.io_addrs_[39], fm_base + 6100);
   EXPECT_EQ(fusion_task_info.io_addrs_[40], fm_base + 6200);
 
-  // l0 excetion dump校验； 旧的l0 exception dump 流程未校验，待补充
+  // l0 exception dump校验； 旧的l0 exception dump 流程未校验，待补充
   // iow的长度
   auto units = ge::DumpStub::GetInstance().GetStaticUnits();
   ASSERT_EQ(units.size(), 1);
@@ -2405,14 +2417,14 @@ TEST_F(UtestKernelTaskInfo, mc2_fusion_task_static_bin_reuse_with_sub_aicore_ccu
   EXPECT_EQ(units[0][1], 32);    // i1
   EXPECT_EQ(units[0][2], 0);     // hold
   EXPECT_EQ(units[0][3], 112);   // idesc1
-  EXPECT_EQ(units[0][4], 1024);    // i4
+  EXPECT_EQ(units[0][4], 1024);  // i4
   EXPECT_EQ(units[0][5], 32);    // o0
   EXPECT_EQ(units[0][6], 32);    // o1
   EXPECT_EQ(units[0][7], 112);   // 0desc1
-  EXPECT_EQ(units[0][8], 1024);    // o4
+  EXPECT_EQ(units[0][8], 1024);  // o4
   EXPECT_EQ(units[0][9], 0);     // hcom
-  EXPECT_EQ(units[0][10], 512);   // ws
-  EXPECT_EQ(units[0][11], 1);     // i1 dim
+  EXPECT_EQ(units[0][10], 512);  // ws
+  EXPECT_EQ(units[0][11], 1);    // i1 dim
   EXPECT_EQ(units[0][12], 8);    //
   EXPECT_EQ(units[0][13], 1);    // i2 dim
   EXPECT_EQ(units[0][14], 8);    //
@@ -2428,12 +2440,14 @@ TEST_F(UtestKernelTaskInfo, mc2_fusion_task_static_bin_reuse_with_sub_aicore_ccu
 
   // data dump 输入输出在args table表中的偏移
   auto cust_to_relevant = fusion_task_info.cust_to_relevant_offset_;
-  std::map<uint64_t, uint64_t> golden = { {0, 0}, {1, 1}, {2, 26}, {3, 27}, {4, 4}, {5, 5}, {6, 6}, {7, 39}, {8, 40}, {9, 8}};
+  std::map<uint64_t, uint64_t> golden = {{0, 0}, {1, 1}, {2, 26}, {3, 27}, {4, 4},
+                                         {5, 5}, {6, 6}, {7, 39}, {8, 40}, {9, 8}};
   EXPECT_EQ(golden, cust_to_relevant);
 
   EXPECT_EQ(fusion_task_info.Distribute(), SUCCESS);
   // rt_args_ex_ 校验
-  EXPECT_EQ(fusion_task_info.rt_args_ex_.argsSize, 44 * sizeof(uint64_t) + 15 * sizeof(uint64_t)); // 按照args table 表最大来赋值，ws* 16 uint32_t
+  EXPECT_EQ(fusion_task_info.rt_args_ex_.argsSize,
+            44 * sizeof(uint64_t) + 15 * sizeof(uint64_t));  // 按照args table 表最大来赋值，ws* 16 uint32_t
 
   EXPECT_EQ(fusion_task_info.Release(), SUCCESS);
 
@@ -2449,8 +2463,8 @@ TEST_F(UtestKernelTaskInfo, mc2_fusion_task_static_bin_reuse_with_sub_aicore_ccu
   EXPECT_EQ(fusion_task_info.ParseOpIndex(fusion_task), 0);
 
   HiddenInputsFuncRegistry::GetInstance().type_to_funcs_.clear();
-  free((void*)args[0].dev_addr);
-  aclrtFree((void*)model.globalworkspace_overflow_addr_);
+  free((void *)args[0].dev_addr);
+  aclrtFree((void *)model.globalworkspace_overflow_addr_);
   dlog_setlevel(GE_MODULE_NAME, DLOG_ERROR, 0);
 }
 
@@ -2481,8 +2495,8 @@ TEST_F(UtestKernelTaskInfo, mc2_fusion_task_static_bin_reuse_with_sub_aicore_aic
   model.runtime_param_.mem_size = 10000UL;
   std::vector<uint8_t> memory_holder(model.runtime_param_.mem_size);
   model.runtime_param_.mem_base = reinterpret_cast<uintptr_t>(memory_holder.data());
-  MemAllocation fm_mem_allocation = {0, static_cast<uint64_t>(model.runtime_param_.mem_base),
-                                     6300, ge::MemAllocation::Type::FEATURE_MAP, 0U};
+  MemAllocation fm_mem_allocation = {0, static_cast<uint64_t>(model.runtime_param_.mem_base), 6300,
+                                     ge::MemAllocation::Type::FEATURE_MAP, 0U};
   model.logical_mem_allocations_.emplace_back(fm_mem_allocation);
 
   MemAllocation io_mem_allocation = {1, static_cast<uint64_t>(model.runtime_param_.mem_base) + 6300,
@@ -2561,25 +2575,29 @@ TEST_F(UtestKernelTaskInfo, mc2_fusion_task_static_bin_reuse_with_sub_aicore_aic
   auto &fusion_task = *model_task_def->add_task();
   fusion_task.set_type(static_cast<int32_t>(ge::ModelTaskType::MODEL_TASK_FUSION_KERNEL));
   auto fusion = fusion_task.mutable_fusion_task();
-  fusion->set_args_format("{ffts_addr}{i0}{i2}{}{i_desc3}{i_instance4}{o0}{o1}{o_desc2}{o_instance4}{hi.hcom0*}{ws*}{overflow_addr}{ws0}{t}{#123}{tiling_context}{*op_type}");
-  fusion->set_op_index(op_desc->GetId());;
-  fusion->set_kfc_args_format_offset(13);;
+  fusion->set_args_format(
+      "{ffts_addr}{i0}{i2}{}{i_desc3}{i_instance4}{o0}{o1}{o_desc2}{o_instance4}{hi.hcom0*}{ws*}{overflow_addr}{ws0}{t}"
+      "{#123}{tiling_context}{*op_type}");
+  fusion->set_op_index(op_desc->GetId());
+  ;
+  fusion->set_kfc_args_format_offset(13);
+  ;
 
   // 1.1 AICORE 子任务
-  auto* sub1 = fusion->add_fusion_sub_task_info();
+  auto *sub1 = fusion->add_fusion_sub_task_info();
   sub1->set_type(domi::FusionSubTaskInfo::AICORE);
-  auto* aicore = sub1->mutable_task()->mutable_aicore_fusion_task_info();
+  auto *aicore = sub1->mutable_task()->mutable_aicore_fusion_task_info();
 
   // 1.1.1 KernelContext
-  auto* ctx = aicore->mutable_context();
+  auto *ctx = aicore->mutable_context();
   ctx->set_kernel_type(11);
 
   // 1.1.2 args 二进制
   aicore->set_is_all_kernel(true);
 
   // 1.1.3 LaunchConfig → LaunchAttribute
-  auto* cfg = aicore->mutable_config();
-  auto* attr = cfg->add_launch_attribute();
+  auto *cfg = aicore->mutable_config();
+  auto *attr = cfg->add_launch_attribute();
   attr->set_id(domi::LaunchAttribute::BLOCKDIM);
   attr->mutable_value()->set_block_dim(256);
 
@@ -2592,7 +2610,7 @@ TEST_F(UtestKernelTaskInfo, mc2_fusion_task_static_bin_reuse_with_sub_aicore_aic
   attr->mutable_value()->set_schem_model(1);
 
   // 1.3 aicpu 子任务 覆盖异常分支
-  auto* sub3 = fusion->add_fusion_sub_task_info();
+  auto *sub3 = fusion->add_fusion_sub_task_info();
   sub3->set_type(domi::FusionSubTaskInfo::AICPU);
 
   rtStream_t stream1 = nullptr;
@@ -2618,11 +2636,15 @@ TEST_F(UtestKernelTaskInfo, mc2_fusion_task_static_bin_reuse_with_sub_aicore_aic
   // for SetTvmTaskZeroCopy
   ZeroCopyOffset zero_copy_offset;
   std::vector<uint64_t> tensor_addrs;
-  EXPECT_EQ(zero_copy_offset.SetOutputOutsideAddrs(6300, false, reinterpret_cast<uintptr_t>(memory_holder.data()) + 6300, tensor_addrs), SUCCESS);
+  EXPECT_EQ(zero_copy_offset.SetOutputOutsideAddrs(
+                6300, false, reinterpret_cast<uintptr_t>(memory_holder.data()) + 6300, tensor_addrs),
+            SUCCESS);
   model.output_data_info_[4] = zero_copy_offset;
 
   ZeroCopyOffset zero_copy_offset1;
-  EXPECT_EQ(zero_copy_offset1.SetInputOutsideAddrs(6400, reinterpret_cast<uintptr_t>(memory_holder.data()) + 6400, false, model.real_virtual_addrs_), SUCCESS);
+  EXPECT_EQ(zero_copy_offset1.SetInputOutsideAddrs(6400, reinterpret_cast<uintptr_t>(memory_holder.data()) + 6400,
+                                                   false, model.real_virtual_addrs_),
+            SUCCESS);
   model.input_data_info_[4] = zero_copy_offset1;
 
   // aicpu kernel
@@ -2655,8 +2677,8 @@ TEST_F(UtestKernelTaskInfo, mc2_fusion_task_static_bin_reuse_with_sub_aicore_aic
   EXPECT_EQ(fusion_task_info.Init(fusion_task, &model, args, persistant_workspace, iow_addrs), SUCCESS);
 
   HiddenInputsFuncRegistry::GetInstance().type_to_funcs_.clear();
-  free((void*)args[0].dev_addr);
-  aclrtFree((void*)model.globalworkspace_overflow_addr_);
+  free((void *)args[0].dev_addr);
+  aclrtFree((void *)model.globalworkspace_overflow_addr_);
 }
 
 TEST_F(UtestKernelTaskInfo, mc2_fusion_task_stubfunc_with_sub_aicore_ccu) {
@@ -2759,25 +2781,28 @@ TEST_F(UtestKernelTaskInfo, mc2_fusion_task_stubfunc_with_sub_aicore_ccu) {
   auto &fusion_task = *model_task_def->add_task();
   fusion_task.set_type(static_cast<int32_t>(ge::ModelTaskType::MODEL_TASK_FUSION_KERNEL));
   auto fusion = fusion_task.mutable_fusion_task();
-  fusion->set_args_format("{i0}{i2}{}{i_desc3}{i_instance4}{o0}{o1}{o_desc2}{o_instance4}{hi.hcom0*}{ws*}{overflow_addr}{ws0}{t}{#123}");
-  fusion->set_op_index(op_desc->GetId());;
-  fusion->set_kfc_args_format_offset(12);;
+  fusion->set_args_format(
+      "{i0}{i2}{}{i_desc3}{i_instance4}{o0}{o1}{o_desc2}{o_instance4}{hi.hcom0*}{ws*}{overflow_addr}{ws0}{t}{#123}");
+  fusion->set_op_index(op_desc->GetId());
+  ;
+  fusion->set_kfc_args_format_offset(12);
+  ;
 
   // 1.1 AICORE 子任务
-  auto* sub1 = fusion->add_fusion_sub_task_info();
+  auto *sub1 = fusion->add_fusion_sub_task_info();
   sub1->set_type(domi::FusionSubTaskInfo::AICORE);
-  auto* aicore = sub1->mutable_task()->mutable_aicore_fusion_task_info();
+  auto *aicore = sub1->mutable_task()->mutable_aicore_fusion_task_info();
 
   // 1.1.1 KernelContext
-  auto* ctx = aicore->mutable_context();
+  auto *ctx = aicore->mutable_context();
   ctx->set_kernel_type(11);
 
   // 1.1.2 args 二进制
   aicore->set_is_all_kernel(false);
 
   // 1.1.3 LaunchConfig → LaunchAttribute
-  auto* cfg = aicore->mutable_config();
-  auto* attr = cfg->add_launch_attribute();
+  auto *cfg = aicore->mutable_config();
+  auto *attr = cfg->add_launch_attribute();
   attr->set_id(domi::LaunchAttribute::BLOCKDIM);
   attr->mutable_value()->set_block_dim(256);
 
@@ -2790,7 +2815,7 @@ TEST_F(UtestKernelTaskInfo, mc2_fusion_task_stubfunc_with_sub_aicore_ccu) {
   attr->mutable_value()->set_schem_model(1);
 
   // 1.2 CCU 子任务
-  auto* sub3 = fusion->add_fusion_sub_task_info();
+  auto *sub3 = fusion->add_fusion_sub_task_info();
   sub3->set_type(domi::FusionSubTaskInfo::CCU);
   sub3->mutable_task()->mutable_ccu_task_group()->add_group("group");
 
@@ -2844,7 +2869,7 @@ TEST_F(UtestKernelTaskInfo, mc2_fusion_task_stubfunc_with_sub_aicore_ccu) {
   // rt_sub_task_ 校验
   EXPECT_EQ(fusion_task_info.rt_fusion_task_.subTask[0].type, 2);
   EXPECT_NE(fusion_task_info.rt_fusion_task_.subTask[0].task.aicoreInfo.stubFunc, nullptr);
-  EXPECT_EQ(fusion_task_info.rt_fusion_task_.subTask[0].task.aicoreInfo.config->numAttrs, 4); // 包含dump
+  EXPECT_EQ(fusion_task_info.rt_fusion_task_.subTask[0].task.aicoreInfo.config->numAttrs, 4);  // 包含dump
   EXPECT_EQ(fusion_task_info.rt_fusion_task_.subTask[1].type, 3);
 
   // io_addr校验
@@ -2890,7 +2915,7 @@ TEST_F(UtestKernelTaskInfo, mc2_fusion_task_stubfunc_with_sub_aicore_ccu) {
   EXPECT_EQ(fusion_task_info.io_addrs_[39], fm_base + 6100);
   EXPECT_EQ(fusion_task_info.io_addrs_[40], fm_base + 6200);
 
-  // l0 excetion dump校验； 旧的l0 exception dump 流程未校验，待补充
+  // l0 exception dump校验； 旧的l0 exception dump 流程未校验，待补充
   // iow的长度
   auto units = ge::DumpStub::GetInstance().GetStaticUnits();
   ASSERT_EQ(units.size(), 1);
@@ -2899,14 +2924,14 @@ TEST_F(UtestKernelTaskInfo, mc2_fusion_task_stubfunc_with_sub_aicore_ccu) {
   EXPECT_EQ(units[0][1], 32);    // i1
   EXPECT_EQ(units[0][2], 0);     // hold
   EXPECT_EQ(units[0][3], 112);   // idesc1
-  EXPECT_EQ(units[0][4], 1024);    // i4
+  EXPECT_EQ(units[0][4], 1024);  // i4
   EXPECT_EQ(units[0][5], 32);    // o0
   EXPECT_EQ(units[0][6], 32);    // o1
   EXPECT_EQ(units[0][7], 112);   // 0desc1
-  EXPECT_EQ(units[0][8], 1024);    // o4
+  EXPECT_EQ(units[0][8], 1024);  // o4
   EXPECT_EQ(units[0][9], 0);     // hcom
-  EXPECT_EQ(units[0][10], 512);   // ws
-  EXPECT_EQ(units[0][11], 1);     // i1 dim
+  EXPECT_EQ(units[0][10], 512);  // ws
+  EXPECT_EQ(units[0][11], 1);    // i1 dim
   EXPECT_EQ(units[0][12], 8);    //
   EXPECT_EQ(units[0][13], 1);    // i2 dim
   EXPECT_EQ(units[0][14], 8);    //
@@ -2922,19 +2947,18 @@ TEST_F(UtestKernelTaskInfo, mc2_fusion_task_stubfunc_with_sub_aicore_ccu) {
 
   // data dump 输入输出在args table表中的偏移
   auto cust_to_relevant = fusion_task_info.cust_to_relevant_offset_;
-  std::map<uint64_t, uint64_t> golden = { {0, 0}, {1, 1}, {2, 26}, {3, 27}, {4, 4}, {5, 5}, {6, 6}, {7, 39}, {8, 40}, {9, 8}};
+  std::map<uint64_t, uint64_t> golden = {{0, 0}, {1, 1}, {2, 26}, {3, 27}, {4, 4},
+                                         {5, 5}, {6, 6}, {7, 39}, {8, 40}, {9, 8}};
   EXPECT_EQ(golden, cust_to_relevant);
-
 
   EXPECT_EQ(fusion_task_info.Distribute(), SUCCESS);
   // rt_args_ex_ 校验
-  EXPECT_EQ(fusion_task_info.rt_args_ex_.argsSize, 41 * sizeof(uint64_t) + 15 * sizeof(uint64_t)); // ws* 16 uint32_t
+  EXPECT_EQ(fusion_task_info.rt_args_ex_.argsSize, 41 * sizeof(uint64_t) + 15 * sizeof(uint64_t));  // ws* 16 uint32_t
 
   HiddenInputsFuncRegistry::GetInstance().type_to_funcs_.clear();
-  free((void*)args[0].dev_addr);
-  aclrtFree((void*)model.globalworkspace_overflow_addr_);
+  free((void *)args[0].dev_addr);
+  aclrtFree((void *)model.globalworkspace_overflow_addr_);
 }
-
 
 TEST_F(UtestKernelTaskInfo, No_soft_sync_op_with_2_tasks) {
   DavinciModel model(0, nullptr);
@@ -2963,7 +2987,7 @@ TEST_F(UtestKernelTaskInfo, No_soft_sync_op_with_2_tasks) {
   atomic_kernel->set_args_size(atomic_args.size());
   auto atomic_context = atomic_kernel->mutable_context();
   atomic_context->set_op_index(0);
-  atomic_context->set_kernel_type(2);    // ccKernelType::TE
+  atomic_context->set_kernel_type(2);  // ccKernelType::TE
   uint16_t atomic_offset = 0U;
   atomic_context->set_args_offset(&atomic_offset, sizeof(uint16_t));
 
@@ -2991,7 +3015,6 @@ TEST_F(UtestKernelTaskInfo, No_soft_sync_op_with_2_tasks) {
   EXPECT_EQ(model.InitTaskInfo(model_task_def), SUCCESS);
   EXPECT_EQ(model.task_list_.size(), 2);
 
-
   KernelTaskInfo kernel_task_info;
   kernel_task_info.davinci_model_ = &model;
   kernel_task_info.op_desc_ = op_desc;
@@ -3012,7 +3035,7 @@ TEST_F(UtestKernelTaskInfo, No_soft_sync_op_with_2_tasks) {
   const std::string attr_key_kernel_name = op_desc->GetName() + "_atomic_kernelname";
   AttrUtils::SetStr(op_desc, attr_key_kernel_name, kernel_name);
   EXPECT_EQ(kernel_task_info.is_separately_clean_task_, false);
-  free((void*)args[0].dev_addr);
+  free((void *)args[0].dev_addr);
 }
 
 TEST_F(UtestKernelTaskInfo, static_shape_reuse_binary) {
@@ -3078,7 +3101,7 @@ TEST_F(UtestKernelTaskInfo, static_shape_reuse_binary) {
   kernel_def->mutable_context()->mutable_origin_op_index()->Clear();
   uint16_t offset = 16U;
   kernel_def->mutable_context()->set_args_offset(&offset, sizeof(uint16_t));
-  std::vector<char> args_info(56U, '0'); // set + 一个input + 两个output + workspace + tilling
+  std::vector<char> args_info(56U, '0');  // set + 一个input + 两个output + workspace + tilling
   kernel_def->set_args_size(args_info.size());
   kernel_def->set_args(args_info.data(), args_info.size());
 
@@ -3102,7 +3125,6 @@ TEST_F(UtestKernelTaskInfo, static_shape_reuse_binary) {
     EXPECT_EQ(model.DistributeTask(model_task_def), SUCCESS);
   }
 }
-
 
 TEST_F(UtestKernelTaskInfo, static_shape_reuse_binary_with_ori_op_para_size) {
   DavinciModel model(0, nullptr);
@@ -3168,7 +3190,7 @@ TEST_F(UtestKernelTaskInfo, static_shape_reuse_binary_with_ori_op_para_size) {
   kernel_def->mutable_context()->mutable_origin_op_index()->Clear();
   uint16_t offset = 16U;
   kernel_def->mutable_context()->set_args_offset(&offset, sizeof(uint16_t));
-  std::vector<char> args_info(56U, '0'); // set + 一个input + 两个output + workspace + tilling
+  std::vector<char> args_info(56U, '0');  // set + 一个input + 两个output + workspace + tilling
   kernel_def->set_args_size(args_info.size());
   kernel_def->set_args(args_info.data(), args_info.size());
 
@@ -3255,7 +3277,7 @@ TEST_F(UtestKernelTaskInfo, static_shape_reuse_binary_vectorcore) {
   kernel_def->mutable_context()->mutable_origin_op_index()->Clear();
   uint16_t offset = 16U;
   kernel_def->mutable_context()->set_args_offset(&offset, sizeof(uint16_t));
-  std::vector<char> args_info(56U, '0'); // set + 一个input + 两个output + workspace + tilling
+  std::vector<char> args_info(56U, '0');  // set + 一个input + 两个output + workspace + tilling
   kernel_def->set_args_size(args_info.size());
   kernel_def->set_args(args_info.data(), args_info.size());
 
@@ -3353,7 +3375,7 @@ TEST_F(UtestKernelTaskInfo, static_shape_reuse_binary_atomic) {
   kernel_def->mutable_context()->mutable_origin_op_index()->Clear();
   uint16_t offset = 16U;
   kernel_def->mutable_context()->set_args_offset(&offset, sizeof(uint16_t));
-  std::vector<char> args_info(56U, '0'); // set + 一个input + 两个output + workspace + tilling
+  std::vector<char> args_info(56U, '0');  // set + 一个input + 两个output + workspace + tilling
   kernel_def->set_args_size(args_info.size());
   kernel_def->set_args(args_info.data(), args_info.size());
 
@@ -3403,7 +3425,7 @@ TEST_F(UtestKernelTaskInfo, KernelTaskInit_SaveExceptionInfo_EnableExceptionDump
   AttrUtils::SetStr(op_desc, TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
   AttrUtils::SetStr(op_desc, ATTR_NAME_KERNEL_BIN_ID, "te_relu_123");
 
-  op_desc->SetInputOffset({10,10});
+  op_desc->SetInputOffset({10, 10});
   domi::ModelTaskDef model_task_def;
   domi::TaskDef &task_def = *model_task_def.add_task();
   domi::KernelDef *kernel_def = task_def.mutable_kernel();
@@ -3419,8 +3441,8 @@ TEST_F(UtestKernelTaskInfo, KernelTaskInit_SaveExceptionInfo_EnableExceptionDump
   model.op_list_[op_desc->GetId()] = op_desc;
   const auto operator_info = std::make_shared<Operator>(OpDescUtils::CreateOperatorFromOpDesc(op_desc));
   model.operator_list_[op_desc->GetId()] = operator_info;
-  op_desc->SetWorkspace({1308});   // offset
-  op_desc->SetWorkspaceBytes({150});    // length
+  op_desc->SetWorkspace({1308});      // offset
+  op_desc->SetWorkspaceBytes({150});  // length
   KernelTaskInfo kernel_task_info;
   TaskRunParam task_run_param = {};
   EXPECT_EQ(kernel_task_info.ParseTaskRunParam(task_def, &model, task_run_param), SUCCESS);
@@ -3467,7 +3489,7 @@ TEST_F(UtestKernelTaskInfo, KernelTaskInit_SaveExceptionInfo_EnableExceptionDump
   dlog_setlevel(GE_MODULE_NAME, DLOG_INFO, 0);
 }
 
-// exception dump is disbale, and op info will saved by ge and don't send to adump
+// exception dump is disable, and op info will saved by ge and don't send to adump
 TEST_F(UtestKernelTaskInfo, KernelTaskInit_SaveExceptionInfo_WithoutEnableExceptionDump) {
   gert::GlobalDumper::GetInstance()->MutableExceptionDumper()->Clear();
   gert::GlobalDumper::GetInstance()->ClearInnerExceptionDumpers();
@@ -3494,7 +3516,7 @@ TEST_F(UtestKernelTaskInfo, KernelTaskInit_SaveExceptionInfo_WithoutEnableExcept
   AttrUtils::SetStr(op_desc, TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
   AttrUtils::SetStr(op_desc, ATTR_NAME_KERNEL_BIN_ID, "te_relu_123");
 
-  op_desc->SetInputOffset({10,10});
+  op_desc->SetInputOffset({10, 10});
   domi::ModelTaskDef model_task_def;
   domi::TaskDef &task_def = *model_task_def.add_task();
   domi::KernelDef *kernel_def = task_def.mutable_kernel();
@@ -3510,8 +3532,8 @@ TEST_F(UtestKernelTaskInfo, KernelTaskInit_SaveExceptionInfo_WithoutEnableExcept
   model.op_list_[op_desc->GetId()] = op_desc;
   const auto operator_info = std::make_shared<Operator>(OpDescUtils::CreateOperatorFromOpDesc(op_desc));
   model.operator_list_[op_desc->GetId()] = operator_info;
-  op_desc->SetWorkspace({1308});   // offset
-  op_desc->SetWorkspaceBytes({150});    // length
+  op_desc->SetWorkspace({1308});      // offset
+  op_desc->SetWorkspaceBytes({150});  // length
   KernelTaskInfo kernel_task_info;
   TaskRunParam task_run_param = {};
   EXPECT_EQ(kernel_task_info.ParseTaskRunParam(task_def, &model, task_run_param), SUCCESS);
@@ -3572,10 +3594,10 @@ TEST_F(UtestKernelTaskInfo, CopyNoncontinuousArgs_Succes) {
   MemAllocationAndOffset v2 = {2, 0};
   kernel_task_info.args_io_addrs_updater_.v_mem_allocation_id_and_offset_.push_back(v1);
   kernel_task_info.args_io_addrs_updater_.v_mem_allocation_id_and_offset_.push_back(v2);
-  std::vector<int64_t> host_args({0,0});
+  std::vector<int64_t> host_args({0, 0});
   uint16_t offset = 0;
-  auto ret = kernel_task_info.UpdateNoncontinuousArgs(offset, active_base_addr,
-      static_cast<void *>(host_args.data()), 2 * sizeof(int64_t));
+  auto ret = kernel_task_info.UpdateNoncontinuousArgs(offset, active_base_addr, static_cast<void *>(host_args.data()),
+                                                      2 * sizeof(int64_t));
   EXPECT_EQ(ret, SUCCESS);
 }
 
@@ -3673,7 +3695,7 @@ TEST_F(UtestKernelTaskInfo, init_mc2_cust_aicpu_success) {
   EXPECT_EQ(kernel_task_info.Init(aicpu_task, &model, args, persistant_workspace, iow_addrs), SUCCESS);
   EXPECT_EQ(kernel_task_info.io_addrs_.size(), 11UL);
   EXPECT_EQ(kernel_task_info.io_addrs_[2], 0UL);   // input1 optional
-  EXPECT_EQ(kernel_task_info.io_addrs_[3], 0UL);  // placeholder
+  EXPECT_EQ(kernel_task_info.io_addrs_[3], 0UL);   // placeholder
   EXPECT_EQ(kernel_task_info.io_addrs_[6], 0xf1);  // hidden_input
   EXPECT_EQ(kernel_task_info.io_addrs_[7], 0xf2);  // hidden_input
 
@@ -3688,7 +3710,8 @@ bool has_hcom_attr = false;
 TEST_F(UtestKernelTaskInfo, super_kernel_with_args_format_graph_load_and_success) {
   auto hcom_hidden_funcs = [](const ge::OpDescPtr &op_desc, std::vector<void *> &addrs) {
     has_hcom_attr = AttrUtils::HasAttr(op_desc, "_skn_hcom_input_addr") &&
-        AttrUtils::HasAttr(op_desc, "_skn_hcom_output_addr") && AttrUtils::HasAttr(op_desc, "_skn_hcom_ws_addr");
+                    AttrUtils::HasAttr(op_desc, "_skn_hcom_output_addr") &&
+                    AttrUtils::HasAttr(op_desc, "_skn_hcom_ws_addr");
     addrs.push_back(reinterpret_cast<void *>(0xf1));
     return ge::GRAPH_SUCCESS;
   };
@@ -3706,13 +3729,13 @@ TEST_F(UtestKernelTaskInfo, super_kernel_with_args_format_graph_load_and_success
     auto data_7 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 7);  // sub node 2 input 3
 
     auto node_1 = OP_CFG("node_1")
-                   .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
-                   .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIV")
-                   .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
+                      .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
+                      .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIV")
+                      .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
     auto node_2 = OP_CFG("HcomAllReduce")
-                   .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
-                   .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIV")
-                   .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
+                      .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
+                      .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIV")
+                      .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
 
     CHAIN(NODE("_arg_0", data_0)->EDGE(0, 0)->NODE("node_1", node_1));
     CHAIN(NODE("_arg_1", data_1)->EDGE(0, 1)->NODE("node_1", node_1));
@@ -3803,7 +3826,7 @@ TEST_F(UtestKernelTaskInfo, super_kernel_with_args_format_graph_load_and_success
     op_desc_2->UpdateInputDesc(1, desc);
 
     op_desc_2->SetSrcName({"node_1", "node_1"});
-    op_desc_2->SetSrcIndex({0}); // 内部连边的配置么？
+    op_desc_2->SetSrcIndex({0});  // 内部连边的配置么？
     op_desc_2->UpdateInputDesc(2, desc);
 
     op_desc_2->AddDynamicInputDescByIndex("z", 1, 3);
@@ -3852,10 +3875,10 @@ TEST_F(UtestKernelTaskInfo, super_kernel_with_args_format_graph_load_and_success
     auto data_7 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 6);
 
     auto skt_node = OP_CFG("super_kernel")
-                   .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
-                   .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIV")
-                   .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF")
-                   .Attr(ATTR_NAME_KERNEL_BIN_ID, "te_superkernel_123");
+                        .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
+                        .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIV")
+                        .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF")
+                        .Attr(ATTR_NAME_KERNEL_BIN_ID, "te_superkernel_123");
 
     CHAIN(NODE("_arg_0", data_0)->EDGE(0, 0)->NODE("super_kernel", skt_node));
     CHAIN(NODE("_arg_1", data_1)->EDGE(0, 1)->NODE("super_kernel", skt_node));
@@ -3943,9 +3966,11 @@ TEST_F(UtestKernelTaskInfo, super_kernel_with_args_format_graph_load_and_success
   aicore_context.set_kernel_type(static_cast<int32_t>(ge::ccKernelType::TE));
   aicore_context.set_op_id(super_node->GetOpDescBarePtr()->GetId());
   aicore_context.set_op_index(super_node->GetOpDescBarePtr()->GetId());
-  aicore_context.set_args_format("{skn19ffts_addr}{skn19i_desc0}{skn19i_desc1}{skn19o0}{skn19ws0}{skn20ffts_addr}{skn20event_addr123*}"
+  aicore_context.set_args_format(
+      "{skn19ffts_addr}{skn19i_desc0}{skn19i_desc1}{skn19o0}{skn19ws0}{skn20ffts_addr}{skn20event_addr123*}"
       "{skn20i_desc0}{skn20i1}{skn20i_instance3}{skn20o_desc0}{skn20o_instance2}{skn20ws*}{skn20hi.hcom0*}"
-      "{skn20tiling_context}{skn20tiling_context.tiling_data}{skn20*op_type}{skn20tiling_context.tiling_key}{skn20tiling_context.block_dim}{ws0*}{overflow_addr}");
+      "{skn20tiling_context}{skn20tiling_context.tiling_data}{skn20*op_type}{skn20tiling_context.tiling_key}{"
+      "skn20tiling_context.block_dim}{ws0*}{overflow_addr}");
   aicore_context.set_args_count(14);
   uint16_t args_offset = 0;
   aicore_context.set_args_offset(&args_offset, sizeof(uint16_t));
@@ -3974,7 +3999,7 @@ TEST_F(UtestKernelTaskInfo, super_kernel_with_args_format_graph_load_and_success
   const auto operator_info = std::make_shared<Operator>(OpDescUtils::CreateOperatorFromOpDesc(super_node->GetOpDesc()));
   model.operator_list_[op_desc->GetId()] = operator_info;
   model.runtime_param_.mem_size = 50000UL;
-  std::vector<uint8_t> memory_holder(model.runtime_param_.mem_size); // 基址
+  std::vector<uint8_t> memory_holder(model.runtime_param_.mem_size);  // 基址
   model.runtime_param_.logic_mem_base = 0;
   model.runtime_param_.mem_base = reinterpret_cast<uintptr_t>(memory_holder.data());
   MemAllocation fm_mem_allocation = {0, static_cast<uint64_t>(model.runtime_param_.mem_base),
@@ -3995,7 +4020,7 @@ TEST_F(UtestKernelTaskInfo, super_kernel_with_args_format_graph_load_and_success
   model.notify_list_ = {rt_notify};
 
   DumpProperties properties;
-  properties.model_dump_properties_map_ = { {DUMP_ALL_MODEL, {}} };
+  properties.model_dump_properties_map_ = {{DUMP_ALL_MODEL, {}}};
   model.SetDumpProperties(properties);
 
   SuperKernelV2TaskInfo super_kernel_task_info;
@@ -4030,64 +4055,66 @@ TEST_F(UtestKernelTaskInfo, super_kernel_with_args_format_graph_load_and_success
   IowAddrs iow_addrs = {std::move(task_run_param.parsed_input_addrs), std::move(task_run_param.parsed_output_addrs),
                         std::move(task_run_param.parsed_workspace_addrs)};
   EXPECT_EQ(super_kernel_task_info.ParseOpIndex(skt_task), 21);
-  MemManager::Instance().Initialize({ RT_MEMORY_HBM });
+  MemManager::Instance().Initialize({RT_MEMORY_HBM});
   EXPECT_EQ(super_kernel_task_info.Init(skt_task, &model, args, persistant_workspace, iow_addrs), SUCCESS);
   std::vector<TaskArgsRefreshInfo> infos;
   EXPECT_EQ(super_kernel_task_info.GetTaskArgsRefreshInfos(infos), SUCCESS);
 
   // 地址信息校验
   EXPECT_EQ(infos.size(), 69);
-  EXPECT_EQ(infos[0].offset, 0);         //  op_desc_1 ffts_addr
-  EXPECT_EQ(infos[3].offset, 21000);     //  op_desc_1 output 0
-  EXPECT_EQ(infos[4].offset, 7000);      //  op_desc_1 workspace 0
-  EXPECT_EQ(infos[5].offset, 0);         //  op_desc_2 ffts_addr
-  EXPECT_EQ(infos[8].offset, 21000);     //  op_desc_2 input 2
-  EXPECT_EQ(infos[9].offset, 33000);     //  op_desc_2 input 3
-  EXPECT_EQ(infos[11].offset, 43000);    //  op_desc_2 output 2
-  EXPECT_EQ(infos[12].offset, 8000);     //  op_desc_2 workspace 0
-  EXPECT_EQ(infos[19].offset, 9000);     //  sk workspace 0
-  EXPECT_EQ(infos[31].offset, 11000);    //  op_desc_1 input 0
-  EXPECT_EQ(infos[32].offset, 12000);    //  op_desc_1 input 1
-  EXPECT_EQ(infos[40].offset, 13000);    //  op_desc_1 input 2
-  EXPECT_EQ(infos[41].offset, 14000);    //  op_desc_1 input 3
-  EXPECT_EQ(infos[42].offset, 15000);    //  op_desc_1 input 4
-  EXPECT_EQ(infos[54].offset, 31000);    //  op_desc_2 input 0
-  EXPECT_EQ(infos[55].offset, 32000);    //  op_desc_2 input 1
-  EXPECT_EQ(infos[67].offset, 41000);    //  op_desc_2 output 0
-  EXPECT_EQ(infos[68].offset, 42000);    //  op_desc_2 output 1
+  EXPECT_EQ(infos[0].offset, 0);       //  op_desc_1 ffts_addr
+  EXPECT_EQ(infos[3].offset, 21000);   //  op_desc_1 output 0
+  EXPECT_EQ(infos[4].offset, 7000);    //  op_desc_1 workspace 0
+  EXPECT_EQ(infos[5].offset, 0);       //  op_desc_2 ffts_addr
+  EXPECT_EQ(infos[8].offset, 21000);   //  op_desc_2 input 2
+  EXPECT_EQ(infos[9].offset, 33000);   //  op_desc_2 input 3
+  EXPECT_EQ(infos[11].offset, 43000);  //  op_desc_2 output 2
+  EXPECT_EQ(infos[12].offset, 8000);   //  op_desc_2 workspace 0
+  EXPECT_EQ(infos[19].offset, 9000);   //  sk workspace 0
+  EXPECT_EQ(infos[31].offset, 11000);  //  op_desc_1 input 0
+  EXPECT_EQ(infos[32].offset, 12000);  //  op_desc_1 input 1
+  EXPECT_EQ(infos[40].offset, 13000);  //  op_desc_1 input 2
+  EXPECT_EQ(infos[41].offset, 14000);  //  op_desc_1 input 3
+  EXPECT_EQ(infos[42].offset, 15000);  //  op_desc_1 input 4
+  EXPECT_EQ(infos[54].offset, 31000);  //  op_desc_2 input 0
+  EXPECT_EQ(infos[55].offset, 32000);  //  op_desc_2 input 1
+  EXPECT_EQ(infos[67].offset, 41000);  //  op_desc_2 output 0
+  EXPECT_EQ(infos[68].offset, 42000);  //  op_desc_2 output 1
 
   // dump信息校验
   auto cust_to_relevant = super_kernel_task_info.cust_to_relevant_offset_;
-  // op_desc_1 input 0; op_desc_1 input 1; op_desc_1 input 2; op_desc_1 input 3; op_desc_1 input 4;op_desc_2 input 0; op_desc_2 input 1; op_desc_2 input 3; op_desc_2 output 0; op_desc_2 output 1; op_desc_2 output 2
-  std::map<uint64_t, uint64_t> golden = {{0, 31}, {1, 32}, {2, 40}, {3, 41}, {4, 42}, {5, 54}, {6, 55}, {7, 9}, {8, 67}, {9, 68}, {10, 11}};
+  // op_desc_1 input 0; op_desc_1 input 1; op_desc_1 input 2; op_desc_1 input 3; op_desc_1 input 4;op_desc_2 input 0;
+  // op_desc_2 input 1; op_desc_2 input 3; op_desc_2 output 0; op_desc_2 output 1; op_desc_2 output 2
+  std::map<uint64_t, uint64_t> golden = {{0, 31}, {1, 32}, {2, 40}, {3, 41}, {4, 42}, {5, 54},
+                                         {6, 55}, {7, 9},  {8, 67}, {9, 68}, {10, 11}};
   EXPECT_EQ(golden, cust_to_relevant);
 
   // lo exception dump校验， desc展开的shape不占位，其余都占位
   auto l0_dump_list = super_kernel_task_info.l0_dump_list_;
   EXPECT_EQ(l0_dump_list.size(), 29);
 
-  EXPECT_EQ(l0_dump_list[1], 0x0200000000000002); // skn19i_desc0
-  EXPECT_EQ(l0_dump_list[2], 0); // op_desc_1 input 0
-  EXPECT_EQ(l0_dump_list[3], 1); // op_desc_1 input 1
-  EXPECT_EQ(l0_dump_list[4], 0x0200000000000003); // skn19i_desc1
-  EXPECT_EQ(l0_dump_list[5], 2); // op_desc_1 input 2
-  EXPECT_EQ(l0_dump_list[6], 3); // op_desc_1 input 3
-  EXPECT_EQ(l0_dump_list[7], 4);  // op_desc_1 input 4
-  EXPECT_EQ(l0_dump_list[12], 0x0200000000000002); // skn20i_desc0
-  EXPECT_EQ(l0_dump_list[13], 5); // op_desc_2 input 0
-  EXPECT_EQ(l0_dump_list[14], 6); // op_desc_2 input 1
-  EXPECT_EQ(l0_dump_list[16], 7); // op_desc_2 input 3
-  EXPECT_EQ(l0_dump_list[17], 0x0200000000000002); // skn20o_desc0
-  EXPECT_EQ(l0_dump_list[18], 8); // op_desc_2 output 0
-  EXPECT_EQ(l0_dump_list[19], 9); // op_desc_2 output 1
-  EXPECT_EQ(l0_dump_list[20], 10); // op_desc_2 output 2
+  EXPECT_EQ(l0_dump_list[1], 0x0200000000000002);   // skn19i_desc0
+  EXPECT_EQ(l0_dump_list[2], 0);                    // op_desc_1 input 0
+  EXPECT_EQ(l0_dump_list[3], 1);                    // op_desc_1 input 1
+  EXPECT_EQ(l0_dump_list[4], 0x0200000000000003);   // skn19i_desc1
+  EXPECT_EQ(l0_dump_list[5], 2);                    // op_desc_1 input 2
+  EXPECT_EQ(l0_dump_list[6], 3);                    // op_desc_1 input 3
+  EXPECT_EQ(l0_dump_list[7], 4);                    // op_desc_1 input 4
+  EXPECT_EQ(l0_dump_list[12], 0x0200000000000002);  // skn20i_desc0
+  EXPECT_EQ(l0_dump_list[13], 5);                   // op_desc_2 input 0
+  EXPECT_EQ(l0_dump_list[14], 6);                   // op_desc_2 input 1
+  EXPECT_EQ(l0_dump_list[16], 7);                   // op_desc_2 input 3
+  EXPECT_EQ(l0_dump_list[17], 0x0200000000000002);  // skn20o_desc0
+  EXPECT_EQ(l0_dump_list[18], 8);                   // op_desc_2 output 0
+  EXPECT_EQ(l0_dump_list[19], 9);                   // op_desc_2 output 1
+  EXPECT_EQ(l0_dump_list[20], 10);                  // op_desc_2 output 2
 
   EXPECT_EQ(super_kernel_task_info.Distribute(), SUCCESS);
   EXPECT_EQ(super_kernel_task_info.Release(), SUCCESS);
   EXPECT_TRUE(has_hcom_attr);
   super_kernel_task_info.PostProcess(skt_task);
 
-  free((void*)args[0].dev_addr);
+  free((void *)args[0].dev_addr);
   DumpManager::GetInstance().RemoveDumpProperties(0);
 }
 
@@ -4273,7 +4300,7 @@ TEST_F(UtestKernelTaskInfo, ifa_with_args_format_graph_load_and_success) {
   std::map<uint64_t, uint64_t> golden = {{0, 0}, {1, 19}, {2, 20}, {3, 26}, {4, 27}, {5, 3}, {6, 31}, {7, 37}, {8, 38}};
   EXPECT_EQ(golden, cust_to_relevant);
 
-  free((void*)args[0].dev_addr);
+  free((void *)args[0].dev_addr);
 }
 
 TEST_F(UtestKernelTaskInfo, sk_sub_task_load_and_success) {
@@ -4286,9 +4313,9 @@ TEST_F(UtestKernelTaskInfo, sk_sub_task_load_and_success) {
     auto data_5 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 5);  // attention_mask
     auto data_6 = OP_CFG(DATA).Attr(ATTR_NAME_PARENT_NODE_INDEX, 6);  // fake0
     auto ifa = OP_CFG("IncreFlashAttention_T")
-        .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
-        .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIV")
-        .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
+                   .Attr(ATTR_NAME_IMPLY_TYPE, static_cast<int64_t>(domi::ImplyType::TVM))
+                   .Attr(ATTR_NAME_CUBE_VECTOR_CORE_TYPE, "AIV")
+                   .Attr(TVM_ATTR_NAME_MAGIC, "RT_DEV_BINARY_MAGIC_ELF");
     CHAIN(NODE("_arg_0", data_0)->EDGE(0, 0)->NODE("ifa", ifa)->EDGE(0, 0)->NODE("Node_Output", NETOUTPUT));
     CHAIN(NODE("_arg_1", data_1)->EDGE(0, 1)->NODE("ifa", ifa));
     CHAIN(NODE("_arg_2", data_2)->EDGE(0, 2)->NODE("ifa", ifa));
@@ -4303,8 +4330,8 @@ TEST_F(UtestKernelTaskInfo, sk_sub_task_load_and_success) {
   EXPECT_NE(root_graph, nullptr);
 
   DEF_GRAPH(g1_parent) {
-     CHAIN(NODE("data0", "Data")->EDGE(0, 0)->NODE("sk", "SuperKernel")->EDGE(0, 0)->NODE("net_output", "NetOutput"));
-   };
+    CHAIN(NODE("data0", "Data")->EDGE(0, 0)->NODE("sk", "SuperKernel")->EDGE(0, 0)->NODE("net_output", "NetOutput"));
+  };
   auto sk_parent_graph = ToComputeGraph(g1_parent);
   NodePtr sk_node = nullptr;
   for (auto node : sk_parent_graph->GetAllNodes()) {
@@ -4391,7 +4418,9 @@ TEST_F(UtestKernelTaskInfo, sk_sub_task_load_and_success) {
   aicore_context.set_kernel_type(static_cast<int32_t>(ccKernelType::AI_CPU_KFC));
   aicore_context.set_op_id(sk_node->GetOpDescBarePtr()->GetId());
   aicore_context.set_op_index(sk_node->GetOpDescBarePtr()->GetId());
-  aicore_context.set_args_format("{skn1000i0}{skn1000i_desc1}{skn1000i_desc2}{skn1000i4}{skn1000i_desc6}{skn1000o_desc0}{skn1000ws0}{skn1000t}{skn1000event_addr123*}");
+  aicore_context.set_args_format(
+      "{skn1000i0}{skn1000i_desc1}{skn1000i_desc2}{skn1000i4}{skn1000i_desc6}{skn1000o_desc0}{skn1000ws0}{skn1000t}{"
+      "skn1000event_addr123*}");
   aicore_context.set_args_count(9);
 
   size_t aicpu_args_size = 128UL;
@@ -4457,7 +4486,7 @@ TEST_F(UtestKernelTaskInfo, sk_sub_task_load_and_success) {
   std::map<uint64_t, uint64_t> golden = {{0, 0}, {1, 20}, {2, 21}, {3, 27}, {4, 28}, {5, 3}, {6, 32}, {7, 38}, {8, 39}};
   EXPECT_EQ(golden, cust_to_relevant);
 
-  free((void*)args[0].dev_addr);
+  free((void *)args[0].dev_addr);
 }
 
 TEST_F(UtestKernelTaskInfo, mix_ifa_with_args_format_graph_load_and_success) {
@@ -4651,7 +4680,7 @@ TEST_F(UtestKernelTaskInfo, mix_ifa_with_args_format_graph_load_and_success) {
   ASSERT_TRUE(!out_res.empty());
   EXPECT_TRUE(!in_res[0][iow_addrs.input_logic_addrs[0].logic_addr].empty());
   EXPECT_TRUE(!out_res[0][iow_addrs.output_logic_addrs[0].logic_addr].empty());
-  free((void*)args[0].dev_addr);
+  free((void *)args[0].dev_addr);
 }
 
 TEST_F(UtestKernelTaskInfo, init_mc2_cust_aicpu_with_tilefwk_hiddeninput_success) {
@@ -4768,9 +4797,8 @@ TEST_F(UtestKernelTaskInfo, tiling_sink_success) {
   MemAllocation fm_mem_allocation = {0, static_cast<uint64_t>(model.runtime_param_.mem_base),
                                      model.runtime_param_.mem_size, ge::MemAllocation::Type::FEATURE_MAP, 0U};
   model.logical_mem_allocations_.emplace_back(fm_mem_allocation);
-  ASSERT_EQ(
-      aclrtMalloc(&model.globalworkspace_overflow_addr_, static_cast<uint64_t>(16), ACL_MEM_MALLOC_HUGE_ONLY),
-      SUCCESS);
+  ASSERT_EQ(aclrtMalloc(&model.globalworkspace_overflow_addr_, static_cast<uint64_t>(16), ACL_MEM_MALLOC_HUGE_ONLY),
+            SUCCESS);
   ModelHelper model_helper;
   model_helper.HandleDeviceInfo(model.platform_infos_);
   model.platform_infos_.core_num_ = 0U;
@@ -4799,9 +4827,16 @@ TEST_F(UtestKernelTaskInfo, tiling_sink_success) {
   op_desc->SetWorkspace({7000});
   op_desc->SetWorkspaceBytes({512});
   (void)AttrUtils::SetInt(op_desc, GLOBALWORKSPACE_TYPE, 1);
-  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl("MatmulAllReduce")->tiling = StubTiling;
-  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl("MatmulAllReduce")->tiling_parse = StubTilingParse;
-  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl("MatmulAllReduce")->compile_info_creator = CompileInfoCreator;
+  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl("MatmulAllReduce")->tiling =
+      StubTiling;
+  gert::DefaultOpImplSpaceRegistryV2::GetInstance()
+      .GetSpaceRegistry()
+      ->CreateOrGetOpImpl("MatmulAllReduce")
+      ->tiling_parse = StubTilingParse;
+  gert::DefaultOpImplSpaceRegistryV2::GetInstance()
+      .GetSpaceRegistry()
+      ->CreateOrGetOpImpl("MatmulAllReduce")
+      ->compile_info_creator = CompileInfoCreator;
 
   auto &aicpu_task = *model_task_def->add_task();
   aicpu_task.set_type(static_cast<uint32_t>(ModelTaskType::MODEL_TASK_KERNEL));
@@ -4858,7 +4893,8 @@ TEST_F(UtestKernelTaskInfo, tiling_sink_success) {
     args[0].host_addr = host_data;
     GELOGD("ARGS SIZE:%u", kernel_task_info_dump.args_size_);
     const PisToPersistentWorkspace persistant_workspace = {};
-    IowAddrs iow_addrs = {std::move(task_run_param_dump.parsed_input_addrs), std::move(task_run_param_dump.parsed_output_addrs),
+    IowAddrs iow_addrs = {std::move(task_run_param_dump.parsed_input_addrs),
+                          std::move(task_run_param_dump.parsed_output_addrs),
                           std::move(task_run_param_dump.parsed_workspace_addrs)};
     EXPECT_EQ(kernel_task_info_dump.Init(aicpu_task, &model, args, persistant_workspace, iow_addrs), SUCCESS);
     free((void *)args[0].dev_addr);
@@ -4897,7 +4933,7 @@ TEST_F(UtestKernelTaskInfo, tiling_sink_success) {
   {
     std::vector<ArgDesc> desc;
     ArgsFormatDescUtils::Append(desc, AddrType::FFTS_ADDR);
-    model.tiling_sink_task_arg_descs_list_[0] =  desc;
+    model.tiling_sink_task_arg_descs_list_[0] = desc;
 
     std::shared_ptr<TilingContextAddr> default_ctx_ptr;
     EXPECT_TRUE(op_desc->SetExtAttr(kTilingContextAddrs, default_ctx_ptr));
@@ -5318,7 +5354,7 @@ TEST_F(UtestKernelTaskInfo, ifa_with_tiling_sink_graph_load_and_success_with_dfx
 
     std::shared_ptr<TilingContextAddr> default_ctx_ptr = nullptr;
     std::shared_ptr<TilingContextAddr> tiling_context_addr =
-      op_desc->TryGetExtAttr(kTilingContextAddrs, default_ctx_ptr);
+        op_desc->TryGetExtAttr(kTilingContextAddrs, default_ctx_ptr);
     EXPECT_NE(tiling_context_addr, nullptr);
     // max tiling data size:16*1024,
     uint64_t atomic_index_addr = tiling_context_addr->tiling_data_addr + 16 * 1024 - 8;
@@ -5327,19 +5363,19 @@ TEST_F(UtestKernelTaskInfo, ifa_with_tiling_sink_graph_load_and_success_with_dfx
     auto units = ge::DumpStub::GetInstance().GetStaticUnits();
 
     ASSERT_EQ(units.size(), 1);
-    ASSERT_EQ(units[0].size(), 12); // input 1
-    EXPECT_EQ(units[0][0], 1024);   // i_desc1
-    EXPECT_EQ(units[0][1], 112);    // i_desc2
-    EXPECT_EQ(units[0][2], 64);     // i_desc2
-    EXPECT_EQ(units[0][3], 0);      // input 4
-    EXPECT_EQ(units[0][4], 64);     // o_desc0
-    EXPECT_EQ(units[0][5], 512);    // ws
-    EXPECT_EQ(units[0][6], 4);      // input 1 dim
-    EXPECT_EQ(units[0][7], 4);      // 4
-    EXPECT_EQ(units[0][8], 4);      // 4
-    EXPECT_EQ(units[0][9], 4);      // 4
-    EXPECT_EQ(units[0][10], 4);     // 4
-    EXPECT_EQ(units[0][11], 0);     // input 4 dim
+    ASSERT_EQ(units[0].size(), 12);  // input 1
+    EXPECT_EQ(units[0][0], 1024);    // i_desc1
+    EXPECT_EQ(units[0][1], 112);     // i_desc2
+    EXPECT_EQ(units[0][2], 64);      // i_desc2
+    EXPECT_EQ(units[0][3], 0);       // input 4
+    EXPECT_EQ(units[0][4], 64);      // o_desc0
+    EXPECT_EQ(units[0][5], 512);     // ws
+    EXPECT_EQ(units[0][6], 4);       // input 1 dim
+    EXPECT_EQ(units[0][7], 4);       // 4
+    EXPECT_EQ(units[0][8], 4);       // 4
+    EXPECT_EQ(units[0][9], 4);       // 4
+    EXPECT_EQ(units[0][10], 4);      // 4
+    EXPECT_EQ(units[0][11], 0);      // input 4 dim
     ge::DumpStub::GetInstance().Clear();
     free((void *)args[0].dev_addr);
   }
@@ -5574,7 +5610,6 @@ TEST_F(UtestKernelTaskInfo, InitPreprocessTask_dump_flag_Success) {
   kernel_task_info.InitDumpArgs(0U);
   EXPECT_EQ(kernel_task_info.dump_flag_, static_cast<uint32_t>(RT_KERNEL_CUSTOM_AICPU));
   EXPECT_EQ(kernel_task_info.dump_args_, nullptr);
-
 }
 
 TEST_F(UtestKernelTaskInfo, AssembleTilingSinkTensors_PreprocessKernel_Success) {
@@ -5610,7 +5645,7 @@ TEST_F(UtestKernelTaskInfo, AssembleTilingSinkTensors_Sk_PreprocessKernel_Succes
   sk_task_info.op_desc_ = CreateOpDesc("sk", "SuperKernel");
   sk_task_info.args_ = 0x0;
 
-  std::map<int32_t ,std::map<size_t, gert::AddrRefreshedTensor>> index_to_tensor;
+  std::map<int32_t, std::map<size_t, gert::AddrRefreshedTensor>> index_to_tensor;
   EXPECT_EQ(sk_task_info.AssembleTilingSinkTensors(index_to_tensor), SUCCESS);
 }
 
@@ -5660,7 +5695,7 @@ TEST_F(UtestKernelTaskInfo, InitPreprocessTask_Success) {
   std::string so_name;
   so_name.append("/opp/vendors/test/op_impl/ai_core/tbe/op_master_device/lib/libcust_opmaster.so");
   std::unique_ptr<char[]> so_bin = std::unique_ptr<char[]>(new (std::nothrow) char[so_name.length()]);
-  (void) memcpy_s(so_bin.get(), so_name.length(), so_name.data(), so_name.length());
+  (void)memcpy_s(so_bin.get(), so_name.length(), so_name.data(), so_name.length());
   OpSoBinPtr op_so_bin = std::make_shared<OpSoBin>(so_name, "", std::move(so_bin), so_name.length());
   mm.cust_op_master_so_names_to_unique_name_[uniq_so_name] = uniq_so_name;
   mm.cust_op_master_so_names_to_bin_[uniq_so_name] = op_so_bin;
@@ -5675,7 +5710,6 @@ TEST_F(UtestKernelTaskInfo, InitPreprocessTask_Success) {
   kernel_task_info.op_desc_ = CreateOpDesc("relu", RELU);
   EXPECT_EQ(kernel_task_info.InitPreprocessTask(kernel_task_info.op_desc_), SUCCESS);
 }
-
 
 void StubExceptionFunc(aclrtExceptionInfo *exception_info, void *reserved) {
   (void)exception_info;
@@ -5730,9 +5764,12 @@ TEST_F(UtestKernelTaskInfo, SetExceptionCallback_Success) {
   op_desc->SetWorkspace({32});
   op_desc->SetWorkspaceBytes({32});
   gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl(RELU)->tiling = StubTiling;
-  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl(RELU)->tiling_parse = StubTilingParse;
-  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl(RELU)->compile_info_creator = CompileInfoCreator;
-  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl(RELU)->exception_func = StubExceptionFunc;
+  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl(RELU)->tiling_parse =
+      StubTilingParse;
+  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl(RELU)->compile_info_creator =
+      CompileInfoCreator;
+  gert::DefaultOpImplSpaceRegistryV2::GetInstance().GetSpaceRegistry()->CreateOrGetOpImpl(RELU)->exception_func =
+      StubExceptionFunc;
 
   std::vector<char> kernelBin;
   TBEKernelPtr tbe_kernel = std::make_shared<ge::OpKernelBin>("name/data", std::move(kernelBin));

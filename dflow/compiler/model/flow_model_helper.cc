@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,7 +20,6 @@
 #include "graph/utils/graph_utils.h"
 #include "graph/utils/op_type_utils.h"
 #include "dflow/inc/data_flow/model/graph_model.h"
-
 
 namespace ge {
 Status FlowModelHelper::LoadToFlowModel(const std::string &model_path, FlowModelPtr &flow_model,
@@ -83,8 +82,7 @@ Status FlowModelHelper::UpdateSessionGraphId(const FlowModelPtr &flow_model, con
          old_session_graph_id.c_str(), session_graph_id.c_str());
   bool root_refreshed = false;
   GE_CHK_STATUS_RET(ModelHelper::UpdateSessionGraphId(root_graph, session_graph_id, root_refreshed),
-                    "update graph[%s] session graph id failed",
-                    root_graph->GetName().c_str());
+                    "update graph[%s] session graph id failed", root_graph->GetName().c_str());
   for (const auto &submodel_pair : flow_model->GetSubmodels()) {
     const auto &submodel = submodel_pair.second;
     bool refreshed = false;
@@ -114,9 +112,9 @@ Status FlowModelHelper::LoadFlowModelFromOmFile(const char_t *const model_path, 
   // Load model from file, default 0 priority.
   GE_CHK_STATUS_RET_NOLOG(ModelParserBase::LoadFromFile(model_path, 0, model));
   GE_MAKE_GUARD(model_guard, [&model]() {
-  if (model.model_data != nullptr) {
-    delete[] static_cast<char *>(model.model_data);
-    model.model_data = nullptr;
+    if (model.model_data != nullptr) {
+      delete[] static_cast<char *>(model.model_data);
+      model.model_data = nullptr;
     }
   });
   return TransModelDataToFlowModel(model, flow_model);
@@ -152,7 +150,7 @@ Status FlowModelHelper::TransModelDataToFlowModel(const ge::ModelData &model_dat
 }
 
 PneModelPtr FlowModelHelper::ToPneModel(const ModelData &model_data, const ComputeGraphPtr &compute_graph,
-                               const std::string &model_type) {
+                                        const std::string &model_type) {
   GraphModelPtr graph_model_ptr = MakeShared<ge::GraphModel>(compute_graph);
   GE_ASSERT_NOTNULL(graph_model_ptr);
   auto ret = graph_model_ptr->Init(model_data);

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -49,8 +49,7 @@ Status FlowModelReceiver::AddFlowRoutePlan(const deployer::AddFlowRoutePlanReque
   auto &deploy_state = deploy_states_[root_model_id];
   deploy_state.SetRootModelId(root_model_id);
   deploy_state.SetLocalFlowRoutePlan(request.node_id(), request.flow_route_plan());
-  GELOGI("Add FlowRoutePlan success, root_model_id = %u, node = %d",
-         root_model_id, request.node_id());
+  GELOGI("Add FlowRoutePlan success, root_model_id = %u, node = %d", root_model_id, request.node_id());
   return SUCCESS;
 }
 
@@ -76,8 +75,7 @@ Status FlowModelReceiver::AddDataGwSchedInfos(const deployer::DataGwSchedInfos &
   DeployPlan::DeviceInfo device_info(request.device_type(), 0, request.device_id());
   deploy_state.AddDataGwSchedInfos(device_info, request);
   GE_CHECK_LE(deploy_state.GetDataGwSchedInfos().size(), kMaxFlowRoutePlanSize);
-  GELOGI("Add DataGwSchedInfos success, root_model_id = %u, device = %s",
-         root_model_id, device_info.GetKey().c_str());
+  GELOGI("Add DataGwSchedInfos success, root_model_id = %u, device = %s", root_model_id, device_info.GetKey().c_str());
   return SUCCESS;
 }
 
@@ -96,10 +94,10 @@ Status FlowModelReceiver::AppendToFile(const std::string &path, const char_t *fi
           (mmAccess2(dir.c_str(), M_F_OK) == EN_OK) || (ProcessUtils::CreateDir(dir, dir_mode) == SUCCESS), FAILED,
           "Failed to create directory: %s", dir.c_str());
       constexpr mmMode_t kAccess = M_IRUSR | M_IWUSR;
-      constexpr int32_t kOpenFlags = M_WRONLY | M_CREAT |O_TRUNC;
+      constexpr int32_t kOpenFlags = M_WRONLY | M_CREAT | O_TRUNC;
       const int32_t fd = mmOpen2(path.c_str(), kOpenFlags, kAccess);
       GE_CHK_BOOL_RET_STATUS(fd >= 0, FAILED, "Failed to open file, path = %s", path.c_str());
-      (void) mmClose(fd);
+      (void)mmClose(fd);
       auto receiving_file_stream = MakeUnique<std::ofstream>(path, std::ios::out | std::ios::binary);
       GE_CHECK_NOTNULL(receiving_file_stream);
       GE_CHK_BOOL_RET_STATUS(receiving_file_stream->good(), FAILED, "Failed to open file for write, path = %s",
@@ -111,9 +109,7 @@ Status FlowModelReceiver::AppendToFile(const std::string &path, const char_t *fi
     }
   }
 
-  GE_DISMISSABLE_GUARD(file_guard, [&path]() {
-    (void) std::remove(path.c_str());
-  });
+  GE_DISMISSABLE_GUARD(file_guard, [&path]() { (void)std::remove(path.c_str()); });
   output_file->write(file_content, static_cast<std::streamsize>(size));
   GE_CHK_BOOL_RET_STATUS(!output_file->fail(), FAILED,
                          "Failed to write to file[%s], size = %zu bytes, current file size = %ld bytes, "

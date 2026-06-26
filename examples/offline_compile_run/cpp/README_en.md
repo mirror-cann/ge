@@ -27,7 +27,7 @@ cpp/
 - Set environment variables (assuming package is installed in /usr/local/Ascend/)
 
 ```bash
-source /usr/local/Ascend/cann/set_env.sh 
+source /usr/local/Ascend/cann/set_env.sh
 ```
 
 ### 3.2 Graph Compilation and Execution

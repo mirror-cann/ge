@@ -91,4 +91,3 @@ EsTensorHolder CreateVariable(int32_t index, const char *name)
 EsGraphBuilder builder("test_graph");
 auto v1 = builder.CreateVariable(0, "var0");
 ```
-

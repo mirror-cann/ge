@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -127,7 +127,7 @@ const std::string kModeInArgsFirstField = "_mode_in_args_first_field";
 
 const std::string kAttrIntercoreSync = "_inter_core_sync";
 
-const std::string  ATTR_NAME_ALIAS_ENGINE_NAME = "_alias_engine_name";
+const std::string ATTR_NAME_ALIAS_ENGINE_NAME = "_alias_engine_name";
 
 const std::string kRtsFftsPlusOpStoreName = "DNN_VM_RTS_FFTS_PLUS_OP_STORE";
 
@@ -147,32 +147,30 @@ const uint32_t kDefaultWindowSize = 4U;
 
 const uint32_t kDefaultManualWindowSize = 4U;
 
-const std::map<ge::DataType, uint32_t> DATATYPE_SIZE_MAP {
-        {ge::DT_FLOAT, sizeof(float)},
-        {ge::DT_FLOAT16, sizeof(int16_t)},
-        {ge::DT_BF16, sizeof(int16_t)},
-        {ge::DT_INT8, sizeof(int8_t)},
-        {ge::DT_INT32, sizeof(int32_t)},
-        {ge::DT_UINT8, sizeof(uint8_t)},
-        {ge::DT_UINT32, sizeof(uint32_t)},
-        {ge::DT_INT16, sizeof(int16_t)},
-        {ge::DT_UINT16, sizeof(uint16_t)},
-        {ge::DT_INT64, sizeof(int64_t)},
-        {ge::DT_UINT64, sizeof(uint64_t)},
-        {ge::DT_DOUBLE, sizeof(double)},
-        {ge::DT_BOOL, sizeof(bool)},
-        {ge::DT_DUAL, sizeof(float) + sizeof(int8_t)},
-        {ge::DT_DUAL_SUB_UINT8, sizeof(int8_t)},
-        {ge::DT_DUAL_SUB_INT8, sizeof(int8_t)},
-        {ge::DT_COMPLEX32, sizeof(int32_t)},
-        {ge::DT_COMPLEX64, sizeof(int64_t)}
-};
+const std::map<ge::DataType, uint32_t> DATATYPE_SIZE_MAP{{ge::DT_FLOAT, sizeof(float)},
+                                                         {ge::DT_FLOAT16, sizeof(int16_t)},
+                                                         {ge::DT_BF16, sizeof(int16_t)},
+                                                         {ge::DT_INT8, sizeof(int8_t)},
+                                                         {ge::DT_INT32, sizeof(int32_t)},
+                                                         {ge::DT_UINT8, sizeof(uint8_t)},
+                                                         {ge::DT_UINT32, sizeof(uint32_t)},
+                                                         {ge::DT_INT16, sizeof(int16_t)},
+                                                         {ge::DT_UINT16, sizeof(uint16_t)},
+                                                         {ge::DT_INT64, sizeof(int64_t)},
+                                                         {ge::DT_UINT64, sizeof(uint64_t)},
+                                                         {ge::DT_DOUBLE, sizeof(double)},
+                                                         {ge::DT_BOOL, sizeof(bool)},
+                                                         {ge::DT_DUAL, sizeof(float) + sizeof(int8_t)},
+                                                         {ge::DT_DUAL_SUB_UINT8, sizeof(int8_t)},
+                                                         {ge::DT_DUAL_SUB_INT8, sizeof(int8_t)},
+                                                         {ge::DT_COMPLEX32, sizeof(int32_t)},
+                                                         {ge::DT_COMPLEX64, sizeof(int64_t)}};
 
-const std::map<std::string, TaskBuilderType> kDsaOrAicpuMap {
-        {"_dsa_ctx_def", TaskBuilderType::EN_TASK_TYPE_DSA},
-        {"_dsa_ctx_def_auto", TaskBuilderType::EN_TASK_TYPE_DSA_AUTO},
-        {"_ffts_plus_aicpu_ctx_def", TaskBuilderType::EN_TASK_TYPE_AICPU},
-        {"_ffts_plus_aicpu_ctx_def_auto", TaskBuilderType::EN_TASK_TYPE_AICPU_AUTO},
+const std::map<std::string, TaskBuilderType> kDsaOrAicpuMap{
+    {"_dsa_ctx_def", TaskBuilderType::EN_TASK_TYPE_DSA},
+    {"_dsa_ctx_def_auto", TaskBuilderType::EN_TASK_TYPE_DSA_AUTO},
+    {"_ffts_plus_aicpu_ctx_def", TaskBuilderType::EN_TASK_TYPE_AICPU},
+    {"_ffts_plus_aicpu_ctx_def_auto", TaskBuilderType::EN_TASK_TYPE_AICPU_AUTO},
 };
 const std::string kAutoSuffix = "_auto";
 const std::string kCoreTypeHcomReduce = "HcomReduce";
@@ -188,19 +186,17 @@ const std::string kCoreTypeHcomRemoteWrite = "HcomRemoteWrite";
 const std::string kCoreTypeHcomRemoteScatterWrite = "HcomRemoteScatterWrite";
 const std::string kCoreTypeHcomAllToAllV = "HcomAllToAllV";
 const std::string kCoreTypeHcomGatherAllToAllV = "HcomGatherAllToAllV";
-const std::unordered_set<std::string> kHCCLOpType = {kCoreTypeHcomReduce, kCoreTypeHcomAllReduce,
-                                                     kCoreTypeHcomAllGather, kCoreTypeHcomBroadCast,
-                                                     kCoreTypeHcomReduceScatter, kCoreTypeHcomSend,
-                                                     kCoreTypeHcomReceive, kCoreTypeHcomRemoteRead,
-                                                     kCoreTypeHcomRemoteRefRead, kCoreTypeHcomRemoteWrite,
-                                                     kCoreTypeHcomRemoteScatterWrite, kCoreTypeHcomAllToAllV,
-                                                     kCoreTypeHcomGatherAllToAllV};
+const std::unordered_set<std::string> kHCCLOpType = {
+    kCoreTypeHcomReduce,         kCoreTypeHcomAllReduce,          kCoreTypeHcomAllGather,
+    kCoreTypeHcomBroadCast,      kCoreTypeHcomReduceScatter,      kCoreTypeHcomSend,
+    kCoreTypeHcomReceive,        kCoreTypeHcomRemoteRead,         kCoreTypeHcomRemoteRefRead,
+    kCoreTypeHcomRemoteWrite,    kCoreTypeHcomRemoteScatterWrite, kCoreTypeHcomAllToAllV,
+    kCoreTypeHcomGatherAllToAllV};
 
 const std::unordered_set<std::string> CONTROL_OP_V2_TYPE = {"If", "While", "Case"};
 
-const std::unordered_set<std::string> NO_NEED_GEN_TASK_OP_TYPE = {"Data", "NetOutput", "Variable",
-                                                                  "Const", "Constant", "PhonyConcat",
-                                                                  "StreamActive"};
+const std::unordered_set<std::string> NO_NEED_GEN_TASK_OP_TYPE = {"Data",     "NetOutput",   "Variable",    "Const",
+                                                                  "Constant", "PhonyConcat", "StreamActive"};
 
 const std::unordered_set<std::string> kPhonyTypes = {kTypePhonyConcat, kTypePhonyReduce};
 
@@ -275,13 +271,12 @@ const std::string ATTR_NAME_PARENT_PRE_NODES = "_label_firstnode_pre_nodes";
 const std::string ATTR_NAME_LABEL_SWITCH_INDEX = "_label_switch_index";
 const std::string ATTR_NAME_LABEL_SWITCH_LIST = "_label_switch_list";
 const std::string ATTR_NAME_HAS_PARTITION = "_has_partion_with";
-const std::unordered_set<std::string> COND_SWITCH_NODE_TYPE = {"Less", "LessEqual",
-                                                               "Greater", "GreaterEqual",
-                                                               "Equal", "NotEqual"};
+const std::unordered_set<std::string> COND_SWITCH_NODE_TYPE = {"Less",         "LessEqual", "Greater",
+                                                               "GreaterEqual", "Equal",     "NotEqual"};
 const std::unordered_set<std::string> CASE_SWITCH_NODE_TYPE = {"LabelSwitchByIndex"};
-const std::unordered_set<std::string> SDMA_NODE_TYPE = {"MemcpyAsync", "Enter", "RefEnter",
-                                                        "LoopCond", "NextIteration", "RefNextIteration",
-                                                        "Exit", "RefExit", "Identity", "ReadVariableOp"};
+const std::unordered_set<std::string> SDMA_NODE_TYPE = {
+    "MemcpyAsync",      "Enter", "RefEnter", "LoopCond", "NextIteration",
+    "RefNextIteration", "Exit",  "RefExit",  "Identity", "ReadVariableOp"};
 const std::unordered_set<std::string> LABEL_NODE_TYPE = {"LabelSet", "LabelGotoEx", "LabelGoto"};
 const std::string kRuntimeContentx = "_ffts_runtime_context";
 const std::string kFftsFirstOpName = "_ffts_first_op_name";

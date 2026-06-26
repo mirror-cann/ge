@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -20,16 +20,16 @@
 #include "graph_metadef/common/ge_common/util.h"
 
 namespace {
-constexpr const char* kCannKbOpFormatType = "format_type";
-constexpr const char* kCannKbKnowledge = "knowledge";
-}
+constexpr const char *kCannKbOpFormatType = "format_type";
+constexpr const char *kCannKbKnowledge = "knowledge";
+}  // namespace
 namespace fe {
-OpCompilerFormatTune::OpCompilerFormatTune(const std::string &engine_name)
-    : engine_name_(engine_name) {}
+OpCompilerFormatTune::OpCompilerFormatTune(const std::string &engine_name) : engine_name_(engine_name) {}
 
 OpCompilerFormatTune::~OpCompilerFormatTune() {}
 
-Status OpCompilerFormatTune::SetTuneFormatReq(ge::ComputeGraph& graph, const FEOpsKernelInfoStorePtr &ops_kernel_info_store_ptr) {
+Status OpCompilerFormatTune::SetTuneFormatReq(ge::ComputeGraph &graph,
+                                              const FEOpsKernelInfoStorePtr &ops_kernel_info_store_ptr) {
   std::string aoe_type;
   if (FeGraphUtils::GetAoeTypeFromRootGraph(graph, aoe_type) != SUCCESS) {
     return FAILED;
@@ -80,7 +80,8 @@ bool OpCompilerFormatTune::IsFftsPlusThreadReuseOp(const ge::NodePtr &node) cons
 }
 
 bool OpCompilerFormatTune::HasTuneFormatSwitch(const ge::NodePtr &node, const OpKernelInfoPtr &op_kernel_info_ptr,
-    std::vector<int64_t> &input_tuneformat_index_vec, std::vector<int64_t> &output_tuneformat_index_vec) const {
+                                               std::vector<int64_t> &input_tuneformat_index_vec,
+                                               std::vector<int64_t> &output_tuneformat_index_vec) const {
   const auto &input_infos = op_kernel_info_ptr->GetAllInputInfo();
   const auto &output_infos = op_kernel_info_ptr->GetAllOutputInfo();
   for (size_t input_info_index = 0; input_info_index < input_infos.size(); input_info_index++) {
@@ -100,7 +101,7 @@ bool OpCompilerFormatTune::HasTuneFormatSwitch(const ge::NodePtr &node, const Op
     }
     if (output_infos.at(output_info_index)->GetTuneFormatSwitch()) {
       FE_LOGD("Node[%s] output[%zu] needs tuning for format.", node->GetName().c_str(), output_info_index);
-              output_tuneformat_index_vec.emplace_back(output_info_index);
+      output_tuneformat_index_vec.emplace_back(output_info_index);
     }
   }
   if (!input_tuneformat_index_vec.empty() || !output_tuneformat_index_vec.empty()) {
@@ -110,7 +111,8 @@ bool OpCompilerFormatTune::HasTuneFormatSwitch(const ge::NodePtr &node, const Op
 }
 
 bool OpCompilerFormatTune::IsNeedTuneFormat(const ge::NodePtr &node, const OpKernelInfoPtr &op_kernel_info_ptr,
-    std::vector<int64_t> &input_tuneformat_index_vec, std::vector<int64_t> &output_tuneformat_index_vec) const{
+                                            std::vector<int64_t> &input_tuneformat_index_vec,
+                                            std::vector<int64_t> &output_tuneformat_index_vec) const {
   ge::OpDescPtr op_desc = node->GetOpDesc();
   if (UnknownShapeUtils::IsUnknownShapeOp(*op_desc)) {
     return false;
@@ -131,13 +133,13 @@ bool OpCompilerFormatTune::IsNeedTuneFormat(const ge::NodePtr &node, const OpKer
 }
 
 bool OpCompilerFormatTune::IsLegalFormat(const ge::GeTensorDescPtr &tensor, const ge::Format &origin_format,
-                                         const ge::Format &cur_format) const{
+                                         const ge::Format &cur_format) const {
   if (tensor->GetDataType() == ge::DT_INT64) {
     return false;
   }
   bool ret = false;
   if ((std::find(FE_ORIGIN_FORMAT_VECTOR.cbegin(), FE_ORIGIN_FORMAT_VECTOR.cend(), cur_format) !=
-                 FE_ORIGIN_FORMAT_VECTOR.cend())) {
+       FE_ORIGIN_FORMAT_VECTOR.cend())) {
     ret = IsLegalOriginFormat(origin_format, cur_format);
   } else {
     ret = IsLegalHeavyFormat(tensor, origin_format, cur_format);
@@ -145,18 +147,16 @@ bool OpCompilerFormatTune::IsLegalFormat(const ge::GeTensorDescPtr &tensor, cons
   return ret;
 }
 
-bool OpCompilerFormatTune::IsLegalOriginFormat(const ge::Format &origin_format,
-                                               const ge::Format &cur_format) const{
+bool OpCompilerFormatTune::IsLegalOriginFormat(const ge::Format &origin_format, const ge::Format &cur_format) const {
   if (cur_format == origin_format || cur_format == ge::FORMAT_ND) {
     return true;
   }
   return false;
 }
 
-bool OpCompilerFormatTune::IsLegalHeavyFormat(const ge::GeTensorDescPtr &tensor,
-                                              const ge::Format &origin_format,
-                                              const ge::Format &cur_format) const{
-  /* filter format which transnode unsupport */
+bool OpCompilerFormatTune::IsLegalHeavyFormat(const ge::GeTensorDescPtr &tensor, const ge::Format &origin_format,
+                                              const ge::Format &cur_format) const {
+  /* filter format which transnode unsupported */
   if (origin_format == ge::FORMAT_HWCN && cur_format == ge::FORMAT_NC1HWC0) {
     return false;
   }
@@ -215,8 +215,7 @@ Status OpCompilerFormatTune::SetTuneFormatReqAttr(const std::vector<InputOrOutpu
     auto cur_tensor_desc = tensor_descs.at(tensor_desc_index);
     auto cur_tensor_name = input_or_output_infos.at(tensor_desc_index)->GetUniqueName();
     for (size_t matched_format_index : matched_format_index_vec) {
-      tuneformat_req_vec.emplace_back(static_cast<int64_t>(
-                                      format_map[cur_tensor_name].at(matched_format_index)));
+      tuneformat_req_vec.emplace_back(static_cast<int64_t>(format_map[cur_tensor_name].at(matched_format_index)));
     }
     if (!ge::AttrUtils::SetListInt(cur_tensor_desc, AOE_TUNEFORMAT_REQ, tuneformat_req_vec)) {
       auto cur_tensor_desc_index = static_cast<int64_t>(tensor_desc_index);
@@ -279,17 +278,16 @@ Status OpCompilerFormatTune::GetFormatSolutionSpace(const ge::NodePtr &node, con
   (void)ge::AttrUtils::GetInt(op_desc_ptr, FE_IMPLY_TYPE, op_impl_type);
   OpImplType impl_type = static_cast<OpImplType>(op_impl_type);
   const auto sub_ops_store_ptr = ops_kernel_info_store_ptr->GetSubOpsStore(impl_type);
-  FE_CHECK(sub_ops_store_ptr == nullptr,
-           FE_LOGW("sub op store [%s] not found.", GetImplTypeString(impl_type).c_str()),
+  FE_CHECK(sub_ops_store_ptr == nullptr, FE_LOGW("sub op store [%s] not found.", GetImplTypeString(impl_type).c_str()),
            return FAILED);
   bool is_dynamic_impl = false;
   (void)ge::AttrUtils::GetBool(op_desc_ptr, ATTR_NAME_IS_OP_DYNAMIC_IMPL, is_dynamic_impl);
   FormatDtypeInfo format_dtype_info;
-  Status ret = sub_ops_store_ptr->GetSupportFormatAndDtype(node, op_kernel_info_ptr, is_dynamic_impl,
-                                                           format_dtype_info);
+  Status ret =
+      sub_ops_store_ptr->GetSupportFormatAndDtype(node, op_kernel_info_ptr, is_dynamic_impl, format_dtype_info);
   if (ret != SUCCESS) {
-    FE_LOGW("Node [%s %s] failed to obtain the supported format map",
-            op_desc_ptr->GetName().c_str(), op_desc_ptr->GetType().c_str());
+    FE_LOGW("Node [%s %s] failed to obtain the supported format map", op_desc_ptr->GetName().c_str(),
+            op_desc_ptr->GetType().c_str());
     return FAILED;
   }
   GetMatchedIndexVec(format_dtype_info.data_type_map, op_kernel_info_ptr, op_desc_ptr);
@@ -311,8 +309,7 @@ Status OpCompilerFormatTune::GetFormatSolutionSpace(const ge::NodePtr &node, con
 Status OpCompilerFormatTune::GetFormatTuneKnowledge(ge::NodePtr &node, nlohmann::json &params_json) {
   ge::OpDescPtr op_desc = node->GetOpDesc();
   FE_CHECK_NOTNULL(op_desc);
-  OpKernelInfoPtr op_kernel_info_ptr =
-      OpsKernelManager::Instance(engine_name_).GetOpKernelInfoByOpDesc(op_desc);
+  OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(engine_name_).GetOpKernelInfoByOpDesc(op_desc);
   FE_CHECK_NOTNULL(op_kernel_info_ptr);
   OpStoreAdapterPtr op_store_adapter =
       OpStoreAdapterManager::Instance(engine_name_).GetOpStoreAdapter(op_kernel_info_ptr->GetOpStoreImplType());
@@ -320,31 +317,28 @@ Status OpCompilerFormatTune::GetFormatTuneKnowledge(ge::NodePtr &node, nlohmann:
 
   std::vector<std::string> op_unique_keys;
   if (op_store_adapter->GetOpUniqueKeys(node, op_kernel_info_ptr, op_unique_keys) != SUCCESS) {
-    FE_LOGD("Op[name=%s, type=%s]: failed to get op_unique_keys.",
-            node->GetName().c_str(), node->GetType().c_str());
+    FE_LOGD("Op[name=%s, type=%s]: failed to get op_unique_keys.", node->GetName().c_str(), node->GetType().c_str());
     return FAILED;
   }
-  FE_LOGD("Op[name=%s, type=%s]: The size of op_unique_keys is [%zu].",
-          node->GetName().c_str(), node->GetType().c_str(), op_unique_keys.size());
+  FE_LOGD("Op[name=%s, type=%s]: The size of op_unique_keys is [%zu].", node->GetName().c_str(),
+          node->GetType().c_str(), op_unique_keys.size());
 
   std::map<std::string, std::string> config_map;
   config_map.emplace(EM_OP_TYPE, kCannKbOpFormatType);
   std::string kb_result_str;
   if (!GetTuneKnowledgeResult(node, op_unique_keys, config_map, kb_result_str)) {
-    FE_LOGD("Op[name=%s, type=%s]: Failed to get tune knowledge.",
-            node->GetName().c_str(), node->GetType().c_str());
+    FE_LOGD("Op[name=%s, type=%s]: Failed to get tune knowledge.", node->GetName().c_str(), node->GetType().c_str());
     return FAILED;
   }
   if (kb_result_str.empty()) {
-    FE_LOGW("Op[name=%s, type=%s]: The cann kb result is empty.",
-            node->GetName().c_str(), node->GetType().c_str());
+    FE_LOGW("Op[name=%s, type=%s]: The cann kb result is empty.", node->GetName().c_str(), node->GetType().c_str());
     return FAILED;
   }
-  FE_LOGD("Op[name=%s, type=%s]: The cann kb result is %s.",node->GetName().c_str(),
-          node->GetType().c_str(), kb_result_str.c_str());
+  FE_LOGD("Op[name=%s, type=%s]: The cann kb result is %s.", node->GetName().c_str(), node->GetType().c_str(),
+          kb_result_str.c_str());
   try {
     params_json = nlohmann::json::parse(kb_result_str);
-  } catch (nlohmann::json::parse_error& ex) {
+  } catch (nlohmann::json::parse_error &ex) {
     FE_LOGW("[%s] is not in JSON format.", kb_result_str.c_str());
     return FAILED;
   }
@@ -355,25 +349,24 @@ Status OpCompilerFormatTune::UpdataFormatAndShapeByFormatTune(FormatTuneInfo &fo
   FE_LOGD("Start UpdataFormatAndShapeByFormatTune.");
   ge::OpDescPtr op_desc = fomat_tune_info.node->GetOpDesc();
   FE_CHECK_NOTNULL(op_desc);
-  OpKernelInfoPtr op_kernel_info_ptr =
-      OpsKernelManager::Instance(engine_name_).GetOpKernelInfoByOpDesc(op_desc);
+  OpKernelInfoPtr op_kernel_info_ptr = OpsKernelManager::Instance(engine_name_).GetOpKernelInfoByOpDesc(op_desc);
   FE_CHECK_NOTNULL(op_kernel_info_ptr);
   IndexNameMap index_map;
-  if(fomat_tune_info.is_input) {
+  if (fomat_tune_info.is_input) {
     (void)GetInputIndexNameMap(*(op_desc.get()), *op_kernel_info_ptr, index_map);
   } else {
     (void)GetOutputIndexNameMap(*(op_desc.get()), *op_kernel_info_ptr, index_map);
   }
   auto tensor_iter = index_map.find(fomat_tune_info.anchor_index);
   if (tensor_iter == index_map.end() || tensor_iter->second.empty()) {
-    FE_LOGE("Node[name=%s, type=%s, %s %zu]: Failed to find tensor.",
-            fomat_tune_info.node->GetName().c_str(), fomat_tune_info.node->GetType().c_str(),
-            IS_INPUT_TO_STRING(fomat_tune_info.is_input), fomat_tune_info.anchor_index);
+    FE_LOGE("Node[name=%s, type=%s, %s %zu]: Failed to find tensor.", fomat_tune_info.node->GetName().c_str(),
+            fomat_tune_info.node->GetType().c_str(), IS_INPUT_TO_STRING(fomat_tune_info.is_input),
+            fomat_tune_info.anchor_index);
     return FAILED;
   }
   InputOrOutputInfoPtr tensor_info_ptr = nullptr;
-  if (op_kernel_info_ptr->GetTensorInfoByName(fomat_tune_info.is_input,
-                                              tensor_iter->second, tensor_info_ptr) != SUCCESS) {
+  if (op_kernel_info_ptr->GetTensorInfoByName(fomat_tune_info.is_input, tensor_iter->second, tensor_info_ptr) !=
+      SUCCESS) {
     FE_LOGE("Node[name=%s, type=%s, %s %zu]: Failed to obtain tensor information.",
             fomat_tune_info.node->GetName().c_str(), fomat_tune_info.node->GetType().c_str(),
             IS_INPUT_TO_STRING(fomat_tune_info.is_input), fomat_tune_info.anchor_index);
@@ -381,14 +374,18 @@ Status OpCompilerFormatTune::UpdataFormatAndShapeByFormatTune(FormatTuneInfo &fo
   }
   FE_CHECK_NOTNULL(tensor_info_ptr);
   uint32_t matched_index = 0;
-  ge::GeTensorDescPtr tensor_desc = fomat_tune_info.is_input ?
-                                    op_desc->MutableInputDesc(fomat_tune_info.anchor_index) :
-                                    op_desc->MutableOutputDesc(fomat_tune_info.anchor_index);
+  ge::GeTensorDescPtr tensor_desc = fomat_tune_info.is_input ? op_desc->MutableInputDesc(fomat_tune_info.anchor_index)
+                                                             : op_desc->MutableOutputDesc(fomat_tune_info.anchor_index);
   FE_CHECK_NOTNULL(tensor_desc);
   tensor_desc->SetFormat(tensor_desc->GetOriginFormat());
   tensor_desc->SetShape(tensor_desc->GetOriginShape());
-  UpdateInfo update_info = {op_kernel_info_ptr, tensor_info_ptr, matched_index, fomat_tune_info.node,
-      static_cast<uint32_t>(fomat_tune_info.anchor_index), *tensor_desc, fomat_tune_info.is_input};
+  UpdateInfo update_info = {op_kernel_info_ptr,
+                            tensor_info_ptr,
+                            matched_index,
+                            fomat_tune_info.node,
+                            static_cast<uint32_t>(fomat_tune_info.anchor_index),
+                            *tensor_desc,
+                            fomat_tune_info.is_input};
   if (CalcNewShapeAndUpdate(update_info, fomat_tune_info.new_format, tensor_desc->GetDataType()) != SUCCESS) {
     FE_LOGE("Node[name=%s, type=%s, %s %zu]: Failed to update format and shape.",
             fomat_tune_info.node->GetName().c_str(), fomat_tune_info.node->GetType().c_str(),
@@ -403,9 +400,8 @@ Status OpCompilerFormatTune::UpdataGraphByFormatTune(ge::ComputeGraph &graph, ge
                                                      const bool &update_graph_backward_flag) {
   FE_LOGD("Start UpdataGraphByFormatTune.");
   FEOpsKernelInfoStorePtr ops_kernel_info_store_ptr = nullptr;
-  FE_MAKE_SHARED(ops_kernel_info_store_ptr =
-      std::make_shared<FEOpsKernelInfoStore>(engine_name_),
-      return fe::OP_COMPILER_MAKE_SHARED_FAILED);
+  FE_MAKE_SHARED(ops_kernel_info_store_ptr = std::make_shared<FEOpsKernelInfoStore>(engine_name_),
+                 return fe::OP_COMPILER_MAKE_SHARED_FAILED);
   FE_CHECK_NOTNULL(ops_kernel_info_store_ptr);
   TransNodeManagerPtr trans_node_mgr_ptr = nullptr;
   FE_MAKE_SHARED(trans_node_mgr_ptr = std::make_shared<TransNodeManager>(ops_kernel_info_store_ptr),
@@ -463,34 +459,35 @@ Status OpCompilerFormatTune::UpdataGraphByFormatTune(ge::ComputeGraph &graph, ge
   return SUCCESS;
 }
 
-Status OpCompilerFormatTune::UpdateTensorByCannKbResult(ge::NodePtr &node, const bool &is_input,
-                                                        nlohmann::json &json, bool &update_graph_flag) {
+Status OpCompilerFormatTune::UpdateTensorByCannKbResult(ge::NodePtr &node, const bool &is_input, nlohmann::json &json,
+                                                        bool &update_graph_flag) {
   ge::OpDescPtr op_desc = node->GetOpDesc();
   FE_CHECK_NOTNULL(op_desc);
   size_t tensor_size = is_input ? op_desc->GetInputsSize() : op_desc->GetOutputsSize();
-  FE_LOGI("Op[name=%s, type=%s]: The tensor size is %zu.", node->GetName().c_str(), node->GetType().c_str(), tensor_size);
+  FE_LOGI("Op[name=%s, type=%s]: The tensor size is %zu.", node->GetName().c_str(), node->GetType().c_str(),
+          tensor_size);
   for (size_t tensor_index = 0U; tensor_index < tensor_size; ++tensor_index) {
     std::string tuneformat_key = IS_INPUT_TO_STRING(is_input) + std::to_string(tensor_index);
     auto iter = json.find(tuneformat_key);
     if (iter == json.end()) {
-      FE_LOGW("Op[name=%s, type=%s, %s %zu]: Failed to get tuneformat value.",
-              node->GetName().c_str(), node->GetType().c_str(), IS_INPUT_TO_STRING(is_input), tensor_index);
+      FE_LOGW("Op[name=%s, type=%s, %s %zu]: Failed to get tuneformat value.", node->GetName().c_str(),
+              node->GetType().c_str(), IS_INPUT_TO_STRING(is_input), tensor_index);
       return FAILED;
     }
     std::string tuneformat_string = iter.value();
     ge::Format tuneformat = ge::TypeUtils::SerialStringToFormat(StringUtils::Trim(tuneformat_string));
     if (!ge::TypeUtilsInner::IsFormatValid(tuneformat)) {
-      FE_LOGW("Op[name=%s, type=%s, %s %zu]: Tune format is invalid.", node->GetName().c_str(),
-              node->GetType().c_str(), IS_INPUT_TO_STRING(is_input), tensor_index);
+      FE_LOGW("Op[name=%s, type=%s, %s %zu]: Tune format is invalid.", node->GetName().c_str(), node->GetType().c_str(),
+              IS_INPUT_TO_STRING(is_input), tensor_index);
       return FAILED;
     }
-    ge::GeTensorDescPtr tensor_desc = is_input ?
-        op_desc->MutableInputDesc(tensor_index) : op_desc->MutableOutputDesc(tensor_index);
+    ge::GeTensorDescPtr tensor_desc =
+        is_input ? op_desc->MutableInputDesc(tensor_index) : op_desc->MutableOutputDesc(tensor_index);
     FE_CHECK_NOTNULL(tensor_desc);
     ge::Format format = static_cast<ge::Format>(ge::GetPrimaryFormat(tensor_desc->GetFormat()));
     if (tuneformat == format) {
-      FE_LOGD("Op[name=%s, type=%s, %s %zu]: TuneFormat matches the format.",
-              node->GetName().c_str(), node->GetType().c_str(), IS_INPUT_TO_STRING(is_input), tensor_index);
+      FE_LOGD("Op[name=%s, type=%s, %s %zu]: TuneFormat matches the format.", node->GetName().c_str(),
+              node->GetType().c_str(), IS_INPUT_TO_STRING(is_input), tensor_index);
       continue;
     }
     FE_LOGI("Op[name=%s, type=%s, %s %zu]: TuneFormat %s does not match format %s, need to update graph.",
@@ -508,16 +505,15 @@ Status OpCompilerFormatTune::UpdateTensorByCannKbResult(ge::NodePtr &node, const
   return SUCCESS;
 }
 
-Status OpCompilerFormatTune::UpdateTensorByNodeAttr(ge::NodePtr &node, const bool &is_input,
-                                                    bool &update_graph_flag) {
+Status OpCompilerFormatTune::UpdateTensorByNodeAttr(ge::NodePtr &node, const bool &is_input, bool &update_graph_flag) {
   ge::OpDescPtr op_desc = node->GetOpDesc();
   FE_CHECK_NOTNULL(op_desc);
   size_t tensor_size = is_input ? op_desc->GetInputsSize() : op_desc->GetOutputsSize();
-  FE_LOGI("Op[name=%s, type=%s]: The tensor size is %zu.", node->GetName().c_str(),
-          node->GetType().c_str(), tensor_size);
+  FE_LOGI("Op[name=%s, type=%s]: The tensor size is %zu.", node->GetName().c_str(), node->GetType().c_str(),
+          tensor_size);
   for (size_t tensor_index = 0U; tensor_index < tensor_size; ++tensor_index) {
-    ge::GeTensorDescPtr tensor_desc = is_input ?
-        op_desc->MutableInputDesc(tensor_index) : op_desc->MutableOutputDesc(tensor_index);
+    ge::GeTensorDescPtr tensor_desc =
+        is_input ? op_desc->MutableInputDesc(tensor_index) : op_desc->MutableOutputDesc(tensor_index);
     FE_CHECK_NOTNULL(tensor_desc);
     uint32_t tuneformat_int = 0;
     if (!ge::AttrUtils::GetInt(tensor_desc, AOE_TUNEFORMAT, tuneformat_int)) {
@@ -525,14 +521,14 @@ Status OpCompilerFormatTune::UpdateTensorByNodeAttr(ge::NodePtr &node, const boo
     }
     ge::Format tuneformat = static_cast<ge::Format>(tuneformat_int);
     if (!ge::TypeUtilsInner::IsFormatValid(tuneformat)) {
-      FE_LOGE("Op[name=%s, type=%s, %s %zu]: Tune format is invalid.", node->GetName().c_str(),
-              node->GetType().c_str(), IS_INPUT_TO_STRING(is_input), tensor_index);
+      FE_LOGE("Op[name=%s, type=%s, %s %zu]: Tune format is invalid.", node->GetName().c_str(), node->GetType().c_str(),
+              IS_INPUT_TO_STRING(is_input), tensor_index);
       return FAILED;
     }
     ge::Format format = static_cast<ge::Format>(ge::GetPrimaryFormat(tensor_desc->GetFormat()));
     if (tuneformat == format) {
-      FE_LOGI("Op[name=%s, type=%s, %s %zu]: TuneFormat matches the format.",
-              node->GetName().c_str(), node->GetType().c_str(), IS_INPUT_TO_STRING(is_input), tensor_index);
+      FE_LOGI("Op[name=%s, type=%s, %s %zu]: TuneFormat matches the format.", node->GetName().c_str(),
+              node->GetType().c_str(), IS_INPUT_TO_STRING(is_input), tensor_index);
       continue;
     }
     FE_LOGI("Op[name=%s, type=%s, %s %zu]: TuneFormat %s does not match format %s, need to update graph.",
@@ -585,13 +581,11 @@ Status OpCompilerFormatTune::UpdateTuneFormatByCannKbResult(ge::ComputeGraph &gr
       return FAILED;
     }
     FE_LOGD("Op[name=%s,type=%s]: update_graph_forward_flag is %d, update_graph_backward_flag is %d.",
-            node->GetName().c_str(), node->GetType().c_str(),
-            update_graph_forward_flag, update_graph_backward_flag);
+            node->GetName().c_str(), node->GetType().c_str(), update_graph_forward_flag, update_graph_backward_flag);
     if (!update_graph_forward_flag && !update_graph_backward_flag) {
       continue;
     }
-    if (UpdataGraphByFormatTune(graph, node, update_graph_forward_flag,
-                                update_graph_backward_flag) != SUCCESS) {
+    if (UpdataGraphByFormatTune(graph, node, update_graph_forward_flag, update_graph_backward_flag) != SUCCESS) {
       FE_LOGW("Op[name=%s,type=%s]: Failed to Update graph by cann kb result.", node->GetName().c_str(),
               node->GetType().c_str());
       return SUCCESS;
@@ -619,13 +613,11 @@ Status OpCompilerFormatTune::UpdateTuneFormatByNodeAttrInner(ge::ComputeGraph &g
       return FAILED;
     }
     FE_LOGD("Op[name=%s,type=%s]: update_graph_forward_flag is %d, update_graph_backward_flag is %d.",
-            node->GetName().c_str(), node->GetType().c_str(),
-            update_graph_forward_flag, update_graph_backward_flag);
+            node->GetName().c_str(), node->GetType().c_str(), update_graph_forward_flag, update_graph_backward_flag);
     if (!update_graph_forward_flag && !update_graph_backward_flag) {
       continue;
     }
-    if (UpdataGraphByFormatTune(graph, node, update_graph_forward_flag,
-                                update_graph_backward_flag) != SUCCESS) {
+    if (UpdataGraphByFormatTune(graph, node, update_graph_forward_flag, update_graph_backward_flag) != SUCCESS) {
       FE_LOGW("Op[name=%s, type=%s]: Failed to update graph with node attribute.", node->GetName().c_str(),
               node->GetType().c_str());
       return FAILED;
@@ -667,15 +659,13 @@ Status OpCompilerFormatTune::ReplacePldAndEnd(std::map<std::string, ge::NodePtr>
     // replace pld_and_end in in graph bac with original pld_and_end
     auto ret = ge::GraphUtils::ReplaceNodeAnchors(iter->second, node, input_map, output_map);
     if (ret != ge::GRAPH_SUCCESS) {
-      FE_LOGE("Op[name=%s,type=%s]: Failed to replace node.", node->GetName().c_str(),
-              node->GetType().c_str());
+      FE_LOGE("Op[name=%s,type=%s]: Failed to replace node.", node->GetName().c_str(), node->GetType().c_str());
       return FAILED;
     }
     ge::NodeUtils::UnlinkAll(*node);
     ret = ge::GraphUtils::RemoveNodeWithoutRelink(graph_ptr, node);
     if (ret != ge::GRAPH_SUCCESS) {
-      FE_LOGE("Op[name=%s,type=%s]: Failed to remove node.", node->GetName().c_str(),
-              node->GetType().c_str());
+      FE_LOGE("Op[name=%s,type=%s]: Failed to remove node.", node->GetName().c_str(), node->GetType().c_str());
       return FAILED;
     }
   }
@@ -716,13 +706,11 @@ Status OpCompilerFormatTune::UpdateTuneFormatByNodeAttr(ge::ComputeGraph &graph)
   }
   // if inserting transnodes failed, return graph bac with original pld_and_end
   if (ReplacePldAndEnd(ori_node_map, graph_bac_ptr) != SUCCESS) {
-    FE_LOGE("[SubGraphOpt][FormatTune][Replace] Failed to replace pld_and_end in graph [%s].",
-            graph.GetName().c_str());
+    FE_LOGE("[SubGraphOpt][FormatTune][Replace] Failed to replace pld_and_end in graph [%s].", graph.GetName().c_str());
     return FAILED;
   }
   graph = *(graph_bac_ptr.get());
-  FE_LOGD("[SubGraphOpt][FormatTune][ReturnGraph] Returning to the original graph [%s].",
-          graph.GetName().c_str());
+  FE_LOGD("[SubGraphOpt][FormatTune][ReturnGraph] Returning to the original graph [%s].", graph.GetName().c_str());
   return SUCCESS;
 }
 
@@ -731,13 +719,14 @@ bool OpCompilerFormatTune::GetTuneKnowledgeResult(const ge::NodePtr &node,
                                                   const std::map<std::string, std::string> &search_config,
                                                   std::string &kb_result_str) {
   bool kb_hit = false;
-  if (!CannKBUtils::Instance().InitCannKb()){
+  if (!CannKBUtils::Instance().InitCannKb()) {
     FE_LOGE("OP[%s][%s] failed to init cannkb.", node->GetNamePtr(), node->GetTypePtr());
     return false;
   }
   for (const auto &op_unique_key : op_unique_keys) {
     std::vector<std::map<std::string, std::string>> result;
-    CannKb::CANN_KB_STATUS cann_kb_status = CannKBUtils::Instance().RunCannKbSearch(op_unique_key, search_config, result);
+    CannKb::CANN_KB_STATUS cann_kb_status =
+        CannKBUtils::Instance().RunCannKbSearch(op_unique_key, search_config, result);
     if (cann_kb_status != CannKb::CANN_KB_STATUS::CANN_KB_SUCC) {
       // kb_hit log can not be deleted, other components are already in use.
       FE_LOGD("[op_kb_hit][%s][%d][%s]", node->GetName().c_str(), kb_hit, node->GetType().c_str());
@@ -760,4 +749,4 @@ bool OpCompilerFormatTune::GetTuneKnowledgeResult(const ge::NodePtr &node,
   FE_LOGD("[op_kb_hit][%s][%d][%s]", node->GetName().c_str(), kb_hit, node->GetType().c_str());
   return true;
 }
-}
+}  // namespace fe

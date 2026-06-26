@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -79,7 +79,7 @@ class OpStoreAdapter : public OpStoreAdapterBase {
    */
   virtual Status Finalize() override = 0;
 
-  virtual Status FinalizeSessionInfo(const std::string& session_graph_id) {
+  virtual Status FinalizeSessionInfo(const std::string &session_graph_id) {
     (void)session_graph_id;
     return SUCCESS;
   }
@@ -89,8 +89,8 @@ class OpStoreAdapter : public OpStoreAdapterBase {
    *  @param   [in] op_desc   infomation of op in ge
    *  @return  true or false
    */
-  virtual bool CheckSupport(const ge::NodePtr &node, CheckSupportParam &check_param,
-                            const bool &is_dynamic_impl, std::string &reason) {
+  virtual bool CheckSupport(const ge::NodePtr &node, CheckSupportParam &check_param, const bool &is_dynamic_impl,
+                            std::string &reason) {
     (void)node;
     (void)check_param;
     (void)is_dynamic_impl;
@@ -158,8 +158,8 @@ class OpStoreAdapter : public OpStoreAdapterBase {
     return SUCCESS;
   }
 
-  virtual Status GetRangeLimitType(const ge::NodePtr &node_ptr,
-                                   const te::TbeOpInfo &tbe_op_info, bool &is_limited) const {
+  virtual Status GetRangeLimitType(const ge::NodePtr &node_ptr, const te::TbeOpInfo &tbe_op_info,
+                                   bool &is_limited) const {
     (void)node_ptr;
     (void)tbe_op_info;
     (void)is_limited;
@@ -196,8 +196,7 @@ class OpStoreAdapter : public OpStoreAdapterBase {
     return SUCCESS;
   }
 
-  virtual Status FeedNodeGeneralInfoFromOpStore(const ge::NodePtr &node_ptr,
-                                                NodeGeneralInfoPtr &node_info_ptr) const {
+  virtual Status FeedNodeGeneralInfoFromOpStore(const ge::NodePtr &node_ptr, NodeGeneralInfoPtr &node_info_ptr) const {
     (void)node_ptr;
     (void)node_info_ptr;
     return SUCCESS;
@@ -244,7 +243,7 @@ class OpStoreAdapter : public OpStoreAdapterBase {
     (void)op_kernel_info_ptr;
     return false;
   }
-  
+
   virtual void SetOpsKernelInfoStore(const std::shared_ptr<ge::OpsKernelInfoStore> ops_kernel_info_store_ptr) {
     (void)ops_kernel_info_store_ptr;
   }

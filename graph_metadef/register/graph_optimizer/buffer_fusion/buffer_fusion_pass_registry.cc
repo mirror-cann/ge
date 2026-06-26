@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -60,6 +60,7 @@ class BufferFusionPassRegistry::BufferFusionPassRegistryImpl {
     }
     return iter->second;
   }
+
  private:
   std::mutex mu_;
   std::map<BufferFusionPassType, std::map<std::string, PassDesc>> pass_descs_;
@@ -107,8 +108,7 @@ std::map<std::string, BufferFusionPassRegistry::CreateFn> BufferFusionPassRegist
 
 BufferFusionPassRegistrar::BufferFusionPassRegistrar(const BufferFusionPassType &pass_type,
                                                      const std::string &pass_name,
-                                                     BufferFusionPassBase *(*create_fun)(),
-                                                     PassAttr attr) {
+                                                     BufferFusionPassBase *(*create_fun)(), PassAttr attr) {
   if ((pass_type < BUILT_IN_AI_CORE_BUFFER_FUSION_PASS) || (pass_type >= BUFFER_FUSION_PASS_TYPE_RESERVED)) {
     GELOGE(ge::PARAM_INVALID, "[Check][Param:pass_type] value %d is not supported.", pass_type);
     return;

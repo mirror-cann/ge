@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -40,7 +40,7 @@ void ExeGraphModelLevelDataFaker::FakeGraphAsyncValue(GraphAsyncValue &gav) cons
   auto executor_builder = GraphExecutorBuilder({nullptr, nullptr}, exe_graph_, &symbols_to_value);
   auto base_ed_builder = std::make_unique<SequentialExecutionDataBuilder>(executor_builder);
   base_ed_builder->AllocGraphAsyncValues(exe_graph_->GetAllNodes(), gav);
-  //resource_guard_.ResetAnyValue(std::move(graph_async_value.values_guarder), graph_async_value.total_num);
+  // resource_guard_.ResetAnyValue(std::move(graph_async_value.values_guarder), graph_async_value.total_num);
 }
 
 std::unique_ptr<uint8_t[]> ExeGraphModelLevelDataFaker::GenerateKernelExtendInfo(std::list<std::string> &buffer) const {

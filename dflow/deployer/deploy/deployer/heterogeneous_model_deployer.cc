@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,9 +29,9 @@ Status HeterogeneousModelDeployer::DeployModel(DeployContext &deploy_context, De
   auto ret = DoDeployModel(deploy_context, deploy_state);
   GE_TIMESTAMP_EVENT_END(DeployModel, "deploying model");
   if (ret != SUCCESS) {
-    REPORT_INNER_ERR_MSG("E19999", "Error occurred while deploying model, model_id = %u", deploy_state.GetRootModelId());
-    GELOGE(FAILED,
-           "Error occurred while deploying model, now start rollback, model_id = %u",
+    REPORT_INNER_ERR_MSG("E19999", "Error occurred while deploying model, model_id = %u",
+                         deploy_state.GetRootModelId());
+    GELOGE(FAILED, "Error occurred while deploying model, now start rollback, model_id = %u",
            deploy_state.GetRootModelId());
     UndeployModel(deploy_state.deployed_node_ids_, deploy_state.GetRootModelId());
   }
@@ -48,8 +48,8 @@ Status HeterogeneousModelDeployer::DoDeployModelWithFlow(DeployContext &deploy_c
 
   // 2. build flow route plan for each device
   GE_TIMESTAMP_START(ResolveFlowRoutePlans);
-  GE_CHK_BOOL_RET_STATUS(FlowRoutePlanner::ResolveFlowRoutePlans(deploy_state) == SUCCESS,
-                         FAILED, "Failed to build FlowRoutePlan");
+  GE_CHK_BOOL_RET_STATUS(FlowRoutePlanner::ResolveFlowRoutePlans(deploy_state) == SUCCESS, FAILED,
+                         "Failed to build FlowRoutePlan");
   GE_TIMESTAMP_EVENT_END(ResolveFlowRoutePlans, "deploying in ResolveFlowRoutePlans stage");
 
   // 3. fork executor process and deploy hcom rank table
@@ -60,23 +60,23 @@ Status HeterogeneousModelDeployer::DoDeployModelWithFlow(DeployContext &deploy_c
   // 4. distribute models and metadata to each device
   // 4_1. distribute flow route plan
   GE_TIMESTAMP_START(TransferPlan);
-  GE_CHK_BOOL_RET_STATUS(FlowModelSender::TransferFlowRoutePlan(deploy_state) == SUCCESS,
-                         FAILED, "Failed to dispatched FlowRoutePlan");
+  GE_CHK_BOOL_RET_STATUS(FlowModelSender::TransferFlowRoutePlan(deploy_state) == SUCCESS, FAILED,
+                         "Failed to dispatched FlowRoutePlan");
   // 4_2. distribute deploy plan
-  GE_CHK_BOOL_RET_STATUS(FlowModelSender::TransferDeployPlan(deploy_state) == SUCCESS,
-                         FAILED, "Failed to dispatched DeployPlan");
+  GE_CHK_BOOL_RET_STATUS(FlowModelSender::TransferDeployPlan(deploy_state) == SUCCESS, FAILED,
+                         "Failed to dispatched DeployPlan");
   GE_TIMESTAMP_EVENT_END(TransferPlan, "deploying in TransferPlan stage");
 
   // pre-deploy local flow route
   GE_TIMESTAMP_START(PreDeployLocalFlowRoute);
-  GE_CHK_BOOL_RET_STATUS(deploy_context.PreDeployLocalFlowRoute(deploy_state.GetRootModelId()) == SUCCESS,
-                         FAILED, "Failed to pre-deploy flow route");
+  GE_CHK_BOOL_RET_STATUS(deploy_context.PreDeployLocalFlowRoute(deploy_state.GetRootModelId()) == SUCCESS, FAILED,
+                         "Failed to pre-deploy flow route");
   GE_TIMESTAMP_EVENT_END(PreDeployLocalFlowRoute, "deploying in PreDeployLocalFlowRoute stage");
 
   // 4_3. distribute submodels
   GE_TIMESTAMP_START(TransferSubmodels);
-  GE_CHK_BOOL_RET_STATUS(FlowModelSender::TransferSubmodels(deploy_state) == SUCCESS,
-                         FAILED, "Failed to transfer Submodels");
+  GE_CHK_BOOL_RET_STATUS(FlowModelSender::TransferSubmodels(deploy_state) == SUCCESS, FAILED,
+                         "Failed to transfer Submodels");
   GE_TIMESTAMP_EVENT_END(TransferSubmodels, "deploying in TransferSubmodels stage");
   // 4_4. distribute var manager
   GE_TIMESTAMP_START(DeployRemoteVarManager);
@@ -86,8 +86,8 @@ Status HeterogeneousModelDeployer::DoDeployModelWithFlow(DeployContext &deploy_c
 
   // 5. distribute dynamic datagw config
   GE_TIMESTAMP_START(TransferDataGwDeployPlan);
-  GE_CHK_BOOL_RET_STATUS(FlowModelSender::TransferDataGwDeployPlan(deploy_state) == SUCCESS,
-                         FAILED, "Failed to TransferDataGwDeployPlan");
+  GE_CHK_BOOL_RET_STATUS(FlowModelSender::TransferDataGwDeployPlan(deploy_state) == SUCCESS, FAILED,
+                         "Failed to TransferDataGwDeployPlan");
   GE_TIMESTAMP_EVENT_END(TransferDataGwDeployPlan, "deploying in TransferDataGwDeployPlan stage");
 
   // 6. start to load models in each device
@@ -97,8 +97,8 @@ Status HeterogeneousModelDeployer::DoDeployModelWithFlow(DeployContext &deploy_c
 
   // 7. finish deployment of local flow route
   GE_TIMESTAMP_START(DeployLocalFlowRoute);
-  GE_CHK_BOOL_RET_STATUS(deploy_context.DeployLocalFlowRoute(deploy_state.GetRootModelId()) == SUCCESS,
-                         FAILED, "Failed to deploy flow route");
+  GE_CHK_BOOL_RET_STATUS(deploy_context.DeployLocalFlowRoute(deploy_state.GetRootModelId()) == SUCCESS, FAILED,
+                         "Failed to deploy flow route");
   GE_TIMESTAMP_EVENT_END(DeployLocalFlowRoute, "deploying in DeployLocalFlowRoute stage");
   GELOGI("Deploy model successfully, model_id = %u", deploy_state.GetRootModelId());
   return SUCCESS;
@@ -188,13 +188,11 @@ Status HeterogeneousModelDeployer::LoadSubmodels(DeployContext &deploy_context, 
   for (const auto &target_node_id : target_node_ids) {
     std::future<Status> fut;
     if (target_node_id == local_node_id) {
-      fut = thread_pool.commit([&deploy_context, root_model_id]() -> Status {
-        return LoadLocalModel(deploy_context, root_model_id);
-      });
+      fut = thread_pool.commit(
+          [&deploy_context, root_model_id]() -> Status { return LoadLocalModel(deploy_context, root_model_id); });
     } else {
-      fut = thread_pool.commit([target_node_id, root_model_id]() -> Status {
-        return LoadRemoteModel(target_node_id, root_model_id);
-      });
+      fut = thread_pool.commit(
+          [target_node_id, root_model_id]() -> Status { return LoadRemoteModel(target_node_id, root_model_id); });
     }
     deploy_futures.emplace_back(std::move(fut));
   }
@@ -224,8 +222,8 @@ Status HeterogeneousModelDeployer::LoadRemoteModel(int32_t node_id, uint32_t roo
   load_model_request->set_root_model_id(root_model_id);
   deployer::DeployerResponse response;
   auto ret = DeployerProxy::GetInstance().SendRequest(node_id, request, response);
-  GEEVENT("Remote load model ended, target_node = %d, model_id = %u, send_result = %u, response_code = %u",
-          node_id, root_model_id, ret, response.error_code());
+  GEEVENT("Remote load model ended, target_node = %d, model_id = %u, send_result = %u, response_code = %u", node_id,
+          root_model_id, ret, response.error_code());
   GE_CHK_STATUS_RET(ret, "[Load] failed to send request, device_id = %d", node_id);
   const auto *node_info = DeployerProxy::GetInstance().GetNodeInfo(node_id);
   std::string node_ip_addr;
@@ -237,17 +235,16 @@ Status HeterogeneousModelDeployer::LoadRemoteModel(int32_t node_id, uint32_t roo
   }
   GE_CHK_BOOL_RET_STATUS(response.error_code() == SUCCESS, FAILED,
                          "Remote load model failed, node_id = %d, node_ip = %s, model_id = %u, error code = %u, "
-                         "error message = %s", node_id, node_ip_addr.c_str(), root_model_id, response.error_code(),
+                         "error message = %s",
+                         node_id, node_ip_addr.c_str(), root_model_id, response.error_code(),
                          response.error_message().c_str());
-  GELOGD("Remote load model succeeded, node_id = %d, root_model_id = %u",
-         node_id,
-         root_model_id);
+  GELOGD("Remote load model succeeded, node_id = %d, root_model_id = %u", node_id, root_model_id);
   return SUCCESS;
 }
 
 void HeterogeneousModelDeployer::UndeployModel(const std::set<int32_t> &deployed_node_ids, uint32_t root_model_id) {
   for (auto node_id : deployed_node_ids) {
-    (void) DoUndeployModel(node_id, root_model_id);
+    (void)DoUndeployModel(node_id, root_model_id);
   }
 }
 
@@ -259,7 +256,7 @@ Status HeterogeneousModelDeployer::ClearNodelExceptionData(uint32_t node_id, uin
   auto model_data_clear_req = request.mutable_model_data_clear();
   GE_CHECK_NOTNULL(model_data_clear_req);
   model_data_clear_req->mutable_root_model_ids()->Add(model_id);
-  
+
   for (auto device_info : device_infos) {
     auto exception_devices = model_data_clear_req->add_exception_dev_info();
     exception_devices->set_device_id(device_info.GetDeviceId());
@@ -271,14 +268,11 @@ Status HeterogeneousModelDeployer::ClearNodelExceptionData(uint32_t node_id, uin
 
   deployer::DeployerResponse response;
   GE_CHK_STATUS_RET(DeployerProxy::GetInstance().SendRequest(node_id, request, response),
-                    "[ClearModelExceptionData] failed to send request, node_id = %u, msg_type = %d",
-                    node_id, type);
-  GE_CHK_BOOL_RET_STATUS(response.error_code() == SUCCESS,
-                        FAILED,
-                        "ClearModelExceptionData failed, node_id = %u, msg_type = %d, "
-                        "error code = %u, error message = %s", node_id, type,
-                        response.error_code(),
-                        response.error_message().c_str());
+                    "[ClearModelExceptionData] failed to send request, node_id = %u, msg_type = %d", node_id, type);
+  GE_CHK_BOOL_RET_STATUS(response.error_code() == SUCCESS, FAILED,
+                         "ClearModelExceptionData failed, node_id = %u, msg_type = %d, "
+                         "error code = %u, error message = %s",
+                         node_id, type, response.error_code(), response.error_message().c_str());
   GELOGD("[ClearModelExceptionData] succeeded, node_id = %u, msg_type = %d", node_id, type);
   return SUCCESS;
 }
@@ -292,21 +286,18 @@ Status HeterogeneousModelDeployer::DoUndeployModel(int32_t node_id, uint32_t roo
   unload_model_req->set_model_id(root_model_id);
   deployer::DeployerResponse response;
   GE_CHK_STATUS_RET(DeployerProxy::GetInstance().SendRequest(node_id, request, response),
-                    "[Undeploy][Submodels] failed to send request, node_id = %d, root_model_id = %u",
-                    node_id, root_model_id);
-  GE_CHK_BOOL_RET_STATUS(response.error_code() == SUCCESS,
-                         FAILED,
+                    "[Undeploy][Submodels] failed to send request, node_id = %d, root_model_id = %u", node_id,
+                    root_model_id);
+  GE_CHK_BOOL_RET_STATUS(response.error_code() == SUCCESS, FAILED,
                          "Undeploy submodels failed, device_id = %d, model_id = %u, error code = %u error message = %s",
-                         node_id,
-                         root_model_id,
-                         response.error_code(),
-                         response.error_message().c_str());
+                         node_id, root_model_id, response.error_code(), response.error_message().c_str());
   GELOGD("[Undeploy][Submodels] succeeded, device_id = %d, model_id = %u", node_id, root_model_id);
   return SUCCESS;
 }
 
-Status HeterogeneousModelDeployer::UpdateRemoteProfiling(const bool is_prof_start, const std::string &prof_data,
-           const std::map<uint32_t, std::set<int32_t>> &model_id_to_nodes) {
+Status HeterogeneousModelDeployer::UpdateRemoteProfiling(
+    const bool is_prof_start, const std::string &prof_data,
+    const std::map<uint32_t, std::set<int32_t>> &model_id_to_nodes) {
   for (const auto &it : model_id_to_nodes) {
     for (const auto &node_id : it.second) {
       deployer::DeployerRequest request;
@@ -319,8 +310,8 @@ Status HeterogeneousModelDeployer::UpdateRemoteProfiling(const bool is_prof_star
       GE_CHK_STATUS_RET(DeployerProxy::GetInstance().SendRequest(node_id, request, response),
                         "[InitProcessResource] failed to send request, node id=%d.", node_id);
       GE_CHK_BOOL_RET_STATUS(response.error_code() == SUCCESS, FAILED,
-                             "[InitProcessResource] failed, node id=%d, error code=%u, error message=%s.",
-                             node_id, response.error_code(), response.error_message().c_str());
+                             "[InitProcessResource] failed, node id=%d, error code=%u, error message=%s.", node_id,
+                             response.error_code(), response.error_message().c_str());
       GELOGI("[UpdateRemoteProfiling] success, node id=%d, model_id=%u.", node_id, it.first);
     }
   }

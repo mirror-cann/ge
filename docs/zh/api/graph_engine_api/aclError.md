@@ -1314,7 +1314,7 @@ typedef int aclError;
 </tr>
 <tr id="row1858382785012"><td class="cellrowborder" valign="top" width="33.34%" headers="mcps1.2.4.1.1 "><p id="p174781935145012"><a name="p174781935145012"></a><a name="p174781935145012"></a>static const int32_t ACL_ERROR_RT_DEVICE_MEM_ERROR = 507053;</p>
 </td>
-<td class="cellrowborder" valign="top" width="33.28%" headers="mcps1.2.4.1.2 "><p id="p11312162716514"><a name="p11312162716514"></a><a name="p11312162716514"></a><span>出现内存UCE（uncorrect error，指系统硬件不能直接处理恢复内存错误）</span><span>的错误虚拟地址</span>。</p>
+<td class="cellrowborder" valign="top" width="33.28%" headers="mcps1.2.4.1.2 "><p id="p11312162716514"><a name="p11312162716514"></a><a name="p11312162716514"></a><span>出现内存UCE（incorrect error，指系统硬件不能直接处理恢复内存错误）</span><span>的错误虚拟地址</span>。</p>
 </td>
 <td class="cellrowborder" valign="top" width="33.38%" headers="mcps1.2.4.1.3 "><p id="p089743619"><a name="p089743619"></a><a name="p089743619"></a><span>请参见</span><span id="ph97471035125717"><a name="ph97471035125717"></a><a name="ph97471035125717"></a>aclrtGetMemUceInfo</span><span>接口中的说明获取并修复内存UCE</span><span>的错误虚拟地址</span>。</p>
 </td>
@@ -1664,4 +1664,3 @@ typedef int aclError;
 </tr>
 </tbody>
 </table>
-

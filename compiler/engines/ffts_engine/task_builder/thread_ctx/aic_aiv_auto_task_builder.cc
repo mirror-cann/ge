@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -50,8 +50,8 @@ Status AICAIVAutoTaskBuilder::GenContextDef(const ge::NodePtr &node, domi::FftsP
     }
 
     vector<uint32_t> auto_ctx_id_list;
-    if (ge::AttrUtils::GetListInt(op_desc, kAutoCtxIdList, auto_ctx_id_list) && auto_ctx_id_list.size() ==
-        sub_ffts_plus_context.size()) {
+    if (ge::AttrUtils::GetListInt(op_desc, kAutoCtxIdList, auto_ctx_id_list) &&
+        auto_ctx_id_list.size() == sub_ffts_plus_context.size()) {
       ffts_plus_ctx_def->set_context_id(auto_ctx_id_list[i]);
     }
     ffts_plus_ctx_def->set_op_index(op_desc->GetId());
@@ -78,7 +78,7 @@ Status AICAIVAutoTaskBuilder::GenContextDef(const ge::NodePtr &node, domi::FftsP
     aic_aiv_ctx_def->set_pred_cnt(sub_ffts_plus_context[i].pred_cnt);
     aic_aiv_ctx_def->set_pred_cnt_init(sub_ffts_plus_context[i].pred_cnt);
     aic_aiv_ctx_def->set_successor_num(0);
-    aic_aiv_ctx_def->set_thread_window_size(slice_info_ptr->parallel_window_size); // not used yet
+    aic_aiv_ctx_def->set_thread_window_size(slice_info_ptr->parallel_window_size);  // not used yet
 
     addr_size = aic_aiv_ctx_def->task_addr_size();
     thread_dim = aic_aiv_ctx_def->thread_dim();
@@ -92,8 +92,8 @@ Status AICAIVAutoTaskBuilder::GenContextDef(const ge::NodePtr &node, domi::FftsP
 
   (void)ge::AttrUtils::SetInt(node->GetOpDesc(), kFFTSThreadDim, thread_dim);
   (void)ge::AttrUtils::SetInt(node->GetOpDesc(), kFFTSWindowSize, window_size);
-  FFTS_LOGD("GenContextDef nodetype:%s, name:%s, total_addr_size:%u", node->GetType().c_str(),
-            node->GetName().c_str(), ffts_plus_task_def->addr_size());
+  FFTS_LOGD("GenContextDef nodetype:%s, name:%s, total_addr_size:%u", node->GetType().c_str(), node->GetName().c_str(),
+            ffts_plus_task_def->addr_size());
   return SUCCESS;
 }
 }  // namespace ffts

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -16,7 +16,7 @@ namespace fe {
 StreamL2Info::StreamL2Info() {}
 StreamL2Info::~StreamL2Info() {}
 
-StreamL2Info& StreamL2Info::Instance() {
+StreamL2Info &StreamL2Info::Instance() {
   static StreamL2Info stream_l2_info;
   return stream_l2_info;
 }
@@ -24,8 +24,8 @@ StreamL2Info& StreamL2Info::Instance() {
 Status StreamL2Info::GetStreamL2Info(const int64_t &stream_id, const std::string &node_name, TaskL2Info *&l2_data,
                                      const std::string &batch_label) {
   std::lock_guard<std::mutex> lock_guard(stream_l2_mutex_);
-  FE_LOGD("Node[name=%s]: stream_id is %d, stream_l2_map_ size is %zu.", node_name.c_str(),
-          stream_id, stream_l2_map_.size());
+  FE_LOGD("Node[name=%s]: stream_id is %d, stream_l2_map_ size is %zu.", node_name.c_str(), stream_id,
+          stream_l2_map_.size());
   std::string stream_id_str = std::to_string(stream_id);
   std::string stream_l2_map_key = stream_id_str + batch_label;
   auto iter = stream_l2_map_.find(stream_l2_map_key);

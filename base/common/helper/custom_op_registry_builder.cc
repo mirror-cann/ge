@@ -60,15 +60,15 @@ Status ResolvePullCreatorSymbols(void *const so_handle, const CustomOpRegistryBu
 Status LoadRawCreators(const PullCreatorSymbols &symbols, std::vector<CustomOpTypeToCreator> &raw_creators) {
   const uint32_t abi_version = symbols.get_abi_version();
   if (abi_version != kCustomOpCreatorPullAbiVersion) {
-    GELOGE(FAILED, "[CUSTOM OP] pull creator ABI version %u does not match expected %u.",
-           abi_version, kCustomOpCreatorPullAbiVersion);
+    GELOGE(FAILED, "[CUSTOM OP] pull creator ABI version %u does not match expected %u.", abi_version,
+           kCustomOpCreatorPullAbiVersion);
     return FAILED;
   }
 
   const size_t creator_num = symbols.get_creator_num();
   raw_creators.resize(creator_num);
-  const auto ret = symbols.get_creators(raw_creators.empty() ? nullptr : raw_creators.data(),
-                                        raw_creators.size(), sizeof(CustomOpTypeToCreator));
+  const auto ret = symbols.get_creators(raw_creators.empty() ? nullptr : raw_creators.data(), raw_creators.size(),
+                                        sizeof(CustomOpTypeToCreator));
   if (ret != 0) {
     GELOGE(FAILED, "[CUSTOM OP] get registered custom op creators failed, ret:%d.", ret);
     return FAILED;
@@ -140,10 +140,9 @@ Status CustomOpRegistryBuilder::AddCreatorsFromSoHandles(const std::vector<Custo
   }
 
   for (const auto &pending_creator : pending_creators) {
-    const auto register_ret = registry->RegisterCreator(AscendString(pending_creator.op_type.c_str()),
-                                                        [creator = pending_creator.creator]() {
-                                                          return std::unique_ptr<BaseCustomOp>(creator());
-                                                        });
+    const auto register_ret = registry->RegisterCreator(
+        AscendString(pending_creator.op_type.c_str()),
+        [creator = pending_creator.creator]() { return std::unique_ptr<BaseCustomOp>(creator()); });
     GE_CHK_STATUS_RET(register_ret, "[CUSTOM OP] register pull creator to model registry failed.");
   }
   registry->AddSoHandles(so_handles);

@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -59,19 +59,19 @@ class ExecutorDumperST : public bg::BgTest {
 };
 
 /**
-* 用例描述：ffts+算子的datadump
-*
-* 预置条件：
-* 1. ffts+算子的dumpunit
-*
-* 测试步骤：
-* 1. 构造ffts+算子的dumpunit
-* 2. 构造executorDump类
-* 3. 使能datadump
-*
-* 预期结果：
-* 1. 执行成功
-*/
+ * 用例描述：ffts+算子的datadump
+ *
+ * 预置条件：
+ * 1. ffts+算子的dumpunit
+ *
+ * 测试步骤：
+ * 1. 构造ffts+算子的dumpunit
+ * 2. 构造executorDump类
+ * 3. 使能datadump
+ *
+ * 预期结果：
+ * 1. 执行成功
+ */
 TEST_F(ExecutorDumperST, DoFftsDataDump_Ok) {
   GlobalDumper::GetInstance()->SetEnableFlags(1UL);
   auto compute_graph = ShareGraph::BuildSingleNodeGraph();
@@ -91,32 +91,32 @@ TEST_F(ExecutorDumperST, DoFftsDataDump_Ok) {
   auto dumper = ge::MakeUnique<ExecutorDumper>(extend_info);
   ASSERT_NE(dumper, nullptr);
   ASSERT_EQ(dumper->Init(), ge::SUCCESS);
-  uint64_t id = FindFirstNonEmptyId(dumper.get()); 
+  uint64_t id = FindFirstNonEmptyId(dumper.get());
 
   ge::diagnoseSwitch::EnableDataDump();
   ge::DumpProperties dump_properties;
   dump_properties.AddPropertyValue("ALL_MODEL_NEED_DUMP_AND_IT_IS_NOT_A_MODEL_NAME", {"test"});
   dump_properties.SetDumpMode("all");
   ge::DumpManager::GetInstance().AddDumpProperties(ge::kInferSessionId, dump_properties);
-  
+
   kernel::AICoreThreadParam thread_param;
   uint32_t thread_dim = 2U;
   auto out_type = ContinuousVector::Create<uint32_t>(1);
   auto out_type_vec = reinterpret_cast<ContinuousVector *>(out_type.get());
   out_type_vec->SetSize(1);
-  auto out_type_ptr = reinterpret_cast<uint32_t*>(out_type_vec->MutableData());
+  auto out_type_ptr = reinterpret_cast<uint32_t *>(out_type_vec->MutableData());
   out_type_ptr[0] = 0;
   auto context_holder_1 = KernelRunContextFaker()
-                            .NodeName(std::move("add1"))
-                            .KernelIONum(static_cast<size_t>(kernel::ArgsInKey::kNUM), 0)
-                            .KernelType("FFTSUpdateAICoreArgs")
-                            .KernelName("FFTSUpdateAICoreArgs")
-                            .Build();
+                              .NodeName(std::move("add1"))
+                              .KernelIONum(static_cast<size_t>(kernel::ArgsInKey::kNUM), 0)
+                              .KernelType("FFTSUpdateAICoreArgs")
+                              .KernelName("FFTSUpdateAICoreArgs")
+                              .Build();
   context_holder_1.value_holder[static_cast<size_t>(kernel::ArgsInKey::THREAD_PARAM)].Set(&thread_param, nullptr);
   context_holder_1.value_holder[static_cast<size_t>(kernel::ArgsInKey::IN_MEM_TYPE)].Set(out_type_vec, nullptr);
   context_holder_1.value_holder[static_cast<size_t>(kernel::ArgsInKey::OUT_MEM_TYPE)].Set(out_type_vec, nullptr);
-  context_holder_1.value_holder[static_cast<size_t>(kernel::ArgsInKey::THREAD_DIM)]
-      .Set(reinterpret_cast<void *>(thread_dim), nullptr);
+  context_holder_1.value_holder[static_cast<size_t>(kernel::ArgsInKey::THREAD_DIM)].Set(
+      reinterpret_cast<void *>(thread_dim), nullptr);
   size_t size = sizeof(Node) + sizeof(AsyncAnyValue *) * 6;
   Node *launch_node_1 = (Node *)malloc(size);
   launch_node_1->node_id = id;
@@ -155,14 +155,14 @@ TEST_F(ExecutorDumperST, DoFftsDataDump_Ok) {
   size_t descBufLen = sizeof(rtFftsPlusComCtx_t) * static_cast<size_t>(10);
   size_t total_size = sizeof(TransTaskInfo) + descBufLen + sizeof(rtFftsPlusSqe_t);
   auto holder = ge::MakeUnique<uint8_t[]>(total_size);
-  TransTaskInfo *task_info_ptr = reinterpret_cast<TransTaskInfo*>(holder.get());
+  TransTaskInfo *task_info_ptr = reinterpret_cast<TransTaskInfo *>(holder.get());
   size_t buf_offset = sizeof(rtFftsPlusSqe_t);
   task_info_ptr->offsets[static_cast<size_t>(InfoStType::kDescBuf)] = buf_offset;
   task_info_ptr->rt_task_info.descBufLen = descBufLen;
   const size_t args_size = sizeof(rtFftsPlusComCtx_t);
   auto *buff_ptr = &task_info_ptr->args[args_size];
   for (int i = 0; i < 4; ++i) {
-    auto context = reinterpret_cast<rtFftsPlusAicAivCtx_t*>(buff_ptr);
+    auto context = reinterpret_cast<rtFftsPlusAicAivCtx_t *>(buff_ptr);
     context->contextType = RT_CTX_TYPE_AICORE;
     context->threadDim = 1U;
     buff_ptr += sizeof(rtFftsPlusComCtx_t);
@@ -176,9 +176,8 @@ TEST_F(ExecutorDumperST, DoFftsDataDump_Ok) {
   Tensor tensor_holder{storage_shape, attr.storage_format, attr.placement, attr.data_type, nullptr};
   tensor_holder.MutableTensorData() = TensorData{(void *)1024, nullptr, 0, kOnDeviceHbm};
   GertTensorData tensor_data;
-  TensorUtils::RefTdToGtd(tensor_holder.GetTensorData(), -1 ,tensor_data);
-  auto context_holder_4 =
-      KernelRunContextFaker().KernelIONum(1, 2).Outputs({&tensor_holder, &tensor_data}).Build();
+  TensorUtils::RefTdToGtd(tensor_holder.GetTensorData(), -1, tensor_data);
+  auto context_holder_4 = KernelRunContextFaker().KernelIONum(1, 2).Outputs({&tensor_holder, &tensor_data}).Build();
   dump_unit.output_addrs[0] = context_holder_4.GetContext<KernelContext>()->GetOutput(1);
   dump_unit.input_addrs[0] = context_holder_4.GetContext<KernelContext>()->GetOutput(1);
   dump_unit.input_addrs[1] = context_holder_4.GetContext<KernelContext>()->GetOutput(1);
@@ -198,10 +197,10 @@ TEST_F(ExecutorDumperST, DoFftsDataDump_Ok) {
   dump_context.context_id = 0;
   dump_context.thread_id = 0;
   dump_unit.context_list.emplace_back(dump_context);
-  
+
   const auto properties = ge::DumpManager::GetInstance().GetDumpProperties(ge::kInferSessionId);
   EXPECT_EQ(dumper->DoDataDump(dump_unit, properties), ge::SUCCESS);
-  
+
   rtStream_t stream_ = reinterpret_cast<void *>(0x12);
   NodeMemPara node_para;
   TransTaskInfo *pre_data_ptr = reinterpret_cast<TransTaskInfo *>(holder.get());
@@ -225,7 +224,7 @@ TEST_F(ExecutorDumperST, DoFftsDataDump_Ok) {
 
   // dynamic dump ffts_plus
   EXPECT_EQ(dumper->UpdateFftsplusLaunchTask(launch_node), ge::SUCCESS);
-  
+
   ge::DumpOp dump_op;
   ge::OpDescPtr op_desc = std::make_shared<ge::OpDesc>("GatherV2", "GatherV2");
   ge::Context context;
@@ -249,30 +248,36 @@ TEST_F(ExecutorDumperST, DoFftsDataDump_Ok) {
   uint32_t load_dump_len = 0U;
   void *unload_dump_info = nullptr;
   uint32_t unload_dump_len = 0U;
-  EXPECT_EQ(dump_op.GenerateFftsDump(properties, load_dump_info, load_dump_len,
-                                     unload_dump_info, unload_dump_len, dumper->IsSingleOpScene()), ge::SUCCESS);
+  EXPECT_EQ(dump_op.GenerateFftsDump(properties, load_dump_info, load_dump_len, unload_dump_info, unload_dump_len,
+                                     dumper->IsSingleOpScene()),
+            ge::SUCCESS);
   ge::DumpProperties dump_properties2;
   dump_properties2.AddPropertyValue("ALL_MODEL_NEED_DUMP_AND_IT_IS_NOT_A_MODEL_NAME", {"test"});
   dump_properties2.SetDumpMode("input");
-  EXPECT_EQ(dump_op.GenerateFftsDump(dump_properties2, load_dump_info, load_dump_len,
-                                     unload_dump_info, unload_dump_len, dumper->IsSingleOpScene()), ge::SUCCESS);
+  EXPECT_EQ(dump_op.GenerateFftsDump(dump_properties2, load_dump_info, load_dump_len, unload_dump_info, unload_dump_len,
+                                     dumper->IsSingleOpScene()),
+            ge::SUCCESS);
   dump_properties2.SetDumpMode("output");
-  EXPECT_EQ(dump_op.GenerateFftsDump(dump_properties2, load_dump_info, load_dump_len,
-                                     unload_dump_info, unload_dump_len, dumper->IsSingleOpScene()), ge::SUCCESS);
+  EXPECT_EQ(dump_op.GenerateFftsDump(dump_properties2, load_dump_info, load_dump_len, unload_dump_info, unload_dump_len,
+                                     dumper->IsSingleOpScene()),
+            ge::SUCCESS);
   dump_properties2.SetDumpMode("bad_mode");
-  EXPECT_EQ(dump_op.GenerateFftsDump(dump_properties2, load_dump_info, load_dump_len,
-                                     unload_dump_info, unload_dump_len, dumper->IsSingleOpScene()), ge::SUCCESS);
+  EXPECT_EQ(dump_op.GenerateFftsDump(dump_properties2, load_dump_info, load_dump_len, unload_dump_info, unload_dump_len,
+                                     dumper->IsSingleOpScene()),
+            ge::SUCCESS);
 
-  auto context_holder_6 = KernelRunContextFaker().KernelIONum(static_cast<size_t>(kernel::UpdateKey::RESERVED), 1)
-      .NodeName(std::move("add1"))
-      .NodeIoNum(2,2).IrInputNum(2)
-      .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-      .NodeInputTd(1, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-      .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-      .NodeOutputTd(1, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
-      .KernelType("AICoreUpdateContext")
-      .KernelName("AICoreUpdateContext")
-      .Build();
+  auto context_holder_6 = KernelRunContextFaker()
+                              .KernelIONum(static_cast<size_t>(kernel::UpdateKey::RESERVED), 1)
+                              .NodeName(std::move("add1"))
+                              .NodeIoNum(2, 2)
+                              .IrInputNum(2)
+                              .NodeInputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+                              .NodeInputTd(1, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+                              .NodeOutputTd(0, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+                              .NodeOutputTd(1, ge::DT_FLOAT16, ge::FORMAT_NCHW, ge::FORMAT_NC1HWC0)
+                              .KernelType("AICoreUpdateContext")
+                              .KernelName("AICoreUpdateContext")
+                              .Build();
   Shape shape0({600, 600, 800});
   Shape shape1({800, 800, 1000});
   auto in_slice = ContinuousVector::Create<Shape>(12);
@@ -303,4 +308,4 @@ TEST_F(ExecutorDumperST, DoFftsDataDump_Ok) {
   free(addr_out);
   free(launch_auto_node_1);
 }
-}
+}  // namespace gert

@@ -70,11 +70,11 @@ buf\_cfg的json配置内容示例和各字段解释如下。
     ```
     "buf_cfg":[{"total_size":2097152,"blk_size":256,"max_buf_size":8192,"page_type":"normal"},        // 1.total:2M  max:8K
                {"total_size":10485760,"blk_size":4096,"max_buf_size":8388608,"page_type":"normal"},   // 2.total:10M  max:8M
-               {"total_size":2097152,"blk_size":256,"max_buf_size":8192,"page_type":"huge"},          // 3.total:2M  max:8K     
+               {"total_size":2097152,"blk_size":256,"max_buf_size":8192,"page_type":"huge"},          // 3.total:2M  max:8K
                {"total_size":10485760,"blk_size":8192,"max_buf_size":8388608,"page_type":"huge"},     // 4.total:10M  max:8M
                {"total_size":69206016,"blk_size":8192,"max_buf_size":67108864,"page_type":"huge"}]    // 5.total:66M  max:64M
-      ```             
-  
+      ```
+
 说明：
 <br>- 如上样例共配置了5个内存档位，前两条针对普通内存，后三条针对大页内存。
 <br>- 使用该配置初始化内存管理模块后，如果进程申请8M大页内存，驱动会根据第4条配置项，生成并管理一个10M内存池，从其中申请8M内存。
@@ -117,42 +117,42 @@ CMakeLists文件相关内容如下：
         PROJECT(UDF)
         if ("x${RESOURCE_TYPE}" STREQUAL "xAscend")
           message(STATUS "ascend compiler enter")
-          # if unsupport current resource type, please uncomment the next line.
+          # if unsupported current resource type, please uncomment the next line.
           # message(FATAL_ERROR "Unsupport compile Ascend target!")
         elseif("x${RESOURCE_TYPE}" STREQUAL "xAarch")
           message(STATUS "aarch64 compiler enter")
-          # if unsupport current resource type, please uncomment the next line.
+          # if unsupported current resource type, please uncomment the next line.
           # message(FATAL_ERROR "Unsupport compile Aarch64 target!")
         else()
           message(STATUS "x86 compiler enter")
-          # if unsupport current resource type, please uncomment the next line.
+          # if unsupported current resource type, please uncomment the next line.
           # message(FATAL_ERROR "Unsupport compile X86 target!")
         endif()
-        
+
         if(DEFINED ENV{ASCEND_HOME_PATH})
           set(ASCEND_HOME_PATH $ENV{ASCEND_HOME_PATH})
           message(STATUS "Read ASCEND_HOME_PATH from ENV: ${ASCEND_HOME_PATH}")
         else()
-          
+
           message(FATAL_ERROR "ASCEND_HOME_PATH is not set, please export ASCEND_HOME_PATH based on actual installation path.")
         endif()
-        
+
         # set dynamic library output path
         set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/${RELEASE_DIR})
         # set static library output path
         set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/${RELEASE_DIR})
-        
+
         message(STATUS "CMAKE_LIBRARY_OUTPUT_DIRECTORY= ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
-        
+
         set(INC_DIR "${ASCEND_HOME_PATH}/include")flow_func")
         file(GLOB SRC_LIST "*.cpp")
-        
+
         # Specify cross compiler
         add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
-        
+
         # set c++ compiler
         set(CMAKE_CXX_COMPILER ${TOOLCHAIN})
-        
+
         # =========================UDF so compile============================
         # check if SRC_LIST is exist
         if("x${SRC_LIST}" STREQUAL "x")
@@ -161,25 +161,25 @@ CMakeLists文件相关内容如下：
                 COMMAND echo "no source to make lib${UDF_TARGET_LIB}.so")
             return(0)
         endif()
-        
+
         add_library(${UDF_TARGET_LIB} SHARED
           ${SRC_LIST}
         )
-        
+
         target_include_directories(${UDF_TARGET_LIB} PRIVATE
           ${INC_DIR}
         )
-        
+
         target_compile_options(${UDF_TARGET_LIB} PRIVATE
           -O2
           -std=c++11
-          -ftrapv  
+          -ftrapv
           -fstack-protector-all
           -fPIC
         )
-        
+
         if ("x${RESOURCE_TYPE}" STREQUAL "xAscend")
-          target_link_libraries(${UDF_TARGET_LIB} PRIVATE 
+          target_link_libraries(${UDF_TARGET_LIB} PRIVATE
             -Wl,--whole-archive
             ${ASCEND_HOME_PATH}/devlib/device/libflow_func.so
             -Wl,--no-whole-archive
@@ -189,7 +189,7 @@ CMakeLists文件相关内容如下：
             COMMAND cp libdepend_xxx.so ${PROJECT_BINARY_DIR}/${RELEASE_DIR}
           )]]
         elseif("x${RESOURCE_TYPE}" STREQUAL "xAarch")
-          target_link_libraries(${UDF_TARGET_LIB} PRIVATE 
+          target_link_libraries(${UDF_TARGET_LIB} PRIVATE
             -Wl,--whole-archive
            ${ASCEND_HOME_PATH}/devlib/linux/aarch64/libflow_func.so
             -Wl,--no-whole-archive
@@ -199,7 +199,7 @@ CMakeLists文件相关内容如下：
             COMMAND cp libdepend_xxx.so ${PROJECT_BINARY_DIR}/${RELEASE_DIR}
           )]]
         else()
-          target_link_libraries(${UDF_TARGET_LIB} PRIVATE 
+          target_link_libraries(${UDF_TARGET_LIB} PRIVATE
             -Wl,--whole-archive
             ${ASCEND_HOME_PATH}/devlib/linux/x86_64/libflow_func.so
             -Wl,--no-whole-archive
@@ -209,7 +209,7 @@ CMakeLists文件相关内容如下：
              COMMAND cp libdepend_xxx.so ${PROJECT_BINARY_DIR}/${RELEASE_DIR}
           )]]
         endif()
-        
+
         ```
 
 ## 返回值

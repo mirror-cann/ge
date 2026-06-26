@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -86,21 +86,21 @@ void BindTensorFuncs(py::module &m) {
 }
 
 void BuildDataDistFuncs(py::module &m) {
-  (void) m.def("initialize", &LLMDataDistWrapper::Init, py::call_guard<py::gil_scoped_release>());
-  (void) m.def("finalize", &LLMDataDistWrapper::Finalize, py::call_guard<py::gil_scoped_release>());
-  (void) m.def("check_link_status", &LLMDataDistWrapper::CheckLinkStatus, py::call_guard<py::gil_scoped_release>());
-  (void) m.def("link_clusters", &LLMDataDistWrapper::LinkClusters, py::call_guard<py::gil_scoped_release>());
-  (void) m.def("unlink_clusters", &LLMDataDistWrapper::UnlinkClusters, py::call_guard<py::gil_scoped_release>());
-  (void) m.def("allocate_cache", &LLMDataDistWrapper::AllocateCache, py::call_guard<py::gil_scoped_release>());
-  (void) m.def("deallocate_cache", &LLMDataDistWrapper::DeallocateCache, py::call_guard<py::gil_scoped_release>());
-  (void) m.def("remove_cache_key", &LLMDataDistWrapper::RemoveCacheKey, py::call_guard<py::gil_scoped_release>());
-  (void) m.def("pull_cache", &LLMDataDistWrapper::PullCache, py::call_guard<py::gil_scoped_release>());
-  (void) m.def("copy_cache", &LLMDataDistWrapper::CopyCache, py::call_guard<py::gil_scoped_release>());
-  (void) m.def("get_tensor", &LLMDataDistWrapper::GetCachedTensor, py::call_guard<py::gil_scoped_release>());
-  (void) m.def("switch_role", &LLMDataDistWrapper::SwitchRole, py::call_guard<py::gil_scoped_release>());
-  (void) m.def("swap_blocks", &LLMDataDistWrapper::SwapBlocks, py::call_guard<py::gil_scoped_release>());
-  (void) m.def("dict_to_vector", &PyDictToVector, py::call_guard<py::gil_scoped_release>());
-  (void) m.def("transfer_cache", &LLMDataDistWrapper::TransferCache, py::call_guard<py::gil_scoped_release>());
+  (void)m.def("initialize", &LLMDataDistWrapper::Init, py::call_guard<py::gil_scoped_release>());
+  (void)m.def("finalize", &LLMDataDistWrapper::Finalize, py::call_guard<py::gil_scoped_release>());
+  (void)m.def("check_link_status", &LLMDataDistWrapper::CheckLinkStatus, py::call_guard<py::gil_scoped_release>());
+  (void)m.def("link_clusters", &LLMDataDistWrapper::LinkClusters, py::call_guard<py::gil_scoped_release>());
+  (void)m.def("unlink_clusters", &LLMDataDistWrapper::UnlinkClusters, py::call_guard<py::gil_scoped_release>());
+  (void)m.def("allocate_cache", &LLMDataDistWrapper::AllocateCache, py::call_guard<py::gil_scoped_release>());
+  (void)m.def("deallocate_cache", &LLMDataDistWrapper::DeallocateCache, py::call_guard<py::gil_scoped_release>());
+  (void)m.def("remove_cache_key", &LLMDataDistWrapper::RemoveCacheKey, py::call_guard<py::gil_scoped_release>());
+  (void)m.def("pull_cache", &LLMDataDistWrapper::PullCache, py::call_guard<py::gil_scoped_release>());
+  (void)m.def("copy_cache", &LLMDataDistWrapper::CopyCache, py::call_guard<py::gil_scoped_release>());
+  (void)m.def("get_tensor", &LLMDataDistWrapper::GetCachedTensor, py::call_guard<py::gil_scoped_release>());
+  (void)m.def("switch_role", &LLMDataDistWrapper::SwitchRole, py::call_guard<py::gil_scoped_release>());
+  (void)m.def("swap_blocks", &LLMDataDistWrapper::SwapBlocks, py::call_guard<py::gil_scoped_release>());
+  (void)m.def("dict_to_vector", &PyDictToVector, py::call_guard<py::gil_scoped_release>());
+  (void)m.def("transfer_cache", &LLMDataDistWrapper::TransferCache, py::call_guard<py::gil_scoped_release>());
 }
 
 void BuildDataType(py::module &m) {

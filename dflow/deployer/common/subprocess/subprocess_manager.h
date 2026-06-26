@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -24,12 +24,7 @@ namespace ge {
 constexpr uint32_t kAbnormalTypeNode = 1U;
 constexpr uint32_t kAbnormalTypeDevice = 2U;
 constexpr uint32_t kAbnormalTypeModelInstance = 3U;
-enum class ProcStatus : int32_t {
-  NORMAL = 0,
-  EXITED,
-  STOPPED,
-  INVALID
-};
+enum class ProcStatus : int32_t { NORMAL = 0, EXITED, STOPPED, INVALID };
 class SubprocessManager {
  public:
   struct SubprocessConfig {
@@ -42,7 +37,7 @@ class SubprocessManager {
   };
   GE_DELETE_ASSIGN_AND_COPY(SubprocessManager);
 
-  static SubprocessManager& GetInstance();
+  static SubprocessManager &GetInstance();
 
   Status Initialize();
   Status ForkSubprocess(const SubprocessConfig &subprocess_config, pid_t &pid);
@@ -54,6 +49,7 @@ class SubprocessManager {
   static Status HasFlowGw(bool &has_flowgw);
 
   static std::vector<std::string> FormatArgs(const SubprocessConfig &subprocess_config);
+
  private:
   SubprocessManager();
   ~SubprocessManager() {
@@ -62,8 +58,7 @@ class SubprocessManager {
 
   static Status Execute(const std::string &path, const SubprocessConfig &subprocess_config, char_t *const argv[]);
   static Status ToCmdlineArgs(const std::vector<std::string> &args_strings, char_t *var_args[]);
-  static void FormatKvArgs(const std::map<std::string, std::string> &kv_args,
-                           std::vector<std::string> &out_args);
+  static void FormatKvArgs(const std::map<std::string, std::string> &kv_args, std::vector<std::string> &out_args);
   static Status GetBinDir(std::string &bin_dir);
   static Status GetFlowGwBinDir(const std::string &bin_dir, std::string &flowgw_bin_dir);
   static bool FileExist(const std::string &file_path);

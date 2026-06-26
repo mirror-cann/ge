@@ -35,21 +35,21 @@ ComputeGraphPtr BuildTensormoveOnlyOutputToAssignGraph() {
 ComputeGraphPtr BuildMultiRefFromVarGraph() {
   DEF_GRAPH(g1) {
     auto assign1 = OP_CFG(ASSIGN)
-                      .TensorDesc(FORMAT_ND, DT_FLOAT, {2, 2})
-                      .InCnt(2)
-                      .OutCnt(1)
-                      .InNames({"ref", "value"})
-                      .OutNames({"ref"})
-                      .Attr(ATTR_NAME_REFERENCE, true)
-                      .Build("assign1");
+                       .TensorDesc(FORMAT_ND, DT_FLOAT, {2, 2})
+                       .InCnt(2)
+                       .OutCnt(1)
+                       .InNames({"ref", "value"})
+                       .OutNames({"ref"})
+                       .Attr(ATTR_NAME_REFERENCE, true)
+                       .Build("assign1");
     auto assign2 = OP_CFG(ASSIGN)
-                      .TensorDesc(FORMAT_ND, DT_FLOAT, {2, 2})
-                      .InCnt(2)
-                      .OutCnt(1)
-                      .InNames({"ref", "value"})
-                      .OutNames({"ref"})
-                      .Attr(ATTR_NAME_REFERENCE, true)
-                      .Build("assign2");
+                       .TensorDesc(FORMAT_ND, DT_FLOAT, {2, 2})
+                       .InCnt(2)
+                       .OutCnt(1)
+                       .InNames({"ref", "value"})
+                       .OutNames({"ref"})
+                       .Attr(ATTR_NAME_REFERENCE, true)
+                       .Build("assign2");
     CHAIN(NODE("var", VARIABLE)->NODE(assign1)->NODE(assign2)->NODE("net_output", NETOUTPUT));
     CHAIN(NODE("data1", DATA))->EDGE(0, 1)->NODE(assign1);
     CHAIN(NODE("data1", DATA))->EDGE(0, 1)->NODE(assign2);
@@ -76,13 +76,13 @@ ComputeGraphPtr BuildReluOnlyOutputToAssignGraph() {
 ComputeGraphPtr BuildMultiRefOpGraph() {
   DEF_GRAPH(g1) {
     auto test_op = OP_CFG("TESTOP")
-                      .TensorDesc(FORMAT_ND, DT_FLOAT, {2, 2})
-                      .InCnt(2)
-                      .OutCnt(2)
-                      .InNames({"ref1", "ref2"})
-                      .OutNames({"ref1", "ref2"})
-                      .Attr(ATTR_NAME_REFERENCE, true)
-                      .Build("test_op");
+                       .TensorDesc(FORMAT_ND, DT_FLOAT, {2, 2})
+                       .InCnt(2)
+                       .OutCnt(2)
+                       .InNames({"ref1", "ref2"})
+                       .OutNames({"ref1", "ref2"})
+                       .Attr(ATTR_NAME_REFERENCE, true)
+                       .Build("test_op");
     CHAIN(NODE("data1", DATA)->NODE(test_op)->NODE("net_output", NETOUTPUT));
     CHAIN(NODE("data1")->EDGE(0, 1)->NODE(test_op));
   };
@@ -105,7 +105,6 @@ ComputeGraphPtr BuildReluMultiOutputToAssignGraph1() {
   };
   return ToComputeGraph(g1);
 }
-
 
 ComputeGraphPtr BuildReluMultiOutputToAssignGraph2() {
   DEF_GRAPH(g1) {
@@ -131,30 +130,30 @@ ComputeGraphPtr BuildReluMultiOutputToAssignGraph2() {
 ComputeGraphPtr BuildReluMultiOutputToAssignGraph3() {
   DEF_GRAPH(g1) {
     auto assign1 = OP_CFG(ASSIGN)
-                      .TensorDesc(FORMAT_ND, DT_FLOAT, {2, 2})
-                      .InCnt(2)
-                      .OutCnt(1)
-                      .InNames({"ref", "value"})
-                      .OutNames({"ref"})
-                      .Attr(ATTR_NAME_REFERENCE, true)
-                      .Build("assign1");
+                       .TensorDesc(FORMAT_ND, DT_FLOAT, {2, 2})
+                       .InCnt(2)
+                       .OutCnt(1)
+                       .InNames({"ref", "value"})
+                       .OutNames({"ref"})
+                       .Attr(ATTR_NAME_REFERENCE, true)
+                       .Build("assign1");
     auto assign2 = OP_CFG(ASSIGN)
-                      .TensorDesc(FORMAT_ND, DT_FLOAT, {2, 2})
-                      .InCnt(2)
-                      .OutCnt(1)
-                      .InNames({"ref", "value"})
-                      .OutNames({"ref"})
-                      .Attr(ATTR_NAME_REFERENCE, true)
-                      .Build("assign2");
+                       .TensorDesc(FORMAT_ND, DT_FLOAT, {2, 2})
+                       .InCnt(2)
+                       .OutCnt(1)
+                       .InNames({"ref", "value"})
+                       .OutNames({"ref"})
+                       .Attr(ATTR_NAME_REFERENCE, true)
+                       .Build("assign2");
     CHAIN(NODE("relu", RELU)->NODE(assign1)->CTRL_EDGE()->NODE(assign2));
     CHAIN(NODE("relu")->EDGE(0, 0)->NODE(assign2));
   };
 
   return ToComputeGraph(g1);
 }
-}
+}  // namespace
 class UtestGraphPassesInnerIdentityAddPass : public testing::Test {
-protected:
+ protected:
   void SetUp() {}
   void TearDown() {}
 };

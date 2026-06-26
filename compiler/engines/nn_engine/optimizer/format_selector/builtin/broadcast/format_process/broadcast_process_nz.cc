@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,12 +27,12 @@ bool BroadcastProcessNz::CheckPartNonScalarInputs(const FormatProccessInputArg &
   // shape dim should be larger than 2D
   if (CheckOriginShapeDimNum(input_shape, MINIMUM_NZ_SHAPE_DIM_NUM)) {
     // the last axis should be c0 aligned
-    // the penultimate axis should be 16 aliged
+    // the penultimate axis should be 16 aligned
     bool last_dim_c0_aligned = IsAxisC0Aligned(input_dtype, input_shape.GetDim(input_shape.GetDimNum() - LAST_DIM));
     bool penultimate_dim_16_aligned =
-            IsAxisAligned(input_shape.GetDim(input_shape.GetDimNum() - PENULTIMATE_DIM), SHAPE_NUMBER_16);
+        IsAxisAligned(input_shape.GetDim(input_shape.GetDimNum() - PENULTIMATE_DIM), SHAPE_NUMBER_16);
     if (!last_dim_c0_aligned || !penultimate_dim_16_aligned) {
-      FE_LOGD("The last two axises are not aligned, input_dtype=[%d], inputShape=[%s].", input_dtype,
+      FE_LOGD("The last two axes are not aligned, input_dtype=[%d], inputShape=[%s].", input_dtype,
               GetShapeDims(input_shape).c_str());
       return false;
     }

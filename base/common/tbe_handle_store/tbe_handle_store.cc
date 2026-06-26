@@ -112,9 +112,9 @@ Status TBEHandleStore::StoreTBEHandle(const std::string &name, void *handle, con
 ///
 void *TBEHandleStore::GetUniqueIdPtr(void *const handle, const std::string &kernel, bool &inserted) {
   const std::lock_guard<std::recursive_mutex> lock(mutex_);
-  std::unordered_map<std::string, std::list<uint8_t>>& inner = handle_to_kernel_to_unique_id_[handle];
+  std::unordered_map<std::string, std::list<uint8_t>> &inner = handle_to_kernel_to_unique_id_[handle];
   std::pair<std::unordered_map<std::string, std::list<uint8_t>>::iterator, bool> ret =
-    inner.insert(std::make_pair(kernel, std::list<uint8_t>{0}));
+      inner.insert(std::make_pair(kernel, std::list<uint8_t>{0}));
   inserted = ret.second;
   return &(ret.first->second.back());
 }
@@ -162,8 +162,7 @@ void TBEHandleStore::EraseTBEHandle(const std::map<std::string, uint32_t> &names
   }
 }
 
-KernelHolder::KernelHolder(const char_t *const stub_func,
-                           const std::shared_ptr<ge::OpKernelBin> &kernel_bin)
+KernelHolder::KernelHolder(const char_t *const stub_func, const std::shared_ptr<ge::OpKernelBin> &kernel_bin)
     : stub_func_(stub_func), kernel_bin_(kernel_bin) {}
 
 KernelHolder::~KernelHolder() {
@@ -172,8 +171,7 @@ KernelHolder::~KernelHolder() {
   }
 }
 
-HandleHolder::HandleHolder(void *const bin_handle)
-    : bin_handle_(bin_handle) {}
+HandleHolder::HandleHolder(void *const bin_handle) : bin_handle_(bin_handle) {}
 
 HandleHolder::~HandleHolder() {
   if (bin_handle_ != nullptr) {
@@ -222,4 +220,4 @@ HandleRegistry &HandleRegistry::GetInstance() {
   static HandleRegistry instance;
   return instance;
 }
-} // namespace ge
+}  // namespace ge

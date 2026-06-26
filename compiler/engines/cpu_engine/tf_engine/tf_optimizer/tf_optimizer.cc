@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -27,8 +27,8 @@
 #include "base/err_msg.h"
 #include "common/util/trace_manager/trace_manager.h"
 
-using domi::tensorflow::NodeDef;
 using domi::tensorflow::FunctionDefLibrary;
+using domi::tensorflow::NodeDef;
 
 namespace {
 const std::string kPlaceholderOpType = "PlaceHolder";
@@ -41,19 +41,16 @@ constexpr uint64_t kTfDebugModeOff = 0;
 constexpr uint64_t kTfDebugModeOn = 1;
 constexpr uint32_t kVariableOpCounts = 2;
 constexpr size_t kVariableSplitCounts = 4;
-const std::set<std::string> kBlackList = {"TensorListPushBack", "TensorListPopBack",
-                                          "EmbeddingFeatureMappingTableSize", "EmbeddingFeatureMappingFind",
-                                          "ParseSingleExample"};
-}
+const std::set<std::string> kBlackList = {"TensorListPushBack", "TensorListPopBack", "EmbeddingFeatureMappingTableSize",
+                                          "EmbeddingFeatureMappingFind", "ParseSingleExample"};
+}  // namespace
 
 namespace aicpu {
 OptimizerPtr TfOptimizer::instance_ = nullptr;
 
 OptimizerPtr TfOptimizer::Instance() {
   static std::once_flag flag;
-  std::call_once(flag, [&]() {
-    instance_.reset(new (std::nothrow) TfOptimizer);
-  });
+  std::call_once(flag, [&]() { instance_.reset(new (std::nothrow) TfOptimizer); });
   return instance_;
 }
 
@@ -67,9 +64,8 @@ ge::Status TfOptimizer::Initialize() {
 
 ge::Status TfOptimizer::InitializeIr2TfParser() const {
   ge::shared_ptr<Ir2tfBaseParser> parser = Ir2tfBaseParser::Instance();
-  AICPU_IF_BOOL_EXEC(parser == nullptr,
-      AICPU_REPORT_INNER_ERR_MSG("Create Ir2tfBaseParser object failed.");
-      return ErrorCode::GET_IR2TF_PARSER_FAILED)
+  AICPU_IF_BOOL_EXEC(parser == nullptr, AICPU_REPORT_INNER_ERR_MSG("Create Ir2tfBaseParser object failed.");
+                     return ErrorCode::GET_IR2TF_PARSER_FAILED)
   return parser->LoadMappingConfig();
 }
 
@@ -79,8 +75,7 @@ void TfOptimizer::InitOpFusionMinNum() {
   if (ConfigFile::GetInstance().GetValue(kOpFusionMinNum, op_fusion_min_num)) {
     uint64_t result = kDefaultOpFusionMinNumber;
     if (StringToNum(op_fusion_min_num, result).state != ge::SUCCESS) {
-      AICPUE_LOGW("Tran op_fusion_min_num [%s] to integer failed. default value is 2.",
-                  op_fusion_min_num.c_str());
+      AICPUE_LOGW("Tran op_fusion_min_num [%s] to integer failed. default value is 2.", op_fusion_min_num.c_str());
       return;
     }
     // if OpFusionMinNum from config file is less than 2, print warning log.
@@ -100,8 +95,7 @@ void TfOptimizer::InitTfDebugMode() {
   if (ConfigFile::GetInstance().GetValue(kTfDebugMode, tf_debug_mode)) {
     uint64_t result = kTfDebugModeOff;
     if (StringToNum(tf_debug_mode, result).state != ge::SUCCESS) {
-      AICPUE_LOGW("Tran tf_debug_mode [%s] to integer failed. default value is 0.",
-                  tf_debug_mode.c_str());
+      AICPUE_LOGW("Tran tf_debug_mode [%s] to integer failed. default value is 0.", tf_debug_mode.c_str());
       return;
     }
     if (result == kTfDebugModeOn) {
@@ -138,16 +132,14 @@ bool CheckFftsPlusSubGraph(const ge::ComputeGraph &graph) {
   return false;
 }
 
-void TfOptimizer::UpdataOpInfos(ge::ComputeGraph &graph,
-                                const std::map<std::string, OpFullInfo> &all_op_info) const {
+void TfOptimizer::UpdataOpInfos(ge::ComputeGraph &graph, const std::map<std::string, OpFullInfo> &all_op_info) const {
   for (const ge::NodePtr &node : graph.GetDirectNode()) {
     (void)UpdataOpInfo(*node, all_op_info);
   }
 }
 
 ge::Status TfOptimizer::OptimizeOriginalGraph(ge::ComputeGraph &graph,
-                                              const std::map<std::string,
-                                              OpFullInfo> &all_op_info) const {
+                                              const std::map<std::string, OpFullInfo> &all_op_info) const {
   for (const ge::NodePtr &curr_node : graph.GetDirectNode()) {
     AICPU_CHECK_NOTNULL(curr_node)
     ge::OpDescPtr curr_op_desc_ptr = curr_node->GetOpDesc();
@@ -161,7 +153,7 @@ ge::Status TfOptimizer::OptimizeOriginalGraph(ge::ComputeGraph &graph,
       AICPU_CHECK_FALSE_EXEC(
           ge::AttrUtils::SetBool(curr_op_desc_ptr, kAttrName64BytesFlag, true),
           AICPU_REPORT_INNER_ERR_MSG("TfOptimizer Call AttrUtils::SetBool failed to Set attr[%s], op[%s].",
-                                  kAttrName64BytesFlag.c_str(), curr_op_desc_ptr->GetName().c_str());
+                                     kAttrName64BytesFlag.c_str(), curr_op_desc_ptr->GetName().c_str());
           return ErrorCode::ADD_ATTR_FAILED)
     }
   }
@@ -203,10 +195,9 @@ std::unordered_map<std::string, std::vector<ge::NodePtr>> TfOptimizer::RebuildTf
       const std::string &node_cluster_name = node_cluster_entry.second[0]->GetName();
       for (auto &curr_node : node_cluster_entry.second) {
         added_node_counts++;
-        AICPUE_LOGI(
-            "Rebuild Tf node cluster size[%zu], added node counts[%zu], cluster name[%s] op[%s], op type[%s].",
-            cluster_size, added_node_counts, node_cluster_name.c_str(), curr_node->GetName().c_str(),
-            curr_node->GetType().c_str());
+        AICPUE_LOGI("Rebuild Tf node cluster size[%zu], added node counts[%zu], cluster name[%s] op[%s], op type[%s].",
+                    cluster_size, added_node_counts, node_cluster_name.c_str(), curr_node->GetName().c_str(),
+                    curr_node->GetType().c_str());
 
         tf_node_cluster.push_back(curr_node);
         if (added_node_counts % kVariableSplitCounts == 0) {
@@ -236,10 +227,9 @@ ge::Status TfOptimizer::OptimizeFusedGraph(ge::ComputeGraph &graph,
   std::string suffix = "After_Aicpu_Accept_Variable";
   GraphOptimizerUtils::DumpGraph(graph, suffix);
   auto status = graph.TopologicalSorting();
-  CHECK_RES_BOOL((status == ge::GRAPH_SUCCESS), ge::FAILED,
-      AICPU_REPORT_INNER_ERR_MSG(
-          "Call ge::ComputeGraph::TopologicalSorting failed, graph[%s]",
-          graph_name.c_str()))
+  CHECK_RES_BOOL(
+      (status == ge::GRAPH_SUCCESS), ge::FAILED,
+      AICPU_REPORT_INNER_ERR_MSG("Call ge::ComputeGraph::TopologicalSorting failed, graph[%s]", graph_name.c_str()))
 
   UpdataOpInfos(graph, all_op_info);
 
@@ -256,8 +246,8 @@ ge::Status TfOptimizer::OptimizeFusedGraph(ge::ComputeGraph &graph,
                              "Call TfOptimizer::MarkNodeForFusion function failed. graph[%s].", graph_name.c_str())
   }
 
-  AICPUE_LOGI("Optimize fused graph have insert variable[%d], tf node cluster map size[%zu].",
-              have_insert_variable, tf_node_cluster_map.size());
+  AICPUE_LOGI("Optimize fused graph have insert variable[%d], tf node cluster map size[%zu].", have_insert_variable,
+              tf_node_cluster_map.size());
   if (have_insert_variable) {
     tf_node_cluster_map = RebuildTfNodeClusterMap(graph, tf_node_cluster_map);
   }
@@ -265,24 +255,25 @@ ge::Status TfOptimizer::OptimizeFusedGraph(ge::ComputeGraph &graph,
   // step2: update graph with new fused node
   for (auto iter = tf_node_cluster_map.begin(); iter != tf_node_cluster_map.end(); ++iter) {
     AICPU_CHECK_RES_WITH_LOG(OptimizeNodeCluster(graph, iter->second, tf_isolated_node_map),
-        "Call TfOptimizer::OptimizeNodeCluster function failed. op[%s], graph[%s].",
-        (iter->first).c_str(), graph_name.c_str())
+                             "Call TfOptimizer::OptimizeNodeCluster function failed. op[%s], graph[%s].",
+                             (iter->first).c_str(), graph_name.c_str())
   }
 
   // step3: delete old node from graph
   for (auto iter = tf_node_cluster_map.begin(); iter != tf_node_cluster_map.end(); ++iter) {
     for (ge::NodePtr node : iter->second) {
       AICPU_CHECK_RES_WITH_LOG(graph.RemoveNode(node),
-          "Call ge::ComputeGraph::ComputeGraphRemove function failed to remove "
-          "op[%s]. graph[%s].", node->GetName().c_str(), graph_name.c_str())
+                               "Call ge::ComputeGraph::ComputeGraphRemove function failed to remove "
+                               "op[%s]. graph[%s].",
+                               node->GetName().c_str(), graph_name.c_str())
     }
   }
 
   // step4: update isolated node for graph
   for (auto iter = tf_isolated_node_map.begin(); iter != tf_isolated_node_map.end(); ++iter) {
     AICPU_CHECK_RES_WITH_LOG(OptimizeIsolatedNode(iter->second),
-        "Call TfOptimizer::OptimizeIsolatedNode function failed. op[%s], graph[%s].",
-        (iter->first).c_str(), graph_name.c_str())
+                             "Call TfOptimizer::OptimizeIsolatedNode function failed. op[%s], graph[%s].",
+                             (iter->first).c_str(), graph_name.c_str())
   }
   return ge::SUCCESS;
 }
@@ -306,8 +297,8 @@ bool TfOptimizer::CheckIsFunctionOp(ge::OpDescPtr &op_desc) const {
   return false;
 }
 
-ge::Status TfOptimizer::CheckOpsFusion(ge::OpDescPtr &op_desc_ptr, const std::map<std::string,
-                                       OpFullInfo> &all_op_info, bool &fuse_flag) const {
+ge::Status TfOptimizer::CheckOpsFusion(ge::OpDescPtr &op_desc_ptr, const std::map<std::string, OpFullInfo> &all_op_info,
+                                       bool &fuse_flag) const {
   std::string op_type = op_desc_ptr->GetType();
   fuse_flag = false;
   // async op flag
@@ -447,8 +438,8 @@ ge::Status TfOptimizer::MarkNodeForFusionOfFfts(
 }
 
 ge::Status TfOptimizer::GetOpFlagAndAsyncFlag(ge::OpDescPtr &op_desc_ptr,
-                                              const std::map<std::string, OpFullInfo> &all_op_info,
-                                              bool &tf_op_flag, bool &op_async_flag) const {
+                                              const std::map<std::string, OpFullInfo> &all_op_info, bool &tf_op_flag,
+                                              bool &op_async_flag) const {
   std::string op_type = op_desc_ptr->GetType();
   op_async_flag = false;
   tf_op_flag = CheckIsFunctionOp(op_desc_ptr);
@@ -497,11 +488,10 @@ bool TfOptimizer::IsTfDebugFusion(ge::OpDescPtr &op_desc) const {
   return false;
 }
 
-ge::Status TfOptimizer::MarkNodeForFusion(const ge::ComputeGraph &graph,
-                                          const std::map<std::string, OpFullInfo> &all_op_info,
-                                          std::unordered_map<std::string,
-                                          std::vector<ge::NodePtr>> &tf_node_cluster_map,
-                                          std::unordered_map<std::string, ge::NodePtr> &tf_isolated_node_map) const {
+ge::Status TfOptimizer::MarkNodeForFusion(
+    const ge::ComputeGraph &graph, const std::map<std::string, OpFullInfo> &all_op_info,
+    std::unordered_map<std::string, std::vector<ge::NodePtr>> &tf_node_cluster_map,
+    std::unordered_map<std::string, ge::NodePtr> &tf_isolated_node_map) const {
   bool tf_debug_fusion = false;
   std::vector<ge::NodePtr> tf_node_cluster;
   // traverse all topological sorted nodes in graph
@@ -530,8 +520,7 @@ ge::Status TfOptimizer::MarkNodeForFusion(const ge::ComputeGraph &graph,
     if ((!op_async_flag) && (kBlackList.count(op_type) == 0U)) {
       if (tf_debug_flag || tf_op_flag) {
         tf_node_cluster.emplace_back(node);
-        AICPUE_LOGI("mark node for fusion op[%s], op type[%s].",
-                    node->GetName().c_str(), op_type.c_str());
+        AICPUE_LOGI("mark node for fusion op[%s], op type[%s].", node->GetName().c_str(), op_type.c_str());
         continue;
       }
       bool aicpu_private = false;
@@ -545,8 +534,8 @@ ge::Status TfOptimizer::MarkNodeForFusion(const ge::ComputeGraph &graph,
       tf_isolated_node_map[node->GetName()] = node;
     }
 
-    if ((is_tf_op_fussion_oo_enable_ && (static_cast<uint64_t>(tf_node_cluster.size()) >= op_fusion_min_num_))
-       || (tf_debug_fusion)) {
+    if ((is_tf_op_fussion_oo_enable_ && (static_cast<uint64_t>(tf_node_cluster.size()) >= op_fusion_min_num_)) ||
+        (tf_debug_fusion)) {
       tf_debug_fusion = false;
       std::vector<ge::NodePtr> tmp_tf_node_cluster;
       tmp_tf_node_cluster.assign(tf_node_cluster.begin(), tf_node_cluster.end());
@@ -560,8 +549,8 @@ ge::Status TfOptimizer::MarkNodeForFusion(const ge::ComputeGraph &graph,
     tf_node_cluster.clear();
   }
   AICPUE_LOGI("tf_debug_fusion = %d", tf_debug_fusion);
-  if ((is_tf_op_fussion_oo_enable_ && (static_cast<uint64_t>(tf_node_cluster.size()) >= op_fusion_min_num_))
-       || (tf_debug_fusion)) {
+  if ((is_tf_op_fussion_oo_enable_ && (static_cast<uint64_t>(tf_node_cluster.size()) >= op_fusion_min_num_)) ||
+      (tf_debug_fusion)) {
     std::vector<ge::NodePtr> tmp_tf_node_cluster;
     tmp_tf_node_cluster.assign(tf_node_cluster.begin(), tf_node_cluster.end());
     if (!tmp_tf_node_cluster.empty()) {
@@ -577,9 +566,8 @@ ge::Status TfOptimizer::MarkNodeForFusion(const ge::ComputeGraph &graph,
   return ge::SUCCESS;
 }
 
-ge::Status TfOptimizer::OptimizeNodeCluster(
-    ge::ComputeGraph &graph, std::vector<ge::NodePtr> &node_cluster,
-    std::unordered_map<std::string, ge::NodePtr> &isolated_node_map) const {
+ge::Status TfOptimizer::OptimizeNodeCluster(ge::ComputeGraph &graph, std::vector<ge::NodePtr> &node_cluster,
+                                            std::unordered_map<std::string, ge::NodePtr> &isolated_node_map) const {
   // if multi nodes in node_cluster, fuse nodes
   return FuseNodesForGraph(graph, node_cluster, isolated_node_map);
 }
@@ -662,8 +650,9 @@ ge::Status TfOptimizer::FuseNodesForGraph(ge::ComputeGraph &graph, std::vector<g
   SubGraphInfo sub_graph_info;
   // step2: insert nodes to sub graph
   AICPU_CHECK_RES_WITH_LOG(InsertNodesToSubGraph(sub_graph, node_cluster, sub_graph_info),
-      "Call TfOptimizer::InsertNodesToSubGraph function failed to insert node "
-      "cluster[%s] to sub graph[%s].", node_cluster_name.c_str(), sub_graph->GetName().c_str())
+                           "Call TfOptimizer::InsertNodesToSubGraph function failed to insert node "
+                           "cluster[%s] to sub graph[%s].",
+                           node_cluster_name.c_str(), sub_graph->GetName().c_str())
 
   if (!CheckSubGraphSupportFuse(node_cluster, sub_graph_info, isolated_node_map)) {
     AICPUE_LOG_RUN_INFO("SubGraph[%s] has ref input or output, so it cannot be fused", node_cluster_name.c_str());
@@ -675,23 +664,28 @@ ge::Status TfOptimizer::FuseNodesForGraph(ge::ComputeGraph &graph, std::vector<g
 
   // step3: link nodes in sub graph
   AICPU_CHECK_RES_WITH_LOG(LinkInnerAnchorsForSubGraph(graph, sub_graph_info.new_node_map),
-      "Call TfOptimizer::LinkInnerAnchorsForSubGraph function failed, node cluster[%s].", node_cluster_name.c_str())
+                           "Call TfOptimizer::LinkInnerAnchorsForSubGraph function failed, node cluster[%s].",
+                           node_cluster_name.c_str())
 
   // step4: create new tf node
-  std::unique_ptr<NodeDef> node_def(new(std::nothrow) NodeDef());
+  std::unique_ptr<NodeDef> node_def(new (std::nothrow) NodeDef());
   AICPU_IF_BOOL_EXEC(node_def == nullptr, AICPU_REPORT_INNER_ERR_MSG("Create tf node def failed. node cluster[%s].",
-      node_cluster_name.c_str()); return ErrorCode::FUSE_NODES_FAILED)
+                                                                     node_cluster_name.c_str());
+                     return ErrorCode::FUSE_NODES_FAILED)
 
   // step5: create function def (trans sub graph to function def)
-  std::unique_ptr<FunctionDefLibrary> function_def_lib(new(std::nothrow) FunctionDefLibrary());
+  std::unique_ptr<FunctionDefLibrary> function_def_lib(new (std::nothrow) FunctionDefLibrary());
   AICPU_CHECK_NOTNULL(function_def_lib);
 
   AICPU_CHECK_RES_WITH_LOG(CollectNodeFuncs(node_cluster, function_def_lib.get()),
-      "Call TfOptimizer::CollectNodeFuncs function failed. node cluster[%s].", node_cluster_name.c_str())
+                           "Call TfOptimizer::CollectNodeFuncs function failed. node cluster[%s].",
+                           node_cluster_name.c_str())
 
-  AICPU_CHECK_RES_WITH_LOG(TfFunctionBuilder::GetInstance().BuildFunctionDef(sub_graph, node_cluster_name,
-      function_def_lib.get(), node_def.get(), sub_graph_info.in_data_anchors, sub_graph_info.out_data_anchors),
-      "Call TfFunctionBuilder::BuildFunctionDef function failed. node cluster[%s].", node_cluster_name.c_str())
+  AICPU_CHECK_RES_WITH_LOG(TfFunctionBuilder::GetInstance().BuildFunctionDef(
+                               sub_graph, node_cluster_name, function_def_lib.get(), node_def.get(),
+                               sub_graph_info.in_data_anchors, sub_graph_info.out_data_anchors),
+                           "Call TfFunctionBuilder::BuildFunctionDef function failed. node cluster[%s].",
+                           node_cluster_name.c_str())
 
   // step6: create new ge op desc
   ge::Buffer node_def_buffer(node_def->ByteSizeLong());
@@ -699,9 +693,10 @@ ge::Status TfOptimizer::FuseNodesForGraph(ge::ComputeGraph &graph, std::vector<g
                                                                 static_cast<int32_t>(node_def_buffer.GetSize()));
   google::protobuf::io::CodedOutputStream node_def_output_stream(&node_def_array_stream);
   node_def_output_stream.SetSerializationDeterministic(true);
-  AICPU_CHECK_FALSE_EXEC(node_def->SerializeToCodedStream(&node_def_output_stream),
-                         AICPU_REPORT_INNER_ERR_MSG("Serialize nodedef for node[%s] failed.", node_cluster_name.c_str());
-                         return ErrorCode::FUSE_NODES_FAILED)
+  AICPU_CHECK_FALSE_EXEC(
+      node_def->SerializeToCodedStream(&node_def_output_stream),
+      AICPU_REPORT_INNER_ERR_MSG("Serialize nodedef for node[%s] failed.", node_cluster_name.c_str());
+      return ErrorCode::FUSE_NODES_FAILED)
 
   // std::string func_def_str;
   ge::Buffer func_def_buffer(function_def_lib->ByteSizeLong());
@@ -725,7 +720,8 @@ ge::Status TfOptimizer::FuseNodesForGraph(ge::ComputeGraph &graph, std::vector<g
         need_check_tf.push_back(node->GetOpDesc()->GetType());
       }
     }
-    AICPU_CHECK_FALSE_EXEC(ge::AttrUtils::SetListStr(fused_op_desc, "needCheckTf", need_check_tf),
+    AICPU_CHECK_FALSE_EXEC(
+        ge::AttrUtils::SetListStr(fused_op_desc, "needCheckTf", need_check_tf),
         AICPU_REPORT_INNER_ERR_MSG("Set attr needCheckTf failed, op[%s].", node_cluster_name.c_str());
         return ErrorCode::FUSE_NODES_FAILED)
   }
@@ -733,54 +729,57 @@ ge::Status TfOptimizer::FuseNodesForGraph(ge::ComputeGraph &graph, std::vector<g
   AICPU_CHECK_FALSE_EXEC(
       ge::AttrUtils::SetZeroCopyBytes(fused_op_desc, kTfFuncDef, std::move(func_def_buffer)),
       AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::SetZeroCopyBytes failed to set tf function def, op[%s].",
-                              node_cluster_name.c_str());
+                                 node_cluster_name.c_str());
       return ErrorCode::FUSE_NODES_FAILED)
   AICPUE_LOGI("Create function def for node cluster[%s] success.", node_cluster_name.c_str());
 
   AICPU_CHECK_FALSE_EXEC(
       ge::AttrUtils::SetZeroCopyBytes(fused_op_desc, kTfNodeDef, std::move(node_def_buffer)),
       AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::SetZeroCopyBytes failed to set tf node def, op[%s].",
-                              node_cluster_name.c_str());
+                                 node_cluster_name.c_str());
       return ErrorCode::FUSE_NODES_FAILED)
   // set attr async_flag
-  AICPU_CHECK_FALSE_EXEC(ge::AttrUtils::SetBool(fused_op_desc, kAsyncFlag, false),
+  AICPU_CHECK_FALSE_EXEC(
+      ge::AttrUtils::SetBool(fused_op_desc, kAsyncFlag, false),
       AICPU_REPORT_INNER_ERR_MSG("Set attr kAsyncFlag failed to set tf node def, op[%s].", node_cluster_name.c_str());
       return ErrorCode::FUSE_NODES_FAILED)
 
   // set attr ops_json_path for fused Function op
   std::string ops_json_path = TfKernelInfo::Instance()->GetJsonPath();
   AICPU_CHECK_FALSE_EXEC(ge::AttrUtils::SetStr(fused_op_desc, kAttrJsonPath, ops_json_path),
-      AICPU_REPORT_INNER_ERR_MSG(
-          "Set attr [%s] failed for tf node def [%s].",
-          kAttrJsonPath.c_str(), node_cluster_name.c_str());
-      return ErrorCode::ADD_ATTR_FAILED)
+                         AICPU_REPORT_INNER_ERR_MSG("Set attr [%s] failed for tf node def [%s].", kAttrJsonPath.c_str(),
+                                                    node_cluster_name.c_str());
+                         return ErrorCode::ADD_ATTR_FAILED)
 
   AICPUE_LOGI("Create node def for node cluster[%s] success.", node_cluster_name.c_str());
 
   // value 3 represent the framework tensorflow
   AICPU_CHECK_FALSE_EXEC(ge::AttrUtils::SetInt(fused_op_desc, kFrameworkType, 3),
-      AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::SetInt failed to set framework type, op[%s].",
-          node_cluster_name.c_str()); return ErrorCode::FUSE_NODES_FAILED)
+                         AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::SetInt failed to set framework type, op[%s].",
+                                                    node_cluster_name.c_str());
+                         return ErrorCode::FUSE_NODES_FAILED)
 
   // step 7: rebuild output and input desc for op desc of new fused node
   AICPU_CHECK_RES_WITH_LOG(RebuildOutputDesc(sub_graph_info.out_data_anchors, fused_op_desc),
-      "Call TfOptimizer::RebuildOutputDesc function failed. op[%s].", node_cluster_name.c_str())
+                           "Call TfOptimizer::RebuildOutputDesc function failed. op[%s].", node_cluster_name.c_str())
 
   AICPU_CHECK_RES_WITH_LOG(RebuildInputDesc(sub_graph_info.in_data_anchors, fused_op_desc),
-      "Call TfOptimizer::RebuildInputDesc function failed. op[%s].", node_cluster_name.c_str())
+                           "Call TfOptimizer::RebuildInputDesc function failed. op[%s].", node_cluster_name.c_str())
   AICPU_CHECK_RES_WITH_LOG(SaveFusionNodeMappingRelations(node_cluster, sub_graph_info.out_data_anchors, fused_op_desc),
-      "Call TfOptimizer::SaveFusionNodeMappingRelations function failed. op[%s].", node_cluster_name.c_str())
+                           "Call TfOptimizer::SaveFusionNodeMappingRelations function failed. op[%s].",
+                           node_cluster_name.c_str())
 
   // step8: add node and anchor to original graph after node has input and output tensor desc
   ge::NodePtr fused_node = graph.AddNode(fused_op_desc);
   AICPU_CHECK_NOTNULL(fused_node)
   AICPU_CHECK_RES_WITH_LOG(RebuildFusionNode(sub_graph_info, fused_node),
-      "Call TfOptimizer::RebuildFusionNode function failed. node cluster[%s].", node_cluster_name.c_str())
+                           "Call TfOptimizer::RebuildFusionNode function failed. node cluster[%s].",
+                           node_cluster_name.c_str())
   AICPU_CHECK_RES_WITH_LOG(LabelAttributesByScence(node_cluster, fused_node),
-      "Call LabelAttributesByScence function failed. node cluster[%s].", node_cluster_name.c_str())
+                           "Call LabelAttributesByScence function failed. node cluster[%s].", node_cluster_name.c_str())
   AICPU_CHECK_RES_WITH_LOG(CheckAndSetUnknowType(fused_node),
-      "Call CheckAndSetUnknowType function failed. node cluster[%s].", node_cluster_name.c_str())
-  
+                           "Call CheckAndSetUnknowType function failed. node cluster[%s].", node_cluster_name.c_str())
+
   suffix = "After_Aicpu_Fused_Nodes_For_SubGraph";
   GraphOptimizerUtils::DumpGraph(*sub_graph, suffix);
   return ge::SUCCESS;
@@ -798,26 +797,25 @@ ge::Status TfOptimizer::RebuildOutputDesc(const std::vector<ge::OutDataAnchorPtr
     AICPU_CHECK_NOTNULL(src_node);
     ge::GeTensorDesc src_out_tensor_desc = src_node->GetOpDesc()->GetOutputDesc(out_anchor->GetIdx());
     AICPU_CHECK_FALSE_EXEC(fused_op_desc->AddOutputDesc(src_out_tensor_desc) == ge::GRAPH_SUCCESS,
-        AICPU_REPORT_INNER_ERR_MSG(
-            "Add output[%zu] tensor desc failed, op[%s], op type[%s].",
-            i, op_name.c_str(), fused_op_desc->GetType().c_str());
-        return ErrorCode::REBUILD_TENSORDESC_FAILED)
+                           AICPU_REPORT_INNER_ERR_MSG("Add output[%zu] tensor desc failed, op[%s], op type[%s].", i,
+                                                      op_name.c_str(), fused_op_desc->GetType().c_str());
+                           return ErrorCode::REBUILD_TENSORDESC_FAILED)
 
     TFDataType tf_data_type = ConvertGeDataType2TfDataType(src_out_tensor_desc.GetDataType());
     if (tf_data_type == TFDataType::DT_INVALID) {
       AICPU_REPORT_INNER_ERR_MSG(
           "Convert output[%zu] ge data type[%d] to tf data type failed,"
-          " op[%s], op type[%s].", i, src_out_tensor_desc.GetDataType(),
-          op_name.c_str(), fused_op_desc->GetType().c_str());
+          " op[%s], op type[%s].",
+          i, src_out_tensor_desc.GetDataType(), op_name.c_str(), fused_op_desc->GetType().c_str());
       return ErrorCode::DATA_TYPE_UNDEFILED;
     }
     output_list.emplace_back(static_cast<int64_t>(tf_data_type));
   }
-  AICPU_CHECK_FALSE_EXEC(ge::AttrUtils::SetListInt(fused_op_desc, kTfOutDataType, output_list),
-      AICPU_REPORT_INNER_ERR_MSG(
-          "Call ge::AttrUtils::SetListInt failed to set attr[%s],"
-          " op[%s], op type[%s].", kTfOutDataType.c_str(), op_name.c_str(),
-          fused_op_desc->GetType().c_str());
+  AICPU_CHECK_FALSE_EXEC(
+      ge::AttrUtils::SetListInt(fused_op_desc, kTfOutDataType, output_list),
+      AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::SetListInt failed to set attr[%s],"
+                                 " op[%s], op type[%s].",
+                                 kTfOutDataType.c_str(), op_name.c_str(), fused_op_desc->GetType().c_str());
       return ErrorCode::ADD_TF_DATATYPE_FAILED)
   return ge::SUCCESS;
 }
@@ -832,17 +830,16 @@ ge::Status TfOptimizer::SetAsyncFlag(ge::NodePtr &node) const {
     AICPU_CHECK_NOTNULL(kernel_info_ptr);
     OpFullInfo op_full_info;
     ge::Status status = kernel_info_ptr->GetOpInfo(op_type, op_full_info);
-    AICPU_CHECK_FALSE_EXEC(status == ge::SUCCESS,
-        AICPU_REPORT_INNER_ERR_MSG("op type[%s] not support, op[%s].",
-            op_type.c_str(), node_name.c_str());
-        return status;)
+    AICPU_CHECK_FALSE_EXEC(status == ge::SUCCESS, AICPU_REPORT_INNER_ERR_MSG("op type[%s] not support, op[%s].",
+                                                                             op_type.c_str(), node_name.c_str());
+                           return status;)
     async_flag = op_full_info.flagAsync;
   }
-  AICPU_CHECK_FALSE_EXEC(
-    ge::AttrUtils::SetBool(op_desc_ptr, kAsyncFlag, async_flag),
-    AICPU_REPORT_INNER_ERR_MSG("Set attr kAsyncFlag failed"
-        " op[%s] op_type[%s].", node_name.c_str(), op_type.c_str());
-    return ErrorCode::ADD_ATTR_FAILED)
+  AICPU_CHECK_FALSE_EXEC(ge::AttrUtils::SetBool(op_desc_ptr, kAsyncFlag, async_flag),
+                         AICPU_REPORT_INNER_ERR_MSG("Set attr kAsyncFlag failed"
+                                                    " op[%s] op_type[%s].",
+                                                    node_name.c_str(), op_type.c_str());
+                         return ErrorCode::ADD_ATTR_FAILED)
   return ge::SUCCESS;
 }
 
@@ -850,8 +847,7 @@ void LableExceptionAbortAttr(const ge::OpDescPtr &op_desc, const std::string &no
   if (ge::AttrUtils::HasAttr(op_desc, kExceptionAbort)) {
     bool is_exception_abort = false;
     (void)ge::AttrUtils::GetBool(op_desc, kExceptionAbort, is_exception_abort);
-    AICPUE_LOGI("Op[%s] already has %s attr[%d].",
-        node_name.c_str(), kExceptionAbort.c_str(), is_exception_abort);
+    AICPUE_LOGI("Op[%s] already has %s attr[%d].", node_name.c_str(), kExceptionAbort.c_str(), is_exception_abort);
   } else {
     (void)ge::AttrUtils::SetBool(op_desc, kExceptionAbort, true);
     AICPUE_LOGI("Op[%s] add %s attr success.", node_name.c_str(), kExceptionAbort.c_str());
@@ -859,14 +855,12 @@ void LableExceptionAbortAttr(const ge::OpDescPtr &op_desc, const std::string &no
 }
 
 bool IsExceptionAbortOp(const std::string &op_type) {
-  const std::vector<std::string> op_list = {
-    "IteratorGetNext", "DynamicGetNext"
-  };
+  const std::vector<std::string> op_list = {"IteratorGetNext", "DynamicGetNext"};
   return (std::find(op_list.begin(), op_list.end(), op_type) != op_list.end());
 }
 
-ge::Status SetExceptionAbortAttrValue(const ge::OpDescPtr &op_desc_ptr,
-    const std::string &node_name, const FunctionDefLibrary &func_def_lib) {
+ge::Status SetExceptionAbortAttrValue(const ge::OpDescPtr &op_desc_ptr, const std::string &node_name,
+                                      const FunctionDefLibrary &func_def_lib) {
   for (const auto &func_def : func_def_lib.function()) {
     for (const auto &node_def : func_def.node_def()) {
       if (!IsExceptionAbortOp(node_def.op())) {
@@ -889,21 +883,19 @@ ge::Status TfOptimizer::SetExceptionAbortAttr(ge::NodePtr &node) const {
   ge::Buffer func_def_bytes;
   std::string node_name = node->GetName();
   AICPU_CHECK_FALSE_EXEC(
-    ge::AttrUtils::GetBytes(op_desc_ptr, kTfFuncDef, func_def_bytes),
-    AICPUE_LOGE("function def attr does not exist in op[%s], op type[%s].",
-                node_name.c_str(), op_type.c_str());
-    return ErrorCode::FUNC_DEF_NOT_EXIST)
+      ge::AttrUtils::GetBytes(op_desc_ptr, kTfFuncDef, func_def_bytes),
+      AICPUE_LOGE("function def attr does not exist in op[%s], op type[%s].", node_name.c_str(), op_type.c_str());
+      return ErrorCode::FUNC_DEF_NOT_EXIST)
   AICPU_IF_BOOL_EXEC(func_def_bytes.GetSize() == 0,
-    AICPU_REPORT_INNER_ERR_MSG("Size of [%s] is out of range.", node_name.c_str());
-    return ErrorCode::PARSE_FUNC_DEF_FAILED)
+                     AICPU_REPORT_INNER_ERR_MSG("Size of [%s] is out of range.", node_name.c_str());
+                     return ErrorCode::PARSE_FUNC_DEF_FAILED)
 
   FunctionDefLibrary func_def_lib;
   AICPU_CHECK_FALSE_EXEC(
-    func_def_lib.ParseFromArray(func_def_bytes.GetData(), func_def_bytes.GetSize()),
-    AICPU_REPORT_INNER_ERR_MSG(
-      "Parse function def library failed from array, op[%s], op type[%s].",
-      node_name.c_str(), op_type.c_str());
-    return ErrorCode::PARSE_FUNC_DEF_FAILED)
+      func_def_lib.ParseFromArray(func_def_bytes.GetData(), func_def_bytes.GetSize()),
+      AICPU_REPORT_INNER_ERR_MSG("Parse function def library failed from array, op[%s], op type[%s].",
+                                 node_name.c_str(), op_type.c_str());
+      return ErrorCode::PARSE_FUNC_DEF_FAILED)
 
   return aicpu::SetExceptionAbortAttrValue(op_desc_ptr, node_name, func_def_lib);
 }
@@ -914,9 +906,7 @@ ge::Status TfOptimizer::OptimizeIsolatedNode(ge::NodePtr &node) const {
   // if only one node, GE IR -> TF
   ge::Status status = CreateNodeDefForGeNode(node);
   if (status != ge::SUCCESS) {
-    AICPU_REPORT_INNER_ERR_MSG(
-        "Call TfOptimizer::CreateNodeDefForGeNode failed, op[%s]",
-        node->GetName().c_str());
+    AICPU_REPORT_INNER_ERR_MSG("Call TfOptimizer::CreateNodeDefForGeNode failed, op[%s]", node->GetName().c_str());
     return status;
   }
   status = SetAsyncFlag(node);
@@ -937,8 +927,7 @@ ge::Status TfOptimizer::CreateNodeDefForGeNode(ge::NodePtr &node) const {
   ge::OpDescPtr op_desc = node->GetOpDesc();
   // No need to create node def for function op
   if (op_desc->GetType() == kFunctionOp) {
-    AICPUE_LOGI("Op[%s] is function op, op type[%s].",
-                node_name.c_str(), node->GetType().c_str());
+    AICPUE_LOGI("Op[%s] is function op, op type[%s].", node_name.c_str(), node->GetType().c_str());
     return ge::SUCCESS;
   }
   if (op_check_mode_) {
@@ -946,33 +935,30 @@ ge::Status TfOptimizer::CreateNodeDefForGeNode(ge::NodePtr &node) const {
     if (!CheckIsFunctionOp(op_desc)) {
       need_check_tf.push_back(op_desc->GetType());
     }
-    AICPU_CHECK_FALSE_EXEC(ge::AttrUtils::SetListStr(op_desc, "needCheckTf", need_check_tf),
-        AICPU_REPORT_INNER_ERR_MSG(
-            "Call ge::SetListStr failed to set attr[needCheckTf], op[%s].",
-            node_name.c_str());
+    AICPU_CHECK_FALSE_EXEC(
+        ge::AttrUtils::SetListStr(op_desc, "needCheckTf", need_check_tf),
+        AICPU_REPORT_INNER_ERR_MSG("Call ge::SetListStr failed to set attr[needCheckTf], op[%s].", node_name.c_str());
         return ErrorCode::FUSE_NODES_FAILED)
   }
 
   // step1: check tf node def. if not exist, create it
   ge::Buffer node_def_bytes;
   if (ge::AttrUtils::GetBytes(op_desc, kTfNodeDef, node_def_bytes)) {
-    AICPUE_LOGI("Node def attr exist in ge op[%s], op type[%s].",
-                node_name.c_str(), node->GetType().c_str());
+    AICPUE_LOGI("Node def attr exist in ge op[%s], op type[%s].", node_name.c_str(), node->GetType().c_str());
     return ge::SUCCESS;
   }
 
   // IR -> tf
   NodeDef node_def;
   ge::shared_ptr<Ir2tfBaseParser> parser = Ir2tfParserFactory::Instance().CreateIRParser(op_desc->GetType());
-  AICPU_IF_BOOL_EXEC(parser == nullptr,
-      AICPU_REPORT_INNER_ERR_MSG("Create ir parser failed, op[%s],"
-          " op type[%s].", node->GetName().c_str(), node->GetType().c_str());
-      return ErrorCode::GET_IR2TF_PARSER_FAILED)
+  AICPU_IF_BOOL_EXEC(parser == nullptr, AICPU_REPORT_INNER_ERR_MSG("Create ir parser failed, op[%s],"
+                                                                   " op type[%s].",
+                                                                   node->GetName().c_str(), node->GetType().c_str());
+                     return ErrorCode::GET_IR2TF_PARSER_FAILED)
   AICPU_CHECK_RES_WITH_LOG(parser->ParseNodeDef(*node, &node_def),
-      "Call Ir2tfBaseParser::ParseNodeDef function failed. op[%s], op type[%s].",
-      node_name.c_str(), node->GetType().c_str())
-  AICPUE_LOGI("Create node def for ge op[%s] success, op type[%s].",
-              node_name.c_str(), node->GetType().c_str());
+                           "Call Ir2tfBaseParser::ParseNodeDef function failed. op[%s], op type[%s].",
+                           node_name.c_str(), node->GetType().c_str())
+  AICPUE_LOGI("Create node def for ge op[%s] success, op type[%s].", node_name.c_str(), node->GetType().c_str());
 
   // step2: set tf node def for ge node
   auto state = InsertTfNodeDefToOp(op_desc, node_def, node->GetType(), kTfNodeDef);
@@ -981,10 +967,9 @@ ge::Status TfOptimizer::CreateNodeDefForGeNode(ge::NodePtr &node) const {
   }
   // value 3 represent the framework tensorflow
   AICPU_CHECK_FALSE_EXEC(ge::AttrUtils::SetInt(op_desc, kFrameworkType, 3),
-      AICPU_REPORT_INNER_ERR_MSG(
-          "Call ge::SetInt failed to set attr[%s] to 3, op[%s], op type[%s].",
-          kFrameworkType.c_str(), node_name.c_str(), node->GetType().c_str());
-      return ErrorCode::CREATE_NODEDEF_FAILED)
+                         AICPU_REPORT_INNER_ERR_MSG("Call ge::SetInt failed to set attr[%s] to 3, op[%s], op type[%s].",
+                                                    kFrameworkType.c_str(), node_name.c_str(), node->GetType().c_str());
+                         return ErrorCode::CREATE_NODEDEF_FAILED)
 
   // step3: set input tensor desc for ge node (op_desc)
   std::vector<int64_t> input_type_vec;
@@ -993,18 +978,16 @@ ge::Status TfOptimizer::CreateNodeDefForGeNode(ge::NodePtr &node) const {
     auto ge_dtype = input_tensor_desc.GetDataType();
     TFDataType tf_data_type = ConvertGeDataType2TfDataType(ge_dtype);
     AICPU_IF_BOOL_EXEC(tf_data_type == TFDataType::DT_INVALID,
-        AICPU_REPORT_INNER_ERR_MSG("unsupported input data type[%s], op[%s], op type[%s]",
-            ge::TypeUtils::DataTypeToSerialString(ge_dtype).c_str(),
-            node_name.c_str(),
-            node->GetType().c_str());
-        return ErrorCode::DATA_TYPE_UNDEFILED)
+                       AICPU_REPORT_INNER_ERR_MSG("unsupported input data type[%s], op[%s], op type[%s]",
+                                                  ge::TypeUtils::DataTypeToSerialString(ge_dtype).c_str(),
+                                                  node_name.c_str(), node->GetType().c_str());
+                       return ErrorCode::DATA_TYPE_UNDEFILED)
     input_type_vec.emplace_back(static_cast<int64_t>(tf_data_type));
   }
   AICPU_CHECK_FALSE_EXEC(ge::AttrUtils::SetListInt(op_desc, kTfInDataType, input_type_vec),
-      AICPU_REPORT_INNER_ERR_MSG(
-          "Call ge::SetListInt failed to set attr[%s], op[%s], op type[%s].",
-          kTfInDataType.c_str(), node_name.c_str(), node->GetType().c_str());
-      return ErrorCode::ADD_TF_DATATYPE_FAILED)
+                         AICPU_REPORT_INNER_ERR_MSG("Call ge::SetListInt failed to set attr[%s], op[%s], op type[%s].",
+                                                    kTfInDataType.c_str(), node_name.c_str(), node->GetType().c_str());
+                         return ErrorCode::ADD_TF_DATATYPE_FAILED)
 
   // step4: set output tensor desc for ge node (op_desc)
   std::vector<int64_t> output_type_vec;
@@ -1013,23 +996,21 @@ ge::Status TfOptimizer::CreateNodeDefForGeNode(ge::NodePtr &node) const {
     auto ge_dtype = output_tensor_desc.GetDataType();
     TFDataType tf_data_type = ConvertGeDataType2TfDataType(ge_dtype);
     AICPU_IF_BOOL_EXEC(tf_data_type == TFDataType::DT_INVALID,
-        AICPU_REPORT_INNER_ERR_MSG("unsupported output data type[%s], op[%s], op type[%s]",
-            ge::TypeUtils::DataTypeToSerialString(ge_dtype).c_str(),
-            node_name.c_str(),
-            node->GetType().c_str());
-        return ErrorCode::DATA_TYPE_UNDEFILED)
+                       AICPU_REPORT_INNER_ERR_MSG("unsupported output data type[%s], op[%s], op type[%s]",
+                                                  ge::TypeUtils::DataTypeToSerialString(ge_dtype).c_str(),
+                                                  node_name.c_str(), node->GetType().c_str());
+                       return ErrorCode::DATA_TYPE_UNDEFILED)
     output_type_vec.emplace_back(static_cast<int64_t>(tf_data_type));
   }
   AICPU_CHECK_FALSE_EXEC(ge::AttrUtils::SetListInt(op_desc, kTfOutDataType, output_type_vec),
-      AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::SetListInt failed"
-          " to set attr[%s], op[%s], op type[%s].", kTfOutDataType.c_str(),
-          node_name.c_str(), node->GetType().c_str());
-      return ErrorCode::ADD_TF_DATATYPE_FAILED)
+                         AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::SetListInt failed"
+                                                    " to set attr[%s], op[%s], op type[%s].",
+                                                    kTfOutDataType.c_str(), node_name.c_str(), node->GetType().c_str());
+                         return ErrorCode::ADD_TF_DATATYPE_FAILED)
   return ge::SUCCESS;
 }
 
-ge::Status TfOptimizer::InsertNodesToSubGraph(ge::ComputeGraphPtr &sub_graph,
-                                              std::vector<ge::NodePtr> &node_cluster,
+ge::Status TfOptimizer::InsertNodesToSubGraph(ge::ComputeGraphPtr &sub_graph, std::vector<ge::NodePtr> &node_cluster,
                                               SubGraphInfo &sub_graph_info) const {
   AICPU_CHECK_NOTNULL(sub_graph);
   for (const ge::NodePtr &node : node_cluster) {
@@ -1117,12 +1098,12 @@ ge::Status TfOptimizer::LinkInnerAnchorsForSubGraph(ge::ComputeGraph &original_g
       ge::graphStatus status = ge::GraphUtils::AddEdge(src_node->GetOutDataAnchor(peer_out_anchor->GetIdx()),
                                                        dst_node->GetInDataAnchor(in_data_anchor->GetIdx()));
       AICPU_CHECK_FALSE_EXEC(status == ge::GRAPH_SUCCESS,
-          AICPU_REPORT_INNER_ERR_MSG("Call ge::GraphUtils::AddEdge failed to link"
-              " inner data anchor, src op[%s], src op type[%s],"
-              " dst op[%s], dst op type[%s]",
-              src_node->GetName().c_str(), src_node->GetType().c_str(),
-              dst_node->GetName().c_str(), dst_node->GetType().c_str());
-          return ErrorCode::ADD_EDGE_FAILED)
+                             AICPU_REPORT_INNER_ERR_MSG("Call ge::GraphUtils::AddEdge failed to link"
+                                                        " inner data anchor, src op[%s], src op type[%s],"
+                                                        " dst op[%s], dst op type[%s]",
+                                                        src_node->GetName().c_str(), src_node->GetType().c_str(),
+                                                        dst_node->GetName().c_str(), dst_node->GetType().c_str());
+                             return ErrorCode::ADD_EDGE_FAILED)
     }
 
     // check input control anchor of current node
@@ -1138,12 +1119,12 @@ ge::Status TfOptimizer::LinkInnerAnchorsForSubGraph(ge::ComputeGraph &original_g
         ge::graphStatus status =
             ge::GraphUtils::AddEdge(src_node->GetOutControlAnchor(), dst_node->GetInControlAnchor());
         AICPU_CHECK_FALSE_EXEC(status == ge::GRAPH_SUCCESS,
-            AICPU_REPORT_INNER_ERR_MSG("Call ge::GraphUtils::AddEdge failed to link"
-                " inner control anchor, src op[%s], src op type[%s],"
-                " dst op[%s], dst op type[%s].",
-                src_node->GetName().c_str(), src_node->GetType().c_str(),
-                dst_node->GetName().c_str(), dst_node->GetType().c_str());
-            return ErrorCode::ADD_EDGE_FAILED)
+                               AICPU_REPORT_INNER_ERR_MSG("Call ge::GraphUtils::AddEdge failed to link"
+                                                          " inner control anchor, src op[%s], src op type[%s],"
+                                                          " dst op[%s], dst op type[%s].",
+                                                          src_node->GetName().c_str(), src_node->GetType().c_str(),
+                                                          dst_node->GetName().c_str(), dst_node->GetType().c_str());
+                               return ErrorCode::ADD_EDGE_FAILED)
       }
     }
   }
@@ -1159,12 +1140,11 @@ ge::Status TfOptimizer::CollectNodeFuncs(const std::vector<ge::NodePtr> &node_cl
     ge::Buffer func_def_bytes;
     if (ge::AttrUtils::GetBytes(op_desc, kTfFuncDef, func_def_bytes)) {
       FunctionDefLibrary func_lib;
-      AICPU_CHECK_FALSE_EXEC(func_lib.ParseFromArray(static_cast<void*>(func_def_bytes.GetData()),
-                                                     func_def_bytes.GetSize()),
-          AICPU_REPORT_INNER_ERR_MSG(
-              "Parse function def using ParseFromArray failed, node cluster[%s].",
-              node_cluster[0]->GetName().c_str());
-      return ErrorCode::BUILD_FUNCDEF_FAILED)
+      AICPU_CHECK_FALSE_EXEC(
+          func_lib.ParseFromArray(static_cast<void *>(func_def_bytes.GetData()), func_def_bytes.GetSize()),
+          AICPU_REPORT_INNER_ERR_MSG("Parse function def using ParseFromArray failed, node cluster[%s].",
+                                     node_cluster[0]->GetName().c_str());
+          return ErrorCode::BUILD_FUNCDEF_FAILED)
       library->MergeFrom(func_lib);
     }
   }
@@ -1182,30 +1162,30 @@ ge::Status TfOptimizer::RebuildInputDesc(const std::vector<ge::InDataAnchorPtr> 
     AICPU_CHECK_NOTNULL(dst_node);
     ge::GeTensorDesc dst_in_tensor_desc = dst_node->GetOpDesc()->GetInputDesc(in_anchor->GetIdx());
     AICPU_CHECK_FALSE_EXEC(fused_op_desc->AddInputDesc(dst_in_tensor_desc) == ge::GRAPH_SUCCESS,
-        AICPU_REPORT_INNER_ERR_MSG("Call ge::OpDesc::AddInputDesc failed to rebuild"
-            " input tensor dese. op[%s], op type[%s].",
-            op_name.c_str(), fused_op_desc->GetType().c_str());
-        return ErrorCode::REBUILD_TENSORDESC_FAILED)
+                           AICPU_REPORT_INNER_ERR_MSG("Call ge::OpDesc::AddInputDesc failed to rebuild"
+                                                      " input tensor dese. op[%s], op type[%s].",
+                                                      op_name.c_str(), fused_op_desc->GetType().c_str());
+                           return ErrorCode::REBUILD_TENSORDESC_FAILED)
 
     TFDataType tf_data_type = ConvertGeDataType2TfDataType(dst_in_tensor_desc.GetDataType());
-    AICPU_IF_BOOL_EXEC(tf_data_type == TFDataType::DT_INVALID,
-      AICPU_REPORT_INNER_ERR_MSG("Invalid ge data type[%d], op[%s], op type[%s].",
-          dst_in_tensor_desc.GetDataType(),
-          op_name.c_str(), fused_op_desc->GetType().c_str());
-      return ErrorCode::DATA_TYPE_UNDEFILED)
+    AICPU_IF_BOOL_EXEC(
+        tf_data_type == TFDataType::DT_INVALID,
+        AICPU_REPORT_INNER_ERR_MSG("Invalid ge data type[%d], op[%s], op type[%s].", dst_in_tensor_desc.GetDataType(),
+                                   op_name.c_str(), fused_op_desc->GetType().c_str());
+        return ErrorCode::DATA_TYPE_UNDEFILED)
     input_list.push_back(static_cast<int64_t>(tf_data_type));
   }
 
-  AICPU_CHECK_FALSE_EXEC(ge::AttrUtils::SetListInt(fused_op_desc, kTfInDataType, input_list),
+  AICPU_CHECK_FALSE_EXEC(
+      ge::AttrUtils::SetListInt(fused_op_desc, kTfInDataType, input_list),
       AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::SetListInt failed"
-          " to set attr[%s], op[%s], op type[%s].", kTfInDataType.c_str(),
-          op_name.c_str(), fused_op_desc->GetType().c_str());
+                                 " to set attr[%s], op[%s], op type[%s].",
+                                 kTfInDataType.c_str(), op_name.c_str(), fused_op_desc->GetType().c_str());
       return ErrorCode::ADD_TF_DATATYPE_FAILED)
   return ge::SUCCESS;
 }
 
-ge::Status TfOptimizer::RebuildFusionNode(SubGraphInfo &sub_graph_info,
-                                          ge::NodePtr &fused_node) const {
+ge::Status TfOptimizer::RebuildFusionNode(SubGraphInfo &sub_graph_info, ge::NodePtr &fused_node) const {
   AICPU_CHECK_NOTNULL(fused_node);
   std::string node_name = fused_node->GetName();
 
@@ -1216,19 +1196,19 @@ ge::Status TfOptimizer::RebuildFusionNode(SubGraphInfo &sub_graph_info,
       AICPU_CHECK_NOTNULL(peer_in_anchor);
       ge::graphStatus status = peer_in_anchor->Unlink(out_anchor);
       AICPU_CHECK_FALSE_EXEC(status == ge::GRAPH_SUCCESS,
-          AICPU_REPORT_INNER_ERR_MSG("Call ge::InDataAnchor::Unlink failed, "
-              "op[%s], op type[%s], peer op[%s].", node_name.c_str(),
-              fused_node->GetType().c_str(),
-              peer_in_anchor->GetOwnerNode()->GetName().c_str());
-          return ErrorCode::OPERATE_ANCHOR_FAILED)
+                             AICPU_REPORT_INNER_ERR_MSG("Call ge::InDataAnchor::Unlink failed, "
+                                                        "op[%s], op type[%s], peer op[%s].",
+                                                        node_name.c_str(), fused_node->GetType().c_str(),
+                                                        peer_in_anchor->GetOwnerNode()->GetName().c_str());
+                             return ErrorCode::OPERATE_ANCHOR_FAILED)
 
       status = ge::GraphUtils::AddEdge(fused_node->GetOutDataAnchor(src_index), peer_in_anchor);
       AICPU_CHECK_FALSE_EXEC(status == ge::GRAPH_SUCCESS,
-          AICPU_REPORT_INNER_ERR_MSG("Call ge::GraphUtils::AddEdge failed,"
-              " op[%s], op type[%s], peer op[%s].", node_name.c_str(),
-              fused_node->GetType().c_str(),
-              peer_in_anchor->GetOwnerNode()->GetName().c_str());
-          return ErrorCode::ADD_EDGE_FAILED);
+                             AICPU_REPORT_INNER_ERR_MSG("Call ge::GraphUtils::AddEdge failed,"
+                                                        " op[%s], op type[%s], peer op[%s].",
+                                                        node_name.c_str(), fused_node->GetType().c_str(),
+                                                        peer_in_anchor->GetOwnerNode()->GetName().c_str());
+                             return ErrorCode::ADD_EDGE_FAILED);
     }
     // src_index++ must be here, out_data_anchor can be connected to multi node!
     src_index++;
@@ -1241,19 +1221,19 @@ ge::Status TfOptimizer::RebuildFusionNode(SubGraphInfo &sub_graph_info,
     AICPU_CHECK_NOTNULL(peer_out_anchor);
     ge::graphStatus status = peer_out_anchor->Unlink(in_anchor);
     AICPU_CHECK_FALSE_EXEC(status == ge::GRAPH_SUCCESS,
-        AICPU_REPORT_INNER_ERR_MSG("Call ge::OutDataAnchor::Unlink failed,"
-            " op[%s], op type[%s], peer op[%s].", node_name.c_str(),
-            fused_node->GetType().c_str(),
-            peer_out_anchor->GetOwnerNode()->GetName().c_str());
-        return ErrorCode::OPERATE_ANCHOR_FAILED)
+                           AICPU_REPORT_INNER_ERR_MSG("Call ge::OutDataAnchor::Unlink failed,"
+                                                      " op[%s], op type[%s], peer op[%s].",
+                                                      node_name.c_str(), fused_node->GetType().c_str(),
+                                                      peer_out_anchor->GetOwnerNode()->GetName().c_str());
+                           return ErrorCode::OPERATE_ANCHOR_FAILED)
 
     status = ge::GraphUtils::AddEdge(peer_out_anchor, fused_node->GetInDataAnchor(src_index));
     AICPU_CHECK_FALSE_EXEC(status == ge::GRAPH_SUCCESS,
-        AICPU_REPORT_INNER_ERR_MSG("Call ge::GraphUtils::AddEdge failed,"
-            " op[%s], op type[%s], peer op[%s].", node_name.c_str(),
-            fused_node->GetType().c_str(),
-            peer_out_anchor->GetOwnerNode()->GetName().c_str());
-        return ErrorCode::ADD_EDGE_FAILED)
+                           AICPU_REPORT_INNER_ERR_MSG("Call ge::GraphUtils::AddEdge failed,"
+                                                      " op[%s], op type[%s], peer op[%s].",
+                                                      node_name.c_str(), fused_node->GetType().c_str(),
+                                                      peer_out_anchor->GetOwnerNode()->GetName().c_str());
+                           return ErrorCode::ADD_EDGE_FAILED)
     src_index++;
   }
 
@@ -1264,19 +1244,19 @@ ge::Status TfOptimizer::RebuildFusionNode(SubGraphInfo &sub_graph_info,
       AICPU_CHECK_NOTNULL(peer_in_anchor);
       ge::graphStatus status = peer_in_anchor->Unlink(out_anchor);
       AICPU_CHECK_FALSE_EXEC(status == ge::GRAPH_SUCCESS,
-          AICPU_REPORT_INNER_ERR_MSG("Call ge::InControlAnchorAnchor::Unlink failed,"
-              " op[%s], op type[%s], peer op[%s].", node_name.c_str(),
-              fused_node->GetType().c_str(),
-              peer_in_anchor->GetOwnerNode()->GetName().c_str());
-          return ErrorCode::OPERATE_ANCHOR_FAILED)
+                             AICPU_REPORT_INNER_ERR_MSG("Call ge::InControlAnchorAnchor::Unlink failed,"
+                                                        " op[%s], op type[%s], peer op[%s].",
+                                                        node_name.c_str(), fused_node->GetType().c_str(),
+                                                        peer_in_anchor->GetOwnerNode()->GetName().c_str());
+                             return ErrorCode::OPERATE_ANCHOR_FAILED)
 
       status = ge::GraphUtils::AddEdge(fused_node->GetOutControlAnchor(), peer_in_anchor);
       AICPU_CHECK_FALSE_EXEC(status == ge::GRAPH_SUCCESS,
-          AICPU_REPORT_INNER_ERR_MSG("Call ge::GraphUtils::AddEdge failed, op[%s],"
-              " op type[%s], peer op[%s].", node_name.c_str(),
-              fused_node->GetType().c_str(),
-              peer_in_anchor->GetOwnerNode()->GetName().c_str());
-          return ErrorCode::ADD_EDGE_FAILED)
+                             AICPU_REPORT_INNER_ERR_MSG("Call ge::GraphUtils::AddEdge failed, op[%s],"
+                                                        " op type[%s], peer op[%s].",
+                                                        node_name.c_str(), fused_node->GetType().c_str(),
+                                                        peer_in_anchor->GetOwnerNode()->GetName().c_str());
+                             return ErrorCode::ADD_EDGE_FAILED)
     }
   }
 
@@ -1287,19 +1267,19 @@ ge::Status TfOptimizer::RebuildFusionNode(SubGraphInfo &sub_graph_info,
       AICPU_CHECK_NOTNULL(peer_out_anchor);
       ge::graphStatus status = peer_out_anchor->Unlink(in_anchor);
       AICPU_CHECK_FALSE_EXEC(status == ge::GRAPH_SUCCESS,
-          AICPU_REPORT_INNER_ERR_MSG("Call ge::OutControlAnchor::Unlink failed,"
-              " op[%s], op type[%s], peer op[%s].", node_name.c_str(),
-              fused_node->GetType().c_str(),
-              peer_out_anchor->GetOwnerNode()->GetName().c_str());
-          return ErrorCode::OPERATE_ANCHOR_FAILED)
+                             AICPU_REPORT_INNER_ERR_MSG("Call ge::OutControlAnchor::Unlink failed,"
+                                                        " op[%s], op type[%s], peer op[%s].",
+                                                        node_name.c_str(), fused_node->GetType().c_str(),
+                                                        peer_out_anchor->GetOwnerNode()->GetName().c_str());
+                             return ErrorCode::OPERATE_ANCHOR_FAILED)
 
       status = ge::GraphUtils::AddEdge(peer_out_anchor, fused_node->GetInControlAnchor());
       AICPU_CHECK_FALSE_EXEC(status == ge::GRAPH_SUCCESS,
-          AICPU_REPORT_INNER_ERR_MSG("Call ge::GraphUtils::AddEdge failed,"
-              " op[%s], op type[%s], peer op[%s].",
-               node_name.c_str(), fused_node->GetType().c_str(),
-               peer_out_anchor->GetOwnerNode()->GetName().c_str());
-          return ErrorCode::ADD_EDGE_FAILED)
+                             AICPU_REPORT_INNER_ERR_MSG("Call ge::GraphUtils::AddEdge failed,"
+                                                        " op[%s], op type[%s], peer op[%s].",
+                                                        node_name.c_str(), fused_node->GetType().c_str(),
+                                                        peer_out_anchor->GetOwnerNode()->GetName().c_str());
+                             return ErrorCode::ADD_EDGE_FAILED)
     }
   }
   return ge::SUCCESS;
@@ -1341,13 +1321,12 @@ ge::Status TfOptimizer::SaveFusionNodeMappingRelations(const std::vector<ge::Nod
     (void)original_names_tmp.emplace_back(node->GetName());
   }
   if (original_names_tmp.size() > 0) {
-    AICPU_CHECK_FALSE_EXEC(ge::AttrUtils::SetListStr(mapping_op_desc, ge::ATTR_NAME_DATA_DUMP_ORIGIN_OP_NAMES,
-                                                     original_names_tmp),
+    AICPU_CHECK_FALSE_EXEC(
+        ge::AttrUtils::SetListStr(mapping_op_desc, ge::ATTR_NAME_DATA_DUMP_ORIGIN_OP_NAMES, original_names_tmp),
         AICPU_REPORT_INNER_ERR_MSG("Call ge::AttrUtils::SetListStr failed "
-            "to set attr[%s], op[%s], op type[%s].",
-            ge::ATTR_NAME_DATA_DUMP_ORIGIN_OP_NAMES.c_str(),
-            mapping_op_desc->GetName().c_str(),
-            mapping_op_desc->GetType().c_str());
+                                   "to set attr[%s], op[%s], op type[%s].",
+                                   ge::ATTR_NAME_DATA_DUMP_ORIGIN_OP_NAMES.c_str(), mapping_op_desc->GetName().c_str(),
+                                   mapping_op_desc->GetType().c_str());
         return ErrorCode::ADD_TF_DATADESC_FAILED);
   }
 
@@ -1376,4 +1355,4 @@ ge::Status TfOptimizer::SaveFusionNodeMappingRelations(const std::vector<ge::Nod
 }
 
 FACTORY_GRAPH_OPTIMIZER_CLASS_KEY(TfOptimizer, "TFOptimizer")
-}
+}  // namespace aicpu

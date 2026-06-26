@@ -89,4 +89,3 @@ EsCNode *EsGetProducer(EsCTensorHolder *tensor)
 auto *tensor = EsCreateGraphInput(graph, 0);
 auto *producer = static_cast<void *>(EsGetProducer(tensor));
 ```
-

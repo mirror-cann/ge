@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -39,7 +39,7 @@ constexpr int32_t kUdfReleasePkgUnpackLimitSize = 200 * 1024 * 1024;
 constexpr uint32_t kBindAllDevice = 0xffffffff;
 
 constexpr uint32_t kUdfExecutorShutdownWaitTimeInSec = 10U;
-constexpr uint32_t kRspWaitTimeInSec = 1200U; // 20min same as default grpc timeout
+constexpr uint32_t kRspWaitTimeInSec = 1200U;  // 20min same as default grpc timeout
 
 constexpr size_t kMaxThreadNum = 12UL;
 
@@ -63,9 +63,8 @@ Status UdfExecutorClient::PreProcess(const std::vector<deployer::SubmodelDesc> &
     // 用户自定义udf且在当前节点部署，获取原始tar包位置和目标解压位置
     local_udf_load_path = submodel_desc.model_path();
     if (!submodel_desc.is_builtin_udf() && submodel_desc.replica_idx_on_node() == 0U) {
-      const auto saved_model_path = submodel_desc.is_remote_model() ?
-                                    base_dir + submodel_desc.saved_model_file_path():
-                                    submodel_desc.saved_model_file_path();
+      const auto saved_model_path = submodel_desc.is_remote_model() ? base_dir + submodel_desc.saved_model_file_path()
+                                                                    : submodel_desc.saved_model_file_path();
       (void)local_udf_saved_path.insert(saved_model_path);
       GELOGD("Get saved model path[%s].", saved_model_path.c_str());
     }
@@ -86,10 +85,10 @@ Status UdfExecutorClient::PreProcess(const std::vector<deployer::SubmodelDesc> &
 Status UdfExecutorClient::DoGrantQueues(int32_t pid, const std::vector<DeployQueueAttr> &queue_attrs) {
   // each model starts a process, no need to protected by lock
   for (const auto &queue_attr : queue_attrs) {
-    GE_CHK_STATUS_RET(FlowGwClient::GrantQueue(static_cast<uint32_t>(queue_attr.device_id), queue_attr.queue_id,
-                                               pid, GrantType::kReadAndWrite),
-                      "Grant queue failed, device id=%d, queue id=%u, pid = %d",
-                      queue_attr.device_id, queue_attr.queue_id, pid);
+    GE_CHK_STATUS_RET(FlowGwClient::GrantQueue(static_cast<uint32_t>(queue_attr.device_id), queue_attr.queue_id, pid,
+                                               GrantType::kReadAndWrite),
+                      "Grant queue failed, device id=%d, queue id=%u, pid = %d", queue_attr.device_id,
+                      queue_attr.queue_id, pid);
   }
   return SUCCESS;
 }
@@ -162,8 +161,7 @@ Status UdfExecutorClient::StartUdfProcess(
     const std::vector<std::string> &msg_file_paths) {
   GELOGI("Load model size %zu.", load_model_descs.size());
   const auto &group_name = MemoryGroupManager::GetInstance().GetQsMemGroupName();
-  const size_t final_thread_num = (load_model_descs.size() > kMaxThreadNum) ?
-                                   kMaxThreadNum : load_model_descs.size();
+  const size_t final_thread_num = (load_model_descs.size() > kMaxThreadNum) ? kMaxThreadNum : load_model_descs.size();
   ThreadPool thread_pool("ge_udf_load", final_thread_num, false);
   std::vector<std::future<Status>> process_futures;
   process_futures.reserve(load_model_descs.size());
@@ -171,8 +169,7 @@ Status UdfExecutorClient::StartUdfProcess(
     const auto &load_model_desc = load_model_descs[i];
     const auto &msg_file_path = msg_file_paths[i];
     auto fut = thread_pool.commit([this, load_model_desc, msg_file_path, &group_name]() {
-      GE_CHK_STATUS_RET(LoadProcess(load_model_desc, msg_file_path, group_name),
-                        "Failed to load model.");
+      GE_CHK_STATUS_RET(LoadProcess(load_model_desc, msg_file_path, group_name), "Failed to load model.");
       return SUCCESS;
     });
     process_futures.emplace_back(std::move(fut));
@@ -184,7 +181,7 @@ Status UdfExecutorClient::StartUdfProcess(
       process_ret = ret;
     }
   }
-    return process_ret;
+  return process_ret;
 }
 
 Status UdfExecutorClient::CheckDevPidStatus(const int32_t device_id, const pid_t &pid) {
@@ -202,15 +199,15 @@ Status UdfExecutorClient::CheckDevPidStatus(const int32_t device_id, const pid_t
   return SUCCESS;
 }
 
-void UdfExecutorClient::AddPidToModelInstanceNameRelation(pid_t child_pid,
-    const deployer::ExecutorRequest_BatchLoadModelMessage& model_desc) {
+void UdfExecutorClient::AddPidToModelInstanceNameRelation(
+    pid_t child_pid, const deployer::ExecutorRequest_BatchLoadModelMessage &model_desc) {
   GELOGI("add pid to model instance name relation, models size is %zu", model_desc.models_size());
   std::lock_guard<std::mutex> guard(pid_to_model_mutex_);
   for (int32_t i = 0; i < model_desc.models_size(); ++i) {
     const auto &model = model_desc.models(i);
     pid_to_model_instances_name_[child_pid].push_back(model.model_instance_name());
     GELOGI("add pid to model instance name relation, pid[%d], model_instance_name[%s]", child_pid,
-        model.model_instance_name().c_str());
+           model.model_instance_name().c_str());
   }
   return;
 }
@@ -225,8 +222,8 @@ std::string UdfExecutorClient::GetPidModelInstanceName(pid_t child_pid) {
 }
 
 Status UdfExecutorClient::ForkAndInit(const deployer::ExecutorRequest_BatchLoadModelMessage &model_desc,
-                                      const std::string &group_name,
-                                      const std::string &message_path, pid_t &child_pid) {
+                                      const std::string &group_name, const std::string &message_path,
+                                      pid_t &child_pid) {
   GE_CHK_BOOL_RET_STATUS((model_desc.models_size() != 0), FAILED, "No model in BatchLoadModelMessage.");
   // 1. create message queue
   int32_t device_id = GetDeviceId();
@@ -249,7 +246,8 @@ Status UdfExecutorClient::ForkAndInit(const deployer::ExecutorRequest_BatchLoadM
   const auto &model_attrs = model.attrs();
   const auto find_ret = model_attrs.find("_npu_sched_model");
   if (find_ret != model_attrs.end()) {
-    GELOGD("model_instance_name[%s], npu_sched_model=[%s].", model.model_instance_name().c_str(), find_ret->second.c_str());
+    GELOGD("model_instance_name[%s], npu_sched_model=[%s].", model.model_instance_name().c_str(),
+           find_ret->second.c_str());
     params.npu_sched_model = find_ret->second;
   }
 
@@ -294,7 +292,7 @@ Status UdfExecutorClient::ForkAndInit(const deployer::ExecutorRequest_BatchLoadM
 }
 
 Status UdfExecutorClient::NotifyUdfContinue(const std::shared_ptr<ExecutorMessageClient> &message_client, pid_t udf_pid,
-                                          pid_t aicpu_pid) {
+                                            pid_t aicpu_pid) {
   deployer::ExecutorRequest notify_request;
   notify_request.set_type(deployer::ExecutorRequestType::kNotify);
   Status ret = message_client->SendRequestWithoutResponse(notify_request);
@@ -315,15 +313,15 @@ Status UdfExecutorClient::GrantAndGetUdfAicpuPid(int32_t phy_device_id, pid_t ud
 }
 
 Status UdfExecutorClient::LoadProcess(const deployer::ExecutorRequest_BatchLoadModelMessage &load_model_desc,
-                                      const std::string &msg_file_path,
-                                      const std::string &group_name) {
+                                      const std::string &msg_file_path, const std::string &group_name) {
   pid_t child_pid = -1;
   GEEVENT("Fork udf process to load model on executor start.");
   GE_CHK_STATUS_RET(ForkAndInit(load_model_desc, group_name, msg_file_path, child_pid),
                     "[Fork][Init] udf executor failed.");
-  GEEVENT("Fork udf process to load model on executor success. "
-          "model_type = %s, pid = %d, graph_id = %u, deployer pid = %d, device_id = %d.",
-          PNE_ID_UDF.c_str(), child_pid, load_model_desc.graph_id(), GetDeployerPid(), GetDeviceId());
+  GEEVENT(
+      "Fork udf process to load model on executor success. "
+      "model_type = %s, pid = %d, graph_id = %u, deployer pid = %d, device_id = %d.",
+      PNE_ID_UDF.c_str(), child_pid, load_model_desc.graph_id(), GetDeployerPid(), GetDeviceId());
   return SUCCESS;
 }
 
@@ -352,7 +350,7 @@ Status UdfExecutorClient::DistributeAndSerializeModelDescs(
   for (const auto &model_desc : load_model_descs) {
     GE_CHK_BOOL_RET_STATUS((model_desc.models_size() != 0), FAILED, "No model in BatchLoadModelMessage.");
     if (load_model_desc.models(0).saved_model_file_path().empty()) {
-      GELOGE(FAILED, "Udf saved model file path shold not be empty which maybe result of udf cache is old version.");
+      GELOGE(FAILED, "Udf saved model file path should not be empty which maybe result of udf cache is old version.");
       return FAILED;
     }
     std::string load_model_message_path;
@@ -381,7 +379,7 @@ void UdfExecutorClient::ShutdownByRelatedDeviceIds(const std::set<int32_t> &devi
   std::lock_guard<std::mutex> pids_lock(mutex_);
   for (auto &model_pids : model_id_to_pids_) {
     auto iter = std::remove_if(model_pids.second.begin(), model_pids.second.end(),
-        [&abnormal_related_pids](pid_t pid) { return abnormal_related_pids.count(pid) != 0UL; });
+                               [&abnormal_related_pids](pid_t pid) { return abnormal_related_pids.count(pid) != 0UL; });
     model_pids.second.erase(iter, model_pids.second.end());
   }
 }
@@ -414,8 +412,8 @@ Status UdfExecutorClient::ClearModelRunningData(uint32_t model_id, int32_t type,
       GE_CHK_STATUS_RET(client->SendRequest(executor_request, executor_response, kRspWaitTimeInSec),
                         "[Send][ControlMessage] failed to executor, pid = %d", pid);
       if (executor_response.error_code() != SUCCESS) {
-        GELOGE(FAILED, "[Control][Message] get from pid = %d is failed, error_message = %s",
-               pid, executor_response.error_message().c_str());
+        GELOGE(FAILED, "[Control][Message] get from pid = %d is failed, error_message = %s", pid,
+               executor_response.error_message().c_str());
         return FAILED;
       }
       return SUCCESS;
@@ -444,7 +442,7 @@ Status UdfExecutorClient::GetModelMessageClients(
   for (const auto &pid : pid_iter->second) {
     const auto handle_iter = pid_to_message_client_.find(pid);
     if (handle_iter == pid_to_message_client_.cend()) {
-      GELOGE(FAILED, "Cant find executor handle for pid %d", pid);
+      GELOGE(FAILED, "Can't find executor handle for pid %d", pid);
       return FAILED;
     }
     pid_and_message_clients[pid] = handle_iter->second;
@@ -585,7 +583,7 @@ ProcStatus UdfExecutorClient::PostProcSubProcessStatus(const std::map<pid_t, Pro
   std::lock_guard<std::mutex> pids_lock(mutex_);
   for (auto &model_pids : model_id_to_pids_) {
     auto iter = std::remove_if(model_pids.second.begin(), model_pids.second.end(),
-        [&exited_pids](pid_t pid) { return exited_pids.count(pid) != 0UL; });
+                               [&exited_pids](pid_t pid) { return exited_pids.count(pid) != 0UL; });
     model_pids.second.erase(iter, model_pids.second.end());
   }
   return status;
@@ -612,12 +610,12 @@ void UdfExecutorClient::UpdateModelInsNameByPid(pid_t pid) {
   }
 }
 
-void UdfExecutorClient::GetAbnormalModelInsName(std::map<uint32_t,
-    std::vector<std::string>> &abnormal_model_instances_name) {
+void UdfExecutorClient::GetAbnormalModelInsName(
+    std::map<uint32_t, std::vector<std::string>> &abnormal_model_instances_name) {
   std::lock_guard<std::mutex> lk(abnormal_model_mutex_);
   for (const auto &iter : abnormal_model_instances_name_) {
     abnormal_model_instances_name[iter.first].insert(abnormal_model_instances_name[iter.first].end(),
-        iter.second.begin(), iter.second.end());
+                                                     iter.second.begin(), iter.second.end());
   }
 }
 
@@ -683,7 +681,7 @@ Status UdfExecutorClient::PreprocessUdfTarPackage(const std::set<std::string> &l
   }
   GE_CHK_STATUS_RET(ProcessUtils::IsValidPath(model_dir), "The path[%s] is not valid.", model_dir.c_str());
   GEEVENT("Number [%zu] of local udfs will untar to file path[%s].", local_udf_saved_path.size(), model_dir.c_str());
-    GE_ASSERT_TRUE((ge::CreateDir(model_dir) == EOK), "Create direct failed, path: %s.", model_dir.c_str());
+  GE_ASSERT_TRUE((ge::CreateDir(model_dir) == EOK), "Create direct failed, path: %s.", model_dir.c_str());
   if (local_udf_saved_path.empty()) {
     GELOGI("There are no local udf need to untar package.");
     return SUCCESS;
@@ -827,7 +825,7 @@ Status UdfExecutorClient::GrantQueuesForUdf(const deployer::ExecutorRequest_Batc
 }
 
 void UdfExecutorClient::RecordPidWithNpuDeviceId(int32_t queue_owner_pid,
-    deployer::ExecutorRequest_ModelQueuesAttrs model_queues_attrs) {
+                                                 deployer::ExecutorRequest_ModelQueuesAttrs model_queues_attrs) {
   std::unique_lock<std::mutex> guard(related_mutex_);
   for (const auto &input_queue : model_queues_attrs.input_queues_attrs()) {
     if (input_queue.device_type() == NPU) {

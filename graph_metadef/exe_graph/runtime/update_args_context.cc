@@ -15,7 +15,7 @@
 
 namespace gert {
 
-const KernelArgs* UpdateArgsContext::GetKernelArgs(Placement placement, size_t index) const {
+const KernelArgs *UpdateArgsContext::GetKernelArgs(Placement placement, size_t index) const {
   auto additional_start_index = GetAdditionalInputStartIndex();
   GE_ASSERT_TRUE(additional_start_index >= 0);
 

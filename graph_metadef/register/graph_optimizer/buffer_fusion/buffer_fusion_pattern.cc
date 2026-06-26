@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2025 Huawei Technologies Co., Ltd.
- * This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+ * This program is free software, you can redistribute it and/or modify it under the terms and conditions of
  * CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
  * See LICENSE in the root of the software repository for the full text of the License.
  */
@@ -29,20 +29,17 @@ const int64_t TBE_OUTPUT_BRANCH_MULTI = 2L;
 const int64_t TBE_PATTERN_GROUPID_INVALID = -1L;
 const int32_t TBE_OUTPUT_MAX_NUM_LIMIT = 10;
 
-const std::map<ShapeTypeRule, const std::string> kShapeTypeRuleToStr {
-        {IGNORE_SHAPE_TYPE, "IGNORE_SHAPE_TYPE"},
-        {ONLY_SUPPORT_STATIC, "ONLY_SUPPORT_STATIC"},
-        {ONLY_SUPPORT_DYNAMIC, "ONLY_SUPPORT_DYNAMIC"}
-};
+const std::map<ShapeTypeRule, const std::string> kShapeTypeRuleToStr{{IGNORE_SHAPE_TYPE, "IGNORE_SHAPE_TYPE"},
+                                                                     {ONLY_SUPPORT_STATIC, "ONLY_SUPPORT_STATIC"},
+                                                                     {ONLY_SUPPORT_DYNAMIC, "ONLY_SUPPORT_DYNAMIC"}};
 
 inline bool IsAddOverflow(const int64_t &a, const int64_t &b) {
-  return ((b > 0) && (a > (static_cast<int64_t>(INT64_MAX) - b))) || \
-      ((b < 0) && (a < (static_cast<int64_t>(INT64_MIN) - b)));
+  return ((b > 0) && (a > (static_cast<int64_t>(INT64_MAX) - b))) ||
+         ((b < 0) && (a < (static_cast<int64_t>(INT64_MIN) - b)));
 }
 
 BufferFusionPattern::BufferFusionPattern(string name, int64_t op_max_count)
-    : name_(name), op_max_count_(op_max_count), error_count_(0),
-      graph_mod_type_(0) {}
+    : name_(name), op_max_count_(op_max_count), error_count_(0), graph_mod_type_(0) {}
 
 BufferFusionPattern::~BufferFusionPattern() {
   for (auto op : ops_) {
@@ -85,7 +82,7 @@ bool BufferFusionPattern::IsShapeRulesSizeValid(const size_t &types_size, const 
  * @param [in] desc_name: node desc name
  * @param [in] types: node desc type
  * @param [in] repeate_min: the min count for fusion match,
- *                         patter match failed if real count lower than the
+ *                         pattern match failed if real count lower than the
  * value
  * @param [in] repeate_max: the max count for fusion match,
  *                         the op will be ignored if current match count equal
@@ -97,8 +94,8 @@ BufferFusionPattern &BufferFusionPattern::AddOpDesc(const std::string &desc_name
                                                     const int64_t group_id, const ShapeTypeRule shape_type_rule,
                                                     const bool not_pattern, const bool is_allow_series) {
   std::vector<ShapeTypeRule> shape_type_rules = {shape_type_rule};
-  return AddOpDescTypeRules(desc_name, types, repeat_min, repeat_max, group_id, shape_type_rules,
-                            not_pattern, is_allow_series);
+  return AddOpDescTypeRules(desc_name, types, repeat_min, repeat_max, group_id, shape_type_rules, not_pattern,
+                            is_allow_series);
 }
 
 BufferFusionPattern &BufferFusionPattern::AddOpDesc(const std::string &desc_name, const std::vector<std::string> &types,
@@ -207,8 +204,8 @@ BufferFusionPattern &BufferFusionPattern::SetOutputs(const string &desc_name, co
     output_op_desc->inputs.push_back(op_desc);
 
     if (op_desc->out_branch_type != relation) {
-      GELOGW("[SetOutputs][Check] Setting outputs relation failed. Current value: %ld, New value: %ld.", op_desc->out_branch_type,
-             relation);
+      GELOGW("[SetOutputs][Check] Setting outputs relation failed. Current value: %ld, New value: %ld.",
+             op_desc->out_branch_type, relation);
       return *this;
     }
   }
@@ -287,8 +284,8 @@ BufferFusionPattern &BufferFusionPattern::SetHead(const std::vector<string> &hea
     // Head desc repeat number cannot exceed 1
     // if must be exceed 1, it can be realized by several descs
     if (head_op_desc->repeate_max > 1) {
-      GELOGW("[SetHead][Check] Head description named %s repeats more than once, current max repeat count is %ld", head_id.c_str(),
-             head_op_desc->repeate_max);
+      GELOGW("[SetHead][Check] Head description named %s repeats more than once, current max repeat count is %ld",
+             head_id.c_str(), head_op_desc->repeate_max);
       if (IsAddOverflow(error_count_, 1) != SUCCESS) {
         GELOGW("[SetHead][Check] errorCount_++ overflow. (desc_name:%s)", head_id.c_str());
         return *this;
@@ -310,8 +307,7 @@ BufferFusionPattern &BufferFusionPattern::SetHead(const std::vector<string> &hea
   }
 
   if (desc_total_min > 1) {
-    GELOGW("[SetHead][Check] Head desc repeat min total value cannot exceed 1, current value is %ld",
-           desc_total_min);
+    GELOGW("[SetHead][Check] Head desc repeat min total value cannot exceed 1, current value is %ld", desc_total_min);
     IncreaseErrorCount();
     return *this;
   }
@@ -380,19 +376,31 @@ BufferFusionOpDesc *BufferFusionPattern::GetOpDesc(const string &desc_name) cons
   return nullptr;
 }
 
-const std::vector<BufferFusionOpDesc *>& BufferFusionPattern::GetHead() const { return head_; }
+const std::vector<BufferFusionOpDesc *> &BufferFusionPattern::GetHead() const {
+  return head_;
+}
 
-const std::string& BufferFusionPattern::GetName() const { return name_; }
+const std::string &BufferFusionPattern::GetName() const {
+  return name_;
+}
 
-int64_t BufferFusionPattern::GetOpMaxCount() const { return op_max_count_; }
+int64_t BufferFusionPattern::GetOpMaxCount() const {
+  return op_max_count_;
+}
 
-int64_t BufferFusionPattern::GetErrorCnt() const { return error_count_; }
+int64_t BufferFusionPattern::GetErrorCnt() const {
+  return error_count_;
+}
 
 void BufferFusionPattern::SetGraphModType(int64_t graph_mod_type) {
   graph_mod_type_ = graph_mod_type;
 }
 
-int64_t BufferFusionPattern::GetGraphModType() const { return graph_mod_type_; }
+int64_t BufferFusionPattern::GetGraphModType() const {
+  return graph_mod_type_;
+}
 
-const std::vector<BufferFusionOpDesc *>& BufferFusionPattern::GetOpDescs() const { return ops_; }
+const std::vector<BufferFusionOpDesc *> &BufferFusionPattern::GetOpDescs() const {
+  return ops_;
+}
 }  // namespace fe
